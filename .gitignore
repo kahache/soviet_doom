@@ -12,3 +12,5 @@ __pycache__/
 # macOS
 .DS_Store
 .venv/
+# art work-in-progress (batch PNGs live embedded in docs/art/previews; only approved files go to assets/)
+work/
