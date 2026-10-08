@@ -1,0 +1,10 @@
+// ZSCRIPT entry point. GZDoom reads the root lump "ZSCRIPT" (this file,
+// extension stripped) and follows #include directives. Keep this file as a
+// table of contents only; real code lives under zscript/sd/.
+//
+// The version pin tells the compiler which language level to enforce and
+// is the minimum GZDoom the mod admits. 4.12 per the F0 brief; revisit when
+// the CEO fixes the minimum version (decision D3).
+version "4.12"
+
+#include "zscript/sd/load_reporter.zs"

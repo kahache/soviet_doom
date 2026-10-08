@@ -1,0 +1,62 @@
+# Soviet Doom — Product Requirements Document
+
+Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
+Last update: 2026-10-09.
+
+## 1. Vision
+
+A GZDoom total conversion in which the USSR of the 1970s is invaded by two
+allied alien factions, one Yankee and one Nazi, who have joined forces for
+the same goal: to defend capital. The player is a Spetsnaz sergeant who was
+a Spanish Civil War refugee child. Soviet paraphernalia everywhere: Lenin
+and Stalin posters, slogans, red stars; period weapons. Serious tone.
+
+Lore detail: `docs/product/LORE.md`.
+
+## 2. Who it is for
+
+Classic Doom players (GZDoom) who like total conversions with a strong
+visual identity. No monetisation: this is a hobby project, released for free
+under a licence to be decided.
+
+## 3. Scope of v1 (D5, proposed)
+
+One complete map (MAP01, Zarya-7 cosmodrome) with its own texture set,
+period weapons replacing Doom's slots, and the first enemies. Maps 2 and 3
+follow once MAP01 passes its gate.
+
+## 4. Non-goals (for now)
+
+Multiplayer balance, new music, voice acting, Steam/ModDB publishing. Each
+goes to `docs/ICEBOX.md` when someone has a concrete idea.
+
+## 5. Decisions (D-numbered, immutable; amend with a new decision)
+
+| # | Date | Decision | Status |
+|---|---|---|---|
+| D1 | 2026-10-09 | Name **Soviet Doom**. Repo `kahache/soviet_doom`, package `sovietdoom.pk3`, prefix `SD`. Three hobby repos share the name on GitHub (none is a published mod). | proposed, CEO ratifies |
+| D2 | 2026-10-09 | Base IWAD **Freedoom 0.13.0** (`freedoom2.wad`). The mod redistributes nothing from a commercial IWAD. | proposed, CEO ratifies |
+| D3 | 2026-10-09 | Engine **GZDoom 4.14.2** minimum (`version "4.12"` in zscript.txt until a 4.14 feature is needed). | proposed, CEO ratifies |
+| D4 | 2026-10-09 | Textures: own procedural scripts first, OTEX (non-commercial, credited) and Freedoom assets second, CEO material third. Never assets from commercial games. | proposed, CEO ratifies |
+| D5 | 2026-10-09 | v1 scope = one complete map with own texture set. | proposed, CEO ratifies |
+| D6 | 2026-10-09 | **The PM commits and pushes.** Private repo from day one. Agents never commit. | ratified (CEO) |
+| D7 | 2026-10-09 | **Repo documentation in English and Russian.** English is canonical; every doc has a mirror under `docs/ru/` delivered in the same task. Code and comments in English. In-game text in English and Russian. Conversation with the CEO in Spanish. | ratified (CEO) |
+| D8 | 2026-10-09 | Era: **the 1970s**. PM proposes 1977 (60th anniversary of October) as the exact year; CEO to confirm. | ratified (CEO), year open |
+| D9 | 2026-10-09 | **Two allied factions**, Yankee aliens and Nazi aliens, united to defend capital. Both appear in the bestiary. | ratified (CEO) |
+| D10 | 2026-10-09 | Protagonist: a **Spanish Civil War refugee child** (evacuated from Barcelona to the USSR), now a **Spetsnaz sergeant**. | ratified (CEO) |
+| D11 | 2026-10-09 | Tone **serious**. Humour in posters may come later. | ratified (CEO) |
+| D12 | 2026-10-09 | Enemies **do carry swastikas and US flags**. It is a video game and a fantastic alternate history; no trivialisation of real victims. Distribution note: Germany allows such symbols in games since 2018 when artistically justified; some stores may still reject them. | ratified (CEO) |
+| D13 | 2026-10-09 | Lore v1, three-map episode, period arsenal and bestiary (`docs/product/LORE.md`) **ratified as written**. | ratified (CEO) |
+
+## 6. Phases and gates
+
+See `docs/ROADMAP.md`. Gates are measured, not argued.
+
+## 7. Risks
+
+| Risk | Impact | Mitigation |
+|---|---|---|
+| Procedural textures look generic | the Soviet identity is the product | small batches, CEO approves each; poster set is hand-composed from typography and vector shapes |
+| Asset licensing | a takedown kills a free mod | `docs/art/LICENSES.md` audited by QA before each gate |
+| No level editor on macOS 12 | slow geometry | script-generated UDMF; evaluate UDB on the Windows PC (LA-BESTIA) |
+| Russian doc mirror drifts | D7 broken | mirror delivered in the same task; QA checks file parity at each gate |
