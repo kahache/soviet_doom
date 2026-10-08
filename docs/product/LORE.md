@@ -1,8 +1,7 @@
 # Soviet Doom — Lore v1
 
-Status: **RATIFIED by the CEO on 2026-10-09** (D8–D13). Living document.
-Owner: PM. Russian mirror: `docs/ru/product/LORE.md`. Items marked OPEN are
-names the CEO can still change; the facts around them are fixed.
+Status: **RATIFIED by the CEO on 2026-10-09** (D8–D14), names included.
+Living document. Owner: PM. Russian mirror: `docs/ru/product/LORE.md`.
 
 ## Premise
 
@@ -16,7 +15,7 @@ posters.
 
 ## Logline
 
-> 1977 (OPEN, PM proposal: the 60th anniversary of October). While the
+> 1977, the 60th anniversary of October. While the
 > country prepares the parade, two objects fall in the Urals. One carries an
 > eagle, the other a star-spangled banner, and the things that crawl out of
 > them march together. A Spetsnaz sergeant who arrived in this country as a
@@ -28,14 +27,13 @@ posters.
 - A **child of the Spanish Civil War**: evacuated from Barcelona to the USSR
   in 1938 at the age of seven, raised in a children's home in Leningrad,
   career soldier, now a **Spetsnaz sergeant** guarding a secret cosmodrome.
-- Proposed name (OPEN): **Sergeant Ramon Vilanova**, in Russian **Рамон
-  Виланова**. Born Barcelona 1931. Silent like Doomguy; his personality is in
+- Name (D14): **Sergeant Ramon Vilanova**, in Russian **Рамон Виланова**. Born Barcelona 1931. Silent like Doomguy; his personality is in
   what he carries: a worn Lenin portrait, a Catalan ribbon under the uniform.
 - He speaks nothing on screen. The posters and the LANGUAGE strings speak.
 
 ## The invaders (D9): two allied factions
 
-| Faction | Proposed name (OPEN) | Look | Role in bestiary |
+| Faction | Name (D14) | Look | Role in bestiary |
 |---|---|---|---|
 | Nazi aliens | **Fourth Reich** | grey-green flesh, SS helmets, swastikas on armbands and banners (D12) | infantry, hounds, armoured brutes |
 | Yankee aliens | **Liberty Legion** | chrome and pink flesh, M1 helmets, US flags on shoulders and banners (D12) | ranged units, floating heads, officers |

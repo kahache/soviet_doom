@@ -1,7 +1,7 @@
 # Soviet Doom — Product Requirements Document
 
 Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
-Last update: 2026-10-09.
+Last update: 2026-10-09 (G1 passed).
 
 ## 1. Vision
 
@@ -34,19 +34,21 @@ goes to `docs/ICEBOX.md` when someone has a concrete idea.
 
 | # | Date | Decision | Status |
 |---|---|---|---|
-| D1 | 2026-10-09 | Name **Soviet Doom**. Repo `kahache/soviet_doom`, package `sovietdoom.pk3`, prefix `SD`. Three hobby repos share the name on GitHub (none is a published mod). | proposed, CEO ratifies |
-| D2 | 2026-10-09 | Base IWAD **Freedoom 0.13.0** (`freedoom2.wad`). The mod redistributes nothing from a commercial IWAD. | proposed, CEO ratifies |
-| D3 | 2026-10-09 | Engine **GZDoom 4.14.2** minimum (`version "4.12"` in zscript.txt until a 4.14 feature is needed). | proposed, CEO ratifies |
-| D4 | 2026-10-09 | Textures: own procedural scripts first, OTEX (non-commercial, credited) and Freedoom assets second, CEO material third. Never assets from commercial games. | proposed, CEO ratifies |
-| D5 | 2026-10-09 | v1 scope = one complete map with own texture set. | proposed, CEO ratifies |
+| D1 | 2026-10-09 | Name **Soviet Doom**. Repo `kahache/soviet_doom`, package `sovietdoom.pk3`, prefix `SD`. Three hobby repos share the name on GitHub (none is a published mod). | ratified (CEO, 2026-10-09) |
+| D2 | 2026-10-09 | Base IWAD **Freedoom 0.13.0** (`freedoom2.wad`). The mod redistributes nothing from a commercial IWAD. | ratified (CEO, 2026-10-09) |
+| D3 | 2026-10-09 | Engine **GZDoom 4.14.2** minimum (`version "4.12"` in zscript.txt until a 4.14 feature is needed). | ratified (CEO, 2026-10-09) |
+| D4 | 2026-10-09 | Textures: own procedural scripts first, OTEX (non-commercial, credited) and Freedoom assets second, CEO material third. Never assets from commercial games. | ratified (CEO, 2026-10-09) |
+| D5 | 2026-10-09 | v1 scope = one complete map with own texture set. | ratified (CEO, 2026-10-09) |
 | D6 | 2026-10-09 | **The PM commits and pushes.** Private repo from day one. Agents never commit. | ratified (CEO) |
 | D7 | 2026-10-09 | **Repo documentation in English and Russian.** English is canonical; every doc has a mirror under `docs/ru/` delivered in the same task. Code and comments in English. In-game text in English and Russian. Conversation with the CEO in Spanish. | ratified (CEO) |
-| D8 | 2026-10-09 | Era: **the 1970s**. PM proposes 1977 (60th anniversary of October) as the exact year; CEO to confirm. | ratified (CEO), year open |
+| D8 | 2026-10-09 | Era: **the 1970s**, exact year **1977** (60th anniversary of October). | ratified (CEO) |
 | D9 | 2026-10-09 | **Two allied factions**, Yankee aliens and Nazi aliens, united to defend capital. Both appear in the bestiary. | ratified (CEO) |
 | D10 | 2026-10-09 | Protagonist: a **Spanish Civil War refugee child** (evacuated from Barcelona to the USSR), now a **Spetsnaz sergeant**. | ratified (CEO) |
 | D11 | 2026-10-09 | Tone **serious**. Humour in posters may come later. | ratified (CEO) |
 | D12 | 2026-10-09 | Enemies **do carry swastikas and US flags**. It is a video game and a fantastic alternate history; no trivialisation of real victims. Distribution note: Germany allows such symbols in games since 2018 when artistically justified; some stores may still reject them. | ratified (CEO) |
 | D13 | 2026-10-09 | Lore v1, three-map episode, period arsenal and bestiary (`docs/product/LORE.md`) **ratified as written**. | ratified (CEO) |
+| D14 | 2026-10-09 | Names: protagonist **Sergeant Ramon Vilanova** (Рамон Виланова, b. Barcelona 1931); factions **Fourth Reich** (Nazi aliens) and **Liberty Legion** (Yankee aliens). | ratified (CEO) |
+| D15 | 2026-10-09 | Licence of the mod: **GPL-3.0** for code (`tools/`, `src/zscript/`, scripts) and **CC BY-NC-SA 4.0** for assets and docs (textures, sprites, maps, sounds, lore). Non-commercial is required anyway by OTEX's terms. Full texts added at F6; `LICENSE.md` states it now. | decided by the PM on CEO delegation |
 
 ## 6. Phases and gates
 
