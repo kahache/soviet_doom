@@ -25,8 +25,16 @@ blocked pages by hand (see below).
 | **CCCP 20**, **SJ Technoworld**, **Lilium**, **Whitemare 1/2** | single maps or community sets with Russian/Soviet touches | marginal | not applicable |
 | GitHub repos named "Soviet DOOM" (3) | a two-day Zandronum WAD with "stupid soviet stuff" (no licence), a 2020 Unity game, a TypeScript project | none is a published mod | not applicable; name usable |
 
-Still to check by hand: the Doomworld megawad `sci2`
-(https://www.doomworld.com/idgames/levels/doom2/megawads/sci2).
+**`sci2` = "Scientist 2"** (author "Scientist", October 2005; read via the
+gamers.org idgames mirror): 20 single-player maps in three episodes (Central
+City, Siberia, Sacred City) plus 10 deathmatch maps, with new textures,
+sprites, five weapon replacements (including an AK-47 and a flamethrower) and
+music. The Siberia episode carries Lenin and Marx quotes; the author states no
+political plot was intended. Permissions: "Authors may use the contents of
+this file as a base for modification or reuse." So it is **reusable with
+credit in principle**, but the text file does not document where its own
+textures come from, so any piece we take must be checked for provenance
+first. Filed as inspiration and a possible source for the Siberia set.
 
 ## What we can use (licence verified at the source)
 

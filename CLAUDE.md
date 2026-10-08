@@ -32,14 +32,15 @@ LANGUAGE en/ru + ZScript EventHandler); `tools/run.sh` launches it on GZDoom
 `docs/qa/GATE-REVIEWS.md`. Suite: **build 11**. Similar-mods research: no
 direct competitor (`docs/product/2026-10-09_0017_F0_pm-similar-mods.md`).
 
-**F1 — lore + PRD.** Lore v1 **ratified** by the CEO (D8–D13:
-1970s, two allied factions, Spanish-refugee Spetsnaz sergeant, serious tone,
-swastikas and US flags on enemies, three-map episode, period arsenal). D1–D5
-(name, Freedoom, GZDoom 4.14.2, texture sources, one-map v1) proposed,
-pending ratification. Art tooling ready (`.venv/` with Pillow + numpy).
+**F1 — CLOSED (gate G1 PASS 2026-10-09).** D1–D15 ratified: name Soviet
+Doom, Freedoom base, GZDoom 4.14.2, texture sources, one-map v1, PM commits,
+docs EN+RU, 1977, two allied factions (Fourth Reich, Liberty Legion),
+Sergeant Ramon Vilanova, serious tone, symbols on enemies, lore v1, licence
+GPL-3.0 code + CC BY-NC-SA 4.0 assets. Art tooling ready (`.venv/`).
 
-**Next: F2 — art direction and texture batch 1** ("Soviet base" set) by the
-`art-director`, as an HTML preview for the CEO.
+**F2 — in progress: art direction and texture batch 1** ("Soviet base" set,
+procedural, 8–12 pieces) by the `art-director`; the CEO validates in the HTML
+preview under `docs/art/previews/`. Gate G2 = ≥ 8 approved.
 
 ## Setup and commands
 
