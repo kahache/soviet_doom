@@ -60,8 +60,9 @@ not see the game window: use the engine's `screenshot` command.
 Roles in `.claude/agents/`: `art-director` (visual direction, textures,
 sprites, previews), `level-designer` (UDMF maps, flow, light, balance),
 `mod-engineer` (PK3, build, ZScript, definition lumps, ADRs) and
-`qa-engineer` (gates, PK3 validation, playtests, licences). The PM is the
-main session; **the user is the CEO and decides**. The interface between
+`qa-engineer` (gates, PK3 validation, playtests, licences), plus the routine
+`translator-ru` (Russian mirrors, pinned to Sonnet 5). The PM is the main
+session; **the user is the CEO and decides**. The interface between
 roles is the artefacts in `docs/`, not the conversation. Agent prompts are
 written in Spanish (the CEO's language); their deliverables follow D7.
 
@@ -72,6 +73,9 @@ written in Spanish (the CEO's language); their deliverables follow D7.
   text `[enu default]` and `[ru]`. Chat with the CEO in Spanish.
 - **Commits (D6):** the PM commits and pushes; agents never do. Private repo
   `kahache/soviet_doom`.
+- **Models:** judgement roles on the session model; routine subtasks
+  (translation, validators, boilerplate) on Sonnet 5, via `translator-ru` or
+  the Agent `model: sonnet` option.
 - **Less to more:** every delivery is playable or visible.
 - **The CEO validates by looking:** textures in HTML previews, maps in
   GZDoom. Nothing enters `assets/` without explicit approval.

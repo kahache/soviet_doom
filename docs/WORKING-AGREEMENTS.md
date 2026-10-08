@@ -13,6 +13,14 @@ Russian mirror: `docs/ru/WORKING-AGREEMENTS.md`.
   or it does not exist.
 - Agents never commit. **The PM commits and pushes** (D6), with messages that
   summarise the milestone and cite the reports.
+- **Models (CEO decision 2026-10-09):** the main session and the four
+  judgement roles (`art-director`, `level-designer`, `mod-engineer`,
+  `qa-engineer`) run on the session model (Fable 5.1). **Routine, well
+  specified tasks run on Sonnet 5:** the `translator-ru` agent is pinned to it
+  in its definition, and the PM launches other mechanical subtasks (PK3
+  validators, boilerplate, file conversions, batch renames) with the Sonnet
+  model explicitly. Anything that needs taste or judgement stays on the
+  session model.
 
 ## 2. Decisions
 
