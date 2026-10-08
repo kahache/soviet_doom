@@ -16,7 +16,7 @@ import json
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PALETTE_JSON = PROJECT_ROOT / "docs" / "art" / "palette.json"
@@ -224,6 +224,27 @@ class Overlay:
         d.text((cx * s, cy * s), txt, font=f, fill=fill, anchor=anchor)
         self._commit(layer)
         return px / s
+
+    def group(self, outline=None, outline_width: float = 1.0) -> "Overlay":
+        """A sub-overlay to draw several primitives that form one shape
+        (e.g. the blade and handle of a sickle). Pass it to `end_group` to
+        stamp it onto this overlay; if `outline` is given, the union of the
+        group's pixels is first dilated by `outline_width` texture px and
+        painted in that colour underneath, giving a single clean contour
+        around the whole shape instead of one per primitive."""
+        g = Overlay(self.w, self.h)
+        g._outline = (outline, outline_width)
+        return g
+
+    def end_group(self, g: "Overlay") -> None:
+        outline, width = g._outline
+        if outline is not None:
+            k = int(round(width * self.s))
+            alpha = g.img.getchannel("A").filter(ImageFilter.MaxFilter(2 * k + 1))
+            rim = Image.new("RGBA", self.img.size, outline + (255,))
+            rim.putalpha(alpha)
+            self._commit(rim)
+        self._commit(g.img)
 
     def composite(self, rgb: np.ndarray) -> np.ndarray:
         """Box-downsample the overlay and alpha-blend it over an RGB array."""

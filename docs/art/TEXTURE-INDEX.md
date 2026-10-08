@@ -15,7 +15,7 @@ with licence, (c) CEO material.
 
 ## Set "Soviet base" — batch 1 (F2)
 
-Preview: `docs/art/previews/2026-10-09_0115_F2_batch1-soviet-base.html`
+Preview: `docs/art/previews/2026-10-09_0127_F2_batch1-soviet-base.html`
 (mirror `docs/ru/art/previews/…`). Generator `tools/art/gen_soviet_base.py`,
 `BATCH_SEED` 1977; the seed column is `BATCH_SEED + offset`. Palette
 `docs/art/palette.json` v1 (162 colours).
@@ -24,7 +24,7 @@ Preview: `docs/art/previews/2026-10-09_0115_F2_batch1-soviet-base.html`
 |---|---|---|---|---|---|---|---|
 | `SDCONC1` | wall | 64×128 | yes | prefab concrete panels, running bond, grime under joints | (a) seed 1978 | proposed | 2026-10-09 |
 | `SDCONC2` | wall | 64×128 | yes | concrete with worn red stripe at mid height | (a) seed 1979 | proposed | 2026-10-09 |
-| `SDSTAR1` | wall | 64×128 | yes (plaque centred) | concrete with painted plaque: gold star, hammer and sickle on red | (a) seed 1980 | proposed | 2026-10-09 |
+| `SDSTAR1` | wall | 64×128 | yes (plaque centred) | concrete with painted plaque 56×100: gold star above hammer and sickle on red, 1 px dark outline. **v2: emblem redrawn after the CEO verdict** ("badly drawn" in the 0115 sheet): USSR-flag geometry, plaque enlarged from 48×72 | (a) seed 1980 | proposed | 2026-10-09 |
 | `SDSTEL1` | wall | 64×128 | yes | military-green riveted steel plates, chipped paint, rust under rivets | (a) seed 1981 | proposed | 2026-10-09 |
 | `SDDOOR1` | wall (door) | 128×128 | no | bunker steel door: riveted frame, green leaf, locking wheel, star and "7" stencils, hazard stripe | (a) seed 1982; text Impact.ttf | proposed | 2026-10-09 |
 | `SDPOSTR1` | wall (poster) | 64×128 | no | Lenin poster: constructivist silhouette in cream medallion on red, «ЛЕНИН ЖИВ» | (a) seed 1983; text Impact.ttf | proposed | 2026-10-09 |

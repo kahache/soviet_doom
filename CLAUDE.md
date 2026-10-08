@@ -38,9 +38,14 @@ docs EN+RU, 1977, two allied factions (Fourth Reich, Liberty Legion),
 Sergeant Ramon Vilanova, serious tone, symbols on enemies, lore v1, licence
 GPL-3.0 code + CC BY-NC-SA 4.0 assets. Art tooling ready (`.venv/`).
 
-**F2 — in progress: art direction and texture batch 1** ("Soviet base" set,
-procedural, 8–12 pieces) by the `art-director`; the CEO validates in the HTML
-preview under `docs/art/previews/`. Gate G2 = ≥ 8 approved.
+**F2 — in progress: texture batch 1 delivered, awaiting CEO verdict.**
+12 procedural textures of the "Soviet base" set (palette 162 colours, art
+bible v0, texture index, licences), preview
+`docs/art/previews/2026-10-09_0127_F2_batch1-soviet-base.html` (EN/RU).
+`SDSTAR1` is v2 (hammer and sickle redrawn after the CEO's verdict). PNGs live
+in `work/` (gitignored) until approved, then move to `assets/`. Suites:
+**build 11 · art 8**. Gate G2 = ≥ 8 approved. Open questions for the CEO in
+`docs/PENDING-CEO-DECISIONS.md` (Lenin style, poster formats, slogans).
 
 ## Setup and commands
 
