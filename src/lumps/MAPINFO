@@ -1,0 +1,33 @@
+// MAPINFO - map/episode definitions (ZDoom "new" MAPINFO syntax).
+// Lump name must be MAPINFO; ZDoom wiki: https://zdoom.org/wiki/MAPINFO
+//
+// Map titles are localized through LANGUAGE (`lookup` = string id).
+
+GameInfo
+{
+	// Register the mod's ZScript event handlers (class names in zscript/sd/).
+	AddEventHandlers = "SD_LoadReporter"
+}
+
+clearepisodes
+
+episode MAP01
+{
+	// "$ID" strings are resolved through LANGUAGE (verified: `lookup` is
+	// not accepted inside an episode block by GZDoom 4.14.2).
+	name = "$SD_EP01_NAME"
+	key = "s"
+}
+
+map MAP01 lookup "SD_MAP01_NAME"
+{
+	// MVP: the map loops onto itself; there is no exit yet.
+	next = "MAP01"
+	// Explicitly no music: the MVP must not depend on IWAD music lumps.
+	// Verified on GZDoom 4.14.2 (gate G0): an empty string yields silence, no warning.
+	music = ""
+	// SKY1 exists in both doom2.wad and freedoom2.wad. The room has no sky
+	// ceiling, but the engine still wants a valid sky texture per map.
+	sky1 = "SKY1"
+	nointermission
+}

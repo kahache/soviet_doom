@@ -1,0 +1,14 @@
+# build output
+dist/
+# GZDoom logs written by tools/run.sh
+logs/
+# IWADs are never committed (doom2.wad is commercial; freedoom2.wad is downloaded)
+iwads/
+*.wad
+!src/maps/*.wad
+# python
+__pycache__/
+*.pyc
+# macOS
+.DS_Store
+.venv/

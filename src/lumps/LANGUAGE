@@ -1,0 +1,16 @@
+// LANGUAGE - localized strings. Each [xxx] header is a language code;
+// "default" marks the fallback used when no section matches the player's
+// language. String ids are referenced from MAPINFO (lookup), ZScript
+// ("$SD_...") and menus. ZDoom wiki: https://zdoom.org/wiki/LANGUAGE
+//
+// D7: in-game copy ships in English (default) and Russian. Ids are prefixed SD_.
+
+[enu default]
+
+SD_EP01_NAME  = "Soviet Doom";
+SD_MAP01_NAME = "Test Range";
+
+[ru]
+
+SD_EP01_NAME  = "Советский Doom";
+SD_MAP01_NAME = "Полигон";
