@@ -65,10 +65,34 @@ STRIPE_RED = 0.72                 # flag_red ramp position (painted, not fresh)
 STRIPE_WEAR = 0.30                # fbm threshold below which the paint chipped
 
 # --- emblem plaque (SDSTAR1) ---------------------------------------------
-PLAQUE = (8, 20, 56, 92)          # x0,y0,x1,y1 of the painted panel
+# v2 (CEO verdict on batch 1: "the hammer and sickle are badly drawn"): the
+# plaque grew from 48x72 to 56x100 so the emblem gets ~46 px of width, the
+# star shrank and moved above it, and the emblem follows the USSR flag
+# geometry (see hammer_sickle). Outline 1 px dark red around every shape.
+PLAQUE = (4, 12, 60, 112)         # x0,y0,x1,y1 of the painted panel
 PLAQUE_BORDER = 2
-STAR_CENTER, STAR_R = (32, 42), 15
-HS_CENTER, HS_R = (32, 72), 12    # hammer & sickle bounding radius
+STAR_CENTER, STAR_R = (32, 33), 11
+HS_CENTER, HS_R = (32, 79), 23    # hammer & sickle bounding radius
+EMBLEM_OUTLINE = 1.0              # px, dark contour for legibility on red
+# Sickle blade: thick crescent opening to the right. Pillow angles (0 = +x,
+# 90 = +y i.e. down, clockwise): from the handle at the lower right, over the
+# left and the top, to a sharp tip at the upper right. Fractions of HS_R.
+SICKLE_ARC_CENTER = (-0.06, -0.14)
+SICKLE_ARC_R = 0.74
+SICKLE_BASE_DEG, SICKLE_TIP_DEG = 65.0, 362.0
+SICKLE_THICK = 0.28               # blade thickness before the taper
+SICKLE_TAPER_FROM_DEG = 250.0     # thickness -> 0 from here to the tip
+SICKLE_TAPER_POWER = 0.65
+SICKLE_ARC_STEPS = 48
+SICKLE_HANDLE_DEG = 58.0          # short straight handle, pointing down-right
+SICKLE_HANDLE_LEN, SICKLE_HANDLE_W = 0.40, 0.24
+# Hammer, drawn in front: thin straight handle from the lower left to the
+# upper right through the crescent; rectangular head across its upper end,
+# resting on the blade's shoulder, slightly longer than wide.
+HAMMER_HEAD_CENTER = (0.30, -0.84)
+HAMMER_ANGLE_DEG = -55.0          # handle direction (towards the head)
+HAMMER_HANDLE_LEN, HAMMER_HANDLE_W = 1.9, 0.14
+HAMMER_HEAD_L, HAMMER_HEAD_W = 0.62, 0.36
 
 # --- green steel (SDSTEL1) -----------------------------------------------
 PLATE = 32                 # riveted plate size; 2x4 plates per wall
@@ -193,25 +217,48 @@ def tex_conc2():
     return shade(rgb, f)
 
 
-def hammer_sickle(ov: Overlay, cx: float, cy: float, r: float, fill):
-    """Stylised hammer and sickle inside radius r, as on the flag: the
-    sickle's blade sweeps from a tip at the left over the top and down the
-    right into a handle at the lower-right; the hammer's head sits upper-left
-    (poking out of the crescent so it reads at 24 px) and its handle crosses
-    the crescent down to the bottom centre, clearly apart from the sickle's."""
-    # sickle blade: crescent open at the bottom (Pillow angles: 90 = down)
-    ov.arc_ring(cx + 0.05 * r, cy - 0.15 * r, 0.80 * r, 0.58 * r, 165, 420, fill)
-    # sickle tip: wedge continuing the blade at its left end, pointing down
-    ov.polygon([(cx - 0.75 * r, cy + 0.03 * r), (cx - 0.53 * r, cy - 0.04 * r), (cx - 0.66 * r, cy + 0.42 * r)], fill)
-    # sickle handle from the blade's right end down-right
-    ov.line([(cx + 0.45 * r, cy + 0.38 * r), (cx + 0.80 * r, cy + 0.98 * r)], fill, width=0.22 * r)
-    # hammer handle: from the head (upper-left) to the bottom centre
-    ov.line([(cx - 0.55 * r, cy - 0.55 * r), (cx + 0.28 * r, cy + 0.95 * r)], fill, width=0.17 * r)
-    # hammer head: a bar perpendicular to the handle, outside the crescent
-    c = np.array([cx - 0.64 * r, cy - 0.64 * r])
-    u = np.array([0.82, -0.57]) * 0.40 * r
-    v = np.array([0.57, 0.82]) * 0.16 * r
-    ov.polygon([tuple(c + u + v), tuple(c + u - v), tuple(c - u - v), tuple(c - u + v)], fill)
+def hammer_sickle(ov: Overlay, cx: float, cy: float, r: float, fill, outline):
+    """Hammer and sickle with the geometry of the USSR flag emblem, inside
+    radius r, drawn as vectors at SUPERSAMPLE x. The sickle (blade + handle)
+    and the hammer (handle + head) are two outlined groups, hammer on top:
+    the 1 px contour between them is what keeps the two tools apart when the
+    whole thing is 46 px wide and one flat gold."""
+    # --- sickle
+    g = ov.group(outline=outline, outline_width=EMBLEM_OUTLINE)
+    bcx, bcy = cx + SICKLE_ARC_CENTER[0] * r, cy + SICKLE_ARC_CENTER[1] * r
+    R = SICKLE_ARC_R * r
+    t_full = SICKLE_THICK * r
+    outer, inner = [], []
+    for i in range(SICKLE_ARC_STEPS + 1):
+        th = SICKLE_BASE_DEG + (SICKLE_TIP_DEG - SICKLE_BASE_DEG) * i / SICKLE_ARC_STEPS
+        a = np.deg2rad(th)
+        if th < SICKLE_TAPER_FROM_DEG:
+            t = t_full
+        else:
+            u = (SICKLE_TIP_DEG - th) / (SICKLE_TIP_DEG - SICKLE_TAPER_FROM_DEG)
+            t = t_full * u ** SICKLE_TAPER_POWER
+        outer.append((bcx + R * np.cos(a), bcy + R * np.sin(a)))
+        inner.append((bcx + (R - t) * np.cos(a), bcy + (R - t) * np.sin(a)))
+    g.polygon(outer + inner[::-1], fill)
+    a0 = np.deg2rad(SICKLE_BASE_DEG)
+    base = np.array([bcx + (R - t_full / 2) * np.cos(a0), bcy + (R - t_full / 2) * np.sin(a0)])
+    d = np.array([np.cos(np.deg2rad(SICKLE_HANDLE_DEG)), np.sin(np.deg2rad(SICKLE_HANDLE_DEG))])
+    nrm = np.array([-d[1], d[0]])
+    w2 = SICKLE_HANDLE_W * r / 2
+    p0 = base - d * 0.06 * r          # tucked slightly into the blade
+    p1 = base + d * SICKLE_HANDLE_LEN * r
+    g.polygon([tuple(p0 + nrm * w2), tuple(p1 + nrm * w2), tuple(p1 - nrm * w2), tuple(p0 - nrm * w2)], fill)
+    ov.end_group(g)
+    # --- hammer
+    g = ov.group(outline=outline, outline_width=EMBLEM_OUTLINE)
+    head_c = np.array([cx + HAMMER_HEAD_CENTER[0] * r, cy + HAMMER_HEAD_CENTER[1] * r])
+    hd = np.array([np.cos(np.deg2rad(HAMMER_ANGLE_DEG)), np.sin(np.deg2rad(HAMMER_ANGLE_DEG))])
+    hn = np.array([-hd[1], hd[0]])
+    g.line([tuple(head_c - hd * HAMMER_HANDLE_LEN * r), tuple(head_c)], fill, width=HAMMER_HANDLE_W * r)
+    hl, hw = HAMMER_HEAD_L * r / 2, HAMMER_HEAD_W * r / 2
+    g.polygon([tuple(head_c + hn * hl + hd * hw), tuple(head_c + hn * hl - hd * hw),
+               tuple(head_c - hn * hl - hd * hw), tuple(head_c - hn * hl + hd * hw)], fill)
+    ov.end_group(g)
 
 
 def tex_star1():
@@ -222,15 +269,15 @@ def tex_star1():
     cream = ramp_colour("cream_yellow", 0.85)
     red = ramp_colour("flag_red", 0.70)
     gold = ramp_colour("hazard_yellow", 0.88)
-    dark = ramp_colour("flag_red", 0.35)
+    dark = ramp_colour("flag_red", 0.25)
     ov.rect(x0, y0, x1, y1, fill=cream)
     ov.rect(x0 + PLAQUE_BORDER, y0 + PLAQUE_BORDER, x1 - PLAQUE_BORDER, y1 - PLAQUE_BORDER, fill=red)
     # inner shadow line for depth
     ov.line([(x0 + PLAQUE_BORDER, y1 - PLAQUE_BORDER - 0.5), (x1 - PLAQUE_BORDER, y1 - PLAQUE_BORDER - 0.5)], dark, 1)
-    ov.polygon(star_points(STAR_CENTER[0], STAR_CENTER[1] + 1, STAR_R), dark)      # drop shadow
-    ov.polygon(star_points(STAR_CENTER[0], STAR_CENTER[1], STAR_R), gold)
-    hammer_sickle(ov, HS_CENTER[0], HS_CENTER[1] + 1, HS_R, dark)
-    hammer_sickle(ov, HS_CENTER[0], HS_CENTER[1], HS_R, gold)
+    g = ov.group(outline=dark, outline_width=EMBLEM_OUTLINE)
+    g.polygon(star_points(STAR_CENTER[0], STAR_CENTER[1], STAR_R), gold)
+    ov.end_group(g)
+    hammer_sickle(ov, HS_CENTER[0], HS_CENTER[1], HS_R, gold, dark)
     rgb = ov.composite(rgb)
     # paint grime over the plaque so it belongs to the wall
     g = 1 - 0.10 * (fbm(WALL_W, WALL_H, 5, 3, rng) - 0.5)
