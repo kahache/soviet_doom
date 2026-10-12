@@ -99,7 +99,11 @@ SICKLE_HANDLE_W = 0.11            # rounded end
 # hair off the head centre; both points are kept literally, the head covers
 # the difference) and runs down-right at ~52 deg below +x.
 HAMMER_HEAD_C = (0.33, 0.26)
-HAMMER_HANDLE = ((0.36, 0.27), (0.86, 0.90))
+# The butt of the handle reaches the bottom-right corner, mirroring the
+# sickle handle end (0.07, 0.95) about x=0.5 (CEO, 2026-10-12: "el final
+# del mazo tiene que tocar la esquina inferior derecha simetricamente
+# con la hoz").
+HAMMER_HANDLE = ((0.36, 0.27), (0.93, 0.96))
 HAMMER_HANDLE_W = 0.09
 HAMMER_HEAD_L, HAMMER_HEAD_W = 0.34, 0.19   # long axis perpendicular to handle
 HAMMER_TIP_CLEARANCE = 0.03       # min distance head <-> sickle tip (checked)
