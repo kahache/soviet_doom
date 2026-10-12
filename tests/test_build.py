@@ -92,29 +92,39 @@ class BuildPk3Test(unittest.TestCase):
         first_stmt = next(l for l in text.splitlines() if l.strip() and not l.startswith("//"))
         self.assertTrue(first_stmt.startswith("namespace"))
 
+        # What the BUILD owes us is a well-formed TEXTMAP: the namespace, a
+        # usable player start, and closed geometry. What is IN the map - how
+        # many rooms, where the player stands - belongs to the map's own
+        # tests, not here. This assertion used to pin the player to (256,256),
+        # the centre of the F0 test room, and went red the moment MAP01 became
+        # the real Zarya-7 map. A build test must not break when a designer
+        # moves a player start.
         things = _udmf_blocks(text, "thing")
-        self.assertEqual(len(things), 1)
-        player = things[0]
-        self.assertRegex(player, r"type\s*=\s*1;")
+        starts = [t for t in things if re.search(r"type\s*=\s*1;", t)]
+        self.assertEqual(len(starts), 1, "exactly one Player 1 start")
+        player = starts[0]
         for flag in ("skill1", "skill2", "skill3", "skill4", "skill5", "single", "coop", "dm"):
             self.assertRegex(player, rf"{flag}\s*=\s*true;", f"{flag} not set on player start")
-        self.assertRegex(player, r"x\s*=\s*256\.0;")
-        self.assertRegex(player, r"y\s*=\s*256\.0;")
+        for axis in ("x", "y"):
+            self.assertRegex(player, rf"{axis}\s*=\s*-?\d+\.\d+;", f"player start has no {axis}")
 
-        self.assertEqual(len(_udmf_blocks(text, "sector")), 1)
-        self.assertEqual(len(_udmf_blocks(text, "vertex")), 4)
+        sectors = _udmf_blocks(text, "sector")
+        vertices = _udmf_blocks(text, "vertex")
         linedefs = _udmf_blocks(text, "linedef")
-        self.assertEqual(len(linedefs), 4)
+        self.assertGreaterEqual(len(sectors), 1)
+        self.assertGreaterEqual(len(vertices), 3, "a sector needs at least three vertices")
+        self.assertGreaterEqual(len(linedefs), 3)
         for ld in linedefs:
-            self.assertRegex(ld, r"blocking\s*=\s*true;")
-            self.assertRegex(ld, r"sidefront\s*=\s*\d+;")
-            self.assertNotIn("sideback", ld)
+            self.assertRegex(ld, r"sidefront\s*=\s*\d+;", "every linedef needs a front sidedef")
         sidedefs = _udmf_blocks(text, "sidedef")
-        self.assertEqual(len(sidedefs), 4)
-        sector = _udmf_blocks(text, "sector")[0]
-        self.assertRegex(sector, r"heightfloor\s*=\s*0;")
-        self.assertRegex(sector, r"heightceiling\s*=\s*128;")
-        self.assertRegex(sector, r"lightlevel\s*=\s*160;")
+        self.assertGreaterEqual(len(sidedefs), len(linedefs),
+                                "each linedef needs at least its front sidedef")
+        for sector in _udmf_blocks(text, "sector"):
+            # Values are the designer's; the build only owes us that every
+            # sector declares the fields the engine needs to render it.
+            for field in ("heightfloor", "heightceiling", "lightlevel"):
+                self.assertRegex(sector, rf"{field}\s*=\s*-?\d+;",
+                                 f"a sector is missing {field}")
 
     def test_build_is_deterministic(self):
         with tempfile.TemporaryDirectory() as d:
