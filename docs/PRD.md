@@ -48,6 +48,8 @@ goes to `docs/ICEBOX.md` when someone has a concrete idea.
 | D12 | 2026-10-09 | Enemies **do carry swastikas and US flags**. It is a video game and a fantastic alternate history; no trivialisation of real victims. Distribution note: Germany allows such symbols in games since 2018 when artistically justified; some stores may still reject them. | ratified (CEO) |
 | D13 | 2026-10-09 | Lore v1, three-map episode, period arsenal and bestiary (`docs/product/LORE.md`) **ratified as written**. | ratified (CEO) |
 | D14 | 2026-10-09 | Names: protagonist **Sergeant Ramon Vilanova** (Рамон Виланова, b. Barcelona 1931); factions **Fourth Reich** (Nazi aliens) and **Liberty Legion** (Yankee aliens). | ratified (CEO) |
+| D16 | 2026-10-13 | **Music: our own instrumental MIDI sequences.** The CEO: "el camino correcto es instrumental en MIDI". No Soviet recordings: every phonogram of Melodiya, the Alexandrov Choir or Radio USSR is protected in the United States into the 2040s-2070s. Historical public-domain compositions may be sequenced by us; the bulk of in-game music is original composition in the idiom of the period. | ratified (CEO) |
+| D17 | 2026-10-13 | **Ammo and pickup names in Cyrillic** (period forms: 7,62×25, патроны, ПГ-7В, горючее). The status bar's own AMMO/HEALTH/ARMS/ARMOR are painted into the IWAD's STBAR graphic and are a separate, costed decision. | ratified (CEO) |
 | D15 | 2026-10-09 | Licence of the mod: **GPL-3.0** for code (`tools/`, `src/zscript/`, scripts) and **CC BY-NC-SA 4.0** for assets and docs (textures, sprites, maps, sounds, lore). Non-commercial is required anyway by OTEX's terms. Full texts added at F6; `LICENSE.md` states it now. | decided by the PM on CEO delegation |
 
 ## 6. Phases and gates
