@@ -119,6 +119,7 @@ tools/run.sh                                 # сборка + gzdoom + logs/gzdo
 MAP=MAP01 SKILL=4 IWAD=/path/doom2.wad tools/run.sh -nosound
 tools/run.sh -nosound +vid_fullscreen 0 +screenshot_dir "$PWD/logs/shots" +"wait 140; screenshot; wait 35; quit"  # доказательства QA
 python3 tools/smoke.py --map MAP01 --skill 4 [--keep-evidence]  # сборка + самозавершающийся запуск GZDoom + разбор лога (код 0 = чисто)
+python3 tools/check_pk3.py [--json] [--strict]   # статическая проверка PK3 без движка: лампы, WAD-файлы карт, используемые текстуры, палитра PNG, спрайты, лицензии, #include (код 0 = чисто)
 ```
 
 `run.sh` ищет GZDoom в `/Applications/GZDoom.app/Contents/MacOS/gzdoom`,
