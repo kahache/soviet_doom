@@ -6,7 +6,7 @@
 GameInfo
 {
 	// Register the mod's ZScript event handlers (class names in zscript/sd/).
-	AddEventHandlers = "SD_LoadReporter", "SD_LanguageGuard"
+	AddEventHandlers = "SD_LoadReporter"
 
 	// The mod's own player class (F4). A player pawn cannot be installed
 	// with `replaces`; PlayerClasses is the documented way and it OVERRIDES

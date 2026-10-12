@@ -474,6 +474,21 @@ Legal frame:
 - CRS, *The Music Modernization Act: Extending Copyright Protection to Pre-1972 Sound Recordings* — https://www.congress.gov/crs-product/LSB10181
 - PM, *Can we use original Soviet poster art?* — `docs/product/2026-10-12_2000_F2_pm-soviet-art-copyright.md`
 
+Per-file licence pages read on 2026-10-13 (the §4.4 audit):
+- `{{PD-Internationale}}` template — https://commons.wikimedia.org/wiki/Template:PD-Internationale
+- File:Internationale orch2.mid — https://commons.wikimedia.org/wiki/File:Internationale_orch2.mid (wikitext via `?action=raw`)
+- File:Internationale-piano-Bb.mid — https://commons.wikimedia.org/wiki/File:Internationale-piano-Bb.mid
+- File:The-Internationale.mid (**CC BY-SA, rejected**) — https://commons.wikimedia.org/wiki/File:The-Internationale.mid
+- File:Sua.mid (**GFDL, rejected**) — https://commons.wikimedia.org/wiki/File:Sua.mid
+- File:Ej, uchnem!.mid — https://commons.wikimedia.org/wiki/File:Ej,_uchnem!.mid
+- File:Kolokolchik.mid — https://commons.wikimedia.org/wiki/File:Kolokolchik.mid
+- Mutopia, *Night on Bald Mountain* (CC BY 3.0) — https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1892
+- Mutopia browse by composer (licence per piece) — https://www.mutopiaproject.org/browse.html
+- Mutopia licence policy — https://www.mutopiaproject.org/legal.html
+- IMSLP, *Slavonic March* op. 31, synthesised performances CC BY 4.0 (MP3, not MIDI) — https://imslp.org/wiki/Slavonic_March,_Op.31_(Tchaikovsky,_Pyotr)
+- IMSLP, *L'Internationale* (De Geyter) — https://imslp.org/wiki/L'Internationale_(De_Geyter,_Pierre)
+- archive.org, "USSR Anthem (MIDI)", **no licence declared** — https://archive.org/details/ussr-1
+
 Works and people:
 - Alexander Vasilyevich Alexandrov (1883-1946) — https://en.wikipedia.org/wiki/Alexander_Vasilyevich_Alexandrov
 - State Anthem of the Soviet Union — https://en.wikipedia.org/wiki/State_Anthem_of_the_Soviet_Union

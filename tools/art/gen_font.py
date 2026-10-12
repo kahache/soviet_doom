@@ -115,8 +115,8 @@ STYLES = {
     "C": Style(
         key="C", name="Mashina",
         blurb="Slab machinery — square corners, slab feet, slashed zero",
-        widths_small={"t": 1, "s": 3, "n": 5, "w": 6, "x": 7, "j": 9},
-        widths_big={"t": 2, "s": 5, "n": 8, "w": 9, "x": 11, "j": 13},
+        widths_small={"t": 1, "s": 3, "n": 5, "w": 6, "x": 7, "j": 9, "k": 10},
+        widths_big={"t": 2, "s": 5, "n": 8, "w": 9, "x": 11, "j": 13, "k": 15},
         flat_apex=True, slashed_zero=True,
         small=Size(**{**_SMALL, "chamfer": 0, "slab": 1}),
         big=Size(**{**_BIG, "chamfer": 0, "slab": 2}),
