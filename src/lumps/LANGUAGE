@@ -9,8 +9,132 @@
 
 SD_EP01_NAME  = "Soviet Doom";
 SD_MAP01_NAME = "Test Range";
+SD_MAP02_NAME = "Engineering Test Range";
+
+// --- Arsenal (F4) ---------------------------------------------------------
+// Tag      = the weapon's name in the HUD and the weapon wheel.
+// Pickup   = the line printed when it is picked up.
+// Obituary = the multiplayer death message; %o is the victim, %k the killer.
+
+SD_PLAYER_NAME     = "Sergeant Vilanova";
+
+SD_TAG_SHOVEL      = "Sapper's shovel";
+SD_TAG_TOKAREV     = "TT-33 Tokarev";
+SD_TAG_IZH         = "IZh-58 double barrel";
+SD_TAG_PPSH        = "PPSh-41";
+SD_TAG_RPG7        = "RPG-7";
+SD_TAG_ROKS3       = "ROKS-3 flamethrower";
+SD_TAG_KATYUSHA    = "Hand Katyusha";
+
+SD_PICKUP_SHOVEL   = "Sapper's shovel.";
+SD_PICKUP_TOKAREV  = "You got the TT-33 Tokarev!";
+SD_PICKUP_IZH      = "You got the IZh-58 double barrel!";
+SD_PICKUP_PPSH     = "You got the PPSh-41!";
+SD_PICKUP_RPG7     = "You got the RPG-7!";
+SD_PICKUP_ROKS3    = "You got the ROKS-3 flamethrower!";
+SD_PICKUP_KATYUSHA = "You got the hand Katyusha. Prototype. Do not drop it.";
+
+SD_OB_SHOVEL       = "%o met %k's shovel.";
+SD_OB_TOKAREV      = "%o was shot by %k's Tokarev.";
+SD_OB_IZH          = "%o took both barrels from %k.";
+SD_OB_PPSH         = "%o was cut down by %k's PPSh-41.";
+SD_OB_RPG7         = "%o was blown apart by %k's RPG-7.";
+SD_OB_ROKS3        = "%o burned under %k's ROKS-3.";
+SD_OB_KATYUSHA     = "%o caught %k's whole salvo.";
+
+// --- Ammunition (CEO decision 2026-10-13) ---------------------------------
+// The four ammo pools are the IWAD's own classes (Clip, Shell, RocketAmmo,
+// Cell); the mod does not create new pools, it renames what the player sees.
+//
+// Two different mechanisms, because the engine offers two:
+//
+//  * AMMO_* are ENGINE string ids (gzdoom.pk3 defines each ammo class's Tag
+//    as "$AMMO_...").  Overriding them here is legal - a PK3 loaded after
+//    the engine wins - and Freedoom's DEHACKED does not touch these ids.
+//    NOTE: the stock Doom status bar and the alt-HUD never print an ammo
+//    Tag, so this is invisible today; it is set so the pool name exists in
+//    exactly one place for when we own the status bar.
+//
+//  * The pickup LINES are NOT set through the engine's GOTCLIP/GOTSHELLS
+//    ids.  Freedoom overrides those from its DEHACKED lump, and on GZDoom
+//    4.14.2 a DEHACKED [STRINGS] replacement BEATS a LANGUAGE lump loaded
+//    afterwards (verified in-engine 2026-10-13: our GOTCLIPBOX was ignored
+//    and Freedoom's "Picked up a case of bullets." was printed).  The mod
+//    therefore declares its own pickup actors in zscript/sd/ammo.zs with
+//    SD_GOT_* ids Freedoom knows nothing about.
+//    See docs/engine/adr/003-ammo-naming-and-the-silent-shovel.md.
+//
+// SCRIPT: the CEO asked for the Cyrillic designations.  They are in the
+// Russian section below and they are correct, but they CANNOT BE SHOWN
+// YET.  Freedoom's SmallFont is ASCII only, and GZDoom's glyph pack lives
+// under filter/doom.id/, which an id IWAD selects and Freedoom does not.
+// Verified in-engine 2026-10-13: "ПГ-7В" printed as " -7B", and even the
+// multiplication sign of "7,62x25" printed blank.  Until art-director ships the
+// glyph set (debt T9 in MOD-SPEC; the mechanism is verified: dropping
+// src/fonts/defsmallfont/<HEX>.png into the PK3 extends SmallFont), the
+// English section uses the Latin transliteration a 1977 Soviet manual would
+// also carry.  Showing blanks would be worse than showing Latin.
+
+AMMO_CLIP    = "7.62x25 rounds";       // TT-33 and PPSh-41 share the pistol round
+AMMO_SHELLS  = "12 gauge shells";      // IZh-58
+AMMO_ROCKETS = "PG-7V rounds";         // an RPG-7 round is a "vystrel", not a rocket
+AMMO_CELLS   = "Fuel";                 // ROKS-3 fuel; the hand Katyusha shares the pool
+
+SD_GOT_CLIP      = "A magazine. 7.62x25.";
+SD_GOT_CLIPBOX   = "A box of 7.62x25.";
+SD_GOT_SHELLS    = "Four shells. 12 gauge.";
+SD_GOT_SHELLBOX  = "A box of 12 gauge shells.";
+SD_GOT_ROCKET    = "One PG-7V round.";
+SD_GOT_ROCKBOX   = "A crate of PG-7V rounds.";
+SD_GOT_CELL      = "A canister of fuel.";
+SD_GOT_CELLPACK  = "A full fuel tank.";
+SD_GOT_BACKPACK  = "Quartermaster's satchel. Everything you can carry!";
 
 [ru]
 
 SD_EP01_NAME  = "Советский Doom";
 SD_MAP01_NAME = "Полигон";
+SD_MAP02_NAME = "Инженерный полигон";
+
+SD_PLAYER_NAME     = "Сержант Виланова";
+
+SD_TAG_SHOVEL      = "Сапёрная лопата";
+SD_TAG_TOKAREV     = "ТТ-33 Токарева";
+SD_TAG_IZH         = "ИЖ-58, двустволка";
+SD_TAG_PPSH        = "ППШ-41";
+SD_TAG_RPG7        = "РПГ-7";
+SD_TAG_ROKS3       = "Огнемёт РОКС-3";
+SD_TAG_KATYUSHA    = "Ручная «Катюша»";
+
+SD_PICKUP_SHOVEL   = "Сапёрная лопата.";
+SD_PICKUP_TOKAREV  = "Вы подобрали ТТ-33 Токарева!";
+SD_PICKUP_IZH      = "Вы подобрали двустволку ИЖ-58!";
+SD_PICKUP_PPSH     = "Вы подобрали ППШ-41!";
+SD_PICKUP_RPG7     = "Вы подобрали РПГ-7!";
+SD_PICKUP_ROKS3    = "Вы подобрали огнемёт РОКС-3!";
+SD_PICKUP_KATYUSHA = "Вы подобрали ручную «Катюшу». Опытный образец. Не ронять.";
+
+SD_OB_SHOVEL       = "%o встретил лопату %k.";
+SD_OB_TOKAREV      = "%o застрелен из ТТ %k.";
+SD_OB_IZH          = "%o получил оба ствола от %k.";
+SD_OB_PPSH         = "%o скошен ППШ-41 %k.";
+SD_OB_RPG7         = "%o разорван выстрелом РПГ-7 %k.";
+SD_OB_ROKS3        = "%o сгорел в пламени РОКС-3 %k.";
+SD_OB_KATYUSHA     = "%o попал под залп %k.";
+
+// --- Боеприпасы (решение CEO 2026-10-13) ----------------------------------
+
+AMMO_CLIP    = "Патроны 7,62×25";
+AMMO_SHELLS  = "Патроны 12 кал.";
+AMMO_ROCKETS = "Выстрелы ПГ-7В";
+AMMO_CELLS   = "Горючее";
+
+SD_GOT_CLIP      = "Магазин. 7,62×25.";
+SD_GOT_CLIPBOX   = "Коробка патронов 7,62×25.";
+SD_GOT_SHELLS    = "Четыре патрона 12 калибра.";
+SD_GOT_SHELLBOX  = "Коробка патронов 12 калибра.";
+SD_GOT_ROCKET    = "Один выстрел ПГ-7В.";
+SD_GOT_ROCKBOX   = "Ящик выстрелов ПГ-7В.";
+SD_GOT_CELL      = "Бачок с горючим.";
+SD_GOT_CELLPACK  = "Полный баллон горючего.";
+SD_GOT_BACKPACK  = "Вещмешок старшины. Всё, что унесёшь!";

@@ -13,6 +13,19 @@ python3 tools/build.py        # → dist/sovietdoom.pk3
 tools/run.sh                  # needs GZDoom and freedoom2.wad in iwads/
 ```
 
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every push and pull request to `main`:
+repo hygiene (no stray `.wad`/`.pk3`, nothing over 5 MB committed), then
+`tools/build.py`, `tools/check_pk3.py` and the `tests/` suite, in that order,
+failing at the first red step; the built PK3 is uploaded as a run artifact.
+
+**What it does not run:** `tools/smoke.py`. That needs a real GZDoom install
+and an IWAD, neither of which exists on the runner, and fetching Freedoom
+(~23 MB) on every run isn't worth it yet. The engine smoke test stays the
+committer's responsibility, locally, before every push — see
+`docs/PIPELINE.md`, stage 5.
+
 ---
 
 # Советский Doom
@@ -25,3 +38,17 @@ tools/run.sh                  # needs GZDoom and freedoom2.wad in iwads/
 Статус: F0 закрыта (пайплайн проверен), лор F1 ратифицирован, далее F2 —
 арт-дирекшн. См. `CLAUDE.md` (операционная сводка), `docs/PRD.md` (решения)
 и `docs/ru/` (русское зеркало всей документации).
+
+## Непрерывная интеграция
+
+`.github/workflows/ci.yml` запускается при каждом push и pull request в
+`main`: сначала гигиена репозитория (никаких случайных `.wad`/`.pk3`, ничего
+тяжелее 5 МБ в коммите), затем `tools/build.py`, `tools/check_pk3.py` и набор
+тестов `tests/`, в этом порядке, с остановкой на первом же красном шаге;
+собранный PK3 загружается как артефакт запуска.
+
+**Чего CI не делает:** не запускает `tools/smoke.py`. Для этого нужен
+настоящий GZDoom и IWAD, которых на раннере нет, а скачивать Freedoom
+(~23 МБ) при каждом запуске пока не оправдано. Проверка в движке остаётся
+обязанностью коммитящего, локально, перед каждым push — см. `docs/PIPELINE.md`,
+этап 5.

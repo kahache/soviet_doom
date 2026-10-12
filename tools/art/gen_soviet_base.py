@@ -450,6 +450,11 @@ def paper(w, h, rng, base_rgb):
 
 
 def tex_postr1():
+    """SUPERSEDED, kept as the record of what was tried. The constructivist
+    Lenin silhouette, discarded by the CEO on 2026-10-12. `SDPOSTR1` is now
+    gen_lenin.py's, 128x256, posterised from the photograph. Not in TEXTURES,
+    so it ships nothing.
+    """
     rng = rng_for(6)
     w, h = WALL_W, WALL_H
     rgb = paper(w, h, rng, ramp_colour("flag_red", POSTER_RED))
@@ -645,9 +650,9 @@ TEXTURES = [
     ("SDDOOR1", tex_door1, "wall",
      "Bunker steel door: riveted frame, green leaf, locking wheel, faded star and '7' stencil, hazard stripe.",
      "Стальная дверь бункера: клёпаная рама, зелёное полотно, запорное колесо, выцветшие трафареты звезды и «7», сигнальная полоса."),
-    ("SDPOSTR1", tex_postr1, "wall",
-     "Propaganda poster: constructivist Lenin profile in a cream medallion on red, text ЛЕНИН ЖИВ.",
-     "Агитплакат: конструктивистский профиль Ленина в кремовом медальоне на красном, текст ЛЕНИН ЖИВ."),
+    # SDPOSTR1 is NOT here: the Lenin poster is produced by tools/art/gen_lenin.py
+    # from the public-domain 1920 photograph, at 128x256. Two generators claiming
+    # one lump put two different SDPOSTR1.png in work/ and broke the asset test.
     ("SDPOSTR2", tex_postr2, "wall",
      "Cosmonautics mural: rocket over red with cream rays and stars, text СЛАВА СОВЕТСКОЙ КОСМОНАВТИКЕ.",
      "Панно о космонавтике: ракета на красном с кремовыми лучами и звёздами, текст СЛАВА СОВЕТСКОЙ КОСМОНАВТИКЕ."),
@@ -693,7 +698,7 @@ def main() -> None:
             "colours_used": colours,
             "seam_score": round(tiling_seam_score(rgb), 2),
             "description_en": desc_en, "description_ru": desc_ru,
-            "uses_font": builder in (tex_postr1, tex_postr2, tex_door1),
+            "uses_font": builder in (tex_postr2, tex_door1),
         })
         print(f"{lump:9s} {w:3d}x{h:3d} {kind:4s} colours={colours:3d} seam={entries[-1]['seam_score']:5.2f}")
     manifest = {

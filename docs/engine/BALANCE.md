@@ -166,6 +166,17 @@ pickup and the whole status bar keep working:
 | `RocketAmmo` | PG-7V grenades | RPG-7 | 2 |
 | `Cell` | fuel canisters | ROKS-3, hand Katyusha | 40 |
 
+Since 2026-10-13 the "reads as" column is no longer only a figure of speech:
+the player sees those names. The pools are still Doom's — nothing in the
+table above changed — but the nine pickup actors are ours and carry Soviet
+names and pickup lines. Numbers unaffected; see `MOD-SPEC.md` §6.4 and
+`adr/003-ammo-naming-and-the-silent-shovel.md`.
+
+The sapper's shovel also lost its swing sound the same day (a placeholder
+that played the chainsaw start-up). **The swing still takes 27 tics**: the
+`A_StartSound` call was removed from a frame that was already there, so
+every number in §2 stands.
+
 **Open for the CEO:** whether the hand Katyusha should have its own ammo
 type instead of sharing fuel with the flamethrower. Sharing is what Doom
 does (plasma and BFG both eat cells) and it needs no new pickup sprite; a

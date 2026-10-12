@@ -1,78 +1,309 @@
-"""MAP01 "SD: Test Range" - F0 pipeline-validation map.
+"""MAP01 "Zarya-7 Cosmodrome" - v0, the grey floor plan.
 
-A single square room with the player in the middle. It exists to prove that
-the PK3 loads, MAPINFO/LANGUAGE/ZScript are parsed and the map is playable.
-The build imports this module and calls `lumps()`.
+Design document (approved as text by the CEO): docs/levels/MAP01-zarya-7.md.
+This file builds **v0** of its section 12 version plan: the complete floor
+plan - every sector, every door, both switches, the exit, the real heights
+and the real stairs - in ONE texture, at flat light 160, with no enemies and
+no items. Texturing is v1, light and detail are v2, balance is v3. Nothing
+here is meant to look like anything: it is here so the CEO can WALK the
+layout and say whether the route, the scale and the rhythm are right.
 
-Textures are IWAD assets shared by doom2.wad and freedoom2.wad (Freedoom
-keeps Doom II lump names on purpose). They are listed in
-docs/engine/MOD-SPEC.md; do not add textures here without updating it.
+Coordinates come from the design's section 3 table. Where this file departs
+from that table it says so in the zone's comment and the design document
+records it; the table itself allows a zone to shift by a grid cell as long
+as the *relations* hold.
+
+Geometry is painted, not wound by hand: `GridMap` (tools/sdbuild/udmf.py)
+takes axis-aligned rectangles of sector and works out every shared edge,
+every wall and every winding. See docs/levels/MAP01-zarya-7.md section 9 for
+the engine specials used and how each number was verified.
+
+Run it:
+    python3 tools/build.py && MAP=MAP01 tools/run.sh
 """
 
 from __future__ import annotations
 
-from sdbuild.udmf import Linedef, Sector, Sidedef, TextMap, Thing
+from sdbuild.udmf import (
+    GridMap,
+    Sector,
+    TextMap,
+    Thing,
+    door_open_style,
+    door_raise_style,
+    exit_switch_style,
+    remote_door_style,
+    switch_door_open_style,
+)
 
 MAP_NAME = "MAP01"
 
-# --- Geometry -------------------------------------------------------------
-ROOM_SIZE = 512        # map units per side; big enough to walk around, small
-                       # enough to see every wall from the start
-FLOOR_HEIGHT = 0
-CEILING_HEIGHT = 128   # standard Doom corridor height; walls tile cleanly
-LIGHT_LEVEL = 160      # Doom "normal indoor" light, no fog/darkness
+# --- v0 palette: one wall, one floor, one ceiling -------------------------
+# IWAD assets declared in docs/engine/MOD-SPEC.md section 5, present in both
+# doom2.wad and freedoom2.wad. The approved SD textures are in the PK3 since
+# blocker M1 was fixed, but v0 deliberately uses none of them: a single grey
+# surface is what makes a shape judgeable.
+WALL = "STARTAN2"
+FLOOR = "FLOOR4_8"
+CEILING = "CEIL3_5"
+LIGHT = 160  # flat across the whole map; the light design is v2
 
-# --- IWAD assets (must exist in both doom2.wad and freedoom2.wad) --------
-WALL_TEXTURE = "STARTAN2"   # grey tech wall, 128 tall -> tiles exactly once
-FLOOR_FLAT = "FLOOR4_8"     # plain grey floor
-CEILING_FLAT = "CEIL3_5"    # plain grey ceiling
+# The ONE deliberate exception to "one texture everywhere". With a single
+# grey wall, a closed door is a piece of grey wall and a switch is a piece of
+# grey wall: the CEO would be walking a layout whose doors he cannot find,
+# which is the opposite of the point of v0. So every surface the player is
+# meant to PRESS - the six door leaves, the two switches, the exit - wears
+# `SDDOOR1`, which is already approved (docs/art/TEXTURE-INDEX.md) and is the
+# texture v1 puts on those same doors anyway. Nothing else is textured.
+PRESSABLE = "SDDOOR1"
+
+# --- Sector tags ----------------------------------------------------------
+# Design section 9 reserved 10 = D4, 11 = D5, 20/21 = closets and ambush
+# panels, 30 = booth light. v0 additionally needs a tag per manual door,
+# because a tagged door opens from either flanking line without depending on
+# which side the engine considers "front". 1-9 were free; the secret panels
+# take 101-103, well clear of the reserved block.
+TAG_D1_DORM_WASHROOM = 1
+TAG_D2_DORM_CORRIDOR = 2
+TAG_D3_KOMNATA_SERVICE = 3
+TAG_D6_CATWALK_BOOTH = 6
+TAG_D4_HANGAR_AIRLOCK = 10
+TAG_D5_AIRLOCK_EXIT = 11
+TAG_S1_LOCKER_PANEL = 101
+TAG_S2_CATWALK_PANEL = 102
+TAG_S3_SUMP_PANEL = 103
 
 # --- Things ---------------------------------------------------------------
-DOOMEDNUM_PLAYER1_START = 1   # editor number of "Player 1 start"
-PLAYER_ANGLE = 90             # facing "north" (+y) so the first wall is ahead
+ED_PLAYER1_START = 1
+PLAYER_START = (256, 96)
+PLAYER_ANGLE = 90  # north: D2, the way out of the dorm, is straight ahead
+
+# --- Heights --------------------------------------------------------------
+# A closed door is a sector whose ceiling sits on its floor. `Door_Raise` /
+# `Door_Open` then lift it to (lowest neighbouring ceiling - 4).
+HANGAR_FLOOR = -32
+HANGAR_CEIL = 288
+SUMP_FLOOR = -96
+
+
+def _sector(floor: int, ceil: int, tag: int | None = None) -> Sector:
+    return Sector(
+        texturefloor=FLOOR,
+        textureceiling=CEILING,
+        heightfloor=floor,
+        heightceiling=ceil,
+        lightlevel=LIGHT,
+        identifier=tag,
+    )
+
+
+def build_plan() -> tuple[TextMap, dict[str, int]]:
+    """Build the map and return it together with {zone name: sector index}.
+
+    The name map is what lets the tests and QA talk about "the booth window"
+    or "the exit lift" instead of about sector 39.
+    """
+    tm = TextMap(comment=f"{MAP_NAME} v0 generated by src/maps/{MAP_NAME}/map.py - do not edit by hand")
+    g = GridMap(tm, wall=WALL)
+    plan: dict[str, int] = {}
+
+    def zone(name: str, floor: int, ceil: int, rects, tag: int | None = None) -> int:
+        """One named sector, painted as one or more rectangles."""
+        if name in plan:
+            raise ValueError(f"duplicate zone name {name!r}")
+        index = tm.add_sector(_sector(floor, ceil, tag))
+        g.paint_all(index, rects)
+        plan[name] = index
+        return index
+
+    def door(name: str, floor: int, tag: int, rect) -> int:
+        """A closed door sector (ceiling resting on the floor)."""
+        return zone(name, floor, floor, [rect], tag)
+
+    # ======================================================================
+    # Act 1 - barracks.  Dorm -> washroom (+ secret locker) and dorm -> corridor
+    # ======================================================================
+    # Z1 dorm, the player's "before": ordinary, lit, 640 x 448.
+    z1_dorm = zone("z1_dorm", 0, 128, [(0, 0, 640, 448)])
+
+    # D1, manual door east to the washroom. 128 wide, in its own recess, so
+    # the dorm and the washroom never share any other edge.
+    d1 = door("d1", 0, TAG_D1_DORM_WASHROOM, (640, 32, 704, 160))
+    z2_washroom = zone("z2_washroom", 0, 96, [(704, 0, 896, 192)])
+
+    # S1, secret locker closet behind a push panel that stays open.
+    s1_panel = door("s1_panel", 0, TAG_S1_LOCKER_PANEL, (896, 64, 928, 128))
+    s1_locker = zone("s1_locker", 0, 96, [(928, 32, 1024, 160)])
+
+    # D2, manual door north to the barracks corridor.
+    d2 = door("d2", 0, TAG_D2_DORM_CORRIDOR, (192, 448, 320, 512))
+    # Z3 corridor: where the red stripe is born in v1. 128 wide, 448 long.
+    z3_corridor = zone("z3_corridor", 0, 96, [(192, 512, 320, 960)])
+
+    # Z4 Leninskaya komnata: the only wide, tall room of the barracks.
+    # Opens straight off the corridor - no door, the room is the reward.
+    z4_komnata = zone("z4_komnata", 0, 192, [(0, 960, 640, 1408)])
+
+    # ======================================================================
+    # Act 2 - service corridor, guard post, and the descent into the hangar
+    # ======================================================================
+    d3 = door("d3", 0, TAG_D3_KOMNATA_SERVICE, (640, 1088, 704, 1216))
+    z5_service = zone("z5_service", 0, 112, [(704, 1088, 1152, 1216)])
+    # Z5b guard post, 8 units up: in v3 this is where the IZh is.
+    z5b_guard = zone("z5b_guard", 8, 112, [(896, 1216, 1024, 1344)])
+
+    # ======================================================================
+    # Act 3 - the hangar and everything carved out of it
+    # ======================================================================
+    # Painting is last-wins, so the hangar is laid down whole and every
+    # stair, the cradle and the catwalk are then painted ON TOP of it.
+    # Anything carved out of the hangar must therefore come after this line.
+    z6_hangar = zone("z6_hangar", HANGAR_FLOOR, HANGAR_CEIL, [(1152, 320, 2688, 1600)])
+
+    # Three steps down from the service corridor into the hangar, each with
+    # a higher ceiling than the last: the space opens up ahead of the player
+    # before he is in it. Without them the 32-unit drop would be one-way.
+    step_down_1 = zone("step_down_1", -8, 112, [(1152, 1088, 1216, 1216)])
+    step_down_2 = zone("step_down_2", -16, 160, [(1216, 1088, 1280, 1216)])
+    step_down_3 = zone("step_down_3", -24, 224, [(1280, 1088, 1344, 1216)])
+
+    # Z6a transporter cradle, a walkable island of cover at +64 over the
+    # floor, climbed by three steps on its west side and dropped off from
+    # any of its four sides.
+    cradle_step_1 = zone("cradle_step_1", -16, HANGAR_CEIL, [(1504, 960, 1536, 1088)])
+    cradle_step_2 = zone("cradle_step_2", 0, HANGAR_CEIL, [(1536, 960, 1568, 1088)])
+    cradle_step_3 = zone("cradle_step_3", 16, HANGAR_CEIL, [(1568, 960, 1600, 1088)])
+    z6a_cradle = zone("z6a_cradle", 32, HANGAR_CEIL, [(1600, 832, 2240, 1216)])
+
+    # Eight steps up the east end of the hangar to the catwalk (+128).
+    catwalk_steps = []
+    for i in range(8):
+        y1 = 1184 + i * 32
+        catwalk_steps.append(
+            zone(f"catwalk_step_{i + 1}", -16 + i * 16, HANGAR_CEIL,
+                 [(2304, y1, 2560, y1 + 32)])
+        )
+
+    # Z6b catwalk along the north wall, 96 up, overlooking the whole hangar.
+    z6b_catwalk = zone("z6b_catwalk", 96, HANGAR_CEIL, [(1280, 1440, 2560, 1600)])
+
+    # S2, the loose panel off the catwalk: the RPG-7 closet in v3.
+    s2_panel = door("s2_panel", 96, TAG_S2_CATWALK_PANEL, (2176, 1600, 2240, 1632))
+    s2_closet = zone("s2_closet", 96, 192, [(2112, 1632, 2304, 1792)])
+
+    # ======================================================================
+    # Act 3b - fuel bay (SW-A) and the sump secret under it
+    # ======================================================================
+    # A short passage through the hangar's north-west wall, so the opening
+    # reads as a doorway and not as a missing wall.
+    fuel_passage = zone("fuel_passage", HANGAR_FLOOR, 160, [(1152, 1600, 1280, 1664)])
+    # Design table says y 1600..1920; shifted 64 north to make room for the
+    # passage. Same size, same relations.
+    z7_fuel_bay = zone("z7_fuel_bay", HANGAR_FLOOR, 160, [(1152, 1664, 1600, 1984)])
+
+    s3_panel = door("s3_panel", HANGAR_FLOOR, TAG_S3_SUMP_PANEL, (1120, 1728, 1152, 1792))
+    # Four 16-unit steps down to the sump. The design gave the sump a ceiling
+    # of 0, which is only 32 above the fuel-bay floor: the doorway would have
+    # been 32 high and impassable. The stairwell is ceilinged at 64 instead
+    # and the sump itself keeps its -96 floor and its 0 ceiling.
+    sump_step_1 = zone("sump_step_1", -48, 64, [(1088, 1728, 1120, 1792)])
+    sump_step_2 = zone("sump_step_2", -64, 64, [(1056, 1728, 1088, 1792)])
+    sump_step_3 = zone("sump_step_3", -80, 64, [(1024, 1728, 1056, 1792)])
+    s3_sump = zone("s3_sump", SUMP_FLOOR, 0, [(896, 1664, 1024, 1856)])
+
+    # ======================================================================
+    # Act 4 - control booth (SW-B)
+    # ======================================================================
+    # Design table says x 2560..2816; shifted 128 west so the booth actually
+    # touches the catwalk and D6 has a wall to sit in.
+    d6 = door("d6", 96, TAG_D6_CATWALK_BOOTH, (2432, 1600, 2560, 1664))
+    z9_booth = zone("z9_booth", 96, 224, [
+        (2560, 1616, 2688, 1664),
+        (2432, 1664, 2688, 1856),
+    ])
+    # The booth window: a sill 32 above the booth floor (so it cannot be
+    # stepped through) and 160 above the hangar floor. It is a window, so it
+    # is the one sector of the map no player can stand in. This is the
+    # beacon SW-A lights in v2.
+    booth_window = zone("booth_window", 128, 224, [(2560, 1600, 2688, 1616)])
+
+    # ======================================================================
+    # Act 5 - the two-leaf airlock and the exit lift
+    # ======================================================================
+    # D4, 256 wide, remote: shut when the hangar is first seen, opened for
+    # good by SW-A. No use-special on its lines - it is the gate.
+    d4 = door("d4", HANGAR_FLOOR, TAG_D4_HANGAR_AIRLOCK, (2688, 544, 2752, 800))
+    z8_airlock = zone("z8_airlock", HANGAR_FLOOR, 96, [(2752, 544, 2912, 800)])
+    # D5, 128 wide, the inner leaf; opened for good by SW-B in the booth.
+    d5 = door("d5", HANGAR_FLOOR, TAG_D5_AIRLOCK_EXIT, (2912, 608, 2944, 736))
+    # Z10, the service lift shaft: the tallest, emptiest room of the map.
+    z10_exit = zone("z10_exit", HANGAR_FLOOR, 224, [(2944, 480, 3264, 864)])
+
+    # ======================================================================
+    # Doors, switches and the exit
+    # ======================================================================
+    # Both flanking lines of every manual door carry the special, and the
+    # style pins the winding so the door sector is always on the BACK side:
+    # a `playeruse` special only fires from the front, so this is what makes
+    # a door openable from both rooms.
+    for tag, door_sector, segments in (
+        (TAG_D1_DORM_WASHROOM, d1, [("v", 640, 32, 160), ("v", 704, 32, 160)]),
+        (TAG_D2_DORM_CORRIDOR, d2, [("h", 448, 192, 320), ("h", 512, 192, 320)]),
+        (TAG_D3_KOMNATA_SERVICE, d3, [("v", 640, 1088, 1216), ("v", 704, 1088, 1216)]),
+        # D6's east side meets the booth from y 1616 up; below that it meets
+        # the window sector, which no player can stand in, so that stretch
+        # stays a plain two-sided line.
+        (TAG_D6_CATWALK_BOOTH, d6, [("h", 1600, 2432, 2560), ("v", 2560, 1616, 1664)]),
+    ):
+        style = door_raise_style(tag, door_sector, texture=PRESSABLE)
+        for axis, coord, lo, hi in segments:
+            (g.style_v if axis == "v" else g.style_h)(coord, lo, hi, style)
+
+    # The three secret panels: push once, open for good.
+    for tag, door_sector, segments in (
+        (TAG_S1_LOCKER_PANEL, s1_panel, [("v", 896, 64, 128), ("v", 928, 64, 128)]),
+        (TAG_S2_CATWALK_PANEL, s2_panel, [("h", 1600, 2176, 2240), ("h", 1632, 2176, 2240)]),
+        (TAG_S3_SUMP_PANEL, s3_panel, [("v", 1152, 1728, 1792), ("v", 1120, 1728, 1792)]),
+    ):
+        style = door_open_style(tag, door_sector, texture=PRESSABLE)
+        for axis, coord, lo, hi in segments:
+            (g.style_v if axis == "v" else g.style_h)(coord, lo, hi, style)
+
+    # D4 and D5 are opened only by their switches, so they carry no special
+    # of their own - but their leaves still have to look like doors.
+    for door_sector, segments in (
+        (d4, [("v", 2688, 544, 800), ("v", 2752, 544, 800)]),
+        (d5, [("v", 2912, 608, 736), ("v", 2944, 608, 736)]),
+    ):
+        style = remote_door_style(door_sector, texture=PRESSABLE)
+        for axis, coord, lo, hi in segments:
+            (g.style_v if axis == "v" else g.style_h)(coord, lo, hi, style)
+
+    # SW-A, north wall of the fuel bay: opens D4 for good. Repeatable, so a
+    # second press can never undo or consume the gate.
+    g.style_h(1984, 1280, 1408, switch_door_open_style(TAG_D4_HANGAR_AIRLOCK, texture=PRESSABLE))
+    # SW-B, north wall of the control booth: opens D5 for good.
+    g.style_h(1856, 2496, 2624, switch_door_open_style(TAG_D5_AIRLOCK_EXIT, texture=PRESSABLE))
+    # The exit, on the east wall of the lift shaft.
+    g.style_v(3264, 608, 736, exit_switch_style(texture=PRESSABLE))
+
+    g.build()
+
+    tm.add_thing(
+        Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START, angle=PLAYER_ANGLE)
+    )
+
+    return tm, plan
 
 
 def build_textmap() -> TextMap:
-    tm = TextMap(comment=f"{MAP_NAME} generated by src/maps/{MAP_NAME}/map.py - do not edit by hand")
-
-    sector = tm.add_sector(
-        Sector(
-            texturefloor=FLOOR_FLAT,
-            textureceiling=CEILING_FLAT,
-            heightfloor=FLOOR_HEIGHT,
-            heightceiling=CEILING_HEIGHT,
-            lightlevel=LIGHT_LEVEL,
-        )
-    )
-
-    # Clockwise (y up) so each line's front side faces the room interior.
-    corners = [
-        (0, 0),
-        (0, ROOM_SIZE),
-        (ROOM_SIZE, ROOM_SIZE),
-        (ROOM_SIZE, 0),
-    ]
-    verts = [tm.add_vertex(x, y) for x, y in corners]
-    for i, v1 in enumerate(verts):
-        v2 = verts[(i + 1) % len(verts)]
-        side = tm.add_sidedef(Sidedef(sector=sector, texturemiddle=WALL_TEXTURE))
-        tm.add_linedef(Linedef(v1=v1, v2=v2, sidefront=side, blocking=True))
-
-    tm.add_thing(
-        Thing(
-            x=ROOM_SIZE / 2,
-            y=ROOM_SIZE / 2,
-            type=DOOMEDNUM_PLAYER1_START,
-            angle=PLAYER_ANGLE,
-        )
-    )
-    return tm
+    return build_plan()[0]
 
 
 def lumps() -> list[tuple[str, bytes]]:
     """Return the WAD lumps in directory order (contract used by the build)."""
     return [
-        (MAP_NAME, b""),                        # map marker
+        (MAP_NAME, b""),                          # map marker
         ("TEXTMAP", build_textmap().to_bytes()),  # UDMF map body
-        ("ENDMAP", b""),                        # end-of-map marker
+        ("ENDMAP", b""),                          # end-of-map marker
     ]

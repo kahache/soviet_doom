@@ -177,7 +177,7 @@ class EmblemGeometryTests(unittest.TestCase):
 ASSETS_DIR = PROJECT_ROOT / "assets"
 WORK_ART_DIR = PROJECT_ROOT / "work" / "art"
 FLAT_SIZE = (64, 64)
-WALL_SIZES = [(64, 128), (128, 128)]
+WALL_SIZES = [(64, 128), (128, 128), (128, 256)]   # 128x256 added for the Lenin poster (D18 era)
 
 
 @unittest.skipUnless(HAVE_IMAGING, "Pillow/numpy not available in this interpreter")
@@ -189,13 +189,28 @@ class ApprovedAssetsTests(unittest.TestCase):
     def setUp(self):
         self.pngs = sorted(ASSETS_DIR.rglob("*.png")) if ASSETS_DIR.is_dir() else []
 
+    # Screens the engine names itself. They are the documented exception to
+    # the SD prefix (MOD-SPEC 1) and to the indexed-PNG rule: M_DOOM is a menu
+    # patch and needs an alpha channel, hard 0/255 (LICENSES.md, D18).
+    SHELL_SIZES = {"TITLEPIC": (320, 200), "INTERPIC": (320, 200), "M_DOOM": (200, 64)}
+
     def test_layout_names_and_sizes(self):
         from PIL import Image
         for p in self.pngs:
             kind = p.relative_to(ASSETS_DIR).parts[0]
-            self.assertIn(kind, ("textures", "flats"), p)
-            self.assertRegex(p.stem, LUMP_RE)
+            self.assertIn(kind, ("textures", "flats", "graphics"), p)
             with Image.open(p) as img:
+                if kind == "graphics":
+                    self.assertIn(p.stem, self.SHELL_SIZES,
+                                  f"{p}: unexpected shell lump; the engine fixes these names")
+                    self.assertEqual(img.size, self.SHELL_SIZES[p.stem], p)
+                    self.assertIn(img.mode, ("P", "RGBA"), p)
+                    if img.mode == "RGBA":
+                        alpha = set(img.getchannel("A").getdata())
+                        self.assertTrue(alpha <= {0, 255},
+                                        f"{p}: alpha must be hard 0/255, found {sorted(alpha)[:6]}")
+                    continue
+                self.assertRegex(p.stem, LUMP_RE)
                 self.assertEqual(img.mode, "P", p)
                 if kind == "flats":
                     self.assertEqual(img.size, FLAT_SIZE, p)
@@ -207,6 +222,11 @@ class ApprovedAssetsTests(unittest.TestCase):
             self.skipTest("work/ not present (gitignored work-in-progress)")
         for p in self.pngs:
             sources = list(WORK_ART_DIR.rglob(p.name))
+            if not sources and p.relative_to(ASSETS_DIR).parts[0] == "graphics":
+                # Shell screens are renamed on the way in: the generator writes
+                # TITLEPIC_A / INTERPIC_C and the CEO's choice (D18) decides
+                # which one takes the engine's fixed name.
+                continue
             self.assertEqual(len(sources), 1, f"{p.name}: expected one source in work/, got {sources}")
             self.assertEqual(p.read_bytes(), sources[0].read_bytes(), f"{p} differs from {sources[0]}")
 

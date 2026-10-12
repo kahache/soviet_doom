@@ -50,6 +50,29 @@ REMOVED_EDNUMS = {82, 2005}
 
 MAX_LUMP_NAME = 8
 
+# Ammunition reskin (CEO 2026-10-13): class, Doom parent it subclasses AND
+# replaces, and the LANGUAGE id carrying its pickup line.
+AMMO_PICKUPS = [
+    ("SD_Clip", "Clip", "SD_GOT_CLIP"),
+    ("SD_ClipBox", "ClipBox", "SD_GOT_CLIPBOX"),
+    ("SD_Shell", "Shell", "SD_GOT_SHELLS"),
+    ("SD_ShellBox", "ShellBox", "SD_GOT_SHELLBOX"),
+    ("SD_RocketAmmo", "RocketAmmo", "SD_GOT_ROCKET"),
+    ("SD_RocketBox", "RocketBox", "SD_GOT_ROCKBOX"),
+    ("SD_Cell", "Cell", "SD_GOT_CELL"),
+    ("SD_CellPack", "CellPack", "SD_GOT_CELLPACK"),
+    ("SD_Backpack", "Backpack", "SD_GOT_BACKPACK"),
+]
+
+# The Tag of each Doom ammo pool; these engine ids ARE ours to override.
+AMMO_TAG_IDS = ["AMMO_CLIP", "AMMO_SHELLS", "AMMO_ROCKETS", "AMMO_CELLS"]
+
+# These engine ids are NOT ours to override: Freedoom's DEHACKED lump wins.
+DEHACKED_OWNED_IDS = [
+    "GOTCLIP", "GOTCLIPBOX", "GOTSHELLS", "GOTSHELLBOX",
+    "GOTROCKET", "GOTROCKBOX", "GOTCELL", "GOTCELLBOX", "GOTBACKPACK",
+]
+
 
 def _blocks(text: str, kind: str) -> list[str]:
     return re.findall(rf"^{kind}\s*\{{(.*?)\}}", text, flags=re.S | re.M)
@@ -219,15 +242,85 @@ class ArsenalPk3Test(unittest.TestCase):
 
     # --- LANGUAGE ----------------------------------------------------------
 
+    def _language_sections(self) -> tuple[str, str]:
+        """Split LANGUAGE on the `[ru]` HEADER, not on the first `[ru]` text.
+
+        A comment mentioning the section name used to cut the English half in
+        two and make the checks below pass on strings that were not there.
+        """
+        parts = re.split(r"^\[ru\]\s*$", self.language, flags=re.M)
+        self.assertEqual(len(parts), 2, "LANGUAGE must have exactly one [ru] header (D7)")
+        return parts[0], parts[1]
+
     def test_every_language_id_used_by_the_arsenal_exists_in_both_languages(self):
         ids = set(re.findall(r'"\$(SD_[A-Z0-9_]+)"', self.zs_all))
         ids |= set(re.findall(r'lookup\s+"(SD_[A-Z0-9_]+)"', self.mapinfo))
         self.assertTrue(ids, "the arsenal must use LANGUAGE ids, not literals")
-        enu, _, ru = self.language.partition("[ru]")
+        enu, ru = self._language_sections()
         self.assertTrue(ru, "LANGUAGE must have a [ru] section (D7)")
         for ident in sorted(ids):
             self.assertRegex(enu, re.compile(rf"^{ident}\s*=", re.M), f"{ident} missing in [enu default]")
             self.assertRegex(ru, re.compile(rf"^{ident}\s*=", re.M), f"{ident} missing in [ru]")
+
+
+    # --- Ammunition (CEO 2026-10-13) ---------------------------------------
+
+    def test_every_ammo_pickup_is_reskinned_and_keeps_its_doom_pool(self):
+        """Freedoom's DEHACKED beats our LANGUAGE for GOTCLIP & friends, so
+        the Soviet pickup lines must come from our own subclasses."""
+        body = self.zs["zscript/sd/ammo.zs"]
+        for cls_name, parent, ident in AMMO_PICKUPS:
+            self.assertRegex(
+                body,
+                re.compile(rf"class\s+{cls_name}\s*:\s*{parent}\s+replaces\s+{parent}\b"),
+                f"{cls_name} must subclass AND replace {parent} "
+                f"(subclassing is what keeps the Doom ammo pool)",
+            )
+            self.assertIn(
+                f'"${ident}"', body, f"{cls_name} must take its pickup line from ${ident}"
+            )
+
+    def test_no_ammo_string_relies_on_an_engine_pickup_id(self):
+        """GOTCLIP/GOTSHELLS/... are overridden by Freedoom's DEHACKED lump:
+        setting them here would look right and do nothing (verified 2026-10-13)."""
+        enu, ru = self._language_sections()
+        for ident in DEHACKED_OWNED_IDS:
+            for section, name in ((enu, "[enu default]"), (ru, "[ru]")):
+                self.assertNotRegex(
+                    section,
+                    re.compile(rf"^{ident}\s*=", re.M),
+                    f"{ident} is a DEHACKED-owned id; use an SD_GOT_* id instead ({name})",
+                )
+
+    def test_the_four_ammo_pools_are_renamed_in_both_languages(self):
+        enu, ru = self._language_sections()
+        for ident in AMMO_TAG_IDS:
+            self.assertRegex(enu, re.compile(rf"^{ident}\s*=", re.M), f"{ident} missing in [enu default]")
+            self.assertRegex(ru, re.compile(rf"^{ident}\s*=", re.M), f"{ident} missing in [ru]")
+
+    def test_the_english_section_is_ascii_until_the_cyrillic_font_lands(self):
+        """Freedoom's SmallFont has no Cyrillic: GZDoom's glyph pack is under
+        filter/doom.id/ and Freedoom is not an id IWAD. Verified in-engine
+        2026-10-13 - Cyrillic printed as blanks. Drop this test when
+        src/fonts/defsmallfont/ ships the glyphs (MOD-SPEC debt T9)."""
+        if (PROJECT_ROOT / "src/fonts/defsmallfont").is_dir():
+            self.skipTest("the mod now ships its own small-font glyphs")
+        enu, _ = self._language_sections()
+        for line in enu.splitlines():
+            code = line.split("//")[0]
+            self.assertTrue(
+                code.isascii(),
+                f"non-ASCII in the English section would print as blanks: {line!r}",
+            )
+
+    # --- Sounds: regressions -----------------------------------------------
+
+    def test_no_chainsaw_lump_is_used_as_a_placeholder(self):
+        """The CEO heard a chainsaw when swinging the shovel (2026-10-13)."""
+        for logical, lump in self._sndinfo_names().items():
+            self.assertNotIn(
+                "SAW", lump.upper(), f"{logical} points at the chainsaw lump {lump}"
+            )
 
     # --- MAP02 test range --------------------------------------------------
 
@@ -247,7 +340,7 @@ class ArsenalPk3Test(unittest.TestCase):
 
     def test_map02_is_in_mapinfo_with_a_localized_name(self):
         self.assertRegex(self.mapinfo, r'map\s+MAP02\s+lookup\s+"SD_MAP02_NAME"')
-        enu, _, ru = self.language.partition("[ru]")
+        enu, ru = self._language_sections()
         self.assertRegex(enu, re.compile(r"^SD_MAP02_NAME\s*=", re.M))
         self.assertRegex(ru, re.compile(r"^SD_MAP02_NAME\s*=", re.M))
 
