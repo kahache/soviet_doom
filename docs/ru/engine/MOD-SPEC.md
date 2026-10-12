@@ -2,8 +2,9 @@
 
 Владелец: `mod-engineer`. Контракт с `level-designer` и `art-director`: имена,
 пути и лампы, которые ожидает движок. **Изменить его = обновить этот документ
-раньше кода.** Статус: F0 проверено на GZDoom 4.14.2, 2026-10-09. Каноническая
-версия: `docs/engine/MOD-SPEC.md`.
+раньше кода.** Статус: арсенал F4 проверен на GZDoom 4.14.2, 2026-10-12
+(пайплайн F0 проверен 2026-10-09).
+Английский оригинал: `docs/engine/MOD-SPEC.md`.
 
 Минимальный глоссарий (для новичков в моддинге Doom):
 
@@ -34,12 +35,15 @@
 sovietdoom.pk3
 ├── MAPINFO                 карты, эпизоды, GameInfo (AddEventHandlers)
 ├── LANGUAGE                локализованный текст: [enu default] и [ru] (D7)
+├── SNDINFO                 логическое имя звука -> ламп (F4)
 ├── zscript.txt             вход ZScript: version + #include
-├── zscript/sd/*.zs         классы ZScript (один класс на файл)
+├── zscript/sd/*.zs         системы (обработчики событий, класс игрока)
+├── zscript/weapons/*.zs    арсенал, один класс на файл (F4)
 ├── maps/MAP01.wad          один WAD на карту, лампы MAP01, TEXTMAP, ENDMAP
-├── textures/  flats/       (пусто в F0) собственные текстуры стен и флэты
-├── sprites/  sounds/  music/  graphics/  patches/  hires/   (пусто в F0)
-└── (будущее) SNDINFO, ANIMDEFS, TEXTURES, GLDEFS, CVARINFO в корне
+├── maps/MAP02.wad          инженерный тестовый полигон (F4)
+├── textures/  flats/       собственные текстуры стен и флэты
+├── sprites/  sounds/  music/  graphics/  patches/  hires/
+└── (будущее) ANIMDEFS, TEXTURES, GLDEFS, CVARINFO в корне
 ```
 
 Правила:
@@ -54,7 +58,7 @@ sovietdoom.pk3
 ```
 src/
 ├── lumps/        → корень PK3 (плоско)
-├── zscript/      → zscript/  (копируется как есть)
+├── zscript/      → zscript/  (копируется как есть; sd/ = системы, weapons/ = арсенал)
 ├── maps/MAP01/map.py   → maps/MAP01.wad  (генерируется; определяет lumps())
 ├── maps/MAPxx.wad      → maps/MAPxx.wad  (копируется как есть; выход UDB)
 └── textures/ flats/ sprites/ sounds/ music/ graphics/ patches/ hires/ → те же пути
@@ -72,7 +76,8 @@ src/
 
 | Ламп | Заголовок (LANGUAGE) | Эпизод | Статус |
 |---|---|---|---|
-| `MAP01` | `SD_MAP01_NAME` = "Test Range" / «Полигон» | `SD_EP01_NAME` = "Soviet Doom" / «Советский Doom» | F0: комната 512×512, пол 0, потолок 128, свет 160, старт игрока в (256,256) лицом к +y. `next = "MAP01"` (без выхода). |
+| `MAP01` | `SD_MAP01_NAME` = "Test Range" / «Полигон» | `SD_EP01_NAME` = "Soviet Doom" / «Советский Doom» | F0: комната 512×512, пол 0, потолок 128, свет 160, старт игрока в (256,256) лицом к +y. `next = "MAP01"` (без выхода). Владелец — `level-designer`, начиная с F3. |
+| `MAP02` | `SD_MAP02_NAME` = "Engineering Test Range" / «Инженерный полигон» | нет (вне эпизода) | F4: зал 2048×768, потолок 128, свет 192, старт игрока в (160,384) лицом к +x. Семь видов оружия, четыре пула патронов, бочки и цели-плейсхолдеры. Запускается командой `MAP=MAP02 tools/run.sh`. Инженерная заготовка, **не артефакт дизайна**. |
 
 Соглашения MAPINFO: `clearepisodes` + один эпизод на кампанию; заголовки карт
 через `lookup`, заголовок эпизода через `name = "$ID"` (**`lookup` не
@@ -92,22 +97,121 @@ src/
 | `CEIL3_5` | флэт (потолок) | MAP01 | проверено |
 | `SKY1` | текстура неба | MAPINFO `sky1` | загружается без ошибок |
 
-Неявно используемые элементы IWAD: актор игрока (DoomPlayer), его оружие и
-HUD. В F0 не переопределяются.
+Неявно используемые элементы IWAD: HUD и строка статуса, четыре пула
+патронов (`Clip`, `Shell`, `RocketAmmo`, `Cell`) с их подборами и классы
+оружия Doom, от которых наследуется арсенал. Начиная с F4 пешка игрока и все
+семь видов оружия — **наши** (§6); оружие Freedoom заменено, а
+супердробовик и кулак нельзя разместить на карте.
+
+`MAP02` дополнительно размещает акторов Freedoom как **тестовые
+заготовки**: взрывающуюся бочку (2035), зомби (3004), аптечку (2012), синюю
+броню (2019), рюкзак (8) и ящики патронов 2046/2048/2049/17. Это
+плейсхолдеры до появления бестиария (F5), и ни на одной карте кампании они
+не встречаются.
 
 ## 6. ZScript
 
 - Вход: `zscript.txt` с `version "4.12"` и только `#include`.
-- Один класс на файл в `zscript/sd/`, имя `SD_<Thing>`.
+- Один класс на файл. `zscript/sd/` содержит системы, `zscript/weapons/` —
+  арсенал. Имена классов с префиксом `SD_`.
 - Обработчики событий регистрируются в `MAPINFO → GameInfo → AddEventHandlers`.
+- Класс игрока объявляется в `MAPINFO → GameInfo → PlayerClasses`
+  (пешка игрока не может использовать `replaces`).
+- Каждое игровое число — именованная константа, в комментарии к которой
+  написано, почему оно такое; обоснование живёт в `docs/engine/BALANCE.md`.
 
 | Класс | Тип | Назначение |
 |---|---|---|
 | `SD_LoadReporter` | `EventHandler` | `WorldLoaded` → `Console.Printf("SOVIETDOOM loaded: …")`. Дымовой тест пайплайна. Не влияет на игру. |
+| `SD_Player` | `DoomPlayer` | Сержант. Начинает с `SD_Tokarev`, `SD_Shovel`, 50 `Clip`. Объявляет слоты 1–7. |
+| `SD_Shovel` | `Fist` *заменяет Fist* | Слот 1, ближний бой. |
+| `SD_Tokarev` | `Pistol` *заменяет Pistol* | Слот 2, `Clip`. |
+| `SD_Izh` | `Shotgun` *заменяет Shotgun* | Слот 3, `Shell`. Два ствола, затем перезарядка «переломкой» (`int barrels`). |
+| `SD_Ppsh` | `Chaingun` *заменяет Chaingun* | Слот 4, `Clip`. |
+| `SD_Rpg7` | `RocketLauncher` *заменяет RocketLauncher* | Слот 5, `RocketAmmo`. Стреляет `SD_Pg7Grenade`. |
+| `SD_Roks3` | `PlasmaRifle` *заменяет PlasmaRifle* | Слот 6, `Cell`. Стреляет `SD_FlameBlob`. |
+| `SD_HandKatyusha` | `BFG9000` *заменяет BFG9000* | Слот 7, `Cell`, 40 за залп. Стреляет шестью `SD_KatyushaRocket`. |
+| `SD_Pg7Grenade` | `Rocket` | Кумулятивный снаряд. Не размещается на карте. |
+| `SD_FlameBlob` | `Actor` | Снаряд огня, дальность 528 юнитов. Не размещается на карте. |
+| `SD_KatyushaRocket` | `Rocket` | Ракета залпа, не вредит стрелку. Не размещается на карте. |
 
-Собственные DoomEdNum: **пока нет.** При появлении новых акторов будет
-зарезервирован диапазон (предложение 14000–14999; НЕ ПРОВЕРЕНО, свободен ли в
-GZDoom) и перечислен здесь.
+### 6.1 Номера редактора (DoomEdNums)
+
+**Soviet Doom резервирует 21000–21999.** Прежнее предложение 14000–14999
+было ошибочным и отозвано: GZDoom присваивает 14001–14067 классам
+`AmbientSound` / `SoundSequence` и 14101–14165 — `MusicChanger` (проверено
+2026-10-12 по <https://zdoom.org/wiki/Standard_editor_numbers>). Обоснование
+и полная проверка — в
+`docs/engine/adr/002-arsenal-and-editor-numbers.md`.
+
+| Поддиапазон | Для |
+|---|---|
+| 21000–21019 | оружие |
+| 21020–21039 | патроны и предметы |
+| 21100–21199 | враги |
+| 21200–21299 | декорации |
+
+| Номер | Класс |
+|---|---|
+| 21001 | `SD_Shovel` |
+| 21002 | `SD_Tokarev` |
+| 21003 | `SD_Izh` |
+| 21004 | `SD_Ppsh` |
+| 21005 | `SD_Rpg7` |
+| 21006 | `SD_Roks3` |
+| 21007 | `SD_HandKatyusha` |
+
+Убраны из игры (переведены в `None` в `DoomEdNums`): **82** супердробовик и
+**2005** бензопила. Арсенал — ровно семь видов оружия (D13).
+
+Номера присваиваются только в блоке `DoomEdNums` MAPINFO — единственном
+доступном способе для класса ZScript.
+
+### 6.2 Звуки (SNDINFO)
+
+Код никогда не называет ламп напрямую; он называет логический звук. F4
+привязывает каждое логическое имя к лампу Freedoom как плейсхолдер.
+**`sound-designer` владеет правым столбцом**; заменить звук означает
+положить `src/sounds/<LUMP>.ogg` в дерево файлов и отредактировать одну
+строку `SNDINFO`.
+
+| Логическое имя | Плейсхолдер F4 | Итоговый ламп для сдачи |
+|---|---|---|
+| `sd/weapon/shovel/swing` | `DSSAWUP` | `SDSHSWG` |
+| `sd/weapon/shovel/hit` | `DSPUNCH` | `SDSHHIT` |
+| `sd/weapon/tokarev/fire` | `DSPISTOL` | `SDTTFIR` |
+| `sd/weapon/izh/fire` | `DSSHOTGN` | `SDIZFIR` |
+| `sd/weapon/izh/reload` | `DSSGCOCK` | `SDIZRLD` |
+| `sd/weapon/ppsh/fire` | `DSPISTOL` | `SDPPFIR` |
+| `sd/weapon/rpg7/fire` | `DSRLAUNC` | `SDRPFIR` |
+| `sd/weapon/rpg7/explode` | `DSBAREXP` | `SDRPEXP` |
+| `sd/weapon/roks3/fire` | `DSFLAME` | `SDRKFIR` |
+| `sd/weapon/katyusha/charge` | `DSBFG` | `SDHKCHG` |
+| `sd/weapon/katyusha/fire` | `DSRLAUNC` | `SDHKFIR` |
+| `sd/weapon/katyusha/burst` | `DSBAREXP` | `SDHKEXP` |
+
+### 6.3 Спрайты, которые предстоит нарисовать (контракт с `art-director`)
+
+Ламп спрайта Doom — это `ИМЯ` + буква кадра + цифра поворота, максимум 8
+символов; `0` в качестве поворота означает «одна и та же картинка под любым
+углом» — так устроены спрайты оружия на HUD. F4 работает на лампах
+Freedoom; имена ниже **зарезервированы** для настоящей графики и свободны
+от любого лампа в `freedoom2.wad` (проверено: в IWAD нет ни одного лампа,
+начинающегося на `SD`).
+
+| Оружие | В руках (HUD) | Вспышка выстрела | Подбор | Снаряд |
+|---|---|---|---|---|
+| Сапёрная лопата | `SDSH` A–E | — | `SDSP` A | — |
+| ТТ-33 Токарева | `SDTT` A–E | `SDTF` A | `SDTP` A | — |
+| ИЖ-58 | `SDIZ` A–F | `SDIF` A–B | `SDIP` A | — |
+| ППШ-41 | `SDPP` A–B | `SDPF` A–B | `SDPQ` A | — |
+| РПГ-7 | `SDRL` A–B | `SDRF` A–D | `SDRP` A | `SDPG` A–B, разрыв `SDPX` A–C |
+| РОКС-3 | `SDRK` A–B | `SDKF` A–B | `SDKP` A | `SDFL` A–B, попадание `SDFX` A–E |
+| Ручная «Катюша» | `SDHK` A–C | `SDHF` A–B | `SDHP` A | `SDKR` A–B |
+
+Число кадров повторяет оружие Doom, которое каждый заменяет, так что
+существующие конечные автоматы состояний не нужно будет править, когда
+придёт арт — только имя из четырёх букв в каждой строке состояния.
 
 ## 7. Команды
 
@@ -116,6 +220,7 @@ python3 tools/build.py                       # → dist/sovietdoom.pk3
 python3 tools/build.py --print-textmap MAP01 # показать сгенерированный UDMF
 python3 -m unittest discover -s tests -v     # тесты сборки
 tools/run.sh                                 # сборка + gzdoom + logs/gzdoom.log
+MAP=MAP02 tools/run.sh                       # тестовый полигон арсенала F4
 MAP=MAP01 SKILL=4 IWAD=/path/doom2.wad tools/run.sh -nosound
 tools/run.sh -nosound +vid_fullscreen 0 +screenshot_dir "$PWD/logs/shots" +"wait 140; screenshot; wait 35; quit"  # доказательства QA
 python3 tools/smoke.py --map MAP01 --skill 4 [--keep-evidence]  # сборка + самозавершающийся запуск GZDoom + разбор лога (код 0 = чисто)
@@ -134,3 +239,22 @@ python3 tools/check_pk3.py [--json] [--strict]   # статическая про
 
 Виртуальное окружение Python в `.venv/` (в gitignore) с Pillow и numpy для
 `tools/art/`. Создание: `python3 -m venv .venv && .venv/bin/pip install pillow numpy`.
+
+## 9. Баланс
+
+Каждое игровое число арсенала и причина, по которой оно такое, живёт в
+`docs/engine/BALANCE.md`. Этот файл владеет *именами и структурой*; тот —
+*значениями*. Код владеет и тем, и другим как именованные константы — если
+документ и код расходятся, прав код, а документ — ошибка.
+
+## 10. Известный технический долг
+
+| № | Долг | Когда оплатить |
+|---|---|---|
+| T1 | Каждый спрайт и звук оружия — плейсхолдер Freedoom (§6.2, §6.3). | F4, как только `art-director` и `sound-designer` сдадут свои материалы |
+| T2 | Подборы патронов всё ещё читаются как предметы Freedoom; четыре пула не переименованы в `LANGUAGE`. | F4 (дёшево) или F6 |
+| T3 | `Player.DisplayName` — обычный литерал на английском, а не ссылка на `LANGUAGE`; не проверено, разрешает ли это свойство `$ID`. | F5 |
+| T4 | Классы Freedoom `Chainsaw` и `SuperShotgun` всё ещё существуют; убраны только их номера редактора. | F6, если это когда-нибудь станет важно |
+| T5 | Цифры DPS в `BALANCE.md` вычислены, а не измерены против настоящих врагов. | F5, когда у бестиария появятся очки здоровья |
+| T6 | `MAP02` использует монстров и бочки Freedoom как цели. | F5, заменить на настоящий бестиарий |
+| T7 | Пока нет `CVARINFO`; в арсенале нет ничего, что настраивал бы игрок. | когда это понадобится для игровой опции |

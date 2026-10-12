@@ -33,7 +33,7 @@ grids, hard pixels, mid-grey walls, light that drops towards black.
 | Rule | Value | Why |
 |---|---|---|
 | Colour | indexed PNG, **≤ 256 colours**, from `docs/art/palette.json` only | Doom look, one coherent palette across sets, software renderer safe |
-| Wall textures | 64×128 or 128×128 (multiples of 8) | Doom's grid; the level designer aligns on 64 |
+| Wall textures | 64×128, 128×128 or **128×256** (multiples of 8) | Doom's grid; the level designer aligns on 64. 128×256 was added 2026-10-12 for the Lenin poster: at 128×128 the portrait had no room (CEO) |
 | Flats (floor/ceiling) | 64×64 | engine flat size |
 | Sprites | PNG with `grAb` offsets, name `XXXXA1` (4 letters + frame + rotation) | engine sprite naming (F4/F5) |
 | Lump names | ≤ 8 chars, UPPERCASE, prefix `SD` + family code + number | contract with `level-designer` (`TEXTURE-INDEX.md`) |

@@ -2,7 +2,8 @@
 
 Owner: `mod-engineer`. Contract with `level-designer` and `art-director`:
 names, paths and lumps the engine expects. **Changing it = updating this doc
-before the code.** Status: F0 verified on GZDoom 4.14.2, 2026-10-09.
+before the code.** Status: F4 arsenal verified on GZDoom 4.14.2, 2026-10-12
+(F0 pipeline verified 2026-10-09).
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -34,12 +35,15 @@ Minimal glossary (for anyone new to Doom modding):
 sovietdoom.pk3
 ├── MAPINFO                 maps, episodes, GameInfo (AddEventHandlers)
 ├── LANGUAGE                localized text: [enu default] and [ru] (D7)
+├── SNDINFO                 logical sound name -> lump (F4)
 ├── zscript.txt             ZScript entry: version + #include
-├── zscript/sd/*.zs         ZScript classes (one class per file)
+├── zscript/sd/*.zs         systems (event handlers, player class)
+├── zscript/weapons/*.zs    the arsenal, one class per file (F4)
 ├── maps/MAP01.wad          one WAD per map, lumps MAP01, TEXTMAP, ENDMAP
-├── textures/  flats/       (empty in F0) own wall textures and flats
-├── sprites/  sounds/  music/  graphics/  patches/  hires/   (empty in F0)
-└── (future) SNDINFO, ANIMDEFS, TEXTURES, GLDEFS, CVARINFO at the root
+├── maps/MAP02.wad          engineering test range (F4)
+├── textures/  flats/       own wall textures and flats
+├── sprites/  sounds/  music/  graphics/  patches/  hires/
+└── (future) ANIMDEFS, TEXTURES, GLDEFS, CVARINFO at the root
 ```
 
 Rules:
@@ -54,7 +58,7 @@ Rules:
 ```
 src/
 ├── lumps/        → PK3 root (flat)
-├── zscript/      → zscript/  (copied as is)
+├── zscript/      → zscript/  (copied as is; sd/ = systems, weapons/ = arsenal)
 ├── maps/MAP01/map.py   → maps/MAP01.wad  (generated; defines lumps())
 ├── maps/MAPxx.wad      → maps/MAPxx.wad  (copied as is; UDB output)
 └── textures/ flats/ sprites/ sounds/ music/ graphics/ patches/ hires/ → same paths
@@ -72,7 +76,8 @@ src/
 
 | Lump | Title (LANGUAGE) | Episode | Status |
 |---|---|---|---|
-| `MAP01` | `SD_MAP01_NAME` = "Test Range" / "Полигон" | `SD_EP01_NAME` = "Soviet Doom" / "Советский Doom" | F0: 512×512 room, floor 0, ceiling 128, light 160, player start at (256,256) facing +y. `next = "MAP01"` (no exit). |
+| `MAP01` | `SD_MAP01_NAME` = "Test Range" / "Полигон" | `SD_EP01_NAME` = "Soviet Doom" / "Советский Doom" | F0: 512×512 room, floor 0, ceiling 128, light 160, player start at (256,256) facing +y. `next = "MAP01"` (no exit). Owned by `level-designer` from F3 on. |
+| `MAP02` | `SD_MAP02_NAME` = "Engineering Test Range" / "Инженерный полигон" | none (not in an episode) | F4: 2048×768 hall, ceiling 128, light 192, player start at (160,384) facing +x. The seven weapons, the four ammo pools, barrels and placeholder targets. Reached with `MAP=MAP02 tools/run.sh`. Engineering fixture, **not a design artefact**. |
 
 MAPINFO conventions: `clearepisodes` + one episode per campaign; map titles by
 `lookup`, episode title by `name = "$ID"` (**`lookup` is not accepted inside an
@@ -92,21 +97,117 @@ here and in the `art-director`'s texture index flagged "IWAD".
 | `CEIL3_5` | flat (ceiling) | MAP01 | verified |
 | `SKY1` | sky texture | MAPINFO `sky1` | loads without error |
 
-IWAD elements used implicitly: the player actor (DoomPlayer), its weapons
-and HUD. Not redefined in F0.
+IWAD elements used implicitly: the HUD and status bar, the four ammo pools
+(`Clip`, `Shell`, `RocketAmmo`, `Cell`) with their pickups, and the Doom
+weapon classes the arsenal inherits from. Since F4 the player pawn and all
+seven weapons are **ours** (§6); Freedoom's are replaced, and the super
+shotgun and chainsaw are unplaceable.
+
+`MAP02` additionally places Freedoom actors as **test fixtures**: explosive
+barrel (2035), zombieman (3004), medikit (2012), blue armour (2019),
+backpack (8) and the ammo boxes 2046/2048/2049/17. They are placeholders
+until the bestiary exists (F5) and appear in no campaign map.
 
 ## 6. ZScript
 
 - Entry: `zscript.txt` with `version "4.12"` and only `#include`s.
-- One class per file under `zscript/sd/`, named `SD_<Thing>`.
+- One class per file. `zscript/sd/` holds systems, `zscript/weapons/` holds
+  the arsenal. Class names are prefixed `SD_`.
 - Event handlers are registered in `MAPINFO → GameInfo → AddEventHandlers`.
+- The player class is declared in `MAPINFO → GameInfo → PlayerClasses`
+  (a player pawn cannot use `replaces`).
+- Every gameplay number is a named constant whose comment says why; the
+  reasoning lives in `docs/engine/BALANCE.md`.
 
 | Class | Type | Purpose |
 |---|---|---|
 | `SD_LoadReporter` | `EventHandler` | `WorldLoaded` → `Console.Printf("SOVIETDOOM loaded: …")`. Pipeline smoke test. No gameplay effect. |
+| `SD_Player` | `DoomPlayer` | The sergeant. Starts with `SD_Tokarev`, `SD_Shovel`, 50 `Clip`. Declares slots 1–7. |
+| `SD_Shovel` | `Fist` *replaces Fist* | Slot 1, melee. |
+| `SD_Tokarev` | `Pistol` *replaces Pistol* | Slot 2, `Clip`. |
+| `SD_Izh` | `Shotgun` *replaces Shotgun* | Slot 3, `Shell`. Two barrels then a break-open reload (`int barrels`). |
+| `SD_Ppsh` | `Chaingun` *replaces Chaingun* | Slot 4, `Clip`. |
+| `SD_Rpg7` | `RocketLauncher` *replaces RocketLauncher* | Slot 5, `RocketAmmo`. Fires `SD_Pg7Grenade`. |
+| `SD_Roks3` | `PlasmaRifle` *replaces PlasmaRifle* | Slot 6, `Cell`. Fires `SD_FlameBlob`. |
+| `SD_HandKatyusha` | `BFG9000` *replaces BFG9000* | Slot 7, `Cell`, 40 per salvo. Fires six `SD_KatyushaRocket`. |
+| `SD_Pg7Grenade` | `Rocket` | Shaped-charge projectile. Not placeable. |
+| `SD_FlameBlob` | `Actor` | Fire projectile, 528-unit reach. Not placeable. |
+| `SD_KatyushaRocket` | `Rocket` | Salvo rocket, does not hurt the shooter. Not placeable. |
 
-Own DoomEdNums: **none yet.** When new actors arrive a range will be reserved
-(proposal 14000–14999; NOT VERIFIED free in GZDoom) and listed here.
+### 6.1 Editor numbers (DoomEdNums)
+
+**Soviet Doom reserves 21000–21999.** The earlier proposal of 14000–14999
+was wrong and is withdrawn: GZDoom assigns 14001–14067 to `AmbientSound` /
+`SoundSequence` and 14101–14165 to `MusicChanger` (verified 2026-10-12
+against <https://zdoom.org/wiki/Standard_editor_numbers>). Rationale and
+the full check are in `docs/engine/adr/002-arsenal-and-editor-numbers.md`.
+
+| Sub-range | For |
+|---|---|
+| 21000–21019 | weapons |
+| 21020–21039 | ammo and items |
+| 21100–21199 | enemies |
+| 21200–21299 | decorations |
+
+| Number | Class |
+|---|---|
+| 21001 | `SD_Shovel` |
+| 21002 | `SD_Tokarev` |
+| 21003 | `SD_Izh` |
+| 21004 | `SD_Ppsh` |
+| 21005 | `SD_Rpg7` |
+| 21006 | `SD_Roks3` |
+| 21007 | `SD_HandKatyusha` |
+
+Removed from the game (mapped to `None` in `DoomEdNums`): **82** super
+shotgun and **2005** chainsaw. The arsenal is exactly seven weapons (D13).
+
+Numbers are assigned only in MAPINFO's `DoomEdNums` block — the only method
+available to a ZScript class.
+
+### 6.2 Sounds (SNDINFO)
+
+The code never names a lump; it names a logical sound. F4 points every
+logical name at a Freedoom lump as a placeholder. **`sound-designer` owns the
+right-hand column**; replacing a sound means dropping
+`src/sounds/<LUMP>.ogg` into the tree and editing one line of `SNDINFO`.
+
+| Logical name | F4 placeholder | Final lump to deliver |
+|---|---|---|
+| `sd/weapon/shovel/swing` | `DSSAWUP` | `SDSHSWG` |
+| `sd/weapon/shovel/hit` | `DSPUNCH` | `SDSHHIT` |
+| `sd/weapon/tokarev/fire` | `DSPISTOL` | `SDTTFIR` |
+| `sd/weapon/izh/fire` | `DSSHOTGN` | `SDIZFIR` |
+| `sd/weapon/izh/reload` | `DSSGCOCK` | `SDIZRLD` |
+| `sd/weapon/ppsh/fire` | `DSPISTOL` | `SDPPFIR` |
+| `sd/weapon/rpg7/fire` | `DSRLAUNC` | `SDRPFIR` |
+| `sd/weapon/rpg7/explode` | `DSBAREXP` | `SDRPEXP` |
+| `sd/weapon/roks3/fire` | `DSFLAME` | `SDRKFIR` |
+| `sd/weapon/katyusha/charge` | `DSBFG` | `SDHKCHG` |
+| `sd/weapon/katyusha/fire` | `DSRLAUNC` | `SDHKFIR` |
+| `sd/weapon/katyusha/burst` | `DSBAREXP` | `SDHKEXP` |
+
+### 6.3 Sprites to be drawn (contract with `art-director`)
+
+A Doom sprite lump is `NAME` + frame letter + rotation digit, 8 characters
+max; `0` as the rotation means "same picture from every angle", which is
+what HUD weapon sprites use. F4 runs on Freedoom lumps; the names below are
+**reserved** for the real artwork and are free of any lump in
+`freedoom2.wad` (checked: the IWAD has no lump starting with `SD`).
+
+| Weapon | Held (HUD) | Muzzle flash | Pickup | Projectile |
+|---|---|---|---|---|
+| Sapper's shovel | `SDSH` A–E | — | `SDSP` A | — |
+| TT-33 Tokarev | `SDTT` A–E | `SDTF` A | `SDTP` A | — |
+| IZh-58 | `SDIZ` A–F | `SDIF` A–B | `SDIP` A | — |
+| PPSh-41 | `SDPP` A–B | `SDPF` A–B | `SDPQ` A | — |
+| RPG-7 | `SDRL` A–B | `SDRF` A–D | `SDRP` A | `SDPG` A–B, burst `SDPX` A–C |
+| ROKS-3 | `SDRK` A–B | `SDKF` A–B | `SDKP` A | `SDFL` A–B, impact `SDFX` A–E |
+| Hand Katyusha | `SDHK` A–C | `SDHF` A–B | `SDHP` A | `SDKR` A–B |
+
+Frame counts follow the Doom weapon each one replaces, so the existing state
+machines need no edit when the art lands — only the four-letter name in
+each state line.
 
 ## 7. Commands
 
@@ -115,6 +216,7 @@ python3 tools/build.py                       # → dist/sovietdoom.pk3
 python3 tools/build.py --print-textmap MAP01 # show the generated UDMF
 python3 -m unittest discover -s tests -v     # build tests
 tools/run.sh                                 # build + gzdoom + logs/gzdoom.log
+MAP=MAP02 tools/run.sh                       # the F4 arsenal test range
 MAP=MAP01 SKILL=4 IWAD=/path/doom2.wad tools/run.sh -nosound
 tools/run.sh -nosound +vid_fullscreen 0 +screenshot_dir "$PWD/logs/shots" +"wait 140; screenshot; wait 35; quit"  # QA evidence
 python3 tools/smoke.py --map MAP01 --skill 4 [--keep-evidence]  # build + self-quitting GZDoom run + log analysis (exit 0 = clean)
@@ -134,3 +236,22 @@ a failure. macOS `screencapture` cannot see the game window; use the engine's
 Python virtualenv at `.venv/` (gitignored) with Pillow and numpy for
 `tools/art/`. Create with `python3 -m venv .venv && .venv/bin/pip install
 pillow numpy`.
+
+## 9. Balance
+
+Every gameplay number of the arsenal, and the reason for it, lives in
+`docs/engine/BALANCE.md`. This file owns *names and structure*; that one
+owns *values*. The code owns both as named constants — if a doc and the code
+disagree, the code is right and the doc is the bug.
+
+## 10. Known technical debt
+
+| # | Debt | Pay it in |
+|---|---|---|
+| T1 | Every weapon sprite and sound is a Freedoom placeholder (§6.2, §6.3). | F4, once `art-director` and `sound-designer` deliver |
+| T2 | Ammo pickups still read as Freedoom items; the four pools are not renamed in `LANGUAGE`. | F4 (cheap) or F6 |
+| T3 | `Player.DisplayName` is a plain English literal, not a `LANGUAGE` lookup — unverified whether that property resolves `$IDs`. | F5 |
+| T4 | Freedoom's `Chainsaw` and `SuperShotgun` classes still exist; only their editor numbers were removed. | F6, if it ever matters |
+| T5 | The DPS figures in `BALANCE.md` are computed, not measured against real enemies. | F5, when the bestiary has hit points |
+| T6 | `MAP02` uses Freedoom monsters and barrels as targets. | F5, swap for the real bestiary |
+| T7 | No `CVARINFO` yet; nothing in the arsenal is player-tunable. | when a gameplay option needs it |
