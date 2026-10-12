@@ -54,3 +54,9 @@ The mod references four of its lumps **by name** (`STARTAN2`, `FLOOR4_8`,
 None used yet. OTEX (non-commercial, credit required) is allowed by D4 as a
 second source; any OTEX texture will get its own row here with the pack
 version and the exact file name before it appears in a preview.
+
+## Reference material held locally (not shipped)
+
+| File | Work | Origin and licence | Use |
+|---|---|---|---|
+| `work/art/reference/lenin_1920_zhukov.jpg` (sha256 `ec12d661…a188`) | Portrait of Lenin, July 1920, by Pavel Zhukov (1870-1942) | Wikimedia Commons, https://commons.wikimedia.org/wiki/File:Vladimir_Lenin.jpg — public domain in Russia (author died 1942) and in the United States (published before 1 January 1931). Downloaded 2026-10-12 with the CEO's permission | Base for the posterised Lenin poster (`SDPOSTR1`, separate commission). `work/` is gitignored: the photograph itself is never committed or shipped; only the texture derived from it. Rationale and the wider copyright finding: `docs/product/2026-10-12_2000_F2_pm-soviet-art-copyright.md` |

@@ -20,7 +20,7 @@ with licence, (c) CEO material.
 
 ## Set "Soviet base" — batch 1 (F2)
 
-Preview: `docs/art/previews/2026-10-12_2157_F2_batch1-soviet-base.html`
+Preview: `docs/art/previews/2026-10-12_2208_F2_batch1-soviet-base.html`
 (mirror `docs/ru/art/previews/…`; supersedes the 2026-10-09_0127 sheet, which
 the CEO judged on 2026-10-12 — the 11 textures other than `SDSTAR1` are
 byte-identical to that sheet). Generator `tools/art/gen_soviet_base.py`,
@@ -40,7 +40,7 @@ SDCEIL1 OK · SDCEIL2 OK». Gate G2 (≥ 8 approved): **8 approved**.
 |---|---|---|---|---|---|---|---|
 | `SDCONC1` | wall | 64×128 | yes | prefab concrete panels, running bond, grime under joints | (a) seed 1978 | approved | 2026-10-12 |
 | `SDCONC2` | wall | 64×128 | yes | concrete with worn red stripe at mid height | (a) seed 1979 | pending in-map review (CEO: "we'll see how it looks"; decided on MAP01 in GZDoom) | 2026-10-12 |
-| `SDSTAR1` | wall | 64×128 | yes (plaque centred) | concrete with painted plaque 56×100: gold star above hammer and sickle on red, 1 px dark outline. v2 (2026-10-09) redrew the emblem but **mirrored** it. **v3: emblem rebuilt from the CEO's canonical reference** (geometry measured by the CEO in a unit square: sickle blade thick on the right and bottom, tip top-left, handle bottom-left; hammer head top-left inside the opening, handle running down-right at ~52°); check sheet `tools/art/emblem_check.py` → `work/art/batch1/emblem_check.png`; orientation guarded by `tests/test_art.py` | (a) seed 1980 | proposed v3 | 2026-10-12 |
+| `SDSTAR1` | wall | 64×128 | yes (plaque centred) | concrete with painted plaque 56×100: gold star above hammer and sickle on red, 1 px dark outline. v2 (2026-10-09) redrew the emblem but **mirrored** it. **v3: emblem rebuilt from the CEO's canonical reference** (geometry measured by the CEO in a unit square: sickle blade thick on the right and bottom, tip top-left, handle bottom-left; hammer head top-left inside the opening, handle running down-right at ~52° with its butt reaching the bottom-right corner, mirroring the sickle handle — **v4, CEO 2026-10-12: "el final del mazo del martillo tiene que tocar la esquina inferior derecha simétricamente con la hoz"**); check sheet `tools/art/emblem_check.py` → `work/art/batch1/emblem_check.png`; orientation guarded by `tests/test_art.py` | (a) seed 1980 | proposed v4 | 2026-10-12 |
 | `SDSTEL1` | wall | 64×128 | yes | military-green riveted steel plates, chipped paint, rust under rivets | (a) seed 1981 | approved | 2026-10-12 |
 | `SDDOOR1` | wall (door) | 128×128 | no | bunker steel door: riveted frame, green leaf, locking wheel, star and "7" stencils, hazard stripe | (a) seed 1982; text Impact.ttf | approved | 2026-10-12 |
 | `SDPOSTR1` | wall (poster) | 64×128 | no | Lenin poster: constructivist silhouette in cream medallion on red, «ЛЕНИН ЖИВ» | (a) seed 1983; text Impact.ttf | discarded 2026-10-12: Lenin to be reworked separately (CEO) | 2026-10-12 |

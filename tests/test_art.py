@@ -110,7 +110,7 @@ class EmblemGeometryTests(unittest.TestCase):
         ((0.61, 0.585), (0.39, 0.585)), # hammer handle runs down-right, opening stays empty
         ((0.90, 0.56), (0.22, 0.56)),   # blade thick on the right, thin/absent on the left
         ((0.56, 0.90), (0.56, 0.12)),   # blade thick at the bottom, only the tip at the top
-        ((0.10, 0.92), (0.90, 0.92)),   # sickle handle bottom-left, not bottom-right
+        ((0.94, 0.52), (0.06, 0.52)),   # blade mass hugs the right edge, left edge is bare
     ]
 
     @classmethod
@@ -148,6 +148,20 @@ class EmblemGeometryTests(unittest.TestCase):
         over = np.array([max(0.0, abs(d @ hn) - g.HAMMER_HEAD_L / 2),
                          max(0.0, abs(d @ hd) - g.HAMMER_HEAD_W / 2)])
         self.assertGreaterEqual(np.linalg.norm(over), g.HAMMER_TIP_CLEARANCE)
+
+    def test_hammer_butt_reaches_bottom_right_corner(self):
+        """CEO 2026-10-12: the butt of the hammer handle must reach the
+        bottom-right corner, mirroring the sickle handle end at the
+        bottom-left. Both ends are checked against each other so the pair
+        stays symmetric if either is retuned."""
+        import numpy as np
+        g = self.gen
+        butt = np.array(g.HAMMER_HANDLE[1])
+        sickle_end = np.array(g.SICKLE_HANDLE[1])
+        self.assertGreater(butt[0], 0.88)      # hard against the right edge
+        self.assertGreater(butt[1], 0.92)      # and against the bottom
+        mirrored = np.array([1.0 - sickle_end[0], sickle_end[1]])
+        self.assertLess(float(np.linalg.norm(butt - mirrored)), 0.06)
 
     def test_hammer_handle_slope(self):
         import numpy as np
