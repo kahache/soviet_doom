@@ -106,11 +106,11 @@ class EmblemGeometryTests(unittest.TestCase):
     GOLD, RED = (0.0, 0.0, 0.0), (0.0, 0.0, 0.0)  # filled in setUpClass
     # (gold point, its red twin)
     PAIRS = [
-        ((0.33, 0.26), (0.15, 0.15)),   # hammer head top-left; nothing further up-left
-        ((0.61, 0.585), (0.39, 0.585)), # hammer handle runs down-right, opening stays empty
-        ((0.90, 0.56), (0.22, 0.56)),   # blade thick on the right, thin/absent on the left
-        ((0.56, 0.90), (0.56, 0.12)),   # blade thick at the bottom, only the tip at the top
-        ((0.94, 0.52), (0.06, 0.52)),   # blade mass hugs the right edge, left edge is bare
+        ((0.23, 0.50), (0.77, 0.50)),   # hammer head sits mid-LEFT, never mid-right
+        ((0.38, 0.33), (0.62, 0.33)),   # blade sweeps over the head on the left
+        ((0.62, 0.18), (0.38, 0.18)),   # top of the crescent leans right
+        ((0.91, 0.52), (0.09, 0.52)),   # blade mass hugs the right edge
+        ((0.78, 0.71), (0.22, 0.71)),   # hammer handle runs down to the RIGHT
     ]
 
     @classmethod
@@ -164,12 +164,14 @@ class EmblemGeometryTests(unittest.TestCase):
         self.assertLess(float(np.linalg.norm(butt - mirrored)), 0.06)
 
     def test_hammer_handle_slope(self):
+        """~41 deg since variant D1 (CEO 2026-10-12): the head moved down to
+        mid-height, so the run to the fixed bottom-right butt is flatter."""
         import numpy as np
         hs, he = (np.array(p) for p in self.gen.HAMMER_HANDLE)
         self.assertGreater(he[0], hs[0])   # to the right
         self.assertGreater(he[1], hs[1])   # downwards (y down)
         slope = np.degrees(np.arctan2(he[1] - hs[1], he[0] - hs[0]))
-        self.assertAlmostEqual(slope, 52.0, delta=3.0)
+        self.assertAlmostEqual(slope, 41.0, delta=3.0)
 
 
 ASSETS_DIR = PROJECT_ROOT / "assets"

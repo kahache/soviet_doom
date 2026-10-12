@@ -76,34 +76,44 @@ STRIPE_WEAR = 0.30                # fbm threshold below which the paint chipped
 #     thickest at the RIGHT and BOTTOM, tapering to a point at the TOP-LEFT;
 #     the crescent therefore opens to the top-left;
 #   - sickle handle: short thick stub at the BOTTOM-LEFT, pointing down-left;
-#   - hammer (drawn on top): head at the TOP-LEFT inside the opening, handle
-#     running DOWN TO THE RIGHT (~52 deg) across the blade's lower-right part.
-PLAQUE = (4, 12, 60, 112)         # x0,y0,x1,y1 of the painted panel
+#   - hammer (drawn on top): head at MID-LEFT inside the opening (the CEO
+#     rejected three higher placements: "la parte gorda del martillo va mucho
+#     mas abajo"), handle running DOWN TO THE RIGHT across the blade's
+#     lower-right part to the bottom-right corner.
+# SDSTAR1 is the one 128x128 wall of the set (CEO 2026-10-12): at 64 wide the
+# emblem had no room and its lower half closed up into a single blob. At 128
+# the plaque reads as a painted wall panel, which is how these look on real
+# Soviet buildings.
+PLAQUE = (22, 10, 106, 118)       # x0,y0,x1,y1 of the painted panel
 PLAQUE_BORDER = 2
-STAR_CENTER, STAR_R = (32, 33), 11
-HS_CENTER, HS_R = (32, 79), 23    # hammer & sickle box: centre, half size
+STAR_CENTER, STAR_R = (64, 36), 13
+HS_CENTER, HS_R = (64, 84), 28    # hammer & sickle box: centre, half size
 EMBLEM_OUTLINE = 1.0              # px, dark contour for legibility on red
 # Sickle. Angles in Pillow convention (0 = +x, 90 = +y i.e. down, growing
 # clockwise on screen); the blade is swept from the tip angle through 0
 # (right) and 90 (bottom) to the base angle, where it meets the handle.
 SICKLE_OUTER_C, SICKLE_OUTER_R = (0.56, 0.56), 0.42
 SICKLE_INNER_C, SICKLE_INNER_R = (0.50, 0.52), 0.30
-SICKLE_TIP = (0.44, 0.07)         # sharp point above the outer circle
-SICKLE_TIP_OUTER_DEG = -102.0     # outer edge leaves the circle here -> tip
-SICKLE_TIP_INNER_DEG = -94.0      # inner edge leaves the circle here -> tip
+# Variant D1 (CEO 2026-10-12). Earlier versions put the tip at a loose point
+# ABOVE the outer circle, which drew a thin spike sticking out of the blade
+# ("un palo raro hacia arriba"). The tip now sits exactly where the outer arc
+# ends, so the blade closes with a clean chamfer instead of a spike.
+SICKLE_TIP = (0.403, 0.171)       # == the outer arc's own start point
+SICKLE_TIP_OUTER_DEG = -112.0     # outer edge leaves the circle here -> tip
+SICKLE_TIP_INNER_DEG = -100.0     # inner edge leaves the circle here -> tip
 SICKLE_BASE_DEG = 143.0           # blade end at the handle, ~(0.24, 0.80)
 SICKLE_ARC_STEPS = 64
 SICKLE_HANDLE = ((0.26, 0.78), (0.07, 0.95))   # tucked into the blade -> end
 SICKLE_HANDLE_W = 0.11            # rounded end
 # Hammer. The handle starts under the head (the CEO measured its start a
 # hair off the head centre; both points are kept literally, the head covers
-# the difference) and runs down-right at ~52 deg below +x.
-HAMMER_HEAD_C = (0.33, 0.26)
+# the difference) and runs down-right to the bottom-right corner.
+HAMMER_HEAD_C = (0.33, 0.46)
 # The butt of the handle reaches the bottom-right corner, mirroring the
 # sickle handle end (0.07, 0.95) about x=0.5 (CEO, 2026-10-12: "el final
 # del mazo tiene que tocar la esquina inferior derecha simetricamente
 # con la hoz").
-HAMMER_HANDLE = ((0.36, 0.27), (0.93, 0.96))
+HAMMER_HANDLE = ((0.36, 0.47), (0.93, 0.96))
 HAMMER_HANDLE_W = 0.09
 HAMMER_HEAD_L, HAMMER_HEAD_W = 0.34, 0.19   # long axis perpendicular to handle
 HAMMER_TIP_CLEARANCE = 0.03       # min distance head <-> sickle tip (checked)
@@ -194,14 +204,17 @@ def vertical_joint(rgb: np.ndarray, x: int, y0: int, y1: int) -> np.ndarray:
     return shade(rgb, f)
 
 
-def prefab_wall(rng: np.random.Generator) -> np.ndarray:
+def prefab_wall(rng: np.random.Generator, w: int = WALL_W) -> np.ndarray:
     """Concrete with two panel rows in running bond. Joints sit on the
-    texture edges so adjacent tiles continue the grid."""
-    rgb = concrete(WALL_W, WALL_H, rng)
+    texture edges so adjacent tiles continue the grid. `w` is the texture
+    width: 64 for the plain walls, 128 for the plaque wall (SDSTAR1)."""
+    rgb = concrete(w, WALL_H, rng)
     rgb = horizontal_joint(rgb, 0, rng)
     rgb = horizontal_joint(rgb, PANEL_H, rng)
-    rgb = vertical_joint(rgb, 0, 0, PANEL_H)
-    rgb = vertical_joint(rgb, PANEL_OFFSET, PANEL_H, WALL_H)
+    for x in range(0, w, WALL_W):                       # upper row of panels
+        rgb = vertical_joint(rgb, x, 0, PANEL_H)
+    for x in range(PANEL_OFFSET, w, WALL_W):            # lower row, half shifted
+        rgb = vertical_joint(rgb, x, PANEL_H, WALL_H)
     return rgb
 
 
@@ -290,9 +303,9 @@ def hammer_sickle(ov: Overlay, cx: float, cy: float, r: float, fill, outline):
 
 def tex_star1():
     rng = rng_for(3)
-    rgb = prefab_wall(rng)
+    rgb = prefab_wall(rng, WIDE_W)
     x0, y0, x1, y1 = PLAQUE
-    ov = Overlay(WALL_W, WALL_H)
+    ov = Overlay(WIDE_W, WALL_H)
     cream = ramp_colour("cream_yellow", 0.85)
     red = ramp_colour("flag_red", 0.70)
     gold = ramp_colour("hazard_yellow", 0.88)
@@ -307,7 +320,7 @@ def tex_star1():
     hammer_sickle(ov, HS_CENTER[0], HS_CENTER[1], HS_R, gold, dark)
     rgb = ov.composite(rgb)
     # paint grime over the plaque so it belongs to the wall
-    g = 1 - 0.10 * (fbm(WALL_W, WALL_H, 5, 3, rng) - 0.5)
+    g = 1 - 0.10 * (fbm(WIDE_W, WALL_H, 5, 3, rng) - 0.5)
     return shade(rgb, g)
 
 
@@ -624,8 +637,8 @@ TEXTURES = [
      "Same concrete with a worn painted red stripe at mid height (barracks corridors).",
      "Тот же бетон с потёртой красной полосой на середине высоты (коридоры казарм)."),
     ("SDSTAR1", tex_star1, "wall",
-     "Concrete with a painted plaque: gold star and hammer and sickle on red.",
-     "Бетон с нарисованной табличкой: золотая звезда и серп и молот на красном."),
+     "Concrete 128x128 with a painted plaque: gold star and hammer and sickle on red.",
+     "Бетон 128x128 с нарисованной табличкой: золотая звезда и серп и молот на красном."),
     ("SDSTEL1", tex_stel1, "wall",
      "Military-green riveted steel plates, chipped paint, rust under rivets (hangar).",
      "Клёпаные стальные листы военно-зелёного цвета, сколы краски, ржавчина под заклёпками (ангар)."),

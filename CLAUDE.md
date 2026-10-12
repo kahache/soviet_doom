@@ -43,10 +43,17 @@ verdict 2026-10-12: palette and fonts ratified; `SDCONC1`, `SDSTEL1`,
 `SDDOOR1`, `SDFLR1-3`, `SDCEIL1-2` approved and moved to `assets/`;
 `SDCONC2` pending in-map review; `SDPOSTR2` approved, text confirmed as
 "Glory to Soviet cosmonautics"; `SDPOSTR1` discarded, Lenin becomes a
-separate commission; `SDSTAR1` is v3 (emblem redrawn from the CEO's
-reference after two mirrored attempts) and awaits a verdict. Preview
-`docs/art/previews/2026-10-12_2157_F2_batch1-soviet-base.html` (EN/RU).
-Suites: **build 24 · art 13**. Gate G2 (≥ 8 approved) met, not yet signed.
+separate commission. `SDSTAR1` is **v5 (variant D1)**: after four wrong
+attempts the emblem was rebuilt against the Unicode ☭ glyph as a measured
+reference, the head lowered to mid-height, the loose sickle spike removed,
+and the texture widened to **128×128**; chosen by the CEO from a
+drawing-only variant sheet. Preview
+`docs/art/previews/2026-10-12_2229_F2_batch1-soviet-base.html` (EN/RU).
+Suites: **build 25 · art 14**. Gate G2 (≥ 8 approved) met, not yet signed.
+
+Method note: for visual iteration, generate the drawing alone and judge it in
+the main session before touching the texture — the agent reading back its own
+images in a growing context is what made the emblem expensive.
 
 Copyright finding (`docs/product/2026-10-12_2000_F2_pm-soviet-art-copyright.md`):
 Soviet posters of the 1950s-80s are **still protected** (life + 70, +74 for
