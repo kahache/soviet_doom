@@ -101,10 +101,10 @@ LOG_FAILURE_PATTERNS: tuple[tuple[str, str, str], ...] = (
      "'Bad syntax', 'Bad override', 'Bad lumpnum'...: malformed data"),
     ("tried-to-find", r"(?i)\b(?:can(?:no|')t find|could not find|unable to find)\b",
      "a lump, actor or file the engine expected is absent"),
-    ("generic-error", r"(?i)\berrors?\b",
-     "anything the engine itself calls an error"),
     ("fatal", r"(?i)\b(?:fatal error|segmentation fault|assertion failed)\b",
      "engine crash"),
+    ("generic-error", r"(?i)\berrors?\b",
+     "anything the engine itself calls an error"),
 )
 
 # Lines that match a failure pattern but are known-benign. Kept explicit and
