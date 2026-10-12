@@ -1,8 +1,12 @@
 # MAP01 — Zarya-7 Cosmodrome
 
-Design document. Owner: `level-designer`. Status: **proposed, awaiting CEO
-approval. No geometry is built until the CEO approves this document** (F3).
-Russian mirror: `docs/ru/levels/MAP01-zarya-7.md`.
+Design document. Owner: `level-designer`. Status: **text approved by the CEO;
+v0 (the grey floor plan) is BUILT and walkable — see §14.** v1–v3 still to
+come. Russian mirror: `docs/ru/levels/MAP01-zarya-7.md`.
+
+> **Walk it:** `python3 tools/build.py && MAP=MAP01 tools/run.sh`
+> The as-built plan, labelled, is
+> `docs/levels/shots/2026-10-13_0045_F3_map01-v0-plan.png`.
 
 Inputs this document obeys and does not restate: `docs/PRD.md` (D1–D15),
 `docs/product/LORE.md` (MAP01 = cosmodrome, barracks and hangar, weapon
@@ -328,34 +332,65 @@ availability never changes.** A skill-4 player who finds no secret must still
 be able to finish — that is a measured G3 criterion (§11, G3-5 for the run
 and G3-8 for the ammo budget), not a hope.
 
-## 9. Engine elements used (to be confirmed by `mod-engineer`)
+## 9. Engine elements used
 
-The ZDoom action-special numbers and lock/sector specials below are **NOT
-VERIFIED** by me in the engine; they are what I intend to emit. I need
-`mod-engineer` to confirm them in `MOD-SPEC.md` (or correct them) before v0
-is built — they are the only engine surface this map touches.
+The argument *shapes* come from GZDoom's own shipped translation tables
+(`gzdoom.pk3 → xlat/base.txt`, `xlat/doom.txt`, `xlat/defines.i`), which are
+plain text: `Door_Raise (tag, speed, delay, lighttag)`,
+`Door_Open (tag, speed, lighttag)`, `Exit_Normal (pos)`, `D_SLOW = 16`,
+`VDOORWAIT = 150`.
 
-| Need | Intended | Status |
+The special *numbers* are not in any file GZDoom ships — ZDoom's table is
+compiled into the binary — so they were verified the only way left: by
+walking v0 and watching the thing move. Evidence is in
+`docs/levels/shots/`.
+
+| Need | Emitted | Status |
 |---|---|---|
-| Manual door | `Door_Raise` (12), tag 0, `playeruse`, `repeatspecial` | NOT VERIFIED |
-| Remote open-and-stay | `Door_Open` (11), tags 10/11/20/21 | NOT VERIFIED |
-| Wall switch | the same specials with `playeruse` + `repeatspecial` on a one-sided line | NOT VERIFIED |
-| Level exit | `Exit_Normal` (243) on a switch line | NOT VERIFIED |
-| Booth light turns on | `Light_ChangeToValue` (110) tag 30, arg 144 | NOT VERIFIED |
-| Flickering corridor section | sector special (Doom 1 "random off" or ZDoom `Light_Flicker`) | NOT VERIFIED |
-| Secret sector | sector `special = 1024`, or the UDMF `secret` field if GZDoom accepts it | NOT VERIFIED |
-| Sector / line tags | UDMF field `id` on sector and linedef | NOT VERIFIED |
+| Manual door, both sides | `Door_Raise` **12** (tag, 16, 150, 0), `playeruse` + `repeatspecial` | **VERIFIED in engine** 2026-10-13: D2 pressed from the dorm, opened, corridor visible (`…_d2-closed.png` → `…_d2-open-corridor.png`) |
+| Push panel, opens for good | `Door_Open` **11** (tag, 16, 0), `playeruse` + `repeatspecial` | **VERIFIED**: S2's catwalk panel pressed and stayed open (`…_s2-panel-open.png`) |
+| Wall switch opening a remote door | `Door_Open` **11** on a **one-sided** line, tag of a non-adjacent sector | **VERIFIED**: SW-A thrown, D4 found open from the hangar with the airlock and the still-shut D5 behind it (`…_d4-closed.png` → `…_d4-open-airlock-d5.png`) |
+| Level exit | `Exit_Normal` **243** on a switch line | **VERIFIED**: the engine left and re-entered MAP01 (MAPINFO `next = "MAP01"`), two `MAP01 - …` lines in one log |
+| Sector / line tags | UDMF `id` on the sector; `arg0` on the line | **VERIFIED** implicitly by all of the above |
+| Booth light turns on | `Light_ChangeToValue` (110) tag 30, arg 144 | **NOT VERIFIED** — v2 |
+| Flickering corridor section | sector special or `Light_Flicker` (113) | **NOT VERIFIED** — v2 |
+| Secret sector | sector `special = 1024` | **NOT VERIFIED** — v2 |
 
-Tag plan (so nothing collides later): **10** D4 leaves · **11** D5 ·
-**20** hangar wave-2 closets (6 sectors, one `Door_Open` opens all) ·
-**21** fuel-bay ambush panels (3 sectors) · **30** booth light sector ·
-**0** every manual door. 1–9 and 12–19 stay free for v2 detail.
+Two engine facts worth writing down, both learned the hard way:
+
+- A `playeruse` special fires **only from the front side of the line**. A
+  door sector therefore needs the special on *both* flanking lines, each
+  wound so the door is the BACK side. `LineStyle.back_sector` in
+  `tools/sdbuild/udmf.py` does that, and `tests/test_udmf.py` asserts it.
+- `Door_Raise` / `Door_Open` raise a door to **(lowest neighbouring ceiling
+  − 4)**. The design's sump (floor −96, ceiling 0) opened off a −32 floor
+  would have given a 28-unit doorway, i.e. impassable. Fixed in v0 (§14);
+  every door's clearance is now checked by a test.
+
+Tag plan, updated by v0: **1** D1 · **2** D2 · **3** D3 · **6** D6 ·
+**10** D4 · **11** D5 · **20** hangar wave-2 closets · **21** fuel-bay
+ambush panels · **30** booth light · **101/102/103** secret panels
+S1/S2/S3. 4, 5, 7–9 and 12–19 stay free for v2 detail. Manual doors are
+tagged rather than tag-0 so either flanking line opens them.
 
 Switch **textures do not exist in the approved set** — see §10, request A3.
 
 ## 10. What I need before I can build
 
 ### From `mod-engineer` (blocking)
+
+- **M1 — RESOLVED 2026-10-12 by `mod-engineer`.** `tools/build.py` now packs
+  `assets/`; the twelve approved textures are in the PK3 and v0 already uses
+  one of them (`SDDOOR1`, §14).
+- **M2 — RESOLVED 2026-10-13 by `level-designer`** (this role owned the file
+  for that task). `tools/sdbuild/udmf.py` now models `Sector.id` /
+  `Sector.special`, `Linedef.special` + `arg0..arg4`, a checked set of
+  linedef flags, `TextMap.add_room_rect()`, and `GridMap` — a rectangle
+  painter that derives every shared edge, split and winding from a list of
+  rectangles. Tests in `tests/test_udmf.py`.
+- **M3, M4, M5 — still open**, see below.
+
+<details><summary>Original wording of M1 and M2 (kept for the record)</summary>
 
 - **M1 — approved textures do not reach the PK3.** `assets/textures/soviet_base/`
   and `assets/flats/soviet_base/` exist, but `tools/build.py` packs `src/`
@@ -373,10 +408,14 @@ Switch **textures do not exist in the approved set** — see §10, request A3.
   `playercross`, `repeatspecial`, `monsteractivate`, `blockmonsters`,
   `dontpegtop`, `dontpegbottom`, `secret`, and a `TextMap.add_room_rect()`
   that emits a rectangular sector with four correctly wound lines.
+
+</details>
+
 - **M3 — the exit has nowhere to go.** MAPINFO says `next = "MAP01"` and
   MAP02 does not exist. Decide what `Exit_Normal` does in v1 (loop to MAP01,
-  or an end-of-episode cluster with text) and put it in MAPINFO; I need to
-  know before I place the exit switch.
+  or an end-of-episode cluster with text) and put it in MAPINFO. **v0 ships
+  with the loop**, which is what made `Exit_Normal` verifiable (§9) and is
+  wrong for shipping: today pressing the exit silently restarts the map.
 - **M4 — map name and par.** `SD_MAP01_NAME` is still "Test Range". Proposed:
   EN "Zarya-7 Cosmodrome", RU «Космодром "Заря-7"». Par time 210 s.
 - **M5 — confirm §9** (specials, tags, secret sector) and add the Freedoom
@@ -451,7 +490,7 @@ screenshotted into `docs/levels/shots/`.
 
 | Version | Content | Done when |
 |---|---|---|
-| **v0 — grey** | the complete floor plan: every sector, every door, both switches, the exit, correct heights and stairs. One wall texture and one floor/ceiling pair everywhere (`SDCONC1`/`SDFLR2`/`SDCEIL2`, or IWAD `STARTAN2`/`FLOOR4_8`/`CEIL3_5` if M1 is not solved yet), flat light 160, no enemies, no items, 2 markers. | you can walk start → exit; no HOM, no stuck geometry; G3-1, G3-2, G3-6 pass |
+| **v0 — grey** ✅ **BUILT 2026-10-13** (§14) | the complete floor plan: every sector, every door, both switches, the exit, correct heights and stairs. One wall texture and one floor/ceiling pair everywhere (`STARTAN2`/`FLOOR4_8`/`CEIL3_5`), flat light 160, no enemies, no items. | you can walk start → exit; no HOM, no stuck geometry; G3-1, G3-2, G3-6 pass |
 | **v1 — textured** | §6 applied zone by zone, alignment pass (door recesses, `offsety`, lane continuity), `SDPOSTR2` mural placed, D4/D5/D6 as `SDDOOR1`, `SDCONC2` route if A1 is granted. | G3-3 passes; the CEO can judge `SDCONC2` from screenshots |
 | **v2 — light and detail** | the §6 light table, lamp sectors, the flickering corridor, the booth light that SW-A turns on, parapets, pilasters, steps, drums, floor lamps, the three secrets built and flagged. | the map reads without a compass: a first-time player finds the hangar and D4 without being told |
 | **v3 — balance** | §8 placed with per-skill flags, ammo and health budget, the two waves and the ambush timed, playtests on 2/3/4 with notes. | all of G3-1…G3-8 green; ready for the CEO's G3-9 |
@@ -479,3 +518,106 @@ MAP=MAP01 SKILL=3 tools/run.sh
    MAP01, longer than Doom II's MAP01 (~2 min) and shorter than a modern
    megawad opener. Say if you want it shorter.
 5. **A strip of night sky** over the hangar in v2 (A6): yes or no.
+
+## 14. v0 build record (2026-10-13)
+
+Source: `src/maps/MAP01/map.py`, built by `tools/sdbuild/udmf.py`'s
+`GridMap`. 44 sectors, 179 linedefs, 137 vertices, 1 thing.
+
+```sh
+python3 tools/build.py && MAP=MAP01 tools/run.sh      # walk it
+python3 tools/build.py --print-textmap MAP01           # read the UDMF
+```
+
+### What is in it
+
+Every room, corridor, stair, door, switch and secret of §3 and §4, at the
+heights of §3: the dorm, the washroom and the locker secret, the barracks
+corridor, the Leninskaya komnata, the service corridor and the guard post,
+the three-step descent into the hangar, the hangar itself with the
+transporter cradle (climbable, droppable on all four sides), the eight-step
+stair to the catwalk, the catwalk and its secret panel, the fuel bay with
+SW-A and the sump secret below it, the control booth with its window over
+the hangar and SW-B, the two-leaf airlock (D4 → chamber → D5) and the exit
+lift with the exit switch.
+
+### What is deliberately *not* in it
+
+No enemies, no weapons, no ammo, no health, no decoration, no secret flags,
+no lane markings, no mural, no lamps. Flat light 160 everywhere, so nothing
+is "atmospheric" yet — the map is meant to look like nothing so the *shape*
+is the only thing to judge. Those are v1, v2 and v3.
+
+### Deviations from §3, and why
+
+| # | Design said | Built | Why |
+|---|---|---|---|
+| 1 | one texture everywhere | one texture **plus `SDDOOR1` on every pressable surface** (6 door leaves, SW-A, SW-B, exit) | with a single grey wall a closed door *is* grey wall. The first engine screenshot showed a dorm whose only exit was invisible. `SDDOOR1` is already approved and is what v1 puts on those same doors. Nothing else is textured, and a test asserts it never leaks onto a plain wall. |
+| 2 | Z9 booth at x 2560…2816 | x 2432…2688 | at 2560 the booth only touched the catwalk at a corner: D6 had no wall to live in. |
+| 3 | Z7 fuel bay at y 1600…1920 | y 1664…1984, reached through a 128-wide, 64-deep passage | sharing the whole 448-unit wall with the hangar would have been a missing wall, not a doorway. |
+| 4 | S3 sump: floor −96, ceiling 0 | sump unchanged; its **stairwell** is ceilinged at 64 | a door between a −32 floor and a 0 ceiling opens to 28 units. Nobody fits. |
+| 5 | manual doors on tag 0 | one tag per door (§9) | a tagged door opens from either flanking line; tag 0 depends on which side the engine calls "front". |
+| 6 | 3-step descent into the hangar | 3 steps of 8 units + the 8-unit drop into the hangar | keeps every step well under the 24-unit limit. |
+
+### Verification actually run
+
+| Check | Result |
+|---|---|
+| `python3 tools/build.py` | OK — 34 files, `maps/MAP01.wad` 60 KB |
+| `python3 tools/check_pk3.py` | **PASS**, 0 errors 0 warnings; 5 texture names referenced, all resolved |
+| `python3 tools/smoke.py --map MAP01 --skill 3` | **PASS** — GZDoom 4.14.2, map entered, screenshot written, 0 failure lines |
+| `python3 -m unittest discover -s tests` | **OK**, 190 tests (34 of them new in `tests/test_udmf.py`) |
+| in-engine walk | D2, S2's panel, SW-A → D4 and the exit all exercised by hand (§9) |
+
+Static checks now enforced on every build by `tests/test_udmf.py`, which is
+most of criterion G3-6: every sector closed and clockwise, no duplicate
+vertex or linedef, every one-sided line blocking and every two-sided line
+not, every sector reachable from the player start (bar the booth window,
+which is a window), **a path back to the start from every reachable
+sector**, the gate order (dorm sealed → everything but the airlock → +SW-A →
++SW-B), every door opening to at least 56 units of clearance, and every
+switch tag pointing at a sector that exists.
+
+### Known rough edges, to be fixed in v1/v2
+
+- `SDDOOR1` is 128×128 and D4's opening is 320 tall, so the leaf tiles 2½
+  times vertically. v1 gives the big doors a proper lintel.
+- The hangar's southern half (y 320…1088) is 1536 × 768 of empty floor. v2
+  puts the bays, the drums and the lamp grid there — but see the question
+  below, because it may simply be too big.
+- The booth window sector is unreachable by design; it is the one sector of
+  the map no player can stand in.
+
+### What I want the CEO to judge while walking it
+
+1. **The hangar's size.** It is 1536 × 1536 units with a 320-high ceiling —
+   about six times the floor area of the dorm. Walking it empty is the
+   worst case; it will feel smaller once the cradle bays, the drums and the
+   lamps are in. Is it *impressive*, or is it *a long walk*? If it is a
+   long walk, I shrink it on the south side before v1, which is cheap now
+   and expensive later.
+2. **The barracks run.** Dorm → corridor → komnata → service corridor is
+   about 1900 units of walking with nothing in it yet. In v3 it carries
+   three fights. Does it feel like a *base* or like a *lobby*?
+3. **The height drama.** The descent into the hangar (3 steps, ceiling
+   rising 112 → 160 → 224 → 288) is meant to be the "wow" beat. Does the
+   room open up when you come down the steps?
+4. **The catwalk stair.** Eight steps, 256 units long, climbed under fire
+   in v3. Too long a climb?
+5. **The gate.** From the hangar floor, is it obvious that the big shut
+   door to the east (D4) is where you are going, and that the fuel bay to
+   the north-west is the only other way on? That reading is the whole
+   design; if it does not happen in grey, no amount of red stripe in v1
+   will save it.
+6. Still open from §13: key-free MAP01, `SDCONC2` in the build, a switch
+   texture for batch 2, length and difficulty, and the strip of night sky.
+
+### Still needed from other roles
+
+- `mod-engineer`: **M3** (what `Exit_Normal` should do — today it loops back
+  to MAP01, which is fine for walking and wrong for shipping), **M4** (the
+  map is still called "Test Range" on the automap and the intermission),
+  **M5** (record §9's verified specials and the §8 Freedoom placeholders in
+  MOD-SPEC).
+- `art-director`: **A3**, a switch texture — `SDDOOR1` is standing in for one
+  and reads as a door, not a switch.

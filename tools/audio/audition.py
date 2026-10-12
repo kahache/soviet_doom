@@ -41,6 +41,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 AUDIO_DIR = PROJECT_ROOT / "work" / "audio"
+CANDIDATES_DIR = AUDIO_DIR / "candidates"
 TEST_PK3 = AUDIO_DIR / "sd-music-draft.pk3"
 MOD_PK3 = PROJECT_ROOT / "dist" / "sovietdoom.pk3"
 LOG_DIR = PROJECT_ROOT / "logs"
@@ -76,7 +77,7 @@ RENDER_SAMPLE_RATE = 44100
 MIN_PEAK_AMPLITUDE = 0.02      # of full scale
 MIN_DURATION_RATIO = 0.80      # rendered length vs. the length we expect
 
-MAPINFO_OVERLAY = f"""\
+MAPINFO_OVERLAY = """\
 // Audition overlay - tools/audio/audition.py. NOT part of the mod.
 // Loaded after dist/sovietdoom.pk3 so these blocks win. Delete the PK3 and
 // everything is as it was; src/lumps/MAPINFO is never touched.
@@ -104,22 +105,52 @@ def find(candidates) -> Path | None:
     return None
 
 
-def pack(quiet: bool = False) -> Path:
-    midis = sorted(AUDIO_DIR.glob("*.mid"))
-    if not midis:
+def sources(use_candidates: bool) -> list[tuple[str, Path]]:
+    """(lump name, file) pairs to pack.
+
+    Our own drafts are already named as lumps (`D_SDTITL.mid`). Downloaded
+    candidates are not: their names are long, carry punctuation and would not
+    survive as Doom lump names, so they get stable positional names
+    `D_CND01`..`D_CNDnn` in sorted order. The mapping is printed on every pack
+    and written next to the PK3, because `writewave` and the MAPINFO `music`
+    key both address the lump, not the file.
+    """
+    if use_candidates:
+        files = sorted(CANDIDATES_DIR.glob("*.mid"))
+        if not files:
+            raise SystemExit(f"no .mid files in {CANDIDATES_DIR}")
+        return [(f"D_CND{i:02d}", p) for i, p in enumerate(files, start=1)]
+    files = sorted(AUDIO_DIR.glob("*.mid"))
+    if not files:
         raise SystemExit(f"no .mid files in {AUDIO_DIR}; run tools/audio/gen_music.py first")
+    return [(p.stem, p) for p in files]
+
+
+def pack(use_candidates: bool = False, first_lump: str | None = None,
+         quiet: bool = False) -> list[tuple[str, Path]]:
+    pairs = sources(use_candidates)
+    title = first_lump or (pairs[0][0] if use_candidates else TITLE_LUMP)
+    map01 = first_lump or (pairs[0][0] if use_candidates else MAP01_LUMP)
+    mapinfo = MAPINFO_OVERLAY.format(TITLE_LUMP=title, MAP01_LUMP=map01)
+
     TEST_PK3.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(TEST_PK3, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        for name, data in [("MAPINFO", MAPINFO_OVERLAY.encode())] + [
-            (f"{MUSIC_DIR_IN_PK3}/{p.name}", p.read_bytes()) for p in midis
+        for name, data in [("MAPINFO", mapinfo.encode())] + [
+            (f"{MUSIC_DIR_IN_PK3}/{lump}.mid", p.read_bytes()) for lump, p in pairs
         ]:
             info = zipfile.ZipInfo(name, date_time=FIXED_ZIP_TIME)
             info.compress_type = zipfile.ZIP_DEFLATED
             zf.writestr(info, data)
+
+    manifest = AUDIO_DIR / "candidates-lumps.txt" if use_candidates else None
+    if manifest:
+        manifest.write_text("".join(f"{lump}  {p.name}\n" for lump, p in pairs))
     if not quiet:
-        print(f"packed {TEST_PK3} ({TEST_PK3.stat().st_size} B): "
-              + ", ".join(p.stem for p in midis))
-    return TEST_PK3
+        print(f"packed {TEST_PK3} ({TEST_PK3.stat().st_size} B), "
+              f"title/MAP01 = {title}")
+        for lump, p in pairs:
+            print(f"  {lump}  {p.name}")
+    return pairs
 
 
 def engine_args(gzdoom: Path, iwad: Path, console: str, log: Path, extra: list[str]) -> list[str]:
@@ -127,9 +158,9 @@ def engine_args(gzdoom: Path, iwad: Path, console: str, log: Path, extra: list[s
             "+logfile", str(log), *extra, "+" + console]
 
 
-def cmd_play(which: str) -> int:
+def cmd_play(which: str, use_candidates: bool = False, lump: str | None = None) -> int:
     gzdoom, iwad = require_engine()
-    pack()
+    pack(use_candidates=use_candidates, first_lump=lump)
     LOG_DIR.mkdir(exist_ok=True)
     log = LOG_DIR / "audition.log"
     # Explicit volumes and our own config: the CEO heard silence because his
@@ -151,12 +182,14 @@ def cmd_play(which: str) -> int:
     return subprocess.call(args)
 
 
-def cmd_render(lumps: list[str], expected: dict[str, float]) -> int:
+def cmd_render(expected: dict[str, float], use_candidates: bool = False) -> int:
     """Have the engine itself synthesise each MIDI to a WAV, then measure it."""
     gzdoom, iwad = require_engine()
-    pack()
+    pairs = pack(use_candidates=use_candidates)
+    lumps = [lump for lump, _ in pairs]
+    names = dict(pairs)
     LOG_DIR.mkdir(exist_ok=True)
-    out_dir = AUDIO_DIR / "render"
+    out_dir = AUDIO_DIR / ("render-candidates" if use_candidates else "render")
     out_dir.mkdir(parents=True, exist_ok=True)
     log = LOG_DIR / "audition-render.log"
 
@@ -189,8 +222,8 @@ def cmd_render(lumps: list[str], expected: dict[str, float]) -> int:
         ok_len = want == 0 or seconds >= want * MIN_DURATION_RATIO
         ok_peak = peak >= MIN_PEAK_AMPLITUDE
         status = "OK  " if ok_len and ok_peak else "FAIL"
-        print(f"{status} {lump}: {wav.stat().st_size} B, {seconds:.1f}s "
-              f"(expected ~{want:.1f}s), peak {peak:.3f} of full scale")
+        print(f"{status} {lump} ({names[lump].name}): {wav.stat().st_size} B, "
+              f"{seconds:.1f}s (expected ~{want:.1f}s), peak {peak:.3f} of full scale")
         failures += 0 if (ok_len and ok_peak) else 1
     return 1 if failures else 0
 
@@ -273,18 +306,23 @@ def main(argv: list[str] | None = None) -> int:
                         help="engine-render every MIDI to WAV and measure it")
     parser.add_argument("--expect", action="append", default=[], metavar="LUMP=SECONDS",
                         help="expected duration for --render, e.g. D_SDM01=142")
+    parser.add_argument("--candidates", action="store_true",
+                        help="use work/audio/candidates/ (downloaded MIDIs) instead of "
+                             "our own drafts; they are packed as D_CND01..D_CNDnn")
+    parser.add_argument("--lump", metavar="NAME",
+                        help="with --play: which lump to put on the title screen and MAP01 "
+                             "(e.g. D_CND11). Default: the first one packed")
     args = parser.parse_args(argv)
 
     if args.play:
-        return cmd_play(args.play)
+        return cmd_play(args.play, use_candidates=args.candidates, lump=args.lump)
     if args.render:
         expected = {}
         for item in args.expect:
             lump, _, value = item.partition("=")
             expected[lump] = float(value)
-        lumps = sorted(p.stem for p in AUDIO_DIR.glob("*.mid"))
-        return cmd_render(lumps, expected)
-    pack()
+        return cmd_render(expected, use_candidates=args.candidates)
+    pack(use_candidates=args.candidates, first_lump=args.lump)
     return 0
 
 

@@ -90,6 +90,45 @@ SD_GOT_CELL      = "A canister of fuel.";
 SD_GOT_CELLPACK  = "A full fuel tank.";
 SD_GOT_BACKPACK  = "Quartermaster's satchel. Everything you can carry!";
 
+// --- Difficulty ladder (CEO decision 2026-10-13) --------------------------
+// The five names the CEO chose; the reasoning for each is in
+// docs/product/DIFFICULTY-NAMES.md, which owns them. Here they are only
+// strings: MAPINFO's `skill` blocks point at these ids with Name = "$SD_SKILL_N".
+//
+// Doom's skill names are first-person answers to a recruiting officer, so
+// ours are too. The ladder keeps Doom's MECHANICS exactly (see MAPINFO):
+// renaming a skill must never change what it does.
+//
+// SD_SKILL_5_CONFIRM replaces Doom's "$NIGHTMARE" prompt. GZDoom shows it
+// through the skill's MustConfirm property before starting the game.
+
+SD_SKILL_1 = "I am still a Pioneer";
+SD_SKILL_2 = "I have seen worse winters";
+SD_SKILL_3 = "Not one step back";
+SD_SKILL_4 = "No pasaran, comrades";
+SD_SKILL_5 = "Hero of the Soviet Union, posthumously";
+
+SD_SKILL_5_CONFIRM = "The award is posthumous and the enemy dead do not stay dead.\n\nAre you sure?";
+
+// --- The mod's own menu (language switch) ---------------------------------
+// SD_LANG_CODE is not shown to anyone. It is a PROBE: every language section
+// defines it with its own GZDoom language code, so ZScript can ask
+// StringTable.Localize("$SD_LANG_CODE") which section the engine actually
+// resolved. zscript/sd/language.zs uses it to turn an "auto" language CVar
+// into the explicit code that auto already resolved to, so the menu shows a
+// real value instead of a blank. Add a line to EVERY section you add.
+
+SD_LANG_CODE = "default";
+
+SD_OPTMNU_TITLE    = "Soviet Doom";
+SD_OPTMNU_LANGUAGE = "Language";
+SD_OPTMNU_LANGHELP = "Applies immediately. Saved for the next session.";
+// Temporary, remove with debt T9: see docs/engine/MOD-SPEC.md 10.
+SD_OPTMNU_LANGWARN = "Cyrillic is not drawn yet (the font is being made).";
+
+SD_LANGVAL_EN = "English";
+SD_LANGVAL_RU = "Russian";
+
 [ru]
 
 SD_EP01_NAME  = "Советский Doom";
@@ -138,3 +177,29 @@ SD_GOT_ROCKBOX   = "Ящик выстрелов ПГ-7В.";
 SD_GOT_CELL      = "Бачок с горючим.";
 SD_GOT_CELLPACK  = "Полный баллон горючего.";
 SD_GOT_BACKPACK  = "Вещмешок старшины. Всё, что унесёшь!";
+
+// --- Уровни сложности (решение CEO 2026-10-13) ----------------------------
+// Пять названий выбраны CEO; обоснование каждого - в
+// docs/product/DIFFICULTY-NAMES.md.
+
+SD_SKILL_1 = "Я ещё пионер";
+SD_SKILL_2 = "Бывали зимы и похуже";
+SD_SKILL_3 = "Ни шагу назад";
+SD_SKILL_4 = "Но пасаран, товарищи";
+SD_SKILL_5 = "Герой Советского Союза, посмертно";
+
+SD_SKILL_5_CONFIRM = "Награда посмертная, а убитый враг здесь не остаётся убитым.\n\nВы уверены?";
+
+// --- Меню мода (переключатель языка) --------------------------------------
+// SD_LANG_CODE - служебная строка, игроку не показывается. См. комментарий
+// в английской секции: каждая секция объявляет собственный код языка.
+
+SD_LANG_CODE = "ru";
+
+SD_OPTMNU_TITLE    = "Советский Doom";
+SD_OPTMNU_LANGUAGE = "Язык";
+SD_OPTMNU_LANGHELP = "Применяется сразу. Сохраняется до следующего запуска.";
+SD_OPTMNU_LANGWARN = "Кириллица пока не отрисовывается (шрифт в работе).";
+
+SD_LANGVAL_EN = "Английский";
+SD_LANGVAL_RU = "Русский";

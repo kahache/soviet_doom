@@ -1,0 +1,54 @@
+// MENUDEF - the mod's own menu. ZDoom wiki: https://zdoom.org/wiki/MENUDEF
+//
+// A MENUDEF lump does not replace GZDoom's menus; it adds to them. The two
+// directives used here:
+//
+//   OptionMenu "<name>"       declares a new menu screen.
+//   AddOptionMenu "<name>"    APPENDS items to a menu that already exists,
+//                             leaving the rest of the engine's menu intact.
+//                             (GZDoom's own option menus are declared
+//                             `protected`, which forbids a mod from adding
+//                             Command/SafeCommand items - arbitrary console
+//                             commands - but allows Submenu, Option and
+//                             StaticText. Verified in-engine 2026-10-13.)
+//
+// WHY THERE IS NO CVAR OF OUR OWN FOR THE LANGUAGE.
+// GZDoom already ships the `language` CVar, and it is archived: the engine
+// writes it to the player's gzdoom.ini and reads it back next launch. That
+// is exactly the persistence the CEO asked for, in the place a player
+// expects their settings to live, and it is the ONLY key this mod ever
+// touches in their config. A mod-owned CVar would be a second source of
+// truth and a second thing written to their file.
+// See docs/engine/adr/004-difficulty-ladder-and-language-switch.md.
+
+// The two values the mod supports, and nothing else: the CEO asked for an
+// explicit choice, not for the system locale to decide. "default" is
+// GZDoom's code for the LANGUAGE section marked `default` (ours is
+// `[enu default]`); "ru" selects `[ru]`.
+//
+// The labels are localized like everything else, so the Russian build names
+// the languages in Russian. They are NOT endonyms ("Русский" inside the
+// English menu) because Freedoom's font cannot draw Cyrillic yet and the
+// entry would read as blank - debt T9.
+OptionValue "SD_LanguageValues"
+{
+	"default", "$SD_LANGVAL_EN"
+	"ru",      "$SD_LANGVAL_RU"
+}
+
+OptionMenu "SD_OptionsMenu"
+{
+	Title "$SD_OPTMNU_TITLE"
+	Option "$SD_OPTMNU_LANGUAGE", "language", "SD_LanguageValues"
+	StaticText " "
+	StaticText "$SD_OPTMNU_LANGHELP"
+	// Temporary while debt T9 (the Cyrillic font) is open. Delete this line
+	// and its LANGUAGE ids in the same change that lands the glyphs.
+	StaticText "$SD_OPTMNU_LANGWARN"
+}
+
+AddOptionMenu "OptionsMenu"
+{
+	StaticText " "
+	Submenu "$SD_OPTMNU_TITLE", "SD_OptionsMenu"
+}

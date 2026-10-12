@@ -11,6 +11,9 @@ See `CLAUDE.md` for the operational summary, `docs/PRD.md` for decisions and
 ```bash
 python3 tools/build.py        # → dist/sovietdoom.pk3
 tools/run.sh                  # needs GZDoom and freedoom2.wad in iwads/
+python3 tools/verify.py auto  # verify what changed: fast (~7 s, no window),
+                              # full (~30 s, boots GZDoom) or just the docs —
+                              # it reads git, picks the level and says why
 ```
 
 ## Continuous integration
