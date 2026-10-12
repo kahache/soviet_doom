@@ -27,6 +27,7 @@ because the text is decided after the portrait is chosen.
 from __future__ import annotations
 
 import sys
+from collections import Counter, deque
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
@@ -206,33 +207,87 @@ def flattened_luminance() -> Image.Image:
     return src
 
 
+def _components(idx: list[list[int]], w: int, h: int) -> list[tuple[int, list[tuple[int, int]]]]:
+    """Flood-fill the index map into 4-connected same-ink components."""
+    seen = [[False] * w for _ in range(h)]
+    out = []
+    for y0 in range(h):
+        for x0 in range(w):
+            if seen[y0][x0]:
+                continue
+            ink = idx[y0][x0]
+            queue, pixels = deque([(x0, y0)]), []
+            seen[y0][x0] = True
+            while queue:
+                x, y = queue.popleft()
+                pixels.append((x, y))
+                for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                    if 0 <= nx < w and 0 <= ny < h and not seen[ny][nx] and idx[ny][nx] == ink:
+                        seen[ny][nx] = True
+                        queue.append((nx, ny))
+            out.append((ink, pixels))
+    return out
+
+
 def posterise(lum: Image.Image, variant: dict) -> Image.Image:
     """One variant of the 128x128 lump art: flat inks, hard edges."""
+    bands = variant["bands"]
+    assert bands[0][1] == variant["ground"], "band 0 must be the ground ink"
+
     target_w = LUMP_PX - 2 * PORTRAIT_SIDE_PX
     target_h = LUMP_PX - SLOGAN_BAND_PX - PORTRAIT_TOP_PX
     small = lum.resize((target_w, target_h), Image.LANCZOS)
 
     # Map each luminance band to an ink index, then mode-filter the INDEX map
     # (filtering colours would invent in-between colours; filtering indices
-    # cannot) and finally paint.
-    bands = variant["bands"]
-    idx = Image.new("L", small.size)
-    sp, ip = small.load(), idx.load()
-    for y in range(small.size[1]):
-        for x in range(small.size[0]):
+    # cannot).
+    flat = Image.new("L", small.size)
+    sp, fp = small.load(), flat.load()
+    for y in range(target_h):
+        for x in range(target_w):
             v = sp[x, y]
             for i, (limit, _) in enumerate(bands):
                 if v < limit:
-                    ip[x, y] = i
+                    fp[x, y] = i
                     break
-    idx = idx.filter(ImageFilter.ModeFilter(DESPECKLE_SIZE))
+    flat = flat.filter(ImageFilter.ModeFilter(DESPECKLE_SIZE))
+    fp = flat.load()
+    idx = [[fp[x, y] for x in range(target_w)] for y in range(target_h)]
+
+    # Cut the head out of the backdrop: outside the head's column everything
+    # is ground, which kills the studio halo on the right of the negative.
+    comps = _components(idx, target_w, target_h)
+    light = max((c for c in comps if c[0] == len(bands) - 1),
+                key=lambda c: len(c[1]), default=None)
+    if light is not None:
+        xs = [p[0] for p in light[1]]
+        lo = max(0, min(xs) - HEAD_BAND_MARGIN_PX)
+        hi = min(target_w - 1, max(xs) + HEAD_BAND_MARGIN_PX)
+        for y in range(target_h):
+            for x in range(target_w):
+                if x < lo or x > hi:
+                    idx[y][x] = 0
+
+    # Print dust: merge every tiny component into its commonest neighbour.
+    for ink, pixels in _components(idx, target_w, target_h):
+        if len(pixels) >= MIN_BLOB_PX:
+            continue
+        around = Counter()
+        for x, y in pixels:
+            for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                if 0 <= nx < target_w and 0 <= ny < target_h and idx[ny][nx] != ink:
+                    around[idx[ny][nx]] += 1
+        if around:
+            winner = around.most_common(1)[0][0]
+            for x, y in pixels:
+                idx[y][x] = winner
 
     art = Image.new("RGB", (LUMP_PX, LUMP_PX), variant["ground"])
     portrait = Image.new("RGB", small.size)
-    pp, ip = portrait.load(), idx.load()
-    for y in range(small.size[1]):
-        for x in range(small.size[0]):
-            pp[x, y] = bands[ip[x, y]][1]
+    pp = portrait.load()
+    for y in range(target_h):
+        for x in range(target_w):
+            pp[x, y] = bands[idx[y][x]][1]
     art.paste(portrait, (PORTRAIT_SIDE_PX, PORTRAIT_TOP_PX))
     return art
 
