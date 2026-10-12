@@ -1,0 +1,56 @@
+Log started: 2026-10-12 22:44:47
+GZDoom version g4.14.2
+W_Init: Init WADfiles.
+adding /Applications/GZDoom.app/Contents/MacOS/gzdoom.pk3, 692 lumps
+adding /Applications/GZDoom.app/Contents/MacOS/game_support.pk3, 3308 lumps
+adding /Users/admin/Desktop/soviet_doom/iwads/freedoom2.wad, 3610 lumps
+adding /Applications/GZDoom.app/Contents/MacOS/game_widescreen_gfx.pk3, 214 lumps
+adding /Users/admin/Desktop/soviet_doom/dist/sovietdoom.pk3, 5 lumps
+S_Init: Setting up sound.
+Vulkan device: Intel(R) Iris(TM) Graphics 6100
+Vulkan device type: integrated gpu
+Vulkan version: 1.2.268 (api) 0.2.2014 (driver)
+Vulkan extensions: VK_KHR_16bit_storage VK_KHR_8bit_storage VK_KHR_bind_memory2 VK_KHR_copy_commands2 VK_KHR_create_renderpass2 VK_KHR_dedicated_allocation VK_KHR_deferred_host_operations VK_KHR_depth_stencil_resolve VK_KHR_descriptor_update_template VK_KHR_device_group VK_KHR_driver_properties VK_KHR_dynamic_rendering VK_KHR_external_fence VK_KHR_external_memory VK_KHR_external_semaphore VK_KHR_get_memory_requirements2 VK_KHR_imageless_framebuffer VK_KHR_image_format_list VK_KHR_incremental_present VK_KHR_maintenance1 VK_KHR_maintenance2 VK_KHR_maintenance3 VK_KHR_map_memory2 VK_KHR_multiview VK_KHR_portability_subset VK_KHR_push_descriptor VK_KHR_relaxed_block_layout VK_KHR_sampler_mirror_clamp_to_edge VK_KHR_sampler_ycbcr_conversion VK_KHR_separate_depth_stencil_layouts VK_KHR_shader_draw_parameters VK_KHR_shader_float_controls VK_KHR_shader_float16_int8 VK_KHR_shader_non_semantic_info VK_KHR_spirv_1_4 VK_KHR_storage_buffer_storage_class VK_KHR_swapchain VK_KHR_swapchain_mutable_format VK_KHR_synchronization2 VK_KHR_timeline_semaphore VK_KHR_uniform_buffer_standard_layout VK_KHR_variable_pointers VK_EXT_4444_formats VK_EXT_calibrated_timestamps VK_EXT_debug_marker VK_EXT_descriptor_indexing VK_EXT_extended_dynamic_state VK_EXT_extended_dynamic_state2 VK_EXT_external_memory_host VK_EXT_fragment_shader_interlock VK_EXT_hdr_metadata VK_EXT_host_query_reset VK_EXT_image_robustness VK_EXT_inline_uniform_block VK_EXT_memory_budget VK_EXT_metal_objects VK_EXT_pipeline_creation_cache_control VK_EXT_pipeline_creation_feedback VK_EXT_private_data VK_EXT_robustness2 VK_EXT_sample_locations VK_EXT_scalar_block_layout VK_EXT_separate_stencil_usage VK_EXT_shader_demote_to_helper_invocation VK_EXT_shader_viewport_index_layer VK_EXT_subgroup_size_control VK_EXT_swapchain_maintenance1 VK_EXT_texel_buffer_alignment VK_EXT_vertex_attribute_divisor VK_AMD_gpu_shader_half_float VK_AMD_negative_viewport_height VK_AMD_shader_trinary_minmax VK_INTEL_shader_integer_functions2 VK_GOOGLE_display_timing VK_NV_glsl_shader
+Max. texture size: 16384
+Max. uniform buffer range: 65536
+Min. uniform buffer offset alignment: 256
+Resolution: 2048 x 1280
+I_Init: Setting up machine state.
+CPU speed: 2700 MHz
+CPU Vendor ID: GenuineIntel
+  Name: Intel(R) Core(TM) i5-5257U CPU @ 2.70GHz
+  Family 6, Model 61, Stepping 4
+  Features: SSE2 SSE3 SSSE3 SSE4.1 SSE4.2 AVX AVX2 F16C FMA3 BMI1 BMI2 HyperThreading
+V_Init: allocate screen.
+ST_Init: Init startup screen.
+Checking cmd-line parameters...
+S_InitData: Load sound definitions.
+G_ParseMapInfo: Load map definitions.
+Texman.Init: Init texture manager.
+ParseTeamInfo: Load team definitions.
+LoadActors: Load actor definitions.
+script parsing took 768.73 ms
+R_Init: Init Doom refresh subsystem.
+DecalLibrary: Load decals.
+Adding dehacked patch freedoom2.wad:DEHACKED
+Patch installed
+M_Init: Init menus.
+P_Init: Init Playloop state.
+ParseSBarInfo: Loading custom status bar definition.
+===========================================================================
+This is Freedoom, the free content first person shooter.
+
+Freedoom is freely redistributable under the terms of the modified BSD
+license. Check out the Freedoom website for more information:
+
+    https://freedoom.github.io/
+============================================================================
+D_CheckNetGame: Checking network game status.
+player 1 of 1 (1 nodes)
+
+----------------------------------------
+
+MAP01 - Test Range
+
+SOVIETDOOM loaded: map MAP01 (Test Range)
+Captured Screenshot_Doom_20261012_224454.png

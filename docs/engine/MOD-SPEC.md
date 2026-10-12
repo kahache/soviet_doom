@@ -117,6 +117,7 @@ python3 -m unittest discover -s tests -v     # build tests
 tools/run.sh                                 # build + gzdoom + logs/gzdoom.log
 MAP=MAP01 SKILL=4 IWAD=/path/doom2.wad tools/run.sh -nosound
 tools/run.sh -nosound +vid_fullscreen 0 +screenshot_dir "$PWD/logs/shots" +"wait 140; screenshot; wait 35; quit"  # QA evidence
+python3 tools/smoke.py --map MAP01 --skill 4 [--keep-evidence]  # build + self-quitting GZDoom run + log analysis (exit 0 = clean)
 ```
 
 `run.sh` looks for GZDoom in `/Applications/GZDoom.app/Contents/MacOS/gzdoom`,

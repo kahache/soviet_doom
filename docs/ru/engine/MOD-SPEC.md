@@ -118,6 +118,7 @@ python3 -m unittest discover -s tests -v     # тесты сборки
 tools/run.sh                                 # сборка + gzdoom + logs/gzdoom.log
 MAP=MAP01 SKILL=4 IWAD=/path/doom2.wad tools/run.sh -nosound
 tools/run.sh -nosound +vid_fullscreen 0 +screenshot_dir "$PWD/logs/shots" +"wait 140; screenshot; wait 35; quit"  # доказательства QA
+python3 tools/smoke.py --map MAP01 --skill 4 [--keep-evidence]  # сборка + самозавершающийся запуск GZDoom + разбор лога (код 0 = чисто)
 ```
 
 `run.sh` ищет GZDoom в `/Applications/GZDoom.app/Contents/MacOS/gzdoom`,
