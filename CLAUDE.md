@@ -38,14 +38,20 @@ docs EN+RU, 1977, two allied factions (Fourth Reich, Liberty Legion),
 Sergeant Ramon Vilanova, serious tone, symbols on enemies, lore v1, licence
 GPL-3.0 code + CC BY-NC-SA 4.0 assets. Art tooling ready (`.venv/`).
 
-**F2 — in progress: texture batch 1 delivered, awaiting CEO verdict.**
-12 procedural textures of the "Soviet base" set (palette 162 colours, art
-bible v0, texture index, licences), preview
-`docs/art/previews/2026-10-09_0127_F2_batch1-soviet-base.html` (EN/RU).
-`SDSTAR1` is v2 (hammer and sickle redrawn after the CEO's verdict). PNGs live
-in `work/` (gitignored) until approved, then move to `assets/`. Suites:
-**build 11 · art 8**. Gate G2 = ≥ 8 approved. Open questions for the CEO in
-`docs/PENDING-CEO-DECISIONS.md` (Lenin style, poster formats, slogans).
+**F2 — in progress: batch 1 verdict applied, 8 textures approved.** CEO
+verdict 2026-10-12: palette and fonts ratified; `SDCONC1`, `SDSTEL1`,
+`SDDOOR1`, `SDFLR1-3`, `SDCEIL1-2` approved and moved to `assets/`;
+`SDCONC2` pending in-map review; `SDPOSTR2` approved, text confirmed as
+"Glory to Soviet cosmonautics"; `SDPOSTR1` discarded, Lenin becomes a
+separate commission; `SDSTAR1` is v3 (emblem redrawn from the CEO's
+reference after two mirrored attempts) and awaits a verdict. Preview
+`docs/art/previews/2026-10-12_2157_F2_batch1-soviet-base.html` (EN/RU).
+Suites: **build 24 · art 13**. Gate G2 (≥ 8 approved) met, not yet signed.
+
+Copyright finding (`docs/product/2026-10-12_2000_F2_pm-soviet-art-copyright.md`):
+Soviet posters of the 1950s-80s are **still protected** (life + 70, +74 for
+war-era authors). Usable: works published before 1931 or whose author died
+before 1952, the state symbols, slogans, and the style itself.
 
 ## Setup and commands
 

@@ -67,32 +67,42 @@ STRIPE_WEAR = 0.30                # fbm threshold below which the paint chipped
 # --- emblem plaque (SDSTAR1) ---------------------------------------------
 # v2 (CEO verdict on batch 1: "the hammer and sickle are badly drawn"): the
 # plaque grew from 48x72 to 56x100 so the emblem gets ~46 px of width, the
-# star shrank and moved above it, and the emblem follows the USSR flag
-# geometry (see hammer_sickle). Outline 1 px dark red around every shape.
+# star shrank and moved above it. Outline 1 px dark red around every shape.
+# v3 (CEO verdict on v2: still wrong): v2 was MIRRORED. The geometry below
+# was measured by the CEO on the canonical, public-domain emblem and is
+# expressed in a unit square (origin top-left, x right, y DOWN) that maps to
+# the HS box (HS_CENTER +- HS_R). Reading of the layout, to be kept:
+#   - sickle blade: thick crescent between an outer and an inner circle,
+#     thickest at the RIGHT and BOTTOM, tapering to a point at the TOP-LEFT;
+#     the crescent therefore opens to the top-left;
+#   - sickle handle: short thick stub at the BOTTOM-LEFT, pointing down-left;
+#   - hammer (drawn on top): head at the TOP-LEFT inside the opening, handle
+#     running DOWN TO THE RIGHT (~52 deg) across the blade's lower-right part.
 PLAQUE = (4, 12, 60, 112)         # x0,y0,x1,y1 of the painted panel
 PLAQUE_BORDER = 2
 STAR_CENTER, STAR_R = (32, 33), 11
-HS_CENTER, HS_R = (32, 79), 23    # hammer & sickle bounding radius
+HS_CENTER, HS_R = (32, 79), 23    # hammer & sickle box: centre, half size
 EMBLEM_OUTLINE = 1.0              # px, dark contour for legibility on red
-# Sickle blade: thick crescent opening to the right. Pillow angles (0 = +x,
-# 90 = +y i.e. down, clockwise): from the handle at the lower right, over the
-# left and the top, to a sharp tip at the upper right. Fractions of HS_R.
-SICKLE_ARC_CENTER = (-0.06, -0.14)
-SICKLE_ARC_R = 0.74
-SICKLE_BASE_DEG, SICKLE_TIP_DEG = 65.0, 362.0
-SICKLE_THICK = 0.28               # blade thickness before the taper
-SICKLE_TAPER_FROM_DEG = 250.0     # thickness -> 0 from here to the tip
-SICKLE_TAPER_POWER = 0.65
-SICKLE_ARC_STEPS = 48
-SICKLE_HANDLE_DEG = 58.0          # short straight handle, pointing down-right
-SICKLE_HANDLE_LEN, SICKLE_HANDLE_W = 0.40, 0.24
-# Hammer, drawn in front: thin straight handle from the lower left to the
-# upper right through the crescent; rectangular head across its upper end,
-# resting on the blade's shoulder, slightly longer than wide.
-HAMMER_HEAD_CENTER = (0.30, -0.84)
-HAMMER_ANGLE_DEG = -55.0          # handle direction (towards the head)
-HAMMER_HANDLE_LEN, HAMMER_HANDLE_W = 1.9, 0.14
-HAMMER_HEAD_L, HAMMER_HEAD_W = 0.62, 0.36
+# Sickle. Angles in Pillow convention (0 = +x, 90 = +y i.e. down, growing
+# clockwise on screen); the blade is swept from the tip angle through 0
+# (right) and 90 (bottom) to the base angle, where it meets the handle.
+SICKLE_OUTER_C, SICKLE_OUTER_R = (0.56, 0.56), 0.42
+SICKLE_INNER_C, SICKLE_INNER_R = (0.50, 0.52), 0.30
+SICKLE_TIP = (0.44, 0.07)         # sharp point above the outer circle
+SICKLE_TIP_OUTER_DEG = -102.0     # outer edge leaves the circle here -> tip
+SICKLE_TIP_INNER_DEG = -94.0      # inner edge leaves the circle here -> tip
+SICKLE_BASE_DEG = 143.0           # blade end at the handle, ~(0.24, 0.80)
+SICKLE_ARC_STEPS = 64
+SICKLE_HANDLE = ((0.26, 0.78), (0.07, 0.95))   # tucked into the blade -> end
+SICKLE_HANDLE_W = 0.11            # rounded end
+# Hammer. The handle starts under the head (the CEO measured its start a
+# hair off the head centre; both points are kept literally, the head covers
+# the difference) and runs down-right at ~52 deg below +x.
+HAMMER_HEAD_C = (0.33, 0.26)
+HAMMER_HANDLE = ((0.36, 0.27), (0.86, 0.90))
+HAMMER_HANDLE_W = 0.09
+HAMMER_HEAD_L, HAMMER_HEAD_W = 0.34, 0.19   # long axis perpendicular to handle
+HAMMER_TIP_CLEARANCE = 0.03       # min distance head <-> sickle tip (checked)
 
 # --- green steel (SDSTEL1) -----------------------------------------------
 PLATE = 32                 # riveted plate size; 2x4 plates per wall
@@ -217,47 +227,60 @@ def tex_conc2():
     return shade(rgb, f)
 
 
+def _arc(c, rad, deg0, deg1, steps):
+    """Points on a circle (unit-square coords) from deg0 to deg1 inclusive."""
+    out = []
+    for i in range(steps + 1):
+        a = np.deg2rad(deg0 + (deg1 - deg0) * i / steps)
+        out.append((c[0] + rad * np.cos(a), c[1] + rad * np.sin(a)))
+    return out
+
+
+def _thick_bar(p0, p1, width):
+    """Rectangle polygon around segment p0-p1."""
+    p0, p1 = np.array(p0), np.array(p1)
+    d = p1 - p0
+    d = d / np.linalg.norm(d)
+    n = np.array([-d[1], d[0]]) * width / 2
+    return [tuple(p0 + n), tuple(p1 + n), tuple(p1 - n), tuple(p0 - n)]
+
+
 def hammer_sickle(ov: Overlay, cx: float, cy: float, r: float, fill, outline):
-    """Hammer and sickle with the geometry of the USSR flag emblem, inside
-    radius r, drawn as vectors at SUPERSAMPLE x. The sickle (blade + handle)
-    and the hammer (handle + head) are two outlined groups, hammer on top:
-    the 1 px contour between them is what keeps the two tools apart when the
-    whole thing is 46 px wide and one flat gold."""
-    # --- sickle
+    """Hammer and sickle (geometry constants above, measured by the CEO on
+    the canonical emblem) drawn as vectors at SUPERSAMPLE x inside the box
+    (cx-r, cy-r)..(cx+r, cy+r). The sickle (blade + handle) and the hammer
+    (handle + head) are two outlined groups, hammer on top: the 1 px contour
+    between them is what keeps the two tools apart when the whole thing is
+    46 px wide and one flat gold."""
+    s = 2 * r
+    x0, y0 = cx - r, cy - r
+
+    def P(pt):  # unit square -> texture px
+        return (x0 + pt[0] * s, y0 + pt[1] * s)
+
+    # --- sickle: crescent between the two circles, sharpened to the tip
     g = ov.group(outline=outline, outline_width=EMBLEM_OUTLINE)
-    bcx, bcy = cx + SICKLE_ARC_CENTER[0] * r, cy + SICKLE_ARC_CENTER[1] * r
-    R = SICKLE_ARC_R * r
-    t_full = SICKLE_THICK * r
-    outer, inner = [], []
-    for i in range(SICKLE_ARC_STEPS + 1):
-        th = SICKLE_BASE_DEG + (SICKLE_TIP_DEG - SICKLE_BASE_DEG) * i / SICKLE_ARC_STEPS
-        a = np.deg2rad(th)
-        if th < SICKLE_TAPER_FROM_DEG:
-            t = t_full
-        else:
-            u = (SICKLE_TIP_DEG - th) / (SICKLE_TIP_DEG - SICKLE_TAPER_FROM_DEG)
-            t = t_full * u ** SICKLE_TAPER_POWER
-        outer.append((bcx + R * np.cos(a), bcy + R * np.sin(a)))
-        inner.append((bcx + (R - t) * np.cos(a), bcy + (R - t) * np.sin(a)))
-    g.polygon(outer + inner[::-1], fill)
-    a0 = np.deg2rad(SICKLE_BASE_DEG)
-    base = np.array([bcx + (R - t_full / 2) * np.cos(a0), bcy + (R - t_full / 2) * np.sin(a0)])
-    d = np.array([np.cos(np.deg2rad(SICKLE_HANDLE_DEG)), np.sin(np.deg2rad(SICKLE_HANDLE_DEG))])
-    nrm = np.array([-d[1], d[0]])
-    w2 = SICKLE_HANDLE_W * r / 2
-    p0 = base - d * 0.06 * r          # tucked slightly into the blade
-    p1 = base + d * SICKLE_HANDLE_LEN * r
-    g.polygon([tuple(p0 + nrm * w2), tuple(p1 + nrm * w2), tuple(p1 - nrm * w2), tuple(p0 - nrm * w2)], fill)
+    outer = _arc(SICKLE_OUTER_C, SICKLE_OUTER_R, SICKLE_TIP_OUTER_DEG, SICKLE_BASE_DEG, SICKLE_ARC_STEPS)
+    inner = _arc(SICKLE_INNER_C, SICKLE_INNER_R, SICKLE_TIP_INNER_DEG, SICKLE_BASE_DEG, SICKLE_ARC_STEPS)
+    blade = [SICKLE_TIP] + outer + inner[::-1]
+    g.polygon([P(p) for p in blade], fill)
+    h0, h1 = SICKLE_HANDLE
+    g.polygon([P(p) for p in _thick_bar(h0, h1, SICKLE_HANDLE_W)], fill)
+    hw = SICKLE_HANDLE_W / 2
+    ex, ey = P(h1)
+    g.ellipse(ex - hw * s, ey - hw * s, ex + hw * s, ey + hw * s, fill=fill)
     ov.end_group(g)
-    # --- hammer
+    # --- hammer: handle from the head centre down-right, head across it
     g = ov.group(outline=outline, outline_width=EMBLEM_OUTLINE)
-    head_c = np.array([cx + HAMMER_HEAD_CENTER[0] * r, cy + HAMMER_HEAD_CENTER[1] * r])
-    hd = np.array([np.cos(np.deg2rad(HAMMER_ANGLE_DEG)), np.sin(np.deg2rad(HAMMER_ANGLE_DEG))])
-    hn = np.array([-hd[1], hd[0]])
-    g.line([tuple(head_c - hd * HAMMER_HANDLE_LEN * r), tuple(head_c)], fill, width=HAMMER_HANDLE_W * r)
-    hl, hw = HAMMER_HEAD_L * r / 2, HAMMER_HEAD_W * r / 2
-    g.polygon([tuple(head_c + hn * hl + hd * hw), tuple(head_c + hn * hl - hd * hw),
-               tuple(head_c - hn * hl - hd * hw), tuple(head_c - hn * hl + hd * hw)], fill)
+    head_c = np.array(HAMMER_HEAD_C)
+    hs, he = (np.array(p) for p in HAMMER_HANDLE)
+    hd = (he - hs) / np.linalg.norm(he - hs)  # along the handle (down-right)
+    hn = np.array([-hd[1], hd[0]])            # across it (the head's long axis)
+    g.polygon([P(p) for p in _thick_bar(hs, he, HAMMER_HANDLE_W)], fill)
+    hl, hw = HAMMER_HEAD_L / 2, HAMMER_HEAD_W / 2
+    head = [head_c + hn * hl + hd * hw, head_c + hn * hl - hd * hw,
+            head_c - hn * hl - hd * hw, head_c - hn * hl + hd * hw]
+    g.polygon([P(p) for p in head], fill)
     ov.end_group(g)
 
 
