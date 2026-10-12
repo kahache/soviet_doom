@@ -95,9 +95,9 @@ hangar floor, `SDFLR3` grey tiles, `SDCEIL1` ceiling with lamp, `SDCEIL2`
 plain ceiling. Full data in `TEXTURE-INDEX.md`; preview in
 `docs/art/previews/`.
 
-After the verdict: **8 approved** (`SDCONC1`, `SDSTEL1`, `SDDOOR1`, the three
+After the verdict: **9 approved** (`SDCONC1`, `SDSTEL1`, `SDDOOR1`, the three
 floors, the two ceilings — in `assets/`), `SDCONC2` pending in-map review,
-`SDPOSTR2` approved pending confirmation of its Russian text, `SDSTAR1`
+`SDPOSTR2` approved — the CEO confirmed its Russian text on 2026-10-12 and it is in `assets/` — `SDSTAR1`
 proposed again as v3 (the v2 emblem was mirrored), `SDPOSTR1` discarded
 (Lenin becomes a separate commission, §8). The approved core (concrete, steel,
 door, floors, ceilings) is enough for the `level-designer` to build MAP01's
@@ -186,6 +186,6 @@ points overlaid on the drawing).
 2. Poster formats: one portrait (64×128) and one mural (128×128) are
    proposed so the level designer has both; confirm or pick one format.
 3. Slogans: «ЛЕНИН ЖИВ» (now with the discarded poster) and «СЛАВА СОВЕТСКОЙ
-   КОСМОНАВТИКЕ» (`SDPOSTR2`, which the CEO likes **pending confirmation of
-   the Russian wording**) used; alternates available («СЛАВА КПСС», «МИРУ —
+   КОСМОНАВТИКЕ» (`SDPOSTR2`, approved; the CEO confirmed the wording on
+   2026-10-12) used; alternates available («СЛАВА КПСС», «МИРУ —
    МИР», «ВПЕРЁД, К ЗВЁЗДАМ!»).

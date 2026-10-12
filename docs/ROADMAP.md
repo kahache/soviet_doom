@@ -6,7 +6,7 @@ Living document. Owner: PM. Russian mirror: `docs/ru/ROADMAP.md`.
 |---|---|---|---|
 | F0 | Pipeline works | **G0:** GZDoom loads the PK3 on Freedoom with zero errors, player stands in MAP01 | **PASSED 2026-10-09** (`docs/qa/GATE-REVIEWS.md`) |
 | F1 | Lore + PRD | **G1:** CEO ratifies lore and D1–D13 | **PASSED 2026-10-09** (D1–D15 ratified) |
-| F2 | Art direction + texture batch 1 ("Soviet base" set) | **G2:** ≥ 8 textures approved by the CEO, all with origin and licence; palette fixed | **in progress** (batch 1 commissioned 2026-10-09) |
+| F2 | Art direction + texture batch 1 ("Soviet base" set) | **G2:** ≥ 8 textures approved by the CEO, all with origin and licence; palette fixed | **PASSED 2026-10-12** (`docs/qa/GATE-REVIEWS.md`; 8 clean approvals, origin/licence and palette verified; B2 open on `SDPOSTR2`'s premature, uncommitted entry into `assets/` — does not block) |
 | F3 | MAP01 Zarya-7 v0→v3 | **G3:** map finishable on skills 2, 3 and 4 with zero log errors and zero softlocks; CEO verdict "on point" | |
 | F4 | Period arsenal (7 slots) | **G4:** every weapon has sprites, sounds, balance doc and a test range | |
 | F5 | Bestiary (both factions) | **G5:** every enemy has states, sounds, balance; MAP01 playtest passes | |

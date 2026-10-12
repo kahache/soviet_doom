@@ -20,7 +20,7 @@ with licence, (c) CEO material.
 
 ## Set "Soviet base" — batch 1 (F2)
 
-Preview: `docs/art/previews/2026-10-12_2229_F2_batch1-soviet-base.html`
+Preview: `docs/art/previews/2026-10-12_2239_F2_batch1-soviet-base.html`
 (mirror `docs/ru/art/previews/…`; supersedes the 2026-10-09_0127 sheet, which
 the CEO judged on 2026-10-12 — the 11 textures other than `SDSTAR1` are
 byte-identical to that sheet). Generator `tools/art/gen_soviet_base.py`,
@@ -34,7 +34,7 @@ SDCONC1 OK · SDCONC2 duda (habrá que ver como queda) · SDSTAR1 NOT OK ·
 SDSTEL1 OK · SDDOOR1 OK · SDPOSTR1 NOT OK -> habrá que ver como hacer bien el
 Lenin, luego lo trabajamos aparte · SDPOSTR2 -> me gusta, pendiente de
 confirmar la traducción del texto · SDFLR1 OK · SDFLR2 OK · SDFLR3 OK ·
-SDCEIL1 OK · SDCEIL2 OK». Gate G2 (≥ 8 approved): **8 approved**.
+SDCEIL1 OK · SDCEIL2 OK». Gate G2 (≥ 8 approved): **9 approved** — the 8 unconditional ones plus `SDPOSTR2`, whose only condition (the Russian wording) the CEO confirmed on 2026-10-12. G2 was signed PASS on the 8 unconditional ones; see `docs/qa/GATE-REVIEWS.md`.
 
 | Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
 |---|---|---|---|---|---|---|---|
@@ -44,7 +44,7 @@ SDCEIL1 OK · SDCEIL2 OK». Gate G2 (≥ 8 approved): **8 approved**.
 | `SDSTEL1` | wall | 64×128 | yes | military-green riveted steel plates, chipped paint, rust under rivets | (a) seed 1981 | approved | 2026-10-12 |
 | `SDDOOR1` | wall (door) | 128×128 | no | bunker steel door: riveted frame, green leaf, locking wheel, star and "7" stencils, hazard stripe | (a) seed 1982; text Impact.ttf | approved | 2026-10-12 |
 | `SDPOSTR1` | wall (poster) | 64×128 | no | Lenin poster: constructivist silhouette in cream medallion on red, «ЛЕНИН ЖИВ» | (a) seed 1983; text Impact.ttf | discarded 2026-10-12: Lenin to be reworked separately (CEO) | 2026-10-12 |
-| `SDPOSTR2` | wall (mural) | 128×128 | no | cosmonautics mural: rocket, rays, stars, «СЛАВА СОВЕТСКОЙ КОСМОНАВТИКЕ» | (a) seed 1984; text Impact.ttf | approved pending text confirmation (CEO likes it; the Russian wording is to be confirmed before it enters `assets/`) | 2026-10-12 |
+| `SDPOSTR2` | wall (mural) | 128×128 | no | cosmonautics mural: rocket, rays, stars, «СЛАВА СОВЕТСКОЙ КОСМОНАВТИКЕ» | (a) seed 1984; text Impact.ttf | approved 2026-10-12 (CEO likes it; the Russian wording is to be confirmed before it enters `assets/`) | 2026-10-12 |
 | `SDFLR1` | flat | 64×64 | yes (line continuous on x=2..8) | hangar concrete floor with worn yellow lane line | (a) seed 1985 | approved | 2026-10-12 |
 | `SDFLR2` | flat | 64×64 | yes | plain hangar concrete floor, cracks, oil wear | (a) seed 1986 | approved | 2026-10-12 |
 | `SDFLR3` | flat | 64×64 | yes | grey two-tone Soviet floor tiles, dark grout | (a) seed 1987 | approved | 2026-10-12 |
