@@ -304,7 +304,11 @@ class LanguageMenuTest(unittest.TestCase):
             "so the choice persists without the mod writing a CVar of its own")
 
     def test_both_languages_are_offered_explicitly(self):
-        values = re.search(r'OptionValue\s+"SD_LanguageValues"\s*\{(.*?)\}',
+        # OptionString, not OptionValue: `language` is a string CVar and
+        # OptionValue parses its left column with SC_GetFloat, which aborted
+        # the engine at startup on "default" (CEO, 2026-10-13). The test
+        # accepts only the string form so the crash cannot come back.
+        values = re.search(r'OptionString\s+"SD_LanguageValues"\s*\{(.*?)\}',
                            self.menudef, re.DOTALL)
         self.assertIsNotNone(values, "no SD_LanguageValues list")
         offered = re.findall(r'"([^"]+)",\s*"\$', values.group(1))

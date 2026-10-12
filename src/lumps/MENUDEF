@@ -30,7 +30,13 @@
 // the languages in Russian. They are NOT endonyms ("Русский" inside the
 // English menu) because Freedoom's font cannot draw Cyrillic yet and the
 // entry would read as blank - debt T9.
-OptionValue "SD_LanguageValues"
+// GZDoom distinguishes the two list directives by the CVar's TYPE, and this
+// is the trap: OptionValue parses its left column as a NUMBER. `language` is
+// a string CVar, so "default" was being fed to SC_GetFloat and the engine
+// aborted at startup with `Bad numeric constant "default"`. OptionString is
+// the string-valued form. Caught by the CEO on 2026-10-13, who could not
+// launch the game at all.
+OptionString "SD_LanguageValues"
 {
 	"default", "$SD_LANGVAL_EN"
 	"ru",      "$SD_LANGVAL_RU"
