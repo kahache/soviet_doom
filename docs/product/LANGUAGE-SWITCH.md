@@ -53,10 +53,16 @@ and chose 2. Settled.
 
 ### One carve-out the level-2 map needs
 
-At level 2 the proper noun **ZARYA-7 renders as ЗДЯУД-7**, which no longer
-reads as the name of the cosmodrome the whole game is set in, and the same
-happens to any calibre or key prompt the player has to act on. The mapping is
-therefore applied to **running text and menus**, and these keep Latin:
+At level 2 the proper noun **ZARYA-7 renders as ZДЯYД-7**. (An earlier
+version of this document said ЗДЯУД-7 and the CEO caught it: Z is not in the
+map and never was, nor is Y. The PM had transcribed the rendered sheet from
+memory instead of from the mapping. Corrected, and the number of letters the
+device actually touches is smaller than the PM claimed.)
+
+Even so ZДЯYД-7 no longer reads as the name of the cosmodrome the whole game
+is set in, and the same applies to any calibre the player has to act on. The
+mapping is therefore applied to **running text and menus**, and these keep
+Latin:
 
 - Proper nouns the fiction depends on: ZARYA-7, the faction names.
 - Numbers, calibres and model designations: 7.62x25, PG-7V, PPSh-41.
