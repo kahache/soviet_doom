@@ -1,0 +1,1060 @@
+#!/usr/bin/env python3
+"""Static validator for the mod package: check dist/sovietdoom.pk3 offline.
+
+This is the half of the automated verification that does NOT start the
+engine. `tools/smoke.py` boots GZDoom and greps its log; it is slow, needs a
+GZDoom install, an IWAD and a display, and it only sees what the engine
+happened to touch while loading one map. This tool opens the zip and reads
+the bytes: it runs in milliseconds, on any machine, with no GZDoom and no
+IWAD, and it looks at *everything* in the package, including assets and maps
+the engine would never load unless the player walked there.
+
+The two are complementary, and on purpose there is no overlap:
+
+  smoke.py  (runtime)          check_pk3.py (static)
+  ------------------------     --------------------------------------------
+  engine parses ZScript        every #include resolves to a packed file
+  "Unknown texture" on load    every texture/flat a TEXTMAP names exists
+  MAPINFO accepted             map WAD structure, lump order, UDMF parses
+  map actually reached         lump names fit the 8-char WAD limit
+  (sees nothing else)          PNG colour model, palette, sizes; sprite
+                               rotations; licence provenance of every asset
+
+Checks (one block of output per category):
+
+  package    the file is a readable zip, no corrupt member, the paths the
+             MOD-SPEC 2 layout requires are present
+  lumps      root entries map to legal lump names (<= 8 ASCII chars, no
+             extension in the lump name, valid characters)
+  maps       every maps/*.wad is a PWAD whose directory is exactly
+             marker / TEXTMAP / ENDMAP, and whose TEXTMAP parses as UDMF
+  textures   every texturetop/middle/bottom/floor/ceiling a TEXTMAP names
+             (plus MAPINFO sky1/sky2) exists in the PK3 or is declared as an
+             IWAD asset in MOD-SPEC 5. A name that resolves nowhere is
+             exactly what the engine reports as "Unknown texture"
+  images     PNGs under textures/ and flats/ are colour type 3 (indexed),
+             every colour they use is in docs/art/palette.json, and their
+             dimensions follow the contract
+  sprites    sprite lumps are NAMEFR[FR]: 4-char name, frame letter,
+             rotation digit; every declared rotation set is complete
+  licences   every packed asset has a row in docs/art/LICENSES.md
+  zscript    every #include, transitively, points at a file in the PK3
+
+Usage:
+  python3 tools/check_pk3.py                      # dist/sovietdoom.pk3
+  python3 tools/check_pk3.py --pk3 other.pk3
+  python3 tools/check_pk3.py --json               # machine-readable, for CI
+  python3 tools/check_pk3.py --quiet              # only the failures
+
+Exit codes:
+  0  everything passed (warnings do not fail the run; --strict makes them)
+  1  at least one error
+
+Python 3 standard library only, by design: this must run in a bare CI box.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import struct
+import sys
+import zipfile
+import zlib
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Iterable
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_PK3 = PROJECT_ROOT / "dist" / "sovietdoom.pk3"
+DEFAULT_SPEC = PROJECT_ROOT / "docs" / "engine" / "MOD-SPEC.md"
+DEFAULT_LICENSES = PROJECT_ROOT / "docs" / "art" / "LICENSES.md"
+DEFAULT_PALETTE = PROJECT_ROOT / "docs" / "art" / "palette.json"
+
+EXIT_OK = 0
+EXIT_FAILURES = 1
+
+# --- The contract, as named constants -------------------------------------
+# MOD-SPEC 2 "PK3 layout" and the WAD format itself.
+MAX_LUMP_NAME = 8                       # hard limit of the WAD directory
+LUMP_NAME_EXTRA_CHARS = "_[]-\\"        # non-alphanumerics GZDoom tolerates
+REQUIRED_ROOT_LUMPS = ("MAPINFO", "LANGUAGE", "zscript.txt")
+MAPS_DIR = "maps"
+ZSCRIPT_ENTRY = "zscript.txt"
+
+# MOD-SPEC 2: "marker MAPxx (empty), TEXTMAP, ENDMAP (empty)".
+MAP_TEXT_LUMP = "TEXTMAP"
+MAP_END_LUMP = "ENDMAP"
+
+# Folders the build packs verbatim (sdbuild.pk3.ASSET_DIRS) plus zscript/.
+ASSET_DIRS = ("textures", "flats", "sprites", "sounds", "music", "graphics", "patches", "hires")
+# Folders a wall texture / flat name can be satisfied from.
+TEXTURE_DIRS = ("textures", "flats", "patches", "graphics", "hires")
+# Folders whose contents must be listed in LICENSES.md.
+LICENSED_DIRS = ASSET_DIRS
+
+# UDMF keys that name a wall texture or a flat (UDMF 1.1 + zdoom namespace).
+WALL_TEXTURE_KEYS = ("texturetop", "texturemiddle", "texturebottom")
+FLAT_TEXTURE_KEYS = ("texturefloor", "textureceiling")
+NO_TEXTURE = "-"                        # UDMF "this side part has no texture"
+# Engine-internal names that never correspond to a packed or IWAD lump.
+BUILTIN_TEXTURE_NAMES = frozenset({"-", "", "F_SKY1", "SKY", "AASHITTY", "AASTINKY"})
+
+# Image contract (docs/art/TEXTURE-INDEX.md batch 1).
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+PNG_COLOUR_TYPE_PALETTE = 3
+DIMENSION_MULTIPLE = 8                  # Doom tiles on powers of two
+FLAT_SIZE = (64, 64)                    # a Doom flat is 64x64 by definition
+ALLOWED_WALL_SIZES = ((64, 128), (128, 128))  # batch 1 size contract
+
+# Sprite naming (Doom convention): NAMEFR or NAMEFRFR.
+SPRITE_NAME_LEN = 4
+SPRITE_ROTATIONS_8 = tuple("12345678")
+SPRITE_ROTATIONS_16 = tuple("123456789ABCDEFG")
+SPRITE_ROTATION_ALL = "0"               # one sprite for every viewing angle
+SPRITE_FRAME_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]"
+
+RE_INCLUDE = re.compile(r'^\s*#include\s+"([^"]+)"', re.M)
+RE_BACKTICKED = re.compile(r"`([^`]+)`")
+RE_MAPINFO_SKY = re.compile(r"^\s*sky[12]\s*=\s*\"([^\"]*)\"", re.M | re.I)
+RE_TEXTURES_DEF = re.compile(
+    r"^\s*(?:texture|walltexture|flat|sprite|graphic)\s+\"?([A-Za-z0-9_\[\]\\\-]+)\"?",
+    re.M | re.I,
+)
+
+SEVERITY_ERROR = "error"
+SEVERITY_WARNING = "warning"
+
+CATEGORIES = ("package", "lumps", "maps", "textures", "images", "sprites", "licences", "zscript")
+
+
+# --- Findings --------------------------------------------------------------
+
+@dataclass(frozen=True)
+class Finding:
+    """One problem, always with the exact path it was found at."""
+
+    category: str
+    severity: str
+    path: str      # path inside the PK3, or a doc path, or the PK3 itself
+    message: str
+
+    def render(self) -> str:
+        tag = "ERROR" if self.severity == SEVERITY_ERROR else "warn "
+        return f"  {tag}  {self.path}: {self.message}"
+
+    def as_dict(self) -> dict[str, str]:
+        return {
+            "category": self.category,
+            "severity": self.severity,
+            "path": self.path,
+            "message": self.message,
+        }
+
+
+@dataclass
+class Report:
+    pk3: str
+    findings: list[Finding] = field(default_factory=list)
+    # Per-category one-line summaries, shown when the category passes.
+    notes: dict[str, list[str]] = field(default_factory=dict)
+    stats: dict[str, Any] = field(default_factory=dict)
+    skipped: dict[str, str] = field(default_factory=dict)
+
+    def add(self, category: str, severity: str, path: str, message: str) -> None:
+        self.findings.append(Finding(category, severity, path, message))
+
+    def error(self, category: str, path: str, message: str) -> None:
+        self.add(category, SEVERITY_ERROR, path, message)
+
+    def warn(self, category: str, path: str, message: str) -> None:
+        self.add(category, SEVERITY_WARNING, path, message)
+
+    def note(self, category: str, text: str) -> None:
+        self.notes.setdefault(category, []).append(text)
+
+    def skip(self, category: str, why: str) -> None:
+        self.skipped[category] = why
+
+    def of(self, category: str) -> list[Finding]:
+        return [f for f in self.findings if f.category == category]
+
+    @property
+    def errors(self) -> list[Finding]:
+        return [f for f in self.findings if f.severity == SEVERITY_ERROR]
+
+    @property
+    def warnings(self) -> list[Finding]:
+        return [f for f in self.findings if f.severity == SEVERITY_WARNING]
+
+    def ok(self, strict: bool = False) -> bool:
+        return not self.errors and not (strict and self.warnings)
+
+
+# --- Tiny WAD reader (deliberately NOT tools/sdbuild.wad) ------------------
+# Validating the build's output with the build's own reader would only prove
+# the writer and the reader agree. This parser is written from the Doom WAD
+# spec instead, so a bug in sdbuild cannot hide here.
+
+WAD_HEADER = struct.Struct("<4sii")
+WAD_DIR_ENTRY = struct.Struct("<ii8s")
+
+
+class WadFormatError(ValueError):
+    pass
+
+
+def read_wad_directory(blob: bytes) -> list[tuple[str, int, int]]:
+    """[(name, offset, size), ...] in directory order; raise on malformation."""
+    if len(blob) < WAD_HEADER.size:
+        raise WadFormatError(f"only {len(blob)} bytes, too small for a WAD header")
+    magic, numlumps, infotableofs = WAD_HEADER.unpack_from(blob, 0)
+    if magic != b"PWAD":
+        raise WadFormatError(f"magic is {magic!r}, expected b'PWAD' (a map WAD is never an IWAD)")
+    if numlumps < 0:
+        raise WadFormatError(f"negative lump count {numlumps}")
+    end = infotableofs + numlumps * WAD_DIR_ENTRY.size
+    if infotableofs < 0 or end > len(blob):
+        raise WadFormatError(
+            f"directory at {infotableofs} + {numlumps} entries runs past the end of the {len(blob)}-byte file"
+        )
+    entries: list[tuple[str, int, int]] = []
+    for i in range(numlumps):
+        filepos, size, raw = WAD_DIR_ENTRY.unpack_from(blob, infotableofs + i * WAD_DIR_ENTRY.size)
+        try:
+            name = raw.rstrip(b"\0").decode("ascii")
+        except UnicodeDecodeError as exc:
+            raise WadFormatError(f"lump {i} has a non-ASCII name {raw!r}") from exc
+        if size < 0 or filepos < 0 or filepos + size > len(blob):
+            raise WadFormatError(f"lump {name!r} data [{filepos}, {filepos + size}) is outside the file")
+        entries.append((name, filepos, size))
+    return entries
+
+
+def wad_lump(blob: bytes, entries: list[tuple[str, int, int]], name: str) -> bytes | None:
+    for lump_name, filepos, size in entries:
+        if lump_name.upper() == name.upper():
+            return blob[filepos:filepos + size]
+    return None
+
+
+# --- UDMF parsing ----------------------------------------------------------
+
+class UdmfError(ValueError):
+    pass
+
+
+@dataclass
+class UdmfBlock:
+    kind: str
+    index: int                      # index among blocks of the same kind
+    fields: dict[str, str]          # raw values, strings already unquoted
+
+
+@dataclass
+class UdmfMap:
+    namespace: str | None
+    blocks: list[UdmfBlock]
+    globals: dict[str, str]
+
+    def of_kind(self, kind: str) -> list[UdmfBlock]:
+        return [b for b in self.blocks if b.kind == kind]
+
+
+def _strip_udmf_comments(text: str) -> str:
+    """Remove // and /* */ comments without touching quoted strings."""
+    out: list[str] = []
+    i, n = 0, len(text)
+    in_string = False
+    while i < n:
+        ch = text[i]
+        if in_string:
+            out.append(ch)
+            if ch == "\\" and i + 1 < n:
+                out.append(text[i + 1])
+                i += 2
+                continue
+            if ch == '"':
+                in_string = False
+            i += 1
+            continue
+        if ch == '"':
+            in_string = True
+            out.append(ch)
+            i += 1
+            continue
+        if text.startswith("//", i):
+            j = text.find("\n", i)
+            i = n if j < 0 else j
+            continue
+        if text.startswith("/*", i):
+            j = text.find("*/", i + 2)
+            if j < 0:
+                raise UdmfError("unterminated /* comment")
+            out.append(" ")
+            i = j + 2
+            continue
+        out.append(ch)
+        i += 1
+    if in_string:
+        raise UdmfError("unterminated string literal")
+    return "".join(out)
+
+
+def _unquote(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == '"' and value[-1] == '"':
+        return value[1:-1].replace('\\"', '"').replace("\\\\", "\\")
+    return value
+
+
+def parse_udmf(text: str) -> UdmfMap:
+    """Parse a TEXTMAP into blocks. Raises UdmfError on anything malformed."""
+    body = _strip_udmf_comments(text)
+    namespace: str | None = None
+    globals_: dict[str, str] = {}
+    blocks: list[UdmfBlock] = []
+    counters: dict[str, int] = {}
+
+    pos, n = 0, len(body)
+    while pos < n:
+        # Skip whitespace and stray semicolons between top-level items.
+        while pos < n and (body[pos].isspace() or body[pos] == ";"):
+            pos += 1
+        if pos >= n:
+            break
+        match = re.compile(r"[A-Za-z_][A-Za-z0-9_]*").match(body, pos)
+        if not match:
+            raise UdmfError(f"unexpected character {body[pos]!r} at offset {pos}")
+        identifier = match.group(0)
+        pos = match.end()
+        while pos < n and body[pos].isspace():
+            pos += 1
+        if pos >= n:
+            raise UdmfError(f"{identifier!r} at offset {match.start()} is followed by nothing")
+        if body[pos] == "=":
+            end = body.find(";", pos)
+            if end < 0:
+                raise UdmfError(f"global assignment {identifier!r} has no terminating ';'")
+            value = _unquote(body[pos + 1:end])
+            if identifier.lower() == "namespace":
+                namespace = value
+            else:
+                globals_[identifier.lower()] = value
+            pos = end + 1
+        elif body[pos] == "{":
+            end = body.find("}", pos)
+            if end < 0:
+                raise UdmfError(f"block {identifier!r} is never closed")
+            kind = identifier.lower()
+            fields: dict[str, str] = {}
+            for statement in body[pos + 1:end].split(";"):
+                statement = statement.strip()
+                if not statement:
+                    continue
+                if "=" not in statement:
+                    raise UdmfError(f"block {kind!r}: statement {statement!r} is not key = value")
+                key, _, value = statement.partition("=")
+                fields[key.strip().lower()] = _unquote(value)
+            index = counters.get(kind, 0)
+            counters[kind] = index + 1
+            blocks.append(UdmfBlock(kind, index, fields))
+            pos = end + 1
+        else:
+            raise UdmfError(f"{identifier!r} is followed by {body[pos]!r}, expected '=' or '{{'")
+    return UdmfMap(namespace, blocks, globals_)
+
+
+# --- PNG reading (stdlib: struct + zlib) -----------------------------------
+
+class PngError(ValueError):
+    pass
+
+
+@dataclass
+class PngInfo:
+    width: int
+    height: int
+    bit_depth: int
+    colour_type: int
+    interlace: int
+    palette: list[tuple[int, int, int]]
+    used_indices: set[int] | None        # None when not decoded (interlaced)
+
+    @property
+    def indexed(self) -> bool:
+        return self.colour_type == PNG_COLOUR_TYPE_PALETTE
+
+    def used_colours(self) -> list[tuple[int, int, int]]:
+        if self.used_indices is None:
+            return list(self.palette)
+        out = []
+        for i in sorted(self.used_indices):
+            if i < len(self.palette):
+                out.append(self.palette[i])
+        return out
+
+
+def _png_chunks(blob: bytes) -> Iterable[tuple[str, bytes]]:
+    if not blob.startswith(PNG_MAGIC):
+        raise PngError("missing PNG signature")
+    pos = len(PNG_MAGIC)
+    while pos < len(blob):
+        if pos + 8 > len(blob):
+            raise PngError(f"truncated chunk header at offset {pos}")
+        (length,) = struct.unpack_from(">I", blob, pos)
+        ctype = blob[pos + 4:pos + 8].decode("ascii", "replace")
+        start = pos + 8
+        if start + length + 4 > len(blob):
+            raise PngError(f"chunk {ctype} at offset {pos} claims {length} bytes but the file ends")
+        data = blob[start:start + length]
+        (stored_crc,) = struct.unpack_from(">I", blob, start + length)
+        if zlib.crc32(blob[pos + 4:start + length]) & 0xFFFFFFFF != stored_crc:
+            raise PngError(f"chunk {ctype} at offset {pos} fails its CRC: the file is corrupt")
+        yield ctype, data
+        pos = start + length + 4
+        if ctype == "IEND":
+            return
+    raise PngError("no IEND chunk: the file is truncated")
+
+
+def _paeth(a: int, b: int, c: int) -> int:
+    p = a + b - c
+    pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
+    if pa <= pb and pa <= pc:
+        return a
+    return b if pb <= pc else c
+
+
+def _unfilter(raw: bytes, width: int, height: int, bit_depth: int) -> bytes:
+    """Reverse the PNG per-scanline filters for a 1-channel (palette) image."""
+    stride = (width * bit_depth + 7) // 8
+    bpp = max(1, bit_depth // 8)
+    out = bytearray()
+    previous = bytearray(stride)
+    pos = 0
+    for row in range(height):
+        if pos + 1 + stride > len(raw):
+            raise PngError(f"IDAT ends after {row} of {height} scanlines")
+        ftype = raw[pos]
+        line = bytearray(raw[pos + 1:pos + 1 + stride])
+        pos += 1 + stride
+        if ftype == 0:
+            pass
+        elif ftype == 1:
+            for i in range(bpp, stride):
+                line[i] = (line[i] + line[i - bpp]) & 0xFF
+        elif ftype == 2:
+            for i in range(stride):
+                line[i] = (line[i] + previous[i]) & 0xFF
+        elif ftype == 3:
+            for i in range(stride):
+                left = line[i - bpp] if i >= bpp else 0
+                line[i] = (line[i] + ((left + previous[i]) >> 1)) & 0xFF
+        elif ftype == 4:
+            for i in range(stride):
+                left = line[i - bpp] if i >= bpp else 0
+                upleft = previous[i - bpp] if i >= bpp else 0
+                line[i] = (line[i] + _paeth(left, previous[i], upleft)) & 0xFF
+        else:
+            raise PngError(f"scanline {row} uses unknown filter type {ftype}")
+        out += line
+        previous = line
+    return bytes(out)
+
+
+def _indices_from_scanlines(data: bytes, width: int, height: int, bit_depth: int) -> set[int]:
+    if bit_depth == 8:
+        return set(data)
+    stride = (width * bit_depth + 7) // 8
+    per_byte = 8 // bit_depth
+    mask = (1 << bit_depth) - 1
+    used: set[int] = set()
+    for row in range(height):
+        line = data[row * stride:(row + 1) * stride]
+        for x in range(width):
+            byte = line[x // per_byte]
+            shift = 8 - bit_depth * (x % per_byte + 1)
+            used.add((byte >> shift) & mask)
+    return used
+
+
+def read_png(blob: bytes) -> PngInfo:
+    """Parse a PNG far enough to know its colour model and the colours used."""
+    width = height = bit_depth = colour_type = interlace = -1
+    palette: list[tuple[int, int, int]] = []
+    idat = bytearray()
+    seen_ihdr = False
+    for ctype, data in _png_chunks(blob):
+        if ctype == "IHDR":
+            if len(data) != 13:
+                raise PngError(f"IHDR is {len(data)} bytes, expected 13")
+            width, height, bit_depth, colour_type, _comp, _filt, interlace = struct.unpack(">IIBBBBB", data)
+            seen_ihdr = True
+        elif ctype == "PLTE":
+            if len(data) % 3:
+                raise PngError(f"PLTE length {len(data)} is not a multiple of 3")
+            palette = [tuple(data[i:i + 3]) for i in range(0, len(data), 3)]  # type: ignore[misc]
+        elif ctype == "IDAT":
+            idat += data
+    if not seen_ihdr:
+        raise PngError("no IHDR chunk")
+
+    used: set[int] | None = None
+    if colour_type == PNG_COLOUR_TYPE_PALETTE and interlace == 0:
+        try:
+            raw = zlib.decompress(bytes(idat))
+        except zlib.error as exc:
+            raise PngError(f"IDAT does not inflate: {exc}") from exc
+        used = _indices_from_scanlines(_unfilter(raw, width, height, bit_depth), width, height, bit_depth)
+    return PngInfo(width, height, bit_depth, colour_type, interlace, palette, used)
+
+
+# --- Reading the documents that hold the contract --------------------------
+
+def iwad_assets_from_spec(spec: Path) -> set[str]:
+    """Names declared in MOD-SPEC 5 'IWAD assets used' (first table column).
+
+    An IWAD texture reference is legal only if it is written down there, so
+    this parse is the whole point of the texture check: adding an IWAD name
+    to a map without documenting it must fail.
+    """
+    if not spec.is_file():
+        return set()
+    text = spec.read_text(encoding="utf-8")
+    match = re.search(r"^##\s*5\..*?$(.*?)(?=^##\s|\Z)", text, re.M | re.S)
+    if not match:
+        return set()
+    names: set[str] = set()
+    for line in match.group(1).splitlines():
+        line = line.strip()
+        if not line.startswith("|"):
+            continue
+        first = line.split("|")[1].strip()
+        cell = RE_BACKTICKED.findall(first)
+        if cell:
+            names.add(cell[0].strip().upper())
+    return names
+
+
+def licensed_names(licenses: Path) -> set[str]:
+    """Every backticked token in LICENSES.md, uppercased.
+
+    Deliberately generous about *where* the name appears (any table row, any
+    paragraph): the check is "this asset has a documented provenance", and
+    the shape of the document belongs to the art-director, not to QA.
+    """
+    if not licenses.is_file():
+        return set()
+    text = licenses.read_text(encoding="utf-8")
+    names: set[str] = set()
+    for token in RE_BACKTICKED.findall(text):
+        for piece in re.split(r"[,\s/]+", token):
+            piece = piece.strip().strip("`")
+            if not piece:
+                continue
+            names.add(piece.upper())
+            names.add(Path(piece).stem.upper())
+    return names
+
+
+def palette_colours(palette_json: Path) -> set[tuple[int, int, int]] | None:
+    """The approved palette as an RGB set, or None if the file is unusable."""
+    if not palette_json.is_file():
+        return None
+    try:
+        data = json.loads(palette_json.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    colours: set[tuple[int, int, int]] = set()
+    for rgb in data.get("colours", []):
+        if isinstance(rgb, (list, tuple)) and len(rgb) == 3:
+            colours.add(tuple(int(c) for c in rgb))  # type: ignore[arg-type]
+    for ramp in data.get("ramps", []):
+        for rgb in ramp.get("colours", []):
+            colours.add(tuple(int(c) for c in rgb))
+    for extra in data.get("extras", []):
+        rgb = extra.get("rgb")
+        if isinstance(rgb, (list, tuple)) and len(rgb) == 3:
+            colours.add(tuple(int(c) for c in rgb))
+    return colours or None
+
+
+# --- The package under test ------------------------------------------------
+
+@dataclass
+class Package:
+    path: Path
+    zf: zipfile.ZipFile
+    names: list[str]                              # paths inside the zip
+
+    def lower_map(self) -> dict[str, str]:
+        return {n.lower(): n for n in self.names}
+
+    def read(self, name: str) -> bytes:
+        return self.zf.read(name)
+
+    def find(self, path: str) -> str | None:
+        """Resolve a PK3 path case-insensitively (GZDoom is case-blind)."""
+        return self.lower_map().get(path.lower())
+
+    def files_under(self, folder: str) -> list[str]:
+        prefix = folder.lower() + "/"
+        return [n for n in self.names if n.lower().startswith(prefix) and not n.endswith("/")]
+
+
+# --- Individual checks -----------------------------------------------------
+
+def check_package(pkg: Package, report: Report) -> None:
+    bad = pkg.zf.testzip()
+    if bad is not None:
+        report.error("package", bad, "member fails its CRC: the zip is corrupt")
+    files = [n for n in pkg.names if not n.endswith("/")]
+    report.stats["entries"] = len(files)
+    report.stats["uncompressed_bytes"] = sum(i.file_size for i in pkg.zf.infolist())
+    for required in REQUIRED_ROOT_LUMPS:
+        if pkg.find(required) is None:
+            report.error("package", required, "required by MOD-SPEC 2 but not in the PK3")
+    maps = [n for n in pkg.files_under(MAPS_DIR) if n.lower().endswith(".wad")]
+    if not maps:
+        report.error("package", f"{MAPS_DIR}/", "no maps/*.wad in the PK3")
+    report.note("package", f"{len(files)} files, {report.stats['uncompressed_bytes']} bytes uncompressed")
+    report.note("package", f"{len(maps)} map WAD(s), "
+                           f"{len(REQUIRED_ROOT_LUMPS)}/{len(REQUIRED_ROOT_LUMPS)} required root lumps present"
+                if all(pkg.find(r) for r in REQUIRED_ROOT_LUMPS) else f"{len(maps)} map WAD(s)")
+
+
+def lump_name_problem(stem: str) -> str | None:
+    """Why `stem` cannot be a WAD lump name, or None if it is fine.
+
+    Case is not a problem: GZDoom upper-cases lump names taken from PK3
+    entries, which is why MOD-SPEC 2 itself ships `zscript.txt`.
+    """
+    if not stem:
+        return "empty lump name"
+    if len(stem) > MAX_LUMP_NAME:
+        return f"lump name {stem.upper()!r} is {len(stem)} characters, the WAD limit is {MAX_LUMP_NAME}"
+    try:
+        stem.encode("ascii")
+    except UnicodeEncodeError:
+        return f"lump name {stem!r} is not ASCII"
+    for ch in stem.upper():
+        if not (ch.isalnum() or ch in LUMP_NAME_EXTRA_CHARS):
+            return f"lump name {stem.upper()!r} contains {ch!r}, which is not legal in a WAD directory"
+    return None
+
+
+def check_root_lumps(pkg: Package, report: Report) -> None:
+    roots = [n for n in pkg.names if "/" not in n and not n.endswith("/")]
+    report.stats["root_lumps"] = len(roots)
+    for name in sorted(roots):
+        stem = Path(name).stem
+        problem = lump_name_problem(stem)
+        if problem:
+            report.error("lumps", name, problem)
+        if len(Path(name).suffixes) > 1:
+            report.warn("lumps", name,
+                        f"more than one extension: GZDoom would name the lump {stem.upper()!r}")
+    seen: dict[str, str] = {}
+    for name in sorted(roots):
+        key = Path(name).stem.upper()
+        if key in seen:
+            report.error("lumps", name, f"collides with {seen[key]}: both become lump {key!r}")
+        seen[key] = name
+    report.note("lumps", f"{len(roots)} root entries -> {len(seen)} lump names, all <= {MAX_LUMP_NAME} chars"
+                if not report.of("lumps") else f"{len(roots)} root entries")
+
+
+@dataclass
+class MapInfo:
+    pk3_path: str
+    lump_name: str
+    udmf: UdmfMap | None
+
+
+def check_maps(pkg: Package, report: Report) -> list[MapInfo]:
+    maps: list[MapInfo] = []
+    wads = sorted(n for n in pkg.files_under(MAPS_DIR) if n.lower().endswith(".wad"))
+    for name in sorted(pkg.files_under(MAPS_DIR)):
+        if not name.lower().endswith(".wad"):
+            report.error("maps", name, "maps/ may only contain .wad files (MOD-SPEC 2)")
+    for name in wads:
+        expected = Path(name).stem.upper()
+        problem = lump_name_problem(Path(name).stem)
+        if problem:
+            report.error("maps", name, problem)
+        blob = pkg.read(name)
+        try:
+            entries = read_wad_directory(blob)
+        except WadFormatError as exc:
+            report.error("maps", name, f"not a valid PWAD: {exc}")
+            maps.append(MapInfo(name, expected, None))
+            continue
+        order = [e[0].upper() for e in entries]
+        wanted = [expected, MAP_TEXT_LUMP, MAP_END_LUMP]
+        if order != wanted:
+            report.error("maps", name,
+                         f"lump order is {order}, MOD-SPEC 2 requires exactly {wanted}")
+        for lump_name, _pos, size in entries:
+            if lump_name.upper() in (expected, MAP_END_LUMP) and size != 0:
+                report.error("maps", f"{name}:{lump_name}",
+                             f"marker lump must be empty, it is {size} bytes")
+        textmap = wad_lump(blob, entries, MAP_TEXT_LUMP)
+        if textmap is None:
+            report.error("maps", name, f"no {MAP_TEXT_LUMP} lump: the map has no geometry")
+            maps.append(MapInfo(name, expected, None))
+            continue
+        try:
+            text = textmap.decode("ascii")
+        except UnicodeDecodeError as exc:
+            report.error("maps", f"{name}:{MAP_TEXT_LUMP}", f"is not ASCII: {exc}")
+            maps.append(MapInfo(name, expected, None))
+            continue
+        try:
+            udmf = parse_udmf(text)
+        except UdmfError as exc:
+            report.error("maps", f"{name}:{MAP_TEXT_LUMP}", f"does not parse as UDMF: {exc}")
+            maps.append(MapInfo(name, expected, None))
+            continue
+        if udmf.namespace is None:
+            report.error("maps", f"{name}:{MAP_TEXT_LUMP}", "no `namespace` declaration (UDMF requires it first)")
+        if not udmf.of_kind("sector"):
+            report.error("maps", f"{name}:{MAP_TEXT_LUMP}", "no sector blocks: nothing to stand on")
+        if not udmf.of_kind("vertex"):
+            report.error("maps", f"{name}:{MAP_TEXT_LUMP}", "no vertex blocks")
+        if not any(b.fields.get("type") == "1" for b in udmf.of_kind("thing")):
+            report.error("maps", f"{name}:{MAP_TEXT_LUMP}",
+                         "no thing of type 1 (Player 1 start): the map cannot be entered")
+        maps.append(MapInfo(name, expected, udmf))
+        report.note("maps", f"{name}: {expected}/{MAP_TEXT_LUMP}/{MAP_END_LUMP}, "
+                            f"{len(udmf.of_kind('vertex'))} vertices, {len(udmf.of_kind('linedef'))} linedefs, "
+                            f"{len(udmf.of_kind('sector'))} sectors, {len(udmf.of_kind('thing'))} things")
+    report.stats["maps"] = len(wads)
+    return maps
+
+
+def own_texture_names(pkg: Package) -> dict[str, str]:
+    """{LUMPNAME: pk3 path} for every texture-ish asset packed in the PK3."""
+    found: dict[str, str] = {}
+    for folder in TEXTURE_DIRS:
+        for path in pkg.files_under(folder):
+            found.setdefault(Path(path).stem.upper(), path)
+    # A TEXTURES lump can define composite names that have no file of their own.
+    textures_lump = pkg.find("TEXTURES") or pkg.find("textures.txt")
+    if textures_lump:
+        try:
+            text = pkg.read(textures_lump).decode("ascii", "replace")
+        except KeyError:
+            text = ""
+        for name in RE_TEXTURES_DEF.findall(text):
+            found.setdefault(name.upper(), textures_lump)
+    return found
+
+
+def check_textures(pkg: Package, maps: list[MapInfo], iwad_names: set[str], report: Report) -> None:
+    own = own_texture_names(pkg)
+    referenced: dict[str, list[str]] = {}        # NAME -> where it is used
+
+    def reference(name: str, where: str) -> None:
+        clean = name.strip()
+        if clean.upper() in BUILTIN_TEXTURE_NAMES or clean == NO_TEXTURE:
+            return
+        referenced.setdefault(clean.upper(), []).append(where)
+
+    for info in maps:
+        if info.udmf is None:
+            continue
+        for block in info.udmf.of_kind("sidedef"):
+            for key in WALL_TEXTURE_KEYS:
+                if key in block.fields:
+                    reference(block.fields[key], f"{info.pk3_path}:sidedef[{block.index}].{key}")
+        for block in info.udmf.of_kind("sector"):
+            for key in FLAT_TEXTURE_KEYS:
+                if key in block.fields:
+                    reference(block.fields[key], f"{info.pk3_path}:sector[{block.index}].{key}")
+
+    mapinfo_path = pkg.find("MAPINFO")
+    if mapinfo_path:
+        text = pkg.read(mapinfo_path).decode("ascii", "replace")
+        for sky in RE_MAPINFO_SKY.findall(text):
+            reference(sky, f"{mapinfo_path}:sky")
+
+    from_pk3 = from_iwad = 0
+    for name in sorted(referenced):
+        if name in own:
+            from_pk3 += 1
+        elif name in iwad_names:
+            from_iwad += 1
+        else:
+            for where in referenced[name]:
+                report.error(
+                    "textures", where,
+                    f"texture {name!r} is in neither the PK3 nor MOD-SPEC 5 "
+                    f"(the engine would say: Unknown texture {name})",
+                )
+    report.stats["textures_referenced"] = len(referenced)
+    report.stats["textures_from_pk3"] = from_pk3
+    report.stats["textures_from_iwad"] = from_iwad
+    report.note("textures",
+                f"{len(referenced)} distinct names referenced: {from_pk3} from the PK3, "
+                f"{from_iwad} declared IWAD assets (MOD-SPEC 5), "
+                f"{len(referenced) - from_pk3 - from_iwad} unresolved")
+    unused = sorted(set(own) - set(referenced))
+    if unused:
+        report.note("textures", f"packed but unused by any map: {', '.join(unused)}")
+
+
+def check_images(pkg: Package, palette: set[tuple[int, int, int]] | None, report: Report) -> None:
+    images = sorted(pkg.files_under("textures") + pkg.files_under("flats"))
+    pngs = [p for p in images if p.lower().endswith(".png")]
+    for path in images:
+        if not path.lower().endswith(".png"):
+            report.warn("images", path, "not a PNG: the project's texture format is indexed PNG")
+    if palette is None:
+        report.skip("images", f"{DEFAULT_PALETTE.name} unreadable: colours not checked")
+    checked = 0
+    for path in pngs:
+        is_flat = path.lower().startswith("flats/")
+        try:
+            png = read_png(pkg.read(path))
+        except PngError as exc:
+            report.error("images", path, f"unreadable PNG: {exc}")
+            continue
+        checked += 1
+        if not png.indexed:
+            report.error("images", path,
+                         f"PNG colour type {png.colour_type}, must be {PNG_COLOUR_TYPE_PALETTE} "
+                         "(indexed / mode P) so the palette discipline is enforceable")
+        if png.interlace:
+            report.warn("images", path, "interlaced PNG: colours checked against the whole PLTE, not the used pixels")
+        if png.width % DIMENSION_MULTIPLE or png.height % DIMENSION_MULTIPLE:
+            report.error("images", path,
+                         f"{png.width}x{png.height}: both sides must be multiples of {DIMENSION_MULTIPLE}")
+        if is_flat:
+            if (png.width, png.height) != FLAT_SIZE:
+                report.error("images", path,
+                             f"{png.width}x{png.height}: a flat must be {FLAT_SIZE[0]}x{FLAT_SIZE[1]}")
+        elif (png.width, png.height) not in ALLOWED_WALL_SIZES:
+            report.warn("images", path,
+                        f"{png.width}x{png.height} is not one of the agreed wall sizes "
+                        + " / ".join(f"{w}x{h}" for w, h in ALLOWED_WALL_SIZES))
+        if palette is not None and png.indexed:
+            offending = sorted({c for c in png.used_colours() if c not in palette})
+            if offending:
+                shown = ", ".join(f"#{r:02X}{g:02X}{b:02X}" for r, g, b in offending[:8])
+                more = f" (+{len(offending) - 8} more)" if len(offending) > 8 else ""
+                report.error("images", path,
+                             f"{len(offending)} colour(s) outside docs/art/palette.json: {shown}{more}")
+    report.stats["images_checked"] = checked
+    report.note("images", f"{checked} PNG(s) under textures/ and flats/"
+                + (f", colours checked against {len(palette)} palette entries" if palette else ""))
+
+
+def check_sprites(pkg: Package, report: Report) -> None:
+    """Sprite lumps are NAMEFR[FR]; every declared rotation set is complete.
+
+    Empty today (the mod ships no sprites yet), and that is a pass: the first
+    sprite the art-director adds gets validated without anyone remembering to
+    turn this on.
+    """
+    files = sorted(pkg.files_under("sprites"))
+    report.stats["sprites"] = len(files)
+    # (sprite name, frame letter) -> set of rotation characters
+    frames: dict[tuple[str, str], set[str]] = {}
+    for path in files:
+        stem = Path(path).stem.upper()
+        problem = lump_name_problem(Path(path).stem)
+        if problem:
+            report.error("sprites", path, problem)
+            continue
+        if len(stem) not in (6, 8):
+            report.error("sprites", path,
+                         f"sprite lump {stem!r} is {len(stem)} characters; must be 6 (NAMEFR) or 8 (NAMEFRFR)")
+            continue
+        name = stem[:SPRITE_NAME_LEN]
+        if not name.isalnum():
+            report.error("sprites", path, f"sprite name {name!r} must be 4 alphanumeric characters")
+            continue
+        pairs = [(stem[4], stem[5])] + ([(stem[6], stem[7])] if len(stem) == 8 else [])
+        for frame, rotation in pairs:
+            if frame not in SPRITE_FRAME_CHARS:
+                report.error("sprites", path, f"frame character {frame!r} is not in A-Z[\\]")
+                continue
+            if rotation != SPRITE_ROTATION_ALL and rotation not in SPRITE_ROTATIONS_16:
+                report.error("sprites", path,
+                             f"rotation {rotation!r} is not 0 (all angles) or 1-9/A-G")
+                continue
+            frames.setdefault((name, frame), set()).add(rotation)
+    for (name, frame), rotations in sorted(frames.items()):
+        if SPRITE_ROTATION_ALL in rotations and rotations != {SPRITE_ROTATION_ALL}:
+            report.error("sprites", f"sprites/{name}{frame}*",
+                         f"frame {frame} mixes rotation 0 (all angles) with {sorted(rotations - {'0'})}")
+            continue
+        if rotations == {SPRITE_ROTATION_ALL}:
+            continue
+        wanted = set(SPRITE_ROTATIONS_16 if rotations & set("9ABCDEFG") else SPRITE_ROTATIONS_8)
+        missing = sorted(wanted - rotations)
+        if missing:
+            report.error("sprites", f"sprites/{name}{frame}*",
+                         f"incomplete rotation set, missing {''.join(missing)} "
+                         f"(the engine would say: Missing sprite)")
+    report.stats["sprite_frames"] = len(frames)
+    report.note("sprites", f"{len(files)} sprite lump(s), {len(frames)} frame(s)"
+                + (" - nothing to check yet" if not files else ""))
+
+
+def check_licences(pkg: Package, declared: set[str], report: Report) -> None:
+    packed: list[str] = []
+    for folder in LICENSED_DIRS:
+        packed += pkg.files_under(folder)
+    missing = 0
+    for path in sorted(packed):
+        stem = Path(path).stem.upper()
+        if stem not in declared and Path(path).name.upper() not in declared:
+            missing += 1
+            report.error("licences", path,
+                         f"no row for {stem!r} in {DEFAULT_LICENSES.relative_to(PROJECT_ROOT)}: "
+                         "a packed asset without recorded provenance cannot ship")
+    report.stats["assets_packed"] = len(packed)
+    report.stats["assets_unlicensed"] = missing
+    report.note("licences", f"{len(packed)} packed asset(s), {len(packed) - missing} with a documented origin")
+
+
+def check_zscript(pkg: Package, report: Report) -> None:
+    entry = pkg.find(ZSCRIPT_ENTRY)
+    if entry is None:
+        report.skip("zscript", f"no {ZSCRIPT_ENTRY} (already reported by `package`)")
+        return
+    seen: set[str] = set()
+    queue = [entry]
+    count = 0
+    while queue:
+        current = queue.pop(0)
+        if current.lower() in seen:
+            continue
+        seen.add(current.lower())
+        text = pkg.read(current).decode("utf-8", "replace")
+        for include in RE_INCLUDE.findall(text):
+            count += 1
+            target = pkg.find(include)
+            if target is None:
+                report.error("zscript", f"{current} -> {include}",
+                             "#include points at a file that is not in the PK3")
+                continue
+            queue.append(target)
+    report.stats["zscript_files"] = len(seen)
+    report.stats["zscript_includes"] = count
+    # Files under zscript/ that nothing includes are dead weight at best and a
+    # forgotten wiring at worst (the engine simply never compiles them).
+    orphans = [p for p in sorted(pkg.files_under("zscript")) if p.lower() not in seen]
+    for path in orphans:
+        report.warn("zscript", path,
+                    "packed but reachable from no #include: the engine never compiles it")
+    report.note("zscript", f"{count} #include(s), {len(seen)} file(s) reachable from {ZSCRIPT_ENTRY}")
+
+
+# --- Orchestration ---------------------------------------------------------
+
+def check_pk3(
+    pk3: Path,
+    spec: Path = DEFAULT_SPEC,
+    licenses: Path = DEFAULT_LICENSES,
+    palette_json: Path = DEFAULT_PALETTE,
+) -> Report:
+    report = Report(pk3=str(pk3))
+    if not pk3.is_file():
+        report.error("package", str(pk3), "file does not exist (run python3 tools/build.py)")
+        return report
+    if not zipfile.is_zipfile(pk3):
+        report.error("package", str(pk3), "not a zip archive: a PK3 is a zip (MOD-SPEC 2)")
+        return report
+    try:
+        zf = zipfile.ZipFile(pk3)
+    except zipfile.BadZipFile as exc:
+        report.error("package", str(pk3), f"cannot be opened as a zip: {exc}")
+        return report
+    with zf:
+        pkg = Package(pk3, zf, [n for n in zf.namelist() if not n.endswith("/")])
+        check_package(pkg, report)
+        check_root_lumps(pkg, report)
+        maps = check_maps(pkg, report)
+        check_textures(pkg, maps, iwad_assets_from_spec(spec), report)
+        check_images(pkg, palette_colours(palette_json), report)
+        check_sprites(pkg, report)
+        check_licences(pkg, licensed_names(licenses), report)
+        check_zscript(pkg, report)
+    return report
+
+
+def render(report: Report, strict: bool = False, quiet: bool = False) -> str:
+    lines: list[str] = [f"check_pk3: {report.pk3}", ""]
+    for category in CATEGORIES:
+        found = report.of(category)
+        errors = [f for f in found if f.severity == SEVERITY_ERROR]
+        if category in report.skipped:
+            status = "SKIP"
+        elif errors:
+            status = "FAIL"
+        elif found:
+            status = "warn"
+        else:
+            status = "OK"
+        if quiet and status == "OK":
+            continue
+        head = f"{category:<9} {status:<4}"
+        notes = report.notes.get(category, [])
+        summary = report.skipped.get(category) or (notes[0] if notes else "")
+        lines.append(f"{head}  {summary}".rstrip())
+        for note in notes[1:]:
+            lines.append(f"{'':<15}{note}")
+        for finding in found:
+            lines.append(finding.render())
+    lines.append("")
+    lines.append(f"--- {len(report.errors)} error(s), {len(report.warnings)} warning(s) ---")
+    lines.append("VERDICT: PASS" if report.ok(strict) else "VERDICT: FAIL")
+    return "\n".join(lines)
+
+
+def as_json(report: Report, strict: bool = False) -> str:
+    return json.dumps(
+        {
+            "pk3": report.pk3,
+            "ok": report.ok(strict),
+            "errors": len(report.errors),
+            "warnings": len(report.warnings),
+            "stats": report.stats,
+            "skipped": report.skipped,
+            "notes": report.notes,
+            "findings": [f.as_dict() for f in report.findings],
+        },
+        indent=2,
+        sort_keys=True,
+    )
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog="tools/check_pk3.py",
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("--pk3", type=Path, default=DEFAULT_PK3, help="package to validate")
+    parser.add_argument("--spec", type=Path, default=DEFAULT_SPEC, help="MOD-SPEC.md (IWAD asset table)")
+    parser.add_argument("--licenses", type=Path, default=DEFAULT_LICENSES, help="LICENSES.md")
+    parser.add_argument("--palette", type=Path, default=DEFAULT_PALETTE, help="palette.json")
+    parser.add_argument("--strict", action="store_true", help="treat warnings as failures")
+    parser.add_argument("--quiet", action="store_true", help="hide categories that pass cleanly")
+    parser.add_argument("--json", action="store_true", help="machine-readable output (for CI)")
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    report = check_pk3(args.pk3, args.spec, args.licenses, args.palette)
+    print(as_json(report, args.strict) if args.json else render(report, args.strict, args.quiet))
+    return EXIT_OK if report.ok(args.strict) else EXIT_FAILURES
+
+
+if __name__ == "__main__":
+    sys.exit(main())
