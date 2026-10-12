@@ -44,6 +44,7 @@ AUDIO_DIR = PROJECT_ROOT / "work" / "audio"
 TEST_PK3 = AUDIO_DIR / "sd-music-draft.pk3"
 MOD_PK3 = PROJECT_ROOT / "dist" / "sovietdoom.pk3"
 LOG_DIR = PROJECT_ROOT / "logs"
+TOOLING_CONFIG = LOG_DIR / "gzdoom-tooling.ini"
 
 # Same discovery order as tools/run.sh, kept in sync by hand (that script
 # belongs to mod-engineer and is not edited from here).
@@ -131,14 +132,21 @@ def cmd_play(which: str) -> int:
     pack()
     LOG_DIR.mkdir(exist_ok=True)
     log = LOG_DIR / "audition.log"
+    # Explicit volumes and our own config: the CEO heard silence because his
+    # gzdoom.ini had snd_musicvolume at 0 while the engine was happily playing
+    # D_SDTITL. An audition tool that depends on the listener's mixer settings
+    # is not a tool. -config also stops our runs from writing state back into
+    # the user's own preferences.
+    audio = ["-config", str(TOOLING_CONFIG),
+             "+snd_musicvolume", "0.8", "+snd_sfxvolume", "0.8"]
     if which == "title":
         # No +map: the engine sits on the title screen, which is where
         # GameInfo TitleMusic plays.
-        args = [str(gzdoom), "-iwad", str(iwad), "-file", str(MOD_PK3), "-file", str(TEST_PK3),
-                "+logfile", str(log)]
+        args = [str(gzdoom), *audio, "-iwad", str(iwad), "-file", str(MOD_PK3),
+                "-file", str(TEST_PK3), "+logfile", str(log)]
     else:
-        args = [str(gzdoom), "-iwad", str(iwad), "-file", str(MOD_PK3), "-file", str(TEST_PK3),
-                "+logfile", str(log), "+map", "MAP01"]
+        args = [str(gzdoom), *audio, "-iwad", str(iwad), "-file", str(MOD_PK3),
+                "-file", str(TEST_PK3), "+logfile", str(log), "+map", "MAP01"]
     print(" ".join(args))
     return subprocess.call(args)
 

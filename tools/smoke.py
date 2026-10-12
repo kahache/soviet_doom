@@ -67,6 +67,8 @@ DEFAULT_SHOT_DIR = PROJECT_ROOT / "logs" / "shots"
 # Dated evidence, only with --keep-evidence (project convention
 # YYYY-MM-DD_HHMM_FN_slug.*, see docs/WORKING-AGREEMENTS.md).
 EVIDENCE_DIR = PROJECT_ROOT / "docs" / "qa" / "evidence"
+# Our own engine config, never the user's (see the note in the argv builder).
+TOOLING_CONFIG = PROJECT_ROOT / "logs" / "gzdoom-tooling.ini"
 DEFAULT_PHASE = "F2"  # current phase per CLAUDE.md; pass --phase when it moves
 
 # Engine timing, in tics (GZDoom runs at 35 tics/s).
@@ -276,7 +278,14 @@ def build_command(
     extra: list[str] | None = None,
 ) -> list[str]:
     """Assemble the argv, mirroring the order proven in tools/run.sh."""
-    argv = [str(gzdoom), "-iwad", str(iwad), "-file", str(pk3), "+logfile", str(log)]
+    # -config keeps the engine out of the user's own gzdoom.ini. Without it
+    # every automated run reads THEIR preferences and saves OUR state back over
+    # them on exit: a -nosound smoke run is enough to leave a developer with a
+    # silent game and no idea why. Found 2026-10-13, when the CEO reported the
+    # title music "not playing" and the engine was reporting it as playing with
+    # snd_musicvolume at 0.
+    argv = [str(gzdoom), "-config", str(TOOLING_CONFIG), "-iwad", str(iwad),
+            "-file", str(pk3), "+logfile", str(log)]
     if skill is not None:
         argv += ["-skill", str(skill)]
     argv += ["+map", map_name]

@@ -184,9 +184,14 @@ class CommandLineTests(unittest.TestCase):
     def test_core_arguments_in_run_sh_order(self):
         cmd = self._cmd()
         self.assertEqual("/bin/gzdoom", cmd[0])
-        self.assertEqual(["-iwad", "/w/freedoom2.wad"], cmd[1:3])
-        self.assertEqual(["-file", "/d/sovietdoom.pk3"], cmd[3:5])
-        self.assertEqual(["+logfile", "/l/smoke.log"], cmd[5:7])
+        # -config leads so the engine never reads or writes the user's own
+        # gzdoom.ini: an automated -nosound run was enough to leave a
+        # developer with a silent game (2026-10-13).
+        self.assertEqual("-config", cmd[1])
+        self.assertTrue(cmd[2].endswith("gzdoom-tooling.ini"), cmd[2])
+        self.assertEqual(["-iwad", "/w/freedoom2.wad"], cmd[3:5])
+        self.assertEqual(["-file", "/d/sovietdoom.pk3"], cmd[5:7])
+        self.assertEqual(["+logfile", "/l/smoke.log"], cmd[7:9])
         self.assertIn("+map", cmd)
         self.assertEqual("MAP01", cmd[cmd.index("+map") + 1])
 
