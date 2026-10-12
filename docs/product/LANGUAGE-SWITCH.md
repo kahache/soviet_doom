@@ -29,21 +29,42 @@ Scope for `mod-engineer`:
 This is a type decision, not a code one, and it goes to `art-director` as a
 follow-up to the font already in progress.
 
-The cheap version of this idea is faux Cyrillic: swapping R for Я and N for
-И. **I recommend against it.** It is the visual equivalent of a fake accent,
-it is read as a joke, and the mod's tone is serious (D11). It also hurts
-legibility, which matters at 320×200.
+**Decided by the CEO, 2026-10-13: the English build substitutes Cyrillic
+letterforms. R becomes Я and N becomes И.**
 
-The version worth doing is subtler and better: draw the **Latin glyphs with
-the stroke logic of the Cyrillic ones**. Soviet poster lettering has a
-particular skeleton, heavy verticals, flat terminals, a narrow aperture, and
-when a Latin R, N or E is built on that skeleton it reads as Latin but feels
-of a piece with Я, И and Э sitting next to it. The two scripts then share a
-voice instead of one imitating the other.
+The PM argued against it — a fake accent, read as a joke, against the serious
+tone of D11, and costly to legibility at 320×200 — and the CEO disagreed and
+decided. Recorded so the reasoning is not relitigated, not so it is reopened.
 
-Where a genuine swap earns its place is in **display type only**, a title or
-a poster headline, never body text: `SOVIET DOOM` can afford one borrowed
-letterform; a pickup message cannot.
+### The substitution map
+
+The CEO named the core pair. Three intensities were rendered on real game
+strings (`docs/art/previews/2026-10-13_0120_F2_faux-cyrillic-levels.png`) so
+the level can be chosen on evidence rather than in the abstract:
+
+| Level | Map | Effect |
+|---|---|---|
+| **1 — the CEO's core** | R→Я, N→И | Reads as English everywhere. "ZARYA-7 COSMODЯOME", "ИOT OИE STEP BACK" |
+| 2 | + E→Э, W→Ш, A→Д | "ЗДЯУД-7" stops being readable as Zarya |
+| 3 | + U→Ц, G→Б, D→Д, Y→У, B→Б | Words dissolve; "A BOX" becomes "Д БОХ" |
+
+**Recommendation: level 1, the CEO's own pair, and nothing beyond it.** The
+two he named are the two that survive being read. From level 2 the device
+stops decorating English and starts replacing it, which costs the player
+information rather than giving them flavour.
+
+### Where it applies
+
+- **Yes**: the English build's display type and menus.
+- **No**: the Russian build, where real Cyrillic is real Cyrillic and a
+  substituted Я would simply be a spelling mistake.
+- **No**: numbers, weapon calibres and key prompts, where a misread costs
+  the player something.
+
+The substitution is a **font-level mapping**, not an edit to the strings:
+`LANGUAGE` keeps correct English so the text stays searchable, translatable
+and diffable, and the English font draws those two letters with their
+Cyrillic forms. One switch turns it off if it ever grates.
 
 ## The shared blocker
 
