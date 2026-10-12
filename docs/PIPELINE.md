@@ -145,6 +145,15 @@ The PM commits and pushes (D6).
   > one laptop's disk for an hour. `tests/test_arsenal.py` *was* committed, so
   > `main` was red against code that was not there. Found by the CI agent on
   > a clean clone, which is exactly what a clean clone is for.
+- **An agent's coupled files are committed as a set, or not at all.** Picking
+  some of them is worse than picking none: the tree still builds on the disk
+  that has the rest.
+  > Why: minutes after the rule above was written, the PM committed
+  > `src/maps/MAP01/map.py` without `tools/sdbuild/udmf.py`, which it imports.
+  > Both belonged to the same agent, mid-flight. It built locally and died on
+  > a clean checkout with `ImportError`. CI caught it in thirteen seconds.
+- **Green locally is not green.** The only honest check is a clean checkout,
+  which is what CI is for. Wait for it before calling a push done.
 - One commit per coherent piece of work. The message says what changed, what
   was verified, and what is still open.
 - Push to `main` on `kahache/soviet_doom` once the four greens and the `pmo`
