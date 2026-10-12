@@ -6,13 +6,92 @@
 GameInfo
 {
 	// Register the mod's ZScript event handlers (class names in zscript/sd/).
-	AddEventHandlers = "SD_LoadReporter"
+	AddEventHandlers = "SD_LoadReporter", "SD_LanguageGuard"
 
 	// The mod's own player class (F4). A player pawn cannot be installed
 	// with `replaces`; PlayerClasses is the documented way and it OVERRIDES
 	// the previous list, so Freedoom's marine and its weapon slots are gone.
 	// ZDoom wiki: MAPINFO/GameInfo definition, "Creating new player classes".
 	PlayerClasses = "SD_Player"
+}
+
+// --- Difficulty ladder ----------------------------------------------------
+// The five names are the CEO's (docs/product/DIFFICULTY-NAMES.md owns them);
+// LANGUAGE owns the text, this file owns the MECHANICS.
+//
+// WHY `clearskills`. GZDoom's own mapinfo/doomcommon.txt already defines
+// five skills, and every one of them carries a `PicName` (M_JKILL, M_ROUGH,
+// M_HURT, M_ULTRA, M_NMARE): the menu then draws the IWAD's GRAPHIC and
+// ignores `Name` entirely. Redefining a skill of the same name merges into
+// the existing definition, so the PicName would survive and the player would
+// still read Freedoom's "Hurt me plenty". `clearskills` drops all five and
+// we declare ours from scratch, with no PicName, so the menu renders text.
+// ZDoom wiki: MAPINFO/Skill definition.
+//
+// EVERY MECHANICAL PROPERTY BELOW IS COPIED VERBATIM from GZDoom 4.14.2's
+// mapinfo/doomcommon.txt. Renaming a skill must not rebalance the game: the
+// damage, ammo and respawn behaviour of each rung is still Doom's. If a
+// property here ever diverges from Doom, it belongs in
+// docs/engine/BALANCE.md with a reason.
+//
+//   SpawnFilter  which "skill N" thing flag a map's actors are spawned by:
+//                Baby=skill1 ... Nightmare=skill5. Unchanged, so the maps
+//                `level-designer` already flagged keep working.
+//   AmmoFactor   multiplier on ammo PICKED UP (2 = double, Doom's gift to
+//                the easiest and the hardest rung alike).
+//   DamageFactor multiplier on damage TAKEN by the player (0.5 = half).
+//   RespawnTime  seconds after which a killed monster comes back. This, not
+//                a flag, is what makes rung 5 Nightmare.
+//   FastMonsters faster monster movement AND faster projectiles.
+
+clearskills
+
+skill sd_pioneer
+{
+	AutoUseHealth            // auto-drinks medikits when about to die
+	AmmoFactor = 2
+	DamageFactor = 0.5
+	EasyBossBrain
+	SpawnFilter = Baby
+	Name = "$SD_SKILL_1"
+	Key = "i"
+}
+
+skill sd_winters
+{
+	EasyBossBrain
+	SpawnFilter = Easy
+	Name = "$SD_SKILL_2"
+	Key = "h"
+}
+
+skill sd_notonestep
+{
+	SpawnFilter = Normal
+	Name = "$SD_SKILL_3"
+	Key = "n"
+	DefaultSkill             // the rung the menu starts on; Doom's too
+}
+
+skill sd_nopasaran
+{
+	// No discounts: no AmmoFactor, no DamageFactor, no EasyBossBrain.
+	SpawnFilter = Hard
+	Name = "$SD_SKILL_4"
+	Key = "p"
+}
+
+skill sd_posthumous
+{
+	AmmoFactor = 2
+	FastMonsters
+	InstantReaction          // monsters attack the instant they see you
+	DisableCheats
+	RespawnTime = 12         // seconds; the dead get back up
+	SpawnFilter = Nightmare
+	MustConfirm = "$SD_SKILL_5_CONFIRM"
+	Name = "$SD_SKILL_5"
+	Key = "g"
 }
 
 clearepisodes

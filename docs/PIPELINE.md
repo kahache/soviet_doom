@@ -1,6 +1,8 @@
 # The pipeline — how work moves from idea to GitHub
 
-Owner: PM. Enforced by the `pmo` agent. Russian mirror: `docs/ru/PIPELINE.md`.
+Owner: PM. Enforced by the `pmo` agent. Russian mirror: owed, **not yet
+written** — `docs/ru/PIPELINE.md` does not exist (D7 debt, bug **Q1**, found
+by `tools/verify.py docs` on 2026-10-13; `translator-ru` owes it).
 Created 2026-10-13 at the CEO's request. **Every rule below was paid for by a
 real mistake in this project**; the mistake is cited so nobody relitigates it.
 
@@ -14,7 +16,7 @@ real mistake in this project**; the mistake is cited so nobody relitigates it.
 2 DRAFT        cheap, reviewable, thrown away if wrong
 3 PM REVIEW    the PM judges before the CEO ever sees it
 4 CEO GATE     only what needs taste or authority reaches the CEO
-5 VERIFY       build, check_pk3, smoke, suite - all four green
+5 VERIFY       tools/verify.py - fast in the loop, full before a push
 6 DOCUMENT     the pmo agent checks the paper trail before anything is committed
 7 PUBLISH      the PM commits specific paths and pushes
 ```
@@ -87,16 +89,101 @@ recommendation, and the cost of each option. Never a bare question.
 Everything open lives in `docs/PENDING-CEO-DECISIONS.md`, ordered by how much
 each item unblocks, and the session hook shows it at every start.
 
-### 5. Verify — the four greens
+### 5. Verify — one command, two levels
 
-Nothing is committed until all four pass, and the PM runs them itself:
+There is one entry point, `tools/verify.py`, and it runs the four greens for
+you in the right order, stopping at the first red one:
 
 ```
-python3 tools/build.py                 # the package builds
-python3 tools/check_pk3.py             # structure, textures, palette, licences
-python3 tools/smoke.py --map MAPxx     # GZDoom loads it, zero errors in the log
-python3 -m unittest discover -s tests  # the suite
+python3 tools/verify.py fast    # the working loop. Never opens a window.
+python3 tools/verify.py full    # before a push, at a phase close, at a gate.
+python3 tools/verify.py auto    # reads git, picks the level, says why.
+python3 tools/verify.py auto --explain   # says what it would do, runs nothing
 ```
+
+> Why: this stage used to be four separate commands, and the slowest of them
+> (`tools/smoke.py`) boots a real GZDoom and puts a window on the screen.
+> People ran all four for everything, including edits the engine cannot
+> possibly see. The CEO, 2026-10-13: *"no paran de abrírseme pantallas [...]
+> igual para pequeños cambios habría que poder hacer que QA tenga criterio de
+> cuándo lanzar tests y cuándo no; o bien hacer una pasada fast y otra full."*
+
+#### The ladder
+
+Each level contains the one above it. Times measured on the project machine,
+2026-10-13, with `.venv/bin/python` (the system `python3` skips every art
+test for want of Pillow, which makes it faster and much less useful).
+
+| Level | What runs | Window? | Measured |
+|---|---|---|---|
+| `docs` | D7 mirror check + repo paths quoted in the changed documents | no | ~0.1 s |
+| `fast` | `build.py`, `check_pk3.py`, the suite **without** the slow art generator runs (`SD_SKIP_SLOW_ART=1`) | no | **~7 s** |
+| `art` | `fast` plus the slow art runs: determinism, palette, tiling, ink count | no | ~14 s |
+| `full` | `art` plus `smoke.py` on every map in `src/maps/` | **yes** | ~30 s |
+
+`fast` is the working loop. `full` is for before a push, at a phase close and
+at every gate — a gate is never signed on `fast`.
+
+Deliberately **not** in `full`: `SD_ENGINE_TESTS=1`, which makes
+`tests/test_smoke.py` boot GZDoom a second time to do what the smoke stage
+has already done. `--engine-tests` turns it on for the rare case where the
+suite's own engine wrapper is what changed.
+
+#### The criterion `auto` applies
+
+`auto` asks git what changed (`git status --porcelain`, or `git diff` against
+a ref with `--since`), classifies every path, and takes the **highest** level
+any of them demands. It prints the rule, an example path and the reason
+**before** running anything, so the decision is auditable and can be argued
+with.
+
+| Changed path | Level | Why |
+|---|---|---|
+| `docs/`, `work/`, `.claude/`, root `*.md` (`README.md`, `CLAUDE.md`, `LICENSE.md`) | `docs` | nothing here is built, packed or parsed by the engine |
+| `assets/`, `tools/art/`, `tools/audio/` | `art` | art can only break the package, and `check_pk3.py` already proves palette, size, naming and references; the engine sees nothing a validator has not |
+| `tests/`, `tools/` (incl. `tools/check_pk3.py`, `tools/smoke.py`), `.github/`, `.coveragerc`, `.gitignore` | `fast` | tooling and tests are the thing under test and are never packed into the PK3 |
+| `src/` — `src/zscript/`, `src/lumps/`, `src/maps/` | `full` | only GZDoom parses ZScript, UDMF and the definition lumps; a bad property or a missing actor appears in no static check |
+| `tools/build.py`, `tools/sdbuild/` | `full` | the packer decides what reaches the engine, and a wrong lump name or layout is only fatal at load time |
+| anything else | `full` | the safe answer to "no rule covers this" is the expensive level |
+
+Two refinements that are tested, not assumed
+(`tests/test_verify.py`):
+
+- **Noise never raises the level.** `.DS_Store`, `__pycache__/`, `*.pyc` are
+  dropped before classification: an editor dropping must not cost somebody a
+  GZDoom window.
+- **Only the maps that changed are booted.** If every engine-forcing path is
+  under `src/maps/MAP02/`, `full` smokes MAP02 alone. A ZScript, lump or
+  packer change is global and smokes all of them.
+
+#### Exit codes
+
+One per stage, so a wrapper can tell them apart: `10` docs, `11` build,
+`12` check_pk3, `13` the suite, `14` the engine (the smoke exit code is
+printed next to it); `2` usage, `3` git unavailable in `auto`.
+
+#### The documentation check
+
+The `docs` stage enforces the one part of D7 a script can decide: every
+changed `docs/**.md` has its twin under `docs/ru/` at the same path. A
+mirror missing for a document changed **in this batch** fails the stage; a
+pre-existing gap elsewhere in the tree is reported as a warning rather than
+used to block an unrelated change. It also warns when a document quotes a
+repo path in backticks that does not exist. Root documents (`README.md`,
+`CLAUDE.md`, `LICENSE.md`) carry their Russian text inline or not at all and
+owe no mirror. Everything else about the paper trail — one owner per fact,
+D-numbers, evidence paths — is stage 6 and belongs to `pmo`, not to a script.
+
+#### The window
+
+`tools/smoke.py` opens a **480x320** GZDoom window (`+win_w` / `+win_h`,
+verified on g4.14.2: the log goes from `Resolution: 2048 x 1280` to
+`Resolution: 960 x 584`) and forces `i_pauseinbackground 0` so an unattended
+run still finishes when you click back into your editor. `--window native`
+restores the engine's own geometry. **NOT VERIFIED / not available:** nothing
+in this build stops GZDoom taking keyboard focus when its window appears; the
+macOS backend activates the app itself and exposes no switch for it.
+`-width` / `-height` were tried and had **no** effect.
 
 - **Every behaviour validated by a real case gets a test**, so the next change
   cannot silently undo it. The mirrored emblem, the missing art in the PK3 and
@@ -156,8 +243,8 @@ The PM commits and pushes (D6).
   which is what CI is for. Wait for it before calling a push done.
 - One commit per coherent piece of work. The message says what changed, what
   was verified, and what is still open.
-- Push to `main` on `kahache/soviet_doom` once the four greens and the `pmo`
-  check pass. The repo is private; publishing anything outside it is a CEO
+- Push to `main` on `kahache/soviet_doom` once `tools/verify.py full` and the
+  `pmo` check pass. The repo is private; publishing anything outside it is a CEO
   decision.
 - Evidence (logs, screenshots) is committed only when it proves a gate.
   Routine runs write to `logs/`, which is gitignored.

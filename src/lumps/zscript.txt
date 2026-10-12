@@ -9,6 +9,7 @@ version "4.12"
 
 // --- Systems --------------------------------------------------------------
 #include "zscript/sd/load_reporter.zs"
+#include "zscript/sd/language.zs"   // pins the `language` CVar off "auto"
 #include "zscript/sd/player.zs"
 #include "zscript/sd/ammo.zs"        // Soviet names for the four Doom ammo pools
 

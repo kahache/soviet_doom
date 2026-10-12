@@ -12,6 +12,7 @@ Usage:
   python3 tools/smoke.py --map MAP01 --skill 4
   python3 tools/smoke.py --keep-evidence --phase F3 --slug g3-map01-skill4
   python3 tools/smoke.py --no-build            # use dist/sovietdoom.pk3 as is
+  python3 tools/smoke.py --window native       # keep the engine's own window size
   python3 tools/smoke.py --list-patterns       # print the failure contract
 
 Exit codes (2/3/4 match `tools/run.sh` on purpose):
@@ -77,6 +78,27 @@ DEFAULT_WAIT_TICS = 140  # ~4 s: enough for the map to be drawn at least once
 DEFAULT_SETTLE_TICS = 35  # ~1 s after the screenshot, so the PNG is flushed
 DEFAULT_TIMEOUT_S = 120.0
 TERMINATE_GRACE_S = 5.0
+
+# --- The least annoying window this engine build will give us -------------
+# VERIFIED on GZDoom g4.14.2 / macOS, 2026-10-13, by reading the cvars the
+# engine itself writes back into logs/gzdoom-tooling.ini after a run:
+#   win_w / win_h           window size in points. Passing them as +cvars
+#                           works: the log went from "Resolution: 2048 x
+#                           1280" (the saved 1024x668 at hidpi 2x) to
+#                           "Resolution: 960 x 584" with +win_w 480
+#                           +win_h 320. This is the knob that matters.
+#   i_pauseinbackground     true by default: the engine stops ticking when
+#                           it is not the focused app, which would hang the
+#                           "+wait N; screenshot; quit" sequence the moment
+#                           somebody clicks back into their editor. Forced
+#                           off so an unattended run always finishes.
+#   vid_fullscreen 0        already here; keeps the run off the whole screen.
+# NOT VERIFIED / not available: nothing in this build stops GZDoom taking
+# keyboard focus when its window appears - the macOS backend activates the
+# app itself and exposes no switch for it. `-width` / `-height` were tried
+# and had NO effect on the window (the log still reported 2048 x 1280).
+SMOKE_WINDOW_W = 480
+SMOKE_WINDOW_H = 320
 
 # --- The failure contract -------------------------------------------------
 # Every pattern that makes a smoke run FAIL lives here and nowhere else, so
@@ -275,6 +297,7 @@ def build_command(
     settle_tics: int = DEFAULT_SETTLE_TICS,
     screenshot: bool = True,
     sound: bool = False,
+    window: tuple[int, int] | None = (SMOKE_WINDOW_W, SMOKE_WINDOW_H),
     extra: list[str] | None = None,
 ) -> list[str]:
     """Assemble the argv, mirroring the order proven in tools/run.sh."""
@@ -291,8 +314,14 @@ def build_command(
     argv += ["+map", map_name]
     if not sound:
         argv.append("-nosound")
-    # Windowed, so the run never steals the whole screen from whoever is working.
+    # Windowed, so the run never steals the whole screen from whoever is
+    # working, and as small and as unattended-safe as this build allows
+    # (see the SMOKE_WINDOW_* block above for what was verified and what
+    # this engine simply does not offer).
     argv += ["+vid_fullscreen", "0"]
+    if window is not None:
+        argv += ["+win_w", str(window[0]), "+win_h", str(window[1])]
+    argv += ["+i_pauseinbackground", "0"]
     if screenshot:
         argv += ["+screenshot_dir", str(shot_dir)]
     argv.append(console_sequence(wait_tics, settle_tics, screenshot))
@@ -408,6 +437,17 @@ def evidence_stem(phase: str, slug: str, when: datetime | None = None) -> str:
     return f"{when:%Y-%m-%d_%H%M}_{phase}_{slug}"
 
 
+def parse_window(value: str) -> tuple[int, int] | None:
+    """'480x320' -> (480, 320); 'native' -> None (leave the engine alone)."""
+    if value.strip().lower() in ("native", "none"):
+        return None
+    match = re.fullmatch(r"\s*(\d+)\s*[xX]\s*(\d+)\s*", value)
+    if not match:
+        raise argparse.ArgumentTypeError(
+            f"{value!r} is not WxH (e.g. 480x320) and is not 'native'")
+    return int(match.group(1)), int(match.group(2))
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="tools/smoke.py",
@@ -425,6 +465,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                         help=f"tics after the screenshot before quit (default: {DEFAULT_SETTLE_TICS})")
     parser.add_argument("--no-screenshot", action="store_true", help="load and quit, no PNG")
     parser.add_argument("--sound", action="store_true", help="do not pass -nosound")
+    parser.add_argument("--window", type=parse_window,
+                        default=(SMOKE_WINDOW_W, SMOKE_WINDOW_H),
+                        help=f"window size WxH in points (default: {SMOKE_WINDOW_W}x{SMOKE_WINDOW_H}); "
+                             "'native' leaves the engine's own saved geometry alone")
     parser.add_argument("--no-build", action="store_true", help="use the existing PK3")
     parser.add_argument("--pk3", default=str(DEFAULT_PK3), help="PK3 to load")
     parser.add_argument("--gzdoom", help="GZDoom binary (else $GZDOOM, else the usual places)")
@@ -458,6 +502,7 @@ def main(argv: list[str] | None = None) -> int:
         print_patterns()
         return EXIT_OK
 
+    window = args.window
     try:
         gzdoom = find_gzdoom(args.gzdoom)
         iwad = find_iwad(args.iwad)
@@ -483,7 +528,7 @@ def main(argv: list[str] | None = None) -> int:
         map_name=args.map, skill=args.skill,
         wait_tics=args.wait, settle_tics=args.settle,
         screenshot=not args.no_screenshot, sound=args.sound,
-        extra=args.extra,
+        window=window, extra=args.extra,
     )
     print(f"gzdoom : {gzdoom}")
     print(f"iwad   : {iwad}")

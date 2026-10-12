@@ -1,10 +1,14 @@
 # Music rights — what Soviet Doom can legally use as a soundtrack
 
 Living document. Owner: sound-designer. Russian mirror: `docs/ru/sound/MUSIC-RIGHTS.md` (D7).
-Created: 2026-10-12 (F2, research brought forward; no files produced, nothing downloaded).
+Created: 2026-10-12 (F2, research brought forward).
+Revised 2026-10-13: the CEO asked for **downloaded** MIDIs rather than generated
+ones, which exposes a right the first version treated as a footnote — the
+**sequencing** (§1.2). Twelve candidate files have now been licence-audited and
+fetched to `work/audio/candidates/`; the audit is §4.4.
 Companion to `docs/product/2026-10-12_2000_F2_pm-soviet-art-copyright.md`, which
 established the Russian and US legal frame for visual art. **The same frame applies
-to music**, with one extra layer: recordings.
+to music**, with two extra layers: recordings, and sequencings.
 
 > This is research, not legal advice. Every date below carries its source.
 > Anything I could not confirm against a concrete source is marked **NOT VERIFIED**.
@@ -13,14 +17,16 @@ to music**, with one extra layer: recordings.
 
 ## 1. The rule that governs everything: three separate rights
 
-A song is not one right, it is three. They expire on different dates and belong to
-different people. **A work can be free and every recording of it still protected.**
+A song is not one right, it is three — four once a MIDI is involved (§1.2).
+They expire on different dates and belong to different people.
+**A work can be free and every recording of it still protected.**
 
 | # | Right | Depends on | Who owns it |
 |---|---|---|---|
 | 1 | **Composition** (the score, the melody) | death of the composer | composer / heirs |
 | 2 | **Lyrics** (the text) | death of the lyricist — usually a *different* person who often died *much* later | lyricist / heirs |
 | 3 | **Phonogram** (one concrete recording) | date of fixation or publication, own term | the label (Melodiya) or the orchestra — **not** the composer |
+| 4 | **Sequencing / typeset** (one concrete MIDI, LilyPond or MuseScore file) | the licence its author attached to it, nothing else | the person who sequenced it — see §1.2 |
 
 When 1 and 2 are free but 3 is not, the clean route is to **perform or sequence the
 work ourselves** (MIDI, tracker, virtual instruments): free composition + our own
@@ -55,7 +61,55 @@ or GitHub):
 most Soviet patriotic music is **free in Russia and still protected in the United
 States**, and **essentially every genuine Soviet recording is off limits in the US**.
 
-### 1.2 One licence trap specific to our project (D15)
+### 1.2 The trap that catches everyone: **a MIDI file is a fourth right**
+
+Added 2026-10-13, after the CEO asked for downloaded MIDIs instead of
+generated ones. This is the single thing to remember from this section.
+
+**A MIDI file is not a score and it is not a recording. It is a *sequencing*:
+somebody's transcription of a piece into a stream of timed events, with their
+choices of tempo, velocity, channel layout and General MIDI instruments.
+That work is an original derivative work. It has its own author and its own
+licence, and that licence is independent of the composition's.**
+
+So:
+
+> *Degeyter died in 1932, therefore any MIDI of the Internationale is free.*
+
+is **false**, and it is the most natural mistake to make. The composition
+being public domain means **anyone is allowed to make and release a free
+sequencing** — it does not mean that the particular file you found is one.
+A MIDI of a public-domain work can be:
+
+| | Composition | Sequencing | Can we ship it? |
+|---|---|---|---|
+| PD score, sequencer released it CC0 / PD / CC BY | free | free | **yes** |
+| PD score, sequencer released it CC BY-SA | free | copyleft | **no** — §1.3 |
+| PD score, sequencer released it GFDL | free | copyleft | **no** — §1.3 |
+| PD score, posted to a MIDI site with no licence at all | free | **unknown, assume reserved** | **no** |
+| Protected score, sequencer released it CC0 | **not free** | free | **no** — the CC0 is void as to the composition |
+
+Three consequences for how we work:
+
+1. **"No licence stated" is not "public domain".** The large free-MIDI
+   aggregators — BitMidi, MIDIWorld, Midis101, hamienet, MidiShow, rusmidi,
+   most of archive.org's MIDI uploads — carry no per-file licence and usually
+   no named sequencer. They are unusable for us no matter how free the
+   underlying tune is. This disqualifies essentially the whole Soviet-MIDI
+   corpus that exists online, which is hosted on exactly those sites.
+2. **The licence must be attached to the file, by the person who sequenced
+   it, and be verifiable.** A site-wide "all our files are free" banner is not
+   enough; the per-file statement is. Wikimedia Commons, IMSLP and Mutopia all
+   do it per file, which is why they are our only sources.
+3. **The last column of the table above is why sequencing it ourselves is
+   always available.** A free composition can always be legally re-sequenced.
+   If no free MIDI of a free work exists, that is a *labour* problem, not a
+   rights problem.
+
+A fourth right, the **phonogram**, still applies on top of all this whenever
+the file is audio (OGG/MP3/FLAC) rather than MIDI — see §3.3.
+
+### 1.3 One licence trap specific to our project (D15)
 
 Our assets ship under **CC BY-NC-SA 4.0**. That is *incompatible* with **CC BY-SA**
 material: ShareAlike requires redistribution under the same licence, and adding the
@@ -192,8 +246,11 @@ driving march version for the finale costs us nothing legally.
 | **IMSLP** (imslp.org) | scores, parts, some recordings | Per-file, and **per-country**: tags read "Public Domain in the USA", "Public Domain in Canada (where IMSLP is hosted)", "non-PD EU". A green US tag does **not** mean free in Russia. Modern typesets are often **CC BY-SA → unusable under D15** | Primary source of scores to sequence from. The De Geyter *L'Internationale* complete score is tagged Public Domain (pub. *Le Socialiste*, Paris) |
 | **Musopen** (musopen.org) | ~2,400 PD compositions, ~1,800 recordings | Three buckets: **Public Domain**, **CC0** (both fine for us) and **CC BY-SA** (**not usable under D15**). Download needs a free account, 5 files/day | Best route to ready-made orchestral recordings of Tchaikovsky, Borodin, Mussorgsky, Rimsky-Korsakov |
 | **Wikimedia Commons** | audio, anthems, scans | Explicit tag per file, but the tag often covers only the **country of origin**. `{{PD-RU-exempt}}` = Russian state symbol; `{{PD-USGov}}` = US federal performance | Good for cross-checking status; weak as an audio source for us |
-| **Mutopia Project** (mutopiaproject.org) | LilyPond scores + generated **MIDI** | PD / CC BY / CC BY-SA — check per piece | Fastest path from free score to a MIDI we can re-orchestrate |
-| **archive.org** | everything and anything | **No guarantee.** Most Soviet music there is unlicensed rips of Melodiya. Only usable when the item carries an explicit PD/CC mark *and* the underlying rights check out | Treat as unsourced unless proven otherwise |
+| **Mutopia Project** (mutopiaproject.org) | LilyPond scores + generated **MIDI** | PD / CC BY / CC BY-SA — declared per piece, and genuinely mixed: of the 24 Russian-composer pieces surveyed on 2026-10-13, 11 are PD, 1 is CC BY and **12 are CC BY-SA**, i.e. unusable | Fastest path from free score to a MIDI we can re-orchestrate. See §4.2 for what those MIDIs actually contain |
+| **Wikimedia Commons, MIDI files** | ~1 080 `.mid` files, licence tag per file | Per file, and really varied: CC0, `{{Attribution}}`, CC BY-SA, **GFDL** | The only place with *Soviet-themed* MIDI under a verifiable licence. Three files of the Internationale exist there and they carry three different licences — §4.3 |
+| **archive.org** | everything and anything | **No guarantee.** Most Soviet music there is unlicensed rips of Melodiya. Checked on 2026-10-13: the "USSR Anthem (MIDI)" item (`archive.org/details/ussr-1`) declares **no licence at all** | Treat as unsourced unless proven otherwise |
+| **MuseScore.com** | user-uploaded scores, MIDI export | Uploader-declared, including CC0 — but the declaration is made by a user who usually did not verify the underlying rights, and the site **refused automated access (HTTP 403) when we tried to verify a licence on 2026-10-13** | **Not usable as a source** while we cannot read the licence programmatically. A human can check a specific score if the CEO wants one |
+| **Free-MIDI aggregators** — BitMidi, MIDIWorld, Midis101, hamienet, MidiShow, rusmidi.com, geocities mirrors | large Soviet/Russian collections, exactly the material we want | **None. No per-file licence, usually no named sequencer.** §1.2 | **Never.** This is where the Soviet MIDI corpus lives and it is all unusable |
 
 ### 4.1 What we take as-is vs what we sequence ourselves
 
@@ -218,14 +275,101 @@ pieces work best as diegetic radio, title screen and intermission.
 
 ---
 
+### 4.2 What a Mutopia MIDI actually is
+
+Measured, not assumed, on 2026-10-13 with `tools/audio/midi_inspect.py` over
+the eight Russian-composer MIDIs we downloaded: **every one of them contains
+zero General MIDI program changes.** They are LilyPond's audio preview of an
+engraved score — correct notes, correct tempo, correct dynamics, and every
+channel left on GM program 0, acoustic grand piano. Several are piano
+transcriptions of orchestral works to begin with (Chernov's *Night on Bald
+Mountain*).
+
+That is not a defect in Mutopia — a score preview is what it is for — but it
+means **a Mutopia MIDI is a free score we happen to receive in MIDI form, not
+a finished piece of game music.** Using one means doing the orchestration
+ourselves: assigning GM programs per staff, balancing channel volumes, and
+usually cutting it to length. The licences allow exactly that (PD outright,
+CC BY 3.0 with attribution), and the result is our arrangement, which we then
+license under CC BY-NC-SA 4.0 like the rest of our assets.
+
+### 4.3 Worked example of §1.2: three MIDIs of one free song
+
+Wikimedia Commons holds three MIDI files of *The Internationale*. The
+composition is the same in all three and is public domain beyond argument.
+The files are not interchangeable:
+
+| File | Sequencer | Licence on the **sequencing** | Usable under D15 |
+|---|---|---|---|
+| `Internationale orch2.mid` | Jerry Engelbach, 2003 | `{{Attribution|Jerry Engelbach}}` + VRT permission ticket 2008011810001789; melody `{{PD-Internationale}}` | **YES** — attribution-only, no ShareAlike, no NC conflict |
+| `Internationale-piano-Bb.mid` | Jerry Engelbach, 2001 | same | **YES** |
+| `The-Internationale.mid` | Commons user J2772011, 2023 | `{{self|cc-by-sa-4.0}}` | **NO** — ShareAlike, §1.3 |
+
+Same tune, same site, same category, and one of the three cannot ship.
+`{{PD-Internationale}}` states the melody is public domain in the United
+States (published before 1931) and in France (term expired October 2017) —
+which matches the independent finding in §2.1 and in §3.2.
+
+The same shape appears on the USSR anthem: `Sua.mid` on Commons is released
+under **GFDL**, a copyleft licence we cannot comply with, on top of the
+anthem's own unresolved US status (§3.1).
+
+### 4.4 Licence audit of the twelve files downloaded on 2026-10-13
+
+All twelve live in `work/audio/candidates/`. **Nothing is in `assets/` and
+nothing is in the PK3.** Each row's licence was read from the file's own page,
+not from a search result: Commons files from their raw wikitext
+(`?action=raw`), Mutopia files from the per-piece record. Musical verdicts are
+in `docs/sound/SOUNDTRACK.md`; this table is only about rights.
+
+| File in `work/audio/candidates/` | Work | Composition | Sequencer / typesetter | Licence on the sequencing | D15 |
+|---|---|---|---|---|---|
+| `WM_Internationale_orch2.mid` | Интернационал, orchestral | De Geyter 1888, PD RU+US | **Jerry Engelbach**, USA, 2003 | `{{Attribution\|Jerry Engelbach}}` + VRT ticket 2008011810001789 | ✅ attribute Engelbach |
+| `WM_Internationale_piano_Bb.mid` | Интернационал, piano in B♭ | same | **Jerry Engelbach**, USA, 2001 | same | ✅ attribute Engelbach |
+| `WM_Ej_uchnem.mid` | Эй, ухнем — Balakirev's setting, pub. 1866 | PD RU+US | **Peter Gerloff** (Commons: *Rabanus Flavus*), 2021 | `{{self\|Cc-zero}}` — **CC0** | ✅ no obligation |
+| `WM_Kolokolchik.mid` | Колокольчик, Russian traditional | PD RU+US | **Peter Gerloff**, 2019 | `{{self\|Cc-zero}}` — **CC0** | ✅ no obligation |
+| `MU_Mussorgsky_BaldMountain.mid` | Ночь на лысой горе, Chernov's piano transcription | Mussorgsky d. 1881, PD; transcriber Konstantin Chernov d. 1944 → RU PD 2015, **+war 2019 — NOT VERIFIED which applies, both are past** | typeset **Robert Clausecker**, Mutopia 2013 | **CC BY 3.0** | ✅ attribute Clausecker + Mutopia |
+| `MU_Tchaikovsky_Dumka_op59.mid` | Думка op. 59 (1886) | Tchaikovsky d. 1893, PD RU+US | Mutopia | **Public Domain** | ✅ |
+| `MU_Tchaikovsky_Seasons_August.mid` | Времена года: Август (1876) | PD RU+US | Mutopia | **Public Domain** | ✅ |
+| `MU_Tchaikovsky_WoodenSoldiers.mid` | Марш деревянных солдатиков op. 39 | PD RU+US | Mutopia | **Public Domain** | ✅ |
+| `MU_Scriabin_Etude_op2n1.mid` | Этюд op. 2 № 1 (1887) | Scriabin d. 1915, PD RU+US | Mutopia | **Public Domain** | ✅ |
+| `MU_Scriabin_Prelude_op11n1.mid` | Прелюдия op. 11 № 1 | PD RU+US | Mutopia | **Public Domain** | ✅ |
+| `MU_Scriabin_Prelude_op59n2.mid` | Прелюдия op. 59 № 2 (1910) | PD RU+US | Mutopia | **Public Domain** | ✅ |
+| `MU_RimskyKorsakov_FugueBACH.mid` | Fugue sur le nom de BACH | Rimsky-Korsakov d. 1908, PD RU+US | Mutopia | **Public Domain** | ✅ |
+
+**Rejected at the licence gate, not downloaded:**
+
+| File / source | Why |
+|---|---|
+| `The-Internationale.mid` (Commons, user J2772011, 2023) | `{{self\|cc-by-sa-4.0}}` — ShareAlike, §1.3 |
+| `Sua.mid` (Commons, USSR anthem, 2004) | **GFDL** — copyleft, §1.3; and the anthem's US status is unresolved, §3.1 |
+| `Гимн России1.mid`, `CccpDisco.mid`, `RussischeHymneVer1.mid`, `Ua-ssr.mid` (Commons) | anthem material, same two problems |
+| Mutopia Rachmaninoff, all 10 preludes | **CC BY-SA 4.0** |
+| Mutopia Rimsky-Korsakov op. 11 (4 pieces) | **CC BY-SA 3.0** |
+| Mutopia Scriabin op. 16 (5 préludes) | **CC BY-SA 2.5** |
+| Mutopia Mussorgsky, *Pictures at an Exhibition* | **CC BY-SA 4.0** — the one we most wanted from that catalogue |
+| `archive.org/details/ussr-1` "USSR Anthem (MIDI)" | **no licence declared at all** |
+| BitMidi, MIDIWorld, Midis101, hamienet, MidiShow, rusmidi.com, geocities mirrors | no per-file licence, no named sequencer — §1.2 |
+| MuseScore.com scores of *Смело, товарищи, в ногу* and others | licence not machine-verifiable (HTTP 403 to automated access, 2026-10-13); and an uploader-declared CC0 on a sequencing whose provenance we cannot read is not a verifiable licence |
+
+**Not a MIDI, but worth recording:** IMSLP's two *synthesised performances* of
+Tchaikovsky's **Marche slave** (Brandon Amaro, 2024; Quinn Mason, 2014) are
+both **CC BY 4.0** and therefore usable — but they are **MP3 renders, not
+MIDI**. They would ship as OGG at megabyte scale rather than kilobyte scale.
+If the CEO wants Marche slave and wants it orchestral without us doing the
+orchestration, that is the route; it is a size decision, not a rights one.
+
+---
+
+
 ## 5. Recommendations
 
 ### (a) Recommended, with the clean route for each
 
 | Priority | Work | Route | Where it goes |
 |---|---|---|---|
-| 1 | **Интернационал / The Internationale** | sequence ourselves from the IMSLP public-domain score | title screen, finale |
-| 2 | **Tchaikovsky, Marche slave** | CC0/PD recording (Musopen), or sequence | main theme / MAP01 |
+| 1 | **Интернационал / The Internationale** | **downloaded, 2026-10-13**: Engelbach's orchestral MIDI from Commons, attribution-only (§4.4). Sequencing from the IMSLP score is no longer necessary | title screen, finale |
+| 2 | **Tchaikovsky, Marche slave** | no free MIDI exists. Either IMSLP's CC BY 4.0 synthesised **MP3** (§4.4), or we sequence it from the PD score | main theme / MAP01 |
 | 3 | **Mussorgsky, Night on Bald Mountain** | CC0/PD recording | alien-infested areas |
 | 4 | **Scriabin** (Sonata No. 9, *Prometheus*) | CC0/PD recording | dread ambience, Fourth Reich zones |
 | 5 | **Смело, товарищи, в ногу** | sequence ourselves — free words *and* music in both countries | Soviet-held areas, diegetic |
@@ -284,9 +428,19 @@ Declared here so `mod-engineer` and `level-designer` can plan; no files exist ye
 
 ## 7. Decisions needed from the CEO
 
+0. **Attribution.** Two of the twelve candidates (§4.4) are attribution-only,
+   not public domain: shipping Engelbach's Internationale obliges us to credit
+   **Jerry Engelbach** wherever we credit anyone, and Mutopia's *Night on Bald
+   Mountain* obliges us to credit **Robert Clausecker / Mutopia Project**.
+   That is a line in the credits and a row in the licence register, nothing
+   more, but it is a real obligation and the CEO should know we are taking it
+   on. **Recommendation: accept** — the alternative is to use only the
+   public-domain files, which are all solo-piano score previews.
 1. **The USSR anthem.** Instrumental, self-sequenced, lyrics never used — accept the
    residual US risk (finding 3.1.2), or take Glinka's *Patriotic Song* instead and
-   have zero risk? **This blocks the title-screen music.**
+   have zero risk? **This blocks the title-screen music.** *Superseded in
+   practice*: the CEO chose the Internationale for the title on 2026-10-13, so
+   this is now only about whether the anthem appears anywhere at all.
 2. **Russia-free / US-blocked works**, principally *Священная война*. Our distribution
    will in practice be US-hosted. Do we exclude that whole category, or accept it for
    a free non-commercial mod? **My recommendation: exclude.** The dramatic value is
@@ -297,8 +451,16 @@ Declared here so `mod-engineer` and `level-designer` can plan; no files exist ye
    for title, intermission and diegetic radio. That is the cheapest and safest plan
    and it is also, I think, the better-sounding one.
 
-Nothing has been downloaded. On approval I will come back with a specific list of
-files (source, exact URL, size) before fetching anything, per the project rule.
+4. **Orchestration labour.** Every free MIDI of the Russian classics is a
+   solo-piano score preview (§4.2). Making one usable means we assign the
+   instruments — which is the work the CEO wanted to avoid by downloading.
+   The choice is: ship piano, pay the orchestration labour, or accept IMSLP's
+   CC BY 4.0 **MP3** renders and a larger PK3. **My recommendation: pay the
+   orchestration labour on one piece only**, and keep the rest for diegetic
+   use where piano is plausible.
+
+Twelve files have been downloaded to `work/audio/candidates/` (§4.4), ~204 KB
+in total. **Nothing is in `assets/` and nothing is in the PK3.**
 
 ---
 
