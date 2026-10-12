@@ -94,5 +94,106 @@ class Batch1Tests(unittest.TestCase):
         self.assertTrue(np.array_equal(builder(), self.built[lump][1]))
 
 
+@unittest.skipUnless(HAVE_IMAGING, "Pillow/numpy not available in this interpreter")
+class EmblemGeometryTests(unittest.TestCase):
+    """SDSTAR1 v3: the hammer and sickle follow the CEO's reference, not its
+    mirror image (the v2 mistake). Points are in the unit square of
+    gen_soviet_base (origin top-left, y down); every GOLD point has a RED
+    twin at the position the mirrored layout would paint, so a flipped
+    emblem fails."""
+
+    BOX = 256
+    GOLD, RED = (0.0, 0.0, 0.0), (0.0, 0.0, 0.0)  # filled in setUpClass
+    # (gold point, its red twin)
+    PAIRS = [
+        ((0.33, 0.26), (0.15, 0.15)),   # hammer head top-left; nothing further up-left
+        ((0.61, 0.585), (0.39, 0.585)), # hammer handle runs down-right, opening stays empty
+        ((0.90, 0.56), (0.22, 0.56)),   # blade thick on the right, thin/absent on the left
+        ((0.56, 0.90), (0.56, 0.12)),   # blade thick at the bottom, only the tip at the top
+        ((0.10, 0.92), (0.90, 0.92)),   # sickle handle bottom-left, not bottom-right
+    ]
+
+    @classmethod
+    def setUpClass(cls):
+        import numpy as np
+        import gen_soviet_base as gen
+        from artlib import Overlay, ramp_colour
+        cls.gen = gen
+        cls.gold = np.array(ramp_colour("hazard_yellow", 0.88), dtype=float)
+        cls.red = np.array(ramp_colour("flag_red", 0.70), dtype=float)
+        bg = np.full((cls.BOX, cls.BOX, 3), cls.red, dtype=np.uint8)
+        ov = Overlay(cls.BOX, cls.BOX)
+        gen.hammer_sickle(ov, cls.BOX / 2, cls.BOX / 2, cls.BOX / 2,
+                          tuple(int(c) for c in cls.gold), ramp_colour("flag_red", 0.25))
+        cls.img = ov.composite(bg).astype(float)
+
+    def _is_gold(self, u, v):
+        import numpy as np
+        px = self.img[int(v * self.BOX), int(u * self.BOX)]
+        return np.linalg.norm(px - self.gold) < np.linalg.norm(px - self.red)
+
+    def test_layout_matches_reference_not_mirror(self):
+        for gold_pt, red_pt in self.PAIRS:
+            self.assertTrue(self._is_gold(*gold_pt), f"expected gold at {gold_pt}")
+            self.assertFalse(self._is_gold(*red_pt), f"expected red at {red_pt}")
+
+    def test_hammer_head_clears_sickle_tip(self):
+        import numpy as np
+        g = self.gen
+        c = np.array(g.HAMMER_HEAD_C)
+        hs, he = (np.array(p) for p in g.HAMMER_HANDLE)
+        hd = (he - hs) / np.linalg.norm(he - hs)
+        hn = np.array([-hd[1], hd[0]])
+        d = np.array(g.SICKLE_TIP) - c
+        over = np.array([max(0.0, abs(d @ hn) - g.HAMMER_HEAD_L / 2),
+                         max(0.0, abs(d @ hd) - g.HAMMER_HEAD_W / 2)])
+        self.assertGreaterEqual(np.linalg.norm(over), g.HAMMER_TIP_CLEARANCE)
+
+    def test_hammer_handle_slope(self):
+        import numpy as np
+        hs, he = (np.array(p) for p in self.gen.HAMMER_HANDLE)
+        self.assertGreater(he[0], hs[0])   # to the right
+        self.assertGreater(he[1], hs[1])   # downwards (y down)
+        slope = np.degrees(np.arctan2(he[1] - hs[1], he[0] - hs[0]))
+        self.assertAlmostEqual(slope, 52.0, delta=3.0)
+
+
+ASSETS_DIR = PROJECT_ROOT / "assets"
+WORK_ART_DIR = PROJECT_ROOT / "work" / "art"
+FLAT_SIZE = (64, 64)
+WALL_SIZES = [(64, 128), (128, 128)]
+
+
+@unittest.skipUnless(HAVE_IMAGING, "Pillow/numpy not available in this interpreter")
+class ApprovedAssetsTests(unittest.TestCase):
+    """assets/ holds only CEO-approved PNGs, copied byte for byte from work/
+    (gitignored). The identity check is skipped where work/ does not exist
+    (fresh clone, CI); the layout checks always run."""
+
+    def setUp(self):
+        self.pngs = sorted(ASSETS_DIR.rglob("*.png")) if ASSETS_DIR.is_dir() else []
+
+    def test_layout_names_and_sizes(self):
+        from PIL import Image
+        for p in self.pngs:
+            kind = p.relative_to(ASSETS_DIR).parts[0]
+            self.assertIn(kind, ("textures", "flats"), p)
+            self.assertRegex(p.stem, LUMP_RE)
+            with Image.open(p) as img:
+                self.assertEqual(img.mode, "P", p)
+                if kind == "flats":
+                    self.assertEqual(img.size, FLAT_SIZE, p)
+                else:
+                    self.assertIn(img.size, WALL_SIZES, p)
+
+    def test_identical_to_work_source(self):
+        if not WORK_ART_DIR.is_dir():
+            self.skipTest("work/ not present (gitignored work-in-progress)")
+        for p in self.pngs:
+            sources = list(WORK_ART_DIR.rglob(p.name))
+            self.assertEqual(len(sources), 1, f"{p.name}: expected one source in work/, got {sources}")
+            self.assertEqual(p.read_bytes(), sources[0].read_bytes(), f"{p} differs from {sources[0]}")
+
+
 if __name__ == "__main__":
     unittest.main()

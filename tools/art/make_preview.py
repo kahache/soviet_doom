@@ -25,9 +25,15 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MANIFEST = PROJECT_ROOT / "work" / "art" / "batch1" / "manifest.json"
 PALETTE_JSON = PROJECT_ROOT / "docs" / "art" / "palette.json"
+TEXTURE_INDEX = PROJECT_ROOT / "docs" / "art" / "TEXTURE-INDEX.md"
 PREVIEW_DIR_EN = PROJECT_ROOT / "docs" / "art" / "previews"
 PREVIEW_DIR_RU = PROJECT_ROOT / "docs" / "ru" / "art" / "previews"
 SLUG = "F2_batch1-soviet-base"
+
+# The status shown on each card is read from the texture index (the single
+# owner of that fact); its vocabulary is English in both index mirrors.
+STATUS_COLUMN = "Status"
+STATUS_FALLBACK = "proposed"
 
 # Zoom factors shown on the sheet. 4x is the "Doom at 1080p" feel; the 2x2
 # tile at 2x shows seams at a size where they would be visible in-game.
@@ -39,7 +45,9 @@ LABELS = {
         "title": "Soviet Doom — texture batch 1: Soviet base (F2)",
         "intro": "Every texture below is procedural (script + seed) and quantised to the mod palette. "
                  "Look at the 4x view for detail and at the 2x2 tile for seams. Mark each card with "
-                 "Approve / Discard, add a note if you like, then copy the summary box into the chat.",
+                 "Approve / Discard, add a note if you like, then copy the summary box into the chat. "
+                 "The status in the corner of each card comes from docs/art/TEXTURE-INDEX.md: "
+                 "only the cards not yet approved need a verdict.",
         "palette": "Palette", "palette_note": "{n} colours in {r} ramps (max 256). Source: docs/art/palette.json.",
         "fonts": "Fonts", "summary": "Summary to paste in chat", "copy": "Copy",
         "approve": "Approve", "discard": "Discard", "reset": "Reset", "note": "note…",
@@ -47,8 +55,8 @@ LABELS = {
         "origin": "Origin", "colours": "Colours used", "seam": "Seam ratio",
         "seam_help": "wrap-edge contrast / strongest interior edge; ≤ 1 means the seam is no stronger than a feature inside the texture",
         "view1": "1x", "view4": "4x", "tile": "2x2 tile", "licence": "Licence",
-        "licence_val": "own work, CC BY-NC-SA 4.0 planned (pending CEO decision)",
-        "status": "status: proposed", "none": "(nothing marked yet)",
+        "licence_val": "own work, CC BY-NC-SA 4.0 (D15)",
+        "status": "status: {s}", "none": "(nothing marked yet)",
         "approved": "APPROVED", "discarded": "DISCARDED", "undecided": "UNDECIDED",
         "mirror": "Russian mirror: docs/ru/art/previews/",
     },
@@ -56,7 +64,9 @@ LABELS = {
         "title": "Soviet Doom — партия текстур 1: советская база (F2)",
         "intro": "Все текстуры ниже процедурные (скрипт + зерно) и приведены к палитре мода. "
                  "Смотрите вид 4x для деталей и плитку 2x2 для швов. Отметьте каждую карточку "
-                 "«Одобрить» / «Отклонить», при желании добавьте заметку и скопируйте сводку в чат.",
+                 "«Одобрить» / «Отклонить», при желании добавьте заметку и скопируйте сводку в чат. "
+                 "Статус в углу карточки берётся из docs/art/TEXTURE-INDEX.md: вердикт нужен только "
+                 "по ещё не одобренным карточкам.",
         "palette": "Палитра", "palette_note": "{n} цветов в {r} рампах (максимум 256). Источник: docs/art/palette.json.",
         "fonts": "Шрифты", "summary": "Сводка для вставки в чат", "copy": "Копировать",
         "approve": "Одобрить", "discard": "Отклонить", "reset": "Сброс", "note": "заметка…",
@@ -64,8 +74,8 @@ LABELS = {
         "origin": "Происхождение", "colours": "Использовано цветов", "seam": "Коэф. шва",
         "seam_help": "контраст на стыке / самый сильный внутренний контраст; ≤ 1 значит, что шов не заметнее деталей внутри текстуры",
         "view1": "1x", "view4": "4x", "tile": "плитка 2x2", "licence": "Лицензия",
-        "licence_val": "собственная работа, планируется CC BY-NC-SA 4.0 (ждёт решения CEO)",
-        "status": "статус: предложена", "none": "(пока ничего не отмечено)",
+        "licence_val": "собственная работа, CC BY-NC-SA 4.0 (D15)",
+        "status": "статус: {s}", "none": "(пока ничего не отмечено)",
         "approved": "ОДОБРЕНО", "discarded": "ОТКЛОНЕНО", "undecided": "НЕ РЕШЕНО",
         "mirror": "Английский оригинал: docs/art/previews/",
     },
@@ -113,9 +123,26 @@ def b64(path: Path) -> str:
     return "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode("ascii")
 
 
+def index_statuses(index_md: Path = TEXTURE_INDEX) -> dict[str, str]:
+    """{lump: status} from the Markdown tables of the texture index: any row
+    whose first cell is a back-quoted lump, status taken from the column
+    named STATUS_COLUMN of the nearest header above it."""
+    statuses, status_col = {}, None
+    for line in index_md.read_text(encoding="utf-8").splitlines():
+        if not line.startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if STATUS_COLUMN in cells:
+            status_col = cells.index(STATUS_COLUMN)
+        elif status_col is not None and cells[0].startswith("`") and len(cells) > status_col:
+            statuses[cells[0].strip("`")] = cells[status_col]
+    return statuses
+
+
 def build(lang: str, manifest: dict, palette: dict, stamp: str) -> str:
     L = LABELS[lang]
     e = html.escape
+    statuses = index_statuses()
     ramps_html = "".join(
         f'<div class="ramp"><span class="n">{e(r["name"])}</span><span class="sw">'
         + "".join(f'<i style="background:rgb({c[0]},{c[1]},{c[2]})" title="{c}"></i>' for c in r["colours"])
@@ -132,7 +159,7 @@ def build(lang: str, manifest: dict, palette: dict, stamp: str) -> str:
         desc = t["description_" + lang]
         cards.append(f"""
 <div class="card" id="c-{t['lump']}" data-lump="{t['lump']}">
-  <h3>{t['lump']}</h3><span class="st">{L['status']}</span>
+  <h3>{t['lump']}</h3><span class="st">{e(L['status'].format(s=statuses.get(t['lump'], STATUS_FALLBACK)))}</span>
   <p class="desc">{e(desc)}</p>
   <div class="views">
     <div class="v">{L['view1']}<img class="px" src="{src}" width="{w}" height="{h}" alt="{t['lump']}"></div>
