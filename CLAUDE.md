@@ -38,7 +38,7 @@ docs EN+RU, 1977, two allied factions (Fourth Reich, Liberty Legion),
 Sergeant Ramon Vilanova, serious tone, symbols on enemies, lore v1, licence
 GPL-3.0 code + CC BY-NC-SA 4.0 assets. Art tooling ready (`.venv/`).
 
-**F2 — in progress: batch 1 verdict applied, 8 textures approved.** CEO
+**F2 — CLOSED (gate G2 PASS 2026-10-12). 9 textures approved.** CEO
 verdict 2026-10-12: palette and fonts ratified; `SDCONC1`, `SDSTEL1`,
 `SDDOOR1`, `SDFLR1-3`, `SDCEIL1-2` approved and moved to `assets/`;
 `SDCONC2` pending in-map review; `SDPOSTR2` approved, text confirmed as
@@ -49,11 +49,22 @@ reference, the head lowered to mid-height, the loose sickle spike removed,
 and the texture widened to **128×128**; chosen by the CEO from a
 drawing-only variant sheet. Preview
 `docs/art/previews/2026-10-12_2229_F2_batch1-soviet-base.html` (EN/RU).
-Suites: **build 25 · art 14**. Gate G2 (≥ 8 approved) met, not yet signed.
+Suites: **build 25 · art 14**. **Gate G2 signed PASS 2026-10-12** (`docs/qa/GATE-REVIEWS.md`): 9 textures approved, all with origin and licence, palette ratified.
 
 Method note: for visual iteration, generate the drawing alone and judge it in
 the main session before touching the texture — the agent reading back its own
 images in a growing context is what made the emblem expensive.
+
+**F3/F4 — in progress in parallel:** MAP01 Zarya-7 design, the seven-weapon
+arsenal in ZScript, the Lenin poster (posterised from a public-domain 1920
+photograph) and an automated GZDoom smoke test.
+
+Music rights (`docs/sound/MUSIC-RIGHTS.md`): the Soviet anthem's **music** is
+free in Russia since 2021 but its **lyrics are protected until the 2080s**;
+works free in Russia are often still restored in the United States, which is
+where we would host. Clean picks: La Internacional, Tchaikovsky's Slavonic
+March, Mussorgsky, Borodin, Scriabin, Glinka. A free composition never implies
+a free recording.
 
 Copyright finding (`docs/product/2026-10-12_2000_F2_pm-soviet-art-copyright.md`):
 Soviet posters of the 1950s-80s are **still protected** (life + 70, +74 for
