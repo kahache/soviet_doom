@@ -1,10 +1,28 @@
 // ZSCRIPT entry point. GZDoom reads the root lump "ZSCRIPT" (this file,
 // extension stripped) and follows #include directives. Keep this file as a
-// table of contents only; real code lives under zscript/sd/.
+// table of contents only; real code lives under zscript/.
 //
 // The version pin tells the compiler which language level to enforce and
 // is the minimum GZDoom the mod admits. 4.12 per the F0 brief; revisit when
 // the CEO fixes the minimum version (decision D3).
 version "4.12"
 
+// --- Systems --------------------------------------------------------------
 #include "zscript/sd/load_reporter.zs"
+#include "zscript/sd/player.zs"
+#include "zscript/sd/ammo.zs"        // Soviet names for the four Doom ammo pools
+
+// --- Arsenal (F4): one class per file, one weapon per Doom slot -----------
+// Projectiles come before the weapons that fire them for readability only;
+// ZScript resolves class names regardless of include order.
+#include "zscript/weapons/pg7_grenade.zs"
+#include "zscript/weapons/flame_blob.zs"
+#include "zscript/weapons/katyusha_rocket.zs"
+
+#include "zscript/weapons/shovel.zs"          // slot 1
+#include "zscript/weapons/tokarev.zs"         // slot 2
+#include "zscript/weapons/izh.zs"             // slot 3
+#include "zscript/weapons/ppsh.zs"            // slot 4
+#include "zscript/weapons/rpg7.zs"            // slot 5
+#include "zscript/weapons/roks3.zs"           // slot 6
+#include "zscript/weapons/katyusha.zs"        // slot 7

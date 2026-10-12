@@ -7,6 +7,12 @@ GameInfo
 {
 	// Register the mod's ZScript event handlers (class names in zscript/sd/).
 	AddEventHandlers = "SD_LoadReporter"
+
+	// The mod's own player class (F4). A player pawn cannot be installed
+	// with `replaces`; PlayerClasses is the documented way and it OVERRIDES
+	// the previous list, so Freedoom's marine and its weapon slots are gone.
+	// ZDoom wiki: MAPINFO/GameInfo definition, "Creating new player classes".
+	PlayerClasses = "SD_Player"
 }
 
 clearepisodes
@@ -28,6 +34,42 @@ map MAP01 lookup "SD_MAP01_NAME"
 	music = ""
 	// SKY1 exists in both doom2.wad and freedoom2.wad. The room has no sky
 	// ceiling, but the engine still wants a valid sky texture per map.
+	sky1 = "SKY1"
+	nointermission
+}
+
+// --- Editor numbers (F4) --------------------------------------------------
+// A DoomEdNum is the number a map editor writes into a thing so the engine
+// knows what to spawn. ZScript classes can ONLY get one here (ZDoom wiki,
+// "Editor number"). Soviet Doom reserves 21000-21999; see
+// docs/engine/MOD-SPEC.md for why 14000-14999 was rejected.
+//   21000-21019  weapons      21020-21039  ammo and items
+//   21100-21199  enemies      21200-21299  decorations
+
+DoomEdNums
+{
+	21001 = SD_Shovel
+	21002 = SD_Tokarev
+	21003 = SD_Izh
+	21004 = SD_Ppsh
+	21005 = SD_Rpg7
+	21006 = SD_Roks3
+	21007 = SD_HandKatyusha
+
+	// The arsenal is exactly seven weapons (D13). Doom's chainsaw and super
+	// shotgun have no Soviet counterpart, so their editor numbers spawn
+	// nothing: a stray Freedoom pickup can never reintroduce them.
+	82 = None     // SuperShotgun
+	2005 = None   // Chainsaw
+}
+
+map MAP02 lookup "SD_MAP02_NAME"
+{
+	// Engineering test range (F4). Not part of the campaign: it is reached
+	// with `MAP=MAP02 tools/run.sh` and exists to prove every weapon can be
+	// picked up, fired and made to do damage.
+	next = "MAP02"
+	music = ""
 	sky1 = "SKY1"
 	nointermission
 }

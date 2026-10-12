@@ -2,8 +2,9 @@
 
 Owner: `mod-engineer`. Contract with `level-designer` and `art-director`:
 names, paths and lumps the engine expects. **Changing it = updating this doc
-before the code.** Status: F4 arsenal verified on GZDoom 4.14.2, 2026-10-12
-(F0 pipeline verified 2026-10-09).
+before the code.** Status: F4 arsenal verified on GZDoom 4.14.2, 2026-10-12;
+ammunition renamed and the shovel silenced after the CEO's play session,
+2026-10-13 (F0 pipeline verified 2026-10-09).
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -37,12 +38,13 @@ sovietdoom.pk3
 ├── LANGUAGE                localized text: [enu default] and [ru] (D7)
 ├── SNDINFO                 logical sound name -> lump (F4)
 ├── zscript.txt             ZScript entry: version + #include
-├── zscript/sd/*.zs         systems (event handlers, player class)
+├── zscript/sd/*.zs         systems (event handlers, player class, ammo)
 ├── zscript/weapons/*.zs    the arsenal, one class per file (F4)
 ├── maps/MAP01.wad          one WAD per map, lumps MAP01, TEXTMAP, ENDMAP
 ├── maps/MAP02.wad          engineering test range (F4)
 ├── textures/  flats/       own wall textures and flats
 ├── sprites/  sounds/  music/  graphics/  patches/  hires/
+├── (debt T9) fonts/defsmallfont/<HEX>.png   Cyrillic glyphs for SmallFont
 └── (future) ANIMDEFS, TEXTURES, GLDEFS, CVARINFO at the root
 ```
 
@@ -174,7 +176,7 @@ right-hand column**; replacing a sound means dropping
 
 | Logical name | F4 placeholder | Final lump to deliver |
 |---|---|---|
-| `sd/weapon/shovel/swing` | `DSSAWUP` | `SDSHSWG` |
+| `sd/weapon/shovel/swing` | **none — silent** | `SDSHSWG` |
 | `sd/weapon/shovel/hit` | `DSPUNCH` | `SDSHHIT` |
 | `sd/weapon/tokarev/fire` | `DSPISTOL` | `SDTTFIR` |
 | `sd/weapon/izh/fire` | `DSSHOTGN` | `SDIZFIR` |
@@ -186,6 +188,16 @@ right-hand column**; replacing a sound means dropping
 | `sd/weapon/katyusha/charge` | `DSBFG` | `SDHKCHG` |
 | `sd/weapon/katyusha/fire` | `DSRLAUNC` | `SDHKFIR` |
 | `sd/weapon/katyusha/burst` | `DSBAREXP` | `SDHKEXP` |
+
+The shovel's **swing is deliberately silent** since 2026-10-13. It pointed
+at `DSSAWUP`, the chainsaw start-up, and the CEO heard a chainsaw. Freedoom's
+only swing-through-air lump is `DSSKESWG`, the revenant's melee wind-up,
+which would teach the player that a monster is about to hit them; Doom's own
+`Fist` has no swing sound either. Both the `SNDINFO` entry and the
+`A_StartSound` call in `SD_Shovel`'s `Fire` state are gone, and the two lines
+that restore them are written out at the top of `SNDINFO`.
+`tests/test_arsenal.py` fails if any placeholder points at a `*SAW*` lump.
+See `docs/engine/adr/003-ammo-naming-and-the-silent-shovel.md`.
 
 ### 6.3 Sprites to be drawn (contract with `art-director`)
 
@@ -208,6 +220,85 @@ what HUD weapon sprites use. F4 runs on Freedoom lumps; the names below are
 Frame counts follow the Doom weapon each one replaces, so the existing state
 machines need no edit when the art lands — only the four-letter name in
 each state line.
+
+**What the Freedoom placeholders look like today** (CEO play session,
+2026-10-13). These are art defects, not engine defects: the mod sets no
+`Scale` and no sprite offsets on any of them, and the offsets below are the
+IWAD's own and are correct (`left = width / 2`, `top = height`, i.e. centred
+and standing on the floor).
+
+| Slot | Placeholder in use | What the CEO sees | Reality |
+|---|---|---|---|
+| 1, held | `PUNG` A–D (96×46 / 256×32) | "the sleeve is the same colour as the fist" | It **is** a bare fist: Freedoom's punch sprite, no sleeve, no shovel. Replaced by `SDSH` A–E. |
+| 1, pickup | `CSAW` A | a chainsaw on the floor | Replaced by `SDSP` A. |
+| ammo | `CLIP` 7×12, `AMMO` 17×16, `SHEL` 14×10, `SBOX` 34×13, `ROCK` 10×24, `BROK` 52×20, `CELL` 19×12, `CELP` 32×20, `BPAK` 26×30 | "the ammunition has no three-dimensional look" | Confirmed: Freedoom's own pickup art, flat and lightly shaded. Nothing to fix in code. Soviet crates are art debt **T8**. |
+
+The ammo pickups are the only IWAD sprites the mod now *owns the class of*
+(§6.4), so swapping them later is a one-line `Spawn` state edit per class,
+with no change anywhere else.
+
+### 6.4 Ammunition (contract with `art-director` and `level-designer`)
+
+The mod creates **no new ammo pools**: the four Doom pools are exactly the
+four the arsenal needs. What it owns is the nine pickup actors, declared in
+`zscript/sd/ammo.zs`, so that the player reads 1977 Soviet nomenclature
+instead of "bullets" and "shells" (CEO decision, 2026-10-13).
+
+| Pool | Pickup classes (ours) | Replaces | Used by | Name (`LANGUAGE`) |
+|---|---|---|---|---|
+| `Clip` | `SD_Clip`, `SD_ClipBox` | `Clip`, `ClipBox` | TT-33, PPSh-41 | `AMMO_CLIP` — 7.62x25 / «Патроны 7,62×25» |
+| `Shell` | `SD_Shell`, `SD_ShellBox` | `Shell`, `ShellBox` | IZh-58 | `AMMO_SHELLS` — 12 gauge / «Патроны 12 кал.» |
+| `RocketAmmo` | `SD_RocketAmmo`, `SD_RocketBox` | `RocketAmmo`, `RocketBox` | RPG-7 | `AMMO_ROCKETS` — PG-7V / «Выстрелы ПГ-7В» |
+| `Cell` | `SD_Cell`, `SD_CellPack` | `Cell`, `CellPack` | ROKS-3, hand Katyusha | `AMMO_CELLS` — fuel / «Горючее» |
+| — | `SD_Backpack` | `Backpack` | — | pickup line `SD_GOT_BACKPACK` |
+
+Rules that matter to the other roles:
+
+- **Maps keep using the Doom editor numbers** (2007/2048 clip, 2008/2049
+  shell, 2010/2046 rocket, 2047/17 cell, 8 backpack). `replaces` does the
+  rest; our classes get no editor number of their own.
+- Each class subclasses the Doom pickup it replaces. That is what keeps the
+  pool Doom's: `GetParentAmmo()` walks up to the first child of `Ammo`.
+  **Never** re-parent one of these to `Ammo` directly — it would silently
+  create a fifth pool.
+- **Pickup lines come from `SD_GOT_*` ids, never from `GOTCLIP` and
+  friends.** Freedoom redefines those nine ids in its `DEHACKED` lump, and a
+  `DEHACKED` string replacement beats a `LANGUAGE` lump loaded afterwards
+  (verified in-engine, 2026-10-13). A test enforces this.
+- **The English section of `LANGUAGE` is ASCII until debt T9 is paid.**
+  Freedoom's `SmallFont` has no Cyrillic — GZDoom's glyph pack is under
+  `filter/doom.id/`, which Freedoom does not select — so Cyrillic prints as
+  blanks. Verified: `ПГ-7В` printed as ` -7B`, and even `×` printed blank.
+  The Cyrillic lives in the `[ru]` section and is already correct.
+
+**Brief for `art-director` (debt T9), mechanism verified.** Dropping
+`fonts/defsmallfont/<HEX>.png` into the PK3 extends GZDoom's `SmallFont` on
+Freedoom — tested 2026-10-13 with two throwaway glyphs, `П` and `Г`, which
+rendered. The set to draw, in Freedoom's small-font style, as
+`src/fonts/defsmallfont/<HEX>.png`: **U+0410–U+042F** (32 uppercase Cyrillic
+letters), **U+0401** (`Ё`), **U+00AB / U+00BB** (`«»`) and **U+00D7** (`×`).
+Doom's small font is uppercase-only, so lowercase is not needed. When they
+land, the English section goes Cyrillic and the Russian build becomes
+legible in the same change.
+
+### 6.5 Status bar — open question for the CEO
+
+The words **AMMO**, **HEALTH**, **ARMS** and **ARMOR** the CEO wants in
+Cyrillic are **not text**: they are pixels painted inside the IWAD's `STBAR`
+graphic (320×32 in `freedoom2.wad`, verified; the grey weapon digits are a
+second lump, `STARMS`, 38×32). No `LANGUAGE` string reaches them. Two ways out, neither
+done:
+
+| Way | What it is | Cost | Consequence |
+|---|---|---|---|
+| **Own `STBAR`** | `art-director` repaints one 320×32 graphic with Cyrillic labels; it ships as `src/graphics/STBAR.png` and overrides the IWAD lump by name (standard lump replacement; **not yet verified in this project**). | ~1 art task, 0 code | Cheapest. The bar keeps Doom's exact layout, and the numbers keep working untouched. Locked to one language — the Russian and English builds would show the same bar. |
+| **Own status bar** | A `SBARINFO` lump or a ZScript `BaseStatusBar` subclass draws the whole bar ourselves. | ~1 engineering task + the same art | Full control: localized labels, Soviet layout, our own ammo `Tag`s finally visible. Also our bug surface, and it has to be redrawn for the alt-HUD and widescreen. |
+
+**Recommendation: neither yet.** Do the Cyrillic font first (T9) — it is one
+art task, it unblocks *every* string in the game instead of four words, and
+it is a prerequisite for a localized status bar anyway. Then repaint `STBAR`
+in F6 when `art-director` is doing HUD art in one pass. A ZScript status bar
+is worth it only if we decide the HUD itself should stop looking like Doom's.
 
 ## 7. Commands
 
@@ -249,9 +340,13 @@ disagree, the code is right and the doc is the bug.
 | # | Debt | Pay it in |
 |---|---|---|
 | T1 | Every weapon sprite and sound is a Freedoom placeholder (§6.2, §6.3). | F4, once `art-director` and `sound-designer` deliver |
-| T2 | Ammo pickups still read as Freedoom items; the four pools are not renamed in `LANGUAGE`. | F4 (cheap) or F6 |
+| ~~T2~~ | ~~Ammo pickups still read as Freedoom items.~~ **Paid 2026-10-13**: §6.4. |  |
 | T3 | `Player.DisplayName` is a plain English literal, not a `LANGUAGE` lookup — unverified whether that property resolves `$IDs`. | F5 |
 | T4 | Freedoom's `Chainsaw` and `SuperShotgun` classes still exist; only their editor numbers were removed. | F6, if it ever matters |
 | T5 | The DPS figures in `BALANCE.md` are computed, not measured against real enemies. | F5, when the bestiary has hit points |
 | T6 | `MAP02` uses Freedoom monsters and barrels as targets. | F5, swap for the real bestiary |
 | T7 | No `CVARINFO` yet; nothing in the arsenal is player-tunable. | when a gameplay option needs it |
+| T8 | Ammo and backpack pickups are Freedoom sprites: flat, not Soviet crates (§6.3). | F5/F6 with the rest of the pickup art |
+| T9 | **No Cyrillic in the game's font.** Freedoom's `SmallFont` is ASCII, so the `[ru]` build and any Cyrillic in English print as blanks. Brief and verified mechanism in §6.4. | next `art-director` batch — it blocks D7 in-game and the status bar |
+| T10 | The shovel swing is silent (§6.2). | F4, when `sound-designer` delivers `SDSHSWG` |
+| T11 | `AMMO`/`HEALTH`/`ARMS`/`ARMOR` are pixels in the IWAD's `STBAR` (§6.5). Open question for the CEO. | F6, after T9 |

@@ -1,0 +1,112 @@
+name: CI
+
+# Runs the static half of the four-greens verification (docs/PIPELINE.md,
+# stage 5) on every push and every pull request against main:
+#
+#   1. python3 tools/build.py                 -> dist/sovietdoom.pk3
+#   2. python3 tools/check_pk3.py              -> structure/textures/licences
+#   3. python3 -m unittest discover -s tests   -> the suite
+#
+# What this workflow deliberately does NOT do: run tools/smoke.py. That
+# script boots GZDoom against an IWAD, and this runner has neither. Freedoom
+# alone is a ~23 MB download per run for a check that is cheap to do by hand;
+# the engine smoke test stays the committer's responsibility, locally, before
+# every push (docs/PIPELINE.md, stage 5). See the "Engine smoke test" step
+# below, which only explains this and always succeeds.
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build, validate and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Repo hygiene (no stray WAD/PK3, no files over 5 MB)
+        shell: bash
+        run: |
+          set -u
+          violations=0
+
+          # Only committed files: this reads the git index, so anything
+          # covered by .gitignore (dist/, iwads/, work/, *.wad except the
+          # documented src/maps/*.wad exception) never reaches this check.
+          while IFS= read -r -d '' f; do
+            case "$f" in
+              dist/*) continue ;;
+              src/maps/*.wad) continue ;;  # MOD-SPEC: UDB-built map WADs are committed as-is
+            esac
+            case "$f" in
+              *.wad|*.pk3)
+                echo "::error file=$f::committed .wad/.pk3 outside dist/ (and not a src/maps/ level WAD) — don't fatten the repo with built output"
+                violations=1
+                ;;
+            esac
+          done < <(git ls-files -z)
+
+          max_bytes=$((5 * 1024 * 1024))
+          while IFS= read -r -d '' f; do
+            size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f")
+            if [ "$size" -gt "$max_bytes" ]; then
+              echo "::error file=$f::${size} bytes, over the 5 MB limit for a committed file"
+              violations=1
+            fi
+          done < <(git ls-files -z)
+
+          if [ "$violations" -ne 0 ]; then
+            echo "Repo hygiene check failed: see the annotations above."
+            exit 1
+          fi
+          echo "Repo hygiene OK: no stray WAD/PK3, nothing over 5 MB."
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # tools/build.py and tools/check_pk3.py only use the standard library.
+      # tests/test_art.py imports Pillow/numpy but guards every such test
+      # with @unittest.skipUnless(HAVE_IMAGING, ...) precisely so the suite
+      # stays green on an interpreter that lacks them (see its own docstring:
+      # "The system python3 may lack Pillow/numpy; those tests are then
+      # skipped"). CI intentionally takes that path instead of installing
+      # them: it keeps this workflow to the minimum the three required
+      # commands actually need. Running the full art-pipeline checks
+      # (palette, emblem geometry, approved-asset layout) locally still
+      # needs `.venv/bin/pip install pillow numpy` per CLAUDE.md.
+      - name: Build the mod package
+        run: python3 tools/build.py
+
+      - name: Upload built PK3 as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sovietdoom-pk3
+          path: dist/sovietdoom.pk3
+          if-no-files-found: error
+
+      - name: Validate the PK3 (static checks)
+        run: python3 tools/check_pk3.py
+
+      - name: Run the test suite
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Engine smoke test (NOT run in CI — local responsibility)
+        if: always()
+        run: |
+          echo "tools/smoke.py boots GZDoom against an IWAD; this runner has neither,"
+          echo "and installing them here would mean downloading Freedoom (~23 MB) on"
+          echo "every single run for a check that is cheap to do by hand. Not worth it yet."
+          echo
+          echo "The engine smoke test remains the committer's responsibility, LOCALLY,"
+          echo "before every push (docs/PIPELINE.md, stage 5):"
+          echo "  tools/run.sh"
+          echo "  python3 tools/smoke.py --map MAP01"

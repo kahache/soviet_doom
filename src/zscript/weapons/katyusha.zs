@@ -1,0 +1,86 @@
+// SD_HandKatyusha - slot 7, the "hand Katyusha": a secret 1977 prototype
+// that straps a six-rail rocket battery to a shoulder frame.
+//
+// Replaces Doom's BFG9000 and, like it, costs 40 cells per shot. Where the
+// BFG concentrates everything on one target, the Katyusha fans a salvo:
+// weaker against a single boss, better against a crowd. That is the point
+// of a Katyusha and it is what makes slot 7 feel Soviet rather than borrowed.
+//
+// Sprites are Freedoom (IWAD) PLACEHOLDERS: BFGG (held), BFGF (flash),
+// BFUG (pickup). Final lumps: SDHK A-C, SDHF A-B, SDHP A.
+// Balance rationale: docs/engine/BALANCE.md.
+
+class SD_HandKatyusha : BFG9000 replaces BFG9000
+{
+	const SD_KATYUSHA_ROCKETS  = 6;     // one per rail
+	const SD_KATYUSHA_SPREAD   = 12.5;  // degrees either side of the aim line
+	const SD_KATYUSHA_AMMO_USE = 40;    // same as Doom's BFG
+	const SD_KATYUSHA_AMMO_GIVE = 40;
+
+	Default
+	{
+		Height 20;
+		Weapon.SelectionOrder 2800;
+		Weapon.AmmoUse SD_KATYUSHA_AMMO_USE;
+		Weapon.AmmoGive SD_KATYUSHA_AMMO_GIVE;
+		Weapon.AmmoType "Cell";
+		Weapon.SlotNumber 7;
+		+WEAPON.NOAUTOFIRE
+		Obituary "$SD_OB_KATYUSHA";
+		Tag "$SD_TAG_KATYUSHA";
+		Inventory.PickupMessage "$SD_PICKUP_KATYUSHA";
+	}
+
+	States
+	{
+	Ready:
+		BFGG A 1 A_WeaponReady;
+		Loop;
+	Deselect:
+		BFGG A 1 A_Lower;
+		Loop;
+	Select:
+		BFGG A 1 A_Raise;
+		Loop;
+	Fire:
+		// 20 + 10 + 10 + 20 = 60 tics (Doom BFG: 60). The long wind-up is
+		// the rails coming up to firing angle.
+		BFGG A 20 A_StartSound("sd/weapon/katyusha/charge", CHAN_WEAPON);
+		BFGG B 10 A_GunFlash;
+		BFGG B 10 A_SD_FireKatyusha;
+		BFGG B 20 A_ReFire;
+		Goto Ready;
+	Flash:
+		BFGF A 11 Bright A_Light1;
+		BFGF B 6 Bright A_Light2;
+		Goto LightDone;
+	Spawn:
+		BFUG A -1;
+		Stop;
+	}
+
+	// Fires the whole salvo for a single ammo charge: the first rocket pays
+	// for all six, the rest are launched with useammo = false.
+	action void A_SD_FireKatyusha()
+	{
+		if (player == null)
+			return;
+
+		Weapon w = player.ReadyWeapon;
+		if (w != null && invoker == w && stateinfo != null && stateinfo.mStateType == STATE_Psprite)
+		{
+			if (!w.DepleteAmmo(w.bAltFire, true))
+				return;
+		}
+
+		A_StartSound("sd/weapon/katyusha/fire", CHAN_WEAPON);
+
+		for (int i = 0; i < SD_KATYUSHA_ROCKETS; i++)
+		{
+			// Evenly spaced across the fan, from -SPREAD to +SPREAD.
+			double frac = double(i) / double(SD_KATYUSHA_ROCKETS - 1);
+			double ang = -SD_KATYUSHA_SPREAD + 2.0 * SD_KATYUSHA_SPREAD * frac;
+			A_FireProjectile("SD_KatyushaRocket", ang, false);
+		}
+	}
+}
