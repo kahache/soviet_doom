@@ -241,6 +241,13 @@ The PM commits and pushes (D6).
   > a clean checkout with `ImportError`. CI caught it in thirteen seconds.
 - **Green locally is not green.** The only honest check is a clean checkout,
   which is what CI is for. Wait for it before calling a push done.
+- **One commit per agent delivery, as soon as it delivers** (CEO, 2026-10-13).
+  Verify first, then commit that agent's files as a complete set. Pushing can
+  be batched; committing cannot.
+  > Why: six agents in flight took the session to its usage limit with an
+  > uncommitted tree. Agents write to disk as they work, so the files survive,
+  > but an uncommitted tree has no restore point per piece of work, and the
+  > reports that carry the findings die with the agent.
 - One commit per coherent piece of work. The message says what changed, what
   was verified, and what is still open.
 - Push to `main` on `kahache/soviet_doom` once `tools/verify.py full` and the
