@@ -44,14 +44,26 @@ the level can be chosen on evidence rather than in the abstract:
 
 | Level | Map | Effect |
 |---|---|---|
-| **1 — the CEO's core** | R→Я, N→И | Reads as English everywhere. "ZARYA-7 COSMODЯOME", "ИOT OИE STEP BACK" |
-| 2 | + E→Э, W→Ш, A→Д | "ЗДЯУД-7" stops being readable as Zarya |
+| 1 | R→Я, N→И | Reads as English everywhere |
+| **2 — CHOSEN by the CEO 2026-10-13** | + E→Э, W→Ш, A→Д | The level that ships |
 | 3 | + U→Ц, G→Б, D→Д, Y→У, B→Б | Words dissolve; "A BOX" becomes "Д БОХ" |
 
-**Recommendation: level 1, the CEO's own pair, and nothing beyond it.** The
-two he named are the two that survive being read. From level 2 the device
-stops decorating English and starts replacing it, which costs the player
-information rather than giving them flavour.
+The PM recommended level 1; the CEO saw all three rendered on real strings
+and chose 2. Settled.
+
+### One carve-out the level-2 map needs
+
+At level 2 the proper noun **ZARYA-7 renders as ЗДЯУД-7**, which no longer
+reads as the name of the cosmodrome the whole game is set in, and the same
+happens to any calibre or key prompt the player has to act on. The mapping is
+therefore applied to **running text and menus**, and these keep Latin:
+
+- Proper nouns the fiction depends on: ZARYA-7, the faction names.
+- Numbers, calibres and model designations: 7.62x25, PG-7V, PPSh-41.
+- Key prompts and anything the player must type or match.
+
+This is a one-line exclusion list in the font mapping, not a judgement to be
+made string by string.
 
 ### Where it applies
 
