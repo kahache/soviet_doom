@@ -112,13 +112,37 @@ def collect_tree(src: Path, folder: str) -> list[Entry]:
     return entries
 
 
-def collect_entries(src: Path, tools_dir: Path) -> list[Entry]:
+def collect_assets(assets: Path) -> list[Entry]:
+    """Approved art from `assets/<folder>/<set>/NAME.png` -> `<folder>/NAME.png`.
+
+    The art pipeline keeps CEO-approved PNGs in `assets/`, grouped by set
+    (`assets/textures/soviet_base/SDCONC1.png`). GZDoom names a lump after the
+    file, so the set folder is dropped on the way in: the engine sees
+    `textures/SDCONC1.png` and the map's `SDCONC1` resolves. Without this the
+    textures never reach the PK3 and every map referencing them dies with
+    "Unknown texture" (blocker M1, found by level-designer 2026-10-12).
+    """
+    if not assets.is_dir():
+        return []
+    entries: list[Entry] = []
+    for folder in ASSET_DIRS:
+        base = assets / folder
+        if not base.is_dir():
+            continue
+        for p in _iter_files(base):
+            entries.append(Entry(f"{folder}/{p.name}", p.read_bytes()))
+    return entries
+
+
+def collect_entries(src: Path, tools_dir: Path, assets: Path | None = None) -> list[Entry]:
     entries: list[Entry] = []
     entries += collect_lumps(src)
     entries += collect_tree(src, "zscript")
     entries += collect_maps(src, tools_dir)
     for folder in ASSET_DIRS:
         entries += collect_tree(src, folder)
+    if assets is not None:
+        entries += collect_assets(assets)
     seen: set[str] = set()
     for e in entries:
         key = e.path.lower()
@@ -140,10 +164,10 @@ def write_pk3(entries: list[Entry], out: Path) -> None:
     tmp.replace(out)
 
 
-def build(src: Path, out: Path, tools_dir: Path) -> list[Entry]:
+def build(src: Path, out: Path, tools_dir: Path, assets: Path | None = None) -> list[Entry]:
     if not src.is_dir():
         raise BuildError(f"source dir not found: {src}")
-    entries = collect_entries(src, tools_dir)
+    entries = collect_entries(src, tools_dir, assets)
     if not entries:
         raise BuildError(f"nothing to pack under {src}")
     write_pk3(entries, out)
