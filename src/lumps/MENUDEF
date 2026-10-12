@@ -38,6 +38,13 @@ OptionValue "SD_LanguageValues"
 
 OptionMenu "SD_OptionsMenu"
 {
+	// `Class` hands the screen to a ZScript OptionMenu subclass. The only
+	// thing it adds is replacing a `language` of "auto" with the code "auto"
+	// already resolved to, so this row never reads "Unknown" on a config
+	// nobody has touched. It has to live here, in menu code: GZDoom 4.14.2
+	// aborts the VM if the `language` CVar is written from anywhere else
+	// (verified in-engine 2026-10-13). See zscript/sd/language.zs.
+	Class "SD_LanguageMenu"
 	Title "$SD_OPTMNU_TITLE"
 	Option "$SD_OPTMNU_LANGUAGE", "language", "SD_LanguageValues"
 	StaticText " "
