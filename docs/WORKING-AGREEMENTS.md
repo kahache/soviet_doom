@@ -3,10 +3,16 @@
 How we work. Operational law: every agent assumes it; only the CEO changes it.
 Russian mirror: `docs/ru/WORKING-AGREEMENTS.md`.
 
+**The operational sequence — who stops whom, when to ask the CEO, when to
+push — lives in `docs/PIPELINE.md`.** This document holds the rules; that one
+holds the order they happen in.
+
 ## 1. Roles: an "agent startup"
 
 - Roles live in `.claude/agents/`: `art-director`, `level-designer`,
-  `mod-engineer`, `qa-engineer`. The PM is the main session. **The user is
+  `mod-engineer`, `qa-engineer`, plus the routine `translator-ru` and the
+  `pmo`, which guards the paper trail and can block a commit. The PM is the
+  main session. **The user is
   the CEO and decides.**
 - The interface between roles is the artefacts in `docs/`, never the chat
   context. If a role needs something from another, it exists as a document

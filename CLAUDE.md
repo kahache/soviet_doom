@@ -16,6 +16,7 @@ repo documentation is English with a Russian mirror under `docs/ru/` (D7).
 > | **Phases and gates** | `docs/ROADMAP.md` |
 > | Open decisions that block | `docs/PENDING-CEO-DECISIONS.md` |
 > | How we work (roles, gates, docs, language) | `docs/WORKING-AGREEMENTS.md` |
+> | **The pipeline** (stages, ownership, when to ask the CEO, when to push) | `docs/PIPELINE.md` |
 > | Lore, episode, arsenal, bestiary | `docs/product/LORE.md` |
 > | Art direction, palette, texture index, licences | `docs/art/` |
 > | Each map's design | `docs/levels/` |
@@ -89,8 +90,10 @@ not see the game window: use the engine's `screenshot` command.
 Roles in `.claude/agents/`: `art-director` (visual direction, textures,
 sprites, previews), `level-designer` (UDMF maps, flow, light, balance),
 `mod-engineer` (PK3, build, ZScript, definition lumps, ADRs) and
-`qa-engineer` (gates, PK3 validation, playtests, licences), plus the routine
-`translator-ru` (Russian mirrors, pinned to Sonnet 5). The PM is the main
+`qa-engineer` (gates, PK3 validation, playtests, licences), plus two routine roles on
+Sonnet 5: `translator-ru` (Russian mirrors) and `pmo` (guards the paper trail
+and can block a commit, stage 6 of the pipeline). `sound-designer` owns music
+and audio. The PM is the main
 session; **the user is the CEO and decides**. The interface between
 roles is the artefacts in `docs/`, not the conversation. Agent prompts are
 written in Spanish (the CEO's language); their deliverables follow D7.
