@@ -136,6 +136,15 @@ The PM commits and pushes (D6).
 
 - **Commit specific paths, never `git add -A`, while agents are running.**
   > Why: a commit swept up two agents' half-written files on 2026-10-12.
+- **An excluded path is a debt, and the PM owes it.** Every commit that leaves
+  something out names what it left out, and the PM comes back for it before
+  the session ends. Run `git status --short` and read it; untracked is not
+  "later", it is "missing".
+  > Why: the other half of the rule above was missing, and the entire arsenal
+  > — seven weapon classes, the player class, MAP02, SNDINFO — lived only on
+  > one laptop's disk for an hour. `tests/test_arsenal.py` *was* committed, so
+  > `main` was red against code that was not there. Found by the CI agent on
+  > a clean clone, which is exactly what a clean clone is for.
 - One commit per coherent piece of work. The message says what changed, what
   was verified, and what is still open.
 - Push to `main` on `kahache/soviet_doom` once the four greens and the `pmo`
