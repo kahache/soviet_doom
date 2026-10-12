@@ -1,0 +1,68 @@
+# Coverage configuration for Soviet Doom's own tooling (tools/).
+#
+# Scope: this measures *our* Python code, not the mod content itself and
+# not the test harness. `coverage` is a dev-only dependency installed in
+# .venv/ (see tools/coverage.sh); tools/build.py keeps building the PK3
+# with stdlib only, and that must not change.
+#
+# Design rule (binding, see the QA agent brief): exclusions here describe
+# code that genuinely cannot be exercised by importing the module under
+# test — never a shortcut to make the percentage look better. When in
+# doubt, leave it measured and let docs/qa/COVERAGE.md say honestly that
+# it is uncovered.
+
+[run]
+# Only our own code under tools/ (sdbuild/, art/, audio/, and the three
+# root CLIs). tests/ is the harness measuring the product, not the
+# product itself; .venv/ is the virtualenv; work/ is art work-in-progress
+# scratch space (gitignored, never shipped) - none of those are "our
+# code" in the sense the CEO is asking about.
+source = tools
+branch = True
+omit =
+    tests/*
+    .venv/*
+    work/*
+    */__pycache__/*
+
+[report]
+# tools/art/ and tools/audio/ are real code directories without an
+# __init__.py (tests import their modules by bare name via sys.path, not
+# as a package - see tests/test_art.py). Without this flag, coverage.py's
+# "report files that were never executed at all" pass silently skips any
+# directory lacking __init__.py, which would hide whole generator scripts
+# (tools/art/gen_lenin.py, gen_shell.py, make_contact.py, make_preview.py,
+# emblem_check.py; tools/audio/audition.py, gen_music.py) from the report
+# instead of showing them at their true 0%. That is exactly the kind of
+# silent omission this file must not do.
+include_namespace_packages = True
+
+# Default `exclude_lines` already covers `pragma: no cover`, `raise
+# NotImplementedError`, etc. `exclude_also` adds project-specific cases on
+# top of (not instead of) that default set.
+exclude_also =
+    # Script entry guard: this line (and the `sys.exit(main())` clause it
+    # guards) only runs when a file is executed directly as
+    # `python3 tools/x.py`, which is exactly what tools/run.sh and the
+    # CEO-facing commands in CLAUDE.md do, and is never how the test
+    # suite imports these modules (tests always import the module by name
+    # and call main()/build()/etc. with an explicit argv). Measuring it
+    # would require literally forking a subprocess per CLI tool for a
+    # line that contains no logic of its own.
+    if __name__ == .__main__.:
+
+    # Pure argparse wiring, kept in a *separate* parse_args() function in
+    # exactly two tools (tools/check_pk3.py, tools/smoke.py) specifically
+    # so it can be isolated from the logic in main(). It is flag
+    # declarations only (add_argument/choices/defaults/help strings) -
+    # the CLI's actual behaviour lives in main() and the functions it
+    # calls, which ARE measured. Re-testing that argparse parses argv
+    # correctly would test argparse, not this project. Tools where
+    # argparse is built inline inside main() (tools/build.py,
+    # tools/art/gen_lenin.py, tools/art/make_preview.py,
+    # tools/audio/audition.py, tools/audio/gen_music.py) are deliberately
+    # NOT covered by this exclusion: their main() mixes CLI wiring with
+    # real logic, and carving out just the add_argument lines there would
+    # be exactly the kind of cosmetic exclusion we were told not to do -
+    # those files are reported as measured, gaps and all.
+    def parse_args\(

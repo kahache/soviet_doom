@@ -14,3 +14,6 @@ __pycache__/
 .venv/
 # art work-in-progress (batch PNGs live embedded in docs/art/previews; only approved files go to assets/)
 work/
+# coverage.py output (tools/coverage.sh); already caught by logs/ above,
+# spelled out explicitly since it is its own deliverable (docs/qa/COVERAGE.md)
+logs/coverage/
