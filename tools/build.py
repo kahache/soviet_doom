@@ -6,8 +6,9 @@ Usage:
   python3 tools/build.py --out other.pk3
   python3 tools/build.py --print-textmap MAP01   # show generated UDMF
 
-Nothing is added to the PK3 by hand: everything comes from src/ (see
-docs/engine/MOD-SPEC.md for the layout contract).
+Nothing is added to the PK3 by hand: everything comes from src/ plus the
+CEO-approved art in assets/ (see docs/engine/MOD-SPEC.md for the layout
+contract). Art still waiting for a verdict lives in work/ and is NOT packed.
 """
 
 from __future__ import annotations
@@ -26,6 +27,7 @@ from sdbuild.wad import read_lump  # noqa: E402
 
 MOD_NAME = "sovietdoom"  # provisional; the CEO decides the final name (D1)
 DEFAULT_SRC = PROJECT_ROOT / "src"
+DEFAULT_ASSETS = PROJECT_ROOT / "assets"   # approved art only; work/ never ships
 DEFAULT_OUT = PROJECT_ROOT / "dist" / f"{MOD_NAME}.pk3"
 
 
@@ -33,12 +35,14 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--src", type=Path, default=DEFAULT_SRC, help="source tree (default: src/)")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT, help="output .pk3 (default: dist/%s.pk3)" % MOD_NAME)
+    parser.add_argument("--assets", type=Path, default=DEFAULT_ASSETS,
+                        help="approved art tree (default: assets/); pass a missing path to build without art")
     parser.add_argument("--quiet", action="store_true", help="only print errors")
     parser.add_argument("--print-textmap", metavar="MAP", help="print the generated TEXTMAP of MAP and exit")
     args = parser.parse_args(argv)
 
     try:
-        entries = build(args.src, args.out, TOOLS_DIR)
+        entries = build(args.src, args.out, TOOLS_DIR, args.assets)
     except BuildError as exc:
         print(f"build error: {exc}", file=sys.stderr)
         return 1

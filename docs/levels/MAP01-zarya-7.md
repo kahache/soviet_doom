@@ -325,7 +325,8 @@ Strictly increasing (21 < 33 < 46), which G3 checks mechanically.
 
 Principle: **monsters scale up with skill, consumables scale down, weapon
 availability never changes.** A skill-4 player who finds no secret must still
-be able to finish — that is a measured G3 criterion (§11, G3-7), not a hope.
+be able to finish — that is a measured G3 criterion (§11, G3-5 for the run
+and G3-8 for the ammo budget), not a hope.
 
 ## 9. Engine elements used (to be confirmed by `mod-engineer`)
 

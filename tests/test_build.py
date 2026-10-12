@@ -152,3 +152,38 @@ class WadWriterTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ApprovedAssetsInPk3Test(unittest.TestCase):
+    """Blocker M1 (level-designer, 2026-10-12): the CEO-approved PNGs lived in
+    assets/ but the build only packed src/, so every map naming SDCONC1 would
+    have died with "Unknown texture". The build now folds assets/<folder>/<set>/
+    into <folder>/ and this test keeps it that way."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.root = Path(__file__).resolve().parents[1]
+        cls.pk3 = cls.root / "dist" / "sovietdoom.pk3"
+        if not cls.pk3.exists():
+            raise unittest.SkipTest("build the PK3 first: python3 tools/build.py")
+        cls.names = set(zipfile.ZipFile(cls.pk3).namelist())
+
+    def test_every_approved_asset_is_packed_flat(self):
+        assets = self.root / "assets"
+        if not assets.is_dir():
+            self.skipTest("no assets/ tree")
+        missing = []
+        for folder in ("textures", "flats", "sprites"):
+            base = assets / folder
+            if not base.is_dir():
+                continue
+            for png in base.rglob("*.png"):
+                want = f"{folder}/{png.name}"          # the set folder is dropped
+                if want not in self.names:
+                    missing.append(f"{png.relative_to(self.root)} -> {want}")
+        self.assertEqual([], missing, "approved art missing from the PK3")
+
+    def test_unapproved_art_never_ships(self):
+        """work/ holds art the CEO has not judged; it must never reach the PK3."""
+        leaked = [n for n in self.names if "work/" in n or "batch1" in n]
+        self.assertEqual([], leaked)
