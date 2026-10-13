@@ -1,35 +1,26 @@
 # Pending CEO decisions
 
-Updated: 2026-10-13 14:50, on the move to the Windows PC. Ordered by how much
+Updated: 2026-10-13 15:50, on the move to the Windows PC. Ordered by how much
 each item unblocks. What closed since the previous update is listed at the
 end so nothing is lost. Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md`.
 
-## 1. Walk MAP01 v1 on this PC (10 minutes, unblocks F3 v2 and two textures)
+## 1. MAP01: two design points, before v3 (no hurry)
 
-```
-SD_ALLOW_ENGINE=1 tools/run.sh
-```
+You walked v1 on 2026-10-13. The stripe and the plaque are approved (D30);
+the gate criterion was not met and v2, which fixes it, is being built. When
+v2 is ready the PM will ask you to walk it again: that walk is the next gate
+check, and the only question will be "did you get past the hangar?".
 
-v1 is textured and signposted (`docs/levels/MAP01-zarya-7.md` §15). Three
-verdicts are yours:
+Still open from the design document §13:
+- **No keys, switch grammar instead.** Built that way on the PM's approval;
+  one word from you closes it. Recommended yes.
+- **Night-sky strip over the hangar**, yes or no. `SKY1` already exists, so
+  yes costs no new asset.
+- **Length and enemy count**: 5-8 minutes, 21/33/46 enemies by skill, longer
+  than Doom II's MAP01 (~2 min). Matters for v3, not before.
 
-- **The gate criterion.** Starting in the dorm, do you reach the fuel bay
-  without being told? In v0 the hangar gate read as a dead end; v1 answers
-  with the red stripe, the yellow lane and a recessed gate.
-- **`SDCONC2`, the red stripe.** One band in the barracks, three bands in the
-  320-high hangar. Keep it, or give the hangar a 128-high wainscot in v2 so
-  it is one band there too? (Pending in-map review since 2026-10-12.)
-- **`SDSTAR1` v5**, the plaque beside D2 in the dorm. Approve, or send back.
-  (Proposed v5 since 2026-10-12.)
-
-For the eye only, no decision unless you dislike it: gate D4 wears two
-identical leaves (A4); `level-designer` finds that acceptable.
-
-Design points carried from the design document §13: no keys, switch grammar
-instead (built that way on the PM's approval; one word from you closes it,
-recommended yes); a night-sky strip over the hangar in v2, yes or no; 5-8
-minutes with 21/33/46 enemies by skill, longer than Doom II's MAP01
-(~2 min), which matters before v3, not before.
+For the eye only: gate D4 wears two identical leaves (A4); `level-designer`
+finds that acceptable.
 
 ## 2. Play the weapons test range (15 minutes, unblocks F4 balance)
 
@@ -61,23 +52,6 @@ Preview: `docs/art/previews/2026-10-13_0952_F2_batch2-metro-first-pieces.html`.
   new palette version is your call (ART-BIBLE §3).
 - **Mosaic motif.** A star with rays, or a figure (cosmonaut, worker), which
   would be its own commission, like Lenin was.
-
-## 3b. Two small art verdicts (5 minutes, both feed MAP01 v2)
-
-- **Crates and lockers** (petition A5), sweep
-  `docs/art/previews/2026-10-13_1439_F3_batch3-props-sweep.html`. One cell
-  per row. Art-director and PM recommend **C** for the three crate pieces
-  (khaki planks with a diagonal brace, the only shape still legible at game
-  distance on both walls) and **D** for the locker (pale cream). Also: keep
-  C in khaki, which ART-BIBLE reserves for the Reich's flesh, or repaint it
-  in brown wood at the same value; and keep the stencilled numbers or drop
-  them.
-- **Font fix for M, М and W** (alphabet C, D24), sheet
-  `docs/art/previews/2026-10-13_1443_F2_font-C-serif-fix.png`. QA found the
-  slab serifs misplaced on three letters: the small W reads "VL", so
-  "WORSE" looks like "VLORSE". The fix changes 6 of 214 glyph files and no
-  other letter. Art-director and PM recommend approving; it is our bug, not
-  a change of style.
 
 ## 4. Music (`docs/sound/SOUNDTRACK.md` §8 owns the detail)
 
@@ -136,9 +110,6 @@ lumps**, more than the whole of F2. The questions that change the most:
   §6): the research says no to training a model, and recommends 1-2 days
   mining Freedoom's 68 maps (BSD) to calibrate our own constants. Spend it
   or not.
-- **Who approved the MAP01 design text?** The design document said "approved
-  by the CEO"; the record only shows the PM approving it as written on
-  2026-10-12. Confirm and the PM records it with the date.
 - **Ultimate Doom Builder** is now possible on this PC (PRD §7 risk). Evaluate
   it when a map needs hand editing, or stay script-only. Not needed for v2.
 
@@ -151,6 +122,8 @@ stays an option, not a pending item). Language switch and Cyrillic
 letterforms, level 2 (D21, D22). The engine gate (D26). The Windows PC as the
 working machine (D27); the Mac's gitignored `work/` reached the PC the same
 afternoon, so D27's "stays on the Mac until the CEO copies it" is now
-history. Bug B2 (`SDPOSTR2`) resolved 2026-10-12. Bug B3 (art identity
+history. Bug B2 (`SDPOSTR2`) resolved 2026-10-12. The font serif fix and the batch 3
+props, columns C and D (D29). How MAP01 is judged: by walking it (D28). `SDCONC2` and `SDSTAR1` v5, approved
+in the map (D30); the hangar wainscot, dropped with them. Bug B3 (art identity
 test without `work/`) resolved 2026-10-13. T16, the switch `ANIMDEFS`,
 written and seen to flip in engine 2026-10-13.
