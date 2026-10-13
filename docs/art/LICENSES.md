@@ -204,3 +204,24 @@ Direction finding from this batch: none of these lumps depends on a system
 font, so they reproduce byte for byte on the Mac and on Windows; and column
 B confirms the switches' lesson once more, a mid green vanishes on
 `SDSTEL1`.
+
+## Batch 2 — metro, first pieces (F2, approved by the CEO 2026-10-13, D42)
+
+CEO verdict, verbatim: «OK a las 6 piezas de metro» — shipped as drawn in
+palette v1. Files in `assets/textures/metro/` and `assets/flats/metro/`,
+copied byte for byte from the Mac's renders in `work/art/batch2/metro/`
+(SHA-256 checked against `work/MANIFEST-from-mac.txt`); the same six
+regenerate byte-identical on the Windows PC. Per-lump rows and seeds:
+`TEXTURE-INDEX.md`, set "Metro".
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDTILE1`, `SDTILE2` | glazed cream tile wall; the same over a green oil-paint dado | (a) `tools/art/gen_metro.py`, `BATCH_SEED` 1935, palette v1 | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
+| `SDMARB1` | red marble cladding with veins | (a) idem | idem |
+| `SDMOSA1` | mosaic panel, gold star with rays on slate blue, drawn from scratch on a tessera grid | (a) idem | idem |
+| `SDBRAS1` | fluted brass pilaster with a ventilation grille | (a) idem | idem |
+| `SDMFLR1` | polished granite floor (flat) | (a) idem | idem |
+
+No typeface, no photograph, no scanned station: the real Moscow metro is
+the reference for the materials only (described in ART-BIBLE §4), and no
+image of it was used as a source.
