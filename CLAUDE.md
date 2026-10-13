@@ -53,8 +53,10 @@ later found SW-A himself ("una puerta q no hace ningún ruido si le das a
 E") and finished the map. **v2 is BUILT** (§16 of the design document): real
 switch faces, SW-A moved to a lit niche with a window onto D4, a gate light
 on tag 30, 16 lamps, flicker, three secrets, crates and lockers; 80 sectors.
-Its engine pass is filed (`docs/qa/evidence/2026-10-13_1611_F3_map01-v2-engine-pass-*`):
-everything works; whether the gate now reads without help is the CEO's walk.
+Its engine pass is filed (`docs/qa/evidence/2026-10-13_1611_F3_map01-v2-engine-pass-*`).
+**The CEO walked v2: gate passed without help, menu approved (D32).** Too
+small for a game level, so v3 densifies it (D33): same plan, ~200 sectors,
+combat and items by skill, subtler secrets. In progress.
 
 **F4 — arsenal.** Seven period weapons in ZScript, all firing, with Freedoom
 placeholders for sprites and sounds. Test range on MAP02.
