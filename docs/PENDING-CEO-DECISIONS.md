@@ -1,37 +1,20 @@
 # Pending CEO decisions
 
-Updated: 2026-10-13 16:20, on the move to the Windows PC. Ordered by how much
+Updated: 2026-10-13 17:00, on the move to the Windows PC. Ordered by how much
 each item unblocks. What closed since the previous update is listed at the
 end so nothing is lost. Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md`.
 
-## 1. Walk MAP01 v2 (10 minutes, the F3 gate criterion)
+## 1. MAP01 v3 is being built (nothing to decide now)
 
-```
-SD_ALLOW_ENGINE=1 tools/run.sh
-```
-
-v2 answers your v1 walk: the fuel-bay switch is a real knife switch now,
-it clicks and flips, it sits in a lit niche with a window onto the hangar
-gate, and pressing it lights the gate and the booth. The only question:
-**did you get past the hangar without help?** Also new in v2: light and
-lamps, a flickering corridor, three secrets, crates and lockers. All of it
-was checked in the engine first
-(`docs/qa/evidence/2026-10-13_1611_F3_map01-v2-engine-pass-*`).
+v2 passed its gate on your walk and the menu is approved (D32). v3 densifies
+the map (D33): shape in the empty rooms, combat and items by skill, subtler
+secrets, toward Freedoom's MAP01 (~200 sectors, ~1200 lines). The PM will
+ask you to play it through when the engine pass is clean.
 
 Still open from the design document §13, no hurry:
 - **No keys, switch grammar instead.** Built that way on the PM's approval;
   one word from you closes it. Recommended yes.
 - **Night-sky strip over the hangar**, yes or no. `SKY1` already exists.
-- **Length and enemy count**: 5-8 minutes, 21/33/46 enemies by skill.
-  Matters for v3.
-
-## 1b. The text menu (D31), on screen (2 minutes)
-
-`docs/qa/evidence/2026-10-13_1606_F2_menu-sdmenu-en-ru.png`, or open the
-game. Two details for your eye: the cream of the items reads a little pink
-on the red, and the English skill list sits further left than the Russian
-one because it is wider. Approve as is, or ask for another colour or for
-both lists aligned.
 
 ## 2. Play the weapons test range (15 minutes, unblocks F4 balance)
 
@@ -134,7 +117,8 @@ letterforms, level 2 (D21, D22). The engine gate (D26). The Windows PC as the
 working machine (D27); the Mac's gitignored `work/` reached the PC the same
 afternoon, so D27's "stays on the Mac until the CEO copies it" is now
 history. Bug B2 (`SDPOSTR2`) resolved 2026-10-12. The font serif fix and the batch 3
-props, columns C and D (D29). How MAP01 is judged: by walking it (D28). `SDCONC2` and `SDSTAR1` v5, approved
+props, columns C and D (D29). How MAP01 is judged: by walking it (D28). MAP01 v2 passed its gate and the
+text menu is approved (D32); MAP01's scale, densify (D33). `SDCONC2` and `SDSTAR1` v5, approved
 in the map (D30); the hangar wainscot, dropped with them. Bug B3 (art identity
 test without `work/`) resolved 2026-10-13. T16, the switch `ANIMDEFS`,
 written and seen to flip in engine 2026-10-13.
