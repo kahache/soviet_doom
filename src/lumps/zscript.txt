@@ -26,3 +26,23 @@ version "4.12"
 #include "zscript/weapons/rpg7.zs"            // slot 5
 #include "zscript/weapons/roks3.zs"           // slot 6
 #include "zscript/weapons/katyusha.zs"        // slot 7
+
+// --- Bestiary (F5): one class per file; contract docs/engine/BESTIARY.md ---
+// The base first (it also declares the SD_FACTION_* constants), then the
+// projectiles, then the enemies in BESTIARY's order. Editor numbers are in
+// MAPINFO (DoomEdNums), 21100-21107.
+#include "zscript/monsters/monster.zs"           // SD_Monster, shared base
+
+#include "zscript/monsters/storm_bolt.zs"
+#include "zscript/monsters/doughboy_shell.zs"
+#include "zscript/monsters/panzer_shell.zs"
+#include "zscript/monsters/general_shell.zs"
+
+#include "zscript/monsters/reich_rifleman.zs"    // 21100
+#include "zscript/monsters/legion_trooper.zs"    // 21101
+#include "zscript/monsters/stormtrooper.zs"      // 21102
+#include "zscript/monsters/reich_hound.zs"       // 21103
+#include "zscript/monsters/doughboy.zs"          // 21104
+#include "zscript/monsters/panzermensch.zs"      // 21105
+#include "zscript/monsters/general.zs"           // 21106
+#include "zscript/monsters/panzermensch_schwer.zs" // 21107

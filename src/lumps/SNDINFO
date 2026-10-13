@@ -46,3 +46,74 @@ sd/weapon/roks3/fire       DSFLAME     // -> SDRKFIR  short pressurised burst
 sd/weapon/katyusha/charge  DSBFG       // -> SDHKCHG  rails rising, 20 tics
 sd/weapon/katyusha/fire    DSRLAUNC    // -> SDHKFIR  six rockets off the rails
 sd/weapon/katyusha/burst   DSBAREXP    // -> SDHKEXP  one rocket detonating
+
+// === Bestiary (F5) =========================================================
+// Logical names sd/mon/<actor>/<event>; the final lump is the name in the
+// comment, the one docs/sound/ENEMY-SOUNDS.md has a card for (sound-designer
+// owns that column). 47 lumps: docs/engine/BESTIARY.md 12. Every
+// placeholder below is a Freedoom (IWAD) lump, read from the IWAD at run
+// time and never redistributed; tests/test_bestiary.py checks each exists.
+// Two placeholders are knowingly imperfect: the rifleman fires DSPISTOL,
+// which the TT-33 also uses (the final SDRRIATK must not), and the
+// General's order is DSVILSIT, a creature's sight, until SDGENSUM exists.
+
+// --- Reich rifleman (SD_ReichRifleman) -------------------------------------
+sd/mon/reichrifleman/active   DSPOSACT    // -> SDRRIACT  muttered order
+sd/mon/reichrifleman/sight    DSPOSIT1    // -> SDRRISIT  short bark
+sd/mon/reichrifleman/attack   DSPISTOL    // -> SDRRIATK  dry bolt-action crack
+sd/mon/reichrifleman/pain     DSPOPAIN    // -> SDRRIPAI
+sd/mon/reichrifleman/death    DSPODTH1    // -> SDRRIDTH
+sd/mon/reichrifleman/xdeath   DSSLOP      // -> SDRRIXDT  gib
+
+// --- Liberty Legion trooper (SD_LegionTrooper) -----------------------------
+sd/mon/legiontrooper/active   DSPOSACT    // -> SDLTRACT  radio chatter
+sd/mon/legiontrooper/sight    DSPOSIT2    // -> SDLTRSIT
+sd/mon/legiontrooper/attack   DSDSHTGN    // -> SDLTRATK  not DSSHOTGN: that is the IZh's
+sd/mon/legiontrooper/pain     DSPOPAIN    // -> SDLTRPAI
+sd/mon/legiontrooper/death    DSPODTH2    // -> SDLTRDTH
+sd/mon/legiontrooper/xdeath   DSSLOP      // -> SDLTRXDT
+
+// --- Hybrid Stormtrooper (SD_Stormtrooper, SD_StormBolt) -------------------
+sd/mon/stormtrooper/active    DSBGACT     // -> SDSTOACT
+sd/mon/stormtrooper/sight     DSBGSIT1    // -> SDSTOSIT
+sd/mon/stormtrooper/melee     DSCLAW      // -> SDSTOMEL
+sd/mon/stormtrooper/missile   DSFIRSHT    // -> SDSTOMIS  bolt launch (the bolt's SeeSound)
+sd/mon/stormtrooper/explode   DSFIRXPL    // -> SDSTOEXP  bolt impact (its DeathSound)
+sd/mon/stormtrooper/pain      DSDMPAIN    // -> SDSTOPAI
+sd/mon/stormtrooper/death     DSBGDTH1    // -> SDSTODTH
+sd/mon/stormtrooper/xdeath    DSSLOP      // -> SDSTOXDT
+
+// --- Reich hound (SD_ReichHound) -------------------------------------------
+sd/mon/reichhound/active      DSDMACT     // -> SDHNDACT
+sd/mon/reichhound/sight       DSSGTSIT    // -> SDHNDSIT  must carry through a door
+sd/mon/reichhound/attack      DSSGTATK    // -> SDHNDATK  played by A_Chase on the lunge
+sd/mon/reichhound/pain        DSDMPAIN    // -> SDHNDPAI
+sd/mon/reichhound/death       DSSGTDTH    // -> SDHNDDTH
+
+// --- Doughboy (SD_Doughboy, SD_DoughboyShell) ------------------------------
+sd/mon/doughboy/active        DSDMACT     // -> SDDGBACT
+sd/mon/doughboy/sight         DSCACSIT    // -> SDDGBSIT
+sd/mon/doughboy/melee         DSCLAW      // -> SDDGBMEL
+sd/mon/doughboy/missile       DSFIRSHT    // -> SDDGBMIS
+sd/mon/doughboy/explode       DSFIRXPL    // -> SDDGBEXP
+sd/mon/doughboy/pain          DSDMPAIN    // -> SDDGBPAI
+sd/mon/doughboy/death         DSCACDTH    // -> SDDGBDTH  deflate and sink
+
+// --- Panzermensch and the heavy variant (SD_Panzermensch, SD_PanzerShell) --
+sd/mon/panzermensch/active    DSDMACT     // -> SDPZRACT
+sd/mon/panzermensch/sight     DSKNTSIT    // -> SDPZRSIT
+sd/mon/panzermensch/melee     DSSKEPCH    // -> SDPZRMEL
+sd/mon/panzermensch/missile   DSFIRSHT    // -> SDPZRMIS
+sd/mon/panzermensch/explode   DSFIRXPL    // -> SDPZREXP
+sd/mon/panzermensch/pain      DSDMPAIN    // -> SDPZRPAI
+sd/mon/panzermensch/death     DSKNTDTH    // -> SDPZRDTH
+sd/mon/panzermensch/step      DSMETAL     // -> SDPZRSTP  one plated footfall (H)
+
+// --- The General (SD_General, SD_GeneralShell) -----------------------------
+sd/mon/general/active         DSDMACT     // -> SDGENACT
+sd/mon/general/sight          DSCYBSIT    // -> SDGENSIT
+sd/mon/general/missile        DSRLAUNC    // -> SDGENMIS  one shell of the salvo
+sd/mon/general/explode        DSFIRXPL    // -> SDGENEXP
+sd/mon/general/summon         DSVILSIT    // -> SDGENSUM  the order (SD_GENERAL_ORDER)
+sd/mon/general/pain           DSDMPAIN    // -> SDGENPAI
+sd/mon/general/death          DSCYBDTH    // -> SDGENDTH  a cue, not an effect

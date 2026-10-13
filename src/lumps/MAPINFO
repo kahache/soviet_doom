@@ -194,6 +194,18 @@ DoomEdNums
 	// nothing: a stray Freedoom pickup can never reintroduce them.
 	82 = None     // SuperShotgun
 	2005 = None   // Chainsaw
+
+	// Bestiary (F5, docs/engine/BESTIARY.md 2.5): the enemy sub-range.
+	// Each class also `replaces` its Doom counterpart, so a map may place
+	// either number; both spawn ours. 21108 is reserved (cloaked hound).
+	21100 = SD_ReichRifleman        // replaces ZombieMan (3004)
+	21101 = SD_LegionTrooper        // replaces ShotgunGuy (9)
+	21102 = SD_Stormtrooper         // replaces DoomImp (3001)
+	21103 = SD_ReichHound           // replaces Demon (3002)
+	21104 = SD_Doughboy             // replaces Cacodemon (3005)
+	21105 = SD_Panzermensch         // replaces HellKnight (69)
+	21106 = SD_General              // replaces Cyberdemon (16)
+	21107 = SD_PanzermenschSchwer   // replaces BaronOfHell (3003)
 }
 
 map MAP02 lookup "SD_MAP02_NAME"

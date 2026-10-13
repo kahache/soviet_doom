@@ -38,7 +38,11 @@ Checks (one block of output per category):
              every colour they use is in docs/art/palette.json, and their
              dimensions follow the contract
   sprites    sprite lumps are NAMEFR[FR]: 4-char name, frame letter,
-             rotation digit; every declared rotation set is complete
+             rotation digit; every declared rotation set is complete.
+             Every sprite a ZScript `States` block names is packed under
+             sprites/, is the engine's (TNT1, ####, ----), or is declared
+             as an IWAD sprite in MOD-SPEC 5 - the same rule as textures
+             (F5: the bestiary runs on Freedoom placeholder sprites)
   licences   every packed asset has a row in docs/art/LICENSES.md
   zscript    every #include, transitively, points at a file in the PK3
   menus      every `Font "X"` in MENUDEF is an engine font or a packed
@@ -120,6 +124,18 @@ SPRITE_ROTATIONS_8 = tuple("12345678")
 SPRITE_ROTATIONS_16 = tuple("123456789ABCDEFG")
 SPRITE_ROTATION_ALL = "0"               # one sprite for every viewing angle
 SPRITE_FRAME_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]"
+# Sprite names a States block may use without any lump behind them: TNT1 is
+# the engine's own invisible sprite (gzdoom.pk3 sprites/), "####" and "----"
+# mean "keep the previous sprite / frame".
+ENGINE_SPRITES = frozenset({"TNT1", "####", "----"})
+# State-flow keywords that are four letters long and would otherwise read as
+# a sprite name at the start of a state line ("Goto Ready").
+STATE_KEYWORDS = frozenset({"GOTO", "LOOP", "STOP", "WAIT", "FAIL"})
+# The MOD-SPEC 5 Type cell that marks a row as a sprite rather than a texture.
+SPEC_SPRITE_TYPE = "sprite"
+RE_STATES_OPEN = re.compile(r"\bStates\s*\{", re.I)
+RE_STATE_LABEL = re.compile(r"^\s*[A-Za-z_][\w.]*\s*:(?!:)")
+RE_STATE_FRAME = re.compile(r'^\s*"?([A-Za-z0-9_#\-]{4})"?\s+"?([A-Za-z\[\]\\#]+)"?\s+\S')
 
 RE_INCLUDE = re.compile(r'^\s*#include\s+"([^"]+)"', re.M)
 RE_BACKTICKED = re.compile(r"`([^`]+)`")
@@ -544,6 +560,28 @@ def read_png(blob: bytes) -> PngInfo:
 
 # --- Reading the documents that hold the contract --------------------------
 
+def _spec_iwad_rows(spec: Path) -> list[tuple[str, str]]:
+    """(NAME, type cell) for every table row of MOD-SPEC 5, subsections
+    included (a `###` heading does not end a `##` section)."""
+    if not spec.is_file():
+        return []
+    text = spec.read_text(encoding="utf-8")
+    match = re.search(r"^##\s*5\..*?$(.*?)(?=^##\s|\Z)", text, re.M | re.S)
+    if not match:
+        return []
+    rows: list[tuple[str, str]] = []
+    for line in match.group(1).splitlines():
+        line = line.strip()
+        if not line.startswith("|"):
+            continue
+        cells = line.split("|")
+        cell = RE_BACKTICKED.findall(cells[1].strip())
+        if cell:
+            kind = cells[2].strip().lower() if len(cells) > 2 else ""
+            rows.append((cell[0].strip().upper(), kind))
+    return rows
+
+
 def iwad_assets_from_spec(spec: Path) -> set[str]:
     """Names declared in MOD-SPEC 5 'IWAD assets used' (first table column).
 
@@ -551,22 +589,12 @@ def iwad_assets_from_spec(spec: Path) -> set[str]:
     this parse is the whole point of the texture check: adding an IWAD name
     to a map without documenting it must fail.
     """
-    if not spec.is_file():
-        return set()
-    text = spec.read_text(encoding="utf-8")
-    match = re.search(r"^##\s*5\..*?$(.*?)(?=^##\s|\Z)", text, re.M | re.S)
-    if not match:
-        return set()
-    names: set[str] = set()
-    for line in match.group(1).splitlines():
-        line = line.strip()
-        if not line.startswith("|"):
-            continue
-        first = line.split("|")[1].strip()
-        cell = RE_BACKTICKED.findall(first)
-        if cell:
-            names.add(cell[0].strip().upper())
-    return names
+    return {name for name, _ in _spec_iwad_rows(spec)}
+
+
+def iwad_sprites_from_spec(spec: Path) -> set[str]:
+    """The MOD-SPEC 5 rows whose Type cell says `sprite` (section 5.1)."""
+    return {name for name, kind in _spec_iwad_rows(spec) if SPEC_SPRITE_TYPE in kind}
 
 
 def licensed_names(licenses: Path) -> set[str]:
@@ -1005,6 +1033,74 @@ def check_sprites(pkg: Package, report: Report) -> None:
                 + (" - nothing to check yet" if not files else ""))
 
 
+def zscript_state_sprites(text: str) -> list[tuple[str, int]]:
+    """Every sprite name a ZScript `States` block uses, as (NAME, line).
+
+    A state line is `SPRITE FRAMES DURATION ...`, optionally after one or
+    more `Label:` prefixes. Comments go first (they quote engine lines), and
+    the four-letter flow keywords (`Goto`, `Loop`...) are not sprites.
+    """
+    code = _strip_udmf_comments(text)
+    found: list[tuple[str, int]] = []
+    for opening in RE_STATES_OPEN.finditer(code):
+        depth, end = 1, opening.end()
+        while end < len(code) and depth:
+            if code[end] == "{":
+                depth += 1
+            elif code[end] == "}":
+                depth -= 1
+            end += 1
+        first_line = code.count("\n", 0, opening.end()) + 1
+        for offset, line in enumerate(code[opening.end():end - 1].split("\n")):
+            label = RE_STATE_LABEL.match(line)
+            while label:
+                line = line[label.end():]
+                label = RE_STATE_LABEL.match(line)
+            frame = RE_STATE_FRAME.match(line)
+            if not frame:
+                continue
+            name = frame.group(1).upper()
+            if name in STATE_KEYWORDS:
+                continue
+            found.append((name, first_line + offset))
+    return found
+
+
+def check_state_sprites(pkg: Package, iwad_sprites: set[str], report: Report) -> None:
+    """Every sprite a States block names resolves: packed, engine, or declared IWAD.
+
+    The runtime twin of this is the engine's "Missing sprite"; the static
+    rule is MOD-SPEC 5's texture rule applied to sprites, so that a Freedoom
+    placeholder sprite is used only if it is written down.
+    """
+    packed = {Path(p).stem.upper()[:SPRITE_NAME_LEN] for p in pkg.files_under("sprites")}
+    named: dict[str, list[str]] = {}
+    for path in sorted(pkg.files_under("zscript")):
+        if not path.lower().endswith(".zs"):
+            continue
+        try:
+            refs = zscript_state_sprites(pkg.read(path).decode("utf-8", "replace"))
+        except UdmfError as exc:          # the comment stripper's error type
+            report.error("sprites", path, f"cannot be read: {exc}")
+            continue
+        for name, line in refs:
+            named.setdefault(name, []).append(f"{path}:{line}")
+    from_iwad = 0
+    for name, where in sorted(named.items()):
+        if name in ENGINE_SPRITES or name in packed:
+            continue
+        if name in iwad_sprites:
+            from_iwad += 1
+            continue
+        report.error("sprites", where[0],
+                     f"sprite {name!r} is named by {len(where)} state line(s) but is neither "
+                     f"packed under sprites/ nor declared as an IWAD sprite in MOD-SPEC 5")
+    report.stats["state_sprites"] = len(named)
+    report.stats["state_sprites_iwad"] = from_iwad
+    report.note("sprites", f"{len(named)} sprite name(s) used by ZScript states, "
+                           f"{from_iwad} of them declared IWAD placeholders (MOD-SPEC 5)")
+
+
 def check_licences(pkg: Package, declared: set[str], report: Report) -> None:
     packed: list[str] = []
     for folder in LICENSED_DIRS:
@@ -1142,6 +1238,7 @@ def check_pk3(
         check_textures(pkg, maps, iwad_assets_from_spec(spec), report)
         check_images(pkg, palette_colours(palette_json), report)
         check_sprites(pkg, report)
+        check_state_sprites(pkg, iwad_sprites_from_spec(spec), report)
         check_licences(pkg, licensed_names(licenses), report)
         check_zscript(pkg, report)
         check_menus(pkg, report)
