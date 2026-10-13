@@ -41,6 +41,8 @@ Checks (one block of output per category):
              rotation digit; every declared rotation set is complete
   licences   every packed asset has a row in docs/art/LICENSES.md
   zscript    every #include, transitively, points at a file in the PK3
+  menus      every `Font "X"` in MENUDEF is an engine font or a packed
+             fonts/<x>/ folder (MOD-SPEC 6.6: the menu font SDMENU)
 
 Usage:
   python3 tools/check_pk3.py                      # dist/sovietdoom.pk3
@@ -142,7 +144,20 @@ RE_TEXTURES_DEF = re.compile(
 SEVERITY_ERROR = "error"
 SEVERITY_WARNING = "warning"
 
-CATEGORIES = ("package", "lumps", "maps", "textures", "images", "sprites", "licences", "zscript")
+# MENUDEF (MOD-SPEC 6.6). Fonts GZDoom provides by name: the names in
+# gzdoom.exe g4.14.2 and in gzdoom.pk3/menudef.txt. Any other name must be a
+# folder font packed at fonts/<name>/ (MOD-SPEC 2); a font that resolves
+# nowhere cannot draw the menu it was named for.
+MENUDEF_LUMP = "MENUDEF"
+ENGINE_FONTS = frozenset(name.upper() for name in (
+    "SmallFont", "SmallFont2", "BigFont", "BigUpper", "ConsoleFont",
+    "NewSmallFont", "NewConsoleFont", "IntermissionFont",
+    "OriginalSmallFont", "OriginalBigFont",
+))
+FONTS_DIR = "fonts"
+RE_MENUDEF_FONT = re.compile(r'^[ \t]*Font[ \t]+"([^"]+)"', re.M | re.I)
+
+CATEGORIES = ("package", "lumps", "maps", "textures", "images", "sprites", "licences", "zscript", "menus")
 
 
 # --- Findings --------------------------------------------------------------
@@ -1058,6 +1073,47 @@ def check_zscript(pkg: Package, report: Report) -> None:
     report.note("zscript", f"{count} #include(s), {len(seen)} file(s) reachable from {ZSCRIPT_ENTRY}")
 
 
+def menudef_fonts(text: str) -> list[tuple[str, int]]:
+    """Every `Font "X"` directive in a MENUDEF, as (name, line), comments out.
+
+    Comments go first because MENUDEF quotes engine lines in them."""
+    code = _strip_udmf_comments(text)
+    return [(m.group(1), code.count("\n", 0, m.start()) + 1)
+            for m in RE_MENUDEF_FONT.finditer(code)]
+
+
+def check_menus(pkg: Package, report: Report) -> None:
+    lumps = [n for n in pkg.names
+             if "/" not in n and Path(n).stem.upper() == MENUDEF_LUMP]
+    if not lumps:
+        report.skip("menus", "no MENUDEF in the PK3")
+        return
+    named = packed = 0
+    for lump in sorted(lumps):
+        try:
+            fonts = menudef_fonts(pkg.read(lump).decode("utf-8", "replace"))
+        except UdmfError as exc:          # the stripper's own error type
+            report.error("menus", lump, f"cannot be read: {exc}")
+            continue
+        for name, line in fonts:
+            named += 1
+            if name.upper() in ENGINE_FONTS:
+                continue
+            glyphs = [f for f in pkg.files_under(f"{FONTS_DIR}/{name}")
+                      if f.lower().endswith(".png")]
+            if glyphs:
+                packed += 1
+                continue
+            report.error(
+                "menus", f"{lump}:{line}",
+                f"font {name!r} is neither an engine font nor a {FONTS_DIR}/{name.lower()}/ "
+                "folder in the PK3: the menu that names it cannot be drawn in it")
+    report.stats["menu_fonts_named"] = named
+    report.stats["menu_fonts_packed"] = packed
+    report.note("menus", f"{named} Font directive(s) in MENUDEF, {packed} resolved to a packed "
+                         f"folder font, the rest engine fonts")
+
+
 # --- Orchestration ---------------------------------------------------------
 
 def check_pk3(
@@ -1088,6 +1144,7 @@ def check_pk3(
         check_sprites(pkg, report)
         check_licences(pkg, licensed_names(licenses), report)
         check_zscript(pkg, report)
+        check_menus(pkg, report)
     return report
 
 

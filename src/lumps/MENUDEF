@@ -73,36 +73,84 @@ OptionString "SD_LanguageValues"
 	"ru",      "$SD_LANGVAL_RU"
 }
 
+// --- The menu font ----------------------------------------------------------
+// D31 (CEO, 2026-10-13): the main menu and the skill screen are TEXT in our
+// own alphabet, not Freedoom's pictures of English words (debt T12).
+// docs/engine/MOD-SPEC.md 6.6 is the contract; the reasoning is
+// docs/engine/adr/005-menu-text-instead-of-menu-graphics.md.
+//
+// "SDMENU" is the folder font fonts/sdmenu/ (art-director, built by
+// tools/art/gen_menu.py): bigfont with five Latin capitals drawn as Cyrillic
+// letters, D22 level 2 - R as Я, N as И, E as Э, W as Ш, A as Д. ONE font
+// serves both languages: the [ru] strings are written in Cyrillic code
+// points, which the font leaves alone, so English reads "ИЭШ GДMЭ" and
+// Russian reads as Russian. Nothing below is per-language.
+//
+// Why not BigFont: the menu code swaps SmallFont and BigFont for their
+// "alternative" versions by itself (menuDelegate.PickFont,
+// gzdoom.pk3:zscript/engine/ui/menu/menucustomize.zs:25), and D22 must not
+// reach the level names and pickups BigFont prints. A font with its own
+// name is drawn as named.
+//
+// Colours: "Cream" for an item, "Gold" for the selected one (art-director's
+// proposal). The glyphs are drawn red; untranslated they would be red on
+// TITLEPIC's red. Both are engine colour names (gzdoom.pk3:textcolors.txt).
+//
+// The strings are in CAPITALS in LANGUAGE because the font has no
+// lowercase; what GZDoom does with lowercase in a capitals-only folder font
+// is NOT VERIFIED for this one.
+//
+// If fonts/sdmenu/ is missing from the PK3, tools/check_pk3.py fails the
+// package (category "menus").
+
 // --- The difficulty menu --------------------------------------------------
 // BUG E4, found in-engine 2026-10-13: the fifth rung, "Hero of the Soviet
 // Union, posthumously", ran off the right edge of the screen and read
 // "HERO OF THE SOVIET UNION, POSTHU". The name is the CEO's and is not the
 // thing to change (docs/product/DIFFICULTY-NAMES.md owns it); the font is.
+// The rungs are drawn in SmallFont, red with a gold highlight (D-004-1).
 //
-// GZDoom's skill menu draws its items in the list menu's default font,
-// which for Doom is BigFont - roughly 12 px a character on a 320-wide
-// screen, so about 26 characters fit and the name is 38. `Font` is the one
-// directive that fixes it without touching the words. SmallFont puts all
-// five rungs on screen whole, in red with a gold highlight, which is also
-// the mod's palette.
+// THE ORDER OF THE TWO `Font` LINES IS LOAD-BEARING. A static item takes the
+// descriptor's font when it is parsed (ListMenuItemStaticText.Init,
+// gzdoom.pk3:zscript/engine/ui/menu/listmenuitems.zs:158-165). The five
+// rungs are NOT listed here: the engine builds them at run time from
+// MAPINFO's `skill` blocks, in whatever font the descriptor ENDS with. So
+// SDMENU first, for the header, and SmallFont last, for the rungs. The
+// engine's own "PlayerMenu" does the same: a header, then Font "SmallFont"
+// (gzdoom.pk3:menudef.txt:458-459).
 //
-// The rest of the block is GZDoom 4.14.2's own IfGame(Doom) branch copied
-// verbatim (gzdoom.pk3/menudef.txt, ListMenu "SkillMenu"), for the same
-// reason as the main menu above: a redeclared LISTMENU replaces the
-// engine's descriptor, so leaving a line out deletes it. The skill ITEMS
-// are not listed because the engine builds them from MAPINFO's `skill`
-// blocks; this descriptor only says where and in what font. Re-diff on an
-// engine upgrade - debt T14.
+// LAYOUT (D31, art-director's sheet
+// docs/art/previews/2026-10-13_1554_F2_menu-sweep.png). The engine draws two
+// headers, M_NEWG at (96,14) and M_SKILL at (54,38); both land on the name
+// painted into TITLEPIC (docs/qa/evidence/2026-10-13_0955_F2_skill-ladder-en.png).
+// Here the logo stays where the title screen has it - the same 60,0 as the
+// main menu - and ONE header sits under it. "New Game" is not repeated: the
+// player has just chosen it.
+//
+// x = 32 FOR THE RUNGS. Rung 5 is 288 px in fonts/defsmallfont/, so 32 is
+// the largest x that keeps it on a 320-wide screen (32 + 288 = 320); the
+// skull selector is drawn 32 px left of the rungs (Doom's
+// Selector "M_SKULL1", -32, -5), so 32 is also the smallest x that keeps it
+// on a 4:3 screen. At the old x = 48 the engine moved the rungs itself, to
+// about x = 0 in the 0955 screenshot, and the skull left the 4:3 area; the
+// rule it applied is NOT VERIFIED, and at 32 it has nothing to correct.
+// tests/test_menudef.py re-measures this whenever a name or the font
+// changes.
+//
+// A redeclared LISTMENU replaces the engine's descriptor, so leaving a line
+// out deletes it. Re-diff against gzdoom.pk3/menudef.txt, ListMenu
+// "SkillMenu", on an engine upgrade - debt T14.
 LISTMENU "SkillMenu"
 {
+	StaticPatch 60, 0, "M_DOOM"
+	Font "SDMENU", "Cream"
+	StaticText 32, 70, "$SD_MNU_CHOOSESKILL"
 	Font "SmallFont", "Red", "Gold"
-	StaticPatch 96, 14, "M_NEWG", 0, "$MNU_NEWGAME"
-	StaticPatch 54, 38, "M_SKILL", 0, "$MNU_CHOOSESKILL"
 	LineSpacing 12
-	Position 48, 63
+	Position 32, 90
 }
 
-// --- The main menu logo ---------------------------------------------------
+// --- The main menu ----------------------------------------------------------
 // BUG E1 (found by the CEO on docs/qa/evidence/2026-10-13_0100_F2_title-and-menu.png):
 // on the title screen the menu's M_DOOM block did not land on the name block
 // painted into TITLEPIC, and a "CO" of the latter showed past its left edge.
@@ -120,22 +168,32 @@ LISTMENU "SkillMenu"
 //     LISTMENU "MainMenu" { ... StaticPatch 94, 2, "M_DOOM" ... }
 // and a mod that ships no MainMenu of its own inherits those numbers: the
 // logo was drawn 34 px right and 2 px down of where it was drawn into
-// TITLEPIC. The whole fix is the StaticPatch line below.
+// TITLEPIC.
 //
-// WHY THE WHOLE MENU IS REPEATED FOR ONE NUMBER. There is no "move that
-// item" directive: ADDLISTMENU only APPENDS, which here would draw a SECOND
-// logo and leave the misplaced one in place. Redeclaring a LISTMENU replaces
-// the engine's descriptor outright (verified in-engine 2026-10-13: five
-// items, not ten), so every item has to be restated. The body below is
-// GZDoom 4.14.2's own IfGame(Doom) branch copied verbatim, including the
-// IfOption tests, so a player's "swap menu" and "show ReadThis" settings
-// keep working. Re-diff it against gzdoom.pk3/menudef.txt when the engine
-// is upgraded.
+// WHY THE WHOLE MENU IS REPEATED. There is no "move that item" directive:
+// ADDLISTMENU only APPENDS, which here would draw a SECOND logo and leave
+// the misplaced one in place. Redeclaring a LISTMENU replaces the engine's
+// descriptor outright (verified in-engine 2026-10-13: five items, not ten),
+// so every item has to be restated. The body below is GZDoom 4.14.2's own
+// IfGame(Doom) branch with two changes: the logo's position, and (D31) each
+// Freedoom `PatchItem "M_xxx"` turned into a `TextItem` reading LANGUAGE,
+// with the same hotkey and the same target menu. The IfOption tests are
+// kept, so a player's "swap menu" and "show ReadThis" settings keep working.
+// Re-diff against gzdoom.pk3/menudef.txt when the engine is upgraded (T14).
 //
-// The item graphics (M_NGAME, M_OPTION...) are still Freedoom's red Doom
-// lettering. Replacing them is art's call, not this lump's; debt T12.
+// TextItem syntax is the engine's own: gzdoom.pk3:menudef.txt:129-137
+// (LISTMENU "MainMenuTextOnly", e.g. TextItem "$MNU_NEWGAME", "n",
+// "PlayerclassMenu") and :98-102 (the Heretic/Hexen main menu).
+//
+// The engine also ships that "MainMenuTextOnly" for localized content and
+// can switch to it on its own; when it does is NOT VERIFIED. The Russian
+// main menu (docs/qa/evidence/2026-10-13_1007_F2_mainmenu-ru.png) drew THIS
+// menu, logo at 60,0, so today it does not. If the Russian capture ever
+// shows the engine's strings and the logo at 94,2, redeclare
+// "MainMenuTextOnly" with this same body.
 LISTMENU "MainMenu"
 {
+	Font "SDMENU", "Cream", "Gold"
 	LineSpacing 16
 	StaticPatch 60, 0, "M_DOOM"
 	Position 97, 72
@@ -144,24 +202,24 @@ LISTMENU "MainMenu"
 		Position 97, 64
 	}
 
-	PatchItem "M_NGAME", "n", "PlayerclassMenu"
+	TextItem "$SD_MNU_NEWGAME", "n", "PlayerclassMenu"
 	IfOption(SwapMenu)
 	{
-		PatchItem "M_LOADG", "l", "LoadGameMenu", 0
-		PatchItem "M_SAVEG", "s", "SaveGameMenu", 0
-		PatchItem "M_OPTION", "o", "OptionsMenu", 0
+		TextItem "$SD_MNU_LOADGAME", "l", "LoadGameMenu"
+		TextItem "$SD_MNU_SAVEGAME", "s", "SaveGameMenu"
+		TextItem "$SD_MNU_OPTIONS", "o", "OptionsMenu"
 	}
 	else
 	{
-		PatchItem "M_OPTION", "o", "OptionsMenu", 0
-		PatchItem "M_LOADG", "l", "LoadGameMenu", 0
-		PatchItem "M_SAVEG", "s", "SaveGameMenu", 0
+		TextItem "$SD_MNU_OPTIONS", "o", "OptionsMenu"
+		TextItem "$SD_MNU_LOADGAME", "l", "LoadGameMenu"
+		TextItem "$SD_MNU_SAVEGAME", "s", "SaveGameMenu"
 	}
 	IfOption(ReadThis)
 	{
-		PatchItem "M_RDTHIS", "r", "ReadThisMenu", 0
+		TextItem "$SD_MNU_READTHIS", "r", "ReadThisMenu"
 	}
-	PatchItem "M_QUITG", "q", "QuitMenu", 0
+	TextItem "$SD_MNU_QUITGAME", "q", "QuitMenu"
 }
 
 OptionMenu "SD_OptionsMenu"

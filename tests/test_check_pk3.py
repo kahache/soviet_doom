@@ -603,6 +603,52 @@ class ZScriptTest(CheckPk3TestCase):
         self.assertEqual([], [f for f in report.errors if f.category == "zscript"])
 
 
+# --- 9. Fonts named by MENUDEF (MOD-SPEC 6.6) ------------------------------
+
+class MenuFontTest(CheckPk3TestCase):
+    MENUDEF = (b'// a comment naming Font "GHOSTFNT" is not a directive\n'
+               b'LISTMENU "MainMenu"\n{\n\tFont "SDMENU", "Cream", "Gold"\n}\n'
+               b'LISTMENU "SkillMenu"\n{\n\tFont "SmallFont", "Red", "Gold"\n}\n')
+
+    def menu_errors(self, report: check_pk3.Report) -> list[check_pk3.Finding]:
+        return [f for f in report.errors if f.category == "menus"]
+
+    def test_no_menudef_is_skipped(self):
+        report = self.run_check(good_entries())
+        self.assertIn("menus", report.skipped)
+
+    def test_folder_font_missing_from_the_package_fails(self):
+        entries = good_entries()
+        entries["MENUDEF"] = self.MENUDEF
+        finding = self.assertFails(self.run_check(entries), "menus", "SDMENU")
+        self.assertEqual("MENUDEF:4", finding.path)
+
+    def test_packed_folder_font_passes(self):
+        entries = good_entries()
+        entries["MENUDEF"] = self.MENUDEF
+        entries["fonts/sdmenu/0041.png"] = png_indexed(8, 8, PALETTE_IN)
+        entries["fonts/sdmenu/font.inf"] = b"FontHeight 16\n"
+        report = self.run_check(entries)
+        self.assertEqual([], self.menu_errors(report))
+        self.assertEqual(2, report.stats["menu_fonts_named"])
+        self.assertEqual(1, report.stats["menu_fonts_packed"])
+
+    def test_engine_fonts_need_nothing_packed(self):
+        entries = good_entries()
+        entries["MENUDEF"] = b'LISTMENU "X"\n{\n\tFont "BigUpper", "Red"\n\tfont "smallfont"\n}\n'
+        self.assertEqual([], self.menu_errors(self.run_check(entries)))
+
+    def test_a_font_folder_without_glyphs_does_not_count(self):
+        entries = good_entries()
+        entries["MENUDEF"] = self.MENUDEF
+        entries["fonts/sdmenu/font.inf"] = b"FontHeight 16\n"
+        self.assertFails(self.run_check(entries), "menus", "SDMENU")
+
+    def test_parser_ignores_comments_and_reports_lines(self):
+        self.assertEqual([("SDMENU", 4), ("SmallFont", 8)],
+                         check_pk3.menudef_fonts(self.MENUDEF.decode("ascii")))
+
+
 # --- Parser units ----------------------------------------------------------
 
 class UdmfParserTest(unittest.TestCase):
