@@ -44,15 +44,18 @@ holds the order they happen in.
   the phase starts. Verdicts live in `docs/qa/GATE-REVIEWS.md` with evidence.
 - First measurement is honest and strict. Never inflate a number to pass.
 
-## 4. Documents (D7)
+## 4. Documents (D7, amended by D34)
 
 - Living docs (stable name): `CLAUDE.md`, PRD, ROADMAP, LORE, ART-BIBLE,
   MOD-SPEC, GATE-REVIEWS, TEXTURE-INDEX, LICENSES.
 - Dated snapshots (immutable): `YYYY-MM-DD_HHMM_FN_slug.md` under
   `docs/<area>/`.
 - **English is canonical; every document has a Russian mirror at the same
-  path under `docs/ru/`**, delivered in the same task. Code, lump names and
-  comments in English. In-game text in English and Russian.
+  path under `docs/ru/`**, brought up to date in a batch when a phase closes
+  at its gate and in full before any release (D34); each mirror states the
+  date it was last synced. Code, lump names and comments in English.
+  **In-game text in English and Russian, always and in the same task**
+  (D21).
 - `CLAUDE.md` always carries a current "Status" block, updated at the end of
   every work session.
 

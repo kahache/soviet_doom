@@ -22,10 +22,12 @@ verifica, **con comandos, no de memoria**:
 2. **Un hecho, un dueño.** La tabla de `CLAUDE.md` dice quién cuenta cada
    cosa. Si dos documentos afirman lo mismo y uno se queda atrás, es un
    hallazgo; el remedio es que el secundario enlace, no que repita.
-3. **Espejo ruso (D7).** Todo documento inglés tocado en el lote tiene su
-   espejo en `docs/ru/` con la misma ruta, actualizado en el mismo lote.
-   Comprueba paridad de estructura (encabezados y filas de tabla), no solo
-   que el fichero exista.
+3. **Espejo ruso (D7, enmendada por D34).** Solo al cerrar una fase (gate)
+   o antes de publicar: todo documento inglés tiene su espejo en `docs/ru/`
+   con la misma ruta, sincronizado y con su fecha de sincronía; comprueba
+   paridad de estructura (encabezados y filas de tabla). Entre gates, un
+   espejo atrasado NO es hallazgo. En cambio, en cada lote: ninguna cadena
+   `SD_*` de `LANGUAGE` sin su línea `[ru]` (D21).
 4. **Licencias.** Todo asset nuevo en `assets/` tiene origen y licencia en
    `docs/art/LICENSES.md`. Ninguno sin procedencia.
 5. **Decisiones.** Toda decisión que el CEO haya tomado en el chat está en
@@ -48,8 +50,8 @@ verifica, **con comandos, no de memoria**:
 Un veredicto claro: **PASS** o **BLOCK**, y la lista de hallazgos numerados
 (`PMO-NN`) con fichero, línea, qué dice, qué debería decir y a quién va.
 
-- **BLOCK** si hay una contradicción entre documentos, falta un espejo ruso de
-  algo tocado en el lote, falta una licencia, falta una D-numerada de una
+- **BLOCK** si hay una contradicción entre documentos, falta (en un cierre de
+  fase) un espejo ruso, falta una cadena `[ru]` del juego, falta una licencia, falta una D-numerada de una
   decisión ya tomada, o un contrato va por detrás del código.
 - **PASS con observaciones** si solo hay deuda menor, y la listas.
 - **No relajes un criterio para que pase.** Si dudas, bloquea y explica.

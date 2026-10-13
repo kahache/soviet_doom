@@ -79,20 +79,6 @@ Internacional on the title). Still open, in the sound-designer's order:
   (twelve MIDI files, about 180 KB; the provenance is external and seven have
   no recorded URL, so the files are the only record).
 
-## 5. Bestiary — seven questions (`docs/engine/BESTIARY.md` §14)
-
-Cost warning worth reading first: F5 is **~356 sprite images and 52 sound
-lumps**, more than the whole of F2. The questions that change the most:
-- Panzermensch at **500 HP** (PM and author recommend) or the 1000 of a Doom
-  baron, which in a one-map v1 is a wall, not a fight.
-- Is the General a boss with a verb of his own (he summons and orders, half a
-  day plus ten sprites) or just a brute with more health. Author recommends
-  the verb; the lore says the General commands rather than fights.
-- Freedoom sprites as a base or only as reference. Recommended: reference
-  only for the five most-seen enemies.
-- Do the two factions keep Doom's infighting. Recommended yes: the lore calls
-  it an alliance of convenience.
-
 ## 6. Smaller, no hurry
 
 - **Lenin slogan.** Ships with «ЛЕНИН ЖИВ»; Mayakovsky's full line «Ленин
@@ -118,7 +104,7 @@ working machine (D27); the Mac's gitignored `work/` reached the PC the same
 afternoon, so D27's "stays on the Mac until the CEO copies it" is now
 history. Bug B2 (`SDPOSTR2`) resolved 2026-10-12. The font serif fix and the batch 3
 props, columns C and D (D29). How MAP01 is judged: by walking it (D28). MAP01 v2 passed its gate and the
-text menu is approved (D32); MAP01's scale, densify (D33). `SDCONC2` and `SDSTAR1` v5, approved
+text menu is approved (D32); MAP01's scale, densify (D33). The bestiary's seven questions (D35). `SDCONC2` and `SDSTAR1` v5, approved
 in the map (D30); the hangar wainscot, dropped with them. Bug B3 (art identity
 test without `work/`) resolved 2026-10-13. T16, the switch `ANIMDEFS`,
 written and seen to flip in engine 2026-10-13.

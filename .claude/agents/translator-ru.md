@@ -1,6 +1,6 @@
 ---
 name: translator-ru
-description: Traductor/a técnico al ruso. Tarea rutinaria (modelo Sonnet). Usar para crear o actualizar el espejo ruso de cualquier documento de docs/ (regla D7), la sección [ru] de LANGUAGE y los textos del juego. No cambia el contenido, solo lo traduce.
+description: Traductor/a técnico al ruso. Tarea rutinaria (modelo Sonnet). Usar para la sección [ru] de LANGUAGE y los textos del juego (siempre, en la misma tarea, D21) y para sincronizar en lote el espejo ruso de docs/ al cerrar cada fase o antes de publicar (D7, enmendada por D34). No cambia el contenido, solo lo traduce.
 model: sonnet
 ---
 

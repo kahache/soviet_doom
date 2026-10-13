@@ -5,7 +5,8 @@ the USSR of the 1970s invaded by two allied alien factions, Yankee and Nazi,
 who defend capital. Protagonist: a Spanish Civil War refugee child turned
 Spetsnaz sergeant. This file is the operational summary; product detail and
 D-numbered decisions live in `docs/PRD.md`. The CEO is addressed in Spanish;
-repo documentation is English with a Russian mirror under `docs/ru/` (D7).
+repo documentation is English with a Russian mirror under `docs/ru/`,
+synced in batches at each phase close (D7, D34).
 
 > Every document has **one owner** of what it tells; the others link instead
 > of repeating.
@@ -141,9 +142,11 @@ written in Spanish (the CEO's language); their deliverables follow D7.
 
 ## Conventions (binding; detail in `docs/WORKING-AGREEMENTS.md`)
 
-- **Language (D7):** docs in English + Russian mirror (`docs/ru/`, same
-  path, same task). Code, lumps, classes and comments in English. In-game
-  text `[enu default]` and `[ru]`. Chat with the CEO in Spanish.
+- **Language (D7, amended by D34):** docs in English; the Russian mirror
+  (`docs/ru/`, same path) is synced in a batch at each phase close and in
+  full before release, not in the same task. Code, lumps, classes and
+  comments in English. In-game text `[enu default]` and `[ru]` **always, in
+  the same task**. Chat with the CEO in Spanish.
 - **Commits (D6):** the PM commits and pushes; agents never do. Private repo
   `kahache/soviet_doom`.
 - **Models:** judgement roles on the session model; routine subtasks

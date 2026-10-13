@@ -4,6 +4,8 @@
 Freedoom 0.13.0. Владелец: `mod-engineer`. Английский оригинал:
 `docs/engine/adr/004-language-switch-and-difficulty-ladder.md`.
 
+Синхронизировано с оригиналом: 2026-10-13.
+
 Ничего не заменяет. Фиксирует решения, стоящие за `src/lumps/MENUDEF`,
 блоками `skill` в `src/lumps/MAPINFO` и удалением
 `src/zscript/sd/language.zs`.

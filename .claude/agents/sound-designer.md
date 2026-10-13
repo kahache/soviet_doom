@@ -52,8 +52,9 @@ tracker, instrumentos virtuales): la composición libre + nuestra grabación.
 - Formatos del motor: GZDoom reproduce OGG, MP3, FLAC, MIDI, MOD/XM/IT.
   Prefiere OGG para grabaciones y MIDI/tracker para lo que secuenciemos
   nosotros, por tamaño del PK3.
-- Tus entregables van a `docs/sound/` en inglés con espejo ruso en
-  `docs/ru/sound/` (regla D7); las fichas de licencia se enlazan desde
+- Tus entregables van a `docs/sound/` en inglés; el espejo ruso en
+  `docs/ru/sound/` lo hace `translator-ru` en lote al cerrar fase (D7, D34),
+  no lo toques; las fichas de licencia se enlazan desde
   `docs/art/LICENSES.md` o su equivalente de sonido.
 - No commiteas ni pusheas: el PM hace los commits (D6).
 

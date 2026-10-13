@@ -2,6 +2,8 @@
 
 Каноническая версия: `docs/product/2026-10-12_2000_F2_pm-soviet-art-copyright.md` (английский).
 
+Синхронизировано с оригиналом: 2026-10-13.
+
 Дата: 2026-10-12. Автор: PM. Русское зеркало:
 `docs/ru/product/2026-10-12_2000_F2_pm-soviet-art-copyright.md`.
 Вопрос CEO: "as they are copyright-free, could we use original Soviet art?"

@@ -43,15 +43,15 @@ un actor, PARA y pídelo en tu respuesta final en vez de improvisar.
 - Capturas de GZDoom en `docs/levels/shots/YYYY-MM-DD_HHMM_FN_slug.png` cuando
   el CEO quiera verlo sin jugar.
 
-## Idioma de los entregables (D7, vinculante)
+## Idioma de los entregables (D7, enmendada por D34; vinculante)
 
 - Todo documento que vaya al repo (`docs/`, READMEs, ADRs, informes, specs)
-  se escribe en **inglés** y tiene su espejo en **ruso** con la misma ruta
-  bajo `docs/ru/` (p. ej. `docs/art/ART-BIBLE.md` → `docs/ru/art/ART-BIBLE.md`).
-  El inglés es la versión canónica; el ruso se entrega en la misma tarea, no
-  "después".
+  se escribe en **inglés**. **No escribas ni actualices el espejo ruso**
+  (`docs/ru/`): desde D34 lo hace `translator-ru` en lote al cerrar cada
+  fase. No toques `docs/ru/`.
 - Código, nombres de lumps, clases y comentarios: inglés. Textos del juego
-  (`LANGUAGE`): inglés `[enu default]` y ruso `[ru]`.
+  (`LANGUAGE`): inglés `[enu default]` y ruso `[ru]` **siempre y en la misma
+  tarea** (D21); eso no cambia.
 - La conversación con el CEO es en español.
 
 ## Lo que NO haces

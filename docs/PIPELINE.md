@@ -184,11 +184,11 @@ printed next to it); `2` usage, `3` git unavailable in `auto`.
 
 #### The documentation check
 
-The `docs` stage enforces the one part of D7 a script can decide: every
-changed `docs/**.md` has its twin under `docs/ru/` at the same path. A
-mirror missing for a document changed **in this batch** fails the stage; a
-pre-existing gap elsewhere in the tree is reported as a warning rather than
-used to block an unrelated change. It also warns when a document quotes a
+The `docs` stage reports the one part of D7 a script can decide: every
+`docs/**.md` has its twin under `docs/ru/` at the same path. Since D34 the
+mirror is batch work done at a phase close, so a missing or stale mirror is
+a **warning**, never a failure, during a phase; at a gate (`verify.py docs
+--gate`) a missing mirror fails the stage. It also warns when a document quotes a
 repo path in backticks that does not exist. Root documents (`README.md`,
 `CLAUDE.md`, `LICENSE.md`) carry their Russian text inline or not at all and
 owe no mirror. Everything else about the paper trail — one owner per fact,
@@ -230,8 +230,10 @@ commit if any of this is false:
 - Every claim in `CLAUDE.md`'s status block is true **today**.
 - Every fact lives with its **one owner** (the table in `CLAUDE.md`), and the
   other documents link rather than restate it.
-- Every English document changed in this batch has its **Russian mirror** at
-  the same path under `docs/ru/`, updated in the same batch (D7).
+- **At a phase close only** (D34): every English document has its Russian
+  mirror at the same path under `docs/ru/`, synced and dated. Between gates
+  a stale mirror is not a finding. In-game text (`LANGUAGE`) is checked on
+  every batch: no `SD_*` string without its `[ru]` line (D21).
 - Every new asset has origin and licence in `docs/art/LICENSES.md`.
 - Every decision the CEO took in chat is a **D-number** in `docs/PRD.md` §5,
   with its date and the CEO's words where they matter.
