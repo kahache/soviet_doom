@@ -132,5 +132,86 @@ class CreditTests(unittest.TestCase):
                 self.assertIn(ENGELBACH, doc.read_text(encoding="utf-8"))
 
 
+# --- the D43 enrichment of D_SDM01: a draft, never installed by a test -------
+
+TICKS_PER_BAR = gen_music.TICKS_PER_BEAT * gen_music.BEATS_PER_BAR
+NOTE_ON = gen_music.STATUS_NOTE_ON
+DRUMS = gen_music.DRUM_CHANNEL
+
+
+def note_ons(tracks) -> list[tuple[int, int, int]]:
+    """(tick, channel, pitch) of every note-on the builder scheduled."""
+    out = []
+    for track in tracks:
+        for tick, _order, _seq, payload in track.events:
+            if payload[0] & 0xF0 == NOTE_ON and payload[2] > 0:
+                out.append((tick, payload[0] & 0x0F, payload[1]))
+    return out
+
+
+def programs(tracks) -> set[int]:
+    return {payload[1] for track in tracks for _t, _o, _s, payload in track.events
+            if payload[0] & 0xF0 == gen_music.STATUS_PROGRAM_CHANGE}
+
+
+class EnrichedMap01Tests(unittest.TestCase):
+    """SOUNDTRACK.md 6, Card 2b: two more layers, a non-repeating fourth
+    section, the loop kept, zero rights -- each one measured here."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tracks, cls.end_beat = gen_music.build_map01_enriched(gen_music.MAP01_TEMPO_BPM)
+        cls.base_tracks, _ = gen_music.build_map01(gen_music.MAP01_TEMPO_BPM)
+        cls.notes = note_ons(cls.tracks)
+        sb = gen_music.MAP01_SECTION_BARS
+        cls.lament = range(3 * sb, 4 * sb)
+
+    def test_two_more_instrumental_layers(self):
+        before, after = programs(self.base_tracks), programs(self.tracks)
+        self.assertEqual(before | {gen_music.GM_FRENCH_HORN, gen_music.GM_CELLO}, after)
+        self.assertEqual(len(before) + 2, len(after))
+
+    def test_the_fourth_section_never_repeats_a_bar(self):
+        bars = []
+        for bar in self.lament:
+            content = frozenset((tick - bar * TICKS_PER_BAR, ch, p) for tick, ch, p in self.notes
+                                if ch != DRUMS and bar * TICKS_PER_BAR <= tick < (bar + 1) * TICKS_PER_BAR)
+            self.assertTrue(content, f"bar {bar + 1} is empty")
+            bars.append(content)
+        self.assertEqual(len(bars), len(set(bars)), "two bars of the lament are identical")
+
+    def test_the_lament_has_no_ostinato(self):
+        for bar in self.lament:
+            bass = [p for tick, ch, p in self.notes
+                    if ch == 0 and bar * TICKS_PER_BAR <= tick < (bar + 1) * TICKS_PER_BAR]
+            self.assertLessEqual(len(bass), 2, f"bar {bar + 1}: more than root and fifth")
+
+    def test_every_written_bar_of_the_new_lines_is_four_beats(self):
+        for name in ("MAP01E_LAMENT_HORN", "MAP01E_LAMENT_CELLO"):
+            for index, bar in enumerate(getattr(gen_music, name)):
+                with self.subTest(line=name, bar=index + 1):
+                    self.assertEqual(gen_music.BEATS_PER_BAR, sum(length for _n, length in bar))
+        self.assertEqual(gen_music.MAP01_SECTION_BARS, len(gen_music.MAP01E_LAMENT_HORN))
+        self.assertEqual(gen_music.MAP01_SECTION_BARS, len(gen_music.MAP01E_LAMENT_HARMONY))
+
+    def test_the_loop_still_restarts_from_near_silence(self):
+        last_bar = int(self.end_beat) // gen_music.BEATS_PER_BAR
+        tail = [n for n in self.notes if n[0] >= (last_bar - 2) * TICKS_PER_BAR]
+        self.assertEqual([], tail, "the last two bars must start nothing new")
+        first_bar = sorted(n for n in self.notes if n[0] < TICKS_PER_BAR)
+        base_first = sorted(n for n in note_ons(self.base_tracks) if n[0] < TICKS_PER_BAR)
+        self.assertEqual(base_first, first_bar, "the loop restarts on the same bar as before")
+
+    def test_the_draft_is_a_clean_midi_under_a_draft_name(self):
+        self.assertEqual("D_SDM01E", validate_lump_name(gen_music.MAP01E_LUMP))
+        with tempfile.TemporaryDirectory() as tmp:
+            path, seconds, _size = gen_music.generate("map01e", Path(tmp), None, quiet=True)
+            info = midi_inspect.parse(path)
+        self.assertEqual(0, info["hanging"])
+        self.assertAlmostEqual(160.0, seconds, places=1)
+        self.assertNotIn("D_SDM01E", [p.stem for p in MUSIC_ASSETS.glob("*.mid")],
+                         "the draft enters assets/ only on the CEO's approval")
+
+
 if __name__ == "__main__":
     unittest.main()

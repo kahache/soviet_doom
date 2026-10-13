@@ -46,7 +46,7 @@ open recommendation of §8 accepted. What that changed, in one place:
 | Cue | File | Status |
 |---|---|---|
 | **Title screen** | **`assets/music/D_SDINTL.mid`** — Engelbach's orchestral *Internationale*, head silence removed by us | **installed** (D43); MAPINFO line owed by `mod-engineer` |
-| **MAP01** | **`assets/music/D_SDM01.mid`** — our own "Zarya-7" | **installed** (D43) as it stood; an enriched version follows as a draft for the CEO's ear |
+| **MAP01** | **`assets/music/D_SDM01.mid`** — our own "Zarya-7" | **installed** (D43) as it stood; the enriched version `D_SDM01E` is a draft for the CEO's ear (§6, Card 2b) |
 | **Diegetic radio** | `WM_Ej_uchnem.mid` (`D_CND09`), `WM_Kolokolchik.mid` (`D_CND12`) — CC0, already orchestrated | **settled** (D43); not installed until a map has a radio to put them in (`level-designer`) |
 | **Anthem slot** | Glinka's *Patriotic Song*, sequenced by us | **settled** (D43); to be sequenced by us |
 | **Death / aftermath** | «Вы жертвою пали», sequenced by us | **settled** (D43); to be sequenced by us |
@@ -70,9 +70,14 @@ so it also stops writing state back into the CEO's own preferences.
 ```bash
 python3 tools/build.py                                   # the overlay loads on top of this
 
-# the two recommendations
+# the two installed lumps (D43), heard from their identical work/audio copies
 SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play title --lump D_SDINTL   # the Internationale, repaired
 SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play map01 --lump D_SDM01    # our MAP01 loop
+
+# the D43 drafts, for the CEO's ear
+python3 tools/audio/gen_music.py                                                  # regenerates every draft into work/audio/
+SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play map01 --lump D_SDM01E   # MAP01 enriched (Card 2b)
+SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --render --expect D_SDM01E=160 # its arc and peak (PM only)
 
 # our title march, now proposed for the intermission instead
 SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play title --lump D_SDTITL
@@ -496,6 +501,49 @@ If the CEO finds it **too busy**: `MAP01_VEL_BRASS`, or delete the snare in
 section C. **Too slow for a fight**: 120 BPM. **Too long before anything
 happens**: `MAP01_SECTION_BARS` 12. **Too simple**: the enrichment the CEO accepted in D43 (§8.3).
 
+### Card 2b — `D_SDM01E`, "Zarya-7" enriched — **draft for the CEO's ear (D43)**
+
+D43 accepted §8.3: *two more instrumental layers and a non-repeating fourth
+section, keeping the zero-rights position and the loop*. This is that, as a
+draft. **The installed `assets/music/D_SDM01.mid` is untouched**; the draft
+sits in `work/audio/D_SDM01E.mid` under a draft lump name so the two can be
+heard side by side. If the CEO approves it, it is copied over
+`assets/music/D_SDM01.mid` (the lump name MAP01 uses stays `D_SDM01`) and
+`tests/test_music.py`'s reproducibility check moves to the new builder.
+
+| Field | Value |
+|---|---|
+| **Lump (draft)** | `D_SDM01E` → becomes `D_SDM01` on approval |
+| **File** | `work/audio/D_SDM01E.mid`, 9 658 B, SMF format 1, 8 tracks, 480 ticks/beat |
+| **Generator** | `tools/audio/gen_music.py --only map01e` (`build_map01_enriched`); the original `build_map01` is **frozen**, because it is what the installed lump is |
+| **Duration · tempo** | **2:40** per loop (72 bars; was 2:22, 64 bars), 108 BPM 4/4, D minor |
+| **Voices** | **7 GM programs** (was 5): the five of Card 2 plus **French horns** (program 60, 0-based, as `midi_inspect.py` prints it) and **cellos** (program 42); 1 046 notes, zero hanging notes |
+| **Original or sequenced** | **ORIGINAL COMPOSITION**, `sound-designer`, 2026-10-13. Quotes nothing |
+| **Licence · rights to clear** | own work, CC BY-NC-SA 4.0 (D15) · **none** |
+
+**What changed, section by section** (A-C keep every note they had; the new
+layers are added on top):
+
+| Section | Bars | Before | Added |
+|---|---|---|---|
+| A — pulse | 1-16 | ostinato, two toms | **cellos** from bar 9: a slow descending tetrachord D–C–B♭–A under the ostinato, so the opening has a line, not only a riff |
+| B — dread | 17-32 | crawl, pad, bass drum | **cello pedal** on low D; **horns** from bar 25 wobbling A–B♭–A♭–A against the crawl's F♯–G–A♭–A: semitone friction, not a tune |
+| C — alarm | 33-48 | stabs on I and its Neapolitan, march snare | **horns** climbing in half-bar steps D–F–E♭–G–F–A–B♭–A over the stabs; **cellos** pressing D against E♭, the stab harmony one octave down |
+| **D — lament** | **49-64** | (was the release) | **NEW and through-composed.** The ostinato stops. Sixteen bars, one chord each (i–VI–iv–V–i6–♭II–iv6–V7–VI–III6–iv–♭II–i64–VI–V–i), **no bar repeats another** (`tests/test_music.py` checks it). Horns carry the melody, peaking on F5 at bar 61; cellos answer in contrary motion; the bass walks root and fifth; tremolo strings and the bass drum join only for the five bars of the climb (57-61) |
+| E — release | 65-72 | the old release, shortened to 8 bars | four bars of quiet ostinato and the far-off signals, then pad alone on the open tonic fifth. **The last two bars start nothing**, and bar 1 of the loop is note-for-note bar 1 of the installed piece (both tested) |
+
+**What I cannot tell you** (§2): whether the horn line sounds noble or
+sentimental in `gzdoom.sf2`, and whether the lament's tempo, at the map's
+108 BPM, feels like mourning or like hurry. That is the CEO's ear. Knobs:
+horns too forward → `MAP01E_VEL_HORN` or `MAP01E_MIX_EXTRA["horns"]`;
+lament too long → shorten `MAP01E_LAMENT_*` in step (the test checks the
+three lists stay the same length); cellos muddy under the ostinato → drop
+`MAP01E_A_CELLO`.
+
+**Not measured yet**: no `writewave` render of this draft exists — that
+needs the engine (D26). The PM's render command is in §1; it would give the
+arc and peak the other cards carry.
+
 ### How plan B was verified
 
 | Claim | Evidence |
@@ -580,9 +628,9 @@ items as they stood, and what each became:
 1. **Title screen — `D_SDINTL` APPROVED and installed** in `assets/music/`.
 2. **MAP01 — (a) `D_SDM01`, ours, APPROVED and installed** as it stood.
    Bald Mountain and *Dumka* stay reserves.
-3. **Enrich `D_SDM01` — YES.** A generator change, delivered as a draft in
-   `work/audio/` for the CEO's ear; the installed file is not touched until
-   the CEO approves the enriched one.
+3. **Enrich `D_SDM01` — YES.** Done as a draft: `work/audio/D_SDM01E.mid`,
+   Card 2b (§6). The installed file is not touched until the CEO approves
+   the enriched one by ear.
 4. **Diegetic radio — `WM_Ej_uchnem.mid` and `WM_Kolokolchik.mid`, both CC0,
    SETTLED.** They wait for a map with a radio (§7, `level-designer`).
 5. **Sequence «Вы жертвою пали» and «Амурские волны» ourselves — YES.**
