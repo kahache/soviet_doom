@@ -35,6 +35,21 @@ class is being renamed (the shovel becomes an ice axe, D40): step A0 asserts
 "slot 1 empty, ready weapon in slot 2, 50 rounds", step R1 walks into the
 rack and asserts "a slot-1 weapon is owned".
 
+Blockers (the PM's first run, 2026-10-13 20:36: skills 3 and 4 failed at A1
+because a live Stormtrooper stood in the corridor, and a scripted walk cannot
+step round a body). Before every `+forward` the helper's `sdclear` kills
+the live monsters within CLEAR_HALF_WIDTH of the walk's line, and names
+each one. The report lists them under "blockers", counts them apart under
+"kills", and says so on the VERDICT line: a body in the way is reported,
+never hidden. A blocker that survives fails the run. --no-clear turns it
+off.
+
+Ending a level: MAP01 must end by its exit switch (G3-4); MAP02 has no exit
+line, so map02-start ends it with the helper's `sdexit` (Level.ExitLevel).
+The console `exit` QUITS GZDoom (PM, 2026-10-13 20:39) and is never typed.
+Both maps say `next = endtitle`, so the report checks that the level led
+to an end sequence.
+
 Usage (the PM's; D26: only the PM sets SD_ALLOW_ENGINE, and on Windows the
 interpreter is .venv/Scripts/python.exe):
   SD_ALLOW_ENGINE=1 python3 tools/route.py                       # g3-auto, skills 2 3 4
@@ -57,7 +72,13 @@ Exit codes: smoke's (1 log failures, 2 no gzdoom, 3 no IWAD, 4 build,
 NOT VERIFIED until the PM's first run (D26: this role does not start the
 engine): that the helper's extra hooks compile and print as written, and
 whether a `warp` onto a pickup collects it (the rack step does not rely on
-that: it walks into the rack's alcove, which a move does collect). Every
+that: it walks into the rack's alcove, which a move does collect).
+VERIFIED by the PM's run of 2026-10-13 20:36 (route-1 helper): it compiles,
+and position, tags, lines, inventory, the exit line and the unload are
+printed as parsed here. Added after that run and NOT VERIFIED yet: sdclear,
+sdexit, and the static SDRouteState that answers sdstate after the level
+has ended (whether net events run during an intermission or an end text).
+Every
 ZScript name it uses was checked against the declarations in GZDoom
 g4.14.2's own gzdoom.pk3 (zscript/events.zs, doombase.zs, mapdata.zs,
 engine/base.zs) on 2026-10-13; the angle, damage and count commands are the
@@ -115,6 +136,9 @@ SHOT_SETTLE_TICS = 3     # a screenshot is taken on the next frame: let it happe
 INTERMISSION_TICS = 70   # after the exit switch, before the intermission shot
 QUIT_SETTLE_TICS = 35    # after the last shot, so the PNG is flushed
 TIMEOUT_MARGIN_S = 90.0  # engine start-up and shutdown on top of the route's tics
+WALK_UNITS_PER_TIC = 8   # +forward with cl_run 0, an upper estimate (Doom walks ~8.3)
+CLEAR_HALF_WIDTH = 128   # sdclear: how far either side of a walk a body counts as in the way
+END_TEXT_TICS = 280      # an end text types itself out; MAP02's 74 characters fit well inside
 # One argv element carries the whole sequence. Windows caps a command line at
 # 32767 characters; we stay far below it. NOT VERIFIED: any shorter limit in
 # GZDoom's own console buffer (the PM's hand runs used a few hundred chars).
@@ -129,7 +153,7 @@ COUNT_CLASSES = (
     "SD_Clip", "SD_Izh",
 )
 HELPER_CLASS = "SDRouteHelper"
-HELPER_VERSION = "route-1"
+HELPER_VERSION = "route-2"
 
 # Monsters as the map places them (DoomEdNums of the Freedoom stand-ins our
 # bestiary replaces, docs/levels/MAP01-zarya-7.md section 8). Used to say how
@@ -141,6 +165,9 @@ MONSTER_EDNUMS = frozenset({3004, 9, 3001, 3002, 3005, 69, 16, 3003} | set(range
 SECTOR_SPECIAL_SECRET = 1024     # udmf.SECTOR_SPECIAL_SECRET
 SPECIAL_EXIT_NORMAL = 243        # udmf.SPECIAL_EXIT_NORMAL
 GS_INTERMISSION = 1              # EGameState in GZDoom's zscript/engine/base.zs
+GS_FINALE = 2                    # the same enum: an end text (a cluster's exittext)
+GS_NAMES = {GS_INTERMISSION: "intermission", GS_FINALE: "end text"}
+END_SEQUENCE_PREFIX = "enDSeQ"   # what GZDoom calls `next = endtitle` and its kin
 # A door counts as open when a player fits under it (Doom player height 56).
 PLAYER_HEIGHT = 56
 
@@ -179,7 +206,7 @@ G3_EXTRA_PATTERNS: tuple[tuple[str, str, str], ...] = (
 # ============================================================================
 
 ACTION_WORDS = ("use", "wait", "forward", "capture", "count", "tag", "angle",
-                "hurt", "level", "state", "inv")
+                "hurt", "level", "state", "inv", "exit")
 STEP_ID = re.compile(r"[A-Za-z0-9_-]{1,24}")
 
 
@@ -241,6 +268,14 @@ class Route:
     expect_secrets: int | str | None = None
     must_exit: bool = True
     description: str = ""
+    # How the level must end: "switch" (an Exit_Normal line pressed by the
+    # player; a console exit does not count) or "console" (the helper's
+    # sdexit, for a map with no exit line: MAP02).
+    exit_by: str = "switch"
+    # The map's MAPINFO says `next = endtitle`: leaving it must lead to an
+    # end sequence (GZDoom names them "enDSeQ" + hex: the PM's MAP01 run
+    # of 2026-10-13 20:36 unloaded towards "enDSeQ1dce").
+    end_sequence: bool = False
 
 
 def parse_action(text: str) -> tuple[str, tuple]:
@@ -250,7 +285,7 @@ def parse_action(text: str) -> tuple[str, tuple]:
         raise RouteError(f"unknown action {text!r} (known: {', '.join(ACTION_WORDS)})")
     word, rest = parts[0], parts[1:]
     try:
-        if word in ("use", "capture", "count", "level", "state", "inv"):
+        if word in ("use", "capture", "count", "level", "state", "inv", "exit"):
             if rest:
                 raise RouteError(f"{word!r} takes no argument: {text!r}")
             return word, ()
@@ -361,9 +396,10 @@ _SECRET_STEPS = _insert_after(_insert_after(_insert_after(_A_STEPS, "R1", _S1), 
 # The same two checks as A0 and R1, on the range (src/maps/MAP02/map.py): the
 # player starts at (160, 384) and the weapon row lies along y 624, the melee
 # weapon (DoomEdNum ED_MELEE) first at x 288 and the next 112 further east,
-# so walking north up x 288 collects that one and no other. No exit, no
-# zones (MAP02 has no zone plan): a quick check of the start inventory that
-# does not need the whole of MAP01.
+# so walking north up x 288 collects that one and no other. No zones (MAP02
+# has no zone plan). MAP02 has no exit line, so E1 ends it with the
+# helper's sdexit (Level.ExitLevel), and its shot is cluster 2's end text
+# (MAPINFO: `nointermission`, `next = endtitle`).
 MAP02_AXE_APPROACH = (288, 560)
 MAP02_AXE_FACING = 90
 
@@ -373,6 +409,9 @@ _MAP02_STEPS = (
          note="the player start: TT-33 raised with its rounds, slot 1 empty"),
     Step("R1", MAP02_AXE_APPROACH, MAP02_AXE_FACING, (f"forward {RACK_WALK}", "inv", "capture"),
          melee=True, note=f"walk north over the weapon row's first item (DoomEdNum {ED_MELEE})"),
+    Step("E1", actions=("exit", f"wait {END_TEXT_TICS}", "state", "capture"),
+         note="end MAP02 by sdexit (it has no exit line; the console `exit` quits GZDoom): "
+              "cluster 2's end text, SD_END02_TEXT over SDFLR1, is what the shot must show"),
 )
 
 # --- MAP01, the mural shots M1-M5 (design section 17.13) ------------------
@@ -399,15 +438,16 @@ _MURAL_STEPS = (
 
 ROUTES: dict[str, Route] = {
     "g3-auto": Route(
-        "g3-auto", "MAP01", _A_STEPS, expect_secrets=0,
+        "g3-auto", "MAP01", _A_STEPS, expect_secrets=0, end_sequence=True,
         description="section 17.10's automatic run A1-A12 plus the start inventory (A0) and "
                     "the dorm rack (R1): the critical path, no secret (also G3-5's zero-secret run)"),
     "g3-secrets": Route(
-        "g3-secrets", "MAP01", _SECRET_STEPS, expect_secrets="all",
+        "g3-secrets", "MAP01", _SECRET_STEPS, expect_secrets="all", end_sequence=True,
         description="the same path with the three secrets of section 7 taken on the way"),
     "map02-start": Route(
-        "map02-start", "MAP02", _MAP02_STEPS, expect_secrets=None, must_exit=False,
-        description="the test range: the start inventory and the slot-1 pickup, nothing else"),
+        "map02-start", "MAP02", _MAP02_STEPS, expect_secrets=None, must_exit=True,
+        exit_by="console", end_sequence=True,
+        description="the test range: the start inventory, the slot-1 pickup, and its end text"),
     "mural": Route(
         "mural", "MAP01", _MURAL_STEPS, expect_secrets=None, must_exit=False,
         description="section 17.13's mural shots M1-M5 (run with --nomonsters)"),
@@ -570,7 +610,14 @@ def helper_zscript(minimal: bool = False) -> str:
     core = f"""
     override void NetworkProcess(ConsoleEvent e)
     {{
-        if (e.Name == "sdstate") {{ Console.Printf("SDTEST state gamestate=%d", gamestate); return; }}
+        if (e.Name == "sdexit")
+        {{
+            // End the level as an exit line would: the console `exit` QUITS
+            // GZDoom, it does not end the level.
+            Console.Printf("SDTEST exitlevel map=%s", level.MapName);
+            level.ExitLevel(0, false);
+            return;
+        }}
         if (e.Name == "sdlevel")
         {{
             Console.Printf("SDTEST level map=%s monsters=%d/%d secrets=%d/%d items=%d/%d time=%d",
@@ -594,6 +641,31 @@ def helper_zscript(minimal: bool = False) -> str:
         let pmo = players[e.Player].mo;
         if (!pmo) return;
         if (e.Name == "sdangle") {{ pmo.angle = e.Args[0]; pmo.pitch = 0; return; }}
+        if (e.Name == "sdclear")
+        {{
+            // Args: step, length of the walk ahead, half-width. Kills only
+            // LIVE MONSTERS in that corridor, and names each one, so the
+            // report can tell the route's kills from the player's.
+            Vector2 dir = Actor.AngleToVector(pmo.angle, 1);
+            let it = ThinkerIterator.Create("Actor");
+            Actor a;
+            int n = 0;
+            while ((a = Actor(it.Next())) != null)
+            {{
+                if (!a.bIsMonster || a.health <= 0) continue;
+                Vector2 d = pmo.Vec2To(a);
+                double along = d dot dir;
+                double across = abs(d.x * dir.y - d.y * dir.x);
+                if (along < -e.Args[2] || along > e.Args[1] + e.Args[2] || across > e.Args[2]) continue;
+                int hp = a.health;
+                a.DamageMobj(pmo, pmo, hp + 1000, 'None', DMG_FORCED | DMG_THRUSTLESS | DMG_NO_FACTOR);
+                Console.Printf("SDTEST cleared step=%d class=%s x=%d y=%d hp=%d dead=%d", e.Args[0],
+                    a.GetClassName(), int(a.pos.x), int(a.pos.y), hp, a.health <= 0 ? 1 : 0);
+                n++;
+            }}
+            Console.Printf("SDTEST clear step=%d killed=%d", e.Args[0], n);
+            return;
+        }}
         if (e.Name == "sdinv")
         {{
             // Weapons by SLOT (the classes are being renamed, D40), then the
@@ -709,17 +781,39 @@ def helper_zscript(minimal: bool = False) -> str:
         "//   netevent sdinv                 weapons owned by slot, the raised one, its rounds\n"
         "//   netevent sdtag <tag>           floor / ceiling of each sector with the tag\n"
         "//   netevent sdlevel               kills, secrets, items, map time\n"
-        "//   netevent sdstate               gamestate (1 = intermission)\n"
+        "//   netevent sdclear <step> <len> <w> kill live monsters in the walk ahead\n"
+        "//   netevent sdexit                end the level (the console `exit` quits)\n"
+        "//   netevent sdstate               gamestate (1 intermission, 2 end text),\n"
+        f"//                                  answered by {STATE_CLASS}, which outlives the level\n"
         f"class {HELPER_CLASS} : EventHandler\n"
         "{\n"
         f"    static const string NAMES[] = {{ {names} }};\n"
         + body
         + "\n}\n"
+        + ("" if minimal else STATE_HANDLER)
     )
 
 
-def helper_mapinfo() -> str:
-    return f'gameinfo\n{{\n    AddEventHandlers = "{HELPER_CLASS}"\n}}\n'
+# The per-level helper is destroyed when its level ends, so it cannot say
+# what comes after (the PM's first run: "gamestate intermission: NOT SEEN").
+# A static handler lives across levels. NOT VERIFIED: that GZDoom runs net
+# events during the intermission and the end text; if it does not, the
+# report says NOT SEEN and the END screenshot is the evidence.
+STATE_CLASS = "SDRouteState"
+STATE_HANDLER = f"""
+class {STATE_CLASS} : StaticEventHandler
+{{
+    override void NetworkProcess(ConsoleEvent e)
+    {{
+        if (e.Name == "sdstate") Console.Printf("SDTEST state gamestate=%d", gamestate);
+    }}
+}}
+"""
+
+
+def helper_mapinfo(minimal: bool = False) -> str:
+    handlers = f'"{HELPER_CLASS}"' + ("" if minimal else f', "{STATE_CLASS}"')
+    return f"gameinfo\n{{\n    AddEventHandlers = {handlers}\n}}\n"
 
 
 def _inside(path: Path, root: Path) -> bool:
@@ -738,7 +832,7 @@ def write_helper_pk3(out: Path = HELPER_PK3, minimal: bool = False) -> Path:
                              "it is tooling and must never reach the mod")
     out.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(out, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        for name, text in (("zscript.txt", helper_zscript(minimal)), ("MAPINFO", helper_mapinfo())):
+        for name, text in (("zscript.txt", helper_zscript(minimal)), ("MAPINFO", helper_mapinfo(minimal))):
             info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             zf.writestr(info, text)
@@ -767,6 +861,8 @@ def action_commands(action: str) -> list[str]:
         return ["netevent sdstate", f"wait {SETTLE_TICS}"]
     if word == "inv":
         return ["netevent sdinv", f"wait {SETTLE_TICS}"]
+    if word == "exit":
+        return ["netevent sdexit", f"wait {SETTLE_TICS}"]
     if word == "tag":
         return [f"netevent sdtag {args[0]}", f"wait {SETTLE_TICS}"]
     if word == "angle":
@@ -776,13 +872,30 @@ def action_commands(action: str) -> list[str]:
     raise RouteError(f"unhandled action {action!r}")  # pragma: no cover
 
 
-def step_commands(number: int, step: Step) -> list[str]:
+def clear_commands(number: int, tics: int) -> list[str]:
+    """Before a scripted walk: kill the live monsters standing in its way.
+
+    The scripted +forward cannot step round a body: on the PM's first run
+    (2026-10-13 20:36, skills 3 and 4) a Stormtrooper in the Z1-Z3 corridor
+    stopped A1 and failed a map that is not broken. The helper kills only
+    live monsters within CLEAR_HALF_WIDTH of the walk's line, from behind
+    the player to the walk's length plus that margin, and names each one in
+    the log, so the report can say a body was in the way and the kill count
+    can tell the route's kills from the rest."""
+    return [f"netevent sdclear {number} {tics * WALK_UNITS_PER_TIC} {CLEAR_HALF_WIDTH}",
+            f"wait {SETTLE_TICS}"]
+
+
+def step_commands(number: int, step: Step, clear: bool = True) -> list[str]:
     cmds = [f"echo SDSTEP {number} {step.id}"]
     if step.warp is not None:
         cmds += [f"warp {step.warp[0]} {step.warp[1]}", f"wait {SETTLE_TICS}"]
     if step.angle is not None:
         cmds += [f"netevent sdangle {step.angle}", f"wait {SETTLE_TICS}"]
     for action in step.actions:
+        word, args = parse_action(action)
+        if clear and word == "forward":
+            cmds += clear_commands(number, args[0])
         cmds += action_commands(action)
     cmds += [f"netevent sdpos {number}", f"wait {SETTLE_TICS}"]
     return cmds
@@ -791,14 +904,15 @@ def step_commands(number: int, step: Step) -> list[str]:
 END_STEP_ID = "END"
 
 
-def route_commands(route: Route, god: bool = True, notarget: bool = False) -> list[str]:
+def route_commands(route: Route, god: bool = True, notarget: bool = False,
+                   clear: bool = True) -> list[str]:
     cmds = [f"wait {LOAD_TICS}"]
     if god:
         cmds += ["god", f"wait {SETTLE_TICS}"]
     if notarget:
         cmds += ["notarget", f"wait {SETTLE_TICS}"]
     for number, step in enumerate(route.steps):
-        cmds += step_commands(number, step)
+        cmds += step_commands(number, step, clear)
     # The end: the intermission (if the exit was reached) is what is on
     # screen now. Shoot it, ask for the game state, and quit.
     cmds += [f"echo SDSTEP {len(route.steps)} {END_STEP_ID}", f"wait {INTERMISSION_TICS}",
@@ -807,15 +921,17 @@ def route_commands(route: Route, god: bool = True, notarget: bool = False) -> li
     return cmds
 
 
-def console_sequence(route: Route, god: bool = True, notarget: bool = False) -> str:
-    text = "+" + "; ".join(route_commands(route, god, notarget))
+def console_sequence(route: Route, god: bool = True, notarget: bool = False,
+                     clear: bool = True) -> str:
+    text = "+" + "; ".join(route_commands(route, god, notarget, clear))
     if len(text) > MAX_SEQUENCE_CHARS:
         raise RouteError(f"console sequence is {len(text)} chars, over {MAX_SEQUENCE_CHARS}")
     return text
 
 
-def sequence_tics(route: Route, god: bool = True, notarget: bool = False) -> int:
-    return sum(int(c.split()[1]) for c in route_commands(route, god, notarget)
+def sequence_tics(route: Route, god: bool = True, notarget: bool = False,
+                  clear: bool = True) -> int:
+    return sum(int(c.split()[1]) for c in route_commands(route, god, notarget, clear)
                if c.startswith("wait "))
 
 
@@ -823,7 +939,7 @@ def build_command(gzdoom: Path, iwad: Path, pk3: Path, helper: Path, log: Path,
                   shot_dir: Path, route: Route, skill: int, *, god: bool = True,
                   notarget: bool = False, nomonsters: bool = False,
                   window: tuple[int, int] | None = (smoke.SMOKE_WINDOW_W, smoke.SMOKE_WINDOW_H),
-                  hide_weapon: bool = False,
+                  hide_weapon: bool = False, clear: bool = True,
                   extra: list[str] | None = None) -> list[str]:
     """smoke.build_command's order and tooling config, with the helper after
     the mod and the route's sequence instead of smoke's.
@@ -845,7 +961,7 @@ def build_command(gzdoom: Path, iwad: Path, pk3: Path, helper: Path, log: Path,
     argv += ["+i_pauseinbackground", "0", "+cl_run", "0", "+screenshot_dir", str(shot_dir)]
     # Always set, both ways: the tooling config keeps what the last run set.
     argv += ["+r_drawplayersprites", "0" if hide_weapon else "1"]
-    argv.append(console_sequence(route, god, notarget))
+    argv.append(console_sequence(route, god, notarget, clear))
     argv += list(extra or [])
     return argv
 
@@ -870,14 +986,19 @@ RE_COUNT = re.compile(r"^SDTEST count (\S+) total=(\d+) alive=(\d+)")
 RE_HELPER = re.compile(r"^SDTEST helper (\S+)")
 RE_WEAPON = re.compile(r"^SDTEST weapon class=(\S+) slot=(-?\d+)")
 RE_INV = re.compile(r"^SDTEST inv weapons=(\d+) ready=(\S+) slot=(-?\d+) ammo=(-?\d+)")
+RE_CLEARED = re.compile(r"^SDTEST cleared step=(\d+) class=(\S+) x=(-?\d+) y=(-?\d+) hp=(-?\d+)"
+                        r" dead=([01])")
+RE_CLEAR = re.compile(r"^SDTEST clear step=(\d+) killed=(\d+)")
+RE_EXITLEVEL = re.compile(r"^SDTEST exitlevel map=(\S+)")
 RE_CAPTURED = re.compile(r"^Captured (\S+)")
-# The `god` cheat answers with STSTR_DQDON: "Degreelessness Mode ON" in
-# GZDoom g4.14.2's own language.csv (read 2026-10-13; "God mode on" was a
-# guess and never matched).
-RE_GOD = re.compile(r"^(Degreelessness Mode ON|Invincible Mode ON|God mode on)", re.I)
-# The engine's own secret message, when it reaches the log (NOT VERIFIED:
-# GZDoom centre-prints "A secret is revealed!"; the SDTEST secret line is
-# the measured signal, this one is corroboration).
+# The `god` cheat's answer, STSTR_DQDON. Measured: the PM's run of
+# 2026-10-13 20:36 (g4.14.2 on Freedoom 0.13.0) printed "God mode on.";
+# GZDoom's own language.csv says "Degreelessness Mode ON" (Freedoom's
+# strings replace it: hypothesis, not checked). Both are accepted.
+RE_GOD = re.compile(r"^(God mode on|Degreelessness Mode ON|Invincible Mode ON)", re.I)
+# The engine's own secret message: "A secret is revealed!" does reach the
+# log (logs/gzdoom.log, 2026-10-13 16:21); the SDTEST secret line is the
+# measured signal, this one is corroboration.
 RE_SECRET_MESSAGE = re.compile(r"(?i)\bsecret\b")
 
 _EXTRA = [(pid, re.compile(rx), why) for pid, rx, why in G3_EXTRA_PATTERNS]
@@ -939,6 +1060,10 @@ class RouteLog:
     counts: list[dict[str, tuple[int, int]]] = field(default_factory=list)
     captures: list[tuple[int, str]] = field(default_factory=list)  # (step number, file)
     inventory: dict[int, Inventory] = field(default_factory=dict)  # step number -> last answer
+    # The route's own kills (sdclear): (step, class, x, y, hp, dead).
+    cleared: list[tuple[int, str, int, int, int, bool]] = field(default_factory=list)
+    clears: dict[int, int] = field(default_factory=dict)   # step -> sdclear calls answered
+    exitlevel: list[str] = field(default_factory=list)     # maps ended by sdexit
 
     @property
     def failures(self) -> list[smoke.LogHit]:
@@ -993,6 +1118,14 @@ def scan_route_log(text: str, strict: bool = False) -> RouteLog:
             count_block[m.group(1)] = (int(m.group(2)), int(m.group(3)))
         elif m := RE_WEAPON.match(line):
             weapons.append((m.group(1), int(m.group(2))))
+        elif m := RE_CLEARED.match(line):
+            g = m.groups()
+            log.cleared.append((int(g[0]), g[1], int(g[2]), int(g[3]), int(g[4]), g[5] == "1"))
+        elif m := RE_CLEAR.match(line):
+            step = int(m.group(1))
+            log.clears[step] = log.clears.get(step, 0) + 1
+        elif m := RE_EXITLEVEL.match(line):
+            log.exitlevel.append(m.group(1))
         elif m := RE_INV.match(line):
             log.inventory[current] = Inventory(weapons, m.group(2), int(m.group(3)), int(m.group(4)))
             weapons = []
@@ -1147,16 +1280,32 @@ def evaluate(route: Route, skill: int, log: RouteLog, mapdata: MapData,
         if not secrets_ok:
             problems.append(f"secrets: found {found}, expected {want} of {secret_total}")
 
-    # Exit: the player pressed an Exit_Normal line, and the game left the level.
+    # Exit: the level was ended the way the route says (the exit switch, or
+    # the helper's sdexit on a map without one), and the game left it.
     exit_line = any(u.special == SPECIAL_EXIT_NORMAL and u.by_player for u in log.lines)
+    exit_console = bool(log.exitlevel)
     left = [u for u in log.unloaded if u[1]]
-    in_intermission = GS_INTERMISSION in log.states
-    exit_reached = exit_line and (bool(left) or in_intermission)
-    exit_detail = (f"exit switch pressed: {'yes' if exit_line else 'NO'}; "
-                   f"level unloaded towards: {left[-1][1] if left else 'NOT SEEN'}; "
-                   f"gamestate intermission: {'yes' if in_intermission else 'NOT SEEN'}")
+    after = sorted({s for s in log.states if s in (GS_INTERMISSION, GS_FINALE)})
+    triggered = exit_line if route.exit_by == "switch" else exit_console
+    exit_reached = triggered and (bool(left) or bool(after))
+    how = (f"exit switch pressed: {'yes' if exit_line else 'NO'}" if route.exit_by == "switch"
+           else f"ended by sdexit: {'yes' if exit_console else 'NO'}")
+    exit_detail = (f"{how}; level unloaded towards: {left[-1][1] if left else 'NOT SEEN'}; "
+                   f"after it: {', '.join(GS_NAMES[s] for s in after) if after else 'NOT SEEN'}")
     if route.must_exit and not exit_reached:
         problems.append("exit not reached: " + exit_detail)
+    if route.exit_by == "switch" and exit_console:
+        problems.append("the level was ended by sdexit, not by its exit switch")
+    if exit_reached and route.end_sequence and not left[-1][1].startswith(END_SEQUENCE_PREFIX):
+        problems.append(f"the level led to {left[-1][1]!r}, not to an end sequence")
+
+    # The route's own kills (sdclear): never a failure on their own, always
+    # reported, so G3 knows a body stood in a scripted walk. A blocker that
+    # survived is a failure: the walk after it proves nothing.
+    for step, cls, x, y, hp, dead in log.cleared:
+        if not dead:
+            sid = route.steps[step].id if step < len(route.steps) else str(step)
+            problems.append(f"{sid}: blocker {cls} at ({x}, {y}) survived sdclear")
 
     # Monsters on this skill: engine vs the map's own things.
     expected = 0 if nomonsters else mapdata.monsters_on(skill)
@@ -1167,6 +1316,15 @@ def evaluate(route: Route, skill: int, log: RouteLog, mapdata: MapData,
     return SkillReport(route, skill, log, results, doors, found, secret_total, secrets_ok,
                        exit_reached, exit_detail, expected, engine, problems,
                        inventory=inventory)
+
+
+def kills_line(rep: "SkillReport") -> str:
+    """Kills at the end, and how many of them were the route's (sdclear)."""
+    by_route = sum(1 for c in rep.log.cleared if c[5])
+    if rep.log.unloaded:
+        kills, total = rep.log.unloaded[-1][2], rep.log.unloaded[-1][3]
+        return f"{kills} of {total}, of which {by_route} by the route's sdclear"
+    return f"? (level never unloaded), {by_route} by the route's sdclear"
 
 
 def describe_inventory(inv: Inventory) -> str:
@@ -1238,6 +1396,14 @@ def render_report(rep: SkillReport) -> str:
     for msg in rep.log.secret_messages:
         out.append(f"  engine said  : {msg}")
     out.append(f"exit           : {'REACHED' if rep.exit_reached else 'NOT REACHED'} ({rep.exit_detail})")
+    ids = {n: s.id for n, s in enumerate(rep.route.steps)}
+    out.append(f"blockers       : {len(rep.log.cleared) or 'none'} killed by the route's sdclear"
+               + (f" (sdclear answered {sum(rep.log.clears.values())} time(s))" if rep.log.clears
+                  else ""))
+    for step, cls, x, y, hp, dead in rep.log.cleared:
+        out.append(f"  [{'ok ' if dead else 'BAD'}] {ids.get(step, step)}: {cls} at ({x}, {y}),"
+                   f" {hp} hp, {'dead' if dead else 'SURVIVED'}")
+    out.append(f"kills          : {kills_line(rep)}")
     out.append(f"screenshots    : {len(rep.log.captures)}")
     failures = rep.log.failures
     out.append(f"log failures   : {len(failures) or 'none'}")
@@ -1245,7 +1411,9 @@ def render_report(rep: SkillReport) -> str:
         out.append(hit.render())
     for p in rep.problems:
         out.append(f"PROBLEM        : {p}")
-    out.append(f"VERDICT        : {'PASS' if rep.passed else 'FAIL'}")
+    note = (f" ({len(rep.log.cleared)} blocker(s) killed by the route, listed above)"
+            if rep.log.cleared else "")
+    out.append(f"VERDICT        : {'PASS' if rep.passed else 'FAIL'}{note}")
     return "\n".join(out)
 
 
@@ -1312,6 +1480,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--no-god", action="store_true", help="do not type `god` (default: god on)")
     p.add_argument("--notarget", action="store_true", help="also type `notarget`")
     p.add_argument("--nomonsters", action="store_true", help="pass -nomonsters (G3-5)")
+    p.add_argument("--no-clear", action="store_true",
+                   help="do not kill the live monsters standing in a scripted walk's way")
     p.add_argument("--hide-weapon", action="store_true",
                    help="no first-person weapon in the shots (r_drawplayersprites 0): the mural's M5")
     p.add_argument("--minimal-helper", action="store_true",
@@ -1371,16 +1541,16 @@ def main(argv: list[str] | None = None) -> int:
     helper = write_helper_pk3(HELPER_PK3, minimal=args.minimal_helper)
     if args.print_only:
         print(f"helper : {helper}")
-        print(f"tics   : {sequence_tics(route, god, args.notarget)}")
+        print(f"tics   : {sequence_tics(route, god, args.notarget, not args.no_clear)}")
         for skill in args.skills:
             cmd = build_command(Path("gzdoom"), Path("<iwad>"), Path(args.pk3), helper,
                                 Path("<log>"), Path("<shots>"), route, skill, god=god,
                                 notarget=args.notarget, nomonsters=args.nomonsters,
-                                window=args.window, hide_weapon=args.hide_weapon,
+                                window=args.window, hide_weapon=args.hide_weapon, clear=not args.no_clear,
                                 extra=args.extra)
             print(f"skill {skill}: " + " ".join(a for a in cmd[1:] if not a.startswith("+wait ")))
         print("sequence:")
-        for c in route_commands(route, god, args.notarget):
+        for c in route_commands(route, god, args.notarget, not args.no_clear):
             print(f"  {c}")
         return EXIT_OK
 
@@ -1396,7 +1566,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"route: {exc}", file=sys.stderr)
         return exc.code
 
-    timeout = args.timeout or (sequence_tics(route, god, args.notarget) / TICS_PER_SECOND + TIMEOUT_MARGIN_S)
+    timeout = args.timeout or (sequence_tics(route, god, args.notarget, not args.no_clear) / TICS_PER_SECOND + TIMEOUT_MARGIN_S)
     worst = EXIT_OK
     summary = []
     for skill in args.skills:
@@ -1406,7 +1576,7 @@ def main(argv: list[str] | None = None) -> int:
         log_path = run_dir / "gzdoom.log"
         argv_ = build_command(gzdoom, iwad, pk3, helper, log_path, shots, route, skill, god=god,
                               notarget=args.notarget, nomonsters=args.nomonsters,
-                              window=args.window, hide_weapon=args.hide_weapon,
+                              window=args.window, hide_weapon=args.hide_weapon, clear=not args.no_clear,
                               extra=args.extra)
         print(f"\nskill {skill}: " + " ".join(a for a in argv_[1:] if not a.startswith("+wait ")))
         try:
