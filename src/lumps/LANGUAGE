@@ -135,6 +135,22 @@ SD_LANGVAL_AUTO = "Automatic (system)";
 SD_LANGVAL_EN = "English";
 SD_LANGVAL_RU = "Russian";
 
+// --- Main menu and skill screen (D31, 2026-10-13) --------------------------
+// Drawn in the menu font SDMENU (MENUDEF; docs/engine/MOD-SPEC.md 6.6), which
+// shows R, N, E, W and A with Cyrillic forms (D22): "NEW GAME" reads
+// "ИЭШ GДMЭ" on screen. That is the FONT's doing; these strings stay plain,
+// correct English. CAPITALS because SDMENU has no lowercase glyphs.
+// SD_MNU_READTHIS is drawn only when the engine's ReadThis option is on (it
+// is off for Freedoom), but the id exists because MENUDEF keeps the branch.
+
+SD_MNU_NEWGAME     = "NEW GAME";
+SD_MNU_OPTIONS     = "OPTIONS";
+SD_MNU_LOADGAME    = "LOAD GAME";
+SD_MNU_SAVEGAME    = "SAVE GAME";
+SD_MNU_READTHIS    = "READ THIS!";
+SD_MNU_QUITGAME    = "QUIT GAME";
+SD_MNU_CHOOSESKILL = "CHOOSE DIFFICULTY";
+
 [ru]
 
 SD_EP01_NAME  = "Советский Doom";
@@ -209,3 +225,14 @@ SD_OPTMNU_LANGHELP = "Применяется сразу. Сохраняется 
 SD_LANGVAL_AUTO = "Автоматически (система)";
 SD_LANGVAL_EN = "Английский";
 SD_LANGVAL_RU = "Русский";
+
+// --- Главное меню и экран сложности (D31, 2026-10-13) ----------------------
+// Шрифт SDMENU; кириллица в нём не меняется. ЗАГЛАВНЫЕ - строчных глифов нет.
+
+SD_MNU_NEWGAME     = "НОВАЯ ИГРА";
+SD_MNU_OPTIONS     = "НАСТРОЙКИ";
+SD_MNU_LOADGAME    = "ЗАГРУЗИТЬ";
+SD_MNU_SAVEGAME    = "СОХРАНИТЬ";
+SD_MNU_READTHIS    = "СПРАВКА";
+SD_MNU_QUITGAME    = "ВЫХОД";
+SD_MNU_CHOOSESKILL = "ВЫБЕРИТЕ СЛОЖНОСТЬ";

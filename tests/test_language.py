@@ -398,27 +398,42 @@ class MainMenuLogoTest(unittest.TestCase):
         cls.menudef = "\n".join(strip_comment(line) for line in raw.splitlines())
 
     def test_the_main_menu_places_the_logo_itself(self):
+        body = re.search(r'LISTMENU\s+"MainMenu"\s*\{(.*?)\n\}',
+                         self.menudef, re.DOTALL)
+        self.assertIsNotNone(body, "no MainMenu block: the engine's own 94,2 wins (bug E1)")
         patches = re.findall(r'StaticPatch\s+(-?\d+)\s*,\s*(-?\d+)\s*,\s*"M_DOOM"',
-                             self.menudef)
+                             body.group(1))
         self.assertEqual(
             len(patches), 1,
-            "expected exactly one M_DOOM StaticPatch. Zero means the engine's "
-            "own 94,2 wins again (bug E1); two means a second logo is being "
-            "drawn next to the first.")
+            "expected exactly one M_DOOM StaticPatch in MainMenu. Zero means "
+            "no logo; two means a second logo is being drawn next to the first.")
         self.assertEqual(
             (int(patches[0][0]), int(patches[0][1])), (self.LOGO_X, self.LOGO_Y),
             "the menu logo no longer sits on the TITLEPIC lockup")
 
+    def test_every_logo_in_menudef_sits_on_the_lockup(self):
+        """Since D31 the skill screen draws M_DOOM too, over the same
+        TITLEPIC, so it is held to the same contract position."""
+        patches = re.findall(r'StaticPatch\s+(-?\d+)\s*,\s*(-?\d+)\s*,\s*"M_DOOM"',
+                             self.menudef)
+        self.assertTrue(patches)
+        self.assertEqual({(int(x), int(y)) for x, y in patches}, {(self.LOGO_X, self.LOGO_Y)})
+
     def test_the_main_menu_is_redeclared_whole(self):
         """A redeclared LISTMENU REPLACES the engine's: a missing item is a
-        deleted item. These five are the Doom main menu."""
+        deleted item. These five destinations are the Doom main menu.
+
+        Since D31 the items are TextItems, not Freedoom's PatchItems
+        (tests/test_menudef.py holds that), so what is checked here is where
+        each item leads, which is what the engine's copy must keep."""
         body = re.search(r'LISTMENU\s+"MainMenu"\s*\{(.*?)\n\}',
                          self.menudef, re.DOTALL)
         self.assertIsNotNone(body, "no MainMenu block")
-        for patch in ("M_NGAME", "M_OPTION", "M_LOADG", "M_SAVEG", "M_QUITG"):
-            self.assertIn(patch, body.group(1),
-                          f"MainMenu lost {patch}; redeclaring the list menu "
-                          "drops every item not restated")
+        for target in ("PlayerclassMenu", "OptionsMenu", "LoadGameMenu",
+                       "SaveGameMenu", "QuitMenu"):
+            self.assertRegex(body.group(1), r'Item\s+"[^"]+",\s*"\w",\s*"' + target + '"',
+                             f"MainMenu lost its {target} item; redeclaring the list "
+                             "menu drops every item not restated")
 
     def test_the_skill_names_are_not_drawn_in_bigfont(self):
         """Bug E4: rung 5 is 38 characters and BigFont fits about 26, so
