@@ -98,7 +98,8 @@ skill sd_posthumous
 // A cluster is ZDoom's name for a group of maps that end together. Leaving
 // one shows its `exittext` over its `flat`, and that screen is the only
 // place the engine will print an end-of-episode message - see the M3 note
-// on MAP01. v1 has one map, so it has one cluster.
+// on MAP01. v1's campaign has one map, so it has one cluster; the practice
+// range (MAP02, D41) has its own, cluster 2.
 
 cluster 1
 {
@@ -113,6 +114,18 @@ cluster 1
 	music = ""
 }
 
+// The practice range (D41): MAP02 is its own cluster, so leaving it does
+// not print the campaign's ending, and its text tells the player where the
+// campaign is. MAP02 has no exit line today (level-designer's geometry), so
+// this is reached by a future exit switch or the `exit` console command;
+// the player otherwise leaves the range through the menu.
+cluster 2
+{
+	exittext = lookup, "SD_END02_TEXT"
+	flat = "SDFLR1"
+	music = ""
+}
+
 clearepisodes
 
 episode MAP01
@@ -121,6 +134,18 @@ episode MAP01
 	// not accepted inside an episode block by GZDoom 4.14.2).
 	name = "$SD_EP01_NAME"
 	key = "s"
+}
+
+// D41 (CEO, 2026-10-13: "Se puede publicar como practica"): the weapons test
+// range ships as a second episode, outside the campaign. With two episodes
+// New Game shows the episode screen, which the engine skipped while there
+// was one; MENUDEF redeclares it as text so Freedoom's M_EPISOD ("Which
+// episode?") is never drawn. Contract: docs/engine/MOD-SPEC.md 4.4; the
+// choice against a main-menu item: docs/engine/adr/007-practice-range-as-a-second-episode.md.
+episode MAP02
+{
+	name = "$SD_EP02_NAME"
+	key = "p"
 }
 
 map MAP01 lookup "SD_MAP01_NAME"
@@ -210,10 +235,18 @@ DoomEdNums
 
 map MAP02 lookup "SD_MAP02_NAME"
 {
-	// Engineering test range (F4). Not part of the campaign: it is reached
-	// with `MAP=MAP02 tools/run.sh` and exists to prove every weapon can be
-	// picked up, fired and made to do damage.
-	next = "MAP02"
+	// Engineering test range (F4), shipped as the practice range (D41): the
+	// second episode on New Game, outside the campaign. Built to prove every
+	// weapon can be picked up, fired and made to do damage;
+	// `MAP=MAP02 tools/run.sh` still starts it directly.
+	//
+	// It used to say `next = "MAP02"`, which restarted the range - harmless
+	// for a fixture, wrong for something a player chose from a menu. Now the
+	// exit ends the range like MAP01's ends the campaign: cluster 2's text,
+	// then the title screen. No map's `next` names MAP02, so the campaign
+	// can never run into it (tests/test_practice_range.py).
+	cluster = 2
+	next = endtitle
 	music = ""
 	sky1 = "SKY1"
 	nointermission

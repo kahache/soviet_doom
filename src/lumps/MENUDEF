@@ -103,6 +103,37 @@ OptionString "SD_LanguageValues"
 // If fonts/sdmenu/ is missing from the PK3, tools/check_pk3.py fails the
 // package (category "menus").
 
+// --- The episode menu (D41) -------------------------------------------------
+// MAP02, the weapons test range, ships as a practice range: a second MAPINFO
+// episode. With one episode the engine autoselected it and this screen never
+// showed; with two, New Game -> this screen -> the skill screen. The engine's
+// own body (gzdoom.pk3:menudef.txt, ListMenu "EpisodeMenu", IfGame(Doom)):
+//     NetgameMessage "$NEWGAME"
+//     Position 48, 63
+//     StaticPatch 54, 38, "M_EPISOD", 0 , "$MNU_EPISODE"
+//     linespacing 16
+// M_EPISOD is Freedoom's picture of "Which episode?" in English (debt T12),
+// so the screen is redeclared exactly like the skill screen below, and for
+// the same reason in the same order: the logo, ONE header in SDMENU, then
+// SmallFont LAST, because the engine appends one text item per episode at
+// run time in the font the descriptor ends with (M_StartupEpisodeMenu, engine
+// source). The episode names are proper nouns under D22, so they are drawn
+// in SmallFont like the skill names, not in SDMENU. NetgameMessage is kept:
+// it is what refuses New Game during a net game.
+// Contract: docs/engine/MOD-SPEC.md 4.4 and 6.6; the choice of an episode
+// over a main-menu item: docs/engine/adr/007-practice-range-as-a-second-episode.md.
+// Re-diff against gzdoom.pk3/menudef.txt on an engine upgrade - debt T14.
+LISTMENU "EpisodeMenu"
+{
+	NetgameMessage "$NEWGAME"
+	StaticPatch 60, 0, "M_DOOM"
+	Font "SDMENU", "Cream"
+	StaticText 32, 70, "$SD_MNU_CHOOSEEPISODE"
+	Font "SmallFont", "Red", "Gold"
+	LineSpacing 12
+	Position 32, 90
+}
+
 // --- The difficulty menu --------------------------------------------------
 // BUG E4, found in-engine 2026-10-13: the fifth rung, "Hero of the Soviet
 // Union, posthumously", ran off the right edge of the screen and read

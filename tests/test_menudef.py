@@ -314,15 +314,16 @@ class FontReferenceTest(MenudefTestCase):
         self.assertEqual(missing, [],
                          "MENUDEF names a font that is neither the engine's nor in assets/fonts/")
 
-    def test_sdmenu_is_used_only_by_the_two_menus(self):
+    def test_sdmenu_is_used_only_by_the_three_menus(self):
         """D22's exception list (proper nouns, calibres, key prompts keep
         Latin) is honoured by WHERE SDMENU is used. Anywhere else, check it
-        first (MOD-SPEC 6.6)."""
+        first (MOD-SPEC 6.6). The episode screen joined with D41, for its
+        header only (tests/test_practice_range.py)."""
         blocks = re.findall(r'^(?:LISTMENU|ListMenu|OptionMenu|AddOptionMenu|AddListMenu)\s+"([^"]+)"[^{]*\{(.*?)^\}',
                             self.code, re.DOTALL | re.MULTILINE)
         users = sorted(name for name, body in blocks
                        if re.search(r'Font\s+"' + MENU_FONT + '"', body, re.I))
-        self.assertEqual(users, ["MainMenu", "SkillMenu"])
+        self.assertEqual(users, ["EpisodeMenu", "MainMenu", "SkillMenu"])
 
 
 if __name__ == "__main__":
