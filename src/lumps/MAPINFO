@@ -181,7 +181,7 @@ map MAP01 lookup "SD_MAP01_NAME"
 
 DoomEdNums
 {
-	21001 = SD_Shovel
+	21001 = SD_IceAxe         // slot 1; the shovel until D40, same number
 	21002 = SD_Tokarev
 	21003 = SD_Izh
 	21004 = SD_Ppsh

@@ -51,7 +51,7 @@ CEILING_FLAT = "CEIL3_5"
 # Mod actors: reserved range 21000-21999 (see docs/engine/MOD-SPEC.md).
 ED_PLAYER1_START = 1
 
-ED_SD_SHOVEL = 21001
+ED_SD_ICE_AXE = 21001   # slot 1, the ice axe (D40; the shovel until then)
 ED_SD_TOKAREV = 21002
 ED_SD_IZH = 21003
 ED_SD_PPSH = 21004
@@ -95,7 +95,7 @@ WEAPON_ROW_Y = 624          # north wall side
 AMMO_ROW_Y = 144            # south wall side
 
 WEAPON_ROW = [
-    ED_SD_SHOVEL,
+    ED_SD_ICE_AXE,
     ED_SD_TOKAREV,
     ED_SD_IZH,
     ED_SD_PPSH,

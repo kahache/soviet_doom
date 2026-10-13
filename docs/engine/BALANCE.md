@@ -2,6 +2,9 @@
 
 Owner: `mod-engineer`. Status: **F4, first pass, verified in GZDoom 4.14.2**
 (every weapon fires, consumes ammo and kills in `MAP02`; see §6).
+Since D40 (2026-10-13) slot 1 is the **ice axe** (`SD_IceAxe`), which
+took over the sapper's shovel's numbers unchanged; text below that
+describes what was measured before that date keeps the shovel's name.
 Russian mirror: `docs/ru/engine/BALANCE.md`.
 
 This document owns the *why* of every gameplay number in `src/zscript/weapons/`.
@@ -45,7 +48,7 @@ sustained killer and slot 7 is the panic button.
 
 | Slot | Weapon | Ammo / shot | avg damage per shot | cycle (tics) | shots/s | DPS | useful range (map units) |
 |---|---|---|---|---|---|---|---|
-| 1 | Sapper's shovel | — | 15 (6–24) | 27 | 1.30 | 19.4 | 84 (melee) |
+| 1 | Ice axe (D40; the sapper's shovel's numbers) | — | 15 (6–24) | 27 | 1.30 | 19.4 | 84 (melee) |
 | 2 | TT-33 Tokarev | 1 Clip | 12 (6–18) | 16 | 2.19 | 26.3 | ~1024 |
 | 3 | IZh-58 double barrel | 1 Shell | 80 (8 pellets) | 23, +30 every 2 shots | 0.92 sustained | 73.7 sustained / 121.8 burst | ~512 |
 | 4 | PPSh-41 | 1 Clip | 8 (4–12) | 3 | 11.67 | 93.3 | ~768 |
@@ -58,16 +61,22 @@ slot beats the one below it, and the jumps land in the same places.
 
 ## 3. Why each number
 
-### Slot 1 — sapper's shovel (replaces Fist)
+### Slot 1 — ice axe (`SD_IceAxe`, replaces Fist)
 
 `random(3,12) << 1` = 6–24, avg 15, over a 27-tic swing.
-A sharpened MPL-50 entrenching tool is not a fist: **+36% damage** for
-**+23% swing time**, which nets +11% DPS. It stays a last resort (it is still
-under one twentieth of slot 4) but it no longer feels like punching a wall.
-Kickback 120 against the Fist's 100: a shovel shoves. Berserk keeps Doom's
-x10, so the berserk pack is still the thing that turns melee into a weapon.
+These are the sapper's shovel's numbers, kept as they were when the CEO
+made slot 1 an ice axe (D40, 2026-10-13); constants `SD_ICEAXE_*` in
+`src/zscript/weapons/ice_axe.zs`, pinned by `tests/test_arsenal.py`.
+A steel pick on a shaft is not a fist: **+36% damage** for **+23% swing
+time**, which nets +11% DPS. It stays a last resort (it is still under one
+twentieth of slot 4) but it no longer feels like punching a wall.
+Kickback 120 against the Fist's 100: a swung pick shoves. Berserk keeps
+Doom's x10, so the berserk pack is still the thing that turns melee into a
+weapon. Whether an ice axe should hit harder than a shovel (a pick
+concentrates the blow) is a fair question the CEO did not ask: D40 kept the
+numbers, and the MAP01 playtest is where it would show.
 
-The shovel is **found, not issued** (since 2026-10-13, §4.1): it is not in
+The ice axe is **found, not issued** (since 2026-10-13, §4.1): it is not in
 the starting inventory, and the first one lies on the rack of MAP01's dorm.
 
 ### Slot 2 — TT-33 Tokarev (replaces Pistol)
@@ -175,8 +184,8 @@ table above changed — but the nine pickup actors are ours and carry Soviet
 names and pickup lines. Numbers unaffected; see `MOD-SPEC.md` §6.4 and
 `adr/003-ammo-naming-and-the-silent-shovel.md`.
 
-The sapper's shovel also lost its swing sound the same day (a placeholder
-that played the chainsaw start-up). **The swing still takes 27 tics**: the
+The sapper's shovel (the ice axe since D40) also lost its swing sound the
+same day (a placeholder that played the chainsaw start-up). **The swing still takes 27 tics**: the
 `A_StartSound` call was removed from a frame that was already there, so
 every number in §2 stands.
 
@@ -189,7 +198,8 @@ DoomEdNum, a pickup sprite and a HUD line.
 ### 4.1 Starting inventory (changed 2026-10-13)
 
 The sergeant spawns with **the TT-33 and 50 `Clip`, nothing else**: no
-shovel and no `Fist`, so slot 1 is empty until a shovel is picked up.
+melee weapon and no `Fist`, so slot 1 is empty until the ice axe (the
+shovel when this was written; D40 renamed it) is picked up.
 Before this change `SD_Player` also listed `SD_Shovel`, and the CEO found
 the bug in MAP01: the dorm's rack showed a pickup (Freedoom's chainsaw
 sprite, the placeholder) that could not be taken, because a weapon the
@@ -208,22 +218,22 @@ What the engine does with a player who owns no melee weapon, read from
   and spawns with the pistol, which only works if the list is walked
   last-declared first. The walk itself is C++ and **NOT VERIFIED** beyond
   that inference; the engine pass should confirm the TT-33 is up on spawn.
-- **Out of rounds, no shovel.** Firing calls `FireWeapon`, which calls
+- **Out of rounds, no ice axe.** Firing calls `FireWeapon`, which calls
   `CheckAmmo(PrimaryFire, autoSwitch = true)`; that calls `PickNewWeapon`,
   whose `BestWeapon` finds nothing and returns null, and nothing changes.
   The empty TT-33 stays raised and the trigger does nothing; `A_ReFire`
   takes the same path. `ReadyWeapon` never becomes null because nothing
   takes the TT-33 away. No crash path found.
-- **Out of rounds, shovel owned.** `BestWeapon` ignores `NOAUTOSWITCHTO`,
-  so the empty TT-33 falls back to the shovel (selection order 3700), as
+- **Out of rounds, ice axe owned.** `BestWeapon` ignores `NOAUTOSWITCHTO`,
+  so the empty TT-33 falls back to the ice axe (selection order 3700), as
   Doom's pistol falls back to the fist.
-- **Taking the shovel from the rack** raises it: `Weapon.AttachToOwner`
+- **Taking the ice axe from the rack** raises it: `Weapon.AttachToOwner`
   switches to a newly picked-up weapon unless it has `NO_AUTO_SWITCH` or the
-  player has set "never switch on pickup". The shovel's `NOAUTOSWITCHTO` only
+  player has set "never switch on pickup". The ice axe's `NOAUTOSWITCHTO` only
   governs the switch after an ammo pickup (`CheckWeaponSwitch`).
 - **Berserk** (not placed in MAP01) calls `A_SelectWeapon("Fist")`, and
   `FindInventory` matches the exact class by default, so it does not select
-  the shovel with or without it (C++ lookup **NOT VERIFIED**). Harmless.
+  the ice axe with or without it (C++ lookup **NOT VERIFIED**). Harmless.
 
 **Can the player run dry before the rack?** Counted from `src/maps/MAP01/map.py`
 (the TEXTMAP's things); TT-33 average 12 per round, two rounds per rifleman
@@ -249,11 +259,11 @@ guard post (Z1 to Z5, the washroom hound included):
 |---|---|---|---|
 | Enemies (riflemen + stormtroopers + hounds) | 9 + 0 + 0 | 11 + 1 + 2 | 14 + 2 + 3 |
 | TT-33 rounds to kill, every round landing | 18 | 53 | 77 |
-| … with the shovel taking the hounds | 18 | 27 | 38 |
+| … with the ice axe taking the hounds | 18 | 27 | 38 |
 | Rounds placed + start, no drops | 120 | 100 | 90 |
-| Hit rate needed without the shovel, no drops / with drops | 15 % / 11 % | 53 % / 34 % | **86 % / 48 %** |
+| Hit rate needed without the ice axe, no drops / with drops | 15 % / 11 % | 53 % / 34 % | **86 % / 48 %** |
 
-On skill 4 a player who skips the shovel and kills three hounds with the
+On skill 4 a player who skips the ice axe and kills three hounds with the
 pistol (13 rounds each) needs to land 86 % of his shots, or about half of
 them if he also collects every rifleman's drop. If he runs out, he still
 has a way back to the rack (`tests/test_udmf.py` checks a path back to the
@@ -269,14 +279,14 @@ rounds before the first hound), owned by `level-designer`.
 - **Ammo economy per map** is untested: how much of each pool MAP01 hands
   out decides whether the PPSh's appetite is a cost or a joke.
 - **Difficulty skills** are untouched; GZDoom's defaults apply.
-- The shovel's **berserk** interaction is inherited, not tuned.
+- The ice axe's **berserk** interaction is inherited, not tuned.
 
 ## 6. How this was verified
 
 GZDoom 4.14.2 over Freedoom 0.13.0, map `MAP02` (`MAP=MAP02 tools/run.sh`):
 
 - All seven classes appear in `printinv` and **no Freedoom weapon does** —
-  the player owns exactly `SD_Shovel`, `SD_Tokarev`, `SD_Izh`, `SD_Ppsh`,
+  the player owned exactly `SD_Shovel` (now `SD_IceAxe`, D40), `SD_Tokarev`, `SD_Izh`, `SD_Ppsh`,
   `SD_Rpg7`, `SD_Roks3`, `SD_HandKatyusha`.
 - Each one selects, raises, fires and consumes its pool. The hand Katyusha
   takes exactly 40 cells per salvo (600 → 520 over two salvos).
@@ -294,7 +304,7 @@ landing. Enemy hit points come from `BESTIARY.md` §12 (the owner); average
 damage per shot from §2 above. A ruler, like the DPS column: spread, pain
 stagger and blast are not in it.
 
-| Enemy | HP | Shovel swings | TT-33 rounds | IZh-58 barrels | PPSh-41 rounds | RPG-7 direct hits | ROKS-3 bursts | Katyusha rockets |
+| Enemy | HP | Ice axe swings | TT-33 rounds | IZh-58 barrels | PPSh-41 rounds | RPG-7 direct hits | ROKS-3 bursts | Katyusha rockets |
 |---|---|---|---|---|---|---|---|---|
 | Reich rifleman | 20 | 2 | 2 | 1 | 3 | 1 | 2 | 1 |
 | Legion trooper | 30 | 2 | 3 | 1 | 4 | 1 | 2 | 1 |

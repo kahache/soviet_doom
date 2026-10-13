@@ -19,8 +19,8 @@ dropped into a wall shows up here:
   centre;
 * G3 readiness (design section 18): per skill 2, 3 and 4, the exit reached
   pressing only what the map offers, the tutorial weapons before the
-  switches, the shovel before the first melee, and ammunition against hit
-  points with BALANCE section 7.
+  switches, the ice axe (the shovel until D40) before the first melee, and
+  ammunition against hit points with BALANCE section 7.
 
 Run:  python3 -m unittest tests.test_map01 -v
 """
@@ -276,11 +276,11 @@ class Map01V3Test(unittest.TestCase):
 
     # --- weapons and resources ------------------------------------------
     def test_the_tutorial_weapons_are_on_every_skill_on_the_route(self):
-        """Section 2: shovel, IZh and PPSh, in that order along the route,
+        """Section 2: ice axe, IZh and PPSh, in that order along the route,
         on every skill and never in a secret; the RPG-7 only in S2."""
         m = self.m
         secret = {i for i, s in enumerate(self.sectors) if s.get("special", 0) & 1024}
-        for ednum, zone in ((m.ED_SHOVEL, "shovel_rack"), (m.ED_IZH, "weapon_rack"),
+        for ednum, zone in ((m.ED_ICE_AXE, "shovel_rack"), (m.ED_IZH, "weapon_rack"),
                             (m.ED_PPSH, "z6b_catwalk")):
             found = self.things_of({ednum})
             self.assertEqual(1, len(found), ednum)
@@ -307,7 +307,7 @@ class Map01V3Test(unittest.TestCase):
         flat. For every kind of consumable, skill 2 has at least what skill
         3 has, and skill 3 at least what skill 4 has."""
         m = self.m
-        weapons = {m.ED_SHOVEL, m.ED_IZH, m.ED_PPSH, m.ED_RPG7}
+        weapons = {m.ED_ICE_AXE, m.ED_IZH, m.ED_PPSH, m.ED_RPG7}
         consumables = {t["type"] for t in self.things} - MONSTER_NUMBERS - weapons - {
             m.ED_PLAYER1_START, m.ED_BARREL, m.ED_FLOOR_LAMP}
         for kind in consumables:
@@ -626,29 +626,30 @@ class Map01V3Test(unittest.TestCase):
                 self.assertIn(where, before_switches,
                               f"skill {skill}: weapon {ednum} is behind a switch")
 
-    def test_the_shovel_comes_before_the_first_melee(self):
+    def test_the_ice_axe_comes_before_the_first_melee(self):
         """CEO, v3 run: «una especie de sierra mecánica al lado donde se
         empieza que no se podía coger, solo iban los puños». The player
         started with the shovel, so the rack's could not be taken; he now
-        starts with the TT-33 only and gets the shovel at the rack. So the
-        rack is in the dorm, reached with no door opened, and in view from
-        the start; no hound (the shovel's lesson) is in the dorm on any
+        starts with the TT-33 only and gets slot 1 at the rack (the ice axe
+        since D40; the rack keeps its zone name). So the rack is in the
+        dorm, reached with no door opened, and in view from the start; no
+        hound (the ice axe's lesson) is in the dorm on any
         skill; and the dorm's riflemen fall to the starting rounds with
         G3-8's margin (BALANCE 7: two TT-33 rounds each)."""
         m = self.m
         sealed, _ = self.model._reachable(set())
         self.assertIn(self.plan["shovel_rack"], sealed)
-        shovel = self.things_of({m.ED_SHOVEL})[0]
-        self.assertEqual(self.plan["shovel_rack"], self.sector_at(shovel["x"], shovel["y"]))
+        axe = self.things_of({m.ED_ICE_AXE})[0]
+        self.assertEqual(self.plan["shovel_rack"], self.sector_at(axe["x"], axe["y"]))
         self.assertEqual([], self.model._blockers(m.PLAYER_START, VIEW_HEIGHT,
-                                                  (shovel["x"], shovel["y"]), 8),
-                         "the shovel on its rack is hidden from the start")
+                                                  (axe["x"], axe["y"]), 8),
+                         "the ice axe on its rack is hidden from the start")
         start_rounds = self._start_rounds()
         for skill in SKILLS:
             in_dorm = [t for t in self.on(skill, self.things_of(MONSTER_NUMBERS))
                        if self.sector_at(t["x"], t["y"]) in sealed]
             self.assertFalse([t for t in in_dorm if t["type"] == m.ED_DEMON],
-                             f"skill {skill}: a hound before the shovel")
+                             f"skill {skill}: a hound before the ice axe")
             needed = sum(math.ceil(HIT_POINTS[t["type"]] / TT33_AVERAGE) for t in in_dorm)
             self.assertLessEqual(G3_8_MARGIN * needed, start_rounds,
                                  f"skill {skill}: the dorm needs {needed} of {start_rounds} rounds")

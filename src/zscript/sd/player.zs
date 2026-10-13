@@ -13,10 +13,11 @@
 class SD_Player : DoomPlayer
 {
 	// The alarm wakes the sergeant with his sidearm and 50 rounds, nothing
-	// else. The shovel is NOT a start item (CEO bug, 2026-10-13): MAP01
-	// teaches it from the dorm's rack, and a player who already owned it
-	// could not pick that one up, so the rack showed a pickup that refused
-	// to be taken. Slot 1 stays empty until the shovel is picked up.
+	// else. The ice axe (D40; the shovel until then) is NOT a start item
+	// (CEO bug, 2026-10-13): MAP01 teaches it from the dorm's rack, and a
+	// player who already owned it could not pick that one up, so the rack
+	// showed a pickup that refused to be taken. Slot 1 stays empty until
+	// the ice axe is picked up.
 	// Everything else is found on the map.
 	const SD_START_CLIP = 50;   // same as Doom's marine: 50 rounds of 7.62x25
 
@@ -35,7 +36,7 @@ class SD_Player : DoomPlayer
 		Player.StartItem "Clip", SD_START_CLIP;
 
 		// One weapon per slot - the arsenal ratified by the CEO (D13).
-		Player.WeaponSlot 1, "SD_Shovel";
+		Player.WeaponSlot 1, "SD_IceAxe";
 		Player.WeaponSlot 2, "SD_Tokarev";
 		Player.WeaponSlot 3, "SD_Izh";
 		Player.WeaponSlot 4, "SD_Ppsh";

@@ -217,13 +217,14 @@ ED_PLAYER1_START = 1
 PLAYER_START = (256, 96)
 PLAYER_ANGLE = 90  # north: D2, the way out of the dorm, is straight ahead
 
-# Our own weapons (MOD-SPEC 6.1). The shovel is also in the player's start
-# inventory (SD_Player); the one on the rack is the lesson, not the gift.
-ED_SHOVEL = 21001
+# Our own weapons (MOD-SPEC 6.1). Slot 1 is the ice axe since D40 (it was the
+# shovel; same editor number, 21001). It is not in the player's start
+# inventory (SD_Player): the one on the rack is the only way to get it.
+ED_ICE_AXE = 21001
 ED_IZH = 21003
 ED_PPSH = 21004
 ED_RPG7 = 21005
-TUTORIAL_WEAPONS = (ED_SHOVEL, ED_IZH, ED_PPSH)
+TUTORIAL_WEAPONS = (ED_ICE_AXE, ED_IZH, ED_PPSH)
 
 # Doom editor numbers our classes replace or Freedoom implements (MOD-SPEC
 # 6.4: maps keep using Doom's numbers for ammo, and `replaces` does the
@@ -335,7 +336,7 @@ MONSTERS = (
 # easy only). Weapons and every pickup inside a secret are on every skill.
 ITEMS = (
     # The tutorial weapons, on every skill, on the critical path.
-    ("shovel_rack", ED_SHOVEL, -16, 384, 4),
+    ("shovel_rack", ED_ICE_AXE, -16, 384, 4),
     ("weapon_rack", ED_IZH, 1040, 1256, 4),
     ("z6b_catwalk", ED_PPSH, 2000, 1520, 4),
     # S1 - the locker closet behind the shower stall.
