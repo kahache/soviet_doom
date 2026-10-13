@@ -970,6 +970,54 @@ The in-game credits, reasoned in `docs/engine/adr/009-in-game-credits.md`.
 | Obligations | every name a licence register obliges us to credit is in the credits of both languages: `docs/art/LICENSES.md` rows whose licence says credit / `{{Attribution}}` / CC BY / BSD / MIT / OFL / CC0 and are not ours (D15), and the Obligation column of `docs/sound/MUSIC-RIGHTS.md` §4.5. Jerry Engelbach's line is MUSIC-RIGHTS §4.5's word for word in English. Enforced by `tests/test_credits.py`, which reads the registers, so a new attributed asset turns the suite red until its credit lines exist |
 | Adding a credit | register row first (the name in bold, or as `credit "X"`), then `SD_CRED_*` lines in both languages, then the `StaticText` rows |
 
+## 6.9 Draft sprite overlays (2026-10-13)
+
+A **draft overlay** is a second PK3, loaded after the mod, that lets the CEO
+play with sprites that are drawn but not approved. It is not part of the mod:
+nothing in it enters `assets/`, `src/` or `dist/`, and the mod's states keep
+naming the Freedoom placeholders of §5.1.
+
+```sh
+.venv/Scripts/python.exe tools/make_draft_overlay.py      # → work/overlays/sd-draft-sprites.pk3 (+ .txt manifest)
+SD_ALLOW_ENGINE=1 tools/run.sh -file work/overlays/sd-draft-sprites.pk3   # MAP01 with the drafts on
+SD_ALLOW_ENGINE=1 tools/run.sh                                            # the same build without them
+```
+
+`--only weapons|rifleman` packs one group (`sd-draft-weapons.pk3`,
+`sd-draft-rifleman.pk3`); `--hand X` takes another hand's renders from
+`work/art/weapons/hand_X/<weapon>/` and refuses a hand nobody rendered (today
+only hand E exists); `--dry-run` prints the plan.
+
+**How it works.** The tool reads the frame letters each placeholder is used
+with in `src/zscript/weapons/*.zs` and `reich_rifleman.zs`, and copies our
+draft for each of those frames, byte for byte (so the `grAb` offsets travel),
+to `sprites/<PLACEHOLDER><frame><rotation>.png`: `SDTTA0` → `PISGA0`,
+`SDRRA1` → `POSSA1`, and so on through the pairs of §6.3. A draft no state
+shows is not packed (today `SDAXE0`, `SDPFB0`, `SDKFB0`, the `_proposed`
+frames and the Katyusha's `variants/`); a frame with no draft keeps the
+IWAD's. The 2026-10-13 overlay is 107 sprite lumps: 37 weapon frames (all
+seven weapons, hand E, pickups included) and the rifleman's 70.
+
+**Sprite resolution across files** (why a partial frame is refused):
+
+| Finding | Status |
+|---|---|
+| GZDoom collects every `-file` on the command line in order (`FArgs::CollectFiles` in GZDoom's src/common/utility/m_argv.cpp), and `run.sh` passes its extra arguments after its own `-file dist/sovietdoom.pk3`, so the overlay loads last | VERIFIED in the g4.14.2 source and by reading `run.sh` (`tests/test_draft_overlay.py` pins the `run.sh` half); NOT VERIFIED in the engine |
+| A lump whose full name exists in two files becomes a texture only from the later file (`FTextureManager::AddGroup`: "to keep earlier entries from overriding later ones") | VERIFIED in the source |
+| Sprite frames are assembled per rotation slot; the textures of later files are visited first, and a slot already filled is never overwritten (`R_InstallSpriteLump` / `R_InitSpriteDefs` in GZDoom's src/r_data/sprites.cpp) | VERIFIED in the source; NOT VERIFIED in the engine |
+| Hence: an overlay frame with all of rotations 1-8 hides Doom II's mirrored pairs (`POSSA2A8` finds both its slots taken); a frame with only some rotations would be completed by the IWAD's drawing; a rotation-0 frame of ours fills all slots and hides any IWAD frame | inferred from the two rows above; NOT VERIFIED in the engine |
+| Freedoom 0.13.0 draws `POSS` A-G as eight separate rotations, with no mirrored pairs, and H-U as rotation 0; Doom II's `doom2.wad` uses pairs | Freedoom VERIFIED by reading `iwads/freedoom2.wad`; Doom II from memory, NOT VERIFIED |
+
+The tool therefore refuses a rotated frame without all eight rotations, a
+frame mixing rotation 0 with 1-8, and, when the IWAD is present, a rotated
+frame the IWAD has as rotation 0 or as 16-angle rotations 9-G.
+
+**Side effects to expect.** The swap is by sprite name, so every actor that
+names those sprites wears the draft: Doom's `DeadZombieMan` (editor number
+18) would lie as our rifleman's corpse, and Freedoom's own weapon classes
+would look like ours (none is reachable: §5, §6). The PK3 is not checked by
+`check_pk3.py`, which validates the mod only; its PNGs are RGBA as drawn.
+
 ## 7. Commands
 
 ```sh

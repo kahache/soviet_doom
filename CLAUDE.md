@@ -93,10 +93,12 @@ in six seconds and opens no window. `tools/check_pk3.py` validates the package
 without the engine; `tools/smoke.py` runs it with the engine. **Agents never
 start GZDoom (D26):** `SD_ALLOW_ENGINE=1` is the PM's, and the PM batches the
 engine runs. CI on every push.
-Suite: **916 tests** (2026-10-13 evening), one skip (the opt-in engine test), no expected
-failure; branch coverage of `tools/` **79%** (measured at 914 tests on this
-PC, `docs/qa/COVERAGE.md`). `audition.py` is at 98%; the largest gaps are
-three files no test imports, then `gen_menu.py` and `gen_switch.py`.
+Suite: **1171 tests** (2026-10-13, 23:00), one skip (the opt-in engine test), no expected
+failure; branch coverage of `tools/` **82%** (measured at 1088 tests,
+`docs/qa/COVERAGE.md`). **Drafts can be played before approval:**
+`tools/make_draft_overlay.py` packs the drafted sprites into
+`work/overlays/sd-draft-sprites.pk3`, loaded after the mod with `-file`
+(MOD-SPEC §6.9).
 `tools/audio/audition.py` obeys the same engine gate as `run.sh` and
 `smoke.py` since the same day.
 
