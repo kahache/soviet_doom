@@ -180,7 +180,7 @@ SD_OB_GENERAL        = "%o fell to the General's salvo.";
 // The General's order (BESTIARY 9): printed on screen when he summons his
 // two recruits. Placeholder wording until the CEO picks the line in
 // docs/sound/ENEMY-SOUNDS.md 7 C; the text and the sound change together.
-SD_GENERAL_ORDER     = "The General: Recruits - advance!";
+SD_GENERAL_ORDER     = "The General: Vorwaerts!";
 
 [ru]
 
@@ -292,4 +292,4 @@ SD_OB_PANZER         = "%o накрыт снарядом панцерменша.
 SD_OBHIT_PANZER      = "%o раздавлен панцерменшем.";
 SD_OB_GENERAL        = "%o пал под залпом Генерала.";
 
-SD_GENERAL_ORDER     = "Генерал: Новобранцы - вперёд!";
+SD_GENERAL_ORDER     = "Генерал: Vorwaerts!";

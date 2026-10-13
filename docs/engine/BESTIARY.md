@@ -362,7 +362,7 @@ with the black swastika (D12). Olive blood.
 
 | State | Frames | Sound event | Sound lump | Note for `sound-designer` |
 |---|---|---|---|---|
-| `Spawn` (idle/look) | `SDRR A B`, 10 tics, `A_Look` | `active` | `SDRRIACT` | muttered command in a language that is not quite German |
+| `Spawn` (idle/look) | `SDRR A B`, 10 tics, `A_Look` | `active` | `SDRRIACT` | a muttered order in real German (D36; lines in `docs/sound/VOICE-SCRIPT.md`) |
 | `See` (walk) | `SDRR AABBCCDD`, 4 tics, `A_Chase` | `sight` | `SDRRISIT` | a bark, short; heard many times per map |
 | `Missile` | `SDRR E` 10 `A_FaceTarget`, `F` 8 *attack*, `E` 8 | `attack` | `SDRRIATK` | dry bolt-action crack, drier than the player's TT-33 so the player can tell incoming from outgoing |
 | `Pain` | `SDRR G` 3, `G` 3 `A_Pain` | `pain` | `SDRRIPAI` | |
