@@ -10,7 +10,9 @@ made legible) BUILT — §16, engine pass filed, and walked by the CEO on
 2026-10-13: gate criterion MET, but too small for a game level (the
 section after §16; D32). v3 (density, combat and resources, D33) BUILT —
 §17: same plan, 80 → 165 sectors, 46/33/21 monsters by skill, the three
-secrets re-hidden; engine pass owed by the PM (§17.10).** The open points
+secrets re-hidden; engine pass filed. The CEO played v3 through on skill 3
+(D38): one fix, the block in front of the cosmonautics mural, done in
+§17.13; the shovel rack in §17.14; G3 readiness in §18.** The open points
 for the CEO are in §13, with what is decided marked as such. Russian
 mirror: `docs/ru/levels/MAP01-zarya-7.md` (synced in batches, D34).
 
@@ -1400,7 +1402,7 @@ where it was, and every v2 sight-line test still passes.
 | Z1 dorm | six steel bunks (32 high, blanket = `SDCEIL2`), two more lamps (three), the **shovel rack** (a steel niche in the west wall, plank shelf), steel **door frames** round D1 and D2; the plaque moved 32 east to clear D2's frame | a dormitory reads as one; cover from the first riflemen; the rack is the shovel lesson; the frames say "door" from across the room (the v0–v1 lesson) |
 | Z2 washroom | three **shower stalls** in the east wall (trays one `PLINTH` down, steel partitions), three wash basins, a steel frame on D1 | S1's new hiding place (§17.5) |
 | Z3 corridor | two steel **bulkheads** (ceiling 80) splitting it in three bays; a lit ammo **alcove** west, a fire-point alcove east | rhythm in a 448-long tube; somewhere to stand out of the hound's line |
-| Z4 komnata | three **mess tables** (32 high, plank tops), a **colonnade** of four concrete columns framing the mural, a two-step **tribune** with a lectern, a third lamp, two floor lamps | section 5's "crossfire in a room with cover" finally has cover; the mural is now at the end of an axis |
+| Z4 komnata | three **mess tables** (32 high, plank tops), a **colonnade** of four concrete columns (framing the tribune since D38, §17.13), a two-step **tribune** with a lectern (beside the mural since D38), a third lamp, two floor lamps | section 5's "crossfire in a room with cover" finally has cover; the mural is now at the end of an axis |
 | Z5 service corridor | a **pipe run** under the ceiling (ceiling 96) broken by the failing lamp; the guard post's **weapon rack** (steel niche, the IZh in it) | ambience; "steel = function: this is where the weapon is" (§6) |
 | Z6 hangar | five steel **columns on plinths** (the *zócalo*); seven steel **pilasters** in the long walls; a south **gantry** at +64 with a five-step stair and two support columns; three more single **crates**; a lamp over the east field; four **shadow** strips (under the catwalk lip, in front of the gantry, along both sides of the cradle) | structure the roof stands on; cover for the first contact and wave 2; a second high place; section 6's planned shadows |
 | Z6a cradle | a raised **erector spine** (+96) with a three-step stair, a **kerb** on the south edge, **rails** in the floor running out from under it east and west | a high point mid-floor; the cradle reads as a transporter |
@@ -1545,7 +1547,7 @@ west, 270 south), `+use`, `wait`, `screenshot`; the session log goes to
 | V3 | 760 96 | 0 | — | three shower stalls, steel partitions; **the middle back wall plate, the outer two concrete**; basins along the left |
 | V4 | 920 96 | 0 | `+use` | S1 opens; walk in: "A secret is revealed!" |
 | V5 | 256 560 | 90 | — | the corridor in three bays: two steel bulkheads, the lit alcove on the left, the stripe unbroken on both walls |
-| V6 | 320 1000 | 90 | — | the komnata: tables in front, the colonnade, the tribune with its lectern, the mural at the end of the axis, two floor lamps |
+| V6 | 320 1000 | 90 | — | the komnata: tables in front, the colonnade, the tribune with its lectern, the mural at the end of the axis, two floor lamps (since D38: M1–M5 in §17.13) |
 | V7 | 980 1250 | 0 | — | the weapon rack with the IZh; the pipe run along the corridor's south side behind |
 | V8 | 1336 1152 | 0 | — | the hangar from the bottom step: lane A, columns on plinths, the cradle with its spine and stair, the gate far right |
 | V9 | 1336 1152 | 115 | — | **regression of v2 E2**: the red wall in shadow ending in the lit mouth, the lit window beside it |
@@ -1635,3 +1637,162 @@ plugs a doorway for good.
   playtest decides; the first cut is placed shells on skills 3–4.
 - The engine pass (§17.10) and the CEO's walk (§17.11).
 - Russian mirror: synced in a batch at the phase close (D34).
+
+### 17.13 After the CEO's v3 run: the mural cleared (D38)
+
+The CEO played v3 through on skill 3 («ha sido MUY divertido!!», D38) and
+asked for one fix:
+
+> «Hay un pequeño trozo cuadrado justo enfrente del poster de cosmonáutica,
+> yo lo quitaría para que se vea bien el poster.»
+
+**What it was.** Cast from the komnata's doorway and from its centre with
+the sight-line method of the v2 D4 tests, two v3 pieces cut `SDPOSTR2`:
+
+1. **The lectern** (`prop_lectern`, 32 × 32, 32 high on the 16-high
+   tribune): it stood on the mural's axis at the niche's mouth, x 304…336,
+   y 1376…1408. Its top at 48 is above the mural's foot at 16, so it hid
+   the lower part of the mural from everywhere in the room. This is the
+   "small square piece right in front".
+2. **The colonnade's west inner column** (x 256…288, y 1232…1264): it
+   stood on the line from the doorway to the left half of the mural. The
+   CEO did not name it; it would have been the next thing to catch the eye.
+
+**What changed, and what each piece still does.**
+
+| Piece | v3 | Now | What it still gives |
+|---|---|---|---|
+| Lectern | x 304…336, y 1376…1408, on the axis | **x 384…416, y 1344…1376**: the tribune's front edge, just east of the niche | the tribune still reads as a tribune: a speaker stands beside the picture, not in front of it |
+| Colonnade, inner pair | x 256 and 352 (the mural's own edges) | **x 192 and 416** (the tribune's edges) | four columns, symmetric about the axis (96, 192, 416, 512), now framing the tribune with the mural at the end of the axis; the riflemen's cover is unchanged |
+| Tribune's east health bonus | (432, 1392) | (432, 1400) | the same pickup, clear of the lectern |
+
+Nothing else moved: 165 sectors, 778 lines, 133 things, every count of
+§8 and every v0–v3 test unchanged.
+
+**The test that keeps it** (`tests/test_map01.py`):
+
+- `test_the_mural_is_seen_whole_from_the_doorway_and_the_centre`: four
+  eyes (three across Z3's doorway one body into the room, x 208, 256 and
+  304 at y 976, and the room's centre, 320 1192), each cast at the mural's
+  face on an 8-unit grid from its foot to its top. Every ray must be clear.
+  The samples start 4 in from each edge: the niche is 32 deep, so from the
+  doorway's corner its own jambs hide about 3 of the mural's 128 units,
+  which is a niche and not a blocker. Run against the v3 positions, the test
+  fails on the lectern and, separately, on the column.
+- `test_no_solid_fixture_stands_in_front_of_the_mural`: no floor lamp or
+  drum within its radius of any of those rays.
+- `test_the_lectern_is_still_on_the_tribune`: what the lectern gave is kept,
+  and it may not drift back onto the axis.
+
+**Not changed, for the CEO to judge in the engine:** the health bonus in
+the niche itself (320, 1424) lies at the mural's foot. It is a sprite a few
+units high, picked up on the first visit; if it reads as clutter in front of
+the picture, it moves to the tribune.
+
+**Engine checklist for the mural (PM; D26).**
+
+| # | Warp to (x y) | Facing | What the screenshot must show |
+|---|---|---|---|
+| M1 | 256 976 | 90 | from the doorway: the mural whole at the end of the axis, nothing square in front of it; the lectern to its right on the tribune |
+| M2 | 320 1192 | 90 | from the centre: the mural whole, the two inner columns either side of the tribune, not of the niche |
+| M3 | 208 976 | 80, then 304 976 at 100 | from the doorway's corners: the mural whole bar a sliver of the near edge behind the niche's jamb |
+| M4 | 400 1320 | 90 | the lectern at the tribune's front-right corner, its plank top level, no HOM or texture seam where it meets the step; the health bonus at its north-east (432 1400) can be walked onto |
+| M5 | 320 1360 | 90 | close up: the health bonus at the mural's foot. Clutter or fine? (the CEO's call, see above) |
+
+### 17.14 After the CEO's v3 run: the shovel on the rack
+
+The CEO, same run:
+
+> «una especie de sierra mecánica al lado donde se empieza que no se podía
+> coger, solo iban los puños.»
+
+The "chainsaw" is the shovel on the dorm's rack: `SD_Shovel` still wears
+Freedoom's chainsaw sprite as a placeholder (F4). It could not be taken
+because the player already started with the shovel, whose first-person
+sprite reads as fists. The fix is `mod-engineer`'s (`player.zs`, not this
+role's): the player now starts with the TT-33 only and gets the shovel on
+the rack, which is what §2 always meant ("the rack is the lesson"). The map
+needed no change for it; `test_the_shovel_comes_before_the_first_melee`
+holds the map's half:
+
+- the rack is in the dorm, which is reached with no door opened, and the
+  shovel on it is in view from the player start;
+- no hound, the enemy the shovel answers, is in the dorm on any skill (the
+  first hounds are in the washroom and the corridor, both behind doors, on
+  skills 3–4);
+- the dorm's riflemen (2 / 3 / 4 on skills 2 / 3 / 4) take 4 / 6 / 8 TT-33
+  rounds by BALANCE §7 (two each); the start's 50 rounds (`SD_START_CLIP`,
+  read from `player.zs` by the test) cover that 1.35 times over many times.
+  There is no ammunition risk before the rack.
+
+The rack is not the first pickup on every path: a clip lies at (600, 60)
+and, on skill 3 and below, two armour bonuses lie by the lockers next to
+the rack. It is the first weapon, and it is in reach before any door.
+
+## 18. G3 readiness (2026-10-13)
+
+What G3 asks (§11, `docs/ROADMAP.md`): finishable on skills 2, 3 and 4,
+zero log errors, zero softlocks, and the CEO's "on point". The CEO played
+skill 3 to the end (D38). This section says, for QA, what is already proven
+without the engine on every build, and what only a run can prove. Every
+static line below is a test in `tests/test_udmf.py` (the v0–v2 contract)
+or `tests/test_map01.py` (v3 and this section), green in `tools/verify.py
+fast`.
+
+### 18.1 The skills are only what spawns
+
+`src/lumps/MAPINFO` (read, `mod-engineer`'s) defines five rungs with
+`clearskills`; rung N spawns the things flagged `skillN` (SpawnFilter
+Baby…Nightmare), and rungs 2, 3 and 4 carry no `AmmoFactor`, no
+`DamageFactor` and no `RespawnTime`. So on G3's three skills the map is the
+same map with a different thing list, and every per-skill count in this
+document is what that run meets. Tested
+(`test_skills_2_to_4_differ_only_in_what_spawns`).
+
+### 18.2 Verified statically, per skill
+
+| # | Claim | Skill 2 | Skill 3 | Skill 4 | Test |
+|---|---|---|---|---|---|
+| R1 | Progress is lines only: no key, no locked or scripted special, no thing with a tid or a special, so no monster's presence or death opens anything | ✓ | ✓ | ✓ | `test_nothing_the_route_needs_is_locked_scripted_or_on_a_thing` |
+| R2 | From the start, opening only what the map offers (every door and panel the player can stand at, then every switch he can reach), the exit switch is reached; it is not reached before the switches. The simulation finds two rounds: manual doors and panels (tags 1, 2, 3, 6, 101–103), then SW-A and SW-B (10, 11), both reachable before either is pressed | ✓ | ✓ | ✓ | `test_every_skill_reaches_the_exit`, `test_the_gate_order_is_the_designed_one` |
+| R3 | The three tutorial weapons are on the skill, once each, and reachable before any switch; the RPG-7 only in S2 | ✓ | ✓ | ✓ | `test_every_skill_reaches_the_exit`, `test_the_tutorial_weapons_are_on_every_skill_on_the_route` |
+| R4 | The shovel is in reach before the first melee enemy; the dorm's fight fits in the starting rounds | 4 of 50 rounds | 6 of 50 | 8 of 50 | `test_the_shovel_comes_before_the_first_melee` |
+| R5 | No softlock: every sector reachable, a way back from every one, every door tall enough, no switch press can consume a gate, the secrets entered and left | ✓ | ✓ | ✓ | `test_nothing_is_a_one_way_trap`, `test_every_sector_is_reachable_except_the_window`, `test_no_press_can_consume_a_gate`, `test_every_secret_is_reachable_and_left_again` |
+| R6 | No drum or floor lamp (on every skill, immovable) leaves a doorway or its approach narrower than a body | ✓ | ✓ | ✓ | `test_no_solid_fixture_narrows_a_doorway` |
+| R7 | Every monster's body fits where it stands; every pickup is on walkable, reachable floor | ✓ | ✓ | ✓ | `test_every_monster_has_room_for_its_body`, `test_every_pickup_can_be_picked_up` |
+| R8 | Monsters 21 / 33 / 46, nested upwards; consumables nested downwards | 21 | 33 | 46 | `test_monsters_per_skill`, `test_monsters_scale_up`, `test_consumables_scale_down` |
+| R9 | G3-8: placed ammo outside the secrets ≥ 1.35 × the shells to kill everything | 123.5 for 26 (4.75×) | 113.5 for 58 (1.96×) | 108.5 for 77 (1.41×) | `test_g3_8_the_ammo_budget` |
+| R10 | BALANCE §7: G3-8's per-kill shells are never kinder than the ruler's barrels-to-kill (rifleman, trooper, stormtrooper 1; hound 2; Doughboy 5; Panzermensch 7) | ✓ | ✓ | ✓ | `test_ammo_against_hit_points_by_skill_and_by_stage` |
+| R11 | Damage placed against hit points, **cumulative by stage**: placed ammo outside the secrets, at the average damage of BALANCE §2 (a shell 80, a round 8), plus the 50 starting rounds, against the HP of BALANCE §7 met so far; ≥ 1.35 at every stage | before the switches 9,960 / 350 (28.5×); all 10,280 / 730 (14.1×) | 9,160 / 860 (10.7×); 9,480 / 2,320 (4.1×) | 8,760 / 1,280 (6.8×); 9,080 / 2,920 (**3.1×**) | `test_ammo_against_hit_points_by_skill_and_by_stage` |
+| R12 | Healing and armour outside the secrets on skill 4 (G3-5's other half) | — | — | ≥ 5 heals, ≥ 6 armour bonuses | `test_health_and_armour_exist_outside_the_secrets_on_skill_4` |
+
+How to read R11. The damage figure assumes every pellet lands, which is why
+it looks generous: it is the ceiling of what the player can do, not what he
+will do. The stage view matters for one reason: nearly all the ammunition is
+placed before the switches, while nearly all the hit points arrive with
+them (the ambush, wave 2, the Doughboy, the Panzermensch). Even so, the
+binding case, skill 4 after the switches, holds at 3.1× the hit points. The
+skill-4 shells figure (R9, 1.41×) is the tighter of the two numbers and the
+one QA should watch.
+
+### 18.3 What only a run can verify (QA, with the engine)
+
+| # | Question | Why the tests cannot answer it | Evidence wanted |
+|---|---|---|---|
+| Q1 | **G3-4: finished on skills 2 and 4** (3 is done, D38) | the model has no combat | the intermission screenshot and the log per skill, no `god`, in `docs/qa/evidence/` |
+| Q2 | **G3-2: zero log errors** over each full run | only the engine loads the actors | the G3-2 pattern list over each log: 0 hits |
+| Q3 | Does a monster plug a doorway for good? | monsters are not obstacles in the model; a Panzermensch (radius 24) on the lift or a Doughboy (31) leaving E1's 128-high closet could stall in a door | note any monster that never leaves a doorway or a closet mouth, by skill |
+| Q4 | Does the ammo hold **on skill 4** without the secrets? | R9–R11 assume average damage and no misses, and count no drops (the stand-ins' drops add +56 % on skill 4, §8) | ammo at the exit, and whether the player was ever reduced to the shovel; the S2/S3 rule: a skill-4 run that takes no secret |
+| Q5 | Is skill 2 too lavish, skill 4 fair? | balance is felt, not counted | the time and the health at the intermission per skill; the F5 playtest decides any cut (first lever: placed shells on 3–4, §8) |
+| Q6 | The shovel: the rack's pickup works now that the player starts without it | needs `mod-engineer`'s `player.zs` change in the PK3 | "You got the sapper's shovel" (or its LANGUAGE line) at the rack; slot 1 empty before it |
+| Q7 | G3-5 and G3-7 as written in §11 | adversarial play | one `-nomonsters` run, one zero-secret run, QA's hostile pass on skill 4 |
+| Q8 | The mural (§17.13, M1–M5) | the tests cast rays, the CEO looks | the screenshots M1–M5 |
+| Q9 | G3-9: the CEO's "on point", and the CEO's `SDCONC2` verdict | the CEO's call | the CEO's words |
+
+### 18.4 What G3 waits on
+
+- The engine runs Q1–Q8 (the PM batches them; this role does not start
+  GZDoom, D26).
+- `mod-engineer`'s start-inventory change for the shovel (§17.14), in the
+  build those runs use.
+- The CEO's G3-9.
