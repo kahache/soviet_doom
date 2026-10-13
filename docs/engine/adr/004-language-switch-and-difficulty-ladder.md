@@ -6,7 +6,7 @@ Russian mirror: `docs/ru/engine/adr/004-language-switch-and-difficulty-ladder.md
 
 Supersedes nothing. Records the decisions behind `src/lumps/MENUDEF`, the
 `skill` blocks of `src/lumps/MAPINFO`, and the removal of
-`src/zscript/sd/language.zs`.
+src/zscript/sd/language.zs (historical: deleted in this change, no longer in the tree).
 
 ## Context
 
@@ -76,7 +76,7 @@ when a player walked into the screen and **aborted the VM** otherwise:
 
 ZScript may write a CVar only while the engine is handling menu INPUT. In
 4.14.2 `DMenu::InMenu` is raised around exactly three calls — `OnUIEvent`,
-`OnInputEvent` and `MenuEvent` (`src/common/menu/menu.cpp:276-327`) — and
+`OnInputEvent` and `MenuEvent` (gzdoom: src/common/menu/menu.cpp:276-327, engine source) — and
 around nothing else. `Init`, `Ticker` and `Drawer` all run with
 `InMenu == 0`; both were tried in-engine on 2026-10-13 and both aborted.
 Walking in from the Options screen survived only because the submenu is
@@ -156,7 +156,7 @@ a copy of GZDoom's `IfGame(Doom)` main menu with the one number changed.
 
 ## Consequences
 
-- `src/zscript/sd/language.zs` is deleted and `SD_LANG_CODE` is gone from
+- src/zscript/sd/language.zs (historical) is deleted and `SD_LANG_CODE` is gone from
   `LANGUAGE`. The mod ships no menu ZScript at all.
 - The player's config gains exactly one key, `language`, and only when they
   choose a language.

@@ -6,7 +6,7 @@
 // inherits its States block (IWAD sprites), its sounds ("grunt/sight") and
 // its obituary strings: one state we forgot to override would show a
 // Freedoom sprite in the middle of our fight. Each class writes every state
-// out instead. (ADR 006 is owed for this decision; BESTIARY section 13.)
+// out instead. (the reasoning is in docs/engine/adr/006-bestiary-actors.md for this decision; BESTIARY section 13.)
 //
 // The three attack helpers below have the shape of Doom's own A_PosAttack,
 // A_SargAttack and A_TroopAttack (gzdoom.pk3, zscript/actors/doom/
