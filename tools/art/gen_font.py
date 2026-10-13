@@ -49,6 +49,8 @@ Usage
     .venv/bin/python tools/art/gen_font.py --variant A
     .venv/bin/python tools/art/gen_font.py --serif-fix --stamp YYYY-MM-DD_HHMM
                      # H1 proposal: work/art/font_fix/ + docs/art/previews/ sheet
+    .venv/bin/python tools/art/gen_font.py --german-umlauts --stamp YYYY-MM-DD_HHMM
+                     # F5 proposal (D36): work/art/font_umlaut/ + docs/art/previews/ sheet
 """
 from __future__ import annotations
 
@@ -1068,7 +1070,8 @@ class RenderFont:
         self.missing: set[str] = set()
 
     def glyph(self, ch: str) -> Image.Image | None:
-        ch = ch.upper()
+        up = ch.upper()
+        ch = up if len(up) == 1 else ch      # "ß".upper() is "SS": keep the one glyph
         if ch not in self.cache:
             if ord(ch) not in GLYPHS:
                 self.missing.add(ch)
@@ -1094,6 +1097,164 @@ class RenderFont:
             img.alpha_composite(g, (x, 0))
             x += g.width
         return img
+
+
+from dataclasses import replace as _replace  # noqa: E402  (German letters below)
+
+
+# ------------------------------------------------- German letters (D36, F5)
+# Ä Ö Ü and the sharp s.  D36 makes the Reich speak real German and the
+# General shout "Vorwärts."; the alphabet has none of these letters, so the
+# screen has been writing "VORWAERTS".  This section DRAWS them; it does not
+# install them.  They live behind a switch that is OFF, exactly like
+# MIRROR_TERMINALS was before its approval: with GERMAN_UMLAUTS False the
+# default output of this script (214 glyphs per style and size, the files in
+# assets/fonts/) is not touched by a single byte.
+#
+#   GERMAN_UMLAUTS = False    the shipped value.  GLYPHS, PUNCT and
+#                             build_variant() ignore the German letters.
+#   german_umlauts(True)      `with` block that turns them on and puts the
+#                             switch back (the proposal, the tests).
+#   build_german()            writes only the new files, to
+#                             work/art/font_umlaut/ (never to assets/).
+#
+# Drawing rules.  An umlaut letter is the base capital (A, O, U) drawn by its
+# own stroke function in a SHORTER box, plus two dots of the style's stem
+# size at the top of the cap box:
+#
+#     cap line     dot  dot          dots are stem x stem (1x1 / 2x2 px)
+#                  gap (blank rows)  UMLAUT_GAP rows of air: a dot that sits
+#     baseline     the letter        on the letter reads as a notched crown
+#
+# so the whole glyph is exactly the cap height, touches the cap line (the
+# dots) and the baseline (the letter), and cannot collide with the line
+# above or below.  Ё (U+0401) is the older precedent: its dots sit directly
+# on the letter, no gap.  At cap 7 the gap costs the letter two rows (5 left)
+# and at cap 11 it costs three (8 left); it was judged on the sheet
+# (docs/art/previews/*_F5_font-german-umlauts.png) and the gap won, because
+# without it A, O and U grow a battlement.  Ё is not changed: it is shipped.
+#
+# The sharp s has two codepoints, U+1E9E (capital) and U+00DF (small).  The
+# font is capitals-only and the engine folds lowercase onto the capital, but
+# NOT VERIFIED that GZDoom maps U+00DF to U+1E9E (Python's own "ß".upper() is
+# "SS"), so both files are written, byte-identical.
+GERMAN_UMLAUTS = False
+OUT_ROOT_UMLAUT = PROJECT_ROOT / "work" / "art" / "font_umlaut"
+
+UMLAUT_BASES = {"Ä": "A", "Ö": "O", "Ü": "U"}     # Ä Ö Ü
+ESZETT_CAPITAL = "ẞ"                                         # ẞ
+ESZETT_SMALL = "ß"                                           # ß
+GERMAN = list(UMLAUT_BASES) + [ESZETT_CAPITAL, ESZETT_SMALL]
+UMLAUT_GAP = 1          # blank rows between the dots and the letter
+UMLAUT_INSET = 1        # columns between the ink edge and the outer dot
+ESZETT_BAR_X = 0.40     # where the detached bars of the sharp s begin
+ESZETT_MID = 0.36       # height of its middle bar: the top bowl is the bigger one
+ESZETT_TOP_X = 0.80      # right edge of the top bowl: narrower than the lower one
+
+
+def _umlaut_drawer(base: str):
+    """Pen function for the umlaut of `base`: the base capital in a shorter
+    box under two stem-sized dots.  Runs inside the ordinary render_glyph(),
+    so widths, slabs and the big font's shadow need no special case."""
+    def draw(p: Pen):
+        _cls, fn, _center = GLYPHS[ord(base)]
+        dot = p.stem
+        body = p.H - dot - UMLAUT_GAP
+        sub = Pen(p.W, _replace(p.size, cap=body), p.style)
+        fn(sub)
+        p.ink[p.H - body:, :] |= sub.finish()
+        # inset from the ink edge, but never so far that the two dots touch:
+        # the narrow styles (A, B) have 4-5 px letters and fall back to the edge
+        left = min(p.pad + UMLAUT_INSET, (p.W - 2 * dot - 1) // 2)
+        p.ink[0:dot, left:left + dot] = True
+        p.ink[0:dot, p.W - left - dot:p.W - left] = True
+    return draw
+
+
+def _eszett(p: Pen):
+    """Sharp s: a stem, a top bowl a step narrower than the lower one, and a
+    lower bowl whose bars start AFTER a gap instead of joining the stem (the
+    two marks that tell it from B).  The stem takes no slab: the gap must
+    stay open at the foot as well."""
+    p.v(0, term=False).h(1, 0, ESZETT_TOP_X)
+    p.v(ESZETT_TOP_X, ESZETT_MID, 1, term=False).h(ESZETT_MID, ESZETT_BAR_X, 1)
+    p.v(1, 0, ESZETT_MID, term=False).h(0, ESZETT_BAR_X, 1)
+
+
+def _apply_german(on: bool):
+    """Register (or remove) the German letters in GLYPHS and PUNCT."""
+    for ch, base in UMLAUT_BASES.items():
+        if on:
+            cls, _fn, center = GLYPHS[ord(base)]
+            GLYPHS[ord(ch)] = (cls, _umlaut_drawer(base), center)
+        else:
+            GLYPHS.pop(ord(ch), None)
+    for ch in (ESZETT_CAPITAL, ESZETT_SMALL):
+        if on:
+            GLYPHS[ord(ch)] = ("n", _eszett, False)
+        else:
+            GLYPHS.pop(ord(ch), None)
+    for ch in GERMAN:
+        if on and ch not in PUNCT:
+            PUNCT.append(ch)
+        elif not on and ch in PUNCT:
+            PUNCT.remove(ch)
+
+
+class german_umlauts:
+    """`with german_umlauts(True):` draws with the German letters present,
+    then puts the module state back (the switch GERMAN_UMLAUTS is the shipped
+    value, this is the proposal's)."""
+
+    def __init__(self, on: bool = True):
+        self.on = on
+
+    def __enter__(self):
+        self.was = all(ord(c) in GLYPHS for c in GERMAN)
+        _apply_german(self.on)
+        return self
+
+    def __exit__(self, *exc):
+        _apply_german(self.was)
+        return False
+
+
+if GERMAN_UMLAUTS:                      # approved: flip the constant above
+    _apply_german(True)
+
+
+def build_german(out_root: Path | None = None) -> dict:
+    """Style C's new files into work/art/font_umlaut/ (never assets/):
+
+        C/defsmallfont/{00C4,00D6,00DC,1E9E,00DF}.png
+        C/bigfont/{...}.png
+        sdmenu/{...}.png     the big ones, copied: SDMENU is bigfont plus
+                             five Cyrillic substitutions (R N E W A), so its
+                             Ä is bigfont's Ä, drawn on the Latin A
+    """
+    out_root = OUT_ROOT_UMLAUT if out_root is None else out_root
+    style = STYLES["C"]
+    report = {"proposal": "German letters (D36)", "style": style.key,
+              "GERMAN_UMLAUTS": False, "files": {}}
+    with german_umlauts(True):
+        for size_key, folder in (("small", "defsmallfont"), ("big", "bigfont")):
+            d = out_root / style.key / folder
+            d.mkdir(parents=True, exist_ok=True)
+            widths = {}
+            for ch in GERMAN:
+                img = glyph_image(ch, style, size_key)
+                img.save(d / f"{ord(ch):04X}.png")
+                widths[f"U+{ord(ch):04X}"] = img.width
+            report["files"][f"fonts/{folder}/"] = widths
+    sd = out_root / "sdmenu"
+    sd.mkdir(parents=True, exist_ok=True)
+    for ch in GERMAN:
+        name = f"{ord(ch):04X}.png"
+        (sd / name).write_bytes((out_root / style.key / "bigfont" / name).read_bytes())
+    report["files"]["fonts/sdmenu/"] = dict(report["files"]["fonts/bigfont/"])
+    (out_root / "manifest.json").write_text(json.dumps(report, indent=1),
+                                            encoding="utf-8", newline="\n")
+    return report
 
 
 # ----------------------------------------------------------- the sheets
@@ -1436,6 +1597,145 @@ def sheet_serif_fix(stamp: str, out_dir: Path | None = None) -> Path:
     return path
 
 
+# ------------------------------------------------- the German-letters sheet
+GERMAN_ZOOM = {"small": 10, "big": 8}          # glyph close-ups
+GERMAN_WORD_ZOOM = {"small": 4, "big": 3}      # word close-ups
+GERMAN_STRINGS = [
+    # (what it is, text).  Capitals as the engine draws them: the font has
+    # no lowercase, RenderFont folds it.
+    ("Today: the D36 stopgap, spelled out", "VORWAERTS"),
+    ("The word", "VORWÄRTS"),
+    ("The General's shout, with speaker", "THE GENERAL: VORWÄRTS!"),
+    ("As typed in LANGUAGE (lowercase folds onto the capitals)", "Vorwärts."),
+    ("Every new letter in a sentence", "GRÜSSE ÜBER STRAẞE, ÖL"),
+]
+
+
+def sheet_german(stamp: str, out_dir: Path | None = None) -> Path:
+    """The proposal sheet: the new letters beside Ё and the letters they are
+    made from, 1x and enlarged on a pixel grid, then the words as they come
+    out on screen, small font and big font, and in SDMENU."""
+    import gen_menu                    # SUBSTITUTION: what SDMENU redraws
+
+    style = STYLES["C"]
+    fonts = {}
+    with german_umlauts(True):
+        for size_key in ("small", "big"):
+            f = RenderFont(style, size_key)
+            for _what, text in GERMAN_STRINGS:
+                f.render(text)                 # fill the cache while the switch holds
+            for ch in "Ё" + "AOUB" + "".join(GERMAN):
+                f.glyph(ch)
+            fonts[size_key] = f
+    W = 1500
+    img, d = new_sheet(W, 3200)
+    d.rectangle([0, 0, W, 86], fill=PANEL)
+    d.rectangle([0, 84, W, 86], fill=ACCENT)
+    d.text((28, 16), "SOVIET DOOM · ALPHABET C · GERMAN LETTERS Ä Ö Ü AND SHARP S · PROPOSAL (D36)",
+           font=TITLE_FONT, fill=GOLD)
+    d.text((30, 56), "NOTHING IS INSTALLED  ·  work/art/font_umlaut/  ·  "
+                     "gen_font.py --german-umlauts  ·  the 214 shipped glyphs are untouched",
+           font=LABEL_FONT, fill=LABEL)
+    d.text((W - 300, 60), stamp, font=LABEL_SMALL, fill=LABEL)
+    x0, y = 28, 112
+
+    tiles = [("Ё", "Ё  U+0401  shipped"), ("A", "A  base"), ("Ä", "Ä  U+00C4  NEW"),
+             ("O", "O  base"), ("Ö", "Ö  U+00D6  NEW"),
+             ("U", "U  base"), ("Ü", "Ü  U+00DC  NEW"),
+             ("B", "B  (not the sharp s)"), ("ẞ", "sharp s  U+1E9E / U+00DF  NEW")]
+    for size_key in ("small", "big"):
+        k = GERMAN_ZOOM[size_key]
+        size = style.small if size_key == "small" else style.big
+        f = fonts[size_key]
+        d.text((x0, y), f"{size_key.upper()} FONT  ·  cap {size.cap} px"
+                        + (f" + {size.shadow} px shadow" if size.shadow else "")
+                        + f"  ·  dots {size.stem}x{size.stem} px, {UMLAUT_GAP} blank row, letter below"
+                        + f"  ·  1× then {k}×",
+               font=LABEL_FONT, fill=GOLD)
+        y += 26
+        x, row_h = x0, 0
+        for ch, name in tiles:
+            g = f.glyph(ch)
+            tile = _gridded(g, k)
+            d.text((x, y), name, font=LABEL_SMALL, fill=ACCENT if "NEW" in name else LABEL)
+            img.paste(g, (x, y + 18), g)
+            img.paste(tile, (x, y + 18 + g.height + 8))
+            row_h = max(row_h, 18 + g.height + 8 + tile.height)
+            x += max(tile.width, 128) + 18
+        y += row_h + 24
+
+    d.rectangle([x0, y, W - 28, y + 2], fill=ACCENT)
+    y += 14
+    d.text((x0, y), "THE WORDS AS THE SCREEN DRAWS THEM — 1× is what the engine draws; "
+                    "the close-up is how it reads on a 1080p screen; the box is Doom's 320-px line",
+           font=LABEL_FONT, fill=GOLD)
+    y += 28
+    over_all = []
+    for size_key in ("small", "big"):
+        f, k = fonts[size_key], GERMAN_WORD_ZOOM[size_key]
+        for what, text in GERMAN_STRINGS:
+            d.text((x0, y), f"{what}  ·  {size_key} font", font=LABEL_SMALL, fill=LABEL)
+            y += 18
+            line = f.render(text)
+            z = scaled(line, k)
+            box_h = line.height + 4
+            d.rectangle([x0, y, x0 + SCREEN_W + 2, y + box_h],
+                        outline=artlib.ramp_colour("concrete_cold", 0.32))
+            img.paste(line, (x0 + 2, y + 2), line)
+            over = line.width - SCREEN_W
+            if over > 0:
+                over_all.append(f"{size_key}: {text}")
+            img.paste(z, (x0 + SCREEN_W + 30, y), z)
+            d.text((x0 + SCREEN_W + 30 + z.width + 14, y + 2),
+                   f"{line.width} px" + ("  ← OVER 320" if over > 0 else ""),
+                   font=LABEL_SMALL, fill=ACCENT if over > 0 else LABEL)
+            y += max(box_h, z.height) + 10
+        y += 14
+
+    # SDMENU: bigfont plus five Cyrillic redraws (R N E W A); the new letters
+    # are copied from bigfont, so its A-umlaut stays a Latin A with dots.
+    d.rectangle([x0, y, W - 28, y + 2], fill=ACCENT)
+    y += 14
+    d.text((x0, y), "IN SDMENU (menu font) — R N E W A are redrawn as Я И Э Ш Д by D22; "
+                    "the new letters are bigfont's, so Ä is a Latin A with dots",
+           font=LABEL_FONT, fill=GOLD)
+    y += 28
+    big = fonts["big"]
+    for what, text in (("VORWÄRTS in SDMENU", "VORWÄRTS"),
+                       ("GRÜSSE ÜBER STRAẞE in SDMENU", "GRÜSSE ÜBER STRAẞE")):
+        shown = text.translate(str.maketrans(gen_menu.SUBSTITUTION))
+        d.text((x0, y), f"{what}  ·  big font  ·  1× and 3×", font=LABEL_SMALL, fill=LABEL)
+        y += 18
+        line = big.render(shown)
+        z = scaled(line, 3)
+        d.rectangle([x0, y, x0 + SCREEN_W + 2, y + line.height + 4],
+                    outline=artlib.ramp_colour("concrete_cold", 0.32))
+        img.paste(line, (x0 + 2, y + 2), line)
+        img.paste(z, (x0 + SCREEN_W + 30, y), z)
+        d.text((x0 + SCREEN_W + 30 + z.width + 14, y + 2), f"{line.width} px", font=LABEL_SMALL, fill=LABEL)
+        y += max(line.height + 4, z.height) + 14
+
+    y += 8
+    notes = [
+        "Files if approved (per size, folders fonts/defsmallfont/ and fonts/bigfont/): 00C4.png, 00D6.png, "
+        "00DC.png, 1E9E.png and 00DF.png (the last two identical). 10 files; SDMENU gets its five by regeneration.",
+        "The gap row is new: Ё (shipped) has its dots directly on the letter; it is left alone. "
+        "Cost: the letter under the dots is 5 px tall (small) / 8 px (big) instead of 7 / 11.",
+        "NOT VERIFIED in the engine: that GZDoom draws U+00E4 / U+00F6 / U+00FC from the capital files "
+        "(as it does for the Cyrillic lowercase) and which of U+1E9E / U+00DF it asks for; both files are cut for that reason.",
+        "Over 320 px: " + ("; ".join(over_all) if over_all else "nothing."),
+    ]
+    for n in notes:
+        d.text((x0, y), "· " + n, font=LABEL_SMALL, fill=LABEL)
+        y += 20
+    img = img.crop((0, 0, W, min(y + 14, img.height)))
+    out_dir = PREVIEW_DIR if out_dir is None else out_dir
+    path = out_dir / f"{stamp}_F5_font-german-umlauts.png"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    img.save(path)
+    return path
+
+
 # ------------------------------------------------------------------ cli
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
@@ -1445,7 +1745,15 @@ def main():
     ap.add_argument("--serif-fix", action="store_true",
                     help="H1 proposal: variant C with MIRROR_TERMINALS on into "
                          "work/art/font_fix/, and the before/after sheet into docs/art/previews/")
+    ap.add_argument("--german-umlauts", action="store_true",
+                    help="F5 proposal (D36): the German letters into work/art/font_umlaut/, "
+                         "and the sheet into docs/art/previews/")
     args = ap.parse_args()
+
+    if args.german_umlauts:
+        build_german()
+        print(sheet_german(args.stamp))
+        return
 
     if args.serif_fix:
         build_serif_fix()
