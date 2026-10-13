@@ -301,9 +301,9 @@ The files are not interchangeable:
 
 | File | Sequencer | Licence on the **sequencing** | Usable under D15 |
 |---|---|---|---|
-| `Internationale orch2.mid` | Jerry Engelbach, 2003 | `{{Attribution|Jerry Engelbach}}` + VRT permission ticket 2008011810001789; melody `{{PD-Internationale}}` | **YES** — attribution-only, no ShareAlike, no NC conflict |
+| `Internationale orch2.mid` | Jerry Engelbach, 2003 | `{{Attribution\|Jerry Engelbach}}` + VRT permission ticket 2008011810001789; melody `{{PD-Internationale}}` | **YES** — attribution-only, no ShareAlike, no NC conflict |
 | `Internationale-piano-Bb.mid` | Jerry Engelbach, 2001 | same | **YES** |
-| `The-Internationale.mid` | Commons user J2772011, 2023 | `{{self|cc-by-sa-4.0}}` | **NO** — ShareAlike, §1.3 |
+| `The-Internationale.mid` | Commons user J2772011, 2023 | `{{self\|cc-by-sa-4.0}}` | **NO** — ShareAlike, §1.3 |
 
 Same tune, same site, same category, and one of the three cannot ship.
 `{{PD-Internationale}}` states the melody is public domain in the United

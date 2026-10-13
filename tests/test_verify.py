@@ -32,7 +32,7 @@ import io
 import sys
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -423,9 +423,11 @@ class CliTests(unittest.TestCase):
         self.assertLess(out.index("auto:"), out.index("plan:"))
 
     def test_an_unknown_level_is_a_usage_error(self):
-        with self.assertRaises(SystemExit) as ctx:
+        # argparse writes its usage to stderr; swallow it so a passing
+        # suite stays readable.
+        with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as ctx:
             verify.parse_args(["turbo"])
-        self.assertEqual(2, ctx.exception.code)
+        self.assertEqual(verify.EXIT_USAGE, ctx.exception.code)
 
     def test_explicit_maps_override_the_decision(self):
         _code, out = self._run(
@@ -448,6 +450,27 @@ class ExitCodeTests(unittest.TestCase):
                      verify.EXIT_TESTS, verify.EXIT_ENGINE):
             self.assertGreater(code, 3)
             self.assertLess(code, 126, "126+ belongs to the shell")
+
+
+class StageFailureTests(unittest.TestCase):
+    """A verification tool that tracebacks is worse than no tool."""
+
+    def test_a_missing_interpreter_is_a_red_stage_not_a_traceback(self):
+        result = verify.stage_build("/nope/does/not/exist/python")
+        self.assertFalse(result.ok)
+        self.assertEqual(verify.EXIT_BUILD, result.exit_code)
+        self.assertIn("could not run", result.output)
+
+    def test_a_failing_stage_does_not_claim_it_produced_output(self):
+        """`build FAIL ... dist/sovietdoom.pk3` read as if the PK3 existed."""
+        result = verify.stage_build("/nope/does/not/exist/python")
+        self.assertNotIn("dist/sovietdoom.pk3", result.note)
+        self.assertIn("exit", result.note)
+
+    def test_run_reports_oserror_as_exit_127(self):
+        code, out, _secs = verify._run(["/nope/does/not/exist"])
+        self.assertEqual(127, code)
+        self.assertIn("No such file", out)
 
 
 class SmokeWindowTests(unittest.TestCase):

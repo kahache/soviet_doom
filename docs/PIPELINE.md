@@ -110,16 +110,22 @@ python3 tools/verify.py auto --explain   # says what it would do, runs nothing
 
 #### The ladder
 
-Each level contains the one above it. Times measured on the project machine,
-2026-10-13, with `.venv/bin/python` (the system `python3` skips every art
-test for want of Pillow, which makes it faster and much less useful).
+Each level contains the one above it. Times measured on the project machine
+(2015 i5-5257U, Intel Iris 6100) on 2026-10-13 with `.venv/bin/python` — the
+system `python3` skips every art test for want of Pillow, which makes it
+faster and much less useful. Two numbers because they were measured twice:
+quiet, and again while three other agents were working on the same machine.
 
-| Level | What runs | Window? | Measured |
-|---|---|---|---|
-| `docs` | D7 mirror check + repo paths quoted in the changed documents | no | ~0.1 s |
-| `fast` | `build.py`, `check_pk3.py`, the suite **without** the slow art generator runs (`SD_SKIP_SLOW_ART=1`) | no | **~7 s** |
-| `art` | `fast` plus the slow art runs: determinism, palette, tiling, ink count | no | ~14 s |
-| `full` | `art` plus `smoke.py` on every map in `src/maps/` | **yes** | ~30 s |
+| Level | What runs | Window? | Quiet | Loaded |
+|---|---|---|---|---|
+| `docs` | D7 mirror check + repo paths quoted in the changed documents | no | 0.1 s | 0.3 s |
+| `fast` | `build.py`, `check_pk3.py`, the suite **without** the slow art generator runs (`SD_SKIP_SLOW_ART=1`) | no | **6.8 s** | 8.1 s |
+| `art` | `fast` plus the slow art runs: determinism, palette, tiling, ink count | no | ~15 s | 18.9 s |
+| `full` | `art` plus `smoke.py` on every map in `src/maps/` (2 maps x ~8 s) | **yes** | ~31 s | 46.4 s |
+
+Narrowing `art` to only the three art test modules was measured and
+rejected: it saves about 2 s of 14 and loses every other regression the
+suite catches, so `art` simply runs the whole suite with the slow runs on.
 
 `fast` is the working loop. `full` is for before a push, at a phase close and
 at every gate — a gate is never signed on `fast`.

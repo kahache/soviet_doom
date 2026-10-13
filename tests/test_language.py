@@ -304,10 +304,11 @@ class LanguageMenuTest(unittest.TestCase):
             "so the choice persists without the mod writing a CVar of its own")
 
     def test_both_languages_are_offered_explicitly(self):
-        # OptionString, not OptionValue: `language` is a string CVar and
-        # OptionValue parses its left column with SC_GetFloat, which aborted
-        # the engine at startup on "default" (CEO, 2026-10-13). The test
-        # accepts only the string form so the crash cannot come back.
+        # OptionString, not OptionValue: `language` is a string CVar, and
+        # OptionValue parses its left column as a number. Swapping the
+        # keyword makes GZDoom 4.14.2 abort during startup (exit 255, log
+        # stops at "M_Init: Init menus.") -- reproduced 2026-10-13, the game
+        # does not launch at all. The test accepts only the string form.
         values = re.search(r'OptionString\s+"SD_LanguageValues"\s*\{(.*?)\}',
                            self.menudef, re.DOTALL)
         self.assertIsNotNone(values, "no SD_LanguageValues list")
