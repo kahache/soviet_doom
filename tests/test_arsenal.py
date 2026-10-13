@@ -19,6 +19,10 @@ import unittest
 import zipfile
 from pathlib import Path
 
+# D36/D37: the Reich speaks real German and the alphabet has these letters;
+# the only non-ASCII characters the English section may contain (T17 otherwise).
+GERMAN_LETTERS = frozenset("ÄÖÜäöüßẞ")
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 TOOLS_DIR = PROJECT_ROOT / "tools"
 SRC_DIR = PROJECT_ROOT / "src"
@@ -312,7 +316,7 @@ class ArsenalPk3Test(unittest.TestCase):
         for line in enu.splitlines():
             code = line.split("//")[0]
             self.assertTrue(
-                code.isascii(),
+                all(ch.isascii() or ch in GERMAN_LETTERS for ch in code),
                 f"non-ASCII in the English section: switching to Cyrillic is debt T17, do it deliberately: {line!r}",
             )
 

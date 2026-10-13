@@ -166,20 +166,25 @@ Not installed (the other twelve cells of the sweep, A, B and D of the crates
 and A-C of the locker): not chosen, not discarded; they stay in `work/` and
 may be proposed again as variety.
 
-## The alphabet (D24) — glyph fix
+## The alphabet (D24) — glyph fix and German letters
 
 Not textures, listed here so the index carries every shipped art change.
-The alphabet (style C "Mashina", 214 glyphs in `assets/fonts/`) is owned by
+The alphabet (style C "Mashina", 224 glyphs in `assets/fonts/`) is owned by
 `LICENSES.md` ("The alphabet"). **2026-10-13: M, Cyrillic М and W
 corrected** at both sizes (six PNGs: `004D`, `041C`, `0057` in
 `defsmallfont/` and `bigfont/`) with the CEO's approval, same verdict as
 above («apruebo el arreglo de la fuente»). Their slab serifs had been placed
 on one side only (QA finding H1); before/after sheet
 `docs/art/previews/2026-10-13_1443_F2_font-C-serif-fix.png`.
+**2026-10-13: Ä, Ö, Ü and the sharp s (ẞ U+1E9E, ß U+00DF) added** at both
+sizes (ten PNGs: `00C4`, `00D6`, `00DC`, `1E9E`, `00DF` in `defsmallfont/`
+and `bigfont/`, 214 → 224 glyphs, and copied into `sdmenu/`), **approved for
+in-game trial 2026-10-13 (D37)**; proposal sheet
+`docs/art/previews/2026-10-13_1730_F5_font-german-umlauts.png`.
 
 ## The menu font SDMENU (D31)
 
-Not textures either. `assets/fonts/sdmenu/` (107 glyphs + `font.inf`) is
+Not textures either. `assets/fonts/sdmenu/` (112 glyphs + `font.inf`) is
 `bigfont/` with R, N, E, W, A drawn as Я, И, Э, Ш, Д (D22 level 2), for the
 main menu and the skill-screen headers. Owned by `LICENSES.md` ("The menu
 font SDMENU"). Status: **approved for in-engine trial 2026-10-13 (D31)**.

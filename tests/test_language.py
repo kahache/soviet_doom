@@ -38,6 +38,12 @@ REQUIRED_SECTIONS = ("default", "ru")
 # test_the_language_probe_is_gone keeps it out.
 NON_PROSE_IDS: frozenset[str] = frozenset()
 
+# The only non-ASCII characters the English section may hold until debt T17:
+# the German letters, because the Reich speaks real German since D36 and the
+# alphabet draws them since D37 (2026-10-13). Lowercase prints with the
+# capital glyph; both sharp-s codepoints are installed.
+GERMAN_LETTERS = frozenset("ÄÖÜäöüßẞ")
+
 # Where an "$SD_..." reference can appear. MAPINFO/MENUDEF quote it, ZScript
 # quotes it in a property, and both forms are "$" + id.
 REFERENCE_RE = re.compile(r'"\$(' + MOD_PREFIX + r'[A-Za-z0-9_]+)"')
@@ -165,11 +171,17 @@ class LanguageLumpTest(unittest.TestCase):
         pins that so the switch to the Cyrillic forms D17 asks for (MOD-SPEC
         6.4, debt T17) is a deliberate change with an engine screenshot,
         not a stray character. Flip or delete this test in that change.
+
+        One explicit exception: the German letters. Since D36 the Reich
+        speaks real German, and since D37 (2026-10-13) the alphabet draws
+        Ä Ö Ü and the sharp s, so "Vorwärts" is written as such in English
+        too. Only those characters are allowed; any other non-ASCII
+        character still fails here.
         """
         offenders = [
             f"{key} = {value}"
             for key, value in sorted(self.sections["default"].items())
-            if any(ord(ch) > 127 for ch in value)
+            if any(ord(ch) > 127 and ch not in GERMAN_LETTERS for ch in value)
         ]
         self.assertEqual(
             offenders, [],

@@ -1,19 +1,23 @@
-"""Tests for the German letters of tools/art/gen_font.py (D36, F5 proposal).
+"""Tests for the German letters of tools/art/gen_font.py (D36, D37).
 
 D36 makes the Reich speak real German and the General shout "Vorwaerts".
-The alphabet (D24, style C "Mashina", 214 glyphs) has no A-umlaut, O-umlaut,
-U-umlaut or sharp s, so until now the screen spelled "VORWAERTS". The art
-director drew them behind a switch that is OFF (gen_font.GERMAN_UMLAUTS),
-the way MIRROR_TERMINALS was before its approval; nothing is installed.
-What is enforced here, and why:
+The alphabet (D24, style C "Mashina", 214 glyphs) had no A-umlaut, O-umlaut,
+U-umlaut or sharp s, so the screen spelled "VORWAERTS". The art director
+drew them behind a switch (gen_font.GERMAN_UMLAUTS), the way
+MIRROR_TERMINALS was before its approval. The CEO approved all five for an
+in-game trial on 2026-10-13 (D37, the sharp s included), so the switch is
+ON and the ten files are in assets/fonts/ (224 glyphs), plus their copies
+in assets/fonts/sdmenu/. What is enforced here, and why:
 
-  untouched     with the switch off (the shipped state) the 214 glyphs of
-                every style are what they were: C rebuilt is byte-identical
-                to assets/fonts/, and turning the German letters ON changes
-                not one pixel of any existing glyph. This is the contract
-                that lets the proposal exist without a CEO decision first
+  untouched     the 214 glyphs that shipped before are what they were: C
+                rebuilt is byte-identical to assets/fonts/, and turning the
+                German letters on or off changes not one pixel of any other
+                glyph. This is the contract that let the proposal exist
+                without a CEO decision first, and it still holds
+  installed     the ten German files in assets/fonts/ are what the
+                generator draws, and SDMENU carries bigfont's
   exist         U+00C4, U+00D6, U+00DC, U+1E9E and U+00DF are drawn at both
-                sizes, in all three styles, only inside the switch
+                sizes, in all three styles, and only with the switch on
   metrics       exactly the cap height, the dots touch the cap line, the
                 letter touches the baseline and sits on the baseline of its
                 base capital, the spacing column stays empty
@@ -33,7 +37,7 @@ Rules this file follows (same as tests/test_gen_font.py):
   - nothing is written to work/, assets/ or docs/: every output goes to a
     tempfile directory (OUT_ROOT_UMLAUT and PREVIEW_DIR are passed or
     patched).
-  - the module switch is turned on only through gen_font.german_umlauts(),
+  - the module switch is flipped only through gen_font.german_umlauts(),
     which restores it, and every test that does so checks it came back.
   - Pillow/numpy and the system label fonts are optional: the classes skip.
 
@@ -81,7 +85,8 @@ ESZETT_CAPITAL, ESZETT_SMALL = "ẞ", "ß"
 UMLAUTS = {A_UMLAUT: "A", O_UMLAUT: "O", U_UMLAUT: "U"}
 NEW = [A_UMLAUT, O_UMLAUT, U_UMLAUT, ESZETT_CAPITAL, ESZETT_SMALL]
 NEW_FILES = ["00C4.png", "00D6.png", "00DC.png", "1E9E.png", "00DF.png"]
-EXISTING_CODEPOINTS = 107                     # 214 PNG per style = 107 x 2 sizes
+EXISTING_CODEPOINTS = 107                     # 214 PNG per style = 107 x 2 sizes, before D37
+INSTALLED_CODEPOINTS = EXISTING_CODEPOINTS + len(NEW)   # 224 PNG = 112 x 2, since D37
 
 
 def palette_colours() -> set:
@@ -99,13 +104,14 @@ def png_arrays(path_or_bytes) -> "np.ndarray":
 
 
 class GermanOn:
-    """Mixin: the German letters on for the length of one test, and a check
-    in cleanup that the module state came back."""
+    """Mixin: the German letters on (or off) for the length of one test, and
+    a check in cleanup that the module state came back. Since D37 on is the
+    shipped state, so switch_on() is a guard more than a change."""
 
-    def switch_on(self):
+    def switch_on(self, on: bool = True):
         gen = self.gen
         before = (len(gen.GLYPHS), list(gen.PUNCT))
-        ctx = gen.german_umlauts(True)
+        ctx = gen.german_umlauts(on)
         ctx.__enter__()
 
         def restore():
@@ -115,7 +121,7 @@ class GermanOn:
 
 
 # ===========================================================================
-# the 214 shipped glyphs do not move
+# the 214 glyphs shipped before D37 do not move; the German ten are installed
 # ===========================================================================
 @imaging
 @fonts
@@ -132,41 +138,52 @@ class ShippedGlyphsAreUntouchedTests(GermanOn, unittest.TestCase):
     def tearDownClass(cls):
         cls._tmp.cleanup()
 
-    def test_the_switch_is_off_and_the_default_set_is_the_214(self):
+    def test_the_switch_is_on_and_the_default_set_is_the_224(self):
+        """Approved by the CEO 2026-10-13 (D37) and installed: turning it
+        off again would drop ten shipped files from the next regeneration."""
         gen = self.gen
-        self.assertIs(gen.GERMAN_UMLAUTS, False, "turning it on is the CEO's call, with an install")
-        self.assertEqual(len(gen.GLYPHS), EXISTING_CODEPOINTS)
+        self.assertIs(gen.GERMAN_UMLAUTS, True, "D37 installed the German letters")
+        self.assertEqual(len(gen.GLYPHS), INSTALLED_CODEPOINTS)
         for ch in NEW:
-            self.assertNotIn(ord(ch), gen.GLYPHS, f"U+{ord(ch):04X} leaked into the default set")
-            self.assertNotIn(ch, gen.PUNCT)
+            self.assertIn(ord(ch), gen.GLYPHS, f"U+{ord(ch):04X} missing from the default set")
+            self.assertIn(ch, gen.PUNCT)
         order = gen.CYRILLIC + gen.LATIN + gen.DIGITS + gen.PUNCT + [" "]
         self.assertEqual({ord(c) for c in order}, set(gen.GLYPHS))
 
+    def test_with_the_switch_off_the_set_is_the_214_of_before(self):
+        gen = self.gen
+        self.switch_on(False)
+        self.assertEqual(len(gen.GLYPHS), EXISTING_CODEPOINTS)
+        for ch in NEW:
+            self.assertNotIn(ord(ch), gen.GLYPHS, f"U+{ord(ch):04X} survived the switch")
+            self.assertNotIn(ch, gen.PUNCT)
+
     def test_style_c_default_build_is_byte_identical_to_assets(self):
-        """The existing reproduction test, restated for this proposal: the
-        German section must not move a pixel of what is installed."""
+        """The existing reproduction test, restated for the German letters:
+        the default build is what is installed, all 224 glyphs of it."""
         report = self.gen.build_variant(self.gen.STYLES["C"], self.tmp / "default")
         built = self.tmp / "default" / "C"
         differing = []
         for folder in FOLDERS:
             pngs = sorted((FONTS_DIR / folder).glob("*.png"))
             self.assertTrue(pngs, f"assets/fonts/{folder} is empty")
+            self.assertEqual(len(pngs), INSTALLED_CODEPOINTS, f"assets/fonts/{folder}")
             for p in pngs:
-                if p.name in NEW_FILES:        # installed later, checked below
-                    continue
                 if p.read_bytes() != (built / folder / p.name).read_bytes():
                     differing.append(f"{folder}/{p.name}")
         self.assertEqual(differing, [])
-        self.assertEqual(sum(len(r["widths"]) for r in report["sizes"].values()), 2 * EXISTING_CODEPOINTS)
+        self.assertEqual(sum(len(r["widths"]) for r in report["sizes"].values()), 2 * INSTALLED_CODEPOINTS)
 
     def test_switch_on_changes_no_existing_glyph_in_any_style(self):
         gen = self.gen
-        old = list(gen.GLYPHS)
         off = {}
-        for key, st in gen.STYLES.items():
-            for size_key in FOLDERS.values():
-                for cp in old:
-                    off[(key, size_key, cp)] = np.asarray(gen.glyph_image(chr(cp), st, size_key)).copy()
+        with gen.german_umlauts(False):
+            old = list(gen.GLYPHS)
+            for key, st in gen.STYLES.items():
+                for size_key in FOLDERS.values():
+                    for cp in old:
+                        off[(key, size_key, cp)] = np.asarray(gen.glyph_image(chr(cp), st, size_key)).copy()
+        self.assertEqual(len(old), EXISTING_CODEPOINTS)
         self.switch_on()
         changed = []
         for (key, size_key, cp), before in off.items():
@@ -177,7 +194,8 @@ class ShippedGlyphsAreUntouchedTests(GermanOn, unittest.TestCase):
 
     def test_build_variant_with_the_switch_on_only_adds_the_ten_files(self):
         gen = self.gen
-        gen.build_variant(gen.STYLES["C"], self.tmp / "off")
+        with gen.german_umlauts(False):
+            gen.build_variant(gen.STYLES["C"], self.tmp / "off")
         self.switch_on()
         gen.build_variant(gen.STYLES["C"], self.tmp / "on")
         off = {p.relative_to(self.tmp / "off").as_posix(): p.read_bytes()
@@ -192,27 +210,37 @@ class ShippedGlyphsAreUntouchedTests(GermanOn, unittest.TestCase):
     def test_the_switch_restores_state_even_when_the_block_fails(self):
         gen = self.gen
         before = (len(gen.GLYPHS), list(gen.PUNCT))
-        with self.assertRaises(RuntimeError):
-            with gen.german_umlauts(True):
-                self.assertEqual(len(gen.GLYPHS), EXISTING_CODEPOINTS + len(NEW))
-                raise RuntimeError("boom")
-        self.assertEqual((len(gen.GLYPHS), gen.PUNCT), before)
+        for on, inside in ((False, EXISTING_CODEPOINTS), (True, INSTALLED_CODEPOINTS)):
+            with self.subTest(on=on):
+                with self.assertRaises(RuntimeError):
+                    with gen.german_umlauts(on):
+                        self.assertEqual(len(gen.GLYPHS), inside)
+                        raise RuntimeError("boom")
+                self.assertEqual((len(gen.GLYPHS), gen.PUNCT), before)
 
     def test_installed_german_files_must_equal_the_generated_ones(self):
-        """Vacuous today (nothing is installed). Once the CEO approves and
-        the files land in assets/fonts/, they must be what the generator
-        draws, or the next regeneration silently changes them."""
+        """Installed 2026-10-13 (D37): the ten files are in assets/fonts/
+        and must be what the generator draws, or the next regeneration
+        silently changes them. SDMENU holds bigfont's copies (it substitutes
+        R N E W A only), and both sharp-s codepoints are one drawing."""
         gen = self.gen
         self.switch_on()
         for folder, size_key in FOLDERS.items():
             for ch in NEW:
                 p = FONTS_DIR / folder / f"{ord(ch):04X}.png"
-                if not p.is_file():
-                    continue
                 buf = io.BytesIO()
                 gen.glyph_image(ch, gen.STYLES["C"], size_key).save(buf, "PNG")
                 with self.subTest(folder=folder, ch=ch):
+                    self.assertTrue(p.is_file(), f"{p} is not installed")
                     self.assertEqual(p.read_bytes(), buf.getvalue())
+            with self.subTest(folder=folder, ch="sharp s"):
+                self.assertEqual((FONTS_DIR / folder / "1E9E.png").read_bytes(),
+                                 (FONTS_DIR / folder / "00DF.png").read_bytes())
+        for name in NEW_FILES:
+            with self.subTest(folder="sdmenu", name=name):
+                p = FONTS_DIR / "sdmenu" / name
+                self.assertTrue(p.is_file(), f"{p} is not installed")
+                self.assertEqual(p.read_bytes(), (FONTS_DIR / "bigfont" / name).read_bytes())
 
 
 # ===========================================================================
@@ -449,7 +477,7 @@ class GermanOutputTests(GermanOn, unittest.TestCase):
         """SDMENU is bigfont plus five Cyrillic redraws. Once bigfont holds
         the new files, regenerating SDMENU must copy them untouched (so its
         A-umlaut is bigfont's, a Latin A with dots) and still substitute
-        R N E W A. gen_menu.py is not edited by this proposal."""
+        R N E W A. gen_menu.py needed no edit for the German letters."""
         big = FONTS_DIR / "bigfont"
         if not big.is_dir():
             self.skipTest("assets/fonts/bigfont not present")
@@ -524,9 +552,10 @@ class GermanTextTests(GermanOn, unittest.TestCase):
         self.assertEqual(f.missing, set())
 
     def test_with_the_switch_off_the_german_letters_are_missing_not_a_crash(self):
-        """Today's state. Before the fix in RenderFont.glyph, the sharp s
-        died in ord('SS'); now it is recorded as missing like any other
-        character the font lacks, and the sheet says so."""
+        """The state before D37. Before the fix in RenderFont.glyph, the
+        sharp s died in ord('SS'); now it is recorded as missing like any
+        other character the font lacks, and the sheet says so."""
+        self.switch_on(False)
         f = self.gen.RenderFont(self.gen.STYLES["C"], "small")
         line = f.render("VORWÄRTS ß")
         self.assertEqual(f.missing, {A_UMLAUT, ESZETT_SMALL})
