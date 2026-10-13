@@ -78,13 +78,62 @@ src/
 
 | Lump | Title (LANGUAGE) | Episode | Status |
 |---|---|---|---|
-| `MAP01` | `SD_MAP01_NAME` = "Test Range" / "Полигон" | `SD_EP01_NAME` = "Soviet Doom" / "Советский Doom" | F0: 512×512 room, floor 0, ceiling 128, light 160, player start at (256,256) facing +y. `next = "MAP01"` (no exit). Owned by `level-designer` from F3 on. |
+| `MAP01` | `SD_MAP01_NAME` = "Zarya-7 Cosmodrome" / «Космодром "Заря-7"» | `SD_EP01_NAME` = "Soviet Doom" / "Советский Doom" | Owned by `level-designer` since F3; design in `docs/levels/MAP01-zarya-7.md`. `cluster = 1`, `next = endtitle`, `par = 210`. Named in-engine 2026-10-13 (the log prints `MAP01 - Zarya-7 Cosmodrome`). |
 | `MAP02` | `SD_MAP02_NAME` = "Engineering Test Range" / "Инженерный полигон" | none (not in an episode) | F4: 2048×768 hall, ceiling 128, light 192, player start at (160,384) facing +x. The seven weapons, the four ammo pools, barrels and placeholder targets. Reached with `MAP=MAP02 tools/run.sh`. Engineering fixture, **not a design artefact**. |
 
 MAPINFO conventions: `clearepisodes` + one episode per campaign; map titles by
 `lookup`, episode title by `name = "$ID"` (**`lookup` is not accepted inside an
 episode block**, verified B1); `music = ""` until we have music (verified:
 silence, no warning); `sky1 = "SKY1"`.
+
+### 4.1 How the campaign ends (M3, closed 2026-10-13)
+
+`Exit_Normal` on MAP01 ends the game. Three facts, all verified in-engine,
+that anyone touching this needs:
+
+- **The end-of-episode text belongs to the CLUSTER, not to the map.** The
+  obvious `next = EndGame { Text = "…" }` does not parse: an endgame block
+  accepts only `pic`, `hscroll`, `vscroll`, `cast` and `music`
+  (`ParseEndGame`, `src/intermission/intermission_parse.cpp`), and GZDoom
+  answers `Unknown property 'Text' found in endgame definition`. The copy is
+  `cluster 1 { exittext = lookup, "SD_END01_TEXT" flat = "SDFLR1" }`.
+- **`next = endtitle`** is the named end sequence for "roll the ending, then
+  go back to the title screen" (`CheckEndSequence`, same file).
+- **`nointermission` is gone from MAP01.** Pressing the exit used to restart
+  the map in silence; the stats screen is the first thing that says the
+  level was finished. `par = 210` is `level-designer`'s figure. **NOT
+  VERIFIED**: that the screen prints 3:30 — the PAR row appears, but its
+  value animates upward and never settled within an unattended run. QA, with
+  a human at the keyboard.
+
+### 4.2 Map specials in use (M5, from `level-designer`'s §9)
+
+ZDoom's line-special NUMBERS are compiled into the engine, not shipped in any
+file, so these were verified the only way left: by walking the map in v0 and
+watching the geometry move. Evidence in `docs/levels/shots/`. The argument
+*shapes* do ship, in `gzdoom.pk3 → xlat/`.
+
+| Special | № | Arguments | Used for | Status |
+|---|---|---|---|---|
+| `Door_Raise` | **12** | `(tag, speed, delay, lighttag)`, emitted as `(tag, 16, 150, 0)` | manual door, openable from both sides; `playeruse` + `repeatspecial` | **VERIFIED in engine** 2026-10-13 |
+| `Door_Open` | **11** | `(tag, speed, lighttag)`, emitted as `(tag, 16, 0)` | push panel that stays open, and a one-sided wall switch opening a remote tagged door | **VERIFIED in engine** 2026-10-13 |
+| `Exit_Normal` | **243** | `(pos)` | the level exit switch | **VERIFIED in engine** 2026-10-13; since this change it ends the game (§4.1) rather than reloading MAP01 |
+
+Constants from `xlat/defines.i`: `D_SLOW = 16`, `VDOORWAIT = 150`. Tags are a
+UDMF `id` on the sector and `arg0` on the line.
+
+Two engine facts that cost `level-designer` a rebuild each, kept here so the
+next person does not pay again:
+
+- A `playeruse` special fires **only from the front side of the line**, so a
+  door needs the special on *both* flanking lines, each wound with the door
+  as the BACK side. `LineStyle.back_sector` in `tools/sdbuild/udmf.py` does
+  it and `tests/test_udmf.py` asserts it.
+- `Door_Raise` / `Door_Open` raise a door to **(lowest neighbouring ceiling
+  − 4)**, so a door opened off a low neighbour can end up impassable.
+
+Not yet verified, and therefore not contract: `Light_ChangeToValue` (110),
+`Light_Flicker` (113), sector `special = 1024` (secret). v2.
 
 ## 5. IWAD assets used
 
@@ -300,6 +349,31 @@ it is a prerequisite for a localized status bar anyway. Then repaint `STBAR`
 in F6 when `art-director` is doing HUD art in one pass. A ZScript status bar
 is worth it only if we decide the HUD itself should stop looking like Doom's.
 
+## 6.6 Menus (`MENUDEF`)
+
+The mod owns four menu facts. All four were learned in the engine, three of
+them by breaking something first; the reasoning is in
+`docs/engine/adr/004-language-switch-and-difficulty-ladder.md` and the
+engine source lines are quoted in `src/lumps/MENUDEF` itself.
+
+| What | How | Why it is not obvious |
+|---|---|---|
+| Language switch | `OptionString "SD_LanguageValues"` with `auto` / `default` / `ru`, driving GZDoom's own archived `language` CVar | `OptionValue` parses its left column as a NUMBER and **the game will not start**; the mod declares no CVar of its own and no `CVARINFO` |
+| Where the switch lives | `AddOptionMenu` on **both** `OptionsMenu` and `OptionsMenuSimple`, `BEFORE "os_Menu"` | `m_simpleoptions` defaults to true, so "Options" opens the SHORT screen; appending at the end puts the row below the fold |
+| Main-menu logo | `LISTMENU "MainMenu"` redeclared with `StaticPatch 60, 0, "M_DOOM"` | the engine's own value is `94, 2`, which does not sit on the lockup painted into `TITLEPIC` (`work/art/shell/manifest.json` is the contract: x=60, y=0) |
+| Difficulty names | `LISTMENU "SkillMenu"` redeclared with `Font "SmallFont", "Red", "Gold"` | the default BigFont fits ~26 characters and rung 5 is 38; the names are the CEO's and the font is the part we may change |
+
+No ZScript is involved in any of it. A mod may write a CVar from ZScript
+only while the engine is handling menu input — `DMenu::InMenu` is raised
+around `OnUIEvent`, `OnInputEvent` and `MenuEvent` and nothing else
+(`src/common/menu/menu.cpp`) — so a write from `Init`, `Ticker` or `Drawer`
+aborts the VM and drops the player to the console. **Do not add a menu
+ZScript class that writes a CVar.**
+
+The three redeclared menus are verbatim copies of GZDoom 4.14.2's own
+bodies with one line changed each. Re-diff them against
+`gzdoom.pk3/menudef.txt` on every engine upgrade (debt T14).
+
 ## 7. Commands
 
 ```sh
@@ -350,3 +424,7 @@ disagree, the code is right and the doc is the bug.
 | T9 | **No Cyrillic in the game's font.** Freedoom's `SmallFont` is ASCII, so the `[ru]` build and any Cyrillic in English print as blanks. Brief and verified mechanism in §6.4. | next `art-director` batch — it blocks D7 in-game and the status bar |
 | T10 | The shovel swing is silent (§6.2). | F4, when `sound-designer` delivers `SDSHSWG` |
 | T11 | `AMMO`/`HEALTH`/`ARMS`/`ARMOR` are pixels in the IWAD's `STBAR` (§6.5). Open question for the CEO. | F6, after T9 |
+| T12 | The main menu's item graphics (`M_NGAME`, `M_OPTION`, `M_LOADG`, `M_SAVEG`, `M_QUITG`) and the skill screen's headers (`M_NEWG`, `M_SKILL`) are still Freedoom's red Doom lettering under our own logo (§6.6). | `art-director`, with the rest of the shell |
+| T13 | `MENUDEF` names `OptionsMenuSimple`, and `AddOptionMenu` on a name the engine does not define is a **hard parse error**. If a GZDoom upgrade drops the simple options menu, the lump stops loading until that block goes. | at the next engine upgrade |
+| T14 | Three engine menus (`MainMenu`, `SkillMenu`, and the `os_Menu` insertion anchor) are copied verbatim into `MENUDEF` to change one line each. They do not track engine changes. | re-diff at every engine upgrade |
+| T15 | MAP01's `par = 210` is set, the intermission's PAR row appears, but the printed value was never read in an unattended run (§4.1). | `qa-engineer`, with a human at the keyboard |

@@ -94,6 +94,25 @@ skill sd_posthumous
 	Key = "g"
 }
 
+// --- Clusters -------------------------------------------------------------
+// A cluster is ZDoom's name for a group of maps that end together. Leaving
+// one shows its `exittext` over its `flat`, and that screen is the only
+// place the engine will print an end-of-episode message - see the M3 note
+// on MAP01. v1 has one map, so it has one cluster.
+
+cluster 1
+{
+	// `lookup,` makes the engine resolve the rest as a LANGUAGE id, which
+	// is how this text ships in English and Russian (D7).
+	exittext = lookup, "SD_END01_TEXT"
+	// The text is drawn over this flat, tiled. SDFLR1 is ours and already
+	// in the PK3 (approved batch 1), so the ending does not borrow a
+	// Freedoom floor to say goodbye on.
+	flat = "SDFLR1"
+	// No music lump is assumed anywhere in this mod yet (G0).
+	music = ""
+}
+
 clearepisodes
 
 episode MAP01
@@ -106,15 +125,50 @@ episode MAP01
 
 map MAP01 lookup "SD_MAP01_NAME"
 {
-	// MVP: the map loops onto itself; there is no exit yet.
-	next = "MAP01"
+	// M3, asked for by `level-designer` 2026-10-13 and closed here.
+	// MAP01 used to say `next = "MAP01"`, which made the exit switch
+	// restart the map in silence: the engine really did finish the level
+	// and really did load the next one, and the next one was this one.
+	// It was the right placeholder for verifying Exit_Normal and the wrong
+	// thing to ship.
+	//
+	// D5 says v1 is ONE map, so the exit ENDS THE GAME. `endtitle` is
+	// ZDoom's named end sequence for "roll the ending, then go back to the
+	// title screen" (gzdoom 4.14.2, FMapInfoParser::CheckEndSequence,
+	// src/intermission/intermission_parse.cpp:865).
+	//
+	// THE WORDS ARE NOT HERE, AND CANNOT BE. The obvious spelling,
+	//     next = EndGame { Text = "$SD_END01_TEXT" Pic = "TITLEPIC" }
+	// does not parse: an endgame block accepts only `pic`, `hscroll`,
+	// `vscroll`, `cast` and `music` (ParseEndGame, same file), and GZDoom
+	// answered with "Unknown property 'Text' found in endgame definition"
+	// - tried in-engine 2026-10-13. In ZDoom the end-of-episode text
+	// belongs to the CLUSTER, not to the map, so it lives in the `cluster 1`
+	// block below and the map only says which cluster it is in.
+	cluster = 1
+	next = endtitle
 	// Explicitly no music: the MVP must not depend on IWAD music lumps.
 	// Verified on GZDoom 4.14.2 (gate G0): an empty string yields silence, no warning.
 	music = ""
 	// SKY1 exists in both doom2.wad and freedoom2.wad. The room has no sky
 	// ceiling, but the engine still wants a valid sky texture per map.
 	sky1 = "SKY1"
-	nointermission
+	// M4: the intermission's target time, in seconds. 210 is
+	// `level-designer`'s figure for a player who knows the route
+	// (docs/levels/MAP01-zarya-7.md). It is a display value only - nothing
+	// in the game behaves differently - so it can move when QA times the
+	// real thing. The stats screen itself is now reached: `nointermission`
+	// was dropped with the loop, because an exit that shows no result is
+	// the silence M3 is about.
+	//
+	// NOT VERIFIED: that the screen prints 3:30. The PAR row appears (the
+	// engine draws label and value only when partime is non-zero -
+	// gzdoom.pk3:zscript/ui/statscreen/statscreen_sp.zs:168,220), but the
+	// value is a counter that animates upward, and in four unattended runs
+	// it was still climbing when the shot was taken (2:47, 5:17, 2:02...).
+	// Reading the settled number needs a human holding the key down; it is
+	// on QA's list and it is cosmetic either way.
+	par = 210
 }
 
 // --- Editor numbers (F4) --------------------------------------------------

@@ -8,8 +8,17 @@
 [enu default]
 
 SD_EP01_NAME  = "Soviet Doom";
-SD_MAP01_NAME = "Test Range";
+// M4, 2026-10-13: the name `level-designer` asked for. It is what the
+// automap and the intermission print, so the map stopped being "Test Range"
+// the moment it stopped being a test range (docs/levels/MAP01-zarya-7.md).
+SD_MAP01_NAME = "Zarya-7 Cosmodrome";
 SD_MAP02_NAME = "Engineering Test Range";
+
+// The end of the one-map campaign (M3). GZDoom draws this over the finale
+// screen when MAP01 is exited; MAPINFO owns when, this owns the words.
+// Deliberately short: the finale text is drawn in the IWAD's SmallFont, one
+// character at a time, and the player is reading it to find out they won.
+SD_END01_TEXT = "The gantry lights go out behind you.\n\nZarya-7 is yours again - a cosmodrome with no rockets left on the pad and no one alive to launch them.\n\nThe invasion did not start here. It only landed here first.\n\nTO BE CONTINUED";
 
 // --- Arsenal (F4) ---------------------------------------------------------
 // Tag      = the weapon's name in the HUD and the weapon wheel.
@@ -111,14 +120,12 @@ SD_SKILL_5 = "Hero of the Soviet Union, posthumously";
 SD_SKILL_5_CONFIRM = "The award is posthumous and the enemy dead do not stay dead.\n\nAre you sure?";
 
 // --- The mod's own menu (language switch) ---------------------------------
-// SD_LANG_CODE is not shown to anyone. It is a PROBE: every language section
-// defines it with its own GZDoom language code, so ZScript can ask
-// StringTable.Localize("$SD_LANG_CODE") which section the engine actually
-// resolved. zscript/sd/language.zs uses it to turn an "auto" language CVar
-// into the explicit code that auto already resolved to, so the menu shows a
-// real value instead of a blank. Add a line to EVERY section you add.
-
-SD_LANG_CODE = "default";
+// The three rows of the language option. "Automatic" is GZDoom's own `auto`:
+// the section the operating system's locale selects, and the value in every
+// config nobody has touched. It is offered rather than silently rewritten
+// because rewriting it needed ZScript, and ZScript may only write a CVar
+// while the engine is handling menu input - see the long note in MENUDEF
+// and docs/engine/adr/004-language-switch-and-difficulty-ladder.md.
 
 SD_OPTMNU_TITLE    = "Soviet Doom";
 SD_OPTMNU_LANGUAGE = "Language";
@@ -126,14 +133,17 @@ SD_OPTMNU_LANGHELP = "Applies immediately. Saved for the next session.";
 // Temporary, remove with debt T9: see docs/engine/MOD-SPEC.md 10.
 SD_OPTMNU_LANGWARN = "Cyrillic is not drawn yet (the font is being made).";
 
+SD_LANGVAL_AUTO = "Automatic (system)";
 SD_LANGVAL_EN = "English";
 SD_LANGVAL_RU = "Russian";
 
 [ru]
 
 SD_EP01_NAME  = "Советский Doom";
-SD_MAP01_NAME = "Полигон";
+SD_MAP01_NAME = "Космодром «Заря-7»";
 SD_MAP02_NAME = "Инженерный полигон";
+
+SD_END01_TEXT = "Огни стартовой башни гаснут у вас за спиной.\n\n«Заря-7» снова наша - космодром, на столе которого не осталось ракет, и некому их запускать.\n\nВторжение началось не здесь. Здесь оно только первым приземлилось.\n\nПРОДОЛЖЕНИЕ СЛЕДУЕТ";
 
 SD_PLAYER_NAME     = "Сержант Виланова";
 
@@ -191,15 +201,14 @@ SD_SKILL_5 = "Герой Советского Союза, посмертно";
 SD_SKILL_5_CONFIRM = "Награда посмертная, а убитый враг здесь не остаётся убитым.\n\nВы уверены?";
 
 // --- Меню мода (переключатель языка) --------------------------------------
-// SD_LANG_CODE - служебная строка, игроку не показывается. См. комментарий
-// в английской секции: каждая секция объявляет собственный код языка.
-
-SD_LANG_CODE = "ru";
+// «Автоматически» - это собственное значение `auto` движка: раздел, который
+// выбирает локаль операционной системы. См. комментарий в английской секции.
 
 SD_OPTMNU_TITLE    = "Советский Doom";
 SD_OPTMNU_LANGUAGE = "Язык";
 SD_OPTMNU_LANGHELP = "Применяется сразу. Сохраняется до следующего запуска.";
 SD_OPTMNU_LANGWARN = "Кириллица пока не отрисовывается (шрифт в работе).";
 
+SD_LANGVAL_AUTO = "Автоматически (система)";
 SD_LANGVAL_EN = "Английский";
 SD_LANGVAL_RU = "Русский";

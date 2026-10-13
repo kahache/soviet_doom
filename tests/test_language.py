@@ -145,16 +145,16 @@ class LanguageLumpTest(unittest.TestCase):
         self.assertRegex(russian, r"[Ѐ-ӿ]",
                          "[ru] contains no Cyrillic at all")
 
-    def test_language_probe_matches_its_section(self):
-        """zscript/sd/language.zs trusts SD_LANG_CODE to name its section."""
+    def test_the_language_probe_is_gone(self):
+        """SD_LANG_CODE existed only so ZScript could rewrite the `language`
+        CVar, and that write aborts the VM outside menu input handling
+        (ADR 004, D-004-4). The id went with the class it served; if it
+        comes back, so has the crash."""
         for code in REQUIRED_SECTIONS:
-            value = self.sections[code].get("SD_LANG_CODE")
-            self.assertIsNotNone(value, f"[{code}] defines no SD_LANG_CODE probe")
-            self.assertEqual(
-                value, f'"{code}"',
-                f"[{code}] SD_LANG_CODE must be the section's own GZDoom code, "
-                "or zscript/sd/language.zs will pin the wrong language",
-            )
+            self.assertNotIn(
+                "SD_LANG_CODE", self.sections[code],
+                f"[{code}] still defines the SD_LANG_CODE probe. Nothing reads "
+                "it; read ADR 004 before reintroducing the mechanism it served.")
 
     def test_english_section_is_ascii(self):
         """Until debt T9 lands, Freedoom's font cannot draw anything else.
@@ -295,7 +295,10 @@ class LanguageMenuTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.menudef = (SRC / "lumps" / "MENUDEF").read_text(encoding="utf-8")
+        # Comments stripped: MENUDEF quotes engine source and the wrong
+        # spellings it warns against, and none of that is the lump's code.
+        raw = (SRC / "lumps" / "MENUDEF").read_text(encoding="utf-8")
+        cls.menudef = "\n".join(strip_comment(line) for line in raw.splitlines())
 
     def test_the_option_drives_the_engine_language_cvar(self):
         self.assertRegex(
@@ -313,14 +316,116 @@ class LanguageMenuTest(unittest.TestCase):
                            self.menudef, re.DOTALL)
         self.assertIsNotNone(values, "no SD_LanguageValues list")
         offered = re.findall(r'"([^"]+)",\s*"\$', values.group(1))
-        self.assertEqual(offered, ["default", "ru"],
-                         "the menu must offer English and Russian explicitly, "
-                         "and must not fall back on the system locale")
+        # "auto" is first because it is the value of every untouched config.
+        # A row whose CVar holds a value absent from its list draws
+        # "Unknown", and the alternative -- ZScript rewriting the CVar --
+        # aborts the VM outside menu input handling. ADR 004, D-004-4.
+        self.assertEqual(offered, ["auto", "default", "ru"],
+                         "the list must name every value `language` can hold "
+                         "here: auto, English and Russian")
 
-    def test_the_menu_is_reachable(self):
-        self.assertRegex(self.menudef, r'AddOptionMenu\s+"OptionsMenu"',
-                         "the mod's menu is never attached to GZDoom's Options menu")
-        self.assertRegex(self.menudef, r'Submenu\s+"\$SD_OPTMNU_TITLE",\s*"SD_OptionsMenu"')
+    def test_the_menu_is_reachable_from_both_options_screens(self):
+        """GZDoom has two options screens and opens the SHORT one by default.
+
+        `m_simpleoptions` is archived and defaults to true, so activating
+        "Options" lands on "OptionsMenuSimple" (gzdoom 4.14.2,
+        src/menu/doommenu.cpp:271). Attaching to "OptionsMenu" alone left
+        the switch unreachable on a fresh install -- bug E2, found in the
+        engine. Both names are required.
+        """
+        for screen in ("OptionsMenu", "OptionsMenuSimple"):
+            self.assertRegex(
+                self.menudef, r'AddOptionMenu\s+"' + screen + r'"',
+                f"the mod's menu is not attached to GZDoom's {screen}; "
+                "a player on the default settings cannot reach it")
+        self.assertEqual(
+            len(re.findall(r'Submenu\s+"\$SD_OPTMNU_TITLE",\s*"SD_OptionsMenu"',
+                           self.menudef)), 2,
+            "each AddOptionMenu block needs its own Submenu line")
+
+    def test_the_mod_owns_no_menu_zscript(self):
+        """No ZScript may write the `language` CVar. ADR 004, D-004-4.
+
+        GZDoom raises DMenu::InMenu only around OnUIEvent, OnInputEvent and
+        MenuEvent (src/common/menu/menu.cpp). A CVar write from Init, Ticker
+        or Drawer aborts the VM with "Attempt to change CVAR 'language'
+        outside of menu code" and drops the player to the console -- both
+        were reproduced in-engine on 2026-10-13. The menu is pure MENUDEF so
+        that there is nothing left that can abort.
+        """
+        self.assertFalse(
+            (SRC / "zscript" / "sd" / "language.zs").exists(),
+            "zscript/sd/language.zs is back. If a menu really needs code, it "
+            "may only touch a CVar from MenuEvent; read ADR 004 first.")
+        offenders = [
+            f"{path.relative_to(PROJECT_ROOT)}: {line.strip()}"
+            for path in sorted((SRC / "zscript").rglob("*.zs"))
+            for line in path.read_text(encoding="utf-8").splitlines()
+            if "CVar." in line and ("SetString" in line or "SetInt" in line
+                                    or "SetFloat" in line or "SetBool" in line)
+        ]
+        self.assertEqual(offenders, [],
+                         "ZScript writes a CVar; see ADR 004 before allowing it:\n  "
+                         + "\n  ".join(offenders))
+
+
+class MainMenuLogoTest(unittest.TestCase):
+    """The menu's M_DOOM must land on the lockup painted into TITLEPIC.
+
+    Bug E1: with no MainMenu of our own the engine used its own
+    `StaticPatch 94, 2, "M_DOOM"`, which sits 34 px right and 2 px below the
+    name block of TITLEPIC, so a "CO" of the latter showed past its left
+    edge. `art-director` records the correct origin in
+    work/art/shell/manifest.json; measured 2026-10-13, overlaying M_DOOM on
+    TITLEPIC at (60,0) gives a mean per-channel difference of 6 against 22+
+    at every neighbouring offset.
+    """
+
+    # From work/art/shell/manifest.json (menudef_x / menudef_y). Changing
+    # this means art moved the lockup: change it there first.
+    LOGO_X, LOGO_Y = 60, 0
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        # Comments only: MENUDEF quotes the engine's own `StaticPatch 94, 2`
+        # to explain why ours differs, and a test that reads comments would
+        # count that as a second logo.
+        raw = (SRC / "lumps" / "MENUDEF").read_text(encoding="utf-8")
+        cls.menudef = "\n".join(strip_comment(line) for line in raw.splitlines())
+
+    def test_the_main_menu_places_the_logo_itself(self):
+        patches = re.findall(r'StaticPatch\s+(-?\d+)\s*,\s*(-?\d+)\s*,\s*"M_DOOM"',
+                             self.menudef)
+        self.assertEqual(
+            len(patches), 1,
+            "expected exactly one M_DOOM StaticPatch. Zero means the engine's "
+            "own 94,2 wins again (bug E1); two means a second logo is being "
+            "drawn next to the first.")
+        self.assertEqual(
+            (int(patches[0][0]), int(patches[0][1])), (self.LOGO_X, self.LOGO_Y),
+            "the menu logo no longer sits on the TITLEPIC lockup")
+
+    def test_the_main_menu_is_redeclared_whole(self):
+        """A redeclared LISTMENU REPLACES the engine's: a missing item is a
+        deleted item. These five are the Doom main menu."""
+        body = re.search(r'LISTMENU\s+"MainMenu"\s*\{(.*?)\n\}',
+                         self.menudef, re.DOTALL)
+        self.assertIsNotNone(body, "no MainMenu block")
+        for patch in ("M_NGAME", "M_OPTION", "M_LOADG", "M_SAVEG", "M_QUITG"):
+            self.assertIn(patch, body.group(1),
+                          f"MainMenu lost {patch}; redeclaring the list menu "
+                          "drops every item not restated")
+
+    def test_the_skill_names_are_not_drawn_in_bigfont(self):
+        """Bug E4: rung 5 is 38 characters and BigFont fits about 26, so
+        "Hero of the Soviet Union, posthumously" ran off the screen. The
+        names are the CEO's; the font is ours."""
+        body = re.search(r'LISTMENU\s+"SkillMenu"\s*\{(.*?)\n\}',
+                         self.menudef, re.DOTALL)
+        self.assertIsNotNone(
+            body, "no SkillMenu block: the engine's default font clips rung 5")
+        self.assertRegex(body.group(1), r'Font\s+"SmallFont"',
+                         "the skill menu must set a font that fits the names")
 
     def test_the_mod_declares_no_cvar_of_its_own(self):
         """Scope limit from the CEO: the player's config gains one key, not two."""

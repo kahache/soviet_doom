@@ -1,12 +1,14 @@
 # MAP01 — Zarya-7 Cosmodrome
 
 Design document. Owner: `level-designer`. Status: **text approved by the CEO;
-v0 (the grey floor plan) is BUILT and walkable — see §14.** v1–v3 still to
-come. Russian mirror: `docs/ru/levels/MAP01-zarya-7.md`.
+v0 (the grey floor plan) BUILT — §14; v1 (textured and signposted) BUILT —
+§15.** v2 (light and detail) and v3 (balance) still to come. Russian mirror:
+`docs/ru/levels/MAP01-zarya-7.md`.
 
 > **Walk it:** `python3 tools/build.py && MAP=MAP01 tools/run.sh`
 > The as-built plan, labelled, is
-> `docs/levels/shots/2026-10-13_0045_F3_map01-v0-plan.png`.
+> `docs/levels/shots/2026-10-13_0045_F3_map01-v0-plan.png`; the v1
+> screenshots are listed in §15.
 
 Inputs this document obeys and does not restate: `docs/PRD.md` (D1–D15),
 `docs/product/LORE.md` (MAP01 = cosmodrome, barracks and hangar, weapon
@@ -233,15 +235,31 @@ numbers):
 - The map gets *brighter* towards the hangar and then *darker* towards the
   exit: the curve of light follows the curve of the fiction.
 
-Texture conventions for the builder:
+Texture conventions for the builder (settled by the v1 build, §15):
 
-- Every door recess is **128 wide × 128 high** so `SDDOOR1` (128×128) tiles
-  exactly once. Where a corridor is 96 high, the recess sector rises locally
-  to 128. D4 is 256 wide = two leaves of one `SDDOOR1` each (see §10).
-- Walls are top-aligned by default; in sectors not 128 high the sidedef
-  `offsety` is set in the v1 pass so the concrete joint lands on the floor.
+- **Everything is pegged to the floor.** Doom aligns a wall texture to the
+  ceiling, so in any room that is not an exact multiple of 128 the cut panel
+  lands on the floor with its grime line floating. `GridMap` therefore sets
+  `dontpegbottom` on every line it emits except a door leaf, which has to
+  ride up with the door. Consequence: the map contains **no `offsetx` and no
+  `offsety` at all** — every alignment in it comes from the 64-grid and from
+  that one rule, which is why there is nothing to re-check when a room moves.
+- Every door **leaf** is exactly 128 high, because `SDDOOR1` is 128×128 and
+  a leaf taller than that tiles into patterned wall. Where the room facing a
+  door is taller, the door gets a **recess**: a short sector in front of it
+  at the same floor and a ceiling 128 above (D3 in the komnata, D4 in the
+  hangar, D5 in the lift room, D6 on the catwalk). D4 is 256 wide = two
+  leaves of one `SDDOOR1` each. A test asserts the 128 everywhere.
+- A sidedef wears the material of the sector **across** the line, so the
+  128-high face under the catwalk and the 64-high flank of the cradle are
+  plate while the wall behind them is concrete, and a lintel is made of the
+  room it leads into.
 - `SDFLR1`'s yellow line is laid in **lanes** (hangar traffic, route to D4,
-  the pointer to S3), never as a floor covering (ART-BIBLE §4).
+  the pointer to S3), never as a floor covering (ART-BIBLE §4). A lane is
+  **128 wide, not 64**: the flat carries its line on columns 2–8 of a 64-wide
+  tile, so 128 gives two parallel lines 64 apart — a marked traffic lane
+  rather than a scratch, legible from the far side of the hangar, and
+  independent of which way `rotationfloor` turns the flat.
 
 ## 7. Secrets
 
@@ -491,7 +509,7 @@ screenshotted into `docs/levels/shots/`.
 | Version | Content | Done when |
 |---|---|---|
 | **v0 — grey** ✅ **BUILT 2026-10-13** (§14) | the complete floor plan: every sector, every door, both switches, the exit, correct heights and stairs. One wall texture and one floor/ceiling pair everywhere (`STARTAN2`/`FLOOR4_8`/`CEIL3_5`), flat light 160, no enemies, no items. | you can walk start → exit; no HOM, no stuck geometry; G3-1, G3-2, G3-6 pass |
-| **v1 — textured** | §6 applied zone by zone, alignment pass (door recesses, `offsety`, lane continuity), `SDPOSTR2` mural placed, D4/D5/D6 as `SDDOOR1`, `SDCONC2` route if A1 is granted. | G3-3 passes; the CEO can judge `SDCONC2` from screenshots |
+| **v1 — textured** ✅ **BUILT 2026-10-13** (§15) | §6 applied zone by zone, alignment pass (door recesses, floor pegging, lane continuity), `SDPOSTR2` mural and `SDPOSTR1` Lenin placed, D4/D5/D6 as `SDDOOR1`, the `SDCONC2` route built and photographed. | G3-3 passes; the CEO can judge `SDCONC2` from screenshots |
 | **v2 — light and detail** | the §6 light table, lamp sectors, the flickering corridor, the booth light that SW-A turns on, parapets, pilasters, steps, drums, floor lamps, the three secrets built and flagged. | the map reads without a compass: a first-time player finds the hangar and D4 without being told |
 | **v3 — balance** | §8 placed with per-skill flags, ammo and health budget, the two waves and the ambush timed, playtests on 2/3/4 with notes. | all of G3-1…G3-8 green; ready for the CEO's G3-9 |
 
@@ -654,3 +672,173 @@ the player toward the fuel bay, and v0 has neither. Two consequences:
 2. For v1 this is the question the map has to answer with texture and light
    alone, and it is now a gate criterion: a player who has never seen the map
    must reach the fuel bay without being told.
+
+## 15. v1 build record (2026-10-13)
+
+Source: `src/maps/MAP01/map.py`, unchanged tooling except for three
+additions to `tools/sdbuild/udmf.py` (below). **54 sectors, 218 linedefs,
+165 vertices, 1 thing.** Light is still flat 160 and there is still nothing
+in the map but the player start: v1 is texture and alignment only.
+
+```sh
+python3 tools/build.py && MAP=MAP01 tools/run.sh      # walk it
+python3 tools/verify.py fast                          # 6 s, no window
+python3 tools/verify.py full                          # + the engine
+```
+
+### What v1 was for
+
+Not "nicer walls". The v0 playtest finding at the end of §14 is now a gate
+criterion: **a player who has never seen the map must reach the fuel bay
+without being told.** Everything below is in service of that, and the one
+screenshot that matters is `…_map01-v1-hangar-to-fuel-mouth.png`.
+
+### The three signs, and what each one actually does
+
+| Sign | Where | What it had to achieve |
+|---|---|---|
+| **Red stripe** `SDCONC2` | both walls of Z3 and Z5, the komnata's east wall either side of D3, the hangar's west wall from the foot of the entry stair to the north-west corner, the lintel over the fuel-bay mouth, and the frame of D4 | one marking the player has been following since the barracks, which does not stop when the barracks do |
+| **Yellow lane** `SDFLR1` | a fork at the bottom step: one branch east to D4, one north-west to the mouth; a third stub inside the fuel bay pointing at S3 | two ways on, both on the floor, both visible before the player has taken a step into the room |
+| **Door recesses** | D3, D4, D5, D6 | a shut door that looks shut. In v0 D4's leaf had to cover 320 units of hangar wall and tiled two and a half times, which from the floor reads as patterned concrete. It now sits 128 high under a lintel. |
+
+### Verdict on each, from walking it
+
+- **The stripe works, and it is the strongest thing in the map.** In the
+  96-high barracks corridor it is a single band at chest height on both
+  walls, and it frames the mural at the end of the run. In the 320-high
+  hangar the same texture tiles two and a half times, so the stripe becomes
+  three bands rather than one. That is not a defect in the texture, it is
+  128 against 320 — and on a hangar wall it reads as industrial safety
+  banding, not as a mistake. **This is `SDCONC2`'s in-map review (A1, and
+  G3-9's second half): the CEO has it in two very different rooms and can
+  decide.** If he wants a single band in the hangar, v2 gives the hangar a
+  128-high wainscot and the stripe goes on that.
+- **The yellow lane works.** Two parallel lines 64 apart read as a marked
+  traffic lane from across the room and they survive the perspective.
+- **The recessed gate works.** D4 is now unmistakably a pair of shut blast
+  doors under a lintel, with the lane running into it. Whatever else the
+  player does, he will not take it for a wall.
+
+### The one thing that did not work, and what was done about it
+
+The catwalk was 1280 units long, starting at x 1280 — and its west end sat
+exactly in the line of sight from the hangar floor to the fuel-bay mouth.
+From anywhere east of about x 1350 the only way on was behind a wall of
+green plate: the v0 fault wearing a different costume. Evidence:
+`docs/levels/shots/2026-10-13_1009_F3_map01-v1-catwalk-screens-the-mouth.png`.
+
+The catwalk now starts at **x 1472**. It gives up 192 units, the sightline
+from the whole hangar floor to the mouth is clear, and the north-west
+corner in front of the fuel bay is wider, which it wanted to be anyway.
+This is geometry, not texture, and therefore outside v1's declared scope;
+it is here because the alternative was shipping a v1 that fails its own
+gate criterion. **Deviation from §3: Z6b is x 1472…2560, not 1280…2560.**
+
+### Deviations from §6, and why
+
+| # | §6 said | Built | Why |
+|---|---|---|---|
+| 1 | hangar walls: `SDSTEL1` dado below 128, `SDCONC1` above | `SDCONC1` throughout; plate only where the geometry already provides a band — the catwalk's 128-high front face and the cradle's 64-high flank | a two-material wall needs either a composite texture (art-director) or a wainscot sector all round the hangar. Both are v2. The dado is noted as a v2 item, not dropped. |
+| 2 | `SDSTAR1` plaque on the komnata's east pier | dorm north wall, beside D2 | the komnata is 192 high and the plaque is 128: on its wall it would tile. The dorm is exactly 128, so the plaque is one clean tile — and it is the first thing the player sees on waking, next to the door he is about to use. |
+| 3 | `SDPOSTR2` mural "on the komnata's north wall, once" | in a 128×128 niche cut into that wall | same arithmetic, same fix: 128 of mural in a 192 room tiles one and a half times. The niche makes it one tile and turns a decoration into a shrine. |
+| 4 | — (`SDPOSTR1` was discarded when §6 was written) | Lenin on the lift room's north wall | `SDPOSTR1` was approved on 2026-10-12 at 128×**256**, and Z10 is the only room in the map exactly 256 units from floor to ceiling. It also lands well: the last Soviet face before the metro. |
+| 5 | secret panels wear a marker so they can be found | secret panels wear `SDSTEL1`, like the wall they are in | v0 marked them with the door texture so the CEO could find them. A secret that advertises itself is a corridor; §7's clue is the seam. |
+| 6 | lanes 64 wide | 128 wide | see §6: one line versus two. |
+| 7 | ceilings: `SDCEIL1` lamp panels on a grid, `SDCEIL2` elsewhere | `SDCEIL1` as the whole ceiling of the four small rooms that should read as lit (washroom, guard post, booth, mural niche); `SDCEIL2` everywhere else | one lamp = one 64×64 sector at +16 light, and light is v2. Carving twelve lamp sectors into the hangar ceiling now would be v2 work with none of the light that makes it mean anything. |
+
+### Texture status this build depends on
+
+All twelve lumps of batch 1 are in `assets/` and in the PK3, so the map
+builds and `check_pk3` resolves every name. Two rows of
+`docs/art/TEXTURE-INDEX.md` (owner: `art-director`) are not yet closed, and
+each is used in exactly one, easily reversible place:
+
+| Lump | Status in the index | Used where | If the CEO says no |
+|---|---|---|---|
+| `SDCONC2` | *pending in-map review* | the whole red route | this build **is** the review. If it is refused, the route falls back to `SDSTEL1` pilasters (§10, A1 fallback) and the map loses its best sign. |
+| `SDSTAR1` | *proposed v5* | one wall: the dorm, beside D2 | one constant in `map.py` changes to `SDCONC1`. Nothing structural depends on it. |
+
+### Three additions to `tools/sdbuild/udmf.py`
+
+Owned by `level-designer` since M2 (§10). All three are tested.
+
+1. **Floor pegging by default.** `GridMap` sets `dontpegbottom` on every
+   line it emits, except where a `LineStyle` opts out — which the door
+   styles do, because a leaf is an upper texture that must ride up with the
+   door's ceiling. Result: panels stack from the ground, the cut hides at
+   the ceiling, and the red stripe is at the same height in every room.
+   **The map contains no texture offsets at all.**
+2. **Per-sector wall material** (`GridMap.set_wall`). A one-sided wall wears
+   its own room's material; a two-sided line wears the material of the
+   sector **across** it, because what it draws is that sector's structure.
+   The first v1 build got this backwards and the transporter cradle came out
+   as a concrete plinth in a steel hangar.
+3. **`LineStyle.texture` used for single wall runs**, not only for doors:
+   that is how the red route is painted onto four walls of otherwise plain
+   concrete without giving those rooms a material of their own.
+
+### Verification actually run
+
+| Check | Result |
+|---|---|
+| `python3 tools/build.py` | OK — `maps/MAP01.wad`, 54 sectors |
+| `python3 tools/check_pk3.py` | **PASS**, 0 errors 0 warnings; every texture name resolved |
+| `python3 -m unittest discover -s tests` | `tests/test_udmf.py` **43 tests, all green** (9 of them new) |
+| GZDoom 4.14.2, eleven viewpoints | 0 lines matching the G3-2 failure patterns |
+
+New tests, all of them about this pass rather than about UDMF in general:
+every texture name is one of the approved set (G3-3, statically); the light
+is still flat (v1 must not start doing v2's job); **no sector was painted
+out of existence** — D5's recess was invisible until the lift room was
+painted before it, and it built and passed `check_pk3` all the way;
+a raised structure shows its own flank to the room; the red route reaches
+every zone of the route including the hangar; the yellow lane forks at the
+bottom step and each branch ends where it promises; every door leaf is
+exactly 128 (this is the recesses, as a number); and each poster fits its
+wall exactly.
+
+### Screenshots
+
+All in `docs/levels/shots/`, GZDoom 4.14.2 over Freedoom 0.13.0, skill 3.
+
+| File | What to look at |
+|---|---|
+| `2026-10-13_1015_F3_map01-v1-dorm-start.png` | the opening frame: concrete, tile, D2, and the plaque |
+| `…-barracks-stripe.png` | the stripe is born, both walls, and points at the mural |
+| `…-komnata-mural.png` | `SDPOSTR2` in its niche, one tile |
+| `…-service-corridor.png` | the stripe carries on; the guard post reads as steel |
+| `…-hangar-arrival-east.png` | from the bottom step, facing the gate |
+| `…-hangar-to-fuel-mouth.png` | **the deliverable.** From the bottom step, facing north-west: red wall, yellow lane, mouth |
+| `…-hangar-mid-to-mouth.png` | the same read from the middle of the room, after the catwalk was shortened |
+| `…-gate-d4.png` | the recessed gate with the lane running into it |
+| `…-fuelbay-switch-placeholder.png` | SW-A wearing the door leaf, 1.5 tiles: request A3 |
+| `…-exit-lenin.png` | `SDPOSTR1`, one tile in a 256-high room |
+| `…-catwalk-down.png` | the hangar from the catwalk |
+| `2026-10-13_1009_F3_map01-v1-catwalk-screens-the-mouth.png` | the fault that moved the catwalk |
+
+### Still needed from other roles
+
+- `art-director`: **A3** is the only one that still costs the player
+  something. The map has three switches and all three wear `SDDOOR1`, which
+  says "walk through me". A switch sweep is in progress; when `SDSWT1` /
+  `SDSWT2` land, SW-A wants a **64 wide × 128 high** niche so the pair tiles
+  once (the fuel bay is 192 high, so on the flat wall it will not), and
+  `mod-engineer` owes the `SWITCHES` / `ANIMDEFS` entry. **A1 is answered**:
+  `SDCONC2` is in `assets/` and in the PK3, and this build is its review.
+  A4 (a second door leaf for D4) can now be judged from `…-gate-d4.png`;
+  the two identical leaves read acceptably. A5 (crate faces) and the hangar
+  dado are v2.
+- `mod-engineer`: **M3** (`Exit_Normal` still loops back to MAP01) and
+  **M5** (record §9's specials and §8's Freedoom placeholders in MOD-SPEC).
+  M4 is done — the map is "Zarya-7 Cosmodrome" on the automap.
+
+### What is left for the gate
+
+G3-1 and G3-3 are green and G3-2 is green for every viewpoint walked. G3-4,
+G3-5, G3-7 and G3-8 are all about things that do not exist yet (enemies,
+items, a full playthrough) and belong to v3. G3-6 is green statically. The
+next pass is **v2: the light table of §6, the lamp sectors, the booth light
+SW-A turns on, the flicker, the parapets and drums, and the three secret
+sectors actually flagged** — and the single most useful thing light will do
+is finish the job this pass started, because a lit fuel-bay mouth at the end
+of a dark red wall is an argument no player misses.

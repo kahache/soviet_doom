@@ -443,19 +443,164 @@ class Map01Test(unittest.TestCase):
             else:
                 self.assertTrue(ld.get("blocking"), f"linedef {i} is a one-sided gap")
 
-    # --- the v0 contract --------------------------------------------------
-    def test_v0_is_one_texture_and_flat_light(self):
+    # --- the v1 contract --------------------------------------------------
+    def test_every_texture_name_is_an_approved_one(self):
+        """Criterion G3-3, statically: no IWAD texture survives v1.
+
+        The two tuples at the foot of `map.py` are the map's whole material
+        list, and every one of them is a lump of the approved "Soviet base"
+        batch in docs/art/TEXTURE-INDEX.md. A typo here is an `Unknown
+        texture` in the engine log, which is criterion G3-2.
+        """
         m = self.map01
-        for s in self.sectors:
-            self.assertEqual(m.FLOOR, s["texturefloor"])
-            self.assertEqual(m.CEILING, s["textureceiling"])
-            self.assertEqual(m.LIGHT, s["lightlevel"])
-        for side in self.sides:
+        for i, s in enumerate(self.sectors):
+            self.assertIn(s["texturefloor"], m.FLAT_TEXTURES, f"sector {i} floor")
+            self.assertIn(s["textureceiling"], m.FLAT_TEXTURES, f"sector {i} ceiling")
+        for i, side in enumerate(self.sides):
             for key in ("texturetop", "texturemiddle", "texturebottom"):
-                self.assertIn(side[key], (m.WALL, m.PRESSABLE, "-"))
+                self.assertIn(side[key], m.WALL_TEXTURES + ("-",), f"sidedef {i} {key}")
+
+    def test_the_light_is_still_flat(self):
+        """v1 is texture only; the light design is v2 and must not creep in."""
+        for s in self.sectors:
+            self.assertEqual(self.map01.LIGHT, s["lightlevel"])
+
+    def test_every_sector_survived_the_painter(self):
+        """A rectangle painted over by a later one leaves a sector with no
+        sides: it builds, it passes check_pk3, and it is invisible in game.
+        D5's recess was exactly that until the lift room was painted first.
+        """
+        used = {side["sector"] for side in self.sides}
+        missing = sorted(set(range(len(self.sectors))) - used)
+        self.assertEqual([], missing, f"sectors painted out of existence: {missing}")
+
+    def _seen_from(self, zone):
+        """Every texture a player standing in `zone` can have drawn at him.
+
+        That is the sidedefs BELONGING to the zone - and, by the painter's
+        rule, a two-sided one of those wears the material of the sector
+        across the line, because what it draws is that sector's structure:
+        the flank of its raised floor, or the lintel under its lower
+        ceiling.
+        """
+        index = self.plan[zone]
+        out = set()
+        for side in self.sides:
+            if side["sector"] != index:
+                continue
+            out.update(v for k, v in side.items()
+                       if k.startswith("texture") and v != "-")
+        return out
+
+    def test_a_raised_structure_shows_its_own_flank_to_the_room(self):
+        """From the hangar floor the cradle and the catwalk must be plate.
+
+        This is the rule that decides what a room is MADE of as opposed to
+        what it is painted: the 128-unit face under the catwalk belongs to
+        the catwalk, not to the concrete wall behind it, and it was grey in
+        the first v1 build because the painter dressed it in the hangar's
+        own material.
+        """
+        m = self.map01
+        for island in ("z6a_cradle", "z6b_catwalk"):
+            target = self.plan[island]
+            faces = [self.sides[ld["sidefront"]]["texturebottom"]
+                     for ld in self.lines
+                     if "sideback" in ld
+                     and self.sides[ld["sidefront"]]["sector"] == self.plan["z6_hangar"]
+                     and self.sides[ld["sideback"]]["sector"] == target]
+            self.assertTrue(faces, f"{island} does not touch the hangar floor")
+            self.assertEqual({m.STEEL}, set(faces), f"{island}'s flank is not plate")
+
+    def test_each_zone_is_made_of_what_the_design_says_it_is(self):
+        m = self.map01
+        self.assertIn(m.STEEL, self._seen_from("z7_fuel_bay"))
+        self.assertIn(m.CONC, self._seen_from("z6_hangar"))
+        self.assertIn(m.STRIPE, self._seen_from("fuel_passage"))
+
+    def test_the_red_route_is_unbroken_from_the_barracks_to_the_fuel_bay(self):
+        """The v0 playtest finding, as a test.
+
+        The CEO could not find the way on from the hangar floor. The map's
+        answer is a single marking the player has been following since the
+        barracks: it must exist in EVERY zone of the route, and above all on
+        the hangar's west wall and the lintel of the fuel-bay mouth, which
+        are the two surfaces that have to carry him across the room nothing
+        else explains.
+        """
+        m = self.map01
+        for zone in ("z3_corridor", "z4_komnata", "z5_service",
+                     "lane_b_cross", "lane_b_spur", "fuel_passage",
+                     # ...and the hangar itself, where the only red is the
+                     # frame around the shut gate and the lintel over the
+                     # mouth that answers it.
+                     "z6_hangar"):
+            self.assertIn(m.STRIPE, self._seen_from(zone),
+                          f"the red route does not reach {zone}")
+
+    def test_the_yellow_lane_forks_at_the_foot_of_the_entry_stair(self):
+        """Two ways on out of the hangar, both marked on the floor.
+
+        Lane A runs east to the gate, lane B north-west to the fuel bay, and
+        both touch the bottom step, so the fork is under the player's feet
+        the moment he arrives instead of being something he has to find.
+        """
+        m = self.map01
+        bottom_step = self.plan["step_down_3"]
+        for lane in ("lane_a_spur", "lane_b_cross"):
+            index = self.plan[lane]
+            self.assertEqual(m.LANE, self.sectors[index]["texturefloor"])
+            self.assertIn(bottom_step, self.neighbours[index],
+                          f"{lane} does not start at the bottom step")
+        # ...and each lane ends where it promises to.
+        self.assertIn(self.plan["d4_recess"], self.neighbours[self.plan["lane_a_cross"]])
+        self.assertIn(self.plan["fuel_passage"], self.neighbours[self.plan["lane_b_spur"]])
+
+    def test_every_door_leaf_is_exactly_one_tile_of_the_door_texture(self):
+        """`SDDOOR1` is 128x128 and tiles; a leaf taller than 128 reads as
+        patterned wall, which is what sent the CEO for IDCLIP in v0. So no
+        room that faces a door may be more than 128 above the door's floor -
+        that is what every recess sector in the map is for.
+        """
+        m = self.map01
+        for ld in self.lines:
+            faces = [self.sides[ld["sidefront"]]]
+            if "sideback" in ld:
+                faces.append(self.sides[ld["sideback"]])
+            if not any(f["texturetop"] == m.DOOR for f in faces):
+                continue
+            leaf = self.sides[ld["sidefront"]]["sector"]
+            back = self.sides[ld["sideback"]]["sector"]
+            door_floor = min(self.sectors[leaf]["heightfloor"],
+                             self.sectors[back]["heightfloor"])
+            for side in (leaf, back):
+                height = self.sectors[side]["heightceiling"] - door_floor
+                self.assertLessEqual(height, m.DOOR_LEAF_HEIGHT,
+                                     f"sector {side} gives the leaf {height} units to fill")
+
+    def test_the_pictures_fit_their_walls_exactly(self):
+        """Each poster appears once, whole, with no offset. A 128x256 Lenin
+        needs a 256-high room and a 128-long line; anything else crops him.
+        """
+        m = self.map01
+        wanted = {m.PLAQUE: (128, 128), m.MURAL: (128, 128), m.LENIN: (128, 256)}
+        verts = self.blocks["vertex"]
+        found = {}
+        for ld in self.lines:
+            side = self.sides[ld["sidefront"]]
+            if side["texturemiddle"] not in wanted:
+                continue
+            a, b = verts[ld["v1"]], verts[ld["v2"]]
+            length = abs(a["x"] - b["x"]) + abs(a["y"] - b["y"])
+            sector = self.sectors[side["sector"]]
+            height = sector["heightceiling"] - sector["heightfloor"]
+            found[side["texturemiddle"]] = (length, height)
+            self.assertTrue(ld.get("dontpegbottom"),
+                            "a poster must be pegged to the floor or it drifts")
+        self.assertEqual(wanted, found)
 
     def test_the_marker_texture_is_only_on_pressable_surfaces(self):
-        """`SDDOOR1` is the v0 exception; it must never leak onto a wall.
+        """`SDDOOR1` must never leak onto a wall.
 
         Every sidedef wearing it belongs either to a line with a use-special
         (a switch, a manual door, a secret panel) or to one of the two leaves
@@ -486,7 +631,8 @@ class Map01Test(unittest.TestCase):
 
     def test_the_whole_plan_is_there(self):
         # Every room, stair, door and switch of the design's section 3 table.
-        self.assertEqual(44, len(self.sectors))
+        self.assertEqual(54, len(self.sectors),
+                         "44 of v0 + 4 door recesses, 5 lane sectors and the mural niche")
         self.assertEqual(9, len(self.doors), "6 doors + 3 secret panels")
         specials = defaultdict(int)
         for ld in self.lines:
@@ -555,9 +701,17 @@ class Map01Test(unittest.TestCase):
         # the design's rule is that the locked thing is always seen first.
         self.assertLess(len(before_switches), len(after_sw_a))
         self.assertLess(len(after_sw_a), len(after_sw_b))
-        # D4 and the airlock arrive with SW-A; D5 and the lift with SW-B.
-        self.assertEqual(2, len(after_sw_a - before_switches))
-        self.assertEqual(2, len(after_sw_b - after_sw_a))
+        # D4 and the airlock arrive with SW-A; D5, its recess and the lift
+        # with SW-B. Both recesses on the hangar side are open ground and
+        # are therefore already in `before_switches`: the gate is SEEN long
+        # before it is opened, which is the design's rule for every lock.
+        self.assertEqual({self.plan["d4"], self.plan["z8_airlock"]},
+                         after_sw_a - before_switches)
+        self.assertEqual({self.plan["d5"], self.plan["d5_recess"],
+                          self.plan["z10_exit"]},
+                         after_sw_b - after_sw_a)
+        self.assertIn(self.plan["d4_recess"], before_switches,
+                      "the shut gate must be walked up to before SW-A is found")
 
     def test_the_exit_is_reachable_and_in_the_lift_room(self):
         reachable, _ = self._reachable(set(self.doors))
