@@ -3,6 +3,7 @@
 
     python3 tools/audio/gen_music.py                 # -> work/audio/*.mid
     python3 tools/audio/gen_music.py --only title
+    python3 tools/audio/gen_music.py --only map01e     # the D43 enriched draft
     python3 tools/audio/gen_music.py --title-tempo 72 --map01-tempo 96
     python3 tools/audio/gen_music.py --list           # what exists and how long
 
@@ -646,6 +647,286 @@ def build_map01(tempo_bpm: float) -> tuple[list[Track], float]:
 
 
 # =========================================================================
+# 4b. D_SDM01E -- Zarya-7 enriched (D43 draft)
+# =========================================================================
+# The CEO found the first two pieces "un poco simples" and D43 accepted the
+# fix SOUNDTRACK.md 8.3 proposed: two more instrumental layers and a
+# non-repeating fourth section, keeping the zero-rights position and the
+# loop. build_map01() above is FROZEN: it is what assets/music/D_SDM01.mid
+# was approved as, and tests/test_music.py regenerates that file from it
+# byte for byte. This builder is the candidate that replaces it if the CEO
+# approves it by ear; until then it is written as D_SDM01E, a draft name,
+# and nothing in assets/ changes.
+#
+# Form, 72 bars (2:40 at 108 BPM):
+#   A  pulse    1-16   as before, plus CELLOS from bar 9: a descending
+#                       tetrachord D-C-Bb-A under the ostinato
+#   B  dread   17-32   as before, plus a cello pedal and a HORN line that
+#                       wobbles by semitones against the chromatic crawl
+#   C  alarm   33-48   as before, plus horns climbing in half-bar steps and
+#                       cellos pressing D against its Neapolitan Eb
+#   D  lament  49-64   NEW and through-composed: no ostinato, no bar
+#                       repeats another. Horns carry a 16-bar melody, cellos
+#                       a counter-line, the bass walks the roots, the pad
+#                       follows the harmony bar by bar
+#   E  release 65-72   the old release, shortened: four bars of quiet
+#                       ostinato and the far-off signals, then pad alone, so
+#                       the loop still restarts from near-silence
+GM_CELLO = 42
+
+MAP01E_LUMP = "D_SDM01E"           # draft name; becomes D_SDM01 on approval
+MAP01E_RELEASE_BARS = 8
+MAP01E_QUIET_OSTINATO_BARS = 4     # of the release
+MAP01E_VEL_HORN = 78
+MAP01E_VEL_CELLO = 66
+MAP01E_MIX_EXTRA = {
+    "horns": (88, 40),
+    "cellos": (84, 30),
+}
+
+# Section A, bars 9-16: cellos, two bars a note, the descending tetrachord.
+MAP01E_A_CELLO = [("D3", 8.0), ("C3", 8.0), ("Bb2", 8.0), ("A2", 8.0)]
+# Section B, bars 25-32: horns against the crawl (F#3, G3, Ab3, A3 below).
+MAP01E_B_HORN = [("A4", 8.0), ("Bb4", 8.0), ("Ab4", 8.0), ("A4", 8.0)]
+# Section B: the cello pedal, re-struck every two bars.
+MAP01E_B_CELLO_PEDAL = "D2"
+# Section C: horns climb in half-bar steps across the four 4-bar groups.
+MAP01E_C_HORN = [("D4", 8.0), ("F4", 8.0), ("Eb4", 8.0), ("G4", 8.0),
+                 ("F4", 8.0), ("A4", 8.0), ("Bb4", 8.0), ("A4", 8.0)]
+MAP01E_C_CELLO = [("D3", 8.0), ("Eb3", 8.0)] * 4
+
+# Section D, the lament: one chord per bar, (pad voicing, bass root, fifth).
+MAP01E_LAMENT_HARMONY = [
+    (("D3", "F3", "A3"), "D2", "A1"),      # 1  i
+    (("D3", "F3", "Bb3"), "Bb1", "F2"),    # 2  VI
+    (("D3", "G3", "Bb3"), "G1", "D2"),     # 3  iv
+    (("C#3", "E3", "A3"), "A1", "E2"),     # 4  V
+    (("D3", "F3", "A3"), "F1", "C2"),      # 5  i6
+    (("Eb3", "G3", "Bb3"), "Eb2", "Bb1"),  # 6  bII, the piece's flat second
+    (("D3", "G3", "Bb3"), "Bb1", "D2"),    # 7  iv6
+    (("C#3", "G3", "A3"), "A1", "E2"),     # 8  V7
+    (("D3", "F3", "Bb3"), "Bb1", "F2"),    # 9  VI, the climb begins
+    (("C3", "F3", "A3"), "A1", "C2"),      # 10 III6
+    (("D3", "G3", "Bb3"), "G1", "D2"),     # 11 iv
+    (("Eb3", "G3", "Bb3"), "Eb2", "G1"),   # 12 bII
+    (("D3", "F3", "A3"), "A1", "D2"),      # 13 i64, the high point
+    (("D3", "F3", "Bb3"), "Bb1", "D2"),    # 14 VI
+    (("C#3", "E3", "A3"), "A1", "A2"),     # 15 V
+    (("D3", "A3", "D4"), "D2", "A1"),      # 16 i, open fifth
+]
+# The horn melody: every bar distinct (tests/test_music.py checks it).
+MAP01E_LAMENT_HORN = [
+    [("A4", 3.0), ("F4", 1.0)],
+    [("D5", 2.0), ("C5", 1.0), ("Bb4", 1.0)],
+    [("A4", 1.5), ("G4", 0.5), ("Bb4", 2.0)],
+    [("E4", 1.0), ("A4", 1.0), ("C#5", 2.0)],
+    [("D5", 3.0), ("A4", 1.0)],
+    [("Bb4", 2.0), ("G4", 1.0), ("Eb5", 1.0)],
+    [("D5", 1.5), ("C5", 0.5), ("Bb4", 1.0), ("G4", 1.0)],
+    [("A4", 2.0), ("G4", 1.0), ("C#5", 1.0)],
+    [("D5", 1.0), ("F5", 2.0), ("D5", 1.0)],
+    [("C5", 3.0), ("A4", 1.0)],
+    [("Bb4", 1.5), ("A4", 0.5), ("G4", 2.0)],
+    [("G4", 1.0), ("Bb4", 1.0), ("Eb5", 2.0)],
+    [("F5", 2.0), ("E5", 1.0), ("D5", 1.0)],
+    [("D5", 1.0), ("C5", 1.0), ("Bb4", 2.0)],
+    [("A4", 2.0), ("C#5", 2.0)],
+    [("D5", 4.0)],
+]
+MAP01E_LAMENT_CELLO = [
+    [("D3", 2.0), ("F3", 2.0)],
+    [("F3", 2.0), ("D3", 2.0)],
+    [("G3", 2.0), ("Bb3", 2.0)],
+    [("A3", 2.0), ("C#3", 2.0)],
+    [("F3", 4.0)],
+    [("G3", 2.0), ("Bb3", 2.0)],
+    [("Bb3", 2.0), ("A3", 1.0), ("G3", 1.0)],
+    [("E3", 2.0), ("G3", 2.0)],
+    [("F3", 4.0)],
+    [("A3", 2.0), ("C4", 2.0)],
+    [("D4", 2.0), ("Bb3", 2.0)],
+    [("Eb3", 2.0), ("G3", 2.0)],
+    [("A3", 2.0), ("F3", 2.0)],
+    [("Bb2", 2.0), ("D3", 2.0)],
+    [("E3", 2.0), ("C#3", 2.0)],
+    [("D3", 4.0)],
+]
+MAP01E_LAMENT_CLIMAX_BARS = range(8, 13)   # 0-based bars of D: strings + bass drum
+# The release's pad: Bb colour, then the open tonic fifth the loop restarts on.
+MAP01E_RELEASE_PADS = [("D2", "Bb2", "D3"), ("D2", "A2", "D3")]
+
+
+def _line(track: Track, channel: int, notes, start: float, velocity: int,
+          articulation: float = LEGATO) -> float:
+    """Play (pitch, beats) pairs from `start`; returns the beat after the last."""
+    position = start
+    for name, length in notes:
+        track.note(channel, pitch(name), position, length * articulation, velocity)
+        position += length
+    return position
+
+
+def build_map01_enriched(tempo_bpm: float) -> tuple[list[Track], float]:
+    """D_SDM01 with horns and cellos and a through-composed lament. Original."""
+    bassline = Track("bass - synth ostinato")
+    pad = Track("pad")
+    strings = Track("tremolo strings")
+    brass = Track("brass stabs")
+    lead = Track("signal")
+    horns = Track("horns")
+    cellos = Track("cellos")
+    drums = Track("percussion")
+    tracks = [bassline, pad, strings, brass, lead, horns, cellos, drums]
+
+    ch = {"bass": 0, "pad": 1, "strings": 2, "brass": 3, "lead": 4, "horns": 5, "cellos": 6}
+    programs = {
+        "bass": GM_SYNTH_BASS_2,
+        "pad": GM_PAD_HALO,
+        "strings": GM_TREMOLO_STRINGS,
+        "brass": GM_TROMBONE,
+        "lead": GM_FX_CRYSTAL,
+        "horns": GM_FRENCH_HORN,
+        "cellos": GM_CELLO,
+    }
+    mix = dict(MAP01_MIX, **MAP01E_MIX_EXTRA)
+
+    bassline.track_name("Soviet Doom - D_SDM01 enriched (D43 draft)")
+    bassline.tempo(0, tempo_bpm)
+    bassline.time_signature(0, 4, 4)
+    for track, key in zip(tracks, ch):
+        volume, pan = mix[key]
+        track.track_name()
+        track.program(0, ch[key], programs[key])
+        track.control(0, ch[key], CC_VOLUME, volume)
+        track.control(0, ch[key], CC_PAN, pan)
+        track.control(0, ch[key], CC_REVERB, 72)
+    drums.track_name()
+    drums.control(0, DRUM_CHANNEL, CC_VOLUME, MAP01_MIX["drums"][0])
+
+    sb = MAP01_SECTION_BARS
+    a0, b0, c0, d0, e0 = 0, sb, 2 * sb, 3 * sb, 4 * sb
+    total_bars = e0 + MAP01E_RELEASE_BARS
+
+    def beat(bar_index: float) -> float:
+        return bar_index * BEATS_PER_BAR
+
+    # -- Ostinato: A, B, C, and the first bars of the release --------------
+    for bar_index in list(range(a0, d0)) + list(range(e0, e0 + MAP01E_QUIET_OSTINATO_BARS)):
+        figure = (MAP01_OSTINATO_B if (bar_index + 1) % MAP01_OSTINATO_VARIANT_EVERY == 0
+                  else MAP01_OSTINATO_A)
+        quiet = bar_index < b0 or bar_index >= e0
+        velocity = MAP01_VEL_BASS - (18 if quiet else 0)
+        position = 0.0
+        for name, length in figure:
+            if name is not None:
+                bassline.note(ch["bass"], pitch(name), beat(bar_index) + position,
+                              length * MARCATO, velocity)
+            position += length
+
+    # -- Percussion ---------------------------------------------------------
+    for bar_index in range(total_bars):
+        base = beat(bar_index)
+        if bar_index >= e0:                                  # release
+            if bar_index < e0 + MAP01E_QUIET_OSTINATO_BARS:
+                drums.hit(DRUM_LOW_FLOOR_TOM, base, MAP01_VEL_DRUM_GHOST)
+            continue
+        if bar_index >= d0:                                  # lament
+            in_d = bar_index - d0
+            drums.hit(DRUM_LOW_FLOOR_TOM, base, MAP01_VEL_DRUM_GHOST + (16 if in_d % 4 == 0 else 0))
+            if in_d in MAP01E_LAMENT_CLIMAX_BARS:
+                drums.hit(DRUM_BASS, base, MAP01_VEL_DRUM_PULSE)
+            if in_d in (0, MAP01E_LAMENT_CLIMAX_BARS.start):
+                drums.hit(DRUM_CRASH, base, MAP01_VEL_DRUM_PULSE)
+            continue
+        section = bar_index // sb
+        in_section = bar_index % sb
+        drums.hit(DRUM_LOW_FLOOR_TOM, base + 0.0, MAP01_VEL_DRUM_ACCENT)
+        drums.hit(DRUM_LOW_TOM, base + 2.0, MAP01_VEL_DRUM_PULSE)
+        if section >= 1:
+            drums.hit(DRUM_BASS, base + 0.0, MAP01_VEL_DRUM_ACCENT)
+            drums.hit(DRUM_BASS, base + 2.5, MAP01_VEL_DRUM_PULSE)
+        if section >= 2:
+            drums.hit(DRUM_SNARE, base + 1.0, MAP01_VEL_DRUM_PULSE)
+            drums.hit(DRUM_SNARE, base + 3.0, MAP01_VEL_DRUM_ACCENT)
+            drums.hit(DRUM_RIDE, base + 3.5, MAP01_VEL_DRUM_GHOST)
+        if in_section % 8 == 7:
+            drums.hit(DRUM_HIGH_FLOOR_TOM, base + 3.0, MAP01_VEL_DRUM_PULSE)
+            drums.hit(DRUM_HIGH_FLOOR_TOM, base + 3.5, MAP01_VEL_DRUM_PULSE)
+        if in_section == 0 and section > 0:
+            drums.hit(DRUM_CRASH, base, MAP01_VEL_DRUM_ACCENT)
+
+    # -- Strings: the crawl in B and C, as before; a high tremolo at the lament's climax
+    crawl_length = MAP01_CRAWL_BARS_PER_STEP * BEATS_PER_BAR * LEGATO
+    for step, name in enumerate(MAP01_CRAWL):
+        bar_index = b0 + step * MAP01_CRAWL_BARS_PER_STEP
+        strings.note(ch["strings"], pitch(name), beat(bar_index), crawl_length, MAP01_VEL_STRINGS)
+        strings.note(ch["strings"], pitch(name) + 7, beat(bar_index), crawl_length,
+                     MAP01_VEL_STRINGS - 12)
+    for step, name in enumerate(MAP01_CRAWL[::-1]):
+        bar_index = c0 + step * MAP01_CRAWL_BARS_PER_STEP
+        strings.note(ch["strings"], pitch(name) + 12, beat(bar_index), crawl_length,
+                     MAP01_VEL_STRINGS - 16)
+    for in_d in MAP01E_LAMENT_CLIMAX_BARS:
+        voicing, _root, _fifth = MAP01E_LAMENT_HARMONY[in_d]
+        for name in voicing[1:]:
+            strings.note(ch["strings"], pitch(name) + 12, beat(d0 + in_d),
+                         BEATS_PER_BAR * LEGATO, MAP01_VEL_STRINGS - 10)
+
+    # -- Brass stabs: section C, as before ------------------------------------
+    for group in range(sb // 4):
+        group_base = beat(c0 + group * 4)
+        for index, offset in enumerate(MAP01_STAB_BEATS):
+            chord_notes = MAP01_STAB_CHORD_N if index % 2 else MAP01_STAB_CHORD_I
+            brass.chord(ch["brass"], chord_notes, group_base + offset,
+                        MAP01_STAB_LENGTH, MAP01_VEL_BRASS)
+            brass.note(ch["brass"], pitch(chord_notes[0]) - 12, group_base + offset,
+                       MAP01_STAB_LENGTH, MAP01_VEL_BRASS - 10)
+
+    # -- Pad: B and C cycle as before; the lament follows its harmony; the
+    #    release holds two chords and ends on the open tonic fifth.
+    for bar_index in range(b0, d0, MAP01_PAD_BARS_PER_CHORD):
+        chord_notes = MAP01_PAD_CHORDS[(bar_index // MAP01_PAD_BARS_PER_CHORD) % len(MAP01_PAD_CHORDS)]
+        pad.chord(ch["pad"], chord_notes, beat(bar_index),
+                  MAP01_PAD_BARS_PER_CHORD * BEATS_PER_BAR * LEGATO, MAP01_VEL_PAD)
+    for in_d, (voicing, _root, _fifth) in enumerate(MAP01E_LAMENT_HARMONY):
+        pad.chord(ch["pad"], voicing, beat(d0 + in_d), BEATS_PER_BAR * LEGATO, MAP01_VEL_PAD)
+    half = MAP01E_RELEASE_BARS // len(MAP01E_RELEASE_PADS)
+    for index, chord_notes in enumerate(MAP01E_RELEASE_PADS):
+        pad.chord(ch["pad"], chord_notes, beat(e0 + index * half),
+                  half * BEATS_PER_BAR * LEGATO, MAP01_VEL_PAD)
+
+    # -- The lament's bass: roots on 1, fifths on 3, a new pair every bar ----
+    for in_d, (_voicing, root, fifth) in enumerate(MAP01E_LAMENT_HARMONY):
+        base = beat(d0 + in_d)
+        bassline.note(ch["bass"], pitch(root), base, 2.0 * LEGATO, MAP01_VEL_BASS - 22)
+        bassline.note(ch["bass"], pitch(fifth), base + 2.0, 2.0 * LEGATO, MAP01_VEL_BASS - 30)
+
+    # -- Horns ----------------------------------------------------------------
+    _line(horns, ch["horns"], MAP01E_B_HORN, beat(b0 + 8), MAP01E_VEL_HORN - 14)
+    _line(horns, ch["horns"], MAP01E_C_HORN, beat(c0), MAP01E_VEL_HORN - 6)
+    for in_d, bar_notes in enumerate(MAP01E_LAMENT_HORN):
+        swell = 10 if in_d in MAP01E_LAMENT_CLIMAX_BARS else 0
+        _line(horns, ch["horns"], bar_notes, beat(d0 + in_d), MAP01E_VEL_HORN + swell)
+
+    # -- Cellos ---------------------------------------------------------------
+    _line(cellos, ch["cellos"], MAP01E_A_CELLO, beat(a0 + 8), MAP01E_VEL_CELLO - 10)
+    for bar_index in range(b0, c0, 2):
+        cellos.note(ch["cellos"], pitch(MAP01E_B_CELLO_PEDAL), beat(bar_index),
+                    2 * BEATS_PER_BAR * LEGATO, MAP01E_VEL_CELLO - 14)
+    _line(cellos, ch["cellos"], MAP01E_C_CELLO, beat(c0), MAP01E_VEL_CELLO)
+    for in_d, bar_notes in enumerate(MAP01E_LAMENT_CELLO):
+        _line(cellos, ch["cellos"], bar_notes, beat(d0 + in_d), MAP01E_VEL_CELLO)
+
+    # -- The release: the far-off signals, as before --------------------------
+    position = beat(e0) + 2.0
+    for name, length in MAP01_LEAD_NOTES:
+        lead.note(ch["lead"], pitch(name), position, length * LEGATO, MAP01_VEL_LEAD)
+        position += length + 2.0
+
+    return tracks, beat(total_bars)
+
+
+# =========================================================================
 # 5. Catalogue and command line
 # =========================================================================
 
@@ -661,7 +942,11 @@ PIECES = {
     "title": Piece("D_SDTITL", build_title, TITLE_TEMPO_BPM,
                    "title screen (MAPINFO GameInfo TitleMusic)"),
     "map01": Piece("D_SDM01", build_map01, MAP01_TEMPO_BPM,
-                   "MAP01 Zarya-7 cosmodrome (MAPINFO map MAP01 music)"),
+                   "MAP01 Zarya-7 cosmodrome (MAPINFO map MAP01 music); "
+                   "installed as assets/music/D_SDM01.mid (D43) -- FROZEN"),
+    "map01e": Piece(MAP01E_LUMP, build_map01_enriched, MAP01_TEMPO_BPM,
+                    "D_SDM01 enriched: horns, cellos, a through-composed lament "
+                    "(D43 draft; replaces D_SDM01 only on the CEO's approval)"),
 }
 
 MAX_LUMP_NAME = 8              # WAD directory limit; check_pk3.py enforces it too
@@ -695,7 +980,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--only", choices=sorted(PIECES), action="append",
                         help="generate just this piece (repeatable)")
     parser.add_argument("--title-tempo", type=float, help="override D_SDTITL tempo, BPM")
-    parser.add_argument("--map01-tempo", type=float, help="override D_SDM01 tempo, BPM")
+    parser.add_argument("--map01-tempo", type=float,
+                        help="override D_SDM01 (and D_SDM01E) tempo, BPM")
     parser.add_argument("--list", action="store_true", help="print the catalogue and exit")
     parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args(argv)
@@ -705,7 +991,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{key:<6} {piece.lump:<9} {piece.default_tempo:g} BPM  {piece.where}")
         return 0
 
-    tempos = {"title": args.title_tempo, "map01": args.map01_tempo}
+    tempos = {"title": args.title_tempo, "map01": args.map01_tempo,
+              "map01e": args.map01_tempo}
     for key in (args.only or sorted(PIECES)):
         generate(key, args.out, tempos.get(key), args.quiet)
     return 0
