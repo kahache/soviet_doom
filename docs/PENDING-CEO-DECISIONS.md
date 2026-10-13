@@ -23,22 +23,8 @@ Specific doubts from `mod-engineer`:
 - PPSh pickups give 35 rounds (half a drum) instead of Doom's 20.
 - Does MAP02 ship in v1, or stay engineering tooling?
 
-## 2. Title screen — pick a treatment (5 minutes)
 
-`docs/art/previews/2026-10-12_2303_F2_shell-batch1.html` — three complete
-treatments (TITLEPIC, INTERPIC, menu logo), each shown at 1×, 2× and in the
-4:3 the engine actually displays.
-
-- **A Plakat** — propaganda poster, rocket and rays, «СОВЕТСКИЙ DOOM».
-- **B Zarya-7** — the place, not the poster: flat-banded sunset, cosmodrome
-  silhouette, rocket on the pad. **Recommended, with A's name block.**
-- **C Rodchenko** — typography only, red diagonal on cream, a huge 1977.
-
-Also: the name on screen — hybrid «СОВЕТСКИЙ DOOM», Latin-dominant bilingual,
-or Cyrillic-first «СОВЕТСКИЙ ДУМ». Name blocks are interchangeable with any
-background.
-
-## 3. MAP01 design — approve so geometry can start
+## 2. MAP01 design — approve so geometry can start
 
 `docs/levels/MAP01-zarya-7.md`. Read the synopsis, the plan and the six
 questions at the end. The PM approves it as written. Open points:
@@ -48,7 +34,7 @@ questions at the end. The PM approves it as written. Open points:
   placeholder now, commission ours in batch 2 (PM recommendation).
 - Night sky strip over the hangar in v2, yes or no.
 
-## 4. Bestiary — seven questions (`docs/engine/BESTIARY.md` §14)
+## 3. Bestiary — seven questions (`docs/engine/BESTIARY.md` §14)
 
 Cost warning worth reading first: F5 is **~356 sprite images and 52 sound
 lumps**, more than the whole of F2. The questions that change the most:
@@ -62,7 +48,7 @@ lumps**, more than the whole of F2. The questions that change the most:
 - Do the two factions keep Doom's infighting. Recommended yes: the lore calls
   it an alliance of convenience.
 
-## 5. Music — three questions (`docs/sound/MUSIC-RIGHTS.md`)
+## 4. Music — three questions (`docs/sound/MUSIC-RIGHTS.md`)
 
 - The Soviet anthem: our own instrumental sequence accepting a residual US
   risk, or Glinka's Patriotic Song at zero risk.
@@ -72,7 +58,7 @@ lumps**, more than the whole of F2. The questions that change the most:
   the period**, with historical pieces kept for title, intermission and
   diegetic radio. Cheapest, safest, and probably the best sounding.
 
-## 6. Slogan on the Lenin poster
+## 5. Slogan on the Lenin poster
 
 It ships with «ЛЕНИН ЖИВ» ("Lenin lives"). Mayakovsky's full line
 «Ленин жил, Ленин жив, Ленин будет жить» also fits in three lines.

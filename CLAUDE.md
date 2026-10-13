@@ -24,53 +24,31 @@ repo documentation is English with a Russian mirror under `docs/ru/` (D7).
 > | Gate reviews and playtests | `docs/qa/` |
 > | Russian mirror of all of the above | `docs/ru/` |
 
-## Status (2026-10-09)
+## Status (2026-10-13)
 
-**F0 — CLOSED (gate G0 PASS).** Pipeline verified end to end:
-`tools/build.py` → `dist/sovietdoom.pk3` (empty UDMF MAP01 + MAPINFO +
-LANGUAGE en/ru + ZScript EventHandler); `tools/run.sh` launches it on GZDoom
-4.14.2 over Freedoom 0.13.0 (`iwads/freedoom2.wad`, gitignored). Evidence in
-`docs/qa/GATE-REVIEWS.md`. Suite: **build 11**. Similar-mods research: no
-direct competitor (`docs/product/2026-10-09_0017_F0_pm-similar-mods.md`).
+**F0, F1, F2 — CLOSED.** Gates G0, G1 and G2 all PASS with evidence in
+`docs/qa/GATE-REVIEWS.md`. Twelve textures approved and shipping, including
+`SDSTAR1` (emblem, 128×128) and `SDPOSTR1` (Lenin, 128×256, posterised from a
+public-domain 1920 photograph). Title screen and intermission ship (D18). The
+Cyrillic alphabet is installed, 214 glyphs in two sizes (D24), which is what
+makes D7 and D21 possible inside the game at all.
 
-**F1 — CLOSED (gate G1 PASS 2026-10-09).** D1–D15 ratified: name Soviet
-Doom, Freedoom base, GZDoom 4.14.2, texture sources, one-map v1, PM commits,
-docs EN+RU, 1977, two allied factions (Fourth Reich, Liberty Legion),
-Sergeant Ramon Vilanova, serious tone, symbols on enemies, lore v1, licence
-GPL-3.0 code + CC BY-NC-SA 4.0 assets. Art tooling ready (`.venv/`).
+**F3 — MAP01 Zarya-7.** v0 grey box is built and walkable end to end: 44
+sectors, 2-3 minutes direct. The CEO walked it and could not get past the
+hangar gate, which by design is opened by a switch in the fuel bay; in a grey
+box with no light and no red stripe that reads as a wall. Recorded as a gate
+criterion for v1, which is being textured now.
 
-**F2 — CLOSED (gate G2 PASS 2026-10-12). 9 textures approved.** CEO
-verdict 2026-10-12: palette and fonts ratified; `SDCONC1`, `SDSTEL1`,
-`SDDOOR1`, `SDFLR1-3`, `SDCEIL1-2` approved and moved to `assets/`;
-`SDCONC2` pending in-map review; `SDPOSTR2` approved, text confirmed as
-"Glory to Soviet cosmonautics"; `SDPOSTR1` discarded, Lenin becomes a
-separate commission. `SDSTAR1` is **v5 (variant D1)**: after four wrong
-attempts the emblem was rebuilt against the Unicode ☭ glyph as a measured
-reference, the head lowered to mid-height, the loose sickle spike removed,
-and the texture widened to **128×128**; chosen by the CEO from a
-drawing-only variant sheet. Preview
-`docs/art/previews/2026-10-12_2229_F2_batch1-soviet-base.html` (EN/RU).
-Suites: **build 25 · art 14**. **Gate G2 signed PASS 2026-10-12** (`docs/qa/GATE-REVIEWS.md`): 9 textures approved, all with origin and licence, palette ratified.
+**F4 — arsenal.** Seven period weapons in ZScript, all firing, with Freedoom
+placeholders for sprites and sounds. Test range on MAP02.
 
-Method note: for visual iteration, generate the drawing alone and judge it in
-the main session before touching the texture — the agent reading back its own
-images in a growing context is what made the emblem expensive.
+**Tooling.** `tools/verify.py` with `fast`, `full` and `auto` tiers: fast runs
+in six seconds and opens no window. `tools/check_pk3.py` validates the package
+without the engine; `tools/smoke.py` runs it with the engine. CI on every push.
+Suite: **364 tests**, branch coverage of `tools/` **58%**
+(`docs/qa/COVERAGE.md`).
 
-**F3/F4 — in progress in parallel:** MAP01 Zarya-7 design, the seven-weapon
-arsenal in ZScript, the Lenin poster (posterised from a public-domain 1920
-photograph) and an automated GZDoom smoke test.
-
-Music rights (`docs/sound/MUSIC-RIGHTS.md`): the Soviet anthem's **music** is
-free in Russia since 2021 but its **lyrics are protected until the 2080s**;
-works free in Russia are often still restored in the United States, which is
-where we would host. Clean picks: La Internacional, Tchaikovsky's Slavonic
-March, Mussorgsky, Borodin, Scriabin, Glinka. A free composition never implies
-a free recording.
-
-Copyright finding (`docs/product/2026-10-12_2000_F2_pm-soviet-art-copyright.md`):
-Soviet posters of the 1950s-80s are **still protected** (life + 70, +74 for
-war-era authors). Usable: works published before 1931 or whose author died
-before 1952, the state symbols, slogans, and the style itself.
+**Open with the CEO:** `docs/PENDING-CEO-DECISIONS.md`.
 
 ## Setup and commands
 

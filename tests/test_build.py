@@ -197,3 +197,32 @@ class ApprovedAssetsInPk3Test(unittest.TestCase):
         """work/ holds art the CEO has not judged; it must never reach the PK3."""
         leaked = [n for n in self.names if "work/" in n or "batch1" in n]
         self.assertEqual([], leaked)
+
+
+class LumpLeftoverTest(unittest.TestCase):
+    """PMO-01, 2026-10-13: an agent left MAPINFO.bak, .bak2 and .bak3 in
+    src/lumps/ mid-edit. A lump is named after the file's stem, so all three
+    became a second lump called MAPINFO and the package stopped validating.
+    The build must not see editor leftovers at all."""
+
+    def test_backups_and_dotfiles_never_become_lumps(self):
+        from sdbuild.pk3 import collect_lumps
+        with tempfile.TemporaryDirectory() as d:
+            src = Path(d) / "src"
+            lumps = src / "lumps"
+            lumps.mkdir(parents=True)
+            (lumps / "MAPINFO").write_text("real")
+            for junk in ("MAPINFO.bak", "MAPINFO.bak2", "MAPINFO.orig",
+                         "MAPINFO~", ".DS_Store", "MAPINFO.swp"):
+                (lumps / junk).write_text("junk")
+            names = sorted(e.path for e in collect_lumps(src))
+            self.assertEqual(["MAPINFO"], names)
+
+    def test_a_real_lump_with_a_dot_in_its_name_still_packs(self):
+        """zscript.txt is a real lump and must not be mistaken for a leftover."""
+        from sdbuild.pk3 import collect_lumps
+        with tempfile.TemporaryDirectory() as d:
+            src = Path(d) / "src"
+            (src / "lumps").mkdir(parents=True)
+            (src / "lumps" / "zscript.txt").write_text("version \"4.12\"")
+            self.assertEqual(["zscript.txt"], [e.path for e in collect_lumps(src)])
