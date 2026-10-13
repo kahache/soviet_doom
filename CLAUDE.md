@@ -36,8 +36,8 @@ synced in batches at each phase close (D7, D34).
 2026-10-13. Twenty-four texture lumps live in `assets/`, all approved:
 batch 1, 12 of 12 (`SDPOSTR1` Lenin 128×256 among them; `SDCONC2` and
 `SDSTAR1` v5 approved inside MAP01 by the CEO, D30), the eight switches of
-batch 2 (D25) and four props of batch 3, crates and a locker (D29). The
-metro's first six pieces await the CEO. Title screen and
+batch 2 (D25) and four props of batch 3, crates and a locker (D29), plus
+the metro's first six pieces (D42); ten more metro pieces are drafts. Title screen and
 intermission ship (D18). The Cyrillic alphabet is installed, 224 glyphs (German Ä Ö Ü ß since D37) in
 two sizes (D24), which is what makes D7 and D21 possible inside the game;
 M, М and W were corrected on 2026-10-13 (D29).
@@ -61,26 +61,37 @@ sectors, 778 lines (Freedoom's MAP01: 211 / 1274), 33 enemies on skill 3
 (21/33/46), Reich first and the Legion holding the hangar (D35), both
 switches release an ambush, subtler secrets, Lenin lit. Engine pass clean
 (`docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass-*`). **The CEO played
-it through on skill 3: "ha sido MUY divertido!!" (D38).** Next: remove the
-block in front of the cosmonautics mural; G3's skills 2 and 4 runs.
+it through on skill 3: "ha sido MUY divertido!!" (D38).** The mural is clear
+and the slot-1 weapon is found on the dorm rack, not issued (both seen in
+engine). **G3 in progress:** `tools/route.py` runs the critical path in
+GZDoom; skill 2 passes with monsters, 3 and 4 without (a live body blocks
+the scripted walk), `docs/qa/GATE-REVIEWS.md`.
 
 **F5 — bestiary, started.** The seven enemies of D35 are playable ZScript
 actors with Freedoom sprites and sounds as placeholders, replacing Doom's
 monsters so maps need no renumbering; drops are our ammo (D35); the
 General summons two recruits once. Engine pass on MAP02's gallery clean
 (`docs/qa/evidence/2026-10-13_1705_F5_map02-bestiary-*`). Own sprites wait
-on the CEO's choice of design and method; own sounds on downloads in
-progress and the CEO's voice takes (D36).
+on the CEO's gate: the Reich rifleman is drafted from a 3D rig (D38), the
+enemies' non-voice sounds are drafted, the voices wait on the CEO's takes
+(D36).
 
 **F4 — arsenal.** Seven period weapons in ZScript, all firing, with Freedoom
-placeholders for sprites and sounds. Test range on MAP02.
+placeholders for sprites and sounds; balance stands as built (D39). Slot 1
+is an ice axe (D40). Drafts at the CEO's gate: our own hand and glove, the
+ice axe, the PPSh-41, 31 weapon sounds. MAP02 ships as a practice range, a
+second episode on New Game (D41).
+
+**Music (D43).** The title plays the Internationale (`D_SDINTL`, credit
+Jerry Engelbach), MAP01 our own `D_SDM01`; an enriched draft waits on the
+CEO; three self-sequenced pieces wait on a score source.
 
 **Tooling.** `tools/verify.py` with `fast`, `full` and `auto` tiers: fast runs
 in six seconds and opens no window. `tools/check_pk3.py` validates the package
 without the engine; `tools/smoke.py` runs it with the engine. **Agents never
 start GZDoom (D26):** `SD_ALLOW_ENGINE=1` is the PM's, and the PM batches the
 engine runs. CI on every push.
-Suite: **453 tests**, one skip (the opt-in engine test), no expected
+Suite: **882 tests** (`verify.py art`, 2026-10-13 evening), one skip (the opt-in engine test), no expected
 failure since the font fix; branch coverage of `tools/` **65%** (measured at
 450 tests), measured on this PC on 2026-10-13 with
 the Mac's `work/` in place (`docs/qa/COVERAGE.md`). `gen_font.py` went from
