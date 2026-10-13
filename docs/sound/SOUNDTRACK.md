@@ -23,9 +23,10 @@ open recommendation of §8 accepted. What that changed, in one place:
 > **Two lumps are installed and packed: `assets/music/D_SDINTL.mid` (title)
 > and `assets/music/D_SDM01.mid` (MAP01).** Both are byte-identical to the
 > `work/audio/` files the CEO's acceptance refers to, and both regenerate from
-> their sources byte for byte (`tests/test_music.py`). They are **not yet
-> heard in the game**: `src/lumps/MAPINFO` still says `music = ""` until
-> `mod-engineer` adds the two lines of §7. Jerry Engelbach is credited
+> their sources byte for byte (`tests/test_music.py`). **Wired** in
+> `src/lumps/MAPINFO` by `mod-engineer` (commit 51c2746: `TitleMusic =
+> "D_SDINTL"`, MAP01 `music = "D_SDM01"`); the engine pass that hears them
+> in game is the PM's (D26). Jerry Engelbach is credited
 > (Card 0, `MUSIC-RIGHTS.md` §4.5).
 >
 > **`work/audio/candidates/` is tracked in git** since D43 (a `.gitignore`
@@ -45,12 +46,12 @@ open recommendation of §8 accepted. What that changed, in one place:
 
 | Cue | File | Status |
 |---|---|---|
-| **Title screen** | **`assets/music/D_SDINTL.mid`** — Engelbach's orchestral *Internationale*, head silence removed by us | **installed** (D43); MAPINFO line owed by `mod-engineer` |
+| **Title screen** | **`assets/music/D_SDINTL.mid`** — Engelbach's orchestral *Internationale*, head silence removed by us | **installed and wired** (D43, MAPINFO `TitleMusic`) |
 | **MAP01** | **`assets/music/D_SDM01.mid`** — our own "Zarya-7" | **installed** (D43) as it stood; the enriched version `D_SDM01E` is a draft for the CEO's ear (§6, Card 2b) |
 | **Diegetic radio** | `WM_Ej_uchnem.mid` (`D_CND09`), `WM_Kolokolchik.mid` (`D_CND12`) — CC0, already orchestrated | **settled** (D43); not installed until a map has a radio to put them in (`level-designer`) |
-| **Anthem slot** | Glinka's *Patriotic Song*, sequenced by us | **settled** (D43); to be sequenced by us |
-| **Death / aftermath** | «Вы жертвою пали», sequenced by us | **settled** (D43); to be sequenced by us |
-| **Radio waltz** | «Амурские волны» (Kyuss, 1909), sequenced by us | **settled** (D43); to be sequenced by us |
+| **Anthem slot** | Glinka's *Patriotic Song*, sequenced by us | **settled** (D43); **blocked on a score** (§6, Cards 3-5) |
+| **Death / aftermath** | «Вы жертвою пали», sequenced by us | **settled** (D43); **blocked on a score** (§6, Cards 3-5) |
+| **Radio waltz** | «Амурские волны» (Kyuss, 1909), sequenced by us | **settled** (D43); **blocked on a score** (§6, Cards 3-5) |
 | **Our `D_SDTITL`** | **reserved, not retired** | a finished 1:21 Soviet march in D minor, the natural intermission / episode-end cue |
 
 Three of the twelve downloads are **discarded** and gone, six are kept as
@@ -358,7 +359,7 @@ D1). The repaired file is the one that ships; the download stays in
 |---|---|
 | **Lump** | `D_SDINTL` |
 | **File** | `assets/music/D_SDINTL.mid`, 8 921 B, SMF format 0, 1 track, 960 ticks/beat, SHA-256 `c94e4903…85a9`; byte-identical to `work/audio/D_SDINTL.mid` |
-| **Where it plays** | the title screen (`GameInfo { TitleMusic = "D_SDINTL" }`, owed by `mod-engineer`, §7) |
+| **Where it plays** | the title screen (`GameInfo { TitleMusic = "D_SDINTL" }`, wired by `mod-engineer`, commit 51c2746) |
 | **Duration · tempo** | 1:25.3 per loop, 90 BPM 4/4; 1 063 notes, 12 GM voices on 16 channels, zero hanging notes |
 | **Origin** | *L'Internationale*, Pierre De Geyter, 1888 (public domain); MIDI sequence by **Jerry Engelbach**, 2003, from Wikimedia Commons; 1.99 s of leading silence removed by us (§4.1) |
 | **Credit (required)** | **"MIDI sequence by Jerry Engelbach"** — the full line and where it stands: `MUSIC-RIGHTS.md` §4.5 |
@@ -544,6 +545,58 @@ three lists stay the same length); cellos muddy under the ostinato → drop
 needs the engine (D26). The PM's render command is in §1; it would give the
 arc and peak the other cards carry.
 
+### Cards 3-5 — the three pieces D43 asks us to sequence — **blocked: no score in hand**
+
+D43 decided that we sequence «Вы жертвою пали» and «Амурские волны»
+ourselves, and that Glinka's *Patriotic Song* takes the anthem slot. All
+three compositions are public domain in Russia and the United States
+(`MUSIC-RIGHTS.md` §2.2, §2.3). **None is sequenced yet, and that is a
+deliberate stop, not an omission** (`docs/PIPELINE.md`, "When the pipeline
+stops": an agent that needs something that does not exist says so rather
+than inventing it).
+
+What is missing is the melody itself. Sequencing a public-domain tune
+ourselves means copying its notes from a score; the brief allowed no
+downloads, and the readable sources I checked on 2026-10-13 carry no
+notation: the English and Russian Wikipedia articles on all three works have
+no `<score>` block; IMSLP's Glinka category lists no *Patriotic Song*;
+IMSLP has no Kyuss category at all. Writing the three tunes from my memory
+of them would produce something that *resembles* «Амурские волны» and is
+labelled as it — exactly the unverified claim this project does not ship,
+and the CEO, who validates by ear, may not know two of the three tunes well
+enough to catch a wrong bar.
+
+What is ready, so the work is an afternoon once a score exists:
+
+| | «Вы жертвою пали» | «Амурские волны» | *Патриотическая песня* |
+|---|---|---|---|
+| **Cue** | death / aftermath / episode end | diegetic radio, a quiet room | the anthem slot (D43) |
+| **Lump (draft)** | `D_SDFUNR` | `D_SDAMUR` | `D_SDGLNK` |
+| **Composer** | Varlamov (1801-1848) per ru.wikipedia; en.wikipedia credits only an 1878 arrangement by Ikonnikov — NOT VERIFIED which | Max Kyuss (1874-1942), op. 12, 1909 | Mikhail Glinka (1804-1857), 1833 |
+| **Plan** | brass choir and low strings at funeral tempo (~56 BPM), two strophes, the second with timpani and full brass; no loop, it ends | waltz, 3/4, ~150 BPM: the main theme on clarinet and strings over an oom-pah of tuba and pizzicato, 2-3 minutes, loops from its own introduction | brass and timpani, festive maestoso, the theme stated twice and a cadence; ~1:30 |
+| **Rights** | composition PD; our sequencing, CC BY-NC-SA 4.0; no lyrics used | same | same |
+
+**What would unblock it** — one of these, the PM's or the CEO's call:
+
+1. **Approve one download per piece of a public-domain score**, the route
+   the role definition sets (file, source and size stated before
+   downloading). The candidates I could name without downloading anything:
+   for Glinka, Wikimedia Commons
+   `File:Russian SFSR - Russian Anthem Music Sheet.InstrumentalSimple (1990-2000).svg`
+   ("own work"; its licence still to be read) and
+   `File:Patriotic Song - Mikhail Glinka.gif`; for the other two I found no
+   free score on Commons or IMSLP and would need a wider search, which is
+   itself a request. Sizes are not known yet; I will state them before
+   fetching.
+2. **Someone who knows the tune checks a memory sketch.** I write the three
+   melodies from memory, marked NOT VERIFIED in the file and in this card,
+   and they go to the CEO only after a person who knows the tunes has
+   confirmed them bar by bar.
+
+*Recommendation: (1) for Glinka, whose score exists on Commons, and (1)
+with a wider search for the other two. (2) is cheaper and riskier, and I
+would not put it in front of the CEO without that check.*
+
 ### How plan B was verified
 
 | Claim | Evidence |
@@ -568,16 +621,16 @@ property of shipping MIDI and the price of the licence safety.
 
 ## 7. What I need from other roles
 
-### `mod-engineer` — two MAPINFO lines, **now** (D43)
+### `mod-engineer` — two MAPINFO lines — **done** (commit 51c2746)
 
 The lumps are in `assets/music/` and the build packs them as
 `music/D_SDINTL.mid` and `music/D_SDM01.mid` (`sdbuild.pk3.ASSET_DIRS`
 already included `music`; checked with `tools/check_pk3.py`: licences OK,
-VERDICT PASS). I have not edited `src/lumps/MAPINFO`; it is yours:
+VERDICT PASS). `mod-engineer` added the two lines on 2026-10-13:
 
 ```
 GameInfo { TitleMusic = "D_SDINTL" }      // add to the existing GameInfo block
-map MAP01 { music = "D_SDM01" }           // today: music = ""
+map MAP01 { music = "D_SDM01" }
 ```
 
 **`SNDINFO` is not involved** — music lumps are not declared there; that
@@ -600,7 +653,7 @@ The diegetic radio pieces are settled (D43): `WM_Ej_uchnem.mid` and
    known IWAD lump. Textures get exactly this check and it is why blocker M1
    was caught; a music typo instead fails **silently at runtime** — GZDoom
    simply plays nothing. **Now live**: two music lumps are packed and
-   `mod-engineer` is about to reference them.
+   MAPINFO references them.
 2. ~~`check_licences` will demand a row for every music lump~~ — **resolved
    2026-10-13**: rows for `D_SDINTL` and `D_SDM01` are in
    `docs/art/LICENSES.md` § Music, pointing at `MUSIC-RIGHTS.md` §4.4; no
@@ -634,7 +687,7 @@ items as they stood, and what each became:
 4. **Diegetic radio — `WM_Ej_uchnem.mid` and `WM_Kolokolchik.mid`, both CC0,
    SETTLED.** They wait for a map with a radio (§7, `level-designer`).
 5. **Sequence «Вы жертвою пали» and «Амурские волны» ourselves — YES.**
-   Drafts go to `work/audio/` (§6). Glinka's *Patriotic Song* takes the anthem slot (rights
+   **Not yet sequenced: blocked on a score**, §6 Cards 3-5. Glinka's *Patriotic Song* takes the anthem slot (rights
    side: `MUSIC-RIGHTS.md` §7.1), also sequenced by us.
    **Excluded:** every work free in Russia but restored in the United States,
    «Священная война» above all (`MUSIC-RIGHTS.md` §5(b)).
@@ -643,6 +696,6 @@ items as they stood, and what each became:
    `D_CND05` and `D_CND07` stay as named reserves. `work/audio/candidates/` is
    tracked in git (D43).
 
-**Open for the CEO's ear, not for a decision of principle:** the drafts that
-follow from 3 and 5 — enriched `D_SDM01` and the sequenced pieces. Each will
-be one command to hear (§1).
+**Open for the CEO's ear:** the enriched `D_SDM01E` (Card 2b), one command
+in §1. **Open for the PM or the CEO:** how to get the three scores that
+Cards 3-5 need (a download approval, or a person who knows the tunes).
