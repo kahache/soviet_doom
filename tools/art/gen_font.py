@@ -38,13 +38,16 @@ Two sizes, matching the metrics GZDoom itself uses for Doom:
          line height 16            -> fonts/bigfont/       (menu headlines,
                                       level titles, intermission)
 
-Nothing here writes to assets/.  Output goes to work/art/font/.
+Nothing here writes to assets/.  Output goes to work/art/font/ (the H1
+serif-fix proposal: work/art/font_fix/ and its sheet in docs/art/previews/).
 
 Usage
 -----
     .venv/bin/python tools/art/gen_font.py             # glyphs + all sheets
     .venv/bin/python tools/art/gen_font.py --sheets    # sheets only
     .venv/bin/python tools/art/gen_font.py --variant A
+    .venv/bin/python tools/art/gen_font.py --serif-fix --stamp YYYY-MM-DD_HHMM
+                     # H1 proposal: work/art/font_fix/ + docs/art/previews/ sheet
 """
 from __future__ import annotations
 
@@ -61,6 +64,24 @@ import artlib
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 OUT_ROOT = PROJECT_ROOT / "work" / "art" / "font"
+# Where the serif-fix proposal is built.  Never OUT_ROOT: work/art/font/ holds
+# the Mac's renders, which tests/test_art.py compares with assets/.
+OUT_ROOT_FIX = PROJECT_ROOT / "work" / "art" / "font_fix"
+PREVIEW_DIR = PROJECT_ROOT / "docs" / "art" / "previews"
+
+# Slab-serif defect of style C (QA finding H1, 2026-10-13).  The slabs are
+# placed from Pen.terminals, and mirror() reflected the ink but not the
+# terminals, so a mirrored glyph only got the slabs of its left half plus
+# whatever its drawing function appended by hand.  M appends the bottom-right
+# foot but not the top-right one; W appends a foot at (1.0, 0.0), where no
+# stroke of W ends, so a floating foot is drawn there and its top-right slab
+# is missing.  Both shipped asymmetric (M = Cyrillic M) at both sizes.
+#
+# True reflects the terminals in pixel space inside finish() and drops W's
+# stray foot; only M, Cyrillic M and W change.  It changes shipped pixels,
+# so it stays False (byte-identical to assets/fonts/) until the CEO approves
+# the proposal sheet `docs/art/previews/*_F2_font-C-serif-fix.png`.
+MIRROR_TERMINALS = False
 
 
 # --------------------------------------------------------------- styles
@@ -320,13 +341,28 @@ class Pen:
             self._slabs()
         return self.ink
 
+    def _terminal_columns(self) -> list[tuple[int, float]]:
+        """(left column of the stem, y) of every stroke end that takes a slab.
+        With MIRROR_TERMINALS a mirrored glyph also gets the reflection of
+        each one, computed in pixels (W - c - stem) so it lands exactly on
+        the reflected ink; reflecting x in normalised space would be off by
+        one wherever the half-up rounding meets an exact half."""
+        cols = [(self._cs(x), y) for x, y in self.terminals]
+        if self._mirror and MIRROR_TERMINALS:
+            cols += [(self.W - c - self.stem, y) for c, y in cols]
+        return cols
+
     def _slabs(self):
         t = self.size.slab
         ov = self.pad
-        for x, y in self.terminals:
-            c = self._cs(x)
+        # "Already a bar there" is judged on the drawing.  With the fix on, a
+        # mirrored glyph judges it on the ink as it was before any slab: a
+        # slab just laid on the left must not veto its twin on the right
+        # (the two feet of a small W are one pixel apart).
+        probe = self.ink.copy() if (self._mirror and MIRROR_TERMINALS) else self.ink
+        for c, y in self._terminal_columns():
             row = self.H - 1 if y <= 0.001 else 0
-            if self._run_width(row, c) > self.stem:
+            if self._run_width(row, c, probe) > self.stem:
                 continue                 # already a bar there: no serif
             c0, c1 = max(c - ov, 0), min(c + self.stem - 1 + ov, self.W - 1)
             if y <= 0.001:
@@ -334,9 +370,10 @@ class Pen:
             else:
                 self.ink[0:t, c0:c1 + 1] = True
 
-    def _run_width(self, row: int, col: int) -> int:
-        """Width of the contiguous ink run through (row, col)."""
-        line = self.ink[row]
+    def _run_width(self, row: int, col: int, ink: np.ndarray | None = None) -> int:
+        """Width of the contiguous ink run through (row, col), measured on
+        `ink` (default: the glyph as drawn so far)."""
+        line = (self.ink if ink is None else ink)[row]
         if not line[col]:
             return 0
         a = b = col
@@ -493,7 +530,10 @@ def _v(p: Pen):
 @glyph("W", "j", center=True)
 def _w(p: Pen):
     p.d(0, 1, 0.33, 0).d(0.33, 0, 0.5, 0.75, term=False).mirror()
-    p.terminals.append((1.0, 0.0))
+    if not MIRROR_TERMINALS:
+        # The H1 defect: no stroke of W ends at (1.0, 0.0).  Kept only so the
+        # installed font stays byte-identical until the CEO approves the fix.
+        p.terminals.append((1.0, 0.0))
 
 
 @glyph("X", center=True)
@@ -996,7 +1036,8 @@ def build_variant(style: Style, out_dir: Path) -> dict:
             img.save(d / f"{ord(ch):04X}.png")
             widths[f"U+{ord(ch):04X}"] = img.width
             n += 1
-        (d / "font.inf").write_text(f"FontHeight {size.line}\n")
+        # LF on every machine: Windows' default newline would write CRLF (H3)
+        (d / "font.inf").write_text(f"FontHeight {size.line}\n", encoding="utf-8", newline="\n")
         report["sizes"][size_key] = {
             "folder": f"fonts/{folder}/",
             "glyphs": n,
@@ -1234,13 +1275,176 @@ def sheet_compare(stamp: str) -> Path:
     return path
 
 
+
+# ------------------------------------------------- the H1 serif-fix proposal
+SERIF_FIX_GLYPHS = ["M", "М", "W"]          # the only glyphs the fix changes
+SERIF_FIX_WORDS = [
+    # (where the string lives in src/lumps/LANGUAGE, the string)
+    ("SD_MAP01_NAME [ru], level title", "Космодром «Заря-7»"),
+    ("SD_TAG_ROKS3 [enu], weapon tag", "ROKS-3 flamethrower"),
+    ("SD_SKILL_2 [enu], skill menu", "I have seen worse winters"),
+]
+FIX_ZOOM = {"small": 10, "big": 8}        # glyph close-ups
+FIX_WORD_ZOOM = {"small": 4, "big": 3}    # word close-ups
+
+
+class mirror_terminals:
+    """`with mirror_terminals(True):` renders with the H1 fix on, then puts
+    the module switch back.  Used by the proposal; the shipped value is the
+    module constant MIRROR_TERMINALS."""
+
+    def __init__(self, on: bool):
+        self.on = on
+
+    def __enter__(self):
+        global MIRROR_TERMINALS
+        self.saved, MIRROR_TERMINALS = MIRROR_TERMINALS, self.on
+        return self
+
+    def __exit__(self, *exc):
+        global MIRROR_TERMINALS
+        MIRROR_TERMINALS = self.saved
+        return False
+
+
+def build_serif_fix(out_root: Path | None = None) -> dict:
+    """Variant C with the H1 fix on, into work/art/font_fix/C/ (never into
+    work/art/font/, the Mac's renders)."""
+    out_root = OUT_ROOT_FIX if out_root is None else out_root
+    out_root.mkdir(parents=True, exist_ok=True)
+    with mirror_terminals(True):
+        report = build_variant(STYLES["C"], out_root)
+    manifest = {"proposal": "H1 slab-serif fix", "MIRROR_TERMINALS": True,
+                "codepoints": len(GLYPHS), "variants": [report]}
+    (out_root / "manifest.json").write_text(json.dumps(manifest, indent=1),
+                                            encoding="utf-8", newline="\n")
+    return report
+
+
+def _gridded(img: Image.Image, k: int) -> Image.Image:
+    """Nearest-neighbour close-up over a dark board, with a 1 px pixel grid."""
+    z = scaled(img, k)
+    board = Image.new("RGB", z.size, BG)
+    board.paste(z, (0, 0), z)
+    d = ImageDraw.Draw(board)
+    grid = artlib.ramp_colour("concrete_cold", 0.22)
+    for x in range(0, z.width, k):
+        d.line([(x, 0), (x, z.height)], fill=grid)
+    for y in range(0, z.height, k):
+        d.line([(0, y), (z.width, y)], fill=grid)
+    return board
+
+
+def _diff(before: Image.Image, after: Image.Image, k: int) -> Image.Image:
+    """Close-up of what the fix adds (gold) and removes (red)."""
+    a = np.asarray(before)[..., 3] > 0
+    b = np.asarray(after)[..., 3] > 0
+    rgba = np.zeros(a.shape + (4,), np.uint8)
+    rgba[a & b] = (*LABEL, 110)
+    rgba[b & ~a] = (*GOLD, 255)
+    rgba[a & ~b] = (*ACCENT, 255)
+    return _gridded(Image.fromarray(rgba, "RGBA"), k)
+
+
+def sheet_serif_fix(stamp: str, out_dir: Path | None = None) -> Path:
+    """Before/after sheet of the H1 fix: M, Cyrillic M and W, then real
+    LANGUAGE strings that contain them, both sizes, 1x and close-up."""
+    style = STYLES["C"]
+    needed = set("".join(SERIF_FIX_GLYPHS + [w for _k, w in SERIF_FIX_WORDS]).upper())
+    fonts = {}
+    for on in (False, True):
+        with mirror_terminals(on):
+            for size_key in ("small", "big"):
+                f = RenderFont(style, size_key)
+                for ch in needed:
+                    f.glyph(ch)                # fill the cache while the switch holds
+                fonts[(on, size_key)] = f
+    W = 1500
+    img, d = new_sheet(W, 2600)
+    d.rectangle([0, 0, W, 86], fill=PANEL)
+    d.rectangle([0, 84, W, 86], fill=ACCENT)
+    d.text((28, 16), "SOVIET DOOM · ALPHABET C — SLAB-SERIF FIX (QA H1) · PROPOSAL",
+           font=TITLE_FONT, fill=GOLD)
+    d.text((30, 56), "BEFORE = installed in assets/fonts/   ·   AFTER = gen_font.py with "
+                     "MIRROR_TERMINALS = True   ·   only these 3 glyphs change (6 of 214 files)",
+           font=LABEL_FONT, fill=LABEL)
+    d.text((W - 300, 60), stamp, font=LABEL_SMALL, fill=LABEL)
+    x0, y = 28, 112
+
+    for size_key in ("small", "big"):
+        k = FIX_ZOOM[size_key]
+        size = style.small if size_key == "small" else style.big
+        d.text((x0, y), f"{size_key.upper()} FONT  ·  cap {size.cap} px"
+                        + (f" + {size.shadow} px shadow" if size.shadow else "")
+                        + f"  ·  1× then {k}×  ·  diff: gold = added, red = removed",
+               font=LABEL_FONT, fill=GOLD)
+        y += 26
+        x = x0
+        row_h = 0
+        for ch in SERIF_FIX_GLYPHS:
+            before = fonts[(False, size_key)].glyph(ch)
+            after = fonts[(True, size_key)].glyph(ch)
+            name = f"{ch}  U+{ord(ch):04X}" + ("  Cyrillic" if ord(ch) > 0x7F else "  Latin")
+            d.text((x, y), name, font=LABEL_SMALL, fill=LABEL)
+            yy = y + 18
+            img.paste(before, (x, yy), before)
+            img.paste(after, (x + before.width + 10, yy), after)
+            yy += before.height + 8
+            xx = x
+            tile = None
+            for label, tile in (("before", _gridded(before, k)), ("after", _gridded(after, k)),
+                                ("diff", _diff(before, after, k))):
+                d.text((xx, yy), label, font=LABEL_SMALL, fill=LABEL)
+                img.paste(tile, (xx, yy + 16))
+                xx += tile.width + 14
+            x = xx + 30
+            row_h = max(row_h, yy + 16 + tile.height - y)
+        y += row_h + 26
+
+    d.rectangle([x0, y, W - 28, y + 2], fill=ACCENT)
+    y += 14
+    d.text((x0, y), "REAL STRINGS FROM LANGUAGE — 1× is what the engine draws; "
+                    "the close-up is how it reads on a 1080p screen",
+           font=LABEL_FONT, fill=GOLD)
+    y += 28
+    for where, text in SERIF_FIX_WORDS:
+        for size_key in ("small", "big"):
+            k = FIX_WORD_ZOOM[size_key]
+            d.text((x0, y), f"{where}  ·  {size_key} font  ·  1× and {k}×",
+                   font=LABEL_SMALL, fill=LABEL)
+            y += 18
+            for on, tag in ((False, "BEFORE"), (True, "AFTER")):
+                line = fonts[(on, size_key)].render(text)
+                z = scaled(line, k)
+                d.text((x0, y + 2), tag, font=LABEL_SMALL, fill=GOLD if on else LABEL)
+                img.paste(line, (x0 + 70, y + 2), line)
+                img.paste(z, (x0 + 70 + SCREEN_W + 20, y), z)
+                y += max(line.height + 4, z.height) + 6
+            y += 12
+
+    img = img.crop((0, 0, W, min(y + 10, img.height)))
+    out_dir = PREVIEW_DIR if out_dir is None else out_dir
+    path = out_dir / f"{stamp}_F2_font-C-serif-fix.png"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    img.save(path)
+    return path
+
+
 # ------------------------------------------------------------------ cli
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--stamp", default="PREVIEW")
     ap.add_argument("--variant", default=None, help="A, B or C; default all")
     ap.add_argument("--sheets", action="store_true", help="sheets only")
+    ap.add_argument("--serif-fix", action="store_true",
+                    help="H1 proposal: variant C with MIRROR_TERMINALS on into "
+                         "work/art/font_fix/, and the before/after sheet into docs/art/previews/")
     args = ap.parse_args()
+
+    if args.serif_fix:
+        build_serif_fix()
+        print(sheet_serif_fix(args.stamp))
+        return
 
     keys = [args.variant] if args.variant else list(STYLES)
     OUT_ROOT.mkdir(parents=True, exist_ok=True)
