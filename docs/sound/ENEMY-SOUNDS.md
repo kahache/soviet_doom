@@ -8,12 +8,19 @@ the naming rule of §2.3; the SNDINFO contract is `docs/engine/MOD-SPEC.md`
 §6.2. Music rights live in `docs/sound/MUSIC-RIGHTS.md`; this document owns
 **sound-effect and voice rights** only.
 
-> **Status (2026-10-13, after D36): sources downloaded, nothing produced
-> or approved, nothing in the PK3.** The five CC0 packs D36 authorised are
-> in `work/audio/sfx_sources/` (gitignored) with their provenance in §2.1;
-> the voice takes are the CEO's, scripted in `docs/sound/VOICE-SCRIPT.md`.
-> The seven actors run on Freedoom stand-ins; every lump below is a
-> *replacement* for one of those stand-ins and changes one line of
+> **Status (2026-10-13, evening): the 35 non-voice lumps are DRAFTED, plus
+> eight beds for the voices; nothing approved, nothing in the PK3.** The
+> generator is `tools/audio/gen_sfx.py` (tests: `tests/test_gen_sfx.py`); the
+> drafts sit in `work/audio/sfx/enemies/` (gitignored) and in an audition
+> overlay, `work/audio/sfx/sd-enemy-sfx-draft.pk3`; the CEO listens to them in
+> `docs/art/previews/2026-10-13_2029_F5_enemy-sfx-drafts.html`, one page, every
+> file embedded, with its card, its numbers and its sources (§5.9). **Nobody
+> has listened to them yet**, the sound-designer included: every check so far
+> is an instrument (§5.9). The twelve voices are the CEO's and **postponed by
+> him (D37)**; until they come the rifleman, the trooper and the General keep
+> Freedoom's voices. The five CC0 packs D36 authorised are in
+> `work/audio/sfx_sources/` with their provenance in §2.1. Every lump below
+> is a *replacement* for a Freedoom stand-in and changes one line of
 > `SNDINFO`, no ZScript. Nothing enters `src/sounds/` without the CEO's
 > explicit approval, exactly as with textures and music.
 
@@ -81,7 +88,7 @@ PM/CEO. **ASSUMPTION** = I believe it and could not check.
 | `KEN-IMP` | Kenney, *Impact Sounds*, 130 files, tags impact + foley. <https://kenney.nl/assets/impact-sounds> | CC0 (page shows "Creative Commons CC0"); `kenney.nl/support`: all assets on the asset pages are CC0, no attribution required | Page **VERIFIED**. **Downloaded 2026-10-13**: 130 OGG plus `License.txt` (CC0) (§2.1). |
 | `KEN-SCI` | Kenney, *Sci-fi Sounds*, 70 files, tags sci-fi, space, engine. <https://kenney.nl/assets/sci-fi-sounds> | CC0 | Page **VERIFIED**. **Not authorised by D36 and not downloaded.** Every row that named it falls back to `SYN`. |
 | `FS-CC0` | Freesound, filter "Creative Commons 0", per-sound | CC0 *per sound*; the uploader asserts it, Freesound does not guarantee it (its FAQ says users may upload illegal content, **VERIFIED**). **Downloading requires a logged-in account** (**VERIFIED**). | **Not planned.** Kept as a gap-filler for one sound at a time, each with its own page check. A search listed hundreds of CC0 growls (**VERIFIED**: the listing exists); I have not opened any individual sound page. |
-| `SYN` | Our own synthesis: a script `gen_sfx.py` (numpy; the project venv already has numpy 2.5.4, **VERIFIED**), deterministic seeds, output WAV then OGG | GPL-3.0 for the script, CC BY-NC-SA 4.0 for the output (D15) | To be written. |
+| `SYN` | Our own synthesis: a script `gen_sfx.py` (numpy; the project venv already has numpy 2.5.4, **VERIFIED**), deterministic seeds, output WAV then OGG | GPL-3.0 for the script, CC BY-NC-SA 4.0 for the output (D15) | **Written 2026-10-13**: `tools/audio/gen_sfx.py`, deterministic (seed 1977, two full runs byte-identical); tests `tests/test_gen_sfx.py`. |
 | `VOX` | The CEO's voice, recorded by him, or AI voices he generates (D36); processed by us. Script: `docs/sound/VOICE-SCRIPT.md` | Recorded: his own work; he applies CC BY-NC-SA 4.0 (D15). A recognisable voice is personal data, so the line "released under D15" must come from him in writing (the chat is enough). AI: per file, tool, version, date, account plan, licence of use (URL and literal clause), voice and prompt, logged as in `VOICE-SCRIPT.md` §0.7; usable only if those terms allow redistribution inside a CC BY-NC-SA 4.0 package | **Decided (D36).** Takes not yet delivered. |
 
 **Why CC0 and why only these authors.** Three of the five packs are by one
@@ -152,8 +159,8 @@ Two facts the pages did not say, neither a reason to stop:
   "metal scrape" (`SDSTOMEL`) or an "armour creak" (`SDPZRACT`) will be built
   from `impactMetal`/`impactPlate` hits plus `SYN`, not a ready file.
 
-Per-file provenance (which inner file ends up in which lump) is added to the
-cards in §5 when a lump is produced, citing the pack row above.
+Per-file provenance (which inner file ends up in which lump) is §5.9,
+written from what the generator recorded, citing the pack rows above.
 
 ---
 
@@ -346,7 +353,196 @@ brawl** (`BESTIARY.md` §9).
 | **Total** | **47** | |
 
 The exact B/C split of a few rows (Doughboy EXP and DTH) will move when
-I hear the packs; the totals by route are the planning figure.
+I hear the packs; the totals by route are the planning figure. **As
+drafted (§5.9):** `SDDGBEXP` moved to C+B (an `OGA-CRE2` slime layer), and
+`SDGENMIS` and `SDGENEXP` are C+B (one `KEN-IMP` metal hit each, as their
+cards say); `SDDGBDTH` stayed pure C.
+
+### 5.9 The drafts of 2026-10-13: what was built, from what
+
+Built by `tools/audio/gen_sfx.py`, seed 1977, mono 44.1 kHz, 16-bit WAV
+master and Vorbis OGG (q6), into `work/audio/sfx/enemies/` (gitignored).
+Listening page: `docs/art/previews/2026-10-13_2029_F5_enemy-sfx-drafts.html`.
+The generator also writes `PROVENANCE.tsv` and `REPORT.txt` next to the
+drafts; this section is their copy in git (lesson of `SOUNDTRACK.md`:
+provenance outside git is stranded provenance).
+
+**How a draft is made.** Every `B` row cuts, re-pitches and filters its pack
+files and always adds a layer of our own synthesis (a servo, a purr, an FM
+throat, a thump; `tests/test_gen_sfx.py` holds every B row to having one),
+so no CC0 clip ships unlayered (§2). Every file is then brought to a class
+loudness (fire and impacts -13, creatures and gibs -15, the step -17, idles
+-20, beds -18 dB, a gated K-shaped RMS that is **not** a certified LUFS
+meter) and held under -1 dBFS by a look-ahead limiter. No WAV and no decoded
+OGG clips (measured on every file; Vorbis overshoots the -1 dBFS ceiling a
+little, and the highest decoded OGG peak is `SDLTRACT-bed`'s, -0.4 dBFS).
+
+**The cards as numbers.** What the cards say in words is measured and held
+by the tests: the Panzermensch step is 0.35 s with 97 % of its energy under
+300 Hz; the Stormtrooper's bolt impact has no energy under 150 Hz (no boom)
+while the Panzermensch's shell has 91 %; the three launches are ordered as
+§5.3, §5.5 and §5.6 ask, brightest and shortest to dullest and longest
+(spectral centroid Stormtrooper 1.5 kHz, Doughboy 1.3 kHz, Panzermensch
+0.34 kHz; 0.50, 0.65, 0.80 s); the rifleman's crack starts in under 10 ms
+with a 3.4 kHz centroid, brighter than the Legion's blast; the hound's sight
+lasts 1.35 s, puts 46 % of its energy in 1-3 kHz and reaches -6 dB of its
+peak at 0.20 s; the Doughboy's death ends on its loudest moment, the thud;
+the Legion's radio beds have under 1 % of their energy below 300 Hz.
+**Instruments, not ears:** a draft can pass all of this and still be wrong.
+
+**Changes made against the first cut, from the measures.** The
+Stormtrooper's sight was 83 % under 300 Hz (a growl, not the rasp the card
+asks for): high-passed and given presence at 2.6 kHz, now 34 %. Its death
+the same treatment. The hound's sight took 0.5 s to reach full level: the
+snarl now starts 0.3 s later in the source and the 1-3 kHz band went from
+31 % to 46 %. The Panzermensch's pain started on a slow ramp: cut to its
+onset. His death used the same `die_03` as the hound's: now `die_04`. The
+Doughboy's idle drone (55 Hz) does not exist on a laptop speaker: its 410 Hz
+helmet ring went up 7 dB. The Panzermensch step's heel and clink went up
+6-7 dB for the same reason. Eight B rows that were only *processed* (filters,
+reverb, stutter) got a synthesised layer.
+
+| File | Route | Layers read (the rest is `SYN`) |
+|---|---|---|
+| `SDRRIATK` | C | none: synthesis only |
+| `SDRRIXDT` | A+C | `FD` `freedoom2.wad:DSSLOP` |
+| `SDLTRATK` | C | none: synthesis only |
+| `SDLTRXDT` | A+C | `FD` `freedoom2.wad:DSSLOP` |
+| `SDSTOACT` | B+C | `OGA-CRE1` `breath.ogg`; `OGA-CRE2` `breath_02.ogg` |
+| `SDSTOSIT` | B+C | `OGA-CRE1` `monster_06.ogg`; `OGA-CRE1` `alien_03.ogg` |
+| `SDSTOMEL` | B+C | `KEN-IMP` `impactPunch_medium_001.ogg`; `KEN-IMP` `impactMetal_light_002.ogg` |
+| `SDSTOMIS` | C | none: synthesis only |
+| `SDSTOEXP` | C | none: synthesis only |
+| `SDSTOPAI` | B+C | `OGA-CRE1` `hurt_02.ogg` |
+| `SDSTODTH` | B+C | `OGA-CRE1` `monster_07.ogg` |
+| `SDSTOXDT` | A+C | `FD` `freedoom2.wad:DSSLOP` |
+| `SDHNDACT` | B+C | `OGA-CRE2` `breath_02.ogg`; `OGA-CRE1` `breath.ogg` |
+| `SDHNDSIT` | B+C | `OGA-SNARL` `monster-snarl-attack.ogg` [12.85-13.95 s]; `OGA-CRE2` `alien_07.ogg` |
+| `SDHNDATK` | B+C | `KEN-IMP` `impactPunch_heavy_002.ogg`; `OGA-CRE1` `eat_02.ogg` |
+| `SDHNDPAI` | B+C | `OGA-CRE2` `monster_10.ogg` |
+| `SDHNDDTH` | B+C | `OGA-CRE2` `die_03.ogg`; `OGA-CRE2` `die_02.ogg` |
+| `SDDGBACT` | C | none: synthesis only |
+| `SDDGBSIT` | B+C | `OGA-CRE1` `scream_02.ogg`; `OGA-CRE1` `monster_03.ogg` |
+| `SDDGBMEL` | B+C | `OGA-CRE1` `eat_02.ogg`; `KEN-IMP` `impactMetal_heavy_001.ogg` |
+| `SDDGBMIS` | B+C | `OGA-CRE1` `spit_02.ogg` |
+| `SDDGBEXP` | C+B | `OGA-CRE2` `slime_07.ogg` |
+| `SDDGBPAI` | B+C | `OGA-CRE1` `hurt_05.ogg` |
+| `SDDGBDTH` | C | none: synthesis only |
+| `SDPZRACT` | B+C | `OGA-CRE1` `breath.ogg`; `OGA-CRE2` `breath_02.ogg`; `KEN-IMP` `impactPlate_light_001.ogg` |
+| `SDPZRSIT` | B+C | `OGA-CRE2` `roar_05.ogg`; `OGA-CRE1` `roar_02.ogg`; `KEN-IMP` `impactPlate_heavy_001.ogg`; `KEN-IMP` `impactMetal_heavy_003.ogg` |
+| `SDPZRMEL` | B+C | `KEN-IMP` `impactPunch_heavy_000.ogg`; `KEN-IMP` `impactPlate_heavy_003.ogg` |
+| `SDPZRMIS` | C | none: synthesis only |
+| `SDPZREXP` | C | none: synthesis only |
+| `SDPZRPAI` | B+C | `OGA-CRE2` `grunt_09.ogg` |
+| `SDPZRDTH` | B+C | `OGA-CRE2` `die_04.ogg`; `OGA-CRE2` `roar_04.ogg`; `KEN-IMP` `impactPlate_heavy_004.ogg`; `KEN-IMP` `impactMetal_heavy_001.ogg`; `KEN-IMP` `impactPunch_heavy_002.ogg`; `KEN-IMP` `impactPlate_heavy_002.ogg` |
+| `SDPZRSTP` | C | none: synthesis only |
+| `SDGENACT` | C | none: synthesis only |
+| `SDGENMIS` | C+B | `KEN-IMP` `impactMetal_heavy_001.ogg` |
+| `SDGENEXP` | C+B | `KEN-IMP` `impactPlate_heavy_000.ogg` |
+| `SDRRIPAI-bed` | C | none: synthesis only |
+| `SDRRIDTH-bed` | C+B | `KEN-IMP` `impactWood_light_002.ogg`; `KEN-IMP` `impactMetal_light_000.ogg`; `KEN-IMP` `impactTin_medium_001.ogg` |
+| `SDLTRACT-bed` | C | none: synthesis only |
+| `SDLTRSIT-bed` | C | none: synthesis only |
+| `SDLTRPAI-bed` | C | none: synthesis only |
+| `SDLTRDTH-bed` | C | none: synthesis only |
+| `SDGENPAI-bed` | C+B | `KEN-IMP` `impactPlate_medium_002.ogg` |
+| `SDGENDTH-bed` | C+B | `KEN-IMP` `impactPlate_heavy_002.ogg`; `KEN-IMP` `impactMetal_heavy_004.ogg` |
+
+Tally: 10 lumps and 5 beds are synthesis only; 22 lumps and 3 beds layer a
+CC0 pack; the three gibs edit Freedoom's `DSSLOP`. **40 distinct source
+files**, each hashed as it sits on disk (the pack archives' own hashes are
+§2.1; `monster-snarl-attack.ogg` matches its §2.1 row, which checks the
+chain). `OGA-100` is authorised but not used.
+
+| Pack | File | SHA-256 of the file as on disk | Used by |
+|---|---|---|---|
+| `FD` | `freedoom2.wad:DSSLOP` (the lump's bytes) | `1c184efa6d51561261720b267a1a4e7ad2f227314a2fe11e565edd0c44e36c6a` | SDRRIXDT, SDLTRXDT, SDSTOXDT |
+| `KEN-IMP` | `impactMetal_heavy_001.ogg` | `83554049f81f4db9209379e103c30bfa63f65c42189a03f300b045c2c82e23ae` | SDDGBMEL, SDPZRDTH, SDGENMIS |
+| `KEN-IMP` | `impactMetal_heavy_003.ogg` | `b0f2ba4dabde9a87eb9c188a19d31e0c2300fd321adeba08d3b9b8aa011d7037` | SDPZRSIT |
+| `KEN-IMP` | `impactMetal_heavy_004.ogg` | `6d65b463c0555dd5be16b8db6d2cbe23a94e07a4637779b8ad17d0db3e500a87` | SDGENDTH-bed |
+| `KEN-IMP` | `impactMetal_light_000.ogg` | `33b5e6e37c6e9d54e07bf5a89b12c76e879f40c1ea83cdd82714df1d6f9fec6d` | SDRRIDTH-bed |
+| `KEN-IMP` | `impactMetal_light_002.ogg` | `25a96f90a9a1f88a531e824e126f0519504625e5635e65a72e4f31611428db29` | SDSTOMEL |
+| `KEN-IMP` | `impactPlate_heavy_000.ogg` | `112d4f93ddcc370b410630f971c0f5d991856102da9c76bc5c5540d388e75aaa` | SDGENEXP |
+| `KEN-IMP` | `impactPlate_heavy_001.ogg` | `142fd6c77f13d25f318265901163f70f8dfe12f87829169a570025be43de7011` | SDPZRSIT |
+| `KEN-IMP` | `impactPlate_heavy_002.ogg` | `b0cab75d1befa32b4cf215d8ee7e1c400a39182e8b105963b8e310f825b198a1` | SDPZRDTH, SDGENDTH-bed |
+| `KEN-IMP` | `impactPlate_heavy_003.ogg` | `59775f8979a396c8a793b0a1db206d5bdc651eae808d858e9acaee8ebda5bc6d` | SDPZRMEL |
+| `KEN-IMP` | `impactPlate_heavy_004.ogg` | `e31bfec90630155bcc6af541d1d14ae8202c435c52b42e6b6183fdb6ffb248b0` | SDPZRDTH |
+| `KEN-IMP` | `impactPlate_light_001.ogg` | `947915c2eb6ac57ee08fd3a48b297fd108d69abc72076e79882c21cad0eef56e` | SDPZRACT |
+| `KEN-IMP` | `impactPlate_medium_002.ogg` | `68762e1ed49bb59ae6602fad6ce2ebac61958478ddb2668de9106f010cd4b6b0` | SDGENPAI-bed |
+| `KEN-IMP` | `impactPunch_heavy_000.ogg` | `b33a8f14068aec24ec69ba85e5e87fdc41228975f6a1a3e44a6e7d6fc3d9f8d8` | SDPZRMEL |
+| `KEN-IMP` | `impactPunch_heavy_002.ogg` | `7993dd4c156b9979ad69f17be5ebe31850b16039a3857f8477141be54dfee1b3` | SDHNDATK, SDPZRDTH |
+| `KEN-IMP` | `impactPunch_medium_001.ogg` | `e71d23abcc3f10d9d6bc9615b2a431fff70b12333a5fcdd9964457564ace4349` | SDSTOMEL |
+| `KEN-IMP` | `impactTin_medium_001.ogg` | `84253095543c094d83cd749f42ecfbc96e356b60385f18a192c18eafb25b3cc6` | SDRRIDTH-bed |
+| `KEN-IMP` | `impactWood_light_002.ogg` | `b183cf7a5bd783817e0e4b82af34ac6658fa1927049089dadc8b15c2ecc771dc` | SDRRIDTH-bed |
+| `OGA-CRE1` | `alien_03.ogg` | `8e417706c6ca3f7eb99d9500d17bf74ef977d16c540dfa9d695db4721cc30003` | SDSTOSIT |
+| `OGA-CRE1` | `breath.ogg` | `d6ecfd092c261059701fe81581957ce6e67c1737978449bbd98ec6d4f30abb7f` | SDSTOACT, SDHNDACT, SDPZRACT |
+| `OGA-CRE1` | `eat_02.ogg` | `60226fe5e4bf5ced6457f43ef89114a91d8790634a9aebb3c5754768fe04d6ee` | SDHNDATK, SDDGBMEL |
+| `OGA-CRE1` | `hurt_02.ogg` | `b90ca3a0f5f48e1141ec6326f08ebf9f597efb6b2ca4ceeccc285b203c1ccbe1` | SDSTOPAI |
+| `OGA-CRE1` | `hurt_05.ogg` | `4dc63fc62e8604a87baa1f5a74b75d848ccb68ce6e0e34d603dd3cbefc8519ed` | SDDGBPAI |
+| `OGA-CRE1` | `monster_03.ogg` | `1208729886f3f66e7d8018e8880dff073275fd37b30e1016dd5b164161482df1` | SDDGBSIT |
+| `OGA-CRE1` | `monster_06.ogg` | `6b8df01eb7821fb0fcf66b4683a8eb997ca728fded26b6937734b84ff05852f9` | SDSTOSIT |
+| `OGA-CRE1` | `monster_07.ogg` | `5f7d40c4899f2e2e146fe8a0207597d4daf4d304a644ad2e8629057bc49a87e9` | SDSTODTH |
+| `OGA-CRE1` | `roar_02.ogg` | `ceb532ee0fe775d6f86a821099b75f1790ab8022b963cb837c8c1fa4fffee5c2` | SDPZRSIT |
+| `OGA-CRE1` | `scream_02.ogg` | `73aedfbcc7e5b3004507d5a79e95ae53954026036bf8d6f65aa0a4ca298dd372` | SDDGBSIT |
+| `OGA-CRE1` | `spit_02.ogg` | `aa65f01311e914d2861f1992a4e59f431c03edcf020e09961e422728562a2657` | SDDGBMIS |
+| `OGA-CRE2` | `alien_07.ogg` | `da62275c7b3b8fe3fbf8feb318cd030b045a0e598b792a996734d2cedcc1f323` | SDHNDSIT |
+| `OGA-CRE2` | `breath_02.ogg` | `5b32729394cc36667bb8052508115941f21d85804f84ecda4c492d19883cd15e` | SDSTOACT, SDHNDACT, SDPZRACT |
+| `OGA-CRE2` | `die_02.ogg` | `03e0fefd50fe350d0ca16c6ebf121c005290aa26a04a8e8573925bf33d4501d3` | SDHNDDTH |
+| `OGA-CRE2` | `die_03.ogg` | `59f9188919b50d40da3c9dd94e00c2d1c0db915ecc5b2eddfbf574743651c836` | SDHNDDTH |
+| `OGA-CRE2` | `die_04.ogg` | `aad7ac7b49b3dc2c4d929ddc6a5c184c7c188d1a5224b4d88e4f7371c9075f79` | SDPZRDTH |
+| `OGA-CRE2` | `grunt_09.ogg` | `b138762382a073bc661baca09c167bc4b774adfaff32bddffb843e22a66dc1cb` | SDPZRPAI |
+| `OGA-CRE2` | `monster_10.ogg` | `0f7293afd256e035a42255e3a7901df68ca6a4245194179d4091c26cc402f994` | SDHNDPAI |
+| `OGA-CRE2` | `roar_04.ogg` | `4bd8be77b058410e1af9a3a5aa5c62b8ec9ac214672be4ab84180e156e8c0a20` | SDPZRDTH |
+| `OGA-CRE2` | `roar_05.ogg` | `26614607c1683d8bbb82993f285a0d11b6e5ca1ebd5176e6ea552c3e833479f1` | SDPZRSIT |
+| `OGA-CRE2` | `slime_07.ogg` | `687cd1feb815f9e214b20f16000ec5fd52174b03ec0b4da18d1abb20c2c4cbe2` | SDDGBEXP |
+| `OGA-SNARL` | `monster-snarl-attack.ogg` | `34bf1ceef265725abf00ab3263bbbb492792e126bb1619addd4a5d3ad123347f` | SDHNDSIT |
+
+**Two risks for the audition, stated before anyone listens.** (1) The three
+idles of the Stormtrooper, the hound and the Panzermensch start from the same
+two breaths (`breath.ogg`, `breath_02.ogg`), pitched and filtered apart; if
+they read as one creature, one of them changes source. (2) The hound's bite
+and the Doughboy's melee share `eat_02.ogg` under different hits.
+
+### 5.10 Beds: the non-vocal layers of the voice lumps
+
+Four cards above name things that are not a voice under a voice row: the
+Legion's squelch and its "falling carrier, squelch click-off" (5.2), the
+General's "mechanism failure" (5.7), the collapse of a death. With the
+takes postponed (D37) those are built now as **beds**: `<LUMP>-bed` files in
+`work/audio/sfx/enemies/beds/`, not lumps, never in the overlay, mixed under
+the CEO's take when it arrives. A bed starts where the voice starts, so its
+internal offsets are a timing proposal ("the rifle lands 0.52 s after the
+voice begins"); moving them is part of the voice mix.
+
+| Bed | Under | What it is | Length |
+|---|---|---|---|
+| `SDRRIPAI-bed` | rifleman pain | webbing, buckles and sling jolt once | 0.20 s |
+| `SDRRIDTH-bed` | rifleman death | gear at once; at 0.45 s the body falls, the rifle clatters, bounces and settles, the helmet rings | 1.04 s |
+| `SDLTRACT-bed` | trooper idle | `LEGION-RADIO` frame: squelch opens, the channel hisses, squelch closes | 1.42 s |
+| `SDLTRSIT-bed` | trooper sight | short open, hiss, squelch tail | 0.54 s |
+| `SDLTRPAI-bed` | trooper pain | gated static burst and a gear jolt | 0.22 s |
+| `SDLTRDTH-bed` | trooper death | the carrier falls 1.4 kHz to 180 Hz and crushes, the squelch clicks off, the body and gear land | 0.97 s |
+| `SDGENPAI-bed` | General pain | a chrome plate struck, a servo jerks | 0.55 s |
+| `SDGENDTH-bed` | General death | servos wind down, relays chatter, sparks, the hum sags; at 1.55 s the chrome falls and rings out (the cue may ring, §5.7) | 4.14 s |
+
+No bed for the four calls with nothing but a voice in their card
+(`SDRRIACT`, `SDRRISIT`, `SDGENSIT`, `SDGENSUM`).
+
+### 5.11 What these drafts do not cover
+
+- **The twelve voices** (D37), and therefore the final rifleman, trooper and
+  General: until the takes come they keep Freedoom's voices.
+- **Footsteps for the other six actors.** The bestiary contracts one footstep,
+  the Panzermensch's `SDPZRSTP` (H), and nothing else; a step for any other
+  class would be a new lump, a new `SNDINFO` line and an `A_StartSound` in its
+  `See` state (`mod-engineer`'s files), so it is a bestiary change first.
+- **The heavy Panzermensch** (`SD_PanzermenschSchwer`, 8th class) has no lumps:
+  it inherits every state and sound of `SD_Panzermensch` (`BESTIARY.md` §12).
+  If he should sound heavier, the cheap route is a pitch on his `SNDINFO`
+  aliases (`mod-engineer`), not new lumps.
+- **Variation.** One take per lump; GZDoom's random sounds and pitch shift
+  would vary the step and the barks, but their `SNDINFO` syntax is still
+  **NOT VERIFIED** here (§6).
 
 ---
 
@@ -382,6 +578,16 @@ encoding needs a tool: `ffmpeg` is on this PC (chocolatey) and not known on
 the Mac. Alternative: ship 16-bit WAV (≈ 2 MB for 47 one-second sounds), no
 encoder at all. Proposal: WAV for the first audition, OGG for the release.
 
+**As drafted (2026-10-13), superseding the proposal above in two points.**
+(1) **44.1 kHz, not 22.05**: the cracks, sparks and metal rings live above
+the 11 kHz a 22.05 kHz file can hold, and a one-second mono OGG costs about
+10 KB either way (the 35 lumps are 470 KB as OGG q6). GZDoom resamples on
+playback (**ASSUMPTION** from the engine's support of 11 and 22 kHz DMX next to
+44.1 kHz OGG; not checked in the wiki). (2) **OGG from the first audition**:
+`ffmpeg` is here, and the overlay should be what would ship. WAV masters are
+kept beside them. Loudness is matched by a meter, not by ear (§5.9); the ear
+is the CEO's.
+
 **Where things live.** Downloads in `work/audio/sfx_sources/<pack>/`, the
 CEO's voice takes in `work/audio/voice_takes/` (both gitignored through
 `work/`, like the music). Lesson of `SOUNDTRACK.md`: provenance outside
@@ -411,6 +617,29 @@ order "The General: Recruits - advance!" (EN, and its RU twin) and
 German"; both are `mod-engineer`'s files and both predate D36. Listing
 these sources in the sound licence file once any file ships.
 
+**Open after the drafts (2026-10-13), for the PM.**
+
+1. **The CEO's audition** of `docs/art/previews/2026-10-13_2029_F5_enemy-sfx-drafts.html`
+   (taste, stage 4). Recommendation: listen first to `SDHNDSIT` (the
+   bestiary's most important sound), the three launches `SDSTOMIS`,
+   `SDDGBMIS`, `SDPZRMIS` one after the other, and `SDPZRSTP`; then the
+   in-game pass on MAP02 with the overlay (§5.9), which only the PM can run
+   (D26). Cost: about 15 minutes for the page, 10 for the game.
+2. **`KEN-IMP` and the weapons.** The enemy drafts read 17 `KEN-IMP` files
+   (§5.9), which D36 authorised. The weapon drafts being written in parallel
+   (`tools/audio/gen_weapon_sfx.py`, not mine, not committed) deliberately
+   leave `KEN-IMP` out because GameSynth's terms on generated sounds are NOT
+   VERIFIED (§2.1). The two must not ship under different rules. My
+   recommendation is to keep `KEN-IMP` (Kenney's CC0 covers his output, the
+   same position as music made in a commercial DAW); the alternative is
+   swapping those 17 layers for `OGA-100` metal foley, about one session.
+   This is a licence question, so it is the CEO's (authority, stage 4), with
+   `qa-engineer`'s licence audit.
+3. **When a lump is approved**, it goes to `src/sounds/<LUMP>.ogg` and its
+   `SNDINFO` line changes (`mod-engineer`), its sources go to the licence
+   register (the three gibs carry Freedoom's BSD-3 notice), and the
+   engine pass is owed.
+
 ---
 
 ## 8. What was verified, and what was not
@@ -434,8 +663,19 @@ sounds (`KEN-IMP`, §2.1); the terms of any AI voice tool; Freesound individual 
 Sonniss licence; the BBC terms; the ZDoom wiki's SNDINFO syntax (fetch
 failed); that the OGA authors owned every recording; whether the upstream
 `ffmpeg` is on the Mac. In the cards of §5, **PENDING** next to a pack now
-means "downloaded, not yet auditioned".
+means "drafted (§5.9), not yet auditioned by the CEO".
 
-**Engine (D26).** I did not start GZDoom. This is a documentation-only
-change (plus gitignored downloads): no engine pass is owed for it. The first one will be owed when the
-first lumps land.
+**Verified with the drafts (2026-10-13, evening)**, by measurement only:
+lengths against every card, peaks and clipping of every WAV and decoded OGG,
+the class loudness, the spectral claims listed in §5.9, that the route C
+recipes build with no pack and no IWAD present, that two full runs are
+byte-identical (WAVs and overlay PK3), and the SHA-256 of all 40 source files
+(§5.9). **Not verified**: how any draft *sounds*; I cannot listen, and no
+human has yet. Not verified either: that the overlay's `SNDINFO` overrides
+the mod's in GZDoom and that `run.sh` accepts a second `-file` (the music and
+weapon overlays rely on the same two facts; nobody has started the engine
+for this one).
+
+**Engine (D26).** I did not start GZDoom. Nothing entered `src/` or the PK3,
+so no engine pass is owed for the mod; the in-game audition of the overlay
+is the PM's (§7, open point 1).
