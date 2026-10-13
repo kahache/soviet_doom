@@ -13,6 +13,20 @@
 
 set -euo pipefail
 
+# --- engine gate -------------------------------------------------------
+# Running GZDoom opens a window on the CEO's desktop and steals focus. On
+# 2026-10-13 agents were opening three or four windows every twenty seconds
+# and he could not work. macOS GZDoom is a Cocoa app with no documented
+# headless mode, so the only reliable fix is not to run it.
+# AGENTS: do not set this. Verify with `tools/verify.py fast` and say in your
+# summary that the engine run is owed; the PM batches them.
+if [ "${SD_ALLOW_ENGINE:-}" != "1" ]; then
+  echo "run.sh: refusing to start GZDoom (set SD_ALLOW_ENGINE=1 to override)." >&2
+  echo "  Agents: use 'tools/verify.py fast' and report that the engine run is owed." >&2
+  exit 9
+fi
+
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MOD_NAME="sovietdoom"
 PK3="$ROOT/dist/$MOD_NAME.pk3"
