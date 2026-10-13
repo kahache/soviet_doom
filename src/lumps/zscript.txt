@@ -9,7 +9,6 @@ version "4.12"
 
 // --- Systems --------------------------------------------------------------
 #include "zscript/sd/load_reporter.zs"
-#include "zscript/sd/language.zs"   // the mod's options menu (language switch)
 #include "zscript/sd/player.zs"
 #include "zscript/sd/ammo.zs"        // Soviet names for the four Doom ammo pools
 

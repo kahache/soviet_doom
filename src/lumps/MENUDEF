@@ -19,12 +19,38 @@
 // expects their settings to live, and it is the ONLY key this mod ever
 // touches in their config. A mod-owned CVar would be a second source of
 // truth and a second thing written to their file.
-// See docs/engine/adr/004-difficulty-ladder-and-language-switch.md.
+// See docs/engine/adr/004-language-switch-and-difficulty-ladder.md.
 
-// The two values the mod supports, and nothing else: the CEO asked for an
-// explicit choice, not for the system locale to decide. "default" is
-// GZDoom's code for the LANGUAGE section marked `default` (ours is
-// `[enu default]`); "ru" selects `[ru]`.
+// The three values GZDoom's `language` CVar can hold in this mod.
+// "default" is GZDoom's code for the LANGUAGE section marked `default`
+// (ours is `[enu default]`); "ru" selects `[ru]`; "auto" is the engine's
+// own "ask the operating system", and it is the value in every config that
+// has never been touched.
+//
+// WHY "auto" IS IN THE LIST (it was not, until 2026-10-13 - bug E3).
+// An OptionString row whose CVar holds a value absent from its list has
+// nothing to show and GZDoom draws "Unknown"
+// (gzdoom.pk3:zscript/engine/ui/menu/optionmenuitems.zs). The mod used to
+// hide that by having a ZScript OptionMenu subclass overwrite "auto" with
+// the code auto had already resolved to. That subclass is gone and this
+// row is the reason why:
+//
+//   GZDoom allows ZScript to write a CVar ONLY while the engine is
+//   handling menu INPUT. In 4.14.2 `DMenu::InMenu` is raised around
+//   exactly three calls - OnUIEvent, OnInputEvent and MenuEvent
+//   (src/common/menu/menu.cpp:276-327) - and around nothing else. Init,
+//   Ticker and Drawer all run with InMenu == 0, and a CVar write from
+//   there aborts the VM with "Attempt to change CVAR 'language' outside
+//   of menu code". Verified in-engine 2026-10-13 from BOTH hooks.
+//   Opening this screen the ordinary way happened to survive only because
+//   the submenu is built inside the PARENT menu's MenuEvent; `openmenu
+//   SD_OptionsMenu` from the console, or a key bound to it, killed the
+//   game. See docs/engine/adr/004-language-switch-and-difficulty-ladder.md.
+//
+// Declaring the value costs one line and writes nothing, so there is no
+// longer any code of ours that can abort. Choosing English or Russian
+// still writes the CVar - but through the engine's own Option row, during
+// input handling, where it is legal - and the engine archives it.
 //
 // The labels are localized like everything else, so the Russian build names
 // the languages in Russian. They are NOT endonyms ("Русский" inside the
@@ -38,21 +64,106 @@
 // 2026-10-13, GZDoom 4.14.2 aborts during startup (exit 255, the log stops
 // at "M_Init: Init menus.") and the mod never reaches the title screen. The
 // whole game fails to launch over one keyword, so do not "simplify" this.
+
 OptionString "SD_LanguageValues"
 {
+	"auto",    "$SD_LANGVAL_AUTO"
 	"default", "$SD_LANGVAL_EN"
 	"ru",      "$SD_LANGVAL_RU"
 }
 
+// --- The difficulty menu --------------------------------------------------
+// BUG E4, found in-engine 2026-10-13: the fifth rung, "Hero of the Soviet
+// Union, posthumously", ran off the right edge of the screen and read
+// "HERO OF THE SOVIET UNION, POSTHU". The name is the CEO's and is not the
+// thing to change (docs/product/DIFFICULTY-NAMES.md owns it); the font is.
+//
+// GZDoom's skill menu draws its items in the list menu's default font,
+// which for Doom is BigFont - roughly 12 px a character on a 320-wide
+// screen, so about 26 characters fit and the name is 38. `Font` is the one
+// directive that fixes it without touching the words. SmallFont puts all
+// five rungs on screen whole, in red with a gold highlight, which is also
+// the mod's palette.
+//
+// The rest of the block is GZDoom 4.14.2's own IfGame(Doom) branch copied
+// verbatim (gzdoom.pk3/menudef.txt, ListMenu "SkillMenu"), for the same
+// reason as the main menu above: a redeclared LISTMENU replaces the
+// engine's descriptor, so leaving a line out deletes it. The skill ITEMS
+// are not listed because the engine builds them from MAPINFO's `skill`
+// blocks; this descriptor only says where and in what font. Re-diff on an
+// engine upgrade - debt T14.
+LISTMENU "SkillMenu"
+{
+	Font "SmallFont", "Red", "Gold"
+	StaticPatch 96, 14, "M_NEWG", 0, "$MNU_NEWGAME"
+	StaticPatch 54, 38, "M_SKILL", 0, "$MNU_CHOOSESKILL"
+	LineSpacing 12
+	Position 48, 63
+}
+
+// --- The main menu logo ---------------------------------------------------
+// BUG E1 (found by the CEO on docs/qa/evidence/2026-10-13_0100_F2_title-and-menu.png):
+// on the title screen the menu's M_DOOM block did not land on the name block
+// painted into TITLEPIC, and a "CO" of the latter showed past its left edge.
+//
+// It was this lump's fault, not the art's. `art-director` generates both
+// images from one lockup and records where the loose copy belongs:
+// work/art/shell/manifest.json says M_DOOM goes at x=60, y=0 of the 320x200
+// screen. Measured 2026-10-13: overlaying assets/graphics/shell/M_DOOM.png
+// on TITLEPIC.png at (60,0) gives a mean per-channel difference of 6, and
+// 22 or more at every neighbouring offset - so the art is exact and the
+// manifest is right.
+//
+// GZDoom, however, was never told. Its own gzdoom.pk3/menudef.txt declares
+//     LISTMENU "MainMenu" { ... StaticPatch 94, 2, "M_DOOM" ... }
+// and a mod that ships no MainMenu of its own inherits those numbers: the
+// logo was drawn 34 px right and 2 px down of where it was drawn into
+// TITLEPIC. The whole fix is the StaticPatch line below.
+//
+// WHY THE WHOLE MENU IS REPEATED FOR ONE NUMBER. There is no "move that
+// item" directive: ADDLISTMENU only APPENDS, which here would draw a SECOND
+// logo and leave the misplaced one in place. Redeclaring a LISTMENU replaces
+// the engine's descriptor outright (verified in-engine 2026-10-13: five
+// items, not ten), so every item has to be restated. The body below is
+// GZDoom 4.14.2's own IfGame(Doom) branch copied verbatim, including the
+// IfOption tests, so a player's "swap menu" and "show ReadThis" settings
+// keep working. Re-diff it against gzdoom.pk3/menudef.txt when the engine
+// is upgraded.
+//
+// The item graphics (M_NGAME, M_OPTION...) are still Freedoom's red Doom
+// lettering. Replacing them is art's call, not this lump's; debt T12.
+LISTMENU "MainMenu"
+{
+	LineSpacing 16
+	StaticPatch 60, 0, "M_DOOM"
+	Position 97, 72
+	IfOption(ReadThis)
+	{
+		Position 97, 64
+	}
+
+	PatchItem "M_NGAME", "n", "PlayerclassMenu"
+	IfOption(SwapMenu)
+	{
+		PatchItem "M_LOADG", "l", "LoadGameMenu", 0
+		PatchItem "M_SAVEG", "s", "SaveGameMenu", 0
+		PatchItem "M_OPTION", "o", "OptionsMenu", 0
+	}
+	else
+	{
+		PatchItem "M_OPTION", "o", "OptionsMenu", 0
+		PatchItem "M_LOADG", "l", "LoadGameMenu", 0
+		PatchItem "M_SAVEG", "s", "SaveGameMenu", 0
+	}
+	IfOption(ReadThis)
+	{
+		PatchItem "M_RDTHIS", "r", "ReadThisMenu", 0
+	}
+	PatchItem "M_QUITG", "q", "QuitMenu", 0
+}
+
 OptionMenu "SD_OptionsMenu"
 {
-	// `Class` hands the screen to a ZScript OptionMenu subclass. The only
-	// thing it adds is replacing a `language` of "auto" with the code "auto"
-	// already resolved to, so this row never reads "Unknown" on a config
-	// nobody has touched. It has to live here, in menu code: GZDoom 4.14.2
-	// aborts the VM if the `language` CVar is written from anywhere else
-	// (verified in-engine 2026-10-13). See zscript/sd/language.zs.
-	Class "SD_LanguageMenu"
 	Title "$SD_OPTMNU_TITLE"
 	Option "$SD_OPTMNU_LANGUAGE", "language", "SD_LanguageValues"
 	StaticText " "
@@ -62,8 +173,47 @@ OptionMenu "SD_OptionsMenu"
 	StaticText "$SD_OPTMNU_LANGWARN"
 }
 
-AddOptionMenu "OptionsMenu"
+// --- Getting there --------------------------------------------------------
+// BUG E2, found in-engine 2026-10-13: the mod's screen was attached to
+// "OptionsMenu" alone, and the player could not reach it. GZDoom ships TWO
+// options screens - the long one ("OptionsMenu", gzdoom.pk3/menudef.txt) and
+// a short one for newcomers ("OptionsMenuSimple", gzdoom.pk3/menudef.zsimple)
+// - and picks between them at the moment the item is activated:
+//
+//     case NAME_Optionsmenu:
+//         if (m_simpleoptions) menu = NAME_OptionsmenuSimple;
+//                       -- gzdoom 4.14.2, src/menu/doommenu.cpp:271
+//
+// `m_simpleoptions` is archived and defaults to TRUE, so on a fresh install
+// "Options" opens the SHORT screen and our entry, appended to the long one,
+// was nowhere. The player found it only after turning the simple menu off,
+// or through "Full options menu". Both screens therefore get the entry.
+//
+// This is append, not replace: a protected menu rejects Command and
+// SafeCommand from a mod but accepts Submenu, Option and StaticText.
+//
+// AddOptionMenu on a name the engine does not define is a hard parse error
+// ("%s is not an option menu that can be extended", menudef.cpp:1249), so
+// both names below are load-bearing: if a future GZDoom drops the simple
+// menu, this lump stops loading until the line goes. Debt T13.
+//
+// `BEFORE "os_Menu"` puts the entry in the MIDDLE of the list instead of
+// appending it. Appending looked right and was not: both screens already
+// run to the bottom of a 200-line screen, and the new row landed under the
+// last visible one - present, reachable by scrolling, and invisible to
+// anyone who did not know to scroll (seen in-engine 2026-10-13).
+// "os_Menu" is the Option Search entry, which both screens have; the
+// engine matches on an item's ACTION, and when it finds no match it
+// silently appends instead of failing (GetInsertIndex, menudef.cpp:802),
+// so a renamed anchor degrades to the old behaviour rather than breaking.
+AddOptionMenu "OptionsMenuSimple" BEFORE "os_Menu"
 {
-	StaticText " "
 	Submenu "$SD_OPTMNU_TITLE", "SD_OptionsMenu"
+	StaticText " "
+}
+
+AddOptionMenu "OptionsMenu" BEFORE "os_Menu"
+{
+	Submenu "$SD_OPTMNU_TITLE", "SD_OptionsMenu"
+	StaticText " "
 }

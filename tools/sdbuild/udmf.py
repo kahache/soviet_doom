@@ -379,7 +379,13 @@ class LineStyle:
     `texture` overrides the GridMap's wall texture on this segment's two
     sidedefs. A surface the player is meant to press has to look different
     from the wall next to it; that is not decoration, it is the only thing
-    telling him the door is a door.
+    telling him the door is a door. It is also how a single wall run gets a
+    texture of its own - the red route stripe of MAP01, say - without
+    changing the room it belongs to.
+
+    `peg_bottom` is the tri-state override of the GridMap's floor-pegging
+    default (see `GridMap.peg_bottom`). A door leaf MUST set it False: the
+    leaf is an upper texture that has to ride up with the door's ceiling.
     """
 
     special: int = 0
@@ -387,6 +393,7 @@ class LineStyle:
     flags: tuple[str, ...] = ()
     back_sector: int | None = None
     texture: str | None = None
+    peg_bottom: bool | None = None
 
     def __post_init__(self) -> None:
         unknown = [f for f in self.flags if f not in LINEDEF_FLAGS]
@@ -434,11 +441,45 @@ class GridMap:
       are merged back into one linedef, so the output stays readable.
     """
 
-    def __init__(self, textmap: TextMap, wall: str):
+    def __init__(self, textmap: TextMap, wall: str, peg_bottom: bool = True):
         self.tm = textmap
         self.wall = wall
+        # Floor pegging. Doom aligns a wall texture to the CEILING by
+        # default, so in any room that is not an exact multiple of the
+        # texture height the cut panel lands on the floor - a half panel
+        # with its grime line floating in mid-air. Pegged to the floor
+        # instead (`dontpegbottom`), panels stack up from the ground the way
+        # they were poured and the cut hides at the ceiling. It also puts
+        # SDCONC2's red stripe at the same height in every room, which is
+        # the whole point of having a stripe.
+        self.peg_bottom = peg_bottom
         self._paints: list[_Paint] = []
         self._rules: list[_Rule] = []
+        # Per-sector wall texture.
+        #
+        # A ONE-SIDED wall wears the material of the room it encloses: you
+        # are inside that room looking at its own wall.
+        #
+        # A TWO-SIDED line wears the material of the OTHER sector, because
+        # that is whose structure you are looking at. The lower part of a
+        # sidedef is the flank of the neighbour's raised floor - the side of
+        # the transporter cradle, the front of the catwalk - and its upper
+        # part is the flank of the neighbour's dropped ceiling, i.e. the
+        # lintel over a doorway. Dressing those in the material of the room
+        # you are standing in is the classic way to get a steel catwalk with
+        # a concrete face. So: `wall_of(the sector across the line)`.
+        self._walls: dict[int, str] = {}
+
+    def set_wall(self, sector: int, texture: str) -> None:
+        """Give one sector's own sidedefs a wall texture of their own."""
+        self._walls[sector] = texture
+
+    def set_walls(self, texture: str, sectors: Iterable[int]) -> None:
+        for sector in sectors:
+            self.set_wall(sector, texture)
+
+    def wall_of(self, sector: int | None) -> str:
+        return self._walls.get(sector, self.wall) if sector is not None else self.wall
 
     # --- input ------------------------------------------------------------
     def paint(self, sector: int, x1: int, y1: int, x2: int, y2: int) -> None:
@@ -581,9 +622,15 @@ class GridMap:
         v1 = self.tm.vertex(*points[0])
         v2 = self.tm.vertex(*points[1])
         flags = set(style.flags)
-        wall = style.texture or self.wall
+        # One-sided: own material. Two-sided: the neighbour's (see __init__).
+        front_wall = style.texture or self.wall_of(
+            front_sector if back_sector is None else back_sector)
+        back_wall = style.texture or self.wall_of(front_sector)
+        peg = self.peg_bottom if style.peg_bottom is None else style.peg_bottom
+        if peg:
+            flags.add("dontpegbottom")
         if back_sector is None:
-            front = self.tm.add_sidedef(Sidedef(sector=front_sector, texturemiddle=wall))
+            front = self.tm.add_sidedef(Sidedef(sector=front_sector, texturemiddle=front_wall))
             back_index = None
             flags.add("blocking")
         else:
@@ -594,10 +641,10 @@ class GridMap:
             # left pegged (no `dontpegtop`) so the texture rides up with the
             # ceiling and the leaf looks like it slides.
             front = self.tm.add_sidedef(
-                Sidedef(sector=front_sector, texturetop=wall, texturebottom=wall)
+                Sidedef(sector=front_sector, texturetop=front_wall, texturebottom=front_wall)
             )
             back_index = self.tm.add_sidedef(
-                Sidedef(sector=back_sector, texturetop=wall, texturebottom=wall)
+                Sidedef(sector=back_sector, texturetop=back_wall, texturebottom=back_wall)
             )
             flags.add("twosided")
         self.tm.add_linedef(
@@ -628,6 +675,7 @@ def door_raise_style(tag: int, door_sector: int, speed: int = DOOR_SPEED_SLOW,
         flags=("playeruse", "repeatspecial"),
         back_sector=door_sector,
         texture=texture,
+        peg_bottom=False,   # the leaf is an upper texture: it rides with the door
     )
 
 
@@ -640,12 +688,13 @@ def door_open_style(tag: int, door_sector: int, speed: int = DOOR_SPEED_SLOW,
         flags=("playeruse", "repeatspecial"),
         back_sector=door_sector,
         texture=texture,
+        peg_bottom=False,   # the leaf is an upper texture: it rides with the door
     )
 
 
 def remote_door_style(door_sector: int, texture: str | None = None) -> LineStyle:
     """A door that only a switch opens: no special, just the leaf's face."""
-    return LineStyle(back_sector=door_sector, texture=texture)
+    return LineStyle(back_sector=door_sector, texture=texture, peg_bottom=False)
 
 
 def switch_door_open_style(tag: int, speed: int = DOOR_SPEED_SLOW,
