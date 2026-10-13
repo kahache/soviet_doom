@@ -97,3 +97,25 @@ imitate in spirit — poster grotesque, GOST drawing lettering, slab machinery
 
 Coverage: А-Я and Ё, A-Z, 0-9, and the punctuation the project uses including
 «» × · №, at both sizes.
+
+## Batch 2 — switches (F2, all four approved by the CEO 2026-10-13)
+
+The CEO took all four rather than one: "yo por mí mete todos, así tenemos
+diversidad". Doom's own convention is followed for the names, 1 = off and
+2 = on, with the variant letter last.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDSW1A` / `SDSW2A` | Rubilnik: knife blade on a cream bakelite board, brass jaws, red grip, indicator lamp below | (a) `tools/art/gen_switch.py` variant A, palette v1 | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `SDSW1B` / `SDSW2B` | Domed push button, red when dead, cream lens when live | (a) idem, variant B | idem |
+| `SDSW1C` / `SDSW2C` | Round lens over a vertical slide lever | (a) idem, variant C | idem |
+| `SDSW1D` / `SDSW2D` | Hazard-bordered panel, window and travelling block | (a) idem, variant D | idem |
+
+Direction finding from this batch, worth keeping: the palette's liveliest red
+has luma 104 and `SDSTEL1` has 101, so **a red element on the steel wall
+disappears the moment the sector light drops**. The live state is therefore
+carried by a cream lens (45 → 235), not by colour.
+
+Variant A had to be relaid: its board, its painted word and its lamp
+overlapped. The three boxes are now stacked bottom-up with declared gaps and
+`gen_switch.py` refuses to import if they ever touch again.

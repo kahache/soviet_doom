@@ -245,10 +245,18 @@ class ApprovedAssetsTests(unittest.TestCase):
                 self.assertTrue(any(q.read_bytes() == p.read_bytes() for q in same),
                                 f"{p}: matches no generated variant")
                 continue
-            if not sources and p.relative_to(ASSETS_DIR).parts[0] == "graphics":
-                # Shell screens are renamed on the way in: the generator writes
-                # TITLEPIC_A / INTERPIC_C and the CEO's choice (D18) decides
-                # which one takes the engine's fixed name.
+            if not sources:
+                # Some assets are RENAMED on the way in, because the generator
+                # names by variant and the engine names by role: the shell
+                # screens (TITLEPIC_A -> TITLEPIC, D18) and the switches
+                # (SDSWT_B_off -> SDSW1B). The contract is still that nothing
+                # reaches assets/ that the pipeline did not produce, so the
+                # bytes must match some generated file even when the name does
+                # not.
+                blob = p.read_bytes()
+                self.assertTrue(
+                    any(q.read_bytes() == blob for q in WORK_ART_DIR.rglob("*.png")),
+                    f"{p}: matches no file generated under work/")
                 continue
             self.assertEqual(len(sources), 1, f"{p.name}: expected one source in work/, got {sources}")
             self.assertEqual(p.read_bytes(), sources[0].read_bytes(), f"{p} differs from {sources[0]}")

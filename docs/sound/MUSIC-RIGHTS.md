@@ -352,6 +352,42 @@ in `docs/sound/SOUNDTRACK.md`; this table is only about rights.
 | BitMidi, MIDIWorld, Midis101, hamienet, MidiShow, rusmidi.com, geocities mirrors | no per-file licence, no named sequencer — §1.2 |
 | MuseScore.com scores of *Смело, товарищи, в ногу* and others | licence not machine-verifiable (HTTP 403 to automated access, 2026-10-13); and an uploader-declared CC0 on a sequencing whose provenance we cannot read is not a verifiable licence |
 
+#### 4.4.1 A gap in this audit, stated rather than hidden
+
+The **per-piece Mutopia URL was recorded only for *Night on Bald Mountain***
+(`piece-info.cgi?id=1892`). For the other seven Mutopia files the licence was
+read from the per-piece record on 2026-10-13, but the record's address was not
+written down, and the files themselves carry no provenance beyond
+`creator: GNU LilyPond <version>` (verified 2026-10-13 by extracting every
+text meta event: no composer, no URL, no licence string in any of them).
+
+All seven are **Public Domain**, so no attribution duty is at risk — but a
+public-domain claim whose page we cannot point at is a claim resting on one
+agent's memory, which this project does not accept as a source. **Action,
+before any of those seven is packed: re-verify each piece record and write its
+URL into the table above.** The file that carries a real attribution
+obligation, Bald Mountain, is the one that is fully sourced.
+
+#### 4.4.2 Files we derived from the downloads
+
+Our mechanical repairs (`tools/audio/midi_edit.py`; what and why in
+`SOUNDTRACK.md` §5) create **derivative sequencings**. Every accepted licence
+permits that — CC0 and PD outright, `{{Attribution}}` and CC BY 3.0 subject to
+credit — and **the duty to credit survives the edit**:
+
+| Our file | Derived from | Edit | Licence position |
+|---|---|---|---|
+| `work/audio/D_SDINTL.mid` | `WM_Internationale_orch2.mid` | `--trim-head`: 2 863 ticks (1.99 s) of leading silence removed. No pitch, duration, tempo or instrument changed | melody `{{PD-Internationale}}`; sequencing still `{{Attribution\|Jerry Engelbach}}` — **shipping this obliges us to credit Jerry Engelbach**. Our edit adds nothing we would license separately |
+| `work/audio/D_SDFIX3.mid` | `MU_Scriabin_Etude_op2n1.mid` | `--velocity 0.85` (fixes clipping) | composition PD, sequencing PD → **no obligation** |
+| `work/audio/D_SDFIX7.mid` | `MU_Tchaikovsky_Seasons_August.mid` | `--velocity 0.85 --trim-head` | composition PD, sequencing PD → **no obligation** |
+
+Where we go further than a mechanical repair — assigning instruments to a
+Mutopia score preview, cutting it to length, re-harmonising — the result is
+**our arrangement**, licensed like the rest of our assets under
+**CC BY-NC-SA 4.0** (D15), with the underlying sequencing credited where its
+licence requires it. The originals in `work/audio/candidates/` are never
+overwritten, so provenance stays checkable.
+
 **Not a MIDI, but worth recording:** IMSLP's two *synthesised performances* of
 Tchaikovsky's **Marche slave** (Brandon Amaro, 2024; Quinn Mason, 2014) are
 both **CC BY 4.0** and therefore usable — but they are **MP3 renders, not
@@ -368,7 +404,7 @@ orchestration, that is the route; it is a size decision, not a rights one.
 
 | Priority | Work | Route | Where it goes |
 |---|---|---|---|
-| 1 | **Интернационал / The Internationale** | **downloaded, 2026-10-13**: Engelbach's orchestral MIDI from Commons, attribution-only (§4.4). Sequencing from the IMSLP score is no longer necessary | title screen, finale |
+| 1 | **Интернационал / The Internationale** | **downloaded, 2026-10-13**: Engelbach's orchestral MIDI from Commons, attribution-only (§4.4), repaired by us as `work/audio/D_SDINTL.mid` (§4.4.2). Sequencing from the IMSLP score is **not** necessary — it stays as the fallback only if the CEO dislikes Engelbach's orchestration itself | title screen (CEO's choice, 2026-10-13), finale |
 | 2 | **Tchaikovsky, Marche slave** | no free MIDI exists. Either IMSLP's CC BY 4.0 synthesised **MP3** (§4.4), or we sequence it from the PD score | main theme / MAP01 |
 | 3 | **Mussorgsky, Night on Bald Mountain** | CC0/PD recording | alien-infested areas |
 | 4 | **Scriabin** (Sonata No. 9, *Prometheus*) | CC0/PD recording | dread ambience, Fourth Reich zones |
@@ -421,12 +457,19 @@ Declared here so `mod-engineer` and `level-designer` can plan; no files exist ye
   and `$musicalias`); the MAPINFO `music` key and `$musicalias` entries are the
   interface.
 - **Licence register**: every music lump gets a row in `docs/art/LICENSES.md` (or a
-  sibling `docs/sound/LICENSES.md` if the CEO prefers a split) with origin, licence,
+  **`LICENSES.md` of its own under `docs/sound/`**, which does not exist yet,
+  if the CEO prefers a split) with origin, licence,
   and a link back to the row in this table.
 
 ---
 
 ## 7. Decisions needed from the CEO
+
+> **The live list of music decisions is `docs/sound/SOUNDTRACK.md` §8**, which
+> owns "what plays where" and was closed on 2026-10-13. What follows is only
+> the part that is a *rights* question, and point 0 below is the same decision
+> as SOUNDTRACK §8.0 seen from the licence side. Point 1 is superseded in
+> practice; points 2-4 are still open.
 
 0. **Attribution.** Two of the twelve candidates (§4.4) are attribution-only,
    not public domain: shipping Engelbach's Internationale obliges us to credit
