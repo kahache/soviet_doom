@@ -141,6 +141,51 @@ SD_LANGVAL_AUTO = "Automatic (system)";
 SD_LANGVAL_EN = "English";
 SD_LANGVAL_RU = "Russian";
 
+// --- Credits (G6; MENUDEF "SD_CreditsMenu", docs/engine/adr/009-in-game-credits.md)
+// One id per screen line, at most 40 characters: an option-menu row does not
+// wrap. Read in order, the lines make sentences. The MUSIC_* lines are the
+// credit Jerry Engelbach's licence obliges, word for word as
+// docs/sound/MUSIC-RIGHTS.md 4.5 gives it; tests/test_credits.py rejoins
+// them and compares, and fails when a licence register gains an attribution
+// that these lines do not carry. Change the register first, then this.
+
+SD_CRED_TITLE     = "Credits";
+
+SD_CRED_H_TEAM    = "Made by";
+SD_CRED_TEAM_1    = "the Soviet Doom project";
+SD_CRED_TEAM_2    = "Code: GNU GPL 3.0 or later";
+SD_CRED_TEAM_3    = "Art, sound, maps and text";
+SD_CRED_TEAM_4    = "under CC BY-NC-SA 4.0";
+
+SD_CRED_H_MUSIC   = "Music";
+SD_CRED_MUSIC_1   = "The Internationale (title music):";
+SD_CRED_MUSIC_2   = "composed by Pierre De Geyter (1888),";
+SD_CRED_MUSIC_3   = "public domain;";
+SD_CRED_MUSIC_4   = "MIDI sequence by Jerry Engelbach,";
+SD_CRED_MUSIC_5   = "used under his attribution licence";
+SD_CRED_MUSIC_6   = "(Wikimedia Commons,";
+SD_CRED_MUSIC_7   = "File:Internationale_orch2.mid).";
+SD_CRED_MUSIC_8   = "Radio: Ey, ukhnem and Kolokolchik;";
+SD_CRED_MUSIC_9   = "MIDI sequences by Peter Gerloff, CC0.";
+
+SD_CRED_H_ENGINE  = "Engine";
+SD_CRED_ENGINE_1  = "GZDoom (zdoom.org), GNU GPL 3.0,";
+SD_CRED_ENGINE_2  = "by the GZDoom and ZDoom developers,";
+SD_CRED_ENGINE_3  = "based on the Doom source code";
+SD_CRED_ENGINE_4  = "released by id Software.";
+
+SD_CRED_H_IWAD    = "Game data";
+SD_CRED_IWAD_1    = "Freedoom (freedoom.github.io),";
+SD_CRED_IWAD_2    = "by the Contributors to the Freedoom";
+SD_CRED_IWAD_3    = "project, modified BSD licence.";
+SD_CRED_IWAD_4    = "Placeholder sprites and sounds";
+SD_CRED_IWAD_5    = "are read from the IWAD, not copied.";
+
+SD_CRED_H_SOURCES = "Sources";
+SD_CRED_SRC_1     = "Lenin poster after a photograph";
+SD_CRED_SRC_2     = "by Pavel Zhukov (1920),";
+SD_CRED_SRC_3     = "public domain.";
+
 // --- Main menu and skill screen (D31, 2026-10-13) --------------------------
 // Drawn in the menu font SDMENU (MENUDEF; docs/engine/MOD-SPEC.md 6.6), which
 // shows R, N, E, W and A with Cyrillic forms (D22): "NEW GAME" reads
@@ -266,6 +311,49 @@ SD_OPTMNU_LANGHELP = "Применяется сразу. Сохраняется 
 SD_LANGVAL_AUTO = "Автоматически (система)";
 SD_LANGVAL_EN = "Английский";
 SD_LANGVAL_RU = "Русский";
+
+// --- Авторы (G6) -----------------------------------------------------------
+// Одна строка экрана на id, не длиннее 40 знаков. Имена, которых требует
+// лицензия, остаются и латиницей: Jerry Engelbach. NOT VERIFIED (для
+// translator-ru): «MIDI-секвенция» взята из LICENSE.md; «Авторы» как
+// заголовок экрана титров; «Движок»; «Петер Герлофф» (Peter Gerloff).
+
+SD_CRED_TITLE     = "Авторы";
+
+SD_CRED_H_TEAM    = "Создатели";
+SD_CRED_TEAM_1    = "проект Soviet Doom";
+SD_CRED_TEAM_2    = "Код: GNU GPL 3.0 или новее";
+SD_CRED_TEAM_3    = "Графика, звук, карты и тексты";
+SD_CRED_TEAM_4    = "по лицензии CC BY-NC-SA 4.0";
+
+SD_CRED_H_MUSIC   = "Музыка";
+SD_CRED_MUSIC_1   = "«Интернационал» (музыка заставки):";
+SD_CRED_MUSIC_2   = "композитор Пьер Дегейтер (1888),";
+SD_CRED_MUSIC_3   = "общественное достояние;";
+SD_CRED_MUSIC_4   = "MIDI-секвенция: Джерри Энгельбах";
+SD_CRED_MUSIC_5   = "(Jerry Engelbach), по его лицензии";
+SD_CRED_MUSIC_6   = "с указанием авторства (Викисклад,";
+SD_CRED_MUSIC_7   = "файл Internationale_orch2.mid).";
+SD_CRED_MUSIC_8   = "Радио: «Эй, ухнем» и «Колокольчик»;";
+SD_CRED_MUSIC_9   = "MIDI: Петер Герлофф (Peter Gerloff), CC0";
+
+SD_CRED_H_ENGINE  = "Движок";
+SD_CRED_ENGINE_1  = "GZDoom (zdoom.org), лицензия GPL 3.0.";
+SD_CRED_ENGINE_2  = "Авторы - команды GZDoom и ZDoom;";
+SD_CRED_ENGINE_3  = "основан на исходном коде Doom,";
+SD_CRED_ENGINE_4  = "открытом компанией id Software.";
+
+SD_CRED_H_IWAD    = "Игровые данные";
+SD_CRED_IWAD_1    = "Freedoom (сайт freedoom.github.io),";
+SD_CRED_IWAD_2    = "авторы - участники проекта Freedoom,";
+SD_CRED_IWAD_3    = "модифицированная лицензия BSD.";
+SD_CRED_IWAD_4    = "Временные спрайты и звуки";
+SD_CRED_IWAD_5    = "читаются из IWAD, а не копируются.";
+
+SD_CRED_H_SOURCES = "Источники";
+SD_CRED_SRC_1     = "Плакат с Лениным - по фотографии";
+SD_CRED_SRC_2     = "Павла Жукова (1920),";
+SD_CRED_SRC_3     = "общественное достояние.";
 
 // --- Главное меню и экран сложности (D31, 2026-10-13) ----------------------
 // Шрифт SDMENU; кириллица в нём не меняется. ЗАГЛАВНЫЕ - строчных глифов нет.

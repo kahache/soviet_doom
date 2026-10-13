@@ -259,6 +259,82 @@ OptionMenu "SD_OptionsMenu"
 	Option "$SD_OPTMNU_LANGUAGE", "language", "SD_LanguageValues"
 	StaticText " "
 	StaticText "$SD_OPTMNU_LANGHELP"
+	StaticText " "
+	Submenu "$SD_CRED_TITLE", "SD_CreditsMenu"
+}
+
+// --- Credits (G6) -------------------------------------------------------------
+// The in-game credits: Options -> Soviet Doom -> Credits. The reasoning, and
+// the options it was chosen against (a main-menu item, the F1 help pages,
+// a text screen after the ending), are in
+// docs/engine/adr/009-in-game-credits.md; the contract is
+// docs/engine/MOD-SPEC.md 6.8.
+//
+// WHY AN OPTION MENU. The main menu, the skill screen and the episode screen
+// are the CEO's approved text menu (D31/D32); a new row there changes what
+// he approved. Our own option screen above already exists, so the credits
+// cost one row on a screen of ours and nothing on his. An option menu also
+// suits the text: every StaticText row is centred (OptionMenuItem.drawLabel,
+// gzdoom.pk3:zscript/engine/ui/menu/optionmenuitems.zs:56-66) and drawn in
+// the engine's NewSmallFont (Menu.OptionFont, menu.zs:346-349), which has
+// Cyrillic of its own, so both languages print without our alphabet. A row
+// with `, 1` takes the header colour (optionmenuitems.zs:592-598), the same
+// form the engine uses (`StaticText "$SCALEMNU_OVERRIDE", 1`, menudef.txt).
+//
+// ONE LANGUAGE ID PER LINE. A StaticText row is one line: it does not wrap
+// and a "\n" inside it would draw over the next row. LANGUAGE splits every
+// credit into lines of at most 40 characters (tests/test_credits.py), and
+// both languages have the same ids in the same order, so this list serves
+// both. Credits that a licence obliges are checked against the licence
+// registers by that test; the Internationale line is Jerry Engelbach's,
+// word for word as docs/sound/MUSIC-RIGHTS.md 4.5 gives it; Peter Gerloff's
+// CC0 radio sequences need no credit and get one as a courtesy (ADR 009).
+//
+// SCROLLING. The list is longer than one screen at most resolutions. The
+// mouse wheel and Page Down scroll a menu with no selectable row
+// (OptionMenu.OnUIEvent / MenuEvent, optionmenu.zs:185-206, 343-355); the
+// arrow keys move a selection and there is none. The obligatory lines are
+// at the top, so they are on the first screen either way. NOT VERIFIED in
+// the engine: how many rows the first screen shows, and that a 40-character
+// line fits the narrowest clean width (the PM's engine pass, D26).
+OptionMenu "SD_CreditsMenu"
+{
+	Title "$SD_CRED_TITLE"
+	StaticText "$SD_CRED_H_TEAM", 1
+	StaticText "$SD_CRED_TEAM_1"
+	StaticText "$SD_CRED_TEAM_2"
+	StaticText "$SD_CRED_TEAM_3"
+	StaticText "$SD_CRED_TEAM_4"
+	StaticText " "
+	StaticText "$SD_CRED_H_MUSIC", 1
+	StaticText "$SD_CRED_MUSIC_1"
+	StaticText "$SD_CRED_MUSIC_2"
+	StaticText "$SD_CRED_MUSIC_3"
+	StaticText "$SD_CRED_MUSIC_4"
+	StaticText "$SD_CRED_MUSIC_5"
+	StaticText "$SD_CRED_MUSIC_6"
+	StaticText "$SD_CRED_MUSIC_7"
+	StaticText " "
+	StaticText "$SD_CRED_MUSIC_8"
+	StaticText "$SD_CRED_MUSIC_9"
+	StaticText " "
+	StaticText "$SD_CRED_H_ENGINE", 1
+	StaticText "$SD_CRED_ENGINE_1"
+	StaticText "$SD_CRED_ENGINE_2"
+	StaticText "$SD_CRED_ENGINE_3"
+	StaticText "$SD_CRED_ENGINE_4"
+	StaticText " "
+	StaticText "$SD_CRED_H_IWAD", 1
+	StaticText "$SD_CRED_IWAD_1"
+	StaticText "$SD_CRED_IWAD_2"
+	StaticText "$SD_CRED_IWAD_3"
+	StaticText "$SD_CRED_IWAD_4"
+	StaticText "$SD_CRED_IWAD_5"
+	StaticText " "
+	StaticText "$SD_CRED_H_SOURCES", 1
+	StaticText "$SD_CRED_SRC_1"
+	StaticText "$SD_CRED_SRC_2"
+	StaticText "$SD_CRED_SRC_3"
 }
 
 // --- Getting there --------------------------------------------------------
