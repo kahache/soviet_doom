@@ -19,7 +19,7 @@ game's tone stays serious (D11); this is the one joke the form invites.
 | 4 | No pasarán, comrades | Но пасаран, товарищи | Set C. The Spanish Republican slogan the real children of the war carried into Soviet exile; it ties D10 to the hard setting |
 | 5 | Hero of the Soviet Union, posthumously | Герой Советского Союза, посмертно | Set B. Doom's Nightmare respawns monsters, so the joke is that you are signing up to die and the paperwork already knows |
 
-## The one open swap
+## A swap that stays available (not pending: D20 is ratified)
 
 Skill 5 could instead be **"Pyatiletka in one night" / «Пятилетку за одну
 ночь»** (set A), the production-quota joke. Posthumous Hero is darker and
@@ -32,8 +32,9 @@ one-line change.
 `MAPINFO` skill definitions with `Name = "$SD_SKILL_N"`, strings in `LANGUAGE`
 under `[enu default]` and `[ru]`.
 
-**The Russian will not render until the Cyrillic font lands** (debt T9, in
-progress): Freedoom's font is ASCII only and GZDoom hides its Cyrillic glyphs
-behind a filter that needs an id Software IWAD. Until then the `[ru]` lines
-are written and correct but display with gaps. This is the same blocker as
-the language switch below.
+**The Russian renders since 2026-10-13** (D24, alphabet C, 214 glyphs; debt
+T9 paid): the ladder is on screen in both languages
+(`docs/qa/evidence/2026-10-13_0955_F2_skill-ladder-en.png`,
+`docs/qa/evidence/2026-10-13_1007_F2_mainmenu-ru.png`). Before that,
+Freedoom's ASCII-only font showed the `[ru]` lines with gaps, the same
+blocker the language switch had.

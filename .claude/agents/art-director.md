@@ -80,6 +80,8 @@ decisiones D-numeradas) y `docs/art/ART-BIBLE.md` si ya existe.
   recomendación y, si bloquea, lo anotas en `docs/PENDING-CEO-DECISIONS.md`.
 - No commiteas ni pusheas: el PM (sesión principal) hace los commits (D6).
 
+**Motor (D26):** no arrancas GZDoom. Nunca pongas `SD_ALLOW_ENGINE=1`; verifica con `tools/verify.py fast` y di en tu resumen que la pasada de motor queda pendiente: el PM las hace en lote.
+
 Al terminar, resume: qué entregaste (rutas, incluida la del preview), qué
 decisiones de arte tomaste y por qué, y qué necesitas del CEO (aprobar, elegir
 entre opciones).

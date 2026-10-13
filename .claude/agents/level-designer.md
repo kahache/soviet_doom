@@ -61,6 +61,8 @@ un actor, PARA y pídelo en tu respuesta final en vez de improvisar.
 - No cambias decisiones D. No commiteas ni pusheas: el PM (sesión principal) hace
   los commits (D6).
 
+**Motor (D26):** no arrancas GZDoom. Nunca pongas `SD_ALLOW_ENGINE=1`; verifica con `tools/verify.py fast` y di en tu resumen que la pasada de motor queda pendiente: el PM las hace en lote.
+
 Al terminar, resume: qué se puede jugar ya y cómo (comando exacto de GZDoom
 con `-file` y `+map`), qué falta para el gate de la fase, y qué necesitas de
 `art-director` o `mod-engineer`.

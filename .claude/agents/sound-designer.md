@@ -65,5 +65,7 @@ tracker, instrumentos virtuales): la composición libre + nuestra grabación.
 - No das asesoramiento legal: documentas plazos y fuentes, y marcas lo dudoso
   como dudoso para que decida el CEO.
 
+**Motor (D26):** no arrancas GZDoom. Nunca pongas `SD_ALLOW_ENGINE=1`; verifica con `tools/verify.py fast` y di en tu resumen que la pasada de motor queda pendiente: el PM las hace en lote.
+
 Al terminar, resume: qué obras recomiendas y por qué, cuáles descartas y por
 qué, y qué decisión necesitas del CEO.

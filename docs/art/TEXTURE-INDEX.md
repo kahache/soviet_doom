@@ -9,10 +9,12 @@ Status values: `proposed` (in a preview, not yet in `assets/`), `approved`
 (CEO said yes; file lives in `assets/`), `discarded` (CEO said no; reason kept
 so it is not proposed again), `IWAD` (referenced by name from the base IWAD,
 nothing redistributed). Transitional values, always with the reason:
-`pending in-map review` (the CEO decides on seeing it in GZDoom, not in
-`assets/` yet), `approved pending …` (yes, conditional on something the CEO
-still has to confirm; not in `assets/` yet), `proposed vN` (redrawn after a
-verdict, awaiting the next one). `tools/art/make_preview.py` reads this
+`pending in-map review` (the CEO decides on seeing it in GZDoom; for that
+purpose, and only that one, the file may already sit in `assets/` and the
+PK3 — it is still not approved), `approved pending …` (yes, conditional on
+something the CEO still has to confirm; not in `assets/` yet), `proposed vN`
+(redrawn after a verdict, awaiting the next one; may also sit in `assets/`
+for an in-map verdict, same rule). `tools/art/make_preview.py` reads this
 column to label each card of the preview.
 
 Origin codes (ART-BIBLE §2): (a) own procedural script + seed, (b) free pack
@@ -34,31 +36,117 @@ SDCONC1 OK · SDCONC2 duda (habrá que ver como queda) · SDSTAR1 NOT OK ·
 SDSTEL1 OK · SDDOOR1 OK · SDPOSTR1 NOT OK -> habrá que ver como hacer bien el
 Lenin, luego lo trabajamos aparte · SDPOSTR2 -> me gusta, pendiente de
 confirmar la traducción del texto · SDFLR1 OK · SDFLR2 OK · SDFLR3 OK ·
-SDCEIL1 OK · SDCEIL2 OK». Gate G2 (≥ 8 approved): **12 approved — the whole batch** — the 8 unconditional ones plus `SDPOSTR2`, whose only condition (the Russian wording) the CEO confirmed on 2026-10-12. G2 was signed PASS on the 8 unconditional ones; see `docs/qa/GATE-REVIEWS.md`.
+SDCEIL1 OK · SDCEIL2 OK». Gate G2 (≥ 8 approved): **10 approved clean, 2
+awaiting the CEO's in-map verdict** (count as of 2026-10-13). The 10: the 8
+unconditional ones, `SDPOSTR2` (its only condition, the Russian wording,
+confirmed by the CEO on 2026-10-12) and `SDPOSTR1` v4 (approved 2026-10-12 at
+128×256 from the 15-cell sweep). The 2: `SDCONC2` stays `pending in-map
+review` and `SDSTAR1` stays `proposed v5`; both are in `assets/` and in the
+PK3 so the CEO can judge them inside MAP01 v1, and the CEO has not walked v1
+yet, so neither is closed. G2 was signed PASS on the 8 unconditional ones; see
+`docs/qa/GATE-REVIEWS.md`.
 
 | Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
 |---|---|---|---|---|---|---|---|
 | `SDCONC1` | wall | 64×128 | yes | prefab concrete panels, running bond, grime under joints | (a) seed 1978 | approved | 2026-10-12 |
-| `SDCONC2` | wall | 64×128 | yes | concrete with worn red stripe at mid height | (a) seed 1979 | pending in-map review (CEO: "we'll see how it looks"; decided on MAP01 in GZDoom) | 2026-10-12 |
-| `SDSTAR1` | wall | **128×128** | yes (plaque centred) | concrete with a painted plaque 84×108: gold star above hammer and sickle on red, 1 px dark outline. v2 mirrored the emblem; v3 rebuilt it from the CEO's reference; v4 took the hammer butt to the bottom-right corner; **v5 (variant D1, CEO 2026-10-12)**: hammer head lowered to mid-height (`HAMMER_HEAD_C` y 0.26 → 0.46) and the sickle tip moved onto the outer arc's own end, removing the loose spike the CEO reported ("un palo raro hacia arriba"). Widened to 128 in the same pass because at 64 the lower half of the emblem closed into a blob. Check sheet `tools/art/emblem_check.py`; orientation, handle slope and butt position guarded by `tests/test_art.py` | (a) seed 1980 | proposed v5 | 2026-10-12 |
+| `SDCONC2` | wall | 64×128 | yes | concrete with worn red stripe at mid height | (a) seed 1979 | pending in-map review (CEO: "we'll see how it looks"; decided on MAP01 v1 in GZDoom — in `assets/` and the PK3 for that walk, which the CEO has not done yet) | 2026-10-12 |
+| `SDSTAR1` | wall | **128×128** | yes (plaque centred) | concrete with a painted plaque 84×108: gold star above hammer and sickle on red, 1 px dark outline. v2 mirrored the emblem; v3 rebuilt it from the CEO's reference; v4 took the hammer butt to the bottom-right corner; **v5 (variant D1, CEO 2026-10-12)**: hammer head lowered to mid-height (`HAMMER_HEAD_C` y 0.26 → 0.46) and the sickle tip moved onto the outer arc's own end, removing the loose spike the CEO reported ("un palo raro hacia arriba"). Widened to 128 in the same pass because at 64 the lower half of the emblem closed into a blob. Check sheet `tools/art/emblem_check.py`; orientation, handle slope and butt position guarded by `tests/test_art.py` | (a) seed 1980 | proposed v5 (in `assets/` and the PK3 for the in-map verdict on MAP01 v1, which the CEO has not walked yet) | 2026-10-12 |
 | `SDSTEL1` | wall | 64×128 | yes | military-green riveted steel plates, chipped paint, rust under rivets | (a) seed 1981 | approved | 2026-10-12 |
 | `SDDOOR1` | wall (door) | 128×128 | no | bunker steel door: riveted frame, green leaf, locking wheel, star and "7" stencils, hazard stripe | (a) seed 1982; text Impact.ttf | approved | 2026-10-12 |
 | `SDPOSTR1` | wall | 128×256 | no (single poster) | Lenin poster: the 1920 Zhukov photograph posterised to four flat palette inks, cream printed border, gold rule and a 46 px band carrying «ЛЕНИН ЖИВ». Four rounds: v1 constructivist silhouette (CEO rejected), v2 naive threshold (PM rejected, no face), v3 hand-drawn silhouette and features (CEO: "no se parece a el EN NADA" — the likeness lives in the photograph, not in a traced outline), **v4 = sweep cell 4C, chosen by the CEO 2026-10-12** from a 15-cell parameter sheet. Slogan rendered through a hard-cut mask: Pillow's antialiasing had invented 95 off-palette colours and `check_pk3` rejected the first build | (a) `tools/art/gen_lenin.py` + (b) `work/art/reference/lenin_1920_zhukov.jpg`, public domain | **approved 2026-10-12** | 2026-10-12 |
-| `SDPOSTR2` | wall (mural) | 128×128 | no | cosmonautics mural: rocket, rays, stars, «СЛАВА СОВЕТСКОЙ КОСМОНАВТИКЕ» | (a) seed 1984; text Impact.ttf | approved 2026-10-12 (CEO likes it; the Russian wording is to be confirmed before it enters `assets/`) | 2026-10-12 |
-| `SDFLR1` | flat | 64×64 | yes (line continuous on x=2..8) | hangar concrete floor with worn yellow lane line | (a) seed 1985 | approved | 2026-10-12 |
+| `SDPOSTR2` | wall (mural) | 128×128 | no | cosmonautics mural: rocket, rays, stars, «СЛАВА СОВЕТСКОЙ КОСМОНАВТИКЕ» | (a) seed 1984; text Impact.ttf | approved (CEO: "me gusta"; the Russian wording, its only condition, confirmed by the CEO the same day) | 2026-10-12 |
+| `SDFLR1` | flat | 64×64 | yes (line continuous on x=2..8) | hangar concrete floor with worn yellow lane line | (a) seed 1985 | approved; 44 px seam repair 2026-10-13 (note below) | 2026-10-12 |
 | `SDFLR2` | flat | 64×64 | yes | plain hangar concrete floor, cracks, oil wear | (a) seed 1986 | approved | 2026-10-12 |
 | `SDFLR3` | flat | 64×64 | yes | grey two-tone Soviet floor tiles, dark grout | (a) seed 1987 | approved | 2026-10-12 |
 | `SDCEIL1` | flat | 64×64 | yes (joint on edges) | concrete ceiling panel with fluorescent lamp | (a) seed 1988 | approved | 2026-10-12 |
 | `SDCEIL2` | flat | 64×64 | yes (joint on edges) | plain concrete ceiling panel with damp stain | (a) seed 1989 | approved | 2026-10-12 |
 
-Not in this batch (deliberately): anything of the two enemy factions (F5),
-exterior/sky textures, animated or switch textures (ANIMDEFS/SWITCHES are
-`mod-engineer`'s, proposed for batch 2 once the base set is approved).
+**`SDFLR1` repair, 2026-10-13 (BUG-ART-001, commit 5c9bb1d).** QA found that
+vector strokes were clipped at the canvas, so the hairline crack on the three
+floors died at the tile border although the row promised "tiles: yes". The
+fix is `Overlay.line_tiled` in `tools/art/artlib.py` (each stroke drawn once
+in place and once per wrapped neighbour); the PM then copied the regenerated
+flat into `assets/`. Measured against the previous file: **44 pixels differ,
+1 % of the flat, all on the seam** (row 0, column 0, and the bottom-right
+corner, rows 52-63 × columns 45-63) where the crack now carries across the
+edge. Same generator, same seed, no hand-painted pixel; a defect repair to an
+approved texture, not a change of art, so the approval of 2026-10-12 stands.
+The before/after was shown to the CEO on the switch sweep sheet (below).
 
-Candidates for batch 2 (not started): painted dado wall (green oil paint
-lower half + whitewash), concrete corner/pilaster, crate/locker, steel door
-variant for keys (red/yellow/blue trims), exterior concrete with night sky,
-launch-pad gantry steel, switch panel.
+Not in this batch (deliberately): anything of the two enemy factions (F5),
+exterior/sky textures, animated textures (ANIMDEFS is `mod-engineer`'s). The
+switches followed as batch 2 (next section).
+
+## Set "Soviet base" — batch 2, switches (F2)
+
+Sweep sheet: `docs/art/previews/2026-10-13_0952_F2_batch2-switch-sweep.html`
+(four variants × two states, each on `SDCONC1` and `SDSTEL1`, at 1×, 4× and
+point-sampled to 16 px tall; the sheet still calls the lumps `SDSWT1/2`, the
+working name before the CEO's verdict). Evidence of the installed set:
+`docs/art/previews/2026-10-13_1005_F2_switches-all-four.png`. Generator
+`tools/art/gen_switch.py`, `BATCH_SEED` 2077, seed = `BATCH_SEED + offset`
+(A 1, B 2, C 3, D 4); both states of a variant share the seed so only the
+switch moves, never the panel. Palette v1, nothing added. The generator
+writes `SDSWT_<variant>_<state>.png` under `work/`; the files were renamed on
+install to the engine's role names, Doom's own convention: **1 = off,
+2 = on, variant letter last**.
+
+CEO verdict 2026-10-13 on the sweep, verbatim: «yo por mí mete todos, así
+tenemos diversidad» — all four variants approved rather than one (commit
+4083883). Variant A was relaid first: the CEO saw its board, painted word and
+lamp overlapping ("se pisan unas cosas a otras"); the three are now stacked
+bottom-up with declared gaps and `gen_switch.py` refuses to import if they
+touch (`tests/test_generators.py`, `SwitchLayoutTests`). Every switch
+carries the «ПУСК» ("start") stencil in Impact, so all eight are
+text-bearing lumps (see the regeneration rule in ART-BIBLE §7).
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDSW1A` | wall (switch, off) | 64×128 | no | Rubilnik: knife switch on a cream bakelite board, brass jaws, red grip, blade swung down; indicator lamp below, dark | (a) `tools/art/gen_switch.py` variant A, seed 2078; text Impact.ttf | approved | 2026-10-13 |
+| `SDSW2A` | wall (switch, on) | 64×128 | no | same panel, blade closed into the jaws, lamp lit cream | (a) `tools/art/gen_switch.py` variant A, seed 2078; text Impact.ttf | approved | 2026-10-13 |
+| `SDSW1B` | wall (switch, off) | 64×128 | no | domed push button in a steel bezel, red when dead | (a) `tools/art/gen_switch.py` variant B, seed 2079; text Impact.ttf | approved | 2026-10-13 |
+| `SDSW2B` | wall (switch, on) | 64×128 | no | same button, cream lens with white core and glow | (a) `tools/art/gen_switch.py` variant B, seed 2079; text Impact.ttf | approved | 2026-10-13 |
+| `SDSW1C` | wall (switch, off) | 64×128 | no | round lens (dark olive glass) over a vertical slot, lever block at the bottom | (a) `tools/art/gen_switch.py` variant C, seed 2080; text Impact.ttf | approved | 2026-10-13 |
+| `SDSW2C` | wall (switch, on) | 64×128 | no | same panel, lens lit, lever block at the top | (a) `tools/art/gen_switch.py` variant C, seed 2080; text Impact.ttf | approved | 2026-10-13 |
+| `SDSW1D` | wall (switch, off) | 64×128 | no | hazard-chevron border, dead lit bar, handle at the left of its slot | (a) `tools/art/gen_switch.py` variant D, seed 2081; text Impact.ttf | approved | 2026-10-13 |
+| `SDSW2D` | wall (switch, on) | 64×128 | no | same panel, bar lit cream with glow, handle at the right | (a) `tools/art/gen_switch.py` variant D, seed 2081; text Impact.ttf | approved | 2026-10-13 |
+
+Which pair goes on which MAP01 switch is `level-designer`'s call
+(`docs/levels/`); the `SWITCHES` definition is `mod-engineer`'s
+(`docs/engine/MOD-SPEC.md`).
+
+Also started in batch 2, no verdict yet and nothing in `assets/`: a first
+metro sweep, `docs/art/previews/2026-10-13_0952_F2_batch2-metro-first-pieces.html`
+(`tools/art/gen_metro.py`). Its rows are added here when it is proposed
+formally.
+
+Candidates for later batches (not started): painted dado wall (green oil
+paint lower half + whitewash), concrete corner/pilaster, steel door variant
+for keys (red/yellow/blue trims), exterior concrete with night sky,
+launch-pad gantry steel. (Crate and locker moved to batch 3, below.)
+
+## Set "Soviet base" — batch 3, props (F3)
+
+Sweep: `docs/art/previews/2026-10-13_1439_F3_batch3-props-sweep.html`
+(mirror `docs/ru/art/previews/…`). Generator `tools/art/gen_props.py`,
+`BATCH_SEED` 3077, seed = 3077 + 10·row + variant (A=1 … D=4). Palette v1,
+nothing added. **No typeface:** stencilled numbers and arrows are drawn
+from segment data, so every lump here reproduces byte for byte on both
+machines. Asked for by `level-designer` as A5 (`docs/levels/MAP01-zarya-7.md`
+§10) for MAP01 v2. Columns are value families, dark to pale: A dark 4BO
+planks, B green steel case, C khaki planks with a diagonal brace, D pale
+pine with black straps. Art-director and PM both recommend **C** for the
+three crate pieces and **D** for the locker; column B disappears on
+`SDSTEL1`. Open with the CEO: one cell per row, and whether C keeps khaki
+(ART-BIBLE reserves khaki for the Reich's flesh) or is repainted in
+`rust_brown` wood at the same value.
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDCRAT1` | wall | 64×64 | yes (one crate per tile) | crate face; also the ends of `SDCRAT2` | (a) gen_props R1, seeds 3088-3091 | proposed (sweep of 4, rec. C) | 2026-10-13 |
+| `SDCRAT2` | wall | 128×64 | yes | long crate, the hangar's low cover | (a) gen_props R2, seeds 3098-3101 | proposed (rec. C) | 2026-10-13 |
+| `SDCRTOP1` | flat | 64×64 | yes | crate lid, seen from the catwalk | (a) gen_props R3, seeds 3108-3111 | proposed (rec. C) | 2026-10-13 |
+| `SDLOCK1` | wall | 64×128 | yes (a row) | two-door barracks locker | (a) gen_props R4, seeds 3118-3121 | proposed (rec. D) | 2026-10-13 |
 
 ## IWAD references in use (from `docs/engine/MOD-SPEC.md` §5)
 
@@ -73,4 +161,4 @@ launch-pad gantry steel, switch panel.
 
 | Lump | Date | Reason | What happens instead |
 |---|---|---|---|
-| `SDPOSTR1` (Lenin poster, v1 silhouette) | 2026-10-12 | CEO: NOT OK, "we'll have to see how to do Lenin right" | the Lenin portrait is a separate commission (ART-BIBLE §8); the lump name `SDPOSTR1` is reserved for its replacement |
+| `SDPOSTR1` (Lenin poster, v1 silhouette) | 2026-10-12 | CEO: NOT OK, "we'll have to see how to do Lenin right" | the Lenin portrait became a separate commission (ART-BIBLE §8) and the lump name `SDPOSTR1` went to its result: v4, posterised from the public-domain 1920 photograph, approved 2026-10-12 at 128×256 (row above) |

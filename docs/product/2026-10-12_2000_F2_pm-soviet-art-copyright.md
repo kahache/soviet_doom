@@ -1,6 +1,7 @@
 # Can we use original Soviet poster art? — copyright research (F2)
 
-Date: 2026-10-12. Author: PM. Russian mirror pending (`translator-ru`).
+Date: 2026-10-12. Author: PM. Russian mirror:
+`docs/ru/product/2026-10-12_2000_F2_pm-soviet-art-copyright.md`.
 CEO question: "as they are copyright-free, could we use original Soviet art?"
 
 **Short answer: no, not the posters you sent, and not most Soviet poster art

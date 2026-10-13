@@ -64,6 +64,8 @@ holds the order they happen in.
 - Assets: nothing enters `assets/` without CEO approval; every foreign asset
   has origin and licence in `docs/art/LICENSES.md`.
 - GZDoom must load with zero `Script error`, `Unknown`, `Missing`.
+- Agents never start GZDoom (D26). `SD_ALLOW_ENGINE=1` is the PM's; an agent
+  verifies with `tools/verify.py fast` and declares the engine run as owed.
 
 ## 6. Working with the CEO
 

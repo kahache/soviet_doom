@@ -13,28 +13,40 @@ assets and docs, GPL-3.0 for code; full texts are added at F6, `LICENSE.md`
 states it now. No asset of this project comes from a commercial game (Doom,
 Doom II, Heretic, Hexen or any other): ART-BIBLE §2.
 
-## Batch 1 — set "Soviet base" (F2; CEO verdict 2026-10-12, 8 approved)
+## Batch 1 — set "Soviet base" (F2; CEO verdict 2026-10-12)
 
 Per-lump status (approved / pending / discarded) is owned by
-`TEXTURE-INDEX.md`; approved files live in `assets/textures/soviet_base/` and
+`TEXTURE-INDEX.md`; files live in `assets/textures/soviet_base/` and
 `assets/flats/soviet_base/`. Origin and licence are the same for the whole
 batch, whatever the status.
 
 | Lump | Origin | Author | Licence |
 |---|---|---|---|
-| `SDCONC1`, `SDCONC2`, `SDSTAR1`, `SDSTEL1`, `SDDOOR1`, `SDPOSTR1`, `SDPOSTR2`, `SDFLR1`, `SDFLR2`, `SDFLR3`, `SDCEIL1`, `SDCEIL2` | (a) `tools/art/gen_soviet_base.py`, `BATCH_SEED` 1977, palette `docs/art/palette.json` v1 | Soviet Doom project (art-director) | own work, CC BY-NC-SA 4.0 (D15) |
+| `SDCONC1`, `SDCONC2`, `SDSTAR1`, `SDSTEL1`, `SDDOOR1`, `SDPOSTR2`, `SDFLR1`, `SDFLR2`, `SDFLR3`, `SDCEIL1`, `SDCEIL2` | (a) `tools/art/gen_soviet_base.py`, `BATCH_SEED` 1977, palette `docs/art/palette.json` v1 | Soviet Doom project (art-director) | own work, CC BY-NC-SA 4.0 (D15) |
+| `SDPOSTR1` (v4, 2026-10-12) | (a) `tools/art/gen_lenin.py`, palette v1, posterising (b) the public-domain photograph listed under "Reference material" below | Soviet Doom project (art-director); photograph by Pavel Zhukov, 1920, public domain | own work on a public-domain source, CC BY-NC-SA 4.0 (D15) |
 
-Symbols: the red star, hammer and sickle, and the Lenin silhouette are drawn
-from scratch as geometric shapes (no traced photograph, no scanned poster).
-Slogans «ЛЕНИН ЖИВ» and «СЛАВА СОВЕТСКОЙ КОСМОНАВТИКЕ» are generic
-historical phrases, not quotations of a protected work.
+**`SDFLR1` repair, 2026-10-13 (commit 5c9bb1d, PM).** The file in `assets/`
+was replaced by a regeneration of the same lump — same generator, same seed,
+same palette — after `art-director` fixed BUG-ART-001 (vector strokes were
+clipped at the canvas, so the hairline crack died at the tile border;
+`Overlay.line_tiled` in `tools/art/artlib.py` now wraps them). 44 pixels
+differ from the previous file, 1 % of the flat and all on the seam; no pixel
+was painted by hand and no new source entered. Origin, author and licence
+unchanged; the approval stands (`TEXTURE-INDEX.md`).
+
+Symbols: the red star and the hammer and sickle are drawn from scratch as
+geometric shapes (no scanned poster). The Lenin portrait of `SDPOSTR1` is
+posterised from the public-domain 1920 Zhukov photograph (row below under
+"Reference material"); the discarded v1 was a geometric silhouette.
+Slogans «ЛЕНИН ЖИВ», «СЛАВА СОВЕТСКОЙ КОСМОНАВТИКЕ» and the «ПУСК» stencil
+are generic historical phrases, not quotations of a protected work.
 
 ## Fonts used to rasterise Cyrillic text
 
 | Font | File | Where | Note |
 |---|---|---|---|
-| Impact | `/System/Library/Fonts/Supplemental/Impact.ttf` | poster headlines (`SDPOSTR1`, `SDPOSTR2`), door stencil (`SDDOOR1`) | macOS system font (Monotype). **Not redistributed**: only rasterised pixels ship inside the textures. |
-| Arial Narrow Bold | `/System/Library/Fonts/Supplemental/Arial Narrow Bold.ttf` | reserved for small text (not used by any shipped pixel in batch 1) | macOS system font (Monotype). Not redistributed. |
+| Impact | macOS `/System/Library/Fonts/Supplemental/Impact.ttf`; Windows `%WINDIR%\Fonts\impact.ttf` (resolved per machine by `tools/art/artlib.py`) | poster headlines (`SDPOSTR1`, `SDPOSTR2`), door stencil (`SDDOOR1`), switch stencil «ПУСК» (`SDSW1A-D`, `SDSW2A-D`) | System font (Monotype) on both machines. **Not redistributed**: only rasterised pixels ship inside the textures. Every shipped text-bearing lump was rasterised on the Mac; the two machines do not rasterise it identically, so these lumps are regenerated only there (ART-BIBLE §7, measurement in `CLAUDE.md`). |
+| Arial Narrow Bold | macOS `/System/Library/Fonts/Supplemental/Arial Narrow Bold.ttf`; absent on Windows, where `artlib.py` falls back to Arial Bold | reserved for small text (not used by any shipped pixel in batch 1 or 2) | macOS system font (Monotype). Not redistributed. |
 
 Position (NOT VERIFIED by a lawyer): bitmap renderings of text are generally
 not covered by a font software licence, and the fonts themselves never leave
@@ -71,7 +83,7 @@ statistics because its diagonal leaves the centre free.
 |---|---|---|---|
 | `TITLEPIC` | Title screen, treatment A "Plakat": flag-red ground, cream ray fan, the rocket profile reused from `SDPOSTR2`, gold star, black masthead reading «СОВЕТСКИЙ DOOM» | (a) `tools/art/gen_shell.py`, `titlepic_a()` + `lockup_a()`, palette v1 | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
 | `INTERPIC` | Between-level screen, treatment C "Rodchenko": maroon ground cut by diagonals, gold star, centre deliberately empty for the engine's map name and counters | (a) `tools/art/gen_shell.py`, `interpic_c()`, palette v1 | idem |
-| `M_DOOM` | Menu logo, registered on the title's own name block so it lands exactly over it when the menu opens | (a) `tools/art/gen_shell.py`, `logo()` + `lockup_a()`, palette v1. **The only asset in the project with an alpha channel** (hard 0/255, no semitransparency): a menu patch needs transparency, and the art bible's indexed-PNG rule is written for world textures. Exception recorded here | idem |
+| `M_DOOM` | Menu logo, registered on the title's own name block so it lands exactly over it when the menu opens | (a) `tools/art/gen_shell.py`, `logo()` + `lockup_a()`, palette v1. RGBA with hard alpha (0/255, no semitransparency), not indexed: a menu patch needs transparency. **One of two RGBA families in the project**; the other is the alphabet's 214 glyphs (below). Both are the exception recorded in ART-BIBLE §2 | idem |
 
 Lump names are fixed by the engine, so these three are the documented
 exception to the `SD` prefix rule (MOD-SPEC §1).
@@ -98,11 +110,18 @@ imitate in spirit — poster grotesque, GOST drawing lettering, slab machinery
 Coverage: А-Я and Ё, A-Z, 0-9, and the punctuation the project uses including
 «» × · №, at both sizes.
 
+Format: RGBA PNG, not indexed, with palette colours only and hard 0/255
+alpha, like `M_DOOM`; the exception is recorded in ART-BIBLE §2 and checked
+by `tests/test_gen_font.py`.
+
 ## Batch 2 — switches (F2, all four approved by the CEO 2026-10-13)
 
 The CEO took all four rather than one: "yo por mí mete todos, así tenemos
 diversidad". Doom's own convention is followed for the names, 1 = off and
-2 = on, with the variant letter last.
+2 = on, with the variant letter last (the generator writes
+`SDSWT_<variant>_<state>.png`; the files were renamed on install). Per-lump
+rows, seeds and the sweep sheet: `TEXTURE-INDEX.md`, batch 2. All eight carry
+the «ПУСК» stencil in Impact (fonts table above).
 
 | Lump | What it is | Origin | Licence |
 |---|---|---|---|
@@ -119,3 +138,14 @@ carried by a cream lens (45 → 235), not by colour.
 Variant A had to be relaid: its board, its painted word and its lamp
 overlapped. The three boxes are now stacked bottom-up with declared gaps and
 `gen_switch.py` refuses to import if they ever touch again.
+
+## Batch 3 — props (F3, proposed 2026-10-13, nothing in `assets/`)
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDCRAT1` / `SDCRAT2` / `SDCRTOP1` / `SDLOCK1` | crate face, long crate, crate lid, locker; stencilled numbers and arrows drawn from segment data, no typeface | (a) `tools/art/gen_props.py`, palette v1 | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+
+Direction finding from this batch: none of these lumps depends on a system
+font, so they reproduce byte for byte on the Mac and on Windows; and column
+B confirms the switches' lesson once more, a mid green vanishes on
+`SDSTEL1`.

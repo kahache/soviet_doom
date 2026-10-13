@@ -1,8 +1,8 @@
 # The pipeline — how work moves from idea to GitHub
 
-Owner: PM. Enforced by the `pmo` agent. Russian mirror: owed, **not yet
-written** — `docs/ru/PIPELINE.md` does not exist (D7 debt, bug **Q1**, found
-by `tools/verify.py docs` on 2026-10-13; `translator-ru` owes it).
+Owner: PM. Enforced by the `pmo` agent. Russian mirror:
+`docs/ru/PIPELINE.md` (bug **Q1**, found by `tools/verify.py docs` on
+2026-10-13 and closed the same day).
 Created 2026-10-13 at the CEO's request. **Every rule below was paid for by a
 real mistake in this project**; the mistake is cited so nobody relitigates it.
 
@@ -101,6 +101,20 @@ python3 tools/verify.py auto    # reads git, picks the level, says why.
 python3 tools/verify.py auto --explain   # says what it would do, runs nothing
 ```
 
+**The engine gate (D26).** `tools/run.sh` and `tools/smoke.py` refuse to
+start GZDoom unless `SD_ALLOW_ENGINE=1` is set, and **only the PM sets it**.
+An agent whose change needs the engine verifies with `fast`, writes in its
+summary that the engine run is owed, and stops; the PM batches those runs,
+and `full` is therefore a PM-only level. Every role that runs tooling says
+so in its definition (`art-director`, `level-designer`, `mod-engineer`,
+`qa-engineer`, `sound-designer`; `pmo` and `translator-ru` run none). The
+gate sits in every tool that can start the engine: `tools/run.sh`,
+`tools/smoke.py` and `tools/audio/audition.py` (`--play`, `--render`).
+
+> Why: on 2026-10-13 two agents were opening three or four GZDoom windows
+> every twenty seconds and the CEO could not work. macOS GZDoom has no
+> headless mode, so the fix is policy, not a flag.
+
 > Why: this stage used to be four separate commands, and the slowest of them
 > (`tools/smoke.py`) boots a real GZDoom and puts a window on the screen.
 > People ran all four for everything, including edits the engine cannot
@@ -190,6 +204,13 @@ restores the engine's own geometry. **NOT VERIFIED / not available:** nothing
 in this build stops GZDoom taking keyboard focus when its window appears; the
 macOS backend activates the app itself and exposes no switch for it.
 `-width` / `-height` were tried and had **no** effect.
+
+**Windows (the CEO's PC, the working machine since 2026-10-13):** the same
+arguments give a `464 x 281` window (log line `Resolution: 464 x 281`,
+GZDoom g4.14.2, verified 2026-10-13), the engine's `screenshot` command works
+unchanged, and a run that overruns its timeout is killed with `taskkill /T`
+on its own process group, since Windows has no `killpg`. The gate
+(`SD_ALLOW_ENGINE=1`) applies on both machines: a window is a window.
 
 - **Every behaviour validated by a real case gets a test**, so the next change
   cannot silently undo it. The mirrored emblem, the missing art in the PK3 and

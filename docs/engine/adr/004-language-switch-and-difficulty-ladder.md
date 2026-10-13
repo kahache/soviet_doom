@@ -131,8 +131,11 @@ debt T13.
 ### D-004-6 — The main menu logo is positioned by us, not by the engine (bug E1)
 
 `art-director` draws the name lockup into `TITLEPIC` and ships the same
-lockup loose as `M_DOOM`, recording in `work/art/shell/manifest.json` that
-the loose copy belongs at x=60, y=0. Measured 2026-10-13: overlaying
+lockup loose as `M_DOOM`, recording in the generator's manifest
+(`work/art/shell/manifest.json`, gitignored, so not in every clone) that
+the loose copy belongs at x=60, y=0. Since 2026-10-13 (PMO-10) the contract
+for those two numbers is the table in `docs/engine/MOD-SPEC.md` §6.6, and
+the manifest is evidence only. Measured 2026-10-13: overlaying
 `assets/graphics/shell/M_DOOM.png` on `TITLEPIC.png` at (60,0) gives a mean
 per-channel difference of 6, against 22 or more at every neighbouring
 offset. The art is exact.
@@ -163,7 +166,10 @@ a copy of GZDoom's `IfGame(Doom)` main menu with the one number changed.
   a `protected` menu.
 - The Russian menu is correct and unreadable until the Cyrillic glyphs land
   (debt T9). The language row carries a temporary line that says so, with
-  the id to delete when the font arrives.
+  the id to delete when the font arrives. **Closed 2026-10-13:** T9 was
+  paid by D24 (`fonts/defsmallfont/`, `fonts/bigfont/`, 214 glyphs) and the
+  temporary line, `SD_OPTMNU_LANGWARN`, is deleted from `LANGUAGE` and
+  `MENUDEF` (PMO-10).
 
 ## What was NOT decided here
 

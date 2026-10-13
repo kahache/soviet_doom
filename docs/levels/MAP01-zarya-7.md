@@ -1,12 +1,15 @@
 # MAP01 — Zarya-7 Cosmodrome
 
-Design document. Owner: `level-designer`. Status: **text approved by the CEO;
-v0 (the grey floor plan) BUILT — §14; v1 (textured and signposted) BUILT —
-§15.** v2 (light and detail) and v3 (balance) still to come. Russian mirror:
-`docs/ru/levels/MAP01-zarya-7.md`.
+Design document. Owner: `level-designer`. Status: **text approved by the PM
+as written (2026-10-12, `docs/PENDING-CEO-DECISIONS.md` §6); CEO verdict
+pending on walking v1. v0 (the grey floor plan) BUILT — §14; v1 (textured
+and signposted) BUILT — §15; v2 (light and detail) is NEXT.** v3 (balance)
+after it. The open points for the CEO are in §13, with what is decided
+marked as such. Russian mirror: `docs/ru/levels/MAP01-zarya-7.md`.
 
-> **Walk it:** `python3 tools/build.py && MAP=MAP01 tools/run.sh`
-> The as-built plan, labelled, is
+> **Walk it:** `python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP01 tools/run.sh`
+> (the engine gate, `SD_ALLOW_ENGINE=1`, is the PM's or the CEO's to set:
+> agents never start GZDoom). The as-built plan, labelled, is
 > `docs/levels/shots/2026-10-13_0045_F3_map01-v0-plan.png`; the v1
 > screenshots are listed in §15.
 
@@ -391,7 +394,12 @@ ambush panels · **30** booth light · **101/102/103** secret panels
 S1/S2/S3. 4, 5, 7–9 and 12–19 stay free for v2 detail. Manual doors are
 tagged rather than tag-0 so either flanking line opens them.
 
-Switch **textures do not exist in the approved set** — see §10, request A3.
+Switch textures: `SDSW1A-D` (off) and `SDSW2A-D` (on), 64×128, approved
+2026-10-13 and in `assets/textures/soviet_base/`. The lump that makes a
+switch flip is in: `src/lumps/ANIMDEFS` pairs each `SDSW1x` with its
+`SDSW2x` since 2026-10-13 (MOD-SPEC §4.3). The map still wears `SDDOOR1`
+(`SWITCH_PLACEHOLDER` in `map.py`) on SW-A, SW-B and the exit because v1
+was built before it; v2 retires the placeholder — see §10, request A3.
 
 ## 10. What I need before I can build
 
@@ -406,7 +414,9 @@ Switch **textures do not exist in the approved set** — see §10, request A3.
   linedef flags, `TextMap.add_room_rect()`, and `GridMap` — a rectangle
   painter that derives every shared edge, split and winding from a list of
   rectangles. Tests in `tests/test_udmf.py`.
-- **M3, M4, M5 — still open**, see below.
+- **M3, M4, M5 — all CLOSED 2026-10-13 by `mod-engineer`**, see below. Nothing
+  from `mod-engineer` blocks v2: the switch animation lump (A3) shipped as
+  `src/lumps/ANIMDEFS` on 2026-10-13 (MOD-SPEC §4.3).
 
 <details><summary>Original wording of M1 and M2 (kept for the record)</summary>
 
@@ -429,38 +439,52 @@ Switch **textures do not exist in the approved set** — see §10, request A3.
 
 </details>
 
-- **M3 — the exit has nowhere to go.** MAPINFO says `next = "MAP01"` and
-  MAP02 does not exist. Decide what `Exit_Normal` does in v1 (loop to MAP01,
-  or an end-of-episode cluster with text) and put it in MAPINFO. **v0 ships
-  with the loop**, which is what made `Exit_Normal` verifiable (§9) and is
-  wrong for shipping: today pressing the exit silently restarts the map.
-- **M4 — map name and par.** `SD_MAP01_NAME` is still "Test Range". Proposed:
-  EN "Zarya-7 Cosmodrome", RU «Космодром "Заря-7"». Par time 210 s.
-- **M5 — confirm §9** (specials, tags, secret sector) and add the Freedoom
-  actors of §8 to MOD-SPEC §5, which today lists only four texture names.
-  Placeholder monsters, weapons and pickups are IWAD references too.
+- **M3 — CLOSED 2026-10-13 by `mod-engineer`, `docs/engine/MOD-SPEC.md`
+  §4.1.** `Exit_Normal` now ends the game: MAP01 has `next = endtitle`,
+  `cluster = 1` with the end text on the cluster, and `nointermission` is
+  gone, so the stats screen is the first thing that says the level was
+  finished. (Original wording: the exit looped back to MAP01, which was fine
+  for verifying `Exit_Normal` in v0 and wrong for shipping.)
+- **M4 — CLOSED 2026-10-13 by `mod-engineer`, MOD-SPEC §4.** The map is
+  "Zarya-7 Cosmodrome" / «Космодром "Заря-7"» in-engine (the log prints
+  `MAP01 - Zarya-7 Cosmodrome`); `par = 210`. NOT VERIFIED by anyone yet:
+  that the intermission prints 3:30 (MOD-SPEC T15, `qa-engineer`).
+- **M5 — CLOSED 2026-10-13 by `mod-engineer`, MOD-SPEC §4.2.** §9's three
+  verified specials (`Door_Raise` 12, `Door_Open` 11, `Exit_Normal` 243),
+  their argument shapes, the tag convention and the two engine facts are
+  now contract; the three unverified ones (`Light_ChangeToValue`,
+  `Light_Flicker`, secret `special = 1024`) are listed there as *not yet
+  contract, v2*. The §8 Freedoom placeholders go into MOD-SPEC §5 when v3
+  places them.
 
 ### From `art-director` (one blocking, the rest shape v2)
 
-- **A1 — `SDCONC2` must ship in the PK3 to be judged.** Its status is
-  "pending in-map review", and this map is the review: the stripe is the
-  wayfinding language of Z3, Z5, the D4 frame and the fuel-bay opening. It
-  cannot be reviewed in-map while it sits in `work/` outside `assets/`. I
-  need a path that puts it in the build with status "pending" (art-director
-  + mod-engineer + PM to agree the mechanism). **Fallback if refused:** the
-  route is marked by `SDSTEL1` pilasters instead, the map still works, and
-  the CEO loses the chance to judge the stripe where it matters.
-- **A2 — `SDSTAR1`.** Z4's east pier and the hangar's D4 frame are reserved
-  for the plaque. If v5 is not approved by the time v1 is built, those
-  surfaces stay `SDCONC1` and the plaque is added in a later pass; nothing
+- **A1 — ANSWERED as a mechanism, verdict open.** `SDCONC2` is in `assets/`
+  and in the PK3 (M1, 2026-10-12), and the v1 build (§15) is its in-map
+  review: the stripe is the wayfinding language of Z3, Z5, the D4 frame and
+  the fuel-bay opening. **The CEO has not walked v1 yet**, so its row in
+  `TEXTURE-INDEX.md` stays "pending in-map review". **Fallback if refused:**
+  the route is marked by `SDSTEL1` pilasters instead, the map still works,
+  and it loses its best sign.
+- **A2 — `SDSTAR1`, verdict open.** v5 is built into v1 on one wall (the
+  dorm, beside D2 — §15, deviation 2, not Z4's east pier as planned). If v5
+  is refused, one constant in `map.py` changes to `SDCONC1`; nothing
   structural depends on it.
-- **A3 — there is no switch texture (batch 2 request).** The map has two
-  switches and an exit switch, and the approved set has nothing that reads as
-  one. I need either `SDSWT1`/`SDSWT2` (off/on pair, 64×128 or 32×64, green
-  steel housing with a red lever, plus `SWITCHES`/`ANIMDEFS` from
-  `mod-engineer`), **or** permission to reference an IWAD switch texture as a
-  placeholder, declared in MOD-SPEC §5. Without one of the two, v0 and v1
-  have unreadable switches.
+- **A3 — texture DONE, animation lump DONE (2026-10-13); the rest is mine,
+  in v2.** The switch textures exist: `SDSW1A-D` (off) and `SDSW2A-D` (on),
+  64×128, all four variants approved by the CEO on 2026-10-13 ("así tenemos
+  diversidad"), in `assets/textures/soviet_base/`, licence row in
+  `docs/art/LICENSES.md`. The lump that makes the engine swap off for on is
+  `src/lumps/ANIMDEFS` (`mod-engineer`, debt T16 paid): four `switch` pairs
+  `SDSW1x → SDSW2x`, and `SDSW1A` was seen to flip to `SDSW2A` in engine the
+  same day. MOD-SPEC §4.3 owns the syntax, its source and the evidence; Boom's
+  binary `SWITCHES` lump is not used. What is left is mine: v2 retires
+  `SWITCH_PLACEHOLDER` (`SDDOOR1` on SW-A, SW-B and the exit, kept in v1
+  because v1 was built before the lump) and picks one variant per switch.
+  The click is still unheard; the CEO's first walk with real switches is
+  where it is confirmed. (Superseded original wording, for the record: the
+  request asked for a pair named `SDSWT1`/`SDSWT2`; the approved lumps
+  follow Doom's own `1` = off / `2` = on naming instead.)
 - **A4 — `SDDOOR2`, a second door leaf (batch 2, nice to have).** D4 is a
   256-wide blast door built from two `SDDOOR1` leaves, so the locking wheel
   and the stencilled "7" appear twice side by side. It reads as a double
@@ -510,32 +534,60 @@ screenshotted into `docs/levels/shots/`.
 |---|---|---|
 | **v0 — grey** ✅ **BUILT 2026-10-13** (§14) | the complete floor plan: every sector, every door, both switches, the exit, correct heights and stairs. One wall texture and one floor/ceiling pair everywhere (`STARTAN2`/`FLOOR4_8`/`CEIL3_5`), flat light 160, no enemies, no items. | you can walk start → exit; no HOM, no stuck geometry; G3-1, G3-2, G3-6 pass |
 | **v1 — textured** ✅ **BUILT 2026-10-13** (§15) | §6 applied zone by zone, alignment pass (door recesses, floor pegging, lane continuity), `SDPOSTR2` mural and `SDPOSTR1` Lenin placed, D4/D5/D6 as `SDDOOR1`, the `SDCONC2` route built and photographed. | G3-3 passes; the CEO can judge `SDCONC2` from screenshots |
-| **v2 — light and detail** | the §6 light table, lamp sectors, the flickering corridor, the booth light that SW-A turns on, parapets, pilasters, steps, drums, floor lamps, the three secrets built and flagged. | the map reads without a compass: a first-time player finds the hangar and D4 without being told |
+| **v2 — light and detail** — **NEXT**, starts once the CEO has walked v1 and given his verdict (§13) | the §6 light table, lamp sectors, the flickering corridor, the booth light that SW-A turns on, parapets, pilasters, steps, drums, floor lamps, the three secrets built and flagged; the real switch textures, one variant per switch, retiring `SWITCH_PLACEHOLDER` (A3; the `ANIMDEFS` pairs are in, MOD-SPEC §4.3). | the map reads without a compass: a first-time player finds the hangar, the fuel bay and D4 without being told |
 | **v3 — balance** | §8 placed with per-skill flags, ammo and health budget, the two waves and the ambush timed, playtests on 2/3/4 with notes. | all of G3-1…G3-8 green; ready for the CEO's G3-9 |
 
 Running any version, once it is in the build:
 
 ```sh
 python3 tools/build.py
-MAP=MAP01 SKILL=3 tools/run.sh
-# or, directly:
+SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=3 tools/run.sh      # either machine; the gate is the PM's or the CEO's to set
+# or, directly — macOS:
 /Applications/GZDoom.app/Contents/MacOS/gzdoom -iwad iwads/freedoom2.wad \
   -file dist/sovietdoom.pk3 +map MAP01 -skill 3
+# Windows (the working machine since 2026-10-13):
+"%LOCALAPPDATA%\Programs\GZDoom\gzdoom.exe" -iwad iwads\freedoom2.wad \
+  -file dist\sovietdoom.pk3 +map MAP01 -skill 3
 ```
 
 ## 13. Open points for the CEO
 
-1. **Key-free MAP01** (§4): confirm, or ask for the yellow card in the guard
-   post. Recommendation: key-free, as the lore assigns the first key to MAP02.
-2. **`SDCONC2` in the build** (A1): the stripe is this map's wayfinding
-   language; it needs to ship in the PK3 to be judged. If you prefer not to
-   ship an unapproved texture at all, say so and I use steel pilasters.
-3. **Switch texture** (A3): commission `SDSWT1`/`SDSWT2` in batch 2, or allow
-   an IWAD switch as a placeholder for F3.
-4. **Length and difficulty**: 5–8 minutes and 21/33/46 enemies is a modern
-   MAP01, longer than Doom II's MAP01 (~2 min) and shorter than a modern
-   megawad opener. Say if you want it shorter.
-5. **A strip of night sky** over the hangar in v2 (A6): yes or no.
+Status as of 2026-10-13. What is **decided** says where; what is **open**
+is the PM's to carry in `docs/PENDING-CEO-DECISIONS.md`. The CEO has not
+walked v1 yet, which is what points 2 and 6 wait on.
+
+1. **Key-free MAP01** (§4) — **OPEN, acted on by default.** v0 and v1 are
+   built key-free (the PM approved the design as written, 2026-10-12); the
+   yellow-card alternative in the guard post is still a cheap change, but it
+   gets more expensive at each version. Recommendation unchanged: key-free,
+   as the lore assigns the first key to MAP02. Needs one word from the CEO.
+2. **`SDCONC2`** (A1) — **mechanism DECIDED, verdict OPEN.** The stripe ships
+   in the PK3 (M1, 2026-10-12) and v1 is its in-map review (§15). The CEO's
+   verdict — in the barracks it is one band, in the hangar it is three — is
+   what closes the `TEXTURE-INDEX.md` row. Option if he wants one band in
+   the hangar: a 128-high wainscot in v2 (§15).
+3. **Switch texture** (A3) — **DECIDED 2026-10-13**: all four variants
+   `SDSW1A-D` / `SDSW2A-D` approved and installed (commit `4083883`,
+   `docs/art/LICENSES.md`). The IWAD-placeholder alternative is moot, and
+   the `ANIMDEFS` switch pairs shipped the same day (MOD-SPEC §4.3). What
+   remains is v2 work, not a decision: the real switches go in and
+   `SWITCH_PLACEHOLDER` is retired. Nothing for the CEO here.
+4. **Length and difficulty** — **OPEN.** 5–8 minutes and 21/33/46 enemies by
+   skill is a modern MAP01, longer than Doom II's MAP01 (~2 min) and shorter
+   than a modern megawad opener. Say if you want it shorter; it matters
+   before v3 places the monsters, not before.
+5. **A strip of night sky** over the hangar in v2 (A6) — **OPEN.** Yes or no;
+   `SKY1` is already in MOD-SPEC §5, so "yes" is a roof slit in v2 and no
+   new asset.
+6. **Walk v1** (added by the v0 playtest finding, §14) — **OPEN, the gate
+   criterion itself.** From the hangar's bottom step, does the player reach
+   the fuel bay without being told? This is the question the red stripe and
+   the yellow lane were built to answer and only the CEO's walk answers it.
+   The twelve v1 screenshots in §15 are the fallback if he would rather
+   look than play.
+
+Items 2, 4, 5 and 6 are also the ones the CEO should judge while walking v1;
+item 1 can be answered without playing.
 
 ## 14. v0 build record (2026-10-13)
 
@@ -543,8 +595,8 @@ Source: `src/maps/MAP01/map.py`, built by `tools/sdbuild/udmf.py`'s
 `GridMap`. 44 sectors, 179 linedefs, 137 vertices, 1 thing.
 
 ```sh
-python3 tools/build.py && MAP=MAP01 tools/run.sh      # walk it
-python3 tools/build.py --print-textmap MAP01           # read the UDMF
+python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP01 tools/run.sh      # walk it
+python3 tools/build.py --print-textmap MAP01                            # read the UDMF
 ```
 
 ### What is in it
@@ -627,18 +679,18 @@ switch tag pointing at a sector that exists.
    the north-west is the only other way on? That reading is the whole
    design; if it does not happen in grey, no amount of red stripe in v1
    will save it.
-6. Still open from §13: key-free MAP01, `SDCONC2` in the build, a switch
-   texture for batch 2, length and difficulty, and the strip of night sky.
+6. The §13 points as they stood at v0 (key-free MAP01, `SDCONC2` in the
+   build, a switch texture, length and difficulty, the strip of night sky).
+   §13 carries their current status; two of them were decided before the
+   CEO walked v0.
 
-### Still needed from other roles
+### Still needed from other roles (as of v0; all since closed)
 
-- `mod-engineer`: **M3** (what `Exit_Normal` should do — today it loops back
-  to MAP01, which is fine for walking and wrong for shipping), **M4** (the
-  map is still called "Test Range" on the automap and the intermission),
-  **M5** (record §9's verified specials and the §8 Freedoom placeholders in
-  MOD-SPEC).
-- `art-director`: **A3**, a switch texture — `SDDOOR1` is standing in for one
-  and reads as a door, not a switch.
+- `mod-engineer`: **M3**, **M4**, **M5** — all three **CLOSED 2026-10-13**,
+  MOD-SPEC §4, §4.1 and §4.2 (detail in §10).
+- `art-director`: **A3**, a switch texture — **texture CLOSED 2026-10-13**
+  (`SDSW1A-D` / `SDSW2A-D`); the animation half **CLOSED the same day** as
+  `src/lumps/ANIMDEFS` (`mod-engineer`, MOD-SPEC §4.3; §10, A3).
 
 
 ## v0 playtest finding, CEO 2026-10-13: the gate reads as a dead end
@@ -681,9 +733,9 @@ additions to `tools/sdbuild/udmf.py` (below). **54 sectors, 218 linedefs,
 in the map but the player start: v1 is texture and alignment only.
 
 ```sh
-python3 tools/build.py && MAP=MAP01 tools/run.sh      # walk it
-python3 tools/verify.py fast                          # 6 s, no window
-python3 tools/verify.py full                          # + the engine
+python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP01 tools/run.sh      # walk it (PM or CEO)
+python3 tools/verify.py fast                                            # 6 s, no window
+python3 tools/verify.py full                                            # + the engine (PM only)
 ```
 
 ### What v1 was for
@@ -702,6 +754,12 @@ screenshot that matters is `…_map01-v1-hangar-to-fuel-mouth.png`.
 | **Door recesses** | D3, D4, D5, D6 | a shut door that looks shut. In v0 D4's leaf had to cover 320 units of hangar wall and tiled two and a half times, which from the floor reads as patterned concrete. It now sits 128 high under a lintel. |
 
 ### Verdict on each, from walking it
+
+These are `level-designer`'s own verdicts from walking the build on the Mac
+on 2026-10-13. **The CEO has not walked v1**: the PM stopped the delivery
+mid-morning because the engine windows were interrupting him, and the CEO's
+verdict on the three signs, on `SDCONC2` and on `SDSTAR1` is still to come
+(§13), on the Windows PC.
 
 - **The stripe works, and it is the strongest thing in the map.** In the
   96-high barracks corridor it is a single band at chest height on both
@@ -784,7 +842,8 @@ Owned by `level-designer` since M2 (§10). All three are tested.
 | `python3 tools/build.py` | OK — `maps/MAP01.wad`, 54 sectors |
 | `python3 tools/check_pk3.py` | **PASS**, 0 errors 0 warnings; every texture name resolved |
 | `python3 -m unittest discover -s tests` | `tests/test_udmf.py` **43 tests, all green** (9 of them new) |
-| GZDoom 4.14.2, eleven viewpoints | 0 lines matching the G3-2 failure patterns |
+| GZDoom 4.14.2 on the Mac, eleven viewpoints | 0 lines matching the G3-2 failure patterns — **but the log was not kept**: it went to `logs/`, which is gitignored, and the delivery was stopped before a copy reached `docs/qa/evidence/`. The twelve screenshots below are the only surviving evidence of that walk. |
+| `tools/smoke.py --map MAP01`, Windows PC, 2026-10-13 (run by the PM) | **VERDICT PASS.** The 11:28 run (259 lumps) was reported but its log was not filed. The PM re-ran it at 14:48 and filed log and screenshot: `docs/qa/evidence/2026-10-13_1448_F3_smoke-map01-windows.log` / `.png` (pattern `2026-10-13_*_F3_smoke-map01-windows.*`) — GZDoom g4.14.2 on Freedoom 0.13.0, PK3 of 260 lumps, `MAP01 - Zarya-7 Cosmodrome`, screenshot captured, zero lines matching `tools/smoke.py`'s failure or warning patterns. This is the engine evidence v1 rests on. It is a smoke (one viewpoint), not a repeat of the eleven-viewpoint walk. |
 
 New tests, all of them about this pass rather than about UDMF in general:
 every texture name is one of the approved set (G3-3, statically); the light
@@ -808,37 +867,55 @@ All in `docs/levels/shots/`, GZDoom 4.14.2 over Freedoom 0.13.0, skill 3.
 | `…-komnata-mural.png` | `SDPOSTR2` in its niche, one tile |
 | `…-service-corridor.png` | the stripe carries on; the guard post reads as steel |
 | `…-hangar-arrival-east.png` | from the bottom step, facing the gate |
+| `…-hangar-arrival-northwest.png` | from the bottom step, turning towards the fuel bay |
 | `…-hangar-to-fuel-mouth.png` | **the deliverable.** From the bottom step, facing north-west: red wall, yellow lane, mouth |
 | `…-hangar-mid-to-mouth.png` | the same read from the middle of the room, after the catwalk was shortened |
 | `…-gate-d4.png` | the recessed gate with the lane running into it |
-| `…-fuelbay-switch-placeholder.png` | SW-A wearing the door leaf, 1.5 tiles: request A3 |
+| `…-fuelbay-switch-placeholder.png` | SW-A wearing the door leaf, 1.5 tiles: the stand-in (`SWITCH_PLACEHOLDER`) that v2 retires now that `ANIMDEFS` pairs the switches (A3) |
 | `…-exit-lenin.png` | `SDPOSTR1`, one tile in a 256-high room |
 | `…-catwalk-down.png` | the hangar from the catwalk |
 | `2026-10-13_1009_F3_map01-v1-catwalk-screens-the-mouth.png` | the fault that moved the catwalk |
 
-### Still needed from other roles
+### Still needed from other roles (status 2026-10-13, after the PMO audit)
 
-- `art-director`: **A3** is the only one that still costs the player
-  something. The map has three switches and all three wear `SDDOOR1`, which
-  says "walk through me". A switch sweep is in progress; when `SDSWT1` /
-  `SDSWT2` land, SW-A wants a **64 wide × 128 high** niche so the pair tiles
-  once (the fuel bay is 192 high, so on the flat wall it will not), and
-  `mod-engineer` owes the `SWITCHES` / `ANIMDEFS` entry. **A1 is answered**:
-  `SDCONC2` is in `assets/` and in the PK3, and this build is its review.
-  A4 (a second door leaf for D4) can now be judged from `…-gate-d4.png`;
-  the two identical leaves read acceptably. A5 (crate faces) and the hangar
-  dado are v2.
-- `mod-engineer`: **M3** (`Exit_Normal` still loops back to MAP01) and
-  **M5** (record §9's specials and §8's Freedoom placeholders in MOD-SPEC).
-  M4 is done — the map is "Zarya-7 Cosmodrome" on the automap.
+- `art-director`: **A3's texture half is done.** `SDSW1A-D` (off) and
+  `SDSW2A-D` (on), 64×128, all four approved 2026-10-13. The map's three
+  switches still wear `SDDOOR1`, which says "walk through me", until v2
+  retires `SWITCH_PLACEHOLDER`; the animation lump is in (below). For v2,
+  SW-A wants a **64 wide ×
+  128 high** niche so one switch tiles once (the fuel bay is 192 high, so on
+  the flat wall it will not); SW-B's booth wall and the exit wall get the
+  same treatment. Which variant goes on which switch is mine to choose in
+  v2 — three switches, four variants, so no two need to match. **A1 is
+  answered as a mechanism**: `SDCONC2` is in `assets/` and in the PK3, and
+  this build is its review; the verdict is the CEO's (§13). A4 (a second
+  door leaf for D4) can now be judged from `…-gate-d4.png`; the two
+  identical leaves read acceptably. A5 (crate faces) and the hangar dado
+  are v2.
+- `mod-engineer`: **M3, M4 and M5 are CLOSED 2026-10-13** (MOD-SPEC §4,
+  §4.1, §4.2; detail in §10) — the exit ends the game, the map carries its
+  name, §9's specials are contract. **The switch lump is in too:**
+  `src/lumps/ANIMDEFS` pairs each `SDSW1x` with its `SDSW2x` since
+  2026-10-13 and `SDSW1A` flips in engine (MOD-SPEC §4.3, debt T16 paid).
+  Nothing from `mod-engineer` is outstanding for v2; what T16 leaves open is
+  mine (retire `SWITCH_PLACEHOLDER`, choose the variants).
+- `qa-engineer` / PM: the engine log of the v1 walk was not kept (table
+  above). The Windows smoke is now filed in `docs/qa/evidence/`
+  (`2026-10-13_1448_F3_smoke-map01-windows.log` / `.png`); a full walk with
+  its log kept is still owed before G3 is signed.
 
 ### What is left for the gate
 
-G3-1 and G3-3 are green and G3-2 is green for every viewpoint walked. G3-4,
-G3-5, G3-7 and G3-8 are all about things that do not exist yet (enemies,
-items, a full playthrough) and belong to v3. G3-6 is green statically. The
-next pass is **v2: the light table of §6, the lamp sectors, the booth light
-SW-A turns on, the flicker, the parapets and drums, and the three secret
-sectors actually flagged** — and the single most useful thing light will do
+G3-1 and G3-3 are green and G3-2 is green for every viewpoint walked (log
+not kept; the filed engine evidence is the Windows smoke,
+`docs/qa/evidence/2026-10-13_1448_F3_smoke-map01-windows.log` / `.png`).
+G3-4, G3-5, G3-7 and G3-8 are all about things that do not exist yet
+(enemies, items, a full playthrough) and belong to v3. G3-6 is green
+statically. The next pass is **v2: the light table of §6, the lamp sectors,
+the booth light SW-A turns on, the flicker, the parapets and drums, the
+three secret sectors actually flagged, and the real switches (one variant
+each, `SWITCH_PLACEHOLDER` retired; the `ANIMDEFS` pairs are in, MOD-SPEC
+§4.3)** — it starts once the CEO has walked v1 on this
+machine and given his verdict on §13 — and the single most useful thing light will do
 is finish the job this pass started, because a lit fuel-bay mouth at the end
 of a dark red wall is an argument no player misses.

@@ -1,7 +1,7 @@
 # Could we train an AI on thousands of levels and have it generate our maps?
 
 Date: 2026-10-13. Author: PM. Dated snapshot, not a living document.
-Russian mirror: `docs/ru/product/2026-10-13_ML-LEVEL-GENERATION.md` (D7).
+Russian mirror: `docs/ru/product/2026-10-13_0944_F3_ml-level-generation.md` (D7).
 
 CEO question, literally: *«Existe posibilidad de que te descargues miles de
 niveles, entrenar un modelo de IA, y generar así los mapas? o es una idea muy

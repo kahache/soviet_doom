@@ -468,8 +468,9 @@ Declared here so `mod-engineer` and `level-designer` can plan; no files exist ye
 > **The live list of music decisions is `docs/sound/SOUNDTRACK.md` §8**, which
 > owns "what plays where" and was closed on 2026-10-13. What follows is only
 > the part that is a *rights* question, and point 0 below is the same decision
-> as SOUNDTRACK §8.0 seen from the licence side. Point 1 is superseded in
-> practice; points 2-4 are still open.
+> as SOUNDTRACK §8.0 seen from the licence side. Points 1 and 3 are
+> superseded by **D23** (CEO, 2026-10-13, `docs/PRD.md` §5); points 2 and 4
+> are still open.
 
 0. **Attribution.** Two of the twelve candidates (§4.4) are attribution-only,
    not public domain: shipping Engelbach's Internationale obliges us to credit
@@ -481,18 +482,20 @@ Declared here so `mod-engineer` and `level-designer` can plan; no files exist ye
    public-domain files, which are all solo-piano score previews.
 1. **The USSR anthem.** Instrumental, self-sequenced, lyrics never used — accept the
    residual US risk (finding 3.1.2), or take Glinka's *Patriotic Song* instead and
-   have zero risk? **This blocks the title-screen music.** *Superseded in
-   practice*: the CEO chose the Internationale for the title on 2026-10-13, so
-   this is now only about whether the anthem appears anywhere at all.
+   have zero risk? *Superseded by D23* (2026-10-13): *"La Internacional is
+   the title theme"*, so this no longer blocks the title screen and is now
+   only about whether the anthem appears anywhere at all.
 2. **Russia-free / US-blocked works**, principally *Священная война*. Our distribution
    will in practice be US-hosted. Do we exclude that whole category, or accept it for
    a free non-commercial mod? **My recommendation: exclude.** The dramatic value is
    real, but a takedown on a free mod costs more than the cue is worth, and the risk
    is concentrated in exactly the most recognisable pieces.
-3. **Scope of the soundtrack.** Confirm that the bulk of in-level music will be
-   **original composition in the period idiom**, with the historical pieces reserved
-   for title, intermission and diegetic radio. That is the cheapest and safest plan
-   and it is also, I think, the better-sounding one.
+3. **Scope of the soundtrack.** *Superseded by D23* (2026-10-13): *"Free MIDI
+   sequences with a verified licence come first, our own sequencing is the
+   fallback for works that exist only as free scores."* The bulk of in-level
+   music is therefore no longer "original composition in the period idiom" by
+   default; our own pieces (`D_SDM01`, `D_SDTITL`) stay as plan B, see
+   SOUNDTRACK §6. Not re-asked here.
 
 4. **Orchestration labour.** Every free MIDI of the Russian classics is a
    solo-piano score preview (§4.2). Making one usable means we assign the

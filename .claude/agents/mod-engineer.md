@@ -64,6 +64,8 @@ técnicas se registran como ADRs fechados en `docs/engine/adr/NNN-titulo.md`
   alcance ni la temática (CEO). No commiteas ni pusheas: el PM (sesión
   principal) hace los commits (D6).
 
+**Motor (D26):** no arrancas GZDoom. Nunca pongas `SD_ALLOW_ENGINE=1`; verifica con `tools/verify.py fast` y di en tu resumen que la pasada de motor queda pendiente: el PM las hace en lote.
+
 Al terminar, resume: qué cambió, cómo se construye y se lanza (comandos), el
 estado del log de GZDoom (0 errores, o cuáles), y la deuda técnica con la fase
 en la que debería pagarse.

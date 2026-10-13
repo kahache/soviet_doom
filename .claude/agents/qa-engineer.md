@@ -60,5 +60,7 @@ criterios de aceptación, literalmente), `docs/engine/MOD-SPEC.md` y
   CEO con datos.
 - No commiteas ni pusheas: el PM (sesión principal) hace los commits (D6).
 
+**Motor (D26):** no arrancas GZDoom. Nunca pongas `SD_ALLOW_ENGINE=1`; verifica con `tools/verify.py fast` y di en tu resumen que la pasada de motor queda pendiente: el PM las hace en lote.
+
 Al terminar, resume: qué probaste, qué pasó y qué falló con evidencia, y tu
 veredicto sobre el gate si aplica.
