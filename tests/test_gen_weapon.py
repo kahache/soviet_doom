@@ -339,5 +339,117 @@ class ArsenalRenderTests(unittest.TestCase):
         self.assertIn(self.g.MAT_ID["glove_black"], set(np.unique(f.mat).tolist()))
 
 
+@unittest.skipIf(SLOW_SKIPPED, "SD_SKIP_SLOW_ART is set: skipping the Katyusha pass-2 renders")
+@unittest.skipUnless(HAVE_IMAGING, "needs Pillow and numpy (.venv)")
+class KatyushaPass2Tests(unittest.TestCase):
+    """The hand Katyusha's second pass, a closed launch box: what pass 1
+    failed at (the salvo reading as sticks, the pickup as a bench) is
+    measured here, on every variant."""
+
+    @classmethod
+    def setUpClass(cls):
+        import gen_weapon
+        cls.g = gen_weapon
+        style = gen_weapon.HAND[gen_weapon.RECOMMENDED_HAND]
+        cls.held = {v.key: {p.frame: gen_weapon.render_katyusha_frame(style, p, v.key) for p in gen_weapon.HK_POSES}
+                    for v in gen_weapon.HK_VARIANTS}
+        cls.pickups = {(v.key, o.key): gen_weapon.render_katyusha_pickup(v.key, o.key)
+                       for v in gen_weapon.HK_VARIANTS for o in gen_weapon.HK_PICKUP_OPTIONS}
+        pal = json.loads((PROJECT_ROOT / "docs" / "art" / "palette.json").read_text(encoding="utf-8"))
+        cls.palette = {tuple(c) for c in pal["colours"]}
+
+    def count(self, f, name) -> int:
+        return int(((f.mat == self.g.MAT_ID[name]) & (f.rgba[..., 3] > 0)).sum())
+
+    def test_recommendations_exist(self):
+        self.assertIn(self.g.RECOMMENDED_HK, self.g.HK_VARIANT)
+        self.assertIn(self.g.RECOMMENDED_HK_PICKUP, {o.key for o in self.g.HK_PICKUP_OPTIONS})
+
+    def test_palette_and_hard_alpha(self):
+        frames = [f for v in self.held.values() for f, _ in v.values()] + list(self.pickups.values())
+        for f in frames:
+            self.assertTrue(set(np.unique(f.rgba[..., 3])) <= {0, 255})
+            opaque = {tuple(int(v) for v in px) for px in f.rgba[f.rgba[..., 3] > 0][:, :3]}
+            self.assertLessEqual(opaque, self.palette)
+
+    def test_six_mouths_on_screen_above_the_bar(self):
+        """The salvo counts as six: every tube mouth is in the view, above
+        the classic status bar, and no two of them overlap."""
+        for vk, frames in self.held.items():
+            for k, (_, mouths) in frames.items():
+                self.assertEqual(len(mouths), 6, (vk, k))
+                for x, y, s in mouths:
+                    r = self.g.HKB_TUBE_R * s
+                    self.assertTrue(r <= x <= self.g.SCREEN_W - r, (vk, k, x))
+                    self.assertTrue(r <= y <= self.g.STATUSBAR_TOP - r * 0.5, (vk, k, y))
+                xs = sorted({round(x) for x, _, _ in mouths})
+                pitch = min(abs(a[0] - b[0]) + abs(a[1] - b[1]) for i, a in enumerate(mouths)
+                            for b in mouths[i + 1:])
+                self.assertGreater(pitch, 2 * self.g.HKB_TUBE_R * min(s for _, _, s in mouths) * 0.9, (vk, k, xs))
+
+    def test_the_crosshair_stays_clear(self):
+        """A box running along the view converges on the crosshair; the
+        poses keep it off the eye's axis so the target stays visible."""
+        radius, share = self.g.HK_AIM_CLEAR
+        for vk, frames in self.held.items():
+            for k, (f, _) in frames.items():
+                ys, xs = np.nonzero(f.rgba[..., 3] > 0)
+                d = np.hypot(xs + f.left - self.g.SCREEN_CX, ys + f.top - self.g.SCREEN_CY)
+                self.assertLessEqual(int((d < radius).sum()), share * np.pi * radius * radius, (vk, k))
+
+    def test_loaded_and_empty_read_apart(self):
+        """Loaded mouths carry the red base rings; the empty frame does not
+        (its only red is the stencilled star, if the side shows at all)."""
+        for vk, frames in self.held.items():
+            loaded = self.count(frames["A"][0], "hull_red")
+            empty = self.count(frames["B"][0], "hull_red")
+            self.assertGreater(loaded, 60, vk)
+            self.assertGreater(loaded, 4 * max(empty, 1), (vk, loaded, empty))
+            self.assertGreater(self.count(frames["C"][0], "hull_red"), 4 * max(empty, 1), vk)
+
+    def test_c_is_b_loaded(self):
+        """SDHK C (proposed) is B's pose with the rockets in, so the flash
+        drawn over B sits on C's mouths too."""
+        poses = {p.frame: p for p in self.g.HK_POSES}
+        self.assertFalse(poses["C"].wired)
+        for attr in ("origin", "bore", "up"):
+            self.assertEqual(getattr(poses["C"], attr), getattr(poses["B"], attr), attr)
+        for vk, frames in self.held.items():
+            self.assertEqual(frames["C"][1], frames["B"][1], vk)
+
+    def test_flash_covers_the_six_mouths(self):
+        for k, on in self.g.HK_FLASH_ON.items():
+            mouths = self.held[self.g.RECOMMENDED_HK][on][1]
+            fl = self.g.render_katyusha_flash(k, mouths)
+            for x, y, _ in mouths:
+                c, r = int(x - fl.left), int(y - fl.top)
+                self.assertTrue(0 <= r < fl.rgba.shape[0] and 0 <= c < fl.rgba.shape[1], (k, x, y))
+                self.assertEqual(fl.rgba[r, c, 3], 255, (k, x, y))
+
+    def test_pickup_has_no_legs(self):
+        """Pass 1 stood on its grip and its handle and read as a bench. A
+        pass-2 pickup has at most the one pistol grip under it (option D),
+        or nothing (F): the bakelite is one narrow cluster or absent."""
+        for (vk, ok), f in self.pickups.items():
+            ys, xs = np.nonzero((f.mat == self.g.MAT_ID["bakelite"]) & (f.rgba[..., 3] > 0))
+            if ok == "F":
+                self.assertEqual(xs.size, 0, (vk, ok))
+            else:
+                self.assertGreater(xs.size, 0, (vk, ok))
+                self.assertLessEqual(int(xs.max() - xs.min()), 8, (vk, ok))
+
+    def test_pickup_shows_the_rockets(self):
+        for key, f in self.pickups.items():
+            self.assertGreater(self.count(f, "hull_red"), 15, key)
+
+    def test_pickup_stands_on_the_floor_at_pickup_size(self):
+        for key, f in self.pickups.items():
+            lo, to = f.offsets()
+            h, w = f.rgba.shape[:2]
+            self.assertLessEqual(abs(lo - w // 2), 1, key)
+            self.assertEqual(to, h, key)
+            self.assertTrue(48 <= w <= 80, (key, w))       # Freedoom's BFUGA0 is about 62 wide
+
+
 if __name__ == "__main__":
     unittest.main()
