@@ -1,5 +1,6 @@
 """Contract of tools/art/gen_weapon.py (F4: the sergeant's hand, D39; the
-ice axe, D40; the PPSh-41).
+ice axe, D40; the PPSh-41; the TT-33, IZh-58, RPG-7, ROKS-3 and hand
+Katyusha).
 
 Cheap on purpose: renders a handful of frames, never a sheet. What is checked:
 
@@ -13,11 +14,19 @@ Cheap on purpose: renders a handful of frames, never a sheet. What is checked:
              Doom's arithmetic (left = -leftoffset, top = 32 - topoffset)
   seed       the same frame renders identically twice
   no font    the generator never rasterises text with a system font
+  letters    the five later weapons draw exactly the held frames their state
+             machine in src/zscript/weapons/ shows, and every flash frame it
+             shows (read from the .zs, so an edit there turns this red)
+
+The render tests of the five later weapons (about 30 frames) are skipped
+under SD_SKIP_SLOW_ART, as verify.py fast sets it; the letter and name
+checks always run.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import re
 import struct
 import sys
@@ -217,6 +226,117 @@ class PpshTests(unittest.TestCase):
         h, w = self.pickup.rgba.shape[:2]
         self.assertLessEqual(abs(lo - w // 2), 1)
         self.assertEqual(to, h)
+
+
+SLOW_SKIPPED = bool(os.environ.get("SD_SKIP_SLOW_ART"))
+
+
+@unittest.skipUnless(HAVE_IMAGING, "needs Pillow and numpy (.venv)")
+class ArsenalContractTests(unittest.TestCase):
+    """Cheap: names and frame letters, no render."""
+
+    @classmethod
+    def setUpClass(cls):
+        import gen_weapon
+        cls.g = gen_weapon
+        cls.spec = (PROJECT_ROOT / "docs" / "engine" / "MOD-SPEC.md").read_text(encoding="utf-8")
+
+    def test_held_letters_are_the_state_machines(self):
+        for key, spec in self.g.WEAPONS.items():
+            held, _ = self.g.zs_letters(spec)
+            self.assertTrue(held, key)
+            wired = {p.frame for p in self.g.WEAPON_POSES[key] if p.wired}
+            self.assertEqual(wired, held, key)
+
+    def test_every_flash_letter_is_drawn(self):
+        for key, spec in self.g.WEAPONS.items():
+            _, flash = self.g.zs_letters(spec)
+            self.assertTrue(flash, key)
+            self.assertLessEqual(flash, set(self.g.FLASH_ON[key]), key)
+            # and each flash sits over a held frame that exists
+            frames = {p.frame for p in self.g.WEAPON_POSES[key]}
+            self.assertLessEqual(set(self.g.FLASH_ON[key].values()), frames, key)
+
+    def test_names_are_the_contract(self):
+        rows = {"tt33": "| TT-33", "izh": "| IZh-58", "rpg7": "| RPG-7", "roks3": "| ROKS-3",
+                "katyusha": "| Hand Katyusha"}
+        for key, prefix in rows.items():
+            spec = self.g.WEAPONS[key]
+            row = next(ln for ln in self.spec.splitlines() if ln.startswith(prefix))
+            for name in (spec.held, spec.flash, spec.pickup):
+                self.assertIn(f"`{name}`", row, key)
+
+    def test_placeholders_are_the_state_machines(self):
+        for key, spec in self.g.WEAPONS.items():
+            text = (PROJECT_ROOT / "src" / "zscript" / "weapons" / spec.zs).read_text(encoding="utf-8")
+            self.assertRegex(text, rf"\n\s*{spec.ph_pickup} A -1", key)
+
+    def test_proposals_are_marked(self):
+        for key, poses in self.g.WEAPON_POSES.items():
+            for p in poses:
+                name = self.g.sprite_name(self.g.WEAPONS[key].held, p.frame, p.wired)
+                self.assertEqual(name.endswith("_proposed"), not p.wired, name)
+
+
+@unittest.skipIf(SLOW_SKIPPED, "SD_SKIP_SLOW_ART is set: skipping the arsenal renders")
+@unittest.skipUnless(HAVE_IMAGING, "needs Pillow and numpy (.venv)")
+class ArsenalRenderTests(unittest.TestCase):
+    """Every held, flash and pickup frame of the five later weapons."""
+
+    @classmethod
+    def setUpClass(cls):
+        import gen_weapon
+        cls.g = gen_weapon
+        style = gen_weapon.HAND[gen_weapon.RECOMMENDED_HAND]
+        cls.out = {key: gen_weapon.render_weapon(key, style) for key in gen_weapon.WEAPONS}
+        pal = json.loads((PROJECT_ROOT / "docs" / "art" / "palette.json").read_text(encoding="utf-8"))
+        cls.palette = {tuple(c) for c in pal["colours"]}
+
+    def test_palette_and_hard_alpha(self):
+        for key, (held, flashes, pickup) in self.out.items():
+            for f in (*held.values(), *flashes.values(), pickup):
+                self.assertTrue(set(np.unique(f.rgba[..., 3])) <= {0, 255}, key)
+                opaque = {tuple(int(v) for v in px) for px in f.rgba[f.rgba[..., 3] > 0][:, :3]}
+                self.assertLessEqual(opaque, self.palette, key)
+
+    def test_held_frames_reach_the_bottom_and_show_above_the_bar(self):
+        for key, (held, _, _) in self.out.items():
+            for k, f in held.items():
+                self.assertGreaterEqual(f.top + f.rgba.shape[0], self.g.SCREEN_H, (key, k))
+                self.assertLess(f.top, self.g.STATUSBAR_TOP, (key, k))
+
+    def test_held_frames_stay_in_the_authoring_canvas(self):
+        # a primitive behind the eye explodes across the whole canvas
+        for key, (held, _, _) in self.out.items():
+            for k, f in held.items():
+                self.assertLess(f.rgba.shape[1], self.g.CANVAS_W - 8, (key, k))
+
+    def test_flash_is_flash_only_and_on_screen(self):
+        flat = {self.g.MAT_ID[n] for n in self.g.FLAT}
+        for key, (_, flashes, _) in self.out.items():
+            for k, fl in flashes.items():
+                used = set(np.unique(fl.mat[fl.rgba[..., 3] > 0]).tolist())
+                self.assertLessEqual(used, flat, (key, k))
+                cx, cy = fl.left + fl.rgba.shape[1] / 2, fl.top + fl.rgba.shape[0] / 2
+                self.assertTrue(0 <= cx < self.g.SCREEN_W and 0 <= cy < self.g.STATUSBAR_TOP, (key, k, cx, cy))
+
+    def test_pickups_stand_on_the_floor_at_pickup_size(self):
+        for key, (_, _, pk) in self.out.items():
+            lo, to = pk.offsets()
+            h, w = pk.rgba.shape[:2]
+            self.assertLessEqual(abs(lo - w // 2), 1, key)
+            self.assertEqual(to, h, key)
+            self.assertTrue(16 <= max(h, w) <= 72, (key, w, h))
+
+    def test_deterministic(self):
+        style = self.g.HAND[self.g.RECOMMENDED_HAND]
+        again = self.g.render_tt33_frame(style, self.g.TT_POSES[0])[0]
+        self.assertTrue(np.array_equal(again.rgba, self.out["tt33"][0]["A"].rgba))
+
+    def test_another_hand_re_renders(self):
+        """The CEO has not picked a hand yet: any letter must render."""
+        f = self.g.render_weapon_idle("izh", self.g.HAND["C"])
+        self.assertIn(self.g.MAT_ID["glove_black"], set(np.unique(f.mat).tolist()))
 
 
 if __name__ == "__main__":
