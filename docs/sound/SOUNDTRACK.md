@@ -15,51 +15,47 @@ D16: *"Free MIDI sequences with a verified licence come first, our own
 sequencing is the fallback for works that exist only as free scores. La
 Internacional is the title theme. The three-rights rule of D16 stands in
 full."* So a downloaded, attribution-licensed title sequence is now the
-decided route, not a departure from it. What D23 does **not** settle is in
-"Decisions needed", points 0 and 1: the CEO's express acceptance of the
-Engelbach attribution, and the approval of the repaired file itself.
+decided route, not a departure from it.
 
-> **Nothing below is approved and nothing is in the PK3.** Downloads live in
-> `work/audio/candidates/`, our own and our repaired files in `work/audio/`.
-> Nothing enters `assets/` without an explicit approval, exactly as with the
-> textures.
+**D43** (CEO, 2026-10-13): *"Acepto las recomendaciones de música"* — every
+open recommendation of §8 accepted. What that changed, in one place:
 
-> ⚠️ **And `work/` is gitignored, so none of it is version-controlled.**
-> Verified: `.gitignore:16` is a bare `work/`, and `git ls-files work/` returns
-> nothing. The twelve downloaded MIDIs, the repaired `D_SDINTL.mid` and the two
-> `D_SDFIX*.mid` exist **only in the gitignored `work/`**. Combined with the sourcing gap
-> in §3.1 — seven of the twelve have no recorded per-piece URL — a clean
-> checkout cannot reproduce this candidate set. This is deliberate for art
-> (batch PNGs live embedded in previews) but it is wrong for music, where the
-> artefact *is* the file and the provenance is external. **Request to the PM,
-> who owns `.gitignore` and the commits:** either narrow the ignore so
-> `work/audio/candidates/` is tracked, or treat §3.1's URL re-verification as
-> a blocker before this list is relied on again. I have not touched
-> `.gitignore`.
+> **Two lumps are installed and packed: `assets/music/D_SDINTL.mid` (title)
+> and `assets/music/D_SDM01.mid` (MAP01).** Both are byte-identical to the
+> `work/audio/` files the CEO's acceptance refers to, and both regenerate from
+> their sources byte for byte (`tests/test_music.py`). They are **not yet
+> heard in the game**: `src/lumps/MAPINFO` still says `music = ""` until
+> `mod-engineer` adds the two lines of §7. Jerry Engelbach is credited
+> (Card 0, `MUSIC-RIGHTS.md` §4.5).
 >
-> **2026-10-13, update:** the files are no longer stranded on the Mac. On the
-> afternoon of the move to the Windows PC `work/` arrived as the release asset
-> `transfer-work-2026-10-13` (784 files checked against the Mac's SHA-256
-> manifest), and `D_SDINTL.mid`, `D_SDM01.mid`, `D_SDTITL.mid`,
-> `D_SDFIX3.mid`, `D_SDFIX7.mid` and the twelve candidates are in
-> `work/audio/` and `work/audio/candidates/` here (checked with `ls`).
-> Nothing is to be redone. The request to the PM above stays open: `work/`
-> is still not in git, and versioning `work/audio/candidates/` is the CEO's
-> call (`docs/PENDING-CEO-DECISIONS.md` §4).
+> **`work/audio/candidates/` is tracked in git** since D43 (a `.gitignore`
+> exception for that folder only), with every file's SHA-256 and source page
+> in `MUSIC-RIGHTS.md` §4.4; the sourcing gap of §3.1 is closed. Three
+> candidates were discarded (§3). Everything else in `work/audio/` — our
+> drafts, renders, the overlay PK3 — stays gitignored, as before.
+>
+> **Candidate lump names are now stable.** They used to be positional, so
+> deleting the discards would have renamed nine pieces. They now come from
+> the registry `work/audio/candidates/LUMPS.txt`: `D_CND10` is Engelbach's
+> Internationale for good, and retired numbers are never reused.
 
 ---
 
-## 0. The recommendation, in four lines
+## 0. What plays where (settled by D43)
 
-| Cue | File | Why |
+| Cue | File | Status |
 |---|---|---|
-| **Title screen** | **`work/audio/D_SDINTL.mid`** — Engelbach's orchestral *Internationale*, head silence removed by us | the CEO's choice, the only downloaded file that is finished orchestral music, and now the only one with no measurable defect at all |
-| **MAP01** | **`work/audio/D_SDM01.mid`** — our own "Zarya-7" | the only candidate of any origin that is *written as a game loop*: 2:22, dark, restarts from 25 % instead of slamming. The alternative is a ten-minute solo-piano transcription |
-| **Diegetic radio** | `WM_Ej_uchnem.mid`, `WM_Kolokolchik.mid` — CC0, already orchestrated | free of every obligation, 40-50 s, right texture for the Leninskaya komnata |
-| **Our `D_SDTITL`** | **reserved, not retired** | it is no longer the title theme, but it is a finished 1:21 Soviet march in D minor and the natural intermission / episode-end cue |
+| **Title screen** | **`assets/music/D_SDINTL.mid`** — Engelbach's orchestral *Internationale*, head silence removed by us | **installed** (D43); MAPINFO line owed by `mod-engineer` |
+| **MAP01** | **`assets/music/D_SDM01.mid`** — our own "Zarya-7" | **installed** (D43) as it stood; an enriched version follows as a draft for the CEO's ear |
+| **Diegetic radio** | `WM_Ej_uchnem.mid` (`D_CND09`), `WM_Kolokolchik.mid` (`D_CND12`) — CC0, already orchestrated | **settled** (D43); not installed until a map has a radio to put them in (`level-designer`) |
+| **Anthem slot** | Glinka's *Patriotic Song*, sequenced by us | **settled** (D43); to be sequenced by us |
+| **Death / aftermath** | «Вы жертвою пали», sequenced by us | **settled** (D43); to be sequenced by us |
+| **Radio waltz** | «Амурские волны» (Kyuss, 1909), sequenced by us | **settled** (D43); to be sequenced by us |
+| **Our `D_SDTITL`** | **reserved, not retired** | a finished 1:21 Soviet march in D minor, the natural intermission / episode-end cue |
 
-Three of the twelve downloads are **discarded** and six are kept as named
-reserves (§3). Two needed repair and got it (§5). The full reasoning is below; the thing I need decided is in §8.
+Three of the twelve downloads are **discarded** and gone, six are kept as
+named reserves (§3). Two needed repair and got it (§5). Works restored in
+the United States are excluded (`MUSIC-RIGHTS.md` §5(b)).
 
 ---
 
@@ -81,7 +77,8 @@ SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play map01 --lump D_SDM01   
 # our title march, now proposed for the intermission instead
 SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play title --lump D_SDTITL
 
-# the downloaded candidates (packed as D_CND01..D_CND12; the map is printed)
+# the downloaded candidates (packed under their stable D_CNDnn names from
+# work/audio/candidates/LUMPS.txt; the map is printed)
 python3 tools/audio/audition.py --pack --candidates
 SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play map01 --candidates --lump D_CND01   # Bald Mountain
 SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play title --candidates --lump D_CND09   # Эй, ухнем
@@ -181,8 +178,10 @@ errors or warnings (`grep -icE 'error|warning|unknown|cannot|failed'` = 0):
 
 ## 3. The closed candidate table
 
-Twelve files, **186 170 B (182 KiB)** in total. Two tables, one key: the lump
-name. The first is where each file came from and what we may do with it; the
+Twelve files were downloaded, **186 170 B (182 KiB)** in total; **nine
+remain** after D43 discarded `D_CND02`, `D_CND04` and `D_CND08` (struck
+through below, kept so the record stays whole; the files are gone). Two
+tables, one key: the lump name. The first is where each file came from and what we may do with it; the
 second is what it actually sounds like. Rights detail and the eleven sources
 rejected before download are `MUSIC-RIGHTS.md` §4.4.
 
@@ -201,24 +200,20 @@ NonCommercial term.
 | `D_CND09` | `WM_Ej_uchnem.mid` · 2 140 B | **Эй, ухнем** / *Ey, ukhnem* (Volga Boatmen), Balakirev's setting, pub. 1866 | https://commons.wikimedia.org/wiki/File:Ej,_uchnem!.mid | **Peter Gerloff** (Commons: *Rabanus Flavus*), 2021 | `{{self\|Cc-zero}}` — **CC0 1.0**, "waives all of his or her rights to the work worldwide" | ✅ no obligation |
 | `D_CND12` | `WM_Kolokolchik.mid` · 2 354 B | **Колокольчик** / *Kolokolchik*, Russian traditional | https://commons.wikimedia.org/wiki/File:Kolokolchik.mid | **Peter Gerloff**, 2019 | `{{self\|Cc-zero}}` — **CC0 1.0** | ✅ no obligation |
 | `D_CND01` | `MU_Mussorgsky_BaldMountain.mid` · 79 556 B | **Ночь на лысой горе** / *Noch na lysoy gore*; Mussorgsky d. 1881, piano transcription by Konstantin Chernov d. 1944 | https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1892 | typeset **Robert Clausecker**, Mutopia Project, 2013 | **CC BY 3.0** | ✅ **credit Clausecker + Mutopia** |
-| `D_CND06` | `MU_Tchaikovsky_Dumka_op59.mid` · 36 268 B | **Думка** / *Dumka* op. 59 (1886), "Russian rustic scene" | Mutopia, piece record **not recorded at download** — browse: https://www.mutopiaproject.org/browse.html | Mutopia Project (LilyPond, staves `up`/`down`) | **Public Domain** | ✅ |
-| `D_CND07` | `MU_Tchaikovsky_Seasons_August.mid` · 21 748 B | **Времена года: Август** / *Vremena goda: Avgust* ("Harvest", 1876) | Mutopia, piece record **not recorded at download** | Mutopia Project (LilyPond 2.8.6, 21 Aug 2006) | **Public Domain** | ✅ |
-| `D_CND03` | `MU_Scriabin_Etude_op2n1.mid` · 10 313 B | **Этюд** / *Etyud* op. 2 № 1 (1887) | Mutopia, piece record **not recorded at download** | Mutopia Project (LilyPond) | **Public Domain** | ✅ |
-| `D_CND05` | `MU_Scriabin_Prelude_op59n2.mid` · 7 789 B | **Прелюдия** / *Prelyudiya* op. 59 № 2 (1910) | Mutopia, piece record **not recorded at download** | Mutopia Project (LilyPond) | **Public Domain** | ✅ |
-| `D_CND04` | `MU_Scriabin_Prelude_op11n1.mid` · 4 910 B | **Прелюдия** op. 11 № 1 | Mutopia, piece record **not recorded at download** | Mutopia Project (LilyPond) | **Public Domain** | ✅ |
-| `D_CND02` | `MU_RimskyKorsakov_FugueBACH.mid` · 5 649 B | *Fugue sur le nom de BACH*; Rimsky-Korsakov d. 1908 | Mutopia, piece record **not recorded at download** | Mutopia Project (LilyPond) | **Public Domain** | ✅ |
-| `D_CND08` | `MU_Tchaikovsky_WoodenSoldiers.mid` · 2 983 B | **Марш деревянных солдатиков** / *Marsh derevyannykh soldatikov* op. 39 | Mutopia, piece record **not recorded at download** | Mutopia Project (LilyPond) | **Public Domain** | ✅ |
+| `D_CND06` | `MU_Tchaikovsky_Dumka_op59.mid` · 36 268 B | **Думка** / *Dumka* op. 59 (1886), "Russian rustic scene" | https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=341 | Mutopia, maintainer Vassily Checkin (LilyPond 2.18.0, staves `up`/`down`) | **Public Domain** | ✅ |
+| `D_CND07` | `MU_Tchaikovsky_Seasons_August.mid` · 21 748 B | **Времена года: Август** / *Vremena goda: Avgust* ("Harvest", 1876) | https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=803 | Mutopia, maintainer Till Rettig (LilyPond 2.8.6, 21 Aug 2006) | **Public Domain** | ✅ |
+| `D_CND03` | `MU_Scriabin_Etude_op2n1.mid` · 10 313 B | **Этюд** / *Etyud* op. 2 № 1 (1887) | https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1029 | Mutopia, maintainer Guy D. Lederfein (LilyPond 2.10.29) | **Public Domain** | ✅ |
+| `D_CND05` | `MU_Scriabin_Prelude_op59n2.mid` · 7 789 B | **Прелюдия** / *Prelyudiya* op. 59 № 2 (1910) | https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=445 | Mutopia, maintainer Federico Bruni (LilyPond 2.18.0) | **Public Domain** | ✅ |
+| ~~`D_CND04`~~ | ~~`MU_Scriabin_Prelude_op11n1.mid`~~ · 4 910 B | **Прелюдия** op. 11 № 1 | Mutopia id 1779 | Mutopia Project (LilyPond) | **Public Domain** | **discarded (D43)** |
+| ~~`D_CND02`~~ | ~~`MU_RimskyKorsakov_FugueBACH.mid`~~ · 5 649 B | *Fugue sur le nom de BACH*; Rimsky-Korsakov d. 1908 | Mutopia | Mutopia Project (LilyPond) | **Public Domain** | **discarded (D43)** |
+| ~~`D_CND08`~~ | ~~`MU_Tchaikovsky_WoodenSoldiers.mid`~~ · 2 983 B | **Марш деревянных солдатиков** / *Marsh derevyannykh soldatikov* op. 39 | Mutopia id 1806 | Mutopia Project (LilyPond) | **Public Domain** | **discarded (D43)** |
 
-> **Gap I am flagging rather than papering over.** The per-piece Mutopia URL
-> was recorded only for *Night on Bald Mountain* (id 1892). For the other
-> seven, the licence was read from the per-piece record on 2026-10-13 but the
-> record's address was not written down, and the files themselves carry no
-> provenance beyond `creator: GNU LilyPond <version>`. All seven are
-> **Public Domain**, so no attribution duty is at risk — but a Public-Domain
-> claim whose page we cannot point at is a claim resting on my memory.
-> **Before any of those seven is packed, its piece URL must be re-verified
-> and written into `MUSIC-RIGHTS.md` §4.4.** Bald Mountain, the one with a
-> real attribution obligation, is the one that is fully sourced.
+> **The sourcing gap is closed (2026-10-13).** The per-piece Mutopia URL had
+> been recorded only for *Night on Bald Mountain*. The four Mutopia pieces
+> that remain were re-read at their piece records; URL, maintainer and
+> licence are in the table above and in `MUSIC-RIGHTS.md` §4.4, and each
+> page's LilyPond version matches the one embedded in the file. All four are
+> Public Domain.
 
 ### 3.2 What they actually sound like
 
@@ -240,9 +235,9 @@ Sorted by usefulness.
 | `D_CND03` | 2:16 · 60 BPM 3/4 | 0 · 2 | 8.3 · 4.1 | **1.011** ❌ · **4 samples** | none | 75 84 61 83 45 60 95 100 63 31 30 21 **(79)** | ⚠️ **clipped**, and the widest arc of any download — it dies away to 21 %, which is a real shape. **Repaired → 0.747** (§5) | death / aftermath sting, once orchestrated |
 | `D_CND05` | 1:28 · 126 BPM 6/8 | 0 · 2 | 10.4 · 5.2 | 0.396 · none | none | 87 91 84 81 94 80 88 100 85 89 92 75 (25) | ⚠️ good unsettled mood, but **arc spread 25 — flat**, and 1:28 is too short to loop under a firefight | reserve: alien-zone ambience |
 | `D_CND11` | 1:22.8 · 96 BPM | 0 · 1 | 5.0 · 5.0 | **0.185** ⚠️ · none | **2.18 s** ❌ | 99 96 98 88 88 92 93 86 86 92 100 85 (15) | ⚠️ **not the title.** One channel of piano, the quietest file measured (peak 0.185, under half of `D_CND10`), **arc spread 15 — the second-flattest** — and the same two-second hole at the head | **keep only as a diegetic Internationale** — a piano heard through a wall is exactly what it sounds like |
-| `D_CND04` | 0:42.7 · 140 BPM | 0 · 2 | 11.2 · 5.6 | 0.416 · none | none | 74 82 78 86 74 75 81 77 100 96 89 74 (26) | ❌ **discard.** 43 s, flat, solo piano. Nothing it could be but a sting, and we have better stings | — |
-| `D_CND02` | 2:04 · 140 BPM 4/2 | 0 · 2 | 5.0 · 2.5 | 0.645 · none | none | 77 88 90 100 87 92 79 95 80 74 81 80 (26) | ❌ **discard.** Free and clean, and musically irrelevant to us: a conservatory fugue on a **German** name. Nothing Russian reaches the listener | — |
-| `D_CND08` | 0:41.1 · 140 BPM 2/4 | 0 · 2 | 7.9 · 3.9 | 0.344 · none | none | 95 98 95 96 99 93 98 97 94 100 92 92 **(8)** | ❌ **discard, and it is the clearest discard in the set.** Arc spread **8 points** — measurably the flattest thing we have, a children's toy march. Wrong tone for 1977 and for this game | — |
+| ~~`D_CND04`~~ | 0:42.7 · 140 BPM | 0 · 2 | 11.2 · 5.6 | 0.416 · none | none | 74 82 78 86 74 75 81 77 100 96 89 74 (26) | ❌ **discarded (D43).** 43 s, flat, solo piano. Nothing it could be but a sting, and we have better stings | — |
+| ~~`D_CND02`~~ | 2:04 · 140 BPM 4/2 | 0 · 2 | 5.0 · 2.5 | 0.645 · none | none | 77 88 90 100 87 92 79 95 80 74 81 80 (26) | ❌ **discarded (D43).** Free and clean, and musically irrelevant to us: a conservatory fugue on a **German** name. Nothing Russian reaches the listener | — |
+| ~~`D_CND08`~~ | 0:41.1 · 140 BPM 2/4 | 0 · 2 | 7.9 · 3.9 | 0.344 · none | none | 95 98 95 96 99 93 98 97 94 100 92 92 **(8)** | ❌ **discarded (D43), the clearest discard in the set.** Arc spread **8 points** — measurably the flattest thing we have, a children's toy march. Wrong tone for 1977 and for this game | — |
 
 **Eight of the twelve are solo piano with no program change whatsoever.** That
 is not a flaw in Mutopia: a LilyPond MIDI is the *audio preview of an engraved
@@ -346,12 +341,23 @@ result that would not obviously be better.
 **The obligation that comes with it**: `{{Attribution|Jerry Engelbach}}` is
 attribution-only, **not** public domain. Shipping it means crediting Jerry
 Engelbach wherever we credit anyone. That is a line in the credits and a row
-in the licence register — cheap, but real, and the CEO should accept it
-knowingly (§8.0).
+in the licence register — cheap, but real. **The CEO accepted it (D43).**
 
 **Lump name**: `D_SDINTL` (8 characters, the `D_` music prefix plus `SD` per
-D1). The repaired file is the one that would ship; the download stays in
+D1). The repaired file is the one that ships; the download stays in
 `work/audio/candidates/` untouched as the provenance original.
+
+### Card 0 — `D_SDINTL`, *The Internationale* — **installed, title screen (D43)**
+
+| Field | Value |
+|---|---|
+| **Lump** | `D_SDINTL` |
+| **File** | `assets/music/D_SDINTL.mid`, 8 921 B, SMF format 0, 1 track, 960 ticks/beat, SHA-256 `c94e4903…85a9`; byte-identical to `work/audio/D_SDINTL.mid` |
+| **Where it plays** | the title screen (`GameInfo { TitleMusic = "D_SDINTL" }`, owed by `mod-engineer`, §7) |
+| **Duration · tempo** | 1:25.3 per loop, 90 BPM 4/4; 1 063 notes, 12 GM voices on 16 channels, zero hanging notes |
+| **Origin** | *L'Internationale*, Pierre De Geyter, 1888 (public domain); MIDI sequence by **Jerry Engelbach**, 2003, from Wikimedia Commons; 1.99 s of leading silence removed by us (§4.1) |
+| **Credit (required)** | **"MIDI sequence by Jerry Engelbach"** — the full line and where it stands: `MUSIC-RIGHTS.md` §4.5 |
+| **Reproducible** | `tests/test_music.py` rebuilds it from `work/audio/candidates/WM_Internationale_orch2.mid` with `midi_edit`'s `--trim-head` and compares the hash |
 
 ---
 
@@ -455,12 +461,12 @@ slower and heavier. More solemn: `--title-tempo 72`. More military:
 `--title-tempo 96`. Less brass: lower `TITLE_VEL_MELODY` / `TITLE_VEL_HARMONY`
 or the channel volumes in `TITLE_MIX`.
 
-### Card 2 — `D_SDM01`, "Zarya-7" — **my recommendation for MAP01**
+### Card 2 — `D_SDM01`, "Zarya-7" — **installed for MAP01 (D43)**
 
 | Field | Value |
 |---|---|
 | **Lump** | `D_SDM01` (7 chars) |
-| **File** | `work/audio/D_SDM01.mid`, 8 789 B, SMF format 1, 6 tracks, 480 ticks/beat |
+| **File** | `assets/music/D_SDM01.mid`, 8 789 B, SMF format 1, 6 tracks, 480 ticks/beat, SHA-256 `c0fce282…118b`; byte-identical to `work/audio/D_SDM01.mid` and to what `tools/audio/gen_music.py --only map01` writes (`tests/test_music.py`) |
 | **Where it plays** | MAP01, Zarya-7 cosmodrome, the invasion just begun (`docs/levels/MAP01-zarya-7.md`) |
 | **Duration** | 2:22 per loop (142.2 s written, 142.8 s rendered). The map is 5-8 min, so the player hears 2 to 3.5 loops |
 | **Tempo · key** | 108 BPM 4/4, `MAP01_TEMPO_BPM` · D minor with a flat second (E♭) leaning on the tonic — the oldest "something is wrong" interval there is, and it costs one note |
@@ -488,7 +494,7 @@ is precisely what `D_CND01` cannot do — Bald Mountain's loudest twelfth is its
 
 If the CEO finds it **too busy**: `MAP01_VEL_BRASS`, or delete the snare in
 section C. **Too slow for a fight**: 120 BPM. **Too long before anything
-happens**: `MAP01_SECTION_BARS` 12. **Too simple**: §8.3.
+happens**: `MAP01_SECTION_BARS` 12. **Too simple**: the enrichment the CEO accepted in D43 (§8.3).
 
 ### How plan B was verified
 
@@ -514,42 +520,47 @@ property of shipping MIDI and the price of the licence safety.
 
 ## 7. What I need from other roles
 
-### `mod-engineer` — two MAPINFO lines, **after** the CEO approves
+### `mod-engineer` — two MAPINFO lines, **now** (D43)
 
-I have not edited `src/lumps/MAPINFO`. If the recommendation in §0 is taken:
+The lumps are in `assets/music/` and the build packs them as
+`music/D_SDINTL.mid` and `music/D_SDM01.mid` (`sdbuild.pk3.ASSET_DIRS`
+already included `music`; checked with `tools/check_pk3.py`: licences OK,
+VERDICT PASS). I have not edited `src/lumps/MAPINFO`; it is yours:
 
 ```
 GameInfo { TitleMusic = "D_SDINTL" }      // add to the existing GameInfo block
 map MAP01 { music = "D_SDM01" }           // today: music = ""
 ```
 
-The lumps would live at `assets/music/<LUMP>.mid`; `sdbuild.pk3.ASSET_DIRS`
-already includes `music`, so no build change is needed. **`SNDINFO` is not
-involved** — music lumps are not declared there; that lump is for sound
-effects and `$musicalias`. If an intermission cue is wanted later,
-`D_SDTITL` goes on the `intermission` / `cluster` music key and I will ask
-for that line separately.
+**`SNDINFO` is not involved** — music lumps are not declared there; that
+lump is for sound effects and `$musicalias`. If an intermission cue is
+wanted later, `D_SDTITL` goes on the `intermission` / `cluster` music key
+and I will ask for that line separately. The engine pass that proves both
+play in the real game (`currentmusic`, with a non-zero music volume — §2.1)
+is owed by the PM after the lines land.
 
-### `qa-engineer` — three gaps, reported and **not touched** (yours)
+### `level-designer` — a radio, when a map has a room for it
+
+The diegetic radio pieces are settled (D43): `WM_Ej_uchnem.mid` and
+`WM_Kolokolchik.mid`. They need a map position and a sound-emitting actor
+(a radio in the Leninskaya komnata). When that exists I install them as
+`D_SD`-named lumps with their LICENSES rows; nothing to do before.
+
+### `qa-engineer` — gaps, reported and **not touched** (yours)
 
 1. Nothing checks that a MAPINFO `music = "X"` resolves to a packed lump or a
    known IWAD lump. Textures get exactly this check and it is why blocker M1
    was caught; a music typo instead fails **silently at runtime** — GZDoom
-   simply plays nothing.
-2. `check_licences` will demand a row for every music lump in
-   `docs/art/LICENSES.md` the moment they are packed, because `LICENSED_DIRS`
-   includes `music`. Either a backticked row goes there, or the check learns
-   about a **`LICENSES.md` of its own under `docs/sound/`**, which does not
-   exist yet. I have deliberately **not**
-   created a second register: `MUSIC-RIGHTS.md` §4.4 already owns these facts
-   and the project rule is one owner per fact. Tell me which file you want to
-   read and I will point it there.
-3. **An obligation, not a nicety:** the moment a downloaded file is packed the
-   mod acquires attribution duties — **Jerry Engelbach** for the
-   Internationale, **Robert Clausecker / Mutopia Project** for *Night on Bald
-   Mountain*. The PD and CC0 files carry none. Whatever credits mechanism the
-   mod grows has to cover this, and §3.1's flagged gap (seven Mutopia piece
-   URLs not recorded) has to be closed before those seven could be packed.
+   simply plays nothing. **Now live**: two music lumps are packed and
+   `mod-engineer` is about to reference them.
+2. ~~`check_licences` will demand a row for every music lump~~ — **resolved
+   2026-10-13**: rows for `D_SDINTL` and `D_SDM01` are in
+   `docs/art/LICENSES.md` § Music, pointing at `MUSIC-RIGHTS.md` §4.4; no
+   second register was created.
+3. **The credit obligation is live**: `D_SDINTL` is packed, so the mod owes
+   the Engelbach line of `MUSIC-RIGHTS.md` §4.5 wherever it credits anyone.
+   The in-game credits screen does not exist yet (G6); whoever builds it
+   carries that line.
 
 Also for QA, the two engine traps in §2.1: `currentmusic` lies when
 `snd_musicvolume` is 0, and a `writewave` run that loads a PK3 being rebuilt
@@ -557,65 +568,33 @@ can report a timeout on work it already finished.
 
 ---
 
-## 8. Decisions needed from the CEO
+## 8. Decisions — all settled by D43
 
-Superseded items from earlier versions are kept out. These are live.
+On 2026-10-13 the CEO accepted every open recommendation of this section:
+*"Acepto las recomendaciones de música"* (**D43**, `docs/PRD.md` §5). The
+items as they stood, and what each became:
 
-0. **Accept the Engelbach attribution.** The re-wording of D16 is **done**:
-   **D23** (CEO, 2026-10-13) amends it — downloaded free MIDI with a verified
-   licence first, our own sequencing as the fallback, and *La Internacional*
-   as the title theme. What D23 does not say is that the title sequence is
-   **not public domain**: it ships under `{{Attribution|Jerry Engelbach}}`,
-   so shipping it means **crediting Jerry Engelbach** in the mod's credits
-   and in the licence register. *Recommendation: accept.* The alternative is
-   to use only the public-domain files, every one of which is a solo-piano
-   score preview. **Still open: the CEO's express acceptance of that
-   obligation.**
-1. **Title screen: approve `work/audio/D_SDINTL.mid` before it enters
-   `assets/`.** D23 decides *which piece* (the Internationale); it does not
-   approve *this file*. It is Engelbach's orchestral Internationale with the
-   two-second head silence removed by us: measurably the best-sounding file we
-   have, its one defect fixed and verified, and the engine plays it with zero
-   errors. Nothing enters `assets/` without explicit approval (as with the
-   textures), so **still open: the CEO's approval of the repaired file**.
-   Listen: `SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play title --lump D_SDINTL`
-   (the file is in `work/audio/` on the Windows PC since 2026-10-13).
-2. **MAP01: `D_SDM01` (ours) or a ten-minute piano transcription?**
-   **(a) `D_SDM01`** — *my recommendation.* The only piece of any origin
-   written as a game loop: 2:22, darkest brightness measured, restarts from
-   25 %, no clipping, zero rights to clear, zero cost. It is also the piece
-   the CEO called simple, which §8.3 answers directly.
-   **(b) `D_CND01`, *Night on Bald Mountain*, orchestrated by us** — the best
-   musical material in the set and the right length, but ten minutes of solo
-   piano until someone assigns the instruments, and **I cannot judge whether
-   that orchestration will sound good** (§5). One focused session, and
-   CC BY 3.0 obliges us to credit Clausecker / Mutopia.
-   **(c) `D_CND06`, *Dumka*** — same deal, bleaker, slower, and the better
-   loop shape of the two piano files.
-   Doing nothing is not an option: MAP01's MAPINFO still says `music = ""`.
-   **Listen to (b) before deciding** — the piano may be exactly the austerity
-   you want: `SD_ALLOW_ENGINE=1 audition.py --play map01 --candidates --lump D_CND01`.
-3. **Do you want `D_SDM01` enriched rather than replaced?** The measurable
-   gap between ours and the Internationale is voices (5 against 12) and
-   through-composition, not dynamic shape — our arc is in fact wider. Adding
-   two more instrumental layers and a non-repeating fourth section is a
-   generator change, **hours, not days**, and it keeps the zero-rights
-   position. *Recommendation: yes, and do it only after (2) is decided.*
-4. **Diegetic radio: approve `WM_Ej_uchnem.mid` and `WM_Kolokolchik.mid`?**
-   Both CC0, both already orchestrated, both ~40 s, **no obligation of any
-   kind**. The cheapest win on the table. They need a map and a sound-emitting
-   actor to live in, which is a request to `level-designer` once approved.
-5. **The pieces no free MIDI exists for.** *Marche slave*,
-   *Прощание славянки*, *Амурские волны*, *Смело, товарищи, в ногу*,
-   *Вы жертвою пали* — all free as compositions, none available as a
-   licence-clean MIDI anywhere. Either we sequence them (~2-3 h each,
-   kilobytes) or, for *Marche slave* only, we ship IMSLP's CC BY 4.0
-   synthesised **MP3** as OGG (megabytes). *Recommendation: sequence
-   **Вы жертвою пали** and **Амурские волны** ourselves* — short strophic
-   tunes, the most dramatic work per hour of effort, and the two most
-   period-correct cues in the whole list.
-6. **Confirm the three discards** so I can stop carrying them: `D_CND02`
-   (German fugue), `D_CND04` (43 s flat sting), `D_CND08` (children's toy
-   march, flattest arc measured). `D_CND03`, `D_CND05` and `D_CND07` stay as
-   named reserves rather than discards. Say the word and the discarded files
-   leave `work/audio/candidates/`.
+0. **Engelbach attribution — ACCEPTED.** Jerry Engelbach is credited
+   (`MUSIC-RIGHTS.md` §4.5, `docs/art/LICENSES.md` § Music, Card 0,
+   `LICENSE.md`).
+1. **Title screen — `D_SDINTL` APPROVED and installed** in `assets/music/`.
+2. **MAP01 — (a) `D_SDM01`, ours, APPROVED and installed** as it stood.
+   Bald Mountain and *Dumka* stay reserves.
+3. **Enrich `D_SDM01` — YES.** A generator change, delivered as a draft in
+   `work/audio/` for the CEO's ear; the installed file is not touched until
+   the CEO approves the enriched one.
+4. **Diegetic radio — `WM_Ej_uchnem.mid` and `WM_Kolokolchik.mid`, both CC0,
+   SETTLED.** They wait for a map with a radio (§7, `level-designer`).
+5. **Sequence «Вы жертвою пали» and «Амурские волны» ourselves — YES.**
+   Drafts go to `work/audio/` (§6). Glinka's *Patriotic Song* takes the anthem slot (rights
+   side: `MUSIC-RIGHTS.md` §7.1), also sequenced by us.
+   **Excluded:** every work free in Russia but restored in the United States,
+   «Священная война» above all (`MUSIC-RIGHTS.md` §5(b)).
+6. **The three discards — CONFIRMED and removed**: `D_CND02` (German fugue),
+   `D_CND04` (43 s flat sting), `D_CND08` (children's toy march). `D_CND03`,
+   `D_CND05` and `D_CND07` stay as named reserves. `work/audio/candidates/` is
+   tracked in git (D43).
+
+**Open for the CEO's ear, not for a decision of principle:** the drafts that
+follow from 3 and 5 — enriched `D_SDM01` and the sequenced pieces. Each will
+be one command to hear (§1).

@@ -6,6 +6,12 @@ Revised 2026-10-13: the CEO asked for **downloaded** MIDIs rather than generated
 ones, which exposes a right the first version treated as a footnote — the
 **sequencing** (§1.2). Twelve candidate files have now been licence-audited and
 fetched to `work/audio/candidates/`; the audit is §4.4.
+Revised again 2026-10-13, **D43** (CEO: *"Acepto las recomendaciones de
+música"*): the Engelbach attribution is accepted and **`D_SDINTL` and
+`D_SDM01` are installed in `assets/music/`**; the credits are §4.5; the
+candidates are **tracked in git** with their SHA-256 (§4.4) and three were
+discarded; works restored in the United States are excluded (§7.2) and the
+anthem slot goes to Glinka (§7.1).
 Companion to `docs/product/2026-10-12_2000_F2_pm-soviet-art-copyright.md`, which
 established the Russian and US legal frame for visual art. **The same frame applies
 to music**, with two extra layers: recordings, and sequencings.
@@ -314,28 +320,56 @@ The same shape appears on the USSR anthem: `Sua.mid` on Commons is released
 under **GFDL**, a copyleft licence we cannot comply with, on top of the
 anthem's own unresolved US status (§3.1).
 
-### 4.4 Licence audit of the twelve files downloaded on 2026-10-13
+### 4.4 Licence audit of the files downloaded on 2026-10-13
 
-All twelve live in `work/audio/candidates/`. **Nothing is in `assets/` and
-nothing is in the PK3.** Each row's licence was read from the file's own page,
-not from a search result: Commons files from their raw wikitext
-(`?action=raw`), Mutopia files from the per-piece record. Musical verdicts are
-in `docs/sound/SOUNDTRACK.md`; this table is only about rights.
+Twelve files were downloaded; **nine remain** after the D43 discards. They
+live in `work/audio/candidates/` and, **since D43, are tracked in git**
+(`.gitignore` exception for that folder only), so a clean checkout has the
+exact bytes whose licence is recorded here. The SHA-256 list below is the
+identity check: `tests/test_music.py` fails if a file in that folder has a
+hash this section does not list. Each row's licence was read from the file's
+own page, not from a search result: Commons files from their raw wikitext
+(`?action=raw`), Mutopia files from the per-piece record. Musical verdicts
+are in `docs/sound/SOUNDTRACK.md`; this table is only about rights. Stable
+audition lump names (`D_CNDnn`) are in `work/audio/candidates/LUMPS.txt`.
 
-| File in `work/audio/candidates/` | Work | Composition | Sequencer / typesetter | Licence on the sequencing | D15 |
-|---|---|---|---|---|---|
-| `WM_Internationale_orch2.mid` | Интернационал, orchestral | De Geyter 1888, PD RU+US | **Jerry Engelbach**, USA, 2003 | `{{Attribution\|Jerry Engelbach}}` + VRT ticket 2008011810001789 | ✅ attribute Engelbach |
-| `WM_Internationale_piano_Bb.mid` | Интернационал, piano in B♭ | same | **Jerry Engelbach**, USA, 2001 | same | ✅ attribute Engelbach |
-| `WM_Ej_uchnem.mid` | Эй, ухнем — Balakirev's setting, pub. 1866 | PD RU+US | **Peter Gerloff** (Commons: *Rabanus Flavus*), 2021 | `{{self\|Cc-zero}}` — **CC0** | ✅ no obligation |
-| `WM_Kolokolchik.mid` | Колокольчик, Russian traditional | PD RU+US | **Peter Gerloff**, 2019 | `{{self\|Cc-zero}}` — **CC0** | ✅ no obligation |
-| `MU_Mussorgsky_BaldMountain.mid` | Ночь на лысой горе, Chernov's piano transcription | Mussorgsky d. 1881, PD; transcriber Konstantin Chernov d. 1944 → RU PD 2015, **+war 2019 — NOT VERIFIED which applies, both are past** | typeset **Robert Clausecker**, Mutopia 2013 | **CC BY 3.0** | ✅ attribute Clausecker + Mutopia |
-| `MU_Tchaikovsky_Dumka_op59.mid` | Думка op. 59 (1886) | Tchaikovsky d. 1893, PD RU+US | Mutopia | **Public Domain** | ✅ |
-| `MU_Tchaikovsky_Seasons_August.mid` | Времена года: Август (1876) | PD RU+US | Mutopia | **Public Domain** | ✅ |
-| `MU_Tchaikovsky_WoodenSoldiers.mid` | Марш деревянных солдатиков op. 39 | PD RU+US | Mutopia | **Public Domain** | ✅ |
-| `MU_Scriabin_Etude_op2n1.mid` | Этюд op. 2 № 1 (1887) | Scriabin d. 1915, PD RU+US | Mutopia | **Public Domain** | ✅ |
-| `MU_Scriabin_Prelude_op11n1.mid` | Прелюдия op. 11 № 1 | PD RU+US | Mutopia | **Public Domain** | ✅ |
-| `MU_Scriabin_Prelude_op59n2.mid` | Прелюдия op. 59 № 2 (1910) | PD RU+US | Mutopia | **Public Domain** | ✅ |
-| `MU_RimskyKorsakov_FugueBACH.mid` | Fugue sur le nom de BACH | Rimsky-Korsakov d. 1908, PD RU+US | Mutopia | **Public Domain** | ✅ |
+| Lump | File in `work/audio/candidates/` | Work | Composition | Sequencer / typesetter · source page | Licence on the sequencing | D15 |
+|---|---|---|---|---|---|---|
+| `D_CND10` | `WM_Internationale_orch2.mid` | Интернационал, orchestral | De Geyter 1888, PD RU+US | **Jerry Engelbach**, USA, 2003 · https://commons.wikimedia.org/wiki/File:Internationale_orch2.mid | `{{Attribution\|Jerry Engelbach}}` + VRT ticket 2008011810001789 | ✅ **credit Engelbach — accepted by the CEO (D43)**; source of `D_SDINTL` |
+| `D_CND11` | `WM_Internationale_piano_Bb.mid` | Интернационал, piano in B♭ | same | **Jerry Engelbach**, USA, 2001 · https://commons.wikimedia.org/wiki/File:Internationale-piano-Bb.mid | same | ✅ attribute Engelbach |
+| `D_CND09` | `WM_Ej_uchnem.mid` | Эй, ухнем — Balakirev's setting, pub. 1866 | PD RU+US | **Peter Gerloff** (Commons: *Rabanus Flavus*), 2021 · https://commons.wikimedia.org/wiki/File:Ej,_uchnem!.mid | `{{self\|Cc-zero}}` — **CC0** | ✅ no obligation — **diegetic radio (D43)** |
+| `D_CND12` | `WM_Kolokolchik.mid` | Колокольчик, Russian traditional | PD RU+US | **Peter Gerloff**, 2019 · https://commons.wikimedia.org/wiki/File:Kolokolchik.mid | `{{self\|Cc-zero}}` — **CC0** | ✅ no obligation — **diegetic radio (D43)** |
+| `D_CND01` | `MU_Mussorgsky_BaldMountain.mid` | Ночь на лысой горе, Chernov's piano transcription | Mussorgsky d. 1881, PD; transcriber Konstantin Chernov d. 1944 → RU PD 2015, **+war 2019 — NOT VERIFIED which applies, both are past** | typeset **Robert Clausecker**, Mutopia 2013 · https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1892 | **CC BY 3.0** | ✅ attribute Clausecker + Mutopia |
+| `D_CND06` | `MU_Tchaikovsky_Dumka_op59.mid` | Думка op. 59 (1886) | Tchaikovsky d. 1893, PD RU+US | Mutopia, maintainer **Vassily Checkin**, LilyPond 2.18.0 · https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=341 | **Public Domain** ("CC: No rights reserved") | ✅ |
+| `D_CND07` | `MU_Tchaikovsky_Seasons_August.mid` | Времена года: Август (1876) | PD RU+US | Mutopia, maintainer **Till Rettig**, LilyPond 2.8.6, Mutopia-2006/08/21-803 · https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=803 | **Public Domain** ("CC: No rights reserved") | ✅ |
+| `D_CND03` | `MU_Scriabin_Etude_op2n1.mid` | Этюд op. 2 № 1 (1887) | Scriabin d. 1915, PD RU+US | Mutopia, maintainer **Guy D. Lederfein**, LilyPond 2.10.29, Mutopia-2007/09/11-1029 · https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1029 | **Public Domain** ("CC: No rights reserved") | ✅ |
+| `D_CND05` | `MU_Scriabin_Prelude_op59n2.mid` | Прелюдия op. 59 № 2 (1910) | PD RU+US | Mutopia, maintainer **Federico Bruni**, LilyPond 2.18.0 · https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=445 | **Public Domain** ("CC: No rights reserved") | ✅ |
+
+SHA-256 of the nine files as tracked (computed 2026-10-13 on the Windows PC;
+the files are the Mac's downloads, never edited in place):
+
+```
+e775a09d014c680d0c81e6a7a0bb3c7fb32ccb0525df899cb482caa078c80c4b  WM_Internationale_orch2.mid
+f2469bea22035ccc5b9bf7d8171c05410a4cce0336e9872c1a46229b8fc2bb51  WM_Internationale_piano_Bb.mid
+109e9125c85ed2c3a0d3dd7204eb7f930113e67a260353cebd9c2bdff8dc3cea  WM_Ej_uchnem.mid
+fec3c370c7fa3b3dfd626f9f811c177e58cb66c8520b78a2ff9a07638dec0c43  WM_Kolokolchik.mid
+e8000d60d4e9ba0f35a1514d2c1444b6a895d2284bae26c1d87eb8e0b815e94d  MU_Mussorgsky_BaldMountain.mid
+4e84c44e348f93726805bc8e22087f8c5617fa59dbc074b76c433ad58b60f7b2  MU_Tchaikovsky_Dumka_op59.mid
+50779bb218b0c3a73df33495af91b33e73be074823f4562ec95343db76b8a8a7  MU_Tchaikovsky_Seasons_August.mid
+b7d9264f7529cf9d2d72778f456ecdd8bc8f236a0fe4f06a0175172f8c1cfd76  MU_Scriabin_Etude_op2n1.mid
+69019b6b54646b58e2a9c0b3759fffff01958c7545b001b7d892b85db42bcf24  MU_Scriabin_Prelude_op59n2.mid
+```
+
+**Discarded by D43 and removed from the folder** (sent to the Windows
+Recycle Bin, not hard-deleted; never committed). Kept here so the numbers
+`D_CND02`, `D_CND04` and `D_CND08` are never reused and the record stays
+whole:
+
+| Lump | File · SHA-256 | Work | Licence | Why discarded (`SOUNDTRACK.md` §3.2) |
+|---|---|---|---|---|
+| `D_CND02` | `MU_RimskyKorsakov_FugueBACH.mid` · `fc73c9873624ceb0f0bdcb0fb93c1b46e146a82ab102d4edfa2c078da67731a3` | Fugue sur le nom de BACH | Public Domain (Mutopia) | a conservatory fugue on a German name |
+| `D_CND04` | `MU_Scriabin_Prelude_op11n1.mid` · `4dad84aa0fdfeb695c3e54706d2c5dd731b6893e6a6fff166f5ee1344f17cae1` | Прелюдия op. 11 № 1 | Public Domain (Mutopia, id 1779) | 43 s, flat, solo piano |
+| `D_CND08` | `MU_Tchaikovsky_WoodenSoldiers.mid` · `a9717d793785c3c702d85e20f99a81de60faedd29fc4e7dcb240fbc99a9b0d2b` | Марш деревянных солдатиков op. 39 | Public Domain (Mutopia, id 1806) | a children's toy march, the flattest arc measured |
 
 **Rejected at the licence gate, not downloaded:**
 
@@ -346,27 +380,25 @@ in `docs/sound/SOUNDTRACK.md`; this table is only about rights.
 | `Гимн России1.mid`, `CccpDisco.mid`, `RussischeHymneVer1.mid`, `Ua-ssr.mid` (Commons) | anthem material, same two problems |
 | Mutopia Rachmaninoff, all 10 preludes | **CC BY-SA 4.0** |
 | Mutopia Rimsky-Korsakov op. 11 (4 pieces) | **CC BY-SA 3.0** |
-| Mutopia Scriabin op. 16 (5 préludes) | **CC BY-SA 2.5** |
+| Mutopia Scriabin op. 16 (5 préludes) | **CC BY-SA 2.5** (ids 759-763, re-read 2026-10-13) |
 | Mutopia Mussorgsky, *Pictures at an Exhibition* | **CC BY-SA 4.0** — the one we most wanted from that catalogue |
 | `archive.org/details/ussr-1` "USSR Anthem (MIDI)" | **no licence declared at all** |
 | BitMidi, MIDIWorld, Midis101, hamienet, MidiShow, rusmidi.com, geocities mirrors | no per-file licence, no named sequencer — §1.2 |
 | MuseScore.com scores of *Смело, товарищи, в ногу* and others | licence not machine-verifiable (HTTP 403 to automated access, 2026-10-13); and an uploader-declared CC0 on a sequencing whose provenance we cannot read is not a verifiable licence |
 
-#### 4.4.1 A gap in this audit, stated rather than hidden
+#### 4.4.1 The sourcing gap — closed 2026-10-13
 
-The **per-piece Mutopia URL was recorded only for *Night on Bald Mountain***
-(`piece-info.cgi?id=1892`). For the other seven Mutopia files the licence was
-read from the per-piece record on 2026-10-13, but the record's address was not
-written down, and the files themselves carry no provenance beyond
-`creator: GNU LilyPond <version>` (verified 2026-10-13 by extracting every
-text meta event: no composer, no URL, no licence string in any of them).
-
-All seven are **Public Domain**, so no attribution duty is at risk — but a
-public-domain claim whose page we cannot point at is a claim resting on one
-agent's memory, which this project does not accept as a source. **Action,
-before any of those seven is packed: re-verify each piece record and write its
-URL into the table above.** The file that carries a real attribution
-obligation, Bald Mountain, is the one that is fully sourced.
+The first audit recorded the per-piece Mutopia URL only for *Night on Bald
+Mountain*; for the other seven the record's address had not been written
+down. **Closed for the four that remain.** Each piece record was read again
+on 2026-10-13 (Mutopia's composer tables
+`make-table.cgi?Composer=TchaikovskyPI` and `?Composer=ScriabinA`, then each
+`piece-info.cgi` page) and its URL, maintainer and licence are now in the
+table above. Cross-check: the LilyPond version each page names (2.18.0,
+2.8.6, 2.10.29, 2.18.0) is exactly the `creator: GNU LilyPond <version>`
+string embedded in the corresponding file (verified with `grep -a`), so page
+and file are the same edition. All four pages say "Public Domain (CC: No
+rights reserved)". The three discards need no closing.
 
 #### 4.4.2 Files we derived from the downloads
 
@@ -377,7 +409,7 @@ credit — and **the duty to credit survives the edit**:
 
 | Our file | Derived from | Edit | Licence position |
 |---|---|---|---|
-| `work/audio/D_SDINTL.mid` | `WM_Internationale_orch2.mid` | `--trim-head`: 2 863 ticks (1.99 s) of leading silence removed. No pitch, duration, tempo or instrument changed | melody `{{PD-Internationale}}`; sequencing still `{{Attribution\|Jerry Engelbach}}` — **shipping this obliges us to credit Jerry Engelbach**. Our edit adds nothing we would license separately |
+| `work/audio/D_SDINTL.mid`, **installed as `assets/music/D_SDINTL.mid` (D43)**, byte-identical | `WM_Internationale_orch2.mid` | `--trim-head`: 2 863 ticks (1.99 s) of leading silence removed. No pitch, duration, tempo or instrument changed. SHA-256 `c94e4903ec5daabe8f605e6f78f595766e9ce20fb82204af7a6dff6319fb85a9`, reproduced from the download by `tests/test_music.py` | melody `{{PD-Internationale}}`; sequencing still `{{Attribution\|Jerry Engelbach}}` — **shipping this obliges us to credit Jerry Engelbach**, accepted by the CEO (D43), credits in §4.5. Our edit adds nothing we would license separately |
 | `work/audio/D_SDFIX3.mid` | `MU_Scriabin_Etude_op2n1.mid` | `--velocity 0.85` (fixes clipping) | composition PD, sequencing PD → **no obligation** |
 | `work/audio/D_SDFIX7.mid` | `MU_Tchaikovsky_Seasons_August.mid` | `--velocity 0.85 --trim-head` | composition PD, sequencing PD → **no obligation** |
 
@@ -395,6 +427,31 @@ MIDI**. They would ship as OGG at megabyte scale rather than kilobyte scale.
 If the CEO wants Marche slave and wants it orchestral without us doing the
 orchestration, that is the route; it is a size decision, not a rights one.
 
+### 4.5 What ships, and the credits it obliges (D43)
+
+| Lump in `assets/music/` | Cue | Composition | Sequencing | Phonogram | Obligation |
+|---|---|---|---|---|---|
+| `D_SDINTL` | title screen | *L'Internationale*, Pierre De Geyter, 1888 — PD RU+US (§2.1) | **Jerry Engelbach**, 2003, `{{Attribution\|Jerry Engelbach}}` (§4.4); head trimmed by us (§4.4.2) | none — MIDI, synthesised on the player's machine | **credit Jerry Engelbach** |
+| `D_SDM01` | MAP01 | original, `sound-designer` 2026-10-13 (`tools/audio/gen_music.py`) | ours | none | none; ours under CC BY-NC-SA 4.0 (D15) |
+
+**The credit line**, to be reproduced verbatim wherever the mod credits
+anyone (the release credits of gate G6, a ModDB page, a README):
+
+> *The Internationale* (title music): composed by Pierre De Geyter (1888),
+> public domain; MIDI sequence by **Jerry Engelbach**, used under his
+> attribution licence (Wikimedia Commons, `File:Internationale_orch2.mid`).
+
+Where it already stands: this section; `docs/art/LICENSES.md` § Music (the
+register `tools/check_pk3.py` reads); `docs/sound/SOUNDTRACK.md` Card 0;
+`LICENSE.md`'s list of third-party material. **Not yet**: an in-game credits
+screen — the mod has none; it is G6 work (`docs/ROADMAP.md`) and this line
+is what it must carry. *Night on Bald Mountain* (Clausecker / Mutopia) would
+add a second line only if it is ever packed; it is not.
+
+The CC0 radio pieces (`WM_Ej_uchnem.mid`, `WM_Kolokolchik.mid`, Peter
+Gerloff) carry no obligation; crediting Gerloff as a courtesy when they ship
+is recommended, not required.
+
 ---
 
 
@@ -404,15 +461,15 @@ orchestration, that is the route; it is a size decision, not a rights one.
 
 | Priority | Work | Route | Where it goes |
 |---|---|---|---|
-| 1 | **Интернационал / The Internationale** | **downloaded, 2026-10-13**: Engelbach's orchestral MIDI from Commons, attribution-only (§4.4), repaired by us as `work/audio/D_SDINTL.mid` (§4.4.2). Sequencing from the IMSLP score is **not** necessary — it stays as the fallback only if the CEO dislikes Engelbach's orchestration itself | title screen (CEO's choice, 2026-10-13), finale |
+| 1 | **Интернационал / The Internationale** | **downloaded, 2026-10-13**: Engelbach's orchestral MIDI from Commons, attribution-only (§4.4), repaired by us as `D_SDINTL` (§4.4.2), **installed (D43)**. Sequencing from the IMSLP score is **not** necessary — it stays as the fallback only if the CEO dislikes Engelbach's orchestration itself | title screen (CEO's choice, 2026-10-13), finale |
 | 2 | **Tchaikovsky, Marche slave** | no free MIDI exists. Either IMSLP's CC BY 4.0 synthesised **MP3** (§4.4), or we sequence it from the PD score | main theme / MAP01 |
 | 3 | **Mussorgsky, Night on Bald Mountain** | CC0/PD recording | alien-infested areas |
 | 4 | **Scriabin** (Sonata No. 9, *Prometheus*) | CC0/PD recording | dread ambience, Fourth Reich zones |
 | 5 | **Смело, товарищи, в ногу** | sequence ourselves — free words *and* music in both countries | Soviet-held areas, diegetic |
 | 6 | **Амурские волны (Kyuss, 1909)** | sequence ourselves | diegetic radio at the cosmodrome, a quiet moment |
 | 7 | **Вы жертвою пали** | sequence ourselves | death / aftermath / ending |
-| 8 | **Glinka, Патриотическая песня** | sequence ourselves | zero-risk substitute for the USSR anthem |
-| 9 | **USSR anthem melody (Alexandrov)** | **instrumental only, sequenced by us, no lyrics, no Soviet recording** | title screen — *pending the CEO's call on the US risk* |
+| 8 | **Glinka, Патриотическая песня** | sequence ourselves | **the anthem slot (D43)** — the zero-risk substitute for the USSR anthem |
+| 9 | ~~USSR anthem melody (Alexandrov)~~ | **not used (D43)**: its 1944 publication is URAA-restored in the US to 2040 unless the state-symbol argument holds (§3.1, NOT VERIFIED as US law), and D43 excludes US-restored works | — |
 | 10 | **Original Artemyev-style ANS ambience** | we compose it | the bulk of in-level music |
 
 ### (b) Discarded, and why
@@ -434,6 +491,12 @@ orchestration, that is the route; it is a size decision, not a rights one.
   including works whose composition is free.
 - **Any CC BY-SA audio or score**, because D15 ships assets as CC BY-NC-SA 4.0 and
   ShareAlike forbids the added NonCommercial restriction.
+- **Every work free in Russia but restored in the United States** (D43) —
+  *Священная война* above all, also the *Гимн партии большевиков* and the
+  Alexandrov anthem melody. Our distribution is in practice US-hosted.
+  The inverse case (free in the US, protected in Russia: *Прощание
+  славянки*, *Авиамарш*) is **not** covered by D43 and stays unused until
+  its Russian term ends.
 
 ### (c) The standing warning
 
@@ -448,7 +511,11 @@ orchestration, that is the route; it is a size decision, not a rights one.
 
 ## 6. What the engine side will need from me
 
-Declared here so `mod-engineer` and `level-designer` can plan; no files exist yet.
+Declared here so `mod-engineer` and `level-designer` can plan. Since D43 two
+lumps exist, `assets/music/D_SDINTL.mid` and `assets/music/D_SDM01.mid`,
+packed by the build as `music/<LUMP>.mid` (`tools/sdbuild/pk3.py`,
+`ASSET_DIRS`); wiring them in `MAPINFO` is `mod-engineer`'s
+(`SOUNDTRACK.md` §7).
 
 - **Formats**: GZDoom plays OGG, MP3, FLAC, MIDI and MOD/XM/IT. We use **OGG Vorbis**
   for recordings and **MIDI/XM** for anything we sequence, to keep the PK3 small.
@@ -456,57 +523,48 @@ Declared here so `mod-engineer` and `level-designer` can plan; no files exist ye
 - **`SNDINFO`**: music lumps are *not* declared in SNDINFO (that is for sound effects
   and `$musicalias`); the MAPINFO `music` key and `$musicalias` entries are the
   interface.
-- **Licence register**: every music lump gets a row in `docs/art/LICENSES.md` (or a
-  **`LICENSES.md` of its own under `docs/sound/`**, which does not exist yet,
-  if the CEO prefers a split) with origin, licence,
-  and a link back to the row in this table.
+- **Licence register**: every music lump has a row in `docs/art/LICENSES.md`
+  § Music, which is the file `tools/check_pk3.py` reads; the row points back
+  here. No second register under `docs/sound/` was created (one owner per
+  fact).
 
 ---
 
-## 7. Decisions needed from the CEO
+## 7. Decisions — settled by D43, and the one left open
 
 > **The live list of music decisions is `docs/sound/SOUNDTRACK.md` §8**, which
-> owns "what plays where" and was closed on 2026-10-13. What follows is only
-> the part that is a *rights* question, and point 0 below is the same decision
-> as SOUNDTRACK §8.0 seen from the licence side. Points 1 and 3 are
-> superseded by **D23** (CEO, 2026-10-13, `docs/PRD.md` §5); points 2 and 4
-> are still open.
+> owns "what plays where". What follows is only the part that is a *rights*
+> question. On 2026-10-13 the CEO accepted every open recommendation of
+> SOUNDTRACK §8 (*"Acepto las recomendaciones de música"*, **D43**,
+> `docs/PRD.md` §5). Points 0-3 are settled; point 4 was never in SOUNDTRACK
+> §8 and stays open, blocking nothing.
 
-0. **Attribution.** Two of the twelve candidates (§4.4) are attribution-only,
-   not public domain: shipping Engelbach's Internationale obliges us to credit
-   **Jerry Engelbach** wherever we credit anyone, and Mutopia's *Night on Bald
-   Mountain* obliges us to credit **Robert Clausecker / Mutopia Project**.
-   That is a line in the credits and a row in the licence register, nothing
-   more, but it is a real obligation and the CEO should know we are taking it
-   on. **Recommendation: accept** — the alternative is to use only the
-   public-domain files, which are all solo-piano score previews.
-1. **The USSR anthem.** Instrumental, self-sequenced, lyrics never used — accept the
-   residual US risk (finding 3.1.2), or take Glinka's *Patriotic Song* instead and
-   have zero risk? *Superseded by D23* (2026-10-13): *"La Internacional is
-   the title theme"*, so this no longer blocks the title screen and is now
-   only about whether the anthem appears anywhere at all.
-2. **Russia-free / US-blocked works**, principally *Священная война*. Our distribution
-   will in practice be US-hosted. Do we exclude that whole category, or accept it for
-   a free non-commercial mod? **My recommendation: exclude.** The dramatic value is
-   real, but a takedown on a free mod costs more than the cue is worth, and the risk
-   is concentrated in exactly the most recognisable pieces.
+0. **Attribution — SETTLED (D43): accepted.** Shipping Engelbach's
+   Internationale obliges us to credit **Jerry Engelbach** wherever we credit
+   anyone; the line and where it stands are §4.5. Mutopia's *Night on Bald
+   Mountain* would oblige a credit to **Robert Clausecker / Mutopia Project**,
+   but only if it is ever packed.
+1. **The USSR anthem — SETTLED (D43): the anthem slot goes to Glinka's
+   *Patriotic Song*** (§2.3), sequenced by us: a real national anthem of
+   Russia (1990-2000), free beyond any argument in both countries. The
+   Alexandrov melody is not used anywhere (point 2).
+2. **Russia-free / US-restored works — SETTLED (D43): excluded**, with
+   *Священная война* named as the main case. See §5(b).
 3. **Scope of the soundtrack.** *Superseded by D23* (2026-10-13): *"Free MIDI
    sequences with a verified licence come first, our own sequencing is the
-   fallback for works that exist only as free scores."* The bulk of in-level
-   music is therefore no longer "original composition in the period idiom" by
-   default; our own pieces (`D_SDM01`, `D_SDTITL`) stay as plan B, see
-   SOUNDTRACK §6. Not re-asked here.
+   fallback for works that exist only as free scores."* Our own pieces stay
+   in use where they are the better object: `D_SDM01` plays MAP01 (D43).
+4. **Orchestration labour — open, not blocking.** Every free MIDI of the
+   Russian classics is a solo-piano score preview (§4.2). Making one usable
+   means we assign the instruments. The choice is: ship piano, pay the
+   orchestration labour, or accept IMSLP's CC BY 4.0 **MP3** renders and a
+   larger PK3. *Recommendation: pay the orchestration labour on one piece
+   only, when a map needs it*, and keep the rest for diegetic use where piano
+   is plausible. Nothing is waiting on this today.
 
-4. **Orchestration labour.** Every free MIDI of the Russian classics is a
-   solo-piano score preview (§4.2). Making one usable means we assign the
-   instruments — which is the work the CEO wanted to avoid by downloading.
-   The choice is: ship piano, pay the orchestration labour, or accept IMSLP's
-   CC BY 4.0 **MP3** renders and a larger PK3. **My recommendation: pay the
-   orchestration labour on one piece only**, and keep the rest for diegetic
-   use where piano is plausible.
-
-Twelve files have been downloaded to `work/audio/candidates/` (§4.4), ~204 KB
-in total. **Nothing is in `assets/` and nothing is in the PK3.**
+Nine downloaded files remain in `work/audio/candidates/` (§4.4), tracked in
+git. **Two lumps are in `assets/` and therefore in the PK3: `D_SDINTL` and
+`D_SDM01`** (§4.5).
 
 ---
 
@@ -529,6 +587,7 @@ Per-file licence pages read on 2026-10-13 (the §4.4 audit):
 - File:Ej, uchnem!.mid — https://commons.wikimedia.org/wiki/File:Ej,_uchnem!.mid
 - File:Kolokolchik.mid — https://commons.wikimedia.org/wiki/File:Kolokolchik.mid
 - Mutopia, *Night on Bald Mountain* (CC BY 3.0) — https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1892
+- Mutopia, re-read 2026-10-13 to close §4.4.1 (all "Public Domain (CC: No rights reserved)"): Tchaikovsky *Doumka* op. 59 — https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=341 · *The Seasons: August* — https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=803 · Scriabin *Etude* op. 2 № 1 — https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1029 · *Prelude* op. 59 № 2 — https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=445 · composer tables https://www.mutopiaproject.org/cgibin/make-table.cgi?Composer=TchaikovskyPI and `?Composer=ScriabinA`
 - Mutopia browse by composer (licence per piece) — https://www.mutopiaproject.org/browse.html
 - Mutopia licence policy — https://www.mutopiaproject.org/legal.html
 - IMSLP, *Slavonic March* op. 31, synthesised performances CC BY 4.0 (MP3, not MIDI) — https://imslp.org/wiki/Slavonic_March,_Op.31_(Tchaikovsky,_Pyotr)

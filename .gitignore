@@ -13,7 +13,13 @@ __pycache__/
 .DS_Store
 .venv/
 # art work-in-progress (batch PNGs live embedded in docs/art/previews; only approved files go to assets/)
-work/
+work/*
+# ...except the downloaded music candidates: for music the file IS the
+# artefact and its provenance is external, so a clean checkout must have it
+# (D43; docs/sound/MUSIC-RIGHTS.md 4.4). Owner: sound-designer.
+!work/audio/
+work/audio/*
+!work/audio/candidates/
 # coverage.py output (tools/coverage.sh); already caught by logs/ above,
 # spelled out explicitly since it is its own deliverable (docs/qa/COVERAGE.md)
 logs/coverage/

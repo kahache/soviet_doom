@@ -12,7 +12,10 @@ Soviet Doom is dual-licensed by component:
 
 Third-party material keeps its own licence and is listed with origin in
 `docs/art/LICENSES.md` (OTEX: non-commercial, credit "Ola Björling (ukiro)";
-Freedoom: modified BSD). Nothing from commercial games is included.
+Freedoom: modified BSD; the title music `assets/music/D_SDINTL.mid`, *The
+Internationale* by Pierre De Geyter, public domain, MIDI sequence by **Jerry
+Engelbach**, used under his attribution licence — credit required, see
+`docs/sound/MUSIC-RIGHTS.md` §4.5). Nothing from commercial games is included.
 
 Full licence texts will be added before the v1 release (gate G6).
 
@@ -29,5 +32,7 @@ Soviet Doom лицензируется по компонентам:
   **Creative Commons BY-NC-SA 4.0**.
 
 Сторонние материалы сохраняют свои лицензии и перечислены с источниками в
-`docs/art/LICENSES.md`. Ничего из коммерческих игр не включено. Полные тексты
+`docs/art/LICENSES.md` (титульная музыка «Интернационал» Пьера Дегейтера —
+общественное достояние; MIDI-секвенция **Джерри Энгельбаха** (Jerry
+Engelbach), указание автора обязательно). Ничего из коммерческих игр не включено. Полные тексты
 лицензий будут добавлены перед релизом v1 (гейт G6).
