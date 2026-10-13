@@ -1,7 +1,7 @@
 # Playing the whole game in Russian, and a Latin that remembers Cyrillic
 
 Owner: PM. Status: **requested by the CEO 2026-10-13**, commissioned.
-Russian mirror pending.
+Russian mirror: `docs/ru/product/LANGUAGE-SWITCH.md`.
 
 **Veredicto literal:** "Molaría que el juego permita elegir si lanzar todo en
 ruso. Y si se lanza en inglés, que algunas letras parezcan (o se tomen) del
@@ -84,12 +84,15 @@ The substitution is a **font-level mapping**, not an edit to the strings:
 and diffable, and the English font draws those two letters with their
 Cyrillic forms. One switch turns it off if it ever grates.
 
-## The shared blocker
+## The shared blocker, paid
 
-Both wait on debt **T9**, the Cyrillic font. Freedoom's font is ASCII only,
+Both waited on debt **T9**, the Cyrillic font. Freedoom's font is ASCII only,
 and the Cyrillic glyphs GZDoom ships are gated behind a filter that only
 activates for an id Software IWAD, which we do not use. Verified on screen by
-`mod-engineer`: «ПГ-7В» renders as « -7B».
+`mod-engineer`: «ПГ-7В» rendered as « -7B».
 
-So the order is: font, then language switch, then the Latin-with-Cyrillic-
-bones variant. The font is in progress.
+**Paid on 2026-10-13 by D24:** alphabet C "Mashina" is installed and the
+Russian menu renders
+(`docs/qa/evidence/2026-10-13_1020_F2_language-screen-ru.png`). The order
+was: font, then the language switch (ADR 004), then the Latin-with-Cyrillic-
+bones variant (D22, level 2).

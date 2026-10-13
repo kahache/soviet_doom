@@ -5,23 +5,28 @@ asks for a fresh number. Russian mirror: `docs/ru/qa/COVERAGE.md` (D7).
 Tooling: `tools/coverage.sh`, `.coveragerc` (both at the repo root/`tools/`).
 
 `coverage` is a **dev-only** tool, installed only inside `.venv/`
-(`.venv/bin/python -m pip install coverage`). `tools/build.py` keeps
-building `dist/sovietdoom.pk3` with stdlib only — that did not change and
-must not change.
+(`.venv/bin/python -m pip install coverage` on the Mac,
+`.venv/Scripts/python.exe -m pip install coverage` on Windows).
+`tools/build.py` keeps building `dist/sovietdoom.pk3` with stdlib only —
+that did not change and must not change.
 
 ## How to run it
 
 ```bash
-tools/coverage.sh            # run the suite under coverage, print the report, write HTML
-tools/coverage.sh --no-html  # same, skip the HTML report (faster)
+tools/coverage.sh                  # run the suite under coverage, print the report, write HTML
+tools/coverage.sh --no-html        # same, skip the HTML report (faster)
+bash tools/coverage.sh --no-html   # Windows: the same script under Git Bash
 ```
 
-This runs `python3 -m unittest discover -s tests` under `coverage run
+This runs `python -m unittest discover -s tests` under `coverage run
 --branch`, then `coverage report --sort=cover` (worst file first, total
 last) and `coverage html` into `logs/coverage/html/` (gitignored — open
 `logs/coverage/html/index.html` locally to click through any file).
 `COVERAGE_FILE` is redirected to `logs/coverage/.coverage` so the raw data
-never lands at the repo root.
+never lands at the repo root. The script finds the venv interpreter on
+either machine (`.venv/bin/python`, else `.venv/Scripts/python.exe`); on
+Windows it ran unmodified on 2026-10-13 (the PM had already added the
+Windows path).
 
 The script's exit code is the **suite's** exit code, not a coverage
 threshold — there is no `fail_under` gate here (see "What this is not"
@@ -29,47 +34,152 @@ below). Coverage is measured and printed even when tests fail; a failing
 test still executes code on its way to failing, and that execution still
 counts.
 
-## Today's number (2026-10-13, commit `8a4ef40`)
+## Today's number (2026-10-13 11:35, Windows PC, HEAD `b92c314` + uncommitted tooling)
 
-**Branch coverage of `tools/`: 58% (3387 statements, 934 branches).**
-Test suite: **190 tests, OK, 1 skipped** (`test_smoke_run_passes_on_the_current_pk3`,
-gated behind `SD_ENGINE_TESTS=1` — it launches real GZDoom and is
-intentionally opt-in, not part of the default suite).
+**Branch coverage of `tools/`: 49% (5727 statements, 1486 branches).**
+Test suite: **383 tests, OK, 16 skipped** (reasons below).
+Re-measured by the PM at 12:00 the same day, after `gen_switch.py`'s sheet
+fix and `tests/test_language.py`'s cleanup landed: **50% (5731 statements,
+1488 branches), 384 tests, OK, 16 skipped.** Same machine, same command;
+the per-file table below is from the 11:35 run and is not re-drawn for one
+point.
 
-**This is a moving target.** Four agents are working in this repo in
-parallel right now. The suite was **red** when this task started — 149
-tests, 3 failures, exactly matching the brief's warning
-(`test_build.test_textmap_contents` off by `y=160`, plus two `test_art`
-failures from `assets/graphics/shell/INTERPIC.png` landing mid-edit). By
-the time this report was written, other agents had added
-`tests/test_udmf.py` (41 new tests for the UDMF grid-map builder) and
-fixed the three failures; the suite was green at measurement time. Both
-facts are true and are recorded here; re-running `tools/coverage.sh` later
-will give a different number as more tests and code land, which is the
-point of shipping the tool rather than a one-off number.
+**Latest, 2026-10-13 afternoon, after the Mac's `work/` arrived on this PC
+and `tests/test_audition.py` was added: 52% (5739 statements, 1490
+branches), 388 tests, OK, 1 skipped** (the opt-in engine test). The fifteen
+skips that depended on `work/` now run: `gen_lenin.py` goes from 0% to 84%,
+and B3 is closed by the same arrival (`docs/qa/GATE-REVIEWS.md`).
+`gen_font.py` is still 0% and `audition.py` is 21%; those remain the two
+largest gaps.
+
+**Latest, 2026-10-13 ~14:50, with the whole afternoon's deliveries in the
+tree** (`tests/test_gen_font.py`, `test_gen_font_fix.py`,
+`test_gen_props.py`, `test_animdefs.py` and the new `gen_props.py`): **65%
+(6499 statements, 1698 branches), 450 tests, OK, 1 skipped (the opt-in
+engine test) and 1 expected failure** (`SlabSerifDefectTests`, the known
+M/W defect). Measured by the PM at ~14:50 and re-measured by QA with
+`bash tools/coverage.sh --no-html`: the same figures, to the statement and
+the branch. Per file: `gen_font.py` 98% (was 0%), `gen_props.py` 67%,
+`audition.py` 21%, now the largest remaining gap.
+
+**Previous number:** 58% (3387 statements, 934 branches), 190 tests, measured
+on the Mac at commit `8a4ef40` (2026-10-13 00:27). Both numbers are real;
+the drop is explained, not excused, in the next section.
+
+Measurement facts, so this can be reproduced or disputed:
+- Machine: the CEO's Windows 10 PC (Intel i7-4790), the working machine
+  since 2026-10-13. Interpreter: `.venv/Scripts/python.exe` (Python 3.14,
+  Pillow, numpy, coverage). Command: `bash tools/coverage.sh --no-html`
+  under Git Bash; output kept in this session's transcript.
+- Tree: HEAD `b92c314` ("Agents may no longer start GZDoom: the engine
+  gate"), **plus uncommitted modifications** to `tools/smoke.py`,
+  `tools/verify.py`, `tools/run.sh`, `tools/coverage.sh`,
+  `tools/art/artlib.py`, `tools/art/gen_lenin.py`,
+  `tools/audio/audition.py` and four test files (`git status` at
+  measurement time). So this number belongs to the working tree of the
+  Windows move, not to a single commit; the next commit will carry it.
+- The tree was moving while this was measured: `tools/verify.py fast`
+  three minutes later reported **384** tests. Someone added one in
+  between. The 383 figure is the one the coverage run saw.
+- The HTML report was not written (`--no-html`); `logs/coverage/.coverage`
+  holds the raw data if anyone wants `coverage report -m` on a file.
+
+### Why 58% became 49%: 2340 new statements, most of them untested
+
+`tools/` grew from 3387 to 5727 statements between `8a4ef40` and this tree
+(`git diff --stat 8a4ef40 HEAD -- tools`): eight new files
+(`tools/art/gen_font.py` 791 stmts, `tools/verify.py` 388,
+`tools/art/gen_switch.py` 332, `tools/art/gen_metro.py` 264,
+`tools/audio/midi_edit.py` 173, `tools/audio/midi_inspect.py` 134,
+`tools/audio/wav_report.py` 90, `tools/art/sheetlib.py` 37) plus growth in
+`audition.py`, `smoke.py`, `pk3.py` and `udmf.py`. Of the new files,
+`verify.py` arrived with its own suite (`tests/test_verify.py`, 68%) and
+`gen_switch.py`/`sheetlib.py` with a handful of layout tests (30% / 37%);
+the other five arrived at **0%**.
+
+Meanwhile the files that already existed got **better**, not worse:
+`gen_shell.py` 0% → 86% (`tests/test_generators.py`), `gen_soviet_base.py`
+93% → 96%, `artlib.py` 91% → 99% (`tests/test_artlib.py`, 575 lines, new),
+`palette.py` 92% → 100%, `smoke.py` 68% → 69%, `pk3.py` 84% → 84%,
+`udmf.py` 98% → 97% (grew by 63 lines), `check_pk3.py` 83% → 82% (grew).
+That is the honest reading: the test investment kept pace in
+`tools/art/artlib.py`, `gen_shell.py` and `verify.py`, and did not happen
+at all for the font generator, the metro set, and the three new audio
+tools. The new code drags the total down; the old code did not regress.
+
+### Skips: why 16 tests did not run here, and what that does to the number
+
+| Skipped | Reason (verbatim from the run) | Effect on the number |
+|--:|---|---|
+| 13 | `reference photograph absent (work\art\reference\lenin_1920_zhukov.jpg is under gitignored work/)` | `tools/art/gen_lenin.py` reads **0%** here; on the Mac these 13 tests run and the file is covered. Bound: 98 statements + 14 branches out of 7213, so the Mac number for this same tree would be **at most ~1.5 points higher**. NOT measured on the Mac. |
+| 1 | `switch batch not generated` (`test_every_state_pair_is_the_contract_size`) | reads PNGs under `work/art/batch2/switch/`; exercises no `tools/` code either way |
+| 1 | `work/ not present (gitignored work-in-progress)` (`test_identical_to_work_source`) | exercises no `tools/` code; see **B3** below |
+| 1 | `set SD_ENGINE_TESTS=1 to run the real engine` | unchanged since the first report; the engine run in `smoke.py main()` stays opt-in |
+
+`work/` is gitignored and did not travel from the Mac (`CLAUDE.md`), so
+every test that depends on a generated-but-unapproved artefact under it
+skips on this machine. That is the designed behaviour and the number above
+is the Windows number. **The coverage figure is therefore machine-dependent
+by up to ~1.5 points**, and only through `gen_lenin.py`.
+
+**B3 (open, → PM / owner of `tests/test_art.py`; found 2026-10-13 11:36,
+not fixed by QA; *closed later the same day: see "B3 — CLOSED" in
+`docs/qa/GATE-REVIEWS.md` and the "Latest" paragraph in the header*):** `test_identical_to_work_source` guards itself with
+"skip if `work/` does not exist", not "skip if the batch-1 render does not
+exist". On this machine the batch-1 render never will exist unless someone
+regenerates it, and `CLAUDE.md` says text-bearing lumps (`SDDOOR1`,
+`SDPOSTR2`, the switches) rasterise differently here, so a regenerated
+batch would fail the byte-identity check anyway. Consequence: **the first
+time any generator writes anything under `work/art/` on Windows, this test
+stops skipping and fails, and `tools/verify.py fast` goes red** — which the
+pipeline (`docs/PIPELINE.md` §"When the pipeline stops") treats as "work
+stops at stage 5". Observed live: at 11:36:00 another process created
+`work/art/batch2/switch/` (40 PNGs; gone again by 11:37:52), and the
+`verify fast` run that happened to fall in that window failed with
+`assets/flats/soviet_base/SDCEIL1.png: matches no file generated under
+work/`; the next run, with `work/` gone, passed. **Minimal repro** (from
+the repo root, Git Bash, no `work/` present): `mkdir -p work/art &&
+.venv/Scripts/python.exe -m unittest
+tests.test_art.ApprovedAssetsTests.test_identical_to_work_source` →
+**expected** skip (nothing to compare against) or a check scoped to the
+files that do exist; **observed** `FAILED (failures=1)` on `SDCEIL1.png`,
+a text-free flat that `CLAUDE.md` says is byte-identical when regenerated.
+(`rmdir work/art work` afterwards; QA ran exactly this and cleaned up.)
+**Severity:** medium: no shipped artefact is wrong, but the fast loop
+becomes red by accident on the working machine, and a red `verify fast`
+is what blocks commits. **Suspected cause:** the skip condition predates
+the two-machine setup.
 
 ### Per-file, worst to best
 
 | File | Stmts | Branch | Cover | Note |
 |---|--:|--:|--:|---|
-| `tools/art/emblem_check.py` | 48 | 6 | **0%** | never imported by any test |
-| `tools/art/gen_lenin.py` | 98 | 14 | **0%** | never imported by any test |
-| `tools/art/gen_shell.py` | 350 | 68 | **0%** | never imported by any test |
+| `tools/art/emblem_check.py` | 48 | 6 | **0%** | never imported by any test (unchanged since the first report) |
+| `tools/art/gen_font.py` | 791 | 118 | **0%** | **new, the largest file in `tools/`**: the D24 alphabet generator (214 glyphs, two sizes). The installed glyphs in `assets/fonts/` are only checked for byte-identity against `work/art/font/` by `test_identical_to_work_source`, which skips here (B3). On this machine nothing exercises the font generator or its output. |
+| `tools/art/gen_lenin.py` | 98 | 14 | **0%** | 0% **on Windows only**: its 13 tests skip without the reference photograph. Covered on the Mac. |
+| `tools/art/gen_metro.py` | 264 | 30 | **0%** | new (batch 2 "metro" set), never imported by any test |
 | `tools/art/make_contact.py` | 34 | 2 | **0%** | never imported by any test |
 | `tools/art/make_preview.py` | 60 | 12 | **0%** | never imported by any test |
-| `tools/audio/audition.py` | 164 | 48 | **0%** | never imported by any test |
-| `tools/audio/gen_music.py` | 377 | 86 | **0%** | never imported by any test |
-| `tools/build.py` | 41 | 12 | 55% | default (non-`--quiet`) output, `--print-textmap`, the `BuildError` branch |
-| `tools/smoke.py` | 297 | 104 | 68% | the real-engine run in `main()` (lines 455-551) |
-| `tools/check_pk3.py` | 738 | 332 | 83% | scattered error-rendering branches of an otherwise heavily-tested validator |
-| `tools/sdbuild/pk3.py` | 117 | 54 | 84% | see "what matters" below — small file, meaningful gaps |
-| `tools/sdbuild/wad.py` | 65 | 30 | 87% | five `raise` guards in a tiny binary (de)serialiser |
-| `tools/art/artlib.py` | 166 | 20 | 91% | `save_indexed()` and `tiling_seam_score()` only run via the untested `gen_soviet_base.main()` |
-| `tools/art/palette.py` | 42 | 6 | 92% | only `main()` (CLI wiring) is missing |
-| `tools/art/gen_soviet_base.py` | 463 | 42 | 93% | `tex_postr1()` is dead code (superseded, not in `TEXTURES`); `main()` itself untested |
-| `tools/sdbuild/udmf.py` | 327 | 98 | 98% | the best-tested file in the tree (`tests/test_udmf.py`, 41 tests) |
+| `tools/audio/audition.py` | 186 | 56 | **0%** | grew by 22 statements, still no test |
+| `tools/audio/gen_music.py` | 377 | 86 | **0%** | unchanged; superseded in practice by D23 (download, don't compose) but still in the tree |
+| `tools/audio/midi_edit.py` | 173 | 76 | **0%** | new, never imported by any test |
+| `tools/audio/midi_inspect.py` | 134 | 58 | **0%** | new, never imported by any test |
+| `tools/audio/wav_report.py` | 90 | 28 | **0%** | new, never imported by any test |
+| `tools/art/gen_switch.py` | 332 | 42 | 30% | only `SwitchLayoutTests` (4 tests: box layout, `build_sheet()` with stubs). `main()` (696-725), every render function (142-251, 316-512) and `flr1_before_after()` untested |
+| `tools/art/sheetlib.py` | 37 | 4 | 37% | new; only the import-time and layout helpers run (via `gen_switch` tests); lines 62-117 (the sheet writer) untested |
+| `tools/build.py` | 41 | 12 | 55% | unchanged: default (non-`--quiet`) output, `--print-textmap`, the `BuildError` branch |
+| `tools/verify.py` | 388 | 144 | 68% | new, arrived with `tests/test_verify.py` (556 lines). 110 statements missing; not itemised here |
+| `tools/smoke.py` | 342 | 122 | 69% | the real-engine run in `main()`, opt-in behind `SD_ENGINE_TESTS=1` |
+| `tools/check_pk3.py` | 752 | 340 | 82% | scattered error-rendering branches of an otherwise heavily-tested validator |
+| `tools/sdbuild/pk3.py` | 129 | 60 | 84% | see "gaps that matter": the three documented branches are still untested, now at lines 90-92, 150 and 179 |
+| `tools/art/gen_shell.py` | 350 | 68 | 86% | was 0%; `ShellTests` in `tests/test_generators.py` now run `build()` into a tempdir. Missing: 872-929, 950-972 (`main()` and the sweep writer) |
+| `tools/sdbuild/wad.py` | 65 | 30 | 87% | six `raise` guards (57, 64, 75, 93, 96, 111) in a tiny binary (de)serialiser |
+| `tools/art/gen_soviet_base.py` | 472 | 42 | 96% | only `main()` (469-492) is missing; the dead `tex_postr1()` is gone |
+| `tools/sdbuild/udmf.py` | 341 | 102 | 97% | six lines (108, 115, 188, 403, 478-479) |
+| `tools/art/artlib.py` | 181 | 28 | 99% | was 91%; `save_indexed()` and `tiling_seam_score()` are now tested directly (`tests/test_artlib.py`). One line (54) and one branch left |
+| `tools/art/palette.py` | 42 | 6 | 100% | was 92% |
 | `tools/sdbuild/__init__.py` | 0 | 0 | 100% | empty |
-| **TOTAL** | **3387** | **934** | **58%** | |
+| **TOTAL** | **5727** | **1486** | **49%** | |
 
 Full line/branch detail: `logs/coverage/html/index.html` (regenerate with
 `tools/coverage.sh`; the directory is gitignored).
@@ -104,162 +214,125 @@ exclude_also =
   Contains no logic of its own.
 - **`def parse_args\(`**: excludes pure argparse wiring, but **only** in the
   two files where it is cleanly split from logic — `tools/check_pk3.py`
-  and `tools/smoke.py` — into its own `parse_args()` function. Five other
-  files build their parser *inline inside* `main()`, mixed with real logic
+  and `tools/smoke.py` — into its own `parse_args()` function. The files
+  that build their parser *inline inside* `main()`, mixed with real logic
   (`tools/build.py`, `tools/art/gen_lenin.py`, `tools/art/make_preview.py`,
-  `tools/audio/audition.py`, `tools/audio/gen_music.py`): those are
-  **deliberately not excluded**, because carving out just the
-  `add_argument` lines there would be exactly the kind of cosmetic trim
-  this report was told not to do. Their gaps are counted and discussed
-  below as real gaps, CLI-shaped or not.
-- Nothing else is excluded. No defensive `except ImportError` fallback
-  exists anywhere under `tools/` (checked), so there was no candidate for
-  that common exclusion either.
+  `tools/audio/audition.py`, `tools/audio/gen_music.py`, and the tools
+  added since) are **deliberately not excluded**, because carving out just
+  the `add_argument` lines there would be exactly the kind of cosmetic
+  trim this report was told not to do. Their gaps are counted and
+  discussed as real gaps, CLI-shaped or not.
+- Nothing else is excluded. The `.coveragerc` has not changed since the
+  first report; no exclusion was added to soften the Windows number.
 
-**One real bug this surfaced, fixed, not papered over:** by default,
-`coverage`'s "also report files that were never executed at all" pass
-(`find_possibly_unexecuted_files` in `coverage/inorout.py`) skips any
+**One real bug the first report surfaced, fixed, not papered over:** by
+default, `coverage`'s "also report files that were never executed at all"
+pass (`find_possibly_unexecuted_files` in `coverage/inorout.py`) skips any
 subdirectory that lacks an `__init__.py`, unless
 `[report] include_namespace_packages = True` is set. `tools/art/` and
 `tools/audio/` have no `__init__.py` (tests import their modules by bare
 name via `sys.path.insert`, see `tests/test_art.py`), so without that one
-line the first run of this tool silently **hid** seven whole files —
-`gen_lenin.py`, `gen_shell.py`, `make_contact.py`, `make_preview.py`,
-`emblem_check.py`, `audition.py`, `gen_music.py` — from the report instead
-of showing their true 0%. The total coverage number before the fix read
-**86%**; after it, **58%**. That 28-point gap was not code getting worse,
-it was the measurement finally looking at code it had been blind to. This
-is the exact failure mode the brief warned against, just in the opposite
-direction from "inflating the number by excluding real gaps" — a default
-left alone would have inflated it by *hiding* files outright. Anyone
-re-running `coverage` ad hoc without this `.coveragerc` would get the
-misleadingly rosy number.
+line the first run of this tool silently **hid** seven whole files from
+the report instead of showing their true 0%. The total before the fix
+read **86%**; after it, **58%**. That gap was not code getting worse, it
+was the measurement finally looking at code it had been blind to. The
+same flag is what makes the eleven 0% files above visible today: without
+it this report would read far higher and be wrong.
 
 ## Honest analysis
 
-### Contrasting the CEO's hypothesis
+### Contrasting the CEO's hypothesis, second measurement
 
-**"`tools/sdbuild/` is critically undercovered" — not true in aggregate,
-true in two specific spots.** `sdbuild/udmf.py` is the best-tested file in
-the whole tree (98%, 41 dedicated tests just landed). `sdbuild/wad.py`
-(87%) and `sdbuild/pk3.py` (84%) are solidly covered on their main path —
-the one every `tools/build.py` run actually takes. But inside
-`sdbuild/pk3.py`, three **documented, supported, and completely
-unexercised** branches sit behind that respectable 84%:
+**"`tools/sdbuild/` is critically undercovered" — still not true in
+aggregate, still true in the same three spots.** `sdbuild/udmf.py` is at
+97% after growing by 63 lines (`tests/test_udmf.py` grew with it),
+`sdbuild/wad.py` 87%, `sdbuild/pk3.py` 84%. Inside `pk3.py` the three
+**documented, supported, and completely unexercised** branches named in
+the first report are all still unexercised, only their line numbers moved:
 
-1. **`collect_maps()`'s raw-`.wad` branch** (lines 85-86): the module's own
-   docstring says a map can arrive either as `src/maps/<MAP>/map.py`
-   (generated) *or* `src/maps/<MAP>.wad` (copied verbatim, e.g. exported
-   from Ultimate Doom Builder). Only the first path has ever run under
-   test. If level-designer starts exporting from UDB, this is the first
-   time that code executes for real.
-2. **`collect_assets()`'s missing-directory branch** (line 126) and, with
-   it, `tools/build.py --assets <missing path>` — advertised in
-   `build.py`'s own `--help` text as "pass a missing path to build without
-   art" and the exact state the project was in for most of F0/F1. Never
-   tested.
-3. **`collect_entries()`'s duplicate-path guard** (line 150): the check
-   that stops two files from silently colliding at the same PK3 path. It
-   is the kind of guard that exists *because* something like it already
-   went wrong once (see the `collect_assets` docstring's "blocker M1, found
-   by level-designer 2026-10-12" note) — and it has never fired under test.
-
-None of this shows up in the file's 84%; the aggregate number hides it.
+1. **`collect_maps()`'s raw-`.wad` branch** (now lines 90-92): a map
+   dropped as a `.wad` under `src/maps/` (exported from Ultimate Doom
+   Builder) instead of generated by `map.py`. Never run under test.
+2. **`collect_assets()`'s missing-directory branch** (now line 150,
+   `return []`) and with it `tools/build.py --assets <missing path>`,
+   advertised in `build.py --help`. Never run under test.
+3. **`collect_entries()`'s duplicate-path guard** (now line 179,
+   `raise BuildError(f"duplicate PK3 path ...")`). Never fired under test.
 
 **"The art generators in `tools/art/` are critically undercovered" — true,
-but split sharply by age.** `gen_soviet_base.py` — the script behind the 9
-CEO-approved batch-1 textures — is well tested at 93%, and not
-superficially: `tests/test_art.py` checks its `quantize`/`Overlay`/
-`ramp_colour` helpers against real pixel output, palette limits, and
-tiling-seam math. What it does *not* test is `gen_soviet_base.main()`
-itself (684-710) — the loop that actually writes the PNGs and the
-manifest JSON — nor, by extension, `artlib.save_indexed()` (the function
-that enforces "indexed to the mod palette", one of the literal gate
-criteria in `CLAUDE.md`'s QA brief) or `artlib.tiling_seam_score()`. Every
-*other* art generator — `gen_shell.py` (title/menu/intermission screens,
-350 statements), `gen_lenin.py` (the Lenin poster), `make_contact.py`,
-`make_preview.py`, `emblem_check.py` — sits at a literal, unqualified 0%.
-These are newer tools (F3/F4, "in progress in parallel" per `CLAUDE.md`'s
-own status line) that simply haven't had the same test investment yet as
-the batch that already shipped. `tools/audio/` (`audition.py`,
-`gen_music.py`) is 0% for the same reason, one day old as of this
-writing (D16, 2026-10-13).
+and the split has moved.** In the first report the line ran between the
+shipped batch-1 generator (93%) and everything newer (0%). Since then
+`gen_shell.py` (title/menu/intermission, D18) went from 0% to 86% and
+`artlib.py` from 91% to 99%, with `save_indexed()` — the function that
+enforces "indexed to the mod palette" — now tested directly, which closes
+most of the first report's third gap. The new line runs between those and
+the **three generators behind assets the CEO has already approved or is
+reviewing that have no test at all**: `gen_font.py` (0%, the D24 alphabet
+that ships in `assets/fonts/`), `gen_metro.py` (0%, batch 2) and
+`gen_switch.py` (30%, the switches already in `assets/`, whose `main()`
+and render path are untested). `tools/audio/` is at 0% across all five
+files; three of them are new since the last report.
 
 ### Confirming the other half: CLI and error branches that don't matter much
 
-- **`tools/smoke.py`'s big gap (lines 455-551)** is `main()`'s actual
-  engine run: building the command line, launching real GZDoom as a
-  subprocess, reading its log, printing the summary, deciding the exit
-  code. It needs a real GZDoom binary and a display; it is correctly left
-  to the opt-in `test_smoke_run_passes_on_the_current_pk3` (skipped by
-  default, `SD_ENGINE_TESTS=1` to run it for real) and to the manual
-  evidence runs QA already does with `tools/run.sh`. Every piece of logic
-  that *feeds* that block — `scan_log()`, `find_gzdoom()`, `find_iwad()`,
-  the timeout handling — already has its own dedicated tests in
-  `tests/test_smoke.py`. The one piece of real, untested logic buried in
-  that block is the final if-chain that turns a `Report` into one of
-  `EXIT_TIMEOUT` / `EXIT_LOG_FAILURES` / `EXIT_ENGINE_FAILED` /
-  `EXIT_NO_MAP` / `EXIT_OK` — see the "gaps that matter" list below.
+- **`tools/smoke.py`'s gap** is still `main()`'s actual engine run,
+  correctly left to the opt-in `SD_ENGINE_TESTS=1` test and to the PM's
+  engine passes (D26: agents no longer start GZDoom at all).
+- **`tools/verify.py` at 68%** is new and arrived with a 556-line test
+  file; its 110 missing statements were not itemised in this pass and are
+  not claimed to be harmless. Next measurement should look.
 - **`tools/build.py`'s and `tools/check_pk3.py`'s remaining gaps** are
-  mostly print-formatting branches (`build.py`'s default, non-`--quiet`
-  summary; `check_pk3.py`'s human-readable rendering of a report that is
-  already checked field-by-field in the 26 KB of `tests/test_check_pk3.py`)
-  and secondary error paths of CLIs whose core per-check logic is already
-  heavily exercised. Low value to chase.
-- **`tools/sdbuild/wad.py`'s five gaps** (lines 57, 64, 93, 96, 111) are
-  all `raise WadError(...)` guards in an 18-line binary writer/reader —
-  real, but trivially small and isolated (each is a one-line
-  `assertRaises` away from closed). Not urgent, not critical.
+  mostly print-formatting branches and secondary error paths of CLIs
+  whose core logic is heavily exercised. Low value to chase.
+- **`tools/sdbuild/wad.py`'s six gaps** are all `raise WadError(...)`
+  guards, each one `assertRaises` away from closed. Not urgent.
 
 ## The three gaps that matter most
 
 Ranked by "a regression here would ship silently and nobody would know
 until a human hit it in-game or in a build log":
 
-1. **`sdbuild/pk3.py::collect_maps()`, the raw-`.wad` map branch
-   (lines 85-86).** A documented, supported way to hand the builder a map
-   (export from Ultimate Doom Builder, drop the `.wad` under `src/maps/`)
-   has never executed once under test.
-   *Test that would close it:* drop a tiny, valid PWAD fixture (built with
-   `sdbuild.wad.build_pwad`, as `tests/test_check_pk3.py` already does for
-   its own fixtures) at `src/maps/MAPXX.wad` with no sibling `map.py`, call
-   `collect_maps()`/`build()`, and assert it is packed at `maps/MAPXX.wad`
-   byte-for-byte, alongside a second assertion that mixing a `map.py` map
-   and a raw-`.wad` map in the same build produces both.
+1. **`tools/art/gen_font.py`, 0% of 791 statements.** The largest file in
+   `tools/`, generating the 214 glyphs that make D7 and D21 possible in
+   the game (D24). Its output is in `assets/fonts/` today. The only test
+   that looks at those glyphs (`test_identical_to_work_source`) compares
+   bytes against `work/art/font/`, which does not exist on the working
+   machine, so it skips (B3). A regression in the generator — a glyph
+   off-palette, a wrong cell size, a missing codepoint — would be caught
+   by nothing until someone reads a menu in-game.
+   *Test that would close it:* run the generator for one variant into a
+   tempdir (as `ShellTests` does for `gen_shell.build()`), then assert the
+   glyph count per size, every opaque pixel's colour ⊆
+   `docs/art/palette.json` with alpha only 0 or 255 (the folder fonts are
+   RGBA by design, `docs/art/ART-BIBLE.md` §2, not mode `P`; this is now
+   watched by `InstalledGlyphPaletteTests` in `tests/test_gen_font.py`),
+   and the cell sizes the font layout in
+   `docs/engine/MOD-SPEC.md` declares.
 
-2. **`sdbuild/pk3.py::collect_assets()`, the missing-`assets/`-directory
-   branch (line 126) — and by extension `tools/build.py --assets
-   <missing>`.** This is not a hypothetical: it is the exact state the
-   project was in through most of F0/F1, and `build.py --help` advertises
-   it ("pass a missing path to build without art"). Nothing currently
-   calls `build()` with a nonexistent `assets` path.
-   *Test that would close it:* `build(src, out, tools_dir, assets=tmp_path
-   / "does-not-exist")` and assert it still produces a PK3 containing only
-   `src/`'s own content, no exception, no silently-empty texture folder
-   created on disk.
+2. **`sdbuild/pk3.py`'s three branches (90-92, 150, 179)**, unchanged from
+   the first report and still untested after a second measurement: the
+   raw-`.wad` map path, the missing-`assets/` path, and the duplicate-path
+   guard. Three small tests, described in the first report, still not
+   written: a tiny PWAD fixture named `MAPXX.wad` placed under `src/maps/`
+   with no sibling `map.py`; `build(..., assets=tmp / "does-not-exist")`;
+   and two entries with the same path through `collect_entries()`
+   asserting `BuildError`.
 
-3. **`gen_soviet_base.py::main()` (684-710) and
-   `artlib.save_indexed()` (272-277) — the actual PNG-and-manifest write
-   path.** Everything this function calls (`quantize`, `Overlay`,
-   `ramp_colour`, `tiling_seam_score`) is well tested in isolation; the
-   function that wires them together, writes `SD*.png` to disk indexed to
-   the mod palette, and writes `palette`-adjacent manifest JSON has never
-   run under the suite. Today it is only checked after the fact, by
-   `check_pk3.py` scanning files that already made it into `assets/`, and
-   by a human looking at the HTML preview. A regression here (e.g. a
-   texture silently saved un-indexed, or the manifest losing a field
-   `check_pk3`/`make_preview.py` relies on) would not be caught by any
-   currently-green test.
-   *Test that would close it:* run `gen.main()` with `OUT_DIR` monkeypatched
-   to a tmp dir, then assert every `TEXTURES` entry produced a file with
-   ≤256 palette colours (`Image.open(p).getcolors()`), the declared
-   width/height, and that `manifest.json` has exactly as many entries as
-   `TEXTURES` with the fields `make_preview.py`/`check_pk3.py` read.
+3. **`gen_switch.py` `main()` and render path (30%) and
+   `gen_soviet_base.py` `main()` (469-492).** Both generators have assets
+   in `assets/` approved by the CEO; neither's end-to-end write path runs
+   under the suite. `artlib.save_indexed()` is now tested in isolation,
+   which removes the worst risk (an un-indexed PNG), but the loops that
+   choose names, sizes and manifest fields are still unexercised.
+   *Test that would close it:* `main()` with `OUT_DIR`/`MANIFEST`
+   redirected to a tempdir, as `tests/test_art.py` already does for
+   `gen_soviet_base` helpers, asserting file count, size, mode and the
+   manifest fields `make_preview.py`/`check_pk3.py` read.
 
-(A fourth, smaller one worth naming since it is a one-line fix each: the
-five `WadError` guards in `sdbuild/wad.py` — empty lump list, non-`bytes`
-lump data, truncated blob, bad magic, missing lump name — have zero tests
-between them. Any one is a single `self.assertRaises(WadError, ...)` call.)
+(Fourth, named because the fix is a one-liner: **B3** above. Until the
+skip condition in `test_identical_to_work_source` looks for the batch
+render rather than for `work/`, the fast loop on Windows is one generator
+run away from red.)
 
 ## What this report is not
 
@@ -268,13 +341,13 @@ between them. Any one is a single `self.assertRaises(WadError, ...)` call.)
   `docs/PRD.md` own gate definitions, and adding a coverage gate there is
   a product decision for the CEO, not something this report decides on
   its own.
-- **Not new tests.** Per the brief, none were written here — the three
-  gaps above (and the `wad.py` one) are described with enough detail to
-  write them, intentionally left to whoever owns that code
-  (`mod-engineer` for `sdbuild/`, `art-director` for `tools/art/`) so this
-  task does not collide with the QA agent already writing tests for the
-  art generators in parallel.
-- **Not a verdict on the suite being red or green.** Both states were
-  observed in this one session (red at the start, matching the brief's
-  warning to the letter; green at measurement time, after other agents'
-  fixes landed) and both are recorded above with their exact test counts.
+- **Not new tests.** None were written in this pass (the brief for the
+  Windows move forbade touching `tests/`). The gaps above are described
+  with enough detail to write them: `mod-engineer` for `sdbuild/`,
+  `art-director` for `tools/art/`, `sound-designer` for `tools/audio/`.
+- **Not a Mac number.** 49% is what this tree measures on the Windows PC
+  with `work/` absent. The same tree on the Mac would read up to ~1.5
+  points higher (`gen_lenin.py`); that was not measured and is not claimed.
+- **Not a verdict on a single commit.** The working tree had uncommitted
+  tooling changes at measurement time (listed above); the number is tied
+  to the Windows-move commit that follows, whichever hash it gets.

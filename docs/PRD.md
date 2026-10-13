@@ -1,7 +1,7 @@
 # Soviet Doom — Product Requirements Document
 
 Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
-Last update: 2026-10-09 (G1 passed).
+Last update: 2026-10-13 (D25-D27).
 
 ## 1. Vision
 
@@ -27,8 +27,9 @@ follow once MAP01 passes its gate.
 
 ## 4. Non-goals (for now)
 
-Multiplayer balance, new music, voice acting, Steam/ModDB publishing. Each
-goes to `docs/ICEBOX.md` when someone has a concrete idea.
+Multiplayer balance, voice acting, Steam/ModDB publishing. Each goes to
+`docs/ICEBOX.md` when someone has a concrete idea. (Music was listed here
+until D16 brought it into scope on 2026-10-13.)
 
 ## 5. Decisions (D-numbered, immutable; amend with a new decision)
 
@@ -57,6 +58,9 @@ goes to `docs/ICEBOX.md` when someone has a concrete idea.
 | D19 | 2026-10-13 | **The work pipeline is written and enforced** (`docs/PIPELINE.md`): seven stages, file ownership declared per commission, sweeps as the unit of visual review, four green verifications before any commit, a `pmo` agent that blocks on documentation gaps, and explicit rules for when to stop and ask the CEO and when to proceed. Created at the CEO's request. | ratified (CEO) |
 | D16 | 2026-10-13 | **Music: our own instrumental MIDI sequences.** The CEO: "el camino correcto es instrumental en MIDI". No Soviet recordings: every phonogram of Melodiya, the Alexandrov Choir or Radio USSR is protected in the United States into the 2040s-2070s. Historical public-domain compositions may be sequenced by us; the bulk of in-game music is original composition in the idiom of the period. | ratified (CEO) |
 | D17 | 2026-10-13 | **Ammo and pickup names in Cyrillic** (period forms: 7,62×25, патроны, ПГ-7В, горючее). The status bar's own AMMO/HEALTH/ARMS/ARMOR are painted into the IWAD's STBAR graphic and are a separate, costed decision. | ratified (CEO) |
+| D25 | 2026-10-13 | **Switch textures: all four variants ship**, `SDSW1A-D` (off) and `SDSW2A-D` (on), Doom's own 1 = off / 2 = on convention with the variant letter last. The CEO took all four rather than one: "yo por mí mete todos, así tenemos diversidad". Variant A was relaid first (its word and lamp overlapped; the CEO saw it). | ratified (CEO) |
+| D26 | 2026-10-13 | **Amends D19. Agents never start GZDoom.** `tools/run.sh` and `tools/smoke.py` refuse to launch unless `SD_ALLOW_ENGINE=1` is set, and only the PM sets it; an agent whose change needs the engine verifies with `tools/verify.py fast`, says the engine run is owed, and the PM batches those runs. CEO: "no paran de abrirse ventanas del doom interrumpiendo mi trabajo, como 3-4 ventanas cada 20 segundos". | ratified (CEO) |
+| D27 | 2026-10-13 | **The working machine is the CEO's Windows PC** ("vamos a hacer todo desde aquí"). GZDoom g4.14.2, Freedoom 0.13.0 and the venv live there; the tooling finds both machines' layouts. Gitignored `work/` stays on the Mac until the CEO copies it; **nothing done on the Mac is redone**. Approved assets are regenerated only on the machine that rendered them (text-bearing lumps differ between the two Impact builds) or go back to the CEO as a new proposal. | ratified (CEO) |
 | D15 | 2026-10-09 | Licence of the mod: **GPL-3.0** for code (`tools/`, `src/zscript/`, scripts) and **CC BY-NC-SA 4.0** for assets and docs (textures, sprites, maps, sounds, lore). Non-commercial is required anyway by OTEX's terms. Full texts added at F6; `LICENSE.md` states it now. | decided by the PM on CEO delegation |
 
 ## 6. Phases and gates
@@ -69,5 +73,5 @@ See `docs/ROADMAP.md`. Gates are measured, not argued.
 |---|---|---|
 | Procedural textures look generic | the Soviet identity is the product | small batches, CEO approves each; poster set is hand-composed from typography and vector shapes |
 | Asset licensing | a takedown kills a free mod | `docs/art/LICENSES.md` audited by QA before each gate |
-| No level editor on macOS 12 | slow geometry | script-generated UDMF; evaluate UDB on the Windows PC (LA-BESTIA) |
+| Maps are built by script, no editor | slow geometry | script-generated UDMF works (MAP01 v1, 54 sectors); Ultimate Doom Builder is now possible on the Windows PC (D27), to be evaluated when a map needs hand editing |
 | Russian doc mirror drifts | D7 broken | mirror delivered in the same task; QA checks file parity at each gate |

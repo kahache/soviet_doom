@@ -9,10 +9,15 @@ Decision **D16** (CEO, 2026-10-13): *"el camino correcto es instrumental en MIDI
 No Soviet recording of anything enters this mod.
 Same day, two further CEO instructions: *"no construyas tú los MIDIs, mejor
 descargarlos"* and *"Sí a LA INTERNACIONAL"* for the title screen, plus the
-verdict that our own two pieces are *"un poco simples"*. **D16's wording
-(«our own instrumental MIDI sequences») no longer matches what we are
-shipping** — the title piece is a downloaded, attribution-licensed sequence.
-That needs a new D-number; see "Decisions needed", point 0.
+verdict that our own two pieces are *"un poco simples"*. Those instructions
+are recorded as **D23** (CEO, 2026-10-13, `docs/PRD.md` §5), which amends
+D16: *"Free MIDI sequences with a verified licence come first, our own
+sequencing is the fallback for works that exist only as free scores. La
+Internacional is the title theme. The three-rights rule of D16 stands in
+full."* So a downloaded, attribution-licensed title sequence is now the
+decided route, not a departure from it. What D23 does **not** settle is in
+"Decisions needed", points 0 and 1: the CEO's express acceptance of the
+Engelbach attribution, and the approval of the repaired file itself.
 
 > **Nothing below is approved and nothing is in the PK3.** Downloads live in
 > `work/audio/candidates/`, our own and our repaired files in `work/audio/`.
@@ -22,7 +27,7 @@ That needs a new D-number; see "Decisions needed", point 0.
 > ⚠️ **And `work/` is gitignored, so none of it is version-controlled.**
 > Verified: `.gitignore:16` is a bare `work/`, and `git ls-files work/` returns
 > nothing. The twelve downloaded MIDIs, the repaired `D_SDINTL.mid` and the two
-> `D_SDFIX*.mid` exist **only on this machine**. Combined with the sourcing gap
+> `D_SDFIX*.mid` exist **only in the gitignored `work/`**. Combined with the sourcing gap
 > in §3.1 — seven of the twelve have no recorded per-piece URL — a clean
 > checkout cannot reproduce this candidate set. This is deliberate for art
 > (batch PNGs live embedded in previews) but it is wrong for music, where the
@@ -31,6 +36,16 @@ That needs a new D-number; see "Decisions needed", point 0.
 > `work/audio/candidates/` is tracked, or treat §3.1's URL re-verification as
 > a blocker before this list is relied on again. I have not touched
 > `.gitignore`.
+>
+> **2026-10-13, update:** the files are no longer stranded on the Mac. On the
+> afternoon of the move to the Windows PC `work/` arrived as the release asset
+> `transfer-work-2026-10-13` (784 files checked against the Mac's SHA-256
+> manifest), and `D_SDINTL.mid`, `D_SDM01.mid`, `D_SDTITL.mid`,
+> `D_SDFIX3.mid`, `D_SDFIX7.mid` and the twelve candidates are in
+> `work/audio/` and `work/audio/candidates/` here (checked with `ls`).
+> Nothing is to be redone. The request to the PM above stays open: `work/`
+> is still not in git, and versioning `work/audio/candidates/` is the CEO's
+> call (`docs/PENDING-CEO-DECISIONS.md` §4).
 
 ---
 
@@ -60,17 +75,20 @@ so it also stops writing state back into the CEO's own preferences.
 python3 tools/build.py                                   # the overlay loads on top of this
 
 # the two recommendations
-python3 tools/audio/audition.py --play title --lump D_SDINTL   # the Internationale, repaired
-python3 tools/audio/audition.py --play map01 --lump D_SDM01    # our MAP01 loop
+SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play title --lump D_SDINTL   # the Internationale, repaired
+SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play map01 --lump D_SDM01    # our MAP01 loop
 
 # our title march, now proposed for the intermission instead
-python3 tools/audio/audition.py --play title --lump D_SDTITL
+SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play title --lump D_SDTITL
 
 # the downloaded candidates (packed as D_CND01..D_CND12; the map is printed)
 python3 tools/audio/audition.py --pack --candidates
-python3 tools/audio/audition.py --play map01 --candidates --lump D_CND01   # Bald Mountain
-python3 tools/audio/audition.py --play title --candidates --lump D_CND09   # Эй, ухнем
+SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play map01 --candidates --lump D_CND01   # Bald Mountain
+SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play title --candidates --lump D_CND09   # Эй, ухнем
 ```
+
+Since D26 `audition.py` refuses to start GZDoom unless `SD_ALLOW_ENGINE=1` is
+set (`--pack` works without it): the PM or the CEO sets it, never an agent.
 
 `audition.py` packs MIDIs into a throwaway overlay PK3 with its own MAPINFO
 and loads it **on top of** `dist/sovietdoom.pk3`. The shipped
@@ -116,7 +134,7 @@ hanging notes anywhere**, and every rendered duration matched its tempo map
 to within a second. Re-running the whole measurement is two commands:
 
 ```bash
-python3 tools/audio/audition.py --render --candidates     # ~3 min, writes 762 MB of WAV
+SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --render --candidates     # ~3 min, writes 762 MB of WAV
 .venv/bin/python tools/audio/wav_report.py work/audio/render-candidates/*.wav
 ```
 
@@ -543,20 +561,25 @@ can report a timeout on work it already finished.
 
 Superseded items from earlier versions are kept out. These are live.
 
-0. **D16 needs re-wording, and one attribution accepted.** D16 says the music
-   is *"our own instrumental MIDI sequences"*. What §0 recommends for the
-   title is a **downloaded** sequence under `{{Attribution|Jerry Engelbach}}`.
-   The spirit of D16 holds — instrumental MIDI, no Soviet phonogram — but the
-   letter does not, and shipping it means **crediting Jerry Engelbach** in the
-   mod's credits and the licence register. *Recommendation: accept, and ask
-   the PM to record it as a new D-number amending D16.* The alternative is to
-   use only the public-domain files, every one of which is a solo-piano score
-   preview.
-1. **Title screen: approve `work/audio/D_SDINTL.mid`.** Engelbach's orchestral
-   Internationale with the two-second head silence removed by us. It is the
-   CEO's own choice, it is measurably the best-sounding file we have, its one
-   defect is fixed and verified, and the engine plays it with zero errors.
-   Listen: `python3 tools/audio/audition.py --play title --lump D_SDINTL`.
+0. **Accept the Engelbach attribution.** The re-wording of D16 is **done**:
+   **D23** (CEO, 2026-10-13) amends it — downloaded free MIDI with a verified
+   licence first, our own sequencing as the fallback, and *La Internacional*
+   as the title theme. What D23 does not say is that the title sequence is
+   **not public domain**: it ships under `{{Attribution|Jerry Engelbach}}`,
+   so shipping it means **crediting Jerry Engelbach** in the mod's credits
+   and in the licence register. *Recommendation: accept.* The alternative is
+   to use only the public-domain files, every one of which is a solo-piano
+   score preview. **Still open: the CEO's express acceptance of that
+   obligation.**
+1. **Title screen: approve `work/audio/D_SDINTL.mid` before it enters
+   `assets/`.** D23 decides *which piece* (the Internationale); it does not
+   approve *this file*. It is Engelbach's orchestral Internationale with the
+   two-second head silence removed by us: measurably the best-sounding file we
+   have, its one defect fixed and verified, and the engine plays it with zero
+   errors. Nothing enters `assets/` without explicit approval (as with the
+   textures), so **still open: the CEO's approval of the repaired file**.
+   Listen: `SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play title --lump D_SDINTL`
+   (the file is in `work/audio/` on the Windows PC since 2026-10-13).
 2. **MAP01: `D_SDM01` (ours) or a ten-minute piano transcription?**
    **(a) `D_SDM01`** — *my recommendation.* The only piece of any origin
    written as a game loop: 2:22, darkest brightness measured, restarts from
@@ -571,7 +594,7 @@ Superseded items from earlier versions are kept out. These are live.
    loop shape of the two piano files.
    Doing nothing is not an option: MAP01's MAPINFO still says `music = ""`.
    **Listen to (b) before deciding** — the piano may be exactly the austerity
-   you want: `audition.py --play map01 --candidates --lump D_CND01`.
+   you want: `SD_ALLOW_ENGINE=1 audition.py --play map01 --candidates --lump D_CND01`.
 3. **Do you want `D_SDM01` enriched rather than replaced?** The measurable
    gap between ours and the Internationale is voices (5 against 12) and
    through-composition, not dynamic shape — our arc is in fact wider. Adding
