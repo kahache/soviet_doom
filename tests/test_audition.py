@@ -67,7 +67,6 @@ from sdbuild.wad import WadError, validate_lump_name  # noqa: E402
 # working machines and not in CI.
 REAL_AUDIO_DIR = PROJECT_ROOT / "work" / "audio"
 REAL_CANDIDATES_DIR = REAL_AUDIO_DIR / "candidates"
-REAL_MANIFEST = REAL_AUDIO_DIR / "candidates-lumps.txt"
 HAVE_REAL_DRAFTS = any(REAL_AUDIO_DIR.glob("*.mid")) if REAL_AUDIO_DIR.is_dir() else False
 HAVE_REAL_CANDIDATES = (any(REAL_CANDIDATES_DIR.glob("*.mid"))
                         if REAL_CANDIDATES_DIR.is_dir() else False)
@@ -465,13 +464,59 @@ class PackCandidatesTests(SandboxedCase):
         """
         names = ["a_piece.mid", "B_piece.mid", "WM_x.mid", "WMa.mid"]
 
-        def numbering(flavour):
-            folder = mock.Mock()
+        def numbering(flavour, run):
+            folder = mock.MagicMock()
             folder.glob.return_value = [flavour(n) for n in names]
+            # the registry candidate_lumps() reads and writes: absent at first
+            folder.__truediv__.return_value = self.tmp / f"registry-{run}.txt"
             with mock.patch.object(audition, "CANDIDATES_DIR", folder):
                 return {p.name: lump for lump, p in audition.sources(use_candidates=True)}
 
-        self.assertEqual(numbering(PurePosixPath), numbering(PureWindowsPath))
+        self.assertEqual(numbering(PurePosixPath, "posix"), numbering(PureWindowsPath, "windows"))
+
+    # -- the registry (D43): numbers survive deletions -------------------------
+
+    def registry(self) -> Path:
+        return self.candidates / audition.CANDIDATE_REGISTRY_NAME
+
+    def test_first_pack_writes_the_registry_in_positional_order(self):
+        audition.pack(use_candidates=True)
+        self.assertEqual(["D_CND01  MU_Scriabin_Prelude_op11n1.mid",
+                          "D_CND02  MU_Tchaikovsky_Seasons_August.mid",
+                          "D_CND03  WM_Kolokolchik.mid"],
+                         self.registry().read_text(encoding="utf-8").splitlines())
+
+    def test_deleting_a_candidate_does_not_renumber_the_others(self):
+        """The D43 discards: positional numbering would have shifted every
+        later piece down by one, so "D_CND03" would name another file."""
+        audition.pack(use_candidates=True)
+        (self.candidates / "MU_Scriabin_Prelude_op11n1.mid").unlink()
+        pairs = audition.sources(use_candidates=True)
+        self.assertEqual([("D_CND02", "MU_Tchaikovsky_Seasons_August.mid"),
+                          ("D_CND03", "WM_Kolokolchik.mid")],
+                         [(lump, p.name) for lump, p in pairs])
+
+    def test_a_new_candidate_never_reuses_a_retired_number(self):
+        self.registry().write_text(
+            "# a comment line\n"
+            "D_CND01  MU_Scriabin_Prelude_op11n1.mid\n"
+            "D_CND02  MU_Tchaikovsky_Seasons_August.mid\n"
+            "D_CND03  WM_Kolokolchik.mid\n"
+            "# D_CND04  gone.mid  -- discarded\n", encoding="utf-8")
+        write_mids(self.candidates, ["AA_new.mid"])
+        pairs = dict((p.name, lump) for lump, p in audition.sources(use_candidates=True))
+        self.assertEqual("D_CND05", pairs["AA_new.mid"])
+        self.assertEqual("D_CND01", pairs["MU_Scriabin_Prelude_op11n1.mid"])
+        self.assertTrue(self.registry().read_text(encoding="utf-8")
+                        .endswith("D_CND05  AA_new.mid\n"))
+
+    def test_registry_is_not_rewritten_when_nothing_is_new(self):
+        audition.pack(use_candidates=True)
+        before = self.registry().stat().st_mtime_ns
+        text = self.registry().read_text(encoding="utf-8")
+        audition.pack(use_candidates=True)
+        self.assertEqual(text, self.registry().read_text(encoding="utf-8"))
+        self.assertEqual(before, self.registry().stat().st_mtime_ns)
 
 
 # --- --play ------------------------------------------------------------------
@@ -973,19 +1018,26 @@ class RealMidiTests(unittest.TestCase):
     @real_candidates
     def test_real_candidates_number_as_on_the_mac(self):
         # The manifest goes to AUDIO_DIR, so AUDIO_DIR is a tempdir here.
+        # The registry lives in the real CANDIDATES_DIR and is tracked in git;
+        # every real file is registered, so pack() only reads it (the
+        # module's work/audio tripwire would catch a write).
         with (mock.patch.object(audition, "AUDIO_DIR", self.tmp),
               mock.patch.object(audition, "CANDIDATES_DIR", REAL_CANDIDATES_DIR)):
             pairs = audition.pack(use_candidates=True)
-        self.assertEqual([f"D_CND{i:02d}" for i in range(1, len(pairs) + 1)],
-                         [lump for lump, _ in pairs])
         for lump, path in pairs:
             self.assertEqual(path.read_bytes(), self.entries()[f"music/{lump}.mid"])
-        if not REAL_MANIFEST.is_file():
-            self.skipTest("no manifest from the Mac to compare against")
-        # The Mac wrote work/audio/candidates-lumps.txt; same numbering here
-        # means "D_CND11" names the same piece on both machines (see A5).
-        self.assertEqual(REAL_MANIFEST.read_text().splitlines(),
-                         (self.tmp / "candidates-lumps.txt").read_text().splitlines())
+        # The numbers the Mac first wrote (positional, twelve files) survive
+        # the D43 discards: "D_CND10" is still Engelbach's Internationale.
+        mac = {"D_CND01": "MU_Mussorgsky_BaldMountain.mid",
+               "D_CND03": "MU_Scriabin_Etude_op2n1.mid",
+               "D_CND05": "MU_Scriabin_Prelude_op59n2.mid",
+               "D_CND06": "MU_Tchaikovsky_Dumka_op59.mid",
+               "D_CND07": "MU_Tchaikovsky_Seasons_August.mid",
+               "D_CND09": "WM_Ej_uchnem.mid",
+               "D_CND10": "WM_Internationale_orch2.mid",
+               "D_CND11": "WM_Internationale_piano_Bb.mid",
+               "D_CND12": "WM_Kolokolchik.mid"}
+        self.assertEqual(mac, {lump: path.name for lump, path in pairs})
 
 
 if __name__ == "__main__":

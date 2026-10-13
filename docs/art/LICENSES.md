@@ -225,3 +225,16 @@ regenerate byte-identical on the Windows PC. Per-lump rows and seeds:
 No typeface, no photograph, no scanned station: the real Moscow metro is
 the reference for the materials only (described in ART-BIBLE §4), and no
 image of it was used as a source.
+
+## Music (D43, installed 2026-10-13)
+
+Rows added by `sound-designer` so `tools/check_pk3.py` can see the music
+lumps' provenance. The full rights analysis — composition, lyrics,
+phonogram and sequencing, each with its source — is owned by
+`docs/sound/MUSIC-RIGHTS.md` §4.4; these rows only point at it. Files in
+`assets/music/`, packed as `music/<LUMP>.mid`.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `D_SDINTL` | title theme: *The Internationale* (De Geyter, 1888), orchestral MIDI | sequenced by **Jerry Engelbach** (2003), Wikimedia Commons `File:Internationale_orch2.mid`; 1.99 s of head silence removed by us (`tools/audio/midi_edit.py --trim-head`) | melody public domain (`{{PD-Internationale}}`); sequencing `{{Attribution\|Jerry Engelbach}}` — **credit "Jerry Engelbach" is required** |
+| `D_SDM01` | MAP01 loop "Zarya-7" | original composition, `tools/audio/gen_music.py` (sound-designer, 2026-10-13) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |

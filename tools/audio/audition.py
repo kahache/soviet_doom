@@ -134,6 +134,72 @@ def by_file_name(path) -> str:
     return path.name
 
 
+CANDIDATE_LUMP_PREFIX = "D_CND"
+CANDIDATE_REGISTRY_NAME = "LUMPS.txt"     # lives in CANDIDATES_DIR, tracked in git (D43)
+
+
+def read_registry(path: Path) -> dict[str, str]:
+    """file name -> lump, from `LUMP  FILE` lines; '#' starts a comment."""
+    if not path.is_file():
+        return {}
+    out: dict[str, str] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.split("#", 1)[0].strip()
+        if not line:
+            continue
+        lump, _, name = line.partition(" ")
+        if name.strip():
+            out[name.strip()] = lump.strip().upper()
+    return out
+
+
+def candidate_lumps(files: list[Path]) -> list[tuple[str, Path]]:
+    """Stable `D_CNDnn` names for the downloaded candidates.
+
+    The numbers were first positional (file-name order). That made every
+    number a function of which OTHER files happened to be in the folder, so
+    deleting the three discards of D43 (D_CND02, 04, 08) would silently have
+    renamed nine pieces, and "D_CND09" in a CEO verdict or in
+    docs/sound/SOUNDTRACK.md would have named a different piece -- the same
+    failure as bug A5, by another route. So the assignment is now a registry,
+    `candidates/LUMPS.txt`, tracked in git with the files themselves:
+
+    - a file listed there keeps its lump forever;
+    - a new file gets the next number after the highest ever registered
+      (a retired number is never reused: its line stays, commented);
+    - with no registry the numbering is the old positional one, which is how
+      the Mac's twelve were numbered, so the registry reproduces it.
+
+    The registry is written only when a new file needed a number.
+    """
+    registry_path = CANDIDATES_DIR / CANDIDATE_REGISTRY_NAME
+    known = read_registry(registry_path)
+    used = set(known.values())
+    if registry_path.is_file():
+        # retired lines ("# D_CND02  file  retired ...") still hold their number
+        for line in registry_path.read_text(encoding="utf-8").splitlines():
+            token = line.lstrip("# ").split(" ", 1)[0].upper()
+            if token.startswith(CANDIDATE_LUMP_PREFIX):
+                used.add(token)
+    highest = max((int(u[len(CANDIDATE_LUMP_PREFIX):]) for u in used
+                   if u[len(CANDIDATE_LUMP_PREFIX):].isdigit()), default=0)
+    pairs: list[tuple[str, Path]] = []
+    new_lines: list[str] = []
+    for p in files:
+        lump = known.get(p.name)
+        if lump is None:
+            highest += 1
+            lump = f"{CANDIDATE_LUMP_PREFIX}{highest:02d}"
+            new_lines.append(f"{lump}  {p.name}\n")
+        pairs.append((lump, p))
+    if new_lines:
+        old = registry_path.read_text(encoding="utf-8") if registry_path.is_file() else ""
+        if old and not old.endswith("\n"):
+            old += "\n"
+        registry_path.write_text(old + "".join(new_lines), encoding="utf-8")
+    return sorted(pairs, key=lambda pair: (len(pair[0]), pair[0]))
+
+
 def sources(use_candidates: bool) -> list[tuple[str, Path]]:
     """(lump name, file) pairs to pack.
 
@@ -149,7 +215,7 @@ def sources(use_candidates: bool) -> list[tuple[str, Path]]:
         files = sorted(CANDIDATES_DIR.glob("*.mid"), key=by_file_name)
         if not files:
             raise SystemExit(f"no .mid files in {CANDIDATES_DIR}")
-        return [(f"D_CND{i:02d}", p) for i, p in enumerate(files, start=1)]
+        return candidate_lumps(files)
     files = sorted(AUDIO_DIR.glob("*.mid"), key=by_file_name)
     if not files:
         raise SystemExit(f"no .mid files in {AUDIO_DIR}; run tools/audio/gen_music.py first")

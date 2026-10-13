@@ -1,0 +1,17 @@
+# Stable lump names for the downloaded candidates, read and extended by
+# tools/audio/audition.py (candidate_lumps). A number is never reused: a
+# discarded file keeps its line, commented out. Provenance and licence of
+# every file: docs/sound/MUSIC-RIGHTS.md 4.4. Numbering as first written on
+# the Mac (work/audio/candidates-lumps.txt, 2026-10-13).
+D_CND01  MU_Mussorgsky_BaldMountain.mid
+# D_CND02  MU_RimskyKorsakov_FugueBACH.mid  -- discarded 2026-10-13 (D43)
+D_CND03  MU_Scriabin_Etude_op2n1.mid
+# D_CND04  MU_Scriabin_Prelude_op11n1.mid  -- discarded 2026-10-13 (D43)
+D_CND05  MU_Scriabin_Prelude_op59n2.mid
+D_CND06  MU_Tchaikovsky_Dumka_op59.mid
+D_CND07  MU_Tchaikovsky_Seasons_August.mid
+# D_CND08  MU_Tchaikovsky_WoodenSoldiers.mid  -- discarded 2026-10-13 (D43)
+D_CND09  WM_Ej_uchnem.mid
+D_CND10  WM_Internationale_orch2.mid
+D_CND11  WM_Internationale_piano_Bb.mid
+D_CND12  WM_Kolokolchik.mid
