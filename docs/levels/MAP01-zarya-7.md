@@ -599,7 +599,7 @@ CEO's.**
 | G3-5 | Finishable with no monsters and no secrets | one `-nomonsters` run and one run that takes zero secrets both reach the exit | 2/2 |
 | G3-6 | No softlock, statically | reachability check on `TEXTMAP`: every sector is reachable from the player start, and from every sector there is a path to the exit that uses only doors that are `repeatspecial` or already permanently open; no one-way drop > 24 units | 0 violations |
 | G3-7 | No softlock, adversarially | QA's hostile pass on skill 4: throw every switch twice, re-enter every door, walk into every monster closet and back out, enter every secret and leave, drop off the catwalk and off the cradle from all four sides, and play the map backwards from the hangar | "could not get stuck" |
-| G3-8 | Thing and resource sanity | script over `TEXTMAP`: no thing with all five skill flags false; monster counts strictly 2 < 3 < 4 and matching §8 ±2; 3 secret sectors; placed ammo on skill 4 ≥ 1.35 × the ammo needed to kill every skill-4 monster with the intended weapon (recruit/trooper 1 shell, stormtrooper 2, hound 3, gunner 4), counting no secret pickup | all true |
+| G3-8 | Thing and resource sanity | script over `TEXTMAP`: no thing with all five skill flags false; monster counts strictly 2 < 3 < 4 and matching §8 ±2; 3 secret sectors; placed ammo on skill 4 ≥ 1.35 × the ammo needed to kill every skill-4 monster with the intended weapon (rifleman and trooper 1 shell, stormtrooper 2, hound 3, Doughboy 6, Panzermensch 8: `SHELLS_TO_KILL` in `tests/test_map01.py`), counting no secret pickup | all true |
 | G3-9 | CEO verdict | the CEO plays or watches v3 and says "on point" (or not), **and** gives the verdict on `SDCONC2` seen in Z3/Z5/Z6, which closes its row in `TEXTURE-INDEX.md` | explicit yes |
 
 A failure at any of G3-1…G3-8 is a bug with a number, not a discussion.
@@ -614,7 +614,7 @@ screenshotted into `docs/levels/shots/`.
 | **v0 — grey** ✅ **BUILT 2026-10-13** (§14) | the complete floor plan: every sector, every door, both switches, the exit, correct heights and stairs. One wall texture and one floor/ceiling pair everywhere (`STARTAN2`/`FLOOR4_8`/`CEIL3_5`), flat light 160, no enemies, no items. | you can walk start → exit; no HOM, no stuck geometry; G3-1, G3-2, G3-6 pass |
 | **v1 — textured** ✅ **BUILT 2026-10-13** (§15) | §6 applied zone by zone, alignment pass (door recesses, floor pegging, lane continuity), `SDPOSTR2` mural and `SDPOSTR1` Lenin placed, D4/D5/D6 as `SDDOOR1`, the `SDCONC2` route built and photographed. | G3-3 passes; the CEO can judge `SDCONC2` from screenshots |
 | **v2 — light and detail** ✅ **BUILT 2026-10-13** (§16), engine pass filed; **walked by the CEO 2026-10-13, criterion MET** (the section after §16) | the §6 light table, lamp sectors, the flickering corridor, the booth light that SW-A turns on, parapets, pilasters, steps, drums, floor lamps, the three secrets built and flagged; the real switch textures, one variant per switch, retiring `SWITCH_PLACEHOLDER` (A3; the `ANIMDEFS` pairs are in, MOD-SPEC §4.3). **Added after the v1 walk:** SW-A moved where it sees D4, a window, the light tag (§16.1). | the map reads without a compass: a first-time player finds the hangar, the fuel bay and D4 without being told, **and knows that SW-A opened D4** (the v1 walk showed the first half is not enough) |
-| **v3 — density and balance** ✅ **BUILT 2026-10-13** (§17), engine pass owed (§17.10) | **D33, after the v2 walk:** shape in every big room (columns, plinths, pilasters, a gantry, the cradle's spine, rails, a stair landing, furniture, alcoves, frames, pipes, tanks, shadows) on the same plan; §8 placed with per-skill flags, ammo and health budget, the ambush and wave 2 in six closets on the switches' tags; the three secrets re-hidden; Lenin lit. Playtests on 2/3/4 with notes are the engine pass's. | all of G3-1…G3-8 green; the density of a first map (D33); ready for the CEO's G3-9 |
+| **v3 — density and balance** ✅ **BUILT 2026-10-13** (§17), engine pass filed (§17.10; `docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass-*`) | **D33, after the v2 walk:** shape in every big room (columns, plinths, pilasters, a gantry, the cradle's spine, rails, a stair landing, furniture, alcoves, frames, pipes, tanks, shadows) on the same plan; §8 placed with per-skill flags, ammo and health budget, the ambush and wave 2 in six closets on the switches' tags; the three secrets re-hidden; Lenin lit. Playtests on 2/3/4 with notes are the engine pass's. | all of G3-1…G3-8 green; the density of a first map (D33); ready for the CEO's G3-9 |
 
 Running any version, once it is in the build:
 
@@ -1723,7 +1723,9 @@ needed no change for it; `test_the_ice_axe_comes_before_the_first_melee`
   skills 3–4);
 - the dorm's riflemen (2 / 3 / 4 on skills 2 / 3 / 4) take 4 / 6 / 8 TT-33
   rounds by BALANCE §7 (two each); the start's 50 rounds (`SD_START_CLIP`,
-  read from `player.zs` by the test) cover that 1.35 times over many times.
+  read from `player.zs` by the test) cover that 12.5, 8.3 and 6.3 times over
+  on skills 2, 3 and 4 (50 / 4, 50 / 6, 50 / 8; the 1.35 of G3-8 is a different
+  margin, on the whole map's placed ammo, §11).
   There is no ammunition risk before the rack.
 
 The rack is not the first pickup on every path: a clip lies at (600, 60)

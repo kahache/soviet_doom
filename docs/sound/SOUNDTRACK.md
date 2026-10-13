@@ -96,8 +96,10 @@ set (`--pack` works without it): the PM or the CEO sets it, never an agent.
 `audition.py` packs MIDIs into a throwaway overlay PK3 with its own MAPINFO
 and loads it **on top of** `dist/sovietdoom.pk3`. The shipped
 `src/lumps/MAPINFO` is never touched; deleting `work/audio/sd-music-draft.pk3`
-puts everything back. Downloaded files get positional lump names because
-their own names are not valid lumps.
+puts everything back. Downloaded files get `D_CNDnn` lump names because
+their own names are not valid lumps; since D43 the names come from the
+registry `work/audio/candidates/LUMPS.txt` (tracked in git), not from the
+file's position, so a lump keeps its number when other files come or go.
 
 The five tools, all of them mine, all documented in their own docstrings:
 
