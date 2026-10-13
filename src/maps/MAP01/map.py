@@ -144,6 +144,18 @@ LIGHT_EXIT_SWITCH = 144
 LIGHT_LENIN_HALO = 128
 LIGHT_LENIN = 160
 
+# --- The komnata's mural (D38) ----------------------------------------------
+# CEO, v3 run on skill 3: "Hay un pequeño trozo cuadrado justo enfrente del
+# poster de cosmonáutica, yo lo quitaría para que se vea bien el poster". The
+# lectern stood on the axis at the niche's mouth; it moves to the tribune's
+# east front corner, and the colonnade's inner pair moves out to the
+# tribune's edges. tests/test_map01.py casts the sight lines.
+KOMNATA_COLUMNS_X = (96, 192, 416, 512)      # west edges; each column is 32 square
+LECTERN_RECT = (384, 1344, 416, 1376)        # beside the mural, off its sight cone
+MURAL_NICHE = (256, 1408, 384, 1440)         # SDPOSTR2 hangs on its north wall
+KOMNATA_DOORWAY = (192, 320, 960)            # Z3's mouth into the komnata: x from, x to, y
+KOMNATA_CENTRE = (320, 1192)
+
 # --- Sector tags ----------------------------------------------------------
 TAG_D1_DORM_WASHROOM = 1
 TAG_D2_DORM_CORRIDOR = 2
@@ -405,7 +417,7 @@ ITEMS = (
     ("stall_1", ED_HEALTH_BONUS, 928, 24, 4),
     ("stall_3", ED_HEALTH_BONUS, 928, 168, 4),
     ("tribune", ED_HEALTH_BONUS, 208, 1392, 4),
-    ("tribune", ED_HEALTH_BONUS, 432, 1392, 4),
+    ("tribune", ED_HEALTH_BONUS, 432, 1400, 4),   # clear of the lectern (D38)
     ("z10_lift", ED_HEALTH_BONUS, 3090, 600, 4),
     ("plinth_tank_2", ED_HEALTH_BONUS, 1240, 1824, 4),
 )
@@ -648,14 +660,23 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     lamp("z4_komnata", 3, (288, 1120, 352, 1184))
     for n, x in enumerate((64, 256, 448), start=1):
         furniture(f"mess_table_{n}", "z4_komnata", (x, 1024, x + 128, 1056), top=TABLE_TOP)
-    for x in (96, 256, 352, 512):
+    # The colonnade. v3 put its inner pair at x 256 and 352, on the mural's
+    # own edges, and the west one stood in the line from the doorway to the
+    # mural; they now stand on the tribune's edges (x 192 and 416), still
+    # symmetric about the axis, framing the tribune and leaving the cone
+    # from the doorway to the mural clear (D38, design section 17.13).
+    for x in KOMNATA_COLUMNS_X:
         column(x, 1232, x + 32, 1264, texture=CONC)
     like("z4_komnata", "tribune_step", [(192, 1312, 448, 1344)], floor=PLINTH, wall=STEEL)
     like("z4_komnata", "tribune", [(192, 1344, 448, 1408)], floor=2 * PLINTH, wall=STEEL)
-    furniture("lectern", "tribune", (304, 1376, 336, 1408), top=TABLE_TOP)
+    # The lectern stands at the tribune's front edge, east of the mural, the
+    # speaker beside the picture. v3 had it on the axis at the niche's mouth,
+    # 48 high in front of a mural whose foot is at 16: the CEO's "pequeño
+    # trozo cuadrado justo enfrente del poster" (D38).
+    furniture("lectern", "tribune", LECTERN_RECT, top=TABLE_TOP)
     # The mural niche stands on the tribune: 128 high above ITS floor, so
     # SDPOSTR2 is still one tile.
-    zone("z4_mural", 2 * PLINTH, 2 * PLINTH + 128, [(256, 1408, 384, 1440)],
+    zone("z4_mural", 2 * PLINTH, 2 * PLINTH + 128, [MURAL_NICHE],
          flat=TILE, ceiling=CEIL_LAMP, light=LIGHT_MURAL)
 
     # ======================================================================

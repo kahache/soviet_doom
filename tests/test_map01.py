@@ -14,13 +14,21 @@ dropped into a wall shows up here:
 * consumables scale down with skill, and the skill-4 ammo budget of
   criterion G3-8;
 * the monster closets: tagged with their switch, reachable, escapable;
-* the three re-hidden secrets, and Lenin's light.
+* the three re-hidden secrets, and Lenin's light;
+* D38: the cosmonautics mural seen whole from the komnata's doorway and
+  centre;
+* G3 readiness (design section 18): per skill 2, 3 and 4, the exit reached
+  pressing only what the map offers, the tutorial weapons before the
+  switches, the shovel before the first melee, and ammunition against hit
+  points with BALANCE section 7.
 
 Run:  python3 -m unittest tests.test_map01 -v
 """
 
 from __future__ import annotations
 
+import math
+import re
 import sys
 import unittest
 from collections import Counter, defaultdict
@@ -64,6 +72,31 @@ ROUNDS_GIVEN = {2007: 10, 2048: 50, 21004: 35}
 
 SKILLS = (2, 3, 4)
 MONSTER_NUMBERS = set(BODY)
+VIEW_HEIGHT = udmf_tests.VIEW_HEIGHT
+PLAYER_RADIUS = 16
+SOLID_FIXTURE_RADIUS = {2035: DRUM_RADIUS, 2028: LAMP_RADIUS}
+
+# The 32-deep mural niche hides ~3 of the mural's 128 units from the
+# doorway's corner; the sight test samples from this far in from each edge.
+MURAL_JAMB_INSET = 4
+
+# docs/engine/BALANCE.md section 7, the ruler G3 is read against: hit points
+# per stand-in (each the HP of the bestiary class that replaces it,
+# BESTIARY.md section 12) and the average damage per shot of the weapons
+# MAP01 teaches (section 2).
+HIT_POINTS = {3004: 20, 9: 30, 3001: 60, 3002: 150, 3005: 400, 69: 500}
+IZH_AVERAGE = 80       # one barrel, 8 pellets of 5 x random(1,3)
+PPSH_AVERAGE = 8       # one round, 4 x random(1,3)
+TT33_AVERAGE = 12      # one round, 6 x random(1,3)
+# Read, not owned: the player's starting rounds and the mod's skill rungs.
+PLAYER_ZS = PROJECT_ROOT / "src" / "zscript" / "sd" / "player.zs"
+MAPINFO = PROJECT_ROOT / "src" / "lumps" / "MAPINFO"
+# What GZDoom's SpawnFilter names mean: the thing flag each rung spawns by.
+SPAWN_FILTER_FLAG = {"baby": 1, "easy": 2, "normal": 3, "hard": 4, "nightmare": 5}
+# The only line specials MAP01 may use: nothing locked, nothing scripted.
+ALLOWED_SPECIALS = {udmf_tests.SPECIAL_DOOR_OPEN, udmf_tests.SPECIAL_DOOR_RAISE,
+                    udmf_tests.SPECIAL_EXIT_NORMAL}
+KEY_NUMBERS = {5, 6, 13, 38, 39, 40}   # Doom's six keys
 
 
 class Map01V3Test(unittest.TestCase):
@@ -90,6 +123,7 @@ class Map01V3Test(unittest.TestCase):
         model_class = udmf_tests.Map01Test
         model_class.setUpClass()
         model = model_class()
+        cls.model = model
         cls.reachable, cls.adjacency = model._reachable(set(model_class.doors))
         props = {i for name, i in cls.plan.items()
                  if name in cls.m.WINDOWS or name.startswith(cls.m.PROP_PREFIXES)}
@@ -437,6 +471,253 @@ class Map01V3Test(unittest.TestCase):
             for ld in inner:
                 self.assertEqual(m.STEEL, self.sides[ld["sidefront"]]["texturemiddle"])
 
+    # --- D38: the cosmonautics mural ------------------------------------
+    def _mural_targets(self):
+        """Points on SDPOSTR2's face, bottom to top and edge to edge.
+
+        The niche is 32 deep, so from the doorway's corner its own jambs
+        hide a sliver of the mural's edge (about 3 units of 128); the
+        samples start MURAL_JAMB_INSET in from each edge for that reason
+        and no other.
+        """
+        x1, _, x2, y = self.m.MURAL_NICHE
+        niche = self.sectors[self.plan["z4_mural"]]
+        floor, ceil = niche["heightfloor"], niche["heightceiling"]
+        for x in range(x1 + MURAL_JAMB_INSET, x2 - MURAL_JAMB_INSET + 1, 8):
+            for z in range(floor + 2, ceil - 1, 8):
+                yield (x, y - 1), z
+
+    def _mural_eyes(self):
+        """Where the player sees the mural from: three places across the
+        doorway from Z3, one body into the room, and the room's centre."""
+        lo, hi, y = self.m.KOMNATA_DOORWAY
+        eyes = [((x, y + PLAYER_RADIUS), "the doorway")
+                for x in (lo + PLAYER_RADIUS, (lo + hi) // 2, hi - PLAYER_RADIUS)]
+        eyes.append((self.m.KOMNATA_CENTRE, "the centre"))
+        return eyes
+
+    def test_the_mural_is_seen_whole_from_the_doorway_and_the_centre(self):
+        """D38. CEO, after his skill-3 run: «Hay un pequeño trozo cuadrado
+        justo enfrente del poster de cosmonáutica, yo lo quitaría para que
+        se vea bien el poster». It was v3's lectern, 48 high at the niche's
+        mouth over a mural whose foot is at 16; the colonnade's west inner
+        column also cut it from the doorway. Every sampled point of the
+        mural is in view from every eye: the D4 sight-line method."""
+        eye_z = self.sectors[self.plan["z4_komnata"]]["heightfloor"] + VIEW_HEIGHT
+        for eye, where in self._mural_eyes():
+            self.assertEqual(self.plan["z4_komnata"], self.sector_at(*eye), eye)
+            for target, z in self._mural_targets():
+                self.assertEqual([], self.model._blockers(eye, eye_z, target, z),
+                                 f"the mural at {target}, z {z} is hidden from {where} {eye}")
+
+    def test_no_solid_fixture_stands_in_front_of_the_mural(self):
+        """Geometry is not the only thing that can block it: no floor lamp or
+        drum stands within its radius of a line from an eye to the mural."""
+        for eye, where in self._mural_eyes():
+            for target, _ in self._mural_targets():
+                for t in self.things_of(set(SOLID_FIXTURE_RADIUS)):
+                    d = _distance_to_segment((t["x"], t["y"]), eye, target)
+                    self.assertGreater(d, SOLID_FIXTURE_RADIUS[t["type"]],
+                                       f"thing {t['type']} at ({t['x']}, {t['y']}) "
+                                       f"in front of the mural from {where}")
+
+    def test_the_lectern_is_still_on_the_tribune(self):
+        """What the lectern gave stays: the tribune still reads as a
+        tribune. The lectern stands on it, at its front edge, east of the
+        niche and off the mural's axis."""
+        lectern = self.plan[f"{self.m.FURNITURE_PREFIX}lectern"]
+        x1, y1, x2, y2 = self.m.LECTERN_RECT
+        self.assertEqual(lectern, self.sector_at((x1 + x2) // 2, (y1 + y2) // 2))
+        self.assertGreaterEqual(x1, self.m.MURAL_NICHE[2], "the lectern is back on the axis")
+        tribune = self.sectors[self.plan["tribune"]]
+        self.assertEqual(tribune["heightfloor"] + self.m.FURNITURE_HEIGHT,
+                         self.sectors[lectern]["heightfloor"])
+
+    # --- G3 readiness: skills 2, 3 and 4 (design section 18) -------------
+    def _skill_rungs(self):
+        """{thing flag: MAPINFO properties} for each skill the mod defines."""
+        text = re.sub(r"//[^\n]*", "", MAPINFO.read_text(encoding="utf-8"))
+        rungs = {}
+        for body in re.findall(r"^skill\s+\w+\s*\{(.*?)\}", text, re.S | re.M):
+            props = {}
+            for line in body.splitlines():
+                parts = line.split("=", 1)
+                key = parts[0].strip().lower()
+                if key:
+                    props[key] = parts[1].strip().strip('"') if len(parts) == 2 else True
+            rungs[SPAWN_FILTER_FLAG[props["spawnfilter"].lower()]] = props
+        return rungs
+
+    def test_skills_2_to_4_differ_only_in_what_spawns(self):
+        """The mod's MAPINFO keeps Doom's rungs: rung N spawns the things
+        flagged skillN, and rungs 2-4 multiply neither ammo nor damage nor
+        bring the dead back. So the per-skill counts in this file are what
+        each G3 run meets."""
+        rungs = self._skill_rungs()
+        self.assertEqual({1, 2, 3, 4, 5}, set(rungs))
+        for flag in SKILLS:
+            for prop in ("ammofactor", "damagefactor", "respawntime"):
+                self.assertNotIn(prop, rungs[flag], f"rung {flag} has {prop}")
+
+    def _start_rounds(self):
+        """The player's starting 7.62x25 rounds, read from the actor."""
+        found = re.search(r"SD_START_CLIP\s*=\s*(\d+)", PLAYER_ZS.read_text(encoding="utf-8"))
+        self.assertIsNotNone(found, "SD_START_CLIP is gone from player.zs")
+        return int(found.group(1))
+
+    def _progression(self):
+        """Play the map's doors as the player can: open every door and panel
+        whose line he can stand at, then press every switch he can reach,
+        until nothing new opens. Returns [(open tags, reachable sectors)],
+        one row per round of switches."""
+        uses = [ld for ld in self.lines if ld.get("playeruse")
+                and ld.get("special") in (udmf_tests.SPECIAL_DOOR_OPEN,
+                                          udmf_tests.SPECIAL_DOOR_RAISE)]
+        switches = {ld["arg0"] for ld in uses if "sideback" not in ld}
+        opened, rounds = set(), []
+        while True:
+            reach, _ = self.model._reachable(opened)
+            pressable = set()
+            for ld in uses:
+                stand = {self.sides[ld["sidefront"]]["sector"]}
+                if "sideback" in ld:
+                    stand.add(self.sides[ld["sideback"]]["sector"])
+                if stand & reach:
+                    pressable.add(ld["arg0"])
+            doors = pressable - opened - switches
+            if doors:
+                opened |= doors
+                continue
+            rounds.append((frozenset(opened), reach))
+            pressed = pressable - opened
+            if not pressed:
+                return rounds
+            opened |= pressed
+
+    def test_nothing_the_route_needs_is_locked_scripted_or_on_a_thing(self):
+        """Progress is lines only: no key, no locked or scripted special, no
+        thing with a tid or a special (a monster whose death opens a door
+        would make the route depend on the skill)."""
+        self.assertFalse(self.things_of(KEY_NUMBERS))
+        for i, ld in enumerate(self.lines):
+            if ld.get("special"):
+                self.assertIn(ld["special"], ALLOWED_SPECIALS, f"linedef {i}")
+        for t in self.things:
+            self.assertFalse(t.get("special") or t.get("id"), t)
+
+    def test_every_skill_reaches_the_exit(self):
+        """G3-4's static half, per skill: from the start, opening only what
+        the map offers, the exit switch is reached, and not before the
+        switches; and the three tutorial weapons are on that skill and
+        reachable before any switch is pressed."""
+        m = self.m
+        rounds = self._progression()
+        exits = [ld for ld in self.lines if ld.get("special") == udmf_tests.SPECIAL_EXIT_NORMAL]
+        self.assertEqual(1, len(exits))
+        exit_sector = self.sides[exits[0]["sidefront"]]["sector"]
+        before_switches = rounds[0][1]
+        self.assertNotIn(exit_sector, before_switches, "the exit needs no switch")
+        self.assertIn(exit_sector, rounds[-1][1], "the exit is never reached")
+        for skill in SKILLS:
+            for ednum in m.TUTORIAL_WEAPONS:
+                found = self.on(skill, self.things_of({ednum}))
+                self.assertEqual(1, len(found), f"skill {skill}: weapon {ednum}")
+                where = self.sector_at(found[0]["x"], found[0]["y"])
+                self.assertIn(where, before_switches,
+                              f"skill {skill}: weapon {ednum} is behind a switch")
+
+    def test_the_shovel_comes_before_the_first_melee(self):
+        """CEO, v3 run: «una especie de sierra mecánica al lado donde se
+        empieza que no se podía coger, solo iban los puños». The player
+        started with the shovel, so the rack's could not be taken; he now
+        starts with the TT-33 only and gets the shovel at the rack. So the
+        rack is in the dorm, reached with no door opened, and in view from
+        the start; no hound (the shovel's lesson) is in the dorm on any
+        skill; and the dorm's riflemen fall to the starting rounds with
+        G3-8's margin (BALANCE 7: two TT-33 rounds each)."""
+        m = self.m
+        sealed, _ = self.model._reachable(set())
+        self.assertIn(self.plan["shovel_rack"], sealed)
+        shovel = self.things_of({m.ED_SHOVEL})[0]
+        self.assertEqual(self.plan["shovel_rack"], self.sector_at(shovel["x"], shovel["y"]))
+        self.assertEqual([], self.model._blockers(m.PLAYER_START, VIEW_HEIGHT,
+                                                  (shovel["x"], shovel["y"]), 8),
+                         "the shovel on its rack is hidden from the start")
+        start_rounds = self._start_rounds()
+        for skill in SKILLS:
+            in_dorm = [t for t in self.on(skill, self.things_of(MONSTER_NUMBERS))
+                       if self.sector_at(t["x"], t["y"]) in sealed]
+            self.assertFalse([t for t in in_dorm if t["type"] == m.ED_DEMON],
+                             f"skill {skill}: a hound before the shovel")
+            needed = sum(math.ceil(HIT_POINTS[t["type"]] / TT33_AVERAGE) for t in in_dorm)
+            self.assertLessEqual(G3_8_MARGIN * needed, start_rounds,
+                                 f"skill {skill}: the dorm needs {needed} of {start_rounds} rounds")
+
+    def test_ammo_against_hit_points_by_skill_and_by_stage(self):
+        """BALANCE 7 against the map, per skill. G3-8's per-kill figures are
+        never kinder than the ruler's barrels-to-kill; and at every stage of
+        the route (before the switches, after them) the damage placed so
+        far outside the secrets, plus the starting rounds, is at least
+        G3_8_MARGIN times the hit points met so far. No drop counted."""
+        for ednum, hp in HIT_POINTS.items():
+            self.assertGreaterEqual(SHELLS_TO_KILL[ednum], math.ceil(hp / IZH_AVERAGE), ednum)
+        secret = self._secret_sectors()
+        rounds = self._progression()
+        for skill in SKILLS:
+            hp_so_far, seen = 0, set()
+            damage_so_far = self._start_rounds() * PPSH_AVERAGE
+            for stage, (_, reach) in enumerate(rounds):
+                here = [t for t in self.on(skill, self.things)
+                        if self.sector_at(t["x"], t["y"]) in reach - seen]
+                hp_so_far += sum(HIT_POINTS.get(t["type"], 0) for t in here)
+                damage_so_far += sum(SHELLS_GIVEN.get(t["type"], 0) * IZH_AVERAGE
+                                     + ROUNDS_GIVEN.get(t["type"], 0) * PPSH_AVERAGE
+                                     for t in here
+                                     if self.sector_at(t["x"], t["y"]) not in secret)
+                self.assertGreaterEqual(damage_so_far, G3_8_MARGIN * hp_so_far,
+                                        f"skill {skill}, stage {stage}")
+                seen = reach
+
+    def test_no_solid_fixture_narrows_a_doorway(self):
+        """A drum or a floor lamp is on every skill and never moves: none
+        stands in a doorway or within two bodies of it on the way through,
+        so no doorway can be plugged on any run."""
+        verts = self.verts
+        for d in self.model.door_sectors:
+            xs, ys = [], []
+            for ld in self.lines:
+                touching = {self.sides[ld["sidefront"]]["sector"]}
+                if "sideback" in ld:
+                    touching.add(self.sides[ld["sideback"]]["sector"])
+                if d in touching:
+                    for v in (verts[ld["v1"]], verts[ld["v2"]]):
+                        xs.append(v["x"])
+                        ys.append(v["y"])
+            # The approach: the doorway's own width, two bodies deep either
+            # side along the way through it (a door is thin that way). What
+            # the fixtures standing in it leave free across the width must
+            # still pass a body.
+            x1, x2, y1, y2 = min(xs), max(xs), min(ys), max(ys)
+            reach = 4 * PLAYER_RADIUS
+            across_x = x2 - x1 > y2 - y1
+            if across_x:
+                y1, y2 = y1 - reach, y2 + reach
+            else:
+                x1, x2 = x1 - reach, x2 + reach
+            lo, hi = (x1, x2) if across_x else (y1, y2)
+            taken = []
+            for t in self.things_of(set(SOLID_FIXTURE_RADIUS)):
+                r = SOLID_FIXTURE_RADIUS[t["type"]]
+                if x1 - r < t["x"] < x2 + r and y1 - r < t["y"] < y2 + r:
+                    c = t["x"] if across_x else t["y"]
+                    taken.append((c - r, c + r))
+            free, edge = 0, lo
+            for a, b in sorted(taken) + [(hi, hi)]:
+                free = max(free, a - edge)
+                edge = max(edge, b)
+            self.assertGreaterEqual(free, 2 * PLAYER_RADIUS,
+                                    f"{self.zone_of[d]}: fixtures leave {free} of {hi - lo}")
+
     # --- Lenin (CEO, v2 walk) --------------------------------------------
     def test_lenin_has_a_light_of_his_own(self):
         """«que haya iluminación en el poster de Lenin que no se veía bien».
@@ -456,6 +737,14 @@ class Map01V3Test(unittest.TestCase):
         self.assertLess(halo, light)
         self.assertGreaterEqual(light - room, 4 * m.LAMP_STEP, "not enough to read from the door")
         self.assertLess(light, m.LIGHT_MAX, "burnt out: 192 is for the beacons")
+
+
+def _distance_to_segment(p, a, b):
+    """Shortest distance from point p to the segment a-b, in the plane."""
+    (px, py), (ax, ay), (bx, by) = p, a, b
+    dx, dy = bx - ax, by - ay
+    t = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)))
+    return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
 
 
 if __name__ == "__main__":
