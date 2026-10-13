@@ -4,13 +4,35 @@ Updated: 2026-10-13, after the CEO closed D40-D43. Ordered by how much
 each item unblocks. What closed since the previous update is listed at the
 end so nothing is lost. Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md`.
 
-## 1. Next session: nothing blocks on you
+## 1. Drafts waiting for your eyes and ears (2026-10-13 evening)
 
-MAP01 v3 was played (skill 3, D38). Queued for the team, not for you:
-remove the square block in front of the cosmonautics mural (D38); build
-the Reich rifleman from cell E with a 3D rig (D38); try the German letters
-in game (D37). Still open from the design document §13, no hurry: no keys
-(recommended yes); a night-sky strip over the hangar, yes or no.
+Each preview says what it asks; the recommendation is in brackets.
+
+| What | Preview | Asks |
+|---|---|---|
+| Reich rifleman, 3D rig, 70 lumps (D38) | `docs/art/previews/2026-10-13_2039_F5_reich-rifleman-rig.html` | approve as drawn and judge in GZDoom [yes], or fixes first (eye slot or gas mask, folds, fall); gib olive [yes] or rust |
+| Our own hand and glove (D39) | `docs/art/previews/2026-10-13_1930_F4_hand-glove-sweep.png` | style A-F [E: brown glove, field sleeve, telnyashka] |
+| The ice axe, held and pickup (D40) | `docs/art/previews/2026-10-13_2000_F4_ice-axe.png` | swing as drawn; pickup A, B or C [C, upright as in the rack] |
+| PPSh-41 first person | `docs/art/previews/2026-10-13_2100_F4_ppsh41.png` | held at the hip, right? |
+| Metro fill-out, ten pieces (D42) | `docs/art/previews/2026-10-13_2022_F3_batch2-metro-fill.html` | yes/no per piece; tunnel concrete, tubbing or both [both]; chevrons or plain platform face |
+| Weapon sounds, 31 drafts | `docs/art/previews/2026-10-13_2027_F4_weapon-sfx-drafts.html` | per card; A/B/C on six key sounds; clicks and pickups [yes]; reloads [park] (`docs/sound/WEAPON-SOUNDS.md` §9) |
+| Enemy sounds, 35 + 8 beds | `docs/art/previews/2026-10-13_2029_F5_enemy-sfx-drafts.html` | per card (`docs/sound/ENEMY-SOUNDS.md` §7) |
+| MAP01 music enriched, `D_SDM01E` | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/audio/audition.py --play map01 --lump D_SDM01E` | replace the installed `D_SDM01`? |
+
+## 1b. Two decisions that unblock work
+
+- **Kenney's impact pack.** The enemy sounds use 17 of its files (authorised
+  by D36); the weapon generator left it out because the terms of the tool the
+  pack was made with are unconfirmed. One rule for both: keep Kenney [PM
+  recommends yes], or swap those layers for another CC0 pack (about one session).
+- **Scores for the three self-sequenced pieces** («Вы жертвою пали»,
+  «Амурские волны», Glinka's Patriotic Song, D43). No readable public-domain
+  notation without a download. (a) Authorise downloading one public-domain
+  score per piece, sizes stated first [recommended], or (b) write them from
+  memory, marked NOT VERIFIED, checked by someone who knows the tunes.
+
+Still open from the design document §13, no hurry: no keys (recommended
+yes); a night-sky strip over the hangar, yes or no.
 
 ## 1c. Your voice takes for the enemies (D36)
 
