@@ -32,21 +32,26 @@ repo documentation is English with a Russian mirror under `docs/ru/` (D7).
 **F0, F1, F2 — CLOSED.** G0 and G2 PASS with evidence in
 `docs/qa/GATE-REVIEWS.md`; G1 was ratified by the CEO on 2026-10-09
 (`docs/ROADMAP.md`) and its GATE-REVIEWS entry is written retrospectively on
-2026-10-13. Twenty texture lumps live in `assets/`: batch 1 (ten approved,
-`SDPOSTR1` Lenin 128×256 among them; `SDCONC2` and `SDSTAR1` v5 are in the
-PK3 awaiting the CEO's verdict inside MAP01) and the eight switches of batch
-2 (D25). The metro's first six pieces await the CEO. Title screen and
+2026-10-13. Twenty-four texture lumps live in `assets/`, all approved:
+batch 1, 12 of 12 (`SDPOSTR1` Lenin 128×256 among them; `SDCONC2` and
+`SDSTAR1` v5 approved inside MAP01 by the CEO, D30), the eight switches of
+batch 2 (D25) and four props of batch 3, crates and a locker (D29). The
+metro's first six pieces await the CEO. Title screen and
 intermission ship (D18). The Cyrillic alphabet is installed, 214 glyphs in
-two sizes (D24), which is what makes D7 and D21 possible inside the game.
+two sizes (D24), which is what makes D7 and D21 possible inside the game;
+M, М and W were corrected on 2026-10-13 (D29).
 
 **F3 — MAP01 Zarya-7.** v0 (grey box) and v1 (textured and signposted: red
 stripe, yellow lane, recessed doors; 54 sectors) are BUILT,
 `docs/levels/MAP01-zarya-7.md` §14-§15. The v0 playtest finding (the hangar
-gate read as a dead end) became v1's gate criterion, and the CEO has not
-walked v1 yet: that walk is item 1 of the pending decisions. v2 (light and
-detail) is next. The switches still wear `SDDOOR1`: `ANIMDEFS` now declares
-the four pairs (T16) and one was seen to flip in engine on 2026-10-13, so v2
-puts the real faces on the wall.
+gate read as a dead end) became v1's gate criterion. **The CEO walked v1 on
+2026-10-13 and the criterion is not met:** "ahora sí que funciona", but "me
+quedé en el hangar; la puerta doble no se abre". Not a mechanical bug: the
+PM pressed SW-A in engine and D4 opened
+(`docs/qa/evidence/2026-10-13_1540_F3_map01-v1-swa-opens-d4.png`). The
+switch still wears `SDDOOR1` and opens a gate the player cannot see. v2 is
+commissioned with that as its first job, plus light, real switch faces
+(`ANIMDEFS`, T16, flip verified in engine), crates, lockers and secrets.
 
 **F4 — arsenal.** Seven period weapons in ZScript, all firing, with Freedoom
 placeholders for sprites and sounds. Test range on MAP02.
@@ -56,9 +61,9 @@ in six seconds and opens no window. `tools/check_pk3.py` validates the package
 without the engine; `tools/smoke.py` runs it with the engine. **Agents never
 start GZDoom (D26):** `SD_ALLOW_ENGINE=1` is the PM's, and the PM batches the
 engine runs. CI on every push.
-Suite: **450 tests**, one skip (the opt-in engine test) and one expected
-failure (the font serif defect, `docs/PENDING-CEO-DECISIONS.md` §3b);
-branch coverage of `tools/` **65%**, measured on this PC on 2026-10-13 with
+Suite: **453 tests**, one skip (the opt-in engine test), no expected
+failure since the font fix; branch coverage of `tools/` **65%** (measured at
+450 tests), measured on this PC on 2026-10-13 with
 the Mac's `work/` in place (`docs/qa/COVERAGE.md`). `gen_font.py` went from
 0% to 98% the same afternoon; `audition.py`, at 21%, is the largest gap.
 `tools/audio/audition.py` obeys the same engine gate as `run.sh` and
