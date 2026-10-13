@@ -2,8 +2,8 @@
 """Pack the work-in-progress music into a throwaway PK3 and play or render it.
 
     python3 tools/audio/audition.py --pack            # just build the test PK3
-    python3 tools/audio/audition.py --play map01      # launch GZDoom and listen
-    python3 tools/audio/audition.py --play title
+    SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play map01   # launch GZDoom and listen (D26 gate)
+    SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play title
     python3 tools/audio/audition.py --render          # engine renders WAVs, no window
 
 Why this exists
@@ -308,7 +308,26 @@ def measure_wav(path: Path) -> tuple[float, float]:
     return seconds, peak
 
 
+# The engine gate (D26), the same contract as tools/smoke.py and tools/run.sh:
+# --play and --render both open a GZDoom window, and on 2026-10-13 agents
+# opening windows every few seconds stopped the CEO working. Only the PM (or
+# the CEO at the keyboard) sets the variable; --pack needs no engine and is
+# never gated.
+ENGINE_GATE_VAR = "SD_ALLOW_ENGINE"
+EXIT_ENGINE_BLOCKED = 9   # same code as tools/run.sh
+
+
+def engine_allowed(env: dict[str, str] | None = None) -> bool:
+    env = os.environ if env is None else env
+    return env.get(ENGINE_GATE_VAR) == "1"
+
+
 def require_engine() -> tuple[Path, Path]:
+    if not engine_allowed():
+        print(f"audition: refusing to start GZDoom (set {ENGINE_GATE_VAR}=1 to override).\n"
+              "  Agents: never set it (D26). Say in your summary that the listening "
+              "run is owed; the PM batches engine runs.", file=sys.stderr)
+        raise SystemExit(EXIT_ENGINE_BLOCKED)
     gzdoom = find(GZDOOM_CANDIDATES) or (Path(shutil.which("gzdoom")) if shutil.which("gzdoom") else None)
     if gzdoom is None:
         raise SystemExit("gzdoom not found (brew install --cask gzdoom)")
