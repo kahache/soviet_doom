@@ -88,7 +88,7 @@ MAP_TEXT_LUMP = "TEXTMAP"
 MAP_END_LUMP = "ENDMAP"
 
 # Folders the build packs verbatim (sdbuild.pk3.ASSET_DIRS) plus zscript/.
-ASSET_DIRS = ("textures", "flats", "sprites", "sounds", "music", "graphics", "patches", "hires")
+ASSET_DIRS = ("textures", "flats", "sprites", "sounds", "music", "graphics", "patches", "hires", "fonts")
 # Folders a wall texture / flat name can be satisfied from.
 TEXTURE_DIRS = ("textures", "flats", "patches", "graphics", "hires")
 # Folders whose contents must be listed in LICENSES.md.
@@ -552,6 +552,13 @@ def licensed_names(licenses: Path) -> set[str]:
     text = licenses.read_text(encoding="utf-8")
     names: set[str] = set()
     for token in RE_BACKTICKED.findall(text):
+        # Keep the token whole as well as split. Splitting on "/" is what makes
+        # `SDCONC1, SDSTEL1` work, but it also shredded `fonts/defsmallfont/*.png`
+        # into three meaningless pieces, so a directory could never be declared
+        # and a 214-file font looked like 214 undocumented assets.
+        whole = token.strip().strip("`")
+        if whole:
+            names.add(whole.upper())
         for piece in re.split(r"[,\s/]+", token):
             piece = piece.strip().strip("`")
             if not piece:
@@ -910,10 +917,28 @@ def check_licences(pkg: Package, declared: set[str], report: Report) -> None:
     packed: list[str] = []
     for folder in LICENSED_DIRS:
         packed += pkg.files_under(folder)
+    # A licence row may declare a DIRECTORY as well as a lump. One font is one
+    # asset in 214 files; demanding a row per glyph would be bookkeeping, not
+    # provenance. A declared token containing "/" covers everything beneath it,
+    # with a trailing glob stripped, so `fonts/defsmallfont/*.png` in
+    # LICENSES.md covers that folder and nothing else.
+    prefixes = []
+    for token in declared:
+        if "/" not in token:
+            continue
+        head, _, tail = token.rpartition("/")
+        # `fonts/defsmallfont/*.png` -> the folder; `assets/textures/set/` -> itself
+        base = head if ("*" in tail or not tail) else token
+        if base:
+            prefixes.append(base.upper().rstrip("/") + "/")
+    prefixes = tuple(prefixes)
     missing = 0
     for path in sorted(packed):
         stem = Path(path).stem.upper()
-        if stem not in declared and Path(path).name.upper() not in declared:
+        if (stem in declared or Path(path).name.upper() in declared
+                or path.upper().startswith(prefixes)):
+            continue
+        if True:
             missing += 1
             report.error("licences", path,
                          f"no row for {stem!r} in {DEFAULT_LICENSES.relative_to(PROJECT_ROOT)}: "

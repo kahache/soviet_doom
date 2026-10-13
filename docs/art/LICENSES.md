@@ -75,3 +75,25 @@ statistics because its diagonal leaves the centre free.
 
 Lump names are fixed by the engine, so these three are the documented
 exception to the `SD` prefix rule (MOD-SPEC §1).
+
+## The alphabet (F2, chosen by the CEO 2026-10-13)
+
+Variant **C "Mashina"** of three, picked from a sheet that set all three
+against real game strings in both scripts. Without this the mod could not
+write Russian at all: Freedoom's font is ASCII only, and the Cyrillic glyphs
+GZDoom ships are gated behind a filter that only activates for an id Software
+IWAD, which we do not use (debt T9, now paid).
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `fonts/defsmallfont/*.png` (107) | Small font, cap 7 px, line 9. HUD messages, pickups, the option menu | (a) `tools/art/gen_font.py`, style C, glyphs defined as drawing code rather than images | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
+| `fonts/bigfont/*.png` (107) | Big font, cap 11 px plus a 1 px shadow, line 16. Menu headlines and level titles | idem | idem |
+
+**Drawn, not derived.** Every glyph is constructed from the project's own
+stroke rules in `gen_font.py`; no typeface was traced, subset or converted,
+so there is no font licence to inherit. The styles were named after what they
+imitate in spirit — poster grotesque, GOST drawing lettering, slab machinery
+— not after any particular type family.
+
+Coverage: А-Я and Ё, A-Z, 0-9, and the punctuation the project uses including
+«» × · №, at both sizes.
