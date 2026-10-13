@@ -1,7 +1,7 @@
 # Voice script — the enemy voice takes, for the CEO
 
 Living document. Owner: `sound-designer`. Created 2026-10-13 (F5) under
-**D36**: the CEO provides the enemy voices, recorded by himself or generated
+**D36**: the CEO provides the enemy voices, recorded in person or generated
 with AI; the Reich speaks **real German**, the Liberty Legion **real
 English**; the General's order is **"Vorwärts."**; D11 and D12 still bind
 (real military callouts and combat cries, never the regime's slogans).

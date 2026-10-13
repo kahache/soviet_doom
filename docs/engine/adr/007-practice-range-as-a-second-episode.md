@@ -1,6 +1,6 @@
 # ADR 007 — The practice range is a second episode, reached from New Game
 
-Date: 2026-10-13. Status: accepted, **not yet seen in the engine** (the PM's
+Date: 2026-10-13. Status: accepted; seen in engine 2026-10-13 (see update). Originally: accepted, **not yet seen in the engine** (the PM's
 batched engine pass, D26). Owner: `mod-engineer`.
 **Update, 2026-10-13 evening:** seen in the engine (the episode screen at
 20:39, `docs/qa/evidence/2026-10-13_2039_d40-d43-engine-pass.md`; the end

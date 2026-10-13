@@ -216,8 +216,11 @@ What the engine does with a player who owns no melee weapon, read from
   rounds must already be in the inventory. `SD_Player` keeps Doom's order
   (weapon first, ammo last); `DoomPlayer` declares `Pistol`, `Fist`, `Clip`
   and spawns with the pistol, which only works if the list is walked
-  last-declared first. The walk itself is C++ and **NOT VERIFIED** beyond
-  that inference; the engine pass should confirm the TT-33 is up on spawn.
+  last-declared first. The walk itself is C++; **VERIFIED in engine
+  2026-10-13**: the TT-33 is raised on spawn with 50 rounds, owning only
+  slot 2 (first frame of
+  `docs/qa/evidence/2026-10-13_2014_mural-M1-M5_and_spawn.png`; row A0 of
+  `docs/qa/evidence/2026-10-13_2117_F3_g3-map01-g3-auto-skill3-report.txt`).
 - **Out of rounds, no ice axe.** Firing calls `FireWeapon`, which calls
   `CheckAmmo(PrimaryFire, autoSwitch = true)`; that calls `PickNewWeapon`,
   whose `BestWeapon` finds nothing and returns null, and nothing changes.

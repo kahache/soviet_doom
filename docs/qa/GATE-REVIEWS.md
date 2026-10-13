@@ -645,7 +645,7 @@ C8 and C12. **What is left to close G3:**
 2. **C10: the hostile pass on skill 4** (G3-7: every switch twice, every
    door re-entered, every closet and secret in and out, the drops from the
    catwalk and the cradle, the map backwards from the hangar).
-3. **G3-9: the CEO's "on point"**, with his `SDCONC2` verdict and M5's
+3. **G3-9: the CEO's "on point"**, with the `SDCONC2` verdict and M5's
    call (clutter or fine).
 
 Owed alongside, quick and scripted: C5b re-run on `route-3` for a clean

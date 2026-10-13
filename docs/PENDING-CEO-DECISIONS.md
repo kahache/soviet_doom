@@ -19,7 +19,7 @@ Each preview says what it asks; the recommendation is in brackets.
 | Enemy sounds, 35 + 8 beds | `docs/art/previews/2026-10-13_2029_F5_enemy-sfx-drafts.html` | per card (`docs/sound/ENEMY-SOUNDS.md` §7) |
 | MAP01 music enriched, `D_SDM01E` | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/audio/audition.py --play map01 --lump D_SDM01E` | replace the installed `D_SDM01`? |
 
-## 1b. Two decisions that unblock work
+## 2. Two decisions that unblock work
 
 - **Kenney's impact pack.** The enemy sounds use 17 of its files (authorised
   by D36); the weapon generator left it out because the terms of the tool the
@@ -34,7 +34,7 @@ Each preview says what it asks; the recommendation is in brackets.
 Still open from the design document §13, no hurry: no keys (recommended
 yes); a night-sky strip over the hangar, yes or no.
 
-## 1c. Your voice takes for the enemies (D36)
+## 3. Your voice takes for the enemies (D36)
 
 The sound-designer is writing `docs/sound/VOICE-SCRIPT.md`: every line in
 German or English, with instructions for recording or for AI generation.
@@ -42,7 +42,7 @@ Nothing to decide. **Postponed by the CEO on 2026-10-13** ("lo dejamos
 pending"): the enemies keep Freedoom's voices until the takes arrive, and
 nothing else waits on them.
 
-## 3. Metro set: palette v2 and the mosaic motif
+## 4. Metro set: palette v2 and the mosaic motif
 
 The direction and the first six pieces are approved (D42) and ship as drawn
 in palette v1. Two questions from the same sheet are still open
@@ -55,7 +55,7 @@ in palette v1. Two questions from the same sheet are still open
 - **Mosaic motif.** A star with rays, as drawn, or a figure (cosmonaut,
   worker), which would be its own commission, like Lenin was.
 
-## 6. Smaller, no hurry
+## 5. Smaller, no hurry
 
 - **Lenin slogan.** Ships with «ЛЕНИН ЖИВ»; Mayakovsky's full line «Ленин
   жил, Ленин жив, Ленин будет жить» also fits in three lines. Say so if you

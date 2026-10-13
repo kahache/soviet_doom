@@ -62,7 +62,7 @@ the United States are excluded (`MUSIC-RIGHTS.md` §5(b)).
 
 ## 1. How to listen
 
-The CEO heard nothing on the first attempt because his personal `gzdoom.ini`
+The CEO heard nothing on the first attempt because the personal `gzdoom.ini`
 had `snd_musicvolume` at **0** while the engine was playing correctly. The
 tool no longer depends on anyone's mixer: it passes `-config` pointing at
 `logs/gzdoom-tooling.ini` and sets `snd_musicvolume 0.8` on the command line,
