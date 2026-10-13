@@ -7,7 +7,9 @@ specification of 2026-10-12; the CEO closed its seven open questions on
 2026-10-13 (**D35**, §14) and the seven classes, the heavy Panzermensch and
 the four projectiles now exist in `src/zscript/monsters/`, one class per
 file, wearing Freedoom sprites and sounds until our own arrive (§2.7). The
-engine pass is owed (D26): nothing in this version has been seen in GZDoom.
+engine pass of 2026-10-13 loaded them clean, counted the drops and the
+General's single summon, and left infighting, blood colour and the attack
+numbers unseen (`docs/engine/adr/006-bestiary-actors.md`, debt T22).
 
 This document is the contract for the six ratified enemies (D13) between
 `mod-engineer` (classes, numbers, states), `art-director` (sprites, colour)
@@ -224,9 +226,9 @@ the sound (`A_PosAttack` plays `"grunt/attack"` literally); not the generic
 parity this document promises. The damage formulas live in named constants
 in each class, per CLAUDE.md.
 
-This whole subsection is **ADR material**. v0 called it ADR 003; 003, 004 and
-005 have since been taken (ammo naming, language switch, menu text), so it is
-**ADR 006, owed** (§13).
+This whole subsection became **ADR 006** (`docs/engine/adr/006-bestiary-actors.md`,
+2026-10-13); v0 called it ADR 003, a number since taken (ammo naming,
+language switch, menu text). Where the two differ, the ADR is later.
 
 ### 2.5 DoomEdNum block
 
@@ -1111,7 +1113,7 @@ chaingunner.
 | `docs/art/TEXTURE-INDEX.md` | Sprites are not textures, but the F5 sprite sheets need their own index with the same origin/licence columns | `art-director` | open |
 | `src/lumps/LANGUAGE` | 8 `SD_TAG_*`, 7 `SD_OB_*`, 3 `SD_OBHIT_*` and `SD_GENERAL_ORDER`, `[enu default]` and `[ru]` (D21) | `mod-engineer` | **Done 2026-10-13** |
 | `docs/art/LICENSES.md` | When any edited Freedoom pixel or sound ships (D35 allows it for deaths and gibs), the BSD-3 notice, disclaimer and no-endorsement clause. Placeholders read from the IWAD at run time are not redistributed and need no row (MOD-SPEC §5) | `qa-engineer` audit | open, nothing ships yet |
-| `docs/engine/adr/006-*.md` | **ADR 006 — "Enemies derive from `SD_Monster : Actor`, not from the Doom monsters"**: context (§2.4), options (derive from Doom monsters / from `Actor` / DECORATE), decision, consequences (every state written out; no inherited IWAD sprites or sounds; explicit `Species`; deliberate divergence from ADR 002's choice for weapons). v0 called it 003, a number since taken | `mod-engineer` | **owed** — `docs/engine/adr/` was outside this task's files |
+| `docs/engine/adr/006-bestiary-actors.md` | **ADR 006 — "Enemies derive from `SD_Monster : Actor`, not from the Doom monsters"**: context (§2.4), options (derive from Doom monsters / from `Actor` / DECORATE), decision, consequences (every state written out; no inherited IWAD sprites or sounds; explicit `Species`; deliberate divergence from ADR 002's choice for weapons). v0 called it 003, a number since taken | `mod-engineer` | **Done 2026-10-13** (debt T20) |
 | `docs/levels/MAP01-zarya-7.md` §8 | Swap the Freedoom placeholders for our editor numbers (or keep the Doom numbers, which `replaces` already turns into ours); settle the heavy gunner (§12) | `level-designer` | open |
 
 ---
