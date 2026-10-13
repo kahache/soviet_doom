@@ -73,16 +73,16 @@ SD_OB_KATYUSHA     = "%o caught %k's whole salvo.";
 //    SD_GOT_* ids Freedoom knows nothing about.
 //    See docs/engine/adr/003-ammo-naming-and-the-silent-shovel.md.
 //
-// SCRIPT: the CEO asked for the Cyrillic designations.  They are in the
-// Russian section below and they are correct, but they CANNOT BE SHOWN
-// YET.  Freedoom's SmallFont is ASCII only, and GZDoom's glyph pack lives
-// under filter/doom.id/, which an id IWAD selects and Freedoom does not.
-// Verified in-engine 2026-10-13: "ПГ-7В" printed as " -7B", and even the
-// multiplication sign of "7,62x25" printed blank.  Until art-director ships the
-// glyph set (debt T9 in MOD-SPEC; the mechanism is verified: dropping
-// src/fonts/defsmallfont/<HEX>.png into the PK3 extends SmallFont), the
-// English section uses the Latin transliteration a 1977 Soviet manual would
-// also carry.  Showing blanks would be worse than showing Latin.
+// SCRIPT: the CEO asked for the Cyrillic designations (D17).  They are in
+// the Russian section below.  The English section still carries the Latin
+// transliteration a 1977 Soviet manual would also print, for a reason that
+// no longer holds: until 2026-10-13 Freedoom's SmallFont was ASCII only
+// (GZDoom's glyph pack lives under filter/doom.id/, which Freedoom does not
+// select; verified in-engine: "ПГ-7В" printed as " -7B") - debt T9.  D24
+// paid T9 the same day with the mod's own glyphs (fonts/defsmallfont/,
+// fonts/bigfont/ in the PK3).  Switching these lines to the Cyrillic forms
+// is debt T17 in MOD-SPEC 10: a text change, the ASCII test in
+// tests/test_language.py, and an engine pass to see it on the HUD.
 
 AMMO_CLIP    = "7.62x25 rounds";       // TT-33 and PPSh-41 share the pistol round
 AMMO_SHELLS  = "12 gauge shells";      // IZh-58
@@ -130,8 +130,6 @@ SD_SKILL_5_CONFIRM = "The award is posthumous and the enemy dead do not stay dea
 SD_OPTMNU_TITLE    = "Soviet Doom";
 SD_OPTMNU_LANGUAGE = "Language";
 SD_OPTMNU_LANGHELP = "Applies immediately. Saved for the next session.";
-// Temporary, remove with debt T9: see docs/engine/MOD-SPEC.md 10.
-SD_OPTMNU_LANGWARN = "Cyrillic is not drawn yet (the font is being made).";
 
 SD_LANGVAL_AUTO = "Automatic (system)";
 SD_LANGVAL_EN = "English";
@@ -207,7 +205,6 @@ SD_SKILL_5_CONFIRM = "Награда посмертная, а убитый вр�
 SD_OPTMNU_TITLE    = "Советский Doom";
 SD_OPTMNU_LANGUAGE = "Язык";
 SD_OPTMNU_LANGHELP = "Применяется сразу. Сохраняется до следующего запуска.";
-SD_OPTMNU_LANGWARN = "Кириллица пока не отрисовывается (шрифт в работе).";
 
 SD_LANGVAL_AUTO = "Автоматически (система)";
 SD_LANGVAL_EN = "Английский";

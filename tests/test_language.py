@@ -33,10 +33,10 @@ REQUIRED_SECTIONS = ("default", "ru")
 
 # Ids defined for the engine's benefit but never shown to a player, so they
 # are allowed to hold the same text in several languages without that being
-# a sign of a forgotten translation.
-NON_PROSE_IDS = frozenset({
-    "SD_LANG_CODE",   # the probe zscript/sd/language.zs reads; see LANGUAGE
-})
+# a sign of a forgotten translation. Empty today: the last member was
+# SD_LANG_CODE, which went with zscript/sd/language.zs (ADR 004, D-004-4);
+# test_the_language_probe_is_gone keeps it out.
+NON_PROSE_IDS: frozenset[str] = frozenset()
 
 # Where an "$SD_..." reference can appear. MAPINFO/MENUDEF quote it, ZScript
 # quotes it in a property, and both forms are "$" + id.
@@ -157,12 +157,14 @@ class LanguageLumpTest(unittest.TestCase):
                 "it; read ADR 004 before reintroducing the mechanism it served.")
 
     def test_english_section_is_ascii(self):
-        """Until debt T9 lands, Freedoom's font cannot draw anything else.
+        """The English section is ASCII by record, not by necessity (T17).
 
-        Non-ASCII in the DEFAULT section prints as a blank in game -- the
-        rule MOD-SPEC 6.4 already states for the ammunition names. The
-        Russian section is exempt: it is correct and simply waits for the
-        glyphs.
+        Debt T9 (no Cyrillic glyphs on Freedoom) was paid by D24 on
+        2026-10-13, so non-ASCII no longer prints blank. The English
+        designations are still the Latin transliteration, and this test
+        pins that so the switch to the Cyrillic forms D17 asks for (MOD-SPEC
+        6.4, debt T17) is a deliberate change with an engine screenshot,
+        not a stray character. Flip or delete this test in that change.
         """
         offenders = [
             f"{key} = {value}"
@@ -171,8 +173,9 @@ class LanguageLumpTest(unittest.TestCase):
         ]
         self.assertEqual(
             offenders, [],
-            "non-ASCII in the [enu default] section; Freedoom's SmallFont and "
-            "BigFont have no glyph for it and it renders blank (debt T9):\n  "
+            "non-ASCII in the [enu default] section. The glyphs exist since D24; "
+            "if this is the deliberate move to Cyrillic designations (debt T17), "
+            "update this test in the same change:\n  "
             + "\n  ".join(offenders),
         )
 
@@ -375,14 +378,15 @@ class MainMenuLogoTest(unittest.TestCase):
     Bug E1: with no MainMenu of our own the engine used its own
     `StaticPatch 94, 2, "M_DOOM"`, which sits 34 px right and 2 px below the
     name block of TITLEPIC, so a "CO" of the latter showed past its left
-    edge. `art-director` records the correct origin in
-    work/art/shell/manifest.json; measured 2026-10-13, overlaying M_DOOM on
-    TITLEPIC at (60,0) gives a mean per-channel difference of 6 against 22+
-    at every neighbouring offset.
+    edge. The correct origin is the contract row in docs/engine/MOD-SPEC.md
+    6.6; measured 2026-10-13, overlaying M_DOOM on TITLEPIC at (60,0) gives
+    a mean per-channel difference of 6 against 22+ at every neighbouring
+    offset. (The generator's manifest under gitignored work/art/shell/ is
+    evidence of the measurement, not the contract: it is not in every clone.)
     """
 
-    # From work/art/shell/manifest.json (menudef_x / menudef_y). Changing
-    # this means art moved the lockup: change it there first.
+    # From MOD-SPEC 6.6 (the contract). Changing this means art moved the
+    # lockup: change the table there first, then MENUDEF, then this.
     LOGO_X, LOGO_Y = 60, 0
 
     @classmethod

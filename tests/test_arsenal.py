@@ -298,19 +298,22 @@ class ArsenalPk3Test(unittest.TestCase):
             self.assertRegex(enu, re.compile(rf"^{ident}\s*=", re.M), f"{ident} missing in [enu default]")
             self.assertRegex(ru, re.compile(rf"^{ident}\s*=", re.M), f"{ident} missing in [ru]")
 
-    def test_the_english_section_is_ascii_until_the_cyrillic_font_lands(self):
-        """Freedoom's SmallFont has no Cyrillic: GZDoom's glyph pack is under
-        filter/doom.id/ and Freedoom is not an id IWAD. Verified in-engine
-        2026-10-13 - Cyrillic printed as blanks. Drop this test when
-        src/fonts/defsmallfont/ ships the glyphs (MOD-SPEC debt T9)."""
-        if (PROJECT_ROOT / "src/fonts/defsmallfont").is_dir():
-            self.skipTest("the mod now ships its own small-font glyphs")
+    def test_the_english_section_is_ascii_until_t17(self):
+        """The English section is ASCII by record, not by necessity (T17).
+
+        Debt T9 (no Cyrillic glyphs on Freedoom) was paid by D24 on
+        2026-10-13, so non-ASCII no longer prints blank. The English
+        designations are still the Latin transliteration, and this test pins
+        that so the switch to the Cyrillic forms D17 asks for (MOD-SPEC 6.4,
+        debt T17) is a deliberate change with an engine screenshot, not a
+        stray character. Flip or delete this test in that change.
+        """
         enu, _ = self._language_sections()
         for line in enu.splitlines():
             code = line.split("//")[0]
             self.assertTrue(
                 code.isascii(),
-                f"non-ASCII in the English section would print as blanks: {line!r}",
+                f"non-ASCII in the English section: switching to Cyrillic is debt T17, do it deliberately: {line!r}",
             )
 
     # --- Sounds: regressions -----------------------------------------------
