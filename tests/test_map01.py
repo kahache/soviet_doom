@@ -20,7 +20,10 @@ dropped into a wall shows up here:
 * G3 readiness (design section 18): per skill 2, 3 and 4, the exit reached
   pressing only what the map offers, the tutorial weapons before the
   switches, the ice axe (the shovel until D40) before the first melee, and
-  ammunition against hit points with BALANCE section 7.
+  ammunition against hit points with BALANCE section 7;
+* D43: the diegetic radio in the guard post (design section 17.16): on
+  every skill, its zone kept to the post and the corridor in front of it,
+  every lane past it at least 40 wide, and clear of every route step.
 
 Run:  python3 -m unittest tests.test_map01 -v
 """
@@ -40,6 +43,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "tests"))
 
 # Imported as a module, not by name: a TestCase class bound in this module's
 # namespace would be collected and run a second time from here.
+import route  # noqa: E402  (QA's tools/route.py: its steps, read not run)
 import test_udmf as udmf_tests  # noqa: E402
 
 MAX_STEP_UP = udmf_tests.MAX_STEP_UP
@@ -74,7 +78,11 @@ SKILLS = (2, 3, 4)
 MONSTER_NUMBERS = set(BODY)
 VIEW_HEIGHT = udmf_tests.VIEW_HEIGHT
 PLAYER_RADIUS = 16
-SOLID_FIXTURE_RADIUS = {2035: DRUM_RADIUS, 2028: LAMP_RADIUS}
+# The diegetic radio (D43): SD_RADIO_RADIUS in radio.zs, read back by
+# test_the_radio_is_the_class_mod_spec_describes; solid, like the fixtures.
+ED_RADIO = 21200
+RADIO_RADIUS = 16
+SOLID_FIXTURE_RADIUS = {2035: DRUM_RADIUS, 2028: LAMP_RADIUS, ED_RADIO: RADIO_RADIUS}
 # G3-F1: a lane the player must walk to a pickup is at least a body plus
 # ROOM_TO_SPARE on each side (40 for 32), so it is walked, not threaded.
 # Checked on a LANE_GRID raster; both must divide the map's 16-unit grid.
@@ -95,6 +103,7 @@ PPSH_AVERAGE = 8       # one round, 4 x random(1,3)
 TT33_AVERAGE = 12      # one round, 6 x random(1,3)
 # Read, not owned: the player's starting rounds and the mod's skill rungs.
 PLAYER_ZS = PROJECT_ROOT / "src" / "zscript" / "sd" / "player.zs"
+RADIO_ZS = PROJECT_ROOT / "src" / "zscript" / "sd" / "radio.zs"
 MAPINFO = PROJECT_ROOT / "src" / "lumps" / "MAPINFO"
 # What GZDoom's SpawnFilter names mean: the thing flag each rung spawns by.
 SPAWN_FILTER_FLAG = {"baby": 1, "easy": 2, "normal": 3, "hard": 4, "nightmare": 5}
@@ -102,6 +111,14 @@ SPAWN_FILTER_FLAG = {"baby": 1, "easy": 2, "normal": 3, "hard": 4, "nightmare": 
 ALLOWED_SPECIALS = {udmf_tests.SPECIAL_DOOR_OPEN, udmf_tests.SPECIAL_DOOR_RAISE,
                     udmf_tests.SPECIAL_EXIT_NORMAL}
 KEY_NUMBERS = {5, 6, 13, 38, 39, 40}   # Doom's six keys
+# D43, the diegetic radio (design section 17.16). The guard post with its
+# rack, where the radio stands; and the service corridor the post opens
+# onto, with the sectors painted into it (its pipe runs, its lamp, the
+# failing lamp): one room for the player, five sectors for the builder.
+RADIO_POST = ("z5b_guard", "weapon_rack")
+RADIO_CORRIDOR = ("z5_service", "z5_flicker", "pipes_1", "pipes_2", "lamp_z5_service_1")
+# Sample spacing for the radio's zones, in map units.
+RADIO_GRID = LANE_GRID
 
 
 class Map01V3Test(unittest.TestCase):
@@ -174,7 +191,8 @@ class Map01V3Test(unittest.TestCase):
     def test_every_thing_stands_in_the_zone_its_table_names(self):
         rows = ([(z, k, x, y) for z, k, x, y, *_ in self.m.MONSTERS]
                 + [(z, e, x, y) for z, e, x, y, _ in self.m.ITEMS]
-                + list(self.m.FIXTURES))
+                + list(self.m.FIXTURES)
+                + [(z, "radio", x, y) for z, _p, _r, x, y, _a in self.m.RADIOS])
         for zone, what, x, y in rows:
             self.assertEqual(self.plan[zone], self.sector_at(x, y),
                              f"{what} at ({x}, {y}) is not in {zone} but in "
@@ -314,7 +332,7 @@ class Map01V3Test(unittest.TestCase):
         m = self.m
         weapons = {m.ED_ICE_AXE, m.ED_IZH, m.ED_PPSH, m.ED_RPG7}
         consumables = {t["type"] for t in self.things} - MONSTER_NUMBERS - weapons - {
-            m.ED_PLAYER1_START, m.ED_BARREL, m.ED_FLOOR_LAMP}
+            m.ED_PLAYER1_START, m.ED_BARREL, m.ED_FLOOR_LAMP, m.ED_RADIO}
         for kind in consumables:
             n = {s: len(self.on(s, self.things_of({kind}))) for s in SKILLS}
             self.assertGreaterEqual(n[2], n[3], kind)
@@ -541,18 +559,27 @@ class Map01V3Test(unittest.TestCase):
     # --- G3-F1: every pickup in the komnata, with room to spare -----------
     def _komnata_flood(self, spare):
         """Where the player's centre can go in the komnata, from the
-        doorway, if his body were `spare` wider on every side.
-
-        The room's box (the komnata plus the mural niche) is rasterised on
-        LANE_GRID: each cell is walkable floor the player can reach, or not
-        (a wall, a column, a prop such as the lectern). A centre is allowed
-        when every cell under its grown box is walkable, the floors under it
-        are within a step and the lowest ceiling clears his height, and no
-        floor lamp or drum overlaps the box (Doom's test: the two square
-        boxes overlap). Returns (allowed centres reached, the room's box)."""
+        doorway, if his body were `spare` wider on every side. Returns
+        (allowed centres reached, the room's box): the komnata plus the
+        mural niche, entered one grown body in from Z3's doorway."""
         m = self.m
         x0, y0, x1, _ = m.KOMNATA_RECT
         y1 = m.MURAL_NICHE[3]                         # the niche is part of the walk
+        start = ((m.KOMNATA_DOORWAY[0] + m.KOMNATA_DOORWAY[1]) // 2, y0 + PLAYER_RADIUS + spare)
+        return self._flood((x0, y0, x1, y1), start, spare), (x0, y0, x1, y1)
+
+    def _flood(self, box, start, spare):
+        """Where the player's centre can go inside `box`, from `start`, if
+        his body were `spare` wider on every side.
+
+        The box is rasterised on LANE_GRID: each cell is walkable floor the
+        player can reach, or not (a wall, a column, a prop such as the
+        lectern, or outside the box). A centre is allowed when every cell
+        under its grown box is walkable, the floors under it are within a
+        step and the lowest ceiling clears his height, and no solid fixture
+        (floor lamp, drum, radio) overlaps the box (Doom's test: the two
+        square boxes overlap). Returns the allowed centres reached."""
+        x0, y0, x1, y1 = box
         g = LANE_GRID
         # The engine's point-in-sector, as `sector_at`, on the lines that
         # can matter here only: the full scan is too slow for a raster.
@@ -597,8 +624,6 @@ class Map01V3Test(unittest.TestCase):
                 return False
             return not any(abs(cx - fx) < half + r and abs(cy - fy) < half + r for fx, fy, r in fixtures)
 
-        # One grown body into the room from the middle of Z3's doorway.
-        start = ((m.KOMNATA_DOORWAY[0] + m.KOMNATA_DOORWAY[1]) // 2, y0 + half)
         self.assertTrue(allowed(*start), f"the flood's start {start} is not floor")
         seen, stack = {start}, [start]
         while stack:
@@ -607,7 +632,7 @@ class Map01V3Test(unittest.TestCase):
                 if nxt not in seen and allowed(*nxt):
                     seen.add(nxt)
                     stack.append(nxt)
-        return seen, (x0, y0, x1, y1)
+        return seen
 
     def test_every_komnata_pickup_is_reached_with_room_to_spare(self):
         """QA finding G3-F1 (low): the tribune's east health bonus (432,
@@ -847,6 +872,253 @@ class Map01V3Test(unittest.TestCase):
         self.assertLess(halo, light)
         self.assertGreaterEqual(light - room, 4 * m.LAMP_STEP, "not enough to read from the door")
         self.assertLess(light, m.LIGHT_MAX, "burnt out: 192 is for the beacons")
+
+    # --- D43: the diegetic radio (design section 17.16) -------------------
+    def _radio(self):
+        radios = self.things_of({ED_RADIO})
+        self.assertEqual(1, len(radios), "MAP01 has exactly one radio")
+        return radios[0]
+
+    def _radio_constant(self, name):
+        """A constant of SD_Radio, read from radio.zs (mod-engineer's)."""
+        found = re.search(rf"\b{name}\s*=\s*(\d+)\s*;", RADIO_ZS.read_text(encoding="utf-8"))
+        self.assertIsNotNone(found, f"{name} is gone from radio.zs")
+        return int(found.group(1))
+
+    def _bbox(self, zones):
+        """(x1, y1, x2, y2) round every line that bounds any of `zones`."""
+        wanted = {self.plan[z] for z in zones}
+        xs, ys = [], []
+        for ld in self.lines:
+            touching = {self.sides[ld["sidefront"]]["sector"]}
+            if "sideback" in ld:
+                touching.add(self.sides[ld["sideback"]]["sector"])
+            if touching & wanted:
+                for v in (self.verts[ld["v1"]], self.verts[ld["v2"]]):
+                    xs.append(v["x"])
+                    ys.append(v["y"])
+        return int(min(xs)), int(min(ys)), int(max(xs)), int(max(ys))
+
+    def _post_doorway(self):
+        """(x1, x2, y): the guard post's mouth, the two-sided line between
+        the post and the corridor (the post has no door; its south side is
+        open, one 8 step up from the corridor)."""
+        pair = {self.plan["z5b_guard"], self.plan["z5_service"]}
+        xs, ys = [], set()
+        for ld in self.lines:
+            if "sideback" in ld and {self.sides[ld["sidefront"]]["sector"],
+                                     self.sides[ld["sideback"]]["sector"]} == pair:
+                for v in (self.verts[ld["v1"]], self.verts[ld["v2"]]):
+                    xs.append(v["x"])
+                    ys.add(v["y"])
+        self.assertEqual(1, len(ys), "the post's mouth is not one straight line")
+        return int(min(xs)), int(max(xs)), int(ys.pop())
+
+    def _standable_in_disc(self, centre, radius):
+        """Every RADIO_GRID point within `radius` of `centre` (in the plane)
+        that is floor the player can stand on, with its sector. The radio
+        measures in 3D, and 3D is never shorter than the plane: a point out
+        of the plane disc is out of the sphere too."""
+        cx, cy = centre
+        n = int(radius) // RADIO_GRID
+        for i in range(-n, n + 1):
+            for j in range(-n, n + 1):
+                x, y = cx + i * RADIO_GRID, cy + j * RADIO_GRID
+                if math.hypot(x - cx, y - cy) > radius:
+                    continue
+                s = self.sector_at(x, y)
+                if s is not None and s in self.reachable and s not in self.unwalkable:
+                    yield (x, y), s
+
+    def test_one_radio_in_the_guard_post_on_every_skill(self):
+        """D43: one SD_Radio (21200) in Z5b, on all five skills and in
+        single play, playing «Колокольчик» (arg0 2) with the PM's back-wall
+        reach (arg1 96). MAPINFO gives 21200 to SD_Radio, so it spawns."""
+        m = self.m
+        self.assertEqual(ED_RADIO, m.ED_RADIO)
+        r = self._radio()
+        self.assertEqual(self.plan["z5b_guard"], self.sector_at(r["x"], r["y"]))
+        for n in range(1, 6):
+            self.assertTrue(r[f"skill{n}"], f"the radio is missing on skill {n}")
+        self.assertTrue(r["single"])
+        self.assertEqual((2, 96), (m.RADIO_KOLOKOLCHIK, m.RADIO_REACH_BACK_WALL))
+        self.assertEqual(m.RADIO_KOLOKOLCHIK, r.get("arg0"))
+        self.assertEqual(m.RADIO_REACH_BACK_WALL, r.get("arg1"))
+        mapinfo = re.sub(r"//[^\n]*", "", MAPINFO.read_text(encoding="utf-8"))
+        self.assertRegex(mapinfo, rf"(?m)^\s*{ED_RADIO}\s*=\s*SD_Radio\s*$")
+
+    def test_the_radio_stands_on_the_post_floor_against_its_back_wall(self):
+        """Its body (SD_RADIO_RADIUS, SD_RADIO_HEIGHT, read from radio.zs)
+        is on the post's own floor, not on a prop, with headroom; its north
+        face is flush with the crate stack at the post's back, so it leaves
+        no slot behind it: the 'against the back wall' that arg1 96 is for."""
+        self.assertEqual(RADIO_RADIUS, self._radio_constant("SD_RADIO_RADIUS"))
+        height = self._radio_constant("SD_RADIO_HEIGHT")
+        r = self._radio()
+        x, y, post = r["x"], r["y"], self.plan["z5b_guard"]
+        for dx in (-RADIO_RADIUS + 1, RADIO_RADIUS - 1):
+            for dy in (-RADIO_RADIUS + 1, RADIO_RADIUS - 1):
+                self.assertEqual(post, self.sector_at(x + dx, y + dy), (dx, dy))
+        sector = self.sectors[post]
+        self.assertGreaterEqual(sector["heightceiling"] - sector["heightfloor"], height)
+        self.assertEqual(self.plan[f"{self.m.PROP_PREFIX}guard"],
+                         self.sector_at(x, y + RADIO_RADIUS + 1), "not against the crate stack")
+        # A monster spawned overlapping a solid thing cannot move off it
+        # (Doom's box test refuses every step that still overlaps): the
+        # post's guard stands clear of the radio on every skill.
+        for t in self.things_of(MONSTER_NUMBERS):
+            reach = BODY[t["type"]][0] + RADIO_RADIUS
+            self.assertTrue(abs(t["x"] - x) >= reach or abs(t["y"] - y) >= reach,
+                            f"monster {t['type']} at ({t['x']}, {t['y']}) spawns inside the radio")
+
+    def test_the_radio_zone_reaches_no_room_but_the_post_and_its_corridor(self):
+        """MOD-SPEC 6.7: the reach is a sphere through walls, and the radio
+        gives the music back only past reach + SD_RADIO_HYSTERESIS (64).
+        Every spot within that of the radio where the player can stand is
+        in the post (its rack included) or in the service corridor the post
+        opens onto: never D3 or the komnata behind it, the step down or the
+        hangar. So D_SDM01 is back before the player is in any other room.
+        The post is 128 wide and 64 deep of floor and open along its whole
+        south side: no zone of 160 fits in it, from anywhere in it; the
+        stretch of corridor in front of it is the radio's by geometry
+        (design section 17.16)."""
+        r = self._radio()
+        zone = r["arg1"] + self._radio_constant("SD_RADIO_HYSTERESIS")
+        allowed = {self.plan[n] for n in RADIO_POST + RADIO_CORRIDOR}
+        seen = set()
+        for (x, y), s in self._standable_in_disc((r["x"], r["y"]), zone):
+            seen.add(s)
+            self.assertIn(s, allowed, f"({x}, {y}), in {self.zone_of[s]}, is within {zone} of the radio")
+        self.assertIn(self.plan["z5b_guard"], seen)
+        # ...and the corridor's two ends are outside it: D3 to the west, the
+        # step down to the hangar to the east.
+        x1, _, x2, _ = self._bbox(RADIO_CORRIDOR)
+        self.assertGreater(r["x"] - x1, zone, "the zone reaches D3")
+        self.assertGreater(x2 - r["x"], zone, "the zone reaches the step down to the hangar")
+
+    def test_the_radio_plays_in_the_post_and_not_on_the_corridors_way(self):
+        """Within its reach (arg1) the radio takes the music. Every spot the
+        player's centre reaches in the post, the IZh's rack included, is
+        within it: walking in for the IZh turns the radio on. Outside the
+        post the reach covers only the strip of corridor in front of the
+        mouth, north of the corridor's centre line, which is the line
+        tools/route.py's A3 walks: passing along the corridor does not."""
+        r = self._radio()
+        reach, rx, ry = r["arg1"], r["x"], r["y"]
+        post = {self.plan[n] for n in RADIO_POST}
+        corridor = {self.plan[n] for n in RADIO_CORRIDOR}
+        _, cy1, _, cy2 = self._bbox(RADIO_CORRIDOR)
+        middle = (cy1 + cy2) / 2
+        lo, hi, mouth_y = self._post_doorway()
+        px1, _, px2, py2 = self._bbox(RADIO_POST)
+        start = ((lo + hi) // 2, int(middle) + PLAYER_RADIUS)
+        reached = self._flood((px1, int(middle), px2, py2), start, 0)
+        inside = [c for c in reached if self.sector_at(*c) in post]
+        self.assertTrue([c for c in inside if self.sector_at(*c) == self.plan["weapon_rack"]],
+                        "no body reaches the IZh's rack")
+        for cx, cy in inside:
+            # Inside the post the player stands on the radio's floor: the
+            # plane distance is the 3D one.
+            self.assertLessEqual(math.hypot(cx - rx, cy - ry), reach,
+                                 f"({cx}, {cy}) in the post is out of the radio's reach")
+        for (x, y), s in self._standable_in_disc((rx, ry), reach):
+            if s in post:
+                continue
+            self.assertIn(s, corridor, f"({x}, {y}) in {self.zone_of[s]}")
+            self.assertGreater(y, middle, f"({x}, {y}): the reach crosses the corridor's middle")
+            self.assertLess(y, mouth_y)
+            self.assertTrue(lo - 2 * PLAYER_RADIUS <= x <= hi + 2 * PLAYER_RADIUS,
+                            f"({x}, {y}): the reach runs along the corridor, not just at the mouth")
+        a3 = [st for st in route.ROUTES["g3-auto"].steps if st.id == "A3"][0]
+        self.assertLessEqual(a3.warp[1], middle, "A3 no longer walks the corridor's middle")
+
+    def test_the_radio_leaves_every_lane_in_the_post_40_wide(self):
+        """G3-F1's rule, applied to the radio, a solid box (radius 16) like
+        a floor lamp. (1) From the corridor in front of the mouth, a body
+        ROOM_TO_SPARE wider on every side (40) touches every pickup in the
+        post and on the rack, the IZh above all. (2) On each side of the
+        radio, the gap to the nearest wall, prop, step or solid fixture is
+        either none (it stands against it) or at least 40: the radio makes
+        no lane a body has to thread."""
+        r = self._radio()
+        rx, ry = r["x"], r["y"]
+        post = {self.plan[n] for n in RADIO_POST}
+        _, cy1, _, cy2 = self._bbox(RADIO_CORRIDOR)
+        middle = int((cy1 + cy2) / 2)
+        lo, hi, _ = self._post_doorway()
+        px1, _, px2, py2 = self._bbox(RADIO_POST)
+        start = ((lo + hi) // 2, middle + PLAYER_RADIUS + ROOM_TO_SPARE)
+        reached = self._flood((px1, middle, px2, py2), start, ROOM_TO_SPARE)
+        touch = PLAYER_RADIUS + PICKUP_RADIUS
+        pickups = [t for t in self.things if self.sector_at(t["x"], t["y"]) in post
+                   and t["type"] not in MONSTER_NUMBERS and t["type"] not in SOLID_FIXTURE_RADIUS]
+        self.assertIn(self.m.ED_IZH, {t["type"] for t in pickups})
+        for t in pickups:
+            self.assertTrue(any(abs(cx - t["x"]) < touch and abs(cy - t["y"]) < touch
+                                for cx, cy in reached),
+                            f"thing {t['type']} at ({t['x']}, {t['y']}) is reached only through "
+                            f"a lane narrower than {2 * (PLAYER_RADIUS + ROOM_TO_SPARE)}")
+        # (2) the gaps round the radio's own box.
+        lane = 2 * (PLAYER_RADIUS + ROOM_TO_SPARE)
+        floor = self.sectors[self.plan["z5b_guard"]]["heightfloor"]
+        others = [(t["x"], t["y"], SOLID_FIXTURE_RADIUS[t["type"]])
+                  for t in self.things_of(set(SOLID_FIXTURE_RADIUS)) if t is not r]
+
+        def blocked(x, y):
+            s = self.sector_at(x, y)
+            if s is None or s in self.unwalkable or s not in self.reachable:
+                return True
+            if abs(self.sectors[s]["heightfloor"] - floor) > MAX_STEP_UP:
+                return True
+            return any(abs(x - fx) < fr and abs(y - fy) < fr for fx, fy, fr in others)
+
+        for side, (dx, dy) in (("north", (0, 1)), ("south", (0, -1)),
+                               ("east", (1, 0)), ("west", (-1, 0))):
+            for k in range(-RADIO_RADIUS + 2, RADIO_RADIUS - 1, 4):
+                x0 = rx + dx * RADIO_RADIUS + (k if dx == 0 else 0)
+                y0 = ry + dy * RADIO_RADIUS + (k if dy == 0 else 0)
+                gap = next((d for d in range(lane)
+                            if blocked(x0 + dx * (d + 0.5), y0 + dy * (d + 0.5))), None)
+                self.assertIn(gap, (0, None),
+                              f"the radio leaves a lane {gap} wide to its {side}, under {lane}")
+
+    def test_the_radio_blocks_no_step_of_any_map01_route(self):
+        """tools/route.py (QA's) warps and walks; a solid radio on a warp
+        spot or in a walk would stop the route, and its sdclear kills only
+        monsters. A3 walks east through D3 along y 1152 and A4 warps onto
+        the IZh's rack at (1040, 1256). For every MAP01 route, no warp spot
+        and no point of any straight walk (at route.WALK_UNITS_PER_TIC, its
+        own upper estimate) puts the player's box on the radio's."""
+        r = self._radio()
+        block = PLAYER_RADIUS + RADIO_RADIUS
+
+        def clear(x, y):
+            return abs(x - r["x"]) >= block or abs(y - r["y"]) >= block
+
+        routes = [rt for rt in route.ROUTES.values() if rt.map_name == self.m.MAP_NAME]
+        self.assertTrue(routes)
+        checked = set()
+        for rt in routes:
+            pos, angle = self.m.PLAYER_START, self.m.PLAYER_ANGLE
+            for step in rt.steps:
+                where = f"{rt.name} {step.id}"
+                if step.warp is not None:
+                    pos = step.warp
+                    angle = step.angle if step.angle is not None else angle
+                    self.assertTrue(clear(*pos), f"{where}: warps onto the radio")
+                for action in step.actions:
+                    word, *rest = action.split()
+                    if word == "angle":
+                        angle = int(rest[0])
+                    elif word == "forward":
+                        length = int(rest[0]) * route.WALK_UNITS_PER_TIC
+                        ux, uy = math.cos(math.radians(angle)), math.sin(math.radians(angle))
+                        for d in range(0, length + 1, RADIO_GRID):
+                            self.assertTrue(clear(pos[0] + ux * d, pos[1] + uy * d),
+                                            f"{where}: the walk runs into the radio")
+                        pos = (pos[0] + ux * length, pos[1] + uy * length)
+                checked.add(step.id)
+        self.assertLessEqual({"A3", "A4"}, checked)
 
 
 def _distance_to_segment(p, a, b):

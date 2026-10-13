@@ -1774,6 +1774,123 @@ unchanged. Counts unchanged: 165 sectors, 778 lines, 133 things.
 `warp 400 1320`) now goes through the 48 lane between the lectern and the
 lamp; the mural shots M1–M2 of §17.13 show the two lamps 16 further out.
 
+### 17.16 The diegetic radio in the guard post (D43, 2026-10-13)
+
+D43 gave the radio two CC0 pieces; `mod-engineer` built `SD_Radio` (ADR 008,
+MOD-SPEC §6.7, 3d96277) and proposed the guard post Z5b for it; the PM's
+brief: one radio there, `arg0 = 2` («Колокольчик»), `arg1` 96 against the
+back wall or 128 in the middle. The `MAPINFO` line `21200 = SD_Radio` is
+already in `src/lumps/MAPINFO`, so the thing spawns.
+
+| What | Built |
+|---|---|
+| Thing | `SD_Radio`, editor number **21200**, on all five skills (and single, coop, dm): it is part of the room, like the drums and lamps |
+| Where | **(960, 1264)**, facing 270, on Z5b's floor (8): centred on the post's mouth, its north face flush with the crate stack at the back |
+| `arg0` | **2**, `D_SDRAD2` «Колокольчик» (`RADIO_KOLOKOLCHIK`) |
+| `arg1` | **96**, the back-wall reach (`RADIO_REACH_BACK_WALL`) |
+| Moved for it | the post's rifleman 960 1250 → **960 1224** (he spawned where the radio is; now at the mouth, facing the corridor), one shell pickup 980 1262 → **1000 1272** (it lay under the radio) |
+| Counts | things 133 → **134**; sectors 165, lines 778, monsters 21 / 33 / 46 and every ammo and health figure of §18.2 unchanged |
+
+**What "the back wall" is here.** §3 gives Z5b as 896…1024 × 1216…1344, but
+since v2 its north half is a crate stack (`crate_guard`, 896…1024 ×
+1280…1344, 64 high). The floor is 128 × 64, open along its whole south side
+onto the corridor (one 8 step), plus the IZh's rack, a niche 1024…1056 ×
+1232…1280 in the east wall. The back wall is the crate stack's face. Four
+spots were compared:
+
+| Spot | Verdict |
+|---|---|
+| Back wall, centred, (960, 1264), reach 96 | **taken.** 48 free on either side; the reach covers every spot of the post and the rack (the farthest a body's centre gets is 82 away), so walking in for the IZh turns it on |
+| Back-west corner, (912, 1264), reach 96 | refused: the east of the post and the rack are out of reach (101 at 1012 1252), so the IZh is taken in silence; and it sits on a shell pickup and the health bonus |
+| Back-east, x 1000 or more | refused: it closes the rack's mouth (the IZh is reached only through a lane under 40), and its zone reaches the hangar's lane B |
+| Middle of the floor, reach 128 | refused: the reach runs along the corridor well past the mouth, and reach + 64 (192) touches lane B in the hangar |
+
+**The zone, and the one part of the brief geometry does not allow.** The
+brief asked that the circle of reach + 64 stay inside Z5b and its doorway.
+At this site it cannot, for any spot and any reach: the reach is a sphere
+that goes through walls, and the post's floor is 64 deep and open along
+its whole south side, so from anywhere in the post a zone of more than 64
+crosses into the service corridor (reach 96 + 64 = 160; even a reach of 1
+gives 65). Moving the radio inside the post cannot fix it; only another
+site could, and I have not searched for one. What is built, measured and
+tested instead:
+
+- **Off (reach + 64 = 160).** The only floor within 160 of the radio is the
+  post, its rack and the service corridor in front of it (`z5_service` and
+  the sectors painted into it: two pipe runs, its lamp, the failing lamp).
+  It does not reach D3 (256 to the west), the komnata, the step down (192
+  to the east) or the hangar. So `D_SDM01` is back before the player is in
+  any other room: walking out east along the corridor, by x ≈ 1110 at the
+  latest.
+- **On (reach = 96).** Every spot of the post and the rack. Outside the
+  post, only a strip of corridor in front of the mouth, y 1168…1216 and x
+  about 877…1043, north of the corridor's middle line (y 1152). Walking
+  through Z5 down the middle, as the route's A3 does, does not turn it on;
+  stepping up to the mouth does.
+- **The price** (MOD-SPEC §6.7): `D_SDM01` starts again from bar one each
+  time the player walks away from the post. Z5 is crossed once on the
+  critical path (D3 to the hangar) and again only by backtracking.
+
+**Lanes.** The radio leaves 48 to its west and to its east (to the rack
+wall), nothing behind it (flush with the crates) and open floor in front.
+A body 40 wide (16 radius plus 4 each side, G3-F1's rule, §17.15) walking
+in from the corridor touches every pickup in the post, the IZh included.
+
+**The route (`tools/route.py`, unchanged).** A3 is warped to (600, 1152)
+facing east and walks ≤ 280 units through D3 along y 1152: it ends by x 880,
+137 from the radio's centre at the closest. A4 is warped to
+(1040, 1256) in the rack: the player's box (1024…1056) and the radio's
+(944…976) are 48 apart. The test walks every MAP01 route (`g3-auto`,
+`g3-secrets`, `mural`): no warp spot and no walk touches the radio's box.
+
+**Tests** (`tests/test_map01.py`; the radio is a solid fixture of radius 16
+alongside the drums and lamps, and the flood of §17.15 is now a helper both
+use):
+
+- `test_one_radio_in_the_guard_post_on_every_skill`: one 21200 thing, in
+  Z5b, on skills 1–5, `arg0` 2, `arg1` 96; `MAPINFO` maps 21200 to
+  `SD_Radio`.
+- `test_the_radio_stands_on_the_post_floor_against_its_back_wall`: radius
+  and height read from `radio.zs`; the body on Z5b's floor with headroom,
+  flush with `crate_guard`; no monster spawns overlapping it.
+- `test_the_radio_zone_reaches_no_room_but_the_post_and_its_corridor`: every
+  standable point within reach + `SD_RADIO_HYSTERESIS` (read from
+  `radio.zs`) is in the post, the rack or the corridor; both ends of the
+  corridor are outside.
+- `test_the_radio_plays_in_the_post_and_not_on_the_corridors_way`: every
+  centre a body reaches in the post and the rack is within the reach;
+  outside the post the reach stays north of the corridor's middle line and
+  within a body's width of the mouth; A3 still walks the middle line.
+- `test_the_radio_leaves_every_lane_in_the_post_40_wide`: the 40-wide flood
+  touches every pickup in the post; on each side of the radio the gap to
+  the next wall, prop, step or solid fixture is none or at least 40.
+- `test_the_radio_blocks_no_step_of_any_map01_route`.
+
+Run against wrong placements, they fail on each: back-east (1000, 1264),
+reach 128, off the back wall (960, 1240), the back-west corner, the
+rifleman left at 960 1250, and a radio on A3's walk (800, 1152).
+
+**Engine checklist for the PM (D26: this role does not start GZDoom).**
+MAP01, skill 3, `-nomonsters`, `snd_musicvolume` above 0 (SOUNDTRACK §2.1:
+`currentmusic` lies at volume 0). Type `currentmusic` at each step. Warps
+are on the floor, so the distances below are exact.
+
+| # | Do | `currentmusic` must say | Also |
+|---|---|---|---|
+| RD0 | the map starts | `D_SDM01` | |
+| RD1 | `warp 960 1152`, face 90 (the corridor's middle, in front of the post; 112 from the radio) | `D_SDM01`: passing by does not turn it on | screenshot: the radio (`PMAP` A) standing on the post's floor against the crates, centred in the mouth |
+| RD2 | `warp 960 1220` (inside the post's mouth; 44 from the radio) | **`D_SDRAD2`**: entering the post turns it on | |
+| RD3 | `warp 1040 1256`, face 0 (A4's spot, the rack; 82 away) | `D_SDRAD2` still | the IZh picked up as in A4 |
+| RD4 | `warp 960 1152` (112 away: past the reach, inside reach + 64) | `D_SDRAD2` still: no flicker | ADR 008 R4 |
+| RD5 | `warp 1120 1152` (195 away, the corridor's east end) | **`D_SDM01`**: leaving gives the level's music back | |
+| RD6 | `warp 960 1220`, then `warp 320 1192` (the komnata) | `D_SDRAD2`, then `D_SDM01` | |
+| RD7 | save at RD2, load; save at RD5, load | `D_SDRAD2`; `D_SDM01` | ADR 008 R5 |
+| RD8 | the log | zero `Script error`; nothing about 21200, `SD_Radio` or `PMAP` | |
+
+Not answerable here, the engine's and the CEO's: whether the placeholder
+`PMAP` A (a pickup's picture, debt T23) reads as a radio on the post's
+floor, and how the restart of `D_SDM01` sounds on the way to the hangar.
+
 ## 18. G3 readiness (2026-10-13)
 
 What G3 asks (§11, `docs/ROADMAP.md`): finishable on skills 2, 3 and 4,
@@ -1811,6 +1928,7 @@ document is what that run meets. Tested
 | R11 | Damage placed against hit points, **cumulative by stage**: placed ammo outside the secrets, at the average damage of BALANCE §2 (a shell 80, a round 8), plus the 50 starting rounds, against the HP of BALANCE §7 met so far; ≥ 1.35 at every stage | before the switches 9,960 / 350 (28.5×); all 10,280 / 730 (14.1×) | 9,160 / 860 (10.7×); 9,480 / 2,320 (4.1×) | 8,760 / 1,280 (6.8×); 9,080 / 2,920 (**3.1×**) | `test_ammo_against_hit_points_by_skill_and_by_stage` |
 | R12 | Healing and armour outside the secrets on skill 4 (G3-5's other half) | — | — | ≥ 5 heals, ≥ 6 armour bonuses | `test_health_and_armour_exist_outside_the_secrets_on_skill_4` |
 | R13 | G3-F1: every pickup in the komnata is reached through a lane at least 40 wide (a body and 4 each side), the tribune's east bonus included (§17.15) | ✓ | ✓ | ✓ | `test_every_komnata_pickup_is_reached_with_room_to_spare` |
+| R14 | D43: the radio is in the guard post on every skill; its zone (reach + 64) holds no floor but the post's and the corridor's; every lane past it is at least 40; no step of any MAP01 route touches it (§17.16) | ✓ | ✓ | ✓ | the six `test_*radio*` tests |
 
 How to read R11. The damage figure assumes every pellet lands, which is why
 it looks generous: it is the ceiling of what the player can do, not what he
@@ -1834,6 +1952,7 @@ one QA should watch.
 | Q7 | G3-5 and G3-7 as written in §11 | adversarial play | one `-nomonsters` run, one zero-secret run, QA's hostile pass on skill 4 |
 | Q8 | The mural (§17.13, M1–M5) | the tests cast rays, the CEO looks | the screenshots M1–M5 |
 | Q9 | G3-9: the CEO's "on point", and the CEO's `SDCONC2` verdict | the CEO's call | the CEO's words |
+| Q10 | The radio (§17.16): «Колокольчик» in the post, `D_SDM01` back outside it | only the engine plays music | `currentmusic` at RD0–RD7 and the RD1 screenshot |
 
 ### 18.4 What G3 waits on
 
