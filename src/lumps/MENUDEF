@@ -53,9 +53,10 @@
 // input handling, where it is legal - and the engine archives it.
 //
 // The labels are localized like everything else, so the Russian build names
-// the languages in Russian. They are NOT endonyms ("Русский" inside the
-// English menu) because Freedoom's font cannot draw Cyrillic yet and the
-// entry would read as blank - debt T9.
+// the languages in Russian. They are not endonyms ("Русский" inside the
+// English menu): when this was written Freedoom's font could not draw
+// Cyrillic (debt T9, paid by D24 on 2026-10-13 with the mod's own glyphs).
+// Now that it can, endonyms are a product choice, not this lump's.
 //
 // `OptionString`, NOT `OptionValue`. GZDoom has two list directives and they
 // differ by the CVar's TYPE: OptionValue parses its left column as a NUMBER,
@@ -107,12 +108,13 @@ LISTMENU "SkillMenu"
 // painted into TITLEPIC, and a "CO" of the latter showed past its left edge.
 //
 // It was this lump's fault, not the art's. `art-director` generates both
-// images from one lockup and records where the loose copy belongs:
-// work/art/shell/manifest.json says M_DOOM goes at x=60, y=0 of the 320x200
+// images from one lockup; where the loose copy belongs is the contract row
+// in docs/engine/MOD-SPEC.md 6.6: M_DOOM goes at x=60, y=0 of the 320x200
 // screen. Measured 2026-10-13: overlaying assets/graphics/shell/M_DOOM.png
 // on TITLEPIC.png at (60,0) gives a mean per-channel difference of 6, and
 // 22 or more at every neighbouring offset - so the art is exact and the
-// manifest is right.
+// contract is right. (The generator's manifest under gitignored work/ is
+// evidence only; it is not in every clone.)
 //
 // GZDoom, however, was never told. Its own gzdoom.pk3/menudef.txt declares
 //     LISTMENU "MainMenu" { ... StaticPatch 94, 2, "M_DOOM" ... }
@@ -168,9 +170,6 @@ OptionMenu "SD_OptionsMenu"
 	Option "$SD_OPTMNU_LANGUAGE", "language", "SD_LanguageValues"
 	StaticText " "
 	StaticText "$SD_OPTMNU_LANGHELP"
-	// Temporary while debt T9 (the Cyrillic font) is open. Delete this line
-	// and its LANGUAGE ids in the same change that lands the glyphs.
-	StaticText "$SD_OPTMNU_LANGWARN"
 }
 
 // --- Getting there --------------------------------------------------------
