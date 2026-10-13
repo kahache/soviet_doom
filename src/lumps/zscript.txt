@@ -19,7 +19,7 @@ version "4.12"
 #include "zscript/weapons/flame_blob.zs"
 #include "zscript/weapons/katyusha_rocket.zs"
 
-#include "zscript/weapons/shovel.zs"          // slot 1
+#include "zscript/weapons/ice_axe.zs"         // slot 1
 #include "zscript/weapons/tokarev.zs"         // slot 2
 #include "zscript/weapons/izh.zs"             // slot 3
 #include "zscript/weapons/ppsh.zs"            // slot 4

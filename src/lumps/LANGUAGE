@@ -24,10 +24,11 @@ SD_END01_TEXT = "The gantry lights go out behind you.\n\nZarya-7 is yours again 
 // Tag      = the weapon's name in the HUD and the weapon wheel.
 // Pickup   = the line printed when it is picked up.
 // Obituary = the multiplayer death message; %o is the victim, %k the killer.
+// Slot 1 is the ice axe since D40 (2026-10-13); it was the sapper's shovel.
 
 SD_PLAYER_NAME     = "Sergeant Vilanova";
 
-SD_TAG_SHOVEL      = "Sapper's shovel";
+SD_TAG_ICEAXE      = "Ice axe";
 SD_TAG_TOKAREV     = "TT-33 Tokarev";
 SD_TAG_IZH         = "IZh-58 double barrel";
 SD_TAG_PPSH        = "PPSh-41";
@@ -35,7 +36,7 @@ SD_TAG_RPG7        = "RPG-7";
 SD_TAG_ROKS3       = "ROKS-3 flamethrower";
 SD_TAG_KATYUSHA    = "Hand Katyusha";
 
-SD_PICKUP_SHOVEL   = "Sapper's shovel.";
+SD_PICKUP_ICEAXE   = "An ice axe.";
 SD_PICKUP_TOKAREV  = "You got the TT-33 Tokarev!";
 SD_PICKUP_IZH      = "You got the IZh-58 double barrel!";
 SD_PICKUP_PPSH     = "You got the PPSh-41!";
@@ -43,7 +44,7 @@ SD_PICKUP_RPG7     = "You got the RPG-7!";
 SD_PICKUP_ROKS3    = "You got the ROKS-3 flamethrower!";
 SD_PICKUP_KATYUSHA = "You got the hand Katyusha. Prototype. Do not drop it.";
 
-SD_OB_SHOVEL       = "%o met %k's shovel.";
+SD_OB_ICEAXE       = "%o met %k's ice axe.";
 SD_OB_TOKAREV      = "%o was shot by %k's Tokarev.";
 SD_OB_IZH          = "%o took both barrels from %k.";
 SD_OB_PPSH         = "%o was cut down by %k's PPSh-41.";
@@ -192,7 +193,7 @@ SD_END01_TEXT = "Огни стартовой башни гаснут у вас �
 
 SD_PLAYER_NAME     = "Сержант Виланова";
 
-SD_TAG_SHOVEL      = "Сапёрная лопата";
+SD_TAG_ICEAXE      = "Ледоруб";
 SD_TAG_TOKAREV     = "ТТ-33 Токарева";
 SD_TAG_IZH         = "ИЖ-58, двустволка";
 SD_TAG_PPSH        = "ППШ-41";
@@ -200,7 +201,7 @@ SD_TAG_RPG7        = "РПГ-7";
 SD_TAG_ROKS3       = "Огнемёт РОКС-3";
 SD_TAG_KATYUSHA    = "Ручная «Катюша»";
 
-SD_PICKUP_SHOVEL   = "Сапёрная лопата.";
+SD_PICKUP_ICEAXE   = "Ледоруб.";
 SD_PICKUP_TOKAREV  = "Вы подобрали ТТ-33 Токарева!";
 SD_PICKUP_IZH      = "Вы подобрали двустволку ИЖ-58!";
 SD_PICKUP_PPSH     = "Вы подобрали ППШ-41!";
@@ -208,7 +209,7 @@ SD_PICKUP_RPG7     = "Вы подобрали РПГ-7!";
 SD_PICKUP_ROKS3    = "Вы подобрали огнемёт РОКС-3!";
 SD_PICKUP_KATYUSHA = "Вы подобрали ручную «Катюшу». Опытный образец. Не ронять.";
 
-SD_OB_SHOVEL       = "%o встретил лопату %k.";
+SD_OB_ICEAXE       = "%o встретил ледоруб %k.";
 SD_OB_TOKAREV      = "%o застрелен из ТТ %k.";
 SD_OB_IZH          = "%o получил оба ствола от %k.";
 SD_OB_PPSH         = "%o скошен ППШ-41 %k.";

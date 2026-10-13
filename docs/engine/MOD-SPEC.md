@@ -13,6 +13,9 @@ placeholders, their editor numbers, sounds, sprites and MAP02 bench (D35,
 §5.1, §6, §6.1–6.3), 2026-10-13; **engine pass done the same day**
 (clean load, drops, one summon: ADR 006, `docs/engine/adr/006-bestiary-actors.md`),
 with infighting, blood colour and attack numbers still NOT VERIFIED (T22).
+**D40, 2026-10-13: slot 1 is an ice axe, `SD_IceAxe`, not a shovel**; the
+new class, file, string, sound and sprite names are in §6 ("Slot 1 since
+D40"), engine pass pending.
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -331,8 +334,8 @@ previous sprite" markers are the engine's and need no row.
 
 | Name | Type | Used by | Verification |
 |---|---|---|---|
-| `PUNG` | sprite | `SD_Shovel` (held) | engine pass F4, 2026-10-12 |
-| `CSAW` | sprite | `SD_Shovel` (pickup) | idem |
+| `PUNG` | sprite | `SD_IceAxe` (held) | engine pass F4, 2026-10-12 (as `SD_Shovel`) |
+| `CSAW` | sprite | `SD_IceAxe` (pickup); **reads as a chainsaw**, see §6.3 | idem |
 | `PISG` | sprite | `SD_Tokarev` (held) | idem |
 | `PISF` | sprite | `SD_Tokarev` (flash) | idem |
 | `PIST` | sprite | `SD_Tokarev` (pickup) | idem |
@@ -386,8 +389,8 @@ in the IWAD.
 | Class | Type | Purpose |
 |---|---|---|
 | `SD_LoadReporter` | `EventHandler` | `WorldLoaded` → `Console.Printf("SOVIETDOOM loaded: …")`. Pipeline smoke test. No gameplay effect. |
-| `SD_Player` | `DoomPlayer` | The sergeant. Starts with `SD_Tokarev` and 50 `Clip`, nothing else: no shovel and no `Fist`, so slot 1 is empty until a shovel is picked up (since 2026-10-13, `BALANCE.md` §4.1). Declares slots 1–7. |
-| `SD_Shovel` | `Fist` *replaces Fist* | Slot 1, melee. Found, never issued: MAP01 places it on the dorm's rack (every skill, reachable with every door shut), MAP02 on the range. |
+| `SD_Player` | `DoomPlayer` | The sergeant. Starts with `SD_Tokarev` and 50 `Clip`, nothing else: no ice axe and no `Fist`, so slot 1 is empty until the ice axe is picked up (since 2026-10-13, `BALANCE.md` §4.1). Declares slots 1–7. |
+| `SD_IceAxe` | `Fist` *replaces Fist* | Slot 1, melee: the ice axe (D40; was `SD_Shovel`). Found, never issued: MAP01 places it on the dorm's rack (every skill, reachable with every door shut), MAP02 on the range. |
 | `SD_Tokarev` | `Pistol` *replaces Pistol* | Slot 2, `Clip`. |
 | `SD_Izh` | `Shotgun` *replaces Shotgun* | Slot 3, `Shell`. Two barrels then a break-open reload (`int barrels`). |
 | `SD_Ppsh` | `Chaingun` *replaces Chaingun* | Slot 4, `Clip`. |
@@ -412,6 +415,38 @@ The bestiary's numbers, states, sounds and the reasons for each are
 `docs/engine/BESTIARY.md`; that file is their owner, as `BALANCE.md` is the
 arsenal's.
 
+**Slot 1 since D40 (2026-10-13): the ice axe.** The CEO replaced the
+sapper's shovel with an ice axe (piolet, «ледоруб»), knowing the Mercader
+association (`docs/PRD.md` D40). It is a rename, not a new weapon: the
+numbers stay the shovel's (`BALANCE.md` §4), the editor number stays
+**21001** so both maps keep working unchanged, the class still `replaces
+Fist`, and it is still found on MAP01's dorm rack, never issued. Every name
+that said "shovel" changes; this table is the contract `art-director` and
+`sound-designer` name their drafts by:
+
+| What | Was | Is |
+|---|---|---|
+| Class | `SD_Shovel` | `SD_IceAxe` |
+| File | `zscript/weapons/shovel.zs` | `zscript/weapons/ice_axe.zs` |
+| Melee action | `A_SD_ShovelSwing` | `A_SD_IceAxeSwing` |
+| Constants | `SD_SHOVEL_*` | `SD_ICEAXE_*` (same values) |
+| Tag (`LANGUAGE`) | `SD_TAG_SHOVEL` "Sapper's shovel" / «Сапёрная лопата» | `SD_TAG_ICEAXE` "Ice axe" / «Ледоруб» |
+| Pickup line | `SD_PICKUP_SHOVEL` | `SD_PICKUP_ICEAXE` "An ice axe." / «Ледоруб.» |
+| Obituary | `SD_OB_SHOVEL` | `SD_OB_ICEAXE` "%o met %k's ice axe." / «%o встретил ледоруб %k.» |
+| Logical sounds | `sd/weapon/shovel/swing`, `…/hit` | `sd/weapon/iceaxe/swing`, `sd/weapon/iceaxe/hit` |
+| Final sound lumps | `SDSHSWG`, `SDSHHIT` | **`SDAXSWG`**, **`SDAXHIT`** (§6.2) |
+| Final sprites | `SDSH` A–E held, `SDSP` A pickup | **`SDAX`** A–E held, **`SDAP`** A pickup (§6.3) |
+| Map constants | `ED_SHOVEL` (MAP01), `ED_SD_SHOVEL` (MAP02) | `ED_ICE_AXE`, `ED_SD_ICE_AXE` |
+
+"Ice axe" is the plain English name a 1970s mountaineering manual or a
+translation of «ледоруб» would print; "piolet" is the French loan English
+also uses, kept out of the game as too technical. `SDAX`/`SDAP` and
+`SDAXSWG`/`SDAXHIT` were checked free: no lump of `freedoom2.wad` 0.13.0
+starts with `SD`, and no other reserved name in §6.2, §6.3 or the bestiary
+starts with `SDA`. MAP01's zone `shovel_rack` (a sector of the dorm) keeps
+its name: zone names are `level-designer`'s, and the rack is furniture, not
+the weapon.
+
 ### 6.1 Editor numbers (DoomEdNums)
 
 **Soviet Doom reserves 21000–21999.** The earlier proposal of 14000–14999
@@ -429,7 +464,7 @@ the full check are in `docs/engine/adr/002-arsenal-and-editor-numbers.md`.
 
 | Number | Class |
 |---|---|
-| 21001 | `SD_Shovel` |
+| 21001 | `SD_IceAxe` (was `SD_Shovel`; number unchanged by D40) |
 | 21002 | `SD_Tokarev` |
 | 21003 | `SD_Izh` |
 | 21004 | `SD_Ppsh` |
@@ -467,8 +502,8 @@ right-hand column**; replacing a sound means dropping
 
 | Logical name | F4 placeholder | Final lump to deliver |
 |---|---|---|
-| `sd/weapon/shovel/swing` | **none — silent** | `SDSHSWG` |
-| `sd/weapon/shovel/hit` | `DSPUNCH` | `SDSHHIT` |
+| `sd/weapon/iceaxe/swing` | **none — silent** | `SDAXSWG` |
+| `sd/weapon/iceaxe/hit` | `DSPUNCH` | `SDAXHIT` |
 | `sd/weapon/tokarev/fire` | `DSPISTOL` | `SDTTFIR` |
 | `sd/weapon/izh/fire` | `DSSHOTGN` | `SDIZFIR` |
 | `sd/weapon/izh/reload` | `DSSGCOCK` | `SDIZRLD` |
@@ -480,15 +515,19 @@ right-hand column**; replacing a sound means dropping
 | `sd/weapon/katyusha/fire` | `DSRLAUNC` | `SDHKFIR` |
 | `sd/weapon/katyusha/burst` | `DSBAREXP` | `SDHKEXP` |
 
-The shovel's **swing is deliberately silent** since 2026-10-13. It pointed
-at `DSSAWUP`, the chainsaw start-up, and the CEO heard a chainsaw. Freedoom's
-only swing-through-air lump is `DSSKESWG`, the revenant's melee wind-up,
-which would teach the player that a monster is about to hit them; Doom's own
-`Fist` has no swing sound either. Both the `SNDINFO` entry and the
-`A_StartSound` call in `SD_Shovel`'s `Fire` state are gone, and the two lines
-that restore them are written out at the top of `SNDINFO`.
-`tests/test_arsenal.py` fails if any placeholder points at a `*SAW*` lump.
-See `docs/engine/adr/003-ammo-naming-and-the-silent-shovel.md`.
+The slot-1 **swing is deliberately silent** since 2026-10-13, when the
+weapon was still the shovel. It pointed at `DSSAWUP`, the chainsaw
+start-up, and the CEO heard a chainsaw. Freedoom's only swing-through-air
+lump is `DSSKESWG`, the revenant's melee wind-up, which would teach the
+player that a monster is about to hit them; Doom's own `Fist` has no swing
+sound either. Both the `SNDINFO` entry and the `A_StartSound` call in
+`SD_IceAxe`'s `Fire` state are absent, and the two lines that restore them
+are written out at the top of `SNDINFO`. `tests/test_arsenal.py` fails if
+any placeholder points at a `*SAW*` lump. See
+`docs/engine/adr/003-ammo-naming-and-the-silent-shovel.md` (its title keeps
+the old name: an ADR is a dated record). The ice axe (D40) renamed the
+logical names and the two final lumps (`SDSHSWG` → `SDAXSWG`, `SDSHHIT` →
+`SDAXHIT`); `sound-designer` delivers under the new names.
 
 **The bestiary (F5): 47 logical names, `sd/mon/<actor>/<event>`.** Each line
 of `SNDINFO` names the Freedoom placeholder and, in its comment, the final
@@ -526,7 +565,7 @@ what HUD weapon sprites use. F4 runs on Freedoom lumps; the names below are
 
 | Weapon | Held (HUD) | Muzzle flash | Pickup | Projectile |
 |---|---|---|---|---|
-| Sapper's shovel | `SDSH` A–E | — | `SDSP` A | — |
+| Ice axe (D40; was the sapper's shovel, `SDSH`/`SDSP`) | `SDAX` A–E | — | `SDAP` A | — |
 | TT-33 Tokarev | `SDTT` A–E | `SDTF` A | `SDTP` A | — |
 | IZh-58 | `SDIZ` A–F | `SDIF` A–B | `SDIP` A | — |
 | PPSh-41 | `SDPP` A–B | `SDPF` A–B | `SDPQ` A | — |
@@ -570,8 +609,8 @@ and standing on the floor).
 
 | Slot | Placeholder in use | What the CEO sees | Reality |
 |---|---|---|---|
-| 1, held | `PUNG` A–D (96×46 / 256×32) | "the sleeve is the same colour as the fist" | It **is** a bare fist: Freedoom's punch sprite, no sleeve, no shovel. Replaced by `SDSH` A–E. |
-| 1, pickup | `CSAW` A | a chainsaw on the floor | Replaced by `SDSP` A. |
+| 1, held | `PUNG` A–D (96×46 / 256×32) | "the sleeve is the same colour as the fist" | It **is** a bare fist: Freedoom's punch sprite, no sleeve, no blade. Replaced by `SDAX` A–E (D40). |
+| 1, pickup | `CSAW` A | a chainsaw on the floor | It **is** Freedoom's chainsaw pickup, and the CEO took it for one. Kept on purpose until `SDAP` A exists: every one of the 140 sprite prefixes in `freedoom2.wad` 0.13.0 was rendered on 2026-10-13 and none is a hand tool. The nearest candidates read worse: `PSTR` (berserk pack) promises a power-up, `PIST` a second pistol, `MEDI` health. A chainsaw at least says "melee weapon", and the pickup line names the ice axe. |
 | ammo | `CLIP` 7×12, `AMMO` 17×16, `SHEL` 14×10, `SBOX` 34×13, `ROCK` 10×24, `BROK` 52×20, `CELL` 19×12, `CELP` 32×20, `BPAK` 26×30 | "the ammunition has no three-dimensional look" | Confirmed: Freedoom's own pickup art, flat and lightly shaded. Nothing to fix in code. Soviet crates are art debt **T8**. |
 
 The ammo pickups are the only IWAD sprites the mod now *owns the class of*
@@ -791,7 +830,7 @@ disagree, the code is right and the doc is the bug.
 | T7 | No `CVARINFO` yet; nothing in the arsenal is player-tunable. | when a gameplay option needs it |
 | T8 | Ammo and backpack pickups are Freedoom sprites: flat, not Soviet crates (§6.3). | F5/F6 with the rest of the pickup art |
 | ~~T9~~ | ~~No Cyrillic in the game's font.~~ **Paid 2026-10-13 by D24** (font install `32b384e`, warning removed in `401a02e`): `fonts/defsmallfont/` and `fonts/bigfont/`, 214 glyphs (§2, §6.4). The player-facing warning it carried (`SD_OPTMNU_LANGWARN`, "Cyrillic is not drawn yet") is deleted from `LANGUAGE` and `MENUDEF`. |  |
-| T10 | The shovel swing is silent (§6.2). | F4, when `sound-designer` delivers `SDSHSWG` |
+| T10 | The slot-1 swing is silent (§6.2), and the ice axe's pickup is Freedoom's chainsaw (§6.3). | F4, when `sound-designer` delivers `SDAXSWG` and `art-director` `SDAP` |
 | T11 | `AMMO`/`HEALTH`/`ARMS`/`ARMOR` are pixels in the IWAD's `STBAR` (§6.5). Parked in `docs/ICEBOX.md` until F6. | F6, with the HUD art (was blocked on T9; unblocked since D24) |
 | T12 | **Mostly paid 2026-10-13 by D31 (commits `7ff8c5a`, `22567d9`); the CEO walked it on screen and approved the text menu the same day (D32, commit `f3cc523`).** The main menu's items and the skill screen's header are text in `SDMENU` (§6.6); `M_NGAME`, `M_OPTION`, `M_LOADG`, `M_SAVEG`, `M_RDTHIS`, `M_QUITG`, `M_NEWG` and `M_SKILL` are no longer named by `MENUDEF`. **Still Freedoom's:** the skull cursor `M_SKULL1`/`M_SKULL2` (Doom's `DEFAULTLISTMENU` selector), the pause sign `M_PAUSE` (Doom's pause graphic; not yet looked at on screen in this mod), and `M_EPISOD`, which the engine draws only if the mod ever has a second episode. Engine-drawn text (load/save captions, message boxes, the options screens) uses fonts, not Freedoom's pictures. | `art-director` (cursor, pause sign) with the rest of the shell; treatment C, painted per-language menu graphics, is parked by the CEO (D31) |
 | T13 | `MENUDEF` names `OptionsMenuSimple`, and `AddOptionMenu` on a name the engine does not define is a **hard parse error**. If a GZDoom upgrade drops the simple options menu, the lump stops loading until that block goes. | at the next engine upgrade |

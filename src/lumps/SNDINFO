@@ -9,21 +9,22 @@
 // column changes; no ZScript is touched. The requested lump names are in the
 // comment at the end of each line.
 
-// --- Slot 1: sapper's shovel ---------------------------------------------
-// The SWING (blade cutting the air) is DELIBERATELY SILENT in F4. Freedoom
+// --- Slot 1: ice axe (D40; the sapper's shovel until 2026-10-13) ----------
+// The SWING (the pick cutting the air) is DELIBERATELY SILENT in F4. Freedoom
 // has no neutral whoosh: the only swing-through-air lump is DSSKESWG, the
 // revenant's melee wind-up, and borrowing it would teach the player that a
-// monster is about to punch them every time they raise the shovel. Doom's
+// monster is about to punch them every time they raise the ice axe. Doom's
 // own Fist has no swing sound either - the feedback is the impact. The
 // placeholder DSSAWUP (chainsaw start-up) was rejected by the CEO on
 // 2026-10-13 and is not replaced: a wrong sound is worse than none.
-// When sound-designer delivers SDSHSWG, add back BOTH lines:
-//     sd/weapon/shovel/swing  SDSHSWG
-//   and in src/zscript/weapons/shovel.zs, Fire state, first frame:
-//     PUNG B 5 A_StartSound("sd/weapon/shovel/swing", CHAN_WEAPON);
+// The ice axe renamed the final lumps SDSHSWG/SDSHHIT to SDAXSWG/SDAXHIT
+// (MOD-SPEC 6.2). When sound-designer delivers SDAXSWG, add back BOTH lines:
+//     sd/weapon/iceaxe/swing  SDAXSWG
+//   and in src/zscript/weapons/ice_axe.zs, Fire state, first frame:
+//     PUNG B 5 A_StartSound("sd/weapon/iceaxe/swing", CHAN_WEAPON);
 // (tests/test_arsenal.py enforces that the two stay in step: a logical name
 // defined here with nothing playing it fails, and vice versa.)
-sd/weapon/shovel/hit       DSPUNCH     // -> SDSHHIT  steel into a body
+sd/weapon/iceaxe/hit       DSPUNCH     // -> SDAXHIT  steel pick into a body
 
 // --- Slot 2: TT-33 Tokarev -----------------------------------------------
 sd/weapon/tokarev/fire     DSPISTOL    // -> SDTTFIR  dry, high-velocity crack

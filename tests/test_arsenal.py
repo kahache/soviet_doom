@@ -34,7 +34,7 @@ from sdbuild.pk3 import build as build_pk3  # noqa: E402
 # The arsenal ratified by the CEO (D13), one weapon per Doom slot.
 # slot -> (class name, source file under zscript/weapons/, editor number)
 ARSENAL = {
-    1: ("SD_Shovel", "zscript/weapons/shovel.zs", 21001),
+    1: ("SD_IceAxe", "zscript/weapons/ice_axe.zs", 21001),   # the shovel until D40
     2: ("SD_Tokarev", "zscript/weapons/tokarev.zs", 21002),
     3: ("SD_Izh", "zscript/weapons/izh.zs", 21003),
     4: ("SD_Ppsh", "zscript/weapons/ppsh.zs", 21004),
@@ -239,7 +239,7 @@ class ArsenalPk3Test(unittest.TestCase):
 
     def test_the_player_starts_with_the_tt33_and_its_rounds_only(self):
         """The TT-33 is the only start weapon, so it is the one raised on
-        spawn; no Fist and no shovel, so slot 1 is empty until a pickup. The
+        spawn; no Fist and no ice axe, so slot 1 is empty until a pickup. The
         rounds come after the weapon, in Doom's order: GiveDefaultInventory
         readies a weapon only if its ammo is already there (BALANCE 2)."""
         items = self._start_items()
@@ -248,36 +248,76 @@ class ArsenalPk3Test(unittest.TestCase):
         self.assertEqual(["SD_Tokarev", "Clip"], items)
         self.assertNotIn("Fist", items)
 
-    def test_the_shovel_is_picked_up_in_map01s_dorm_on_every_skill(self):
-        """The player does not start with the shovel; it is got by picking it
-        up, and MAP01 puts it on the dorm's rack, reached from the player
-        start on every skill with no door opened (CEO bug, 2026-10-13: the
-        rack showed a pickup the player could not take because he already
-        owned one)."""
-        self.assertNotIn("SD_Shovel", self._start_items())
-        shovel = self.zs["zscript/weapons/shovel.zs"]
-        spawn = re.search(r"^\s*Spawn:(.*?)^\s*Stop;", shovel, flags=re.S | re.M)
-        self.assertIsNotNone(spawn, "SD_Shovel needs a Spawn state to lie on a map")
+    def test_the_ice_axe_is_picked_up_in_map01s_dorm_on_every_skill(self):
+        """The player does not start with the ice axe (the shovel until D40);
+        it is got by picking it up, and MAP01 puts it on the dorm's rack,
+        reached from the player start on every skill with no door opened
+        (CEO bug, 2026-10-13: the rack showed a pickup the player could not
+        take because he already owned one)."""
+        self.assertNotIn("SD_IceAxe", self._start_items())
+        axe = self.zs["zscript/weapons/ice_axe.zs"]
+        spawn = re.search(r"^\s*Spawn:(.*?)^\s*Stop;", axe, flags=re.S | re.M)
+        self.assertIsNotNone(spawn, "SD_IceAxe needs a Spawn state to lie on a map")
         frames = re.findall(r"^\s*([A-Z0-9]{4})\s+A\s+-1\s*;", spawn.group(1), flags=re.M)
         self.assertTrue(frames and "TNT1" not in frames,
-                        "SD_Shovel's Spawn state must show a sprite, or the pickup is invisible")
-        self.assertIn("Inventory.PickupMessage", shovel)
+                        "SD_IceAxe's Spawn state must show a sprite, or the pickup is invisible")
+        self.assertIn("Inventory.PickupMessage", axe)
 
         blob = self.zf.read("maps/MAP01.wad")
         blocks = _udmf_blocks(wad.read_lump(blob, "TEXTMAP").decode("ascii"))
         starts = [t for t in blocks["thing"] if t["type"] == ED_PLAYER1_START]
-        shovels = [t for t in blocks["thing"] if t["type"] == ARSENAL[1][2]]
+        axes = [t for t in blocks["thing"] if t["type"] == ARSENAL[1][2]]
         self.assertEqual(1, len(starts), "MAP01 needs one player 1 start")
-        self.assertEqual(1, len(shovels), "MAP01 places exactly one shovel")
-        rack = shovels[0]
+        self.assertEqual(1, len(axes), "MAP01 places exactly one ice axe")
+        rack = axes[0]
         for flag in SKILL_FLAGS:
-            self.assertTrue(rack.get(flag), f"the MAP01 shovel is missing on {flag}")
+            self.assertTrue(rack.get(flag), f"the MAP01 ice axe is missing on {flag}")
         start = _sector_at(blocks, starts[0]["x"], starts[0]["y"])
         where = _sector_at(blocks, rack["x"], rack["y"])
         self.assertIsNotNone(start, "the player start is outside the map")
-        self.assertIsNotNone(where, "the MAP01 shovel is inside a wall")
+        self.assertIsNotNone(where, "the MAP01 ice axe is inside a wall")
         self.assertIn(where, _walkable_from(blocks, start),
-                      "the MAP01 shovel cannot be reached from the start without a door")
+                      "the MAP01 ice axe cannot be reached from the start without a door")
+
+    # --- Slot 1 is the ice axe (D40) ----------------------------------------
+
+    def test_slot_one_is_the_ice_axe_in_both_languages(self):
+        """D40: the CEO swapped the shovel for an ice axe. The HUD tag, the
+        pickup line and the obituary are the ice axe's in English and
+        Russian, and no slot-1 string still says shovel."""
+        enu, ru = self._language_sections()
+        for ident in ("SD_TAG_ICEAXE", "SD_PICKUP_ICEAXE", "SD_OB_ICEAXE"):
+            line_en = re.search(rf'^{ident}\s*=\s*"([^"]*)"', enu, flags=re.M)
+            line_ru = re.search(rf'^{ident}\s*=\s*"([^"]*)"', ru, flags=re.M)
+            self.assertIsNotNone(line_en, f"{ident} missing in [enu default]")
+            self.assertIsNotNone(line_ru, f"{ident} missing in [ru]")
+            self.assertIn("ice axe", line_en.group(1).lower(), ident)
+            self.assertIn("ледоруб", line_ru.group(1).lower(), ident)
+        code = "\n".join(ln.split("//")[0] for ln in self.language.splitlines())
+        self.assertNotRegex(code, r"SD_\w*SHOVEL", "a shovel string id survived D40")
+        self.assertNotIn("лопат", code.lower(), "a Russian string still says shovel")
+
+    def test_no_shovel_is_left_in_the_code_or_the_sound_names(self):
+        """Every class, action, constant and logical sound name of slot 1
+        says ice axe since D40; comments may keep the history."""
+        code = "\n".join(ln.split("//")[0] for ln in self.zs_all.splitlines())
+        self.assertNotRegex(code.lower(), r"shovel")
+        self.assertIn("class SD_IceAxe : Fist replaces Fist", self.zs["zscript/weapons/ice_axe.zs"])
+        self.assertNotIn("zscript/weapons/shovel.zs", self.names)
+        sounds = self._sndinfo_names()
+        self.assertNotIn("shovel", " ".join(sounds).lower())
+        self.assertIn("sd/weapon/iceaxe/hit", sounds)
+
+    def test_the_ice_axe_keeps_the_shovels_numbers(self):
+        """D40 renames the weapon and keeps its balance (BALANCE.md 4)."""
+        axe = self.zs["zscript/weapons/ice_axe.zs"]
+        expected = {"DAMAGE_MIN": "3", "DAMAGE_MAX": "12", "DAMAGE_SHIFT": "1",
+                    "BERSERK_MUL": "10", "SPREAD": "5.625", "KICKBACK": "120"}
+        for name, value in expected.items():
+            self.assertRegex(axe, rf"const\s+SD_ICEAXE_{name}\s*=\s*{re.escape(value)}\s*;")
+        fire = re.search(r"^\s*Fire:(.*?)^\s*Goto Ready;", axe, flags=re.S | re.M).group(1)
+        tics = [int(n) for n in re.findall(r"^\s*PUNG\s+[A-Z]\s+(\d+)", fire, flags=re.M)]
+        self.assertEqual(27, sum(tics), "the swing is 27 tics, as the shovel's was")
 
     def test_mapinfo_declares_the_player_class(self):
         m = re.search(r'PlayerClasses\s*=\s*"([^"]+)"', self.mapinfo)
@@ -441,7 +481,8 @@ class ArsenalPk3Test(unittest.TestCase):
     # --- Sounds: regressions -----------------------------------------------
 
     def test_no_chainsaw_lump_is_used_as_a_placeholder(self):
-        """The CEO heard a chainsaw when swinging the shovel (2026-10-13)."""
+        """The CEO heard a chainsaw when swinging the shovel (2026-10-13; the
+        ice axe since D40)."""
         for logical, lump in self._sndinfo_names().items():
             self.assertNotIn(
                 "SAW", lump.upper(), f"{logical} points at the chainsaw lump {lump}"

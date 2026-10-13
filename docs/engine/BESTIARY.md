@@ -149,9 +149,10 @@ assumption. No `+DONTHARMSPECIES` and no `+DOHARMSPECIES` anywhere.
 | SNDINFO logical name | `sd/mon/<actor>/<event>` | `sd/mon/reichrifleman/sight` |
 | LANGUAGE id | `SD_TAG_<X>`, `SD_OB_<X>`, `SD_OBHIT_<X>`; the General's order `SD_GENERAL_ORDER` | `SD_TAG_RIFLEMAN` |
 
-The logical-name scheme matches the arsenal's (`sd/weapon/shovel/swing`,
-already in `src/zscript/weapons/shovel.zs`). The lump scheme differs by one
-character — the arsenal uses a 2-letter weapon code (`SDSHSWG`), the
+The logical-name scheme matches the arsenal's (`sd/weapon/iceaxe/swing`,
+named in `src/zscript/weapons/ice_axe.zs`; the shovel's until D40). The
+lump scheme differs by one character — the arsenal uses a 2-letter weapon
+code (`SDAXSWG`), the
 bestiary a 3-letter actor code (`SDRRISIT`) — because there are more actors
 than weapons and more events per actor. Both stay inside the 8-character
 PK3 rule of MOD-SPEC §2; the SNDINFO *logical* name has no such limit.
@@ -583,7 +584,7 @@ level designer one enemy that will never be camouflaged against a poster.
 |---|---|---|
 | `Health` | **150** | `Demon` parity. Kept exactly, because 150 is the number that makes a pinky cost two shotgun blasts; it is the main consumer of shells in early Doom and our MAP01 shell budget is built on it. |
 | `Radius`/`Height` | **30 × 56** | parity. The wide radius is why pinkies block corridors — that is a *feature* the level designer uses. |
-| `Speed` | **12** **(H)** | +20 % over the pinky's 10. The bestiary says "fast melee" and the hound must feel different from a shambling pinky. 12 is chosen rather than 14 because a melee-only monster faster than the player's forward run (≈ 16 units/tic equivalent) cannot be outrun in a corridor, which turns every hound into a guaranteed 4–40 damage tax. **Calibration lever: drop to 10 if MAP01 playtest shows corridors are unwinnable without the shovel.** |
+| `Speed` | **12** **(H)** | +20 % over the pinky's 10. The bestiary says "fast melee" and the hound must feel different from a shambling pinky. 12 is chosen rather than 14 because a melee-only monster faster than the player's forward run (≈ 16 units/tic equivalent) cannot be outrun in a corridor, which turns every hound into a guaranteed 4–40 damage tax. **Calibration lever: drop to 10 if MAP01 playtest shows corridors are unwinnable without the ice axe (the shovel until D40).** |
 | `Mass` | **400** | parity. |
 | `PainChance` | **180** | parity. |
 | Melee | `random(1,10) × 4` = 4–40 | parity with `A_SargAttack`. |
