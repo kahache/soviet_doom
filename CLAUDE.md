@@ -60,8 +60,9 @@ small for a game level, so **v3 densifies it (D33) and is BUILT**: 165
 sectors, 778 lines (Freedoom's MAP01: 211 / 1274), 33 enemies on skill 3
 (21/33/46), Reich first and the Legion holding the hangar (D35), both
 switches release an ambush, subtler secrets, Lenin lit. Engine pass clean
-(`docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass-*`); the CEO's
-full playthrough on skills 3 and 4 is next.
+(`docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass-*`). **The CEO played
+it through on skill 3: "ha sido MUY divertido!!" (D38).** Next: remove the
+block in front of the cosmonautics mural; G3's skills 2 and 4 runs.
 
 **F5 — bestiary, started.** The seven enemies of D35 are playable ZScript
 actors with Freedoom sprites and sounds as placeholders, replacing Doom's
