@@ -17,7 +17,7 @@ the naming rule of §2.3; the SNDINFO contract is `docs/engine/MOD-SPEC.md`
 > file embedded, with its card, its numbers and its sources (§5.9). **Nobody
 > has listened to them yet**, the sound-designer included: every check so far
 > is an instrument (§5.9). The twelve voices are the CEO's and **postponed by
-> him (D37)**; until they come the rifleman, the trooper and the General keep
+> the CEO (D37)**; until they come the rifleman, the trooper and the General keep
 > Freedoom's voices. The five CC0 packs D36 authorised are in
 > `work/audio/sfx_sources/` with their provenance in §2.1. Every lump below
 > is a *replacement* for a Freedoom stand-in and changes one line of
@@ -31,7 +31,7 @@ the naming rule of §2.3; the SNDINFO contract is `docs/engine/MOD-SPEC.md`
 1. **Do not build the 47 lumps from one source.** Split them by what the
    sound physically is: human voices (12), creature sounds (19), mechanical
    and impact sounds (13), gibs (3).
-2. **Human voices (12): the CEO's, recorded by him or generated with AI
+2. **Human voices (12): the CEO's, recorded in person or generated with AI
    (D36), processed by us** (route d). The Reich speaks real German, the
    Legion real English, the General's order is "Vorwärts." The script is
    `docs/sound/VOICE-SCRIPT.md`.
@@ -47,8 +47,8 @@ the naming rule of §2.3; the SNDINFO contract is `docs/engine/MOD-SPEC.md`
    already rejected one Doom-flavoured placeholder (the chainsaw swing).
 6. **Decided by the CEO (D36, 2026-10-13):** the downloads (five packs;
    `KEN-SCI` was not part of the authorisation and is not downloaded), the
-   voices (his), real German and real English, and the General's order.
-   What is still owed by him: the takes and one line releasing them under
+   voices (the CEO's), real German and real English, and the General's order.
+   What is still owed by the CEO: the takes and one line releasing them under
    D15 (`VOICE-SCRIPT.md` §0.1).
 
 ---
@@ -89,7 +89,7 @@ PM/CEO. **ASSUMPTION** = I believe it and could not check.
 | `KEN-SCI` | Kenney, *Sci-fi Sounds*, 70 files, tags sci-fi, space, engine. <https://kenney.nl/assets/sci-fi-sounds> | CC0 | Page **VERIFIED**. **Not authorised by D36 and not downloaded.** Every row that named it falls back to `SYN`. |
 | `FS-CC0` | Freesound, filter "Creative Commons 0", per-sound | CC0 *per sound*; the uploader asserts it, Freesound does not guarantee it (its FAQ says users may upload illegal content, **VERIFIED**). **Downloading requires a logged-in account** (**VERIFIED**). | **Not planned.** Kept as a gap-filler for one sound at a time, each with its own page check. A search listed hundreds of CC0 growls (**VERIFIED**: the listing exists); I have not opened any individual sound page. |
 | `SYN` | Our own synthesis: a script `gen_sfx.py` (numpy; the project venv already has numpy 2.5.4, **VERIFIED**), deterministic seeds, output WAV then OGG | GPL-3.0 for the script, CC BY-NC-SA 4.0 for the output (D15) | **Written 2026-10-13**: `tools/audio/gen_sfx.py`, deterministic (seed 1977, two full runs byte-identical); tests `tests/test_gen_sfx.py`. |
-| `VOX` | The CEO's voice, recorded by him, or AI voices he generates (D36); processed by us. Script: `docs/sound/VOICE-SCRIPT.md` | Recorded: his own work; he applies CC BY-NC-SA 4.0 (D15). A recognisable voice is personal data, so the line "released under D15" must come from him in writing (the chat is enough). AI: per file, tool, version, date, account plan, licence of use (URL and literal clause), voice and prompt, logged as in `VOICE-SCRIPT.md` §0.7; usable only if those terms allow redistribution inside a CC BY-NC-SA 4.0 package | **Decided (D36).** Takes not yet delivered. |
+| `VOX` | The CEO's voice, recorded in person, or AI voices the CEO generates (D36); processed by us. Script: `docs/sound/VOICE-SCRIPT.md` | Recorded: the CEO's own work, to which the CEO applies CC BY-NC-SA 4.0 (D15). A recognisable voice is personal data, so the line "released under D15" must come from the CEO in writing (the chat is enough). AI: per file, tool, version, date, account plan, licence of use (URL and literal clause), voice and prompt, logged as in `VOICE-SCRIPT.md` §0.7; usable only if those terms allow redistribution inside a CC BY-NC-SA 4.0 package | **Decided (D36).** Takes not yet delivered. |
 
 **Why CC0 and why only these authors.** Three of the five packs are by one
 person whose voice *is* the sound; two are by a studio that publishes its own
@@ -188,10 +188,10 @@ accident. **D36 (CEO, 2026-10-13) set the language rule**: "prefiero que sea
 alemán real e inglés real". My earlier proposal of invented German-sounding
 syllables is **withdrawn**. The rules for voices are now:
 
-- **Who records.** The CEO, in his own voice or generated with AI (D36).
+- **Who records.** The CEO, recording in person or generating with AI (D36).
   The script, recording instructions and AI log are
-  `docs/sound/VOICE-SCRIPT.md`. A recorded take is used only after his
-  written line releasing it under D15 (his voice is personal data); an AI
+  `docs/sound/VOICE-SCRIPT.md`. A recorded take is used only after the CEO's
+  written line releasing it under D15 (a voice is personal data); an AI
   take only with its tool, version, licence of use and prompt logged, and
   only if those terms allow redistribution inside a CC BY-NC-SA 4.0 package.
 - **The Reich speaks real German**: short military orders and combat
@@ -558,7 +558,7 @@ suggests assuming one extra iteration round on whatever is new.
 | **(a) Freedoom, edited** | All 47 in one scripted pass. Zero downloads, zero licence work beyond the BSD-3 notice. Exact lengths and timing already known | Identity: every Freedoom sound is a Doom-role sound (the 11 kHz imp, the 22 kHz demon). Weak on the Reich/Legion contrast, which is the bestiary's explicit legibility plan. Also unchecked by ear | ~1 session; CEO 20 min | Lowest. Per-sample origin inside Freedoom is only the project's blanket BSD statement |
 | **(b) CC0 banks** | Strong creature material (real recorded voice with filters) for 19 rows; good impacts | Nothing faction-specific; no Legion radio, no General. Needs the PM to approve downloads and a per-file provenance table | ~1.5 sessions + a manifest; CEO 30 min to audition | Low-medium: uploader-asserted CC0 on OGA; mitigated by the authors-who-record-themselves choice and by layering |
 | **(c) Our synthesis** | Guns, bolts, impacts, explosions, footstep, servo, drones, radio effects: a dry crack is easy to synthesise. Fully reproducible, like `gen_music.py`; no third-party rights at all | Convincing creature voices and any human voice; it would sound synthetic, which fits the Doughboy and the Legion's radio but not the Reich | ~2 sessions (tool + 12 recipes) + 1-2 CEO rounds | None |
-| **(d) CEO voice** | The 12 voice rows, with the right accents of intent (dry vs radio vs slot). Faction identity comes cheapest here | The CEO's time. Quality of a phone microphone is fine only after processing, which is the plan | CEO ~45-90 min recording; ~1 session processing | None, once he agrees in writing; his voice is personal data |
+| **(d) CEO voice** | The 12 voice rows, with the right accents of intent (dry vs radio vs slot). Faction identity comes cheapest here | The CEO's time. Quality of a phone microphone is fine only after processing, which is the plan | CEO ~45-90 min recording; ~1 session processing | None, once the CEO agrees in writing; a voice is personal data |
 | **Recommended mix** | A for 3, B for 19, C for 13, D for 12 (section 5.8) | — | **~3 sessions + one CEO hour + 2 audition rounds** | Lowest practical |
 
 **Why not "Freedoom first", as the preference order suggests.** For the five
@@ -604,11 +604,11 @@ gibs goes there too.
 | # | Question as asked | Decision (D36) |
 |---|---|---|
 | **A** | Approve the downloads | **Approved**: `OGA-CRE1`, `OGA-CRE2`, `OGA-SNARL`, `OGA-100`, `KEN-IMP`. `KEN-SCI`, which I had marked optional, was **not** asked and is **not** authorised. Done on 2026-10-13, §2.1 |
-| **B** | Does the CEO record his voice? | **Yes, or he generates it with AI** ("me encargaré de las grabaciones y/o generar con IA lo que sea necesario"). Script: `docs/sound/VOICE-SCRIPT.md`. An AI take carries its tool and licence in the licence register |
+| **B** | Does the CEO record the voices? | **Yes, or generates them with AI** ("me encargaré de las grabaciones y/o generar con IA lo que sea necesario"). Script: `docs/sound/VOICE-SCRIPT.md`. An AI take carries its tool and licence in the licence register |
 | **C** | The General's order | **"Vorwärts."** |
 | **D** | Real-language rule for the Reich | **Overruled.** Real German for the Reich, real English for the Legion; still no slogans of the regime (D11, D12). §4 rewritten |
 
-Still owed by the CEO: the takes, and one line in chat releasing his
+Still owed by the CEO: the takes, and one line in chat releasing the
 recorded voice under D15 (`VOICE-SCRIPT.md` §0.1).
 
 For the PM, not the CEO: `src/lumps/LANGUAGE` still prints the placeholder

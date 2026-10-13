@@ -169,7 +169,7 @@ between the ways of reaching it is ADR 007
 | Flow | Main menu → New Game → **episode screen** (new: with one episode the engine skipped it) → skill screen → the map |
 | Episode screen (`MENUDEF`) | `LISTMENU "EpisodeMenu"` redeclared like the skill screen (§6.6): logo `M_DOOM` at 60,0, one `SDMENU` header `$SD_MNU_CHOOSEEPISODE` at 32,70 ("CHOOSE MISSION" / «ВЫБЕРИТЕ ЗАДАНИЕ»), then `SmallFont` for the episode names, which the engine appends at run time. **`M_EPISOD` is never drawn** (T12) |
 | MAP01's exit | `next = endtitle`, unchanged: the campaign ends; **no map's `next` is MAP02** |
-| MAP02's exit | `cluster = 2`, `next = endtitle`: leaving the range shows `SD_END02_TEXT` ("The range is closed…" / «Полигон закрыт…») over `SDFLR1`, then the title screen. `nointermission` stays: a range has no score worth a stats screen. The player leaves by **the exit switch behind the start** (`Exit_Normal`, pressed; commit `d1e891f`, `docs/levels/MAP02-practice-range.md` §4.1). **Seen in the engine** 2026-10-13: pressing it shows `SD_END02_TEXT` over `SDFLR1` (P6 in `docs/qa/evidence/2026-10-13_2057_map02-range-and-c12.md`). The only other way is tooling: the `netevent sdexit` of `tools/route.py`'s helper (`Level.ExitLevel`; the `map02-start` route, `docs/qa/evidence/2026-10-13_2052_F3_g3-map02-*`). **The console `exit` command does not reach it: it quits GZDoom** (G3-F2) |
+| MAP02's exit | `cluster = 2`, `next = endtitle`: leaving the range shows `SD_END02_TEXT` ("The range is closed…" / «Полигон закрыт…») over `SDFLR1`, then the title screen. `nointermission` stays: a range has no score worth a stats screen. The player leaves by **the exit switch behind the start** (`Exit_Normal`, pressed; commit `d1e891f`, `docs/levels/MAP02-practice-range.md` §4.1). **Seen in the engine** 2026-10-13: pressing it shows `SD_END02_TEXT` over `SDFLR1` (P6 in `docs/qa/evidence/2026-10-13_2057_map02-range-and-c12.md`). The `map02-start` route of `tools/route.py` (since route-3) presses that same switch, as a player does (`docs/qa/evidence/2026-10-13_2114_F3_g3-map02-map02-start-*`); `netevent sdexit` of the route helper (`Level.ExitLevel`) is only a documented recourse for a map with no exit line, used by no built-in route. **The console `exit` command does not reach it: it quits GZDoom** (G3-F2) |
 | Cluster 2 | `exittext = lookup, "SD_END02_TEXT"`, `flat = "SDFLR1"`, `music = ""` |
 
 Engine facts this rests on, read in GZDoom g4.14.2 (`gzdoom.pk3 →
@@ -193,7 +193,7 @@ appeared until now. The engine's own body also sets `NetgameMessage
 - **That `nointermission` still shows cluster 2's text: VERIFIED** (20:57,
   P6 of `docs/qa/evidence/2026-10-13_2057_map02-range-and-c12.md`):
   MAP02's exit switch shows `SD_END02_TEXT` over `SDFLR1`. The route
-  helper's `sdexit` reached it too (20:52, `…_2052_F3_g3-map02-*`).
+  helper's `sdexit` reached it too (20:52, `…_2052_F3_g3-map02-*`, an earlier run; since route-3 `map02-start` presses the real exit switch and `sdexit` stays a documented recourse in `tools/route.py`).
 
 **MAP02 for players (commit `d1e891f`, 2026-10-13).** D41 left two gaps to
 `level-designer`, and both are closed: MAP02 has an exit switch behind the

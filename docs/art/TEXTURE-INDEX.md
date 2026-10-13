@@ -41,7 +41,7 @@ SDCEIL1 OK · SDCEIL2 OK». Gate G2 (≥ 8 approved): **12 of 12 approved**
 `SDPOSTR2` (its only condition, the Russian wording, confirmed by the CEO on
 2026-10-12) and `SDPOSTR1` v4 (approved 2026-10-12 at 128×256 from the
 15-cell sweep). Two in the map: `SDCONC2` and `SDSTAR1` v5 sat in `assets/`
-and the PK3 so the CEO could judge them inside MAP01 v1, and he approved
+and the PK3 so the CEO could judge them inside MAP01 v1, and the CEO approved
 both while walking it in GZDoom on 2026-10-13 (~15:40). CEO, verbatim, on
 `SDCONC2`: «no queda perfecto pero yo lo dejaría así, le da color y relleno las 3 bandas»; on
 `SDSTAR1`: «la apruebo, preciosa». G2 was signed PASS on the 8
@@ -188,7 +188,7 @@ direction and all six pieces, **as drawn in palette v1** (D42). Still open
 with the CEO and not decided by this verdict: palette v2 (a marble red and a
 cobalt and gold mosaic ramp in the reserved slots, which would make
 `SDMARB1` warmer and `SDMOSA1` cobalt instead of slate) and the mosaic's
-motif (the star with rays shipped here, or a figure). Whatever he decides,
+motif (the star with rays shipped here, or a figure). Whatever the CEO decides,
 the six below stay as they are: a v2 piece would be a new lump or a new
 proposal, never a requantisation of an approved one (ART-BIBLE §3).
 

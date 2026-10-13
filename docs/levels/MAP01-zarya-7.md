@@ -4,8 +4,8 @@ Design document. Owner: `level-designer`. Status: **a working brief the PM
 approved as written (2026-10-12). The CEO judges maps by walking them, not
 by reading them (D28): that is why v0 was an untextured grey box. v0 (the
 grey floor plan) BUILT — §14; v1 (textured and signposted) BUILT — §15, and
-walked by the CEO on 2026-10-13 (the section after §15: finishable, but he
-opened the gate without knowing he had); v2 (light, detail, and the gate
+walked by the CEO on 2026-10-13 (the section after §15: finishable, but the CEO
+opened the gate without knowing it); v2 (light, detail, and the gate
 made legible) BUILT — §16, engine pass filed, and walked by the CEO on
 2026-10-13: gate criterion MET, but too small for a game level (the
 section after §16; D32). v3 (density, combat and resources, D33) BUILT —
@@ -631,7 +631,7 @@ SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=3 tools/run.sh      # either machine; the gate
 
 ## 13. Open points for the CEO
 
-Status as of 2026-10-13, after the CEO's walk of v2 (D32) and his choice
+Status as of 2026-10-13, after the CEO's walk of v2 (D32) and the choice
 of how to grow the map (D33). What is **decided** says where; what is
 **open** is the PM's to carry in `docs/PENDING-CEO-DECISIONS.md`.
 
@@ -828,7 +828,7 @@ screenshot that matters is `…_map01-v1-hangar-to-fuel-mouth.png`.
 ### Verdict on each, from walking it
 
 These are `level-designer`'s own verdicts from walking the build on the Mac
-on 2026-10-13. The CEO walked v1 that afternoon on the Windows PC: his
+on 2026-10-13. The CEO walked v1 that afternoon on the Windows PC: the
 verdicts and what they changed are in the next section and in §16.
 
 - **The stripe works, and it is the strongest thing in the map.** In the
@@ -839,7 +839,7 @@ verdicts and what they changed are in the next section and in §16.
   128 against 320 — and on a hangar wall it reads as industrial safety
   banding, not as a mistake. **This is `SDCONC2`'s in-map review (A1, and
   G3-9's second half): the CEO has it in two very different rooms and can
-  decide.** If he wants a single band in the hangar, v2 gives the hangar a
+  decide.** If the CEO wants a single band in the hangar, v2 gives the hangar a
   128-high wainscot and the stripe goes on that. *(Decided 2026-10-13, D30:
   the CEO keeps the three bands; no wainscot.)*
 - **The yellow lane works.** Two parallel lines 64 apart read as a marked
@@ -987,31 +987,31 @@ the booth light SW-A turns on, the flicker, the parapets and drums, the
 three secret sectors actually flagged, and the real switches (one variant
 each, `SWITCH_PLACEHOLDER` retired; the `ANIMDEFS` pairs are in, MOD-SPEC
 §4.3)** — it starts once the CEO has walked v1 on this
-machine and given his verdict on §13 — and the single most useful thing light will do
+machine and given the verdict on §13 — and the single most useful thing light will do
 is finish the job this pass started, because a lit fuel-bay mouth at the end
 of a dark red wall is an argument no player misses.
 
 ## v1 playtest, CEO 2026-10-13: the switch read as a broken door
 
-The CEO walked v1 on the Windows PC on 2026-10-13, around 15:35. His words,
-verbatim, in the order he said them:
+The CEO walked v1 on the Windows PC on 2026-10-13, around 15:35. The CEO's words,
+verbatim, in the order they were said:
 
 - «ostia la puta IA jajaja ahora sí que funciona!»
 - «he llegado a un sitio grande, creo que he recorrido el mapa»
-- asked how far he got: «Me quedé en el hangar; la puerta doble no se abre»
-- and a little later, once he had worked it out: «Vale ya lo he descubierto:
+- asked how far the CEO got: «Me quedé en el hangar; la puerta doble no se abre»
+- and a little later, once the CEO had worked it out: «Vale ya lo he descubierto:
   la compuerta no es como tal, es una puerta q no hace ningún ruido si le
   das a "E". De ahí que no se abra. Pero luego se ha abierto y he podido ver
   el texto de la pantalla y todo.»
 
 **The gate criterion of v1 was NOT met.** The criterion (§14, end; §15) was
 that a player who has never seen the map reaches the fuel bay **and opens
-D4 without being told**. He reached the bay and pressed SW-A, but he did not
-know he had: he took the switch for a broken door, went on looking, and
-later found D4 open without knowing why. He then finished the map and saw
+D4 without being told**. The CEO reached the bay and pressed SW-A, but did not
+know it: the CEO took the switch for a broken door, went on looking, and
+later found D4 open without knowing why. The CEO then finished the map and saw
 the end text, so **v1 is finishable**; what failed is legibility, the same
-failure as v0's (§14), now with textures. It is half a pass at best: he got
-there, but not because the map told him.
+failure as v0's (§14), now with textures. It is half a pass at best: the CEO got
+there, but not because the map told the CEO.
 
 **It is not a mechanical bug.** The PM checked it in the engine on a
 throwaway copy of the map: with the player in front of SW-A (linedef 216,
@@ -1029,8 +1029,8 @@ The PM's three hypotheses, checked against the CEO's second message:
 | # | Hypothesis | Verdict |
 |---|---|---|
 | 1 | SW-A still wore `SDDOOR1`, so it looked like a door | **Confirmed.** «es una puerta». |
-| 2 | Pressing it showed nothing: D4 opens 1600 units away, out of sight | **Confirmed**, and worse than that: a line special on a texture with no `ANIMDEFS` pair makes **no sound and no change at all** («no hace ningún ruido»). Nothing on screen or in his ears said that anything had happened. |
-| 3 | He may never have entered the bay | **Refuted.** He found SW-A and pressed it. The v1 signposting (red wall, yellow lane, the mouth) did its job. |
+| 2 | Pressing it showed nothing: D4 opens 1600 units away, out of sight | **Confirmed**, and worse than that: a line special on a texture with no `ANIMDEFS` pair makes **no sound and no change at all** («no hace ningún ruido»). Nothing on screen or in the CEO's ears said that anything had happened. |
+| 3 | The CEO may never have entered the bay | **Refuted.** The CEO found SW-A and pressed it. The v1 signposting (red wall, yellow lane, the mouth) did its job. |
 
 The single cause: **the player received no evidence of cause and effect.**
 `SWITCH_PLACEHOLDER` was a known lie (§15: "it reads door, not lever"), but
@@ -1315,7 +1315,7 @@ v2.1, not a redesign.
 ## v2 playtest, CEO 2026-10-13: gate passed, map too small
 
 The CEO walked v2 on the Windows PC on 2026-10-13, after the PM's engine
-pass. His words, verbatim, in the order he said them:
+pass. The CEO's words, verbatim, in the order they were said:
 
 - «he pasado el hangar sin ayuda, menú aprobado, incluso he encontrado la
   sala secreta (aunque era muy evidente).»
@@ -1327,7 +1327,7 @@ pass. His words, verbatim, in the order he said them:
 
 **The gate criterion of v1/v2 is MET.** The criterion (§12, v2 row; the
 section after §15) was that a first-time player opens D4 *and knows he
-did*. «He pasado el hangar sin ayuda»: he crossed the hangar, found SW-A,
+did*. «He pasado el hangar sin ayuda»: the CEO crossed the hangar, found SW-A,
 opened the gate and went through it with no help. Recorded as D32.
 
 Three findings, each answered by v3 (§17):

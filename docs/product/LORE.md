@@ -62,7 +62,7 @@ v1 ships MAP01 only (D5); MAP02 and MAP03 follow.
 
 | Slot | Weapon | Note |
 |---|---|---|
-| 1 | Sapper's shovel | melee |
+| 1 | Ice axe (ледоруб), found on the dorm rack, not issued (D40) | melee |
 | 2 | TT-33 Tokarev | pistol |
 | 3 | IZh double-barrel hunting shotgun | shotgun |
 | 4 | **PPSh-41** | submachine gun; the icon of the mod |

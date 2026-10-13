@@ -33,7 +33,7 @@ synced in batches at each phase close (D7, D34).
 **F0, F1, F2 — CLOSED.** G0 and G2 PASS with evidence in
 `docs/qa/GATE-REVIEWS.md`; G1 was ratified by the CEO on 2026-10-09
 (`docs/ROADMAP.md`) and its GATE-REVIEWS entry is written retrospectively on
-2026-10-13. Twenty-four texture lumps live in `assets/`, all approved:
+2026-10-13. Thirty texture lumps live in `assets/`, all approved:
 batch 1, 12 of 12 (`SDPOSTR1` Lenin 128×256 among them; `SDCONC2` and
 `SDSTAR1` v5 approved inside MAP01 by the CEO, D30), the eight switches of
 batch 2 (D25) and four props of batch 3, crates and a locker (D29), plus
@@ -50,7 +50,7 @@ gate read as a dead end) became v1's gate criterion. **The CEO walked v1 on
 quedé en el hangar; la puerta doble no se abre". Not a mechanical bug: the
 PM pressed SW-A in engine and D4 opened
 (`docs/qa/evidence/2026-10-13_1540_F3_map01-v1-swa-opens-d4.png`); the CEO
-later found SW-A himself ("una puerta q no hace ningún ruido si le das a
+later found SW-A unaided ("una puerta q no hace ningún ruido si le das a
 E") and finished the map. **v2 is BUILT** (§16 of the design document): real
 switch faces, SW-A moved to a lit niche with a window onto D4, a gate light
 on tag 30, 16 lamps, flicker, three secrets, crates and lockers; 80 sectors.
@@ -64,8 +64,9 @@ switches release an ambush, subtler secrets, Lenin lit. Engine pass clean
 it through on skill 3: "ha sido MUY divertido!!" (D38).** The mural is clear
 and the slot-1 weapon is found on the dorm rack, not issued (both seen in
 engine). **G3 in progress:** `tools/route.py` runs the critical path in
-GZDoom; skill 2 passes with monsters, 3 and 4 without (a live body blocks
-the scripted walk), `docs/qa/GATE-REVIEWS.md`.
+GZDoom and passes on skills 2, 3 and 4 with monsters (with `god`, the route
+clearing and listing the bodies in its way); left: the hand-played runs
+on skills 2 and 4, the hostile pass and the CEO's G3-9, `docs/qa/GATE-REVIEWS.md`.
 
 **F5 — bestiary, started.** The seven enemies of D35 are playable ZScript
 actors with Freedoom sprites and sounds as placeholders, replacing Doom's
@@ -82,8 +83,9 @@ is an ice axe (D40). Drafts at the CEO's gate: our own hand and glove, the
 ice axe, the PPSh-41, 31 weapon sounds. MAP02 ships as a practice range, a
 second episode on New Game (D41).
 
-**Music (D43).** The title plays the Internationale (`D_SDINTL`, credit
-Jerry Engelbach), MAP01 our own `D_SDM01`; an enriched draft waits on the
+**Music (D43).** The Internationale (`D_SDINTL`, credit Jerry Engelbach) is
+wired as the title music, NOT VERIFIED in engine; MAP01 plays our own
+`D_SDM01` (seen with `currentmusic`); an enriched draft waits on the
 CEO; three self-sequenced pieces wait on a score source.
 
 **Tooling.** `tools/verify.py` with `fast`, `full` and `auto` tiers: fast runs
@@ -106,7 +108,7 @@ and its MAP02 twin, with screenshots). The Mac's gitignored
 `work/` arrived the same afternoon as the release asset
 `transfer-work-2026-10-13` on the private repo: 785 files plus its logs,
 every one checked against the Mac's own SHA-256 manifest (kept as
-`work/MANIFEST-from-mac.txt`). With it, `tools/verify.py art` here runs 384
+`work/MANIFEST-from-mac.txt`). With it, `tools/verify.py art` here ran 384 (that afternoon)
 tests with one skip, the opt-in engine test: the asset identity checks and
 the Lenin generator tests now run on this PC too.
 

@@ -4,7 +4,7 @@ A GZDoom total conversion. The USSR of the 1970s is invaded by two allied
 alien factions, Yankee and Nazi, united to defend capital. You are a Spetsnaz
 sergeant who came to this country as a refugee child from Barcelona.
 
-Status: F0 closed (pipeline verified), F1 lore ratified, F2 art direction next.
+Status: F0, F1 and F2 closed. F3 (MAP01) is built and played, with its gate G3 in progress; F4 (arsenal) and F5 (bestiary) are started, with drafts waiting on the CEO; the metro's first textures are approved, more await the CEO. Detail in `CLAUDE.md` and `docs/qa/GATE-REVIEWS.md`.
 See `CLAUDE.md` for the operational summary, `docs/PRD.md` for decisions and
 `docs/ru/` for the Russian mirror of all documentation.
 
