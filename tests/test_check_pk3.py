@@ -549,6 +549,78 @@ class SpriteTest(CheckPk3TestCase):
         self.assertEqual([], [f for f in self.run_check(entries).errors if f.category == "sprites"])
 
 
+# --- 6b. Sprites named by ZScript states (MOD-SPEC 5.1, F5) ----------------
+
+class StateSpriteTest(CheckPk3TestCase):
+    """A sprite a `States` block names must be packed, the engine's, or a
+    declared IWAD sprite: the texture rule of MOD-SPEC 5, applied to the
+    Freedoom placeholders the arsenal and the bestiary run on."""
+
+    ACTOR = (b'// POSS A 1; in a comment is not a state line\n'
+             b'class SD_Thing : Actor\n{\n'
+             b'\tDefault { Health 20; }\n'
+             b'\tStates\n\t{\n'
+             b'\tSpawn:\n\t\tPOSS AB 10 A_Look;\n\t\tLoop;\n'
+             b'\tMelee:\n\tMissile:\n\t\tPOSS E 10 A_FaceTarget;\n\t\tGoto See;\n'
+             b'\tDeath: TNT1 A 0;\n\t\tStop;\n'
+             b'\t}\n}\n')
+    SPRITE_ROW = "| `POSS` | sprite | SD_Thing | fixture |\n"
+
+    def entries_with_actor(self) -> dict[str, bytes]:
+        entries = good_entries()
+        entries["zscript/sd/thing.zs"] = self.ACTOR
+        return entries
+
+    def declare_poss(self) -> None:
+        self.spec.write_text(SPEC_MD.replace("## 6. ZScript", self.SPRITE_ROW + "\n## 6. ZScript"),
+                             encoding="utf-8")
+
+    def sprite_errors(self, report: check_pk3.Report) -> list[check_pk3.Finding]:
+        return [f for f in report.errors if f.category == "sprites"]
+
+    def test_parser_reads_states_and_skips_labels_keywords_and_comments(self):
+        refs = check_pk3.zscript_state_sprites(self.ACTOR.decode())
+        self.assertEqual(["POSS", "POSS", "TNT1"], [name for name, _ in refs])
+        self.assertEqual(8, refs[0][1], "line numbers count from the top of the file")
+
+    def test_declared_iwad_sprite_passes(self):
+        self.declare_poss()
+        report = self.run_check(self.entries_with_actor())
+        self.assertEqual([], self.sprite_errors(report))
+        self.assertEqual(1, report.stats["state_sprites_iwad"])
+
+    def test_undeclared_iwad_sprite_fails(self):
+        finding = self.assertFails(self.run_check(self.entries_with_actor()), "sprites", "MOD-SPEC 5")
+        self.assertIn("POSS", finding.message)
+        self.assertIn("zscript/sd/thing.zs:8", finding.path)
+
+    def test_packed_sprite_passes_without_a_spec_row(self):
+        entries = self.entries_with_actor()
+        for frame in "ABE":
+            entries[f"sprites/POSS{frame}0.png"] = png_indexed(8, 8, PALETTE_IN)
+        self.licenses.write_text(LICENSES_MD + "\n| `POSSA0` `POSSB0` `POSSE0` | own | own |\n",
+                                 encoding="utf-8")
+        self.assertEqual([], self.sprite_errors(self.run_check(entries)))
+
+    def test_a_texture_row_does_not_declare_a_sprite(self):
+        # STARTAN2 is a declared IWAD *texture*; naming it as a sprite is not
+        # covered by that row (and is not 4 characters anyway). Use a 4-char
+        # texture-typed row to prove the Type column is what counts.
+        self.spec.write_text(SPEC_MD.replace(
+            "## 6. ZScript", "| `POSS` | wall texture | nowhere | fixture |\n\n## 6. ZScript"),
+            encoding="utf-8")
+        self.assertFails(self.run_check(self.entries_with_actor()), "sprites", "MOD-SPEC 5")
+
+    def test_real_spec_declares_every_sprite_the_mod_uses(self):
+        """The live MOD-SPEC 5.1 against the live ZScript tree."""
+        declared = check_pk3.iwad_sprites_from_spec(check_pk3.DEFAULT_SPEC)
+        used: set[str] = set()
+        for path in sorted((PROJECT_ROOT / "src" / "zscript").rglob("*.zs")):
+            used |= {name for name, _ in check_pk3.zscript_state_sprites(path.read_text(encoding="utf-8"))}
+        missing = sorted(used - declared - check_pk3.ENGINE_SPRITES)
+        self.assertEqual([], missing, "sprites used by ZScript states but not in MOD-SPEC 5.1")
+
+
 # --- 7. Licences -----------------------------------------------------------
 
 class LicenceTest(CheckPk3TestCase):

@@ -1,0 +1,116 @@
+Log started: 2026-10-13 17:06:50
+GZDoom version g4.14.2
+W_Init: Init WADfiles.
+adding C:/Users/littl/AppData/Local/Programs/GZDoom/gzdoom.pk3, 692 lumps
+adding C:/Users/littl/AppData/Local/Programs/GZDoom/game_support.pk3, 3308 lumps
+adding ./iwads/freedoom2.wad, 3610 lumps
+adding C:/Users/littl/AppData/Local/Programs/GZDoom/game_widescreen_gfx.pk3, 214 lumps
+adding C:/Users/littl/AppData/Local/Temp/claude/C--Users-littl-Desktop-Claude/320549f9-624f-4d20-86ab-9fdd1c5c3bf6/scratchpad/v3/sd.pk3, 385 lumps
+adding C:/Users/littl/AppData/Local/Temp/claude/C--Users-littl-Desktop-Claude/320549f9-624f-4d20-86ab-9fdd1c5c3bf6/scratchpad/v3/helper.pk3, 2 lumps
+S_Init: Setting up sound.
+I_InitInput
+I_StartupMouse
+I_StartupKeyboard
+I_StartupXInput
+I_StartupRawPS2
+I_StartupDirectInputJoystick
+Initialization of Vulkan failed: Could not create vulkan instance: incompatible driver
+GL_VENDOR: NVIDIA Corporation
+GL_RENDERER: NVIDIA GeForce RTX 3050/PCIe/SSE2
+GL_VERSION: 4.6.0 NVIDIA 560.94
+GL_SHADING_LANGUAGE_VERSION: 4.60 NVIDIA
+GL_EXTENSIONS:
+GL Version parsed = 4.600000
+GL_MAX_TEXTURE_SIZE: 32768
+GLES choosing mode: GLES_MODE_OGL3
+Resolution: 624 x 361
+I_Init: Setting up machine state.
+CPU speed: 3598 MHz
+CPU Vendor ID: GenuineIntel
+  Name: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
+  Family 6, Model 60, Stepping 3
+  Features: SSE2 SSE3 SSSE3 SSE4.1 SSE4.2 AVX AVX2 F16C FMA3 BMI1 BMI2 HyperThreading
+V_Init: allocate screen.
+ST_Init: Init startup screen.
+Checking cmd-line parameters...
+S_InitData: Load sound definitions.
+G_ParseMapInfo: Load map definitions.
+Texman.Init: Init texture manager.
+ParseTeamInfo: Load team definitions.
+LoadActors: Load actor definitions.
+script parsing took 702.98 ms
+R_Init: Init Doom refresh subsystem.
+DecalLibrary: Load decals.
+Adding dehacked patch freedoom2.wad:DEHACKED
+Patch installed
+M_Init: Init menus.
+P_Init: Init Playloop state.
+ParseSBarInfo: Loading custom status bar definition.
+===========================================================================
+This is Freedoom, the free content first person shooter.
+
+Freedoom is freely redistributable under the terms of the modified BSD
+license. Check out the Freedoom website for more information:
+
+    https://freedoom.github.io/
+============================================================================
+D_CheckNetGame: Checking network game status.
+player 1 of 1 (1 nodes)
+
+----------------------------------------
+
+MAP02 - Engineering Test Range
+
+SOVIETDOOM loaded: map MAP02 (Engineering Test Range)
+God mode on.
+Captured Screenshot_Doom_20261013_170655.png
+SDTEST count SD_ReichRifleman total=7 alive=7
+SDTEST count SD_LegionTrooper total=1 alive=1
+SDTEST count SD_Stormtrooper total=1 alive=1
+SDTEST count SD_ReichHound total=1 alive=1
+SDTEST count SD_Doughboy total=1 alive=1
+SDTEST count SD_Panzermensch total=2 alive=2
+SDTEST count SD_PanzermenschSchwer total=1 alive=1
+SDTEST count SD_General total=1 alive=1
+SDTEST count SD_Clip total=0 alive=0
+SDTEST count SD_Izh total=1 alive=1
+SDTEST hurt SD_ReichRifleman x7 by 100
+SDTEST hurt SD_LegionTrooper x1 by 100
+SDTEST count SD_ReichRifleman total=7 alive=0
+SDTEST count SD_LegionTrooper total=1 alive=0
+SDTEST count SD_Stormtrooper total=1 alive=1
+SDTEST count SD_ReichHound total=1 alive=1
+SDTEST count SD_Doughboy total=1 alive=1
+SDTEST count SD_Panzermensch total=2 alive=2
+SDTEST count SD_PanzermenschSchwer total=1 alive=1
+SDTEST count SD_General total=1 alive=1
+SDTEST count SD_Clip total=7 alive=7
+SDTEST count SD_Izh total=2 alive=2
+Captured Screenshot_Doom_20261013_170659.png
+SDTEST hurt SD_General x1 by 1600
+Captured Screenshot_Doom_20261013_170704.png
+SDTEST count SD_ReichRifleman total=7 alive=0
+SDTEST count SD_LegionTrooper total=1 alive=0
+SDTEST count SD_Stormtrooper total=1 alive=1
+SDTEST count SD_ReichHound total=1 alive=1
+SDTEST count SD_Doughboy total=1 alive=1
+SDTEST count SD_Panzermensch total=2 alive=2
+SDTEST count SD_PanzermenschSchwer total=1 alive=1
+SDTEST count SD_General total=1 alive=1
+SDTEST count SD_Clip total=7 alive=7
+SDTEST count SD_Izh total=2 alive=2
+----------------------------------------
+The General: Recruits - advance!
+----------------------------------------
+SDTEST hurt SD_General x1 by 500
+SDTEST count SD_ReichRifleman total=9 alive=2
+SDTEST count SD_LegionTrooper total=1 alive=0
+SDTEST count SD_Stormtrooper total=1 alive=1
+SDTEST count SD_ReichHound total=1 alive=1
+SDTEST count SD_Doughboy total=1 alive=1
+SDTEST count SD_Panzermensch total=2 alive=2
+SDTEST count SD_PanzermenschSchwer total=1 alive=1
+SDTEST count SD_General total=1 alive=1
+SDTEST count SD_Clip total=7 alive=7
+SDTEST count SD_Izh total=2 alive=2
+Captured Screenshot_Doom_20261013_170709.png

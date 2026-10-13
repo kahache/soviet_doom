@@ -151,6 +151,37 @@ SD_MNU_READTHIS    = "READ THIS!";
 SD_MNU_QUITGAME    = "QUIT GAME";
 SD_MNU_CHOOSESKILL = "CHOOSE DIFFICULTY";
 
+// --- Bestiary (F5, D35) ----------------------------------------------------
+// Names and death messages of the enemies; docs/engine/BESTIARY.md owns who
+// they are. Tag = the enemy's name, wherever the engine shows one;
+// SD_OB_* = killed at range, SD_OBHIT_* = killed in melee (%o is the
+// victim). Two infantry classes, two names (D35, Q1).
+
+SD_TAG_RIFLEMAN      = "Reich rifleman";
+SD_TAG_TROOPER       = "Legion trooper";
+SD_TAG_STORM         = "Hybrid Stormtrooper";
+SD_TAG_HOUND         = "Reich hound";
+SD_TAG_DOUGHBOY      = "Doughboy";
+SD_TAG_PANZER        = "Panzermensch";
+SD_TAG_PANZER_HEAVY  = "Heavy Panzermensch";
+SD_TAG_GENERAL       = "The General";
+
+SD_OB_RIFLEMAN       = "%o was shot by a Reich rifleman.";
+SD_OB_TROOPER        = "%o was blasted by a Legion trooper.";
+SD_OB_STORM          = "%o was burned by a Stormtrooper's bolt.";
+SD_OBHIT_STORM       = "%o was torn open by a Stormtrooper.";
+SD_OB_HOUND          = "%o was run down by a Reich hound.";
+SD_OB_DOUGHBOY       = "%o was hit by a Doughboy's shell.";
+SD_OBHIT_DOUGHBOY    = "%o was bitten by a Doughboy.";
+SD_OB_PANZER         = "%o was shelled by a Panzermensch.";
+SD_OBHIT_PANZER      = "%o was crushed by a Panzermensch.";
+SD_OB_GENERAL        = "%o fell to the General's salvo.";
+
+// The General's order (BESTIARY 9): printed on screen when he summons his
+// two recruits. Placeholder wording until the CEO picks the line in
+// docs/sound/ENEMY-SOUNDS.md 7 C; the text and the sound change together.
+SD_GENERAL_ORDER     = "The General: Recruits - advance!";
+
 [ru]
 
 SD_EP01_NAME  = "Советский Doom";
@@ -236,3 +267,29 @@ SD_MNU_SAVEGAME    = "СОХРАНИТЬ";
 SD_MNU_READTHIS    = "СПРАВКА";
 SD_MNU_QUITGAME    = "ВЫХОД";
 SD_MNU_CHOOSESKILL = "ВЫБЕРИТЕ СЛОЖНОСТЬ";
+
+// --- Бестиарий (F5, D35) ---------------------------------------------------
+// «Каска» - русское имя Doughboy: само слово ничего не говорит русскому
+// игроку, а каска - это и есть весь облик врага (BESTIARY 7).
+
+SD_TAG_RIFLEMAN      = "Стрелок Рейха";
+SD_TAG_TROOPER       = "Легионер";
+SD_TAG_STORM         = "Штурмовик-гибрид";
+SD_TAG_HOUND         = "Гончая Рейха";
+SD_TAG_DOUGHBOY      = "Каска";
+SD_TAG_PANZER        = "Панцерменш";
+SD_TAG_PANZER_HEAVY  = "Тяжёлый панцерменш";
+SD_TAG_GENERAL       = "Генерал";
+
+SD_OB_RIFLEMAN       = "%o застрелен стрелком Рейха.";
+SD_OB_TROOPER        = "%o расстрелян легионером.";
+SD_OB_STORM          = "%o сожжён разрядом штурмовика.";
+SD_OBHIT_STORM       = "%o разорван штурмовиком.";
+SD_OB_HOUND          = "%o загнан гончей Рейха.";
+SD_OB_DOUGHBOY       = "%o сражён снарядом Каски.";
+SD_OBHIT_DOUGHBOY    = "%o укушен Каской.";
+SD_OB_PANZER         = "%o накрыт снарядом панцерменша.";
+SD_OBHIT_PANZER      = "%o раздавлен панцерменшем.";
+SD_OB_GENERAL        = "%o пал под залпом Генерала.";
+
+SD_GENERAL_ORDER     = "Генерал: Новобранцы - вперёд!";
