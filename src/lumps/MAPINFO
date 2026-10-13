@@ -241,6 +241,7 @@ DoomEdNums
 	21105 = SD_Panzermensch         // replaces HellKnight (69)
 	21106 = SD_General              // replaces Cyberdemon (16)
 	21107 = SD_PanzermenschSchwer   // replaces BaronOfHell (3003)
+	21200 = SD_Radio                // diegetic radio (MOD-SPEC 6.7, ADR 008)
 }
 
 map MAP02 lookup "SD_MAP02_NAME"

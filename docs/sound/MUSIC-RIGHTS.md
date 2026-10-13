@@ -12,6 +12,9 @@ música"*): the Engelbach attribution is accepted and **`D_SDINTL` and
 candidates are **tracked in git** with their SHA-256 (§4.4) and three were
 discarded; works restored in the United States are excluded (§7.2) and the
 anthem slot goes to Glinka (§7.1).
+Revised 2026-10-13 by `mod-engineer` (D43, the radio): the two CC0 radio
+pieces are installed unedited as **`D_SDRAD1`** and **`D_SDRAD2`** (§4.4,
+§4.5), for the radio actor of `docs/engine/MOD-SPEC.md` §6.7.
 Companion to `docs/product/2026-10-12_2000_F2_pm-soviet-art-copyright.md`, which
 established the Russian and US legal frame for visual art. **The same frame applies
 to music**, with two extra layers: recordings, and sequencings.
@@ -337,8 +340,8 @@ audition lump names (`D_CNDnn`) are in `work/audio/candidates/LUMPS.txt`.
 |---|---|---|---|---|---|---|
 | `D_CND10` | `WM_Internationale_orch2.mid` | Интернационал, orchestral | De Geyter 1888, PD RU+US | **Jerry Engelbach**, USA, 2003 · https://commons.wikimedia.org/wiki/File:Internationale_orch2.mid | `{{Attribution\|Jerry Engelbach}}` + VRT ticket 2008011810001789 | ✅ **credit Engelbach — accepted by the CEO (D43)**; source of `D_SDINTL` |
 | `D_CND11` | `WM_Internationale_piano_Bb.mid` | Интернационал, piano in B♭ | same | **Jerry Engelbach**, USA, 2001 · https://commons.wikimedia.org/wiki/File:Internationale-piano-Bb.mid | same | ✅ attribute Engelbach |
-| `D_CND09` | `WM_Ej_uchnem.mid` | Эй, ухнем — Balakirev's setting, pub. 1866 | PD RU+US | **Peter Gerloff** (Commons: *Rabanus Flavus*), 2021 · https://commons.wikimedia.org/wiki/File:Ej,_uchnem!.mid | `{{self\|Cc-zero}}` — **CC0** | ✅ no obligation — **diegetic radio (D43)** |
-| `D_CND12` | `WM_Kolokolchik.mid` | Колокольчик, Russian traditional | PD RU+US | **Peter Gerloff**, 2019 · https://commons.wikimedia.org/wiki/File:Kolokolchik.mid | `{{self\|Cc-zero}}` — **CC0** | ✅ no obligation — **diegetic radio (D43)** |
+| `D_CND09` | `WM_Ej_uchnem.mid` | Эй, ухнем — Balakirev's setting, pub. 1866 | PD RU+US | **Peter Gerloff** (Commons: *Rabanus Flavus*), 2021 · https://commons.wikimedia.org/wiki/File:Ej,_uchnem!.mid | `{{self\|Cc-zero}}` — **CC0** | ✅ no obligation — **diegetic radio (D43)**; installed as `D_SDRAD1` (§4.5) |
+| `D_CND12` | `WM_Kolokolchik.mid` | Колокольчик, Russian traditional | PD RU+US | **Peter Gerloff**, 2019 · https://commons.wikimedia.org/wiki/File:Kolokolchik.mid | `{{self\|Cc-zero}}` — **CC0** | ✅ no obligation — **diegetic radio (D43)**; installed as `D_SDRAD2` (§4.5) |
 | `D_CND01` | `MU_Mussorgsky_BaldMountain.mid` | Ночь на лысой горе, Chernov's piano transcription | Mussorgsky d. 1881, PD; transcriber Konstantin Chernov d. 1944 → RU PD 2015, **+war 2019 — NOT VERIFIED which applies, both are past** | typeset **Robert Clausecker**, Mutopia 2013 · https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1892 | **CC BY 3.0** | ✅ attribute Clausecker + Mutopia |
 | `D_CND06` | `MU_Tchaikovsky_Dumka_op59.mid` | Думка op. 59 (1886) | Tchaikovsky d. 1893, PD RU+US | Mutopia, maintainer **Vassily Checkin**, LilyPond 2.18.0 · https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=341 | **Public Domain** ("CC: No rights reserved") | ✅ |
 | `D_CND07` | `MU_Tchaikovsky_Seasons_August.mid` | Времена года: Август (1876) | PD RU+US | Mutopia, maintainer **Till Rettig**, LilyPond 2.8.6, Mutopia-2006/08/21-803 · https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=803 | **Public Domain** ("CC: No rights reserved") | ✅ |
@@ -433,6 +436,8 @@ orchestration, that is the route; it is a size decision, not a rights one.
 |---|---|---|---|---|---|
 | `D_SDINTL` | title screen | *L'Internationale*, Pierre De Geyter, 1888 — PD RU+US (§2.1) | **Jerry Engelbach**, 2003, `{{Attribution\|Jerry Engelbach}}` (§4.4); head trimmed by us (§4.4.2) | none — MIDI, synthesised on the player's machine | **credit Jerry Engelbach** |
 | `D_SDM01` | MAP01 | original, `sound-designer` 2026-10-13 (`tools/audio/gen_music.py`) | ours | none | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDRAD1` | diegetic radio (`SD_Radio`, `docs/engine/MOD-SPEC.md` §6.7) | «Эй, ухнем», Balakirev's setting, pub. 1866 — PD RU+US | **Peter Gerloff**, 2021, **CC0** (§4.4, `D_CND09`); byte-identical to `WM_Ej_uchnem.mid`, SHA-256 `109e9125…` above, no edit | none — MIDI | **none**; Gerloff credited as a courtesy |
+| `D_SDRAD2` | diegetic radio (`SD_Radio`, same) | «Колокольчик», Russian traditional — PD RU+US | **Peter Gerloff**, 2019, **CC0** (§4.4, `D_CND12`); byte-identical to `WM_Kolokolchik.mid`, SHA-256 `fec3c370…` above, no edit | none — MIDI | **none**; Gerloff credited as a courtesy |
 
 **The credit line**, to be reproduced verbatim wherever the mod credits
 anyone (the release credits of gate G6, a ModDB page, a README):
@@ -450,7 +455,14 @@ add a second line only if it is ever packed; it is not.
 
 The CC0 radio pieces (`WM_Ej_uchnem.mid`, `WM_Kolokolchik.mid`, Peter
 Gerloff) carry no obligation; crediting Gerloff as a courtesy when they ship
-is recommended, not required.
+is recommended, not required. **They ship since 2026-10-13** as `D_SDRAD1`
+and `D_SDRAD2` (installed by `mod-engineer` for the radio actor of
+`docs/engine/MOD-SPEC.md` §6.7, ADR 008). The courtesy line, for the same
+places as the Engelbach line:
+
+> Radio music: *Ey, ukhnem* (Balakirev's setting) and *Kolokolchik*, public
+> domain; MIDI sequences by **Peter Gerloff**, dedicated to the public
+> domain under CC0 (Wikimedia Commons).
 
 ---
 

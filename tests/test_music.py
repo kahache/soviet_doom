@@ -44,7 +44,8 @@ MUSIC_RIGHTS = PROJECT_ROOT / "docs" / "sound" / "MUSIC-RIGHTS.md"
 SOUNDTRACK = PROJECT_ROOT / "docs" / "sound" / "SOUNDTRACK.md"
 LICENSES = PROJECT_ROOT / "docs" / "art" / "LICENSES.md"
 
-INSTALLED = ("D_SDINTL", "D_SDM01")                 # D43
+INSTALLED = ("D_SDINTL", "D_SDM01",                 # D43
+             "D_SDRAD1", "D_SDRAD2")                # D43 radio, tests/test_radio.py
 ENGELBACH_SOURCE = "WM_Internationale_orch2.mid"
 DISCARDED = ("MU_RimskyKorsakov_FugueBACH.mid",    # D_CND02
              "MU_Scriabin_Prelude_op11n1.mid",     # D_CND04
