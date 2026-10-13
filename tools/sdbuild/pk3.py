@@ -27,7 +27,13 @@ from pathlib import Path
 
 from sdbuild.wad import build_pwad, validate_lump_name
 
-ASSET_DIRS = ("textures", "flats", "sprites", "sounds", "music", "graphics", "patches", "hires")
+ASSET_DIRS = ("textures", "flats", "sprites", "sounds", "music", "graphics",
+              "patches", "hires", "fonts")
+# `fonts` is the one asset folder whose SUBFOLDER is meaningful: GZDoom reads
+# a folder font as fonts/<fontname>/<HEX>.png, so flattening it the way a
+# texture set is flattened would destroy the font. Listed here so the build
+# keeps the path intact.
+NESTED_ASSET_DIRS = ("fonts",)
 MAP_SCRIPT_NAME = "map.py"
 FIXED_ZIP_TIME = (1980, 1, 1, 0, 0, 0)  # earliest zip timestamp; reproducible builds
 IGNORED_FILES = {".DS_Store", "Thumbs.db"}
@@ -130,7 +136,12 @@ def collect_assets(assets: Path) -> list[Entry]:
         if not base.is_dir():
             continue
         for p in _iter_files(base):
-            entries.append(Entry(f"{folder}/{p.name}", p.read_bytes()))
+            if folder in NESTED_ASSET_DIRS:
+                # keep fonts/<fontname>/<HEX>.png; the engine needs the folder
+                rel = p.relative_to(assets).as_posix()
+            else:
+                rel = f"{folder}/{p.name}"            # drop the set folder
+            entries.append(Entry(rel, p.read_bytes()))
     return entries
 
 
