@@ -20,6 +20,11 @@ So the bulk of this file drives `decide()` with synthetic path lists:
   - the unknown path, which must land on FULL - the safe answer to "I do
     not recognise this" is the expensive one, never the cheap one.
 
+The Russian mirror check follows D34 (2026-10-13, amends D7): a missing
+`docs/ru/` twin warns at every level and fails only under `--gate`, the
+phase-close option, which also widens the scan to the whole tree and changes
+nothing else about the plan or about what `auto` decides.
+
 The git porcelain parser gets its own class because renames are the case
 everybody gets wrong (two NUL records for one change, and both paths count).
 
@@ -34,6 +39,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from unittest import mock
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "tools"))
@@ -288,7 +294,11 @@ class PorcelainTests(unittest.TestCase):
 
 
 class MirrorTests(unittest.TestCase):
-    """D7: the one rule about documents that a script can actually check."""
+    """D7 as amended by D34: the one rule about documents a script can check.
+
+    Since D34 (2026-10-13) the Russian mirror is synced in a batch at each
+    phase close, so between gates a gap only warns; `--gate` makes it fail.
+    """
 
     def test_mirror_path_both_ways(self):
         self.assertEqual("docs/ru/art/ART-BIBLE.md", verify.mirror_path("docs/art/ART-BIBLE.md"))
@@ -320,27 +330,152 @@ class MirrorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual([], verify.mirror_gaps(["docs/GONE.md"], Path(tmp)))
 
-    def test_changed_doc_without_mirror_fails_the_stage(self):
+    @staticmethod
+    def _tree(root: Path, english=("A.md",), russian=()) -> None:
+        (root / "docs" / "ru").mkdir(parents=True)
+        for name in english:
+            (root / "docs" / name).write_text("x")
+        for name in russian:
+            (root / "docs" / "ru" / name).write_text("x")
+
+    def test_changed_doc_without_mirror_warns_and_passes(self):
+        """This test used to assert the opposite: a document changed in the
+        batch without its mirror FAILED the stage, because D7 demanded the
+        mirror in the same task. D34 (2026-10-13) moved the mirror to a
+        batch at the phase close, so the same situation is now a warning
+        and the stage passes; only `--gate` blocks (tests below)."""
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            (root / "docs").mkdir()
-            (root / "docs" / "A.md").write_text("x")
+            self._tree(root)
             plan = verify.plan_for(L.DOCS, doc_paths=("docs/A.md",))
             result = verify.stage_docs(plan, root)
-            self.assertFalse(result.ok)
-            self.assertEqual(verify.EXIT_DOCS, result.exit_code)
+            self.assertTrue(result.ok)
+            self.assertIn("WARN 1 doc(s) without a Russian mirror", result.note)
+            self.assertIn("D34", result.output)
+            self.assertIn("docs/A.md -> docs/ru/A.md", result.output)
 
     def test_whole_tree_scan_warns_instead_of_blocking(self):
-        """Pre-existing mirror debt is reported loudly, not used to block
-        an unrelated change; a mirror missing for a doc changed in THIS
-        batch does block (test above)."""
+        """Mirror debt is reported loudly but never blocks between gates.
+        Before D34 only this whole-tree case warned and the changed-in-batch
+        case failed; now both warn (test above)."""
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            (root / "docs").mkdir()
-            (root / "docs" / "A.md").write_text("x")
+            self._tree(root)
             result = verify.stage_docs(verify.plan_for(L.DOCS), root)
             self.assertTrue(result.ok)
             self.assertIn("WARN", result.note)
+
+    def test_no_level_fails_on_a_missing_mirror_without_the_gate(self):
+        for level in L:
+            with self.subTest(level=level.label), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                self._tree(root)
+                plan = verify.plan_for(level, doc_paths=("docs/A.md",))
+                self.assertTrue(verify.stage_docs(plan, root).ok)
+
+    def test_gate_fails_on_a_missing_mirror_with_the_docs_exit_code(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._tree(root)
+            result = verify.stage_docs(verify.plan_for(L.DOCS, gate=True), root)
+            self.assertFalse(result.ok)
+            self.assertEqual(verify.EXIT_DOCS, result.exit_code)
+            self.assertEqual(10, result.exit_code, "PIPELINE.md promises 10 for docs")
+            self.assertIn("docs/A.md -> docs/ru/A.md", result.output)
+
+    def test_gate_scans_the_whole_tree_not_just_the_batch(self):
+        """A phase close audits the mirror, not the last edit: a batch that
+        only touched a mirrored document still fails if another one lacks
+        its twin."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._tree(root, english=("A.md", "B.md"), russian=("A.md",))
+            plan = verify.plan_for(L.FAST, doc_paths=("docs/A.md",), gate=True)
+            self.assertEqual((), plan.doc_paths, "--gate must drop the batch scope")
+            result = verify.stage_docs(plan, root)
+            self.assertFalse(result.ok)
+            self.assertIn("docs/B.md -> docs/ru/B.md", result.output)
+            self.assertNotIn("docs/A.md ->", result.output)
+
+    def test_gate_passes_when_every_twin_exists(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._tree(root, english=("A.md", "B.md"), russian=("A.md", "B.md"))
+            result = verify.stage_docs(verify.plan_for(L.DOCS, gate=True), root)
+            self.assertTrue(result.ok)
+            self.assertIn("every Russian mirror present", result.note)
+            self.assertEqual("docs --gate", result.name)
+
+
+class GateDecisionTests(unittest.TestCase):
+    """`--gate` changes the docs stage and nothing else (D34)."""
+
+    def test_gate_does_not_change_any_other_stage(self):
+        for level in L:
+            plain, gated = verify.plan_for(level, MAPS), verify.plan_for(level, MAPS, gate=True)
+            with self.subTest(level=level.label):
+                self.assertEqual(
+                    (plain.level, plain.build, plain.check_pk3, plain.tests,
+                     plain.slow_art, plain.engine, plain.maps),
+                    (gated.level, gated.build, gated.check_pk3, gated.tests,
+                     gated.slow_art, gated.engine, gated.maps),
+                )
+                self.assertEqual(plain.stages[1:], gated.stages[1:])
+                self.assertEqual("docs --gate", gated.stages[0])
+
+    def _explain(self, argv):
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            code = verify.main(argv)
+        self.assertEqual(verify.EXIT_OK, code)
+        return [line for line in buffer.getvalue().splitlines() if line.startswith("plan:")]
+
+    def test_auto_picks_the_same_level_with_or_without_the_gate(self):
+        for files in (["docs/PRD.md"], ["tests/test_verify.py"],
+                      ["assets/flats/x/SDFLR1.png"], ["src/maps/MAP02/map.py"]):
+            plain = self._explain(["auto", "--files", *files, "--explain"])
+            gated = self._explain(["auto", "--files", *files, "--gate", "--explain"])
+            with self.subTest(files=files):
+                self.assertIn("-> docs --gate", gated[0])
+                self.assertEqual(plain[0], gated[0].replace("docs --gate", "docs"))
+
+    def _main_on(self, root: Path, argv):
+        """main() with the docs stage pointed at a synthetic tree. Only the
+        docs stage runs at these levels, so nothing else needs the real repo."""
+        buffer = io.StringIO()
+        real_stage = verify.stage_docs
+        on_tmp = mock.patch.object(verify, "stage_docs", lambda plan: real_stage(plan, root))
+        with on_tmp, redirect_stdout(buffer):
+            code = verify.main(argv)
+        return code, buffer.getvalue()
+
+    def test_cli_docs_level_warns_and_exits_zero_without_the_gate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            MirrorTests._tree(root)
+            code, out = self._main_on(root, ["docs"])
+            self.assertEqual(verify.EXIT_OK, code)
+            self.assertIn("VERDICT: PASS", out)
+            self.assertIn("WARN 1 doc(s) without a Russian mirror", out)
+
+    def test_cli_docs_gate_exits_ten(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            MirrorTests._tree(root)
+            code, out = self._main_on(root, ["docs", "--gate"])
+            self.assertEqual(verify.EXIT_DOCS, code)
+            self.assertIn("VERDICT: FAIL at docs --gate", out)
+            self.assertIn("docs/A.md -> docs/ru/A.md", out)
+
+    def test_cli_auto_on_a_changed_doc_passes_without_the_gate(self):
+        """The exact case that used to exit 10 under D7."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            MirrorTests._tree(root)
+            code, _out = self._main_on(root, ["auto", "--files", "docs/A.md"])
+            self.assertEqual(verify.EXIT_OK, code)
+            code, _out = self._main_on(root, ["auto", "--files", "docs/A.md", "--gate"])
+            self.assertEqual(verify.EXIT_DOCS, code)
 
 
 class ReferenceTests(unittest.TestCase):
@@ -549,6 +684,12 @@ class PipelineDocTests(unittest.TestCase):
             for prefix in rule.prefixes:
                 self.assertIn(prefix, self.text,
                               f"rule '{rule.id}' matches {prefix} but PIPELINE.md never says so")
+
+    def test_the_gate_option_is_documented(self):
+        """D34: the phase-close mirror check lives behind --gate."""
+        # The phrase may wrap across a line in the Markdown source.
+        self.assertRegex(self.text, r"verify\.py docs\s+--gate")
+        self.assertIn("D34", self.text)
 
     def test_the_readme_points_at_the_tool(self):
         readme = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8")
