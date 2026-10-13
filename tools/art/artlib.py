@@ -199,6 +199,30 @@ class Overlay:
         d.line(self._p(pts), fill=fill, width=int(round(width * self.s)))
         self._commit(layer)
 
+    def line_tiled(self, pts, fill, width=1.0):
+        """`line`, but drawn nine times: once in place and once shifted by
+        each combination of +-w, +-h. A stroke that leaves one edge therefore
+        re-enters on the opposite one, which is what a texture declared
+        "Tiles: yes" needs.
+
+        The noise fields wrap by construction (`value_noise` indexes a
+        lattice modulo its period) but vector strokes do not: an Overlay
+        clips at the canvas, so a crack or a scratch used to stop dead at the
+        tile border (QA BUG-ART-001). All nine copies go on ONE layer so a
+        semi-transparent stroke that overlaps its own wrapped copy is not
+        composited twice and darkened.
+
+        Only strokes whose length is under the texture size wrap correctly
+        with a single ring of neighbours; that holds for every stroke in this
+        project (cracks reach ~50 px on a 64 px flat).
+        """
+        layer, d = self._layer()
+        w = int(round(width * self.s))
+        for dx in (-self.w, 0, self.w):
+            for dy in (-self.h, 0, self.h):
+                d.line(self._p([(x + dx, y + dy) for x, y in pts]), fill=fill, width=w)
+        self._commit(layer)
+
     def arc_ring(self, cx, cy, r_out, r_in, start, end, fill):
         """Thick arc (ring sector) between angles start..end in degrees
         (Pillow convention: 0 = +x, 90 = +y i.e. down, clockwise)."""

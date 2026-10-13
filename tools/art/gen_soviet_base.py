@@ -169,7 +169,17 @@ LAMP_TUBE = (14, 27, 50, 37)
 LAMP_GLOW_R = 22.0
 
 
+# Every offset handed to rng_for() since the list was last cleared. main()
+# uses it to check that the seed written into the manifest is the seed the
+# builder actually asked for: the manifest used to derive the seed from the
+# row's position in TEXTURES, so dropping SDPOSTR1 from the list silently
+# desynchronised the six rows after it (QA BUG-ART-003). The offset is now
+# declared per row and verified here, so the two cannot drift again.
+_SEEDS_USED: list[int] = []
+
+
 def rng_for(seed_offset: int) -> np.random.Generator:
+    _SEEDS_USED.append(seed_offset)
     return np.random.default_rng(BATCH_SEED + seed_offset)
 
 
@@ -343,13 +353,14 @@ def tex_stel1():
     steel_f = 0.38 + 0.22 * fbm(w, h, 12, 2, rng)
     steel = to_rgb(steel_f, "steel_blue")
     rgb = np.where(chip[..., None], steel, rgb)
-    # scratches: thin lighter lines
+    # scratches: thin lighter lines. Tiled for the same reason as the floor
+    # cracks (QA BUG-ART-001): this wall is declared "Tiles: yes".
     ov = Overlay(w, h)
     light = ramp_colour("military_green", 0.85)
     for _ in range(STEEL_SCRATCHES):
         x, y = rng.uniform(0, w), rng.uniform(0, h)
         dx, dy = rng.uniform(-10, 10), rng.uniform(-4, 4)
-        ov.line([(x, y), (x + dx, y + dy)], light + (120,), 0.5)
+        ov.line_tiled([(x, y), (x + dx, y + dy)], light + (120,), 0.5)
     # rivets at plate corners (inset) with rust streak under each
     rust_mask = np.zeros((h, w))
     hi = ramp_colour("military_green", 0.95)
@@ -536,7 +547,13 @@ def floor_concrete(rng, mid=FLOOR_MID):
 
 
 def cracks(rgb, rng, n):
-    """Thin dark cracks: polylines whose heading drifts a little per step."""
+    """Thin dark cracks: polylines whose heading drifts a little per step.
+
+    Drawn with `line_tiled`, so a crack that leaves the flat at one edge
+    continues on the opposite one (QA BUG-ART-001): SDFLR1/2/3 are declared
+    "Tiles: yes" and are the largest surface of MAP01, where a hairline
+    stopping dead at the tile border draws the grid for the player.
+    """
     h, w = rgb.shape[:2]
     ov = Overlay(w, h)
     dark = ramp_colour("concrete_cold", 0.18) + (200,)
@@ -549,7 +566,7 @@ def cracks(rgb, rng, n):
             step = rng.uniform(3, 6)
             x, y = x + np.cos(ang) * step, y + np.sin(ang) * step
             pts.append((x, y))
-        ov.line(pts, dark, CRACK_WIDTH)
+        ov.line_tiled(pts, dark, CRACK_WIDTH)
     return ov.composite(rgb)
 
 
@@ -633,7 +650,31 @@ def tex_ceil2():
 
 
 # ============================================================== manifest
-# lump, builder, kind, description EN, description RU, extra notes EN/RU
+# The seed offset every texture is built with, declared per lump.
+#
+# QA BUG-ART-003: the manifest used to write `BATCH_SEED + <row position in
+# TEXTURES>` while each builder hardcodes its own `rng_for(n)`, so when
+# SDPOSTR1 left the list (it moved to gen_lenin.py) the six rows after it
+# recorded a seed one short of the seed they were built with and the
+# manifest stopped reproducing the bytes. Keyed by lump rather than by
+# position on purpose: that is what made the two drift. main() asserts that
+# each builder really asks rng_for() for the offset declared here, so the
+# declaration and the code cannot disagree again, and these numbers are the
+# ones quoted as the origin in docs/art/TEXTURE-INDEX.md.
+#
+# (It is a mapping and not a sixth column of TEXTURES because the rows of
+# that list are unpacked as exactly five elements by tests/test_art.py and
+# tests/test_generators.py.)
+SEED_OFFSET = {
+    "SDCONC1": 1, "SDCONC2": 2, "SDSTAR1": 3, "SDSTEL1": 4, "SDDOOR1": 5,
+    # 6 belonged to the discarded in-script Lenin poster; gen_lenin.py owns
+    # SDPOSTR1 now and keeps its own seed. The gap is deliberate: reusing 6
+    # would change the bytes of every texture after it.
+    "SDPOSTR2": 7,
+    "SDFLR1": 8, "SDFLR2": 9, "SDFLR3": 10, "SDCEIL1": 11, "SDCEIL2": 12,
+}
+
+# lump, builder, kind, description EN, description RU
 TEXTURES = [
     ("SDCONC1", tex_conc1, "wall",
      "Prefab concrete wall panels in running bond, grime under the joints.",
@@ -684,9 +725,17 @@ FONT_NOTE_RU = ("Кириллический текст набран систем
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     entries = []
-    for i, (lump, builder, kind, desc_en, desc_ru) in enumerate(TEXTURES, start=1):
+    assert len(set(SEED_OFFSET.values())) == len(SEED_OFFSET), "two textures share a seed offset"
+    assert set(SEED_OFFSET) == {t[0] for t in TEXTURES}, "SEED_OFFSET and TEXTURES disagree on the lumps"
+    for lump, builder, kind, desc_en, desc_ru in TEXTURES:
         assert len(lump) <= 8 and lump.isupper() and lump.startswith("SD"), lump
+        seed_offset = SEED_OFFSET[lump]
+        _SEEDS_USED.clear()
         rgb = builder()
+        assert _SEEDS_USED, f"{lump}: builder never asked rng_for() for a seed"
+        assert _SEEDS_USED[0] == seed_offset, (
+            f"{lump}: TEXTURES declares seed offset {seed_offset} but the builder "
+            f"used {_SEEDS_USED[0]} (BUG-ART-003: the two drifted again)")
         h, w = rgb.shape[:2]
         path = OUT_DIR / f"{lump}.png"
         img = save_indexed(rgb, path)
@@ -694,7 +743,7 @@ def main() -> None:
         entries.append({
             "lump": lump, "kind": kind, "set": SET_NAME, "width": w, "height": h,
             "file": str(path.relative_to(PROJECT_ROOT)),
-            "script": SCRIPT_REL, "seed": BATCH_SEED + i, "seed_offset": i,
+            "script": SCRIPT_REL, "seed": BATCH_SEED + seed_offset, "seed_offset": seed_offset,
             "colours_used": colours,
             "seam_score": round(tiling_seam_score(rgb), 2),
             "description_en": desc_en, "description_ru": desc_ru,
