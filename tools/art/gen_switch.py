@@ -263,12 +263,46 @@ def stencil(ov: Overlay, cy: float, text: str = STENCIL) -> None:
 # swaps SDSWT1 for SDSWT2 the player must see the switch change, not the
 # wall change.
 
-VAR_A_BOARD = (10, 16, 54, 90)      # bakelite board
-VAR_A_JAW_Y = 26
-VAR_A_PIVOT = (20, 80)
+# Variant A's lower zone is the one place in the batch where three separate
+# elements share a 64 px column, and the first pass overlapped two of them:
+# the stencil spanned y 90-104 and the lamp y 99-113, so the lamp sat on the
+# word, and the board's bottom edge at y 90 touched the top of the same word.
+# The CEO saw it immediately ("se pisan unas cosas a otras"). The fix is not
+# nudging pixels until it looks right: the three boxes are laid out from the
+# bottom up with declared gaps, and _check_var_a_layout() below refuses to
+# import if they ever touch again.
+VAR_A_BOARD = (10, 14, 54, 82)      # bakelite board
+VAR_A_JAW_Y = 24
+VAR_A_PIVOT = (20, 72)
 VAR_A_BLADE_W = 5.0
-VAR_A_LAMP = (32, 106, 7)           # cx, cy, r
-VAR_A_STENCIL_Y = 97
+VAR_A_LAMP = (32, 112, 6)           # cx, cy, r
+VAR_A_STENCIL_Y = 92
+VAR_A_MIN_GAP = 3                   # px of plate that must show between them
+
+
+def var_a_boxes() -> dict:
+    """The three stacked elements as (top, bottom) in texture pixels."""
+    return {
+        "board": (VAR_A_BOARD[1], VAR_A_BOARD[3]),
+        "stencil": (VAR_A_STENCIL_Y - STENCIL_SIZE / 2, VAR_A_STENCIL_Y + STENCIL_SIZE / 2),
+        "lamp": (VAR_A_LAMP[1] - VAR_A_LAMP[2], VAR_A_LAMP[1] + VAR_A_LAMP[2]),
+    }
+
+
+def _check_var_a_layout() -> None:
+    order = ["board", "stencil", "lamp"]
+    boxes = var_a_boxes()
+    for upper, lower in zip(order, order[1:]):
+        gap = boxes[lower][0] - boxes[upper][1]
+        if gap < VAR_A_MIN_GAP:
+            raise ValueError(
+                f"variant A layout: {upper} ends at {boxes[upper][1]} and {lower} "
+                f"starts at {boxes[lower][0]}, gap {gap} < {VAR_A_MIN_GAP}")
+    if boxes["lamp"][1] > H - RECESS - BEVEL - 1:
+        raise ValueError("variant A layout: the lamp runs into the plate border")
+
+
+_check_var_a_layout()
 
 
 def variant_a(on: bool, rng: np.random.Generator) -> np.ndarray:
@@ -291,7 +325,7 @@ def variant_a(on: bool, rng: np.random.Generator) -> np.ndarray:
     px, py = VAR_A_PIVOT
     ov.ellipse(px - 3, py - 3, px + 3, py + 3, fill=ramp_colour("steel_blue", 0.30))
     # blade: closed (up into the jaws) when on, swung down-right when off
-    tip = (x1 - 11, VAR_A_JAW_Y) if on else (x1 - 6, py - 4)
+    tip = (x1 - 11, VAR_A_JAW_Y) if on else (x1 - 6, py - 4)  # stays inside the board
     g = ov.group(outline=ramp_colour("concrete_cold", 0.04), outline_width=1.0)
     g.line([(px, py), tip], ramp_colour("steel_blue", 0.62), VAR_A_BLADE_W)
     ov.end_group(g)

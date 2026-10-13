@@ -69,7 +69,12 @@ MAP01_LUMP = "D_SDM01"
 TICS_PER_SECOND = 35
 RENDER_WAIT_TICS = 70          # ~2 s for the engine to settle before rendering
 RENDER_SETTLE_TICS = 140       # ~4 s for writewave to finish and flush
-RENDER_TIMEOUT_S = 180.0
+# `writewave` synthesises faster than real time but not by a large factor, and
+# the candidate set contains two pieces of ten minutes. Twelve files took
+# ~175 s on this machine, which overran the first 180 s budget *after* every
+# WAV had been written correctly — a false failure. Ten minutes is slack
+# enough for the whole set plus the settle-and-quit tail.
+RENDER_TIMEOUT_S = 600.0
 RENDER_SAMPLE_RATE = 44100
 
 # A WAV that is all zeroes means the synth produced nothing: the file loaded
@@ -199,7 +204,19 @@ def cmd_render(expected: dict[str, float], use_candidates: bool = False) -> int:
     console.append(f"wait {RENDER_SETTLE_TICS}")
     console.append("quit")
 
-    args = [str(gzdoom), "-iwad", str(iwad), "-file", str(MOD_PK3), "-file", str(TEST_PK3),
+    # `--render` deliberately does NOT load dist/sovietdoom.pk3; `--play` does.
+    #
+    # Two reasons, in order of importance. (1) The mod PK3 contributes nothing
+    # to a `writewave` render: it ships no soundfont, no MIDI lump and no
+    # sound CVar (`grep -i 'midi\|soundfont\|snd_' src/lumps/` is empty), so
+    # the synthesis is byte-for-byte the FluidSynth + bundled `gzdoom.sf2`
+    # path the player gets. (2) Loading it while another agent is rebuilding
+    # it was observed, 2026-10-13, to leave the engine alive after the last
+    # `writewave` so it never reached `quit` — a false timeout on a render
+    # that had already written every WAV. Measurement must not depend on
+    # somebody else's build being mid-flight. `--play` keeps the mod because
+    # there the point IS the real game: title screen, menu, MAP01.
+    args = [str(gzdoom), "-iwad", str(iwad), "-file", str(TEST_PK3),
             "+logfile", str(log), "-nosound", "+vid_fullscreen", "0",
             "+" + "; ".join(console)]
     print(" ".join(args))

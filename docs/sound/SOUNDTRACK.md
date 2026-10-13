@@ -1,385 +1,598 @@
 # Soundtrack — the music lumps, one card per piece
 
 Living document. Owner: `sound-designer`. Russian mirror: `docs/ru/sound/SOUNDTRACK.md` (D7).
-Created: 2026-10-13 (F2, first music). Rights frame: `docs/sound/MUSIC-RIGHTS.md`.
+Created 2026-10-13 (F2, first music); candidate list **closed** 2026-10-13.
+Rights frame: `docs/sound/MUSIC-RIGHTS.md` — that document owns every licence
+fact and this one owns every sound fact.
 
-Decision **D16** (CEO, 2026-10-13): *"el camino correcto es instrumental en
-MIDI"*. No Soviet recording of anything enters this mod.
+Decision **D16** (CEO, 2026-10-13): *"el camino correcto es instrumental en MIDI"*.
+No Soviet recording of anything enters this mod.
+Same day, two further CEO instructions: *"no construyas tú los MIDIs, mejor
+descargarlos"* and *"Sí a LA INTERNACIONAL"* for the title screen, plus the
+verdict that our own two pieces are *"un poco simples"*. **D16's wording
+(«our own instrumental MIDI sequences») no longer matches what we are
+shipping** — the title piece is a downloaded, attribution-licensed sequence.
+That needs a new D-number; see "Decisions needed", point 0.
 
-Revised verdict (CEO, 2026-10-13, same day): the generated pieces are
-*"un poco simples"*; **yes to the Internationale** for the title; and
-*"no construyas tú los MIDIs, mejor descargarlos"*. So the plan is now:
+> **Nothing below is approved and nothing is in the PK3.** Downloads live in
+> `work/audio/candidates/`, our own and our repaired files in `work/audio/`.
+> Nothing enters `assets/` without an explicit approval, exactly as with the
+> textures.
 
-| | Plan |
-|---|---|
-| **A — current** | ship **downloaded, licence-cleared** MIDIs of real repertoire. §A below. |
-| **B — kept, not deleted** | the two pieces we generated (`tools/audio/gen_music.py`, cards 1 and 2 at the bottom). They remain the fallback for any cue no free MIDI exists for, and they are the reason the rights position is airtight. |
+> ⚠️ **And `work/` is gitignored, so none of it is version-controlled.**
+> Verified: `.gitignore:16` is a bare `work/`, and `git ls-files work/` returns
+> nothing. The twelve downloaded MIDIs, the repaired `D_SDINTL.mid` and the two
+> `D_SDFIX*.mid` exist **only on this machine**. Combined with the sourcing gap
+> in §3.1 — seven of the twelve have no recorded per-piece URL — a clean
+> checkout cannot reproduce this candidate set. This is deliberate for art
+> (batch PNGs live embedded in previews) but it is wrong for music, where the
+> artefact *is* the file and the provenance is external. **Request to the PM,
+> who owns `.gitignore` and the commits:** either narrow the ignore so
+> `work/audio/candidates/` is tracked, or treat §3.1's URL re-verification as
+> a blocker before this list is relied on again. I have not touched
+> `.gitignore`.
 
-> **Nothing below is approved and nothing is in the PK3.** Candidates live in
-> `work/audio/candidates/`, our own drafts in `work/audio/`. Nothing enters
-> `assets/` without an explicit approval, exactly as with the textures.
+---
 
-## How to listen
+## 0. The recommendation, in four lines
+
+| Cue | File | Why |
+|---|---|---|
+| **Title screen** | **`work/audio/D_SDINTL.mid`** — Engelbach's orchestral *Internationale*, head silence removed by us | the CEO's choice, the only downloaded file that is finished orchestral music, and now the only one with no measurable defect at all |
+| **MAP01** | **`work/audio/D_SDM01.mid`** — our own "Zarya-7" | the only candidate of any origin that is *written as a game loop*: 2:22, dark, restarts from 25 % instead of slamming. The alternative is a ten-minute solo-piano transcription |
+| **Diegetic radio** | `WM_Ej_uchnem.mid`, `WM_Kolokolchik.mid` — CC0, already orchestrated | free of every obligation, 40-50 s, right texture for the Leninskaya komnata |
+| **Our `D_SDTITL`** | **reserved, not retired** | it is no longer the title theme, but it is a finished 1:21 Soviet march in D minor and the natural intermission / episode-end cue |
+
+Three of the twelve downloads are **discarded** and six are kept as named
+reserves (§3). Two needed repair and got it (§5). The full reasoning is below; the thing I need decided is in §8.
+
+---
+
+## 1. How to listen
+
+The CEO heard nothing on the first attempt because his personal `gzdoom.ini`
+had `snd_musicvolume` at **0** while the engine was playing correctly. The
+tool no longer depends on anyone's mixer: it passes `-config` pointing at
+`logs/gzdoom-tooling.ini` and sets `snd_musicvolume 0.8` on the command line,
+so it also stops writing state back into the CEO's own preferences.
 
 ```bash
-# the downloaded candidates (packed as D_CND01..D_CND12)
-python3 tools/audio/audition.py --pack --candidates          # see the lump map
-python3 tools/audio/audition.py --play title --candidates --lump D_CND10
-python3 tools/audio/audition.py --play map01 --candidates --lump D_CND01
+python3 tools/build.py                                   # the overlay loads on top of this
 
-# our own drafts (plan B)
-python3 tools/audio/gen_music.py                     # -> work/audio/*.mid
-python3 tools/audio/audition.py --play title         # title screen theme
-python3 tools/audio/audition.py --play map01         # MAP01 with its music
+# the two recommendations
+python3 tools/audio/audition.py --play title --lump D_SDINTL   # the Internationale, repaired
+python3 tools/audio/audition.py --play map01 --lump D_SDM01    # our MAP01 loop
+
+# our title march, now proposed for the intermission instead
+python3 tools/audio/audition.py --play title --lump D_SDTITL
+
+# the downloaded candidates (packed as D_CND01..D_CND12; the map is printed)
+python3 tools/audio/audition.py --pack --candidates
+python3 tools/audio/audition.py --play map01 --candidates --lump D_CND01   # Bald Mountain
+python3 tools/audio/audition.py --play title --candidates --lump D_CND09   # Эй, ухнем
 ```
 
 `audition.py` packs MIDIs into a throwaway overlay PK3 with its own MAPINFO
 and loads it **on top of** `dist/sovietdoom.pk3`. The shipped
-`src/lumps/MAPINFO` is not touched; deleting `work/audio/sd-music-draft.pk3`
+`src/lumps/MAPINFO` is never touched; deleting `work/audio/sd-music-draft.pk3`
 puts everything back. Downloaded files get positional lump names because
-their real names are not valid lumps; `--pack --candidates` prints the map and
-writes it to `work/audio/candidates-lumps.txt`.
+their own names are not valid lumps.
 
-Two other tools, both read-only:
+The five tools, all of them mine, all documented in their own docstrings:
 
-```bash
-python3 tools/audio/midi_inspect.py work/audio/candidates/*.mid   # what is IN the file
-python3 tools/audio/audition.py --render --candidates             # engine renders each to WAV
-```
-
-For plan B, to change how a piece sounds, edit a constant in section 2 of
-`tools/audio/gen_music.py` and run the generator again — or, for tempo only:
-
-```bash
-python3 tools/audio/gen_music.py --title-tempo 72 --map01-tempo 96
-```
+| Tool | What it does | Writes |
+|---|---|---|
+| `tools/audio/midi_inspect.py` | reads the bytes: tempo map, GM programs per channel, note count, hanging notes | nothing |
+| `tools/audio/audition.py` | packs the overlay; `--play` launches the game, `--render` makes GZDoom synthesise every file to WAV | `work/audio/`, `logs/` |
+| `tools/audio/wav_report.py` | measures a render: peak, clipping, head/tail silence, the 12-slot loudness arc, brightness | nothing |
+| `tools/audio/midi_edit.py` | the only one that changes a MIDI, and only mechanically: `--trim-head`, `--velocity`, `--loop-tail` | a new file, never in place |
+| `tools/audio/gen_music.py` | generates our own two pieces (plan B, §6) | `work/audio/*.mid` |
 
 ---
 
-# A. Downloaded candidates (2026-10-13)
+## 2. How the verdicts were reached, and the limit of them
 
-Twelve files, 204 KB total, every one with a **verifiable per-file licence on
-the sequencing**, not merely a public-domain composition — the distinction
-that disqualifies the entire Soviet-MIDI corpus on the usual free-MIDI sites.
-The rights audit, including the eleven sources rejected, is
-`docs/sound/MUSIC-RIGHTS.md` §4.4; §1.2 explains why a MIDI needs its own
-licence at all. This section is only about **how they sound**.
+**Stated plainly, because it decides how much the table below is worth: I
+cannot hear.** Every verdict in §3 is an *instrumented* audition, not a human
+one. What that can and cannot settle:
 
-## A.1 How they were judged
+| Decidable from measurement | Needs the CEO's ears |
+|---|---|
+| the file parses; no hanging notes | whether the piece is *good* |
+| the written tempo, and that the render matches it (so: no absurd speed) | whether that tempo feels right under gameplay |
+| which GM instrument every channel asks for (so: no mis-assignment) | whether those instruments sound right in `gzdoom.sf2` |
+| peak level, clipped samples, head and tail silence | whether the mix is muddy |
+| the loudness arc — does anything enter, build, leave | whether the arc is *musically* convincing |
+| note density per voice | taste, period feel, tone |
 
-Not by looking at the filenames. Each file was parsed byte by byte
-(`tools/audio/midi_inspect.py`: tempo map, General MIDI programs, note count,
-hanging notes) and then **synthesised by GZDoom itself** via `writewave`
-(`audition.py --render --candidates`), and the resulting WAVs measured for
-duration, peak amplitude, clipping and a twelve-slot loudness arc.
+The chain, for every file: parsed byte by byte with `midi_inspect.py`, then
+**synthesised by GZDoom itself** with the engine's `writewave` console
+command (`audition.py --render`), then the WAVs measured with
+`wav_report.py`. So the numbers come out of the same FluidSynth +
+`gzdoom.sf2` path the player will hear, not out of a third-party player.
 
-All twelve parsed cleanly, all twelve produced sound, **zero hanging notes**
-anywhere, and the rendered durations matched the tempo maps to within 1 s.
-`logs/audition-render.log`. The engine was confirmed to play one of them for
-real: with `D_CND10` wired into MAPINFO, GZDoom's `currentmusic` answers
-`Currently playing music 'D_CND10'` on both the title screen and MAP01, with
-no errors — `logs/audition-cand-title.log`, `logs/audition-cand-map.log`.
+All twelve downloads parsed cleanly, all twelve produced sound, **zero
+hanging notes anywhere**, and every rendered duration matched its tempo map
+to within a second. Re-running the whole measurement is two commands:
 
-> **Trap for QA, found here:** with `snd_musicvolume 0` GZDoom reports
-> *"Currently no music playing"* even when the lump is correctly wired. Any
-> future check of `currentmusic` must run with a non-zero music volume
-> (`0.02` is inaudible and sufficient).
+```bash
+python3 tools/audio/audition.py --render --candidates     # ~3 min, writes 762 MB of WAV
+.venv/bin/python tools/audio/wav_report.py work/audio/render-candidates/*.wav
+```
 
-The WAVs themselves came to **762 MB** for twelve files — 32-bit float at
-44.1 kHz, which is what `writewave` emits — so they are **not kept**. The
-measurements below are the output; regenerate the audio in one command when
-you want to re-check a number:
-`python3 tools/audio/audition.py --render --candidates`.
+The WAVs are **not kept** — `writewave` emits 32-bit float at 44.1 kHz, so
+twelve files come to 762 MB. Regenerate them when you want to re-check a
+number.
 
-## A.2 The table
+### 2.1 Three findings about the engine, worth more than any one file
 
-Sorted by how useful they are. "Arc" is the measured loudness shape across the
-piece, as a percentage of its own loudest moment — the thing the CEO was
-missing when he called our own pieces simple.
+1. **With `snd_musicvolume 0`, GZDoom's `currentmusic` answers "Currently no
+   music playing"** even when the lump is correctly wired. Any future check
+   of `currentmusic` must run with a non-zero music volume; `0.02` is
+   inaudible and sufficient. This is a trap for `qa-engineer`.
+2. **`--render` no longer loads `dist/sovietdoom.pk3`, on purpose.** The mod
+   PK3 contributes nothing to a `writewave` render — it ships no soundfont, no
+   MIDI lump and no sound CVar (`grep -i 'midi\|soundfont\|snd_' src/lumps/`
+   is empty), so the synthesis is identical. And loading it while another
+   agent was rebuilding it left the engine alive after the last `writewave`,
+   so it never reached `quit`: a **false timeout on a render that had already
+   written every WAV correctly**. Measurement must not depend on someone
+   else's build being mid-flight. `--play` still loads the mod, because there
+   the point is the real game.
+3. **GZDoom ignores End-of-Track padding.** `midi_edit.py --loop-tail 2` on
+   the Internationale produced a **byte-identical render** (sha256
+   `a0214c14…` for both), so there is no way to buy a breath before the loop
+   restart by padding the file. If the title loop turns out to need one, it
+   has to be real trailing notes or a decaying chord, not silence. *The
+   in-game loop point was not separately tested against the file end —
+   **NOT VERIFIED** that playback and `writewave` agree on this.*
 
-| Lump | File | Work | Length · tempo | What is actually in the MIDI | Measured arc | Verdict |
+### 2.2 The engine really plays the recommended files
+
+Fresh evidence, this session, non-zero music volume, logs with **zero**
+errors or warnings (`grep -icE 'error|warning|unknown|cannot|failed'` = 0):
+
+| Claim | Evidence |
+|---|---|
+| `D_SDINTL` plays on the title screen | `Currently playing music 'D_SDINTL'` — `logs/audition-intl-title.log` |
+| `D_SDINTL` plays on MAP01 | same answer — `logs/audition-intl-map.log` |
+| `D_SDM01` plays on MAP01 | `Currently playing music 'D_SDM01'` — `logs/audition-m01.log` |
+| every candidate synthesises | 12/12 WAVs written, measured — §3 |
+
+---
+
+## 3. The closed candidate table
+
+Twelve files, **186 170 B (182 KiB)** in total. Two tables, one key: the lump
+name. The first is where each file came from and what we may do with it; the
+second is what it actually sounds like. Rights detail and the eleven sources
+rejected before download are `MUSIC-RIGHTS.md` §4.4.
+
+### 3.1 Provenance, licence, size
+
+Licence text is quoted as the file's own page states it, not paraphrased. The
+distinction that governs the whole list: **a free composition does not imply a
+free sequencing** (`MUSIC-RIGHTS.md` §1.2), and **CC BY-SA is unusable for us**
+because D15 ships assets as CC BY-NC-SA 4.0 and ShareAlike forbids adding the
+NonCommercial term.
+
+| Lump | File · size | Work (original · transliterated) | Source URL | Sequencer / typesetter | Licence, verbatim | D15 |
 |---|---|---|---|---|---|---|
-| `D_CND10` | `WM_Internationale_orch2.mid` | **Интернационал**, orchestral | **1:27** · 90 BPM 4/4 | **A real orchestration**: piccolo, flute, oboe, clarinet, bassoon, horn, trumpet, trombone, tuba, timpani, 5 string parts **and a drum channel** — 16 channels, 12 distinct GM voices, 1 063 notes | **37 44 44 36 37 43 57 45 46 78 90 100** | ✅ **TAKE IT. Title screen.** The only downloaded file that is finished music rather than a score preview. One flaw: **1.99 s of digital silence at the head** (§A.4.1) |
-| `D_CND01` | `MU_Mussorgsky_BaldMountain.mid` | **Ночь на лысой горе**, Chernov's piano transcription | **10:11** · 180 BPM 2/2 | 9 313 notes, two hands, **no program changes** → solo piano | 98 100 80 83 78 98 85 86 80 79 74 67 | ⚠️ **Best MAP01 candidate, but needs orchestrating by us.** Right length, right menace, wrong timbre |
-| `D_CND06` | `MU_Tchaikovsky_Dumka_op59.mid` | **Думка** op. 59, "Russian rustic scene" | **9:33** · 60 BPM, tempo changes | 4 279 notes, solo piano | 55 44 76 63 81 64 96 68 100 80 40 44 | ⚠️ MAP01 alternative: slower, bleaker, genuinely Russian, and its arc already breathes. Same orchestration problem |
-| `D_CND09` | `WM_Ej_uchnem.mid` | **Эй, ухнем** (Volga Boatmen), Balakirev | 0:49 · 81 BPM | 4 parts with **real instruments assigned** — violin, cello, oboe, clarinet. CC0 | 70 71 77 70 76 70 88 75 73 79 99 100 | ✅ **Usable as-is.** Too short for a map; ideal diegetic radio or an intermission cue |
-| `D_CND12` | `WM_Kolokolchik.mid` | **Колокольчик**, Russian traditional | 0:38 · 80 BPM | celesta, cello, flute. CC0 | 86 93 93 93 92 87 95 100 88 96 86 69 | ✅ **Usable as-is.** Quiet, domestic, slightly sad — the Leninskaya komnata radio |
-| `D_CND07` | `MU_Tchaikovsky_Seasons_August.mid` | **Времена года: Август** ("Harvest") | 5:31 · 108 BPM 6/8 | solo piano, agitated perpetual motion | 82 85 85 100 67 63 66 66 83 86 81 100 | ⚠️ Driving enough for a fight, but **peak 0.982 — at the ceiling.** Needs its velocities pulled down before anything else |
-| `D_CND03` | `MU_Scriabin_Etude_op2n1.mid` | **Этюд** op. 2 № 1 | 2:15 · 60 BPM 3/4 | solo piano, C♯ minor, dies away | 75 85 63 83 42 62 97 100 62 31 29 20 | ⚠️ **Clips: 4 samples over full scale, peak 1.011.** Fixable. Lovely shape for a death/aftermath cue once fixed |
-| `D_CND05` | `MU_Scriabin_Prelude_op59n2.mid` | **Прелюдия** op. 59 № 2 | 1:28 · 126 BPM 6/8 | solo piano, unsettled late Scriabin | 87 91 85 82 94 81 89 100 84 91 90 74 | ⚠️ Good mood for an alien zone, far too short and too flat to loop |
-| `D_CND11` | `WM_Internationale_piano_Bb.mid` | **Интернационал**, piano in B♭ | 1:22 · 96 BPM | solo piano, 412 notes, **peak 0.185 — very quiet** | 80 94 100 88 86 91 91 85 84 91 99 80 | ⚠️ Keep as a *diegetic* Internationale (a piano heard through a wall). Not the title |
-| `D_CND04` | `MU_Scriabin_Prelude_op11n1.mid` | **Прелюдия** op. 11 № 1 | 0:42 · 140 BPM | solo piano | 74 82 78 86 74 75 81 77 100 96 89 74 | ⚠️ Too short to be anything but a sting |
-| `D_CND02` | `MU_RimskyKorsakov_FugueBACH.mid` | *Fugue sur le nom de BACH* | 2:03 · 140 BPM 4/2 | solo piano, academic fugue | 77 88 90 100 88 92 79 95 80 74 81 80 | ❌ **Discard.** Free and clean, but it is a conservatory exercise on a German name. Nothing Russian reaches the listener |
-| `D_CND08` | `MU_Tchaikovsky_WoodenSoldiers.mid` | **Марш деревянных солдатиков** | 0:41 · 140 BPM 2/4 | solo piano, toy march | 95 98 95 96 99 94 98 97 95 100 92 92 | ❌ **Discard.** A children's march, and the flattest arc in the set (92-100 throughout). Wrong tone for 1977 and for this game |
+| `D_CND10` | `WM_Internationale_orch2.mid` · 8 922 B | **Интернационал** / *Internatsional*, orchestral; De Geyter 1888 | https://commons.wikimedia.org/wiki/File:Internationale_orch2.mid | **Jerry Engelbach**, USA, 2003 | `{{Attribution\|Jerry Engelbach}}` + VRT permission ticket 2008011810001789; melody `{{PD-Internationale}}` | ✅ **credit Engelbach** |
+| `D_CND11` | `WM_Internationale_piano_Bb.mid` · 3 538 B | **Интернационал**, piano in B♭ | https://commons.wikimedia.org/wiki/File:Internationale-piano-Bb.mid | **Jerry Engelbach**, USA, 2001 | same as above | ✅ **credit Engelbach** |
+| `D_CND09` | `WM_Ej_uchnem.mid` · 2 140 B | **Эй, ухнем** / *Ey, ukhnem* (Volga Boatmen), Balakirev's setting, pub. 1866 | https://commons.wikimedia.org/wiki/File:Ej,_uchnem!.mid | **Peter Gerloff** (Commons: *Rabanus Flavus*), 2021 | `{{self\|Cc-zero}}` — **CC0 1.0**, "waives all of his or her rights to the work worldwide" | ✅ no obligation |
+| `D_CND12` | `WM_Kolokolchik.mid` · 2 354 B | **Колокольчик** / *Kolokolchik*, Russian traditional | https://commons.wikimedia.org/wiki/File:Kolokolchik.mid | **Peter Gerloff**, 2019 | `{{self\|Cc-zero}}` — **CC0 1.0** | ✅ no obligation |
+| `D_CND01` | `MU_Mussorgsky_BaldMountain.mid` · 79 556 B | **Ночь на лысой горе** / *Noch na lysoy gore*; Mussorgsky d. 1881, piano transcription by Konstantin Chernov d. 1944 | https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1892 | typeset **Robert Clausecker**, Mutopia Project, 2013 | **CC BY 3.0** | ✅ **credit Clausecker + Mutopia** |
+| `D_CND06` | `MU_Tchaikovsky_Dumka_op59.mid` · 36 268 B | **Думка** / *Dumka* op. 59 (1886), "Russian rustic scene" | Mutopia, piece record **not recorded at download** — browse: https://www.mutopiaproject.org/browse.html | Mutopia Project (LilyPond, staves `up`/`down`) | **Public Domain** | ✅ |
+| `D_CND07` | `MU_Tchaikovsky_Seasons_August.mid` · 21 748 B | **Времена года: Август** / *Vremena goda: Avgust* ("Harvest", 1876) | Mutopia, piece record **not recorded at download** | Mutopia Project (LilyPond 2.8.6, 21 Aug 2006) | **Public Domain** | ✅ |
+| `D_CND03` | `MU_Scriabin_Etude_op2n1.mid` · 10 313 B | **Этюд** / *Etyud* op. 2 № 1 (1887) | Mutopia, piece record **not recorded at download** | Mutopia Project (LilyPond) | **Public Domain** | ✅ |
+| `D_CND05` | `MU_Scriabin_Prelude_op59n2.mid` · 7 789 B | **Прелюдия** / *Prelyudiya* op. 59 № 2 (1910) | Mutopia, piece record **not recorded at download** | Mutopia Project (LilyPond) | **Public Domain** | ✅ |
+| `D_CND04` | `MU_Scriabin_Prelude_op11n1.mid` · 4 910 B | **Прелюдия** op. 11 № 1 | Mutopia, piece record **not recorded at download** | Mutopia Project (LilyPond) | **Public Domain** | ✅ |
+| `D_CND02` | `MU_RimskyKorsakov_FugueBACH.mid` · 5 649 B | *Fugue sur le nom de BACH*; Rimsky-Korsakov d. 1908 | Mutopia, piece record **not recorded at download** | Mutopia Project (LilyPond) | **Public Domain** | ✅ |
+| `D_CND08` | `MU_Tchaikovsky_WoodenSoldiers.mid` · 2 983 B | **Марш деревянных солдатиков** / *Marsh derevyannykh soldatikov* op. 39 | Mutopia, piece record **not recorded at download** | Mutopia Project (LilyPond) | **Public Domain** | ✅ |
 
-## A.3 The honest finding about downloading
+> **Gap I am flagging rather than papering over.** The per-piece Mutopia URL
+> was recorded only for *Night on Bald Mountain* (id 1892). For the other
+> seven, the licence was read from the per-piece record on 2026-10-13 but the
+> record's address was not written down, and the files themselves carry no
+> provenance beyond `creator: GNU LilyPond <version>`. All seven are
+> **Public Domain**, so no attribution duty is at risk — but a Public-Domain
+> claim whose page we cannot point at is a claim resting on my memory.
+> **Before any of those seven is packed, its piece URL must be re-verified
+> and written into `MUSIC-RIGHTS.md` §4.4.** Bald Mountain, the one with a
+> real attribution obligation, is the one that is fully sourced.
 
-The CEO's instinct was right about the Internationale and it paid off
-immediately: `D_CND10` is better than anything we would have written, because
-Engelbach actually orchestrated it. Read off the file's own channel timeline,
+### 3.2 What they actually sound like
+
+All numbers from GZDoom's own render. **Arc** is RMS per twelfth of the piece
+as a percentage of its own loudest twelfth — the measurable form of the CEO's
+word *simple*: a flat arc means nothing enters, builds or leaves.
+**Voices** is distinct GM programs; **n/s per voice** is note density divided
+by channels, which separates an orchestral texture from piano mud.
+Sorted by usefulness.
+
+| Lump | Length · tempo | Voices · channels | n/s · per voice | Peak · clip | Head silence | Arc (spread) | Instrumented verdict | Proposed for |
+|---|---|---|---|---|---|---|---|---|
+| `D_CND10` | 1:27.3 · 90 BPM 4/4 | **12 · 16** | 12.2 · 0.76 | 0.391 · none | **1.99 s** ❌ | 43 45 45 32 39 47 54 44 50 77 91 100 **(68)** | ✅ **the best file in the set, and the only defect was mechanical.** A real orchestration: piccolo, flute, oboe, clarinet, bassoon, horn, trumpet, trombone, tuba, timpani, five string parts and a genuine drum part. Brightness 2 150 crossings/s, the highest in the set bar one | **TITLE** — repaired as `D_SDINTL`, §4 |
+| `D_CND09` | 0:49.8 · 81 BPM | 4 · 4 | 4.1 · 1.03 | 0.420 · none | 0.37 s | 62 60 65 59 64 59 75 62 62 68 74 100 (41) | ✅ **usable as-is.** Violin, cello, oboe, clarinet actually assigned; brightest file measured (2 384). Too short to carry a map | **diegetic radio**, intermission |
+| `D_CND12` | 0:38.7 · 80 BPM | 3 · 4 | 5.9 · 1.47 | 0.288 · none | 0.38 s | 91 93 91 95 90 86 93 100 88 94 86 69 (32) | ✅ **usable as-is.** Celesta, flute, cello. Quiet, domestic, slightly sad | **diegetic radio** (Leninskaya komnata) |
+| `D_CND01` | 10:11 · 180 BPM 2/2 | **0** · 2 | **15.3 · 7.6** | 0.393 · none | none | 98 100 80 83 78 98 85 86 80 79 74 67 (33) | ⚠️ **right length, right menace, wrong object.** 9 313 notes, no program change at all → ten minutes of solo `gzdoom.sf2` grand piano at 15 notes a second over two channels, which is the densest per-voice figure in the set. Its loudest moment is **bar one**, so a loop restarts by jumping 67 → 98 % | **reserve.** Only viable if someone orchestrates it (§8.2) |
+| `D_CND06` | 9:33 · 60 BPM, tempo changes | 0 · 2 | 7.5 · 3.7 | 0.430 · none | none | 55 44 76 63 81 64 96 68 100 81 40 44 **(60)** | ⚠️ **the best-shaped piano file**: it already breathes and it ends quiet, so it loops better than Bald Mountain. Same solo-piano problem, bleaker and slower | reserve, alternative to `D_CND01` |
+| `D_CND07` | 5:31 · 108 BPM 6/8 | 0 · 3 | 7.4 · 2.5 | **0.982** ⚠️ · none | 0.28 s | 82 85 85 100 67 63 66 66 83 86 81 100 (37) | ⚠️ driving perpetual motion, but it sat **1.8 % from full scale** before repair. **Repaired → 0.720** (§5) | reserve: a fight cue if ever orchestrated |
+| `D_CND03` | 2:16 · 60 BPM 3/4 | 0 · 2 | 8.3 · 4.1 | **1.011** ❌ · **4 samples** | none | 75 84 61 83 45 60 95 100 63 31 30 21 **(79)** | ⚠️ **clipped**, and the widest arc of any download — it dies away to 21 %, which is a real shape. **Repaired → 0.747** (§5) | death / aftermath sting, once orchestrated |
+| `D_CND05` | 1:28 · 126 BPM 6/8 | 0 · 2 | 10.4 · 5.2 | 0.396 · none | none | 87 91 84 81 94 80 88 100 85 89 92 75 (25) | ⚠️ good unsettled mood, but **arc spread 25 — flat**, and 1:28 is too short to loop under a firefight | reserve: alien-zone ambience |
+| `D_CND11` | 1:22.8 · 96 BPM | 0 · 1 | 5.0 · 5.0 | **0.185** ⚠️ · none | **2.18 s** ❌ | 99 96 98 88 88 92 93 86 86 92 100 85 (15) | ⚠️ **not the title.** One channel of piano, the quietest file measured (peak 0.185, under half of `D_CND10`), **arc spread 15 — the second-flattest** — and the same two-second hole at the head | **keep only as a diegetic Internationale** — a piano heard through a wall is exactly what it sounds like |
+| `D_CND04` | 0:42.7 · 140 BPM | 0 · 2 | 11.2 · 5.6 | 0.416 · none | none | 74 82 78 86 74 75 81 77 100 96 89 74 (26) | ❌ **discard.** 43 s, flat, solo piano. Nothing it could be but a sting, and we have better stings | — |
+| `D_CND02` | 2:04 · 140 BPM 4/2 | 0 · 2 | 5.0 · 2.5 | 0.645 · none | none | 77 88 90 100 87 92 79 95 80 74 81 80 (26) | ❌ **discard.** Free and clean, and musically irrelevant to us: a conservatory fugue on a **German** name. Nothing Russian reaches the listener | — |
+| `D_CND08` | 0:41.1 · 140 BPM 2/4 | 0 · 2 | 7.9 · 3.9 | 0.344 · none | none | 95 98 95 96 99 93 98 97 94 100 92 92 **(8)** | ❌ **discard, and it is the clearest discard in the set.** Arc spread **8 points** — measurably the flattest thing we have, a children's toy march. Wrong tone for 1977 and for this game | — |
+
+**Eight of the twelve are solo piano with no program change whatsoever.** That
+is not a flaw in Mutopia: a LilyPond MIDI is the *audio preview of an engraved
+score*, and these files say so themselves — their track names are `RH:`/`LH:`,
+`upper`/`lower`, `up`/`down`, and their only text metadata is
+`creator: GNU LilyPond 2.x`. The notes are Mussorgsky's and Tchaikovsky's and
+the structure is real; the timbre is a placeholder.
+
+So "download instead of composing" moved the work rather than removing it:
+
+| Route | What we avoid | What is still ours to do |
+|---|---|---|
+| downloaded orchestration (`D_CND10`) | everything musical | credit Engelbach; remove 2 s of silence — **done**, §5 |
+| downloaded score preview (the eight Mutopia files) | writing the notes, and the notes are the point | assign a GM program per staff, balance channels, fix levels, cut to length |
+| sequenced by us from a free score | nothing | everything — but the result is exactly what we want and the recording right is ours |
+
+And the pieces that would most obviously fit **do not exist as a
+licence-clean MIDI anywhere**: *Marche slave*, *Прощание славянки*,
+*Амурские волны*, *Смело, товарищи, в ногу*, *Вы жертвою пали*. Every MIDI of
+them online sits on a site with no per-file licence and no named sequencer.
+For *Marche slave* the one clean ready-made option is IMSLP's **CC BY 4.0
+synthesised MP3** — megabytes instead of kilobytes. For the four songs,
+sequencing them ourselves is the only clean route, and it is cheap: they are
+16- to 32-bar strophic tunes, roughly 2-3 h each.
+
+---
+
+## 4. The Internationale — the CEO's choice, examined on its own
+
+`D_CND10` is not a score preview. Read off the file's own channel timeline,
 33 bars of 4/4 at 90 BPM:
 
-| Bars | Who is playing |
+| First note at bar | Who enters |
 |---|---|
-| 1-9 | **strings alone**, timpani joining at bar 2 |
-| 9-13 | **brass choir** — trumpets, trombones, then tuba |
-| 13-21 | **woodwinds** (piccolo, flute, oboe, clarinet, bassoon) over strings and timpani |
-| 21-25 | horns enter; everything thins to horns and winds |
-| 25-33 | **full tutti with percussion** — all sixteen channels |
+| **1.0** | **strings alone** — five parts, channels 12-16 |
+| **1.3** | timpani under them |
+| **8.8** | **brass**: trumpet and trombone together |
+| **9.3** | tuba completes the brass choir |
+| **16.8** | **woodwinds**, all five at once: piccolo, flute, oboe, clarinet, bassoon |
+| **21.0** | **horns** — the last voice to arrive |
+| **24.3** | **military percussion**: bass drum ×21, snare ×101, crash ×12 |
+| 32.3-32.8 | everything stops together; the piece is 33 bars |
 
-Its measured arc climbs from 37 % to 100 % across exactly those entries. That
-is the shape our own title theme was missing, and it is the thing a generator
-writing eight-bar periods does not produce by accident.
+Those bar numbers are read off the file, not off a description of it: first
+note-on per channel, tick ÷ (960 × 4) + 1. **Seven entries across 24 bars,
+and nothing leaves until the end** — the texture only ever thickens.
 
-But that file is **one of twelve**, and the other eleven are not finished
-music. Eight of them come from Mutopia and **every Mutopia MIDI has zero
-program changes** — they are LilyPond's audio preview of an engraved score, so
-General MIDI plays them as acoustic grand piano from end to end
-(`MUSIC-RIGHTS.md` §4.2). The notes are right, the structure is real, the
-timbre is a placeholder.
+Its measured arc climbs 43 → 100 % across exactly those entries (spread 68,
+second only to the clipped Scriabin). That is the shape our own title theme
+was missing, and it is what a generator writing eight-bar periods does not
+produce by accident.
 
-So "download instead of composing" trades one kind of work for another:
+One thing I checked because it is the classic way a MIDI sounds broken on a
+General MIDI synth: **channel 10 carries a program change to GM 0, acoustic
+grand piano.** On channel 10 a program change is ignored and every note is a
+drum, so if Engelbach had written a piano part there, GZDoom would play
+nonsense percussion. He did not: the only notes on that channel are **36, 38
+and 49 — bass drum, snare, crash cymbal** — and they enter at bar 24 for the
+final tutti. It is a deliberate military drum part, correctly written. The
+file is sound.
 
-| | What we avoid | What we still have to do |
+### 4.1 The one defect, and the repair
+
+The file opened with **1.990 s of absolute digital silence** — not a quiet
+entry, nothing at all, verified sample by sample on the engine's own render.
+Under a still poster that is survivable once; on a loop it is a two-second
+hole every 87 seconds.
+
+```bash
+python3 tools/audio/midi_edit.py \
+    work/audio/candidates/WM_Internationale_orch2.mid \
+    work/audio/D_SDINTL.mid --trim-head
+```
+
+2 863 ticks = 2.98 beats at 90 BPM = 1.99 s, removed by shifting every event
+earlier; the tempo, key, time signature and sixteen program changes that sat
+in front of the first note collapse to tick 0 in their original order, which
+is where a sequencer would have put them. Nothing else changed: same 1 063
+notes, same 12 voices, same 16 channels, same zero hanging notes.
+
+| | before | after |
 |---|---|---|
-| **Downloaded orchestration** (`D_CND10`) | everything | credit Jerry Engelbach |
-| **Downloaded score preview** (Mutopia) | writing the notes — and the notes are Mussorgsky's, which is the point | assign GM instruments per staff, balance channel volumes, fix the two clipping files, cut to length |
-| **Sequenced by us from a free score** | nothing | everything, but the result is exactly what we want |
+| rendered length | 87.68 s | **85.68 s** |
+| head silence | **1.990 s** | **0.001 s** |
+| peak · clipped samples | 0.391 · 0 | 0.391 · 0 |
+| arc (spread) | 68 | 68 — unchanged, as intended |
+| plays in the engine | — | `Currently playing music 'D_SDINTL'`, title **and** MAP01, zero log errors |
 
-**There is no free MIDI of the pieces that would most obviously fit** —
-*Marche slave*, *Прощание славянки*, *Амурские волны*, *Смело, товарищи, в ногу*,
-*Вы жертвою пали*. For *Marche slave* the only licence-clean ready-made thing
-that exists is IMSLP's **CC BY 4.0 synthesised MP3** (not MIDI), which would
-cost megabytes instead of kilobytes. For the four Russian songs, every MIDI
-online sits on a site with no per-file licence. For those, **sequencing them
-ourselves remains the only clean route**, and it is cheap: they are 16- to
-32-bar strophic tunes. I estimate **2-3 hours each**, against roughly 1 hour
-to orchestrate a Mutopia piano file.
+**So on every measure available to me the downloaded Internationale is
+sound, and it is ready for the CEO's ear** — the only verdict I am entitled
+to give (§2). It is finished orchestral music, its instruments are correctly
+assigned, its tempo is the one written, it does not clip, it has the widest
+instrumental build-up in the set and its one real defect is gone and verified
+gone. The question "and if it sounds bad, what then?" has no measurable
+trigger left to fire, so **re-sequencing it from the IMSLP score is not
+needed**. That route stays
+documented in `MUSIC-RIGHTS.md` §4.1 as the fallback if the CEO ever dislikes
+Engelbach's orchestration itself, and it would cost roughly a day for a
+result that would not obviously be better.
 
-## A.4 What I recommend
+**The obligation that comes with it**: `{{Attribution|Jerry Engelbach}}` is
+attribution-only, **not** public domain. Shipping it means crediting Jerry
+Engelbach wherever we credit anyone. That is a line in the credits and a row
+in the licence register — cheap, but real, and the CEO should accept it
+knowingly (§8.0).
 
-1. **Title screen → `D_CND10`, the orchestral Internationale, as-is.** It is
-   the CEO's choice, it is legally the cleanest major work we have, and it is
-   measurably the best-sounding file in the set. One obligation: credit
-   Jerry Engelbach. **One defect, measured and real:** the file opens with
-   **1.99 s of absolute digital silence** — not a quiet entry, nothing at all,
-   verified sample by sample on the engine's own render. Under a still poster
-   that is survivable; on a loop it is a two-second hole every 87 seconds.
-   The fix is to shift every event earlier by ~3 beats at 90 BPM, which is a
-   mechanical edit to the file, not a re-sequencing. I would do that before it
-   ships and I need no decision for it.
-2. **MAP01 → `D_CND01`, *Night on Bald Mountain*, orchestrated by us.**
-   10 minutes, demonic, Russian, free, and it already matches the map's
-   length. The work is assigning instruments to Chernov's two staves, which
-   is one focused session, and the CC BY 3.0 licence expressly allows it.
-   If the CEO would rather not spend that, the fallback is our own `D_SDM01`
-   (card 2), which *is* orchestrated and *is* built to loop.
-3. **Diegetic radio → `D_CND09` and `D_CND12`, as-is.** CC0, already
-   orchestrated, 40-50 s, perfect for the Leninskaya komnata.
-4. **Do not ship `D_CND02` or `D_CND08`.**
-5. **Fix before any use: `D_CND03` (clips) and `D_CND07` (at the ceiling).**
+**Lump name**: `D_SDINTL` (8 characters, the `D_` music prefix plus `SD` per
+D1). The repaired file is the one that would ship; the download stays in
+`work/audio/candidates/` untouched as the provenance original.
 
 ---
 
-# B. Our own sequences (plan B, kept)
+## 5. What else I repaired, and what I refused to repair
 
-The CEO's verdict on these was *"están bien las piezas pero un poco simples"*
-— which the measurements agree with: `D_SDTITL` is 26 bars of a single 8-bar
-period stated twice, where `D_CND10` is a through-composed orchestration with
-four distinct instrumental entries. They stay in the repo because they cost
-nothing to keep, because `D_SDM01` is still the only *loopable, orchestrated,
-map-length* piece we have, and because the generator is the mechanism for the
-pieces no free MIDI exists for (§A.3).
+`tools/audio/midi_edit.py` does **mechanical** edits only — trim leading
+silence, scale note-on velocities, pad the tail. It never assigns an
+instrument, changes a pitch or cuts a section, because those are musical
+decisions that belong in a card in this document, not in a flag. Every output
+is a derivative of the input sequencing, which all four accepted licences
+(CC0, `{{Attribution}}`, PD, CC BY 3.0) permit; the duty to credit survives
+the edit and is recorded in `MUSIC-RIGHTS.md` §4.4.
 
-## Card 1 — `D_SDTITL`, "Zarya" (title theme)
+| Repair | Command | Measured result |
+|---|---|---|
+| Internationale head silence | `--trim-head` | 1.990 s → 0.001 s, §4.1 |
+| `D_CND03` Scriabin *Etude* **clipped** (peak 1.011, 4 samples over full scale) | `--velocity 0.85 --trim-head` → `work/audio/D_SDFIX3.mid` | peak **1.011 → 0.747**, 0 clipped samples, 1 114 note-ons scaled, arc unchanged (79) |
+| `D_CND07` *August* at the ceiling (peak 0.982) | `--velocity 0.85 --trim-head` → `work/audio/D_SDFIX7.mid` | peak **0.982 → 0.720**, 2 442 note-ons scaled, 0.50 beats of head silence removed, arc unchanged (37) |
+| Internationale loop breath | `--loop-tail 2` | **no effect** — byte-identical render. GZDoom ignores End-of-Track padding (§2.1.3). The variant file was deleted rather than kept as a decoration |
+
+**The editor itself is verified, because it is the only tool here that writes
+a MIDI.** Read-then-write with no edit requested, over all twelve downloads:
+note count, hanging-note count, format, track count, division, channel set,
+GM program map, time signatures and computed duration come back **identical in
+all twelve**, to the microsecond. (The output is a few per cent larger: running
+status is expanded on read and never re-emitted, which trades bytes for a file
+that is not a parsing puzzle.) `--velocity 1.0` is the identity edit, so the
+check is reproducible per file:
+
+```bash
+python3 tools/audio/midi_edit.py <file> /tmp/rt.mid --velocity 1.0
+python3 tools/audio/midi_inspect.py <file> /tmp/rt.mid    # the two reports must agree
+```
+
+The two `D_SDFIX*` files prove the clipping is fixable in one command. They
+are **not** proposed for anything: both are still solo piano, and the level
+was never the reason they are reserves. They exist so that nobody has to
+re-derive the fix if those pieces are ever promoted.
+
+**What I refused to do**: assign instruments to the Mutopia piano files. A
+program change per channel is one line of code; whether strings-plus-brass on
+Chernov's two staves sounds like an orchestration or like a wheezing organ is
+a question I cannot answer without ears, and piano idiom — repeated octaves,
+tremolos, wide leaps — is exactly what sustained orchestral patches handle
+worst. Doing it blind and calling it done would be the kind of unverified
+claim this project does not ship. It is a real option with a real cost and it
+is §8.2.
+
+---
+
+## 6. Our own sequences (plan B, kept)
+
+The CEO's verdict on these was *"están bien las piezas pero un poco simples"*,
+and the measurements partly agree and partly do not:
+
+| | `D_SDTITL` | `D_SDM01` | `D_SDINTL` for comparison |
+|---|---|---|---|
+| form | one 8-bar period stated twice | four 16-bar sections | through-composed, 4 instrumental entries |
+| distinct GM voices | 7 | 5 | 12 |
+| notes/s · per voice | 4.1 · 0.58 | 6.7 · 1.12 | 12.5 · 0.78 |
+| arc spread | **75** | **75** | 68 |
+| peak · clipped | 0.291 · 0 | 0.368 · 0 | 0.391 · 0 |
+
+So the *arc* is not where they are simple — both of ours measure a wider
+dynamic shape than the Internationale. Where they are thinner is **voices and
+through-composition**: 5-7 instruments against 12, and repeated periods
+against four distinct entries. That is a fixable criticism, and the cheapest
+fix is not to replace `D_SDM01` but to give it two more instrumental layers
+and a non-repeating C section — a generator change, hours not days (§8.3).
+
+### Card 1 — `D_SDTITL`, "Zarya" — **reserved, proposed for the intermission**
 
 | Field | Value |
 |---|---|
-| **Lump** | `D_SDTITL` (7 chars; the `D_` prefix is the Doom convention for a music lump) |
-| **File** | `work/audio/D_SDTITL.mid`, 3 315 bytes, SMF format 1, 7 tracks, 480 ticks/beat |
-| **Where it plays** | Title screen, under the propaganda poster (`TITLEPIC`). Needs `GameInfo { TitleMusic = "D_SDTITL" }` in MAPINFO — **request to `mod-engineer`, not done by me** |
-| **Duration** | 1:21 (81.0 s written; 81.8 s as the engine renders it, the reverb tail included) |
-| **Tempo** | 80 BPM, 4/4. Constant `TITLE_TEMPO_BPM` |
-| **Key** | D natural minor, with the leading note C# raised only at the cadence (the harmonic-minor dominant that gives Russian marches their bite) |
-| **Instruments** (General MIDI) | French horn → trumpet (melody), trombones (harmony), tuba (bass), timpani, string ensemble, tubular bells and one crash on the final chord |
-| **Original or sequenced** | **ORIGINAL COMPOSITION**, `sound-designer`, 2026-10-13. Not an arrangement of any existing work; it quotes nothing |
-| **Licence** | Soviet Doom project — own work, **CC BY-NC-SA 4.0** (D15). Code that generates it: GPL-3.0 |
-| **Rights to clear** | **None.** No composer, no lyricist, no label, no phonogram. This is the whole point of writing it ourselves |
+| **Lump** | `D_SDTITL` (7 chars; `D_` is the Doom convention for a music lump) |
+| **File** | `work/audio/D_SDTITL.mid`, 3 315 B, SMF format 1, 7 tracks, 480 ticks/beat |
+| **Was for** | the title screen. **Superseded there by `D_SDINTL`** on the CEO's choice of the Internationale |
+| **Now proposed for** | the **intermission / episode end**, where a 1:21 march that resolves and stops is exactly the right object, and where nothing else we have fits |
+| **Duration** | 1:21 (81.0 s written; 81.8 s rendered, reverb tail included). **3.21 s of tail silence** — measured, and the reason it suits a screen that ends rather than a loop |
+| **Tempo · key** | 80 BPM 4/4, constant `TITLE_TEMPO_BPM` · D natural minor, C♯ raised only at the cadence (the harmonic-minor dominant that gives Russian marches their bite) |
+| **Instruments** (GM) | French horn → trumpet (melody), trombones (harmony), tuba (bass), timpani, string ensemble, tubular bells, one crash on the final chord |
+| **Original or sequenced** | **ORIGINAL COMPOSITION**, `sound-designer`, 2026-10-13. Not an arrangement; it quotes nothing |
+| **Licence** | own work, **CC BY-NC-SA 4.0** (D15). Generator code: GPL-3.0 |
+| **Rights to clear** | **none.** No composer, no lyricist, no label, no phonogram — the whole point of writing it ourselves |
 
-**Form** (26 bars, the last one silent so the loop breathes):
+**Form** (26 bars, the last silent so the loop breathes): 1-4 timpani alone on
+D and A growing 8 velocity steps a bar, tuba joining on a **bare fifth** from
+bar 3, no third — the mode withheld until the theme states it; 5-12 first
+statement of the 8-bar period, **horns alone**, trombones on beats 1 and 3,
+the march's two feet; 13-20 the same period, **trumpets an octave up with
+horns doubling below**, strings sustaining, the loudest point and the one the
+poster is cut to; 21-25 coda VI – iv – V7 – i – i, plagal weight then the
+dominant, last chord held two bars under a tubular bell on D; 26 silence.
 
-| Bars | What happens |
-|---|---|
-| 1-4 | Timpani alone on D and A, growing 8 velocity steps a bar; the tuba joins on a **bare fifth** from bar 3. No third: the mode is withheld until the theme states it |
-| 5-12 | First statement of the 8-bar period, **horns alone**, trombones on beats 1 and 3 — the march's two feet |
-| 13-20 | Same period, **trumpets an octave up with the horns doubling below**, strings sustaining. This is the loudest point and the one the poster is cut to |
-| 21-25 | Coda: VI – iv – V7 – i – i, plagal weight then the dominant, the last chord held two bars under a tubular bell on D |
-| 26 | Silence |
+Measured arc: 25 57 70 69 68 86 95 96 **100** 85 76 70 — spread 75. The
+crescendo and the second statement are in the file, not only in the intention.
 
-Measured dynamic arc, from the engine's own render (bar RMS, % of peak):
-18 → 23 → 44 → 62 (intro crescendo) · 66-71 (first statement) · **88-100**
-(second statement) · 85 → 68 (coda) · 1 (tail). The shape is in the file, not
-only in the intention.
+**Why 80 BPM.** A Soviet *parade* march runs 112-120, but this is music under
+a still image, and the newsreel and documentary fanfares of the period sit far
+slower and heavier. More solemn: `--title-tempo 72`. More military:
+`--title-tempo 96`. Less brass: lower `TITLE_VEL_MELODY` / `TITLE_VEL_HARMONY`
+or the channel volumes in `TITLE_MIX`.
 
-**Why it is written this way.** A Soviet *parade* march runs 112-120 BPM, but
-this is not a parade — it is the music under a still image. The newsreel and
-documentary fanfares of the period sit far slower and heavier, so 80 BPM: a
-contained step, serious and not jaunty. If the CEO wants it **more solemn**,
-`--title-tempo 72`; **more military**, `--title-tempo 96`; **less brass**, lower
-`TITLE_VEL_MELODY` / `TITLE_VEL_HARMONY` or the channel volumes in `TITLE_MIX`.
-
-**Why original and not the Internationale.** The Internationale is the one
-major work that is genuinely free in Russia *and* in the United States
-(`MUSIC-RIGHTS.md` §3.2), and sequencing it is legally clean. Two reasons it
-is not the title theme: it is the most recognisable political melody in the
-world and would read as a statement the game does not make at the moment the
-player presses Start; and it is better spent where it has dramatic work to do
-— the finale, or a diegetic radio. **It remains on the table** and I can
-deliver a sequenced instrumental version of it in an hour if the CEO prefers
-it. (§ "Decisions needed", point 2.)
-
----
-
-## Card 2 — `D_SDM01`, "Zarya-7" (MAP01)
+### Card 2 — `D_SDM01`, "Zarya-7" — **my recommendation for MAP01**
 
 | Field | Value |
 |---|---|
 | **Lump** | `D_SDM01` (7 chars) |
-| **File** | `work/audio/D_SDM01.mid`, 8 789 bytes, SMF format 1, 6 tracks, 480 ticks/beat |
-| **Where it plays** | MAP01, Zarya-7 cosmodrome, the invasion just begun (`docs/levels/MAP01-zarya-7.md`). Needs `music = "D_SDM01"` in the MAPINFO `map MAP01` block, which today says `music = ""` — **request to `mod-engineer`** |
-| **Duration** | 2:22 per loop (142.2 s written, 142.8 s rendered). The map is 5-8 minutes, so the player hears 2 to 3.5 loops |
-| **Tempo** | 108 BPM, 4/4. Constant `MAP01_TEMPO_BPM` |
-| **Key** | D minor with a flat second (Eb) leaning on the tonic — the oldest "something is wrong" interval there is, and it costs one note |
-| **Instruments** (General MIDI) | Synth bass 2 (the ostinato), tremolo strings, pad "halo", trombones (stabs), FX "crystal" (the distant signal), GM percussion: low floor tom, low tom, bass drum, snare, ride, crash |
-| **Original or sequenced** | **ORIGINAL COMPOSITION**, `sound-designer`, 2026-10-13. Written in the idiom of Eduard Artemyev's ANS electronics (*Solaris*, *Stalker*) crossed with Doom's ostinato-and-percussion habit. Artemyev's own music is protected and **none of it is used**; style is not copyrightable, which is the same finding the poster research reached |
-| **Licence** | Own work, **CC BY-NC-SA 4.0** (D15) |
-| **Rights to clear** | **None** |
+| **File** | `work/audio/D_SDM01.mid`, 8 789 B, SMF format 1, 6 tracks, 480 ticks/beat |
+| **Where it plays** | MAP01, Zarya-7 cosmodrome, the invasion just begun (`docs/levels/MAP01-zarya-7.md`) |
+| **Duration** | 2:22 per loop (142.2 s written, 142.8 s rendered). The map is 5-8 min, so the player hears 2 to 3.5 loops |
+| **Tempo · key** | 108 BPM 4/4, `MAP01_TEMPO_BPM` · D minor with a flat second (E♭) leaning on the tonic — the oldest "something is wrong" interval there is, and it costs one note |
+| **Instruments** (GM) | synth bass 2 (ostinato), tremolo strings, pad "halo", trombones (stabs), FX "crystal" (the distant signal), GM percussion: low floor tom, low tom, bass drum, snare, ride, crash |
+| **Measured** | peak 0.368, **0 clipped**, no head silence, 0.33 s tail, arc spread **75**, brightness **674 crossings/s — by far the darkest file of any origin**, which is what an ambience loop should measure |
+| **Original or sequenced** | **ORIGINAL COMPOSITION**, `sound-designer`, 2026-10-13, in the idiom of Eduard Artemyev's ANS electronics (*Solaris*, *Stalker*) crossed with Doom's ostinato-and-percussion habit. Artemyev's own music is protected and **none of it is used**; style is not copyrightable, the same finding the poster research reached |
+| **Licence** | own work, **CC BY-NC-SA 4.0** (D15) |
+| **Rights to clear** | **none** |
 
-**Form** (64 bars, four 16-bar sections, seamless loop):
+**Form** (64 bars, four 16-bar sections, seamless loop): **A — pulse** (1-16)
+the bass figure and two toms, nothing else, the base still standing and the
+player walking through it; **B — dread** (17-32) tremolo strings crawling up
+a chromatic line D–E♭–E–F–F♯–G–A♭–A, two bars a step, cold pad underneath,
+bass drum enters; **C — alarm** (33-48) trombone stabs on and off the beat,
+alternating the tonic triad with its **Neapolitan** a semitone above, march
+snare on 2 and 4 — the Soviet half of the texture; **D — release** (49-64)
+everything drops to the pad and four far-off signals, the last four bars
+nearly silent.
 
-| Section | Bars | What is on top of the ostinato |
-|---|---|---|
-| **A — pulse** | 1-16 | The bass figure and two toms. Nothing else. The base is still standing and the player is walking through it |
-| **B — dread** | 17-32 | Tremolo strings crawl up a chromatic line (D–Eb–E–F–F#–G–Ab–A, two bars a step), a cold pad underneath, bass drum enters |
-| **C — alarm** | 33-48 | Trombone stabs on and off the beat, alternating the tonic triad with its **Neapolitan** a semitone above; march snare on 2 and 4 — the Soviet half of the texture |
-| **D — release** | 49-64 | Everything drops away to the pad and four far-off signals. The last four bars are nearly silent |
+Measured arc: 55 55 58 92 91 94 97 98 **100** 74 63 **25**. That last number
+is the design: **the loop restarts from near-silence, not from a cut.** Over
+eight minutes that is what keeps it from wearing a hole in the player, and it
+is precisely what `D_CND01` cannot do — Bald Mountain's loudest twelfth is its
+*first*, so its loop jumps 67 → 98 %.
 
-Measured arc from the engine's render: A flat at 55 % · B 90 % · C 96-100 % ·
-D 79 → 74 → 49 → **5 %**. That last number is the design: **the loop restarts
-from near-silence, not from a cut**, which is what keeps it from wearing a
-hole in the player over eight minutes. The other two defences are the length
-(2:22, long enough that the ear does not pre-hear it) and the riff variant
-that fires every fourth bar (`MAP01_OSTINATO_VARIANT_EVERY`) so the ostinato
-never settles into a one-bar groove.
+If the CEO finds it **too busy**: `MAP01_VEL_BRASS`, or delete the snare in
+section C. **Too slow for a fight**: 120 BPM. **Too long before anything
+happens**: `MAP01_SECTION_BARS` 12. **Too simple**: §8.3.
 
-If the CEO finds it **too busy**, the cheapest cut is `MAP01_VEL_BRASS` or
-deleting the snare lines in section C. **Too slow for a fight**: 120 BPM.
-**Too long before anything happens**: shorten `MAP01_SECTION_BARS` to 12.
-
----
-
-## How this was verified
-
-Not "the file exists" — the engine parsed it, synthesised it and played it.
+### How plan B was verified
 
 | Claim | Evidence |
 |---|---|
-| The bytes are a valid Standard MIDI File | re-parsed independently: every chunk length exact, no trailing bytes, no running-status error, **zero hanging notes** (every note-on has its note-off) |
-| GZDoom plays it at the title screen | `currentmusic` in the console answers `Currently playing music 'D_SDTITL'` — `logs/audition-title.log` |
-| GZDoom plays it on MAP01 | `currentmusic` answers `Currently playing music 'D_SDM01'` — `logs/audition-ingame.log` |
-| It makes actual sound, not silence | GZDoom's own `writewave` rendered both to WAV: `D_SDTITL` 81.8 s, peak 0.314 of full scale; `D_SDM01` 142.8 s, peak 0.443. Written to `work/audio/render/` |
-| The sections are really there | per-bar RMS of those renders matches the written form bar for bar (the two tables above) |
-| The build is unaffected | `tools/build.py` → 34 files, no music lump; `check_pk3.py` PASS; `smoke.py --map MAP01` PASS; 189 unit tests OK |
-| The generator is reproducible | two consecutive runs produce byte-identical files (sha256 `6f74c093…` / `c0fce282…`) |
+| valid SMF | re-parsed independently: every chunk length exact, no trailing bytes, no running-status error, **zero hanging notes** |
+| GZDoom plays `D_SDTITL` at the title | `Currently playing music 'D_SDTITL'` — `logs/audition-title.log` |
+| GZDoom plays `D_SDM01` on MAP01 | `Currently playing music 'D_SDM01'` — `logs/audition-m01.log` (re-verified this session, zero log errors) |
+| they make sound, not silence | engine `writewave` → `work/audio/render/`, measured in the cards above |
+| the sections are really there | per-bar RMS of those renders matches the written form bar for bar |
+| the generator is reproducible | two consecutive runs produce byte-identical files |
 
-**Which synthesiser the player will hear** (verified on this machine, GZDoom
-4.14.2 macOS): `snd_mididevice` is **-5 (FluidSynth)** and `fluid_patchset` is
-**`gzdoom`**, which resolves to `GZDoom.app/Contents/MacOS/soundfonts/gzdoom.sf2`
-— a 3.3 MB General MIDI soundfont **bundled with every GZDoom install**. So
-these pieces sound the same for every player on a stock engine; we are not at
-the mercy of a system synth, and we are not getting OPL FM unless a player
-chooses it. A player who has set their own soundfont will hear their own
-instruments — that is a property of shipping MIDI and is the price of the
-licence safety.
+**Which synthesiser the player hears** (verified on this machine, GZDoom
+4.14.2 macOS): `snd_mididevice` is **-5 (FluidSynth)**, `fluid_patchset` is
+**`gzdoom`** → `GZDoom.app/Contents/MacOS/soundfonts/gzdoom.sf2`, a 3.3 MB
+General MIDI soundfont **bundled with every GZDoom install**. So these pieces
+sound the same for every player on a stock engine; we are not at the mercy of
+a system synth and we do not get OPL FM unless a player asks for it. A player
+who has installed their own soundfont hears their own instruments — that is a
+property of shipping MIDI and the price of the licence safety.
 
 ---
 
-## What I need from other roles
+## 7. What I need from other roles
 
-**`mod-engineer`** — two MAPINFO lines, only once the CEO has approved the
-music. I have not edited `src/lumps/MAPINFO`:
+### `mod-engineer` — two MAPINFO lines, **after** the CEO approves
+
+I have not edited `src/lumps/MAPINFO`. If the recommendation in §0 is taken:
 
 ```
-GameInfo { TitleMusic = "D_SDTITL" }      // add to the existing GameInfo block
+GameInfo { TitleMusic = "D_SDINTL" }      // add to the existing GameInfo block
 map MAP01 { music = "D_SDM01" }           // today: music = ""
 ```
 
-Those two names are **plan B's**. If the CEO takes the recommendation in
-"Decisions" below, the title lump is the downloaded Internationale instead and
-the names become `D_SDINTL` and whatever MAP01 ends up being; I will give you
-the final pair with the approved files, renamed from `D_CNDnn` to real `SD`
-lump names, and never as `D_CNDnn`.
+The lumps would live at `assets/music/<LUMP>.mid`; `sdbuild.pk3.ASSET_DIRS`
+already includes `music`, so no build change is needed. **`SNDINFO` is not
+involved** — music lumps are not declared there; that lump is for sound
+effects and `$musicalias`. If an intermission cue is wanted later,
+`D_SDTITL` goes on the `intermission` / `cluster` music key and I will ask
+for that line separately.
 
-The lumps live at `assets/music/<LUMP>.mid`; `sdbuild.pk3.ASSET_DIRS` already
-includes `music`, so no build change is needed. `SNDINFO` is **not** involved:
-music lumps are not declared there (that lump is for sound effects and
-`$musicalias`).
-
-**`qa-engineer`** — two gaps in `tools/check_pk3.py`, reported and **not
-touched** because that file is yours:
+### `qa-engineer` — three gaps, reported and **not touched** (yours)
 
 1. Nothing checks that a MAPINFO `music = "X"` resolves to a packed lump or a
-   known IWAD lump. Textures get exactly this check and it is the reason
-   blocker M1 was caught; music has no equivalent, so a typo in a music name
-   fails **silently at runtime** (GZDoom just plays nothing).
+   known IWAD lump. Textures get exactly this check and it is why blocker M1
+   was caught; a music typo instead fails **silently at runtime** — GZDoom
+   simply plays nothing.
 2. `check_licences` will demand a row for every music lump in
    `docs/art/LICENSES.md` the moment they are packed, because `LICENSED_DIRS`
-   includes `music`. Either a backticked row is added there, or the check
-   learns about a sibling `docs/sound/LICENSES.md`. `MUSIC-RIGHTS.md` §6
-   already flagged that the CEO may prefer the split; it is now a concrete
-   choice. I have deliberately **not** created a second register, because
-   `MUSIC-RIGHTS.md` §4.4 already owns these facts and the project rule is one
-   owner per fact — tell me which file you want to read and I will point it
-   there.
-3. **New, and this one is an obligation, not a nicety:** the moment a
-   downloaded file is packed, the mod acquires attribution duties —
-   **Jerry Engelbach** for the Internationale, **Robert Clausecker / Mutopia
-   Project** for *Night on Bald Mountain*. Public-domain and CC0 files carry
-   none. Whatever credits mechanism the mod ends up with has to cover this;
-   `MUSIC-RIGHTS.md` §4.4 is the authoritative list of who is owed what.
+   includes `music`. Either a backticked row goes there, or the check learns
+   about a **`LICENSES.md` of its own under `docs/sound/`**, which does not
+   exist yet. I have deliberately **not**
+   created a second register: `MUSIC-RIGHTS.md` §4.4 already owns these facts
+   and the project rule is one owner per fact. Tell me which file you want to
+   read and I will point it there.
+3. **An obligation, not a nicety:** the moment a downloaded file is packed the
+   mod acquires attribution duties — **Jerry Engelbach** for the
+   Internationale, **Robert Clausecker / Mutopia Project** for *Night on Bald
+   Mountain*. The PD and CC0 files carry none. Whatever credits mechanism the
+   mod grows has to cover this, and §3.1's flagged gap (seven Mutopia piece
+   URLs not recorded) has to be closed before those seven could be packed.
+
+Also for QA, the two engine traps in §2.1: `currentmusic` lies when
+`snd_musicvolume` is 0, and a `writewave` run that loads a PK3 being rebuilt
+can report a timeout on work it already finished.
 
 ---
 
-## Decisions needed from the CEO
+## 8. Decisions needed from the CEO
 
-Superseded items from the first version of this document are kept out; what
-follows is the state after the CEO's 2026-10-13 verdict.
+Superseded items from earlier versions are kept out. These are live.
 
-1. **Title screen: approve `D_CND10`** — Engelbach's orchestral Internationale,
-   downloaded, licence-clean, measurably the best file in the set (§A.2).
-   Listen with
-   `python3 tools/audio/audition.py --play title --candidates --lump D_CND10`.
-   Approving it means **crediting Jerry Engelbach** in the mod's credits and
-   in the licence register (`MUSIC-RIGHTS.md` §7.0). It is attribution-only,
-   not public domain.
-2. **MAP01: which of the three routes?**
-   **(a)** `D_CND01`, *Night on Bald Mountain*, **orchestrated by us** — one
-   focused session of work, the best musical result, CC BY 3.0 obliges us to
-   credit Robert Clausecker / Mutopia. *My recommendation.*
-   **(b)** `D_CND06`, *Dumka*, same deal, bleaker and slower.
-   **(c)** keep our own `D_SDM01` (card 2) — already orchestrated, already
-   loops, costs nothing more, but it is the piece the CEO called simple.
+0. **D16 needs re-wording, and one attribution accepted.** D16 says the music
+   is *"our own instrumental MIDI sequences"*. What §0 recommends for the
+   title is a **downloaded** sequence under `{{Attribution|Jerry Engelbach}}`.
+   The spirit of D16 holds — instrumental MIDI, no Soviet phonogram — but the
+   letter does not, and shipping it means **crediting Jerry Engelbach** in the
+   mod's credits and the licence register. *Recommendation: accept, and ask
+   the PM to record it as a new D-number amending D16.* The alternative is to
+   use only the public-domain files, every one of which is a solo-piano score
+   preview.
+1. **Title screen: approve `work/audio/D_SDINTL.mid`.** Engelbach's orchestral
+   Internationale with the two-second head silence removed by us. It is the
+   CEO's own choice, it is measurably the best-sounding file we have, its one
+   defect is fixed and verified, and the engine plays it with zero errors.
+   Listen: `python3 tools/audio/audition.py --play title --lump D_SDINTL`.
+2. **MAP01: `D_SDM01` (ours) or a ten-minute piano transcription?**
+   **(a) `D_SDM01`** — *my recommendation.* The only piece of any origin
+   written as a game loop: 2:22, darkest brightness measured, restarts from
+   25 %, no clipping, zero rights to clear, zero cost. It is also the piece
+   the CEO called simple, which §8.3 answers directly.
+   **(b) `D_CND01`, *Night on Bald Mountain*, orchestrated by us** — the best
+   musical material in the set and the right length, but ten minutes of solo
+   piano until someone assigns the instruments, and **I cannot judge whether
+   that orchestration will sound good** (§5). One focused session, and
+   CC BY 3.0 obliges us to credit Clausecker / Mutopia.
+   **(c) `D_CND06`, *Dumka*** — same deal, bleaker, slower, and the better
+   loop shape of the two piano files.
    Doing nothing is not an option: MAP01's MAPINFO still says `music = ""`.
-3. **Do you want the pieces no free MIDI exists for?** *Marche slave*,
+   **Listen to (b) before deciding** — the piano may be exactly the austerity
+   you want: `audition.py --play map01 --candidates --lump D_CND01`.
+3. **Do you want `D_SDM01` enriched rather than replaced?** The measurable
+   gap between ours and the Internationale is voices (5 against 12) and
+   through-composition, not dynamic shape — our arc is in fact wider. Adding
+   two more instrumental layers and a non-repeating fourth section is a
+   generator change, **hours, not days**, and it keeps the zero-rights
+   position. *Recommendation: yes, and do it only after (2) is decided.*
+4. **Diegetic radio: approve `WM_Ej_uchnem.mid` and `WM_Kolokolchik.mid`?**
+   Both CC0, both already orchestrated, both ~40 s, **no obligation of any
+   kind**. The cheapest win on the table. They need a map and a sound-emitting
+   actor to live in, which is a request to `level-designer` once approved.
+5. **The pieces no free MIDI exists for.** *Marche slave*,
    *Прощание славянки*, *Амурские волны*, *Смело, товарищи, в ногу*,
-   *Вы жертвою пали* — all free as compositions, none of them available as a
-   licence-clean MIDI anywhere (§A.3). The only ways to have them are to
-   sequence them ourselves (~2-3 h each, kilobytes) or, for *Marche slave*
-   only, to ship IMSLP's CC BY 4.0 synthesised **MP3** as OGG (megabytes).
-   **My recommendation: sequence *Вы жертвою пали* and *Амурские волны*
-   ourselves** — they are short strophic tunes, they do the most dramatic work
-   per minute of effort, and they are the two most period-correct cues in the
-   whole list.
-4. **Diegetic radio: approve `D_CND09` (Эй, ухнем) and `D_CND12`
-   (Колокольчик)?** Both CC0, both already orchestrated, both ~40 s. No
-   obligation of any kind. Cheapest win available.
+   *Вы жертвою пали* — all free as compositions, none available as a
+   licence-clean MIDI anywhere. Either we sequence them (~2-3 h each,
+   kilobytes) or, for *Marche slave* only, we ship IMSLP's CC BY 4.0
+   synthesised **MP3** as OGG (megabytes). *Recommendation: sequence
+   **Вы жертвою пали** and **Амурские волны** ourselves* — short strophic
+   tunes, the most dramatic work per hour of effort, and the two most
+   period-correct cues in the whole list.
+6. **Confirm the three discards** so I can stop carrying them: `D_CND02`
+   (German fugue), `D_CND04` (43 s flat sting), `D_CND08` (children's toy
+   march, flattest arc measured). `D_CND03`, `D_CND05` and `D_CND07` stay as
+   named reserves rather than discards. Say the word and the discarded files
+   leave `work/audio/candidates/`.

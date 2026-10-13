@@ -769,3 +769,40 @@ class ShellScreenTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@imaging
+class SwitchLayoutTests(unittest.TestCase):
+    """Variant A's board, painted word and lamp overlapped in the first pass:
+    the lamp sat on the word and the board touched it from above. The CEO
+    caught it by eye ("se pisan unas cosas a otras"). The generator now lays
+    the three out bottom-up with declared gaps and refuses to import if they
+    ever touch; these tests keep that honest from the outside."""
+
+    def test_variant_a_elements_never_touch(self):
+        import gen_switch as gen
+        boxes = gen.var_a_boxes()
+        order = ["board", "stencil", "lamp"]
+        for upper, lower in zip(order, order[1:]):
+            gap = boxes[lower][0] - boxes[upper][1]
+            self.assertGreaterEqual(
+                gap, gen.VAR_A_MIN_GAP,
+                f"{upper} ends at {boxes[upper][1]}, {lower} starts at {boxes[lower][0]}")
+
+    def test_nothing_runs_into_the_plate_border(self):
+        import gen_switch as gen
+        last = max(b[1] for b in gen.var_a_boxes().values())
+        self.assertLess(last, gen.H - gen.RECESS - gen.BEVEL)
+
+    def test_every_state_pair_is_the_contract_size(self):
+        """A switch is one wall segment on the 64 grid, so the level designer
+        can drop it into any wall without re-cutting geometry."""
+        from PIL import Image
+        for variant in "ABCD":
+            for state in ("off", "on"):
+                p = PROJECT_ROOT / "work" / "art" / "batch2" / "switch" / f"SDSWT_{variant}_{state}.png"
+                if not p.exists():
+                    self.skipTest("switch batch not generated")
+                with Image.open(p) as img:
+                    self.assertEqual((64, 128), img.size, p)
+                    self.assertEqual("P", img.mode, p)
