@@ -164,6 +164,9 @@ episode block**, verified B1); every map and cluster names its music, and
 
 ### 4.4 The practice range (D41, 2026-10-13)
 
+> Order note: §4.4 and §4.5 come before §4.1 because they were added later;
+> the sections are not renumbered, since other documents cite them by number.
+
 The CEO: "Se puede publicar como práctica". MAP02 ships in v1 **outside the
 campaign**, and the player reaches it from the New Game screen. The choice
 between the ways of reaching it is ADR 007
@@ -807,12 +810,16 @@ like Doom's.
 
 ## 6.6 Menus (`MENUDEF`)
 
-The mod owns six menu facts. The first four were learned in the engine,
-three of them by breaking something first; their reasoning is in
-`docs/engine/adr/004-language-switch-and-difficulty-ladder.md`. The last two
-are D31 (2026-10-13), reasoned in
-`docs/engine/adr/005-menu-text-instead-of-menu-graphics.md`. The engine
-source lines are quoted in `src/lumps/MENUDEF` itself.
+The mod owns seven menu facts (the table has seven rows; it said six until
+D41 added the episode screen). Four were learned in the engine, three of
+them by breaking something first: the language switch, where it lives, the
+main-menu logo and the difficulty names (rows 1, 2, 3 and 7); their
+reasoning is in
+`docs/engine/adr/004-language-switch-and-difficulty-ladder.md`. Two are D31
+(2026-10-13), the main-menu items and the skill screen (rows 4 and 5),
+reasoned in `docs/engine/adr/005-menu-text-instead-of-menu-graphics.md`. The
+seventh is the episode screen (row 6, D41, ADR 007). The engine source lines
+are quoted in `src/lumps/MENUDEF` itself.
 
 | What | How | Why it is not obvious |
 |---|---|---|
@@ -1005,6 +1012,8 @@ owns *values*. The code owns both as named constants — if a doc and the code
 disagree, the code is right and the doc is the bug.
 
 ## 10. Known technical debt
+
+Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was filed after T18-T21 and nothing is renumbered, since other documents cite the T-numbers.
 
 | # | Debt | Pay it in |
 |---|---|---|

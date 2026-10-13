@@ -1,8 +1,8 @@
 # Enemy sounds — one card per lump, with origin and rights
 
 Living document. Owner: `sound-designer`. Russian mirror:
-`docs/ru/sound/ENEMY-SOUNDS.md`, **not yet written** (D34: the mirror is
-synced in a batch at the phase close). Created 2026-10-13 (F5, after D35).
+owed at phase close (D34, batch sync; the mirror of
+`VOICE-SCRIPT.md` already exists). Created 2026-10-13 (F5, after D35).
 Source of the list: `docs/engine/BESTIARY.md` §3-§9 ("States and sounds") and
 the naming rule of §2.3; the SNDINFO contract is `docs/engine/MOD-SPEC.md`
 §6.2. Music rights live in `docs/sound/MUSIC-RIGHTS.md`; this document owns

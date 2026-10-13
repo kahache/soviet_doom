@@ -5,8 +5,8 @@ Living document. Owner: `sound-designer`. Created 2026-10-13 (F5) under
 with AI; the Reich speaks **real German**, the Liberty Legion **real
 English**; the General's order is **"Vorwärts."**; D11 and D12 still bind
 (real military callouts and combat cries, never the regime's slogans).
-Russian mirror: `docs/ru/sound/VOICE-SCRIPT.md`, **not yet written** (D34:
-synced in a batch at the phase close).
+Russian mirror: `docs/ru/sound/VOICE-SCRIPT.md` (D7, D34: synced in a batch
+at the phase close; re-sync after any edit here).
 
 Where the lumps, the processing chains and the rights live:
 `docs/sound/ENEMY-SOUNDS.md` (§4 voice rules and chains, §5 the cards).
@@ -23,9 +23,10 @@ the CEO (D7: the CEO is addressed in Spanish).
 1. Grabar (o generar con IA) las **22 filas obligatorias** de las tablas del
    §1 (frases y gritos): **89 tomas** en total. Hay 4 filas opcionales de
    criaturas, 12 tomas más (§1.4).
-2. Tiempo estimado: **30-45 minutos** de grabación con el móvil, en una
-   sola sesión, más 10 minutos para dejar los ficheros. Es una estimación
-   mía, no medida.
+2. Tiempo estimado: **40-55 minutos** en total con el móvil, en una sola
+   sesión (unos 20-25 de grabación, el resto preparación, prueba de volumen
+   y escucha), más 10 minutos para dejar los ficheros. Es una estimación
+   mía, no medida; el cálculo está en el §1.5.
 3. Dejar los ficheros en `work/audio/voice_takes/` (está en gitignore; no
    entra en git ni en el PK3) con los nombres del §0.5.
 4. Escribir en el chat una línea: «Las tomas de voz son mías y las publico
@@ -245,10 +246,25 @@ layer underneath makes them less "library". **Only if there is time left.**
 
 The 22 required rows feed 12 lumps (rifleman ACT, SIT, PAI, DTH; trooper
 ACT, SIT, PAI, DTH; General SIT, SUM, PAI, DTH), the twelve voice rows of
-`ENEMY-SOUNDS.md` §5.8. Recording time: at
-about two seconds per take plus pauses and retries, 89 takes are 15-20
-minutes of talking; with set-up, the loudness test and listening back,
-**30-45 minutes**. Estimate, not measured.
+`ENEMY-SOUNDS.md` §5.8.
+
+Recording time, worked out (assumptions, not measurements). Speech alone is
+small: 89 takes at about two seconds each is **~3 minutes** (the General's
+death, 2.5-4 s, pulls it up slightly). Real time is the gaps:
+
+| Item | Assumption | Time |
+|---|---|---|
+| Speech | 89 takes × ~2 s | ~3 min |
+| Pause, breath and a clean silence before and after each take | ~4 s × 89 | ~6 min |
+| Retries (a flubbed or noisy take, repeated) | +50 % of the above | ~4-5 min |
+| Changing delivery or distance between rows (loud 40-50 cm, calm 20 cm, §0.4) | 22 rows × ~30 s | ~11 min |
+| **Recording** | | **~20-25 min** |
+| Set-up, loudness test (§0.4), listening back | | ~15-20 min |
+| **Session** | | **~40-55 min** |
+
+The earlier figures (15-20 minutes of recording, 30-45 in total) did not
+account for the row changes and were too low.
+Estimate, not measured: the first real session replaces it.
 
 ---
 
@@ -271,10 +287,15 @@ enters `src/sounds/`, as with textures and music.
 
 ## 3. Open points for the PM (not the CEO)
 
-- `src/lumps/LANGUAGE` still prints `SD_GENERAL_ORDER = "The General:
-  Recruits - advance!"` (and its `[ru]` twin), a placeholder whose comment
-  says it changes with the sound. With D36 the spoken line is "Vorwärts.";
-  the printed text is `mod-engineer`'s to align (for example the German word
-  with its translation), in EN and RU in the same task (D21).
-- `docs/engine/BESTIARY.md` §3, `SDRRIACT` row, still says "a language that
-  is not quite German"; D36 replaced that. `mod-engineer`'s file.
+- **Closed (2026-10-13).** The printed order is aligned with the spoken one:
+  `src/lumps/LANGUAGE` has `SD_GENERAL_ORDER = "The General: Vorwärts!";`
+  (line 236) and the `[ru]` twin `"Генерал: Vorwärts!"` (line 394), and
+  `src/zscript/monsters/general.zs` prints it (`A_PrintBold`, line 127).
+  Cosmetic only: the spoken line is "Vorwärts." with a full stop (G02), the
+  printed one ends with "!"; and the comment above the key in `LANGUAGE`
+  still says "Placeholder wording until the CEO picks the line", which is
+  `mod-engineer`'s to reword.
+- **Closed (2026-10-13).** `docs/engine/BESTIARY.md` §3, `SDRRIACT` row,
+  now says "a muttered order in real German (D36; lines in
+  `docs/sound/VOICE-SCRIPT.md`)" (line 368); the "not quite German" wording
+  is gone.
