@@ -56,8 +56,20 @@ switch faces, SW-A moved to a lit niche with a window onto D4, a gate light
 on tag 30, 16 lamps, flicker, three secrets, crates and lockers; 80 sectors.
 Its engine pass is filed (`docs/qa/evidence/2026-10-13_1611_F3_map01-v2-engine-pass-*`).
 **The CEO walked v2: gate passed without help, menu approved (D32).** Too
-small for a game level, so v3 densifies it (D33): same plan, ~200 sectors,
-combat and items by skill, subtler secrets. In progress.
+small for a game level, so **v3 densifies it (D33) and is BUILT**: 165
+sectors, 778 lines (Freedoom's MAP01: 211 / 1274), 33 enemies on skill 3
+(21/33/46), Reich first and the Legion holding the hangar (D35), both
+switches release an ambush, subtler secrets, Lenin lit. Engine pass clean
+(`docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass-*`); the CEO's
+full playthrough on skills 3 and 4 is next.
+
+**F5 — bestiary, started.** The seven enemies of D35 are playable ZScript
+actors with Freedoom sprites and sounds as placeholders, replacing Doom's
+monsters so maps need no renumbering; drops are our ammo (D35); the
+General summons two recruits once. Engine pass on MAP02's gallery clean
+(`docs/qa/evidence/2026-10-13_1705_F5_map02-bestiary-*`). Own sprites wait
+on the CEO's choice of design and method; own sounds on downloads in
+progress and the CEO's voice takes (D36).
 
 **F4 — arsenal.** Seven period weapons in ZScript, all firing, with Freedoom
 placeholders for sprites and sounds. Test range on MAP02.

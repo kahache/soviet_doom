@@ -1,8 +1,13 @@
 # BESTIARY — enemy specification (F5)
 
 Living document. Owner: `mod-engineer`. Russian mirror:
-`docs/ru/engine/BESTIARY.md`. Status: **v0, specification only, 2026-10-12.**
-No ZScript exists for any of these actors yet.
+`docs/ru/engine/BESTIARY.md` (synced in batch at the phase close, D34).
+Status: **v1, implemented with Freedoom placeholders, 2026-10-13.** v0 was the
+specification of 2026-10-12; the CEO closed its seven open questions on
+2026-10-13 (**D35**, §14) and the seven classes, the heavy Panzermensch and
+the four projectiles now exist in `src/zscript/monsters/`, one class per
+file, wearing Freedoom sprites and sounds until our own arrive (§2.7). The
+engine pass is owed (D26): nothing in this version has been seen in GZDoom.
 
 This document is the contract for the six ratified enemies (D13) between
 `mod-engineer` (classes, numbers, states), `art-director` (sprites, colour)
@@ -11,8 +16,11 @@ their look, the tone — come from `docs/PRD.md` (D9, D12, D13, D14) and
 `docs/product/LORE.md` and are not repeated here. Colour rules come from
 `docs/art/ART-BIBLE.md` §6 and are quoted, not redefined.
 
-**Nothing here is implemented.** Every number is a *proposal with a reason*;
-the ones marked **(H)** are hypotheses to calibrate in the F5 playtest.
+Every number below is now a **named constant in the class** with the same
+reason in one line; if this file and the code disagree, the code is the truth
+and this file is the bug (the rule of `BALANCE.md`). `tests/test_bestiary.py`
+holds the key numbers of §3–§9 to the code. The ones marked **(H)** are still
+hypotheses to calibrate in the F5 playtest.
 
 Minimal glossary, for anyone new to Doom modding:
 
@@ -108,12 +116,25 @@ desaturated so the floor never competes with a `flag_red` accent.
 
 ### 2.2 Infighting
 
-**Vanilla Doom infighting is kept.** No `Species` / `DontHarmSpecies` flags
-are set, so a Reich shell that clips a Legion trooper starts a fight, exactly
-as in Doom. Lore reading: the alliance is one of convenience — "they fight
-for profit, we fight for everyone" (`LORE.md`). This is also the single
-biggest tactical pleasure of Doom and removing it would change the rhythm of
-every room. Open question **Q5** for the CEO.
+**Vanilla Doom infighting is kept (D35, closing Q5).** A Reich shell that
+clips a Legion trooper starts a fight, exactly as in Doom. Lore reading: the
+alliance is one of convenience — "they fight for profit, we fight for
+everyone" (`LORE.md`). This is also the single biggest tactical pleasure of
+Doom and removing it would change the rhythm of every room.
+
+**Implementation: every class sets its own `Species`** (its class name; the
+heavy Panzermensch inherits the Panzermensch's, as the Baron and the Hell
+Knight share one in Doom). The reason is the shared base class. GZDoom stops a
+projectile from hurting a monster of the projectile owner's species, and an
+actor with no `Species` gets one from its class tree. That function,
+`GetSpecies`, is native (`actor.zs:862`, no body in `gzdoom.pk3`), and the
+rule that a monster's default species is its topmost *monster* ancestor is
+from memory of the C++ source, **NOT VERIFIED**. If it holds, seven classes
+under one `SD_Monster` (which carries `Monster;`) would all be one species and
+a Stormtrooper's bolt could never start a fight with a trooper. Setting
+`Species` explicitly makes the outcome the same whichever way the native code
+reads, so the vanilla behaviour is guaranteed by the data, not by an
+assumption. No `+DONTHARMSPECIES` and no `+DOHARMSPECIES` anywhere.
 
 ### 2.3 Naming
 
@@ -124,7 +145,7 @@ every room. Open question **Q5** for the CEO.
 | Sprite | `SD` + 2 letters | `SDRR` |
 | Sound lump | `SD` + 3-letter actor code + 3-letter event code = 8 chars | `SDRRISIT` |
 | SNDINFO logical name | `sd/mon/<actor>/<event>` | `sd/mon/reichrifleman/sight` |
-| LANGUAGE id | `SD_TAG_<X>`, `SD_OB_<X>`, `SD_OBHIT_<X>` | `SD_TAG_RIFLEMAN` |
+| LANGUAGE id | `SD_TAG_<X>`, `SD_OB_<X>`, `SD_OBHIT_<X>`; the General's order `SD_GENERAL_ORDER` | `SD_TAG_RIFLEMAN` |
 
 The logical-name scheme matches the arsenal's (`sd/weapon/shovel/swing`,
 already in `src/zscript/weapons/shovel.zs`). The lump scheme differs by one
@@ -146,8 +167,20 @@ with `SD`.
 
 Every enemy is `class SD_X : SD_Monster`, where `SD_Monster : Actor` is a
 thin shared base holding what all seven have in common (`Monster;`,
-`+FLOORCLIP`, a `Faction` enum used by future lore/HUD code, and the default
-`MeleeRange`). Nothing derives from `ZombieMan`, `DoomImp` or the others.
+`+FLOORCLIP`, a `Faction` property used by future lore/HUD code, and the
+attack helpers of the next paragraphs). It does not set `MeleeRange`: the
+engine default, `64 - MELEEDELTA` = 44 plus the target's radius
+(`actor.zs:90,411`), is Doom's 64-unit bite and is what every Doom monster
+uses. Nothing derives from `ZombieMan`, `DoomImp` or the others; the one
+exception is inside our own tree, `SD_PanzermenschSchwer : SD_Panzermensch`
+(§8), which is how Doom itself derives the Hell Knight from the Baron.
+
+`Faction` is an `int` meta property, `SD_Monster.Faction`, with three global
+constants (`SD_FACTION_REICH`, `SD_FACTION_LEGION`, `SD_FACTION_BOTH`) rather
+than a ZScript `enum`: an int property set from a named constant in a
+`Default` block is the form the arsenal already runs in the engine
+(`Weapon.SlotNumber`, `Weapon.AmmoUse SD_IZH_AMMO_USE`), and nothing reads the
+value yet, so the cheapest proven form wins.
 
 Why not derive from the Doom monsters:
 
@@ -177,15 +210,23 @@ or Freedoom map loaded with the mod becomes a Soviet Doom map, and (b) the
 one. `replaces` does **not** consume the replaced actor's editor number for
 our own use; both numbers end up spawning our class.
 
-**Attack code:** we use the generic `Actor` functions
-(`A_CustomBulletAttack`, `A_SpawnProjectile`, `A_CustomMeleeAttack`,
-`A_CustomComboAttack`) rather than `A_PosAttack`/`A_TroopAttack`, because the
-Doom functions hard-code both the damage formula and the sound lump
-(`A_PosAttack` plays `"grunt/attack"` literally). Our damage formulas live in
-named constants in the class, per CLAUDE.md.
+**Attack code:** three helpers on `SD_Monster` —
+`A_SD_Hitscan(shots, dice, multiplier)`, `A_SD_Melee(dice, multiplier)` and
+`A_SD_MeleeOrMissile(dice, multiplier, missile)` — written in the shape of
+Doom's own `A_PosAttack` / `A_SargAttack` / `A_TroopAttack`
+(`possessed.zs:267`, `demon.zs:88`, `doomimp.zs:106`), out of the same engine
+primitives (`AimLineAttack`, `LineAttack`, `CheckMeleeRange`, `DamageMobj`,
+`TraceBleed`, `SpawnMissile`), but with the dice and the sound as arguments.
+Not the Doom functions, because they hard-code both the damage formula and
+the sound (`A_PosAttack` plays `"grunt/attack"` literally); not the generic
+`A_CustomBulletAttack` either, because it rolls `damage × random(1,3)`
+(`attacks.zs:47`) and Doom's infantry roll `random(1,5) × 3`, which is the
+parity this document promises. The damage formulas live in named constants
+in each class, per CLAUDE.md.
 
-This whole subsection is **ADR material**: see §13, ADR **003** to be written
-when implementation starts (002 is taken by the arsenal).
+This whole subsection is **ADR material**. v0 called it ADR 003; 003, 004 and
+005 have since been taken (ammo naming, language switch, menu text), so it is
+**ADR 006, owed** (§13).
 
 ### 2.5 DoomEdNum block
 
@@ -204,11 +245,17 @@ as the weapons' — one block, one place to check for collisions.
 
 ### 2.6 Sprite work: the honest total
 
+**Decided (D35, closing Q6): mixed.** The five enemies the player sees most
+get drawings of their own; death and gib frames may be edited Freedoom
+(BSD-3, credited in `docs/art/LICENSES.md`). Until any of it arrives, every
+class wears a Freedoom sprite as a placeholder (§2.7).
+
 With Doom's mirroring convention (rotations 2&8, 3&7, 4&6 share one image, so
 an 8-rotation frame costs 5 drawings) the seven actors and their four
-projectiles need about **356 sprite images** (itemised in §12). That is the
+projectiles need about **354 sprite images** (itemised in §12; v0 said 356,
+the frame layouts were aligned to Doom's in v1, §2.7). That is the
 single largest cost in F5 and it is larger than
-all of F2 put together. Two mitigations, both for `art-director` to judge:
+all of F2 put together. The two mitigations v0 listed, kept for the record:
 
 1. **Freedoom as reference, not as pixels.** Freedoom is BSD-3-Clause
    (verified: `iwads/freedoom-0.13.0/COPYING.txt`, "Redistribution and use …
@@ -219,7 +266,7 @@ all of F2 put together. Two mitigations, both for `art-director` to judge:
    CC BY-NC-SA 4.0 (D15). **But** a recoloured Freedoom monster still reads as
    Freedoom, and the mod's identity is the product. Recommendation: use
    Freedoom for *animation timing and silhouette blocking*, draw our own
-   pixels. Open question **Q6**.
+   pixels. (Was Q6; closed by D35 as "mixed", above.)
 2. **Pose once, render many.** A posed low-poly model or a paper-doll rig
    rendered at 8 angles is the standard way modern TCs afford this. Out of
    `mod-engineer` scope; flagged so F5 is planned with the real number.
@@ -232,6 +279,40 @@ The sprite lumps `POSS SPOS CPOS TROO SARG HEAD BOSS BOS2` all exist in
 
 No Freedoom lump begins with `SD` (verified), so our sprite namespace is free.
 
+### 2.7 Placeholders until our art and sound arrive (F5, D35)
+
+The classes are playable now, the way the arsenal was in F4: every state
+names a Freedoom sprite, every sound is a logical name (`sd/mon/<actor>/<event>`)
+that `SNDINFO` points at a Freedoom lump. The full tables, with the final
+lump each placeholder stands in for, are contract and live in
+`MOD-SPEC.md` §6.2 (sounds) and §6.3 (sprites); the IWAD sprites are declared
+in `MOD-SPEC.md` §5, which is what lets `tools/check_pk3.py` accept them.
+
+| Class | Final sprite | Placeholder | Same frame layout? |
+|---|---|---|---|
+| `SD_ReichRifleman` | `SDRR` | `POSS` (zombieman) | yes |
+| `SD_LegionTrooper` | `SDLT` | `SPOS` (shotgun guy) | yes |
+| `SD_Stormtrooper` | `SDHS` | `TROO` (imp) | yes (v1 aligned §5's gib to `TROO`'s N–U) |
+| `SD_StormBolt` | `SDBL` | `BAL1` | yes |
+| `SD_ReichHound` | `SDHN` | `SARG` (demon) | yes |
+| `SD_Doughboy` | `SDDB` | `HEAD` (cacodemon) | yes |
+| `SD_DoughboyShell` | `SDDL` | `BAL2` | yes |
+| `SD_Panzermensch` and `SD_PanzermenschSchwer` | `SDPM` | `BOS2` (hell knight) | yes |
+| `SD_PanzerShell` | `SDPL` | `BAL7` | yes |
+| `SD_General` | `SDGN` | `CYBR` (cyberdemon) | yes for A–P (v1 aligned §9 to `CYBR`); the two `Summon` lines borrow `CYBR E F` and become `SDGN Q R` |
+| `SD_GeneralShell` | `SDGL` | `MANF` A–B flight, `MISL` B–D burst (Doom's mancubus shot) | no: the burst becomes `SDGL C D E` |
+
+**The swap rule.** Because the frame letters already follow §3–§9, replacing
+a placeholder is a rename of the four-letter sprite name in that class's
+`States` block, and nothing else — except the four lines named in the last
+two rows. Sounds are a one-line `SNDINFO` change each and no ZScript at all.
+
+**Not swapped by a rename:** the heavy Panzermensch has no sprites of its
+own. It inherits every state from `SD_Panzermensch`, so today it looks
+identical; the recolour v0 planned is a `Translation` added when `SDPM` lands
+and the palette for it exists (`art-director`). Until then the PM tells the
+two apart by `Tag` and by how long they take to die.
+
 ---
 
 ## 3. Fourth Reich rifleman — basic infantry (1 of 2)
@@ -239,7 +320,11 @@ No Freedoom lump begins with `SD` (verified), so our sprite namespace is free.
 > Bestiary row "Yankee-Nazi recruits" is specified as **two classes**, one per
 > faction, because Doom's basic-infantry slot is itself two actors (zombie and
 > sergeant) and because splitting them is what puts both factions in the
-> player's first room. Open question **Q1**.
+> player's first room. **Two names for the two classes (D35, closing Q1):**
+> *Reich rifleman* / «стрелок Рейха» and *Legion trooper* / «легионер».
+> `docs/levels/MAP01-zarya-7.md` §8 says "Fourth Reich recruit" for the same
+> unit; the player-facing name is the `LANGUAGE` one, and "recruit" survives
+> as the lore word the General's order uses (§9).
 
 | Field | Value |
 |---|---|
@@ -262,16 +347,16 @@ with the black swastika (D12). Olive blood.
 
 | Property | Value | Why |
 |---|---|---|
-| `Health` | **20** | `ZombieMan` parity. This number sets the whole ammo economy: 20 HP is one TT-33 round pair, one PPSh burst, or a single shotgun pellet group. Change it and every ammo pickup in MAP01 is wrong. |
+| `Health` | **20** | `ZombieMan` parity. This number sets the whole ammo economy: 20 HP is two TT-33 rounds (avg 12), three PPSh rounds (avg 8) or one IZh barrel. Change it and every ammo pickup in MAP01 is wrong. |
 | `Radius`/`Height` | **20 × 56** | parity. Doom's corridor widths and doorway heights assume this; the `level-designer` builds on 64-unit grid against it. |
 | `Speed` | **8** | parity. |
 | `Mass` | **100** | parity — governs how far he is thrown by an RPG blast. |
 | `PainChance` | **200** | parity (78 % chance per hit). High painchance is what makes the basic zombie *stunlockable*, which is how a Doom player safely opens a fight. |
 | Attack | hitscan, `random(1,5) × 3` = 3–15, 1 shot | parity with `A_PosAttack`. |
-| Accuracy spread | `±22.5/256 × random2()` ≈ ±1.4° | parity: a rifleman is Doom-accurate, i.e. deadly at range, which is the only reason low-HP infantry stays a threat. |
+| Accuracy spread | `random2() × 22.5/256` degrees: triangular, at most ±22.4° (`possessed.zs:267`) | parity. v0 wrote "≈ ±1.4°", which was wrong by a factor of sixteen: `Random2()` spans −255…255. Doom's infantry is *inaccurate* and dangerous by volume and at short range, which is exactly why a corner is a Doom player's best friend. |
 | `MeleeRange` | n/a (no melee) | parity. |
 | Range | `MISSILERANGE` (2048 units) | parity. |
-| `DropItem` | **`Clip`** | `ZombieMan` parity. ADR 002 kept Doom's four ammo pools (`Clip`, `Shell`, `RocketAmmo`, `Cell`), and the TT-33 and the PPSh both draw `Clip`, so the vanilla drop is already the right one. Lore reading in **Q4**: the invaders hold the Zarya-7 armoury and carry seized Soviet small arms. |
+| `DropItem` | **`SD_Clip`** | `ZombieMan` parity in amount, ours in name (D35, closing Q4: the invaders hold the Zarya-7 armoury and carry **captured Soviet arms**). ADR 002 kept Doom's four ammo pools and the TT-33 and the PPSh both draw `Clip`; `SD_Clip` is our 7.62x25 magazine (`MOD-SPEC.md` §6.4), so the player picks up "A magazine. 7.62x25." from a dead invader. |
 
 ### States and sounds
 
@@ -284,7 +369,7 @@ with the black swastika (D12). Olive blood.
 | `Death` | `SDRR H I J K`, 5 tics, `L` −1 | `death` | `SDRRIDTH` | |
 | `XDeath` | `SDRR M N O P Q R S T`, 5 tics, `U` −1 | `xdeath` | `SDRRIXDT` | gib; triggered when damage exceeds `GibHealth` |
 
-7 sounds. Lump names are all exactly 8 characters.
+6 sounds (v0 said 7, but listed these 6; the "52" total was the same slip, §12). Lump names are all exactly 8 characters.
 
 ### Sprites
 
@@ -344,14 +429,16 @@ the shoulder (D12) is the only `flag_red` on him.
 | `PainChance` | **170** | parity (66 %). Deliberately lower than the rifleman: he is harder to stunlock, which is what makes him the one you shoot first. |
 | Attack | **3** hitscans, `random(1,5) × 3` each = 9–45 | parity with `A_SPosAttackInternal`. At point blank this one-shots a 40 HP player start; it is the reason Doom players learn to use corners. |
 | Spread | ±1.4° per pellet, all on one aim slope | parity. |
-| `DropItem` | **`SD_Izh`** | parity with `ShotgunGuy` dropping a `Shotgun`. Because `SD_Izh replaces Shotgun` (ADR 002), writing either class name works; naming ours is clearer. Same armoury reading as **Q4**. |
+| `DropItem` | **`SD_Izh`** | parity with `ShotgunGuy` dropping a `Shotgun`. Because `SD_Izh replaces Shotgun` (ADR 002), writing either class name works; naming ours is clearer. Captured Soviet arms (D35). |
 
 ### States and sounds
 
 Same state layout as §3 with sprite `SDLT` and lumps `SDLTRSIT`, `SDLTRACT`,
-`SDLTRATK`, `SDLTRPAI`, `SDLTRDTH`, `SDLTRXDT`. 6 sounds (no separate idle
-bark is strictly needed, but one is listed so the two factions sound
-different in an ambush).
+`SDLTRATK`, `SDLTRPAI`, `SDLTRDTH`, `SDLTRXDT`, with one difference that is
+`ShotgunGuy` parity: the `See` cycle is **3** tics per frame, not 4, and the
+`Missile` frames are 10/10/10 (`possessed.zs`, `ShotgunGuy`). 6 sounds (no
+separate idle bark is strictly needed, but one is listed so the two factions
+sound different in an ambush).
 
 Brief for `sound-designer`: the Legion's voice is **processed and clipped** —
 radio squelch, a vocoder edge — against the Reich's dry organic bark. The
@@ -436,7 +523,7 @@ grey of `SDCONC1`. 2 + 3 = 5 images, rotation 0.
 | | | bolt impact (bolt's `DeathSound`) | `SDSTOEXP` |
 | `Pain` | `SDHS H` 2, `H` 2 `A_Pain` | `pain` | `SDSTOPAI` |
 | `Death` | `SDHS I J K L` 8, `M` −1 | `death` | `SDSTODTH` |
-| `XDeath` | `SDHS N O P Q R` 5, `S` −1 | `xdeath` | `SDSTOXDT` |
+| `XDeath` | `SDHS N O P Q R S T` 5, `U` −1 | `xdeath` | `SDSTOXDT` |
 
 8 sounds. Note the bolt owns two of them.
 
@@ -448,8 +535,8 @@ grey of `SDCONC1`. 2 + 3 = 5 images, rotation 0.
 | Attack | E F G | 8 | 15 |
 | Pain | H | 8 | 5 |
 | Death | I–M (5) | 0 | 5 |
-| Gib | N–S (6) | 0 | 6 |
-| **Total** | | | **51** + 5 bolt |
+| Gib | N–U (8) | 0 | 8 |
+| **Total** | | | **53** + 5 bolt |
 
 Visual brief: *a hunched soldier whose right arm has been replaced below the
 shoulder by a chromed emitter; the graft is raw, pink flesh at the seam; the
@@ -498,7 +585,7 @@ level designer one enemy that will never be camouflaged against a poster.
 | `Mass` | **400** | parity. |
 | `PainChance` | **180** | parity. |
 | Melee | `random(1,10) × 4` = 4–40 | parity with `A_SargAttack`. |
-| `MeleeRange` | **64** (engine default) | parity; a longer lunge range was considered and rejected — it reads as "the bite missed but hurt me", which players correctly call unfair. |
+| `MeleeRange` | engine default, not set | parity. The default is `64 - MELEEDELTA` = 44 plus the target's radius (`actor.zs:90,411`): Doom's 64-unit bite against a 20-radius player. A longer lunge range was considered and rejected — it reads as "the bite missed but hurt me", which players correctly call unfair. |
 | Blood | olive | §2.1 |
 
 **Spectre note.** Doom's `Spectre` (DoomEdNum **58**) is a separate class.
@@ -518,7 +605,7 @@ nearly free and can be added later.
 | `Death` | `SDHN I J K L M` 8, `N` −1 | `death` | `SDHNDDTH` |
 | `XDeath` | — | — | — |
 
-6 sounds. No gib death: Doom's pinky has none either, and 6 extra rotationless
+5 sounds (v0 said 6). No gib death: Doom's pinky has none either, and 6 extra rotationless
 frames bought nothing. `art-director` may add one later without touching the
 class (the engine falls back to `Death`).
 
@@ -563,6 +650,7 @@ should therefore be the one the level designer uses in the dark.
 | Sprite | `SDDB`; projectile `SDDL` |
 | Actor code | `DGB` |
 | LANGUAGE | `SD_TAG_DOUGHBOY`, `SD_OB_DOUGHBOY`, `SD_OBHIT_DOUGHBOY` |
+| Russian name | «Каска» ("the Helmet") — Q1(a) had no recommendation; chosen because "Doughboy" means nothing to a Russian-speaking player and the helmet is the unit's identity. One `LANGUAGE` line if the CEO prefers otherwise. |
 
 **Why this faction.** The M1 helmet is the unit's whole identity (D13), and
 `LORE.md` gives the Legion the floating heads. "Doughboy" is the US infantry
@@ -605,8 +693,12 @@ to each is different (dodge sideways vs. break line of sight).
 | `Pain` | `SDDB E` 3, `E` 3 `A_Pain`, `F` 6 | `pain` | `SDDGBPAI` |
 | `Death` | `SDDB G H I J` 8, `K` 8 `A_SetFloorClip`, `L` −1 | `death` | `SDDGBDTH` |
 
-8 sounds. The death animation must *deflate and sink* (clear `+NOGRAVITY` in
-the death state as Doom does), otherwise the corpse hangs in the air.
+7 sounds (v0 said 8). The death animation must *deflate and sink*, otherwise
+the corpse hangs in the air. Doom's own sequence, read in `cacodemon.zs`, does
+not touch `+NOGRAVITY`: it calls `A_NoBlocking` and then `A_SetFloorClip` on
+the last frame, and the dead floater falls (where the C++ drops it is
+**NOT VERIFIED**; it is what every Doom cacodemon visibly does). The class
+copies that sequence.
 
 ### Sprites
 
@@ -661,17 +753,22 @@ moment the player is supposed to notice he is in a fight.
 
 D13 calls the Panzermensch "baron". A `BaronOfHell` has **1000 HP**. Doom II
 puts its first Hell Knight in MAP03 and its first Baron in MAP08; Soviet Doom
-v1 is **one map**. A 1000 HP brute in MAP01 costs roughly 5 RPG-7 hits or 48
-PPSh rounds — twenty-plus seconds of holding a trigger, which is not a fight,
-it is a wall.
+v1 is **one map**. A 1000 HP brute in MAP01 costs about 8 RPG-7 direct hits
+(135 average each, `BALANCE.md`) or 125 PPSh rounds — eleven seconds of
+holding the trigger with every round landing, which is not a fight, it is a
+wall. (v0 said "5 RPG-7 hits or 48 PPSh rounds"; both figures were wrong.)
 
-**Decision: `SD_Panzermensch` ships at Hell Knight numbers (500 HP) and
-`replaces HellKnight`.** The Baron slot stays free for a heavier variant,
-`SD_PanzermenschSchwer` (1000 HP, `replaces BaronOfHell`, DoomEdNum **21107**
-reserved), which is a translation swap and two extra frames over the same
-sprite set — it costs almost nothing and belongs to MAP03. This honours "the
-Panzermensch is the baron-tier enemy" while keeping MAP01 playable.
-Open question **Q2**.
+**Decided (D35, closing Q2): `SD_Panzermensch` ships at Hell Knight numbers
+(500 HP) and `replaces HellKnight`; the heavy variant
+`SD_PanzermenschSchwer` (1000 HP, `replaces BaronOfHell`, DoomEdNum
+**21107**) exists for MAP03.** The variant is implemented now because it
+costs twenty lines and closes a hole: without it a map placing Doom's Baron
+(3003) would spawn a Freedoom baron in a Soviet map. It derives from
+`SD_Panzermensch` and changes only `Health` and `Tag`, so it has no
+`States` block of its own and no sprite name to swap. It does not copy the
+Baron's `+BOSSDEATH` / `A_BossDeath`: in Doom those serve only E1M8-style
+map specials (`baronspecial`), which no map of ours uses. Its recolour is a
+`Translation` added when the art exists (§2.7).
 
 ### Stats
 
@@ -704,8 +801,9 @@ heavier and slower-tumbling than the Stormtrooper bolt.
 | `Death` | `SDPM I J K L M N` 8, `O` −1 | `death` | `SDPZRDTH` |
 | | plus a **footstep** every See cycle **(H)** | `step` | `SDPZRSTP` |
 
-9 sounds. The footstep is the cheapest possible "boss is coming" telegraph and
-costs one `A_StartSound` in the `See` state. Marked **(H)**: cut it if it
+8 sounds (v0 said 9). The footstep is the cheapest possible "boss is coming"
+telegraph and costs one `A_StartSound` in the `See` state, on the first frame
+of each 8-frame cycle (one step per 24 tics). Marked **(H)**: cut it if it
 turns into noise.
 
 No `XDeath`: Doom's bruisers do not gib, and a 1000-mass armoured unit that
@@ -746,8 +844,8 @@ thing in the mod. See rule 3 of the legibility matrix (§10).
 | Replaces | `Cyberdemon` (16) |
 | Sprite | `SDGN`; projectile `SDGL` |
 | Actor code | `GEN` |
-| LANGUAGE | `SD_TAG_GENERAL`, `SD_OB_GENERAL` |
-| **Scope** | **MAP03 only — not implemented in v1.** Specified here so F5's design is complete and so `art-director` can plan. |
+| LANGUAGE | `SD_TAG_GENERAL`, `SD_OB_GENERAL`, `SD_GENERAL_ORDER` |
+| **Scope** | **First placed in MAP03.** Implemented in F5 (2026-10-13) so the mechanic can be tested on MAP02's bench (§11) long before MAP03 exists; no MAP01 places him. |
 
 **Why this faction.** `LORE.md` gives the Legion the officers. Making the
 alliance's commander the *Yankee* one is also the lore's point: the Reich
@@ -774,9 +872,9 @@ in.
 | Salvo | 3 × `SD_GeneralShell`, `Damage 8` → 8–64 each | A three-shot salvo is the Cyberdemon's own rhythm (the thing that makes Doom's best fight work) but with a dodgeable projectile instead of a rocket. |
 | Projectile speed | **20 (H)** | Fast enough to punish standing still, slow enough to sidestep at 20 metres. |
 
-### The open design question (Q3)
+### The design question (Q3) — decided: B (D35)
 
-Two shapes for this fight; the CEO decides.
+Two shapes for this fight; the CEO chose **B** on 2026-10-13.
 
 **A — brute with more health.** The General is a Panzermensch with 3000 HP
 and a salvo. Cost: ~58 sprites, ~8 sounds, ~1 day of ZScript. Risk: in a mod
@@ -790,9 +888,40 @@ extra frames, one `A_SpawnItemEx` call, one sound. Cost over A: ~10 sprites,
 starts to matter. It also pays off the lore — the General does not fight, he
 *orders*.
 
-`mod-engineer` recommends **B**. Anything larger (phase changes, invulnerable
-shields, scripted arenas) is out of proportion for a three-map episode and
-would be its own ADR.
+`mod-engineer` recommended **B** and the CEO took it. Anything larger (phase
+changes, invulnerable shields, scripted arenas) is out of proportion for a
+three-map episode and would be its own ADR.
+
+**How B is built (v1).**
+
+- **Trigger.** Every `See` frame calls `A_SD_GeneralChase`, which checks
+  `health < SpawnHealth() × SD_GENERAL_SUMMON_FRACTION` (0.5) before it
+  chases. Checking in the chase rather than in `DamageMobj` means the summon
+  never cuts a salvo in half: if the shot that crosses 50 % lands mid-salvo,
+  he finishes it and summons on his next step (≤ 72 tics later). If one blow
+  takes him from above half to dead, there is no summon, which is correct.
+- **Once.** A `bool summoned` on the actor, set before the jump to `Summon`,
+  so it cannot repeat even if he is resurrected from the console.
+- **Who comes.** `SD_GENERAL_SUMMON_COUNT` = **2** × `SD_ReichRifleman`. v0
+  named an `SD_ReichRecruit` that was never specified; the recruits *are*
+  the Reich's basic infantry (§3), and "the Reich supplies the bodies, the
+  Legion the capital" is this unit's whole lore.
+- **Where.** `A_SpawnItemEx` at `SD_GENERAL_SUMMON_SIDE` (72 units: his
+  radius 40 + theirs 20 + 12 clear) to his right and left; if a side is
+  blocked, the next spot in the list is tried (behind, then in front).
+  `A_SpawnItemEx` refuses to place a monster where it does not fit
+  (`attacks.zs:235`), so a recruit never appears inside a wall; in a cramped
+  spot fewer than two may come, the price of never telefragging anyone. Each
+  recruit takes his target (`SXF_TRANSFERPOINTERS`), wakes straight into
+  `See` the way Doom's boss-brain cubes wake their spawn
+  (`bossbrain.zs:397`), and arrives inside a `TeleportFog`.
+- **The order.** `A_PrintBold` of `SD_GENERAL_ORDER` (`LANGUAGE`, EN and RU,
+  resolved explicitly with `StringTable.Localize`) and the sound
+  `sd/mon/general/summon` → `SDGENSUM` at no attenuation, so it is heard
+  across the arena. The wording is a placeholder until the CEO answers
+  `docs/sound/ENEMY-SOUNDS.md` §7 C; text and sound change together.
+  **NOT VERIFIED:** that `A_PrintBold` called by a monster reaches the
+  player's screen (signature at `actor.zs:1203`; the behaviour is native).
 
 ### States, sounds, sprites
 
@@ -800,17 +929,22 @@ would be its own ADR.
 |---|---|---|---|
 | `Spawn` | `SDGN A B` 10 `A_Look` | `active` | `SDGENACT` |
 | `See` | `SDGN AABBCCDD` 3 `A_Chase` | `sight` | `SDGENSIT` |
-| `Missile` | `SDGN E` 12 `A_FaceTarget`, `F G` 12 *salvo ×3* | launch | `SDGENMIS` |
+| `Missile` | `SDGN E` 6 `A_FaceTarget`, then (`F` 12 *shot*, `E` 12 `A_FaceTarget`) ×3 | launch | `SDGENMIS` |
 | | | impact | `SDGENEXP` |
-| `Summon` (option B) | `SDGN H I` 15 | order | `SDGENSUM` |
-| `Pain` | `SDGN J` 10 `A_Pain` | `pain` | `SDGENPAI` |
-| `Death` | `SDGN K L M N O P Q` 10, `R` −1 | `death` | `SDGENDTH` |
+| `Summon` (B) | `SDGN Q` 15 *order*, `R` 15 | order | `SDGENSUM` |
+| `Pain` | `SDGN G` 10 `A_Pain` | `pain` | `SDGENPAI` |
+| `Death` | `SDGN H I J K L M N O` 10, `P` 30, `P` −1 `A_BossDeath` | `death` | `SDGENDTH` |
 
-8 sounds. The `death` lump is the last sound in the episode; `sound-designer`
-should treat it as a cue, not an effect.
+7 sounds (v0 said 8). The `death` lump is the last sound in the episode;
+`sound-designer` should treat it as a cue, not an effect.
 
-Sprites: walk 4×5 = 20, salvo 3×5 = 15, summon 2×5 = 10, pain 1×5 = 5,
-death 8 = **58 images** + 5 projectile.
+**v1 changed the frame letters** to `Cyberdemon`'s layout (`cyberdemon.zs`):
+walk A–D, attack E–F, pain G, death H–P, and the two summon frames appended
+as Q–R. That keeps the placeholder swap a rename for every state but
+`Summon` (§2.7).
+
+Sprites: walk 4×5 = 20, attack 2×5 = 10, summon 2×5 = 10, pain 1×5 = 5,
+death 9 = **54 images** + 5 projectile.
 
 Visual brief: *tall and unhurried, a chromed cuirass over a pale greatcoat
 that flares at the knee; a peaked cap with too much braid; the face is a
@@ -915,72 +1049,112 @@ The Doughboy is placed in the hangar specifically because it is MAP01's only
 space with vertical room, and the Panzermensch gates the exit.
 
 Counts are hypotheses for the `level-designer` to own; they are listed only so
-F5 and F3 can be planned against the same assumption.
+F5 and F3 can be planned against the same assumption. **D35 (Q7): MAP01 is
+Reich first**; the Liberty Legion appears halfway, as the force holding the
+hangar. MAP02 inverts it and MAP03 mixes.
+
+### 11.1 The test bench on MAP02 (F5)
+
+Before any campaign map places them, every class stands in a row in MAP02's
+**bestiary gallery** (`src/maps/MAP02/map.py`, `MOD-SPEC.md` §4): a room of
+its own, not connected to the arsenal hall, so nothing in it hears or sees
+the firing range. Each one is deaf (`ambush`) and faces the far wall, away
+from the spot the PM warps to, so they stand still until shot one at a time.
+The engine checklist that uses it is in the F5 hand-off; the room's
+coordinates are constants in the map script.
 
 ---
 
 ## 12. Summary table
 
-| # | Name | Class | Faction | EdNum | Replaces | HP | Spd | Pain | Attack | Sprite | Images | Sounds |
+| # | Name | Class | Faction | EdNum | Replaces | HP | Spd | Pain | Attack | Sprite (placeholder) | Images | Sounds |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | Reich rifleman | `SD_ReichRifleman` | Reich | 21100 | `ZombieMan` | 20 | 8 | 200 | hitscan 3–15 | `SDRR` | 49 | 7 |
-| 2 | Legion trooper | `SD_LegionTrooper` | Legion | 21101 | `ShotgunGuy` | 30 | 8 | 170 | 3× hitscan 3–15 | `SDLT` | 49 | 6 |
-| 3 | Hybrid Stormtrooper | `SD_Stormtrooper` | both | 21102 | `DoomImp` | 60 | 8 | 200 | melee 3–24 / bolt 3–24 | `SDHS` `SDBL` | 56 | 8 |
-| 4 | Reich hound | `SD_ReichHound` | Reich | 21103 | `Demon` | 150 | **12 (H)** | 180 | melee 4–40 | `SDHN` | 46 | 6 |
-| 5 | Doughboy | `SD_Doughboy` | Legion | 21104 | `Cacodemon` | 400 | 8 | 128 | melee 10–60 / shell 5–40 | `SDDB` `SDDL` | 41 | 8 |
-| 6 | Panzermensch | `SD_Panzermensch` | Reich | 21105 | `HellKnight` | **500** | 8 | 50 | melee 10–80 / shell 8–64 | `SDPM` `SDPL` | 52 | 9 |
-| 7 | The General | `SD_General` | Legion | 21106 | `Cyberdemon` | **3000 (H)** | 12 | 20 | 3× shell 8–64 | `SDGN` `SDGL` | 63 | 8 |
-| — | *heavy Panzermensch* | `SD_PanzermenschSchwer` | Reich | *21107 reserved* | `BaronOfHell` | 1000 | 8 | 50 | as #6 | `SDPM` recolour | +2 | 0 |
-| — | *cloaked hound* | *reserved* | Reich | *21108 reserved* | `Spectre` | 150 | 12 | 180 | as #4 | `SDHN` `+SHADOW` | 0 | 0 |
+| 1 | Reich rifleman | `SD_ReichRifleman` | Reich | 21100 | `ZombieMan` | 20 | 8 | 200 | hitscan 3–15 | `SDRR` (`POSS`) | 49 | 6 |
+| 2 | Legion trooper | `SD_LegionTrooper` | Legion | 21101 | `ShotgunGuy` | 30 | 8 | 170 | 3× hitscan 3–15 | `SDLT` (`SPOS`) | 49 | 6 |
+| 3 | Hybrid Stormtrooper | `SD_Stormtrooper` | both | 21102 | `DoomImp` | 60 | 8 | 200 | melee 3–24 / bolt 3–24 | `SDHS` `SDBL` (`TROO` `BAL1`) | 58 | 8 |
+| 4 | Reich hound | `SD_ReichHound` | Reich | 21103 | `Demon` | 150 | **12 (H)** | 180 | melee 4–40 | `SDHN` (`SARG`) | 46 | 5 |
+| 5 | Doughboy | `SD_Doughboy` | Legion | 21104 | `Cacodemon` | 400 | 8 | 128 | melee 10–60 / shell 5–40 | `SDDB` `SDDL` (`HEAD` `BAL2`) | 41 | 7 |
+| 6 | Panzermensch | `SD_Panzermensch` | Reich | 21105 | `HellKnight` | **500** | 8 | 50 | melee 10–80 / shell 8–64 | `SDPM` `SDPL` (`BOS2` `BAL7`) | 52 | 8 |
+| 7 | The General | `SD_General` | Legion | 21106 | `Cyberdemon` | **3000 (H)** | 12 | 20 | 3× shell 8–64; summons 2 riflemen once below 50 % | `SDGN` `SDGL` (`CYBR`; `MANF` `MISL`) | 59 | 7 |
+| 8 | Heavy Panzermensch | `SD_PanzermenschSchwer` | Reich | 21107 | `BaronOfHell` | 1000 | 8 | 50 | as #6 | inherits #6 | 0 (a translation) | 0 |
+| — | *cloaked hound* | *reserved, not implemented* | Reich | *21108 reserved* | `Spectre` | 150 | 12 | 180 | as #4 | `SDHN` `+SHADOW` | 0 | 0 |
 
-Totals for F5: **7 classes + 4 projectile actors, ≈ 356 sprite images,
-52 sound lumps.**
+Totals for F5: **8 classes + 4 projectile actors, ≈ 354 sprite images,
+47 sound lumps.** v0 said 356 and 52. The images moved with the frame
+layouts (§2.7). The sounds never were 52: the per-actor lines of §3, §6, §7,
+§8 and §9 each counted one more sound than their own tables list (7/6, 6/5,
+8/7, 9/8, 8/7), and the tables were right. 47 is the list
+`docs/sound/ENEMY-SOUNDS.md` §1 found by counting rows, the list `SNDINFO`
+now defines (`sd/mon/*`, 47 logical names) and the list
+`tests/test_bestiary.py` holds the two to.
+
+Classes the bestiary does **not** replace, so a map placing them still gets
+Freedoom's actor: `ChaingunGuy` (65), `Spectre` (58, reserved above),
+`LostSoul`, `PainElemental`, `Revenant`, `Fatso`, `Arachnotron`, `Archvile`,
+`SpiderMastermind`, `WolfensteinSS`, `CommanderKeen` and the boss-brain set.
+**`level-designer`: MAP01 §8 plans a "Legion heavy gunner" on thing 65; no
+such class exists or is ratified (D13 lists six enemies).** Either it is cut,
+or it becomes a CEO question for a seventh enemy; until then 65 is a Freedoom
+chaingunner.
 
 ---
 
 ## 13. What other documents must change
 
-`mod-engineer` owns only this file in this task. These are the amendments the
-owners of the other documents must make before implementation starts.
-
-| Document | Change | Owner |
-|---|---|---|
-| `docs/engine/MOD-SPEC.md` §6.1 | Add the nine bestiary numbers to the `21100–21199` enemy sub-range table (21100–21106 the seven classes, 21107–21108 reserved variants). No range change: ADR 002 already fixed the 14000 collision. | `mod-engineer` (MOD-SPEC) |
-| `docs/engine/MOD-SPEC.md` §2, §3, §6, §6.2, §6.3 | Add `src/zscript/monsters/` → `zscript/monsters/` to both layouts; add the eleven bestiary sprite prefixes to the §6.3 reserved table and the 52 sound lumps to the §6.2 table; list the monster classes in the §6 class table. | idem |
-| `docs/engine/MOD-SPEC.md` §5 | `MAP02`'s Freedoom test fixtures include thing **3004** (zombieman). Once `SD_ReichRifleman replaces ZombieMan` lands, that fixture silently becomes a Soviet rifleman. That is the correct outcome, but the §5 note calling it a Freedoom placeholder stops being true and should say so. | idem |
-| `docs/engine/BALANCE.md` | Should **link here** rather than copy: this file is the source of truth for enemy numbers, BALANCE.md for weapon numbers and the ammo economy that connects them. | `mod-engineer` (arsenal) |
-| `docs/art/ART-BIBLE.md` §3 | The **pink/flesh ramp** reserved for the Liberty Legion must be added as `palette.json` **v2** before any Legion sprite is drawn; §6 should absorb the six map rules of §10 above. | `art-director` |
-| `docs/art/TEXTURE-INDEX.md` | Sprites are not textures, but the F5 sprite sheets need their own index with the same origin/licence columns. | `art-director` |
-| `src/lumps/LANGUAGE` | 7 `SD_TAG_*`, 7 `SD_OB_*`, 4 `SD_OBHIT_*` ids, `[enu default]` and `[ru]` (D7). | `mod-engineer` (arsenal owns the file today) |
-| `docs/art/LICENSES.md` | If any Freedoom pixels ship, the BSD-3 notice, disclaimer and no-endorsement clause must be reproduced. | `qa-engineer` audit |
-| `docs/engine/adr/003-*.md` | **ADR 003 — "Enemies derive from `Actor`, not from the Doom monsters"**: context (§2.4), options (derive from Doom monsters / derive from `Actor` / DECORATE), decision, consequences (every state must be written out; no inherited IWAD sprites or sounds; deliberate divergence from ADR 002's choice for weapons, §2.4). To be written when implementation starts. | `mod-engineer` |
+| Document | Change | Owner | Status |
+|---|---|---|---|
+| `docs/engine/MOD-SPEC.md` §6.1 | The bestiary numbers in the `21100–21199` table | `mod-engineer` | **Done 2026-10-13** |
+| `docs/engine/MOD-SPEC.md` §2, §3, §5, §6, §6.2, §6.3 | `zscript/monsters/` in both layouts; the IWAD sprites in §5; the classes in §6; the 47 sounds in §6.2; the sprite reservations and placeholders in §6.3 | `mod-engineer` | **Done 2026-10-13** |
+| `docs/engine/MOD-SPEC.md` §5 | MAP02's zombieman fixtures (3004) are Soviet riflemen now | `mod-engineer` | **Done 2026-10-13** |
+| `docs/engine/BALANCE.md` | Link here; shots-to-kill of each enemy by weapon | `mod-engineer` | **Done 2026-10-13** |
+| `docs/art/ART-BIBLE.md` §3 | The **pink/flesh ramp** reserved for the Liberty Legion must be added as `palette.json` **v2** before any Legion sprite is drawn; §6 should absorb the six map rules of §10 above | `art-director` | open |
+| `docs/art/TEXTURE-INDEX.md` | Sprites are not textures, but the F5 sprite sheets need their own index with the same origin/licence columns | `art-director` | open |
+| `src/lumps/LANGUAGE` | 8 `SD_TAG_*`, 7 `SD_OB_*`, 3 `SD_OBHIT_*` and `SD_GENERAL_ORDER`, `[enu default]` and `[ru]` (D21) | `mod-engineer` | **Done 2026-10-13** |
+| `docs/art/LICENSES.md` | When any edited Freedoom pixel or sound ships (D35 allows it for deaths and gibs), the BSD-3 notice, disclaimer and no-endorsement clause. Placeholders read from the IWAD at run time are not redistributed and need no row (MOD-SPEC §5) | `qa-engineer` audit | open, nothing ships yet |
+| `docs/engine/adr/006-*.md` | **ADR 006 — "Enemies derive from `SD_Monster : Actor`, not from the Doom monsters"**: context (§2.4), options (derive from Doom monsters / from `Actor` / DECORATE), decision, consequences (every state written out; no inherited IWAD sprites or sounds; explicit `Species`; deliberate divergence from ADR 002's choice for weapons). v0 called it 003, a number since taken | `mod-engineer` | **owed** — `docs/engine/adr/` was outside this task's files |
+| `docs/levels/MAP01-zarya-7.md` §8 | Swap the Freedoom placeholders for our editor numbers (or keep the Doom numbers, which `replaces` already turns into ours); settle the heavy gunner (§12) | `level-designer` | open |
 
 ---
 
-## 14. Open questions for the CEO
+## 14. Questions for the CEO — closed by D35 (2026-10-13)
 
-| # | Question | What `mod-engineer` recommends |
-|---|---|---|
-| **Q1** | **Names.** The ratified names are provisional (D13). Proposed finals: *Reich rifleman* (Rus. «стрелок Рейха»), *Legion trooper* («легионер»), *Hybrid Stormtrooper* («штурмовик-гибрид»), *Reich hound* («гончая Рейха»), *Doughboy* («Каска» / «Doughboy»?), *Panzermensch*, *the General* («Генерал»). Two sub-questions: (a) is "Doughboy" readable to a Russian-speaking player, or does it need a Russian name of its own? (b) should the basic infantry be **one** name covering two classes, or two names? | Two names. The player must be able to say "the pink ones shoot harder". |
-| **Q2** | **Panzermensch tier.** D13 says "baron" (1000 HP). I propose shipping it at Hell Knight numbers (**500 HP**) so MAP01 is a fight and not a wall, and reserving a 1000 HP heavy variant for MAP03. Accept, or hold the Baron numbers? | 500 in MAP01, 1000 variant in MAP03. |
-| **Q3** | **Is the General a boss or a big brute?** Option A = more HP and a salvo. Option B = A plus one mechanic (below half health he summons two recruits and shouts an order), costing about half a day and 10 sprites more. | **B.** One verb is enough to make the fight a fight, and it pays off the lore: the General orders, he does not brawl. |
-| **Q4** | **What do enemies drop?** The clean solution is that the invaders hold the Zarya-7 armoury and carry **seized Soviet small arms**, so a dead rifleman drops PPSh ammunition and a dead trooper drops the IZh. This is one sentence of lore and it saves inventing a second arsenal. Accept? | Accept. The alternative — alien weapons the player cannot use — means enemies drop nothing, which starves MAP01. |
-| **Q5** | **Infighting.** Doom lets monsters fight each other when they hit each other by accident; it is one of the game's best tactics. Our two factions are *allies*. Keep vanilla infighting (and read it as "an alliance of convenience"), or suppress it between the factions? | Keep it. Suppressing it would remove a core Doom verb to protect a lore detail that the lore itself already undercuts. |
-| **Q6** | **Freedoom sprites.** Freedoom's monsters are BSD-3 licensed and legally reusable with attribution. Using them as a base would cut F5's ~356 drawings substantially, but a recoloured Freedoom monster still looks like Freedoom, and the mod's identity is the product. Reference only, or ship edited Freedoom pixels where they fit? | Reference only for the five enemies the player sees most; edited Freedoom acceptable for gib and death frames, which play for 1 second and are drawn from a single angle. `art-director` has the final say. |
-| **Q7** | **Does one faction dominate MAP01?** Zarya-7 is the first landing. Proposal: MAP01 is **Reich-heavy** (they are the infantry, the boots on the ground) with the Legion appearing as the units that hold the hangar — so the player meets the Reich first and learns there is a second enemy halfway through the map. MAP02 inverts it; MAP03 mixes. | Reich-heavy MAP01. It gives the map a dramatic turn at no cost. |
+All seven were answered on 2026-10-13, every one as recommended
+(`docs/PRD.md`, D35). Kept as the record of what was asked.
+
+| # | Question | Answer (D35) | Where it landed |
+|---|---|---|---|
+| **Q1** | **Names.** Proposed finals: *Reich rifleman* («стрелок Рейха»), *Legion trooper* («легионер»), *Hybrid Stormtrooper* («штурмовик-гибрид»), *Reich hound* («гончая Рейха»), *Doughboy*, *Panzermensch*, *the General* («Генерал»). (a) Is "Doughboy" readable to a Russian-speaking player? (b) One name for the two infantries, or two? | (b) **Two names.** (a) was not answered separately; `mod-engineer` chose «Каска» (§7), one `LANGUAGE` line to change | `LANGUAGE`, §3, §7 |
+| **Q2** | **Panzermensch tier**: 500 HP in MAP01 and a 1000 HP variant for MAP03, or Baron numbers? | **500 in MAP01, 1000 variant for MAP03** | §8, `SD_PanzermenschSchwer` at 21107 |
+| **Q3** | **Is the General a boss or a big brute?** | **B, a boss with one verb**: below half health he summons two recruits and shouts an order | §9 |
+| **Q4** | **What do enemies drop?** | **Captured Soviet arms**: our ammunition and our weapons | §3 (`SD_Clip`), §4 (`SD_Izh`) |
+| **Q5** | **Infighting** between the allied factions? | **Kept**, an alliance of convenience | §2.2 |
+| **Q6** | **Freedoom sprites?** | **Mixed**: own drawings for the five most-seen enemies; deaths and gibs may be edited Freedoom (BSD-3, credited) | §2.6, §2.7 |
+| **Q7** | **Does one faction dominate MAP01?** | **Reich first**; the Legion appears halfway, holding the hangar. MAP02 inverts it, MAP03 mixes | §11, for `level-designer` |
 
 ---
 
-*Verification note (CLAUDE.md radical honesty).* Verified in this task:
-GZDoom 4.14.2 actor stats and the `extend class Actor` attack functions
-(read from the installed `gzdoom.pk3`); the editor-number collision at
-14001–14165 and the free gaps; the presence and lump counts of Freedoom's
-monster sprites; Freedoom's BSD-3 licence text; that no `SD`-prefixed lump
-exists in `freedoom2.wad`; that the string `DoomEdNum` appears nowhere in
-GZDoom's own `zscript/` tree, which corroborates ADR 002's "MAPINFO
-`DoomEdNums` is the only method"; that none of this document's sprite
-prefixes or sound lumps collides with the arsenal's reservations in
-MOD-SPEC §6.2–6.3. **NOT VERIFIED:** the visual content of any
-Freedoom sprite; every value marked **(H)**; that a 16-px value test actually
-separates the two recruits (it needs the first sprite sheet); that GZDoom
-reports duplicate editor numbers as an error rather than silently overriding.
+*Verification note (CLAUDE.md radical honesty).* **Verified** (v0,
+2026-10-12): GZDoom 4.14.2 actor stats and the `extend class Actor` attack
+functions; the editor-number collision at 14001–14165 and the free gaps; the
+presence and lump counts of Freedoom's monster sprites; Freedoom's BSD-3
+licence text; that no `SD`-prefixed lump exists in `freedoom2.wad`; that the
+string `DoomEdNum` appears nowhere in GZDoom's own `zscript/` tree; that none
+of the sprite prefixes or sound lumps collides with the arsenal's.
+**Verified in v1** (2026-10-13), by reading `gzdoom.pk3` of the installed
+g4.14.2 on Windows as a zip: the Doom monsters' states and frame layouts that
+§2.7 aligns to; the signatures of every engine function and flag the classes
+call (`AimLineAttack`, `LineAttack`, `CheckMeleeRange`, `DamageMobj`,
+`TraceBleed`, `SpawnMissile`, `A_SpawnItemEx` and its `SXF_*` flags,
+`SpawnHealth`, `A_PrintBold`, `StringTable.Localize`, `A_BossDeath`,
+`A_SetFloorClip`, `TeleportFog`, `ATTN_NONE`, `MELEEDELTA`); that every
+placeholder sprite frame the states name and every placeholder sound lump
+`SNDINFO` names exists in `iwads/freedoom2.wad` 0.13.0
+(`tests/test_bestiary.py`, which runs it whenever the IWAD is present).
+**NOT VERIFIED:** anything in the engine — no class has been loaded by
+GZDoom yet (D26: the PM's batch run); the native `GetSpecies` rule (§2.2);
+the `BloodColor` property's string form, which is native and not used in any
+engine `.zs` file; that `A_PrintBold` from a monster reaches the screen
+(§9); how far a dead Doughboy falls (§7); the visual content of any Freedoom
+sprite; every value marked **(H)**; that a 16-px value test separates the two
+recruits; that GZDoom reports duplicate editor numbers as an error rather
+than silently overriding.
