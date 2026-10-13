@@ -28,6 +28,15 @@ sprites read well at game distance but look like paper dolls up close, and
 proposes a 3D rig in the same style rendered at 8 angles; or your own
 concept or a pixel artist for the front frames, with the rig for the rest.
 
+## 1d. German letters for the alphabet (2 minutes)
+
+Sheet: `docs/art/previews/2026-10-13_1730_F5_font-german-umlauts.png`. Ä, Ö
+and Ü drawn in alphabet C, both sizes, with a blank row under the dots
+(Ё has its dots touching; say if you prefer that). Until approved the
+screen spells "The General: Vorwaerts!". The sharp s reads as a B, so the
+PM and the art-director recommend writing "SS" in capitals instead of
+shipping ẞ. Approve the three umlauts, and say yes or no to the sharp s.
+
 ## 1c. Your voice takes for the enemies (D36)
 
 The sound-designer is writing `docs/sound/VOICE-SCRIPT.md`: every line in
