@@ -34,7 +34,81 @@ below). Coverage is measured and printed even when tests fail; a failing
 test still executes code on its way to failing, and that execution still
 counts.
 
-## Today's number (2026-10-13 11:35, Windows PC, HEAD `b92c314` + uncommitted tooling)
+## Latest number (2026-10-13 21:10, Windows PC, QA)
+
+**Branch coverage of `tools/`: 79% (12732 statements, 3062 branches).**
+Test suite: **914 tests, OK, 1 skipped** (the opt-in engine test), **no
+expected failure** (the font fix retired `SlabSerifDefectTests`' one).
+
+Measurement facts:
+- Command: `bash tools/coverage.sh --no-html` under Git Bash, interpreter
+  `.venv/Scripts/python.exe` (Python 3.14), the Mac's `work/` in place;
+  91 s wall clock, of which the suite 85 s.
+- Tree: HEAD `87d613b` (its `tools/` and `tests/` are `d1e891f`'s; the
+  commit touched docs only) **plus QA's uncommitted G3 route work**:
+  `tools/route.py` and `tests/test_route.py` (56 tests in that file, 8
+  more than at `d1e891f`). So the suite at `d1e891f` itself is 906 tests.
+- `CLAUDE.md`'s "882 tests" was `tools/verify.py art`'s count earlier the
+  same evening; this is the whole `unittest discover` under coverage, on a
+  tree that has grown since.
+
+What moved since the 14:50 figure (65%, 450 tests): `tools/` more than
+doubled in tests and grew by 6233 statements, and coverage rose anyway.
+`audition.py` went from 21% to **98%**, so it is no longer the largest
+gap; `gen_font.py` is at 99%. The largest gaps now are the three files no
+test imports (`emblem_check.py`, `make_contact.py`, `make_preview.py`, all
+0%) and two generators with approved or proposed output: `gen_menu.py`
+(24%) and `gen_switch.py` (41%). `sdbuild/pk3.py`'s three documented
+branches (below, "The three gaps that matter most", item 2) are still
+unexercised, at lines 90-92, 150 and 179.
+
+| File | Stmts | Branch | Cover |
+|---|--:|--:|--:|
+| `tools/art/emblem_check.py` | 48 | 6 | **0%** |
+| `tools/art/make_contact.py` | 34 | 2 | **0%** |
+| `tools/art/make_preview.py` | 60 | 12 | **0%** |
+| `tools/art/gen_menu.py` | 264 | 60 | 24% |
+| `tools/art/gen_switch.py` | 336 | 44 | 41% |
+| `tools/audio/midi_edit.py` | 173 | 76 | 54% |
+| `tools/art/gen_enemy.py` | 582 | 100 | 56% |
+| `tools/audio/wav_report.py` | 90 | 28 | 58% |
+| `tools/art/gen_weapon.py` | 932 | 178 | 62% |
+| `tools/art/gen_props.py` | 584 | 150 | 67% |
+| `tools/build.py` | 41 | 12 | 68% |
+| `tools/smoke.py` | 342 | 122 | 69% |
+| `tools/audio/midi_inspect.py` | 134 | 58 | 73% |
+| `tools/art/gen_rig.py` | 908 | 180 | 78% |
+| `tools/audio/gen_music.py` | 515 | 144 | 80% |
+| `tools/verify.py` | 395 | 148 | 80% |
+| `tools/route.py` | 820 | 316 | 83% |
+| `tools/art/gen_metro.py` | 603 | 84 | 84% |
+| `tools/art/gen_lenin.py` | 98 | 14 | 84% |
+| `tools/sdbuild/pk3.py` | 129 | 60 | 84% |
+| `tools/check_pk3.py` | 900 | 408 | 84% |
+| `tools/art/gen_shell.py` | 350 | 68 | 86% |
+| `tools/sdbuild/wad.py` | 65 | 30 | 87% |
+| `tools/audio/gen_weapon_sfx.py` | 810 | 130 | 93% |
+| `tools/audio/gen_sfx.py` | 1066 | 154 | 94% |
+| `tools/art/gen_soviet_base.py` | 472 | 42 | 96% |
+| `tools/sdbuild/udmf.py` | 375 | 116 | 98% |
+| `tools/audio/audition.py` | 262 | 92 | 98% |
+| `tools/art/gen_font.py` | 1084 | 190 | 99% |
+| `tools/art/artlib.py` | 181 | 28 | 99% |
+| `tools/art/palette.py` | 42 | 6 | 100% |
+| `tools/art/sheetlib.py` | 37 | 4 | 100% |
+| `tools/sdbuild/__init__.py` | 0 | 0 | 100% |
+| **TOTAL** | **12732** | **3062** | **79%** |
+
+`tools/route.py`'s 17% left is mostly what only the PM's engine runs
+reach (D26): `keep_evidence()` and `main()`'s loop after the engine returns
+(lines 1519-1540 and 1676-1704 of the measured file), plus report branches
+no synthetic log takes.
+
+**Everything below this point is the history of the morning and afternoon
+measurements** (11:35 to 14:50). Its per-file table and its analysis
+describe the 11:35 tree; read them with the table above.
+
+## Earlier the same day (2026-10-13 11:35, Windows PC, HEAD `b92c314` + uncommitted tooling)
 
 **Branch coverage of `tools/`: 49% (5727 statements, 1486 branches).**
 Test suite: **383 tests, OK, 16 skipped** (reasons below).

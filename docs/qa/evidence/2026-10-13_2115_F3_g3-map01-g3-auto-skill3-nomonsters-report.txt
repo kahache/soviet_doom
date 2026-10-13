@@ -1,0 +1,41 @@
+=== route g3-auto / MAP01 / skill 3 ===
+helper         : route-2
+god mode       : on
+monsters       : engine 0, map data 0
+bestiary (start): SD_Clip 6/6, SD_Izh 1/1
+steps:
+  [ok ] A0   expect Z1           got Z1   z1_dorm @ (256, 96, 0) hp 100
+  [ok ] R1   expect Z1           got Z1   z1_ice_axe_rack @ (-15, 384, 0) hp 100
+  [ok ] A1   expect Z3           got Z3   z3_corridor @ (256, 653, 0) hp 100
+  [ok ] A2   expect Z3/Z4        got Z4   z4_komnata @ (256, 961, 0) hp 100
+  [ok ] A3   expect Z5           got Z5   z5_service @ (833, 1163, 0) hp 100
+  [ok ] A4   expect Z5/Z5B       got Z5B  weapon_rack @ (1040, 1256, 8) hp 100
+  [ok ] A5   expect Z6           got Z6   step_down_3 @ (1336, 1152, -24) hp 100
+  [ok ] A6   expect Z7           got Z7   z7_switch_alcove @ (1416, 1624, -8) hp 100
+  [ok ] A7   expect Z6B          got Z6B  z6b_catwalk @ (2000, 1520, 96) hp 100
+  [ok ] A8   expect D6/Z9        got Z9   z9_booth @ (2496, 1793, 96) hp 100
+  [ok ] A9   expect Z9           got Z9   z9_booth @ (2560, 1839, 96) hp 100
+  [ok ] A10  expect Z8/D5/Z10    got Z10  z10_lift @ (3183, 672, -24) hp 100
+  [ok ] A11  expect Z10          got Z10  z10_exit @ (3247, 672, -32) hp 100
+  [ok ] A12  expect -            got -  -- no position reported
+zones reached  : Z1 -> Z3 -> Z4 -> Z5 -> Z5B -> Z6 -> Z7 -> Z6B -> Z9 -> Z10
+doors:
+  [ok ] tag 10 at A5: want shut: shut (4 sector(s): D4:d4, Z7:closet_a1_door, Z7:closet_a2_door, Z7:closet_a3_door)
+  [ok ] tag 10 at A6: want open: open (4 sector(s): D4:d4, Z7:closet_a1_door, Z7:closet_a2_door, Z7:closet_a3_door)
+  [ok ] tag 11 at A8: want shut: shut (4 sector(s): D5:d5, Z6:closet_e1_door, Z6:closet_w1_door, Z6:closet_w2_door)
+  [ok ] tag 11 at A9: want open: open (4 sector(s): D5:d5, Z6:closet_e1_door, Z6:closet_w1_door, Z6:closet_w2_door)
+  [ok ] walk-through at A1: ended in Z3 (z3_corridor)
+  [ok ] walk-through at A3: ended in Z5 (z5_service)
+  [ok ] walk-through at A8: ended in Z9 (z9_booth)
+inventory (by slot):
+  [ok ] A0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]
+  [ok ] R1: raised slot 1 (SD_IceAxe), -1 rounds; owned [1:SD_IceAxe, 2:SD_Tokarev]
+  [ok ] A4: raised slot 1 (SD_IceAxe), -1 rounds; owned [1:SD_IceAxe, 2:SD_Tokarev]
+  [ok ] A7: raised slot 1 (SD_IceAxe), -1 rounds; owned [1:SD_IceAxe, 2:SD_Tokarev]
+secrets        : 0 of 3
+exit           : REACHED (exit switch pressed: yes; level unloaded towards: enDSeQ1dce; after it: NOT SEEN (the helper cannot ask once the level is gone; judge the END shot))
+blockers       : none killed by the route's sdclear (sdclear answered 6 time(s))
+kills          : 0 of 0, of which 0 by the route's sdclear
+screenshots    : 15
+log failures   : none
+VERDICT        : PASS

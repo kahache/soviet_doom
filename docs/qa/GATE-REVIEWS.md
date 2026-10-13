@@ -321,6 +321,104 @@ G3-6 and G3-8, and the static halves of G3-4 and G3-5. They are tests in
 
   The runner was changed after this run (`route-2`, below). C1–C3 must be
   run again on it.
+- **The PM's `route-2` runs, 20:50–20:52 on `92dd9cf`, clean worktree,
+  filed with `--keep-evidence`** (`docs/qa/evidence/2026-10-13_2050_F3_g3-map01-g3-auto-skill2*`,
+  `…_2051_F3_g3-map01-g3-auto-skill3*`, `…_2051_F3_g3-map01-g3-auto-skill4*`,
+  `…_2052_F3_g3-map02-map02-start-skill3*`; QA read every report and log
+  and looked at the A0, R1, E1 and END shots):
+
+  | Run | Monsters (engine = map) | Blockers killed by `sdclear` | Kills at the exit | Log failures | Exit | VERDICT |
+  |---|---|---|---|---|---|---|
+  | C1, `g3-auto`, skill 2 | 21 = 21 | 6 (A1 3, A3 2, A10 1) | 6 of 21 | none | switch pressed, unloaded towards `enDSeQ1dce` | **PASS** |
+  | C2, `g3-auto`, skill 3 | 33 = 33 | 10 (A1 5, A3 3, A10 2) | 12 of 33 | none | the same | **PASS** |
+  | C3, `g3-auto`, skill 4 | 46 = 46 | 13 (A1 5, A3 5, A10 2, A11 1) | 15 of 46 | none | the same | **PASS** |
+  | C5, `map02-start`, skill 3 | 14 = 14 | 0 | 0 of 14 | none | `sdexit`, unloaded towards `enDSeQ1dce` | **PASS** |
+
+  - On all three MAP01 skills: A0 `raised slot 2 (SD_Tokarev), 50 rounds;
+    owned [2:SD_Tokarev]`, R1 `raised slot 1 (SD_IceAxe)`, every door tag
+    shut before its switch and open after it, every walk-through in the
+    zone it expects, zero secrets (so these are also zero-secret runs, with
+    `god`). The A0 shot shows the TT-33 in hand and 50 rounds; the R1 shot
+    the ice axe raised and `An ice axe.`. The END shot is MAP01's
+    intermission, "Zarya-7 Cosmodrome — Finished".
+  - Every blocker died (`dead`), none survived. They are the route's
+    doing, not the map's: each stood within 128 of a scripted `+forward`.
+    That skill 4 needs 13 against skill 2's 6 matches the 21/33/46
+    placement.
+  - On MAP02: A0 and R1 as on MAP01; the E1 and END shots both show
+    `SD_END02_TEXT` ("The range is closed for the day. / The campaign
+    begins from New Game.") over `SDFLR1`.
+  - So `sdclear` and `sdexit` are now **verified in the engine**. C1, C2,
+    C3 and C5 pass. C5 is run again on the new `map02-start` (below),
+    which leaves MAP02 by its switch instead of `sdexit`.
+- **The PM's pass at 20:56–20:57** (`docs/qa/evidence/2026-10-13_2057_map02-range-and-c12.md`,
+  sheet `…_2057_map02-range-P1-P6_and_map01.png`), on `026c267` plus
+  `level-designer`'s MAP01 and MAP02, committed right after as `f3cd8ea`
+  and `d1e891f`:
+  - **C12 PASS, G3-F1 closed.** From `warp 440 1300` facing north,
+    `+forward` through the 48-wide lane between the lectern and the east
+    lamp: the log prints `Health boosted!`. The record is the PM's written
+    note; no screenshot and no log copy were filed for it, which QA accepts
+    for a one-line pickup message.
+  - **MAP02 for players** (`docs/levels/MAP02-practice-range.md` §7): P1
+    (the exit alcove, the hazard panel whole), P2 (the gallery door rises
+    from the hall), P3 and P5 (the bent passage; after the PPSh fired by the
+    open door, `sdcount` shows all 15 bestiary actors alive), P6 (the exit
+    switch shows `SD_END02_TEXT` over `SDFLR1`), P7 (zero `Script error`,
+    `Missing`, `Unknown`). **P4, the door from the passage side, was not
+    exercised**: it is now the scripted route `map02-door` (C5b below).
+- **The PM's batch on the final build, 21:14–21:17 on `87d613b`, clean
+  worktree, QA's uncommitted `route.py` (helper still `route-2`), filed
+  with `--keep-evidence`.** QA read every report and log, and looked at the
+  MAP02 E0, E1 and P4b shots.
+
+  | Run | Evidence (`docs/qa/evidence/`) | Monsters (engine = map) | Blockers killed by `sdclear` | Kills | Log failures | Exit | VERDICT |
+  |---|---|---|---|---|---|---|---|
+  | C5, `map02-start`, skill 3 | `2026-10-13_2114_F3_g3-map02-map02-start-skill3*` | 14 = 14 | 0 | 1 of 14 (see G3-F5) | none | **switch pressed**, unloaded towards `enDSeQ1dce` | **PASS** |
+  | C8, `g3-auto --nomonsters`, skill 3 | `2026-10-13_2115_F3_g3-map01-g3-auto-skill3-nomonsters*` | 0 = 0 | 0 | 0 of 0 | none | switch pressed, `enDSeQ1dce` | **PASS** |
+  | C5b, `map02-door`, skill 3 | `2026-10-13_2115_F3_g3-map02-map02-door-skill3*` | 14 = 14 | 0 | level never ended | none | **NOT REACHED** | **FAIL at E0 only** (G3-F4, the route's bug) |
+  | C1, `g3-auto`, skill 2 | `2026-10-13_2116_F3_g3-map01-g3-auto-skill2*` | 21 = 21 | 6 (A1 3, A3 2, A10 1) | 6 of 21 | none | switch pressed, `enDSeQ1dce` | **PASS** |
+  | C2, `g3-auto`, skill 3 | `2026-10-13_2117_F3_g3-map01-g3-auto-skill3*` | 33 = 33 | 9 (A1 5, A3 2, A10 2) | 11 of 33 | none | the same | **PASS** |
+  | C3, `g3-auto`, skill 4 | `2026-10-13_2117_F3_g3-map01-g3-auto-skill4*` | 46 = 46 | 16 (A1 7, A3 5, A8 1, A10 2, A11 1) | 21 of 46 | none | the same | **PASS** |
+
+  - **The final build passes the route on skills 2, 3 and 4**, with
+    monsters, after `f3cd8ea` (the rack zone renamed, the komnata lamps
+    moved). R1 now ends in `z1_ice_axe_rack` (Z1 by its own name). Every
+    blocker died; none survived.
+  - **C5 PASS:** MAP02 is left by its exit switch, as a player leaves it.
+    E0 ends in `EXIT` (`exit_alcove`) at (−15, 384); its first shot shows
+    the hazard panel `ПУСК` whole between its steel jambs (P1); E1's
+    activation is `special=243 … player=1`, and the E1 shot shows
+    `SD_END02_TEXT` over `SDFLR1` (P6).
+  - **C8 PASS:** G3-5's `-nomonsters` half is filed.
+  - **C5b: P4 is verified.** P4a reads tag 1 shut (`ceil=0`) from the
+    passage at (672, 864). P4b's press fires the passage-side face
+    (`line index=19 special=12 arg0=1 front=3 back=2 player=1`), tag 1
+    reads open (`ceil=124`, fully raised after 70 tics), and the walk
+    ends in the hall at (672, 630). The run then failed at E0, for the
+    route's sake, not the map's: G3-F4 below, fixed in `route-3`.
+
+**What "after it: NOT SEEN" means.** On every run so far (route-1 and
+route-2, MAP01 and MAP02) the report's exit line ends in `after it: NOT
+SEEN`. The static `SDRouteState` was meant to answer `sdstate` after the
+level ended, and it never printed: there is no `SDTEST state` line in any
+log, not even for the `sdstate` E1 asks *during* MAP02's end text.
+Hypothesis, NOT VERIFIED: GZDoom refuses the `netevent` console command
+outside a level, so nothing typed after the exit reaches any handler. The
+21:15 `map02-door` run supports it: its level never ended, and there the
+same handler did answer, twice (`SDTEST state gamestate=0`, i.e. in a
+level). **Impact on the verdict: none.**
+- The exit is judged on two lines that do print, before the level is gone:
+  the player's `Exit_Normal` activation (`SDTEST line … special=243 …
+  player=1`) and the unload (`SDTEST unloaded … next=enDSeQ1dce`). The
+  unload names the end sequence MAPINFO's `next = endtitle` asks for.
+- What is on screen after it is not something a log line can show anyway.
+  **The capture is the evidence, and it is enough:** the END shot of each
+  MAP01 run shows the intermission, and MAP02's E1 and END shots show the
+  end text. Since this pass the report says so in place: `after it: NOT
+  SEEN (the helper cannot ask once the level is gone; judge the END shot)`.
+- The query stays in the helper: it costs one line and would corroborate
+  if a later engine answers.
 
 ### The tool: `tools/route.py`
 
@@ -350,22 +448,59 @@ one. A kill is never hidden. The report lists each one under `blockers`
 VERDICT line: `PASS (1 blocker(s) killed by the route, listed above)`. A
 blocker that survives fails the run. `--no-clear` turns clearing off.
 
-**Ending a level.** MAP01 must end by its exit switch (G3-4); an `sdexit`
-there fails the run. The console `exit` quits GZDoom and is never typed
-(PM, 20:39). MAP02 has no exit line, so `map02-start` ends it with the
-helper's `sdexit` (`Level.ExitLevel`). Both maps say `next = endtitle`,
-and the report checks that the level led to an end sequence.
+**Ending a level.** Every built-in route ends its map by **pressing the
+exit switch**, as a player does; a switch route ended by `sdexit` fails.
+MAP01's switch is G3-4's. MAP02 got one with `d1e891f`: `Exit_Normal` on
+the back wall of a lit alcove behind the start (the line x −32, y 352–416;
+`docs/levels/MAP02-practice-range.md` §4.1). `map02-start` now ends there:
+step E0 stands on the start (160, 384), turns to face west, shoots the
+alcove (the P1 view) and walks in until the back wall stops him; E1
+presses the switch, 16 units ahead, inside the 64-unit use range. The
+helper's `sdexit` (`Level.ExitLevel`) is kept as a **documented recourse
+only**, for a map with no exit line: a JSON route with `"exit_by":
+"console"` uses it; no built-in route does, and `tests/test_route.py`
+fails if one ever types it. The console `exit` quits GZDoom and is never
+typed (PM, 20:39). Both maps say `next = endtitle`, and the report checks
+that the level led to an end sequence.
 
-**Verified in the engine (route-1, PM's run 20:36):** the helper compiles,
-and it reports position, tags, lines, inventory, the exit line and the
-unload. **NOT VERIFIED until the PM's next run (route-2):**
-- `sdclear`;
-- `sdexit`;
-- the static `SDRouteState`, which answers `sdstate` after the level has
-  ended. Both handlers are listed in one `AddEventHandlers` line, in the
-  same list form as gameinfo's `creditpage`. Whether GZDoom runs net events
-  during an end text is not known: if it does not, the report says NOT
-  SEEN and the screenshot is the evidence.
+**P4 as a route of its own, `map02-door`:** `map02-start` plus two steps
+before the exit. P4a warps into the passage's south leg at (672, 864),
+facing south, and reads tag 1 shut; P4b presses, reads tag 1 open after
+70 tics, and walks through into the hall. The walk runs down x 672, 48
+units off the PPSh-41 and 64 off the RPG-7, so it picks nothing up. It is
+a separate route so that `map02-start`, proven at 20:52, cannot be failed
+by a P4 problem of the route's own making. `tests/test_route.py` reads the
+door back from the built map: Door_Raise on tag 1, wound with the passage
+in front (ZDoom fires a use special from the front only), within reach.
+
+**Zones.** MAP02's five sectors now have families of their own in the
+report (`HALL`, `EXIT`, `GDOOR`, `PASSAGE`, `GALLERY`), so its steps say
+where the player must end, as MAP01's do. The dead prefix row
+`shovel_rack` is gone: since `f3cd8ea` the rack is `z1_ice_axe_rack` and
+files under Z1 by its own name. A test now fails on any prefix row that
+matches no sector.
+
+**Verified in the engine.**
+- route-1, the PM's run of 20:36: the helper compiles, and it reports
+  position, tags, lines, inventory, the exit line and the unload.
+- route-2, 20:50–20:52: `sdclear` and `sdexit`.
+- **Never answered:** the static `SDRouteState`'s `sdstate` after the exit
+  (see "What 'after it: NOT SEEN' means" above).
+- route-2 again, 21:14–21:17: `map02-start`'s E0 and E1 (the walk to the
+  switch and the press, replacing `sdexit`) and `map02-door`'s P4a and P4b.
+- **`route-3` VERIFIED by the PM at 21:24** (G3-F4's fix; `map02-door` PASS
+  with E0 in EXIT and the exit switch pressed, `2026-10-13_2124_F3_g3-map02-map02-door-skill3*`;
+  `map02-start` and `g3-auto` 2/3/4 re-run unfiled, all PASS, 5/8/10 blockers): the
+  helper's new `sdstop`, and `sdangle` now also stopping the body. Both
+  write `Actor.Vel` and `PlayerInfo.vel`, declared writable in g4.14.2's
+  `gzdoom.pk3` (`zscript/actors/actor.zs`: `native vector3 Vel;`,
+  `zscript/actors/player/player.zs`: `native vector2 vel;`).
+
+**Warps start and end at rest (`route-3`).** The console `warp` moves the
+player and keeps his velocity (G3-F4). Every warp step is now `sdstop`,
+`warp`, then `sdangle` (which also stops the body) or, for a warp with no
+facing, `sdstop` again. `tests/test_route.py` holds it for every warp of
+every built-in route, and holds the exact P4b-to-E0 sequence.
 
 Every engine name these use was read from g4.14.2's `gzdoom.pk3`:
 - `Level.ExitLevel(int, bool)`;
@@ -398,33 +533,52 @@ name given.
 | C2 | Q6, the same on skill 3, and a filed skill-3 log for G3-2 | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --skills 3 --keep-evidence` | As C1 | `<stamp>_F3_g3-map01-g3-auto-skill3{.log,-report.txt,-a0.png,-r1.png,-end.png}` |
 | C3 | Q6, the same on skill 4 | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --skills 4 --keep-evidence` | As C1 | `<stamp>_F3_g3-map01-g3-auto-skill4{.log,-report.txt,-a0.png,-r1.png,-end.png}` |
 | C4 | Q6 by eye: the TT-33 is raised on spawn, slot 1 is empty, the rack pickup works | `SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=3 tools/run.sh -nomonsters +screenshot_dir "$PWD/logs/shots"`. At spawn, console `screenshot`. Press `1`, then `screenshot`. Walk to the rack on the west wall (or console `warp 40 384`, face west, walk forward). Press `1`, then `screenshot`. `quit` | Shot 1: the TT-33 in hand. Shot 2: still the TT-33. The log has `An ice axe.` (`SD_PICKUP_ICEAXE`) once. Shot 3: the ice axe raised. `.venv/Scripts/python.exe tools/route.py --scan logs/gzdoom.log` gives VERDICT PASS | `<stamp>_F3_g3-start-tt33-raised.png`, `<stamp>_F3_g3-start-slot1-empty.png`, `<stamp>_F3_g3-rack-iceaxe.png`, `<stamp>_F3_g3-start-inventory.log` (a copy of `logs/gzdoom.log`) |
-| C5 | Q6 on the test range, and MAP02's end text (D41) (about 20 s) | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route map02-start --skills 3 --keep-evidence` | Rows A0 and R1 `[ok ]`. Exit `ended by sdexit: yes`, towards an `enDSeQ…` sequence. The E1 shot shows `SD_END02_TEXT` ("The range is closed for the day…") over `SDFLR1`. VERDICT PASS | `<stamp>_F3_g3-map02-map02-start-skill3{.log,-report.txt,-a0.png,-r1.png,-e1.png,-end.png}` |
+| C5 | Q6 on the practice range, and MAP02 left by its exit switch to its end text (D41) (about 20 s) | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route map02-start --skills 3 --keep-evidence` | Rows A0, R1 and E0 `[ok ]`, E0 in `EXIT` (`exit_alcove`). Exit `exit switch pressed: yes`, towards an `enDSeQ…` sequence. The first E0 shot shows the lit alcove with the hazard panel whole (P1); the E1 shot shows `SD_END02_TEXT` ("The range is closed for the day…") over `SDFLR1` (P6). VERDICT PASS | `<stamp>_F3_g3-map02-map02-start-skill3{.log,-report.txt,-a0.png,-r1.png,-e0.png,-e0-2.png,-e1.png,-end.png}` |
+| C5b | MAP02's P4: the gallery door opened from the passage side (optional for G3, owed to `docs/levels/MAP02-practice-range.md` §7) | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route map02-door --skills 3 --keep-evidence` | Door rows `[ok ] tag 1 at P4a: want shut` and `[ok ] tag 1 at P4b: want open`; `[ok ] walk-through at P4b: ended in HALL`; then as C5. VERDICT PASS | `<stamp>_F3_g3-map02-map02-door-skill3{.log,-report.txt,-p4a.png,-p4b.png,-e1.png,-end.png}` |
 | C6 | Q1, Q2, Q3 and Q5: G3-4 on skill 2, played, no cheats | `SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=2 tools/run.sh +screenshot_dir "$PWD/logs/shots"`. Play from the start to the exit switch with no console command. Console `screenshot` facing the exit switch (the HUD shows health and ammo), then `screenshot` at the intermission, then `quit`. Copy `logs/gzdoom.log` to the evidence name, then run `.venv/Scripts/python.exe tools/route.py --scan docs/qa/evidence/<stamp>_F3_g3-map01-skill2-run.log` | Intermission reached. `--scan` VERDICT PASS (G3-2: 0 hits). Notes: time, health, deaths, any monster that never left a doorway or a closet mouth (Q3), anything that felt lavish (Q5) | `<stamp>_F3_g3-map01-skill2-run.log`, `<stamp>_F3_g3-map01-skill2-at-exit.png`, `<stamp>_F3_g3-map01-skill2-intermission.png`, notes in `<stamp>_F3_g3-map01-notes.md` |
 | C7 | Q1, Q2, Q3, Q4 and Q5, plus G3-5's zero-secret run: skill 4, played, no cheats, **no secret entered** | `SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=4 tools/run.sh +screenshot_dir "$PWD/logs/shots"`. As C6, and do not enter S1, S2 or S3. Then `grep -c "A secret is revealed" docs/qa/evidence/<stamp>_F3_g3-map01-skill4-run.log`, and `--scan` as in C6 | Intermission reached. `--scan` PASS. The grep prints `0`. Notes: ammo at the exit (from the HUD shot), and whether the player was ever left with only the ice axe (Q4) | `<stamp>_F3_g3-map01-skill4-run.log`, `<stamp>_F3_g3-map01-skill4-at-exit.png`, `<stamp>_F3_g3-map01-skill4-intermission.png`, notes in `<stamp>_F3_g3-map01-notes.md` |
 | C8 | Q7: G3-5's `-nomonsters` run | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --nomonsters --skills 3 --keep-evidence` | Exit REACHED, `monsters: engine 0, map data 0`, VERDICT PASS | `<stamp>_F3_g3-map01-g3-auto-skill3-nomonsters{.log,-report.txt,-end.png}` |
 | C9 | Q7: every secret entered and left | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route g3-secrets --skills 4 --keep-evidence` | `secrets : 3 of 3`, exit REACHED, VERDICT PASS | `<stamp>_F3_g3-map01-g3-secrets-skill4{.log,-report.txt,-s1.png,-s2.png,-s3.png,-end.png}` |
 | C10 | Q7: G3-7, the hostile pass, skill 4 | `SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=4 tools/run.sh +screenshot_dir "$PWD/logs/shots"`. `god` is allowed here: this tests the map, not the fight. Do every item of G3-7 in §11: throw each switch twice, re-enter every door, walk into each monster closet and back out, enter each secret and leave, drop off the catwalk and the cradle from all four sides, and play backwards from the hangar | "Could not get stuck". `--scan` PASS | `<stamp>_F3_g3-map01-hostile-skill4.log`, a `screenshot` of any place that traps the player, notes in `<stamp>_F3_g3-map01-notes.md` |
 | C11 | Q8: the mural, M1–M5 (§17.13) | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route mural --skills 3 --nomonsters --hide-weapon --keep-evidence` | M1: the whole mural, nothing square in front of it, the lectern to its right. M2: the inner columns either side of the tribune. M3a and M3b: the mural whole, at most a sliver behind the jamb. M4: the lectern's plank top level, no HOM or seam at the step. M5: the health bonus at the mural's foot is visible, for the CEO's call (clutter or fine). The report shows six `[ok ]` steps, all in Z4 | `<stamp>_F3_g3-map01-mural-skill3-nomonsters{.log,-report.txt,-m1.png,-m2.png,-m3a.png,-m3b.png,-m4.png,-m5.png}` |
-| C12 | Q8: the last part of M4, by hand | In any C4 or C6 session: `warp 400 1320`, then walk onto the health bonus at (432, 1400) | The bonus is picked up (its message is in the log) | `<stamp>_F3_g3-map01-m4-bonus.png` |
+| C12 | Q8: the last part of M4, by hand | In any C4 or C6 session: `warp 440 1300`, face north, `+forward` through the lectern–lamp lane onto the health bonus at (432, 1400) | The bonus is picked up (its message is in the log) | `<stamp>_F3_g3-map01-m4-bonus.png`. **Done 20:57**: `Health boosted!`, recorded in `2026-10-13_2057_map02-range-and-c12.md` (no PNG filed) |
 
 **What the checklist does not do.** G3-9 is the CEO's: the "on point"
-verdict and the `SDCONC2` verdict. The route runs (C1–C3, C5, C8, C9, C11)
-play with `god` on. They prove the path, the doors, the exit and the
+verdict and the `SDCONC2` verdict. The route runs (C1–C3, C5, C5b, C8, C9,
+C11) play with `god` on. They prove the path, the doors, the exit and the
 inventory; they do not prove the fight. For G3-4, only C6, C7 and the
 CEO's skill-3 run count.
 
+**Checklist status (2026-10-13 21:30):**
+
+| # | Status | Evidence |
+|---|---|---|
+| C1, C2, C3 | **PASS** (route-2, 20:50–20:51 on `92dd9cf`), and **PASS again on the final build** (21:16–21:17 on `87d613b`) | `2026-10-13_2116_F3_g3-map01-g3-auto-skill2*`, `…_2117_…-skill3*`, `…_2117_…-skill4*` (the final build); `…_2050_…`, `…_2051_…` (the earlier pass) |
+| C4 | **Covered by C1–C3**, not run separately. Its three questions are answered by each run's A0 and R1 report rows (slot 1 empty, the TT-33 raised with 50 rounds, then the ice axe in slot 1) and shots (the TT-33 in hand; the ice axe raised and `An ice axe.`), on three skills instead of one | the `-a0.png`, `-r1.png` and `-report.txt` files above |
+| C5 | **PASS** by the exit switch (21:14); earlier with `sdexit` (20:52) | `2026-10-13_2114_F3_g3-map02-map02-start-skill3*`; `…_2052_…` |
+| C5b | **P4 verified** (21:15); the run FAILED at E0 on the route's own bug (G3-F4), fixed in `route-3`; **re-run owed** for a clean PASS | `2026-10-13_2115_F3_g3-map02-map02-door-skill3*` |
+| C6, C7 | **Owed: G3-4 played on skills 2 and 4, no cheats** (C7 is also G3-5's zero-secret run as written; C1–C3 already reach the exit with zero secrets, but with `god`) | — |
+| C8 | **PASS** (21:15), filed: G3-5's `-nomonsters` half | `2026-10-13_2115_F3_g3-map01-g3-auto-skill3-nomonsters*` |
+| C9 | Optional: C10 enters and leaves every secret by hand; C9 is the scripted proof that the secret count reads 3 of 3 | — |
+| C10 | **Owed: G3-7, the hostile pass on skill 4** | — |
+| C11 | M1–M4 seen at 20:14 (`2026-10-13_2014_rack-and-mural.md`) and M1 again at 20:57 with the lamps moved; **M5 is the CEO's call** (clutter or fine), with G3-9. The filed route run is optional | `2026-10-13_2014_mural-M1-M5_and_spawn.png`, `2026-10-13_2057_map02-range-P1-P6_and_map01.png` frame 8 |
+| C12 | **PASS** (20:57), G3-F1 closed | `2026-10-13_2057_map02-range-and-c12.md` |
+
 ### Findings so far
 
-- **G3-F1 (open, low, → `level-designer`; static, NOT VERIFIED in the
-  engine):** the health bonus at (432, 1400) on the tribune can be reached
-  only through gaps exactly one body wide:
+- **G3-F1 (CLOSED 2026-10-13 20:57; was low, → `level-designer`).** Fixed
+  in `f3cd8ea`: both komnata floor lamps moved 16 units out (x 160 / 480),
+  so the lane between the lectern and the east lamp is 48 wide, a body and
+  a half (`docs/levels/MAP01-zarya-7.md` §17.15). C12 passed in the engine
+  through that lane. The original finding, for the record: the health
+  bonus at (432, 1400) on the tribune could be reached only through gaps
+  exactly one body wide:
   - between the lectern (x 384…416, y 1344…1376) and the floor lamp at
     (464, 1376) (radius 16, so x 448…480): a 32-unit lane at x 416…448;
   - behind the lectern (y 1376…1408, up to the north wall): also 32.
 
   A player of radius 16 fits with zero tolerance. Doom allows touching, so
-  it should pass; C12 checks it. If the engine refuses, the map shows a
-  pickup it does not give, the same pattern as the CEO's rack bug.
+  it should have passed; the fix made the question moot.
 - **Corrected: the god-mode line.** Before the first run, QA "fixed" the
   detector to look for "Degreelessness Mode ON", g4.14.2's `language.csv`
   text for `STSTR_DQDON`, and claimed here that "God mode on" never
@@ -432,16 +586,70 @@ CEO's skill-3 run count.
   (hypothesis, not checked: Freedoom's strings replace GZDoom's). The
   detector kept the old spelling as well, so nothing broke. It now accepts
   both, and a test covers each.
-- **G3-F2 (open, low, → `mod-engineer`):** `docs/engine/MOD-SPEC.md` (the
-  "MAP02's exit" row) says MAP02's end text can be reached "for the `exit`
-  console command". It cannot: `exit` quits GZDoom (PM, 2026-10-13 20:39).
-  - Repro: start MAP02, type `exit`.
-  - Expected: the end text. Observed: the program quits.
-  - The way to test it is C5 (`sdexit`, i.e. `Level.ExitLevel`). The
-    MOD-SPEC row should say so, or say there is no console way.
+- **G3-F2 (CLOSED 2026-10-13; was low, → `mod-engineer`):** `docs/engine/MOD-SPEC.md`
+  (the "MAP02's exit" row) said MAP02's end text could be reached "for the
+  `exit` console command". It cannot: `exit` quits GZDoom (PM, 2026-10-13
+  20:39). Since `87d613b` the row says so, and names the exit switch of
+  `d1e891f` as the way out.
+- **G3-F4 (fixed in `route-3`, verified by the PM's 21:24 re-run; QA's own
+  bug, in `tools/route.py`, not in the map):** a warp keeps the player's
+  velocity.
+  - Repro: `map02-door` on route-2 (`2026-10-13_2115_F3_g3-map02-map02-door-skill3.log`).
+    P4b walks south for 35 tics and ends at (672, 630) with the body still
+    gliding; E0 warps to (160, 384), turns west and walks.
+  - Expected: E0 ends in the exit alcove (y 352–416), at about (−15, 384),
+    as it does in `map02-start` at 21:14. Observed: (16, 345) in the hall,
+    against the hall's west wall just south of the alcove's mouth; E1's
+    `use` then finds no switch, and the exit is not reached.
+  - Cause (an estimate from Doom's friction, 0.90625 a tic, and walking
+    speed, about 8.3 units a tic, plus one assumption): six tics after
+    P4b's `-forward` the body still moves at about 4.4 units a tic, and it
+    glides about 4.4 × 0.906 / 0.094 ≈ 42 more units; E0 ended 39 south of
+    its warp. The assumption, not read in
+    GZDoom's C++ source: `warp` does not reset velocity. Why
+    `map02-start` passed: its E0 follows R1, whose walk ends against the
+    hall's north wall, at rest. The same glide shows harmlessly in MAP01:
+    A2 warps to (256, 940) and reports (256, 961).
+  - Fix (`route-3`): every warp is preceded by `sdstop` and followed by
+    `sdangle` or `sdstop`, both of which zero `Actor.Vel` and
+    `PlayerInfo.vel`. Tests: `test_every_warp_starts_and_ends_at_rest`,
+    and `test_the_pms_map02_door_drift_is_caught_where_it_happened`, a
+    `--parse` fixture of the real 21:15 log that must fail at E0 and at
+    the exit and nowhere else.
+- **G3-F5 (open, low, → `level-designer`; MAP02, not G3):** the range's
+  targets open fire on the player at spawn. On every MAP02 run the player
+  has already lost health when `god` comes on, 140 tics in (A0 at 91 or
+  85, pushed back to x 140–148 from the start's 160). At 21:14 one of the
+  14 monsters died with no route kill. Hypothesis, NOT VERIFIED: a
+  rifleman in the second row of targets (x 1984) shot the one in front of
+  it (x 1856) on the same line. The targets are `ambush` (deaf), not
+  blind, and the start faces them down the lane. Whether a range should
+  shoot back before the player has armed is a design call; it may be the
+  intent ("targets prove damage on a living actor").
+- **G3-F3 (open, trivial, → `mod-engineer`):** the same MOD-SPEC row says
+  the `map02-start` route reaches the end text by `sdexit`. True of the
+  20:52 run; since the 21:14 run `map02-start` presses the exit switch,
+  and no built-in route types `sdexit`. One clause to update.
 - **Checked: C7 does not use the console `exit`.** It ends MAP01 by its
   exit switch, played. No row in this checklist types `exit`, and
   `tests/test_route.py` fails if a route ever does.
 
-**Verdict:** none yet. **IN PROGRESS.** G3 waits on C1–C12 and on the
-CEO's G3-9.
+**Verdict:** none yet. **IN PROGRESS.** The route half is green: C1–C3
+on all three skills, the second time on the final build (`87d613b`), C5,
+C8 and C12. **What is left to close G3:**
+
+1. **C6 and C7: MAP01 played by hand on skills 2 and 4, no cheats** (G3-4;
+   C7 is also G3-5's zero-secret run). The route runs play with `god` and
+   kill what blocks them, so they prove the path, not the fight. The CEO's
+   skill-3 run (D38) is the third of G3-4's three.
+2. **C10: the hostile pass on skill 4** (G3-7: every switch twice, every
+   door re-entered, every closet and secret in and out, the drops from the
+   catwalk and the cradle, the map backwards from the hangar).
+3. **G3-9: the CEO's "on point"**, with his `SDCONC2` verdict and M5's
+   call (clutter or fine).
+
+Owed alongside, quick and scripted: C5b re-run on `route-3` for a clean
+PASS (P4 itself is verified; MAP02's checklist, not G3's), which also
+verifies G3-F4's fix. Prudent, not required: `g3-auto` on 2, 3 and 4 once
+more on `route-3`, since every warp now stops the body first. G3 is
+signed only on a `tools/verify.py full` run.
