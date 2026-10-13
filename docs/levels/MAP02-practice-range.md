@@ -6,8 +6,9 @@ tests: `tests/test_map02_practice_range.py` (the map) and
 reach and leave it). Russian mirror: owed (D34), at the same path under
 `docs/ru/`.
 
-Status, 2026-10-13: **v1 BUILT**, not yet seen in the engine (the PM's
-batched pass, D26; checklist in §7).
+Status, 2026-10-13: **v1 BUILT and seen in the engine** the same evening:
+P1-P3, P5 and P6 pass, P4 not exercised
+(`docs/qa/evidence/2026-10-13_2057_map02-range-and-c12.md`; checklist in §7).
 
 ## 1. Synopsis
 
@@ -170,7 +171,7 @@ No new texture, no new IWAD reference.
 | P3 | walk the passage north, east, north | it comes out behind the row; all eight asleep, backs turned |
 | P4 | from the passage side, `use` the door again | it opens from this side too |
 | P5 | back in the hall with the door open, fire the PPSh by the doorway, then walk into the gallery | nobody in the gallery has woken |
-| P6 | press the exit switch | `SD_END02_TEXT` over `SDFLR1`, then the title screen (ADR 007 could not test it: the console `exit` quits GZDoom) |
+| P6 | press the exit switch | `SD_END02_TEXT` over `SDFLR1`, then the title screen (seen 2026-10-13 20:57; ADR 007 could not test it: the console `exit` quits GZDoom) |
 | P7 | the log | zero `Script error`, `Missing`, `Unknown` |
 
 ## 8. For the CEO: a player-facing name
