@@ -91,11 +91,10 @@ in six seconds and opens no window. `tools/check_pk3.py` validates the package
 without the engine; `tools/smoke.py` runs it with the engine. **Agents never
 start GZDoom (D26):** `SD_ALLOW_ENGINE=1` is the PM's, and the PM batches the
 engine runs. CI on every push.
-Suite: **882 tests** (`verify.py art`, 2026-10-13 evening), one skip (the opt-in engine test), no expected
-failure since the font fix; branch coverage of `tools/` **65%** (measured at
-450 tests), measured on this PC on 2026-10-13 with
-the Mac's `work/` in place (`docs/qa/COVERAGE.md`). `gen_font.py` went from
-0% to 98% the same afternoon; `audition.py`, at 21%, is the largest gap.
+Suite: **916 tests** (2026-10-13 evening), one skip (the opt-in engine test), no expected
+failure; branch coverage of `tools/` **79%** (measured at 914 tests on this
+PC, `docs/qa/COVERAGE.md`). `audition.py` is at 98%; the largest gaps are
+three files no test imports, then `gen_menu.py` and `gen_switch.py`.
 `tools/audio/audition.py` obeys the same engine gate as `run.sh` and
 `smoke.py` since the same day.
 

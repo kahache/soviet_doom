@@ -8,8 +8,14 @@ Covered:
 * the routes: g3-auto runs skills 2, 3 and 4 by default; the start
   inventory (63dac93) is asserted by SLOT at A0 and the rack pickup at R1,
   keyed on DoomEdNum 21001 and the rack's position, never on a class name
-  (the melee weapon is being renamed, D40); the R1 walk really ends on the
+  (the melee weapon was renamed once, D40); the R1 walk really ends on the
   21001 thing in MAP01, and the map02-start walk on MAP02's;
+* the zone tables: no dead row (`shovel_rack` went with f3cd8ea), MAP02's
+  sectors have families of their own;
+* MAP02 is left by its exit switch (d1e891f), never by sdexit: the walk from
+  the start ends against the switch, inside the use range; P4 (map02-door)
+  presses the gallery door from the passage side and walks into the hall
+  taking no pickup; sdexit survives only as a JSON route's recourse;
 * --print and --list-routes run with the engine unreachable;
 * --parse judges a log: a synthetic clean run passes on every skill and on
   MAP02, and each failure the PM must see (slot 1 at the start, no pickup,
@@ -43,6 +49,7 @@ import smoke  # noqa: E402
 PLAYER_RADIUS = 16
 PICKUP_RADIUS = 20        # Doom's pickups (tests/test_map01.py)
 MAX_STEP_UP = 24
+USE_RANGE = 64            # Doom's use range from the player's centre
 WALK_UNITS_PER_TIC = 8    # route.py's own estimate for +forward without cl_run
 SAMPLE = 4                # units between samples along a walk
 
@@ -97,8 +104,14 @@ class HelperIsToolingTest(unittest.TestCase):
         self.assertIn(f"class {route.STATE_CLASS} : StaticEventHandler", zs)
         self.assertIn(f'AddEventHandlers = "{route.HELPER_CLASS}", "{route.STATE_CLASS}"', mapinfo)
         for event in ("sdinv", "sdpos", "sdtag", "sdlevel", "sdstate", "sdangle", "sdcount",
-                      "sdclear", "sdexit"):
+                      "sdclear", "sdexit", "sdstop"):
             self.assertIn(f'"{event}"', zs)
+        # A warp keeps the body's velocity (PM, 21:15): setting the facing
+        # stops it, and so does sdstop. Field names: g4.14.2's gzdoom.pk3.
+        for event in ("sdangle", "sdstop"):
+            block = zs.split(f'if (e.Name == "{event}")', 1)[1].split("return;", 1)[0]
+            self.assertIn("pmo.Vel = (0, 0, 0);", block, event)
+            self.assertIn("players[e.Player].vel = (0, 0);", block, event)
         state_block = zs.split(f"class {route.STATE_CLASS}", 1)[1]
         self.assertIn('"sdstate"', state_block)
         self.assertEqual(1, zs.count('"sdstate"'), "sdstate answered twice")
@@ -118,7 +131,7 @@ class HelperIsToolingTest(unittest.TestCase):
         for event in ("sdangle", "sdhurt", "sdcount"):
             self.assertIn(f'"{event}"', zs)
         body = zs.split("class", 1)[1]
-        for event in ("sdinv", "sdclear", "sdexit", "sdstate"):
+        for event in ("sdinv", "sdclear", "sdexit", "sdstate", "sdstop"):
             self.assertNotIn(event, body)
         self.assertNotIn("StaticEventHandler", zs)
         self.assertEqual(zs.count("{"), zs.count("}"))
@@ -179,7 +192,7 @@ class RouteDefinitionTest(unittest.TestCase):
         rounds = route.start_rounds()
         self.assertIsNotNone(rounds, "SD_START_CLIP is gone from player.zs")
         self.assertEqual(50, rounds)
-        for name in ("g3-auto", "g3-secrets", "map02-start"):
+        for name in ("g3-auto", "g3-secrets", "map02-start", "map02-door"):
             steps = route.ROUTES[name].steps
             a0, r1 = steps[0], steps[[s.id for s in steps].index("R1")]
             self.assertEqual(("A0", False, route.SLOT_SIDEARM, rounds),
@@ -315,20 +328,168 @@ class RouteDefinitionTest(unittest.TestCase):
             self.assertFalse([c for c in route.route_commands(r, clear=False)
                               if c.startswith("netevent sdclear")], name)
 
-    def test_map02_start_ends_the_range_by_the_helper(self):
-        r = route.ROUTES["map02-start"]
-        self.assertEqual(("console", True, True), (r.exit_by, r.end_sequence, r.must_exit))
-        self.assertEqual("E1", r.steps[-1].id)
-        self.assertIn("exit", r.steps[-1].actions)
-        self.assertIn("capture", r.steps[-1].actions)
-        cmds = route.route_commands(r)
-        self.assertIn("netevent sdexit", cmds)
-        for name, other in route.ROUTES.items():
-            self.assertNotIn("exit", route.route_commands(other), f"{name}: the console exit quits GZDoom")
-        for name in ("g3-auto", "g3-secrets"):
-            self.assertEqual(("switch", True), (route.ROUTES[name].exit_by,
-                                                route.ROUTES[name].end_sequence))
-            self.assertNotIn("netevent sdexit", route.route_commands(route.ROUTES[name]))
+    def test_every_built_in_route_ends_by_a_switch_never_by_sdexit(self):
+        """d1e891f gave MAP02 an exit switch: map02-start presses it, as
+        MAP01's routes press theirs. sdexit stays in the helper, unused."""
+        for name in ("g3-auto", "g3-secrets", "map02-start", "map02-door"):
+            r = route.ROUTES[name]
+            self.assertEqual(("switch", True, True), (r.exit_by, r.end_sequence, r.must_exit), name)
+            self.assertEqual("use", r.steps[-1].actions[0], f"{name}: the last step presses")
+        for name, r in route.ROUTES.items():
+            cmds = route.route_commands(r)
+            self.assertNotIn("exit", cmds, f"{name}: the console exit quits GZDoom")
+            self.assertNotIn("netevent sdexit", cmds, name)
+            self.assertFalse([s.id for s in r.steps if "exit" in s.actions], name)
+        self.assertIn('"sdexit"', route.helper_zscript(), "the recourse is gone from the helper")
+        last = route.ROUTES["map02-start"].steps[-1]
+        self.assertEqual(("E1", True), (last.id, "capture" in last.actions))
+
+    def _exit_lines(self, md):
+        tm = md.textmap
+        return [ld for ld in tm.linedefs if ld.special == route.SPECIAL_EXIT_NORMAL]
+
+    def test_the_map02_exit_walk_ends_against_its_switch(self):
+        """E0 turns round on the start and walks west into the alcove; the
+        back wall stops him with the switch inside the use range; E1
+        presses it. Read back from the built MAP02."""
+        md = self.map02
+        tm = md.textmap
+        lines = self._exit_lines(md)
+        self.assertEqual(1, len(lines), "MAP02 has one exit switch")
+        ld = lines[0]
+        a, b = tm.vertices[ld.v1], tm.vertices[ld.v2]
+        self.assertEqual(a.x, b.x, "the exit switch is not on a west/east wall")
+        self.assertIn("playeruse", ld.flags, "the exit is pressed, not crossed")
+        self.assertIsNone(ld.sideback, "the exit switch is on a one-sided wall")
+        wall_x, (y_lo, y_hi) = a.x, sorted((a.y, b.y))
+        alcove = tm.sidedefs[ld.sidefront].sector
+        self.assertEqual("EXIT", route.zone_family(md.name_of(alcove)))
+        # E0 starts on the player start, turned round.
+        start = [t for t in tm.things if t.type == 1][0]
+        e0, e1 = route.ROUTES["map02-start"].steps[-2:]
+        self.assertEqual(("E0", "E1"), (e0.id, e1.id))
+        self.assertEqual((start.x, start.y), e0.warp)
+        self.assertEqual((start.angle + 180) % 360, e0.angle)
+        self.assertEqual(route.MAP02_EXIT_FACING, e0.angle)
+        self.assertLess(y_lo + PLAYER_RADIUS, start.y)
+        self.assertLess(start.y, y_hi - PLAYER_RADIUS, "the body does not fit in front of the switch")
+        # The walk: hall then alcove, nothing else, no pickup, long enough.
+        end = (wall_x + PLAYER_RADIUS, start.y)
+        crossed = self._walk(md, e0.warp, e0.angle, end)
+        self.assertEqual({"HALL", "EXIT"}, {route.zone_family(md.name_of(s)) for s in crossed})
+        walk_tics = int([x for x in e0.actions if x.startswith("forward")][0].split()[1])
+        self.assertGreaterEqual(walk_tics * WALK_UNITS_PER_TIC, e0.warp[0] - end[0] + PICKUP_RADIUS)
+        reach = PLAYER_RADIUS + PICKUP_RADIUS
+        for t in tm.things:
+            if t.type != 1 and end[0] - reach < t.x < e0.warp[0] + reach:
+                self.assertGreaterEqual(abs(t.y - start.y), reach, f"the walk takes {t.type} at {t.x},{t.y}")
+        # Where the walk stops: in the alcove, the wall behind it solid, the
+        # switch 16 ahead, inside the use range; E1 presses without moving.
+        self.assertEqual(alcove, md.sector_at(*end))
+        for dy in (-PLAYER_RADIUS + 1, PLAYER_RADIUS - 1):
+            self.assertEqual(alcove, md.sector_at(end[0], end[1] + dy))
+        self.assertIsNone(md.sector_at(wall_x - 1, start.y), "there is no wall behind the switch")
+        self.assertLessEqual(end[0] - wall_x, USE_RANGE)
+        self.assertIsNone(e1.warp)
+        self.assertEqual(("use",), e1.actions[:1])
+
+    def test_the_map02_door_is_pressed_from_the_passage_and_walked_through(self):
+        """P4: from the passage's south leg facing south, the line ahead is
+        the gallery door's Door_Raise, wound with the passage in front (ZDoom
+        fires a use special from the front only), within the use range; the
+        walk crosses passage, door and hall only, and takes no pickup."""
+        md = self.map02
+        tm = md.textmap
+        p4a, p4b = (s for s in route.ROUTES["map02-door"].steps if s.id.startswith("P4"))
+        x, y = p4a.warp
+        self.assertEqual(route.MAP02_DOOR_FACING, p4a.angle)
+        self._clear_of_walls(md, p4a.warp)
+        passage = md.sector_at(x, y)
+        self.assertEqual("PASSAGE", route.zone_family(md.name_of(passage)))
+        # The first horizontal line straight south of him.
+        ahead = []
+        for ld in tm.linedefs:
+            a, b = tm.vertices[ld.v1], tm.vertices[ld.v2]
+            if a.y == b.y and a.y < y and min(a.x, b.x) < x < max(a.x, b.x):
+                ahead.append((y - a.y, ld))
+        dist, door_line = min(ahead, key=lambda d: d[0])
+        self.assertLessEqual(dist, USE_RANGE, "the door is out of reach")
+        self.assertEqual(12, door_line.special, "not Door_Raise")
+        self.assertEqual(route.MAP02_TAG_GALLERY_DOOR, door_line.arg0)
+        self.assertIn("playeruse", door_line.flags)
+        self.assertEqual(passage, tm.sidedefs[door_line.sidefront].sector,
+                         "the passage-side face is wound the wrong way: use would not fire")
+        door = tm.sidedefs[door_line.sideback].sector
+        self.assertEqual(route.MAP02_TAG_GALLERY_DOOR, tm.sectors[door].identifier)
+        self.assertEqual("GDOOR", route.zone_family(md.name_of(door)))
+        self.assertEqual(((route.MAP02_TAG_GALLERY_DOOR, False),), p4a.tags)
+        self.assertEqual(((route.MAP02_TAG_GALLERY_DOOR, True),), p4b.tags)
+        # The walk south, at its longest.
+        tics = int([a for a in p4b.actions if a.startswith("forward")][0].split()[1])
+        end = (x, y - tics * WALK_UNITS_PER_TIC)
+        crossed = self._walk(md, p4a.warp, p4a.angle, end)
+        families = [route.zone_family(md.name_of(s)) for s in crossed]
+        self.assertEqual({"PASSAGE", "GDOOR", "HALL"}, set(families))
+        self.assertEqual("HALL", families[-1])
+        self.assertIn("HALL", p4b.expect)
+        reach = PLAYER_RADIUS + PICKUP_RADIUS
+        for t in tm.things:
+            if t.type != 1 and end[1] - reach < t.y < y + reach:
+                self.assertGreaterEqual(abs(t.x - x), reach, f"the walk takes {t.type} at {t.x},{t.y}")
+
+    def test_no_zone_row_is_dead(self):
+        """Every prefix row and every whole name matches a sector of MAP01 or
+        MAP02. The rack's old row (`shovel_rack`) went with the rename to
+        `z1_ice_axe_rack` (f3cd8ea), which files under Z1 by its own name."""
+        names = set(self.map01.plan) | set(self.map02.plan)
+        for prefix, family in route.ZONE_PREFIXES:
+            self.assertTrue([n for n in names if n.startswith(prefix)], f"dead row {prefix!r} -> {family}")
+        for name in route.ZONE_NAMES:
+            self.assertIn(name, self.map02.plan)
+        self.assertNotIn("shovel_rack", [p for p, _f in route.ZONE_PREFIXES])
+        rack = self.map01.sector_at(*[(t.x, t.y) for t in self.map01.textmap.things
+                                      if t.type == route.ED_MELEE][0])
+        self.assertEqual(("z1_ice_axe_rack", "Z1"),
+                         (self.map01.name_of(rack), route.zone_family(self.map01.name_of(rack))))
+
+    def test_map02_sectors_have_families_of_their_own(self):
+        f1 = {route.zone_family(n) for n in self.map01.plan}
+        f2 = {route.zone_family(n) for n in self.map02.plan}
+        self.assertNotIn("?", f1)
+        self.assertNotIn("?", f2)
+        self.assertEqual(len(self.map02.plan), len(f2), "two MAP02 sectors share a family")
+        self.assertFalse(f1 & f2, "a family names a zone in both maps")
+
+    def test_every_warp_starts_and_ends_at_rest(self):
+        """The console `warp` keeps the player's velocity. PM, 21:15:
+        map02-door's E0 warped onto the start right after P4b's walk south,
+        glided 39 units south and walked west into the hall's wall instead of
+        the exit alcove. Every warp is now preceded by sdstop and followed by
+        sdangle (which also stops the body) or by sdstop."""
+        for name, r in route.ROUTES.items():
+            cmds = route.route_commands(r)
+            warps = [i for i, c in enumerate(cmds) if c.startswith("warp ")]
+            self.assertEqual(sum(1 for s in r.steps if s.warp is not None), len(warps), name)
+            for i in warps:
+                self.assertEqual("netevent sdstop", cmds[i - 2], (name, cmds[i]))
+                self.assertTrue(cmds[i - 1].startswith("wait "), (name, cmds[i]))
+                self.assertTrue(cmds[i + 1].startswith("wait "), (name, cmds[i]))
+                after = cmds[i + 2]
+                self.assertTrue(after == "netevent sdstop" or after.startswith("netevent sdangle "),
+                                (name, cmds[i], after))
+        # The exact case: between P4b's walk and E0's walk the body is
+        # stopped before the warp and again by the facing after it.
+        cmds = route.route_commands(route.ROUTES["map02-door"])
+        p4b = cmds.index("echo SDSTEP 3 P4b")
+        e0 = cmds.index("echo SDSTEP 4 E0")
+        released = max(i for i, c in enumerate(cmds[:e0]) if c == "-forward")
+        self.assertGreater(released, p4b)
+        between = [c for c in cmds[released:cmds.index("+forward", e0)] if not c.startswith("wait ")]
+        x, y = route.MAP02_START
+        self.assertEqual(["-forward", "screenshot", f"netevent sdpos 3", "echo SDSTEP 4 E0",
+                          "netevent sdstop", f"warp {x} {y}",
+                          f"netevent sdangle {route.MAP02_EXIT_FACING}", "screenshot",
+                          "netevent sdclear 4 400 128"], between)
 
     def test_every_built_in_route_turns_into_a_sequence(self):
         for name, r in route.ROUTES.items():
@@ -343,6 +504,18 @@ class RouteDefinitionTest(unittest.TestCase):
             route.Step("X", actions=("capture",), melee=True)
         with self.assertRaises(route.RouteError):
             route.parse_action("inv 3")
+
+    def test_a_json_route_may_still_end_by_sdexit(self):
+        """The documented recourse for a map with no exit line."""
+        r = route.route_from_json({"name": "noexit", "map": "MAP02", "exit_by": "console",
+                                   "end_sequence": True, "steps": [
+                                       {"id": "A0", "do": ["capture"]},
+                                       {"id": "E1", "do": ["exit", "wait 35", "capture"]}]})
+        self.assertEqual(("console", True), (r.exit_by, r.end_sequence))
+        self.assertIn("netevent sdexit", route.route_commands(r))
+        self.assertEqual("switch", route.route_from_json({"steps": []}).exit_by)
+        with self.assertRaises(route.RouteError):
+            route.route_from_json({"exit_by": "teleport", "steps": []})
 
     def test_a_json_route_carries_the_inventory_fields(self):
         r = route.route_from_json({"name": "mine", "map": "map02", "must_exit": False, "steps": [
@@ -377,8 +550,14 @@ class PrintTest(unittest.TestCase):
             code, out, _ = run_main(["--print", "--route", "map02-start", "--skills", "3"])
             self.assertEqual(route.EXIT_OK, code)
             self.assertIn("-skill 3 +map MAP02", out)
-            self.assertIn("netevent sdexit", out)
+            self.assertNotIn("sdexit", out)
+            x, y = route.MAP02_START
+            self.assertIn(f"warp {x} {y}", out)
+            self.assertIn(f"netevent sdangle {route.MAP02_EXIT_FACING}", out)
             self.assertIn("netevent sdclear", out)
+            code, out, _ = run_main(["--print", "--route", "map02-door", "--skills", "3"])
+            self.assertEqual(route.EXIT_OK, code)
+            self.assertIn(f"netevent sdtag {route.MAP02_TAG_GALLERY_DOOR}", out)
             code, out, _ = run_main(["--print", "--route", "map02-start", "--no-clear"])
             self.assertEqual(route.EXIT_OK, code)
             self.assertNotIn("sdclear", out)
@@ -503,7 +682,8 @@ class FakeRun:
             kills = sum(1 for c in self.cleared if c[5] == 1)
             out.append(f"SDTEST unloaded map={self.r.map_name} next={self.next_map} kills={kills}/{md.monsters_on(self.skill)} "
                        f"secrets=0/{secrets} items=0/40 time=4000")
-            out.append(f"SDTEST state gamestate={self.end_state}")
+            if self.end_state is not None:
+                out.append(f"SDTEST state gamestate={self.end_state}")
         return "\n".join(out) + "\n"
 
     def _tag_sectors(self, tag):
@@ -640,17 +820,57 @@ class ParseTest(unittest.TestCase):
         self.assertFalse(rep.log.god)
 
     # --- how a level ends -------------------------------------------------
-    def test_map02_ends_by_sdexit_into_its_end_text(self):
+    def test_map02_ends_by_its_switch_into_its_end_text(self):
         rep = self.judge("map02-start", 3)
         self.assertTrue(rep.passed, rep.problems)
         self.assertTrue(rep.exit_reached)
-        self.assertIn("ended by sdexit: yes", rep.exit_detail)
+        self.assertIn("exit switch pressed: yes", rep.exit_detail)
         self.assertIn("after it: end text", rep.exit_detail)
+        self.assertEqual(["A0", "R1", "E0"], [r.step.id for r in rep.steps if r.pos and r.step.expect])
+        self.assertIn("HALL -> EXIT", route.render_report(rep))
 
     def test_map02_without_its_exit_fails(self):
         rep = self.judge("map02-start", 3, exit_=False)
         self.assertFalse(rep.passed)
-        self.assertIn("ended by sdexit: NO", rep.exit_detail)
+        self.assertIn("exit switch pressed: NO", rep.exit_detail)
+
+    def test_map02_ended_by_sdexit_fails(self):
+        """The switch is the exit now: sdexit on MAP02 is not leaving it."""
+        r = route.ROUTES["map02-start"]
+        fake = FakeRun(r, 3, self.data["MAP02"])
+        text = fake.text(exit_=False) + ("SDTEST exitlevel map=MAP02\n"
+                                         "SDTEST unloaded map=MAP02 next=enDSeQ1dce kills=0/14 "
+                                         "secrets=0/0 items=0/0 time=208\n")
+        rep = route.evaluate(r, 3, route.scan_route_log(text), self.data["MAP02"])
+        self.assertFalse(rep.passed)
+        self.assertIn("the level was ended by sdexit, not by its exit switch", rep.problems)
+
+    def test_the_post_exit_state_unseen_is_reported_not_failed(self):
+        """Every engine run so far (20:36-20:52): no `SDTEST state` line after
+        the exit. The unload line is enough; the report points at the shot."""
+        rep = self.judge("map02-start", 3, attrs={"end_state": None})
+        self.assertTrue(rep.passed, rep.problems)
+        self.assertIn("after it: " + route.AFTER_NOT_SEEN, rep.exit_detail)
+        self.assertIn("judge the END shot", route.render_report(rep))
+
+    def test_a_clean_p4_run_passes_and_a_door_that_stays_shut_fails(self):
+        rep = self.judge("map02-door", 3)
+        self.assertTrue(rep.passed, rep.problems)
+        self.assertIn(f"tag {route.MAP02_TAG_GALLERY_DOOR} at P4b: want open", route.render_report(rep))
+        self.assertIn("walk-through at P4b", route.render_report(rep))
+        rep = self.judge("map02-door", 4, shut_tags={route.MAP02_TAG_GALLERY_DOOR})
+        self.assertFalse(rep.passed)
+        self.assertTrue(any(p.startswith("P4b: tag 1") for p in rep.problems), rep.problems)
+
+    def test_a_json_route_ended_by_sdexit_passes(self):
+        r = route.route_from_json({"name": "noexit", "map": "MAP02", "exit_by": "console",
+                                   "end_sequence": True,
+                                   "steps": [{"id": "A0", "do": ["capture"]},
+                                             {"id": "E1", "do": ["exit", "capture"]}]})
+        fake = FakeRun(r, 3, self.data["MAP02"])
+        rep = route.evaluate(r, 3, route.scan_route_log(fake.text()), self.data["MAP02"])
+        self.assertTrue(rep.passed, rep.problems)
+        self.assertIn("ended by sdexit: yes", rep.exit_detail)
 
     def test_a_console_exit_does_not_finish_map01(self):
         """G3-4 asks for the exit switch: sdexit on MAP01 is not an exit."""
@@ -687,6 +907,76 @@ class ParseTest(unittest.TestCase):
         self.assertEqual(50, log.inventory[0].ammo)
         self.assertEqual("enDSeQ1dce", log.unloaded[0][1])
         self.assertTrue(log.unloaded[0][1].startswith(route.END_SEQUENCE_PREFIX))
+
+    # The helper lines of the PM's map02-door log, 2026-10-13 21:15 on 87d613b
+    # (docs/qa/evidence/2026-10-13_2115_F3_g3-map02-map02-door-skill3.log):
+    # P4 passes, E0 glides out of line with the alcove and ends in the hall.
+    PM_MAP02_DOOR_2115 = """\
+SDTEST helper route-2 map=MAP02
+God mode on.
+SDSTEP 0 A0
+SDTEST level map=MAP02 monsters=0/14 secrets=0/0 items=0/0 time=143
+SDTEST weapon class=SD_Tokarev slot=2
+SDTEST inv weapons=1 ready=SD_Tokarev slot=2 ammo=50
+Captured Screenshot_Doom_20261013_211450.png
+SDTEST pos step=0 x=140 y=384 z=0 sector=0 angle=0 health=85
+SDSTEP 1 R1
+SDTEST clear step=1 killed=0
+An ice axe.
+SDTEST weapon class=SD_IceAxe slot=1
+SDTEST weapon class=SD_Tokarev slot=2
+SDTEST inv weapons=2 ready=SD_IceAxe slot=1 ammo=-1
+Captured Screenshot_Doom_20261013_211452.png
+SDTEST pos step=1 x=288 y=751 z=0 sector=0 angle=90 health=85
+SDSTEP 2 P4a
+SDTEST tag 1 sector=2 floor=0 ceil=0
+Captured Screenshot_Doom_20261013_211452_01.png
+SDTEST pos step=2 x=672 y=864 z=0 sector=3 angle=270 health=85
+SDSTEP 3 P4b
+SDTEST line index=19 special=12 arg0=1 front=3 back=2 type=2 player=1
+SDTEST tag 1 sector=2 floor=0 ceil=124
+SDTEST clear step=3 killed=0
+Captured Screenshot_Doom_20261013_211456.png
+SDTEST pos step=3 x=672 y=630 z=0 sector=0 angle=270 health=85
+SDSTEP 4 E0
+Captured Screenshot_Doom_20261013_211456_01.png
+SDTEST clear step=4 killed=0
+Captured Screenshot_Doom_20261013_211458.png
+SDTEST pos step=4 x=16 y=345 z=0 sector=0 angle=180 health=85
+SDSTEP 5 E1
+SDTEST state gamestate=0
+Captured Screenshot_Doom_20261013_211506.png
+SDTEST pos step=5 x=16 y=345 z=0 sector=0 angle=180 health=85
+SDSTEP 6 END
+Captured Screenshot_Doom_20261013_211508.png
+SDTEST state gamestate=0
+"""
+
+    def test_the_pms_map02_door_drift_is_caught_where_it_happened(self):
+        """--parse on the real 21:15 log: P4 passes on both door readings
+        and the walk-through; the run fails at E0 (in the hall, not the
+        alcove) and therefore at the exit, and nowhere else."""
+        with tempfile.TemporaryDirectory() as tmp, no_engine():
+            log = Path(tmp) / "map02-door-2115.log"
+            log.write_text(self.PM_MAP02_DOOR_2115, encoding="utf-8")
+            code, out, _ = run_main(["--parse", str(log), "--route", "map02-door", "--skill", "3"])
+        self.assertEqual(route.EXIT_ROUTE_FAILED, code, out)
+        self.assertIn("[ok ] tag 1 at P4a: want shut: shut", out)
+        self.assertIn("[ok ] tag 1 at P4b: want open: open", out)
+        self.assertIn("[ok ] walk-through at P4b: ended in HALL (hall)", out)
+        self.assertIn("[BAD] E0   expect EXIT", out)
+        self.assertIn("got HALL hall @ (16, 345, 0)", out)
+        problems = [l for l in out.splitlines() if l.startswith("PROBLEM")]
+        self.assertEqual(2, len(problems), problems)
+        self.assertIn("E0: ended in HALL (hall), expected EXIT", problems[0])
+        self.assertIn("exit not reached: exit switch pressed: NO", problems[1])
+        self.assertIn("VERDICT        : FAIL", out)
+        # sdstate answers inside a level (gamestate 0): never read as an
+        # intermission or an end text.
+        rep = route.evaluate(route.ROUTES["map02-door"], 3,
+                             route.scan_route_log(self.PM_MAP02_DOOR_2115), self.data["MAP02"])
+        self.assertEqual([0, 0], rep.log.states)
+        self.assertIn("after it: " + route.AFTER_NOT_SEEN, rep.exit_detail)
 
     def test_scan_judges_any_log_against_g3_2(self):
         clean = "GZDoom version g4.14.2\nMAP01 - Zarya-7\n"

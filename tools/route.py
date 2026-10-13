@@ -31,7 +31,8 @@ The start inventory (commit 63dac93, design section 17.14): the player
 spawns with the TT-33 raised and its 50 rounds, slot 1 EMPTY, and finds the
 melee weapon on the dorm's rack. The route checks it by weapon SLOT, never by
 class name, and finds the rack by DoomEdNum 21001 (MOD-SPEC 6.1), because the
-class is being renamed (the shovel becomes an ice axe, D40): step A0 asserts
+class has been renamed once already (the shovel became the ice axe, D40) and
+the zone with it (`z1_ice_axe_rack`, f3cd8ea): step A0 asserts
 "slot 1 empty, ready weapon in slot 2, 50 rounds", step R1 walks into the
 rack and asserts "a slot-1 weapon is owned".
 
@@ -44,11 +45,17 @@ each one. The report lists them under "blockers", counts them apart under
 never hidden. A blocker that survives fails the run. --no-clear turns it
 off.
 
-Ending a level: MAP01 must end by its exit switch (G3-4); MAP02 has no exit
-line, so map02-start ends it with the helper's `sdexit` (Level.ExitLevel).
-The console `exit` QUITS GZDoom (PM, 2026-10-13 20:39) and is never typed.
-Both maps say `next = endtitle`, so the report checks that the level led
-to an end sequence.
+Ending a level: a built-in route ends its map by PRESSING the exit switch,
+as a player does. MAP01's is G3-4's. MAP02's arrived with d1e891f: an
+Exit_Normal switch in a lit alcove behind the start, the line x -32 from
+y 352 to 416 (docs/levels/MAP02-practice-range.md section 4.1, P6 of its
+section 7); map02-start walks west into the alcove and presses it. The
+helper's `sdexit` (Level.ExitLevel) stays as a documented recourse for a
+map with no exit line: a JSON route with "exit_by": "console" uses it, no
+built-in route does, and a switch route ended by sdexit fails. The console
+`exit` QUITS GZDoom (PM, 2026-10-13 20:39) and is never typed. Both maps say
+`next = endtitle`, so the report checks that the level led to an end
+sequence.
 
 Usage (the PM's; D26: only the PM sets SD_ALLOW_ENGINE, and on Windows the
 interpreter is .venv/Scripts/python.exe):
@@ -61,6 +68,7 @@ interpreter is .venv/Scripts/python.exe):
   python3 tools/route.py --parse logs/route/<run>/gzdoom.log --skill 3   # re-read a log
   python3 tools/route.py --scan logs/gzdoom.log                 # G3-2 on a hand-played run
   SD_ALLOW_ENGINE=1 python3 tools/route.py --route mural --skills 3 --nomonsters --keep-evidence
+  SD_ALLOW_ENGINE=1 python3 tools/route.py --route map02-door --skills 3 --keep-evidence  # MAP02's P4
   python3 tools/route.py --steps my_route.json --print          # a route of your own
   python3 tools/route.py --list-routes
 
@@ -69,15 +77,27 @@ Exit codes: smoke's (1 log failures, 2 no gzdoom, 3 no IWAD, 4 build,
   8  the engine gate is shut (SD_ALLOW_ENGINE is not 1): nothing was launched
   9  the log is clean but the route failed (wrong zone, door shut, no exit)
 
-NOT VERIFIED until the PM's first run (D26: this role does not start the
-engine): that the helper's extra hooks compile and print as written, and
-whether a `warp` onto a pickup collects it (the rack step does not rely on
-that: it walks into the rack's alcove, which a move does collect).
-VERIFIED by the PM's run of 2026-10-13 20:36 (route-1 helper): it compiles,
-and position, tags, lines, inventory, the exit line and the unload are
-printed as parsed here. Added after that run and NOT VERIFIED yet: sdclear,
-sdexit, and the static SDRouteState that answers sdstate after the level
-has ended (whether net events run during an intermission or an end text).
+VERIFIED by the PM's runs (D26: this role does not start the engine):
+  route-1, 2026-10-13 20:36: the helper compiles; position, tags, lines,
+    inventory, the exit line and the unload print as parsed here;
+  route-2, 20:50-20:52 (docs/qa/evidence/2026-10-13_2050_* and _2051_*,
+    _2052_*): sdclear kills and names the blockers (6, 10 and 13 on skills
+    2, 3 and 4), and sdexit ended MAP02 towards its end sequence;
+  route-2 again, 21:14-21:17 on 87d613b: map02-start leaves MAP02 by its
+    exit switch (E0, E1), and map02-door's P4 opens the gallery door from
+    the passage side. map02-door failed at E0 only: the warp kept P4b's
+    velocity (see warp_commands, the route-3 fix).
+NOT SEEN in any run: the static SDRouteState's answer to sdstate after the
+level has ended (zero such lines, even for the one asked during MAP02's
+end text). Inside a level it does answer (gamestate=0, map02-door at
+21:15, whose level never ended). Hypothesis, NOT VERIFIED, and supported by
+that: GZDoom's `netevent` console command is refused outside a level.
+Nothing is judged on it: the unload line names the end sequence, and the
+END screenshot shows the screen.
+NOT VERIFIED until the PM's next run: route-3's sdstop and the velocity
+reset in sdangle (Actor.Vel and PlayerInfo.vel, read in g4.14.2's
+gzdoom.pk3 on 2026-10-13). Whether a `warp` onto a pickup collects it
+is still unknown; no step relies on it (each walks onto its pickup).
 Every
 ZScript name it uses was checked against the declarations in GZDoom
 g4.14.2's own gzdoom.pk3 (zscript/events.zs, doombase.zs, mapdata.zs,
@@ -153,7 +173,7 @@ COUNT_CLASSES = (
     "SD_Clip", "SD_Izh",
 )
 HELPER_CLASS = "SDRouteHelper"
-HELPER_VERSION = "route-2"
+HELPER_VERSION = "route-3"
 
 # Monsters as the map places them (DoomEdNums of the Freedoom stand-ins our
 # bestiary replaces, docs/levels/MAP01-zarya-7.md section 8). Used to say how
@@ -168,12 +188,15 @@ GS_INTERMISSION = 1              # EGameState in GZDoom's zscript/engine/base.zs
 GS_FINALE = 2                    # the same enum: an end text (a cluster's exittext)
 GS_NAMES = {GS_INTERMISSION: "intermission", GS_FINALE: "end text"}
 END_SEQUENCE_PREFIX = "enDSeQ"   # what GZDoom calls `next = endtitle` and its kin
+# What the report says when sdstate goes unanswered after the exit (every
+# run so far): not a failure; the END screenshot is the evidence.
+AFTER_NOT_SEEN = "NOT SEEN (the helper cannot ask once the level is gone; judge the END shot)"
 # A door counts as open when a player fits under it (Doom player height 56).
 PLAYER_HEIGHT = 56
 
 # --- The start inventory (63dac93; design section 17.14) --------------------
 # Keyed on the slot and the editor number, never on the class: the melee
-# weapon is being renamed (shovel -> ice axe, D40) while this is written.
+# weapon has been renamed once (shovel -> ice axe, D40) and may be again.
 ED_MELEE = 21001          # MOD-SPEC 6.1 / MAPINFO DoomEdNums: the rack's weapon
 SLOT_MELEE = 1            # Player.WeaponSlot 1 in src/zscript/sd/player.zs
 SLOT_SIDEARM = 2          # Player.WeaponSlot 2: the TT-33, raised on spawn
@@ -270,7 +293,8 @@ class Route:
     description: str = ""
     # How the level must end: "switch" (an Exit_Normal line pressed by the
     # player; a console exit does not count) or "console" (the helper's
-    # sdexit, for a map with no exit line: MAP02).
+    # sdexit: the recourse for a map with no exit line. No built-in route
+    # uses it since MAP02 got its switch, d1e891f; a JSON route may).
     exit_by: str = "switch"
     # The map's MAPINFO says `next = endtitle`: leaving it must lead to an
     # end sequence (GZDoom names them "enDSeQ" + hex: the PM's MAP01 run
@@ -392,35 +416,75 @@ def _insert_after(steps, anchor: str, extra: Step):
 
 _SECRET_STEPS = _insert_after(_insert_after(_insert_after(_A_STEPS, "R1", _S1), "A6", _S3), "A7", _S2)
 
-# --- MAP02, the test range: the start inventory alone --------------------
+# --- MAP02, the practice range (D41; docs/levels/MAP02-practice-range.md) --
 # The same two checks as A0 and R1, on the range (src/maps/MAP02/map.py): the
-# player starts at (160, 384) and the weapon row lies along y 624, the melee
-# weapon (DoomEdNum ED_MELEE) first at x 288 and the next 112 further east,
-# so walking north up x 288 collects that one and no other. No zones (MAP02
-# has no zone plan). MAP02 has no exit line, so E1 ends it with the
-# helper's sdexit (Level.ExitLevel), and its shot is cluster 2's end text
-# (MAPINFO: `nointermission`, `next = endtitle`).
+# player starts at (160, 384) facing east and the weapon row lies along
+# y 624, the melee weapon (DoomEdNum ED_MELEE) first at x 288 and the next
+# 112 further east, so walking north up x 288 collects that one and no other.
+# Then the way out, as a player leaves (d1e891f, the design's section 4.1):
+# E0 stands on the start, turns round (180) and walks west into the lit
+# alcove until its back wall stops him, on top of nothing; E1 presses the
+# Exit_Normal switch on that wall (x -32, y 352..416), 16 units ahead, inside
+# Doom's 64-unit use range. Its shot is cluster 2's end text (MAPINFO:
+# `nointermission`, `next = endtitle`). tests/test_route.py reads the exit
+# line back from the built map and holds this geometry.
 MAP02_AXE_APPROACH = (288, 560)
 MAP02_AXE_FACING = 90
+MAP02_START = (160, 384)
+MAP02_EXIT_FACING = 180
+EXIT_WALK = 50   # ~8 units a tic: far more than the 176 from the start to the alcove's wall
 
-_MAP02_STEPS = (
-    Step("A0", actions=("level", "inv", "capture"),
-         melee=False, ready_slot=SLOT_SIDEARM, ready_ammo=start_rounds(),
-         note="the player start: TT-33 raised with its rounds, slot 1 empty"),
-    Step("R1", MAP02_AXE_APPROACH, MAP02_AXE_FACING, (f"forward {RACK_WALK}", "inv", "capture"),
-         melee=True, note=f"walk north over the weapon row's first item (DoomEdNum {ED_MELEE})"),
-    Step("E1", actions=("exit", f"wait {END_TEXT_TICS}", "state", "capture"),
-         note="end MAP02 by sdexit (it has no exit line; the console `exit` quits GZDoom): "
-              "cluster 2's end text, SD_END02_TEXT over SDFLR1, is what the shot must show"),
+_MAP02_A0 = Step("A0", actions=("level", "inv", "capture"), expect=("HALL",),
+                 melee=False, ready_slot=SLOT_SIDEARM, ready_ammo=start_rounds(),
+                 note="the player start: TT-33 raised with its rounds, slot 1 empty")
+_MAP02_R1 = Step("R1", MAP02_AXE_APPROACH, MAP02_AXE_FACING, (f"forward {RACK_WALK}", "inv", "capture"),
+                 expect=("HALL",), melee=True,
+                 note=f"walk north over the weapon row's first item (DoomEdNum {ED_MELEE})")
+_MAP02_EXIT = (
+    Step("E0", MAP02_START, MAP02_EXIT_FACING, ("capture", f"forward {EXIT_WALK}", "capture"),
+         expect=("EXIT",),
+         note="P1: from the start, turned round, the lit alcove and the hazard panel whole; "
+              "then walk into the alcove up to the switch"),
+    Step("E1", actions=("use", f"wait {END_TEXT_TICS}", "state", "capture"),
+         note="P6: press the exit switch; cluster 2's end text, SD_END02_TEXT over SDFLR1, "
+              "is what the shot must show"),
+)
+_MAP02_STEPS = (_MAP02_A0, _MAP02_R1) + _MAP02_EXIT
+
+# --- MAP02's P4: the gallery door opened from the passage side -------------
+# The design's section 7, P4, which the PM's pass of 20:57 did not exercise.
+# The door (tag 1, x 640..768, y 768..832) carries Door_Raise on both faces;
+# P4a warps into the passage's south leg facing the door (south) and reads
+# tag 1 shut; P4b presses, reads it open, and walks through into the hall.
+# The walk runs down x 672, 48 off the PPSh-41 (624, 624) and 64 off the
+# RPG-7 (736, 624), so it takes no pickup on the way (tests/test_route.py).
+# A route of its own (map02-door) so map02-start, proven at 20:52, stays as
+# it is if P4 fails for the route's sake.
+MAP02_TAG_GALLERY_DOOR = 1
+MAP02_DOOR_PASSAGE_SIDE = (672, 864)
+MAP02_DOOR_FACING = 270
+
+_MAP02_P4 = (
+    Step("P4a", MAP02_DOOR_PASSAGE_SIDE, MAP02_DOOR_FACING,
+         (f"tag {MAP02_TAG_GALLERY_DOOR}", "capture"), expect=("PASSAGE",),
+         tags=((MAP02_TAG_GALLERY_DOOR, False),),
+         note="P4: in the passage, facing the gallery door from behind; still shut"),
+    Step("P4b", actions=("use", f"wait {DOOR_WAIT}", f"tag {MAP02_TAG_GALLERY_DOOR}",
+                         f"forward {WALK}", "capture"),
+         expect=("HALL",), tags=((MAP02_TAG_GALLERY_DOOR, True),),
+         note="P4: the door opens from the passage side; walk through into the hall"),
 )
 
 # --- MAP01, the mural shots M1-M5 (design section 17.13) ------------------
 # Warp, face, shoot: the CEO judges the pictures. Run with --nomonsters so
 # nothing walks into the frame. M3 is two shots (the doorway's two corners).
-# M4's last clause (the health bonus at 432 1400 can be walked onto) is NOT
-# scripted: the way to it is a 32-wide gap between the lectern (x <= 416)
-# and a floor lamp (x >= 448), exactly one body, and a warp would skip the
-# very question. The PM walks it by hand (docs/qa/GATE-REVIEWS.md, G3).
+# M4's last clause (the health bonus at 432 1400 can be walked onto) is C12
+# of docs/qa/GATE-REVIEWS.md, walked by hand and not scripted here: a warp
+# onto the bonus would skip the very question, and the route reads no pickup
+# message. Since f3cd8ea (G3-F1) the way to it is a 48-wide lane between the
+# lectern (x <= 416) and the east floor lamp (x >= 464), a body and a half;
+# the PM walked it at 20:57 (warp 440 1300, facing north, +forward: the log
+# says "Health boosted!"), and G3-F1 is closed.
 _MURAL_STEPS = (
     Step("M1", (256, 976), 90, ("capture",), expect=("Z4",),
          note="from the doorway: the mural whole, the lectern right of it on the tribune"),
@@ -446,18 +510,30 @@ ROUTES: dict[str, Route] = {
         description="the same path with the three secrets of section 7 taken on the way"),
     "map02-start": Route(
         "map02-start", "MAP02", _MAP02_STEPS, expect_secrets=None, must_exit=True,
-        exit_by="console", end_sequence=True,
-        description="the test range: the start inventory, the slot-1 pickup, and its end text"),
+        end_sequence=True,
+        description="the practice range: the start inventory, the slot-1 pickup, and out by "
+                    "its exit switch to the end text"),
+    "map02-door": Route(
+        "map02-door", "MAP02", (_MAP02_A0, _MAP02_R1) + _MAP02_P4 + _MAP02_EXIT,
+        expect_secrets=None, must_exit=True, end_sequence=True,
+        description="map02-start plus P4: the gallery door opened from the passage side"),
     "mural": Route(
         "mural", "MAP01", _MURAL_STEPS, expect_secrets=None, must_exit=False,
         description="section 17.13's mural shots M1-M5 (run with --nomonsters)"),
 }
 
 
+EXIT_WAYS = ("switch", "console")
+
+
 def route_from_json(data: dict) -> Route:
     """A route of your own: {"name", "map", "expect_secrets"?, "must_exit"?,
+    "exit_by"?: "switch" | "console", "end_sequence"?: bool,
     "steps": [{"id", "warp"?: [x, y], "angle"?, "do"?: [...], "expect"?: [...],
-    "tags"?: {"10": true}, "melee"?: bool, "ready_slot"?, "ready_ammo"?, "note"?}]}."""
+    "tags"?: {"10": true}, "melee"?: bool, "ready_slot"?, "ready_ammo"?, "note"?}]}.
+
+    "exit_by": "console" is the documented recourse for a map with no exit
+    line: the route's `exit` action sends the helper's sdexit."""
     try:
         steps = tuple(
             Step(
@@ -476,9 +552,13 @@ def route_from_json(data: dict) -> Route:
         )
         route = Route(str(data.get("name", "custom")), str(data.get("map", "MAP01")).upper(),
                       steps, data.get("expect_secrets"), bool(data.get("must_exit", True)),
-                      str(data.get("description", "")))
+                      str(data.get("description", "")),
+                      exit_by=str(data.get("exit_by", "switch")),
+                      end_sequence=bool(data.get("end_sequence", False)))
     except (KeyError, TypeError) as exc:
         raise RouteError(f"malformed route file: {exc}") from exc
+    if route.exit_by not in EXIT_WAYS:
+        raise RouteError(f"exit_by {route.exit_by!r} must be one of {', '.join(EXIT_WAYS)}")
     for step in steps:
         if step.warp is not None and len(step.warp) != 2:
             raise RouteError(f"step {step.id}: warp needs [x, y]")
@@ -490,14 +570,23 @@ def route_from_json(data: dict) -> Route:
 # ============================================================================
 
 # Zone families: the report speaks of "Z3" or "the D6 door", not of sector 57.
-# Most sector names carry their zone (`z3_corridor`, `lamp_z3_corridor_1`);
-# the rest are mapped by prefix here. First match wins.
+# MAP02's five sectors (docs/levels/MAP02-practice-range.md section 3) carry
+# no zone number, so they are named whole, and checked first; their
+# families are MAP02's own, none shared with MAP01 (tests/test_route.py).
+ZONE_NAMES: dict[str, str] = {
+    "hall": "HALL", "exit_alcove": "EXIT", "gallery_door": "GDOOR",
+    "gallery_passage": "PASSAGE", "gallery": "GALLERY",
+}
+# Most of MAP01's sector names carry their zone (`z3_corridor`,
+# `lamp_z3_corridor_1`, `z1_ice_axe_rack`); the rest are mapped by prefix
+# here. First match wins. Every row must match a sector of some map: a row
+# that matches none is dead (tests/test_route.py).
 ZONE_PREFIXES: tuple[tuple[str, str], ...] = (
     # A door's recess belongs to the room it is cut into, so that a player
     # still standing in front of a shut door is never counted as "in the door".
     ("d3_recess", "Z4"), ("d4_recess", "Z6"), ("d5_recess", "Z10"), ("d6_recess", "Z6B"),
     ("s1_", "S1"), ("s2_", "S2"), ("s3_", "S3"), ("sump_step", "S3"),
-    ("prop_bunk", "Z1"), ("shovel_rack", "Z1"), ("frame_d1_dorm", "Z1"), ("frame_d2_dorm", "Z1"),
+    ("prop_bunk", "Z1"), ("frame_d1_dorm", "Z1"), ("frame_d2_dorm", "Z1"),
     ("frame_d1_washroom", "Z2"), ("prop_basin", "Z2"), ("stall_", "Z2"),
     ("bulkhead_", "Z3"),
     ("prop_mess", "Z4"), ("tribune", "Z4"), ("prop_lectern", "Z4"),
@@ -519,6 +608,8 @@ def zone_family(name: str | None) -> str:
     """'lamp_z3_corridor_1' -> 'Z3'; 'd6' and 'd6_recess' -> 'D6'; '?' if unknown."""
     if not name:
         return "?"
+    if name in ZONE_NAMES:
+        return ZONE_NAMES[name]
     for prefix, family in ZONE_PREFIXES:
         if name.startswith(prefix):
             return family
@@ -546,9 +637,9 @@ class MapData:
         if hasattr(module, "build_plan"):
             self.textmap, self.plan = module.build_plan()
         elif hasattr(module, "build_textmap"):
-            # A map without a zone plan (MAP02, the test range): positions,
-            # monsters, secrets and things still work; zones read '?', so a
-            # route on it should not use `expect`.
+            # A map without a zone plan (none today; MAP02 had none until
+            # d1e891f): positions, monsters, secrets and things still work;
+            # zones read '?', so a route on it should not use `expect`.
             self.textmap, self.plan = module.build_textmap(), {}
         else:
             raise RouteError(f"{script} has neither build_plan() nor build_textmap()")
@@ -640,7 +731,17 @@ def helper_zscript(minimal: bool = False) -> str:
         }}
         let pmo = players[e.Player].mo;
         if (!pmo) return;
-        if (e.Name == "sdangle") {{ pmo.angle = e.Args[0]; pmo.pitch = 0; return; }}
+        // A warp keeps the body's velocity (PM, 21:15: E0 of map02-door drifted
+        // 39 units south after P4b's walk). Setting the facing stops the body,
+        // and sdstop does only that: Actor.Vel and PlayerInfo.vel, both
+        // writable in g4.14.2's gzdoom.pk3 (actors/actor.zs, player/player.zs).
+        if (e.Name == "sdangle")
+        {{
+            pmo.angle = e.Args[0]; pmo.pitch = 0;
+            pmo.Vel = (0, 0, 0); players[e.Player].vel = (0, 0);
+            return;
+        }}
+        if (e.Name == "sdstop") {{ pmo.Vel = (0, 0, 0); players[e.Player].vel = (0, 0); return; }}
         if (e.Name == "sdclear")
         {{
             // Args: step, length of the walk ahead, half-width. Kills only
@@ -774,7 +875,8 @@ def helper_zscript(minimal: bool = False) -> str:
         "// GENERATED by tools/route.py - QA tooling, NEVER part of the mod.\n"
         "// It lives in logs/route/ (gitignored) and is loaded with -file after\n"
         "// the mod PK3 for one scripted run. Console interface:\n"
-        "//   netevent sdangle <deg>         set the view angle (pitch level)\n"
+        "//   netevent sdangle <deg>         set the view angle (pitch level) and stop the body\n"
+        "//   netevent sdstop                stop the body (velocity 0), around every warp\n"
         "//   netevent sdhurt <idx> <amount> damage every live actor of NAMES[idx]\n"
         "//   netevent sdcount               live / total counts of NAMES\n"
         "//   netevent sdpos <step>          position, sector index, health\n"
@@ -796,9 +898,15 @@ def helper_zscript(minimal: bool = False) -> str:
 
 # The per-level helper is destroyed when its level ends, so it cannot say
 # what comes after (the PM's first run: "gamestate intermission: NOT SEEN").
-# A static handler lives across levels. NOT VERIFIED: that GZDoom runs net
-# events during the intermission and the end text; if it does not, the
-# report says NOT SEEN and the END screenshot is the evidence.
+# A static handler lives across levels, but it did not answer either: the
+# route-2 runs (20:50-20:52) printed no "SDTEST state" line, not even for the
+# sdstate asked during MAP02's end text; inside a level it answers
+# (gamestate=0 in map02-door's log of 21:15, whose level never ended).
+# Hypothesis, NOT VERIFIED, supported by that: GZDoom's
+# `netevent` command is refused outside a level. Nothing is judged on it:
+# the unload line names the end sequence, and the END screenshot (and
+# MAP02's E1) shows what is on screen. Kept because it costs nothing and
+# would corroborate if a later engine answers.
 STATE_CLASS = "SDRouteState"
 STATE_HANDLER = f"""
 class {STATE_CLASS} : StaticEventHandler
@@ -886,10 +994,27 @@ def clear_commands(number: int, tics: int) -> list[str]:
             f"wait {SETTLE_TICS}"]
 
 
+def warp_commands(warp: tuple[int, int], angle: int | None) -> list[str]:
+    """Stop the body, warp, stop it again (by the facing, or by sdstop).
+
+    The console `warp` moves the player and keeps his velocity. On the PM's
+    run of 2026-10-13 21:15, map02-door's E0 warped onto the start straight
+    after P4b's 35-tic walk south and, before it walked west, glided ~39
+    units south out of line with the exit alcove: it ended at (16, 345) in
+    the hall instead of at the switch. A warp step must start at rest: the
+    stop before the warp kills the glide, the one after kills anything
+    picked up while the warp settles."""
+    cmds = ["netevent sdstop", f"wait {SETTLE_TICS}",
+            f"warp {warp[0]} {warp[1]}", f"wait {SETTLE_TICS}"]
+    if angle is None:
+        cmds += ["netevent sdstop", f"wait {SETTLE_TICS}"]
+    return cmds
+
+
 def step_commands(number: int, step: Step, clear: bool = True) -> list[str]:
     cmds = [f"echo SDSTEP {number} {step.id}"]
     if step.warp is not None:
-        cmds += [f"warp {step.warp[0]} {step.warp[1]}", f"wait {SETTLE_TICS}"]
+        cmds += warp_commands(step.warp, step.angle)
     if step.angle is not None:
         cmds += [f"netevent sdangle {step.angle}", f"wait {SETTLE_TICS}"]
     for action in step.actions:
@@ -1291,7 +1416,7 @@ def evaluate(route: Route, skill: int, log: RouteLog, mapdata: MapData,
     how = (f"exit switch pressed: {'yes' if exit_line else 'NO'}" if route.exit_by == "switch"
            else f"ended by sdexit: {'yes' if exit_console else 'NO'}")
     exit_detail = (f"{how}; level unloaded towards: {left[-1][1] if left else 'NOT SEEN'}; "
-                   f"after it: {', '.join(GS_NAMES[s] for s in after) if after else 'NOT SEEN'}")
+                   f"after it: {', '.join(GS_NAMES[s] for s in after) if after else AFTER_NOT_SEEN}")
     if route.must_exit and not exit_reached:
         problems.append("exit not reached: " + exit_detail)
     if route.exit_by == "switch" and exit_console:
