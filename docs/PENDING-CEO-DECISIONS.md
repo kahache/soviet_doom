@@ -20,24 +20,10 @@ Nothing to decide. **Postponed by the CEO on 2026-10-13** ("lo dejamos
 pending"): the enemies keep Freedoom's voices until the takes arrive, and
 nothing else waits on them.
 
-## 2. Play the weapons test range (15 minutes, unblocks F4 balance)
+## 2. Does MAP02, the weapons test range, ship in v1?
 
-```
-MAP=MAP02 SD_ALLOW_ENGINE=1 tools/run.sh
-```
-
-All seven weapons, their ammo and targets are in the room. Sprites and sounds
-are Freedoom placeholders — judge **feel**, not looks: does the PPSh-41 feel
-like the icon of the mod, is the shovel worth having, is the IZh's two-shots-
-then-reload satisfying or annoying. Numbers and rationale: `docs/engine/BALANCE.md`.
-
-Specific doubts from `mod-engineer`:
-- The TT-33 is **+43 % on Doom's pistol** (26.3 vs 18.4 DPS). The most
-  aggressive number in the table and the first he would cut.
-- The hand Katyusha shares ammo with the flamethrower, as Doom's BFG shares
-  with the plasma. Own ammo pool, yes or no?
-- PPSh pickups give 35 rounds (half a drum) instead of Doom's 20.
-- Does MAP02 ship in v1, or stay engineering tooling?
+Played and approved for balance (D39). One question left: ship it as a
+bonus range in v1, or keep it as engineering tooling only.
 
 ## 3. Metro set, first six pieces (F2 batch 2)
 

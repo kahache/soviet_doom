@@ -1,7 +1,7 @@
 # Soviet Doom — Product Requirements Document
 
 Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
-Last update: 2026-10-13 (D25-D38).
+Last update: 2026-10-13 (D25-D39).
 
 ## 1. Vision
 
@@ -72,6 +72,7 @@ until D16 brought it into scope on 2026-10-13.)
 | D36 | 2026-10-13 | **Enemy sound: sources and voices** (`docs/sound/ENEMY-SOUNDS.md`). The CC0 packs listed there may be downloaded, each with its provenance row and SHA-256. The enemy voices are the CEO's: "me encargaré de las grabaciones y/o generar con IA lo que sea necesario"; any AI-generated voice carries the tool and its licence in the licence register like any other asset. **Factions speak real languages:** "prefiero que sea alemán real e inglés real", so the Reich speaks German and the Liberty Legion English, replacing the sound-designer's proposal of invented German-sounding syllables. The General's order is **"Vorwärts."** D11 (serious tone) and D12 still bind: real military callouts, not the regime's slogans. | ratified (CEO) |
 | D37 | 2026-10-13 | **German letters in the alphabet: Ä, Ö, Ü and the sharp s, installed for an in-game trial**, sharp s included against the PM's recommendation of "SS": "Las pruebo, incluso la B se queda". The General's order prints as "Vorwärts!" in both languages; the English section of `LANGUAGE` admits exactly those German letters beyond ASCII (debt T17 otherwise stands). The enemy voice takes are postponed by the CEO: "Las grabaré o generaré en otro momento. Lo dejamos pending". | ratified (CEO) |
 | D38 | 2026-10-13 | **MAP01 v3 played through by the CEO (skill 3): "ha sido MUY divertido!!".** One fix asked: the square block in front of the cosmonautics mural (`SDPOSTR2`, komnata) goes, so the poster can be seen. **The Reich rifleman: cell E (crested helmet), with the art-director's recommended method**, a 3D rig in the same style rendered at 8 angles for the ~50 frames. CEO: "OK al fusilero". | ratified (CEO) |
+| D39 | 2026-10-13 | **The arsenal's balance stands as built.** The CEO played the MAP02 test range: "He probado el mapa de las armas y todo correcto". So the TT-33 keeps its +43 % on Doom's pistol, the hand Katyusha keeps sharing fuel with the flamethrower, PPSh pickups keep 35 rounds (`docs/engine/BALANCE.md`). Also reported: the player's hands are Freedoom's placeholder hands ("mismo color de piel y manos"); our own hand and glove are being designed with the first weapon sprite. Whether MAP02 ships in v1 stays open. | ratified (CEO) |
 | D15 | 2026-10-09 | Licence of the mod: **GPL-3.0** for code (`tools/`, `src/zscript/`, scripts) and **CC BY-NC-SA 4.0** for assets and docs (textures, sprites, maps, sounds, lore). Non-commercial is required anyway by OTEX's terms. Full texts added at F6; `LICENSE.md` states it now. | decided by the PM on CEO delegation |
 
 ## 6. Phases and gates
