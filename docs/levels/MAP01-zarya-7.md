@@ -621,3 +621,36 @@ switch tag pointing at a sector that exists.
   MOD-SPEC).
 - `art-director`: **A3**, a switch texture — `SDDOOR1` is standing in for one
   and reads as a door, not a switch.
+
+
+## v0 playtest finding, CEO 2026-10-13: the gate reads as a dead end
+
+**Veredicto literal:** "no pude probar el nivel porque las paredes no se
+abrían. Utilicé IDCLIP. Pero tenía buena pinta."
+
+The doors are not broken. Verified in the engine and analytically:
+- All 12 door use-lines carry `Door_Raise` (12) with speed 16, `playeruse`,
+  `repeatspecial`, and the door sector on the **back** side so they open from
+  either room. Every tag has its sector. Evidence:
+  `docs/qa/evidence/2026-10-13_0910_F3_door-d2-{closed,open}.png`, the same
+  door before and after one press.
+- Every door opens to 92-124 units of clearance; the player needs 56.
+- The two lines with no back side are SW-A and SW-B, wall switches, correct.
+
+What the CEO almost certainly hit is **D4, the hangar gate, which by design
+carries no special of its own**: it is opened by SW-A in the fuel bay. Press
+it and nothing happens, which in a grey box with no lighting and no signage
+reads as "the walls do not open".
+
+This is the finding, and it is a design one, not a bug: **v0 cannot signpost.**
+The design leans on the red stripe as the route language and on light to pull
+the player toward the fuel bay, and v0 has neither. Two consequences:
+
+1. For judging v0, the route has to be told rather than discovered. Dormitory
+   → north door → corridor → Leninskaya komnata → service corridor and guard
+   post → three steps down into the hangar → **ignore the big gate, go
+   north-west into the fuel bay** → SW-A opens the gate → catwalk stair →
+   control booth → SW-B → back across the hangar → airlock → lift → exit.
+2. For v1 this is the question the map has to answer with texture and light
+   alone, and it is now a gate criterion: a player who has never seen the map
+   must reach the fuel bay without being told.
