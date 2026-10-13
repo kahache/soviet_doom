@@ -83,8 +83,8 @@ is an ice axe (D40). Drafts at the CEO's gate: our own hand and glove, the
 ice axe, the PPSh-41, 31 weapon sounds. MAP02 ships as a practice range, a
 second episode on New Game (D41).
 
-**Music (D43).** The Internationale (`D_SDINTL`, credit Jerry Engelbach) is
-wired as the title music, NOT VERIFIED in engine; MAP01 plays our own
+**Music (D43).** The Internationale (`D_SDINTL`, credit Jerry Engelbach) plays
+on the title screen (`currentmusic`, `docs/qa/evidence/2026-10-13_2150_F6_title-music.log`); MAP01 plays our own
 `D_SDM01` (seen with `currentmusic`); an enriched draft waits on the
 CEO; three self-sequenced pieces wait on a score source.
 
