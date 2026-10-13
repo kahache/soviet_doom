@@ -44,6 +44,7 @@ from sdbuild.udmf import (  # noqa: E402
     door_open_style,
     door_raise_style,
     exit_switch_style,
+    skill_tier,
     switch_door_open_style,
 )
 
@@ -167,6 +168,33 @@ class UdmfBlockTest(unittest.TestCase):
     def test_add_room_rect_rejects_a_degenerate_rectangle(self):
         with self.assertRaises(ValueError):
             TextMap().add_room_rect(0, 0, 0, 512, Sector(FLOOR, CEILING), WALL)
+
+
+class SkillTest(unittest.TestCase):
+    """Per-skill things (v3): Doom's three spawn tiers on UDMF's five flags."""
+
+    def test_skill_tiers_follow_dooms_pairs(self):
+        self.assertEqual((1, 2, 3, 4, 5), skill_tier())
+        self.assertEqual((3, 4, 5), skill_tier(3), "a monster from medium up")
+        self.assertEqual((4, 5), skill_tier(4), "a monster on hard only")
+        self.assertEqual((1, 2, 3), skill_tier(highest=3), "a consumable up to medium")
+        self.assertEqual((1, 2), skill_tier(highest=2), "a consumable on easy only")
+        for bad in ((5, None), (1, None), (4, 3)):
+            with self.assertRaises(ValueError):
+                skill_tier(*bad)
+
+    def test_thing_on_skills_writes_exactly_those_flags(self):
+        text = Thing.on_skills(64, 64, 3004, skill_tier(3), angle=90).to_udmf()
+        for n in (1, 2):
+            self.assertIn(f"skill{n} = false;", text)
+        for n in (3, 4, 5):
+            self.assertIn(f"skill{n} = true;", text)
+        self.assertIn("angle = 90;", text)
+        self.assertIn("single = true;", text)
+        with self.assertRaises(ValueError):
+            Thing.on_skills(0, 0, 1, ())
+        with self.assertRaises(ValueError):
+            Thing.on_skills(0, 0, 1, (6,))
 
 
 # --- the painter -----------------------------------------------------------
@@ -348,6 +376,57 @@ class GridMapTest(unittest.TestCase):
             else:
                 self.assertTrue(ld["dontpegbottom"], "a wall not pegged to the floor")
 
+    def test_carve_makes_a_column_of_void(self):
+        """`carve` (v3) is how a column is made: the cells leave the room,
+        and every edge round them is a one-sided wall OF THE ROOM, wound
+        clockwise like any other, so the room is a sector with a hole."""
+        tm = TextMap()
+        g = GridMap(tm, wall=WALL)
+        room = tm.add_sector(Sector(FLOOR, CEILING))
+        g.paint(room, 0, 0, 256, 256)
+        g.carve(96, 96, 160, 160)
+        g.build()
+        blocks = parse_textmap(tm.render())
+        self.assertEqual(8, len(blocks["linedef"]), "4 outer walls + 4 column faces")
+        for ld in blocks["linedef"]:
+            self.assertNotIn("sideback", ld)
+            self.assertTrue(ld["blocking"])
+            self.assertEqual(room, blocks["sidedef"][ld["sidefront"]]["sector"])
+        edges = sector_loops(blocks)[room]
+        out_deg, in_deg = defaultdict(int), defaultdict(int)
+        for a, b in edges:
+            out_deg[a] += 1
+            in_deg[b] += 1
+        self.assertEqual(dict(out_deg), dict(in_deg), "the room leaks round its column")
+        # Signed area: the room minus the column.
+        self.assertEqual(-(256 * 256 - 64 * 64), signed_area(blocks, edges))
+        with self.assertRaises(ValueError):
+            g.carve(10, 10, 10, 20)
+
+    def test_carve_is_last_wins_like_paint(self):
+        """A column carved through a raised platform splits it; a sector
+        painted over a carve fills it back in."""
+        tm = TextMap()
+        g = GridMap(tm, wall=WALL)
+        room = tm.add_sector(Sector(FLOOR, CEILING))
+        g.paint(room, 0, 0, 256, 256)
+        g.carve(0, 0, 256, 256)
+        g.paint(room, 0, 0, 128, 128)
+        g.build()
+        blocks = parse_textmap(tm.render())
+        self.assertEqual(4, len(blocks["linedef"]))
+
+    def test_the_first_registered_style_wins(self):
+        """The rule index (v3, for speed) keeps the painter's contract: of
+        two styles covering the same segment, the one registered first."""
+        first, second = LineStyle(texture="FIRST"), LineStyle(texture="SECOND")
+        blocks = painted([[(0, 0, 256, 256)]],
+                         styles=[("v", 0, 0, 256, first), ("v", 0, 0, 256, second),
+                                 ("v", 0, 64, 128, second)])
+        textures = {blocks["sidedef"][ld["sidefront"]]["texturemiddle"] for ld in blocks["linedef"]
+                    if blocks["vertex"][ld["v1"]]["x"] == blocks["vertex"][ld["v2"]]["x"] == 0}
+        self.assertEqual({"FIRST"}, textures)
+
     def test_a_gate_switch_can_be_one_shot_and_carry_a_light_tag(self):
         style = switch_door_open_style(10, lighttag=30, repeatable=False)
         self.assertEqual((10, 16, 30, 0, 0), style.args, "Door_Open (tag, speed, lighttag)")
@@ -391,9 +470,15 @@ class Map01Test(unittest.TestCase):
         cls.sides = cls.blocks["sidedef"]
         # A door is a tagged sector that is closed (ceiling on its floor).
         # Since v2 a tag can also name a light (TAG_LIGHT_GATE_POWER), and
-        # those sectors are rooms, not doors.
-        cls.doors = {s["id"]: i for i, s in enumerate(cls.sectors)
-                     if s.get("id") and s["heightceiling"] == s["heightfloor"]}
+        # those sectors are rooms, not doors. Since v3 one tag can name
+        # several doors (D4 and the fuel-bay ambush panels share SW-A's tag;
+        # D5 and the wave-2 closets share SW-B's), so it maps to a set.
+        cls.doors = defaultdict(set)
+        for i, s in enumerate(cls.sectors):
+            if s.get("id") and s["heightceiling"] == s["heightfloor"]:
+                cls.doors[s["id"]].add(i)
+        cls.doors = dict(cls.doors)
+        cls.door_sectors = set().union(*cls.doors.values())
         cls.zone_of = {index: name for name, index in cls.plan.items()}
         cls.start = cls.plan["z1_dorm"]
         cls.neighbours = defaultdict(set)
@@ -413,7 +498,7 @@ class Map01Test(unittest.TestCase):
         out = []
         for i, s in enumerate(self.sectors):
             ceiling = s["heightceiling"]
-            if s.get("id") in open_tags and i in self.doors.values():
+            if s.get("id") in open_tags and i in self.door_sectors:
                 ceiling = min(self.sectors[n]["heightceiling"] for n in self.neighbours[i]) - 4
             out.append((s["heightfloor"], ceiling))
         return out
@@ -531,7 +616,8 @@ class Map01Test(unittest.TestCase):
     def test_every_lamp_is_one_panel_exactly_one_step_over_its_room(self):
         m = self.map01
         lamps = [name for name in self.plan if name.startswith("lamp_")]
-        self.assertEqual(16, len(lamps), "1 dorm, 2 corridor, 2 komnata, 1 service, 10 hangar")
+        self.assertEqual(24, len(lamps), "3 dorm, 2 corridor, 3 komnata, 1 service, "
+                                         "11 hangar, 2 catwalk, 1 fuel bay, 1 airlock")
         verts = self.blocks["vertex"]
         for name in lamps:
             room = name[len("lamp_"):].rsplit("_", 1)[0]
@@ -796,7 +882,7 @@ class Map01Test(unittest.TestCase):
         self.assertEqual(1, len(sw_a))
         sw_a = sw_a[0]
         self.assertEqual(m.SW_A_FACE, self.sides[sw_a["sidefront"]]["texturemiddle"])
-        self.assertEqual(self.plan["d4"], self.doors[sw_a["arg0"]], "SW-A's tag is not D4's")
+        self.assertIn(self.plan["d4"], self.doors[sw_a["arg0"]], "SW-A's tag is not D4's")
         self.assertEqual(m.TAG_LIGHT_GATE_POWER, sw_a["arg2"])
         self.assertTrue(sw_a["playeruse"])
         self.assertNotIn("repeatspecial", sw_a)
@@ -824,25 +910,21 @@ class Map01Test(unittest.TestCase):
             self.assertTrue(ld.get("playeruse") or touches_remote,
                             "SDDOOR1 on a surface the player cannot press")
 
-    def test_only_thing_is_the_player_start(self):
-        things = self.blocks["thing"]
-        self.assertEqual(1, len(things), "v2 has no enemies and no items: that is v3")
-        self.assertEqual(self.map01.ED_PLAYER1_START, things[0]["type"])
-        for flag in ("skill1", "skill2", "skill3", "skill4", "skill5", "single", "coop", "dm"):
-            self.assertTrue(things[0][flag])
-
     def test_the_whole_plan_is_there(self):
         # Every room, stair, door and switch of the design's section 3 table.
-        self.assertEqual(80, len(self.sectors),
-                         "54 of v1 + 16 lamps, the flicker strip, 6 crates, SW-A's "
-                         "alcove, the fuel-bay window and the exit niche")
-        self.assertEqual(9, len(self.doors), "6 doors + 3 secret panels")
+        # The v3 sector count, and the density target it answers, are
+        # tests/test_map01.py's. Here: the doors and the specials.
+        self.assertEqual(9, len(self.doors), "6 door tags + 3 secret panels")
+        self.assertEqual(9 + 6, len(self.door_sectors), "+ 6 monster-closet panels")
         specials = defaultdict(int)
         for ld in self.lines:
             if ld.get("special"):
                 specials[ld["special"]] += 1
         self.assertEqual(8, specials[SPECIAL_DOOR_RAISE], "4 manual doors, 2 lines each")
-        self.assertEqual(8, specials[SPECIAL_DOOR_OPEN], "3 panels x2 + SW-A + SW-B")
+        # 3 panels x 2 + SW-A + SW-B, plus 2: since v3 the drain that is S3's
+        # clue runs up to S3's panel and splits its bay-side line in three
+        # (bay / drain / bay), each piece carrying the panel's special.
+        self.assertEqual(10, specials[SPECIAL_DOOR_OPEN], "3 panels x2 + SW-A + SW-B + 2")
         self.assertEqual(1, specials[SPECIAL_EXIT_NORMAL])
 
     def test_no_press_can_consume_a_gate(self):
@@ -860,7 +942,8 @@ class Map01Test(unittest.TestCase):
                                  f"linedef {i}: a one-shot switch must open for good")
 
     def test_every_door_opens_tall_enough_to_walk_through(self):
-        for tag, index in self.doors.items():
+        for index in sorted(self.door_sectors):
+            tag = self.sectors[index]["id"]
             s = self.sectors[index]
             opened = min(self.sectors[n]["heightceiling"] for n in self.neighbours[index]) - 4
             clearance = opened - s["heightfloor"]
@@ -871,13 +954,15 @@ class Map01Test(unittest.TestCase):
     def test_every_sector_is_reachable_except_the_window(self):
         reachable, _ = self._reachable(set(self.doors))
         unreachable = set(range(len(self.sectors))) - reachable
-        # The two windows (a sill 32 high is a window, not a step) and the
-        # crates (64 and 128 high) are the sectors nobody is meant to stand
-        # in. Anything else showing up here is a room the player cannot get to.
+        # The windows (a sill is a window, not a step; S2's slit), the crates
+        # (64 and 128 high) and the furniture (32) are the sectors nobody is
+        # meant to stand in. Anything else showing up here is a room the
+        # player cannot get to.
         m = self.map01
         props = {i for name, i in self.plan.items()
-                 if name in m.WINDOWS or name.startswith(m.PROP_PREFIX)}
-        self.assertEqual(2 + 6, len(props))
+                 if name in m.WINDOWS or name.startswith(m.PROP_PREFIXES)}
+        self.assertEqual(3 + 9 + 13, len(props), "3 windows, 9 crates; 6 bunks, "
+                                                 "3 tables, 3 basins and a lectern")
         self.assertEqual(props, unreachable,
                          f"unexpected: {sorted(self.zone_of[i] for i in unreachable ^ props)}")
 
@@ -903,8 +988,10 @@ class Map01Test(unittest.TestCase):
                   m.TAG_D3_KOMNATA_SERVICE, m.TAG_D6_CATWALK_BOOTH,
                   m.TAG_S1_LOCKER_PANEL, m.TAG_S2_CATWALK_PANEL, m.TAG_S3_SUMP_PANEL}
         sealed, _ = self._reachable(set())
-        self.assertEqual({self.start, self.plan["lamp_z1_dorm_1"]}, sealed,
-                         "the dorm must be sealed by D1 and D2")
+        dorm = {self.plan[n] for n in ("z1_dorm", "lamp_z1_dorm_1", "lamp_z1_dorm_2",
+                                       "lamp_z1_dorm_3", "shovel_rack", "frame_d1_dorm",
+                                       "frame_d2_dorm")}
+        self.assertEqual(dorm, sealed, "the dorm must be sealed by D1 and D2")
 
         before_switches, _ = self._reachable(manual)
         after_sw_a, _ = self._reachable(manual | {m.TAG_D4_HANGAR_AIRLOCK})
@@ -915,14 +1002,19 @@ class Map01Test(unittest.TestCase):
         # the design's rule is that the locked thing is always seen first.
         self.assertLess(len(before_switches), len(after_sw_a))
         self.assertLess(len(after_sw_a), len(after_sw_b))
-        # D4 and the airlock arrive with SW-A; D5, its recess and the lift
-        # with SW-B. Both recesses on the hangar side are open ground and
-        # are therefore already in `before_switches`: the gate is SEEN long
-        # before it is opened, which is the design's rule for every lock.
-        self.assertEqual({self.plan["d4"], self.plan["z8_airlock"]},
+        # D4 and the airlock arrive with SW-A - and, since v3, the three
+        # fuel-bay closets its press springs; D5, its recess and the lift
+        # with SW-B, and the three hangar closets of wave 2. Both recesses
+        # on the hangar side are open ground and are therefore already in
+        # `before_switches`: the gate is SEEN long before it is opened.
+        def named(*names):
+            return {self.plan[n] for n in names}
+        closets = lambda *ids: named(*(f"closet_{c}{s}" for c in ids for s in ("", "_door")))
+        self.assertEqual(named("d4", "z8_airlock", "lamp_z8_airlock_1", "airlock_niche_n",
+                               "airlock_niche_s", "frame_d5_airlock") | closets("a1", "a2", "a3"),
                          after_sw_a - before_switches)
-        self.assertEqual({self.plan["d5"], self.plan["d5_recess"],
-                          self.plan["z10_exit"], self.plan["z10_exit_niche"]},
+        self.assertEqual(named("d5", "d5_recess", "z10_exit", "z10_exit_niche", "z10_lift",
+                               "lenin_halo", "lenin_light") | closets("w1", "w2", "e1"),
                          after_sw_b - after_sw_a)
         self.assertIn(self.plan["d4_recess"], before_switches,
                       "the shut gate must be walked up to before SW-A is found")
@@ -1057,7 +1149,7 @@ class Map01Test(unittest.TestCase):
                              low["texturebottom"])
             self.assertEqual(0, rise % 64, "a crate face that is not whole crates")
             self.assertNotIn("dontpegbottom", ld)
-        self.assertEqual(1 + 4 + 3 + 4 + 4 + 4, faces)
+        self.assertEqual(1 + 4 + 3 + 4 + 4 + 4 + 3 * 4, faces, "v2's six + v3's three singles")
         for i in crates:
             self.assertEqual(m.CRATE_TOP, self.sectors[i]["texturefloor"])
 

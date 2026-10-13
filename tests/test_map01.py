@@ -1,0 +1,462 @@
+"""MAP01 v3: density, combat and resources (design document section 17).
+
+Owner: `level-designer`. `tests/test_udmf.py` holds the builder's tests and
+the v0-v2 contract of the map (connectivity, gate order, light, sight
+lines); this file holds what v3 added, read back from the generated TEXTMAP
+rather than from the tables in `map.py`, so a typo in a table or a thing
+dropped into a wall shows up here:
+
+* the density target (D33): sector and line counts;
+* every thing stands in the zone the table says, with room for its body;
+* monsters per skill (design section 8), strictly increasing, Reich first
+  and the Legion in the hangar (D35);
+* the tutorial weapons on every skill, the RPG-7 only in S2;
+* consumables scale down with skill, and the skill-4 ammo budget of
+  criterion G3-8;
+* the monster closets: tagged with their switch, reachable, escapable;
+* the three re-hidden secrets, and Lenin's light.
+
+Run:  python3 -m unittest tests.test_map01 -v
+"""
+
+from __future__ import annotations
+
+import sys
+import unittest
+from collections import Counter, defaultdict
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT / "tools"))
+sys.path.insert(0, str(PROJECT_ROOT / "tests"))
+
+# Imported as a module, not by name: a TestCase class bound in this module's
+# namespace would be collected and run a second time from here.
+import test_udmf as udmf_tests  # noqa: E402
+
+MAX_STEP_UP = udmf_tests.MAX_STEP_UP
+_load_map01 = udmf_tests._load_map01
+parse_textmap = udmf_tests.parse_textmap
+
+# Bodies, from docs/engine/BESTIARY.md section 1 (read from gzdoom.pk3): the
+# radius and height each stand-in needs to stand where it is put.
+BODY = {3004: (20, 56), 9: (20, 56), 3001: (20, 56), 3002: (30, 56),
+        3005: (31, 56), 69: (24, 64)}
+PICKUP_RADIUS = 20   # Doom's pickups are 20 wide; they need no headroom
+DRUM_RADIUS = 10     # barrel
+LAMP_RADIUS = 16     # floor lamp
+
+# What it takes to kill each stand-in with the weapon the map teaches for
+# it, in IZh shells - criterion G3-8's own figures (design section 11):
+# rifleman / trooper 1, stormtrooper 2, hound 3. v3 adds the two heavies of
+# D35 at the same margin: a Doughboy has 400 HP (5 average barrels: 6), a
+# Panzermensch 500 (6.25: 8).
+SHELLS_TO_KILL = {3004: 1, 9: 1, 3001: 2, 3002: 3, 3005: 6, 69: 8}
+G3_8_MARGIN = 1.35
+# Ammo is counted in shell-equivalents: an IZh barrel averages 80 damage, a
+# PPSh round 8 (docs/engine/BALANCE.md section 2), so ten rounds of 7.62 do
+# the work of one shell.
+ROUNDS_PER_SHELL = 10
+# What each pickup gives, Doom's amounts (our classes keep them, MOD-SPEC
+# 6.4) and the weapon AmmoGive constants in src/zscript/weapons/.
+SHELLS_GIVEN = {2008: 4, 2049: 20, 21003: 8}
+ROUNDS_GIVEN = {2007: 10, 2048: 50, 21004: 35}
+
+SKILLS = (2, 3, 4)
+MONSTER_NUMBERS = set(BODY)
+
+
+class Map01V3Test(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.m = _load_map01()
+        textmap, cls.plan = cls.m.build_plan()
+        cls.blocks = parse_textmap(textmap.render())
+        cls.sectors = cls.blocks["sector"]
+        cls.lines = cls.blocks["linedef"]
+        cls.sides = cls.blocks["sidedef"]
+        cls.verts = cls.blocks["vertex"]
+        cls.things = cls.blocks["thing"]
+        cls.zone_of = {i: name for name, i in cls.plan.items()}
+        # Vertical lines only: a ray cast east crosses nothing else in a map
+        # made of axis-aligned rectangles.
+        cls.vertical = []
+        for ld in cls.lines:
+            a, b = cls.verts[ld["v1"]], cls.verts[ld["v2"]]
+            if a["x"] == b["x"]:
+                cls.vertical.append((a["x"], a["y"], b["y"], ld))
+        # The v0-v2 reachability model, reused: every door open.
+        model_class = udmf_tests.Map01Test
+        model_class.setUpClass()
+        model = model_class()
+        cls.reachable, cls.adjacency = model._reachable(set(model_class.doors))
+        props = {i for name, i in cls.plan.items()
+                 if name in cls.m.WINDOWS or name.startswith(cls.m.PROP_PREFIXES)}
+        cls.unwalkable = props | model_class.door_sectors
+
+    # --- helpers ----------------------------------------------------------
+    def sector_at(self, x, y):
+        """The sector containing (x, y), found the way the engine does it:
+        the nearest line east of the point, and which side of it we are on."""
+        y = y + 0.25            # never exactly on a horizontal edge
+        best = None
+        for lx, y1, y2, ld in self.vertical:
+            if lx <= x or not (min(y1, y2) < y < max(y1, y2)):
+                continue
+            if best is None or lx < best[0]:
+                best = (lx, y1, y2, ld)
+        if best is None:
+            return None
+        _, y1, y2, ld = best
+        # Front is the right-hand side of v1 -> v2; running south, that is
+        # west - where the point is.
+        if y2 < y1:
+            return self.sides[ld["sidefront"]]["sector"]
+        return self.sides[ld["sideback"]]["sector"] if "sideback" in ld else None
+
+    def things_of(self, numbers):
+        return [t for t in self.things if t["type"] in numbers]
+
+    def on(self, skill, things):
+        return [t for t in things if t[f"skill{skill}"]]
+
+    # --- D33: density ---------------------------------------------------
+    def test_density_is_that_of_a_first_map(self):
+        """The CEO's v2 verdict, as numbers (design section 17): Freedoom's
+        MAP01 has 211 sectors and 1274 lines on 8.2 Mu2, ours had 80 and
+        322 on 6.5. The target band, and why lines fall short of 1274 by
+        design, are argued in section 17."""
+        self.assertGreaterEqual(len(self.sectors), self.m.DENSITY_SECTORS_MIN)
+        self.assertLessEqual(len(self.sectors), self.m.DENSITY_SECTORS_MAX)
+        self.assertGreaterEqual(len(self.lines), self.m.DENSITY_LINES_MIN)
+
+    # --- placement --------------------------------------------------------
+    def test_every_thing_stands_in_the_zone_its_table_names(self):
+        rows = ([(z, k, x, y) for z, k, x, y, *_ in self.m.MONSTERS]
+                + [(z, e, x, y) for z, e, x, y, _ in self.m.ITEMS]
+                + list(self.m.FIXTURES))
+        for zone, what, x, y in rows:
+            self.assertEqual(self.plan[zone], self.sector_at(x, y),
+                             f"{what} at ({x}, {y}) is not in {zone} but in "
+                             f"{self.zone_of.get(self.sector_at(x, y))}")
+
+    def test_every_monster_has_room_for_its_body(self):
+        """All four corners of the body's box on floor it can stand on (not
+        a prop, a door or the void), within a step of each other, and the
+        lowest ceiling over them at least the body's height above."""
+        for t in self.things_of(MONSTER_NUMBERS):
+            radius, height = BODY[t["type"]]
+            x, y = t["x"], t["y"]
+            under = {self.sector_at(x + dx, y + dy)
+                     for dx in (-radius, radius) for dy in (-radius, radius)}
+            under.add(self.sector_at(x, y))
+            where = f"{t['type']} at ({x}, {y})"
+            self.assertNotIn(None, under, f"{where} is in a wall")
+            self.assertFalse(under & self.unwalkable,
+                             f"{where} overlaps {[self.zone_of[s] for s in under & self.unwalkable]}")
+            floors = [self.sectors[s]["heightfloor"] for s in under]
+            ceils = [self.sectors[s]["heightceiling"] for s in under]
+            self.assertLessEqual(max(floors) - min(floors), MAX_STEP_UP, where)
+            self.assertGreaterEqual(min(ceils) - max(floors), height, where)
+
+    def test_every_pickup_can_be_picked_up(self):
+        """A pickup lies on walkable floor the player can reach, never on a
+        crate (the player's body would not reach its height)."""
+        for t in self.things:
+            if t["type"] in MONSTER_NUMBERS or t["type"] == self.m.ED_PLAYER1_START:
+                continue
+            s = self.sector_at(t["x"], t["y"])
+            self.assertIsNotNone(s, f"thing {t['type']} at ({t['x']}, {t['y']}) is in a wall")
+            self.assertNotIn(s, self.unwalkable, f"thing {t['type']} on {self.zone_of[s]}")
+            self.assertIn(s, self.reachable, f"thing {t['type']} in {self.zone_of[s]}")
+
+    def test_no_thing_is_on_no_skill(self):
+        for t in self.things:
+            self.assertTrue(any(t[f"skill{n}"] for n in range(1, 6)), t)
+
+    def test_skill_flags_come_in_doom_pairs(self):
+        """Doom's skills 1-2 and 4-5 share their spawn flags; a thing set for
+        one member of a pair and not the other is a typo."""
+        for t in self.things:
+            self.assertEqual(t["skill1"], t["skill2"], t)
+            self.assertEqual(t["skill4"], t["skill5"], t)
+
+    # --- monsters (design section 8) -------------------------------------
+    def test_monsters_per_skill(self):
+        monsters = self.things_of(MONSTER_NUMBERS)
+        counts = {s: len(self.on(s, monsters)) for s in SKILLS}
+        self.assertEqual(self.m.ENEMY_TOTALS, counts)
+        self.assertLess(counts[2], counts[3])
+        self.assertLess(counts[3], counts[4])
+
+    def test_monsters_scale_up(self):
+        """Monsters are nested: whatever fights on an easier skill also fights
+        on a harder one (consumables do the opposite, below)."""
+        for t in self.things_of(MONSTER_NUMBERS):
+            if t["skill2"]:
+                self.assertTrue(t["skill3"] and t["skill4"], t)
+            if t["skill3"]:
+                self.assertTrue(t["skill4"], t)
+
+    def test_the_reich_is_met_first_and_the_legion_holds_the_hangar(self):
+        """D35. Before the hangar - dorm to service corridor - only the
+        Fourth Reich and the hybrid stormtroopers; the Legion's troopers and
+        Doughboy first appear in the hangar."""
+        m = self.m
+        barracks = ("z1_", "z2_", "z3_", "z4_", "z5_", "z5b_")
+        legion = {m.MONSTER_KINDS[k] for k in m.LEGION}
+        early = [(z, k) for z, k, *_ in m.MONSTERS if z.startswith(barracks)]
+        self.assertTrue(early)
+        self.assertFalse([e for e in early if m.MONSTER_KINDS[e[1]] in legion], early)
+        hangar = [k for z, k, *_ in m.MONSTERS if not z.startswith(barracks)]
+        self.assertIn("trooper", hangar)
+
+    def test_heavies_are_rare_and_never_on_easy(self):
+        """D35: the Panzermensch stands in for 500 HP, so its stand-in is the
+        Hell Knight (69), never the Baron (3003); one Doughboy and one
+        Panzermensch at most, neither on skill 2."""
+        heavy = self.things_of({3005, 69})
+        self.assertEqual({3005, 69}, {t["type"] for t in heavy})
+        self.assertFalse(self.things_of({3003, 65, 16, 7, 64}), "a monster with no bestiary class")
+        for t in heavy:
+            self.assertFalse(t["skill2"], t)
+        self.assertEqual(Counter({3005: 1, 69: 1}), Counter(t["type"] for t in heavy))
+
+    def test_every_closet_holds_a_fight_and_opens_with_its_switch(self):
+        """The ambush rides SW-A's tag (D4's), wave 2 SW-B's (D5's): every
+        closet panel carries one of those tags, and there is something in
+        every closet on every skill."""
+        m = self.m
+        closets = [n for n in self.plan if n.startswith("closet_") and not n.endswith("_door")]
+        self.assertEqual(6, len(closets))
+        for name in closets:
+            tag = self.sectors[self.plan[f"{name}_door"]]["id"]
+            wanted = m.TAG_FUEL_BAY_AMBUSH if name.startswith("closet_a") else m.TAG_HANGAR_WAVE_2
+            self.assertEqual(wanted, tag, name)
+            inside = [t for t in self.on(2, self.things_of(MONSTER_NUMBERS))
+                      if self.sector_at(t["x"], t["y"]) == self.plan[name]]
+            self.assertTrue(inside, f"{name} is empty on skill 2")
+        self.assertEqual(m.TAG_D4_HANGAR_AIRLOCK, m.TAG_FUEL_BAY_AMBUSH)
+        self.assertEqual(m.TAG_D5_AIRLOCK_EXIT, m.TAG_HANGAR_WAVE_2)
+
+    # --- weapons and resources ------------------------------------------
+    def test_the_tutorial_weapons_are_on_every_skill_on_the_route(self):
+        """Section 2: shovel, IZh and PPSh, in that order along the route,
+        on every skill and never in a secret; the RPG-7 only in S2."""
+        m = self.m
+        secret = {i for i, s in enumerate(self.sectors) if s.get("special", 0) & 1024}
+        for ednum, zone in ((m.ED_SHOVEL, "shovel_rack"), (m.ED_IZH, "weapon_rack"),
+                            (m.ED_PPSH, "z6b_catwalk")):
+            found = self.things_of({ednum})
+            self.assertEqual(1, len(found), ednum)
+            t = found[0]
+            self.assertTrue(all(t[f"skill{n}"] for n in range(1, 6)), ednum)
+            self.assertEqual(self.plan[zone], self.sector_at(t["x"], t["y"]))
+            self.assertNotIn(self.plan[zone], secret)
+        rpg = self.things_of({m.ED_RPG7})
+        self.assertEqual(1, len(rpg))
+        self.assertEqual(self.plan["s2_closet"], self.sector_at(rpg[0]["x"], rpg[0]["y"]))
+        # No Doom weapon number sneaks in: the arsenal is ours (D13), and
+        # 2005/82 spawn nothing (MAPINFO DoomEdNums).
+        self.assertFalse(self.things_of({2001, 2002, 2003, 2004, 2005, 2006, 82}))
+
+    def _secret_sectors(self):
+        return {i for i, s in enumerate(self.sectors) if s.get("special", 0) & 1024}
+
+    def _outside_secrets(self, things):
+        secret = self._secret_sectors()
+        return [t for t in things if self.sector_at(t["x"], t["y"]) not in secret]
+
+    def test_consumables_scale_down(self):
+        """Section 8's principle: monsters up, consumables down, weapons
+        flat. For every kind of consumable, skill 2 has at least what skill
+        3 has, and skill 3 at least what skill 4 has."""
+        m = self.m
+        weapons = {m.ED_SHOVEL, m.ED_IZH, m.ED_PPSH, m.ED_RPG7}
+        consumables = {t["type"] for t in self.things} - MONSTER_NUMBERS - weapons - {
+            m.ED_PLAYER1_START, m.ED_BARREL, m.ED_FLOOR_LAMP}
+        for kind in consumables:
+            n = {s: len(self.on(s, self.things_of({kind}))) for s in SKILLS}
+            self.assertGreaterEqual(n[2], n[3], kind)
+            self.assertGreaterEqual(n[3], n[4], kind)
+
+    def _ammo_needed(self, skill):
+        return sum(SHELLS_TO_KILL[t["type"]] for t in self.on(skill, self.things_of(MONSTER_NUMBERS)))
+
+    def _ammo_placed(self, skill):
+        """Shell-equivalents placed for `skill`, no secret counted, no drop
+        counted (criterion G3-8 counts placed ammunition only)."""
+        placed = self._outside_secrets(self.on(skill, self.things))
+        shells = sum(SHELLS_GIVEN.get(t["type"], 0) for t in placed)
+        rounds = sum(ROUNDS_GIVEN.get(t["type"], 0) for t in placed)
+        return shells + rounds / ROUNDS_PER_SHELL
+
+    def test_g3_8_the_ammo_budget(self):
+        """Criterion G3-8: on every skill, placed ammo outside the secrets is
+        at least 1.35 times what killing every monster with the intended
+        weapon takes. Skill 4 is the binding case."""
+        for skill in SKILLS:
+            need, have = self._ammo_needed(skill), self._ammo_placed(skill)
+            self.assertGreaterEqual(have, G3_8_MARGIN * need,
+                                    f"skill {skill}: {have} shell-eq for {need} needed")
+        # ...and not a flood either: under three times on skill 4, where
+        # what the stand-ins drop still comes on top (design section 8).
+        self.assertLess(self._ammo_placed(4), 3 * self._ammo_needed(4))
+
+    def test_health_and_armour_exist_outside_the_secrets_on_skill_4(self):
+        """G3-5's other half: the skill-4 player who finds no secret must be
+        able to heal on the way."""
+        m = self.m
+        found = Counter(t["type"] for t in self._outside_secrets(self.on(4, self.things)))
+        self.assertGreaterEqual(found[m.ED_STIMPACK] + found[m.ED_MEDIKIT], 5)
+        self.assertGreaterEqual(found[m.ED_ARMOR_BONUS], 6)
+
+    # --- secrets (v2 walk: "era muy evidente") ---------------------------
+    def test_every_secret_is_reachable_and_left_again(self):
+        m = self.m
+        secrets = self._secret_sectors()
+        self.assertEqual({self.plan["s1_locker"], self.plan["s2_closet"],
+                          self.plan["s3_sump"]}, secrets)
+        back = defaultdict(set)
+        for src, dsts in self.adjacency.items():
+            for dst in dsts:
+                back[dst].add(src)
+        start = self.plan["z1_dorm"]
+        for s in secrets:
+            self.assertIn(s, self.reachable, self.zone_of[s])
+            seen, stack = {start}, [start]
+            while stack:
+                for nxt in back[stack.pop()]:
+                    if nxt not in seen:
+                        seen.add(nxt)
+                        stack.append(nxt)
+            self.assertIn(s, seen, f"no way back from {self.zone_of[s]}")
+        self.assertEqual(3, len({m.TAG_S1_LOCKER_PANEL, m.TAG_S2_CATWALK_PANEL,
+                                 m.TAG_S3_SUMP_PANEL}))
+
+    def _texture_on(self, x, y1, y2):
+        """The middle textures of the one-sided lines on x between y1, y2."""
+        out = set()
+        for lx, a, b, ld in self.vertical:
+            if lx == x and y1 <= min(a, b) and max(a, b) <= y2:
+                side = self.sides[ld["sidefront"]]
+                out.add(side["texturemiddle"] if "sideback" not in ld else side["texturetop"])
+        return out
+
+    def test_s1_is_one_steel_back_wall_among_concrete_ones(self):
+        """The clue is a comparison: of the three stalls, the middle one's
+        back wall is plate (the panel), the other two are concrete. And the
+        stall in front of the panel is lit like its neighbours - v2's darker
+        sector is gone."""
+        m = self.m
+        self.assertEqual({m.CONC}, self._texture_on(960, 0, 48))
+        self.assertEqual({m.CONC}, self._texture_on(960, 144, 192))
+        self.assertEqual({m.STEEL}, self._texture_on(960, 64, 128))
+        lights = {self.sectors[self.plan[f"stall_{n}"]]["lightlevel"] for n in (1, 2, 3)}
+        self.assertEqual({m.LIGHT_WASHROOM}, lights)
+
+    def test_s2_shows_a_lit_slit_beside_its_panel(self):
+        """The clue section 7 always promised: a lit slit in the wall above
+        the catwalk. Brighter than the catwalk, too thin to enter, and it
+        opens onto the secret closet."""
+        m = self.m
+        slit = self.sectors[self.plan["s2_slit"]]
+        self.assertGreater(slit["lightlevel"], m.LIGHT_CATWALK)
+        self.assertLess(slit["heightceiling"] - slit["heightfloor"], 56)
+        self.assertNotIn(self.plan["s2_slit"], self.reachable)
+        neighbours = set()
+        for ld in self.lines:
+            if "sideback" in ld:
+                pair = {self.sides[ld["sidefront"]]["sector"], self.sides[ld["sideback"]]["sector"]}
+                if self.plan["s2_slit"] in pair:
+                    neighbours |= pair
+        self.assertIn(self.plan["s2_closet"], neighbours)
+        self.assertIn(self.plan["z6b_catwalk"], neighbours)
+
+    def test_s3_is_found_by_the_drain_not_by_a_lane(self):
+        """v2 pointed a yellow lane - the map's 'go here' sign - at the sump
+        wall. v3 removes it; a plain-concrete drain one step below the bay
+        runs from the tank to the panel instead."""
+        m = self.m
+        self.assertNotIn("s3_lane", self.plan)
+        drain = self.sectors[self.plan["fuel_drain"]]
+        bay = self.sectors[self.plan["z7_fuel_bay"]]
+        self.assertLess(drain["heightfloor"], bay["heightfloor"])
+        self.assertEqual(m.CONCRETE_FLOOR, drain["texturefloor"])
+        panel = self.plan["s3_panel"]
+        touching = {self.sides[ld["sidefront"]]["sector"] for ld in self.lines
+                    if "sideback" in ld and self.sides[ld["sideback"]]["sector"] == panel}
+        self.assertIn(self.plan["fuel_drain"], touching, "the drain does not reach the panel")
+        # No yellow lane anywhere in the bay.
+        for name, i in self.plan.items():
+            if self.sectors[i]["texturefloor"] == m.LANE:
+                self.assertFalse(name.startswith(("z7_", "s3_", "fuel_drain")), name)
+
+    # --- shape -------------------------------------------------------------
+    def _faces_between(self, low, high):
+        """Lower textures the `low` zone sees on `high`'s flank."""
+        out = set()
+        for ld in self.lines:
+            if "sideback" not in ld:
+                continue
+            for near, far in (("sidefront", "sideback"), ("sideback", "sidefront")):
+                if (self.sides[ld[near]]["sector"] == self.plan[low]
+                        and self.sides[ld[far]]["sector"] == self.plan[high]):
+                    out.add(self.sides[ld[near]]["texturebottom"])
+        return out
+
+    def test_the_new_structures_are_steel_and_the_walls_stay_concrete(self):
+        """What a structure is made of shows on its flank: the gantry, the
+        spine and the kerb are plate like the cradle and the catwalk. The
+        wall behind the gantry stays the hangar's concrete (ART-BIBLE 4:
+        the hangar is mostly concrete), and the columns are steel."""
+        m = self.m
+        for low, high in (("z6_hangar", "gantry"), ("z6a_cradle", "cradle_spine"),
+                          ("z6_hangar", "cradle_kerb_s"), ("z6_hangar", "plinth_c1"),
+                          ("z7_fuel_bay", "plinth_tank")):
+            self.assertEqual({m.STEEL}, self._faces_between(low, high), f"{high} from {low}")
+        behind = {self.sides[ld["sidefront"]]["texturemiddle"] for ld in self.lines
+                  if "sideback" not in ld
+                  and self.verts[ld["v1"]]["y"] == self.verts[ld["v2"]]["y"] == 320
+                  and self.sides[ld["sidefront"]]["sector"] in
+                  {self.plan["gantry"]} | {self.plan[f"gantry_step_{n}"] for n in range(1, 6)}}
+        self.assertEqual({m.CONC}, behind)
+
+    def test_every_hangar_column_stands_on_a_plinth(self):
+        """Five columns, each a hole in its plinth: the plinth is the only
+        sector round it, one PLINTH above the hangar floor."""
+        m = self.m
+        hangar_floor = self.sectors[self.plan["z6_hangar"]]["heightfloor"]
+        for name in ("c1", "c2", "c3", "c4", "c5"):
+            plinth = self.sectors[self.plan[f"plinth_{name}"]]
+            self.assertEqual(hangar_floor + m.PLINTH, plinth["heightfloor"], name)
+            inner = [ld for ld in self.lines if "sideback" not in ld
+                     and self.sides[ld["sidefront"]]["sector"] == self.plan[f"plinth_{name}"]]
+            self.assertEqual(4, len(inner), f"{name}: the column's four faces")
+            for ld in inner:
+                self.assertEqual(m.STEEL, self.sides[ld["sidefront"]]["texturemiddle"])
+
+    # --- Lenin (CEO, v2 walk) --------------------------------------------
+    def test_lenin_has_a_light_of_his_own(self):
+        """«que haya iluminación en el poster de Lenin que no se veía bien».
+        The poster is drawn at the light of the sector in front of it: that
+        sector is a lamp, ringed by a step dimmer, in the darkest room."""
+        m = self.m
+        poster = [ld for ld in self.lines
+                  if self.sides[ld["sidefront"]]["texturemiddle"] == m.LENIN]
+        self.assertEqual(1, len(poster))
+        lit = self.sides[poster[0]["sidefront"]]["sector"]
+        self.assertEqual(self.plan["lenin_light"], lit)
+        room = self.sectors[self.plan["z10_exit"]]["lightlevel"]
+        halo = self.sectors[self.plan["lenin_halo"]]["lightlevel"]
+        light = self.sectors[lit]["lightlevel"]
+        self.assertEqual(m.CEIL_LAMP, self.sectors[lit]["textureceiling"])
+        self.assertLess(room, halo)
+        self.assertLess(halo, light)
+        self.assertGreaterEqual(light - room, 4 * m.LAMP_STEP, "not enough to read from the door")
+        self.assertLess(light, m.LIGHT_MAX, "burnt out: 192 is for the beacons")
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -6,9 +6,13 @@ by reading them (D28): that is why v0 was an untextured grey box. v0 (the
 grey floor plan) BUILT — §14; v1 (textured and signposted) BUILT — §15, and
 walked by the CEO on 2026-10-13 (the section after §15: finishable, but he
 opened the gate without knowing he had); v2 (light, detail, and the gate
-made legible) BUILT — §16, engine pass owed by the PM.** v3 (balance)
-next. The open points for the CEO are in §13, with what is decided
-marked as such. Russian mirror: `docs/ru/levels/MAP01-zarya-7.md`.
+made legible) BUILT — §16, engine pass filed, and walked by the CEO on
+2026-10-13: gate criterion MET, but too small for a game level (the
+section after §16; D32). v3 (density, combat and resources, D33) BUILT —
+§17: same plan, 80 → 165 sectors, 46/33/21 monsters by skill, the three
+secrets re-hidden; engine pass owed by the PM (§17.10).** The open points
+for the CEO are in §13, with what is decided marked as such. Russian
+mirror: `docs/ru/levels/MAP01-zarya-7.md` (synced in batches, D34).
 
 > **Walk it:** `python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP01 tools/run.sh`
 > (the engine gate, `SD_ALLOW_ENGINE=1`, is the PM's or the CEO's to set:
@@ -164,6 +168,12 @@ opens it, and the switch's effect is visible from where it is thrown.
 | SW-B | Control booth | wall switch, **one-shot: stays on** | `Door_Open` 11 | no |
 | EXIT | Lift room, east wall | wall switch | `Exit_Normal` | — |
 
+**Monster closets (v3, §17.3).** Six panels with no use-special of their
+own: the three in the fuel bay carry tag 10 and open with D4 when SW-A is
+pressed; the three in the hangar walls carry tag 11 and open with D5 when
+SW-B is pressed. `Door_Open`, so they stay open; each is a dead end with its
+door standing open, so the player who walks in walks out.
+
 Rules that remove whole classes of softlock, applied everywhere:
 
 - **No door ever closes behind the player.** The fuel-bay ambush is wall
@@ -224,7 +234,7 @@ builds and ships whatever the CEO decides.
 | Z4 Leninskaya komnata | `SDCONC1`; north wall `SDPOSTR2` mural (128×128, once, eye height, on concrete per ART-BIBLE §4); `SDSTAR1` plaque on the east pier *if approved*, else `SDCONC1` | `SDFLR3` | `SDCEIL2` + 2 `SDCEIL1` | 160, 176 at the mural | the only "beautiful" room; the mural is lit brighter than its surroundings so it reads as meaning, not decoration |
 | Z5 Service corridor | `SDCONC1` + **`SDCONC2`** stripe continuing | `SDFLR2` | `SDCEIL2`, 2 `SDCEIL1` | 112, pools 144, one flickering 96–144 section | |
 | Z5b Guard post | `SDSTEL1` | `SDFLR2` | `SDCEIL2` | 128 | steel = function: this is where the weapon is |
-| Z6 Hangar | `SDCONC1` above 128, `SDSTEL1` below 128 (dado of green plate) on all four walls; **`SDCONC2`** framing D4 and the fuel-bay opening | `SDFLR2`, with a 64-wide `SDFLR1` lane from the entry stair to D4 and a second lane into the west bay (the one that points at S3) | `SDCEIL2`, `SDCEIL1` in a 6 × 2 grid of lamp panels | 176; 192 directly under each lamp; 144 in the bay shadows and under the catwalk | ≥ 70 % concrete (ART-BIBLE §4) is respected: steel only to 128 of a 320 wall |
+| Z6 Hangar | `SDCONC1` above 128, `SDSTEL1` below 128 (dado of green plate) on all four walls; **`SDCONC2`** framing D4 and the fuel-bay opening | `SDFLR2`, with a 64-wide `SDFLR1` lane from the entry stair to D4 and a second lane into the west bay (v1–v2 also ran a stub of it inside the bay at S3's wall; v3 removed it, §7) | `SDCEIL2`, `SDCEIL1` in a 6 × 2 grid of lamp panels | 176; 192 directly under each lamp; 144 in the bay shadows and under the catwalk | ≥ 70 % concrete (ART-BIBLE §4) is respected: steel only to 128 of a 320 wall |
 | Z6a Cradle | `SDSTEL1` | `SDFLR2` | — | 176 | |
 | Z6b Catwalk | `SDSTEL1`, parapet `SDSTEL1` | `SDFLR2` | `SDCEIL2` | 160 | |
 | Z7 Fuel bay | `SDSTEL1` to 128, `SDCONC1` above | `SDFLR2` | `SDCEIL2`, 1 `SDCEIL1` over SW-A | 112, 160 at SW-A | the switch is the brightest thing in the room |
@@ -283,87 +293,141 @@ two-way exit.
 
 | # | Where | Clue the player can read | Reward | Opens with |
 |---|---|---|---|---|
-| S1 | Washroom locker panel (Z2) | one `SDSTEL1` panel has a visible seam and sits in a darker sector than its neighbours | green armour, 2 stimpacks | push (`Door_Open`, stays open) |
-| S2 | Loose catwalk panel behind the booth (Z6b) | from the hangar floor a lit slit shows under the catwalk where there should be none | **RPG-7** + 1 box of rockets + the base schematic (computer map) | push |
-| S3 | Fuel sump under the drum stack (Z7) | the second yellow lane in the hangar's west bay runs into the fuel-bay wall and stops — it points at the drums | backpack, 1 box of shells, 2 medikits | push |
+| S1 | Washroom, behind the middle of three shower stalls (Z2) | **v3:** of three stalls with steel partitions, the middle one's back wall is plate where the other two are concrete; same light as its neighbours | green armour, 2 stimpacks | push (`Door_Open`, stays open) |
+| S2 | Loose panel in the catwalk's back wall (Z6b) | **v3, built at last:** a lit slit (48 × 16, light 176) in the hangar's north wall above the catwalk, beside the panel, "where there should be none"; seen from the hangar floor and from the catwalk, too thin to enter | **RPG-7** + 1 box of rockets + the base schematic (computer map) | push |
+| S3 | Fuel sump below the bay's west wall (Z7) | **v3:** a plain-concrete drain one step below the bay runs from the fuel tank's plinth to the wall and stops: spilt fuel runs somewhere. The yellow lane that pointed there in v1–v2 is gone | backpack, 1 box of shells, 2 medikits | push |
+
+How v2 gave them away, and the rule v3 follows (the CEO, walking v2: «he
+encontrado la sala secreta (aunque era muy evidente)»): v2's S1 was a plate
+on a bare concrete wall in a darker sector, and v2's S3 was pointed at by
+the yellow lane, the sign the rest of the map uses for *go here*. A clue in
+v3 is **a comparison or a question, never a sign**: three stalls of which
+one differs, a slit of light where the wall should be solid, a drain that
+has to go somewhere. Each is visible from where the player already is;
+none is lit brighter than its room or marked in the route's vocabulary.
+§17.5 has the detail.
 
 All three sectors carry the secret flag; all three are reachable on every
 skill; none costs health to take.
 
 ## 8. Enemies and resources
 
-**Nothing of ours exists yet (F5).** The map is populated with Freedoom
-actors as placeholders, and every one of them has a declared successor. The
-positions are chosen for the *successor's* behaviour, so F5 is a swap of
-DoomEdNums and not a redesign.
+**Placed in v3 (§17), 2026-10-13.** The bestiary is not in the game yet
+(F5), so the map is populated with Freedoom's implementations of the Doom
+II actors. Each is the actor the bestiary class will **`replaces`**
+(`docs/engine/BESTIARY.md` §2.4 and §12), so when F5 lands the map changes
+**nothing**: every thing below becomes its successor where it stands. The
+positions are chosen for the successor's behaviour.
 
-| Placeholder (Freedoom / IWAD) | DoomEdNum | Will become (F5) | Why it is where it is |
-|---|---|---|---|
-| Zombieman | 3004 | **Fourth Reich recruit** (bolt rifle) | the bulk; hitscan chip damage, used in ones and twos early, in lines on the catwalk later |
-| Shotgun guy | 9 | **Liberty Legion trooper** | punishes open ground; guards doorways and the cradle |
-| Imp | 3001 | **hybrid Stormtrooper** | the first enemy that survives one shotgun shell; hangar and fuel bay |
-| Demon | 3002 | **Reich hound** | corridors and the ambush: forces movement, answers the shovel |
-| Chaingun guy | 65 | **Legion heavy gunner** | skill 4 only, one, in the booth window: the reason to take the catwalk seriously |
-| Explosive barrel | 2035 | fuel drum (own sprite later) | hangar bays and the fuel bay; part of the arena, not decoration |
-| Chainsaw | 2005 | **sapper's shovel** (slot 1) | dorm rack |
-| Shotgun | 2001 | **IZh double-barrel** (slot 3) | guard post, on the critical path |
-| Chaingun | 2002 | **PPSh-41** (slot 4) | catwalk, on the way to SW-B |
-| Rocket launcher | 2003 | **RPG-7** (slot 5) | secret S2 only |
-| Clip / box, shells / box, rockets | 2007/2048, 2008/2049, 2010/2046 | TT clips, IZh shells, RPG rounds | see budget |
-| Stimpack / medikit / health bonus | 2011 / 2012 / 2014 | field dressing / medkit / ampoule | |
-| Green armour / armour bonus | 2018 / 2015 | flak vest / plate | |
-| Backpack | 8 | ammo satchel | secret S3 |
-| Floor lamp | 2028 | floor lamp | Z4, Z10 |
+**Factions (D35).** MAP01 is Reich-first: the Fourth Reich is the infantry
+of the landing and holds the barracks; the Liberty Legion appears halfway,
+as the force holding the hangar. Stormtroopers are hybrids and fight for
+both. A test enforces it: nothing of the Legion's before the hangar.
 
-Not used in MAP01 and deliberately so: super shotgun (slot 3 has one weapon,
-the IZh), plasma/BFG slots (flamethrower and Katyusha arrive later in the
-episode), cacodemons/barons (lore: the invasion has just begun), keys.
+| Stand-in (Freedoom) | DoomEdNum | Faction | Becomes (F5, `docs/engine/BESTIARY.md`) | Where and why |
+|---|---|---|---|---|
+| Zombieman | 3004 | Reich | `SD_ReichRifleman` (21100), 20 HP | the bulk of the barracks fights; two on the gantry at first contact; one in wave 2 |
+| Shotgun guy | 9 | **Legion** | `SD_LegionTrooper` (21101), 30 HP | **first met in the hangar**: on the cradle, the spine, in front of D4, on the catwalk; the booth sniper (skill 4); the bulk of wave 2 |
+| Imp | 3001 | both | `SD_Stormtrooper` (21102), 60 HP | the komnata (skill 3+), the corridor's end (skill 4), the hangar, the fuel-bay ambush |
+| Demon | 3002 | Reich | `SD_ReichHound` (21103), 150 HP | washroom and corridor (skill 3+: the shovel's lesson), the komnata (4), the ambush |
+| Cacodemon | 3005 | Legion | `SD_Doughboy` (21104), 400 HP | **one**, wave 2, skills 3–4: the hangar is the map's only room with vertical space (BESTIARY §11) |
+| Hell Knight | 69 | Reich | `SD_Panzermensch` (21105), **500 HP** (D35) | **one**, on the lift in Z10, skills 3–4: it gates the exit (BESTIARY §11). The Hell Knight and not the Baron (3003), because D35 sets 500 HP |
+| *retired:* Chaingun guy | 65 | — | *none* | v0–v2 planned a "Legion heavy gunner" in the booth window. The bestiary has no such class; the booth sniper is a trooper (skill 4) |
+| Explosive barrel | 2035 | — | fuel drum (own sprite later) | ten: hangar bays and the fuel bay's drum stack |
+| — | 21001 | — | `SD_Shovel` | the dorm's rack (the player also starts with it: the rack is the lesson) |
+| — | 21003 | — | `SD_Izh` | the guard post's weapon rack, on the critical path |
+| — | 21004 | — | `SD_Ppsh` | the catwalk, on the way to SW-B |
+| — | 21005 | — | `SD_Rpg7` | secret S2 only |
+| Clip / box, shells / box, rocket box | 2007/2048, 2008/2049, 2046 | — | `SD_Clip`… (MOD-SPEC §6.4: our classes replace them) | budget below |
+| Stimpack / medikit / health bonus | 2011 / 2012 / 2014 | — | field dressing / medkit / ampoule | |
+| Green armour / armour bonus | 2018 / 2015 | — | flak vest / plate | |
+| Backpack | 8 | — | `SD_Backpack` | secret S3 |
+| Computer area map | 2026 | — | the base schematic | secret S2 |
+| Floor lamp | 2028 | — | floor lamp | flanking the komnata's tribune; beside Lenin in Z10 |
 
-### Enemies per skill
+Not used in MAP01, deliberately: super shotgun and chainsaw (spawn nothing,
+MOD-SPEC §6.1), plasma/BFG slots, the General, keys.
+
+### Enemies per skill (v3)
 
 Doom skills: 1–2 share the "easy" thing flags, 3 is medium, 4–5 share
-"hard". Every monster is placed with explicit `skill1…skill5` flags
-(`sdbuild.udmf` defaults all five to true, so each addition must be set
-deliberately).
+"hard"; every thing is placed in those pairs (`skill_tier` in
+`tools/sdbuild/udmf.py`, tested). Monsters are nested: whatever fights on
+an easier skill also fights on a harder one.
 
 | Beat / zone | Skill 2 (HNTR) | Skill 3 (HMP) | Skill 4 (UV) |
 |---|---|---|---|
-| Z1 Dorm | 2 recruits | 3 recruits | 3 recruits + 1 trooper |
+| Z1 Dorm | 2 riflemen | 3 riflemen | 4 riflemen |
 | Z2 Washroom | — | 1 hound | 1 hound |
-| Z3 Corridor | 2 recruits | 2 recruits + 1 hound | 3 recruits + 1 hound |
-| Z4 Komnata | 2 recruits + 1 trooper | 3 recruits + 1 trooper | 3 recruits + 2 troopers + 1 stormtrooper |
-| Z5 Corridor + guard post | 1 recruit + 1 trooper | 2 recruits + 1 trooper | 2 recruits + 2 troopers |
-| Z6 Hangar, first contact | 3 recruits + 1 trooper + 1 stormtrooper | 4 recruits + 2 troopers + 2 stormtroopers | 5 recruits + 3 troopers + 3 stormtroopers |
-| Z7 Fuel bay ambush | 2 stormtroopers + 1 hound | 2 stormtroopers + 2 hounds | 3 stormtroopers + 2 hounds + 1 trooper |
-| Z6 Hangar, wave 2 | 2 recruits + 1 trooper | 3 recruits + 2 troopers | 3 recruits + 2 troopers + 1 stormtrooper + 1 heavy gunner |
-| Z8/Z10 Exit | 1 recruit | 1 recruit + 1 trooper | 2 recruits + 1 trooper |
+| Z3 Corridor | 2 riflemen | 2 riflemen + 1 hound | 3 riflemen + 1 hound |
+| Z4 Komnata | 3 riflemen | 3 riflemen + 1 stormtrooper | 4 riflemen + 1 stormtrooper + 1 hound |
+| Z5 Corridor + guard post | 2 riflemen | 3 riflemen | 3 riflemen + 1 stormtrooper |
+| Z6 Hangar, first contact | 3 troopers + 1 rifleman + 1 stormtrooper | 4 troopers + 2 riflemen + 2 stormtroopers | 6 troopers + 2 riflemen + 3 stormtroopers |
+| Z9 Booth window | — | — | 1 trooper |
+| Z7 Fuel-bay ambush (3 panels, SW-A) | 2 stormtroopers + 1 hound | 2 stormtroopers + 2 hounds | 3 stormtroopers + 2 hounds + 1 trooper |
+| Z6 Hangar, wave 2 (3 closets, SW-B) | 2 troopers + 1 rifleman | 3 troopers + 1 rifleman + 1 Doughboy | 3 troopers + 1 rifleman + 1 Doughboy + 1 stormtrooper |
+| Z8/Z10 Exit | 1 trooper | 1 trooper + 1 Panzermensch | 2 troopers + 1 Panzermensch |
 | **Total** | **21** | **33** | **46** |
 
-Strictly increasing (21 < 33 < 46), which G3 checks mechanically.
+The totals are v2's plan, kept: v3's density added *places* to fight, not
+monsters, and the CEO's measure is minutes, not kills. Recomputed against
+the new rooms, the plan changed in four ways: the Legion moved out of the
+barracks (D35), the heavy gunner became a trooper (no bestiary class), the
+two heavies arrived (D35, BESTIARY §11), and the ambush and wave 2 now come
+out of six closets that open with the switches (§17.3).
 
-### Resources per skill
+### Resources per skill (v3)
+
+Counts outside the secrets, as placed. Consumables scale **down** with
+skill, weapons are on every skill, everything inside a secret is on every
+skill.
 
 | Item | Skill 2 | Skill 3 | Skill 4 | Where |
 |---|---|---|---|---|
-| Shovel (chainsaw) | 1 | 1 | 1 | Z1 rack |
-| IZh (shotgun) | 1 | 1 | 1 | Z5b guard post |
-| PPSh (chaingun) | 1 | 1 | 1 | Z6b catwalk |
-| RPG-7 + 1 rocket box | secret | secret | secret | S2 |
-| Shells ×4 | 8 | 6 | 5 | spread Z5 → Z10 |
-| Box of shells (20) | 2 | 2 | 2 | Z6, S3 |
-| Clips (10) | 6 | 5 | 4 | spread from Z1 |
-| Box of bullets (50) | 2 | 2 | 3 | Z6b, Z6, Z7 |
-| Stimpack | 6 | 4 | 3 | |
-| Medikit | 4 | 3 | 2 | Z5, Z7, S3 |
-| Health bonus | 10 | 10 | 10 | dressing for corners |
-| Green armour | 1 (S1) | 1 (S1) | 1 (S1) | S1 |
-| Armour bonus | 8 | 8 | 6 | |
+| Shovel / IZh / PPSh | 1 / 1 / 1 | 1 / 1 / 1 | 1 / 1 / 1 | Z1 rack / Z5b rack / Z6b catwalk |
+| RPG-7 + rocket box + base schematic | secret | secret | secret | S2 |
+| Shells ×4 | 11 | 9 | 8 | guard post → airlock |
+| Box of shells (20) | 2 (+1 in S3) | 2 (+1) | 2 (+1) | hangar south band, fuel bay; S3 |
+| Clips (10) | 8 | 6 | 5 | dorm, corridor alcove, komnata, service corridor, hangar |
+| Box of rounds (50) | 4 | 4 | 4 | catwalk, gantry, fuel bay, hangar north-east |
+| Stimpack | 6 (+2 in S1) | 4 (+2) | 3 (+2) | |
+| Medikit | 4 (+2 in S3) | 3 (+2) | 2 (+2) | |
+| Health bonus | 17 | 17 | 17 | one in every nook v3 made |
+| Green armour | S1 | S1 | S1 | |
+| Armour bonus | 8 | 8 | 6 | gantry, spine, booth, dorm |
 | Backpack | secret | secret | secret | S3 |
 
-Principle: **monsters scale up with skill, consumables scale down, weapon
-availability never changes.** A skill-4 player who finds no secret must still
-be able to finish — that is a measured G3 criterion (§11, G3-5 for the run
-and G3-8 for the ammo budget), not a hope.
+**The ammo budget, criterion G3-8, measured** (`tests/test_map01.py`).
+"Needed" is G3-8's own figure: rifleman / trooper 1 shell, stormtrooper 2,
+hound 3, plus the two heavies at the same margin, Doughboy 6 (400 HP) and
+Panzermensch 8 (500 HP); `docs/engine/BALANCE.md` §7 computes 5 and 7
+barrels with every pellet landing. "Placed" counts shell-equivalents outside the
+secrets: an IZh barrel averages 80 damage and a PPSh round 8
+(`docs/engine/BALANCE.md` §2), so 10 rounds = 1 shell.
+
+| | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| needed | 26 | 58 | 77 |
+| × 1.35 (G3-8) | 35.1 | 78.3 | 104.0 |
+| placed | 123.5 | 113.5 | **108.5** (1.41×) |
+| what the stand-ins drop, on top | +29.5 | +39.0 | +60.5 |
+
+**What enemies drop (D35), and how much the balance leans on it.** D35:
+the invaders carry captured Soviet arms, so they drop our ammunition and
+weapons. The Freedoom stand-ins already do, in effect: a zombieman drops a
+`Clip` and a shotgun guy a `Shotgun`, which our classes replace (`SD_Clip`,
+`SD_Izh`), so a dead rifleman gives 5 rounds and a dead trooper an IZh with
+4 shells. That is the last row: on skill 4 the drops add **+56 %** to what
+is placed. G3-8 counts placed ammunition only, so the map passes even if the
+real actors drop nothing; but the bestiary specifies the same drops
+(BESTIARY §3–4: rifleman `Clip`, trooper `SD_Izh`), so with them skill 4
+ends near 2.2× and skill 2 is lavish. Skill 2 is meant to be lavish; for 3
+and 4 the F5 playtest decides, and the first cut, if one is needed, is
+placed shells on skills 3–4.
+
+Principle (unchanged): **monsters scale up with skill, consumables scale
+down, weapon availability never changes.** A skill-4 player who finds no
+secret must still be able to finish — G3-5 for the run, G3-8 for the ammo.
 
 ## 9. Engine elements used
 
@@ -402,11 +466,15 @@ Two engine facts worth writing down, both learned the hard way:
   would have given a 28-unit doorway, i.e. impassable. Fixed in v0 (§14);
   every door's clearance is now checked by a test.
 
-Tag plan, updated by v0 and v2: **1** D1 · **2** D2 · **3** D3 · **6** D6 ·
-**10** D4 · **11** D5 · **20** hangar wave-2 closets (v3) · **21** fuel-bay
-ambush panels (v3) · **30** the gate's power light: SW-A's alcove, D4's
-recess and the booth (v2) · **101/102/103** secret panels S1/S2/S3. 4, 5, 7–9 and 12–19 stay free for v2 detail. Manual doors are
-tagged rather than tag-0 so either flanking line opens them.
+Tag plan, updated by v0, v2 and v3: **1** D1 · **2** D2 · **3** D3 · **6** D6 ·
+**10** D4 **and the three fuel-bay ambush panels** (v3) · **11** D5 **and
+the three hangar wave-2 closets** (v3) · **30** the gate's power light:
+SW-A's alcove, D4's recess and the booth (v2) · **101/102/103** secret
+panels S1/S2/S3. 4, 5, 7–9 and 12–29 are free; **20 and 21, reserved for
+the closets until v2, are released**: one line carries one special, so a
+closet opens with the door its switch already opens (`Door_Open` opens
+every sector with the tag, and nothing closes any of them; §17.3). Manual
+doors are tagged rather than tag-0 so either flanking line opens them.
 
 Switch textures: `SDSW1A-D` (off) and `SDSW2A-D` (on), 64×128, approved
 2026-10-13 and in `assets/textures/soviet_base/`; `src/lumps/ANIMDEFS` pairs
@@ -542,8 +610,8 @@ screenshotted into `docs/levels/shots/`.
 |---|---|---|
 | **v0 — grey** ✅ **BUILT 2026-10-13** (§14) | the complete floor plan: every sector, every door, both switches, the exit, correct heights and stairs. One wall texture and one floor/ceiling pair everywhere (`STARTAN2`/`FLOOR4_8`/`CEIL3_5`), flat light 160, no enemies, no items. | you can walk start → exit; no HOM, no stuck geometry; G3-1, G3-2, G3-6 pass |
 | **v1 — textured** ✅ **BUILT 2026-10-13** (§15) | §6 applied zone by zone, alignment pass (door recesses, floor pegging, lane continuity), `SDPOSTR2` mural and `SDPOSTR1` Lenin placed, D4/D5/D6 as `SDDOOR1`, the `SDCONC2` route built and photographed. | G3-3 passes; the CEO can judge `SDCONC2` from screenshots |
-| **v2 — light and detail** ✅ **BUILT 2026-10-13** (§16), engine pass owed (§16.9) | the §6 light table, lamp sectors, the flickering corridor, the booth light that SW-A turns on, parapets, pilasters, steps, drums, floor lamps, the three secrets built and flagged; the real switch textures, one variant per switch, retiring `SWITCH_PLACEHOLDER` (A3; the `ANIMDEFS` pairs are in, MOD-SPEC §4.3). **Added after the v1 walk:** SW-A moved where it sees D4, a window, the light tag (§16.1). | the map reads without a compass: a first-time player finds the hangar, the fuel bay and D4 without being told, **and knows that SW-A opened D4** (the v1 walk showed the first half is not enough) |
-| **v3 — balance** — **NEXT** | §8 placed with per-skill flags, ammo and health budget, the two waves and the ambush timed, playtests on 2/3/4 with notes. | all of G3-1…G3-8 green; ready for the CEO's G3-9 |
+| **v2 — light and detail** ✅ **BUILT 2026-10-13** (§16), engine pass filed; **walked by the CEO 2026-10-13, criterion MET** (the section after §16) | the §6 light table, lamp sectors, the flickering corridor, the booth light that SW-A turns on, parapets, pilasters, steps, drums, floor lamps, the three secrets built and flagged; the real switch textures, one variant per switch, retiring `SWITCH_PLACEHOLDER` (A3; the `ANIMDEFS` pairs are in, MOD-SPEC §4.3). **Added after the v1 walk:** SW-A moved where it sees D4, a window, the light tag (§16.1). | the map reads without a compass: a first-time player finds the hangar, the fuel bay and D4 without being told, **and knows that SW-A opened D4** (the v1 walk showed the first half is not enough) |
+| **v3 — density and balance** ✅ **BUILT 2026-10-13** (§17), engine pass owed (§17.10) | **D33, after the v2 walk:** shape in every big room (columns, plinths, pilasters, a gantry, the cradle's spine, rails, a stair landing, furniture, alcoves, frames, pipes, tanks, shadows) on the same plan; §8 placed with per-skill flags, ammo and health budget, the ambush and wave 2 in six closets on the switches' tags; the three secrets re-hidden; Lenin lit. Playtests on 2/3/4 with notes are the engine pass's. | all of G3-1…G3-8 green; the density of a first map (D33); ready for the CEO's G3-9 |
 
 Running any version, once it is in the build:
 
@@ -560,42 +628,35 @@ SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=3 tools/run.sh      # either machine; the gate
 
 ## 13. Open points for the CEO
 
-Status as of 2026-10-13, after the CEO's walk of v1. What is **decided**
-says where; what is **open** is the PM's to carry in
-`docs/PENDING-CEO-DECISIONS.md`.
+Status as of 2026-10-13, after the CEO's walk of v2 (D32) and his choice
+of how to grow the map (D33). What is **decided** says where; what is
+**open** is the PM's to carry in `docs/PENDING-CEO-DECISIONS.md`.
 
-1. **Key-free MAP01** (§4) — **OPEN, acted on by default.** v0 and v1 are
-   built key-free (the PM approved the design as written, 2026-10-12); the
-   yellow-card alternative in the guard post is still a cheap change, but it
-   gets more expensive at each version. Recommendation unchanged: key-free,
-   as the lore assigns the first key to MAP02. Needs one word from the CEO.
+1. **Key-free MAP01** (§4) — **OPEN, acted on by default.** v0–v3 are
+   built key-free; the yellow-card alternative in the guard post is still
+   possible but costs more at each version. Recommendation unchanged:
+   key-free, as the lore assigns the first key to MAP02. One word.
 2. **`SDCONC2`** (A1) — **DECIDED 2026-10-13 (D30)**: approved as built,
-   three hangar bands included («no queda perfecto pero yo lo dejaría así,
-   le da color y relleno las 3 bandas»). The 128 wainscot is discarded.
-   `SDSTAR1` v5 approved the same walk («la apruebo, preciosa»).
+   three hangar bands included. `SDSTAR1` v5 approved the same walk.
 3. **Switch texture** (A3) — **DECIDED 2026-10-13**: all four variants
-   `SDSW1A-D` / `SDSW2A-D` approved and installed (commit `4083883`,
-   `docs/art/LICENSES.md`). The IWAD-placeholder alternative is moot, and
-   the `ANIMDEFS` switch pairs shipped the same day (MOD-SPEC §4.3). What
-   remains is v2 work, not a decision: the real switches go in and
-   `SWITCH_PLACEHOLDER` is retired. Nothing for the CEO here.
-4. **Length and difficulty** — **OPEN.** 5–8 minutes and 21/33/46 enemies by
-   skill is a modern MAP01, longer than Doom II's MAP01 (~2 min) and shorter
-   than a modern megawad opener. Say if you want it shorter; it matters
-   before v3 places the monsters, not before.
+   approved and installed; v2 put them on the wall. Nothing open.
+4. **Length and difficulty** — **DECIDED 2026-10-13 (D32, D33)**: the CEO
+   found v2 "muy corto/pequeño" and chose to densify the same plan to a
+   first map's density and 5–8 minutes; v3 keeps 21/33/46 monsters (§8).
+   Whether v3 *plays* 5–8 minutes is for the walk of v3 (point 6).
 5. **A strip of night sky** over the hangar (A6) — **OPEN, not built in
-   v2 on purpose.** Yes or no; `SKY1` is already in MOD-SPEC §5, so "yes"
-   is one rectangle over the hangar with ceiling `F_SKY1` (the spot is
-   marked in `map.py`; `F_SKY1` would then be listed in MOD-SPEC §5) and
+   v3 on purpose** (the PM's brief: "sigue abierto con el CEO"). Yes or no;
+   "yes" is one rectangle over the hangar with ceiling `F_SKY1` (the spot
+   is marked in `map.py`; `F_SKY1` would then be listed in MOD-SPEC §5),
    no new asset.
-6. **Walk v1** — **DONE 2026-10-13, criterion NOT met** (the section after
-   §15): he reached the bay and pressed SW-A, but took it for a broken door
-   and opened D4 without knowing it. **Walk v2** replaces it — **OPEN, the
-   gate criterion itself**: does a first-time player open D4 and *know* he
-   did? It comes after the PM's engine pass (§16.9).
+6. **Walk v2** — **DONE 2026-10-13, criterion MET** (the section after
+   §16). **Walk v3** — **OPEN**: five things to judge, listed in §17.11
+   (does it last 5–8 minutes; is the hangar now a place rather than a
+   floor; are the secrets findable but not given; the fuel-bay ambush and
+   wave 2; Lenin's light). After the PM's engine pass (§17.10).
 
-Items 4, 5 and 6 are the ones the CEO should judge while walking v2; item 1
-can be answered without playing.
+Item 6 needs the CEO in the game; item 1 can be answered without playing,
+item 5 either way.
 
 ## 14. v0 build record (2026-10-13)
 
@@ -1244,4 +1305,333 @@ v2.1, not a redesign.
   listed in the summary of this task (light tag in use, sector specials 65
   and 1024, one-shot switches, the switch assignment).
 - v3: enemies, items, tag 20 (wave-2 closets) and 21 (ambush panels), the
-  catwalk parapet as a balance decision.
+  catwalk parapet as a balance decision. *(Done in v3, §17: the closets ride
+  tags 10 and 11 instead, and the parapet became two columns.)*
+
+
+## v2 playtest, CEO 2026-10-13: gate passed, map too small
+
+The CEO walked v2 on the Windows PC on 2026-10-13, after the PM's engine
+pass. His words, verbatim, in the order he said them:
+
+- «he pasado el hangar sin ayuda, menú aprobado, incluso he encontrado la
+  sala secreta (aunque era muy evidente).»
+- «Como nivel de prueba está bien; a nivel de juego sería un nivel muy
+  corto/pequeño. un nivel de doom normal puede ser de 5 a 6 veces ésto si no
+  me equivoco»
+- and, a little later, a detail for v3: «ah! y un pequeño detalle, que haya
+  iluminación en el poster de Lenin que no se veía bien»
+
+**The gate criterion of v1/v2 is MET.** The criterion (§12, v2 row; the
+section after §15) was that a first-time player opens D4 *and knows he
+did*. «He pasado el hangar sin ayuda»: he crossed the hangar, found SW-A,
+opened the gate and went through it with no help. Recorded as D32.
+
+Three findings, each answered by v3 (§17):
+
+| # | Finding | v3's answer |
+|---|---|---|
+| 1 | "muy corto/pequeño": as a game level it is too small | D33, the CEO's choice among three options measured by the PM: **densify** the same plan to a first map's density, 5–8 minutes with enemies. §17.1–17.4 |
+| 2 | the secret "era muy evidente" | all three secrets re-hidden with clues that ask a question instead of pointing (§7, §17.5) |
+| 3 | Lenin's poster "no se veía bien" | a light of its own (§17.6) |
+
+The PM's measurements, which framed D33, taken from `iwads/freedoom2.wad`:
+
+| | Sectors | Lines | Footprint (Mu², bounding box) |
+|---|---|---|---|
+| our MAP01 v2 | 80 | 322 | 6.5 |
+| Freedoom MAP01 | 211 | 1274 | 8.2 |
+| Freedoom median map | 240 | 1861 | ~16 |
+
+One correction this role adds, measured the same way on both maps: the
+area column is the **bounding box**. The floor actually built is 3.23 Mu²
+for our v2 and **3.99 Mu²** for Freedoom's MAP01 (sum of the sector
+polygons, read from the same WAD). The conclusion stands and is sharper:
+our floor is 81 % of Freedoom MAP01's, and its density was 38 % of it.
+
+## 17. v3 build record (2026-10-13)
+
+Source: `src/maps/MAP01/map.py`; builder `tools/sdbuild/udmf.py` (three
+additions, §17.7); tests `tests/test_udmf.py` (the v0–v2 contract, updated)
+and **`tests/test_map01.py`** (new: what v3 added). Not walked in GZDoom by
+this role (D26): the engine pass is the PM's, §17.10.
+
+```sh
+python3 tools/verify.py fast                                            # build + check_pk3 + suite, no window
+python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=3 tools/run.sh   # walk it (PM or CEO only)
+```
+
+### 17.1 Before and after
+
+| | v2 | **v3** | Freedoom MAP01 |
+|---|---|---|---|
+| Sectors | 80 | **165** | 211 |
+| Linedefs | 322 | **778** | 1274 |
+| Vertices | 260 | 641 | — |
+| Things (all skills) | 1 | **133** | 200 |
+| Monsters, skill 2 / 3 / 4 | 0 | **21 / 33 / 46** | — |
+| Floor built (Mu²) | 3.23 | 3.32 | 3.99 |
+| Footprint, bounding box (Mu²) | 6.54 | 7.03 | 8.24 |
+| Sectors per Mu² of floor | 24.8 | **49.7** | 52.9 |
+| Lines per Mu² of floor | 100 | **234** | 319 |
+
+**The target, argued.** The brief asked for ~200 sectors and ~1200 lines,
+"not a minimum to fill blindly", and invited an argument if another number
+was right. Measured per square unit of floor, which is what "density"
+means, Freedoom's MAP01 on our 3.32 Mu² would be **~176 sectors and ~1060
+lines**. v3 has **165 sectors (94 % of that density)** and stops there:
+the last sectors added were shadows, a pipe run and a lamp, each with a
+reason, and the next ones I could name would be there for the count. Lines
+stop at **73 %** by construction, not by omission: `GridMap` paints
+axis-aligned rectangles, emits no diagonals and no curves (a single curved
+wall in Freedoom is a dozen lines), and merges collinear runs into one
+line. Lines are a signature of the drawing style; sectors, things and
+minutes are the content. `tests/test_map01.py` pins the band (160–240
+sectors, ≥ 750 lines) so a regression shows and padding does too.
+
+### 17.2 Zone by zone
+
+Everything below is on the v2 plan: no room moved, no route changed, every
+sign of v1–v2 (red stripe, yellow lane, recesses, the gate's light) is
+where it was, and every v2 sight-line test still passes.
+
+| Zone | v3 added | What it is for |
+|---|---|---|
+| Z1 dorm | six steel bunks (32 high, blanket = `SDCEIL2`), two more lamps (three), the **shovel rack** (a steel niche in the west wall, plank shelf), steel **door frames** round D1 and D2; the plaque moved 32 east to clear D2's frame | a dormitory reads as one; cover from the first riflemen; the rack is the shovel lesson; the frames say "door" from across the room (the v0–v1 lesson) |
+| Z2 washroom | three **shower stalls** in the east wall (trays one `PLINTH` down, steel partitions), three wash basins, a steel frame on D1 | S1's new hiding place (§17.5) |
+| Z3 corridor | two steel **bulkheads** (ceiling 80) splitting it in three bays; a lit ammo **alcove** west, a fire-point alcove east | rhythm in a 448-long tube; somewhere to stand out of the hound's line |
+| Z4 komnata | three **mess tables** (32 high, plank tops), a **colonnade** of four concrete columns framing the mural, a two-step **tribune** with a lectern, a third lamp, two floor lamps | section 5's "crossfire in a room with cover" finally has cover; the mural is now at the end of an axis |
+| Z5 service corridor | a **pipe run** under the ceiling (ceiling 96) broken by the failing lamp; the guard post's **weapon rack** (steel niche, the IZh in it) | ambience; "steel = function: this is where the weapon is" (§6) |
+| Z6 hangar | five steel **columns on plinths** (the *zócalo*); seven steel **pilasters** in the long walls; a south **gantry** at +64 with a five-step stair and two support columns; three more single **crates**; a lamp over the east field; four **shadow** strips (under the catwalk lip, in front of the gantry, along both sides of the cradle) | structure the roof stands on; cover for the first contact and wave 2; a second high place; section 6's planned shadows |
+| Z6a cradle | a raised **erector spine** (+96) with a three-step stair, a **kerb** on the south edge, **rails** in the floor running out from under it east and west | a high point mid-floor; the cradle reads as a transporter |
+| Z6b catwalk | the stair gets a **landing** (3 + landing + 3), two steel **columns** on its front edge, two lamps; S2's **slit** | the catwalk "with more volume"; the columns are the cover v2 left to v3 as a balance decision (§17.8) |
+| Z6 walls | three **monster closets** (W1, W2 in the west wall, E1 in the east wall) behind concrete panels | wave 2 (§17.3) |
+| Z7 fuel bay | two **fuel tanks** on plinths, a **drain** one step down from the first tank to the west wall, a pipe run down the east wall, a lamp, three **ambush closets** behind steel panels | cover for the ambush; S3's clue (§17.5) |
+| Z8 airlock | a lamp, two low steel **niches**, a steel frame on D5 | where stragglers wait |
+| Z10 lift room | the **lift platform** (steel, one step up), **Lenin's light** (§17.6), a floor lamp beside him | the Panzermensch's stand; the CEO's detail |
+
+### 17.3 Combat: the ambush and wave 2 ride the switches
+
+v2 §16.7 deviation 4 left this open: "tag 20 (wave-2 closets) is v3 and
+needs its own trigger then". v3 needs **no** trigger. `Door_Open` opens
+every sector carrying its tag, so:
+
+- the three fuel-bay panels carry **tag 10, D4's**: pressing SW-A opens the
+  gate **and** the ambush behind the player at the switch — section 5's
+  "fighting with your back to a doorway", now literal;
+- the three hangar closets carry **tag 11, D5's**: pressing SW-B in the booth
+  opens the airlock's inner door **and** wave 2 — the player is up in the
+  booth and the room he crossed fills below him, section 5's climax.
+
+Nothing closes any of them (no `Door_Close` anywhere), a closet is a dead
+end whose door stays open (tested: every closet is reachable once its
+switch is pressed and every one has the way back), and there is something
+in every closet on every skill (tested). Tags 20 and 21 are released (§9).
+The closets' panels wear the wall they are cut into: concrete in the
+hangar, steel in the bay. A leaf hangs from the top and the wall stands on
+the floor, and neither wall is a whole number of panels high, so a sharp
+eye sees a seam where a panel is. That is deliberate and fair.
+
+Monster placement follows D35 and §8: the barracks are the Reich's, the
+first trooper is met in the hangar; the Doughboy comes out with wave 2
+(the only room with vertical space) and the Panzermensch stands on the
+lift in Z10, the last thing between the player and the exit.
+
+### 17.4 Resources
+
+As §8: the three tutorial weapons on every skill on the critical path
+(shovel on the dorm rack, IZh on the guard post's rack, PPSh on the
+catwalk), the RPG-7 only in S2; consumables nested downwards by skill;
+G3-8 measured on every skill (skill 4: 108.5 shell-equivalents placed for
+77 needed, 1.41×, before any drop). One health bonus sits in each nook v3
+made (stalls, tribune, lift, tank plinth, airlock niches): exploration is
+paid a little everywhere.
+
+### 17.5 The secrets, re-hidden
+
+The rule, from the CEO's «aunque era muy evidente»: **a clue is a
+comparison or a question, never a sign.**
+
+- **S1.** The washroom's east wall is now three shower stalls with steel
+  partitions. The middle stall's back wall is a steel panel; the other two
+  are concrete. The stall is lit like its neighbours (v2's darker sector is
+  gone). A player who walks past sees steel among steel; one who compares
+  the three stalls sees one is different, presses it, and gets the armour.
+- **S2.** v0–v2 never built the clue §7 promised. v3 does: a slit 48 wide
+  and 16 high in the hangar's north wall, 64 above the catwalk floor and
+  right beside the panel, opening into the lit secret closet (176 against
+  the catwalk's 160). From the hangar floor it is a thin bright line in the
+  wall above the catwalk; on the catwalk it is just above eye height. It
+  cannot be entered; the panel under it is the way.
+- **S3.** v1–v2 ran a yellow-lane stub to the sump wall, and yellow is this
+  map's word for *go here*: it read as a door. It is gone (and a test keeps
+  lanes out of the bay). Instead a plain-concrete drain, one step below the
+  bay floor, runs from the fuel tank's plinth across the bay and stops at the
+  west wall. Spilt fuel goes somewhere; the panel is where the drain ends.
+  The drum stack sits beside it.
+
+All three remain reachable on every skill and each has its way back
+(tested).
+
+### 17.6 Lenin's light
+
+«que haya iluminación en el poster de Lenin que no se veía bien». In v2 the
+poster hung in the darkest room of the map at light 96, which is the room's
+point (MAP02 starts here) and the poster's problem. In Doom a wall is drawn
+at the light of the sector it belongs to, so the poster got **a sector of
+its own**: `lenin_light`, 128 × 64 in front of it with a lamp panel
+(`SDCEIL1`) above, at **160**, inside `lenin_halo`, a ring one step dimmer at
+**128**, in the room at 96. From the doorway the eye goes 96 → 128 → 160 to
+the face: a falloff on the wall either side instead of a flat bright
+rectangle (not *plano*), and 160 is the band textures are authored for
+(ART-BIBLE §5: 144) and below the 192 kept for beacons (not *quemado*). A
+floor lamp stands beside him to say where the light comes from. The exit
+switch's niche (144) is still the room's other lit thing. Tested: the poster
+line belongs to `lenin_light`; room < halo < light; at least four lamp steps
+over the room; below 192.
+
+### 17.7 Changes to `tools/sdbuild/udmf.py`
+
+1. **`GridMap.carve()`**: paints solid void, last-wins like `paint`. Every
+   column and pilaster in the map is a carve; a column costs lines, not
+   sectors, and its faces are one-sided walls of the room it stands in.
+   Tested (closed, clockwise, the room minus its hole).
+2. **A rule index.** `GridMap` resolved each elementary segment's style by
+   scanning every rule; v3 has hundreds of rules, so rules are now grouped by
+   grid line. The contract (the first registered rule wins) is unchanged and
+   tested. The build takes under half a second.
+3. **`Thing.on_skills()` and `skill_tier()`**: a thing on exactly the listed
+   skills, and Doom's three spawn tiers (easy = 1–2, medium = 3, hard = 4–5)
+   as the way to list them — upwards for monsters, downwards for consumables.
+   Tested.
+
+### 17.8 Deviations from §3–§9
+
+| # | Said | Built | Why |
+|---|---|---|---|
+| 1 | §9: tags 20/21 for the closets, "needs its own trigger" | closets on tags 10 and 11 | one line, one special: the closets open with the door their switch opens (§17.3) |
+| 2 | §8 v2: a Legion heavy gunner (chaingun guy, 65) in the booth window | a trooper sniper there (skill 4) | the bestiary has no such class (`docs/engine/BESTIARY.md` §12) |
+| 3 | §8 v2: troopers in the dorm, komnata and service corridor | none before the hangar | D35: Reich first, the Legion holds the hangar |
+| 4 | §8 v2: no heavies | one Doughboy (wave 2) and one Panzermensch (Z10), skills 3–4 | D35 and BESTIARY §11 ("the Panzermensch gates the exit"); the Panzermensch's stand-in is the Hell Knight (500 HP), not the Baron |
+| 5 | §7: S2's clue "under the catwalk" | a slit in the wall **above** the catwalk | the catwalk is solid to the floor; there is no "under" to light. Same idea, the one place it can be |
+| 6 | §6/§7: a yellow lane pointing at S3 | removed; a drain instead | the CEO found a secret "muy evidente"; yellow means *go here* everywhere else |
+| 7 | v2 §16.5: catwalk parapet "a balance decision for v3" | **no parapet**; two columns on the front edge | a parapet is either a cut texture (32) or a wall over the eye (64); columns are cover without hiding the hangar |
+| 8 | the cradle: kerbs on both long edges | south edge only | the sight-line test refused the north kerb: the line from SW-A to the foot of D4 clears the cradle's north edge by 4 units |
+| 9 | v2: the dorm plaque at x 320…448 | x 352…480 | D2's steel frame needs the 16 beside the door |
+| 10 | §8: ~1200 lines, ~200 sectors (the brief) | 778 lines, 165 sectors | §17.1 |
+
+### 17.9 Verification actually run
+
+| Check | Result |
+|---|---|
+| `tests/test_udmf.py` | **64 tests**, green: the v0–v2 contract updated for v3 (doors per tag, the gate order with the closets, props, lamps, crate faces), plus carve, the rule order and the skill helpers |
+| `tests/test_map01.py` (new) | **22 tests**, green: density band; every thing in the zone its table names (ray cast against the TEXTMAP); every monster's body fits (corners on walkable floor within a step, headroom); every pickup reachable and on walkable floor; no thing on no skill; skill flags in Doom's pairs; monsters 21/33/46 and nested; Reich before Legion; the heavies (one each, Hell Knight not Baron, not on skill 2); every closet tagged with its switch and occupied on skill 2; the tutorial weapons on every skill, the RPG-7 only in S2, no Doom weapon number; consumables scale down; G3-8 on every skill and under 3× on skill 4; healing outside secrets on skill 4; the three secrets reachable and left again; S1, S2 and S3's clues as built; the new structures steel and the walls behind them concrete; columns on plinths; Lenin's light |
+| `tools/verify.py fast` (Windows PC, `.venv/Scripts/python.exe`) | **VERDICT: PASS** in 22.6 s: docs PASS (warnings elsewhere in the tree), build PASS, `check_pk3` PASS with 0 errors and 0 warnings, tests PASS: **647 tests**, 14 skipped (slow art). One earlier run failed on `SD_GENERAL_ORDER` missing from `src/lumps/LANGUAGE`, a file another agent was mid-edit on for the bestiary; the rerun minutes later was clean |
+| GZDoom | **not run** (D26). Owed: §17.10 |
+
+### 17.10 Engine checklist for the PM (D26: this role does not start GZDoom)
+
+Method as in §16.9: `warp x y`, turn to the facing (0 east, 90 north, 180
+west, 270 south), `+use`, `wait`, `screenshot`; the session log goes to
+`docs/qa/evidence/` with the screenshots. **Two sessions**: geometry with
+`-nomonsters` (V1–V17), then combat with monsters on skill 3 with `god`
+(V18–V24). Things this role could not check without the engine are marked
+*(engine)*.
+
+| # | Warp to (x y) | Facing | Do | What the screenshot must show |
+|---|---|---|---|---|
+| V1 | 256 96 | 90 | — | the dorm: bunks either side of the aisle, three lamp panels, D2 in a steel frame, the plaque right of the frame |
+| V2 | 40 300 | 125 | — | the shovel rack: a steel niche in the west wall with the shovel in it, in the aisle between the lockers and the north-west bunk; the lockers whole |
+| V3 | 760 96 | 0 | — | three shower stalls, steel partitions; **the middle back wall plate, the outer two concrete**; basins along the left |
+| V4 | 920 96 | 0 | `+use` | S1 opens; walk in: "A secret is revealed!" |
+| V5 | 256 560 | 90 | — | the corridor in three bays: two steel bulkheads, the lit alcove on the left, the stripe unbroken on both walls |
+| V6 | 320 1000 | 90 | — | the komnata: tables in front, the colonnade, the tribune with its lectern, the mural at the end of the axis, two floor lamps |
+| V7 | 980 1250 | 0 | — | the weapon rack with the IZh; the pipe run along the corridor's south side behind |
+| V8 | 1336 1152 | 0 | — | the hangar from the bottom step: lane A, columns on plinths, the cradle with its spine and stair, the gate far right |
+| V9 | 1336 1152 | 115 | — | **regression of v2 E2**: the red wall in shadow ending in the lit mouth, the lit window beside it |
+| V10 | 1416 1624 | 323 | — | **regression of v2 E3b**: D4 framed by the window over the cradle and the spine (the tests say nothing new blocks it) |
+| V11 | 1700 700 | 270 | — | the gantry and its stair, the support columns, the shadow strip, crates by the lane |
+| V12 | 2300 888 | 0 | — | a rail trench running from under the cradle to the east wall |
+| V13 | 2450 1100 | 90 | — | the catwalk stair with its landing; column c5 and crate h6 to the left |
+| V14 | 2272 1100 | 90 | — | **S2's clue from the hangar floor**: a thin bright line in the north wall above the catwalk, right of the panel |
+| V15 | 2280 1500 | 90 | — | S2's slit from the catwalk, just above eye height, lit closet beyond; then warp 2208 1560 facing 90, `+use`: S2 opens |
+| V16 | 1400 1760 | 180 | — | **S3's clue**: the drain under the feet running west to the bay wall; the drum stack to the right; then warp 1170 1760 facing 180, `+use`: S3 opens |
+| V17 | 2976 672 | 50 | — | **Lenin from the doorway of Z10 (the CEO's detail)**: the poster lit and readable, a dimmer ring round it, the room dark; *not flat, not burnt*. Compare `docs/levels/shots/2026-10-13_1015_F3_map01-v1-exit-lenin.png`. Then warp 3136 720 facing 90 for the close-up |
+| V18 | 256 96 | 90 | skill 3, monsters | the alarm: riflemen in the dorm, no trooper anywhere in the barracks *(engine: what the stand-ins look like)* |
+| V19 | 1416 1624 | 0 | `+use`, `wait 70`, then facing 90 | D4 opens (v2), **and the bay's north-wall panels stand open with stormtroopers and a hound coming out** |
+| V20 | 2560 1810 | 90 | `+use`, then warp 2000 1520 facing 180 | D5 opens (v2); **the west-wall closets W1/W2 open** (seen from the catwalk), troopers in the hangar |
+| V21 | 2600 1300 | 0 | after V20 | E1 open, the Doughboy out *(engine: a Cacodemon leaving a 128-high closet)* |
+| V22 | 2976 672 | 50 | after V20 | the Panzermensch on the lift, under Lenin's light |
+| V23 | 3250 640 | 0 | `+use` | the exit; intermission: kills of 33, items, secrets of 3 |
+| V24 | the log | — | — | zero G3-2 pattern lines; nothing about things 3005, 69, 2026, 2028, 21001, 21003, 21004, 21005 |
+
+**An automatic run the PM can try, skills 3 and 4.** `warp` passes through
+doors, so a pure warp tour proves nothing about doors; the run below uses
+`warp` only to stand **in front of** each door or switch, and `+forward`
+to go through it, so a door that did not open leaves the next screenshot
+showing the wrong room. With `god` so the monsters cannot end it, once per
+skill (`-skill 3`, then `-skill 4`):
+
+| Step | Warp to | Facing | Then | Screenshot shows, if nothing blocks |
+|---|---|---|---|---|
+| A1 | 256 420 | 90 | `+use`, `wait 70`, `+forward` 35 tics | the corridor (D2) |
+| A2 | 256 940 | 90 | — | the komnata |
+| A3 | 600 1152 | 0 | `+use`, `wait 70`, `+forward` 35 tics | the service corridor (D3) |
+| A4 | 1040 1256 | 0 | — | "You got the IZh-58 double barrel!" |
+| A5 | 1336 1152 | 0 | — | the hangar, first contact |
+| A6 | 1416 1624 | 0 | `+use`, `wait 105` | `SDSW2A`; the ambush panels open (turn 90) |
+| A7 | 2000 1520 | 0 | — | "You got the PPSh-41!" |
+| A8 | 2496 1560 | 90 | `+use`, `wait 70`, `+forward` 35 tics | the booth (D6) |
+| A9 | 2560 1810 | 90 | `+use`, `wait 105` | `SDSW2B` |
+| A10 | 2660 672 | 0 | `+forward` 70 tics | the airlock (D4 open) |
+| A11 | 2880 672 | 0 | `+forward` 70 tics | Z10 (D5 open) |
+| A12 | 3250 640 | 0 | `+use` | the intermission |
+
+The static half of the same question is already green on every build: every
+sector reachable, a way back from every one, the gate order, every door tall
+enough (`tests/test_udmf.py`, G3-6). What only the engine can add is that
+monsters, things and players fit where the tables put them, and no monster
+plugs a doorway for good.
+
+### 17.11 For the CEO's walk of v3
+
+`python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=3 tools/run.sh`
+(or skill 4 for UV), from the start, no warps. Five things to judge:
+
+1. **Length.** D33 aims at 5–8 minutes on a first run. The intermission
+   prints the time; that number is the answer.
+2. **The hangar as a place.** Columns, the gantry, the spine, the crates:
+   does it now read as a working hangar, and does the first contact use it?
+3. **The secrets.** Three, each with a clue that asks a question (§17.5).
+   Found by looking, not given away? The intermission counts them.
+4. **The two springs.** SW-A opens the gate and the fuel-bay walls behind
+   you; SW-B opens the airlock and the hangar's walls below you. Surprise,
+   or unfair?
+5. **Lenin.** From the doorway of the lift room: does he read now?
+
+### 17.12 What is left, and what the PM carries
+
+- **For MOD-SPEC (contract first; this role does not edit it):**
+  1. §5: MAP01, a campaign map, now places Freedoom actors as stand-ins:
+     monsters 3004, 9, 3001, 3002, 3005, 69; barrel 2035; floor lamp 2028;
+     computer area map 2026; health and armour 2011, 2012, 2014, 2015, 2018;
+     ammo 2007, 2048, 2008, 2049, 2046; backpack 8. §5's sentence that the
+     Freedoom fixtures "appear in no campaign map" stops being true.
+  2. §6.1: MAP01 places our editor numbers 21001, 21003, 21004 and 21005
+     (already contract; first use in a campaign map).
+  3. §4.2: `Door_Open` with **one tag naming several door sectors** (tag 10:
+     D4 + three closet panels; tag 11: D5 + three closets), and the light
+     tag 30 riding a `Door_Open` that moves several doors. Same special;
+     the behaviour with several doors is **NOT VERIFIED** (V19–V20).
+  4. Not a contract change, a convention worth one line: things are flagged
+     in Doom's skill pairs (1 = 2, 4 = 5), `udmf.skill_tier`.
+- **For `mod-engineer` (F5), from the BESTIARY §11 hypotheses:** skill-4
+  counts are riflemen 17 (12–18 ✓), troopers **13 (6–9 ✗)**, stormtroopers
+  9 (8–12 ✓), hounds 5 (4–6 ✓), Doughboy 1 (1–2 ✓), Panzermensch 1 (1 ✓).
+  The trooper count is over the hypothesis because D35 hands the hangar to
+  the Legion; on skill 3 it is 8, inside it.
+- **Balance leans on drops** (§8): G3-8 holds on placed ammo alone, but
+  with the drops the bestiary specifies skill 4 ends near 2.2×. The F5
+  playtest decides; the first cut is placed shells on skills 3–4.
+- The engine pass (§17.10) and the CEO's walk (§17.11).
+- Russian mirror: synced in a batch at the phase close (D34).
