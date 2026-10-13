@@ -1,11 +1,14 @@
 """F4 — first-person weapons: the sergeant's hands (D39), the ice axe (D40),
-the PPSh-41.
+the PPSh-41 and the rest of the arsenal (TT-33, IZh-58, RPG-7, ROKS-3, hand
+Katyusha).
 
 Run with the project venv:
     .venv/Scripts/python.exe tools/art/gen_weapon.py hands      (Windows)
     .venv/bin/python tools/art/gen_weapon.py hands              (macOS)
     ... gen_weapon.py axe  --hand E      the ice axe, frames + pickup
     ... gen_weapon.py ppsh --hand E      the PPSh-41, frames, flash + pickup
+    ... gen_weapon.py tt33|izh|rpg7|roks3|katyusha --hand E   one weapon, its sheet
+    ... gen_weapon.py arsenal --hand E   all five, their sheets and the overview
     ... --stamp 2026-10-13_1900          fixes the sheet's timestamp
 
 What this is. D39 (CEO, 2026-10-13): the first-person hands are Freedoom's
@@ -20,6 +23,12 @@ shovel. Three deliveries, each its own sheet for the CEO's gate:
     axe     the ice axe in the chosen style: idle, a three-frame swing and a
             recovery frame, and the world pickup (two options)
     ppsh    the PPSh-41: idle, recoil, two flash frames, pickup
+    tt33, izh, rpg7, roks3, katyusha
+            held frames with the letters each weapon's state machine in
+            src/zscript/weapons/ shows (read, never edited), flash frames,
+            pickup; a frame the state machine does not show is a PROPOSAL,
+            written as <NAME><F>0_proposed.png (the RPG-7's reload, C-D)
+    arsenal all five, plus one overview of all seven weapons at rest
 
 How it is drawn. Claude does not draw freehand, and HUD sprites are big
 (100-250 px), so the flat shape painter of gen_enemy.py would show its
@@ -64,6 +73,11 @@ Outputs (work/ is gitignored):
     work/art/weapons/hands/      one idle grip per style, the hand kit
     work/art/weapons/ice_axe/    SDAXA0-E0, SDAPA0 (+ options A, B), metrics.json
     work/art/weapons/ppsh/       SDPPA0-B0, SDPFA0-B0, SDPQA0, metrics.json
+    work/art/weapons/tt33/       SDTTA0-C0, SDTFA0, SDTPA0, metrics.json
+    work/art/weapons/izh/        SDIZA0-D0, SDIFA0-B0, SDIPA0, metrics.json
+    work/art/weapons/rpg7/       SDRLA0-B0 (+ C0, D0 _proposed), SDRFA0-D0, SDRPA0, metrics.json
+    work/art/weapons/roks3/      SDRKA0-B0, SDKFA0-B0, SDKPA0, metrics.json
+    work/art/weapons/katyusha/   SDHKA0-B0, SDHFA0-B0, SDHPA0, metrics.json
     docs/art/previews/<stamp>_F4_<slug>.png   the sheet of each delivery
 Sprites are RGBA with hard alpha, like the F5 drafts (ART-BIBLE §2
 exception); the shipped format is decided with the mod-engineer on
@@ -75,6 +89,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import re
 import struct
 import sys
 from dataclasses import dataclass
@@ -149,10 +164,21 @@ MATERIALS: dict[str, Material] = {
     "flash_out": Material("hazard_yellow", 9, 15),
     "flash_in": Material("cream_yellow", 12, 15),
     "flash_core": Material("cream_yellow", 15, 15),
+    # the rest of the arsenal (appended: earlier ids, and so earlier renders,
+    # do not move)
+    "bakelite": Material("rust_brown", 0, 5, black_floor=True),       # TT-33 and RPG grips
+    "wood_walnut": Material("rust_brown", 1, 9, black_floor=True),    # the IZh's stock
+    "olive_paint": Material("military_green", 1, 13, black_floor=True),   # PG-7V, the battery frame
+    "brass": Material("hazard_yellow", 3, 14, black_floor=True),      # shell heads
+    "hull_red": Material("flag_red", 3, 13, black_floor=True),        # shell hulls, rocket noses
+    "rubber": Material("concrete_cold", 0, 9, black_floor=True),      # the ROKS hose, nozzles
+    "flame_red": Material("flag_red", 10, 15),
+    "smoke": Material("concrete_cold", 12, 24),
+    "ember": Material("flag_red", 9, 15),
 }
 MAT_ID = {name: i for i, name in enumerate(MATERIALS)}
 METALS = {"steel", "gunmetal", "button"}
-FLAT = {"flash_out", "flash_in", "flash_core"}      # no light, no contour
+FLAT = {"flash_out", "flash_in", "flash_core", "flame_red", "smoke", "ember"}   # no light, no contour
 
 
 def unit(v) -> np.ndarray:
@@ -356,7 +382,7 @@ class Rig:
             self._plane([a, b, c, d], material, base - 0.08, gain, g)
 
     def burst(self, cx: float, cy: float, size: float, rot: float, material: str,
-              points: int = 8, inner: float = 0.42, squash: float = 1.0) -> None:
+              points: int = 8, inner: float = 0.42, squash: float = 1.0, value: float = 0.5) -> None:
         """A flat star in screen px (muzzle flash, Doom's grammar), drawn in
         front of everything. squash < 1 flattens it vertically."""
         pts = []
@@ -370,7 +396,7 @@ class Rig:
             return
         sl, X, Y, origin = win
         inside = self._poly_mask(pts, X, origin)
-        self._commit(sl, inside, np.full(X.shape, -1.0 * self.count), np.full(X.shape, 0.5),
+        self._commit(sl, inside, np.full(X.shape, -1.0 * self.count), np.full(X.shape, value),
                      MAT_ID[material])
 
     # --- reduction
@@ -1419,10 +1445,951 @@ def build_ppsh(stamp: str, hand: str = RECOMMENDED_HAND, out_dir: Path = OUT_DIR
     return path, metrics
 
 
+# ============================================================ the arsenal
+# The other five weapons: TT-33 (slot 2), IZh-58 (3), RPG-7 (5), ROKS-3 (6)
+# and the hand Katyusha (7). Same rig and hand as the ice axe and the PPSh.
+# Each weapon is drawn in its own frame, like draw_ppsh: u forward along the
+# bore (cm), v up, w to the weapon's left; `gun_basis` maps it to camera
+# space. Frame letters follow each weapon's state machine in
+# src/zscript/weapons/ (read, never edited here); a pose with wired=False is
+# a PROPOSAL the state machine does not show today, written with a
+# `_proposed` suffix so nothing can mistake it for a delivered lump.
+
+def gun_basis(origin, bore, up):
+    """(U, V, W, at) of a weapon frame: at(u, v, w) -> camera cm."""
+    U = unit(bore)
+    V = perp(up, U)
+    W = unit(np.cross(V, U))
+    o = np.asarray(origin, np.float64)
+    return U, V, W, (lambda u, v=0.0, w=0.0: o + U * u + V * v + W * w)
+
+
+def guard_loop(rig: Rig, at, pts, r: float = 0.32, material: str = "gunmetal") -> None:
+    """A trigger guard (or any bent rod) through the (u, v) points."""
+    for (u0, v0), (u1, v1) in zip(pts, pts[1:]):
+        rig.capsule(at(u0, v0), at(u1, v1), r, r, material, 0.4, 0.8)
+
+
+@dataclass(frozen=True)
+class ArmsPose:
+    """One held frame. `state` and `amount` are the weapon's own: slide
+    travel, hinge angle, loaded or not. wired=False: a proposal."""
+    frame: str
+    name: str
+    origin: tuple       # the weapon frame's origin, camera cm
+    bore: tuple
+    up: tuple
+    state: str = "ready"
+    amount: float = 0.0
+    wired: bool = True
+
+
+# ----------------------------------------------------------------- TT-33
+# The Tokarev in profile: a slab-sided slide with rear serrations, the
+# exposed hammer, a raked grip with the bakelite panels and their star
+# medallion. u from the rear of the slide, v up from the bore.
+TT_SLIDE_POLY = ((0.0, -1.1), (0.0, 1.3), (16.8, 1.3), (18.4, 1.0), (18.4, -1.1))
+TT_SLIDE_W = 2.5
+TT_FRAME_POLY = ((0.6, -1.1), (15.6, -1.1), (15.6, -2.0), (10.6, -2.2), (5.2, -2.4), (4.4, -1.8), (0.6, -1.6))
+TT_GRIP_POLY = ((-0.4, -1.0), (5.2, -1.4), (3.2, -11.4), (-2.6, -11.0))
+TT_GRIP_W = 2.6
+TT_PANEL_POLY = ((0.1, -2.4), (4.3, -2.6), (2.8, -10.4), (-1.9, -10.0))
+TT_PANEL_W = 3.0
+TT_SERRATIONS = (1.0, 1.6, 2.2, 2.8, 3.4, 4.0)     # u of each groove
+TT_BARREL = (12.5, 18.9, 0.72)                     # u from, u to, radius
+TT_GRIP_AT = (1.5, -6.6)                           # where the hand closes
+TT_GRIP_AXIS = (0.205, 1.0)                        # the rake: up the grip, a little forward
+TT_GRIP_R = 2.0
+TT_ELBOW = (14.0, 36.0, 4.0)
+TT_SPRITE, TT_FLASH, TT_PICKUP = "SDTT", "SDTF", "SDTP"
+
+
+def draw_tt33(rig: Rig, origin, U, V, slide_back: float = 0.0) -> dict:
+    U, V, W, at = gun_basis(origin, U, V)
+    s = slide_back
+    rig.capsule(at(TT_BARREL[0]), at(TT_BARREL[1]), TT_BARREL[2], TT_BARREL[2], "gunmetal", 0.26, 0.85)
+    rig.plate(at(-s), U, V, TT_SLIDE_POLY, TT_SLIDE_W, "gunmetal", PPSH_BLUED + 0.04, 0.85, grad=(V, 0.02))
+    for g in TT_SERRATIONS:
+        rig.plate(at(g - s), U, V, ((0.0, -0.9), (0.24, -0.9), (0.24, 1.1), (0.0, 1.1)),
+                  TT_SLIDE_W + 0.08, "gunmetal", PPSH_BLUED - 0.16, 0.6)
+    rig.plate(at(0.6 - s, 1.3), U, V, ((0.0, 0.0), (1.0, 0.0), (0.9, 0.6), (0.1, 0.6)), 1.6, "gunmetal", 0.4, 0.8)
+    rig.plate(at(16.4 - s, 1.3), U, V, ((0.0, 0.0), (0.8, 0.0), (0.7, 0.6), (0.2, 0.6)), 0.6, "gunmetal", 0.4, 0.8)
+    rig.plate(at(0.0), U, V, TT_FRAME_POLY, TT_SLIDE_W - 0.1, "gunmetal", PPSH_BLUED, 0.85)
+    rig.plate(at(0.0), U, V, ((-1.0, 0.2), (0.3, 0.2), (0.3, 2.2), (-0.5, 2.5), (-1.1, 1.6)), 0.9,
+              "gunmetal", 0.42, 0.8)                                            # hammer, cocked
+    rig.plate(at(0.0), U, V, TT_GRIP_POLY, TT_GRIP_W, "gunmetal", PPSH_BLUED, 0.85)
+    rig.plate(at(0.0), U, V, TT_PANEL_POLY, TT_PANEL_W, "bakelite", 0.5, 0.8)
+    rig.plate(at(0.0), U, V, ((-2.6, -11.0), (3.2, -11.4), (3.2, -12.0), (-2.6, -11.6)), 2.4,
+              "gunmetal", 0.4, 0.8)                                             # magazine floor
+    for side in (-1, 1):                                                        # the star medallions
+        rig.ellipsoid(at(1.15, -4.7, side * TT_PANEL_W / 2), (U * 0.95, V * 0.95, W * 0.22), "bakelite", 0.75, 0.8)
+    guard_loop(rig, at, ((5.4, -2.0), (6.0, -4.4), (9.6, -4.0), (10.6, -2.2)))
+    rig.capsule(at(7.7, -2.2), at(7.2, -3.6), 0.35, 0.3, "gunmetal", 0.45, 0.8)
+    return {"muzzle": at(TT_BARREL[1] + 0.2), "at": at, "U": U, "V": V}
+
+
+TT_POSES = (
+    ArmsPose("A", "ready", (7.0, 7.0, 20.0), (-0.38, -0.03, 1.0), (0.12, -1.0, -0.15)),
+    ArmsPose("B", "fire: slide back", (7.2, 6.3, 19.0), (-0.38, -0.15, 1.0), (0.12, -1.0, -0.15), amount=3.2),
+    ArmsPose("C", "kick, slide home", (7.3, 5.7, 18.4), (-0.38, -0.24, 1.0), (0.14, -1.0, -0.15), amount=0.6),
+)
+
+
+def render_tt33_frame(style: HandStyle, pose: ArmsPose) -> tuple[Frame, tuple[float, float]]:
+    rig = Rig()
+    got = draw_tt33(rig, pose.origin, pose.bore, pose.up, pose.amount)
+    at, U, V = got["at"], got["U"], got["V"]
+    axis = unit(U * TT_GRIP_AXIS[0] + V * TT_GRIP_AXIS[1])
+    draw_grip(rig, style, at(*TT_GRIP_AT), axis, TT_ELBOW, TT_GRIP_R, trigger=True)
+    mx, my, _ = rig.project(got["muzzle"])
+    return finish(rig), (mx, my)
+
+
+# ---------------------------------------------------------------- IZh-58
+# A side-by-side 12-gauge: two blued barrels touching, a rib between them,
+# a grey box-lock action, walnut fore-end and stock. The barrels, rib and
+# fore-end hinge down about the pin at IZH_HINGE (the break-open reload).
+IZH_BARREL_LEN = 72.0
+IZH_BARREL_R = 1.05
+IZH_BARREL_W = 1.06             # half the centre distance: the barrels touch
+IZH_HUD_BORE_K = 1.6            # first person: barrels this much fatter, so the pair reads at 1x
+IZH_HINGE = (0.4, -2.2)         # u, v of the hinge pin
+IZH_ACTION_POLY = ((-6.5, 1.1), (0.4, 1.1), (0.4, -2.9), (-1.5, -3.6), (-6.5, -2.8))
+IZH_ACTION_W = 4.2
+IZH_FOREEND_POLY = ((3.0, -0.7), (25.0, -0.7), (25.0, -1.9), (23.0, -2.7), (6.0, -3.3), (3.0, -3.1))
+IZH_FOREEND_W = 3.8
+IZH_STOCK_POLY_HUD = ((-6.5, 0.9), (-14.0, -0.6), (-14.0, -6.8), (-10.0, -6.4), (-8.5, -4.2), (-6.5, -2.8))
+IZH_STOCK_POLY = ((-6.5, 0.9), (-16.0, -0.8), (-40.0, -2.0), (-40.0, -14.0), (-24.0, -9.0),
+                  (-12.0, -6.6), (-8.5, -4.2), (-6.5, -2.8))
+IZH_STOCK_W = 3.6
+IZH_SHELL_R = 0.98
+IZH_RIGHT_GRIP, IZH_RIGHT_AXIS = (-10.6, -2.4), (1.0, 0.45)
+IZH_LEFT_GRIP_U = 21.0
+IZH_SPRITE, IZH_FLASH, IZH_PICKUP = "SDIZ", "SDIF", "SDIP"
+
+
+def draw_izh(rig: Rig, origin, bore, up, open_deg: float = 0.0, hud: bool = True) -> dict:
+    U, V, W, at = gun_basis(origin, bore, up)
+    k = IZH_HUD_BORE_K if hud else 1.0
+    br, bw = IZH_BARREL_R * k, IZH_BARREL_W * k
+    th = np.deg2rad(open_deg)
+    hu, hv = IZH_HINGE
+
+    def bat(u, v=0.0, w=0.0):           # a point of the barrel group, hinged
+        du, dv = u - hu, v - hv
+        return at(hu + du * np.cos(th) + dv * np.sin(th), hv - du * np.sin(th) + dv * np.cos(th), w)
+
+    Ub = unit(bat(1.0) - bat(0.0))
+    Vb = unit(bat(0.0, 1.0) - bat(0.0))
+    for side in (-1, 1):
+        rig.capsule(bat(0.0, 0.0, side * bw), bat(IZH_BARREL_LEN, 0.0, side * bw),
+                    br, br * 0.92, "gunmetal", PPSH_BLUED + 0.04, 0.85, open_ends=True)
+    rig.capsule(bat(0.6, 0.85 * k), bat(IZH_BARREL_LEN, 0.85 * k), 0.3 * k, 0.3 * k, "gunmetal", 0.45, 0.8)  # rib
+    rig.ellipsoid(bat(IZH_BARREL_LEN - 0.8, 1.2 * k), (Ub * 0.28 * k, Vb * 0.28 * k, W * 0.28 * k), "brass", 0.75, 0.8)
+    rig.plate(bat(0.0), Ub, Vb, IZH_FOREEND_POLY, IZH_FOREEND_W, "wood_walnut", 0.55, 0.8)
+    if open_deg > 0:
+        # the breech: left chamber loaded, the right shell going in
+        for side in (-1, 1):
+            rig.capsule(bat(-0.2, 0.0, side * bw), bat(0.08, 0.0, side * bw),
+                        br * 1.12, br * 1.12, "brass", 0.6, 0.8, open_ends=True)
+        w, sr = -bw, IZH_SHELL_R * k
+        rig.capsule(bat(-5.2, 0.0, w), bat(-0.1, 0.0, w), sr, sr, "hull_red", 0.55, 0.8, open_ends=True)
+        rig.capsule(bat(-6.4, 0.0, w), bat(-5.0, 0.0, w), sr * 1.04, sr * 1.04, "brass", 0.62, 0.8, open_ends=True)
+    rig.plate(at(0.0), U, V, IZH_ACTION_POLY, IZH_ACTION_W, "steel", 0.4, 0.85)
+    rig.plate(at(0.0), U, V, ((-6.2, 1.1), (-3.0, 1.1), (-3.2, 1.7), (-6.0, 1.8)), 1.2, "steel", 0.45, 0.8)
+    rig.plate(at(0.0), U, V, IZH_STOCK_POLY_HUD if hud else IZH_STOCK_POLY, IZH_STOCK_W,
+              "wood_walnut", 0.55, 0.8, grad=(V, 0.008))
+    guard_loop(rig, at, ((-6.0, -3.0), (-5.0, -5.8), (-0.8, -5.6), (0.0, -3.4)))
+    rig.capsule(at(-3.6, -3.3), at(-3.9, -5.0), 0.3, 0.28, "gunmetal", 0.45, 0.8)
+    rig.capsule(at(-2.3, -3.3), at(-2.6, -4.8), 0.3, 0.28, "gunmetal", 0.45, 0.8)
+    return {"muzzle": bat(IZH_BARREL_LEN + 0.6), "at": at, "bat": bat, "U": U, "V": V, "Ub": Ub}
+
+
+IZH_POSES = (
+    ArmsPose("A", "ready / fire", (4.0, 10.5, 15.0), (-0.07, -0.06, 1.0), (0.06, -1.0, 0.0)),
+    ArmsPose("B", "kick; reload 3: coming up", (4.2, 9.6, 14.0), (-0.07, -0.14, 1.0), (0.06, -1.0, 0.0)),
+    ArmsPose("C", "settle low; reload 2: snapped shut", (4.4, 14.0, 15.0), (-0.07, -0.05, 1.0), (0.08, -1.0, 0.0)),
+    ArmsPose("D", "reload 1: broken open, loading", (4.0, 10.0, 17.0), (-0.07, -0.42, 1.0), (0.12, -1.0, 0.0),
+             state="open", amount=38.0),
+)
+IZH_LEFT_ELBOW = (-18.0, 40.0, 30.0)
+IZH_RIGHT_ELBOW = (20.0, 40.0, 5.0)
+
+
+def render_izh_frame(style: HandStyle, pose: ArmsPose) -> tuple[Frame, tuple[float, float]]:
+    rig = Rig()
+    got = draw_izh(rig, pose.origin, pose.bore, pose.up, pose.amount if pose.state == "open" else 0.0)
+    at, bat, U, V = got["at"], got["bat"], got["U"], got["V"]
+    draw_grip(rig, style, at(*IZH_RIGHT_GRIP), unit(U * IZH_RIGHT_AXIS[0] + V * IZH_RIGHT_AXIS[1]),
+              IZH_RIGHT_ELBOW, 1.8, trigger=True)
+    draw_grip(rig, style, bat(IZH_LEFT_GRIP_U, -2.2), got["Ub"], IZH_LEFT_ELBOW, 2.0, side="left")
+    mx, my, _ = rig.project(got["muzzle"])
+    return finish(rig), (mx, my)
+
+
+# ----------------------------------------------------------------- RPG-7
+# The launcher on the right shoulder: a long tube running in towards the
+# crosshair, the birch heat guard, the bakelite pistol grip under it, and
+# the PG-7V's olive warhead out of the muzzle (exaggerated, as Doom's
+# pickups and weapons are, so the cone reads at 1x). u from the rear of the
+# venturi.
+RPG_TUBE_R = 2.2
+RPG_VENTURI = (0.0, 9.0, 4.4, 2.4)
+RPG_GUARD = (36.0, 60.0, 3.3)
+RPG_MUZZLE_U = 95.0
+RPG_GRIP_U = 47.0
+RPG_LEFT_U = 70.0              # at rest the left hand sits low on the tube, at the edge of the view
+RPG_HUD_Z0 = 12.0               # cm: in first person the tube is drawn from this depth on (the rest is behind the eye)
+PG7_TAIL = (0.0, 14.0, 1.4)     # beyond the muzzle: u from, u to, radius
+PG7_BODY = (14.0, 21.0, 4.25)
+PG7_CONE = (21.0, 38.0, 4.25, 0.9)
+PG7_FUSE = (38.0, 41.0, 0.7)
+PG7_HUD_SCALE = 1.5
+RPG_SPRITE, RPG_FLASH, RPG_PICKUP = "SDRL", "SDRF", "SDRP"
+
+
+def draw_pg7(rig: Rig, base, U, k: float = 1.0) -> dict:
+    """The PG-7V grenade from the base of its tail tube along U."""
+    U = unit(U)
+    b = np.asarray(base, np.float64)
+    at = lambda u: b + U * u * k
+    rig.capsule(at(PG7_TAIL[0]), at(PG7_TAIL[1]), PG7_TAIL[2] * k, PG7_TAIL[2] * k, "steel", 0.42, 0.8, open_ends=True)
+    rig.capsule(at(PG7_BODY[0]), at(PG7_BODY[1]), PG7_BODY[2] * k * 0.9, PG7_BODY[2] * k, "olive_paint", 0.55,
+                0.8, open_ends=True)
+    rig.capsule(at(PG7_CONE[0]), at(PG7_CONE[1]), PG7_CONE[2] * k, PG7_CONE[3] * k, "olive_paint", 0.6, 0.8)
+    rig.capsule(at(PG7_FUSE[0]), at(PG7_FUSE[1]), PG7_FUSE[2] * k, PG7_FUSE[2] * k * 0.6, "steel", 0.55, 0.8)
+    return {"at": at}
+
+
+def draw_rpg7(rig: Rig, origin, bore, up, loaded: bool = True, hud: bool = True, k: float = PG7_HUD_SCALE) -> dict:
+    U, V, W, at = gun_basis(origin, bore, up)
+    # first person: start the tube where it comes in front of the eye
+    u0 = max(0.0, (RPG_HUD_Z0 - float(np.asarray(origin)[2])) / max(U[2], 1e-6)) if hud else 0.0
+    if not hud:
+        v0, v1, r0, r1 = RPG_VENTURI
+        rig.capsule(at(v0), at(v1), r0, r1, "gunmetal", 0.38, 0.85, open_ends=True)
+    rig.capsule(at(max(u0, RPG_VENTURI[1] - 0.5)), at(RPG_MUZZLE_U), RPG_TUBE_R, RPG_TUBE_R * 0.95,
+                "gunmetal", PPSH_BLUED + 0.06, 0.85, open_ends=True)
+    g0, g1, gr = RPG_GUARD
+    rig.capsule(at(max(u0, g0)), at(g1), gr, gr, "wood_birch", 0.55, 0.8, bands=(4.0, 0.35, 0.12), open_ends=True)
+    rig.capsule(at(RPG_MUZZLE_U - 1.4), at(RPG_MUZZLE_U), RPG_TUBE_R * 1.15, RPG_TUBE_R * 1.15, "gunmetal",
+                0.42, 0.85, open_ends=True)
+    rig.plate(at(RPG_MUZZLE_U - 3.0, RPG_TUBE_R), U, V, ((0.0, 0.0), (1.0, 0.0), (0.8, 1.8), (0.2, 1.8)), 0.5,
+              "gunmetal", 0.45, 0.8)                                            # front sight
+    grip_seen = (not hud) or at(RPG_GRIP_U - 3.0)[2] >= RPG_HUD_Z0     # behind the eye, it is not drawn
+    if grip_seen:
+        rig.plate(at(RPG_GRIP_U, -RPG_TUBE_R - 1.0), U, V, ((-1.6, 0.4), (2.0, 0.4), (0.6, -9.5), (-2.9, -9.1)),
+                  2.6, "bakelite", 0.5, 0.8)
+        guard_loop(rig, at, ((RPG_GRIP_U + 1.6, -3.4), (RPG_GRIP_U + 2.4, -6.0), (RPG_GRIP_U + 6.2, -5.6),
+                             (RPG_GRIP_U + 6.8, -3.2)))
+    if loaded:
+        draw_pg7(rig, at(RPG_MUZZLE_U), U, k)
+    return {"muzzle": at(RPG_MUZZLE_U + 0.5), "at": at, "U": U, "V": V, "grip_seen": grip_seen}
+
+
+RPG_POSES = (
+    ArmsPose("A", "ready, loaded", (11.0, 12.5, -55.0), (-0.025, -0.012, 1.0), (0.12, -1.0, 0.0)),
+    ArmsPose("B", "fired, tube empty", (11.3, 11.6, -56.5), (-0.025, -0.03, 1.0), (0.12, -1.0, 0.0), state="empty"),
+    ArmsPose("C", "PROPOSED reload 1: new round", (13.5, 19.0, -45.0), (-0.08, -0.06, 1.0), (0.2, -1.0, 0.0),
+             state="reload1", wired=False),
+    ArmsPose("D", "PROPOSED reload 2: round in", (12.5, 16.0, -50.0), (-0.06, -0.04, 1.0), (0.18, -1.0, 0.0),
+             state="reload2", wired=False),
+)
+RPG_RIGHT_ELBOW = (18.0, 40.0, 4.0)
+RPG_LEFT_ELBOW = (-18.0, 40.0, 26.0)
+RPG_RELOAD_ELBOW = (-26.0, 40.0, 16.0)
+RPG_NEW_ROUND = ((-14.0, 15.0, 40.0), (0.40, -0.45, 0.80))   # C: tail base, axis (camera cm)
+
+
+def render_rpg7_frame(style: HandStyle, pose: ArmsPose) -> tuple[Frame, tuple[float, float]]:
+    rig = Rig()
+    got = draw_rpg7(rig, pose.origin, pose.bore, pose.up, loaded=pose.state == "ready")
+    at, U, V = got["at"], got["U"], got["V"]
+    if got["grip_seen"]:        # the right hand is on the grip, behind the eye in every pose drawn today
+        draw_grip(rig, style, at(RPG_GRIP_U - 0.8, -RPG_TUBE_R - 5.4), unit(V + U * 0.16), RPG_RIGHT_ELBOW, 1.6,
+                  trigger=True)
+    if pose.state == "reload1":
+        base, ax = RPG_NEW_ROUND
+        ax = unit(ax)
+        draw_pg7(rig, base, ax, PG7_HUD_SCALE)
+        draw_grip(rig, style, np.asarray(base) + ax * 7.0 * PG7_HUD_SCALE, ax, RPG_RELOAD_ELBOW,
+                  PG7_TAIL[2] * PG7_HUD_SCALE, side="left")
+    elif pose.state == "reload2":
+        base = at(RPG_MUZZLE_U - 6.0)
+        draw_pg7(rig, base, U, PG7_HUD_SCALE)
+        draw_grip(rig, style, base + U * 11.0 * PG7_HUD_SCALE, U, RPG_RELOAD_ELBOW,
+                  PG7_TAIL[2] * PG7_HUD_SCALE, side="left")
+    else:
+        draw_grip(rig, style, at(RPG_LEFT_U, -RPG_TUBE_R * 0.4), U, RPG_LEFT_ELBOW, RPG_TUBE_R, side="left")
+    mx, my, _ = rig.project(got["muzzle"])
+    return finish(rig), (mx, my)
+
+
+# ---------------------------------------------------------------- ROKS-3
+# The ROKS-3 gun is built like a rifle: birch stock, a fat valve body, the
+# fuel tube, and at the muzzle the drum of igniter cartridges round the
+# nozzle; the hose runs from under the valve to the tank on the back.
+ROKS_STOCK_POLY_HUD = ((-12.0, -1.0), (-8.0, -0.6), (0.0, -1.2), (6.0, -1.2), (6.0, -3.6), (2.0, -4.4),
+                       (-3.0, -5.8), (-7.0, -7.6), (-12.0, -8.4))
+ROKS_STOCK_POLY = ((-36.0, -1.4), (-20.0, -1.0), (0.0, -1.2), (6.0, -1.2), (6.0, -3.6), (2.0, -4.4),
+                   (-3.0, -5.8), (-7.0, -7.6), (-14.0, -9.0), (-28.0, -11.6), (-36.0, -12.4))
+ROKS_BODY = (0.0, 7.0, 1.9)
+ROKS_TUBE = (7.0, 58.0, 1.2)
+ROKS_IGNITER = (57.0, 62.0, 2.4)
+ROKS_NOZZLE = (62.0, 67.0, 0.8)
+ROKS_HOSE_R = 1.35
+ROKS_HOSE_END = (12.0, 46.0, 10.0)      # camera cm: off the bottom of the screen, to the tank
+ROKS_SPRITE, ROKS_FLASH, ROKS_PICKUP = "SDRK", "SDKF", "SDKP"
+
+
+def bezier(p0, p1, p2, p3, n: int) -> list[np.ndarray]:
+    p0, p1, p2, p3 = (np.asarray(p, np.float64) for p in (p0, p1, p2, p3))
+    out = []
+    for t in np.linspace(0.0, 1.0, n):
+        out.append((1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t * t * p2 + t ** 3 * p3)
+    return out
+
+
+def draw_hose(rig: Rig, pts, r: float = ROKS_HOSE_R) -> None:
+    for a, b in zip(pts, pts[1:]):
+        rig.capsule(a, b, r, r, "rubber", 0.5, 0.8, bands=(1.6, 0.3, 0.12))
+
+
+def draw_roks3(rig: Rig, origin, bore, up, hud: bool = True, hose_end=ROKS_HOSE_END) -> dict:
+    U, V, W, at = gun_basis(origin, bore, up)
+    rig.plate(at(0.0), U, V, ROKS_STOCK_POLY_HUD if hud else ROKS_STOCK_POLY, PPSH_STOCK_W, "wood_birch",
+              0.55, 0.8, grad=(V, 0.008))
+    b0, b1, br = ROKS_BODY
+    rig.capsule(at(b0), at(b1), br, br * 0.9, "gunmetal", PPSH_BLUED + 0.04, 0.85)
+    rig.capsule(at(3.5, br - 0.2), at(3.5, br + 1.3), 0.9, 0.8, "gunmetal", 0.42, 0.8)     # the valve stem
+    t0, t1, tr = ROKS_TUBE
+    rig.capsule(at(t0), at(t1), tr, tr, "gunmetal", PPSH_BLUED + 0.08, 0.85, bands=(9.0, 0.5, 0.14))
+    i0, i1, ir = ROKS_IGNITER
+    rig.capsule(at(i0), at(i1), ir, ir, "steel", 0.45, 0.85, bands=(1.25, 0.25, 0.18), open_ends=True)
+    n0, n1, nr = ROKS_NOZZLE
+    rig.capsule(at(n0), at(n1), nr * 1.3, nr, "gunmetal", 0.4, 0.85)
+    guard_loop(rig, at, ((1.0, -2.0), (1.6, -4.6), (5.2, -4.4), (6.0, -2.0)))
+    rig.capsule(at(3.4, -2.0), at(3.0, -3.6), 0.35, 0.3, "gunmetal", 0.45, 0.8)
+    start = at(7.5, -br - 0.4)
+    draw_hose(rig, bezier(start, start + V * -4.0 - U * 2.0, np.asarray(hose_end) - V * -10.0,
+                          hose_end, 10))
+    return {"muzzle": at(n1 + 0.4), "at": at, "U": U, "V": V}
+
+
+ROKS_POSES = (
+    ArmsPose("A", "ready / jet (shown Bright)", (13.0, 9.5, 18.0), (-17.5, -2.4, 44.0), (0.2, -1.0, 0.0)),
+    ArmsPose("B", "after the jet: nozzle smoulders", (13.2, 9.9, 17.4), (-17.5, -1.8, 44.0), (0.2, -1.0, 0.0),
+             state="ember"),
+)
+ROKS_RIGHT_ELBOW = (20.0, 40.0, 5.0)
+ROKS_LEFT_ELBOW = (-18.0, 40.0, 30.0)
+
+
+def render_roks3_frame(style: HandStyle, pose: ArmsPose) -> tuple[Frame, tuple[float, float]]:
+    rig = Rig()
+    got = draw_roks3(rig, pose.origin, pose.bore, pose.up)
+    at, U, V = got["at"], got["U"], got["V"]
+    draw_grip(rig, style, at(-5.0, -5.6), unit(U + V * 0.55), ROKS_RIGHT_ELBOW, 2.0, trigger=True)
+    draw_grip(rig, style, at(22.0, -0.4), U, ROKS_LEFT_ELBOW, ROKS_TUBE[2] + 0.5, side="left")
+    mx, my, _ = rig.project(got["muzzle"])
+    if pose.state == "ember":
+        # a burning drop on the nozzle and a curl of smoke (not Bright: B is
+        # the cool-down frame)
+        rig.burst(mx - 3, my - 7, 5.5, 10.0, "smoke", 6, 0.6, value=0.35)
+        rig.burst(mx - 1, my - 3, 3.5, 30.0, "smoke", 5, 0.6, value=0.55)
+        rig.burst(mx, my, 2.6, 0.0, "ember", 5, 0.55, value=0.6)
+    return finish(rig), (mx, my)
+
+
+# --------------------------------------------------------- hand Katyusha
+# A 1977 prototype (LORE): six short rockets on rails in two rows of three,
+# an olive frame, a bakelite pistol grip and a forward handle, carried on the
+# right shoulder. Seen from behind, the six tails and their fins are the
+# weapon's face. u from the rear of the frame, v up, w left.
+HK_LEN = 44.0
+HK_ROWS = (0.0, 5.4)
+HK_COLS = (-5.3, 0.0, 5.3)
+HK_ROCKET = (1.5, 33.0, 1.45)           # tail u, nose u, radius
+HK_NOSE_LEN = 7.0
+HK_FRAME_V = (-2.3, 7.6)
+HK_FRAME_W = 8.1
+HK_GRIP_U, HK_HANDLE_U = 13.0, 33.0
+HK_SPRITE, HK_FLASH, HK_PICKUP = "SDHK", "SDHF", "SDHP"
+
+
+def hk_rails():
+    return [(v, w) for v in HK_ROWS for w in HK_COLS]
+
+
+def draw_katyusha(rig: Rig, origin, bore, up, loaded: bool = True) -> dict:
+    U, V, W, at = gun_basis(origin, bore, up)
+    v0, v1 = HK_FRAME_V
+    fw = HK_FRAME_W
+    corners = ((v0, -fw), (v0, fw), (v1, fw), (v1, -fw))
+    for u in (HK_LEN - 2.0,):                           # the front cross frame (a rear one hides the tails)
+        for (va, wa), (vb, wb) in zip(corners, corners[1:] + corners[:1]):
+            rig.capsule(at(u, va, wa), at(u, vb, wb), 0.6, 0.6, "olive_paint", 0.55, 0.8)
+    rig.plate(at(0.0, v0, 0.0), U, W, ((2.0, -fw), (HK_LEN - 2.0, -fw), (HK_LEN - 2.0, fw), (2.0, fw)), 0.5,
+              "olive_paint", 0.45, 0.8)                 # the floor of the battery
+    for va, wa in corners:                              # the four long bars
+        rig.capsule(at(1.0, va, wa), at(HK_LEN - 2.0, va, wa), 0.5, 0.5, "olive_paint", 0.5, 0.8)
+    for v, w in hk_rails():                             # the rails
+        rig.plate(at(0.0, v - HK_ROCKET[2] - 0.25, w), U, W, ((0.0, -0.75), (HK_LEN, -0.75), (HK_LEN, 0.75),
+                                                              (0.0, 0.75)), 0.4, "steel", 0.42, 0.85)
+    if loaded:
+        t, n, r = HK_ROCKET
+        for v, w in hk_rails():
+            rig.capsule(at(t, v, w), at(n - HK_NOSE_LEN, v, w), r, r, "steel", 0.5, 0.85, open_ends=True)
+            rig.capsule(at(n - HK_NOSE_LEN, v, w), at(n, v, w), r, r * 0.25, "hull_red", 0.55, 0.8)
+            rig.capsule(at(t - 0.7, v, w), at(t + 0.3, v, w), r * 0.7, r * 0.75, "rubber", 0.15, 0.6,
+                        open_ends=True)                 # the nozzle
+            for dv, dw in ((1, 1), (1, -1), (-1, 1), (-1, -1)):
+                d = unit(V * dv + W * dw)
+                rig.plate(at(t, v, w), U, d, ((0.0, r * 0.9), (3.0, r * 0.9), (2.4, r * 1.45), (0.0, r * 1.45)),
+                          0.22, "steel", 0.5, 0.8)
+    rig.plate(at(HK_GRIP_U, v0 - 0.4), U, V, ((-1.6, 0.4), (2.0, 0.4), (0.8, -9.0), (-2.6, -8.6)), 2.6,
+              "bakelite", 0.5, 0.8)
+    guard_loop(rig, at, ((HK_GRIP_U + 1.6, v0 - 1.2), (HK_GRIP_U + 2.4, v0 - 3.6),
+                         (HK_GRIP_U + 6.0, v0 - 3.2), (HK_GRIP_U + 6.6, v0 - 0.8)))
+    rig.capsule(at(HK_HANDLE_U, v0 - 0.4), at(HK_HANDLE_U + 0.8, v0 - 9.5), 1.3, 1.2, "bakelite", 0.5, 0.8)
+    rails_rear = [at(0.0, v, w) for v, w in hk_rails()]
+    rails_front = [at(HK_LEN, v, w) for v, w in hk_rails()]
+    return {"at": at, "U": U, "V": V, "rear": rails_rear, "front": rails_front,
+            "muzzle": at(HK_LEN, (v0 + v1) / 2)}
+
+
+HK_POSES = (
+    ArmsPose("A", "ready, six loaded", (6.5, 10.0, 24.0), (-0.05, -0.06, 1.0), (0.08, -1.0, 0.0)),
+    ArmsPose("B", "salvo: rails up, empty", (6.8, 8.6, 23.0), (-0.05, -0.16, 1.0), (0.08, -1.0, 0.0),
+             state="empty"),
+)
+HK_RIGHT_ELBOW = (18.0, 40.0, 5.0)
+HK_LEFT_ELBOW = (-18.0, 40.0, 30.0)
+
+
+def render_katyusha_frame(style: HandStyle, pose: ArmsPose) -> tuple[Frame, list]:
+    """A held frame and the screen positions of the six rails' rear ends."""
+    rig = Rig()
+    got = draw_katyusha(rig, pose.origin, pose.bore, pose.up, loaded=pose.state != "empty")
+    at, U, V = got["at"], got["U"], got["V"]
+    v0 = HK_FRAME_V[0]
+    draw_grip(rig, style, at(HK_GRIP_U - 0.8, v0 - 5.0), unit(V + U * 0.16), HK_RIGHT_ELBOW, 1.6, trigger=True)
+    draw_grip(rig, style, at(HK_HANDLE_U + 0.4, v0 - 5.0), unit(V - U * 0.08), HK_LEFT_ELBOW, 1.3, side="left")
+    rear = [rig.project(p) for p in got["rear"]]
+    return finish(rig), rear
+
+
+# ------------------------------------------------------------------ flashes
+def muzzle_burst(rig: Rig, mx: float, my: float, size: float, rot: float) -> None:
+    rig.burst(mx, my, size, rot, "flash_out")
+    rig.burst(mx, my, size * 0.62, rot + 22.5, "flash_in")
+    rig.burst(mx, my, size * 0.25, 0.0, "flash_core", 6, 0.8)
+
+
+def smoke_puffs(rig: Rig, mx: float, my: float, size: float, n: int, seed: int, value: float = 0.45) -> None:
+    rng = np.random.RandomState(seed)
+    for _ in range(n):
+        dx, dy = rng.uniform(-1.0, 1.0) * size, rng.uniform(-1.2, 0.3) * size
+        rig.burst(mx + dx, my + dy, size * rng.uniform(0.45, 0.8), rng.uniform(0, 45), "smoke", 7, 0.7,
+                  value=value + rng.uniform(-0.12, 0.12))
+
+
+TT_FLASH_ON = {"A": "B"}                # flash letter -> held frame it shows over
+TT_FLASH_SIZE = 10.0
+
+
+def render_tt33_flash(which: str, muzzle_xy) -> Frame:
+    rig = Rig()
+    mx, my = muzzle_xy
+    muzzle_burst(rig, mx, my, TT_FLASH_SIZE, 9.0)
+    return finish(rig)
+
+
+IZH_FLASH_ON = {"A": "A", "B": "A"}
+IZH_FLASH_SIZE = {"A": 19.0, "B": 13.0}
+
+
+def render_izh_flash(which: str, muzzle_xy) -> Frame:
+    """Both barrels' muzzles are a few px apart at that distance: one burst
+    covers either barrel, which is all the state machine can tell apart."""
+    rig = Rig()
+    mx, my = muzzle_xy
+    size = IZH_FLASH_SIZE[which]
+    if which == "B":
+        smoke_puffs(rig, mx, my - 4, 6.0, 4, 31)
+    muzzle_burst(rig, mx, my, size, 4.0 if which == "A" else 27.0)
+    return finish(rig)
+
+
+RPG_FLASH_ON = {"A": "B", "B": "B", "C": "B", "D": "B"}
+
+
+def render_rpg7_flash(which: str, muzzle_xy) -> Frame:
+    """MISF's four frames: the blast, then the smoke the grenade leaves."""
+    rig = Rig()
+    mx, my = muzzle_xy
+    if which == "A":
+        muzzle_burst(rig, mx, my, 24.0, 6.0)
+    elif which == "B":
+        smoke_puffs(rig, mx, my - 2, 9.0, 6, 51, 0.5)
+        muzzle_burst(rig, mx, my, 15.0, 24.0)
+    elif which == "C":
+        smoke_puffs(rig, mx, my - 6, 12.0, 8, 52, 0.4)
+        rig.burst(mx, my, 7.0, 12.0, "flame_red", 6, 0.5)
+        rig.burst(mx, my, 4.0, 40.0, "flash_out", 5, 0.5)
+    else:
+        smoke_puffs(rig, mx, my - 10, 15.0, 9, 53, 0.3)
+    return finish(rig)
+
+
+ROKS_FLASH_ON = {"A": "A", "B": "A"}
+ROKS_JET_CM = 400.0                     # how far down the jet the flash is drawn
+ROKS_JET_STEPS = 18
+
+
+def render_roks3_flash(which: str, nozzle_cam, U_cam) -> Frame:
+    """SDKF: the burning jet from the nozzle into the room. Built in 3D: a
+    chain of bursts along the bore, each growing as the jet spreads and
+    shrinking with distance, rising a little as it goes."""
+    rig = Rig()
+    rng = np.random.RandomState(61 if which == "A" else 62)
+    n = np.asarray(nozzle_cam, np.float64)
+    U = unit(U_cam)
+    pts = []
+    for i in range(ROKS_JET_STEPS):
+        d = 2.0 + ROKS_JET_CM * (i / (ROKS_JET_STEPS - 1)) ** 1.4
+        p = n + U * d + np.array([0.0, -0.035 * d, 0.0]) + rng.uniform(-1, 1, 3) * 0.04 * d
+        x, y, s = rig.project(p)
+        r_cm = 0.8 + 0.12 * d
+        pts.append((x, y, r_cm * s, d))
+    for x, y, rpx, d in reversed(pts):          # far first: the near flame sits on top
+        rot = rng.uniform(0, 45)
+        rig.burst(x, y, rpx * 1.15, rot, "flame_red", 7, 0.55)
+        rig.burst(x, y, rpx * 0.8, rot + 20, "flash_out", 7, 0.5)
+        if d < ROKS_JET_CM * 0.6:
+            rig.burst(x, y, rpx * 0.45, rot + 10, "flash_in", 6, 0.6)
+    x, y, rpx, _ = pts[0]
+    rig.burst(x, y, max(3.0, rpx * 0.5), 0.0, "flash_core", 6, 0.8)
+    return finish(rig)
+
+
+HK_FLASH_ON = {"A": "B", "B": "B"}
+
+
+def render_katyusha_flash(which: str, rear_xy) -> Frame:
+    """SDHF A: six motors lighting at the rails' rear ends; B: their smoke."""
+    rig = Rig()
+    for i, (x, y, s) in enumerate(rear_xy):
+        r = 1.45 * s
+        if which == "A":
+            smoke_puffs(rig, x, y, r * 1.1, 2, 70 + i, 0.5)
+            muzzle_burst(rig, x, y, r * 1.6, 7.0 * i)
+        else:
+            smoke_puffs(rig, x, y - r * 0.6, r * 1.4, 3, 80 + i, 0.35)
+            rig.burst(x, y, r * 0.7, 9.0 * i, "flame_red", 6, 0.5)
+    return finish(rig)
+
+
+# ------------------------------------------------------------------ pickups
+def gun_pickup_rig(px_per_cm: float, w: int = PICKUP_W, h: int = PICKUP_H) -> Rig:
+    return Rig(0, 0, w, h, ss=4, focal=px_per_cm * PICKUP_DIST, centre=(w / 2, h / 2))
+
+
+# px per cm, chosen so each pickup is the size of the Freedoom one it
+# replaces (measured on freedoom2.wad 0.13.0, the size in the comment)
+TT_PICKUP_PX_PER_CM = 1.15      # 20 cm -> ~23 px  (PISTA0)
+IZH_PICKUP_PX_PER_CM = 0.55     # 113 cm -> ~62 px (SHOTA0)
+RPG_PICKUP_PX_PER_CM = 0.46     # 136 cm -> ~62 px (LAUNA0)
+ROKS_PICKUP_PX_PER_CM = 0.62    # gun and tank -> ~56 px (PLASA0)
+HK_PICKUP_PX_PER_CM = 1.25      # 44 cm battery -> ~60 px (BFUGA0)
+
+
+def render_tt33_pickup() -> Frame:
+    rig = gun_pickup_rig(TT_PICKUP_PX_PER_CM)
+    right, away, up = floor_basis()
+    draw_tt33(rig, np.array([0.0, 0.0, PICKUP_DIST]) + right * 8.0 + up * 5.0, -right, up)
+    return finish(rig, hud=False)
+
+
+def render_izh_pickup() -> Frame:
+    rig = gun_pickup_rig(IZH_PICKUP_PX_PER_CM)
+    right, away, up = floor_basis()
+    draw_izh(rig, np.array([0.0, 0.0, PICKUP_DIST]) + right * 16.0 + up * 3.0, -right, up, hud=False)
+    return finish(rig, hud=False)
+
+
+def render_rpg7_pickup() -> Frame:
+    rig = gun_pickup_rig(RPG_PICKUP_PX_PER_CM)
+    right, away, up = floor_basis()
+    draw_rpg7(rig, np.array([0.0, 0.0, PICKUP_DIST]) + right * 66.0 + up * 4.0, -right, up, hud=False, k=1.15)
+    return finish(rig, hud=False)
+
+
+def render_roks3_pickup() -> Frame:
+    """The gun, its hose and the cylindrical tank behind it: the tank is
+    what says flamethrower from across a room."""
+    rig = gun_pickup_rig(ROKS_PICKUP_PX_PER_CM)
+    right, away, up = floor_basis()
+    c = np.array([0.0, 0.0, PICKUP_DIST])
+    tank0 = c + away * 18.0 + right * 22.0 + up * 9.0
+    rig.capsule(tank0, tank0 - right * 40.0, 9.0, 9.0, "olive_paint", 0.5, 0.8)
+    rig.capsule(tank0 - right * 40.0, tank0 - right * 43.0, 3.0, 2.0, "steel", 0.5, 0.85)
+    draw_roks3(rig, c + right * 14.0 + up * 3.0 - away * 6.0, -right, up, hud=False,
+               hose_end=tank0 - right * 40.0)
+    return finish(rig, hud=False)
+
+
+def render_katyusha_pickup() -> Frame:
+    rig = gun_pickup_rig(HK_PICKUP_PX_PER_CM, PICKUP_W, 56)
+    right, away, up = floor_basis()
+    U = unit(-right * 0.85 + away * 0.55)
+    draw_katyusha(rig, np.array([0.0, 0.0, PICKUP_DIST]) - U * (HK_LEN / 2) + up * 10.0, U, up)
+    return finish(rig, hud=False)
+
+
+# ------------------------------------------------------------------ specs
+@dataclass(frozen=True)
+class WeaponSpec:
+    key: str                # the CLI name and the work/ folder
+    title: str
+    slot: int
+    zs: str                 # src/zscript/weapons/<zs>
+    held: str               # final names, MOD-SPEC 6.3
+    flash: str
+    pickup: str
+    ph_held: str            # the Freedoom placeholder the .zs names today
+    ph_flash: str
+    ph_pickup: str
+    reserved: str           # MOD-SPEC's held range, for the sheet
+    slug: str
+    pickup_wall: str
+    pickup_light: int
+
+
+WEAPONS = {
+    "tt33": WeaponSpec("tt33", "SLOT 2: THE TT-33 TOKAREV", 2, "tokarev.zs", TT_SPRITE, TT_FLASH, TT_PICKUP,
+                       "PISG", "PISF", "PIST", "A-E", "tt33", "SDCONC1", 144),
+    "izh": WeaponSpec("izh", "SLOT 3: THE IZH-58", 3, "izh.zs", IZH_SPRITE, IZH_FLASH, IZH_PICKUP,
+                      "SHTG", "SHTF", "SHOT", "A-F", "izh58", "SDLOCK1", 144),
+    "rpg7": WeaponSpec("rpg7", "SLOT 5: THE RPG-7", 5, "rpg7.zs", RPG_SPRITE, RPG_FLASH, RPG_PICKUP,
+                       "MISG", "MISF", "LAUN", "A-B", "rpg7", "SDSTEL1", 176),
+    "roks3": WeaponSpec("roks3", "SLOT 6: THE ROKS-3 FLAMETHROWER", 6, "roks3.zs", ROKS_SPRITE, ROKS_FLASH,
+                        ROKS_PICKUP, "PLSG", "PLSF", "PLAS", "A-B", "roks3", "SDSTEL1", 176),
+    "katyusha": WeaponSpec("katyusha", "SLOT 7: THE HAND KATYUSHA", 7, "katyusha.zs", HK_SPRITE, HK_FLASH,
+                           HK_PICKUP, "BFGG", "BFGF", "BFUG", "A-C", "hand-katyusha", "SDSTEL1", 176),
+}
+WEAPON_POSES = {"tt33": TT_POSES, "izh": IZH_POSES, "rpg7": RPG_POSES, "roks3": ROKS_POSES, "katyusha": HK_POSES}
+FLASH_ON = {"tt33": TT_FLASH_ON, "izh": IZH_FLASH_ON, "rpg7": RPG_FLASH_ON, "roks3": ROKS_FLASH_ON,
+            "katyusha": HK_FLASH_ON}
+PICKUP_RENDER = {"tt33": render_tt33_pickup, "izh": render_izh_pickup, "rpg7": render_rpg7_pickup,
+                 "roks3": render_roks3_pickup, "katyusha": render_katyusha_pickup}
+
+
+def render_weapon(key: str, style: HandStyle) -> tuple[dict, dict, Frame]:
+    """Every held frame, every flash frame and the pickup of one weapon:
+    ({letter: Frame}, {letter: Frame}, pickup)."""
+    poses = WEAPON_POSES[key]
+    held, anchor = {}, {}
+    for pose in poses:
+        if key == "tt33":
+            held[pose.frame], anchor[pose.frame] = render_tt33_frame(style, pose)
+        elif key == "izh":
+            held[pose.frame], anchor[pose.frame] = render_izh_frame(style, pose)
+        elif key == "rpg7":
+            held[pose.frame], anchor[pose.frame] = render_rpg7_frame(style, pose)
+        elif key == "roks3":
+            held[pose.frame], anchor[pose.frame] = render_roks3_frame(style, pose)
+        else:
+            held[pose.frame], anchor[pose.frame] = render_katyusha_frame(style, pose)
+    flashes = {}
+    for letter, on in FLASH_ON[key].items():
+        if key == "tt33":
+            flashes[letter] = render_tt33_flash(letter, anchor[on])
+        elif key == "izh":
+            flashes[letter] = render_izh_flash(letter, anchor[on])
+        elif key == "rpg7":
+            flashes[letter] = render_rpg7_flash(letter, anchor[on])
+        elif key == "roks3":
+            pose = next(p for p in poses if p.frame == on)
+            U, V, W, at = gun_basis(pose.origin, pose.bore, pose.up)
+            flashes[letter] = render_roks3_flash(letter, at(ROKS_NOZZLE[1] + 0.4), U)
+        else:
+            flashes[letter] = render_katyusha_flash(letter, anchor[on])
+    return held, flashes, PICKUP_RENDER[key]()
+
+
+def zs_letters(spec: WeaponSpec) -> tuple[set, set]:
+    """The frame letters the weapon's state machine names for its held and
+    flash placeholders (read from src/zscript/weapons/, never edited)."""
+    text = (PROJECT_ROOT / "src" / "zscript" / "weapons" / spec.zs).read_text(encoding="utf-8")
+    out = []
+    for sprite in (spec.ph_held, spec.ph_flash):
+        letters = set()
+        for m in re.finditer(rf"^\s*{sprite}\s+([A-Z]+)\s", text, re.M):
+            letters |= set(m.group(1))
+        out.append(letters)
+    return out[0], out[1]
+
+
+def sprite_name(name: str, letter: str, wired: bool = True) -> str:
+    return f"{name}{letter}0" if wired else f"{name}{letter}0_proposed"
+
+
+WEAPON_TEXT = {
+    "tt33": {
+        "recommend": "AS DRAWN, WITH THE HAND THE CEO PICKS.",
+        "intro": "The TT-33 in the right hand alone, as Doom holds its pistol, seen from behind and a little to "
+                 "the right so the slab side of the slide, the rear serrations, the cocked hammer and the "
+                 "bakelite grip with its star medallion show. Three frames, as tokarev.zs plays them: A at rest, "
+                 "B the shot (the slide thrown back over the barrel, the muzzle up), C the top of the kick with "
+                 "the slide home; then B again on the way down.",
+        "verdict": [
+            "WHY AS DRAWN. One hand, centred-right, the muzzle a little under the crosshair: the TT reads by its "
+            "slab slide and the rake of the grip, and both stay on screen through the kick.",
+            "WEAKNESSES. The serrations and the medallion are one or two pixels at 1x; at that size the star is a "
+            "dot, not a star. The pistol is small, so the glove is half the sprite. MOD-SPEC reserves SDTT A-E; "
+            "the state machine shows A-C only, so D and E are not drawn. Positions NOT VERIFIED in GZDoom "
+            "(engine pass owed, D26).",
+        ],
+    },
+    "izh": {
+        "recommend": "AS DRAWN, A-D; E-F ONLY IF THE CEO WANTS A FULLER RELOAD (A STATE EDIT).",
+        "intro": "The IZh-58 side-by-side in both hands, the two barrels running in to the crosshair. izh.zs "
+                 "shares frames between the shot and the reload, so each frame has to work in both: Fire "
+                 "plays A (flash) B C A, Reload plays D C B A. A rest; B the kick, which on the way back "
+                 "up from the reload reads as raising the gun; C the gun low and shut, which after D reads "
+                 "as the snap closed; D broken open on its hinge, the left chamber loaded and the right "
+                 "shell going in.",
+        "verdict": [
+            "WHY AS DRAWN. Two barrels side by side are the IZh's face. Doom II's super shotgun is a double "
+            "too, but the mod removes it (editor number 82 maps to None), so the shape is ours. The barrels are "
+            "drawn 1.6 times fatter than life so the pair reads at 1x, as Doom exaggerates its own weapons. "
+            "D is the only open frame because the state machine has one; it is the "
+            "frame that sells the reload, so it is the most detailed: breech towards the eye, brass heads, "
+            "a red hull half in.",
+            "WEAKNESSES. With B and C shared, the reload is open, shut, up: there is no frame of the barrels "
+            "swinging home. MOD-SPEC reserves SDIZ A-F; E (barrels half closed) and F (shell ejected) would "
+            "give a proper break-open, at the price of a Reload edit by the mod-engineer (D E F C B A). Not "
+            "drawn until asked. One flash covers both barrels: at the muzzle they are a few px apart. Positions NOT "
+            "VERIFIED in GZDoom (engine pass owed, D26).",
+        ],
+    },
+    "rpg7": {
+        "recommend": "A-B AS DRAWN; THE RELOAD C-D IF THE CEO WANTS ONE (MOD-SPEC AND A STATE EDIT).",
+        "intro": "The RPG-7 on the right shoulder, the tube running in from the bottom right to just under the "
+                 "crosshair, the PG-7V's olive cone sitting out of the muzzle. rpg7.zs plays A at rest and B "
+                 "for the whole 26-tic shot (the grenade gone, the tube kicked), with MISF's four flash frames "
+                 "over B: the blast, then smoke. It has NO reload state: the loaded A simply comes back. C "
+                 "and D are drawn as a PROPOSAL for that reload.",
+        "verdict": [
+            "WHY AS DRAWN. The warhead's cone is the RPG-7's whole silhouette, so A shows it exaggerated (x1.5, as "
+            "Doom exaggerates) and B shows the empty muzzle: the player sees the round leave.",
+            "PROPOSAL, NOT WIRED: SDRLC0_proposed (the left hand brings up a new round) and SDRLD0_proposed "
+            "(the round seated, the hand pushing it home). Using them needs MOD-SPEC 6.3 to reserve SDRL A-D "
+            "and the mod-engineer to add them to Fire (for example B 8, C 8, D 6 inside today's 26 tics). "
+            "Until then they are files in work/ and nothing else.",
+            "WEAKNESSES. Even at x1.5 the warhead is small at rest (about 15 px across), smaller than the round "
+            "in the reload frames. The tube runs past the eye, so the pistol grip, the right hand and the birch "
+            "heat guard are behind it and never on screen; the left hand only shows its knuckles at the bottom "
+            "right. No PGO-7 optic: the eye would be at it, so it is left off. Positions NOT VERIFIED in GZDoom "
+            "(engine pass owed, D26).",
+        ],
+    },
+    "roks3": {
+        "recommend": "AS DRAWN, WITH THE HAND THE CEO PICKS.",
+        "intro": "The ROKS-3 gun at the hip like the PPSh: birch stock, the valve body, the fuel tube and the "
+                 "drum of igniter cartridges round the nozzle; the hose runs down to the tank on the back, out of view in "
+                 "first person and shown on the pickup. "
+                 "roks3.zs: A at rest and, Bright, while the jet runs (3 tics a jet); B for 20 tics when the "
+                 "trigger is let go; the flash is SDKF A, the burning jet. B of the flash is drawn as a spare "
+                 "with a different flicker, unused today.",
+        "verdict": [
+            "WHY AS DRAWN. The igniter drum at the muzzle says flamethrower before it fires; the jet is drawn in "
+            "3D along the bore, so it grows as it goes into the room where the projectile goes. The pickup adds "
+            "the tank and hose, which is what says flamethrower from across a room.",
+            "WEAKNESSES. Held at the hip, the bore points away from the eye, so the jet foreshortens into a "
+            "ball of fire about 45 px long rather than a long tongue across the screen. It is a cluster of stars, "
+            "Doom's flash grammar, not a fluid. The flash covers part of the gun while it fires, as Doom's plasma does. "
+            "SDKF B is unused until the mod-engineer alternates the flash. Positions NOT VERIFIED in GZDoom "
+            "(engine pass owed, D26).",
+        ],
+    },
+    "katyusha": {
+        "recommend": "NOT YET: A SECOND PASS AS A CLOSED LAUNCH BOX, PICKUP INCLUDED (ITS GRIPS READ AS BENCH LEGS).",
+        "intro": "The hand Katyusha (a 1977 prototype in the LORE) on the right shoulder: six rockets in two rows "
+                 "of three on an olive frame, gripped by a bakelite pistol grip and a forward handle. Seen from "
+                 "behind, the six tails with their fins are its face. katyusha.zs: A at rest (also the 20-tic "
+                 "wind-up), B for the salvo and after it (rails up and empty); SDHF A the six motors lighting, "
+                 "SDHF B their smoke.",
+        "verdict": [
+            "WEAKEST OF THE FIVE. Seen along the rails, the six rockets, their fins and the frame overlap into a "
+            "bundle of grey sticks; at 1x it reads as a rack of rockets, not as a clean two-by-three grid. If the "
+            "CEO wants it cleaner, the next try is a closed launch box (six tubes in an olive case) instead of "
+            "open rails.",
+            "WHY AS DRAWN. Six rockets on an olive frame read as a battery and nothing in Doom looks like it; "
+            "the empty rails of B tell the player the salvo has gone, and the six bursts of the flash count the "
+            "rockets.",
+            "WEAKNESSES. The state machine shows B, already empty, for the 10 tics BEFORE the rockets leave, "
+            "under the flash: the flash hides the rails then, but a slow eye may see the rockets vanish before "
+            "the fire. The fix is a state edit (A until the launch), not art. The wind-up is A held still: "
+            "the comment in katyusha.zs speaks of the rails coming up, and that needs a frame between A and B "
+            "(SDHK C is reserved and not drawn). Positions NOT VERIFIED in GZDoom (engine pass owed, D26).",
+        ],
+    },
+}
+
+
+def build_weapon(key: str, stamp: str, hand: str = RECOMMENDED_HAND, out_dir: Path = OUT_DIR,
+                 preview_dir: Path = PREVIEW_DIR) -> tuple[Path, dict]:
+    spec, style = WEAPONS[key], HAND[hand]
+    poses = WEAPON_POSES[key]
+    wdir = out_dir / key
+    held, flashes, pickup = render_weapon(key, style)
+    metrics = {}
+    for pose in poses:
+        name = sprite_name(spec.held, pose.frame, pose.wired)
+        save_sprite(held[pose.frame], wdir / f"{name}.png")
+        metrics[name] = {"pose": pose.name, "wired": pose.wired, "size": list(held[pose.frame].rgba.shape[1::-1]),
+                         "offsets": [int(v) for v in held[pose.frame].offsets()]}
+    for letter, f in flashes.items():
+        name = sprite_name(spec.flash, letter)
+        save_sprite(f, wdir / f"{name}.png")
+        metrics[name] = {"over": f"{spec.held}{FLASH_ON[key][letter]}0", "size": list(f.rgba.shape[1::-1]),
+                         "offsets": [int(v) for v in f.offsets()]}
+    pname = f"{spec.pickup}A0"
+    save_sprite(pickup, wdir / f"{pname}.png")
+    metrics[pname] = {"pickup": True, "size": list(pickup.rgba.shape[1::-1]),
+                      "offsets": [int(v) for v in pickup.offsets()]}
+    zs_held, zs_flash = zs_letters(spec)
+    metrics["_state_machine"] = {"file": f"src/zscript/weapons/{spec.zs}", "held_placeholder": spec.ph_held,
+                                 "held_letters": "".join(sorted(zs_held)), "flash_placeholder": spec.ph_flash,
+                                 "flash_letters": "".join(sorted(zs_flash)), "hand": hand}
+    (wdir / "metrics.json").write_text(json.dumps(metrics, indent=2) + "\n", encoding="utf-8")
+
+    text = WEAPON_TEXT[key]
+    S = Sheet(2000, f"SOVIET DOOM  ·  F4  ·  {spec.title}  ·  FIRST PERSON, FLASH AND PICKUP", stamp)
+    S.para(text["intro"])
+    S.para(f"HAND STYLE {hand} OF THE HAND SWEEP (ANY LETTER RE-RENDERS: GEN_WEAPON.PY {key.upper()} --HAND X). "
+           f"NAMES, MOD-SPEC 6.3: {spec.held} {spec.reserved} HELD, {spec.flash} FLASH, {spec.pickup} A PICKUP. "
+           f"STATE MACHINE ({spec.zs}, READ, NOT EDITED): {spec.ph_held} {''.join(sorted(zs_held))} -> "
+           f"{spec.held}, {spec.ph_flash} {''.join(sorted(zs_flash))} -> {spec.flash}, {spec.ph_pickup} A -> "
+           f"{spec.pickup}. Built by tools/art/gen_weapon.py, palette v1 only, no system fonts. Draft, nothing "
+           "in assets/.", S.dim)
+    S.y += 6
+    views = []
+    for pose in poses:
+        tag = f"{sprite_name(spec.held, pose.frame, pose.wired)}  ·  {pose.name.upper()}"
+        views.append((tag, [held[pose.frame]], pose.wired))
+    for letter, on in FLASH_ON[key].items():
+        views.append((f"{spec.held}{on}0 + {spec.flash}{letter}0", [held[on], flashes[letter]], True))
+    for i in range(0, len(views), 3):
+        x, h_row = S.pad, 0
+        for tag, fs, wired in views[i:i + 3]:
+            S.label((x, S.y), tag, S.gold if wired else S.red)
+            w2, h2 = S.paste(on_screen(fs), (x, S.y + S.T.line_h() + 4), 2)
+            x += w2 + 16
+            h_row = max(h_row, h2 + S.T.line_h() + 4)
+        S.y += h_row + 14
+    items = [f"{k} {m['size'][0]}X{m['size'][1]} GRAB {m['offsets'][0]},{m['offsets'][1]}"
+             for k, m in metrics.items() if not k.startswith("_")]
+    for i in range(0, len(items), 3):
+        S.label((S.pad, S.y), "  ·  ".join(items[i:i + 3]))
+        S.y += S.T.line_h()
+    S.para("Each view is the whole 320x200 weapon space at 2x with the frame at rest (no bob); the dotted line "
+           "is the top of the classic status bar. Red labels: proposed frames the state machine does not show.",
+           S.dim)
+    S.y += 8
+    x = S.pad
+    fd = [freedoom_sprite(f"{spec.ph_held}A0"), freedoom_sprite(f"{spec.ph_flash}A0")]
+    if fd[0] is not None:
+        today = f"TODAY: {spec.ph_held}A0 + {spec.ph_flash}A0, 1X"
+        S.label((x, S.y), today, S.gold)
+        S.paste(on_screen([f for f in fd if f is not None]), (x, S.y + S.T.line_h() + 4), 1)
+        x += max(SCREEN_W, S.T.width(today)) + 40
+    S.label((x, S.y), f"{pname} BEFORE {spec.pickup_wall}, LIGHT {spec.pickup_light}: 4X, 1X; "
+            f"FREEDOOM {spec.ph_pickup}A0 BESIDE IT AT 1X", S.gold)
+    sc = pickup_scene(pickup, spec.pickup_light, spec.pickup_wall)
+    top = S.y + S.T.line_h() + 4
+    w4, h4 = S.paste(sc, (x, top), 4)
+    S.label((x + w4 + 12, top), "OURS")
+    S.paste(sc, (x + w4 + 12, top + S.T.line_h() + 2), 1)
+    ph = freedoom_sprite(f"{spec.ph_pickup}A0")
+    if ph is not None:
+        ph = Frame(ph.rgba, ph.mat, ph.rgba.shape[1] // 2, ph.rgba.shape[0], False)
+        yy = top + S.T.line_h() + 2 + sc.shape[0] + 10
+        S.label((x + w4 + 12, yy), f"TODAY: {spec.ph_pickup}A0")
+        S.paste(pickup_scene(ph, spec.pickup_light, spec.pickup_wall), (x + w4 + 12, yy + S.T.line_h() + 2), 1)
+    S.y = top + max(h4, SCREEN_H) + 18
+    S.label((S.pad, S.y), f"RECOMMENDATION: {text['recommend']}", S.red)
+    S.y += S.T.line_h() + 2
+    for v in text["verdict"]:
+        S.para(v)
+    path = S.save(preview_dir / f"{stamp}_F4_{spec.slug}.png")
+    return path, metrics
+
+
+ONE_X_GAP = 10                  # px between the 1x views of the overview
+
+
+def build_arsenal(stamp: str, hand: str = RECOMMENDED_HAND, out_dir: Path = OUT_DIR,
+                  preview_dir: Path = PREVIEW_DIR) -> tuple[Path, dict]:
+    """The five weapons above, each with its own sheet, then one overview:
+    all seven weapons at rest, side by side at 1x, to judge them as a set."""
+    style = HAND[hand]
+    out = {}
+    for key in WEAPONS:
+        path, _ = build_weapon(key, stamp, hand, out_dir, preview_dir)
+        out[key] = str(path.relative_to(PROJECT_ROOT)) if path.is_relative_to(PROJECT_ROOT) else str(path)
+    idle = [("1 ICE AXE  SDAXA0", render_axe_frame(style, AXE_POSE["A"]))]
+    for key, label in (("tt33", "2 TT-33  SDTTA0"), ("izh", "3 IZH-58  SDIZA0")):
+        idle.append((label, render_weapon_idle(key, style)))
+    idle.append(("4 PPSH-41  SDPPA0", render_ppsh_frame(style, PPSH_POSE["A"])[0]))
+    for key, label in (("rpg7", "5 RPG-7  SDRLA0"), ("roks3", "6 ROKS-3  SDRKA0"), ("katyusha", "7 HAND KATYUSHA  SDHKA0")):
+        idle.append((label, render_weapon_idle(key, style)))
+    S = Sheet(2000, "SOVIET DOOM  ·  F4  ·  THE ARSENAL AT REST  ·  ALL SEVEN SLOTS, 1X AND 2X", stamp)
+    S.para(f"Every slot's frame A in hand style {hand}, on the same MAP01 view, so the seven can be judged as one "
+           "set: size on screen, where each sits, how much of the view each takes. Top: 2x. Bottom: 1x, the size "
+           "the game shows them on a 320x200 screen. The ice axe and the PPSh-41 are the drafts already on the "
+           "CEO's gate; the other five are new. Draft, nothing in assets/.")
+    S.y += 6
+    for i in range(0, len(idle), 3):
+        x, h_row = S.pad, 0
+        for label, f in idle[i:i + 3]:
+            S.label((x, S.y), label, S.gold)
+            w2, h2 = S.paste(on_screen([f]), (x, S.y + S.T.line_h() + 4), 2)
+            x += w2 + 16
+            h_row = max(h_row, h2 + S.T.line_h() + 4)
+        S.y += h_row + 14
+    per_row = (S.width - 2 * S.pad + ONE_X_GAP) // (SCREEN_W + ONE_X_GAP)
+    for i in range(0, len(idle), per_row):
+        for j, (_, f) in enumerate(idle[i:i + per_row]):
+            S.paste(on_screen([f]), (S.pad + j * (SCREEN_W + ONE_X_GAP), S.y), 1)
+        S.y += SCREEN_H + ONE_X_GAP
+    S.y += 4
+    S.label((S.pad, S.y), "RECOMMENDATION: THE SET AS DRAWN, EXCEPT THE HAND KATYUSHA (SECOND PASS).", S.red)
+    S.y += S.T.line_h() + 2
+    S.para("THE SET. All seven share one hand, one light and one palette, and each is held where its real "
+           "counterpart would be: the pistol in one hand, the long guns at the hip, the tubes on the shoulder. "
+           "Weak points of the set: the hand Katyusha is a bundle of sticks, the weakest of the seven; the RPG-7 "
+           "shows almost no hand at rest (the grip is behind the eye); the TT-33 is the smallest by far, as "
+           "Doom's pistol is. Every "
+           "position is NOT VERIFIED in GZDoom until the engine pass (owed, D26).")
+    path = S.save(preview_dir / f"{stamp}_F4_arsenal-at-rest.png")
+    out["arsenal"] = str(path.relative_to(PROJECT_ROOT))
+    return path, out
+
+
+def render_weapon_idle(key: str, style: HandStyle) -> Frame:
+    pose = WEAPON_POSES[key][0]
+    fn = {"tt33": render_tt33_frame, "izh": render_izh_frame, "rpg7": render_rpg7_frame,
+          "roks3": render_roks3_frame, "katyusha": render_katyusha_frame}[key]
+    return fn(style, pose)[0]
+
+
 # ==================================================================== main
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("what", choices=("hands", "axe", "ppsh"))
+    ap.add_argument("what", choices=("hands", "axe", "ppsh", *WEAPONS, "arsenal"))
     ap.add_argument("--hand", default=RECOMMENDED_HAND, choices=sorted(HAND))
     ap.add_argument("--stamp", default=dt.datetime.now().strftime("%Y-%m-%d_%H%M"),
                     help="YYYY-MM-DD_HHMM for the sheet's file name")
@@ -1431,8 +2398,12 @@ def main(argv=None) -> None:
         path, metrics = build_hands(args.stamp)
     elif args.what == "axe":
         path, metrics = build_axe(args.stamp, args.hand)
-    else:
+    elif args.what == "ppsh":
         path, metrics = build_ppsh(args.stamp, args.hand)
+    elif args.what == "arsenal":
+        path, metrics = build_arsenal(args.stamp, args.hand)
+    else:
+        path, metrics = build_weapon(args.what, args.stamp, args.hand)
     for k, m in metrics.items():
         print(k, m)
     print("sheet:", path.relative_to(PROJECT_ROOT))
