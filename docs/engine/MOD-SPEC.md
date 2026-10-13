@@ -10,7 +10,9 @@ recorded after the `pmo` audit of the Mac batch (PMO-09, PMO-10),
 2026-10-13, pending the engine pass (F0 pipeline verified 2026-10-09);
 F5 bestiary — eight enemy classes and four projectiles with Freedoom
 placeholders, their editor numbers, sounds, sprites and MAP02 bench (D35,
-§5.1, §6, §6.1–6.3), 2026-10-13, **pending the engine pass**.
+§5.1, §6, §6.1–6.3), 2026-10-13; **engine pass done the same day**
+(clean load, drops, one summon: ADR 006, `docs/engine/adr/006-bestiary-actors.md`),
+with infighting, blood colour and attack numbers still NOT VERIFIED (T22).
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -146,7 +148,7 @@ that anyone touching this needs:
 - **The end-of-episode text belongs to the CLUSTER, not to the map.** The
   obvious `next = EndGame { Text = "…" }` does not parse: an endgame block
   accepts only `pic`, `hscroll`, `vscroll`, `cast` and `music`
-  (`ParseEndGame`, `src/intermission/intermission_parse.cpp`), and GZDoom
+  (`ParseEndGame`, gzdoom: src/intermission/intermission_parse.cpp, engine source, not a file of this repo), and GZDoom
   answers `Unknown property 'Text' found in endgame definition`. The copy is
   `cluster 1 { exittext = lookup, "SD_END01_TEXT" flat = "SDFLR1" }`.
 - **`next = endtitle`** is the named end sequence for "roll the ending, then
@@ -352,7 +354,7 @@ previous sprite" markers are the engine's and need no row.
 | `BFGG` | sprite | `SD_HandKatyusha` (held) | idem |
 | `BFGF` | sprite | `SD_HandKatyusha` (flash) | idem |
 | `BFUG` | sprite | `SD_HandKatyusha` (pickup) | idem |
-| `POSS` | sprite | `SD_ReichRifleman` | frames in the IWAD (test); engine pass owed |
+| `POSS` | sprite | `SD_ReichRifleman` | frames in the IWAD (test); engine pass 2026-10-13: no `Missing sprite` (not every state was exercised) |
 | `SPOS` | sprite | `SD_LegionTrooper` | idem |
 | `TROO` | sprite | `SD_Stormtrooper` | idem |
 | `BAL1` | sprite | `SD_StormBolt` | idem |
@@ -384,8 +386,8 @@ in the IWAD.
 | Class | Type | Purpose |
 |---|---|---|
 | `SD_LoadReporter` | `EventHandler` | `WorldLoaded` → `Console.Printf("SOVIETDOOM loaded: …")`. Pipeline smoke test. No gameplay effect. |
-| `SD_Player` | `DoomPlayer` | The sergeant. Starts with `SD_Tokarev`, `SD_Shovel`, 50 `Clip`. Declares slots 1–7. |
-| `SD_Shovel` | `Fist` *replaces Fist* | Slot 1, melee. |
+| `SD_Player` | `DoomPlayer` | The sergeant. Starts with `SD_Tokarev` and 50 `Clip`, nothing else: no shovel and no `Fist`, so slot 1 is empty until a shovel is picked up (since 2026-10-13, `BALANCE.md` §4.1). Declares slots 1–7. |
+| `SD_Shovel` | `Fist` *replaces Fist* | Slot 1, melee. Found, never issued: MAP01 places it on the dorm's rack (every skill, reachable with every door shut), MAP02 on the range. |
 | `SD_Tokarev` | `Pistol` *replaces Pistol* | Slot 2, `Clip`. |
 | `SD_Izh` | `Shotgun` *replaces Shotgun* | Slot 3, `Shell`. Two barrels then a break-open reload (`int barrels`). |
 | `SD_Ppsh` | `Chaingun` *replaces Chaingun* | Slot 4, `Clip`. |
@@ -395,7 +397,7 @@ in the IWAD.
 | `SD_Pg7Grenade` | `Rocket` | Shaped-charge projectile. Not placeable. |
 | `SD_FlameBlob` | `Actor` | Fire projectile, 528-unit reach. Not placeable. |
 | `SD_KatyushaRocket` | `Rocket` | Salvo rocket, does not hurt the shooter. Not placeable. |
-| `SD_Monster` | `Actor` | Bestiary base (F5): `Monster`, `+FLOORCLIP`, the `Faction` property and the three attack helpers. Not placeable. Why enemies do not derive from Doom's monsters: `BESTIARY.md` §2.4. |
+| `SD_Monster` | `Actor` | Bestiary base (F5): `Monster`, `+FLOORCLIP`, the `Faction` property and the three attack helpers. Not placeable. Why enemies do not derive from Doom's monsters, why each sets its own `Species`: ADR 006 (`BESTIARY.md` §2.4 is the earlier draft). |
 | `SD_ReichRifleman` | `SD_Monster` *replaces ZombieMan* | Reich infantry, 20 HP, one hitscan. Drops `SD_Clip`. |
 | `SD_LegionTrooper` | `SD_Monster` *replaces ShotgunGuy* | Legion infantry, 30 HP, three pellets. Drops `SD_Izh`. |
 | `SD_Stormtrooper` | `SD_Monster` *replaces DoomImp* | The hybrid, 60 HP, claw or `SD_StormBolt`. |
@@ -638,7 +640,7 @@ done:
 
 | Way | What it is | Cost | Consequence |
 |---|---|---|---|
-| **Own `STBAR`** | `art-director` repaints one 320×32 graphic with Cyrillic labels; it ships as `src/graphics/STBAR.png` and overrides the IWAD lump by name (standard lump replacement; **not yet verified in this project**). | ~1 art task, 0 code | Cheapest. The bar keeps Doom's exact layout, and the numbers keep working untouched. Locked to one language — the Russian and English builds would show the same bar. |
+| **Own `STBAR`** | `art-director` repaints one 320×32 graphic with Cyrillic labels; it would ship as src/graphics/STBAR.png (planned path, **not in the tree yet**) and override the IWAD lump by name (standard lump replacement; **not yet verified in this project**). | ~1 art task, 0 code | Cheapest. The bar keeps Doom's exact layout, and the numbers keep working untouched. Locked to one language — the Russian and English builds would show the same bar. |
 | **Own status bar** | A `SBARINFO` lump or a ZScript `BaseStatusBar` subclass draws the whole bar ourselves. | ~1 engineering task + the same art | Full control: localized labels, Soviet layout, our own ammo `Tag`s finally visible. Also our bug surface, and it has to be redrawn for the alt-HUD and widescreen. |
 
 **Recommendation: neither yet.** The Cyrillic font was the prerequisite
@@ -726,7 +728,7 @@ Two engine behaviours that would replace the font, both read in
 No ZScript is involved in any of it. A mod may write a CVar from ZScript
 only while the engine is handling menu input — `DMenu::InMenu` is raised
 around `OnUIEvent`, `OnInputEvent` and `MenuEvent` and nothing else
-(`src/common/menu/menu.cpp`) — so a write from `Init`, `Ticker` or `Drawer`
+(gzdoom: src/common/menu/menu.cpp, engine source, not a file of this repo) — so a write from `Init`, `Ticker` or `Drawer`
 aborts the VM and drops the player to the console. **Do not add a menu
 ZScript class that writes a CVar.**
 
@@ -781,23 +783,24 @@ disagree, the code is right and the doc is the bug.
 | # | Debt | Pay it in |
 |---|---|---|
 | T1 | Every weapon sprite and sound is a Freedoom placeholder (§6.2, §6.3). | F4, once `art-director` and `sound-designer` deliver |
-| ~~T2~~ | ~~Ammo pickups still read as Freedoom items.~~ **Paid 2026-10-13**: §6.4. |  |
+| ~~T2~~ | ~~Ammo pickups still read as Freedoom items.~~ **Paid 2026-10-13** (commit `720acd1`): §6.4. |  |
 | T3 | `Player.DisplayName` is a plain English literal, not a `LANGUAGE` lookup — unverified whether that property resolves `$IDs`. | F5 |
 | T4 | Freedoom's `Chainsaw` and `SuperShotgun` classes still exist; only their editor numbers were removed. | F6, if it ever matters |
 | T5 | The DPS figures in `BALANCE.md` are computed, not measured against real enemies. The enemies have hit points since F5 and `BALANCE.md` §7 computes shots-to-kill; nothing is measured yet. | F5 playtest of MAP01 v3 |
-| ~~T6~~ | ~~`MAP02` uses Freedoom monsters as targets.~~ **Paid 2026-10-13 (F5)**: the 3004 targets spawn `SD_ReichRifleman`, and the bestiary gallery holds one of each class (§4). The barrels are still Freedoom's. |  |
+| ~~T6~~ | ~~`MAP02` uses Freedoom monsters as targets.~~ **Paid 2026-10-13, F5** (commit `2b1aba5`): the 3004 targets spawn `SD_ReichRifleman`, and the bestiary gallery holds one of each class (§4); seen in the engine the same day (ADR 006). The barrels are still Freedoom's. |  |
 | T7 | No `CVARINFO` yet; nothing in the arsenal is player-tunable. | when a gameplay option needs it |
 | T8 | Ammo and backpack pickups are Freedoom sprites: flat, not Soviet crates (§6.3). | F5/F6 with the rest of the pickup art |
-| ~~T9~~ | ~~No Cyrillic in the game's font.~~ **Paid 2026-10-13 by D24**: `fonts/defsmallfont/` and `fonts/bigfont/`, 214 glyphs (§2, §6.4). The player-facing warning it carried (`SD_OPTMNU_LANGWARN`, "Cyrillic is not drawn yet") is deleted from `LANGUAGE` and `MENUDEF`. |  |
+| ~~T9~~ | ~~No Cyrillic in the game's font.~~ **Paid 2026-10-13 by D24** (font install `32b384e`, warning removed in `401a02e`): `fonts/defsmallfont/` and `fonts/bigfont/`, 214 glyphs (§2, §6.4). The player-facing warning it carried (`SD_OPTMNU_LANGWARN`, "Cyrillic is not drawn yet") is deleted from `LANGUAGE` and `MENUDEF`. |  |
 | T10 | The shovel swing is silent (§6.2). | F4, when `sound-designer` delivers `SDSHSWG` |
 | T11 | `AMMO`/`HEALTH`/`ARMS`/`ARMOR` are pixels in the IWAD's `STBAR` (§6.5). Parked in `docs/ICEBOX.md` until F6. | F6, with the HUD art (was blocked on T9; unblocked since D24) |
-| T12 | **Mostly paid 2026-10-13 by D31, pending the CEO's look in the engine.** The main menu's items and the skill screen's header are text in `SDMENU` (§6.6); `M_NGAME`, `M_OPTION`, `M_LOADG`, `M_SAVEG`, `M_RDTHIS`, `M_QUITG`, `M_NEWG` and `M_SKILL` are no longer named by `MENUDEF`. **Still Freedoom's:** the skull cursor `M_SKULL1`/`M_SKULL2` (Doom's `DEFAULTLISTMENU` selector), the pause sign `M_PAUSE` (Doom's pause graphic; not yet looked at on screen in this mod), and `M_EPISOD`, which the engine draws only if the mod ever has a second episode. Engine-drawn text (load/save captions, message boxes, the options screens) uses fonts, not Freedoom's pictures. | `art-director` (cursor, pause sign) with the rest of the shell; treatment C, painted per-language menu graphics, is parked by the CEO (D31) |
+| T12 | **Mostly paid 2026-10-13 by D31 (commits `7ff8c5a`, `22567d9`); the CEO walked it on screen and approved the text menu the same day (D32, commit `f3cc523`).** The main menu's items and the skill screen's header are text in `SDMENU` (§6.6); `M_NGAME`, `M_OPTION`, `M_LOADG`, `M_SAVEG`, `M_RDTHIS`, `M_QUITG`, `M_NEWG` and `M_SKILL` are no longer named by `MENUDEF`. **Still Freedoom's:** the skull cursor `M_SKULL1`/`M_SKULL2` (Doom's `DEFAULTLISTMENU` selector), the pause sign `M_PAUSE` (Doom's pause graphic; not yet looked at on screen in this mod), and `M_EPISOD`, which the engine draws only if the mod ever has a second episode. Engine-drawn text (load/save captions, message boxes, the options screens) uses fonts, not Freedoom's pictures. | `art-director` (cursor, pause sign) with the rest of the shell; treatment C, painted per-language menu graphics, is parked by the CEO (D31) |
 | T13 | `MENUDEF` names `OptionsMenuSimple`, and `AddOptionMenu` on a name the engine does not define is a **hard parse error**. If a GZDoom upgrade drops the simple options menu, the lump stops loading until that block goes. | at the next engine upgrade |
 | T14 | Three engine menus (`MainMenu`, `SkillMenu`, and the `os_Menu` insertion anchor) are copied into `MENUDEF`; since D31 the first two also differ in their items and layout (§6.6). They do not track engine changes. | re-diff at every engine upgrade |
 | T15 | MAP01's `par = 210` is set, the intermission's PAR row appears, but the printed value was never read in an unattended run (§4.1). | `qa-engineer`, with a human at the keyboard |
-| T16 | **PAID 2026-10-13.** MAP01 v2 retired `SWITCH_PLACEHOLDER`; was: **Paid for the engine, open for the map.** `src/lumps/ANIMDEFS` ships the four `switch` pairs SDSW1x → SDSW2x (2026-10-13), syntax from `gzdoom.pk3 → animdefs.txt`, and `SDSW1A` was seen to flip in engine the same day (§4.3). Open: MAP01 still wears `SDDOOR1` (`SWITCH_PLACEHOLDER`); the click is heard on the CEO's first walk with real switches. | `level-designer`, MAP01 v2 |
+| ~~T16~~ | **PAID 2026-10-13**: the ANIMDEFS pairs in `be6525a`, MAP01 v2 retired `SWITCH_PLACEHOLDER` in `bf857a0`. Was: **Paid for the engine, open for the map.** `src/lumps/ANIMDEFS` ships the four `switch` pairs SDSW1x → SDSW2x (2026-10-13), syntax from `gzdoom.pk3 → animdefs.txt`, and `SDSW1A` was seen to flip in engine the same day (§4.3). Open: MAP01 still wears `SDDOOR1` (`SWITCH_PLACEHOLDER`); the click is heard on the CEO's first walk with real switches. | `level-designer`, MAP01 v2 |
 | T18 | **Every bestiary sprite and sound is a Freedoom placeholder** (§5.1, §6.2, §6.3); the heavy Panzermensch looks exactly like the normal one. | F5, as `art-director` and `sound-designer` deliver (D35: own drawings for the five most-seen) |
-| T19 | **Nothing has been seen in the engine**: the eight classes compile only in theory until the PM's batch run (D26). Specifically NOT VERIFIED: `BloodColor "RR GG BB"` (the property is native and no engine `.zs` uses it), the native `GetSpecies` rule that made explicit `Species` necessary, `A_PrintBold` from a monster reaching the screen, the Doughboy's corpse falling (`BESTIARY.md` verification note). | the PM's next engine pass |
-| T20 | **ADR 006** ("enemies derive from `SD_Monster : Actor`, not from the Doom monsters") is owed; `BESTIARY.md` §2.4 holds the argument. | `mod-engineer`, next task that may write `docs/engine/adr/` |
+| ~~T19~~ | ~~Nothing has been seen in the engine: the eight classes compile only in theory until the PM's batch run (D26).~~ **Paid 2026-10-13** by the PM's engine pass (GZDoom 4.14.2, Freedoom 0.13.0): the classes load with no error, the gallery shows all eight, the drops and the General's single summon were counted, and MAP01 v3's 33 enemies spawn through Doom's numbers. Evidence `docs/qa/evidence/2026-10-13_1705_F5_map02-bestiary.log` and `…-gallery.png` (commit `2b1aba5`), `docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass.log` (commit `bcbf35f`); the table is in ADR 006. What that pass did **not** settle is debt T22. |  |
+| ~~T20~~ | ~~ADR 006 is owed.~~ **Paid 2026-10-13**: `docs/engine/adr/006-bestiary-actors.md` (seven decisions, what the engine showed, what it did not). Written in the working tree; the commit is the PM's (D6). |  |
 | T21 | Doom monsters with no Soviet replacement (65 chaingunner, 58 spectre, the rest of Doom II's roster) still spawn Freedoom's actors. MAP01 §8 plans a "Legion heavy gunner" on 65 that the bestiary does not have. | CEO question, if a seventh enemy is wanted |
 | T17 | **The English `LANGUAGE` section still carries Latin transliterations** (`PG-7V`, `7.62x25`) although the glyphs for the Cyrillic forms D17 asks for exist since D24 (§6.4). Two ASCII tests pin the current state (`tests/test_language.py`, `tests/test_arsenal.py`). | `mod-engineer`, one text change plus an engine screenshot of the HUD |
+| T22 | **Bestiary behaviours the engine pass did not show** (ADR 006, "NOT VERIFIED"): infighting between our classes and the native `GetSpecies` rule behind the explicit `Species`; the colour of `BloodColor`; the General's order line on screen (the console log carries it); the recruits entering the chase and the blocked-spot fallback; the attack helpers' damage (both runs were god mode, deaf or `notarget`); how far a dead Doughboy falls; the sounds. | the PM's next engine pass, with enemies awake and one fighting another; `qa-engineer` for the sounds, with a human |

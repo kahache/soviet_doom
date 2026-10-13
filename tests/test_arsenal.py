@@ -86,6 +86,79 @@ def _udmf_things(text: str) -> list[str]:
     return re.findall(r"^thing\s*\{(.*?)\}", text, flags=re.S | re.M)
 
 
+# --- A small UDMF reader for the start-inventory test ----------------------
+# Read from the TEXTMAP inside the built PK3, not from the map builder, so
+# the test sees what the engine sees.
+
+MAX_STEP_UP = 24     # the tallest floor change a player walks up (Doom's 24)
+PLAYER_HEIGHT = 56   # the shortest gap a player fits through
+ED_PLAYER1_START = 1
+SKILL_FLAGS = ("skill1", "skill2", "skill3", "skill4", "skill5")
+
+
+def _udmf_blocks(text: str) -> dict[str, list[dict]]:
+    """{block kind: [{field: value}]}; numbers, booleans and strings."""
+    out: dict[str, list[dict]] = {}
+    for kind, body in re.findall(r"^(\w+)\s*\{(.*?)\}", text, flags=re.S | re.M):
+        fields: dict[str, object] = {}
+        for key, raw in re.findall(r"(\w+)\s*=\s*([^;]+);", body):
+            raw = raw.strip()
+            if raw in ("true", "false"):
+                fields[key] = raw == "true"
+            elif raw.startswith('"'):
+                fields[key] = raw[1:-1]
+            else:
+                fields[key] = float(raw) if "." in raw else int(raw)
+        out.setdefault(kind, []).append(fields)
+    return out
+
+
+def _sector_at(blocks: dict, x: float, y: float) -> int | None:
+    """The sector holding (x, y): the nearest linedef crossed by a ray cast
+    east, and which side of it the point is on (front = right of v1->v2)."""
+    y += 0.25   # never exactly level with a vertex
+    verts, sides = blocks["vertex"], blocks["sidedef"]
+    best = None
+    for ld in blocks["linedef"]:
+        a, b = verts[ld["v1"]], verts[ld["v2"]]
+        if (a["y"] > y) == (b["y"] > y):
+            continue
+        cross_x = a["x"] + (y - a["y"]) * (b["x"] - a["x"]) / (b["y"] - a["y"])
+        if cross_x > x and (best is None or cross_x < best[0]):
+            best = (cross_x, ld, a, b)
+    if best is None:
+        return None
+    _, ld, a, b = best
+    right = (b["x"] - a["x"]) * (y - a["y"]) - (b["y"] - a["y"]) * (x - a["x"]) < 0
+    if right:
+        return sides[ld["sidefront"]]["sector"]
+    return sides[ld["sideback"]]["sector"] if "sideback" in ld else None
+
+
+def _walkable_from(blocks: dict, start: int) -> set[int]:
+    """Sectors a player walks to from `start` as the map loads: every door
+    shut (a shut door is a sector whose ceiling sits on its floor, so no
+    player fits through it), no switch thrown, no step over 24 units."""
+    sectors, sides = blocks["sector"], blocks["sidedef"]
+    links: dict[int, set[int]] = {}
+    for ld in blocks["linedef"]:
+        if "sideback" not in ld or ld.get("blocking") or ld.get("blockplayers"):
+            continue
+        a, b = sides[ld["sidefront"]]["sector"], sides[ld["sideback"]]["sector"]
+        for src, dst in ((a, b), (b, a)):
+            s, d = sectors[src], sectors[dst]
+            gap = min(s["heightceiling"], d["heightceiling"]) - max(s["heightfloor"], d["heightfloor"])
+            if gap >= PLAYER_HEIGHT and d["heightfloor"] - s["heightfloor"] <= MAX_STEP_UP:
+                links.setdefault(src, set()).add(dst)
+    seen, stack = {start}, [start]
+    while stack:
+        for nxt in links.get(stack.pop(), ()):
+            if nxt not in seen:
+                seen.add(nxt)
+                stack.append(nxt)
+    return seen
+
+
 class ArsenalPk3Test(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -157,9 +230,54 @@ class ArsenalPk3Test(unittest.TestCase):
                 re.compile(rf'Player\.WeaponSlot\s+{slot}\s*,\s*"{cls_name}"', re.M),
                 f"{PLAYER_CLASS} must put {cls_name} in slot {slot}",
             )
-        # The sergeant starts with the sidearm and the shovel, nothing else armed.
-        self.assertRegex(player, r'Player\.StartItem\s+"SD_Tokarev"')
-        self.assertRegex(player, r'Player\.StartItem\s+"SD_Shovel"')
+
+    def _start_items(self) -> list[str]:
+        """The class names of SD_Player's StartItem lines, in order."""
+        player = next(b for n, b in self.zs.items() if f"class {PLAYER_CLASS}" in b)
+        code = "\n".join(line.split("//")[0] for line in player.splitlines())
+        return re.findall(r'Player\.StartItem\s+"(\w+)"', code)
+
+    def test_the_player_starts_with_the_tt33_and_its_rounds_only(self):
+        """The TT-33 is the only start weapon, so it is the one raised on
+        spawn; no Fist and no shovel, so slot 1 is empty until a pickup. The
+        rounds come after the weapon, in Doom's order: GiveDefaultInventory
+        readies a weapon only if its ammo is already there (BALANCE 2)."""
+        items = self._start_items()
+        weapons = {cls_name for cls_name, _, _ in ARSENAL.values()} | {"Fist", "Pistol"}
+        self.assertEqual(["SD_Tokarev"], [n for n in items if n in weapons])
+        self.assertEqual(["SD_Tokarev", "Clip"], items)
+        self.assertNotIn("Fist", items)
+
+    def test_the_shovel_is_picked_up_in_map01s_dorm_on_every_skill(self):
+        """The player does not start with the shovel; it is got by picking it
+        up, and MAP01 puts it on the dorm's rack, reached from the player
+        start on every skill with no door opened (CEO bug, 2026-10-13: the
+        rack showed a pickup the player could not take because he already
+        owned one)."""
+        self.assertNotIn("SD_Shovel", self._start_items())
+        shovel = self.zs["zscript/weapons/shovel.zs"]
+        spawn = re.search(r"^\s*Spawn:(.*?)^\s*Stop;", shovel, flags=re.S | re.M)
+        self.assertIsNotNone(spawn, "SD_Shovel needs a Spawn state to lie on a map")
+        frames = re.findall(r"^\s*([A-Z0-9]{4})\s+A\s+-1\s*;", spawn.group(1), flags=re.M)
+        self.assertTrue(frames and "TNT1" not in frames,
+                        "SD_Shovel's Spawn state must show a sprite, or the pickup is invisible")
+        self.assertIn("Inventory.PickupMessage", shovel)
+
+        blob = self.zf.read("maps/MAP01.wad")
+        blocks = _udmf_blocks(wad.read_lump(blob, "TEXTMAP").decode("ascii"))
+        starts = [t for t in blocks["thing"] if t["type"] == ED_PLAYER1_START]
+        shovels = [t for t in blocks["thing"] if t["type"] == ARSENAL[1][2]]
+        self.assertEqual(1, len(starts), "MAP01 needs one player 1 start")
+        self.assertEqual(1, len(shovels), "MAP01 places exactly one shovel")
+        rack = shovels[0]
+        for flag in SKILL_FLAGS:
+            self.assertTrue(rack.get(flag), f"the MAP01 shovel is missing on {flag}")
+        start = _sector_at(blocks, starts[0]["x"], starts[0]["y"])
+        where = _sector_at(blocks, rack["x"], rack["y"])
+        self.assertIsNotNone(start, "the player start is outside the map")
+        self.assertIsNotNone(where, "the MAP01 shovel is inside a wall")
+        self.assertIn(where, _walkable_from(blocks, start),
+                      "the MAP01 shovel cannot be reached from the start without a door")
 
     def test_mapinfo_declares_the_player_class(self):
         m = re.search(r'PlayerClasses\s*=\s*"([^"]+)"', self.mapinfo)

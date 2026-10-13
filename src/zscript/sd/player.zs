@@ -12,17 +12,26 @@
 
 class SD_Player : DoomPlayer
 {
-	// The sergeant walks out of the hangar with his sidearm, his entrenching
-	// tool and two magazines. Everything else is found on the map.
+	// The alarm wakes the sergeant with his sidearm and 50 rounds, nothing
+	// else. The shovel is NOT a start item (CEO bug, 2026-10-13): MAP01
+	// teaches it from the dorm's rack, and a player who already owned it
+	// could not pick that one up, so the rack showed a pickup that refused
+	// to be taken. Slot 1 stays empty until the shovel is picked up.
+	// Everything else is found on the map.
 	const SD_START_CLIP = 50;   // same as Doom's marine: 50 rounds of 7.62x25
 
 	Default
 	{
 		Player.DisplayName "Sergeant Vilanova";
 
-		// The FIRST StartItem weapon is the one selected on spawn.
+		// Which weapon is raised on spawn: PlayerPawn.GiveDefaultInventory
+		// (gzdoom.pk3, zscript/actors/player/player.zs) readies every start
+		// weapon that has ammo at the moment it is given, so the ammo must
+		// already be there. Doom's own order (weapon first, ammo last) is
+		// kept: DoomPlayer declares Pistol, Fist, Clip and spawns with the
+		// pistol, which is only possible if the list is walked last-declared
+		// first (the walk itself is C++, NOT VERIFIED beyond that).
 		Player.StartItem "SD_Tokarev";
-		Player.StartItem "SD_Shovel";
 		Player.StartItem "Clip", SD_START_CLIP;
 
 		// One weapon per slot - the arsenal ratified by the CEO (D13).

@@ -59,9 +59,10 @@ class SD_Shovel : Fist replaces Fist
 		PUNG B 6 A_ReFire;
 		Goto Ready;
 	Spawn:
-		// Pickup sprite. The player always starts with the shovel, but a
-		// placeable pickup lets maps hand it back and keeps the actor legal
-		// when it is given an editor number (see MAPINFO DoomEdNums).
+		// Pickup sprite. The shovel is not in the start inventory (SD_Player):
+		// it is found, on MAP01's dorm rack and on MAP02's range (editor
+		// number 21001, MAPINFO DoomEdNums). CSAW is Freedoom's chainsaw,
+		// a placeholder until art-director draws SDSP.
 		CSAW A -1;
 		Stop;
 	}
