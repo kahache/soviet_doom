@@ -13,6 +13,13 @@ GameInfo
 	// the previous list, so Freedoom's marine and its weapon slots are gone.
 	// ZDoom wiki: MAPINFO/GameInfo definition, "Creating new player classes".
 	PlayerClasses = "SD_Player"
+
+	// D43: the title screen plays the Internationale (Jerry Engelbach's
+	// sequence, credited in docs/sound/MUSIC-RIGHTS.md 4.5), packed from
+	// assets/music/D_SDINTL.mid as music/D_SDINTL.mid. Overrides the IWAD's
+	// title music the way PlayerClasses overrides its player.
+	// Contract: docs/engine/MOD-SPEC.md 4.5.
+	TitleMusic = "D_SDINTL"
 }
 
 // --- Difficulty ladder ----------------------------------------------------
@@ -110,7 +117,8 @@ cluster 1
 	// in the PK3 (approved batch 1), so the ending does not borrow a
 	// Freedoom floor to say goodbye on.
 	flat = "SDFLR1"
-	// No music lump is assumed anywhere in this mod yet (G0).
+	// The ending text is read in silence: no lump for it yet (D43 has an
+	// intermission cue, D_SDTITL, still a candidate).
 	music = ""
 }
 
@@ -172,9 +180,11 @@ map MAP01 lookup "SD_MAP01_NAME"
 	// block below and the map only says which cluster it is in.
 	cluster = 1
 	next = endtitle
-	// Explicitly no music: the MVP must not depend on IWAD music lumps.
-	// Verified on GZDoom 4.14.2 (gate G0): an empty string yields silence, no warning.
-	music = ""
+	// D43: our own MAP01 theme, packed from assets/music/D_SDM01.mid. Still
+	// never an IWAD lump: the mod depends on no Freedoom music. Every music
+	// value in this file is "" or a packed lump (tests/test_mapinfo_music.py),
+	// because a misspelt one plays nothing and logs nothing.
+	music = "D_SDM01"
 	// SKY1 exists in both doom2.wad and freedoom2.wad. The room has no sky
 	// ceiling, but the engine still wants a valid sky texture per map.
 	sky1 = "SKY1"
