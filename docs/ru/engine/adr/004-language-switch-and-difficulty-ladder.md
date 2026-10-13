@@ -8,7 +8,7 @@ Freedoom 0.13.0. Владелец: `mod-engineer`. Английский ориг
 
 Ничего не заменяет. Фиксирует решения, стоящие за `src/lumps/MENUDEF`,
 блоками `skill` в `src/lumps/MAPINFO` и удалением
-`src/zscript/sd/language.zs`.
+src/zscript/sd/language.zs (историческое: удалён в этом изменении, в дереве его больше нет).
 
 ## Контекст
 
@@ -83,7 +83,7 @@ CVar, так что написание через `OptionValue` отправля
 
 ZScript может писать в CVar только пока движок обрабатывает INPUT меню. В
 4.14.2 `DMenu::InMenu` поднимается ровно вокруг трёх вызовов — `OnUIEvent`,
-`OnInputEvent` и `MenuEvent` (`src/common/menu/menu.cpp:276-327`) — и ни
+`OnInputEvent` и `MenuEvent` (gzdoom: src/common/menu/menu.cpp:276-327, исходный код движка) — и ни
 вокруг чего больше. `Init`, `Ticker` и `Drawer` все выполняются при
 `InMenu == 0`; оба варианта были опробованы в движке 2026-10-13, и оба
 завершились аварийно. Заход с экрана Options выживал только потому, что
@@ -166,7 +166,7 @@ T14.
 
 ## Последствия
 
-- `src/zscript/sd/language.zs` удалён, а `SD_LANG_CODE` исчез из `LANGUAGE`.
+- src/zscript/sd/language.zs (историческое) удалён, а `SD_LANG_CODE` исчез из `LANGUAGE`.
   Мод не поставляет никакого ZScript для меню вообще.
 - Конфиг игрока получает ровно один новый ключ, `language`, и только тогда,
   когда игрок выбирает язык.
