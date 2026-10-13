@@ -374,6 +374,61 @@ class TextureTest(CheckPk3TestCase):
         self.assertFails(self.run_check(entries), "textures", "SDNOSKY")
 
 
+# --- 4b. ANIMDEFS switch pairs (MOD-SPEC 4.3, T16) -------------------------
+
+class AnimdefsSwitchTest(CheckPk3TestCase):
+    def test_switch_pair_that_resolves_passes(self):
+        entries = good_entries()
+        # SDTEST1 is packed, STARTAN2 is a declared IWAD asset: both legal.
+        entries["ANIMDEFS"] = b"// pair\nswitch doom 1 SDTEST1 on pic STARTAN2 tics 0\n"
+        report = self.run_check(entries)
+        self.assertClean(report)
+        self.assertEqual(2, report.stats["switch_textures"])
+
+    def test_missing_on_texture_fails_with_line(self):
+        entries = good_entries()
+        entries["ANIMDEFS"] = b"\n\nswitch doom 1 SDTEST1 on pic SDGHOST2 tics 0\n"
+        finding = self.assertFails(self.run_check(entries), "textures", "SDGHOST2")
+        self.assertEqual("ANIMDEFS:3:switch on", finding.path)
+
+    def test_missing_off_texture_fails(self):
+        entries = good_entries()
+        entries["ANIMDEFS"] = b"switch doom 1 SDGHOST1 on pic SDTEST1 tics 0\n"
+        finding = self.assertFails(self.run_check(entries), "textures", "SDGHOST1")
+        self.assertEqual("ANIMDEFS:1:switch off", finding.path)
+
+    def test_switch_textures_do_not_count_as_used_by_a_map(self):
+        entries = good_entries()
+        entries["textures/SDSW1Z.png"] = png_indexed(64, 128, PALETTE_IN)
+        entries["ANIMDEFS"] = b"switch doom 1 SDSW1Z on pic SDTEST1 tics 0\n"
+        report = self.run_check(entries)
+        unused = [n for n in report.notes["textures"] if n.startswith("packed but unused")]
+        self.assertTrue(unused and "SDSW1Z" in unused[0], report.notes["textures"])
+
+    def test_parser_reads_every_engine_form(self):
+        # Lines copied from GZDoom g4.14.2 gzdoom.pk3 -> animdefs.txt (game
+        # filter with and without tier, quest after the name, sound, an off
+        # sequence), plus a comment and a non-switch block that must be skipped.
+        text = (
+            "// comment switch NOTME on pic NOTME tics 0\n"
+            "texture optional M_SKULL1\n\tpic M_SKULL1 tics 8\n"
+            "switch doom 1 SW1BRCOM on pic SW2BRCOM tics 0\n"
+            "switch hexen SW_1_UP on sound Switch1 pic SW_1_DN tics 0\n"
+            "switch strife BRNSCN01 quest on sound switches/sizzle pic BRNSCN05 tics 0\n"
+            "switch strife DORWS04 on sound switches/bolt pic DORWS05 tics 0 "
+            "off sound switches/boltback pic DORWS04 tics 0\n"
+            "/* block\ncomment */ switch SDBARE1 on pic SDBARE2 tics 0\n"
+        )
+        self.assertEqual(
+            [("SW1BRCOM", 4, "off"), ("SW2BRCOM", 4, "on"),
+             ("SW_1_UP", 5, "off"), ("SW_1_DN", 5, "on"),
+             ("BRNSCN01", 6, "off"), ("BRNSCN05", 6, "on"),
+             ("DORWS04", 7, "off"), ("DORWS05", 7, "on"), ("DORWS04", 7, "off-pic"),
+             ("SDBARE1", 9, "off"), ("SDBARE2", 9, "on")],
+            check_pk3.animdefs_switch_textures(text),
+        )
+
+
 # --- 5. PNG colour model, palette and size ---------------------------------
 
 class ImageTest(CheckPk3TestCase):
