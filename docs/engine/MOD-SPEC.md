@@ -66,7 +66,9 @@ sovietdoom.pk3
 ├── fonts/defsmallfont/     <HEX>.png + font.inf — SmallFont glyphs, 107 files (D24)
 ├── fonts/bigfont/          <HEX>.png + font.inf — BigFont glyphs, 107 files (D24)
 ├── fonts/sdmenu/           <HEX>.png + font.inf — menu font SDMENU, 107 files (D31, §6.6)
-├── sprites/  sounds/  music/  patches/  hires/   standard folders, empty today (T1)
+├── music/D_SDINTL.mid       title music, Engelbach's Internationale (D43, §4.5)
+├── music/D_SDM01.mid        MAP01's music, ours (D43, §4.5)
+├── sprites/  sounds/  patches/  hires/   standard folders, empty today (T1)
 ├── ANIMDEFS                switch pairs SDSW1x -> SDSW2x (§4.3)
 └── (future) TEXTURES, GLDEFS — and no CVARINFO, by decision (ADR 004)
 ```
@@ -143,8 +145,9 @@ assets/   (CEO-approved art only; `work/` is gitignored and never ships)
 MAPINFO conventions: `clearepisodes` + one episode per campaign (plus the
 practice range, §4.4); map titles by
 `lookup`, episode title by `name = "$ID"` (**`lookup` is not accepted inside an
-episode block**, verified B1); `music = ""` until we have music (verified:
-silence, no warning); `sky1 = "SKY1"`.
+episode block**, verified B1); every map and cluster names its music, and
+`music = ""` where there is none (verified: silence, no warning; §4.5);
+`sky1 = "SKY1"`.
 
 ### 4.4 The practice range (D41, 2026-10-13)
 
@@ -179,6 +182,31 @@ names in `SmallFont`, and that `nointermission` still shows cluster 2's text
 What D41 does not change: the bestiary gallery, which is connected to
 nothing, and MAP02's lack of an exit switch. Both are `level-designer`'s if
 the range should offer them.
+
+### 4.5 Music (D43, 2026-10-13)
+
+The CEO accepted every music recommendation of `docs/sound/SOUNDTRACK.md`
+§8 (D43); `sound-designer` installed the first two lumps in `assets/music/`
+(commit `d89f99e`, rights in `docs/sound/MUSIC-RIGHTS.md`, rows in
+`docs/art/LICENSES.md`), and the build packs them as `music/<LUMP>.mid`
+(the asset mapping, §3). `MAPINFO` names them; `SNDINFO` is not involved
+(music lumps are not sounds).
+
+| Where | `MAPINFO` key | Lump |
+|---|---|---|
+| Title screen | `GameInfo { TitleMusic = "D_SDINTL" }` | `D_SDINTL`, the Internationale (Engelbach's sequence, credited) |
+| MAP01, Zarya-7 | `map MAP01 { music = "D_SDM01" }` | `D_SDM01`, ours |
+| MAP02, practice range | `music = ""` | none |
+| Clusters 1 and 2 (end texts) | `music = ""` | none |
+
+Rule: every `music` / `TitleMusic` value is `""` or a lump packed under
+`music/` (`tests/test_mapinfo_music.py`); a typo plays nothing and logs
+nothing, which is why it is a test and not an engine-pass finding.
+`TitleMusic` in the mod's `GameInfo` overrides the IWAD's (`D_DM2TTL` on
+Freedoom), by the same block-merge that already carries `PlayerClasses`.
+**NOT VERIFIED until the PM's engine pass:** that both play
+(`currentmusic` in the console, with a non-zero music volume), and that the
+title music carries on into the main menu as Doom's does.
 
 ### 4.1 How the campaign ends (M3, closed 2026-10-13)
 
