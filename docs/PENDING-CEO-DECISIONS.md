@@ -1,47 +1,24 @@
 # Pending CEO decisions
 
-Updated: 2026-10-13 17:15, on the move to the Windows PC. Ordered by how much
+Updated: 2026-10-13 18:00, end of session. Ordered by how much
 each item unblocks. What closed since the previous update is listed at the
 end so nothing is lost. Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md`.
 
-## 1. Play MAP01 v3 through (15 minutes, skills 3 and 4)
+## 1. Next session: nothing blocks on you
 
-```
-python tools\build.py; & "$env:LOCALAPPDATA\Programs\GZDoom\gzdoom.exe" -iwad iwads\freedoom2.wad -file dist\sovietdoom.pk3 +map MAP01 -skill 3
-```
-
-Now with enemies (Freedoom sprites standing in for ours), items, ambushes
-behind both switches, subtler secrets and Lenin lit. Five things to judge:
-does it last 5-8 minutes (the intermission shows the time), does the hangar
-read as a place, are the secrets found without being given away, do the
-two switch ambushes surprise or feel unfair, does Lenin read.
-
-Still open from the design document §13: no keys (recommended yes); a
-night-sky strip over the hangar, yes or no.
-
-## 1b. The Reich rifleman's design, and how ~50 sprites get made
-
-Sheet: `docs/art/previews/2026-10-13_1646_F5_reich-rifleman-sweep.png`.
-Pick a cell (art-director recommends E, crested helmet; or E with D's gas
-mask). Then the method: the art-director says plainly that shape-built
-sprites read well at game distance but look like paper dolls up close, and
-proposes a 3D rig in the same style rendered at 8 angles; or your own
-concept or a pixel artist for the front frames, with the rig for the rest.
-
-## 1d. German letters for the alphabet (2 minutes)
-
-Sheet: `docs/art/previews/2026-10-13_1730_F5_font-german-umlauts.png`. Ä, Ö
-and Ü drawn in alphabet C, both sizes, with a blank row under the dots
-(Ё has its dots touching; say if you prefer that). Until approved the
-screen spells "The General: Vorwaerts!". The sharp s reads as a B, so the
-PM and the art-director recommend writing "SS" in capitals instead of
-shipping ẞ. Approve the three umlauts, and say yes or no to the sharp s.
+MAP01 v3 was played (skill 3, D38). Queued for the team, not for you:
+remove the square block in front of the cosmonautics mural (D38); build
+the Reich rifleman from cell E with a 3D rig (D38); try the German letters
+in game (D37). Still open from the design document §13, no hurry: no keys
+(recommended yes); a night-sky strip over the hangar, yes or no.
 
 ## 1c. Your voice takes for the enemies (D36)
 
 The sound-designer is writing `docs/sound/VOICE-SCRIPT.md`: every line in
 German or English, with instructions for recording or for AI generation.
-Nothing to decide; it is your recording session when you have the time.
+Nothing to decide. **Postponed by the CEO on 2026-10-13** ("lo dejamos
+pending"): the enemies keep Freedoom's voices until the takes arrive, and
+nothing else waits on them.
 
 ## 2. Play the weapons test range (15 minutes, unblocks F4 balance)
 
@@ -131,7 +108,7 @@ working machine (D27); the Mac's gitignored `work/` reached the PC the same
 afternoon, so D27's "stays on the Mac until the CEO copies it" is now
 history. Bug B2 (`SDPOSTR2`) resolved 2026-10-12. The font serif fix and the batch 3
 props, columns C and D (D29). How MAP01 is judged: by walking it (D28). MAP01 v2 passed its gate and the
-text menu is approved (D32); MAP01's scale, densify (D33). The bestiary's seven questions (D35). `SDCONC2` and `SDSTAR1` v5, approved
+text menu is approved (D32); MAP01's scale, densify (D33). The bestiary's seven questions (D35). The German letters, installed for trial (D37). `SDCONC2` and `SDSTAR1` v5, approved
 in the map (D30); the hangar wainscot, dropped with them. Bug B3 (art identity
 test without `work/`) resolved 2026-10-13. T16, the switch `ANIMDEFS`,
 written and seen to flip in engine 2026-10-13.
