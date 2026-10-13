@@ -17,9 +17,10 @@ This file covers what the module does around it:
   sheet()        the menu sweep PNG and the two MENUMOCK screens
   main()         the documented CLI: font + sheet, --install, --no-sheet
 
-D27: nothing is written to work/, assets/ or docs/. OUT_ROOT is redirected
-to a temp directory; build_font() and install() only ever get temp paths;
-main() runs with its three actions mocked.
+D27: nothing is written to work/, assets/ or docs/. Every call gets a temp
+path (or has the module's path constants patched to temp ones, which works
+since B5: defaults are resolved at call time); the real SDMENU folders are
+compared before and after. main() runs mocked, or fully patched to temp.
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_cov_gen_menu -v
 """
@@ -316,16 +317,26 @@ class MenudefGeometryTests(unittest.TestCase):
         self.assertEqual(first_pair(body, "StaticPatch"), gen_menu.LOGO_POS)
         self.assertEqual(first_int(body, "LineSpacing"), gen_menu.SKILL_SPACING)
 
-    @unittest.expectedFailure
     def test_suggested_skill_layout_is_the_one_menudef_ships(self):
-        """B4 (docs/qa/COVERAGE.md): MENUDEF moved the header and the rungs
-        to x = 32 (rung 5 is 288 px: 32 + 288 = 320), gen_menu still mocks
-        them at x = 48, so a regenerated sheet shows a layout the game does
-        not have and reports rung 5 overflowing to x = 336. Remove the
-        marker when SUGGEST_HEADER / SUGGEST_ITEMS follow MENUDEF."""
+        """B4 (docs/qa/COVERAGE.md, fixed): MENUDEF moved the header and the
+        rungs to x = 32 (rung 5 is 288 px: 32 + 288 = 320); gen_menu now reads
+        SUGGEST_HEADER / SUGGEST_ITEMS from MENUDEF instead of copying them."""
         body = listmenu("SkillMenu")
         self.assertEqual((first_pair(body, "StaticText"), first_pair(body, "Position")),
                          (gen_menu.SUGGEST_HEADER, gen_menu.SUGGEST_ITEMS))
+
+    def test_menudef_pair_reads_the_named_menu_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "MENUDEF"
+            path.write_text('LISTMENU "A"\n{\n\tStaticText 1, 2, "x"\n\tPosition 3,4\n}\n'
+                            'LISTMENU "B"\n{\n\tStaticText -5 , 6, "y"\n}\n', encoding="utf-8")
+            self.assertEqual(gen_menu.menudef_pair("A", "StaticText", path), (1, 2))
+            self.assertEqual(gen_menu.menudef_pair("A", "Position", path), (3, 4))
+            self.assertEqual(gen_menu.menudef_pair("B", "StaticText", path), (-5, 6))
+            with self.assertRaisesRegex(ValueError, r'no "Position x, y" line in LISTMENU "B"'):
+                gen_menu.menudef_pair("B", "Position", path)
+            with self.assertRaisesRegex(ValueError, r'LISTMENU "C" not found'):
+                gen_menu.menudef_pair("C", "Position", path)
 
 
 @fonts
@@ -381,8 +392,7 @@ class MockScreenTests(unittest.TestCase):
                 y0, sp = gen_menu.SUGGEST_ITEMS[1], gen_menu.SKILL_SPACING
                 self.assertTrue(self.band_has(suggest, y0 + 2 * sp, sp, self.col["gold"]), "rung 3 not selected")
                 self.assertTrue(self.band_has(suggest, y0, sp, self.col["red"]))
-                if lang == "ru":
-                    self.assertEqual(over, [])
+                self.assertEqual(over, [], "the suggested layout is MENUDEF's: every rung fits")
 
     def test_every_rung_fits_at_menudefs_column(self):
         """MENUDEF: x = 32 is the largest x that keeps rung 5 on screen."""
@@ -401,11 +411,10 @@ class SheetTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tmp = Path(tempfile.mkdtemp())
-        real_mocks = sorted(gen_menu.OUT_ROOT.glob("MENUMOCK_*.png"))
-        cls.before = {p: p.stat().st_mtime_ns for p in real_mocks}
-        with mock.patch.object(gen_menu, "OUT_ROOT", cls.tmp):
-            cls.path = gen_menu.sheet("2099-01-02_0304", font_dir=SDMENU, out_dir=cls.tmp / "previews")
-        cls.after = {p: p.stat().st_mtime_ns for p in real_mocks}
+        cls.before = real_state()
+        # B5: no OUT_ROOT patch any more; out_dir alone must keep everything in the temp dir.
+        cls.path = gen_menu.sheet("2099-01-02_0304", font_dir=SDMENU, out_dir=cls.tmp / "previews")
+        cls.after = real_state()
 
     @classmethod
     def tearDownClass(cls):
@@ -425,7 +434,7 @@ class SheetTests(unittest.TestCase):
         skull = gen_menu._skull()
         for lang in ("en", "ru"):
             with self.subTest(lang=lang):
-                with Image.open(self.tmp / f"MENUMOCK_main_{lang}.png") as im:
+                with Image.open(self.tmp / "previews" / f"MENUMOCK_main_{lang}.png") as im:
                     self.assertEqual((im.size, im.mode), ((320, 200), "RGB"))
                     got = np.asarray(im)
                 want = np.asarray(gen_menu.mock_main(lang, font, skull, col)[0].convert("RGB"))
@@ -433,6 +442,106 @@ class SheetTests(unittest.TestCase):
 
     def test_work_was_not_touched(self):
         self.assertEqual(self.before, self.after)
+
+    def test_out_dir_is_respected_and_created(self):
+        """B5: MENUMOCK_* follow out_dir, and a missing out_dir is created."""
+        nested = self.tmp / "not" / "there" / "yet"
+        self.assertFalse(nested.exists())
+        before = real_state()
+        path = gen_menu.sheet("2099-01-02_0305", font_dir=SDMENU, out_dir=nested)
+        self.assertEqual(path.parent, nested)
+        self.assertEqual(sorted(p.name for p in nested.iterdir()),
+                         ["2099-01-02_0305_F2_menu-sweep.png", "MENUMOCK_main_en.png", "MENUMOCK_main_ru.png"])
+        self.assertEqual(before, real_state())
+
+    def test_mock_dir_can_split_the_mocks_off(self):
+        sweep, mocks = self.tmp / "sweep", self.tmp / "m" / "ocks"
+        gen_menu.sheet("2099-01-02_0306", font_dir=SDMENU, out_dir=sweep, mock_dir=mocks)
+        self.assertEqual([p.name for p in sweep.iterdir()], ["2099-01-02_0306_F2_menu-sweep.png"])
+        self.assertEqual(sorted(p.name for p in mocks.iterdir()), ["MENUMOCK_main_en.png", "MENUMOCK_main_ru.png"])
+
+    def test_default_paths_are_read_when_called(self):
+        """B5: with no arguments, sheet() uses the module constants as they are
+        NOW (sweep -> PREVIEW_DIR, mocks -> OUT_ROOT, font -> OUT_FONT)."""
+        previews, root = self.tmp / "dflt-previews", self.tmp / "dflt-root"
+        shutil.copytree(SDMENU, root / "sdmenu")
+        with mock.patch.object(gen_menu, "PREVIEW_DIR", previews), \
+                mock.patch.object(gen_menu, "OUT_ROOT", root), \
+                mock.patch.object(gen_menu, "OUT_FONT", root / "sdmenu"):
+            path = gen_menu.sheet("2099-01-02_0307")
+        self.assertEqual(path, previews / "2099-01-02_0307_F2_menu-sweep.png")
+        self.assertTrue((root / "MENUMOCK_main_en.png").is_file())
+        self.assertTrue((root / "MENUMOCK_main_ru.png").is_file())
+        self.assertFalse((previews / "MENUMOCK_main_en.png").exists())
+
+
+def real_state() -> dict:
+    """(name, size, mtime) of every file the D27 tripwire guards: the shipped
+    SDMENU font and everything under work/art/menu/."""
+    out = {}
+    for root in (gen_menu.INSTALL_DIR, gen_menu.OUT_ROOT):
+        if root.is_dir():
+            for p in sorted(root.rglob("*")):
+                if p.is_file():
+                    st = p.stat()
+                    out[str(p)] = (st.st_size, st.st_mtime_ns)
+    return out
+
+
+@fonts
+class DefaultPathsAreResolvedAtCallTimeTests(unittest.TestCase):
+    """B5: build_font(), install() and sheet() used to bind OUT_FONT,
+    BIGFONT_DIR, INSTALL_DIR and PREVIEW_DIR at import, so patching them did
+    not redirect anything. Everything here writes to a temp dir only."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.before = real_state()
+        self.addCleanup(lambda: self.assertEqual(self.before, real_state(), "a real folder was touched"))
+
+    def test_build_font_follows_the_patched_constants(self):
+        out = self.tmp / "built"
+        with mock.patch.object(gen_menu, "OUT_FONT", out), mock.patch.object(gen_menu, "BIGFONT_DIR", BIGFONT):
+            report = gen_menu.build_font()
+        self.assertEqual(report["files"], len(list(BIGFONT.iterdir())))
+        self.assertEqual(len(list(out.iterdir())), report["files"])
+
+    def test_build_font_follows_a_patched_source(self):
+        src = self.tmp / "bigfont"
+        shutil.copytree(BIGFONT, src)
+        shutil.copyfile(BIGFONT / "0041.png", src / "042F.png")        # "Я" is now a Latin A
+        with mock.patch.object(gen_menu, "OUT_FONT", self.tmp / "built"), \
+                mock.patch.object(gen_menu, "BIGFONT_DIR", src):
+            with self.assertRaisesRegex(RuntimeError, r"0052\.png: gen_font's Я differs"):
+                gen_menu.build_font()
+
+    def test_install_follows_the_patched_constants(self):
+        built, installed = self.tmp / "built", self.tmp / "installed"
+        built.mkdir()
+        (built / "0041.png").write_bytes(b"A")
+        with mock.patch.object(gen_menu, "OUT_FONT", built), mock.patch.object(gen_menu, "INSTALL_DIR", installed):
+            self.assertEqual(gen_menu.install(), installed)
+        self.assertEqual((installed / "0041.png").read_bytes(), b"A")
+
+    def test_main_with_everything_patched_writes_only_to_the_temp_dir(self):
+        """The real main(), real build_font/install/sheet, --install: every
+        output lands under the patched paths."""
+        root = self.tmp / "work"
+        patches = {"OUT_ROOT": root, "OUT_FONT": root / "sdmenu", "INSTALL_DIR": self.tmp / "assets-sdmenu",
+                   "PREVIEW_DIR": self.tmp / "previews"}
+        with contextlib.ExitStack() as stack:
+            for name, value in patches.items():
+                stack.enter_context(mock.patch.object(gen_menu, name, value))
+            stack.enter_context(mock.patch.object(sys, "argv", ["gen_menu.py", "--install", "--stamp", "2099-01-02_0308"]))
+            stack.enter_context(contextlib.redirect_stdout(io.StringIO()))
+            gen_menu.main()
+        self.assertEqual(len(list((root / "sdmenu").iterdir())), len(list(BIGFONT.iterdir())))
+        self.assertEqual(sorted(p.name for p in (root / "sdmenu").iterdir()),
+                         sorted(p.name for p in (self.tmp / "assets-sdmenu").iterdir()))
+        self.assertTrue((root / "MENUMOCK_main_en.png").is_file())
+        self.assertEqual([p.name for p in (self.tmp / "previews").iterdir()],
+                         ["2099-01-02_0308_F2_menu-sweep.png"])
 
 
 class MainCliTests(unittest.TestCase):

@@ -53,6 +53,7 @@ Usage
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 import struct
 import sys
@@ -72,6 +73,7 @@ TITLEPIC = PROJECT_ROOT / "assets" / "graphics" / "shell" / "TITLEPIC.png"
 M_DOOM = PROJECT_ROOT / "assets" / "graphics" / "shell" / "M_DOOM.png"
 SMALLFONT_DIR = PROJECT_ROOT / "assets" / "fonts" / "defsmallfont"
 IWAD = PROJECT_ROOT / "iwads" / "freedoom2.wad"
+MENUDEF = PROJECT_ROOT / "src" / "lumps" / "MENUDEF"
 
 # D22, level 2 (docs/PRD.md; docs/product/LANGUAGE-SWITCH.md). Latin -> the
 # Cyrillic letter whose drawing it takes. Nothing else is substituted.
@@ -91,10 +93,15 @@ def reads_as(text: str) -> str:
 
 
 # ------------------------------------------------------------------- font
-def build_font(out_dir: Path = OUT_FONT, source_dir: Path = BIGFONT_DIR) -> dict:
+def build_font(out_dir: Path | None = None, source_dir: Path | None = None) -> dict:
     """Copy bigfont, then write the five substituted glyphs, rendered by
-    gen_font from the Cyrillic letters' stroke code."""
+    gen_font from the Cyrillic letters' stroke code. The defaults (OUT_FONT,
+    BIGFONT_DIR) are looked up when called, not when the module is imported,
+    so patching the module constants or passing a path both redirect it."""
     import gen_font  # lazy: it opens system label fonts at import time
+
+    out_dir = OUT_FONT if out_dir is None else out_dir
+    source_dir = BIGFONT_DIR if source_dir is None else source_dir
 
     out_dir.mkdir(parents=True, exist_ok=True)
     for old in out_dir.iterdir():
@@ -116,7 +123,10 @@ def build_font(out_dir: Path = OUT_FONT, source_dir: Path = BIGFONT_DIR) -> dict
     return {"font": FONT_NAME, "files": len(list(out_dir.iterdir())), "replaced": replaced}
 
 
-def install(src: Path = OUT_FONT, dst: Path = INSTALL_DIR) -> Path:
+def install(src: Path | None = None, dst: Path | None = None) -> Path:
+    """Copy the built font over INSTALL_DIR. Defaults are resolved at call time."""
+    src = OUT_FONT if src is None else src
+    dst = INSTALL_DIR if dst is None else dst
     dst.mkdir(parents=True, exist_ok=True)
     for old in dst.iterdir():
         old.unlink()
@@ -126,6 +136,21 @@ def install(src: Path = OUT_FONT, dst: Path = INSTALL_DIR) -> Path:
 
 
 # --------------------------------------------------------------- the sheet
+def menudef_pair(menu: str, keyword: str, path: Path | None = None) -> tuple[int, int]:
+    """The first `<keyword> x, y` line inside LISTMENU "<menu>" of the shipped
+    MENUDEF. The suggested skill layout is read from there so the mock can
+    never drift from what the game draws (B4)."""
+    src = MENUDEF if path is None else path
+    body = re.search(r'^LISTMENU\s+"%s"\s*\{(.*?)^\}' % re.escape(menu),
+                     src.read_text(encoding="utf-8"), re.S | re.M)
+    if body is None:
+        raise ValueError(f'LISTMENU "{menu}" not found in {src}')
+    m = re.search(r"^\s*%s\s+(-?\d+)\s*,\s*(-?\d+)" % re.escape(keyword), body.group(1), re.M)
+    if m is None:
+        raise ValueError(f'no "{keyword} x, y" line in LISTMENU "{menu}" of {src}')
+    return int(m.group(1)), int(m.group(2))
+
+
 # Engine geometry (src/lumps/MENUDEF, docs/engine/MOD-SPEC.md 6.6).
 SCREEN = (320, 200)
 LOGO_POS = (60, 0)
@@ -135,8 +160,10 @@ SKILL_POS = (48, 63)           # LISTMENU "SkillMenu" Position
 SKILL_SPACING = 12
 STOCK_NEWG = (96, 14)          # where M_NEWG / M_SKILL are drawn today
 STOCK_SKILL = (54, 38)
-SUGGEST_HEADER = (48, 70)      # suggested: logo kept, one header under it
-SUGGEST_ITEMS = (48, 90)
+# Suggested skill screen (logo kept, one header under it): read from MENUDEF's
+# LISTMENU "SkillMenu" (StaticText 32, 70 / Position 32, 90 at the time of B4).
+SUGGEST_HEADER = menudef_pair("SkillMenu", "StaticText")
+SUGGEST_ITEMS = menudef_pair("SkillMenu", "Position")
 SELECTOR_OFFSET = (-32, -5)    # Doom's DEFAULTLISTMENU: Selector "M_SKULL1", -32, -5
 # Menu dim, measured on the engine's own screenshot
 # docs/qa/evidence/2026-10-13_1007_F2_mainmenu-ru.png against TITLEPIC.png:
@@ -307,9 +334,19 @@ def mock_skill(lang: str, layout: str, menu_font, small_font, skull, col):
     return s, over
 
 
-def sheet(stamp: str, font_dir: Path = OUT_FONT, out_dir: Path = PREVIEW_DIR) -> Path:
+def sheet(stamp: str, font_dir: Path | None = None, out_dir: Path | None = None,
+          mock_dir: Path | None = None) -> Path:
+    """The menu sweep PNG, plus MENUMOCK_main_<lang>.png. Defaults are resolved
+    at call time. With no `out_dir` the sweep goes to PREVIEW_DIR and the two
+    mocks to OUT_ROOT (as always); with an explicit `out_dir` everything goes
+    there unless `mock_dir` says otherwise (B5). Missing folders are created."""
     from PIL import Image, ImageDraw, ImageFont
     import artlib
+
+    font_dir = OUT_FONT if font_dir is None else font_dir
+    if mock_dir is None:
+        mock_dir = OUT_ROOT if out_dir is None else out_dir
+    out_dir = PREVIEW_DIR if out_dir is None else out_dir
 
     col = _colours()
     menu_font = FolderFont(font_dir)
@@ -328,7 +365,8 @@ def sheet(stamp: str, font_dir: Path = OUT_FONT, out_dir: Path = PREVIEW_DIR) ->
     pad = 28
     W = pad * 3 + cw * 2 + SCREEN[0] + 20
     rows = [("MAIN MENU", "main"), ("SKILL SCREEN, headers at today's positions (M_NEWG 96,14 / M_SKILL 54,38)", "stock"),
-            ("SKILL SCREEN, suggested: logo kept at 60,0, one header at 48,70, rungs from 48,90", "suggest")]
+            (f"SKILL SCREEN, suggested (MENUDEF): logo kept at 60,0, one header at "
+             f"{SUGGEST_HEADER[0]},{SUGGEST_HEADER[1]}, rungs from {SUGGEST_ITEMS[0]},{SUGGEST_ITEMS[1]}", "suggest")]
     H = 112 + 260 + len(rows) * (ch + 70) + 300
     img = Image.new("RGB", (W, H), bg)
     d = ImageDraw.Draw(img)
@@ -403,8 +441,9 @@ def sheet(stamp: str, font_dir: Path = OUT_FONT, out_dir: Path = PREVIEW_DIR) ->
     path = out_dir / f"{stamp}_F2_menu-sweep.png"
     path.parent.mkdir(parents=True, exist_ok=True)
     img.save(path)
+    mock_dir.mkdir(parents=True, exist_ok=True)
     for lang in ("en", "ru"):
-        mock_main(lang, menu_font, skull, col)[0].convert("RGB").save(OUT_ROOT / f"MENUMOCK_main_{lang}.png")
+        mock_main(lang, menu_font, skull, col)[0].convert("RGB").save(mock_dir / f"MENUMOCK_main_{lang}.png")
     return path
 
 

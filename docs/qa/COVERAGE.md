@@ -122,7 +122,7 @@ their modification times.
 
 ### Bugs found (QA found, did not fix)
 
-**B4 (open, → `art-director`; low).** `gen_menu.py` mocks the skill
+**B4 (CLOSED 2026-10-13 23:00: the mock-up reads SkillMenu from MENUDEF; the expected failure is gone).** `gen_menu.py` mocks the skill
 screen's suggested layout at `SUGGEST_HEADER = (48, 70)` and
 `SUGGEST_ITEMS = (48, 90)`, but `src/lumps/MENUDEF` ships it at
 `StaticText 32, 70` and `Position 32, 90` (moved to 32 because rung 5 is
@@ -139,7 +139,7 @@ failure` (`((32, 70), (32, 90)) != ((48, 70), (48, 90))`); and
 Encoded as `@unittest.expectedFailure`; when the constants are fixed the
 test becomes an unexpected success and the marker must come off.
 
-**B5 (open, → `art-director`; low, a D27 hazard rather than a wrong
+**B5 (CLOSED 2026-10-13 23:00: paths resolved at call time, `out_dir` respected; was →`art-director`; low, a D27 hazard rather than a wrong
 asset).** `gen_menu.sheet(stamp, font_dir, out_dir)` writes the sweep to
 `out_dir` but `MENUMOCK_main_en.png` / `_ru.png` to the module-level
 `OUT_ROOT` (`work/art/menu/`) whatever `out_dir` says, and does not
