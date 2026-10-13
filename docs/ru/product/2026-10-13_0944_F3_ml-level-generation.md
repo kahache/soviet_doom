@@ -3,6 +3,8 @@
 Дата: 2026-10-13. Автор: PM. Датированный снимок, не живой документ.
 Английский оригинал: docs/product/2026-10-13_0944_F3_ml-level-generation.md (D7).
 
+Синхронизировано с оригиналом: 2026-10-13.
+
 Вопрос CEO, буквально: *«Existe posibilidad de que te descargues miles de
 niveles, entrenar un modelo de IA, y generar así los mapas? o es una idea muy
 loca?»* («Есть ли возможность скачать тысячи уровней, обучить модель ИИ и
