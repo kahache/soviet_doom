@@ -2,6 +2,11 @@
 
 Date: 2026-10-13. Status: accepted, **not yet seen in the engine** (the PM's
 batched engine pass, D26). Owner: `mod-engineer`.
+**Update, 2026-10-13 evening:** seen in the engine (the episode screen at
+20:39, `docs/qa/evidence/2026-10-13_2039_d40-d43-engine-pass.md`; the end
+text at 20:57, `docs/qa/evidence/2026-10-13_2057_map02-range-and-c12.md`).
+The two items this ADR left to `level-designer` are done in commit
+`d1e891f`. Marked inline below; the original text is kept.
 Russian mirror: owed (D34), at the same path under `docs/ru/`.
 
 Implements D41 (`docs/PRD.md`): "MAP02, the weapons test range, ships in v1
@@ -72,11 +77,31 @@ prefers another.
 - MAP02 has no exit line (its geometry is `level-designer`'s). Today the
   player leaves the range through the menu; the cluster text is reached by
   a future exit switch or the `exit` console command.
+  - **Done 2026-10-13, commit `d1e891f`:** MAP02 has an `Exit_Normal`
+    switch behind the player start (`docs/levels/MAP02-practice-range.md`
+    §4.1), and pressing it shows `SD_END02_TEXT` over `SDFLR1` in the
+    engine (P6, 20:57 evidence). **Correction (QA's G3-F2):** the `exit`
+    console command does not reach the cluster text; it quits GZDoom (PM,
+    20:39). The only console-side way is `tools/route.py`'s helper,
+    `netevent sdexit` (`Level.ExitLevel`), used by the `map02-start` route
+    (`docs/qa/evidence/2026-10-13_2052_F3_g3-map02-*`).
+- **Added 2026-10-13 evening (not in the original list):** what the status
+  line called "not yet seen in the engine" (the screen as drawn, the
+  Russian names in `SmallFont`, the cluster text after `nointermission`) is
+  now seen, in the 20:39 and 20:57 evidence (`docs/engine/MOD-SPEC.md`
+  §4.4). The 20:39 pass opened the screen with `openmenu EpisodeMenu`; it
+  did not walk New Game → episode → skill.
 
 ## What was NOT decided here
 
 - Whether the bestiary gallery, connected to nothing, should become
   reachable in the shipped range (a door, or a teleporter): `level-designer`.
+  - **Decided 2026-10-13 by `level-designer`, commit `d1e891f`:**
+    reachable, on foot, by a manual door (tag 1) in the hall's north wall
+    and a bent passage that comes out behind the row
+    (`docs/levels/MAP02-practice-range.md` §4.2). Seen in the engine (P1-P3,
+    P5, 20:57 evidence); P4, the door opened from the passage side, is NOT
+    VERIFIED in the engine.
 - Whether MAP02's title, "Engineering Test Range", should change now that
   the episode is "Practice Range": both strings are one `LANGUAGE` line.
 - `noskillmenu` on the range's episode, which would skip the skill screen:

@@ -15,9 +15,15 @@ placeholders, their editor numbers, sounds, sprites and MAP02 bench (D35,
 with infighting, blood colour and attack numbers still NOT VERIFIED (T22).
 **D40, 2026-10-13: slot 1 is an ice axe, `SD_IceAxe`, not a shovel**; the
 new class, file, string, sound and sprite names are in §6 ("Slot 1 since
-D40"), engine pass pending. **D41, the same day: MAP02 ships as a practice
-range**, a second episode on the New Game screen (§4.4, ADR 007), engine
-pass pending.
+D40"); **engine pass done the same day** (the dorm rack's pickup prints
+"An ice axe." and `printinv` lists `SD_IceAxe`; sprites still Freedoom's
+placeholders: `docs/qa/evidence/2026-10-13_2039_d40-d43-engine-pass.md`).
+**D41, the same day: MAP02 ships as a practice range**, a second episode on
+the New Game screen (§4.4, ADR 007); **engine pass done the same day**
+(the episode screen in English and Russian, same evidence), and MAP02's exit
+switch and on-foot gallery followed in commit `d1e891f` (§4.4).
+**D43 music (§4.5):** MAP01's `D_SDM01` seen in the engine the same day;
+the title's music is still NOT VERIFIED.
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -140,7 +146,7 @@ assets/   (CEO-approved art only; `work/` is gitignored and never ships)
 | Lump | Title (LANGUAGE) | Episode | Status |
 |---|---|---|---|
 | `MAP01` | `SD_MAP01_NAME` = "Zarya-7 Cosmodrome" / «Космодром "Заря-7"» | `SD_EP01_NAME` = "Soviet Doom" / "Советский Doom" | Owned by `level-designer` since F3; design in `docs/levels/MAP01-zarya-7.md`. `cluster = 1`, `next = endtitle`, `par = 210`. Named in-engine 2026-10-13 (the log prints `MAP01 - Zarya-7 Cosmodrome`). |
-| `MAP02` | `SD_MAP02_NAME` = "Engineering Test Range" / "Инженерный полигон" | `SD_EP02_NAME` = "Practice Range" / «Полигон» (D41, §4.4) | `cluster = 2`, `next = endtitle`, `nointermission`. F4: 2048×768 hall, ceiling 128, light 192, player start at (160,384) facing +x. The seven weapons, the four ammo pools, barrels and six targets (thing 3004, Soviet riflemen since F5). **F5: the bestiary gallery**, a second room 2048×768 at y 1024–1792, ceiling 192, light 192, connected to nothing: one of each of the eight enemy classes in a row at y = 1600, deaf (`ambush`) and facing north, away from the arrival spot. Since D41 the player reaches it from New Game (§4.4); `MAP=MAP02 tools/run.sh` still works, and the gallery is still reached only from the console, `warp 1024 1152`. Built as an engineering fixture; shipped as the practice range. |
+| `MAP02` | `SD_MAP02_NAME` = "Engineering Test Range" / "Инженерный полигон" | `SD_EP02_NAME` = "Practice Range" / «Полигон» (D41, §4.4) | `cluster = 2`, `next = endtitle`, `nointermission`. F4: 2048×768 hall, ceiling 128, light 192, player start at (160,384) facing +x. The seven weapons, the four ammo pools, barrels and six targets (thing 3004, Soviet riflemen since F5). **F5: the bestiary gallery**, a second room 2048×768 at y 1024–1792, ceiling 192, light 192: one of each of the eight enemy classes in a row at y = 1600, deaf (`ambush`) and facing north, away from the arrival spot. Since D41 the player reaches the map from New Game (§4.4); `MAP=MAP02 tools/run.sh` still works. **Since commit `d1e891f` (2026-10-13), v1 for players:** an `Exit_Normal` switch (`SDSW1D`) in a lit alcove straight behind the start, and the gallery reached on foot through a manual door (tag 1) in the hall's north wall and a bent passage that comes out behind the row; the console's `warp 1024 1152` still lands there. Geometry and reasons are `level-designer`'s, `docs/levels/MAP02-practice-range.md`. Built as an engineering fixture; shipped as the practice range. |
 
 MAPINFO conventions: `clearepisodes` + one episode per campaign (plus the
 practice range, §4.4); map titles by
@@ -163,7 +169,7 @@ between the ways of reaching it is ADR 007
 | Flow | Main menu → New Game → **episode screen** (new: with one episode the engine skipped it) → skill screen → the map |
 | Episode screen (`MENUDEF`) | `LISTMENU "EpisodeMenu"` redeclared like the skill screen (§6.6): logo `M_DOOM` at 60,0, one `SDMENU` header `$SD_MNU_CHOOSEEPISODE` at 32,70 ("CHOOSE MISSION" / «ВЫБЕРИТЕ ЗАДАНИЕ»), then `SmallFont` for the episode names, which the engine appends at run time. **`M_EPISOD` is never drawn** (T12) |
 | MAP01's exit | `next = endtitle`, unchanged: the campaign ends; **no map's `next` is MAP02** |
-| MAP02's exit | `cluster = 2`, `next = endtitle`: leaving the range shows `SD_END02_TEXT` ("The range is closed…" / «Полигон закрыт…») over `SDFLR1`, then the title screen. `nointermission` stays: a range has no score worth a stats screen. MAP02 has **no exit line today** (its geometry is `level-designer`'s), so in practice the player leaves through the menu; the definition is there for when it gets one, or for the `exit` console command |
+| MAP02's exit | `cluster = 2`, `next = endtitle`: leaving the range shows `SD_END02_TEXT` ("The range is closed…" / «Полигон закрыт…») over `SDFLR1`, then the title screen. `nointermission` stays: a range has no score worth a stats screen. The player leaves by **the exit switch behind the start** (`Exit_Normal`, pressed; commit `d1e891f`, `docs/levels/MAP02-practice-range.md` §4.1). **Seen in the engine** 2026-10-13: pressing it shows `SD_END02_TEXT` over `SDFLR1` (P6 in `docs/qa/evidence/2026-10-13_2057_map02-range-and-c12.md`). The only other way is tooling: the `netevent sdexit` of `tools/route.py`'s helper (`Level.ExitLevel`; the `map02-start` route, `docs/qa/evidence/2026-10-13_2052_F3_g3-map02-*`). **The console `exit` command does not reach it: it quits GZDoom** (G3-F2) |
 | Cluster 2 | `exittext = lookup, "SD_END02_TEXT"`, `flat = "SDFLR1"`, `music = ""` |
 
 Engine facts this rests on, read in GZDoom g4.14.2 (`gzdoom.pk3 →
@@ -174,14 +180,31 @@ starting at its `Position`, below any static items; an episode with no
 `picname` gets a text item; with exactly one episode the item is
 autoselected and the screen never shows, which is why `M_EPISOD` never
 appeared until now. The engine's own body also sets `NetgameMessage
-"$NEWGAME"` (New Game refused in a net game); ours keeps it. **NOT
-VERIFIED until the PM's engine pass:** the screen as drawn, the Russian
-names in `SmallFont`, and that `nointermission` still shows cluster 2's text
-(the finale is a cluster transition, not the stats screen, so it should).
+"$NEWGAME"` (New Game refused in a net game); ours keeps it.
 
-What D41 does not change: the bestiary gallery, which is connected to
-nothing, and MAP02's lack of an exit switch. Both are `level-designer`'s if
-the range should offer them.
+**Engine pass, done 2026-10-13** (the PM; D26):
+
+- **The screen as drawn, in both languages, and the Russian names in
+  `SmallFont`: VERIFIED** (20:39, `openmenu EpisodeMenu`, frames 2 and 3 of
+  `docs/qa/evidence/2026-10-13_2039_ice-axe-and-episode-menu.png`; notes
+  in `…_2039_d40-d43-engine-pass.md`): our logo, the `SDMENU` header and
+  the two episodes, no `M_EPISOD`. That pass opened the menu from the
+  console; it did not walk New Game → episode → skill.
+- **That `nointermission` still shows cluster 2's text: VERIFIED** (20:57,
+  P6 of `docs/qa/evidence/2026-10-13_2057_map02-range-and-c12.md`):
+  MAP02's exit switch shows `SD_END02_TEXT` over `SDFLR1`. The route
+  helper's `sdexit` reached it too (20:52, `…_2052_F3_g3-map02-*`).
+
+**MAP02 for players (commit `d1e891f`, 2026-10-13).** D41 left two gaps to
+`level-designer`, and both are closed: MAP02 has an exit switch behind the
+start, and the bestiary gallery is reached on foot, through a door (tag 1,
+`Door_Raise` on both faces) and a bent passage that keeps the hall's
+gunfire from waking it. Design: `docs/levels/MAP02-practice-range.md` §4.
+Seen in the engine the same evening (P1-P3, P5, P6 of the 20:57 evidence);
+**P4, the door opened from the passage side, is NOT VERIFIED in the
+engine** (the map's tests pin both faces statically). Nothing in this
+contract changed for it: MAPINFO, the cluster and the episode are as
+above.
 
 ### 4.5 Music (D43, 2026-10-13)
 
@@ -204,9 +227,12 @@ Rule: every `music` / `TitleMusic` value is `""` or a lump packed under
 nothing, which is why it is a test and not an engine-pass finding.
 `TitleMusic` in the mod's `GameInfo` overrides the IWAD's (`D_DM2TTL` on
 Freedoom), by the same block-merge that already carries `PlayerClasses`.
-**NOT VERIFIED until the PM's engine pass:** that both play
-(`currentmusic` in the console, with a non-zero music volume), and that the
-title music carries on into the main menu as Doom's does.
+**Engine pass, 2026-10-13** (the PM,
+`docs/qa/evidence/2026-10-13_2039_d40-d43-engine-pass.md`): **VERIFIED**
+that `currentmusic` reports `D_SDM01` in MAP01 and no music in MAP02.
+**Still NOT VERIFIED:** the title's `D_SDINTL` (that run starts in a map,
+so the title screen never played), and that the title music carries on
+into the main menu as Doom's does.
 
 ### 4.1 How the campaign ends (M3, closed 2026-10-13)
 
@@ -508,9 +534,17 @@ translation of «ледоруб» would print; "piolet" is the French loan Engli
 also uses, kept out of the game as too technical. `SDAX`/`SDAP` and
 `SDAXSWG`/`SDAXHIT` were checked free: no lump of `freedoom2.wad` 0.13.0
 starts with `SD`, and no other reserved name in §6.2, §6.3 or the bestiary
-starts with `SDA`. MAP01's zone `shovel_rack` (a sector of the dorm) keeps
-its name: zone names are `level-designer`'s, and the rack is furniture, not
-the weapon.
+starts with `SDA`. MAP01's zone `shovel_rack` (a sector of the dorm) was
+first left as it was, zone names being `level-designer`'s; since commit
+`f3cd8ea` (2026-10-13) it is **`z1_ice_axe_rack`**, the `z1_` prefix
+filing it under Z1 for `tools/route.py` (`docs/levels/MAP01-zarya-7.md`
+§17.15).
+
+**Engine pass, 2026-10-13** (the PM,
+`docs/qa/evidence/2026-10-13_2039_d40-d43-engine-pass.md`): walking into
+MAP01's dorm rack prints "An ice axe." and `printinv` lists `SD_IceAxe`.
+The sprites seen were Freedoom's placeholders; `SDAX`/`SDAP` and
+`SDAXSWG`/`SDAXHIT` are drafts at the CEO's gate.
 
 ### 6.1 Editor numbers (DoomEdNums)
 
