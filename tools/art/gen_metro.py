@@ -1,6 +1,7 @@
 """Batch 2, priority 2 — first pieces of the "metro" set (MAP02).
 
 Run with the project venv:  .venv/bin/python tools/art/gen_metro.py
+                    (fill-out drafts: .venv/bin/python tools/art/gen_metro.py --fill)
 
 Exploratory, deliberately small: six pieces, just enough for the set to
 exist and for the CEO to say whether this is the right underground. The set
@@ -34,6 +35,7 @@ Outputs (work/ is gitignored, nothing goes to assets/):
 from __future__ import annotations
 
 import datetime as dt
+import html
 import json
 import sys
 from pathlib import Path
@@ -43,7 +45,7 @@ from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from artlib import (  # noqa: E402
-    Overlay, blend, fbm, grain, load_palette, ramp_colour, save_indexed, shade,
+    Overlay, blend, fbm, grain, load_palette, quantize, ramp_colour, save_indexed, shade,
     star_points, tiling_seam_score, to_rgb,
 )
 import sheetlib  # noqa: E402
@@ -209,8 +211,13 @@ def tex_marb1() -> np.ndarray:
     this stone is more ox-blood than the warm Shrosha marble of the real
     stations. A palette v2 marble ramp is what would fix it.
     """
-    rng = rng_for("SDMARB1")
-    w, h = WALL_W, WALL_H
+    return marble_field(WALL_W, WALL_H, rng_for("SDMARB1"))
+
+
+def marble_field(w: int, h: int, rng: np.random.Generator) -> np.ndarray:
+    """The SDMARB1 stone at any size (the approved lump is 64x128; D42).
+    Factored out unchanged so the station wall SDMARB2 can reuse it;
+    tests/test_gen_metro.py holds SDMARB1 to the approved pixels."""
     field = MARB_BASE + (fbm(w, h, 3, 5, rng, 0.6) - 0.5) * MARB_MOTTLE
     field += grain(w, h, rng, 0.02)
     rgb = to_rgb(np.clip(field, 0, 1), "flag_red")
@@ -396,6 +403,418 @@ PALETTE_LIMITED = {
 }
 
 
+# ===================================================== fill-out (drafts)
+# The CEO approved the direction and the six pieces above (D42). What
+# follows fills the set out for the next gate, still inside palette v1:
+# palette v2 (marble red, cobalt, gold) and the mosaic motif (star or
+# figure) are open with the CEO, so nothing here depends on either. No
+# piece carries a star, a figure or a word.
+#
+# Seeds continue the D42 offsets (7..16), so the six approved seeds never
+# move. Outputs go to their own folder, FILL_DIR, so a --fill run never
+# rewrites the approved drafts in OUT_DIR.
+FILL_DIR = PROJECT_ROOT / "work" / "art" / "batch2" / "metro_fill"
+FILL_MANIFEST = FILL_DIR / "manifest.json"
+FILL_SEED_OFFSET = {"SDMFLR2": 7, "SDMFLR3": 8, "SDMEDG1": 9, "SDTUNL1": 10,
+                    "SDTUBB1": 11, "SDRAIL1": 12, "SDMCEIL1": 13, "SDMCEIL2": 14,
+                    "SDMARB2": 15, "SDTILE3": 16}
+SEED_OFFSET.update(FILL_SEED_OFFSET)
+SHORT_H = 64                 # SDMEDG1: a platform face is lower than a wall
+
+# --- granite, shared by the new floors (SDMFLR1 keeps its own code) ------
+GRAN_PALE = 0.66             # the pale slab of the checker / the coping stone
+CHECK_SLAB = 32              # SDMFLR2: one slab of each tone per half-tile
+
+# --- platform edge (SDMFLR3 top, SDMEDG1 face) ---------------------------
+# Rows of the edge flat, from the platform (row 0) to the lip (row 63):
+# dark granite, the painted warning line, then pale coping slabs.
+EDGE_LINE_Y0, EDGE_LINE_Y1 = 36, 42      # painted line, 6 px
+EDGE_COPING_Y0 = 46                      # pale coping from here to the lip
+EDGE_LIP = 2                             # dark chamfer on the lip itself
+EDGE_LINE_TONE = 0.80                    # hazard_yellow: worn paint, not new
+EDGE_WEAR = 0.35                         # how much of the line is scuffed
+FACE_COPING_H = 6                        # SDMEDG1: the coping's front edge
+FACE_SHADOW_H = 3                        # its shadow on the face below
+FACE_STRIPE_Y0, FACE_STRIPE_Y1 = 12, 24  # chevron band on the face
+STRIPE_PERIOD = 16                       # divides 64: the chevrons tile
+FACE_TONE = 0.30                         # concrete_cold: the face is dark
+
+# --- tunnel concrete -----------------------------------------------------
+TUNL_MID = 0.40              # darker than any station surface
+TUNL_BOARD = 16              # formwork board height, the cast's own lines
+TUNL_STREAKS = 0.22          # strength of the damp streaks
+CABLE_RUNS = ((38, 3), (58, 2))          # (top y, cables) of each bundle
+CABLE_D = 3                  # cable diameter in px
+BRACKET_EVERY = 32           # one bracket per 32 px, two per tile
+BRACKET_W = 3
+
+# --- tubbing (cast-iron lining rings) -----------------------------------
+TUBB_W, TUBB_H = 128, 128
+TUBB_RING = 64               # ring width -> one vertical flange per 64 px
+TUBB_SEG = 64                # segment height -> one horizontal joint per 64 px
+TUBB_FLANGE = 4
+TUBB_RIBS = 2                # stiffening ribs inside each segment
+TUBB_BOLT_EVERY = 16
+TUBB_MID = 0.26              # steel_blue low: cast iron, ART-BIBLE §6.2 keeps
+                             # large steel_blue areas under 0.5
+TUBB_RUST = 0.45
+
+# --- track bed ----------------------------------------------------------
+RAIL_X = ((7, 11), (53, 57))             # rail heads, 4 px wide; one track
+                                         # per 64 px tile, gauge ~46 px
+SLEEPER_PERIOD = 16          # divides 64
+SLEEPER_W = 7
+BED_MID = 0.26               # concrete_cold: oily concrete track bed
+SLEEPER_TONE = 0.30          # rust_brown: creosoted wood
+
+# --- coffered ceiling ---------------------------------------------------
+COFFER_BEAM = 6              # the beam between coffers (half on each edge)
+COFFER_STEPS = (4, 4)        # two stepped reveals towards the panel
+COFFER_TONES = (0.86, 0.72, 0.64, 0.70)  # beam, step 1, step 2, panel
+LAMP_R_RING, LAMP_R_GLASS, LAMP_R_CORE = 15, 11, 5
+LAMP_BRASS = 0.44            # same brass as SDBRAS1
+
+# --- station walls ------------------------------------------------------
+MARB2_SPLIT = 64             # SDMARB2: tile above, marble below
+MARB2_RAIL = 4               # brass rail capping the marble
+FRIEZE_Y0, FRIEZE_Y1 = 16, 32            # SDTILE3: ceramic frieze band
+FRIEZE_PERIOD = 16
+FRIEZE_GREEN = 0.38
+FRIEZE_CREAM = 0.86
+
+
+def granite_field(w: int, h: int, mid: float, rng: np.random.Generator) -> np.ndarray:
+    """The SDMFLR1 granite recipe at any tone, as an RGB array without joints."""
+    field = mid + (fbm(w, h, 4, 4, rng, 0.5) - 0.5) * 0.10 + grain(w, h, rng, 0.03)
+    speckle = rng.random((h, w))
+    field = np.where(speckle < GRAN_SPECKLE / 2, field + GRAN_SPECKLE_AMP, field)
+    field = np.where(speckle > 1 - GRAN_SPECKLE / 2, field - GRAN_SPECKLE_AMP, field)
+    rgb = to_rgb(np.clip(field, 0, 1), "concrete_cold")
+    warm = rng.random((h, w)) < 0.012
+    return np.where(warm[..., None], to_rgb(np.clip(field + 0.1, 0, 1), "rust_brown"), rgb)
+
+
+def slab_joints(h: int, w: int, every_x: int | None, every_y: int | None) -> np.ndarray:
+    """Shading factor for slab joints: a dark line and a lit line after it."""
+    f = np.ones((h, w))
+    if every_x:
+        for k in range(0, w, every_x):
+            f[:, k] = GRAN_JOINT
+            f[:, (k + 1) % w] *= 1.12
+    if every_y:
+        for k in range(0, h, every_y):
+            f[k, :] = GRAN_JOINT
+            f[(k + 1) % h, :] *= 1.12
+    return f
+
+
+def tex_mflr2() -> np.ndarray:
+    """Station hall floor: pale and dark granite in a 32 px checker.
+
+    The hall's floor carries a pattern where the service floor (SDMFLR1)
+    is plain, so the two read as two kinds of room. Still darker on
+    average than the tile walls (ART-BIBLE §5)."""
+    rng = rng_for("SDMFLR2")
+    w = h = FLAT
+    dark = granite_field(w, h, GRAN_MID, rng)
+    pale = granite_field(w, h, GRAN_PALE, rng)
+    yy, xx = np.mgrid[0:h, 0:w]
+    check = ((yy // CHECK_SLAB) + (xx // CHECK_SLAB)) % 2 == 1
+    rgb = np.where(check[..., None], pale, dark)
+    return shade(rgb, slab_joints(h, w, CHECK_SLAB, CHECK_SLAB))
+
+
+def tex_mflr3() -> np.ndarray:
+    """Platform edge, seen from above: dark granite, a worn painted warning
+    line, pale coping slabs and the dark lip. Tiles along x only; row 63 is
+    the edge over the track (rotate the flat in UDMF for other headings)."""
+    rng = rng_for("SDMFLR3")
+    w = h = FLAT
+    rgb = granite_field(w, h, GRAN_MID, rng)
+    pale = granite_field(w, h, GRAN_PALE, rng)
+    rows = np.arange(h)[:, None] * np.ones((1, w))
+    rgb = np.where((rows >= EDGE_COPING_Y0)[..., None], pale, rgb)
+    # the painted line: hazard yellow worn through to the stone in patches
+    wear = fbm(w, h, 8, 3, rng) < EDGE_WEAR + 0.25
+    line = (rows >= EDGE_LINE_Y0) & (rows < EDGE_LINE_Y1)
+    paint = to_rgb(np.full((h, w), EDGE_LINE_TONE) + grain(w, h, rng, 0.04), "hazard_yellow")
+    rgb = np.where((line & ~wear)[..., None], paint, rgb)
+    rgb = np.where((line & wear)[..., None], blend(rgb, ramp_colour("hazard_yellow", 0.55), 0.5 * np.ones((h, w))), rgb)
+    # coping slab joints every 32 px, and the lip
+    f = np.ones((h, w))
+    f[EDGE_COPING_Y0, :] = GRAN_JOINT
+    for k in range(0, w, GRAN_SLAB):
+        f[EDGE_COPING_Y0:, k] = GRAN_JOINT
+        f[EDGE_COPING_Y0:, (k + 1) % w] *= 1.12
+    f[h - EDGE_LIP:, :] = 0.55
+    return shade(rgb, f)
+
+
+def chevrons(w: int, h: int, y0: int, y1: int) -> np.ndarray:
+    """Mask of 45-degree hazard stripes in rows y0..y1, period STRIPE_PERIOD."""
+    yy, xx = np.mgrid[0:h, 0:w]
+    m = ((xx + yy) % STRIPE_PERIOD) < STRIPE_PERIOD // 2
+    return m & (yy >= y0) & (yy < y1)
+
+
+def tex_medg1() -> np.ndarray:
+    """Platform face (64x64), the wall below the coping that faces the
+    track: pale coping edge, its shadow, a black-and-yellow chevron band,
+    then dark damp concrete down to the track bed."""
+    rng = rng_for("SDMEDG1")
+    w, h = WALL_W, SHORT_H
+    field = FACE_TONE + (fbm(w, h, 3, 4, rng, 0.55) - 0.5) * 0.12 + grain(w, h, rng, 0.025)
+    damp = np.clip(fbm(w, h, 6, 3, rng, 0.5, aspect=4.0) - 0.55, 0, 1) * 0.6
+    rgb = to_rgb(np.clip(field - damp, 0, 1), "concrete_cold")
+    coping = granite_field(w, h, GRAN_PALE, rng)
+    rows = np.arange(h)[:, None] * np.ones((1, w))
+    rgb = np.where((rows < FACE_COPING_H)[..., None], coping, rgb)
+    yellow = to_rgb(np.full((h, w), EDGE_LINE_TONE) + grain(w, h, rng, 0.04), "hazard_yellow")
+    black = to_rgb(np.full((h, w), 0.06) + grain(w, h, rng, 0.02), "concrete_cold")
+    band = (rows >= FACE_STRIPE_Y0) & (rows < FACE_STRIPE_Y1)
+    stripe = chevrons(w, h, FACE_STRIPE_Y0, FACE_STRIPE_Y1)
+    rgb = np.where((band & stripe)[..., None], yellow, rgb)
+    rgb = np.where((band & ~stripe)[..., None], black, rgb)
+    # scuffs on the paint, from boots and brooms
+    scuff = np.clip(fbm(w, h, 8, 3, rng) - 0.66, 0, 1) * 2.5 * band
+    rgb = blend(rgb, ramp_colour("concrete_cold", 0.40), np.clip(scuff, 0, 0.6))
+    f = np.ones((h, w))
+    f[FACE_COPING_H - 1, :] = 0.55
+    f[FACE_COPING_H:FACE_COPING_H + FACE_SHADOW_H, :] = 0.62
+    f[0, :] = 1.15
+    for k in range(0, w, GRAN_SLAB):
+        f[:FACE_COPING_H, k] = GRAN_JOINT
+    return shade(rgb, f)
+
+
+def tex_tunl1() -> np.ndarray:
+    """Running-tunnel concrete: cast in boards, damp streaks running down,
+    two cable bundles on brackets. The cables run along x, so a tunnel wall
+    of any length is one continuous run."""
+    rng = rng_for("SDTUNL1")
+    w, h = WALL_W, WALL_H
+    field = TUNL_MID + (fbm(w, h, 3, 5, rng, 0.55) - 0.5) * 0.14 + grain(w, h, rng, 0.03)
+    streaks = np.clip(fbm(w, h, 8, 3, rng, 0.5, aspect=6.0) - 0.5, 0, 1) * TUNL_STREAKS * 2
+    field -= streaks * np.linspace(0.4, 1.0, h)[:, None]
+    rgb = to_rgb(np.clip(field, 0, 1), "concrete_cold")
+    f = np.ones((h, w))
+    for k in range(0, h, TUNL_BOARD):
+        f[k, :] *= 0.86                      # board joint, faint: cast, not built
+    rgb = shade(rgb, f)
+    ov = Overlay(w, h)
+    rust = ramp_colour("rust_brown", 0.30)
+    for top, n in CABLE_RUNS:
+        bottom = top + n * CABLE_D + 1
+        for bx in range(BRACKET_EVERY // 2, w, BRACKET_EVERY):
+            ov.rect(bx - 1, top - 2, bx - 1 + BRACKET_W, bottom + 2, fill=rust)
+            ov.rect(bx - 1, bottom + 1, bx - 1 + BRACKET_W, bottom + 2,
+                    fill=ramp_colour("rust_brown", 0.12))
+        for i in range(n):
+            y = top + i * CABLE_D
+            ov.rect(0, y, w, y + CABLE_D, fill=ramp_colour("steel_blue", 0.10))
+            ov.rect(0, y, w, y + 1, fill=ramp_colour("steel_blue", 0.30))
+        ov.rect(0, bottom, w, bottom + 1, fill=ramp_colour("concrete_cold", 0.12))
+    return ov.composite(rgb)
+
+
+def tex_tubb1() -> np.ndarray:
+    """Cast-iron tubbing, 128x128: two rings by two segments. Flanges are
+    lit on their upper and left faces, the recess holds two ribs, bolts sit
+    along every flange. Rust bleeds from the joints."""
+    rng = rng_for("SDTUBB1")
+    w, h = TUBB_W, TUBB_H
+    field = TUBB_MID + (fbm(w, h, 4, 4, rng, 0.5) - 0.5) * 0.10 + grain(w, h, rng, 0.025)
+    yy, xx = np.mgrid[0:h, 0:w]
+    lx, ly = xx % TUBB_RING, yy % TUBB_SEG
+    flange = (lx < TUBB_FLANGE) | (ly < TUBB_FLANGE)
+    rib_rows = [TUBB_SEG * (i + 1) // (TUBB_RIBS + 1) for i in range(TUBB_RIBS)]
+    rib = np.zeros((h, w), bool)
+    for r in rib_rows:
+        rib |= (ly >= r - 1) & (ly < r + 1) & ~flange
+    field = np.where(flange, field + 0.16, field)
+    field = np.where(rib, field + 0.10, field)
+    rgb = to_rgb(np.clip(field, 0, 1), "steel_blue")
+    # light from above-left: lit lip on top/left of each raised part, shadow below/right
+    f = np.ones((h, w))
+    f[(ly == 0) | (lx == 0)] = 1.25
+    f[(ly == TUBB_FLANGE) & (lx >= TUBB_FLANGE)] = 0.55
+    f[(lx == TUBB_FLANGE) & (ly >= TUBB_FLANGE)] = 0.62
+    for r in rib_rows:
+        f[(ly == r - 1) & ~flange] = 1.18
+        f[(ly == r + 1) & ~flange] = 0.62
+    rgb = shade(rgb, f)
+    # rust streaks bleeding down from the joints
+    bleed = np.clip(fbm(w, h, 8, 3, rng, 0.5, aspect=5.0) - 0.52, 0, 1) * 2.2
+    near = np.clip(1 - (ly - TUBB_FLANGE) / 26, 0, 1)
+    rgb = blend(rgb, ramp_colour("rust_brown", 0.34), np.clip(bleed * near * TUBB_RUST * 2, 0, 0.6))
+    ov = Overlay(w, h)
+    head = ramp_colour("steel_blue", 0.46)
+    for x0 in range(0, w, TUBB_RING):
+        for y in range(TUBB_BOLT_EVERY // 2, h, TUBB_BOLT_EVERY):
+            if y % TUBB_SEG < TUBB_FLANGE + 2:
+                continue
+            ov.ellipse(x0 + 0.5, y - 1.5, x0 + 3.5, y + 1.5, fill=head)
+    for y0 in range(0, h, TUBB_SEG):
+        for x in range(TUBB_BOLT_EVERY // 2, w, TUBB_BOLT_EVERY):
+            if x % TUBB_RING < TUBB_FLANGE + 2:
+                continue
+            ov.ellipse(x - 1.5, y0 + 0.5, x + 1.5, y0 + 3.5, fill=head)
+    return ov.composite(rgb)
+
+
+def tex_rail1() -> np.ndarray:
+    """Track bed, one track per 64 px tile, rails along y: oily concrete,
+    creosoted sleepers every 16 px, steel tie plates, rails with a polished
+    running edge. No contact rail: that is a separate piece if the level
+    designer wants live current as a hazard."""
+    rng = rng_for("SDRAIL1")
+    w = h = FLAT
+    field = BED_MID + (fbm(w, h, 4, 4, rng, 0.55) - 0.5) * 0.14 + grain(w, h, rng, 0.04)
+    rgb = to_rgb(np.clip(field, 0, 1), "concrete_cold")
+    oil = np.clip(fbm(w, h, 4, 3, rng) - 0.55, 0, 1) * 2
+    centre = np.zeros((h, w))
+    centre[:, RAIL_X[0][1]:RAIL_X[1][0]] = 1.0
+    rgb = blend(rgb, ramp_colour("rust_brown", 0.10), np.clip(oil * centre * 0.7, 0, 0.6))
+    yy = np.arange(h)[:, None] * np.ones((1, w))
+    sleeper = (yy % SLEEPER_PERIOD) < SLEEPER_W
+    wood = to_rgb(np.clip(SLEEPER_TONE + (fbm(w, h, 2, 3, rng, 0.5, aspect=0.2) - 0.5) * 0.16
+                          + grain(w, h, rng, 0.03), 0, 1), "rust_brown")
+    rgb = np.where(sleeper[..., None], wood, rgb)
+    f = np.ones((h, w))
+    f[(yy % SLEEPER_PERIOD) == SLEEPER_W] = 0.55          # sleeper's shadow
+    f[(yy % SLEEPER_PERIOD) == 0] = 1.12                  # its lit edge
+    rgb = shade(rgb, f)
+    ov = Overlay(w, h)
+    for x0, x1 in RAIL_X:
+        for y in range(0, h, SLEEPER_PERIOD):            # tie plates
+            ov.rect(x0 - 2, y + 1, x1 + 2, y + SLEEPER_W - 1, fill=ramp_colour("steel_blue", 0.14))
+        ov.rect(x0 - 1, 0, x1 + 1, h, fill=ramp_colour("steel_blue", 0.20))   # foot
+        ov.rect(x0, 0, x1, h, fill=ramp_colour("steel_blue", 0.42))           # web/head
+        ov.rect(x0 + 1, 0, x1 - 1, h, fill=ramp_colour("steel_blue", 0.80))   # running edge
+    return ov.composite(rgb)
+
+
+def coffer_field(rng: np.random.Generator) -> np.ndarray:
+    """One whitewashed coffer per 64 px flat, beam shared with neighbours."""
+    w = h = FLAT
+    yy, xx = np.mgrid[0:h, 0:w]
+    # distance inward from the nearest beam centre line (the tile edge)
+    d = np.minimum(np.minimum(xx, w - 1 - xx), np.minimum(yy, h - 1 - yy))
+    half_beam = COFFER_BEAM // 2
+    s1 = half_beam + COFFER_STEPS[0]
+    s2 = s1 + COFFER_STEPS[1]
+    tone = np.select([d < half_beam, d < s1, d < s2],
+                     list(COFFER_TONES[:3]), default=COFFER_TONES[3])
+    field = tone + (fbm(w, h, 3, 4, rng, 0.5) - 0.5) * 0.06 + grain(w, h, rng, 0.015)
+    rgb = to_rgb(np.clip(field, 0, 1), "plaster_warm")
+    f = np.ones((h, w))
+    for edge in (half_beam, s1, s2):
+        f[d == edge] = 0.80                  # a crisp line at every step
+    return shade(rgb, f)
+
+
+def tex_mceil1() -> np.ndarray:
+    """Coffered ceiling, whitewashed plaster, two stepped reveals."""
+    return coffer_field(rng_for("SDMCEIL1"))
+
+
+def tex_mceil2() -> np.ndarray:
+    """The coffer with a brass ring lamp and an opal glass disc: the
+    station's light source, as SDCEIL1 is the base's."""
+    rgb = coffer_field(rng_for("SDMCEIL2"))
+    c = FLAT / 2
+    ov = Overlay(FLAT, FLAT)
+    ov.ellipse(c - LAMP_R_RING - 2, c - LAMP_R_RING - 2, c + LAMP_R_RING + 2, c + LAMP_R_RING + 2,
+               fill=ramp_colour("plaster_warm", 0.50))                     # soot halo
+    ov.ellipse(c - LAMP_R_RING, c - LAMP_R_RING, c + LAMP_R_RING, c + LAMP_R_RING,
+               fill=ramp_colour("hazard_yellow", LAMP_BRASS))
+    ov.ellipse(c - LAMP_R_RING + 1, c - LAMP_R_RING + 1, c + LAMP_R_RING - 1, c + LAMP_R_RING - 1,
+               outline=ramp_colour("hazard_yellow", 0.66), width=1)
+    ov.ellipse(c - LAMP_R_GLASS, c - LAMP_R_GLASS, c + LAMP_R_GLASS, c + LAMP_R_GLASS,
+               fill=ramp_colour("cream_yellow", 0.92))
+    ov.ellipse(c - LAMP_R_CORE, c - LAMP_R_CORE, c + LAMP_R_CORE, c + LAMP_R_CORE,
+               fill=(255, 255, 255))
+    for k in range(8):                                                   # ring rivets
+        a = k * np.pi / 4
+        x, y = c + np.cos(a) * (LAMP_R_RING - 2), c + np.sin(a) * (LAMP_R_RING - 2)
+        ov.ellipse(x - 1, y - 1, x + 1, y + 1, fill=ramp_colour("rust_brown", 0.20))
+    return ov.composite(rgb)
+
+
+def tex_marb2() -> np.ndarray:
+    """Station wall: glazed tile above, red marble below, a brass rail
+    capping the marble. The hall's long walls, with SDBRAS1 between bays."""
+    rng = rng_for("SDMARB2")
+    rgb, _ = tile_field(WALL_W, WALL_H, rng)
+    marble = marble_field(WALL_W, WALL_H - MARB2_SPLIT, rng)
+    rgb[MARB2_SPLIT:] = marble
+    y0 = MARB2_SPLIT - MARB2_RAIL // 2
+    ov = Overlay(WALL_W, WALL_H)
+    ov.rect(0, y0, WALL_W, y0 + MARB2_RAIL, fill=ramp_colour("hazard_yellow", BRASS_MID))
+    ov.rect(0, y0, WALL_W, y0 + 1, fill=ramp_colour("hazard_yellow", 0.66))
+    ov.rect(0, y0 + MARB2_RAIL, WALL_W, y0 + MARB2_RAIL + 1, fill=ramp_colour("rust_brown", 0.10))
+    return ov.composite(rgb)
+
+
+def tex_tile3() -> np.ndarray:
+    """Tile wall with a ceramic frieze near the top: a chain of cream
+    lozenges on green between two dark rules. Geometric on purpose: the
+    motif question (star or figure) belongs to the mosaic and stays open."""
+    rng = rng_for("SDTILE3")
+    rgb, _ = tile_field(WALL_W, WALL_H, rng)
+    h, w = rgb.shape[:2]
+    yy, xx = np.mgrid[0:h, 0:w]
+    band = (yy >= FRIEZE_Y0) & (yy < FRIEZE_Y1)
+    cy = (FRIEZE_Y0 + FRIEZE_Y1 - 1) / 2
+    lx = (xx % FRIEZE_PERIOD) - (FRIEZE_PERIOD - 1) / 2
+    lozenge = (np.abs(lx) + np.abs(yy - cy)) <= (FRIEZE_Y1 - FRIEZE_Y0) / 2 - 1.5
+    inner = (np.abs(lx) + np.abs(yy - cy)) <= 2.5
+    green = to_rgb(np.clip(FRIEZE_GREEN + grain(w, h, rng, 0.03), 0, 1), "military_green")
+    cream = to_rgb(np.clip(FRIEZE_CREAM + grain(w, h, rng, 0.03), 0, 1), "cream_yellow")
+    dot = to_rgb(np.full((h, w), 0.30), "flag_red")
+    rgb = np.where((band & ~lozenge)[..., None], green, rgb)
+    rgb = np.where((band & lozenge & ~inner)[..., None], cream, rgb)
+    rgb = np.where((band & inner)[..., None], dot, rgb)
+    f = np.ones((h, w))
+    for y in (FRIEZE_Y0 - 2, FRIEZE_Y0 - 1, FRIEZE_Y1, FRIEZE_Y1 + 1):
+        f[y, :] = 0.40
+    f[FRIEZE_Y1 + 2, :] = 1.20
+    return shade(rgb, f)
+
+
+# lump, builder, kind, description
+FILL_TEXTURES = [
+    ("SDMFLR2", tex_mflr2, "flat",
+     "Station hall floor: pale and dark granite in a 32 px checker."),
+    ("SDMFLR3", tex_mflr3, "flat",
+     "Platform edge from above: dark granite, a worn painted warning line, pale coping, "
+     "dark lip on row 63. Tiles along x only."),
+    ("SDMEDG1", tex_medg1, "wall",
+     "Platform face 64x64 towards the track: coping edge, black-and-yellow chevron band, "
+     "dark damp concrete."),
+    ("SDTUNL1", tex_tunl1, "wall",
+     "Running-tunnel concrete cast in boards, damp streaks, two cable bundles on brackets."),
+    ("SDTUBB1", tex_tubb1, "wall",
+     "Cast-iron tubbing 128x128: two rings by two segments, flanges, ribs, bolts, rust "
+     "bleeding from the joints."),
+    ("SDRAIL1", tex_rail1, "flat",
+     "Track bed, one track per tile along y: oily concrete, creosoted sleepers every 16 px, "
+     "tie plates, rails with a polished running edge."),
+    ("SDMCEIL1", tex_mceil1, "flat",
+     "Coffered ceiling, whitewashed plaster, two stepped reveals."),
+    ("SDMCEIL2", tex_mceil2, "flat",
+     "The same coffer with a brass ring lamp and an opal glass disc: the station's light source."),
+    ("SDMARB2", tex_marb2, "wall",
+     "Station wall: glazed tile above, red marble below, a brass rail on the marble."),
+    ("SDTILE3", tex_tile3, "wall",
+     "Tile wall with a ceramic frieze: cream lozenges on green between two dark rules."),
+]
+
+FILL_FAMILIES = {"MEDG": "metro platform edge", "TUNL": "tunnel lining",
+                 "TUBB": "cast-iron tubbing", "RAIL": "track bed",
+                 "MCEIL": "metro ceiling"}
+
+
 # ================================================================= sheet
 INTRO_EN = (
     "<b>First six pieces of the metro set (MAP02). Exploration, not a closed set.</b> "
@@ -490,9 +909,149 @@ def build_sheet(lang: str, entries: list[dict], files: dict, stamp: str) -> Path
         footer=L["footer"].format(script=SCRIPT_REL, seed=BATCH_SEED))
 
 
+LIGHT_128 = 0.5             # sheet view only: a flat multiply, NOT the engine's colormap
+
+FILL_INTRO = (
+    "<b>Metro set, the fill-out: ten drafts for the next gate.</b> You approved the direction and "
+    "the first six pieces as drawn in palette v1 (D42: «OK a las 6 piezas de metro»); they are in "
+    "<code>assets/</code> now. These ten complete the set a level needs: a station hall floor, the "
+    "platform edge (top and face) with its warning stripe, the running tunnel in concrete and in "
+    "cast-iron tubbing, the track bed, a coffered ceiling with and without its brass lamp, and two "
+    "station walls without any sign. <b>All of it stays inside palette v1</b> and none of it depends "
+    "on the two questions still open with you: palette v2 (marble red, cobalt, gold) and the "
+    "mosaic's motif (star or figure). No piece carries a star, a figure or a word.")
+
+FILL_ASK = (
+    "<ol><li><b>Yes / no per piece.</b> Each card is independent; a no costs one card, not the set.</li>"
+    "<li><b>The tunnel:</b> concrete (<code>SDTUNL1</code>), tubbing (<code>SDTUBB1</code>), or both "
+    "(tubbing for the deep stretches, concrete near the stations). My recommendation: both.</li>"
+    "<li><b>The platform edge:</b> the painted line on <code>SDMFLR3</code> is period-plausible but "
+    "the chevrons on <code>SDMEDG1</code> are an industrial idiom, not a 1970s metro one. They are "
+    "there for gameplay (the edge must read from the track in the dark). Keep, or plain dark "
+    "face?</li></ol>")
+
+
+def light_view(rgb: np.ndarray, path: Path) -> Path:
+    """The quantised texture darkened to about sector light 128, as an RGB
+    PNG for the sheet only. Approximate on purpose and labelled so."""
+    img = quantize(Image.fromarray(rgb, "RGB")).convert("RGB")
+    dark = shade(np.asarray(img), LIGHT_128)
+    Image.fromarray(dark, "RGB").save(path, optimize=True)
+    return path
+
+
+def fill_card(entry: dict, files: dict) -> str:
+    lump = entry["lump"]
+    size = (entry["width"], entry["height"])
+    tile_size = (entry["width"] * 2, entry["height"] * 2)
+    views = (sheetlib.view("4x", files[lump], sheetlib.ZOOM, size)
+             + sheetlib.view("1x", files[lump], 1, size)
+             + sheetlib.view("2x2 tile (2x)", files[lump + "_tile"], 2, tile_size)
+             + sheetlib.view("~light 128 (2x)", files[lump + "_dark"], 2, size))
+    return (f'<div class="card"><h3>{lump}</h3><p class="desc">{html.escape(entry["description_en"])}</p>'
+            f'<div class="row">{views}</div>'
+            f'<dl><dt>Kind</dt><dd>{entry["kind"]}</dd>'
+            f'<dt>Size</dt><dd>{entry["width"]}&times;{entry["height"]}</dd>'
+            f'<dt>Colours used</dt><dd>{entry["colours_used"]}</dd>'
+            f'<dt>Seam ratio</dt><dd>{entry["seam_score"]}</dd>'
+            f'<dt>Origin</dt><dd>(a) seed {entry["seed"]}</dd>'
+            f'<dt>Status</dt><dd>draft, proposed</dd></dl></div>')
+
+
+def set_strip(approved: dict, fill: dict, sizes: dict) -> str:
+    """Every metro piece side by side at 2x, walls then flats, approved
+    first: a coherence check (same grain, same light), not a mockup."""
+    def row(names):
+        return '<div class="row" style="align-items:flex-end">' + "".join(
+            sheetlib.view(f"{n}{' ✓' if n in approved else ''}",
+                          approved.get(n) or fill[n], 2, sizes[n]) for n in names) + "</div>"
+    walls = [n for n in list(approved) + list(fill) if sizes[n][1] != FLAT or n in WALL_LUMPS_64]
+    flats = [n for n in list(approved) + list(fill) if n not in walls]
+    return row(walls) + row(flats)
+
+
+WALL_LUMPS_64 = {"SDMEDG1"}  # the one wall as short as a flat
+
+
+def build_fill_sheet(entries: list[dict], files: dict, stamp: str) -> Path:
+    cards = "".join(fill_card(e, files) for e in entries)
+    approved = {lump: OUT_DIR / f"{lump}.png" for lump, *_ in TEXTURES}
+    sizes = {}
+    for lump, path in approved.items():
+        with Image.open(path) as im:
+            sizes[lump] = im.size
+    for e in entries:
+        sizes[e["lump"]] = (e["width"], e["height"])
+    fill = {e["lump"]: files[e["lump"]] for e in entries}
+    sections = [
+        ("The ten drafts", "", f'<div class="grid">{cards}</div>'),
+        ("The whole set together (2x)",
+         "The six approved pieces (✓, D42) next to the ten drafts, walls then flats. A coherence "
+         "check, not a mockup of a station.", set_strip(approved, fill, sizes)),
+        ("What I need from you", "", f'<div class="ask">{FILL_ASK}</div>'),
+        ("Palette (ratified v1, untouched)", "", sheetlib.palette_ramps(load_palette())),
+    ]
+    out = SHEET_DIR / f"{stamp}_F3_batch2-metro-fill.html"
+    return sheetlib.write_sheet(
+        out, lang="en", title="Soviet Doom — metro set, fill-out drafts (batch 2)",
+        subtitle="F3 · metro set · drafts for the CEO, nothing here is in assets/",
+        intro=FILL_INTRO, sections=sections,
+        footer=(f"Origin (a): procedural, {SCRIPT_REL} --fill, seed {BATCH_SEED}+offset (7-16). "
+                "Palette docs/art/palette.json v1, not modified. Licence: own work, CC BY-NC-SA 4.0 "
+                "(D15). The '~light 128' view is a flat ×0.5 multiply for orientation, not the "
+                "engine's colormap (NOT VERIFIED in GZDoom)."))
+
+
+def build_fill(textures=None) -> tuple[list[dict], dict]:
+    """Render the fill-out drafts into FILL_DIR; returns (entries, files)."""
+    FILL_DIR.mkdir(parents=True, exist_ok=True)
+    entries, files = [], {}
+    for lump, builder, kind, desc in (textures or FILL_TEXTURES):
+        assert len(lump) <= 8 and lump.isupper() and lump.startswith("SD"), lump
+        rgb = builder()
+        h, w = rgb.shape[:2]
+        path = FILL_DIR / f"{lump}.png"
+        img = save_indexed(rgb, path)
+        files[lump] = path
+        tile_path = FILL_DIR / f"{lump}_tile2x2.png"
+        save_indexed(np.tile(rgb, (2, 2, 1)), tile_path)
+        files[lump + "_tile"] = tile_path
+        files[lump + "_dark"] = light_view(rgb, FILL_DIR / f"{lump}_light128.png")
+        entries.append({
+            "lump": lump, "kind": kind, "set": SET_NAME, "width": w, "height": h,
+            "file": str(path.relative_to(PROJECT_ROOT)), "script": SCRIPT_REL,
+            "seed": BATCH_SEED + SEED_OFFSET[lump], "seed_offset": SEED_OFFSET[lump],
+            "colours_used": len(set(img.get_flattened_data())),
+            "seam_score": round(tiling_seam_score(rgb), 2),
+            "description_en": desc,
+        })
+        print(f"{lump:9s} {w:3d}x{h:3d} {kind:4s} colours={entries[-1]['colours_used']:3d} "
+              f"seam={entries[-1]['seam_score']:5.2f}")
+    return entries, files
+
+
+def main_fill() -> None:
+    assert set(FILL_SEED_OFFSET) == {t[0] for t in FILL_TEXTURES}, "FILL_SEED_OFFSET and FILL_TEXTURES disagree"
+    assert len(set(SEED_OFFSET.values())) == len(SEED_OFFSET), "two pieces share a seed"
+    assert not set(FILL_SEED_OFFSET) & {t[0] for t in TEXTURES}, "a draft reuses an approved name"
+    entries, files = build_fill()
+    stamp = dt.datetime.now().strftime("%Y-%m-%d_%H%M")
+    sheet = build_fill_sheet(entries, files, stamp)
+    FILL_MANIFEST.write_text(json.dumps({
+        "batch": 2, "phase": "F3", "set": SET_NAME, "script": SCRIPT_REL + " --fill",
+        "batch_seed": BATCH_SEED, "status": "drafts for the CEO, palette v1, no motif, no text",
+        "new_families": FILL_FAMILIES, "textures": entries,
+    }, indent=1, ensure_ascii=False), encoding="utf-8")
+    print(f"sheet EN: {sheet}\nmanifest: {FILL_MANIFEST}")
+
+
 def main() -> None:
+    if "--fill" in sys.argv[1:]:
+        main_fill()
+        return
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    assert set(SEED_OFFSET) == {t[0] for t in TEXTURES}, "SEED_OFFSET and TEXTURES disagree"
+    approved_offsets = {k: v for k, v in SEED_OFFSET.items() if k not in FILL_SEED_OFFSET}
+    assert set(approved_offsets) == {t[0] for t in TEXTURES}, "SEED_OFFSET and TEXTURES disagree"
     assert len(set(SEED_OFFSET.values())) == len(SEED_OFFSET), "two pieces share a seed"
     entries, files = [], {}
     for lump, builder, kind, desc_en, desc_ru in TEXTURES:

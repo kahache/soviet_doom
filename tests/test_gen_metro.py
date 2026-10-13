@@ -14,8 +14,10 @@ The CEO approved the metro's first six pieces as drawn in palette v1
               Windows (CLAUDE.md, "Text-bearing assets do not reproduce")
   paper       every installed lump has an approved row in TEXTURE-INDEX.md
               and a row in LICENSES.md
+  drafts      the fill-out pieces (--fill): names, seeds, sizes, palette v1,
+              determinism, and never written into the approved folder
 
-All of it is cheap: the six builders run in well under a second, so nothing
+All of it is cheap: the builders run in well under a second, so nothing
 here is gated behind SD_SKIP_SLOW_ART.
 """
 
@@ -138,6 +140,66 @@ class GeneratorHoldsApprovedArtTests(unittest.TestCase):
             self.assertEqual(a.shape, b.shape, lump)
             diff = int((a != b).any(axis=-1).sum())
             self.assertEqual(diff, 0, f"{lump}: {diff} px differ from the approved file")
+
+
+WALL_SIZES = {(64, 64), (64, 128), (128, 64), (128, 128), (128, 256)}   # ART-BIBLE §2
+LUMP_RE = re.compile(r"^SD[A-Z0-9]{1,6}$")
+
+
+@unittest.skipUnless(HAVE_IMAGING, "needs numpy + Pillow (project venv)")
+class FillDraftTests(unittest.TestCase):
+    """The fill-out drafts (gen_metro.py --fill, 2026-10-13): proposals for
+    the next CEO gate, palette v1, never in assets/ until approved."""
+
+    @classmethod
+    def setUpClass(cls):
+        import gen_metro
+        from artlib import quantize
+        from PIL import Image
+        cls.g = gen_metro
+        cls.built = {}
+        for lump, builder, kind, _ in gen_metro.FILL_TEXTURES:
+            rgb = builder()
+            cls.built[lump] = (kind, rgb, quantize(Image.fromarray(rgb, "RGB")))
+
+    def test_names_and_seeds(self):
+        approved = {t[0] for t in self.g.TEXTURES}
+        self.assertEqual(set(self.built), set(self.g.FILL_SEED_OFFSET))
+        self.assertFalse(set(self.built) & approved, "a draft reuses an approved lump name")
+        for lump in self.built:
+            self.assertRegex(lump, LUMP_RE)
+        offsets = list(self.g.SEED_OFFSET.values())
+        self.assertEqual(len(offsets), len(set(offsets)), "two metro pieces share a seed")
+        self.assertGreater(min(self.g.FILL_SEED_OFFSET.values()),
+                           max(self.g.SEED_OFFSET[l] for l in APPROVED_D42))
+
+    def test_drafts_never_write_into_the_approved_folder(self):
+        self.assertNotEqual(self.g.FILL_DIR, self.g.OUT_DIR)
+
+    def test_batch_size_within_rules(self):
+        self.assertTrue(6 <= len(self.built) <= 12, len(self.built))
+
+    def test_sizes(self):
+        for lump, (kind, rgb, _) in self.built.items():
+            h, w = rgb.shape[:2]
+            if kind == "flat":
+                self.assertEqual((w, h), (64, 64), lump)
+            else:
+                self.assertIn((w, h), WALL_SIZES, lump)
+
+    def test_palette_v1_only(self):
+        import json
+        pal_json = PROJECT_ROOT / "docs" / "art" / "palette.json"
+        pal = {tuple(c) for c in json.loads(pal_json.read_text(encoding="utf-8"))["colours"]}
+        for lump, (_, _, img) in self.built.items():
+            p = img.getpalette()
+            used = {tuple(p[i * 3:i * 3 + 3]) for i in set(img.get_flattened_data())}
+            self.assertTrue(used <= pal, f"{lump}: {used - pal}")
+
+    def test_deterministic(self):
+        import numpy as np
+        for lump, builder, *_ in self.g.FILL_TEXTURES:
+            self.assertTrue(np.array_equal(builder(), self.built[lump][1]), lump)
 
 
 if __name__ == "__main__":

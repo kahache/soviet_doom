@@ -204,6 +204,36 @@ proposal, never a requantisation of an approved one (ART-BIBLE §3).
 Recommended light (ART-BIBLE §4): 96-128 in corridors, bright islands of
 160 at the station; the `level-designer` owns the final values.
 
+### Metro fill-out — drafts for the next CEO gate (2026-10-13)
+
+Preview: `docs/art/previews/2026-10-13_2022_F3_batch2-metro-fill.html`
+(English only; the Russian mirror is `translator-ru`'s at the phase close,
+D34). Generator `tools/art/gen_metro.py --fill`, same `BATCH_SEED` 1935,
+offsets 7 to 16 (the six approved seeds do not move); drafts in
+`work/art/batch2/metro_fill/`. Palette v1, nothing added, no typeface, no
+star, no figure: nothing here depends on palette v2 or on the mosaic's
+motif, both still open (D42). Each card carries 4×, 1×, a 2×2 tile and a
+view darkened ×0.5 for orientation (not the engine's colormap; NOT
+VERIFIED in GZDoom). The sheet also shows the whole set side by side,
+approved and drafts. New families for ART-BIBLE §2: `MEDG` platform edge,
+`TUNL` tunnel lining, `TUBB` tubbing, `RAIL` track bed, `MCEIL` metro
+ceiling. Known weak points, on record rather than redrawn before the CEO
+looks: the tubbing's rust bleed reads olive more than brown, and the plain
+coffer `SDMCEIL1` is very flat (7 colours).
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDMFLR2` | flat | 64×64 | yes | station hall floor, pale and dark granite in a 32 px checker | (a) gen_metro --fill, seed 1942 | proposed | 2026-10-13 |
+| `SDMFLR3` | flat | 64×64 | along x only (row 63 is the lip; rotate in UDMF) | platform edge from above: dark granite, worn painted yellow warning line, pale coping slabs, dark lip | (a) gen_metro --fill, seed 1943 | proposed | 2026-10-13 |
+| `SDMEDG1` | wall | 64×64 | along x only | platform face towards the track: coping edge, black-and-yellow chevron band, dark damp concrete | (a) gen_metro --fill, seed 1944 | proposed | 2026-10-13 |
+| `SDTUNL1` | wall | 64×128 | yes | running-tunnel concrete cast in boards, damp streaks, two cable bundles on brackets | (a) gen_metro --fill, seed 1945 | proposed | 2026-10-13 |
+| `SDTUBB1` | wall | 128×128 | yes | cast-iron tubbing, two rings by two segments: flanges, ribs, bolts, rust from the joints | (a) gen_metro --fill, seed 1946 | proposed | 2026-10-13 |
+| `SDRAIL1` | flat | 64×64 | along y (one track per 64 px tile) | track bed: oily concrete, creosoted sleepers every 16 px, tie plates, two rails with a polished running edge; no contact rail | (a) gen_metro --fill, seed 1947 | proposed | 2026-10-13 |
+| `SDMCEIL1` | flat | 64×64 | yes | coffered ceiling, whitewashed plaster, two stepped reveals | (a) gen_metro --fill, seed 1948 | proposed | 2026-10-13 |
+| `SDMCEIL2` | flat | 64×64 | yes | the same coffer with a brass ring lamp and an opal glass disc: the station's light source | (a) gen_metro --fill, seed 1949 | proposed | 2026-10-13 |
+| `SDMARB2` | wall | 64×128 | yes | station wall: glazed tile above, red marble below (the `SDMARB1` stone), brass rail on the marble | (a) gen_metro --fill, seed 1950 | proposed | 2026-10-13 |
+| `SDTILE3` | wall | 64×128 | yes | tile wall with a ceramic frieze: cream lozenges on green between two dark rules | (a) gen_metro --fill, seed 1951 | proposed | 2026-10-13 |
+
 ## The alphabet (D24) — glyph fix and German letters
 
 Not textures, listed here so the index carries every shipped art change.
