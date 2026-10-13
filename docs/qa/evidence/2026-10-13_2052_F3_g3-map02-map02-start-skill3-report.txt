@@ -1,0 +1,21 @@
+=== route map02-start / MAP02 / skill 3 ===
+helper         : route-2
+god mode       : on
+monsters       : engine 14, map data 14
+steps:
+  [ok ] A0   expect -            got ?    ? @ (160, 384, 0) hp 100
+  [ok ] R1   expect -            got ?    ? @ (288, 751, 0) hp 100
+  [ok ] E1   expect -            got -  -- no position reported
+zones reached  : ?
+doors:
+  [ok ] none checked: 
+inventory (by slot):
+  [ok ] A0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]
+  [ok ] R1: raised slot 1 (SD_IceAxe), -1 rounds; owned [1:SD_IceAxe, 2:SD_Tokarev]
+secrets        : 0 of 0
+exit           : REACHED (ended by sdexit: yes; level unloaded towards: enDSeQ1dce; after it: NOT SEEN)
+blockers       : none killed by the route's sdclear (sdclear answered 1 time(s))
+kills          : 0 of 14, of which 0 by the route's sdclear
+screenshots    : 4
+log failures   : none
+VERDICT        : PASS

@@ -298,6 +298,29 @@ G3-6 and G3-8, and the static halves of G3-4 and G3-5. They are tests in
 
   That build still had the shovel. D40 (`7b3ae65`) renamed the class to
   `SD_IceAxe`, so the rack is checked again on the ice-axe build (C1–C4).
+- The PM's first run of `tools/route.py`, 20:36–20:39 on `51c2746`, from a
+  clean worktree (`docs/qa/evidence/2026-10-13_2039_d40-d43-engine-pass.md`;
+  QA also read the run logs left in the PM's worktree):
+  - the helper (`route-1`) compiled. Position, door tags, lines, the
+    inventory, the exit line and the unload all printed as the parser
+    expects;
+  - skill 2 PASS; skills 3 and 4 FAIL at A1 only;
+  - skills 3 and 4 with `--nomonsters`: PASS, with the rack pickup, every
+    gate in order, the exit switch and zero log failures;
+  - the A1 failure is the runner's, not the map's: a live Stormtrooper
+    stood in the Z1→Z3 corridor, and a scripted `+forward` cannot step
+    round a body (the PM checked the screenshot). The skill-3 report shows
+    every other step `[ok ]`;
+  - `god` printed `God mode on.`;
+  - `gamestate` after the exit was NOT SEEN: the per-level helper is gone
+    once the level has ended;
+  - MAP01's exit unloaded towards `enDSeQ1dce`, an end sequence, as
+    MAPINFO's `next = endtitle` says;
+  - none of these runs was filed with `--keep-evidence`, so C1–C3 below
+    are still owed.
+
+  The runner was changed after this run (`route-2`, below). C1–C3 must be
+  run again on it.
 
 ### The tool: `tools/route.py`
 
@@ -319,12 +342,40 @@ the run files its log, its report and one PNG per captured step under
 `<stamp>_F3_g3-<map>-<route>-skill<N>[-nomonsters]{.log,-report.txt,-<step>.png}`.
 `<stamp>` is the run's `YYYY-MM-DD_HHMM`.
 
-**NOT VERIFIED until the PM's first run:** that the helper's ZScript
-compiles and prints as written. Every engine name it uses was read from
-g4.14.2's `gzdoom.pk3` on 2026-10-13. If the helper does not compile, the
-log shows a `Script error` naming `SDRouteHelper`. In that case
-`--minimal-helper` runs only the part the PM has already proven in the
-engine (angle, hurt, count), without the inventory.
+**Blockers.** Before every scripted walk, the helper's `sdclear` kills the
+live monsters standing within 128 units of the walk's line, and logs each
+one. A kill is never hidden. The report lists each one under `blockers`
+(step, class, position, hit points). It counts them apart under `kills`
+("N of M, of which K by the route's sdclear"), and it names them on the
+VERDICT line: `PASS (1 blocker(s) killed by the route, listed above)`. A
+blocker that survives fails the run. `--no-clear` turns clearing off.
+
+**Ending a level.** MAP01 must end by its exit switch (G3-4); an `sdexit`
+there fails the run. The console `exit` quits GZDoom and is never typed
+(PM, 20:39). MAP02 has no exit line, so `map02-start` ends it with the
+helper's `sdexit` (`Level.ExitLevel`). Both maps say `next = endtitle`,
+and the report checks that the level led to an end sequence.
+
+**Verified in the engine (route-1, PM's run 20:36):** the helper compiles,
+and it reports position, tags, lines, inventory, the exit line and the
+unload. **NOT VERIFIED until the PM's next run (route-2):**
+- `sdclear`;
+- `sdexit`;
+- the static `SDRouteState`, which answers `sdstate` after the level has
+  ended. Both handlers are listed in one `AddEventHandlers` line, in the
+  same list form as gameinfo's `creditpage`. Whether GZDoom runs net events
+  during an end text is not known: if it does not, the report says NOT
+  SEEN and the screenshot is the evidence.
+
+Every engine name these use was read from g4.14.2's `gzdoom.pk3`:
+- `Level.ExitLevel(int, bool)`;
+- `Actor.AngleToVector`, `Vec2To`, `bIsMonster`;
+- `DMG_FORCED`, `DMG_THRUSTLESS`, `DMG_NO_FACTOR`;
+- `StaticEventHandler`, and `GS_FINALE` (2).
+
+If the helper does not compile, the log shows a `Script error` naming
+`SDRouteHelper`, and `--minimal-helper` runs only the part already proven
+(angle, hurt, count).
 
 All commands below are typed in Git Bash at the repo root.
 
@@ -343,11 +394,11 @@ name given.
 
 | # | Covers | Command | Pass when | Evidence (`docs/qa/evidence/`) |
 |---|---|---|---|---|
-| C1 | Q6, the start inventory, scripted, skill 2 | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --skills 2 --keep-evidence` | Report row `[ok ] A0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]`. Report row `[ok ] R1: …; owned [1:SD_IceAxe, 2:SD_Tokarev]`. Doors ok, exit REACHED, VERDICT PASS (the route half of G3-4, `god` on) | `<stamp>_F3_g3-map01-g3-auto-skill2.log`, `…-skill2-report.txt`, `…-skill2-a0.png`, `…-skill2-r1.png`, `…-skill2-end.png` |
+| C1 | Q6, the start inventory, scripted, skill 2 | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --skills 2 --keep-evidence` | Report row `[ok ] A0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]`. Report row `[ok ] R1: …; owned [1:SD_IceAxe, 2:SD_Tokarev]`. Doors ok. Exit REACHED towards an `enDSeQ…` sequence. VERDICT PASS (the route half of G3-4, `god` on). Copy the `blockers` lines into the notes: each is a place where a monster stood in a scripted walk | `<stamp>_F3_g3-map01-g3-auto-skill2.log`, `…-skill2-report.txt`, `…-skill2-a0.png`, `…-skill2-r1.png`, `…-skill2-end.png` |
 | C2 | Q6, the same on skill 3, and a filed skill-3 log for G3-2 | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --skills 3 --keep-evidence` | As C1 | `<stamp>_F3_g3-map01-g3-auto-skill3{.log,-report.txt,-a0.png,-r1.png,-end.png}` |
 | C3 | Q6, the same on skill 4 | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --skills 4 --keep-evidence` | As C1 | `<stamp>_F3_g3-map01-g3-auto-skill4{.log,-report.txt,-a0.png,-r1.png,-end.png}` |
 | C4 | Q6 by eye: the TT-33 is raised on spawn, slot 1 is empty, the rack pickup works | `SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=3 tools/run.sh -nomonsters +screenshot_dir "$PWD/logs/shots"`. At spawn, console `screenshot`. Press `1`, then `screenshot`. Walk to the rack on the west wall (or console `warp 40 384`, face west, walk forward). Press `1`, then `screenshot`. `quit` | Shot 1: the TT-33 in hand. Shot 2: still the TT-33. The log has `An ice axe.` (`SD_PICKUP_ICEAXE`) once. Shot 3: the ice axe raised. `.venv/Scripts/python.exe tools/route.py --scan logs/gzdoom.log` gives VERDICT PASS | `<stamp>_F3_g3-start-tt33-raised.png`, `<stamp>_F3_g3-start-slot1-empty.png`, `<stamp>_F3_g3-rack-iceaxe.png`, `<stamp>_F3_g3-start-inventory.log` (a copy of `logs/gzdoom.log`) |
-| C5 | Q6 on the test range (optional, about 10 s) | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route map02-start --skills 3 --keep-evidence` | Rows A0 and R1 `[ok ]`, VERDICT PASS | `<stamp>_F3_g3-map02-map02-start-skill3{.log,-report.txt,-a0.png,-r1.png}` |
+| C5 | Q6 on the test range, and MAP02's end text (D41) (about 20 s) | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route map02-start --skills 3 --keep-evidence` | Rows A0 and R1 `[ok ]`. Exit `ended by sdexit: yes`, towards an `enDSeQ…` sequence. The E1 shot shows `SD_END02_TEXT` ("The range is closed for the day…") over `SDFLR1`. VERDICT PASS | `<stamp>_F3_g3-map02-map02-start-skill3{.log,-report.txt,-a0.png,-r1.png,-e1.png,-end.png}` |
 | C6 | Q1, Q2, Q3 and Q5: G3-4 on skill 2, played, no cheats | `SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=2 tools/run.sh +screenshot_dir "$PWD/logs/shots"`. Play from the start to the exit switch with no console command. Console `screenshot` facing the exit switch (the HUD shows health and ammo), then `screenshot` at the intermission, then `quit`. Copy `logs/gzdoom.log` to the evidence name, then run `.venv/Scripts/python.exe tools/route.py --scan docs/qa/evidence/<stamp>_F3_g3-map01-skill2-run.log` | Intermission reached. `--scan` VERDICT PASS (G3-2: 0 hits). Notes: time, health, deaths, any monster that never left a doorway or a closet mouth (Q3), anything that felt lavish (Q5) | `<stamp>_F3_g3-map01-skill2-run.log`, `<stamp>_F3_g3-map01-skill2-at-exit.png`, `<stamp>_F3_g3-map01-skill2-intermission.png`, notes in `<stamp>_F3_g3-map01-notes.md` |
 | C7 | Q1, Q2, Q3, Q4 and Q5, plus G3-5's zero-secret run: skill 4, played, no cheats, **no secret entered** | `SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=4 tools/run.sh +screenshot_dir "$PWD/logs/shots"`. As C6, and do not enter S1, S2 or S3. Then `grep -c "A secret is revealed" docs/qa/evidence/<stamp>_F3_g3-map01-skill4-run.log`, and `--scan` as in C6 | Intermission reached. `--scan` PASS. The grep prints `0`. Notes: ammo at the exit (from the HUD shot), and whether the player was ever left with only the ice axe (Q4) | `<stamp>_F3_g3-map01-skill4-run.log`, `<stamp>_F3_g3-map01-skill4-at-exit.png`, `<stamp>_F3_g3-map01-skill4-intermission.png`, notes in `<stamp>_F3_g3-map01-notes.md` |
 | C8 | Q7: G3-5's `-nomonsters` run | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --nomonsters --skills 3 --keep-evidence` | Exit REACHED, `monsters: engine 0, map data 0`, VERDICT PASS | `<stamp>_F3_g3-map01-g3-auto-skill3-nomonsters{.log,-report.txt,-end.png}` |
@@ -374,11 +425,23 @@ CEO's skill-3 run count.
   A player of radius 16 fits with zero tolerance. Doom allows touching, so
   it should pass; C12 checks it. If the engine refuses, the map shows a
   pickup it does not give, the same pattern as the CEO's rack bug.
-- **Fixed in `tools/route.py` before its first run:** the god-mode
-  detector looked for "God mode on". GZDoom answers `god` with
-  `STSTR_DQDON`, "Degreelessness Mode ON" (g4.14.2's `language.csv`), so
-  the report would have said god was never on. It now matches the real
-  string, and a test covers it.
+- **Corrected: the god-mode line.** Before the first run, QA "fixed" the
+  detector to look for "Degreelessness Mode ON", g4.14.2's `language.csv`
+  text for `STSTR_DQDON`, and claimed here that "God mode on" never
+  matched. The run disproved that: the engine printed `God mode on.`
+  (hypothesis, not checked: Freedoom's strings replace GZDoom's). The
+  detector kept the old spelling as well, so nothing broke. It now accepts
+  both, and a test covers each.
+- **G3-F2 (open, low, → `mod-engineer`):** `docs/engine/MOD-SPEC.md` (the
+  "MAP02's exit" row) says MAP02's end text can be reached "for the `exit`
+  console command". It cannot: `exit` quits GZDoom (PM, 2026-10-13 20:39).
+  - Repro: start MAP02, type `exit`.
+  - Expected: the end text. Observed: the program quits.
+  - The way to test it is C5 (`sdexit`, i.e. `Level.ExitLevel`). The
+    MOD-SPEC row should say so, or say there is no console way.
+- **Checked: C7 does not use the console `exit`.** It ends MAP01 by its
+  exit switch, played. No row in this checklist types `exit`, and
+  `tests/test_route.py` fails if a route ever does.
 
 **Verdict:** none yet. **IN PROGRESS.** G3 waits on C1–C12 and on the
 CEO's G3-9.

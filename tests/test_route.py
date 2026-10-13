@@ -92,9 +92,22 @@ class HelperIsToolingTest(unittest.TestCase):
                 zs = zf.read("zscript.txt").decode()
                 mapinfo = zf.read("MAPINFO").decode()
         self.assertIn(f"class {route.HELPER_CLASS} : EventHandler", zs)
-        self.assertIn(f'AddEventHandlers = "{route.HELPER_CLASS}"', mapinfo)
-        for event in ("sdinv", "sdpos", "sdtag", "sdlevel", "sdstate", "sdangle", "sdcount"):
+        # The game state is asked after the level ends, when the per-level
+        # helper is gone: a static handler answers it (PM's run, 20:36).
+        self.assertIn(f"class {route.STATE_CLASS} : StaticEventHandler", zs)
+        self.assertIn(f'AddEventHandlers = "{route.HELPER_CLASS}", "{route.STATE_CLASS}"', mapinfo)
+        for event in ("sdinv", "sdpos", "sdtag", "sdlevel", "sdstate", "sdangle", "sdcount",
+                      "sdclear", "sdexit"):
             self.assertIn(f'"{event}"', zs)
+        state_block = zs.split(f"class {route.STATE_CLASS}", 1)[1]
+        self.assertIn('"sdstate"', state_block)
+        self.assertEqual(1, zs.count('"sdstate"'), "sdstate answered twice")
+        # sdexit ends the level the engine's way; the console `exit` quits.
+        self.assertIn("level.ExitLevel(0, false)", zs)
+        # sdclear touches monsters only, living ones, and names each kill.
+        clear = zs.split('"sdclear"', 1)[1].split('"sdinv"', 1)[0]
+        self.assertIn("!a.bIsMonster || a.health <= 0", clear)
+        self.assertIn("SDTEST cleared step=", clear)
         # By slot, never by class: the melee weapon is being renamed (D40).
         self.assertIn("LocateWeapon", zs)
         self.assertNotRegex(zs, r"SD_Shovel|SD_IceAxe|SD_Tokarev")
@@ -104,8 +117,13 @@ class HelperIsToolingTest(unittest.TestCase):
         zs = route.helper_zscript(minimal=True)
         for event in ("sdangle", "sdhurt", "sdcount"):
             self.assertIn(f'"{event}"', zs)
-        self.assertNotIn("sdinv", zs.split("class", 1)[1])
+        body = zs.split("class", 1)[1]
+        for event in ("sdinv", "sdclear", "sdexit", "sdstate"):
+            self.assertNotIn(event, body)
+        self.assertNotIn("StaticEventHandler", zs)
         self.assertEqual(zs.count("{"), zs.count("}"))
+        self.assertEqual(f'gameinfo\n{{\n    AddEventHandlers = "{route.HELPER_CLASS}"\n}}\n',
+                         route.helper_mapinfo(minimal=True))
 
     def test_no_source_of_the_mod_mentions_the_helper(self):
         pattern = re.compile(rf"{route.HELPER_CLASS}|sdroute", re.I)
@@ -283,6 +301,35 @@ class RouteDefinitionTest(unittest.TestCase):
                          [(*s.warp, s.angle) for s in r.steps])
         self.assertTrue(all("capture" in s.actions for s in r.steps))
 
+    def test_every_walk_is_cleared_first_unless_told_not_to(self):
+        for name, r in route.ROUTES.items():
+            cmds = route.route_commands(r)
+            walks = [i for i, c in enumerate(cmds) if c == "+forward"]
+            for i in walks:
+                self.assertTrue(cmds[i - 2].startswith("netevent sdclear "), (name, cmds[i - 2]))
+                _, _, _step, length, width = cmds[i - 2].split()
+                tics = int(cmds[i + 1].split()[1])
+                self.assertEqual((tics * route.WALK_UNITS_PER_TIC, route.CLEAR_HALF_WIDTH),
+                                 (int(length), int(width)))
+            self.assertEqual(len(walks), sum(c.startswith("netevent sdclear") for c in cmds), name)
+            self.assertFalse([c for c in route.route_commands(r, clear=False)
+                              if c.startswith("netevent sdclear")], name)
+
+    def test_map02_start_ends_the_range_by_the_helper(self):
+        r = route.ROUTES["map02-start"]
+        self.assertEqual(("console", True, True), (r.exit_by, r.end_sequence, r.must_exit))
+        self.assertEqual("E1", r.steps[-1].id)
+        self.assertIn("exit", r.steps[-1].actions)
+        self.assertIn("capture", r.steps[-1].actions)
+        cmds = route.route_commands(r)
+        self.assertIn("netevent sdexit", cmds)
+        for name, other in route.ROUTES.items():
+            self.assertNotIn("exit", route.route_commands(other), f"{name}: the console exit quits GZDoom")
+        for name in ("g3-auto", "g3-secrets"):
+            self.assertEqual(("switch", True), (route.ROUTES[name].exit_by,
+                                                route.ROUTES[name].end_sequence))
+            self.assertNotIn("netevent sdexit", route.route_commands(route.ROUTES[name]))
+
     def test_every_built_in_route_turns_into_a_sequence(self):
         for name, r in route.ROUTES.items():
             text = route.console_sequence(r)
@@ -328,8 +375,13 @@ class PrintTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp, no_engine(), \
                 mock.patch.object(route, "HELPER_PK3", Path(tmp) / "h.pk3"):
             code, out, _ = run_main(["--print", "--route", "map02-start", "--skills", "3"])
-        self.assertEqual(route.EXIT_OK, code)
-        self.assertIn("-skill 3 +map MAP02", out)
+            self.assertEqual(route.EXIT_OK, code)
+            self.assertIn("-skill 3 +map MAP02", out)
+            self.assertIn("netevent sdexit", out)
+            self.assertIn("netevent sdclear", out)
+            code, out, _ = run_main(["--print", "--route", "map02-start", "--no-clear"])
+            self.assertEqual(route.EXIT_OK, code)
+            self.assertNotIn("sdclear", out)
 
     def test_the_weapon_sprite_is_set_before_the_sequence_both_ways(self):
         """M5 needs the weapon out of the frame. The cvar goes before the
@@ -374,6 +426,10 @@ class FakeRun:
         self.melee_owned_from = [s.id for s in r.steps].index("R1") if any(
             s.id == "R1" for s in r.steps) else None
         self.overrides: dict = {}
+        self.god_line = "God mode on."          # what g4.14.2 printed, PM's run 20:36
+        self.next_map = "enDSeQ1dce"            # the same run's MAP01 exit
+        self.end_state = route.GS_FINALE
+        self.cleared: list[tuple] = []          # (step, class, x, y, hp, dead) sdclear lines
 
     def point_in(self, families):
         for family in families:
@@ -408,11 +464,16 @@ class FakeRun:
         md, out = self.md, []
         out += ["GZDoom version g4.14.2", f"adding {PROJECT_ROOT}/dist/sovietdoom.pk3, 300 lumps",
                 f"{self.r.map_name} - test", "SDTEST helper route-1 map=" + self.r.map_name,
-                "Degreelessness Mode ON"]
+                self.god_line]
         out += list(extra)
         secrets = len(md.secret_sectors())
         for n, step in enumerate(self.r.steps):
             out.append(f"SDSTEP {n} {step.id}")
+            if any(a.startswith("forward") for a in step.actions):
+                mine = [c for c in self.cleared if c[0] == n]
+                out += [f"SDTEST cleared step={c[0]} class={c[1]} x={c[2]} y={c[3]} hp={c[4]} "
+                        f"dead={c[5]}" for c in mine]
+                out.append(f"SDTEST clear step={n} killed={len(mine)}")
             if "level" in step.actions:
                 out.append(f"SDTEST level map={self.r.map_name} monsters=0/{md.monsters_on(self.skill)} "
                            f"secrets=0/{secrets} items=0/40 time=140")
@@ -435,10 +496,14 @@ class FakeRun:
                        f"angle=0 health=100")
         out.append(f"SDSTEP {len(self.r.steps)} END")
         if exit_ and self.r.must_exit:
-            out.append("SDTEST line index=700 special=243 arg0=0 front=150 back=-1 type=1 player=1")
-            out.append(f"SDTEST unloaded map={self.r.map_name} next=MAP02 kills=0/0 "
+            if self.r.exit_by == "switch":
+                out.append("SDTEST line index=386 special=243 arg0=0 front=163 back=-1 type=2 player=1")
+            else:
+                out.append(f"SDTEST exitlevel map={self.r.map_name}")
+            kills = sum(1 for c in self.cleared if c[5] == 1)
+            out.append(f"SDTEST unloaded map={self.r.map_name} next={self.next_map} kills={kills}/{md.monsters_on(self.skill)} "
                        f"secrets=0/{secrets} items=0/40 time=4000")
-            out.append("SDTEST state gamestate=1")
+            out.append(f"SDTEST state gamestate={self.end_state}")
         return "\n".join(out) + "\n"
 
     def _tag_sectors(self, tag):
@@ -457,6 +522,8 @@ class ParseTest(unittest.TestCase):
         fake = FakeRun(r, skill, self.data[r.map_name])
         overrides = kw.pop("overrides", {})
         fake.overrides.update(overrides)
+        for key, value in kw.pop("attrs", {}).items():
+            setattr(fake, key, value)
         log = route.scan_route_log(fake.text(**kw))
         return route.evaluate(r, skill, log, self.data[r.map_name])
 
@@ -536,6 +603,90 @@ class ParseTest(unittest.TestCase):
             code, out, _ = run_main(["--parse", str(broken), "--skill", "4"])
             self.assertEqual(route.EXIT_LOG_FAILURES, code)
             self.assertIn("script-error", out)
+
+    # --- blockers in a scripted walk (PM's run, 2026-10-13 20:36) --------
+    def test_a_blocker_in_a_walk_is_killed_and_reported_not_hidden(self):
+        """Skills 3 and 4 failed at A1 only: a Stormtrooper stood in the
+        Z1-Z3 corridor. sdclear kills it; the run passes, and the report
+        says so in three places: the blockers list, the kill count and the
+        verdict."""
+        a1 = [s.id for s in route.ROUTES["g3-auto"].steps].index("A1")
+        rep = self.judge("g3-auto", 3, attrs={"cleared": [(a1, "SD_Stormtrooper", 256, 610, 60, 1)]})
+        self.assertTrue(rep.passed, rep.problems)
+        text = route.render_report(rep)
+        self.assertIn("blockers       : 1 killed by the route's sdclear", text)
+        self.assertIn("[ok ] A1: SD_Stormtrooper at (256, 610), 60 hp, dead", text)
+        self.assertIn("kills          : 1 of 33, of which 1 by the route's sdclear", text)
+        self.assertIn("VERDICT        : PASS (1 blocker(s) killed by the route", text)
+
+    def test_a_clean_run_says_no_blocker(self):
+        text = route.render_report(self.judge("g3-auto", 2))
+        self.assertIn("blockers       : none", text)
+        self.assertTrue(text.endswith("VERDICT        : PASS"), text[-80:])
+
+    def test_a_blocker_that_survives_fails(self):
+        a1 = [s.id for s in route.ROUTES["g3-auto"].steps].index("A1")
+        rep = self.judge("g3-auto", 4, attrs={"cleared": [(a1, "SD_Panzermensch", 256, 610, 500, 0)]})
+        self.assertFalse(rep.passed)
+        self.assertTrue(any("A1: blocker SD_Panzermensch" in p and "survived" in p
+                            for p in rep.problems), rep.problems)
+
+    # --- the god line, both spellings -----------------------------------
+    def test_both_god_lines_are_recognised(self):
+        for line in ("God mode on.", "Degreelessness Mode ON"):
+            rep = self.judge("g3-auto", 3, attrs={"god_line": line})
+            self.assertTrue(rep.log.god, line)
+        rep = self.judge("g3-auto", 3, attrs={"god_line": "Buddha mode ON"})
+        self.assertFalse(rep.log.god)
+
+    # --- how a level ends -------------------------------------------------
+    def test_map02_ends_by_sdexit_into_its_end_text(self):
+        rep = self.judge("map02-start", 3)
+        self.assertTrue(rep.passed, rep.problems)
+        self.assertTrue(rep.exit_reached)
+        self.assertIn("ended by sdexit: yes", rep.exit_detail)
+        self.assertIn("after it: end text", rep.exit_detail)
+
+    def test_map02_without_its_exit_fails(self):
+        rep = self.judge("map02-start", 3, exit_=False)
+        self.assertFalse(rep.passed)
+        self.assertIn("ended by sdexit: NO", rep.exit_detail)
+
+    def test_a_console_exit_does_not_finish_map01(self):
+        """G3-4 asks for the exit switch: sdexit on MAP01 is not an exit."""
+        r = route.ROUTES["g3-auto"]
+        fake = FakeRun(r, 3, self.data["MAP01"])
+        text = fake.text(exit_=False) + ("SDTEST exitlevel map=MAP01\n"
+                                         "SDTEST unloaded map=MAP01 next=enDSeQ1dce kills=0/33 "
+                                         "secrets=0/3 items=0/26 time=900\n")
+        rep = route.evaluate(r, 3, route.scan_route_log(text), self.data["MAP01"])
+        self.assertFalse(rep.passed)
+        self.assertFalse(rep.exit_reached)
+        self.assertIn("the level was ended by sdexit, not by its exit switch", rep.problems)
+
+    def test_an_exit_that_leads_to_a_map_not_an_end_sequence_fails(self):
+        rep = self.judge("g3-auto", 2, attrs={"next_map": "MAP02"})
+        self.assertFalse(rep.passed)
+        self.assertTrue(any("not to an end sequence" in p for p in rep.problems), rep.problems)
+
+    def test_the_pms_real_lines_parse(self):
+        """Lines copied from the PM's skill-3 log of 2026-10-13 20:36."""
+        log = route.scan_route_log(
+            "SDTEST helper route-1 map=MAP01\nGod mode on.\nSDSTEP 0 A0\n"
+            "SDTEST level map=MAP01 monsters=0/33 secrets=0/3 items=0/26 time=143\n"
+            "SDTEST weapon class=SD_Tokarev slot=2\n"
+            "SDTEST inv weapons=1 ready=SD_Tokarev slot=2 ammo=50\n"
+            "Captured Screenshot_Doom_20261013_203633.png\n"
+            "SDTEST pos step=0 x=252 y=85 z=0 sector=0 angle=90 health=91\n"
+            "SDSTEP 13 A12\n"
+            "SDTEST line index=386 special=243 arg0=0 front=163 back=-1 type=2 player=1\n"
+            "SDTEST unloaded map=MAP01 next=enDSeQ1dce kills=1/21 secrets=0/3 items=2/26 time=1045\n")
+        self.assertEqual("route-1", log.helper)
+        self.assertTrue(log.god)
+        self.assertEqual(33, log.levels[0][2])
+        self.assertEqual(50, log.inventory[0].ammo)
+        self.assertEqual("enDSeQ1dce", log.unloaded[0][1])
+        self.assertTrue(log.unloaded[0][1].startswith(route.END_SEQUENCE_PREFIX))
 
     def test_scan_judges_any_log_against_g3_2(self):
         clean = "GZDoom version g4.14.2\nMAP01 - Zarya-7\n"
