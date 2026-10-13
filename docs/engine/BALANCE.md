@@ -185,9 +185,10 @@ DoomEdNum, a pickup sprite and a HUD line.
 
 ## 5. What is NOT balanced yet
 
-- **Enemies do not exist** (F5). Every DPS figure above is measured against
-  Freedoom placeholders. The real calibration happens when the bestiary has
-  hit points.
+- **Enemies exist since F5 but have not been fought** (D26: the engine pass
+  is owed). Their numbers are owned by `docs/engine/BESTIARY.md`, not
+  repeated here; §7 below only crosses them with the arsenal. The real
+  calibration is the MAP01 playtest.
 - **Ammo economy per map** is untested: how much of each pool MAP01 hands
   out decides whether the PPSh's appetite is a cost or a joke.
 - **Difficulty skills** are untouched; GZDoom's defaults apply.
@@ -208,3 +209,42 @@ GZDoom 4.14.2 over Freedoom 0.13.0, map `MAP02` (`MAP=MAP02 tools/run.sh`):
 
 Numbers above are computed, not measured frame by frame; treat the DPS
 column as a design ruler until QA plays MAP01 with real enemies.
+
+## 7. The arsenal against the bestiary (F5, computed)
+
+Average shots to kill, `ceil(HP / average damage per shot)`, every shot
+landing. Enemy hit points come from `BESTIARY.md` §12 (the owner); average
+damage per shot from §2 above. A ruler, like the DPS column: spread, pain
+stagger and blast are not in it.
+
+| Enemy | HP | Shovel swings | TT-33 rounds | IZh-58 barrels | PPSh-41 rounds | RPG-7 direct hits | ROKS-3 bursts | Katyusha rockets |
+|---|---|---|---|---|---|---|---|---|
+| Reich rifleman | 20 | 2 | 2 | 1 | 3 | 1 | 2 | 1 |
+| Legion trooper | 30 | 2 | 3 | 1 | 4 | 1 | 2 | 1 |
+| Hybrid Stormtrooper | 60 | 4 | 5 | 1 | 8 | 1 | 4 | 1 |
+| Reich hound | 150 | 10 | 13 | 2 | 19 | 2 | 9 | 2 |
+| Doughboy | 400 | 27 | 34 | 5 | 50 | 3 | 23 | 4 |
+| Panzermensch | 500 | 34 | 42 | 7 | 63 | 4 | 28 | 5 |
+| Heavy Panzermensch | 1000 | 67 | 84 | 13 | 125 | 8 | 56 | 9 |
+| The General | 3000 | 200 | 250 | 38 | 375 | 23 | 167 | 27 |
+
+What it says, before anyone has played it:
+
+- **The IZh-58 one-shots the three humanoids.** One barrel (avg 80) kills
+  a rifleman, a trooper and a Stormtrooper, which is Doom's shotgun-vs-imp
+  relationship made slightly kinder by the 8th pellet. If MAP01 feels too
+  easy, this is the first lever (`SD_IZH_PELLETS`), not enemy health.
+- **The RPG-7 column is a floor.** It counts the 135-average impact only;
+  every enemy except the General also takes the blast (up to 100 at the
+  centre), so a direct hit on a Panzermensch is nearer 235. The General has
+  `+NORADIUSDMG` and takes the impact only, on purpose (`BESTIARY.md` §9).
+- **A full hand-Katyusha salvo (six rockets, ~675 direct) kills anything up
+  to the Panzermensch** if all six land on one target; the heavy
+  Panzermensch needs a second salvo, and against the General one salvo is
+  under a quarter of his health: the boss fight cannot be skipped with one
+  weapon.
+- **The General summons two riflemen at 1500 HP**, so the fight's second
+  half adds two TT-33 pairs or one IZh barrel each to the bill.
+
+`MOD-SPEC.md` debt T5 stays open until these numbers are measured in a
+playtest.

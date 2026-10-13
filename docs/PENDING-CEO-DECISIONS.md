@@ -1,20 +1,38 @@
 # Pending CEO decisions
 
-Updated: 2026-10-13 17:00, on the move to the Windows PC. Ordered by how much
+Updated: 2026-10-13 17:15, on the move to the Windows PC. Ordered by how much
 each item unblocks. What closed since the previous update is listed at the
 end so nothing is lost. Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md`.
 
-## 1. MAP01 v3 is being built (nothing to decide now)
+## 1. Play MAP01 v3 through (15 minutes, skills 3 and 4)
 
-v2 passed its gate on your walk and the menu is approved (D32). v3 densifies
-the map (D33): shape in the empty rooms, combat and items by skill, subtler
-secrets, toward Freedoom's MAP01 (~200 sectors, ~1200 lines). The PM will
-ask you to play it through when the engine pass is clean.
+```
+python tools\build.py; & "$env:LOCALAPPDATA\Programs\GZDoom\gzdoom.exe" -iwad iwads\freedoom2.wad -file dist\sovietdoom.pk3 +map MAP01 -skill 3
+```
 
-Still open from the design document §13, no hurry:
-- **No keys, switch grammar instead.** Built that way on the PM's approval;
-  one word from you closes it. Recommended yes.
-- **Night-sky strip over the hangar**, yes or no. `SKY1` already exists.
+Now with enemies (Freedoom sprites standing in for ours), items, ambushes
+behind both switches, subtler secrets and Lenin lit. Five things to judge:
+does it last 5-8 minutes (the intermission shows the time), does the hangar
+read as a place, are the secrets found without being given away, do the
+two switch ambushes surprise or feel unfair, does Lenin read.
+
+Still open from the design document §13: no keys (recommended yes); a
+night-sky strip over the hangar, yes or no.
+
+## 1b. The Reich rifleman's design, and how ~50 sprites get made
+
+Sheet: `docs/art/previews/2026-10-13_1646_F5_reich-rifleman-sweep.png`.
+Pick a cell (art-director recommends E, crested helmet; or E with D's gas
+mask). Then the method: the art-director says plainly that shape-built
+sprites read well at game distance but look like paper dolls up close, and
+proposes a 3D rig in the same style rendered at 8 angles; or your own
+concept or a pixel artist for the front frames, with the rig for the rest.
+
+## 1c. Your voice takes for the enemies (D36)
+
+The sound-designer is writing `docs/sound/VOICE-SCRIPT.md`: every line in
+German or English, with instructions for recording or for AI generation.
+Nothing to decide; it is your recording session when you have the time.
 
 ## 2. Play the weapons test range (15 minutes, unblocks F4 balance)
 

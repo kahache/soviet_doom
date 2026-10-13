@@ -7,7 +7,10 @@ ammunition renamed and the shovel silenced after the CEO's play session,
 2026-10-13; PK3 tree, asset mapping, switch naming and the T9 closure
 recorded after the `pmo` audit of the Mac batch (PMO-09, PMO-10),
 2026-10-13; main menu and skill screen in our own type (D31, §6.6),
-2026-10-13, pending the engine pass (F0 pipeline verified 2026-10-09).
+2026-10-13, pending the engine pass (F0 pipeline verified 2026-10-09);
+F5 bestiary — eight enemy classes and four projectiles with Freedoom
+placeholders, their editor numbers, sounds, sprites and MAP02 bench (D35,
+§5.1, §6, §6.1–6.3), 2026-10-13, **pending the engine pass**.
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -44,6 +47,7 @@ sovietdoom.pk3
 ├── zscript.txt             ZScript entry: version + #include
 ├── zscript/sd/*.zs         systems (event handlers, player class, ammo)
 ├── zscript/weapons/*.zs    the arsenal, one class per file (F4)
+├── zscript/monsters/*.zs   the bestiary, one class per file (F5, BESTIARY.md)
 ├── maps/MAP01.wad          one WAD per map, lumps MAP01, TEXTMAP, ENDMAP
 ├── maps/MAP02.wad          engineering test range (F4)
 ├── textures/SD*.png        approved wall textures: SDCONC1-2, SDDOOR1, SDPOSTR1-2, SDSTAR1,
@@ -83,7 +87,7 @@ Rules:
 ```
 src/
 ├── lumps/        → PK3 root (flat: MAPINFO, LANGUAGE, MENUDEF, SNDINFO, ANIMDEFS, zscript.txt)
-├── zscript/      → zscript/  (copied as is; sd/ = systems, weapons/ = arsenal)
+├── zscript/      → zscript/  (copied as is; sd/ = systems, weapons/ = arsenal, monsters/ = bestiary)
 ├── maps/MAP01/map.py   → maps/MAP01.wad  (generated; defines lumps())
 ├── maps/MAPxx.wad      → maps/MAPxx.wad  (copied as is; UDB output)
 └── textures/ flats/ sprites/ sounds/ music/ graphics/ patches/ hires/ fonts/ → same paths
@@ -127,7 +131,7 @@ assets/   (CEO-approved art only; `work/` is gitignored and never ships)
 | Lump | Title (LANGUAGE) | Episode | Status |
 |---|---|---|---|
 | `MAP01` | `SD_MAP01_NAME` = "Zarya-7 Cosmodrome" / «Космодром "Заря-7"» | `SD_EP01_NAME` = "Soviet Doom" / "Советский Doom" | Owned by `level-designer` since F3; design in `docs/levels/MAP01-zarya-7.md`. `cluster = 1`, `next = endtitle`, `par = 210`. Named in-engine 2026-10-13 (the log prints `MAP01 - Zarya-7 Cosmodrome`). |
-| `MAP02` | `SD_MAP02_NAME` = "Engineering Test Range" / "Инженерный полигон" | none (not in an episode) | F4: 2048×768 hall, ceiling 128, light 192, player start at (160,384) facing +x. The seven weapons, the four ammo pools, barrels and placeholder targets. Reached with `MAP=MAP02 tools/run.sh`. Engineering fixture, **not a design artefact**. |
+| `MAP02` | `SD_MAP02_NAME` = "Engineering Test Range" / "Инженерный полигон" | none (not in an episode) | F4: 2048×768 hall, ceiling 128, light 192, player start at (160,384) facing +x. The seven weapons, the four ammo pools, barrels and six targets (thing 3004, Soviet riflemen since F5). **F5: the bestiary gallery**, a second room 2048×768 at y 1024–1792, ceiling 192, light 192, connected to nothing: one of each of the eight enemy classes in a row at y = 1600, deaf (`ambush`) and facing north, away from the arrival spot. The map is reached with `MAP=MAP02 tools/run.sh`, the gallery from the console with `warp 1024 1152`. Engineering fixture, **not a design artefact**. |
 
 MAPINFO conventions: `clearepisodes` + one episode per campaign; map titles by
 `lookup`, episode title by `name = "$ID"` (**`lookup` is not accepted inside an
@@ -187,7 +191,10 @@ Sector specials, numbers from `gzdoom.pk3 → xlat/defines.i`:
 | `dLight_Flicker` | **65** | the flickering stretch of Z5 (MAP01 v2) | **VERIFIED in engine** 2026-10-13 16:11: mean brightness 61 → 46 → 61 over three shots 5 tics apart |
 | `SECRET_MASK` | **1024** | the three secret sectors S1-S3 | **VERIFIED in engine** 2026-10-13 16:11: each prints the secret message on entry |
 
-Tag 30 is MAP01's "gate light": SW-A's lighttag, carried by the switch
+Since MAP01 v3 one tag can name several doors: tag 10 opens D4 and the
+three fuel-bay ambush panels, tag 11 opens D5 and the three hangar closets,
+so each switch also releases a wave without a trigger line of its own.
+NOT VERIFIED in engine until the v3 pass. Tag 30 is MAP01's "gate light": SW-A's lighttag, carried by the switch
 niche, D4's recess and the booth. NOT VERIFIED: how much the niche itself
 brightens, which the player sees without turning (measured +4 % mean
 luma on the screenshot, with the switch face changing in the same frame).
@@ -289,16 +296,85 @@ weapon classes the arsenal inherits from. Since F4 the player pawn and all
 seven weapons are **ours** (§6); Freedoom's are replaced, and the super
 shotgun and chainsaw are unplaceable.
 
-`MAP02` additionally places Freedoom actors as **test fixtures**: explosive
-barrel (2035), zombieman (3004), medikit (2012), blue armour (2019),
-backpack (8) and the ammo boxes 2046/2048/2049/17. They are placeholders
-until the bestiary exists (F5) and appear in no campaign map.
+`MAP02` additionally places Doom editor numbers as **test fixtures**:
+explosive barrel (2035), zombieman (3004), medikit (2012), blue armour
+(2019), backpack (8) and the ammo boxes 2046/2048/2049/17. Since F5 the six
+3004 targets spawn **`SD_ReichRifleman`** (`replaces ZombieMan`), so the
+arsenal is tested against our own enemy; the ammo boxes and the backpack
+were already ours (§6.4); the barrel, the medikit and the armour are still
+Freedoom's.
+
+**MAP01 (campaign) since v3, 2026-10-13** places Doom editor numbers too:
+monsters 3004, 9, 3001, 3002, 3005 and 69, each spawning our class through
+`replaces` (§6.1), so the map needs no renumbering when our sprites land;
+explosive barrel 2035, floor lamp 2028 and computer area map 2026; health
+and armour 2011, 2012, 2014, 2015 and 2018; ammunition 2007, 2048, 2008,
+2049, 2046 and backpack 8, the ammo ones ours by replacement (§6.4); and our
+own weapon numbers 21001, 21003, 21004 and 21005 (§6.1), their first use in
+a campaign map. Skill flags go in pairs, 1 = 2 and 4 = 5
+(`tools/sdbuild/udmf.py`, `skill_tier`). Doom's 65 (chaingunner) and 58
+(spectre) are not placed: no class of ours replaces them (T21).
+
+### 5.1 IWAD sprites used as placeholders
+
+A sprite named in a ZScript `States` block must be packed under `sprites/`
+or written in this table; `tools/check_pk3.py` (category `sprites`) fails
+the package otherwise, as it does for an undeclared IWAD texture. Every one
+of them is a **placeholder** for a lump reserved in §6.3; none is
+redistributed, the engine reads it from the loaded IWAD. The frames the
+bestiary uses were checked against `iwads/freedoom2.wad` 0.13.0 by
+`tests/test_bestiary.py` (it skips where no IWAD is present, as in CI).
+`TNT1` (the engine's invisible sprite) and the `####` / `----` "keep the
+previous sprite" markers are the engine's and need no row.
+
+| Name | Type | Used by | Verification |
+|---|---|---|---|
+| `PUNG` | sprite | `SD_Shovel` (held) | engine pass F4, 2026-10-12 |
+| `CSAW` | sprite | `SD_Shovel` (pickup) | idem |
+| `PISG` | sprite | `SD_Tokarev` (held) | idem |
+| `PISF` | sprite | `SD_Tokarev` (flash) | idem |
+| `PIST` | sprite | `SD_Tokarev` (pickup) | idem |
+| `SHTG` | sprite | `SD_Izh` (held) | idem |
+| `SHTF` | sprite | `SD_Izh` (flash) | idem |
+| `SHOT` | sprite | `SD_Izh` (pickup) | idem |
+| `CHGG` | sprite | `SD_Ppsh` (held) | idem |
+| `CHGF` | sprite | `SD_Ppsh` (flash) | idem |
+| `MGUN` | sprite | `SD_Ppsh` (pickup) | idem |
+| `MISG` | sprite | `SD_Rpg7` (held) | idem |
+| `MISF` | sprite | `SD_Rpg7` (flash) | idem |
+| `LAUN` | sprite | `SD_Rpg7` (pickup) | idem |
+| `MISL` | sprite | `SD_Pg7Grenade`, `SD_KatyushaRocket`; burst of `SD_GeneralShell` | idem; bestiary frames B–D in the IWAD (test) |
+| `PLSG` | sprite | `SD_Roks3` (held) | engine pass F4 |
+| `PLSF` | sprite | `SD_Roks3` (flash) | idem |
+| `PLAS` | sprite | `SD_Roks3` (pickup) | idem |
+| `PLSS` | sprite | `SD_FlameBlob` | idem |
+| `PLSE` | sprite | `SD_FlameBlob` (impact) | idem |
+| `BFGG` | sprite | `SD_HandKatyusha` (held) | idem |
+| `BFGF` | sprite | `SD_HandKatyusha` (flash) | idem |
+| `BFUG` | sprite | `SD_HandKatyusha` (pickup) | idem |
+| `POSS` | sprite | `SD_ReichRifleman` | frames in the IWAD (test); engine pass owed |
+| `SPOS` | sprite | `SD_LegionTrooper` | idem |
+| `TROO` | sprite | `SD_Stormtrooper` | idem |
+| `BAL1` | sprite | `SD_StormBolt` | idem |
+| `SARG` | sprite | `SD_ReichHound` | idem |
+| `HEAD` | sprite | `SD_Doughboy` | idem |
+| `BAL2` | sprite | `SD_DoughboyShell` | idem |
+| `BOS2` | sprite | `SD_Panzermensch` (and the heavy variant, by inheritance) | idem |
+| `BAL7` | sprite | `SD_PanzerShell` | idem |
+| `CYBR` | sprite | `SD_General` | idem |
+| `MANF` | sprite | `SD_GeneralShell` (flight) | idem |
+
+The sounds are the same kind of borrowing and are listed in §6.2; they are
+not checked by `check_pk3.py` (a missing sound is silence, not an error), but
+`tests/test_bestiary.py` checks that every bestiary placeholder lump exists
+in the IWAD.
 
 ## 6. ZScript
 
 - Entry: `zscript.txt` with `version "4.12"` and only `#include`s.
 - One class per file. `zscript/sd/` holds systems, `zscript/weapons/` holds
-  the arsenal. Class names are prefixed `SD_`.
+  the arsenal, `zscript/monsters/` the bestiary. Class names are prefixed
+  `SD_`.
 - Event handlers are registered in `MAPINFO → GameInfo → AddEventHandlers`.
 - The player class is declared in `MAPINFO → GameInfo → PlayerClasses`
   (a player pawn cannot use `replaces`).
@@ -319,6 +395,20 @@ until the bestiary exists (F5) and appear in no campaign map.
 | `SD_Pg7Grenade` | `Rocket` | Shaped-charge projectile. Not placeable. |
 | `SD_FlameBlob` | `Actor` | Fire projectile, 528-unit reach. Not placeable. |
 | `SD_KatyushaRocket` | `Rocket` | Salvo rocket, does not hurt the shooter. Not placeable. |
+| `SD_Monster` | `Actor` | Bestiary base (F5): `Monster`, `+FLOORCLIP`, the `Faction` property and the three attack helpers. Not placeable. Why enemies do not derive from Doom's monsters: `BESTIARY.md` §2.4. |
+| `SD_ReichRifleman` | `SD_Monster` *replaces ZombieMan* | Reich infantry, 20 HP, one hitscan. Drops `SD_Clip`. |
+| `SD_LegionTrooper` | `SD_Monster` *replaces ShotgunGuy* | Legion infantry, 30 HP, three pellets. Drops `SD_Izh`. |
+| `SD_Stormtrooper` | `SD_Monster` *replaces DoomImp* | The hybrid, 60 HP, claw or `SD_StormBolt`. |
+| `SD_ReichHound` | `SD_Monster` *replaces Demon* | 150 HP, bite only, speed 12 (H). |
+| `SD_Doughboy` | `SD_Monster` *replaces Cacodemon* | Floating head, 400 HP, bite or `SD_DoughboyShell`. |
+| `SD_Panzermensch` | `SD_Monster` *replaces HellKnight* | Armoured brute, 500 HP, blow or `SD_PanzerShell` (D35). |
+| `SD_PanzermenschSchwer` | `SD_Panzermensch` *replaces BaronOfHell* | The 1000 HP variant for MAP03 (D35); no states of its own. |
+| `SD_General` | `SD_Monster` *replaces Cyberdemon* | Boss, 3000 HP (H), three-shell salvo; once below half health, summons two `SD_ReichRifleman` and prints `SD_GENERAL_ORDER` (D35). |
+| `SD_StormBolt`, `SD_DoughboyShell`, `SD_PanzerShell`, `SD_GeneralShell` | `Actor` | The four enemy projectiles. Not placeable. |
+
+The bestiary's numbers, states, sounds and the reasons for each are
+`docs/engine/BESTIARY.md`; that file is their owner, as `BALANCE.md` is the
+arsenal's.
 
 ### 6.1 Editor numbers (DoomEdNums)
 
@@ -344,6 +434,21 @@ the full check are in `docs/engine/adr/002-arsenal-and-editor-numbers.md`.
 | 21005 | `SD_Rpg7` |
 | 21006 | `SD_Roks3` |
 | 21007 | `SD_HandKatyusha` |
+| 21100 | `SD_ReichRifleman` (also spawned by Doom's 3004) |
+| 21101 | `SD_LegionTrooper` (also 9) |
+| 21102 | `SD_Stormtrooper` (also 3001) |
+| 21103 | `SD_ReichHound` (also 3002) |
+| 21104 | `SD_Doughboy` (also 3005) |
+| 21105 | `SD_Panzermensch` (also 69) |
+| 21106 | `SD_General` (also 16) |
+| 21107 | `SD_PanzermenschSchwer` (also 3003) |
+| 21108 | *reserved*: a cloaked hound replacing `Spectre` (58), not implemented (`BESTIARY.md` §6) |
+
+Every enemy also `replaces` its Doom counterpart, so a map may place either
+number and both spawn ours; `level-designer` can keep MAP01's Doom numbers
+or switch to these, the result in the engine is the same. Doom monsters the
+bestiary does **not** replace (65 chaingunner, 58 spectre, and the rest of
+Doom II's roster, `BESTIARY.md` §12) still spawn Freedoom's actor.
 
 Removed from the game (mapped to `None` in `DoomEdNums`): **82** super
 shotgun and **2005** chainsaw. The arsenal is exactly seven weapons (D13).
@@ -383,6 +488,32 @@ that restore them are written out at the top of `SNDINFO`.
 `tests/test_arsenal.py` fails if any placeholder points at a `*SAW*` lump.
 See `docs/engine/adr/003-ammo-naming-and-the-silent-shovel.md`.
 
+**The bestiary (F5): 47 logical names, `sd/mon/<actor>/<event>`.** Each line
+of `SNDINFO` names the Freedoom placeholder and, in its comment, the final
+lump — the names `docs/sound/ENEMY-SOUNDS.md` has a card for, which
+`tests/test_bestiary.py` holds equal. The count is 47, not the 52 that
+BESTIARY v0 printed (`BESTIARY.md` §12). Projectiles own their launch
+(`SeeSound`) and impact (`DeathSound`) sounds; a gib plays `xdeath`
+explicitly instead of Doom's `misc/gibbed`.
+
+| Actor (logical `sd/mon/…`) | Event → placeholder → final lump |
+|---|---|
+| `reichrifleman` | active `DSPOSACT` → `SDRRIACT`; sight `DSPOSIT1` → `SDRRISIT`; attack `DSPISTOL` → `SDRRIATK`; pain `DSPOPAIN` → `SDRRIPAI`; death `DSPODTH1` → `SDRRIDTH`; xdeath `DSSLOP` → `SDRRIXDT` |
+| `legiontrooper` | active `DSPOSACT` → `SDLTRACT`; sight `DSPOSIT2` → `SDLTRSIT`; attack `DSDSHTGN` → `SDLTRATK`; pain `DSPOPAIN` → `SDLTRPAI`; death `DSPODTH2` → `SDLTRDTH`; xdeath `DSSLOP` → `SDLTRXDT` |
+| `stormtrooper` | active `DSBGACT` → `SDSTOACT`; sight `DSBGSIT1` → `SDSTOSIT`; melee `DSCLAW` → `SDSTOMEL`; missile `DSFIRSHT` → `SDSTOMIS`; explode `DSFIRXPL` → `SDSTOEXP`; pain `DSDMPAIN` → `SDSTOPAI`; death `DSBGDTH1` → `SDSTODTH`; xdeath `DSSLOP` → `SDSTOXDT` |
+| `reichhound` | active `DSDMACT` → `SDHNDACT`; sight `DSSGTSIT` → `SDHNDSIT`; attack `DSSGTATK` → `SDHNDATK`; pain `DSDMPAIN` → `SDHNDPAI`; death `DSSGTDTH` → `SDHNDDTH` |
+| `doughboy` | active `DSDMACT` → `SDDGBACT`; sight `DSCACSIT` → `SDDGBSIT`; melee `DSCLAW` → `SDDGBMEL`; missile `DSFIRSHT` → `SDDGBMIS`; explode `DSFIRXPL` → `SDDGBEXP`; pain `DSDMPAIN` → `SDDGBPAI`; death `DSCACDTH` → `SDDGBDTH` |
+| `panzermensch` (and the heavy variant) | active `DSDMACT` → `SDPZRACT`; sight `DSKNTSIT` → `SDPZRSIT`; melee `DSSKEPCH` → `SDPZRMEL`; missile `DSFIRSHT` → `SDPZRMIS`; explode `DSFIRXPL` → `SDPZREXP`; pain `DSDMPAIN` → `SDPZRPAI`; death `DSKNTDTH` → `SDPZRDTH`; step `DSMETAL` → `SDPZRSTP` |
+| `general` | active `DSDMACT` → `SDGENACT`; sight `DSCYBSIT` → `SDGENSIT`; missile `DSRLAUNC` → `SDGENMIS`; explode `DSFIRXPL` → `SDGENEXP`; summon `DSVILSIT` → `SDGENSUM`; pain `DSDMPAIN` → `SDGENPAI`; death `DSCYBDTH` → `SDGENDTH` |
+
+Two placeholders are knowingly imperfect, and both go away when the real
+lump lands: the rifleman fires `DSPISTOL`, the TT-33's placeholder too, so
+incoming and outgoing fire sound alike (`ENEMY-SOUNDS.md` §5.1 forbids it
+for the final lump); and the General's order is `DSVILSIT`, a creature's
+sight sound, because Freedoom has no voice that gives an order. The trooper
+fires `DSDSHTGN` (the super shotgun's, free since the mod has none) and not
+`DSSHOTGN`, the IZh's. None of these placeholders has been listened to.
+
 ### 6.3 Sprites to be drawn (contract with `art-director`)
 
 A Doom sprite lump is `NAME` + frame letter + rotation digit, 8 characters
@@ -404,6 +535,30 @@ what HUD weapon sprites use. F4 runs on Freedoom lumps; the names below are
 Frame counts follow the Doom weapon each one replaces, so the existing state
 machines need no edit when the art lands — only the four-letter name in
 each state line.
+
+**The bestiary (F5).** Reserved names, the frames the art must provide, and
+the Freedoom placeholder each class wears today (declared in §5.1). The
+frame layouts are Doom's, so the swap is a rename; the two exceptions are
+marked. Images per class and the drawing briefs: `BESTIARY.md` §3–§9, §12.
+
+| Class | Final sprite | Frames (rotations) | Placeholder today |
+|---|---|---|---|
+| `SD_ReichRifleman` | `SDRR` | A–G (8), H–U (0) | `POSS` |
+| `SD_LegionTrooper` | `SDLT` | A–G (8), H–U (0) | `SPOS` |
+| `SD_Stormtrooper` | `SDHS` | A–H (8), I–U (0) | `TROO` |
+| `SD_StormBolt` | `SDBL` | A–E (0) | `BAL1` |
+| `SD_ReichHound` | `SDHN` | A–H (8), I–N (0) | `SARG` |
+| `SD_Doughboy` | `SDDB` | A–F (8), G–L (0) | `HEAD` |
+| `SD_DoughboyShell` | `SDDL` | A–E (0) | `BAL2` |
+| `SD_Panzermensch`, `SD_PanzermenschSchwer` | `SDPM` | A–H (8), I–O (0) | `BOS2` |
+| `SD_PanzerShell` | `SDPL` | A–E (0) | `BAL7` |
+| `SD_General` | `SDGN` | A–G (8), H–P (0), Q–R (8) | `CYBR`; **exception**: the `Summon` lines borrow `CYBR E F` and become `SDGN Q R` |
+| `SD_GeneralShell` | `SDGL` | A–E (0) | **exception**: `MANF` A–B in flight, `MISL` B–D burst; the burst becomes `SDGL C D E` |
+
+The heavy Panzermensch has no states of its own: it inherits `SDPM` and gets
+a `Translation` when the art exists. Blood is recoloured by `BloodColor`
+(Reich `khaki_olive` 3, Legion `plaster_warm` 12; `BESTIARY.md` §2.1) on
+the engine's own blood sprite; no blood sprite is reserved.
 
 **What the Freedoom placeholders look like today** (CEO play session,
 2026-10-13). These are art defects, not engine defects: the mod sets no
@@ -629,8 +784,8 @@ disagree, the code is right and the doc is the bug.
 | ~~T2~~ | ~~Ammo pickups still read as Freedoom items.~~ **Paid 2026-10-13**: §6.4. |  |
 | T3 | `Player.DisplayName` is a plain English literal, not a `LANGUAGE` lookup — unverified whether that property resolves `$IDs`. | F5 |
 | T4 | Freedoom's `Chainsaw` and `SuperShotgun` classes still exist; only their editor numbers were removed. | F6, if it ever matters |
-| T5 | The DPS figures in `BALANCE.md` are computed, not measured against real enemies. | F5, when the bestiary has hit points |
-| T6 | `MAP02` uses Freedoom monsters and barrels as targets. | F5, swap for the real bestiary |
+| T5 | The DPS figures in `BALANCE.md` are computed, not measured against real enemies. The enemies have hit points since F5 and `BALANCE.md` §7 computes shots-to-kill; nothing is measured yet. | F5 playtest of MAP01 v3 |
+| ~~T6~~ | ~~`MAP02` uses Freedoom monsters as targets.~~ **Paid 2026-10-13 (F5)**: the 3004 targets spawn `SD_ReichRifleman`, and the bestiary gallery holds one of each class (§4). The barrels are still Freedoom's. |  |
 | T7 | No `CVARINFO` yet; nothing in the arsenal is player-tunable. | when a gameplay option needs it |
 | T8 | Ammo and backpack pickups are Freedoom sprites: flat, not Soviet crates (§6.3). | F5/F6 with the rest of the pickup art |
 | ~~T9~~ | ~~No Cyrillic in the game's font.~~ **Paid 2026-10-13 by D24**: `fonts/defsmallfont/` and `fonts/bigfont/`, 214 glyphs (§2, §6.4). The player-facing warning it carried (`SD_OPTMNU_LANGWARN`, "Cyrillic is not drawn yet") is deleted from `LANGUAGE` and `MENUDEF`. |  |
@@ -641,4 +796,8 @@ disagree, the code is right and the doc is the bug.
 | T14 | Three engine menus (`MainMenu`, `SkillMenu`, and the `os_Menu` insertion anchor) are copied into `MENUDEF`; since D31 the first two also differ in their items and layout (§6.6). They do not track engine changes. | re-diff at every engine upgrade |
 | T15 | MAP01's `par = 210` is set, the intermission's PAR row appears, but the printed value was never read in an unattended run (§4.1). | `qa-engineer`, with a human at the keyboard |
 | T16 | **PAID 2026-10-13.** MAP01 v2 retired `SWITCH_PLACEHOLDER`; was: **Paid for the engine, open for the map.** `src/lumps/ANIMDEFS` ships the four `switch` pairs SDSW1x → SDSW2x (2026-10-13), syntax from `gzdoom.pk3 → animdefs.txt`, and `SDSW1A` was seen to flip in engine the same day (§4.3). Open: MAP01 still wears `SDDOOR1` (`SWITCH_PLACEHOLDER`); the click is heard on the CEO's first walk with real switches. | `level-designer`, MAP01 v2 |
+| T18 | **Every bestiary sprite and sound is a Freedoom placeholder** (§5.1, §6.2, §6.3); the heavy Panzermensch looks exactly like the normal one. | F5, as `art-director` and `sound-designer` deliver (D35: own drawings for the five most-seen) |
+| T19 | **Nothing has been seen in the engine**: the eight classes compile only in theory until the PM's batch run (D26). Specifically NOT VERIFIED: `BloodColor "RR GG BB"` (the property is native and no engine `.zs` uses it), the native `GetSpecies` rule that made explicit `Species` necessary, `A_PrintBold` from a monster reaching the screen, the Doughboy's corpse falling (`BESTIARY.md` verification note). | the PM's next engine pass |
+| T20 | **ADR 006** ("enemies derive from `SD_Monster : Actor`, not from the Doom monsters") is owed; `BESTIARY.md` §2.4 holds the argument. | `mod-engineer`, next task that may write `docs/engine/adr/` |
+| T21 | Doom monsters with no Soviet replacement (65 chaingunner, 58 spectre, the rest of Doom II's roster) still spawn Freedoom's actors. MAP01 §8 plans a "Legion heavy gunner" on 65 that the bestiary does not have. | CEO question, if a seventh enemy is wanted |
 | T17 | **The English `LANGUAGE` section still carries Latin transliterations** (`PG-7V`, `7.62x25`) although the glyphs for the Cyrillic forms D17 asks for exist since D24 (§6.4). Two ASCII tests pin the current state (`tests/test_language.py`, `tests/test_arsenal.py`). | `mod-engineer`, one text change plus an engine screenshot of the HUD |
