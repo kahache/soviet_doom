@@ -198,8 +198,19 @@ class ApprovedAssetsTests(unittest.TestCase):
         from PIL import Image
         for p in self.pngs:
             kind = p.relative_to(ASSETS_DIR).parts[0]
-            self.assertIn(kind, ("textures", "flats", "graphics"), p)
+            self.assertIn(kind, ("textures", "flats", "graphics", "fonts"), p)
             with Image.open(p) as img:
+                if kind == "fonts":
+                    # A folder font is fonts/<fontname>/<HEX>.png and the
+                    # engine identifies the glyph by that hex name. Sizes vary
+                    # per glyph by design, so only the naming and the folder
+                    # are a contract here.
+                    folder = p.relative_to(ASSETS_DIR).parts[1]
+                    self.assertIn(folder, ("defsmallfont", "bigfont"), p)
+                    self.assertRegex(p.stem, r"^[0-9A-Fa-f]{4}$",
+                                     f"{p}: a glyph is named by its codepoint in hex")
+                    self.assertLessEqual(max(img.size), 32, p)
+                    continue
                 if kind == "graphics":
                     self.assertIn(p.stem, self.SHELL_SIZES,
                                   f"{p}: unexpected shell lump; the engine fixes these names")
@@ -222,6 +233,18 @@ class ApprovedAssetsTests(unittest.TestCase):
             self.skipTest("work/ not present (gitignored work-in-progress)")
         for p in self.pngs:
             sources = list(WORK_ART_DIR.rglob(p.name))
+            if p.relative_to(ASSETS_DIR).parts[0] == "fonts":
+                # Every font variant generates the same codepoint filenames,
+                # so a bare name matches A, B and C at once. What matters is
+                # that the installed glyph is byte-identical to the same glyph
+                # of exactly one generated variant - we do not pin which, so
+                # the CEO can change his mind without editing a test.
+                folder = p.relative_to(ASSETS_DIR).parts[1]
+                same = [q for q in sources if q.parent.name == folder]
+                self.assertTrue(same, f"{p}: no generated source under work/")
+                self.assertTrue(any(q.read_bytes() == p.read_bytes() for q in same),
+                                f"{p}: matches no generated variant")
+                continue
             if not sources and p.relative_to(ASSETS_DIR).parts[0] == "graphics":
                 # Shell screens are renamed on the way in: the generator writes
                 # TITLEPIC_A / INTERPIC_C and the CEO's choice (D18) decides
