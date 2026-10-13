@@ -29,9 +29,10 @@ tests that read the real MIDIs under work/audio/ skip when they are absent
 As a tripwire, the module hashes work/audio/ before the first test and
 after the last one, and errors out if anything there changed.
 
-Known defects in audition.py are pinned as `expectedFailure` with their
-repro in the docstring; they belong to sound-designer and are not fixed
-here (QA reports, does not fix).
+Defects QA found in audition.py (A1-A8) are pinned by the tests whose
+docstring starts "BUG An" and carries the repro. They were pinned as
+`expectedFailure` and fixed by sound-designer on 2026-10-13; the tests now
+guard against regressions (QA reports, does not fix).
 
 Run:  python3 -m unittest tests.test_audition -v
 """
@@ -363,9 +364,8 @@ class PackDraftsTests(SandboxedCase):
         self.assertIn("gen_music.py", str(ctx.exception.code))
         self.assertFalse(self.test_pk3.exists())
 
-    @unittest.expectedFailure
     def test_lump_that_is_not_packed_is_refused(self):
-        """BUG A2 (sound-designer). --lump is not checked against the pack.
+        """BUG A2, fixed 2026-10-13: --lump is not checked against the pack.
 
         Repro: `audition.py --play map01 --candidates --lump D_CND13` with
         twelve candidates. Expected: a clear error before the engine starts.
@@ -377,9 +377,8 @@ class PackDraftsTests(SandboxedCase):
         with self.assertRaises(SystemExit):
             audition.pack(first_lump="D_NOPE")
 
-    @unittest.expectedFailure
     def test_draft_whose_stem_is_not_a_lump_name_is_refused(self):
-        """BUG A6 (sound-designer). Draft stems are used as lump names unchecked.
+        """BUG A6, fixed 2026-10-13: Draft stems are used as lump names unchecked.
 
         Repro: put `work/audio/D_SDMENU2.mid` next to the drafts (9-char
         stem) and run `audition.py --pack`. Expected: a clear error, as
@@ -450,9 +449,8 @@ class PackCandidatesTests(SandboxedCase):
             audition.pack(use_candidates=True)
         self.assertIn(str(self.candidates), str(ctx.exception.code))
 
-    @unittest.expectedFailure
     def test_numbering_does_not_depend_on_the_operating_system(self):
-        """BUG A5 (sound-designer). D_CNDnn depends on the OS's path ordering.
+        """BUG A5, fixed 2026-10-13: D_CNDnn depends on the OS's path ordering.
 
         sources() sorts Path objects. WindowsPath compares case-insensitively,
         PosixPath (the Mac) by code point, so the same folder can number
@@ -643,9 +641,8 @@ class RenderCommandTests(SandboxedCase):
         self.assertEqual(5, audition.cmd_render({}))
         self.assertIn("did not quit in time", self.err.getvalue())
 
-    @unittest.expectedFailure
     def test_render_runs_on_the_tooling_config(self):
-        """BUG A1 (sound-designer). --render runs on the user's own gzdoom.ini.
+        """BUG A1, fixed 2026-10-13: --render runs on the user's own gzdoom.ini.
 
         Repro: read cmd_render()'s argv (or `SD_ALLOW_ENGINE=1 audition.py
         --render`, PM only): no `-config`. Expected: `-config
@@ -661,9 +658,8 @@ class RenderCommandTests(SandboxedCase):
         self.assertIn("-config", args)
         self.assertEqual(str(audition.TOOLING_CONFIG), args[args.index("-config") + 1])
 
-    @unittest.expectedFailure
     def test_expectation_for_a_lump_that_was_not_rendered_is_an_error(self):
-        """BUG A3 (sound-designer). A mistyped --expect silently checks nothing.
+        """BUG A3, fixed 2026-10-13: A mistyped --expect silently checks nothing.
 
         Repro: `audition.py --render --expect D_SDMO1=142` (letter O for
         zero) with D_SDM01 rendering 10 s. Expected: an error naming the
@@ -677,9 +673,8 @@ class RenderCommandTests(SandboxedCase):
 class RenderWithoutTheModTests(SandboxedCase):
     fake_engine = False
 
-    @unittest.expectedFailure
     def test_render_does_not_need_the_mod_pk3(self):
-        """BUG A7 (sound-designer). --render demands dist/sovietdoom.pk3 it never loads.
+        """BUG A7, fixed 2026-10-13: --render demands dist/sovietdoom.pk3 it never loads.
 
         cmd_render() deliberately does not load the mod PK3 "so measurement
         does not depend on somebody else's build being mid-flight", but it
@@ -854,9 +849,8 @@ class DiscoveryTests(SandboxedCase):
         self.assertIn(str(self.mod_pk3), str(ctx.exception.code))
         self.assertIn("tools/build.py", str(ctx.exception.code))
 
-    @unittest.expectedFailure
     def test_engine_not_found_names_where_it_looked(self):
-        """BUG A8 (sound-designer). The not-found message is macOS-only.
+        """BUG A8, fixed 2026-10-13: The not-found message is macOS-only.
 
         Repro (this PC, gate open, GZDoom not unzipped):
         `audition.py --render` says "gzdoom not found (brew install --cask
@@ -922,9 +916,8 @@ class MainTests(unittest.TestCase):
         audition.main(["--render"])
         self.render.assert_called_once_with({}, use_candidates=False)
 
-    @unittest.expectedFailure
     def test_malformed_expect_is_a_usage_error(self):
-        """BUG A4 (sound-designer). A malformed --expect crashes with a traceback.
+        """BUG A4, fixed 2026-10-13: A malformed --expect crashes with a traceback.
 
         Repro: `audition.py --render --expect D_SDM01` (no `=`) or
         `--expect D_SDM01=2:22`. Expected: an argparse usage error (exit 2)

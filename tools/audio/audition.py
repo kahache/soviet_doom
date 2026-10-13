@@ -4,7 +4,7 @@
     python3 tools/audio/audition.py --pack            # just build the test PK3
     SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play map01   # launch GZDoom and listen (D26 gate)
     SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play title
-    python3 tools/audio/audition.py --render          # engine renders WAVs, no window
+    SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --render   # engine renders WAVs (D26 gate)
 
 Why this exists
 ---------------
@@ -31,6 +31,7 @@ Python 3 standard library only.
 from __future__ import annotations
 
 import argparse
+import math
 import os
 import shutil
 import struct
@@ -40,6 +41,11 @@ import zipfile
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+TOOLS_DIR = PROJECT_ROOT / "tools"
+if str(TOOLS_DIR) not in sys.path:          # run as a script from tools/audio/
+    sys.path.insert(0, str(TOOLS_DIR))
+
+from sdbuild.wad import WadError, validate_lump_name  # noqa: E402
 AUDIO_DIR = PROJECT_ROOT / "work" / "audio"
 CANDIDATES_DIR = AUDIO_DIR / "candidates"
 TEST_PK3 = AUDIO_DIR / "sd-music-draft.pk3"
@@ -116,30 +122,58 @@ def find(candidates) -> Path | None:
     return None
 
 
+def by_file_name(path) -> str:
+    """Sort key for the files we pack: the bare file name, by code point.
+
+    Not the Path itself: WindowsPath compares case-insensitively and PosixPath
+    by code point, so `sorted(paths)` can number the same folder differently
+    on the CEO's PC and on the Mac, and "D_CND11" in a verdict would name a
+    different piece (A5). Code point is what the Mac used when it wrote
+    work/audio/candidates-lumps.txt, so the existing numbering is kept.
+    """
+    return path.name
+
+
 def sources(use_candidates: bool) -> list[tuple[str, Path]]:
     """(lump name, file) pairs to pack.
 
-    Our own drafts are already named as lumps (`D_SDTITL.mid`). Downloaded
+    Our own drafts are already named as lumps (`D_SDTITL.mid`); that is
+    checked here, as tools/sdbuild/pk3.py checks src/lumps. Downloaded
     candidates are not: their names are long, carry punctuation and would not
     survive as Doom lump names, so they get stable positional names
-    `D_CND01`..`D_CNDnn` in sorted order. The mapping is printed on every pack
-    and written next to the PK3, because `writewave` and the MAPINFO `music`
-    key both address the lump, not the file.
+    `D_CND01`..`D_CNDnn` in file-name order (`by_file_name`). The mapping is
+    printed on every pack and written next to the PK3, because `writewave`
+    and the MAPINFO `music` key both address the lump, not the file.
     """
     if use_candidates:
-        files = sorted(CANDIDATES_DIR.glob("*.mid"))
+        files = sorted(CANDIDATES_DIR.glob("*.mid"), key=by_file_name)
         if not files:
             raise SystemExit(f"no .mid files in {CANDIDATES_DIR}")
         return [(f"D_CND{i:02d}", p) for i, p in enumerate(files, start=1)]
-    files = sorted(AUDIO_DIR.glob("*.mid"))
+    files = sorted(AUDIO_DIR.glob("*.mid"), key=by_file_name)
     if not files:
         raise SystemExit(f"no .mid files in {AUDIO_DIR}; run tools/audio/gen_music.py first")
-    return [(p.stem, p) for p in files]
+    pairs = []
+    for p in files:
+        try:
+            pairs.append((validate_lump_name(p.stem), p))
+        except WadError as exc:
+            raise SystemExit(f"audition: draft {p} cannot be packed as a lump: {exc}. "
+                             "Rename it: at most 8 characters, A-Z 0-9 _") from exc
+    return pairs
 
 
 def pack(use_candidates: bool = False, first_lump: str | None = None,
          quiet: bool = False) -> list[tuple[str, Path]]:
     pairs = sources(use_candidates)
+    lumps = [lump for lump, _ in pairs]
+    if first_lump is not None:
+        # Checked before anything is written: a MAPINFO naming a lump that is
+        # not in the PK3 plays silence, the very symptom this tool rules out.
+        if first_lump.upper() not in lumps:
+            raise SystemExit(f"audition: --lump {first_lump} is not in the pack; "
+                             f"packed lumps: {', '.join(lumps)}")
+        first_lump = first_lump.upper()
     title = first_lump or (pairs[0][0] if use_candidates else TITLE_LUMP)
     map01 = first_lump or (pairs[0][0] if use_candidates else MAP01_LUMP)
     mapinfo = MAPINFO_OVERLAY.format(TITLE_LUMP=title, MAP01_LUMP=map01)
@@ -162,11 +196,6 @@ def pack(use_candidates: bool = False, first_lump: str | None = None,
         for lump, p in pairs:
             print(f"  {lump}  {p.name}")
     return pairs
-
-
-def engine_args(gzdoom: Path, iwad: Path, console: str, log: Path, extra: list[str]) -> list[str]:
-    return [str(gzdoom), "-iwad", str(iwad), "-file", str(MOD_PK3), "-file", str(TEST_PK3),
-            "+logfile", str(log), *extra, "+" + console]
 
 
 def cmd_play(which: str, use_candidates: bool = False, lump: str | None = None) -> int:
@@ -195,10 +224,17 @@ def cmd_play(which: str, use_candidates: bool = False, lump: str | None = None) 
 
 def cmd_render(expected: dict[str, float], use_candidates: bool = False) -> int:
     """Have the engine itself synthesise each MIDI to a WAV, then measure it."""
-    gzdoom, iwad = require_engine()
+    gzdoom, iwad = require_engine(need_mod=False)
     pairs = pack(use_candidates=use_candidates)
     lumps = [lump for lump, _ in pairs]
     names = dict(pairs)
+    unknown = sorted(set(expected) - set(lumps))
+    if unknown:
+        # A mistyped --expect (D_SDMO1 for D_SDM01, or a draft name with
+        # --candidates) would otherwise skip the very check it asked for.
+        print(f"audition: --expect names lumps that were not packed: {', '.join(unknown)}; "
+              f"packed lumps: {', '.join(lumps)}", file=sys.stderr)
+        return EXIT_USAGE
     LOG_DIR.mkdir(exist_ok=True)
     out_dir = AUDIO_DIR / ("render-candidates" if use_candidates else "render")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -221,8 +257,14 @@ def cmd_render(expected: dict[str, float], use_candidates: bool = False) -> int:
     # `writewave` so it never reached `quit` — a false timeout on a render
     # that had already written every WAV. Measurement must not depend on
     # somebody else's build being mid-flight. `--play` keeps the mod because
-    # there the point IS the real game: title screen, menu, MAP01.
-    args = [str(gzdoom), "-iwad", str(iwad), "-file", str(TEST_PK3),
+    # there the point IS the real game: title screen, menu, MAP01. For the
+    # same reason require_engine() is not asked for the mod PK3 here.
+    #
+    # -config, as in --play and tools/smoke.py: without it this
+    # `-nosound +vid_fullscreen 0` run reads the user's own gzdoom.ini and
+    # writes its state back over it on quit.
+    args = [str(gzdoom), "-config", str(TOOLING_CONFIG),
+            "-iwad", str(iwad), "-file", str(TEST_PK3),
             "+logfile", str(log), "-nosound", "+vid_fullscreen", "0",
             "+" + "; ".join(console)]
     print(" ".join(args))
@@ -315,6 +357,7 @@ def measure_wav(path: Path) -> tuple[float, float]:
 # never gated.
 ENGINE_GATE_VAR = "SD_ALLOW_ENGINE"
 EXIT_ENGINE_BLOCKED = 9   # same code as tools/run.sh
+EXIT_USAGE = 2            # argparse's own code for a usage error
 
 
 def engine_allowed(env: dict[str, str] | None = None) -> bool:
@@ -322,7 +365,9 @@ def engine_allowed(env: dict[str, str] | None = None) -> bool:
     return env.get(ENGINE_GATE_VAR) == "1"
 
 
-def require_engine() -> tuple[Path, Path]:
+def require_engine(need_mod: bool = True) -> tuple[Path, Path]:
+    """GZDoom and the IWAD, behind the D26 gate. `need_mod`: also insist on
+    dist/sovietdoom.pk3 (--play loads it; --render does not)."""
     if not engine_allowed():
         print(f"audition: refusing to start GZDoom (set {ENGINE_GATE_VAR}=1 to override).\n"
               "  Agents: never set it (D26). Say in your summary that the listening "
@@ -330,13 +375,32 @@ def require_engine() -> tuple[Path, Path]:
         raise SystemExit(EXIT_ENGINE_BLOCKED)
     gzdoom = find(GZDOOM_CANDIDATES) or (Path(shutil.which("gzdoom")) if shutil.which("gzdoom") else None)
     if gzdoom is None:
-        raise SystemExit("gzdoom not found (brew install --cask gzdoom)")
+        raise SystemExit(
+            "gzdoom not found. Install it (brew install --cask gzdoom; on Windows "
+            "unzip the release under %LOCALAPPDATA%\\Programs\\GZDoom). Looked in: "
+            + ", ".join(str(c) for c in GZDOOM_CANDIDATES) + " and $PATH")
     iwad = find(IWAD_CANDIDATES)
     if iwad is None:
         raise SystemExit(f"no IWAD in {PROJECT_ROOT / 'iwads'}")
-    if not MOD_PK3.is_file():
+    if need_mod and not MOD_PK3.is_file():
         raise SystemExit(f"{MOD_PK3} missing; run python3 tools/build.py")
     return gzdoom, iwad
+
+
+def parse_expect(item: str) -> tuple[str, float]:
+    """argparse type for --expect LUMP=SECONDS: a usage error, not a traceback."""
+    lump, sep, value = item.partition("=")
+    try:
+        if not sep:
+            raise ValueError("missing '='")
+        lump = validate_lump_name(lump)
+        seconds = float(value)
+        if not math.isfinite(seconds) or seconds <= 0:
+            raise ValueError("SECONDS must be a positive number")
+    except (ValueError, WadError) as exc:
+        raise argparse.ArgumentTypeError(
+            f"{item!r} is not LUMP=SECONDS (e.g. D_SDM01=142): {exc}") from exc
+    return lump, seconds
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -347,6 +411,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--render", action="store_true",
                         help="engine-render every MIDI to WAV and measure it")
     parser.add_argument("--expect", action="append", default=[], metavar="LUMP=SECONDS",
+                        type=parse_expect,
                         help="expected duration for --render, e.g. D_SDM01=142")
     parser.add_argument("--candidates", action="store_true",
                         help="use work/audio/candidates/ (downloaded MIDIs) instead of "
@@ -359,11 +424,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.play:
         return cmd_play(args.play, use_candidates=args.candidates, lump=args.lump)
     if args.render:
-        expected = {}
-        for item in args.expect:
-            lump, _, value = item.partition("=")
-            expected[lump] = float(value)
-        return cmd_render(expected, use_candidates=args.candidates)
+        return cmd_render(dict(args.expect), use_candidates=args.candidates)
     pack(use_candidates=args.candidates, first_lump=args.lump)
     return 0
 
