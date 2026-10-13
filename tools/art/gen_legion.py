@@ -36,18 +36,20 @@ high across the chest, US-flag patch on the right shoulder):
 A is the brief taken literally; every other cell changes one or two things
 from it, so a cell can be read against A.
 
-What the rig needed that gen_rig.py does not have (it is imported, not
-edited; the full note is on the sheet, section 5):
-  * a CHROME shading: banded Lambert turns chrome into grey plastic, so
-    chrome here reflects a two-tone environment (bright sky, a dark horizon
-    line, darker ground) with a hard specular dot, the 1970s airbrush-chrome
-    convention, and skips the middle of the steel_blue ramp;
-  * no VALUE_SHIFT: gen_rig darkens the Reich by 0.26; the Legion is the
-    LIGHT faction (BESTIARY §2.1, body 0.72-0.80);
-  * materials as a parameter (gen_rig's reduce/to_rgba read its own module
-    MATERIALS), a flag stamp instead of the armband, a shotgun carry.
-This file therefore carries its own trace/reduce/to_rgba, ~120 lines that
-mirror gen_rig's with those three changes; everything else is gen_rig's.
+What the rig needed that gen_rig.py did not have when this sweep was made
+(the full note is on the sheet, section 5): a CHROME shading (banded
+Lambert turns chrome into grey plastic, so chrome here reflects a two-tone
+environment, bright sky, a dark horizon line, darker ground, with a hard
+specular dot, the 1970s airbrush-chrome convention, and skips the middle of
+the steel_blue ramp); no VALUE_SHIFT (gen_rig darkens the Reich by 0.26; the
+Legion is the LIGHT faction, BESTIARY §2.1, body 0.72-0.80); materials as a
+parameter; a flag stamp instead of the armband; a shotgun carry. The first
+version carried its own copy of the renderer for that. Since the rig_core
+refactor (2026-10-13) all of it is in tools/art/rig_core.py: chrome is a
+material shading (core.Chrome), the materials are a table handed to the
+renderer, the flag is a core.Insignia, lit() takes the extended palette.
+This file is the trooper's figure, cells and sheet only; the refactor left
+every PNG it writes byte-identical.
 
 Palette. BESTIARY §2.1 and ART-BIBLE §3 give the Legion's body mass to a
 "reserved pink/flesh ramp, to be added to palette.json v2". Palette v1 has
@@ -90,21 +92,19 @@ import argparse
 import datetime as dt
 import html
 import json
-import struct
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 from PIL import Image
-from PIL.PngImagePlugin import PngInfo
 
 ART_TOOLS = Path(__file__).resolve().parent
 sys.path.insert(0, str(ART_TOOLS))
 
 import artlib  # noqa: E402
 import gen_enemy as flat  # noqa: E402  (light stand-in, far view, silhouette, flash)
-import gen_rig as rig  # noqa: E402  (primitives, IK, rotations, camera, Freedoom reader)
+import rig_core as core  # noqa: E402  (the shared rig: primitives, IK, renderer, output)
 import palette as palgen  # noqa: E402  (the ramp rule, for the candidate flesh ramp)
 import sheetlib  # noqa: E402
 
@@ -117,10 +117,10 @@ FLATS = PROJECT_ROOT / "assets" / "flats" / "soviet_base"
 
 SPRITE = "SDLT"                 # BESTIARY §4, MOD-SPEC §6.3
 SEED = 101                      # DoomEdNum 21101; only the trousers' grain uses it
-FEET_SINK = rig.FEET_SINK
+FEET_SINK = core.FEET_SINK
 DOOM_HEIGHT = 56                # actor Height (BESTIARY §4) = px at 1:1
-STAND, AIM = rig.STAND, rig.AIM
-SS = rig.SS
+STAND, AIM = core.STAND, core.AIM
+SS = core.SS
 
 # ================================================================== palette
 # Candidate for palette v2 (ART-BIBLE §3, BESTIARY §2.1). Endpoints: a
@@ -139,8 +139,11 @@ def flesh_ramp() -> list[tuple[int, int, int]]:
                   for c in range(3)) for i in range(FLESH_STEPS)]
 
 
+core.register_ramp(FLESH, flesh_ramp())     # the core's materials can now name it
+
+
 def ramp(name: str) -> list[tuple[int, int, int]]:
-    return flesh_ramp() if name == FLESH else artlib.ramp(name)
+    return core.ramp(name)
 
 
 def palette_v1() -> list[tuple[int, int, int]]:
@@ -153,39 +156,16 @@ def palette_ext() -> list[tuple[int, int, int]]:
 
 
 def quantize_ext(rgb: np.ndarray) -> np.ndarray:
-    cols = palette_ext()
-    pimg = Image.new("P", (1, 1))
-    pimg.putpalette([v for c in cols for v in c] + [0] * (3 * (256 - len(cols))))
-    q = Image.fromarray(rgb, "RGB").quantize(palette=pimg, dither=Image.Dither.NONE)
-    return np.asarray(q.convert("RGB"))
+    return core.quantize_to(rgb, palette_ext())
 
 
 def lit(rgb: np.ndarray, light: int) -> np.ndarray:
     """gen_enemy's light stand-in, re-quantised to v1 + the candidate ramp."""
-    f = min(1.0, light / flat.LIGHT_FULL)
-    return quantize_ext(np.clip(rgb.astype(np.float64) * f, 0, 255).astype(np.uint8))
+    return core.lit(rgb, light, palette_ext())
 
 
 # ================================================================ materials
-@dataclass(frozen=True)
-class Mat:
-    """A run of palette colours, darkest first. A span is (ramp, lo, hi),
-    or ("black",) / ("white",) for the two extras."""
-    spans: tuple
-    shading: str = "lambert"    # "lambert" | "chrome"
-    cloth: bool = False         # takes the cloth grain
-    lift: float = 0.0           # value added to every primitive of this material
-
-    def colours(self) -> list[tuple[int, int, int]]:
-        out: list[tuple[int, int, int]] = []
-        for s in self.spans:
-            if s[0] == "black":
-                out.append((0, 0, 0))
-            elif s[0] == "white":
-                out.append((255, 255, 255))
-            else:
-                out += ramp(s[0])[s[1]:s[2] + 1]
-        return out
+Mat = core.Mat                  # spans, shading ("lambert" | "chrome"), cloth, lift
 
 
 # The Legion is the light faction (BESTIARY §2.1: body 0.72-0.80): flesh and
@@ -213,14 +193,12 @@ MATERIALS_V1 = {**MATERIALS,
                 "flesh": Mat((("plaster_warm", 3, 15),), lift=FLESH_LIFT),
                 "void": Mat((("black",), ("plaster_warm", 0, 2)))}
 
-# Chrome environment (world y up): reflection rays above HORIZON see sky,
-# below it ground, darkest right under the horizon line.
-HORIZON = -0.60                 # front plates, even tipped down a little, reflect sky
-SKY_LO, SKY_HI = 0.80, 1.0      # sky value at the horizon and straight up: bright, so chrome clears concrete
-GROUND_LO, GROUND_SPAN, GROUND_FADE = 0.04, 0.30, 0.8
-SPEC_COS = 0.90                 # reflection this close to the key light: a white dot
-CHROME_KEY = 0.22               # how much the key light's side darkens chrome
-CHROME_AO = 0.5                 # chrome takes half the occlusion of cloth
+# Chrome environment (world y up): reflection rays above the horizon see
+# sky, below it ground, darkest right under the horizon line. This sweep's
+# values became the core's default (rig_core.Chrome); named here so a
+# Legion round can tune them without touching another enemy.
+CHROME = core.Chrome(horizon=-0.60, sky_lo=0.80, sky_hi=1.0, ground_lo=0.04, ground_span=0.30,
+                     ground_fade=0.8, spec_cos=0.90, key=0.22, ao=0.5)
 VALUE_SHIFT = 0.0               # gen_rig darkens the Reich by 0.26; the Legion is light
 
 
@@ -254,10 +232,10 @@ class Pose:
     bob: float
     carry: str          # "high" (across the chest) | "aim"
     flash: bool
-    canvas: rig.Canvas
+    canvas: core.Canvas
 
 
-ANKLE_Y = rig.ANKLE_Y
+ANKLE_Y = core.ANKLE_Y
 POSES = {
     "A": Pose("A", "stand", (3.9, ANKLE_Y, 0.4), (-3.9, ANKLE_Y, 0.0), 0.0, "high", False, STAND),
     "F": Pose("F", "fire", (4.1, ANKLE_Y, -1.6), (-3.9, ANKLE_Y, 2.2), -0.4, "aim", True, AIM),
@@ -265,8 +243,8 @@ POSES = {
 VIEWS = (("A", 1), ("A", 2), ("A", 3), ("F", 1), ("F", 3))   # what each cell shows
 
 # Body. Heavier than the rifleman (BESTIARY §4: "wider at the shoulders").
-HIP_Y = rig.HIP_Y
-THIGH, SHIN = rig.THIGH, rig.SHIN
+HIP_Y = core.HIP_Y
+THIGH, SHIN = core.THIGH, core.SHIN
 UPPER_ARM, FOREARM = 9.4, 8.8
 SHOULDER_X, SHOULDER_Y = 8.0, 40.4
 WAIST_Y, CHEST_Y = 28.8, 41.0
@@ -286,13 +264,13 @@ FLASH_SIZE = 7.0                                # a shotgun's flash, a little ov
 
 def gun_frame(pose: Pose):
     if pose.carry == "high":
-        butt = rig.V(*GUN_HIGH_BUTT) + rig.V(0, pose.bob, 0)
-        u = rig.V(*GUN_HIGH_DIR)
+        butt = core.V(*GUN_HIGH_BUTT) + core.V(0, pose.bob, 0)
+        u = core.V(*GUN_HIGH_DIR)
     else:
-        butt = rig.V(*GUN_AIM_BUTT) + rig.V(0, pose.bob, 0)
-        u = rig.V(0.06, np.tan(np.deg2rad(rig.PITCH_DEG)), 1.0)
+        butt = core.V(*GUN_AIM_BUTT) + core.V(0, pose.bob, 0)
+        u = core.V(0.06, np.tan(np.deg2rad(core.PITCH_DEG)), 1.0)
     u = u / np.linalg.norm(u)
-    up = rig.V(0, 1, 0)
+    up = core.V(0, 1, 0)
     v = up - (up @ u) * u
     v = v / np.linalg.norm(v)
     return butt, u, v, np.cross(u, v)
@@ -310,16 +288,16 @@ def build_model(cell: Cell, pose: Pose) -> tuple[list, dict]:
         P.append(prim)
         return prim
 
-    E, RC, CC, BX = rig.ellipsoid, rig.rcone, rig.ccone, rig.box
+    E, RC, CC, BX = core.ellipsoid, core.rcone, core.ccone, core.box
 
     # ---------------------------------------------------------------- legs
     for side, foot, grp in ((1, pose.foot_l, "leg_l"), (-1, pose.foot_r, "leg_r")):
-        hip = rig.V(side * 3.5, HIP_Y + bob, 0.0)
-        knee, ankle = rig.two_bone(hip, foot, THIGH, SHIN, rig.V(0, 0, 1))
+        hip = core.V(side * 3.5, HIP_Y + bob, 0.0)
+        knee, ankle = core.two_bone(hip, foot, THIGH, SHIN, core.V(0, 0, 1))
         add(grp, RC("trouser", 0.62, hip, knee, 3.0, 2.6))
-        add(grp, RC("trouser", 0.58, knee, ankle + rig.V(0, 3.4, 0), 2.6, 2.3))
-        add(grp, E("trouser", 0.56, tuple(ankle + rig.V(0, 4.4, 0.1)), (2.7, 1.3, 2.6)))   # bloused over the boot
-        add(grp, RC("boot", 0.55, ankle + rig.V(0, 4.0, 0), ankle, 2.25, 2.1))
+        add(grp, RC("trouser", 0.58, knee, ankle + core.V(0, 3.4, 0), 2.6, 2.3))
+        add(grp, E("trouser", 0.56, tuple(ankle + core.V(0, 4.4, 0.1)), (2.7, 1.3, 2.6)))   # bloused over the boot
+        add(grp, RC("boot", 0.55, ankle + core.V(0, 4.0, 0), ankle, 2.25, 2.1))
         add(grp, BX("boot", 0.35, (ankle[0], ankle[1] - 1.15, ankle[2] + 1.4), (1.75, 1.1, 3.1), rnd=0.6))
     add("upper", E("trouser", 0.60, (0, HIP_Y + 1.0 + bob, -0.2), (6.6, 3.6, 4.3)))     # seat
 
@@ -329,8 +307,8 @@ def build_model(cell: Cell, pose: Pose) -> tuple[list, dict]:
     add("upper", BX("chrome", 0.6, (0, 27.9 + bob, belt_z + 0.15), (1.2, 0.9, 0.35)))      # buckle
     ty0, ty1 = WAIST_Y + bob, CHEST_Y + bob
     torso_mat = "chrome" if cell.torso == "cuirass" else "flesh"
-    add("upper", rig.Prim("cappedcone", torso_mat, 0.66, rig.V(0, (ty0 + ty1) / 2, -0.2), h=(ty1 - ty0) / 2,
-                          r1=TORSO_R0, r2=TORSO_R1, scale=rig.V(1.0, 1.0, TORSO_KZ), tag="torso"))
+    add("upper", core.Prim("cappedcone", torso_mat, 0.66, core.V(0, (ty0 + ty1) / 2, -0.2), h=(ty1 - ty0) / 2,
+                          r1=TORSO_R0, r2=TORSO_R1, scale=core.V(1.0, 1.0, TORSO_KZ), tag="torso"))
 
     def torso_z(x, y):
         r = TORSO_R0 + (TORSO_R1 - TORSO_R0) * (y - ty0) / (ty1 - ty0)
@@ -367,14 +345,14 @@ def build_model(cell: Cell, pose: Pose) -> tuple[list, dict]:
         if side == -1:          # the US-flag patch (D12): his RIGHT shoulder, as the US Army wears it
             cut_x = out_c[0] - 0.3 * out_r[0]           # keep the outer third of the shell
             add("upper", E("band", 0.6, out_c, tuple(np.asarray(out_r) + 0.18),
-                           clip=[(rig.V(1, 0, 0), cut_x), (rig.V(0, 0, -1), 0.6)], tag="patch"))
+                           clip=[(core.V(1, 0, 0), cut_x), (core.V(0, 0, -1), 0.6)], tag="patch"))
 
     # ---------------------------------------------------------------- head
-    head_off = rig.V(0, bob, 0)
+    head_off = core.V(0, bob, 0)
     if pose.carry == "aim":
-        head_off = head_off + rig.V(-1.2, -0.7, 0.7)     # cheek down on the stock
-    hp = lambda x, y, z: tuple(rig.V(x, y, z) + head_off)  # noqa: E731
-    add("head", RC("flesh", 0.55, rig.V(0, 40.0 + bob, -0.4), rig.V(0, 44.3, 0.2) + head_off, 2.7, 2.4))   # bull neck
+        head_off = head_off + core.V(-1.2, -0.7, 0.7)     # cheek down on the stock
+    hp = lambda x, y, z: tuple(core.V(x, y, z) + head_off)  # noqa: E731
+    add("head", RC("flesh", 0.55, core.V(0, 40.0 + bob, -0.4), core.V(0, 44.3, 0.2) + head_off, 2.7, 2.4))   # bull neck
     add("head", E("flesh", 0.72, hp(0, 47.4, 0.8), (3.3, 3.8, 3.4)))           # skull
     add("head", E("flesh", 0.66, hp(0, 44.6, 1.6), (2.8, 2.0, 2.5)))           # lantern jaw
     if cell.face == "smooth":
@@ -386,16 +364,16 @@ def build_model(cell: Cell, pose: Pose) -> tuple[list, dict]:
         add("head", E("void", 0.1, hp(0, 44.5, 3.7), (2.3, 1.05, 0.9)))       # the open grin
         add("head", E("teeth", 0.9, hp(0, 44.7, 4.05), (2.1, 0.6, 0.6)))      # one row of white teeth
     else:   # visor: a chrome band round the face, over the eyes
-        add("head", E("chrome", 0.7, hp(0, 47.7, 1.0), (3.75, 1.2, 3.65), clip=[(rig.V(0, 0, -1), 0.4)]))
+        add("head", E("chrome", 0.7, hp(0, 47.7, 1.0), (3.75, 1.2, 3.65), clip=[(core.V(0, 0, -1), 0.4)]))
         add("head", E("void", 0.4, hp(0, 44.3, 3.95), (1.2, 0.25, 0.4)))
     # M1 "pot": a round bowl with an even lip, BESTIARY §4's 16-px tell
     hy = head_off[1]
-    c = rig.V(*hp(0, 0, 0))
-    add("helmet", E("chrome", 0.7, hp(0, 49.6, 0.6), (5.0, 6.3, 5.4), clip=[(rig.V(0, -1, 0), -(48.9 + hy))]))
+    c = core.V(*hp(0, 0, 0))
+    add("helmet", E("chrome", 0.7, hp(0, 49.6, 0.6), (5.0, 6.3, 5.4), clip=[(core.V(0, -1, 0), -(48.9 + hy))]))
     add("helmet", CC("chrome", 0.55, 48.5 + hy, 49.3 + hy, 5.9, 5.4, x=c[0], z=0.6 + c[2]))
     for sx in (1, -1):          # chin strap
         add("helmet", RC("belt", 0.4, hp(sx * 3.9, 48.6, 1.4), hp(sx * 2.3, 43.6, 2.2), 0.32))
-    anchors["head"] = (c + rig.V(0, 47, 1), "head")
+    anchors["head"] = (c + core.V(0, 47, 1), "head")
 
     # ---------------------------------------------------------------- shotgun
     butt, u, v, w = gun_frame(pose)
@@ -410,9 +388,9 @@ def build_model(cell: Cell, pose: Pose) -> tuple[list, dict]:
     # ---------------------------------------------------------------- arms
     grips = {-1: at(GRIP_R, -0.6), 1: at(GRIP_L, -1.0)}
     for side in (1, -1):
-        sh = rig.V(side * (SHOULDER_X + 0.2), SHOULDER_Y + bob, -0.4)
-        pole = rig.V(side * 1.0, -0.4, -0.7)
-        elbow, wrist = rig.two_bone(sh, grips[side], UPPER_ARM, FOREARM, pole)
+        sh = core.V(side * (SHOULDER_X + 0.2), SHOULDER_Y + bob, -0.4)
+        pole = core.V(side * 1.0, -0.4, -0.7)
+        elbow, wrist = core.two_bone(sh, grips[side], UPPER_ARM, FOREARM, pole)
         add("arm", RC("flesh", 0.66, sh, elbow, 2.75, 2.35))
         add("arm", RC("flesh", 0.62, elbow, wrist, 2.35, 2.0))
         fd = (wrist - elbow) / np.linalg.norm(wrist - elbow)
@@ -423,132 +401,6 @@ def build_model(cell: Cell, pose: Pose) -> tuple[list, dict]:
 
 
 # ================================================================== render
-def trace(prims: list, rotation: int, cv: rig.Canvas, mats: dict, seed: int = SEED) -> dict:
-    """gen_rig.raymarch with the Legion's shading (module docstring): the
-    same march and buffers, chrome by reflection, no value shift."""
-    scene = rig.Scene(prims)
-    Rm = rig.yaw_matrix(rotation)
-    fwd, right, up = rig.camera()
-    cols, rows = [], []
-    for c, R in scene.bounds:
-        pw = Rm @ c
-        cols += [cv.cx + pw @ right - R, cv.cx + pw @ right + R]
-        rows += [cv.foot_row - pw @ up - R, cv.foot_row - pw @ up + R]
-    c0, c1 = max(0, int(np.floor(min(cols)))), min(cv.w, int(np.ceil(max(cols))) + 1)
-    r0, r1 = max(0, int(np.floor(min(rows)))), min(cv.h, int(np.ceil(max(rows))) + 1)
-    hs, ws = cv.h * SS, cv.w * SS
-    pid = np.full((hs, ws), -1, np.int32)
-    val = np.zeros((hs, ws))
-    depth = np.full((hs, ws), np.inf)
-    yy, xx = np.mgrid[r0 * SS:r1 * SS, c0 * SS:c1 * SS]
-    sx = (xx + 0.5) / SS - cv.cx
-    sy = cv.foot_row - (yy + 0.5) / SS
-    o = ((sx.reshape(-1, 1) * right + sy.reshape(-1, 1) * up) - fwd * rig.T0) @ Rm
-    d = fwd @ Rm
-    n = len(o)
-    t = np.full(n, rig.T0 - rig.T_SPAN)
-    alive = np.ones(n, bool)
-    hit = np.zeros(n, bool)
-    for _ in range(rig.MAX_STEPS):
-        idx = np.nonzero(alive)[0]
-        if not len(idx):
-            break
-        dist = scene.sdf(o[idx] + np.outer(t[idx], d))
-        got = dist < rig.HIT_EPS
-        hit[idx[got]] = True
-        t[idx] += np.where(got, 0.0, np.maximum(dist * rig.STEP_SCALE, rig.HIT_EPS * 0.5))
-        alive[idx[got | (t[idx] > rig.T0 + rig.T_SPAN)]] = False
-    hidx = np.nonzero(hit)[0]
-    ph = o[hidx] + np.outer(t[hidx], d)
-    _, ids = scene.sdf(ph, want_id=True)
-    nrm = np.zeros_like(ph)
-    for k in range(3):
-        e = np.zeros(3)
-        e[k] = rig.NORMAL_H
-        nrm[:, k] = scene.sdf(ph + e) - scene.sdf(ph - e)
-    nrm /= np.maximum(rig._len(nrm), 1e-9)[:, None]
-    nw = nrm @ Rm.T                                     # world normals
-    lam = nw @ rig.LIGHT
-    lam_b = np.floor((lam * 0.5 + 0.5) * rig.LIGHT_BANDS).clip(0, rig.LIGHT_BANDS - 1) / (rig.LIGHT_BANDS - 1)
-    ao = np.clip(scene.sdf(ph + nrm * rig.AO_DIST) / rig.AO_DIST, 0, 1)
-    m = [mats[prims[i].mat] for i in ids]
-    base = np.array([prims[i].base + mats[prims[i].mat].lift for i in ids])
-    chrome = np.array([mm.shading == "chrome" for mm in m], bool)
-    cloth = np.array([mm.cloth for mm in m], bool)
-    grain = (rig.hash3(np.floor(ph / rig.GRAIN_CELL), seed) - 0.5) * 2 * rig.GRAIN * cloth
-    fall = rig.VERTICAL_FALLOFF * (0.5 - ph[:, 1] / DOOM_HEIGHT)
-    v = (base + VALUE_SHIFT + rig.SHADE_GAIN * (lam_b - 0.5) - rig.AO_WEIGHT * (1 - ao) - fall + grain)
-    # chrome: what the surface reflects, not how much light it takes
-    r = fwd[None, :] - 2.0 * (nw @ fwd)[:, None] * nw
-    ry = r[:, 1]
-    sky = SKY_LO + (SKY_HI - SKY_LO) * np.sqrt(np.clip((ry - HORIZON) / (1.0 - HORIZON), 0, 1))
-    ground = GROUND_LO + GROUND_SPAN * np.clip((HORIZON - ry) / GROUND_FADE, 0, 1)
-    env = np.where(ry > HORIZON, sky, ground)
-    vc = env - CHROME_KEY * (1 - lam_b) - CHROME_AO * rig.AO_WEIGHT * (1 - ao) - fall
-    vc = np.where(r @ rig.LIGHT > SPEC_COS, 1.0, vc)
-    v = np.where(chrome, vc, v)
-    rr = yy.reshape(-1)[hidx]
-    cc = xx.reshape(-1)[hidx]
-    pid[rr, cc] = ids
-    val[rr, cc] = np.clip(v, 0, 1)
-    depth[rr, cc] = t[hidx]
-    return {"pid": pid, "val": val, "depth": depth}
-
-
-def reduce(buf: dict, prims: list, mats: dict):
-    """gen_rig.reduce with the materials as a parameter."""
-    names = list(mats)
-    mid = {n: i for i, n in enumerate(names)}
-    pid, val, dep = buf["pid"], buf["val"], buf["depth"]
-    h, w = pid.shape[0] // SS, pid.shape[1] // SS
-    blk = lambda a: a.reshape(h, SS, w, SS).transpose(0, 2, 1, 3).reshape(h, w, SS * SS)  # noqa: E731
-    Pb, Vb, Db = blk(pid), blk(val), blk(dep)
-    mat = np.full((h, w), -1, np.int16)
-    out_v = np.zeros((h, w))
-    out_d = np.full((h, w), np.inf)
-    out_p = np.full((h, w), -1, np.int32)
-    covered = (Pb >= 0).sum(-1)
-    for y, x in zip(*np.nonzero(covered >= rig.COVER_MIN)):
-        s = Pb[y, x]
-        ids, counts = np.unique(s[s >= 0], return_counts=True)
-        near = np.array([Db[y, x][s == i].mean() for i in ids])
-        win = ids[np.lexsort((near, -counts))[0]]
-        sel = s == win
-        out_p[y, x] = win
-        mat[y, x] = mid[prims[win].mat]
-        out_v[y, x] = Vb[y, x][sel].mean()
-        out_d[y, x] = Db[y, x][sel].mean()
-    return mat, out_v, out_d, out_p
-
-
-def to_rgba(mat, val, depth, mats: dict) -> np.ndarray:
-    """gen_rig.to_rgba with the materials as a parameter: palette colour,
-    then the occlusion contour and the silhouette rim."""
-    names = list(mats)
-    h, w = mat.shape
-    opaque = mat >= 0
-    idx = np.zeros((h, w), np.int16)
-    for i, name in enumerate(names):
-        sel = mat == i
-        idx[sel] = np.rint(val[sel] * (len(mats[name].colours()) - 1)).astype(np.int16)
-    dark = np.zeros((h, w), np.int16)
-    pad_op = np.pad(opaque, 1)
-    pad_d = np.pad(depth, 1, constant_values=np.inf)
-    for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-        nb_op = pad_op[1 + dy:1 + dy + h, 1 + dx:1 + dx + w]
-        nb_d = pad_d[1 + dy:1 + dy + h, 1 + dx:1 + dx + w]
-        dark = np.where(opaque & nb_op & (nb_d < depth - rig.DEPTH_EDGE), np.maximum(dark, rig.CONTOUR_STEPS), dark)
-        dark = np.where(opaque & ~nb_op, np.maximum(dark, rig.RIM_STEPS), dark)
-    idx = np.maximum(idx - dark, 0)
-    rgba = np.zeros((h, w, 4), np.uint8)
-    for i, name in enumerate(names):
-        cols = np.array(mats[name].colours(), np.uint8)
-        sel = mat == i
-        rgba[sel, :3] = cols[np.clip(idx[sel], 0, len(cols) - 1)]
-    rgba[opaque, 3] = 255
-    return rgba
-
-
 # The US flag (D12), 7x5 hard pixels: B canton, * star, R red, W white.
 # Drawn canton-left; mirrored when he faces screen right, so the canton
 # always leads, as on a US right-shoulder flag.
@@ -574,53 +426,31 @@ def flag_pixels(mirror: bool) -> list[tuple[int, int, tuple[int, int, int]]]:
     return out
 
 
-def stamp_flag(rgba: np.ndarray, pid: np.ndarray, prims: list, rotation: int) -> bool:
-    """The flag on the patch's visible centre, slid up to PATCH_SEARCH px so
-    it sits on opaque pixels, when the patch faces the camera at all."""
-    tagged = [i for i, p in enumerate(prims) if p.tag == "patch"]
-    vis = np.isin(pid, tagged)
-    if vis.sum() < PATCH_MIN_PX:
-        return False
-    out_w = rig.yaw_matrix(rotation) @ rig.V(-1, 0, 0)      # his right side, in world
-    if out_w[2] < -0.05:
-        return False
-    fwd_w = rig.yaw_matrix(rotation) @ rig.V(0, 0, 1)
-    pix = flag_pixels(mirror=fwd_w[0] > 0.3)
-    fh, fw = len(FLAG), len(FLAG[0])
-    h, w = pid.shape
-    ys, xs = np.nonzero(vis)
-    cx, cy = xs.mean() - (fw - 1) / 2, ys.mean() - (fh - 1) / 2
-    opaque = rgba[..., 3] > 0
-    best = None
-    for dy in range(-PATCH_SEARCH, PATCH_SEARCH + 1):
-        for dx in range(-PATCH_SEARCH, PATCH_SEARCH + 1):
-            x0 = min(max(int(round(cx + dx)), 0), w - fw)
-            y0 = min(max(int(round(cy + dy)), 0), h - fh)
-            score = (int(opaque[y0:y0 + fh, x0:x0 + fw].sum()), -(dx * dx + dy * dy))
-            if best is None or score > best[0]:
-                best = (score, x0, y0)
-    _, x0, y0 = best
-    for i, j, col in pix:
+def flag_draw(rgba: np.ndarray, x0: int, y0: int, mirror: bool) -> None:
+    for i, j, col in flag_pixels(mirror):
         rgba[y0 + j, x0 + i] = (*col, 255)
-    return True
+
+
+# The flag as a core insignia: on the patch's visible centre, slid up to
+# PATCH_SEARCH px so it sits on opaque pixels, when his right side (model
+# -x) is not turned away; mirrored when he faces screen right.
+FLAG_INSIGNIA = core.Insignia("patch", (len(FLAG[0]), len(FLAG)), flag_draw, outward=(-1.0, 0.0, 0.0),
+                              min_px=PATCH_MIN_PX, search=PATCH_SEARCH, mirror_facing_right=True)
+
+
+def stamp_flag(rgba: np.ndarray, pid: np.ndarray, prims: list, rotation: int) -> bool:
+    """The flag on the patch (FLAG_INSIGNIA). Returns whether it was stamped."""
+    return core.stamp_insignia(rgba, pid, prims, rotation, FLAG_INSIGNIA)
 
 
 def render(cell: Cell, frame: str, rotation: int, mats: dict | None = None, seed: int = SEED) -> np.ndarray:
     """One sprite, RGBA (h, w, 4)."""
     mats = MATERIALS if mats is None else mats
     pose = POSES[frame]
-    cv = pose.canvas
     prims, anchors = build_model(cell, pose)
-    buf = trace(prims, rotation, cv, mats, seed)
-    mat, val, dep, pid = reduce(buf, prims, mats)
-    rgba = to_rgba(mat, val, dep, mats)
-    stamp_flag(rgba, pid, prims, rotation)
-    if pose.flash:
-        rig.add_flash(rgba, dep, anchors["muzzle"][0], rotation, cv, FLASH_SIZE)
-    a = rgba[..., 3] > 0
-    if a[0].any() or a[-1].any() or a[:, 0].any() or a[:, -1].any():
-        raise ValueError(f"{cell.key} {frame}{rotation} touches the canvas edge")
-    return rgba
+    return core.render(prims, rotation, pose.canvas, mats, seed=seed, value_shift=VALUE_SHIFT,
+                       insignia=(FLAG_INSIGNIA,), muzzle=anchors["muzzle"][0] if pose.flash else None,
+                       flash_size=FLASH_SIZE, chrome=CHROME, what=f"{cell.key} {frame}{rotation}")
 
 
 # ================================================================== output
@@ -629,12 +459,8 @@ def lump_name(cell: Cell, frame: str, rotation: int) -> str:
     return f"{SPRITE}_{cell.key}_{frame}{rotation}"
 
 
-def save_sprite(rgba: np.ndarray, path: Path, cv: rig.Canvas) -> Path:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    info = PngInfo()
-    info.add(b"grAb", struct.pack(">ii", *rig.grab_offsets(cv)))
-    Image.fromarray(rgba, "RGBA").save(path, pnginfo=info, optimize=True)
-    return path
+def save_sprite(rgba: np.ndarray, path: Path, cv: core.Canvas) -> Path:
+    return core.save_sprite(rgba, path, cv)
 
 
 def wall_rgb(lump: str) -> np.ndarray:
@@ -661,24 +487,10 @@ WORST = "L2"
 
 
 def lineup(figures: list[tuple[np.ndarray, int, int]], wall: str, light: int, width: int) -> np.ndarray:
-    """gen_rig.lineup with this file's quantiser (v1 + the candidate ramp):
-    sprites side by side by their own offsets, MAP01 wall over SDFLR2."""
-    wall_h, floor_h = flat.WALL_H, flat.FLOOR_H
-    w_rgb = flat.tile_to(wall_rgb(wall), width, wall_h)
-    fl = flat.tile_to(wall_rgb("SDFLR2"), width, floor_h * 3)
-    fl = np.asarray(Image.fromarray(fl, "RGB").resize((width, floor_h), Image.Resampling.NEAREST))
-    canvas = np.concatenate([w_rgb, fl], axis=0).copy()
-    floor = flat.FLOOR_LINE - FEET_SINK
-    slot = width / len(figures)
-    for i, (spr, ox, oy) in enumerate(figures):
-        x0 = int(round(slot * (i + 0.5))) - ox
-        y0 = floor - oy
-        a = spr[..., 3] > 0
-        ys, xs = np.nonzero(a)
-        ys2, xs2 = ys + y0, xs + x0
-        keep = (ys2 >= 0) & (ys2 < canvas.shape[0]) & (xs2 >= 0) & (xs2 < width)
-        canvas[ys2[keep], xs2[keep]] = spr[ys[keep], xs[keep], :3]
-    return lit(canvas, light)
+    """core.lineup with this file's walls (assets/) and quantiser (v1 + the
+    candidate ramp): sprites side by side by their own offsets, MAP01 wall
+    over SDFLR2."""
+    return core.lineup(figures, wall, light, width, load=wall_rgb, palette=palette_ext())
 
 
 def measure(sprite: np.ndarray) -> dict:
@@ -704,16 +516,16 @@ def rifleman() -> tuple[np.ndarray, int, int] | None:
         return None
     with Image.open(path) as im:
         arr = np.asarray(im.convert("RGBA")).copy()
-    gx, gy = rig.read_grab(path)
+    gx, gy = core.read_grab(path)
     return arr, gx, gy
 
 
 def comparison_figures(sprite: np.ndarray) -> tuple[list, list[str]]:
-    figs = [(sprite, *rig.grab_offsets(STAND))]
+    figs = [(sprite, *core.grab_offsets(STAND))]
     labels = ["SDLTA1 (this cell)"]
     for name, label in (("SPOSA1", "SPOSA1, Freedoom shotgun guy: today's placeholder"),
                         ("POSSA1", "POSSA1, Freedoom zombieman: the rifleman's placeholder")):
-        fd = rig.freedoom_sprite(name)
+        fd = core.freedoom_sprite(name)
         if fd:
             figs.append(fd)
             labels.append(label)
@@ -833,11 +645,11 @@ NEUTRAL = artlib.ramp("concrete_cold")[16]
 
 
 def tile(src: str, w: int, h: int, zoom: int, cap: str, sub: str = "") -> str:
-    return rig.tile(src, w, h, zoom, cap, sub)
+    return core.tile(src, w, h, zoom, cap, sub)
 
 
 def sprite_tile(arr: np.ndarray, zoom: int, cap: str, sub: str = "") -> str:
-    return tile(rig.png_uri(rig.on_bg(arr, NEUTRAL)), arr.shape[1], arr.shape[0], zoom, cap, sub)
+    return tile(core.png_uri(core.on_bg(arr, NEUTRAL)), arr.shape[1], arr.shape[0], zoom, cap, sub)
 
 
 def strip(items) -> str:
@@ -869,7 +681,7 @@ def build_sheet(sprites: dict, metrics: dict, stamp: str, out_dir: Path = PREVIE
                            "gap L1", "gap L2", "gap L3", "gap L4", "gap L5"], rows, numeric_from=4)
     conc = float(flat.luma(wall_rgb("SDCONC1")).mean())
     rr = rifleman()
-    rr_luma = f"{rig.measure(rr[0])['body_luma']:.0f}" if rr else "n/a"
+    rr_luma = f"{core.measure(rr[0])['body_luma']:.0f}" if rr else "n/a"
     body += ("<p class=\"lead\">Every cell keeps BESTIARY §4's constants: chrome M1 helmet, pink flesh, pale "
              "trousers and dark boots, a pump shotgun held high across the chest, the US flag on his right "
              f"shoulder. Body luma is the mean over every opaque pixel of frame A1 (SDCONC1 measures {conc:.0f}, "
@@ -890,15 +702,15 @@ def build_sheet(sprites: dict, metrics: dict, stamp: str, out_dir: Path = PREVIE
         for key, wall, light, what in SCENES:
             with Image.open(lineup_dir / f"lineup_{c.key}_{key}.png") as im:
                 sc = np.asarray(im.convert("RGB"))
-            lines.append(tile(rig.png_uri(sc), sc.shape[1], sc.shape[0], 1, f"{key} 1x", f"{wall} @{light}"))
+            lines.append(tile(core.png_uri(sc), sc.shape[1], sc.shape[0], 1, f"{key} 1x", f"{wall} @{light}"))
         with Image.open(lineup_dir / f"lineup_{c.key}_{WORST}.png") as im:
             worst = np.asarray(im.convert("RGB"))
-        big = tile(rig.png_uri(worst), worst.shape[1], worst.shape[0], 2, f"{WORST} at 2x for the eye",
+        big = tile(core.png_uri(worst), worst.shape[1], worst.shape[0], 2, f"{WORST} at 2x for the eye",
                    "left to right: this cell, SPOSA1, POSSA1, SDRRA1")
         farv = flat.far(worst)
         sil = silhouette_rgb(sprites[(c.key, "A", 1)])
-        extra = [tile(rig.png_uri(farv), farv.shape[1], farv.shape[0], 4, f"{WORST} at game distance /4", "shown 4x"),
-                 tile(rig.png_uri(sil), sil.shape[1], sil.shape[0], 4, "16 px silhouette", "shown 4x")]
+        extra = [tile(core.png_uri(farv), farv.shape[1], farv.shape[0], 4, f"{WORST} at game distance /4", "shown 4x"),
+                 tile(core.png_uri(sil), sil.shape[1], sil.shape[0], 4, "16 px silhouette", "shown 4x")]
         body += (f'<div class="cell{" rec" if rec else ""}"><h3>{c.key} · {html.escape(c.title)}'
                  + ('<span class="tag">RECOMMENDED</span>' if rec else "") + "</h3>"
                  + f'<p class="num">{m["height_px"]} x {m["width_px"]} px · body luma {m["body_luma"]:.0f} · '
@@ -911,19 +723,19 @@ def build_sheet(sprites: dict, metrics: dict, stamp: str, out_dir: Path = PREVIE
               "VERIFIED against GZDoom). Freedoom is shown for scale only; no pixel of it is used.", body))
 
     # 3. the faction tell
-    sils = [tile(rig.png_uri(silhouette_rgb(sprites[(c.key, "A", 1)])), *silhouette_rgb(sprites[(c.key, "A", 1)]).shape[1::-1],
+    sils = [tile(core.png_uri(silhouette_rgb(sprites[(c.key, "A", 1)])), *silhouette_rgb(sprites[(c.key, "A", 1)]).shape[1::-1],
                  5, c.key) for c in CELLS]
     if rr:
         s = silhouette_rgb(rr[0])
-        sils.append(tile(rig.png_uri(s), s.shape[1], s.shape[0], 5, "SDRR", "the Reich rifleman"))
+        sils.append(tile(core.png_uri(s), s.shape[1], s.shape[0], 5, "SDRR", "the Reich rifleman"))
     pair = []
     for key, wall, light, _ in (SCENES[1], SCENES[0]):
-        figs = [(sprites[(RECOMMENDED, "A", 1)], *rig.grab_offsets(STAND))] + ([rr] if rr else [])
+        figs = [(sprites[(RECOMMENDED, "A", 1)], *core.grab_offsets(STAND))] + ([rr] if rr else [])
         sc = lineup(figs, wall, light, 64 * len(figs))
         fv = flat.far(sc)
         val = np.repeat(flat.luma(fv)[..., None].clip(0, 255).astype(np.uint8), 3, -1)
-        pair += [tile(rig.png_uri(fv), fv.shape[1], fv.shape[0], 5, f"{key} /4", f"{RECOMMENDED} and SDRR"),
-                 tile(rig.png_uri(val), val.shape[1], val.shape[0], 5, f"{key} /4, value only")]
+        pair += [tile(core.png_uri(fv), fv.shape[1], fv.shape[0], 5, f"{key} /4", f"{RECOMMENDED} and SDRR"),
+                 tile(core.png_uri(val), val.shape[1], val.shape[0], 5, f"{key} /4, value only")]
     S.append(("3 · The faction tell (BESTIARY §10, the one real silhouette collision)",
               "At 16 px the six cells and the rifleman, then the recommended cell beside the rifleman at game "
               "distance in colour and in value only. BESTIARY §10: the two infantries are told apart by value "

@@ -8,6 +8,9 @@ Two tiers. The cheap tests always run (no rendering):
   rig        two-bone IK reaches its target with the bones' lengths; a rigid
              group transform moves a primitive's distance field with it
   gif        the lossless GIF writer keeps every colour
+  core       the rifleman is a figure on tools/art/rig_core.py: his table is
+             the core's base table plus band and gore (no id moved), his
+             limbs carry limb and side labels, all 8 rotations are drawn
 
 The render tests run under `tools/verify.py art`, not `fast` (each sprite is
 a sphere trace of about two seconds; SD_SKIP_SLOW_ART skips them):
@@ -100,6 +103,33 @@ class RigTests(unittest.TestCase):
         self.assertTrue(np.allclose(prim.sd(moved), before, atol=1e-9))
         c, _ = prim.bound()
         self.assertTrue(np.allclose(c, R @ (g.V(1, 2, 3) - pivot) + pivot + off))
+
+    def test_materials_extend_the_core(self):
+        g = self.g
+        core = g.core
+        names = list(g.MATERIALS)
+        self.assertEqual(names[:len(core.MATERIALS)], list(core.MATERIALS))
+        self.assertEqual(names[len(core.MATERIALS):], ["band", "gore"])
+        self.assertFalse(g.MATERIALS["band"].shift)         # the armband keeps its own red
+        self.assertTrue(g.MATERIALS["gore"].shift)
+        self.assertEqual({n for n, m in g.MATERIALS.items() if m.flat},
+                         {"flash_out", "flash_in", "flash_core", "button"})
+        self.assertEqual({n for n, m in g.MATERIALS.items() if m.cloth}, {"coat", "coat_dark", "helmet", "crest"})
+
+    def test_limbs_are_labelled(self):
+        g = self.g
+        core = g.core
+        for frame in "ADEH":
+            P, _ = g.build_model(g.POSES[frame])
+            for limb in ("leg", "arm"):
+                self.assertTrue(core.select(P, limb=limb, side=core.LEFT), (frame, limb))
+                self.assertTrue(core.select(P, limb=limb, side=core.RIGHT), (frame, limb))
+            self.assertEqual({p.grp for p in core.select(P, limb="leg", side=core.LEFT)}, {"leg_l"})
+            self.assertEqual({p.grp for p in core.select(P, limb="leg", side=core.RIGHT)}, {"leg_r"})
+            band = core.select(P, tag="armband")
+            self.assertEqual(len(band), 1)
+            self.assertEqual(band[0].side, core.LEFT)                  # D12: his LEFT arm
+        self.assertEqual(sorted({r for _, r in g.frame_plan() if r}), list(range(1, 9)))   # handed: no mirror
 
     def test_gif_is_lossless(self):
         g = self.g

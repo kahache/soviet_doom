@@ -46,9 +46,13 @@ own (four legs, the hind ones three-segment), which is the test of whether
 the rig serves a quadruped (the sheet's section 7 answers it).
 
 New materials (steel_blue chrome, the graft's flesh, hide, black belly,
-bone, the bolt) are APPENDED to gen_rig's material table at import time,
-so the rifleman's material ids never move (tests/test_gen_storm.py checks
-it). Palette v1 has no pink ramp yet (BESTIARY §2.1 reserves it for v2):
+bone, the bolt) are registered on a COPY of gen_rig's material table
+(rig_core.register_material: append-only), so the rifleman's material ids
+never move and gen_rig's own table is not touched (tests/test_gen_storm.py
+checks both). Since the rig_core refactor (2026-10-13) the Stormtrooper's
+right arm is taken away by its label (limb "arm", side RIGHT), not by its
+position, and the sprites go through core.render_layers; the refactor left
+every PNG this script writes byte-identical. Palette v1 has no pink ramp yet (BESTIARY §2.1 reserves it for v2):
 the graft's "pink flesh at the seam" is drawn in `plaster_warm` with a
 `rust_brown` raw edge, and says so on the sheet.
 
@@ -83,7 +87,8 @@ sys.path.insert(0, str(ART_TOOLS))
 
 import artlib  # noqa: E402
 import gen_enemy as flat  # noqa: E402
-import gen_rig as rig  # noqa: E402
+import gen_rig as rig  # noqa: E402  (the rifleman: the Stormtrooper's body is his)
+import rig_core as core  # noqa: E402  (the shared rig: primitives, IK, renderer, output)
 import sheetlib  # noqa: E402
 
 PROJECT_ROOT = artlib.PROJECT_ROOT
@@ -107,41 +112,36 @@ HOUND_MAX_H = 40                # BESTIARY §6: a horizontal bar under 40 units 
 TOUCH_MARGIN = 0                # a sprite may not touch its canvas edge
 
 # ================================================================ materials
-M = flat.Material
-NEW_MATERIALS: dict[str, flat.Material] = {
-    "chrome": M("steel_blue", 3, 15),            # BESTIARY §2.1, Legion chrome 0-5 shadow, 11-15 light
-    "chrome_dark": M("steel_blue", 0, 8, black_floor=True),
-    "graft": M("plaster_warm", 7, 14),           # v1 stand-in for the reserved pink ramp (v2)
-    "raw": M("rust_brown", 2, 7),                # the raw edge of the graft; the hound's gullet
-    "patch": M("steel_blue", 4, 8),              # ground of the US patch (C), stamped over
-    "bolt_out": M("steel_blue", 13, 15),         # SD_StormBolt: chrome-white ...
-    "bolt_core": M("flag_red", 11, 15),          # ... with a red core (BESTIARY §5)
-    "hide": M("khaki_olive", 1, 9),              # BESTIARY §6 says 4-10; see HIDE_NOTE
-    "hide_dark": M("khaki_olive", 0, 5),
-    "belly": M("khaki_olive", 0, 2, black_floor=True),   # black underbelly and muzzle (§10 rule 4)
-    "bone": M("plaster_warm", 9, 14),            # teeth, spines
+M = core.Mat.on_ramp
+NEW_MATERIALS: dict[str, core.Mat] = {      # each keeps the value given here (shift=False)
+    "chrome": M("steel_blue", 3, 15, shift=False),            # BESTIARY §2.1, Legion chrome 0-5 shadow, 11-15 light
+    "chrome_dark": M("steel_blue", 0, 8, black_floor=True, shift=False),
+    "graft": M("plaster_warm", 7, 14, shift=False),           # v1 stand-in for the reserved pink ramp (v2)
+    "raw": M("rust_brown", 2, 7, shift=False),                # the raw edge of the graft; the hound's gullet
+    "patch": M("steel_blue", 4, 8, shift=False),              # ground of the US patch (C), stamped over
+    "bolt_out": M("steel_blue", 13, 15, shift=False, flat=True),   # SD_StormBolt: chrome-white ...
+    "bolt_core": M("flag_red", 11, 15, shift=False, flat=True),    # ... with a red core (BESTIARY §5); flat: a glow
+    "hide": M("khaki_olive", 1, 9, shift=False),              # BESTIARY §6 says 4-10; see HIDE_NOTE
+    "hide_dark": M("khaki_olive", 0, 5, shift=False),
+    "belly": M("khaki_olive", 0, 2, black_floor=True, shift=False),   # black underbelly and muzzle (§10 rule 4)
+    "bone": M("plaster_warm", 9, 14, shift=False),            # teeth, spines
 }
 # BESTIARY §6 gives the hide as khaki_olive 4-10. The first render with it
 # measured body luma 99 against SDSTEL1's 101 (gap 1 at light 112): the hound
 # vanished on green steel. The hide is therefore drawn in khaki_olive 1-9 and
 # low on the ramp, Reich-dark like the rifleman; the sheet says so.
 HIDE_NOTE = "BESTIARY §6 hide khaki_olive 4-10 measured luma 99 vs SDSTEL1 101; drawn in 1-9, darker"
-NEW_NO_SHIFT = set(NEW_MATERIALS)               # each keeps the value given here
-NEW_FLAT = {"bolt_out", "bolt_core"}            # no contour, no rim: a glow
+NEW_FLAT = {n for n, m in NEW_MATERIALS.items() if m.flat}
 LEGION_MATERIALS = {"chrome", "chrome_dark", "graft", "raw", "patch"}
+# The rifleman's table, copied, with the new materials appended.
+MATERIALS: dict[str, core.Mat] = dict(rig.MATERIALS)
 
 
 def register_materials() -> None:
-    """Append the new materials to gen_rig's tables, in place, so its
-    renderer knows them. Appending never moves an existing id."""
+    """Append the new materials to this module's table (idempotent).
+    Appending never moves an existing id."""
     for name, mat in NEW_MATERIALS.items():
-        if name in rig.MATERIALS:
-            continue
-        rig.MATERIALS[name] = mat
-        rig.MAT_ID[name] = len(rig.MAT_NAMES)
-        rig.MAT_NAMES.append(name)
-    rig.NO_SHIFT.update(NEW_NO_SHIFT)
-    rig.FLAT_MATERIALS.update(NEW_FLAT)
+        core.register_material(name, mat, MATERIALS)
 
 
 register_materials()
@@ -235,7 +235,7 @@ def _rifleman_body(cell: StormCell, pose: str) -> tuple[list[rig.Prim], dict]:
     for q in prims:
         if q.grp == "rifle":
             continue
-        if q.grp == "arm" and q.bound()[0][0] < 0:      # his right arm (x < 0)
+        if q.limb == "arm" and q.side == core.RIGHT:    # his right arm, by its label
             continue
         if cell.coat == "short" and q.grp == "skirt":
             continue
@@ -482,41 +482,24 @@ def hound_model(cell: HoundCell, pose: str = "idle") -> list[rig.Prim]:
 
 
 # ================================================================== render
-def stamp_patch(rgba: np.ndarray, pid: np.ndarray, prims: list[rig.Prim], rotation: int) -> bool:
-    """The US patch on the pauldron's visible centre when its outer face
-    (the figure's right, model -x) is not turned away. Returns whether."""
-    ids = [i for i, p in enumerate(prims) if p.tag == "patch"]
-    if not ids:
-        return False
-    vis = np.isin(pid, ids)
-    if vis.sum() < PATCH_MIN_PX:
-        return False
-    out = rig.yaw_matrix(rotation) @ (prims[ids[0]].xm @ V(-1, 0, 0))
-    if out[2] < -0.05:
-        return False
-    h, w = pid.shape
-    ys, xs = np.nonzero(vis)
-    x0 = min(max(int(round(xs.mean() - 3.0)), 0), w - len(US_PATCH[0]))
-    y0 = min(max(int(round(ys.mean() - 2.0)), 0), h - len(US_PATCH))
-    for j, row in enumerate(US_PATCH):
-        for i, ch in enumerate(row):
-            ramp, k = US_PATCH_COLOURS[ch]
-            rgba[y0 + j, x0 + i] = (*artlib.ramp(ramp)[k], 255)
-    return True
+# The US patch as a core insignia: on the pauldron's visible centre when its
+# outer face (the figure's right, model -x) is not turned away.
+PATCH_INSIGNIA = core.Insignia("patch", (len(US_PATCH[0]), len(US_PATCH)),
+                               core.pattern_drawer(US_PATCH, US_PATCH_COLOURS), outward=(-1.0, 0.0, 0.0),
+                               min_px=PATCH_MIN_PX, anchor=(3.0, 2.0))
 
 
-def render_prims(prims: list[rig.Prim], rotation: int, cv: Canvas, seed: int = SEED):
-    """One sprite: (RGBA, material-id map at 1x)."""
-    buf = rig.raymarch(prims, rotation, cv, seed)
-    mat, val, dep, pid = rig.reduce(buf, prims)
-    rgba = rig.to_rgba(mat, val, dep)
-    if any(p.tag == "armband" for p in prims):
-        rig.stamp_symbol(rgba, pid, prims, rotation)
-    stamp_patch(rgba, pid, prims, rotation)
-    a = rgba[..., 3] > 0
-    if a[0].any() or a[-1].any() or a[:, 0].any() or a[:, -1].any():
-        raise ValueError(f"rotation {rotation} touches the {cv.w}x{cv.h} canvas edge")
-    return rgba, mat
+def stamp_patch(rgba: np.ndarray, pid: np.ndarray, prims: list[core.Prim], rotation: int) -> bool:
+    """The US patch (PATCH_INSIGNIA). Returns whether it was stamped."""
+    return core.stamp_insignia(rgba, pid, prims, rotation, PATCH_INSIGNIA)
+
+
+def render_prims(prims: list[core.Prim], rotation: int, cv: Canvas, seed: int = SEED):
+    """One sprite: (RGBA, material-id map at 1x). Reich-dark like the
+    rifleman (his value shift); his armband, then the US patch."""
+    lay = core.render_layers(prims, rotation, cv, MATERIALS, seed=seed, value_shift=rig.VALUE_SHIFT,
+                             insignia=(core.ARMBAND, PATCH_INSIGNIA), what=f"rotation {rotation} ({cv.w}x{cv.h})")
+    return lay.rgba, lay.mat
 
 
 def render_storm(key: str, frame: str, rotation: int, seed: int = SEED):
@@ -529,7 +512,8 @@ def render_hound(key: str, frame: str, rotation: int, seed: int = SEED):
 
 def legion_fraction(mat: np.ndarray) -> float:
     """Share of the opaque pixels drawn in Legion material (BESTIARY §5's <= 25 %)."""
-    ids = [rig.MAT_ID[m] for m in LEGION_MATERIALS] + [rig.MAT_ID[m] for m in NEW_FLAT]
+    mid = core.material_ids(MATERIALS)
+    ids = [mid[m] for m in LEGION_MATERIALS] + [mid[m] for m in NEW_FLAT]
     op = mat >= 0
     return float(np.isin(mat, ids).sum() / max(op.sum(), 1))
 
@@ -613,24 +597,9 @@ def floor_rgb(name: str) -> np.ndarray:
 
 
 def lineup(figures, wall: str, light: int, width: int, floor: str = "SDFLR2") -> np.ndarray:
-    """gen_rig.lineup with a choice of floor flat (the hound is judged over
+    """core.lineup with a choice of floor flat (the hound is judged over
     SDFLR1's lane line too, BESTIARY §10 rule 4)."""
-    wall_h, floor_h = flat.WALL_H, flat.FLOOR_H
-    w_rgb = flat.tile_to(flat.host_rgb(wall), width, wall_h)
-    fl = flat.tile_to(floor_rgb(floor), width, floor_h * 3)
-    fl = np.asarray(Image.fromarray(fl, "RGB").resize((width, floor_h), Image.Resampling.NEAREST))
-    canvas = np.concatenate([w_rgb, fl], axis=0).copy()
-    base = flat.FLOOR_LINE - rig.FEET_SINK
-    slot = width / len(figures)
-    for i, (spr, ox, oy) in enumerate(figures):
-        x0 = int(round(slot * (i + 0.5))) - ox
-        y0 = base - oy
-        a = spr[..., 3] > 0
-        ys, xs = np.nonzero(a)
-        ys2, xs2 = ys + y0, xs + x0
-        keep = (ys2 >= 0) & (ys2 < canvas.shape[0]) & (xs2 >= 0) & (xs2 < width)
-        canvas[ys2[keep], xs2[keep]] = spr[ys[keep], xs[keep], :3]
-    return flat.lit(canvas, light)
+    return core.lineup(figures, wall, light, width, floor, load=floor_rgb)
 
 
 def rifleman() -> tuple[np.ndarray, int, int] | None:
@@ -894,6 +863,270 @@ def build_sheet(data: dict, stamp: str, out_dir: Path = PREVIEW_DIR) -> Path:
     return path
 
 
+# ========================================================== gallop proof
+# The quadruped skeleton of rig_core (spine chain, three-bone hind leg,
+# QuadPose with gait phase) tried on the recommended hound, cell D (long
+# build, crocodile jaw, dorsal spines): the walk frames A-D of BESTIARY §6
+# as a transverse gallop, at rotations 1, 3 and 5, rotation 7 as the
+# engine's mirror of 3. A capability proof for the CEO, not the set: the
+# 46 lumps wait on his choice of cell (the sweep's sheet).
+GALLOP_DIR = PROJECT_ROOT / "work" / "art" / "enemies" / "gallop"
+GALLOP_BUILD = core.QuadBuild()
+GALLOP_CV = Canvas(112, 64, 56, 56)  # the sweep's HOUND_CV is 56 high: a hind paw thrown back at rotation 5
+                                     # projects below it (nearer the camera = lower on screen); the axis
+                                     # stays centred, as mirror mode needs
+GALLOP_FRAMES = {"A": 0.0, "B": 0.25, "C": 0.5, "D": 0.75}     # SDHN See: A B C D, phases of one stride
+GALLOP_ROTS = (1, 3, 5)
+GALLOP_TICS = 2                 # BESTIARY §6: See SDHN AABBCCDD, 2 tics a frame
+GALLOP_SLOW_TICS = 8            # the same loop at a quarter speed, for the eye
+HEAD_LEVEL = 16.0               # degrees added to the last neck bone so the head rides level
+LEG_L = 1.35                    # the long build's leg thickness factor (BUILDS["long"].leg)
+TAIL_DROOP = 28.0               # degrees the tail hangs below the pelvis line (the sweep's tail)
+TAIL_WAG = 10.0                 # degrees it swings with the stride
+
+
+def hound_gallop_model(cell: HoundCell, qpose: core.QuadPose,
+                       build: core.QuadBuild = GALLOP_BUILD) -> list[core.Prim]:
+    """The hound on the quadruped skeleton: the sweep's shapes (gen_storm's
+    hound_model, long build) hung on posed bones instead of fixed points."""
+    b = BUILDS["long"]
+    q = core.pose_quadruped(build, qpose)
+    P: list[core.Prim] = []
+    L = LEG_L
+
+    def add(grp, prim, limb="", side=core.CENTRE):
+        prim.grp, prim.limb, prim.side = grp, limb, side
+        P.append(prim)
+        return prim
+
+    sacrum, withers = q.spine[0], q.spine[-1]
+    pel_a, chest_a = q.spine_angles[0], q.spine_angles[-1]
+    pel_R, chest_R = core.bone_frame(pel_a), core.bone_frame(chest_a)
+    at_chest = lambda x, y, z: withers + chest_R @ V(x, y, z)  # noqa: E731
+    at_pelvis = lambda x, y, z: sacrum + pel_R @ V(x, y, z)  # noqa: E731
+    # ------------------------------------------------------------ ribcage, in the chest bone's frame
+    rx, ry, rz = b.cage
+    cz = -4.0
+    cy = -7.4
+    add("body", core.on_bone(core.ellipsoid("hide", 0.32, (0, cy, cz), b.cage), withers, chest_a))
+    for i in range(7):
+        z = cz + rz * (-0.50 + 0.15 * i)
+        s = float(np.sqrt(max(1 - ((z - cz) / rz) ** 2, 0.0)))
+        add("body", core.on_bone(core.ellipsoid("hide", 0.46, (0, cy, z), (rx * s + 0.45, ry * s + 0.45, 0.62),
+                                                clip=[(V(0, -1, 0), -(cy - ry * 0.45))]), withers, chest_a))
+    add("body", core.on_bone(core.ellipsoid("belly", 0.30, (0, cy - ry * 0.52, cz - 1.5),
+                                            (rx * 0.82, ry * 0.52, rz * 0.82)), withers, chest_a))
+    # ------------------------------------------------------------ loin, belly line, haunches
+    add("body", core.rcone("hide", 0.30, at_chest(0, cy + 0.8, cz - rz * 0.45), at_pelvis(0, -2.7, 2.5),
+                           5.0 * L ** 0.5, 4.4 * L ** 0.5))
+    add("body", core.rcone("belly", 0.25, at_chest(0, cy - ry * 0.45, cz - rz * 0.4), at_pelvis(0, -6.7, 3.0),
+                           3.4 * L ** 0.5, 2.4 * L ** 0.5))
+    for side in (core.LEFT, core.RIGHT):
+        hip = q.legs["hl" if side == core.LEFT else "hr"][0]
+        add("body", core.on_bone(core.ellipsoid("hide", 0.34, (0, 1.0, 0), b.haunch), hip, pel_a))
+        sh = q.legs["fl" if side == core.LEFT else "fr"][0]
+        add("body", core.on_bone(core.ellipsoid("hide", 0.37, (0, 1.5, -0.4), (2.8 * L, 5.4, 4.0)), sh, chest_a))
+    # ------------------------------------------------------------ the top line: vertebrae and spines
+    pts = q.spine
+    seg = [float(np.linalg.norm(pts[i + 1] - pts[i])) for i in range(len(pts) - 1)]
+    total = sum(seg)
+    for i in range(9):
+        d, k = total * i / 8, 0
+        while k < len(seg) - 1 and d > seg[k]:
+            d -= seg[k]
+            k += 1
+        p = pts[k] + (pts[k + 1] - pts[k]) * min(d / seg[k], 1.0) + V(0, 0.7, 0)
+        add("body", core.ellipsoid("hide_dark", 0.37, tuple(p), (1.0, 0.9, 1.3)))
+        if cell.spines:
+            t = i / 8
+            add("body", core.rcone("bone", 0.55, p, p + V(0, 3.4 - 1.2 * abs(t - 0.6), -1.2), 0.85, 0.2))
+    if b.hump:
+        add("body", core.on_bone(core.ellipsoid("hide", 0.38, (0, 1.0, -1.5), (4.4, 3.8, 6.2)), withers, chest_a))
+    wag = TAIL_WAG * np.sin(2 * np.pi * qpose.phase)
+    tail_a = pel_a + TAIL_DROOP + wag             # the tail bone points back (-z) and down
+    add("body", core.on_bone(core.rcone("hide_dark", 0.27, V(0, -2.3, -3.0), V(0, -2.3, -16.0), 1.4, 0.45),
+                             sacrum, tail_a))
+    # ------------------------------------------------------------ legs
+    for leg in core.LEGS:
+        side = core.LEFT if leg.endswith("l") else core.RIGHT
+        grp = "leg_l" if side == core.LEFT else "leg_r"
+        root, mid, low, paw = q.legs[leg]
+        if leg.startswith("h"):
+            add(grp, core.rcone("hide", 0.32, root, mid, 3.0 * L, 1.9 * L), "hindleg", side)
+            add(grp, core.rcone("hide", 0.30, mid, low, 1.8 * L, 1.15 * L), "hindleg", side)
+            add(grp, core.rcone("hide_dark", 0.27, low, paw + V(0, 0.8, 0), 1.1 * L, 0.95 * L), "hindleg", side)
+            add(grp, core.ellipsoid("belly", 0.35, tuple(paw + V(0, 0.0, 1.0)), (1.5 * L, 1.1, 2.2 * L)),
+                "hindleg", side)
+        else:
+            add(grp, core.rcone("hide", 0.34, root, mid, 2.4 * L, 1.7 * L), "foreleg", side)
+            add(grp, core.rcone("hide", 0.32, mid, low, 1.6 * L, 1.15 * L), "foreleg", side)
+            add(grp, core.ellipsoid("belly", 0.35, tuple(paw + V(0, 0.0, 0.9)), (1.6 * L, 1.15, 2.3 * L)),
+                "foreleg", side)
+    # ------------------------------------------------------------ neck and head (in the head's frame)
+    s = b.head_s
+    snout = b.snout * (1.35 if cell.jaw == "croc" else 1.0)
+    neck_root = at_chest(0, -3.5, 2.5)
+    add("neck", core.rcone("hide", 0.34, neck_root, q.neck[1], 4.6 * L ** 0.5, 4.0 * s))
+    add("neck", core.rcone("hide", 0.34, q.neck[1], q.neck[2], 4.0 * s, 3.4 * s))
+    head_a = q.neck_angles[-1] + HEAD_LEVEL - qpose.head_pitch
+    o = 2.4 * s                                   # the sweep's skull sits this far ahead of the neck's end
+    head = [
+        core.ellipsoid("hide", 0.40, (0, 1.6, o), (4.4 * s, 2.5 * s, 4.8 * s)),                   # flat skull
+        core.rcone("hide", 0.38, V(0, 1.2, 1.0 + o), V(0, 0.8, snout + o), 3.5 * s, 2.3 * s),
+        core.rcone("belly", 0.30, V(0, 0.9, snout * 0.55 + o), V(0, 0.7, snout + 0.2 + o), 2.95 * s, 2.4 * s),
+        core.rcone("belly", 0.32, V(0, 0.6 - 1.9 * s, 0.5 + o), V(0, 0.6 - 1.6 * s, snout - 0.8 + o),
+                   2.6 * s, 1.8 * s),                                                              # the jaw, shut
+    ]
+    teeth_n = 6 if cell.jaw == "croc" else 4
+    for side in (1, -1):
+        for i in range(teeth_n):
+            z = 3.0 * s + i * (snout - 4.0 * s) / max(teeth_n - 1, 1) + o
+            head.append(core.ellipsoid("bone", 0.6, (side * 1.9 * s, 0.6 - 1.2 * s, z), (0.45, 1.0 * s, 0.5)))
+        for i in range(teeth_n - 1):
+            z = 4.0 * s + i * (snout - 5.5 * s) / max(teeth_n - 2, 1) + o
+            head.append(core.ellipsoid("bone", 0.6, (side * 1.6 * s, 0.6 - 0.6 * s, z), (0.4, 0.9 * s, 0.45)))
+    for prim in head:
+        add("head", core.on_bone(prim, q.neck[-1], head_a))
+    return P
+
+
+def render_gallop(frame: str, rotation: int, cell_key: str = HOUND_RECOMMENDED, seed: int = SEED) -> np.ndarray:
+    pose = core.QuadPose(frame, "gallop", GALLOP_FRAMES[frame])
+    rgba, _ = render_prims(hound_gallop_model(HOUND[cell_key], pose), rotation, GALLOP_CV, seed)
+    return rgba
+
+
+def build_gallop_proof(stamp: str, out_dir: Path = PREVIEW_DIR, work_dir: Path = GALLOP_DIR,
+                       cell_key: str = HOUND_RECOMMENDED, seed: int = SEED) -> Path:
+    """Render the proof (rotations 1, 3, 5 traced; 7 mirrored from 3), write
+    the PNGs, GIFs and metrics to work_dir and the dated sheet to out_dir."""
+    work_dir.mkdir(parents=True, exist_ok=True)
+    cell = HOUND[cell_key]
+    spr: dict = {}
+    for f, ph in GALLOP_FRAMES.items():
+        pose = core.QuadPose(f, "gallop", ph)
+        turn = core.render_rotations(lambda: hound_gallop_model(cell, pose), GALLOP_CV, (*GALLOP_ROTS, 7),
+                                     mirror=True, materials=MATERIALS, seed=seed, value_shift=rig.VALUE_SHIFT,
+                                     what=f"gallop {f}")
+        for r, rgba in turn.items():
+            spr[(f, r)] = rgba
+            name = f"{HOUND_SPRITE}_{cell_key}_gallop_{f}{r}" + ("_mirror_of_3" if r == 7 else "")
+            save(rgba, work_dir / f"{name}.png", GALLOP_CV)
+            print(name, flush=True)
+        skel = core.skeleton_prims(core.pose_quadruped(GALLOP_BUILD, pose), "bone", "raw")
+        spr[("skel", f)] = core.render(skel, 3, GALLOP_CV, MATERIALS, seed=seed)
+        save(spr[("skel", f)], work_dir / f"skeleton_{f}3.png", GALLOP_CV)
+    metrics = {}
+    for (f, r), rgba in spr.items():
+        if f == "skel":
+            continue
+        m = measure(rgba)
+        metrics[f"{f}{r}"] = {k: m[k] for k in ("height_px", "width_px", "lowest_row", "body_luma", "worst_gap")}
+    (work_dir / "metrics.json").write_text(json.dumps(metrics, indent=2) + "\n", encoding="utf-8")
+    t = lambda n: int(round(n * core.TIC_MS))  # noqa: E731
+    gifs = {}
+    for r in (*GALLOP_ROTS, 7):
+        frames = [core.on_bg(spr[(f, r)], core.NEUTRAL) for f in GALLOP_FRAMES]
+        gifs[r] = core.save_gif(frames, [t(GALLOP_TICS)] * 4, work_dir / f"gallop_rot{r}.gif")
+        gifs[(r, "slow")] = core.save_gif(frames, [t(GALLOP_SLOW_TICS)] * 4, work_dir / f"gallop_rot{r}_slow.gif")
+    skel_frames = [core.on_bg(spr[("skel", f)], core.NEUTRAL) for f in GALLOP_FRAMES]
+    gifs["skel"] = core.save_gif(skel_frames, [t(GALLOP_SLOW_TICS)] * 4, work_dir / "skeleton_rot3_slow.gif")
+    return gallop_sheet(spr, metrics, gifs, stamp, out_dir, cell_key, seed)
+
+
+GALLOP_NOTES = [
+    "WHAT THIS PROVES. The rig now has the three things the hound sweep said it lacked (its sheet, section 8): "
+    "a spine chain (sacrum, loin, back, chest, then two neck bones, each angle relative to its parent), a "
+    "three-bone digitigrade hind leg (hip, stifle, hock, paw, solved as a pantograph: femur and metatarsus "
+    "stay parallel, every bone keeps its length, the stifle points forward and the hock back), and a "
+    "quadruped pose with a gait phase (four paw targets, spine flex, bob and pitch from one number). The "
+    "four frames are one transverse gallop: A gathered (hind paws reaching under the chest, back rounded), "
+    "B the hind push, C stretched (forepaws reaching, back extended), D the forepaws landing.",
+    "MIRROR MODE. The hound wears no insignia and is symmetric, so Doom's paired rotations are valid for "
+    "him: rotation 7 here is not traced, it is rotation 3 flipped about the body axis, exactly what the "
+    "engine draws for a lump named SDHNA3A7. Five drawings per frame instead of eight: the full set is "
+    "BESTIARY 6's 46 images, not 70. The flip swaps the lead leg (his left side leads at 3, the right "
+    "seems to lead at 7), as every Doom monster's walk does; the light also flips (key light from the "
+    "right at 7). Both are the convention, visible only if you look for them.",
+    "WHAT IS NOT DONE, HONESTLY. This is the recommended cell D's shapes moved onto the new skeleton, not a "
+    "redesign; the body pieces are the sweep's ellipsoids hung on bones, so in the stretched frame C the "
+    "loin and the ribcage show their seam, and the chest does not deform. The gait numbers (duty, stride, "
+    "lift, flex) are chosen by eye for 4 frames at 2 tics, not taken from footage. Not rendered: the bite "
+    "E-G, pain H, death I-N, and rotations 2, 4 (8 and 6 would be their mirrors). Rotation order and the "
+    "flip are checked by hand against r_things.c, NOT in GZDoom.",
+]
+
+
+def gallop_sheet(spr: dict, metrics: dict, gifs: dict, stamp: str, out_dir: Path, cell_key: str,
+                 seed: int) -> Path:
+    def strip(items):
+        return '<div class="strip">' + "".join(items) + "</div>"
+
+    names = {1: "front", 3: "his left side", 5: "back", 7: "his right side (mirror of 3)"}
+    S = []
+    body = ""
+    for r in GALLOP_ROTS:
+        body += strip([core.gif_tile(gifs[r], 3, f"rotation {r}, game speed", f"{names[r]}, {GALLOP_TICS} tics a frame"),
+                       core.gif_tile(gifs[(r, "slow")], 3, f"rotation {r}, quarter speed", "for the eye")]
+                      + [core.sprite_tile(spr[(f, r)], 3, core.rotation_lump(HOUND_SPRITE, f, r, mirror=True),
+                                          f"phase {GALLOP_FRAMES[f]:.2f}") for f in GALLOP_FRAMES])
+    S.append(("1 · The gallop at rotations 1, 3 and 5",
+              f"Cell {cell_key} (recommended in the sweep: long build, crocodile jaw, dorsal spines) on the new "
+              "quadruped skeleton. Walk frames A-D of BESTIARY §6 (See: SDHN AABBCCDD, 2 tics a frame), "
+              "animated at the speed the engine plays them and at a quarter of it, then the four stills at 3x "
+              "on neutral grey.", body))
+    body = strip([core.sprite_tile(spr[(f, 3)], 3, f"{HOUND_SPRITE}{f}3 traced") for f in GALLOP_FRAMES])
+    body += strip([core.sprite_tile(spr[(f, 7)], 3, f"{HOUND_SPRITE}{f}7 = {f}3 flipped",
+                                    core.rotation_lump(HOUND_SPRITE, f, 3, mirror=True)) for f in GALLOP_FRAMES]
+                  + [core.gif_tile(gifs[7], 3, "rotation 7, game speed", "the engine's flip of 3")])
+    S.append(("2 · Mirror mode: rotation 7 is rotation 3 flipped",
+              "Top row traced at rotation 3; bottom row what the engine shows at rotation 7 for the paired "
+              "lump (SDHNA3A7 and so on): the same image mirrored about the body axis. Not traced.", body))
+    body = strip([core.gif_tile(gifs["skel"], 3, "skeleton, rotation 3", "quarter speed")]
+                 + [core.sprite_tile(spr[("skel", f)], 3, f"skeleton {f}3", f"phase {GALLOP_FRAMES[f]:.2f}")
+                    for f in GALLOP_FRAMES])
+    S.append(("3 · The skeleton under it",
+              "The same four poses with only the bones drawn (rotation 3): spine chain and neck along the top, "
+              "the forelegs (shoulder, elbow, wrist) and the three-bone hind legs (hip, stifle, hock, paw). The "
+              "hind leg's first and last bones stay parallel: that is the pantograph solve.", body))
+    figs = [(spr[(f, 3)], *grab(GALLOP_CV)) for f in GALLOP_FRAMES]
+    body = ""
+    for key, wall, light, what in HOUND_SCENES[-1:] + flat.SCENES[2:3]:
+        floor = "SDFLR1" if key == "S6" else "SDFLR2"
+        sc = lineup(figs, wall, light, 96 * len(figs), floor)
+        body += strip([core.tile(core.png_uri(sc), sc.shape[1], sc.shape[0], 1, f"{key} 1x: {wall} at light {light}",
+                                 what),
+                       core.tile(core.png_uri(sc), sc.shape[1], sc.shape[0], 2, f"{key} 2x")])
+    S.append(("4 · At 1x on MAP01's walls", "Frames A-D at rotation 3, each standing by its own offsets. Light is "
+              "gen_enemy.py's stand-in, NOT VERIFIED against GZDoom.", body))
+    rows = [[f"{HOUND_SPRITE}{k}", f"{m['height_px']} x {m['width_px']}", m["lowest_row"], m["body_luma"],
+             m["worst_gap"]] for k, m in metrics.items()]
+    body = sheetlib.table(["frame", "h x w px", "lowest row", "body luma", "worst gap"], rows, 1)
+    body += (f"<p class=\"lead\">Canvas {GALLOP_CV.w}x{GALLOP_CV.h}, sole line at row {GALLOP_CV.foot_row} (a paw "
+             "in stance stands on it; a row above means every paw is in the air). BESTIARY §6: under 40 px "
+             "tall.</p>")
+    S.append(("5 · Numbers", "", body))
+    body = '<div class="verdict">' + "".join(f"<p>{html.escape(v)}</p>" for v in GALLOP_NOTES) + "</div>"
+    body += ('<div class="ask"><b>For the CEO</b><ol><li>Nothing to approve here: it is a capability check. '
+             "If the gallop reads, the hound's 46 lumps can be drawn on this skeleton once you pick the cell "
+             "in the sweep (recommended D).</li></ol></div>")
+    S.append(("6 · What this proves and what is left", "", body))
+    intro = ("The quadruped skeleton added to the shared rig (<code>tools/art/rig_core.py</code>): a spine chain, "
+             "a three-bone digitigrade hind leg, a quadruped pose with gait phase, and Doom's mirrored rotation "
+             "pairs. One proof: the recommended hound cell galloping at rotations 1, 3 and 5, rotation 7 as the "
+             f"mirror of 3. Palette v1 only, seed {seed}, no system fonts. Built by <code>tools/art/gen_storm.py "
+             "--gallop-proof</code>. Draft: nothing in <code>assets/</code>.")
+    footer = ("Sprites: tools/art/gen_storm.py on tools/art/rig_core.py (GPL-3.0 code; art CC BY-NC-SA 4.0, D15), "
+              "deterministic, no system fonts.")
+    path = out_dir / f"{stamp}_F5_hound-gallop-proof.html"
+    sheetlib.write_sheet(path, lang="en", title="Reich hound — gallop on the quadruped skeleton (F5)",
+                         subtitle=f"SDHN · cell {cell_key} · rotations 1, 3, 5 and the mirror · capability proof",
+                         intro=intro, sections=S, footer=footer)
+    text = path.read_text(encoding="utf-8").replace("</style>", core.SHEET_CSS + "</style>", 1)
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--stamp", default=dt.datetime.now().strftime("%Y-%m-%d_%H%M"),
@@ -901,7 +1134,13 @@ def main() -> None:
     ap.add_argument("--sheet-only", action="store_true",
                     help="rebuild the sheet from the sprites already in work/art/enemies/{storm,hound}/")
     ap.add_argument("--no-sheet", action="store_true", help="sprites only")
+    ap.add_argument("--gallop-proof", action="store_true",
+                    help="only the hound's gallop on the quadruped skeleton (work/art/enemies/gallop/ and its sheet)")
     args = ap.parse_args()
+    if args.gallop_proof:
+        path = build_gallop_proof(args.stamp)
+        print("sheet:", path.relative_to(PROJECT_ROOT))
+        return
     STORM_DIR.mkdir(parents=True, exist_ok=True)
     HOUND_DIR.mkdir(parents=True, exist_ok=True)
     data = load_all() if args.sheet_only else build_all()

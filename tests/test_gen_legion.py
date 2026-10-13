@@ -7,6 +7,9 @@ Two tiers. The cheap tests always run (no rendering):
              none of them already in palette v1, and v1 + it fits 256
   cells      six cells, A is the brief, every lump name fits Doom's 8 chars
   flag       the D12 flag stamp is 7x5 and mirrors so the canton leads
+  core       the trooper is a figure on tools/art/rig_core.py: the candidate
+             ramp is registered there, lit() keeps the pink, chrome is a
+             material shading, the flag is a core insignia
 
 The render tests run under `tools/verify.py art`, not `fast` (each sprite
 is a sphere trace of a few seconds; SD_SKIP_SLOW_ART skips them):
@@ -95,6 +98,19 @@ class CheapTests(unittest.TestCase):
                 lump = g.lump_name(c, frame, rot).replace(f"_{c.key}_", "")
                 self.assertRegex(lump, r"^SDLT[A-U][0-8]$")
                 self.assertLessEqual(len(lump), 8)
+
+    def test_on_the_core(self):
+        g = self.g
+        core = g.core
+        self.assertEqual(core.ramp(g.FLESH), g.flesh_ramp())
+        self.assertEqual(g.MATERIALS["flesh"].colours()[0], g.flesh_ramp()[3])
+        self.assertEqual(g.MATERIALS["chrome"].shading, "chrome")
+        self.assertEqual(g.FLAG_INSIGNIA.size, (7, 5))
+        self.assertTrue(g.FLAG_INSIGNIA.mirror_facing_right)
+        pink = g.flesh_ramp()[12]
+        img = np.zeros((2, 2, 3), np.uint8)
+        img[:] = pink
+        self.assertEqual(tuple(int(v) for v in g.lit(img, g.flat.LIGHT_FULL)[0, 0]), pink)   # not re-quantised to v1
 
     def test_flag_mirrors_canton_first(self):
         g = self.g
