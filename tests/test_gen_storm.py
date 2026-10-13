@@ -4,11 +4,16 @@ Two tiers. The cheap tests always run (no rendering):
 
   no font    the generator never rasterises text with a system font
   cells      4-5 cells per enemy, unique keys, the BESTIARY sprite names
-  rig        appending the new materials never moves one of gen_rig's ids
+  rig        the new materials are appended to a COPY of gen_rig's table:
+             no id moves and gen_rig's own table is untouched; the right
+             arm is removed by its label (limb, side), and the label agrees
+             with the old position rule (x < 0)
   faction    no military_green in either enemy; no flag_red on the hound
              outside its forbidden list (BESTIARY §6: no red at all)
   leg        the three-segment hind leg keeps its bone lengths and puts the
              knee forward and the hock behind the paw
+  gallop     the hound on rig_core's quadruped skeleton: four labelled legs,
+             no red, the head ahead of the withers, the axis centred
 
 The render tests run under `tools/verify.py art`, not `fast`
 (SD_SKIP_SLOW_ART skips them):
@@ -18,6 +23,8 @@ The render tests run under `tools/verify.py art`, not `fast`
              the front is under BESTIARY §5's 25 %
   hound      a horizontal bar under 40 px tall, no red pixel, a black
              bottom edge (BESTIARY §10 rule 4)
+  gallop     the proof frame is a low bar with a paw on the floor; rotation 7
+             in mirror mode is rotation 3 flipped
   seed       the same sprite renders identically twice
 """
 
@@ -59,9 +66,10 @@ class CheapTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         import gen_rig
-        cls.before = dict(gen_rig.MAT_ID)        # whatever was registered before this import
+        cls.before = list(gen_rig.MATERIALS)     # the rifleman's table before this import
         import gen_storm
-        cls.rig, cls.g = gen_rig, gen_storm
+        import rig_core
+        cls.rig, cls.g, cls.core = gen_rig, gen_storm, rig_core
 
     def test_cells(self):
         g = self.g
@@ -74,16 +82,40 @@ class CheapTests(unittest.TestCase):
         self.assertRegex(g.lump(g.STORM_SPRITE, "A", "G", 1), r"^SDHS_A_G1$")
 
     def test_registration_appends_only(self):
-        rig, g = self.rig, self.g
-        for name, i in self.before.items():
-            self.assertEqual(rig.MAT_ID[name], i, name)
-        for name in g.NEW_MATERIALS:
-            self.assertEqual(rig.MAT_NAMES[rig.MAT_ID[name]], name)
+        rig, g, core = self.rig, self.g, self.core
+        self.assertEqual(list(rig.MATERIALS), self.before)          # gen_rig's own table is untouched
+        ids = core.material_ids(g.MATERIALS)
+        for i, name in enumerate(self.before):
+            self.assertEqual(ids[name], i, name)
+        for name, mat in g.NEW_MATERIALS.items():
+            self.assertIs(g.MATERIALS[name], mat)
+            self.assertFalse(mat.shift, name)                        # each keeps its own value
+        flat_new = {n for n, m in g.MATERIALS.items() if m.flat} - set(rig.MATERIALS)
+        self.assertEqual(flat_new, {"bolt_out", "bolt_core"})
+        n = len(g.MATERIALS)
         g.register_materials()                   # idempotent
-        self.assertEqual(len(rig.MAT_NAMES), len(set(rig.MAT_NAMES)))
+        self.assertEqual(len(g.MATERIALS), n)
+
+    def test_right_arm_removed_by_label(self):
+        g, core = self.g, self.core
+        cell = g.STORM["A"]
+        p = self.rig.Pose("A", "storm", **g.STORM_FEET, bob=g.STORM_BOB, carry="free", stride=0.3,
+                          head_pitch=cell.hunch * 0.7, hand_l=(9.6, 27.2, 3.4), hand_r=(-9.0, 27.0, 3.0),
+                          rifle_at=((-10.0, 20.0, 4.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)), canvas=g.STORM_CV)
+        full, _ = self.rig.build_model(p)
+        right = core.select(full, limb="arm", side=core.RIGHT)
+        left = core.select(full, limb="arm", side=core.LEFT)
+        self.assertTrue(right and left)
+        # the label agrees with the position rule the first sweep used
+        by_position = {id(q) for q in full if q.grp == "arm" and q.bound()[0][0] < 0}
+        self.assertEqual(by_position, {id(q) for q in right})
+        kept, _ = g._rifleman_body(cell, "idle")
+        self.assertFalse(core.select(kept, limb="arm", side=core.RIGHT))
+        self.assertEqual(len(core.select(kept, limb="arm", side=core.LEFT)), len(left))
+        self.assertTrue(core.select(kept, tag="armband"))          # his Reich arm keeps the armband
 
     def _ramps(self, prims):
-        return {self.rig.MATERIALS[p.mat].ramp for p in prims}
+        return set().union(*(self.g.MATERIALS[p.mat].ramps for p in prims))
 
     def test_faction_colours(self):
         g = self.g
@@ -105,6 +137,25 @@ class CheapTests(unittest.TestCase):
         self.assertTrue(np.allclose(end, paw))
         self.assertGreater(knee[2], hip[2] - 1e-9)       # the knee points forward
         self.assertLess(hock[2], paw[2])                 # the hock sits behind the paw
+
+    def test_gallop_model(self):
+        g, core = self.g, self.core
+        cell = g.HOUND[g.HOUND_RECOMMENDED]
+        for f, ph in g.GALLOP_FRAMES.items():
+            pose = core.QuadPose(f, "gallop", ph)
+            P = g.hound_gallop_model(cell, pose)
+            for limb, n in (("foreleg", 3), ("hindleg", 4)):
+                for side in (core.LEFT, core.RIGHT):
+                    legs = core.select(P, limb=limb, side=side)
+                    self.assertEqual(len(legs), n, (f, limb, side))
+                    self.assertTrue(all(np.sign(q.bound()[0][0]) == side for q in legs), (f, limb, side))
+            ramps = self._ramps(P)
+            self.assertNotIn("flag_red", ramps)
+            self.assertNotIn("military_green", ramps)
+            withers = core.pose_quadruped(g.GALLOP_BUILD, pose).spine[-1]
+            head = core.select(P, grp="head")
+            self.assertGreater(min(q.bound()[0][2] for q in head), withers[2])     # the head leads
+        self.assertEqual(g.GALLOP_CV.cx * 2, g.GALLOP_CV.w)                   # mirror mode needs the axis centred
 
 
 @slow
@@ -150,6 +201,21 @@ class RenderTests(unittest.TestCase):
     def test_deterministic(self):
         again, _ = self.g.render_hound(self.g.HOUND_RECOMMENDED, "A", 3)
         self.assertTrue(np.array_equal(again, self.hound))
+
+    def test_gallop_proof_frame_and_mirror(self):
+        g = self.g
+        core = g.core
+        cell = g.HOUND[g.HOUND_RECOMMENDED]
+        pose = core.QuadPose("C", "gallop", g.GALLOP_FRAMES["C"])
+        turn = core.render_rotations(lambda: g.hound_gallop_model(cell, pose), g.GALLOP_CV, (3, 7), mirror=True,
+                                     materials=g.MATERIALS, seed=g.SEED, value_shift=g.rig.VALUE_SHIFT)
+        m = g.measure(turn[3])
+        self.assertLess(m["height_px"], g.HOUND_MAX_H)
+        self.assertGreater(m["width_px"], 1.5 * m["height_px"])
+        self.assertLessEqual(abs(m["lowest_row"] - g.GALLOP_CV.foot_row), 1)   # a paw on the floor
+        self.assertTrue(np.array_equal(turn[7], turn[3][:, ::-1]))
+        self.assertLessEqual(self.opaque(turn[3]), self.palette)
+        self.assertFalse(self.opaque(turn[3]) & self.red)
 
 
 if __name__ == "__main__":

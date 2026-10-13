@@ -58,6 +58,15 @@ NO FONTS. The sprites carry no text and nothing here calls ImageFont; the
 sheet is HTML, whose labels are the browser's text, like every HTML preview
 (tools/art/sheetlib.py). tests/test_gen_rig.py keeps it so.
 
+Since the rig_core refactor (2026-10-13) that machinery (primitives, IK,
+tracer, majority vote, contour and rim, the insignia stamp, the flash,
+grAb, GIFs, lineups, the Freedoom reader, sheet tiles) lives in
+tools/art/rig_core.py, shared by every enemy on the rig; this module is the
+rifleman's FIGURE: his materials, proportions, poses, gib, frame plan, GIFs
+and sheet. It re-exports the core's names (gen_rig.V, gen_rig.two_bone,
+gen_rig.save_sprite ... still work). The refactor was checked to leave every
+PNG this script writes byte-identical.
+
 Outputs (work/ is gitignored):
     work/art/enemies/rig/SDRR<frame><rot>.png  70 lumps, RGBA, hard alpha,
         palette.json colours only, grAb offsets (body axis, feet sunk
@@ -71,26 +80,31 @@ Outputs (work/ is gitignored):
 from __future__ import annotations
 
 import argparse
-import base64
 import datetime as dt
 import html
-import io
 import json
-import struct
 import sys
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import numpy as np
 from PIL import Image
-from PIL.PngImagePlugin import PngInfo
 
 ART_TOOLS = Path(__file__).resolve().parent
 sys.path.insert(0, str(ART_TOOLS))
 
 import artlib  # noqa: E402
 import gen_enemy as flat  # noqa: E402  (the approved cell E, its materials, scene helpers)
+import rig_core as core  # noqa: E402  (the shared rig: primitives, IK, renderer, output)
 import sheetlib  # noqa: E402
+from rig_core import (  # noqa: E402,F401  re-exported: the rifleman's module keeps its names
+    AIM, ANKLE_Y, AO_DIST, AO_WEIGHT, CENTRE, CONTOUR_STEPS, COVER_MIN, CULL_MARGIN, DEPTH_EDGE,
+    DOOM_HEIGHT, FEET_SINK, FLASH_SIZE, FLOOR_STEP, GRAIN, GRAIN_CELL, HIP_Y, HIT_EPS, LEFT, LIGHT,
+    LIGHT_BANDS, MAX_STEPS, NEUTRAL, NORMAL_H, PITCH_DEG, RIGHT, RIM_STEPS, ROTATIONS, SHADE_GAIN, SHIN,
+    SS, STAND, STEP_SCALE, T0, T_SPAN, THIGH, TIC_MS, VERTICAL_FALLOFF, Canvas, Prim, Scene, V, add_flash,
+    box, camera, ccone, ellipsoid, freedoom_sprite, gif_tile, grab_offsets, hash3, lineup, lowest_y,
+    measure, on_bg, pad_to, png_uri, project, rcone, read_grab, rest_on_floor, rot_x, rot_y, rot_z,
+    save_gif, save_sprite, sprite_tile, tile, transform, two_bone, yaw_matrix)
 
 PROJECT_ROOT = artlib.PROJECT_ROOT
 OUT_DIR = PROJECT_ROOT / "work" / "art" / "enemies" / "rig"
@@ -98,252 +112,24 @@ PREVIEW_DIR = PROJECT_ROOT / "docs" / "art" / "previews"
 
 SPRITE = "SDRR"                 # BESTIARY §3, MOD-SPEC §6.3
 SEED = 38                       # D38; cloth grain and the gib's chunks
-SS = 4                          # rays per pixel side
-FEET_SINK = 4                   # as gen_enemy / Freedoom POSSA1 (57 high, top 53)
-DOOM_HEIGHT = 56                # actor Height (BESTIARY §3) = px at 1:1
-ROTATIONS = 8
-TIC_MS = 1000 / 35              # Doom runs at 35 tics a second
 
-
-@dataclass(frozen=True)
-class Canvas:
-    w: int
-    h: int
-    cx: int                     # body axis column (grAb x)
-    foot_row: int               # the sole line, world y = 0
-
-
-STAND = Canvas(64, 72, 32, 68)  # every standing frame: one canvas, one grAb
-AIM = Canvas(96, 72, 48, 68)    # the aimed rifle reaches 40 px out in profile
+# STAND (64x72) and AIM (96x72) are the core's humanoid canvases.
 DEATH = Canvas(96, 80, 48, 72)  # a corpse lies across; the dropped rifle lands nearer the camera
 GIB = Canvas(96, 88, 48, 80)    # the helmet flies higher than his head; chunks land nearer the camera
 
-PITCH_DEG = 9.0                 # camera looks this far down
-T0 = 80.0                       # ray origin distance in front of the model
-T_SPAN = 56.0                   # rays march T0 +- T_SPAN
-MAX_STEPS = 110
-HIT_EPS = 0.02
-STEP_SCALE = 0.85               # under-relax: ellipsoids are not exact SDFs
-CULL_MARGIN = 1.5               # bounding-sphere distance used when farther than this
-NORMAL_H = 0.12
-AO_DIST = 1.4
-AO_WEIGHT = 0.35
-LIGHT_BANDS = 5                 # Lambert quantised to this many bands
-LIGHT = np.array([-0.72, 0.55, 0.45])     # world: x right, y up, z towards camera
-LIGHT = LIGHT / np.linalg.norm(LIGHT)
-SHADE_GAIN = 0.80               # value swing of the banded light
-VERTICAL_FALLOFF = 0.10         # lower body a little darker
-GRAIN = 0.02                    # cloth grain amplitude (value units)
-GRAIN_CELL = 1.25               # world units per grain cell
 VALUE_SHIFT = -0.26             # whole figure darker: the flat cell E's body luma (~65)
-COVER_MIN = 7                   # of 16 sub-pixels, below this a pixel is transparent
-DEPTH_EDGE = 1.4                # a neighbour this much nearer draws a contour on us
-CONTOUR_STEPS = 2
-RIM_STEPS = 3
-ARMBAND_MIN_PX = 6              # visible band pixels needed before the symbol is stamped
-FLASH_SIZE = 6.0                # as gen_enemy's rifle flash
 
 # ================================================================ materials
-M = flat.Material
-MATERIALS: dict[str, flat.Material] = {
-    **flat.MATERIALS,
-    "band": M("flag_red", 4, 11),
-    "gore": M("khaki_olive", 0, 4, black_floor=True),     # BESTIARY §2.1: olive blood
-}
-MAT_NAMES = list(MATERIALS)
-MAT_ID = {n: i for i, n in enumerate(MAT_NAMES)}
-FLAT_MATERIALS = {"flash_out", "flash_in", "flash_core", "button"}
-NO_SHIFT = FLAT_MATERIALS | {"flesh", "crest", "band"}    # keep their own value: face and crest read
-CLOTH = {"coat", "coat_dark", "helmet", "crest"}
-
-
-# ============================================================ SDF primitives
-def _len(v: np.ndarray) -> np.ndarray:
-    return np.sqrt(np.einsum("ij,ij->i", v, v))
-
-
-@dataclass
-class Prim:
-    kind: str                   # "ellipsoid" | "roundcone" | "cappedcone" | "box"
-    mat: str
-    base: float
-    a: np.ndarray               # centre (ellipsoid, box, cappedcone) or start (roundcone)
-    b: np.ndarray | None = None  # roundcone end
-    r: np.ndarray | float = 1.0  # radii (ellipsoid), half extents (box)
-    r1: float = 0.0
-    r2: float = 0.0
-    h: float = 0.0              # cappedcone half height
-    scale: np.ndarray = field(default_factory=lambda: np.ones(3))  # cappedcone anisotropy
-    rot: np.ndarray | None = None   # box/cappedcone local frame (columns = local axes)
-    rnd: float = 0.0            # box rounding
-    clip: list = field(default_factory=list)  # [(normal, offset)]: keep n.p <= offset
-    cut: list = field(default_factory=list)   # boxes subtracted: [(centre, half)]
-    tag: str = ""
-    grp: str = ""               # rig group (module docstring)
-    xm: np.ndarray = field(default_factory=lambda: np.eye(3))    # rigid transform:
-    xt: np.ndarray = field(default_factory=lambda: np.zeros(3))  # world = xm @ local + xt
-
-    def _local_bound(self) -> tuple[np.ndarray, float]:
-        if self.kind == "roundcone":
-            c = (self.a + self.b) / 2
-            return c, float(np.linalg.norm(self.b - self.a) / 2 + max(self.r1, self.r2))
-        if self.kind == "ellipsoid":
-            return self.a, float(np.max(self.r))
-        if self.kind == "cappedcone":
-            return self.a, float(np.hypot(self.h, max(self.r1, self.r2)) * np.max(self.scale))
-        return self.a, float(np.linalg.norm(self.r) + self.rnd)
-
-    def bound(self) -> tuple[np.ndarray, float]:
-        c, r = self._local_bound()
-        return self.xm @ c + self.xt, r
-
-    def sd(self, p: np.ndarray) -> np.ndarray:
-        p = (p - self.xt) @ self.xm          # world -> local (xm is a rotation)
-        k = self.kind
-        if k == "ellipsoid":
-            q = p - self.a
-            k0 = _len(q / self.r)
-            k1 = np.maximum(_len(q / (self.r * self.r)), 1e-9)
-            d = k0 * (k0 - 1.0) / k1
-        elif k == "roundcone":
-            d = _sd_round_cone(p, self.a, self.b, self.r1, self.r2)
-        elif k == "cappedcone":
-            q = p - self.a
-            if self.rot is not None:
-                q = q @ self.rot
-            q = q / self.scale
-            d = _sd_capped_cone(q, self.h, self.r1, self.r2) * float(np.min(self.scale))
-        else:
-            q = p - self.a
-            if self.rot is not None:
-                q = q @ self.rot
-            qq = np.abs(q) - (self.r - self.rnd)
-            d = _len(np.maximum(qq, 0)) + np.minimum(qq.max(axis=1), 0) - self.rnd
-        for n, off in self.clip:
-            d = np.maximum(d, p @ n - off)
-        for c, half in self.cut:
-            qq = np.abs(p - c) - half
-            dbox = _len(np.maximum(qq, 0)) + np.minimum(qq.max(axis=1), 0)
-            d = np.maximum(d, -dbox)
-        return d
-
-
-def _sd_round_cone(p, a, b, r1, r2):
-    """Inigo Quilez's exact round cone between a (r1) and b (r2)."""
-    ba = b - a
-    l2 = float(ba @ ba)
-    rr = r1 - r2
-    a2 = l2 - rr * rr
-    il2 = 1.0 / l2
-    pa = p - a
-    y = pa @ ba
-    z = y - l2
-    v = pa * l2 - np.outer(y, ba)
-    x2 = np.einsum("ij,ij->i", v, v)
-    y2 = y * y * l2
-    z2 = z * z * l2
-    k = np.sign(rr) * rr * rr * x2
-    d_top = np.sqrt(x2 + z2) * il2 - r2
-    d_bot = np.sqrt(x2 + y2) * il2 - r1
-    d_mid = (np.sqrt(np.maximum(x2 * a2 * il2, 0)) + y * rr) * il2 - r1
-    return np.where(np.sign(z) * a2 * z2 > k, d_top, np.where(np.sign(y) * a2 * y2 < k, d_bot, d_mid))
-
-
-def _sd_capped_cone(p, h, r1, r2):
-    """Quilez's capped cone along y, from -h (radius r1) to +h (radius r2)."""
-    qx = np.hypot(p[:, 0], p[:, 2])
-    qy = p[:, 1]
-    k1 = np.array([r2, h])
-    k2 = np.array([r2 - r1, 2 * h])
-    cax = qx - np.minimum(qx, np.where(qy < 0, r1, r2))
-    cay = np.abs(qy) - h
-    t = np.clip(((k1[0] - qx) * k2[0] + (k1[1] - qy) * k2[1]) / float(k2 @ k2), 0, 1)
-    cbx = qx - k1[0] + k2[0] * t
-    cby = qy - k1[1] + k2[1] * t
-    s = np.where((cbx < 0) & (cay < 0), -1.0, 1.0)
-    return s * np.sqrt(np.minimum(cax * cax + cay * cay, cbx * cbx + cby * cby))
-
-
-def V(*xs) -> np.ndarray:
-    return np.array(xs, dtype=np.float64)
-
-
-def ellipsoid(mat, base, c, r, **kw) -> Prim:
-    return Prim("ellipsoid", mat, base, V(*c), r=V(*r), **kw)
-
-
-def rcone(mat, base, a, b, r1, r2=None, **kw) -> Prim:
-    return Prim("roundcone", mat, base, np.asarray(a, float), b=np.asarray(b, float),
-                r1=r1, r2=r1 if r2 is None else r2, **kw)
-
-
-def ccone(mat, base, y0, y1, r0, r1, kz=1.0, x=0.0, z=0.0, **kw) -> Prim:
-    """Vertical capped cone from y0 (radius r0) to y1 (radius r1), depth
-    squeezed by kz (an elliptic section: wider than deep)."""
-    return Prim("cappedcone", mat, base, V(x, (y0 + y1) / 2, z), h=(y1 - y0) / 2, r1=r0, r2=r1,
-                scale=V(1.0, 1.0, kz), **kw)
-
-
-def box(mat, base, c, half, rnd=0.0, rot=None, **kw) -> Prim:
-    return Prim("box", mat, base, V(*c), r=V(*half), rnd=rnd, rot=rot, **kw)
-
-
-def rot_x(deg: float) -> np.ndarray:
-    """Positive tips the top of the figure BACK (towards -z)."""
-    a = np.deg2rad(deg)
-    c, s = np.cos(a), np.sin(a)
-    return np.array([[1, 0, 0], [0, c, s], [0, -s, c]])
-
-
-def rot_z(deg: float) -> np.ndarray:
-    """Positive tips the top towards +x: the figure's LEFT, screen right at rotation 1."""
-    a = np.deg2rad(deg)
-    c, s = np.cos(a), np.sin(a)
-    return np.array([[c, s, 0], [-s, c, 0], [0, 0, 1]])
-
-
-def rot_y(deg: float) -> np.ndarray:
-    """Positive turns +x towards +z (towards the camera at rotation 1)."""
-    a = np.deg2rad(deg)
-    c, s = np.cos(a), np.sin(a)
-    return np.array([[c, 0, -s], [0, 1, 0], [s, 0, c]])
-
-
-def transform(prims: list[Prim], anchors: dict, groups: set[str], R: np.ndarray,
-              pivot, offset=(0.0, 0.0, 0.0)) -> None:
-    """Rotate the given groups by R about pivot, then move them by offset.
-    Anchors are (point, group) pairs and follow their group."""
-    pivot = np.asarray(pivot, float)
-    offset = np.asarray(offset, float)
-    for p in prims:
-        if p.grp in groups:
-            p.xm = R @ p.xm
-            p.xt = R @ (p.xt - pivot) + pivot + offset
-    for k, (pt, g) in list(anchors.items()):
-        if g in groups:
-            anchors[k] = (R @ (pt - pivot) + pivot + offset, g)
+# gen_enemy's materials (core.MATERIALS, with their cloth / no-shift / flat
+# traits) plus the armband and the olive gore, appended so no id moves.
+Mat = core.Mat
+MATERIALS: dict[str, core.Mat] = dict(core.MATERIALS)
+core.register_material("band", Mat.on_ramp("flag_red", 4, 11, shift=False), MATERIALS)
+core.register_material("gore", Mat.on_ramp("khaki_olive", 0, 4, black_floor=True), MATERIALS)  # BESTIARY §2.1: olive blood
+ARMBAND = core.ARMBAND          # the D12 armband: 7x7, on the band's outer face, never mirrored
 
 
 # ==================================================================== rig
-def two_bone(root, target, a, b, pole) -> tuple[np.ndarray, np.ndarray]:
-    """Joint and end of a two-bone chain reaching for `target`, bending
-    towards `pole`. Returns (joint, end); the end falls short if out of reach."""
-    root, target, pole = (np.asarray(v, float) for v in (root, target, pole))
-    d = target - root
-    L = float(np.linalg.norm(d))
-    n = d / L
-    L = min(max(L, abs(a - b) + 1e-3), a + b - 1e-3)
-    x = (a * a - b * b + L * L) / (2 * L)
-    hgt = np.sqrt(max(a * a - x * x, 0.0))
-    pp = pole - (pole @ n) * n
-    pp = pp / (np.linalg.norm(pp) or 1.0)
-    joint = root + n * x + pp * hgt
-    return joint, root + n * L
-
-
-ANKLE_Y = 2.2
-
-
 @dataclass(frozen=True)
 class Pose:
     key: str
@@ -398,10 +184,7 @@ POSES = {
 }
 ROLL_PIVOT = V(3.5, 0.0, 0.0)   # his left sole: he falls to his left over it
 SLIDE = 30.0                    # x shift at a full fall, so the corpse lies across the axis
-FLOOR_STEP = 1.0                # grid of the upward rays that find the body's lowest point
 
-HIP_Y = 26.2
-THIGH, SHIN = 12.6, 11.6
 UPPER_ARM, FOREARM = 9.6, 9.0
 RIFLE_LEN = 34.0
 HEM_Y, WAIST_Y = 11.2, 29.0
@@ -453,13 +236,20 @@ def build_model(pose: Pose) -> tuple[list[Prim], dict]:
         return prim
 
     # ---------------------------------------------------------------- legs
-    for side, foot, grp in ((1, pose.foot_l, "leg_l"), (-1, pose.foot_r, "leg_r")):
+    def label(start: int, limb: str, side: int) -> None:
+        """Tag what was added since `start` as one limb of one side."""
+        for prim in P[start:]:
+            prim.limb, prim.side = limb, side
+
+    for side, foot, grp in ((LEFT, pose.foot_l, "leg_l"), (RIGHT, pose.foot_r, "leg_r")):
+        start = len(P)
         hip = V(side * 3.4, HIP_Y + bob, 0.0)
         knee, ankle = two_bone(hip, foot, THIGH, SHIN, V(0, 0, 1))
         add(grp, rcone("coat_dark", 0.35, hip, knee, 2.7, 2.3))           # breeches, mostly hidden
         add(grp, rcone("leather", 0.55, knee, ankle, 2.4, 2.05))          # jackboot shaft
         add(grp, box("leather", 0.30, (ankle[0], ankle[1] - 1.15, ankle[2] + 1.3),
                      (1.6, 1.1, 3.0), rnd=0.6))                           # foot
+        label(start, "leg", side)
 
     # ---------------------------------------------------------------- coat
     open_kz = SKIRT_KZ * (1.0 + 0.16 * pose.stride)
@@ -565,7 +355,8 @@ def build_model(pose: Pose) -> tuple[list[Prim], dict]:
     else:
         grips = {-1: at(6.0 if pose.carry == "hip" else 5.6, -0.6),     # right hand: wrist of the stock
                  1: at(19.0 if pose.carry == "hip" else 15.0, -0.6)}     # left hand: under the fore-end
-    for side in (1, -1):
+    for side in (LEFT, RIGHT):
+        start = len(P)
         sh = V(side * (SHOULDER_X + 0.2), 39.4 + bob, -0.4)
         pole = V(side * 1.0, -0.4, -0.7)
         elbow, wrist = two_bone(sh, grips[side], UPPER_ARM, FOREARM, pole)
@@ -577,6 +368,7 @@ def build_model(pose: Pose) -> tuple[list[Prim], dict]:
         if side == 1:                  # armband: the figure's LEFT upper arm (D12)
             add("arm", rcone("band", 0.55, sh + (elbow - sh) * 0.30, sh + (elbow - sh) * 0.62, 2.78, 2.65,
                              tag="armband"))
+        label(start, "arm", side)
 
     # ------------------------------------------------------------- posing
     neck = NECK + V(0, bob, 0)
@@ -593,38 +385,6 @@ def build_model(pose: Pose) -> tuple[list[Prim], dict]:
         transform(P, anchors, body, rot_z(pose.roll), ROLL_PIVOT, slide)
         rest_on_floor(P, anchors, body)
     return P, anchors
-
-
-def lowest_y(prims: list[Prim]) -> float:
-    """The lowest surface point of the primitives, found by sphere tracing
-    straight up from below on a FLOOR_STEP grid."""
-    scene = Scene(prims)
-    lo = np.min([c - R for c, R in scene.bounds], axis=0)
-    hi = np.max([c + R for c, R in scene.bounds], axis=0)
-    xs = np.arange(lo[0], hi[0] + FLOOR_STEP, FLOOR_STEP)
-    zs = np.arange(lo[2], hi[2] + FLOOR_STEP, FLOOR_STEP)
-    gx, gz = np.meshgrid(xs, zs)
-    o = np.stack([gx.ravel(), np.full(gx.size, lo[1] - 1.0), gz.ravel()], axis=1)
-    y = o[:, 1].copy()
-    alive = np.ones(len(o), bool)
-    best = np.inf
-    for _ in range(MAX_STEPS):
-        idx = np.nonzero(alive)[0]
-        if not len(idx):
-            break
-        d = scene.sdf(np.stack([o[idx, 0], y[idx], o[idx, 2]], axis=1))
-        got = d < HIT_EPS
-        if got.any():
-            best = min(best, float(y[idx[got]].min()))
-        y[idx] += np.maximum(d * STEP_SCALE, HIT_EPS * 0.5)
-        alive[idx[got | (y[idx] > hi[1] + 1.0)]] = False
-    return best
-
-
-def rest_on_floor(prims: list[Prim], anchors: dict, groups: set[str]) -> None:
-    """Lift (or drop) the given groups so their lowest point touches y = 0."""
-    part = [p for p in prims if p.grp in groups]
-    transform(prims, anchors, groups, np.eye(3), V(0, 0, 0), V(0, -lowest_y(part), 0))
 
 
 # ===================================================================== gib
@@ -733,216 +493,12 @@ def build_gib(frame: str, seed: int = SEED) -> tuple[list[Prim], dict]:
     return keep, anchors
 
 
+
 # ================================================================ renderer
-def yaw_matrix(rotation: int) -> np.ndarray:
-    """Model -> world rotation for Doom rotation 1..8 (module docstring);
-    rotation 0 (one image for every angle) is drawn from the front."""
-    theta = np.deg2rad((max(rotation, 1) - 1) * 45.0)
-    phi = -theta
-    c, s = np.cos(phi), np.sin(phi)
-    return np.array([[c, 0, s], [0, 1, 0], [-s, 0, c]])
-
-
-def camera() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    p = np.deg2rad(PITCH_DEG)
-    fwd = V(0, -np.sin(p), -np.cos(p))
-    right = V(1, 0, 0)
-    up = V(0, np.cos(p), -np.sin(p))
-    return fwd, right, up
-
-
-def project(point_model: np.ndarray, rotation: int, cv: Canvas = STAND) -> tuple[float, float, float]:
-    """Model point -> (column, row, ray depth t) on the 1x canvas."""
-    fwd, right, up = camera()
-    pw = yaw_matrix(rotation) @ point_model
-    return cv.cx + float(pw @ right), cv.foot_row - float(pw @ up), T0 + float(pw @ fwd)
-
-
-class Scene:
-    def __init__(self, prims: list[Prim]):
-        self.prims = prims
-        self.bounds = [p.bound() for p in prims]
-
-    def sdf(self, p: np.ndarray, want_id: bool = False):
-        best = np.full(len(p), np.inf)
-        bid = np.full(len(p), -1, np.int32)
-        for i, (prim, (c, R)) in enumerate(zip(self.prims, self.bounds)):
-            dc = _len(p - c) - R
-            near = dc < CULL_MARGIN
-            d = dc.copy()
-            if near.any():
-                d[near] = prim.sd(p[near])
-            better = d < best
-            best = np.where(better, d, best)
-            if want_id:
-                bid[better] = i
-        return (best, bid) if want_id else best
-
-
-def hash3(cells: np.ndarray, seed: int) -> np.ndarray:
-    """Integer hash of 3D cells -> [0,1): platform-independent grain."""
-    c = cells.astype(np.int64) & 0xFFFF
-    h = (c[:, 0] * 73856093) ^ (c[:, 1] * 19349663) ^ (c[:, 2] * 83492791) ^ (seed * 2654435761)
-    h = h & 0xFFFFFFFF
-    h ^= h >> 13
-    h = (h * 1274126177) & 0xFFFFFFFF
-    h ^= h >> 16
-    return (h & 0xFFFF) / 65536.0
-
-
-def raymarch(prims: list[Prim], rotation: int, cv: Canvas, seed: int = SEED) -> dict:
-    """Trace the posed primitives at one rotation. Returns 4x buffers: prim
-    id (-1 empty), value 0..1, depth."""
-    scene = Scene(prims)
-    Rm = yaw_matrix(rotation)             # model -> world
-    fwd, right, up = camera()
-    cols, rows = [], []
-    for c, R in scene.bounds:             # screen rectangle that can hold the figure
-        pw = Rm @ c
-        cols += [cv.cx + pw @ right - R, cv.cx + pw @ right + R]
-        rows += [cv.foot_row - pw @ up - R, cv.foot_row - pw @ up + R]
-    c0, c1 = max(0, int(np.floor(min(cols)))), min(cv.w, int(np.ceil(max(cols))) + 1)
-    r0, r1 = max(0, int(np.floor(min(rows)))), min(cv.h, int(np.ceil(max(rows))) + 1)
-    hs, ws = cv.h * SS, cv.w * SS
-    pid = np.full((hs, ws), -1, np.int32)
-    val = np.zeros((hs, ws))
-    depth = np.full((hs, ws), np.inf)
-    yy, xx = np.mgrid[r0 * SS:r1 * SS, c0 * SS:c1 * SS]
-    sx = (xx + 0.5) / SS - cv.cx
-    sy = cv.foot_row - (yy + 0.5) / SS
-    origin_w = (sx.reshape(-1, 1) * right + sy.reshape(-1, 1) * up) - fwd * T0
-    o = origin_w @ Rm                      # world -> model is Rm^T: row-vector form
-    d = fwd @ Rm
-    n = len(o)
-    t = np.full(n, T0 - T_SPAN)
-    alive = np.ones(n, bool)
-    hit = np.zeros(n, bool)
-    for _ in range(MAX_STEPS):
-        idx = np.nonzero(alive)[0]
-        if not len(idx):
-            break
-        dist = scene.sdf(o[idx] + np.outer(t[idx], d))
-        got = dist < HIT_EPS
-        hit[idx[got]] = True
-        t[idx] += np.where(got, 0.0, np.maximum(dist * STEP_SCALE, HIT_EPS * 0.5))
-        gone = t[idx] > T0 + T_SPAN
-        alive[idx[got | gone]] = False
-    hidx = np.nonzero(hit)[0]
-    ph = o[hidx] + np.outer(t[hidx], d)
-    _, ids = scene.sdf(ph, want_id=True)
-    nrm = np.zeros_like(ph)               # normals, central differences (model space)
-    for k in range(3):
-        e = np.zeros(3)
-        e[k] = NORMAL_H
-        nrm[:, k] = scene.sdf(ph + e) - scene.sdf(ph - e)
-    nrm /= np.maximum(_len(nrm), 1e-9)[:, None]
-    lam = (nrm @ Rm.T) @ LIGHT
-    lam_b = np.floor((lam * 0.5 + 0.5) * LIGHT_BANDS).clip(0, LIGHT_BANDS - 1) / (LIGHT_BANDS - 1)
-    ao = np.clip(scene.sdf(ph + nrm * AO_DIST) / AO_DIST, 0, 1)
-    mats = [prims[i].mat for i in ids]
-    base = np.array([prims[i].base for i in ids])
-    is_cloth = np.array([m in CLOTH for m in mats])
-    shift = np.array([0.0 if m in NO_SHIFT else VALUE_SHIFT for m in mats])
-    grain = (hash3(np.floor(ph / GRAIN_CELL), seed) - 0.5) * 2 * GRAIN * is_cloth
-    v = (base + shift + SHADE_GAIN * (lam_b - 0.5) - AO_WEIGHT * (1 - ao)
-         - VERTICAL_FALLOFF * (0.5 - ph[:, 1] / DOOM_HEIGHT) + grain)
-    rr = yy.reshape(-1)[hidx]
-    cc = xx.reshape(-1)[hidx]
-    pid[rr, cc] = ids
-    val[rr, cc] = np.clip(v, 0, 1)
-    depth[rr, cc] = t[hidx]
-    return {"pid": pid, "val": val, "depth": depth}
-
-
-def reduce(buf: dict, prims: list[Prim]) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Majority vote per SS x SS block -> (material id or -1, value, depth, prim id)."""
-    pid, val, dep = buf["pid"], buf["val"], buf["depth"]
-    h, w = pid.shape[0] // SS, pid.shape[1] // SS
-    blk = lambda a: a.reshape(h, SS, w, SS).transpose(0, 2, 1, 3).reshape(h, w, SS * SS)  # noqa: E731
-    P, Vv, D = blk(pid), blk(val), blk(dep)
-    mat = np.full((h, w), -1, np.int16)
-    out_v = np.zeros((h, w))
-    out_d = np.full((h, w), np.inf)
-    out_p = np.full((h, w), -1, np.int32)
-    covered = (P >= 0).sum(-1)
-    for y, x in zip(*np.nonzero(covered >= COVER_MIN)):
-        s = P[y, x]
-        ids, counts = np.unique(s[s >= 0], return_counts=True)
-        near = np.array([D[y, x][s == i].mean() for i in ids])   # ties go to the nearest
-        win = ids[np.lexsort((near, -counts))[0]]
-        sel = s == win
-        out_p[y, x] = win
-        mat[y, x] = MAT_ID[prims[win].mat]
-        out_v[y, x] = Vv[y, x][sel].mean()
-        out_d[y, x] = D[y, x][sel].mean()
-    return mat, out_v, out_d, out_p
-
-
-def to_rgba(mat, val, depth) -> np.ndarray:
-    """Material + value -> palette RGBA, with the contour and rim passes."""
-    h, w = mat.shape
-    opaque = mat >= 0
-    flatm = np.isin(mat, [MAT_ID[m] for m in FLAT_MATERIALS])
-    idx = np.zeros((h, w), np.int16)
-    for i, name in enumerate(MAT_NAMES):
-        sel = mat == i
-        n = len(MATERIALS[name].colours())
-        idx[sel] = np.rint(val[sel] * (n - 1)).astype(np.int16)
-    dark = np.zeros((h, w), np.int16)
-    pad_op = np.pad(opaque, 1)
-    pad_d = np.pad(depth, 1, constant_values=np.inf)
-    for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-        nb_op = pad_op[1 + dy:1 + dy + h, 1 + dx:1 + dx + w]
-        nb_d = pad_d[1 + dy:1 + dy + h, 1 + dx:1 + dx + w]
-        behind = opaque & nb_op & (nb_d < depth - DEPTH_EDGE) & ~flatm
-        dark = np.where(behind, np.maximum(dark, CONTOUR_STEPS), dark)
-        rim = opaque & ~nb_op & ~flatm
-        dark = np.where(rim, np.maximum(dark, RIM_STEPS), dark)
-    idx = np.maximum(idx - dark, 0)
-    rgba = np.zeros((h, w, 4), np.uint8)
-    for i, name in enumerate(MAT_NAMES):
-        cols = np.array(MATERIALS[name].colours(), np.uint8)
-        sel = mat == i
-        rgba[sel, :3] = cols[np.clip(idx[sel], 0, len(cols) - 1)]
-    rgba[opaque, 3] = 255
-    return rgba
-
-
 def stamp_symbol(rgba: np.ndarray, pid: np.ndarray, prims: list[Prim], rotation: int) -> bool:
     """The D12 armband symbol on the band's visible centre, when the band's
     outer face is not turned away. Returns whether it was stamped."""
-    band = [i for i, p in enumerate(prims) if p.tag == "armband"]
-    vis = np.isin(pid, band)
-    if vis.sum() < ARMBAND_MIN_PX:
-        return False
-    out = next(p for p in prims if p.tag == "armband").xm @ V(1, 0, 0)
-    out_w = yaw_matrix(rotation) @ out          # the arm's outer side, in world
-    if out_w[2] < -0.05:
-        return False
-    h, w = pid.shape
-    ys, xs = np.nonzero(vis)
-    x0 = min(max(int(round(xs.mean() - 3.0)), 0), w - 7)
-    y0 = min(max(int(round(ys.mean() - 3.0)), 0), h - 7)
-    flat.stamp_armband(rgba, x0, y0)
-    return True
-
-
-def add_flash(rgba: np.ndarray, depth: np.ndarray, muzzle_model: np.ndarray, rotation: int,
-              cv: Canvas, size: float = FLASH_SIZE) -> bool:
-    """gen_enemy's 2D burst at the projected muzzle. In front of the figure
-    when the muzzle is visible, behind it (empty pixels only) when his body
-    hides the muzzle. Returns whether it was drawn in front."""
-    mx, my, mt = project(muzzle_model, rotation, cv)
-    p = flat.Painter(cv.w, cv.h)
-    flat.draw_flash(p, mx, my, size)
-    over = flat.to_rgba(*p.reduce())
-    a = over[..., 3] > 0
-    ix, iy = int(np.clip(round(mx), 0, cv.w - 1)), int(np.clip(round(my), 0, cv.h - 1))
-    hidden = rgba[iy, ix, 3] > 0 and depth[iy, ix] < mt - 1.0
-    if hidden:
-        a &= rgba[..., 3] == 0
-    rgba[a] = over[a]
-    return not hidden
+    return core.stamp_insignia(rgba, pid, prims, rotation, ARMBAND)
 
 
 def frame_canvas(frame: str) -> Canvas:
@@ -956,16 +512,9 @@ def render(frame: str, rotation: int, seed: int = SEED) -> np.ndarray:
         prims, anchors = build_gib(frame, seed)
     else:
         prims, anchors = build_model(POSES[frame])
-    buf = raymarch(prims, rotation, cv, seed)
-    mat, val, dep, pid = reduce(buf, prims)
-    rgba = to_rgba(mat, val, dep)
-    stamp_symbol(rgba, pid, prims, rotation)
-    if frame in POSES and POSES[frame].flash:
-        add_flash(rgba, dep, anchors["muzzle"][0], rotation, cv)
-    a = rgba[..., 3] > 0
-    if a[0].any() or a[-1].any() or a[:, 0].any() or a[:, -1].any():
-        raise ValueError(f"{frame}{rotation} touches the canvas edge: enlarge its Canvas")
-    return rgba
+    flash = frame in POSES and POSES[frame].flash
+    return core.render(prims, rotation, cv, MATERIALS, seed=seed, value_shift=VALUE_SHIFT, insignia=(ARMBAND,),
+                       muzzle=anchors["muzzle"][0] if flash else None, what=f"{frame}{rotation}")
 
 
 # ================================================================== frames
@@ -980,148 +529,21 @@ FRAME_GROUPS = (
 
 
 def frame_plan() -> list[tuple[str, int]]:
-    plan = []
-    for _, frames, rotated in FRAME_GROUPS:
-        for f in frames:
-            plan += [(f, r) for r in range(1, ROTATIONS + 1)] if rotated else [(f, 0)]
-    return plan
+    """All 8 rotations, not the mirrored pairs: the armband is on his left
+    arm and the rifle on his right hip (module docstring)."""
+    return core.frame_plan(FRAME_GROUPS, mirror=False)
 
 
 def lump_name(frame: str, rotation: int) -> str:
     return f"{SPRITE}{frame}{rotation}"
 
 
-def grab_offsets(cv: Canvas = STAND) -> tuple[int, int]:
-    """x = the body axis, y = how far the sprite reaches above the floor."""
-    return cv.cx, cv.foot_row - FEET_SINK
-
-
-def save_sprite(rgba: np.ndarray, path: Path, cv: Canvas = STAND) -> Path:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    info = PngInfo()
-    info.add(b"grAb", struct.pack(">ii", *grab_offsets(cv)))
-    Image.fromarray(rgba, "RGBA").save(path, pnginfo=info, optimize=True)
-    return path
-
-
-def read_grab(path: Path) -> tuple[int, int]:
-    data = path.read_bytes()
-    i = data.index(b"grAb")
-    return struct.unpack(">ii", data[i + 4:i + 12])
-
-
-def measure(sprite: np.ndarray) -> dict:
-    """Size and value. gap_<scene> is |body - wall| under that scene's light
-    (gen_enemy's light stand-in, the same scenes as the flat sweep)."""
-    a = sprite[..., 3] > 0
-    ys, xs = np.nonzero(a)
-    body = flat.luma(sprite[..., :3])[a]
-    out = {"height_px": int(ys.max() - ys.min() + 1), "width_px": int(xs.max() - xs.min() + 1),
-           "lowest_row": int(ys.max()), "body_luma": round(float(body.mean()), 1)}
-    f = lambda L: min(1.0, L / flat.LIGHT_FULL)  # noqa: E731
-    for key, wall, light, _ in flat.SCENES:
-        out[f"gap_{key}"] = round(abs(float(body.mean()) - float(flat.luma(flat.host_rgb(wall)).mean())) * f(light), 1)
-    out["worst_gap"] = min(out[f"gap_{k}"] for k, *_ in flat.SCENES)
-    return out
-
 
 # ============================================================ GIFs, scenes
-def on_bg(rgba: np.ndarray, colour) -> np.ndarray:
-    bg = np.zeros((rgba.shape[0], rgba.shape[1], 3), np.uint8)
-    bg[:] = colour
-    a = rgba[..., 3] > 0
-    bg[a] = rgba[..., :3][a]
-    return bg
-
-
-def pad_to(rgba: np.ndarray, cv: Canvas, target: Canvas) -> np.ndarray:
-    """Place a sprite on a larger canvas, axis and sole line kept."""
-    out = np.zeros((target.h, target.w, 4), np.uint8)
-    x0, y0 = target.cx - cv.cx, target.foot_row - cv.foot_row
-    out[y0:y0 + cv.h, x0:x0 + cv.w] = rgba
-    return out
-
-
-def save_gif(frames_rgb: list[np.ndarray], durations_ms: list[int], path: Path) -> Path:
-    """Lossless GIF: the frames carry palette.json colours only (< 256), so
-    one exact shared palette holds them all."""
-    stack = np.stack(frames_rgb)
-    cols, inv = np.unique(stack.reshape(-1, 3), axis=0, return_inverse=True)
-    if len(cols) > 256:
-        raise ValueError(f"{path.name}: {len(cols)} colours, a GIF holds 256")
-    pal = cols.astype(np.uint8).reshape(-1).tolist()
-    idx = inv.reshape(stack.shape[:3]).astype(np.uint8)
-    ims = []
-    for f in idx:
-        im = Image.fromarray(f, "P")
-        im.putpalette(pal)
-        ims.append(im)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    ims[0].save(path, save_all=True, append_images=ims[1:], duration=durations_ms, loop=0,
-                optimize=False, disposal=1)
-    return path
-
-
 def scene_rgb(sprite: np.ndarray, cv: Canvas, wall: str, light: int) -> np.ndarray:
     """The figure before a MAP01 wall over SDFLR2, both in the same light
     (gen_enemy's stand-in), soles on the flat sweep's floor line."""
     return lineup([(sprite, cv.cx, cv.foot_row - FEET_SINK)], wall, light, sprite.shape[1])
-
-
-def lineup(figures: list[tuple[np.ndarray, int, int]], wall: str, light: int, width: int) -> np.ndarray:
-    """Several sprites side by side, each placed by its own offsets (x, top),
-    Doom's way: the actor stands at its slot centre, the sprite's top is
-    `top` px above the floor. MAP01 wall over SDFLR2, then the light."""
-    wall_h, floor_h = flat.WALL_H, flat.FLOOR_H
-    w_rgb = flat.tile_to(flat.host_rgb(wall), width, wall_h)
-    fl = flat.tile_to(flat.host_rgb("SDFLR2"), width, floor_h * 3)
-    fl = np.asarray(Image.fromarray(fl, "RGB").resize((width, floor_h), Image.Resampling.NEAREST))
-    canvas = np.concatenate([w_rgb, fl], axis=0).copy()
-    floor = flat.FLOOR_LINE - FEET_SINK          # where a sprite's offset origin sits
-    slot = width / len(figures)
-    for i, (spr, ox, oy) in enumerate(figures):
-        x0 = int(round(slot * (i + 0.5))) - ox
-        y0 = floor - oy
-        a = spr[..., 3] > 0
-        ys, xs = np.nonzero(a)
-        ys2, xs2 = ys + y0, xs + x0
-        keep = (ys2 >= 0) & (ys2 < canvas.shape[0]) & (xs2 >= 0) & (xs2 < width)
-        canvas[ys2[keep], xs2[keep]] = spr[ys[keep], xs[keep], :3]
-    return flat.lit(canvas, light)
-
-
-_WAD: dict | None = None
-
-
-def freedoom_sprite(name: str) -> tuple[np.ndarray, int, int] | None:
-    """A Freedoom 0.13.0 sprite (BSD-3, for SCALE ONLY: iwads/ is not in
-    git, so this is optional): RGBA and its (left, top) offsets."""
-    global _WAD
-    if not flat.IWAD.is_file():
-        return None
-    if _WAD is None:
-        wad = flat.IWAD.read_bytes()
-        _, n, off = struct.unpack("<4sii", wad[:12])
-        lumps = {}
-        for i in range(n):
-            pos, size, nm = struct.unpack("<ii8s", wad[off + 16 * i:off + 16 * i + 16])
-            lumps[nm.rstrip(b"\0").decode("ascii", "replace")] = (pos, size)
-        pp = lumps["PLAYPAL"][0]
-        _WAD = {"data": wad, "lumps": lumps, "pal": np.frombuffer(wad[pp:pp + 768], np.uint8).reshape(256, 3)}
-    if name not in _WAD["lumps"]:
-        return None
-    pos, size = _WAD["lumps"][name]
-    d = _WAD["data"][pos:pos + size]
-    w, h, left, top = struct.unpack("<hhhh", d[:8])
-    img = np.zeros((h, w, 4), np.uint8)
-    for x, c in enumerate(struct.unpack(f"<{w}i", d[8:8 + 4 * w])):
-        while d[c] != 255:
-            y0, ln = d[c], d[c + 1]
-            for j in range(ln):
-                img[y0 + j, x, :3] = _WAD["pal"][d[c + 3 + j]]
-                img[y0 + j, x, 3] = 255
-            c += ln + 4
-    return img, left, top
 
 
 # ================================================================== build
@@ -1152,7 +574,6 @@ def load_sprites(out_dir: Path = OUT_DIR) -> dict:
     return out
 
 
-NEUTRAL = artlib.ramp("concrete_cold")[16]
 
 
 def _seq(sprites, frames, rot, cv=STAND):
@@ -1215,40 +636,7 @@ CEO_ASK = [
     "allow a dark rust_brown for the insides of the gib only? Recommendation: keep olive; the gib "
     "plays for a quarter of a second.",
 ]
-EXTRA_CSS = """
-.strip{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px}
-.cap{font:11px Menlo,monospace;color:var(--mute);text-align:center;margin-top:3px}
-.cap b{color:var(--ink)}
-img.px{background:transparent;border:none}
-.tile{display:flex;flex-direction:column;align-items:center}
-.verdict p{max-width:980px;margin:6px 0}
-"""
-
-
-def _uri(data: bytes, kind: str) -> str:
-    return f"data:image/{kind};base64," + base64.b64encode(data).decode("ascii")
-
-
-def png_uri(arr: np.ndarray) -> str:
-    buf = io.BytesIO()
-    Image.fromarray(arr, "RGBA" if arr.shape[-1] == 4 else "RGB").save(buf, "PNG", optimize=True)
-    return _uri(buf.getvalue(), "png")
-
-
-def tile(src: str, w: int, h: int, zoom: int, cap: str, sub: str = "") -> str:
-    sub_html = f"<br>{html.escape(sub)}" if sub else ""
-    return (f'<div class="tile"><img class="px" src="{src}" width="{w * zoom}" height="{h * zoom}" '
-            f'alt="{html.escape(cap)}"><div class="cap"><b>{html.escape(cap)}</b>{sub_html}</div></div>')
-
-
-def sprite_tile(arr: np.ndarray, zoom: int, cap: str, sub: str = "", bg=NEUTRAL) -> str:
-    return tile(png_uri(on_bg(arr, bg)), arr.shape[1], arr.shape[0], zoom, cap, sub)
-
-
-def gif_tile(path: Path, zoom: int, cap: str, sub: str = "") -> str:
-    with Image.open(path) as im:
-        w, h = im.size
-    return tile(_uri(path.read_bytes(), "gif"), w, h, zoom, cap, sub)
+EXTRA_CSS = core.SHEET_CSS
 
 
 def build_sheet(sprites: dict, stamp: str, out_dir: Path = PREVIEW_DIR, seed: int = SEED,
