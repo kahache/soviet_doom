@@ -234,6 +234,28 @@ class Sector:
         return _block("sector", fields)
 
 
+# Doom's five skills, and the three spawn tiers its map format had: a thing
+# flagged "easy" appears on skills 1-2, "medium" on 3, "hard" on 4-5.
+SKILLS = (1, 2, 3, 4, 5)
+SKILL_TIERS = {"easy": (1, 2), "medium": (3,), "hard": (4, 5)}
+
+
+def skill_tier(lowest: int | None = None, highest: int | None = None) -> tuple[int, ...]:
+    """The skills from tier `lowest` up to tier `highest`, Doom-style.
+
+    Tiers are numbered by the skill that names them: 2 = easy (skills 1-2),
+    3 = medium, 4 = hard (skills 4-5). `skill_tier(3)` is "medium and up",
+    i.e. skills 3, 4, 5 - how a MONSTER scales; `skill_tier(highest=3)` is
+    "medium and down", skills 1-3 - how a CONSUMABLE scales.
+    """
+    order = {2: "easy", 3: "medium", 4: "hard"}
+    lo = 2 if lowest is None else lowest
+    hi = 4 if highest is None else highest
+    if lo not in order or hi not in order or lo > hi:
+        raise ValueError(f"bad skill tier range {lowest}..{highest}")
+    return tuple(n for t in range(lo, hi + 1) for n in SKILL_TIERS[order[t]])
+
+
 @dataclass
 class Thing:
     """A map object. `type` is the DoomEdNum (1 = Player 1 start).
@@ -257,6 +279,25 @@ class Thing:
     coop: bool = True
     dm: bool = True
     extra: dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def on_skills(cls, x: float, y: float, type: int, skills: Iterable[int],
+                  angle: int = 0, **kwargs: Any) -> "Thing":
+        """A thing present only on the listed skills (1..5).
+
+        UDMF has one flag per skill. Doom's own map format had three
+        (easy = skills 1-2, medium = 3, hard = 4-5) and GZDoom translates
+        those into exactly these pairs, so a map that wants Doom's behaviour
+        lists both members of a pair; `skill_tier` below does it.
+        """
+        wanted = set(skills)
+        unknown = wanted - set(SKILLS)
+        if unknown:
+            raise ValueError(f"unknown skill(s): {sorted(unknown)}")
+        if not wanted:
+            raise ValueError("a thing on no skill at all never spawns")
+        flags = {f"skill{n}": n in wanted for n in SKILLS}
+        return cls(x=x, y=y, type=type, angle=angle, **flags, **kwargs)
 
     def to_udmf(self) -> str:
         fields: dict[str, Any] = {
@@ -424,7 +465,7 @@ class _Rule:
 
 @dataclass(frozen=True)
 class _Paint:
-    sector: int
+    sector: int | None   # None carves solid void: a column, a pilaster
     x1: int
     y1: int
     x2: int
@@ -477,6 +518,11 @@ class GridMap:
         # you are standing in is the classic way to get a steel catwalk with
         # a concrete face. So: `wall_of(the sector across the line)`.
         self._walls: dict[int, str] = {}
+        # Rules grouped by the grid line they sit on, in registration order,
+        # so finding the style of a segment does not scan every rule of the
+        # map. MAP01 v3 has hundreds of rules and tens of thousands of
+        # elementary segments; the flat scan took most of the build.
+        self._rule_index: dict[tuple[bool, int], list[_Rule]] | None = None
 
     def set_wall(self, sector: int, texture: str) -> None:
         """Give one sector's own sidedefs a wall texture of their own."""
@@ -500,17 +546,31 @@ class GridMap:
         for x1, y1, x2, y2 in rects:
             self.paint(sector, x1, y1, x2, y2)
 
+    def carve(self, x1: int, y1: int, x2: int, y2: int) -> None:
+        """Turn a rectangle back into solid void (last wins, like `paint`).
+
+        This is how a free-standing column or a wall pilaster is made: the
+        cells stop belonging to any sector, so every edge around them is a
+        one-sided wall of the room they stand in. A column costs lines, not
+        sectors, which is what Doom's own columns are.
+        """
+        if x1 >= x2 or y1 >= y2:
+            raise ValueError(f"degenerate rectangle ({x1},{y1})-({x2},{y2})")
+        self._paints.append(_Paint(None, x1, y1, x2, y2))
+
     def style_v(self, x: int, y1: int, y2: int, style: LineStyle) -> None:
         """Apply `style` to the boundary segment on the vertical line x."""
         if y1 >= y2:
             raise ValueError(f"degenerate vertical segment at x={x}: {y1}..{y2}")
         self._rules.append(_Rule(True, x, y1, y2, style))
+        self._rule_index = None
 
     def style_h(self, y: int, x1: int, x2: int, style: LineStyle) -> None:
         """Apply `style` to the boundary segment on the horizontal line y."""
         if x1 >= x2:
             raise ValueError(f"degenerate horizontal segment at y={y}: {x1}..{x2}")
         self._rules.append(_Rule(False, y, x1, x2, style))
+        self._rule_index = None
 
     # --- the grid ---------------------------------------------------------
     def _axes(self) -> tuple[list[int], list[int]]:
@@ -541,9 +601,14 @@ class GridMap:
         return occ
 
     def _style_for(self, vertical: bool, coord: int, lo: int, hi: int) -> LineStyle | None:
-        """The style whose segment contains [lo,hi] on this grid line."""
-        for r in self._rules:
-            if r.vertical == vertical and r.coord == coord and r.lo <= lo and hi <= r.hi:
+        """The FIRST registered style whose segment contains [lo,hi] on this line."""
+        if self._rule_index is None:
+            index: dict[tuple[bool, int], list[_Rule]] = {}
+            for r in self._rules:
+                index.setdefault((r.vertical, r.coord), []).append(r)
+            self._rule_index = index
+        for r in self._rule_index.get((vertical, coord), ()):
+            if r.lo <= lo and hi <= r.hi:
                 return r.style
         return None
 
