@@ -22,8 +22,13 @@ placeholders: `docs/qa/evidence/2026-10-13_2039_d40-d43-engine-pass.md`).
 the New Game screen (§4.4, ADR 007); **engine pass done the same day**
 (the episode screen in English and Russian, same evidence), and MAP02's exit
 switch and on-foot gallery followed in commit `d1e891f` (§4.4).
-**D43 music (§4.5):** MAP01's `D_SDM01` seen in the engine the same day;
-the title's music is still NOT VERIFIED.
+**D43 music (§4.5):** MAP01's `D_SDM01` seen in the engine the same day,
+and the title's `D_SDINTL` at 21:50 (`currentmusic`,
+`docs/qa/evidence/2026-10-13_2150_F6_title-music.log`).
+**D43 diegetic radio (§6.7, ADR 008), 2026-10-13:** `SD_Radio` and its two
+CC0 pieces `D_SDRAD1` / `D_SDRAD2`, written before the code; **NOT YET
+SEEN IN THE ENGINE** (D26), and its editor number 21200 waits for the PM's
+`MAPINFO` line.
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -58,7 +63,7 @@ sovietdoom.pk3
 ├── MENUDEF                 language switch, main menu and skill screen in our own type (§6.6)
 ├── SNDINFO                 logical sound name -> lump (F4)
 ├── zscript.txt             ZScript entry: version + #include
-├── zscript/sd/*.zs         systems (event handlers, player class, ammo)
+├── zscript/sd/*.zs         systems (event handlers, player class, ammo, the radio §6.7)
 ├── zscript/weapons/*.zs    the arsenal, one class per file (F4)
 ├── zscript/monsters/*.zs   the bestiary, one class per file (F5, BESTIARY.md)
 ├── maps/MAP01.wad          one WAD per map, lumps MAP01, TEXTMAP, ENDMAP
@@ -74,6 +79,8 @@ sovietdoom.pk3
 ├── fonts/sdmenu/           <HEX>.png + font.inf — menu font SDMENU, 107 files (D31, §6.6)
 ├── music/D_SDINTL.mid       title music, Engelbach's Internationale (D43, §4.5)
 ├── music/D_SDM01.mid        MAP01's music, ours (D43, §4.5)
+├── music/D_SDRAD1.mid       diegetic radio: «Эй, ухнем», Gerloff's CC0 sequence (D43, §6.7)
+├── music/D_SDRAD2.mid       diegetic radio: «Колокольчик», Gerloff's CC0 sequence (D43, §6.7)
 ├── sprites/  sounds/  patches/  hires/   standard folders, empty today (T1)
 ├── ANIMDEFS                switch pairs SDSW1x -> SDSW2x (§4.3)
 └── (future) TEXTURES, GLDEFS — and no CVARINFO, by decision (ADR 004)
@@ -221,6 +228,7 @@ The CEO accepted every music recommendation of `docs/sound/SOUNDTRACK.md`
 | MAP01, Zarya-7 | `map MAP01 { music = "D_SDM01" }` | `D_SDM01`, ours |
 | MAP02, practice range | `music = ""` | none |
 | Clusters 1 and 2 (end texts) | `music = ""` | none |
+| A diegetic radio (§6.7) | **none**: `SD_Radio` swaps the music from ZScript while the player is near it | `D_SDRAD1`, `D_SDRAD2` |
 
 Rule: every `music` / `TitleMusic` value is `""` or a lump packed under
 `music/` (`tests/test_mapinfo_music.py`); a typo plays nothing and logs
@@ -230,9 +238,10 @@ Freedoom), by the same block-merge that already carries `PlayerClasses`.
 **Engine pass, 2026-10-13** (the PM,
 `docs/qa/evidence/2026-10-13_2039_d40-d43-engine-pass.md`): **VERIFIED**
 that `currentmusic` reports `D_SDM01` in MAP01 and no music in MAP02.
-**Still NOT VERIFIED:** the title's `D_SDINTL` (that run starts in a map,
-so the title screen never played), and that the title music carries on
-into the main menu as Doom's does.
+**VERIFIED at 21:50 the same day**: the title screen plays `D_SDINTL`
+(`currentmusic`, `docs/qa/evidence/2026-10-13_2150_F6_title-music.log`).
+**Still NOT VERIFIED:** that the title music carries on into the main menu
+as Doom's does.
 
 ### 4.1 How the campaign ends (M3, closed 2026-10-13)
 
@@ -459,6 +468,7 @@ previous sprite" markers are the engine's and need no row.
 | `BAL7` | sprite | `SD_PanzerShell` | idem |
 | `CYBR` | sprite | `SD_General` | idem |
 | `MANF` | sprite | `SD_GeneralShell` (flight) | idem |
+| `PMAP` | sprite | `SD_Radio` (frame A only, held still); **it is the computer area map's pickup picture**, see §6.7 | frame A in the IWAD (`tests/test_radio.py`); not yet seen in the engine |
 
 The sounds are the same kind of borrowing and are listed in §6.2; they are
 not checked by `check_pk3.py` (a missing sound is silence, not an error), but
@@ -501,6 +511,7 @@ in the IWAD.
 | `SD_PanzermenschSchwer` | `SD_Panzermensch` *replaces BaronOfHell* | The 1000 HP variant for MAP03 (D35); no states of its own. |
 | `SD_General` | `SD_Monster` *replaces Cyberdemon* | Boss, 3000 HP (H), three-shell salvo; once below half health, summons two `SD_ReichRifleman` and prints `SD_GENERAL_ORDER` (D35). |
 | `SD_StormBolt`, `SD_DoughboyShell`, `SD_PanzerShell`, `SD_GeneralShell` | `Actor` | The four enemy projectiles. Not placeable. |
+| `SD_Radio` | `Actor` | The diegetic radio (D43): a solid decoration that plays one of two CC0 pieces in place of the level's music while the player is near it, and gives the level's music back when the player walks away. Contract §6.7, reasons ADR 008. |
 
 The bestiary's numbers, states, sounds and the reasons for each are
 `docs/engine/BESTIARY.md`; that file is their owner, as `BALANCE.md` is the
@@ -579,6 +590,7 @@ the full check are in `docs/engine/adr/002-arsenal-and-editor-numbers.md`.
 | 21106 | `SD_General` (also 16) |
 | 21107 | `SD_PanzermenschSchwer` (also 3003) |
 | 21108 | *reserved*: a cloaked hound replacing `Spectre` (58), not implemented (`BESTIARY.md` §6) |
+| 21200 | `SD_Radio`, the first decoration (§6.7). **Assigned here, not yet in `MAPINFO`**: the line `21200 = SD_Radio` is the PM's to add (the file was another agent's on 2026-10-13); until it lands, a map that places 21200 spawns nothing there |
 
 Every enemy also `replaces` its Doom counterpart, so a map may place either
 number and both spawn ours; `level-designer` can keep MAP01's Doom numbers
@@ -694,6 +706,12 @@ marked. Images per class and the drawing briefs: `BESTIARY.md` §3–§9, §12.
 | `SD_PanzerShell` | `SDPL` | A–E (0) | `BAL7` |
 | `SD_General` | `SDGN` | A–G (8), H–P (0), Q–R (8) | `CYBR`; **exception**: the `Summon` lines borrow `CYBR E F` and become `SDGN Q R` |
 | `SD_GeneralShell` | `SDGL` | A–E (0) | **exception**: `MANF` A–B in flight, `MISL` B–D burst; the burst becomes `SDGL C D E` |
+
+**The radio (§6.7).** `SD_Radio` → final sprite **`SDRD`** A (rotation
+`0`, one picture from every angle: a set on a desk, about 32×28 like its
+placeholder), standing on the floor (`left = width / 2`, `top = height`).
+Placeholder today: `PMAP` A. Checked free: no IWAD lump starts with `SD`,
+and no reserved sprite above starts with `SDRD`.
 
 The heavy Panzermensch has no states of its own: it inherits `SDPM` and gets
 a `Translation` when the art exists. Blood is recoloured by `BloodColor`
@@ -878,6 +896,73 @@ The four redeclared menus are copies of GZDoom 4.14.2's own bodies: the
 turned into text, `SkillMenu` and (D41) `EpisodeMenu` re-laid-out as above. Re-diff them against
 `gzdoom.pk3/menudef.txt` on every engine upgrade (debt T14).
 
+## 6.7 The diegetic radio (D43, 2026-10-13)
+
+D43 gave the radio two CC0 pieces; this section is the contract with
+`level-designer`, who places it, and `art-director`, who draws it. Why a
+music swap and not a positional sound: ADR 008
+(`docs/engine/adr/008-diegetic-radio.md`). **A diegetic sound** is one
+that exists inside the game world (the player's character hears it too),
+as opposed to the soundtrack.
+
+| What | Value |
+|---|---|
+| Class, file | `SD_Radio`, `zscript/sd/radio.zs` |
+| Editor number | **21200** (§6.1; the `MAPINFO` line is owed by the PM) |
+| `arg0`, the piece | `1` = `D_SDRAD1` «Эй, ухнем» (0:50); `2` = `D_SDRAD2` «Колокольчик» (0:39); `0` or anything else = `1` |
+| `arg1`, the reach | map units, measured in 3D from the radio to the player; `0` = **128** (`SD_RADIO_DEFAULT_REACH`) |
+| Turns on | the first tic the player is within the reach: `S_ChangeMusic(piece)`, looping |
+| Turns off | the first tic the player is farther than **reach + 64** (`SD_RADIO_HYSTERESIS`): the level's own music comes back (`Level.Music`, at its `musicorder`), but only if the radio's piece is still what is playing |
+| Body | `+SOLID`, radius 16, height 28 (the placeholder's 32×28 picture); not shootable, never moves |
+| Sprite | `PMAP` A (IWAD placeholder, §5.1) → `SDRD` A (§6.3) |
+| Lumps | `assets/music/D_SDRAD1.mid`, `D_SDRAD2.mid`: byte-identical copies of `work/audio/candidates/WM_Ej_uchnem.mid` (`D_CND09`) and `WM_Kolokolchik.mid` (`D_CND12`); rights `docs/sound/MUSIC-RIGHTS.md` §4.4–4.5, rows in `docs/art/LICENSES.md` § Music |
+| `SNDINFO`, `LANGUAGE` | not involved: music lumps are named directly, and the radio prints nothing |
+
+Rules for whoever places one:
+
+- **The reach is a sphere and goes through walls.** Size it to the room:
+  the default 128, from a radio in the middle of a 128×128 room, reaches
+  about 60 units past its walls, so the doorway counts and the corridor
+  outside mostly does not. A reach that leaks into a neighbouring room plays
+  the radio there too.
+- **Two radios' zones (reach + 64) must not overlap.** Each radio hands the
+  music back only if its own piece is playing, so overlap does not leave a
+  radio stuck on, but the two take the soundtrack from each other.
+- **The music restarts.** MIDI cannot resume where it stopped, so the radio
+  piece starts from its first bar every time the player walks in, and the
+  level's music from its first bar every time they walk out. The level's
+  loop heard in pieces is the price; keep radios out of rooms the player
+  crosses again and again.
+- **The player's music volume is the player's.** The radio never touches
+  `snd_musicvolume` or the level's relative volume; with music off, the
+  radio is silent, as the rest of the soundtrack is.
+- **Single-player.** The listener is the local player (`consoleplayer`);
+  in a network game each machine would switch its own music.
+
+Saved games: the field that says "this radio has the music" is saved with
+the actor; a second, `transient` (not saved) field makes the radio play its
+piece again on the first tic after a load if it had the music when the game
+was saved. Whether the engine itself restores the playing song on load is
+**NOT VERIFIED**; the radio does not depend on it either way.
+
+**NOT VERIFIED in the engine** (D26; the PM's pass, checklist in ADR 008):
+that the class compiles, that `S_ChangeMusic` swaps and restores as above,
+that the radio survives a save and a load, and that `PMAP` A draws.
+
+## 6.8 Credits (G6, 2026-10-13)
+
+The in-game credits, reasoned in `docs/engine/adr/009-in-game-credits.md`.
+**Not yet seen in the engine** (the PM's batched pass, D26).
+
+| What | Value |
+|---|---|
+| Where | `OptionMenu "SD_CreditsMenu"` in `MENUDEF`, reached by `Submenu "$SD_CRED_TITLE", "SD_CreditsMenu"` at the foot of our own `SD_OptionsMenu`: Options → Soviet Doom → Credits. **Not** on the main, skill or episode screens, the CEO's approved text menu (D31/D32); a main-menu row is his call (ADR 009, option C) |
+| Rows | `Title "$SD_CRED_TITLE"`; one `StaticText "$SD_CRED_…"` per screen line, centred, in the engine's `NewSmallFont`; block headers `StaticText "$SD_CRED_H_…", 1` (header colour); a blank `StaticText " "` between blocks |
+| Text | `LANGUAGE` ids `SD_CRED_*`, the same ids in `[enu default]` and `[ru]`, **at most 40 characters each**, no `
+` (a row does not wrap). Blocks in order: team, music, engine, game data, sources |
+| Obligations | every name a licence register obliges us to credit is in the credits of both languages: `docs/art/LICENSES.md` rows whose licence says credit / `{{Attribution}}` / CC BY / BSD / MIT / OFL / CC0 and are not ours (D15), and the Obligation column of `docs/sound/MUSIC-RIGHTS.md` §4.5. Jerry Engelbach's line is MUSIC-RIGHTS §4.5's word for word in English. Enforced by `tests/test_credits.py`, which reads the registers, so a new attributed asset turns the suite red until its credit lines exist |
+| Adding a credit | register row first (the name in bold, or as `credit "X"`), then `SD_CRED_*` lines in both languages, then the `StaticText` rows |
+
 ## 7. Commands
 
 ```sh
@@ -945,3 +1030,4 @@ disagree, the code is right and the doc is the bug.
 | T21 | Doom monsters with no Soviet replacement (65 chaingunner, 58 spectre, the rest of Doom II's roster) still spawn Freedoom's actors. MAP01 §8 plans a "Legion heavy gunner" on 65 that the bestiary does not have. | CEO question, if a seventh enemy is wanted |
 | T17 | **The English `LANGUAGE` section still carries Latin transliterations** (`PG-7V`, `7.62x25`) although the glyphs for the Cyrillic forms D17 asks for exist since D24 (§6.4). Two ASCII tests pin the current state (`tests/test_language.py`, `tests/test_arsenal.py`). | `mod-engineer`, one text change plus an engine screenshot of the HUD |
 | T22 | **Bestiary behaviours the engine pass did not show** (ADR 006, "NOT VERIFIED"): infighting between our classes and the native `GetSpecies` rule behind the explicit `Species`; the colour of `BloodColor`; the General's order line on screen (the console log carries it); the recruits entering the chase and the blocked-spot fallback; the attack helpers' damage (both runs were god mode, deaf or `notarget`); how far a dead Doughboy falls; the sounds. | the PM's next engine pass, with enemies awake and one fighting another; `qa-engineer` for the sounds, with a human |
+| T23 | **The radio (§6.7) is unseen and wears a pickup's picture.** `SD_Radio` has not run in the engine (D26), its editor number 21200 is not yet in `MAPINFO`, and its placeholder `PMAP` A is the computer area map's pickup, which MAP01 also places (2026): a player may walk at the radio expecting a pickup. | the PM's engine pass (ADR 008 checklist) and the `MAPINFO` line; `art-director` for `SDRD` A |
