@@ -1,26 +1,37 @@
 # Pending CEO decisions
 
-Updated: 2026-10-13 15:50, on the move to the Windows PC. Ordered by how much
+Updated: 2026-10-13 16:20, on the move to the Windows PC. Ordered by how much
 each item unblocks. What closed since the previous update is listed at the
 end so nothing is lost. Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md`.
 
-## 1. MAP01: two design points, before v3 (no hurry)
+## 1. Walk MAP01 v2 (10 minutes, the F3 gate criterion)
 
-You walked v1 on 2026-10-13. The stripe and the plaque are approved (D30);
-the gate criterion was not met and v2, which fixes it, is being built. When
-v2 is ready the PM will ask you to walk it again: that walk is the next gate
-check, and the only question will be "did you get past the hangar?".
+```
+SD_ALLOW_ENGINE=1 tools/run.sh
+```
 
-Still open from the design document §13:
+v2 answers your v1 walk: the fuel-bay switch is a real knife switch now,
+it clicks and flips, it sits in a lit niche with a window onto the hangar
+gate, and pressing it lights the gate and the booth. The only question:
+**did you get past the hangar without help?** Also new in v2: light and
+lamps, a flickering corridor, three secrets, crates and lockers. All of it
+was checked in the engine first
+(`docs/qa/evidence/2026-10-13_1611_F3_map01-v2-engine-pass-*`).
+
+Still open from the design document §13, no hurry:
 - **No keys, switch grammar instead.** Built that way on the PM's approval;
   one word from you closes it. Recommended yes.
-- **Night-sky strip over the hangar**, yes or no. `SKY1` already exists, so
-  yes costs no new asset.
-- **Length and enemy count**: 5-8 minutes, 21/33/46 enemies by skill, longer
-  than Doom II's MAP01 (~2 min). Matters for v3, not before.
+- **Night-sky strip over the hangar**, yes or no. `SKY1` already exists.
+- **Length and enemy count**: 5-8 minutes, 21/33/46 enemies by skill.
+  Matters for v3.
 
-For the eye only: gate D4 wears two identical leaves (A4); `level-designer`
-finds that acceptable.
+## 1b. The text menu (D31), on screen (2 minutes)
+
+`docs/qa/evidence/2026-10-13_1606_F2_menu-sdmenu-en-ru.png`, or open the
+game. Two details for your eye: the cream of the items reads a little pink
+on the red, and the English skill list sits further left than the Russian
+one because it is wider. Approve as is, or ask for another colour or for
+both lists aligned.
 
 ## 2. Play the weapons test range (15 minutes, unblocks F4 balance)
 

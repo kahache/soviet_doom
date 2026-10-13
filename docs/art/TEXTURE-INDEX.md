@@ -177,6 +177,14 @@ above («apruebo el arreglo de la fuente»). Their slab serifs had been placed
 on one side only (QA finding H1); before/after sheet
 `docs/art/previews/2026-10-13_1443_F2_font-C-serif-fix.png`.
 
+## The menu font SDMENU (D31)
+
+Not textures either. `assets/fonts/sdmenu/` (107 glyphs + `font.inf`) is
+`bigfont/` with R, N, E, W, A drawn as Я, И, Э, Ш, Д (D22 level 2), for the
+main menu and the skill-screen headers. Owned by `LICENSES.md` ("The menu
+font SDMENU"). Status: **approved for in-engine trial 2026-10-13 (D31)**.
+Reference sheet `docs/art/previews/2026-10-13_1554_F2_menu-sweep.png`.
+
 ## IWAD references in use (from `docs/engine/MOD-SPEC.md` §5)
 
 | Name | Kind | Used in | Status |

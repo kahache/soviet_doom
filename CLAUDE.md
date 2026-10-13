@@ -48,10 +48,13 @@ gate read as a dead end) became v1's gate criterion. **The CEO walked v1 on
 2026-10-13 and the criterion is not met:** "ahora sí que funciona", but "me
 quedé en el hangar; la puerta doble no se abre". Not a mechanical bug: the
 PM pressed SW-A in engine and D4 opened
-(`docs/qa/evidence/2026-10-13_1540_F3_map01-v1-swa-opens-d4.png`). The
-switch still wears `SDDOOR1` and opens a gate the player cannot see. v2 is
-commissioned with that as its first job, plus light, real switch faces
-(`ANIMDEFS`, T16, flip verified in engine), crates, lockers and secrets.
+(`docs/qa/evidence/2026-10-13_1540_F3_map01-v1-swa-opens-d4.png`); the CEO
+later found SW-A himself ("una puerta q no hace ningún ruido si le das a
+E") and finished the map. **v2 is BUILT** (§16 of the design document): real
+switch faces, SW-A moved to a lit niche with a window onto D4, a gate light
+on tag 30, 16 lamps, flicker, three secrets, crates and lockers; 80 sectors.
+Its engine pass is filed (`docs/qa/evidence/2026-10-13_1611_F3_map01-v2-engine-pass-*`):
+everything works; whether the gate now reads without help is the CEO's walk.
 
 **F4 — arsenal.** Seven period weapons in ZScript, all firing, with Freedoom
 placeholders for sprites and sounds. Test range on MAP02.
