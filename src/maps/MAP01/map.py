@@ -22,6 +22,9 @@ and the v2 flow exactly - the same rooms in the same places, the same gate
 * RESOURCES: the tutorial weapons where section 2 puts them, ammo and
   health scaled down by skill, the three secrets re-hidden (the v2 walk:
   "era muy evidente").
+* THE RADIO (D43, design section 17.16): one diegetic radio in the guard
+  post, playing "Kolokolchik" in place of the level's music while the
+  player is in the post.
 
 The night-sky strip over the hangar is still open with the CEO (design
 section 13, point 5) and is deliberately NOT built.
@@ -255,6 +258,18 @@ ED_COMPUTER_MAP = 2026    # "the base schematic" in S2
 ED_BARREL = 2035          # a fuel drum, until it has its own sprite
 ED_FLOOR_LAMP = 2028
 
+# The diegetic radio (D43; MOD-SPEC 6.7, ADR 008), our decoration 21200:
+# while the player is within its reach it plays one of two CC0 pieces IN
+# PLACE OF the level's music, and gives D_SDM01 back past reach + 64. Its
+# body is solid, radius 16, height 28 (src/zscript/sd/radio.zs).
+ED_RADIO = 21200
+RADIO_KOLOKOLCHIK = 2         # arg0: D_SDRAD2, "Kolokolchik"
+# arg1, the reach. The PM's rule (D43 brief): 96 for a radio against a back
+# wall, 128 for one in the middle of a room. Ours stands against the guard
+# post's crate stack, so 96: it covers every spot of the post and the rack,
+# and never the corridor's walking line (design section 17.16).
+RADIO_REACH_BACK_WALL = 96
+
 # Monsters: Freedoom's implementations of the Doom II actors, each standing
 # in for the bestiary class that will `replaces` it (docs/engine/BESTIARY.md
 # section 12), so F5 changes nothing in this file. D35: the Fourth Reich is
@@ -304,7 +319,9 @@ MONSTERS = (
     ("z4_komnata", "hound", 560, 1180, 270, 4),
     # Z5 service corridor and guard post - the IZh at close range.
     ("z5_service", "rifleman", 880, 1160, 180, 2),
-    ("z5b_guard", "rifleman", 960, 1250, 270, 2),
+    # The guard stands at the post's mouth, clear of the radio behind him
+    # (it was at 960 1250, where the radio now is; design section 17.16).
+    ("z5b_guard", "rifleman", 960, 1224, 270, 2),
     ("z5_flicker", "rifleman", 1060, 1150, 180, 3),
     ("z5_service", "stormtrooper", 1110, 1170, 180, 4),
     # Z6 hangar, first contact - the Legion holds it.
@@ -364,7 +381,7 @@ ITEMS = (
     ("s3_sump", ED_MEDIKIT, 930, 1820, 4),
     ("s3_sump", ED_MEDIKIT, 990, 1820, 4),
     # Shells (4 each): 8 on every skill, +1 medium, +2 easy.
-    ("z5b_guard", ED_SHELLS, 980, 1262, 4),
+    ("z5b_guard", ED_SHELLS, 1000, 1272, 4),     # was 980 1262: under the radio
     ("z5b_guard", ED_SHELLS, 912, 1240, 4),
     ("step_down_3", ED_SHELLS, 1312, 1150, 4),
     ("z6_hangar", ED_SHELLS, 1320, 1050, 4),
@@ -452,6 +469,18 @@ FIXTURES = (
     ("z4_komnata", ED_FLOOR_LAMP, KOMNATA_LAMPS_X[0], KOMNATA_LAMP_Y),
     ("z4_komnata", ED_FLOOR_LAMP, KOMNATA_LAMPS_X[1], KOMNATA_LAMP_Y),
     ("z10_exit", ED_FLOOR_LAMP, 3248, 832),
+)
+
+# The diegetic radio, on every skill: (zone, piece, reach, x, y, facing).
+# Z5b, the guard post: a dead-end side room off the service corridor, met
+# once on the way to the hangar (MOD-SPEC 6.7: keep radios out of rooms the
+# player crosses again and again). It stands on the post's floor against
+# the crate stack at its back, centred on the doorway: 48 free either side
+# of it, so the way to the IZh's rack in the east wall stays a body and a
+# half wide. Its reach + 64 covers the post and the stretch of corridor in
+# front of it and no other room (design section 17.16).
+RADIOS = (
+    ("z5b_guard", RADIO_KOLOKOLCHIK, RADIO_REACH_BACK_WALL, 960, 1264, 270),
 )
 
 
@@ -1058,6 +1087,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     for _zone, ednum, x, y in FIXTURES:
         tm.add_thing(Thing(x=x, y=y, type=ednum))
+    for _zone, piece, reach, x, y, angle in RADIOS:
+        tm.add_thing(Thing(x=x, y=y, type=ED_RADIO, angle=angle,
+                           extra={"arg0": piece, "arg1": reach}))
 
     return tm, plan
 
