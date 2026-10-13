@@ -18,6 +18,13 @@ Each preview says what it asks; the recommendation is in brackets.
 | Weapon sounds, 31 drafts | `docs/art/previews/2026-10-13_2027_F4_weapon-sfx-drafts.html` | per card; A/B/C on six key sounds; clicks and pickups [yes]; reloads [park] (`docs/sound/WEAPON-SOUNDS.md` §9) |
 | Enemy sounds, 35 + 8 beds | `docs/art/previews/2026-10-13_2029_F5_enemy-sfx-drafts.html` | per card (`docs/sound/ENEMY-SOUNDS.md` §7) |
 | MAP01 music enriched, `D_SDM01E` | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/audio/audition.py --play map01 --lump D_SDM01E` | replace the installed `D_SDM01`? |
+| Rest of the arsenal in first person, hand E | `docs/art/previews/2026-10-13_2219_F4_arsenal-at-rest.png` and one sheet per weapon (`2026-10-13_2219_F4_*`) | TT-33, IZh-58, RPG-7, ROKS-3 as drawn [yes]; the RPG-7 reload frames C-D, a proposal |
+| Hand Katyusha, second pass | `docs/art/previews/2026-10-13_2243_F4_hand-katyusha-pass2.png` | variant A-C [A, closed box]; pickup [D, dropped on its nose]; the raised frame SDHK C [yes, a state change for mod-engineer] |
+| Legion trooper, six cells on the rig | `docs/art/previews/2026-10-13_2212_F5_legion-trooper-sweep.html` | cell [C, chrome football pauldrons]; a pink flesh ramp as palette v2 [needed: v1 has no skin] |
+| Stormtrooper and Reich hound | `docs/art/previews/2026-10-13_2211_F5_storm-hound-sweep.html` | Stormtrooper [B, chrome coil] or B's coil on D's body; hound [D, crocodile jaw]; the hound's hide darker than BESTIARY 6 (`khaki_olive` 1-9) so it reads on green steel |
+| Menu cursor and pause sign (T12) | `docs/art/previews/2026-10-13_2208_F2_shell-cursor-pause-sweep.html` | cursor [A, red star]; pause [P2, a plaque per language; P1 icon as fallback] |
+| In-game credits (ADR 009) | Options → Soviet Doom → Credits; `docs/qa/evidence/2026-10-13_2222_F6_credits-en-ru.png` | fine under Options [yes], or a main-menu item (changes the approved menu); add "fan project, not affiliated with id Software"? |
+| The radio in MAP01 (D43) | the guard post by the IZh rack, «Колокольчик» | as placed [yes]; MAP01's music restarts from the top on walking away |
 
 ## 2. Two decisions that unblock work
 
@@ -30,6 +37,12 @@ Each preview says what it asks; the recommendation is in brackets.
   notation without a download. (a) Authorise downloading one public-domain
   score per piece, sizes stated first [recommended], or (b) write them from
   memory, marked NOT VERIFIED, checked by someone who knows the tunes.
+
+- **MAP02's name.** "Engineering Test Range" says what it was. Proposed:
+  "Training Ground" / «Учебный полигон» (or "Range No. 7" / «Стрельбище № 7»).
+- **The range's targets shoot first.** On MAP02 the targets fire at the
+  player on spawn, before any weapon is picked up (QA's G3-F5). Keep, or
+  hold them until the player arms (a level-designer change).
 
 Still open from the design document §13, no hurry: no keys (recommended
 yes); a night-sky strip over the hangar, yes or no.
