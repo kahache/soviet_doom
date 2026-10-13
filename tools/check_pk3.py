@@ -31,7 +31,9 @@ Checks (one block of output per category):
   textures   every texturetop/middle/bottom/floor/ceiling a TEXTMAP names
              (plus MAPINFO sky1/sky2) exists in the PK3 or is declared as an
              IWAD asset in MOD-SPEC 5. A name that resolves nowhere is
-             exactly what the engine reports as "Unknown texture"
+             exactly what the engine reports as "Unknown texture".
+             The OFF and ON textures of every ANIMDEFS `switch` pair are
+             held to the same rule (MOD-SPEC 4.3, debt T16)
   images     PNGs under textures/ and flats/ are colour type 3 (indexed),
              every colour they use is in docs/art/palette.json, and their
              dimensions follow the contract
@@ -120,6 +122,18 @@ SPRITE_FRAME_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]"
 RE_INCLUDE = re.compile(r'^\s*#include\s+"([^"]+)"', re.M)
 RE_BACKTICKED = re.compile(r"`([^`]+)`")
 RE_MAPINFO_SKY = re.compile(r"^\s*sky[12]\s*=\s*\"([^\"]*)\"", re.M | re.I)
+# ANIMDEFS (MOD-SPEC 4.3). Syntax as the engine writes it in gzdoom.pk3 ->
+# animdefs.txt (GZDoom g4.14.2): `switch [game [tier]] [quest] OFF [quest]
+# on [sound S] pic ON tics N ... [off [sound S] pic OFF2 tics N]`.
+ANIMDEFS_LUMPS = ("ANIMDEFS", "animdefs.txt")
+ANIMDEFS_GAMES = frozenset({"doom", "heretic", "hexen", "strife"})
+# Keywords that open a new top-level ANIMDEFS definition, so they end a switch.
+ANIMDEFS_TOP_LEVEL = frozenset({
+    "switch", "texture", "flat", "animateddoor", "warp", "warp2",
+    "cameratexture", "canvastexture", "skyoffset",
+})
+RE_ANIMDEFS_COMMENT = re.compile(r"//[^\n]*|/\*.*?\*/", re.S)
+RE_ANIMDEFS_TOKEN = re.compile(r'"[^"]*"|\S+')
 RE_TEXTURES_DEF = re.compile(
     r"^\s*(?:texture|walltexture|flat|sprite|graphic)\s+\"?([A-Za-z0-9_\[\]\\\-]+)\"?",
     re.M | re.I,
@@ -761,15 +775,65 @@ def own_texture_names(pkg: Package) -> dict[str, str]:
     return found
 
 
+def animdefs_switch_textures(text: str) -> list[tuple[str, int, str]]:
+    """Every texture name the `switch` definitions of an ANIMDEFS text use.
+
+    Returns (NAME, line, role) with role "off" (the name after `switch`),
+    "on" (each `pic` of the `on` sequence) or "off-pic" (each `pic` of an
+    optional `off` sequence). Token-based like the engine's scanner, so a
+    definition may span lines; comments are blanked with their newlines kept
+    so the line numbers stay true. Non-switch definitions are skipped.
+    """
+    def blank(match: re.Match) -> str:
+        return re.sub(r"[^\n]", " ", match.group(0))
+
+    clean = RE_ANIMDEFS_COMMENT.sub(blank, text)
+    tokens = [(m.group(0).strip('"'), clean.count("\n", 0, m.start()) + 1)
+              for m in RE_ANIMDEFS_TOKEN.finditer(clean)]
+    found: list[tuple[str, int, str]] = []
+    i = 0
+    while i < len(tokens):
+        if tokens[i][0].lower() != "switch":
+            i += 1
+            continue
+        i += 1
+        if i < len(tokens) and tokens[i][0].lower() in ANIMDEFS_GAMES:
+            game = tokens[i][0].lower()
+            i += 1
+            if game == "doom" and i < len(tokens) and tokens[i][0].isdigit():
+                i += 1                                   # the Doom tier: 1, 2 or 3
+        if i < len(tokens) and tokens[i][0].lower() == "quest":
+            i += 1
+        if i >= len(tokens):
+            break
+        found.append((tokens[i][0].upper(), tokens[i][1], "off"))
+        i += 1
+        role = "on"
+        while i < len(tokens) and tokens[i][0].lower() not in ANIMDEFS_TOP_LEVEL:
+            word = tokens[i][0].lower()
+            if word in ("on", "off"):
+                role = "on" if word == "on" else "off-pic"
+            elif word == "sound":
+                i += 1                                   # skip the sound name
+            elif word == "pic" and i + 1 < len(tokens):
+                i += 1
+                found.append((tokens[i][0].upper(), tokens[i][1], role))
+            i += 1
+    return found
+
+
 def check_textures(pkg: Package, maps: list[MapInfo], iwad_names: set[str], report: Report) -> None:
     own = own_texture_names(pkg)
     referenced: dict[str, list[str]] = {}        # NAME -> where it is used
+    used_by_maps: set[str] = set()
 
-    def reference(name: str, where: str) -> None:
+    def reference(name: str, where: str, by_map: bool = True) -> None:
         clean = name.strip()
         if clean.upper() in BUILTIN_TEXTURE_NAMES or clean == NO_TEXTURE:
             return
         referenced.setdefault(clean.upper(), []).append(where)
+        if by_map:
+            used_by_maps.add(clean.upper())
 
     for info in maps:
         if info.udmf is None:
@@ -788,6 +852,17 @@ def check_textures(pkg: Package, maps: list[MapInfo], iwad_names: set[str], repo
         text = pkg.read(mapinfo_path).decode("ascii", "replace")
         for sky in RE_MAPINFO_SKY.findall(text):
             reference(sky, f"{mapinfo_path}:sky")
+
+    switch_names = 0
+    for lump in ANIMDEFS_LUMPS:
+        animdefs_path = pkg.find(lump)
+        if not animdefs_path:
+            continue
+        text = pkg.read(animdefs_path).decode("ascii", "replace")
+        for name, line, role in animdefs_switch_textures(text):
+            switch_names += 1
+            reference(name, f"{animdefs_path}:{line}:switch {role}", by_map=False)
+    report.stats["switch_textures"] = switch_names
 
     from_pk3 = from_iwad = 0
     for name in sorted(referenced):
@@ -809,7 +884,9 @@ def check_textures(pkg: Package, maps: list[MapInfo], iwad_names: set[str], repo
                 f"{len(referenced)} distinct names referenced: {from_pk3} from the PK3, "
                 f"{from_iwad} declared IWAD assets (MOD-SPEC 5), "
                 f"{len(referenced) - from_pk3 - from_iwad} unresolved")
-    unused = sorted(set(own) - set(referenced))
+    if switch_names:
+        report.note("textures", f"{switch_names} switch texture name(s) in ANIMDEFS checked the same way")
+    unused = sorted(set(own) - used_by_maps)
     if unused:
         report.note("textures", f"packed but unused by any map: {', '.join(unused)}")
 

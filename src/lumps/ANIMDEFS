@@ -1,0 +1,40 @@
+// ANIMDEFS - texture animations and switch pairs. A text lump at the PK3
+// root; GZDoom reads it on top of the engine's own definitions.
+// MOD-SPEC 4.3 owns the naming contract; this file pays debt T16.
+//
+// A `switch` line tells the engine: when a line wearing the OFF texture is
+// used (pressed or shot), swap it for the ON texture. Without it SDSW1x is a
+// still picture and pressing it changes nothing on the wall.
+//
+// SYNTAX SOURCE. The ZDoom wiki (https://zdoom.org/wiki/ANIMDEFS) did not
+// answer on 2026-10-13, so the syntax is copied from the engine's own file:
+// GZDoom g4.14.2, gzdoom.pk3 -> animdefs.txt, lines 194-235, e.g.
+//
+//     switch doom 1 SW1BRCOM on pic SW2BRCOM tics 0
+//
+//   switch    keyword: a switch pair follows
+//   doom 1    game filter, exactly as the engine writes its Doom switches.
+//             `doom` = Doom-family IWADs (Freedoom 2 and Doom II, MOD-SPEC 1);
+//             the number is the oldest game the pair exists in (1 shareware,
+//             2 registered, 3 Doom II: Doom II's SW1PANEL is `doom 3`).
+//             1 is the most permissive tier, so it is used here.
+//   SDSW1x    the OFF texture (1 = unpressed, MOD-SPEC 4.3)
+//   on pic    the texture shown once the line is used
+//   tics 0    the ON state holds that picture; it does not animate
+//
+// SOUND. None, on purpose. Every Doom switch in the engine's animdefs.txt
+// omits `sound` (only the Hexen and Strife lines carry one), and they click
+// in game: the engine plays its default switch sound, `switches/normbutn`
+// (DSSWTCHN, defined in gzdoom.pk3 -> filter/game-doomchex/sndinfo.txt;
+// exit lines get `switches/exitbutn`). Writing `on sound switches/normbutn`
+// here would only restate the default. Inferred from that file, NOT VERIFIED
+// in the engine source: confirm the click in the PM's engine pass.
+//
+// Variants (art-director, batch 2, D25): A knife switch, B domed button,
+// C slide lever, D hazard panel. tests/test_animdefs.py pins one line per
+// pair and tools/check_pk3.py checks every name exists.
+
+switch doom 1 SDSW1A on pic SDSW2A tics 0
+switch doom 1 SDSW1B on pic SDSW2B tics 0
+switch doom 1 SDSW1C on pic SDSW2C tics 0
+switch doom 1 SDSW1D on pic SDSW2D tics 0
