@@ -1,6 +1,6 @@
 # Pending CEO decisions
 
-Updated: 2026-10-13 18:00, end of session. Ordered by how much
+Updated: 2026-10-13, after the CEO closed D40-D43. Ordered by how much
 each item unblocks. What closed since the previous update is listed at the
 end so nothing is lost. Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md`.
 
@@ -20,54 +20,18 @@ Nothing to decide. **Postponed by the CEO on 2026-10-13** ("lo dejamos
 pending"): the enemies keep Freedoom's voices until the takes arrive, and
 nothing else waits on them.
 
-## 2. Does MAP02, the weapons test range, ship in v1?
+## 3. Metro set: palette v2 and the mosaic motif
 
-Played and approved for balance (D39). One question left: ship it as a
-bonus range in v1, or keep it as engineering tooling only.
+The direction and the first six pieces are approved (D42) and ship as drawn
+in palette v1. Two questions from the same sheet are still open
+(`docs/art/previews/2026-10-13_0952_F2_batch2-metro-first-pieces.html`):
 
-## 3. Metro set, first six pieces (F2 batch 2)
-
-Preview: `docs/art/previews/2026-10-13_0952_F2_batch2-metro-first-pieces.html`.
-
-- **Direction.** Is this the underground you pictured? Glazed tile, painted
-  dado, red marble, mosaic, brass, granite.
-- **Palette v2.** The marble red and the mosaic's cobalt and gold need ramps
-  the ratified v1 palette does not have; the sheet shows what v1 can do. A
-  new palette version is your call (ART-BIBLE §3).
-- **Mosaic motif.** A star with rays, or a figure (cosmonaut, worker), which
-  would be its own commission, like Lenin was.
-
-## 4. Music (`docs/sound/SOUNDTRACK.md` §8 owns the detail)
-
-D23 settled the model (free MIDI first, our sequencing as fallback, La
-Internacional on the title). Still open, in the sound-designer's order:
-
-- Credit **Jerry Engelbach** in the credits and the licence register for the
-  title Internationale. D23 chose the piece; the attribution is not yet
-  accepted in writing.
-- Approve the repaired `D_SDINTL.mid` into `assets/`. The Mac's `work/audio/`
-  arrived on this PC on 2026-10-13, so it can be heard here:
-  `SD_ALLOW_ENGINE=1 python tools/audio/audition.py --play title --lump D_SDINTL`.
-- **MAP01 music:** our own `D_SDM01` (recommended), or an orchestration of
-  *Night on Bald Mountain* or *Dumka* from a solo-piano score. `MAPINFO`
-  still says `music = ""`.
-- Enrich `D_SDM01` (two more layers, a non-repeating section; hours) rather
-  than replace it? Recommended, after the previous point.
-- Diegetic radio: approve `WM_Ej_uchnem.mid` and `WM_Kolokolchik.mid`, both
-  CC0, no obligation of any kind.
-- Sequence ourselves «Вы жертвою пали» and «Амурские волны» (recommended) for
-  the works no licence-clean MIDI exists for; for *Marche slave* the
-  alternative is IMSLP's CC BY 4.0 MP3 as OGG (megabytes).
-- Confirm the three discards: `D_CND02`, `D_CND04`, `D_CND08`.
-- Works free in Russia but restored in the United States («Священная война»
-  above all): exclude them. PM recommends yes; we would host in the US.
-- Does the Soviet anthem appear anywhere? Own instrumental sequence with a
-  residual US risk, or Glinka's Patriotic Song at zero risk. It no longer
-  blocks the title.
-- `work/audio/candidates/` is gitignored: it now exists on both machines but
-  in no commit. The sound-designer asks to track it. PM recommends yes
-  (twelve MIDI files, about 180 KB; the provenance is external and seven have
-  no recorded URL, so the files are the only record).
+- **Palette v2.** Add a marble red and a cobalt and gold mosaic ramp in the
+  reserved slots? In v1, `SDMARB1` reads ox-blood and `SDMOSA1` slate
+  instead of cobalt. Approved textures keep their colours either way
+  (ART-BIBLE §3).
+- **Mosaic motif.** A star with rays, as drawn, or a figure (cosmonaut,
+  worker), which would be its own commission, like Lenin was.
 
 ## 6. Smaller, no hurry
 
@@ -85,7 +49,7 @@ Internacional on the title). Still open, in the sound-designer's order:
 
 ## Closed since the previous update (for the record)
 
-Title screen and intermission (D18). Switch texture: all four variants
+The ice axe replaces the shovel (D40). MAP02 ships as a practice range (D41). Every music recommendation of SOUNDTRACK §8, accepted (D43). Title screen and intermission (D18). Switch texture: all four variants
 approved and installed (D25). Music model and La Internacional (D23).
 Alphabet C (D24). Difficulty ladder (D20; the "Pyatiletka in one night" swap
 stays an option, not a pending item). Language switch and Cyrillic
