@@ -15,7 +15,9 @@ placeholders, their editor numbers, sounds, sprites and MAP02 bench (D35,
 with infighting, blood colour and attack numbers still NOT VERIFIED (T22).
 **D40, 2026-10-13: slot 1 is an ice axe, `SD_IceAxe`, not a shovel**; the
 new class, file, string, sound and sprite names are in §6 ("Slot 1 since
-D40"), engine pass pending.
+D40"), engine pass pending. **D41, the same day: MAP02 ships as a practice
+range**, a second episode on the New Game screen (§4.4, ADR 007), engine
+pass pending.
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -136,12 +138,47 @@ assets/   (CEO-approved art only; `work/` is gitignored and never ships)
 | Lump | Title (LANGUAGE) | Episode | Status |
 |---|---|---|---|
 | `MAP01` | `SD_MAP01_NAME` = "Zarya-7 Cosmodrome" / «Космодром "Заря-7"» | `SD_EP01_NAME` = "Soviet Doom" / "Советский Doom" | Owned by `level-designer` since F3; design in `docs/levels/MAP01-zarya-7.md`. `cluster = 1`, `next = endtitle`, `par = 210`. Named in-engine 2026-10-13 (the log prints `MAP01 - Zarya-7 Cosmodrome`). |
-| `MAP02` | `SD_MAP02_NAME` = "Engineering Test Range" / "Инженерный полигон" | none (not in an episode) | F4: 2048×768 hall, ceiling 128, light 192, player start at (160,384) facing +x. The seven weapons, the four ammo pools, barrels and six targets (thing 3004, Soviet riflemen since F5). **F5: the bestiary gallery**, a second room 2048×768 at y 1024–1792, ceiling 192, light 192, connected to nothing: one of each of the eight enemy classes in a row at y = 1600, deaf (`ambush`) and facing north, away from the arrival spot. The map is reached with `MAP=MAP02 tools/run.sh`, the gallery from the console with `warp 1024 1152`. Engineering fixture, **not a design artefact**. |
+| `MAP02` | `SD_MAP02_NAME` = "Engineering Test Range" / "Инженерный полигон" | `SD_EP02_NAME` = "Practice Range" / «Полигон» (D41, §4.4) | `cluster = 2`, `next = endtitle`, `nointermission`. F4: 2048×768 hall, ceiling 128, light 192, player start at (160,384) facing +x. The seven weapons, the four ammo pools, barrels and six targets (thing 3004, Soviet riflemen since F5). **F5: the bestiary gallery**, a second room 2048×768 at y 1024–1792, ceiling 192, light 192, connected to nothing: one of each of the eight enemy classes in a row at y = 1600, deaf (`ambush`) and facing north, away from the arrival spot. Since D41 the player reaches it from New Game (§4.4); `MAP=MAP02 tools/run.sh` still works, and the gallery is still reached only from the console, `warp 1024 1152`. Built as an engineering fixture; shipped as the practice range. |
 
-MAPINFO conventions: `clearepisodes` + one episode per campaign; map titles by
+MAPINFO conventions: `clearepisodes` + one episode per campaign (plus the
+practice range, §4.4); map titles by
 `lookup`, episode title by `name = "$ID"` (**`lookup` is not accepted inside an
 episode block**, verified B1); `music = ""` until we have music (verified:
 silence, no warning); `sky1 = "SKY1"`.
+
+### 4.4 The practice range (D41, 2026-10-13)
+
+The CEO: "Se puede publicar como práctica". MAP02 ships in v1 **outside the
+campaign**, and the player reaches it from the New Game screen. The choice
+between the ways of reaching it is ADR 007
+(`docs/engine/adr/007-practice-range-as-a-second-episode.md`); the contract:
+
+| What | Value |
+|---|---|
+| Episodes (`MAPINFO`, in this order) | `episode MAP01` name `$SD_EP01_NAME`, key `s`; `episode MAP02` name `$SD_EP02_NAME`, key `p` |
+| Episode names | `SD_EP02_NAME` = "Practice Range" / «Полигон» (the map title `SD_MAP02_NAME` is unchanged) |
+| Flow | Main menu → New Game → **episode screen** (new: with one episode the engine skipped it) → skill screen → the map |
+| Episode screen (`MENUDEF`) | `LISTMENU "EpisodeMenu"` redeclared like the skill screen (§6.6): logo `M_DOOM` at 60,0, one `SDMENU` header `$SD_MNU_CHOOSEEPISODE` at 32,70 ("CHOOSE MISSION" / «ВЫБЕРИТЕ ЗАДАНИЕ»), then `SmallFont` for the episode names, which the engine appends at run time. **`M_EPISOD` is never drawn** (T12) |
+| MAP01's exit | `next = endtitle`, unchanged: the campaign ends; **no map's `next` is MAP02** |
+| MAP02's exit | `cluster = 2`, `next = endtitle`: leaving the range shows `SD_END02_TEXT` ("The range is closed…" / «Полигон закрыт…») over `SDFLR1`, then the title screen. `nointermission` stays: a range has no score worth a stats screen. MAP02 has **no exit line today** (its geometry is `level-designer`'s), so in practice the player leaves through the menu; the definition is there for when it gets one, or for the `exit` console command |
+| Cluster 2 | `exittext = lookup, "SD_END02_TEXT"`, `flat = "SDFLR1"`, `music = ""` |
+
+Engine facts this rests on, read in GZDoom g4.14.2 (`gzdoom.pk3 →
+menudef.txt`, `ListMenu "EpisodeMenu"`, and the episode-menu builder in the
+engine source, `M_StartupEpisodeMenu`, not a file of this repo): the menu
+lists one item per MAPINFO `episode` in the descriptor's **last** `Font`,
+starting at its `Position`, below any static items; an episode with no
+`picname` gets a text item; with exactly one episode the item is
+autoselected and the screen never shows, which is why `M_EPISOD` never
+appeared until now. The engine's own body also sets `NetgameMessage
+"$NEWGAME"` (New Game refused in a net game); ours keeps it. **NOT
+VERIFIED until the PM's engine pass:** the screen as drawn, the Russian
+names in `SmallFont`, and that `nointermission` still shows cluster 2's text
+(the finale is a cluster transition, not the stats screen, so it should).
+
+What D41 does not change: the bestiary gallery, which is connected to
+nothing, and MAP02's lack of an exit switch. Both are `level-designer`'s if
+the range should offer them.
 
 ### 4.1 How the campaign ends (M3, closed 2026-10-13)
 
@@ -704,6 +741,7 @@ source lines are quoted in `src/lumps/MENUDEF` itself.
 | Main-menu logo | `LISTMENU "MainMenu"` redeclared with `StaticPatch 60, 0, "M_DOOM"` | the engine's own value is `94, 2`, which does not sit on the lockup painted into `TITLEPIC`. **This row is the contract: `M_DOOM` (200×64) goes at x=60, y=0 of the 320×200 screen.** Measured 2026-10-13: overlaying `assets/graphics/shell/M_DOOM.png` on `TITLEPIC.png` at (60,0) gives a mean per-channel difference of 6, against 22 or more at every neighbouring offset. The generator's manifest under gitignored `work/art/shell/` is evidence, not contract — it is not in every clone. Moving the lockup means changing this row, `MENUDEF` and `tests/test_language.py::MainMenuLogoTest` together. Since D31 the skill screen draws the same logo at the same place |
 | Main-menu items (D31) | `TextItem "$SD_MNU_*"` in `Font "SDMENU", "Cream", "Gold"` (normal, selected). Same hotkeys (`n o l s r q`), same `IfOption(SwapMenu)` / `IfOption(ReadThis)` branches and same target menus as the engine's `PatchItem` lines they replace; `LineSpacing 16` and `Position 97, 72` (`97, 64` with ReadThis) unchanged | Freedoom's `M_NGAME`, `M_OPTION`, `M_LOADG`, `M_SAVEG`, `M_RDTHIS`, `M_QUITG` are pictures of English words: they cannot be translated and they are not our type. `Cream` / `Gold` because the glyphs are drawn red: untranslated they would be red on `TITLEPIC`'s red. Cream echoes the logo's lettering and gold its rule and star (`art-director`'s proposal); the skull selector still marks the current row |
 | Skill screen (D31) | `LISTMENU "SkillMenu"`: `StaticPatch 60, 0, "M_DOOM"`; `Font "SDMENU", "Cream"` and **one** header, `StaticText 32, 70, "$SD_MNU_CHOOSESKILL"`; then `Font "SmallFont", "Red", "Gold"`, `LineSpacing 12`, `Position 32, 90`. **Order matters:** a static item takes the descriptor's font at the moment it is parsed, while the five rungs are built at run time from MAPINFO in the font the descriptor ends with — so `SmallFont` must be the LAST `Font` line | Freedoom's `M_NEWG` / `M_SKILL` at (96,14) / (54,38) sit on the name painted into `TITLEPIC` (visible in `docs/qa/evidence/2026-10-13_0955_F2_skill-ladder-en.png`). `art-director`'s layout (`docs/art/previews/2026-10-13_1554_F2_menu-sweep.png`) keeps the logo where the title screen has it and puts one header under it; "New Game" is dropped as a header because the player has just chosen it |
+| Episode screen (D41) | `LISTMENU "EpisodeMenu"`: `NetgameMessage "$NEWGAME"`; `StaticPatch 60, 0, "M_DOOM"`; `Font "SDMENU", "Cream"`, `StaticText 32, 70, "$SD_MNU_CHOOSEEPISODE"`; then `Font "SmallFont", "Red", "Gold"`, `LineSpacing 12`, `Position 32, 90`. The skill screen's pattern exactly, and for the same reason: the items are built at run time in the font the descriptor ends with | The engine's body draws Freedoom's `M_EPISOD` ("Which episode?") at (54,38), a picture of English words on the name painted into `TITLEPIC` (T12). The episode names are proper nouns (D22's exception list), so they stay in `SmallFont`; only the header is `SDMENU` (§4.4, ADR 007) |
 | Difficulty names | stay in `SmallFont` (`Red`, selected `Gold`), D-004-1 | the default BigFont fits ~26 characters and rung 5 is 38; the names are the CEO's and the font is the part we may change. **x = 32 is the only column that fits both ends:** rung 5, "HERO OF THE SOVIET UNION, POSTHUMOUSLY", is 288 px in `fonts/defsmallfont/` (32 + 288 = 320), and the skull is drawn 32 px left of the rungs (Doom's `Selector "M_SKULL1", -32, -5`), so x = 32 is also the smallest x that keeps it on a 4:3 screen. At the old `Position 48, 63` the engine moved the rungs by itself: in the 0955 screenshot they start at virtual x ≈ 0 (screen x 53 of 640, where the 4:3 area also starts) and the skull was drawn outside the 4:3 area. The rule the engine applied is **NOT VERIFIED** (no engine source on this machine); x = 32 leaves it nothing to correct |
 
 ### The menu font `SDMENU` (D31, built by `art-director`)
@@ -724,8 +762,10 @@ the font's job, not the strings'. Switching `language` changes the strings
 and the font follows by itself; there is nothing per-language in `MENUDEF`.
 
 **Where it is used is the exception list.** D22 keeps Latin for proper
-nouns, calibres and key prompts. `SDMENU` is named only by the two menu
-descriptors above, whose strings contain none of those; `BigFont` and
+nouns, calibres and key prompts. `SDMENU` is named only by the three menu
+descriptors above (main, skill and, since D41, episode), and only for
+strings that contain none of those; the episode names themselves are drawn
+in `SmallFont`; `BigFont` and
 `SmallFont` (level names, weapon tags, pickups, the skill names) are not
 touched. A new `Font "SDMENU"` anywhere else must pass that test first.
 
@@ -771,9 +811,9 @@ around `OnUIEvent`, `OnInputEvent` and `MenuEvent` and nothing else
 aborts the VM and drops the player to the console. **Do not add a menu
 ZScript class that writes a CVar.**
 
-The three redeclared menus are copies of GZDoom 4.14.2's own bodies: the
+The four redeclared menus are copies of GZDoom 4.14.2's own bodies: the
 `os_Menu` anchor verbatim, `MainMenu` with the logo moved and its items
-turned into text, `SkillMenu` re-laid-out as above. Re-diff them against
+turned into text, `SkillMenu` and (D41) `EpisodeMenu` re-laid-out as above. Re-diff them against
 `gzdoom.pk3/menudef.txt` on every engine upgrade (debt T14).
 
 ## 7. Commands
@@ -832,9 +872,9 @@ disagree, the code is right and the doc is the bug.
 | ~~T9~~ | ~~No Cyrillic in the game's font.~~ **Paid 2026-10-13 by D24** (font install `32b384e`, warning removed in `401a02e`): `fonts/defsmallfont/` and `fonts/bigfont/`, 214 glyphs (§2, §6.4). The player-facing warning it carried (`SD_OPTMNU_LANGWARN`, "Cyrillic is not drawn yet") is deleted from `LANGUAGE` and `MENUDEF`. |  |
 | T10 | The slot-1 swing is silent (§6.2), and the ice axe's pickup is Freedoom's chainsaw (§6.3). | F4, when `sound-designer` delivers `SDAXSWG` and `art-director` `SDAP` |
 | T11 | `AMMO`/`HEALTH`/`ARMS`/`ARMOR` are pixels in the IWAD's `STBAR` (§6.5). Parked in `docs/ICEBOX.md` until F6. | F6, with the HUD art (was blocked on T9; unblocked since D24) |
-| T12 | **Mostly paid 2026-10-13 by D31 (commits `7ff8c5a`, `22567d9`); the CEO walked it on screen and approved the text menu the same day (D32, commit `f3cc523`).** The main menu's items and the skill screen's header are text in `SDMENU` (§6.6); `M_NGAME`, `M_OPTION`, `M_LOADG`, `M_SAVEG`, `M_RDTHIS`, `M_QUITG`, `M_NEWG` and `M_SKILL` are no longer named by `MENUDEF`. **Still Freedoom's:** the skull cursor `M_SKULL1`/`M_SKULL2` (Doom's `DEFAULTLISTMENU` selector), the pause sign `M_PAUSE` (Doom's pause graphic; not yet looked at on screen in this mod), and `M_EPISOD`, which the engine draws only if the mod ever has a second episode. Engine-drawn text (load/save captions, message boxes, the options screens) uses fonts, not Freedoom's pictures. | `art-director` (cursor, pause sign) with the rest of the shell; treatment C, painted per-language menu graphics, is parked by the CEO (D31) |
+| T12 | **Mostly paid 2026-10-13 by D31 (commits `7ff8c5a`, `22567d9`); the CEO walked it on screen and approved the text menu the same day (D32, commit `f3cc523`).** The main menu's items and the skill screen's header are text in `SDMENU` (§6.6); `M_NGAME`, `M_OPTION`, `M_LOADG`, `M_SAVEG`, `M_RDTHIS`, `M_QUITG`, `M_NEWG` and `M_SKILL` are no longer named by `MENUDEF`. **Still Freedoom's:** the skull cursor `M_SKULL1`/`M_SKULL2` (Doom's `DEFAULTLISTMENU` selector), the pause sign `M_PAUSE` (Doom's pause graphic; not yet looked at on screen in this mod), and ~~`M_EPISOD`~~, which the engine would draw once the mod has a second episode: D41 gave it one, and the redeclared `EpisodeMenu` draws a text header instead (§4.4, §6.6). Engine-drawn text (load/save captions, message boxes, the options screens) uses fonts, not Freedoom's pictures. | `art-director` (cursor, pause sign) with the rest of the shell; treatment C, painted per-language menu graphics, is parked by the CEO (D31) |
 | T13 | `MENUDEF` names `OptionsMenuSimple`, and `AddOptionMenu` on a name the engine does not define is a **hard parse error**. If a GZDoom upgrade drops the simple options menu, the lump stops loading until that block goes. | at the next engine upgrade |
-| T14 | Three engine menus (`MainMenu`, `SkillMenu`, and the `os_Menu` insertion anchor) are copied into `MENUDEF`; since D31 the first two also differ in their items and layout (§6.6). They do not track engine changes. | re-diff at every engine upgrade |
+| T14 | Four engine menus (`MainMenu`, `SkillMenu`, `EpisodeMenu` since D41, and the `os_Menu` insertion anchor) are copied into `MENUDEF`; since D31 the first two, and since D41 the third, also differ in their items and layout (§6.6). They do not track engine changes. | re-diff at every engine upgrade |
 | T15 | MAP01's `par = 210` is set, the intermission's PAR row appears, but the printed value was never read in an unattended run (§4.1). | `qa-engineer`, with a human at the keyboard |
 | ~~T16~~ | **PAID 2026-10-13**: the ANIMDEFS pairs in `be6525a`, MAP01 v2 retired `SWITCH_PLACEHOLDER` in `bf857a0`. Was: **Paid for the engine, open for the map.** `src/lumps/ANIMDEFS` ships the four `switch` pairs SDSW1x → SDSW2x (2026-10-13), syntax from `gzdoom.pk3 → animdefs.txt`, and `SDSW1A` was seen to flip in engine the same day (§4.3). Open: MAP01 still wears `SDDOOR1` (`SWITCH_PLACEHOLDER`); the click is heard on the CEO's first walk with real switches. | `level-designer`, MAP01 v2 |
 | T18 | **Every bestiary sprite and sound is a Freedoom placeholder** (§5.1, §6.2, §6.3); the heavy Panzermensch looks exactly like the normal one. | F5, as `art-director` and `sound-designer` deliver (D35: own drawings for the five most-seen) |
