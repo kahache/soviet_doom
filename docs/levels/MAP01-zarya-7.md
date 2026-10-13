@@ -1,17 +1,21 @@
 # MAP01 — Zarya-7 Cosmodrome
 
-Design document. Owner: `level-designer`. Status: **text approved by the PM
-as written (2026-10-12, `docs/PENDING-CEO-DECISIONS.md` §6); CEO verdict
-pending on walking v1. v0 (the grey floor plan) BUILT — §14; v1 (textured
-and signposted) BUILT — §15; v2 (light and detail) is NEXT.** v3 (balance)
-after it. The open points for the CEO are in §13, with what is decided
+Design document. Owner: `level-designer`. Status: **a working brief the PM
+approved as written (2026-10-12). The CEO judges maps by walking them, not
+by reading them (D28): that is why v0 was an untextured grey box. v0 (the
+grey floor plan) BUILT — §14; v1 (textured and signposted) BUILT — §15, and
+walked by the CEO on 2026-10-13 (the section after §15: finishable, but he
+opened the gate without knowing he had); v2 (light, detail, and the gate
+made legible) BUILT — §16, engine pass owed by the PM.** v3 (balance)
+next. The open points for the CEO are in §13, with what is decided
 marked as such. Russian mirror: `docs/ru/levels/MAP01-zarya-7.md`.
 
 > **Walk it:** `python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP01 tools/run.sh`
 > (the engine gate, `SD_ALLOW_ENGINE=1`, is the PM's or the CEO's to set:
 > agents never start GZDoom). The as-built plan, labelled, is
-> `docs/levels/shots/2026-10-13_0045_F3_map01-v0-plan.png`; the v1
-> screenshots are listed in §15.
+> `docs/levels/shots/2026-10-13_0045_F3_map01-v0-plan.png` (v0; v2 moved
+> SW-A and the catwalk's west end, §16); the v1 screenshots are listed in
+> §15.
 
 Inputs this document obeys and does not restate: `docs/PRD.md` (D1–D15),
 `docs/product/LORE.md` (MAP01 = cosmodrome, barracks and hangar, weapon
@@ -156,8 +160,8 @@ opens it, and the switch's effect is visible from where it is thrown.
 | D4 | Hangar → airlock (256 wide, two leaves) | remote, opens for good | `Door_Open` tag 10, by SW-A | no: opens and stays open |
 | D5 | Airlock → exit (128 wide) | remote, opens for good | `Door_Open` tag 11, by SW-B | no |
 | D6 | Catwalk → booth | manual door, both sides | `Door_Raise`, repeatable | no |
-| SW-A | Fuel bay, lit niche | wall switch, **repeatable** | `Door_Open` 10 + `Door_Open` 20 + `Light_ChangeToValue` 30 | no |
-| SW-B | Control booth | wall switch, **repeatable** | `Door_Open` 11 | no |
+| SW-A | Fuel bay, lit alcove off its south wall with a window onto the hangar (v2, §16) | wall switch, **one-shot: stays on** | `Door_Open` (10, 16, light tag 30) | no: `Door_Open` cannot be undone |
+| SW-B | Control booth | wall switch, **one-shot: stays on** | `Door_Open` 11 | no |
 | EXIT | Lift room, east wall | wall switch | `Exit_Normal` | — |
 
 Rules that remove whole classes of softlock, applied everywhere:
@@ -167,8 +171,11 @@ Rules that remove whole classes of softlock, applied everywhere:
 - **No lifts on the critical path.** Height is changed by stairs only (the
   hangar is reached by a 3-step stair, the catwalk by an 8-step stair), so
   nothing can be left in the wrong position.
-- **Every switch is `repeatspecial`** and every remote door is `Door_Open`
-  (open and stay), so a mis-timed or repeated use can never consume a gate.
+- **Every remote door is `Door_Open`** (open and stay) and nothing in the
+  map closes it, so no use, repeated or mis-timed, can consume a gate.
+  Manual doors and secret panels are `repeatspecial`; since v2 the two gate
+  switches are deliberately one-shot, so they stay in their ON picture
+  (§16.1).
 - **No drop greater than 24 units without a return route in the same zone.**
   The two intentional height changes (hangar −32, sump −96) are both served
   by two-way stairs.
@@ -230,13 +237,18 @@ Light policy I fix as owner of the value (ART-BIBLE §4 proposed 112–144
 corridors / 128–160 barracks / 160–192 hangar; I keep the bands and pin the
 numbers):
 
-- Allowed range **96 … 192**. 96 only in S1, S3 and Z10; 192 only under
-  hangar lamps. Nothing is pitch dark: the base still has power.
+- Allowed range **96 … 192**. 96 only in S1, S3, Z10 and the booth before
+  SW-A; 192 under the hangar lamps and on the **beacons** that say "go
+  here" (the fuel-bay mouth, its window, and SW-A's alcove and D4's recess
+  once powered — v2, §16.3). Nothing is pitch dark: the base still has
+  power.
 - Adjacent sectors that are meant to read as different spaces differ by
   **≥ 16**. A lamp sector is exactly +16 over its room.
 - One `SDCEIL1` flat = one 64×64 lamp sector at +16 (ART-BIBLE §4).
 - The map gets *brighter* towards the hangar and then *darker* towards the
   exit: the curve of light follows the curve of the fiction.
+- The **Light** column of the table above is the plan; the as-built values,
+  where v2 pinned them differently, are §16.3.
 
 Texture conventions for the builder (settled by the v1 build, §15):
 
@@ -373,9 +385,11 @@ walking v0 and watching the thing move. Evidence is in
 | Wall switch opening a remote door | `Door_Open` **11** on a **one-sided** line, tag of a non-adjacent sector | **VERIFIED**: SW-A thrown, D4 found open from the hangar with the airlock and the still-shut D5 behind it (`…_d4-closed.png` → `…_d4-open-airlock-d5.png`) |
 | Level exit | `Exit_Normal` **243** on a switch line | **VERIFIED**: the engine left and re-entered MAP01 (MAPINFO `next = "MAP01"`), two `MAP01 - …` lines in one log |
 | Sector / line tags | UDMF `id` on the sector; `arg0` on the line | **VERIFIED** implicitly by all of the above |
-| Booth light turns on | `Light_ChangeToValue` (110) tag 30, arg 144 | **NOT VERIFIED** — v2 |
-| Flickering corridor section | sector special or `Light_Flicker` (113) | **NOT VERIFIED** — v2 |
-| Secret sector | sector `special = 1024` | **NOT VERIFIED** — v2 |
+| Gate, booth and SW-A's alcove light up when SW-A is thrown | `Door_Open` (10, 16, **30**): the third argument is the light tag; sectors tagged 30 rise to their brightest neighbour as D4 opens | argument shape from `xlat/base.txt` (Doom line 31 = `Door_Open (0, D_SLOW, tag)`); behaviour **NOT VERIFIED** — v2 built on it, §16.3, engine checklist E4–E6 |
+| Gate switch that stays on | `Door_Open` on a use line **without** `repeatspecial` | **NOT VERIFIED** that the face holds `SDSW2x` — E4 |
+| Flickering corridor section | sector `special = 65` (`dLight_Flicker`) | number from `xlat/defines.i` (Doom sector type 1 → `dLight_Flicker = 65`); behaviour **NOT VERIFIED** — E7 |
+| Secret sector | sector `special = 1024` | number from `xlat/defines.i` (`SECRET_MASK 0x0400`, Doom sector type 9); behaviour **NOT VERIFIED** — E8–E10 |
+| `Light_ChangeToValue` (110), `Light_Flicker` (113) | — | **not used** in v2: each needs a trigger line of its own (§16.3) |
 
 Two engine facts worth writing down, both learned the hard way:
 
@@ -388,18 +402,17 @@ Two engine facts worth writing down, both learned the hard way:
   would have given a 28-unit doorway, i.e. impassable. Fixed in v0 (§14);
   every door's clearance is now checked by a test.
 
-Tag plan, updated by v0: **1** D1 · **2** D2 · **3** D3 · **6** D6 ·
-**10** D4 · **11** D5 · **20** hangar wave-2 closets · **21** fuel-bay
-ambush panels · **30** booth light · **101/102/103** secret panels
-S1/S2/S3. 4, 5, 7–9 and 12–19 stay free for v2 detail. Manual doors are
+Tag plan, updated by v0 and v2: **1** D1 · **2** D2 · **3** D3 · **6** D6 ·
+**10** D4 · **11** D5 · **20** hangar wave-2 closets (v3) · **21** fuel-bay
+ambush panels (v3) · **30** the gate's power light: SW-A's alcove, D4's
+recess and the booth (v2) · **101/102/103** secret panels S1/S2/S3. 4, 5, 7–9 and 12–19 stay free for v2 detail. Manual doors are
 tagged rather than tag-0 so either flanking line opens them.
 
 Switch textures: `SDSW1A-D` (off) and `SDSW2A-D` (on), 64×128, approved
-2026-10-13 and in `assets/textures/soviet_base/`. The lump that makes a
-switch flip is in: `src/lumps/ANIMDEFS` pairs each `SDSW1x` with its
-`SDSW2x` since 2026-10-13 (MOD-SPEC §4.3). The map still wears `SDDOOR1`
-(`SWITCH_PLACEHOLDER` in `map.py`) on SW-A, SW-B and the exit because v1
-was built before it; v2 retires the placeholder — see §10, request A3.
+2026-10-13 and in `assets/textures/soviet_base/`; `src/lumps/ANIMDEFS` pairs
+each `SDSW1x` with its `SDSW2x` (MOD-SPEC §4.3). v2 puts them on the wall:
+SW-A `SDSW1A`, SW-B `SDSW1B`, exit `SDSW1D` (§16.2). `SWITCH_PLACEHOLDER`
+is retired; the v1 walk showed what it cost (the section after §15).
 
 ## 10. What I need before I can build
 
@@ -459,28 +472,23 @@ was built before it; v2 retires the placeholder — see §10, request A3.
 
 ### From `art-director` (one blocking, the rest shape v2)
 
-- **A1 — ANSWERED as a mechanism, verdict open.** `SDCONC2` is in `assets/`
-  and in the PK3 (M1, 2026-10-12), and the v1 build (§15) is its in-map
-  review: the stripe is the wayfinding language of Z3, Z5, the D4 frame and
-  the fuel-bay opening. **The CEO has not walked v1 yet**, so its row in
-  `TEXTURE-INDEX.md` stays "pending in-map review". **Fallback if refused:**
-  the route is marked by `SDSTEL1` pilasters instead, the map still works,
-  and it loses its best sign.
-- **A2 — `SDSTAR1`, verdict open.** v5 is built into v1 on one wall (the
-  dorm, beside D2 — §15, deviation 2, not Z4's east pier as planned). If v5
-  is refused, one constant in `map.py` changes to `SDCONC1`; nothing
-  structural depends on it.
-- **A3 — texture DONE, animation lump DONE (2026-10-13); the rest is mine,
-  in v2.** The switch textures exist: `SDSW1A-D` (off) and `SDSW2A-D` (on),
+- **A1 — CLOSED 2026-10-13 (D30).** The CEO approved `SDCONC2` as built,
+  three bands in the hangar included, while walking v1: «no queda perfecto
+  pero yo lo dejaría así, le da color y relleno las 3 bandas». The hangar
+  wainscot that was its alternative is discarded (§15, deviation 1).
+- **A2 — CLOSED 2026-10-13 (D30).** `SDSTAR1` v5 approved where v1 put it
+  (the dorm, beside D2): «la apruebo, preciosa».
+- **A3 — CLOSED in v2 (§16.2): the three switches wear real faces.**
+  History: the switch textures exist: `SDSW1A-D` (off) and `SDSW2A-D` (on),
   64×128, all four variants approved by the CEO on 2026-10-13 ("así tenemos
   diversidad"), in `assets/textures/soviet_base/`, licence row in
   `docs/art/LICENSES.md`. The lump that makes the engine swap off for on is
   `src/lumps/ANIMDEFS` (`mod-engineer`, debt T16 paid): four `switch` pairs
   `SDSW1x → SDSW2x`, and `SDSW1A` was seen to flip to `SDSW2A` in engine the
   same day. MOD-SPEC §4.3 owns the syntax, its source and the evidence; Boom's
-  binary `SWITCHES` lump is not used. What is left is mine: v2 retires
+  binary `SWITCHES` lump is not used. What was left was mine, and v2 did it: retire
   `SWITCH_PLACEHOLDER` (`SDDOOR1` on SW-A, SW-B and the exit, kept in v1
-  because v1 was built before the lump) and picks one variant per switch.
+  because v1 was built before the lump) and pick one variant per switch.
   The click is still unheard; the CEO's first walk with real switches is
   where it is confirmed. (Superseded original wording, for the record: the
   request asked for a pair named `SDSWT1`/`SDSWT2`; the approved lumps
@@ -490,13 +498,13 @@ was built before it; v2 retires the placeholder — see §10, request A3.
   and the stencilled "7" appear twice side by side. It reads as a double
   door, which is plausible, but a mirrored or plain half-leaf would read
   better. Decide after the CEO sees it in v1.
-- **A5 — crate / locker texture (already a batch-2 candidate).** The dorm,
-  the guard post and the hangar bays want a crate face; today they are
-  `SDSTEL1` boxes.
+- **A5 — CLOSED 2026-10-13 (D29): batch 3**, `SDCRAT1`, `SDCRAT2`,
+  `SDCRTOP1`, `SDLOCK1`, placed in v2 (§16.5).
 - **A6 — no exterior.** There is no approved exterior or sky texture, so
   MAP01 v1 is entirely interior and the hangar's launch-pad gate stays shut.
   If the CEO wants a strip of night sky over the hangar, `SKY1` is already
-  declared in MOD-SPEC §5 and I can open a roof slit in v2 — say the word.
+  declared in MOD-SPEC §5 and the roof slit is one rectangle with ceiling
+  `F_SKY1` (`map.py` marks the spot) — still open, §13 point 5.
 
 ### Not requested on purpose
 
@@ -534,8 +542,8 @@ screenshotted into `docs/levels/shots/`.
 |---|---|---|
 | **v0 — grey** ✅ **BUILT 2026-10-13** (§14) | the complete floor plan: every sector, every door, both switches, the exit, correct heights and stairs. One wall texture and one floor/ceiling pair everywhere (`STARTAN2`/`FLOOR4_8`/`CEIL3_5`), flat light 160, no enemies, no items. | you can walk start → exit; no HOM, no stuck geometry; G3-1, G3-2, G3-6 pass |
 | **v1 — textured** ✅ **BUILT 2026-10-13** (§15) | §6 applied zone by zone, alignment pass (door recesses, floor pegging, lane continuity), `SDPOSTR2` mural and `SDPOSTR1` Lenin placed, D4/D5/D6 as `SDDOOR1`, the `SDCONC2` route built and photographed. | G3-3 passes; the CEO can judge `SDCONC2` from screenshots |
-| **v2 — light and detail** — **NEXT**, starts once the CEO has walked v1 and given his verdict (§13) | the §6 light table, lamp sectors, the flickering corridor, the booth light that SW-A turns on, parapets, pilasters, steps, drums, floor lamps, the three secrets built and flagged; the real switch textures, one variant per switch, retiring `SWITCH_PLACEHOLDER` (A3; the `ANIMDEFS` pairs are in, MOD-SPEC §4.3). | the map reads without a compass: a first-time player finds the hangar, the fuel bay and D4 without being told |
-| **v3 — balance** | §8 placed with per-skill flags, ammo and health budget, the two waves and the ambush timed, playtests on 2/3/4 with notes. | all of G3-1…G3-8 green; ready for the CEO's G3-9 |
+| **v2 — light and detail** ✅ **BUILT 2026-10-13** (§16), engine pass owed (§16.9) | the §6 light table, lamp sectors, the flickering corridor, the booth light that SW-A turns on, parapets, pilasters, steps, drums, floor lamps, the three secrets built and flagged; the real switch textures, one variant per switch, retiring `SWITCH_PLACEHOLDER` (A3; the `ANIMDEFS` pairs are in, MOD-SPEC §4.3). **Added after the v1 walk:** SW-A moved where it sees D4, a window, the light tag (§16.1). | the map reads without a compass: a first-time player finds the hangar, the fuel bay and D4 without being told, **and knows that SW-A opened D4** (the v1 walk showed the first half is not enough) |
+| **v3 — balance** — **NEXT** | §8 placed with per-skill flags, ammo and health budget, the two waves and the ambush timed, playtests on 2/3/4 with notes. | all of G3-1…G3-8 green; ready for the CEO's G3-9 |
 
 Running any version, once it is in the build:
 
@@ -552,20 +560,19 @@ SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=3 tools/run.sh      # either machine; the gate
 
 ## 13. Open points for the CEO
 
-Status as of 2026-10-13. What is **decided** says where; what is **open**
-is the PM's to carry in `docs/PENDING-CEO-DECISIONS.md`. The CEO has not
-walked v1 yet, which is what points 2 and 6 wait on.
+Status as of 2026-10-13, after the CEO's walk of v1. What is **decided**
+says where; what is **open** is the PM's to carry in
+`docs/PENDING-CEO-DECISIONS.md`.
 
 1. **Key-free MAP01** (§4) — **OPEN, acted on by default.** v0 and v1 are
    built key-free (the PM approved the design as written, 2026-10-12); the
    yellow-card alternative in the guard post is still a cheap change, but it
    gets more expensive at each version. Recommendation unchanged: key-free,
    as the lore assigns the first key to MAP02. Needs one word from the CEO.
-2. **`SDCONC2`** (A1) — **mechanism DECIDED, verdict OPEN.** The stripe ships
-   in the PK3 (M1, 2026-10-12) and v1 is its in-map review (§15). The CEO's
-   verdict — in the barracks it is one band, in the hangar it is three — is
-   what closes the `TEXTURE-INDEX.md` row. Option if he wants one band in
-   the hangar: a 128-high wainscot in v2 (§15).
+2. **`SDCONC2`** (A1) — **DECIDED 2026-10-13 (D30)**: approved as built,
+   three hangar bands included («no queda perfecto pero yo lo dejaría así,
+   le da color y relleno las 3 bandas»). The 128 wainscot is discarded.
+   `SDSTAR1` v5 approved the same walk («la apruebo, preciosa»).
 3. **Switch texture** (A3) — **DECIDED 2026-10-13**: all four variants
    `SDSW1A-D` / `SDSW2A-D` approved and installed (commit `4083883`,
    `docs/art/LICENSES.md`). The IWAD-placeholder alternative is moot, and
@@ -576,18 +583,19 @@ walked v1 yet, which is what points 2 and 6 wait on.
    skill is a modern MAP01, longer than Doom II's MAP01 (~2 min) and shorter
    than a modern megawad opener. Say if you want it shorter; it matters
    before v3 places the monsters, not before.
-5. **A strip of night sky** over the hangar in v2 (A6) — **OPEN.** Yes or no;
-   `SKY1` is already in MOD-SPEC §5, so "yes" is a roof slit in v2 and no
-   new asset.
-6. **Walk v1** (added by the v0 playtest finding, §14) — **OPEN, the gate
-   criterion itself.** From the hangar's bottom step, does the player reach
-   the fuel bay without being told? This is the question the red stripe and
-   the yellow lane were built to answer and only the CEO's walk answers it.
-   The twelve v1 screenshots in §15 are the fallback if he would rather
-   look than play.
+5. **A strip of night sky** over the hangar (A6) — **OPEN, not built in
+   v2 on purpose.** Yes or no; `SKY1` is already in MOD-SPEC §5, so "yes"
+   is one rectangle over the hangar with ceiling `F_SKY1` (the spot is
+   marked in `map.py`; `F_SKY1` would then be listed in MOD-SPEC §5) and
+   no new asset.
+6. **Walk v1** — **DONE 2026-10-13, criterion NOT met** (the section after
+   §15): he reached the bay and pressed SW-A, but took it for a broken door
+   and opened D4 without knowing it. **Walk v2** replaces it — **OPEN, the
+   gate criterion itself**: does a first-time player open D4 and *know* he
+   did? It comes after the PM's engine pass (§16.9).
 
-Items 2, 4, 5 and 6 are also the ones the CEO should judge while walking v1;
-item 1 can be answered without playing.
+Items 4, 5 and 6 are the ones the CEO should judge while walking v2; item 1
+can be answered without playing.
 
 ## 14. v0 build record (2026-10-13)
 
@@ -756,10 +764,8 @@ screenshot that matters is `…_map01-v1-hangar-to-fuel-mouth.png`.
 ### Verdict on each, from walking it
 
 These are `level-designer`'s own verdicts from walking the build on the Mac
-on 2026-10-13. **The CEO has not walked v1**: the PM stopped the delivery
-mid-morning because the engine windows were interrupting him, and the CEO's
-verdict on the three signs, on `SDCONC2` and on `SDSTAR1` is still to come
-(§13), on the Windows PC.
+on 2026-10-13. The CEO walked v1 that afternoon on the Windows PC: his
+verdicts and what they changed are in the next section and in §16.
 
 - **The stripe works, and it is the strongest thing in the map.** In the
   96-high barracks corridor it is a single band at chest height on both
@@ -770,7 +776,8 @@ verdict on the three signs, on `SDCONC2` and on `SDSTAR1` is still to come
   banding, not as a mistake. **This is `SDCONC2`'s in-map review (A1, and
   G3-9's second half): the CEO has it in two very different rooms and can
   decide.** If he wants a single band in the hangar, v2 gives the hangar a
-  128-high wainscot and the stripe goes on that.
+  128-high wainscot and the stripe goes on that. *(Decided 2026-10-13, D30:
+  the CEO keeps the three bands; no wainscot.)*
 - **The yellow lane works.** Two parallel lines 64 apart read as a marked
   traffic lane from across the room and they survive the perspective.
 - **The recessed gate works.** D4 is now unmistakably a pair of shut blast
@@ -796,7 +803,7 @@ gate criterion. **Deviation from §3: Z6b is x 1472…2560, not 1280…2560.**
 
 | # | §6 said | Built | Why |
 |---|---|---|---|
-| 1 | hangar walls: `SDSTEL1` dado below 128, `SDCONC1` above | `SDCONC1` throughout; plate only where the geometry already provides a band — the catwalk's 128-high front face and the cradle's 64-high flank | a two-material wall needs either a composite texture (art-director) or a wainscot sector all round the hangar. Both are v2. The dado is noted as a v2 item, not dropped. |
+| 1 | hangar walls: `SDSTEL1` dado below 128, `SDCONC1` above | `SDCONC1` throughout; plate only where the geometry already provides a band — the catwalk's 128-high front face and the cradle's 64-high flank | a two-material wall needs either a composite texture (art-director) or a wainscot sector all round the hangar. **Dado and wainscot DISCARDED 2026-10-13 by the CEO's verdict on `SDCONC2` (D30)**: he approved the hangar as built, three bands of stripe included — «no queda perfecto pero yo lo dejaría así, le da color y relleno las 3 bandas». |
 | 2 | `SDSTAR1` plaque on the komnata's east pier | dorm north wall, beside D2 | the komnata is 192 high and the plaque is 128: on its wall it would tile. The dorm is exactly 128, so the plaque is one clean tile — and it is the first thing the player sees on waking, next to the door he is about to use. |
 | 3 | `SDPOSTR2` mural "on the komnata's north wall, once" | in a 128×128 niche cut into that wall | same arithmetic, same fix: 128 of mural in a 192 room tiles one and a half times. The niche makes it one tile and turns a decoration into a shrine. |
 | 4 | — (`SDPOSTR1` was discarded when §6 was written) | Lenin on the lift room's north wall | `SDPOSTR1` was approved on 2026-10-12 at 128×**256**, and Z10 is the only room in the map exactly 256 units from floor to ceiling. It also lands well: the last Soviet face before the metro. |
@@ -919,3 +926,322 @@ each, `SWITCH_PLACEHOLDER` retired; the `ANIMDEFS` pairs are in, MOD-SPEC
 machine and given his verdict on §13 — and the single most useful thing light will do
 is finish the job this pass started, because a lit fuel-bay mouth at the end
 of a dark red wall is an argument no player misses.
+
+## v1 playtest, CEO 2026-10-13: the switch read as a broken door
+
+The CEO walked v1 on the Windows PC on 2026-10-13, around 15:35. His words,
+verbatim, in the order he said them:
+
+- «ostia la puta IA jajaja ahora sí que funciona!»
+- «he llegado a un sitio grande, creo que he recorrido el mapa»
+- asked how far he got: «Me quedé en el hangar; la puerta doble no se abre»
+- and a little later, once he had worked it out: «Vale ya lo he descubierto:
+  la compuerta no es como tal, es una puerta q no hace ningún ruido si le
+  das a "E". De ahí que no se abra. Pero luego se ha abierto y he podido ver
+  el texto de la pantalla y todo.»
+
+**The gate criterion of v1 was NOT met.** The criterion (§14, end; §15) was
+that a player who has never seen the map reaches the fuel bay **and opens
+D4 without being told**. He reached the bay and pressed SW-A, but he did not
+know he had: he took the switch for a broken door, went on looking, and
+later found D4 open without knowing why. He then finished the map and saw
+the end text, so **v1 is finishable**; what failed is legibility, the same
+failure as v0's (§14), now with textures. It is half a pass at best: he got
+there, but not because the map told him.
+
+**It is not a mechanical bug.** The PM checked it in the engine on a
+throwaway copy of the map: with the player in front of SW-A (linedef 216,
+`Door_Open` tag 10, the fuel bay's north wall), one press opens D4, and the
+player can stand in the open doorway. Evidence:
+`docs/qa/evidence/2026-10-13_1540_F3_map01-v1-swa-opens-d4.png` — three
+frames: SW-A close up (it is `SDDOOR1`: a locking wheel and a hazard
+stripe, i.e. a door), the corridor behind D4 open, and the player inside
+the doorway.
+
+### Diagnosis
+
+The PM's three hypotheses, checked against the CEO's second message:
+
+| # | Hypothesis | Verdict |
+|---|---|---|
+| 1 | SW-A still wore `SDDOOR1`, so it looked like a door | **Confirmed.** «es una puerta». |
+| 2 | Pressing it showed nothing: D4 opens 1600 units away, out of sight | **Confirmed**, and worse than that: a line special on a texture with no `ANIMDEFS` pair makes **no sound and no change at all** («no hace ningún ruido»). Nothing on screen or in his ears said that anything had happened. |
+| 3 | He may never have entered the bay | **Refuted.** He found SW-A and pressed it. The v1 signposting (red wall, yellow lane, the mouth) did its job. |
+
+The single cause: **the player received no evidence of cause and effect.**
+`SWITCH_PLACEHOLDER` was a known lie (§15: "it reads door, not lever"), but
+its cost was underestimated. Without a switch face there is no switch
+sound and no switch flip, so the press was invisible and inaudible, and a
+door that does not open is the one thing a Doom player stops pressing. And
+§4 had promised that "the switch's effect is visible from where it is
+thrown", which v0 and v1 never delivered: SW-A was on the bay's back wall,
+facing away from everything it did.
+
+What v2 has to do, therefore, in this order: (1) make the switch a switch,
+which brings the click and the flip; (2) let the player see, from the
+switch, the thing it opens, before and after; (3) put a change he cannot
+miss in front of him at the moment he presses. §16 is how.
+
+## 16. v2 build record (2026-10-13)
+
+Source: `src/maps/MAP01/map.py`; builder `tools/sdbuild/udmf.py` (two
+changes, below). **80 sectors, 322 linedefs, 260 vertices, 1 thing** (the
+player start: enemies and items are v3). Not walked in GZDoom by this role
+(D26): the engine pass is the PM's, with the checklist at the end of this
+section.
+
+```sh
+python3 tools/verify.py fast                                            # build + check_pk3 + suite, no window
+python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP01 tools/run.sh      # walk it (PM or CEO only)
+```
+
+### 16.1 The gate, solved by sight
+
+What the player meets, in order, and what each piece is for:
+
+| # | Where | What is built | What it says |
+|---|---|---|---|
+| 1 | hangar, west side | lane B and the fork in shadow (`LIGHT_WEST_BAY` 144), the fuel-bay mouth lit as a beacon (192) | "the red wall ends in light": the lit mouth is the brightest thing on that side of the hangar |
+| 2 | hangar north wall, beside the mouth | a **window** 192 wide (sill strip x 1344…1536, y 1584…1600, sill 56 above the hangar floor, lit 192) into a lit alcove | from the red wall and from the bottom step, a lit switch shows through it: the player knows there is a switch before he enters the bay (tested sight lines) |
+| 3 | SW-A's alcove, cut through the bay's south wall (x 1344…1472, y 1600…1664) | one step (24) up from the bay; ceiling 128 above its floor; **`SDSW1A`**, the knife switch, alone on its 64-long east wall | a switch that looks like a switch, one face, never tiled; a control platform over the hangar |
+| 4 | at the switch | the window on the player's right frames **D4, dark in its recess** (`LIGHT_GATE_DEAD` 112), 37° right of the switch | the locked thing seen from the thing that unlocks it, before pressing |
+| 5 | the press | the engine's switch click; `SDSW1A` → `SDSW2A` (blade closed, lamp lit), **staying on** (one-shot); the alcove's light comes up 160 → 192 | something happened, in front of his eyes and in his ears |
+| 6 | the same press, at a distance | D4 rises (≈ 2 s); D4's recess comes up 112 → 192; the control booth comes up 96 → 160 | the gate is visibly the thing that answered; the booth is the next destination |
+
+**Why this option and not the others** (the PM's four ideas):
+
+- *A window or line of sight from SW-A to D4* — taken, because it is the
+  only one that delivers §4's promise literally. It could not be done from
+  SW-A's v1 spot: the bay is 1600 units from D4 and walled on three sides.
+- *Move SW-A to where D4 is seen* — taken too, in the only form that keeps
+  the fuel bay as the place the player must go: SW-A moves from the bay's
+  back wall to an alcove off its front wall, still entered only from the
+  bay. Moving it into the hangar would have made the bay pointless and the
+  gate trivial.
+- *A light that changes over D4 when pressed* — taken, through `Door_Open`'s
+  light-tag argument (§9), because one switch line carries one special and
+  SW-A's must be the door.
+- *A clue on the way that leads to the bay before the gate* — taken as
+  light (the dark red wall ending in the lit mouth) and as the window,
+  which shows the switch itself from the hangar. v1 already got the CEO
+  into the bay; this keeps it so without adding a sign that talks.
+
+**What the sight line costs, measured.** The catwalk's west end moves from
+x 1472 to **1792**: at 1472 it stood across the line from the alcove to
+D4 at catwalk height. And the alcove is raised one step because from the
+bay's floor the transporter cradle hides the lower half of the gate; from
+the step the eye (z 33) clears it. `tests/test_udmf.py` checks the line
+from a point within reach of the switch to nine points on D4's leaf (y 608
+/ 672 / 736, z 40 / 64 / 88), and that the same line aimed through the shut
+leaf is blocked (a door, not a room).
+
+**Its limit, stated.** D4 is 37° to the right of the switch. Sampled every
+4 units, it is in view from 72% of the alcove and from 46% of the positions
+within reach of the switch: from the back corner, right against the switch,
+the switch's own wall hides it. That is why step 5 puts the alcove's own
+light change in front of the player: the press is never invisible, and the
+gate is one quarter-turn away. 16:10 and 16:9 screens show ±50° or more, so
+from the front half of the alcove D4 is on screen while the switch is
+centred. Not judged in engine yet: checklist E3–E5.
+
+**One-shot switches.** SW-A and SW-B are no longer `repeatspecial`. A
+repeatable switch face pops back to OFF after a second (Doom's
+`BUTTONTIME`, 35 tics), which on the gate switch reads "it turned itself
+off again". Both fire `Door_Open`, which opens and stays open and which
+nothing in the map closes, so one press cannot consume a gate — the
+reason §4's rule existed is kept, by a different means. Manual doors and
+secret panels stay repeatable. Tested.
+
+### 16.2 The switches
+
+| Switch | Where | Face | Why that variant | Special |
+|---|---|---|---|---|
+| SW-A | east wall of its alcove, x 1472, y 1600…1664 | `SDSW1A` knife switch | a rubilnik is "main power": it powers the gate and its lights | `Door_Open (10, 16, 30)`, one-shot |
+| SW-B | booth north wall, y 1856, x 2528…2592 | `SDSW1B` domed push button | a console button in a control room | `Door_Open (11, 16, 0)`, one-shot |
+| EXIT | back of a 64×128 niche in the lift shaft's east wall, x 3296, y 608…672 | `SDSW1D` hazard panel | the lift down into the metro: a hazard | `Exit_Normal (0)` |
+
+`SDSW1C` is not used (three switches, four variants). Every switch is a
+64-long one-sided line on a wall exactly 128 high, so each face is drawn
+once (tested). The lift shaft is 256 high, so the exit got a niche (lit
+144: the only lit thing in the darkest room). `SWITCH_PLACEHOLDER` is gone,
+and a test asserts that no one-sided line in the map wears `SDDOOR1`.
+
+### 16.3 Light
+
+All values are named constants in `map.py`; the tests read them.
+
+| Zone | Light | Note |
+|---|---|---|
+| Z1 dorm | 144, lamp 160 | |
+| Z2 washroom | 112 | |
+| S1 locker | 96 | secret |
+| Z3 corridor | 128, two lamps 144 | §6 said 120; 128 keeps the "+16 per lamp" rule and the 16-step grid |
+| Z4 komnata | 160, two lamps 176; mural niche 176 | |
+| Z5 service corridor | 112, lamp 128 | §6 said "pools 144"; +16 per lamp is the rule, so 128 |
+| Z5 failing lamp | 144, **flickering** down to 112 | a 64×128 strip, x 1024…1088, sector special 65 |
+| Z5b guard post | 128 | |
+| entry stair | 128 → 144 → 160 | the light rises with the ceiling |
+| Z6 hangar | 176, ten lamps 192 | the design's 6×2 grid loses two north-row cells to the fork lane and the catwalk stair |
+| lane B and the fork | 144 | the red wall's strip of floor, in shadow |
+| fuel-bay mouth, window | **192** | beacons |
+| Z7 fuel bay, S3 lane | 112 | |
+| SW-A alcove | **160 → 192** | tag 30 |
+| sump stair, S3 sump | 112, 96, 96; sump 96 | secret |
+| Z6b catwalk, D6 recess | 160 | |
+| S2 closet | 128 | secret |
+| Z9 booth | **96 → 160** | tag 30; the window holds 160 |
+| D4 recess | **112 → 192** | tag 30; D4's own sector is 192 |
+| Z8 airlock, D5 | 128 | |
+| Z10 lift shaft | 96, exit niche 144 | the darkest room |
+
+Policy changes against §6, made as owner of the value: **192 is no longer
+"only under hangar lamps"** — it is also the light of the beacons (mouth,
+window, and the alcove and the gate once powered). A lamp is exactly +16
+everywhere (tested). The range is still 96…192 (tested).
+
+**How the light tag works, and why it is used.** One line carries one
+special, and SW-A's has to open D4. `Door_Open`'s third argument is a
+*light tag* (argument shape from `gzdoom.pk3 → xlat/base.txt`: Doom's line
+31 is `Door_Open (0, D_SLOW, tag)`). As the door rises, every sector with
+that tag is moved towards the light of its **brightest neighbour**, reaching
+it when the door is fully open (Boom's partial-light-on rule; in GZDoom,
+`EV_LightTurnOnPartway`, called from the door thinker — from memory of the
+source, **NOT VERIFIED**). The map is built for that rule: D4's own sector
+is 192, so its recess ends at 192; the booth's brightest neighbour is its
+window, 160; the alcove's is the window strip, 192. A test applies the
+rule to the plan. If the engine does not behave like this, nothing
+mechanical breaks — the doors open regardless — but the three light
+changes do not happen, and checklist E4–E6 will show it.
+
+`Light_ChangeToValue` (110) and `Light_Flicker` (113) are **not used**. Each
+needs a line of its own to fire it: the first would need a second switch
+or a walk-over trigger (which would light the booth before SW-A), and the
+second would only start flickering when something crossed a line. The
+flicker in Z5 is ambient from the first tic, which is what a **sector**
+special is for: `dLight_Flicker`, value **65** in the zdoom namespace (the
+number is read from `gzdoom.pk3 → xlat/defines.i`, where Doom's sector type
+1 is translated into it; random flicker between the sector's own light and
+its darkest neighbour's). Behaviour NOT VERIFIED.
+
+### 16.4 Secrets
+
+S1 (locker closet), S2 (catwalk closet) and S3 (the sump) carry sector
+`special = 1024`. The number is `SECRET_MASK` in `gzdoom.pk3 →
+xlat/defines.i` (`define SECRET_MASK (0x0400)`, the bit Doom's sector type
+9 becomes): sourced from shipped text, behaviour NOT VERIFIED. Exactly
+three, all reachable, each with a way back (tested).
+
+### 16.5 Detail
+
+- **Crates** (`SDCRAT1` / `SDCRAT2`, lids `SDCRTOP1`): four piles in the
+  hangar (a long crate, a long crate with a two-high stack at its end, a
+  long crate on the approach to D4, a single crate between the cradle and
+  the catwalk), and one long crate along the guard post's back wall. Each
+  side wears the face that fits its length (128 → `SDCRAT2`, 64 →
+  `SDCRAT1`), each is whole crates high, none sits on a tested sight line.
+- **Lockers** (`SDLOCK1`): four on the dorm's west wall, which is exactly
+  128 high. Not in the guard post: it is 104 high and would cut them.
+- **Parapets: not built.** The catwalk's parapet strip (§3) at 32 high would
+  be a texture cut in half (there is no 32-high piece), and crates as a
+  parapet (64) are taller than the player's eye on the catwalk (41), which
+  would hide the hangar from the place built to overlook it. The crate
+  piles on the hangar floor are the low cover the design asked for; a
+  catwalk parapet waits for v3, where it is a balance decision.
+- Pilasters, drums and floor lamps (§12's v2 list) are not built: no
+  approved texture for a pilaster yet, and drums and lamps are *things*,
+  which are v3.
+
+### 16.6 Changes to `tools/sdbuild/udmf.py`
+
+1. **Floor pegging only on walls.** `dontpegbottom` is now set by default
+   on one-sided lines only. On a two-sided line it moves the *lower*
+   texture — a raised floor's flank — and hangs it from this room's
+   ceiling, which cut the guard-post crate (104 room, 64 crate) in the
+   middle. Unflagged, a flank texture starts at its top edge. Side effect,
+   a fix: the catwalk's 128 face under 192 of hangar was hung from the
+   ceiling too, and in v1 its plate was offset by 64; it is now one whole
+   tile. Seen on screen in the v2 engine pass (E15). Tested in `GridMapTest`.
+2. **`switch_door_open_style(..., lighttag=, repeatable=)`**, and the two
+   sector-special constants `SECTOR_SPECIAL_LIGHT_FLICKER = 65` and
+   `SECTOR_SPECIAL_SECRET = 1024` with their source. Tested.
+
+### 16.7 Deviations from §3, §4 and §6
+
+| # | Said | Built | Why |
+|---|---|---|---|
+| 1 | SW-A on the fuel bay's north wall, lit niche | in an alcove through the bay's south wall, one step up, with a window onto the hangar | §16.1 |
+| 2 | Z6b catwalk from x 1472 (v1) | from x 1792 | the sight line from SW-A to D4 (§16.1) |
+| 3 | every switch `repeatspecial` (§4) | SW-A and SW-B one-shot | they stay on; `Door_Open` cannot be undone (§16.1) |
+| 4 | SW-A: `Door_Open 10` + `Door_Open 20` + `Light_ChangeToValue 30` | `Door_Open (10, 16, 30)` | one line, one special; the light rides on the door's light tag. Tag 20 (wave-2 closets) is v3 and needs its own trigger then |
+| 5 | flicker via `Light_Flicker` | sector special 65 | ambient, no trigger (§16.3) |
+| 6 | light values of §6 | §16.3 table | +16 lamps everywhere, 192 also for beacons |
+| 7 | exit switch on the lift shaft's flat east wall | in a 64×128 niche | the wall is 256 high |
+| 8 | §6 Z7 "160 at SW-A" | 160 → 192 | the alcove is the bay's brightest spot and brightens again on use |
+
+### 16.8 Verification actually run
+
+| Check | Result |
+|---|---|
+| `tests/test_udmf.py` | **60 tests, all green** (17 new or rewritten for v2) |
+| `tools/verify.py fast` (Windows PC, `.venv/Scripts/python.exe`) | **VERDICT: PASS** in 18.7 s — docs PASS (warnings elsewhere in the tree), build PASS, `check_pk3` PASS with 0 errors and 0 warnings, tests PASS: **507 tests**, 14 skipped (slow art). A first run minutes earlier failed one test outside this work (`test_language`, main-menu logo) while another agent was mid-edit on `src/lumps/MENUDEF`; the rerun was clean |
+| GZDoom | **not run** (D26). Owed: the checklist below |
+
+New tests: every switch wears a real `SDSW1x` face, three different
+variants, each with its `SDSW2x` twin in `assets/`, and no `SDDOOR1` on any
+one-sided line; every switch face is drawn once (64 × 128); SW-A's tag is
+D4's, its light tag is 30, it is one-shot; no press can consume a gate;
+the light range, the light table, every lamp +16 and one panel, 192 kept
+for lamps and beacons, the red wall in shadow ending in light; one flicker
+strip with a visible swing; the light tag lights the alcove, the gate and
+the booth by the brightest-neighbour rule; the three secrets flagged and
+reachable; sight lines from SW-A to D4, from the hangar to SW-A and from
+the bottom step into the mouth; crate faces whole crates; the dorm lockers
+on a wall their own height; floor pegging only on walls.
+
+### 16.9 Engine checklist for the PM (D26: this role does not start GZDoom)
+
+Method as in the PM's evidence of 2026-10-13: a copy of the map, `warp x
+y`, turn with `+right` / `+left` to the facing given (Doom angles: 0 east,
+90 north, 180 west, 270 south), `+use`, `wait`, `screenshot`. Skill 3. The
+log of the whole session goes to `docs/qa/evidence/` with the screenshots.
+
+| # | Warp to (x y) | Facing | Do | What the screenshot must show |
+|---|---|---|---|---|
+| E1 | 1216 1400 | 60 | — | to the left, the mouth lit (red lintel over it); to its right, the window, its frame bright, and through it the alcove with `SDSW1A` (knife switch, blade down) |
+| E2 | 1336 1152 (bottom step) | 115 | — | the red west wall over darker floor, ending in the lit mouth; the lit window beside it |
+| E3 | 1416 1624 (SW-A, before) | 0 | — | `SDSW1A` centred, one face, whole; to the right through the window, the hangar and, at the right edge, D4 shut in a **dark** recess |
+| E3b | 1416 1624 | 323 | — | D4 framed by the window, over the cradle: two leaves under the red frame, recess dark |
+| E4 | 1416 1624 | 0 | `+use`, `wait 4`, `-use`; screenshot at `wait 10` and again at `wait 105` (3 s) | the face is `SDSW2A` (blade closed, lamp lit) **in both** — it must not pop back; the alcove visibly brighter in the second than in E3. The click is heard (ear, not screenshot: say so in the log note) |
+| E5 | 1416 1624 | 323 | (after E4) | D4 open, the recess **bright** (compare E3b), the airlock beyond |
+| E6 | 2624 1200 | 90 | screenshot once **before** E4 and once after | the booth window over the catwalk's east end: dark before, lit after |
+| E7 | 960 1152 | 0 | three screenshots 5 tics apart | the strip x 1024…1088 at different brightness between frames (flicker) |
+| E8 | 860 96, facing 0, `+use`; then warp 976 96 | — | — | S1 opens; on entering, "A secret is revealed!" on screen |
+| E9 | 1184 1760, facing 180, `+use`; then warp 960 1760 | — | — | S3 opens; the secret message |
+| E10 | 2208 1560, facing 90, `+use`; then warp 2208 1700 | — | — | S2 opens; the secret message. After E8–E10 the automap (or the intermission at E12) counts 3 secrets |
+| E11 | 2560 1810 | 90 | `+use`, then warp 2880 672 facing 0 | `SDSW1B` → `SDSW2B` and stays; D5 open seen from the airlock |
+| E12 | 3250 640 | 0 | screenshot, then `+use` | the exit niche, `SDSW1D`, lit in a dark room; on use, the face flips and the intermission shows (secrets 3 of 3 if E8–E10 ran) |
+| E13 | 1600 700 | 270 | — | the south crate piles: long faces three bays (`SDCRAT2`), ends one crate (`SDCRAT1`), the stack two crates high, none cut |
+| E14 | 960 1240 | 90 | — | the guard post's long crate whole (not cut by the 104 ceiling) |
+| E15 | 2000 1300 | 90 | — | the catwalk's front face: **one whole** `SDSTEL1` tile (in v1 it was offset by 64, §16.6) |
+| E16 | 128 192 | 180 | — | four whole lockers on the dorm's west wall |
+| E17 | the log | — | — | zero lines matching the G3-2 patterns (§11); nothing about sector specials 65 or 1024 or about `SDSW`, `SDCRAT`, `SDCRTOP1`, `SDLOCK1` |
+
+If E4–E6 show the doors moving but no light change, the light tag does not
+behave as assumed: tell this role, and the fallback is a second switch
+line (a `Light_ChangeToValue` on SW-B's booth side is the cheapest) — a
+v2.1, not a redesign.
+
+### 16.10 What is left
+
+- **The gate criterion is now the CEO's walk of v2**: does a first-time
+  player open D4 and *know* he did. Everything in §16.1 is aimed at that
+  and none of it is engine-verified.
+- **D5 is the same shape of problem, smaller**: SW-B in the booth opens D5
+  in the airlock, out of sight. The lit booth (tag 30) tells the player
+  where to go next; whether he connects the booth to D5 is for the same
+  walk to show. If he does not, v2.1 gives the airlock the same treatment.
+- `mod-engineer` / PM: MOD-SPEC §4.2 and §4.3 owe the contract changes
+  listed in the summary of this task (light tag in use, sector specials 65
+  and 1024, one-shot switches, the switch assignment).
+- v3: enemies, items, tag 20 (wave-2 closets) and 21 (ambush panels), the
+  catwalk parapet as a balance decision.

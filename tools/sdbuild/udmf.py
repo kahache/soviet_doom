@@ -48,7 +48,9 @@ SPECIAL_DOOR_CLOSE = 10            # Door_Close(tag, speed, lighttag)
 SPECIAL_DOOR_OPEN = 11             # Door_Open(tag, speed, lighttag) - stays open
 SPECIAL_DOOR_RAISE = 12            # Door_Raise(tag, speed, delay, lighttag)
 SPECIAL_EXIT_NORMAL = 243          # Exit_Normal(pos)
-# NOT VERIFIED - not used by MAP01 v0, kept so v2 does not re-guess them.
+# NOT VERIFIED and NOT USED by MAP01 v2 (design document section 16): each
+# needs a line of its own to trigger it, and the one line SW-A has is the
+# gate. Kept so nobody re-guesses the numbers.
 SPECIAL_LIGHT_CHANGE_TO_VALUE = 110  # Light_ChangeToValue(tag, value)
 SPECIAL_LIGHT_FLICKER = 113          # Light_Flicker(tag, upper, lower)
 
@@ -59,9 +61,15 @@ DOOR_SPEED_NORMAL = 32   # D_NORMAL
 DOOR_SPEED_FAST = 64     # D_FAST
 DOOR_WAIT_TICS = 150     # VDOORWAIT: ~4.3 s before a Door_Raise closes again
 
-# Sector specials. NOT VERIFIED (not used in v0; the secrets are flagged in
-# v2). ZDoom ORs 1024 into a sector's special to mark it secret.
-SECTOR_SPECIAL_SECRET = 1024
+# Sector specials, in the numbering the zdoom UDMF namespace uses (ZDoom's
+# own, which Doom-format maps are translated INTO). Both numbers are read from
+# shipped text, gzdoom.pk3 g4.14.2 -> xlat/defines.i: `dLight_Flicker = 65`
+# (the target of Doom's sector type 1 in xlat/doom.txt) and
+# `define SECRET_MASK (0x0400)` (Doom's type 9 becomes that bit). The NUMBERS
+# are sourced; the BEHAVIOUR is NOT VERIFIED in engine until the PM's v2 pass
+# (design document section 16, engine checklist).
+SECTOR_SPECIAL_LIGHT_FLICKER = 65    # random flicker: own light <-> darkest neighbour
+SECTOR_SPECIAL_SECRET = 1024         # SECRET_MASK: entering the sector counts a secret
 
 # Linedef flag fields of the zdoom UDMF namespace. All default to false, so a
 # flag is written only when it is set. Keeping the list here (rather than as
@@ -626,7 +634,19 @@ class GridMap:
         front_wall = style.texture or self.wall_of(
             front_sector if back_sector is None else back_sector)
         back_wall = style.texture or self.wall_of(front_sector)
-        peg = self.peg_bottom if style.peg_bottom is None else style.peg_bottom
+        # The floor-pegging default is for WALLS, i.e. one-sided lines, whose
+        # middle texture it stacks from the floor. On a two-sided line the
+        # flag only moves the LOWER texture - the flank of a raised floor -
+        # and there it does the opposite of what we want: it hangs the
+        # texture from this room's ceiling, so a crate 64 high under a
+        # ceiling 40 above it, or the catwalk's 128 face under 192 of
+        # hangar, comes out cut in the middle. Unflagged, a lower texture
+        # starts at the top of the flank, which for a face exactly one tile
+        # high is that tile, whole. A style can still ask for either.
+        if style.peg_bottom is None:
+            peg = self.peg_bottom and back_sector is None
+        else:
+            peg = style.peg_bottom
         if peg:
             flags.add("dontpegbottom")
         if back_sector is None:
@@ -698,12 +718,24 @@ def remote_door_style(door_sector: int, texture: str | None = None) -> LineStyle
 
 
 def switch_door_open_style(tag: int, speed: int = DOOR_SPEED_SLOW,
-                           texture: str | None = None) -> LineStyle:
-    """A wall switch that opens a remote door for good. Repeatable."""
+                           texture: str | None = None, lighttag: int = 0,
+                           repeatable: bool = True) -> LineStyle:
+    """A wall switch that opens a remote door for good.
+
+    `lighttag` is `Door_Open`'s third argument (shape from gzdoom.pk3 ->
+    xlat/base.txt, `31 = USE, Door_Open (0, D_SLOW, tag)`): the sectors with
+    that tag brighten as the door rises, up to their brightest neighbour.
+    It is how ONE switch line both opens a door and turns a light on.
+
+    `repeatable=False` makes the switch stay in its ON picture: a repeatable
+    switch texture pops back to OFF after a second, which on a gate switch
+    reads as "it switched itself off again". A gate opened by `Door_Open`
+    stays open whatever happens, so a one-shot switch cannot consume it.
+    """
     return LineStyle(
         special=SPECIAL_DOOR_OPEN,
-        args=(tag, speed, 0, 0, 0),
-        flags=("playeruse", "repeatspecial"),
+        args=(tag, speed, lighttag, 0, 0),
+        flags=("playeruse", "repeatspecial") if repeatable else ("playeruse",),
         texture=texture,
     )
 
