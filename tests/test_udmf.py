@@ -989,7 +989,7 @@ class Map01Test(unittest.TestCase):
                   m.TAG_S1_LOCKER_PANEL, m.TAG_S2_CATWALK_PANEL, m.TAG_S3_SUMP_PANEL}
         sealed, _ = self._reachable(set())
         dorm = {self.plan[n] for n in ("z1_dorm", "lamp_z1_dorm_1", "lamp_z1_dorm_2",
-                                       "lamp_z1_dorm_3", "shovel_rack", "frame_d1_dorm",
+                                       "lamp_z1_dorm_3", "z1_ice_axe_rack", "frame_d1_dorm",
                                        "frame_d2_dorm")}
         self.assertEqual(dorm, sealed, "the dorm must be sealed by D1 and D2")
 

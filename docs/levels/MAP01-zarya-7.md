@@ -12,7 +12,8 @@ section after §16; D32). v3 (density, combat and resources, D33) BUILT —
 §17: same plan, 80 → 165 sectors, 46/33/21 monsters by skill, the three
 secrets re-hidden; engine pass filed. The CEO played v3 through on skill 3
 (D38): one fix, the block in front of the cosmonautics mural, done in
-§17.13; the shovel rack in §17.14; G3 readiness in §18.** The open points
+§17.13; the slot-1 rack (then the shovel) in §17.14; the rename to the ice
+axe (D40) and QA's G3-F1 in §17.15; G3 readiness in §18.** The open points
 for the CEO are in §13, with what is decided marked as such. Russian
 mirror: `docs/ru/levels/MAP01-zarya-7.md` (synced in batches, D34).
 
@@ -41,7 +42,7 @@ metro tunnels.
 
 | Job | How the layout does it |
 |---|---|
-| Teach the weapons (lore: MAP01 = tutorial) | one weapon per act, each followed by the enemy it is the answer to: shovel → a single hound; IZh shotgun → recruits at close range; PPSh-41 → the hangar's second wave. The RPG-7 is a secret reward, not a requirement. |
+| Teach the weapons (lore: MAP01 = tutorial) | one weapon per act, each followed by the enemy it is the answer to: ice axe (the shovel until D40) → a single hound; IZh shotgun → recruits at close range; PPSh-41 → the hangar's second wave. The RPG-7 is a secret reward, not a requirement. |
 | Teach the vocabulary of the base | the red stripe (`SDCONC2`) is **the route**; the yellow lane (`SDFLR1`) is **the hangar's traffic**, and it points at the exit and at one secret. Both are taught in the first 90 seconds and never lie. |
 | "The invasion has just begun" | the base is intact, lit and clean (ART-BIBLE §1: dirt is *use*, not decay). Enemies are few and scattered at the start, massed only in the hangar where they landed. |
 | End on the metro | the exit is a service lift going **down**, with the darkest light value of the map (96): MAP02 is already visible as a mood. |
@@ -81,7 +82,7 @@ Schematic, not to scale. North is up, x grows east, y grows north.
     +--------+--------+       +-----------+     +--------+
     |  Z1 DORM        |---D1--| Z2 WASHRM |-----| S1     |
     |  [player start] |       |           | (secret panel)
-    |  [shovel rack]  |       +-----------+     +--------+
+    |  [ice-axe rack] |       +-----------+     +--------+
     +-----------------+
 ```
 
@@ -113,7 +114,7 @@ step is higher than 24 unless a stair carries it.
 
 ```mermaid
 graph LR
-  Z1[Z1 Dorm<br/>shovel] -->|D1| Z2[Z2 Washroom]
+  Z1[Z1 Dorm<br/>ice axe] -->|D1| Z2[Z2 Washroom]
   Z2 -.secret.-> S1[S1 Armour]
   Z1 -->|D2| Z3[Z3 Corridor]
   Z3 --> Z4[Z4 Leninskaya komnata]
@@ -212,7 +213,7 @@ Rules that remove whole classes of softlock, applied everywhere:
 
 | Beat | Space | Feeling | Mechanic introduced |
 |---|---|---|---|
-| 1 | Dorm, washroom | alarm, confusion, three bodies and two enemies | movement, shovel, the first secret panel |
+| 1 | Dorm, washroom | alarm, confusion, three bodies and two enemies | movement, the ice axe, the first secret panel |
 | 2 | Corridor, komnata | the base is theirs now; first open room | crossfire in a room with cover; the red stripe |
 | 3 | Service corridor | tension, flickering light, a corner | the IZh and close-range aiming |
 | 4 | Hangar, first contact | the map opens: height, lamps, distance | long sightlines, the cradle as cover, barrels |
@@ -229,7 +230,7 @@ builds and ships whatever the CEO decides.
 
 | Zone | Walls | Floor | Ceiling | Light | Note |
 |---|---|---|---|---|---|
-| Z1 Dorm | `SDCONC1`; `SDSTEL1` on the bunk frames and the shovel rack | `SDFLR3` | `SDCEIL2`, one `SDCEIL1` | 144 | the clean, lit, ordinary room: the player's "before" |
+| Z1 Dorm | `SDCONC1`; `SDSTEL1` on the bunk frames and the ice-axe rack | `SDFLR3` | `SDCEIL2`, one `SDCEIL1` | 144 | the clean, lit, ordinary room: the player's "before" |
 | Z2 Washroom | `SDCONC1` | `SDFLR3` | `SDCEIL2` | 112 | darker than the dorm so the seam of S1 reads |
 | S1 Locker closet | `SDSTEL1` | `SDFLR2` | `SDCEIL2` | 96 | |
 | Z3 Barracks corridor | `SDCONC1` + **`SDCONC2`** at eye height on the right-hand wall, continuous | `SDFLR3` | `SDCEIL2`, `SDCEIL1` every 256 | 120, pools 144 | **the red stripe is born here**: it will lead the player all map |
@@ -331,12 +332,12 @@ both. A test enforces it: nothing of the Legion's before the hangar.
 | Zombieman | 3004 | Reich | `SD_ReichRifleman` (21100), 20 HP | the bulk of the barracks fights; two on the gantry at first contact; one in wave 2 |
 | Shotgun guy | 9 | **Legion** | `SD_LegionTrooper` (21101), 30 HP | **first met in the hangar**: on the cradle, the spine, in front of D4, on the catwalk; the booth sniper (skill 4); the bulk of wave 2 |
 | Imp | 3001 | both | `SD_Stormtrooper` (21102), 60 HP | the komnata (skill 3+), the corridor's end (skill 4), the hangar, the fuel-bay ambush |
-| Demon | 3002 | Reich | `SD_ReichHound` (21103), 150 HP | washroom and corridor (skill 3+: the shovel's lesson), the komnata (4), the ambush |
+| Demon | 3002 | Reich | `SD_ReichHound` (21103), 150 HP | washroom and corridor (skill 3+: the ice axe's lesson), the komnata (4), the ambush |
 | Cacodemon | 3005 | Legion | `SD_Doughboy` (21104), 400 HP | **one**, wave 2, skills 3–4: the hangar is the map's only room with vertical space (BESTIARY §11) |
 | Hell Knight | 69 | Reich | `SD_Panzermensch` (21105), **500 HP** (D35) | **one**, on the lift in Z10, skills 3–4: it gates the exit (BESTIARY §11). The Hell Knight and not the Baron (3003), because D35 sets 500 HP |
 | *retired:* Chaingun guy | 65 | — | *none* | v0–v2 planned a "Legion heavy gunner" in the booth window. The bestiary has no such class; the booth sniper is a trooper (skill 4) |
 | Explosive barrel | 2035 | — | fuel drum (own sprite later) | ten: hangar bays and the fuel bay's drum stack |
-| — | 21001 | — | `SD_Shovel` | the dorm's rack (the player also starts with it: the rack is the lesson) |
+| — | 21001 | — | `SD_IceAxe` (D40; `SD_Shovel` until then) | the dorm's rack, and nowhere else: the player starts with the TT-33 and 50 rounds only, so the rack is the only way to slot 1 (§17.14) |
 | — | 21003 | — | `SD_Izh` | the guard post's weapon rack, on the critical path |
 | — | 21004 | — | `SD_Ppsh` | the catwalk, on the way to SW-B |
 | — | 21005 | — | `SD_Rpg7` | secret S2 only |
@@ -386,7 +387,7 @@ skill.
 
 | Item | Skill 2 | Skill 3 | Skill 4 | Where |
 |---|---|---|---|---|
-| Shovel / IZh / PPSh | 1 / 1 / 1 | 1 / 1 / 1 | 1 / 1 / 1 | Z1 rack / Z5b rack / Z6b catwalk |
+| Ice axe / IZh / PPSh | 1 / 1 / 1 | 1 / 1 / 1 | 1 / 1 / 1 | Z1 rack / Z5b rack / Z6b catwalk |
 | RPG-7 + rocket box + base schematic | secret | secret | secret | S2 |
 | Shells ×4 | 11 | 9 | 8 | guard post → airlock |
 | Box of shells (20) | 2 (+1 in S3) | 2 (+1) | 2 (+1) | hangar south band, fuel bay; S3 |
@@ -1399,7 +1400,7 @@ where it was, and every v2 sight-line test still passes.
 
 | Zone | v3 added | What it is for |
 |---|---|---|
-| Z1 dorm | six steel bunks (32 high, blanket = `SDCEIL2`), two more lamps (three), the **shovel rack** (a steel niche in the west wall, plank shelf), steel **door frames** round D1 and D2; the plaque moved 32 east to clear D2's frame | a dormitory reads as one; cover from the first riflemen; the rack is the shovel lesson; the frames say "door" from across the room (the v0–v1 lesson) |
+| Z1 dorm | six steel bunks (32 high, blanket = `SDCEIL2`), two more lamps (three), the **shovel rack** (the ice-axe rack since D40, §17.15: a steel niche in the west wall, plank shelf), steel **door frames** round D1 and D2; the plaque moved 32 east to clear D2's frame | a dormitory reads as one; cover from the first riflemen; the rack is the slot-1 lesson; the frames say "door" from across the room (the v0–v1 lesson) |
 | Z2 washroom | three **shower stalls** in the east wall (trays one `PLINTH` down, steel partitions), three wash basins, a steel frame on D1 | S1's new hiding place (§17.5) |
 | Z3 corridor | two steel **bulkheads** (ceiling 80) splitting it in three bays; a lit ammo **alcove** west, a fire-point alcove east | rhythm in a 448-long tube; somewhere to stand out of the hound's line |
 | Z4 komnata | three **mess tables** (32 high, plank tops), a **colonnade** of four concrete columns (framing the tribune since D38, §17.13), a two-step **tribune** with a lectern (beside the mural since D38), a third lamp, two floor lamps | section 5's "crossfire in a room with cover" finally has cover; the mural is now at the end of an axis |
@@ -1442,7 +1443,7 @@ lift in Z10, the last thing between the player and the exit.
 ### 17.4 Resources
 
 As §8: the three tutorial weapons on every skill on the critical path
-(shovel on the dorm rack, IZh on the guard post's rack, PPSh on the
+(the shovel, now the ice axe, on the dorm rack, IZh on the guard post's rack, PPSh on the
 catwalk), the RPG-7 only in S2; consumables nested downwards by skill;
 G3-8 measured on every skill (skill 4: 108.5 shell-equivalents placed for
 77 needed, 1.41×, before any drop). One health bonus sits in each nook v3
@@ -1543,7 +1544,7 @@ west, 270 south), `+use`, `wait`, `screenshot`; the session log goes to
 | # | Warp to (x y) | Facing | Do | What the screenshot must show |
 |---|---|---|---|---|
 | V1 | 256 96 | 90 | — | the dorm: bunks either side of the aisle, three lamp panels, D2 in a steel frame, the plaque right of the frame |
-| V2 | 40 300 | 125 | — | the shovel rack: a steel niche in the west wall with the shovel in it, in the aisle between the lockers and the north-west bunk; the lockers whole |
+| V2 | 40 300 | 125 | — | the rack (then the shovel's; `z1_ice_axe_rack` since D40): a steel niche in the west wall with the ice axe in it, in the aisle between the lockers and the north-west bunk; the lockers whole |
 | V3 | 760 96 | 0 | — | three shower stalls, steel partitions; **the middle back wall plate, the outer two concrete**; basins along the left |
 | V4 | 920 96 | 0 | `+use` | S1 opens; walk in: "A secret is revealed!" |
 | V5 | 256 560 | 90 | — | the corridor in three bays: two steel bulkheads, the lit alcove on the left, the stripe unbroken on both walls |
@@ -1699,7 +1700,7 @@ the picture, it moves to the tribune.
 | M4 | 400 1320 | 90 | the lectern at the tribune's front-right corner, its plank top level, no HOM or texture seam where it meets the step; the health bonus at its north-east (432 1400) can be walked onto |
 | M5 | 320 1360 | 90 | close up: the health bonus at the mural's foot. Clutter or fine? (the CEO's call, see above) |
 
-### 17.14 After the CEO's v3 run: the shovel on the rack
+### 17.14 After the CEO's v3 run: the shovel on the rack (the ice axe since D40)
 
 The CEO, same run:
 
@@ -1712,8 +1713,8 @@ because the player already started with the shovel, whose first-person
 sprite reads as fists. The fix is `mod-engineer`'s (`player.zs`, not this
 role's): the player now starts with the TT-33 only and gets the shovel on
 the rack, which is what §2 always meant ("the rack is the lesson"). The map
-needed no change for it; `test_the_shovel_comes_before_the_first_melee`
-holds the map's half:
+needed no change for it; `test_the_ice_axe_comes_before_the_first_melee`
+(then named for the shovel) holds the map's half:
 
 - the rack is in the dorm, which is reached with no door opened, and the
   shovel on it is in view from the player start;
@@ -1728,6 +1729,50 @@ holds the map's half:
 The rack is not the first pickup on every path: a clip lies at (600, 60)
 and, on skill 3 and below, two armour bonuses lie by the lockers next to
 the rack. It is the first weapon, and it is in reach before any door.
+
+### 17.15 After D40 and QA's G3-F1: the ice-axe rack, and a wider lane (2026-10-13)
+
+**The rename (D40).** Slot 1 is the ice axe (`SD_IceAxe`); its DoomEdNum
+is still 21001, and the map places it by number, so no thing moved. The
+rack's zone was `shovel_rack` and is now **`z1_ice_axe_rack`**. The `z1_`
+prefix is deliberate: `tools/route.py` (QA's) reads a zone's family from a
+`zN` in its name, so it files the rack under Z1 with no row of its own in
+its prefix table, and the next rename of the weapon cannot break the route.
+The tests that name the zone follow it (`tests/test_map01.py`,
+`tests/test_udmf.py`).
+
+**G3-F1 (QA, low; `docs/qa/GATE-REVIEWS.md`).** The tribune's east health
+bonus at (432, 1400) could be reached only through lanes exactly one body
+wide: 32 between the lectern (x ≤ 416) and the east floor lamp (radius 16
+at x 464, so x ≥ 448), and 32 behind the lectern (y 1376…1408). A body of
+radius 16 fits a 32 lane in Doom, but only straight on, and a bonus a
+player sees and fails to reach reads as the CEO's rack bug of §17.14.
+
+| Option | Taken? | Why |
+|---|---|---|
+| Move the two floor lamps 16 further out | **yes** | x 176 / 464 → **160 / 480** (`KOMNATA_LAMPS_X`): the lectern–lamp lane is **48**, a body and a half; both lamps move, so the room stays symmetric about the mural's axis (x 320, D38); both move *away* from the mural's sight cone |
+| Move the bonus | no | it is the tribune nook's reward (§17.4: "one in each nook v3 made"); out of the nook it is just a bonus on the floor |
+| Move the lectern | no | its place is D38's, beside the mural and off its axis |
+
+The lane behind the lectern stays 32 and is no longer needed. Nothing came
+back in front of the mural: `test_the_mural_is_seen_whole_from_the_doorway_and_the_centre`
+and `test_no_solid_fixture_stands_in_front_of_the_mural` (3307cb1) pass
+unchanged. Counts unchanged: 165 sectors, 778 lines, 133 things.
+
+**The tests that keep it** (`tests/test_map01.py`):
+
+- `test_every_komnata_pickup_is_reached_with_room_to_spare`: the player's
+  centre is flooded over the komnata and the mural niche on a 4-unit grid,
+  from Z3's doorway, with his body grown by `ROOM_TO_SPARE` (4) on every
+  side, so a lane must be 40 to count; walls, columns, the lectern and the
+  tables stop it, and so do the floor lamps (box against box, as the
+  engine tests). Every pickup in the room must be touched from a reached
+  spot. Run against the v3 lamps it fails on exactly (432, 1400).
+- `test_the_komnata_lamps_stay_symmetric_about_the_mural`.
+
+**For the PM's engine pass (D26):** QA's C12 (walk onto the bonus from
+`warp 400 1320`) now goes through the 48 lane between the lectern and the
+lamp; the mural shots M1–M2 of §17.13 show the two lamps 16 further out.
 
 ## 18. G3 readiness (2026-10-13)
 
@@ -1756,7 +1801,7 @@ document is what that run meets. Tested
 | R1 | Progress is lines only: no key, no locked or scripted special, no thing with a tid or a special, so no monster's presence or death opens anything | ✓ | ✓ | ✓ | `test_nothing_the_route_needs_is_locked_scripted_or_on_a_thing` |
 | R2 | From the start, opening only what the map offers (every door and panel the player can stand at, then every switch he can reach), the exit switch is reached; it is not reached before the switches. The simulation finds two rounds: manual doors and panels (tags 1, 2, 3, 6, 101–103), then SW-A and SW-B (10, 11), both reachable before either is pressed | ✓ | ✓ | ✓ | `test_every_skill_reaches_the_exit`, `test_the_gate_order_is_the_designed_one` |
 | R3 | The three tutorial weapons are on the skill, once each, and reachable before any switch; the RPG-7 only in S2 | ✓ | ✓ | ✓ | `test_every_skill_reaches_the_exit`, `test_the_tutorial_weapons_are_on_every_skill_on_the_route` |
-| R4 | The shovel is in reach before the first melee enemy; the dorm's fight fits in the starting rounds | 4 of 50 rounds | 6 of 50 | 8 of 50 | `test_the_shovel_comes_before_the_first_melee` |
+| R4 | The ice axe (then the shovel) is in reach before the first melee enemy; the dorm's fight fits in the starting rounds | 4 of 50 rounds | 6 of 50 | 8 of 50 | `test_the_ice_axe_comes_before_the_first_melee` |
 | R5 | No softlock: every sector reachable, a way back from every one, every door tall enough, no switch press can consume a gate, the secrets entered and left | ✓ | ✓ | ✓ | `test_nothing_is_a_one_way_trap`, `test_every_sector_is_reachable_except_the_window`, `test_no_press_can_consume_a_gate`, `test_every_secret_is_reachable_and_left_again` |
 | R6 | No drum or floor lamp (on every skill, immovable) leaves a doorway or its approach narrower than a body | ✓ | ✓ | ✓ | `test_no_solid_fixture_narrows_a_doorway` |
 | R7 | Every monster's body fits where it stands; every pickup is on walkable, reachable floor | ✓ | ✓ | ✓ | `test_every_monster_has_room_for_its_body`, `test_every_pickup_can_be_picked_up` |
@@ -1765,6 +1810,7 @@ document is what that run meets. Tested
 | R10 | BALANCE §7: G3-8's per-kill shells are never kinder than the ruler's barrels-to-kill (rifleman, trooper, stormtrooper 1; hound 2; Doughboy 5; Panzermensch 7) | ✓ | ✓ | ✓ | `test_ammo_against_hit_points_by_skill_and_by_stage` |
 | R11 | Damage placed against hit points, **cumulative by stage**: placed ammo outside the secrets, at the average damage of BALANCE §2 (a shell 80, a round 8), plus the 50 starting rounds, against the HP of BALANCE §7 met so far; ≥ 1.35 at every stage | before the switches 9,960 / 350 (28.5×); all 10,280 / 730 (14.1×) | 9,160 / 860 (10.7×); 9,480 / 2,320 (4.1×) | 8,760 / 1,280 (6.8×); 9,080 / 2,920 (**3.1×**) | `test_ammo_against_hit_points_by_skill_and_by_stage` |
 | R12 | Healing and armour outside the secrets on skill 4 (G3-5's other half) | — | — | ≥ 5 heals, ≥ 6 armour bonuses | `test_health_and_armour_exist_outside_the_secrets_on_skill_4` |
+| R13 | G3-F1: every pickup in the komnata is reached through a lane at least 40 wide (a body and 4 each side), the tribune's east bonus included (§17.15) | ✓ | ✓ | ✓ | `test_every_komnata_pickup_is_reached_with_room_to_spare` |
 
 How to read R11. The damage figure assumes every pellet lands, which is why
 it looks generous: it is the ceiling of what the player can do, not what he
@@ -1782,9 +1828,9 @@ one QA should watch.
 | Q1 | **G3-4: finished on skills 2 and 4** (3 is done, D38) | the model has no combat | the intermission screenshot and the log per skill, no `god`, in `docs/qa/evidence/` |
 | Q2 | **G3-2: zero log errors** over each full run | only the engine loads the actors | the G3-2 pattern list over each log: 0 hits |
 | Q3 | Does a monster plug a doorway for good? | monsters are not obstacles in the model; a Panzermensch (radius 24) on the lift or a Doughboy (31) leaving E1's 128-high closet could stall in a door | note any monster that never leaves a doorway or a closet mouth, by skill |
-| Q4 | Does the ammo hold **on skill 4** without the secrets? | R9–R11 assume average damage and no misses, and count no drops (the stand-ins' drops add +56 % on skill 4, §8) | ammo at the exit, and whether the player was ever reduced to the shovel; the S2/S3 rule: a skill-4 run that takes no secret |
+| Q4 | Does the ammo hold **on skill 4** without the secrets? | R9–R11 assume average damage and no misses, and count no drops (the stand-ins' drops add +56 % on skill 4, §8) | ammo at the exit, and whether the player was ever reduced to the ice axe; the S2/S3 rule: a skill-4 run that takes no secret |
 | Q5 | Is skill 2 too lavish, skill 4 fair? | balance is felt, not counted | the time and the health at the intermission per skill; the F5 playtest decides any cut (first lever: placed shells on 3–4, §8) |
-| Q6 | The shovel: the rack's pickup works now that the player starts without it | needs `mod-engineer`'s `player.zs` change in the PK3 | "You got the sapper's shovel" (or its LANGUAGE line) at the rack; slot 1 empty before it |
+| Q6 | Slot 1 (the ice axe since D40; then the shovel): the rack's pickup works now that the player starts without it | needs `mod-engineer`'s `player.zs` change in the PK3 | **Seen in engine, 2026-10-13:** walking into the rack prints `An ice axe.` (`docs/qa/evidence/2026-10-13_2039_d40-d43-engine-pass.md`); slot 1 empty before it is QA's C4 |
 | Q7 | G3-5 and G3-7 as written in §11 | adversarial play | one `-nomonsters` run, one zero-secret run, QA's hostile pass on skill 4 |
 | Q8 | The mural (§17.13, M1–M5) | the tests cast rays, the CEO looks | the screenshots M1–M5 |
 | Q9 | G3-9: the CEO's "on point", and the CEO's `SDCONC2` verdict | the CEO's call | the CEO's words |
@@ -1793,6 +1839,7 @@ one QA should watch.
 
 - The engine runs Q1–Q8 (the PM batches them; this role does not start
   GZDoom, D26).
-- `mod-engineer`'s start-inventory change for the shovel (§17.14), in the
-  build those runs use.
+- ~~`mod-engineer`'s start-inventory change for the shovel (§17.14)~~:
+  done (63dac93), carried over to the ice axe (D40), and the rack pickup
+  seen in engine (Q6).
 - The CEO's G3-9.

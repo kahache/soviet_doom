@@ -75,6 +75,11 @@ MONSTER_NUMBERS = set(BODY)
 VIEW_HEIGHT = udmf_tests.VIEW_HEIGHT
 PLAYER_RADIUS = 16
 SOLID_FIXTURE_RADIUS = {2035: DRUM_RADIUS, 2028: LAMP_RADIUS}
+# G3-F1: a lane the player must walk to a pickup is at least a body plus
+# ROOM_TO_SPARE on each side (40 for 32), so it is walked, not threaded.
+# Checked on a LANE_GRID raster; both must divide the map's 16-unit grid.
+ROOM_TO_SPARE = 4
+LANE_GRID = 4
 
 # The 32-deep mural niche hides ~3 of the mural's 128 units from the
 # doorway's corner; the sight test samples from this far in from each edge.
@@ -280,7 +285,7 @@ class Map01V3Test(unittest.TestCase):
         on every skill and never in a secret; the RPG-7 only in S2."""
         m = self.m
         secret = {i for i, s in enumerate(self.sectors) if s.get("special", 0) & 1024}
-        for ednum, zone in ((m.ED_ICE_AXE, "shovel_rack"), (m.ED_IZH, "weapon_rack"),
+        for ednum, zone in ((m.ED_ICE_AXE, "z1_ice_axe_rack"), (m.ED_IZH, "weapon_rack"),
                             (m.ED_PPSH, "z6b_catwalk")):
             found = self.things_of({ednum})
             self.assertEqual(1, len(found), ednum)
@@ -533,6 +538,110 @@ class Map01V3Test(unittest.TestCase):
         self.assertEqual(tribune["heightfloor"] + self.m.FURNITURE_HEIGHT,
                          self.sectors[lectern]["heightfloor"])
 
+    # --- G3-F1: every pickup in the komnata, with room to spare -----------
+    def _komnata_flood(self, spare):
+        """Where the player's centre can go in the komnata, from the
+        doorway, if his body were `spare` wider on every side.
+
+        The room's box (the komnata plus the mural niche) is rasterised on
+        LANE_GRID: each cell is walkable floor the player can reach, or not
+        (a wall, a column, a prop such as the lectern). A centre is allowed
+        when every cell under its grown box is walkable, the floors under it
+        are within a step and the lowest ceiling clears his height, and no
+        floor lamp or drum overlaps the box (Doom's test: the two square
+        boxes overlap). Returns (allowed centres reached, the room's box)."""
+        m = self.m
+        x0, y0, x1, _ = m.KOMNATA_RECT
+        y1 = m.MURAL_NICHE[3]                         # the niche is part of the walk
+        g = LANE_GRID
+        # The engine's point-in-sector, as `sector_at`, on the lines that
+        # can matter here only: the full scan is too slow for a raster.
+        lines = [v for v in self.vertical if v[0] > x0 and max(v[1], v[2]) > y0
+                 and min(v[1], v[2]) < y1]
+
+        def sector_at(x, y):
+            y += 0.25
+            best = None
+            for lx, ya, yb, ld in lines:
+                if lx > x and min(ya, yb) < y < max(ya, yb) and (best is None or lx < best[0]):
+                    best = (lx, ya, yb, ld)
+            if best is None:
+                return None
+            _, ya, yb, ld = best
+            if yb < ya:
+                return self.sides[ld["sidefront"]]["sector"]
+            return self.sides[ld["sideback"]]["sector"] if "sideback" in ld else None
+
+        cols, rows = (x1 - x0) // g, (y1 - y0) // g
+        floor = {}
+        for i in range(cols):
+            for j in range(rows):
+                s = sector_at(x0 + g * i + g / 2, y0 + g * j + g / 2)
+                if s is not None and s in self.reachable and s not in self.unwalkable:
+                    floor[i, j] = (self.sectors[s]["heightfloor"], self.sectors[s]["heightceiling"])
+        half = PLAYER_RADIUS + spare
+        fixtures = [(t["x"], t["y"], SOLID_FIXTURE_RADIUS[t["type"]])
+                    for t in self.things_of(set(SOLID_FIXTURE_RADIUS))]
+
+        def cells(c, origin):
+            """Raster indices whose centres lie inside (c - half, c + half)."""
+            return range(math.ceil((c - half - origin) / g - 0.5),
+                         math.ceil((c + half - origin) / g - 0.5))
+
+        def allowed(cx, cy):
+            under = [floor.get((i, j)) for i in cells(cx, x0) for j in cells(cy, y0)]
+            if not under or None in under:
+                return False
+            floors, ceils = [f for f, _ in under], [c for _, c in under]
+            if max(floors) - min(floors) > MAX_STEP_UP or min(ceils) - max(floors) < udmf_tests.PLAYER_HEIGHT:
+                return False
+            return not any(abs(cx - fx) < half + r and abs(cy - fy) < half + r for fx, fy, r in fixtures)
+
+        # One grown body into the room from the middle of Z3's doorway.
+        start = ((m.KOMNATA_DOORWAY[0] + m.KOMNATA_DOORWAY[1]) // 2, y0 + half)
+        self.assertTrue(allowed(*start), f"the flood's start {start} is not floor")
+        seen, stack = {start}, [start]
+        while stack:
+            cx, cy = stack.pop()
+            for nxt in ((cx + g, cy), (cx - g, cy), (cx, cy + g), (cx, cy - g)):
+                if nxt not in seen and allowed(*nxt):
+                    seen.add(nxt)
+                    stack.append(nxt)
+        return seen, (x0, y0, x1, y1)
+
+    def test_every_komnata_pickup_is_reached_with_room_to_spare(self):
+        """QA finding G3-F1 (low): the tribune's east health bonus (432,
+        1400) could be reached only through lanes exactly one body wide,
+        between the lectern and the east floor lamp or behind the lectern.
+        A body fits a 32 lane in the engine, but only straight on: it reads
+        as a pickup you cannot get. Every pickup in the komnata is touched
+        from where a body ROOM_TO_SPARE wider on each side can walk from the
+        doorway. Run against the v3 lamp at (464, 1376), it fails on
+        exactly that bonus."""
+        reached, (x0, y0, x1, y1) = self._komnata_flood(ROOM_TO_SPARE)
+        touch = PLAYER_RADIUS + PICKUP_RADIUS
+        pickups = [t for t in self.things
+                   if x0 < t["x"] < x1 and y0 < t["y"] < y1
+                   and t["type"] not in MONSTER_NUMBERS
+                   and t["type"] not in SOLID_FIXTURE_RADIUS
+                   and t["type"] != self.m.ED_PLAYER1_START]
+        self.assertGreaterEqual(len(pickups), 7, "the komnata's pickups went somewhere else")
+        for t in pickups:
+            self.assertTrue(any(abs(cx - t["x"]) < touch and abs(cy - t["y"]) < touch
+                                for cx, cy in reached),
+                            f"thing {t['type']} at ({t['x']}, {t['y']}) is reached only "
+                            f"through a lane narrower than {2 * (PLAYER_RADIUS + ROOM_TO_SPARE)}")
+
+    def test_the_komnata_lamps_stay_symmetric_about_the_mural(self):
+        """G3-F1 moved both lamps out, not one: the room is still built on
+        the mural's axis (D38)."""
+        axis = (self.m.MURAL_NICHE[0] + self.m.MURAL_NICHE[2]) / 2
+        west, east = self.m.KOMNATA_LAMPS_X
+        self.assertEqual(axis - west, east - axis)
+        lamps = sorted((t["x"], t["y"]) for t in self.things_of({self.m.ED_FLOOR_LAMP})
+                       if t["y"] == self.m.KOMNATA_LAMP_Y)
+        self.assertEqual([(west, self.m.KOMNATA_LAMP_Y), (east, self.m.KOMNATA_LAMP_Y)], lamps)
+
     # --- G3 readiness: skills 2, 3 and 4 (design section 18) -------------
     def _skill_rungs(self):
         """{thing flag: MAPINFO properties} for each skill the mod defines."""
@@ -631,16 +740,16 @@ class Map01V3Test(unittest.TestCase):
         empieza que no se podía coger, solo iban los puños». The player
         started with the shovel, so the rack's could not be taken; he now
         starts with the TT-33 only and gets slot 1 at the rack (the ice axe
-        since D40; the rack keeps its zone name). So the rack is in the
+        since D40; the rack's zone is `z1_ice_axe_rack` since then). So the rack is in the
         dorm, reached with no door opened, and in view from the start; no
         hound (the ice axe's lesson) is in the dorm on any
         skill; and the dorm's riflemen fall to the starting rounds with
         G3-8's margin (BALANCE 7: two TT-33 rounds each)."""
         m = self.m
         sealed, _ = self.model._reachable(set())
-        self.assertIn(self.plan["shovel_rack"], sealed)
+        self.assertIn(self.plan["z1_ice_axe_rack"], sealed)
         axe = self.things_of({m.ED_ICE_AXE})[0]
-        self.assertEqual(self.plan["shovel_rack"], self.sector_at(axe["x"], axe["y"]))
+        self.assertEqual(self.plan["z1_ice_axe_rack"], self.sector_at(axe["x"], axe["y"]))
         self.assertEqual([], self.model._blockers(m.PLAYER_START, VIEW_HEIGHT,
                                                   (axe["x"], axe["y"]), 8),
                          "the ice axe on its rack is hidden from the start")

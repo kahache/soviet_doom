@@ -8,7 +8,7 @@ and the v2 flow exactly - the same rooms in the same places, the same gate
 * SHAPE: every big box gets structure. Columns on plinths and wall
   pilasters in the hangar, a south gantry with its stair, a raised spine on
   the transporter cradle with rails running out from under it, a landing
-  on the catwalk stair and columns along its edge; bunks, a shovel rack and
+  on the catwalk stair and columns along its edge; bunks, the ice-axe rack and
   door frames in the dorm; shower stalls and a counter in the washroom;
   bulkheads and an ammo alcove in the corridor; mess tables, a colonnade
   and a tribune in the komnata; pipes and a weapon rack in the service
@@ -80,7 +80,7 @@ LOCKER = "SDLOCK1"       # 64x128: a barracks locker, one per 64 of wall
 # What the furniture is made of. No new texture: steel frames everywhere,
 # and the two flats that read as what they top. A bunk's grey blanket is
 # the plain ceiling panel (SDCEIL2: flat grey with a stain); a mess table's
-# top and the shovel rack's shelf are planks (SDCRTOP1).
+# top and the ice-axe rack's shelf are planks (SDCRTOP1).
 FURNITURE = STEEL
 BUNK_TOP = CEIL
 TABLE_TOP = CRATE_TOP
@@ -155,6 +155,17 @@ LECTERN_RECT = (384, 1344, 416, 1376)        # beside the mural, off its sight c
 MURAL_NICHE = (256, 1408, 384, 1440)         # SDPOSTR2 hangs on its north wall
 KOMNATA_DOORWAY = (192, 320, 960)            # Z3's mouth into the komnata: x from, x to, y
 KOMNATA_CENTRE = (320, 1192)
+KOMNATA_RECT = (0, 960, 640, 1408)           # the room itself; the niche opens off its north wall
+# The two floor lamps either side of the tribune, symmetric about the
+# mural's axis (x 320). QA finding G3-F1: at x 176 and 464 the east lamp
+# stood flush with the tribune's edge (x 448), so the tribune's east health
+# bonus (432, 1400) was reached only through lanes exactly one body wide
+# (32): between the lectern and the lamp, or behind the lectern. Each lamp
+# now stands 16 further out, which opens the lectern-lamp lane to 48, a
+# body and a half; the west one moves with it to keep the symmetry. Both
+# move AWAY from the mural's sight cone, so D38's tests are unaffected.
+KOMNATA_LAMP_Y = 1376
+KOMNATA_LAMPS_X = (160, 480)
 
 # --- Sector tags ----------------------------------------------------------
 TAG_D1_DORM_WASHROOM = 1
@@ -277,7 +288,7 @@ MONSTERS = (
     ("z1_dorm", "rifleman", 592, 240, 180, 2),
     ("z1_dorm", "rifleman", 192, 400, 0, 3),
     ("z1_dorm", "rifleman", 560, 192, 180, 4),
-    # Z2 washroom - the hound the shovel answers.
+    # Z2 washroom - the hound the ice axe answers.
     ("z2_washroom", "hound", 800, 96, 180, 3),
     # Z3 corridor.
     ("z3_corridor", "rifleman", 224, 780, 270, 2),
@@ -336,7 +347,7 @@ MONSTERS = (
 # easy only). Weapons and every pickup inside a secret are on every skill.
 ITEMS = (
     # The tutorial weapons, on every skill, on the critical path.
-    ("shovel_rack", ED_ICE_AXE, -16, 384, 4),
+    ("z1_ice_axe_rack", ED_ICE_AXE, -16, 384, 4),
     ("weapon_rack", ED_IZH, 1040, 1256, 4),
     ("z6b_catwalk", ED_PPSH, 2000, 1520, 4),
     # S1 - the locker closet behind the shower stall.
@@ -438,8 +449,8 @@ FIXTURES = (
     ("z7_fuel_bay", ED_BARREL, 1180, 1950),
     ("z7_fuel_bay", ED_BARREL, 1215, 1920),
     ("z7_fuel_bay", ED_BARREL, 1540, 1680),
-    ("z4_komnata", ED_FLOOR_LAMP, 176, 1376),
-    ("z4_komnata", ED_FLOOR_LAMP, 464, 1376),
+    ("z4_komnata", ED_FLOOR_LAMP, KOMNATA_LAMPS_X[0], KOMNATA_LAMP_Y),
+    ("z4_komnata", ED_FLOOR_LAMP, KOMNATA_LAMPS_X[1], KOMNATA_LAMP_Y),
     ("z10_exit", ED_FLOOR_LAMP, 3248, 832),
 )
 
@@ -593,7 +604,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     # Z1 dorm, the player's "before": ordinary, lit, 640 x 448, exactly 128
     # high. v3: four steel bunks with their blankets, three lamps, the
-    # shovel rack, and steel frames round both doors.
+    # ice-axe rack, and steel frames round both doors.
     zone("z1_dorm", 0, 128, [(0, 0, 640, 448)], flat=TILE, light=LIGHT_DORM)
     lamp("z1_dorm", 1, (288, 224, 352, 288))
     lamp("z1_dorm", 2, (128, 160, 192, 224))
@@ -604,9 +615,11 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
                               (384, 0, 448, 128), (480, 0, 544, 128),
                               (480, 320, 544, 448), (576, 320, 640, 448)), start=1):
         furniture(f"bunk_{n}", "z1_dorm", rect, top=BUNK_TOP)
-    # The shovel rack: a steel niche in the west wall past the lockers. The
-    # shovel on it is the weapon the alarm makes the player reach for.
-    like("z1_dorm", "shovel_rack", [(-32, 352, 0, 416)], flat=TABLE_TOP, wall=STEEL)
+    # The ice-axe rack (the shovel rack until D40): a steel niche in the west
+    # wall past the lockers. The ice axe on it is the weapon the alarm makes
+    # the player reach for. The zone name carries `z1_` so that tools/route.py
+    # reads it as Z1 by its name alone, whatever the weapon is called next.
+    like("z1_dorm", "z1_ice_axe_rack", [(-32, 352, 0, 416)], flat=TABLE_TOP, wall=STEEL)
     # Door frames: a 16-deep steel surround either side of the leaf, so a
     # door reads as a door from across the room (the v0 and v1 findings).
     like("z1_dorm", "frame_d1_dorm", [(624, 16, 640, 176)], wall=STEEL)
@@ -655,7 +668,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # "crossfire in a room with cover" of section 5 finally has cover),
     # political room to the north (a colonnade framing the mural, and a
     # tribune two steps up).
-    zone("z4_komnata", 0, 192, [(0, 960, 640, 1408)], flat=TILE, light=LIGHT_KOMNATA)
+    zone("z4_komnata", 0, 192, [KOMNATA_RECT], flat=TILE, light=LIGHT_KOMNATA)
     lamp("z4_komnata", 1, (128, 1152, 192, 1216))
     lamp("z4_komnata", 2, (448, 1152, 512, 1216))
     lamp("z4_komnata", 3, (288, 1120, 352, 1184))
