@@ -51,7 +51,7 @@ grids, hard pixels, mid-grey walls, light that drops towards black.
 (recorded 2026-10-13).** Two families of shipped files are **RGBA PNG**, not
 indexed, because they need transparency: the menu logo `M_DOOM` (its row in
 `LICENSES.md`) and the two folder fonts, `fonts/defsmallfont/` and
-`fonts/bigfont/` (214 glyphs, D24, `tools/art/gen_font.py`). The rest of
+`fonts/bigfont/` (224 glyphs, D24 and D37, `tools/art/gen_font.py`). The rest of
 the colour rule still binds them: every opaque pixel is a `palette.json`
 colour and alpha is hard 0/255, never semitransparent. For the glyphs this
 is enforced by `tests/test_gen_font.py` (`InstalledGlyphPaletteTests`).

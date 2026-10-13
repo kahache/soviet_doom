@@ -345,7 +345,9 @@ class ReproductionTests(unittest.TestCase):
 
     def test_build_is_deterministic(self):
         first, second = self.built("first"), self.built("second")
-        self.assertEqual(len(first), 2 * 108)
+        # 112 codepoints + font.inf per folder: 224 glyphs since the German
+        # letters were installed (D37, 2026-10-13); 214 before.
+        self.assertEqual(len(first), 2 * (112 + 1))
         self.assertEqual(sorted(first), sorted(second))
         self.assertEqual([k for k in first if first[k] != second[k]], [])
         self.assertEqual(self.reports[INSTALLED_STYLE], self.again)
@@ -476,11 +478,12 @@ class PenRuleTests(unittest.TestCase):
 
     def test_flat_apex_switch_reaches_exactly_the_a(self):
         """flat_apex is the poster A (A, C) versus the pointed A (B); it
-        must change the two A's and nothing else."""
+        must change the two A's and nothing else. Since D37 (2026-10-13)
+        the A-umlaut is drawn on the Latin A's stroke code, so it follows."""
         for key in self.gen.STYLES:
             with self.subTest(style=key):
                 self.assertEqual(self.changed_by(key, flat_apex=not self.gen.STYLES[key].flat_apex),
-                                 {"A", "А"})
+                                 {"A", "А", "Ä"})
 
     def test_slashed_zero_switch_reaches_exactly_the_zero(self):
         for key in self.gen.STYLES:

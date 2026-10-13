@@ -40,7 +40,8 @@ Two sizes, matching the metrics GZDoom itself uses for Doom:
 
 Nothing here writes to assets/.  Output goes to work/art/font/ (the H1
 serif-fix proposal: work/art/font_fix/ and its sheet in docs/art/previews/;
-approved and installed 2026-10-13, see MIRROR_TERMINALS).
+approved and installed 2026-10-13, see MIRROR_TERMINALS; the German letters:
+work/art/font_umlaut/, installed 2026-10-13, see GERMAN_UMLAUTS).
 
 Usage
 -----
@@ -1105,16 +1106,19 @@ from dataclasses import replace as _replace  # noqa: E402  (German letters below
 # ------------------------------------------------- German letters (D36, F5)
 # Ä Ö Ü and the sharp s.  D36 makes the Reich speak real German and the
 # General shout "Vorwärts."; the alphabet has none of these letters, so the
-# screen has been writing "VORWAERTS".  This section DRAWS them; it does not
-# install them.  They live behind a switch that is OFF, exactly like
-# MIRROR_TERMINALS was before its approval: with GERMAN_UMLAUTS False the
-# default output of this script (214 glyphs per style and size, the files in
-# assets/fonts/) is not touched by a single byte.
+# screen was writing "VORWAERTS".  They were drawn behind a switch that was
+# OFF, exactly like MIRROR_TERMINALS before its approval: with GERMAN_UMLAUTS
+# False the output of this script is the 214 glyphs that shipped before,
+# untouched by a single byte.  The CEO approved all five for an in-game
+# trial on 2026-10-13 (D37: "Las pruebo, incluso la B se queda", the sharp s
+# included), and the ten files were installed in assets/fonts/ the same day,
+# copied byte for byte from work/art/font_umlaut/C/; SDMENU was regenerated
+# with gen_menu.py --install.  The default set is now 224 glyphs (112 x 2).
 #
-#   GERMAN_UMLAUTS = False    the shipped value.  GLYPHS, PUNCT and
-#                             build_variant() ignore the German letters.
-#   german_umlauts(True)      `with` block that turns them on and puts the
-#                             switch back (the proposal, the tests).
+#   GERMAN_UMLAUTS = True     the shipped value since D37.  GLYPHS, PUNCT and
+#                             build_variant() include the German letters.
+#   german_umlauts(on)        `with` block that turns them on or off and puts
+#                             the switch back (the proposal, the tests).
 #   build_german()            writes only the new files, to
 #                             work/art/font_umlaut/ (never to assets/).
 #
@@ -1138,7 +1142,7 @@ from dataclasses import replace as _replace  # noqa: E402  (German letters below
 # font is capitals-only and the engine folds lowercase onto the capital, but
 # NOT VERIFIED that GZDoom maps U+00DF to U+1E9E (Python's own "ß".upper() is
 # "SS"), so both files are written, byte-identical.
-GERMAN_UMLAUTS = False
+GERMAN_UMLAUTS = True                   # D37, installed 2026-10-13
 OUT_ROOT_UMLAUT = PROJECT_ROOT / "work" / "art" / "font_umlaut"
 
 UMLAUT_BASES = {"Ä": "A", "Ö": "O", "Ü": "U"}     # Ä Ö Ü
@@ -1219,7 +1223,7 @@ class german_umlauts:
         return False
 
 
-if GERMAN_UMLAUTS:                      # approved: flip the constant above
+if GERMAN_UMLAUTS:                      # approved (D37): the constant above
     _apply_german(True)
 
 

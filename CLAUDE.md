@@ -38,7 +38,7 @@ batch 1, 12 of 12 (`SDPOSTR1` Lenin 128×256 among them; `SDCONC2` and
 `SDSTAR1` v5 approved inside MAP01 by the CEO, D30), the eight switches of
 batch 2 (D25) and four props of batch 3, crates and a locker (D29). The
 metro's first six pieces await the CEO. Title screen and
-intermission ship (D18). The Cyrillic alphabet is installed, 214 glyphs in
+intermission ship (D18). The Cyrillic alphabet is installed, 224 glyphs (German Ä Ö Ü ß since D37) in
 two sizes (D24), which is what makes D7 and D21 possible inside the game;
 M, М and W were corrected on 2026-10-13 (D29).
 

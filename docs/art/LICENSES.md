@@ -83,7 +83,7 @@ statistics because its diagonal leaves the centre free.
 |---|---|---|---|
 | `TITLEPIC` | Title screen, treatment A "Plakat": flag-red ground, cream ray fan, the rocket profile reused from `SDPOSTR2`, gold star, black masthead reading «СОВЕТСКИЙ DOOM» | (a) `tools/art/gen_shell.py`, `titlepic_a()` + `lockup_a()`, palette v1 | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
 | `INTERPIC` | Between-level screen, treatment C "Rodchenko": maroon ground cut by diagonals, gold star, centre deliberately empty for the engine's map name and counters | (a) `tools/art/gen_shell.py`, `interpic_c()`, palette v1 | idem |
-| `M_DOOM` | Menu logo, registered on the title's own name block so it lands exactly over it when the menu opens | (a) `tools/art/gen_shell.py`, `logo()` + `lockup_a()`, palette v1. RGBA with hard alpha (0/255, no semitransparency), not indexed: a menu patch needs transparency. **One of two RGBA families in the project**; the other is the alphabet's 214 glyphs (below). Both are the exception recorded in ART-BIBLE §2 | idem |
+| `M_DOOM` | Menu logo, registered on the title's own name block so it lands exactly over it when the menu opens | (a) `tools/art/gen_shell.py`, `logo()` + `lockup_a()`, palette v1. RGBA with hard alpha (0/255, no semitransparency), not indexed: a menu patch needs transparency. **One of two RGBA families in the project**; the other is the alphabet's 224 glyphs (below). Both are the exception recorded in ART-BIBLE §2 | idem |
 
 Lump names are fixed by the engine, so these three are the documented
 exception to the `SD` prefix rule (MOD-SPEC §1).
@@ -98,8 +98,8 @@ IWAD, which we do not use (debt T9, now paid).
 
 | Lump | What it is | Origin | Licence |
 |---|---|---|---|
-| `fonts/defsmallfont/*.png` (107) | Small font, cap 7 px, line 9. HUD messages, pickups, the option menu | (a) `tools/art/gen_font.py`, style C, glyphs defined as drawing code rather than images | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
-| `fonts/bigfont/*.png` (107) | Big font, cap 11 px plus a 1 px shadow, line 16. Menu headlines and level titles | idem | idem |
+| `fonts/defsmallfont/*.png` (112) | Small font, cap 7 px, line 9. HUD messages, pickups, the option menu | (a) `tools/art/gen_font.py`, style C, glyphs defined as drawing code rather than images | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
+| `fonts/bigfont/*.png` (112) | Big font, cap 11 px plus a 1 px shadow, line 16. Menu headlines and level titles | idem | idem |
 
 **Drawn, not derived.** Every glyph is constructed from the project's own
 stroke rules in `gen_font.py`; no typeface was traced, subset or converted,
@@ -107,7 +107,8 @@ so there is no font licence to inherit. The styles were named after what they
 imitate in spirit — poster grotesque, GOST drawing lettering, slab machinery
 — not after any particular type family.
 
-Coverage: А-Я and Ё, A-Z, 0-9, and the punctuation the project uses including
+Coverage: А-Я and Ё, A-Z, 0-9, the German Ä Ö Ü and the sharp s (ẞ U+1E9E
+and ß U+00DF, one drawing), and the punctuation the project uses including
 «» × · №, at both sizes.
 
 Format: RGBA PNG, not indexed, with palette colours only and hard 0/255
@@ -129,6 +130,20 @@ system font, so they reproduce on both machines. Origin, author and licence
 unchanged. Before/after sheet:
 `docs/art/previews/2026-10-13_1443_F2_font-C-serif-fix.png`.
 
+**German letters, 2026-10-13 (approved by the CEO the same day for an
+in-game trial, D37: «Las pruebo, incluso la B se queda»).** Ä, Ö, Ü and the
+sharp s, so the Reich's real German (D36) prints as written: ten new files,
+`00C4.png`, `00D6.png`, `00DC.png`, `1E9E.png` and `00DF.png` in both
+`defsmallfont/` and `bigfont/`, taking the alphabet from 214 to 224 glyphs.
+Drawn by the same stroke rules in `tools/art/gen_font.py`
+(`GERMAN_UMLAUTS = True`): each umlaut is its base capital in a shorter box
+under two stem-sized dots, the sharp s is its own construction; the two
+sharp-s codepoints are one drawing. No pixel painted by hand, no new source,
+the 214 existing glyphs unchanged byte for byte. Copied from the proposal
+build `work/art/font_umlaut/C/` and checked byte for byte. Origin, author and
+licence unchanged. Proposal sheet:
+`docs/art/previews/2026-10-13_1730_F5_font-german-umlauts.png`.
+
 ## The menu font SDMENU (D31, approved for in-engine trial 2026-10-13)
 
 The first construction of D22 (level 2: R→Я, N→И, E→Э, W→Ш, A→Д). Used only
@@ -138,7 +153,7 @@ text, so the proper nouns, calibres and key prompts that
 
 | Lump | What it is | Origin | Licence |
 |---|---|---|---|
-| `fonts/sdmenu/*.png` (107) | Menu font: `fonts/bigfont/` (cap 11 px plus a 1 px shadow, line 16) with the five Latin capitals R, N, E, W, A drawn with the forms of Я, И, Э, Ш, Д. Russian strings use Cyrillic code points and are unaffected, so one font serves both languages | (a) `tools/art/gen_menu.py`: 102 glyphs and `font.inf` copied byte for byte from `assets/fonts/bigfont/`; the five substituted glyphs rendered by `gen_font.glyph_image()` from the Cyrillic letters' stroke code, byte-identical to `0414`, `0418`, `042D`, `042F` and `0428` of `bigfont/`. No new drawing, no system font | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
+| `fonts/sdmenu/*.png` (112) | Menu font: `fonts/bigfont/` (cap 11 px plus a 1 px shadow, line 16) with the five Latin capitals R, N, E, W, A drawn with the forms of Я, И, Э, Ш, Д. Russian strings use Cyrillic code points and are unaffected, so one font serves both languages | (a) `tools/art/gen_menu.py`: 107 glyphs (the German five included since D37) and `font.inf` copied byte for byte from `assets/fonts/bigfont/`; the five substituted glyphs rendered by `gen_font.glyph_image()` from the Cyrillic letters' stroke code, byte-identical to `0414`, `0418`, `042D`, `042F` and `0428` of `bigfont/`. No new drawing, no system font | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
 
 Status: **approved for in-engine trial 2026-10-13 (D31)**; the CEO judges
 it on screen. `tests/test_gen_menu.py` pins the map and checks that only
