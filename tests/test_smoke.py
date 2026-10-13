@@ -183,15 +183,17 @@ class CommandLineTests(unittest.TestCase):
 
     def test_core_arguments_in_run_sh_order(self):
         cmd = self._cmd()
-        self.assertEqual("/bin/gzdoom", cmd[0])
+        self.assertEqual(str(Path("/bin/gzdoom")), cmd[0])
         # -config leads so the engine never reads or writes the user's own
         # gzdoom.ini: an automated -nosound run was enough to leave a
         # developer with a silent game (2026-10-13).
         self.assertEqual("-config", cmd[1])
         self.assertTrue(cmd[2].endswith("gzdoom-tooling.ini"), cmd[2])
-        self.assertEqual(["-iwad", "/w/freedoom2.wad"], cmd[3:5])
-        self.assertEqual(["-file", "/d/sovietdoom.pk3"], cmd[5:7])
-        self.assertEqual(["+logfile", "/l/smoke.log"], cmd[7:9])
+        # str(Path(...)): the builder stringifies Paths, and on Windows that
+        # means backslashes, which is also what the engine wants there.
+        self.assertEqual(["-iwad", str(Path("/w/freedoom2.wad"))], cmd[3:5])
+        self.assertEqual(["-file", str(Path("/d/sovietdoom.pk3"))], cmd[5:7])
+        self.assertEqual(["+logfile", str(Path("/l/smoke.log"))], cmd[7:9])
         self.assertIn("+map", cmd)
         self.assertEqual("MAP01", cmd[cmd.index("+map") + 1])
 
@@ -216,7 +218,7 @@ class CommandLineTests(unittest.TestCase):
 
     def test_screenshot_dir_only_when_shooting(self):
         cmd = self._cmd()
-        self.assertEqual("/l/shots", cmd[cmd.index("+screenshot_dir") + 1])
+        self.assertEqual(str(Path("/l/shots")), cmd[cmd.index("+screenshot_dir") + 1])
         self.assertNotIn("+screenshot_dir", self._cmd(screenshot=False))
 
     def test_custom_map_skill_and_extra_args(self):
@@ -254,6 +256,24 @@ class FindGzdoomTests(unittest.TestCase):
                 smoke.find_gzdoom(None, env={"PATH": tmp})
             self.assertEqual(smoke.EXIT_NO_GZDOOM, ctx.exception.code)
             self.assertIn("brew install", str(ctx.exception))
+
+    def test_windows_install_locations_are_candidates(self):
+        """The CEO's PC (2026-10-13): the release zip under %LOCALAPPDATA%,
+        or the installer under Program Files. Forward slashes in the fake
+        env so the assertion reads the same on Linux CI."""
+        env = {"LOCALAPPDATA": "C:/Users/x/AppData/Local",
+               "ProgramFiles": "C:/Program Files",
+               "ProgramFiles(x86)": "C:/Program Files (x86)"}
+        names = [c.as_posix() for c in smoke.gzdoom_candidates(env)]
+        self.assertIn("C:/Users/x/AppData/Local/Programs/GZDoom/gzdoom.exe", names)
+        self.assertIn("C:/Program Files/GZDoom/gzdoom.exe", names)
+        self.assertIn("C:/Program Files (x86)/GZDoom/gzdoom.exe", names)
+        # macOS stays first: discovery order is part of the contract.
+        self.assertTrue(names[0].startswith("/Applications/"))
+
+    def test_without_windows_variables_no_windows_candidate_appears(self):
+        names = [c.as_posix() for c in smoke.gzdoom_candidates({})]
+        self.assertFalse(any(n.endswith(".exe") for n in names))
 
 
 class FindIwadTests(unittest.TestCase):
@@ -322,18 +342,26 @@ class CliTests(unittest.TestCase):
 
 
 class TimeoutTests(unittest.TestCase):
+    """The stand-in process is this interpreter, not /bin/sh: the tests must
+    run on Windows too, and the engine gate only triggers on a binary named
+    gzdoom, so python.exe passes through it like /bin/sh did."""
+
+    @staticmethod
+    def _proc(code: str) -> list[str]:
+        return [sys.executable, "-c", code]
+
     def test_a_hanging_process_is_killed_and_reported(self):
-        result = smoke.run_engine(["/bin/sh", "-c", "sleep 30"], timeout_s=0.5)
+        result = smoke.run_engine(self._proc("import time; time.sleep(30)"), timeout_s=0.5)
         self.assertTrue(result.timed_out)
         self.assertIsNone(result.returncode)
 
     def test_a_normal_process_is_not_reported_as_timed_out(self):
-        result = smoke.run_engine(["/bin/sh", "-c", "exit 0"], timeout_s=20)
+        result = smoke.run_engine(self._proc("raise SystemExit(0)"), timeout_s=20)
         self.assertFalse(result.timed_out)
         self.assertEqual(0, result.returncode)
 
     def test_engine_failure_is_surfaced(self):
-        result = smoke.run_engine(["/bin/sh", "-c", "exit 3"], timeout_s=20)
+        result = smoke.run_engine(self._proc("raise SystemExit(3)"), timeout_s=20)
         self.assertEqual(3, result.returncode)
 
 

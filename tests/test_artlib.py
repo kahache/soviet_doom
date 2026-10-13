@@ -51,11 +51,14 @@ except ImportError:  # pragma: no cover - the CI interpreter
 
 import palette as palette_mod  # noqa: E402  (stdlib only, always importable)
 
-# The macOS system fonts artlib names. Absent on Linux: the few tests that
-# rasterise text skip rather than fail, like the engine test in test_smoke.
-HAVE_FONTS = all(Path(p).is_file() for p in
-                 ("/System/Library/Fonts/Supplemental/Impact.ttf",
-                  "/System/Library/Fonts/Supplemental/Arial Narrow Bold.ttf"))
+# The system fonts artlib resolves (macOS or Windows). Absent on Linux: the
+# few tests that rasterise text skip rather than fail, like the engine test
+# in test_smoke. artlib itself needs Pillow, hence the guard.
+try:
+    import artlib as _artlib  # noqa: E402
+    HAVE_FONTS = _artlib.FONTS_PRESENT
+except ImportError:  # pragma: no cover - the CI interpreter
+    HAVE_FONTS = False
 
 # Palette v1, ratified by the CEO on 2026-10-12 and frozen by ART-BIBLE
 # ("the 162 colours in use are frozen: later sets only *add* ramps in the
@@ -466,7 +469,7 @@ class OverlayTests(unittest.TestCase):
         self.assertAlmostEqual(pts[0][0], 10.0, places=6)   # first point straight up
         self.assertLess(pts[0][1], 10.0)
 
-    @unittest.skipUnless(HAVE_FONTS, "macOS system fonts not present")
+    @unittest.skipUnless(HAVE_FONTS, "system fonts (Impact, Arial Narrow Bold) not present")
     def test_text_shrinks_until_it_fits_max_width(self):
         from artlib import Overlay
         ov = Overlay(64, 32)
@@ -478,7 +481,7 @@ class OverlayTests(unittest.TestCase):
         xs = np.nonzero(drawn.any(axis=0))[0] / ov.s
         self.assertLessEqual(float(xs.max() - xs.min()), 42.0)
 
-    @unittest.skipUnless(HAVE_FONTS, "macOS system fonts not present")
+    @unittest.skipUnless(HAVE_FONTS, "system fonts (Impact, Arial Narrow Bold) not present")
     def test_text_without_max_width_keeps_the_size_asked(self):
         from artlib import Overlay
         ov = Overlay(64, 32)

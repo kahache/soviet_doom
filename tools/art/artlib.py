@@ -13,6 +13,7 @@ Pipeline of every texture:
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -29,11 +30,43 @@ SUPERSAMPLE = 4
 # Doom textures must be multiples of 8 (ART-BIBLE §2); checked on save.
 DIMENSION_MULTIPLE = 8
 
-# Fonts with Cyrillic glyphs on macOS (verified with Pillow getbbox on
-# "ЛЕНИН ЖИВ"). Impact is a condensed grotesque close to Soviet poster
+# Fonts with Cyrillic glyphs (verified with Pillow getbbox on "ЛЕНИН ЖИВ"
+# on macOS). Impact is a condensed grotesque close to Soviet poster
 # lettering; Arial Narrow Bold is for small secondary text.
-FONT_POSTER = "/System/Library/Fonts/Supplemental/Impact.ttf"
-FONT_SMALL = "/System/Library/Fonts/Supplemental/Arial Narrow Bold.ttf"
+#
+# Resolved per machine: the macOS paths (where every approved asset was
+# rendered) first, then the Windows font folder (the CEO's PC since
+# 2026-10-13). Windows ships Impact but NOT Arial Narrow Bold, which comes
+# with Office; Arial Bold is the fallback so the generators still run. It
+# is a wider face, so small text and sheet labels rendered here come out
+# DIFFERENT from the macOS originals. Rule that follows: approved assets
+# are never regenerated on a machine whose FONT_SMALL is the fallback;
+# tests/test_art.py compares assets/ with work/, never with a fresh render.
+
+
+def _first_font(*candidates: str) -> str:
+    """First candidate that exists on this machine; the first candidate
+    otherwise, so a missing font fails loudly in ImageFont.truetype
+    rather than silently here."""
+    for candidate in candidates:
+        if Path(candidate).is_file():
+            return candidate
+    return candidates[0]
+
+
+_WIN_FONTS = Path(os.environ.get("WINDIR", "C:/Windows")) / "Fonts"
+FONT_POSTER = _first_font(
+    "/System/Library/Fonts/Supplemental/Impact.ttf",
+    str(_WIN_FONTS / "impact.ttf"),
+)
+FONT_SMALL = _first_font(
+    "/System/Library/Fonts/Supplemental/Arial Narrow Bold.ttf",
+    str(_WIN_FONTS / "arialnb.ttf"),
+    str(_WIN_FONTS / "arialbd.ttf"),
+)
+# True when both faces resolved to a real file; the text-rendering tests
+# skip when it is False (Linux CI).
+FONTS_PRESENT = all(Path(f).is_file() for f in (FONT_POSTER, FONT_SMALL))
 
 
 # ----------------------------------------------------------------- palette

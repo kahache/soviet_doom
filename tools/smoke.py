@@ -201,11 +201,24 @@ class LogReport:
 
 # --- Locating the engine and the game data (same rules as tools/run.sh) ---
 
-def gzdoom_candidates() -> list[Path]:
-    return [
+def gzdoom_candidates(env: dict[str, str] | None = None) -> list[Path]:
+    """Where an installed GZDoom lives: macOS first (the project's original
+    machine), then Windows (the CEO's PC since 2026-10-13), where the release
+    zip is unpacked under %LOCALAPPDATA%\\Programs\\GZDoom or the installer
+    puts it under Program Files."""
+    env = os.environ if env is None else env
+    cands = [
         Path("/Applications/GZDoom.app/Contents/MacOS/gzdoom"),
         Path.home() / "Applications/GZDoom.app/Contents/MacOS/gzdoom",
     ]
+    local = env.get("LOCALAPPDATA")
+    if local:
+        cands.append(Path(local) / "Programs" / "GZDoom" / "gzdoom.exe")
+    for var in ("ProgramFiles", "ProgramFiles(x86)"):
+        base = env.get(var)
+        if base:
+            cands.append(Path(base) / "GZDoom" / "gzdoom.exe")
+    return cands
 
 
 def find_gzdoom(explicit: str | None = None, env: dict[str, str] | None = None) -> Path:
@@ -217,16 +230,17 @@ def find_gzdoom(explicit: str | None = None, env: dict[str, str] | None = None) 
         if path.is_file() and os.access(path, os.X_OK):
             return path
         raise SmokeError(f"GZDOOM={wanted} is not an executable file", EXIT_NO_GZDOOM)
-    for cand in gzdoom_candidates():
+    for cand in gzdoom_candidates(env):
         if cand.is_file() and os.access(cand, os.X_OK):
             return cand
     on_path = shutil.which("gzdoom", path=env.get("PATH"))
     if on_path:
         return Path(on_path)
     raise SmokeError(
-        "gzdoom not found. Install it (brew install --cask gzdoom) or pass "
+        "gzdoom not found. Install it (brew install --cask gzdoom; on Windows "
+        "unzip the release under %LOCALAPPDATA%\\Programs\\GZDoom) or pass "
         "--gzdoom /path/to/gzdoom (or GZDOOM=...). Looked in: "
-        + ", ".join(str(c) for c in gzdoom_candidates())
+        + ", ".join(str(c) for c in gzdoom_candidates(env))
         + " and $PATH",
         EXIT_NO_GZDOOM,
     )
@@ -408,7 +422,7 @@ def run_engine(argv: list[str], timeout_s: float, cwd: Path = PROJECT_ROOT) -> R
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         stdin=subprocess.DEVNULL,
-        start_new_session=True,  # own process group, so nothing survives a kill
+        **_spawn_options(),  # own process group, so nothing survives a kill
     )
     try:
         proc.wait(timeout=timeout_s)
@@ -424,7 +438,27 @@ def run_engine(argv: list[str], timeout_s: float, cwd: Path = PROJECT_ROOT) -> R
         raise
 
 
+def _spawn_options() -> dict:
+    """Give the engine its own process group on both platforms. POSIX:
+    setsid, so killpg reaches every child. Windows: a new process group,
+    which is the tree `taskkill /T` walks."""
+    if os.name == "nt":
+        return {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
+    return {"start_new_session": True}
+
+
 def _kill_group(proc: subprocess.Popen) -> None:
+    if os.name == "nt":
+        # No killpg on Windows: taskkill /T takes the whole tree, /F does not
+        # ask. proc.kill() is the backstop if taskkill itself is missing.
+        subprocess.run(["taskkill", "/PID", str(proc.pid), "/T", "/F"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            proc.wait(timeout=TERMINATE_GRACE_S)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait(timeout=TERMINATE_GRACE_S)
+        return
     for sig in (signal.SIGTERM, signal.SIGKILL):
         try:
             os.killpg(os.getpgid(proc.pid), sig)

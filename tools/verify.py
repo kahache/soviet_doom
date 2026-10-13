@@ -63,7 +63,12 @@ TESTS_DIR = PROJECT_ROOT / "tests"
 DOCS_DIR = PROJECT_ROOT / "docs"
 RU_DIR = DOCS_DIR / "ru"
 MAPS_DIR = PROJECT_ROOT / "src" / "maps"
-VENV_PYTHON = PROJECT_ROOT / ".venv" / "bin" / "python"
+# The project venv's interpreter: the POSIX layout (the Mac the project
+# started on) or the Windows one (the CEO's PC since 2026-10-13), whichever
+# exists. The first is also the name quoted in docs when neither does.
+_VENV_CANDIDATES = (PROJECT_ROOT / ".venv" / "bin" / "python",
+                    PROJECT_ROOT / ".venv" / "Scripts" / "python.exe")
+VENV_PYTHON = next((p for p in _VENV_CANDIDATES if p.is_file()), _VENV_CANDIDATES[0])
 
 # --- Exit codes ------------------------------------------------------------
 EXIT_OK = 0
@@ -593,7 +598,7 @@ def print_decision(decision: Decision, plan: Plan) -> None:
 def print_header(plan: Plan, python: str) -> None:
     interpreter = Path(python).name
     if Path(python) == VENV_PYTHON:
-        interpreter = ".venv/bin/python"
+        interpreter = ".venv/" + VENV_PYTHON.relative_to(PROJECT_ROOT / ".venv").as_posix()
     print(f"verify {plan.level.label}  ({interpreter})")
 
 

@@ -60,18 +60,21 @@ try:
 except ImportError:  # pragma: no cover - the CI interpreter
     HAVE_IMAGING = False
 
-# The macOS system fonts the generators rasterise Cyrillic with. Without them
-# every generator that draws text raises, so those tests skip instead.
-HAVE_FONTS = all(Path(p).is_file() for p in
-                 ("/System/Library/Fonts/Supplemental/Impact.ttf",
-                  "/System/Library/Fonts/Supplemental/Arial Narrow Bold.ttf"))
+# The system fonts the generators rasterise Cyrillic with, resolved by
+# artlib per machine (macOS or Windows). Without them every generator that
+# draws text raises, so those tests skip instead.
+try:
+    import artlib as _artlib  # noqa: E402
+    HAVE_FONTS = _artlib.FONTS_PRESENT
+except ImportError:  # pragma: no cover - the CI interpreter
+    HAVE_FONTS = False
 
 # The Lenin negative: work/ is gitignored and the photo is not redistributed.
 LENIN_PHOTO = PROJECT_ROOT / "work" / "art" / "reference" / "lenin_1920_zhukov.jpg"
 HAVE_LENIN_PHOTO = LENIN_PHOTO.is_file()
 
 imaging = unittest.skipUnless(HAVE_IMAGING, "Pillow/numpy not available in this interpreter")
-fonts = unittest.skipUnless(HAVE_FONTS, "macOS system fonts not present")
+fonts = unittest.skipUnless(HAVE_FONTS, "system fonts (Impact, Arial Narrow Bold) not present")
 lenin_photo = unittest.skipUnless(
     HAVE_LENIN_PHOTO,
     f"reference photograph absent ({LENIN_PHOTO.relative_to(PROJECT_ROOT)} is under gitignored work/)")
@@ -793,6 +796,42 @@ class SwitchLayoutTests(unittest.TestCase):
         import gen_switch as gen
         last = max(b[1] for b in gen.var_a_boxes().values())
         self.assertLess(last, gen.H - gen.RECESS - gen.BEVEL)
+
+    def test_the_sheet_builds_without_the_flr1_before_after(self):
+        """On a clean clone work/ does not exist, so flr1_before_after() cannot
+        supply the SDFLR1 before/after cells; build_sheet() used to die there
+        with KeyError 'flr1_after' (found on Windows, 2026-10-13). The sheet
+        must still build, just without that section, and must include it
+        when the cells are there. No builder runs: one placeholder PNG stands
+        in for every cell, and the sheet is written to a tempdir."""
+        import gen_switch as gen
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            stub = tmp / "stub.png"
+            Image.new("P", (gen.W, gen.H)).save(stub)
+            files = {}
+            for vid in gen.VARIANT_IDS:
+                for state in ("off", "on"):
+                    files[f"{vid}_{state}"] = stub
+                    for host in gen.HOSTS:
+                        files[f"{vid}_{host}_{state}"] = stub
+                        files[f"{vid}_{host}_{state}_far"] = stub
+            metrics = {vid: {"vs_SDCONC1": 1.0, "vs_SDSTEL1": 1.0, "state_far_mean": 1.0,
+                             "state_far_max": 1.0, "lit_far_px": 1, "far_px_total": 128}
+                       for vid in gen.VARIANT_IDS}
+            saved_dir = gen.SHEET_DIR
+            gen.SHEET_DIR = tmp
+            try:
+                for lang in ("en", "ru"):
+                    heading = gen.LABELS[lang]["sec_bug"]
+                    out = gen.build_sheet(lang, files, metrics, "0000-00-00_0000")
+                    self.assertTrue(out.is_file(), out)
+                    self.assertNotIn(heading, out.read_text(encoding="utf-8"))
+                    with_bug = dict(files, **{k: stub for k in gen.FLR1_KEYS})
+                    out = gen.build_sheet(lang, with_bug, metrics, "0000-00-00_0001")
+                    self.assertIn(heading, out.read_text(encoding="utf-8"))
+            finally:
+                gen.SHEET_DIR = saved_dir
 
     def test_every_state_pair_is_the_contract_size(self):
         """A switch is one wall segment on the 64 grid, so the level designer

@@ -41,10 +41,20 @@ find_gzdoom() {
 		[ -x "$GZDOOM" ] && { echo "$GZDOOM"; return; }
 		die "GZDOOM=$GZDOOM is not executable" 2
 	fi
+	# macOS first (the project's original machine), then Windows under Git
+	# Bash (the CEO's PC since 2026-10-13): the release zip unpacked under
+	# %LOCALAPPDATA%\Programs\GZDoom, or the installer's Program Files.
+	# cygpath turns C:\... into /c/... so the -x test works.
 	local candidates=(
 		"/Applications/GZDoom.app/Contents/MacOS/gzdoom"
 		"$HOME/Applications/GZDoom.app/Contents/MacOS/gzdoom"
 	)
+	local winbase
+	for winbase in "${LOCALAPPDATA:+$LOCALAPPDATA/Programs}" "${PROGRAMFILES:-}"; do
+		[ -n "$winbase" ] || continue
+		command -v cygpath >/dev/null 2>&1 && winbase="$(cygpath -u "$winbase")"
+		candidates+=("$winbase/GZDoom/gzdoom.exe")
+	done
 	local c
 	for c in "${candidates[@]}"; do
 		[ -x "$c" ] && { echo "$c"; return; }
@@ -52,7 +62,19 @@ find_gzdoom() {
 	if command -v gzdoom >/dev/null 2>&1; then
 		command -v gzdoom; return
 	fi
-	die "gzdoom not found. Install GZDoom (brew install --cask gzdoom) or set GZDOOM=/path/to/gzdoom" 2
+	die "gzdoom not found. Install GZDoom (brew install --cask gzdoom; on Windows unzip the release under %LOCALAPPDATA%\Programs\GZDoom) or set GZDOOM=/path/to/gzdoom" 2
+}
+
+# --- Python ---------------------------------------------------------------
+# The project venv when it exists (Pillow lives there), in either layout;
+# otherwise whatever python3 or python is on PATH. Stdlib is enough to build.
+find_python() {
+	local p
+	for p in "$ROOT/.venv/bin/python" "$ROOT/.venv/Scripts/python.exe"; do
+		[ -x "$p" ] && { echo "$p"; return; }
+	done
+	if command -v python3 >/dev/null 2>&1; then echo python3; return; fi
+	echo python
 }
 
 # --- IWAD -----------------------------------------------------------------
@@ -82,7 +104,7 @@ IWAD_PATH="$(find_iwad)"
 
 # --- Build ----------------------------------------------------------------
 if [ -z "${SD_NO_BUILD:-}" ]; then
-	python3 "$ROOT/tools/build.py" --quiet || die "build failed" 4
+	"$(find_python)" "$ROOT/tools/build.py" --quiet || die "build failed" 4
 fi
 [ -f "$PK3" ] || die "$PK3 missing; run python3 tools/build.py" 4
 
