@@ -93,6 +93,22 @@ def collect_maps(src: Path, tools_dir: Path) -> list[Entry]:
     return entries
 
 
+# Editor and tool leftovers. They are not lumps, and because a lump is named
+# after the file's STEM, MAPINFO.bak becomes a second lump called MAPINFO and
+# collides with the real one. An agent left three of these mid-edit on
+# 2026-10-13 and the package stopped validating; the build now refuses to see
+# them at all rather than relying on anyone remembering to clean up.
+IGNORED_LUMP_SUFFIXES = (".bak", ".orig", ".rej", ".tmp", ".swp", ".swo", "~")
+
+
+def _is_leftover(name: str) -> bool:
+    low = name.lower()
+    if low.startswith(".") or low.endswith("~"):
+        return True
+    # catches .bak, .bak2, .bak.3 and friends
+    return any(s in low for s in IGNORED_LUMP_SUFFIXES if s != "~")
+
+
 def collect_lumps(src: Path) -> list[Entry]:
     entries: list[Entry] = []
     lumps_dir = src / "lumps"
@@ -101,6 +117,8 @@ def collect_lumps(src: Path) -> list[Entry]:
     for p in _iter_files(lumps_dir):
         if p.parent != lumps_dir:
             raise BuildError(f"src/lumps must be flat, found {p}")
+        if _is_leftover(p.name):
+            continue
         # Root files become lumps named after the stem; enforce the 8-char rule.
         validate_lump_name(p.stem)
         entries.append(Entry(p.name, p.read_bytes()))
