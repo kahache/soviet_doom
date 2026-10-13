@@ -660,14 +660,21 @@ def build_sheet(lang: str, files: dict, metrics: dict, stamp: str) -> Path:
              f'{metrics[v]["state_far_mean"]} / {metrics[v]["state_far_max"]}',
              metrics[v]["lit_far_px"]] for v in VARIANT_IDS]
     tbl = sheetlib.table([L["h_variant"], L["h_sep_conc"], L["h_sep_stel"], L["h_far"], L["h_lit"]], rows)
-    bug = (sheetlib.view(L["bug_before"], files["flr1_before"], sheetlib.ZOOM, (64, 64))
-           + sheetlib.view(L["bug_after"], files["flr1_after"], sheetlib.ZOOM, (64, 64))
-           + sheetlib.view(L["bug_tile"], files["flr1_tile"], 2, (128, 128)))
     sections = [
         (L["sec_cards"], LEAD_EN if lang == "en" else LEAD_RU, f'<div class="grid">{cards}</div>'),
         (L["sec_table"], "", tbl),
         (L["sec_reco"], "", f'<p class="lead">{RECO_EN if lang == "en" else RECO_RU}</p>'),
-        (L["sec_bug"], "", f'<div class="row">{bug}</div>'),
+    ]
+    # The BUG-ART-001 before/after needs the batch-1 render under work/ next
+    # to the file in assets/. flr1_before_after() only fills those keys when
+    # that render exists, so on a clean clone (work/ is gitignored) the
+    # section is left out rather than the sheet dying with a KeyError.
+    if all(k in files for k in FLR1_KEYS):
+        bug = (sheetlib.view(L["bug_before"], files["flr1_before"], sheetlib.ZOOM, (64, 64))
+               + sheetlib.view(L["bug_after"], files["flr1_after"], sheetlib.ZOOM, (64, 64))
+               + sheetlib.view(L["bug_tile"], files["flr1_tile"], 2, (128, 128)))
+        sections.append((L["sec_bug"], "", f'<div class="row">{bug}</div>'))
+    sections += [
         (L["sec_pal"], "", sheetlib.palette_ramps(load_palette())),
         (L["sec_ask"], "", f'<div class="ask">{ASK_EN if lang == "en" else ASK_RU}</div>'),
     ]
@@ -732,12 +739,18 @@ def save_path(path: Path, rgb: np.ndarray) -> Path:
     return path
 
 
+FLR1_KEYS = ("flr1_before", "flr1_after", "flr1_tile")
+
+
 def flr1_before_after() -> dict[str, Path]:
     """The one approved texture whose bytes the BUG-ART-001 fix changed.
 
-    assets/ still holds the pre-fix file (nothing enters assets/ without the
-    CEO), work/ holds the fixed one, so the two can be shown side by side and
-    the CEO can confirm a 44-pixel bugfix in the same look as the sweep.
+    Written when assets/ still held the pre-fix file and work/ the fixed one,
+    so the two could be shown side by side and the CEO could confirm a
+    44-pixel bugfix in the same look as the sweep. The repair entered assets/
+    on 2026-10-13 (commit 5c9bb1d), so today both files are the same; the
+    section is only built when the batch-1 render exists under work/ (all of
+    FLR1_KEYS present), and build_sheet() skips it otherwise.
     """
     before = PROJECT_ROOT / "assets" / "flats" / "soviet_base" / "SDFLR1.png"
     after = PROJECT_ROOT / "work" / "art" / "batch1" / "soviet_base" / "SDFLR1.png"
