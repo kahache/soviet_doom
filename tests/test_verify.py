@@ -470,7 +470,10 @@ class StageFailureTests(unittest.TestCase):
     def test_run_reports_oserror_as_exit_127(self):
         code, out, _secs = verify._run(["/nope/does/not/exist"])
         self.assertEqual(127, code)
-        self.assertIn("No such file", out)
+        # The OS phrases the reason in its own language ("No such file" on
+        # POSIX, "[WinError 2] El sistema no puede..." here); the stable
+        # part is ours.
+        self.assertIn("could not run", out)
 
 
 class SmokeWindowTests(unittest.TestCase):

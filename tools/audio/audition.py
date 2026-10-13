@@ -52,6 +52,12 @@ TOOLING_CONFIG = LOG_DIR / "gzdoom-tooling.ini"
 GZDOOM_CANDIDATES = (
     Path("/Applications/GZDoom.app/Contents/MacOS/gzdoom"),
     Path.home() / "Applications/GZDoom.app/Contents/MacOS/gzdoom",
+) + tuple(
+    # Windows (the CEO's PC since 2026-10-13): the release zip unpacked under
+    # %LOCALAPPDATA%\Programs\GZDoom, or the installer's Program Files.
+    Path(os.environ[var]) / sub / "GZDoom" / "gzdoom.exe"
+    for var, sub in (("LOCALAPPDATA", "Programs"), ("ProgramFiles", "."))
+    if os.environ.get(var)
 )
 IWAD_CANDIDATES = (
     PROJECT_ROOT / "iwads" / "freedoom2.wad",

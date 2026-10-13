@@ -38,7 +38,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from artlib import ramp_colour  # noqa: E402
+from artlib import FONT_POSTER, FONT_SMALL, ramp_colour  # noqa: E402
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PHOTO = PROJECT_ROOT / "work" / "art" / "reference" / "lenin_1920_zhukov.jpg"
@@ -66,7 +66,7 @@ AUTOCONTRAST_CUTOFF = 1   # per cent clipped at each end before cutting
 SLOGAN = "ЛЕНИН ЖИВ"      # "Lenin lives" - after Mayakovsky (d. 1930), free
 SLOGAN_SIZE = 19
 SLOGAN_MASK_CUT = 128     # glyph coverage above this is ink, below is ground
-FONT_BOLD = "/System/Library/Fonts/Supplemental/Impact.ttf"
+FONT_BOLD = FONT_POSTER   # artlib resolves it per machine (macOS / Windows)
 
 
 def inks():
@@ -134,8 +134,8 @@ def sweep(path: Path) -> None:
     sheet = Image.new("RGB", (len(biases) * (WIDTH * zoom + gap) + gap,
                               3 * (body * zoom + label + gap) + gap + 24), (22, 22, 22))
     d = ImageDraw.Draw(sheet)
-    f = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 15)
-    fs = ImageFont.truetype("/System/Library/Fonts/Supplemental/Arial.ttf", 12)
+    f = ImageFont.truetype(FONT_SMALL, 15)    # sheet labels only, not the poster
+    fs = ImageFont.truetype(FONT_SMALL, 12)
     d.text((gap, 6), "Lenin - posterisation sweep. Point at one cell (e.g. 4C).",
            font=f, fill=(255, 230, 120))
     for r, n in enumerate([2, 3, 4]):

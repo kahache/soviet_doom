@@ -21,6 +21,7 @@ set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENV_PY="$ROOT/.venv/bin/python"
+[[ -x "$VENV_PY" ]] || VENV_PY="$ROOT/.venv/Scripts/python.exe"   # Windows venv layout
 COV_DIR="$ROOT/logs/coverage"
 DATA_FILE="$COV_DIR/.coverage"
 HTML_DIR="$COV_DIR/html"
