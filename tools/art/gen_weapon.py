@@ -77,7 +77,8 @@ Outputs (work/ is gitignored):
     work/art/weapons/izh/        SDIZA0-D0, SDIFA0-B0, SDIPA0, metrics.json
     work/art/weapons/rpg7/       SDRLA0-B0 (+ C0, D0 _proposed), SDRFA0-D0, SDRPA0, metrics.json
     work/art/weapons/roks3/      SDRKA0-B0, SDKFA0-B0, SDKPA0, metrics.json
-    work/art/weapons/katyusha/   SDHKA0-B0, SDHFA0-B0, SDHPA0, metrics.json
+    work/art/weapons/katyusha/   SDHKA0-B0 (+ C0 _proposed), SDHFA0-B0, SDHPA0, metrics.json;
+                                 variants/ holds launch-box variants B, C and pickup option F
     docs/art/previews/<stamp>_F4_<slug>.png   the sheet of each delivery
 Sprites are RGBA with hard alpha, like the F5 drafts (ART-BIBLE §2
 exception); the shipped format is decided with the mod-engineer on
@@ -1801,11 +1802,13 @@ def render_roks3_frame(style: HandStyle, pose: ArmsPose) -> tuple[Frame, tuple[f
     return finish(rig), (mx, my)
 
 
-# --------------------------------------------------------- hand Katyusha
-# A 1977 prototype (LORE): six short rockets on rails in two rows of three,
-# an olive frame, a bakelite pistol grip and a forward handle, carried on the
-# right shoulder. Seen from behind, the six tails and their fins are the
-# weapon's face. u from the rear of the frame, v up, w left.
+# ------------------------------------------------- hand Katyusha, pass 1
+# PASS 1 (sheet 2026-10-13_2219, judged NOT YET by its own verdict): six
+# short rockets on open rails in two rows of three, an olive frame, a
+# bakelite pistol grip and a forward handle, carried on the right shoulder.
+# Along the rails the rockets read as a bundle of sticks and the pickup as a
+# bench. Kept only so the pass-2 sheet can show it beside the launch box;
+# nothing is written from it. u from the rear of the frame, v up, w left.
 HK_LEN = 44.0
 HK_ROWS = (0.0, 5.4)
 HK_COLS = (-5.3, 0.0, 5.3)
@@ -1858,7 +1861,7 @@ def draw_katyusha(rig: Rig, origin, bore, up, loaded: bool = True) -> dict:
             "muzzle": at(HK_LEN, (v0 + v1) / 2)}
 
 
-HK_POSES = (
+HK_RAILS_POSES = (
     ArmsPose("A", "ready, six loaded", (6.5, 10.0, 24.0), (-0.05, -0.06, 1.0), (0.08, -1.0, 0.0)),
     ArmsPose("B", "salvo: rails up, empty", (6.8, 8.6, 23.0), (-0.05, -0.16, 1.0), (0.08, -1.0, 0.0),
              state="empty"),
@@ -1867,14 +1870,231 @@ HK_RIGHT_ELBOW = (18.0, 40.0, 5.0)
 HK_LEFT_ELBOW = (-18.0, 40.0, 30.0)
 
 
-def render_katyusha_frame(style: HandStyle, pose: ArmsPose) -> tuple[Frame, list]:
-    """A held frame and the screen positions of the six rails' rear ends."""
+def render_katyusha_rails_frame(style: HandStyle, pose: ArmsPose) -> tuple[Frame, list]:
+    """Pass 1: a held frame and the screen positions of the six rails' rear ends."""
     rig = Rig()
     got = draw_katyusha(rig, pose.origin, pose.bore, pose.up, loaded=pose.state != "empty")
     at, U, V = got["at"], got["U"], got["V"]
     v0 = HK_FRAME_V[0]
     draw_grip(rig, style, at(HK_GRIP_U - 0.8, v0 - 5.0), unit(V + U * 0.16), HK_RIGHT_ELBOW, 1.6, trigger=True)
     draw_grip(rig, style, at(HK_HANDLE_U + 0.4, v0 - 5.0), unit(V - U * 0.08), HK_LEFT_ELBOW, 1.3, side="left")
+    rear = [rig.project(p) for p in got["rear"]]
+    return finish(rig), rear
+
+
+# ------------------------------------------------- hand Katyusha, pass 2
+# PASS 2: a CLOSED LAUNCH BOX, after the portable salvo launchers (six tubes
+# in an olive case, fired from the shoulder). Seen from behind, the weapon's
+# face is the box's rear end with the six tube mouths in two rows of three,
+# and a rocket's tail in each: a dark nozzle in the middle and the X of its
+# fins, so the salvo counts as six at 1x. Three variants of the same idea:
+#   A  closed box, the mouths flush with its rear face
+#   B  six tubes in the open, held by three clamp bands (a pod, no case)
+#   C  the box, with the six tube ends standing proud of it at both ends
+# u from the rear of the tubes, v up, w left; all in cm.
+HKB_LEN = 50.0                  # the box
+HKB_PITCH = 5.2                 # tube centre to centre
+HKB_TUBE_R = 2.3                # tube, outer
+HKB_BORE_R = 1.8                # tube, inner
+HKB_CASE = 0.6                  # case wall beyond the outer tubes
+HKB_COLS = (-1.0, 0.0, 1.0)     # x pitch, w
+HKB_ROWS = (-0.5, 0.5)          # x pitch, v
+HKB_HW = HKB_PITCH + HKB_TUBE_R + HKB_CASE              # half width of the case
+HKB_HH = HKB_PITCH / 2 + HKB_TUBE_R + HKB_CASE          # half height
+HKB_BAND = 0.35                 # how far a reinforcing band stands off the case
+HKB_BANDS = ((1.2, 3.0), (HKB_LEN - 3.0, HKB_LEN - 1.2))
+HKB_PACK_BANDS = ((2.5, 5.5), (HKB_LEN / 2 - 1.5, HKB_LEN / 2 + 1.5), (HKB_LEN - 5.5, HKB_LEN - 2.5))
+HKB_PROUD = (2.6, 2.0)          # variant C: tube ends out of the case, rear and front
+HKB_RECESS = 1.3                # how deep a rocket's tail sits in its tube
+HKB_NOZZLE = 0.42               # nozzle radius, as a share of the bore
+HKB_RING = 0.74                 # the red base ring of a loaded rocket, same share
+HKB_FIN_W = 0.45                # a fin seen end on, cm
+HKB_LIFT = HKB_TUBE_R           # cm: a mouth's layers drawn this much nearer the eye
+HKB_THROAT = 4.0                # cm: how deep the dark throat of an empty tube starts
+HKB_NOSE = 2.4                  # a rocket's red nose out of the front mouth (pickup)
+HKB_GRIP_U, HKB_HANDLE_U = 9.0, 31.0
+HKB_SIGHT_U = (6.0, 24.0)       # the folding frame sight's two posts, on top left
+HKB_STAR_U = 30.0               # the red star stencilled on the left side
+HKB_STAR_R = 3.4
+HKB_DISC_N = 28                 # vertices of a mouth's circle
+HKB_EPS = 0.02                  # cm: layers of a mouth, drawn just nearer the eye
+
+
+@dataclass(frozen=True)
+class HKVariant:
+    key: str
+    kind: str               # "box" | "pack" | "proud"
+    title: str
+
+
+HK_VARIANTS = (
+    HKVariant("A", "box", "Closed box, mouths flush"),
+    HKVariant("B", "pack", "Six tubes, three clamp bands"),
+    HKVariant("C", "proud", "Box, tube ends standing proud"),
+)
+HK_VARIANT = {v.key: v for v in HK_VARIANTS}
+RECOMMENDED_HK = "A"
+
+
+def hkb_tubes():
+    return [(r * HKB_PITCH, c * HKB_PITCH) for r in HKB_ROWS for c in HKB_COLS]
+
+
+def hkb_circle(at, u, v, w, r, n: int = HKB_DISC_N):
+    """The 3D points of a circle across the bore at (u, v, w)."""
+    return [at(u, v + r * np.cos(2 * np.pi * k / n), w + r * np.sin(2 * np.pi * k / n)) for k in range(n)]
+
+
+def hkb_layer(rig: Rig, clip2, poly2, depth: float, val: float, material: str) -> None:
+    """Paint screen polygon poly2, clipped to the screen polygon clip2, at a
+    fixed depth: what is seen INSIDE a tube mouth (the tail, the nozzle, the
+    fins, or the far end of an empty tube) is clipped by the mouth's rim."""
+    xs, ys = [p[0] for p in clip2], [p[1] for p in clip2]
+    win = rig._window(min(xs) - 1, min(ys) - 1, max(xs) + 1, max(ys) + 1)
+    if win is None:
+        return
+    sl, X, Y, origin = win
+    inside = rig._poly_mask(clip2, X, origin) & rig._poly_mask(poly2, X, origin)
+    rig._commit(sl, inside, np.full(X.shape, depth), np.full(X.shape, val), MAT_ID[material])
+
+
+def hkb_mouth(rig: Rig, at, u: float, v: float, w: float, loaded: bool) -> None:
+    """One tube's rear mouth: the steel rim, the bore's shadow and either a
+    rocket's tail (a red base ring round a dark nozzle, crossed by the X of
+    four fins) or, empty, the lit inner wall round a dark throat. Every
+    layer is lifted HKB_LIFT towards the eye: a tube end seen end on is a
+    capsule whose bulge would otherwise cover the mouth, and the lift also
+    outlines each mouth (the contour pass)."""
+    proj = lambda pts: [rig.project(p)[:2] for p in pts]
+    z0 = float(at(u, v, w)[2]) - HKB_LIFT
+    rim = proj(hkb_circle(at, u, v, w, HKB_TUBE_R))
+    hkb_layer(rig, rim, rim, z0, 0.62, "steel")
+    bore = proj(hkb_circle(at, u, v, w, HKB_BORE_R))
+    hkb_layer(rig, bore, bore, z0 - HKB_EPS, 0.10, "gunmetal")
+    if loaded:
+        layers = ((HKB_BORE_R - 0.12, 0.40, "steel"), (HKB_BORE_R * HKB_RING, 0.62, "hull_red"),
+                  (HKB_BORE_R * HKB_NOZZLE, 0.05, "rubber"))
+        for k, (r, val, mat) in enumerate(layers):
+            disc = proj(hkb_circle(at, u + HKB_RECESS, v, w, r))
+            hkb_layer(rig, bore, disc, z0 - (2 + k) * HKB_EPS, val, mat)
+        for a in (45.0, 135.0):             # the four fins, end on: an X
+            ca, sa = np.cos(np.deg2rad(a)), np.sin(np.deg2rad(a))
+            d = np.array([ca, sa]) * (HKB_BORE_R - 0.1)
+            n = np.array([-sa, ca]) * HKB_FIN_W / 2
+            q = [(d + n), (d - n), (-d - n), (-d + n)]
+            fin = proj([at(u + HKB_RECESS, v + y, w + x) for x, y in q])
+            hkb_layer(rig, bore, fin, z0 - 6 * HKB_EPS, 0.66, "steel")
+        noz = proj(hkb_circle(at, u + HKB_RECESS, v, w, HKB_BORE_R * HKB_NOZZLE * 0.6))
+        hkb_layer(rig, bore, noz, z0 - 7 * HKB_EPS, 0.0, "rubber")
+    else:
+        # empty: the tube's inner wall catches the light as a crescent round
+        # the dark throat, which is the same bore a few cm deeper (seen from
+        # off the axis, the far end of a 50 cm tube is never in view)
+        hkb_layer(rig, bore, bore, z0 - 2 * HKB_EPS, 0.30, "gunmetal")
+        throat = proj(hkb_circle(at, u + HKB_THROAT, v, w, HKB_BORE_R))
+        hkb_layer(rig, bore, throat, z0 - 3 * HKB_EPS, 0.06, "gunmetal")
+
+
+def hkb_box(rig: Rig, at, U, W, u0: float, u1: float, hw: float, hh: float, material: str = "olive_paint",
+            base: float = 0.52) -> None:
+    """A closed rectangular solid from u0 to u1 (the U-W rectangle extruded
+    along V, both ways)."""
+    rig.plate(at(0.0, 0.0, 0.0), U, W, ((u0, -hw), (u1, -hw), (u1, hw), (u0, hw)), 2 * hh, material, base, 0.8)
+
+
+def hkb_star(rig: Rig, at, u: float, w: float, r: float) -> None:
+    """The red star stencilled on the case's left side."""
+    pts = []
+    for i in range(10):
+        ang = np.deg2rad(90.0 + i * 36.0)
+        rr = r if i % 2 == 0 else r * 0.40
+        pts.append(at(u + rr * np.cos(ang), rr * np.sin(ang), w))
+    rig._plane(pts, "hull_red", 0.62, 0.6)
+
+
+def draw_launch_box(rig: Rig, origin, bore, up, variant: HKVariant, loaded: bool = True, grip: bool = True,
+                    handle: bool = True, noses: bool = False) -> dict:
+    """The pass-2 Katyusha in its own frame. grip=False folds the pistol grip
+    away and lays the sight flat; handle=False folds the forward handle (the
+    pickups: at most ONE thing hangs under the box, so it cannot stand on
+    legs like pass 1's 'bench'); noses=True shows the six red noses out of
+    the front mouths (the pickup, seen from the front)."""
+    U, V, W, at = gun_basis(origin, bore, up)
+    tubes = hkb_tubes()
+    kind = variant.kind
+    rear_u, front_u = (-HKB_PROUD[0], HKB_LEN + HKB_PROUD[1]) if kind == "proud" else (0.0, HKB_LEN)
+    if kind == "pack":
+        hw, hh = HKB_HW - HKB_CASE + 0.3, HKB_HH - HKB_CASE + 0.3
+        for v, w in tubes:
+            rig.capsule(at(0.0, v, w), at(HKB_LEN, v, w), HKB_TUBE_R, HKB_TUBE_R, "olive_paint", 0.52, 0.8,
+                        open_ends=True)
+        for b0, b1 in HKB_PACK_BANDS:
+            hkb_box(rig, at, U, W, b0, b1, hw, hh, "olive_paint", 0.44)
+    else:
+        hw, hh = HKB_HW, HKB_HH
+        hkb_box(rig, at, U, W, 0.0, HKB_LEN, hw, hh)
+        for b0, b1 in HKB_BANDS:
+            hkb_box(rig, at, U, W, b0, b1, hw + HKB_BAND, hh + HKB_BAND, "olive_paint", 0.46)
+        if kind == "proud":
+            for v, w in tubes:
+                rig.capsule(at(rear_u, v, w), at(0.2, v, w), HKB_TUBE_R, HKB_TUBE_R, "steel", 0.42, 0.85,
+                            open_ends=True)
+                rig.capsule(at(HKB_LEN - 0.2, v, w), at(front_u, v, w), HKB_TUBE_R, HKB_TUBE_R, "steel", 0.42,
+                            0.85, open_ends=True)
+        for side in (1.0, -1.0):                        # a star on each side of the case
+            hkb_star(rig, at, HKB_STAR_U, side * (hw + 0.03), HKB_STAR_R)
+    for v, w in tubes:
+        hkb_mouth(rig, at, rear_u - HKB_EPS, v, w, loaded)
+    if noses:
+        for v, w in tubes:
+            rig.capsule(at(front_u - 0.5, v, w), at(front_u + HKB_NOSE, v, w), HKB_BORE_R, HKB_BORE_R * 0.3,
+                        "hull_red", 0.6, 0.8)
+    # the folding frame sight: two posts on the top left, a ring on the front one
+    sw = hw - 1.6
+    for su, hgt in zip(HKB_SIGHT_U, (2.2, 3.4)):
+        if grip:
+            rig.plate(at(su, hh, sw), U, V, ((-0.4, 0.0), (0.4, 0.0), (0.3, hgt), (-0.3, hgt)), 0.4,
+                      "gunmetal", 0.42, 0.8)
+        else:       # folded flat on the lid
+            rig.plate(at(su, hh + 0.2, sw), U, W, ((-0.4, -0.5), (hgt, -0.5), (hgt, 0.5), (-0.4, 0.5)), 0.3,
+                      "gunmetal", 0.42, 0.8)
+    if grip:
+        rig.capsule(at(HKB_SIGHT_U[1], hh + 3.4, sw), at(HKB_SIGHT_U[1], hh + 3.4, sw), 0.9, 0.9,
+                    "gunmetal", 0.45, 0.8)
+        rig.plate(at(HKB_GRIP_U, -hh - 0.2), U, V, ((-1.6, 0.4), (2.0, 0.4), (0.8, -9.0), (-2.6, -8.6)), 2.6,
+                  "bakelite", 0.5, 0.8)
+        guard_loop(rig, at, ((HKB_GRIP_U + 1.6, -hh - 1.0), (HKB_GRIP_U + 2.4, -hh - 3.4),
+                             (HKB_GRIP_U + 6.0, -hh - 3.0), (HKB_GRIP_U + 6.6, -hh - 0.6)))
+    if handle:
+        rig.capsule(at(HKB_HANDLE_U, -hh - 0.2, 2.0), at(HKB_HANDLE_U + 0.8, -hh - 9.0, 2.6), 1.3, 1.2,
+                    "bakelite", 0.5, 0.8)
+    rear = [at(rear_u, v, w) for v, w in tubes]
+    return {"at": at, "U": U, "V": V, "W": W, "rear": rear, "bottom": -hh}
+
+
+# Off the eye's axis, to the right and below: a box that crossed the axis
+# would run to the vanishing point and sit on the crosshair (HK_AIM_CLEAR).
+HK_POSES = (
+    ArmsPose("A", "ready, six loaded", (11.5, 8.0, 32.0), (0.02, 0.0, 1.0), (0.06, -1.0, 0.0)),
+    ArmsPose("B", "salvo: box up, tubes empty", (11.5, 7.2, 31.0), (0.03, -0.05, 1.0), (0.06, -1.0, 0.0),
+             state="empty"),
+    ArmsPose("C", "wind-up, box up, loaded", (11.5, 7.2, 31.0), (0.03, -0.05, 1.0), (0.06, -1.0, 0.0),
+             wired=False),
+)
+HK_AIM_CLEAR = (16, 0.15)       # px round the crosshair, and the most of that disc a held frame may cover
+# the elbows are pass 1's HK_RIGHT_ELBOW / HK_LEFT_ELBOW, unchanged
+
+
+def render_katyusha_frame(style: HandStyle, pose: ArmsPose, variant: str = RECOMMENDED_HK) -> tuple[Frame, list]:
+    """A held frame of the launch box and the screen positions (x, y, px
+    per cm) of the six tube mouths, where the flash's motors light."""
+    rig = Rig()
+    got = draw_launch_box(rig, pose.origin, pose.bore, pose.up, HK_VARIANT[variant], loaded=pose.state != "empty")
+    at, U, V = got["at"], got["U"], got["V"]
+    b = got["bottom"]
+    draw_grip(rig, style, at(HKB_GRIP_U - 0.8, b - 5.0), unit(V + U * 0.16), HK_RIGHT_ELBOW, 1.6, trigger=True)
+    draw_grip(rig, style, at(HKB_HANDLE_U + 0.4, b - 5.0, 2.3), unit(V - U * 0.08), HK_LEFT_ELBOW, 1.3,
+              side="left")
     rear = [rig.project(p) for p in got["rear"]]
     return finish(rig), rear
 
@@ -1974,18 +2194,22 @@ def render_roks3_flash(which: str, nozzle_cam, U_cam) -> Frame:
 
 
 HK_FLASH_ON = {"A": "B", "B": "B"}
+HK_FLASH_BURST = 1.25           # a motor's burst, in bore radii: six stars, not one ball
+HK_FLASH_SMOKE = (1.0, 1.4)     # smoke puff size in bore radii, frames A and B
 
 
 def render_katyusha_flash(which: str, rear_xy) -> Frame:
-    """SDHF A: six motors lighting at the rails' rear ends; B: their smoke."""
+    """SDHF A: the six motors lighting in the six tube mouths (the backblast
+    comes out of the rear, towards the eye); B: their smoke, a red ember
+    still in each mouth."""
     rig = Rig()
     for i, (x, y, s) in enumerate(rear_xy):
-        r = 1.45 * s
+        r = HKB_BORE_R * s
         if which == "A":
-            smoke_puffs(rig, x, y, r * 1.1, 2, 70 + i, 0.5)
-            muzzle_burst(rig, x, y, r * 1.6, 7.0 * i)
+            smoke_puffs(rig, x, y, r * HK_FLASH_SMOKE[0], 2, 70 + i, 0.5)
+            muzzle_burst(rig, x, y, r * HK_FLASH_BURST, 7.0 * i)
         else:
-            smoke_puffs(rig, x, y - r * 0.6, r * 1.4, 3, 80 + i, 0.35)
+            smoke_puffs(rig, x, y - r * 0.6, r * HK_FLASH_SMOKE[1], 3, 80 + i, 0.35)
             rig.burst(x, y, r * 0.7, 9.0 * i, "flame_red", 6, 0.5)
     return finish(rig)
 
@@ -2039,11 +2263,40 @@ def render_roks3_pickup() -> Frame:
     return finish(rig, hud=False)
 
 
-def render_katyusha_pickup() -> Frame:
+def render_katyusha_rails_pickup() -> Frame:
+    """Pass 1's pickup (the 'bench'), for the comparison on the sheet."""
     rig = gun_pickup_rig(HK_PICKUP_PX_PER_CM, PICKUP_W, 56)
     right, away, up = floor_basis()
     U = unit(-right * 0.85 + away * 0.55)
     draw_katyusha(rig, np.array([0.0, 0.0, PICKUP_DIST]) - U * (HK_LEN / 2) + up * 10.0, U, up)
+    return finish(rig, hud=False)
+
+
+HK_PICKUP_TURN = (0.90, 0.44)   # the box's bore on the floor: (right, towards the eye) parts
+HK_PICKUP_OPTIONS = (
+    PickupOption("D", "Dropped: grip down, nose on the floor"),
+    PickupOption("F", "Flat: grip folded"),
+)
+RECOMMENDED_HK_PICKUP = "D"
+HK_DROP_TILT = 12.0             # degrees, nose down: the box rests on its grip and its front edge
+
+
+def render_katyusha_pickup(variant: str = RECOMMENDED_HK, option: str = RECOMMENDED_HK_PICKUP) -> Frame:
+    """Pass 2: the launch box on the floor, its front end turned towards the
+    eye so the six red noses show in their mouths. D, dropped: the pistol
+    grip down and the box tilted onto its nose, the way a launcher lies
+    where it fell; one grip, not two legs (pass 1's 'bench'). F, flat: grip
+    and sight folded, nothing under it. Placed by its lowest pixel (finish),
+    so only the orientation matters here."""
+    rig = gun_pickup_rig(HK_PICKUP_PX_PER_CM, PICKUP_W, 56)
+    right, away, up = floor_basis()
+    U = unit(right * HK_PICKUP_TURN[0] - away * HK_PICKUP_TURN[1])
+    if option == "D":
+        t = np.deg2rad(HK_DROP_TILT)
+        U = unit(U * np.cos(t) - up * np.sin(t))
+    v = HK_VARIANT[variant]
+    draw_launch_box(rig, np.array([0.0, 0.0, PICKUP_DIST]) - U * (HKB_LEN / 2), U, up, v, grip=option == "D",
+                    handle=False, noses=True)
     return finish(rig, hud=False)
 
 
@@ -2215,25 +2468,47 @@ WEAPON_TEXT = {
         ],
     },
     "katyusha": {
-        "recommend": "NOT YET: A SECOND PASS AS A CLOSED LAUNCH BOX, PICKUP INCLUDED (ITS GRIPS READ AS BENCH LEGS).",
-        "intro": "The hand Katyusha (a 1977 prototype in the LORE) on the right shoulder: six rockets in two rows "
-                 "of three on an olive frame, gripped by a bakelite pistol grip and a forward handle. Seen from "
-                 "behind, the six tails with their fins are its face. katyusha.zs: A at rest (also the 20-tic "
-                 "wind-up), B for the salvo and after it (rails up and empty); SDHF A the six motors lighting, "
-                 "SDHF B their smoke.",
+        "recommend": "VARIANT A (THE CLOSED BOX) AS DRAWN, PICKUP D; SDHK C IF THE MOD-ENGINEER TAKES THE STATE "
+                     "EDIT.",
+        "intro": "SECOND PASS. Pass 1 (six rockets on open rails, sheet 2026-10-13_2219) read along the rails as a "
+                 "bundle of grey sticks, and its pickup as a bench. Pass 2 closes the rockets in a LAUNCH BOX, after "
+                 "the portable salvo launchers: six tubes in two rows of three inside an olive case, carried on the "
+                 "right shoulder, a bakelite pistol grip under it and a handle on its left side. Seen from behind, "
+                 "the face of the weapon is the box's rear end and its six tube mouths; each loaded mouth shows a "
+                 "rocket's tail (a red base ring, a dark nozzle, the X of four fins), each empty one a dark throat "
+                 "inside a lit rim. Three variants of that idea: A the closed box with the mouths flush, B six bare "
+                 "tubes held by three clamp bands, C the box with the tube ends standing proud of it.",
         "verdict": [
-            "WEAKEST OF THE FIVE. Seen along the rails, the six rockets, their fins and the frame overlap into a "
-            "bundle of grey sticks; at 1x it reads as a rack of rockets, not as a clean two-by-three grid. If the "
-            "CEO wants it cleaner, the next try is a closed launch box (six tubes in an olive case) instead of "
-            "open rails.",
-            "WHY AS DRAWN. Six rockets on an olive frame read as a battery and nothing in Doom looks like it; "
-            "the empty rails of B tell the player the salvo has gone, and the six bursts of the flash count the "
-            "rockets.",
-            "WEAKNESSES. The state machine shows B, already empty, for the 10 tics BEFORE the rockets leave, "
-            "under the flash: the flash hides the rails then, but a slow eye may see the rockets vanish before "
-            "the fire. The fix is a state edit (A until the launch), not art. The wind-up is A held still: "
-            "the comment in katyusha.zs speaks of the rails coming up, and that needs a frame between A and B "
-            "(SDHK C is reserved and not drawn). Positions NOT VERIFIED in GZDoom (engine pass owed, D26).",
+            "WHY A. At 1x the three variants differ less than the photographs of real launchers would suggest: "
+            "all three show a clean two-by-three grid, which is what pass 1 lacked. A wins on the outline: one "
+            "rectangle, one grid, nothing else, so the six red rings are the only detail the eye finds. B is "
+            "the most literal 'six tubes', but its clamp bands make the outline lumpy and read as straps; C "
+            "gives each mouth a rim of depth but doubles the edges round the grid. The six red rings make "
+            "LOADED readable from across the screen, and the empty tubes of frame SDHK B (dark throats) say the "
+            "salvo has gone; the flash is six stars in the six mouths, so the salvo counts as six rockets.",
+            "THE PICKUP. D lies where it was dropped: the pistol grip down, the box tilted onto its nose, the "
+            "six red noses out of the front mouths and a red star on the side. One grip under it, never two: "
+            "pass 1 stood on its grip and its handle and read as a bench, so the handle folds on every pickup. "
+            "F, flat with the grip folded, is the tidier drawing but reads as a closed crate with rockets in "
+            "it, which is exactly the shape of Doom's box-of-rockets ammo: not recommended.",
+            "SDHK C, PROPOSED, NOT WIRED (SDHKC0_proposed): the box raised to the firing angle and still loaded. "
+            "MOD-SPEC 6.3 already reserves SDHK A-C, so no name changes; using it is a state edit by the "
+            "mod-engineer, same 60 tics: Fire = SDHK A 10 (charge sound), SDHK C 10, SDHK C 10 A_GunFlash, "
+            "SDHK B 10 A_SD_FireKatyusha, SDHK B 20 A_ReFire. It gives the wind-up its 'rails coming up' and "
+            "also fixes pass 1's weakness: today B, already empty, shows for the 10 tics BEFORE the rockets "
+            "leave; with C the tubes stay loaded under the flash until the launch tic. The flash's position is "
+            "the same over C as over B (one pose, loaded or not).",
+            "WHERE IT SITS. Off the eye's axis, low on the right: a box running along the view converges on "
+            "the crosshair, and a first try centred under it hid 66-90 percent of the 16 px round the "
+            "crosshair. Moved right, no held frame covers more than 12 percent of it (pass 1: 34-53), and the box "
+            "shows its left side with the red star, which is where its depth comes from.",
+            "WEAKNESSES. The raise from A to B and C is small (under 1 cm and 3 degrees): it reads as a lift, "
+            "not a swing. The frame sight on the lid is two or three pixels. The empty mouths are the largest "
+            "dark areas in the arsenal (bores about 18 px across); the lit rim and the inner wall keep them from being "
+            "flat black. On SDSTEL1, the green steel of slot 7's sheet, the olive pickup has little contrast; "
+            "the 1x strip shows it on concrete too. Even D may read as ammunition to a player who has not seen "
+            "it held; that is for the engine pass to tell. Positions NOT VERIFIED in GZDoom (engine pass owed, "
+            "D26).",
         ],
     },
 }
@@ -2241,6 +2516,8 @@ WEAPON_TEXT = {
 
 def build_weapon(key: str, stamp: str, hand: str = RECOMMENDED_HAND, out_dir: Path = OUT_DIR,
                  preview_dir: Path = PREVIEW_DIR) -> tuple[Path, dict]:
+    if key == "katyusha":           # pass 2 has its own sheet: variants, pass 1, proposals
+        return build_katyusha(stamp, hand, out_dir, preview_dir)
     spec, style = WEAPONS[key], HAND[hand]
     poses = WEAPON_POSES[key]
     wdir = out_dir / key
@@ -2328,6 +2605,146 @@ def build_weapon(key: str, stamp: str, hand: str = RECOMMENDED_HAND, out_dir: Pa
     return path, metrics
 
 
+HK_PICKUP_CELL_K = 3            # zoom of a pickup cell on the pass-2 sheet
+
+
+def build_katyusha(stamp: str, hand: str = RECOMMENDED_HAND, out_dir: Path = OUT_DIR,
+                   preview_dir: Path = PREVIEW_DIR) -> tuple[Path, dict]:
+    """The hand Katyusha's second pass: the launch box in three variants
+    beside pass 1 and Freedoom's placeholder, then every frame of the
+    recommended variant, the proposed SDHK C, and the pickups. The lumps
+    in work/art/weapons/katyusha/ are the recommended variant and pickup;
+    the others go to its variants/ folder."""
+    spec, style = WEAPONS["katyusha"], HAND[hand]
+    wdir = out_dir / "katyusha"
+    vdir = wdir / "variants"
+    held = {v.key: {p.frame: render_katyusha_frame(style, p, v.key) for p in HK_POSES} for v in HK_VARIANTS}
+    rec = held[RECOMMENDED_HK]
+    flashes = {k: render_katyusha_flash(k, rec[on][1]) for k, on in HK_FLASH_ON.items()}
+    pickups = {(v.key, o.key): render_katyusha_pickup(v.key, o.key) for v in HK_VARIANTS for o in HK_PICKUP_OPTIONS}
+    metrics = {}
+
+    def keep(f: Frame, path: Path, info: dict) -> None:
+        save_sprite(f, path)
+        metrics[path.stem if path.parent == wdir else f"variants/{path.stem}"] = {
+            **info, "size": list(f.rgba.shape[1::-1]), "offsets": [int(v) for v in f.offsets()]}
+
+    for pose in HK_POSES:
+        name = sprite_name(spec.held, pose.frame, pose.wired)
+        keep(rec[pose.frame][0], wdir / f"{name}.png", {"pose": pose.name, "wired": pose.wired,
+                                                         "variant": RECOMMENDED_HK})
+        for v in HK_VARIANTS:
+            if v.key != RECOMMENDED_HK:
+                keep(held[v.key][pose.frame][0], vdir / f"{name}_variant{v.key}.png",
+                     {"pose": pose.name, "wired": False, "variant": v.key})
+    for letter, f in flashes.items():
+        keep(f, wdir / f"{sprite_name(spec.flash, letter)}.png", {"over": f"{spec.held}{HK_FLASH_ON[letter]}0"})
+    pname = f"{spec.pickup}A0"
+    for (vk, ok), f in pickups.items():
+        if (vk, ok) == (RECOMMENDED_HK, RECOMMENDED_HK_PICKUP):
+            keep(f, wdir / f"{pname}.png", {"pickup": True, "variant": vk, "option": ok})
+        else:
+            keep(f, vdir / f"{pname}_variant{vk}_option{ok}.png", {"pickup": True, "variant": vk, "option": ok})
+    zs_held, zs_flash = zs_letters(spec)
+    metrics["_state_machine"] = {"file": f"src/zscript/weapons/{spec.zs}", "held_placeholder": spec.ph_held,
+                                 "held_letters": "".join(sorted(zs_held)), "flash_placeholder": spec.ph_flash,
+                                 "flash_letters": "".join(sorted(zs_flash)), "hand": hand,
+                                 "variant": RECOMMENDED_HK, "pickup_option": RECOMMENDED_HK_PICKUP}
+    (wdir / "metrics.json").write_text(json.dumps(metrics, indent=2) + "\n", encoding="utf-8")
+
+    text = WEAPON_TEXT["katyusha"]
+    S = Sheet(2000, f"SOVIET DOOM  ·  F4  ·  {spec.title}, PASS 2  ·  THE LAUNCH BOX", stamp)
+    S.para(text["intro"])
+    S.para(f"HAND STYLE {hand}. NAMES, MOD-SPEC 6.3: {spec.held} {spec.reserved} HELD, {spec.flash} A-B FLASH, "
+           f"{spec.pickup} A PICKUP. STATE MACHINE ({spec.zs}, READ, NOT EDITED): {spec.ph_held} "
+           f"{''.join(sorted(zs_held))} -> {spec.held}, {spec.ph_flash} {''.join(sorted(zs_flash))} -> "
+           f"{spec.flash}, {spec.ph_pickup} A -> {spec.pickup}. Built by tools/art/gen_weapon.py katyusha, "
+           "palette v1 only, no system fonts. Draft, nothing in assets/.", S.dim)
+    S.y += 6
+
+    def row(cells) -> None:
+        x, h_row = S.pad, 0
+        for tag, colour, scr in cells:
+            S.label((x, S.y), tag, colour)
+            w2, h2 = S.paste(scr, (x, S.y + S.T.line_h() + 4), 2)
+            x += w2 + 16
+            h_row = max(h_row, h2 + S.T.line_h() + 4)
+        S.y += h_row + 14
+
+    S.label((S.pad, S.y), "1. THE THREE VARIANTS, FRAME A (READY, SIX LOADED), 2X", S.gold)
+    S.y += S.T.line_h() + 6
+    row([(f"{v.key} · {v.title.upper()}" + ("  <<<" if v.key == RECOMMENDED_HK else ""),
+          S.red if v.key == RECOMMENDED_HK else S.gold, on_screen([held[v.key]["A"][0]])) for v in HK_VARIANTS])
+    old = render_katyusha_rails_frame(style, HK_RAILS_POSES[0])[0]
+    cmp = [("PASS 1 · OPEN RAILS (2219)", S.dim, on_screen([old]))]
+    fd = [freedoom_sprite(f"{spec.ph_held}A0"), freedoom_sprite(f"{spec.ph_flash}A0")]
+    if fd[0] is not None:
+        cmp.append((f"TODAY · FREEDOOM {spec.ph_held}A0", S.dim, on_screen([fd[0]])))
+    cmp.append(("A · SALVO, SDHF A OVER B", S.gold, on_screen([rec["B"][0], flashes["A"]])))
+    row(cmp)
+    S.label((S.pad, S.y), "THE SAME AT 1X: A, B, C, PASS 1, FREEDOOM", S.gold)
+    S.y += S.T.line_h() + 6
+    ones = [held[v.key]["A"][0] for v in HK_VARIANTS] + [old] + ([fd[0]] if fd[0] is not None else [])
+    for j, f in enumerate(ones):
+        S.paste(on_screen([f]), (S.pad + j * (SCREEN_W + ONE_X_GAP), S.y), 1)
+    S.y += SCREEN_H + 18
+
+    S.label((S.pad, S.y), f"2. VARIANT {RECOMMENDED_HK}, EVERY FRAME, 2X (RED: PROPOSED, NOT WIRED)", S.gold)
+    S.y += S.T.line_h() + 6
+    tag = lambda p: f"{sprite_name(spec.held, p.frame, p.wired)}  ·  {p.name.upper()}"
+    pose = {p.frame: p for p in HK_POSES}
+    row([(tag(pose[k]), S.gold if pose[k].wired else S.red, on_screen([rec[k][0]])) for k in "ACB"])
+    row([(f"{spec.held}B0 + {spec.flash}A0", S.gold, on_screen([rec["B"][0], flashes["A"]])),
+         (f"{spec.held}B0 + {spec.flash}B0", S.gold, on_screen([rec["B"][0], flashes["B"]])),
+         (f"{spec.held}C0 + {spec.flash}A0 (PROPOSED)", S.red, on_screen([rec["C"][0], flashes["A"]]))])
+    items = [f"{k} {m['size'][0]}X{m['size'][1]} GRAB {m['offsets'][0]},{m['offsets'][1]}"
+             for k, m in metrics.items() if not k.startswith(("_", "variants/"))]
+    for i in range(0, len(items), 3):
+        S.label((S.pad, S.y), "  ·  ".join(items[i:i + 3]))
+        S.y += S.T.line_h()
+    S.para("Each view is the whole 320x200 weapon space at 2x with the frame at rest (no bob); the dotted line "
+           "is the top of the classic status bar.", S.dim)
+    S.y += 8
+
+    S.label((S.pad, S.y), f"3. THE PICKUP ON SDFLR2 BEFORE {spec.pickup_wall}, LIGHT {spec.pickup_light}, "
+            f"{HK_PICKUP_CELL_K}X. D: DROPPED, GRIP DOWN, NOSE ON THE FLOOR. F: FLAT, GRIP FOLDED.", S.gold)
+    S.y += S.T.line_h() + 6
+    cells = [(f"{vk}-{ok}" + ("  <<<" if (vk, ok) == (RECOMMENDED_HK, RECOMMENDED_HK_PICKUP) else ""),
+              S.red if (vk, ok) == (RECOMMENDED_HK, RECOMMENDED_HK_PICKUP) else S.gold, f)
+             for (vk, ok), f in pickups.items()]
+    cells.append(("PASS 1 (BENCH)", S.dim, render_katyusha_rails_pickup()))
+    ph = freedoom_sprite(f"{spec.ph_pickup}A0")
+    if ph is not None:
+        cells.append((f"TODAY: {spec.ph_pickup}A0", S.dim, Frame(ph.rgba, ph.mat, ph.rgba.shape[1] // 2,
+                                                                ph.rgba.shape[0], False)))
+    cell_w = PICKUP_SCENE_W * HK_PICKUP_CELL_K + 18
+    per_row = (S.width - 2 * S.pad + 18) // cell_w
+    for i in range(0, len(cells), per_row):
+        x, h_row = S.pad, 0
+        for tg, colour, f in cells[i:i + per_row]:
+            S.label((x, S.y), tg, colour)
+            _, h3 = S.paste(pickup_scene(f, spec.pickup_light, spec.pickup_wall),
+                            (x, S.y + S.T.line_h() + 4), HK_PICKUP_CELL_K)
+            x += cell_w
+            h_row = max(h_row, h3 + S.T.line_h() + 4)
+        S.y += h_row + 14
+    S.label((S.pad, S.y), f"THE SAME AT 1X, BEFORE {spec.pickup_wall} (LIGHT {spec.pickup_light}) AND BEFORE "
+            "SDCONC1 (LIGHT 160)", S.gold)
+    S.y += S.T.line_h() + 6
+    for j, (_, _, f) in enumerate(cells):
+        x = S.pad + j * (PICKUP_SCENE_W + ONE_X_GAP)
+        S.paste(pickup_scene(f, spec.pickup_light, spec.pickup_wall), (x, S.y), 1)
+        S.paste(pickup_scene(f, 160, "SDCONC1"), (x, S.y + PICKUP_WALL_H + PICKUP_FLOOR_H + ONE_X_GAP), 1)
+    S.y += 2 * (PICKUP_WALL_H + PICKUP_FLOOR_H) + ONE_X_GAP + 18
+
+    S.label((S.pad, S.y), f"RECOMMENDATION: {text['recommend']}", S.red)
+    S.y += S.T.line_h() + 2
+    for v in text["verdict"]:
+        S.para(v)
+    path = S.save(preview_dir / f"{stamp}_F4_{spec.slug}-pass2.png")
+    return path, metrics
+
+
 ONE_X_GAP = 10                  # px between the 1x views of the overview
 
 
@@ -2366,11 +2783,11 @@ def build_arsenal(stamp: str, hand: str = RECOMMENDED_HAND, out_dir: Path = OUT_
             S.paste(on_screen([f]), (S.pad + j * (SCREEN_W + ONE_X_GAP), S.y), 1)
         S.y += SCREEN_H + ONE_X_GAP
     S.y += 4
-    S.label((S.pad, S.y), "RECOMMENDATION: THE SET AS DRAWN, EXCEPT THE HAND KATYUSHA (SECOND PASS).", S.red)
+    S.label((S.pad, S.y), "RECOMMENDATION: THE SET AS DRAWN; THE HAND KATYUSHA IS PASS 2, THE LAUNCH BOX.", S.red)
     S.y += S.T.line_h() + 2
     S.para("THE SET. All seven share one hand, one light and one palette, and each is held where its real "
            "counterpart would be: the pistol in one hand, the long guns at the hip, the tubes on the shoulder. "
-           "Weak points of the set: the hand Katyusha is a bundle of sticks, the weakest of the seven; the RPG-7 "
+           "Weak points of the set: the hand Katyusha's launch box is seen almost square from behind; the RPG-7 "
            "shows almost no hand at rest (the grip is behind the eye); the TT-33 is the smallest by far, as "
            "Doom's pistol is. Every "
            "position is NOT VERIFIED in GZDoom until the engine pass (owed, D26).")
