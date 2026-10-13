@@ -67,6 +67,9 @@ under one twentieth of slot 4) but it no longer feels like punching a wall.
 Kickback 120 against the Fist's 100: a shovel shoves. Berserk keeps Doom's
 x10, so the berserk pack is still the thing that turns melee into a weapon.
 
+The shovel is **found, not issued** (since 2026-10-13, §4.1): it is not in
+the starting inventory, and the first one lies on the rack of MAP01's dorm.
+
 ### Slot 2 — TT-33 Tokarev (replaces Pistol)
 
 `6 x random(1,3)` = 6–18, avg 12, every 16 tics, 4.5° spread.
@@ -78,7 +81,7 @@ mechanism to wait for.
 Result: **26.3 DPS against Doom's 18.4, +43%.** This is the single most
 aggressive number in the table and the first one to cut if the opening
 minutes of MAP01 feel soft. It is deliberate: the sergeant starts with this
-gun and nothing else that shoots, and Doom's pistol is famously the weapon
+gun and nothing else at all (not even a melee weapon, §4.1), and Doom's pistol is famously the weapon
 players stop using the moment they find anything.
 
 Ammo: `Clip`, unchanged. The TT-33 and the PPSh-41 historically fire the
@@ -182,6 +185,80 @@ type instead of sharing fuel with the flamethrower. Sharing is what Doom
 does (plasma and BFG both eat cells) and it needs no new pickup sprite; a
 separate pool would read better in the fiction but costs an actor, a
 DoomEdNum, a pickup sprite and a HUD line.
+
+### 4.1 Starting inventory (changed 2026-10-13)
+
+The sergeant spawns with **the TT-33 and 50 `Clip`, nothing else**: no
+shovel and no `Fist`, so slot 1 is empty until a shovel is picked up.
+Before this change `SD_Player` also listed `SD_Shovel`, and the CEO found
+the bug in MAP01: the dorm's rack showed a pickup (Freedoom's chainsaw
+sprite, the placeholder) that could not be taken, because a weapon the
+player already owns and that gives no ammo is refused by the engine. The
+map's design makes the rack the shovel's lesson, so the start item went,
+not the rack. Pinned by `tests/test_arsenal.py`.
+
+What the engine does with a player who owns no melee weapon, read from
+`gzdoom.pk3` 4.14.2 (`zscript/actors/player/player.zs`,
+`zscript/actors/inventory/weapons.zs`, `stateprovider.zs`):
+
+- **Weapon raised on spawn.** `PlayerPawn.GiveDefaultInventory` readies a
+  start weapon only if `CheckAmmo` passes at the moment it is given, so the
+  rounds must already be in the inventory. `SD_Player` keeps Doom's order
+  (weapon first, ammo last); `DoomPlayer` declares `Pistol`, `Fist`, `Clip`
+  and spawns with the pistol, which only works if the list is walked
+  last-declared first. The walk itself is C++ and **NOT VERIFIED** beyond
+  that inference; the engine pass should confirm the TT-33 is up on spawn.
+- **Out of rounds, no shovel.** Firing calls `FireWeapon`, which calls
+  `CheckAmmo(PrimaryFire, autoSwitch = true)`; that calls `PickNewWeapon`,
+  whose `BestWeapon` finds nothing and returns null, and nothing changes.
+  The empty TT-33 stays raised and the trigger does nothing; `A_ReFire`
+  takes the same path. `ReadyWeapon` never becomes null because nothing
+  takes the TT-33 away. No crash path found.
+- **Out of rounds, shovel owned.** `BestWeapon` ignores `NOAUTOSWITCHTO`,
+  so the empty TT-33 falls back to the shovel (selection order 3700), as
+  Doom's pistol falls back to the fist.
+- **Taking the shovel from the rack** raises it: `Weapon.AttachToOwner`
+  switches to a newly picked-up weapon unless it has `NO_AUTO_SWITCH` or the
+  player has set "never switch on pickup". The shovel's `NOAUTOSWITCHTO` only
+  governs the switch after an ammo pickup (`CheckWeaponSwitch`).
+- **Berserk** (not placed in MAP01) calls `A_SelectWeapon("Fist")`, and
+  `FindInventory` matches the exact class by default, so it does not select
+  the shovel with or without it (C++ lookup **NOT VERIFIED**). Harmless.
+
+**Can the player run dry before the rack?** Counted from `src/maps/MAP01/map.py`
+(the TEXTMAP's things); TT-33 average 12 per round, two rounds per rifleman
+(§7), four at worst damage; a dead rifleman drops 5 rounds (Doom's half
+clip). Skills 1 and 5 double ammo pickups and are not counted.
+
+| In the dorm, with every door still shut | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| Riflemen | 2 | 3 | 4 |
+| Rounds to kill them, average / worst damage | 4 / 8 | 6 / 12 | 8 / 16 |
+| Rounds there: start + dorm clips (+ drops) | 50 + 20 (+10) | 50 + 10 (+15) | 50 + 10 (+20) |
+
+Running dry in the dorm means firing all 50 starting rounds and landing
+fewer than 4 / 6 / 8 of them: more than 84 % misses on skill 4. And even
+then nothing is lost: the rack is in the same room, about 400 units from
+the player start with no door between (`tests/test_arsenal.py` checks
+this on the TEXTMAP), so the cost is a walk under fire, not a softlock.
+
+The exposure is **a player who walks past the rack**. Up to the IZh on the
+guard post (Z1 to Z5, the washroom hound included):
+
+| Up to the IZh rack | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| Enemies (riflemen + stormtroopers + hounds) | 9 + 0 + 0 | 11 + 1 + 2 | 14 + 2 + 3 |
+| TT-33 rounds to kill, every round landing | 18 | 53 | 77 |
+| … with the shovel taking the hounds | 18 | 27 | 38 |
+| Rounds placed + start, no drops | 120 | 100 | 90 |
+| Hit rate needed without the shovel, no drops / with drops | 15 % / 11 % | 53 % / 34 % | **86 % / 48 %** |
+
+On skill 4 a player who skips the shovel and kills three hounds with the
+pistol (13 rounds each) needs to land 86 % of his shots, or about half of
+them if he also collects every rifleman's drop. If he runs out, he still
+has a way back to the rack (`tests/test_udmf.py` checks a path back to the
+start from every reachable sector, part of G3-6), but it is a long one. Any fix is a map change (the rack's prominence, or
+rounds before the first hound), owned by `level-designer`.
 
 ## 5. What is NOT balanced yet
 
