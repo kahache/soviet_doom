@@ -6,7 +6,8 @@ before the code.** Status: F4 arsenal verified on GZDoom 4.14.2, 2026-10-12;
 ammunition renamed and the shovel silenced after the CEO's play session,
 2026-10-13; PK3 tree, asset mapping, switch naming and the T9 closure
 recorded after the `pmo` audit of the Mac batch (PMO-09, PMO-10),
-2026-10-13 (F0 pipeline verified 2026-10-09).
+2026-10-13; main menu and skill screen in our own type (D31, §6.6),
+2026-10-13, pending the engine pass (F0 pipeline verified 2026-10-09).
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -38,7 +39,7 @@ Minimal glossary (for anyone new to Doom modding):
 sovietdoom.pk3
 ├── MAPINFO                 maps, episodes, skills, GameInfo (AddEventHandlers, PlayerClasses)
 ├── LANGUAGE                localized text: [enu default] and [ru] (D7)
-├── MENUDEF                 language switch, main-menu logo position, skill-menu font (§6.6)
+├── MENUDEF                 language switch, main menu and skill screen in our own type (§6.6)
 ├── SNDINFO                 logical sound name -> lump (F4)
 ├── zscript.txt             ZScript entry: version + #include
 ├── zscript/sd/*.zs         systems (event handlers, player class, ammo)
@@ -53,6 +54,7 @@ sovietdoom.pk3
 ├── graphics/M_DOOM.png     main-menu logo, 200×64, placed by MENUDEF (§6.6)
 ├── fonts/defsmallfont/     <HEX>.png + font.inf — SmallFont glyphs, 107 files (D24)
 ├── fonts/bigfont/          <HEX>.png + font.inf — BigFont glyphs, 107 files (D24)
+├── fonts/sdmenu/           <HEX>.png + font.inf — menu font SDMENU, 107 files (D31, §6.6)
 ├── sprites/  sounds/  music/  patches/  hires/   standard folders, empty today (T1)
 ├── ANIMDEFS                switch pairs SDSW1x -> SDSW2x (§4.3)
 └── (future) TEXTURES, GLDEFS — and no CVARINFO, by decision (ADR 004)
@@ -69,7 +71,8 @@ Rules:
   itself. **NOT VERIFIED**: whether `fonts/bigfont/` replaces or extends
   Freedoom's `BigFont` — the engine loads the package with zero errors and
   the title screen renders (commit 730bba4), but no screenshot of a
-  BigFont Cyrillic string has been taken yet.
+  BigFont Cyrillic string has been taken yet. `sdmenu` is a **standalone**
+  font: it extends nothing, so it carries every glyph it draws (§6.6).
 - Map lumps: `MAP01`, `MAP02`, … (Doom II format). Inside the WAD the order is
   fixed: marker `MAPxx` (empty), `TEXTMAP`, `ENDMAP` (empty). No node lumps:
   GZDoom builds them at load (verified at G0).
@@ -161,7 +164,7 @@ watching the geometry move. Evidence in `docs/levels/shots/`. The argument
 | Special | № | Arguments | Used for | Status |
 |---|---|---|---|---|
 | `Door_Raise` | **12** | `(tag, speed, delay, lighttag)`, emitted as `(tag, 16, 150, 0)` | manual door, openable from both sides; `playeruse` + `repeatspecial` | **VERIFIED in engine** 2026-10-13 |
-| `Door_Open` | **11** | `(tag, speed, lighttag)`, emitted as `(tag, 16, 0)` | push panel that stays open, and a one-sided wall switch opening a remote tagged door | **VERIFIED in engine** 2026-10-13 |
+| `Door_Open` | **11** | `(tag, speed, lighttag)`, emitted as `(tag, 16, 0)`, and since MAP01 v2 as `(10, 16, 30)` on SW-A | push panel that stays open; a one-sided wall switch opening a remote tagged door; with a lighttag, the sectors carrying that tag brighten while the door opens | **VERIFIED in engine** 2026-10-13; the lighttag on 2026-10-13 16:11 (the cabin seen through its window goes from dark to lit). A switch line without `repeatspecial` stays on its ON face (seen 105 tics after the press) |
 | `Exit_Normal` | **243** | `(pos)` | the level exit switch | **VERIFIED in engine** 2026-10-13; since this change it ends the game (§4.1) rather than reloading MAP01 |
 
 Constants from `xlat/defines.i`: `D_SLOW = 16`, `VDOORWAIT = 150`. Tags are a
@@ -177,8 +180,25 @@ next person does not pay again:
 - `Door_Raise` / `Door_Open` raise a door to **(lowest neighbouring ceiling
   − 4)**, so a door opened off a low neighbour can end up impassable.
 
-Not yet verified, and therefore not contract: `Light_ChangeToValue` (110),
-`Light_Flicker` (113), sector `special = 1024` (secret). v2.
+Sector specials, numbers from `gzdoom.pk3 → xlat/defines.i`:
+
+| Sector special | № | Used for | Status |
+|---|---|---|---|
+| `dLight_Flicker` | **65** | the flickering stretch of Z5 (MAP01 v2) | **VERIFIED in engine** 2026-10-13 16:11: mean brightness 61 → 46 → 61 over three shots 5 tics apart |
+| `SECRET_MASK` | **1024** | the three secret sectors S1-S3 | **VERIFIED in engine** 2026-10-13 16:11: each prints the secret message on entry |
+
+Tag 30 is MAP01's "gate light": SW-A's lighttag, carried by the switch
+niche, D4's recess and the booth. NOT VERIFIED: how much the niche itself
+brightens, which the player sees without turning (measured +4 % mean
+luma on the screenshot, with the switch face changing in the same frame).
+
+Not used, and therefore not contract: `Light_ChangeToValue` (110) and
+`Light_Flicker` (113); each would need a trigger line of its own.
+
+Evidence of the v2 engine pass (24 screenshots, exact view angles set by a
+throwaway helper that never enters the repo):
+`docs/qa/evidence/2026-10-13_1611_F3_map01-v2-engine-pass-{1,2,3}.png` and
+the log `…-engine-pass.log`, zero failure-pattern lines.
 
 ### 4.3 Switch textures and their ANIMDEFS (T16)
 
@@ -244,10 +264,11 @@ switch doom 1 SDSW1D on pic SDSW2D tics 0
   ANIMDEFS switch name to the same rule as a map texture (in the PK3 or in
   §5).
 
-MAP01 still dresses its three switches in `SDDOOR1` (`SWITCH_PLACEHOLDER` in
-`src/maps/MAP01/map.py`): `level-designer` retires it in v2 for the variant
-the map picks (SW-A wants a 64×128 niche so the face tiles once,
-`docs/levels/MAP01-zarya-7.md`).
+MAP01 v2 wears the real faces: SW-A = `SDSW1A`, SW-B = `SDSW1B`, the exit
+= `SDSW1D` (`SWITCH_PLACEHOLDER` is gone). All three flipped in the v2
+engine pass of 2026-10-13. A repeatable switch returns to OFF after a short
+delay (Doom's behaviour, NOT VERIFIED here), which is why SW-A and SW-B are
+single-use.
 
 ## 5. IWAD assets used
 
@@ -473,17 +494,79 @@ like Doom's.
 
 ## 6.6 Menus (`MENUDEF`)
 
-The mod owns four menu facts. All four were learned in the engine, three of
-them by breaking something first; the reasoning is in
-`docs/engine/adr/004-language-switch-and-difficulty-ladder.md` and the
-engine source lines are quoted in `src/lumps/MENUDEF` itself.
+The mod owns six menu facts. The first four were learned in the engine,
+three of them by breaking something first; their reasoning is in
+`docs/engine/adr/004-language-switch-and-difficulty-ladder.md`. The last two
+are D31 (2026-10-13), reasoned in
+`docs/engine/adr/005-menu-text-instead-of-menu-graphics.md`. The engine
+source lines are quoted in `src/lumps/MENUDEF` itself.
 
 | What | How | Why it is not obvious |
 |---|---|---|
 | Language switch | `OptionString "SD_LanguageValues"` with `auto` / `default` / `ru`, driving GZDoom's own archived `language` CVar | `OptionValue` parses its left column as a NUMBER and **the game will not start**; the mod declares no CVar of its own and no `CVARINFO` |
 | Where the switch lives | `AddOptionMenu` on **both** `OptionsMenu` and `OptionsMenuSimple`, `BEFORE "os_Menu"` | `m_simpleoptions` defaults to true, so "Options" opens the SHORT screen; appending at the end puts the row below the fold |
-| Main-menu logo | `LISTMENU "MainMenu"` redeclared with `StaticPatch 60, 0, "M_DOOM"` | the engine's own value is `94, 2`, which does not sit on the lockup painted into `TITLEPIC`. **This row is the contract: `M_DOOM` (200×64) goes at x=60, y=0 of the 320×200 screen.** Measured 2026-10-13: overlaying `assets/graphics/shell/M_DOOM.png` on `TITLEPIC.png` at (60,0) gives a mean per-channel difference of 6, against 22 or more at every neighbouring offset. The generator's manifest under gitignored `work/art/shell/` is evidence, not contract — it is not in every clone. Moving the lockup means changing this row, `MENUDEF` and `tests/test_language.py::MainMenuLogoTest` together |
-| Difficulty names | `LISTMENU "SkillMenu"` redeclared with `Font "SmallFont", "Red", "Gold"` | the default BigFont fits ~26 characters and rung 5 is 38; the names are the CEO's and the font is the part we may change |
+| Main-menu logo | `LISTMENU "MainMenu"` redeclared with `StaticPatch 60, 0, "M_DOOM"` | the engine's own value is `94, 2`, which does not sit on the lockup painted into `TITLEPIC`. **This row is the contract: `M_DOOM` (200×64) goes at x=60, y=0 of the 320×200 screen.** Measured 2026-10-13: overlaying `assets/graphics/shell/M_DOOM.png` on `TITLEPIC.png` at (60,0) gives a mean per-channel difference of 6, against 22 or more at every neighbouring offset. The generator's manifest under gitignored `work/art/shell/` is evidence, not contract — it is not in every clone. Moving the lockup means changing this row, `MENUDEF` and `tests/test_language.py::MainMenuLogoTest` together. Since D31 the skill screen draws the same logo at the same place |
+| Main-menu items (D31) | `TextItem "$SD_MNU_*"` in `Font "SDMENU", "Cream", "Gold"` (normal, selected). Same hotkeys (`n o l s r q`), same `IfOption(SwapMenu)` / `IfOption(ReadThis)` branches and same target menus as the engine's `PatchItem` lines they replace; `LineSpacing 16` and `Position 97, 72` (`97, 64` with ReadThis) unchanged | Freedoom's `M_NGAME`, `M_OPTION`, `M_LOADG`, `M_SAVEG`, `M_RDTHIS`, `M_QUITG` are pictures of English words: they cannot be translated and they are not our type. `Cream` / `Gold` because the glyphs are drawn red: untranslated they would be red on `TITLEPIC`'s red. Cream echoes the logo's lettering and gold its rule and star (`art-director`'s proposal); the skull selector still marks the current row |
+| Skill screen (D31) | `LISTMENU "SkillMenu"`: `StaticPatch 60, 0, "M_DOOM"`; `Font "SDMENU", "Cream"` and **one** header, `StaticText 32, 70, "$SD_MNU_CHOOSESKILL"`; then `Font "SmallFont", "Red", "Gold"`, `LineSpacing 12`, `Position 32, 90`. **Order matters:** a static item takes the descriptor's font at the moment it is parsed, while the five rungs are built at run time from MAPINFO in the font the descriptor ends with — so `SmallFont` must be the LAST `Font` line | Freedoom's `M_NEWG` / `M_SKILL` at (96,14) / (54,38) sit on the name painted into `TITLEPIC` (visible in `docs/qa/evidence/2026-10-13_0955_F2_skill-ladder-en.png`). `art-director`'s layout (`docs/art/previews/2026-10-13_1554_F2_menu-sweep.png`) keeps the logo where the title screen has it and puts one header under it; "New Game" is dropped as a header because the player has just chosen it |
+| Difficulty names | stay in `SmallFont` (`Red`, selected `Gold`), D-004-1 | the default BigFont fits ~26 characters and rung 5 is 38; the names are the CEO's and the font is the part we may change. **x = 32 is the only column that fits both ends:** rung 5, "HERO OF THE SOVIET UNION, POSTHUMOUSLY", is 288 px in `fonts/defsmallfont/` (32 + 288 = 320), and the skull is drawn 32 px left of the rungs (Doom's `Selector "M_SKULL1", -32, -5`), so x = 32 is also the smallest x that keeps it on a 4:3 screen. At the old `Position 48, 63` the engine moved the rungs by itself: in the 0955 screenshot they start at virtual x ≈ 0 (screen x 53 of 640, where the 4:3 area also starts) and the skull was drawn outside the 4:3 area. The rule the engine applied is **NOT VERIFIED** (no engine source on this machine); x = 32 leaves it nothing to correct |
+
+### The menu font `SDMENU` (D31, built by `art-director`)
+
+`fonts/sdmenu/` is a folder font (§2): `assets/fonts/bigfont/` — alphabet
+C "Mashina", D24, cap 11 + 1 px shadow, `FontHeight 16` — copied byte for
+byte, with exactly **five** Latin capitals redrawn with Cyrillic forms, D22
+level 2: `0052` R → Я, `004E` N → И, `0045` E → Э, `0057` W → Ш,
+`0041` A → Д. Generator: `tools/art/gen_menu.py`; reference sheet:
+`docs/art/previews/2026-10-13_1554_F2_menu-sweep.png`.
+
+**One font serves both languages.** The substitution lives in five Latin
+code points. The `[ru]` strings are written in Cyrillic code points
+(U+0400–U+04FF), which the font leaves untouched, so Russian reads as real
+Russian while English reads "ИЭШ GДMЭ". `LANGUAGE` keeps correct English —
+searchable, translatable, diffable — which is D22's rule: the mapping is
+the font's job, not the strings'. Switching `language` changes the strings
+and the font follows by itself; there is nothing per-language in `MENUDEF`.
+
+**Where it is used is the exception list.** D22 keeps Latin for proper
+nouns, calibres and key prompts. `SDMENU` is named only by the two menu
+descriptors above, whose strings contain none of those; `BigFont` and
+`SmallFont` (level names, weapon tags, pickups, the skill names) are not
+touched. A new `Font "SDMENU"` anywhere else must pass that test first.
+
+Rules the strings follow (`tests/test_menudef.py`):
+
+- `SD_MNU_*` strings are written in **capitals**. The font has no lowercase
+  glyphs, and whether GZDoom draws lowercase with a capitals-only folder
+  font's capitals is **NOT VERIFIED** for this font (it is what `SmallFont`
+  visibly does with the skill names). Capitals make the question moot.
+  Whether a font made only of our full-colour PNGs takes the `Cream` /
+  `Gold` translation as `SmallFont` takes `Gold` is also **NOT VERIFIED**
+  until the engine pass.
+- Every character of every `SD_MNU_*` string, in both languages, has a
+  glyph in `assets/fonts/sdmenu/`.
+- Every main-menu item fits right of x = 97 and the header right of
+  x = 32, measured as the sum of the glyph PNGs' widths (widest today:
+  "НОВАЯ ИГРА", 117 px; "ВЫБЕРИТЕ СЛОЖНОСТЬ", 222 px).
+- `tools/check_pk3.py` (category `menus`) fails the package when `MENUDEF`
+  names a font that is neither an engine font nor a `fonts/<name>/` folder
+  in the PK3.
+
+Two engine behaviours that would replace the font, both read in
+`gzdoom.pk3` (g4.14.2):
+
+- `ui_generic` (`generic_ui` in ZScript): when a player turns it on, list
+  menus draw their text in `NewSmallFont` instead
+  (`zscript/engine/ui/menu/listmenuitems.zs` lines 130 and 180,
+  `menucustomize.zs` line 27). That is the player's accessibility choice
+  and we leave it alone.
+- `MainMenuTextOnly`: the engine ships a second, text-only main menu "to be
+  used with localized content" (`menudef.txt` lines 108–138), and the
+  executable contains the name. When the engine switches to it is
+  **NOT VERIFIED**. Evidence that it does not do so for us: the Russian
+  main menu in `docs/qa/evidence/2026-10-13_1007_F2_mainmenu-ru.png` drew
+  OUR redeclared `MainMenu` (logo at 60,0). If the Russian capture of D31
+  ever shows the engine's strings with the logo at 94,2, redeclare
+  `MainMenuTextOnly` with the same body.
 
 No ZScript is involved in any of it. A mod may write a CVar from ZScript
 only while the engine is handling menu input — `DMenu::InMenu` is raised
@@ -492,8 +575,9 @@ around `OnUIEvent`, `OnInputEvent` and `MenuEvent` and nothing else
 aborts the VM and drops the player to the console. **Do not add a menu
 ZScript class that writes a CVar.**
 
-The three redeclared menus are verbatim copies of GZDoom 4.14.2's own
-bodies with one line changed each. Re-diff them against
+The three redeclared menus are copies of GZDoom 4.14.2's own bodies: the
+`os_Menu` anchor verbatim, `MainMenu` with the logo moved and its items
+turned into text, `SkillMenu` re-laid-out as above. Re-diff them against
 `gzdoom.pk3/menudef.txt` on every engine upgrade (debt T14).
 
 ## 7. Commands
@@ -507,7 +591,7 @@ MAP=MAP02 tools/run.sh                       # the F4 arsenal test range
 MAP=MAP01 SKILL=4 IWAD=/path/doom2.wad tools/run.sh -nosound
 tools/run.sh -nosound +vid_fullscreen 0 +screenshot_dir "$PWD/logs/shots" +"wait 140; screenshot; wait 35; quit"  # QA evidence
 python3 tools/smoke.py --map MAP01 --skill 4 [--keep-evidence]  # build + self-quitting GZDoom run + log analysis (exit 0 = clean)
-python3 tools/check_pk3.py [--json] [--strict]   # static PK3 validation, no engine: lumps, map WADs, referenced textures, PNG palette, sprites, licences, #includes (exit 0 = clean)
+python3 tools/check_pk3.py [--json] [--strict]   # static PK3 validation, no engine: lumps, map WADs, referenced textures, PNG palette, sprites, licences, #includes, fonts named by MENUDEF (exit 0 = clean)
 ```
 
 `run.sh` looks for GZDoom in `/Applications/GZDoom.app/Contents/MacOS/gzdoom`,
@@ -552,9 +636,9 @@ disagree, the code is right and the doc is the bug.
 | ~~T9~~ | ~~No Cyrillic in the game's font.~~ **Paid 2026-10-13 by D24**: `fonts/defsmallfont/` and `fonts/bigfont/`, 214 glyphs (§2, §6.4). The player-facing warning it carried (`SD_OPTMNU_LANGWARN`, "Cyrillic is not drawn yet") is deleted from `LANGUAGE` and `MENUDEF`. |  |
 | T10 | The shovel swing is silent (§6.2). | F4, when `sound-designer` delivers `SDSHSWG` |
 | T11 | `AMMO`/`HEALTH`/`ARMS`/`ARMOR` are pixels in the IWAD's `STBAR` (§6.5). Parked in `docs/ICEBOX.md` until F6. | F6, with the HUD art (was blocked on T9; unblocked since D24) |
-| T12 | The main menu's item graphics (`M_NGAME`, `M_OPTION`, `M_LOADG`, `M_SAVEG`, `M_QUITG`) and the skill screen's headers (`M_NEWG`, `M_SKILL`) are still Freedoom's red Doom lettering under our own logo (§6.6). | `art-director`, with the rest of the shell |
+| T12 | **Mostly paid 2026-10-13 by D31, pending the CEO's look in the engine.** The main menu's items and the skill screen's header are text in `SDMENU` (§6.6); `M_NGAME`, `M_OPTION`, `M_LOADG`, `M_SAVEG`, `M_RDTHIS`, `M_QUITG`, `M_NEWG` and `M_SKILL` are no longer named by `MENUDEF`. **Still Freedoom's:** the skull cursor `M_SKULL1`/`M_SKULL2` (Doom's `DEFAULTLISTMENU` selector), the pause sign `M_PAUSE` (Doom's pause graphic; not yet looked at on screen in this mod), and `M_EPISOD`, which the engine draws only if the mod ever has a second episode. Engine-drawn text (load/save captions, message boxes, the options screens) uses fonts, not Freedoom's pictures. | `art-director` (cursor, pause sign) with the rest of the shell; treatment C, painted per-language menu graphics, is parked by the CEO (D31) |
 | T13 | `MENUDEF` names `OptionsMenuSimple`, and `AddOptionMenu` on a name the engine does not define is a **hard parse error**. If a GZDoom upgrade drops the simple options menu, the lump stops loading until that block goes. | at the next engine upgrade |
-| T14 | Three engine menus (`MainMenu`, `SkillMenu`, and the `os_Menu` insertion anchor) are copied verbatim into `MENUDEF` to change one line each. They do not track engine changes. | re-diff at every engine upgrade |
+| T14 | Three engine menus (`MainMenu`, `SkillMenu`, and the `os_Menu` insertion anchor) are copied into `MENUDEF`; since D31 the first two also differ in their items and layout (§6.6). They do not track engine changes. | re-diff at every engine upgrade |
 | T15 | MAP01's `par = 210` is set, the intermission's PAR row appears, but the printed value was never read in an unattended run (§4.1). | `qa-engineer`, with a human at the keyboard |
-| T16 | **Paid for the engine, open for the map.** `src/lumps/ANIMDEFS` ships the four `switch` pairs SDSW1x → SDSW2x (2026-10-13), syntax from `gzdoom.pk3 → animdefs.txt`, and `SDSW1A` was seen to flip in engine the same day (§4.3). Open: MAP01 still wears `SDDOOR1` (`SWITCH_PLACEHOLDER`); the click is heard on the CEO's first walk with real switches. | `level-designer`, MAP01 v2 |
+| T16 | **PAID 2026-10-13.** MAP01 v2 retired `SWITCH_PLACEHOLDER`; was: **Paid for the engine, open for the map.** `src/lumps/ANIMDEFS` ships the four `switch` pairs SDSW1x → SDSW2x (2026-10-13), syntax from `gzdoom.pk3 → animdefs.txt`, and `SDSW1A` was seen to flip in engine the same day (§4.3). Open: MAP01 still wears `SDDOOR1` (`SWITCH_PLACEHOLDER`); the click is heard on the CEO's first walk with real switches. | `level-designer`, MAP01 v2 |
 | T17 | **The English `LANGUAGE` section still carries Latin transliterations** (`PG-7V`, `7.62x25`) although the glyphs for the Cyrillic forms D17 asks for exist since D24 (§6.4). Two ASCII tests pin the current state (`tests/test_language.py`, `tests/test_arsenal.py`). | `mod-engineer`, one text change plus an engine screenshot of the HUD |

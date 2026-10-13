@@ -129,6 +129,22 @@ system font, so they reproduce on both machines. Origin, author and licence
 unchanged. Before/after sheet:
 `docs/art/previews/2026-10-13_1443_F2_font-C-serif-fix.png`.
 
+## The menu font SDMENU (D31, approved for in-engine trial 2026-10-13)
+
+The first construction of D22 (level 2: R→Я, N→И, E→Э, W→Ш, A→Д). Used only
+by the menu descriptors (`Font "SDMENU"` in `MENUDEF`), never by running
+text, so the proper nouns, calibres and key prompts that
+`docs/product/LANGUAGE-SWITCH.md` keeps in Latin are never drawn with it.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `fonts/sdmenu/*.png` (107) | Menu font: `fonts/bigfont/` (cap 11 px plus a 1 px shadow, line 16) with the five Latin capitals R, N, E, W, A drawn with the forms of Я, И, Э, Ш, Д. Russian strings use Cyrillic code points and are unaffected, so one font serves both languages | (a) `tools/art/gen_menu.py`: 102 glyphs and `font.inf` copied byte for byte from `assets/fonts/bigfont/`; the five substituted glyphs rendered by `gen_font.glyph_image()` from the Cyrillic letters' stroke code, byte-identical to `0414`, `0418`, `042D`, `042F` and `0428` of `bigfont/`. No new drawing, no system font | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
+
+Status: **approved for in-engine trial 2026-10-13 (D31)**; the CEO judges
+it on screen. `tests/test_gen_menu.py` pins the map and checks that only
+those five files differ from `bigfont/`. Reference sheet:
+`docs/art/previews/2026-10-13_1554_F2_menu-sweep.png`.
+
 ## Batch 2 — switches (F2, all four approved by the CEO 2026-10-13)
 
 The CEO took all four rather than one: "yo por mí mete todos, así tenemos

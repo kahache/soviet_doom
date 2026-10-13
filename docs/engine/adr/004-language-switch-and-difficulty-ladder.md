@@ -163,7 +163,10 @@ a copy of GZDoom's `IfGame(Doom)` main menu with the one number changed.
 - `MENUDEF` now contains three verbatim copies of engine data (the main
   menu body, and the two `os_Menu` anchors). Each is commented with the
   file and line it came from. They are the price of changing one number in
-  a `protected` menu.
+  a `protected` menu. **Since 2026-10-13 (D31, ADR 005)** the main menu's
+  items are text and the skill screen is re-laid-out, so those two copies
+  differ from the engine's in more than one line; the re-diff rule (T14)
+  is unchanged.
 - The Russian menu is correct and unreadable until the Cyrillic glyphs land
   (debt T9). The language row carries a temporary line that says so, with
   the id to delete when the font arrives. **Closed 2026-10-13:** T9 was
