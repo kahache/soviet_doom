@@ -206,7 +206,7 @@ class ApprovedAssetsTests(unittest.TestCase):
                     # per glyph by design, so only the naming and the folder
                     # are a contract here.
                     folder = p.relative_to(ASSETS_DIR).parts[1]
-                    self.assertIn(folder, ("defsmallfont", "bigfont"), p)
+                    self.assertIn(folder, ("defsmallfont", "bigfont", "sdmenu"), p)
                     self.assertRegex(p.stem, r"^[0-9A-Fa-f]{4}$",
                                      f"{p}: a glyph is named by its codepoint in hex")
                     self.assertLessEqual(max(img.size), 32, p)
