@@ -1,17 +1,22 @@
 """Tests for the H1 slab-serif fix and the H3 newline fix in gen_font.py.
 
 QA's tests/test_gen_font.py encodes the shipped state: style C rebuilt is
-byte-identical to assets/fonts/, and M/W are asymmetric (expected failure).
-This file is the art director's side of the same finding:
+byte-identical to assets/fonts/, and M/W are symmetric (the H1 regression
+test). This file is the art director's side of the same finding:
 
-  the fix works   with gen_font.MIRROR_TERMINALS patched to True, M, Cyrillic
-                  M and W come out symmetric at both sizes, every glyph that
-                  is meant to be symmetric still is, and nothing but those
-                  three glyphs changes
-  the fix is off  the shipped value is False until the CEO approves the
+  the fix works   with gen_font.MIRROR_TERMINALS True, M, Cyrillic M and W
+                  come out symmetric at both sizes, every glyph that is
+                  meant to be symmetric still is, and nothing but those
+                  three glyphs changes against the switch turned off
+  the fix is on   the shipped value is True since the CEO approved the
                   proposal sheet (docs/art/previews/*_F2_font-C-serif-fix.png)
-  the proposal    build_serif_fix() differs from assets/fonts/ in exactly six
-                  PNGs, and the sheet is produced
+                  on 2026-10-13 and the six glyphs were installed
+  the "before"    False still reproduces the historical render (M and W
+                  asymmetric, W's floating foot), so the sheet's before
+                  column and the diff below stay honest
+  the install     build_serif_fix() is byte for byte what assets/fonts/
+                  holds; the historical render differs from assets/fonts/
+                  in exactly the six PNGs; the sheet is produced
   font.inf (H3)   written with LF on every machine, so this PC's bytes equal
                   the Mac's renders in work/art/font/C/
 
@@ -78,10 +83,24 @@ class MirrorTerminalsFixTests(unittest.TestCase):
     def ink(self, ch, key, size_key):
         return self.gen.render_glyph(ch, self.gen.STYLES[key], size_key)[0]
 
-    def test_shipped_value_is_off(self):
-        """True changes six shipped files; it is flipped only after the CEO
-        approves the proposal and the new glyphs are installed."""
-        self.assertIs(self.gen.MIRROR_TERMINALS, False)
+    def test_shipped_value_is_on(self):
+        """The CEO approved the fix on 2026-10-13 and its six glyphs are in
+        assets/fonts/; turning it off again would change shipped pixels."""
+        self.assertIs(self.gen.MIRROR_TERMINALS, True)
+
+    def test_switch_off_still_draws_the_historical_defect(self):
+        """False is the "before" of the sheet: M and W asymmetric at both
+        sizes, and W's floating foot in the bottom-right corner."""
+        with mock.patch.object(self.gen, "MIRROR_TERMINALS", False):
+            for ch in FIXED:
+                for size_key in FOLDERS.values():
+                    ink = self.ink(ch, "C", size_key)
+                    with self.subTest(ch=ch, size=size_key):
+                        self.assertFalse((ink == ink[:, ::-1]).all(), "\n" + ink_ascii(ink))
+            for size_key in FOLDERS.values():
+                ink = self.ink("W", "C", size_key)
+                with self.subTest(ch="W foot", size=size_key):
+                    self.assertTrue(ink[-1, -1], "\n" + ink_ascii(ink))
 
     def test_m_and_w_are_symmetric_with_the_fix(self):
         with mock.patch.object(self.gen, "MIRROR_TERMINALS", True):
@@ -116,7 +135,8 @@ class MirrorTerminalsFixTests(unittest.TestCase):
         for key, st in self.gen.STYLES.items():
             for size_key in FOLDERS.values():
                 for cp in self.gen.GLYPHS:
-                    a = self.gen.render_glyph(chr(cp), st, size_key)[0]
+                    with mock.patch.object(self.gen, "MIRROR_TERMINALS", False):
+                        a = self.gen.render_glyph(chr(cp), st, size_key)[0]
                     with mock.patch.object(self.gen, "MIRROR_TERMINALS", True):
                         b = self.gen.render_glyph(chr(cp), st, size_key)[0]
                     if a.shape != b.shape or not (a == b).all():
@@ -135,7 +155,8 @@ class MirrorTerminalsFixTests(unittest.TestCase):
 @fonts
 class ProposalBuildTests(unittest.TestCase):
     """build_serif_fix() and sheet_serif_fix(), pointed at a tempdir (their
-    defaults are work/art/font_fix/ and docs/art/previews/)."""
+    defaults are work/art/font_fix/ and docs/art/previews/), plus the
+    historical render (switch off) built next to them."""
 
     @classmethod
     def setUpClass(cls):
@@ -144,22 +165,49 @@ class ProposalBuildTests(unittest.TestCase):
         cls._tmp = tempfile.TemporaryDirectory()
         cls.tmp = Path(cls._tmp.name)
         cls.report = gen.build_serif_fix(cls.tmp / "fix")
+        with gen.mirror_terminals(False):
+            gen.build_variant(gen.STYLES["C"], cls.tmp / "before")
 
     @classmethod
     def tearDownClass(cls):
         cls._tmp.cleanup()
 
-    def test_proposal_differs_from_assets_in_exactly_the_six_files(self):
-        root = self.tmp / "fix" / "C"
+    def differing_from_assets(self, root: Path) -> set:
         differing = set()
         for folder in FOLDERS:
             for p in sorted((root / folder).glob("*.png")):
                 if p.read_bytes() != (FONTS_DIR / folder / p.name).read_bytes():
                     differing.add(f"{folder}/{p.name}")
-        self.assertEqual(differing, FIXED_FILES)
+        return differing
 
-    def test_building_the_proposal_leaves_the_switch_off(self):
-        self.assertIs(self.gen.MIRROR_TERMINALS, False)
+    def test_proposal_is_what_assets_holds(self):
+        """Installed 2026-10-13: every PNG of the approved proposal is in
+        assets/fonts/ byte for byte, the six fixed glyphs included."""
+        root = self.tmp / "fix" / "C"
+        for folder in FOLDERS:
+            with self.subTest(folder=folder):
+                self.assertEqual(sorted(p.name for p in (root / folder).glob("*.png")),
+                                 sorted(p.name for p in (FONTS_DIR / folder).glob("*.png")))
+        self.assertEqual(self.differing_from_assets(root), set())
+
+    def test_historical_render_differs_from_assets_in_exactly_the_six_files(self):
+        """What the install changed, and nothing else: the font as it
+        shipped before the fix differs from assets/fonts/ in M, Cyrillic M
+        and W at both sizes."""
+        self.assertEqual(self.differing_from_assets(self.tmp / "before" / "C"), FIXED_FILES)
+
+    @unittest.skipUnless(MAC_FONT_C.is_dir(), "work/art/font/C (the Mac's renders) not present")
+    def test_historical_render_is_the_macs(self):
+        """The switch turned off rebuilds the Mac's render of style C (the
+        font as installed before 2026-10-13) byte for byte on this machine."""
+        root = self.tmp / "before" / "C"
+        for folder in FOLDERS:
+            for p in sorted((root / folder).glob("*.png")):
+                with self.subTest(file=f"{folder}/{p.name}"):
+                    self.assertEqual(p.read_bytes(), (MAC_FONT_C / folder / p.name).read_bytes())
+
+    def test_building_the_proposal_restores_the_switch(self):
+        self.assertIs(self.gen.MIRROR_TERMINALS, True)
 
     def test_proposal_manifest_says_what_it_is(self):
         import json
@@ -172,7 +220,7 @@ class ProposalBuildTests(unittest.TestCase):
         self.assertEqual(path.name, "TEST_F2_font-C-serif-fix.png")
         self.assertEqual(path.parent.resolve(), (self.tmp / "sheet").resolve())
         self.assertTrue(path.is_file())
-        self.assertIs(self.gen.MIRROR_TERMINALS, False)
+        self.assertIs(self.gen.MIRROR_TERMINALS, True)
 
 
 @imaging

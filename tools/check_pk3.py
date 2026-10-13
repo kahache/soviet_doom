@@ -110,7 +110,7 @@ DIMENSION_MULTIPLE = 8                  # Doom tiles on powers of two
 FLAT_SIZE = (64, 64)                    # a Doom flat is 64x64 by definition
 # Wall sizes the project allows (MOD-SPEC 2). 128x256 was added when the CEO
 # approved the taller Lenin poster: at 128x128 the portrait had no room.
-ALLOWED_WALL_SIZES = ((64, 128), (128, 128), (128, 256))
+ALLOWED_WALL_SIZES = ((64, 64), (64, 128), (128, 64), (128, 128), (128, 256))  # crates since D29
 
 # Sprite naming (Doom convention): NAMEFR or NAMEFRFR.
 SPRITE_NAME_LEN = 4

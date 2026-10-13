@@ -36,21 +36,22 @@ SDCONC1 OK · SDCONC2 duda (habrá que ver como queda) · SDSTAR1 NOT OK ·
 SDSTEL1 OK · SDDOOR1 OK · SDPOSTR1 NOT OK -> habrá que ver como hacer bien el
 Lenin, luego lo trabajamos aparte · SDPOSTR2 -> me gusta, pendiente de
 confirmar la traducción del texto · SDFLR1 OK · SDFLR2 OK · SDFLR3 OK ·
-SDCEIL1 OK · SDCEIL2 OK». Gate G2 (≥ 8 approved): **10 approved clean, 2
-awaiting the CEO's in-map verdict** (count as of 2026-10-13). The 10: the 8
-unconditional ones, `SDPOSTR2` (its only condition, the Russian wording,
-confirmed by the CEO on 2026-10-12) and `SDPOSTR1` v4 (approved 2026-10-12 at
-128×256 from the 15-cell sweep). The 2: `SDCONC2` stays `pending in-map
-review` and `SDSTAR1` stays `proposed v5`; both are in `assets/` and in the
-PK3 so the CEO can judge them inside MAP01 v1, and the CEO has not walked v1
-yet, so neither is closed. G2 was signed PASS on the 8 unconditional ones; see
-`docs/qa/GATE-REVIEWS.md`.
+SDCEIL1 OK · SDCEIL2 OK». Gate G2 (≥ 8 approved): **12 of 12 approved**
+(count as of 2026-10-13). Ten on the sheet: the 8 unconditional ones,
+`SDPOSTR2` (its only condition, the Russian wording, confirmed by the CEO on
+2026-10-12) and `SDPOSTR1` v4 (approved 2026-10-12 at 128×256 from the
+15-cell sweep). Two in the map: `SDCONC2` and `SDSTAR1` v5 sat in `assets/`
+and the PK3 so the CEO could judge them inside MAP01 v1, and he approved
+both while walking it in GZDoom on 2026-10-13 (~15:40). CEO, verbatim, on
+`SDCONC2`: «no queda perfecto pero yo lo dejaría así, le da color y relleno las 3 bandas»; on
+`SDSTAR1`: «la apruebo, preciosa». G2 was signed PASS on the 8
+unconditional ones; see `docs/qa/GATE-REVIEWS.md`.
 
 | Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
 |---|---|---|---|---|---|---|---|
 | `SDCONC1` | wall | 64×128 | yes | prefab concrete panels, running bond, grime under joints | (a) seed 1978 | approved | 2026-10-12 |
-| `SDCONC2` | wall | 64×128 | yes | concrete with worn red stripe at mid height | (a) seed 1979 | pending in-map review (CEO: "we'll see how it looks"; decided on MAP01 v1 in GZDoom — in `assets/` and the PK3 for that walk, which the CEO has not done yet) | 2026-10-12 |
-| `SDSTAR1` | wall | **128×128** | yes (plaque centred) | concrete with a painted plaque 84×108: gold star above hammer and sickle on red, 1 px dark outline. v2 mirrored the emblem; v3 rebuilt it from the CEO's reference; v4 took the hammer butt to the bottom-right corner; **v5 (variant D1, CEO 2026-10-12)**: hammer head lowered to mid-height (`HAMMER_HEAD_C` y 0.26 → 0.46) and the sickle tip moved onto the outer arc's own end, removing the loose spike the CEO reported ("un palo raro hacia arriba"). Widened to 128 in the same pass because at 64 the lower half of the emblem closed into a blob. Check sheet `tools/art/emblem_check.py`; orientation, handle slope and butt position guarded by `tests/test_art.py` | (a) seed 1980 | proposed v5 (in `assets/` and the PK3 for the in-map verdict on MAP01 v1, which the CEO has not walked yet) | 2026-10-12 |
+| `SDCONC2` | wall | 64×128 | yes | concrete with worn red stripe at mid height | (a) seed 1979 | approved 2026-10-13 (in-map review): as built, with the hangar's three bands; CEO on the 2026-10-12 sheet: "we'll see how it looks", then walking MAP01 v1: «no queda perfecto pero yo lo dejaría así, le da color y relleno las 3 bandas» | 2026-10-13 |
+| `SDSTAR1` | wall | **128×128** | yes (plaque centred) | concrete with a painted plaque 84×108: gold star above hammer and sickle on red, 1 px dark outline. v2 mirrored the emblem; v3 rebuilt it from the CEO's reference; v4 took the hammer butt to the bottom-right corner; **v5 (variant D1, CEO 2026-10-12)**: hammer head lowered to mid-height (`HAMMER_HEAD_C` y 0.26 → 0.46) and the sickle tip moved onto the outer arc's own end, removing the loose spike the CEO reported ("un palo raro hacia arriba"). Widened to 128 in the same pass because at 64 the lower half of the emblem closed into a blob. Check sheet `tools/art/emblem_check.py`; orientation, handle slope and butt position guarded by `tests/test_art.py` | (a) seed 1980 | approved 2026-10-13 (in-map review, v5): CEO walking MAP01 v1, «la apruebo, preciosa» | 2026-10-13 |
 | `SDSTEL1` | wall | 64×128 | yes | military-green riveted steel plates, chipped paint, rust under rivets | (a) seed 1981 | approved | 2026-10-12 |
 | `SDDOOR1` | wall (door) | 128×128 | no | bunker steel door: riveted frame, green leaf, locking wheel, star and "7" stencils, hazard stripe | (a) seed 1982; text Impact.ttf | approved | 2026-10-12 |
 | `SDPOSTR1` | wall | 128×256 | no (single poster) | Lenin poster: the 1920 Zhukov photograph posterised to four flat palette inks, cream printed border, gold rule and a 46 px band carrying «ЛЕНИН ЖИВ». Four rounds: v1 constructivist silhouette (CEO rejected), v2 naive threshold (PM rejected, no face), v3 hand-drawn silhouette and features (CEO: "no se parece a el EN NADA" — the likeness lives in the photograph, not in a traced outline), **v4 = sweep cell 4C, chosen by the CEO 2026-10-12** from a 15-cell parameter sheet. Slogan rendered through a hard-cut mask: Pillow's antialiasing had invented 95 off-palette colours and `check_pk3` rejected the first build | (a) `tools/art/gen_lenin.py` + (b) `work/art/reference/lenin_1920_zhukov.jpg`, public domain | **approved 2026-10-12** | 2026-10-12 |
@@ -123,7 +124,11 @@ formally.
 Candidates for later batches (not started): painted dado wall (green oil
 paint lower half + whitewash), concrete corner/pilaster, steel door variant
 for keys (red/yellow/blue trims), exterior concrete with night sky,
-launch-pad gantry steel. (Crate and locker moved to batch 3, below.)
+launch-pad gantry steel. (Crate and locker moved to batch 3, below.) Not
+a candidate any more: a 128-high composite dado for the hangar as an
+alternative to `SDCONC2` — the CEO approved `SDCONC2` in its three hangar
+bands on 2026-10-13, so that alternative is discarded (the painted dado
+above stays a candidate for other rooms).
 
 ## Set "Soviet base" — batch 3, props (F3)
 
@@ -135,18 +140,42 @@ from segment data, so every lump here reproduces byte for byte on both
 machines. Asked for by `level-designer` as A5 (`docs/levels/MAP01-zarya-7.md`
 §10) for MAP01 v2. Columns are value families, dark to pale: A dark 4BO
 planks, B green steel case, C khaki planks with a diagonal brace, D pale
-pine with black straps. Art-director and PM both recommend **C** for the
+pine with black straps. Art-director and PM both recommended **C** for the
 three crate pieces and **D** for the locker; column B disappears on
-`SDSTEL1`. Open with the CEO: one cell per row, and whether C keeps khaki
-(ART-BIBLE reserves khaki for the Reich's flesh) or is repainted in
-`rust_brown` wood at the same value.
+`SDSTEL1`.
+
+CEO verdict 2026-10-13, verbatim: «apruebo el arreglo de la fuente y cajas C
+y D» — column **C** for the three crate pieces, **D** for the locker, as
+drawn. That also closes the open question of the sweep: C **keeps its
+`khaki_olive`** (no repaint in `rust_brown` wood) and keeps its stencilled
+numbers. Khaki is otherwise reserved for the Reich's flesh, so the crates
+are a CEO-approved exception with a watch item for F5 (ART-BIBLE §6.2).
+The generator names files by cell (`R1C_SDCRAT1.png`, …, `R4D_SDLOCK1.png`
+in `work/art/batch3/props/`); they were renamed to the bare lump name on
+install and copied byte for byte (`tests/test_art.py` matches them by
+content). 64×64 and 128×64 are new wall sizes in `assets/` with this batch.
 
 | Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
 |---|---|---|---|---|---|---|---|
-| `SDCRAT1` | wall | 64×64 | yes (one crate per tile) | crate face; also the ends of `SDCRAT2` | (a) gen_props R1, seeds 3088-3091 | proposed (sweep of 4, rec. C) | 2026-10-13 |
-| `SDCRAT2` | wall | 128×64 | yes | long crate, the hangar's low cover | (a) gen_props R2, seeds 3098-3101 | proposed (rec. C) | 2026-10-13 |
-| `SDCRTOP1` | flat | 64×64 | yes | crate lid, seen from the catwalk | (a) gen_props R3, seeds 3108-3111 | proposed (rec. C) | 2026-10-13 |
-| `SDLOCK1` | wall | 64×128 | yes (a row) | two-door barracks locker | (a) gen_props R4, seeds 3118-3121 | proposed (rec. D) | 2026-10-13 |
+| `SDCRAT1` | wall | 64×64 | yes (one crate per tile) | crate face, khaki planks with a diagonal brace and stencilled number; also the ends of `SDCRAT2`. Cell R1-C | (a) gen_props R1, variant C, seed 3090 | approved 2026-10-13 (CEO: «apruebo el arreglo de la fuente y cajas C y D») | 2026-10-13 |
+| `SDCRAT2` | wall | 128×64 | yes | long crate in three bays, the hangar's low cover. Cell R2-C | (a) gen_props R2, variant C, seed 3100 | approved 2026-10-13 (CEO: «apruebo el arreglo de la fuente y cajas C y D») | 2026-10-13 |
+| `SDCRTOP1` | flat | 64×64 | yes | crate lid with cross batten, seen from the catwalk. Cell R3-C | (a) gen_props R3, variant C, seed 3110 | approved 2026-10-13 (CEO: «apruebo el arreglo de la fuente y cajas C y D») | 2026-10-13 |
+| `SDLOCK1` | wall | 64×128 | yes (a row) | two-door barracks locker, pale pine with black straps. Cell R4-D | (a) gen_props R4, variant D, seed 3121 | approved 2026-10-13 (CEO: «apruebo el arreglo de la fuente y cajas C y D») | 2026-10-13 |
+
+Not installed (the other twelve cells of the sweep, A, B and D of the crates
+and A-C of the locker): not chosen, not discarded; they stay in `work/` and
+may be proposed again as variety.
+
+## The alphabet (D24) — glyph fix
+
+Not textures, listed here so the index carries every shipped art change.
+The alphabet (style C "Mashina", 214 glyphs in `assets/fonts/`) is owned by
+`LICENSES.md` ("The alphabet"). **2026-10-13: M, Cyrillic М and W
+corrected** at both sizes (six PNGs: `004D`, `041C`, `0057` in
+`defsmallfont/` and `bigfont/`) with the CEO's approval, same verdict as
+above («apruebo el arreglo de la fuente»). Their slab serifs had been placed
+on one side only (QA finding H1); before/after sheet
+`docs/art/previews/2026-10-13_1443_F2_font-C-serif-fix.png`.
 
 ## IWAD references in use (from `docs/engine/MOD-SPEC.md` §5)
 
@@ -162,3 +191,4 @@ three crate pieces and **D** for the locker; column B disappears on
 | Lump | Date | Reason | What happens instead |
 |---|---|---|---|
 | `SDPOSTR1` (Lenin poster, v1 silhouette) | 2026-10-12 | CEO: NOT OK, "we'll have to see how to do Lenin right" | the Lenin portrait became a separate commission (ART-BIBLE §8) and the lump name `SDPOSTR1` went to its result: v4, posterised from the public-domain 1920 photograph, approved 2026-10-12 at 128×256 (row above) |
+| hangar dado, 128 high (composite steel-below / concrete-above wall, never drawn; the alternative to `SDCONC2` in the hangar, `docs/levels/MAP01-zarya-7.md` deviation 1) | 2026-10-13 | not needed: the CEO approved `SDCONC2` as built in the hangar's three bands, «no queda perfecto pero yo lo dejaría así, le da color y relleno las 3 bandas» | `SDCONC2` stays in the hangar |

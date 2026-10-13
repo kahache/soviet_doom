@@ -114,6 +114,21 @@ Format: RGBA PNG, not indexed, with palette colours only and hard 0/255
 alpha, like `M_DOOM`; the exception is recorded in ART-BIBLE §2 and checked
 by `tests/test_gen_font.py`.
 
+**Correction of six glyphs, 2026-10-13 (approved by the CEO the same day:
+«apruebo el arreglo de la fuente»).** QA found (H1) that the slab serifs of
+M, Cyrillic М and W were placed on one side only, because `Pen.mirror()`
+reflected the ink but not the stroke ends that carry the slabs; W also drew
+a foot where none of its strokes ends. Fixed in `tools/art/gen_font.py`
+(`MIRROR_TERMINALS = True`) and the six affected files replaced in
+`assets/fonts/`: `004D.png`, `041C.png` and `0057.png` in both
+`defsmallfont/` and `bigfont/`. Same generator, same style, no pixel painted
+by hand, no new source; the other 208 glyphs are unchanged byte for byte.
+Regenerated on the Windows PC and checked byte for byte against the
+proposal build `work/art/font_fix/C/` before copying: the glyphs use no
+system font, so they reproduce on both machines. Origin, author and licence
+unchanged. Before/after sheet:
+`docs/art/previews/2026-10-13_1443_F2_font-C-serif-fix.png`.
+
 ## Batch 2 — switches (F2, all four approved by the CEO 2026-10-13)
 
 The CEO took all four rather than one: "yo por mí mete todos, así tenemos
@@ -139,11 +154,20 @@ Variant A had to be relaid: its board, its painted word and its lamp
 overlapped. The three boxes are now stacked bottom-up with declared gaps and
 `gen_switch.py` refuses to import if they ever touch again.
 
-## Batch 3 — props (F3, proposed 2026-10-13, nothing in `assets/`)
+## Batch 3 — props (F3, approved by the CEO 2026-10-13)
+
+CEO verdict, verbatim: «apruebo el arreglo de la fuente y cajas C y D» —
+column C for the three crate pieces, column D for the locker, as drawn
+(khaki and stencilled numbers kept; ART-BIBLE §6.2). Files in
+`assets/textures/soviet_base/` and `assets/flats/soviet_base/`, renamed
+on install from the generator's cell names (`R1C_SDCRAT1.png` →
+`SDCRAT1.png`, and so on). Per-lump rows and seeds: `TEXTURE-INDEX.md`,
+batch 3.
 
 | Lump | What it is | Origin | Licence |
 |---|---|---|---|
-| `SDCRAT1` / `SDCRAT2` / `SDCRTOP1` / `SDLOCK1` | crate face, long crate, crate lid, locker; stencilled numbers and arrows drawn from segment data, no typeface | (a) `tools/art/gen_props.py`, palette v1 | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `SDCRAT1` / `SDCRAT2` / `SDCRTOP1` | crate face, long crate, crate lid; khaki planks, diagonal brace, stencilled numbers and arrows drawn from segment data, no typeface | (a) `tools/art/gen_props.py`, variant C, palette v1 | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `SDLOCK1` | two-door barracks locker, pale pine with black straps | (a) `tools/art/gen_props.py`, variant D, palette v1 | idem |
 
 Direction finding from this batch: none of these lumps depends on a system
 font, so they reproduce byte for byte on the Mac and on Windows; and column
