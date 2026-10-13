@@ -4,6 +4,7 @@
     python3 tools/verify.py fast     # seconds, never opens a window
     python3 tools/verify.py full     # everything, including GZDoom
     python3 tools/verify.py auto     # read git, pick the level, say why
+    python3 tools/verify.py docs --gate   # phase close: every mirror present
 
 Why this exists: `docs/PIPELINE.md` stage 5 used to be four separate
 commands, and the slowest of them (`tools/smoke.py`) boots a real GZDoom and
@@ -15,8 +16,8 @@ otra full."
 
 The levels are a true ladder: each one contains the one below it.
 
-    docs   D7 mirror + repo-path references in the changed documents.
-           No build, no suite, no engine.                        ~0.1 s
+    docs   Russian mirror (D34) + repo-path references in the changed
+           documents. No build, no suite, no engine.             ~0.1 s
     fast   build + check_pk3 + the suite WITHOUT the slow art
            generator runs. No window.                            ~7 s
     art    fast, plus the slow art generator runs (determinism,
@@ -30,12 +31,28 @@ any of them demands, and prints the rule and the reason before running
 anything, so the decision is auditable and the CEO can disagree with it.
 Use `--explain` to see the plan without executing it.
 
+The Russian mirror (D7, amended by D34 on 2026-10-13): `docs/ru/` is synced
+in a batch when a phase closes and in full before a release, not in the same
+task. So between gates a document without its `docs/ru/` twin is a WARNING
+at every level and never blocks. `--gate` is for the phase close: it scans
+the whole `docs/` tree, whatever changed, and any document without its twin
+fails the docs stage (exit 10). It checks that the twin exists, not that it
+is up to date; freshness is the translator's and `pmo`'s to judge. `--gate`
+changes only the docs stage: the level, and what `auto` decides, are the
+same with or without it.
+
+In-game text is not covered by D34 and stays bilingual in every task (D21).
+That check is not repeated here: `tests/test_language.py`
+(`test_every_mod_id_is_translated`) runs in the suite at fast, art and full,
+and a `docs`-level batch cannot have touched `src/lumps/LANGUAGE`, because
+any `src/` path lifts `auto` to full.
+
 Exit codes - one per stage, so a wrapper can tell them apart:
 
     0   everything the level asked for passed
     2   usage error (unknown level, bad argument)
     3   `auto` could not ask git what changed
-    10  the documentation check failed
+    10  the documentation check failed (a missing mirror: only with --gate)
     11  tools/build.py failed
     12  tools/check_pk3.py failed
     13  the test suite failed
@@ -152,7 +169,7 @@ UNKNOWN_RULE = Rule(
 
 # Root-level documents. They carry their Russian text inline (README.md) or
 # are not mirrored at all (CLAUDE.md, LICENSE.md), so they never demand a
-# docs/ru/ twin; see the D7 note in docs/PIPELINE.md.
+# docs/ru/ twin; see "The documentation check" in docs/PIPELINE.md.
 ROOT_DOCS = ("README.md", "CLAUDE.md", "LICENSE.md")
 
 RULE_BY_ID = {rule.id: rule for rule in RULES}
@@ -345,13 +362,15 @@ def changed_paths(root: Path = PROJECT_ROOT, since: str | None = None) -> list[s
 
 
 # --- The documentation check ----------------------------------------------
-# D7: every English document under docs/ has a Russian mirror at the same
-# path under docs/ru/, delivered in the same task. That is the one D7 rule a
-# script can check; the rest (one owner per fact, D-numbers, evidence paths)
-# belongs to the `pmo` agent at stage 6 and is not duplicated here.
+# D7 as amended by D34: every English document under docs/ has a Russian
+# mirror at the same path under docs/ru/, synced in a batch at each phase
+# close. Whether the twin EXISTS is the one part a script can check; the rest
+# (one owner per fact, D-numbers, evidence paths) belongs to the `pmo` agent
+# at stage 6 and is not duplicated here. Between gates a gap is a warning;
+# with --gate it fails the stage.
 
 def mirror_path(path: str) -> str | None:
-    """docs/x/y.md -> docs/ru/x/y.md, and back. None when D7 says nothing."""
+    """docs/x/y.md -> docs/ru/x/y.md, and back. None when no mirror is owed."""
     if not path.endswith(".md"):
         return None
     if path.startswith("docs/ru/"):
@@ -362,7 +381,12 @@ def mirror_path(path: str) -> str | None:
 
 
 def mirror_gaps(paths, root: Path = PROJECT_ROOT) -> list[str]:
-    """Changed documents whose D7 twin is missing, as `a.md -> b.md` lines."""
+    """Documents whose mirror twin is missing, as `a.md -> b.md` lines.
+
+    Both directions: an English document without its Russian twin, and a
+    Russian page whose English source is gone (renamed or deleted without
+    the mirror following).
+    """
     gaps: list[str] = []
     for path in sorted(set(paths)):
         twin = mirror_path(path)
@@ -441,12 +465,18 @@ class Plan:
     maps: tuple[str, ...]
     doc_paths: tuple[str, ...] = ()  # empty means "scan the whole docs/ tree"
     engine_tests: bool = False
+    gate: bool = False  # phase close (D34): whole tree, a missing mirror fails
     stages: tuple[str, ...] = field(default_factory=tuple)
 
 
 def plan_for(level: Level, maps: tuple[str, ...] = (), doc_paths: tuple[str, ...] = (),
-             engine_tests: bool = False) -> Plan:
-    """The ladder, written once."""
+             engine_tests: bool = False, gate: bool = False) -> Plan:
+    """The ladder, written once.
+
+    `gate` touches the docs stage only: it widens the scan to the whole
+    docs/ tree (a phase close audits the mirror, not the batch) and makes a
+    missing mirror fail. Every other stage is the level's own.
+    """
     plan = Plan(
         level=level,
         docs_check=True,
@@ -456,10 +486,11 @@ def plan_for(level: Level, maps: tuple[str, ...] = (), doc_paths: tuple[str, ...
         slow_art=level >= Level.ART,
         engine=level >= Level.FULL,
         maps=maps,
-        doc_paths=doc_paths,
+        doc_paths=() if gate else doc_paths,
         engine_tests=engine_tests,
+        gate=gate,
     )
-    names = ["docs"]
+    names = ["docs --gate" if gate else "docs"]
     if plan.build:
         names.append("build")
     if plan.check_pk3:
@@ -502,8 +533,16 @@ RE_SMOKE_VERDICT = re.compile(r"^VERDICT: (\w+)(.*)$", re.M)
 
 
 def stage_docs(plan: Plan, root: Path = PROJECT_ROOT) -> StageResult:
+    """Russian mirror and quoted repo paths.
+
+    D34 (2026-10-13, amends D7): the mirror is batch work done at a phase
+    close, so a missing twin is a warning here, even for a document changed
+    in this very batch; only `--gate` turns it into a failure (EXIT_DOCS).
+    Dead path references are always a warning.
+    """
+    name ="docs --gate" if plan.gate else "docs"
     started = time.monotonic()
-    scoped = bool(plan.doc_paths)
+    scoped = bool(plan.doc_paths) and not plan.gate
     paths = list(plan.doc_paths) if scoped else all_docs(root)
     gaps = mirror_gaps(paths, root)
     broken = broken_references(paths, root)
@@ -511,27 +550,32 @@ def stage_docs(plan: Plan, root: Path = PROJECT_ROOT) -> StageResult:
 
     lines = []
     if gaps:
-        lines.append("Russian mirror missing (D7):")
+        if plan.gate:
+            lines.append("Russian mirror missing (D34: the phase-close gate needs every twin):")
+        else:
+            lines.append("Russian mirror missing (D34: owed at the phase close, not now; "
+                         "`verify.py docs --gate` fails on these):")
         lines += [f"  {g}" for g in gaps]
     if broken:
         lines.append("repo paths quoted in these documents do not exist:")
         lines += [f"  {b}" for b in broken]
     output = "\n".join(lines)
 
-    if scoped and gaps:
-        # A document was changed in THIS batch without its mirror: that is
-        # exactly the debt D7 exists to stop, so it blocks.
-        return StageResult("docs", False, seconds,
-                           f"{len(gaps)} changed doc(s) without a Russian mirror",
+    if plan.gate and gaps:
+        return StageResult(name, False, seconds,
+                           f"{len(gaps)} doc(s) without a Russian mirror (D34 gate)",
                            output, EXIT_DOCS)
     note_bits = []
+    if plan.gate:
+        english = sum(1 for p in paths if not p.startswith("docs/ru/"))
+        note_bits.append(f"{english} English doc(s), every Russian mirror present")
     if gaps:
-        note_bits.append(f"WARN {len(gaps)} doc(s) without a Russian mirror")
+        note_bits.append(f"WARN {len(gaps)} doc(s) without a Russian mirror (D34: due at phase close)")
     if broken:
         note_bits.append(f"WARN {len(broken)} dead path reference(s)")
     if not note_bits:
         note_bits.append(f"{len(paths)} document(s), mirrors and references OK")
-    return StageResult("docs", True, seconds, "; ".join(note_bits), output)
+    return StageResult(name, True, seconds, "; ".join(note_bits), output, EXIT_DOCS)
 
 
 def stage_build(python: str) -> StageResult:
@@ -619,6 +663,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("level", nargs="?", default="auto",
                         choices=[*LEVEL_BY_NAME, "auto"],
                         help="docs | fast | art | full | auto (default: auto)")
+    parser.add_argument("--gate", action="store_true",
+                        help="phase close (D34): scan all of docs/ and FAIL the docs stage on any "
+                             "document without its docs/ru/ mirror (default: warn only)")
     parser.add_argument("--explain", action="store_true",
                         help="print the plan and the reasons, run nothing")
     parser.add_argument("--since", metavar="REF",
@@ -655,10 +702,11 @@ def main(argv: list[str] | None = None) -> int:
             return EXIT_NO_GIT
         decision = decide(paths, all_maps)
         doc_paths = tuple(p for p in decision.paths if p.endswith(".md"))
-        plan = plan_for(decision.level, explicit_maps or decision.maps, doc_paths, args.engine_tests)
+        plan = plan_for(decision.level, explicit_maps or decision.maps, doc_paths,
+                        args.engine_tests, args.gate)
     else:
         level = LEVEL_BY_NAME[args.level]
-        plan = plan_for(level, explicit_maps or all_maps, (), args.engine_tests)
+        plan = plan_for(level, explicit_maps or all_maps, (), args.engine_tests, args.gate)
 
     if decision is not None:
         print_decision(decision, plan)
