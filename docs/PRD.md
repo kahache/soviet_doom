@@ -1,7 +1,7 @@
 # Soviet Doom — Product Requirements Document
 
 Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
-Last update: 2026-10-13 (D25-D39).
+Last update: 2026-10-13 (D25-D43).
 
 ## 1. Vision
 
@@ -73,6 +73,10 @@ until D16 brought it into scope on 2026-10-13.)
 | D37 | 2026-10-13 | **German letters in the alphabet: Ä, Ö, Ü and the sharp s, installed for an in-game trial**, sharp s included against the PM's recommendation of "SS": "Las pruebo, incluso la B se queda". The General's order prints as "Vorwärts!" in both languages; the English section of `LANGUAGE` admits exactly those German letters beyond ASCII (debt T17 otherwise stands). The enemy voice takes are postponed by the CEO: "Las grabaré o generaré en otro momento. Lo dejamos pending". | ratified (CEO) |
 | D38 | 2026-10-13 | **MAP01 v3 played through by the CEO (skill 3): "ha sido MUY divertido!!".** One fix asked: the square block in front of the cosmonautics mural (`SDPOSTR2`, komnata) goes, so the poster can be seen. **The Reich rifleman: cell E (crested helmet), with the art-director's recommended method**, a 3D rig in the same style rendered at 8 angles for the ~50 frames. CEO: "OK al fusilero". | ratified (CEO) |
 | D39 | 2026-10-13 | **The arsenal's balance stands as built.** The CEO played the MAP02 test range: "He probado el mapa de las armas y todo correcto". So the TT-33 keeps its +43 % on Doom's pistol, the hand Katyusha keeps sharing fuel with the flamethrower, PPSh pickups keep 35 rounds (`docs/engine/BALANCE.md`). Also reported: the player's hands are Freedoom's placeholder hands ("mismo color de piel y manos"); our own hand and glove are being designed with the first weapon sprite. Whether MAP02 ships in v1 stays open. | ratified (CEO) |
+| D40 | 2026-10-13 | **Slot 1 is an ice axe (piolet, ледоруб), not a shovel.** CEO's proposal, confirmed after the PM flagged that a Soviet ice axe evokes Ramón Mercader and Trotsky: "Piolet, confirmo". The melee weapon keeps the shovel's numbers (`docs/engine/BALANCE.md`) and stays found on MAP01's dorm rack, not issued; its name, pickup, first-person art (with our own hand and glove, D39) and swing sound change. | ratified (CEO) |
+| D41 | 2026-10-13 | **MAP02, the weapons test range, ships in v1 as a practice range**, outside the campaign: "Se puede publicar como práctica". | ratified (CEO) |
+| D42 | 2026-10-13 | **The metro direction and its first six pieces are approved** (`SDTILE1`, `SDTILE2`, `SDMARB1`, `SDMOSA1`, `SDBRAS1`, `SDMFLR1`; preview `docs/art/previews/2026-10-13_0952_F2_batch2-metro-first-pieces.html`): "OK a las 6 piezas de metro". They ship as drawn in palette v1. Palette v2 (marble red, cobalt and gold ramps) and the mosaic motif (star or figure) stay open. | ratified (CEO) |
+| D43 | 2026-10-13 | **Music: every open recommendation of `docs/sound/SOUNDTRACK.md` §8 accepted** ("Acepto las recomendaciones de música"). Jerry Engelbach is credited for the title Internationale; the repaired `D_SDINTL` enters `assets/`; MAP01 plays our own `D_SDM01`, which is then enriched (two more layers, a non-repeating section); the diegetic radio gets `WM_Ej_uchnem` and `WM_Kolokolchik` (CC0); we sequence «Вы жертвою пали» and «Амурские волны» ourselves; `D_CND02`, `D_CND04` and `D_CND08` are discarded; works restored in the United States («Священная война» above all) are excluded; the anthem slot goes to Glinka's Patriotic Song; `work/audio/candidates/` is tracked in git. | ratified (CEO) |
 | D15 | 2026-10-09 | Licence of the mod: **GPL-3.0** for code (`tools/`, `src/zscript/`, scripts) and **CC BY-NC-SA 4.0** for assets and docs (textures, sprites, maps, sounds, lore). Non-commercial is required anyway by OTEX's terms. Full texts added at F6; `LICENSE.md` states it now. | decided by the PM on CEO delegation |
 
 ## 6. Phases and gates
