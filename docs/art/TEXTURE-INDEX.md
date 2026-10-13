@@ -116,10 +116,10 @@ Which pair goes on which MAP01 switch is `level-designer`'s call
 (`docs/levels/`); the `SWITCHES` definition is `mod-engineer`'s
 (`docs/engine/MOD-SPEC.md`).
 
-Also started in batch 2, no verdict yet and nothing in `assets/`: a first
-metro sweep, `docs/art/previews/2026-10-13_0952_F2_batch2-metro-first-pieces.html`
-(`tools/art/gen_metro.py`). Its rows are added here when it is proposed
-formally.
+Also started in batch 2: the metro's first six pieces,
+`docs/art/previews/2026-10-13_0952_F2_batch2-metro-first-pieces.html`
+(`tools/art/gen_metro.py`), approved by the CEO on 2026-10-13 (D42). Their
+rows are in their own set, "Metro", below.
 
 Candidates for later batches (not started): painted dado wall (green oil
 paint lower half + whitewash), concrete corner/pilaster, steel door variant
@@ -165,6 +165,44 @@ content). 64×64 and 128×64 are new wall sizes in `assets/` with this batch.
 Not installed (the other twelve cells of the sweep, A, B and D of the crates
 and A-C of the locker): not chosen, not discarded; they stay in `work/` and
 may be proposed again as variety.
+
+## Set "Metro" — batch 2, first pieces (F2, D42)
+
+Preview: `docs/art/previews/2026-10-13_0952_F2_batch2-metro-first-pieces.html`
+(mirror `docs/ru/art/previews/…`). Generator `tools/art/gen_metro.py`,
+`BATCH_SEED` 1935 (the year the Moscow metro opened), seed = 1935 + offset
+(1 to 6, in the order of the table). Palette `docs/art/palette.json` v1,
+nothing added: the marble is built from `flag_red` low with `rust_brown`
+and `plaster_warm` veins, the mosaic ground from `steel_blue` low, the gold
+and the brass from `hazard_yellow`. **No typeface:** none of the six carries
+text, so they reproduce byte for byte on both machines (measured
+2026-10-13: the six regenerated on the Windows PC are byte-identical to the
+Mac's renders in `work/art/batch2/metro/`, whose SHA-256 match
+`work/MANIFEST-from-mac.txt`, and to the images embedded in the preview).
+Approved files live in `assets/textures/metro/` (walls) and
+`assets/flats/metro/` (the flat), copied byte for byte from the Mac's
+renders; `tests/test_gen_metro.py` holds the installed set to the generator.
+
+CEO verdict 2026-10-13, verbatim: «OK a las 6 piezas de metro» — the
+direction and all six pieces, **as drawn in palette v1** (D42). Still open
+with the CEO and not decided by this verdict: palette v2 (a marble red and a
+cobalt and gold mosaic ramp in the reserved slots, which would make
+`SDMARB1` warmer and `SDMOSA1` cobalt instead of slate) and the mosaic's
+motif (the star with rays shipped here, or a figure). Whatever he decides,
+the six below stay as they are: a v2 piece would be a new lump or a new
+proposal, never a requantisation of an approved one (ART-BIBLE §3).
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDTILE1` | wall | 64×128 | yes | glazed cream tile wall, 8 px tiles, warm grout, a few chipped tiles, grime low down | (a) gen_metro, seed 1936 | approved 2026-10-13 (D42: «OK a las 6 piezas de metro») | 2026-10-13 |
+| `SDTILE2` | wall | 64×128 | yes | the same tile above an oil-painted military-green dado (rows 86-127) under a dark rule | (a) gen_metro, seed 1937 | approved 2026-10-13 (D42) | 2026-10-13 |
+| `SDMARB1` | wall | 64×128 | yes (veins cross the seam) | polished red marble cladding, pale and dark veins, slab joint at mid height; ox-blood rather than warm marble, a palette v1 limit | (a) gen_metro, seed 1938 | approved 2026-10-13 (D42), as drawn in palette v1 | 2026-10-13 |
+| `SDMOSA1` | wall (panel) | 128×128 | as a row (one panel per tile; the ground meets at the side edges) | mosaic panel: gold five-pointed star, ten rays and a cream ring on a slate-blue ground, resolved on a 4 px tessera grid | (a) gen_metro, seed 1939 | approved 2026-10-13 (D42), as drawn in palette v1; the motif may be joined by a figure panel later (open) | 2026-10-13 |
+| `SDBRAS1` | wall (pilaster) | 64×128 | yes (caps on the wrap edges) | fluted brass pilaster, tarnished in the flutes, dark ventilation grille in the middle | (a) gen_metro, seed 1940 | approved 2026-10-13 (D42) | 2026-10-13 |
+| `SDMFLR1` | flat | 64×64 | yes | polished grey granite floor, 32 px slabs, feldspar speckle, darker than the base-set floors | (a) gen_metro, seed 1941 | approved 2026-10-13 (D42) | 2026-10-13 |
+
+Recommended light (ART-BIBLE §4): 96-128 in corridors, bright islands of
+160 at the station; the `level-designer` owns the final values.
 
 ## The alphabet (D24) — glyph fix and German letters
 
