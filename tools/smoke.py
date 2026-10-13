@@ -388,7 +388,19 @@ class RunResult:
 
 
 def run_engine(argv: list[str], timeout_s: float, cwd: Path = PROJECT_ROOT) -> RunResult:
-    """Run GZDoom, killing the whole process group if it overruns the timeout."""
+    """Run GZDoom, killing the whole process group if it overruns the timeout.
+
+    Gated: this is the ONE place in the project that opens a window on the
+    CEO's desktop. Everything that merely inspects - discovery, argument
+    building, log analysis, --list-patterns - runs without it, so the gate
+    sits here and not in main(), where it also blocked those.
+    """
+    # Only the real engine opens a window. The timeout and failure tests
+    # drive this function with /bin/sleep and friends, which open nothing, so
+    # gating on the binary's name keeps those honest instead of making them
+    # set the override and lose the point of the gate.
+    if argv and "gzdoom" in Path(argv[0]).name.lower() and not engine_allowed():
+        raise EngineBlocked(ENGINE_GATE_MSG)
     started = time.monotonic()
     proc = subprocess.Popen(
         argv,
@@ -404,6 +416,9 @@ def run_engine(argv: list[str], timeout_s: float, cwd: Path = PROJECT_ROOT) -> R
     except subprocess.TimeoutExpired:
         _kill_group(proc)
         return RunResult(None, True, time.monotonic() - started)
+    except EngineBlocked as blocked:
+        print(blocked, file=sys.stderr)
+        return 2
     except KeyboardInterrupt:
         _kill_group(proc)
         raise
@@ -494,6 +509,31 @@ def print_patterns() -> None:
     print("\nWarnings (printed; failures only with --strict):")
     for pid, rx in LOG_WARNING_PATTERNS:
         print(f"  {pid:<18} /{rx}/")
+
+
+ENGINE_GATE_VAR = "SD_ALLOW_ENGINE"
+ENGINE_GATE_MSG = (
+    "smoke: refusing to start GZDoom.\n"
+    "  Launching the engine opens a window on the CEO's desktop and steals focus.\n"
+    "  On 2026-10-13 agents were opening three or four windows every twenty\n"
+    "  seconds and he could not work. macOS GZDoom is a Cocoa app with no\n"
+    "  documented headless mode, so the only reliable fix is not to run it.\n"
+    "\n"
+    "  AGENTS: do not set this variable. Verify with `tools/verify.py fast`,\n"
+    "  which checks the package structurally without the engine, and say in\n"
+    "  your summary that the engine run is owed. The PM batches those and runs\n"
+    "  them once, when the CEO is not at the keyboard.\n"
+    "\n"
+    "  To run anyway: " + ENGINE_GATE_VAR + "=1 python3 tools/smoke.py ...\n"
+)
+
+
+class EngineBlocked(RuntimeError):
+    """Raised instead of opening a window when the gate is shut."""
+
+
+def engine_allowed() -> bool:
+    return os.environ.get(ENGINE_GATE_VAR) == "1"
 
 
 def main(argv: list[str] | None = None) -> int:
