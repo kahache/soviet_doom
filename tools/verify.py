@@ -478,10 +478,15 @@ def pick_python(explicit: str | None = None) -> str:
 
 def _run(cmd: list[str], env: dict[str, str] | None = None) -> tuple[int, str, float]:
     started = time.monotonic()
-    proc = subprocess.run(
-        cmd, cwd=str(PROJECT_ROOT), env=env,
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-    )
+    try:
+        proc = subprocess.run(
+            cmd, cwd=str(PROJECT_ROOT), env=env,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+        )
+    except OSError as exc:
+        # A missing interpreter or tool is a red stage with a readable
+        # reason, not a traceback out of a verification tool.
+        return 127, f"could not run {' '.join(cmd)}: {exc}", time.monotonic() - started
     return proc.returncode, proc.stdout, time.monotonic() - started
 
 
@@ -526,13 +531,15 @@ def stage_docs(plan: Plan, root: Path = PROJECT_ROOT) -> StageResult:
 
 def stage_build(python: str) -> StageResult:
     code, out, secs = _run([python, str(TOOLS_DIR / "build.py"), "--quiet"])
-    return StageResult("build", code == 0, secs, "dist/sovietdoom.pk3", out, EXIT_BUILD)
+    note = "dist/sovietdoom.pk3" if code == 0 else f"build.py exit {code}"
+    return StageResult("build", code == 0, secs, note, out, EXIT_BUILD)
 
 
 def stage_check_pk3(python: str) -> StageResult:
     code, out, secs = _run([python, str(TOOLS_DIR / "check_pk3.py"), "--quiet"])
     match = RE_CHECK_COUNTS.search(out)
-    note = f"{match.group(1)} error(s), {match.group(2)} warning(s)" if match else ""
+    note = (f"{match.group(1)} error(s), {match.group(2)} warning(s)" if match
+            else f"check_pk3.py exit {code}")
     return StageResult("check_pk3", code == 0, secs, note, out, EXIT_CHECK_PK3)
 
 
@@ -549,7 +556,7 @@ def stage_tests(python: str, slow_art: bool, engine_tests: bool) -> StageResult:
     code, out, secs = _run([python, "-m", "unittest", "discover", "-s", str(TESTS_DIR)], env)
     ran = RE_TESTS_RAN.search(out)
     tail = RE_TESTS_TAIL.search(out)
-    note = f"{ran.group(1)} tests" if ran else ""
+    note = f"{ran.group(1)} tests" if ran else f"unittest exit {code}"
     if tail and tail.group(2):
         note += f", {tail.group(2)}"
     if not slow_art:

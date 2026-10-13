@@ -51,8 +51,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
-import unicodedata
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -63,8 +62,6 @@ import artlib
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 OUT_ROOT = PROJECT_ROOT / "work" / "art" / "font"
 
-SS = 8                      # supersampling used for diagonal strokes only
-DIAG_THRESHOLD = 0.42       # coverage above which a supersampled pixel inks
 
 # --------------------------------------------------------------- styles
 @dataclass(frozen=True)
@@ -99,7 +96,7 @@ STYLES = {
         key="A", name="Plakat",
         blurb="Condensed poster grotesque — the Impact family of the textures",
         widths_small={"t": 1, "s": 3, "n": 4, "w": 5, "x": 6, "j": 7, "k": 8},
-        widths_big={"t": 2, "s": 4, "n": 7, "w": 8, "x": 10, "j": 12, "k": 13},
+        widths_big={"t": 2, "s": 4, "n": 7, "w": 8, "x": 10, "j": 12, "k": 14},
         flat_apex=True, slashed_zero=False,
         small=Size(**_SMALL), big=Size(**_BIG),
     ),
@@ -107,10 +104,10 @@ STYLES = {
         key="B", name="Kanzelyariya",
         blurb="Institutional lineal — GOST drawing lettering, enamel signs",
         widths_small={"t": 1, "s": 3, "n": 5, "w": 6, "x": 7, "j": 9, "k": 10},
-        widths_big={"t": 2, "s": 5, "n": 8, "w": 9, "x": 11, "j": 13, "k": 15},
+        widths_big={"t": 2, "s": 5, "n": 8, "w": 9, "x": 11, "j": 13, "k": 16},
         flat_apex=False, slashed_zero=False,
-        small=Size(**{**_SMALL, "chamfer": 2}),
-        big=Size(**{**_BIG, "chamfer": 3}),
+        small=Size(**_SMALL),
+        big=Size(**_BIG),
     ),
     "C": Style(
         key="C", name="Mashina",
@@ -150,11 +147,18 @@ class Pen:
         self.diag = Image.new("1", (self.W, self.H), 0)
         self.draw = ImageDraw.Draw(self.diag)
         self.terminals: list[tuple[float, float]] = []   # (x, y) for slabs
+        self._mirror = False
 
     # -- coordinate mapping -------------------------------------------
     @staticmethod
     def _r(v: float) -> int:
         return int(math.floor(v + 0.5))
+
+    def body_x(self) -> float:
+        """x of the last stem of a letter whose descender tail takes the
+        final stem-width of the box (Ц, Щ)."""
+        span = self._wi - self.stem
+        return (span - self.stem) / span if span else 0.0
 
     @property
     def _wi(self) -> int:
@@ -198,7 +202,11 @@ class Pen:
         def pt(x, y):
             return (self._cs(x) + (self.stem - 1) // 2,
                     self._rs(y) + (self.stem - 1) // 2)
-        self.draw.line([pt(x0, y0), pt(x1, y1)], fill=1, width=self.stem)
+        a, b = pt(x0, y0), pt(x1, y1)
+        self.draw.line([a, b], fill=1, width=self.stem)
+        for cc, rr in (a, b):          # square caps, exactly one stem wide
+            self.draw.rectangle([cc, rr, cc + self.stem - 1, rr + self.stem - 1],
+                                fill=1)
         if term:
             for x, y in ((x0, y0), (x1, y1)):
                 if y <= 0.001 or y >= 0.999:
@@ -208,6 +216,38 @@ class Pen:
     def dot(self, x: float, y: float):
         c, r = self._cs(x), self._rs(y)
         self.ink[r:r + self.stem, c:c + self.stem] = True
+        return self
+
+    def fill(self, x0: float, x1: float, y0: float, y1: float):
+        """Solid block — used where a ring would have no counter left."""
+        c0, c1 = self._cx(x0), self._cx(x1)
+        r0, r1 = self._ry(y1), self._ry(y0)
+        self.ink[r0:r1 + 1, c0:c1 + 1] = True
+        return self
+
+    def blob(self, x0: float, x1: float, y0: float, y1: float):
+        """A ring if the box can hold a counter, otherwise a solid block."""
+        c0, c1 = self._cx(x0), self._cx(x1)
+        r0, r1 = self._ry(y1), self._ry(y0)
+        if min(c1 - c0 + 1, r1 - r0 + 1) >= 2 * self.stem + 1:
+            return self.ring(x0, x1, y0, y1)
+        return self.fill(x0, x1, y0, y1)
+
+    def cut_corner(self, corner: str, k: int | None = None):
+        """Bevel one corner of the ink box by k pixels (default: the
+        style's chamfer).  This is what gives A its poster apex."""
+        k = self.cham if k is None else k
+        if k <= 0:
+            return self
+        rr = 0 if corner[0] == "t" else self.H - 1
+        cc = self.pad if corner[1] == "l" else self.W - 1 - self.pad
+        dr = 1 if corner[0] == "t" else -1
+        dc = 1 if corner[1] == "l" else -1
+        for i in range(k):
+            for j in range(k - i):
+                r, c = rr + dr * i, cc + dc * j
+                if 0 <= r < self.H and 0 <= c < self.W:
+                    self.ink[r, c] = False
         return self
 
     def cut(self, x0: float, x1: float, y0: float, y1: float):
@@ -267,8 +307,15 @@ class Pen:
         return self
 
     # -- finish --------------------------------------------------------
+    def mirror(self):
+        """Mirror the left half onto the right at the end of the glyph."""
+        self._mirror = True
+        return self
+
     def finish(self) -> np.ndarray:
         self.ink |= np.asarray(self.diag, dtype=bool)
+        if self._mirror:
+            self.ink |= self.ink[:, ::-1]
         if self.size.slab:
             self._slabs()
         return self.ink
@@ -278,11 +325,26 @@ class Pen:
         ov = self.pad
         for x, y in self.terminals:
             c = self._cs(x)
+            row = self.H - 1 if y <= 0.001 else 0
+            if self._run_width(row, c) > self.stem:
+                continue                 # already a bar there: no serif
             c0, c1 = max(c - ov, 0), min(c + self.stem - 1 + ov, self.W - 1)
             if y <= 0.001:
                 self.ink[self.H - t:self.H, c0:c1 + 1] = True
             else:
                 self.ink[0:t, c0:c1 + 1] = True
+
+    def _run_width(self, row: int, col: int) -> int:
+        """Width of the contiguous ink run through (row, col)."""
+        line = self.ink[row]
+        if not line[col]:
+            return 0
+        a = b = col
+        while a > 0 and line[a - 1]:
+            a -= 1
+        while b < self.W - 1 and line[b + 1]:
+            b += 1
+        return b - a + 1
 
 
 # --------------------------------------------------------------- glyphs
@@ -311,11 +373,12 @@ def alias(src: str, *dsts: str):
 @glyph("A", center=True)
 def _a(p: Pen):
     if p.style.flat_apex:
-        p.v(0, 0, 0.80).v(1, 0, 0.80).h(1, 0.22, 0.78)
-        p.d(0, 0.80, 0.22, 1.0, term=False).d(1, 0.80, 0.78, 1.0, term=False)
+        p.v(0).v(1).h(1)
+        p.cut_corner("tl").cut_corner("tr")
     else:
-        p.d(0, 0, 0.5, 1).d(1, 0, 0.5, 1)
-    p.h(0.30, 0.05, 0.95)
+        p.d(0, 0, 0.5, 1).mirror()
+        p.terminals.append((1.0, 0.0))
+    p.h(0.30)
 
 
 @glyph("B")
@@ -375,7 +438,8 @@ def _l(p: Pen):
 
 @glyph("M", "w", center=True)
 def _m(p: Pen):
-    p.v(0).v(1).d(0, 1, 0.5, 0.32, term=False).d(1, 1, 0.5, 0.32, term=False)
+    p.v(0).d(0, 1, 0.5, 0.32, term=False).mirror()
+    p.terminals.append((1.0, 0.0))
 
 
 @glyph("N")
@@ -422,23 +486,26 @@ def _u(p: Pen):
 
 @glyph("V", center=True)
 def _v(p: Pen):
-    p.d(0, 1, 0.5, 0).d(1, 1, 0.5, 0)
+    p.d(0, 1, 0.5, 0).mirror()
+    p.terminals.append((1.0, 1.0))
 
 
 @glyph("W", "j", center=True)
 def _w(p: Pen):
-    p.d(0, 1, 0.22, 0).d(0.22, 0, 0.5, 0.72, term=False)
-    p.d(0.5, 0.72, 0.78, 0, term=False).d(0.78, 0, 1, 1)
+    p.d(0, 1, 0.33, 0).d(0.33, 0, 0.5, 0.75, term=False).mirror()
+    p.terminals.append((1.0, 0.0))
 
 
 @glyph("X", center=True)
 def _x(p: Pen):
-    p.d(0, 1, 1, 0).d(0, 0, 1, 1)
+    p.d(0, 1, 0.5, 0.5, term=False).d(0, 0, 0.5, 0.5, term=False).mirror()
+    p.terminals += [(0.0, 1.0), (0.0, 0.0), (1.0, 1.0), (1.0, 0.0)]
 
 
 @glyph("Y", center=True)
 def _y(p: Pen):
-    p.d(0, 1, 0.5, 0.42, term=False).d(1, 1, 0.5, 0.42, term=False).v(0.5, 0, 0.45)
+    p.d(0, 1, 0.5, 0.45, term=False).v(0.5, 0, 0.5, term=False).mirror()
+    p.terminals += [(0.0, 1.0), (1.0, 1.0), (0.5, 0.0)]
 
 
 @glyph("Z")
@@ -456,7 +523,7 @@ def _d0(p: Pen):
 
 @glyph("1", "s")
 def _d1(p: Pen):
-    p.v(0.6, 0, 1).d(0.6, 1.0, 0.0, 0.70, term=False)
+    p.v(0.6, 0, 1).d(0.6, 1.0, 0.0, 0.76, term=False)
     if p.size.slab:
         p.h(0)
 
@@ -488,9 +555,9 @@ def _d5(p: Pen):
 
 @glyph("6")
 def _d6(p: Pen):
-    p.ring(0, 1, 0, 0.52, corners="bl br tr")
-    p.v(0, 0.45, 0.72, term=False)
-    p.d(0.0, 0.72, 0.85, 1.0, term=False)
+    p.ring(0, 1, 0, 0.55, corners="bl br tr")
+    p.v(0, 0.5, 0.82, term=False)
+    p.d(0.0, 0.82, 0.8, 1.0, term=False)
 
 
 @glyph("7")
@@ -505,9 +572,9 @@ def _d8(p: Pen):
 
 @glyph("9")
 def _d9(p: Pen):
-    p.ring(0, 1, 0.48, 1)
-    p.v(1, 0.28, 0.55, term=False)
-    p.d(1.0, 0.28, 0.15, 0.0, term=False)
+    p.ring(0, 1, 0.45, 1)
+    p.v(1, 0.18, 0.5, term=False)
+    p.d(1.0, 0.18, 0.2, 0.0, term=False)
 
 
 # ---- punctuation and symbols ----------------------------------------
@@ -538,10 +605,10 @@ def _dollar(p: Pen):
     p.v(0.5, 0, 1, term=False)
 
 
-@glyph("%")
+@glyph("%", "w")
 def _pct(p: Pen):
-    p.ring(0, 0.42, 0.58, 1).ring(0.58, 1, 0, 0.42)
-    p.d(0.95, 0.95, 0.05, 0.05, term=False)
+    p.blob(0, 0.3, 0.78, 1).blob(0.7, 1, 0, 0.22)
+    p.d(1.0, 1.0, 0.0, 0.0, term=False)
 
 
 @glyph("&")
@@ -625,8 +692,9 @@ def _gt(p: Pen):
 
 @glyph("?")
 def _quest(p: Pen):
-    p.ring(0, 1, 0.55, 1, corners="tl tr", sides="tlr")
-    p.v(1, 0.42, 0.6, term=False).v(0.5, 0.25, 0.5, term=False).dot(0.5, 0)
+    p.ring(0, 1, 0.70, 1, corners="tl tr", sides="tlr")
+    p.d(1.0, 0.70, 0.5, 0.45, term=False)
+    p.v(0.5, 0.3, 0.45, term=False).dot(0.5, 0)
 
 
 @glyph("@", "j")
@@ -664,21 +732,21 @@ def _grave(p: Pen):
     p.d(0, 1, 1, 0.7, term=False)
 
 
-@glyph("«", "s")
+@glyph("«", "w")
 def _laquo(p: Pen):
-    p.d(0.45, 0.78, 0.0, 0.45, term=False).d(0.0, 0.45, 0.45, 0.12, term=False)
-    p.d(1.0, 0.78, 0.55, 0.45, term=False).d(0.55, 0.45, 1.0, 0.12, term=False)
+    p.d(0.35, 0.67, 0.0, 0.5, term=False).d(0.0, 0.5, 0.35, 0.33, term=False)
+    p.d(1.0, 0.67, 0.65, 0.5, term=False).d(0.65, 0.5, 1.0, 0.33, term=False)
 
 
-@glyph("»", "s")
+@glyph("»", "w")
 def _raquo(p: Pen):
-    p.d(0.0, 0.78, 0.45, 0.45, term=False).d(0.45, 0.45, 0.0, 0.12, term=False)
-    p.d(0.55, 0.78, 1.0, 0.45, term=False).d(1.0, 0.45, 0.55, 0.12, term=False)
+    p.d(0.0, 0.67, 0.35, 0.5, term=False).d(0.35, 0.5, 0.0, 0.33, term=False)
+    p.d(0.65, 0.67, 1.0, 0.5, term=False).d(1.0, 0.5, 0.65, 0.33, term=False)
 
 
 @glyph("×", "s")
 def _times(p: Pen):
-    p.d(0.1, 0.72, 0.9, 0.18, term=False).d(0.1, 0.18, 0.9, 0.72, term=False)
+    p.d(0.0, 0.62, 1.0, 0.30, term=False).d(0.0, 0.30, 1.0, 0.62, term=False)
 
 
 @glyph("·", "t")
@@ -689,9 +757,9 @@ def _middot(p: Pen):
 @glyph("№", "k")
 def _numero(p: Pen):
     # N
-    p.v(0.0, 0.25, 1).v(0.42, 0.25, 1).d(0.0, 1, 0.42, 0.25, term=False)
-    # raised o with its underline
-    p.ring(0.58, 1.0, 0.55, 1.0).h(0.18, 0.58, 1.0)
+    p.v(0.0, 0.18, 1).v(0.42, 0.18, 1).d(0.0, 1, 0.42, 0.18, term=False)
+    # the raised o over its rule
+    p.blob(0.58, 1.0, 0.52, 1.0).h(0.0, 0.58, 1.0)
 
 
 @glyph("—", "w")
@@ -741,23 +809,22 @@ def _cyr_ghe(p: Pen):
 @glyph("Д", "x")
 def _cyr_de(p: Pen):
     p.h(0.18, 0, 1)                                  # the plinth
-    p.v(0.80, 0.18, 1, term=False).h(1, 0.22, 0.80)  # roof and right leg
-    p.d(0.34, 0.18, 0.20, 1.0, term=False)           # the splayed left leg
+    p.v(0.80, 0.18, 1, term=False).h(1, 0.33, 0.80)  # roof and right leg
+    p.d(0.12, 0.18, 0.36, 1.0, term=False)           # the splayed left leg
     p.v(0.0, 0, 0.18).v(1.0, 0, 0.18)                # the two feet
 
 
 @glyph("Ж", "j", center=True)
 def _cyr_zhe(p: Pen):
     p.v(0.5, 0, 1)
-    p.d(0, 1, 0.5, 0.5, term=False).d(0, 0, 0.5, 0.5, term=False)
-    p.d(1, 1, 0.5, 0.5, term=False).d(1, 0, 0.5, 0.5, term=False)
+    p.d(0, 1, 0.5, 0.5, term=False).d(0, 0, 0.5, 0.5, term=False).mirror()
     p.terminals += [(0.0, 1.0), (0.0, 0.0), (1.0, 1.0), (1.0, 0.0)]
 
 
 @glyph("З")
 def _cyr_ze(p: Pen):
-    p.ring(0, 1, 0.48, 1, corners="tl tr bl", sides="tlr")
-    p.ring(0, 1, 0, 0.52, corners="tl bl br", sides="blr")
+    p.ring(0, 1, 0.48, 1, corners="tl tr", sides="tr")
+    p.ring(0, 1, 0, 0.52, corners="bl br", sides="br")
     p.h(0.50, 0.3, 1)
 
 
@@ -797,7 +864,7 @@ def _cyr_ef(p: Pen):
 
 @glyph("Ц", "w")
 def _cyr_tse(p: Pen):
-    b = 3 / 4
+    b = p.body_x()
     p.v(0, 0.18, 1).v(b, 0.18, 1).h(0.18, 0, b).v(1, 0, 0.22)
 
 
@@ -813,7 +880,7 @@ def _cyr_sha(p: Pen):
 
 @glyph("Щ", "k")
 def _cyr_shcha(p: Pen):
-    b = 6 / 7                       # the body; the last column is the tail
+    b = p.body_x()                  # body; the last stem-width is the tail
     p.v(0, 0.18, 1).v(b / 2, 0.18, 1).v(b, 0.18, 1)
     p.h(0.18, 0, b).v(1, 0, 0.22)
 
@@ -1008,6 +1075,9 @@ PHRASES = [
      "ПАТРОНЫ 7,62×25 · 12 КАЛ. · 50 %", "7.62×25 ROUNDS · 12 GAUGE · 50 %"),
     ("Weapon tag / bunker sign", "small",
      "ОГНЕМЁТ РОКС-3 · ОБЪЕКТ № 7", "ROKS-3 FLAMETHROWER · SITE № 7"),
+    ("Difficulty entry (the longest menu line)", "small",
+     "ГЕРОЙ СОВЕТСКОГО СОЮЗА, ПОСМЕРТНО",
+     "HERO OF THE SOVIET UNION, POSTHUMOUSLY"),
     ("Menu entry", "big", "НОВАЯ ИГРА", "NEW GAME"),
     ("Level title", "big", "ПОЛИГОН", "TEST RANGE"),
     ("Headline (both scripts in one line)", "big",
@@ -1022,20 +1092,6 @@ def scaled(img: Image.Image, k: int) -> Image.Image:
 def new_sheet(w: int, h: int) -> tuple[Image.Image, ImageDraw.ImageDraw]:
     img = Image.new("RGB", (w, h), BG)
     return img, ImageDraw.Draw(img)
-
-
-def draw_alphabet_block(img, d, x, y, font: RenderFont, title: str,
-                        rows: list[list[str]], zoom: int) -> int:
-    d.text((x, y), title, font=LABEL_FONT, fill=LABEL)
-    y += 22
-    for row in rows:
-        line = font.render("".join(row))
-        img.alpha_composite(line.convert("RGBA"), (x, y)) if False else None
-        img.paste(scaled(line, 1), (x, y), scaled(line, 1))
-        big = scaled(line, zoom)
-        img.paste(big, (x, y + line.height + 6), big)
-        y += line.height + 6 + big.height + 14
-    return y
 
 
 def sheet_variant(style: Style, stamp: str) -> Path:
