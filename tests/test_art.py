@@ -177,7 +177,7 @@ class EmblemGeometryTests(unittest.TestCase):
 ASSETS_DIR = PROJECT_ROOT / "assets"
 WORK_ART_DIR = PROJECT_ROOT / "work" / "art"
 FLAT_SIZE = (64, 64)
-WALL_SIZES = [(64, 128), (128, 128), (128, 256)]   # 128x256 added for the Lenin poster (D18 era)
+WALL_SIZES = [(64, 64), (64, 128), (128, 64), (128, 128), (128, 256)]   # 128x256 for the Lenin poster; 64x64 and 128x64 for the batch-3 crates (D29)
 
 
 @unittest.skipUnless(HAVE_IMAGING, "Pillow/numpy not available in this interpreter")

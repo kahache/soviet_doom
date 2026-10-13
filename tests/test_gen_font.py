@@ -31,8 +31,10 @@ Rules this file follows (same as tests/test_generators.py):
     classes that import it also skip without them.
   - no single test here takes 2 s (all three variants build in ~0.7 s), so
     nothing is marked with SD_SKIP_SLOW_ART.
-  - QA finds, QA does not fix: one real glyph defect is encoded as an
-    expected failure and reported to `art-director`.
+  - QA finds, QA does not fix: the one real glyph defect found here (H1,
+    the slab serifs of M and W) was encoded as an expected failure and
+    reported to `art-director`; fixed and installed with the CEO's approval
+    on 2026-10-13, it is now an ordinary regression test.
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_gen_font -v
 """
@@ -92,7 +94,9 @@ PROMISED = (
 # Pen.mirror()). Asymmetric by design and left out: У, the slashed 0 of
 # style C, I (a 2 px stem in an odd box), and the big "*" diagonals.
 SYMMETRIC = list("AHMOTVWXYПЖШФ+-=_.:!'\"")
-SYMMETRIC_BROKEN_IN_C = ["M", "W"]   # finding, see SlabSerifDefectTests
+# Exempted from the symmetry check in style C. Empty since 2026-10-13: the
+# H1 serif fix (SlabSerifDefectTests) made M and W symmetric again.
+SYMMETRIC_BROKEN_IN_C: list[str] = []
 
 
 def palette_colours() -> set:
@@ -513,29 +517,32 @@ class PenRuleTests(unittest.TestCase):
 
 
 # ===========================================================================
-# finding: style C slab serifs on M and W (expected failure, -> art-director)
+# finding H1: style C slab serifs on M and W (fixed 2026-10-13, regression)
 # ===========================================================================
 @imaging
 @fonts
 class SlabSerifDefectTests(unittest.TestCase):
-    """QA finding (2026-10-13), shipped in assets/fonts/ at both sizes.
+    """QA finding H1 (2026-10-13), shipped in assets/fonts/ at both sizes
+    until the fix was installed the same day.
 
     In style C the slab serifs are placed from Pen.terminals, which the
-    mirror() of M and W does not mirror. M gets a top-left slab and no
-    top-right one. W appends its extra terminal at (1.0, 0.0), the bottom
-    right, where no stroke ends, so a floating foot is drawn there, and its
-    top-right slab is missing. Both letters stop being symmetric; Cyrillic
-    М is the same drawing as M.
+    mirror() of M and W did not mirror. M got a top-left slab and no
+    top-right one. W appended its extra terminal at (1.0, 0.0), the bottom
+    right, where no stroke ends, so a floating foot was drawn there, and its
+    top-right slab was missing. Both letters stopped being symmetric;
+    Cyrillic М is the same drawing as M.
 
-    Remove the marker when gen_font.py is fixed. Fixing it changes shipped
-    pixels: the byte-identity test above then goes red until the CEO approves
-    the new glyphs and they are installed (CLAUDE.md)."""
+    Fixed by gen_font.MIRROR_TERMINALS = True, approved by the CEO on
+    2026-10-13 ("apruebo el arreglo de la fuente") and installed: six PNGs
+    in assets/fonts/. The expected-failure marker is gone; this is the
+    regression test, on the shipped value of the switch."""
 
-    @unittest.expectedFailure
+    FIXED = ["M", "М", "W"]          # Latin M, Cyrillic M, W
+
     def test_m_and_w_are_symmetric_in_style_c(self):
         import gen_font as gen
         broken = []
-        for ch in SYMMETRIC_BROKEN_IN_C:
+        for ch in self.FIXED:
             for size_key in FOLDERS.values():
                 ink = gen.render_glyph(ch, gen.STYLES["C"], size_key)[0]
                 if not (ink == ink[:, ::-1]).all():

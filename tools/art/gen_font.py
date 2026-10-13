@@ -39,7 +39,8 @@ Two sizes, matching the metrics GZDoom itself uses for Doom:
                                       level titles, intermission)
 
 Nothing here writes to assets/.  Output goes to work/art/font/ (the H1
-serif-fix proposal: work/art/font_fix/ and its sheet in docs/art/previews/).
+serif-fix proposal: work/art/font_fix/ and its sheet in docs/art/previews/;
+approved and installed 2026-10-13, see MIRROR_TERMINALS).
 
 Usage
 -----
@@ -78,10 +79,14 @@ PREVIEW_DIR = PROJECT_ROOT / "docs" / "art" / "previews"
 # is missing.  Both shipped asymmetric (M = Cyrillic M) at both sizes.
 #
 # True reflects the terminals in pixel space inside finish() and drops W's
-# stray foot; only M, Cyrillic M and W change.  It changes shipped pixels,
-# so it stays False (byte-identical to assets/fonts/) until the CEO approves
-# the proposal sheet `docs/art/previews/*_F2_font-C-serif-fix.png`.
-MIRROR_TERMINALS = False
+# stray foot; only M, Cyrillic M and W change (6 of 214 files).  The CEO
+# approved the proposal sheet `docs/art/previews/*_F2_font-C-serif-fix.png`
+# on 2026-10-13 ("apruebo el arreglo de la fuente") and the six glyphs were
+# installed in assets/fonts/ the same day, so True is the shipped value.
+# False is kept on purpose: it reproduces the historical render of style C
+# (work/art/font/C/, the Mac's) byte for byte, which is what the before
+# column of the sheet and tests/test_gen_font_fix.py compare against.
+MIRROR_TERMINALS = True
 
 
 # --------------------------------------------------------------- styles
@@ -531,8 +536,9 @@ def _v(p: Pen):
 def _w(p: Pen):
     p.d(0, 1, 0.33, 0).d(0.33, 0, 0.5, 0.75, term=False).mirror()
     if not MIRROR_TERMINALS:
-        # The H1 defect: no stroke of W ends at (1.0, 0.0).  Kept only so the
-        # installed font stays byte-identical until the CEO approves the fix.
+        # The H1 defect: no stroke of W ends at (1.0, 0.0).  Not shipped since
+        # 2026-10-13; kept so MIRROR_TERMINALS = False still reproduces the
+        # historical render of style C (the "before" of the fix) exactly.
         p.terminals.append((1.0, 0.0))
 
 
