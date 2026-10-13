@@ -267,3 +267,118 @@ unconditional textures and passes on them alone.
   against the Mac's renders. The test stays as the tripwire: a text-bearing
   generator run on this PC overwrites a Mac render and turns it red, which
   is the intended behaviour (`CLAUDE.md`, generator rule).
+
+## G3 — MAP01 finishable on skills 2, 3 and 4 (F3) — **IN PROGRESS** (opened 2026-10-13 20:29)
+
+**Criterion:** "map finishable on skills 2, 3 and 4 with zero log errors and
+zero softlocks; CEO verdict 'on point'" (`docs/ROADMAP.md`), measured as
+G3-1…G3-9 of `docs/levels/MAP01-zarya-7.md` §11. There is no verdict yet.
+This section holds two things: the engine checklist the PM runs (D26: QA
+does not start GZDoom), and the record of what is already on file.
+
+**Already proven without the engine** (not repeated here): the static rows
+R1–R12 of `docs/levels/MAP01-zarya-7.md` §18.2. They cover G3-1, G3-3,
+G3-6 and G3-8, and the static halves of G3-4 and G3-5. They are tests in
+`tests/test_udmf.py` and `tests/test_map01.py`. G3 is signed only on a
+`tools/verify.py full` run, never on `fast` (`docs/PIPELINE.md` §5).
+
+**Already on file from the engine:**
+- The CEO played skill 3 to the end (D38: "ha sido MUY divertido!!").
+  **No log of that run is filed**, so G3-2 on skill 3 is unmeasured. C2
+  below provides one, though it is a scripted run, not a played one.
+- The PM's pass at 20:14 on `bc906f5`
+  (`docs/qa/evidence/2026-10-13_2014_rack-and-mural.md`, with
+  `docs/qa/evidence/2026-10-13_2014_mural-M1-M5_and_spawn.png` and
+  `docs/qa/evidence/2026-10-13_2014_rack-pickup.png`) found:
+  - the TT-33 raised on spawn;
+  - the rack pickup working;
+  - the mural whole in M1–M4;
+  - **M5 inconclusive**: the first-person weapon hid the health bonus at
+    the mural's foot.
+
+  That build still had the shovel. D40 (`7b3ae65`) renamed the class to
+  `SD_IceAxe`, so the rack is checked again on the ice-axe build (C1–C4).
+
+### The tool: `tools/route.py`
+
+`tools/route.py` walks a map's critical path by console commands, one
+engine run per skill. It starts GZDoom only through `smoke.run_engine`,
+which refuses without `SD_ALLOW_ENGINE=1`.
+
+It loads a helper PK3 of its own from `logs/route/` (gitignored). The
+helper reports the player's position, door heights, line activations,
+secrets, the intermission and the inventory. It is never in `src/`,
+`dist/` or the mod PK3; `tests/test_route.py` enforces that.
+
+The start inventory is checked **by slot, never by class name**. The rack
+is found by DoomEdNum 21001. So the D40 rename cannot break either check.
+
+Every run prints a report that ends in a VERDICT. With `--keep-evidence`,
+the run files its log, its report and one PNG per captured step under
+`docs/qa/evidence/`, named
+`<stamp>_F3_g3-<map>-<route>-skill<N>[-nomonsters]{.log,-report.txt,-<step>.png}`.
+`<stamp>` is the run's `YYYY-MM-DD_HHMM`.
+
+**NOT VERIFIED until the PM's first run:** that the helper's ZScript
+compiles and prints as written. Every engine name it uses was read from
+g4.14.2's `gzdoom.pk3` on 2026-10-13. If the helper does not compile, the
+log shows a `Script error` naming `SDRouteHelper`. In that case
+`--minimal-helper` runs only the part the PM has already proven in the
+engine (angle, hurt, count), without the inventory.
+
+All commands below are typed in Git Bash at the repo root.
+
+**Before any run:**
+
+```
+.venv/Scripts/python.exe tools/verify.py fast       # VERDICT PASS
+git log --oneline -1 -- src/zscript/sd/player.zs   # 7b3ae65 or later: the build has the ice axe
+.venv/Scripts/python.exe tools/route.py --print     # what the runs will type; opens nothing
+```
+
+### Engine checklist
+
+A row passes only when its evidence is in `docs/qa/evidence/` under the
+name given.
+
+| # | Covers | Command | Pass when | Evidence (`docs/qa/evidence/`) |
+|---|---|---|---|---|
+| C1 | Q6, the start inventory, scripted, skill 2 | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --skills 2 --keep-evidence` | Report row `[ok ] A0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]`. Report row `[ok ] R1: …; owned [1:SD_IceAxe, 2:SD_Tokarev]`. Doors ok, exit REACHED, VERDICT PASS (the route half of G3-4, `god` on) | `<stamp>_F3_g3-map01-g3-auto-skill2.log`, `…-skill2-report.txt`, `…-skill2-a0.png`, `…-skill2-r1.png`, `…-skill2-end.png` |
+| C2 | Q6, the same on skill 3, and a filed skill-3 log for G3-2 | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --skills 3 --keep-evidence` | As C1 | `<stamp>_F3_g3-map01-g3-auto-skill3{.log,-report.txt,-a0.png,-r1.png,-end.png}` |
+| C3 | Q6, the same on skill 4 | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --skills 4 --keep-evidence` | As C1 | `<stamp>_F3_g3-map01-g3-auto-skill4{.log,-report.txt,-a0.png,-r1.png,-end.png}` |
+| C4 | Q6 by eye: the TT-33 is raised on spawn, slot 1 is empty, the rack pickup works | `SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=3 tools/run.sh -nomonsters +screenshot_dir "$PWD/logs/shots"`. At spawn, console `screenshot`. Press `1`, then `screenshot`. Walk to the rack on the west wall (or console `warp 40 384`, face west, walk forward). Press `1`, then `screenshot`. `quit` | Shot 1: the TT-33 in hand. Shot 2: still the TT-33. The log has `An ice axe.` (`SD_PICKUP_ICEAXE`) once. Shot 3: the ice axe raised. `.venv/Scripts/python.exe tools/route.py --scan logs/gzdoom.log` gives VERDICT PASS | `<stamp>_F3_g3-start-tt33-raised.png`, `<stamp>_F3_g3-start-slot1-empty.png`, `<stamp>_F3_g3-rack-iceaxe.png`, `<stamp>_F3_g3-start-inventory.log` (a copy of `logs/gzdoom.log`) |
+| C5 | Q6 on the test range (optional, about 10 s) | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route map02-start --skills 3 --keep-evidence` | Rows A0 and R1 `[ok ]`, VERDICT PASS | `<stamp>_F3_g3-map02-map02-start-skill3{.log,-report.txt,-a0.png,-r1.png}` |
+| C6 | Q1, Q2, Q3 and Q5: G3-4 on skill 2, played, no cheats | `SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=2 tools/run.sh +screenshot_dir "$PWD/logs/shots"`. Play from the start to the exit switch with no console command. Console `screenshot` facing the exit switch (the HUD shows health and ammo), then `screenshot` at the intermission, then `quit`. Copy `logs/gzdoom.log` to the evidence name, then run `.venv/Scripts/python.exe tools/route.py --scan docs/qa/evidence/<stamp>_F3_g3-map01-skill2-run.log` | Intermission reached. `--scan` VERDICT PASS (G3-2: 0 hits). Notes: time, health, deaths, any monster that never left a doorway or a closet mouth (Q3), anything that felt lavish (Q5) | `<stamp>_F3_g3-map01-skill2-run.log`, `<stamp>_F3_g3-map01-skill2-at-exit.png`, `<stamp>_F3_g3-map01-skill2-intermission.png`, notes in `<stamp>_F3_g3-map01-notes.md` |
+| C7 | Q1, Q2, Q3, Q4 and Q5, plus G3-5's zero-secret run: skill 4, played, no cheats, **no secret entered** | `SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=4 tools/run.sh +screenshot_dir "$PWD/logs/shots"`. As C6, and do not enter S1, S2 or S3. Then `grep -c "A secret is revealed" docs/qa/evidence/<stamp>_F3_g3-map01-skill4-run.log`, and `--scan` as in C6 | Intermission reached. `--scan` PASS. The grep prints `0`. Notes: ammo at the exit (from the HUD shot), and whether the player was ever left with only the ice axe (Q4) | `<stamp>_F3_g3-map01-skill4-run.log`, `<stamp>_F3_g3-map01-skill4-at-exit.png`, `<stamp>_F3_g3-map01-skill4-intermission.png`, notes in `<stamp>_F3_g3-map01-notes.md` |
+| C8 | Q7: G3-5's `-nomonsters` run | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --nomonsters --skills 3 --keep-evidence` | Exit REACHED, `monsters: engine 0, map data 0`, VERDICT PASS | `<stamp>_F3_g3-map01-g3-auto-skill3-nomonsters{.log,-report.txt,-end.png}` |
+| C9 | Q7: every secret entered and left | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route g3-secrets --skills 4 --keep-evidence` | `secrets : 3 of 3`, exit REACHED, VERDICT PASS | `<stamp>_F3_g3-map01-g3-secrets-skill4{.log,-report.txt,-s1.png,-s2.png,-s3.png,-end.png}` |
+| C10 | Q7: G3-7, the hostile pass, skill 4 | `SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=4 tools/run.sh +screenshot_dir "$PWD/logs/shots"`. `god` is allowed here: this tests the map, not the fight. Do every item of G3-7 in §11: throw each switch twice, re-enter every door, walk into each monster closet and back out, enter each secret and leave, drop off the catwalk and the cradle from all four sides, and play backwards from the hangar | "Could not get stuck". `--scan` PASS | `<stamp>_F3_g3-map01-hostile-skill4.log`, a `screenshot` of any place that traps the player, notes in `<stamp>_F3_g3-map01-notes.md` |
+| C11 | Q8: the mural, M1–M5 (§17.13) | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route mural --skills 3 --nomonsters --hide-weapon --keep-evidence` | M1: the whole mural, nothing square in front of it, the lectern to its right. M2: the inner columns either side of the tribune. M3a and M3b: the mural whole, at most a sliver behind the jamb. M4: the lectern's plank top level, no HOM or seam at the step. M5: the health bonus at the mural's foot is visible, for the CEO's call (clutter or fine). The report shows six `[ok ]` steps, all in Z4 | `<stamp>_F3_g3-map01-mural-skill3-nomonsters{.log,-report.txt,-m1.png,-m2.png,-m3a.png,-m3b.png,-m4.png,-m5.png}` |
+| C12 | Q8: the last part of M4, by hand | In any C4 or C6 session: `warp 400 1320`, then walk onto the health bonus at (432, 1400) | The bonus is picked up (its message is in the log) | `<stamp>_F3_g3-map01-m4-bonus.png` |
+
+**What the checklist does not do.** G3-9 is the CEO's: the "on point"
+verdict and the `SDCONC2` verdict. The route runs (C1–C3, C5, C8, C9, C11)
+play with `god` on. They prove the path, the doors, the exit and the
+inventory; they do not prove the fight. For G3-4, only C6, C7 and the
+CEO's skill-3 run count.
+
+### Findings so far
+
+- **G3-F1 (open, low, → `level-designer`; static, NOT VERIFIED in the
+  engine):** the health bonus at (432, 1400) on the tribune can be reached
+  only through gaps exactly one body wide:
+  - between the lectern (x 384…416, y 1344…1376) and the floor lamp at
+    (464, 1376) (radius 16, so x 448…480): a 32-unit lane at x 416…448;
+  - behind the lectern (y 1376…1408, up to the north wall): also 32.
+
+  A player of radius 16 fits with zero tolerance. Doom allows touching, so
+  it should pass; C12 checks it. If the engine refuses, the map shows a
+  pickup it does not give, the same pattern as the CEO's rack bug.
+- **Fixed in `tools/route.py` before its first run:** the god-mode
+  detector looked for "God mode on". GZDoom answers `god` with
+  `STSTR_DQDON`, "Degreelessness Mode ON" (g4.14.2's `language.csv`), so
+  the report would have said god was never on. It now matches the real
+  string, and a test covers it.
+
+**Verdict:** none yet. **IN PROGRESS.** G3 waits on C1–C12 and on the
+CEO's G3-9.
