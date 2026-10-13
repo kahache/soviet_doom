@@ -34,7 +34,178 @@ below). Coverage is measured and printed even when tests fail; a failing
 test still executes code on its way to failing, and that execution still
 counts.
 
-## Latest number (2026-10-13 21:10, Windows PC, QA)
+## Latest number (2026-10-13 22:23, Windows PC, QA)
+
+**Branch coverage of `tools/`: 82% (81.53%; 14754 statements, 3512
+branches).** Test suite: **1088 tests, OK, 1 skipped** (the opt-in engine
+test), **1 expected failure** (B4 below, new). `tools/verify.py art` on
+the same tree, a few minutes earlier: PASS, 1076 tests.
+
+Measurement facts:
+- Command: `bash tools/coverage.sh --no-html` under Git Bash, interpreter
+  `.venv/Scripts/python.exe` (Python 3.14), the Mac's `work/` in place;
+  178 s wall clock.
+- Tree: HEAD `3ddec9d` plus uncommitted work: `tools/art/gen_weapon.py`
+  and `tests/test_gen_weapon.py` (another agent's, in progress) and QA's
+  three new test files below. Seven agents were working at once; between
+  the "before" and this run `tools/` grew by ~2000 statements
+  (`gen_cursor.py`, `gen_legion.py`, `gen_storm.py`, a larger
+  `gen_weapon.py`) and the suite by 172 tests, of which 87 are QA's.
+- **Before**, same evening (HEAD `b694c33` + working tree, same command):
+  **79% (79.22%; 12737 statements, 3064 branches), 916 tests, OK,
+  1 skipped.** The two totals are on different trees, so their difference
+  is not QA's alone.
+- **QA's share, measured on one tree:** a run of the whole suite *without*
+  `tests/test_cov_*.py` (978 tests) against `bash tools/coverage.sh`
+  *with* them (1065 tests), started together on the same working tree at
+  ~22:10 (14750 statements, 3508 branches): **73.68% → 76.69%, +3.0
+  points** from the 87 new tests. (Both runs had 6 failures in other
+  agents' in-progress `test_radio.py` / `test_credits.py`; none in QA's
+  files. The 22:23 run above is clean.)
+
+What the new tests cover, per file (before → after):
+
+| File | Before | After | Test file |
+|---|--:|--:|---|
+| `tools/art/emblem_check.py` | 0% | **100%** | `tests/test_cov_art_previews.py` |
+| `tools/art/make_contact.py` | 0% | **100%** | `tests/test_cov_art_previews.py` |
+| `tools/art/make_preview.py` | 0% | **100%** | `tests/test_cov_art_previews.py` |
+| `tools/art/gen_menu.py` | 24% | **99%** | `tests/test_cov_gen_menu.py` |
+| `tools/art/gen_switch.py` | 41% | **99%** | `tests/test_cov_gen_switch.py` |
+
+They assert what each tool promises, not just that it runs:
+- `make_preview.py`: the status of each card is read from
+  `TEXTURE-INDEX.md` by column name per table (fallback "proposed"); the
+  page is self-contained (no external URL, every PNG inlined, the same
+  bytes in the 1x, 4x and 2x2 views); zoom sizes, escaping of manifest
+  text, the Russian mirror, the JS summary labels; `main()` writes the EN
+  page and its RU mirror under one stamped name.
+- `make_contact.py`: sheet geometry, every lump a nearest-neighbour 3x
+  copy in manifest order with its name above, the half-size copy.
+- `emblem_check.py`: two panels and a gap; guides only on the right;
+  the emblem fills its panel on flag red; SDSTAR1 at exactly 8x nearest;
+  the reference points are read live from `gen_soviet_base`.
+- `gen_menu.py`: `build_font()` clears stale glyphs and **refuses** a
+  Latin glyph that is not byte-identical to the installed Cyrillic one;
+  `install()`; `FolderFont` recolouring (body / shadow, lower case drawn
+  as capitals, missing glyphs skipped); `_skull()` decodes a synthetic
+  Doom patch through PLAYPAL and returns `None` without the IWAD or the
+  lumps; the menu dim reproduces the engine's measured (25,20,1) and
+  (193,44,37) → (119,41,18) within 1; the main menu's geometry is
+  `MENUDEF`'s; every skill rung fits at `MENUDEF`'s x = 32 and rung 5
+  ends exactly at 320; the documented CLI.
+- `gen_switch.py`: the seeds are the index's 2078-2081; the recess border
+  is one flat colour and the bevel is lit top-left; variant D's chevrons
+  are in both states; **"only the switch moves, never the panel"**: with
+  the lamp glow taken out, every pixel that differs between the two
+  states lies inside the parts that move; host lumas 147 / 101, "six or
+  more is a lamp", B the strongest far read and A the weakest, as the
+  sheet says; one `main()` run into a tempdir (40 indexed PNGs, the
+  manifest, EN + RU sheets, one recommended card).
+- **Approved-asset regression (`ApprovedSwitchTests`):** the eight
+  approved `SDSW1x`/`SDSW2x` are rebuilt and quantised in memory and
+  compared with `assets/`: **0 pixels differ outside the painted «ПУСК»
+  box** on this PC, 162-181 inside it (Impact rasterises differently
+  here, as `CLAUDE.md` measured). So everything but the word is still
+  reproduced byte for byte, and a change to a switch's panel, lamp or
+  lever now turns the suite red.
+- Mutation check (by hand, not in the suite): moving the bolts by one
+  pixel, deleting the moving-part boxes, or building the two states of a
+  variant from different seeds each makes the relevant test fail.
+
+D27: none of these tests writes to `work/`, `assets/` or `docs/`. Output
+constants are redirected with `mock.patch.object` to temp directories;
+`gen_menu`'s `build_font()`/`install()` only ever get temp paths and its
+`main()` runs with its three actions mocked; the `gen_switch.main()` and
+`gen_menu.sheet()` tests also assert that the real `work/` files kept
+their modification times.
+
+### Bugs found (QA found, did not fix)
+
+**B4 (open, → `art-director`; low).** `gen_menu.py` mocks the skill
+screen's suggested layout at `SUGGEST_HEADER = (48, 70)` and
+`SUGGEST_ITEMS = (48, 90)`, but `src/lumps/MENUDEF` ships it at
+`StaticText 32, 70` and `Position 32, 90` (moved to 32 because rung 5 is
+288 px: 32 + 288 = 320; MOD-SPEC §6.6). The module calls these numbers
+"Engine geometry (src/lumps/MENUDEF ...)". Consequence: a regenerated
+menu sweep draws a skill screen the game does not have, and its width
+check prints a false overflow. **Repro:**
+`.venv/Scripts/python.exe -m unittest tests.test_cov_gen_menu.MenudefGeometryTests -v`
+→ `test_suggested_skill_layout_is_the_one_menudef_ships ... expected
+failure` (`((32, 70), (32, 90)) != ((48, 70), (48, 90))`); and
+`gen_menu.mock_skill("en", "suggest", ...)` returns
+`["'Hero of the Soviet Union, posthumously' ends at x=336"]`.
+**Expected:** the suggested layout is `MENUDEF`'s, no overflow.
+Encoded as `@unittest.expectedFailure`; when the constants are fixed the
+test becomes an unexpected success and the marker must come off.
+
+**B5 (open, → `art-director`; low, a D27 hazard rather than a wrong
+asset).** `gen_menu.sheet(stamp, font_dir, out_dir)` writes the sweep to
+`out_dir` but `MENUMOCK_main_en.png` / `_ru.png` to the module-level
+`OUT_ROOT` (`work/art/menu/`) whatever `out_dir` says, and does not
+create `OUT_ROOT` (on a clean clone, `sheet()` called on its own raises
+`FileNotFoundError`; through `main()` it works because `build_font()`
+creates the folder first). Also, `build_font()`, `install()` and
+`sheet()` take their default paths as default arguments, bound at import:
+patching `gen_menu.OUT_FONT` / `INSTALL_DIR` / `PREVIEW_DIR` does **not**
+redirect `main()`, which would then write `work/art/menu/sdmenu/`,
+`assets/fonts/sdmenu/` (with `--install`) and `docs/art/previews/`.
+**Repro (read, NOT executed):** line 407 of `tools/art/gen_menu.py`
+saves to `OUT_ROOT / f"MENUMOCK_main_{lang}.png"` with no reference to
+`out_dir`, so `sheet("X", out_dir=Path(tmp))` would rewrite
+`work/art/menu/MENUMOCK_*`. QA did not run that call, because it would
+write into `work/` (D27); the tests run `sheet()` only with `OUT_ROOT`
+patched to a tempdir, and there the two mocks land in the tempdir, which
+confirms where the path comes from. **Expected:** every output under the
+paths the caller passes. Not encoded as a failing test for the same
+reason.
+
+The largest gaps are now `tools/audio/midi_edit.py` (54%),
+`tools/art/gen_enemy.py` (56%), `tools/audio/wav_report.py` (58%) and
+the new `gen_storm.py` (62%); `sdbuild/pk3.py`'s three documented
+branches are still unexercised.
+
+| File | Stmts | Branch | Cover |
+|---|--:|--:|--:|
+| `tools/audio/midi_edit.py` | 173 | 76 | 54% |
+| `tools/art/gen_enemy.py` | 582 | 100 | 56% |
+| `tools/audio/wav_report.py` | 90 | 28 | 58% |
+| `tools/art/gen_storm.py` | 519 | 130 | 62% |
+| `tools/art/gen_props.py` | 584 | 150 | 67% |
+| `tools/art/gen_legion.py` | 580 | 116 | 68% |
+| `tools/build.py` | 41 | 12 | 68% |
+| `tools/art/gen_weapon.py` | 1501 | 304 | 68% |
+| `tools/smoke.py` | 342 | 122 | 69% |
+| `tools/audio/midi_inspect.py` | 134 | 58 | 75% |
+| `tools/art/gen_cursor.py` | 349 | 76 | 76% |
+| `tools/art/gen_rig.py` | 908 | 180 | 78% |
+| `tools/audio/gen_music.py` | 515 | 144 | 80% |
+| `tools/verify.py` | 395 | 148 | 80% |
+| `tools/route.py` | 825 | 318 | 83% |
+| `tools/art/gen_metro.py` | 603 | 84 | 84% |
+| `tools/art/gen_lenin.py` | 98 | 14 | 84% |
+| `tools/sdbuild/pk3.py` | 129 | 60 | 84% |
+| `tools/check_pk3.py` | 900 | 408 | 84% |
+| `tools/art/gen_shell.py` | 350 | 68 | 86% |
+| `tools/sdbuild/wad.py` | 65 | 30 | 87% |
+| `tools/audio/gen_weapon_sfx.py` | 810 | 130 | 93% |
+| `tools/audio/gen_sfx.py` | 1066 | 154 | 94% |
+| `tools/art/gen_soviet_base.py` | 472 | 42 | 96% |
+| `tools/sdbuild/udmf.py` | 375 | 116 | 98% |
+| `tools/audio/audition.py` | 262 | 92 | 98% |
+| `tools/art/gen_font.py` | 1084 | 190 | 99% |
+| `tools/art/artlib.py` | 181 | 28 | 99% |
+| `tools/art/gen_menu.py` | 264 | 60 | 99% |
+| `tools/art/gen_switch.py` | 336 | 44 | 99% |
+| `tools/art/emblem_check.py` | 48 | 6 | 100% |
+| `tools/art/make_contact.py` | 34 | 2 | 100% |
+| `tools/art/make_preview.py` | 60 | 12 | 100% |
+| `tools/art/palette.py` | 42 | 6 | 100% |
+| `tools/art/sheetlib.py` | 37 | 4 | 100% |
+| `tools/sdbuild/__init__.py` | 0 | 0 | 100% |
+| **TOTAL** | **14754** | **3512** | **82%** |
+
+## Previous number (2026-10-13 21:10, Windows PC, QA)
 
 **Branch coverage of `tools/`: 79% (12732 statements, 3062 branches).**
 Test suite: **914 tests, OK, 1 skipped** (the opt-in engine test), **no
