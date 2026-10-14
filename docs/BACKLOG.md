@@ -20,18 +20,17 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
-| N12 | M2 | The General: design sweep (full set after the CEO picks a cell) | art-director | 250 | CEO, 2026-10-14 |
+| N13 | M2 | Install the Doughboy (big flag) + engine pass | mod-engineer | 120 | D70 |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
 ## Next (approved order, D63)
 
 | # | Milestone | Task | Role | Est. k tok | Needs |
 |---|---|---|---|---|---|
-| N13 | M2 | Install the Doughboy (big flag) + engine pass | mod-engineer | 120 | CEO's OK |
-| N12b | M2 | The General: full set + install + engine pass | art-director + mod-engineer | 450 | CEO picks a cell |
+| N12b | M2 | The General: full set (8 rotations, ~86 lumps: he wears a different flag on each shoulder) + install + engine pass | art-director + mod-engineer | 550 | CEO picks a cell |
 | N14 | M2 | Weapons in hand from the CEO's Fooocus references, one at a time, verified each (ice axe first, then 5 more) | art-director | 250 per weapon, ~1 500 all | CEO's images |
-| N7b | M1 | Metro v2 (textures aligned) | level-designer | 350 | the CEO walks the campaign |
-| N7c | M1 | Tankograd v2 | level-designer | 400 | the CEO walks the campaign |
+| N7b | M1+ | Metro v2 (textures aligned), optional: the CEO found M1 "perfecto" | level-designer | 350 | CEO decides if wanted |
+| N7c | M1+ | Tankograd v2, optional (as N7b) | level-designer | 400 | CEO decides if wanted |
 | N9 | M3 | Install the effects the CEO approves; wire SNDINFO; engine pass | sound-designer + mod-engineer | 200 | CEO's listening |
 | N8 | M3 | Music per map: swap any piece the CEO rejects for another PD work or a licence-clean MIDI (D59) | sound-designer | 80 per swap | CEO's listening |
 | N15 | tooling | Evaluate Ultimate Doom Builder (D69, "me interesa"): install, open our UDMF maps, does a round trip keep `tools/sdbuild` working, report | mod-engineer + level-designer | 150 | CEO's OK to download UDB |
@@ -59,6 +58,8 @@ the Fooocus hand images, sounds and music to hear.
 | **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
+
+**M1 PASSED (D70):** the CEO walked the campaign. N12: the General's sweep, five cells A-E, `docs/art/previews/2026-10-14_2208_F5_general-sweep.html`, PM recommends C. **Real cost 282k** (est. 250k).
 
 N10: the full GPL-3.0 and CC BY-NC-SA 4.0 texts ship in the v1 zip byte for byte, hashes pinned and tested; G6 row 2 PASS. **Real cost 128k** (est. 80k).
 
