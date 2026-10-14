@@ -2,7 +2,15 @@
 // Replaces Doom's HellKnight at its numbers: 500 HP in MAP01 (D35). The
 // 1000 HP variant for MAP03 is SD_PanzermenschSchwer, its own file.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: BOS2, same layout as SDPM.
+// Sprites are OUR OWN since D67 (2026-10-14): SDPM, cell D of the heavies
+// sweep (bare skull in a riveted iron mask, D65) on the 3D rig
+// (tools/art/gen_heavy.py --full pm), 71 lumps in
+// assets/sprites/panzermensch/: A-H in eight separate rotations, I-O
+// rotation 0, the corpse lying flat. The swap from Freedoom's BOS2
+// placeholder renamed the sprite only; every frame letter and tic is as
+// before (tests/test_panzermensch_sprites.py pins them). Doom's own
+// HellKnight, which this class replaces, keeps the IWAD's BOS2. The heavy
+// variant draws its own set, SDPS (panzermensch_schwer.zs).
 
 class SD_Panzermensch : SD_Monster replaces HellKnight
 {
@@ -40,34 +48,34 @@ class SD_Panzermensch : SD_Monster replaces HellKnight
 	States
 	{
 	Spawn:
-		BOS2 AB 10 A_Look;
+		SDPM AB 10 A_Look;
 		Loop;
 	See:
 		// One plated footstep per walk cycle (24 tics): the cheapest
 		// "something heavy is coming" telegraph. (H) - cut if it is noise.
-		BOS2 A 3 A_SD_PanzerStep;
-		BOS2 ABBCCDD 3 A_Chase;
+		SDPM A 3 A_SD_PanzerStep;
+		SDPM ABBCCDD 3 A_Chase;
 		Loop;
 	Melee:
 	Missile:
-		BOS2 EF 8 A_FaceTarget;
-		BOS2 G 8 A_SD_MeleeOrMissile(SD_PANZER_MELEE_DICE, SD_PANZER_MELEE_MULT, "sd/mon/panzermensch/melee", "SD_PanzerShell");
+		SDPM EF 8 A_FaceTarget;
+		SDPM G 8 A_SD_MeleeOrMissile(SD_PANZER_MELEE_DICE, SD_PANZER_MELEE_MULT, "sd/mon/panzermensch/melee", "SD_PanzerShell");
 		Goto See;
 	Pain:
-		BOS2 H 2;
-		BOS2 H 2 A_Pain;
+		SDPM H 2;
+		SDPM H 2 A_Pain;
 		Goto See;
 	Death:
-		BOS2 I 8;
-		BOS2 J 8 A_Scream;
-		BOS2 K 8;
-		BOS2 L 8 A_NoBlocking;
-		BOS2 MN 8;
-		BOS2 O -1;
+		SDPM I 8;
+		SDPM J 8 A_Scream;
+		SDPM K 8;
+		SDPM L 8 A_NoBlocking;
+		SDPM MN 8;
+		SDPM O -1;
 		Stop;
 	Raise:
-		BOS2 O 8;
-		BOS2 NMLKJI 8;
+		SDPM O 8;
+		SDPM NMLKJI 8;
 		Goto See;
 	}
 

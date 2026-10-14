@@ -540,3 +540,48 @@ symbol, chrome in `steel_blue`, the graft's flesh in `plaster_warm` with a
 `flag_red` core. Palette v1 only. No photograph, no typeface. Freedoom's
 `TROOA1` appears only beside ours on the review sheets, for comparison,
 and never enters a sprite.
+
+## Enemy sprites: the Panzermensch and the Schwer (F5, approved by the CEO 2026-10-14, D65 and D67)
+
+CEO verdict: cell **D** of the heavies sweep, the bare skull in a riveted
+iron mask ("Doughboy C · Panzermensch D", D65), then its full set ("OK al
+Panzermensch", D67), and with it the Schwer, its black variant: cell D with
+the sweep's S2 treatment (black plate, 12 % larger, spikes and exhaust
+stacks, the mask's slit lit; the PM's call in D65), so both sets stand as
+drawn. Files in `assets/sprites/panzermensch/`, copied byte for byte from
+`work/art/enemies/heavy/full/SDPM/` and `.../full/SDPS/` (rendered on the
+Windows PC on 2026-10-14 by `gen_heavy.py --full pm` and `--full ps`, seed
+104), so each PNG keeps its `grAb` offsets. 142 lumps, 71 a set: frames A-H
+in eight separate rotations (no mirrored pairs: the banner carries the D12
+symbol and he throws with his right), I-O in rotation 0. RGBA with hard
+alpha. Not installed: the GIFs, the `lineup_*` sheets, `metrics.json` and
+`blood_share.json`. Engine names: MOD-SPEC §6.3.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDPMA1`, `SDPMA2`, `SDPMA3`, `SDPMA4`, `SDPMA5`, `SDPMA6`, `SDPMA7`, `SDPMA8` | walk, frame A, rotations 1-8 (feet together, the sweep's pose), `SD_Panzermensch` | (a) `tools/art/gen_heavy.py --full pm` (`render_full`), cell D on the rig (`tools/art/rig_core.py`, the materials of `gen_rig.py`) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDPMB1`, `SDPMB2`, `SDPMB3`, `SDPMB4`, `SDPMB5`, `SDPMB6`, `SDPMB7`, `SDPMB8` | walk, frame B | (a) idem | idem |
+| `SDPMC1`, `SDPMC2`, `SDPMC3`, `SDPMC4`, `SDPMC5`, `SDPMC6`, `SDPMC7`, `SDPMC8` | walk, frame C | (a) idem | idem |
+| `SDPMD1`, `SDPMD2`, `SDPMD3`, `SDPMD4`, `SDPMD5`, `SDPMD6`, `SDPMD7`, `SDPMD8` | walk, frame D | (a) idem | idem |
+| `SDPME1`, `SDPME2`, `SDPME3`, `SDPME4`, `SDPME5`, `SDPME6`, `SDPME7`, `SDPME8` | attack, frame E (draws back: the shell forms in his fist) | (a) idem | idem |
+| `SDPMF1`, `SDPMF2`, `SDPMF3`, `SDPMF4`, `SDPMF5`, `SDPMF6`, `SDPMF7`, `SDPMF8` | attack, frame F (cocks the arm) | (a) idem | idem |
+| `SDPMG1`, `SDPMG2`, `SDPMG3`, `SDPMG4`, `SDPMG5`, `SDPMG6`, `SDPMG7`, `SDPMG8` | attack, frame G (the blow or the throw, the sweep's pose) | (a) idem | idem |
+| `SDPMH1`, `SDPMH2`, `SDPMH3`, `SDPMH4`, `SDPMH5`, `SDPMH6`, `SDPMH7`, `SDPMH8` | pain, frame H | (a) idem | idem |
+| `SDPMI0`, `SDPMJ0`, `SDPMK0`, `SDPML0`, `SDPMM0`, `SDPMN0`, `SDPMO0` | death I-O, dark-red blood (D49); `SDPMO0` the corpse lying flat on the floor | (a) idem, the death model (`pm_death_model`) | idem |
+| `SDPSA1`, `SDPSA2`, `SDPSA3`, `SDPSA4`, `SDPSA5`, `SDPSA6`, `SDPSA7`, `SDPSA8` | walk, frame A, rotations 1-8 (feet together, the sweep's pose), `SD_PanzermenschSchwer` | (a) `tools/art/gen_heavy.py --full ps` (`render_full`), cell D with S2 on the rig (`tools/art/rig_core.py`, the materials of `gen_rig.py`) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDPSB1`, `SDPSB2`, `SDPSB3`, `SDPSB4`, `SDPSB5`, `SDPSB6`, `SDPSB7`, `SDPSB8` | walk, frame B | (a) idem | idem |
+| `SDPSC1`, `SDPSC2`, `SDPSC3`, `SDPSC4`, `SDPSC5`, `SDPSC6`, `SDPSC7`, `SDPSC8` | walk, frame C | (a) idem | idem |
+| `SDPSD1`, `SDPSD2`, `SDPSD3`, `SDPSD4`, `SDPSD5`, `SDPSD6`, `SDPSD7`, `SDPSD8` | walk, frame D | (a) idem | idem |
+| `SDPSE1`, `SDPSE2`, `SDPSE3`, `SDPSE4`, `SDPSE5`, `SDPSE6`, `SDPSE7`, `SDPSE8` | attack, frame E (draws back: the shell forms in his fist) | (a) idem | idem |
+| `SDPSF1`, `SDPSF2`, `SDPSF3`, `SDPSF4`, `SDPSF5`, `SDPSF6`, `SDPSF7`, `SDPSF8` | attack, frame F (cocks the arm) | (a) idem | idem |
+| `SDPSG1`, `SDPSG2`, `SDPSG3`, `SDPSG4`, `SDPSG5`, `SDPSG6`, `SDPSG7`, `SDPSG8` | attack, frame G (the blow or the throw, the sweep's pose) | (a) idem | idem |
+| `SDPSH1`, `SDPSH2`, `SDPSH3`, `SDPSH4`, `SDPSH5`, `SDPSH6`, `SDPSH7`, `SDPSH8` | pain, frame H | (a) idem | idem |
+| `SDPSI0`, `SDPSJ0`, `SDPSK0`, `SDPSL0`, `SDPSM0`, `SDPSN0`, `SDPSO0` | death I-O, dark-red blood (D49); he folds forward and `SDPSO0` lies face down, the stacks forbidding his back | (a) idem, the death model (`pm_death_model`) | idem |
+
+Drawn from code on the 3D rig approved as the method (D38), on copies of
+the Reich's material table (`gen_rig.py`, append-only): black-painted plate
+over `khaki_olive` flesh, a `flag_red` banner on the back with the D12
+symbol, bolts through the bare arms that seep dark red, blood in `flag_red`
+0-5 and black (D49). Palette v1 only. No photograph, no typeface.
+Freedoom's `BOS2` appears only beside ours on the review sheets, for
+comparison, and never enters a sprite.

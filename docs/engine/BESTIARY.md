@@ -130,7 +130,9 @@ superseded row: its death and gib frames, the first enemy frames to ship
 next (D55, D56; `assets/sprites/rifleman/`, `hound/`, `storm/`; §3, §5, §6):
 their death frames bleed `flag_red` 0–5 over black, the rifleman's and the
 Stormtrooper's gib too, and the old olive (`khaki_olive` 1–4) appears in
-none of them.
+none of them. **So do the Panzermensch and the Schwer** (D67;
+`assets/sprites/panzermensch/`; §8): their deaths bleed `flag_red` 0–5 over
+black, the pool spreading from under the body.
 One value for all seven classes, `BloodColor "AD 27 21"` (`flag_red` 9),
 set in each file under `src/zscript/monsters/` and pinned by
 `tests/test_blood.py`; `SD_PanzermenschSchwer` inherits it.
@@ -196,8 +198,8 @@ PK3 rule of MOD-SPEC §2; the SNDINFO *logical* name has no such limit.
 arsenal has reserved the sprite prefixes `SDSH SDSP SDTT SDTF SDTP SDIZ SDIF
 SDIP SDPP SDPF SDPQ SDRL SDRF SDRP SDPG SDPX SDRK SDKF SDKP SDFL SDFX SDHK
 SDHF SDHP SDKR` and the sound lumps `SDSH* SDTT* SDIZ* SDPP* SDRP* SDRK*
-SDHK*`. The bestiary's prefixes (`SDRR SDLT SDHS SDHN SDDB SDPM SDGN SDBL
-SDDL SDPL SDGL`) and sound lumps (`SDRRI* SDLTR* SDSTO* SDHND* SDDGB* SDPZR*
+SDHK*`. The bestiary's prefixes (`SDRR SDLT SDHS SDHN SDDB SDPM SDPS SDGN
+SDBL SDDL SDPL SDGL`; `SDPS`, the Schwer's own set, added by D67) and sound lumps (`SDRRI* SDLTR* SDSTO* SDHND* SDDGB* SDPZR*
 SDGEN*`) collide with none of them, and no lump in `freedoom2.wad` begins
 with `SD`.
 
@@ -323,15 +325,16 @@ The classes were playable from the first build, the way the arsenal was in
 F4: every state named a Freedoom sprite, every sound is a logical name
 (`sd/mon/<actor>/<event>`) that `SNDINFO` points at a Freedoom lump. **Since
 D54–D56 (2026-10-14) four classes draw our own sprites**, rendered on the 3D
-rig and approved by the CEO; three classes and their projectiles still wear
-Freedoom's. The full tables are contract and live in `MOD-SPEC.md` §6.2
+rig and approved by the CEO, **and since D67 the Panzermensch and the heavy
+variant too**; two classes and three projectiles still wear Freedoom's. The full tables are contract and live in `MOD-SPEC.md` §6.2
 (sounds) and §6.3 (sprites: final names, frame layouts, what is installed);
 the IWAD sprites still in use are declared in `MOD-SPEC.md` §5, which is
 what lets `tools/check_pk3.py` accept them. Engine pass of the four:
 `docs/qa/evidence/2026-10-14_1900_F5_four-enemies-installed.md`.
 
-**Installed: our own sprites (D54–D56).** Each swap was the rename the
-swap rule below promises, not one tic changed (`MOD-SPEC.md` §6.3).
+**Installed: our own sprites (D54–D56, D67).** Each swap was the rename the
+swap rule below promises, not one tic changed (`MOD-SPEC.md` §6.3); the
+Schwer's was a `States` block of its own, the base's line for line.
 
 | Class | Sprite | Lumps packed | How the rotations are drawn | Was | Decision |
 |---|---|---|---|---|---|
@@ -340,13 +343,16 @@ swap rule below promises, not one tic changed (`MOD-SPEC.md` §6.3).
 | `SD_Stormtrooper` | `SDHS` | 77, `assets/sprites/storm/` | A–H × 8 (64); I–U rotation 0 (13); the claw shares the bolt-throw frames E F G (D53) | `TROO` | D56 (cell E, redone death) |
 | `SD_StormBolt` | `SDBL` | 5, `assets/sprites/storm/` | A–B flight, C–E burst, rotation 0 | `BAL1` | D56 |
 | `SD_ReichHound` | `SDHN` | 46, `assets/sprites/hound/` | A–H with Doom's mirroring, 5 lumps a frame: rotations 1 and 5 alone, 2–4 as mirrored pairs (`SDHNA2A8`, `A3A7`, `A4A6`) (40); I–N rotation 0 (6) | `SARG` | D50 (German shepherd, cell A), D55 (full set) |
+| `SD_Panzermensch` | `SDPM` | 71, `assets/sprites/panzermensch/` | A–H × 8 (64); I–O rotation 0 (7), the corpse flat | `BOS2` | D65 (cell D, bare skull in an iron mask), D67 (full set) |
+| `SD_PanzermenschSchwer` | `SDPS` | 71, `assets/sprites/panzermensch/` | A–H × 8 (64); I–O rotation 0 (7), dying face down | inherited `BOS2` | D65 (cell D with S2: black, 12 % larger, spikes and stacks), D67 |
 
 The three human-shaped figures are handed (the weapon on one side, a patch,
 plate or armband on the other; a mirrored armband would reverse the D12
 symbol), so their walk, attack and pain frames are eight separate rotations
 (`MOD-SPEC.md` §6.3). That is why they cost more images than v1's estimate
 (49, 49, 58), which assumed Doom's mirroring. The hound is drawn symmetric
-and uses it.
+and uses it. The Panzermensch is handed too (the banner on his back carries
+the D12 symbol, and he throws with his right): 71 a set, not v1's 47.
 
 **Still on Freedoom placeholders.**
 
@@ -354,7 +360,6 @@ and uses it.
 |---|---|---|---|
 | `SD_Doughboy` | `SDDB` | `HEAD` (cacodemon) | yes |
 | `SD_DoughboyShell` | `SDDL` | `BAL2` | yes |
-| `SD_Panzermensch` and `SD_PanzermenschSchwer` | `SDPM` | `BOS2` (hell knight) | yes |
 | `SD_PanzerShell` | `SDPL` | `BAL7` | yes |
 | `SD_General` | `SDGN` | `CYBR` (cyberdemon) | yes for A–P (v1 aligned §9 to `CYBR`); the two `Summon` lines borrow `CYBR E F` and become `SDGN Q R` |
 | `SD_GeneralShell` | `SDGL` | `MANF` A–B flight, `MISL` B–D burst (Doom's mancubus shot) | no: the burst becomes `SDGL C D E` |
@@ -368,11 +373,15 @@ a placeholder is a rename of the four-letter sprite name in that class's
 `States` block, and nothing else — except the four lines named in the last
 two rows. Sounds are a one-line `SNDINFO` change each and no ZScript at all.
 
-**Not swapped by a rename:** the heavy Panzermensch has no sprites of its
-own. It inherits every state from `SD_Panzermensch`, so today it looks
-identical; the recolour v0 planned is a `Translation` added when `SDPM` lands
-and the palette for it exists (`art-director`). Until then the PM tells the
-two apart by `Tag` and by how long they take to die.
+**Not swapped by a rename: the heavy Panzermensch (D67).** Until D67 it
+had no sprites of its own and inherited every state from `SD_Panzermensch`,
+so it looked identical; v0 planned a `Translation` recolour once `SDPM`
+landed. **Dropped:** a `Translation` remaps palette indices, our sprites are
+truecolour PNGs and the mod ships no `PLAYPAL`, so the recolour would pass
+through Freedoom's palette (**NOT VERIFIED** what it would look like). The
+Schwer is drawn instead, cell D with the sweep's S2 treatment, as `SDPS`,
+and `SD_PanzermenschSchwer` has a `States` block of its own: the base's, line
+for line, with `SDPS` (`MOD-SPEC.md` §6.3).
 
 ---
 
@@ -884,7 +893,7 @@ shape but **ground**: see §8.
 | Faction | Fourth Reich |
 | DoomEdNum | **21105** |
 | Replaces | `HellKnight` (69) |
-| Sprite | `SDPM`; projectile `SDPL` |
+| Sprite | `SDPM` (installed, D67); the heavy variant `SDPS` (installed, D67); projectile `SDPL` |
 | Actor code | `PZR` |
 | LANGUAGE | `SD_TAG_PANZER`, `SD_OB_PANZER`, `SD_OBHIT_PANZER` |
 
@@ -911,18 +920,22 @@ wall. (v0 said "5 RPG-7 hits or 48 PPSh rounds"; both figures were wrong.)
 **21107**) exists for MAP03.** The variant is implemented now because it
 costs twenty lines and closes a hole: without it a map placing Doom's Baron
 (3003) would spawn a Freedoom baron in a Soviet map. It derives from
-`SD_Panzermensch` and changes only `Health` and `Tag`, so it has no
-`States` block of its own and no sprite name to swap. It does not copy the
-Baron's `+BOSSDEATH` / `A_BossDeath`: in Doom those serve only E1M8-style
-map specials (`baronspecial`), which no map of ours uses. Its recolour is a
-`Translation` added when the art exists (§2.7).
+`SD_Panzermensch` and changed only `Health` and `Tag`, so until D67 it had
+no `States` block of its own and no sprite name to swap. It does not copy
+the Baron's `+BOSSDEATH` / `A_BossDeath`: in Doom those serve only
+E1M8-style map specials (`baronspecial`), which no map of ours uses.
+**Amended by D67 (2026-10-14):** the recolour by `Translation` is dropped
+(§2.7); the Schwer is drawn as its own set, `SDPS` (black plate, 12 %
+larger, spikes and exhaust stacks), with a `States` block of its own that is
+the base's line for line, and its body grows with the drawing to **27 × 72**
+(below).
 
 ### Stats
 
 | Property | Value | Why |
 |---|---|---|
 | `Health` | **500** | `HellKnight` parity; see above. |
-| `Radius`/`Height` | **24 × 64** | parity. The 64 height is the one that does **not** fit under a 56-unit lintel: the `level-designer` must keep brute arenas at ≥ 72 units clear. |
+| `Radius`/`Height` | **24 × 64** | parity. The 64 height is the one that does **not** fit under a 56-unit lintel: the `level-designer` must keep brute arenas at ≥ 72 units clear. **The heavy variant is 27 × 72 since D67** (`SD_PANZER_HEAVY_RADIUS`, `SD_PANZER_HEAVY_HEIGHT`: × 1.12, as its drawing), so it needs 72 clear, exactly the arena rule; every place MAP03 and the range put it was checked to fit (`MOD-SPEC.md` §6.3). |
 | `Speed` | **8** | parity. Brutes are slow in Doom so the player can kite; this is the mechanic that makes 500 HP survivable. |
 | `Mass` | **1000** | parity — an RPG-7 barely moves him. |
 | `PainChance` | **50** | parity (20 %). Low painchance is what stops the player from stunlocking him with the PPSh and is therefore the actual difficulty, more than the HP. |
@@ -966,12 +979,37 @@ bursts reads wrong.
 | Death | I–O (7) | 0 | 7 |
 | **Total** | | | **47** + 5 projectile |
 
+**Installed, D67 (2026-10-14): 71 images a set, two sets, not 47.** The CEO
+chose cell D of the heavies sweep, the bare skull in a riveted iron mask
+(D65), and approved its full set with the Schwer alongside (D67); they ship
+as `SDPM` and `SDPS` in `assets/sprites/panzermensch/`
+(`tools/art/gen_heavy.py --full`; `MOD-SPEC.md` §6.3, "The Panzermensch and
+the Schwer, installed by D67"). The budget above counted on Doom's mirrored
+pairs; he is **handed** (the banner carries the D12 symbol, which a mirror
+reverses, and he throws with his right), so every rotation is drawn on its
+own:
+
+| Group | Frames | Rotations | Images (each set) |
+|---|---|---|---|
+| Walk | A B C D | 8, separate | 32 |
+| Attack | E F G | 8, separate | 24 |
+| Pain | H | 8, separate | 8 |
+| Death | I–O (7) | 0 | 7 |
+| **Total** | | | **71** |
+
+The deaths bleed dark red (D49, §2.1). `SDPMO0` lies flat; the Schwer
+cannot lie on his back (the stacks would prop him up), so he folds forward
+and `SDPSO0` lies face down. Only the sprite name went from `BOS2` to `SDPM`,
+and the Schwer's new block is the same with `SDPS`: not one tic moved
+(`tests/test_panzermensch_sprites.py`).
+
 Visual brief: *a man-shaped slab of riveted black plate two heads taller than
 a rifleman, arms ending in gauntlets too big for them, no face behind the
 visor slit, a red banner panel bolted to his back. He does not run.*
 
-Freedoom derivation: `BOSS`/`BOS2` are humanoid brutes of the same height
-class and the same frame layout. **NOT VERIFIED.**
+Freedoom derivation: none; both sets were drawn from scratch on the rig.
+`BOS2` gave the frame layout and the timing and was the placeholder until
+D67; no pixel of it is in `SDPM` or `SDPS`.
 
 ### Legibility
 
@@ -1215,9 +1253,9 @@ coordinates are constants in the map script.
 
 ## 12. Summary table
 
-**Images** is what the class costs in sprite lumps. For the four installed
-classes (D54–D56, §2.7) it is the count actually packed under
-`assets/sprites/`; for the three still on placeholders it is v1's estimate at
+**Images** is what the class costs in sprite lumps. For the installed
+classes (D54–D56, D67, §2.7) it is the count actually packed under
+`assets/sprites/`; for the two still on placeholders it is v1's estimate at
 Doom's mirroring (rotations 2&8, 3&7, 4&6 share one image), the count
 `MOD-SPEC.md` §6.3's frame layouts give.
 
@@ -1228,16 +1266,19 @@ Doom's mirroring (rotations 2&8, 3&7, 4&6 share one image), the count
 | 3 | Hybrid Stormtrooper | `SD_Stormtrooper` | both | 21102 | `DoomImp` | 60 | 8 | 200 | melee 3–24 / bolt 3–24 | `SDHS` `SDBL`, **installed** (D56) | **77 + 5** packed | 8 |
 | 4 | Reich hound | `SD_ReichHound` | Reich | 21103 | `Demon` | 150 | **12 (H)** | 180 | melee 4–40 | `SDHN`, **installed** (D55) | **46** packed, mirrored | 5 |
 | 5 | Doughboy | `SD_Doughboy` | Legion | 21104 | `Cacodemon` | 400 | 8 | 128 | melee 10–60 / shell 5–40 | `SDDB` `SDDL` (`HEAD` `BAL2`) | 41 (est.) | 7 |
-| 6 | Panzermensch | `SD_Panzermensch` | Reich | 21105 | `HellKnight` | **500** | 8 | 50 | melee 10–80 / shell 8–64 | `SDPM` `SDPL` (`BOS2` `BAL7`) | 52 (est.) | 8 |
+| 6 | Panzermensch | `SD_Panzermensch` | Reich | 21105 | `HellKnight` | **500** | 8 | 50 | melee 10–80 / shell 8–64 | `SDPM`, **installed** (D67); `SDPL` (`BAL7`) | **71** packed + 5 (est.) | 8 |
 | 7 | The General | `SD_General` | Legion | 21106 | `Cyberdemon` | **3000 (H)** | 12 | 20 | 3× shell 8–64; summons 2 riflemen once below 50 % | `SDGN` `SDGL` (`CYBR`; `MANF` `MISL`) | 59 (est.) | 7 |
-| 8 | Heavy Panzermensch | `SD_PanzermenschSchwer` | Reich | 21107 | `BaronOfHell` | 1000 | 8 | 50 | as #6 | inherits #6 | 0 (a translation) | 0 |
+| 8 | Heavy Panzermensch | `SD_PanzermenschSchwer` | Reich | 21107 | `BaronOfHell` | 1000 | 8 | 50 | as #6 | `SDPS`, **installed** (D67) | **71** packed | 0 |
 | — | *cloaked hound* | *reserved, not implemented* | Reich | *21108 reserved* | `Spectre` | 150 | 12 | 180 | as #4 | `SDHN` `+SHADOW` | 0 | 0 |
 
-Totals for F5: **8 classes + 4 projectile actors, ≈ 420 sprite images,
-47 sound lumps.** Of the images, **268 are drawn and packed** (70 + 70 + 82 +
-46) and **152 are estimated** for the three classes left (41 + 52 + 59); if
-those are drawn at eight rotations like the infantry (§2.7), they cost 221
-instead (59 + 76 + 86), ≈ 489 in all. v1 said ≈ 354: the 202 it gave the
+Totals for F5: **8 classes + 4 projectile actors, ≈ 515 sprite images,
+47 sound lumps.** Of the images, **410 are drawn and packed** (70 + 70 + 82 +
+46, and since D67 71 + 71) and **105 are estimated** for what is left (the
+Doughboy 41, the Panzermensch's shell 5, the General 59); if those are drawn
+at eight rotations like the infantry (§2.7), they cost 150 instead (59 + 5 +
+86), ≈ 560 in all. Before D67 the count was ≈ 420 (268 packed, 152
+estimated): the Panzermensch's 47 became 71 unmirrored, and the Schwer,
+planned as a translation at 0 images, became a drawn set of 71. v1 said ≈ 354: the 202 it gave the
 four installed classes became 268 because the three human-shaped ones were
 drawn unmirrored. v0 said 356 and 52 sounds. The sounds never were 52: the
 per-actor lines of §3, §6, §7, §8 and §9 each counted one more sound than
