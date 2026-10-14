@@ -122,6 +122,10 @@ that a corpse told the factions apart by value. The CEO's call is about the
 deaths reading as deaths; the factions stay apart by body, helmet and
 accent, which carry the legibility plan above, and the drawn deaths (the
 rifleman's D48 death and gib, the Stormtrooper's) already bleed `flag_red`.
+**The Legion bleeds dark red too**, not the pale `plaster_warm` of the
+superseded row: its death and gib frames, the first enemy frames to ship
+(D54, `assets/sprites/legion/`, §4), are drawn with `flag_red` blood, and
+`SD_LegionTrooper` carries the same `BloodColor "AD 27 21"` as every class.
 One value for all seven classes, `BloodColor "AD 27 21"` (`flag_red` 9),
 set in each file under `src/zscript/monsters/` and pinned by
 `tests/test_blood.py`; `SD_PanzermenschSchwer` inherits it.
@@ -446,7 +450,10 @@ distance.
 
 **Colour.** Pink flesh forearms and face, chrome cuirass and M1 helmet in
 `steel_blue` 11–15, `steel_blue` 0–5 for the shadow side. US-flag patch on
-the shoulder (D12) is the only `flag_red` on him.
+the shoulder (D12) is the only `flag_red` on him while he stands. **His
+blood is dark red** (D49, §2.1): `flag_red` in the drawn death and gib
+frames, and `BloodColor "AD 27 21"` on the engine's blood sprite when he is
+hit.
 
 ### Stats
 
@@ -475,14 +482,37 @@ player must be able to name the faction behind a door with the lights off.
 
 ### Sprites
 
-Identical budget to §3: **49 images**. The rig is the same humanoid; the
-drawing is not shared, but the pose sheet and timing are.
+**Installed, D54 (2026-10-14): 70 images, not 49.** The CEO chose cell C of
+the Legion sweep (D48) and approved its redone death, the corpse lying flat
+(D54); the full set ships as `SDLT` in `assets/sprites/legion/`
+(`tools/art/gen_legion.py --full`; MOD-SPEC §6.3, "The Legion trooper,
+installed by D54"). The budget planned here was §3's 49 images, counting on
+Doom's mirrored pairs (2&8, 3&7, 4&6). The trooper is **handed**: the
+shotgun is held across the chest and the US-flag patch sits on the right
+shoulder, so a mirrored rotation would swap both sides. Every rotation is
+therefore drawn on its own:
+
+| Group | Frames | Rotations | Images |
+|---|---|---|---|
+| Walk / idle | A B C D | 8, separate | 32 |
+| Aim, fire | E F | 8, separate | 16 |
+| Pain | G | 8, separate | 8 |
+| Death | H I J K L | 0 | 5 |
+| Gib death | M–U (9) | 0 | 9 |
+| **Total** | | | **70** |
+
+Rendered on the 3D rig D38 approved as the method (`tools/art/rig_core.py`),
+so the eight angles cost a render each, not a drawing each. The states are
+unchanged: only the sprite name went from `SPOS` to `SDLT`, not one tic
+moved (`tests/test_legion_sprites.py`).
 
 Visual brief: *a heavy-shouldered trooper in a chromed breastplate over pink,
 too-smooth flesh; round M1 helmet; a short pump shotgun held high across the
 chest; a small star-spangled patch on the shoulder.*
 
-Freedoom derivation: `SPOS` is the same layout. NOT VERIFIED.
+Freedoom derivation: none. `SPOS` (Freedoom's shotgun guy) gave the frame
+layout and the timing, and was the placeholder until D54; no pixel of it
+is in `SDLT` (it appears only beside ours on the review sheets).
 
 ### Legibility
 

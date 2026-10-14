@@ -4,7 +4,11 @@
 // IZh-58, a captured Soviet shotgun (D35); SD_Izh replaces Shotgun anyway,
 // but naming ours is clearer.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: SPOS, same layout as SDLT.
+// Sprites are OUR OWN since D54 (2026-10-14): SDLT, cell C of the Legion
+// sweep (tools/art/gen_legion.py), 70 lumps in assets/sprites/legion/:
+// A-G in eight separate rotations, H-U rotation 0. The swap from Freedoom's
+// SPOS placeholder renamed the sprite only; every frame letter and tic is as
+// before (tests/test_legion_sprites.py pins them).
 
 class SD_LegionTrooper : SD_Monster replaces ShotgunGuy
 {
@@ -42,37 +46,37 @@ class SD_LegionTrooper : SD_Monster replaces ShotgunGuy
 	States
 	{
 	Spawn:
-		SPOS AB 10 A_Look;
+		SDLT AB 10 A_Look;
 		Loop;
 	See:
-		SPOS AABBCCDD 3 A_Chase;   // 3 tics: ShotgunGuy parity
+		SDLT AABBCCDD 3 A_Chase;   // 3 tics: ShotgunGuy parity
 		Loop;
 	Missile:
-		SPOS E 10 A_FaceTarget;
-		SPOS F 10 Bright A_SD_Hitscan(SD_TROOPER_SHOTS, SD_TROOPER_HIT_DICE, SD_TROOPER_HIT_MULT);
-		SPOS E 10;
+		SDLT E 10 A_FaceTarget;
+		SDLT F 10 Bright A_SD_Hitscan(SD_TROOPER_SHOTS, SD_TROOPER_HIT_DICE, SD_TROOPER_HIT_MULT);
+		SDLT E 10;
 		Goto See;
 	Pain:
-		SPOS G 3;
-		SPOS G 3 A_Pain;
+		SDLT G 3;
+		SDLT G 3 A_Pain;
 		Goto See;
 	Death:
-		SPOS H 5;
-		SPOS I 5 A_Scream;
-		SPOS J 5 A_NoBlocking;
-		SPOS K 5;
-		SPOS L -1;
+		SDLT H 5;
+		SDLT I 5 A_Scream;
+		SDLT J 5 A_NoBlocking;
+		SDLT K 5;
+		SDLT L -1;
 		Stop;
 	XDeath:
-		SPOS M 5;
-		SPOS N 5 A_StartSound("sd/mon/legiontrooper/xdeath", CHAN_VOICE);
-		SPOS O 5 A_NoBlocking;
-		SPOS PQRST 5;
-		SPOS U -1;
+		SDLT M 5;
+		SDLT N 5 A_StartSound("sd/mon/legiontrooper/xdeath", CHAN_VOICE);
+		SDLT O 5 A_NoBlocking;
+		SDLT PQRST 5;
+		SDLT U -1;
 		Stop;
 	Raise:
-		SPOS L 5;
-		SPOS KJIH 5;
+		SDLT L 5;
+		SDLT KJIH 5;
 		Goto See;
 	}
 }

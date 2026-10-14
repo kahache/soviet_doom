@@ -24,7 +24,9 @@ What is checked, and why:
   hand       --hand picks hand_<X>/ renders, and refuses a hand nobody drew
   installed  the six pickups D48 installed (INSTALLED) are named by their
              Spawn states, ship from assets/sprites/ and are never overlaid;
-             a swap whose sprite is under assets/sprites/ is skipped
+             a swap whose sprite is under assets/sprites/ is skipped; the
+             Legion trooper installed whole by D54 (INSTALLED_ENEMIES, SPOS
+             -> SDLT) is in no swap, and a swap naming it would be skipped
   real       (skips without work/art) today's drafts plan 101 lumps: 31
              weapon frames (held and flash of all seven, the Katyusha's
              pickup) and the rifleman's 70
@@ -45,6 +47,7 @@ import zipfile
 import zlib
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from unittest import mock
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 TOOLS_DIR = PROJECT_ROOT / "tools"
@@ -434,6 +437,32 @@ class InstalledTests(unittest.TestCase):
             self.assertTrue(any(n.startswith("SDTT: approved and installed") for n in plan.notes), plan.notes)
 
 
+    def test_the_legion_is_installed_whole_and_never_overlaid(self):
+        """D54: SDLT ships from assets/sprites/legion/ and every trooper state
+        names it; the overlay names neither SPOS nor SDLT."""
+        self.assertEqual(mdo.INSTALLED_ENEMIES, (("SPOS", "SDLT"),))
+        swapped = {s.draft for s in mdo.SWAPS} | {s.placeholder for s in mdo.SWAPS}
+        self.assertFalse(swapped & {"SPOS", "SDLT"})
+        text = (mdo.ZS_ROOT / "monsters" / "legion_trooper.zs").read_text(encoding="utf-8")
+        self.assertEqual(mdo.state_letters(text, "SPOS"), "")
+        self.assertEqual(mdo.state_letters(text, "SDLT"), "ABCDEFGHIJKLMNOPQRSTU")
+
+    def test_a_swap_naming_an_installed_enemy_is_skipped(self):
+        """Even with drafts on disk and nothing under assets/sprites/, a swap
+        for the Legion is never packed."""
+        legion = mdo.Swap("rifleman", "", "monsters/legion_trooper.zs", "SPOS", "SDLT")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            weapons, rig = make_drafts(root)
+            for letter in "ABCDEFG":
+                for rot in mdo.ROTATIONS_8:
+                    (rig / f"SDLT{letter}{rot}.png").write_bytes(png())
+            with mock.patch.object(mdo, "SWAPS", mdo.SWAPS + (legion,)):
+                plan = mdo.plan_overlay("all", "E", weapons, rig, sprites_dir=root / "no-sprites")
+            self.assertFalse(any(e.lump.startswith(("SPOS", "SDLT")) for e in plan.entries))
+            self.assertTrue(any(n.startswith("SDLT: an enemy installed whole") for n in plan.notes), plan.notes)
+
+
 # ---------------------------------------------------------------------- real
 @unittest.skipUnless((mdo.RIG_DIR / "SDRRA1.png").is_file() and (mdo.WEAPONS_DIR / "tt33").is_dir(),
                      "work/art drafts not present (CI has no work/)")
@@ -447,6 +476,7 @@ class RealDraftTests(unittest.TestCase):
         self.assertEqual(sum(e.lump[5] != "0" for e in poss), 56)
         self.assertEqual(len(plan.entries) - len(poss), 31)   # 37 until D48 installed the six pickups
         self.assertFalse({e.lump[:4] for e in plan.entries} & {ph for ph, _ in mdo.INSTALLED})
+        self.assertFalse({e.lump[:4] for e in plan.entries} & {"SPOS", "SDLT"}, "D54: no Legion")
         self.assertEqual(plan.missing, [])
         self.assertTrue(all(h.startswith("E") for h in plan.hands.values()))
 

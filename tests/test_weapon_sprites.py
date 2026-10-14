@@ -228,7 +228,9 @@ def read_grab(data: bytes) -> tuple[int, int] | None:
 
 
 def installed() -> list[Path]:
-    return sorted(ASSET_SPRITES.rglob("*.png")) if ASSET_SPRITES.is_dir() else []
+    """The weapon pickups: the six weapon folders only. Other sets share
+    assets/sprites/ (the Legion's legion/ since D54, tests/test_legion_sprites.py)."""
+    return sorted(p for folder in FOLDERS for p in (ASSET_SPRITES / folder).glob("*.png"))
 
 
 class BehaviourTests(unittest.TestCase):

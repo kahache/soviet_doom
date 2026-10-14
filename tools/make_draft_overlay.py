@@ -25,9 +25,14 @@ held and flash frames were held back the same day (the CEO found hand E
 deformed in MAP01) and stay drafts here, with the hand Katyusha and the
 Reich rifleman's rig. A swap whose sprite is already under
 `assets/sprites/` is skipped with a note, so an approval is never shadowed
-by its own draft. GZDoom resolves a sprite by lump name and the
-last-loaded file wins, so the drafts show up with no ZScript at all, and
-removing `-file ...overlay...` from the command line puts Freedoom back.
+by its own draft. D54 (2026-10-14) installed the Liberty Legion trooper's
+full set (`SDLT`, 70 lumps in `assets/sprites/legion/`, its states renamed
+from `SPOS`): the overlay never carried the Legion and carries nothing of
+it now (INSTALLED_ENEMIES; no swap names `SPOS` or `SDLT`).
+
+GZDoom resolves a sprite by lump name and the last-loaded file wins, so the
+drafts show up with no ZScript at all, and removing `-file ...overlay...`
+from the command line puts Freedoom back.
 
 What it reads (never writes):
   src/zscript/weapons/*.zs, src/zscript/monsters/reich_rifleman.zs
@@ -135,6 +140,13 @@ INSTALLED: tuple[tuple[str, str], ...] = (
     ("MGUN", "SDPQ"),    # PPSh-41
     ("LAUN", "SDRP"),    # RPG-7
     ("PLAS", "SDKP"),    # ROKS-3
+)
+
+# Enemies approved and installed whole: every state names our sprite, the
+# PNGs ship from assets/sprites/, and no swap may name either side, so the
+# overlay can never shadow or resurrect them (tests/test_legion_sprites.py).
+INSTALLED_ENEMIES: tuple[tuple[str, str], ...] = (
+    ("SPOS", "SDLT"),    # Liberty Legion trooper, cell C full set (D54)
 )
 
 
@@ -260,8 +272,13 @@ def plan_overlay(only: str = "all", hand: str = DEFAULT_HAND, weapons_dir: Path 
     plan = Plan()
     zs_cache: dict[str, str] = {}
     installed = installed_sprites(sprites_dir)
+    retired = {name for pair in INSTALLED_ENEMIES for name in pair}
     for swap in SWAPS:
         if swap.group not in groups:
+            continue
+        if swap.placeholder in retired or swap.draft in retired:
+            plan.notes.append(f"{swap.draft}: an enemy installed whole (INSTALLED_ENEMIES); "
+                              f"not overlaid on {swap.placeholder}")
             continue
         if swap.draft in installed:
             plan.notes.append(f"{swap.draft}: approved and installed under {_rel(sprites_dir)}; "

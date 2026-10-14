@@ -319,3 +319,34 @@ Drawn from code: tapered capsules, ellipsoids and extruded plates shaded in
 docstring). No photograph, no typeface. Freedoom's own weapon sprites appear
 only beside ours on the review sheets, for comparison, and never enter a
 sprite (`freedoom_sprite()` in the generator).
+
+## Enemy sprites: the Liberty Legion trooper (F5, approved by the CEO 2026-10-14, D48 and D54)
+
+CEO verdict: cell **C** of the Legion sweep (D48), then the redone death,
+the corpse lying flat ("Muerte legión OK", D54), so the full set stands as
+drawn. Files in `assets/sprites/legion/`, copied byte for byte from
+`work/art/enemies/legion/full_C/` (rendered on the Windows PC on 2026-10-14
+by `gen_legion.py --full`), so each PNG keeps its `grAb` offsets. 70 lumps:
+frames A-G in eight separate rotations (no mirrored pairs), H-U in rotation
+0. RGBA with hard alpha. Not installed: `old_death/` (the superseded death),
+the GIFs, the `pair_*` lineups and `metrics.json`. Engine names: MOD-SPEC
+§6.3.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDLTA1`, `SDLTA2`, `SDLTA3`, `SDLTA4`, `SDLTA5`, `SDLTA6`, `SDLTA7`, `SDLTA8` | walk, frame A, rotations 1-8 | (a) `tools/art/gen_legion.py --full` (`build_full`, `render_full`), cell C on the rig (`tools/art/rig_core.py`) | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
+| `SDLTB1`, `SDLTB2`, `SDLTB3`, `SDLTB4`, `SDLTB5`, `SDLTB6`, `SDLTB7`, `SDLTB8` | walk, frame B | (a) idem | idem |
+| `SDLTC1`, `SDLTC2`, `SDLTC3`, `SDLTC4`, `SDLTC5`, `SDLTC6`, `SDLTC7`, `SDLTC8` | walk, frame C | (a) idem | idem |
+| `SDLTD1`, `SDLTD2`, `SDLTD3`, `SDLTD4`, `SDLTD5`, `SDLTD6`, `SDLTD7`, `SDLTD8` | walk, frame D | (a) idem | idem |
+| `SDLTE1`, `SDLTE2`, `SDLTE3`, `SDLTE4`, `SDLTE5`, `SDLTE6`, `SDLTE7`, `SDLTE8` | aim, frame E | (a) idem | idem |
+| `SDLTF1`, `SDLTF2`, `SDLTF3`, `SDLTF4`, `SDLTF5`, `SDLTF6`, `SDLTF7`, `SDLTF8` | fire, frame F (muzzle flash drawn in) | (a) idem | idem |
+| `SDLTG1`, `SDLTG2`, `SDLTG3`, `SDLTG4`, `SDLTG5`, `SDLTG6`, `SDLTG7`, `SDLTG8` | pain, frame G | (a) idem | idem |
+| `SDLTH0`, `SDLTI0`, `SDLTJ0`, `SDLTK0`, `SDLTL0` | death H-L, dark-red blood (D49); `SDLTL0` the corpse lying flat (D54) | (a) idem, `death_blood` | idem |
+| `SDLTM0`, `SDLTN0`, `SDLTO0`, `SDLTP0`, `SDLTQ0`, `SDLTR0`, `SDLTS0`, `SDLTT0`, `SDLTU0` | gib M-U, dark-red blood (D49); `SDLTU0` the remains on the floor (redone with the death) | (a) idem, `build_gib`, `gib_blood` | idem |
+
+Drawn from code on the 3D rig approved as the method (D38): primitives,
+two-bone IK, Doom's eight rotations, majority vote to 1x, contour and rim;
+chrome in `steel_blue`, flesh in palette v2's `flesh_pink` (D45), blood in
+`flag_red` (D49). No photograph, no typeface. Freedoom's `SPOSA1` and
+`POSSA1` appear only beside ours on the review sheets, for comparison, and
+never enter a sprite.

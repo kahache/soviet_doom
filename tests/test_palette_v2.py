@@ -18,7 +18,7 @@ What is enforced here, and why:
               approved v1 texture cannot drift into v2 when it is rebuilt
   assets      no approved asset uses a colour outside the palette version it
               was approved in. Every asset is v1 until it is listed in
-              APPROVED_IN_V2 (empty: no v2 texture is approved yet)
+              APPROVED_IN_V2 (the Legion trooper's SDLT set since D54)
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_palette_v2 -v
 """
@@ -60,7 +60,11 @@ MAX_COLOURS = 256
 # Approved assets drawn in palette v2, by path relative to assets/. Empty
 # until the CEO approves the first v2 texture (e.g. SDMARB1_v2 replacing
 # SDMARB1); everything not listed here must stay inside v1.
-APPROVED_IN_V2: set[str] = set()
+# D54 (2026-10-14): the Legion trooper's 70 SDLT lumps, drawn with palette
+# v2's flesh_pink (gen_legion.py), are the first v2 assets approved.
+APPROVED_IN_V2: set[str] = (
+    {f"sprites/legion/SDLT{f}{r}.png" for f in "ABCDEFG" for r in "12345678"}
+    | {f"sprites/legion/SDLT{f}0.png" for f in "HIJKLMNOPQRSTU"})
 
 
 def _digest(colours) -> str:
