@@ -11,7 +11,8 @@ Previews are sent to you as files; the paths are under `docs/art/previews/`.
 
 | What | Preview | Asks [PM's recommendation] |
 |---|---|---|
-| Ice axe final ready frame (D76) | coming | OK -> swing frames |
+| Gemini references with bare hands: ice axe and IZh-58 (D77) | your images in `work/art/reference/` | regenerate bare-handed |
+| PPSh-41 silhouettes (D77) | coming | pick a size |
 | Sound alternatives (D74) | `2026-10-15_0033_M3_listening-alternatives.html` | OK/NO per alternative, "Copiar resultado" |
 
 ## 2. Waiting for your ears
