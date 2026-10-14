@@ -5,6 +5,7 @@
     python3 tools/audio/gen_music.py --only title
     python3 tools/audio/gen_music.py --only map01e     # the D43 enriched draft
     python3 tools/audio/gen_music.py --only funeral --only amur   # the D44 sequencings
+    python3 tools/audio/gen_music.py --only gate       # the D54 anthem-slot draft
     python3 tools/audio/gen_music.py --title-tempo 72 --map01-tempo 96
     python3 tools/audio/gen_music.py --list           # what exists and how long
 
@@ -37,6 +38,8 @@ the CEO's authorisation and kept in `work/audio/scores/`. The notes there are
 the edition's, never written from memory; which bar of which edition every
 phrase comes from is in `docs/sound/SOUNDTRACK.md` (Cards 3-5) and in the
 comments beside the data. The sequencing (our MIDI) is CC BY-NC-SA 4.0.
+Section 4d (D54) does the same for the anthem slot: the top voice of
+Mussorgsky's «Богатырские ворота» from the 1886 Bessel first edition.
 
 Everything the CEO might want to change -- tempo, instruments, how loud the
 brass is, how long each section lasts -- is a named constant in section 2.
@@ -1351,6 +1354,276 @@ def build_amur(tempo_bpm: float) -> tuple[list[Track], float]:
 
 
 # =========================================================================
+# 4d. D54 -- the anthem slot: «Богатырские ворота» (The Great Gate of Kiev)
+# =========================================================================
+# D54 dropped Glinka's Patriotic Song (no reliable public-domain score of the
+# 1833 melody) and asked for a public-domain replacement on the D44 terms.
+# SOURCE: Mussorgsky, «Картинки с выставки» / Tableaux d'une exposition, No. 10
+# «Богатырския ворота (Въ стольномъ городѣ Кіевѣ)», piano, St Petersburg:
+# W. Bessel & Co., plate 1560 (first edition 1886, ed. N. Rimsky-Korsakov) --
+# work/audio/scores/bogatyrskie_vorota/, provenance in MUSIC-RIGHTS.md 4.6.4.
+# Printed pages 30 and 34 (scan pages 31 and 35). Key as printed: three flats,
+# E-flat major, C, "Allegro alla breve. Maestoso. Con grandezza".
+#
+# What is copied: the TOP VOICE of the right hand, nothing else -- bars 1-16
+# of the piece (the theme, its restatement and the high answering phrase,
+# printed page 30, systems 1-3) and the 13 bars of the closing "Grave, sempre
+# allargando" (printed page 34, systems 4-5). Where the edition doubles the
+# top voice at the octave, the upper note is the one copied. The harmony
+# (GATE_HARMONY, GATE_GRAVE_HARMONY), the bass, the orchestration, the
+# tempi and the joint between bar 16 and the Grave are OURS; the piano's
+# chords, its grace-note bass octaves, the chorale episodes and the bell
+# passage in between are not used.
+GATE_LUMP = "D_SDGATE"
+GATE_TEMPO_BPM = 100           # "Allegro alla breve. Maestoso"; the number is ours
+GATE_RIT_BPM = 84              # bar 16, ours: the breath before the Grave
+GATE_GRAVE_BPM = 60            # "Grave, sempre allargando"; the number is ours
+GATE_BEATS_PER_BAR = 4         # C, as printed
+GATE_KEY = (-3, False)         # three flats, major: E-flat major
+GATE_TONIC_PC = 3              # E-flat
+GATE_FERMATA_BEATS = 2         # what a printed fermata adds to a whole note (ours)
+GATE_MELODY = [                # printed page 30
+    [("Eb5", 4.0)],                                        # 1  f, system 1
+    [("F5", 4.0)],                                         # 2
+    [("G5", 2.0), ("Eb5", 1.0), ("G5", 1.0)],              # 3
+    [("F5", 2.0), ("Bb4", 2.0)],                           # 4  Bb doubled at the octave
+    [("G5", 1.0), ("Bb5", 1.0), ("F5", 1.0), ("Eb5", 1.0)],  # 5
+    [("D5", 2.0), ("Bb4", 2.0)],                           # 6
+    [("G5", 1.0), ("Bb5", 1.0), ("F5", 1.0), ("Eb5", 1.0)],  # 7
+    [("D5", 2.0), ("Bb4", 2.0)],                           # 8  system 2
+    [("Eb5", 4.0)],                                        # 9  the theme again
+    [("F5", 4.0)],                                         # 10
+    [("G5", 2.0), ("Eb5", 2.0)],                           # 11 Eb5 printed as two tied quarters
+    [("F5", 2.0), ("Bb4", 2.0)],                           # 12
+    [("Eb6", 1.0), ("Eb6", 1.0), ("D6", 1.0), ("Bb5", 1.0)],  # 13 octaves, the answer
+    [("C6", 1.0), ("C6", 1.0), ("Ab5", 1.0), ("C6", 1.0)],    # 14
+    [("Bb5", 2.0), ("Ab5", 1.0), ("G5", 1.0)],             # 15
+    [("F5", 4.0)],                                         # 16 mf, system 3
+]
+GATE_GRAVE = [                 # printed page 34, "Grave, sempre allargando", ff
+    [("Eb5", 4.0)],                                        # a  fermata, system 4
+    [("F5", 4.0)],                                         # b  fermata
+    [("G5", 4.0)],                                         # c
+    [("Eb5", 2.0), ("G5", 2.0)],                           # d
+    [("F5", 4.0)],                                         # e  system 5
+    [("Bb4", 4.0)],                                        # f  accent, octave Bb3
+    [("Ab5", 4.0)],                                        # g  fermata
+    [("Bb5", 4.0)],                                        # h  fermata
+    [("G6", 2.0), ("Bb4", 2.0)],                           # i  first chord printed 8va
+    [("G6", 2.0), ("Bb4", 2.0)],                           # j  first chord printed 8va
+    [("Eb4", 4.0)],                                        # k  accent, tied into l
+    [("Eb4", 4.0)],                                        # l
+    [("Eb3", 3.0), (None, 1.0)],                           # m  final chord, then the rest (fermata)
+]
+GATE_GRAVE_FERMATAS = (0, 1, 6, 7)    # bars a, b, g, h
+GATE_GRAVE_TIED = (11,)               # bar l continues bar k's Eb4: no new attack
+# Where each copied bar sits in the edition: (printed page, system, bar of system).
+GATE_SOURCE = (
+    [(30, 1, b) for b in range(1, 8)] + [(30, 2, b) for b in range(1, 9)] + [(30, 3, 1)]
+)
+GATE_GRAVE_SOURCE = [(34, 4, b) for b in range(5, 9)] + [(34, 5, b) for b in range(1, 10)]
+# OUR harmony: (beat in bar, beats, trombone voicing, bass).
+_GEB = ("G3", "Bb3", "Eb4")
+_GBB = ("F3", "Bb3", "D4")
+_GBB7 = ("F3", "Ab3", "D4")
+_GCM = ("G3", "C4", "Eb4")
+_GAB = ("Ab3", "C4", "Eb4")
+_GFM = ("F3", "Ab3", "C4")
+_GGM = ("G3", "Bb3", "D4")
+_G_PHRASE_5 = [(0, 2, _GEB, "Eb2"), (2, 1, _GBB, "D2"), (3, 1, _GCM, "C2")]   # I, V6, vi
+_G_PHRASE_6 = [(0, 2, _GBB, "Bb1"), (2, 2, _GEB, "Eb2")]                      # V, I
+GATE_HARMONY = [
+    [(0, 4, _GEB, "Eb2")],                                         # 1  I
+    [(0, 4, _GBB, "Bb1")],                                         # 2  V
+    [(0, 2, _GEB, "Eb2"), (2, 1, _GCM, "C2"), (3, 1, _GEB, "G1")],  # 3  I, vi, I6
+    [(0, 2, _GBB, "D2"), (2, 2, _GBB, "Bb1")],                     # 4  V6, V
+    _G_PHRASE_5,                                                   # 5
+    _G_PHRASE_6,                                                   # 6
+    _G_PHRASE_5,                                                   # 7
+    _G_PHRASE_6,                                                   # 8
+    [(0, 4, _GEB, "Eb2")],                                         # 9  I
+    [(0, 4, _GBB, "Bb1")],                                         # 10 V
+    [(0, 2, _GEB, "Eb2"), (2, 2, _GAB, "Ab1")],                    # 11 I, IV
+    [(0, 2, _GBB, "D2"), (2, 2, _GBB7, "Bb1")],                    # 12 V6, V7
+    [(0, 1, _GEB, "Eb2"), (1, 1, _GCM, "C2"), (2, 1, _GGM, "G1"), (3, 1, _GEB, "Eb2")],  # 13
+    [(0, 1, _GAB, "Ab1"), (1, 2, _GFM, "F2"), (3, 1, _GAB, "Ab1")],  # 14 IV, ii, IV
+    [(0, 2, _GEB, "G1"), (2, 1, _GBB7, "Bb1"), (3, 1, _GEB, "Eb2")],  # 15 I6, V7, I
+    [(0, 4, _GBB, "Bb1")],                                         # 16 V: the half close
+]
+GATE_GRAVE_HARMONY = [
+    [(0, 4, _GEB, "Eb2")],                                         # a  I
+    [(0, 4, _GBB, "Bb1")],                                         # b  V
+    [(0, 4, _GEB, "G1")],                                          # c  I6
+    [(0, 2, _GAB, "Ab1"), (2, 2, _GEB, "Eb2")],                    # d  IV, I
+    [(0, 4, _GBB, "D2")],                                          # e  V6
+    [(0, 4, _GBB7, "Bb1")],                                        # f  V7
+    [(0, 4, _GAB, "Ab1")],                                         # g  IV
+    [(0, 4, _GBB7, "Bb1")],                                        # h  V7
+    [(0, 4, _GEB, "Eb2")],                                         # i  I, the bells
+    [(0, 4, _GEB, "Eb2")],                                         # j
+    [(0, 4, _GEB, "Eb2")],                                         # k
+    [(0, 4, _GEB, "Eb2")],                                         # l
+    [(0, 3, _GEB, "Eb2")],                                         # m
+]
+GATE_TAIL_BARS = 1             # silence: the cue ends, it does not loop
+GATE_VEL_MELODY = 92
+GATE_VEL_BRASS = 70
+GATE_VEL_BASS = 84
+GATE_VEL_STRINGS = 58
+GATE_VEL_PAD = 34
+GATE_VEL_TIMPANI = 88
+GATE_VEL_BELL = 88
+GATE_MIX = {
+    "melody": (104, 70),
+    "horns": (90, 40),
+    "brass": (88, 84),
+    "bass": (96, 64),
+    "strings": (76, 44),
+    "pad": (50, 64),
+    "timpani": (96, 64),
+    "bell": (84, 92),
+}
+
+
+def gate_tempo_map(tempo_bpm: float) -> list[tuple[float, float]]:
+    """(beat, bpm) for D_SDGATE: the main tempo, bar 16's breath, the Grave."""
+    scale = tempo_bpm / GATE_TEMPO_BPM
+    bar16 = (len(GATE_MELODY) - 1) * GATE_BEATS_PER_BAR
+    grave = len(GATE_MELODY) * GATE_BEATS_PER_BAR
+    return [(0.0, tempo_bpm), (bar16 + 2.0, GATE_RIT_BPM * scale), (grave, GATE_GRAVE_BPM * scale)]
+
+
+def gate_grave_lengths() -> list[float]:
+    """Beats each Grave bar really lasts: printed 4, plus the fermata where printed."""
+    return [GATE_BEATS_PER_BAR + (GATE_FERMATA_BEATS if i in GATE_GRAVE_FERMATAS else 0)
+            for i in range(len(GATE_GRAVE))]
+
+
+def gate_end_beat() -> float:
+    return (len(GATE_MELODY) * GATE_BEATS_PER_BAR + sum(gate_grave_lengths())
+            + GATE_TAIL_BARS * GATE_BEATS_PER_BAR)
+
+
+def gate_seconds(tempo_bpm: float) -> float:
+    """Length in seconds, walking the tempo map."""
+    tempo_map = gate_tempo_map(tempo_bpm) + [(gate_end_beat(), None)]
+    return sum((b1 - b0) * 60.0 / bpm for (b0, bpm), (b1, _n) in zip(tempo_map, tempo_map[1:]))
+
+
+def build_gate(tempo_bpm: float) -> tuple[list[Track], float]:
+    """«Богатырские ворота»: bars 1-16 and the Grave. Top voice: Bessel 1886."""
+    melody = Track("melody - horn, then trumpet")
+    horns = Track("horns - an octave below from bar 9")
+    brass = Track("trombones")
+    bass = Track("tuba")
+    strings = Track("strings")
+    pad = Track("pad")
+    timpani = Track("timpani")
+    bell = Track("tubular bells - the gate's bells")
+    drums = Track("percussion")
+    tracks = [melody, horns, brass, bass, strings, pad, timpani, bell, drums]
+    ch = {"melody": 0, "horns": 1, "brass": 2, "bass": 3, "strings": 4, "pad": 5,
+          "timpani": 6, "bell": 7}
+    programs = {"melody": GM_FRENCH_HORN, "horns": GM_FRENCH_HORN, "brass": GM_TROMBONE,
+                "bass": GM_TUBA, "strings": GM_STRINGS, "pad": GM_PAD_HALO,
+                "timpani": GM_TIMPANI, "bell": GM_TUBULAR_BELLS}
+    melody.track_name("Soviet Doom - D_SDGATE (Bogatyrskie vorota, Mussorgsky, Bessel 1886)")
+    for beat, bpm in gate_tempo_map(tempo_bpm):
+        melody.tempo(beat, bpm)
+    melody.time_signature(0, GATE_BEATS_PER_BAR, 4)
+    melody.key_signature(0, *GATE_KEY)
+    _setup(tracks, ch, programs, GATE_MIX, 72)
+    drums.track_name()
+    drums.control(0, DRUM_CHANNEL, CC_VOLUME, MAP01_MIX["drums"][0])
+
+    def timp(root: str, start: float, velocity: int, length: float = 0.9) -> None:
+        # the timpani takes the root in its own range, F1-F3 (see build_title)
+        note = pitch(root)
+        while note < pitch("F1"):
+            note += 12
+        timpani.note(ch["timpani"], note, start, length, velocity)
+
+    def harmonise(chords, start: float, stretch: float, level: int, *, strings_on: bool,
+                  timpani_on: bool) -> None:
+        for at, beats, voicing, root in chords:
+            t = start + at
+            hold = (beats + stretch) * LEGATO
+            brass.chord(ch["brass"], voicing, t, hold, GATE_VEL_BRASS + level)
+            bass.note(ch["bass"], pitch(root), t, hold, GATE_VEL_BASS + level)
+            pad.chord(ch["pad"], voicing, t, hold, GATE_VEL_PAD)
+            if strings_on:
+                strings.chord(ch["strings"], tuple(pitch(n) + 12 for n in voicing), t, hold,
+                              GATE_VEL_STRINGS + level)
+            if timpani_on and at == 0:
+                timp(root, t, GATE_VEL_TIMPANI + level)
+
+    # -- bars 1-16: horns alone (1-8), then trumpet with horns below (9-12),
+    #    then the high answer with the strings on the tune (13-16)
+    for index, bar in enumerate(GATE_MELODY):
+        start = index * GATE_BEATS_PER_BAR
+        number = index + 1
+        if number == 9:
+            melody.program(start - 0.05, ch["melody"], GM_TRUMPET)
+            drums.hit(DRUM_CRASH, start, MAP01_VEL_DRUM_PULSE)
+        level = 0 if number <= 8 else (10 if number <= 12 else 16)
+        _play_bar(melody, ch["melody"], bar, start, GATE_VEL_MELODY - 10 + level, MARCATO)
+        if number >= 9:
+            _play_bar(horns, ch["horns"], bar, start, GATE_VEL_BRASS + level, MARCATO, octave=-1)
+        if number >= 13:
+            _play_bar(strings, ch["strings"], bar, start, GATE_VEL_STRINGS + level, LEGATO, octave=-1)
+        if number in (13, 14):
+            bell.note(ch["bell"], pitch(bar[0][0]) - 12, start, 2.0, GATE_VEL_BELL - 16)
+        harmonise(GATE_HARMONY[index], start, 0.0, level, strings_on=number < 13,
+                  timpani_on=(9 <= number < 16) or number in (1, 5))   # bar 16 has its roll
+    # bar 16's half close: a timpani roll swelling into the Grave (ours)
+    roll = (len(GATE_MELODY) - 1) * GATE_BEATS_PER_BAR
+    for step in range(GATE_BEATS_PER_BAR * 4):
+        timp("Bb1", roll + step * 0.25, GATE_VEL_TIMPANI - 30 + step * 2, 0.2)
+
+    # -- the Grave, tutti, ff
+    start = len(GATE_MELODY) * GATE_BEATS_PER_BAR
+    lengths = gate_grave_lengths()
+    drums.hit(DRUM_CRASH, start, MAP01_VEL_DRUM_ACCENT)
+    for index, bar in enumerate(GATE_GRAVE):
+        stretch = lengths[index] - GATE_BEATS_PER_BAR
+        level = 20
+        if index in GATE_GRAVE_TIED:
+            pass        # the tied Eb4 rings on from bar k; nothing new is struck
+        else:
+            for pitches, offset, beats, _grace in _events(bar):
+                tied = index + 1 in GATE_GRAVE_TIED
+                hold = beats + stretch + (lengths[index + 1] if tied else 0)
+                for p in pitches:
+                    octave_up = p >= pitch("C6")          # bar i, j: the printed 8va chord
+                    if octave_up:
+                        bell.note(ch["bell"], p - 12, start + offset, beats, GATE_VEL_BELL)
+                        bell.note(ch["bell"], p - 24, start + offset, beats, GATE_VEL_BELL - 10)
+                        p -= 12                           # the trumpet takes it an octave down
+                    if p < pitch("Bb3"):
+                        melody.program(start + offset - 0.05, ch["melody"], GM_FRENCH_HORN)
+                    melody.note(ch["melody"], p, start + offset, hold * LEGATO,
+                                GATE_VEL_MELODY + level - 10)
+                    horns.note(ch["horns"], p - 12, start + offset, hold * LEGATO,
+                               GATE_VEL_BRASS + level)
+        chords = GATE_GRAVE_HARMONY[index]
+        if index not in GATE_GRAVE_TIED:
+            tied = index + 1 in GATE_GRAVE_TIED
+            extra = lengths[index + 1] if tied else 0
+            harmonise(chords, start, stretch + extra, level, strings_on=True, timpani_on=False)
+        if index in GATE_GRAVE_FERMATAS or index == 0:
+            timp(chords[0][3], start, GATE_VEL_TIMPANI + level)
+        if index == len(GATE_GRAVE) - 3:              # bar k: the roll that ends it
+            for step in range(int((lengths[index] + lengths[index + 1]) * 4)):
+                timp("Eb2", start + step * 0.25, GATE_VEL_TIMPANI + 10 - step, 0.2)
+        if index == len(GATE_GRAVE) - 1:              # bar m: the last stroke and the cymbal
+            timp("Eb2", start, GATE_VEL_TIMPANI + level, 2.5)
+            drums.hit(DRUM_CRASH, start, MAP01_VEL_DRUM_ACCENT)
+            bell.note(ch["bell"], pitch("Eb4"), start, 3.0, GATE_VEL_BELL)
+        start += lengths[index]
+    return tracks, gate_end_beat()
+
+
+# =========================================================================
 # 5. Catalogue and command line
 # =========================================================================
 
@@ -1360,6 +1633,7 @@ class Piece:
     builder: object
     default_tempo: float
     where: str
+    seconds: object = None     # tempo-map aware length, for pieces that change tempo
 
 
 PIECES = {
@@ -1377,6 +1651,9 @@ PIECES = {
     "amur": Piece(AMUR_LUMP, build_amur, AMUR_TEMPO_BPM,
                   "Amurskiye volny, radio waltz, loops (D44 draft; "
                   "Kyuss op. 12, Luk'yanov edition 1909-1914, page 3)"),
+    "gate": Piece(GATE_LUMP, build_gate, GATE_TEMPO_BPM,
+                  "Bogatyrskie vorota (Great Gate of Kiev), the anthem slot, ends (D54 draft; "
+                  "top voice from Mussorgsky, Bessel 1886, harmony ours)", gate_seconds),
 }
 
 MAX_LUMP_NAME = 8              # WAD directory limit; check_pk3.py enforces it too
@@ -1395,7 +1672,7 @@ def generate(key: str, out_dir: Path, tempo: float | None, quiet: bool) -> tuple
     tracks, end_beat = piece.builder(bpm)
     path = out_dir / (piece.lump + MIDI_EXTENSION)
     size = write_midi(path, tracks, end_beat)
-    seconds = duration_seconds(end_beat, bpm)
+    seconds = piece.seconds(bpm) if piece.seconds else duration_seconds(end_beat, bpm)
     if not quiet:
         print(f"{piece.lump:<9} {path}  {size:>6} B  {int(seconds // 60)}:{seconds % 60:04.1f}"
               f"  {bpm:g} BPM  {len(tracks)} tracks")
@@ -1414,6 +1691,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="override D_SDM01 (and D_SDM01E) tempo, BPM")
     parser.add_argument("--funeral-tempo", type=float, help="override D_SDFUNR tempo, BPM")
     parser.add_argument("--amur-tempo", type=float, help="override D_SDAMUR tempo, BPM")
+    parser.add_argument("--gate-tempo", type=float,
+                        help="override D_SDGATE main tempo, BPM (the Grave scales with it)")
     parser.add_argument("--list", action="store_true", help="print the catalogue and exit")
     parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args(argv)
@@ -1425,7 +1704,7 @@ def main(argv: list[str] | None = None) -> int:
 
     tempos = {"title": args.title_tempo, "map01": args.map01_tempo,
               "map01e": args.map01_tempo, "funeral": args.funeral_tempo,
-              "amur": args.amur_tempo}
+              "amur": args.amur_tempo, "gate": args.gate_tempo}
     for key in (args.only or sorted(PIECES)):
         generate(key, args.out, tempos.get(key), args.quiet)
     return 0

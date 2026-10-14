@@ -3,6 +3,7 @@
 Living document. Owner: `sound-designer`. Russian mirror: `docs/ru/sound/SOUNDTRACK.md` (D7).
 Created 2026-10-13 (F2, first music); candidate list **closed** 2026-10-13.
 Revised 2026-10-14, **D44**: «Вы жертвою пали» and «Амурские волны» sequenced as drafts from one downloaded public-domain score each; Glinka still blocked (§6, Cards 3-5).
+Revised 2026-10-14, **D54**: Glinka dropped from the anthem slot; Mussorgsky's «Богатырские ворота» sequenced in its place as the draft `D_SDGATE`, from the 1886 Bessel edition (§6, Card 5).
 Rights frame: `docs/sound/MUSIC-RIGHTS.md` — that document owns every licence
 fact and this one owns every sound fact.
 
@@ -50,7 +51,7 @@ open recommendation of §8 accepted. What that changed, in one place:
 | **Title screen** | **`assets/music/D_SDINTL.mid`** — Engelbach's orchestral *Internationale*, head silence removed by us | **installed and wired** (D43, MAPINFO `TitleMusic`) |
 | **MAP01** | **`assets/music/D_SDM01.mid`** — our own "Zarya-7" | **installed** (D43) as it stood; the enriched version `D_SDM01E` is a draft for the CEO's ear (§6, Card 2b) |
 | **Diegetic radio** | `WM_Ej_uchnem.mid` (`D_CND09`), `WM_Kolokolchik.mid` (`D_CND12`) — CC0, already orchestrated | **settled** (D43); not installed until a map has a radio to put them in (`level-designer`) |
-| **Anthem slot** | Glinka's *Patriotic Song*, sequenced by us (`D_SDGLNK`) | **settled** (D43); **still blocked**: no reliable public-domain score of Glinka's own melody found under D44 (§6, Card 5) |
+| **Anthem slot** | ~~Glinka's *Patriotic Song* (`D_SDGLNK`)~~, dropped by **D54**: Mussorgsky's «Богатырские ворота», sequenced by us from the 1886 Bessel edition | **draft** `work/audio/D_SDGATE.mid` (D54), for the CEO's ear (§6, Card 5) |
 | **Death / aftermath** | «Вы жертвою пали», sequenced by us from Detlaf's 1905 edition | **draft** `work/audio/D_SDFUNR.mid` (D44), for the CEO's ear (§6, Card 3) |
 | **Radio waltz** | «Амурские волны» (Kyuss, 1909), sequenced by us from the 1909-1914 Vladivostok edition | **draft** `work/audio/D_SDAMUR.mid` (D44), for the CEO's ear (§6, Card 4) |
 | **Our `D_SDTITL`** | **reserved, not retired** | a finished 1:21 Soviet march in D minor, the natural intermission / episode-end cue |
@@ -87,6 +88,11 @@ SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play map01 --lump D_SDFUNR  
 SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play map01 --lump D_SDAMUR   # Амурские волны, 1:17 loop
 SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --render --expect D_SDFUNR=144 --expect D_SDAMUR=77   # arc, peak (PM only)
 
+# the D54 anthem slot, from the 1886 Bessel edition (Card 5)
+python3 tools/audio/gen_music.py --only gate                                      # -> work/audio/D_SDGATE.mid
+SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play title --lump D_SDGATE   # Богатырские ворота, 1:43, ends
+SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --render --expect D_SDGATE=103 # arc, peak (PM only)
+
 # our title march, now proposed for the intermission instead
 SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play title --lump D_SDTITL
 
@@ -116,7 +122,7 @@ The five tools, all of them mine, all documented in their own docstrings:
 | `tools/audio/audition.py` | packs the overlay; `--play` launches the game, `--render` makes GZDoom synthesise every file to WAV | `work/audio/`, `logs/` |
 | `tools/audio/wav_report.py` | measures a render: peak, clipping, head/tail silence, the 12-slot loudness arc, brightness | nothing |
 | `tools/audio/midi_edit.py` | the only one that changes a MIDI, and only mechanically: `--trim-head`, `--velocity`, `--loop-tail` | a new file, never in place |
-| `tools/audio/gen_music.py` | generates our own pieces (plan B, §6) and, since D44, the two tunes sequenced from downloaded public-domain scores (Cards 3-4) | `work/audio/*.mid` |
+| `tools/audio/gen_music.py` | generates our own pieces (plan B, §6) and, since D44 and D54, the three tunes sequenced from downloaded public-domain scores (Cards 3-5) | `work/audio/*.mid` |
 
 ---
 
@@ -554,7 +560,7 @@ three lists stay the same length); cellos muddy under the ostinato → drop
 needs the engine (D26). The PM's render command is in §1; it would give the
 arc and peak the other cards carry.
 
-### Cards 3-5 — the three pieces D43 asks us to sequence (D44: two sequenced, one blocked)
+### Cards 3-5 — the three pieces D43 asks us to sequence (D44: two sequenced; D54: the third replaced and sequenced)
 
 D43 decided that we sequence «Вы жертвою пали» and «Амурские волны»
 ourselves, and that Glinka's *Patriotic Song* takes the anthem slot. Until
@@ -563,20 +569,23 @@ public-domain tune means copying its notes from a score, and writing them
 from memory would ship something that merely *resembles* the tune under its
 name. **D44** (CEO, 2026-10-14) authorised one public-domain score download
 per piece. Result: **two scores found, downloaded and sequenced; no reliable
-score of Glinka's melody exists in reach, so `D_SDGLNK` is still not
-written.** Every file, URL, licence, size and SHA-256 is `MUSIC-RIGHTS.md`
-§4.6; this card owns the sound.
+score of Glinka's melody exists in reach, so `D_SDGLNK` was never
+written.** **D54** (CEO, 2026-10-14) dropped Glinka: *"busca alternativa,
+cambiamos pieza musical y ya"*. The anthem slot now holds Mussorgsky's
+«Богатырские ворота», sequenced from one more downloaded score (Card 5).
+Every file, URL, licence, size and SHA-256 is `MUSIC-RIGHTS.md` §4.6; this
+card owns the sound.
 
-| | «Вы жертвою пали» | «Амурские волны» | *Патриотическая песня* |
+| | «Вы жертвою пали» | «Амурские волны» | «Богатырские ворота» (was *Патриотическая песня*) |
 |---|---|---|---|
-| **Cue** | death / aftermath / episode end — **ends, does not loop** | diegetic radio, a quiet room — **loops** | the anthem slot (D43) |
-| **Lump (draft)** | `D_SDFUNR` → `work/audio/D_SDFUNR.mid` | `D_SDAMUR` → `work/audio/D_SDAMUR.mid` | `D_SDGLNK` — **not written** |
-| **Score** | Detlaf, Moscow, censored 9 Nov 1905 (`MUSIC-RIGHTS.md` §4.6.1) | Kyuss op. 12, Luk'yanov, Vladivostok, plate 2239, 1909-1914 (§4.6.2) | **none reliable** (§4.6.3) |
-| **Generator** | `gen_music.py --only funeral` (`build_funeral`) | `gen_music.py --only amur` (`build_amur`) | — |
-| **Status** | **draft for the CEO's ear** | **draft for the CEO's ear** | **blocked** |
+| **Cue** | death / aftermath / episode end — **ends, does not loop** | diegetic radio, a quiet room — **loops** | the anthem slot (D43, D54) — **ends, does not loop** |
+| **Lump (draft)** | `D_SDFUNR` → `work/audio/D_SDFUNR.mid` | `D_SDAMUR` → `work/audio/D_SDAMUR.mid` | `D_SDGATE` → `work/audio/D_SDGATE.mid` (`D_SDGLNK` never written) |
+| **Score** | Detlaf, Moscow, censored 9 Nov 1905 (`MUSIC-RIGHTS.md` §4.6.1) | Kyuss op. 12, Luk'yanov, Vladivostok, plate 2239, 1909-1914 (§4.6.2) | Mussorgsky, Bessel, St Petersburg, plate 1560, 1886, ed. Rimsky-Korsakov (§4.6.4); Glinka: none reliable (§4.6.3) |
+| **Generator** | `gen_music.py --only funeral` (`build_funeral`) | `gen_music.py --only amur` (`build_amur`) | `gen_music.py --only gate` (`build_gate`) |
+| **Status** | **draft for the CEO's ear** | **draft for the CEO's ear** | **draft for the CEO's ear** (D54) |
 
-Neither draft is in `assets/`; that waits for the CEO. Neither has been
-heard in the engine (D26): the PM's commands are in §1.
+None of the three drafts is in `assets/`; that waits for the CEO. None has
+been heard in the engine (D26): the PM's commands are in §1.
 
 #### Card 3 — `D_SDFUNR`, «Вы жертвою пали» — **draft (D44)**
 
@@ -648,17 +657,74 @@ note is read B natural, from the natural sign printed before it.
 **Knobs:** `AMUR_TEMPO_BPM`; `AMUR_PASSES = 1` for a 38-second loop; the
 melody instrument, `GM_CLARINET` in `build_amur`.
 
-#### Card 5 — `D_SDGLNK`, Glinka's *Patriotic Song* — **blocked: no reliable public-domain score**
+#### Card 5 — `D_SDGATE`, «Богатырские ворота» — **draft (D54)**; Glinka dropped
 
-Nothing was downloaded and nothing was written. The only notation within
-reach is the 1990-2000 **anthem** melody (two Commons files, one an "own
-work" SVG, one a GIF from a modern anthem site), and nothing ties those notes
-to Glinka's 1833 *Motif de chant national* rather than to the 1944
-orchestration by Mikhail Bagrinovsky (protected to 2037) that the anthem
-comes from. The translator's warning about the SVG was right. Full search
-and what would unblock it: `MUSIC-RIGHTS.md` §4.6.3. The plan, for when a
-score exists, is unchanged: brass and timpani, festive maestoso, the theme
-stated twice and a cadence, about 1:30.
+**Glinka is dropped (D54).** The *Patriotic Song* never had a reliable
+public-domain score of its 1833 melody in reach (`MUSIC-RIGHTS.md` §4.6.3),
+so `D_SDGLNK` was never written; the CEO's call on 2026-10-14 was to change
+the piece. The slot keeps its job: **the state's own voice** where the USSR
+anthem would play — a victory, an award, the triumphant end of an episode —
+festive *maestoso*, brass and timpani, about a minute and a half, a cue that
+**ends**. The plan the old card set for Glinka (the theme stated twice and a
+cadence) carries over.
+
+**The alternatives, weighed for that job.** Rights for each are
+`MUSIC-RIGHTS.md` §4.6.5; this table is the sound side.
+
+| Candidate | What it does in the slot | Score an agent can download | Verdict |
+|---|---|---|---|
+| **«Богатырские ворота»** (Mussorgsky, *Pictures* No. 10, 1874) | a hymn in E-flat, *Allegro alla breve, Maestoso, con grandezza*, written in whole- and half-note chords: brass-band writing in piano dress. The theme comes twice, then a high answering phrase; the piece already contains bells; and its *Grave* gives a real ending, not a fade. Its one weakness for 1977: it is concert music, not a song a parade would sing | **yes** (Bessel 1886, Commons) | ✅ **chosen** |
+| **«Славься»** (Glinka, *A Life for the Tsar*, 1836) | the closest fit of all: literally a chorus of glory to the state, and in the USSR it was the finale of the opera in its Soviet form, *Ivan Susanin* (Gorodetsky's 1939 libretto). Instrumental, the tsarist words never reach the player | **no**: the clean edition is behind IMSLP's CAPTCHA, the other over 20 MB | ⚠️ the swap to make if the CEO prefers it: rights clean, one file for the PM to download by hand |
+| **«Слава»** (Borodin, *Prince Igor* prologue) | festive, but barely known as a tune; a chorus over orchestra, harder to reduce to a brass hymn | **no** (IMSLP only) | ⚠️ reserve |
+| **«Смело, товарищи, в ногу»** (Radin, 1897) | the most Soviet in tone, but a revolutionary march-song, not a hymn of state | **no PD edition found** | ❌ |
+| **«Русская Марсельеза»** (Detlaf, 1905) | the tune is *La Marseillaise*: any player outside Russia hears France. And it was the Provisional Government's anthem in 1917, which Soviet ideology filed as bourgeois | yes | ❌ |
+| «Прощание славянки» (Agapkin, 1912) | it would be perfect | — | ❌ protected in Russia until 2039 (§4.6.5) |
+
+| Field | Value |
+|---|---|
+| **File** | `work/audio/D_SDGATE.mid`, 5 728 B, SMF format 1, 9 tracks, 480 ticks/beat; key signature E-flat major (three flats) and C (4/4) written into the file, as printed |
+| **Duration · tempo** | **1:42.6**, and it ends: bars 1-16 at 100 BPM (the edition: *Allegro alla breve, Maestoso*; the number is ours), the last two beats of bar 16 at 84, the Grave at 60 with its four fermatas held two extra beats, one silent bar |
+| **Notes copied** | the **top voice of the right hand**, as printed: bars 1-16 (`GATE_MELODY`) and the 13 bars of the closing *Grave, sempre allargando* (`GATE_GRAVE`), with the edition's ties and fermatas. Where the top voice is doubled at the octave, the upper note is the one copied |
+| **Ours** | the harmony (`GATE_HARMONY`, `GATE_GRAVE_HARMONY`: I, V, vi, IV, ii, V7 in E-flat), the bass, the orchestration, the tempi, and the joint from bar 16 straight into the Grave (the edition has the chorale, the bell passage and the return in between: **not copied**). The piano's own chords and its grace-note bass octaves are not used |
+| **Orchestration** | the `D_SDM01` palette (named mix, reverb send 72, the pad halo as a faint bed). Bars 1-8: French horn on the tune over trombones, tuba and strings, timpani on bars 1 and 5. Bar 9, where the theme comes back: the tune passes to trumpet with horns an octave below, crash, timpani every bar. Bars 13-16, the high answer: strings double the tune an octave down, tubular bells on bars 13 and 14, a timpani roll swelling through bar 16 into the Grave. Grave: tutti *ff*, crash on its first chord; the edition's *8va* chords of bars i-j go to the **tubular bells at pitch** (the gate's bells) with the trumpet an octave down; the final E-flat under a long timpani roll, a last stroke, cymbal and bell |
+| **Measured** | 606 notes, 8 GM programs plus percussion, **zero hanging notes** and nothing re-struck while it still sounds (`midi_inspect.py`, `tests/test_music_d54.py`); not yet rendered by GZDoom (D26) |
+| **Licence · rights** | composition PD (Mussorgsky d. 1881, published 1886); edition PD (Rimsky-Korsakov d. 1908); our sequencing CC BY-NC-SA 4.0 (D15); no lyric, no phonogram (`MUSIC-RIGHTS.md` §4.6.4) |
+
+**Which bar of the edition each phrase comes from.** Bessel 1886, plate
+1560: No. 10 starts on printed page 30 (scan page 31); the Grave is the end
+of printed page 34 (scan page 35). "Bar" is the bar of that system.
+
+| Phrase | Copied bars | Printed page · system, bars | Top voice |
+|---|---|---|---|
+| The theme, *f* | 1-8 | p. 30 · 1, bars 1-7; p. 30 · 2, bar 1 | Eb (w) / F (w) / G (h) Eb G / F (h) Bb (h) / G Bb F Eb / D (h) Bb (h) / G Bb F Eb / D (h) Bb (h) |
+| The theme again | 9-12 | p. 30 · 2, bars 2-5 | Eb / F / G (h) Eb (h, two tied quarters) / F (h) Bb (h) |
+| The high answer, in octaves | 13-16 | p. 30 · 2, bars 6-8; p. 30 · 3, bar 1 (*mf*) | Eb6 Eb6 D6 Bb5 / C6 C6 Ab5 C6 / Bb5 (h) Ab5 G5 / F5 (w) |
+| Grave, *ff*, the theme augmented | a-d | p. 34 · 4, bars 5-8 | Eb (w, fermata) / F (w, fermata) / G (w) / Eb (h) G (h) |
+| Grave, the close | e-m | p. 34 · 5, bars 1-9 | F (w) / Bb4 (w, accent) / Ab5 (w, fermata) / Bb5 (w, fermata) / G6 *8va* (h) Bb4 (h) / the same / Eb4 (w, tied) / Eb4 (w) / Eb3 (dotted h), rest |
+
+So the melody is diatonic E-flat major from the first note to the last: the
+edition prints no accidental in the copied voice (tested), and both the
+theme and the Grave open on the tonic and the piece ends on it.
+
+**Readings to know about**, where the scan is soft or the choice is ours:
+the first half of bars 6 and 8 is read **D5** (its top head sits between
+the D and E-flat positions, nearer D, and the bass under it is D); bar 11's
+second half is printed as two quarters tied, E-flat to E-flat, and is
+played as one half note; bars i and j print their first chord *8va*, copied
+as G6 and given to the bells; the Grave's fermatas (bars a, b, g, h) are
+held two beats longer, which is our reading of a fermata, not the
+edition's. The notes were read off Wikimedia's renders of the downloaded
+PDF, because its images are JBIG2 (`MUSIC-RIGHTS.md` §4.6.4).
+
+**Knobs:** `GATE_TEMPO_BPM` (the Grave scales with it: `--gate-tempo`);
+`GATE_GRAVE_BPM` alone for a shorter or longer close; `GATE_FERMATA_BEATS`;
+the melody instrument, `GM_FRENCH_HORN` / `GM_TRUMPET` in `build_gate`; the
+bells, `GATE_VEL_BELL`.
+
+**If the CEO would rather have «Славься»:** the PM downloads one file by
+hand (IMSLP, `PMLP26589-Glinka-ZhisnVSa5.pdf`, 6 491 982 B, Public Domain;
+`MUSIC-RIGHTS.md` §4.6.5) into its own folder under `work/audio/scores/`,
+and it is sequenced the same way.
 
 ### How plan B was verified
 
@@ -750,9 +816,10 @@ items as they stood, and what each became:
 4. **Diegetic radio — `WM_Ej_uchnem.mid` and `WM_Kolokolchik.mid`, both CC0,
    SETTLED.** They wait for a map with a radio (§7, `level-designer`).
 5. **Sequence «Вы жертвою пали» and «Амурские волны» ourselves — YES.**
-   **Sequenced under D44 as drafts** (§6 Cards 3-4); Glinka still
-   blocked on a score (Card 5). Glinka's *Patriotic Song* takes the anthem slot (rights
-   side: `MUSIC-RIGHTS.md` §7.1), also sequenced by us.
+   **Sequenced under D44 as drafts** (§6 Cards 3-4). Glinka's *Patriotic
+   Song* was to take the anthem slot (rights side: `MUSIC-RIGHTS.md` §7.1);
+   no reliable score of it was found, and **D54 replaced it with «Богатырские
+   ворота»**, sequenced by us as the draft `D_SDGATE` (Card 5).
    **Excluded:** every work free in Russia but restored in the United States,
    «Священная война» above all (`MUSIC-RIGHTS.md` §5(b)).
 6. **The three discards — CONFIRMED and removed**: `D_CND02` (German fugue),
@@ -760,9 +827,8 @@ items as they stood, and what each became:
    `D_CND05` and `D_CND07` stay as named reserves. `work/audio/candidates/` is
    tracked in git (D43).
 
-**Open for the CEO's ear:** the enriched `D_SDM01E` (Card 2b), and since
-D44 the two sequenced drafts `D_SDFUNR` and `D_SDAMUR` (Cards 3-4); one
-command each in §1. **Open for the PM or the CEO:** Glinka (Card 5) — no
-reliable public-domain score of the 1833 melody was found; it needs a
-facsimile of the autograph or a decision on the anthem slot
-(`MUSIC-RIGHTS.md` §4.6.3).
+**Open for the CEO's ear:** the enriched `D_SDM01E` (Card 2b), since
+D44 the two sequenced drafts `D_SDFUNR` and `D_SDAMUR` (Cards 3-4), and
+since D54 the anthem-slot draft `D_SDGATE` (Card 5); one command each in
+§1. Glinka is closed (D54). If the CEO prefers «Славься» to the Gate, that
+is one IMSLP file for the PM to download by hand (Card 5).
