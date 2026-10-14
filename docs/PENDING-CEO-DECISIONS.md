@@ -5,21 +5,13 @@ how much each item unblocks. What closed since the previous update is listed
 at the end so nothing is lost. Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md`
 (synced at phase close, D34).
 
-## 0. Walk the campaign (M1's last gate)
-
-MAP01 -> metro -> Танкоград -> the end text pass the scripted routes in the
-engine with zero log errors (commit 16427a7). M1 closes when you walk it from
-New Game without being told the route. Tankograd v1.1 has the hand Katyusha
-in a secret behind the lockers, a molten channel that hurts, and a supply
-room the General's death opens (D68).
-
 ## 1. Waiting for your eyes
 
 Previews are sent to you as files; the paths are under `docs/art/previews/`.
 
 | What | Preview | Asks [PM's recommendation] |
 |---|---|---|
-| Doughboy C with the bigger flag (D67) | `2026-10-14_2132_F5_doughboy-C-big-flag.html` | approve -> install `SDDB` |
+| The General, design sweep (N12) | `2026-10-14_2208_F5_general-sweep.html` | pick a cell [C: the field gun on his shoulder fires while he points; combinable with B's face or D's flag cloak] |
 | Hands for the other weapons | Fooocus, your images in `work/art/reference/` | the ice axe first; the PM processes them like the Lenin poster |
 
 ## 2. Waiting for your ears
@@ -46,7 +38,7 @@ Nothing else open here since D69.
 
 ## Closed since the previous update (for the record)
 
-D69 (2026-10-14): the licence texts may be downloaded (done by the PM); the Lenin slogan closes as shipped («ЛЕНИН ЖИВ»); mining Freedoom's maps waits for the full-game phase; Ultimate Doom Builder is of interest (backlog N15). D44-D68 (2026-10-14): the Stalin poster 4C «СЛАВА СТАЛИНУ!» in the metro's secret shelter; the hound, rifleman, Stormtrooper, Legion, Panzermensch and Schwer installed; palette v2 for the mosaic and marble; Freedoom-based hands (D61) and the TT-33 in them; the map renumbering (D62); roadmap and backlog (D63); pipeline stage 6 (D64); the 21 Tankograd textures (D66); Tankograd's secret, damage and reward (D68). Details in `docs/PRD.md`.
+D70 (2026-10-14): M1 passed, the CEO walked the campaign; the Doughboy with the bigger flag approved. D69 (2026-10-14): the licence texts may be downloaded (done by the PM); the Lenin slogan closes as shipped («ЛЕНИН ЖИВ»); mining Freedoom's maps waits for the full-game phase; Ultimate Doom Builder is of interest (backlog N15). D44-D68 (2026-10-14): the Stalin poster 4C «СЛАВА СТАЛИНУ!» in the metro's secret shelter; the hound, rifleman, Stormtrooper, Legion, Panzermensch and Schwer installed; palette v2 for the mosaic and marble; Freedoom-based hands (D61) and the TT-33 in them; the map renumbering (D62); roadmap and backlog (D63); pipeline stage 6 (D64); the 21 Tankograd textures (D66); Tankograd's secret, damage and reward (D68). Details in `docs/PRD.md`.
 
 The ice axe replaces the shovel (D40). MAP02 ships as a practice range (D41; the lump `RANGE` since D62). Every music recommendation of SOUNDTRACK §8, accepted (D43). Title screen and intermission (D18). Switch texture: all four variants
 approved and installed (D25). Music model and La Internacional (D23).
