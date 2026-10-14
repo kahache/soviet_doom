@@ -7,6 +7,8 @@ Run with the project venv:
     ... gen_general.py --no-sheet                sprites, lineups and metrics only
     ... gen_general.py --only A                  one cell's sprites (a quick look, no sheet)
     ... gen_general.py --turnaround              D71: cell CD (C's front, D's back) turned round, its sheet
+    ... gen_general.py --full --jobs 6           D72: CD's full set (81 SDGN + 5 SDGL), GIFs, its sheet
+    ... gen_general.py --full --frames P         a few frames only, for a quick look (no sheet)
 
 What this is. The General (`SD_General`, sprite `SDGN`, BESTIARY §9) is the
 last enemy still wearing Freedoom (CYBR, the Cyberdemon). He is MAP03's
@@ -84,7 +86,7 @@ import datetime as dt
 import html
 import json
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import numpy as np
@@ -96,7 +98,8 @@ if str(ART_TOOLS) not in sys.path:
 
 import artlib  # noqa: E402
 import gen_enemy as flat  # noqa: E402  (light stand-in, far view, silhouette, luma)
-import gen_heavy as heavy  # noqa: E402  (draft writer, approved-sprite reader, silhouette tiles)
+import gen_heavy as heavy  # noqa: E402  (draft writer, approved-sprite reader, silhouette tiles, settling)
+import gen_hound as hound  # noqa: E402  (zs reader, pools, crops, GIF runs)
 import gen_legion as legion  # noqa: E402  (the Legion's table: chrome, flesh_pink; its flag colours)
 import palette as palgen  # noqa: E402
 import rig_core as core  # noqa: E402
@@ -359,6 +362,23 @@ class Pose:
     twist: float = 0.0          # degrees about the waist; - brings his RIGHT shoulder forward
     swing_r: float = 0.0        # degrees the right pennant swings out of the raised arm's way
     fire: bool = False
+    # The full set's posing (D72); every default leaves the sweep's and the
+    # turnaround's figure exactly as it was.
+    bob: float = 0.0            # units the hips (and all above them) move up (+) or down (-): knees bend
+    lean: float = 0.0           # degrees about the waist, chest and head only; + tips him back
+    head_pitch: float = 0.0     # degrees about the neck; + tips the head back (chin up)
+    head_turn: float = 0.0      # degrees about the neck; + turns the face to his left
+    hem_tilt: float = 0.0       # degrees the coat's skirt swings about the waist; + hem forward
+    hem_roll: float = 0.0       # degrees it swings sideways; + hem to his right
+    cloak_swing: float = 0.0    # degrees CD's cloak (its lower half) trails; + hem backward
+    swing_l: float = 0.0        # degrees the left pennant swings out of the raised arm's way
+    pole_l: tuple | None = None     # the elbows' bend direction, when the default does not fit the pose
+    pole_r: tuple | None = None
+    no_cap: bool = False        # the death: the cap has come off (drawn apart, see death_model)
+    no_sgun: bool = False       # ... and the field gun off his shoulder
+    sgun_knock: float = 0.0     # degrees the field gun is knocked up on its cradle (the death's I)
+    coat_flat: bool = False     # the dead: the coat's skirt collapses (no tent over the legs)
+    spread: bool = False        # the dead: the cloak lies spread under him instead of hanging
 
 
 ANKLE_Y = 3.6
@@ -387,7 +407,11 @@ HEM_Y, HEM_R, COAT_KZ, COAT_Z = 21.0, 18.5, 0.80, -0.6   # the flare: the coat e
 HEAD_C, HEAD_R = (0.0, 84.6, 0.8), (5.3, 6.4, 5.7)
 NECK = V(0.0, 77.0, 0.0)
 WAIST = V(0.0, WAIST_Y, 0.0)
-UPPER = {"upper", "arm", "head", "cap", "pen_l", "pen_r", "gun", "cape"}
+UPPER = {"upper", "arm", "head", "cap", "pen_l", "pen_r", "gun", "cape", "coat", "sgun", "cape_lo", "spread"}
+# What the waist's lean moves: the chest, arms and head, not what hangs from
+# the waist (the coat's skirt and the cloak's lower half keep hanging).
+LEAN = UPPER - {"coat", "cape_lo", "spread"}
+CLOAKS = {"cape", "cape_lo"}
 FLASH_SIZE = 9.0                # his salvo's flash: half again the rifle's 6
 CAPE_Y0, CAPE_Y1 = 20.0, 75.5
 CAPE_R0, CAPE_R1, CAPE_KZ, CAPE_Z, CAPE_BACK = 21.5, 15.5, 0.85, -1.0, -2.2
@@ -410,10 +434,14 @@ def torso_z(x: float, y: float) -> float:
     return TORSO_KZ * float(np.sqrt(max(r * r - x * x, 0.0))) + TORSO_Z
 
 
-def coat_front(y: float) -> float:
+def coat_r(y: float) -> float:
+    """The greatcoat skirt's radius (across) at height y."""
+    return HEM_R + (TORSO_R0 + 1.2 - HEM_R) * (y - HEM_Y) / (WAIST_Y + 1.0 - HEM_Y)
+
+
+def coat_front(y: float, kz: float = COAT_KZ, z: float = COAT_Z) -> float:
     """The greatcoat skirt's front surface at height y (x = 0)."""
-    r = HEM_R + (TORSO_R0 + 1.2 - HEM_R) * (y - HEM_Y) / (WAIST_Y + 1.0 - HEM_Y)
-    return COAT_KZ * r + COAT_Z
+    return kz * coat_r(y) + z
 
 
 def gun_axes(aim, aim_up) -> tuple[np.ndarray, np.ndarray]:
@@ -423,10 +451,11 @@ def gun_axes(aim, aim_up) -> tuple[np.ndarray, np.ndarray]:
     return u, v
 
 
-def model(cell: Cell, frame: str = "A") -> tuple[list[core.Prim], dict]:
+def model(cell: Cell, frame: str = "A", pose: Pose | None = None) -> tuple[list[core.Prim], dict]:
     """The General as rig_core primitives in model space, posed. Returns
-    (prims, anchors); anchors["muzzle"] is where the salvo leaves."""
-    pose = POSES[frame]
+    (prims, anchors); anchors["muzzle"] is where the salvo leaves. `pose`
+    overrides POSES[frame] (the full set)."""
+    pose = POSES[frame] if pose is None else pose
     P: list[core.Prim] = []
     anch: dict = {}
     E, RC, CC, BX = core.ellipsoid, core.rcone, core.ccone, core.box
@@ -443,8 +472,10 @@ def model(cell: Cell, frame: str = "A") -> tuple[list[core.Prim], dict]:
     # ---------------------------------------------------------------- legs
     for side, foot, grp in ((core.LEFT, pose.foot_l, "leg_l"), (core.RIGHT, pose.foot_r, "leg_r")):
         start = len(P)
-        hip = V(side * HIP_X, HIP_Y, 0.0)
+        hip = V(side * HIP_X, HIP_Y + pose.bob, 0.0)
         knee, ankle = core.two_bone(hip, V(*foot), THIGH, SHIN, V(0, 0, 1))
+        s = "l" if side == core.LEFT else "r"
+        anch[f"hip_{s}"], anch[f"knee_{s}"], anch[f"ankle_{s}"] = (hip, grp), (knee, grp), (ankle, grp)
         add(grp, RC("greatcoat", 0.55, hip, knee, 5.2, 4.3))                                  # breeches (under the coat)
         add(grp, RC("boot_polish", 0.6, knee + V(0, 1.2, 0), ankle + V(0, 1.4, 0), 4.0, 3.2))   # riding boot
         add(grp, RC("boot_polish", 0.6, knee + V(0, 0.4, 0), knee + V(0, 2.4, 0.2), 4.5))      # its top
@@ -452,17 +483,17 @@ def model(cell: Cell, frame: str = "A") -> tuple[list[core.Prim], dict]:
         label(start, "leg", side)
 
     # ---------------------------------------------------------------- coat
-    add("upper", CC("greatcoat", 0.62, HEM_Y, WAIST_Y + 1.0, HEM_R, TORSO_R0 + 1.2, kz=COAT_KZ, z=COAT_Z,
-                    tag="coat"))
-    add("upper", RC("cap_band", 0.2, V(0, HEM_Y + 0.6, coat_front(HEM_Y + 0.6) - 0.15),
-                    V(0, WAIST_Y - 1.5, coat_front(WAIST_Y - 1.5) - 0.15), 0.55))            # the coat's opening
+    ckz, cz = (DEAD_COAT_KZ, DEAD_COAT_Z) if pose.coat_flat else (COAT_KZ, COAT_Z)
+    add("coat", CC("greatcoat", 0.62, HEM_Y, WAIST_Y + 1.0, HEM_R, TORSO_R0 + 1.2, kz=ckz, z=cz, tag="coat"))
+    add("coat", RC("cap_band", 0.2, V(0, HEM_Y + 0.6, coat_front(HEM_Y + 0.6, ckz, cz) - 0.15),
+                   V(0, WAIST_Y - 1.5, coat_front(WAIST_Y - 1.5, ckz, cz) - 0.15), 0.55))   # the coat's opening
     for sx in (-1, 1):                                                                       # two fold lines
         a = V(sx * 8.5, HEM_Y + 1.0, 0)
         b = V(sx * 5.0, WAIST_Y - 6.0, 0)
         for p in (a, b):
-            r = HEM_R + (TORSO_R0 + 1.2 - HEM_R) * (p[1] - HEM_Y) / (WAIST_Y + 1.0 - HEM_Y)
-            p[2] = COAT_KZ * float(np.sqrt(max(r * r - p[0] * p[0], 0.0))) + COAT_Z - 0.3
-        add("upper", RC("greatcoat", 0.42, a, b, 0.6, 0.35))
+            r = coat_r(p[1])
+            p[2] = ckz * float(np.sqrt(max(r * r - p[0] * p[0], 0.0))) + cz - 0.3
+        add("coat", RC("greatcoat", 0.42, a, b, 0.6, 0.35))
     add("upper", CC("belt", 0.45, WAIST_Y - 1.6, WAIST_Y + 1.6, TORSO_R0 + 1.5, TORSO_R0 + 1.4, kz=0.76,
                     z=TORSO_Z, tag="belt"))
     add("upper", BX("chrome", 0.65, (0, WAIST_Y, (TORSO_R0 + 1.5) * 0.76 + TORSO_Z + 0.3), (2.1, 1.5, 0.45)))
@@ -531,6 +562,28 @@ def model(cell: Cell, frame: str = "A") -> tuple[list[core.Prim], dict]:
         add("head", E("void", 0.2, (-4.5, 83.3, 9.9), (1.2, 0.3, 1.2)))
 
     # ----------------------------------------------------------------- cap
+    if not pose.no_cap:
+        _cap(add)
+    anch["neck"] = (NECK.copy(), "head")
+    anch["head_top"] = (V(0.0, HEAD_C[1] + HEAD_R[1], HEAD_C[2]), "head")
+    anch["cap_c"] = (V(0.0, 91.0, 0.8), "cap")
+
+    # ------------------------------------------------------------ shoulders
+    _shoulders(cell, pose, add, anch)
+
+    # --------------------------------------------------------------- arms
+    _arms_and_weapon(cell, pose, add, label, anch, P)
+
+    # ------------------------------------------------------------- posing
+    _pose(cell, pose, P, anch)
+    even_light(P, GN_MATERIALS)
+    return P, anch
+
+
+def _cap(add) -> None:
+    """The peaked cap: band, a crown whose front rises, the eagle, the
+    patent-leather peak with its braid, the chin cord."""
+    E, RC, CC = core.ellipsoid, core.rcone, core.ccone
     add("cap", CC("cap_band", 0.5, 87.4, 91.0, 6.25, 6.45, kz=0.98, z=0.8))
     crown_pivot = V(0, 91.0, 0.8)
     crown_tilt = core.rot_x(13.0)               # the front of the crown rises: the officer's saddle
@@ -545,7 +598,10 @@ def model(cell: Cell, frame: str = "A") -> tuple[list[core.Prim], dict]:
     for sx in (-1, 1):                                                                       # chin cord
         add("cap", RC("braid", 0.7, V(sx * 6.1, 89.2, 2.4), V(0, 89.2, 7.3), 0.45))
 
-    # ------------------------------------------------------------ shoulders
+
+def _shoulders(cell: Cell, pose: Pose, add, anch: dict) -> None:
+    """Pauldrons, epaulettes and their fringe, the pennants, the cloak."""
+    E, RC, BX = core.ellipsoid, core.rcone, core.box
     sx_, sy_, sz_ = SHOULDER
     for side in (core.LEFT, core.RIGHT):
         c = V(side * (sx_ + 0.8), sy_ + 0.2, sz_)
@@ -567,13 +623,21 @@ def model(cell: Cell, frame: str = "A") -> tuple[list[core.Prim], dict]:
             add(grp, RC("braid", 0.66, centre + R @ V(0, 7.6, 0), V(side * 17.0, sy_ + 1.8, sz_ + 3.0), 0.4))
             anch[f"hinge_{grp}"] = (centre + V(0, 7.6, 0), grp)
     if cell.flags in ("cloak", "both"):                                                      # D, CD: the cloak
-        _cloak(add, fit=cell.flags == "both")
+        if pose.spread:
+            _spread_cloak(add)
+        else:
+            _cloak(add, fit=cell.flags == "both")
 
-    # --------------------------------------------------------------- arms
+
+def _arms_and_weapon(cell: Cell, pose: Pose, add, label, anch: dict, P: list) -> None:
+    """The arms by two-bone IK to the pose's wrists, the gloves, the weapon."""
+    E, RC, BX = core.ellipsoid, core.rcone, core.box
+    sx_, sy_, sz_ = SHOULDER
     u, v = gun_axes(pose.aim, pose.aim_up)
     grips = {core.LEFT: V(*pose.hand_l), core.RIGHT: V(*pose.hand_r)}
-    poles = {core.LEFT: V(1.0, -0.2, -0.3),
-             core.RIGHT: V(-0.6, -1.0, 0.0) if pose.fire else V(-0.4, 0.0, -1.0)}
+    poles = {core.LEFT: V(*pose.pole_l) if pose.pole_l else V(1.0, -0.2, -0.3),
+             core.RIGHT: V(*pose.pole_r) if pose.pole_r else
+             (V(-0.6, -1.0, 0.0) if pose.fire else V(-0.4, 0.0, -1.0))}
     for side in (core.LEFT, core.RIGHT):
         start = len(P)
         sh = V(side * sx_, sy_, sz_)
@@ -603,28 +667,62 @@ def model(cell: Cell, frame: str = "A") -> tuple[list[core.Prim], dict]:
         add("gun", RC("belt", 0.5, at(-4.0), at(9.5), 0.6))
         for s_ in (-4.0, 9.5):
             add("gun", E("chrome", 0.7, tuple(at(s_)), (0.95, 0.95, 0.95)))
-        gx, gy = -(sx_ + 0.8), sy_ + 7.4
-        add("upper", BX("gunmetal", 0.5, (gx, sy_ + 4.8, -1.0), (2.8, 1.8, 4.2), rnd=0.6))  # cradle
-        add("upper", E("chrome", 0.6, (gx, gy, -10.6), (3.8, 3.8, 4.4)))                     # breech
-        add("upper", RC("chrome", 0.66, V(gx, gy, -10.0), V(gx, gy + 0.6, 21.0), 2.6, 2.2))  # barrel
-        add("upper", RC("gunmetal", 0.45, V(gx, gy + 0.1, -2.0), V(gx, gy + 0.25, 6.0), 3.1))  # recoil sleeve
-        add("upper", RC("gunmetal", 0.5, V(gx, gy + 0.55, 19.6), V(gx, gy + 0.6, 22.6), 3.0))  # muzzle brake
-        add("upper", E("slot", 0.0, (gx, gy + 0.6, 25.4), (1.3, 1.3, 0.5)))                   # the bore, end on
-        anch["muzzle"] = (V(gx, gy + 0.6, 26.4), "upper")      # past the brake's rounded end, or the flash hides
+        anch["stick_tip"] = (at(9.5), "gun")
+        if not pose.no_sgun:
+            start = len(P)
+            _field_gun(add, anch)
+            if pose.sgun_knock:             # knocked up on its cradle, about the cradle's back
+                core.transform(P[start:], anch, {"sgun"}, core.rot_x(-pose.sgun_knock) @ core.rot_z(8.0),
+                               SGUN_CRADLE)
+        else:
+            anch["muzzle"] = (anch["shoulder_r"][0].copy(), "upper")
 
-    # ------------------------------------------------------------- posing
-    if pose.swing_r and "hinge_pen_r" in anch:
-        hinge = anch["hinge_pen_r"][0]
-        core.transform(P, anch, {"pen_r"}, core.rot_z(pose.swing_r), hinge)    # swings out to his right
+
+SGUN_CRADLE = V(-(SHOULDER[0] + 0.8), SHOULDER[1] + 4.8, -5.0)
+
+
+def _field_gun(add, anch: dict) -> None:
+    """C's field gun on his right shoulder: cradle, breech, barrel, sleeve, brake."""
+    E, RC, BX = core.ellipsoid, core.rcone, core.box
+    sx_, sy_, _ = SHOULDER
+    gx, gy = -(sx_ + 0.8), sy_ + 7.4
+    add("sgun", BX("gunmetal", 0.5, (gx, sy_ + 4.8, -1.0), (2.8, 1.8, 4.2), rnd=0.6, tag="sgun"))  # cradle
+    add("sgun", E("chrome", 0.6, (gx, gy, -10.6), (3.8, 3.8, 4.4)))                                # breech
+    add("sgun", RC("chrome", 0.66, V(gx, gy, -10.0), V(gx, gy + 0.6, 21.0), 2.6, 2.2))             # barrel
+    add("sgun", RC("gunmetal", 0.45, V(gx, gy + 0.1, -2.0), V(gx, gy + 0.25, 6.0), 3.1))           # recoil sleeve
+    add("sgun", RC("gunmetal", 0.5, V(gx, gy + 0.55, 19.6), V(gx, gy + 0.6, 22.6), 3.0))           # muzzle brake
+    add("sgun", E("slot", 0.0, (gx, gy + 0.6, 25.4), (1.3, 1.3, 0.5)))                              # the bore, end on
+    anch["muzzle"] = (V(gx, gy + 0.6, 26.4), "sgun")    # past the brake's rounded end, or the flash hides
+
+
+def _pose(cell: Cell, pose: Pose, P: list, anch: dict) -> None:
+    """The pose's rigid moves, in order: the pennants out of the arms' way,
+    the coat's hem and the cloak swaying, the head, the twist, the lean, the bob."""
+    for grp, ang in (("pen_r", pose.swing_r), ("pen_l", -pose.swing_l)):
+        if ang and f"hinge_{grp}" in anch:
+            core.transform(P, anch, {grp}, core.rot_z(ang), anch[f"hinge_{grp}"][0])   # swings out, away from him
+    if pose.hem_tilt or pose.hem_roll:
+        R = core.rot_z(pose.hem_roll) @ core.rot_x(pose.hem_tilt)
+        core.transform(P, anch, {"coat"}, R, WAIST)
+    if pose.cloak_swing or pose.hem_roll:
+        R = core.rot_z(pose.hem_roll) @ core.rot_x(-pose.cloak_swing)
+        core.transform(P, anch, {"cape_lo"}, R, WAIST)       # it follows the hem sideways, trails behind
+    if pose.head_turn:
+        core.transform(P, anch, {"head", "cap"}, core.rot_y(pose.head_turn), NECK)
+    if pose.head_pitch:
+        core.transform(P, anch, {"head", "cap"}, core.rot_x(pose.head_pitch), NECK)
     if pose.twist:
         # CD's fitted cloak hangs from his back and does not turn with the
         # chest: it hangs ~16 units behind the axis, so the 8 degrees that
         # bring his right shoulder forward would swing its edge ~2 units out
         # past the coat's (seen at F1 before this). D's full cloak turns, as drawn in the sweep.
-        twisted = UPPER - {"cape"} if cell.flags == "both" else UPPER
+        twisted = UPPER - CLOAKS if cell.flags == "both" else UPPER
         core.transform(P, anch, twisted, core.rot_y(pose.twist), WAIST)
-    even_light(P, GN_MATERIALS)
-    return P, anch
+    if pose.lean:
+        core.transform(P, anch, LEAN - (CLOAKS if cell.flags == "both" else set()) | {"cape"},
+                       core.rot_x(pose.lean), WAIST + V(0, pose.bob, 0))
+    if pose.bob:
+        core.transform(P, anch, UPPER, np.eye(3), V(0, 0, 0), V(0, pose.bob, 0))
 
 
 def _plane_x_le(slope: float, x0: float, y0: float, side: int) -> tuple[np.ndarray, float]:
@@ -663,8 +761,9 @@ def _cloak(add, fit: bool = False) -> None:
     segments = fitted_segments() if fit else [[]]
 
     def cone(mat, clips, tag=""):
-        for seg in segments:
-            add("cape", core.ccone(mat, 0.6, CAPE_Y0, CAPE_Y1, CAPE_R0, CAPE_R1, kz=CD_CAPE_KZ if fit else CAPE_KZ,
+        for i, seg in enumerate(segments):
+            add("cape_lo" if fit and i == 0 else "cape",
+                core.ccone(mat, 0.6, CAPE_Y0, CAPE_Y1, CAPE_R0, CAPE_R1, kz=CD_CAPE_KZ if fit else CAPE_KZ,
                                    z=CAPE_Z,
                                    clip=back + clips + seg, tag=tag))
 
@@ -1088,7 +1187,7 @@ def render_cd(frame: str, rotation: int, seed: int = SEED) -> tuple[np.ndarray, 
     lay = core.render_layers(prims, rotation, CV, GN_MATERIALS, seed=seed, value_shift=VALUE_SHIFT,
                              insignia=insignia_for(CD), muzzle=anch["muzzle"][0] if pose.fire else None,
                              flash_size=FLASH_SIZE, chrome=CHROME, what=f"{SPRITE} CD {frame}{rotation}")
-    cape = [i for i, q in enumerate(prims) if q.grp == "cape"]
+    cape = [i for i, q in enumerate(prims) if q.grp in CLOAKS]
     return lay.rgba, int(np.isin(lay.pid, cape).sum())
 
 
@@ -1247,6 +1346,986 @@ def turnaround_contact(t: dict) -> np.ndarray:
     return canvas
 
 
+# ====================================================== the full set (D72)
+# D72 (CEO, 2026-10-14): "OK al general", the CD turnaround. This section
+# renders every frame SD_General's states name (general.zs, read, never
+# edited), on the turnaround's figure:
+#
+#   Spawn A B 10, See AABBCCDD 3, Missile E 6 F 12 E 12 F 12 E 12 F 12,
+#   Pain G 10, Death H I J K L M N O 10, P 30, P -1 (A_BossDeath). Summon
+#   borrows CYBR E F today and becomes SDGN Q 15 Bright / R 15 when the art
+#   lands (general.zs says so on those lines): the plan reads the class and
+#   swaps the Summon state's two letters for SUMMON_FINAL.
+#   Living A-G and Q R at 8 drawn rotations (handed: a different flag on
+#   each shoulder, the gun on his right; no mirrored pairs), death H-P at
+#   rotation 0: 72 + 9 = 81 lumps SDGN.
+#   SD_GeneralShell (general_shell.zs) flies on MANF A B and bursts on
+#   MISL B C D today; its own sprite is SDGL A-B flight, C-E burst
+#   (BESTIARY 2.7): 5 lumps at rotation 0.
+#
+# The turnaround's pixels the CEO approved stay: SDGN A1-A8 and F1 F3 F5
+# are the turnaround's SDGN_CD_*, byte for byte (full_identity()).
+#
+# The death (the CEO's rule since the Legion's first L0, "parece que se
+# apoye en el hombro"; SDHSM0 was redone for the same reason): the corpse
+# lies with its weight on the floor and is MEASURED, not judged by eye. Hit
+# in the chest (H), his knees go and the cap flies off (I), he falls back
+# over his heels twisting (J, K) while the field gun is torn off its cradle,
+# and he lies on his back across the screen ON HIS CLOAK, spread under him
+# on the floor: the Reich's red with the disc on the near side, the stars
+# and stripes on the far side (L). Head, arms and legs are each let fall
+# about their joint until they touch (gen_heavy.pm_settle, bisection on
+# rig_core.lowest_y); the cap and the gun lie beside him, nothing of them
+# standing up; the coat's skirt collapses (no tent over the legs); dark-red
+# blood (D49) runs from the chest into a pool on the cloak (M-P). As every
+# approved corpse, the frames on the floor are drawn from higher (up to 28
+# degrees more) as they fall: a player looks down at a body.
+GENERAL_ZS = PROJECT_ROOT / "src" / "zscript" / "monsters" / "general.zs"
+SHELL_ZS = PROJECT_ROOT / "src" / "zscript" / "monsters" / "general_shell.zs"
+SHELL_SPRITE = "SDGL"           # BESTIARY §9, 2.7
+SUMMON_FINAL = "QR"             # general.zs: "final art: SDGN Q" / "SDGN R"
+SHELL_FRAMES = "ABCDE"          # A-B flight, C-E burst (BESTIARY 2.7)
+FULL_DIR = OUT_DIR / "full"
+DEATH_CV = core.Canvas(300, 168, 150, 140)   # lying ~100 units across, the cloak's fan, the spray; H stands 100
+SHELL_CV = core.Canvas(40, 40, 20, 24)       # grAb (20, 20): centred, as the storm bolt's
+SHELL_Y = SHELL_CV.foot_row - SHELL_CV.h // 2
+BLOOD_GRAVITY = heavy.BLOOD_GRAVITY
+DEAD_COAT_KZ, DEAD_COAT_Z = 0.30, -5.0       # the skirt collapsed: its back still on the cloak, nothing tented
+# The cloak spread on the floor (L-P), built in his upright frame as a fan
+# in the plane just behind his back: when he lies on his back it is the
+# floor under him. From the hinge between the shoulder blades, out to his
+# calves, opening to 44 degrees each side.
+SPREAD_Z = -10.9
+SPREAD_HINGE = V(0.0, 71.0, SPREAD_Z)
+SPREAD_R0, SPREAD_LEN = 6.0, 58.0
+SPREAD_ANG = (2.0, 44.0)
+SPREAD_DISC = (32.0, 44.0)      # (degrees, distance from the hinge) of the Reich's disc on his left half
+GN_BLOOD = {
+    "blood": Mat.on_ramp("flag_red", 1, 5, black_floor=True, shift=False, flat=True),    # spray, splats, stains
+    "pool": Mat.on_ramp("flag_red", 0, 3, black_floor=True, shift=False, flat=True),     # standing blood
+    # SD_GeneralShell (additive in the engine: only bright colours count)
+    "gls_core": Mat((("cream_yellow", 13, 15), ("white",)), shift=False, flat=True),
+    "gls_ring": Mat.on_ramp("hazard_yellow", 9, 15, shift=False, flat=True),
+    "gls_ember": Mat.on_ramp("flag_red", 7, 11, shift=False, flat=True),
+    "gls_dim": Mat.on_ramp("hazard_yellow", 4, 10, shift=False, flat=True),
+}
+GN_FULL_MATERIALS: dict[str, Mat] = dict(GN_MATERIALS)
+for _n, _m in GN_BLOOD.items():
+    core.register_material(_n, _m, GN_FULL_MATERIALS)
+FLOOR_SYMBOL = tuple(r[1:6].replace(".", "_") for r in flat.ARMBAND[1:6])   # the armband's 5x5, black only
+FLOOR_DISC_INSIGNIA = core.Insignia("floor_disc", (5, 5), stamp_drawer(FLOOR_SYMBOL, STAMP_COLOURS),
+                                    outward=(0.0, 0.0, 1.0), min_px=10, search=1)
+FULL_INSIGNIA = PENNANT_INSIGNIA + CLOAK_INSIGNIA + (FLOOR_DISC_INSIGNIA,)
+
+A_ = ANKLE_Y
+_F = POSES["F"]
+FULL_POSES: dict[str, Pose] = {
+    "A": POSES["A"],                                            # the turnaround's, as approved
+    "B": replace(POSES["A"], key="B", title="right leg passing", foot_l=(6.8, A_, 0.5),
+                 foot_r=(-6.8, A_ + 3.0, -0.5), hand_r=(-17.0, 46.5, 3.0), hem_tilt=4.5, hem_roll=1.5,
+                 cloak_swing=4.0),
+    "C": replace(POSES["A"], key="C", title="right foot forward", foot_l=(6.8, A_, -4.5),
+                 foot_r=(-6.8, A_, 5.5), hand_r=(-17.0, 46.5, 0.5), cloak_swing=1.5),
+    "D": replace(POSES["A"], key="D", title="left leg passing", foot_l=(6.8, A_ + 3.0, -0.5),
+                 foot_r=(-6.8, A_, 0.5), hand_r=(-17.0, 46.5, 3.0), hem_tilt=4.5, hem_roll=-1.5,
+                 cloak_swing=4.0),
+    "E": replace(_F, key="E", title="aims: the stick on the target", hand_r=(-13.5, 67.5, 22.0),
+                 aim=(-0.10, -0.06, 1.0), twist=-6.0, swing_r=28.0, fire=False),
+    "F": _F,                                                    # the turnaround's, as approved
+    "G": Pose("G", "pain: struck in the chest, he rocks back", (7.0, A_, 3.0), (-7.5, A_, -2.0),
+              (-26.0, 57.0, 6.0), (9.0, 60.0, 11.5), (-0.5, -0.5, 0.7), (0.0, 1.0, 0.0),
+              swing_r=30.0, lean=8.0, head_pitch=18.0, head_turn=12.0, hem_tilt=-2.0,
+              pole_l=(1.0, -1.0, 0.2), pole_r=(-1.0, -0.6, -0.6)),
+    "Q": Pose("Q", "the order: 'Vorwärts!', his fist raised", (7.0, A_, 2.5), (-7.5, A_, -2.5),
+              (-13.5, 67.5, 22.0), (18.0, 105.5, 3.0), (-0.10, 0.25, 1.0), (0.0, 1.0, 0.0),
+              twist=-4.0, swing_r=28.0, lean=3.0, head_pitch=10.0, pole_l=(1.0, 0.0, -0.6)),
+    "R": Pose("R", "... and he points them on", (6.0, A_, 5.0), (-7.0, A_, -4.0),
+              (-17.0, 46.5, 5.5), (12.0, 75.0, 28.0), (0.05, -0.80, 0.60), (0.0, 0.30, 1.0),
+              swing_l=30.0, lean=-5.0, head_pitch=-4.0, cloak_swing=3.0, pole_l=(1.0, -1.0, 0.0)),
+}
+FULL_TITLES = {f: p.title for f, p in FULL_POSES.items()}
+FULL_TITLES["A"], FULL_TITLES["F"] = "walk: left foot forward (the turnaround's)", "fires (the turnaround's)"
+WOUND = (5.5, 66.0)             # (x, y) of the round's hole, on his left pectoral, upright
+
+
+@dataclass(frozen=True)
+class Fall:
+    """A death frame (H-P): the pose, then how far he has fallen."""
+    pose: Pose
+    t: float                    # s after the hit
+    fall: float                 # degrees back over his heels
+    yaw: float                  # degrees he has twisted (90: lying across the screen)
+    cap: str = "on"             # "on" | "fly1" | "fly2" | "floor"
+    gun: str = "on"             # "on" | "knock" | "fly" | "floor"
+    settle: tuple = ()          # what is let fall to the floor: keys of SETTLE
+    pool: float = 0.0           # share of the full pool
+    stain: float = 3.0          # radius of the stain round the wound
+    tilt: float = 0.0           # degrees the render looks further down
+
+
+_DEAD = Pose("P", "dead", (8.5, A_, -1.0), (-8.5, A_, -2.0), (-31.0, 50.0, -8.0), (44.0, 70.0, -6.0),
+             (-0.6, -0.7, -0.2), (0.0, 0.0, 1.0), head_pitch=10.0, no_cap=True, no_sgun=True,
+             pole_l=(1.0, 0.0, -1.0), pole_r=(-1.0, 0.0, -1.0))
+_LYING = replace(_DEAD, coat_flat=True, spread=True)
+SETTLE_ALL = ("head", "arm_l", "arm_r", "fore_l", "fore_r", "leg_l", "leg_r")
+FALLS: dict[str, Fall] = {              # general.zs: H-O 10 tics, P 30 then held (A_Scream on I, A_NoBlocking on M)
+    "H": Fall(Pose("H", "hit: the chest opens", (7.0, A_, 3.0), (-7.5, A_, -3.0), (-26.0, 60.0, 4.0),
+                   (24.0, 62.0, 4.0), (-0.3, -0.5, 0.8), (0.0, 1.0, 0.0), swing_r=30.0, swing_l=30.0,
+                   lean=8.0, head_pitch=22.0, pole_l=(1.0, -0.5, -0.5), pole_r=(-1.0, -0.5, -0.5)),
+              0.06, 0.0, 0.0, stain=3.0),
+    "I": Fall(Pose("I", "his knees go, the cap flies", (7.5, A_, 4.0), (-7.5, A_, 1.0), (-28.0, 66.0, -2.0),
+                   (28.0, 66.0, -2.0), (-0.4, 0.2, 0.8), (0.0, 1.0, 0.0), swing_r=30.0, swing_l=30.0,
+                   bob=-3.0, lean=12.0, head_pitch=30.0, no_cap=True, sgun_knock=28.0, hem_tilt=7.0,
+                   pole_l=(1.0, -0.5, -0.5), pole_r=(-1.0, -0.5, -0.5)),
+              0.35, 12.0, 10.0, cap="fly1", gun="knock", stain=4.0),
+    "J": Fall(Pose("J", "falling back, the gun torn off", (7.5, A_, 4.0), (-7.5, A_, 1.0), (-27.0, 70.0, -6.0),
+                   (27.0, 70.0, -6.0), (-0.4, 0.4, 0.6), (0.0, 1.0, 0.0), swing_r=30.0, swing_l=30.0,
+                   bob=-2.0, lean=6.0, head_pitch=30.0, no_cap=True, no_sgun=True, hem_tilt=6.0,
+                   spread=True,                     # the cloak flares out behind him as he goes
+                   pole_l=(1.0, -0.5, -0.5), pole_r=(-1.0, -0.5, -0.5)),
+              0.64, 40.0, 38.0, cap="fly2", gun="fly", stain=5.0, tilt=4.0),
+    "K": Fall(replace(_LYING, key="K", title="he lands on his cloak"), 0.93, 82.0, 80.0, cap="floor",
+              gun="floor", stain=4.6, tilt=14.0),
+    "L": Fall(replace(_LYING, key="L", title="on his back, the cloak spread"), 1.21, 90.0, 86.0,
+              cap="floor", gun="floor", settle=("head",), stain=5.0, tilt=20.0),
+    "M": Fall(replace(_LYING, key="M", title="the limbs fall (A_NoBlocking)"), 1.50, 90.0, 88.0,
+              cap="floor", gun="floor", settle=SETTLE_ALL, pool=0.35, stain=5.4, tilt=25.0),
+    "N": Fall(replace(_LYING, key="N", title="the blood runs onto the flags"), 1.79, 90.0, 90.0,
+              cap="floor", gun="floor", settle=SETTLE_ALL, pool=0.65, stain=5.7, tilt=28.0),
+    "O": Fall(replace(_LYING, key="O", title="still"), 2.07, 90.0, 90.0, cap="floor", gun="floor",
+              settle=SETTLE_ALL, pool=0.85, stain=5.9, tilt=28.0),
+    "P": Fall(replace(_LYING, key="P", title="dead (held; A_BossDeath)", head_turn=-22.0), 3.0, 90.0, 90.0,
+              cap="floor", gun="floor", settle=SETTLE_ALL, pool=1.0, stain=6.0, tilt=28.0),
+}
+FALL_PIVOT = V(0.0, 0.0, -6.0)          # behind his heels: he falls back over them
+# (the prims turned, the probe that must touch, pivot anchor, tip anchor, anchors that ride)
+SETTLE = {
+    "head": ("head", None, "neck", "head_top", ("head_top",)),
+    "arm_l": ("arm_l", slice(0, 1), "shoulder_l", "hand_l", ("elbow_l", "wrist_l", "hand_l")),
+    "arm_r": ("arm_r", slice(0, 1), "shoulder_r", "hand_r", ("elbow_r", "wrist_r", "hand_r", "stick_tip")),
+    "fore_l": ("fore_l", slice(2, 3), "elbow_l", "hand_l", ("wrist_l", "hand_l")),          # till the glove touches
+    "fore_r": ("fore_r", slice(2, None), "elbow_r", "hand_r", ("wrist_r", "hand_r", "stick_tip")),  # glove, stick
+    "leg_l": ("leg_l", slice(1, 4), "hip_l", "ankle_l", ("knee_l", "ankle_l")),
+    "leg_r": ("leg_r", slice(1, 4), "hip_r", "ankle_r", ("knee_r", "ankle_r")),
+}
+LYING_MAX = 2.0                 # units: a part this far above the floor still lies on it
+LYING_SUPPORT = 1.0
+LYING_TOP = 28.0                # his chest (the cuirass and pauldrons) is thick: nothing higher than this, lying
+LYING_SPAN = 60.0               # the parts that touch spread at least this far
+N_SPRAY = 48
+POOL = (30.0, 16.0)             # (x, z) radii of the full pool under his chest
+SPRAY_X = (-128.0, 128.0)       # landed splats stay inside the death canvas
+SPRAY_Z = (-30.0, 44.0)
+AIR_Y = 118.0
+
+
+def _spread_cloak(add) -> None:
+    """The cloak lying spread (L-P), a fan in the plane behind his back
+    (SPREAD_Z): his left half the Reich's red with the white disc, his right
+    half the stars and stripes radiating from the hinge, the canton by it."""
+    zv = V(0.0, 0.0, 1.0)
+
+    def ray(theta: float, side: int) -> tuple[np.ndarray, np.ndarray]:
+        t = np.deg2rad(theta)
+        d = V(side * np.sin(t), -np.cos(t), 0.0)
+        e = np.cross(d, zv)
+        return d, np.column_stack([e, d, zv])
+
+    def piece(mat, theta, side, r0, length, width, dz, tag=""):
+        d, rot = ray(theta, side)
+        c = SPREAD_HINGE + d * (r0 + length / 2) + V(0, 0, dz)
+        return add("spread", core.box(mat, 0.6, tuple(c), (width / 2, length / 2, 0.25), rot=rot, tag=tag))
+
+    a0, a1 = SPREAD_ANG
+    edges = np.linspace(a0, a1, US_STRIPES + 1)
+    far = SPREAD_R0 + SPREAD_LEN
+    for i in range(US_STRIPES):                       # his right: the stripes radiate
+        th = (edges[i] + edges[i + 1]) / 2
+        w = far * np.deg2rad(edges[i + 1] - edges[i]) * 1.25
+        red = i % 2 == 0
+        piece("pennant_red" if red else "pennant_white", th, core.RIGHT, SPREAD_R0, SPREAD_LEN, w,
+              0.08 if red else 0.0)
+    cth = (edges[0] + edges[CANTON_STRIPES]) / 2      # the canton, by the hinge
+    clen = CANTON_DROP + 2.0
+    cw = (SPREAD_R0 + clen) * np.deg2rad(edges[CANTON_STRIPES] - edges[0]) * 1.05
+    piece("us_blue", cth, core.RIGHT, SPREAD_R0, clen, cw, 0.16, tag="spread_canton")
+    for r_, th in ((12.0, 8.0), (18.0, 16.0), (24.0, 8.0), (12.0, 20.0), (24.0, 20.0), (18.0, 4.0)):
+        d, _ = ray(th, core.RIGHT)
+        add("spread", core.ellipsoid("pennant_white", 0.9, tuple(SPREAD_HINGE + d * r_ + V(0, 0, 0.45)),
+                                     (0.75, 0.75, 0.2)))       # stars
+    for th in np.linspace(a0 + 4.0, a1 - 4.0, 6):    # his left: the Reich's red
+        w = far * np.deg2rad((a1 - a0) / 5.0) * 1.3
+        piece("pennant_red", th, core.LEFT, SPREAD_R0, SPREAD_LEN, w, 0.0)
+    th, r_ = SPREAD_DISC
+    d, _ = ray(th, core.LEFT)
+    add("spread", core.ellipsoid("pennant_white", 0.8, tuple(SPREAD_HINGE + d * r_ + V(0, 0, 0.2)),
+                                 (6.0, 6.0, 0.35), tag="floor_disc"))
+
+
+def _settle_parts(P: list[core.Prim], what: str) -> list[core.Prim]:
+    """The primitives one settle step turns: the head; an arm from the
+    shoulder (with the stick in the right hand) or its forearm from the
+    elbow; a leg from the hip."""
+    if what == "head":
+        return [p for p in P if p.grp == "head"]
+    limb, s = what.split("_")
+    side = core.LEFT if s == "l" else core.RIGHT
+    if limb in ("arm", "fore"):
+        arm = [p for p in P if p.limb == "arm" and p.side == side]
+        stick = [p for p in P if p.grp == "gun"] if side == core.RIGHT else []
+        return (arm if limb == "arm" else arm[1:]) + stick
+    return [p for p in P if p.limb == "leg" and p.side == side]
+
+
+def _rigid(P: list[core.Prim], anch: dict, R: np.ndarray, pivot, offset=(0.0, 0.0, 0.0)) -> None:
+    heavy._pm_rigid(P, anch, R, pivot, offset)
+
+
+def _loose(kind: str) -> list[core.Prim]:
+    """The cap or the field gun on their own, as they sat on him upright (A)."""
+    P: list[core.Prim] = []
+
+    def add(grp: str, prim: core.Prim) -> core.Prim:
+        prim.grp = grp
+        P.append(prim)
+        return prim
+    if kind == "cap":
+        _cap(add)
+    else:
+        _field_gun(add, {})
+    for p in P:
+        p.grp = "loose"
+    even_light(P, GN_MATERIALS)
+    return P
+
+
+def _place_loose(kind: str, state: str, anch: dict, lying_mid: float) -> list[core.Prim]:
+    """The cap and the gun once off him. In the air they follow his head and
+    shoulder; on the floor they lie beside him on the near side, every part
+    down (rest_on_floor), nothing standing up."""
+    P = _loose(kind)
+    centre = V(0.0, 91.0, 0.8) if kind == "cap" else V(-(SHOULDER[0] + 0.8), SHOULDER[1] + 7.4, 5.0)
+    if state in ("fly1", "fly2", "fly"):
+        if kind == "cap":
+            ref = anch["head_top"]
+            R = core.rot_x(-40.0 if state == "fly1" else -110.0) @ core.rot_z(25.0)
+            off = V(-3.0, 10.0, -6.0) if state == "fly1" else V(6.0, 6.0, -16.0)
+        else:
+            ref = anch["shoulder_r"]
+            R = core.rot_y(35.0) @ core.rot_x(-30.0)
+            off = V(-8.0, 9.0, 10.0)
+        _rigid(P, {}, R, centre, ref - centre + off)
+        return P
+    # on the floor (K-P)
+    if kind == "cap":
+        R = core.rot_y(-30.0) @ core.rot_z(14.0)          # on its side a little, the peak to the camera
+        at = V(lying_mid + 58.0, 0.0, 20.0)
+    else:
+        R = core.rot_y(68.0)                              # the barrel along the floor
+        at = V(lying_mid + 6.0, 0.0, 34.0)
+    _rigid(P, {}, R, centre, at - centre)
+    core.rest_on_floor(P, {}, {"loose"})
+    return P
+
+
+def death_model(frame: str) -> tuple[list[core.Prim], dict, list[core.Prim]]:
+    """Death frame H-P in model space (floor y = 0), untilted, without the
+    blood: (his primitives, his anchors as points, the cap and gun apart)."""
+    f = FALLS[frame]
+    P, anch = model(CD, pose=f.pose)
+    if f.fall or f.yaw:
+        _rigid(P, anch, core.rot_y(f.yaw) @ core.rot_x(f.fall), FALL_PIVOT)
+    turning = {id(p) for w in f.settle for p in _settle_parts(P, w)}
+    pens = [p for p in P if p.grp in ("pen_l", "pen_r")]
+    resting = [p for p in P if id(p) not in turning and p.grp not in ("pen_l", "pen_r")]
+    low = core.lowest_y(resting)
+    if f.fall >= 60.0 or low < 0.0:                  # down on the floor (or on his cloak): his lowest part on it
+        _rigid(P, anch, np.eye(3), V(0, 0, 0), V(0, -low, 0))
+    for what in f.settle:
+        _, probe, root, tip, rides = SETTLE[what]
+        part = _settle_parts(P, what)
+        pr = part if probe is None else part[probe]
+        R = heavy.pm_settle(part, pr, anch[root][0], anch[tip][0])
+        pivot = anch[root][0]
+        for k in rides:
+            if k in anch:
+                pt, g = anch[k]
+                anch[k] = (R @ (pt - pivot) + pivot, g)
+    if f.fall >= 85.0:                                # the pennants, hanging from nothing now, lie on the floor
+        for grp in ("pen_l", "pen_r"):
+            core.rest_on_floor([p for p in pens if p.grp == grp], {}, {grp})
+    mid = float(np.mean([p.bound()[0][0] for p in P if p.grp in ("upper", "coat", "head")]))
+    shift = -mid * min(f.fall / 90.0, 1.0)            # slid to the actor's axis as he goes down
+    _rigid(P, anch, np.eye(3), V(0, 0, 0), V(shift, 0, 0))
+    loose: list[core.Prim] = []
+    pts = {k: v[0] for k, v in anch.items()}
+    if f.cap != "on":
+        loose += _place_loose("cap", f.cap, pts, 0.0)
+    if f.gun not in ("on", "knock"):
+        loose += _place_loose("gun", f.gun, pts, 0.0)
+    return P, pts, loose
+
+
+def _torso_of(P: list[core.Prim]) -> core.Prim:
+    return next(p for p in P if p.tag == "torso")
+
+
+def wound_world(P: list[core.Prim]) -> tuple[np.ndarray, np.ndarray]:
+    """The wound on his left pectoral, and its outward normal, where his torso is now."""
+    t = _torso_of(P)
+    x, y = WOUND
+    p = V(x, y, torso_z(x, y) + 1.4)
+    n = unit(V(0.25, 0.1, 1.0))
+    return t.xm @ p + t.xt, t.xm @ n
+
+
+def _droplet(p0, v, t: float, r: float, air: float = AIR_Y) -> core.Prim:
+    """gen_heavy's droplet, its landed splats a little higher: on the
+    spread cloak (0.5 thick) they must sit on the cloth, not under it."""
+    q = heavy._droplet(p0, v, t, r, SPRAY_X, SPRAY_Z, air)
+    if q.grp == "splat":
+        q.a = V(q.a[0], 0.62, q.a[2])
+    return q
+
+
+def _body_blood(P: list[core.Prim], stain: float, run: bool) -> list[core.Prim]:
+    """On him, riding the torso: the hole, the stain soaking the chrome, a run."""
+    t = _torso_of(P)
+    x, y = WOUND
+    zf = torso_z(x, y) + 1.4
+    n = unit(V(0.25, 0.1, 1.0))
+    out = [heavy._stain("blood", 0.48, V(x, y - stain * 0.15, zf), n, stain, depth=0.9 * stain, grp="blood"),
+           core.ellipsoid("void", 0.05, (x, y, zf + 0.35), (1.3, 1.4, 0.8), grp="blood")]
+    if run:
+        out.append(core.rcone("blood", 0.4, V(x + 0.3, y - 2.0, torso_z(x, y - 2.0) + 1.3),
+                              V(x + 1.2, y - 11.0, torso_z(x + 1.2, y - 11.0) + 0.9), 1.6, 1.1, grp="blood"))
+    for q in out:
+        q.xm, q.xt = t.xm.copy(), t.xt.copy()
+    return out
+
+
+_HIT: dict = {}
+
+
+def wound_at_hit() -> tuple[np.ndarray, np.ndarray]:
+    if "H" not in _HIT:
+        _HIT["H"] = wound_world(death_model("H")[0])
+    return _HIT["H"]
+
+
+def death_blood(frame: str, P: list[core.Prim]) -> list[core.Prim]:
+    """All the blood of death frame H-P: on him, in the air, on the floor."""
+    f = FALLS[frame]
+    k = "HIJKLMNOP".index(frame)
+    out = _body_blood(P, f.stain, k >= 1)
+    hit, n = wound_at_hit()
+    rng = np.random.default_rng(SEED + 61)
+    for i in range(N_SPRAY):
+        d = unit(n * rng.uniform(0.4, 1.0) + V(rng.uniform(-0.8, 0.8), rng.uniform(-0.1, 0.9), rng.uniform(-0.4, 0.4)))
+        gout = i % 5 == 0
+        sp = rng.uniform(10, 28) if gout else rng.uniform(30, 95)
+        r = rng.uniform(1.4, 2.0) if gout else rng.uniform(0.7, 1.2)
+        out.append(_droplet(hit, d * sp, f.t, r))
+    w, wn = wound_world(P)
+    if frame in "IJK":                                     # it pumps while he falls
+        rr = np.random.default_rng(SEED + 62 + k)
+        for j in range(7):
+            v = wn * rr.uniform(8, 20) + V(rr.uniform(-5, 5), rr.uniform(0, 8), rr.uniform(-5, 5))
+            out.append(_droplet(w, v, 0.03 + 0.03 * j, rr.uniform(0.7, 1.1)))
+    if f.pool:
+        g = f.pool
+        out += hound.pool(float(w[0]), float(w[2]) + 6.0, POOL[0] * g, POOL[1] * (0.45 + 0.55 * g),
+                          np.random.default_rng(SEED + 64))
+        for q in out[-4:]:
+            q.a = V(q.a[0], q.a[1] + 0.4, q.a[2])            # on the cloth
+    return out
+
+
+def pain_blood(P: list[core.Prim], t: float = 0.05) -> list[core.Prim]:
+    """G: the round's hole and a spurt out of the cuirass."""
+    out = _body_blood(P, 2.6, False)
+    w, n = wound_world(P)
+    rng = np.random.default_rng(SEED + 67)
+    for _ in range(10):
+        v = n * rng.uniform(30, 65) + V(rng.uniform(-14, 14), rng.uniform(0, 30), rng.uniform(-8, 8))
+        p = w + v * t + V(0, -0.5 * BLOOD_GRAVITY * t * t, 0)
+        r = rng.uniform(0.8, 1.2)
+        out.append(core.ellipsoid("blood", 0.62, tuple(p), (r, r * 1.15, r), grp="spray"))
+    return out
+
+
+def _tilted(P: list[core.Prim], deg: float) -> list[core.Prim]:
+    if deg:
+        hound._rigid(P, core.rot_x(-deg), V(0, 0, 0))
+    return P
+
+
+def corpse_parts(P: list[core.Prim]) -> dict[str, list[core.Prim]]:
+    """The lying General's parts by name: what must rest on the floor."""
+    out = {"torso": [_torso_of(P)], "coat": [p for p in P if p.tag == "coat"],
+           "head": [p for p in P if p.grp == "head"], "cloak": [p for p in P if p.grp == "spread"]}
+    for name, side in (("left", core.LEFT), ("right", core.RIGHT)):
+        arm = [p for p in P if p.limb == "arm" and p.side == side]
+        leg = [p for p in P if p.limb == "leg" and p.side == side]
+        out[f"upper_arm_{name}"], out[f"glove_{name}"] = arm[:1], arm[3:4]
+        out[f"boot_{name}"], out[f"foot_{name}"] = leg[1:2], leg[3:4]
+    return out
+
+
+def corpse_metrics(frame: str = "P") -> dict:
+    """The lying checks on the untilted model: each part's lowest point above
+    the floor, the highest point of him (cap, gun and blood aside), the
+    spread of what touches, how far the torso lies across the screen, and
+    the cap and gun lying (their tops)."""
+    P, _, loose = death_model(frame)
+    parts = corpse_parts(P)
+    rep = {k: round(core.lowest_y(v), 2) for k, v in parts.items() if v}
+    xs = [float(np.mean([p.bound()[0][0] for p in parts[k]])) for k, v in rep.items()
+          if v <= LYING_SUPPORT and k != "cloak"]
+    torso = parts["torso"][0]
+    caps = [p for p in loose if p.mat in ("cap_crown", "cap_band", "peak") or p.mat == "braid"]
+    return {"lowest": rep, "top": round(hound.highest_y(P), 2), "span": round(max(xs) - min(xs), 1),
+            "across": round(abs(float((torso.xm @ V(0, 1, 0))[0])), 3),
+            "loose_top": round(hound.highest_y(loose), 2) if loose else None,
+            "loose_lowest": round(core.lowest_y(loose), 2) if loose else None,
+            "n_cap_parts": len(caps)}
+
+
+# ---------------------------------------------------------------- the shell SDGL
+def shell_model(frame: str) -> list[core.Prim]:
+    """SD_GeneralShell, SDGL A-E at rotation 0: A-B the shell flying at you
+    (a white-hot core in a braid-yellow fire, an ember ring, sparks that
+    swap), C-E the burst. Additive in the engine (general_shell.zs)."""
+    c = V(0, SHELL_Y, 0)
+    E = core.ellipsoid
+    if frame in "AB":
+        a = 0.0 if frame == "A" else 1.0
+        P = [E("gls_ember", 0.6, tuple(c), (5.0 + 0.5 * a, 4.6 - 0.4 * a, 3.0)),
+             E("gls_ring", 0.75, tuple(c + V(0, 0, 1.2)), (3.6, 3.4, 2.4)),
+             E("gls_core", 0.9, tuple(c + V(0.2 * a, 0.2 * a, 2.6)), (1.9, 1.9, 1.2))]
+        for ang in ((45.0, 225.0) if frame == "A" else (135.0, 315.0)):
+            q = np.deg2rad(ang)
+            P.append(E("gls_ring", 0.8, tuple(c + V(7.4 * np.cos(q), 7.4 * np.sin(q), 1.0)), (1.2, 1.2, 1.2)))
+        return P
+    step = "CDE".index(frame)
+    P = []
+    if step < 2:
+        P.append(E("gls_ring" if step == 0 else "gls_dim", 0.65, tuple(c), (6.0 + 2.2 * step,) * 3))
+        P.append(E("gls_core" if step == 0 else "gls_ring", 0.85, tuple(c + V(0, 0, 4.0 + step)),
+                   (3.4 - 0.8 * step,) * 3))
+    n = 7 + 2 * step
+    for i in range(n):
+        q = 2 * np.pi * (i + 0.5 * step) / n
+        rad = 8.0 + 3.2 * step
+        P.append(E("gls_ember" if step < 2 else "gls_dim", 0.7, tuple(c + V(rad * np.cos(q), rad * np.sin(q), 1.5)),
+                   (1.5 - 0.2 * step,) * 3))
+    return P
+
+
+def render_shell(frame: str) -> np.ndarray:
+    return core.render(shell_model(frame), 0, SHELL_CV, GN_FULL_MATERIALS, seed=SEED, what=f"{SHELL_SPRITE}{frame}0")
+
+
+# ---------------------------------------------------------------- the plan
+def zs_states(path: Path = GENERAL_ZS) -> dict[str, list[tuple[str, int]]]:
+    """The class's states (letter, tics), read from its ZScript; the Summon
+    state's borrowed CYBR E F become SDGN Q R (SUMMON_FINAL)."""
+    st = hound.zs_states(path)
+    if "Summon" in st:
+        seq = st["Summon"]
+        st["Summon"] = [(SUMMON_FINAL[i], t) for i, (_, t) in enumerate(seq)]
+    return st
+
+
+def full_frames() -> tuple[str, str]:
+    """(the letters drawn at 8 rotations, the death letters at rotation 0)."""
+    st = zs_states()
+    living = sorted({f for lab, seq in st.items() if lab not in ("Death", "XDeath", "Raise") for f, _ in seq})
+    death = "".join(dict.fromkeys(f for f, _ in st.get("Death", [])))
+    return "".join(living), death
+
+
+def full_plan() -> list[tuple[str, int]]:
+    rotated, death = full_frames()
+    return [(f, r) for f in rotated for r in range(1, core.ROTATIONS + 1)] + [(f, 0) for f in death]
+
+
+def full_lump(frame: str, rotation: int, sprite: str = SPRITE) -> str:
+    return f"{sprite}{frame}{rotation}"
+
+
+def full_canvas(frame: str) -> core.Canvas:
+    return CV if frame in FULL_POSES else DEATH_CV
+
+
+def full_prims(frame: str) -> tuple[list[core.Prim], np.ndarray | None]:
+    """Every primitive of one frame, ready to render, and the muzzle (F)."""
+    if frame in FULL_POSES:
+        P, anch = model(CD, frame, pose=FULL_POSES[frame])
+        if frame == "G":
+            P = P + pain_blood(P)
+        return P, anch["muzzle"][0] if FULL_POSES[frame].fire else None
+    P, _, loose = death_model(frame)
+    return _tilted(P + loose + death_blood(frame, P), FALLS[frame].tilt), None
+
+
+def render_full_layers(frame: str, rotation: int, prims=None) -> core.Layers:
+    P, muzzle = full_prims(frame) if prims is None else prims
+    return core.render_layers(P, rotation, full_canvas(frame), GN_FULL_MATERIALS, seed=SEED,
+                              value_shift=VALUE_SHIFT, insignia=FULL_INSIGNIA, muzzle=muzzle,
+                              flash_size=FLASH_SIZE, chrome=CHROME, what=full_lump(frame, rotation))
+
+
+def cloak_pixels(lay: core.Layers, prims: list[core.Prim]) -> int:
+    ids = [i for i, q in enumerate(prims) if q.grp in CLOAKS]
+    return int(np.isin(lay.pid, ids).sum())
+
+
+def blood_share(lay: core.Layers) -> float:
+    ids = core.material_ids(GN_FULL_MATERIALS)
+    want = [ids["blood"], ids["pool"]]
+    return round(float(np.isin(lay.mat, want).sum() / max((lay.mat >= 0).sum(), 1)), 3)
+
+
+def _frame_job(frame: str) -> tuple[str, dict, dict]:
+    """A worker's unit: one frame at every rotation it needs (built once)."""
+    rotated, _ = full_frames()
+    rots = range(1, core.ROTATIONS + 1) if frame in rotated else (0,)
+    prims = full_prims(frame)
+    out, info = {}, {}
+    for r in rots:
+        lay = render_full_layers(frame, r, prims)
+        out[r] = lay.rgba
+        info[f"cloak_{r}"] = cloak_pixels(lay, prims[0])
+        if r == 0:
+            info["blood"] = blood_share(lay)
+    return frame, out, info
+
+
+def build_full(jobs: int = 1, only: set[str] | None = None) -> dict:
+    """Render the set's lumps (PNG with grAb) into work/art/general/full/SDGN/
+    and the shell's into .../SDGL/; the per-frame numbers to info.json."""
+    sdir, gdir = FULL_DIR / SPRITE, FULL_DIR / SHELL_SPRITE
+    sdir.mkdir(parents=True, exist_ok=True)
+    gdir.mkdir(parents=True, exist_ok=True)
+    frames = [f for f in dict.fromkeys(f for f, _ in full_plan()) if not only or f in only]
+    info_path = sdir / "info.json"
+    info = json.loads(info_path.read_text(encoding="utf-8")) if info_path.is_file() else {}
+
+    def take(res):
+        frame, out, inf = res
+        g = grab() if frame in FULL_POSES else core.grab_offsets(DEATH_CV)
+        for r, rgba in out.items():
+            heavy.save(rgba, sdir / f"{full_lump(frame, r)}.png", g)
+        info[frame] = inf
+        print(frame, "done", inf, flush=True)
+
+    if jobs > 1:
+        from concurrent.futures import ProcessPoolExecutor
+        with ProcessPoolExecutor(max_workers=jobs) as ex:
+            for res in ex.map(_frame_job, frames):
+                take(res)
+    else:
+        for f in frames:
+            take(_frame_job(f))
+    if not only or set(SHELL_FRAMES) & set(only or ()):
+        for f in SHELL_FRAMES:
+            heavy.save(render_shell(f), gdir / f"{full_lump(f, 0, SHELL_SPRITE)}.png", core.grab_offsets(SHELL_CV))
+    info_path.write_text(json.dumps(info, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return info
+
+
+def load_full() -> dict:
+    out = {}
+    for f, r in full_plan():
+        with Image.open(FULL_DIR / SPRITE / f"{full_lump(f, r)}.png") as im:
+            out[(f, r)] = np.asarray(im.convert("RGBA")).copy()
+    for f in SHELL_FRAMES:
+        with Image.open(FULL_DIR / SHELL_SPRITE / f"{full_lump(f, 0, SHELL_SPRITE)}.png") as im:
+            out[("shell", f)] = np.asarray(im.convert("RGBA")).copy()
+    return out
+
+
+def full_identity(spr: dict, src: Path = TURN_DIR) -> dict[str, bool | None]:
+    """Whether A1-A8, F1, F3, F5 are the approved turnaround's pixels."""
+    out: dict[str, bool | None] = {}
+    for f, r in TURN_VIEWS:
+        path = src / f"{lump('CD', f, r)}.png"
+        if not path.is_file():
+            out[full_lump(f, r)] = None
+            continue
+        with Image.open(path) as im:
+            out[full_lump(f, r)] = bool(np.array_equal(np.asarray(im.convert("RGBA")), spr[(f, r)]))
+    return out
+
+
+# ---------------------------------------------------------------- GIFs, lineups, numbers
+HOLD_MS = heavy.HOLD_MS
+LEAD_TICS = heavy.LEAD_TICS
+FULL_SLOT = 80
+DEAD_SLOT = 290                 # the death canvas is 300 wide: the corpse lies ~130 units either side of his axis
+CORRIDOR = ("C1", "SDTILE2", 128, "SDFLR3", "the office corridor (MAP03 §15, O1)")
+APPROVED_DEAD = (("SDRRL0", "rifleman", "rifleman"), ("SDLTL0", "legion", "Legion trooper"),
+                 ("SDPMO0", "panzermensch", "Panzermensch"), ("SDDBL0", "doughboy", "Doughboy"))
+
+
+def _runs(seq: list[tuple[str, int]]) -> list[tuple[str, int]]:
+    """gen_hound's runs, a held last frame (-1) kept held: SDGN P 30, P -1."""
+    out = hound._gif_runs([x for x in seq if x[1] >= 0])
+    if seq and seq[-1][1] < 0:
+        out.append((seq[-1][0], -1))
+    return out
+
+
+def _ms(tics: int) -> int:
+    return HOLD_MS if tics < 0 else int(round(tics * core.TIC_MS))
+
+
+def _neutral(arrs: list[np.ndarray]) -> list[np.ndarray]:
+    return [core.on_bg(x, core.NEUTRAL) for x in hound.crop_common(arrs)]
+
+
+def _scene(figs, wall: str, light: int, floor: str = FLOOR, wall_h: int = LINEUP_WALL_H,
+           slot: int = LINEUP_SLOT) -> np.ndarray:
+    """lineup() with any MAP03 wall and floor."""
+    width = slot * len(figs)
+    w_rgb = flat.tile_to(asset_rgb(wall), width, wall_h)
+    fl = flat.tile_to(asset_rgb(floor), width, flat.FLOOR_H * 3)
+    fl = np.asarray(Image.fromarray(fl, "RGB").resize((width, flat.FLOOR_H), Image.Resampling.NEAREST))
+    canvas = np.concatenate([w_rgb, fl], axis=0).copy()
+    base = wall_h + (flat.FLOOR_LINE - flat.WALL_H) - core.FEET_SINK
+    for i, (spr, ox, oy) in enumerate(figs):
+        x0 = int(round(slot * (i + 0.5))) - ox
+        y0 = base - oy
+        a = spr[..., 3] > 0
+        ys, xs = np.nonzero(a)
+        ys2, xs2 = ys + y0, xs + x0
+        keep = (ys2 >= 0) & (ys2 < canvas.shape[0]) & (xs2 >= 0) & (xs2 < width)
+        canvas[ys2[keep], xs2[keep]] = spr[ys[keep], xs[keep], :3]
+    return core.lit(canvas, light, heavy.palette_v2())
+
+
+def write_full_gifs(spr: dict) -> dict[str, Path]:
+    """Every cycle at game speed, the tics read from general.zs."""
+    d = FULL_DIR / SPRITE
+    runs = {lab: _runs(seq) for lab, seq in zs_states().items()}
+    out: dict[str, Path] = {}
+
+    def cyc(name, seq, rot):
+        out[name] = core.save_gif(_neutral([spr[(f, rot)] for f, _ in seq]), [_ms(t) for _, t in seq],
+                                  d / f"{SPRITE}_{name}.gif")
+
+    out["turntable"] = core.save_gif(_neutral([spr[("A", r)] for r in range(1, 9)]), [_ms(12)] * 8,
+                                     d / f"{SPRITE}_turntable.gif")
+    see = runs["See"]
+    for r in range(1, 9):
+        cyc(f"see_rot{r}", see, r)
+    for r in (1, 3, 5, 7):
+        cyc(f"attack_rot{r}", see + runs["Missile"], r)
+        cyc(f"pain_rot{r}", see + runs["Pain"] + see, r)
+        cyc(f"summon_rot{r}", see + runs["Summon"] + see, r)
+    cyc("spawn_rot1", runs["Spawn"], 1)
+    death = runs["Death"]
+    out["death"] = core.save_gif(_neutral([spr[(f, 0)] for f, _ in death]), [_ms(t) for _, t in death],
+                                 d / f"{SPRITE}_death.gif")
+    width = 2 * max(DEATH_CV.cx, DEATH_CV.w - DEATH_CV.cx)
+    frames = [_scene([(spr[("A", 1)], *grab())], "SDBRCK1", 128, slot=width)]
+    durs = [_ms(LEAD_TICS)]
+    for f, t in death:
+        frames.append(_scene([(spr[(f, 0)], *core.grab_offsets(DEATH_CV))], "SDBRCK1", 128, slot=width))
+        durs.append(_ms(t))
+    out["death_floor"] = core.save_gif(frames, durs, d / f"{SPRITE}_death_floor.gif")
+    wall = flat.tile_to(asset_rgb("SDBRCK1"), SHELL_CV.w, SHELL_CV.h)
+    add = lambda rgba: _additive(rgba, wall)  # noqa: E731
+    out["shell_flight"] = core.save_gif([add(spr[("shell", f)]) for f in "AB"], [_ms(4)] * 2,
+                                        FULL_DIR / SHELL_SPRITE / "shell_flight.gif")
+    out["shell_burst"] = core.save_gif([add(spr[("shell", f)]) for f in "CDE"], [_ms(t) for t in (8, 6, 4)],
+                                       FULL_DIR / SHELL_SPRITE / "shell_burst.gif")
+    return out
+
+
+def _additive(rgba: np.ndarray, under: np.ndarray) -> np.ndarray:
+    """RenderStyle "Add" (the shell): the sprite's colour added to what is
+    behind it. A stand-in, NOT VERIFIED against GZDoom's blending."""
+    out = (under.astype(np.int32) * 128 // 224).copy()       # the brick at light 128
+    a = rgba[..., 3] > 0
+    out[a] += rgba[..., :3][a]
+    return np.clip(out, 0, 255).astype(np.uint8)
+
+
+def full_lineups(spr: dict) -> dict:
+    """At 1x in MAP03: the portal hall and the office corridor, beside the
+    approved enemies; then the corpse beside the approved corpses."""
+    d = FULL_DIR / SPRITE
+    picks = (("A", 1), ("A", 3), ("A", 5), ("F", 1), ("Q", 1), ("G", 1))
+    figs = [(spr[v], *grab()) for v in picks]
+    labels = [full_lump(*v) for v in picks]
+    rf, rl = references()
+    figs += rf
+    labels += rl
+    out = {"labels": labels, "scenes": {}}
+    for key, wall, light, what in SCENES[:2]:
+        sc = _scene(figs, wall, light, slot=FULL_SLOT)
+        Image.fromarray(sc, "RGB").save(d / f"lineup_{key}.png", optimize=True)
+        out["scenes"][key] = (sc, wall, light, what)
+    key, wall, light, floor, what = CORRIDOR
+    sc = _scene(figs, wall, light, floor, slot=FULL_SLOT)
+    Image.fromarray(sc, "RGB").save(d / f"lineup_{key}.png", optimize=True)
+    out["scenes"][key] = (sc, wall, light, what)
+    dead = [(spr[("P", 0)], *core.grab_offsets(DEATH_CV))]
+    dlabels = [f"{SPRITE}P0"]
+    for name, folder, label in APPROVED_DEAD:
+        r = heavy.approved(name, folder)
+        if r:
+            dead.append(r)
+            dlabels.append(f"{name} {label}, approved")
+    for light in (176, 128):
+        sd = _scene(dead, "SDBRCK1", light, wall_h=72, slot=DEAD_SLOT)
+        Image.fromarray(sd, "RGB").save(d / f"lineup_dead_{light}.png", optimize=True)
+        out[f"dead_{light}"] = sd
+    out["dead_labels"] = dlabels
+    return out
+
+
+def full_metrics(spr: dict) -> dict:
+    info_path = FULL_DIR / SPRITE / "info.json"
+    info = json.loads(info_path.read_text(encoding="utf-8")) if info_path.is_file() else {}
+    rotated, death = full_frames()
+    m = {"lumps": len(full_plan()), "shell_lumps": len(SHELL_FRAMES),
+         "front": measure(spr[("A", 1)]), "back": measure(spr[("A", 5)])}
+    m["front_cloak_px"] = {f: info.get(f, {}).get("cloak_1") for f in rotated}
+    m["cloak_px"] = {f: {r: info.get(f, {}).get(f"cloak_{r}") for r in range(1, 9)} for f in rotated}
+    m["blood_share"] = {f: info.get(f, {}).get("blood") for f in death}
+    m["heights"] = {full_lump(f, r): int(np.ptp(np.nonzero(spr[(f, r)][..., 3] > 0)[0]) + 1)
+                    for f, r in full_plan()}
+    m["corpse"] = corpse_metrics(death[-1])
+    (FULL_DIR / SPRITE / "metrics.json").write_text(json.dumps(m, indent=2) + "\n", encoding="utf-8")
+    return m
+
+
+# ---------------------------------------------------------------- the sheet
+FULL_ROT_NAMES = {1: "front", 2: "front, his left", 3: "his left side", 4: "back, his left", 5: "back",
+                  6: "back, his right", 7: "his right side", 8: "front, his right"}
+
+
+def _crop_tiles(arrs: list[np.ndarray], zoom: int, caps: list[str], subs: list[str] | None = None) -> str:
+    subs = subs or [""] * len(arrs)
+    return _strip([core.sprite_tile(a, zoom, c, s) for a, c, s in zip(hound.crop_common(arrs), caps, subs)])
+
+
+def _states_rows() -> list[list]:
+    st = zs_states()
+    rotated, _ = full_frames()
+    rows = []
+    for label, seq in st.items():
+        if not seq:
+            continue
+        letters = "".join(dict.fromkeys(f for f, _ in seq))
+        rows.append([label, " ".join(f"{f} {t}" for f, t in hound._gif_runs(seq)),
+                     "1-8" if all(f in rotated for f in letters) else "0", letters])
+    return rows
+
+
+CODE_NEEDS = [
+    "general.zs: rename CYBR to SDGN in every state line. The letters already match for A-P. The two Summon "
+    "lines change their LETTERS too, as the file's comments say: 'CYBR E 15 Bright A_SD_GeneralSummon' "
+    "becomes 'SDGN Q 15 Bright A_SD_GeneralSummon' and 'CYBR F 15' becomes 'SDGN R 15'.",
+    "general_shell.zs: Spawn 'MANF AB 4 Bright' becomes 'SDGL AB 4 Bright'; Death 'MISL B 8 Bright', "
+    "'MISL C 6 Bright', 'MISL D 4 Bright' become 'SDGL C 8 Bright', 'SDGL D 6 Bright', 'SDGL E 4 Bright' "
+    "(new letters, BESTIARY 2.7). RenderStyle Add stays.",
+    "Lumps: 81 SDGN (A-G, Q, R at rotations 1-8; H-P at 0) and 5 SDGL (A-E at 0), each PNG with its grAb, "
+    "to assets/sprites/general/ on the CEO's approval; MOD-SPEC 6.3 and check_pk3's placeholder list lose "
+    "CYBR, MANF and MISL for this class.",
+    "Nothing else: no state, tic or action changes. The Q frame is Bright: GZDoom lights the WHOLE sprite on "
+    "a Bright frame, which suits the order being shouted.",
+]
+
+
+def _full_verdict(met: dict, ident: dict) -> tuple[list[str], list[str]]:
+    c = met["corpse"]
+    same = [k for k, v in ident.items() if v]
+    fc = met["front_cloak_px"]
+    return [
+        "WHAT THIS IS. D72: the CD turnaround, approved, drawn in every frame general.zs names: A-D the walk (the "
+        "coat's hem and the cloak sway; Spawn idles on A B), E F the salvo (E aims the stick, F fires: the "
+        "field gun's flash on his shoulder), G the pain (struck in the chest, he rocks back and clutches it), "
+        "Q R the summon (Q, Bright: 'Vorwärts!', his fist raised; R: he points the recruits on), at 8 drawn "
+        "rotations; H-P the death at rotation 0. 81 SDGN lumps and the shell's 5 SDGL. The turnaround's views "
+        f"are its pixels byte for byte ({len(same)} of {len(ident)}: {', '.join(same) or 'turnaround PNGs not on disk'}).",
+        "THE CLOAK FROM THE FRONT. At rotation 1 not one pixel of the cloak shows in any living frame: "
+        + ", ".join(f"{f} {v}" for f, v in fc.items()) + " (tests/test_gen_general.py holds it). It sways only "
+        "backwards and with the hem, never out past the coat.",
+        "THE DEATH. Hit in the chest at H (the burst, the hole in the chrome), his knees go and the cap flies off "
+        "at I (the field gun knocked up on its cradle), he falls back over his heels twisting at J while the gun "
+        "is torn off, lands at K, and from L lies on his back across the screen on his cloak, spread under him "
+        "on the floor: the Reich's red with its disc on the near side, the stars and stripes on the far side. "
+        "Head, arms and legs are each let fall until they touch; the cap and the gun lie beside him; the pool "
+        "grows from his chest onto the flags (M-P). "
+        f"Measured on the corpse P (section 5): every part within {LYING_MAX:.0f} units of the floor, the body "
+        f"{c['top']} units high at most (the test: under {LYING_TOP:.0f}; his cuirass is thick), the supports "
+        f"spread {c['span']} units, the torso across the screen ({c['across']}); the cap and the gun lie "
+        f"{c['loose_top']} units high at most. Blood is "
+        + ", ".join(f"{k} {v:.0%}" for k, v in met["blood_share"].items() if v is not None)
+        + " of the death frames' pixels.",
+        "WHAT DOES NOT, HONESTLY. (1) E and F share the pose but for the stick and the flash: from the front "
+        "E reads as 'F without the flash', which is Doom's own E/F rhythm (the Cyberdemon's). (2) The walk's "
+        "four frames differ mostly in the legs under a coat that only sways: from the front the stride is "
+        "boots; the side views show it. (3) Q's raised fist makes the sprite taller than his 100-unit actor "
+        "(the arm over the cap), as Doom's raised arms do. (4) The corpse is big: he is 100 units, so lying he "
+        "is ~100 px across, the cloak's fan wider still; it is the biggest corpse in the game, as he is the "
+        "biggest man. (5) The spread cloak is drawn as straight stripes radiating from his shoulders: cloth "
+        "seen from 37 degrees, not folds. (6) Light is gen_enemy's stand-in, NOT VERIFIED against GZDoom; "
+        "nothing here has been in the engine.",
+    ], [
+        "Approve the 81 SDGN and 5 SDGL lumps as drawn, or name the frames to redo (the corpse P above all: "
+        "does he lie naturally on his flags?).",
+        "On approval: mod-engineer installs them and makes the code changes listed in section 8.",
+    ]
+
+
+def build_full_sheet(stamp: str, out_dir: Path = PREVIEW_DIR) -> Path:
+    spr = load_full()
+    gifs = write_full_gifs(spr)
+    lines = full_lineups(spr)
+    met = full_metrics(spr)
+    ident = full_identity(spr)
+    rotated, death = full_frames()
+    S = []
+    body = sheetlib.table(["state", "frames and tics (general.zs; Summon with its final letters)", "rotations",
+                           "letters"], _states_rows(), 9)
+    body += (f"<p class=\"lead\">{len(full_plan())} SDGN lumps in <code>work/art/general/full/SDGN/</code> and "
+             f"{len(SHELL_FRAMES)} SDGL in <code>.../SDGL/</code>, named as the engine reads them: "
+             f"<code>SDGNA1</code> ... <code>SDGNR8</code>, <code>SDGNH0</code> ... <code>SDGNP0</code>, "
+             "<code>SDGLA0</code> ... <code>SDGLE0</code>. Eight drawn rotations (handed). Each PNG carries its "
+             "grAb. No XDeath state, so no gib.</p>")
+    S.append(("1 · The set", "Every frame SD_General needs, read from general.zs (read, not edited).", body))
+    body = _crop_tiles([spr[("A", r)] for r in range(1, 9)], 3, [full_lump("A", r) for r in range(1, 9)],
+                       [FULL_ROT_NAMES[r] for r in range(1, 9)])
+    body += _strip([core.sprite_tile(spr[("A", r)], 1, full_lump("A", r)) for r in range(1, 9)]
+                   + [core.gif_tile(gifs["turntable"], 3, "turntable", "12 tics a rotation")])
+    body += ("<p class=\"lead\">The turnaround's views, byte for byte: "
+             + html.escape(", ".join(f"{k} {'identical' if v else ('differs' if v is False else 'no PNG')}"
+                                     for k, v in ident.items())) + ".</p>")
+    S.append(("2 · Turnaround: frame A at the 8 rotations", "3x on neutral grey, then 1x.", body))
+    body = _strip([core.gif_tile(gifs[f"see_rot{r}"], 2, f"walk, rotation {r}", "A B C D, 6 tics each")
+                   for r in range(1, 9)])
+    body += _strip([core.gif_tile(gifs[f"attack_rot{r}"], 2, f"salvo, rotation {r}", "walk, E 6 F 12 E 12 F 12 E 12 F 12")
+                    for r in (1, 3, 5, 7)])
+    body += _strip([core.gif_tile(gifs[f"summon_rot{r}"], 2, f"summon, rotation {r}", "walk, Q 15 R 15, walk")
+                    for r in (1, 3, 5, 7)])
+    body += _strip([core.gif_tile(gifs[f"pain_rot{r}"], 2, f"pain, rotation {r}", "walk, G 10, walk")
+                    for r in (1, 3, 5, 7)] + [core.gif_tile(gifs["spawn_rot1"], 2, "Spawn", "A B, 10 tics")])
+    S.append(("3 · The cycles at game speed", "At the tics of general.zs, 35 a second: See SDGN AABBCCDD at 3 "
+              "(6 a picture), Missile E 6 then F 12 / E 12 three times, Pain G 10, Summon Q 15 R 15, Spawn A B "
+              "at 10.", body))
+    body = ""
+    for f in rotated:
+        body += _crop_tiles([spr[(f, r)] for r in range(1, 9)], 2, [full_lump(f, r) for r in range(1, 9)],
+                            [FULL_TITLES.get(f, "")] + [f"cloak {met['cloak_px'][f][r]} px" if r == 1 else ""
+                                                        for r in range(2, 9)])
+    S.append(("4 · Every living frame at every rotation", "2x, each row one frame letter. Under rotation 1: the "
+              "cloak's pixels visible from the front (0 everywhere).", body))
+    body = _crop_tiles([spr[(f, 0)] for f in death], 3, [f"SDGN{f}0" for f in death],
+                       [FALLS[f].pose.title for f in death])
+    body += _strip([core.gif_tile(gifs["death"], 3, "death, game speed", " ".join(
+                        f"{f} {t}" for f, t in hound._gif_runs(zs_states()["Death"]))),
+                    core.gif_tile(gifs["death_floor"], 1, "in the portal hall, 1x", "from the living frame"),
+                    core.gif_tile(gifs["death_floor"], 2, "in the portal hall, 2x"),
+                    core.sprite_tile(hound.crop_common([spr[("P", 0)]])[0], 4, "SDGNP0 at 4x", "the corpse")])
+    c = met["corpse"]
+    body += sheetlib.table(["part of SDGNP0", "lowest point above the floor (units)"],
+                           [[k, v] for k, v in c["lowest"].items()], 1)
+    body += (f"<p class=\"lead\">The corpse measured on its model, untilted: each part within {LYING_MAX:.0f} "
+             f"units of the floor, his highest point {c['top']} units (under {LYING_TOP:.0f}), the parts on the "
+             f"floor spread {c['span']} units, the torso across the screen ({c['across']}); the cap and the gun "
+             f"lie on the floor ({c['loose_lowest']} to {c['loose_top']} units). tests/test_gen_general.py holds "
+             "it. Blood, share of the death frames' pixels: "
+             + ", ".join(f"{k} {v:.0%}" for k, v in met["blood_share"].items() if v is not None) + ".</p>")
+    S.append(("5 · The death, rotation 0, with the blood",
+              "Dark red only, flag_red 0-5 and black (D49, BloodColor AD 27 21's family). The frames on the "
+              "floor are seen from higher as they fall (up to 37 degrees, as the approved corpses).", body))
+    shell = [spr[("shell", f)] for f in SHELL_FRAMES]
+    body = _strip([core.sprite_tile(a, 4, f"SDGL{f}0", t) for a, f, t in
+                   zip(shell, SHELL_FRAMES, ("flight", "flight", "burst", "burst", "burst"))]
+                  + [core.gif_tile(gifs["shell_flight"], 4, "flight, additive on SDBRCK1", "A B, 4 tics"),
+                     core.gif_tile(gifs["shell_burst"], 4, "burst, additive", "C 8, D 6, E 4")])
+    S.append(("6 · The shell SD_GeneralShell (SDGL A-E)", "A white-hot core in a braid-yellow fire with an ember "
+              "ring, flying at you (A B), then the burst (C D E). RenderStyle Add in general_shell.zs: only "
+              "bright colours count; the additive preview is a stand-in, NOT VERIFIED.", body))
+    body = ""
+    for sk, (sc, wall, light, what) in lines["scenes"].items():
+        body += _strip([_img_tile(sc, 1, f"{sk} 1x: {wall} at light {light}", what),
+                        _img_tile(sc, 2, f"{sk} 2x, for the eye")])
+    body += ('<p class="lead">Left to right: ' + html.escape(" · ".join(lines["labels"])) + ".</p>")
+    for light in (176, 128):
+        sd = lines[f"dead_{light}"]
+        body += _strip([_img_tile(sd, 1, f"the dead, 1x, SDBRCK1 at {light}"), _img_tile(sd, 2, "2x")])
+    body += '<p class="lead">The dead: ' + html.escape(" · ".join(lines["dead_labels"])) + ".</p>"
+    S.append(("7 · At 1x in MAP03: the portal hall and a corridor, beside the approved enemies",
+              "The portal hall's brick at 128 and the drum's steel at 144 over SDFLR4; the office corridor's "
+              "SDTILE2 at 128 over SDFLR3. Light is gen_enemy's stand-in re-quantised to palette v2, NOT VERIFIED.",
+              body))
+    body = '<div class="verdict">' + "".join(f"<p>{html.escape(x)}</p>" for x in CODE_NEEDS) + "</div>"
+    S.append(("8 · What the code needs (for mod-engineer; nothing is edited here)", "", body))
+    fm, bm = met["front"], met["back"]
+    rows = [["front A1", f"{fm['height_px']} x {fm['width_px']}", fm["body_luma"], fm["worst_sep"]],
+            ["back A5", f"{bm['height_px']} x {bm['width_px']}", bm["body_luma"], bm["worst_sep"]]]
+    body = sheetlib.table(["view", "h x w px", "body luma", "worst share apart"], rows, 2)
+    body += sheetlib.table(["lump", "height px"], [[k, v] for k, v in met["heights"].items()
+                                                   if k[5] in "150"], 1)
+    S.append(("9 · Numbers", "Size and value as the sweep measured them; the heights at rotations 1, 5 and 0.", body))
+    verdict, ask = _full_verdict(met, ident)
+    body = '<div class="verdict">' + "".join(f"<p>{html.escape(v)}</p>" for v in verdict) + "</div>"
+    body += '<div class="ask"><b>For the CEO</b><ol>' + "".join(f"<li>{html.escape(a)}</li>" for a in ask) + "</ol></div>"
+    S.append(("10 · Honest verdict and what you decide", "", body))
+    intro = ("D72: \"OK al general\". The CD turnaround in every frame his states name, rendered on the rig the "
+             "approved enemies were drawn on, with D49's dark red blood and a corpse that lies flat on his flags. "
+             "Built by <code>tools/art/gen_general.py --full</code> on rig_core (imported, not edited), seed "
+             f"{SEED}, no system fonts. Draft: nothing in <code>assets/</code> or <code>src/</code>.")
+    footer = ("Sprites: tools/art/gen_general.py (GPL-3.0 code; art CC BY-NC-SA 4.0, D15), deterministic. Approved "
+              "sprites read from assets/sprites/ for scale. MAP03 walls and flats are the mod's own. Freedoom's "
+              "CYBRA1 shown for scale only (BSD-3-Clause), not used as a source.")
+    path = out_dir / f"{stamp}_F5_general-CD-full-set.html"
+    sheetlib.write_sheet(path, lang="en", title="The General, CD: full set (F5, D72)",
+                         subtitle=f"SDGN · SDGL · {len(full_plan())} + {len(SHELL_FRAMES)} lumps · 8 rotations · "
+                                  "death with blood · draft", intro=intro, sections=S, footer=footer)
+    text = path.read_text(encoding="utf-8").replace("</style>", EXTRA_CSS + "</style>", 1)
+    path.write_text(text, encoding="utf-8")
+    Image.fromarray(full_contact(spr, lines), "RGB").save(path.with_suffix(".png"), optimize=True)
+    return path
+
+
+def full_contact(spr: dict, lines: dict) -> np.ndarray:
+    """Each living frame a row of its 8 rotations at 1x (cropped alike), then
+    the death H-P and the shell at 1x, then the portal hall lineup and the
+    dead at 1x."""
+    gap = 8
+    rotated, death = full_frames()
+    rows = [hound.crop_common([spr[(f, r)] for r in range(1, 9)]) for f in rotated]
+    drow = hound.crop_common([spr[(f, 0)] for f in death])
+    srow = [spr[("shell", f)] for f in SHELL_FRAMES]
+    scenes = [lines["scenes"]["P1"][0], lines["dead_128"]]
+    width = max(max(sum(a.shape[1] + gap for a in r) for r in rows + [drow, srow]),
+                max(s.shape[1] for s in scenes)) + 2 * gap
+    height = gap + sum(max(a.shape[0] for a in r) + gap for r in rows + [drow, srow]) \
+        + sum(s.shape[0] + gap for s in scenes) + gap
+    canvas = np.zeros((height, width, 3), np.uint8)
+    canvas[:] = CONTACT_BG
+    y = gap
+    for r in rows + [drow, srow]:
+        x = gap
+        h = max(a.shape[0] for a in r)
+        for a in r:
+            canvas[y:y + a.shape[0], x:x + a.shape[1]] = core.NEUTRAL
+            _paste(canvas, a, x, y, 1)
+            x += a.shape[1] + gap
+        y += h + gap
+    for s in scenes:
+        _paste(canvas, s, gap, y, 1)
+        y += s.shape[0] + gap
+    return canvas
+
+
 # ===================================================================== main
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
@@ -1254,7 +2333,20 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-sheet", action="store_true")
     ap.add_argument("--only", default=None, help="cell letters to render (no sheet)")
     ap.add_argument("--turnaround", action="store_true", help="D71: cell CD turned round, and its sheet")
+    ap.add_argument("--full", action="store_true", help="D72: the full set SDGN + SDGL into work/art/general/full/")
+    ap.add_argument("--jobs", type=int, default=1, help="with --full: worker processes")
+    ap.add_argument("--frames", default="", help="with --full: frame letters to render only (no sheet), e.g. P or AQ")
+    ap.add_argument("--sheet-only", action="store_true", help="with --full: GIFs, lineups and sheet from the lumps on disk")
     args = ap.parse_args(argv)
+    if args.full:
+        only = set(args.frames) or None
+        if not args.sheet_only:
+            build_full(jobs=args.jobs, only=only)
+        if only or args.no_sheet:
+            return 0
+        stamp = args.stamp or dt.datetime.now().strftime("%Y-%m-%d_%H%M")
+        print(build_full_sheet(stamp))
+        return 0
     if args.turnaround:
         t = build_turnaround()
         print(json.dumps(t["metrics"], indent=2))
