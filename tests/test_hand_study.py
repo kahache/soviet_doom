@@ -54,6 +54,21 @@ class HandStudyTest(unittest.TestCase):
             self.assertGreaterEqual(hs.finger_ratio(g), hs.MIN_FINGER_RATIO, g)
         self.assertGreater(hs.PALM_BREADTH_MM, hs.PALM_MM)   # palm wider than long
 
+    def test_round2_hand_body_about_the_longest_finger(self):
+        # CEO, round 2: the hand body ~ the longest finger, wider than the wrist
+        for cfg in hs.ROUND2.values():
+            ratio = hs.HAND_BODY_MM * cfg["palm"] / hs.middle_finger_mm()
+            self.assertGreater(ratio, 0.9)
+            self.assertLess(ratio, 1.2)
+        self.assertGreater(hs.PALM_BREADTH_MM, hs.WRIST_BREADTH_MM * 1.3)
+
+    def test_round2_forearm_tapers_to_the_wrist(self):
+        arm = hs.forearm_chain((0.0, 0.0), 19.0, 38.0, 10.0)
+        radii = [r for _, _, r in arm]
+        self.assertEqual(radii[0], 19.0)
+        self.assertGreater(max(radii), 1.8 * radii[0])
+        self.assertEqual(radii, sorted(radii))
+
     def test_four_variants_H1_to_H4(self):
         self.assertEqual(list(hs.VARIANTS), ["H1", "H2", "H3", "H4"])
 

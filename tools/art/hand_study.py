@@ -501,7 +501,7 @@ HALF = (LIGHT + np.array([0.0, 0.0, 1.0])) / np.linalg.norm(LIGHT + np.array([0.
 SS = 4                      # supersampling of the raster before the pixel cut
 
 
-def raster(parts: list[dict], k: float, origin, size=(SCREEN_W, SCREEN_H)) -> dict:
+def raster(parts: list[dict], k: float, origin, size=(SCREEN_W, SCREEN_H), mapper=None) -> dict:
     """Paint the capsule chains at SS x: part index, segment, |d|/r, light,
     specular, signed side of the axis, and the nail mask."""
     W, H = size[0] * SS, size[1] * SS
@@ -511,9 +511,11 @@ def raster(parts: list[dict], k: float, origin, size=(SCREEN_W, SCREEN_H)) -> di
            "edge": np.zeros((H, W), np.float32), "shade": np.zeros((H, W), np.float32),
            "spec": np.zeros((H, W), np.float32), "side": np.zeros((H, W), np.float32),
            "nail": np.zeros((H, W), bool)}
+    height = np.zeros((H, W), np.float32)      # surface height, for smooth unions inside a group
     for i in sorted(range(len(parts)), key=lambda j: parts[j]["z"]):
         p = parts[i]
-        pts = [(*grip_to_screen(u, v, k, origin), r * k) for u, v, r in p["chain"]]
+        to_px = mapper or grip_to_screen
+        pts = [(*to_px(u, v, k, origin), r * k) for u, v, r in p["chain"]]
         last = len(pts) - 2
         for s_i, ((ax, ay, ar), (bx, by, br)) in enumerate(zip(pts[:-1], pts[1:])):
             x_lo = max(0, int((min(ax - ar, bx - br) - 1) * SS))
@@ -531,10 +533,20 @@ def raster(parts: list[dict], k: float, origin, size=(SCREEN_W, SCREEN_H)) -> di
             ox, oy = sx - (ax + t * dx), sy - (ay + t * dy)
             dist = np.sqrt(ox * ox + oy * oy)
             inside = dist < rr
-            if not inside.any():
-                continue
             nx, ny = ox / rr, oy / rr
             nz = np.sqrt(np.clip(1 - nx * nx - ny * ny, 0, 1))
+            # inside one group and depth, overlapping capsules merge: the
+            # higher surface wins, so joints and bellies do not show as rings
+            cur = buf["pid"][sl]
+            same = np.zeros_like(inside)
+            for j in range(len(parts)):
+                if parts[j]["group"] == p["group"] and parts[j]["z"] == p["z"]:
+                    same |= cur == j
+            inside &= ~same | (nz * rr >= height[sl])
+            if not inside.any():
+                continue
+            hsl = height[sl]
+            hsl[inside] = (nz * rr)[inside]
             side = (ox * -dy + oy * dx) / (math.sqrt(L2) * rr)
             vals = {"pid": i, "seg": s_i, "edge": dist / rr,
                     "shade": nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2],
@@ -548,6 +560,7 @@ def raster(parts: list[dict], k: float, origin, size=(SCREEN_W, SCREEN_H)) -> di
                 # distal ~55 % of the last segment, middle ~60 % of its width,
                 # on the face turned to us (the thumb's: its upper edge)
                 off, half = (-0.30, 0.40) if p["group"] == "thumb" else (0.0, 0.50)
+                off = p.get("nail_side", off)
                 nailm[inside & (t > 0.45) & (t < 0.98) & (np.abs(side - off) < half)] = True
     return buf
 
@@ -637,10 +650,12 @@ def pixel_cut(parts: list[dict], d: dict, var: dict) -> np.ndarray:
     tone_cols = [full[i] for i in np.linspace(0, len(full) - 1, n).round().astype(int)]
     mats = {"hand": tone_cols,
             "grip": [ramp_cols(GRIP_RAMP)[i] for i in np.linspace(0, len(ramp_cols(GRIP_RAMP)) - 1, 5).round().astype(int)],
-            "sleeve": [ramp_cols(SLEEVE_RAMP)[i] for i in np.linspace(0, 11, 5).round().astype(int)]}
+            "sleeve": [ramp_cols(SLEEVE_RAMP)[i] for i in np.linspace(0, 11, 5).round().astype(int)],
+            "cuff": [ramp_cols(SLEEVE_RAMP)[i] for i in np.linspace(0, 10, 5).round().astype(int)]}
     black = (0, 0, 0)
     line_col = {"hand": black if var["outline"] == "black" else ramp(var["ramp"][0])[1],
-                "grip": artlib.ramp("concrete_cold")[3], "sleeve": artlib.ramp("military_green")[1]}
+                "grip": artlib.ramp("concrete_cold")[3], "sleeve": artlib.ramp("military_green")[1],
+                "cuff": artlib.ramp("military_green")[0]}
     rng = np.random.default_rng(55)
     level = np.zeros((H, W), int)
     for i, p in enumerate(parts):
@@ -701,6 +716,14 @@ def pixel_cut(parts: list[dict], d: dict, var: dict) -> np.ndarray:
         rgba[wrist & ~lines, :3] = artlib.ramp("khaki_olive")[4]
         rgba[rib, :3] = artlib.ramp("khaki_olive")[2]
         rgba[joint & is_hand & ~lines, :3] = artlib.ramp("khaki_olive")[1]
+    for i, p in enumerate(parts):              # sleeve cuff band (segment 0) and its hem
+        if p["name"] == "sleeve" and len(p["chain"]) > 2:
+            band = (pid == i) & (d["seg"] == 0) & ~lines
+            rgba[band, :3] = np.array(mats["sleeve"])[np.clip(level[band] - 1, 0, 4)]
+            hem = np.zeros_like(band)
+            for dy, dx in ((0, -1), (-1, 0), (0, 1), (1, 0)):
+                hem |= (pid == i) & (d["seg"] == 1) & (shift(pid, dy, dx, -1) == i) & (shift(d["seg"], dy, dx, 1) == 0)
+            rgba[hem & ~outer, :3] = line_col["sleeve"]
     for i, p in enumerate(parts):
         m = pid == i
         dark = line_col[p["mat"]]
@@ -934,6 +957,252 @@ def build_hand_sheet(stamp: str) -> Path:
     return path
 
 
+# ============================================================ round 2 (H2)
+# CEO on H2 (2026-10-14): base approved, two faults. (1) "el brazo como un
+# puto palo": the forearm must taper from below the elbow to the wrist, with
+# a slight curve, muscle mass and a visible wrist joint, the cuff following
+# it. (2) "la mano sin dedos es pequeña": the hand body was too small. Cause,
+# found on re-checking: round 1 took the palm as the metacarpal alone (65
+# mm) and forgot the carpus. Hand body = wrist joint to knuckles = metacarpal
+# + carpus ~ 65 + 23 = 88 mm, about the middle finger's 93 mm (NOT VERIFIED
+# figures, as above; the CEO's rule "body ~ longest finger" agrees).
+CARPUS_MM = 23.0
+CUFF_MM = 12.0                              # sleeve cuff band, drawn as the sleeve's first segment
+HAND_BODY_MM = PALM_MM + CARPUS_MM          # 88
+WRIST_BREADTH_MM = 58.0                     # across the wrist joint, back view
+WRIST_DEPTH_MM = 38.0                       # thickness, as seen from the thumb side
+ELBOW_BREADTH_MM = 78.0                     # forearm just below the elbow, side view
+
+ROUND2 = {
+    # palm: hand-body scale vs round 1's anatomy; curve: forearm bow, mm;
+    # elbow_r: half-width of the forearm below the elbow, mm
+    "H2a": dict(palm=1.00, curve=7.0, elbow_r=36.0, belly=0.30,
+                note="hand body = 88 mm (0.95 of the middle finger), light taper and bow"),
+    "H2b": dict(palm=1.08, curve=11.0, elbow_r=39.0, belly=0.36,
+                note="hand body x1.08 (= the middle finger), more taper, more muscle"),
+    "H2c": dict(palm=1.16, curve=15.0, elbow_r=42.0, belly=0.42,
+                note="hand body x1.16 (1.1 of the finger), strongest taper and bow"),
+}
+
+
+def middle_finger_mm() -> float:
+    (_, p1, p2, p3), _ = BONES_MM["middle"]
+    return p1 + p2 + p3 + TIP_PAD_MM
+
+
+def forearm_chain(start: tuple[float, float], r_wrist: float, elbow_r: float, curve: float,
+                  length: float = 330.0, steps: int = 7) -> list[tuple[float, float, float]]:
+    """Grip frame (u, v, r): from the wrist back along the arm, widening fast
+    to the belly below the elbow, bowed upward (toward -u) by `curve`."""
+    du, dv = 0.25, 0.97                        # the arm runs back along the bore
+    nu, nv = -0.97, 0.25                       # 'up' across the arm
+    out = []
+    for j in range(steps + 1):
+        s = length * j / steps
+        f = s / length
+        r = r_wrist + (elbow_r - r_wrist) * min(1.0, (f / 0.55) ** 0.7)
+        bow = curve * math.sin(math.pi * f)
+        out.append((start[0] + du * s + nu * bow, start[1] + dv * s + nv * bow, r))
+    return out
+
+
+def pose_parts_r2(palm: float = 1.0, curve: float = 7.0, elbow_r: float = 36.0, belly: float = 0.3) -> list[dict]:
+    """Round 1's grip pose with a bigger hand body (palm scales it about the
+    knuckle line) and a shaped forearm with wrist, cuff and muscle belly."""
+    ax, av = 30.0, 44.0                        # knuckle line, far side
+
+    def body(*pts):
+        return [(ax + (u - ax) * palm, av + (v - av) * palm, r * palm) for u, v, r in pts]
+    base = {p["name"]: p for p in pose_parts()}
+    parts = [base[n] for n in ("index", "middle_p1", "ring_p1", "little_p1", "grip")]
+    # hand body: thenar, heel and the mass between, one group, no lines inside
+    parts += [
+        dict(name="thenar", group="palm", z=3, mat="hand", chain=body((0, 44, 17), (18, 58, 21), (38, 72, 20))),
+        dict(name="heel", group="palm", z=3, mat="hand", chain=body((58, 54, 16), (62, 74, 16))),
+        dict(name="mass", group="palm", z=3, mat="hand", chain=body((30, 64, 23), (46, 86, 19))),
+    ]
+    wu, wv, _ = body((45, 100, 0))[0]
+    r_w = WRIST_DEPTH_MM / 2
+    # the wrist joint: its own group, so a crease line marks where the hand meets it
+    parts += [dict(name="wrist", group="wrist", z=2.5, mat="hand",
+                   chain=[(wu, wv - 8, r_w + 1.5), (wu + 2, wv + 10, r_w)]),
+              dict(name="styloid", group="wrist", z=2.5, mat="hand",
+                   chain=[(wu - r_w * 0.75, wv + 2, 4.0), (wu - r_w * 0.7, wv + 6, 3.5)])]
+    arm = forearm_chain((wu + 4, wv + 16), r_w + 2.5, elbow_r, curve)
+    lip = (arm[0][0] - 0.25 * CUFF_MM, arm[0][1] - 0.97 * CUFF_MM, arm[0][2] + 3.0)   # the cuff band
+    arm = [lip, (arm[0][0], arm[0][1], arm[0][2] + 3.0)] + arm[1:]
+    parts += [
+        dict(name="sleeve", group="sleeve", z=8, mat="sleeve", chain=arm),
+        # muscle belly on the upper side (brachioradialis/extensors), same cloth
+        dict(name="belly", group="sleeve", z=8, mat="sleeve",
+             chain=[(arm[2][0] - 0.97 * elbow_r * belly, arm[2][1] + 0.25 * elbow_r * belly, elbow_r * 0.55),
+                    (arm[5][0] - 0.97 * elbow_r * belly, arm[5][1] + 0.25 * elbow_r * belly, elbow_r * 0.75)]),
+    ]
+    parts += [base[n] for n in ("little_tip", "ring_tip", "middle_tip", "thumb")]
+    return parts
+
+
+def open_hand_parts(palm: float = 1.0) -> list[dict]:
+    """The same hand open, palm down (back view), fingers up; x right, y
+    down, mm, wrist joint at (0, 0). Fingers at BONES_MM, hand body at
+    HAND_BODY_MM x palm."""
+    hb, P = HAND_BODY_MM * palm, palm
+    knuckles = {"index": (-28 * P, -hb + 4), "middle": (-9 * P, -hb), "ring": (10 * P, -hb + 3),
+                "little": (27 * P, -hb + 12)}
+    fan = {"index": -6, "middle": -1, "ring": 4, "little": 11}
+    parts = [
+        dict(name="sleeve", group="sleeve", z=0, mat="sleeve",
+             chain=[(0, 26, 33), (0, 26 + CUFF_MM, 33), (5, 95, 36), (10, 160, 39)]),
+        dict(name="wrist", group="wrist", z=2, mat="hand", chain=[(0, 6, WRIST_BREADTH_MM / 2), (0, 30, 28)]),
+        dict(name="body_k", group="palm", z=3, mat="hand",
+             chain=[(*knuckles[g], 11.5 * P) for g in ("index", "middle", "ring", "little")]),
+        dict(name="body_c", group="palm", z=3, mat="hand", chain=[(-2 * P, -hb + 22 * P, 31 * P), (0, -22 * P, 28 * P)]),
+        dict(name="body_h", group="palm", z=3, mat="hand", chain=[(-12 * P, -16 * P, 17 * P), (12 * P, -14 * P, 17 * P)]),
+    ]
+    z = 5
+    for g in ("little", "ring", "middle", "index"):
+        (_, p1, p2, p3), wdt = BONES_MM[g]
+        a = math.radians(fan[g])
+        ux, uy = math.sin(a), -math.cos(a)
+        pts = [knuckles[g]]
+        for L in (p1, p2, p3 + TIP_PAD_MM):
+            pts.append((pts[-1][0] + ux * L, pts[-1][1] + uy * L))
+        rs = [wdt / 2, wdt / 2 - 0.5, (wdt - 3) / 2, (wdt - 4) / 2]
+        parts.append(dict(name=g, group=g, z=z, mat="hand", nail=True, nail_side=0.0,
+                          chain=[(x, y, float(r)) for (x, y), r in zip(pts, rs)]))
+        z += 1
+    (mc, p1, _, p3), wdt = BONES_MM["thumb"]
+    a = math.radians(-36)
+    ux, uy = math.sin(a), -math.cos(a)
+    pts = [(-12 * P, -14 * P)]                 # CMC joint, inside the hand body
+    for L in (mc, p1, p3 + TIP_PAD_MM):
+        pts.append((pts[-1][0] + ux * L, pts[-1][1] + uy * L))
+    rs = [17.0 * P, 12.0, 10.5, 8.5]
+    parts.append(dict(name="thumb", group="thumb", z=4, mat="hand", nail=True, nail_side=0.0,
+                      chain=[(x, y, r) for (x, y), r in zip(pts, rs)]))
+    return parts
+
+
+def render_parts(parts: list[dict], var: dict, origin=HAND_ORIGIN, size=(SCREEN_W, SCREEN_H), mapper=None):
+    d = downsample(raster(parts, var["k"], origin, size, mapper))
+    return pixel_cut(parts, d, var), d
+
+
+def alpha_box(rgba: np.ndarray, margin: int = 3) -> list[int]:
+    a = rgba[..., 3] > 0
+    rows, cols = np.flatnonzero(a.any(1)), np.flatnonzero(a.any(0))
+    return [max(0, int(cols[0]) - margin), max(0, int(rows[0]) - margin),
+            int(cols[-1]) + 1 + margin, int(rows[-1]) + 1 + margin]
+
+
+OPEN_HAND_ZOOM = 2          # the open hand is drawn at twice the game scale so its shapes read
+
+
+def render_open_hand(palm: float, var: dict) -> np.ndarray:
+    var = dict(var, k=var["k"] * OPEN_HAND_ZOOM)
+    k = var["k"]
+    size = (int(200 * k) + 8, int(260 * k) + 8)
+    origin = (size[0] * 0.58, size[1] - 70 * k)
+
+    def flat(u, v, kk, o):
+        return o[0] + kk * u, o[1] + kk * v
+    rgba, _ = render_parts(open_hand_parts(palm), var, origin, size, flat)
+    return rgba
+
+
+def build_round2_sheet(stamp: str) -> Path:
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    bg = map01_backdrop()
+    var = VARIANTS["H2"]
+    rows = [("H2 round 1 (rejected)", "the stick arm, the small hand body", pose_parts())]
+    rows += [(key, cfg["note"], pose_parts_r2(cfg["palm"], cfg["curve"], cfg["elbow_r"], cfg["belly"]))
+             for key, cfg in ROUND2.items()]
+    renders = []
+    for key, note, parts in rows:
+        rgba, _ = render_parts(parts, var)
+        name = key.split()[0] + ("_r1" if "round 1" in key else "")
+        Image.fromarray(rgba).save(OUT_DIR / f"{name}_screen.png")
+        renders.append((key, note, rgba))
+    open_a = render_open_hand(ROUND2["H2a"]["palm"], var)
+    Image.fromarray(open_a).save(OUT_DIR / "H2a_open.png")
+    metrics = {k: dict(cfg, hand_body_mm=round(HAND_BODY_MM * cfg["palm"], 1),
+                       body_to_middle_finger=round(HAND_BODY_MM * cfg["palm"] / middle_finger_mm(), 2))
+               for k, cfg in ROUND2.items()}
+    (OUT_DIR / "round2_metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
+
+    pad, gap = 24, 16
+    f_t, f_b, f_s = font(26), font(16), font(14)
+    W = 2600
+    sheet = Image.new("RGB", (W, 4000), SHEET_BG)
+    d = ImageDraw.Draw(sheet)
+    d.text((pad, 14), "H2 round 2 (D55): forearm shaped, hand body enlarged - same grip pose, no weapon",
+           font=f_t, fill=INK)
+    y = wrap(d, (pad, 52), (
+        "Fixes asked by the CEO on H2: the forearm tapers from below the elbow to a visible wrist joint, with a "
+        "slight bow and a muscle belly, the cuff following it; the hand body is bigger against the fingers. Why it "
+        f"was small: round 1 took the palm as the metacarpal alone ({PALM_MM:.0f} mm) and left out the carpus "
+        f"(~{CARPUS_MM:.0f} mm), so the hand body from wrist joint to knuckles is ~{HAND_BODY_MM:.0f} mm, about "
+        f"the middle finger's {middle_finger_mm():.0f} mm, and {PALM_BREADTH_MM:.0f} mm wide against a "
+        f"{WRIST_BREADTH_MM:.0f} mm wrist (figures from memory, NOT VERIFIED, +-10 %). H2 style kept: 0.34 px/mm, "
+        "four tones, black outline. Each row: 1x, 2x, 4x on grey, then MAP01 1x, 2x and a 4x crop."),
+        f_b, INK, W - 2 * pad)
+    y += 10
+    for key, note, rgba in renders:
+        d.text((pad, y), key, font=f_b, fill=RED if "round 1" in key else GOLD)
+        d.text((pad + 260, y + 1), note, font=f_s, fill=INK)
+        y += 26
+        box = alpha_box(rgba)
+        nb_ = neutral(rgba, box)
+        x, row_h = pad, 0
+        for z in (1, 2, 4):
+            im = zoom(nb_, z)
+            sheet.paste(im, (x, y))
+            d.text((x, y + im.height + 2), f"{z}x", font=f_s, fill=DIM)
+            x += im.width + gap
+            row_h = max(row_h, im.height)
+        scr = on_map(rgba, bg)
+        sheet.paste(zoom(scr, 1), (x, y))
+        d.text((x, y + SCREEN_H + 2), "MAP01 1x", font=f_s, fill=DIM)
+        x += SCREEN_W + gap
+        sheet.paste(zoom(scr, 2), (x, y))
+        d.text((x, y + 2 * SCREEN_H + 2), "MAP01 2x", font=f_s, fill=DIM)
+        x += 2 * SCREEN_W + gap
+        cx0 = min(max(0, box[0] - 6), SCREEN_W - 100)
+        cimg = zoom(scr[95:VIEW_H, cx0:cx0 + 100], 4)
+        if x + cimg.width <= W:
+            sheet.paste(cimg, (x, y))
+            d.text((x, y + cimg.height + 2), "MAP01 4x crop", font=f_s, fill=DIM)
+        row_h = max(row_h, 2 * SCREEN_H, cimg.height)
+        y += row_h + 34
+    d.text((pad, y), "H2a open, back of the hand (no foreshortening), drawn at 2x the game scale (0.68 px/mm) "
+                     "in the same H2 style; shown 1x, 2x, 4x", font=f_b, fill=GOLD)
+    y += 26
+    on = np.zeros(open_a.shape[:2] + (3,), np.uint8)
+    on[:] = NEUTRAL_BG
+    a = open_a[..., 3] > 0
+    on[a] = open_a[..., :3][a]
+    x = pad
+    for z in (1, 2, 4):
+        im = zoom(on, z)
+        sheet.paste(im, (x, y))
+        x += im.width + gap
+    tall = 4 * on.shape[0]
+    mid = middle_finger_mm()
+    wrap(d, (x + 10, y), (
+        f"Hand body (wrist joint to knuckles) {HAND_BODY_MM:.0f} mm = metacarpal {PALM_MM:.0f} + carpus "
+        f"{CARPUS_MM:.0f}; middle finger {mid:.0f} mm (P1 45, P2 26, P3 17 + pad 5): body / finger = "
+        f"{HAND_BODY_MM / mid:.2f} (H2b {HAND_BODY_MM * 1.08 / mid:.2f}, H2c {HAND_BODY_MM * 1.16 / mid:.2f}). "
+        f"Width across the knuckles {PALM_BREADTH_MM:.0f} mm against a {WRIST_BREADTH_MM:.0f} mm wrist (x"
+        f"{PALM_BREADTH_MM / WRIST_BREADTH_MM:.2f}). Fingers 4.4:1 to 4.9:1, thumb 2.8:1. Relative to the hand "
+        f"body (1.00): proximal phalanx 0.38-0.51, middle 0.20-0.30, distal + pad 0.24-0.25. Round 1's "
+        f"panel was right on the fingers and wrong on the palm, which it measured as the metacarpal only."),
+        f_s, INK, W - x - 10 - pad)
+    y += tall + 20
+    path = PREVIEW_DIR / f"{stamp}_F4_hand-H2-round2.png"
+    sheet.crop((0, 0, W, y)).save(path, optimize=True)
+    return path
+
+
 # ------------------------------------------------------------------ main
 def main(argv: list[str]) -> None:
     what = argv[1] if len(argv) > 1 else "all"
@@ -944,6 +1213,8 @@ def main(argv: list[str]) -> None:
         print(build_scale_sheet(study, stamp))
     if what in ("hands", "all"):
         print(build_hand_sheet(stamp))
+    if what == "round2":
+        print(build_round2_sheet(stamp))
 
 
 if __name__ == "__main__":
