@@ -8,7 +8,8 @@ What is tested:
   `src/zscript/`; lump and logical names are legal and unique; the engine
   timings the sounds are cut to still match the tic counts in
   `src/zscript/weapons/*.zs`; every lump has its card in
-  `docs/sound/WEAPON-SOUNDS.md` and every source file its provenance row.
+  `docs/sound/WEAPON-SOUNDS.md` and every source file its provenance row,
+  with the SHA-256 of the file on disk (D44 put more `KEN-IMP` files in).
 - The provenance rule of WEAPON-SOUNDS.md: the only foreign sources are files
   of the packs D36 authorised for this use (OGA-100, KEN-IMP), and no
   `shot_*` recording is used.
@@ -20,7 +21,8 @@ What is tested:
   the ice axe's swing peaks before the blow, the IZh snaps shut on the frame
   where the shells are counted, the Katyusha's charge and reload fit their
   20 tics, the RPG-7's reload is over before the next launch.
-- The overlay PK3 and the preview page; `main()` writes only where it is told.
+- The overlay PK3, the preview page and the before/after page (`--compare`:
+  only the lumps that changed); `main()` writes only where it is told.
 - Missing sources: the lumps that need them are skipped, the synthetic ones
   are still built.
 
@@ -229,6 +231,18 @@ class ContractTest(unittest.TestCase):
         used = {k for lump in gws.LUMPS for k in lump.sources}
         for key in used:
             self.assertIn(Path(gws.SOURCE_FILES[key][1]).name, doc, key)
+
+    def test_plan_document_has_every_source_hash(self):
+        doc = PLAN_DOC.read_text(encoding="utf-8")
+        used = {k for lump in gws.LUMPS for k in lump.sources}
+        if not all(gws.source_path(k).is_file() for k in used):
+            self.skipTest("the gitignored sources are not on this machine")
+        for key in sorted(used):
+            with self.subTest(key):
+                self.assertIn(gws.sha256_file(gws.source_path(key)), doc)
+
+    def test_change_notes_name_real_lumps(self):
+        self.assertLessEqual(set(gws.CHANGE_NOTES), set(gws.LUMPS_BY_NAME))
 
     def test_ppsh_rate_matches_zscript(self):
         fire = [f for f in state_frames("ppsh.zs", "Fire") if "A_FireBullets" in f[2]]
@@ -515,6 +529,40 @@ class Pk3Test(unittest.TestCase):
             tsv = (out / "PROVENANCE.tsv").read_text(encoding="utf-8").splitlines()
             self.assertEqual(tsv[0], "lump\troute\tpack\tfile\tsegment\tsha256")
             self.assertIn("SDAXSWG\tC\tSYN\tgen_weapon_sfx.py\t\t", tsv)
+
+    def test_manifest_sources(self):
+        text = ("# header\n\nSDAXHIT  take A  0.3 s  ...\n"
+                "    KEN-IMP  ken-imp/extracted/Audio/impactPunch_heavy_000.ogg  abc\n"
+                "SDAXSWG  take A  0.3 s  ...\n    synthesis only (SYN)\n")
+        self.assertEqual(gws.manifest_sources(text),
+                         {"SDAXHIT": {"impactPunch_heavy_000.ogg"}, "SDAXSWG": set()})
+
+    def test_compare_page_shows_only_what_changed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            before = Path(tmp)
+            (before / "SDAXSWG.wav").write_bytes(self.result.rendered["SDAXSWG"])   # same
+            (before / "SDIZFIR.wav").write_bytes(gws.wav_bytes(np.zeros(100)))       # changed
+            # SDRKFIR has no "before": new, so it is shown too
+            self.assertEqual(gws.changed_lumps(self.result, before), ["SDIZFIR", "SDRKFIR"])
+            page = gws.compare_html(self.result, gws.Sources(), before, "2026-10-14_0000")
+        self.assertTrue(page.startswith("<!doctype html>"))
+        self.assertIn("<title>Arsenal sound changes</title>", page)
+        self.assertIn("SDIZFIR", page)
+        self.assertIn("SDRKFIR", page)
+        self.assertNotIn("SDAXSWG", page)
+        self.assertEqual(page.count("<b>Before</b>"), 2)
+        self.assertEqual(page.count("<b>After</b>"), 2)
+        self.assertEqual(page.count("After, take "), 2)        # SDIZFIR is a sweep lump
+        self.assertNotIn("http://", page)
+        self.assertNotIn("https://", page)
+
+    def test_compare_needs_preview_and_a_copy(self):
+        with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                gws.main(["--compare", "somewhere"])
+            with tempfile.TemporaryDirectory() as tmp:
+                with self.assertRaises(SystemExit):
+                    gws.main(["--out", tmp, "--compare", tmp, "--preview", str(Path(tmp) / "p.html")])
 
     def test_main_rejects_unknown_lump(self):
         with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
