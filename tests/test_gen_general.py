@@ -307,8 +307,10 @@ class FullSetContractTests(unittest.TestCase):
     def test_frames_come_from_the_zs(self):
         g = self.g
         zs = g.GENERAL_ZS.read_text(encoding="utf-8")
-        self.assertIn("final art: SDGN Q", zs)            # the Summon swap the plan applies
-        self.assertIn("final art: SDGN R", zs)
+        # The Summon swap the plan applies, installed by D73 (it was the
+        # comment "final art: SDGN Q" / "R" on the borrowed CYBR E F lines).
+        self.assertRegex(zs, r"\bSDGN Q 15 Bright A_SD_GeneralSummon;")
+        self.assertRegex(zs, r"\bSDGN R 15;")
         self.assertEqual(g.full_frames(), ("ABCDEFGQR", "HIJKLMNOP"))
         self.assertNotIn("XDeath", g.zs_states())          # no gib
         plan = g.full_plan()

@@ -6,9 +6,20 @@
 // arrive at his side. He orders; he does not brawl. First placed in MAP03;
 // testable today on the practice range's bestiary bench (RANGE).
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: CYBR, laid out like SDGN for
-// A-P. The two Summon frames borrow CYBR E and F and become SDGN Q and R:
-// the only lines of this file where the swap is more than a rename.
+// Sprites are OUR OWN since D73 (2026-10-14): SDGN, the CD design (D71: C's
+// front, pennants and shoulder gun, with D's flag cloak on his back), drawn
+// on the 3D rig (tools/art/gen_general.py --full): 81 lumps in
+// assets/sprites/general/, A-G and Q-R in eight separate rotations, H-P
+// rotation 0, the corpse on his back on the spread cloak. The swap from
+// Freedoom's CYBR placeholder renamed the sprite only, but for the two
+// Summon lines, which borrowed CYBR E and F and now name their own frames,
+// SDGN Q (the order, fist raised) and R (he points the recruits on). Every
+// tic, action and flow is as before (tests/test_general_sprites.py pins
+// them). The body stays 40 x 100: the drawing is 41-63 px wide (CYBR is
+// 67-108) and rises 89-92 px over the actor's z (CYBR 96-105); only Q's
+// raised fist goes over the 100-unit height, to 109 px, a sprite-only
+// overhang. Doom's own Cyberdemon, which this class replaces, keeps the
+// IWAD's CYBR. The shell, SD_GeneralShell, draws SDGL (general_shell.zs).
 
 class SD_General : SD_Monster replaces Cyberdemon
 {
@@ -63,34 +74,34 @@ class SD_General : SD_Monster replaces Cyberdemon
 	States
 	{
 	Spawn:
-		CYBR AB 10 A_Look;
+		SDGN AB 10 A_Look;
 		Loop;
 	See:
-		CYBR AABBCCDD 3 A_SD_GeneralChase;
+		SDGN AABBCCDD 3 A_SD_GeneralChase;
 		Loop;
 	Missile:
-		CYBR E 6 A_FaceTarget;
-		CYBR F 12 A_SD_GeneralShot;
-		CYBR E 12 A_FaceTarget;
-		CYBR F 12 A_SD_GeneralShot;
-		CYBR E 12 A_FaceTarget;
-		CYBR F 12 A_SD_GeneralShot;
+		SDGN E 6 A_FaceTarget;
+		SDGN F 12 A_SD_GeneralShot;
+		SDGN E 12 A_FaceTarget;
+		SDGN F 12 A_SD_GeneralShot;
+		SDGN E 12 A_FaceTarget;
+		SDGN F 12 A_SD_GeneralShot;
 		Goto See;
 	Summon:
-		CYBR E 15 Bright A_SD_GeneralSummon;   // final art: SDGN Q
-		CYBR F 15;                              // final art: SDGN R
+		SDGN Q 15 Bright A_SD_GeneralSummon;   // the order: 'Vorwaerts!', his fist raised
+		SDGN R 15;                              // ... and he points them on
 		Goto See;
 	Pain:
-		CYBR G 10 A_Pain;
+		SDGN G 10 A_Pain;
 		Goto See;
 	Death:
-		CYBR H 10;
-		CYBR I 10 A_Scream;
-		CYBR JKL 10;
-		CYBR M 10 A_NoBlocking;
-		CYBR NO 10;
-		CYBR P 30;
-		CYBR P -1 A_BossDeath;
+		SDGN H 10;
+		SDGN I 10 A_Scream;
+		SDGN JKL 10;
+		SDGN M 10 A_NoBlocking;
+		SDGN NO 10;
+		SDGN P 30;
+		SDGN P -1 A_BossDeath;
 		Stop;
 	}
 

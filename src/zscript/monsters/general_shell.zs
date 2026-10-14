@@ -1,10 +1,15 @@
 // SD_GeneralShell - one shell of the General's three-shell salvo (BESTIARY
 // section 9). Not placeable.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS, borrowed from Doom's mancubus
-// shot: MANF A-B in flight, MISL B-D for the burst. The final SDGL is laid
-// out A-B flight, C-E burst, so the Death state needs new frame letters as
-// well as the new name when the art lands (BESTIARY 2.7).
+// Sprites are OUR OWN since D73 (2026-10-14): SDGL, a white-hot core in a
+// braid-yellow fire with an ember ring (tools/art/gen_general.py --full),
+// 5 lumps in assets/sprites/general/, rotation 0: A-B in flight, C-E the
+// burst. The placeholders were Freedoom's MANF A-B (Doom's mancubus shot) in
+// flight and MISL B-D for the burst, so the Death state took new frame
+// letters as well as the new name (BESTIARY 2.7); every tic is as before
+// (tests/test_general_sprites.py). RenderStyle Add stays: only the bright
+// colours show, as with the placeholders. MISL stays in the IWAD list for
+// the PG-7V grenade and the Katyusha rocket.
 
 class SD_GeneralShell : Actor
 {
@@ -33,12 +38,12 @@ class SD_GeneralShell : Actor
 	States
 	{
 	Spawn:
-		MANF AB 4 Bright;
+		SDGL AB 4 Bright;
 		Loop;
 	Death:
-		MISL B 8 Bright;
-		MISL C 6 Bright;
-		MISL D 4 Bright;
+		SDGL C 8 Bright;
+		SDGL D 6 Bright;
+		SDGL E 4 Bright;
 		Stop;
 	}
 }
