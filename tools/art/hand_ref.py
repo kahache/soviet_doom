@@ -1,5 +1,7 @@
 """The ice axe's held frame derived from the CEO's reference photos (N14 / N4
-round 3): a sweep for review, no asset.
+round 3): a sweep for review, no asset. Round 3b (after the CEO's "cámbialo
+a diestro" and the PM's polish notes): reference 1 mirrored to a right hand,
+the haft toned as wood, the head given weight.
 
     python tools/art/hand_ref.py            # cells -> work/art/hand_ref/, sheet + HTML -> docs/art/previews/
 
@@ -9,6 +11,10 @@ from a source image (the Lenin and Stalin posters). The CEO made reference
 images with Fooocus (SDXL) in work/art/reference/ ("orientativas"). Here
 the hand, wrist and sleeve are taken from one of them, not redrawn:
 
+0. orient: the files are named "mirrored" because Fooocus drew them
+   flipped; a spec with mirror=True flips the photo left-right first
+   (oriented() moves its measured points), so the right arm comes in from
+   the bottom right like Doom's fist, chainsaw and our TT-33 hands;
 1. segment: a rough lasso around hand and sleeve (photo px), then the
    photo's own colours decide the edge (sky and snow out; skin warm;
    sleeve dark olive); the photo's shaft is cut out along its axis
@@ -24,11 +30,13 @@ the hand, wrist and sleeve are taken from one of them, not redrawn:
    same ramps (palette v2 flesh_pink 1-15, military_green 1-12), so the
    hand sits next to the TT-33's; outline and the skin/sleeve seam in the
    ramps' darkest tone;
-4. the axe: our own (gen_weapon.draw_ice_axe_head, wood_ash shaft, the D40
-   design) rendered along the photo's shaft axis, the head up the axis and
-   farther (smaller), the shaft continuing below the fist; then the hand on
-   top, so thumb and fingertips lie over the shaft and the shaft shows above
-   and below the fist through the hole the photo's shaft left.
+4. the axe: our own (the D40 head after gen_weapon.draw_ice_axe_head, its
+   pick deepened and adze widened so it reads at 1x; the haft re-toned as
+   round grained wood with a dark rim) rendered along the photo's shaft
+   axis, the head up the axis and farther (smaller), the shaft continuing
+   below the fist; then the hand on top, so thumb and fingertips lie over
+   the shaft and the shaft shows above and below the fist through the hole
+   the photo's shaft left, darker inside the fist.
 
 The whole frame is placed so its top stands where the TT-33's does (D57,
 56 px above the status bar), the grip at a chosen column. Read-only
@@ -45,7 +53,7 @@ import io
 import json
 import math
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass, replace
 from datetime import datetime
 from pathlib import Path
 
@@ -100,18 +108,46 @@ class RefSpec:
     wood_s: float = WOOD_S     # saturation above which a pixel in the fist's band is the photo's wood
                                # (0: the whole band is shaft, nothing lies over it)
     sleeve_seed: tuple | None = None   # a point inside the sleeve: only that part of it is sleeve
+    mirror: bool = False       # flip the photo left-right before the cut-out (numbers above stay in
+                               # the file's own pixels; oriented() moves them)
+    flipped: bool = False      # set by oriented(): the numbers are already in the flipped photo's pixels
     note: str = ""
 
 
+PHOTO_W = 1152                 # every reference is 1152x896 (Fooocus); checked when a photo is loaded
+
+
+def oriented(spec: RefSpec) -> RefSpec:
+    """The spec in the pixels of the photo as it is used: mirrored specs get
+    every x moved to PHOTO_W - 1 - x (and the cuff direction turned)."""
+    if not spec.mirror or spec.flipped:
+        return spec
+    fx = lambda p: (PHOTO_W - 1 - float(p[0]), float(p[1]))     # noqa: E731
+    cuff = None
+    if spec.sleeve_from is not None:
+        (px, py), (dx, dy) = spec.sleeve_from
+        cuff = (fx((px, py)), (dx, -dy))                         # a mirror keeps the "right of it" side
+    return replace(
+        spec, lasso=tuple(fx(p) for p in spec.lasso), axis=tuple(fx(p) for p in spec.axis),
+        palm=tuple(fx(p) for p in spec.palm), seed=fx(spec.seed),
+        sleeve_seed=None if spec.sleeve_seed is None else fx(spec.sleeve_seed),
+        sleeve_from=cuff, flipped=True)
+
+
+R1_TURN = -24.0                # clockwise: the mirrored forearm leaves through the bottom right
+
 REFS = {
     "R1": RefSpec(
-        "R1", "hand grabbing mirrored.png", "hand around the haft, thumb over the fingers (CEO's best)",
+        "R1", "hand grabbing mirrored.png", "right hand round the haft, thumb over the fingers (CEO's best)",
         lasso=((0, 402), (135, 370), (300, 335), (395, 302), (520, 185), (735, 185), (770, 260), (768, 520), (720, 560),
                (600, 560), (520, 640), (420, 790), (360, 896), (0, 896)),
         axis=((641.0, 180.0), (703.0, 500.0)), shaft_half=40.0, fist=(205.0, 470.0),
-        palm=((700.0, 222.0), (745.0, 455.0)), seed=(500.0, 400.0), turn=32.0, sleeve_seed=(100.0, 600.0),
-        note="first person, the right hand round a wooden haft, knuckles and thumb over the fingers, "
-             "olive sleeve from the left"),
+        palm=((700.0, 222.0), (745.0, 455.0)), seed=(500.0, 400.0), turn=R1_TURN, sleeve_seed=(100.0, 600.0),
+        mirror=True,
+        note="first person, a hand round a wooden haft, knuckles and thumb over the fingers, olive sleeve. "
+             "Fooocus drew it flipped (a left arm from the left): it is mirrored back, so the right arm comes "
+             "in from the bottom right as Doom's fist, chainsaw and our TT-33 hands do (CEO: 'cámbialo a "
+             "diestro'). Numbers below are in the file's own pixels."),
     "R2": RefSpec(
         "R2", "both hands grabbing something.png", "fist from behind, forearm from the bottom",
         lasso=((700, 330), (830, 290), (905, 300), (960, 380), (975, 520), (990, 700), (870, 690),
@@ -185,6 +221,7 @@ def axis_frame(spec: RefSpec):
 def segment(spec: RefSpec, photo: np.ndarray | None = None) -> dict:
     """Masks on the photo: hand (skin + sleeve, the photo's shaft cut out),
     sleeve, and the photo's shaft hole. photo: float RGB 0..1."""
+    spec = oriented(spec)
     if photo is None:
         photo = load_photo(spec)
     h, w = photo.shape[:2]
@@ -223,8 +260,12 @@ def segment(spec: RefSpec, photo: np.ndarray | None = None) -> dict:
 
 
 def load_photo(spec: RefSpec) -> np.ndarray:
+    """The reference as float RGB 0..1, mirrored left-right when the spec says so."""
     with Image.open(REF_DIR / spec.file) as im:
-        return np.asarray(im.convert("RGB"), np.float32) / 255.0
+        if spec.mirror and im.width != PHOTO_W:
+            raise ValueError(f"{spec.file} is {im.width} px wide; mirrored specs assume {PHOTO_W}")
+        a = np.asarray(im.convert("RGB"), np.float32) / 255.0
+    return a[:, ::-1].copy() if spec.mirror else a
 
 
 # ------------------------------------------------------------- transform
@@ -388,29 +429,113 @@ def hand_sprite(fl: dict, n_tones: int, refs: dict) -> dict:
 
 # ------------------------------------------------------------------- axe
 GRIP_Z = 22.0              # cm: the fist's depth (gen_weapon.AXE_FD_GRIP_Z)
-HEAD_Z = 115.0             # cm: the head, five times farther than the fist: smaller, a piece of shaft shows under it
-HEAD_RISE = 1.1            # head top above the grip, in palm breadths (R1: 245 photo px over a 235 px palm)
-HEAD_K = 1.1               # head scale (round 2's frame A)
-HEAD_FLAT = 0.8            # the head's axis: depth part over screen part
-WOOD_RAMP = "cream_yellow"  # gen_weapon's wood_ash material
-FIST_SHADE = 5             # ramp steps darker: the shaft inside the fist, in the hand's shadow
+HEAD_Z = 120.0             # cm: the head, five and a half times farther than the fist: small, so the hand leads
+HEAD_RISE = 1.15           # head top above the grip, in palm breadths (R1: 245 photo px over a 235 px palm)
+HEAD_K = 1.25              # head scale (round 2's frame A had 1.1; the PM found the head wispy)
+HEAD_FLAT = 0.35           # the head's axis: depth part over screen part (low: the T seen in profile)
+HEAD_ROLL = 10.0           # degrees: the head turned about the shaft (0: the pick in pure profile)
+# Weight for the head at 1x (PM, round 3b: "reads as a sickle"): the pick's
+# blade is deepened under its upper edge and the adze widened. Doom's
+# grammar again (cf. gen_weapon.PICKUP_HEAD_SCALE): exaggerated to read,
+# the D40 outline kept.
+PICK_DEEPEN = 1.6          # cm added under the pick's upper edge at its root, tapering to 0 at the tip
+PICK_TIP_U = 18.6          # gen_weapon.PICK_POLY's tip
+ADZE_WIDEN = 1.45          # the adze's width (across) times this
+ADZE_LONGER = 1.1          # ... and its length
+ADZE_THICK = 1.3           # cm: the adze plate's thickness (D40: 0.55); seen from the side it is the adze's depth
+HEAD_RIM = ("steel_blue", 1)   # a dark rim round the head, so it holds against the floor at 1x
+# The ash shaft (PM: "a flat pale yellow that reads as a ruler"): turned to
+# a round, grained, varnished haft. Palette v2 has no mid-saturation tan,
+# so the shaft's tones come from three ramps, dark to light: the warm rust
+# for the shadow side and the rim, khaki for the body, cream for the lit side.
+WOOD_TONES = (("rust_brown", 3), ("rust_brown", 7), ("rust_brown", 10), ("khaki_olive", 10),
+              ("cream_yellow", 10), ("cream_yellow", 13))
+WOOD_RIM, WOOD_SHADOW, WOOD_SHADE, WOOD_BODY, WOOD_LIT, WOOD_SHINE = range(6)
+WOOD_LIGHT = (-0.6, -0.8)  # screen direction the light comes from (upper left, as on the TT-33)
+WOOD_GRAIN = 3             # px: period of the dashed grain line along the shaft
+FIST_SHADE = 2             # wood tones darker: the shaft inside the fist, in the hand's shadow
 SHAFT_BELOW_PX = 90.0      # px of shaft drawn below the grip, down the photo's axis (ends under the bar)
 HEAD_SHAFT_K = 2.0         # the shaft under the head over the fist's radius: perspective alone makes a pencil
-HEAD_ROLL = 30.0           # degrees: the head turned about the shaft, so the adze shows its face
 
 
 def _gw():
     return hs._gw()
 
 
+def wood_cols() -> np.ndarray:
+    return np.array([artlib.ramp(r)[i] for r, i in WOOD_TONES], np.uint8)
+
+
+def draw_head(rig, top, A, P, k: float, r: float) -> np.ndarray:
+    """gen_weapon.draw_ice_axe_head (the D40 collar, pick and adze) with the
+    pick's blade deepened and the adze widened (PICK_DEEPEN, ADZE_*).
+    Returns the shaft's top."""
+    gw = _gw()
+    A, P = gw.unit(A), gw.perp(P, gw.unit(A))
+    N = gw.unit(np.cross(A, P))
+    top = np.asarray(top, np.float64)
+    shaft_top = top - A * 5.2 * k
+    rig.capsule(shaft_top + A * 0.2, shaft_top - A * 3.4 * k, r * 1.14, r * 1.1, "steel", 0.48, 0.8)
+    pick = []
+    upper = True
+    for u, v in gw.PICK_POLY:
+        if (u, v) == (18.6, -6.4):
+            upper = False                     # the tip: from here on the toothed lower edge
+        elif not upper and u > 2.3:
+            v -= PICK_DEEPEN * max(0.0, 1.0 - u / PICK_TIP_U)
+        pick.append((u * k, v * k))
+    rig.plate(top, P, A, pick, gw.AXE_PLATE * k, "steel", 0.52, 0.85, grad=(A, 0.012 / k))
+    adze_dir = gw.unit(-P - A * gw.ADZE_DROOP)
+    adze = [(u * k * ADZE_LONGER, w * k * ADZE_WIDEN) for u, w in gw.ADZE_POLY]
+    rig.plate(top - (A * 1.5 + P * 1.8) * k, adze_dir, N, adze, ADZE_THICK * k, "steel", 0.5, 0.85)
+    return shaft_top
+
+
+def tone_shaft(rgba: np.ndarray, wood: np.ndarray, grip, up) -> np.ndarray:
+    """The shaft's pixels re-toned as a round, grained ash haft: across the
+    shaft lit side / body / shadow side from the light's side, a dark rim on
+    its edge, a dashed grain line down its body, a shine on the lit edge.
+    grip and up in this array's pixels. Returns the WOOD_TONES index map
+    (-1 off the shaft)."""
+    h, w = wood.shape
+    ys, xs = np.nonzero(wood)
+    idx = np.full((h, w), -1, int)
+    if ys.size == 0:
+        return idx
+    n = np.array([-up[1], up[0]])
+    t = (xs - grip[0]) * up[0] + (ys - grip[1]) * up[1]
+    a = (xs - grip[0]) * n[0] + (ys - grip[1]) * n[1]
+    # the shaft's half width at each step along it (it narrows with depth)
+    tb = np.round(t).astype(int)
+    half = {}
+    for k_, aa in zip(tb, np.abs(a)):
+        half[k_] = max(half.get(k_, 0.0), aa)
+    hw = np.array([max(1.0, max(half.get(k_ + d, 0.0) for d in (-1, 0, 1))) for k_ in tb])
+    sgn = 1.0 if (n @ np.array(WOOD_LIGHT)) > 0 else -1.0
+    lit = sgn * a / hw                                  # +1 on the lit edge, -1 on the shadow edge
+    tone = np.where(lit > 0.45, WOOD_LIT, np.where(lit > -0.2, WOOD_BODY, np.where(lit > -0.6, WOOD_SHADE,
+                                                                                   WOOD_SHADOW)))
+    grain = (np.abs(lit + 0.05) < 0.2) & ((tb // WOOD_GRAIN) % 3 != 0) & (hw >= 2.5)
+    tone = np.where(grain & (tone == WOOD_BODY), WOOD_SHADE, tone)
+    shine = (lit > 0.45) & (lit < 0.8) & ((tb // WOOD_GRAIN) % 2 == 0) & (hw >= 3.0)
+    tone = np.where(shine, WOOD_SHINE, tone)
+    idx[ys, xs] = tone
+    rim = edge(wood)
+    idx[rim] = WOOD_RIM
+    cols = wood_cols()
+    rgba[wood, :3] = cols[idx[wood]]
+    return idx
+
+
 def render_axe(grip_xy, up, rise_px: float, shaft_half_px: float, head_z: float = None,
                flat: float = None, roll: float = None, k: float = None):
-    """Our ice axe (D40 head, wood_ash shaft) along the screen direction
-    `up` from the grip at grip_xy (weapon px, depth GRIP_Z); the head's top
-    rise_px up that line at head_z, farther and so smaller. The shaft is
-    shaft_half_px wide (half) at the fist, like the photo's, and runs on
-    below the fist at the fist's depth, off the bottom of the view (Doom's
-    grammar: drawn to read, not to measure). Returns gen_weapon's Frame."""
+    """Our ice axe (D40 head, weighted for 1x; ash shaft) along the screen
+    direction `up` from the grip at grip_xy (weapon px, depth GRIP_Z); the
+    head's top rise_px up that line at head_z, farther and so smaller. The
+    shaft is shaft_half_px wide (half) at the fist, like the photo's, and
+    runs on below the fist at the fist's depth, off the bottom of the view
+    (Doom's grammar: drawn to read, not to measure). Returns gen_weapon's
+    Frame with the shaft re-toned (tone_shaft) and the head rimmed."""
     gw = _gw()
     head_z = HEAD_Z if head_z is None else head_z
     flat = HEAD_FLAT if flat is None else flat
@@ -422,16 +547,23 @@ def render_axe(grip_xy, up, rise_px: float, shaft_half_px: float, head_z: float 
     ds = np.array([hx - gx, hy - gy])
     A = gw.unit([ds[0], ds[1], flat * float(np.hypot(*ds))])
     roll = HEAD_ROLL if roll is None else roll
-    P0 = gw.unit([A[1], -A[0], 0.0])                     # A turned 90 on screen: the pick to the left
+    P0 = gw.unit([A[1], -A[0], 0.0])                     # A turned 90 on screen: the pick towards the centre
+    if P0[0] > 0:                                        # (a right hand: the pick points left, inwards)
+        P0 = -P0
     P = gw.unit(P0 * math.cos(math.radians(roll)) + np.cross(A, P0) * math.sin(math.radians(roll)))
     r_grip = shaft_half_px * GRIP_Z / gw.FOCAL
     r_head = r_grip * HEAD_SHAFT_K
     rig = gw.Rig()
-    shaft_top = gw.draw_ice_axe_head(rig, top, A, P, k, r_head)
+    shaft_top = draw_head(rig, top, A, P, k, r_head)
     rig.capsule(G, shaft_top - A * 3.0 * k, r_grip, r_head, "wood_ash", 0.55, 0.8)
     low = gw.screen_to_cam(gx - up[0] * SHAFT_BELOW_PX, gy - up[1] * SHAFT_BELOW_PX, GRIP_Z)
     rig.capsule(G, low, r_grip, r_grip, "wood_ash", 0.55, 0.8)
-    return gw.finish(rig)
+    f = gw.finish(rig)
+    wood = (f.rgba[..., 3] > 0) & (f.mat == gw.MAT_ID["wood_ash"])
+    tone_shaft(f.rgba, wood, (gx - f.left, gy - f.top), up)
+    steel = (f.rgba[..., 3] > 0) & ~wood
+    f.rgba[edge(steel, ~(f.rgba[..., 3] > 0)), :3] = artlib.ramp(HEAD_RIM[0])[HEAD_RIM[1]]
+    return f
 
 
 # ------------------------------------------------------------------ cells
@@ -445,13 +577,15 @@ class Cell:
     why: str
 
 
+# Round 3b (CEO on 2026-10-14_2252: "cámbialo a diestro"; PM: the shaft reads
+# as a ruler, the head as a sickle): only the three cells that passed round
+# 3a, R1 mirrored to a right hand, the axe polished. Round 3a's six cells
+# (R1 left-handed, R2 and R3 dropped) are in its dated preview; R2 and R3
+# stay in REFS as data, unused.
 CELLS = (
-    Cell("C1", "R1", 4, 1.00, 200.0, "the base: R1, 4 skin tones, the TT-33's hand scale, centre-right"),
-    Cell("C2", "R1", 4, 0.85, 200.0, "C1 at 85 %"),
-    Cell("C3", "R1", 4, 1.15, 200.0, "C1 at 115 %"),
-    Cell("C4", "R1", 3, 1.00, 214.0, "C1 with 3 tones, further right (the chainsaw's column)"),
-    Cell("C5", "R2", 4, 1.00, 200.0, "R2: fist from behind, forearm from the bottom"),
-    Cell("C6", "R3", 4, 1.00, 200.0, "R3: hand from below, thumb up"),
+    Cell("C1", "R1", 4, 1.00, 185.0, "the base: R1 as a right hand, 4 skin tones, the TT-33's hand scale, centre-right"),
+    Cell("C3", "R1", 4, 1.15, 185.0, "C1 at 115 %"),
+    Cell("C4", "R1", 3, 1.00, 200.0, "C1 with 3 skin tones, 15 px further right"),
 )
 
 
@@ -482,14 +616,14 @@ def tt33_top() -> int:
 
 
 def shade_wood(cols: np.ndarray, steps: int) -> np.ndarray:
-    """Colours of the wood_ash ramp (cream_yellow) moved `steps` darker;
-    any other colour is left as it is."""
-    ramp = np.array(artlib.ramp(WOOD_RAMP), np.uint8)
+    """Shaft colours (WOOD_TONES) moved `steps` tones darker, never onto the
+    rim's; any other colour is left as it is."""
+    tones = wood_cols()
     out = cols.copy()
     for i, c in enumerate(cols):
-        hit = np.flatnonzero((ramp == c).all(1))
-        if hit.size:
-            out[i] = ramp[max(0, int(hit[0]) - steps)]
+        hit = np.flatnonzero((tones == c).all(1))
+        if hit.size and int(hit[0]) != WOOD_RIM:
+            out[i] = tones[max(WOOD_SHADOW, int(hit[0]) - steps)]
     return out
 
 
@@ -524,7 +658,7 @@ def compose(axe, hand: dict, hand_xy) -> tuple[np.ndarray, tuple[int, int], np.n
 def build_cell(cell: Cell, cache: dict | None = None) -> dict:
     """One cell: the hand from its reference, the axe, the frame on screen."""
     cache = {} if cache is None else cache
-    spec = REFS[cell.ref]
+    spec = oriented(REFS[cell.ref])
     if ("seg", spec.key) not in cache:
         cache[("seg", spec.key)] = segment(spec)
     if "refs" not in cache:
@@ -614,30 +748,23 @@ def palette_set() -> set[tuple[int, int, int]]:
 # (art-director, 2026-10-14). "pass" cells go to the CEO; "drop" cells are
 # shown small at the end with the reason, so they are not proposed again.
 VERDICTS: dict[str, tuple[str, str]] = {
-    "C1": ("pass", "A right hand, not a drawing of one: back of the hand, the thumb closed over the top of the "
-                   "shaft, the four knuckles curling round its right side, the shaft darker inside the fist and "
-                   "showing above it (under the head) and below it (down to the bar). The sleeve is the photo's: "
-                   "broad at the bottom left, narrowing to the wrist, no stick and no tube. Same visible skin as "
-                   "the TT-33 hands (about 1015 px against 999) and the same top (56 px above the bar). At 1x the "
-                   "fingers read as a row of knuckles; at 2x as fingers."),
-    "C2": ("drop", "At 85 % the fingers shrink to two-pixel knobs that merge into one dark edge at 1x, and the head "
-                   "looks big for the hand; 6 px of the photo's cut edge also show at the very bottom when the "
-                   "status bar is off."),
-    "C3": ("pass", "C1 at 115 %: the hand reads more (about 1230 skin px above the bar against the TT-33's 999), "
-                   "fingers clearer; the frame is no taller (the top is held at the TT-33's), the extra size goes "
-                   "into the fist and the wrist."),
-    "C4": ("pass", "C1 with three skin tones (harder, flatter modelling, closer to Freedoom's chunky look) and the "
-                   "grip 14 px further right, on the chainsaw's column. Same hand, so it passes for the same "
-                   "reasons as C1; it is here to choose tones and column."),
-    "C5": ("drop", "R2 seen from behind: the shaft runs beside the fist, not through it (the photo's fingers close "
-                   "on the far side, behind the shaft), so nothing lies over the shaft but the thumb, which reads "
-                   "as a spike; the hand reads as a mitten."),
-    "C6": ("drop", "R3 from below: the photo's handle lies in front of the fingers, so the shaft covers them "
-                   "instead of the fingers covering it; the thumb is a cone, and the photo's sleeve ends inside "
-                   "the view (its cut edge shows on screen)."),
+    "C1": ("pass", "A right hand from the player's eye: the sleeve comes in from the bottom right, the back of "
+                   "the hand faces right, the thumb closes over the top of the haft and the four knuckles curl "
+                   "round it on the left, towards the centre. The haft is wood now (rust shadow side, khaki body, "
+                   "cream lit side, a dashed grain, a dark rim), darker inside the fist, showing under the head "
+                   "and below the fist; the head has weight (deeper pick, wider and thicker adze, a dark rim) and "
+                   "reads as the D40 ice axe, not a sickle. Same top as the TT-33; about 920 skin px above the "
+                   "bar against its 999. At 1x the fingers are a knuckle row; at 2x, fingers."),
+    "C3": ("pass", "C1 at 115 %: the fist leads (about 1010 skin px above the bar, the TT-33's 999), the "
+                   "knuckles are clearer and more haft shows above the fist; the frame is no taller or wider than "
+                   "C1's (x 165-225)."),
+    "C4": ("pass", "C1 with three skin tones (flatter, closer to Freedoom's chunky modelling) and the grip 15 px "
+                   "further right (x 181-241, still left of the chainsaw's 253). Same hand and axe as C1, so it "
+                   "passes for the same reasons; it is here to choose tones and column."),
 }
-RECOMMENDED = "C1"
+RECOMMENDED = "C3"
 
+PREVIEW_SLUG = "F4_ice-axe-right-hand"     # round 3a's was F4_ice-axe-from-reference (2026-10-14_2252)
 NEUTRAL = (96, 96, 100)
 SHEET_ZOOM = 3
 HAND_CROP = (100, 92, 260, 168)       # screen box (bar on) shown at 4x: the hands, the TT-33's and ours
@@ -724,7 +851,7 @@ def build_sheet(cells: dict, stamp: str, cache: dict) -> tuple[Path, Path]:
     passed = [k for k in cells if VERDICTS.get(k, ("pass", ""))[0] == "pass"]
     dropped = [k for k in cells if k not in passed]
     refs_html = '<div class="strip">' + "".join(
-        f'<div class="tile"><img class="px" src="{png_uri(derivation(spec, cache[("seg", key)]))}">'
+        f'<div class="tile"><img class="px" src="{png_uri(derivation(oriented(spec), cache[("seg", key)]))}">'
         f'<div class="cap"><b>{key}</b> {html.escape(spec.file)}<br>{html.escape(spec.title)}</div></div>'
         for key, spec in REFS.items() if ("seg", key) in cache) + "</div>"
 
@@ -747,8 +874,8 @@ def build_sheet(cells: dict, stamp: str, cache: dict) -> tuple[Path, Path]:
                 + f'<p class="desc"><b>{verdict[0].upper()}</b>: {html.escape(verdict[1])}</p>'
                 + f'<div class="strip">{tiles}</div>{facts_html(c)}</div>')
     sections = [
-        ("What was taken from the references",
-         "The CEO's Fooocus images, dimmed outside what was kept: hand and sleeve as segmented (sleeve tinted "
+        ("What was taken from the reference",
+         "The CEO's Fooocus image 1, mirrored back to a right hand, dimmed outside what was kept: hand and sleeve as segmented (sleeve tinted "
          "green), the photo's shaft cut out (blue; ours goes in its place), the rough lasso (yellow) and the "
          "knuckle span that sets the scale (red). The photo's own axes and knives are not used.",
          refs_html),
@@ -762,16 +889,19 @@ def build_sheet(cells: dict, stamp: str, cache: dict) -> tuple[Path, Path]:
                          "Kept here small, with the reason, so they are not proposed again.",
                          '<div class="cards">' + "".join(card(k, True) for k in dropped) + "</div>"))
     intro = (
-        "N14 / N4 round 3: the ice axe's held frame (ready), the hand <b>derived</b> from the CEO's reference "
-        "images instead of drawn: segmented from the photo, turned and scaled to the TT-33 hands' scale, toned "
-        "onto the same skin and sleeve ramps as the approved TT-33 hands (palette v2 flesh_pink, "
-        "military_green), with our own ice axe (the D40 head, ash shaft) put through the fist: thumb and "
-        "fingertips over the shaft, the shaft showing above and below the fist, darker inside it. Every frame "
-        "stands as high as the TT-33 (56 px above the bar, D57). A sweep: pick a cell, or none; the swing "
-        "frames follow from the chosen one. Nothing here is installed.")
+        "N14 / N4 round 3b: the ice axe's held frame (ready), the hand <b>derived</b> from the CEO's reference "
+        "image 1, now <b>as a right hand</b> (the file is mirrored on purpose; flipped back before the cut-out, "
+        "so the arm comes in from the bottom right like Doom's fist and chainsaw and our TT-33 hands): "
+        "segmented from the photo, turned and scaled to the TT-33 hands' scale, toned onto the same skin and "
+        "sleeve ramps (palette v2 flesh_pink, military_green). Polished after the PM's notes: the haft is "
+        "toned as wood (shadow side, body, lit side, grain, a dark rim; darker inside the fist) instead of a "
+        "flat pale ruler, and the head has weight (a deeper pick, a wider and thicker adze, a dark rim) so it "
+        "reads as the D40 ice axe at 1x, not a sickle. Every frame stands as high as the TT-33 (56 px above "
+        "the bar, D57). Round 3a (left-handed, 2026-10-14_2252) stays as it was. Pick a cell, or none; the "
+        "swing frames follow from the chosen one. Nothing here is installed.")
     html_path = sheetlib.write_sheet(
-        PREVIEW_DIR / f"{stamp}_F4_ice-axe-from-reference.html", lang="en",
-        title="Ice axe from the CEO's references: held frame sweep (N14 / N4 round 3)",
+        PREVIEW_DIR / f"{stamp}_{PREVIEW_SLUG}.html", lang="en",
+        title="Ice axe, right hand, from the CEO's reference: held frame (N14 / N4 round 3b)",
         subtitle="F4 arsenal - tools/art/hand_ref.py - drafts in work/art/hand_ref/", intro=intro,
         sections=sections,
         footer="Sources: the hand, wrist and sleeve from the CEO's own Fooocus (SDXL) generations in "
@@ -787,7 +917,7 @@ def build_sheet(cells: dict, stamp: str, cache: dict) -> tuple[Path, Path]:
     H = 70 + row_h * (len(passed) + 1) + (60 + 160 if dropped else 0)
     sheet = Image.new("RGB", (W, H), hs.SHEET_BG)
     d = ImageDraw.Draw(sheet)
-    d.text((pad, 12), "Ice axe held frame from the CEO's references (N14 / N4 round 3): the cells that pass",
+    d.text((pad, 12), "Ice axe held frame, right hand, from the CEO's reference 1 (N14 / N4 round 3b): the cells that pass",
            font=f_t, fill=hs.INK)
     d.text((pad, 42), "alone 3x  |  MAP01 mock 1x  |  MAP01 mock 2x  |  approved TT-33 on the same mock, 2x",
            font=f_s, fill=hs.DIM)
@@ -824,7 +954,7 @@ def build_sheet(cells: dict, stamp: str, cache: dict) -> tuple[Path, Path]:
             sheet.paste(Image.fromarray(scr[k]).resize((256, 160), Image.Resampling.NEAREST), (x, y + 26))
             d.text((x, y + 190), k, font=f_s, fill=hs.DIM)
             x += 270
-    png_path = PREVIEW_DIR / f"{stamp}_F4_ice-axe-from-reference.png"
+    png_path = PREVIEW_DIR / f"{stamp}_{PREVIEW_SLUG}.png"
     sheet.save(png_path, optimize=True)
     return html_path, png_path
 
