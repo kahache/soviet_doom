@@ -1,7 +1,7 @@
 """Contract of tools/make_draft_overlay.py, the DRAFT sprite overlay
 (MOD-SPEC 6.9): a separate PK3, loaded after the mod, that wears our
-unapproved weapon and rifleman drafts under the Freedoom placeholder names
-our states use today.
+unapproved weapon drafts (and, when one is drafted on the rig, an enemy's)
+under the Freedoom placeholder names our states use today.
 
 What is checked, and why:
 
@@ -20,16 +20,20 @@ What is checked, and why:
   rotations  a rotated frame with fewer than eight rotations, or mixing
              rotation 0 with 1-8, is refused; with an IWAD, a rotated frame
              the IWAD has as rotation 0 or 9-G is refused, and mirrored
-             pairs (POSSA2A8) are reported as hidden
+             pairs (XPOSA2A8) are reported as hidden; an enemy fixture
+             (XPOS -> SDXR) stands in since D55 left no real enemy swap
   hand       --hand picks hand_<X>/ renders, and refuses a hand nobody drew
   installed  the six pickups D48 installed (INSTALLED) are named by their
              Spawn states, ship from assets/sprites/ and are never overlaid;
              a swap whose sprite is under assets/sprites/ is skipped; the
-             Legion trooper installed whole by D54 (INSTALLED_ENEMIES, SPOS
-             -> SDLT) is in no swap, and a swap naming it would be skipped
-  real       (skips without work/art) today's drafts plan 101 lumps: 31
+             Legion trooper installed whole by D54 and the rifleman and the
+             hound by D55, the Stormtrooper and his bolt by D56
+             (INSTALLED_ENEMIES: SPOS -> SDLT, POSS -> SDRR, SARG -> SDHN,
+             TROO -> SDHS, BAL1 -> SDBL) are in no swap, and a swap naming
+             one would be skipped
+  real       (skips without work/art) today's drafts plan 31 lumps: the
              weapon frames (held and flash of all seven, the Katyusha's
-             pickup) and the rifleman's 70
+             pickup); the rifleman's 70 left with D55 (101 until then)
 
 Stdlib only: the tool copies bytes and reads PNG chunks with struct.
 """
@@ -88,12 +92,13 @@ def make_drafts(root: Path, hand_record: str | None = "E") -> tuple[Path, Path]:
     """Synthetic work/art: one draft per frame each real state uses, plus an
     unused frame and a proposal that must not be packed."""
     weapons, rig = root / "weapons", root / "rig"
+    rig.mkdir(parents=True, exist_ok=True)    # empty since D55: no enemy swap is left
     seed = 0
     for swap in mdo.SWAPS:
         folder = weapons / swap.item if swap.group == "weapons" else rig
         folder.mkdir(parents=True, exist_ok=True)
         for letter in real_letters(swap):
-            rots = mdo.ROTATIONS_8 if swap.group == "rifleman" and letter <= "G" else "0"
+            rots = mdo.ROTATIONS_8 if swap.group == "enemies" and letter <= "G" else "0"
             for rot in rots:
                 seed += 1
                 (folder / f"{swap.draft}{letter}{rot}.png").write_bytes(png((seed, -seed), seed=seed))
@@ -154,15 +159,16 @@ class ContractTests(unittest.TestCase):
         for ph, ours in zip(("CHGG", "CHGF", "MGUN"), consts["PPSH"]):
             self.assertIn((ph, ours), pairs)
 
-    def test_rifleman_maps_poss_to_sdrr(self):
-        rig = [s for s in mdo.SWAPS if s.group == "rifleman"]
-        self.assertEqual([(s.placeholder, s.draft) for s in rig], [("POSS", "SDRR")])
+    def test_no_enemy_swap_is_left_after_d55(self):
+        """The rifleman's POSS -> SDRR was the last enemy swap: installed by
+        D55 with the hound, both recorded in INSTALLED_ENEMIES instead."""
+        self.assertEqual([s for s in mdo.SWAPS if s.group != "weapons"], [])
+        self.assertIn(("POSS", "SDRR"), mdo.INSTALLED_ENEMIES)
+        self.assertIn(("SARG", "SDHN"), mdo.INSTALLED_ENEMIES)
 
     def test_every_placeholder_is_still_named_by_its_state_file(self):
         for swap in mdo.SWAPS:
             self.assertTrue(real_letters(swap), f"src/zscript/{swap.zs} no longer names {swap.placeholder}")
-        rifle = next(s for s in mdo.SWAPS if s.group == "rifleman")
-        self.assertEqual(real_letters(rifle), "ABCDEFGHIJKLMNOPQRSTU")
 
     def test_state_letters_parser(self):
         text = ("States {\n Spawn:\n  POSS AB 10 A_Look; // POSS Z 1\n /* POSS Y 2; */\n"
@@ -208,7 +214,7 @@ class BuildTests(_Fixture):
         self.assertTrue(self.out.is_file())
         self.assertTrue(self.out.with_suffix(".txt").is_file())
         self.assertIn("NOT APPROVED ART", self.out.with_suffix(".txt").read_text(encoding="utf-8"))
-        expected = sum(len(real_letters(s)) for s in mdo.SWAPS) + 7 * 7   # POSS A-G: 8 rotations, not 1
+        expected = sum(len(real_letters(s)) for s in mdo.SWAPS)   # weapons only since D55: rotation 0 each
         self.assertEqual(len(self.members()), expected)
 
     def test_holds_only_sprites(self):
@@ -254,20 +260,23 @@ class BuildTests(_Fixture):
 
     def test_only_filters(self):
         self.build("--only", "weapons")
-        self.assertFalse(any(n.startswith("sprites/POSS") for n in self.members()))
-        self.build("--only", "rifleman")
-        self.assertTrue(all(n.startswith("sprites/POSS") for n in self.members()))
+        weapons = {s.placeholder for s in mdo.SWAPS if s.group == "weapons"}
+        self.assertTrue(all(LUMP_PATH.match(n).group(1) in weapons for n in self.members()))
+        code, _, err = self.build("--only", "enemies", out=self.root / "out" / "enemies.pk3")
+        self.assertEqual(code, 1, "no enemy swap is left since D55")
+        self.assertIn("nothing to pack", err)
+        self.assertFalse((self.root / "out" / "enemies.pk3").exists())
 
     def test_dry_run_writes_nothing(self):
         code, out, _ = self.build("--dry-run")
         self.assertEqual(code, 0)
         self.assertFalse(self.out.exists())
-        self.assertIn("sprites/POSSA1.png", out)
+        self.assertIn("sprites/PISGA0.png", out)
 
     def test_default_names(self):
         self.assertEqual(mdo.default_out("all", "E").name, "sd-draft-sprites.pk3")
         self.assertEqual(mdo.default_out("weapons", "B").name, "sd-draft-weapons-handB.pk3")
-        self.assertEqual(mdo.default_out("rifleman", "B").name, "sd-draft-rifleman.pk3")
+        self.assertEqual(mdo.default_out("enemies", "B").name, "sd-draft-enemies.pk3")
         self.assertEqual(mdo.default_out("all", "E").parent, PROJECT_ROOT / "work" / "overlays")
 
 
@@ -291,15 +300,24 @@ class IsolationTests(_Fixture):
 
 
 # ----------------------------------------------------------------- rotations
+# An enemy drafted on the rig, for the rotation rules. Until D55 the
+# rifleman (POSS -> SDRR) was the real one; both names are installed now,
+# so a fictitious pair stands in and SWAPS is patched to hold it alone.
+FIXTURE_ENEMY = mdo.Swap("enemies", "", "monsters/fixture_enemy.zs", "XPOS", "SDXR")
+
+
 class RotationTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
         (self.root / "zs" / "monsters").mkdir(parents=True)
-        (self.root / "zs" / "monsters" / "reich_rifleman.zs").write_text(
-            "States\n{\nSpawn:\n\tPOSS A 10;\n\tLoop;\nDeath:\n\tPOSS H -1;\n\tStop;\n}\n", encoding="utf-8")
+        (self.root / "zs" / "monsters" / "fixture_enemy.zs").write_text(
+            "States\n{\nSpawn:\n\tXPOS A 10;\n\tLoop;\nDeath:\n\tXPOS H -1;\n\tStop;\n}\n", encoding="utf-8")
         self.rig = self.root / "rig"
         self.rig.mkdir()
+        patcher = mock.patch.object(mdo, "SWAPS", (FIXTURE_ENEMY,))
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -309,36 +327,36 @@ class RotationTests(unittest.TestCase):
             (self.rig / f"{n}.png").write_bytes(png(grab))
 
     def plan(self) -> mdo.Plan:
-        return mdo.plan_overlay("rifleman", "E", self.root / "weapons", self.rig, self.root / "zs")
+        return mdo.plan_overlay("enemies", "E", self.root / "weapons", self.rig, self.root / "zs")
 
     def test_complete_frame_is_packed(self):
-        self.put(*(f"SDRRA{r}" for r in mdo.ROTATIONS_8), "SDRRH0")
+        self.put(*(f"SDXRA{r}" for r in mdo.ROTATIONS_8), "SDXRH0")
         lumps = sorted(e.lump for e in self.plan().entries)
-        self.assertEqual(lumps, [f"POSSA{r}" for r in mdo.ROTATIONS_8] + ["POSSH0"])
+        self.assertEqual(lumps, [f"XPOSA{r}" for r in mdo.ROTATIONS_8] + ["XPOSH0"])
 
     def test_partial_rotations_refused(self):
-        self.put("SDRRA1", "SDRRA2", "SDRRA3", "SDRRH0")
+        self.put("SDXRA1", "SDXRA2", "SDXRA3", "SDXRH0")
         with self.assertRaisesRegex(mdo.OverlayError, "needs all of 12345678"):
             self.plan()
 
     def test_rotation_zero_mixed_with_rotations_refused(self):
-        self.put(*(f"SDRRA{r}" for r in mdo.ROTATIONS_8), "SDRRA0")
+        self.put(*(f"SDXRA{r}" for r in mdo.ROTATIONS_8), "SDXRA0")
         with self.assertRaisesRegex(mdo.OverlayError, "both rotation 0"):
             self.plan()
 
     def test_missing_grab_refused(self):
-        self.put("SDRRH0", grab=None)
+        self.put("SDXRH0", grab=None)
         with self.assertRaisesRegex(mdo.OverlayError, "no grAb"):
             self.plan()
 
     def test_missing_frame_keeps_the_iwads(self):
-        self.put("SDRRH0")
+        self.put("SDXRH0")
         plan = self.plan()
-        self.assertEqual([e.lump for e in plan.entries], ["POSSH0"])
-        self.assertTrue(any(m.startswith("POSSA") for m in plan.missing))
+        self.assertEqual([e.lump for e in plan.entries], ["XPOSH0"])
+        self.assertTrue(any(m.startswith("XPOSA") for m in plan.missing))
 
     def iwad_check(self, names: list[str]) -> mdo.Plan:
-        self.put(*(f"SDRRA{r}" for r in mdo.ROTATIONS_8), "SDRRH0")
+        self.put(*(f"SDXRA{r}" for r in mdo.ROTATIONS_8), "SDXRH0")
         path = self.root / "fake.wad"
         path.write_bytes(wad(["S_START", *names, "S_END"]))
         plan = self.plan()
@@ -346,23 +364,23 @@ class RotationTests(unittest.TestCase):
         return plan
 
     def test_iwad_mirrored_pairs_are_hidden(self):
-        plan = self.iwad_check(["POSSA1", "POSSA2A8", "POSSA3A7", "POSSA4A6", "POSSA5", "POSSH0"])
-        self.assertIn("POSSA: hides 3 mirrored pair lump(s) of the IWAD", plan.notes)
+        plan = self.iwad_check(["XPOSA1", "XPOSA2A8", "XPOSA3A7", "XPOSA4A6", "XPOSA5", "XPOSH0"])
+        self.assertIn("XPOSA: hides 3 mirrored pair lump(s) of the IWAD", plan.notes)
 
     def test_iwad_rotation_zero_under_rotated_frame_refused(self):
         with self.assertRaisesRegex(mdo.OverlayError, "IWAD has rotation 0"):
-            self.iwad_check(["POSSA0", "POSSH0"])
+            self.iwad_check(["XPOSA0", "XPOSH0"])
 
     def test_iwad_sixteen_angles_refused(self):
         with self.assertRaisesRegex(mdo.OverlayError, "16-angle"):
-            self.iwad_check([*(f"POSSA{r}" for r in "123456789ABCDEFG"), "POSSH0"])
+            self.iwad_check([*(f"XPOSA{r}" for r in "123456789ABCDEFG"), "XPOSH0"])
 
     def test_rotation_zero_over_rotated_iwad_frame_is_fine(self):
-        plan = self.iwad_check(["POSSA1", "POSSH1", "POSSH2A8"])
+        plan = self.iwad_check(["XPOSA1", "XPOSH1", "XPOSH2A8"])
         self.assertEqual(len(plan.entries), 9)
 
     def test_iwad_rotations_reads_both_halves_of_a_pair(self):
-        rots, pairs = mdo.iwad_rotations({"POSSA2A8", "POSSB2A8", "POSSA1"}, "POSS", "A")
+        rots, pairs = mdo.iwad_rotations({"XPOSA2A8", "XPOSB2A8", "XPOSA1"}, "XPOS", "A")
         self.assertEqual(rots, {"1", "2", "8"})
         self.assertEqual(pairs, 2)
 
@@ -440,7 +458,7 @@ class InstalledTests(unittest.TestCase):
     def test_the_legion_is_installed_whole_and_never_overlaid(self):
         """D54: SDLT ships from assets/sprites/legion/ and every trooper state
         names it; the overlay names neither SPOS nor SDLT."""
-        self.assertEqual(mdo.INSTALLED_ENEMIES, (("SPOS", "SDLT"),))
+        self.assertIn(("SPOS", "SDLT"), mdo.INSTALLED_ENEMIES)
         swapped = {s.draft for s in mdo.SWAPS} | {s.placeholder for s in mdo.SWAPS}
         self.assertFalse(swapped & {"SPOS", "SDLT"})
         text = (mdo.ZS_ROOT / "monsters" / "legion_trooper.zs").read_text(encoding="utf-8")
@@ -450,7 +468,7 @@ class InstalledTests(unittest.TestCase):
     def test_a_swap_naming_an_installed_enemy_is_skipped(self):
         """Even with drafts on disk and nothing under assets/sprites/, a swap
         for the Legion is never packed."""
-        legion = mdo.Swap("rifleman", "", "monsters/legion_trooper.zs", "SPOS", "SDLT")
+        legion = mdo.Swap("enemies", "", "monsters/legion_trooper.zs", "SPOS", "SDLT")
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             weapons, rig = make_drafts(root)
@@ -462,21 +480,62 @@ class InstalledTests(unittest.TestCase):
             self.assertFalse(any(e.lump.startswith(("SPOS", "SDLT")) for e in plan.entries))
             self.assertTrue(any(n.startswith("SDLT: an enemy installed whole") for n in plan.notes), plan.notes)
 
+    def test_the_rifleman_and_the_hound_are_installed_whole_and_never_overlaid(self):
+        """D55: SDRR and SDHN ship from assets/sprites/rifleman/ and hound/
+        and every state names them; the overlay names neither side."""
+        self.assertEqual(mdo.INSTALLED_ENEMIES[:3], (("SPOS", "SDLT"), ("POSS", "SDRR"), ("SARG", "SDHN")))
+        swapped = {s.draft for s in mdo.SWAPS} | {s.placeholder for s in mdo.SWAPS}
+        self.assertFalse(swapped & {"POSS", "SDRR", "SARG", "SDHN"})
+        for zs, old, new, letters in (("reich_rifleman.zs", "POSS", "SDRR", "ABCDEFGHIJKLMNOPQRSTU"),
+                                      ("reich_hound.zs", "SARG", "SDHN", "ABCDEFGHIJKLMN")):
+            text = (mdo.ZS_ROOT / "monsters" / zs).read_text(encoding="utf-8")
+            self.assertEqual(mdo.state_letters(text, old), "", zs)
+            self.assertEqual(mdo.state_letters(text, new), letters, zs)
+            self.assertIn(new, mdo.installed_sprites())
+
+    def test_the_stormtrooper_and_his_bolt_are_installed_whole_and_never_overlaid(self):
+        """D56: SDHS and SDBL ship from assets/sprites/storm/ and every state
+        names them; the overlay names neither side."""
+        self.assertEqual(mdo.INSTALLED_ENEMIES[3:], (("TROO", "SDHS"), ("BAL1", "SDBL")))
+        swapped = {s.draft for s in mdo.SWAPS} | {s.placeholder for s in mdo.SWAPS}
+        self.assertFalse(swapped & {"TROO", "SDHS", "BAL1", "SDBL"})
+        for zs, old, new, letters in (("stormtrooper.zs", "TROO", "SDHS", "ABCDEFGHIJKLMNOPQRSTU"),
+                                      ("storm_bolt.zs", "BAL1", "SDBL", "ABCDE")):
+            text = (mdo.ZS_ROOT / "monsters" / zs).read_text(encoding="utf-8")
+            self.assertEqual(mdo.state_letters(text, old), "", zs)
+            self.assertEqual(mdo.state_letters(text, new), letters, zs)
+            self.assertIn(new, mdo.installed_sprites())
+
+    def test_a_swap_naming_the_rifleman_is_skipped(self):
+        """Even with the rig's SDRR renders on disk and nothing under
+        assets/sprites/, the old rifleman swap is never packed again."""
+        rifle = mdo.Swap("enemies", "", "monsters/reich_rifleman.zs", "POSS", "SDRR")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            weapons, rig = make_drafts(root)
+            for letter in "ABCDEFG":
+                for rot in mdo.ROTATIONS_8:
+                    (rig / f"SDRR{letter}{rot}.png").write_bytes(png())
+            with mock.patch.object(mdo, "SWAPS", mdo.SWAPS + (rifle,)):
+                plan = mdo.plan_overlay("all", "E", weapons, rig, sprites_dir=root / "no-sprites")
+            self.assertFalse(any(e.lump.startswith(("POSS", "SDRR")) for e in plan.entries))
+            self.assertTrue(any(n.startswith("SDRR: an enemy installed whole") for n in plan.notes), plan.notes)
+
 
 # ---------------------------------------------------------------------- real
-@unittest.skipUnless((mdo.RIG_DIR / "SDRRA1.png").is_file() and (mdo.WEAPONS_DIR / "tt33").is_dir(),
-                     "work/art drafts not present (CI has no work/)")
+@unittest.skipUnless((mdo.WEAPONS_DIR / "tt33").is_dir(), "work/art drafts not present (CI has no work/)")
 class RealDraftTests(unittest.TestCase):
     def test_todays_drafts(self):
         plan = mdo.plan_overlay()
         if IWAD.is_file():
             mdo.check_against_iwad(plan, mdo.iwad_sprites(IWAD))
-        poss = [e for e in plan.entries if e.lump.startswith("POSS")]
-        self.assertEqual(len(poss), 70)
-        self.assertEqual(sum(e.lump[5] != "0" for e in poss), 56)
-        self.assertEqual(len(plan.entries) - len(poss), 31)   # 37 until D48 installed the six pickups
+        self.assertEqual(len(plan.entries), 31)   # 37 until D48 installed the six pickups; +70 POSS until D55
         self.assertFalse({e.lump[:4] for e in plan.entries} & {ph for ph, _ in mdo.INSTALLED})
         self.assertFalse({e.lump[:4] for e in plan.entries} & {"SPOS", "SDLT"}, "D54: no Legion")
+        self.assertFalse({e.lump[:4] for e in plan.entries} & {"POSS", "SDRR", "SARG", "SDHN"},
+                         "D55: no rifleman, no hound")
+        self.assertFalse({e.lump[:4] for e in plan.entries} & {"TROO", "SDHS", "BAL1", "SDBL"},
+                         "D56: no Stormtrooper, no bolt")
         self.assertEqual(plan.missing, [])
         self.assertTrue(all(h.startswith("E") for h in plan.hands.values()))
 
@@ -486,7 +545,7 @@ class RealDraftTests(unittest.TestCase):
             code, _, err = run_main(["--out", str(out)])
             self.assertEqual(code, 0, err)
             with zipfile.ZipFile(out) as zf:
-                self.assertEqual(len(zf.namelist()), 101)
+                self.assertEqual(len(zf.namelist()), 31)
 
 
 if __name__ == "__main__":

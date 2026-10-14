@@ -160,6 +160,35 @@ placement.
   The lump name and its placement then go to the PM and `level-designer`.
   Nothing enters `assets/` before that approval.
 
+## 6. Approved and installed: D55, 2026-10-14
+
+- **CEO verdict:** cell **4C** (four inks, cut +0) with `slava_short`,
+  «СЛАВА / СТАЛИНУ!», two lines at Lenin's 19 px (D55: "Stalin 4C con slava
+  stalin"). The proposed `za_rodinu` was not taken.
+- **Generator:** `tools/art/gen_stalin.py` now defaults to that cell and
+  slogan (`SLOGAN_KEY = "slava_short"`), names the lump (`LUMP = "SDPOSTR3"`)
+  and adds `lump()`, the indexed PNG exactly as the CLI writes it. A plain
+  run writes `work/art/stalin/SDPOSTR3.png`; any other parameters write
+  `stalin_poster.png`, so an exploratory render can never take the lump's
+  name in `work/` (which `tests/test_art.py` matches to `assets/` by name).
+- **Lump:** `SDPOSTR3`, free in `assets/` and in `TEXTURE-INDEX.md` before
+  the install. `assets/textures/soviet_base/SDPOSTR3.png`, copied byte for
+  byte from `work/art/stalin/SDPOSTR3.png`: 128×256, indexed, five colours
+  (four inks plus the gold rule), SHA-256
+  `0d81ee3900d6d5b961e3f728fe3d26f7937637d4b571f3c92e6a9a67d3968e91`.
+  Pixel for pixel it is the `slava_short` poster of the 2026-10-14 preview
+  sheet the CEO judged (checked against `stalin_1930_preview.png`).
+- **D27:** rendered on the Windows PC, so it is regenerated only on Windows.
+  `tests/test_gen_stalin.py` (`InstalledLumpIdentityTests`) holds the
+  generator to the installed lump pixel for pixel; it runs only on Windows
+  and only with the reference photograph present, and skips elsewhere.
+- **Index and licence:** rows added to `docs/art/TEXTURE-INDEX.md` (batch 1
+  table) and `docs/art/LICENSES.md` (own work on the public-domain 1930
+  photograph, CC BY-NC-SA 4.0).
+- **Still open:** where it hangs (§4). It is in no map; the PK3 packs it,
+  and `check_pk3` notes it as unused by any map until `level-designer`
+  places it.
+
 ## Sources
 
 - https://commons.wikimedia.org/wiki/Commons:Copyright_rules_by_territory/Russia

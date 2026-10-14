@@ -4,8 +4,13 @@
 // ammo economy of MAP01 is sized against. Drops a Soviet magazine: the
 // invaders carry captured Soviet arms (D35).
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: POSS, same frame layout as the
-// final SDRR (BESTIARY 2.7), so the swap is a rename of the four letters.
+// Sprites are OUR OWN since D55 (2026-10-14): SDRR, cell E on the 3D rig
+// (tools/art/gen_rig.py, D38) with the bloody death and flat corpse of D48,
+// 70 lumps in assets/sprites/rifleman/: A-G in eight separate rotations, H-U
+// rotation 0. The swap from Freedoom's POSS placeholder renamed the sprite
+// only; every frame letter and tic is as before (tests/test_rifleman_sprites.py
+// pins them). Doom's own DeadZombieMan (editor number 18) derives from
+// ZombieMan, not from this class, and keeps the IWAD's POSS corpse.
 // Sounds are logical names; SNDINFO points them at Freedoom lumps for now.
 
 class SD_ReichRifleman : SD_Monster replaces ZombieMan
@@ -46,37 +51,37 @@ class SD_ReichRifleman : SD_Monster replaces ZombieMan
 	States
 	{
 	Spawn:
-		POSS AB 10 A_Look;
+		SDRR AB 10 A_Look;
 		Loop;
 	See:
-		POSS AABBCCDD 4 A_Chase;
+		SDRR AABBCCDD 4 A_Chase;
 		Loop;
 	Missile:
-		POSS E 10 A_FaceTarget;
-		POSS F 8 A_SD_Hitscan(SD_RIFLEMAN_SHOTS, SD_RIFLEMAN_HIT_DICE, SD_RIFLEMAN_HIT_MULT);
-		POSS E 8;
+		SDRR E 10 A_FaceTarget;
+		SDRR F 8 A_SD_Hitscan(SD_RIFLEMAN_SHOTS, SD_RIFLEMAN_HIT_DICE, SD_RIFLEMAN_HIT_MULT);
+		SDRR E 8;
 		Goto See;
 	Pain:
-		POSS G 3;
-		POSS G 3 A_Pain;
+		SDRR G 3;
+		SDRR G 3 A_Pain;
 		Goto See;
 	Death:
-		POSS H 5;
-		POSS I 5 A_Scream;
-		POSS J 5 A_NoBlocking;     // drops the DropItem
-		POSS K 5;
-		POSS L -1;
+		SDRR H 5;
+		SDRR I 5 A_Scream;
+		SDRR J 5 A_NoBlocking;     // drops the DropItem
+		SDRR K 5;
+		SDRR L -1;
 		Stop;
 	XDeath:
-		POSS M 5;
-		POSS N 5 A_StartSound("sd/mon/reichrifleman/xdeath", CHAN_VOICE);
-		POSS O 5 A_NoBlocking;
-		POSS PQRST 5;
-		POSS U -1;
+		SDRR M 5;
+		SDRR N 5 A_StartSound("sd/mon/reichrifleman/xdeath", CHAN_VOICE);
+		SDRR O 5 A_NoBlocking;
+		SDRR PQRST 5;
+		SDRR U -1;
 		Stop;
 	Raise:
-		POSS K 5;
-		POSS JIH 5;
+		SDRR K 5;
+		SDRR JIH 5;
 		Goto See;
 	}
 }

@@ -24,6 +24,7 @@ batch, whatever the status.
 |---|---|---|---|
 | `SDCONC1`, `SDCONC2`, `SDSTAR1`, `SDSTEL1`, `SDDOOR1`, `SDPOSTR2`, `SDFLR1`, `SDFLR2`, `SDFLR3`, `SDCEIL1`, `SDCEIL2` | (a) `tools/art/gen_soviet_base.py`, `BATCH_SEED` 1977, palette `docs/art/palette.json` v1 | Soviet Doom project (art-director) | own work, CC BY-NC-SA 4.0 (D15) |
 | `SDPOSTR1` (v4, 2026-10-12) | (a) `tools/art/gen_lenin.py`, palette v1, posterising (b) the public-domain photograph listed under "Reference material" below | Soviet Doom project (art-director); photograph by Pavel Zhukov, 1920, public domain | own work on a public-domain source, CC BY-NC-SA 4.0 (D15) |
+| `SDPOSTR3` (2026-10-14, D55) | (a) `tools/art/gen_stalin.py`, palette v1, posterising (b) the public-domain photograph `stalin_1930.jpg` listed under "Reference material" below | Soviet Doom project (art-director); photograph by an unknown photographer, frontispiece of *The Life of Stalin: A Symposium*, New York 1930, public domain | own work on a public-domain source, CC BY-NC-SA 4.0 (D15) |
 
 **`SDFLR1` repair, 2026-10-13 (commit 5c9bb1d, PM).** The file in `assets/`
 was replaced by a regeneration of the same lump — same generator, same seed,
@@ -243,7 +244,7 @@ regenerate byte-identical on the Windows PC. Per-lump rows and seeds:
 |---|---|---|---|
 | `SDTILE1`, `SDTILE2` | glazed cream tile wall; the same over a green oil-paint dado | (a) `tools/art/gen_metro.py`, `BATCH_SEED` 1935, palette v1 | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
 | `SDMARB1` | red marble cladding with veins | (a) idem | idem |
-| `SDMOSA1` | mosaic panel, gold star with rays on slate blue, drawn from scratch on a tessera grid | (a) idem | idem |
+| `SDMOSA1` | mosaic panel, smalt-gold star with rays on cobalt, drawn from scratch on a tessera grid; the palette v2 rendering since D56 (2026-10-14, «mosaico V2»), copied byte for byte from `work/art/batch2/metro_v2/SDMOSA1_v2.png` (the D42 v1 is history, `--mosaic-v1`) | (a) `tools/art/gen_metro.py`, `BATCH_SEED` 1935, **palette v2** | idem |
 | `SDBRAS1` | fluted brass pilaster with a ventilation grille | (a) idem | idem |
 | `SDMFLR1` | polished granite floor (flat) | (a) idem | idem |
 
@@ -351,3 +352,112 @@ chrome in `steel_blue`, flesh in palette v2's `flesh_pink` (D45), blood in
 `flag_red` (D49). No photograph, no typeface. Freedoom's `SPOSA1` and
 `POSSA1` appear only beside ours on the review sheets, for comparison, and
 never enter a sprite.
+
+## Enemy sprites: the Reich rifleman (F5, approved by the CEO 2026-10-14, D38, D48 and D55)
+
+CEO verdict: cell **E** drawn on the 3D rig (D38), "OK" with much more blood
+in the deaths (D48), then the bloody death and the flat corpse ("OK", D55),
+so the full set stands as drawn. Files in `assets/sprites/rifleman/`, copied
+byte for byte from `work/art/enemies/rig/` (rendered on the Windows PC on
+2026-10-14 by `gen_rig.py`), so each PNG keeps its `grAb` offsets. 70 lumps:
+frames A-G in eight separate rotations (no mirrored pairs: the rifle sits on
+his right hip and the armband on his left arm), H-U in rotation 0. RGBA with
+hard alpha. Not installed: the GIFs, the `lineup_*` sheets and
+`metrics.json`. Engine names: MOD-SPEC §6.3.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDRRA1`, `SDRRA2`, `SDRRA3`, `SDRRA4`, `SDRRA5`, `SDRRA6`, `SDRRA7`, `SDRRA8` | walk, frame A, rotations 1-8 | (a) `tools/art/gen_rig.py` (`build_all`, `render`), cell E on the rig (`tools/art/rig_core.py`) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDRRB1`, `SDRRB2`, `SDRRB3`, `SDRRB4`, `SDRRB5`, `SDRRB6`, `SDRRB7`, `SDRRB8` | walk, frame B | (a) idem | idem |
+| `SDRRC1`, `SDRRC2`, `SDRRC3`, `SDRRC4`, `SDRRC5`, `SDRRC6`, `SDRRC7`, `SDRRC8` | walk, frame C | (a) idem | idem |
+| `SDRRD1`, `SDRRD2`, `SDRRD3`, `SDRRD4`, `SDRRD5`, `SDRRD6`, `SDRRD7`, `SDRRD8` | walk, frame D | (a) idem | idem |
+| `SDRRE1`, `SDRRE2`, `SDRRE3`, `SDRRE4`, `SDRRE5`, `SDRRE6`, `SDRRE7`, `SDRRE8` | aim, frame E | (a) idem | idem |
+| `SDRRF1`, `SDRRF2`, `SDRRF3`, `SDRRF4`, `SDRRF5`, `SDRRF6`, `SDRRF7`, `SDRRF8` | fire, frame F (muzzle flash drawn in) | (a) idem | idem |
+| `SDRRG1`, `SDRRG2`, `SDRRG3`, `SDRRG4`, `SDRRG5`, `SDRRG6`, `SDRRG7`, `SDRRG8` | pain, frame G | (a) idem | idem |
+| `SDRRH0`, `SDRRI0`, `SDRRJ0`, `SDRRK0`, `SDRRL0` | death H-L, dark-red blood (D48, D49); `SDRRL0` the corpse lying flat on his back (D55) | (a) idem, `death_blood` | idem |
+| `SDRRM0`, `SDRRN0`, `SDRRO0`, `SDRRP0`, `SDRRQ0`, `SDRRR0`, `SDRRS0`, `SDRRT0`, `SDRRU0` | gib M-U, dark-red blood (D48, D49); `SDRRU0` the remains on the floor | (a) idem, `build_gib`, `gib_blood` | idem |
+
+Drawn from code on the 3D rig approved as the method (D38): primitives,
+two-bone IK, Doom's eight rotations, majority vote to 1x, contour and rim;
+greatcoat and Stahlhelm in `khaki_olive`, the armband in `flag_red` with
+the D12 symbol as a hard 7x7 stamp, blood in `flag_red` 0-5 and black
+(D49), palette v1 only. No photograph, no typeface. Freedoom's `POSSA1`,
+`SPOSA1`, `POSSL0` and `BLUD` frames appear only beside ours on the review
+sheets, for comparison, and never enter a sprite.
+
+## Enemy sprites: the Reich hound (F5, approved by the CEO 2026-10-14, D50 and D55)
+
+CEO verdict: the German shepherd of cell **A** ("Perro A", D50), then its
+full set ("OK perro", D55), so the set stands as drawn. Files in
+`assets/sprites/hound/`, copied byte for byte from
+`work/art/enemies/hound_gsd/full_A/` (rendered on the Windows PC on
+2026-10-14 by `gen_hound.py --full`), so each PNG keeps its `grAb` offsets.
+46 lumps: frames A-H in Doom's **mirrored pairs** (the dog is drawn
+symmetric: rotations 1 and 5 once, 2-4 drawn and flipped by the engine for
+8-6, so `SDHNA2A8` is frame A rotation 2 and, mirrored, rotation 8), I-N in
+rotation 0. RGBA with hard alpha. The death was judged at a 37-degree
+camera: a choice of the drawing, nothing the engine is told. Not
+installed: the four-cell sweep (`SDHN_<cell>_*`), the GIFs, the `lineup_*`
+sheets and `metrics.json`. Engine names: MOD-SPEC §6.3.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDHNA1`, `SDHNA2A8`, `SDHNA3A7`, `SDHNA4A6`, `SDHNA5` | gallop, frame A, rotations 1-8 (2-4 mirrored as 8-6) | (a) `tools/art/gen_hound.py --full` (`build_full`, `render_full`), cell A on the quadruped rig (`tools/art/rig_core.py`) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDHNB1`, `SDHNB2B8`, `SDHNB3B7`, `SDHNB4B6`, `SDHNB5` | gallop, frame B | (a) idem | idem |
+| `SDHNC1`, `SDHNC2C8`, `SDHNC3C7`, `SDHNC4C6`, `SDHNC5` | gallop, frame C | (a) idem | idem |
+| `SDHND1`, `SDHND2D8`, `SDHND3D7`, `SDHND4D6`, `SDHND5` | gallop, frame D | (a) idem | idem |
+| `SDHNE1`, `SDHNE2E8`, `SDHNE3E7`, `SDHNE4E6`, `SDHNE5` | bite, frame E | (a) idem | idem |
+| `SDHNF1`, `SDHNF2F8`, `SDHNF3F7`, `SDHNF4F6`, `SDHNF5` | bite, frame F | (a) idem | idem |
+| `SDHNG1`, `SDHNG2G8`, `SDHNG3G7`, `SDHNG4G6`, `SDHNG5` | bite, frame G (the attack) | (a) idem | idem |
+| `SDHNH1`, `SDHNH2H8`, `SDHNH3H7`, `SDHNH4H6`, `SDHNH5` | pain, frame H | (a) idem | idem |
+| `SDHNI0`, `SDHNJ0`, `SDHNK0`, `SDHNL0`, `SDHNM0`, `SDHNN0` | death I-N, dark-red blood (D49); `SDHNN0` the dog lying on its side | (a) idem, `death_blood` | idem |
+
+Drawn from code on rig_core's quadruped skeleton, from the standard anatomy
+of the German shepherd (no reference image downloaded, `gen_hound.py`
+docstring): black and tan coat in `rust_brown`, `khaki_olive` and black, a
+black leather collar with a steel tag in `concrete_cold`, `flag_red` only
+inside the open mouth and in the blood (`flag_red` 0-5 and black, D49),
+palette v1 only. No photograph, no typeface. Freedoom's `POSSA1`, `SARGA1`
+and `SARGA3A7` appear only beside ours on the review sheets, for
+comparison, and never enter a sprite.
+
+## Enemy sprites: the Hybrid Stormtrooper and his bolt (F5, approved by the CEO 2026-10-14, D48, D53 and D56)
+
+CEO verdict: cell **E** of the Stormtrooper sweep ("muy macarra, me gusta",
+D48), its full set but for the death (D53), then the redone death, the
+corpse lying flat ("Muerte OK", D56), so the full set stands as drawn. Files
+in `assets/sprites/storm/`, copied byte for byte from
+`work/art/enemies/storm/full_E/` (rendered on the Windows PC on 2026-10-14
+by `gen_storm.py --full`, the death I-M and the gib from P on redone by
+`gen_storm.py --death`), so each PNG keeps its `grAb` offsets. 82 lumps:
+`SDHS` frames A-H in eight separate rotations (no mirrored pairs: the
+chrome plate is on his right, the armband on his left), I-U in rotation 0,
+and `SDBL` A-E in rotation 0. RGBA with hard alpha. Not installed: the
+superseded `old_death/`, the proposed claw frames V W (`proposed_melee/`),
+the GIFs, the `blood_*` comparison images, the `lineup_*` sheets and
+`metrics.json`. Engine names: MOD-SPEC §6.3.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDHSA1`, `SDHSA2`, `SDHSA3`, `SDHSA4`, `SDHSA5`, `SDHSA6`, `SDHSA7`, `SDHSA8` | walk, frame A, rotations 1-8 | (a) `tools/art/gen_storm.py --full` (`build_full`, `render_full`), cell E on the rig (`tools/art/rig_core.py`, the rifleman's body from `gen_rig.py`) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDHSB1`, `SDHSB2`, `SDHSB3`, `SDHSB4`, `SDHSB5`, `SDHSB6`, `SDHSB7`, `SDHSB8` | walk, frame B | (a) idem | idem |
+| `SDHSC1`, `SDHSC2`, `SDHSC3`, `SDHSC4`, `SDHSC5`, `SDHSC6`, `SDHSC7`, `SDHSC8` | walk, frame C | (a) idem | idem |
+| `SDHSD1`, `SDHSD2`, `SDHSD3`, `SDHSD4`, `SDHSD5`, `SDHSD6`, `SDHSD7`, `SDHSD8` | walk, frame D | (a) idem | idem |
+| `SDHSE1`, `SDHSE2`, `SDHSE3`, `SDHSE4`, `SDHSE5`, `SDHSE6`, `SDHSE7`, `SDHSE8` | attack, frame E (claw and bolt share E F G) | (a) idem | idem |
+| `SDHSF1`, `SDHSF2`, `SDHSF3`, `SDHSF4`, `SDHSF5`, `SDHSF6`, `SDHSF7`, `SDHSF8` | attack, frame F | (a) idem | idem |
+| `SDHSG1`, `SDHSG2`, `SDHSG3`, `SDHSG4`, `SDHSG5`, `SDHSG6`, `SDHSG7`, `SDHSG8` | attack, frame G (the claw or the bolt) | (a) idem | idem |
+| `SDHSH1`, `SDHSH2`, `SDHSH3`, `SDHSH4`, `SDHSH5`, `SDHSH6`, `SDHSH7`, `SDHSH8` | pain, frame H | (a) idem | idem |
+| `SDHSI0`, `SDHSJ0`, `SDHSK0`, `SDHSL0`, `SDHSM0` | death I-M, dark-red blood (D49); `SDHSM0` the corpse lying flat on his back (D53, D56) | (a) idem, redone by `gen_storm.py --death` (`build_death`, `death_model`) | idem |
+| `SDHSN0`, `SDHSO0`, `SDHSP0`, `SDHSQ0`, `SDHSR0`, `SDHSS0`, `SDHST0`, `SDHSU0` | gib N-U, dark-red blood (D49); the legs fall back flat from P (D53); `SDHSU0` the remains on the floor | (a) idem | idem |
+| `SDBLA0`, `SDBLB0` | `SD_StormBolt` in flight, A-B | (a) `tools/art/gen_storm.py --full` (`bolt_model`) | idem |
+| `SDBLC0`, `SDBLD0`, `SDBLE0` | `SD_StormBolt` burst, C-E | (a) idem | idem |
+
+Drawn from code on the 3D rig approved as the method (D38), starting from
+the approved rifleman's model with the Legion graft in place of his right
+arm: greatcoat in `khaki_olive`, the armband in `flag_red` with the D12
+symbol, chrome in `steel_blue`, the graft's flesh in `plaster_warm` with a
+`rust_brown` edge (palette v1 stand-ins for v2's pink ramp), blood in
+`flag_red` 0-5 and black (D49); the bolt chrome-white `steel_blue` with a
+`flag_red` core. Palette v1 only. No photograph, no typeface. Freedoom's
+`TROOA1` appears only beside ours on the review sheets, for comparison,
+and never enters a sprite.

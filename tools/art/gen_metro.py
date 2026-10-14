@@ -3,6 +3,12 @@
 Run with the project venv:  .venv/bin/python tools/art/gen_metro.py
                     (fill-out drafts: .venv/bin/python tools/art/gen_metro.py --fill)
                     (palette v2 proposals, D45: .venv/bin/python tools/art/gen_metro.py --v2)
+                    (the superseded v1 mosaic, history: .venv/bin/python tools/art/gen_metro.py --mosaic-v1)
+
+D56 (CEO, 2026-10-14, "mosaico V2"): SDMOSA1 is approved in palette v2,
+cobalt and gold, and the default run builds it so; the v1 panel it replaced
+(D42) stays reachable as history with --mosaic-v1. Every other piece,
+SDMARB1 included, is still palette v1 and comes out byte for byte as before.
 
 Exploratory, deliberately small: six pieces, just enough for the set to
 exist and for the CEO to say whether this is the right underground. The set
@@ -46,7 +52,7 @@ from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from artlib import (  # noqa: E402
-    Overlay, blend, fbm, grain, load_palette, quantize, ramp_colour, save_indexed, shade,
+    DIMENSION_MULTIPLE, Overlay, blend, fbm, grain, load_palette, quantize, ramp_colour, save_indexed, shade,
     star_points, tiling_seam_score, to_rgb,
 )
 import palette as palgen  # noqa: E402  (palette versions: v2 ramps for the proposals)
@@ -299,11 +305,22 @@ def marble_field(w: int, h: int, rng: np.random.Generator, stone=STONE_V1) -> np
 
 
 # The mosaic's inks, in motif order (0 ground, 1 gold, 2 cream): (ramp, tone).
+# v1 is the panel approved in D42 (slate ground, paint yellow), history since D56.
 MOSA_INKS_V1 = (("steel_blue", MOSA_GROUND), ("hazard_yellow", MOSA_GOLD), ("cream_yellow", MOSA_CREAM))
+
+# v2 (proposed under D45, approved in D56): cobalt ground instead of slate,
+# smalt gold instead of paint yellow; the cream ring and border stay
+# cream_yellow (a v1 ramp). The cobalt ground sits higher on its ramp than
+# steel_blue did (0.16): the grout multiply (x0.40) and the sector light
+# darken it further, and below ~0.25 cobalt goes black before it reads blue.
+MOSA_GROUND_V2 = 0.32
+MOSA_GOLD_V2 = 0.88
+MOSA_INKS_V2 = (("mosaic_cobalt", MOSA_GROUND_V2), ("mosaic_gold", MOSA_GOLD_V2), ("cream_yellow", MOSA_CREAM))
 
 
 def tex_mosa1() -> np.ndarray:
-    """Mosaic panel 128x128: a star with rays, gold on slate blue.
+    """Mosaic panel 128x128: a star with rays, smalt gold on cobalt (palette
+    v2, approved in D56; the star itself is D47's, "as drawn").
 
     Built the way a mosaic is: the motif is resolved on the TESSERA grid
     (32x32 cells), not on the pixel grid, so every edge steps in whole
@@ -311,6 +328,13 @@ def tex_mosa1() -> np.ndarray:
     a grid on top. No tile is a pure palette colour - each gets its own tone
     jitter, which is what makes a real mosaic shimmer.
     """
+    return mosaic_panel(rng_for("SDMOSA1"), MOSA_INKS_V2)
+
+
+def tex_mosa1_v1() -> np.ndarray:
+    """History: the same panel in palette v1, gold on slate blue, as approved
+    in D42 and replaced by its v2 rendering in D56. Built by --mosaic-v1 and
+    for the --v2 sheet's "v1" view; never installed again."""
     return mosaic_panel(rng_for("SDMOSA1"), MOSA_INKS_V1)
 
 
@@ -433,8 +457,10 @@ TEXTURES = [
      "Polished red marble cladding, pale and dark veins that cross the tiling seam, slab joint at mid height.",
      "Полированная облицовка из красного мрамора, светлые и тёмные прожилки, переходящие через шов, стык плит на середине высоты."),
     ("SDMOSA1", tex_mosa1, "wall",
-     "Mosaic panel 128x128: gold star and rays on a slate-blue ground, cream border, resolved on the tessera grid.",
-     "Мозаичное панно 128x128: золотая звезда с лучами на сланцево-синем фоне, кремовый бордюр, набрано по сетке смальты."),
+     "Mosaic panel 128x128: smalt-gold star and rays on a cobalt ground, cream border, resolved on the "
+     "tessera grid. Palette v2 (D56).",
+     "Мозаичное панно 128x128: звезда с лучами из золотой смальты на кобальтовом фоне, кремовый бордюр, "
+     "набрано по сетке смальты. Палитра v2 (D56)."),
     ("SDBRAS1", tex_bras1, "wall",
      "Fluted brass pilaster with a ventilation grille and caps on the wrap edges.",
      "Каннелированный латунный пилястр с вентиляционной решёткой и капителями на краях повтора."),
@@ -443,8 +469,34 @@ TEXTURES = [
      "Полированный пол из серого гранита, плиты 32 px, вкрапления полевого шпата."),
 ]
 
+# Palette version each approved lump is quantised to; absent = v1. Only the
+# CEO moves a lump to v2 (D56: SDMOSA1, "mosaico V2"; SDMARB1 stays v1).
+LUMP_PALETTE = {"SDMOSA1": 2}
+
+
+def palette_version(lump: str) -> int:
+    return LUMP_PALETTE.get(lump, 1)
+
+
+def quantize_lump(lump: str, rgb: np.ndarray) -> Image.Image:
+    """Quantise a lump to the palette version it was approved in. For a v1
+    lump this is artlib.quantize, so its bytes are what save_indexed wrote."""
+    return quantize_version(rgb, palette_version(lump))
+
+
+def save_lump(lump: str, rgb: np.ndarray, path: Path) -> Image.Image:
+    """artlib.save_indexed, in the lump's own palette version."""
+    h, w = rgb.shape[:2]
+    assert w % DIMENSION_MULTIPLE == 0 and h % DIMENSION_MULTIPLE == 0, (w, h)
+    img = quantize_lump(lump, rgb)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    img.save(path, optimize=True)
+    return img
+
+
 # Pieces the palette v1 visibly limits; quoted on the sheet so the CEO can
-# decide whether a palette v2 is worth a new version number.
+# decide whether a palette v2 is worth a new version number (D45). SDMOSA1
+# went to v2 in D56, so its card no longer prints the note.
 PALETTE_LIMITED = {
     "SDMARB1": ("flag_red is a signage red, so this stone is ox-blood rather than the warm "
                 "Shrosha marble of the real stations; a v2 'marble red' ramp would fix it",
@@ -931,7 +983,7 @@ def card(entry: dict, lang: str, files: dict) -> str:
              + sheetlib.view(L["at1"], files[lump], 1, size)
              + sheetlib.view(L["tile"], files[lump + "_tile"], 2, tile_size))
     limit = ""
-    if lump in PALETTE_LIMITED:
+    if lump in PALETTE_LIMITED and palette_version(lump) == 1:
         txt = PALETTE_LIMITED[lump][0 if lang == "en" else 1]
         limit = f'<dt>{L["limited"]}</dt><dd style="white-space:normal;font-family:inherit">{txt}</dd>'
     return (f'<div class="card"><h3>{lump}</h3><p class="desc">{desc}</p>'
@@ -1105,6 +1157,9 @@ def main_fill() -> None:
 # The two pieces v1 held back are redrawn in v2 as PROPOSALS, same seed,
 # same geometry, new inks only. The approved v1 files stay in assets/ as
 # they are (D42); a v2 piece replaces its v1 only after the CEO says so.
+# D56 (2026-10-14, "mosaico V2"): the CEO took SDMOSA1_v2, now the approved
+# SDMOSA1 that the default run builds; SDMARB1 stays v1. This mode is kept
+# to rebuild the proposal sheet as it was asked.
 # Outputs go to V2_DIR, never to OUT_DIR, and are never named like an
 # approved lump (tests/test_art.py finds assets' sources in work/ by name).
 V2_DIR = PROJECT_ROOT / "work" / "art" / "batch2" / "metro_v2"
@@ -1121,14 +1176,8 @@ V2_PALETTE = 2
 MARB_BASE_V2 = 0.32
 STONE_V2 = ("marble_red", MARB_BASE_V2, ("marble_red", 0.10), ("plaster_warm", 0.78), ("marble_red", 0.06))
 
-# Mosaic: cobalt ground instead of slate, smalt gold instead of paint
-# yellow; the cream ring and border stay cream_yellow (a v1 ramp). The
-# cobalt ground sits higher on its ramp than steel_blue did (0.16): the
-# grout multiply (x0.40) and the sector light darken it further, and below
-# ~0.25 cobalt goes black before it reads blue.
-MOSA_GROUND_V2 = 0.32
-MOSA_GOLD_V2 = 0.88
-MOSA_INKS_V2 = (("mosaic_cobalt", MOSA_GROUND_V2), ("mosaic_gold", MOSA_GOLD_V2), ("cream_yellow", MOSA_CREAM))
+# Mosaic: its v2 inks (MOSA_INKS_V2) sit with the mosaic above, since D56
+# made them the approved ones.
 
 
 def tex_marb1_v2() -> np.ndarray:
@@ -1136,6 +1185,7 @@ def tex_marb1_v2() -> np.ndarray:
 
 
 def tex_mosa1_v2() -> np.ndarray:
+    """The D45 proposal that D56 approved: the same panel tex_mosa1 builds."""
     return mosaic_panel(rng_for("SDMOSA1"), MOSA_INKS_V2)
 
 
@@ -1146,6 +1196,33 @@ V2_TEXTURES = [
     ("SDMOSA1", tex_mosa1_v2,
      "The approved star with rays, same tesserae, on a cobalt ground with smalt gold instead of slate and paint yellow."),
 ]
+
+
+# Lumps whose approved v1 file was replaced by its v2 rendering, with the
+# builder of that v1 (history). assets/ no longer holds it, so the --v2
+# sheet's "v1" view and --mosaic-v1 render it.
+SUPERSEDED_V1 = {"SDMOSA1": tex_mosa1_v1}
+HIST_DIR = PROJECT_ROOT / "work" / "art" / "batch2" / "metro_history"
+HIST_SUFFIX = "_v1"
+
+
+def write_v1_history(lump: str, out_dir: Path) -> Path:
+    """Render a superseded lump's v1 into out_dir as <LUMP>_v1.png, never
+    under the lump's own name (tests/test_art.py finds assets' sources in
+    work/ by name). Same quantiser and encoder as the D42 run, so the file
+    is byte for byte the v1 that was installed."""
+    path = out_dir / f"{lump}{HIST_SUFFIX}.png"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    quantize_version(SUPERSEDED_V1[lump](), 1).save(path, optimize=True)
+    return path
+
+
+def v1_reference(lump: str, out_dir: Path) -> Path:
+    """The v1 file a v2 piece is shown against: the installed lump while it
+    is still v1, its rendered history once v2 replaced it."""
+    if lump in SUPERSEDED_V1:
+        return write_v1_history(lump, out_dir)
+    return approved_file(lump)
 
 
 def approved_file(lump: str) -> Path:
@@ -1177,7 +1254,8 @@ def rel_path(path: Path) -> str:
 
 
 def build_v2() -> tuple[list[dict], dict]:
-    """Render the v2 proposals and their v1 references into V2_DIR."""
+    """Render the v2 proposals and their v1 references into V2_DIR. Since
+    D56 SDMOSA1's v1 reference is its rendered history, not assets/."""
     V2_DIR.mkdir(parents=True, exist_ok=True)
     v1_set = set(palgen.colours(1))
     entries, files = [], {}
@@ -1187,11 +1265,12 @@ def build_v2() -> tuple[list[dict], dict]:
         path = V2_DIR / f"{name}.png"
         q.save(path, optimize=True)
         v2 = np.asarray(q.convert("RGB"))
-        with Image.open(approved_file(lump)) as im:
+        v1_path = v1_reference(lump, V2_DIR)
+        with Image.open(v1_path) as im:
             v1 = np.asarray(im.convert("RGB"))
         h, w = v2.shape[:2]
         for tag, rgb in (("v1", v1), ("v2", v2)):
-            files[f"{lump}_{tag}"] = path if tag == "v2" else approved_file(lump)
+            files[f"{lump}_{tag}"] = path if tag == "v2" else v1_path
             files[f"{lump}_{tag}_tile"] = save_rgb(np.tile(rgb, (2, 2, 1)), V2_DIR / f"{lump}_{tag}_tile2x2.png")
             files[f"{lump}_{tag}_dark"] = save_rgb(shade(rgb, LIGHT_128), V2_DIR / f"{lump}_{tag}_light128.png")
         used = {tuple(int(x) for x in c) for c in v2.reshape(-1, 3)}
@@ -1320,9 +1399,18 @@ def main_v2() -> None:
     print(f"sheet: {sheet}\nmanifest: {V2_MANIFEST}")
 
 
+def main_mosaic_v1() -> None:
+    """History: the D42 mosaic in palette v1, superseded by D56."""
+    path = write_v1_history("SDMOSA1", HIST_DIR)
+    print(f"SDMOSA1 v1 (D42, superseded by D56): {path}")
+
+
 def main() -> None:
     if "--fill" in sys.argv[1:]:
         main_fill()
+        return
+    if "--mosaic-v1" in sys.argv[1:]:
+        main_mosaic_v1()
         return
     if "--v2" in sys.argv[1:]:
         main_v2()
@@ -1337,13 +1425,14 @@ def main() -> None:
         rgb = builder()
         h, w = rgb.shape[:2]
         path = OUT_DIR / f"{lump}.png"
-        img = save_indexed(rgb, path)
+        img = save_lump(lump, rgb, path)
         files[lump] = path
         tile_path = OUT_DIR / f"{lump}_tile2x2.png"
-        save_indexed(np.tile(rgb, (2, 2, 1)), tile_path)
+        save_lump(lump, np.tile(rgb, (2, 2, 1)), tile_path)
         files[lump + "_tile"] = tile_path
         entries.append({
             "lump": lump, "kind": kind, "set": SET_NAME, "width": w, "height": h,
+            "palette_version": palette_version(lump),
             "file": str(path.relative_to(PROJECT_ROOT)), "script": SCRIPT_REL,
             "seed": BATCH_SEED + SEED_OFFSET[lump], "seed_offset": SEED_OFFSET[lump],
             "colours_used": len(set(img.get_flattened_data())),

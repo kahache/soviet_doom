@@ -311,13 +311,33 @@ class PipelineTests(SyntheticPhoto, unittest.TestCase):
         self.assertEqual(sorted(p.name for p in self.tmp.iterdir() if "sweep_part" in p.name), [])
 
     def test_the_cli_writes_an_indexed_lump(self):
+        """The approved parameters (D55) write the file named after the lump."""
         out_dir = self.tmp / "cli"
         with contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(st.main(["--out-dir", str(out_dir), "--slogan", "slava_short"]), 0)
-        with Image.open(out_dir / "stalin_poster.png") as im:
+        with Image.open(out_dir / f"{st.LUMP}.png") as im:
             self.assertEqual(im.mode, "P")
             self.assertEqual(im.size, (128, 256))
             self.assertTrue(colours_of(im) <= palette_colours())
+
+    def test_other_parameters_never_write_a_file_named_after_the_lump(self):
+        """test_art matches assets/SDPOSTR3.png to work/ BY NAME: an
+        exploratory render must not take that name."""
+        out_dir = self.tmp / "cli_other"
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(st.main(["--out-dir", str(out_dir), "--slogan", "za_rodinu"]), 0)
+            self.assertEqual(st.main(["--out-dir", str(out_dir), "--bias", "9"]), 0)
+        self.assertEqual(sorted(p.name for p in out_dir.iterdir()), ["stalin_poster.png"])
+
+    def test_lump_is_exactly_what_the_cli_writes(self):
+        """lump() (the identity test's renderer) and a plain CLI run (what
+        was copied into assets/) are the same image."""
+        out_dir = self.tmp / "cli_lump"
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(st.main(["--out-dir", str(out_dir)]), 0)
+        with Image.open(out_dir / f"{st.LUMP}.png") as im:
+            self.assertTrue(np.array_equal(np.asarray(st.lump().convert("RGB")),
+                                           np.asarray(im.convert("RGB"))))
 
 
 # ===========================================================================
@@ -341,6 +361,67 @@ class RealPhotographTests(unittest.TestCase):
 
     def test_the_real_poster_is_four_inks_and_gold(self):
         self.assertEqual(colours_of(st.poster()), set(st.inks()) | {gold()})
+
+
+# ===========================================================================
+# SDPOSTR3, the approved lump (D55)
+# ===========================================================================
+@imaging
+class ApprovedCellTests(unittest.TestCase):
+    """D55, 2026-10-14: the CEO approved cell 4C with «СЛАВА / СТАЛИНУ!»."""
+
+    def test_the_parameters_are_the_cell_and_slogan_the_ceo_chose(self):
+        self.assertEqual((st.INK_COUNT, st.CUT_BIAS), (4, 0))
+        self.assertEqual(st.SLOGAN_KEY, "slava_short")
+        self.assertEqual(st.slogan_lines(st.SLOGAN), ["СЛАВА", "СТАЛИНУ!"])
+        self.assertEqual(st.DEFAULT_CANDIDATE, "1930")
+
+    def test_the_lump_name_and_paths(self):
+        self.assertEqual(st.LUMP, "SDPOSTR3")
+        self.assertEqual(st.LUMP_PATH.name, "SDPOSTR3.png")
+        self.assertEqual(st.ASSET_PATH.relative_to(PROJECT_ROOT).as_posix(),
+                         "assets/textures/soviet_base/SDPOSTR3.png")
+
+    @fonts
+    def test_the_approved_slogan_stamps_at_lenins_19_px(self):
+        self.assertEqual(st.slogan_mask(st.SLOGAN)[1], st.SLOGAN_SIZE)
+        self.assertEqual(st.SLOGAN_SIZE, 19)
+
+
+@imaging
+@fonts
+@real_photo
+@unittest.skipUnless(sys.platform == "win32",
+                     "D27: SDPOSTR3 was rendered on Windows (Impact rasterises differently on "
+                     "the Mac); it is regenerated, and so checked against the generator, only on Windows")
+class InstalledLumpIdentityTests(unittest.TestCase):
+    """The generator still produces the installed SDPOSTR3 pixel for pixel.
+
+    D27 (CLAUDE.md): a text-bearing lump is regenerated only on the machine
+    that rendered it. SDPOSTR3 was rendered on the CEO's Windows PC on
+    2026-10-14, so this test runs ONLY ON WINDOWS (and only where the
+    gitignored reference photograph work/art/reference/stalin_1930.jpg is
+    present). On the Mac it skips: there the slogan would rasterise
+    differently and a red test would be the fonts, not the generator.
+
+    Pixels, not PNG bytes: the bytes depend on Pillow's zlib build. The
+    byte-for-byte copy work/ -> assets/ is tests/test_art.py's check."""
+
+    def test_the_asset_is_installed_and_indexed(self):
+        self.assertTrue(st.ASSET_PATH.is_file(), st.ASSET_PATH)
+        with Image.open(st.ASSET_PATH) as im:
+            self.assertEqual(im.mode, "P")
+            self.assertEqual(im.size, (128, 256))
+            self.assertTrue(colours_of(im) <= palette_colours())
+
+    def test_the_generator_reproduces_the_installed_lump(self):
+        regenerated = st.lump()
+        with Image.open(st.ASSET_PATH) as installed:
+            self.assertEqual(regenerated.mode, installed.mode)
+            self.assertEqual(regenerated.size, installed.size)
+            self.assertTrue(np.array_equal(np.asarray(regenerated.convert("RGB")),
+                                           np.asarray(installed.convert("RGB"))),
+                            "gen_stalin.lump() no longer renders the installed SDPOSTR3")
 
 
 if __name__ == "__main__":

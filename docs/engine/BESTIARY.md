@@ -126,6 +126,11 @@ rifleman's D48 death and gib, the Stormtrooper's) already bleed `flag_red`.
 superseded row: its death and gib frames, the first enemy frames to ship
 (D54, `assets/sprites/legion/`, §4), are drawn with `flag_red` blood, and
 `SD_LegionTrooper` carries the same `BloodColor "AD 27 21"` as every class.
+**So do the Reich rifleman, the Reich hound and the Stormtrooper**, installed
+next (D55, D56; `assets/sprites/rifleman/`, `hound/`, `storm/`; §3, §5, §6):
+their death frames bleed `flag_red` 0–5 over black, the rifleman's and the
+Stormtrooper's gib too, and the old olive (`khaki_olive` 1–4) appears in
+none of them.
 One value for all seven classes, `BloodColor "AD 27 21"` (`flag_red` 9),
 set in each file under `src/zscript/monsters/` and pinned by
 `tests/test_blood.py`; `SD_PanzermenschSchwer` inherits it.
@@ -143,8 +148,8 @@ formula on the IWAD's real `BLUD` frames. Particle splashes
 (`P_DrawSplash2`, only with particle blood on) use the value itself, i.e.
 `flag_red` 9.
 
-Rows elsewhere in this document that still say "olive" (§3's "Olive
-blood", §6's Blood row) predate D49 and are superseded by this section.
+§3's colour line and §6's Blood row said "olive" before D49; both now say
+dark red and point here (amended 2026-10-14 with D55's install).
 
 ### 2.2 Infighting
 
@@ -374,7 +379,10 @@ the armoured brutes. The rifleman is the ground the player walks over.
 
 **Colour.** `khaki_olive` greatcoat, black boots and webbing, Stahlhelm in
 `khaki_olive` 2–5. The one saturated thing on him is the `flag_red` armband
-with the black swastika (D12). Olive blood.
+with the black swastika (D12) while he stands. **His blood is dark red**
+(D49, §2.1; olive until then): `flag_red` 0–5 over black in the drawn death
+and gib frames, and `BloodColor "AD 27 21"` on the engine's blood sprite
+when he is hit.
 
 ### Stats
 
@@ -415,14 +423,35 @@ with the black swastika (D12). Olive blood.
 | Gib death | M–U (9) | 0 | 9 |
 | **Total** | | | **49** |
 
+**Installed, D55 (2026-10-14): 70 images, not 49.** The CEO approved the
+rifleman drawn on the 3D rig (cell E, D38), asked for much more blood in the
+deaths (D48), and approved the bloody death and the flat corpse (D55); the
+full set ships as `SDRR` in `assets/sprites/rifleman/` (`tools/art/gen_rig.py`;
+MOD-SPEC §6.3, "The Reich rifleman and the Reich hound, installed by D55").
+The budget above counted on Doom's mirrored pairs; the rifleman is
+**handed** (rifle on the right hip, armband on the left arm, and a mirrored
+armband reverses the symbol), so every rotation is drawn on its own:
+
+| Group | Frames | Rotations | Images |
+|---|---|---|---|
+| Walk / idle | A B C D | 8, separate | 32 |
+| Aim, fire | E F | 8, separate | 16 |
+| Pain | G | 8, separate | 8 |
+| Death | H I J K L | 0 | 5 |
+| Gib death | M–U (9) | 0 | 9 |
+| **Total** | | | **70** |
+
+The states are unchanged: only the sprite name went from `POSS` to `SDRR`,
+not one tic moved (`tests/test_rifleman_sprites.py`).
+
 Visual brief for `art-director`: *a gaunt field-grey infantryman in a
 calf-length greatcoat, Stahlhelm pulled low over a face that has no eyes;
 bolt-action rifle carried at the hip; a red armband is the only colour on
 him.*
 
-Freedoom derivation: `POSS` is a humanoid of the same proportions and the
-same 21-frame layout, so it is a usable **animation reference**. NOT VERIFIED
-whether its pixels are worth editing.
+Freedoom derivation: none. `POSS` gave the frame layout and the timing, and
+was the placeholder until D55; no pixel of it is in `SDRR` (it appears only
+beside ours on the review sheets).
 
 ### Legibility
 
@@ -597,14 +626,25 @@ grey of `SDCONC1`. 2 + 3 = 5 images, rotation 0.
 | Gib | N–U (8) | 0 | 8 |
 | **Total** | | | **53** + 5 bolt |
 
+**Installed, D56 (2026-10-14): 77 images + 5 bolt, not 53 + 5.** The CEO
+chose cell E (D48), approved the full set but for the death (D53) and then
+the redone death, the corpse lying flat (D56); it ships as `SDHS` and `SDBL`
+in `assets/sprites/storm/` (`tools/art/gen_storm.py --full`; MOD-SPEC §6.3,
+"The Hybrid Stormtrooper and his bolt, installed by D56"). The figure is
+handed (chrome on his right, armband on his left), so A–H are eight
+separate rotations (64 images), I–U rotation 0 (13), the bolt A–E rotation
+0 (5). The deaths bleed dark red (D49, §2.1). The claw keeps sharing E F G
+with the bolt (D53). Only the sprite names went from `TROO` and `BAL1` to
+`SDHS` and `SDBL`, not one tic moved (`tests/test_storm_sprites.py`).
+
 Visual brief: *a hunched soldier whose right arm has been replaced below the
 shoulder by a chromed emitter; the graft is raw, pink flesh at the seam; the
 left half is still a Reich greatcoat. He walks lopsided.*
 
-Freedoom derivation: Freedoom's `TROO` is, as far as `mod-engineer` knows, a
-**non-humanoid** creature, which would make it a poor base for a humanoid
-hybrid. **NOT VERIFIED** — `art-director` must look before planning on it.
-Assume from scratch.
+Freedoom derivation: none; the set was drawn from scratch on the rig, from
+the approved rifleman's model. `TROO` and `BAL1` gave the frame layout and
+the timing and were the placeholders until D56; no pixel of them is in
+`SDHS` or `SDBL`.
 
 ### Legibility
 
@@ -640,6 +680,12 @@ its light-112 rule still stand. The CEO accepted it with palette v2 (D45,
 `docs/PRD.md`). **No red accent at all** — the hound is the one enemy with no faction
 insignia, because a dog does not wear an armband, and because it gives the
 level designer one enemy that will never be camouflaged against a poster.
+**Superseded by D48 and D50 (2026-10-14):** the hound is a **German
+shepherd**, cell A, black and tan (`rust_brown`, `khaki_olive`, black), with
+a black leather collar and a steel tag; the only red on it standing is the
+inside of the open mouth in the bite frames. **Its blood is dark red** (D49,
+§2.1): `flag_red` 0–5 over black in the drawn death, and `BloodColor "AD 27
+21"` on the engine's blood sprite when it is hit.
 
 ### Stats
 
@@ -652,7 +698,7 @@ level designer one enemy that will never be camouflaged against a poster.
 | `PainChance` | **180** | parity. |
 | Melee | `random(1,10) × 4` = 4–40 | parity with `A_SargAttack`. |
 | `MeleeRange` | engine default, not set | parity. The default is `64 - MELEEDELTA` = 44 plus the target's radius (`actor.zs:90,411`): Doom's 64-unit bite against a 20-radius player. A longer lunge range was considered and rejected — it reads as "the bite missed but hurt me", which players correctly call unfair. |
-| Blood | olive | §2.1 |
+| Blood | **dark red**, `BloodColor "AD 27 21"` (D49; olive until then) | §2.1 |
 
 **Spectre note.** Doom's `Spectre` (DoomEdNum **58**) is a separate class.
 We do not replace it in v1, so a map that places thing 58 would spawn a
@@ -689,13 +735,25 @@ not be a wolf sample — these are not animals from Earth.
 | Death | I–N (6) | 0 | 6 |
 | **Total** | | | **46** |
 
-Visual brief: *a low, long quadruped the size of a large dog, hairless olive
-hide stretched over visible ribs, a flat head that is mostly jaw, no eyes. It
-runs with its spine low.*
+**Installed, D55 (2026-10-14): 46 images, as budgeted.** The CEO chose the
+German shepherd of cell A (D50) and approved its full set (D55, "OK perro");
+it ships as `SDHN` in `assets/sprites/hound/` (`tools/art/gen_hound.py
+--full`; MOD-SPEC §6.3, "The Reich rifleman and the Reich hound, installed
+by D55"). The dog is drawn symmetric, so the budget's mirrored pairs hold:
+five lumps a frame for A–H (`SDHNA1`, `SDHNA2A8`, `SDHNA3A7`, `SDHNA4A6`,
+`SDHNA5`), the engine flipping 2–4 for 8–6, and I–N in rotation 0; the dog
+dies onto its side, drawn from a 37° camera (art only). Only the sprite
+name went from `SARG` to `SDHN`, not one tic moved
+(`tests/test_hound_sprites.py`).
 
-Freedoom derivation: `SARG`. **NOT VERIFIED** whether Freedoom's demon
-replacement is quadruped or bipedal; if bipedal, there is no base and this is
-from scratch.
+Visual brief (v0, superseded by D48/D50's German shepherd): *a low, long
+quadruped the size of a large dog, hairless olive hide stretched over
+visible ribs, a flat head that is mostly jaw, no eyes. It runs with its
+spine low.*
+
+Freedoom derivation: none. `SARG` gave the frame layout and the timing and
+was the placeholder until D55; no pixel of it is in `SDHN` (it appears only
+beside ours on the review sheets).
 
 ### Legibility
 
