@@ -5,6 +5,7 @@ the haft toned as wood, the head given weight.
 
     python tools/art/hand_ref.py            # cells -> work/art/hand_ref/, sheet + HTML -> docs/art/previews/
     python tools/art/hand_ref.py silhouettes   # D75: 3x3 axe sizes on C3's hand, flat silhouettes
+    python tools/art/hand_ref.py silhouette-final   # D76: the pick, its shaft as wide as L1.0's
 
 Why: drawn hands failed the CEO again and again ("dedos como salchichas",
 "el antebrazo un palo larguísimo"); what worked for likeness was deriving
@@ -529,7 +530,7 @@ def tone_shaft(rgba: np.ndarray, wood: np.ndarray, grip, up) -> np.ndarray:
 
 
 def render_axe(grip_xy, up, rise_px: float, shaft_half_px: float, head_z: float = None,
-               flat: float = None, roll: float = None, k: float = None):
+               flat: float = None, roll: float = None, k: float = None, shaft_w: float = 1.0):
     """Our ice axe (D40 head, weighted for 1x; ash shaft) along the screen
     direction `up` from the grip at grip_xy (weapon px, depth GRIP_Z); the
     head's top rise_px up that line at head_z, farther and so smaller. The
@@ -553,7 +554,7 @@ def render_axe(grip_xy, up, rise_px: float, shaft_half_px: float, head_z: float 
         P0 = -P0
     P = gw.unit(P0 * math.cos(math.radians(roll)) + np.cross(A, P0) * math.sin(math.radians(roll)))
     r_grip = shaft_half_px * GRIP_Z / gw.FOCAL
-    r_head = r_grip * HEAD_SHAFT_K
+    r_head = r_grip * HEAD_SHAFT_K * shaft_w
     rig = gw.Rig()
     shaft_top = draw_head(rig, top, A, P, k, r_head)
     rig.capsule(G, shaft_top - A * 3.0 * k, r_grip, r_head, "wood_ash", 0.55, 0.8)
@@ -579,6 +580,7 @@ class Cell:
     shaft_k: float = 1.0      # D75: the shaft above the fist this much longer (the head that much higher)
     head_k: float = 1.0       # D75: the head this much bigger
     grip_y: float | None = None   # weapon px of the grip row; None: searched so the top meets the TT-33's
+    shaft_w: float = 1.0      # D76: the shaft's radius under the head times this (keeps a long shaft thick)
 
 
 # Round 3b (CEO on 2026-10-14_2252: "cámbialo a diestro"; PM: the shaft reads
@@ -681,7 +683,7 @@ def build_cell(cell: Cell, cache: dict | None = None) -> dict:
 
     def frame_at(gy: float):
         gxy = (cell.grip_x, gy)
-        axe = render_axe(gxy, up, rise, shaft_half, k=HEAD_K * cell.head_k)
+        axe = render_axe(gxy, up, rise, shaft_half, k=HEAD_K * cell.head_k, shaft_w=cell.shaft_w)
         hxy = (int(round(cell.grip_x - fl["grip"][0])), int(round(gy - fl["grip"][1])))
         rgba, off, axe_m = compose(axe, hand, hxy)
         return rgba, off, axe_m, hxy
@@ -695,7 +697,7 @@ def build_cell(cell: Cell, cache: dict | None = None) -> dict:
             hi = mid
     gy = cell.grip_y if cell.grip_y is not None else round((lo + hi) / 2, 2)
     rgba, off, axe_m, hxy = frame_at(gy)
-    return {"cell": cell, "spec": spec, "sprite": rgba, "offsets": off, "axe_mask": axe_m,
+    return {"cell": cell, "spec": spec, "sprite": rgba, "offsets": off, "axe_mask": axe_m, "up": up,
             "hand": hand, "hand_xy": hxy, "grip": (cell.grip_x, gy), "scale": scale,
             "palm_px": palm_px, "metrics": metrics(rgba, off, axe_m, hand, hxy, (cell.grip_x, gy), up, palm_px)}
 
@@ -976,39 +978,92 @@ SIL_BOX = (110, 20, 290, 200)        # screen box (status bar on) shown per vari
 SIL_SLUG = "F4_ice-axe-silhouettes"
 
 
-def build_silhouettes(stamp: str, out_dir: Path = OUT_DIR / "silhouettes") -> Path:
+def shaft_width_above_fist(c: dict) -> float:
+    """Median on-screen width (px, across the axis) of the shaft visible
+    above the fist, status bar on."""
+    spr, off = c["sprite"], c["offsets"]
+    x0, y0 = hs.place(spr, off, bar=False)
+    vis = c["axe_mask"] & ~_hand_mask(spr.shape[:2], c["hand"], c["hand_xy"], x0, y0)
+    ys, xs = np.nonzero(vis)
+    gx, gy = c["grip"]
+    up = c["up"]
+    n = np.array([-up[1], up[0]])
+    t = (xs + x0 - gx) * up[0] + (ys + y0 - gy) * up[1]
+    a = (xs + x0 - gx) * n[0] + (ys + y0 - gy) * n[1]
+    keep = t > c["palm_px"] / 2
+    widths = [np.ptp(a[keep & (np.round(t) == k)]) + 1 for k in np.unique(np.round(t[keep]))]
+    return float(np.median(widths)) if widths else 0.0
+
+
+# D76: the CEO's pick, L1.7 H1.8, with the shaft as wide as L1.0 H1.8's. In
+# L1.0 the shaft is 10 px wide at the fist and the head sits on it; the
+# longer shaft runs up into depth and perspective thins it to 4 px. Making
+# its radius under the head HEAD_Z / GRIP_Z times the fist's (no taper on
+# screen) keeps the 10 px all the way up (measured: 10 px at every step).
+NO_TAPER = HEAD_Z / GRIP_Z / HEAD_SHAFT_K
+D76_PICK = {"shaft_k": 1.7, "head_k": 1.8, "shaft_w": NO_TAPER}
+
+
+def silhouette_tile(cell: Cell, cache: dict) -> np.ndarray:
+    """One variant as a flat silhouette, what shows above the status bar, at 2x."""
+    c = build_cell(cell, cache)
+    x0, y0, x1, y1 = SIL_BOX
+    scr = np.zeros((SCREEN_H, SCREEN_W, 4), np.uint8)
+    spr = c["sprite"]
+    px, py = hs.place(spr, c["offsets"], bar=True)
+    ys, xs = np.nonzero(spr[..., 3] > 0)
+    ys, xs = ys + py, xs + px
+    ok = (ys >= 0) & (ys < hs.VIEW_H) & (xs >= 0) & (xs < SCREEN_W)   # the status bar hides the rest
+    scr[ys[ok], xs[ok]] = SIL_INK
+    return np.asarray(Image.fromarray(scr[y0:y1, x0:x1], "RGBA").resize((2 * (x1 - x0), 2 * (y1 - y0)),
+                                                                           Image.Resampling.NEAREST))
+
+
+def silhouette_sheet(variants: list, path: Path, cols: int, out_dir: Path | None = None) -> Path:
+    """variants: [(label, Cell)]; a transparent sheet, `cols` per row, each tile
+    with the TT-33's top and the status bar's top as thin grey lines."""
     cache: dict = {}
-    base = next(c for c in CELLS if c.key == "C3")
-    gy = build_cell(base, cache)["grip"][1]
     x0, y0, x1, y1 = SIL_BOX
     tw, th = 2 * (x1 - x0), 2 * (y1 - y0)
+    rows = -(-len(variants) // cols)
     f = hs.font(14)
-    sheet = Image.new("RGBA", (3 * tw + 40, 3 * (th + 24) + 10), (0, 0, 0, 0))
+    sheet = Image.new("RGBA", (cols * (tw + 10) + 10, rows * (th + 24) + 10), (0, 0, 0, 0))
     d = ImageDraw.Draw(sheet)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    for i, hk in enumerate(SIL_HEAD):
-        for j, sk in enumerate(SIL_SHAFT):
-            cell = replace(base, key=f"L{sk}_H{hk}", shaft_k=sk, head_k=hk, grip_y=gy)
-            c = build_cell(cell, cache)
-            scr = np.zeros((SCREEN_H, SCREEN_W, 4), np.uint8)
-            spr = c["sprite"]
-            px, py = hs.place(spr, c["offsets"], bar=True)
-            m = spr[..., 3] > 0
-            ys, xs = np.nonzero(m)
-            ys, xs = ys + py, xs + px
-            ok = (ys >= 0) & (ys < hs.VIEW_H) & (xs >= 0) & (xs < SCREEN_W)   # the status bar hides the rest
-            scr[ys[ok], xs[ok]] = SIL_INK
-            tile = scr[y0:y1, x0:x1]
-            tile = np.asarray(Image.fromarray(tile, "RGBA").resize((tw, th), Image.Resampling.NEAREST))
-            Image.fromarray(tile, "RGBA").save(out_dir / f"L{sk}_H{hk}.png")
-            ox, oy = 10 + j * (tw + 10), 5 + i * (th + 24)
-            sheet.alpha_composite(Image.fromarray(tile, "RGBA"), (ox, oy))
-            for yy in (hs.VIEW_H, tt33_top()):          # status bar top, TT-33's top
-                d.line([(ox, oy + 2 * (yy - y0)), (ox + tw, oy + 2 * (yy - y0))], fill=SIL_LINE, width=1)
-            d.text((ox, oy + th + 3), f"L{sk} H{hk}", font=f, fill=(128, 128, 128, 255))
-    path = PREVIEW_DIR / f"{stamp}_{SIL_SLUG}.png"
+    if out_dir is not None:
+        out_dir.mkdir(parents=True, exist_ok=True)
+    for n, (label, cell) in enumerate(variants):
+        tile = silhouette_tile(cell, cache)
+        if out_dir is not None:
+            Image.fromarray(tile, "RGBA").save(out_dir / f"{label.replace(' ', '_')}.png")
+        ox, oy = 10 + (n % cols) * (tw + 10), 5 + (n // cols) * (th + 24)
+        sheet.alpha_composite(Image.fromarray(tile, "RGBA"), (ox, oy))
+        for yy in (hs.VIEW_H, tt33_top()):          # status bar top, TT-33's top
+            d.line([(ox, oy + 2 * (yy - y0)), (ox + tw, oy + 2 * (yy - y0))], fill=SIL_LINE, width=1)
+        d.text((ox, oy + th + 3), label, font=f, fill=(128, 128, 128, 255))
     sheet.save(path, optimize=True)
     return path
+
+
+def c3_grip_row(cache: dict | None = None) -> tuple[Cell, float]:
+    base = next(c for c in CELLS if c.key == "C3")
+    return base, build_cell(base, {} if cache is None else cache)["grip"][1]
+
+
+def build_silhouettes(stamp: str, out_dir: Path = OUT_DIR / "silhouettes") -> Path:
+    """D75: the 3x3 grid of shaft length x head size on C3's hand."""
+    base, gy = c3_grip_row()
+    variants = [(f"L{sk} H{hk}", replace(base, key=f"L{sk}_H{hk}", shaft_k=sk, head_k=hk, grip_y=gy))
+                for hk in SIL_HEAD for sk in SIL_SHAFT]
+    return silhouette_sheet(variants, PREVIEW_DIR / f"{stamp}_{SIL_SLUG}.png", 3, out_dir)
+
+
+def build_silhouette_final(stamp: str, out_dir: Path = OUT_DIR / "silhouettes") -> Path:
+    """D76: the pick (L1.7 H1.8, the shaft as wide as L1.0's) between L1.0 H1.8 and the original L1.7 H1.8."""
+    base, gy = c3_grip_row()
+    variants = [("L1.0 H1.8", replace(base, head_k=1.8, grip_y=gy)),
+                ("L1.7 H1.8", replace(base, shaft_k=1.7, head_k=1.8, grip_y=gy)),
+                ("L1.7 H1.8 wide (D76)", replace(base, key="D76", grip_y=gy, **D76_PICK))]
+    return silhouette_sheet(variants, PREVIEW_DIR / f"{stamp}_F4_ice-axe-silhouette-final.png", 3, out_dir)
 
 
 def build_all(out_dir: Path | None = OUT_DIR, cache: dict | None = None) -> dict:
@@ -1030,8 +1085,9 @@ def build_all(out_dir: Path | None = OUT_DIR, cache: dict | None = None) -> dict
 
 
 def main() -> None:
-    if len(sys.argv) > 1 and sys.argv[1] == "silhouettes":
-        print("wrote", build_silhouettes(datetime.now().strftime("%Y-%m-%d_%H%M")))
+    if len(sys.argv) > 1 and sys.argv[1] in ("silhouettes", "silhouette-final"):
+        fn = build_silhouettes if sys.argv[1] == "silhouettes" else build_silhouette_final
+        print("wrote", fn(datetime.now().strftime("%Y-%m-%d_%H%M")))
         return
     stamp = sys.argv[1] if len(sys.argv) > 1 else datetime.now().strftime("%Y-%m-%d_%H%M")
     cache: dict = {}

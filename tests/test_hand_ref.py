@@ -113,6 +113,12 @@ class PiecesTest(unittest.TestCase):
         left, right = idx[20, 4], idx[20, 10]
         self.assertGreater(left if lit_left else right, right if lit_left else left)
 
+    def test_d76_pick_is_pinned(self):
+        # the CEO's pick: L1.7 H1.8 with the shaft as wide on screen as L1.0 H1.8's (no taper)
+        self.assertEqual((hr.D76_PICK["shaft_k"], hr.D76_PICK["head_k"]), (1.7, 1.8))
+        self.assertAlmostEqual(hr.D76_PICK["shaft_w"] * hr.HEAD_SHAFT_K, hr.HEAD_Z / hr.GRIP_Z)
+        self.assertEqual(next(c for c in hr.CELLS if c.key == "C3").size, 1.15)
+
     def test_mirrored_spec_is_moved_once(self):
         spec = hr.REFS["R1"]
         self.assertTrue(spec.mirror)                       # the CEO: the player is right-handed
