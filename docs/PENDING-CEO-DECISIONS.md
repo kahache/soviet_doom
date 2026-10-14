@@ -11,7 +11,8 @@ Previews are sent to you as files; the paths are under `docs/art/previews/`.
 
 | What | Preview | Asks [PM's recommendation] |
 |---|---|---|
-| Ice axe silhouettes (D75) | coming | pick a shaft length and head size |
+| Ice axe silhouettes (D75) | `2026-10-15_0020_F4_ice-axe-silhouettes.png` | pick one, e.g. "L1.35 H1.4" [L1.35 H1.4] |
+| Sound alternatives (D74) | `2026-10-15_0033_M3_listening-alternatives.html` | OK/NO per alternative, "Copiar resultado" |
 
 ## 2. Waiting for your ears
 

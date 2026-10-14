@@ -20,10 +20,7 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
-| N17 | M2 | Install the approved TT-33 held frames (SDTT/SDTF, D61) into the PK3 + engine pass; today they live only in the draft overlay | mod-engineer | 120 | — |
-| N9a | M3 | Alternatives (3 each) for SDTTPKP, SDIZRLD, SDRKFIR (NO) and SDAXPKP, SDIZPKP (?), D74; small listening page | sound-designer | 120 | D74 |
 | G9 | M4 | LICENSE.md and CREDITS.txt for the player: no repo-only paths, drop the unused OTEX credit (RU half at N11); ship `LICENSE-FREEDOOM-BSD-3.txt` (D75, hash pinned); the AI-reference line in the credits (D75) | mod-engineer | 40 | — |
-| N14-3 | M2 | Ice axe: hand C3 (D75), silhouette sweep of a longer shaft and bigger head | art-director | 40 | D75 |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
 ## Next (approved order, D63)
@@ -65,6 +62,8 @@ the Fooocus hand images, sounds and music to hear.
 | **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
+
+N17: the TT-33 hands installed (d2be8ca), engine pass `docs/qa/evidence/2026-10-15_0037_F4_tt33-installed.md`: **1 of 7 weapons ours in the PK3**. **Real 279k** (est. 120k). N9a: 15 sound alternatives, page `docs/art/previews/2026-10-15_0033_M3_listening-alternatives.html`; **real 275k** (est. 120k). N14-3: ice axe silhouettes; **real 10k** (est. 40k).
 
 G2: README EN/RU rewritten (666b85d), 12 tests. **Real 156k** (est. 50k).
 
