@@ -15,8 +15,10 @@ What can be measured without ears and without GZDoom (D26), pinned here:
   funeral march is a cue that ends, so its last bar is silent;
 - our part stays ours: on every downbeat the edition's melody note is a
   tone of the chord we harmonised it with;
-- the drafts stay in work/ (nothing enters assets/ without the CEO), and
-  the scores they come from are the files whose SHA-256 MUSIC-RIGHTS records.
+- the drafts are installed in assets/ by D62 (N8) for the CEO to hear in
+  play, byte for byte what the builders write, and SOUNDTRACK still calls
+  them drafts; the scores they come from are the files whose SHA-256
+  MUSIC-RIGHTS records.
 
 Python standard library only. Run:
     python3 -m unittest tests.test_music_d44 -v
@@ -153,11 +155,17 @@ class FileTests(unittest.TestCase):
         self.assertEqual(["2/4"], self.out["funeral"][0]["time_sigs"])
         self.assertEqual(["3/4"], self.out["amur"][0]["time_sigs"])
 
-    def test_draft_names_are_legal_lumps_and_stay_out_of_assets(self):
+    def test_draft_names_are_legal_lumps_installed_as_drafts(self):
+        """D62 (N8): installed so the CEO hears them in play (MAP02, RANGE),
+        still drafts until he approves them by ear."""
+        soundtrack = SOUNDTRACK.read_text(encoding="utf-8")
         for lump in (gm.FUNERAL_LUMP, gm.AMUR_LUMP):
-            self.assertEqual(lump, validate_lump_name(lump))
-            self.assertFalse((MUSIC_ASSETS / f"{lump}.mid").exists(),
-                             "a draft enters assets/ only on the CEO's approval")
+            with self.subTest(lump=lump):
+                self.assertEqual(lump, validate_lump_name(lump))
+                self.assertTrue((MUSIC_ASSETS / f"{lump}.mid").is_file(), "D62 installs it")
+                self.assertTrue(any(f"`{lump}`" in line and "pending the CEO's ear" in line
+                                    for line in soundtrack.splitlines()),
+                                "SOUNDTRACK.md must still call it a draft")
 
 
 class LoopTests(unittest.TestCase):

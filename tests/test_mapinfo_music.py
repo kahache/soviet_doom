@@ -1,10 +1,17 @@
-"""D43: MAPINFO wires the title and MAP01 music to the lumps that ship.
+"""D43, D62: MAPINFO wires the title and every map's music to lumps that ship.
 
 Contract: docs/engine/MOD-SPEC.md 4.5. The lumps themselves (legal names,
 clean MIDI, rights, reproducibility) are tests/test_music.py's, owned by
 sound-designer; this suite pins only the wiring:
 
   * GameInfo's TitleMusic is D_SDINTL and MAP01's music is D_SDM01;
+  * D62 (N8): every map of the campaign plays music, walked from MAP01 along
+    `next` to the end, so a map added to the chain without a piece fails
+    here; MAP02 (the metro), MAP03 (Tankograd) and RANGE play the drafts
+    assigned to them, pending the CEO's ear (SOUNDTRACK.md 0);
+  * every lump MAPINFO names has a licence row in docs/art/LICENSES.md (the
+    register check_pk3 reads) and a row in MUSIC-RIGHTS.md 4.5 (the one
+    tools/release.py reads), and SOUNDTRACK.md still calls each draft one;
   * every `music` / `TitleMusic` value in MAPINFO is "" or a lump the PK3
     packs under music/. A misspelt music lump is the silent failure GZDoom
     does not log (SOUNDTRACK.md 7, qa gap 1), so a test is the only net;
@@ -34,11 +41,24 @@ MAPINFO = SRC / "lumps" / "MAPINFO"
 MUSIC_ASSETS = PROJECT_ROOT / "assets" / "music"
 
 TITLE_MUSIC = "D_SDINTL"
-MAP_MUSIC = {"MAP01": "D_SDM01", "RANGE": ""}
+MAP_MUSIC = {"MAP01": "D_SDM01",       # D43, approved
+             "MAP02": "D_SDFUNR",      # D62 draft: «Вы жертвою пали», the metro
+             "MAP03": "D_SDGATE",      # D62 draft: «Богатырские ворота», Tankograd
+             "RANGE": "D_SDAMUR"}      # D62 draft: «Амурские волны», the range
+# Assigned by N8 and wired so the CEO hears them in play; not yet heard.
+DRAFTS = ("D_SDFUNR", "D_SDGATE", "D_SDAMUR")
+CAMPAIGN_START = "MAP01"
+END_OF_CHAIN = "endtitle"
+DOCS = PROJECT_ROOT / "docs"
+LICENSES = DOCS / "art" / "LICENSES.md"
+MUSIC_RIGHTS = DOCS / "sound" / "MUSIC-RIGHTS.md"
+SOUNDTRACK = DOCS / "sound" / "SOUNDTRACK.md"
+DRAFT_MARK = "pending the CEO's ear"
 
 RE_MUSIC_VALUE = re.compile(r'^\s*(music|TitleMusic)\s*=\s*"([^"]*)"', re.M | re.I)
 RE_MAP_BLOCK = re.compile(r'^map\s+(\w+)[^{]*\{(.*?)^\}', re.M | re.S | re.I)
 RE_GAMEINFO = re.compile(r'^GameInfo\s*\{(.*?)^\}', re.M | re.S | re.I)
+RE_NEXT = re.compile(r'^\s*next\s*=\s*"?(\w+)"?', re.M | re.I)
 
 
 def mapinfo_code(text: str) -> str:
@@ -76,6 +96,43 @@ class MapinfoMusicTest(unittest.TestCase):
             if value:
                 self.assertIn(value.upper(), self.packed,
                               f'{key} = "{value}" is not in assets/music/: it would play nothing')
+
+    def campaign(self) -> list[str]:
+        chain, name = [], CAMPAIGN_START
+        while name.lower() != END_OF_CHAIN:
+            self.assertIn(name, self.maps, f"the campaign leads to {name}, which has no block")
+            self.assertNotIn(name, chain, f"the campaign loops back to {name}")
+            chain.append(name)
+            following = RE_NEXT.search(self.maps[name])
+            self.assertIsNotNone(following, f"{name} has no next")
+            name = following.group(1)
+        return chain
+
+    def test_every_campaign_map_plays_music(self):
+        chain = self.campaign()
+        self.assertEqual(["MAP01", "MAP02", "MAP03"], chain, "D62's campaign order")
+        for name in chain:
+            with self.subTest(map=name):
+                self.assertTrue(music_of(self.maps[name]),
+                                f"{name} is silent: every campaign map has a piece (D62, N8)")
+
+    def test_every_music_lump_named_has_a_licence_in_both_registers(self):
+        licenses = LICENSES.read_text(encoding="utf-8")
+        rights = MUSIC_RIGHTS.read_text(encoding="utf-8")
+        ships = rights.split("### 4.5", 1)[1].split("\n### ", 1)[0]
+        for _key, value in RE_MUSIC_VALUE.findall(self.code):
+            if value:
+                with self.subTest(lump=value):
+                    self.assertIn(f"| `{value}` |", licenses, "no row in LICENSES.md")
+                    self.assertIn(f"| `{value}` |", ships, "no row in MUSIC-RIGHTS.md 4.5")
+
+    def test_the_drafts_are_marked_as_drafts_in_the_soundtrack(self):
+        text = SOUNDTRACK.read_text(encoding="utf-8")
+        for lump in DRAFTS:
+            with self.subTest(lump=lump):
+                rows = [line for line in text.splitlines()
+                        if line.startswith("|") and f"`{lump}`" in line and DRAFT_MARK in line]
+                self.assertTrue(rows, f"SOUNDTRACK.md has no row calling {lump} a draft {DRAFT_MARK}")
 
 
 class PackedMusicTest(unittest.TestCase):

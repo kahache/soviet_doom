@@ -449,6 +449,18 @@ orchestration, that is the route; it is a size decision, not a rights one.
 | `D_SDM01` | MAP01 | original, `sound-designer` 2026-10-13 (`tools/audio/gen_music.py`) | ours | none | none; ours under CC BY-NC-SA 4.0 (D15) |
 | `D_SDRAD1` | diegetic radio (`SD_Radio`, `docs/engine/MOD-SPEC.md` §6.7) | «Эй, ухнем», Balakirev's setting, pub. 1866 — PD RU+US | **Peter Gerloff**, 2021, **CC0** (§4.4, `D_CND09`); byte-identical to `WM_Ej_uchnem.mid`, SHA-256 `109e9125…` above, no edit | none — MIDI | **none**; Gerloff credited as a courtesy |
 | `D_SDRAD2` | diegetic radio (`SD_Radio`, same) | «Колокольчик», Russian traditional — PD RU+US | **Peter Gerloff**, 2019, **CC0** (§4.4, `D_CND12`); byte-identical to `WM_Kolokolchik.mid`, SHA-256 `fec3c370…` above, no edit | none — MIDI | **none**; Gerloff credited as a courtesy |
+| `D_SDFUNR` | MAP02, the metro — **D62 draft, pending the CEO's ear** | «Вы жертвою пали», 1870s, every candidate author d. before 1916 — PD RU+US (§4.6.1) | ours (D44), from the voice line of Detlaf's 1905 edition; harmony and orchestration ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDGATE` | MAP03, Tankograd — **D62 draft, pending the CEO's ear** | «Богатырские ворота», Mussorgsky (d. 1881), pub. Bessel 1886, ed. Rimsky-Korsakov (d. 1908) — PD RU+US (§4.6.4) | ours (D54), from the top voice of the 1886 edition | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDAMUR` | RANGE, the practice range — **D62 draft, pending the CEO's ear** | «Амурские волны», Max Kyuss (d. 1942), pub. 1909 — PD RU+US (§4.6.2) | ours (D44), from the 1909-1914 Vladivostok edition | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+
+**The D62 drafts (2026-10-14, backlog N8).** The three rows above are
+installed in `assets/music/` and wired in `src/lumps/MAPINFO` so the CEO
+hears them while playing, **before** his approval: they are drafts until he
+hears them (`SOUNDTRACK.md` §0). Nothing was composed or sequenced for N8
+(D59): each file is the D44/D54 draft already in `work/audio/`, copied byte
+for byte (`tests/test_music.py` regenerates and compares). The scores stay
+in `work/audio/scores/`, never packed (§4.6). No row adds a credit
+obligation; Mussorgsky and Kyuss may be named as a courtesy.
 
 **The credit line**, to be reproduced verbatim wherever the mod credits
 anyone (the release credits of gate G6, a ModDB page, a README):
