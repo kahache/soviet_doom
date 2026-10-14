@@ -42,6 +42,7 @@ whole episode in English or Russian:
 | P1 | Gameplay pass | G3's hostile pass and hand-played runs on skills 2 and 4 for every map; balance by playtest (BALANCE §5); the icebox's reloads if wanted |
 | P2 | Voices and polish | the CEO's voice takes (D36); practice-range extras |
 | P3 | Russian docs | the full `docs/ru/` mirror (D34) |
+| P4 | **The full game: 15-20 levels** (D69) | its own roadmap when v1 ships; starts by mining Freedoom's 68 maps (BSD) to calibrate our map constants; Ultimate Doom Builder if N15 says yes |
 
 The old phases F3 (MAP01), F4 (arsenal) and F5 (bestiary) fold into M1-M3;
 their gates G3-G5 stay as the per-map and per-asset checks inside them.
