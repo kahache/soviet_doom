@@ -1,63 +1,77 @@
-"""F4 / D48 — the sergeant's hand DRAWN IN 2D, the classic way, over our
-rendered weapons. A trial against the 3D capsule hand of gen_weapon.py.
+"""F4 / D52 — the sergeant's hands DRAWN IN 2D, on the whole arsenal.
 
 Run with the project venv:
     .venv/Scripts/python.exe tools/art/gen_hands_2d.py            (Windows)
     .venv/bin/python tools/art/gen_hands_2d.py                    (macOS)
-    ... --stamp 2026-10-14_1100      fixes the sheet's timestamp
+    ... --stamp 2026-10-14_1300      fixes the sheet's timestamp
+    ... --no-sheet                   sprites only
 
-Why. D48: the CEO approved hand style E (brown leather glove, green field
-sleeve, the telnyashka at the wrist) but finds the 3D hand "deforme, no
-humana": capsules for fingers read as sausages, the fist as a pile of
-blobs. A second agent tries a more anatomical 3D hand; this module tries
-the opposite road, the one Doom, Wolfenstein and Blood took: a hand DRAWN
-as flat 2D shapes at the native 320x200, banded shading, clean contours.
+Why. D48 approved hand style E (brown leather glove, green field sleeve, the
+telnyashka at the wrist) but the 3D capsule hand read "deforme, no humana".
+The 2D trial of 2026-10-14 11:05 (`..._F4_hand-2d-pixel.png`) won: D52, "Manos
+1". D49 sets the animation reference: Blood (Monolith, 1997), STYLE ONLY, no
+Blood asset or pixel: big readable hands, often both in shot, the weapon
+low, an exaggerated kick, the off hand moving. D51 picks the hand Katyusha's
+pass-3 variant B (six bare tubes in riveted bands).
 
 How. Nothing is painted freehand: every shape is a polygon, an ellipse or a
 round-ended bar authored in code, in a LOCAL 2D frame of the hand
 (centimetres): `a` runs up the held shaft towards the business end, `w`
-runs across it towards the wrist. One drawing, a fist in three-quarter
-view (four stacked finger bars, the knuckle ridge, the back of the glove
-with its seams, the thumb across the index), is laid on each grip of each
-weapon frame by a 2D affine map. The map comes from the weapon's own pose:
-the TT-33, PPSh-41 and ice axe are re-rendered by gen_weapon WITHOUT their
-hand (draw_grip is swapped for a recorder for the length of one call, the
-file is never edited), and each recorded grip gives its screen point, the
-shaft's screen direction, the wrist side and the scale (px per cm at that
-depth). The forearm (glove cuff, telnyashka, sleeve hem, sleeve) is a run
-of quads from the wrist towards the projected elbow.
+runs across it towards the wrist. The weapons are gen_weapon's own 3D
+renders, re-rendered WITHOUT their hand (draw_grip is swapped for a recorder
+for the length of one call; gen_weapon.py is never edited by this module),
+and each recorded grip gives the screen point, the shaft's screen
+direction, the wrist side and the scale. On each grip one DRAWING is laid by
+a 2D affine map; which drawing, and how it is turned, is chosen PER FRAME
+(GripDesign): the back of the fist, the fist seen from its fingers (palm
+view: the fingers wrapped round the shaft and the thumb across them), the
+back foreshortened (the wrist rolled, the knuckles to the eye), the wrist
+cocked or flexed (the forearm turned off its line). That is what makes the
+ice axe's wrist turn through the swing instead of one fist being skewed.
 
 Shading is 2D: each shape carries a simple normal field (a bar is a
-cylinder across its axis, the back of the hand a low dome), lit by the same
-key light as gen_weapon and cut into only HAND_BANDS flat bands, so the
-hand reads as a few deliberate tones, the way a sprite artist would block
-it. Shapes are rasterised at SS sub-pixels and reduced by majority vote
-(no anti-aliasing); then two pixel passes: a crease where a shape sits on
-top of another (finger over finger, thumb over index) and a dark outline
-where the hand meets the weapon or the air. Colours are gen_weapon's own
-style-E materials (palette v1), so every pixel is a palette.json colour.
+cylinder across its axis, the back of the hand a low dome), lit by
+gen_weapon's key light and cut into only HAND_BANDS flat bands. Shapes are
+rasterised at SS sub-pixels and reduced by majority vote (no anti-aliasing);
+then two pixel passes: a crease where a shape sits on another and a dark
+outline where the hand meets the weapon or the air. Colours are
+gen_weapon's style-E materials (palette v1): every pixel is a palette.json
+colour.
 
-Freedoom. iwads/freedoom2.wad (BSD-3) is read ONLY to place Freedoom's
-PISGA0, CHGGA0 and PUNGA0 beside ours on the sheet, as gen_weapon does; no
-Freedoom pixel enters a sprite (the tests check the palette, which
-Freedoom's skin tones are not in).
+Poses. The approved weapon poses are kept, except where D52 says to raise
+them (the TT-33 and the PPSh-41, whose hands fell under the screen's edge):
+those are gen_weapon's poses moved by the named offsets below, so the 3D
+sheets of 2026-10-13 stay reproducible. The TT-33's kick is exaggerated
+(Blood). The Katyusha is pass 3 variant B.
 
 Outputs (work/ is gitignored):
-    work/art/weapons_2d/<weapon>/<LUMP>.png   held frames, same lump names
-                                              and grAb convention as work/art/weapons/
-    work/art/weapons_2d/metrics.json
-    docs/art/previews/<stamp>_F4_hand-2d-pixel.png   the comparison sheet
+    work/art/weapons_2d/<weapon>/<LUMP>.png   every held and flash frame its
+                                              .zs shows, final names (MOD-SPEC
+                                              §6.3), grAb offsets in the file
+    work/art/weapons_2d/<weapon>/metrics.json sizes, offsets, frame keys, the
+                                              hand (for make_draft_overlay.py)
+    work/art/weapons_2d/metrics.json          every frame, one file
+    docs/art/previews/<stamp>_F4_hand-2d-arsenal.html   the sheet (HTML,
+                                              self-contained, base64 PNGs,
+                                              animations at game speed)
+
+Freedoom: not used. Nothing here enters assets/.
 """
 
 from __future__ import annotations
 
 import argparse
+import base64
 import contextlib
 import datetime as dt
+import html
+import io
 import json
+import re
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
+from typing import Callable
 
 import numpy as np
 from PIL import Image, ImageDraw
@@ -66,21 +80,22 @@ ART_TOOLS = Path(__file__).resolve().parent
 sys.path.insert(0, str(ART_TOOLS))
 
 import gen_weapon as gw  # noqa: E402
+import sheetlib  # noqa: E402
 
 PROJECT_ROOT = gw.PROJECT_ROOT
 OUT_DIR = PROJECT_ROOT / "work" / "art" / "weapons_2d"
 PREVIEW_DIR = gw.PREVIEW_DIR
+ZS_DIR = PROJECT_ROOT / "src" / "zscript" / "weapons"
 MAP01_CAPTURE = PROJECT_ROOT / "docs" / "qa" / "evidence" / "2026-10-13_2310_F4_draft-overlay-in-map01.png"
 
 STYLE_KEY = "E"                 # D48: the approved style
 SS = 4                          # sub-pixels per pixel side
 COVER_MIN = 6                   # of SS*SS sub-pixels: below this, transparent
-HAND_BANDS = 4                  # light bands: fewer than the 3D hand's 6, on purpose
+HAND_BANDS = 4                  # light bands: fewer than the 3D weapon's 6, on purpose
 AMBIENT = 0.32
 LAMBERT_MID = 0.55
 CREASE_STEPS = 2                # ramp steps darker where a shape sits on another
 RIM_STEPS = 3                   # ramp steps darker on the hand's outline
-HAND_SCALE = 1.0                # the drawing, against true size at the grip's depth
 HAND_MIN_PX_PER_CM = 5.0        # a far hand is drawn no smaller than this (Doom and Blood exaggerate)
 FORESHORTEN_MIN = 0.78          # a shaft into the screen still shows a whole fist
 
@@ -88,9 +103,11 @@ FORESHORTEN_MIN = 0.78          # a shaft into the screen still shows a whole fi
 GLOVE, SLEEVE, TEL_W, TEL_B, BUTTON = "glove_brown", "sleeve_field", "tel_white", "tel_blue", "button"
 MAT_NAMES = (GLOVE, SLEEVE, TEL_W, TEL_B, BUTTON)
 MAT_IDX = {m: i for i, m in enumerate(MAT_NAMES)}
+HAND_MATERIALS = ("glove_brown", "glove_black", "skin", "sleeve_field", "sleeve_coat", "sleeve_quilt",
+                  "tel_white", "tel_blue", "button")
 
 
-# ============================================================ the drawing
+# ============================================================ the drawings
 # Local frame, centimetres. a: up the shaft (towards the head, the muzzle);
 # w: across it, towards the wrist. The shaft's axis is w = 0.
 # One finger: (a of its centre, width, how far its folded front reaches past
@@ -120,6 +137,22 @@ THUMB_BEHIND = (((4.2, 3.0), (4.6, 0.2), 1.15, 1.05), ((4.6, 0.2), (4.1, -1.9), 
 TRIGGER_INDEX = (((3.0, 1.9), (3.5, -2.3), 1.0, 0.95), ((3.5, -2.3), (3.0, -3.8), 0.95, 0.85))
 SUPPORT_REACH = -1.1            # support hand: fingertips end on the near face, cm
 
+# The palm view: the fist seen from its fingers' side. The heel of the palm
+# sits on the wrist side; the four fingers cross the shaft in front of it,
+# their tips pressed into the palm; the thumb comes off the thenar and lies
+# across the index and middle fingers.
+PALM_POLY = (
+    (4.3, 1.0), (2.0, 1.9), (-0.4, 2.1), (-2.6, 2.0), (-4.1, 1.4), (-4.5, 3.4),
+    (-4.0, 5.8), (-3.0, 8.4), (2.2, 8.4), (3.7, 6.4), (4.7, 4.0),
+)
+PALM_DOME = ((-0.2, 5.0), 6.0)
+PALM_CREASE = (((-3.6, 3.4), (1.6, 3.0)), ((-3.2, 5.6), (0.4, 5.0)))
+PALM_TIP_W = 2.7                # w of the fingertips, pressed into the palm
+PALM_DIP = 1.15                 # cm behind the tip: the last joint's crease
+PALM_PIP = 1.4                  # cm in from the outer curl: the middle joint's crease
+PALM_THENAR = ((3.6, 4.9), (1.8, 2.5))
+PALM_THUMB = (((4.2, 4.6), (3.2, 1.0), 1.25, 1.12), ((3.2, 1.0), (1.2, -0.9), 1.12, 0.95))
+
 # The forearm: (name, from cm, to cm, half width at start, at end, material)
 # measured from the wrist towards the elbow.
 FOREARM = (
@@ -136,18 +169,38 @@ BUTTON_AT = (7.3, 0.78)         # cm along, share of the half width (outer side)
 
 @dataclass(frozen=True)
 class GripDesign:
-    """How one grip is drawn: which thumb, trigger finger, finger reach."""
-    thumb: str = "front"        # "front" | "behind" (only where the weapon is not)
+    """How one grip is drawn in one frame.
+
+    view     "back": the back of the fist, knuckles, folded fingers;
+             "palm": the fist from its fingers' side, thumb across them
+    thumb    "front" | "behind" (only where the weapon is not) | "none"
+    trigger  the index finger straight, onto a trigger (back view)
+    reach    added to every finger's reach, cm (support hands: negative)
+    roll     -1..1, the fist turned about the shaft. 0 is the drawing as
+             made (three-quarter, from the back); towards +1 the back of the
+             hand turns away and the folded fingers' fronts face the eye
+             (the wrist side foreshortened, the knuckles and the fingers'
+             fronts grow); towards -1 the back of the hand faces the eye
+             (the back lengthens, the fingers wrap away and shorten)
+    turn     degrees the forearm is turned off its computed line (the wrist
+             cocked or flexed), positive towards the shaft's business end
+    scale    the whole hand, against HAND_MIN_PX_PER_CM's floor (Blood: big)
+    slide    cm the hand is moved along the shaft from where gen_weapon put
+             it (a support hand brought into shot), re-projected
+    """
+    view: str = "back"
+    thumb: str = "front"
     trigger: bool = False
-    reach: float = 0.0          # added to every finger's reach, cm
+    reach: float = 0.0
+    roll: float = 0.0
+    turn: float = 0.0
+    scale: float = 1.0
+    slide: float = 0.0
 
 
-# Per weapon, one design per draw_grip call, in call order.
-DESIGNS = {
-    "tt33": (GripDesign(thumb="behind", trigger=True),),
-    "ppsh": (GripDesign(thumb="front", trigger=True), GripDesign(thumb="behind", reach=SUPPORT_REACH)),
-    "axe": (GripDesign(thumb="front"),),
-}
+ROLL_KNUCKLE = 0.6              # knuckles grow by this share of the roll
+ROLL_FINGER = 0.5               # and the folded fingers' fronts stand out this much more
+ROLL_WRAP = 0.8                 # back to the eye: the fingers wrap away, ending this share of the shaft radius sooner
 
 
 # ========================================================== the recorder
@@ -162,6 +215,18 @@ class Grip:
     fa: float                   # foreshortening along the shaft, 0..1
     fw: float                   # and across it
     shaft_r: float              # cm
+    side: str = "right"
+    trigger: bool = False
+    source: tuple = ()          # (rig, g, axis, elbow): the 3D call, to slide the hand along the shaft
+
+    def slid(self, du: float) -> "Grip":
+        """The same grip moved du cm along the shaft (towards its business
+        end), re-projected: a hand moved further away is drawn smaller."""
+        if not du or not self.source:
+            return self
+        rig, g, axis, elbow = self.source
+        return grip_from_pose(rig, np.asarray(g, np.float64) + gw.unit(axis) * du, axis, elbow, self.shaft_r,
+                              self.side, self.trigger)
 
 
 def _unit2(v) -> np.ndarray:
@@ -170,7 +235,13 @@ def _unit2(v) -> np.ndarray:
     return v / n if n > 1e-9 else np.array([1.0, 0.0])
 
 
-def grip_from_pose(rig, g, axis, elbow, shaft_r) -> Grip:
+def _rot2(v, deg: float) -> np.ndarray:
+    t = np.deg2rad(deg)
+    c, s = np.cos(t), np.sin(t)
+    return np.array([c * v[0] - s * v[1], s * v[0] + c * v[1]])
+
+
+def grip_from_pose(rig, g, axis, elbow, shaft_r, side="right", trigger=False) -> Grip:
     g = np.asarray(g, np.float64)
     A = gw.unit(axis)
     x, y, s = rig.project(g)
@@ -186,7 +257,8 @@ def grip_from_pose(rig, g, axis, elbow, shaft_r) -> Grip:
     pf = np.array(rig.project(wrist3 + to_el * 20.0)[:2])
     fa = float(np.clip(np.hypot(*(pa - at)) / (3.0 * s), FORESHORTEN_MIN, 1.0))
     fw = float(np.clip(np.hypot(*d_el) / (6.0 * s), FORESHORTEN_MIN, 1.0))
-    return Grip(at, ea, ew, _unit2(pf - pw), float(s), fa, fw, float(shaft_r))
+    return Grip(at, ea, ew, _unit2(pf - pw), float(s), fa, fw, float(shaft_r), side, bool(trigger),
+                (rig, g, tuple(A), tuple(np.asarray(elbow, np.float64))))
 
 
 @contextlib.contextmanager
@@ -197,7 +269,7 @@ def handless():
     original = gw.draw_grip
 
     def record(rig, style, g, axis, elbow, shaft_r, side="right", trigger=False, forearm=True):
-        calls.append(grip_from_pose(rig, g, axis, elbow, shaft_r))
+        calls.append(grip_from_pose(rig, g, axis, elbow, shaft_r, side, trigger))
         A = gw.unit(axis)
         return {"wrist": np.asarray(g, np.float64), "K": A, "A": A, "Dw": A, "tips": []}
 
@@ -406,17 +478,24 @@ class Painter2D:
 
 # ========================================================== the hand itself
 class HandMap:
-    """Local (a, w) cm -> screen px for one grip."""
+    """Local (a, w) cm -> screen px for one grip in one design. The roll
+    foreshortens only the wrist side (w > 0): the fingers still close round
+    the whole shaft."""
 
-    def __init__(self, grip: Grip):
-        self.g = grip
-        k = max(grip.s, HAND_MIN_PX_PER_CM) * HAND_SCALE
+    def __init__(self, grip: Grip, design: GripDesign = GripDesign(), min_px: float = HAND_MIN_PX_PER_CM):
+        self.g, self.d = grip, design
+        k = max(grip.s, min_px) * design.scale
         self.A = grip.ea * k * grip.fa
         self.W = grip.ew * k * grip.fw
         self.k = k * (grip.fa + grip.fw) / 2      # px per cm for radii
+        self.k_arm = k                            # the forearm is not foreshortened by the roll
+        self.wk = 1.0 - 0.5 * design.roll         # the wrist side's foreshortening (or stretch)
+
+    def _w(self, w):
+        return w * self.wk if w > 0 else w
 
     def __call__(self, a, w) -> np.ndarray:
-        return self.g.at + self.A * a + self.W * w
+        return self.g.at + self.A * a + self.W * self._w(w)
 
     def vec(self, a, w) -> np.ndarray:
         return self.A * a + self.W * w
@@ -427,8 +506,12 @@ def draw_forearm(p: Painter2D, m: HandMap) -> None:
     g = m.g
     start = m(*WRIST)
     d = _unit2(FOREARM_FROM_HAND * g.ew + (1.0 - FOREARM_FROM_HAND) * g.fore)
+    if m.d.turn:
+        # positive turns the forearm towards the business end of the shaft
+        sgn = 1.0 if float(d[0] * g.ea[1] - d[1] * g.ea[0]) > 0 else -1.0
+        d = _rot2(d, sgn * m.d.turn)
     n = np.array([-d[1], d[0]])
-    k = m.k
+    k = m.k_arm
 
     def quad(t0, t1, hw0, hw1):
         a, b = start + d * t0 * k, start + d * t1 * k
@@ -475,7 +558,6 @@ def finger_block(p: Painter2D, m: HandMap, ac: float, r: float, back: float, fro
         t = np.deg2rad(90.0 + 90.0 * i / 6)
         pts.append((ac - r + rc + rc * np.cos(t), front + rc - rc * np.sin(t)))
     pts.append((ac - r, back))
-    k = m.k
     p0 = m(ac, back)
     d = _unit2(m(ac, front) - p0)
     hw = r * float(np.hypot(*m.A))           # px: the finger runs along w, its width is along a
@@ -485,12 +567,13 @@ def finger_block(p: Painter2D, m: HandMap, ac: float, r: float, back: float, fro
 
 
 def draw_fist(p: Painter2D, m: HandMap, design: GripDesign) -> None:
-    """The gloved hand round the shaft: back of the hand, the four folded
-    fingers (or three and the trigger finger), the knuckle ridge, the thumb."""
+    """The back view: back of the hand, the four folded fingers (or three
+    and the trigger finger), the knuckle ridge, the thumb."""
     g = m.g
     k = m.k
     base, gain = 0.62, 0.85
     far = -(g.shaft_r + design.reach)            # the far edge of the shaft, w
+    kk = 1.0 + ROLL_KNUCKLE * design.roll
     # thumb behind: drawn first, then hidden wherever the weapon is
     if design.thumb == "behind":
         p.new_group()
@@ -502,49 +585,216 @@ def draw_fist(p: Painter2D, m: HandMap, design: GripDesign) -> None:
     seams = [(m(*s0), m(*s1), SEAM_PX, SEAM_DV) for s0, s1 in SEAMS]
     p.poly([m(a, w) for a, w in BACK_POLY], GLOVE, base, gain, ("dome", m(ca, cw), R * k), lines=seams)
     # the knuckle ridge, part of the back: the fingers' roots overlap it
-    fingers = list(FINGERS)
     back_group = p.group
-    for name, ac, width, reach in fingers:
+    for name, ac, width, reach in FINGERS:
         if design.trigger and name == "index":
             continue
-        p.ellipse(m(ac, KNUCKLE_W), m.vec(KNUCKLE_R[0] * width / 2, 0), m.vec(0, KNUCKLE_R[1]),
+        p.ellipse(m(ac, KNUCKLE_W * m.wk), m.vec(KNUCKLE_R[0] * width / 2 * kk, 0), m.vec(0, KNUCKLE_R[1] * kk),
                   GLOVE, base + 0.08, gain, group=back_group)
     # the fingers, little first: each sits on the one below it
-    for name, ac, width, reach in reversed(fingers):
+    for name, ac, width, reach in reversed(FINGERS):
         p.new_group()
         r = width / 2
-        front = far - reach
+        front = far - reach * (1.0 + ROLL_FINGER * design.roll) - ROLL_WRAP * min(design.roll, 0.0) * g.shaft_r
         if design.trigger and name == "index":
             for (a0, w0), (a1, w1), r0, r1 in TRIGGER_INDEX:
                 p.bar(m(a0, w0), m(a1, w1), r0 * k, r1 * k, GLOVE, base, gain)
             continue
         if design.reach < 0:
             front = far - reach * 0.4
-        finger_block(p, m, ac, r, KNUCKLE_W + 0.4, front, base, gain)
+        finger_block(p, m, ac, r, (KNUCKLE_W + 0.4) * m.wk, front, base, gain)
     # the thumb, over the index
     if design.thumb == "front":
         p.new_group()
         (ta, tw), (sa, sw) = THENAR
-        p.ellipse(m(ta, tw), m.vec(sa, 0), m.vec(0, sw), GLOVE, base, gain)
+        p.ellipse(m(ta, tw), m.vec(sa, 0), m.vec(0, sw * m.wk), GLOVE, base, gain)
         for (a0, w0), (a1, w1), r0, r1 in THUMB_FRONT:
             p.bar(m(a0, w0), m(a1, w1), r0 * k, r1 * k, GLOVE, base + 0.08, gain)
 
 
-def draw_hand(p: Painter2D, grip: Grip, design: GripDesign) -> None:
-    m = HandMap(grip)
+def palm_finger(p: Painter2D, m: HandMap, ac: float, r: float, outer: float, tip: float,
+                base: float, gain: float) -> None:
+    """One finger seen from the palm side, wrapped round the shaft: a bar
+    from its outer curl (w = outer, past the far edge) to its tip pressed
+    into the palm (w = tip), rounded at both ends, with the crease lines of
+    its two joints."""
+    p0, p1 = m(ac, outer + r * 0.5), m(ac, tip - r * 0.5)
+    k = m.k
+    lines = [(m(ac + r * 0.75, tip - PALM_DIP), m(ac - r * 0.75, tip - PALM_DIP), 0.5, 0.16),
+             (m(ac + r * 0.75, outer + PALM_PIP), m(ac - r * 0.75, outer + PALM_PIP), 0.5, 0.12)]
+    p.bar(p0, p1, r * k, r * k * 0.92, GLOVE, base, gain, lines=lines)
+
+
+def draw_palm(p: Painter2D, m: HandMap, design: GripDesign) -> None:
+    """The palm view: the heel of the palm, the fingers wrapped round the
+    shaft in front of it, the thenar and the thumb across the fingers."""
+    g = m.g
+    k = m.k
+    base, gain = 0.6, 0.85
+    far = -(g.shaft_r + design.reach)
+    p.new_group()
+    (ca, cw), R = PALM_DOME
+    creases = [(m(*s0), m(*s1), SEAM_PX, 0.16) for s0, s1 in PALM_CREASE]
+    p.poly([m(a, w) for a, w in PALM_POLY], GLOVE, base - 0.04, gain, ("dome", m(ca, cw), R * k), lines=creases)
+    for name, ac, width, reach in reversed(FINGERS):
+        p.new_group()
+        palm_finger(p, m, ac, width / 2, far - reach * 0.6, PALM_TIP_W, base, gain)
+    if design.thumb != "none":
+        p.new_group()
+        (ta, tw), (sa, sw) = PALM_THENAR
+        p.ellipse(m(ta, tw), m.vec(sa, 0), m.vec(0, sw * m.wk), GLOVE, base, gain)
+        for (a0, w0), (a1, w1), r0, r1 in PALM_THUMB:
+            p.bar(m(a0, w0), m(a1, w1), r0 * k, r1 * k, GLOVE, base + 0.08, gain)
+
+
+def draw_hand(p: Painter2D, grip: Grip, design: GripDesign, min_px: float = HAND_MIN_PX_PER_CM) -> None:
+    m = HandMap(grip.slid(design.slide), design, min_px)
     draw_forearm(p, m)
-    draw_fist(p, m, design)
+    if design.view == "palm":
+        draw_palm(p, m, design)
+    else:
+        draw_fist(p, m, design)
 
 
-# ================================================================ frames
-WEAPONS = {
-    # key: (sprite, poses, render function, design key, label)
-    "tt33": ("SDTT", gw.TT_POSES, lambda st, pose: gw.render_tt33_frame(st, pose)[0], "tt33", "TT"),
-    "ppsh": ("SDPP", gw.PPSH_POSES, lambda st, pose: gw.render_ppsh_frame(st, pose)[0], "ppsh", "PP"),
-    "ice_axe": ("SDAX", gw.AXE_POSES, gw.render_axe_frame, "axe", "AX"),
+# ================================================================ poses
+def moved(pose, d_origin=(0.0, 0.0, 0.0), d_bore=(0.0, 0.0, 0.0), name: str | None = None):
+    """gen_weapon's pose moved: origin by d_origin (camera cm), bore by
+    d_bore (added before normalising). Same frame letter, same state."""
+    o = tuple(float(a + b) for a, b in zip(pose.origin, d_origin))
+    b = tuple(float(a + c) for a, c in zip(pose.bore, d_bore))
+    return replace(pose, origin=o, bore=b, name=name or pose.name)
+
+
+# D52: the TT-33's grip, and with it the hand, sat mostly under the screen's
+# edge. Raised (the 11:05 trial's TT-1R, accepted as "Manos 1") and moved a
+# little to the left; the kick exaggerated after Blood (D49): the muzzle
+# thrown further up and the pistol pushed back into the hand.
+TT_RAISE = (-1.0, -4.0, 0.0)            # camera cm: left, up, depth
+TT_KICK = {"A": ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
+           "B": ((0.2, -0.8, -0.8), (0.0, -0.12, 0.0)),
+           "C": ((0.3, -1.6, -1.2), (0.0, -0.20, 0.0))}   # extra (origin, bore) per frame
+TT_POSES_2D = tuple(moved(p, np.add(TT_RAISE, TT_KICK[p.frame][0]), TT_KICK[p.frame][1],
+                          f"{p.name}, raised") for p in gw.TT_POSES)
+
+# D52: the PPSh-41's right hand projected under the screen (its grip at y 278
+# of 200). The gun comes left, up and forward, so both hands are in shot and
+# the muzzle still sits under and left of the crosshair.
+PPSH_RAISE = (-5.0, -4.0, 8.0)
+PPSH_POSES_2D = tuple(moved(p, PPSH_RAISE, name=f"{p.name}, raised") for p in gw.PPSH_POSES)
+
+HK_VARIANT_2D = "B"             # D51: "de katiushka me flipa la B"
+
+
+# ================================================================ designs
+TRIGGER = GripDesign(thumb="behind", trigger=True)
+SUPPORT = GripDesign(thumb="behind", reach=SUPPORT_REACH)
+# The IZh-58's left hand under the fore-end: at rest a little further out
+# than gen_weapon put it (more of it above the status bar); through the
+# reload it slides out along the barrels as the gun is broken and shut
+# (Blood's off hand at work). cm along the shaft, per frame.
+IZH_SLIDE = {"A": 4.0, "B": 4.0, "C": 8.0, "D": 10.0}
+IZH_DESIGNS = {c: (TRIGGER, replace(SUPPORT, slide=v)) for c, v in IZH_SLIDE.items()}
+# The RPG-7's left hand sat under the screen's edge (gen_weapon's
+# RPG_LEFT_U, "at the edge of the view"): brought along the tube into shot.
+RPG_SLIDE = 12.0
+RPG_DESIGNS = {c: (replace(SUPPORT, slide=RPG_SLIDE),) for c in "AB"}
+# The ice axe, frame by frame: the wrist turns about the shaft through the
+# swing, palm, fingers' fronts, back, as a drawn animation would.
+#   A  idle: the back of the fist, three-quarter, as approved
+#   B  raised over the shoulder: the wrist cocked back, the fist seen from its
+#      fingers (palm view), the forearm turned down behind it
+#   C  coming down: rolled over, the folded fingers' fronts and the knuckles
+#      to the eye, the back foreshortened
+#   D  the pick in: the wrist flexed forward, the back of the hand to the eye
+#      and the fingers wrapped away, the forearm turned to follow the blow
+#   E  recovery: back to the fist, a little rolled (drawn; ice_axe.zs does not
+#      show E today)
+AXE_DESIGNS = {
+    "A": (GripDesign(),),
+    "B": (GripDesign(view="palm", turn=-18.0),),
+    "C": (GripDesign(roll=0.9, turn=12.0),),
+    "D": (GripDesign(roll=-0.7, turn=30.0),),
+    "E": (GripDesign(roll=0.2, turn=-6.0),),
 }
 
 
+# ================================================================ the arsenal
+@dataclass(frozen=True)
+class Arm:
+    """One weapon in 2D: its frames, its flash, its state machine."""
+    key: str                    # work/art/weapons_2d/<key>/
+    title: str
+    label: str                  # frame keys: AX-1, TT-1 ...
+    flash_label: str            # TF-1 ...
+    sprite: str                 # held lumps, MOD-SPEC 6.3
+    flash_sprite: str | None
+    zs: str
+    ph_held: str                # the placeholder the .zs names today
+    ph_flash: str | None
+    poses: tuple
+    render: Callable            # (style, pose) -> (Frame, anchor)
+    designs: dict               # letter -> tuple of GripDesign, one per grip in call order
+    flash_on: dict = field(default_factory=dict)        # flash letter -> held letter it is drawn for
+    flash: Callable | None = None                       # (letter, anchor, pose) -> Frame
+    shots: int = 1              # Fire passes in the game-speed animation
+    min_px: float = HAND_MIN_PX_PER_CM
+    extra: str = ""             # held letters drawn although the .zs does not show them (reserved, approved)
+    note: str = ""
+
+
+def _axe(st, pose):
+    return gw.render_axe_frame(st, pose), None
+
+
+def _roks_flash(letter, anchor, pose):
+    U, V, W, at = gw.gun_basis(pose.origin, pose.bore, pose.up)
+    return gw.render_roks3_flash(letter, at(gw.ROKS_NOZZLE[1] + 0.4), U)
+
+
+def _same(designs: tuple, letters: str) -> dict:
+    return {c: designs for c in letters}
+
+
+ARMS = {
+    "ice_axe": Arm("ice_axe", "SLOT 1: THE ICE AXE", "AX", "", gw.AXE_SPRITE, None, "ice_axe.zs", "PUNG", None,
+                   gw.AXE_POSES, _axe, AXE_DESIGNS, extra="E",
+                   note="One drawing per frame: the wrist turns. MOD-SPEC reserves SDAX A-E; ice_axe.zs swings "
+                        "B-C-D-C-B, so E (recovery) is drawn but not shown by the state machine today."),
+    "tt33": Arm("tt33", "SLOT 2: THE TT-33 TOKAREV", "TT", "TF", gw.TT_SPRITE, gw.TT_FLASH, "tokarev.zs", "PISG",
+                "PISF", TT_POSES_2D, lambda st, p: gw.render_tt33_frame(st, p), _same((TRIGGER,), "ABC"),
+                {"A": "B"}, lambda c, a, p: gw.render_tt33_flash(c, a), shots=2,
+                note="Pose raised 4 cm and 1 cm left (D52); the kick exaggerated after Blood."),
+    "ppsh": Arm("ppsh", "SLOT 4: THE PPSH-41", "PP", "PF", gw.PPSH_SPRITE, gw.PPSH_FLASH, "ppsh.zs", "CHGG",
+                "CHGF", PPSH_POSES_2D, lambda st, p: gw.render_ppsh_frame(st, p),
+                _same((TRIGGER, GripDesign(reach=SUPPORT_REACH, thumb="behind")), "AB"),
+                {"A": "A"}, lambda c, a, p: gw.render_ppsh_flash(c, a), shots=3,
+                note="Pose moved 5 cm left, 4 cm up and 8 cm forward (D52): both hands in shot."),
+    "izh": Arm("izh", "SLOT 3: THE IZH-58", "IZ", "IF", gw.IZH_SPRITE, gw.IZH_FLASH, "izh.zs", "SHTG", "SHTF",
+               gw.IZH_POSES, lambda st, p: gw.render_izh_frame(st, p), IZH_DESIGNS,
+               {"A": "A", "B": "A"}, lambda c, a, p: gw.render_izh_flash(c, a), shots=2,
+               note="Approved poses kept. The left hand slides out along the barrels through the reload; the "
+                    "right hand on the stock's wrist projects off the screen, as in the 3D set."),
+    "rpg7": Arm("rpg7", "SLOT 5: THE RPG-7", "RL", "RF", gw.RPG_SPRITE, gw.RPG_FLASH, "rpg7.zs", "MISG", "MISF",
+                tuple(p for p in gw.RPG_POSES if p.wired), lambda st, p: gw.render_rpg7_frame(st, p),
+                RPG_DESIGNS, {"A": "B", "B": "B", "C": "B", "D": "B"},
+                lambda c, a, p: gw.render_rpg7_flash(c, a),
+                note="Approved poses kept. The left hand brought 12 cm along the tube into shot; the right hand is on "
+                     "the grip behind the eye, as in the 3D set."),
+    "roks3": Arm("roks3", "SLOT 6: THE ROKS-3 FLAMETHROWER", "RK", "KF", gw.ROKS_SPRITE, gw.ROKS_FLASH, "roks3.zs",
+                 "PLSG", "PLSF", gw.ROKS_POSES, lambda st, p: gw.render_roks3_frame(st, p),
+                 _same((TRIGGER, GripDesign(thumb="behind", reach=-0.4)), "AB"), {"A": "A"}, _roks_flash, shots=2,
+                 note="Approved poses kept. The right hand on the stock's wrist sits low at the right edge."),
+    "katyusha": Arm("katyusha", "SLOT 7: THE HAND KATYUSHA (PASS 3, VARIANT B)", "HK", "HF", gw.HK_SPRITE,
+                    gw.HK_FLASH, "katyusha.zs", "BFGG", "BFGF", tuple(p for p in gw.HK_POSES if p.wired),
+                    lambda st, p: gw.render_katyusha_frame(st, p, HK_VARIANT_2D),
+                    _same((TRIGGER, GripDesign()), "AB"), {"A": "B", "B": "B"},
+                    lambda c, a, p: gw.render_katyusha_flash(c, a),
+                    note="Pass 3 variant B (D51), carried low at the hip with both hands (D49)."),
+}
+WEAPON_ORDER = ("ice_axe", "tt33", "izh", "ppsh", "rpg7", "roks3", "katyusha")
+
+
+# ================================================================ frames
 def canvas_rgba(frame: gw.Frame) -> np.ndarray:
     """A HUD frame placed on gen_weapon's authoring canvas."""
     out = np.zeros((gw.CANVAS_H, gw.CANVAS_W, 4), np.uint8)
@@ -565,64 +815,267 @@ def crop_frame(rgba: np.ndarray) -> gw.Frame:
 
 @dataclass
 class Rendered:
-    key: str                    # e.g. "TT-1"
+    key: str                    # e.g. "TT-1", "TF-1"
     lump: str
+    weapon: str
+    letter: str
     pose: str
-    frame3d: gw.Frame
-    frame2d: gw.Frame
-    handless: gw.Frame
+    frame: gw.Frame             # the sprite as saved
+    bare: gw.Frame | None = None        # held: the weapon without hand
     hand_px: int = 0
-    extra: dict = field(default_factory=dict)
+    hand_above_bar: int = 0     # hand pixels above the classic status bar
+    flash: bool = False
+    over: str | None = None     # flash: the held letter it is drawn for
 
 
-def render_2d(weapon: str, pose) -> tuple[gw.Frame, gw.Frame, int]:
-    """(the 2D-hand frame, the weapon without hand, hand pixel count)."""
-    sprite, _, fn, dkey, _ = WEAPONS[weapon]
-    style = gw.HAND[STYLE_KEY]
+WEAPON_RIM_STEPS = 3            # item 6 of the brief: the weapon's silhouette darkened this many ramp steps more
+
+
+def harden(frame: gw.Frame, steps: int = WEAPON_RIM_STEPS) -> gw.Frame:
+    """The weapon given the hand's hard contour: every opaque pixel on its
+    silhouette (next to transparency) goes `steps` further down its own
+    material's ramp, so steel and wood get the dark edge the 2D hand has.
+    Flash materials are left alone. A new Frame; gen_weapon's is untouched."""
+    if steps <= 0:
+        return frame
+    rgba, mat = frame.rgba.copy(), frame.mat
+    a = rgba[..., 3] > 0
+    P = np.pad(a, 1)
+    h, w = a.shape
+    edge = np.zeros_like(a)
+    for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+        edge |= ~P[1 + dy:1 + dy + h, 1 + dx:1 + dx + w]
+    edge &= a
+    for name, i in gw.MAT_ID.items():
+        if name in gw.FLAT:
+            continue
+        sel = edge & (mat == i)
+        if not sel.any():
+            continue
+        cols = np.array(gw.MATERIALS[name].colours(), np.int16)
+        px = rgba[sel, :3].astype(np.int16)
+        idx = np.abs(px[:, None, :] - cols[None]).sum(-1).argmin(1)
+        rgba[sel, :3] = cols[np.maximum(idx - steps, 0)].astype(np.uint8)
+    return gw.Frame(rgba, mat, frame.left, frame.top, frame.hud)
+
+
+def render_2d(weapon: str, pose, style=None) -> tuple[gw.Frame, gw.Frame, int, object]:
+    """(the 2D-hand frame, the weapon without hand, hand pixel count, the
+    renderer's anchor: muzzle, flash anchors, or None)."""
+    arm = ARMS[weapon]
+    style = style or gw.HAND[STYLE_KEY]
     with handless() as grips:
-        bare = fn(style, pose)
-    designs = DESIGNS[dkey]
+        bare, anchor = arm.render(style, pose)
+    designs = arm.designs[pose.frame]
     if len(grips) != len(designs):
-        raise ValueError(f"{weapon}: {len(grips)} grips, {len(designs)} designs")
+        raise ValueError(f"{weapon} {pose.frame}: {len(grips)} grips, {len(designs)} designs")
+    bare = harden(bare)
     under = canvas_rgba(bare)
     p = Painter2D()
     for grip, design in zip(grips, designs):
-        draw_hand(p, grip, design)
+        draw_hand(p, grip, design, arm.min_px)
     hand, mask = p.to_rgba(under)
     out = under.copy()
     out[mask] = hand[mask]
-    return crop_frame(out), bare, int(mask.sum())
+    return crop_frame(out), bare, int(mask.sum()), anchor
 
 
-# A PROPOSAL, not a frame of the approved set: the TT-33's ready pose sits so
-# low that its grip, and so the hand, is mostly under the screen's edge;
-# Freedoom's pistol (PISGA0) shows the whole hand. Same pose raised.
-TT_RAISE_CM = 4.0               # camera cm up: about 30 px at the grip's depth
+def hand_above_bar(frame2d: gw.Frame, bare: gw.Frame) -> int:
+    """Pixels of the 2D frame that are hand (not the bare weapon) above the
+    classic status bar."""
+    a = canvas_rgba(frame2d)
+    b = canvas_rgba(bare)
+    hand = (a[..., 3] > 0) & ((b[..., 3] == 0) | np.any(a[..., :3] != b[..., :3], -1))
+    top = gw.STATUSBAR_TOP - gw.CANVAS_Y0
+    x0, x1 = -gw.CANVAS_X0, -gw.CANVAS_X0 + gw.SCREEN_W
+    return int(hand[:top, x0:x1].sum())
 
 
-def proposals() -> list[tuple[str, str, str, object]]:
-    a = gw.TT_POSES[0]
-    raised = gw.ArmsPose(a.frame, f"{a.name}, raised {TT_RAISE_CM:g} cm (proposal)",
-                         (a.origin[0], a.origin[1] - TT_RAISE_CM, a.origin[2]), a.bore, a.up,
-                         a.state, a.amount, wired=False)
-    return [("tt33", "TT-1R", "SDTTA0_raised_proposed", raised)]
-
-
-def render_all() -> list[Rendered]:
-    style = gw.HAND[STYLE_KEY]
-    rows = []
-    for weapon, (sprite, poses, fn, _, label) in WEAPONS.items():
-        for i, pose in enumerate(poses):
-            f3 = fn(style, pose)
-            f2, bare, n = render_2d(weapon, pose)
-            rows.append(Rendered(f"{label}-{i + 1}", f"{sprite}{pose.frame}0", pose.name, f3, f2, bare, n,
-                                 {"weapon": weapon}))
-        for w, key, lump, pose in proposals():
-            if w == weapon:
-                f2, bare, n = render_2d(weapon, pose)
-                rows.append(Rendered(key, lump, pose.name, fn(style, pose), f2, bare, n,
-                                     {"weapon": weapon, "proposal": True}))
+def render_arm(weapon: str) -> list[Rendered]:
+    """Every held frame the .zs shows, then every flash frame."""
+    arm = ARMS[weapon]
+    held_letters, flash_letters = zs_letters(arm)
+    rows, anchors, poses = [], {}, {}
+    for i, pose in enumerate(arm.poses):
+        if pose.frame not in held_letters and pose.frame not in arm.extra:
+            continue
+        f2, bare, n, anchor = render_2d(weapon, pose)
+        anchors[pose.frame], poses[pose.frame] = anchor, pose
+        rows.append(Rendered(f"{arm.label}-{i + 1}", f"{arm.sprite}{pose.frame}0", weapon, pose.frame, pose.name,
+                             f2, bare, n, hand_above_bar(f2, bare)))
+    for j, letter in enumerate(sorted(flash_letters)):
+        on = arm.flash_on[letter]
+        fl = arm.flash(letter, anchors[on], poses[on])
+        rows.append(Rendered(f"{arm.flash_label}-{j + 1}", f"{arm.flash_sprite}{letter}0", weapon, letter,
+                             f"flash {letter}, drawn for {arm.sprite}{on}0", fl, flash=True, over=on))
     return rows
+
+
+def render_all(weapons=WEAPON_ORDER) -> dict[str, list[Rendered]]:
+    return {w: render_arm(w) for w in weapons}
+
+
+# ======================================================= the state machines
+STATE_RE = re.compile(r"^\s*([A-Z0-9_#-]{4})\s+([A-Z]+)\s+(-?\d+)\s*(.*?);?\s*$")
+LABEL_RE = re.compile(r"^\s*([A-Za-z]\w*):\s*$")
+
+
+def strip_comments(text: str) -> str:
+    text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
+    return re.sub(r"//[^\n]*", "", text)
+
+
+def zs_text(arm: Arm) -> str:
+    return strip_comments((ZS_DIR / arm.zs).read_text(encoding="utf-8"))
+
+
+def zs_states(text: str) -> dict[str, list]:
+    """{label: [(sprite, letters, tics, action) | ("goto", label)]} of the
+    first States block."""
+    m = re.search(r"\bStates\s*\{", text)
+    if not m:
+        return {}
+    out, cur = {}, None
+    for line in text[m.end():].splitlines():
+        if line.strip() == "}":
+            break
+        lm = LABEL_RE.match(line)
+        if lm:
+            cur = lm.group(1)
+            out[cur] = []
+            continue
+        if cur is None:
+            continue
+        s = line.strip().rstrip(";")
+        if s.startswith("Goto "):
+            out[cur].append(("goto", s.split()[1]))
+        elif s in ("Loop", "Stop"):
+            out[cur].append(("goto", s))
+        else:
+            sm = STATE_RE.match(line)
+            if sm:
+                out[cur].append((sm.group(1), sm.group(2), int(sm.group(3)), sm.group(4).strip()))
+    return out
+
+
+def zs_letters(arm: Arm) -> tuple[set, set]:
+    """The frame letters the .zs shows for the held and flash placeholders."""
+    states = zs_states(zs_text(arm))
+    held, flash = set(), set()
+    for lines in states.values():
+        for st in lines:
+            if st[0] == arm.ph_held:
+                held |= set(st[1])
+            elif arm.ph_flash and st[0] == arm.ph_flash:
+                flash |= set(st[1])
+    return held, flash
+
+
+def flashing_actions(text: str) -> set:
+    """A_GunFlash and every action function of the file that calls it."""
+    names = {"A_GunFlash"}
+    parts = re.split(r"\baction\s+void\s+", text)
+    for part in parts[1:]:
+        name = re.match(r"(\w+)", part).group(1)
+        if "A_GunFlash" in part.split("action void")[0]:
+            names.add(name)
+    return names
+
+
+READY_TICS = 18                 # tics of the ready frame between two loops of the animation
+TIC_MS = 1000.0 / 35.0
+
+
+def fire_timeline(arm: Arm, shots: int | None = None) -> list[tuple[str, str | None, int]]:
+    """The Fire state played `shots` times (A_ReFire jumps back while shots
+    remain; on the last one an A_JumpIf to another label is taken, the
+    IZh's reload), then READY_TICS of the ready frame. Returns runs of
+    (held letter, flash letter or None, tics), the flash psprite running
+    from the moment an action calls A_GunFlash, as the engine does."""
+    text = zs_text(arm)
+    states = zs_states(text)
+    flashers = flashing_actions(text)
+    shots = arm.shots if shots is None else shots
+    held: list[str] = []                    # one entry per tic
+    flash_at: list[int] = []
+    label, i, shot = "Fire", 0, 1
+    guard = 0
+    while guard < 400:
+        guard += 1
+        lines = states.get(label, [])
+        if i >= len(lines):
+            break
+        st = lines[i]
+        if st[0] == "goto":
+            if label in ("Fire", "Reload") and st[1] == "Ready":
+                break
+            label, i = st[1], 0
+            continue
+        sprite, letters, tics, action = st
+        jump = re.search(r'A_JumpIf\([^,]*,\s*"(\w+)"\)', action)
+        if jump and shot == shots and jump.group(1) in states:
+            label, i = jump.group(1), 0
+            continue
+        if "A_ReFire" in action and shot < shots:
+            shot += 1
+            label, i = "Fire", 0
+            continue
+        for k, letter in enumerate(letters):
+            if k == 0 and any(re.search(rf"\b{re.escape(f)}\b", action) for f in flashers):
+                flash_at.append(len(held))
+            held += [letter] * max(tics, 0)
+        i += 1
+    held += ["A"] * READY_TICS
+    flash_tics: list[str | None] = [None] * len(held)
+    if arm.ph_flash:
+        seq = [(c, t) for s, ls, t, _ in (x for x in states.get("Flash", []) if x[0] != "goto") for c in ls]
+        for t0 in flash_at:
+            t = t0
+            for c, tics in seq:
+                for _ in range(tics):
+                    if t < len(flash_tics):
+                        flash_tics[t] = c
+                    t += 1
+    runs: list[list] = []
+    for h, f in zip(held, flash_tics):
+        if runs and runs[-1][0] == h and runs[-1][1] == f:
+            runs[-1][2] += 1
+        else:
+            runs.append([h, f, 1])
+    return [tuple(r) for r in runs]
+
+
+# ================================================================= saving
+def save_all(out: dict[str, list[Rendered]], out_dir: Path = OUT_DIR) -> dict:
+    allm = {}
+    for weapon, rows in out.items():
+        arm = ARMS[weapon]
+        held, flash = zs_letters(arm)
+        wm = {"_state_machine": {"file": f"src/zscript/weapons/{arm.zs}", "held_placeholder": arm.ph_held,
+                                 "held_letters": "".join(sorted(held)), "flash_placeholder": arm.ph_flash,
+                                 "flash_letters": "".join(sorted(flash)), "hand": STYLE_KEY, "hands": "2d"}}
+        folder = out_dir / weapon
+        for r in rows:
+            gw.save_sprite(r.frame, folder / f"{r.lump}.png")
+            entry = {"key": r.key, "pose": r.pose, "size": list(r.frame.rgba.shape[1::-1]),
+                     "offsets": [int(v) for v in r.frame.offsets()]}
+            if r.flash:
+                entry["over"] = f"{arm.sprite}{r.over}0"
+            else:
+                entry["hand_px"] = r.hand_px
+                entry["hand_px_above_bar"] = r.hand_above_bar
+            wm[r.lump] = entry
+            allm[r.key] = {"lump": r.lump, "weapon": weapon, **entry}
+        if weapon == "katyusha":
+            pk = gw.render_katyusha_pickup(HK_VARIANT_2D)
+            gw.save_sprite(pk, folder / f"{gw.HK_PICKUP}A0.png")
+            wm[f"{gw.HK_PICKUP}A0"] = {"key": "HP-1", "pose": f"pickup, pass 3 variant {HK_VARIANT_2D}",
+                                       "size": list(pk.rgba.shape[1::-1]), "offsets": [int(v) for v in pk.offsets()]}
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "metrics.json").write_text(json.dumps(wm, indent=2) + "\n", encoding="utf-8")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "metrics.json").write_text(json.dumps(allm, indent=2) + "\n", encoding="utf-8")
+    return allm
 
 
 # ================================================================= sheet
@@ -662,117 +1115,268 @@ def on_capture(frames, backdrop: np.ndarray) -> np.ndarray:
     return scr
 
 
-FREEDOOM_REFS = (("FD-1", "PISGA0", "pistol"), ("FD-2", "CHGGA0", "chaingun"), ("FD-3", "PUNGA0", "fist"),
-                 ("FD-4", "PUNGC0", "punch"))
-
-VERDICT = [
-    "WHAT THIS IS. D48 trial, the road opposite the anatomical 3D hand: the same style E (brown glove, field "
-    "sleeve, telnyashka) DRAWN as flat 2D shapes at 320x200 and laid on our rendered weapons, which are "
-    "re-rendered by gen_weapon without their hand. Four light bands instead of six, a crease where a shape sits "
-    "on another, a dark outline on the hand. Palette v1, no system font, nothing in assets/.",
-    "HOW TO READ A ROW. Left to right: the current 3D hand at 2x, the 2D hand at 2x, then both at 1x, the size "
-    "the game shows them. All over a MAP01 capture (the dorm, rebuilt without its weapon from six engine "
-    "captures of the same view); the capture's own status bar is pasted back on top, as the engine draws it. "
-    "Positions follow Doom's arithmetic and are NOT VERIFIED in GZDoom (D26).",
-]
+def png_uri(arr: np.ndarray) -> str:
+    buf = io.BytesIO()
+    Image.fromarray(arr).save(buf, "PNG", optimize=True)
+    return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode("ascii")
 
 
-def build_sheet(rows: list[Rendered], stamp: str, verdict: list[str], preview_dir: Path = PREVIEW_DIR) -> Path:
+class Images:
+    """Every screen of the sheet embedded ONCE (a frame shows at 2x, at 1x
+    and in its animation): <img data-ref> tags take their src from IMG."""
+
+    def __init__(self):
+        self.uris: list[str] = []
+        self.index: dict[str, str] = {}
+
+    def add(self, arr: np.ndarray) -> str:
+        uri = png_uri(arr)
+        if uri not in self.index:
+            self.index[uri] = f"i{len(self.uris)}"
+            self.uris.append(uri)
+        return self.index[uri]
+
+    def script(self) -> str:
+        table = ",".join(f'"{self.index[u]}":"{u}"' for u in self.uris)
+        return ("<script>var IMG={" + table + "};document.querySelectorAll('img[data-ref]').forEach("
+                "function(i){i.src=IMG[i.dataset.ref];});</script>")
+
+
+def screen_img(ref: str, k: int, title: str) -> str:
+    w, h = gw.SCREEN_W * k, gw.SCREEN_H * k
+    return (f'<img class="px" data-ref="{ref}" width="{w}" height="{h}" alt="{html.escape(title)}" '
+            f'title="{html.escape(title)}">')
+
+
+SHEET_CSS = """
+.frames{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+.fr{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:10px}
+.fr .k{font:600 15px Menlo,monospace;color:var(--warn)}.fr .l{font:12px Menlo,monospace;color:var(--ink)}
+.fr .p{font-size:12px;color:var(--mute);margin-bottom:6px}
+.pair{display:flex;gap:10px;align-items:flex-end}
+.anim{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;margin:14px 0 6px}
+.anim .seq{font:12px Menlo,monospace;color:var(--mute);max-width:560px}
+.anim button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+.verdict p{max-width:1000px;margin:6px 0}.verdict b{color:var(--warn)}
+.before{opacity:.95}
+"""
+
+ANIM_JS = """
+<script>
+(function(){
+  var TIC = 1000/35;
+  document.querySelectorAll('img.anim-player').forEach(function(img){
+    var frames = JSON.parse(img.dataset.frames).map(function(r){ return IMG[r]; }), seq = JSON.parse(img.dataset.seq);
+    var i = 0, playing = true, t0 = performance.now(), acc = 0;
+    var label = document.getElementById(img.dataset.label);
+    function show(){ img.src = frames[seq[i][0]]; if (label) label.textContent = seq[i][1] + '  (' + seq[i][2] + ' tics)'; }
+    function step(now){
+      if (playing){
+        acc += now - t0;
+        while (acc >= seq[i][2] * TIC){ acc -= seq[i][2] * TIC; i = (i + 1) % seq.length; show(); }
+      }
+      t0 = now; requestAnimationFrame(step);
+    }
+    var btn = document.getElementById(img.dataset.btn);
+    if (btn) btn.onclick = function(){ playing = !playing; btn.textContent = playing ? 'pause' : 'play'; };
+    show(); requestAnimationFrame(step);
+  });
+})();
+</script>
+"""
+
+
+def animation_html(weapon: str, rows: list[Rendered], backdrop: np.ndarray, imgs: Images, k: int = 2) -> str:
+    arm = ARMS[weapon]
+    held = {r.letter: r.frame for r in rows if not r.flash}
+    flash = {r.letter: r.frame for r in rows if r.flash}
+    keys = {r.letter: r.key for r in rows if not r.flash}
+    fkeys = {r.letter: r.key for r in rows if r.flash}
+    runs = fire_timeline(arm)
+    combos, seq = [], []
+    for h, f, t in runs:
+        c = (h, f)
+        if c not in combos:
+            combos.append(c)
+        lab = keys.get(h, h) + (f" + {fkeys.get(f, f)}" if f else "")
+        seq.append([combos.index(c), lab, t])
+    refs = [imgs.add(on_capture([held[h], flash.get(f) if f else None], backdrop)) for h, f in combos]
+    total = sum(t for _, _, t in runs)
+    text = " ".join(f"{lab}:{t}" for _, lab, t in seq)
+    uid = f"a_{weapon}"
+    attr = lambda v: html.escape(json.dumps(v), quote=True)
+    player = (f'<img class="px anim-player" data-ref="{refs[0]}" width="{gw.SCREEN_W * k}" height="{gw.SCREEN_H * k}" '
+              f'alt="animation" data-frames="{attr(refs)}" data-seq="{attr(seq)}" data-label="{uid}_l" '
+              f'data-btn="{uid}_b">')
+    return (f'<div class="anim"><div>{player}'
+            f'<div class="cap"><button id="{uid}_b">pause</button> <span id="{uid}_l"></span></div></div>'
+            f'<div class="seq"><b>At game speed (35 tics/s), from {html.escape(arm.zs)}:</b> '
+            f'{html.escape(arm.title.split(": ", 1)[-1].lower())}, {arm.shots} shot(s) of Fire'
+            f'{" then the reload" if weapon == "izh" else ""}, then {READY_TICS} tics at rest; '
+            f'{total} tics = {total / 35:.2f} s a loop. Frame:tics &mdash; {html.escape(text)}. '
+            f'Weapon bob not shown. NOT VERIFIED in GZDoom (D26).</div></div>')
+
+
+def frame_card(r: Rendered, rows: list[Rendered], backdrop: np.ndarray, imgs: Images) -> str:
+    if r.flash:
+        under = next(x.frame for x in rows if not x.flash and x.letter == r.over)
+        scr = on_capture([under, r.frame], backdrop)
+        what = f"over {ARMS[r.weapon].sprite}{r.over}0"
+    else:
+        scr = on_capture([r.frame], backdrop)
+        what = f"hand {r.hand_above_bar} px above the bar"
+    uri = imgs.add(scr)
+    lo, to = r.frame.offsets()
+    return (f'<div class="fr"><div class="k">{html.escape(r.key)} <span class="l">{html.escape(r.lump)}'
+            f' &middot; grAb {lo},{to} &middot; {r.frame.rgba.shape[1]}x{r.frame.rgba.shape[0]}</span></div>'
+            f'<div class="p">{html.escape(r.pose)} &middot; {html.escape(what)}</div>'
+            f'<div class="pair">{screen_img(uri, 2, r.key + " 2x")}{screen_img(uri, 1, r.key + " 1x")}</div></div>')
+
+
+def before_card(weapon: str, backdrop: np.ndarray, imgs: Images) -> str:
+    """The approved pose with the 2D hand, for the weapons whose pose moved."""
+    arm = ARMS[weapon]
+    old = {"tt33": gw.TT_POSES, "ppsh": gw.PPSH_POSES}.get(weapon)
+    if not old:
+        return ""
+    f2, _, _, _ = render_2d(weapon, old[0])
+    uri = imgs.add(on_capture([f2], backdrop))
+    return (f'<div class="fr before"><div class="k">BEFORE <span class="l">{arm.sprite}A0 in the approved pose'
+            f'</span></div><div class="p">the pose of 2026-10-13, 2D hand: for comparison, not a sprite</div>'
+            f'<div class="pair">{screen_img(uri, 1, "before 1x")}</div></div>')
+
+
+SHEET_INTRO = (
+    "D52 (“Manos 1”): the sergeant's hand drawn in 2D pixel art, style E (brown leather glove, field "
+    "sleeve, telnyashka), now on every weapon, with every held and flash frame its state machine shows "
+    "(read from <code>src/zscript/weapons/*.zs</code>, never edited). The weapons are gen_weapon's own 3D "
+    "renders without their hand; the hand is drawn per frame on each grip. Animation reference: Blood (D49), "
+    "style only, nothing of Blood copied. Every frame is numbered (AX-1, TT-1, &hellip;; the flash frames TF-1, "
+    "&hellip;) and shown at 2x and 1x over MAP01 as GZDoom drew it (the dorm, rebuilt without its weapon from "
+    "six engine captures of the same view; the capture's own status bar on top). Positions follow Doom's "
+    "arithmetic and are NOT VERIFIED in GZDoom (D26): the engine pass is the PM's. Sprites: "
+    "<code>work/art/weapons_2d/&lt;weapon&gt;/</code>, final names (MOD-SPEC &sect;6.3) with grAb, ready for "
+    "the draft overlay. Nothing is in <code>assets/</code>; the installed pickups are untouched.")
+
+
+def build_sheet(out: dict[str, list[Rendered]], stamp: str, verdicts: dict, preview_dir: Path = PREVIEW_DIR) -> Path:
     backdrop = map01_backdrop()
     if backdrop is None:
         backdrop = gw.view_backdrop()
-    S = gw.Sheet(2040, "SOVIET DOOM  ·  F4  ·  THE HAND, DRAWN IN 2D  ·  TRIAL (D48)", stamp)
-    for v in VERDICT:
-        S.para(v)
-    S.y += 8
-    gap = 16
-    x2d = S.pad + 640 + gap
-    x1 = x2d + 640 + gap
-    heads = ((S.pad, "3D HAND TODAY, 2X"), (x2d, "2D HAND, 2X"), (x1, "3D, 1X"), (x1 + 320 + gap, "2D, 1X"))
-    for x, t in heads:
-        S.label((x, S.y), t, S.gold)
-    S.y += S.T.line_h() + 4
-    for r in rows:
-        S.label((S.pad, S.y), f"{r.key}   {r.lump}   {r.pose.upper()}", S.red)
-        S.y += S.T.line_h() + 2
-        s3 = on_capture([r.frame3d], backdrop)
-        s2 = on_capture([r.frame2d], backdrop)
-        S.paste(s3, (S.pad, S.y), 2)
-        S.paste(s2, (x2d, S.y), 2)
-        S.paste(s3, (x1, S.y), 1)
-        S.paste(s2, (x1 + 320 + gap, S.y), 1)
-        S.label((x1, S.y + 200 + 8), f"{r.key}  3D", S.dim)
-        S.label((x1 + 320 + gap, S.y + 200 + 8), f"{r.key}  2D", S.dim)
-        S.y += 400 + 14
-    # Freedoom, for proportion and framing only
-    S.label((S.pad, S.y), "REFERENCE: FREEDOOM 0.13.0 (BSD-3), HOW DOOM FRAMES A HAND. COMPARISON ONLY, NO PIXEL "
-            "OF IT IS IN ANY SPRITE OF OURS. 2X AND 1X.", S.gold)
-    S.y += S.T.line_h() + 4
-    x = S.pad
-    row_h = 0
-    for key, lump, what in FREEDOOM_REFS:
-        fd = gw.freedoom_sprite(lump)
-        if fd is None:
-            continue
-        scr = on_capture([fd], backdrop)
-        crop = scr[60:200, 60:300]
-        w2, h2 = S.paste(crop, (x, S.y + S.T.line_h()), 2)
-        S.label((x, S.y), f"{key}   {lump}   {what.upper()}", S.red)
-        S.paste(crop, (x, S.y + S.T.line_h() + h2 + 6), 1)
-        x += w2 + gap
-        row_h = max(row_h, S.T.line_h() + h2 + 6 + crop.shape[0])
-    S.y += row_h + 18
-    S.label((S.pad, S.y), "SELF-ASSESSMENT", S.red)
-    S.y += S.T.line_h() + 2
-    for v in verdict:
-        S.para(v)
-    return S.save(preview_dir / f"{stamp}_F4_hand-2d-pixel.png")
+    sections = []
+    imgs = Images()
+    n_held = sum(1 for rows in out.values() for r in rows if not r.flash)
+    n_flash = sum(1 for rows in out.values() for r in rows if r.flash)
+    for weapon, rows in out.items():
+        arm = ARMS[weapon]
+        cards = [before_card(weapon, backdrop, imgs)] + [frame_card(r, rows, backdrop, imgs) for r in rows]
+        v = "".join(f"<p>{p}</p>" for p in verdicts.get(weapon, []))
+        body = (animation_html(weapon, rows, backdrop, imgs) + f'<div class="frames">{"".join(cards)}</div>'
+                + f'<div class="verdict"><h2 style="margin-top:14px">Self-assessment</h2>{v}</div>')
+        sections.append((arm.title, html.escape(arm.note), body))
+    general = "".join(f"<p>{p}</p>" for p in verdicts.get("_all", []))
+    sections.append(("The whole arsenal: self-assessment", "", f'<div class="verdict">{general}</div>'))
+    title = "The 2D hand on the whole arsenal (F4, D52)"
+    sec_html = "\n".join(f'<section><h2>{html.escape(h)}</h2>' + (f'<p class="lead">{lead}</p>' if lead else "")
+                         + f"{inner}</section>" for h, lead, inner in sections)
+    doc = (f'<!doctype html>\n<html lang="en"><head><meta charset="utf-8">\n<title>{html.escape(title)}</title>'
+           f'<style>{sheetlib.CSS}{SHEET_CSS}</style></head><body>\n'
+           f'<header><h1>{html.escape(title)}</h1><div class="meta">SDAX &middot; SDTT/SDTF &middot; SDIZ/SDIF '
+           f'&middot; SDPP/SDPF &middot; SDRL/SDRF &middot; SDRK/SDKF &middot; SDHK/SDHF &middot; {n_held} held + '
+           f'{n_flash} flash frames &middot; draft &middot; {html.escape(stamp)}</div>'
+           f'<p class="intro">{SHEET_INTRO}</p></header>\n{sec_html}\n'
+           f'<footer>tools/art/gen_hands_2d.py &middot; palette v1 &middot; no Freedoom or Blood pixel in any '
+           f'sprite &middot; generated {html.escape(stamp)}</footer>{imgs.script()}{ANIM_JS}</body></html>\n')
+    path = preview_dir / f"{stamp}_F4_hand-2d-arsenal.html"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(doc, encoding="utf-8")
+    return path
 
 
-SELF_ASSESSMENT = [
-    "DOES IT READ HUMAN AT 1X? Mostly yes, and better than the 3D hand. Where the fist is on screen (AX-1 to "
-    "AX-5, PP-1, PP-2, TT-1R) the eye finds the parts a hand is recognised by: four fingers as separate bars, the "
-    "knuckle ridge, a thumb crossing the index, the glove's cuff, then the stripes and the sleeve. The 3D hand "
-    "at the same size merges into one brown mass of rounded blobs, which is the CEO's complaint. What the 2D hand "
-    "does NOT fix: in the approved TT-33 pose (TT-1 to TT-3) the grip, and so the hand, is mostly below the "
-    "screen's edge, so either hand reads as a brown wedge under the pistol. TT-1R is the same pose raised 4 cm "
-    "(a proposal, not a frame of the set): there the 2D hand reads plainly as a gloved hand with its finger on "
-    "the trigger. And the PPSh-41's right hand sits off screen (its grip projects at y 278 of 200), so its 2D "
-    "frames show the left hand only; the 3D frames show a sliver of the right.",
-    "DOES IT FIT THE 3D WEAPONS? Reasonably at 1x, less at 2x. The hand uses the weapons' own key light and "
-    "palette ramps, so it does not look pasted in; but it is flatter (four bands) and more strongly outlined "
-    "than the rendered steel and wood, and at 2x that difference shows, most on the PPSh where the dark-edged "
-    "fingers sit on a softly lit fore-end. A sprite artist would close the gap from the other side, by giving "
-    "the weapons the same hard outline; that is a gen_weapon change and is not made here.",
-    "ITS LIMITS. It is ONE drawing laid on each grip by a 2D map, so every frame shows the same side of the "
-    "same fist: in the swing (AX-2 to AX-4) the wrist does not turn as a drawn animation would, and the forearm "
-    "leaves at a compromise angle between the hand and the projected elbow. Per-frame drawings (an open hand, "
-    "the fist seen from the knuckles) are the next step if this road is chosen. The MAP01 backdrop is rebuilt "
-    "from six engine captures and still shows faint traces of the enemies near the door.",
-    "HOW CLOSE TO BLOOD (the CEO's reference, style only, no Blood asset or pixel used). The hand language is "
-    "there: big gloved hands, visible knuckles, a readable thumb, a cuff and a sleeve. The rest of the Blood "
-    "feel is not, because it lives in the poses, not in the hand: here the weapons keep their approved poses, "
-    "so there is one hand on the pistol and the axe, the PPSh's right hand is off screen, the weapon is not low "
-    "in the frame and the recoil is the 3D one (a few px). Getting there means new poses and more frames in "
-    "gen_weapon (both hands in shot, weapon lower, a bigger kick, the off hand moving in reloads and swings), "
-    "drawn with this hand. Freedoom-pixel road: not recommended. Its hands are bare skin and posed for its own "
-    "weapons, so they would need repainting into the glove and still would not fit our grips; licence-wise it "
-    "is allowed (BSD-3: keep the copyright notice and credit the Freedoom project in LICENSES.md and the "
-    "credits) but it buys little.",
-]
-
-
-def save_all(rows: list[Rendered], out_dir: Path = OUT_DIR) -> dict:
-    metrics = {}
-    for r in rows:
-        weapon = r.extra["weapon"]
-        gw.save_sprite(r.frame2d, out_dir / weapon / f"{r.lump}.png")
-        metrics[r.key] = {"lump": r.lump, "weapon": weapon, "pose": r.pose,
-                          "size": list(r.frame2d.rgba.shape[1::-1]), "offsets": list(r.frame2d.offsets()),
-                          "hand_px": r.hand_px}
-    out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "metrics.json").write_text(json.dumps(metrics, indent=2) + "\n", encoding="utf-8")
-    return metrics
+SELF_ASSESSMENT: dict[str, list[str]] = {
+    "ice_axe": [
+        "<b>The wrist turns.</b> Each frame has its own drawing on the grip, chosen by hand: AX-1 the back of the "
+        "fist (as approved), AX-2 the fist seen from its fingers with the thumb across them (the wrist cocked back "
+        "over the shoulder), AX-3 rolled over, the folded fingers and the knuckles to the eye, AX-4 the back of the "
+        "hand to the eye with the fingers wrapped away (the wrist flexed into the blow), AX-5 nearly back to rest. "
+        "Played at game speed (B-C-D-C-B, as ice_axe.zs swings) the fist visibly turns over instead of one fist "
+        "being skewed, which was the 11:05 trial's flaw.",
+        "<b>Weak.</b> AX-3 to AX-5 are still the one back-of-fist drawing turned and foreshortened, not drawn from "
+        "scratch as AX-2 is; at 1x the turn reads mostly through the knuckles and the forearm's angle. AX-4, the "
+        "pick going in, shows the least hand (about 1 500 px above the status bar). AX-5 (SDAXE0) is drawn because "
+        "MOD-SPEC reserves A-E, but ice_axe.zs never shows it today.",
+    ],
+    "tt33": [
+        "<b>The hand is in shot now.</b> The pose is the approved one raised 4 cm and moved 1 cm left (D52, the "
+        "11:05 TT-1R): the glove, three folded fingers, the index on the trigger, the cuff and the telnyashka all "
+        "read at 1x, as Doom's own pistol frames a hand. The kick is exaggerated after Blood: on TT-2 the slide "
+        "goes back and the muzzle climbs, on TT-3 the pistol and hand ride up about 25 px; TF-1 sits on TT-2's "
+        "muzzle.",
+        "<b>Weak.</b> One hand only (Doom's grammar, not Blood's two-handed one). The pistol is small, so the glove "
+        "is half the sprite and the folded fingers read as stacked bars rather than as fingers wrapped round a "
+        "grip. The serrations and the star medallion stay one or two pixels at 1x.",
+    ],
+    "izh": [
+        "<b>As approved, with the 2D hand.</b> The left hand under the fore-end is the hand you see; it sits 4 cm "
+        "further out than the 3D one so more of it clears the status bar, and through the reload (IZ-4 broken open, "
+        "IZ-3, IZ-2) it slides out along the barrels: the off hand moves, as in Blood. IF-1 and IF-2 are gen_weapon's "
+        "flashes at the same muzzle.",
+        "<b>Weak.</b> The right hand on the stock's wrist projects off the screen, so this is a one-hand view of a "
+        "two-hand gun; on IZ-4 only the fingers clear the bar (about 400 px). The PPSh treatment (the gun moved in and "
+        "up) would bring the right hand in, but the IZh's pose is approved and D52 names only the TT-33 and the "
+        "PPSh: a proposal for the CEO, not done here.",
+    ],
+    "ppsh": [
+        "<b>Both hands in shot.</b> The gun is moved 5 cm left, 4 cm up and 8 cm forward (D52): the left hand "
+        "wraps the fore-end ahead of the drum, the right hand grips the stock's wrist with the index on the trigger, "
+        "and the muzzle stays under and left of the crosshair. Two frames, as ppsh.zs alternates them; PF-1 is the "
+        "one flash both rounds show (the state machine has only CHGF A), so on PP-2 it sits a few px off the "
+        "kicked-back muzzle, as it will in the engine.",
+        "<b>Weak.</b> The right glove lies on the birch stock, and both are slices of the same rust-brown ramp: the "
+        "hand separates from the wood only by its dark outline, the lowest contrast in the arsenal. Fixing it means "
+        "a darker glove or a different wood, and both are approved materials, so it is left for the CEO's eye.",
+    ],
+    "rpg7": [
+        "<b>A hand where there was none.</b> In the approved pose the left hand sat under the screen's edge (the 3D "
+        "frames showed a sliver, the 2D ones nothing). It is brought 12 cm along the tube, re-projected (smaller as "
+        "it goes further), so a gloved fist holds the tube on RL-1 and RL-2. RF-1 to RF-4 are gen_weapon's blast and "
+        "smoke at the muzzle.",
+        "<b>Weak, the weakest of the set.</b> The tube recedes straight into the middle of the screen, small, the "
+        "right hand is on the grip behind the eye, and only one fist shows (300 to 800 px above the bar). Against "
+        "Blood this is the frame that most needs a new pose: the launcher lower and turned across the view so both "
+        "hands and the warhead read. The pose is approved, so that is a proposal for the CEO, not done here.",
+    ],
+    "roks3": [
+        "<b>As approved, both hands.</b> The left hand closes round the fuel tube, the right hand grips the stock's "
+        "wrist low on the right; KF-1 is the jet, drawn for RK-1 as roks3.zs shows it.",
+        "<b>Weak.</b> The right hand is partly under the status bar, so of it mostly the knuckles and the cuff show; "
+        "the hose and the stock are the same dark mass as in the 3D set.",
+    ],
+    "katyusha": [
+        "<b>Variant B with both hands (D51, D49).</b> Six bare tubes in riveted bands carried low at the hip, the "
+        "right hand on the pistol grip with the index on the trigger, the left on the forward handle, both sleeves "
+        "running out to the corners. HK-2 is the salvo with the exaggerated kick; HF-1 lights the six motors and the "
+        "backblast, HF-2 is their smoke. The hands are drawn at the 5 px/cm floor while the launcher sits at about "
+        "3.4 px/cm, so they are half again life size: Blood's big hands, on purpose.",
+        "<b>Weak.</b> That scale is a judgement call; if the CEO finds the gloves too big for the launcher, it is "
+        "one number (Arm.min_px). HK-2's sprite is 384 px wide, the forearms reaching both edges of the screen: "
+        "fine in the 320 columns, to be checked in widescreen in the engine. The pickup (SDHPA0, variant B) is "
+        "gen_weapon's own render, copied into the folder so the overlay finds a complete set.",
+    ],
+    "_all": [
+        "<b>3D weapon and 2D hand together.</b> At 1x they sit well: same palette ramps, same key light, a dark "
+        "outline on both. At 2x the difference shows: the hand is four flat bands with creases, the weapon six bands "
+        "with soft contours. Item 6 of the brief is applied lightly: every held frame's weapon gets the hand's hard "
+        "silhouette (its outer pixels three ramp steps darker, WEAPON_RIM_STEPS), in the 2D frames only; the "
+        "installed pickups and every PNG in work/art/weapons/ are untouched. The effect is small, because the 3D "
+        "render already darkened its rim; the honest remaining gap is the banding, which would mean re-lighting the "
+        "approved weapons.",
+        "<b>What is not done.</b> Nothing has been seen in GZDoom (D26): positions follow Doom's arithmetic. The "
+        "animations are built from the .zs state lines (tics, A_GunFlash, A_ReFire, the IZh's reload) at 35 tics a "
+        "second, without the weapon bob. Poses changed only where D52 says (TT-33, PPSh-41); the RPG-7 and the "
+        "IZh-58 would gain most from Blood-style poses next, and that needs the CEO.",
+    ],
+}
 
 
 def main(argv=None) -> None:
@@ -780,13 +1384,14 @@ def main(argv=None) -> None:
     ap.add_argument("--stamp", default=dt.datetime.now().strftime("%Y-%m-%d_%H%M"),
                     help="YYYY-MM-DD_HHMM for the sheet's file name")
     ap.add_argument("--no-sheet", action="store_true", help="sprites only")
+    ap.add_argument("--only", choices=WEAPON_ORDER, action="append", help="render only these weapons")
     args = ap.parse_args(argv)
-    rows = render_all()
-    metrics = save_all(rows)
+    out = render_all(tuple(args.only) if args.only else WEAPON_ORDER)
+    metrics = save_all(out)
     for k, m in metrics.items():
-        print(k, m)
+        print(k, m["lump"], m["size"], m["offsets"], m.get("hand_px_above_bar", ""))
     if not args.no_sheet:
-        path = build_sheet(rows, args.stamp, SELF_ASSESSMENT)
+        path = build_sheet(out, args.stamp, SELF_ASSESSMENT)
         print("sheet:", path.relative_to(PROJECT_ROOT))
 
 
