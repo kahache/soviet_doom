@@ -69,6 +69,17 @@ class HandStudyTest(unittest.TestCase):
         self.assertGreater(max(radii), 1.8 * radii[0])
         self.assertEqual(radii, sorted(radii))
 
+    @unittest.skipUnless(hs is not None and hs.IWAD.is_file(), "Freedoom IWAD not in iwads/")
+    def test_round3_freedoom_hands_lose_the_pistol_and_take_our_colours(self):
+        lumps, pal = hs.read_wad()
+        spr, _, masks = hs.freedoom_hands(lumps, pal)
+        self.assertGreater(int(masks["gun"].sum()), 300)
+        skin = {tuple(c) for c in hs.ramp_cols(hs.R3_SKIN)}
+        coloured = {tuple(c) for c in spr[masks["skin"], :3]}
+        self.assertTrue(coloured <= skin | {tuple(hs.ramp_cols(hs.R3_SKIN)[0])})
+        fist, _ = hs.freedoom_fist(lumps, pal)
+        self.assertEqual(fist.shape[1], hs.decode_patch(lumps[hs.R3_FIST], pal)[0].shape[1] + hs.R3_FIST_PAD)
+
     def test_four_variants_H1_to_H4(self):
         self.assertEqual(list(hs.VARIANTS), ["H1", "H2", "H3", "H4"])
 
