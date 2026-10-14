@@ -114,9 +114,8 @@ class PiecesTest(unittest.TestCase):
         self.assertGreater(left if lit_left else right, right if lit_left else left)
 
     def test_d76_pick_is_pinned(self):
-        # the CEO's pick: L1.7 H1.8 with the shaft as wide on screen as L1.0 H1.8's (no taper)
-        self.assertEqual((hr.D76_PICK["shaft_k"], hr.D76_PICK["head_k"]), (1.7, 1.8))
-        self.assertAlmostEqual(hr.D76_PICK["shaft_w"] * hr.HEAD_SHAFT_K, hr.HEAD_Z / hr.GRIP_Z)
+        # the CEO's pick: L1.7 H1.8, the shaft straight and as wide as L1.0 H1.8's (D76, D76b)
+        self.assertEqual(hr.D76_PICK, {"shaft_k": 1.7, "head_k": 1.8, "straight": True})
         self.assertEqual(next(c for c in hr.CELLS if c.key == "C3").size, 1.15)
 
     def test_mirrored_spec_is_moved_once(self):
@@ -191,6 +190,35 @@ class RenderTest(unittest.TestCase):
             ok = (sy >= 0) & (sy < spr.shape[0]) & (sx >= 0) & (sx < spr.shape[1])
             self.assertTrue((spr[sy[ok], sx[ok]] == hand[ys[ok], xs[ok]]).all(), k)
 
+
+    @slow
+    def test_d76b_shaft_is_straight_and_constant_width(self):
+        base, gy = hr.c3_grip_row()
+        c = hr.build_cell(hr.replace(base, key="D76b", grip_y=gy, **hr.D76_PICK))
+        x0, y0 = hr.hs.place(c["sprite"], c["offsets"], bar=False)
+        ys, xs = np.nonzero(c["axe_mask"])
+        X, Y = xs + x0 + 0.5, ys + y0 + 0.5
+        # against one straight line, the shaft's axis through the grip, per step along it
+        cx, cy = c["grip"]
+        d = np.asarray(c["up"], float)
+        n = np.array([-d[1], d[0]])
+        t = (X - cx) * d[0] + (Y - cy) * d[1]
+        a = (X - cx) * n[0] + (Y - cy) * n[1]
+        steps = np.round(t).astype(int)
+        centres, widths = [], []
+        for k in range(steps.min(), steps.max() + 1):
+            m = steps == k
+            if m.sum() >= 3:
+                centres.append((a[m].min() + a[m].max()) / 2)
+                widths.append(a[m].max() - a[m].min())
+        # whole cross-sections only: the screen's bottom edge and the collar cut the bar's two ends
+        full = [i for i, w in enumerate(widths) if w >= 0.8 * float(np.median(widths))]
+        centres = [centres[i] for i in full]
+        widths = [widths[i] for i in full]
+        self.assertGreater(len(centres), 40)
+        self.assertLessEqual(max(abs(v) for v in centres), 1.0)
+        self.assertLessEqual(max(widths) - min(widths), 1.5)
+        self.assertTrue(8.0 <= float(np.median(widths)) + 1 <= 12.0)   # ~10 px, L1.0 H1.8's
 
     @slow
     def test_right_handed_the_sleeve_leaves_through_the_bottom_right(self):
