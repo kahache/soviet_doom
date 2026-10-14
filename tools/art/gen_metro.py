@@ -2,6 +2,7 @@
 
 Run with the project venv:  .venv/bin/python tools/art/gen_metro.py
                     (fill-out drafts: .venv/bin/python tools/art/gen_metro.py --fill)
+                    (palette v2 proposals, D45: .venv/bin/python tools/art/gen_metro.py --v2)
 
 Exploratory, deliberately small: six pieces, just enough for the set to
 exist and for the CEO to say whether this is the right underground. The set
@@ -48,6 +49,7 @@ from artlib import (  # noqa: E402
     Overlay, blend, fbm, grain, load_palette, quantize, ramp_colour, save_indexed, shade,
     star_points, tiling_seam_score, to_rgb,
 )
+import palette as palgen  # noqa: E402  (palette versions: v2 ramps for the proposals)
 import sheetlib  # noqa: E402
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -128,6 +130,41 @@ GRAN_JOINT = 0.55
 
 def rng_for(lump: str) -> np.random.Generator:
     return np.random.default_rng(BATCH_SEED + SEED_OFFSET[lump])
+
+
+# ------------------------------------------------- palette version helpers
+# artlib reads palette v1 (palette.json's top-level view, on purpose: the
+# approved art must never drift into a later version). A v2 ramp is read
+# through palette.py, and only the v2 proposals use one.
+def any_to_rgb(field: np.ndarray, ramp_name: str) -> np.ndarray:
+    """artlib.to_rgb for a ramp of any palette version (v1 goes to artlib
+    itself, so the approved builders are untouched)."""
+    if palgen.ramp_version(ramp_name) == 1:
+        return to_rgb(field, ramp_name)
+    cols = np.array(palgen.ramp_colours(ramp_name), dtype=np.float64)
+    idx = np.clip(field, 0, 1) * (len(cols) - 1)
+    lo = np.floor(idx).astype(int)
+    hi = np.minimum(lo + 1, len(cols) - 1)
+    t = (idx - lo)[..., None]
+    return np.clip(cols[lo] * (1 - t) + cols[hi] * t, 0, 255).astype(np.uint8)
+
+
+def any_ramp_colour(ramp_name: str, t: float) -> tuple[int, int, int]:
+    """artlib.ramp_colour for a ramp of any palette version."""
+    if palgen.ramp_version(ramp_name) == 1:
+        return ramp_colour(ramp_name, t)
+    cols = palgen.ramp_colours(ramp_name)
+    return cols[int(round(max(0.0, min(1.0, t)) * (len(cols) - 1)))]
+
+
+def quantize_version(rgb: np.ndarray, version: int) -> Image.Image:
+    """Snap to one palette version, no dither (artlib.quantize is v1)."""
+    if version == 1:
+        return quantize(Image.fromarray(rgb, "RGB"))
+    cols = palgen.colours(version)
+    pimg = Image.new("P", (1, 1))
+    pimg.putpalette([v for c in cols for v in c])
+    return Image.fromarray(rgb, "RGB").quantize(palette=pimg, dither=Image.Dither.NONE)
 
 
 # ========================================================== materials
@@ -214,20 +251,29 @@ def tex_marb1() -> np.ndarray:
     return marble_field(WALL_W, WALL_H, rng_for("SDMARB1"))
 
 
-def marble_field(w: int, h: int, rng: np.random.Generator) -> np.ndarray:
+# The stone's inks: (base ramp, base tone, (cloud ramp, t), (pale vein
+# ramp, t), (dark vein ramp, t)). STONE_V1 is the approved SDMARB1 (D42);
+# STONE_V2 is the palette-v2 proposal (D45), same seed and same veins.
+STONE_V1 = ("flag_red", MARB_BASE, ("rust_brown", 0.12), ("plaster_warm", 0.78), ("rust_brown", 0.10))
+
+
+def marble_field(w: int, h: int, rng: np.random.Generator, stone=STONE_V1) -> np.ndarray:
     """The SDMARB1 stone at any size (the approved lump is 64x128; D42).
     Factored out unchanged so the station wall SDMARB2 can reuse it;
-    tests/test_gen_metro.py holds SDMARB1 to the approved pixels."""
-    field = MARB_BASE + (fbm(w, h, 3, 5, rng, 0.6) - 0.5) * MARB_MOTTLE
+    tests/test_gen_metro.py holds SDMARB1 to the approved pixels.
+    `stone` swaps the inks only: every rng draw is the same, so the v2
+    proposal has exactly the v1 veins and differs in colour alone."""
+    base_ramp, base, (cloud_ramp, cloud_t), (pale_ramp, pale_t), (dark_ramp, dark_t) = stone
+    field = base + (fbm(w, h, 3, 5, rng, 0.6) - 0.5) * MARB_MOTTLE
     field += grain(w, h, rng, 0.02)
-    rgb = to_rgb(np.clip(field, 0, 1), "flag_red")
+    rgb = any_to_rgb(np.clip(field, 0, 1), base_ramp)
     # darker clouding, so the stone has depth before the veins go on
     cloud = np.clip(fbm(w, h, 2, 4, rng) - 0.5, 0, 1) * 1.6
-    rgb = blend(rgb, ramp_colour("rust_brown", 0.12), np.clip(cloud, 0, 0.45))
+    rgb = blend(rgb, any_ramp_colour(cloud_ramp, cloud_t), np.clip(cloud, 0, 0.45))
 
     ov = Overlay(w, h)
-    pale = ramp_colour("plaster_warm", 0.78)
-    dark = ramp_colour("rust_brown", 0.10)
+    pale = any_ramp_colour(pale_ramp, pale_t)
+    dark = any_ramp_colour(dark_ramp, dark_t)
     for i in range(MARB_VEINS):
         x, y = rng.uniform(0, w), rng.uniform(0, h)
         ang = rng.uniform(-1.0, 1.0) + (np.pi / 2 if i % 2 else 0.0)
@@ -252,6 +298,10 @@ def marble_field(w: int, h: int, rng: np.random.Generator) -> np.ndarray:
     return shade(rgb, f)
 
 
+# The mosaic's inks, in motif order (0 ground, 1 gold, 2 cream): (ramp, tone).
+MOSA_INKS_V1 = (("steel_blue", MOSA_GROUND), ("hazard_yellow", MOSA_GOLD), ("cream_yellow", MOSA_CREAM))
+
+
 def tex_mosa1() -> np.ndarray:
     """Mosaic panel 128x128: a star with rays, gold on slate blue.
 
@@ -261,7 +311,13 @@ def tex_mosa1() -> np.ndarray:
     a grid on top. No tile is a pure palette colour - each gets its own tone
     jitter, which is what makes a real mosaic shimmer.
     """
-    rng = rng_for("SDMOSA1")
+    return mosaic_panel(rng_for("SDMOSA1"), MOSA_INKS_V1)
+
+
+def mosaic_panel(rng: np.random.Generator, inks) -> np.ndarray:
+    """The SDMOSA1 star panel with the given inks. Same rng draws whatever
+    the inks, so the v2 proposal sets the same tesserae as the approved v1
+    (the CEO chose this star on 2026-10-14) and differs in colour alone."""
     w = h = WIDE_W
     nx, ny = w // TESS, h // TESS
     cx, cy = MOSA_CENTER[0] / TESS, MOSA_CENTER[1] / TESS
@@ -284,12 +340,10 @@ def tex_mosa1() -> np.ndarray:
 
     tone = rng.uniform(-MOSA_JITTER, MOSA_JITTER, (ny, nx))
     out = np.zeros((ny, nx, 3), np.uint8)
-    for value, (ramp_name, base) in enumerate((("steel_blue", MOSA_GROUND),
-                                               ("hazard_yellow", MOSA_GOLD),
-                                               ("cream_yellow", MOSA_CREAM))):
+    for value, (ramp_name, base) in enumerate(inks):
         m = motif == value
         if m.any():
-            out[m] = to_rgb(np.clip(base + tone, 0, 1), ramp_name)[m]
+            out[m] = any_to_rgb(np.clip(base + tone, 0, 1), ramp_name)[m]
 
     rgb = np.repeat(np.repeat(out, TESS, 0), TESS, 1)
     # grout between tesserae, plus a chip of light on each stone's top edge
@@ -1045,9 +1099,233 @@ def main_fill() -> None:
     print(f"sheet EN: {sheet}\nmanifest: {FILL_MANIFEST}")
 
 
+# ============================================== palette v2 proposals (D45)
+# The CEO approved palette v2 (D45, 2026-10-14) and chose the mosaic motif:
+# the current star with rays ("Ok a la imagen que has puesto del mosaico").
+# The two pieces v1 held back are redrawn in v2 as PROPOSALS, same seed,
+# same geometry, new inks only. The approved v1 files stay in assets/ as
+# they are (D42); a v2 piece replaces its v1 only after the CEO says so.
+# Outputs go to V2_DIR, never to OUT_DIR, and are never named like an
+# approved lump (tests/test_art.py finds assets' sources in work/ by name).
+V2_DIR = PROJECT_ROOT / "work" / "art" / "batch2" / "metro_v2"
+V2_MANIFEST = V2_DIR / "manifest.json"
+PREVIEW_DIR = PROJECT_ROOT / "docs" / "art" / "previews"
+V2_SUFFIX = "_v2"
+V2_PALETTE = 2
+
+# Marble: the v1 stone was flag_red 0.30, an ox-blood. marble_red is less
+# saturated and warmer, so the same tone sits a little higher on its ramp to
+# land on the warm mid-red of the station halls. Veins keep their v1 inks:
+# cream veins are what the real stone has, and dark veins go to the
+# marble's own low end instead of rust.
+MARB_BASE_V2 = 0.32
+STONE_V2 = ("marble_red", MARB_BASE_V2, ("marble_red", 0.10), ("plaster_warm", 0.78), ("marble_red", 0.06))
+
+# Mosaic: cobalt ground instead of slate, smalt gold instead of paint
+# yellow; the cream ring and border stay cream_yellow (a v1 ramp). The
+# cobalt ground sits higher on its ramp than steel_blue did (0.16): the
+# grout multiply (x0.40) and the sector light darken it further, and below
+# ~0.25 cobalt goes black before it reads blue.
+MOSA_GROUND_V2 = 0.32
+MOSA_GOLD_V2 = 0.88
+MOSA_INKS_V2 = (("mosaic_cobalt", MOSA_GROUND_V2), ("mosaic_gold", MOSA_GOLD_V2), ("cream_yellow", MOSA_CREAM))
+
+
+def tex_marb1_v2() -> np.ndarray:
+    return marble_field(WALL_W, WALL_H, rng_for("SDMARB1"), STONE_V2)
+
+
+def tex_mosa1_v2() -> np.ndarray:
+    return mosaic_panel(rng_for("SDMOSA1"), MOSA_INKS_V2)
+
+
+# approved lump, its v2 builder, why
+V2_TEXTURES = [
+    ("SDMARB1", tex_marb1_v2,
+     "The approved marble with the same veins, in marble_red: warm red stone instead of flag_red's ox-blood."),
+    ("SDMOSA1", tex_mosa1_v2,
+     "The approved star with rays, same tesserae, on a cobalt ground with smalt gold instead of slate and paint yellow."),
+]
+
+
+def approved_file(lump: str) -> Path:
+    for base in (PROJECT_ROOT / "assets" / "textures" / SET_NAME, PROJECT_ROOT / "assets" / "flats" / SET_NAME):
+        if (base / f"{lump}.png").is_file():
+            return base / f"{lump}.png"
+    raise FileNotFoundError(lump)
+
+
+def mean_luma(rgb: np.ndarray) -> float:
+    r, g, b = (rgb[..., i].astype(np.float64) for i in range(3))
+    return float((0.299 * r + 0.587 * g + 0.114 * b).mean())
+
+
+def save_rgb(rgb: np.ndarray, path: Path) -> Path:
+    """A sheet-only view as a plain RGB PNG (its colours are already palette
+    colours, or a flat multiply of them for the light view)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(rgb, "RGB").save(path, optimize=True)
+    return path
+
+
+def rel_path(path: Path) -> str:
+    """Repo-relative POSIX path when inside the repo, else the path itself."""
+    try:
+        return path.relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def build_v2() -> tuple[list[dict], dict]:
+    """Render the v2 proposals and their v1 references into V2_DIR."""
+    V2_DIR.mkdir(parents=True, exist_ok=True)
+    v1_set = set(palgen.colours(1))
+    entries, files = [], {}
+    for lump, builder, why in V2_TEXTURES:
+        name = lump + V2_SUFFIX
+        q = quantize_version(builder(), V2_PALETTE)
+        path = V2_DIR / f"{name}.png"
+        q.save(path, optimize=True)
+        v2 = np.asarray(q.convert("RGB"))
+        with Image.open(approved_file(lump)) as im:
+            v1 = np.asarray(im.convert("RGB"))
+        h, w = v2.shape[:2]
+        for tag, rgb in (("v1", v1), ("v2", v2)):
+            files[f"{lump}_{tag}"] = path if tag == "v2" else approved_file(lump)
+            files[f"{lump}_{tag}_tile"] = save_rgb(np.tile(rgb, (2, 2, 1)), V2_DIR / f"{lump}_{tag}_tile2x2.png")
+            files[f"{lump}_{tag}_dark"] = save_rgb(shade(rgb, LIGHT_128), V2_DIR / f"{lump}_{tag}_light128.png")
+        used = {tuple(int(x) for x in c) for c in v2.reshape(-1, 3)}
+        entries.append({
+            "proposal": name, "replaces": lump, "palette_version": V2_PALETTE, "kind": "wall",
+            "width": w, "height": h, "file": rel_path(path),
+            "script": SCRIPT_REL + " --v2", "seed": BATCH_SEED + SEED_OFFSET[lump],
+            "colours_used": len(used), "v2_colours_used": len(used - v1_set),
+            "colours_used_v1": len({tuple(int(x) for x in c) for c in v1.reshape(-1, 3)}),
+            "mean_luma_v1": round(mean_luma(v1), 1), "mean_luma_v2": round(mean_luma(v2), 1),
+            "seam_score": round(tiling_seam_score(v2), 2), "description_en": why,
+        })
+        print(f"{name:11s} {w:3d}x{h:3d} colours={len(used):3d} (v2-only {len(used - v1_set):3d}) "
+              f"luma v1 {entries[-1]['mean_luma_v1']} -> v2 {entries[-1]['mean_luma_v2']}")
+    # in place: marble | mosaic | marble, the way a station bay is clad
+    for tag in ("v1", "v2"):
+        def rgb_of(lump):
+            with Image.open(files[f"{lump}_{tag}"]) as im:
+                return np.asarray(im.convert("RGB"))
+        marble, mosaic = rgb_of("SDMARB1"), rgb_of("SDMOSA1")
+        bay = np.concatenate([marble, mosaic, marble], axis=1)
+        files[f"bay_{tag}"] = save_rgb(bay, V2_DIR / f"bay_{tag}.png")
+        files[f"bay_{tag}_dark"] = save_rgb(shade(bay, LIGHT_128), V2_DIR / f"bay_{tag}_light128.png")
+    return entries, files
+
+
+V2_INTRO = (
+    "<b>Palette v2 (D45) on the two metro pieces it was made for.</b> You approved v2 &mdash; marble red, "
+    "mosaic cobalt and gold, Legion pink in the reserved slots &mdash; and chose the mosaic's motif: the "
+    "star with rays as it is. Here are <code>SDMARB1</code> and <code>SDMOSA1</code> redrawn in v2: "
+    "<b>same seed, same veins, same tesserae; only the inks change.</b> On the left of every pair is the "
+    "approved v1 file exactly as it sits in <code>assets/</code> (D42); on the right the v2 proposal. "
+    "Nothing in <code>assets/</code> has changed. Pick per piece: keep v1, or replace it with v2.")
+
+
+def pair_card(entry: dict, files: dict) -> str:
+    lump = entry["replaces"]
+    size = (entry["width"], entry["height"])
+    tile = (size[0] * 2, size[1] * 2)
+    views = ""
+    for label, key, zoom, sz in (("4x", "", sheetlib.ZOOM, size), ("1x", "", 1, size),
+                                 ("2x2 tile (2x)", "_tile", 2, tile), ("~light 128 (2x)", "_dark", 2, size)):
+        views += ('<div class="row">'
+                  + sheetlib.view(f"v1 approved · {label}", files[f"{lump}_v1{key}"], zoom, sz if key != "_tile" else tile)
+                  + sheetlib.view(f"v2 proposal · {label}", files[f"{lump}_v2{key}"], zoom, sz if key != "_tile" else tile)
+                  + "</div>")
+    rec = V2_RECOMMEND[lump]
+    return (f'<div class="card rec"><span class="tag">recommended: {html.escape(rec[0])}</span>'
+            f'<h3>{lump} &rarr; {entry["proposal"]}</h3>'
+            f'<p class="desc">{html.escape(entry["description_en"])}</p>{views}'
+            f'<dl><dt>Size</dt><dd>{entry["width"]}&times;{entry["height"]}</dd>'
+            f'<dt>Colours used</dt><dd>v1 {entry["colours_used_v1"]} &middot; v2 {entry["colours_used"]} '
+            f'({entry["v2_colours_used"]} of them new in v2)</dd>'
+            f'<dt>Mean luma</dt><dd>v1 {entry["mean_luma_v1"]} &middot; v2 {entry["mean_luma_v2"]}</dd>'
+            f'<dt>Seam ratio (v2)</dt><dd>{entry["seam_score"]}</dd>'
+            f'<dt>Origin</dt><dd>(a) {SCRIPT_REL} --v2, seed {entry["seed"]} (the approved seed)</dd>'
+            f'<dt>Why</dt><dd style="white-space:normal;font-family:inherit">{html.escape(rec[1])}</dd></dl></div>')
+
+
+# lump -> (what I recommend, why). Written after looking at the sheet once.
+V2_RECOMMEND = {
+    "SDMARB1": ("v2, by a small margin", "v1 is the bolder red, but it is flag_red, the red of the stripe and "
+                "the stars, so the wall reads as painted. v2 is a warmer, browner red that reads as stone, "
+                "and it sits better next to the cobalt mosaic. It is also lighter (mean luma 71 against 53), "
+                "which keeps more of the veins at low light. Honest caveat: the gain is modest; if you "
+                "prefer v1's punch, keeping it costs nothing."),
+    "SDMOSA1": ("v2, clearly", "Same star, same tesserae. On v1's slate ground the star floats on grey; on "
+                "cobalt it reads as a Soviet smalt mosaic, which is what the panel was meant to be. The "
+                "gold holds at ~light 128 as well as v1's yellow did. This is the piece v2 was for."),
+}
+
+
+def palette_v2_swatches() -> str:
+    pal = palgen.load()
+    v1 = sheetlib.palette_ramps({"ramps": pal["ramps"]})
+    added = sheetlib.palette_ramps({"ramps": [
+        {"name": f'{r["name"]} (v2)', "colours": r["colours"]} for r in pal["added_ramps"]]})
+    return (f'<p class="lead">v1, frozen (162 colours, slots 0-161):</p>{v1}'
+            f'<p class="lead" style="margin-top:12px">Added in v2 (64 colours, slots 162-225; 30 slots '
+            f'stay reserved). <code>flesh_pink</code> is the Legion drafts\' candidate ramp, unchanged:</p>{added}')
+
+
+def build_v2_sheet(entries: list[dict], files: dict, stamp: str, out_dir: Path = PREVIEW_DIR) -> Path:
+    cards = "".join(pair_card(e, files) for e in entries)
+    bay = ('<div class="row">'
+           + sheetlib.view("v1 approved (2x)", files["bay_v1"], 2, (256, 128))
+           + sheetlib.view("v2 proposal (2x)", files["bay_v2"], 2, (256, 128)) + "</div>"
+           + '<div class="row">'
+           + sheetlib.view("v1 · ~light 128 (2x)", files["bay_v1_dark"], 2, (256, 128))
+           + sheetlib.view("v2 · ~light 128 (2x)", files["bay_v2_dark"], 2, (256, 128)) + "</div>")
+    ask = ("<ol><li><b>SDMARB1:</b> keep v1, or replace it with <code>SDMARB1_v2</code>? I recommend v2.</li>"
+           "<li><b>SDMOSA1:</b> keep v1, or replace it with <code>SDMOSA1_v2</code>? I recommend v2.</li>"
+           "<li>If you take either: the file replaces the approved one under the same lump name, so no map "
+           "changes. <code>SDMARB2</code> (a fill-out draft that reuses the marble) would follow the "
+           "marble you choose.</li></ol>")
+    sections = [
+        ("The two pieces, v1 approved next to v2 proposed", "", f'<div class="grid">{cards}</div>'),
+        ("In place: marble | mosaic | marble",
+         "A station bay clad the way the set is meant to be used, v1 against v2. A coherence check, not a "
+         "mockup.", bay),
+        ("What I need from you", "", f'<div class="ask">{ask}</div>'),
+        ("Palette v2", "", palette_v2_swatches()),
+    ]
+    out = out_dir / f"{stamp}_F3_metro-palette-v2.html"
+    return sheetlib.write_sheet(
+        out, lang="en", title="Soviet Doom — metro, palette v2 proposals (SDMARB1, SDMOSA1)",
+        subtitle="F3 · metro set · D45 · proposals for the CEO, nothing here is in assets/",
+        intro=V2_INTRO, sections=sections,
+        footer=(f"Origin (a): procedural, {SCRIPT_REL} --v2, the approved seeds {BATCH_SEED}+3 and +4. "
+                "Palette docs/art/palette.json v2 (D45, 2026-10-14); the v1 views are the approved files "
+                "from assets/, unmodified. Licence: own work, CC BY-NC-SA 4.0 (D15). The '~light 128' "
+                "view is a flat x0.5 multiply for orientation, not the engine's colormap (NOT VERIFIED "
+                "in GZDoom)."))
+
+
+def main_v2() -> None:
+    entries, files = build_v2()
+    stamp = dt.datetime.now().strftime("%Y-%m-%d_%H%M")
+    sheet = build_v2_sheet(entries, files, stamp)
+    V2_MANIFEST.write_text(json.dumps({
+        "batch": 2, "phase": "F3", "set": SET_NAME, "script": SCRIPT_REL + " --v2",
+        "batch_seed": BATCH_SEED, "palette_version": V2_PALETTE, "decision": "D45",
+        "status": "proposals for the CEO; the approved v1 files stay in assets/ (D42)",
+        "textures": entries,
+    }, indent=1, ensure_ascii=False), encoding="utf-8")
+    print(f"sheet: {sheet}\nmanifest: {V2_MANIFEST}")
+
+
 def main() -> None:
     if "--fill" in sys.argv[1:]:
         main_fill()
+        return
+    if "--v2" in sys.argv[1:]:
+        main_v2()
         return
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     approved_offsets = {k: v for k, v in SEED_OFFSET.items() if k not in FILL_SEED_OFFSET}
