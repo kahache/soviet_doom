@@ -87,6 +87,15 @@ MAP01 → MAP02 → MAP03, the factory ends it, and `SD_END01_TEXT` now tells
 the portal's fall. Entries above this one use the numbers of their day: a
 "MAP02" there is the range, a "MAP03" the metro. **NOT YET SEEN IN THE
 ENGINE** (D26; the PM's checks C1-C8, §4.6).
+**D67, 2026-10-14: the Panzermensch and the Schwer wear their own
+sprites.** Cell D's full set (71 `SDPM` lumps) and the Schwer's, cell D
+with S2 (71 `SDPS`), both in `assets/sprites/panzermensch/`, are packed;
+every `SD_Panzermensch` state names `SDPM` instead of `BOS2`, and
+`SD_PanzermenschSchwer` has a `States` block of its own, the base's line
+for line on `SDPS`; not one tic changed in either (§5.1, §6.3, "The
+Panzermensch and the Schwer, installed by D67"). The Schwer's body grows
+with its drawing to 27 × 72 (was the base's 24 × 64), checked to fit
+everywhere a map places it. **NOT YET SEEN IN THE ENGINE** (D26).
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -798,6 +807,14 @@ Freedoom's: they are Doom's classes, not ours (read in g4.14.2's
 `gzdoom.pk3`, `zscript/actors/doom/`). No map of ours places 20 or a
 stealth imp (counted in the built MAP01 and the range, then MAP02, 2026-10-14).
 
+**Retired 2026-10-14 (D67):** `BOS2`, the Panzermensch's placeholder. Every
+`SD_Panzermensch` state names our `SDPM` and every `SD_PanzermenschSchwer`
+state our `SDPS` now (§6.3, "The Panzermensch and the Schwer, installed by
+D67"). Doom's own `HellKnight` (editor number 69) keeps Freedoom's `BOS2`
+and `BaronOfHell` (3003) its `BOSS`, but ours replace both, so a map placing
+either spawns ours; Doom ships no corpse thing of either. `BAL7` stays: the
+Panzermensch's shell, `SD_PanzerShell`, is not drawn yet.
+
 **Retired 2026-10-14 (D63):** `PMAP`, the radio's placeholder (the computer
 area map's pickup picture). `SD_Radio`'s `Spawn` state names our `SDRD` now
 (§6.3, "The pickups, installed by D63"). Doom's own `Allmap` keeps
@@ -829,7 +846,6 @@ Doom's classes); since D63 each of those classes names its own sprite.
 | `BFUG` | sprite | `SD_HandKatyusha` (pickup) | idem |
 | `HEAD` | sprite | `SD_Doughboy` | frames in the IWAD (test); engine pass 2026-10-13: no `Missing sprite` (not every state was exercised) |
 | `BAL2` | sprite | `SD_DoughboyShell` | idem |
-| `BOS2` | sprite | `SD_Panzermensch` (and the heavy variant, by inheritance) | idem |
 | `BAL7` | sprite | `SD_PanzerShell` | idem |
 | `CYBR` | sprite | `SD_General` | idem |
 | `MANF` | sprite | `SD_GeneralShell` (flight) | idem |
@@ -872,7 +888,7 @@ in the IWAD.
 | `SD_ReichHound` | `SD_Monster` *replaces Demon* | 150 HP, bite only, speed 12 (H). |
 | `SD_Doughboy` | `SD_Monster` *replaces Cacodemon* | Floating head, 400 HP, bite or `SD_DoughboyShell`. |
 | `SD_Panzermensch` | `SD_Monster` *replaces HellKnight* | Armoured brute, 500 HP, blow or `SD_PanzerShell` (D35). |
-| `SD_PanzermenschSchwer` | `SD_Panzermensch` *replaces BaronOfHell* | The 1000 HP variant for MAP03 (D35); no states of its own. |
+| `SD_PanzermenschSchwer` | `SD_Panzermensch` *replaces BaronOfHell* | The 1000 HP variant for MAP03 (D35); since D67 its own `States` on `SDPS` (the base's, line for line) and a 27 × 72 body. |
 | `SD_General` | `SD_Monster` *replaces Cyberdemon* | Boss, 3000 HP (H), three-shell salvo; once below half health, summons two `SD_ReichRifleman` and prints `SD_GENERAL_ORDER` (D35). |
 | `SD_StormBolt`, `SD_DoughboyShell`, `SD_PanzerShell`, `SD_GeneralShell` | `Actor` | The four enemy projectiles. Not placeable. |
 | `SD_Radio` | `Actor` | The diegetic radio (D43): a solid decoration that plays one of two CC0 pieces in place of the level's music while the player is near it, and gives the level's music back when the player walks away. Contract §6.7, reasons ADR 008. |
@@ -1172,7 +1188,8 @@ marked. Images per class and the drawing briefs: `BESTIARY.md` §3–§9, §12.
 | `SD_ReichHound` | `SDHN` | A–H (8, as mirrored pairs), I–N (0) | none: **installed, D55** (was `SARG`) |
 | `SD_Doughboy` | `SDDB` | A–F (8), G–L (0) | `HEAD` |
 | `SD_DoughboyShell` | `SDDL` | A–E (0) | `BAL2` |
-| `SD_Panzermensch`, `SD_PanzermenschSchwer` | `SDPM` | A–H (8), I–O (0) | `BOS2` |
+| `SD_Panzermensch` | `SDPM` | A–H (8), I–O (0) | none: **installed, D67** (was `BOS2`) |
+| `SD_PanzermenschSchwer` | `SDPS` | A–H (8), I–O (0) | none: **installed, D67** (inherited `BOS2` from the base; its own `States` since D67) |
 | `SD_PanzerShell` | `SDPL` | A–E (0) | `BAL7` |
 | `SD_General` | `SDGN` | A–G (8), H–P (0), Q–R (8) | `CYBR`; **exception**: the `Summon` lines borrow `CYBR E F` and become `SDGN Q R` |
 | `SD_GeneralShell` | `SDGL` | A–E (0) | **exception**: `MANF` A–B in flight, `MISL` B–D burst; the burst becomes `SDGL C D E` |
@@ -1302,6 +1319,70 @@ their own dark-red blood. Licence rows: `docs/art/LICENSES.md`, "Enemy
 sprites: the Hybrid Stormtrooper and his bolt". The draft overlay never
 carried either (§6.9).
 
+**The Panzermensch and the Schwer, installed by D67 (2026-10-14).** The CEO
+chose cell D of the heavies sweep, the bare skull in a riveted iron mask
+(D65), and approved its full set with the Schwer alongside ("OK al
+Panzermensch", D67). The Schwer is cell D with the sweep's S2 treatment,
+the PM's call in D65: black plate, modelled 12 % larger, spikes and exhaust
+stacks, the mask's slit lit. Both sets ship, 142 lumps in
+`assets/sprites/panzermensch/`, byte-identical to
+`work/art/enemies/heavy/full/SDPM/` and `.../SDPS/` (`tools/art/gen_heavy.py
+--full pm` and `--full ps`, rendered on the Windows PC on 2026-10-14); the
+GIFs, the `lineup_*` sheets, `metrics.json` and `blood_share.json` stay in
+`work/`. **`SDPS`** is a new reserved name (SD + Panzermensch Schwer),
+checked free: no lump of `freedoom2.wad` 0.13.0 starts with `SD`, and no
+name reserved above or packed under `assets/` starts with `SDPS` (the
+`SDPOSTR*` posters share only `SDP`). The figure is handed (the banner
+carries the D12 symbol, which a mirror reverses, and he throws with his
+right), so A–H are **eight separate rotations** (64 lumps a set) and I–O
+rotation 0 (7). Each PNG is RGBA with hard alpha and carries its `grAb`
+offsets, the same for every rotation of a frame: `SDPM` 112×96 standing
+(`left` 56, `top` 86), 176×120 for the death (64, 92); `SDPS` 128×104
+standing (64, 94), 192×140 for the death (68, 100). The death's `left` is
+the body's axis column of a canvas wider on one side, since he falls
+forward off it, not `width / 2`. The build drops the set folder
+(`sprites/SDPMA1.png`).
+
+| Frames | Lumps a set | State (both classes) |
+|---|---|---|
+| A–D | 32 | `Spawn` (A B), `See` (A with the footstep, then A B B C C D D) |
+| E–G | 24 | `Melee` falls through to `Missile`: E F `A_FaceTarget`, G blow or shell (`A_SD_MeleeOrMissile`) |
+| H | 8 | `Pain` |
+| I–O | 7 | `Death` (O the corpse, `-1`: `SDPMO0` lying flat, `SDPSO0` face down, the stacks forbidding his back); `Raise` plays O N M L K J I |
+
+`SD_Panzermensch`: only the four-letter name changed, `BOS2` → `SDPM`.
+`SD_PanzermenschSchwer` had no `States` block and drew the base's; it now
+has its own, **the base's line for line with `SDPS`** (frame letters, tics,
+actions, flow and the empty `Melee:` label), so `A_SD_PanzerStep` and the
+melee constants still resolve from the base class. Both are held by
+`tests/test_panzermensch_sprites.py` against the state machine as it stood
+at HEAD 9fe6479, before D67. **The Translation planned in v0 is dropped:**
+a `Translation` remaps palette indices, our sprites are truecolour PNGs and
+the mod ships no `PLAYPAL`, so the recolour would go through Freedoom's
+palette (gen_heavy's note, **NOT VERIFIED**); a drawn set of its own costs
+nothing more on the rig.
+
+**The Schwer's body grows with its drawing (D67).** At the base's 24 × 64 a
+shot at the top of the stacks would hit nothing, so `SD_PanzermenschSchwer`
+sets `Radius 27` and `Height 72` (× 1.12, constants `SD_PANZER_HEAVY_RADIUS`
+and `SD_PANZER_HEAVY_HEIGHT`); the base keeps 24 × 64. Checked on the
+built maps on 2026-10-14 before raising it: MAP03 places thing 21107 at
+(3290, 256), the tank line, ceiling 256, nearest wall 54 units away in
+the box metric, and at (520, 1550), the portal hall, ceiling 384, nearest
+wall 114; the range at (1600, 1600), ceiling 192. MAP01 and MAP02 place
+neither 21107 nor 3003. In each of those maps no passage (two-sided line,
+every door opened to its neighbour's ceiling − 4) has an opening between
+64 and 72, so the bigger body loses no route the base had, and no
+two-sided line or sector is between 48 and 54 wide. The test pins the
+three spawn boxes and the passages; how a 27-radius body squeezes between
+props is not modelled (**NOT VERIFIED in the engine**, D26).
+
+Blood stays the engine's sprite recoloured by `BloodColor "AD 27 21"` (D49,
+below), inherited by the Schwer; the drawn deaths carry their own dark-red
+blood. Licence rows: `docs/art/LICENSES.md`, "Enemy sprites: the
+Panzermensch and the Schwer". The draft overlay never carried either
+(§6.9). The shell, `SD_PanzerShell`, still wears Freedoom's `BAL7`.
+
 **The radio (§6.7).** `SD_Radio` → final sprite **`SDRD`** A (rotation
 `0`, one picture from every angle), standing on the floor (`left = width /
 2`, `top = height`). Installed by D63, below; the placeholder was `PMAP` A.
@@ -1357,8 +1438,8 @@ VERIFIED in the engine**). Licence rows: `docs/art/LICENSES.md`,
 "Pickups: ammunition, the blue pass and the radio". **NOT YET SEEN IN THE
 ENGINE** (D26).
 
-The heavy Panzermensch has no states of its own: it inherits `SDPM` and gets
-a `Translation` when the art exists. Blood is recoloured by `BloodColor`
+The heavy Panzermensch draws its own set, `SDPS`, from a `States` block of
+its own since D67 (above); the `Translation` once planned is dropped. Blood is recoloured by `BloodColor`
 on the engine's own blood sprite; no blood sprite is reserved. **Since D49
 (2026-10-14) every class bleeds dark red, `BloodColor "AD 27 21"`**
 (`flag_red` 9; the Reich's olive and the Legion's pale are retired,
@@ -1783,7 +1864,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | T14 | Four engine menus (`MainMenu`, `SkillMenu`, `EpisodeMenu` since D41, and the `os_Menu` insertion anchor) are copied into `MENUDEF`; since D31 the first two, and since D41 the third, also differ in their items and layout (§6.6). They do not track engine changes. **Since T24, also `D_Display`'s pause drawing** (`src/d_main.cpp`, g4.14.2, lines 1095-1123): `SD_StatusBar.DrawPaused` copies its position and its multiplayer line (§6.5.1). | re-diff at every engine upgrade |
 | T15 | MAP01's `par = 210` is set, the intermission's PAR row appears, but the printed value was never read in an unattended run (§4.1). | `qa-engineer`, with a human at the keyboard |
 | ~~T16~~ | **PAID 2026-10-13**: the ANIMDEFS pairs in `be6525a`, MAP01 v2 retired `SWITCH_PLACEHOLDER` in `bf857a0`. Was: **Paid for the engine, open for the map.** `src/lumps/ANIMDEFS` ships the four `switch` pairs SDSW1x → SDSW2x (2026-10-13), syntax from `gzdoom.pk3 → animdefs.txt`, and `SDSW1A` was seen to flip in engine the same day (§4.3). Open: MAP01 still wears `SDDOOR1` (`SWITCH_PLACEHOLDER`); the click is heard on the CEO's first walk with real switches. | `level-designer`, MAP01 v2 |
-| T18 | **Every bestiary sprite and sound is a Freedoom placeholder** (§5.1, §6.2, §6.3); the heavy Panzermensch looks exactly like the normal one. **Partly paid 2026-10-14 (D54):** the Legion trooper's sprites are ours, 70 `SDLT` lumps (§6.3, "The Legion trooper, installed by D54"). **Nearly paid for the sprites, 2026-10-14 (D55):** the Reich rifleman's (70 `SDRR`) and the Reich hound's (46 `SDHN`) are ours too (§6.3, "The Reich rifleman and the Reich hound, installed by D55"), so three of the seven classes, both infantries and the hound, wear their own sprites. **D56, the same day:** the Hybrid Stormtrooper (77 `SDHS`) and his bolt (5 `SDBL`) too (§6.3, "The Hybrid Stormtrooper and his bolt, installed by D56"): four of the seven classes and one of the four projectiles. Open: the sprites of the Doughboy, the Panzermensch (and the heavy variant's `Translation`), the General and the three other projectiles, and every bestiary sound, these four classes' included. | F5, as `art-director` and `sound-designer` deliver (D35: own drawings for the five most-seen) |
+| T18 | **Every bestiary sprite and sound is a Freedoom placeholder** (§5.1, §6.2, §6.3); the heavy Panzermensch looks exactly like the normal one. **Partly paid 2026-10-14 (D54):** the Legion trooper's sprites are ours, 70 `SDLT` lumps (§6.3, "The Legion trooper, installed by D54"). **Nearly paid for the sprites, 2026-10-14 (D55):** the Reich rifleman's (70 `SDRR`) and the Reich hound's (46 `SDHN`) are ours too (§6.3, "The Reich rifleman and the Reich hound, installed by D55"), so three of the seven classes, both infantries and the hound, wear their own sprites. **D56, the same day:** the Hybrid Stormtrooper (77 `SDHS`) and his bolt (5 `SDBL`) too (§6.3, "The Hybrid Stormtrooper and his bolt, installed by D56"): four of the seven classes and one of the four projectiles. **Nearly paid for the sprites, D67 (2026-10-14):** the Panzermensch (71 `SDPM`) and the heavy variant, drawn as a set of its own (71 `SDPS`, its own `States` block; the planned `Translation` is dropped) (§6.3, "The Panzermensch and the Schwer, installed by D67"): five of the seven classes and the heavy variant. Open: the sprites of the Doughboy (its full set waits on a bigger flag, D67), the General and the three other projectiles, and every bestiary sound, the installed classes' included. | F5, as `art-director` and `sound-designer` deliver (D35: own drawings for the five most-seen) |
 | ~~T19~~ | ~~Nothing has been seen in the engine: the eight classes compile only in theory until the PM's batch run (D26).~~ **Paid 2026-10-13** by the PM's engine pass (GZDoom 4.14.2, Freedoom 0.13.0): the classes load with no error, the gallery shows all eight, the drops and the General's single summon were counted, and MAP01 v3's 33 enemies spawn through Doom's numbers. Evidence `docs/qa/evidence/2026-10-13_1705_F5_map02-bestiary.log` and `…-gallery.png` (commit `2b1aba5`), `docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass.log` (commit `bcbf35f`); the table is in ADR 006. What that pass did **not** settle is debt T22. |  |
 | ~~T20~~ | ~~ADR 006 is owed.~~ **Paid 2026-10-13**: `docs/engine/adr/006-bestiary-actors.md` (seven decisions, what the engine showed, what it did not). Written in the working tree; the commit is the PM's (D6). |  |
 | T21 | Doom monsters with no Soviet replacement (65 chaingunner, 58 spectre, the rest of Doom II's roster) still spawn Freedoom's actors. MAP01 §8 plans a "Legion heavy gunner" on 65 that the bestiary does not have. | CEO question, if a seventh enemy is wanted |
