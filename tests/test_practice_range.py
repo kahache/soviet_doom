@@ -7,8 +7,9 @@ pins, statically:
 
   * MAPINFO declares two episodes, the campaign first, each named by a
     `$SD_*` id that exists in both languages (D7/D21);
-  * the campaign never runs into the range: MAP01 still ends the game, and
-    no map's `next` is MAP02; the range's own exit ends cleanly, through its
+  * the campaign never runs into the range: no map's `next` is MAP02, and
+    no campaign map shares its cluster (D60: the campaign is MAP01 -> MAP03,
+    tests/test_campaign.py); the range's own exit ends cleanly, through its
     own cluster's text to the title screen;
   * the episode screen is redeclared as text, so Freedoom's M_EPISOD ("Which
     episode?") is never drawn: the logo, one SDMENU header that fits, and
@@ -57,9 +58,11 @@ TOOLS = PROJECT_ROOT / "tools"
 MAPINFO = SRC / "lumps" / "MAPINFO"
 
 CAMPAIGN_MAP = "MAP01"
+# D60 (2026-10-14): the campaign is MAP01 -> MAP03; MAP03 ends it. The full
+# flow is pinned by tests/test_campaign.py; here only the range's isolation.
+CAMPAIGN_MAPS = ("MAP01", "MAP03")
 RANGE_MAP = "MAP02"
 RANGE_CLUSTER = 2
-CAMPAIGN_CLUSTER = 1
 # MOD-SPEC 4.4: episode order is the menu order, the campaign first.
 EPISODES = [(CAMPAIGN_MAP, "SD_EP01_NAME"), (RANGE_MAP, "SD_EP02_NAME")]
 RANGE_EXIT_TEXT = "SD_END02_TEXT"
@@ -109,11 +112,18 @@ class PracticeRangeMapinfoTest(unittest.TestCase):
         self.assertEqual(len(keys), len(set(keys)), keys)
 
     def test_the_campaign_never_runs_into_the_range(self):
-        """MAP01's exit ends the game (MOD-SPEC 4.1); no map leads to MAP02."""
-        self.assertEqual(prop(self.maps[CAMPAIGN_MAP], "next"), END_TO_TITLE)
+        """No map leads to MAP02 (MOD-SPEC 4.4, 4.6)."""
         for name, body in self.maps.items():
             self.assertNotEqual((prop(body, "next") or "").upper(), RANGE_MAP,
                                 f"{name} leads into the practice range")
+
+    def test_no_campaign_map_shares_the_ranges_cluster(self):
+        """Sharing cluster 2 would print the range's text after a campaign
+        map, or the campaign's ending after the range."""
+        for name in CAMPAIGN_MAPS:
+            self.assertNotEqual(prop(self.maps[name], "cluster"), str(RANGE_CLUSTER), name)
+        in_range_cluster = [n for n, b in self.maps.items() if prop(b, "cluster") == str(RANGE_CLUSTER)]
+        self.assertEqual(in_range_cluster, [RANGE_MAP])
 
     def test_the_range_ends_cleanly_in_its_own_cluster(self):
         """It used to restart itself (`next = "MAP02"`). Now it ends like the
@@ -121,7 +131,6 @@ class PracticeRangeMapinfoTest(unittest.TestCase):
         body = self.maps[RANGE_MAP]
         self.assertEqual(prop(body, "next"), END_TO_TITLE)
         self.assertEqual(prop(body, "cluster"), str(RANGE_CLUSTER))
-        self.assertEqual(prop(self.maps[CAMPAIGN_MAP], "cluster"), str(CAMPAIGN_CLUSTER))
         cluster = self.clusters.get(str(RANGE_CLUSTER))
         self.assertIsNotNone(cluster, f"no cluster {RANGE_CLUSTER} block")
         self.assertRegex(cluster, rf'exittext\s*=\s*lookup\s*,\s*"{RANGE_EXIT_TEXT}"')

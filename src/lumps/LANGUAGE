@@ -21,11 +21,19 @@ SD_MAP03_NAME = "Metro-Bunker";
 // docs/engine/MOD-SPEC.md 4.4). Drawn in SmallFont, like the skill names.
 SD_EP02_NAME  = "Practice Range";
 
-// The end of the one-map campaign (M3). GZDoom draws this over the finale
-// screen when MAP01 is exited; MAPINFO owns when, this owns the words.
-// Deliberately short: the finale text is drawn in the IWAD's SmallFont, one
-// character at a time, and the player is reading it to find out they won.
-SD_END01_TEXT = "The gantry lights go out behind you.\n\nZarya-7 is yours again - a cosmodrome with no rockets left on the pad and no one alive to launch them.\n\nThe invasion did not start here. It only landed here first.\n\nTO BE CONTINUED";
+// The campaign's texts (D60, MOD-SPEC 4.6). MAPINFO owns when, this owns the
+// words. Deliberately short: a finale text is drawn in SmallFont, one
+// character at a time, over a flat. Every line is broken BY HAND within
+// 300 px of SmallFont (Doom draws from x 10 on a 320-wide screen), because
+// whether GZDoom wraps a long line itself is NOT VERIFIED
+// (tests/test_campaign.py measures them).
+//
+// Cluster 3: leaving MAP01 for MAP03, down the service lift into the metro.
+SD_MAP01_EXIT_TEXT = "Zarya-7 is yours again.\n\nThe service lift drops into the dark,\npast the last lit level, and keeps\ngoing. Under the cosmodrome runs a\nmetro line, dug deep for the next war.\n\nThe invaders found it first.\nYou follow them down.";
+// Cluster 1: the end of the episode, shown when MAP03 is left (D60). Until
+// 2026-10-14 it closed MAP01 ("The gantry lights go out behind you. Zarya-7
+// is yours again..."); adapted to the bunker, same frame, same last line.
+SD_END01_TEXT = "The bunker lights go out behind you.\n\nThe station is yours again - a shelter\nbuilt to outlast a war, and no one\nleft alive in it to wait one out.\n\nThe tunnel runs west, to Moscow.\nSo does the invasion.\n\nTO BE CONTINUED";
 // D41: the practice range's exit (cluster 2), then the title screen.
 SD_END02_TEXT = "The range is closed for the day.\n\nThe campaign begins from New Game.";
 
@@ -251,6 +259,28 @@ SD_OB_GENERAL        = "%o fell to the General's salvo.";
 // ever changes, the text and the sound change together.
 SD_GENERAL_ORDER     = "The General: Vorwärts!";
 
+// --- Keys (MAP03, 2026-10-14) -----------------------------------------------
+// The metro's blue pass, SD_BluePass (zscript/sd/keys.zs), which replaces
+// Doom's BlueCard; docs/engine/MOD-SPEC.md 6, "The blue pass". Two
+// mechanisms again, as for the ammunition above:
+//
+//  * The pickup line is our own id: Freedoom's DEHACKED overrides the
+//    engine's GOTBLUECARD, and DEHACKED beats LANGUAGE (ADR 003).
+//
+//  * The locked-door lines are ENGINE ids. Lock 2 (gzdoom.pk3 ->
+//    lockdefs.txt) prints "$PD_BLUEC" when the door is pressed directly
+//    (Door_LockedRaise with tag 0) and "$PD_BLUECO" when the press works a
+//    door by tag, as MAP03's blast door does (tag 4: a_doors.cpp passes
+//    `remote = tag != 0` to P_CheckKeys). Freedoom's DEHACKED does NOT touch
+//    PD_BLUECO, so this override is what the player reads at MAP03's door.
+//    It DOES override PD_BLUEC ("Blue passcard needed for this door."), and
+//    that wins over these lines in every language: PD_BLUEC below shows on
+//    doom2.wad only. A tag-0 blue door on Freedoom would need a LOCKDEFS of
+//    our own (MOD-SPEC 6, "The blue pass"); no map has one.
+SD_PICKUP_BLUEPASS = "Blue pass.";
+PD_BLUEC           = "You need a blue pass to open this door";
+PD_BLUECO          = "You need a blue pass to activate this object";
+
 [ru]
 
 SD_EP01_NAME  = "Советский Doom";
@@ -259,7 +289,8 @@ SD_MAP02_NAME = "Учебный полигон";
 SD_MAP03_NAME = "Метро-бункер";
 SD_EP02_NAME  = "Полигон";
 
-SD_END01_TEXT = "Огни стартовой башни гаснут у вас за спиной.\n\n«Заря-7» снова наша - космодром, на столе которого не осталось ракет, и некому их запускать.\n\nВторжение началось не здесь. Здесь оно только первым приземлилось.\n\nПРОДОЛЖЕНИЕ СЛЕДУЕТ";
+SD_MAP01_EXIT_TEXT = "«Заря-7» снова наша.\n\nСлужебный лифт уходит в темноту,\nминует последний освещённый ярус\nи спускается дальше.\nПод космодромом проходит линия\nметро, проложенная глубоко\nна случай войны.\n\nЗахватчики нашли её первыми.\nВы спускаетесь за ними.";
+SD_END01_TEXT = "Огни бункера гаснут у вас за спиной.\n\nСтанция снова наша - убежище,\nпостроенное, чтобы пережить войну,\nи в нём не осталось ни души.\n\nТоннель уходит на запад, к Москве.\nТуда же движется и вторжение.\n\nПРОДОЛЖЕНИЕ СЛЕДУЕТ";
 SD_END02_TEXT = "Полигон на сегодня закрыт.\n\nКампания начинается из «Новой игры».";
 
 SD_PLAYER_NAME     = "Сержант Виланова";
@@ -417,3 +448,10 @@ SD_OBHIT_PANZER      = "%o раздавлен панцерменшем.";
 SD_OB_GENERAL        = "%o пал под залпом Генерала.";
 
 SD_GENERAL_ORDER     = "Генерал: Vorwärts!";
+
+// --- Ключи (MAP03, 2026-10-14) ---------------------------------------------
+// Синий пропуск дежурного по станции (SD_BluePass). PD_BLUEC и PD_BLUECO -
+// строки самого движка (замок 2); у двери MAP03 игрок читает PD_BLUECO.
+SD_PICKUP_BLUEPASS = "Синий пропуск.";
+PD_BLUEC           = "Для открытия нужен синий пропуск";
+PD_BLUECO          = "Для применения нужен синий пропуск";
