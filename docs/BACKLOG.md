@@ -20,7 +20,6 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
-| N12c | M2 | Install the General (SDGN/SDGL) + engine pass | mod-engineer | 200 | D73 |
 | N14-2 | M2 | Ice axe right-handed (D73) + shaft and head polish, cells C1/C3/C4 again | art-director | 100 | D73 |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
@@ -65,6 +64,8 @@ the Fooocus hand images, sounds and music to hear.
 | **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
+
+**Bestiary complete (M2):** N12c, the General installed (413ba73), engine pass `docs/qa/evidence/2026-10-15_0010_F5_general-installed.md`. **Real 259k** (est. 200k).
 
 A1: M2 Freedoom audit `docs/qa/2026-10-14_2357_M2-freedoom-audit.md`: campaign textures 100 % ours; blocks M2: TT-33 install, 6 weapons, Katyusha pickup, two enemy shells, 113 health/armour/key pickups; all sounds still Freedoom's. **Real 255k** (est. 80k).
 

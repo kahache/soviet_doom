@@ -18,7 +18,7 @@ whole episode in English or Russian:
 |---|---|---|
 | Campaign | **3 maps linked**: MAP01 Zarya-7, MAP02 metro-bunker, MAP03 factory (D62 numbering), each finishable, populated, signposted, textured with our art, with its music | MAP01 v3 done; metro v0 walked, v1 in progress; factory v0 in progress |
 | Arsenal | **7 weapons with our own first-person art** (Freedoom-based hands, D61) and our pickups | pickups installed (6 of 7); first-person: TT-33 in progress, the rest after it |
-| Bestiary | **7 enemies with our own sprites** | 4 of 7 installed (rifleman, Legion, Stormtrooper, hound) |
+| Bestiary | **7 enemies with our own sprites** | 7 of 7 installed (D73) |
 | Sound | weapon and enemy effects approved by the CEO (voices optional) | drafts waiting for the CEO's ears |
 | Music | title + one public-domain piece per map (no composing, D59) | title and MAP01 done |
 | Shell | menus, title, pause, credits, practice range | done |
@@ -31,7 +31,7 @@ whole episode in English or Russian:
 |---|---|---|---|
 | F0-F2 | Pipeline, lore, art direction | G0, G1, G2 | **PASSED** (`docs/qa/GATE-REVIEWS.md`) |
 | **M1** | **Campaign playable end to end** | the 3 maps run from New Game to the end text with no `idclip`, zero log errors, scripted route PASS on each (`tools/route.py`); the CEO walks it | **PASSED 2026-10-14 (D70):** every route PASS in engine with zero log errors, and the CEO walked it from New Game ("se puede jugar y perfecto") |
-| **M2** | **Our art everywhere the player looks** | no Freedoom sprite left in first person, on enemies or on pickups; factory textures approved | 6 of 7 enemies installed (the General: turnaround with the CEO, full set next), 6 of 7 weapon pickups (the hand Katyusha still BFUG) and no health/armour/key pickups of our own yet (M2 audit), TT-33 in hand approved but **not installed** (draft overlay only, found by the G6 review); 0 of 7 weapons ship our hands, Tankograd textures 21 of 21 |
+| **M2** | **Our art everywhere the player looks** | no Freedoom sprite left in first person, on enemies or on pickups; factory textures approved | **7 of 7 enemies installed** (their shells: the General's ours, the Doughboy's and Panzermensch's still Freedoom), 6 of 7 weapon pickups (the hand Katyusha still BFUG) and no health/armour/key pickups of our own yet (M2 audit), TT-33 in hand approved but **not installed** (draft overlay only, found by the G6 review); 0 of 7 weapons ship our hands, Tankograd textures 21 of 21 |
 | **M3** | **Sound and music** | CEO-approved effects installed; one PD piece per map | drafts done, waiting on the CEO |
 | **M4** | **Ship v1** (was F6) | G6: licence file with full texts, credits, README EN/RU, the Russian text reviewed, QA sign-off, tag v1.0 | prep done (`docs/engine/RELEASE.md`) |
 
