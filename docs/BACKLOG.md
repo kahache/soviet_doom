@@ -20,6 +20,7 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
+| N12b | M2 | The General CD full set (~86 lumps, sway, flat death), preview to the CEO; then install + engine pass (N12c, ~150k) | art-director | 500 | D72 |
 | N14-1 | M2 | Ice axe held frame from the CEO's Fooocus references (sweep) | art-director | 250 | CEO's images (arrived) |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
@@ -27,7 +28,6 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | Needs |
 |---|---|---|---|---|---|
-| N12b | M2 | The General CD: full set (8 rotations, ~86 lumps: he wears a different flag on each shoulder) + install + engine pass | art-director + mod-engineer | 450 | CEO approves the turnaround |
 | N14 | M2 | Weapons in hand from the CEO's Fooocus references, one at a time, verified each (ice axe first, then 5 more) | art-director | 250 per weapon, ~1 500 all | CEO's images |
 | N7b | M1+ | Metro v2 (textures aligned), optional: the CEO found M1 "perfecto" | level-designer | 350 | CEO decides if wanted |
 | N7c | M1+ | Tankograd v2, optional (as N7b) | level-designer | 400 | CEO decides if wanted |
