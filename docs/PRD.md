@@ -1,7 +1,7 @@
 # Soviet Doom — Product Requirements Document
 
 Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
-Last update: 2026-10-14 (D25-D51).
+Last update: 2026-10-14 (D25-D52).
 
 ## 1. Vision
 
@@ -85,6 +85,7 @@ until D16 brought it into scope on 2026-10-13.)
 | D49 | 2026-10-14 | **First-person hands and weapon animation follow Blood (Monolith, 1997) as the style reference** ("como en Blood"), after the CEO played MAP01 with the drafts and found the 3D-capsule hands "deformes, no humanas". Style only: no Blood asset is copied (no assets from commercial games). The held weapon frames stay on Freedoom's placeholders until the hands are redone; the approved pickups (D48) install meanwhile. **Blood is dark red**, abundant in deaths, for every faction's deaths drawn so far ("rojo oscuro, nada de oliva"), superseding BESTIARY §2.1's olive Reich blood. | ratified (CEO) |
 | D50 | 2026-10-14 | **The Reich hound is the German shepherd, cell A** (classic black and tan, black saddle, leather collar with a steel tag as drawn): "Perro A". Supersedes D45's darker khaki hide. Its full frame set follows on the quadruped rig. | ratified (CEO) |
 | D51 | 2026-10-14 | **The hand Katyusha is the third pass, variant B** (six banded tubes carried at the hip): "de katiushka me flipa la B". Its held frames take the new hands once chosen (D49). | ratified (CEO) |
+| D52 | 2026-10-14 | **First-person hands are drawn in 2D pixel art** (`tools/art/gen_hands_2d.py`, preview `docs/art/previews/2026-10-14_1105_F4_hand-2d-pixel.png`), style E kept (brown leather glove, field sleeve, telnyashka): "Manos 1". The 3D-capsule hands and the anatomical 3D attempt are dropped. The 2D hands go on every weapon, with the poses raised where the hand fell off screen (TT-33, PPSh-41). | ratified (CEO) |
 | D15 | 2026-10-09 | Licence of the mod: **GPL-3.0** for code (`tools/`, `src/zscript/`, scripts) and **CC BY-NC-SA 4.0** for assets and docs (textures, sprites, maps, sounds, lore). Non-commercial is required anyway by OTEX's terms. Full texts added at F6; `LICENSE.md` states it now. | decided by the PM on CEO delegation |
 
 ## 6. Phases and gates
