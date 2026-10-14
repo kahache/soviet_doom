@@ -87,8 +87,8 @@ on the title screen (`currentmusic`, `docs/qa/evidence/2026-10-13_2150_F6_title-
 `D_SDM01` (seen with `currentmusic`); an enriched draft waits on the
 CEO; three self-sequenced pieces wait on a score source.
 
-**Tooling.** `tools/verify.py` with `fast`, `full` and `auto` tiers: fast runs
-in six seconds and opens no window. `tools/check_pk3.py` validates the package
+**Tooling.** `tools/verify.py` with `fast`, `art`, `full` and `auto` tiers: fast runs
+in about 13 s and opens no window (`tests/_tiers.py` decides what is slow). `tools/check_pk3.py` validates the package
 without the engine; `tools/smoke.py` runs it with the engine. **Agents never
 start GZDoom (D26):** `SD_ALLOW_ENGINE=1` is the PM's, and the PM batches the
 engine runs. CI on every push.

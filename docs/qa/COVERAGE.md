@@ -34,6 +34,56 @@ below). Coverage is measured and printed even when tests fail; a failing
 test still executes code on its way to failing, and that execution still
 counts.
 
+## Test tiers: what `verify.py fast` runs and what waits for `art` (2026-10-14, QA)
+
+Coverage is unaffected: `tools/coverage.sh` still runs the whole suite
+with plain `unittest discover`, so every number below includes every test.
+What changed is `tools/verify.py`: the suite now goes through
+`tests/_tiers.py`, the single place that decides each test's tier.
+
+- **`fast`** runs every discovered test except the `SLOW` table in
+  `tests/_tiers.py` (57 entries: modules, classes or single tests, each
+  with its reason), with `SD_SKIP_SLOW_ART=1` as before. It keeps the
+  build and check_pk3 tests, every text/contract test (LANGUAGE, MAPINFO,
+  ZScript, UDMF, MENUDEF, licences, verify itself), the map plans
+  (MAP03, MAP04) and the cheap generator contracts.
+- **`art` and `full`** run **every** discovered test. On top of `fast`
+  that adds generator renders (art, sound, the rig), the release end to
+  end, the draft overlay, work/ scans, gzdoom.pk3 reads, MAP01/MAP02
+  sight-line geometry, `route.MapData`, and the sprite sets' whole-PK3
+  re-checks.
+- **Nothing is lost:** fast + (art only) = discovered.
+  `python tests/_tiers.py --list` prints the split. On 2026-10-14 ~19:50:
+  1767 discovered = 1283 fast + 484 art only. `verify.py art` ran 1750 of
+  1750 discovered a few minutes earlier (PASS, skipped=1, the opt-in engine
+  test). At `fast`, unittest's "Ran" is ~16 below the tier count: classes
+  whose `setUpClass` skips under `SD_SKIP_SLOW_ART` count once as a skip,
+  not per test.
+- **Build cache:** 19 tests built the same PK3. The runner wraps
+  `sdbuild.pk3.build` for one process. The key is the content of src/,
+  assets/ and tools/, and an unchanged file's digest is reused while its
+  size and mtime stay put. `tests/test_build.py` bypasses the cache,
+  because it tests the builder itself (including reproducibility). A fast
+  run now builds twice and reuses six.
+- **Before → after**, Windows PC with other agents running, back to back
+  on one tree at ~19:55: the old fast suite (`SD_SKIP_SLOW_ART=1 python -m
+  unittest discover -s tests`, 1751 tests) took **119 s** wall. The new
+  `verify.py fast` (docs + build + check_pk3 + 1267 tests) took **14 s**
+  (13.5 s VERDICT). Earlier runs under heavier load: 16-19 s.
+- **Keeping it fast:** `python tests/_tiers.py fast --durations 15` names
+  the slowest tests in the tier. A new slow class goes into `SLOW`, with
+  its reason. If a rename leaves an entry matching nothing, `verify.py`
+  shows a WARN on the tests stage, because that class would otherwise
+  return to `fast` silently.
+
+Slow costs that are test inefficiencies, reported to the files' owners
+rather than fixed here (QA does not edit other agents' tests):
+`test_art.ApprovedAssetsTests.test_identical_to_work_source` rglobs all of
+work/ once per installed PNG (26 s; one index of work/ by name would make
+it ~1 s). `test_audition`'s module fixtures SHA-256 all of `work/audio`
+(296 MB) twice (~3 s; a stat-based digest would do). `test_route.ParseTest`
+builds `route.MapData` for both maps in `setUpClass` (9 s).
+
 ## Latest number (2026-10-13 22:23, Windows PC, QA)
 
 **Branch coverage of `tools/`: 82% (81.53%; 14754 statements, 3512
