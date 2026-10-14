@@ -104,7 +104,7 @@ OptionString "SD_LanguageValues"
 // package (category "menus").
 
 // --- The episode menu (D41) -------------------------------------------------
-// MAP02, the weapons test range, ships as a practice range: a second MAPINFO
+// The weapons test range (map RANGE since D62) ships as a practice range: a second MAPINFO
 // episode. With one episode the engine autoselected it and this screen never
 // showed; with two, New Game -> this screen -> the skill screen. The engine's
 // own body (gzdoom.pk3:menudef.txt, ListMenu "EpisodeMenu", IfGame(Doom)):

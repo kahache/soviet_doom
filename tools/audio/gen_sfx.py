@@ -1659,8 +1659,8 @@ pre{background:var(--card);padding:10px 12px;border-radius:4px;overflow-x:auto;f
 AUDITION_TEXT = """\
 .venv/Scripts/python.exe tools/audio/gen_sfx.py          # rebuild the drafts, the overlay and the report
 .venv/Scripts/python.exe tools/build.py                  # dist/sovietdoom.pk3
-SD_ALLOW_ENGINE=1 tools/run.sh -file work/audio/sfx/sd-enemy-sfx-draft.pk3 +map MAP02
-# MAP02 holds the bestiary gallery. Drop the -file argument and the Freedoom stand-ins are back.
+SD_ALLOW_ENGINE=1 tools/run.sh -file work/audio/sfx/sd-enemy-sfx-draft.pk3 +map RANGE
+# RANGE, the practice range, holds the bestiary gallery. Drop the -file argument and the Freedoom stand-ins are back.
 # That a second -file and a later SNDINFO override the mod's is what the music and weapon
 # overlays rely on; NOT VERIFIED by the sound-designer, who does not start the engine (D26)."""
 

@@ -27,7 +27,9 @@ Checks (one block of output per category):
   lumps      root entries map to legal lump names (<= 8 ASCII chars, no
              extension in the lump name, valid characters)
   maps       every maps/*.wad is a PWAD whose directory is exactly
-             marker / TEXTMAP / ENDMAP, and whose TEXTMAP parses as UDMF
+             marker / TEXTMAP / ENDMAP, and whose TEXTMAP parses as UDMF;
+             every map MAPINFO names (`map`, `episode`, `next`) is packed,
+             and every packed map has a MAPINFO `map` block (warning)
   textures   every texturetop/middle/bottom/floor/ceiling a TEXTMAP names
              (plus MAPINFO sky1/sky2) exists in the PK3 or is declared as an
              IWAD asset in MOD-SPEC 5. A name that resolves nowhere is
@@ -123,7 +125,9 @@ DIMENSION_MULTIPLE = 8                  # Doom tiles on powers of two
 FLAT_SIZE = (64, 64)                    # a Doom flat is 64x64 by definition
 # Wall sizes the project allows (MOD-SPEC 2). 128x256 was added when the CEO
 # approved the taller Lenin poster: at 128x128 the portrait had no room.
-ALLOWED_WALL_SIZES = ((64, 64), (64, 128), (128, 64), (128, 128), (128, 256))  # crates since D29
+# 256x64 since D66: the Tankograd works banner SDSLOG1, one slogan in two lines.
+ALLOWED_WALL_SIZES = ((64, 64), (64, 128), (128, 64), (128, 128), (128, 256),  # crates since D29
+                      (256, 64))
 
 # Sprite naming (Doom convention): NAMEFR or NAMEFRFR.
 SPRITE_NAME_LEN = 4
@@ -147,6 +151,14 @@ RE_STATE_FRAME = re.compile(r'^\s*"?([A-Za-z0-9_#\-]{4})"?\s+"?([A-Za-z\[\]\\#]+
 RE_INCLUDE = re.compile(r'^\s*#include\s+"([^"]+)"', re.M)
 RE_BACKTICKED = re.compile(r"`([^`]+)`")
 RE_MAPINFO_SKY = re.compile(r"^\s*sky[12]\s*=\s*\"([^\"]*)\"", re.M | re.I)
+# The maps MAPINFO names (MOD-SPEC 4): every `map X` and `episode X` block,
+# and every `next` / `secretnext` that is a map rather than an end sequence
+# (GZDoom's are all spelt End...: endtitle, EndGame { }, EndPic...). A map
+# name is any lump name; since D62 the practice range is RANGE, not MAPxx.
+RE_MAPINFO_COMMENT = re.compile(r"//[^\n]*|/\*.*?\*/", re.S)
+RE_MAPINFO_BLOCK_MAP = re.compile(r'^\s*(map|episode)\s+"?([A-Za-z0-9_]+)"?', re.M | re.I)
+RE_MAPINFO_NEXT_MAP = re.compile(r'^\s*(next|secretnext)\s*=\s*"?([A-Za-z0-9_]+)"?', re.M | re.I)
+MAPINFO_END_PREFIX = "end"
 # ANIMDEFS (MOD-SPEC 4.3). Syntax as the engine writes it in gzdoom.pk3 ->
 # animdefs.txt (GZDoom g4.14.2): `switch [game [tier]] [quest] OFF [quest]
 # on [sound S] pic ON tics N ... [off [sound S] pic OFF2 tics N]`.
@@ -653,7 +665,11 @@ def licensed_names(licenses: Path) -> set[str]:
 # Lumps approved in palette v2 (docs/art/ART-BIBLE.md section 3). Every other
 # indexed lump must stay inside v1; these may use the v2 ramps too. Sprites
 # are RGBA and are not palette-checked here (tests/test_palette_v2.py is).
-PALETTE_V2_LUMPS = frozenset({"SDMOSA1"})  # D56
+# D66: the Tankograd brick (marble_red), the two banners hung on it (the
+# Legion's canton in mosaic_cobalt) and the four portal frames (mosaic_cobalt).
+PALETTE_V2_LUMPS = frozenset({"SDMOSA1"}  # D56
+                             | {"SDBRCK1", "SDBRCK2", "SDFLAG1", "SDFLAG2"}
+                             | {f"SDPORT{i}" for i in range(1, 5)})
 
 
 def palette_v2_colours(palette_json: Path) -> set[tuple[int, int, int]] | None:
@@ -839,7 +855,48 @@ def check_maps(pkg: Package, report: Report) -> list[MapInfo]:
                             f"{len(udmf.of_kind('vertex'))} vertices, {len(udmf.of_kind('linedef'))} linedefs, "
                             f"{len(udmf.of_kind('sector'))} sectors, {len(udmf.of_kind('thing'))} things")
     report.stats["maps"] = len(wads)
+    check_mapinfo_maps(pkg, {Path(n).stem.upper() for n in wads}, report)
     return maps
+
+
+def mapinfo_map_references(text: str) -> tuple[list[tuple[str, str]], set[str]]:
+    """([(what, NAME)], {names with a `map` block}) from a MAPINFO text.
+
+    `what` is "map", "episode", "next" or "secretnext". End sequences are
+    left out: a `next` spelt End... that is not itself a map block."""
+    code = RE_MAPINFO_COMMENT.sub("", text)
+    blocks = [(kind.lower(), name.upper()) for kind, name in RE_MAPINFO_BLOCK_MAP.findall(code)]
+    defined = {name for kind, name in blocks if kind == "map"}
+    refs = list(blocks)
+    for key, name in RE_MAPINFO_NEXT_MAP.findall(code):
+        if name.upper() not in defined and name.lower().startswith(MAPINFO_END_PREFIX):
+            continue
+        refs.append((key.lower(), name.upper()))
+    return refs, defined
+
+
+def check_mapinfo_maps(pkg: Package, packed: set[str], report: Report) -> None:
+    """Every map MAPINFO names is packed, and every packed map has its block.
+
+    A `map`, `episode` or `next` naming a map with no maps/<NAME>.wad is a
+    level the engine cannot load (an episode that starts nowhere, an exit
+    into nothing); a packed map without a `map` block loads with no title,
+    no cluster and the engine's default `next`. D62 renamed three maps at
+    once, which is how either would happen."""
+    mapinfo_path = pkg.find("MAPINFO")
+    if not mapinfo_path:
+        return
+    refs, defined = mapinfo_map_references(pkg.read(mapinfo_path).decode("ascii", "replace"))
+    for what, name in refs:
+        if name not in packed:
+            report.error("maps", f"{mapinfo_path}:{what} {name}",
+                         f"MAPINFO names map {name!r}, but there is no {MAPS_DIR}/{name}.wad in the PK3")
+    for name in sorted(packed - defined):
+        report.warn("maps", f"{MAPS_DIR}/{name}.wad",
+                    "no `map` block in MAPINFO: no title, no cluster, the engine's default `next`")
+    missing = sum(1 for _what, name in refs if name not in packed)
+    report.note("maps", f"MAPINFO: {len(defined)} map block(s), {len(refs)} map reference(s), "
+                        f"{len(refs) - missing} packed")
 
 
 def own_texture_names(pkg: Package) -> dict[str, str]:

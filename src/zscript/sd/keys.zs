@@ -31,7 +31,8 @@
 // engine (D26: the PM's engine pass, MOD-SPEC 6, "The blue pass").
 //
 // The class still DERIVES from BlueCard, for what inheritance does give: the
-// status bar icon STKEYS0, the size, +NOTDMATCH and the Spawn states.
+// status bar icon STKEYS0, the size and +NOTDMATCH. The Spawn state is its
+// own since D63 (SPRITE, below).
 //
 // WHAT IT CHANGES ON SCREEN
 // -------------------------
@@ -44,9 +45,14 @@
 //
 // SPRITE
 // ------
-// Inherited: BlueCard's BKEY, drawn by Freedoom, a placeholder until
-// art-director delivers the pass. When it lands, a Spawn state naming the new
-// sprite goes here; nothing else changes.
+// Ours since D63 (2026-10-14): SDKB, a laminated card (option B of
+// tools/art/gen_pickups.py, palette v2's cobalt so it reads blue, D45),
+// installed from assets/sprites/pickups/. Frame B is the blink. The Spawn
+// state below is BlueCard's line for line (gzdoom.pk3 g4.14.2 ->
+// zscript/actors/doom/doomkeys.zs: `BKEY A 10; BKEY B 10 bright; loop;`)
+// with only the four-letter name changed, so the pass blinks exactly as
+// Doom's keys do (tests/test_pickup_sprites.py). The status bar icon is
+// still BlueCard's STKEYS0.
 
 class SD_BluePass : BlueCard replaces BlueCard
 {
@@ -56,5 +62,13 @@ class SD_BluePass : BlueCard replaces BlueCard
 		// (see above). This line is what opens MAP03's blast door.
 		Species "BlueCard";
 		Inventory.PickupMessage "$SD_PICKUP_BLUEPASS";
+	}
+
+	States
+	{
+	Spawn:
+		SDKB A 10;
+		SDKB B 10 Bright;
+		Loop;
 	}
 }

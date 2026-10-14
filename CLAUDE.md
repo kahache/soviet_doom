@@ -68,6 +68,14 @@ GZDoom and passes on skills 2, 3 and 4 with monsters (with `god`, the route
 clearing and listing the bodies in its way); left: the hand-played runs
 on skills 2 and 4, the hostile pass and the CEO's G3-9, `docs/qa/GATE-REVIEWS.md`.
 
+**The campaign (D60, D62).** Three maps, numbered in play order since D62:
+MAP01 Zarya-7 → MAP02 the metro-bunker → MAP03 the factory, «Танкоград» /
+Tankograd (D63), which ends the episode at the portal. Each crossing prints
+a transition text and the ending prints once (`docs/engine/MOD-SPEC.md`
+§4.6). The practice range is the lump `RANGE`, outside the MAPxx slots.
+Dated evidence keeps the old numbers (a `map03` there is the metro, a
+`map02` the range).
+
 **F5 — bestiary.** Seven enemy classes in ZScript (D35). Four now draw
 from our own sprites, rendered on a 3D rig and approved by the CEO: the
 Reich rifleman, the Legion trooper, the Stormtrooper and the Reich hound (a
@@ -79,8 +87,9 @@ sounds are drafts; voices wait on the CEO's takes (D36).
 **F4 — arsenal.** Seven period weapons in ZScript, all firing, with Freedoom
 placeholders for sprites and sounds; balance stands as built (D39). Slot 1
 is an ice axe (D40). Drafts at the CEO's gate: our own hand and glove, the
-ice axe, the PPSh-41, 31 weapon sounds. MAP02 ships as a practice range, a
-second episode on New Game (D41).
+ice axe, the PPSh-41, 31 weapon sounds. The weapons test range ships as a
+practice range, a second episode on New Game (D41); its lump is `RANGE`
+since D62 (it was MAP02).
 
 **Music (D43).** The Internationale (`D_SDINTL`, credit Jerry Engelbach) plays
 on the title screen (`currentmusic`, `docs/qa/evidence/2026-10-13_2150_F6_title-music.log`); MAP01 plays our own
@@ -103,7 +112,7 @@ failure; branch coverage of `tools/` **82%** (measured at 1088 tests,
 
 **Working machine: the CEO's Windows PC since 2026-10-13** (the project
 started on a Mac). GZDoom g4.14.2 on Freedoom 0.13.0 loads the PK3 here with
-zero errors (`tools/smoke.py`, VERDICT PASS on MAP01 and MAP02, 2026-10-13;
+zero errors (`tools/smoke.py`, VERDICT PASS on MAP01 and MAP02, then the range, 2026-10-13;
 the filed run is `docs/qa/evidence/2026-10-13_1448_F3_smoke-map01-windows.log`
 and its MAP02 twin, with screenshots). The Mac's gitignored
 `work/` arrived the same afternoon as the release asset

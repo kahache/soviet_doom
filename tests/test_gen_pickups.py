@@ -170,13 +170,13 @@ class NameTests(unittest.TestCase):
         self.assertEqual(radio[1], "SDRD")
         self.assertIn("final sprite **`SDRD`** A", self.spec)
 
-    def test_proposals_collide_with_nothing_reserved(self):
-        # every SD sprite name the spec reserves (four letters in backticks)
-        reserved = set(re.findall(r"`(SD[A-Z]{2})`", self.spec))
-        reserved |= {m[:4] for m in re.findall(r"`(SD[A-Z]{2}[A-Z][0-9])", self.spec)}
-        for slug, lump, *_ in self.rows:
-            if slug != "radio":
-                self.assertNotIn(lump, reserved, slug)
+    def test_each_name_is_reserved_for_its_own_class(self):
+        """D63 reserved the names in MOD-SPEC 6.3: every lump has exactly one
+        table row naming a class, and it is its own (SD_BluePass for the pass)."""
+        rows = re.findall(r"(?m)^\| `(\w+)` \| `(SD[A-Z]{2})` \|", self.spec)
+        for slug, lump, actor, *_ in self.rows:
+            owner = "SD_BluePass" if slug == "pass" else actor
+            self.assertEqual([c for c, name in rows if name == lump], [owner], slug)
 
     def test_every_ammo_class_is_covered(self):
         zs = AMMO_ZS.read_text(encoding="utf-8")

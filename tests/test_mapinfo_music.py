@@ -34,7 +34,7 @@ MAPINFO = SRC / "lumps" / "MAPINFO"
 MUSIC_ASSETS = PROJECT_ROOT / "assets" / "music"
 
 TITLE_MUSIC = "D_SDINTL"
-MAP_MUSIC = {"MAP01": "D_SDM01", "MAP02": ""}
+MAP_MUSIC = {"MAP01": "D_SDM01", "RANGE": ""}
 
 RE_MUSIC_VALUE = re.compile(r'^\s*(music|TitleMusic)\s*=\s*"([^"]*)"', re.M | re.I)
 RE_MAP_BLOCK = re.compile(r'^map\s+(\w+)[^{]*\{(.*?)^\}', re.M | re.S | re.I)

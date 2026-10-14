@@ -46,10 +46,11 @@ What changed is `tools/verify.py`: the suite now goes through
   with its reason), with `SD_SKIP_SLOW_ART=1` as before. It keeps the
   build and check_pk3 tests, every text/contract test (LANGUAGE, MAPINFO,
   ZScript, UDMF, MENUDEF, licences, verify itself), the map plans
-  (MAP03, MAP04) and the cheap generator contracts.
+  (the metro and the factory, MAP02 and MAP03 since D62) and the cheap
+  generator contracts.
 - **`art` and `full`** run **every** discovered test. On top of `fast`
   that adds generator renders (art, sound, the rig), the release end to
-  end, the draft overlay, work/ scans, gzdoom.pk3 reads, MAP01/MAP02
+  end, the draft overlay, work/ scans, gzdoom.pk3 reads, MAP01/range
   sight-line geometry, `route.MapData`, and the sprite sets' whole-PK3
   re-checks.
 - **Nothing is lost:** fast + (art only) = discovered.

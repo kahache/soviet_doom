@@ -1,20 +1,21 @@
-"""MAP04 "Tractor factory" - v0, the grey box with the approved sets where they fit.
+"""MAP03 "Tankograd", the tractor factory - v0, the grey box with the approved sets where they fit.
 
-Design document: docs/levels/MAP04-factory.md. LORE's third map and the
+Design document: docs/levels/MAP03-factory.md. LORE's third map and the
 episode's climax ("Tractor factory (actually tanks) - episode climax: the
-portal"), built as MAP04 because MAP02 is the practice range (D41). The
-player arrives where MAP03 left him: on rails, out of the westbound tunnel,
+portal"). Built as MAP04 while MAP02 was the practice range (D41); MAP03
+since D62 (2026-10-14), and named Tankograd by the CEO (D63). The
+player arrives where MAP02 left him: on rails, out of the westbound tunnel,
 into the factory's goods spur.
 
 What v0 is (design document section 12, D60 "MVP first"): the whole floor
 plan, walkable from start to exit - every room, stair, door, switch, both
 keys, both locked doors, the portal's containment gate and the exit - and
 nothing else: no monsters, no weapons, no ammo, no health, no secrets.
-Like MAP03's v0 it already wears the approved sets where they fit, and every
+Like MAP02's v0 it already wears the approved sets where they fit, and every
 surface the player must read wears its real face from the first build: door
 leaves, switch faces, the star plaques round the two locked doors.
 
-What v0 does about MAP03's lesson (D58: the CEO never found the blue pass):
+What v0 does about MAP02's lesson (D58: the CEO never found the blue pass):
 both keys lie IN PLAIN SIGHT on the route, each on a lit pedestal in its
 key's colour (sector `lightcolor`), each seen from the doorway of its room
 (tested sight lines); the yellow key is even seen from the factory floor,
@@ -34,10 +35,9 @@ at the top of its dais.
 Geometry is painted with `GridMap` (tools/sdbuild/udmf.py), MAP01's method.
 
 Run it (the PM or the CEO; agents never start GZDoom, D26):
-    python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP04 tools/run.sh
-MAPINFO has no MAP04 entry yet (mod-engineer's; proposed in the design
-document section 11): until it lands the map loads with `+map MAP04`, no
-title, and its exit leads to a MAP05 that does not exist.
+    python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP03 tools/run.sh
+Since D62 MAPINFO wires it in (design document section 11, step 2): the
+metro's exit leads here, and this map's exit ends the episode (cluster 1).
 """
 
 from __future__ import annotations
@@ -55,7 +55,7 @@ from sdbuild.udmf import (
     switch_door_open_style,
 )
 
-MAP_NAME = "MAP04"
+MAP_NAME = "MAP03"
 
 # --- The approved set (docs/art/TEXTURE-INDEX.md) --------------------------
 # No industrial set exists yet (brick, rust, chains: LORE). v0 dresses the
@@ -68,7 +68,7 @@ STEEL = "SDSTEL1"       # green riveted plate: tank line, drum, booth, shutter, 
 TILE_DADO = "SDTILE2"   # 64x128 tile over a green dado: the offices
 CRATE = "SDCRAT1"       # 64x64 crate face: the director's desk front
 DOOR = "SDDOOR1"        # 128x128 door leaf
-TUBBING = "SDTUBB1"     # 128x128 metro tubbing: the goods spur MAP03's tunnel ran into
+TUBBING = "SDTUBB1"     # 128x128 metro tubbing: the goods spur MAP02's tunnel ran into
 FLOOR_LANE = "SDFLR1"   # hangar concrete with a yellow lane line along the image's y
 FLOOR_CONCRETE = "SDFLR2"
 FLOOR_TILE = "SDFLR3"
@@ -78,7 +78,7 @@ DESK_TOP = "SDCRTOP1"   # crate lid, planks: the desk's top
 RAILS = "SDRAIL1"       # metro track bed, rails along the image's y
 
 # Switches (D25), one variant per switch. The exit keeps the hazard panel it
-# wears on MAP01, MAP02 and MAP03: the same face, the same meaning.
+# wears on MAP01, the range and MAP02: the same face, the same meaning.
 SW_A_FACE = "SDSW1B"    # foundry: push button, opens the shutter into the hall
 SW_B_FACE = "SDSW1A"    # control booth: the knife switch, opens the drum's gate
 EXIT_FACE = "SDSW1D"    # hazard panel at the top of the portal's dais
@@ -89,7 +89,7 @@ PLAQUE = 128            # SDSTAR1 is 128x128
 
 # --- Specials and keys -------------------------------------------------------
 # Door_LockedRaise (tag, speed, delay, lock, lighttag): 13, VERIFIED in engine
-# on MAP03 (docs/qa/evidence/2026-10-14_1902_F3_map03-v0-walk.md: without the
+# on MAP02 (docs/qa/evidence/2026-10-14_1902_F3_map03-v0-walk.md: without the
 # key the door printed its lock line; with it, it opened and stayed open).
 # Delay 0 = opens and stays open, so a key gate can never be consumed.
 SPECIAL_DOOR_LOCKED_RAISE = 13
@@ -114,7 +114,7 @@ STEP = 16               # every stair step; under MAX_STEP_UP 24
 DESK = 16               # the desk and the ingot pedestal: one step up
 CONVEYOR = 32           # the assembly lines: waist high, cover, not a step
 DOOR_HEIGHT = 128       # SDDOOR1 is 128x128: every leaf is one tile high
-SPUR_CEIL = GROUND + 128        # tubbing: one tile, as in MAP03's tunnels
+SPUR_CEIL = GROUND + 128        # tubbing: one tile, as in MAP02's tunnels
 DOCK_CEIL = 256
 HALL_CEIL = 320                 # SDCONC2 in three bands, as MAP01's hangar
 OFFICE_CEIL = OFFICES + DOOR_HEIGHT     # 192
@@ -126,7 +126,7 @@ NICHE_DEPTH = 16
 
 # --- Light ---------------------------------------------------------------------
 # v0: one value per zone. 192 is spent on five places only: the two locks,
-# the two keys and the exit (MAP03 v1's rule: the brightest things in a map
+# the two keys and the exit (MAP02 v1's rule: the brightest things in a map
 # are where it wants the player to look).
 LIGHT_MIN = 96
 LIGHT_MAX = 192
@@ -147,7 +147,7 @@ LIGHT_DRUM = 144
 BEACON_ZONES = ("z3_red_portal", "z3_yellow_portal", "o_desk", "f_pedestal", "p_exit_niche")
 
 # The keys' colours, in light: sector field `lightcolor` (0xRRGGBB) of the
-# UDMF zdoom namespace, as MAP03 v1 uses it for the blue pass. On the portal
+# UDMF zdoom namespace, as MAP02 v1 uses it for the blue pass. On the portal
 # round each locked door AND on the place its key lies: the colour of the
 # lock is the colour of where the key is. NOT VERIFIED in our engine runs
 # (checklist K4); if the engine ignored it, both places would still be 192s.
@@ -197,7 +197,7 @@ def locked_door_style(tag: int, door_sector: int, lock: int,
 
     Repeatable like a manual door: pressed without the key it prints the
     engine's lock line and can be pressed again; with it, it opens for good.
-    MAP03's helper, repeated here so each map stays one file (it moves into
+    MAP02's helper, repeated here so each map stays one file (it moves into
     sdbuild.udmf when a third map wants it).
     """
     return LineStyle(
@@ -246,7 +246,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
 
     def rails(room: str, x1: int, x2: int, y1: int, y2: int) -> None:
         """A 64-wide rail strip along x: SDRAIL1 runs its rails along the
-        image's y, so it is turned a quarter (MAP03's K8, either way reads)."""
+        image's y, so it is turned a quarter (MAP02's K8, either way reads)."""
         like(room, f"rails_{room}", [(x1, y1, x2, y2)], flat=RAILS,
              extra={"rotationfloor": 90.0})
 
@@ -256,7 +256,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
             like(room, f"{prefix}_{n}", [(x, y1, x + 32, y2)], floor=floor, wall=CONCRETE)
 
     # ======================================================================
-    # Arrival: the goods spur MAP03's tunnel ran into, and the loading dock
+    # Arrival: the goods spur MAP02's tunnel ran into, and the loading dock
     # ======================================================================
     zone("z1_spur", GROUND, SPUR_CEIL, [(3648, 1120, 4160, 1248)],
          light=LIGHT_SPUR, wall=TUBBING)
@@ -407,7 +407,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
 
     # The shutter: steel on the foundry side; on the hall side it wears the
     # hall's own wall, so until SW-A opens it it is wall, not a door that
-    # will not open (MAP01 v0/v1, MAP03's SH).
+    # will not open (MAP01 v0/v1, MAP02's SH).
     g.style_h(672, 1664, 1792, remote_door_style(shutter, texture=STEEL))
     g.style_h(704, 1664, 1792, remote_door_style(shutter, texture=STRIPE))
     g.style_h(640 + NICHE_DEPTH, 1600, 1664,

@@ -900,7 +900,7 @@ moment the player is supposed to notice he is in a fight.
 
 D13 calls the Panzermensch "baron". A `BaronOfHell` has **1000 HP**. Doom II
 puts its first Hell Knight in MAP03 and its first Baron in MAP08; Soviet Doom
-v1 is **one map**. A 1000 HP brute in MAP01 costs about 8 RPG-7 direct hits
+v1 was **one map** (D5; three since D60). A 1000 HP brute in MAP01 costs about 8 RPG-7 direct hits
 (135 average each, `BALANCE.md`) or 125 PPSh rounds — eleven seconds of
 holding the trigger with every round landing, which is not a fight, it is a
 wall. (v0 said "5 RPG-7 hits or 48 PPSh rounds"; both figures were wrong.)
@@ -992,7 +992,7 @@ thing in the mod. See rule 3 of the legibility matrix (§10).
 | Sprite | `SDGN`; projectile `SDGL` |
 | Actor code | `GEN` |
 | LANGUAGE | `SD_TAG_GENERAL`, `SD_OB_GENERAL`, `SD_GENERAL_ORDER` |
-| **Scope** | **First placed in MAP03.** Implemented in F5 (2026-10-13) so the mechanic can be tested on MAP02's bench (§11) long before MAP03 exists; no MAP01 places him. |
+| **Scope** | **First placed in MAP03** (the factory, Tankograd). Implemented in F5 (2026-10-13) so the mechanic can be tested on the practice range's bench (§11; `RANGE`, MAP02 until D62) long before MAP03 exists; no MAP01 places him. |
 
 **Why this faction.** `LORE.md` gives the Legion the officers. Making the
 alliance's commander the *Yankee* one is also the lore's point: the Reich
@@ -1200,10 +1200,11 @@ F5 and F3 can be planned against the same assumption. **D35 (Q7): MAP01 is
 Reich first**; the Liberty Legion appears halfway, as the force holding the
 hangar. MAP02 inverts it and MAP03 mixes.
 
-### 11.1 The test bench on MAP02 (F5)
+### 11.1 The test bench on the practice range (F5)
 
-Before any campaign map places them, every class stands in a row in MAP02's
-**bestiary gallery** (`src/maps/MAP02/map.py`, `MOD-SPEC.md` §4): a room of
+Before any campaign map places them, every class stands in a row in the
+practice range's **bestiary gallery** (`src/maps/RANGE/map.py`, `MOD-SPEC.md`
+§4; the range was MAP02 until D62, and "MAP02" in the F5 records means it): a room of
 its own, not connected to the arsenal hall, so nothing in it hears or sees
 the firing range. Each one is deaf (`ambush`) and faces the far wall, away
 from the spot the PM warps to, so they stand still until shot one at a time.

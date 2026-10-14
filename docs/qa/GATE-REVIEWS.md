@@ -270,6 +270,14 @@ unconditional textures and passes on them alone.
 
 ## G3 — MAP01 finishable on skills 2, 3 and 4 (F3) — **IN PROGRESS** (opened 2026-10-13 20:29)
 
+> **Map numbers (D62, 2026-10-14).** The records below keep the numbers of
+> their day: "MAP02" there is the practice range, now the lump `RANGE`, and
+> the routes `map02-start` / `map02-door` are `range-start` / `range-door`.
+> The engine checklist uses the new names; dated evidence keeps the old
+> ones. Since D60 MAP01 leads on into the campaign (MAP02, the metro, since
+> D62), so its routes expect MAPINFO's next map, not an end sequence
+> (`docs/engine/MOD-SPEC.md` §4.6).
+
 **Criterion:** "map finishable on skills 2, 3 and 4 with zero log errors and
 zero softlocks; CEO verdict 'on point'" (`docs/ROADMAP.md`), measured as
 G3-1…G3-9 of `docs/levels/MAP01-zarya-7.md` §11. There is no verdict yet.
@@ -360,7 +368,7 @@ G3-6 and G3-8, and the static halves of G3-4 and G3-5. They are tests in
     lamp: the log prints `Health boosted!`. The record is the PM's written
     note; no screenshot and no log copy were filed for it, which QA accepts
     for a one-line pickup message.
-  - **MAP02 for players** (`docs/levels/MAP02-practice-range.md` §7): P1
+  - **MAP02 for players** (`docs/levels/RANGE-practice-range.md` §7): P1
     (the exit alcove, the hazard panel whole), P2 (the gallery door rises
     from the hall), P3 and P5 (the bent passage; after the PPSh fired by the
     open door, `sdcount` shows all 15 bestiary actors alive), P6 (the exit
@@ -452,7 +460,7 @@ blocker that survives fails the run. `--no-clear` turns clearing off.
 exit switch**, as a player does; a switch route ended by `sdexit` fails.
 MAP01's switch is G3-4's. MAP02 got one with `d1e891f`: `Exit_Normal` on
 the back wall of a lit alcove behind the start (the line x −32, y 352–416;
-`docs/levels/MAP02-practice-range.md` §4.1). `map02-start` now ends there:
+`docs/levels/RANGE-practice-range.md` §4.1). `map02-start` now ends there:
 step E0 stands on the start (160, 384), turns to face west, shoots the
 alcove (the P1 view) and walks in until the back wall stops him; E1
 presses the switch, 16 units ahead, inside the 64-unit use range. The
@@ -529,12 +537,12 @@ name given.
 
 | # | Covers | Command | Pass when | Evidence (`docs/qa/evidence/`) |
 |---|---|---|---|---|
-| C1 | Q6, the start inventory, scripted, skill 2 | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --skills 2 --keep-evidence` | Report row `[ok ] A0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]`. Report row `[ok ] R1: …; owned [1:SD_IceAxe, 2:SD_Tokarev]`. Doors ok. Exit REACHED towards an `enDSeQ…` sequence. VERDICT PASS (the route half of G3-4, `god` on). Copy the `blockers` lines into the notes: each is a place where a monster stood in a scripted walk | `<stamp>_F3_g3-map01-g3-auto-skill2.log`, `…-skill2-report.txt`, `…-skill2-a0.png`, `…-skill2-r1.png`, `…-skill2-end.png` |
+| C1 | Q6, the start inventory, scripted, skill 2 | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --skills 2 --keep-evidence` | Report row `[ok ] A0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]`. Report row `[ok ] R1: …; owned [1:SD_IceAxe, 2:SD_Tokarev]`. Doors ok. Exit REACHED towards `MAP02` (MAPINFO's next since D60/D62; an `enDSeQ…` sequence before D60). VERDICT PASS (the route half of G3-4, `god` on). Copy the `blockers` lines into the notes: each is a place where a monster stood in a scripted walk | `<stamp>_F3_g3-map01-g3-auto-skill2.log`, `…-skill2-report.txt`, `…-skill2-a0.png`, `…-skill2-r1.png`, `…-skill2-end.png` |
 | C2 | Q6, the same on skill 3, and a filed skill-3 log for G3-2 | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --skills 3 --keep-evidence` | As C1 | `<stamp>_F3_g3-map01-g3-auto-skill3{.log,-report.txt,-a0.png,-r1.png,-end.png}` |
 | C3 | Q6, the same on skill 4 | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --skills 4 --keep-evidence` | As C1 | `<stamp>_F3_g3-map01-g3-auto-skill4{.log,-report.txt,-a0.png,-r1.png,-end.png}` |
 | C4 | Q6 by eye: the TT-33 is raised on spawn, slot 1 is empty, the rack pickup works | `SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=3 tools/run.sh -nomonsters +screenshot_dir "$PWD/logs/shots"`. At spawn, console `screenshot`. Press `1`, then `screenshot`. Walk to the rack on the west wall (or console `warp 40 384`, face west, walk forward). Press `1`, then `screenshot`. `quit` | Shot 1: the TT-33 in hand. Shot 2: still the TT-33. The log has `An ice axe.` (`SD_PICKUP_ICEAXE`) once. Shot 3: the ice axe raised. `.venv/Scripts/python.exe tools/route.py --scan logs/gzdoom.log` gives VERDICT PASS | `<stamp>_F3_g3-start-tt33-raised.png`, `<stamp>_F3_g3-start-slot1-empty.png`, `<stamp>_F3_g3-rack-iceaxe.png`, `<stamp>_F3_g3-start-inventory.log` (a copy of `logs/gzdoom.log`) |
-| C5 | Q6 on the practice range, and MAP02 left by its exit switch to its end text (D41) (about 20 s) | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route map02-start --skills 3 --keep-evidence` | Rows A0, R1 and E0 `[ok ]`, E0 in `EXIT` (`exit_alcove`). Exit `exit switch pressed: yes`, towards an `enDSeQ…` sequence. The first E0 shot shows the lit alcove with the hazard panel whole (P1); the E1 shot shows `SD_END02_TEXT` ("The range is closed for the day…") over `SDFLR1` (P6). VERDICT PASS | `<stamp>_F3_g3-map02-map02-start-skill3{.log,-report.txt,-a0.png,-r1.png,-e0.png,-e0-2.png,-e1.png,-end.png}` |
-| C5b | MAP02's P4: the gallery door opened from the passage side (optional for G3, owed to `docs/levels/MAP02-practice-range.md` §7) | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route map02-door --skills 3 --keep-evidence` | Door rows `[ok ] tag 1 at P4a: want shut` and `[ok ] tag 1 at P4b: want open`; `[ok ] walk-through at P4b: ended in HALL`; then as C5. VERDICT PASS | `<stamp>_F3_g3-map02-map02-door-skill3{.log,-report.txt,-p4a.png,-p4b.png,-e1.png,-end.png}` |
+| C5 | Q6 on the practice range, and the range (`RANGE`, MAP02 until D62) left by its exit switch to its end text (D41) (about 20 s) | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route range-start --skills 3 --keep-evidence` | Rows A0, R1 and E0 `[ok ]`, E0 in `EXIT` (`exit_alcove`). Exit `exit switch pressed: yes`, towards an `enDSeQ…` sequence. The first E0 shot shows the lit alcove with the hazard panel whole (P1); the E1 shot shows `SD_END02_TEXT` ("The range is closed for the day…") over `SDFLR1` (P6). VERDICT PASS | `<stamp>_F3_g3-range-range-start-skill3{.log,-report.txt,-a0.png,-r1.png,-e0.png,-e0-2.png,-e1.png,-end.png}` |
+| C5b | The range's P4: the gallery door opened from the passage side (optional for G3, owed to `docs/levels/RANGE-practice-range.md` §7) | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route range-door --skills 3 --keep-evidence` | Door rows `[ok ] tag 1 at P4a: want shut` and `[ok ] tag 1 at P4b: want open`; `[ok ] walk-through at P4b: ended in HALL`; then as C5. VERDICT PASS | `<stamp>_F3_g3-range-range-door-skill3{.log,-report.txt,-p4a.png,-p4b.png,-e1.png,-end.png}` |
 | C6 | Q1, Q2, Q3 and Q5: G3-4 on skill 2, played, no cheats | `SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=2 tools/run.sh +screenshot_dir "$PWD/logs/shots"`. Play from the start to the exit switch with no console command. Console `screenshot` facing the exit switch (the HUD shows health and ammo), then `screenshot` at the intermission, then `quit`. Copy `logs/gzdoom.log` to the evidence name, then run `.venv/Scripts/python.exe tools/route.py --scan docs/qa/evidence/<stamp>_F3_g3-map01-skill2-run.log` | Intermission reached. `--scan` VERDICT PASS (G3-2: 0 hits). Notes: time, health, deaths, any monster that never left a doorway or a closet mouth (Q3), anything that felt lavish (Q5) | `<stamp>_F3_g3-map01-skill2-run.log`, `<stamp>_F3_g3-map01-skill2-at-exit.png`, `<stamp>_F3_g3-map01-skill2-intermission.png`, notes in `<stamp>_F3_g3-map01-notes.md` |
 | C7 | Q1, Q2, Q3, Q4 and Q5, plus G3-5's zero-secret run: skill 4, played, no cheats, **no secret entered** | `SD_ALLOW_ENGINE=1 MAP=MAP01 SKILL=4 tools/run.sh +screenshot_dir "$PWD/logs/shots"`. As C6, and do not enter S1, S2 or S3. Then `grep -c "A secret is revealed" docs/qa/evidence/<stamp>_F3_g3-map01-skill4-run.log`, and `--scan` as in C6 | Intermission reached. `--scan` PASS. The grep prints `0`. Notes: ammo at the exit (from the HUD shot), and whether the player was ever left with only the ice axe (Q4) | `<stamp>_F3_g3-map01-skill4-run.log`, `<stamp>_F3_g3-map01-skill4-at-exit.png`, `<stamp>_F3_g3-map01-skill4-intermission.png`, notes in `<stamp>_F3_g3-map01-notes.md` |
 | C8 | Q7: G3-5's `-nomonsters` run | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --nomonsters --skills 3 --keep-evidence` | Exit REACHED, `monsters: engine 0, map data 0`, VERDICT PASS | `<stamp>_F3_g3-map01-g3-auto-skill3-nomonsters{.log,-report.txt,-end.png}` |
@@ -657,18 +665,24 @@ verifies G3-F4's fix. Prudent, not required: `g3-auto` on 2, 3 and 4 once
 more on `route-3`, since every warp now stops the body first. G3 is
 signed only on a `tools/verify.py full` run.
 
-## MAP03 — `map03-critical`, the scripted critical path (note, not a gate; 2026-10-14)
+## The metro, MAP02 (MAP03 when written) — `metro-critical`, the scripted critical path (note, not a gate; 2026-10-14)
 
-`tools/route.py --route map03-critical` (helper `route-4`) is MAP03's
+> D62 renumbered the maps after this note was written: the metro is MAP02,
+> its route `metro-critical` (was `map03-critical`), its sources
+> `src/maps/MAP02/`. The text below uses the new names; dated evidence of
+> the metro (`2026-10-14_1902_F3_map03-v0-walk.*`) keeps the old one.
+
+`tools/route.py --route metro-critical` (helper `route-4`) is the metro's
 `g3-auto`: A0 start (no key) → BD0 the blue blast door pressed **without**
 the pass (the press must be in the log and tag `TAG_BLAST_DOOR` must stay
 shut: K2's first half) → PASS walked onto, never `give` (a Key owned; the
 shutter still shut) → BD1 the door pressed again (open) and walked through
 into B1 → SWA (shutter open, gate still shut) → SWB (gate open) → E0 from the
 west tunnel through the gate into the exit niche → E1 the exit switch
-(`exit_by="switch"`, `next = endtitle`). Every walk is cleared with
+(`exit_by="switch"`; the exit leads to MAPINFO's next map, MAP03, since
+D62, and was `next = endtitle` before). Every walk is cleared with
 `sdclear` first. No coordinate is copied: tags, the locked-door special and
-the pass's DoomEdNum come from `src/maps/MAP03/map.py`'s constants, every
+the pass's DoomEdNum come from `src/maps/MAP02/map.py`'s constants, every
 position from the built map, so the route already follows v1's move of the
 pass into the duty officer's booth. `tests/test_route.py` holds the
 geometry and the `--parse` verdicts (clean pass on 2/3/4; the door opening
@@ -678,11 +692,13 @@ the gate shut and the exit not reached all FAIL).
 `route-4` key lines; that a press on a locked line prints its `SDTEST line`
 without the key (the lock message is accepted instead); the walk lengths'
 acceleration allowance (`ACCEL_TICS`). The PM's command:
-`SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route map03-critical --keep-evidence`.
+`SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route metro-critical --keep-evidence`.
 **Same day, D60/D62 follow-up:** every route now reads where its exit leads
 from MAPINFO (`exit_expectation`): `g3-auto` and `g3-secrets` expect MAP01
-to lead to the metro (`next = "MAP03"`) and FAIL on an end sequence; only the
-metro and the practice range expect one. Routes find their map by its
-map.py constants, not by slot, so D62's renumbering moves them with it.
+to lead to the metro (`next = "MAP02"` since D62) and FAIL on an end
+sequence; since D62 `metro-critical` expects the metro to lead to the
+factory (MAP03), and only the practice range's routes expect an end
+sequence. Routes find their map by its map.py constants, not by slot, so
+D62's renumbering moved them with it (`tests/test_route.py`).
 NOT VERIFIED: that GZDoom's unload event names the next map as MAPINFO
 spells it (compared without case).

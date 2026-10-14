@@ -1,9 +1,10 @@
-"""MAP03 "Metro-bunker" - v1: the blue pass signposted, and the map populated.
+"""MAP02 "Metro-bunker" - v1: the blue pass signposted, and the map populated.
 
-Design document: docs/levels/MAP03-metro.md (v0 section 14, v1 section 16).
+Design document: docs/levels/MAP02-metro.md (v0 section 14, v1 section 16).
 LORE's second campaign map (docs/product/LORE.md, "Metro-bunker tunnels:
-first key, first heavy hybrids") built as MAP03, because MAP02 is the
-practice range since D41. The player arrives by the service lift MAP01 ends
+first key, first heavy hybrids"). Built as MAP03 while MAP02 was the
+practice range (D41); MAP02 since D62 (2026-10-14), when the slots began to
+follow the campaign. The player arrives by the service lift MAP01 ends
 on.
 
 v0 (section 14) was the whole floor plan with nothing in it but the start
@@ -28,7 +29,7 @@ And section 9's population, placed: 23 / 36 / 51 monsters on skills 2 / 3 /
 4 (the Legion holds the station, the Reich the depths, D35 inverted from
 MAP01), the closets of SW-A on platform N and of SW-B in the west tunnel,
 the three weapons on the route on every skill, and ammunition and health
-scaled down by skill with G3-8's margin (tests/test_map03.py).
+scaled down by skill with G3-8's margin (tests/test_map02_metro.py).
 
 The route, in one line: lift -> concourse -> escalator (the locked blast door
 is seen at the far end of the hall from the top) -> hall (the lit booth and
@@ -43,7 +44,7 @@ tunnel -> exit.
 Geometry is painted with `GridMap` (tools/sdbuild/udmf.py), MAP01's method.
 
 Run it (the PM or the CEO; agents never start GZDoom, D26):
-    python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP03 SKILL=3 tools/run.sh
+    python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP02 SKILL=3 tools/run.sh
 """
 
 from __future__ import annotations
@@ -64,7 +65,7 @@ from sdbuild.udmf import (
     switch_door_open_style,
 )
 
-MAP_NAME = "MAP03"
+MAP_NAME = "MAP02"
 
 # --- The approved set (docs/art/TEXTURE-INDEX.md) --------------------------
 # Metro set, D42 (first six) and D48 (the ten fill pieces): all approved.
@@ -103,7 +104,7 @@ LANE_ALONG_X = {"rotationfloor": 90.0}
 # by MAP01, goes to SW-A.
 SW_A_FACE = "SDSW1C"    # substation: opens the platform shutter
 SW_B_FACE = "SDSW1B"    # command post console: opens the tunnel gate
-EXIT_FACE = "SDSW1D"    # hazard panel: the exit, as on MAP01 and MAP02
+EXIT_FACE = "SDSW1D"    # hazard panel: the exit, as on MAP01 and the range
 SWITCH_FACES = (SW_A_FACE, SW_B_FACE, EXIT_FACE)
 SWITCH_WIDTH = 64       # every SDSW1x is 64x128
 SWITCH_HEIGHT = 128

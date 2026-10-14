@@ -13,8 +13,8 @@ So the bulk of this file drives `decide()` with synthetic path lists:
   - the specific boundaries that cost something if they are wrong -
     `tools/build.py` is FULL while `tools/check_pk3.py` is FAST, and
     `tools/art/` is ART while `tools/` at large is FAST;
-  - the engine-map shortcut: a change confined to src/maps/MAP02 boots
-    MAP02 and not the whole set, but a ZScript change boots everything;
+  - the engine-map shortcut: a change confined to src/maps/RANGE boots
+    RANGE and not the whole set, but a ZScript change boots everything;
   - noise (.DS_Store, __pycache__, *.pyc) never raises the level, because
     an editor dropping must not open a GZDoom window;
   - the unknown path, which must land on FULL - the safe answer to "I do
@@ -47,7 +47,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 import verify  # noqa: E402
 
 L = verify.Level
-MAPS = ("MAP01", "MAP02")
+MAPS = ("MAP01", "RANGE")
 
 
 class LadderTests(unittest.TestCase):
@@ -216,18 +216,18 @@ class NoiseTests(unittest.TestCase):
 
 class EngineMapTests(unittest.TestCase):
     def test_a_change_confined_to_one_map_boots_only_that_map(self):
-        decision = verify.decide(["src/maps/MAP02/map.py"], MAPS)
+        decision = verify.decide(["src/maps/RANGE/map.py"], MAPS)
         self.assertEqual(L.FULL, decision.level)
-        self.assertEqual(("MAP02",), decision.maps)
+        self.assertEqual(("RANGE",), decision.maps)
 
     def test_two_maps_boot_two_maps(self):
-        decision = verify.decide(["src/maps/MAP01/map.py", "src/maps/MAP02/map.py"], MAPS)
+        decision = verify.decide(["src/maps/MAP01/map.py", "src/maps/RANGE/map.py"], MAPS)
         self.assertEqual(MAPS, decision.maps)
 
     def test_a_global_engine_change_boots_every_map(self):
         for path in ("src/lumps/MAPINFO", "src/zscript/sd/player.zs",
                      "tools/sdbuild/pk3.py", "tools/build.py"):
-            decision = verify.decide([path, "src/maps/MAP02/map.py"], MAPS)
+            decision = verify.decide([path, "src/maps/RANGE/map.py"], MAPS)
             self.assertEqual(MAPS, decision.maps, f"{path} must not be narrowed to one map")
 
     def test_an_unknown_path_boots_every_map(self):
@@ -432,7 +432,7 @@ class GateDecisionTests(unittest.TestCase):
 
     def test_auto_picks_the_same_level_with_or_without_the_gate(self):
         for files in (["docs/PRD.md"], ["tests/test_verify.py"],
-                      ["assets/flats/x/SDFLR1.png"], ["src/maps/MAP02/map.py"]):
+                      ["assets/flats/x/SDFLR1.png"], ["src/maps/RANGE/map.py"]):
             plain = self._explain(["auto", "--files", *files, "--explain"])
             gated = self._explain(["auto", "--files", *files, "--gate", "--explain"])
             with self.subTest(files=files):
@@ -540,9 +540,9 @@ class CliTests(unittest.TestCase):
         self.assertNotIn("smoke", out)
 
     def test_explain_names_the_maps_it_would_boot(self):
-        code, out = self._run(["auto", "--files", "src/maps/MAP02/map.py", "--explain"])
+        code, out = self._run(["auto", "--files", "src/maps/RANGE/map.py", "--explain"])
         self.assertEqual(verify.EXIT_OK, code)
-        self.assertIn("smoke MAP02", out)
+        self.assertIn("smoke RANGE", out)
         self.assertNotIn("MAP01", out)
 
     def test_explain_for_an_explicit_level_needs_no_git(self):
@@ -568,7 +568,7 @@ class CliTests(unittest.TestCase):
         _code, out = self._run(
             ["auto", "--files", "src/zscript/sd/player.zs", "--maps", "map01", "--explain"])
         self.assertIn("smoke MAP01", out)
-        self.assertNotIn("MAP02", out)
+        self.assertNotIn("RANGE", out)
 
 
 class ExitCodeTests(unittest.TestCase):

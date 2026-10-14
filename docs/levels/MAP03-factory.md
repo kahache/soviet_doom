@@ -1,24 +1,31 @@
-# MAP04 — Tractor Factory
+# MAP03 — «Танкоград» (Tankograd), the tractor factory
+
+> **D62 and D63 (2026-10-14): this map is MAP03, named «Танкоград» /
+> Tankograd.** It was built and documented as MAP04 while MAP02 was the
+> practice range (D41); the slots now follow the campaign (MAP01 → MAP02 the
+> metro → MAP03 this factory) and the range is the lump `RANGE`. "MAP02" in
+> this document is the metro. Dated evidence keeps its file names (a `map03`
+> there is the metro). Wiring: `docs/engine/MOD-SPEC.md` §4.6.
 
 Design document. Owner: `level-designer`. Status: **v0 BUILT 2026-10-14
 (§14), not yet walked.** A working brief for the PM; the CEO's verdict comes
 from walking the map, not from reading this (D28). Built MVP first (D60): a
 complete, walkable map from start to exit, gameplay polish later. Source:
-`src/maps/MAP04/map.py`; tests: `tests/test_map04.py`. Russian mirror: owed
+`src/maps/MAP03/map.py`; tests: `tests/test_map03_factory.py`. Russian mirror: owed
 at the phase close (D34).
 
 > **Walk it** (the PM or the CEO; agents never start GZDoom, D26):
-> `python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP04 tools/run.sh`.
-> Until `mod-engineer` adds the MAPINFO entry of §11 the map has no title and
-> its exit switch leads to a MAP05 that does not exist (checklist K12).
+> `python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP03 tools/run.sh`.
+> MAPINFO wires it since D62 (§11): the metro's exit leads here, and this
+> map's exit ends the episode.
 
 Inputs this document obeys and does not restate: `docs/product/LORE.md` (the
 factory: "Tractor factory (actually tanks) — episode climax: the portal",
 texture set "industry: brick, rust, chains"), `docs/PRD.md` (D28, D35 for
-the factions, D58 for MAP03's unfound pass, D60 for MVP first and the
+the factions, D58 for MAP02's unfound pass, D60 for MVP first and the
 campaign), `docs/engine/BESTIARY.md` (the General and the heavy Panzermensch
 are kept for this map), `docs/art/TEXTURE-INDEX.md` (approved lumps only) and
-the method of `docs/levels/MAP03-metro.md`.
+the method of `docs/levels/MAP02-metro.md`.
 
 ## 1. Synopsis
 
@@ -32,24 +39,24 @@ keys of the works, crosses the factory floor, and cuts the portal's power.
 
 | | |
 |---|---|
-| Comes after | MAP03 Metro-Bunker, which ends walking west along a running tunnel past its gate (MAP03 §5). MAP04 starts at the other end of that tunnel: the factory's goods spur, on the same tubbing and the same rails. |
-| Why MAP04 | MAP02 is the practice range (D41). LORE's table numbers the factory MAP03; built, it is **MAP04**. |
-| What it adds | **two keys** (MAP03 taught one), a hub that shows both locks at once, the first map where the player **sees the enemy's purpose** (the tanks), and the **episode boss**: the General in the portal hall (v3). |
+| Comes after | MAP02 Metro-Bunker, which ends walking west along a running tunnel past its gate (MAP02 §5). MAP03 starts at the other end of that tunnel: the factory's goods spur, on the same tubbing and the same rails. |
+| Its number | **MAP03 since D62**, as LORE's table numbers it. Built as MAP04 while MAP02 was the practice range (D41). |
+| What it adds | **two keys** (MAP02 taught one), a hub that shows both locks at once, the first map where the player **sees the enemy's purpose** (the tanks), and the **episode boss**: the General in the portal hall (v3). |
 | Climax | the portal (LORE). It sits in a containment drum in the factory's closed shop; the exit is the breaker that feeds it. Cutting it ends the episode. |
-| Factions (D35, BESTIARY Q7) | MAP01 Reich first, MAP03 inverted, the factory **mixes**: both flags side by side over the works (LORE). The Legion holds the public face (assembly hall, offices), the Reich the tank line and the foundry, both guard the portal under the General. |
-| Campaign wiring | **not changed by this task.** D60 runs MAP01 → MAP03 and says the factory is designed next; MAP03 holds cluster 1 (the ending) until MAP04 takes it (`MOD-SPEC` 4.6). §11 gives the entry and both steps. |
+| Factions (D35, BESTIARY Q7) | MAP01 Reich first, MAP02 inverted, the factory **mixes**: both flags side by side over the works (LORE). The Legion holds the public face (assembly hall, offices), the Reich the tank line and the foundry, both guard the portal under the General. |
+| Campaign wiring | **Done (D62).** The campaign is MAP01 → MAP02 → MAP03; this map holds cluster 1 and the ending (`MOD-SPEC` 4.6), and the metro's exit leads here through cluster 4's text. §11. |
 
 ## 3. What the map has to do
 
 | Job | How the layout does it |
 |---|---|
 | Teach two keys | the hub shows **both locked doors at once** from the dock's arch: red at the far west end, yellow in the south wall, each lit in its colour between two star plaques. The yellow key is **seen from the factory floor** up the office stair; the red key is seen **from the foundry's door**. Doom's grammar: lock before key, key before the lock it opens. |
-| Answer MAP03's walk (D58) | the CEO never found MAP03's pass. Here no key is in a side room: each lies alone on a lit pedestal on the route, in its lock's colour of light, and is seen from the doorway of its room (tested). A yellow lane on the factory floor joins the yellow door to the stair that leads to the yellow key. Light 192 is spent on five places only: two locks, two keys, the exit. |
+| Answer MAP02's walk (D58) | the CEO never found MAP02's pass. Here no key is in a side room: each lies alone on a lit pedestal on the route, in its lock's colour of light, and is seen from the doorway of its room (tested). A yellow lane on the factory floor joins the yellow door to the stair that leads to the yellow key. Light 192 is spent on five places only: two locks, two keys, the exit. |
 | Be a tractor factory that makes tanks | the assembly hall is the works' public face: two assembly lines, red-striped walls, offices above. Behind the yellow door (the "closed shop") the line is a **tank line**, with inspection pits; behind it the foundry casts the hulls. |
 | Be the climax | the portal hall is the biggest volume of the episode (1024 × 896, 384 high), the portal in a steel drum at its centre on a stepped dais, the General's arena (v3). |
 | End the episode | the exit is the breaker at the top of the dais, inside the drum: the portal's power cut. |
 
-Target length: 10–12 minutes first run on skill 3 (MAP03 is 8–10); about 5
+Target length: 10–12 minutes first run on skill 3 (MAP02 is 8–10); about 5
 once known.
 
 ## 4. Plan
@@ -144,7 +151,7 @@ blank inside `W` the drum's steel ring, `U` inside the drum, `u` porches,
 | — | Dais, 3 steps of 16 | 704…896 | 1088…1344 | 16…48 | 256 | 144 |
 | E | Exit niche (the breaker) | 688…704 | 1184…1248 | 48 | 176 | **192** |
 
-Extent 3776 × 2144 units (MAP03: 3552 × 1552). Every height is a multiple
+Extent 3776 × 2144 units (MAP02: 3552 × 1552). Every height is a multiple
 of 16; no step up is over 16 (tested).
 
 ## 5. Progression, keys, switches and the exit
@@ -173,7 +180,7 @@ lockdefs.txt`, g4.14.2). In the fiction: the **yellow pass** to the closed
 shop, kept on the works director's desk, and the **red pass** to the portal
 shop, dropped on the casting platform where the foundry's foreman fell (v3:
 his body, a decoration). `mod-engineer` can give them Soviet names the way
-MAP03's blue pass got one (`SD_BluePass`, `Species` trick, MOD-SPEC §6, "The
+MAP02's blue pass got one (`SD_BluePass`, `Species` trick, MOD-SPEC §6, "The
 blue pass"); the map does not change when that lands.
 
 | Id | Where | Type | Special | Can it lock the player out? |
@@ -201,9 +208,9 @@ Each gate is seen before it opens: both locks from the arch (tested); the
 drum's gate from the antechamber, as the player enters the portal hall, and
 again from SW-B in the booth, so the press shows its effect (both tested);
 the exit from the gate (tested). The shutter is the deliberate exception,
-as MAP03's SH: a shortcut found from behind, wall from the hall.
+as MAP02's SH: a shortcut found from behind, wall from the hall.
 
-**Signposting, MAP03's lesson applied from v0** (D58):
+**Signposting, MAP02's lesson applied from v0** (D58):
 
 - **Each key lies alone, lit, on the route.** The yellow key is on the
   director's desk, straight up the office stair from the hall's centre aisle:
@@ -223,7 +230,7 @@ as MAP03's SH: a shortcut found from behind, wall from the hall.
 - **Real faces.** Every door wears `SDDOOR1`, one whole tile (tested); every
   switch its own `SDSW1x` face, one-shot so it stays ON (tested).
 
-Rules that remove whole classes of softlock, kept from MAP01 §4 and MAP03 §5:
+Rules that remove whole classes of softlock, kept from MAP01 §4 and MAP02 §5:
 
 - **No door closes behind the player.** Locks and remote doors open for
   good; the two manual doors reopen from both sides.
@@ -260,7 +267,7 @@ Rules that remove whole classes of softlock, kept from MAP01 §4 and MAP03 §5:
 | 5 | Tank line | **the reveal**: the tractors are tanks; the Reich at work | the pits, the heavies |
 | 6 | Foundry | heat, height, a pit to cross; Doughboys in the tall room | the drop and the climb back; the red key |
 | 7 | SW-A | the shutter opens onto the hall beside the red door | a shortcut from behind |
-| 8 | Hall, again | **spike**: SW-A's closets on ground already cleared | MAP03's pattern |
+| 8 | Hall, again | **spike**: SW-A's closets on ground already cleared | MAP02's pattern |
 | 9 | Portal hall | **climax**: the General and his escort round the drum | the boss |
 | 10 | Booth, drum | the gate opens; the portal at the top of the dais | — |
 | 11 | Exit | the breaker thrown; the episode ends | — |
@@ -275,7 +282,7 @@ and two metro pieces where they fit; v1 swaps in the industrial pieces of
 
 | Zone | Walls | Floor | Ceiling | v1 intention |
 |---|---|---|---|---|
-| Goods spur | `SDTUBB1`, one tile floor to ceiling (MAP03's tunnels) | `SDFLR2` + `SDRAIL1` strip | `SDCEIL2` | the tunnel mouth in brick |
+| Goods spur | `SDTUBB1`, one tile floor to ceiling (MAP02's tunnels) | `SDFLR2` + `SDRAIL1` strip | `SDCEIL2` | the tunnel mouth in brick |
 | Loading dock | `SDCONC1` | `SDFLR2` + `SDRAIL1` strip | `SDCEIL2` | brick, a buffer stop, crates (`SDCRAT1/2`) |
 | Assembly hall | `SDCONC2` in three bands (MAP01's hangar, D30) | `SDFLR2`, the lane `SDFLR1` | `SDCEIL1` | brick, clerestory windows, the slogan banner, the two flags (LORE) |
 | Assembly lines | `SDSTEL1` | `SDFLR2` | | the tractors on them (props) |
@@ -327,7 +334,7 @@ secret has a way back.
 
 ## 9. Enemies and resources by skill (plan for v3; v0 places none)
 
-Doom stand-ins, so nothing renumbers when sprites change (MAP01, MAP03).
+Doom stand-ins, so nothing renumbers when sprites change (MAP01, MAP02).
 The General and the heavy Panzermensch make their first appearance here
 (BESTIARY §8, §9).
 
@@ -354,9 +361,9 @@ The General and the heavy Panzermensch make their first appearance here
 | Drum (behind the gate) | 1 stormtrooper | 2 stormtroopers | 2 stormtroopers + 1 Doughboy |
 | **Total** | **25** | **38** | **52** |
 
-Against MAP03's 23 / 36 / 51: a little more in numbers, much more in
+Against MAP02's 23 / 36 / 51: a little more in numbers, much more in
 weight (the boss on every skill). Nested by skill pairs (`skill_tier`), as
-MAP01 and MAP03. The General is 40 × 100 (BESTIARY §9): the portal hall is
+MAP01 and MAP02. The General is 40 × 100 (BESTIARY §9): the portal hall is
 384 high and he never has to pass a door.
 
 **The General's death and the exit** (v3, open point 4): BESTIARY gives him
@@ -365,10 +372,10 @@ the drum's gate opens on SW-B **or** on his death (MAPINFO `SpecialAction`,
 NOT VERIFIED), never only on his death, so a player who runs past him is not
 locked out.
 
-**Resources (v3).** Pistol-start finishable (`+map MAP04` gives the TT-33
+**Resources (v3).** Pistol-start finishable (`+map MAP03` gives the TT-33
 only): the IZh in the dock, the PPSh-41 in the offices, the RPG-7 on the
 tank line (before the heavies), the **ROKS-3 flamethrower in the foundry**
-(MAP03 §9 kept it for the factory), all on the route on every skill; the
+(MAP02 §9 kept it for the factory), all on the route on every skill; the
 Hand Katyusha in S1. Ammunition by G3-8's ruler (skill-4 ammo ≥ 1.35 × what
 the skill-4 monsters need), the General included; health scaled 2 > 3 > 4.
 
@@ -378,11 +385,11 @@ the skill-4 monsters need), the General included; health scaled 2 > 3 > 4.
 |---|---|---|
 | Manual door | `Door_Raise` 12 (tag, 16, 150, 0), `playeruse` + `repeatspecial` | VERIFIED on MAP01 |
 | Remote door, one-shot switch | `Door_Open` 11 (tag, 16, 0) | VERIFIED on MAP01 |
-| Locked door that stays open | `Door_LockedRaise` 13 (tag, 16, 0, lock, 0), both faces | VERIFIED on MAP03 (the blue door, `docs/qa/evidence/2026-10-14_1902_F3_map03-v0-walk.md`); locks 1 and 3 read from `lockdefs.txt`, not yet seen in engine: K5, K9 |
+| Locked door that stays open | `Door_LockedRaise` 13 (tag, 16, 0, lock, 0), both faces | VERIFIED on MAP02 (the blue door, `docs/qa/evidence/2026-10-14_1902_F3_map03-v0-walk.md`); locks 1 and 3 read from `lockdefs.txt`, not yet seen in engine: K5, K9 |
 | Exit | `Exit_Normal` 243 | VERIFIED on MAP01 |
 | Keys | things 6 (`YellowCard`), 13 (`RedCard`) | Doom actors, drawn by Freedoom |
-| Coloured light | sector `lightcolor` (0xRRGGBB, UDMF zdoom), yellow `0xFFD860`, red `0xFF6048` | field name from the UDMF zdoom spec, as MAP03 v1 uses it; **NOT VERIFIED** in our engine runs: K4 |
-| Turned flats | `rotationfloor` 90 on the rail strips | as MAP03 (its K8) |
+| Coloured light | sector `lightcolor` (0xRRGGBB, UDMF zdoom), yellow `0xFFD860`, red `0xFF6048` | field name from the UDMF zdoom spec, as MAP02 v1 uses it; **NOT VERIFIED** in our engine runs: K4 |
+| Turned flats | `rotationfloor` 90 on the rail strips | as MAP02 (its K8) |
 
 Tag plan: **1** D1 · **2** D2 · **4** yellow door · **5** red door · **10**
 shutter (SW-A; v3 adds the hall's closets) · **11** the drum's gate (SW-B;
@@ -390,50 +397,59 @@ v3 adds the drum's closets). Free: 3, 6–9, 12 and up.
 
 ## 11. MAPINFO and LANGUAGE (for `mod-engineer`)
 
-This role does not touch MAPINFO or LANGUAGE.
+**Done (D62, 2026-10-14), both steps at once.** `map MAP03 lookup "SD_MAP03_NAME"`, `cluster = 1`, `next = endtitle`,
+`music = ""`, `par = 360`: this map ends the episode. The metro (MAP02) is in cluster 4 with
+`next = "MAP03"` and the transition text `SD_MAP02_EXIT_TEXT`, from the draft below with the
+map's name added; `SD_END01_TEXT` is rewritten for the portal's fall; the title is
+`SD_MAP03_NAME` = "Tankograd" / «Танкоград» (D63). Contract: `docs/engine/MOD-SPEC.md` §4.6.
 
-**Step 1, now (v0–v3):** MAP04 loads with a title and its exit leaves
-cleanly; the campaign is untouched.
+The proposal as written, with the numbers of its day (this map was MAP04, the
+metro MAP03, the range MAP02):
 
-```
-// MAP04, the tractor factory (docs/levels/MAP04-factory.md). LORE's third
-// campaign map and the episode's climax, numbered 04 because MAP02 is the
-// practice range (D41). Not wired into the campaign yet: reached with
-// `map MAP04` / MAP=MAP04 tools/run.sh. No cluster on purpose, so leaving it
-// prints neither the campaign's ending (cluster 1) nor the range's (2).
-map MAP04 lookup "SD_MAP04_NAME"
-{
-	next = endtitle
-	music = ""
-	sky1 = "SKY1"
-	par = 360
-}
-```
-
-`LANGUAGE` (D21, both languages in the same task): `SD_MAP04_NAME` =
-"Tractor Factory" / «Тракторный завод», LORE's words, as the working title
-(a proper name is open point 2). `par = 360` is this role's estimate for a
-player who knows the route (§3). `music = ""` until `sound-designer` picks a
-public-domain piece for it (D59). Without step 1, K12 cannot pass: GZDoom's
-default `next` for MAP04 is MAP05, which does not exist.
-
-**Step 2, when the CEO wires the factory in (D60 says it is next), by
-MOD-SPEC 4.6's rule** (cluster 1 holds the campaign's last map; one chapter
-cluster per earlier map):
-
-- MAP03: `cluster = 4`, `next = "MAP04"` (it gives cluster 1 to MAP04).
-- a new `cluster 4 { exittext = lookup, "SD_MAP03_EXIT_TEXT" flat = "SDFLR1" music = "" }`:
-  the transition from the metro to the factory.
-- MAP04: `cluster = 1`, `next = endtitle`: its exit prints the campaign's
-  ending.
-- `LANGUAGE`: `SD_MAP03_EXIT_TEXT` (new), and `SD_END01_TEXT` **rewritten**:
-  it speaks of Zarya-7 retaken and would then follow the portal's fall. That
-  is writing for the CEO; a draft of the transition, for him to change:
-  - en: "The westbound tunnel climbs into daylight at a goods spur. Beyond
-    the buffers stand the sheds of a tractor works, and the tracks in the
-    yard are too wide for tractors."
-  - ru: «Западный тоннель выходит на свет у подъездного пути. За тупиком —
-    цеха тракторного завода, и колея во дворе слишком широка для тракторов.»
+> This role does not touch MAPINFO or LANGUAGE.
+>
+> **Step 1, now (v0–v3):** MAP04 loads with a title and its exit leaves
+> cleanly; the campaign is untouched.
+>
+> ```
+> // MAP04, the tractor factory (docs/levels/MAP04-factory.md). LORE's third
+> // campaign map and the episode's climax, numbered 04 because MAP02 is the
+> // practice range (D41). Not wired into the campaign yet: reached with
+> // `map MAP04` / MAP=MAP04 tools/run.sh. No cluster on purpose, so leaving it
+> // prints neither the campaign's ending (cluster 1) nor the range's (2).
+> map MAP04 lookup "SD_MAP04_NAME"
+> {
+> 	next = endtitle
+> 	music = ""
+> 	sky1 = "SKY1"
+> 	par = 360
+> }
+> ```
+>
+> `LANGUAGE` (D21, both languages in the same task): `SD_MAP04_NAME` =
+> "Tractor Factory" / «Тракторный завод», LORE's words, as the working title
+> (a proper name is open point 2). `par = 360` is this role's estimate for a
+> player who knows the route (§3). `music = ""` until `sound-designer` picks a
+> public-domain piece for it (D59). Without step 1, K12 cannot pass: GZDoom's
+> default `next` for MAP04 is MAP05, which does not exist.
+>
+> **Step 2, when the CEO wires the factory in (D60 says it is next), by
+> MOD-SPEC 4.6's rule** (cluster 1 holds the campaign's last map; one chapter
+> cluster per earlier map):
+>
+> - MAP03: `cluster = 4`, `next = "MAP04"` (it gives cluster 1 to MAP04).
+> - a new `cluster 4 { exittext = lookup, "SD_MAP03_EXIT_TEXT" flat = "SDFLR1" music = "" }`:
+>   the transition from the metro to the factory.
+> - MAP04: `cluster = 1`, `next = endtitle`: its exit prints the campaign's
+>   ending.
+> - `LANGUAGE`: `SD_MAP03_EXIT_TEXT` (new), and `SD_END01_TEXT` **rewritten**:
+>   it speaks of Zarya-7 retaken and would then follow the portal's fall. That
+>   is writing for the CEO; a draft of the transition, for him to change:
+>   - en: "The westbound tunnel climbs into daylight at a goods spur. Beyond
+>     the buffers stand the sheds of a tractor works, and the tracks in the
+>     yard are too wide for tractors."
+>   - ru: «Западный тоннель выходит на свет у подъездного пути. За тупиком —
+>     цеха тракторного завода, и колея во дворе слишком широка для тракторов.»
 
 ## 12. Version plan
 
@@ -441,16 +457,16 @@ Each version loads in GZDoom and is walkable from start to exit.
 
 | Version | Content | Done when |
 |---|---|---|
-| **v0 — grey box** ✅ **BUILT 2026-10-14** (§14) | the whole plan of §4, every door, both keys, both locks, both switches, the gate, the exit, stairs and drops; the approved sets where they fit (§7.1); the signposting of §5 (lit keys, coloured light, the lane, the plaques); light by zone; **no monsters, no items, no secrets** but the start and the two keys | the CEO walks it, finds both keys unaided and judges the shape (§14.4); `tests/test_map04.py` green |
+| **v0 — grey box** ✅ **BUILT 2026-10-14** (§14) | the whole plan of §4, every door, both keys, both locks, both switches, the gate, the exit, stairs and drops; the approved sets where they fit (§7.1); the signposting of §5 (lit keys, coloured light, the lane, the plaques); light by zone; **no monsters, no items, no secrets** but the start and the two keys | the CEO walks it, finds both keys unaided and judges the shape (§14.4); `tests/test_map03_factory.py` (`test_map04.py` then) green |
 | v1 — textured | the industrial pieces of §7.2 as approved; the tanks and tractors; the Lenin poster in the director's office; the hall's clerestory; anything the v0 walk moves | the CEO judges the factory as a factory from screenshots |
 | v2 — light and detail | the foundry's glow and molten channel, the portal's light, chains, flicker in the tank line, the flags | a first-time player finds both keys and the exit without being told |
-| v3 — density, combat, resources | §9 placed with closets on tags 10 and 11, the General, the secrets of §8, the ammo budget, MAP03-like density | the episode is played through on skill 3 |
+| v3 — density, combat, resources | §9 placed with closets on tags 10 and 11, the General, the secrets of §8, the ammo budget, MAP02-like density | the episode is played through on skill 3 |
 
 ## 13. Open points for the CEO
 
 1. **Walk v0** (D28): the judgements of §14.4. The only one that blocks v1.
-2. **The factory's name.** Working title "Tractor Factory" / «Тракторный
-   завод». A proposal with the history in it: the works that made tanks in
+2. ~~**The factory's name.** Working title "Tractor Factory" / «Тракторный
+   завод».~~ **Decided (D63): «Танкоград» / Tankograd.** A proposal with the history in it: the works that made tanks in
    the war were nicknamed **«Танкоград»** ("Tankograd"); a fictional works in
    the Urals, named in the period's way, e.g. «Уральский тракторный завод
    имени 60-летия Октября».
@@ -465,9 +481,9 @@ Each version loads in GZDoom and is walkable from start to exit.
 
 ## 14. v0 build record (2026-10-14)
 
-Source: `src/maps/MAP04/map.py`, painted with `GridMap` like MAP01 and
-MAP03. **65 sectors, 273 linedefs, 214 vertices, 3 things** (the start and
-the two keys). MAP03's v0 was 73 sectors and 418 lines; this v0 is leaner on
+Source: `src/maps/MAP03/map.py`, painted with `GridMap` like MAP01 and
+MAP02. **65 sectors, 273 linedefs, 214 vertices, 3 things** (the start and
+the two keys). MAP02's v0 was 73 sectors and 418 lines; this v0 is leaner on
 purpose (D60), with the larger volumes of a climax.
 
 ### 14.1 What is in it
@@ -493,10 +509,10 @@ the tractors and the posters (v1).
 
 | Check | Result |
 |---|---|
-| `tests/test_map04.py` | **33 tests, all green**: closed clockwise sectors, no duplicate vertex, no sector painted away; no step up over 16; every texture approved and packed; every door leaf one tile (ten faces); the star plaques, two at each lock, each one tile; light range; **light 192 only at the two locks, the two keys and the exit**; **each key in its lock's colour, and nothing else in it**; v0 scope (start and two keys, every skill; no secret); **everything reachable** at the end but the assembly lines; **the exit reached, and only in the last round**; **no trap at any stage**; from everywhere the exit at the end; the drops left by stairs; **the route in four rounds**; the shortcut not needed; one yellow and one red key in their zones; both locked doors' specials, locks and stay-open delay on both faces; **sight lines**: both locks from the arch, the yellow key from two points of the factory floor, the red key from the pouring arch and the gallery, the drum's gate from the antechamber and from SW-B, the exit from the gate; the lane joins the yellow portal to the stair; real, distinct, one-shot switch faces and the exit's hazard panel; each switch opens what §5 says; SW-A beside the shutter's passage; the shutter wall-faced from the hall; every door tall enough; no press consumes a gate |
+| `tests/test_map03_factory.py` (`test_map04.py` then) | **33 tests, all green**: closed clockwise sectors, no duplicate vertex, no sector painted away; no step up over 16; every texture approved and packed; every door leaf one tile (ten faces); the star plaques, two at each lock, each one tile; light range; **light 192 only at the two locks, the two keys and the exit**; **each key in its lock's colour, and nothing else in it**; v0 scope (start and two keys, every skill; no secret); **everything reachable** at the end but the assembly lines; **the exit reached, and only in the last round**; **no trap at any stage**; from everywhere the exit at the end; the drops left by stairs; **the route in four rounds**; the shortcut not needed; one yellow and one red key in their zones; both locked doors' specials, locks and stay-open delay on both faces; **sight lines**: both locks from the arch, the yellow key from two points of the factory floor, the red key from the pouring arch and the gallery, the drum's gate from the antechamber and from SW-B, the exit from the gate; the lane joins the yellow portal to the stair; real, distinct, one-shot switch faces and the exit's hazard panel; each switch opens what §5 says; SW-A beside the shutter's passage; the shutter wall-faced from the hall; every door tall enough; no press consumes a gate |
 | Mutation check (scratch script, not committed) | each of five planted faults turns the suite red: the red door asking for the yellow key (2 tests), the foundry stair removed (3), the platform's last step too high (6), the red key behind the red door (10), the yellow key off the desk (4) |
-| `tools/check_pk3.py` | `maps/MAP04.wad: MAP04/TEXTMAP/ENDMAP, 214 vertices, 273 linedefs, 65 sectors, 3 things`; 0 errors, 0 warnings |
-| `tools/verify.py fast` (Windows PC, `.venv/Scripts/python.exe`, 2026-10-14) | **VERDICT: PASS** in 174 s: docs PASS (the only MAP04 warning is its Russian mirror, D34), build PASS, `check_pk3` 0 errors 0 warnings, **1734 tests**, 112 skipped (slow art). A run minutes earlier failed in `test_route` and `test_hand_study`, files other agents had open in the working tree; the rerun was clean |
+| `tools/check_pk3.py` | `maps/MAP03.wad: MAP03/TEXTMAP/ENDMAP, 214 vertices, 273 linedefs, 65 sectors, 3 things`; 0 errors, 0 warnings |
+| `tools/verify.py fast` (Windows PC, `.venv/Scripts/python.exe`, 2026-10-14) | **VERDICT: PASS** in 174 s: docs PASS (the only MAP03 warning is its Russian mirror, D34), build PASS, `check_pk3` 0 errors 0 warnings, **1734 tests**, 112 skipped (slow art). A run minutes earlier failed in `test_route` and `test_hand_study`, files other agents had open in the working tree; the rerun was clean |
 | GZDoom | **not run** (D26). Owed: §14.5 |
 
 The first run of the suite found two things, both fixed before delivery:
@@ -507,7 +523,7 @@ the office doorway, not stop at the desk.
 
 ### 14.4 What I want the CEO to judge while walking it
 
-The route is **not told** this time, on purpose: MAP03's walk showed that
+The route is **not told** this time, on purpose: MAP02's walk showed that
 the map has to tell it (D58). The judgement that blocks v1 is the first one.
 
 1. **Did you find both keys without help?** If not, where did you look?
@@ -523,7 +539,7 @@ the map has to tell it (D58). The judgement that blocks v1 is the first one.
 
 ### 14.5 Engine checklist for the PM (D26: this role does not start GZDoom)
 
-Method as MAP03 §14.5: `warp x y`, turn to the facing (Doom angles: 0 east,
+Method as MAP02 §14.5: `warp x y`, turn to the facing (Doom angles: 0 east,
 90 north, 180 west, 270 south), `+use`, `wait`, `screenshot`. Skill 3. Every
 use warp is within 64 of the line it presses. Log and screenshots to
 `docs/qa/evidence/`. K12 needs §11 step 1.
@@ -541,20 +557,20 @@ use warp is within 64 of the line it presses. Log and screenshots to
 | K9 | 1632 1184 | 180 | `+use`; then `give RedCard`, `+use` | as K5, the red-key line (proves lock 1); open and staying open |
 | K10 | 1440 1184 | 180 | — | the portal hall, the drum ahead, its gate's leaf in the porch |
 | K11 | 1216 1760 | 90 | `+use`, screenshot; turn to 250 | `SDSW1A` → `SDSW2A`; the drum's gate open |
-| K12 | 736 1216 | 180 | screenshot, then `+use` | the exit niche lit, `SDSW1D`; on use, the intermission, then the title |
+| K12 | 736 1216 | 180 | screenshot, then `+use` | the exit niche lit, `SDSW1D`; on use, the intermission, then `SD_END01_TEXT` (the ending, since D62), then the title |
 | K13 | the log | — | — | zero lines matching the G3-2 failure patterns of MAP01 §11; nothing about `lightcolor`, `rotationfloor`, special 13 or any `SD` texture |
 
 ### 14.6 What I need from other roles
 
-- **`mod-engineer`:** the MAPINFO entry and `SD_MAP04_NAME` of §11, step 1
-  (blocking K12 only); step 2 when the PM wires the campaign. Optionally,
-  `SD_` classes for the two passes, as for MAP03's blue pass, with their
+- **`mod-engineer`:** ~~the MAPINFO entry and `SD_MAP03_NAME` of §11, step 1
+  (blocking K12 only); step 2 when the PM wires the campaign.~~ Done (D62). Optionally,
+  `SD_` classes for the two passes, as for MAP02's blue pass, with their
   pickup and locked-door lines in both languages (`PD_YELLOWCO`,
   `PD_REDCO`, and Freedoom's DEHACKED caveat of MOD-SPEC §6). Later: the
   ANIMDEFS for the molten metal and the portal (§7.2).
 - **`art-director`:** the industrial pieces of §7.2, items 1–5 first (they
   are what v1 needs); the pass sprites; the portal (open point 6).
 - **`sound-designer`:** a public-domain piece for the factory (D59).
-- **PM:** renumber LORE's episode table (the factory is MAP04) and
-  BESTIARY's "MAP03" references to the General and the heavy Panzermensch,
-  which mean this map (MAP03 §2 already asked).
+- ~~**PM:** renumber LORE's episode table and BESTIARY's references.~~ Not
+  needed: D62 gave the maps LORE's numbers, so BESTIARY's "MAP03" (the
+  General, the heavy Panzermensch) is this map again.

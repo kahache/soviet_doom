@@ -330,7 +330,7 @@ Outside the engine: open the preview page, or play
 
 In the engine (**the PM's, D26**; agents never start GZDoom): load
 `work/audio/sfx/sd-weapon-sfx-draft.pk3` **after** `dist/sovietdoom.pk3`, on
-MAP02's range (D41). Its SNDINFO redefines the 11 wired names; a later
+the practice range (D41; the lump `RANGE` since D62, MAP02 before). Its SNDINFO redefines the 11 wired names; a later
 definition of a logical name replacing an earlier one is **NOT VERIFIED**
 in this engine. The 20 names marked `// needs a hook` play only from the
 console, e.g. `playsound sd/weapon/tokarev/dry`. Owed: one engine pass to

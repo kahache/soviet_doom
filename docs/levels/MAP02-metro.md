@@ -1,21 +1,29 @@
-# MAP03 — Metro-Bunker
+# MAP02 — Metro-Bunker
+
+> **D62 (2026-10-14): this map is MAP02.** It was built and documented as
+> MAP03 while MAP02 was the practice range (D41); the slots now follow the
+> campaign (MAP01 → MAP02, the metro → MAP03, the factory «Танкоград») and
+> the range is the lump `RANGE`. Paths, commands and the campaign rows below
+> use the new numbers; the build and walk records (§14-§16) keep "MAP03"
+> where they record what was built and seen that day, and dated evidence
+> keeps its file names (`…_map03-v0-walk.*`). Wiring: `docs/engine/MOD-SPEC.md` §4.6.
 
 Design document. Owner: `level-designer`. Status: **v1 BUILT 2026-10-14
 (§16): the blue pass signposted and the map populated; not yet walked.**
 v0 (§14) was walked by the CEO the same day (§15, D58): "me gusta de
 momento", but the pass was not found. A working brief for the PM; the CEO's
 verdict comes from walking the map, not from reading this (D28). Source:
-`src/maps/MAP03/map.py`; tests: `tests/test_map03.py`. Russian mirror: owed
+`src/maps/MAP02/map.py`; tests: `tests/test_map02_metro.py`. Russian mirror: owed
 at the phase close (D34).
 
 > **Walk it** (the PM or the CEO; agents never start GZDoom, D26):
-> `python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP03 SKILL=3 tools/run.sh`.
-> MAPINFO has carried MAP03's entry since v0's engine pass
+> `python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP02 SKILL=3 tools/run.sh`.
+> MAPINFO has carried this map's entry since v0's engine pass
 > (`docs/qa/evidence/2026-10-14_1902_F3_map03-v0-walk.md`).
 
 Inputs this document obeys and does not restate: `docs/product/LORE.md`
 (the metro-bunker map: "first key, first heavy hybrids", texture set "tiles,
-red marble, mosaics"), `docs/PRD.md` (D35 for the factions, D41 for MAP02,
+red marble, mosaics"), `docs/PRD.md` (D35 for the factions, D41 for the practice range, D62 for the numbers,
 D42/D47/D48/D56 for the metro textures, D55 for the Stalin poster),
 `docs/engine/BESTIARY.md`, `docs/art/TEXTURE-INDEX.md` (set "Metro", sixteen
 approved lumps) and the method and lessons of `docs/levels/MAP01-zarya-7.md`.
@@ -31,17 +39,16 @@ only way west towards Moscow is the running tunnel behind the bunker's gate.
 
 | | |
 |---|---|
-| Comes after | MAP01 Zarya-7, which ends on a service lift going **down**, in its darkest room (MAP01 §2: "MAP02 is already visible as a mood"). MAP03 starts at the bottom of that lift. |
-| Why MAP03 and not MAP02 | MAP02 is the practice range since D41 (its own episode, outside the campaign). LORE's episode table still numbers the metro MAP02 and the tractor factory MAP03; built, they are **MAP03 and MAP04**. |
+| Comes after | MAP01 Zarya-7, which ends on a service lift going **down**, in its darkest room (MAP01 §2: "MAP02 is already visible as a mood"). MAP02 starts at the bottom of that lift. |
+| Its number | **MAP02 since D62**, as LORE's episode table numbers it. Built as MAP03 while MAP02 was the practice range (D41); D62 gave the slots the campaign's order and the range the lump `RANGE`. |
 | What it adds | the **first key** (LORE), the first map where the player goes **down into the track and the tunnels**, and the heavies in numbers: a Panzermensch on every skill, the first one an easy-skill player meets. |
 | Factions (D35) | MAP01 was Reich first with the Legion holding the hangar; the metro **inverts it**: the Legion holds the station (concourse, hall, train), the Reich holds the depths (tunnels, substation, bunker). Stormtroopers are hybrids and fight for both. |
-| Comes before | the tractor factory (LORE's "MAP03", the episode climax). Its exit is the westbound running tunnel. |
-| Campaign wiring | **not changed by this task.** D5 still makes MAP01 the whole campaign, so MAP01's `next = endtitle` stays and MAP03 is reached with `+map MAP03` until the CEO opens the campaign. §11 gives both MAPINFO steps. |
+| Comes before | MAP03, the tractor factory «Танкоград» (D63; LORE's "MAP03", the episode climax; `docs/levels/MAP03-factory.md`). Its exit is the westbound running tunnel, and since D62 it leads there through cluster 4's transition text. |
+| Campaign wiring | **Done (D60, D62).** MAP01's exit leads here (cluster 3's text); this map's exit leads to MAP03, the factory (cluster 4's text, `SD_MAP02_EXIT_TEXT`), and the factory ends the episode. `docs/engine/MOD-SPEC.md` §4.6; §11 below keeps the steps as they were proposed. |
 
-**Numbering consequence for other documents (not touched here):** where
-`docs/engine/BESTIARY.md` says "MAP03" (the General first placed, the 1000 HP
-`SD_PanzermenschSchwer`), it means the factory, now MAP04. This map places
-neither. LORE's table and BESTIARY §11 want the PM's one-line renumbering.
+**Numbering (resolved by D62):** where `docs/engine/BESTIARY.md` says
+"MAP03" (the General first placed, the 1000 HP `SD_PanzermenschSchwer`), it
+means the factory, which is MAP03 again since D62. This map places neither.
 
 ## 3. What the map has to do
 
@@ -352,7 +359,7 @@ with its door open.
 
 **Resources (placed in v1, §16.5).** Principle unchanged from MAP01 §8: monsters scale up,
 consumables scale down, weapon availability never changes, and the map is
-finishable **from a pistol start** (Doom convention: `+map MAP03` gives the
+finishable **from a pistol start** (Doom convention: `+map MAP02` gives the
 TT-33 only). So the weapons are on the route on every skill: the IZh in the
 kassa, the PPSh-41 on a seat of the train, the RPG-7 in the bunker's armoury
 (before the Panzermensch). The ROKS-3 waits for the factory. The ammunition
@@ -388,6 +395,12 @@ in engine (K2), so it can move into the builder with the others (my file to
 change, in a later task; not done in v1 to keep the change to this map).
 
 ## 11. MAPINFO: the entry this map needs (for `mod-engineer`)
+
+> **Superseded by D60 and D62** (2026-10-14): MAPINFO has `map MAP02` in
+> cluster 4 with `next = "MAP03"`; MAP01 leads here; the factory holds
+> cluster 1 and the ending (`docs/engine/MOD-SPEC.md` §4.6). The steps below
+> are kept as proposed, with the numbers of their day (this map was MAP03,
+> the range MAP02, the factory MAP04).
 
 This role does not touch MAPINFO or LANGUAGE. Two steps, the second only
 when the CEO opens the campaign beyond MAP01 (D5). **Status 2026-10-14:**
@@ -453,15 +466,17 @@ Each version loads in GZDoom and is walkable from start to exit (MAP01 §12).
    paper pass with a photo and a stamp. Yes/no to the idea; the sprite is
    `art-director`'s.
 4. **The Stalin poster in the sealed shelter** (§8). Yes/no to the place.
-5. **Campaign wiring** (§11 step 2): when MAP01 should lead into MAP03, and
-   what the player reads between them.
+5. ~~**Campaign wiring** (§11 step 2): when MAP01 should lead into MAP03, and
+   what the player reads between them.~~ **Decided:** D60 (MAP01 leads
+   here, `SD_MAP01_EXIT_TEXT`) and D62 (this map is MAP02 and leads to the
+   factory, `SD_MAP02_EXIT_TEXT`).
 6. **The train**: a parallel path through four cars, built in v0 in plain
    steel. If it stays, it wants a car-side texture; if it goes, platform S
    faces an open track like platform N.
 
 ## 14. v0 build record (2026-10-14)
 
-Source: `src/maps/MAP03/map.py`, painted with `GridMap` like MAP01. **73
+Source: `src/maps/MAP03/map.py` (`src/maps/MAP02/map.py` since D62), painted with `GridMap` like MAP01. **73
 sectors, 418 linedefs, 318 vertices, 2 things** (the start and the pass).
 MAP01's v0 was 44 sectors and 179 lines.
 
@@ -554,15 +569,16 @@ translates from Doom line 133 (a `Door_Open` with a lock in the line's
 ### 14.6 What I need from other roles
 
 - **`mod-engineer`:** the MAPINFO entry and the `SD_MAP03_NAME` strings of
-  §11 step 1 (blocking K12 only). Later, optionally, an `SD_` class for the
+  §11 step 1 (blocking K12 only; done, `SD_MAP02_NAME` since D62). Later, optionally, an `SD_` class for the
   pass replacing `BlueCard` with its own pickup line in both languages
   (D17/D21), and confirming `Door_LockedRaise` = 13 into MOD-SPEC §4.2 after
   K2.
 - **`art-director`:** the pass sprite (open point 3); a car-side texture if
   the train stays (open point 6); nothing blocks v0 or v1.
 - **PM:** commit `SDPOSTR3` to `assets/` and `TEXTURE-INDEX.md` when it is
-  ready (another agent's work), then the slot's constant flips; renumber
-  LORE's episode table and BESTIARY's "MAP03" references (§2).
+  ready (another agent's work), then the slot's constant flips. (The
+  renumbering asked here was done the other way round by D62: the maps took
+  LORE's numbers.)
 
 ## 15. v0 walk, CEO 2026-10-14: the pass was not found (D58)
 
@@ -593,14 +609,15 @@ where it is.
 
 ## 16. v1 build record (2026-10-14)
 
-Source: `src/maps/MAP03/map.py`; tests: `tests/test_map03.py` (v0's 27
+Source: `src/maps/MAP03/map.py`; tests: `tests/test_map03.py` (since D62
+`src/maps/MAP02/map.py` and `tests/test_map02_metro.py`; v0's 27
 kept, one replaced and two updated; **23 new**). Builder unchanged. **87 sectors, 467
 linedefs, 354 vertices, 130 things** (v0: 73 / 418 / 318 / 2). Not walked in
 GZDoom by this role (D26): the engine pass is the PM's, §16.8.
 
 ```sh
 python3 tools/verify.py fast                                                   # build + check_pk3 + suite, no window
-python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP03 SKILL=3 tools/run.sh      # walk it (PM or CEO only)
+python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP02 SKILL=3 tools/run.sh      # walk it (PM or CEO only; MAP03 before D62)
 ```
 
 ### 16.1 The pass, signposted by sight
@@ -629,7 +646,7 @@ at from the blue door is the hall's east end, and the substation's corner is
 into the end of the hall's axis. Moving the pass into the station instead
 would have made the track, the tunnel and D3 pointless.
 
-**Sight lines, tested** (`tests/test_map03.py`): from three points in front
+**Sight lines, tested** (`tests/test_map02_metro.py`): from three points in front
 of the blue door, from the middle of the hall and from the window itself to
 eight points of the pass on the booth floor; and from the foot of both
 staff stairs down the lane to nine points of D3's leaf. Negative controls
@@ -714,8 +731,8 @@ no two start inside each other (Doom's square boxes; tested).
 
 ### 16.5 Weapons, ammunition, health
 
-Pistol start (`+map MAP03` gives the TT-33 and 50 rounds; D60 now leads
-MAP01 into MAP03, so a campaign player arrives better armed, which only
+Pistol start (`+map MAP02` gives the TT-33 and 50 rounds; D60 now leads
+MAP01 into this map, so a campaign player arrives better armed, which only
 makes it easier). The weapons are on the route, on every skill, never in a
 secret (tested): **the IZh in the kassa** (behind D2, beside the first
 fight), **the PPSh-41 on a seat of the train** (car 2), **the RPG-7 and a
@@ -815,8 +832,8 @@ is wrong in the engine and the test is wrong: tell this role.
 
 ### 16.9 For the CEO's walk of v1
 
-`python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP03 SKILL=3 tools/run.sh`,
-from the start, **without being told the route this time**: that is the
+`python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP02 SKILL=3 tools/run.sh`
+(MAP03 before D62), from the start, **without being told the route this time**: that is the
 test. What to judge:
 
 1. **The pass.** Did you find it without help? When you reached the blue
@@ -834,12 +851,12 @@ test. What to judge:
 
 - **PM:** the engine pass (§16.8) and the CEO's walk (§16.9).
 - **`mod-engineer`:** nothing blocks v1. D60's campaign wiring (§11 step 2)
-  is theirs; and the lock-2 line in GZDoom's tag-0 case (MOD-SPEC T25)
+  is theirs (done, with D62's numbers); and the lock-2 line in GZDoom's tag-0 case (MOD-SPEC T25)
   does not apply here, the blue door works by tag.
 - **`art-director`:** the pass sprite (open point 3; Freedoom's `BKEY`
   meanwhile), a car-side texture if the train stays (open point 6). Nothing
   blocks v1.
-- **For BESTIARY §11** (the PM's to carry): MAP03 places, on skill 4,
+- **For BESTIARY §11** (the PM's to carry): the metro (MAP02) places, on skill 4,
   riflemen 16, troopers 14, stormtroopers 10, hounds 8, Doughboy 1,
   Panzermensch 2.
 - **For MOD-SPEC §5** (the PM's to carry): a campaign map now places the

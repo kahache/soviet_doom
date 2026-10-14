@@ -66,10 +66,20 @@ MAX_COLOURS = 256
 # D56 (2026-10-14, «mosaico V2»): the metro mosaic SDMOSA1 is replaced by its
 # v2 rendering (mosaic_cobalt, mosaic_gold; gen_metro.py), same lump name.
 # The marble SDMARB1 stays v1.
+# D63 (2026-10-14): the blue pass SDKB A/B (gen_pickups.py, option B), drawn
+# with v2's mosaic_cobalt so Doom's blue key reads blue (D45). RGBA, so
+# check_pk3's PALETTE_V2_LUMPS (indexed lumps only) does not list it.
+# D66 (2026-10-14): Tankograd (gen_factory.py). The brick SDBRCK1/2 in
+# marble_red, the banners SDFLAG1/2 hung on that brick (SDFLAG2's canton in
+# mosaic_cobalt) and the portal's four frames SDPORT1-4 in mosaic_cobalt.
+# All indexed, so check_pk3's PALETTE_V2_LUMPS lists them too.
 APPROVED_IN_V2: set[str] = (
     {f"sprites/legion/SDLT{f}{r}.png" for f in "ABCDEFG" for r in "12345678"}
     | {f"sprites/legion/SDLT{f}0.png" for f in "HIJKLMNOPQRSTU"}
-    | {"textures/metro/SDMOSA1.png"})
+    | {"textures/metro/SDMOSA1.png"}
+    | {"sprites/pickups/SDKBA0.png", "sprites/pickups/SDKBB0.png"}
+    | {f"textures/factory/{lump}.png" for lump in ("SDBRCK1", "SDBRCK2", "SDFLAG1", "SDFLAG2")}
+    | {f"textures/factory/SDPORT{i}.png" for i in range(1, 5)})
 
 
 def _digest(colours) -> str:

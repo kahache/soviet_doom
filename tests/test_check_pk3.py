@@ -333,6 +333,50 @@ class MapTest(CheckPk3TestCase):
         self.assertFails(self.run_check(entries), "maps", "must be empty")
 
 
+class MapinfoMapsTest(CheckPk3TestCase):
+    """D62: every map MAPINFO names is packed; a map need not be MAPxx."""
+
+    MAPINFO = (b'// map NOPE01 { next = "NOPE02" }\n'
+               b'episode MAP01 { name = "x" }\n'
+               b'episode RANGE { name = "y" }\n'
+               b'map MAP01 lookup "SD_MAP01_NAME"\n{\n\tnext = "MAP02"\n\tsky1 = "SKY1"\n}\n'
+               b'map MAP02 lookup "SD_MAP02_NAME"\n{\n\tnext = endtitle\n\tsky1 = "SKY1"\n}\n'
+               b'map RANGE lookup "SD_RANGE_NAME"\n{\n\tnext = EndGame { pic = "X" }\n\tsky1 = "SKY1"\n}\n')
+
+    def campaign(self) -> dict[str, bytes]:
+        entries = good_entries()
+        entries["MAPINFO"] = self.MAPINFO
+        entries["maps/MAP02.wad"] = map_wad("MAP02")
+        entries["maps/RANGE.wad"] = map_wad("RANGE")
+        return entries
+
+    def test_a_non_mapxx_map_and_its_episode_pass(self):
+        self.assertClean(self.run_check(self.campaign()))
+
+    def test_a_next_into_an_unpacked_map_fails(self):
+        entries = self.campaign()
+        del entries["maps/MAP02.wad"]
+        self.assertFails(self.run_check(entries), "maps", "no maps/MAP02.wad")
+
+    def test_an_episode_on_an_unpacked_map_fails(self):
+        entries = self.campaign()
+        entries["MAPINFO"] = self.MAPINFO.replace(b"episode RANGE", b"episode MAP02X")
+        self.assertFails(self.run_check(entries), "maps", "'MAP02X'")
+
+    def test_a_packed_map_without_a_block_warns(self):
+        entries = self.campaign()
+        entries["maps/MAP03.wad"] = map_wad("MAP03")
+        report = self.run_check(entries)
+        self.assertTrue(report.ok())
+        self.assertTrue([f for f in report.warnings if f.category == "maps" and "MAP03" in f.path])
+
+    def test_references_skip_end_sequences_and_comments(self):
+        refs, defined = check_pk3.mapinfo_map_references(self.MAPINFO.decode("ascii"))
+        self.assertEqual({"MAP01", "MAP02", "RANGE"}, defined)
+        self.assertEqual(sorted(refs), sorted([("episode", "MAP01"), ("episode", "RANGE"), ("map", "MAP01"),
+                                               ("map", "MAP02"), ("map", "RANGE"), ("next", "MAP02")]))
+
+
 # --- 4. Referenced textures ------------------------------------------------
 
 class TextureTest(CheckPk3TestCase):

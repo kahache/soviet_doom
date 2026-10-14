@@ -222,8 +222,8 @@ class CommandLineTests(unittest.TestCase):
         self.assertNotIn("+screenshot_dir", self._cmd(screenshot=False))
 
     def test_custom_map_skill_and_extra_args(self):
-        cmd = self._cmd(map_name="MAP02", skill=1, extra=["+vid_fps", "1"])
-        self.assertEqual("MAP02", cmd[cmd.index("+map") + 1])
+        cmd = self._cmd(map_name="RANGE", skill=1, extra=["+vid_fps", "1"])
+        self.assertEqual("RANGE", cmd[cmd.index("+map") + 1])
         self.assertEqual(["+vid_fps", "1"], cmd[-2:])
 
     def test_every_argument_is_a_string(self):

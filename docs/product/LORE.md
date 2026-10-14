@@ -54,9 +54,12 @@ a later phase, decided by the CEO.
 |---|---|---|---|
 | MAP01 | **Zarya-7 cosmodrome**, barracks and hangar | weapon tutorial; the invasion has just begun | Soviet base: concrete, green steel, propaganda |
 | MAP02 | Metro-bunker tunnels | first key, first heavy hybrids | metro: tiles, red marble, mosaics |
-| MAP03 | Tractor factory (actually tanks) | episode climax: the portal | industry: brick, rust, chains |
+| MAP03 | Tractor factory (actually tanks), «Танкоград» / Tankograd (D63) | episode climax: the portal | industry: brick, rust, chains |
 
-v1 ships MAP01 only (D5); MAP02 and MAP03 follow.
+v1 shipped MAP01 only (D5); D60 grew the campaign to all three, and since D62
+the map lumps carry these numbers (the metro was built as MAP03 and the
+factory as MAP04 while MAP02 was the practice range, which is now the lump
+`RANGE`, outside the campaign).
 
 ## Arsenal (D13), one per Doom slot
 

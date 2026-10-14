@@ -3,10 +3,17 @@
 Run with the project venv:  .venv/Scripts/python.exe tools/art/gen_factory.py
                             (macOS: .venv/bin/python tools/art/gen_factory.py)
 
-The thirteen industrial pieces of docs/levels/MAP04-factory.md §7.2, as
-drafts for the CEO. Nothing here is approved and nothing is written into
-assets/: the PNGs go to work/art/batch4/factory/ and the sheet to
+The thirteen industrial pieces of docs/levels/MAP04-factory.md §7.2 (the
+factory is MAP03 since D62), drawn as drafts for the CEO. The script never
+writes into assets/: the PNGs go to work/art/batch4/factory/ and the sheet to
 docs/art/previews/<stamp>_F3_batch4-factory.html.
+
+APPROVED (D66, 2026-10-14, «Me gustan TODAS»): every piece and every frame,
+palette v2 included, copied by the PM byte for byte into
+assets/textures/factory/ and assets/flats/factory/.
+tests/test_gen_factory.py holds the installed files to what this script
+builds: changing a seed, a palette version or a builder changes approved
+art, which goes back to the CEO as a new proposal.
 
 Method, the metro's (tools/art/gen_metro.py): every piece is procedural,
 one seed per piece (BATCH_SEED + offset), deterministic, quantised without

@@ -1,6 +1,10 @@
-"""Contract of tools/art/gen_factory.py, the factory set «Танкоград» (MAP04 §7.2, BACKLOG N6).
+"""Contract of tools/art/gen_factory.py, the factory set «Танкоград» (MAP04 §7.2, BACKLOG N6),
+and of the set as installed in assets/ (D66).
 
-Drafts for the CEO; nothing of it is approved or installed. What is held:
+Drawn as drafts for the CEO; the CEO approved every piece on 2026-10-14
+(D66: «Me gustan TODAS»), palette v2 included for the brick, the Legion
+flag's canton and the portal, and the PM installed all 21 lumps byte for
+byte from work/art/batch4/factory/. What is held:
 
   names      the thirteen pieces of MAP04 §7.2 and their lumps (<= 8 chars,
              SD prefix), at the sizes §7.2 asks for, multiples of 8
@@ -19,6 +23,15 @@ Drafts for the CEO; nothing of it is approved or installed. What is held:
              step (4 -> 1) no bigger than its others
   banners    SDFLAG1/2 hang on SDBRCK1's own pixels (no seam beside a brick tile)
   writes     the generator writes to work/ and docs/art/previews/ only, never assets/
+  installed  (D66) assets/textures/factory/ and assets/flats/factory/ hold
+             exactly the approved lumps, walls and flats in their folders,
+             at their sizes, indexed except the masked chain (RGBA, hard
+             alpha); the seeds they were approved from do not move; each is
+             pixel-identical to what gen_factory.py builds today (render
+             tier), so a later edit of the generator cannot drift silently
+             away from the approved art
+  paper      every installed lump has one approved row in TEXTURE-INDEX.md
+             and a row in LICENSES.md
 
 The cheap checks (source text, glyph files) run at every tier. The ones that
 render run unless SD_SKIP_SLOW_ART is set (verify.py fast sets it); a full
@@ -70,6 +83,40 @@ EXPECTED = {
 }
 LUMP_RE = re.compile(r"^SD[A-Z0-9]{1,6}$")
 OTHER_BATCH_SEEDS = {1935, 1977, 2077, 3077}     # gen_metro, gen_soviet_base/gen_shell, gen_switch, gen_props
+
+# D66 (2026-10-14): every piece approved and installed, every frame.
+FACTORY_WALLS = PROJECT_ROOT / "assets" / "textures" / "factory"
+FACTORY_FLATS = PROJECT_ROOT / "assets" / "flats" / "factory"
+TEXTURE_INDEX = PROJECT_ROOT / "docs" / "art" / "TEXTURE-INDEX.md"
+LICENSES = PROJECT_ROOT / "docs" / "art" / "LICENSES.md"
+APPROVED_D66 = {lump: (kind, w, h) for kind, w, h, lumps in EXPECTED.values() for lump in lumps}
+MASKED_D66 = {"SDCHAN1"}                         # RGBA with hard alpha (ART-BIBLE §2 exception)
+# Approved in D66 but NOT yet in assets/: the shared validators still refuse
+# them, and their rules are not the art-director's to change.
+#   SDCHAN1  RGBA: tools/check_pk3.py (check_images) and tests/test_art.py
+#            (test_layout_names_and_sizes) require mode P under textures/
+#   SDSLOG1  256x64: tests/test_art.py WALL_SIZES lacks it (check_pk3 has it)
+# When both accept them, copy the two files from work/art/batch4/factory/
+# and empty this set.
+HELD_D66 = {"SDCHAN1", "SDSLOG1"}
+INSTALLED_D66 = {lump: v for lump, v in APPROVED_D66.items() if lump not in HELD_D66}
+# The seeds the approved art was drawn from: BATCH_SEED + offset, per piece.
+D66_BATCH_SEED = 4100
+D66_SEED_OFFSET = {
+    "SDBRCK1": 1, "SDBRCK2": 2, "SDRUST1": 3, "SDCHAN1": 4, "SDFLR4": 5, "SDGRAT1": 6, "SDMOLT": 7,
+    "SDDOORY": 8, "SDDOORR": 9, "SDPORT": 10, "SDGATE1": 11, "SDWIND1": 12, "SDSLOG1": 13,
+    "SDFLAG1": 14, "SDFLAG2": 15,
+}
+D66_PALETTE_V2 = {"SDBRCK1", "SDBRCK2", "SDFLAG1", "SDFLAG2", "SDPORT"}
+
+
+def installed_files() -> dict[str, Path]:
+    out = {}
+    for base in (FACTORY_WALLS, FACTORY_FLATS):
+        if base.is_dir():
+            for p in sorted(base.glob("*.png")):
+                out[p.stem] = p
+    return out
 
 
 class SourceTests(unittest.TestCase):
@@ -268,6 +315,98 @@ class RenderTests(unittest.TestCase):
             if tiles and not masked:
                 score = artlib.tiling_seam_score(self.quant[lumps[0]][..., :3])
                 self.assertLess(score, 2.0, f"{piece}: seam ratio {score:.2f}")
+
+
+
+class PaperTrailTests(unittest.TestCase):
+    """D66: every installed lump is indexed as approved and has a licence row."""
+
+    def test_every_installed_lump_is_indexed_as_approved(self):
+        text = TEXTURE_INDEX.read_text(encoding="utf-8")
+        for lump in APPROVED_D66:
+            rows = [ln for ln in text.splitlines() if ln.startswith(f"| `{lump}` |")]
+            self.assertEqual(len(rows), 1, f"{lump}: expected one row in TEXTURE-INDEX.md")
+            status = rows[0].split("|")[7]
+            self.assertIn("approved", status, f"{lump}: {status.strip()}")
+            self.assertIn("D66", status, lump)
+
+    def test_every_installed_lump_has_a_licence_row(self):
+        text = LICENSES.read_text(encoding="utf-8")
+        for lump in APPROVED_D66:
+            self.assertIn(f"`{lump}`", text, lump)
+
+
+class ApprovedSeedTests(unittest.TestCase):
+    """The approved art is what these seeds draw; moving one is a new proposal."""
+
+    def test_d66_seeds_unchanged(self):
+        src = SOURCE.read_text(encoding="utf-8")
+        self.assertIn(f"BATCH_SEED = {D66_BATCH_SEED}", src)
+
+    @unittest.skipUnless(HAVE_IMAGING, "needs numpy + Pillow (project venv)")
+    def test_d66_offsets_and_palette_versions_unchanged(self):
+        import gen_factory
+        self.assertEqual(gen_factory.BATCH_SEED, D66_BATCH_SEED)
+        self.assertEqual(gen_factory.SEED_OFFSET, D66_SEED_OFFSET)
+        self.assertEqual({p for p, v in gen_factory.PALETTE_VERSION.items() if v == 2}, D66_PALETTE_V2)
+
+
+@unittest.skipUnless(HAVE_IMAGING, "needs numpy + Pillow (project venv)")
+class InstalledFactoryTests(unittest.TestCase):
+    """assets/ holds exactly the D66 lumps, in the right folder, size and mode."""
+
+    def test_exactly_the_approved_lumps_are_installed(self):
+        self.assertEqual(set(installed_files()), set(INSTALLED_D66))
+
+    def test_held_lumps_wait_in_work(self):
+        for lump in HELD_D66:
+            self.assertTrue((PROJECT_ROOT / "work" / "art" / "batch4" / "factory" / f"{lump}.png").is_file()
+                            or not (PROJECT_ROOT / "work").is_dir(), lump)
+
+    def test_walls_and_flats_in_their_folders(self):
+        files = installed_files()
+        for lump, (kind, _, _) in INSTALLED_D66.items():
+            folder = FACTORY_FLATS if kind == "flat" else FACTORY_WALLS
+            self.assertEqual(files[lump].parent, folder, lump)
+
+    def test_sizes_and_modes(self):
+        for lump, path in installed_files().items():
+            _, w, h = APPROVED_D66[lump]
+            with Image.open(path) as img:
+                self.assertEqual(img.size, (w, h), lump)
+                if lump in MASKED_D66:
+                    self.assertEqual(img.mode, "RGBA", lump)
+                    self.assertEqual(set(np.unique(np.asarray(img)[..., 3]).tolist()), {0, 255}, lump)
+                else:
+                    self.assertEqual(img.mode, "P", lump)
+
+
+@slow
+@unittest.skipUnless(HAVE_IMAGING, "needs numpy + Pillow (project venv)")
+class GeneratorHoldsApprovedArtTests(unittest.TestCase):
+    """Rebuild every approved lump from its seed and compare pixels with the
+    installed file. Pixels, not bytes: PNG encoding is not the contract, the
+    image is (tests/test_art.py holds the bytes to work/)."""
+
+    @classmethod
+    def setUpClass(cls):
+        import gen_factory
+        cls.g = gen_factory
+        cls.built = {}
+        for piece, builder, kind, size, lumps, *_ in gen_factory.PIECES:
+            for lump, rgb in zip(lumps, gen_factory.frames_of(piece, builder)):
+                cls.built[lump] = gen_factory.as_rgb(gen_factory.quantise(piece, rgb))
+
+    def test_every_installed_lump_has_a_builder(self):
+        self.assertEqual(set(self.built), set(APPROVED_D66))
+
+    def test_installed_pixels_match_generator(self):
+        for lump, path in installed_files().items():
+            with Image.open(path) as img:
+                disk = self.g.as_rgb(img)
+            self.assertEqual(disk.shape, self.built[lump].shape, lump)
+            diff = int((disk != self.built[lump]).any(axis=-1).sum())
+            self.assertEqual(diff, 0, f"{lump}: {diff} px differ from gen_factory.py")
 
 
 if __name__ == "__main__":

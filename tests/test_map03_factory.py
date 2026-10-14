@@ -1,7 +1,7 @@
-"""MAP04 v0, the tractor factory grey box (docs/levels/MAP04-factory.md).
+"""MAP03 v0, Tankograd, the tractor factory grey box (docs/levels/MAP03-factory.md).
 
 Owner: `level-designer`. Read back from the generated TEXTMAP, in the style
-of tests/test_map03.py:
+of tests/test_map02_metro.py:
 
 * structure: every sector closed and clockwise, no duplicate vertex;
 * only approved, packed textures;
@@ -10,13 +10,13 @@ of tests/test_map03.py:
   with one lock number per key);
 * no trap: from every place the player can reach at any stage there is a way
   back to the start, and at the end a way on to the exit;
-* the key grammar and MAP03's lesson (D58, the pass nobody found): each
+* the key grammar and MAP02's lesson (D58, the pass nobody found): each
   locked door is seen before its key, each key is seen from where its room
   is entered, and each key's place wears its lock's colour of light;
 * the switches are real switch faces, one-shot, each in sight of what it
   opens; doors one tile high.
 
-Run:  python3 -m unittest tests.test_map04 -v
+Run:  python3 -m unittest tests.test_map03_factory -v
 """
 
 from __future__ import annotations
@@ -52,9 +52,9 @@ KEY_SPRITE_MID = 8              # a keycard stands about 16 high: aim at its mid
 ASSETS = PROJECT_ROOT / "assets"
 
 
-def _load_map04():
-    path = PROJECT_ROOT / "src" / "maps" / "MAP04" / "map.py"
-    spec = importlib.util.spec_from_file_location("sdmap_MAP04_test", path)
+def _load_map03():
+    path = PROJECT_ROOT / "src" / "maps" / "MAP03" / "map.py"
+    spec = importlib.util.spec_from_file_location("sdmap_MAP03_test", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -64,11 +64,11 @@ def _packed(name: str) -> bool:
     return any(ASSETS.glob(f"textures/*/{name}.png")) or any(ASSETS.glob(f"flats/*/{name}.png"))
 
 
-class Map04V0Test(unittest.TestCase):
+class Map03V0Test(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.m = _load_map04()
+        cls.m = _load_map03()
         textmap, cls.plan = cls.m.build_plan()
         cls.blocks = parse_textmap(textmap.render())
         cls.sectors = cls.blocks["sector"]
@@ -497,7 +497,7 @@ class Map04V0Test(unittest.TestCase):
                 self.assertIsNone(self.blocked(eye, (x, 705, z)), f"yellow door x {x} z {z}")
 
     def test_the_yellow_key_is_seen_from_the_factory_floor(self):
-        """MAP03's lesson (D58): the key is shown, not hidden. From the
+        """MAP02's lesson (D58): the key is shown, not hidden. From the
         middle of the hall, up the lane and the stair, on the lit desk."""
         target = (self.m.YELLOW_KEY_SPOT[0], self.m.YELLOW_KEY_SPOT[1],
                   self.sectors[self.plan["o_desk"]]["heightfloor"] + KEY_SPRITE_MID)
@@ -537,7 +537,7 @@ class Map04V0Test(unittest.TestCase):
             s = self.sectors[self.front(ld)]
             self.assertEqual(m.SWITCH_HEIGHT, s["heightceiling"] - s["heightfloor"])
         self.assertEqual(m.EXIT_FACE, self.sides[self.exit_line()["sidefront"]]["texturemiddle"],
-                         "the exit wears the hazard panel, as on MAP01-MAP03")
+                         "the exit wears the hazard panel, as on MAP01 and MAP02")
 
     def test_each_switch_opens_what_the_design_says(self):
         m = self.m

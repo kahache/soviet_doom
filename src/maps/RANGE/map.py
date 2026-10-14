@@ -1,6 +1,7 @@
-"""MAP02 - the practice range (D41): the arsenal hall and the bestiary gallery.
+"""RANGE - the practice range (D41): the arsenal hall and the bestiary gallery.
 
-Design document: docs/levels/MAP02-practice-range.md. Built in F4 as an
+The map lump is RANGE since D62 (2026-10-14): it was MAP02 until the MAPxx
+slots went to the campaign. Design document: docs/levels/RANGE-practice-range.md. Built in F4 as an
 engineering fixture (prove that each of the seven weapons can be picked up,
 selected, fired and made to do damage) and shipped since D41 as a practice
 range, a second episode on New Game (docs/engine/adr/007). MAP01 is not
@@ -22,7 +23,7 @@ Layout:
   there so that no line of sight runs from the gallery into the hall even
   with the door open: an `ambush` (deaf) monster that hears gunfire still
   wakes if it can see the shooter, so the hall's noise must not reach eyes
-  in the gallery. Tested in tests/test_map02.py. `warp 1024 1152`
+  in the gallery. Tested in tests/test_range_map.py. `warp 1024 1152`
   (GALLERY_ARRIVAL) still lands at the passage's mouth for the PM.
 
 Walls, floors and ceilings are the three IWAD assets of
@@ -38,7 +39,7 @@ number, and since F5 it spawns OUR SD_ReichRifleman (`replaces ZombieMan`).
 They are flagged `ambush` (deaf) so they only react to what they can see,
 which keeps the range predictable.
 
-Run it with:  SD_ALLOW_ENGINE=1 MAP=MAP02 tools/run.sh   (the PM; D26)
+Run it with:  SD_ALLOW_ENGINE=1 MAP=RANGE tools/run.sh   (the PM; D26)
 """
 
 from __future__ import annotations
@@ -53,7 +54,7 @@ from sdbuild.udmf import (
     exit_switch_style,
 )
 
-MAP_NAME = "MAP02"
+MAP_NAME = "RANGE"
 
 # --- Geometry -------------------------------------------------------------
 HALL_LENGTH = 2048     # x axis; long enough to see projectile travel and

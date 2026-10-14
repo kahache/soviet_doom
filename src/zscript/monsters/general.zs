@@ -4,7 +4,7 @@
 // with a dodgeable projectile, and one verb of his own: the first time his
 // health drops below half, he stops, shouts an order and two Reich riflemen
 // arrive at his side. He orders; he does not brawl. First placed in MAP03;
-// testable today on MAP02's bestiary bench.
+// testable today on the practice range's bestiary bench (RANGE).
 //
 // Sprites are Freedoom (IWAD) PLACEHOLDERS: CYBR, laid out like SDGN for
 // A-P. The two Summon frames borrow CYBR E and F and become SDGN Q and R:

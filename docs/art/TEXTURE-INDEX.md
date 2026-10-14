@@ -253,6 +253,67 @@ metro set in `assets/` is sixteen lumps.
 | `SDMARB2` | wall | 64×128 | yes | station wall: glazed tile above, red marble below (the `SDMARB1` stone), brass rail on the marble | (a) gen_metro --fill, seed 1950 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
 | `SDTILE3` | wall | 64×128 | yes | tile wall with a ceramic frieze: cream lozenges on green between two dark rules | (a) gen_metro --fill, seed 1951 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
 
+## Set "Factory" «Танкоград» — batch 4 (F3, D66)
+
+Preview: `docs/art/previews/2026-10-14_2017_F3_batch4-factory.html`
+(English only; the mirror is `translator-ru`'s at the phase close, D34).
+Generator `tools/art/gen_factory.py`, `BATCH_SEED` 4100 (41 for 1941, when
+the Chelyabinsk works became «Танкоград»), seed = 4100 + offset; the key
+doors replay `SDDOOR1`'s own seed (1977 + 5) for the leaf, and their trim
+wear has its own. Written for the factory map, `docs/levels/MAP03-factory.md`
+§7 (the generator still says MAP04, its number before D62). **No system
+font:** the banner and the pass plates are set from our own alphabet
+(`assets/fonts/bigfont/`, D24), so every lump reproduces byte for byte on
+both machines. Palette v1 except where the row says v2 (the generator's
+`PALETTE_WHY` carries the reason per piece).
+
+CEO verdict 2026-10-14, verbatim: «Me gustan TODAS» — every piece as drawn,
+including **palette v2** for the brick, the Legion flag's canton and the
+portal, and the portal in cobalt with white filaments (D66). The PM copied
+19 of the 21 lumps, every animation frame included, byte for byte from
+`work/art/batch4/factory/` into `assets/textures/factory/` (walls) and
+`assets/flats/factory/` (flats). **Two approved lumps wait in `work/`**
+because the shared validators do not accept them yet: `SDCHAN1` is RGBA
+(masked), and `tools/check_pk3.py` and `tests/test_art.py` require indexed
+PNGs under `textures/`; `SDSLOG1` is 256×64, which `tests/test_art.py`
+does not list as a wall size yet (`check_pk3.py` does since D66). They are
+copied as soon as both accept them (`HELD_D66` in
+`tests/test_gen_factory.py`). `tests/test_gen_factory.py` holds them to
+the generator pixel for pixel and `tests/test_art.py` to their `work/`
+source byte for byte. New families for ART-BIBLE §2: `BRCK`, `RUST`,
+`CHAN`, `GRAT`, `MOLT`, `PORT`, `GATE`, `WIND`, `SLOG`, `FLAG`; `DOORY` /
+`DOORR` extend `DOOR` with the key colour. Two animations (`SDMOLT1-4`,
+`SDPORT1-4`, 8 tics a frame) need `ANIMDEFS`, which is `mod-engineer`'s;
+until then each shows its first frame. Not yet seen in the engine (D26).
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDBRCK1` | wall | 64×128 | yes | soot-stained red factory brick, 16×8 running bond, lime mortar, browner and overfired bricks, soot | (a) gen_factory, seed 4101, palette v2 (`marble_red`) | approved 2026-10-14 (D66: «Me gustan TODAS») | 2026-10-14 |
+| `SDBRCK2` | wall | 64×128 | yes | the same brick whitewashed to 64 (the works' dado), dark rule on top, flaked lime | (a) gen_factory, seed 4102, palette v2 | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDRUST1` | wall | 64×128 | yes | rusted corrugated sheet, surviving galvanising, bolted lap seam, two rust-through holes | (a) gen_factory, seed 4103 | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDCHAN1` | wall (masked mid-texture) | 64×128 | no | hanging chain and crane hook on a transparent ground, for a two-sided line; RGBA with hard alpha (ART-BIBLE §2 exception) | (a) gen_factory, seed 4104 | approved 2026-10-14 (D66); held in `work/` until check_pk3 and test_art accept a masked RGBA texture | 2026-10-14 |
+| `SDFLR4` | flat | 64×64 | yes | cast-iron chequer plate, 32 px plates, lozenges polished by boots, rust between | (a) gen_factory, seed 4105 | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDGRAT1` | flat | 64×64 | yes | steel bar grating for the catwalks, panel frame, the dark below | (a) gen_factory, seed 4106 | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDMOLT1` | flat (animated, frame 1 of 4) | 64×64 | yes | molten metal, red to white under glowing slag plates; the loop is seamless | (a) gen_factory, seed 4107 | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDMOLT2` | flat (animated, frame 2) | 64×64 | yes | molten metal, frame 2 | (a) gen_factory, seed 4107 | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDMOLT3` | flat (animated, frame 3) | 64×64 | yes | molten metal, frame 3 | (a) gen_factory, seed 4107 | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDMOLT4` | flat (animated, frame 4) | 64×64 | yes | molten metal, frame 4, leads back into frame 1 | (a) gen_factory, seed 4107 | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDDOORY` | wall (door) | 128×128 | no | `SDDOOR1` for the yellow lock: yellow frame, ribs and hazard band, yellow pass plate «ПРОПУСК» | (a) gen_factory, seed 4108 (trim); leaf seed 1982; text from bigfont | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDDOORR` | wall (door) | 128×128 | no | `SDDOOR1` for the red lock: red frame, ribs and hazard band, red pass plate «ПРОПУСК» | (a) gen_factory, seed 4109 (trim); leaf seed 1982; text from bigfont | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDPORT1` | wall (animated, frame 1 of 4) | 128×128 | yes | the portal's surface: a cobalt field warped on itself with white filaments | (a) gen_factory, seed 4110, palette v2 (`mosaic_cobalt`) | approved 2026-10-14 (D66: cobalt, white filaments) | 2026-10-14 |
+| `SDPORT2` | wall (animated, frame 2) | 128×128 | yes | the portal, frame 2 | (a) gen_factory, seed 4110, palette v2 | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDPORT3` | wall (animated, frame 3) | 128×128 | yes | the portal, frame 3 | (a) gen_factory, seed 4110, palette v2 | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDPORT4` | wall (animated, frame 4) | 128×128 | yes | the portal, frame 4, leads back into frame 1 | (a) gen_factory, seed 4110, palette v2 | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDGATE1` | wall | 128×128 | yes | sliding factory gate, green corrugated sheet in a steel frame, braces, roller track, handle; shut | (a) gen_factory, seed 4111 | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDWIND1` | wall | 64×128 | yes | industrial glazing at night, 4×8 panes, one broken, one boarded | (a) gen_factory, seed 4112 | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDSLOG1` | wall (banner) | **256×64** | no | works banner «ТРАКТОРЫ — КОЛХОЗАМ!» ("Tractors for the collective farms!"), cream on kumach, our alphabet at 2× | (a) gen_factory, seed 4113; text from bigfont | approved 2026-10-14 (D66); held in `work/` until test_art accepts 256×64 | 2026-10-14 |
+| `SDFLAG1` | wall | 64×128 | yes (on `SDBRCK1`) | the Fourth Reich's banner (D12) hung on `SDBRCK1`'s own pixels | (a) gen_factory, seed 4114, palette v2 (through the brick) | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDFLAG2` | wall | 64×128 | yes (on `SDBRCK1`) | the Liberty Legion's banner (D12), the US flag hung vertically on `SDBRCK1`, canton in `mosaic_cobalt` | (a) gen_factory, seed 4115, palette v2 | approved 2026-10-14 (D66) | 2026-10-14 |
+
+Recommended light (ART-BIBLE §4): 112-144 in the halls, the molten metal and
+the portal as bright islands (they read as light sources); the
+`level-designer` owns the final values.
+
 ## Shell pictures — menu cursor and pause sign (T12, D48)
 
 Not textures: patches the engine finds by name, listed here so the index

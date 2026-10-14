@@ -93,7 +93,7 @@ class RealReleaseTest(unittest.TestCase):
                                  "SHA256SUMS"]))
 
     def test_the_pk3_is_a_full_build(self):
-        for lump in ("MAPINFO", "LANGUAGE", "zscript.txt", "maps/MAP01.wad", "maps/MAP02.wad"):
+        for lump in ("MAPINFO", "LANGUAGE", "zscript.txt", "maps/MAP01.wad", "maps/RANGE.wad"):
             self.assertIn(lump, self.pk3_names)
         self.assertTrue(any(n.startswith("textures/") for n in self.pk3_names))
 
