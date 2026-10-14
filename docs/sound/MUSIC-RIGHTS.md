@@ -20,6 +20,12 @@ self-sequenced piece): two scores downloaded and recorded in **§4.6**, for
 «Вы жертвою пали» (`D_SDFUNR`) and «Амурские волны» (`D_SDAMUR`); **no
 reliable public-domain score of Glinka's *Patriotic Song* was found, so
 nothing was downloaded for `D_SDGLNK`** (§4.6.3).
+Revised 2026-10-14, **D54** (CEO: *"busca alternativa, cambiamos pieza
+musical y ya"*): Glinka is dropped from the anthem slot. The replacement is
+Mussorgsky's **«Богатырские ворота»** (*The Great Gate of Kiev*), sequenced
+by us from one downloaded public-domain score, the 1886 Bessel first edition
+(**§4.6.4**, draft `D_SDGATE`); the alternatives weighed and why the others
+fell are **§4.6.5**.
 Companion to `docs/product/2026-10-12_2000_F2_pm-soviet-art-copyright.md`, which
 established the Russian and US legal frame for visual art. **The same frame applies
 to music**, with two extra layers: recordings, and sequencings.
@@ -181,10 +187,10 @@ applicable) text.** The *recordings* are a separate matter — see §3.3.
 
 | Composer | Dates | RU | US | Pieces that fit Soviet Doom |
 |---|---|---|---|---|
-| **Михаил Глинка** / Mikhail **Glinka** | 1804-1857 | ✅ | ✅ | **Патриотическая песня / "Patriotic Song"** — the national anthem of Russia 1990-2000, and completely free. *Ruslan and Lyudmila* overture (frantic, excellent for a fight) |
+| **Михаил Глинка** / Mikhail **Glinka** | 1804-1857 | ✅ | ✅ | **Патриотическая песня / "Patriotic Song"** — the national anthem of Russia 1990-2000; the composition is free, but **no reliable public-domain score of the 1833 melody exists in reach, and D54 dropped it** (§4.6.3). «Славься» from *A Life for the Tsar* (1836), the closest substitute, is weighed in §4.6.5. *Ruslan and Lyudmila* overture (frantic, excellent for a fight) |
 | **Пётр Чайковский** / Pyotr **Tchaikovsky** | 1840-1893 | ✅ | ✅ | **Marche slave op. 31 (1876)** — the single best candidate for a main theme. Symphony No. 4 finale; *1812 Overture* (caution: it quotes the Tsarist anthem *God Save the Tsar*, which is lore-wrong for 1977) |
 | **Александр Бородин** / Alexander **Borodin** | 1833-1887 | ✅ | ✅ | *Polovtsian Dances*, *In the Steppes of Central Asia*, *Prince Igor* overture. Completions by Rimsky-Korsakov (d. 1908) and Glazunov (d. 1936, RU free 2007, US pub. 1888) are also free |
-| **Модест Мусоргский** / Modest **Mussorgsky** | 1839-1881 | ✅ | ✅ | **Night on Bald Mountain** (Rimsky-Korsakov version, 1886) — the obvious demon/alien cue. *Pictures at an Exhibition*: "Gnomus", "Catacombae", "The Hut on Fowl's Legs", "The Great Gate of Kiev". **Use the piano original**; Ravel's orchestration has its own term (**NOT VERIFIED** for Russia) |
+| **Модест Мусоргский** / Modest **Mussorgsky** | 1839-1881 | ✅ | ✅ | **Night on Bald Mountain** (Rimsky-Korsakov version, 1886) — the obvious demon/alien cue. *Pictures at an Exhibition*: "Gnomus", "Catacombae", "The Hut on Fowl's Legs", **"The Great Gate of Kiev" — the anthem slot since D54 (§4.6.4)**. **Use the piano original**; Ravel's orchestration has its own term (**NOT VERIFIED** for Russia) |
 | **Николай Римский-Корсаков** / Nikolai **Rimsky-Korsakov** | 1844-1908 | ✅ | ✅ | *Russian Easter Festival Overture*, *Scheherazade*, *Flight of the Bumblebee* |
 | **Александр Скрябин** / Alexander **Scriabin** | 1872-1915 | ✅ | ✅ | *Prometheus: Poem of Fire*, Piano Sonata No. 9 "Black Mass", *Poem of Ecstasy*. Atonal, mystical, genuinely unsettling — the best free match for the alien side of the game |
 | **Михаил Ипполитов-Иванов** | 1859-1935 | ✅ (d. 1935 → free 2006) | ✅ *Caucasian Sketches* pub. 1894 | "Procession of the Sardar" — a short, brassy, menacing march |
@@ -528,7 +534,11 @@ the 1954 Muzgiz SATB arrangement by Vl. Sokolov (archive.org, University of
 Toronto scan) and the 1959 Baku simplified edition — both carry a protected
 arranger's contribution.
 
-#### 4.6.3 Glinka's *Patriotic Song* → `D_SDGLNK`: **no download — no reliable public-domain score found**
+#### 4.6.3 Glinka's *Patriotic Song* → `D_SDGLNK`: **no download — no reliable public-domain score found; dropped by D54**
+
+> **D54 (CEO, 2026-10-14) closed this:** Glinka is dropped from the anthem
+> slot and `D_SDGLNK` will not be written. The replacement is §4.6.4; the
+> record below stays as the reason.
 
 The PM's condition (D44 brief, point 5) was that whatever is downloaded must
 be **Glinka's 1833 melody, not a protected arrangement**. Nothing found on
@@ -543,12 +553,67 @@ be **Glinka's 1833 melody, not a protected arrangement**. Nothing found on
 | Glinka, *Complete Works* (Muzgiz, 1950s) | may print the manuscript; not on IMSLP for this piece, and a Soviet editorial edition would need its own rights check | not available |
 
 **So `D_SDGLNK` stays blocked, and no melody was written from memory.**
-What would unblock it, for the PM or the CEO: (a) a facsimile of the 1833
-autograph (the RNB's manuscript department can be asked; the manuscript of a
-composer who died in 1857 is public domain), or (b) a pre-1931 printed
-edition of the *Motif de chant national* — **NOT VERIFIED** that one was
-printed before the Soviet period at all. The anthem slot itself (D43) is a
-product decision and is not reopened here.
+What would have unblocked it: (a) a facsimile of the 1833 autograph (the
+RNB's manuscript department can be asked; the manuscript of a composer who
+died in 1857 is public domain), or (b) a pre-1931 printed edition of the
+*Motif de chant national* — **NOT VERIFIED** that one was printed before
+the Soviet period at all. D54 chose to change the piece instead.
+
+#### 4.6.4 «Богатырские ворота» → `D_SDGATE` (D54)
+
+D54 (CEO, 2026-10-14): *"busca alternativa, cambiamos pieza musical y ya"* —
+a public-domain replacement for the anthem slot, on the terms of D44 (one
+score downloaded, provenance recorded). The same conditions as §4.6 were
+applied: notation only; composer **and** edition public domain in Russia and
+in the United States; URL, licence and size written down **before** the
+download, nothing over 20 MB; the file in its own new directory; treated as
+untrusted data (inspected only with a stdlib script under `python -I`,
+nothing in it executed). The pre-download record was taken at **2026-10-14
+10:00 UTC**: the size is the server's `Content-Length` from a HEAD request
+and Commons' own `imageinfo` record, and the download came in at exactly
+that size with the SHA-1 Commons lists.
+
+| Field | Value |
+|---|---|
+| **File** | `work/audio/scores/bogatyrskie_vorota/Mussorgsky_Pictures_Exhibition_Piano_Score.pdf` |
+| **SHA-256** | `0a73559cd865083558f6e5923dddae4390069883dad795725c19f18646e58b71` |
+| **SHA-1** | `c49c00c49d98cad2515313fb609a6f14750d0eef` — identical to the value Wikimedia Commons records for the file |
+| **Size** | 1 749 135 B (1.67 MiB), 35 pages — stated before download, under the 20 MB limit |
+| **URL** | https://upload.wikimedia.org/wikipedia/commons/5/53/Mussorgsky_Pictures_Exhibition_Piano_Score.pdf |
+| **Page** | https://commons.wikimedia.org/wiki/File:Mussorgsky_Pictures_Exhibition_Piano_Score.pdf (uploaded 2022-03-27 by Commons user Guy vandegrift, "obtained from IMSLP") |
+| **Licence of the page** | `{{PD-old-70-expired}}`, read from the file page's wikitext. The PDF is a flat scan (embedded metadata: EPSON Expression 10000XL, 2010); a faithful reproduction of a public-domain two-dimensional work attracts no new copyright in the United States (*Bridgeman v. Corel*, 1999), in Russia **NOT VERIFIED** — moot, because the scan is not redistributed (§4.6) |
+| **Downloaded** | 2026-10-14, by `sound-designer`, under D54 |
+| **Edition** | «Картинки съ выставки», *Десять пьесъ для фортепіано*, «Владиміру Васильевичу Стасову», St Petersburg and Moscow, **В. Бессель и К°** / W. Bessel & C^ie, **plate 1560** (on every music page), printed by Bessel's own works («Нотопечатня В. Бессель и К° СПБ»); the title page names Breitkopf & Härtel and Gebethner & Wolff as agents, price 2 r. 50 k. / Mk 6. This is the **first edition, 1886**, edited by **N. A. Rimsky-Korsakov** (IMSLP lists plate 1560 for the 1886 first edition). The copy itself is an issue of that edition whose print year is **NOT VERIFIED**; its pre-1918 orthography («Богатырския», «Кіевѣ») places it before the 1918 spelling reform. No. 10 is printed pages 30-34 (scan pages 31-35) |
+| **Composition** | Modest Mussorgsky, 1839-1881; *Pictures at an Exhibition* written 1874, published 1886 → **PD in Russia** (died 1881) and **PD in the United States** (published 1886) |
+| **Edition rights** | editor Nikolai Rimsky-Korsakov, 1844-1908 → **PD in both countries**; published 1886 → US PD. And only the top voice (Mussorgsky's melody) is copied, not the piano writing |
+| **Lyrics** | none: a piano piece |
+| **Not used** | Ravel's 1922 orchestration and every other arrangement; the Mutopia typeset of *Pictures* (**CC BY-SA 4.0**, §4.4); IMSLP's modern typesets (CC BY-SA). The chorale episodes of No. 10 (which quote an Orthodox chant) and the bell passage are not copied |
+| **How the notes were read** | the PDF's page images are **JBIG2**-coded, for which the Python standard library has no decoder; the pages were therefore read from Wikimedia's own page renders of this same file (`upload.wikimedia.org/.../thumb/...`, scan pages 31 and 35 at 3840 px; Commons renders the file whose SHA-1 is above), measured with Pillow and `numpy` and checked by eye. Nothing in the PDF was executed or decoded by us beyond listing its objects |
+
+What `D_SDGATE` takes from it, bar by bar, is `SOUNDTRACK.md` Card 5;
+what ships, if the CEO approves the draft, is our sequencing under
+**CC BY-NC-SA 4.0** (D15), no phonogram, no obligation to credit anyone
+(Mussorgsky is named as a courtesy, like Gerloff in §4.5).
+
+#### 4.6.5 The alternatives weighed for the anthem slot (D54), rights side
+
+The test applied to each: composer **dead more than 70 years** (74 with the
+war extension), **published before 1929** (so the United States cannot
+have restored it under the URAA, whatever the Russian term), and **a
+public-domain score an agent can download** from IMSLP, Commons or a source
+of the D44 kind, without passing a CAPTCHA or a browser check. The musical
+side of the comparison is `SOUNDTRACK.md` Card 5.
+
+| Candidate | Composer (dates) · publication | RU | US | Score reachable? | Verdict |
+|---|---|---|---|---|---|
+| **«Богатырские ворота»**, *Pictures at an Exhibition* No. 10 | Mussorgsky (1839-1881) · Bessel 1886, ed. Rimsky-Korsakov (1844-1908) | ✅ | ✅ | **yes**: Commons, 1.67 MiB, `{{PD-old-70-expired}}`, §4.6.4 | ✅ **chosen** |
+| **«Славься»**, Epilogue of *A Life for the Tsar* | Glinka (1804-1857) · composed 1836, vocal score pub. 1857 (Stellovsky), Jurgenson editions before 1918; original text Rosen (1800-1860) | ✅ | ✅ | **not by an agent.** The clean edition is IMSLP's Jurgenson vocal score, Act V as its own file, `PMLP26589-Glinka-ZhisnVSa5.pdf`, **6 491 982 B**, tagged Public Domain (size from IMSLP's API, 2026-10-14). But IMSLP now answers a file request from a client without its cookie with a **human-verification CAPTCHA** ("IMSLP – Bot Check", `imslp.org/friendlytest.html`), which an agent does not pass. The Sibley scan of the Gutheil vocal score is **28 354 618 B**, over the 20 MB limit; Commons and the Internet Archive hold no edition; starinnye-noty has only Antonida's romance. **Do not use** the Soviet *Ivan Susanin* editions on the same IMSLP page (Muzgiz 1939 and 1965, ed. Vladimir Protopopov, 1908-2005; libretto Sergey Gorodetsky, 1884-1967): IMSLP's "Public Domain" there is the Canadian tag; both are protected in Russia and, published after 1930, in the United States | ⚠️ **rights-clean, source blocked.** Unblocked in one step if the PM or the CEO downloads that one IMSLP file by hand |
+| **«Слава»**, Prologue chorus of *Prince Igor* | Borodin (1833-1887), completed by Rimsky-Korsakov (d. 1908) and Glazunov (1865-1936; RU PD since 2007) · Belaieff 1888 | ✅ | ✅ | not by an agent: IMSLP only (same CAPTCHA) | ⚠️ rights-clean, source blocked |
+| **«Смело, товарищи, в ногу»** | Radin (1860-1900) · pub. 1901-02 | ✅ | ✅ | **no PD edition found**: starinnye-noty has it only inside «Любимые песни Ильича» (Moscow: Muzyka, 1969), a Soviet arrangement, protected | ❌ no reliable PD score |
+| **«Русская Марсельеза»** («Отречёмся от старого мира») | melody Rouget de Lisle (1760-1836), Russian words Lavrov (1823-1900) · Detlaf, Moscow, 1905 (starinnye-noty) | ✅ | ✅ | yes | ❌ rights-clean, rejected on sound (Card 5) |
+| **«Прощание славянки»** | **Agapkin (1884-1964)** · Tambov 1912 | ❌ | ✅ | — | ❌ **protected in Russia until 1 Jan 2039**: he died in 1964 and served through the war (he conducted the band at the 7 Nov 1941 Red Square parade), so 1964 + 74 + 1. Free in the US only (published 1912), and the anthem slot needs free in both (§5(b)) |
+| Alexandrov's anthem, «Священная война» | Alexandrov (1883-1946) · 1939-1944 | ✅ | ❌ | — | ❌ URAA-restored in the US (D43, §5(b)) |
+| Tchaikovsky, *Marche slave* / *1812* | Tchaikovsky (1840-1893) · 1876 / 1882 | ✅ | ✅ | yes (IMSLP) | ❌ both quote «Боже, царя храни!», the tsarist anthem: wrong for a Soviet state cue (§2.3) |
 
 ---
 
@@ -566,7 +631,7 @@ product decision and is not reopened here.
 | 5 | **Смело, товарищи, в ногу** | sequence ourselves — free words *and* music in both countries | Soviet-held areas, diegetic |
 | 6 | **Амурские волны (Kyuss, 1909)** | sequence ourselves | diegetic radio at the cosmodrome, a quiet moment |
 | 7 | **Вы жертвою пали** | sequence ourselves | death / aftermath / ending |
-| 8 | **Glinka, Патриотическая песня** | sequence ourselves | **the anthem slot (D43)** — the zero-risk substitute for the USSR anthem |
+| 8 | ~~Glinka, Патриотическая песня~~ → **Mussorgsky, «Богатырские ворота»** (D54) | sequenced by us from the 1886 Bessel edition, draft `D_SDGATE` (§4.6.4) | **the anthem slot**: the zero-risk substitute for the USSR anthem. Glinka dropped by D54 for want of a reliable score (§4.6.3) |
 | 9 | ~~USSR anthem melody (Alexandrov)~~ | **not used (D43)**: its 1944 publication is URAA-restored in the US to 2040 unless the state-symbol argument holds (§3.1, NOT VERIFIED as US law), and D43 excludes US-restored works | — |
 | 10 | **Original Artemyev-style ANS ambience** | we compose it | the bulk of in-level music |
 
@@ -645,7 +710,9 @@ packed by the build as `music/<LUMP>.mid` (`tools/sdbuild/pk3.py`,
 1. **The USSR anthem — SETTLED (D43): the anthem slot goes to Glinka's
    *Patriotic Song*** (§2.3), sequenced by us: a real national anthem of
    Russia (1990-2000), free beyond any argument in both countries. The
-   Alexandrov melody is not used anywhere (point 2).
+   Alexandrov melody is not used anywhere (point 2). **Amended by D54
+   (2026-10-14):** Glinka is dropped for want of a reliable score; the slot
+   goes to Mussorgsky's «Богатырские ворота», draft `D_SDGATE` (§4.6.4).
 2. **Russia-free / US-restored works — SETTLED (D43): excluded**, with
    *Священная война* named as the main case. See §5(b).
 3. **Scope of the soundtrack.** *Superseded by D23* (2026-10-13): *"Free MIDI
@@ -660,15 +727,15 @@ packed by the build as `music/<LUMP>.mid` (`tools/sdbuild/pk3.py`,
    only, when a map needs it*, and keep the rest for diegetic use where piano
    is plausible. Nothing is waiting on this today.
 
-5. **Glinka's *Patriotic Song* — open since D44 (2026-10-14).** No
-   public-domain score that is demonstrably Glinka's 1833 melody, rather
-   than the 1944/1990 arrangement, was found (§4.6.3); nothing was
-   downloaded and nothing was sequenced. Needed: a facsimile of the
-   autograph or a pre-Soviet printed edition, or a CEO decision on the
-   anthem slot. Blocks only `D_SDGLNK`.
+5. **Glinka's *Patriotic Song* — CLOSED by D54 (2026-10-14): dropped.** No
+   public-domain score that is demonstrably Glinka's 1833 melody was found
+   (§4.6.3). The replacement, «Богатырские ворота», is sequenced as the
+   draft `D_SDGATE` from one downloaded score (§4.6.4); the alternatives
+   weighed are §4.6.5. If the CEO prefers «Славься», its rights are clean
+   and only the download is blocked (one IMSLP file, by hand).
 
 Nine downloaded files remain in `work/audio/candidates/` (§4.4), tracked in
-git. Two scores downloaded under D44 sit in `work/audio/scores/` (§4.6),
+git. Two scores downloaded under D44 and one under D54 sit in `work/audio/scores/` (§4.6),
 gitignored and never packed. **Two lumps are in `assets/` and therefore in the PK3: `D_SDINTL` and
 `D_SDM01`** (§4.5).
 
@@ -699,6 +766,13 @@ Per-file licence pages read on 2026-10-13 (the §4.4 audit):
 - IMSLP, *Slavonic March* op. 31, synthesised performances CC BY 4.0 (MP3, not MIDI) — https://imslp.org/wiki/Slavonic_March,_Op.31_(Tchaikovsky,_Pyotr)
 - IMSLP, *L'Internationale* (De Geyter) — https://imslp.org/wiki/L'Internationale_(De_Geyter,_Pierre)
 - archive.org, "USSR Anthem (MIDI)", **no licence declared** — https://archive.org/details/ussr-1
+
+Read on 2026-10-14 for D54 (§4.6.4-4.6.5):
+- Commons, `File:Mussorgsky Pictures Exhibition Piano Score.pdf`, `{{PD-old-70-expired}}` — https://commons.wikimedia.org/wiki/File:Mussorgsky_Pictures_Exhibition_Piano_Score.pdf
+- IMSLP, *Pictures at an Exhibition* (Bessel 1886 first edition, plate 1560, ed. Rimsky-Korsakov) — https://imslp.org/wiki/Pictures_at_an_Exhibition_(Mussorgsky,_Modest) (wikitext through the API)
+- IMSLP, *A Life for the Tsar* (Jurgenson vocal score, Act V `PMLP26589-Glinka-ZhisnVSa5.pdf`, 6 491 982 B; the Soviet *Ivan Susanin* editions) — https://imslp.org/wiki/A_Life_for_the_Tsar_(Glinka,_Mikhail) (wikitext and file sizes through the API; the file itself is behind IMSLP's CAPTCHA)
+- IMSLP, *Prince Igor* (Belaieff 1888) — https://imslp.org/wiki/Prince_Igor_(Borodin,_Aleksandr)
+- starinnye-noty, marches and anthems (Detlaf 1905 «Русская Марсельеза»; «Любимые песни Ильича», 1969) — https://starinnye-noty.ru/марши-гимны-история
 
 Works and people:
 - Alexander Vasilyevich Alexandrov (1883-1946) — https://en.wikipedia.org/wiki/Alexander_Vasilyevich_Alexandrov
