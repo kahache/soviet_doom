@@ -11,8 +11,7 @@ Previews are sent to you as files; the paths are under `docs/art/previews/`.
 
 | What | Preview | Asks [PM's recommendation] |
 |---|---|---|
-| The General CD full set (D72) | `2026-10-14_2330_F5_general-CD-full-set.html` | approve -> install (N12c) |
-| Ice axe from your reference 1 | `2026-10-14_2252_F4_ice-axe-from-reference.html` | C1 [recommended], C3, C4 or none -> polish the shaft and head, then the swing |
+| Ice axe, right-handed (D73) | coming | pick C1 / C3 / C4 |
 
 ## 2. Waiting for your ears
 
