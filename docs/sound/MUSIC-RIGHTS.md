@@ -15,6 +15,11 @@ anthem slot goes to Glinka (§7.1).
 Revised 2026-10-13 by `mod-engineer` (D43, the radio): the two CC0 radio
 pieces are installed unedited as **`D_SDRAD1`** and **`D_SDRAD2`** (§4.4,
 §4.5), for the radio actor of `docs/engine/MOD-SPEC.md` §6.7.
+Revised 2026-10-14, **D44** (CEO: *"sí"* to one public-domain score per
+self-sequenced piece): two scores downloaded and recorded in **§4.6**, for
+«Вы жертвою пали» (`D_SDFUNR`) and «Амурские волны» (`D_SDAMUR`); **no
+reliable public-domain score of Glinka's *Patriotic Song* was found, so
+nothing was downloaded for `D_SDGLNK`** (§4.6.3).
 Companion to `docs/product/2026-10-12_2000_F2_pm-soviet-art-copyright.md`, which
 established the Russian and US legal frame for visual art. **The same frame applies
 to music**, with two extra layers: recordings, and sequencings.
@@ -464,6 +469,87 @@ places as the Engelbach line:
 > domain; MIDI sequences by **Peter Gerloff**, dedicated to the public
 > domain under CC0 (Wikimedia Commons).
 
+### 4.6 Scores downloaded under D44 (2026-10-14)
+
+**D44** (CEO, 2026-10-14, `docs/PRD.md` §5): *one public-domain score may be
+downloaded per self-sequenced piece, with provenance and SHA-256 recorded.*
+The PM's conditions, applied to every file: notation only (no MIDI, no
+recording); composer **and** edition public domain; URL, licence and size
+written down **before** the download, and nothing over 20 MB; each file in
+its own new directory under `work/audio/scores/<piece>/`; the files treated
+as untrusted data (page images extracted with a stdlib parser under
+`python -I`, nothing inside them executed). The pre-download record was
+taken at **2026-10-14 08:34 UTC**; both sizes below are the server's
+`Content-Length` read by a HEAD request at that time, and both downloads
+came in at exactly that size.
+
+**What the scores are used for, and what ships.** The PDFs are reference
+material: they stay in `work/audio/scores/`, which is gitignored like the
+rest of `work/audio/` except `candidates/` — **they are never packed and
+never redistributed**. What ships, if the CEO approves the drafts, is *our*
+sequencing of the notes they print: composition public domain, sequencing
+ours under CC BY-NC-SA 4.0 (D15), no phonogram (MIDI). The scan is used only
+to read the notes.
+
+#### 4.6.1 «Вы жертвою пали» → `D_SDFUNR`
+
+| Field | Value |
+|---|---|
+| **File** | `work/audio/scores/vy_zhertvoyu_pali/Vy_zhertvoyu_pali_marsh-1905_Detlaff.pdf` |
+| **SHA-256** | `af423178931d28e98897c7054a5ea1cd332181d0cb7e32636585174a499c83b4` |
+| **Size** | 1 446 410 B (1.38 MiB) — stated before download, under the 20 MB limit |
+| **URL** | https://starinnye-noty.ru/files/Vy_zhertvoyu_pali_marsh-1905_Detlaff.pdf |
+| **Page** | https://starinnye-noty.ru/вы-жертвою-пали-революционный-марш (the collection «Старинные русские ноты», which lists four editions of the song; this is the earliest) |
+| **Downloaded** | 2026-10-14, by `sound-designer`, under D44 |
+| **Edition** | «Траурный маршъ» («Вы жертвою пали»), *для пѣнія съ аккомпанементомъ*, «Аррандж. Ф. I. Детлафъ», Moscow, Торговый домъ Ф. I. Детлафъ и Ко, series «Народныя пѣсни освободительнаго движенія въ Россіи» (no. 7), «Дозв. ценз. Москва 9 Ноября 1905 г.»; 4 scanned pages: cover, two pages of music (voice and piano, 2/4, four flats, *Allegro non troppo*), back-cover catalogue |
+| **Licence of the page / scan** | **none stated.** The site carries only a collection notice (*"© Antique Russian Golden Age Piano Sheet Music Collection"*); the scan is a flat reproduction of a 1905 print. A faithful photograph of a public-domain two-dimensional work attracts no new copyright in the United States (*Bridgeman v. Corel*, 1999); in Russia **NOT VERIFIED** — moot here, because the scan is not redistributed (above) |
+| **Composition** | the 1870s revolutionary funeral song: Varlamov's tune per ru.wikipedia, unattributed in en.wikipedia (§2.2; the disagreement stands — **the edition names no composer**, only the arranger). Every candidate author died before 1916 → **PD in Russia and the United States** |
+| **Edition** | published 1905 → **PD in the United States** (published before 1931). Arranger **Ф. И. Детлаф** (F. I. Detlaf), the publisher himself: **life dates NOT VERIFIED**. That does not touch what we use: **only the voice line is copied**, which is the traditional tune his arrangement sets; his piano accompaniment is not used, and the harmony of `D_SDFUNR` is our own (`gen_music.py`, `FUNERAL_HARMONY`) |
+| **Lyrics** | Anton Amosov (Arkhangelsky), d. 1915 → PD; **not used** (instrumental) |
+
+#### 4.6.2 «Амурские волны» → `D_SDAMUR`
+
+| Field | Value |
+|---|---|
+| **File** | `work/audio/scores/amurskie_volny/AMURSKIE_VOLNY_vals_KUSS_Vladivostok.pdf` |
+| **SHA-256** | `a46f4966a4b4da1a8d8a31d97f2044a6111ecadc311062ac7e8c51bc95eb030d` |
+| **Size** | 5 622 728 B (5.36 MiB) — stated before download, under the 20 MB limit |
+| **URL** | https://starinnye-noty.ru/files/AMURSKIE_VOLNY_vals_KUSS_Vladivostok.pdf |
+| **Page** | https://starinnye-noty.ru/амурские-волны-лихар (the same collection; the page also lists a 1959 Baku "simplified" Soviet edition, **not** taken, and an unrelated waltz of the same title by P. Likhar) |
+| **Downloaded** | 2026-10-14, by `sound-designer`, under D44 |
+| **Edition** | «Амурскія волны», вальсъ, «Соч. М. А. Кюссъ, Op. 12», piano solo, Vladivostok, издатель Н. П. Лукьяновъ, plate **2239**, engraved and printed by S. Schmidt, St Petersburg; the collection dates the issue **1909-1914**; 5 scanned pages: cover, Introduction (p. 2), the waltz (p. 3), its continuation |
+| **Licence of the page / scan** | **none stated**; same collection notice and same position as §4.6.1 |
+| **Composition** | Max Kyuss, 1874-1942 → **PD in Russia** (free 1 Jan 2017 at the latest, §2.2) and **PD in the United States** (published 1909) |
+| **Edition** | the composer's own first edition, 1909-1914, no editor or arranger named → **PD in both countries** for the same reasons |
+| **Lyrics** | none: the edition is instrumental; the later Soviet texts (1944 and after) are protected and **not used** |
+
+Two Soviet-era editions met on the way were **rejected** before download:
+the 1954 Muzgiz SATB arrangement by Vl. Sokolov (archive.org, University of
+Toronto scan) and the 1959 Baku simplified edition — both carry a protected
+arranger's contribution.
+
+#### 4.6.3 Glinka's *Patriotic Song* → `D_SDGLNK`: **no download — no reliable public-domain score found**
+
+The PM's condition (D44 brief, point 5) was that whatever is downloaded must
+be **Glinka's 1833 melody, not a protected arrangement**. Nothing found on
+2026-10-14 meets it:
+
+| Source checked | What it is | Verdict |
+|---|---|---|
+| Commons `File:Russian SFSR - Russian Anthem Music Sheet.InstrumentalSimple (1990-2000).svg` (750 714 B) | marked "own work" by Commons user Jeromi Mikhael, 2018; its description calls it a simple instrumental sheet of the anthem of the RSFSR and the Russian Federation, 1990-2000, and its own source line is the GIF below | **rejected**: the 1990-2000 **anthem** version — the translator's warning confirmed |
+| Commons `File:Patriotic Song - Mikhail Glinka.gif` (20 792 B), tagged public domain | a melody sheet whose credited source is `nationalanthems.info/ru-00~.gif`, a modern typesetting of the **1990-2000 anthem melody** from a site licensed CC BY 4.0, not PD | **rejected**: it shows the anthem as performed, and nothing ties its notes to Glinka's manuscript rather than to the 1944 orchestration by **Mikhail Bagrinovsky (1885-1966)** the anthem descends from; a footnote in en.wikipedia reports a claim that the tune as known belongs to Bagrinovsky rather than to Glinka. Bagrinovsky is protected in Russia to 1 Jan 2037 |
+| IMSLP, category *Glinka, Mikhail* (73 works, listed through the API) | no *Patriotic Song* / *Motif de chant national* | nothing to take |
+| Glinka's autograph, *Motif de chant national* (1833, piano; Russian National Library, rediscovered 1885 per en.wikipedia) | no digitised facsimile found; Gallica, the Presidential Library and the НЭБ answer automated requests with a block or a browser check, which this project does not bypass | not available to us |
+| Glinka, *Complete Works* (Muzgiz, 1950s) | may print the manuscript; not on IMSLP for this piece, and a Soviet editorial edition would need its own rights check | not available |
+
+**So `D_SDGLNK` stays blocked, and no melody was written from memory.**
+What would unblock it, for the PM or the CEO: (a) a facsimile of the 1833
+autograph (the RNB's manuscript department can be asked; the manuscript of a
+composer who died in 1857 is public domain), or (b) a pre-1931 printed
+edition of the *Motif de chant national* — **NOT VERIFIED** that one was
+printed before the Soviet period at all. The anthem slot itself (D43) is a
+product decision and is not reopened here.
+
 ---
 
 
@@ -574,8 +660,16 @@ packed by the build as `music/<LUMP>.mid` (`tools/sdbuild/pk3.py`,
    only, when a map needs it*, and keep the rest for diegetic use where piano
    is plausible. Nothing is waiting on this today.
 
+5. **Glinka's *Patriotic Song* — open since D44 (2026-10-14).** No
+   public-domain score that is demonstrably Glinka's 1833 melody, rather
+   than the 1944/1990 arrangement, was found (§4.6.3); nothing was
+   downloaded and nothing was sequenced. Needed: a facsimile of the
+   autograph or a pre-Soviet printed edition, or a CEO decision on the
+   anthem slot. Blocks only `D_SDGLNK`.
+
 Nine downloaded files remain in `work/audio/candidates/` (§4.4), tracked in
-git. **Two lumps are in `assets/` and therefore in the PK3: `D_SDINTL` and
+git. Two scores downloaded under D44 sit in `work/audio/scores/` (§4.6),
+gitignored and never packed. **Two lumps are in `assets/` and therefore in the PK3: `D_SDINTL` and
 `D_SDM01`** (§4.5).
 
 ---

@@ -4,6 +4,7 @@
     python3 tools/audio/gen_music.py                 # -> work/audio/*.mid
     python3 tools/audio/gen_music.py --only title
     python3 tools/audio/gen_music.py --only map01e     # the D43 enriched draft
+    python3 tools/audio/gen_music.py --only funeral --only amur   # the D44 sequencings
     python3 tools/audio/gen_music.py --title-tempo 72 --map01-tempo 96
     python3 tools/audio/gen_music.py --list           # what exists and how long
 
@@ -29,6 +30,13 @@ finding the poster research reached -- so writing *in the idiom* of the
 Soviet parade march and of Eduard Artemyev's ANS electronics is free, while
 quoting an actual tune is a rights question every single time. Nothing here
 quotes anything. Licence: CC BY-NC-SA 4.0 with the rest of the assets (D15).
+
+The exception is section 4c (D44): two public-domain tunes SEQUENCED by us,
+note for note, from one public-domain printed edition each, downloaded with
+the CEO's authorisation and kept in `work/audio/scores/`. The notes there are
+the edition's, never written from memory; which bar of which edition every
+phrase comes from is in `docs/sound/SOUNDTRACK.md` (Cards 3-5) and in the
+comments beside the data. The sequencing (our MIDI) is CC BY-NC-SA 4.0.
 
 Everything the CEO might want to change -- tempo, instruments, how loud the
 brass is, how long each section lasts -- is a named constant in section 2.
@@ -76,6 +84,7 @@ META_PREFIX = 0xFF
 META_TRACK_NAME = 0x03
 META_TEMPO = 0x51
 META_TIME_SIGNATURE = 0x58
+META_KEY_SIGNATURE = 0x59      # sf (signed: flats < 0), mi (0 major, 1 minor)
 META_END_OF_TRACK = 0x2F
 
 # Controller numbers we use (MIDI CC, General MIDI level 1).
@@ -153,6 +162,10 @@ class Track:
     def time_signature(self, beat: float, numerator: int, denominator: int) -> None:
         power = denominator.bit_length() - 1           # 4 -> 2, 8 -> 3
         self.meta(beat, META_TIME_SIGNATURE, bytes([numerator, power, 24, 8]))
+
+    def key_signature(self, beat: float, accidentals: int, minor: bool) -> None:
+        """accidentals: +sharps / -flats, as the score's key signature reads."""
+        self.meta(beat, META_KEY_SIGNATURE, struct.pack("bB", accidentals, 1 if minor else 0))
 
     def program(self, beat: float, channel: int, gm_program: int) -> None:
         self._add(beat, ORDER_CONTROL, bytes([STATUS_PROGRAM_CHANGE | channel, gm_program]))
@@ -927,6 +940,417 @@ def build_map01_enriched(tempo_bpm: float) -> tuple[list[Track], float]:
 
 
 # =========================================================================
+# 4c. D44 -- two public-domain tunes, sequenced from a printed edition
+# =========================================================================
+# Notation used in the data below. A bar is a list of (notes, beats):
+#   notes = "C5"            one pitch, spelled as the edition spells it with
+#                           its key signature applied (the edition's "A" in
+#                           four flats is written "Ab" here)
+#   notes = "F5+Ab5"        a chord / doubling printed on one stem
+#   notes = None            a rest
+#   ("gr", "C4")            a grace note printed before the next note; it
+#                           takes GRACE_BEATS from the start of that note
+# Every bar is checked to add up to the time signature
+# (tests/test_music_d44.py). Bar numbers in the comments are the edition's,
+# counted from the first full bar of the music; SOUNDTRACK.md Cards 3-5 give
+# the same map phrase by phrase.
+
+GRACE_BEATS = 0.125            # an acciaccatura: a 32nd at these tempi
+GM_CLARINET = 71
+GM_PIZZICATO = 45
+GM_CELLO_D44 = 42              # = GM_CELLO; restated so section 6 reads alone
+
+
+def _events(bar):
+    """Yield (pitches, start, beats, is_grace) for one bar of the notation."""
+    position = 0.0
+    pending_grace = None
+    for item in bar:
+        if item[0] == "gr":
+            pending_grace = item[1]
+            continue
+        notes, beats = item
+        if notes is not None:
+            pitches = tuple(pitch(n) for n in notes.split("+"))
+            if pending_grace:
+                yield (pitch(pending_grace),), position, GRACE_BEATS, True
+                yield pitches, position + GRACE_BEATS, beats - GRACE_BEATS, False
+            else:
+                yield pitches, position, beats, False
+        pending_grace = None
+        position += beats
+
+
+def bar_length(bar) -> float:
+    return sum(item[1] for item in bar if item[0] != "gr")
+
+
+def _play_bar(track: Track, channel: int, bar, start: float, velocity: int,
+              articulation: float, octave: int = 0) -> None:
+    for pitches, offset, beats, grace in _events(bar):
+        for p in pitches:
+            track.note(channel, p + 12 * octave, start + offset,
+                       beats if grace else beats * articulation,
+                       velocity - (12 if grace else 0))
+
+
+def _setup(tracks, channels, programs, mix, reverb):
+    for track, key in zip(tracks, channels):
+        volume, pan = mix[key]
+        track.track_name()
+        track.program(0, channels[key], programs[key])
+        track.control(0, channels[key], CC_VOLUME, volume)
+        track.control(0, channels[key], CC_PAN, pan)
+        track.control(0, channels[key], CC_REVERB, reverb)
+
+
+# -- D_SDFUNR: «Вы жертвою пали» ------------------------------------------
+# SOURCE: «Траурный марш» («Вы жертвою пали»), для пения с аккомпанементом,
+# arr. F. I. Detlaf, Moscow: Torgovyi dom F. I. Detlaf i Ko, censored
+# 9 Nov 1905 -- work/audio/scores/vy_zhertvoyu_pali/, provenance in
+# MUSIC-RIGHTS.md section 4.6. Only the VOICE line is copied, bars 0 (the
+# "Вы" anacrusis) to 32. Detlaf's piano accompaniment is NOT used: the
+# harmony below is ours (FUNERAL_HARMONY), so nothing of the arranger's
+# contribution is in the file. Key as printed: four flats, F minor, 2/4.
+# The edition marks "Allegro non troppo"; the tempo is ours (a funeral cue).
+FUNERAL_LUMP = "D_SDFUNR"
+FUNERAL_TEMPO_BPM = 56
+FUNERAL_BEATS_PER_BAR = 2      # 2/4, as printed
+FUNERAL_KEY = (-4, True)       # four flats, minor: F minor
+FUNERAL_TONIC_PC = 5           # F
+FUNERAL_PICKUP = [("C4", 0.5)]                          # bar 0, "Вы"
+FUNERAL_MELODY = [
+    [("C5", 1.0), ("Ab4", 0.5), ("F4", 0.5)],           # 1  жерт-во-ю
+    [("C5", 1.0), ("Ab4", 0.5), ("F4", 0.5)],           # 2  па-ливъ-борь
+    [("Ab4", 1.0), ("G4", 0.5), ("F#4", 0.5)],          # 3  бѣ-ро-ко
+    [("G4", 1.0), (None, 0.5), ("G4", 0.5)],            # 4  вой, Люб-
+    [("Bb4", 1.0), ("Bb4", 0.5), ("Db5", 0.5)],         # 5  ви без-за-
+    [("C5", 0.5), ("Bb4", 0.5), ("Ab4", 0.5), ("G4", 0.5)],  # 6  вѣт-ной къ на-
+    [("F4", 1.0), ("Ab4", 1.0)],                        # 7  ро- (courtesy natural on F)
+    [("F4", 1.0), (None, 0.5), ("F4", 0.5)],            # 8  ду. Вы
+    [("C5", 1.0), ("Ab4", 0.75), ("F4", 0.25)],         # 9  от-да-ли
+    [("C5", 1.0), ("Ab4", 0.5), ("F4", 0.5)],           # 10 все, что мог-
+    [("Ab4", 1.0), ("G4", 0.5), ("F#4", 0.5)],          # 11 ли, за не-
+    [("G4", 1.0), (None, 0.5), ("G4", 0.5)],            # 12 го. За
+    [("Bb4", 1.0), ("Bb4", 0.5), ("Db5", 0.5)],         # 13 жизнь е-го
+    [("C5", 0.5), ("Bb4", 0.5), ("Ab4", 0.5), ("G4", 0.5)],  # 14 честь и сво-
+    [("F4", 0.5), ("Ab4", 0.5), ("C5", 0.5), ("Ab4", 0.5)],  # 15 бо- (courtesy natural on F)
+    [("F4", 1.0), ("F4", 1.0)],                         # 16 ду. На-
+    [("Eb5", 1.0), ("Eb5", 0.75), ("Eb5", 0.25)],       # 17 ста-нетъ по-  (ff)
+    [("Eb5", 1.0), ("F5", 0.5), ("C5", 0.5)],           # 18 ра и прос-
+    [("Eb5", 1.0), ("Db5", 0.75), ("C5", 0.25)],        # 19 нет-ся на-
+    [("Db5", 1.5), ("Db5", 0.5)],                       # 20 родъ, Ве-
+    [("Db5", 1.0), ("Db5", 0.75), ("Db5", 0.25)],       # 21 ли-кій, мо-  (f)
+    [("Db5", 1.0), ("Eb5", 0.5), ("Bb4", 0.5)],         # 22 гу-чій, сво-
+    [("Db5", 1.0), ("C5", 0.75), ("B4", 0.25)],         # 23 бод- (B natural printed)
+    [("C5", 1.0), (None, 0.5), ("F4", 0.5)],            # 24 ный! Про-  (p)
+    [("C5", 1.0), ("Ab4", 0.5), ("F4", 0.5)],           # 25 щай-те же,
+    [("C5", 1.0), ("Ab4", 0.5), ("F4", 0.5)],           # 26 бра-тья, Вы
+    [("Ab4", 1.0), ("G4", 0.5), ("F#4", 0.5)],          # 27 чест-но прош-
+    [("G4", 1.0), (None, 0.5), ("G4", 0.5)],            # 28 ли, Вашъ
+    [("Bb4", 1.0), ("Bb4", 0.5), ("Db5", 0.5)],         # 29 доб-лест-ный
+    [("C5", 0.5), ("Bb4", 0.5), ("Ab4", 0.5), ("G4", 0.5)],  # 30 путь бла-го-
+    [("F4", 0.5), ("Ab4", 0.5), ("C5", 0.5), ("Ab4", 0.5)],  # 31 род- (courtesy natural on F)
+    [("F4", 2.0)],                                      # 32 ный!  (final bar, double bar)
+]
+# OUR harmony, one or two chords a bar: (beat in bar, beats, trombone voicing, bass).
+_FM = ("F3", "Ab3", "C4")
+_DB = ("F3", "Ab3", "Db4")
+_D7 = ("F#3", "A3", "C4")
+_C = ("E3", "G3", "C4")
+_C7 = ("E3", "G3", "Bb3")
+_BBM = ("F3", "Bb3", "Db4")
+_AB = ("Eb3", "Ab3", "C4")
+_EB7 = ("G3", "Bb3", "Db4")
+_G7 = ("F3", "G3", "B3")
+_A_PHRASE = [
+    [(0, 2, _FM, "F2")],                                # 1  i
+    [(0, 2, _FM, "F2")],                                # 2  i
+    [(0, 1, _DB, "Db2"), (1, 1, _D7, "D2")],            # 3  VI, V7/V (carries the F#)
+    [(0, 2, _C, "C2")],                                 # 4  V
+    [(0, 2, _BBM, "Bb1")],                              # 5  iv
+    [(0, 2, _C7, "C2")],                                # 6  V7
+    [(0, 2, _DB, "Db2")],                               # 7  VI
+    [(0, 2, _FM, "F2")],                                # 8  i
+]
+_A_PHRASE_2 = _A_PHRASE[:6] + [[(0, 2, _FM, "F2")], [(0, 2, _FM, "F2")]]   # 9-16: 15-16 stay on i
+FUNERAL_HARMONY = (
+    _A_PHRASE + _A_PHRASE_2 + [
+        [(0, 2, _AB, "Ab1")],                           # 17 III
+        [(0, 1, _AB, "Ab1"), (1, 1, _FM, "F2")],        # 18 III, i
+        [(0, 1, _EB7, "Eb2"), (1, 1, _AB, "Ab1")],      # 19 V7/III, III
+        [(0, 2, _DB, "Db2")],                           # 20 VI
+        [(0, 2, _BBM, "Bb1")],                          # 21 iv
+        [(0, 2, _EB7, "Eb2")],                          # 22 V7/III
+        [(0, 1, _DB, "Db2"), (1, 1, _G7, "G1")],        # 23 bII of C, V7 of C (carries the B natural)
+        [(0, 2, _C, "C2")],                             # 24 V
+    ] + _A_PHRASE[:6] + [[(0, 2, _FM, "F2")], [(0, 2, _FM, "F2")]]           # 25-32
+)
+FUNERAL_STROPHES = 2
+FUNERAL_CODA_BARS = 2          # the last chord held under the timpani
+FUNERAL_TAIL_BARS = 1          # silence: the cue ends, it does not loop
+FUNERAL_VEL_MELODY = 84
+FUNERAL_VEL_BRASS = 56
+FUNERAL_VEL_BASS = 74
+FUNERAL_VEL_PAD = 40
+FUNERAL_VEL_STRINGS = 50
+FUNERAL_VEL_TIMPANI = 82
+FUNERAL_MIX = {
+    "melody": (100, 70),
+    "brass": (84, 48),
+    "bass": (92, 64),
+    "pad": (62, 64),
+    "strings": (70, 44),
+    "cellos": (78, 30),
+    "timpani": (90, 64),
+    "horns": (86, 40),
+}
+
+
+def build_funeral(tempo_bpm: float) -> tuple[list[Track], float]:
+    """«Вы жертвою пали», two strophes and a held last chord. Notes: Detlaf 1905."""
+    melody = Track("melody - horn, then trumpet")
+    brass = Track("trombones")
+    bass = Track("tuba")
+    pad = Track("pad")
+    strings = Track("tremolo strings")
+    cellos = Track("cellos")
+    timpani = Track("timpani")
+    horns = Track("horns - second strophe, an octave below")
+    drums = Track("percussion")
+    tracks = [melody, brass, bass, pad, strings, cellos, timpani, horns, drums]
+    ch = {"melody": 0, "brass": 1, "bass": 2, "pad": 3, "strings": 4, "cellos": 5, "timpani": 6,
+          "horns": 7}
+    programs = {"melody": GM_FRENCH_HORN, "brass": GM_TROMBONE, "bass": GM_TUBA,
+                "pad": GM_PAD_HALO, "strings": GM_TREMOLO_STRINGS, "cellos": GM_CELLO_D44,
+                "timpani": GM_TIMPANI, "horns": GM_FRENCH_HORN}
+    melody.track_name("Soviet Doom - D_SDFUNR (Vy zhertvoyu pali, Detlaf 1905)")
+    melody.tempo(0, tempo_bpm)
+    melody.time_signature(0, FUNERAL_BEATS_PER_BAR, 4)
+    melody.key_signature(0, *FUNERAL_KEY)
+    _setup(tracks, ch, programs, FUNERAL_MIX, 72)
+    drums.track_name()
+    drums.control(0, DRUM_CHANNEL, CC_VOLUME, MAP01_MIX["drums"][0])
+
+    pickup = bar_length(FUNERAL_PICKUP)
+    strophe_beats = len(FUNERAL_MELODY) * FUNERAL_BEATS_PER_BAR
+
+    def bar_start(strophe: int, bar_index: int) -> float:
+        return pickup + strophe * strophe_beats + bar_index * FUNERAL_BEATS_PER_BAR
+
+    # The pickup of strophe 1 sounds alone; the pickup of strophe 2 is taken
+    # out of the last bar of strophe 1, whose half note becomes a dotted
+    # quarter -- exactly how the printed song is sung verse after verse.
+    _play_bar(melody, ch["melody"], FUNERAL_PICKUP, 0.0, FUNERAL_VEL_MELODY - 10, MARCATO)
+    for strophe in range(FUNERAL_STROPHES):
+        full = strophe == FUNERAL_STROPHES - 1
+        if full:
+            melody.program(bar_start(strophe, 0) - pickup - 0.05, ch["melody"], GM_TRUMPET)
+        for index, bar in enumerate(FUNERAL_MELODY):
+            start = bar_start(strophe, index)
+            last = index == len(FUNERAL_MELODY) - 1
+            if last and not full:
+                bar = [("F4", FUNERAL_BEATS_PER_BAR - pickup)] + FUNERAL_PICKUP
+            velocity = FUNERAL_VEL_MELODY + (8 if full else 0)
+            _play_bar(melody, ch["melody"], bar, start, velocity, MARCATO)
+            if full:   # horns an octave below the trumpets: the full brass of the second strophe
+                _play_bar(horns, ch["horns"], bar, start, FUNERAL_VEL_BRASS + 14, MARCATO, octave=-1)
+            for at, beats, voicing, root in FUNERAL_HARMONY[index]:
+                t = start + at
+                hold = beats * LEGATO
+                brass.chord(ch["brass"], voicing, t, hold, FUNERAL_VEL_BRASS + (12 if full else 0))
+                bass.note(ch["bass"], pitch(root), t, hold, FUNERAL_VEL_BASS + (8 if full else 0))
+                cellos.note(ch["cellos"], pitch(root) + 12, t, hold, FUNERAL_VEL_STRINGS + 6)
+                pad.chord(ch["pad"], voicing, t, hold, FUNERAL_VEL_PAD)
+                if full:
+                    strings.chord(ch["strings"], tuple(pitch(n) + 12 for n in voicing), t, hold,
+                                  FUNERAL_VEL_STRINGS)
+                    if at == 0:
+                        timpani.note(ch["timpani"], pitch(root) + 12 * (1 if pitch(root) < pitch("F2") else 0),
+                                     t, 0.9, FUNERAL_VEL_TIMPANI)
+            # the funeral drum: a muffled low tom on every downbeat; the bass
+            # drum joins in the second strophe
+            drums.hit(DRUM_LOW_FLOOR_TOM, start, MAP01_VEL_DRUM_GHOST + (16 if full else 0))
+            if full:
+                drums.hit(DRUM_BASS, start, MAP01_VEL_DRUM_PULSE)
+            if full and index == 16:          # bar 17, the ff of the edition
+                drums.hit(DRUM_CRASH, start, MAP01_VEL_DRUM_PULSE)
+
+    # Coda: the tonic held, the timpani rolling it out. Nothing after it but
+    # the tail -- this cue ends.
+    coda = bar_start(FUNERAL_STROPHES, 0)
+    hold = FUNERAL_CODA_BARS * FUNERAL_BEATS_PER_BAR * LEGATO
+    brass.chord(ch["brass"], _FM, coda, hold, FUNERAL_VEL_BRASS + 8)
+    melody.note(ch["melody"], pitch("F4"), coda, hold, FUNERAL_VEL_MELODY - 6)
+    bass.note(ch["bass"], pitch("F2"), coda, hold, FUNERAL_VEL_BASS)
+    pad.chord(ch["pad"], _FM, coda, hold, FUNERAL_VEL_PAD)
+    strings.chord(ch["strings"], tuple(pitch(n) + 12 for n in _FM), coda, hold, FUNERAL_VEL_STRINGS - 8)
+    for step in range(int(FUNERAL_CODA_BARS * FUNERAL_BEATS_PER_BAR * 4)):   # 16th-note roll, fading
+        timpani.note(ch["timpani"], pitch("F2"), coda + step * 0.25, 0.2,
+                     FUNERAL_VEL_TIMPANI - 20 - step * 2)
+    end = coda + (FUNERAL_CODA_BARS + FUNERAL_TAIL_BARS) * FUNERAL_BEATS_PER_BAR
+    return tracks, end
+
+
+# -- D_SDAMUR: «Амурские волны» ---------------------------------------------
+# SOURCE: «Амурскія волны», вальсъ, соч. М. А. Кюссъ, Op. 12, piano,
+# Vladivostok: N. P. Luk'yanov, plate 2239, engraved by S. Schmidt,
+# St Petersburg, issued 1909-1914 -- work/audio/scores/amurskie_volny/,
+# provenance in MUSIC-RIGHTS.md section 4.6. What is sequenced is the waltz
+# proper, page 3 of the edition (scan page 3): the 32 bars between the segno
+# repeat bar and the repeat sign, with the FIRST-time ending (bars 31-32),
+# which returns to bar 1 -- so the engine's loop is the edition's own
+# repeat. The Introduction (page 2) and the trio that follows the second
+# ending (page 4) are not sequenced. Key as printed: three flats, C minor, 3/4.
+# The right hand (melody and its printed thirds, octaves and chords) and the
+# left hand's bass notes are copied. The left hand's off-beat chords are
+# copied where the scan is legible and completed by us where it is not:
+# AMUR_CHORD_SOURCE says which, bar by bar.
+AMUR_LUMP = "D_SDAMUR"
+AMUR_TEMPO_BPM = 150           # "Tempo di Valse"; the number is ours
+AMUR_BEATS_PER_BAR = 3
+AMUR_KEY = (-3, True)          # three flats, minor: C minor
+AMUR_TONIC_PC = 0              # C
+AMUR_MELODY = [
+    [("G3", 3.0)],                                                       # 1  p
+    [("G3", 1.0), ("gr", "C4"), ("Ab3", 1.5), ("G3", 0.5)],              # 2
+    [("Eb4", 3.0)],                                                      # 3
+    [("Eb4", 1.0), ("D4", 1.0), ("C4", 1.0)],                            # 4
+    [("B3", 3.0)],                                                       # 5  B natural printed
+    [("B3", 1.0), ("D4", 0.5), (None, 0.5), (None, 0.5), ("C4", 0.5)],   # 6
+    [("G3", 3.0)],                                                       # 7
+    [("G3", 1.0), (None, 1.0), (None, 1.0)],                             # 8
+    [("G3", 3.0)],                                                       # 9
+    [("G3", 1.0), ("gr", "C4"), ("Ab3", 1.5), ("G3", 0.5)],              # 10
+    [("F4", 3.0)],                                                       # 11
+    [("F4", 1.0), ("Eb4", 1.0), ("D4", 1.0)],                            # 12
+    [("C4", 3.0)],                                                       # 13
+    [("Eb4", 2.0), ("F4", 1.0)],                                         # 14
+    [("B3+G4", 1.0), ("Ab4+D5", 1.0), ("Ab4+D5", 1.0)],                  # 15 accented chords
+    [(None, 3.0)],                                                       # 16 right hand rests
+    [("G4", 3.0)],                                                       # 17 f
+    [("G4", 1.0), ("gr", "C5"), ("Ab4", 1.5), ("G4", 0.5)],              # 18
+    [("Eb5", 3.0)],                                                      # 19
+    [("Eb5", 1.0), ("D5", 1.0), ("C5", 1.0)],                            # 20
+    [("F5", 3.0)],                                                       # 21
+    [("F5+Ab5", 1.0), ("Ab5+C6", 0.5), (None, 0.5), (None, 0.5), ("F5+Ab5", 0.5)],  # 22
+    [("Eb5+G5", 3.0)],                                                   # 23
+    [("Eb5+G5", 1.0), ("D5+F5", 1.0), ("C5+Eb5", 1.0)],                  # 24
+    [("B4+D5", 0.5), ("C5+Eb5", 0.5), ("D5+F5", 0.5), ("Eb5+G5", 0.5),
+     ("F5+Ab5", 0.5), (None, 0.5)],                                      # 25
+    [("C4", 0.5), ("D4", 0.5), ("Eb4", 0.5), ("F4", 0.5), ("G4", 0.5), (None, 0.5)],  # 26
+    [("B3+D4+Ab4", 2.0), ("B3+D4+G4", 1.0)],                             # 27
+    [(None, 1.0), ("F#4+F#5", 1.0), ("G4+G5", 1.0)],                     # 28 p
+    [("gr", "Bb5"), ("Ab4+Ab5", 2.0), ("G4+G5", 1.0)],                   # 29
+    [(None, 1.0), ("F4+D5", 1.0), ("G4+Eb5", 1.0)],                      # 30
+    [("Eb4+C5", 3.0)],                                                   # 31 first ending
+    [("Eb4+C5", 1.0), (None, 1.0), (None, 1.0)],                         # 32 first ending, :||
+]
+# The left hand: the bass, one octave pair, as (lower note or None, beats);
+# the upper octave is added by the builder, as printed.
+AMUR_BASS = [
+    [("C2", 1.0)], [("G1", 1.0)], [("C2", 1.0)], [("G1", 1.0)],          # 1-4
+    [("D2", 1.0)], [("G1", 1.0)], [("D2", 1.0)], [("G1", 1.0)],          # 5-8
+    [("D2", 1.0)], [("G1", 1.0)], [("B1", 1.0)], [("G1", 1.0)],          # 9-12
+    [("C2", 1.0)], [("Ab2", 3.0)], [("G1", 1.0)],                        # 13-15
+    [("F2", 1.0), ("Eb2", 1.0), ("D2", 1.0)],                            # 16 accented octaves
+    [("C2", 1.0)], [("G1", 1.0)], [("C2", 1.0)], [("G1", 1.0)],          # 17-20
+    [("Ab1", 1.0)], [("F2", 1.0)], [("G1", 1.0)], [("G1", 1.0)],         # 21-24
+    [("G1", 1.0)],                                                       # 25
+    [("C2", 0.5), ("D2", 0.5), ("Eb2", 0.5), ("F2", 0.5), ("G2", 0.5), (None, 0.5)],  # 26 with the RH
+    [("Ab2", 2.0), ("G2", 1.0)],                                         # 27
+    [(None, 3.0)],                                                       # 28 left hand rests
+    [("D2", 1.0)], [("G1", 1.0)],                                        # 29-30
+    [("C2", 1.0), ("G2", 1.0), ("Eb2", 1.0)],                            # 31
+    [("C2", 1.0)],                                                       # 32
+]
+# The off-beat chord (beats 2 and 3), or None where the bar has none.
+_WI = ("Eb3", "G3", "C4")
+_WV = ("F3", "G3", "B3")
+AMUR_CHORDS = [
+    ("C3", "Eb3"), ("C3", "Eb3"), ("C3", "Eb3"), ("C3", "Eb3"),          # 1-4
+    _WV, _WV, _WV, _WV, _WV, _WV,                                        # 5-10
+    ("D3", "F3", "Ab3"), _WV, _WI,                                       # 11-13
+    ("D3", "F3", "Ab3"), ("B2", "D3", "F3"), None,                       # 14-16
+    _WI, _WI, _WI, _WI,                                                  # 17-20
+    ("F3", "Ab3", "C4"), ("Ab3", "C4", "F4"),                            # 21-22
+    ("C3", "Eb3", "G3"), ("B2", "F3", "G3"), ("B2", "F3", "G3"),         # 23-25
+    None, None, None,                                                    # 26-28
+    ("F3", "B3"), ("F3", "B3"),                                          # 29-30
+    None, None,                                                          # 31-32
+]
+# "read": the chord is legible in the scan and copied; "ours": completed by
+# us from the printed bass and melody because the scan's chord is not legible.
+AMUR_CHORD_SOURCE = (["read"] * 4 + ["read"] + ["ours"] * 5 + ["ours", "ours", "ours"]
+                     + ["read", "read", "-"] + ["read"] * 4 + ["ours", "read", "read", "ours", "ours"]
+                     + ["-"] * 3 + ["read", "read"] + ["-", "-"])
+AMUR_PASSES = 2                # the written repeat, heard twice per loop
+AMUR_VEL_MELODY = 76
+AMUR_VEL_BASS = 70
+AMUR_VEL_CHORD = 50
+AMUR_VEL_PAD = 30
+AMUR_FORTE = range(16, 27)     # bars 17-27, the edition's f; p again at bar 28
+AMUR_FORTE_BOOST = 14
+AMUR_MIX = {
+    "melody": (100, 70),
+    "strings": (84, 44),
+    "bass": (88, 64),
+    "chords": (80, 84),
+    "pad": (50, 64),
+}
+
+
+def build_amur(tempo_bpm: float) -> tuple[list[Track], float]:
+    """«Амурские волны», the waltz's 32-bar period, twice, looping. Notes: Kyuss op. 12."""
+    melody = Track("melody - clarinet")
+    strings = Track("strings - melody, second pass")
+    bass = Track("bass - tuba")
+    chords = Track("pizzicato - off-beat chords")
+    pad = Track("pad")
+    tracks = [melody, strings, bass, chords, pad]
+    ch = {"melody": 0, "strings": 1, "bass": 2, "chords": 3, "pad": 4}
+    programs = {"melody": GM_CLARINET, "strings": GM_STRINGS, "bass": GM_TUBA,
+                "chords": GM_PIZZICATO, "pad": GM_PAD_HALO}
+    melody.track_name("Soviet Doom - D_SDAMUR (Amurskiye volny, Kyuss op. 12, 1909)")
+    melody.tempo(0, tempo_bpm)
+    melody.time_signature(0, AMUR_BEATS_PER_BAR, 4)
+    melody.key_signature(0, *AMUR_KEY)
+    _setup(tracks, ch, programs, AMUR_MIX, 72)
+
+    period = len(AMUR_MELODY) * AMUR_BEATS_PER_BAR
+    for repeat in range(AMUR_PASSES):
+        second = repeat == AMUR_PASSES - 1
+        for index in range(len(AMUR_MELODY)):
+            start = repeat * period + index * AMUR_BEATS_PER_BAR
+            boost = AMUR_FORTE_BOOST if index in AMUR_FORTE else 0
+            _play_bar(melody, ch["melody"], AMUR_MELODY[index], start,
+                      AMUR_VEL_MELODY + boost, LEGATO)
+            if second:
+                _play_bar(strings, ch["strings"], AMUR_MELODY[index], start,
+                          AMUR_VEL_MELODY - 16 + boost, LEGATO)
+            # oom: the printed octave, tuba on the lower note, pizzicato on the upper
+            position = start
+            lowest = None
+            for name, beats in AMUR_BASS[index]:
+                if name is not None:
+                    bass.note(ch["bass"], pitch(name), position, beats * MARCATO, AMUR_VEL_BASS + boost)
+                    chords.note(ch["chords"], pitch(name) + 12, position, beats * MARCATO,
+                                AMUR_VEL_CHORD + boost)
+                    lowest = pitch(name) if lowest is None else lowest
+                position += beats
+            # pah-pah
+            if AMUR_CHORDS[index] is not None:
+                for beat in (1.0, 2.0):
+                    chords.chord(ch["chords"], AMUR_CHORDS[index], start + beat, 0.6,
+                                 AMUR_VEL_CHORD + boost - 6)
+            # a quiet halo on the bar's bass note, the D_SDM01 colour under the dance
+            if lowest is not None:
+                pad.chord(ch["pad"], (lowest + 24, lowest + 31), start,
+                          AMUR_BEATS_PER_BAR * LEGATO, AMUR_VEL_PAD)
+    return tracks, AMUR_PASSES * period
+
+
+# =========================================================================
 # 5. Catalogue and command line
 # =========================================================================
 
@@ -947,6 +1371,12 @@ PIECES = {
     "map01e": Piece(MAP01E_LUMP, build_map01_enriched, MAP01_TEMPO_BPM,
                     "D_SDM01 enriched: horns, cellos, a through-composed lament "
                     "(D43 draft; replaces D_SDM01 only on the CEO's approval)"),
+    "funeral": Piece(FUNERAL_LUMP, build_funeral, FUNERAL_TEMPO_BPM,
+                     "Vy zhertvoyu pali, death / aftermath cue, ends (D44 draft; "
+                     "voice line from Detlaf's 1905 edition, harmony ours)"),
+    "amur": Piece(AMUR_LUMP, build_amur, AMUR_TEMPO_BPM,
+                  "Amurskiye volny, radio waltz, loops (D44 draft; "
+                  "Kyuss op. 12, Luk'yanov edition 1909-1914, page 3)"),
 }
 
 MAX_LUMP_NAME = 8              # WAD directory limit; check_pk3.py enforces it too
@@ -982,6 +1412,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--title-tempo", type=float, help="override D_SDTITL tempo, BPM")
     parser.add_argument("--map01-tempo", type=float,
                         help="override D_SDM01 (and D_SDM01E) tempo, BPM")
+    parser.add_argument("--funeral-tempo", type=float, help="override D_SDFUNR tempo, BPM")
+    parser.add_argument("--amur-tempo", type=float, help="override D_SDAMUR tempo, BPM")
     parser.add_argument("--list", action="store_true", help="print the catalogue and exit")
     parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args(argv)
@@ -992,7 +1424,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     tempos = {"title": args.title_tempo, "map01": args.map01_tempo,
-              "map01e": args.map01_tempo}
+              "map01e": args.map01_tempo, "funeral": args.funeral_tempo,
+              "amur": args.amur_tempo}
     for key in (args.only or sorted(PIECES)):
         generate(key, args.out, tempos.get(key), args.quiet)
     return 0
