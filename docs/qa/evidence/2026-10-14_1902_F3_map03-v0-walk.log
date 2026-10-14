@@ -1,0 +1,84 @@
+Log started: 2026-10-14 18:51:38
+GZDoom version g4.14.2
+W_Init: Init WADfiles.
+adding C:/Users/littl/AppData/Local/Programs/GZDoom/gzdoom.pk3, 692 lumps
+adding C:/Users/littl/AppData/Local/Programs/GZDoom/game_support.pk3, 3308 lumps
+adding ./iwads/freedoom2.wad, 3610 lumps
+adding C:/Users/littl/AppData/Local/Programs/GZDoom/game_widescreen_gfx.pk3, 214 lumps
+adding C:/Users/littl/AppData/Local/Temp/claude/C--Users-littl-Desktop-Claude/bf93b294-5d32-4820-bb78-8d68b86106b5/scratchpad/eng/m3.pk3, 702 lumps
+adding C:/Users/littl/AppData/Local/Temp/claude/C--Users-littl-Desktop-Claude/bf93b294-5d32-4820-bb78-8d68b86106b5/scratchpad/eng/helper.pk3, 2 lumps
+S_Init: Setting up sound.
+I_InitSound: Initializing OpenAL
+  Opened device OpenAL Soft on PHL24E1N1100A (NVIDIA High Definition Audio)
+  EFX enabled
+I_InitInput
+I_StartupMouse
+I_StartupKeyboard
+I_StartupXInput
+I_StartupRawPS2
+I_StartupDirectInputJoystick
+Initialization of Vulkan failed: Could not create vulkan instance: incompatible driver
+GL_VENDOR: NVIDIA Corporation
+GL_RENDERER: NVIDIA GeForce RTX 3050/PCIe/SSE2
+GL_VERSION: 4.6.0 NVIDIA 560.94
+GL_SHADING_LANGUAGE_VERSION: 4.60 NVIDIA
+GL_EXTENSIONS:
+GL Version parsed = 4.600000
+GL_MAX_TEXTURE_SIZE: 32768
+GLES choosing mode: GLES_MODE_OGL3
+Resolution: 944 x 561
+I_Init: Setting up machine state.
+CPU speed: 3598 MHz
+CPU Vendor ID: GenuineIntel
+  Name: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
+  Family 6, Model 60, Stepping 3
+  Features: SSE2 SSE3 SSSE3 SSE4.1 SSE4.2 AVX AVX2 F16C FMA3 BMI1 BMI2 HyperThreading
+V_Init: allocate screen.
+ST_Init: Init startup screen.
+Checking cmd-line parameters...
+S_InitData: Load sound definitions.
+G_ParseMapInfo: Load map definitions.
+Texman.Init: Init texture manager.
+ParseTeamInfo: Load team definitions.
+LoadActors: Load actor definitions.
+script parsing took 565.78 ms
+R_Init: Init Doom refresh subsystem.
+DecalLibrary: Load decals.
+Adding dehacked patch freedoom2.wad:DEHACKED
+Patch installed
+M_Init: Init menus.
+P_Init: Init Playloop state.
+ParseSBarInfo: Loading custom status bar definition.
+===========================================================================
+This is Freedoom, the free content first person shooter.
+
+Freedoom is freely redistributable under the terms of the modified BSD
+license. Check out the Freedoom website for more information:
+
+    https://freedoom.github.io/
+============================================================================
+D_CheckNetGame: Checking network game status.
+player 1 of 1 (1 nodes)
+
+----------------------------------------
+
+MAP03 - Метро-бункер
+
+SOVIETDOOM loaded: map MAP03 (Метро-бункер)
+God mode on.
+Captured Screenshot_Doom_20261014_185142.png
+Captured Screenshot_Doom_20261014_185142_01.png
+----------------------------------------
+Для применения нужна синяя карта
+----------------------------------------
+Captured Screenshot_Doom_20261014_185143.png
+Captured Screenshot_Doom_20261014_185153.png
+Captured Screenshot_Doom_20261014_185153_01.png
+Captured Screenshot_Doom_20261014_185154.png
+----------------------------------------
+Обнаружен тайник!
+----------------------------------------
+Captured Screenshot_Doom_20261014_185156.png
+Captured Screenshot_Doom_20261014_185158.png
+Captured Screenshot_Doom_20261014_185159.png
+Captured Screenshot_Doom_20261014_185203.png

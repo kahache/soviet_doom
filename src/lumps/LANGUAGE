@@ -16,6 +16,7 @@ SD_MAP01_NAME = "Zarya-7 Cosmodrome";
 // "Engineering Test Range", which said what MAP02 was built as, not what it
 // is (docs/levels/MAP02-practice-range.md 8; docs/engine/MOD-SPEC.md 4).
 SD_MAP02_NAME = "Training Ground";
+SD_MAP03_NAME = "Metro-Bunker";
 // D41: the practice range is the second episode on New Game (MAPINFO;
 // docs/engine/MOD-SPEC.md 4.4). Drawn in SmallFont, like the skill names.
 SD_EP02_NAME  = "Practice Range";
@@ -255,6 +256,7 @@ SD_GENERAL_ORDER     = "The General: Vorwärts!";
 SD_EP01_NAME  = "Советский Doom";
 SD_MAP01_NAME = "Космодром «Заря-7»";
 SD_MAP02_NAME = "Учебный полигон";
+SD_MAP03_NAME = "Метро-бункер";
 SD_EP02_NAME  = "Полигон";
 
 SD_END01_TEXT = "Огни стартовой башни гаснут у вас за спиной.\n\n«Заря-7» снова наша - космодром, на столе которого не осталось ракет, и некому их запускать.\n\nВторжение началось не здесь. Здесь оно только первым приземлилось.\n\nПРОДОЛЖЕНИЕ СЛЕДУЕТ";
