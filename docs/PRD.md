@@ -1,7 +1,7 @@
 # Soviet Doom — Product Requirements Document
 
 Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
-Last update: 2026-10-13 (D25-D43).
+Last update: 2026-10-14 (D25-D46).
 
 ## 1. Vision
 
@@ -77,6 +77,9 @@ until D16 brought it into scope on 2026-10-13.)
 | D41 | 2026-10-13 | **MAP02, the weapons test range, ships in v1 as a practice range**, outside the campaign: "Se puede publicar como práctica". | ratified (CEO) |
 | D42 | 2026-10-13 | **The metro direction and its first six pieces are approved** (`SDTILE1`, `SDTILE2`, `SDMARB1`, `SDMOSA1`, `SDBRAS1`, `SDMFLR1`; preview `docs/art/previews/2026-10-13_0952_F2_batch2-metro-first-pieces.html`): "OK a las 6 piezas de metro". They ship as drawn in palette v1. Palette v2 (marble red, cobalt and gold ramps) and the mosaic motif (star or figure) stay open. | ratified (CEO) |
 | D43 | 2026-10-13 | **Music: every open recommendation of `docs/sound/SOUNDTRACK.md` §8 accepted** ("Acepto las recomendaciones de música"). Jerry Engelbach is credited for the title Internationale; the repaired `D_SDINTL` enters `assets/`; MAP01 plays our own `D_SDM01`, which is then enriched (two more layers, a non-repeating section); the diegetic radio gets `WM_Ej_uchnem` and `WM_Kolokolchik` (CC0); we sequence «Вы жертвою пали» and «Амурские волны» ourselves; `D_CND02`, `D_CND04` and `D_CND08` are discarded; works restored in the United States («Священная война» above all) are excluded; the anthem slot goes to Glinka's Patriotic Song; `work/audio/candidates/` is tracked in git. | ratified (CEO) |
+| D44 | 2026-10-14 | **Sound sources and scores.** Kenney's impact pack is used for enemy and weapon sounds alike (one rule; D36's authorisation stands). One public-domain score may be downloaded per self-sequenced piece («Вы жертвою пали», «Амурские волны», Glinka's Patriotic Song), with provenance and SHA-256 recorded. CEO: "sí" to both. | ratified (CEO) |
+| D45 | 2026-10-14 | **Palette v2** adds a marble red, a cobalt and gold mosaic ramp and a pink flesh ramp (the Liberty Legion) in the reserved slots; approved textures keep their colours. The Reich hound's hide goes darker than BESTIARY §6 (`khaki_olive` 1-9) so it reads on green steel. CEO: "sí" / "ok". The mosaic motif stays open: the CEO asked to see the options. | ratified (CEO) |
+| D46 | 2026-10-14 | **Small calls.** MAP02's player-facing name is "Training Ground" / «Учебный полигон». The range's targets may fire before the player arms ("da igual q disparen antes"; QA's G3-F5 closed as accepted). The credits stay under Options and gain the line "fan project, not affiliated with id Software". The MAP01 radio stays where it is, in the guard post by the IZh rack. | ratified (CEO) |
 | D15 | 2026-10-09 | Licence of the mod: **GPL-3.0** for code (`tools/`, `src/zscript/`, scripts) and **CC BY-NC-SA 4.0** for assets and docs (textures, sprites, maps, sounds, lore). Non-commercial is required anyway by OTEX's terms. Full texts added at F6; `LICENSE.md` states it now. | decided by the PM on CEO delegation |
 
 ## 6. Phases and gates
