@@ -202,5 +202,93 @@ class FillDraftTests(unittest.TestCase):
             self.assertTrue(np.array_equal(builder(), self.built[lump][1]), lump)
 
 
+@unittest.skipUnless(HAVE_IMAGING, "needs numpy + Pillow (project venv)")
+class PaletteV2ProposalTests(unittest.TestCase):
+    """gen_metro.py --v2 (D45, 2026-10-14): SDMARB1 and SDMOSA1 redrawn in
+    palette v2 as proposals. Same seed and geometry as the approved lumps,
+    new inks only; written to work/art/batch2/metro_v2/, never to assets/
+    and never under an approved lump's file name."""
+
+    @classmethod
+    def setUpClass(cls):
+        import gen_metro
+        import palette
+        cls.g = gen_metro
+        cls.v1 = set(palette.colours(1))
+        cls.v2 = set(palette.colours(2))
+        cls.built = {lump: builder() for lump, builder, _ in gen_metro.V2_TEXTURES}
+        cls.quant = {lump: np.asarray(gen_metro.quantize_version(rgb, 2).convert("RGB"))
+                     for lump, rgb in cls.built.items()}
+
+    def test_exactly_the_two_palette_limited_pieces(self):
+        self.assertEqual(set(self.built), {"SDMARB1", "SDMOSA1"})
+        self.assertEqual(set(self.built), set(self.g.PALETTE_LIMITED))
+        self.assertTrue(set(self.built) <= set(APPROVED_D42))
+
+    def test_same_size_as_the_approved_lump(self):
+        for lump, rgb in self.built.items():
+            _, w, h = APPROVED_D42[lump]
+            self.assertEqual(rgb.shape[:2], (h, w), lump)
+
+    def test_inside_v2_and_really_using_it(self):
+        for lump, q in self.quant.items():
+            used = {tuple(int(v) for v in c) for c in q.reshape(-1, 3)}
+            self.assertTrue(used <= self.v2, f"{lump}: {used - self.v2}")
+            self.assertGreaterEqual(len(used - self.v1), 8, f"{lump}: hardly any v2 colour")
+
+    def test_deterministic(self):
+        for lump, builder, _ in self.g.V2_TEXTURES:
+            self.assertTrue(np.array_equal(builder(), self.built[lump]), lump)
+
+    def test_same_geometry_only_the_inks_change(self):
+        """With the v1 inks, the shared builders give back the approved
+        lumps exactly: the v2 proposals differ in colour alone."""
+        g = self.g
+        self.assertTrue(np.array_equal(
+            g.marble_field(g.WALL_W, g.WALL_H, g.rng_for("SDMARB1"), g.STONE_V1), g.tex_marb1()))
+        self.assertTrue(np.array_equal(g.mosaic_panel(g.rng_for("SDMOSA1"), g.MOSA_INKS_V1), g.tex_mosa1()))
+
+    def test_quantize_version_1_is_artlib(self):
+        from PIL import Image
+        from artlib import quantize
+        rgb = self.built["SDMOSA1"]
+        a = np.asarray(self.g.quantize_version(rgb, 1).convert("RGB"))
+        b = np.asarray(quantize(Image.fromarray(rgb, "RGB")).convert("RGB"))
+        self.assertTrue(np.array_equal(a, b))
+
+    def test_proposals_never_land_on_an_approved_name_or_folder(self):
+        g = self.g
+        self.assertNotEqual(g.V2_DIR, g.OUT_DIR)
+        self.assertNotIn("assets", g.V2_DIR.relative_to(PROJECT_ROOT).parts)
+        for lump, *_ in g.V2_TEXTURES:
+            self.assertNotEqual(lump + g.V2_SUFFIX, lump)
+
+    def test_build_and_sheet_in_a_temp_dir(self):
+        import tempfile
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            with mock.patch.object(self.g, "V2_DIR", tmp / "metro_v2"):
+                import contextlib
+                import io
+                with contextlib.redirect_stdout(io.StringIO()):
+                    entries, files = self.g.build_v2()
+                sheet = self.g.build_v2_sheet(entries, files, "2099-01-01_0000", out_dir=tmp / "previews")
+            names = {p.name for p in (tmp / "metro_v2").glob("*.png")}
+            self.assertIn("SDMARB1_v2.png", names)
+            self.assertIn("SDMOSA1_v2.png", names)
+            self.assertFalse(names & {f"{lump}.png" for lump in INSTALLED},
+                             "a work file named like an approved lump breaks tests/test_art.py")
+            for e in entries:
+                self.assertEqual(e["palette_version"], 2)
+                self.assertGreater(e["v2_colours_used"], 0)
+            text = sheet.read_text(encoding="utf-8")
+            self.assertEqual(sheet.name, "2099-01-01_0000_F3_metro-palette-v2.html")
+            for lump in ("SDMARB1", "SDMOSA1"):
+                self.assertIn(f"{lump} &rarr; {lump}_v2", text)
+            self.assertIn("v1 approved", text)
+            self.assertNotIn('src="http', text)            # self-contained
+
+
 if __name__ == "__main__":
     unittest.main()
