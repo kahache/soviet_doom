@@ -5,7 +5,8 @@
     .venv/bin/python tools/audio/gen_weapon_sfx.py                    # macOS
     .venv/Scripts/python.exe tools/audio/gen_weapon_sfx.py --only SDPPFIR SDAXSWG
     .venv/Scripts/python.exe tools/audio/gen_weapon_sfx.py --list     # the plan, writes nothing
-    .venv/Scripts/python.exe tools/audio/gen_weapon_sfx.py --preview docs/sound/previews/<dated>.html
+    .venv/Scripts/python.exe tools/audio/gen_weapon_sfx.py --preview docs/art/previews/<dated>.html
+    .venv/Scripts/python.exe tools/audio/gen_weapon_sfx.py --preview <dated>.html --compare <copy of the last run>
 
 Writes, and writes nothing else:
 
@@ -24,7 +25,9 @@ Writes, and writes nothing else:
   `dist/sovietdoom.pk3`, whose SNDINFO re-points the weapon logical names at
   these drafts. Delete it and everything is as it was.
 - with `--preview PATH`: one self-contained HTML page for the CEO (every lump
-  embedded as OGG, the Freedoom placeholder heard today beside it).
+  embedded as OGG, the Freedoom placeholder heard today beside it); with
+  `--compare DIR` as well, only the lumps whose WAV differs from DIR's, each
+  before and after (a pass that adds layers to an unchanged design).
 
 Nothing here touches `src/` or `assets/`: the drafts are for the CEO's ears.
 
@@ -37,10 +40,9 @@ from two CC0 packs downloaded under D36 and logged in
 
 - `OGA-100` (rubberduck, *100 CC0 SFX*, his own recordings): clicks, latches,
   metal clunks, springs, a splash;
-- `KEN-IMP` (Kenney, *Impact Sounds*): wood, metal and body impacts, and the
-  pick-on-rock hits the ice axe needs. Kenney made them with GameSynth; that
-  tool's terms on generated sound are NOT VERIFIED, the same open point as
-  for the enemy sounds (ENEMY-SOUNDS §2.1).
+- `KEN-IMP` (Kenney, *Impact Sounds*): wood, tin and steel knocks, body
+  impacts, and the pick-on-rock hits the ice axe needs. D44 (2026-10-14):
+  one rule for enemy and weapon sounds, Kenney is used in both.
 
 No recording of a real firearm is used: the two `shot_*` files of OGA-100
 are left out because what they recorded is not stated. Every foreign clip is
@@ -172,6 +174,15 @@ SOURCE_FILES: dict[str, tuple[str, str]] = {
     "metal_light_001": ("KEN-IMP", KEN + "impactMetal_light_001.ogg"),
     "metal_light_003": ("KEN-IMP", KEN + "impactMetal_light_003.ogg"),
     "metal_heavy_001": ("KEN-IMP", KEN + "impactMetal_heavy_001.ogg"),
+    # D44 (2026-10-14): the pass that put Kenney wherever a knock or a strike
+    # of steel was synthetic or missing.
+    "metal_light_002": ("KEN-IMP", KEN + "impactMetal_light_002.ogg"),
+    "metal_medium_000": ("KEN-IMP", KEN + "impactMetal_medium_000.ogg"),
+    "metal_medium_002": ("KEN-IMP", KEN + "impactMetal_medium_002.ogg"),
+    "metal_medium_004": ("KEN-IMP", KEN + "impactMetal_medium_004.ogg"),
+    "metal_heavy_003": ("KEN-IMP", KEN + "impactMetal_heavy_003.ogg"),
+    "tin_medium_001": ("KEN-IMP", KEN + "impactTin_medium_001.ogg"),
+    "generic_light_000": ("KEN-IMP", KEN + "impactGeneric_light_000.ogg"),
 }
 ALLOWED_PACKS = ("OGA-100", "KEN-IMP")
 SOURCE_ONSET_RATIO = 0.03      # a source "starts" at 3 % of its peak
@@ -536,7 +547,11 @@ def r_iceaxe_swing(rng, src) -> np.ndarray:
 def r_iceaxe_hit(rng, src) -> np.ndarray:
     """SDAXHIT: the pick goes into a body: a steel tick, then a dense, damped thud."""
     out = np.zeros(n_of(0.42))
-    place(out, crack(rng, 0.0015, 2500, 9000, 0.02), 0.0, 0.45)
+    place(out, crack(rng, 0.0015, 2500, 9000, 0.02), 0.0, 0.30)
+    # D44: the steel point itself, a real metal strike cut to its first
+    # 30 ms and choked at once (flesh damps steel: no ring may survive).
+    place(out, foley(src, "metal_light_002", ratio=1.1, lo=1800, decay=0.006, length=0.03),
+          0.0, 0.35)
     place(out, thump(95, 50, 0.025, 0.05, 0.3), 0.0, 1.0)
     place(out, foley(src, "punch_heavy_000", ratio=0.9, decay=0.09), 0.002, 0.9)
     place(out, foley(src, "soft_heavy_001", decay=0.08), 0.004, 0.5)
@@ -554,7 +569,10 @@ def r_iceaxe_wall(rng, src) -> np.ndarray:
     out = np.zeros(n_of(0.6))
     place(out, foley(src, "mining_002", decay=0.12), 0.0, 1.0)
     place(out, crack(rng, 0.002, 2000, 12000, 0.03), 0.0, 0.6)
-    place(out, ring((3150.0, 4720.0, 6930.0, 8800.0), 0.06, 0.3), 0.001, 0.18)
+    # D44: the pick's ring is a real steel strike now; the four synthetic
+    # partials stay underneath, quieter, so the ring keeps its pitch.
+    place(out, foley(src, "metal_light_003", ratio=1.05, lo=2000, decay=0.05), 0.001, 0.40)
+    place(out, ring((3150.0, 4720.0, 6930.0, 8800.0), 0.06, 0.3), 0.001, 0.08)
     place(out, thump(180, 120, 0.01, 0.02, 0.1), 0.0, 0.3)
     place(out, grit(rng, 0.4, 18, 0.01, 0.25, 0.08, 2000, 9000), 0.0, 0.9)
     return saturate(out, 1.3)
@@ -679,7 +697,11 @@ def r_izh_dry(rng, src) -> np.ndarray:
     """SDIZDRY: the hammerless lock clicks on nothing: duller than the pistol's click."""
     out = np.zeros(n_of(0.18))
     place(out, foley(src, "switch_01", ratio=0.8, lo=400, hi=4000, decay=0.025), 0.0, 1.0)
-    place(out, thump(250, 180, 0.008, 0.015, 0.06), 0.0, 0.35)
+    # D44: the internal hammer striking the empty firing pin, a dull knock
+    # in place of the bare synthetic thump, which stays under it.
+    place(out, foley(src, "generic_light_000", ratio=0.9, lo=300, hi=5000, decay=0.02),
+          0.002, 0.45)
+    place(out, thump(250, 180, 0.008, 0.015, 0.06), 0.0, 0.2)
     return out
 
 
@@ -743,7 +765,9 @@ def r_ppsh_dry(rng, src) -> np.ndarray:
     out = np.zeros(n_of(0.2))
     place(out, foley(src, "metal_02", ratio=0.75, decay=0.03), 0.0, 0.8)
     place(out, foley(src, "switch_02", ratio=0.85, lo=600, decay=0.02), 0.0, 0.7)
-    place(out, thump(170, 110, 0.01, 0.025, 0.1), 0.0, 0.6)
+    # D44: the hollow part: the sear catching inside the steel receiver.
+    place(out, foley(src, "metal_medium_002", ratio=0.9, lo=200, decay=0.04), 0.001, 0.55)
+    place(out, thump(170, 110, 0.01, 0.025, 0.1), 0.0, 0.45)
     return out
 
 
@@ -805,7 +829,9 @@ def r_rpg_pickup(rng, src) -> np.ndarray:
     out = np.zeros(n_of(0.6))
     place(out, foley(src, "wood_light_000"), 0.0, 0.5)
     place(out, foley(src, "metal_07", ratio=0.8, decay=0.1), 0.02, 0.6)
-    place(out, ring(RPG_TUBE_MODES, 0.15, 0.45), 0.02, 0.2)
+    # D44: the tube knocked by the hand: a steel strike near its middle mode.
+    place(out, foley(src, "metal_medium_000", ratio=0.95, lo=250, decay=0.06), 0.02, 0.4)
+    place(out, ring(RPG_TUBE_MODES, 0.15, 0.45), 0.02, 0.16)
     place(out, cloth(rng), 0.15, 0.15)
     return out
 
@@ -814,6 +840,8 @@ def r_rpg_dry(rng, src) -> np.ndarray:
     """SDRPDRY: the hammer falls with no grenade in the tube: a snap, a hollow ring."""
     out = np.zeros(n_of(0.3))
     place(out, foley(src, "switch_01", ratio=0.9, lo=800), 0.0, 1.0)
+    # D44: the hammer meets steel, not a primer: a short metal strike.
+    place(out, foley(src, "metal_medium_004", ratio=1.1, lo=300, decay=0.03), 0.001, 0.75)
     place(out, ring(RPG_TUBE_MODES, 0.09, 0.28), 0.002, 0.25)
     place(out, thump(260, 190, 0.01, 0.02, 0.08), 0.0, 0.3)
     return out
@@ -861,6 +889,8 @@ def r_roks3_pickup(rng, src) -> np.ndarray:
     """SDRKPKP: the tank pack lifted: steel canister, fuel sloshing inside, a hose."""
     out = np.zeros(n_of(0.75))
     place(out, foley(src, "metal_01", ratio=0.8, decay=0.1), 0.0, 0.6)
+    # D44: the canister is thin sheet steel: a tin knock gives it its hollow.
+    place(out, foley(src, "tin_medium_001", ratio=0.85, lo=150, decay=0.06), 0.005, 0.5)
     place(out, foley(src, "splash_01", ratio=0.7, hi=2500, decay=0.2), 0.04, 0.55)
     place(out, cloth(rng, 0.15, 0.03, 0.05), 0.10, 0.2)
     return out
@@ -901,6 +931,9 @@ def r_katyusha_charge(rng, src) -> np.ndarray:
         gap = max(0.028, gap * 0.86)
     lock = resample(src("metal_03"), 0.7)
     place(out, lock * env(len(lock), 0.0, 0.07), length - 0.035, 0.7)
+    # D44: the rail frame's weight landing in the lock.
+    place(out, foley(src, "metal_heavy_003", ratio=0.9, lo=120, decay=0.05),
+          length - 0.033, 0.7)
     return out
 
 
@@ -1001,11 +1034,12 @@ LUMPS: tuple[Lump, ...] = (
          r_iceaxe_swing, (), length_s=(0.18, 0.35), sweep=True),
     Lump("SDAXHIT", "sd/weapon/iceaxe/hit", "ice axe", "hit",
          "A_SD_IceAxeSwing, when the blow finds a target",
-         r_iceaxe_hit, ("punch_heavy_000", "soft_heavy_001"), length_s=(0.15, 0.45),
+         r_iceaxe_hit, ("metal_light_002", "punch_heavy_000", "soft_heavy_001"),
+         length_s=(0.15, 0.45),
          wired=True, sweep=True, placeholder="DSPUNCH"),
     Lump("SDAXWAL", "sd/weapon/iceaxe/wall", "ice axe", "wall",
          "proposed: the blow hits a wall (puff AttackSound, or LineAttack's puff)",
-         r_iceaxe_wall, ("mining_002",), length_s=(0.2, 0.6), sweep=True),
+         r_iceaxe_wall, ("mining_002", "metal_light_003"), length_s=(0.2, 0.6), sweep=True),
     Lump("SDAXPKP", "sd/weapon/iceaxe/pickup", "ice axe", "pickup",
          "proposed: Inventory.PickupSound", r_iceaxe_pickup,
          ("wood_light_001", "metal_light_000"), peak_dbfs=PICKUP_PEAK_DBFS,
@@ -1037,7 +1071,7 @@ LUMPS: tuple[Lump, ...] = (
          ("wood_medium_000", "switch_02", "metal_09", "switch_01"),
          peak_dbfs=PICKUP_PEAK_DBFS, length_s=(0.35, 0.75), placeholder="DSWPNUP"),
     Lump("SDIZDRY", "sd/weapon/izh/dry", "IZh-58", "dry",
-         "proposed: trigger pulled with no Shell", r_izh_dry, ("switch_01",),
+         "proposed: trigger pulled with no Shell", r_izh_dry, ("switch_01", "generic_light_000"),
          peak_dbfs=DRY_PEAK_DBFS, length_s=(0.05, 0.2)),
     # Slot 4 - PPSh-41.
     Lump("SDPPFIR", "sd/weapon/ppsh/fire", "PPSh-41", "fire",
@@ -1055,7 +1089,8 @@ LUMPS: tuple[Lump, ...] = (
          ("wood_medium_002", "metal_light_003", "spring_04", "switch_02"),
          peak_dbfs=PICKUP_PEAK_DBFS, length_s=(0.3, 0.65), placeholder="DSWPNUP"),
     Lump("SDPPDRY", "sd/weapon/ppsh/dry", "PPSh-41", "dry",
-         "proposed: trigger pulled with no Clip", r_ppsh_dry, ("metal_02", "switch_02"),
+         "proposed: trigger pulled with no Clip", r_ppsh_dry,
+         ("metal_02", "switch_02", "metal_medium_002"),
          peak_dbfs=DRY_PEAK_DBFS, length_s=(0.05, 0.25)),
     # Slot 5 - RPG-7.
     Lump("SDRPFIR", "sd/weapon/rpg7/fire", "RPG-7", "fire", "SD_Pg7Grenade SeeSound",
@@ -1068,10 +1103,11 @@ LUMPS: tuple[Lump, ...] = (
          r_rpg_reload, ("metal_07", "switch_01"), peak_dbfs=RELOAD_PEAK_DBFS,
          length_s=(0.25, 0.45)),
     Lump("SDRPPKP", "sd/weapon/rpg7/pickup", "RPG-7", "pickup",
-         "proposed: Inventory.PickupSound", r_rpg_pickup, ("wood_light_000", "metal_07"),
+         "proposed: Inventory.PickupSound", r_rpg_pickup,
+         ("wood_light_000", "metal_07", "metal_medium_000"),
          peak_dbfs=PICKUP_PEAK_DBFS, length_s=(0.3, 0.65), placeholder="DSWPNUP"),
     Lump("SDRPDRY", "sd/weapon/rpg7/dry", "RPG-7", "dry",
-         "proposed: trigger pulled with no RocketAmmo", r_rpg_dry, ("switch_01",),
+         "proposed: trigger pulled with no RocketAmmo", r_rpg_dry, ("switch_01", "metal_medium_004"),
          peak_dbfs=DRY_PEAK_DBFS, length_s=(0.05, 0.32)),
     # Slot 6 - ROKS-3.
     Lump("SDRKFIR", "sd/weapon/roks3/fire", "ROKS-3", "fire",
@@ -1082,14 +1118,15 @@ LUMPS: tuple[Lump, ...] = (
          r_roks3_reload, ("metal_01", "switch_02"), peak_dbfs=RELOAD_PEAK_DBFS,
          length_s=(0.8, 1.1)),
     Lump("SDRKPKP", "sd/weapon/roks3/pickup", "ROKS-3", "pickup",
-         "proposed: Inventory.PickupSound", r_roks3_pickup, ("metal_01", "splash_01"),
+         "proposed: Inventory.PickupSound", r_roks3_pickup,
+         ("metal_01", "tin_medium_001", "splash_01"),
          peak_dbfs=PICKUP_PEAK_DBFS, length_s=(0.3, 0.8), placeholder="DSWPNUP"),
     Lump("SDRKDRY", "sd/weapon/roks3/dry", "ROKS-3", "dry",
          "proposed: trigger pulled with no Cell", r_roks3_dry, ("switch_02",),
          peak_dbfs=DRY_PEAK_DBFS, length_s=(0.1, 0.35)),
     # Slot 7 - hand Katyusha.
     Lump("SDHKCHG", "sd/weapon/katyusha/charge", "hand Katyusha", "charge",
-         "Fire, frame BFGG A (20 tics)", r_katyusha_charge, ("metal_03",),
+         "Fire, frame BFGG A (20 tics)", r_katyusha_charge, ("metal_03", "metal_heavy_003"),
          length_s=(0.5, 0.75), wired=True, placeholder="DSBFG"),
     Lump("SDHKFIR", "sd/weapon/katyusha/fire", "hand Katyusha", "fire",
          "A_SD_FireKatyusha", r_katyusha_fire, (), length_s=(0.9, 1.8), wired=True,
@@ -1422,6 +1459,111 @@ number on the cards was measured; the taste is yours.</li>
 """
 
 
+# --- The before/after page (a pass that changes only some lumps) ---------------
+# When a pass keeps the design and adds layers, the CEO hears only what
+# changed: `--preview PATH --compare DIR`, where DIR holds the previous run's
+# WAVs and MANIFEST.txt. A lump is on the page when its WAV differs.
+
+CHANGE_PASS = ("D44 (2026-10-14): Kenney's impact pack is used in the weapon sounds as in the "
+               "enemy sounds, always as one layer among others. The design of every card is "
+               "unchanged; the reloads are untouched (parked, D39).")
+CHANGE_NOTES: dict[str, str] = {
+    "SDAXHIT": "The steel tick of the point was white noise; now a real metal strike, "
+               "cut to 30 ms and choked so nothing rings (flesh damps steel). The noise "
+               "tick stays under it, quieter.",
+    "SDAXWAL": "The pick's ring was four pure sine partials; a real steel strike now carries "
+               "it, with the sines kept quietly underneath so the pitch stays.",
+    "SDIZDRY": "The hammerless lock's knock was a synthetic thump only; a dull Kenney knock "
+               "now gives it a body, the thump under it.",
+    "SDPPDRY": "The 'hollow' of the hollow clack: the sear catching inside the steel receiver.",
+    "SDRPPKP": "The tube knocked by the hand: a steel strike near the tube's middle mode, "
+               "the synthetic modes a little quieter.",
+    "SDRPDRY": "The hammer meeting steel on an empty tube: a short metal strike before the ring.",
+    "SDRKPKP": "The fuel canister is thin sheet steel: a tin knock gives it its hollow. "
+               "It was the only pickup without a Kenney layer.",
+    "SDHKCHG": "The rail frame's weight landing in the lock at 20 tics, under the OGA-100 clunk.",
+}
+
+
+def manifest_sources(text: str) -> dict[str, set[str]]:
+    """lump -> source file names, read from a MANIFEST.txt this script wrote."""
+    out: dict[str, set[str]] = {}
+    current = None
+    for line in text.splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+        if not line.startswith(" "):
+            current = line.split()[0]
+            out[current] = set()
+        elif current is not None and "synthesis only" not in line:
+            parts = line.split()
+            if len(parts) >= 2:
+                out[current].add(Path(parts[1]).name)
+    return out
+
+
+def changed_lumps(result: Result, before_dir: Path) -> list[str]:
+    """Lumps whose WAV differs from (or is missing in) before_dir, in slot order."""
+    names = []
+    for lump in LUMPS:
+        if lump.name not in result.rendered:
+            continue
+        old = before_dir / f"{lump.name}.wav"
+        if not old.is_file() or old.read_bytes() != result.rendered[lump.name]:
+            names.append(lump.name)
+    return names
+
+
+def compare_html(result: Result, sources: Sources, before_dir: Path, stamp: str) -> str:
+    """One self-contained page with only the lumps that changed: before and after."""
+    manifest = before_dir / "MANIFEST.txt"
+    old_sources = manifest_sources(manifest.read_text(encoding="utf-8")) if manifest.is_file() else {}
+    changed = changed_lumps(result, before_dir)
+    cards: dict[str, list[str]] = {}
+    for name in changed:
+        lump = LUMPS_BY_NAME[name]
+        old = before_dir / f"{name}.wav"
+        clips = [_clip("Before", old.read_bytes() if old.is_file() else None, "the previous pass"),
+                 _clip("After", result.rendered[name], f"{len(result.samples[name]) / SR:.2f} s")]
+        if lump.sweep:
+            for take, note in TAKE_NOTES.items():
+                if take != CHOSEN_TAKE.get(name, "A"):
+                    clips.append(_clip(f"After, take {take}",
+                                       wav_bytes(render(lump, sources, take)), note))
+        files = [Path(SOURCE_FILES[k][1]).name for k in lump.sources]
+        added = [f for f in files if f not in old_sources.get(name, set())]
+        added_txt = ", ".join(f"{SOURCE_FILES[k][0]} {Path(SOURCE_FILES[k][1]).name}"
+                              for k in lump.sources if Path(SOURCE_FILES[k][1]).name in added)
+        status = ('<span class="tag ok">heard in game today</span>' if lump.wired else
+                  '<span class="tag hook">needs a hook from mod-engineer</span>')
+        cards.setdefault(lump.weapon, []).append(
+            f'<div class="card"><h3>{html.escape(lump.event)} <code>{name} · '
+            f'{html.escape(lump.logical)}</code>{status}</h3>'
+            f'<p class="desc">{html.escape(CHANGE_NOTES.get(name, "Changed."))}</p>'
+            f'<div class="row">{"".join(clips)}</div>'
+            f'<div class="src">New layer: {html.escape(added_txt or "none (same sources, new mix)")}. '
+            f'All sources now: {html.escape(", ".join(files) or "our synthesis only")}.</div></div>')
+    body = "".join(f'<section><h2>{html.escape(w)}</h2>{"".join(c)}</section>'
+                   for w, c in cards.items())
+    same = len(result.rendered) - len(changed)
+    return f"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arsenal sound changes</title><style>{PREVIEW_CSS}</style></head>
+<body><header><div class="wrap"><h1>Soviet Doom — the arsenal's sounds: what changed</h1>
+<div class="meta">{html.escape(stamp)} · F4 · tools/audio/gen_weapon_sfx.py ·
+plan and provenance: docs/sound/WEAPON-SOUNDS.md · nothing here is in the game</div>
+<ul>
+<li>{html.escape(CHANGE_PASS)}</li>
+<li><b>{len(changed)} drafts changed</b> and are on this page, each before and after. The other
+<b>{same}</b> are byte-identical to the previous pass and are not repeated here.</li>
+<li>"Before" is the draft of the previous pass; "After" is the draft now. Where a card has takes,
+B and C are the new draft slower and faster, as before.</li>
+<li>Nobody on the team has listened to these: the agent that made them cannot hear. Every
+number was measured; the taste is yours.</li>
+</ul></div></header><div class="wrap">{body}</div></body></html>
+"""
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--only", nargs="+", metavar="LUMP", help="build only these lumps")
@@ -1432,8 +1574,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-ogg", action="store_true", help="do not write ogg/<LUMP>.ogg")
     ap.add_argument("--preview", type=Path, metavar="HTML",
                     help="also write the CEO's preview page here")
+    ap.add_argument("--compare", type=Path, metavar="DIR",
+                    help="with --preview: a before/after page of only the lumps whose WAV "
+                         "differs from DIR (a previous run's output directory)")
     ap.add_argument("--list", action="store_true", help="print the plan and write nothing")
     args = ap.parse_args(argv)
+    if args.compare and not args.preview:
+        ap.error("--compare needs --preview")
+    if args.compare and args.compare.resolve() == args.out.resolve():
+        ap.error("--compare must name a copy of the previous run, not the output directory")
 
     if args.list:
         print(plan_text())
@@ -1473,7 +1622,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.preview and result.rendered:
         stamp = args.preview.stem.split("_F")[0] if "_F" in args.preview.stem else args.preview.stem
         args.preview.parent.mkdir(parents=True, exist_ok=True)
-        args.preview.write_text(preview_html(result, sources, stamp), encoding="utf-8")
+        page = (compare_html(result, sources, args.compare, stamp) if args.compare
+                else preview_html(result, sources, stamp))
+        args.preview.write_text(page, encoding="utf-8")
         print(f"preview {args.preview} ({args.preview.stat().st_size} B)")
     return 0 if result.rendered else 1
 

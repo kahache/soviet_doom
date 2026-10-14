@@ -1,13 +1,17 @@
 # WEAPON-SOUNDS — the arsenal's own sounds
 
 Owner: `sound-designer`. Status: **DRAFTS for the CEO's gate (F4, G4),
-2026-10-13.** Nothing here is in `src/` or `assets/`; nothing is approved.
+2026-10-13; eight of them re-layered on 2026-10-14 (D44, §2.2).** Nothing
+here is in `src/` or `assets/`; nothing is approved.
 Russian mirror: owed at the phase close (D34).
 
 Generator: `tools/audio/gen_weapon_sfx.py` (tests:
-`tests/test_gen_weapon_sfx.py`). Preview for the CEO:
+`tests/test_gen_weapon_sfx.py`). Previews for the CEO:
 `docs/art/previews/2026-10-13_2027_F4_weapon-sfx-drafts.html` (one page, every
-draft embedded, the Freedoom stand-in heard today beside it).
+draft embedded, the Freedoom stand-in heard today beside it; for its eight
+re-layered cards it is now the "before") and
+`docs/art/previews/2026-10-14_1030_F4_weapon-sfx-kenney-layers.html` (only
+the eight that changed, before and after).
 
 ## 0. In six lines
 
@@ -18,8 +22,9 @@ draft embedded, the Freedoom stand-in heard today beside it).
    Freedoom stand-in the code already plays. The other 20 need a small hook
    from `mod-engineer` first (§6); none of those hooks changes a tic (D39).
 3. Every shot, boom, whoosh and hiss is **our own synthesis**. Mechanical
-   foley (clicks, latches, clunks, springs, wood and metal knocks) comes from
-   two CC0 packs already downloaded under D36, always layered, never alone.
+   foley (clicks, latches, clunks, springs, wood, tin and steel knocks) comes
+   from two CC0 packs already downloaded under D36, always layered, never
+   alone; Kenney's impact pack is used here as in the enemy sounds (D44).
    **No recording of a real firearm is used.**
 4. Six cards come as a **sweep** of three takes (A as designed, B heavier,
    C drier) so the CEO points at one, as with textures (PIPELINE §2).
@@ -67,7 +72,7 @@ from `work/`; the generator refuses to make them (`RETIRED_LUMPS`).
 |---|---|---|---|
 | `SYN` | Our synthesis in `gen_weapon_sfx.py`: numpy, minimum-phase filters (no pre-ringing before a transient), fixed seeds | GPL-3.0 script, CC BY-NC-SA 4.0 output (D15) | every shot, boom, whoosh, hiss, howl, ring, scrape, the relay buzz; the whole of 9 lumps |
 | `OGA-100` | rubberduck, *100 CC0 SFX* — pack row in `ENEMY-SOUNDS.md` §2.1 | CC0 | clicks, latches, metal clunks, springs, one splash |
-| `KEN-IMP` | Kenney, *Impact Sounds* — pack row in `ENEMY-SOUNDS.md` §2.1 | CC0; made with GameSynth, whose terms on generated sound are **NOT VERIFIED** (same open point as the enemy sounds) | wood and metal knocks for pickups; the axe's flesh and pick-on-rock hits |
+| `KEN-IMP` | Kenney, *Impact Sounds* — pack row in `ENEMY-SOUNDS.md` §2.1 | CC0 (D36); one rule for enemy and weapon sounds (D44) | wood, tin and steel knocks for pickups and empty clicks; the axe's steel tick, flesh hit, ring and pick-on-rock hit; the Katyusha's rail lock |
 
 Rules this file keeps:
 
@@ -110,14 +115,70 @@ writes the same facts per lump to `work/audio/sfx/weapons/MANIFEST.txt` and
 | `KEN-IMP` | `impactWood_medium_002.ogg` | `SDPPPKP` | `3f3f1917428b828f733a963167833c707bf88296ff158e1559c57c5cb813d799` |
 | `KEN-IMP` | `impactMetal_light_000.ogg` | `SDAXPKP` | `33b5e6e37c6e9d54e07bf5a89b12c76e879f40c1ea83cdd82714df1d6f9fec6d` |
 | `KEN-IMP` | `impactMetal_light_001.ogg` | `SDTTPKP` | `fba69c467ddd85da7b1d82e259f936b876d9ba6a3d6f1b24bdd10468e46bfe08` |
-| `KEN-IMP` | `impactMetal_light_003.ogg` | `SDPPPKP` | `92d5db6bfc672d9dc1b4f390b2900504f013187fa36335472554fafefa9050b1` |
+| `KEN-IMP` | `impactMetal_light_003.ogg` | `SDPPPKP`, `SDAXWAL` | `92d5db6bfc672d9dc1b4f390b2900504f013187fa36335472554fafefa9050b1` |
 | `KEN-IMP` | `impactMetal_heavy_001.ogg` | `SDHKPKP` | `83554049f81f4db9209379e103c30bfa63f65c42189a03f300b045c2c82e23ae` |
+| `KEN-IMP` | `impactMetal_light_002.ogg` | `SDAXHIT` (D44) | `25a96f90a9a1f88a531e824e126f0519504625e5635e65a72e4f31611428db29` |
+| `KEN-IMP` | `impactMetal_medium_000.ogg` | `SDRPPKP` (D44) | `a96f879fec0864a8938e0c745b6996a6c5679c16a234ce31a01cc995e8401003` |
+| `KEN-IMP` | `impactMetal_medium_002.ogg` | `SDPPDRY` (D44) | `7e89ce2ca0dbda95ea2b78d4b50791cab35c10d20e9f5ccd45dd0b00e99ff548` |
+| `KEN-IMP` | `impactMetal_medium_004.ogg` | `SDRPDRY` (D44) | `03e10f800199c7166208e41c11cf4acfac6cc265467f02357da71972bc967295` |
+| `KEN-IMP` | `impactMetal_heavy_003.ogg` | `SDHKCHG` (D44) | `b0f2ba4dabde9a87eb9c188a19d31e0c2300fd321adeba08d3b9b8aa011d7037` |
+| `KEN-IMP` | `impactTin_medium_001.ogg` | `SDRKPKP` (D44) | `84253095543c094d83cd749f42ecfbc96e356b60385f18a192c18eafb25b3cc6` |
+| `KEN-IMP` | `impactGeneric_light_000.ogg` | `SDIZDRY` (D44) | `f0e982611e97512fee5f777986b67e8b435434b601f94992ec044f7e89fb5acb` |
 
 Synthesis only (`SYN`, no foreign input): `SDAXSWG`, `SDIZFIR`, `SDRPFIR`,
 `SDRPEXP`, `SDRKFIR`, `SDHKFIR`, `SDHKEXP`.
 
 When a lump is approved and enters `src/sounds/`, its rows above go to the
 licence register (`docs/art/LICENSES.md`, not this agent's file).
+
+The seven rows marked D44 were hashed on 2026-10-14 with `sha256sum` on the
+files as extracted. A test (`test_plan_document_has_every_source_hash`)
+hashes every source file the generator uses and fails if that hash is
+missing from this table.
+
+### 2.2 The D44 pass (2026-10-14): where Kenney went, and where it did not
+
+D44 made one rule for both sound sets, so every card was looked at again for
+a knock or a steel strike that was synthetic or missing. Each new layer sits
+under or beside the existing ones, never alone (ENEMY-SOUNDS §2), and each
+card's design is unchanged. The other 23 lumps came out byte-identical to the
+2026-10-13 run.
+
+| Lump | New `KEN-IMP` layer | Why | What it replaced or quietened |
+|---|---|---|---|
+| `SDAXHIT` | `impactMetal_light_002`, first 30 ms, choked in 6 ms | the pick's point was a burst of white noise; a real steel strike has the partials noise lacks. Choked so nothing rings: flesh damps steel | the noise tick, 0.45 → 0.30 |
+| `SDAXWAL` | `impactMetal_light_003`, high-passed at 2 kHz | the pick's ring on stone was four pure sines, the most synthetic layer of the card | the sines, 0.18 → 0.08, kept for pitch |
+| `SDIZDRY` | `impactGeneric_light_000` | the dull lock had only a synthetic thump for a body | the thump, 0.35 → 0.20 |
+| `SDPPDRY` | `impactMetal_medium_002` | the card says "hollow clack"; the hollow was a sine thump | the thump, 0.6 → 0.45 |
+| `SDRPPKP` | `impactMetal_medium_000` | the tube knocked by the hand, near the tube's middle mode (1.1 kHz) | the tube modes, 0.20 → 0.16 |
+| `SDRPDRY` | `impactMetal_medium_004` | the hammer meeting steel on an empty tube | nothing |
+| `SDRKPKP` | `impactTin_medium_001` | the canister is thin sheet steel; it was the only pickup with no Kenney layer | nothing |
+| `SDHKCHG` | `impactMetal_heavy_003` | the rail frame's weight landing in the lock at 20 tics, under the `OGA-100` clunk | nothing |
+
+Measured, not heard: muting each new layer in its recipe and restoring it,
+the layer carries 10–17 % of the energy around its own peak (a 30 ms
+window, all bands) on the six handling cards, and 45–49 % of the 1.5–10 kHz
+band in the first 60 ms of the two axe cards, where the steel lives. None is
+buried; none dominates. Two layers first measured at 5 % (`SDRPDRY`,
+`SDHKCHG`) were raised before the final render.
+
+**Left as they were, and why:**
+
+- **Reloads** (`SDTTRLD`, `SDIZRLD`, `SDPPRLD`, `SDRPRLD`, `SDRKRLD`,
+  `SDHKRLD`): parked by the PM pending the CEO (D39), so untouched by
+  instruction, although reload mechanics are where Kenney's steel knocks
+  would fit next.
+- **Shots, booms, the swing and the flame** (`SDTTFIR`, `SDIZFIR`, `SDPPFIR`,
+  `SDRPFIR`, `SDRPEXP`, `SDRKFIR`, `SDHKFIR`, `SDHKEXP`, `SDAXSWG`): our
+  synthesis by design (§2), and the pack has no shot, blast or whoosh.
+  Debris for the two explosions could come from `impactMining_*` later; not
+  done here, because the explosions are wired and this pass was about knocks
+  and strikes.
+- **The small clicks** (`SDTTDRY`, `SDRKDRY`, `SDHKDRY`): the pack's lightest
+  files are 9–16 ms knocks centred near 1.1–1.3 kHz, duller than a pistol
+  hammer's or a toggle's click; `OGA-100`'s switches stay.
+- **Pickups that already had Kenney** (`SDAXPKP`, `SDTTPKP`, `SDIZPKP`,
+  `SDPPPKP`, `SDHKPKP`) and the axe's flesh layers: already layered, no gap.
 
 ## 3. Engine facts the sounds are cut to
 
@@ -143,7 +204,8 @@ cut and overlapping. It does matter for the Katyusha's reload (§6).
 
 ## 4. The cards
 
-Lengths and levels measured on the WAVs the generator wrote on 2026-10-13.
+Lengths and levels measured on the WAVs the generator wrote on 2026-10-13;
+the eight cards of §2.2 re-measured on 2026-10-14.
 "Short-term" is the loudest 50 ms window (mean square, dB re full scale), a
 ruler and not LUFS.
 
@@ -161,8 +223,8 @@ break-open, which was at −1 dBFS peak.
 | Lump | Logical name | Length | Peak / short-term | Card |
 |---|---|---|---|---|
 | `SDAXSWG` | `sd/weapon/iceaxe/swing` | 0.30 s | −1.0 / −11.9 | A steel head, narrower and higher than a shovel's blade: band noise whose centre climbs with the head's speed (0.7 → 2 kHz), a faint whistle from the pick's point (1.5 → 2.6 kHz) and a thin low band for the shaft. Peaks at 0.11 s, before the blow. **Sweep A/B/C.** |
-| `SDAXHIT` | `sd/weapon/iceaxe/hit` | 0.33 s | −1.0 / −8.8 | The pick goes in: a 2 ms steel tick, a 95 → 50 Hz thud, two body impacts (`impactPunch_heavy_000`, `impactSoft_heavy_001`), a short wet flutter. No ring: flesh damps steel. **Sweep.** |
-| `SDAXWAL` | `sd/weapon/iceaxe/wall` | 0.40 s | −1.0 / −10.7 | Pick on concrete or stone: `impactMining_002` (a pick on rock) under a bright crack, a short four-partial steel ring (3.2–8.8 kHz), the shaft jarring, and grit falling for 0.25 s. **Sweep.** |
+| `SDAXHIT` | `sd/weapon/iceaxe/hit` | 0.33 s | −1.0 / −8.7 | The pick goes in: a steel tick (a real strike, `impactMetal_light_002`, cut to 30 ms, over 2 ms of noise), a 95 → 50 Hz thud, two body impacts (`impactPunch_heavy_000`, `impactSoft_heavy_001`), a short wet flutter. No ring: flesh damps steel. **Sweep.** |
+| `SDAXWAL` | `sd/weapon/iceaxe/wall` | 0.40 s | −1.0 / −11.0 | Pick on concrete or stone: `impactMining_002` (a pick on rock) under a bright crack, a short steel ring (`impactMetal_light_003` over four quiet partials, 3.2–8.8 kHz), the shaft jarring, and grit falling for 0.25 s. **Sweep.** |
 | `SDAXPKP` | `sd/weapon/iceaxe/pickup` | 0.29 s | −6.0 / −21.0 | Lifted off the dorm rack: the wooden shaft knocks, the head clinks, a hand closes on the grip. |
 
 ### 4.2 TT-33 (slot 2)
@@ -181,7 +243,7 @@ break-open, which was at −1 dBFS peak.
 | `SDIZFIR` | `sd/weapon/izh/fire` | 1.10 s | −1.0 / −7.6 | One barrel of a 12-gauge: a deep 92 → 42 Hz boom with its octave, a long rumble darkening in the room. Kept from the previous pass. **Sweep.** |
 | `SDIZRLD` | `sd/weapon/izh/reload` | 0.89 s | −10.9 / −20.0 | Top lever thrown, barrels drop on the hinge, two hulls drawn, two shells pushed in, snap shut at 0.62 s on the frame where the shells are counted. Kept from the previous pass, now levelled (§4). |
 | `SDIZPKP` | `sd/weapon/izh/pickup` | 0.58 s | −11.9 / −21.0 | The stock knocks, the gun is broken open and snapped shut: the hunter's check that it is empty. |
-| `SDIZDRY` | `sd/weapon/izh/dry` | 0.08 s | −8.7 / −25.0 | The hammerless lock clicks on nothing: duller and lower than the pistol's. |
+| `SDIZDRY` | `sd/weapon/izh/dry` | 0.08 s | −8.5 / −25.0 | The hammerless lock clicks on nothing: duller and lower than the pistol's; the internal hammer's knock is `impactGeneric_light_000`. |
 
 ### 4.4 PPSh-41 (slot 4)
 
@@ -190,7 +252,7 @@ break-open, which was at −1 dBFS peak.
 | `SDPPFIR` | `sd/weapon/ppsh/fire` | 0.33 s | −2.0 / −16.2 | One round: crack, a tinny resonant body (the perforated jacket), a jacket ring, the open bolt slamming home at 28 ms, the drum's spring. Everything that matters lives in 86 ms. Three bursts on the preview: 700 rpm cut (the engine), 900 rpm cut (the real gun), 700 rpm overlapping. Kept from the previous pass. **Sweep.** |
 | `SDPPRLD` | `sd/weapon/ppsh/reload` | 1.03 s | −11.6 / −20.0 | The 71-round drum: catch pressed, drum out with its rounds shifting, a full one seated at 0.45 s, the bolt hauled back and caught at 0.86 s. |
 | `SDPPPKP` | `sd/weapon/ppsh/pickup` | 0.34 s | −11.5 / −21.0 | Wooden stock, steel jacket, the drum's rounds shifting, a sling swivel. |
-| `SDPPDRY` | `sd/weapon/ppsh/dry` | 0.14 s | −13.2 / −25.0 | An empty drum: trigger and sear give one heavier, hollow clack. |
+| `SDPPDRY` | `sd/weapon/ppsh/dry` | 0.14 s | −12.1 / −25.0 | An empty drum: trigger and sear give one heavier, hollow clack; the hollow is the steel receiver (`impactMetal_medium_002`). |
 
 ### 4.5 RPG-7 (slot 5)
 
@@ -199,8 +261,8 @@ break-open, which was at −1 dBFS peak.
 | `SDRPFIR` | `sd/weapon/rpg7/fire` | 1.41 s | −1.0 / −8.9 | Recoilless thump and back-blast whoosh, then the sustainer motor's hiss and falling whistle as the round flies off. Kept from the previous pass. |
 | `SDRPEXP` | `sd/weapon/rpg7/explode` | 1.61 s | −1.0 / −7.4 | A shaped charge: a hard crack first, the boom, a long dark tail, debris. Kept from the previous pass. |
 | `SDRPRLD` | `sd/weapon/rpg7/reload` | 0.38 s | −9.9 / −20.0 | A PG-7V pushed into the muzzle: the round scrapes down the tube (whose three modes ring faintly), seats with a clunk at 0.20 s, the detent clicks. |
-| `SDRPPKP` | `sd/weapon/rpg7/pickup` | 0.48 s | −11.2 / −21.0 | The wooden heat guard knocks and the steel tube rings hollow. |
-| `SDRPDRY` | `sd/weapon/rpg7/dry` | 0.29 s | −12.0 / −25.0 | The exposed hammer snaps with no grenade in the tube, and the empty tube rings. |
+| `SDRPPKP` | `sd/weapon/rpg7/pickup` | 0.48 s | −11.2 / −21.0 | The wooden heat guard knocks and the steel tube, knocked by the hand (`impactMetal_medium_000`), rings hollow. |
+| `SDRPDRY` | `sd/weapon/rpg7/dry` | 0.29 s | −12.5 / −25.0 | The exposed hammer snaps on steel (`impactMetal_medium_004`) with no grenade in the tube, and the empty tube rings. |
 
 ### 4.6 ROKS-3 flamethrower (slot 6)
 
@@ -208,14 +270,14 @@ break-open, which was at −1 dBFS peak.
 |---|---|---|---|---|
 | `SDRKFIR` | `sd/weapon/roks3/fire` | 0.59 s | −3.0 / −10.9 | A valve hiss and a roaring, flickering jet; restarted every 3 tics while held. Kept from the previous pass. |
 | `SDRKRLD` | `sd/weapon/roks3/reload` | 1.05 s | −8.7 / −20.0 | A fresh fuel canister: knocked into place, the coupling turned home (four ratchet clicks), pressure hissing up, the igniter cartridge armed at 0.88 s. |
-| `SDRKPKP` | `sd/weapon/roks3/pickup` | 0.75 s | −9.9 / −21.0 | The tank pack lifted: a steel canister and fuel sloshing inside it (`splash_01`, slowed and darkened), a hose. |
+| `SDRKPKP` | `sd/weapon/roks3/pickup` | 0.75 s | −9.9 / −21.0 | The tank pack lifted: a thin steel canister (`metal_01` with `impactTin_medium_001`) and fuel sloshing inside it (`splash_01`, slowed and darkened), a hose. |
 | `SDRKDRY` | `sd/weapon/roks3/dry` | 0.27 s | −10.3 / −25.0 | Tank empty: the igniter snaps and a last breath of gas sputters out three times. |
 
 ### 4.7 Hand Katyusha (slot 7)
 
 | Lump | Logical name | Length | Peak / short-term | Card |
 |---|---|---|---|---|
-| `SDHKCHG` | `sd/weapon/katyusha/charge` | 0.69 s | −1.0 / −14.9 | Rails elevated by a geared crank: a rising whine, ratchet teeth closing up, locked at 20 tics. Kept from the previous pass. |
+| `SDHKCHG` | `sd/weapon/katyusha/charge` | 0.69 s | −1.0 / −14.9 | Rails elevated by a geared crank: a rising whine, ratchet teeth closing up, locked at 20 tics; the frame's weight lands in the lock (`impactMetal_heavy_003`, D44). |
 | `SDHKFIR` | `sd/weapon/katyusha/fire` | 1.41 s | −1.0 / −9.7 | Six rockets off the rails, rippled 65 ms apart, each with its own crack, thump and howl. Kept from the previous pass. |
 | `SDHKEXP` | `sd/weapon/katyusha/burst` | 0.90 s | −6.0 / −13.2 | One salvo rocket: smaller and shorter than the PG-7V. Six can sound at once. Kept from the previous pass. |
 | `SDHKRLD` | `sd/weapon/katyusha/reload` | 0.57 s | −11.3 / −20.0 | Rockets slid onto the rails in three quick strokes, the rack latch dropping at 0.38 s. Fits the 20-tic recovery frame. |
@@ -258,6 +320,8 @@ VERIFIED was read from memory of the ZDoom wiki, not checked in GZDoom
 .venv/Scripts/python.exe tools/audio/gen_weapon_sfx.py --list        # the plan, writes nothing
 .venv/Scripts/python.exe tools/audio/gen_weapon_sfx.py               # all 31 -> work/audio/sfx/weapons/, ogg/, the overlay PK3
 .venv/Scripts/python.exe tools/audio/gen_weapon_sfx.py --preview docs/art/previews/<YYYY-MM-DD_HHMM>_F4_weapon-sfx-drafts.html
+# a pass that keeps the design: copy work/audio/sfx/weapons/ aside first, then
+.venv/Scripts/python.exe tools/audio/gen_weapon_sfx.py --preview docs/art/previews/<YYYY-MM-DD_HHMM>_F4_<slug>.html --compare <the copy>
 .venv/Scripts/python.exe -m unittest tests.test_gen_weapon_sfx -v
 ```
 
@@ -282,6 +346,13 @@ card; shots start within 5 ms; every lump ends in silence; the timings of
 page embeds 64 OGG clips, all decodable; every source file's SHA-256 (§2.1).
 `tools/verify.py fast` PASS.
 
+**Verified (2026-10-14, this PC, the D44 pass):** the 2026-10-13 drafts
+reproduced byte for byte before anything changed; after the pass exactly the
+eight lumps of §2.2 differ and the other 23 are byte-identical; every test
+of `tests/test_gen_weapon_sfx.py` passes on the full render (levels, onsets,
+lengths, timings); each source file's SHA-256 in §2.1 is checked by a test;
+the before/after page holds those eight cards and nothing else.
+
 **Not verified:**
 
 - **How any of it sounds.** Not listened to by anyone.
@@ -289,7 +360,9 @@ page embeds 64 OGG clips, all decodable; every source file's SHA-256 (§2.1).
   NOT VERIFIED or ASSUMPTION in §3 and §6.
 - That the OGG files and the preview are byte-identical on another machine
   (they depend on the local ffmpeg build; the WAV masters do not).
-- GameSynth's terms on `KEN-IMP` output (§2).
+- GameSynth's own terms on generated sound were never read. This no longer
+  holds anything back: the CEO took Kenney's CC0 as the rule for both sound
+  sets (D36, D44).
 
 ## 9. Decisions for the CEO
 
@@ -303,6 +376,7 @@ page embeds 64 OGG clips, all decodable; every source file's SHA-256 (§2.1).
    dead trigger. Cost: one `mod-engineer` pass and one engine run.
 4. **Reloads for the TT-33, PPSh-41 and ROKS-3:** park them (recommended)
    or ask for a magazine mechanic, which reopens `BALANCE.md` (D39).
-5. **`KEN-IMP` in weapon sounds** (7 lumps): accept under D36 as the enemy
-   sounds do (recommended), or the PM asks for those seven to be rebuilt
-   from `OGA-100` and synthesis only.
+5. ~~`KEN-IMP` in weapon sounds~~: **decided, D44** (2026-10-14): one rule
+   for enemy and weapon sounds, Kenney is used in both. Done in §2.2; the
+   eight re-layered cards are on
+   `docs/art/previews/2026-10-14_1030_F4_weapon-sfx-kenney-layers.html`.
