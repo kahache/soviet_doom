@@ -20,9 +20,8 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
-| N14-P | M2 | PPSh-41 from the Gemini reference (D77): silhouettes at 3 sizes, then colour, then fire frames | art-director | 250 | D77 |
+| N14-P | M2 | PPSh-41 from the Gemini reference (D77): silhouettes done, waiting for the CEO's size; then colour and fire frames | art-director | 220 | CEO picks a size |
 | N14-A | M2 | Ice axe: paused until the CEO's bare-hand Gemini reference (D77); straight-shaft silhouette done | art-director | — | CEO's image |
-| N9w | M3 | Install the 25 weapon sounds approved in D74 with a loudness pass; SNDINFO and hooks; engine pass | sound-designer + mod-engineer | 250 | D74 |
 | G9 | M4 | LICENSE.md and CREDITS.txt for the player: no repo-only paths, drop the unused OTEX credit (RU half at N11); ship `LICENSE-FREEDOOM-BSD-3.txt` (D75, hash pinned); the AI-reference line in the credits (D75) | mod-engineer | 40 | — |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
@@ -65,6 +64,8 @@ the Fooocus hand images, sounds and music to hear.
 | **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
+
+N9w: 25 weapon sounds installed (70358e0), load pass clean (`docs/qa/evidence/2026-10-15_0117_M3_weapon-sounds-load.md`), listening pass owed; 13 of 25 are 1-6 dB under target (no saturation, per brief). **Real ~400k** (est. 250k). N14-P: PPSh-41 silhouettes; **real 26k**.
 
 N17: the TT-33 hands installed (d2be8ca), engine pass `docs/qa/evidence/2026-10-15_0037_F4_tt33-installed.md`: **1 of 7 weapons ours in the PK3**. **Real 279k** (est. 120k). N9a: 15 sound alternatives, page `docs/art/previews/2026-10-15_0033_M3_listening-alternatives.html`; **real 275k** (est. 120k). N14-3: ice axe silhouettes; **real 10k** (est. 40k).
 

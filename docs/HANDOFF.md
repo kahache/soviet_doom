@@ -31,10 +31,11 @@ AI line must add Gemini.
 
 ## In flight at handoff
 
-Check `git status` and the backlog's "Doing" rows: N14-P (PPSh-41
-silhouettes) and N9w (25 weapon sounds + loudness pass, SNDINFO, hooks).
-If their files are on disk uncommitted, review, `verify.py fast`, commit
-with explicit paths, then the engine pass for the sounds.
+Nothing running. N14-P (PPSh-41 silhouettes, 5072704) waits for the CEO's
+size; N9w (25 weapon sounds, 70358e0) is installed and loads clean, the
+listening pass is owed (WEAPON-SOUNDS §10.4). Leftover untracked draft
+`docs/art/previews/2026-10-15_0105_F4_ppsh-silhouettes.png` (superseded by
+0106): delete or ignore.
 
 ## Rules learned
 

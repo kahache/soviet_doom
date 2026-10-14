@@ -17,6 +17,8 @@ Previews are sent to you as files; the paths are under `docs/art/previews/`.
 
 ## 2. Waiting for your ears
 
+**Installed (D74, 70358e0):** the 25 approved weapon sounds. When you play: are the TT-33/PPSh shots strong enough next to the rifleman's? Is the axe hit (`SDAXHIT`, bass-heavy) audible on laptop speakers? Keep the three reload sounds packed for a future magazine mechanic, or drop them?
+
 **One page for all of it:** `docs/art/previews/2026-10-14_2355_M3_listening-sheet.html` (OK / NO / ? per row, "Copiar resultado" to paste the verdict in chat). Headphones recommended.
 
 - Weapon sounds (31, Kenney layers since D44), enemy sounds (35 + 8 beds),
