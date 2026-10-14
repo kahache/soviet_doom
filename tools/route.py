@@ -83,6 +83,20 @@ caught mid-edit cannot break MAP01's routes. The pass is checked by KEY,
 never by class (SD_BluePass replaces BlueCard and may be renamed): sdinv
 reports every Key in the inventory since route-4.
 
+MAP03, Tankograd (docs/levels/MAP03-factory.md sections 5 and 15):
+`tankograd-critical` is the factory's g3-auto, metro-critical's method with
+two keys. Start; the yellow door (lock 3) and the red door (lock 1) pressed
+with no key, both must stay shut; the yellow key (DoomEdNum 6) walked onto,
+the yellow door opened and walked through; the red door pressed with the
+yellow key alone, still shut; the red key (DoomEdNum 13) walked onto, the red
+door opened and walked through; SW-A (the shutter and the hall's closets);
+SW-B (the drum's gate); up the dais to the breaker, pressed. The keys are
+Doom's YellowCard and RedCard (no SD_ class yet): the route counts keys by
+the Key base class (Step.keys: 0, 1, 2) and lets the doors say which is
+which. MAPINFO says `next = endtitle` for the factory, so its exit must lead
+to an end sequence: the episode's end. Built lazily from the map, like the
+metro's.
+
 Usage (the PM's; D26: only the PM sets SD_ALLOW_ENGINE, and on Windows the
 interpreter is .venv/Scripts/python.exe):
   SD_ALLOW_ENGINE=1 python3 tools/route.py                       # g3-auto, skills 2 3 4
@@ -96,6 +110,7 @@ interpreter is .venv/Scripts/python.exe):
   SD_ALLOW_ENGINE=1 python3 tools/route.py --route mural --skills 3 --nomonsters --keep-evidence
   SD_ALLOW_ENGINE=1 python3 tools/route.py --route range-door --skills 3 --keep-evidence  # RANGE's P4
   SD_ALLOW_ENGINE=1 python3 tools/route.py --route metro-critical --keep-evidence  # MAP02, skills 2 3 4
+  SD_ALLOW_ENGINE=1 python3 tools/route.py --route tankograd-critical --keep-evidence  # MAP03, 2 3 4
   python3 tools/route.py --steps my_route.json --print          # a route of your own
   python3 tools/route.py --list-routes
 
@@ -288,7 +303,9 @@ class Step:
     checked); `ready_slot` the slot of the raised weapon; `ready_ammo` the
     rounds in its primary ammo pool; `key` whether any key is owned (by
     the Key base class, never by name: MAP02's pass is SD_BluePass, which
-    replaces BlueCard, and may be renamed).
+    replaces BlueCard, and may be renamed); `keys` how many keys exactly
+    (MAP03 holds two: 0 before the yellow key, 1 after it, 2 after the red;
+    counted, never named, for the same reason).
 
     `presses` lists the (special, arg0) lines the player must be seen
     pressing during the step (the helper's SDTEST line, or the engine's
@@ -308,6 +325,7 @@ class Step:
     ready_ammo: int | None = None
     key: bool | None = None
     presses: tuple[tuple[int, int], ...] = ()
+    keys: int | None = None
 
     def __post_init__(self) -> None:
         if not STEP_ID.fullmatch(self.id):
@@ -325,7 +343,8 @@ class Step:
 
     @property
     def checks_inventory(self) -> bool:
-        return (self.melee, self.ready_slot, self.ready_ammo, self.key) != (None, None, None, None)
+        return (self.melee, self.ready_slot, self.ready_ammo, self.key, self.keys) \
+            != (None, None, None, None, None)
 
 
 @dataclass(frozen=True)
@@ -767,42 +786,86 @@ def pass_spot(md: "MapData", ednum: int) -> tuple[int, int]:
     return per_skill[METRO_PASS_SKILLS[0]][0]
 
 
-def pass_walk(md: "MapData", spot) -> tuple[tuple[int, int], int, str, int]:
-    """Where to start the walk onto the pass, facing which way, the zone
-    family it ends in, and its tics."""
+def pass_walk(md: "MapData", spot, run_up: int = PASS_APPROACH) -> tuple[tuple[int, int], int, str, int]:
+    """Where to start the walk onto the pass (or a key), facing which way,
+    the zone family it ends in, and its tics. `run_up` is how far from the
+    pickup the walk starts (MAP03's keys lie on raised tops 64 and 128
+    wide, so their walks start further out: KEY_APPROACH)."""
     home = md.sector_at(*spot)
     family = zone_family(md.name_of(home)) if home is not None else "?"
     if family == "?":
-        raise RouteError(f"the pass at {spot} lies in sector {md.name_of(home)!r}, which has no "
+        raise RouteError(f"the pickup at {spot} lies in sector {md.name_of(home)!r}, which has no "
                          f"zone family: add a ZONE_PREFIXES row in tools/route.py")
-    tics = walk_tics(PASS_APPROACH + PASS_OVERSHOOT)
+    tics = walk_tics(run_up + PASS_OVERSHOOT)
     for angle in PASS_DIRECTIONS:
         dx, dy = COMPASS[angle]
-        start = (spot[0] - dx * PASS_APPROACH, spot[1] - dy * PASS_APPROACH)
-        if lane_is_clear(md, start, angle, PASS_APPROACH + PLAYER_RADIUS,
+        start = (spot[0] - dx * run_up, spot[1] - dy * run_up)
+        if lane_is_clear(md, start, angle, run_up + PLAYER_RADIUS,
                          tics * WALK_UNITS_PER_TIC, family):
             return start, angle, family, tics
-    raise RouteError(f"no clear lane of {PASS_APPROACH} units in {family} onto the pass at {spot}")
+    raise RouteError(f"no clear lane of {run_up} units in {family} onto the pickup at {spot}")
+
+
+def start_family(md: "MapData") -> str:
+    """The zone family of the map's one player start."""
+    starts = [t for t in md.textmap.things if t.type == ED_PLAYER1_START]
+    if len(starts) != 1:
+        raise RouteError(f"{md.map_name}: want one player start, found {len(starts)}")
+    return family_at(md, (starts[0].x, starts[0].y))
+
+
+@dataclass(frozen=True)
+class DoorWalk:
+    """A locked door pressed from `point` facing `angle` (its face in the
+    pressing room), and the walk of `tics` through it into `inside`."""
+    point: tuple[int, int]
+    angle: int
+    tics: int
+    inside: str
+
+
+def locked_door_walk(md: "MapData", special: int, tag: int, from_family: str, what: str,
+                     lock: int | None = None) -> DoorWalk:
+    """The face of the locked door (`special`, arg0 `tag`, and arg3 `lock`
+    if given) whose front sector is in `from_family`; the press point in
+    front of it, and the walk DOOR_CLEARANCE past its far face."""
+    tm = md.textmap
+    faces = [ld for ld in tm.linedefs if ld.special == special and ld.arg0 == tag
+             and (lock is None or ld.arg3 == lock)
+             and zone_family(md.name_of(tm.sidedefs[ld.sidefront].sector)) == from_family]
+    lock_text = "" if lock is None else f" (lock {lock})"
+    point, angle = approach(md, _longest(md, faces, f"{what}'s {from_family} face{lock_text}"))
+    beyond, room = _ray_past_door(md, point, angle, tag, what)
+    return DoorWalk(point, angle, walk_tics(beyond + DOOR_CLEARANCE), zone_family(md.name_of(room)))
+
+
+def exit_walk(md: "MapData", gate_tag: int, what: str) -> tuple[tuple[int, int], int, int, str]:
+    """E0: the start on the ray out of the exit's niche, GATE_CLEARANCE past
+    the far face of the first sector tagged `gate_tag` it crosses, facing the
+    switch; the walk's tics (it ends against the switch); the exit's family."""
+    tm = md.textmap
+    exits = [ld for ld in tm.linedefs if ld.special == SPECIAL_EXIT_NORMAL]
+    exit_line = _longest(md, exits, "the exit switch")
+    exit_mid, exit_angle = approach(md, exit_line, 0)
+    exit_family = zone_family(md.name_of(tm.sidedefs[exit_line.sidefront].sector))
+    out = (exit_angle + 180) % 360
+    past_gate, _room = _ray_past_door(md, exit_mid, out, gate_tag, what)
+    e0_t = past_gate + GATE_CLEARANCE
+    ox, oy = COMPASS[out]
+    e0_point = (int(exit_mid[0] + ox * e0_t), int(exit_mid[1] + oy * e0_t))
+    return e0_point, exit_angle, walk_tics(e0_t - PLAYER_RADIUS), exit_family
 
 
 def metro_critical(md: "MapData | None" = None) -> Route:
     """MAP02's critical path, read off the built map (see the block above)."""
     md = md or load_map_data(map_defining(*METRO_CONSTANTS))
     tag_bd, tag_sh, tag_gate, locked, ed_pass = (_map_const(md, n) for n in METRO_CONSTANTS)
-    tm = md.textmap
 
-    starts = [t for t in tm.things if t.type == ED_PLAYER1_START]
-    if len(starts) != 1:
-        raise RouteError(f"{md.map_name}: want one player start, found {len(starts)}")
-    start_family = family_at(md, (starts[0].x, starts[0].y))
+    a0_family = start_family(md)
 
     # The blast door, its hall face; BD1 walks through it to the room behind.
-    faces = [ld for ld in tm.linedefs if ld.special == locked and ld.arg0 == tag_bd
-             and zone_family(md.name_of(tm.sidedefs[ld.sidefront].sector)) == METRO_HALL_FAMILY]
-    bd_point, bd_angle = approach(md, _longest(md, faces, f"the blast door's {METRO_HALL_FAMILY} face"))
-    beyond, room = _ray_past_door(md, bd_point, bd_angle, tag_bd, "the blast door")
-    bd_tics = walk_tics(beyond + DOOR_CLEARANCE)
-    inside_family = zone_family(md.name_of(room))
+    bd = locked_door_walk(md, locked, tag_bd, METRO_HALL_FAMILY, "the blast door")
+    bd_point, bd_angle, bd_tics, inside_family = bd.point, bd.angle, bd.tics, bd.inside
 
     spot = pass_spot(md, ed_pass)
     pass_start, pass_angle, pass_family, pass_tics = pass_walk(md, spot)
@@ -812,19 +875,10 @@ def metro_critical(md: "MapData | None" = None) -> Route:
     swb = switch_line(md, tag_gate, "SW-B")
     swb_point, swb_angle = approach(md, swb)
 
-    exits = [ld for ld in tm.linedefs if ld.special == SPECIAL_EXIT_NORMAL]
-    exit_line = _longest(md, exits, "the exit switch")
-    exit_mid, exit_angle = approach(md, exit_line, 0)
-    exit_family = zone_family(md.name_of(tm.sidedefs[exit_line.sidefront].sector))
-    out = (exit_angle + 180) % 360
-    past_gate, _room = _ray_past_door(md, exit_mid, out, tag_gate, "the exit tunnel's gate")
-    e0_t = past_gate + GATE_CLEARANCE
-    ox, oy = COMPASS[out]
-    e0_point = (int(exit_mid[0] + ox * e0_t), int(exit_mid[1] + oy * e0_t))
-    e0_tics = walk_tics(e0_t - PLAYER_RADIUS)
+    e0_point, exit_angle, e0_tics, exit_family = exit_walk(md, tag_gate, "the exit tunnel's gate")
 
     steps = (
-        Step("A0", actions=("level", "count", "inv", "capture"), expect=(start_family,),
+        Step("A0", actions=("level", "count", "inv", "capture"), expect=(a0_family,),
              key=False, note="the player start (from MAP01's lift): no key; monsters on this skill"),
         Step("BD0", bd_point, bd_angle,
              ("use", f"wait {DOOR_WAIT}", f"tag {tag_bd}", "inv", "capture"),
@@ -859,6 +913,115 @@ def metro_critical(md: "MapData | None" = None) -> Route:
                  **exit_expectation(md.map_name),
                  description="the metro's critical path: the blue door shut without the pass, the pass "
                              "walked onto, the door open, SW-A, SW-B, the gate, out by the exit switch")
+
+
+# --- MAP03 Tankograd: the critical path (docs/levels/MAP03-factory.md 5, 15)
+# metro-critical's method on the factory, the episode's last map. Nothing is a
+# copied coordinate or a class name; what the route reads, and where from:
+#   * tags, the locked-door special, the two lock numbers and the two keys'
+#     editor numbers (6 yellow, 13 red: Doom's cards, which Freedoom draws;
+#     no SD_ class yet): the named constants of src/maps/MAP03/map.py
+#     (TANKOGRAD_CONSTANTS);
+#   * each locked door: the Door_LockedRaise line with its tag AND its lock
+#     whose front sector is in the assembly hall (TANKOGRAD_HALL_FAMILY), so
+#     a door that lost its lock, or swapped it, has no face and no route;
+#   * each key: the one thing of its editor number on skills 2, 3 and 4,
+#     walked onto from KEY_APPROACH, never given;
+#   * SW-A and SW-B: the one-sided switches whose arg0 is TAG_SHUTTER and
+#     TAG_GATE; the exit: E0 on the ray out of the breaker's niche, past the
+#     drum's gate (TAG_GATE), so the walk up the dais proves the gate open.
+# Keys are COUNTED by the Key base class (0, 1, 2), never named: the yellow
+# and red cards may get SD_ classes the way MAP02's pass did. Which key is
+# which is proved by the doors: both shut with no key (YD0, RD0), the red one
+# still shut with the yellow key alone (RDY: lock 1 is not lock 3), each open
+# once its own key is owned. The order is the brief's (N2): the yellow key and
+# door, the red key and door, SW-A, SW-B, the breaker. MAPINFO's `next` for
+# the factory is `endtitle` (cluster 1 ends the episode, D62), so the exit is
+# judged as an end sequence, read from MAPINFO like every other route's.
+TANKOGRAD_CONSTANTS = ("TAG_YELLOW_DOOR", "TAG_RED_DOOR", "TAG_SHUTTER", "TAG_GATE",
+                       "SPECIAL_DOOR_LOCKED_RAISE", "LOCK_YELLOW_CARD", "LOCK_RED_CARD",
+                       "ED_YELLOW_CARD", "ED_RED_CARD")
+TANKOGRAD_HALL_FAMILY = "Z3"    # both locks are pressed from the assembly hall's portals
+# The yellow key lies on the director's desk (64 deep, 16 up), the red on the
+# ingot pedestal (128 square, 16 up), each in the middle: PASS_APPROACH (64)
+# would start the body on the top's edge. 96 starts it a body clear of it,
+# on the room's own floor, and the walk steps up 16 onto the top.
+KEY_APPROACH = 96
+
+
+def tankograd_critical(md: "MapData | None" = None) -> Route:
+    """MAP03's critical path, read off the built map (see the block above)."""
+    md = md or load_map_data(map_defining(*TANKOGRAD_CONSTANTS))
+    (tag_yd, tag_rd, tag_sh, tag_gate, locked, lock_y, lock_r, ed_y, ed_r) = (
+        _map_const(md, n) for n in TANKOGRAD_CONSTANTS)
+
+    a0_family = start_family(md)
+    yd = locked_door_walk(md, locked, tag_yd, TANKOGRAD_HALL_FAMILY, "the yellow door", lock_y)
+    rd = locked_door_walk(md, locked, tag_rd, TANKOGRAD_HALL_FAMILY, "the red door", lock_r)
+    yd_family, rd_family = family_at(md, yd.point), family_at(md, rd.point)
+
+    y_spot = pass_spot(md, ed_y)
+    y_start, y_angle, y_family, y_tics = pass_walk(md, y_spot, KEY_APPROACH)
+    r_spot = pass_spot(md, ed_r)
+    r_start, r_angle, r_family, r_tics = pass_walk(md, r_spot, KEY_APPROACH)
+
+    swa = switch_line(md, tag_sh, "SW-A")
+    swa_point, swa_angle = approach(md, swa)
+    swb = switch_line(md, tag_gate, "SW-B")
+    swb_point, swb_angle = approach(md, swb)
+
+    e0_point, exit_angle, e0_tics, exit_family = exit_walk(md, tag_gate, "the drum's gate")
+
+    press = ("use", f"wait {DOOR_WAIT}")
+    steps = (
+        Step("A0", actions=("level", "count", "inv", "capture"), expect=(a0_family,), keys=0,
+             note="the player start (off MAP02's rails): no key; monsters on this skill"),
+        Step("YD0", yd.point, yd.angle, press + (f"tag {tag_yd}", "inv", "capture"),
+             expect=(yd_family,), tags=((tag_yd, False),), keys=0, presses=((locked, tag_yd),),
+             note=f"the yellow door (lock {lock_y}) pressed with no key: pressed, and still shut"),
+        Step("RD0", rd.point, rd.angle, press + (f"tag {tag_rd}", "inv", "capture"),
+             expect=(rd_family,), tags=((tag_rd, False),), keys=0, presses=((locked, tag_rd),),
+             note=f"the red door (lock {lock_r}) pressed with no key: pressed, and still shut"),
+        Step("YKEY", y_start, y_angle,
+             (f"forward {y_tics}", "inv", f"tag {tag_yd}", f"tag {tag_rd}", "capture"),
+             expect=(y_family,), tags=((tag_yd, False), (tag_rd, False)), keys=1,
+             note=f"walk onto the yellow key (DoomEdNum {ed_y} at {y_spot}), no give: one key; "
+                  "both doors still shut"),
+        Step("YD1", yd.point, yd.angle, press + (f"tag {tag_yd}", f"forward {yd.tics}", "capture"),
+             expect=(yd.inside,), tags=((tag_yd, True),), presses=((locked, tag_yd),),
+             note="the yellow door with its key: open; walk through it to the tank line"),
+        Step("RDY", rd.point, rd.angle, press + (f"tag {tag_rd}", "inv", "capture"),
+             expect=(rd_family,), tags=((tag_rd, False),), keys=1, presses=((locked, tag_rd),),
+             note="the red door pressed with the yellow key only: still shut"),
+        Step("RKEY", r_start, r_angle,
+             (f"forward {r_tics}", "inv", f"tag {tag_rd}", f"tag {tag_sh}", "capture"),
+             expect=(r_family,), tags=((tag_rd, False), (tag_sh, False)), keys=2,
+             note=f"walk onto the red key (DoomEdNum {ed_r} at {r_spot}), no give: two keys; "
+                  "the red door and the shutter still shut"),
+        Step("RD1", rd.point, rd.angle, press + (f"tag {tag_rd}", f"forward {rd.tics}", "capture"),
+             expect=(rd.inside,), tags=((tag_rd, True),), presses=((locked, tag_rd),),
+             note="the red door with its key: open; walk through it to the portal hall"),
+        Step("SWA", swa_point, swa_angle,
+             ("use", f"wait {SWITCH_WAIT}", f"tag {tag_sh}", f"tag {tag_gate}", "capture"),
+             expect=(family_at(md, swa_point),), tags=((tag_sh, True), (tag_gate, False)),
+             presses=((swa.special, swa.arg0),),
+             note="SW-A: the shutter and the hall's two closets open; the drum's gate still shut"),
+        Step("SWB", swb_point, swb_angle,
+             ("use", f"wait {SWITCH_WAIT}", f"tag {tag_gate}", "capture"),
+             expect=(family_at(md, swb_point),), tags=((tag_gate, True),),
+             presses=((swb.special, swb.arg0),),
+             note="SW-B: the drum's gate opens"),
+        Step("E0", e0_point, exit_angle, ("capture", f"forward {e0_tics}", "capture"),
+             expect=(exit_family,),
+             note="from the portal hall, through the gate and up the dais to the breaker"),
+        Step("E1", actions=("use",), note="the exit breaker: the episode's end"),
+    )
+    return Route("tankograd-critical", md.map_name, steps, expect_secrets=0,
+                 **exit_expectation(md.map_name),
+                 description="the factory's critical path: both locks shut without keys, the yellow "
+                             "key walked onto and its door opened, the red door shut on the yellow "
+                             "key, the red key and its door, SW-A, SW-B, the gate, the breaker, the "
+                             "episode's end")
 
 
 ED_PLAYER1_START = 1
@@ -897,6 +1060,7 @@ ROUTES: dict[str, Route] = {
 # so a MAP02 caught mid-edit fails its own route and nothing else.
 LAZY_ROUTES: dict[str, Callable[[], Route]] = {
     "metro-critical": metro_critical,
+    "tankograd-critical": tankograd_critical,
 }
 
 
@@ -925,7 +1089,7 @@ def route_from_json(data: dict) -> Route:
     "exit_by"?: "switch" | "console", "end_sequence"?: bool, "next_map"?: str,
     "steps": [{"id", "warp"?: [x, y], "angle"?, "do"?: [...], "expect"?: [...],
     "tags"?: {"10": true}, "melee"?: bool, "ready_slot"?, "ready_ammo"?,
-    "key"?: bool, "presses"?: [[special, arg0], ...], "note"?}]}.
+    "key"?: bool, "keys"?: int, "presses"?: [[special, arg0], ...], "note"?}]}.
 
     "exit_by": "console" is the documented recourse for a map with no exit
     line: the route's `exit` action sends the helper's sdexit."""
@@ -944,6 +1108,7 @@ def route_from_json(data: dict) -> Route:
                 ready_ammo=int(s["ready_ammo"]) if s.get("ready_ammo") is not None else None,
                 key=bool(s["key"]) if s.get("key") is not None else None,
                 presses=tuple((int(p[0]), int(p[1])) for p in s.get("presses", ())),
+                keys=int(s["keys"]) if s.get("keys") is not None else None,
             )
             for s in data["steps"]
         )
@@ -1006,6 +1171,18 @@ ZONE_PREFIXES: tuple[tuple[str, str], ...] = (
     ("esc_", "ESC"), ("prop_turnstiles", "Z2"), ("arches_", "Z3"),
     ("coping_", "Z4"), ("stair_", "Z4"), ("sub_stair_", "Z8"),
     ("shutter", "SH"), ("gate", "GATE"),
+    # MAP03 Tankograd (docs/levels/MAP03-factory.md sections 4 and 15): its
+    # z-numbered sectors file by name (Z1 spur, Z2 dock, Z3 hall) and SH /
+    # GATE above serve it too; the rest go by the letter of their part of the
+    # works. The drum (dais, inner porch, the breaker's niche) is its own
+    # family, so E0 ending in it proves the walk passed the gate.
+    ("closet_h", "Z3"), ("prop_conveyor", "Z3"), ("prop_clerestory", "Z3"),
+    ("yellow_door", "YD"), ("red_door", "RD"),
+    ("o_", "OF"),                       # the offices, the yellow key's desk among them
+    ("t_", "TL"),                       # the vestibule, the tank line, its pits, the pouring arch
+    ("f_", "FD"),                       # the foundry: gallery, casting floor, platform, red key
+    ("p_drum", "DR"), ("p_inner_porch", "DR"), ("p_dais_", "DR"), ("p_exit_niche", "DR"),
+    ("p_", "PH"),                       # the antechamber, the portal hall, the booth, the porch
 )
 _ZONE_IN_NAME = re.compile(r"(?:^|_)(z\d+[ab]?)(?:_|$)")
 _DOOR_NAME = re.compile(r"^(d\d)(?:_|$)")
@@ -1554,7 +1731,12 @@ RE_SECRET_MESSAGE = re.compile(r"(?i)\bsecret\b")
 # Russian. Whether the locked-door midprint reaches the log is NOT VERIFIED
 # (pickup and secret messages do). A line that also says "need" is a lock
 # message: proof that the press reached a locked line at that step.
-RE_PASS_MESSAGE = re.compile(r"(?i)\bblue\b|синий|синяя")
+# MAP03's yellow and red keys are still Doom's (YellowCard, RedCard: no SD_
+# class yet, LANGUAGE overrides none of their lines), so they speak in the
+# engine's or Freedoom's words, whichever wins: "yellow" / "red" and "need"
+# either way (NOT VERIFIED which text the PM's run prints), and the Russian
+# stems in case the CEO's Russian build overrides them later.
+RE_PASS_MESSAGE = re.compile(r"(?i)\b(?:blue|yellow|red)\b|синий|синяя|жёлт|желт|красн")
 RE_LOCK_WORD = re.compile(r"(?i)\bneed|нуж")
 
 _EXTRA = [(pid, re.compile(rx), why) for pid, rx, why in G3_EXTRA_PATTERNS]
@@ -1958,6 +2140,12 @@ def evaluate_inventory(route: Route, skill: int, log: RouteLog, mapdata: MapData
             elif (inv.key_count > 0) != step.key:
                 wrong.append("no key owned" if step.key
                              else f"a key already owned ({', '.join(inv.keys) or inv.key_count})")
+        if step.keys is not None:
+            if inv.key_count is None:
+                wrong.append("keys not reported (a helper older than route-4)")
+            elif inv.key_count != step.keys:
+                wrong.append(f"{inv.key_count} key(s) owned ({', '.join(inv.keys) or 'none'}), "
+                             f"wanted {step.keys}")
         detail = describe_inventory(inv) + (f"  -- {'; '.join(wrong)}" if wrong else "")
         rows.append((step.id, not wrong, detail))
         for w in wrong:
@@ -2133,9 +2321,9 @@ def main(argv: list[str] | None = None) -> int:
             try:
                 r = route_by_name(name)
             except (RouteError, OSError) as exc:
-                print(f"{name:<14} UNAVAILABLE: {exc}")
+                print(f"{name:<18} UNAVAILABLE: {exc}")
                 continue
-            print(f"{name:<14} {r.map_name}  {len(r.steps)} steps  {r.description}")
+            print(f"{name:<18} {r.map_name}  {len(r.steps)} steps  {r.description}")
         return EXIT_OK
     if args.scan:
         return scan_only(args.scan, args.strict)

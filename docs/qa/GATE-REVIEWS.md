@@ -702,3 +702,51 @@ sequence. Routes find their map by its map.py constants, not by slot, so
 D62's renumbering moved them with it (`tests/test_route.py`).
 NOT VERIFIED: that GZDoom's unload event names the next map as MAPINFO
 spells it (compared without case).
+
+## Tankograd, MAP03 — `tankograd-critical`, the scripted critical path (note, not a gate; 2026-10-14, N2)
+
+`tools/route.py --route tankograd-critical` (helper `route-4`, unchanged) is
+the factory's `g3-auto`, `metro-critical`'s method with two keys:
+A0 start (0 keys) → YD0 the yellow door (lock 3) and RD0 the red door
+(lock 1) pressed with **no key**: each press must be in the log (or the
+engine's lock line) and each door must stay shut → YKEY the yellow key
+(DoomEdNum 6) walked onto, never `give` (1 key; both doors still shut) →
+YD1 the yellow door opened and walked through into the tank line → RDY the
+red door pressed with the **yellow key alone**, still shut (lock 1 is not
+lock 3) → RKEY the red key (DoomEdNum 13) walked onto (2 keys; the red door
+and the shutter still shut) → RD1 the red door opened and walked through
+into the portal hall → SWA (the shutter and the hall's two closets open, the
+drum's gate still shut) → SWB (the gate opens) → E0 from the portal hall
+through the gate and up the dais to the breaker → E1 the breaker pressed.
+MAPINFO says `next = endtitle` for MAP03 (cluster 1), so the route requires
+the level to unload towards an end sequence: **the episode's end**; an exit
+into any map FAILS. Every walk is cleared with `sdclear` first.
+
+Nothing is copied: tags, the locked-door special, the two lock numbers and
+the keys' editor numbers come from `src/maps/MAP03/map.py`'s constants
+(6 and 13 checked there, and against `KEY_LOCKS`); each door is found by its
+tag **and** its lock, so a door that loses or swaps its lock leaves the route
+unbuildable instead of tested; positions come from the built map. The keys
+are still Doom's `YellowCard` and `RedCard` (no `SD_` class): the route
+**counts** keys by the `Key` base class (new `Step.keys`: 0, 1, 2) and never
+names them; the report lists the classes `sdinv` prints. The key walks start
+96 units out (`KEY_APPROACH`): both keys lie in the middle of a raised top
+(the desk 64 deep, the pedestal 128 square), and 64 would warp the body onto
+its edge. `ZONE_PREFIXES` files every MAP03 sector (Z1-Z3, OF, TL, FD, PH,
+and DR for the drum, so E0 ending in DR proves the gate was passed).
+`tests/test_route.py` holds the geometry (each lock pressed from the hall
+within reach and walked through; each key on the lane and reached on the
+walk model; SW-A through its niche's open mouth; the exit walk PH → GATE →
+DR, no step over 24) and the `--parse` verdicts: a clean run PASSES on 2, 3
+and 4 into the end sequence; FAIL on a door open without its key (yellow
+with none, red with none, red with the yellow alone), a lock press never
+seen, a key not picked up, the gate shut, the exit not reached (exit code
+9), and an exit that leads to a map instead of the end.
+**Not run in the engine (D26).** NOT VERIFIED until the PM's run: the
+text of the yellow and red lock lines (GZDoom's or Freedoom's; both are
+accepted, and neither is needed if the `SDTEST line` prints); that the
+warps onto the office and casting-platform floors and the 16-unit step onto
+each top behave as the walk model says; and whether the General and the
+drum's guards stand in E0's corridor when `sdclear` runs (if they do, they
+are killed and listed as blockers, never hidden). The PM's command:
+`SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route tankograd-critical --keep-evidence`.
