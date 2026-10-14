@@ -1,7 +1,7 @@
 # Soviet Doom — Product Requirements Document
 
 Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
-Last update: 2026-10-14 (D25-D66).
+Last update: 2026-10-14 (D25-D67).
 
 ## 1. Vision
 
@@ -100,6 +100,7 @@ until D16 brought it into scope on 2026-10-13.)
 | D64 | 2026-10-14 | **Pipeline stage 6, Product update** ("súper importante"): when a delivery closes, before the `pmo` stage, Product updates BACKLOG, ROADMAP, PENDING (and CLAUDE.md / HANDOFF at a session's end) with what is done and what is not. `docs/PIPELINE.md` now has eight stages. | ratified (CEO) |
 | D65 | 2026-10-14 | **Doughboy cell C** (the severed head, spine hanging, dark red drip; drawn at its hitbox size) and **Panzermensch cell D** (bare skull in a riveted iron mask): "Doughboy C · Panzermensch D". The Schwer is the PM's call until the CEO says otherwise: cell D with the sweep's S2 treatment (black plate, 12 % larger, spikes and stacks), its own sprite set. Full sets follow (backlog N5); the General's design sweep comes next. | ratified (CEO) |
 | D66 | 2026-10-14 | **All 13 Tankograd textures approved** ("Me gustan TODAS… hazlo tú por mí o incluso incluye todas las oportunas"): `docs/art/previews/2026-10-14_2017_F3_batch4-factory.html`, including palette v2 for the brick, the Legion flag's canton and the portal, and the portal in cobalt with white filaments; the PM installs all of them. **The ice axe** reads right, but the fist does not hold it: the hand is redone to grip the shaft (Freedoom's gripping hands, SAWG/SHTG) before any other weapon. | ratified (CEO) |
+| D67 | 2026-10-14 | **The Panzermensch full set is approved** ("OK al Panzermensch"; the Schwer, its black variant, goes with it): both install. **The Doughboy needs a bigger flag on its head** ("ponle la bandera más grande en la cabeza") before it installs. | ratified (CEO) |
 | D15 | 2026-10-09 | Licence of the mod: **GPL-3.0** for code (`tools/`, `src/zscript/`, scripts) and **CC BY-NC-SA 4.0** for assets and docs (textures, sprites, maps, sounds, lore). Non-commercial is required anyway by OTEX's terms. Full texts added at F6; `LICENSE.md` states it now. | decided by the PM on CEO delegation |
 
 ## 6. Phases and gates
