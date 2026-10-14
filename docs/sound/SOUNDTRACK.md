@@ -2,6 +2,7 @@
 
 Living document. Owner: `sound-designer`. Russian mirror: `docs/ru/sound/SOUNDTRACK.md` (D7).
 Created 2026-10-13 (F2, first music); candidate list **closed** 2026-10-13.
+Revised 2026-10-14, **D44**: «Вы жертвою пали» and «Амурские волны» sequenced as drafts from one downloaded public-domain score each; Glinka still blocked (§6, Cards 3-5).
 Rights frame: `docs/sound/MUSIC-RIGHTS.md` — that document owns every licence
 fact and this one owns every sound fact.
 
@@ -49,9 +50,9 @@ open recommendation of §8 accepted. What that changed, in one place:
 | **Title screen** | **`assets/music/D_SDINTL.mid`** — Engelbach's orchestral *Internationale*, head silence removed by us | **installed and wired** (D43, MAPINFO `TitleMusic`) |
 | **MAP01** | **`assets/music/D_SDM01.mid`** — our own "Zarya-7" | **installed** (D43) as it stood; the enriched version `D_SDM01E` is a draft for the CEO's ear (§6, Card 2b) |
 | **Diegetic radio** | `WM_Ej_uchnem.mid` (`D_CND09`), `WM_Kolokolchik.mid` (`D_CND12`) — CC0, already orchestrated | **settled** (D43); not installed until a map has a radio to put them in (`level-designer`) |
-| **Anthem slot** | Glinka's *Patriotic Song*, sequenced by us | **settled** (D43); **blocked on a score** (§6, Cards 3-5) |
-| **Death / aftermath** | «Вы жертвою пали», sequenced by us | **settled** (D43); **blocked on a score** (§6, Cards 3-5) |
-| **Radio waltz** | «Амурские волны» (Kyuss, 1909), sequenced by us | **settled** (D43); **blocked on a score** (§6, Cards 3-5) |
+| **Anthem slot** | Glinka's *Patriotic Song*, sequenced by us (`D_SDGLNK`) | **settled** (D43); **still blocked**: no reliable public-domain score of Glinka's own melody found under D44 (§6, Card 5) |
+| **Death / aftermath** | «Вы жертвою пали», sequenced by us from Detlaf's 1905 edition | **draft** `work/audio/D_SDFUNR.mid` (D44), for the CEO's ear (§6, Card 3) |
+| **Radio waltz** | «Амурские волны» (Kyuss, 1909), sequenced by us from the 1909-1914 Vladivostok edition | **draft** `work/audio/D_SDAMUR.mid` (D44), for the CEO's ear (§6, Card 4) |
 | **Our `D_SDTITL`** | **reserved, not retired** | a finished 1:21 Soviet march in D minor, the natural intermission / episode-end cue |
 
 Three of the twelve downloads are **discarded** and gone, six are kept as
@@ -79,6 +80,12 @@ SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play map01 --lump D_SDM01   
 python3 tools/audio/gen_music.py                                                  # regenerates every draft into work/audio/
 SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play map01 --lump D_SDM01E   # MAP01 enriched (Card 2b)
 SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --render --expect D_SDM01E=160 # its arc and peak (PM only)
+
+# the D44 sequencings from downloaded public-domain scores (Cards 3-4)
+python3 tools/audio/gen_music.py --only funeral --only amur                       # -> work/audio/D_SDFUNR.mid, D_SDAMUR.mid
+SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play map01 --lump D_SDFUNR   # Вы жертвою пали, 2:24, ends
+SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play map01 --lump D_SDAMUR   # Амурские волны, 1:17 loop
+SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --render --expect D_SDFUNR=144 --expect D_SDAMUR=77   # arc, peak (PM only)
 
 # our title march, now proposed for the intermission instead
 SD_ALLOW_ENGINE=1 python3 tools/audio/audition.py --play title --lump D_SDTITL
@@ -109,7 +116,7 @@ The five tools, all of them mine, all documented in their own docstrings:
 | `tools/audio/audition.py` | packs the overlay; `--play` launches the game, `--render` makes GZDoom synthesise every file to WAV | `work/audio/`, `logs/` |
 | `tools/audio/wav_report.py` | measures a render: peak, clipping, head/tail silence, the 12-slot loudness arc, brightness | nothing |
 | `tools/audio/midi_edit.py` | the only one that changes a MIDI, and only mechanically: `--trim-head`, `--velocity`, `--loop-tail` | a new file, never in place |
-| `tools/audio/gen_music.py` | generates our own two pieces (plan B, §6) | `work/audio/*.mid` |
+| `tools/audio/gen_music.py` | generates our own pieces (plan B, §6) and, since D44, the two tunes sequenced from downloaded public-domain scores (Cards 3-4) | `work/audio/*.mid` |
 
 ---
 
@@ -547,57 +554,111 @@ three lists stay the same length); cellos muddy under the ostinato → drop
 needs the engine (D26). The PM's render command is in §1; it would give the
 arc and peak the other cards carry.
 
-### Cards 3-5 — the three pieces D43 asks us to sequence — **blocked: no score in hand**
+### Cards 3-5 — the three pieces D43 asks us to sequence (D44: two sequenced, one blocked)
 
 D43 decided that we sequence «Вы жертвою пали» and «Амурские волны»
-ourselves, and that Glinka's *Patriotic Song* takes the anthem slot. All
-three compositions are public domain in Russia and the United States
-(`MUSIC-RIGHTS.md` §2.2, §2.3). **None is sequenced yet, and that is a
-deliberate stop, not an omission** (`docs/PIPELINE.md`, "When the pipeline
-stops": an agent that needs something that does not exist says so rather
-than inventing it).
-
-What is missing is the melody itself. Sequencing a public-domain tune
-ourselves means copying its notes from a score; the brief allowed no
-downloads, and the readable sources I checked on 2026-10-13 carry no
-notation: the English and Russian Wikipedia articles on all three works have
-no `<score>` block; IMSLP's Glinka category lists no *Patriotic Song*;
-IMSLP has no Kyuss category at all. Writing the three tunes from my memory
-of them would produce something that *resembles* «Амурские волны» and is
-labelled as it — exactly the unverified claim this project does not ship,
-and the CEO, who validates by ear, may not know two of the three tunes well
-enough to catch a wrong bar.
-
-What is ready, so the work is an afternoon once a score exists:
+ourselves, and that Glinka's *Patriotic Song* takes the anthem slot. Until
+2026-10-14 all three were stopped for want of a score: copying a
+public-domain tune means copying its notes from a score, and writing them
+from memory would ship something that merely *resembles* the tune under its
+name. **D44** (CEO, 2026-10-14) authorised one public-domain score download
+per piece. Result: **two scores found, downloaded and sequenced; no reliable
+score of Glinka's melody exists in reach, so `D_SDGLNK` is still not
+written.** Every file, URL, licence, size and SHA-256 is `MUSIC-RIGHTS.md`
+§4.6; this card owns the sound.
 
 | | «Вы жертвою пали» | «Амурские волны» | *Патриотическая песня* |
 |---|---|---|---|
-| **Cue** | death / aftermath / episode end | diegetic radio, a quiet room | the anthem slot (D43) |
-| **Lump (draft)** | `D_SDFUNR` | `D_SDAMUR` | `D_SDGLNK` |
-| **Composer** | Varlamov (1801-1848) per ru.wikipedia; en.wikipedia credits only an 1878 arrangement by Ikonnikov — NOT VERIFIED which | Max Kyuss (1874-1942), op. 12, 1909 | Mikhail Glinka (1804-1857), 1833 |
-| **Plan** | brass choir and low strings at funeral tempo (~56 BPM), two strophes, the second with timpani and full brass; no loop, it ends | waltz, 3/4, ~150 BPM: the main theme on clarinet and strings over an oom-pah of tuba and pizzicato, 2-3 minutes, loops from its own introduction | brass and timpani, festive maestoso, the theme stated twice and a cadence; ~1:30 |
-| **Rights** | composition PD; our sequencing, CC BY-NC-SA 4.0; no lyrics used | same | same |
+| **Cue** | death / aftermath / episode end — **ends, does not loop** | diegetic radio, a quiet room — **loops** | the anthem slot (D43) |
+| **Lump (draft)** | `D_SDFUNR` → `work/audio/D_SDFUNR.mid` | `D_SDAMUR` → `work/audio/D_SDAMUR.mid` | `D_SDGLNK` — **not written** |
+| **Score** | Detlaf, Moscow, censored 9 Nov 1905 (`MUSIC-RIGHTS.md` §4.6.1) | Kyuss op. 12, Luk'yanov, Vladivostok, plate 2239, 1909-1914 (§4.6.2) | **none reliable** (§4.6.3) |
+| **Generator** | `gen_music.py --only funeral` (`build_funeral`) | `gen_music.py --only amur` (`build_amur`) | — |
+| **Status** | **draft for the CEO's ear** | **draft for the CEO's ear** | **blocked** |
 
-**What would unblock it** — one of these, the PM's or the CEO's call:
+Neither draft is in `assets/`; that waits for the CEO. Neither has been
+heard in the engine (D26): the PM's commands are in §1.
 
-1. **Approve one download per piece of a public-domain score**, the route
-   the role definition sets (file, source and size stated before
-   downloading). The candidates I could name without downloading anything:
-   for Glinka, Wikimedia Commons
-   `File:Russian SFSR - Russian Anthem Music Sheet.InstrumentalSimple (1990-2000).svg`
-   ("own work"; its licence still to be read) and
-   `File:Patriotic Song - Mikhail Glinka.gif`; for the other two I found no
-   free score on Commons or IMSLP and would need a wider search, which is
-   itself a request. Sizes are not known yet; I will state them before
-   fetching.
-2. **Someone who knows the tune checks a memory sketch.** I write the three
-   melodies from memory, marked NOT VERIFIED in the file and in this card,
-   and they go to the CEO only after a person who knows the tunes has
-   confirmed them bar by bar.
+#### Card 3 — `D_SDFUNR`, «Вы жертвою пали» — **draft (D44)**
 
-*Recommendation: (1) for Glinka, whose score exists on Commons, and (1)
-with a wider search for the other two. (2) is cheaper and riskier, and I
-would not put it in front of the CEO without that check.*
+| Field | Value |
+|---|---|
+| **File** | `work/audio/D_SDFUNR.mid`, 10 479 B, SMF format 1, 9 tracks, 480 ticks/beat; key signature F minor (four flats) and 2/4 written into the file, as printed |
+| **Duration · tempo** | **2:24.1** — anacrusis, two strophes of 32 bars, a two-bar held chord, one silent bar; 56 BPM. The edition marks *Allegro non troppo*; 56 is ours, for a funeral cue (`FUNERAL_TEMPO_BPM`) |
+| **Notes copied** | the **voice line** of Detlaf's edition, all 32 bars and the anacrusis (`FUNERAL_MELODY`). Nothing else of the edition is used |
+| **Ours** | the harmony (`FUNERAL_HARMONY`: i, VI, V7/V, V, iv, V7; in the middle section III, V7/III, VI, iv and a Neapolitan turn onto C), the orchestration, the tempo |
+| **Orchestration** | the `D_SDM01` palette at a funeral pace. Strophe 1: French horn melody, trombone chords, tuba bass, cellos, the cold pad halo, a muffled low floor tom on every downbeat. Strophe 2: the melody passes to trumpet with horns an octave below, tremolo strings above the chords, timpani on the downbeats, bass drum, one crash where the edition prints *ff* (bar 17). Coda: the F minor chord held under a fading timpani roll, then silence |
+| **Measured** | 1 153 notes, 8 GM voices plus percussion, **zero hanging notes** (`midi_inspect.py`); not yet rendered by GZDoom (D26) |
+| **Licence · rights** | composition PD; our sequencing CC BY-NC-SA 4.0 (D15); no lyric, no phonogram |
+
+**Which bar of the edition each phrase comes from.** Detlaf, 1905: the
+music is scan pages 2 and 3, three systems each; bar 0 is the anacrusis.
+The lyric incipits only name the phrases; no words are used.
+
+| Phrase | Bars | Scan page · system | Notes |
+|---|---|---|---|
+| «Вы жертвою пали в борьбе роковой» | 0-4 | p. 2 · 1 | C / C Ab F / C Ab F / Ab G F# / G — the F# is printed |
+| «Любви беззаветной к народу» | 4²-8 | p. 2 · 1-2 | Bb Bb Db / C Bb Ab G / F Ab / F |
+| «Вы отдали всё, что могли, за него» | 8²-12 | p. 2 · 2-3 | as bars 0-4; bar 9 dotted (Ab. F) |
+| «За жизнь его, честь и свободу» | 12²-16 | p. 2 · 3, p. 3 · 1 | as bars 5-8; bar 15 runs F Ab C Ab |
+| «Настанет пора — и проснётся народ» | 16²-20 | p. 3 · 1 | Eb Eb. Eb / Eb F C / Eb Db. C / Db. — printed *ff* |
+| «Великий, могучий, свободный!» | 20²-24 | p. 3 · 1-2 | Db Db. Db / Db Eb Bb / Db C. B♮ / C — the B natural is printed |
+| «Прощайте же, братья, вы честно прошли» | 24²-28 | p. 3 · 2-3 | as bars 0-4, *p* |
+| «Ваш доблестный путь благородный!» | 28²-32 | p. 3 · 3 | as bars 5-8, final F a half note before the double bar |
+
+**Readings to know about.** The edition prints a natural before F in bars
+7, 15 and 31; F is not flattened in four flats, so these are courtesy
+accidentals after the F# of bars 3, 11 and 27, read as F. Detlaf's piano
+part is not used.
+
+**Knobs:** `FUNERAL_TEMPO_BPM` (the edition's *Allegro non troppo* would be
+around 100); the brass level, `FUNERAL_VEL_BRASS`; one strophe instead of
+two, `FUNERAL_STROPHES = 1`.
+
+#### Card 4 — `D_SDAMUR`, «Амурские волны» — **draft (D44)**
+
+| Field | Value |
+|---|---|
+| **File** | `work/audio/D_SDAMUR.mid`, 7 918 B, SMF format 1, 5 tracks, 480 ticks/beat; key signature C minor (three flats) and 3/4, as printed |
+| **Duration · tempo** | **1:16.8** per loop — the 32-bar waltz period twice, 150 BPM (the edition: *Tempo di Valse*; the number is ours) |
+| **Notes copied** | the waltz proper, scan page 3: the right hand (the melody with its printed thirds, octaves, chords and grace notes) and the left hand's bass octaves, bars 1-32 with the **first-time ending**, which returns to bar 1. So **the engine's loop is the edition's own repeat sign** |
+| **Not copied** | the Introduction (scan page 2) and what follows the second-time ending (page 4 on). An intro followed by a loop would need a loop point inside the file; whether GZDoom honours MIDI loop markers is **NOT VERIFIED**, so the draft makes the whole file the loop |
+| **Partly ours** | the left hand's off-beat chords: copied where the scan is legible, completed by us from the printed bass and melody where it is not — `AMUR_CHORD_SOURCE` marks every bar "read" or "ours" (ours: bars 6-13 and 21, 24-25). The orchestration and tempo are ours |
+| **Orchestration** | the card's plan in the `D_SDM01` manner (named mix, reverb send 72, the pad halo as a faint bed): clarinet melody over an oom-pah of tuba (the lower printed octave) and pizzicato strings (the upper octave and the off-beat chords). The second pass adds the string ensemble on the melody. The edition's *f* (bars 17-27) and *p* (from bar 28) are velocity steps |
+| **Measured** | 857 notes, 5 GM voices, **zero hanging notes**; the first note starts at tick 0 and no note rings past the loop point (`tests/test_music_d44.py`); not yet rendered by GZDoom (D26) |
+| **Licence · rights** | composition PD (Kyuss d. 1942, published 1909); our sequencing CC BY-NC-SA 4.0 (D15); no lyric, no phonogram |
+
+**Which bar of the edition each phrase comes from.** Kyuss, Luk'yanov
+edition, scan page 3 (printed page 3), five systems; bar 1 is the first bar
+after the segno repeat bar.
+
+| Phrase | Bars | System | Notes |
+|---|---|---|---|
+| A, first half (*p*, "con anima") | 1-8 | 1 (bars 1-6), 2 (7-8) | G / G (C) Ab. G / Eb / Eb D C / B♮ / B D · · C / G / G |
+| A, second half, to the cadence | 9-16 | 2 (9-13), 3 (14-16) | G / G (C) Ab. G / F / F Eb D / C / Eb F / G and chords / rest, bass F Eb D |
+| B, the theme an octave up (*f*) | 17-24 | 3 (17-20), 4 (21-24) | G / G (C) Ab. G / Eb / Eb D C / F / F-Ab, Ab-C · · F-Ab / Eb-G / G F Eb in thirds |
+| B, the runs and the close | 25-32 | 4 (25-27), 5 (28-32) | rising thirds B♮-D to F-Ab / unison run C D Eb F G / B♮ D Ab → G / *p*: F# G octaves / (Bb) Ab G / D Eb / C, first ending, repeat |
+
+**Readings to know about**, where the scan is soft and the choice is ours:
+bar 6's last eighth is read C4 (the head sits between B3 and C4; measured
+nearer C4); bar 18's grace note is read C5, as in bars 2 and 10 an octave
+lower (the scan puts it between B4 and C5); bar 22's last eighth is read
+F5+Ab5 like the bar's first chord (the scan allows G5+Bb5); bar 27's lowest
+note is read B natural, from the natural sign printed before it.
+
+**Knobs:** `AMUR_TEMPO_BPM`; `AMUR_PASSES = 1` for a 38-second loop; the
+melody instrument, `GM_CLARINET` in `build_amur`.
+
+#### Card 5 — `D_SDGLNK`, Glinka's *Patriotic Song* — **blocked: no reliable public-domain score**
+
+Nothing was downloaded and nothing was written. The only notation within
+reach is the 1990-2000 **anthem** melody (two Commons files, one an "own
+work" SVG, one a GIF from a modern anthem site), and nothing ties those notes
+to Glinka's 1833 *Motif de chant national* rather than to the 1944
+orchestration by Mikhail Bagrinovsky (protected to 2037) that the anthem
+comes from. The translator's warning about the SVG was right. Full search
+and what would unblock it: `MUSIC-RIGHTS.md` §4.6.3. The plan, for when a
+score exists, is unchanged: brass and timpani, festive maestoso, the theme
+stated twice and a cadence, about 1:30.
 
 ### How plan B was verified
 
@@ -689,7 +750,8 @@ items as they stood, and what each became:
 4. **Diegetic radio — `WM_Ej_uchnem.mid` and `WM_Kolokolchik.mid`, both CC0,
    SETTLED.** They wait for a map with a radio (§7, `level-designer`).
 5. **Sequence «Вы жертвою пали» and «Амурские волны» ourselves — YES.**
-   **Not yet sequenced: blocked on a score**, §6 Cards 3-5. Glinka's *Patriotic Song* takes the anthem slot (rights
+   **Sequenced under D44 as drafts** (§6 Cards 3-4); Glinka still
+   blocked on a score (Card 5). Glinka's *Patriotic Song* takes the anthem slot (rights
    side: `MUSIC-RIGHTS.md` §7.1), also sequenced by us.
    **Excluded:** every work free in Russia but restored in the United States,
    «Священная война» above all (`MUSIC-RIGHTS.md` §5(b)).
@@ -698,6 +760,9 @@ items as they stood, and what each became:
    `D_CND05` and `D_CND07` stay as named reserves. `work/audio/candidates/` is
    tracked in git (D43).
 
-**Open for the CEO's ear:** the enriched `D_SDM01E` (Card 2b), one command
-in §1. **Open for the PM or the CEO:** how to get the three scores that
-Cards 3-5 need (a download approval, or a person who knows the tunes).
+**Open for the CEO's ear:** the enriched `D_SDM01E` (Card 2b), and since
+D44 the two sequenced drafts `D_SDFUNR` and `D_SDAMUR` (Cards 3-4); one
+command each in §1. **Open for the PM or the CEO:** Glinka (Card 5) — no
+reliable public-domain score of the 1833 melody was found; it needs a
+facsimile of the autograph or a decision on the anthem slot
+(`MUSIC-RIGHTS.md` §4.6.3).
