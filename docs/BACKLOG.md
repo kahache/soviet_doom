@@ -20,7 +20,8 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
-| N12c | M2 | Install the General (SDGN/SDGL, general.zs + general_shell.zs letters per the preview) + engine pass | mod-engineer | 200 | CEO approves the full set |
+| N12c | M2 | Install the General (SDGN/SDGL) + engine pass | mod-engineer | 200 | D73 |
+| N14-2 | M2 | Ice axe right-handed (D73) + shaft and head polish, cells C1/C3/C4 again | art-director | 100 | D73 |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
 ## Next (approved order, D63)
