@@ -35,7 +35,11 @@ pairs in `assets/sprites/hound/`, renamed from `SARG`) the same way: the
 rifleman's swap, the overlay's only enemy, is gone, and the hound never had
 one. D56 (2026-10-14) installed the Hybrid Stormtrooper (`SDHS`, 77 lumps)
 and his bolt (`SDBL`, 5) in `assets/sprites/storm/`, renamed from `TROO`
-and `BAL1`; the overlay never carried them either. The `enemies` group keeps the rig machinery (eight rotations, the IWAD
+and `BAL1`; the overlay never carried them either. N17 (2026-10-15)
+installed the TT-33's held and flash frames, the D61 hands (`SDTT` A-C,
+`SDTF` A in `assets/sprites/tt33/`, renamed from `PISG` and `PISF`): their
+two swaps are gone and INSTALLED_WEAPON_FRAMES records them, so the hand E
+drafts in work/art/weapons/tt33/ can never be packed over them. The `enemies` group keeps the rig machinery (eight rotations, the IWAD
 check) for the next enemy drafted on the rig; today it has no swap, so
 `--only enemies` has nothing to pack and says so.
 
@@ -122,8 +126,6 @@ class Swap:
 # tests/test_draft_overlay.py holds them equal.
 SWAPS: tuple[Swap, ...] = (
     Swap("weapons", "ice_axe", "weapons/ice_axe.zs", "PUNG", "SDAX"),
-    Swap("weapons", "tt33", "weapons/tokarev.zs", "PISG", "SDTT"),
-    Swap("weapons", "tt33", "weapons/tokarev.zs", "PISF", "SDTF"),
     Swap("weapons", "izh", "weapons/izh.zs", "SHTG", "SDIZ"),
     Swap("weapons", "izh", "weapons/izh.zs", "SHTF", "SDIF"),
     Swap("weapons", "ppsh", "weapons/ppsh.zs", "CHGG", "SDPP"),
@@ -152,6 +154,16 @@ INSTALLED: tuple[tuple[str, str], ...] = (
     ("MGUN", "SDPQ"),    # PPSh-41
     ("LAUN", "SDRP"),    # RPG-7
     ("PLAS", "SDKP"),    # ROKS-3
+)
+
+# Held and flash frames approved and installed whole (N17, 2026-10-15): the
+# TT-33 in Freedoom's pistol hands recoloured (R3-A1, D61; approved in hand,
+# D63). Every tokarev.zs state names our sprites, the PNGs ship from
+# assets/sprites/tt33/, and no swap may name either side, so the overlay can
+# never shadow them with the old hand E drafts (tests/test_tt33_sprites.py).
+INSTALLED_WEAPON_FRAMES: tuple[tuple[str, str], ...] = (
+    ("PISG", "SDTT"),    # TT-33 held, A-C (work/art/weapons_fd/tt33/, hand_study.build_tt33_fd)
+    ("PISF", "SDTF"),    # its muzzle flash, A
 )
 
 # Enemies approved and installed whole: every state names our sprite, the
@@ -294,12 +306,17 @@ def plan_overlay(only: str = "all", hand: str = DEFAULT_HAND, weapons_dir: Path 
     zs_cache: dict[str, str] = {}
     installed = installed_sprites(sprites_dir)
     retired = {name for pair in INSTALLED_ENEMIES for name in pair}
+    retired_frames = {name for pair in INSTALLED_WEAPON_FRAMES for name in pair}
     for swap in SWAPS:
         if swap.group not in groups:
             continue
         if swap.placeholder in retired or swap.draft in retired:
             plan.notes.append(f"{swap.draft}: an enemy installed whole (INSTALLED_ENEMIES); "
                               f"not overlaid on {swap.placeholder}")
+            continue
+        if swap.placeholder in retired_frames or swap.draft in retired_frames:
+            plan.notes.append(f"{swap.draft}: held and flash frames installed whole "
+                              f"(INSTALLED_WEAPON_FRAMES); not overlaid on {swap.placeholder}")
             continue
         if swap.draft in installed:
             plan.notes.append(f"{swap.draft}: approved and installed under {_rel(sprites_dir)}; "

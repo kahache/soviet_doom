@@ -2967,13 +2967,16 @@ def render_weapon(key: str, style: HandStyle) -> tuple[dict, dict, Frame]:
 
 def zs_letters(spec: WeaponSpec) -> tuple[set, set]:
     """The frame letters the weapon's state machine names for its held and
-    flash placeholders (read from src/zscript/weapons/, never edited)."""
+    flash placeholders (read from src/zscript/weapons/, never edited), or
+    for our own names once installed (N17: the TT-33's PISG/PISF are
+    SDTT/SDTF since 2026-10-15; the letters did not change)."""
     text = (PROJECT_ROOT / "src" / "zscript" / "weapons" / spec.zs).read_text(encoding="utf-8")
     out = []
-    for sprite in (spec.ph_held, spec.ph_flash):
+    for sprites in ((spec.ph_held, spec.held), (spec.ph_flash, spec.flash)):
         letters = set()
-        for m in re.finditer(rf"^\s*{sprite}\s+([A-Z]+)\s", text, re.M):
-            letters |= set(m.group(1))
+        for sprite in sprites:
+            for m in re.finditer(rf"^\s*{sprite}\s+([A-Z]+)\s", text, re.M):
+                letters |= set(m.group(1))
         out.append(letters)
     return out[0], out[1]
 

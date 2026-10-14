@@ -20,7 +20,8 @@ What is enforced here, and why:
               was approved in. Every asset is v1 until it is listed in
               APPROVED_IN_V2 (the Legion trooper's SDLT set since D54, the
               metro mosaic SDMOSA1 since D56, the Doughboy's SDDB set
-              since D70, the General's SDGN set since D73)
+              since D70, the General's SDGN set since D73, the TT-33's
+              held SDTT A-C since N17)
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_palette_v2 -v
 """
@@ -81,6 +82,10 @@ MAX_COLOURS = 256
 # CD design), drawn on the Legion's table with v2's flesh_pink. RGBA, so
 # check_pk3's PALETTE_V2_LUMPS does not list them. His shell's 5 SDGL lumps
 # (same folder) stay inside v1 and are not listed.
+# N17 (2026-10-15): the TT-33's held frames SDTT A-C (hand_study.py
+# build_tt33_fd, D61/D63), Freedoom's hands recoloured to v2's flesh_pink.
+# RGBA, so check_pk3's PALETTE_V2_LUMPS does not list them. Its flash SDTFA0
+# (same folder) stays inside v1 and is not listed.
 APPROVED_IN_V2: set[str] = (
     {f"sprites/legion/SDLT{f}{r}.png" for f in "ABCDEFG" for r in "12345678"}
     | {f"sprites/legion/SDLT{f}0.png" for f in "HIJKLMNOPQRSTU"}
@@ -91,7 +96,8 @@ APPROVED_IN_V2: set[str] = (
     | {f"sprites/doughboy/SDDB{f}{r}.png" for f in "ABCDEF" for r in "12345678"}
     | {f"sprites/doughboy/SDDB{f}0.png" for f in "GHIJKL"}
     | {f"sprites/general/SDGN{f}{r}.png" for f in "ABCDEFGQR" for r in "12345678"}
-    | {f"sprites/general/SDGN{f}0.png" for f in "HIJKLMNOP"})
+    | {f"sprites/general/SDGN{f}0.png" for f in "HIJKLMNOP"}
+    | {f"sprites/tt33/SDTT{f}0.png" for f in "ABC"})
 
 
 def _digest(colours) -> str:

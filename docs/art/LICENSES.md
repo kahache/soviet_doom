@@ -61,6 +61,11 @@ textures would then have to be re-approved.
 Freedoom 0.13.0 (`freedoom2.wad`, BSD 3-clause) is the base game data (D2).
 The mod references four of its lumps **by name** (`STARTAN2`, `FLOOR4_8`,
 `CEIL3_5`, `SKY1`, see `TEXTURE-INDEX.md`) and redistributes none of them.
+**One exception since N17 (2026-10-15):** the TT-33's first-person frames
+(`SDTTA0`, `SDTTB0`, `SDTTC0`) carry the hand pixels of Freedoom's `PISGA0`,
+`PISGB0` and `PISGC0`, recoloured (D61): a derivative of Freedoom's art,
+shipped inside our PK3 under Freedoom's licence, with its credit. Rows and
+the licence's obligations: "Weapon frames: the TT-33 in hand" below.
 
 ## Third-party packs
 
@@ -349,7 +354,7 @@ arsenal: OK" for the TT-33, IZh-58, RPG-7 and ROKS-3. Only the **world
 pickups** are installed: after playing MAP01 with the draft overlay the same
 day the CEO found hand E deformed, so the first-person (held) and muzzle-flash
 frames, which show the hand, stay drafts in `work/` until the hands are
-redrawn. Files in `assets/sprites/<weapon>/`, copied byte for byte from
+redrawn (the TT-33's were, in Freedoom's hands: next section, N17). Files in `assets/sprites/<weapon>/`, copied byte for byte from
 `work/art/weapons/<weapon>/` (rendered on the Windows PC on 2026-10-13), so
 each PNG keeps its `grAb` offsets. RGBA with hard alpha, every opaque pixel a
 `docs/art/palette.json` colour (`tests/test_gen_weapon.py`). Not installed:
@@ -370,6 +375,41 @@ Drawn from code: tapered capsules, ellipsoids and extruded plates shaded in
 docstring). No photograph, no typeface. Freedoom's own weapon sprites appear
 only beside ours on the review sheets, for comparison, and never enter a
 sprite (`freedoom_sprite()` in the generator).
+
+## Weapon frames: the TT-33 in hand (F4, approved by the CEO 2026-10-14, D61 and D63)
+
+CEO verdicts: Freedoom's pistol hands recoloured to our skin and sleeve,
+"R3A1 ok!" (D61), and our TT-33 held in them, "está bien" (D63; more colour
+and grey detail logged as a nice to have for the gameplay phase). Files in
+`assets/sprites/tt33/`, beside the pickup `SDTPA0`, copied byte for byte
+from `work/art/weapons_fd/tt33/` (`tools/art/hand_study.py`,
+`build_tt33_fd`, the code of commit 33f47e8 that rendered the frames shown
+in engine through the draft overlay, `docs/qa/evidence/2026-10-14_1950_F4_tt33-freedoom-hands-in-engine.png`;
+rendered again from that commit into a scratch folder for the install, all
+four identical), so each PNG keeps its `grAb` offsets. RGBA with hard
+alpha; `SDTT` A-C in palette v2 (`flesh_pink`, D45), `SDTFA0` inside v1.
+Not installed: `metrics.json`, and hand E's drafts of the same names in
+`work/art/weapons/tt33/` (rejected, D48). Engine names: MOD-SPEC §6.3.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDTTA0` | TT-33 held, frame A (ready; also raise and lower) | (a) `tools/art/hand_study.py` `build_tt33_fd`: the hands are Freedoom 0.13.0's `PISGA0` (`iwads/freedoom2.wad`), its pistol cut out and every hand pixel recoloured by luminance to our `flesh_pink` skin and `military_green` sleeve (`fd_hands_for_gun`, R3-A1); the gun is our own TT-33 model rendered from behind (`tools/art/gen_weapon.py` `render_tt33_rear`), set into the grip and re-toned to dark steel; the gap the old pistol left between the hands filled in our steel | Freedoom's pixels: modified BSD licence (BSD 3-clause), © the Contributors to the Freedoom project, credit "Freedoom"; the recolouring and the gun: Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `SDTTB0` | TT-33 held, frame B (fire: the kick up) | (a) idem, on Freedoom's `PISGB0` | idem |
+| `SDTTC0` | TT-33 held, frame C (coming down) | (a) idem, on Freedoom's `PISGC0` | idem |
+| `SDTFA0` | TT-33 muzzle flash, frame A (over B) | (a) `tools/art/gen_weapon.py` `render_tt33_flash`, placed at the muzzle of `SDTTB0`; no Freedoom pixel | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+
+**What Freedoom's licence asks of us.** Freedoom's art is under a modified
+BSD licence (BSD 3-clause). Shipping `SDTT` A-C inside the PK3 is a
+redistribution in binary form of a derivative, so: (1) the copyright
+notice, the list of conditions and the disclaimer must travel in the
+documentation of the release, and (2) neither the Freedoom project's name
+nor its contributors' may be used to endorse or promote the mod without
+their permission. The credit is on screen (`SD_CRED_IWAD_*`, Options →
+Soviet Doom → Credits) and in the release's credits (this row's
+`credit "Freedoom"`, read by `tools/licences.py`). **The notice text itself
+does not ship yet:** Freedoom's `COPYING` is not in the repo; fetching it
+waits on the CEO (G6 readiness review 2026-10-14, §2.3.1). NOT VERIFIED by a
+lawyer.
 
 ## Pickups: ammunition, the blue pass and the radio (approved by the CEO 2026-10-14, D63)
 
