@@ -1203,6 +1203,274 @@ def build_round2_sheet(stamp: str) -> Path:
     return path
 
 
+# ============================================================ round 3 (A)
+# CEO, 2026-10-14: "Vamos con las manos de Freedoom". Freedoom's first-person
+# sprites are BSD-3 (copyright notice kept, credited in LICENSES and the
+# in-game credits): its pistol hands are the base, recoloured to our skin
+# and sleeve, the pistol replaced by our neutral grip, nothing else moved.
+# Of Freedoom 0.13's weapon frames only the pistol (PISGA0-C0) and the fist
+# (PUNGA0-D0) show hands; PISGA0 is the one that grips.
+R3_SOURCE = "PISGA0"
+R3_GUN_BOX = (22, 50, 0, 41)          # x0, x1, y0, y1 of the pistol in PISGA0 (measured)
+R3_HANDS_TOP = 33                     # first row where the hands close in under the pistol
+R3_SEAM = (62, 71)                    # rows of the glove's wrist seam (the dark band)
+R3_FOREARM_SPLIT_X = 32               # left forearm starts lower than the right one
+R3_GRIP = (29, 43, 22)                # our grip seen from behind: x0, x1 and its top row
+R3_SKIN_GAIN = 1.4                    # skin is lighter than Freedoom's glove brown: lifts its values into the pinks
+R3_SEAM_LUM = 38                      # only the darkest seam pixels stay a line
+R3_SKIN = ("flesh_pink", 1, 15)       # H2c's skin ramp
+R3_SLEEVE = ("military_green", 1, 12)
+
+
+def forearm_row(x: int) -> int:
+    """First row of the forearm (below the wrist seam) in PISGA0."""
+    return R3_SEAM[1] + (8 if x < R3_FOREARM_SPLIT_X else 0)
+
+
+def luminance(rgb: np.ndarray) -> np.ndarray:
+    return rgb[..., 0] * 0.299 + rgb[..., 1] * 0.587 + rgb[..., 2] * 0.114
+
+
+def recolour(lum: np.ndarray, mask: np.ndarray, spec, gain: float = 1.0) -> np.ndarray:
+    """Freedoom's values onto one of our ramps: each pixel takes the ramp
+    colour of nearest luminance (x gain), so the modelling and its contrast
+    survive the change of hue."""
+    cols = np.array(ramp_cols(spec) if isinstance(spec[0], str) else [c for sp in spec for c in ramp_cols(sp)])
+    ramp_l = luminance(cols.astype(np.float32))
+    v = lum[mask][:, None] * gain
+    return cols[np.argmin(np.abs(v - ramp_l[None, :]), axis=1)]
+
+
+def freedoom_hands(lumps: dict, pal: np.ndarray) -> tuple[np.ndarray, tuple[int, int], dict]:
+    """R3-A: PISGA0 with the pistol taken out, our grip put in, skin and
+    sleeve recoloured. Returns the sprite, its offsets and the masks."""
+    src, off = decode_patch(lumps[R3_SOURCE], pal)
+    h, w = src.shape[:2]
+    rgb = src[..., :3].astype(np.float32)
+    alpha = src[..., 3] > 0
+    sat = rgb.max(-1) - rgb.min(-1)
+    yy, xx = np.mgrid[0:h, 0:w]
+    gx0, gx1, gy0, gy1 = R3_GUN_BOX
+    in_box = (xx >= gx0) & (xx < gx1) & (yy >= gy0) & (yy < gy1)
+    gun = alpha & in_box & ((sat < 40) | (yy < R3_HANDS_TOP - 6))
+    out = src.copy()
+    out[gun] = 0
+    # where the pistol hid the hands (beside our grip), extend each hand column upward
+    cx0, cx1, cy0 = R3_GRIP
+    fill = gun & (yy >= R3_HANDS_TOP) & ((xx < cx0) | (xx >= cx1))
+    for x in range(w):
+        col = np.flatnonzero(fill[:, x])
+        if col.size == 0:
+            continue
+        below = [y for y in range(col.max() + 1, h) if alpha[y, x] and not gun[y, x]]
+        if below:                      # shift the column's own texture up, no streaks
+            for y in col:
+                out[y, x] = src[min(h - 1, below[0] + (y - col.min())), x]
+    alpha2 = out[..., 3] > 0
+    sleeve = alpha2 & (yy >= np.vectorize(forearm_row)(xx))
+    seam = alpha2 & ~sleeve & (yy >= R3_SEAM[0]) & (luminance(out[..., :3].astype(np.float32)) < R3_SEAM_LUM)
+    skin = alpha2 & ~sleeve & ~seam
+    lum = luminance(out[..., :3].astype(np.float32))
+    res = np.zeros_like(out)
+    res[skin, :3] = recolour(lum, skin, R3_SKIN, R3_SKIN_GAIN)
+    res[sleeve, :3] = recolour(lum, sleeve, R3_SLEEVE)
+    res[seam, :3] = ramp_cols(R3_SKIN)[0]
+    res[alpha2, 3] = 255
+    # the hand edge that the pistol used to cover: one dark pixel on top
+    top = fill & alpha2 & ~np.vstack([np.zeros((1, w), bool), alpha2[:-1]])
+    res[top, :3] = ramp_cols(R3_SKIN)[0]
+    # our grip from behind: a grey cylinder whose top shows above the hands
+    gcols = ramp_cols(GRIP_RAMP)
+    grip = np.zeros((h, w), bool)
+    for x in range(cx0, cx1):
+        t = (x - cx0 + 0.5) / (cx1 - cx0)                 # 0 left .. 1 right
+        cap = cy0 + round(2.5 * (1 - math.sin(math.pi * t)))
+        for y in range(cap, h):
+            if res[y, x, 3] and y >= R3_HANDS_TOP:
+                break
+            grip[y, x] = True
+            shade = 0.85 - 0.75 * t + (0.25 if y < cap + 3 else 0.0)
+            res[y, x, :3] = gcols[int(np.clip(shade, 0, 1) * (len(gcols) - 1))]
+            res[y, x, 3] = 255
+    edge = grip & ~(np.roll(grip, 1, 0) & np.roll(grip, -1, 0) & np.roll(grip, 1, 1) & np.roll(grip, -1, 1))
+    res[edge, :3] = artlib.ramp("concrete_cold")[3]
+    return res, off, {"gun": gun, "skin": skin, "sleeve": sleeve, "grip": grip}
+
+
+R3_FIST = "PUNGC0"                    # Freedoom's fist: the clearest single human hand it has
+R3_FIST_PAD = 10                      # columns added on the left for the grip's end
+R3_FIST_SEAM = (64, 57, -0.11)        # wrist seam: from x, at y, slope (rows per column)
+R3_FIST_GRIP = (27, 40)               # rows of the grip's end where the thumb and index ring it
+
+
+def freedoom_fist(lumps: dict, pal: np.ndarray) -> tuple[np.ndarray, tuple[int, int]]:
+    """R3-A2: Freedoom's fist recoloured, with the end of our grip showing in
+    the ring of thumb and index (the grip runs across the fist)."""
+    src, off = decode_patch(lumps[R3_FIST], pal)
+    h, w = src.shape[:2]
+    pad = R3_FIST_PAD
+    canvas = np.zeros((h, w + pad, 4), np.uint8)
+    canvas[:, pad:] = src
+    alpha = canvas[..., 3] > 0
+    yy, xx = np.mgrid[0:h, 0:w + pad]
+    sx, sy, slope = R3_FIST_SEAM
+    seam_y = sy + (xx - pad - sx) * slope
+    sleeve = alpha & (xx - pad >= sx) & (yy >= seam_y)
+    lum = luminance(canvas[..., :3].astype(np.float32))
+    seam = alpha & ~sleeve & (xx - pad >= sx - 4) & (yy >= seam_y - 3) & (lum < 60)
+    skin = alpha & ~sleeve & ~seam
+    res = np.zeros_like(canvas)
+    res[skin, :3] = recolour(lum, skin, R3_SKIN, R3_SKIN_GAIN)
+    res[sleeve, :3] = recolour(lum, sleeve, R3_SLEEVE)
+    res[seam, :3] = ramp_cols(R3_SKIN)[0]
+    res[alpha, 3] = 255
+    gcols = ramp_cols(GRIP_RAMP)
+    g0, g1 = R3_FIST_GRIP
+    grip = np.zeros((h, w + pad), bool)
+    for y in range(g0, g1):
+        t = (y - g0 + 0.5) / (g1 - g0)
+        cap = round(3 * (1 - math.sin(math.pi * t)))
+        for x in range(cap, pad + 14):
+            if alpha[y, x]:
+                continue
+            grip[y, x] = True
+            shade = 0.9 - 0.7 * t + (0.15 if x < cap + 3 else 0.0)
+            res[y, x, :3] = gcols[int(np.clip(shade, 0, 1) * (len(gcols) - 1))]
+            res[y, x, 3] = 255
+    edge = grip & ~(np.roll(grip, 1, 0) & np.roll(grip, -1, 0) & np.roll(grip, 1, 1) & np.roll(grip, -1, 1))
+    res[edge, :3] = artlib.ramp("concrete_cold")[3]
+    return res, (off[0] - pad, off[1])
+
+
+def map01_fullscreen() -> np.ndarray:
+    """MAP01 without the status bar: the shot's 3D view stretched to
+    320x200, pistol painted out."""
+    shot = np.array(Image.open(MAP01_SHOT).convert("RGB"))
+    w = shot.shape[1]
+    patched = shot.copy()
+    gx0, gx1, gy0 = SHOT_PISTOL_BOX
+    patched[gy0:SHOT_BAR_TOP, gx0:gx1] = shot[gy0:SHOT_BAR_TOP, gx0 - 100:gx1 - 100]
+    view_w = round(SHOT_BAR_TOP * SCREEN_W / VIEW_H / PIXEL_ASPECT)
+    vx0 = max(0, (w - view_w) // 2)
+    view = Image.fromarray(patched[:SHOT_BAR_TOP, vx0:vx0 + view_w]).resize((SCREEN_W, SCREEN_H), Image.Resampling.BOX)
+    return np.array(view)
+
+
+def full_layer(sprite: np.ndarray, offsets) -> np.ndarray:
+    """A weapon sprite on a 320x200 layer, full-screen (no status bar)."""
+    layer = np.zeros((SCREEN_H, SCREEN_W, 4), np.uint8)
+    x0, y0 = place(sprite, offsets, bar=False)
+    h, w = sprite.shape[:2]
+    lx0, lx1 = max(0, x0), min(SCREEN_W, x0 + w)
+    for y in range(max(0, y0), min(SCREEN_H, y0 + h)):
+        layer[y, lx0:lx1] = sprite[y - y0, lx0 - x0:lx1 - x0]
+    return layer
+
+
+def screen_layer(sprite: np.ndarray, offsets) -> np.ndarray:
+    """A weapon sprite placed on a transparent 320x200 layer (status bar on)."""
+    layer = np.zeros((SCREEN_H, SCREEN_W, 4), np.uint8)
+    x0, y0 = place(sprite, offsets)
+    h, w = sprite.shape[:2]
+    sx0, sy0 = max(0, -x0), max(0, -y0)
+    x1, y1 = min(SCREEN_W, x0 + w), min(SCREEN_H, y0 + h)
+    sub = sprite[sy0:sy0 + y1 - max(0, y0), sx0:sx0 + x1 - max(0, x0)]
+    layer[max(0, y0):y1, max(0, x0):x1] = sub
+    return layer
+
+
+R3_LICENCE_ROW = (
+    "| work/art/hand_study/R3A_* (draft, not in assets) | Freedoom 0.13.0 `freedoom2.wad`, lumps PISGA0 "
+    "(pistol, two-hand grip) and PUNGC0 (fist) | BSD-3-Clause, Copyright (c) 2001-2024 Contributors to the Freedoom project | modified: "
+    "pistol pixels removed (PISGA0), hidden hand pixels extended upward, recoloured to palette v2 flesh_pink and "
+    "military_green, a neutral grey grip added | credit: Freedoom project (LICENSES + in-game credits) |")
+
+
+def build_round3_sheet(stamp: str) -> Path:
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    bg = map01_backdrop()
+    lumps, pal = read_wad()
+    src, src_off = decode_patch(lumps[R3_SOURCE], pal)
+    a_spr, a_off, _ = freedoom_hands(lumps, pal)
+    f_spr, f_off = freedoom_fist(lumps, pal)
+    fist_src, _ = decode_patch(lumps[R3_FIST], pal)
+    Image.fromarray(a_spr).save(OUT_DIR / "R3A_PISGA0_recoloured.png")
+    Image.fromarray(f_spr).save(OUT_DIR / "R3A2_PUNGC0_recoloured.png")
+    var = VARIANTS["H2"]
+    c = ROUND2["H2c"]
+    r1, _ = render_parts(pose_parts(), var)
+    r2c, _ = render_parts(pose_parts_r2(c["palm"], c["curve"], c["elbow_r"], c["belly"]), var)
+    fs_bg = map01_fullscreen()
+    rows = [
+        ("R3-A1  Freedoom's pistol hands (PISGA0)", "two-hand grip as Freedoom draws it; pistol out, our grip in, "
+         "skin and sleeve recoloured", screen_layer(a_spr, a_off), full_layer(a_spr, a_off), True),
+        ("R3-A2  Freedoom's fist (PUNGC0)", "one hand; the grip runs across the fist, its end in the ring of "
+         "thumb and index; recoloured", screen_layer(f_spr, f_off), full_layer(f_spr, f_off), True),
+        ("H2 round 1 (for comparison)", "rejected: the stick arm", r1, None, False),
+        ("H2c round 2 (for comparison)", "rejected: the long arm, the sausage", r2c, None, False),
+    ]
+    pad, gap = 24, 16
+    f_t, f_b, f_s = font(26), font(16), font(14)
+    W = 3100
+    sheet = Image.new("RGB", (W, 3000), SHEET_BG)
+    d = ImageDraw.Draw(sheet)
+    d.text((pad, 14), "Hands round 3 (D58): Freedoom's pistol hands as the base - same grip, no weapon",
+           font=f_t, fill=INK)
+    y = wrap(d, (pad, 52), (
+        "R3-A uses Freedoom 0.13's own hand pixels (BSD-3: usable and modifiable with its copyright notice and "
+        "credit). Of Freedoom's weapon frames only two show hands: the pistol (PISGA0, a two-hand grip seen from "
+        "behind) and the fist (PUNGC0). A1: PISGA0 with the pistol's pixels removed, the hand pixels it hid "
+        "extended upward, a neutral grey grip where the pistol's back was. A2: PUNGC0, the end of the grip showing "
+        "in the ring of thumb and index. Both: the glove recoloured by value onto H2c's skin ramp (flesh_pink), "
+        "the forearm below the wrist seam onto the sleeve (military_green); framing, foreshortening and every "
+        "pixel's value are Freedoom's, placed with Freedoom's own offsets. Honest reading: A1 needs the pistol to "
+        "read as hands (with the status bar on, its forearms and most of the hands sit under the bar, as in "
+        "Doom); A2 reads as a human hand at 1x and 2x on its own."), f_b, INK, W - 2 * pad)
+    y += 6
+    d.text((pad, y), "Freedoom sources at 1x, unchanged: PISGA0, PUNGC0", font=f_s, fill=DIM)
+    sheet.paste(Image.fromarray(neutral(src, [0, 0, src.shape[1], src.shape[0]])), (pad + 400, y))
+    sheet.paste(Image.fromarray(neutral(fist_src, [0, 0, fist_src.shape[1], fist_src.shape[0]])),
+                (pad + 420 + src.shape[1], y))
+    y += src.shape[0] + 16
+    for title, note, layer, full, main in rows:
+        d.text((pad, y), title, font=f_b, fill=GOLD if main else RED)
+        d.text((pad + 520, y + 1), note, font=f_s, fill=INK)
+        y += 26
+        box = alpha_box(layer)
+        box[3] = min(box[3], SCREEN_H)
+        nb_ = neutral(layer, box)
+        x, row_h = pad, 0
+        for z in (1, 2, 4):
+            im = zoom(nb_, z)
+            sheet.paste(im, (x, y))
+            d.text((x, y + im.height + 2), f"{z}x", font=f_s, fill=DIM)
+            x += im.width + gap
+            row_h = max(row_h, im.height)
+        scr = on_map(layer, bg)
+        sheet.paste(zoom(scr, 1), (x, y))
+        d.text((x, y + SCREEN_H + 2), "MAP01 1x", font=f_s, fill=DIM)
+        x += SCREEN_W + gap
+        sheet.paste(zoom(scr, 2), (x, y))
+        d.text((x, y + 2 * SCREEN_H + 2), "MAP01 2x", font=f_s, fill=DIM)
+        x += 2 * SCREEN_W + gap
+        cx0 = min(max(0, box[0] - 8), SCREEN_W - 100)
+        cimg = zoom(scr[88:VIEW_H, cx0:cx0 + 100], 4)
+        sheet.paste(cimg, (x, y))
+        d.text((x, y + cimg.height + 2), "MAP01 4x crop", font=f_s, fill=DIM)
+        x += cimg.width + gap
+        if full is not None:
+            fscr = fs_bg.copy()
+            fa = full[..., 3] > 0
+            fscr[fa] = full[..., :3][fa]
+            sheet.paste(zoom(fscr, 2), (x, y))
+            d.text((x, y + 2 * SCREEN_H + 2), "MAP01 2x, full-screen (no status bar)", font=f_s, fill=DIM)
+        row_h = max(row_h, 2 * SCREEN_H, cimg.height)
+        y += row_h + 34
+    path = PREVIEW_DIR / f"{stamp}_F4_hand-R3-freedoom.png"
+    sheet.crop((0, 0, W, y)).save(path, optimize=True)
+    return path
+
+
 # ------------------------------------------------------------------ main
 def main(argv: list[str]) -> None:
     what = argv[1] if len(argv) > 1 else "all"
@@ -1215,6 +1483,8 @@ def main(argv: list[str]) -> None:
         print(build_hand_sheet(stamp))
     if what == "round2":
         print(build_round2_sheet(stamp))
+    if what == "round3":
+        print(build_round3_sheet(stamp))
 
 
 if __name__ == "__main__":
