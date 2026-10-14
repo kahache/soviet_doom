@@ -1546,6 +1546,92 @@ def render_tt33_frame(style: HandStyle, pose: ArmsPose) -> tuple[Frame, tuple[fl
     return finish(rig), (mx, my)
 
 
+# The TT-33 seen from behind (D61 gate): the camera sits behind the gun, the
+# muzzle points into the screen, and the back of the slide, the rear sight
+# and the hammer face the player, as in Freedoom's PISGA0. Gun only: the
+# hands are Freedoom's (tools/art/hand_study.py, R3-A1). TT-33 only; no
+# other weapon and no existing TT-33 frame reads anything below.
+TT_REAR_GRIP_UV = (0.2, -1.0)           # the point set into the hands: the slide's lower rear edge
+TT_REAR_UP = (0.0, -1.0, 0.0)
+
+
+TT_REAR_STRETCH = 1.45                  # first person: the slide this much wider, so it reads at 1x
+                                        # like Freedoom's chunky pistol (cf. IZH_HUD_BORE_K)
+
+
+class StretchRig(Rig):
+    """A rig whose picture is stretched sideways by k about screen column
+    xc: projection and the ray back through each pixel agree, so depth and
+    light stay right. Used by the rear-view TT-33 only."""
+
+    def __init__(self, k: float, xc: float, **kw):
+        super().__init__(**kw)
+        self.k, self.xc = k, xc
+
+    def project(self, p):
+        x, y, s = super().project(p)
+        return self.xc + (x - self.xc) * self.k, y, s
+
+    def _plane(self, pts3, material, base, gain, grad=None) -> None:
+        pts3 = [np.asarray(p, np.float64) for p in pts3]
+        n = np.cross(pts3[1] - pts3[0], pts3[2] - pts3[0])
+        if np.linalg.norm(n) < 1e-12:
+            return
+        n = unit(n)
+        pts2 = [self.project(p)[:2] for p in pts3]
+        xs, ys = [p[0] for p in pts2], [p[1] for p in pts2]
+        win = self._window(min(xs) - 1, min(ys) - 1, max(xs) + 1, max(ys) + 1)
+        if win is None:
+            return
+        sl, X, Y, origin = win
+        inside = self._poly_mask(pts2, X, origin)
+        Xu = self.xc + (X - self.xc) / self.k                   # undo the stretch for the ray
+        d = np.stack([(Xu - self.cx) / self.focal, (Y - self.cy) / self.focal, np.ones_like(X)], -1)
+        denom = d @ n
+        safe = np.where(np.abs(denom) < 1e-6, 1e-6, denom)
+        depth = float(n @ pts3[0]) / safe
+        depth = np.where(np.abs(denom) < 1e-6, np.mean([p[2] for p in pts3]), depth)
+        facing = n if n[2] < 0 else -n
+        nn = np.broadcast_to(facing, X.shape + (3,))
+        val = self.shade(nn, base, gain, material)
+        if grad is not None:
+            g_axis, g_origin, g_amount = grad
+            hit = d * depth[..., None]
+            val = val + g_amount * ((hit - g_origin) @ g_axis)
+        self._commit(sl, inside, depth, val, MAT_ID[material])
+
+
+@dataclass(frozen=True)
+class RearPose:
+    frame: str
+    name: str
+    pitch: float            # muzzle above the line of sight, as the tangent (the recoil kick)
+    slide_back: float = 0.0
+
+
+TT_REAR_POSES = (
+    RearPose("A", "ready, from behind", 0.05),
+    RearPose("B", "fire: kicks up, slide back", 0.18, 3.2),
+    RearPose("C", "coming back down, slide home", 0.09, 0.6),
+)
+
+
+def render_tt33_rear(pose: RearPose, depth: float, grip_xy, focal: float = FOCAL) -> tuple[Frame, tuple[float, float]]:
+    """The gun alone, seen from behind, its TT_REAR_GRIP_UV point projected
+    onto grip_xy (weapon-space px) with the slide's rear `depth` cm away.
+    A longer focal flattens the perspective (Freedoom's pistol is drawn with
+    little of it). Returns the frame and the muzzle's screen position."""
+    bore = (0.0, -pose.pitch, 1.0)
+    U, V, W, at0 = gun_basis((0.0, 0.0, 0.0), bore, TT_REAR_UP)
+    d = at0(*TT_REAR_GRIP_UV)
+    gz = depth + d[2]
+    origin = ((grip_xy[0] - SCREEN_CX) * gz / focal - d[0], (grip_xy[1] - SCREEN_CY) * gz / focal - d[1], depth)
+    rig = StretchRig(TT_REAR_STRETCH, grip_xy[0], focal=focal)
+    got = draw_tt33(rig, origin, bore, TT_REAR_UP, pose.slide_back)
+    mx, my, _ = rig.project(got["muzzle"])
+    return finish(rig), (mx, my)
+
+
 # ---------------------------------------------------------------- IZh-58
 # A side-by-side 12-gauge: two blued barrels touching, a rib between them,
 # a grey box-lock action, walnut fore-end and stock. The barrels, rib and

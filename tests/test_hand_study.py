@@ -92,7 +92,7 @@ class HandStudyTest(unittest.TestCase):
                 if fist[y, x, 3] and rgb[y][x] in green and fist[y - 1, x, 3]:
                     self.assertNotIn(rgb[y - 1][x], skin - green, (x, y))
 
-    @unittest.skipUnless(hs is not None and hs.IWAD.is_file() and hs.TT_SRC_DIR.is_dir(), "IWAD or TT-33 renders missing")
+    @unittest.skipUnless(hs is not None and hs.IWAD.is_file(), "Freedoom IWAD not in iwads/")
     def test_tt33_on_freedoom_hands_at_pisg_height_and_centred(self):
         frames = hs.build_tt33_fd()
         a = frames["SDTTA0"]
