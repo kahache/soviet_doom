@@ -101,10 +101,27 @@ PWAD_MAGIC = b"PWAD"
 MAPS_DIR = "maps/"
 
 # Folders whose files are "assets" and need a licence row: the same list
-# tools/check_pk3.py audits. Everything else in the PK3 (lumps, ZScript, maps
+# tools/check_pk3.py audits, plus the language variants (MOD-SPEC 2,
+# "Language variants"; T24). Everything else in the PK3 (lumps, ZScript, maps
 # generated from src/maps/*/map.py) is the project's own source under
 # LICENSE.md.
-ASSET_DIRS = check_pk3.LICENSED_DIRS
+LOCALIZED_DIR = check_pk3.LOCALIZED_DIR
+ASSET_DIRS = tuple(check_pk3.LICENSED_DIRS) + (LOCALIZED_DIR,)
+
+
+def localized_base(path: str) -> str | None:
+    """The base graphic a language variant stands for, or None.
+
+    `localized/textures/M_PAUSE.ru.png` -> `M_PAUSE`: the variant is the same
+    asset in another language, so its base's licence row covers it (a row
+    naming the variant itself also does). check_pk3 category `localized`
+    applies the same rule; this is the shipping side of it.
+    """
+    head, _, filename = path.rpartition("/")
+    if not head or head.split("/", 1)[0].lower() != LOCALIZED_DIR:
+        return None
+    base = filename.split(".", 1)[0]
+    return base or None
 
 # --- Reading the licence registers ------------------------------------------
 # The same reading as tests/test_credits.py (which guards the in-game screen),
@@ -227,6 +244,7 @@ class RegisterRow:
     def covers(self, path: str) -> bool:
         stem = Path(path).stem.upper()
         name = Path(path).name.upper()
+        base = (localized_base(path) or stem).upper()
         for token in self.tokens:
             upper = token.upper()
             if "/" in upper:
@@ -234,7 +252,7 @@ class RegisterRow:
                 prefix = (head if ("*" in tail or not tail) else upper).rstrip("/") + "/"
                 if path.upper().startswith(prefix):
                     return True
-            elif upper in (stem, name):
+            elif upper in (stem, name, base):
                 return True
         return False
 

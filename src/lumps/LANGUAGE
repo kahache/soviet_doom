@@ -211,6 +211,12 @@ SD_MNU_CHOOSESKILL = "CHOOSE DIFFICULTY";
 // D41: the episode screen's header, the campaign or the practice range.
 SD_MNU_CHOOSEEPISODE = "CHOOSE MISSION";
 
+// --- Pause sign (T24, 2026-10-14) -------------------------------------------
+// Not prose: the NAME of the graphic SD_StatusBar draws when the game is
+// paused (zscript/sd/status_bar.zs; docs/engine/MOD-SPEC.md 6.5.1). English
+// is the pause plaque P2 packed as graphics/M_PAUSE.png (D48).
+SD_PAUSE_SIGN = "M_PAUSE";
+
 // --- Bestiary (F5, D35) ----------------------------------------------------
 // Names and death messages of the enemies; docs/engine/BESTIARY.md owns who
 // they are. Tag = the enemy's name, wherever the engine shows one;
@@ -378,6 +384,11 @@ SD_MNU_READTHIS    = "СПРАВКА";
 SD_MNU_QUITGAME    = "ВЫХОД";
 SD_MNU_CHOOSESKILL = "ВЫБЕРИТЕ СЛОЖНОСТЬ";
 SD_MNU_CHOOSEEPISODE = "ВЫБЕРИТЕ ЗАДАНИЕ";
+
+// --- Табличка паузы (T24, 2026-10-14) ---------------------------------------
+// Не текст, а ИМЯ графики: полный путь к русскому варианту таблички P2
+// «ПАУЗА» (D48). Имя с «/» движок ищет по пути файла.
+SD_PAUSE_SIGN = "localized/textures/m_pause.ru.png";
 
 // --- Бестиарий (F5, D35) ---------------------------------------------------
 // «Каска» - русское имя Doughboy: само слово ничего не говорит русскому
