@@ -160,7 +160,7 @@ sprites, previews), `level-designer` (UDMF maps, flow, light, balance),
 `mod-engineer` (PK3, build, ZScript, definition lumps, ADRs) and
 `qa-engineer` (gates, PK3 validation, playtests, licences), plus two routine roles on
 Sonnet 5: `translator-ru` (Russian mirrors) and `pmo` (guards the paper trail
-and can block a commit, stage 6 of the pipeline). `sound-designer` owns music
+and can block a commit, stage 7 of the pipeline, after Product updates what is done and not (stage 6, D64)). `sound-designer` owns music
 and audio. The PM is the main
 session; **the user is the CEO and decides**. The interface between
 roles is the artefacts in `docs/`, not the conversation. Agent prompts are

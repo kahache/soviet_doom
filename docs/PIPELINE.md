@@ -9,7 +9,7 @@ real mistake in this project**; the mistake is cited so nobody relitigates it.
 `docs/WORKING-AGREEMENTS.md` says *what the rules are*. This document says
 *in what order things happen, and who stops whom*.
 
-## The seven stages
+## The eight stages
 
 ```
 1 COMMISSION   PM writes the brief, declares file ownership
@@ -17,8 +17,9 @@ real mistake in this project**; the mistake is cited so nobody relitigates it.
 3 PM REVIEW    the PM judges before the CEO ever sees it
 4 CEO GATE     only what needs taste or authority reaches the CEO
 5 VERIFY       tools/verify.py - fast in the loop, full before a push
-6 DOCUMENT     the pmo agent checks the paper trail before anything is committed
-7 PUBLISH      the PM commits specific paths and pushes
+6 PRODUCT      when a delivery closes, Product records what is done and what is not
+7 DOCUMENT     the pmo agent checks the paper trail before anything is committed
+8 PUBLISH      the PM commits specific paths and pushes
 ```
 
 ### 1. Commission
@@ -192,7 +193,7 @@ a **warning**, never a failure, during a phase; at a gate (`verify.py docs
 repo path in backticks that does not exist. Root documents (`README.md`,
 `CLAUDE.md`, `LICENSE.md`) carry their Russian text inline or not at all and
 owe no mirror. Everything else about the paper trail — one owner per fact,
-D-numbers, evidence paths — is stage 6 and belongs to `pmo`, not to a script.
+D-numbers, evidence paths — is stage 7 and belongs to `pmo`, not to a script.
 
 #### The window
 
@@ -222,7 +223,26 @@ on its own process group, since Windows has no `killpg`. The gate
 > were not: GZDoom uses 14001-14165 for ambient sound and music changers.
 > The label is what made someone check.
 
-### 6. Document — the `pmo` stage
+### 6. Product update — what is done and what is not (D64, "súper importante")
+
+When a delivery closes (a batch of tasks, a milestone step, a session's
+work), and **before** the `pmo` stage, Product (the PM) updates the
+product documents with the honest state of things:
+
+- `docs/BACKLOG.md`: each task of the delivery moves to **done** with its
+  commit, or stays open with what is missing and why; anything discovered on
+  the way is added as a new line (or parked, per D60).
+- `docs/ROADMAP.md`: the milestone table's status column (M1-M4) says what
+  the delivery moved and what still stands between it and the gate.
+- `docs/PENDING-CEO-DECISIONS.md`: what now waits on the CEO; what closed.
+- `CLAUDE.md` status and `docs/HANDOFF.md` if the session ends.
+
+"Done" means verified (tests, and the engine where the change is visible),
+committed, and approved by the CEO where the CEO's gate applies. Drafts
+waiting for the CEO are not done. The `pmo` stage then checks this update
+against the commits; a delivery without it does not pass stage 7.
+
+### 7. Document — the `pmo` stage
 
 Before the PM commits, the `pmo` agent checks the paper trail. It blocks the
 commit if any of this is false:
@@ -246,7 +266,7 @@ commit if any of this is false:
 > conditional, and `MOD-SPEC` said there were no DoomEdNums while `MAPINFO`
 > already reserved seven.
 
-### 7. Publish
+### 8. Publish
 
 The PM commits and pushes (D6).
 
@@ -290,7 +310,7 @@ The PM commits and pushes (D6).
 | Situation | What happens |
 |---|---|
 | A verification fails | Work stops at stage 5. The failure is fixed or filed as a numbered bug with a repro. Never commit around it. |
-| `pmo` finds a documentation gap | Stage 6 blocks. The gap is closed in the same batch, not "later". |
+| `pmo` finds a documentation gap | Stage 7 blocks. The gap is closed in the same batch, not "later". |
 | An agent needs something that does not exist | It stops and says so in its summary rather than inventing it. The PM commissions the missing piece. |
 | Two agents need the same file | The PM serialises them. Ownership is never shared. |
 | A gate is debatable | It goes to the CEO with data, not with an opinion. |
