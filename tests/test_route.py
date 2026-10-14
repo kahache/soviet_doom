@@ -22,6 +22,13 @@ Covered:
   pressed from the hall within reach, the pass walked onto (never `give`)
   and followed when it moves, the switches pressed from their faces, the
   exit walk crosses the gate and stops at the switch;
+* MAP03 (tankograd-critical): the same method with two keys. Tags, specials,
+  locks and the keys' editor numbers (6 yellow, 13 red, checked in map.py)
+  from map.py's constants; each locked door found by its tag AND its lock and
+  pressed from the hall; the keys walked onto from a body clear of their
+  raised tops; keys counted (0, 1, 2), never named (Doom's YellowCard and
+  RedCard today); the exit walk crosses the drum's gate and climbs the dais
+  to the breaker; MAPINFO's `endtitle` makes the exit an end sequence;
 * --print and --list-routes run with the engine unreachable;
 * --parse judges a log: a synthetic clean run passes on every skill and on
   RANGE, and each failure the PM must see (slot 1 at the start, no pickup,
@@ -29,7 +36,9 @@ Covered:
   exit, no inventory) fails with the right exit code; on MAP02 the blue
   door opening without the pass, a press that never reached it, the pass
   not picked up, a route-3 log that cannot see keys, the gate shut and the
-  exit not reached;
+  exit not reached; on MAP03 a door opening without its key (the yellow
+  with none, the red with the yellow alone), a key not picked up, the exit
+  not reached, and an exit that leads to a map instead of the episode's end;
 * the gate: without SD_ALLOW_ENGINE nothing is launched.
 
 Run:  python3 -m unittest tests.test_route -v
@@ -59,6 +68,7 @@ from sdbuild import udmf  # noqa: E402
 # The maps by what they are, not by slot (D62 renumbers): the route's own finders.
 ZARYA, RANGE = route.ZARYA, route.RANGE
 METRO = route.map_defining(*route.METRO_CONSTANTS)
+FACTORY = route.map_defining(*route.TANKOGRAD_CONSTANTS)
 
 PLAYER_RADIUS = 16
 PICKUP_RADIUS = 20        # Doom's pickups (tests/test_map01.py)
@@ -200,7 +210,8 @@ class RouteDefinitionTest(unittest.TestCase):
     def setUpClass(cls):
         cls.map01 = route.MapData(ZARYA)
         cls.range = route.MapData(RANGE)
-        cls.maps = {ZARYA: cls.map01, RANGE: cls.range, METRO: route.load_map_data(METRO)}
+        cls.maps = {ZARYA: cls.map01, RANGE: cls.range, METRO: route.load_map_data(METRO),
+                    FACTORY: route.load_map_data(FACTORY)}
 
     def test_g3_auto_runs_skills_2_3_and_4_by_default(self):
         args = route.parse_args([])
@@ -353,7 +364,8 @@ class RouteDefinitionTest(unittest.TestCase):
     def test_every_built_in_route_ends_by_a_switch_never_by_sdexit(self):
         """d1e891f gave RANGE an exit switch: range-start presses it, as
         MAP01's routes press theirs. sdexit stays in the helper, unused."""
-        for name in ("g3-auto", "g3-secrets", "range-start", "range-door", "metro-critical"):
+        for name in ("g3-auto", "g3-secrets", "range-start", "range-door", "metro-critical",
+                     "tankograd-critical"):
             r = route.route_by_name(name)
             self.assertEqual(("switch", True), (r.exit_by, r.must_exit), name)
             want = route.exit_expectation(r.map_name)
@@ -465,7 +477,7 @@ class RouteDefinitionTest(unittest.TestCase):
         """Every prefix row and every whole name matches a sector of MAP01 or
         RANGE. The rack's old row (`shovel_rack`) went with the rename to
         `z1_ice_axe_rack` (f3cd8ea), which files under Z1 by its own name."""
-        names = set(self.map01.plan) | set(self.range.plan) | set(self.maps[METRO].plan)
+        names = set(self.map01.plan) | set(self.range.plan) | set(self.maps[METRO].plan)             | set(self.maps[FACTORY].plan)
         for prefix, family in route.ZONE_PREFIXES:
             self.assertTrue([n for n in names if n.startswith(prefix)], f"dead row {prefix!r} -> {family}")
         for name in route.ZONE_NAMES:
@@ -637,9 +649,17 @@ class FakeRun:
         self.next_map = r.next_map or "enDSeQ1dce"
         self.end_state = route.GS_FINALE
         self.cleared: list[tuple] = []          # (step, class, x, y, hp, dead) sdclear lines
-        # Keys (route-4): owned from the first step that expects one.
-        self.key_from = next((n for n, s in enumerate(r.steps) if s.key), None)
-        self.key_class = "SD_BluePass"
+        # Keys (route-4): the step each key is picked up at, from the steps
+        # that expect one (`key`) or a count of them (`keys`), in order; and
+        # the classes they are reported as: MAP02's pass, MAP03's two Doom
+        # cards (no SD_ class yet). The route never reads the names.
+        self.key_gains: list[int] = []
+        for n, s in enumerate(r.steps):
+            want = s.keys if s.keys is not None else (1 if s.key else 0)
+            while len(self.key_gains) < want:
+                self.key_gains.append(n)
+        self.key_classes = ("YellowCard", "RedCard") if r.name == "tankograd-critical" \
+            else ("SD_BluePass",)
         self.old_helper = False                 # a route-3 helper: no key lines, no keys=
         self.unpressed: set[str] = set()        # step ids whose presses print no line
         self.force_open: set[tuple[int, str]] = set()   # (tag, step id) read open whatever
@@ -675,7 +695,7 @@ class FakeRun:
         if self.old_helper:
             lines.append(f"SDTEST inv weapons={len(weapons)} ready={ready} slot={slot} ammo={ammo}")
             return lines
-        keys = [self.key_class] if self.key_from is not None and number >= self.key_from else []
+        keys = [cls for cls, at in zip(self.key_classes, self.key_gains) if number >= at]
         lines = [f"SDTEST key class={k}" for k in keys] + lines
         lines.append(f"SDTEST inv weapons={len(weapons)} ready={ready} slot={slot} ammo={ammo} "
                      f"keys={len(keys)}")
@@ -743,7 +763,7 @@ class ParseTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.data = {name: route.MapData(name) for name in (ZARYA, RANGE, METRO)}
+        cls.data = {name: route.MapData(name) for name in (ZARYA, RANGE, METRO, FACTORY)}
 
     def judge(self, name, skill, **kw):
         r = route.route_by_name(name)
@@ -1124,12 +1144,12 @@ SDTEST state gamestate=0
         self.assertFalse(rep.passed)
 
     def test_map02_the_pass_not_picked_up_fails(self):
-        rep = self.m3(attrs={"key_from": None})
+        rep = self.m3(attrs={"key_gains": []})
         self.assertFalse(rep.passed)
         self.assertIn("PASS: no key owned", rep.problems)
 
     def test_map02_a_key_before_the_pass_fails(self):
-        rep = self.m3(attrs={"key_from": 0})
+        rep = self.m3(attrs={"key_gains": [0]})
         self.assertFalse(rep.passed)
         self.assertTrue(any(p.startswith("A0: a key already owned") for p in rep.problems), rep.problems)
 
@@ -1163,6 +1183,103 @@ SDTEST state gamestate=0
         self.assertEqual(route.EXIT_ROUTE_FAILED, code)
         self.assertIn("exit           : NOT REACHED", out)
 
+    # --- MAP03: tankograd-critical -----------------------------------------
+    def tk(self, **kw):
+        return self.judge("tankograd-critical", kw.pop("skill", 3), **kw)
+
+    def test_a_clean_map03_run_passes_on_skills_2_3_and_4_into_the_end_sequence(self):
+        md = self.data[FACTORY]
+        for skill in (2, 3, 4):
+            rep = self.tk(skill=skill)
+            self.assertTrue(rep.passed, f"skill {skill}: {rep.problems}")
+            self.assertTrue(rep.exit_reached)
+            self.assertEqual(md.module.ENEMY_TOTALS[skill], rep.monsters_expected, f"skill {skill}")
+        self.assertTrue(rep.route.end_sequence)
+        self.assertIn("level unloaded towards: enDSeQ", rep.exit_detail)
+        text = route.render_report(rep)
+        # The keys counted 0, 1, 2 and reported by class (Doom's cards today).
+        self.assertEqual([("A0", True), ("YD0", True), ("RD0", True), ("YKEY", True), ("RDY", True),
+                          ("RKEY", True)], [(w, ok) for w, ok, _d in rep.inventory])
+        self.assertIn("keys [none]", text)
+        self.assertIn("keys [YellowCard]", text)
+        self.assertIn("keys [YellowCard, RedCard]", text)
+        presses = [w for w, ok, _d in rep.doors if w.startswith("press of") and ok]
+        self.assertEqual(7, len(presses), presses)       # YD0 RD0 YD1 RDY RD1 SWA SWB
+        self.assertTrue(text.endswith("VERDICT        : PASS"), text[-80:])
+
+    def test_map03_a_door_that_opens_without_its_key_fails(self):
+        """The yellow door with no key, the red with no key, the red with the
+        yellow key alone: each must stay shut, and the report names the step."""
+        m = self.data[FACTORY].module
+        for tag, sid, keys in ((m.TAG_YELLOW_DOOR, "YD0", "none"), (m.TAG_RED_DOOR, "RD0", "none"),
+                               (m.TAG_RED_DOOR, "RDY", "YellowCard")):
+            with self.subTest(sid):
+                rep = self.tk(attrs={"force_open": {(tag, sid)}})
+                self.assertFalse(rep.passed)
+                self.assertTrue(any(p.startswith(f"{sid}: tag {tag} is open") and "wanted shut" in p
+                                    for p in rep.problems), rep.problems)
+                self.assertEqual(1, len(rep.problems), rep.problems)
+                inv = {w: d for w, _ok, d in rep.inventory}
+                self.assertIn(f"keys [{keys}]", inv[sid])
+
+    def test_map03_a_press_that_never_reached_a_lock_fails_unless_the_engine_said_so(self):
+        m = self.data[FACTORY].module
+        rep = self.tk(attrs={"unpressed": {"YD0"}})
+        self.assertFalse(rep.passed)
+        self.assertTrue(any(p.startswith(f"YD0: no press of special {m.SPECIAL_DOOR_LOCKED_RAISE} "
+                                         f"(arg0 {m.TAG_YELLOW_DOOR})") for p in rep.problems), rep.problems)
+        # The lock line, in GZDoom's words or Freedoom's (NOT VERIFIED which).
+        for sid, said in (("YD0", "You need a yellow key to open this door"),
+                          ("RDY", "Red passcard needed for this door.")):
+            rep = self.tk(attrs={"unpressed": {sid}, "step_extra": {sid: [said]}})
+            self.assertTrue(rep.passed, (said, rep.problems))
+        # A pickup line is not a lock message.
+        rep = self.tk(attrs={"unpressed": {"RDY"}, "step_extra": {"RDY": ["Picked up a yellow keycard."]}})
+        self.assertFalse(rep.passed)
+
+    def test_map03_a_key_not_picked_up_fails(self):
+        steps = [s.id for s in route.route_by_name("tankograd-critical").steps]
+        rep = self.tk(attrs={"key_gains": [steps.index("YKEY")]})
+        self.assertFalse(rep.passed)
+        self.assertIn("RKEY: 1 key(s) owned (YellowCard), wanted 2", rep.problems)
+        rep = self.tk(attrs={"key_gains": []})
+        self.assertIn("YKEY: 0 key(s) owned (none), wanted 1", rep.problems)
+        rep = self.tk(attrs={"old_helper": True})
+        self.assertIn("YKEY: keys not reported (a helper older than route-4)", rep.problems)
+
+    def test_map03_a_shut_gate_means_no_exit(self):
+        m = self.data[FACTORY].module
+        rep = self.tk(shut_tags={m.TAG_GATE}, exit_=False, attrs={"pos_override": {"E0": ("PH",)}})
+        self.assertFalse(rep.passed)
+        self.assertFalse(rep.exit_reached)
+        self.assertTrue(any(p.startswith(f"SWB: tag {m.TAG_GATE} is shut") for p in rep.problems))
+        self.assertTrue(any(p.startswith("E0: ended in PH") for p in rep.problems), rep.problems)
+        self.assertTrue(any(p.startswith("exit not reached: exit switch pressed: NO")
+                            for p in rep.problems), rep.problems)
+
+    def test_map03_exit_not_reached_fails_with_exit_code_9(self):
+        r = route.route_by_name("tankograd-critical")
+        fake = FakeRun(r, 3, self.data[FACTORY])
+        with tempfile.TemporaryDirectory() as tmp, no_engine():
+            good, bad = Path(tmp) / "good.log", Path(tmp) / "bad.log"
+            good.write_text(fake.text(), encoding="utf-8")
+            bad.write_text(fake.text(exit_=False), encoding="utf-8")
+            code, out, _ = run_main(["--parse", str(good), "--route", "tankograd-critical", "--skill", "3"])
+            self.assertEqual(route.EXIT_OK, code, out)
+            self.assertIn("exit           : REACHED", out)
+            code, out, _ = run_main(["--parse", str(bad), "--route", "tankograd-critical", "--skill", "3"])
+        self.assertEqual(route.EXIT_ROUTE_FAILED, code)
+        self.assertIn("exit           : NOT REACHED", out)
+        self.assertIn("VERDICT        : FAIL", out)
+
+    def test_map03_an_exit_that_leads_to_a_map_not_the_episodes_end_fails(self):
+        """MAP03 closes the episode (MAPINFO: next = endtitle): leaving it for
+        a map, any map, is a failure even with the breaker pressed."""
+        rep = self.tk(attrs={"next_map": ZARYA})
+        self.assertFalse(rep.passed)
+        self.assertTrue(rep.exit_reached)
+        self.assertIn(f"the level led to '{ZARYA}', not to an end sequence", rep.problems)
+
     def test_key_lines_parse_and_an_old_inv_line_has_no_key_count(self):
         log = route.scan_route_log("SDSTEP 0 A0\nSDTEST inv weapons=1 ready=X slot=2 ammo=50\n"
                                    "SDSTEP 1 PASS\nSDTEST key class=SD_BluePass\n"
@@ -1188,14 +1305,8 @@ def model_walk(tics: int) -> float:
     return top * (tics - friction * (1 - friction ** tics) / (1 - friction))
 
 
-class MetroRouteTest(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        cls.md = route.load_map_data(METRO)
-        cls.m = cls.md.module
-        cls.r = route.route_by_name("metro-critical")
-        cls.steps = {s.id: s for s in cls.r.steps}
+class BuiltMapRoute:
+    """Geometry helpers for a route read off a built map (`self.md`)."""
 
     def tics(self, step):
         return int([a for a in step.actions if a.startswith("forward")][0].split()[1])
@@ -1235,6 +1346,16 @@ class MetroRouteTest(unittest.TestCase):
         dx, dy = route.COMPASS[angle]
         return [self.md.sector_at(start[0] + dx * d, start[1] + dy * d)
                 for d in range(0, int(length) + 1, SAMPLE)]
+
+
+class MetroRouteTest(BuiltMapRoute, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.md = route.load_map_data(METRO)
+        cls.m = cls.md.module
+        cls.r = route.route_by_name("metro-critical")
+        cls.steps = {s.id: s for s in cls.r.steps}
 
     def test_it_is_built_lazily_and_offered_everywhere(self):
         self.assertNotIn("metro-critical", route.ROUTES, "built at import: a broken MAP02 would break MAP01")
@@ -1417,6 +1538,233 @@ class MetroRouteTest(unittest.TestCase):
         self.assertNotRegex(out, r"(?m)^\s+give\b")
 
 
+# ============================================================================
+# MAP03: tankograd-critical, read off the built map
+# ============================================================================
+
+class TankogradRouteTest(BuiltMapRoute, unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.md = route.load_map_data(FACTORY)
+        cls.m = cls.md.module
+        cls.r = route.route_by_name("tankograd-critical")
+        cls.steps = {s.id: s for s in cls.r.steps}
+
+    def test_it_is_built_lazily_and_offered_everywhere(self):
+        self.assertNotIn("tankograd-critical", route.ROUTES, "built at import: a broken MAP03 would break MAP01")
+        self.assertIn("tankograd-critical", route.route_names())
+        self.assertEqual("tankograd-critical", route.parse_args(["--route", "tankograd-critical"]).route)
+        self.assertEqual(FACTORY, self.r.map_name)
+        self.assertEqual("MAP03", FACTORY, "D62: the factory is the campaign's third slot")
+
+    def test_the_order_is_the_briefs(self):
+        """N2: both locks shut at first; the yellow key and door; the red key
+        and door (and, between them, the red door refused on the yellow key);
+        SW-A; SW-B; the breaker."""
+        self.assertEqual(["A0", "YD0", "RD0", "YKEY", "YD1", "RDY", "RKEY", "RD1", "SWA", "SWB",
+                          "E0", "E1"], [s.id for s in self.r.steps])
+        self.assertEqual(("switch", True, 0), (self.r.exit_by, self.r.must_exit, self.r.expect_secrets))
+
+    def test_mapinfo_makes_the_factorys_exit_the_episodes_end(self):
+        text = route.MAPINFO_PATH.read_text(encoding="utf-8")
+        block = re.search(rf"^map {FACTORY}\b.*?^}}", text, re.M | re.S).group(0)
+        self.assertRegex(block, r"(?m)^\s*next\s*=\s*endtitle\b")
+        self.assertEqual({"end_sequence": True, "next_map": None}, route.exit_expectation(FACTORY))
+        self.assertEqual((True, None), (self.r.end_sequence, self.r.next_map))
+
+    def test_the_keys_are_doom_cards_6_and_13_on_locks_3_and_1(self):
+        """The brief: yellow 6, red 13, checked in map.py, and the doors carry
+        the matching locks (gzdoom.pk3 lockdefs.txt: 3 YellowCard, 1 RedCard,
+        as map.py cites it)."""
+        m, tm = self.m, self.md.textmap
+        self.assertEqual((6, 13), (m.ED_YELLOW_CARD, m.ED_RED_CARD))
+        self.assertEqual((3, 1), (m.LOCK_YELLOW_CARD, m.LOCK_RED_CARD))
+        self.assertEqual({6: 3, 13: 1}, m.KEY_LOCKS)
+        for tag, lock in ((m.TAG_YELLOW_DOOR, m.LOCK_YELLOW_CARD), (m.TAG_RED_DOOR, m.LOCK_RED_CARD)):
+            lines = [ld for ld in tm.linedefs if ld.special == m.SPECIAL_DOOR_LOCKED_RAISE and ld.arg0 == tag]
+            self.assertEqual(2, len(lines), f"tag {tag}: a face each side")
+            self.assertEqual({lock}, {ld.arg3 for ld in lines}, f"tag {tag}")
+
+    def test_tags_specials_and_key_counts_are_map_py_constants(self):
+        m, s = self.m, self.steps
+        yd, rd, sh, gate, lk = (m.TAG_YELLOW_DOOR, m.TAG_RED_DOOR, m.TAG_SHUTTER, m.TAG_GATE,
+                                m.SPECIAL_DOOR_LOCKED_RAISE)
+        want_tags = {"YD0": ((yd, False),), "RD0": ((rd, False),), "YKEY": ((yd, False), (rd, False)),
+                     "YD1": ((yd, True),), "RDY": ((rd, False),), "RKEY": ((rd, False), (sh, False)),
+                     "RD1": ((rd, True),), "SWA": ((sh, True), (gate, False)), "SWB": ((gate, True),)}
+        self.assertEqual(want_tags, {k: v.tags for k, v in s.items() if v.tags})
+        want_presses = {"YD0": ((lk, yd),), "YD1": ((lk, yd),), "RD0": ((lk, rd),), "RDY": ((lk, rd),),
+                        "RD1": ((lk, rd),), "SWA": ((udmf.SPECIAL_DOOR_OPEN, sh),),
+                        "SWB": ((udmf.SPECIAL_DOOR_OPEN, gate),)}
+        self.assertEqual(want_presses, {k: v.presses for k, v in s.items() if v.presses})
+        self.assertEqual({"A0": 0, "YD0": 0, "RD0": 0, "YKEY": 1, "RDY": 1, "RKEY": 2},
+                         {k: v.keys for k, v in s.items() if v.keys is not None})
+        self.assertEqual(set(), {k for k, v in s.items() if v.key is not None}, "keys are counted here")
+
+    def test_no_map03_position_or_key_class_is_written_in_route_py(self):
+        source = Path(route.__file__).read_text(encoding="utf-8")
+        for step in self.r.steps:
+            if step.warp is None:
+                continue
+            x, y = step.warp
+            self.assertNotIn(f"({x}, {y})", source, step.id)
+            self.assertNotIn(f"{x} {y}", source, step.id)
+        for literal in ('"YellowCard"', '"RedCard"', '"YELLOW_KEY_SPOT"', '"RED_KEY_SPOT"', '"o_desk"',
+                        '"f_pedestal"'):
+            self.assertNotIn(literal, source)
+
+    def test_the_zones_are_the_designs(self):
+        """docs/levels/MAP03-factory.md sections 4-5: start on the spur, both
+        locks pressed from the hall, the yellow key in the offices, the tank
+        line behind the yellow door, the red key and SW-A in the foundry, the
+        portal hall behind the red door, SW-B in its booth, the breaker in
+        the drum."""
+        want = {"A0": ("Z1",), "YD0": ("Z3",), "RD0": ("Z3",), "YKEY": ("OF",), "YD1": ("TL",),
+                "RDY": ("Z3",), "RKEY": ("FD",), "RD1": ("PH",), "SWA": ("FD",), "SWB": ("PH",),
+                "E0": ("DR",)}
+        self.assertEqual(want, {k: v.expect for k, v in self.steps.items() if v.expect})
+        unfiled = sorted(n for n in self.md.plan if route.zone_family(n) == "?")
+        self.assertEqual([], unfiled, "a MAP03 sector has no zone family")
+        self.assertEqual(self.steps["YKEY"].expect,
+                         (route.zone_family(self.m.KEY_ZONES[self.m.ED_YELLOW_CARD]),))
+        self.assertEqual(self.steps["RKEY"].expect,
+                         (route.zone_family(self.m.KEY_ZONES[self.m.ED_RED_CARD]),))
+
+    def test_each_lock_is_pressed_from_the_hall_within_reach_and_walked_through(self):
+        md, tm, m = self.md, self.md.textmap, self.m
+        for presses, walk_id, tag, lock, door_family, inside in (
+                (("YD0",), "YD1", m.TAG_YELLOW_DOOR, m.LOCK_YELLOW_CARD, "YD", "TL"),
+                (("RD0", "RDY"), "RD1", m.TAG_RED_DOOR, m.LOCK_RED_CARD, "RD", "PH")):
+            with self.subTest(walk_id):
+                through = self.steps[walk_id]
+                for sid in presses:
+                    self.assertEqual((through.warp, through.angle),
+                                     (self.steps[sid].warp, self.steps[sid].angle), sid)
+                here = self.clear_of_walls(through.warp)
+                dist, ld = self.line_ahead(through.warp, through.angle)
+                self.assertLessEqual(dist, USE_RANGE)
+                self.assertEqual((m.SPECIAL_DOOR_LOCKED_RAISE, tag, lock), (ld.special, ld.arg0, ld.arg3))
+                self.assertIn("playeruse", ld.flags)
+                self.assertEqual(here, tm.sidedefs[ld.sidefront].sector, "pressed from the back face")
+                self.assertEqual(m.LOCK_PORTALS[lock], md.name_of(here))
+                self.assertEqual(tag, tm.sectors[tm.sidedefs[ld.sideback].sector].identifier)
+                crossed = self.walk(through.warp, through.angle, self.tics(through) * WALK_UNITS_PER_TIC)
+                families = [route.zone_family(md.name_of(s)) for s in crossed if s is not None]
+                self.assertEqual(["Z3", door_family, inside], list(dict.fromkeys(families))[:3])
+                first = next(i for i, s in enumerate(crossed)
+                             if s is not None and route.zone_family(md.name_of(s)) == inside)
+                self.assertGreaterEqual(model_walk(self.tics(through)), first * SAMPLE + PLAYER_RADIUS)
+
+    def test_the_keys_are_walked_onto_never_given(self):
+        md, m = self.md, self.m
+        for sid, ed, spot in (("YKEY", m.ED_YELLOW_CARD, m.YELLOW_KEY_SPOT),
+                              ("RKEY", m.ED_RED_CARD, m.RED_KEY_SPOT)):
+            with self.subTest(sid):
+                step = self.steps[sid]
+                for skill in (2, 3, 4):
+                    self.assertEqual(1, len(md.things_on(ed, skill)), f"skill {skill}")
+                thing = md.things_on(ed, 3)[0]
+                self.assertEqual(spot, (thing.x, thing.y))
+                self.assertEqual(m.KEY_ZONES[ed], md.name_of(md.sector_at(thing.x, thing.y)))
+                start = step.warp
+                self.clear_of_walls(start)      # on the room's floor, a body clear of the raised top
+                dx, dy = route.COMPASS[step.angle]
+                gap = (thing.x - start[0]) * dx + (thing.y - start[1]) * dy
+                self.assertEqual(0, (thing.x - start[0]) * dy - (thing.y - start[1]) * dx, "off the lane")
+                self.assertGreater(gap, PLAYER_RADIUS + PICKUP_RADIUS, "the warp lands on the key")
+                self.assertGreaterEqual(model_walk(self.tics(step)), gap, "the walk stops short of the key")
+                floor = md.textmap.sectors[md.sector_at(*start)].heightfloor
+                for s in self.walk(start, step.angle, gap):
+                    self.assertEqual(step.expect, (route.zone_family(md.name_of(s)),), md.name_of(s))
+                    self.assertLessEqual(md.textmap.sectors[s].heightfloor - floor, MAX_STEP_UP)
+
+    def test_a_door_that_loses_or_swaps_its_lock_has_no_route(self):
+        """The doors are found by tag AND lock: a yellow door on lock 1 is not
+        the yellow door, and the route refuses to be built rather than test it."""
+        md = route.MapData(FACTORY)      # a private copy: the cached one stays as built
+        m = md.module
+        route.tankograd_critical(md)     # as built: fine
+        for ld in md.textmap.linedefs:
+            if ld.special == m.SPECIAL_DOOR_LOCKED_RAISE and ld.arg0 == m.TAG_YELLOW_DOOR:
+                ld.arg3 = m.LOCK_RED_CARD
+        with self.assertRaises(route.RouteError):
+            route.tankograd_critical(md)
+
+    def test_the_switches_are_pressed_from_their_faces(self):
+        tm, m = self.md.textmap, self.m
+        for sid, tag, face in (("SWA", m.TAG_SHUTTER, m.SW_A_FACE), ("SWB", m.TAG_GATE, m.SW_B_FACE)):
+            with self.subTest(sid):
+                step = self.steps[sid]
+                here = self.clear_of_walls(step.warp)
+                dist, ld = self.line_ahead(step.warp, step.angle)
+                # SW-A sits at the back of a 16-deep niche: Doom's use trace
+                # passes a two-sided line with no special if it is open, so
+                # step through the niche's mouth (same floor, a body's height).
+                while ld.sideback is not None and not ld.special:
+                    for side in (ld.sidefront, ld.sideback):
+                        sec = tm.sectors[tm.sidedefs[side].sector]
+                        self.assertEqual(tm.sectors[here].heightfloor, sec.heightfloor, sid)
+                        self.assertGreaterEqual(sec.heightceiling - sec.heightfloor, route.PLAYER_HEIGHT)
+                    x, y = step.warp
+                    dx, dy = route.COMPASS[step.angle]
+                    dist2, ld = self.line_ahead((x + dx * (dist + 1), y + dy * (dist + 1)), step.angle)
+                    dist += 1 + dist2
+                self.assertLessEqual(dist, USE_RANGE)
+                self.assertEqual((udmf.SPECIAL_DOOR_OPEN, tag), (ld.special, ld.arg0))
+                self.assertIsNone(ld.sideback)
+                self.assertEqual(face, tm.sidedefs[ld.sidefront].texturemiddle)
+
+    def test_the_exit_walk_crosses_the_gate_and_climbs_to_the_breaker(self):
+        md, tm, m = self.md, self.md.textmap, self.m
+        e0, e1 = self.steps["E0"], self.steps["E1"]
+        self.clear_of_walls(e0.warp)
+        exits = [ld for ld in tm.linedefs if ld.special == route.SPECIAL_EXIT_NORMAL]
+        self.assertEqual(1, len(exits))
+        exit_line = exits[0]
+        self.assertEqual((m.EXIT_FACE, None), (tm.sidedefs[exit_line.sidefront].texturemiddle,
+                                               exit_line.sideback))
+        self.assertIn("playeruse", exit_line.flags)
+        (x1, y1), _ = route.line_ends(md, exit_line)
+        dx, dy = route.COMPASS[e0.angle]
+        to_wall = (x1 - e0.warp[0]) * dx if dx else (y1 - e0.warp[1]) * dy
+        walk = to_wall - PLAYER_RADIUS
+        end = (e0.warp[0] + dx * walk, e0.warp[1] + dy * walk)
+        crossed = self.walk(e0.warp, e0.angle, walk)
+        self.assertNotIn(None, crossed)
+        self.assertEqual(["PH", "GATE", "DR"],
+                         list(dict.fromkeys(route.zone_family(md.name_of(s)) for s in crossed)))
+        floors = [tm.sectors[s].heightfloor for s in crossed]
+        for a, b in zip(floors, floors[1:]):
+            self.assertLessEqual(b - a, MAX_STEP_UP, "a step up the dais too high to walk")
+        for s in crossed:
+            if route.zone_family(md.name_of(s)) == "GATE":
+                self.assertEqual(m.TAG_GATE, tm.sectors[s].identifier)
+        # The body stops with its front at the breaker: on the dais's top
+        # step, level with the niche the breaker is set in.
+        niche = tm.sectors[tm.sidedefs[exit_line.sidefront].sector]
+        self.assertEqual("DR", route.zone_family(md.name_of(md.sector_at(*end))))
+        self.assertEqual(niche.heightfloor, tm.sectors[md.sector_at(*end)].heightfloor)
+        dist, ahead = self.line_ahead(end, e0.angle)
+        self.assertIs(exit_line, ahead, "the walk does not end against the breaker")
+        self.assertLessEqual(dist, USE_RANGE)
+        self.assertGreaterEqual(model_walk(self.tics(e0)), walk)
+        self.assertIsNone(e1.warp)
+        self.assertEqual(("use",), e1.actions)
+
+    def test_print_runs_on_map03(self):
+        with tempfile.TemporaryDirectory() as tmp, no_engine(), \
+                mock.patch.object(route, "HELPER_PK3", Path(tmp) / "h.pk3"):
+            code, out, _ = run_main(["--print", "--route", "tankograd-critical"])
+        self.assertEqual(route.EXIT_OK, code)
+        for skill in (2, 3, 4):
+            self.assertIn(f"-skill {skill} +map {FACTORY}", out)
+        for tag in (self.m.TAG_YELLOW_DOOR, self.m.TAG_RED_DOOR, self.m.TAG_SHUTTER, self.m.TAG_GATE):
+            self.assertIn(f"netevent sdtag {tag}", out)
+        self.assertNotIn("sdexit", out)
+        self.assertNotRegex(out, r"(?m)^\s+give\b")
+
+
 class MapinfoAndMapNamesTest(unittest.TestCase):
     """Where each exit leads and which map is which come from the sources:
     D60 changed the first, D62 changes the second."""
@@ -1471,13 +1819,14 @@ map NONEXT lookup "X"
         self.assertIsNotNone(factory, "the metro ends the game: D62 says it leads to the factory")
         self.assertNotIn(factory.upper(), {ZARYA, RANGE, METRO})
         self.assertTrue(route.exit_expectation(factory)["end_sequence"])
+        self.assertEqual(FACTORY, factory.upper(), "the metro leads to another map than the factory")
         self.assertTrue(route.exit_expectation(RANGE)["end_sequence"])
         # D62: the slots follow the campaign, so the map numbers say the order.
         self.assertEqual(("MAP01", "MAP02", "MAP03"), (ZARYA, METRO, factory.upper()))
 
     def test_maps_are_found_by_their_constants(self):
-        self.assertEqual(3, len({ZARYA, RANGE, METRO}))
-        for name in (ZARYA, RANGE, METRO):
+        self.assertEqual(4, len({ZARYA, RANGE, METRO, FACTORY}))
+        for name in (ZARYA, RANGE, METRO, FACTORY):
             source = (route.MAPS_DIR / name / "map.py").read_text(encoding="utf-8")
             self.assertRegex(source, rf'(?m)^MAP_NAME = "{name}"', "the folder is not the map's lump name")
         with self.assertRaises(route.RouteError):
