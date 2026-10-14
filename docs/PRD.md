@@ -1,7 +1,7 @@
 # Soviet Doom — Product Requirements Document
 
 Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
-Last update: 2026-10-14 (D25-D46).
+Last update: 2026-10-14 (D25-D47).
 
 ## 1. Vision
 
@@ -80,6 +80,7 @@ until D16 brought it into scope on 2026-10-13.)
 | D44 | 2026-10-14 | **Sound sources and scores.** Kenney's impact pack is used for enemy and weapon sounds alike (one rule; D36's authorisation stands). One public-domain score may be downloaded per self-sequenced piece («Вы жертвою пали», «Амурские волны», Glinka's Patriotic Song), with provenance and SHA-256 recorded. CEO: "sí" to both. | ratified (CEO) |
 | D45 | 2026-10-14 | **Palette v2** adds a marble red, a cobalt and gold mosaic ramp and a pink flesh ramp (the Liberty Legion) in the reserved slots; approved textures keep their colours. The Reich hound's hide goes darker than BESTIARY §6 (`khaki_olive` 1-9) so it reads on green steel. CEO: "sí" / "ok". The mosaic motif stays open: the CEO asked to see the options. | ratified (CEO) |
 | D46 | 2026-10-14 | **Small calls.** MAP02's player-facing name is "Training Ground" / «Учебный полигон». The range's targets may fire before the player arms ("da igual q disparen antes"; QA's G3-F5 closed as accepted). The credits stay under Options and gain the line "fan project, not affiliated with id Software". The MAP01 radio stays where it is, in the guard post by the IZh rack. | ratified (CEO) |
+| D47 | 2026-10-14 | **The metro mosaic is the star with rays**, as drawn (`SDMOSA1`, approved in D42): "Ok a la imagen que has puesto del mosaico". **Weapon reloads are parked** as a nice to have (`docs/ICEBOX.md`): the TT-33, PPSh-41 and ROKS-3 keep Doom's no-magazine model so D39's balance stands; the IZh's break-open and the RPG-7's muzzle load are unaffected. | ratified (CEO) |
 | D15 | 2026-10-09 | Licence of the mod: **GPL-3.0** for code (`tools/`, `src/zscript/`, scripts) and **CC BY-NC-SA 4.0** for assets and docs (textures, sprites, maps, sounds, lore). Non-commercial is required anyway by OTEX's terms. Full texts added at F6; `LICENSE.md` states it now. | decided by the PM on CEO delegation |
 
 ## 6. Phases and gates
