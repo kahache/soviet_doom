@@ -29,6 +29,10 @@ and the title's `D_SDINTL` at 21:50 (`currentmusic`,
 CC0 pieces `D_SDRAD1` / `D_SDRAD2`, written before the code; **NOT YET
 SEEN IN THE ENGINE** (D26), and its editor number 21200 waits for the PM's
 `MAPINFO` line.
+**D46, 2026-10-14:** MAP02 is titled "Training Ground" / «Учебный полигон»
+(§4, the episode name kept: §4.4), and the credits carry "A fan project,
+not affiliated with id Software" in the team block (§6.8); both are
+`LANGUAGE` text, **not yet seen in the engine** (D26).
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -153,7 +157,7 @@ assets/   (CEO-approved art only; `work/` is gitignored and never ships)
 | Lump | Title (LANGUAGE) | Episode | Status |
 |---|---|---|---|
 | `MAP01` | `SD_MAP01_NAME` = "Zarya-7 Cosmodrome" / «Космодром "Заря-7"» | `SD_EP01_NAME` = "Soviet Doom" / "Советский Doom" | Owned by `level-designer` since F3; design in `docs/levels/MAP01-zarya-7.md`. `cluster = 1`, `next = endtitle`, `par = 210`. Named in-engine 2026-10-13 (the log prints `MAP01 - Zarya-7 Cosmodrome`). |
-| `MAP02` | `SD_MAP02_NAME` = "Engineering Test Range" / "Инженерный полигон" | `SD_EP02_NAME` = "Practice Range" / «Полигон» (D41, §4.4) | `cluster = 2`, `next = endtitle`, `nointermission`. F4: 2048×768 hall, ceiling 128, light 192, player start at (160,384) facing +x. The seven weapons, the four ammo pools, barrels and six targets (thing 3004, Soviet riflemen since F5). **F5: the bestiary gallery**, a second room 2048×768 at y 1024–1792, ceiling 192, light 192: one of each of the eight enemy classes in a row at y = 1600, deaf (`ambush`) and facing north, away from the arrival spot. Since D41 the player reaches the map from New Game (§4.4); `MAP=MAP02 tools/run.sh` still works. **Since commit `d1e891f` (2026-10-13), v1 for players:** an `Exit_Normal` switch (`SDSW1D`) in a lit alcove straight behind the start, and the gallery reached on foot through a manual door (tag 1) in the hall's north wall and a bent passage that comes out behind the row; the console's `warp 1024 1152` still lands there. Geometry and reasons are `level-designer`'s, `docs/levels/MAP02-practice-range.md`. Built as an engineering fixture; shipped as the practice range. |
+| `MAP02` | `SD_MAP02_NAME` = "Training Ground" / «Учебный полигон» (D46, 2026-10-14; was "Engineering Test Range" / "Инженерный полигон") | `SD_EP02_NAME` = "Practice Range" / «Полигон» (D41, §4.4) | `cluster = 2`, `next = endtitle`, `nointermission`. F4: 2048×768 hall, ceiling 128, light 192, player start at (160,384) facing +x. The seven weapons, the four ammo pools, barrels and six targets (thing 3004, Soviet riflemen since F5). **F5: the bestiary gallery**, a second room 2048×768 at y 1024–1792, ceiling 192, light 192: one of each of the eight enemy classes in a row at y = 1600, deaf (`ambush`) and facing north, away from the arrival spot. Since D41 the player reaches the map from New Game (§4.4); `MAP=MAP02 tools/run.sh` still works. **Since commit `d1e891f` (2026-10-13), v1 for players:** an `Exit_Normal` switch (`SDSW1D`) in a lit alcove straight behind the start, and the gallery reached on foot through a manual door (tag 1) in the hall's north wall and a bent passage that comes out behind the row; the console's `warp 1024 1152` still lands there. Geometry and reasons are `level-designer`'s, `docs/levels/MAP02-practice-range.md`. Built as an engineering fixture; shipped as the practice range. |
 
 MAPINFO conventions: `clearepisodes` + one episode per campaign (plus the
 practice range, §4.4); map titles by
@@ -175,12 +179,26 @@ between the ways of reaching it is ADR 007
 | What | Value |
 |---|---|
 | Episodes (`MAPINFO`, in this order) | `episode MAP01` name `$SD_EP01_NAME`, key `s`; `episode MAP02` name `$SD_EP02_NAME`, key `p` |
-| Episode names | `SD_EP02_NAME` = "Practice Range" / «Полигон» (the map title `SD_MAP02_NAME` is unchanged) |
+| Episode names | `SD_EP02_NAME` = "Practice Range" / «Полигон». The map title under it is `SD_MAP02_NAME` = "Training Ground" / «Учебный полигон» since D46 (§4); the episode name stays (see the note below the table) |
 | Flow | Main menu → New Game → **episode screen** (new: with one episode the engine skipped it) → skill screen → the map |
 | Episode screen (`MENUDEF`) | `LISTMENU "EpisodeMenu"` redeclared like the skill screen (§6.6): logo `M_DOOM` at 60,0, one `SDMENU` header `$SD_MNU_CHOOSEEPISODE` at 32,70 ("CHOOSE MISSION" / «ВЫБЕРИТЕ ЗАДАНИЕ»), then `SmallFont` for the episode names, which the engine appends at run time. **`M_EPISOD` is never drawn** (T12) |
 | MAP01's exit | `next = endtitle`, unchanged: the campaign ends; **no map's `next` is MAP02** |
 | MAP02's exit | `cluster = 2`, `next = endtitle`: leaving the range shows `SD_END02_TEXT` ("The range is closed…" / «Полигон закрыт…») over `SDFLR1`, then the title screen. `nointermission` stays: a range has no score worth a stats screen. The player leaves by **the exit switch behind the start** (`Exit_Normal`, pressed; commit `d1e891f`, `docs/levels/MAP02-practice-range.md` §4.1). **Seen in the engine** 2026-10-13: pressing it shows `SD_END02_TEXT` over `SDFLR1` (P6 in `docs/qa/evidence/2026-10-13_2057_map02-range-and-c12.md`). The `map02-start` route of `tools/route.py` (since route-3) presses that same switch, as a player does (`docs/qa/evidence/2026-10-13_2114_F3_g3-map02-map02-start-*`); `netevent sdexit` of the route helper (`Level.ExitLevel`) is only a documented recourse for a map with no exit line, used by no built-in route. **The console `exit` command does not reach it: it quits GZDoom** (G3-F2) |
 | Cluster 2 | `exittext = lookup, "SD_END02_TEXT"`, `flat = "SDFLR1"`, `music = ""` |
+
+**The episode name next to the map name (D46, checked 2026-10-14).** The
+player reads "Practice Range" / «Полигон» on the episode screen and
+"Training Ground" / «Учебный полигон» on the automap and the level-load
+line. In English the two are different words for the same place, the
+general and the particular, and `SD_END02_TEXT` ("The range is
+closed…") still fits. In Russian the map name contains the episode name
+(«Полигон» → «Учебный полигон»): an echo, not a contradiction; the map
+name narrows the episode name, and `SD_END02_TEXT` («Полигон на сегодня
+закрыт») agrees with both.
+**Kept as is.** An alternative, not applied and the CEO's to take if he
+dislikes the echo: episode «Стрельбище» (the literal "shooting range",
+closer to "Practice Range"), which would also need `SD_END02_TEXT` [ru] to
+say «Стрельбище на сегодня закрыто» — two `LANGUAGE` lines, nothing else.
 
 Engine facts this rests on, read in GZDoom g4.14.2 (`gzdoom.pk3 →
 menudef.txt`, `ListMenu "EpisodeMenu"`, and the episode-menu builder in the
@@ -967,6 +985,7 @@ The in-game credits, reasoned in `docs/engine/adr/009-in-game-credits.md`.
 | Rows | `Title "$SD_CRED_TITLE"`; one `StaticText "$SD_CRED_…"` per screen line, centred, in the engine's `NewSmallFont`; block headers `StaticText "$SD_CRED_H_…", 1` (header colour); a blank `StaticText " "` between blocks |
 | Text | `LANGUAGE` ids `SD_CRED_*`, the same ids in `[enu default]` and `[ru]`, **at most 40 characters each**, no `
 ` (a row does not wrap). Blocks in order: team, music, engine, game data, sources |
+| Disclaimer (D46) | "A fan project, not affiliated / with id Software." / «Фанатский проект, не связанный / с компанией id Software.», `SD_CRED_FAN_1` and `_FAN_2`, the two rows right under `SD_CRED_TEAM_1` (the project's name), so it is the first thing the screen says after who made the game. The CEO's wording (D46; ADR 009 had left it to him). `tests/test_credits.py` pins the sentence in both languages inside the team block |
 | Obligations | every name a licence register obliges us to credit is in the credits of both languages: `docs/art/LICENSES.md` rows whose licence says credit / `{{Attribution}}` / CC BY / BSD / MIT / OFL / CC0 and are not ours (D15), and the Obligation column of `docs/sound/MUSIC-RIGHTS.md` §4.5. Jerry Engelbach's line is MUSIC-RIGHTS §4.5's word for word in English. Enforced by `tests/test_credits.py`, which reads the registers, so a new attributed asset turns the suite red until its credit lines exist |
 | Adding a credit | register row first (the name in bold, or as `credit "X"`), then `SD_CRED_*` lines in both languages, then the `StaticText` rows |
 

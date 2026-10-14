@@ -102,7 +102,7 @@ prefers another.
     (`docs/levels/MAP02-practice-range.md` §4.2). Seen in the engine (P1-P3,
     P5, 20:57 evidence); P4, the door opened from the passage side, is NOT
     VERIFIED in the engine.
-- Whether MAP02's title, "Engineering Test Range", should change now that
+- Whether MAP02's title, "Engineering Test Range", should change now that *(Decided 2026-10-14, D46: "Training Ground" / «Учебный полигон».)*
   the episode is "Practice Range": both strings are one `LANGUAGE` line.
 - `noskillmenu` on the range's episode, which would skip the skill screen:
   not used, because skill still changes damage taken and ammo given there.

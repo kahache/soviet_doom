@@ -616,7 +616,10 @@ CEO's skill-3 run count.
     and `test_the_pms_map02_door_drift_is_caught_where_it_happened`, a
     `--parse` fixture of the real 21:15 log that must fail at E0 and at
     the exit and nowhere else.
-- **G3-F5 (open, low, → `level-designer`; MAP02, not G3):** the range's
+- **G3-F5 (CLOSED 2026-10-14, accepted, D46; was low, → `level-designer`;
+  MAP02, not G3):** the CEO accepts the behaviour as it is ("da igual q
+  disparen antes", `docs/PRD.md` D46): the targets may fire before the
+  player arms. No map change. The original finding, for the record: the range's
   targets open fire on the player at spawn. On every MAP02 run the player
   has already lost health when `god` comes on, 140 tics in (A0 at 91 or
   85, pushed back to x 140–148 from the start's 160). At 21:14 one of the
@@ -626,7 +629,7 @@ CEO's skill-3 run count.
   blind, and the start faces them down the lane. Whether a range should
   shoot back before the player has armed is a design call; it may be the
   intent ("targets prove damage on a living actor").
-- **G3-F3 (open, trivial, → `mod-engineer`):** the same MOD-SPEC row says
+- **G3-F3 (CLOSED 2026-10-14: MOD-SPEC §4.4 now says `map02-start` presses the exit switch since route-3; was open, trivial, → `mod-engineer`):** the same MOD-SPEC row says
   the `map02-start` route reaches the end text by `sdexit`. True of the
   20:52 run; since the 21:14 run `map02-start` presses the exit switch,
   and no built-in route types `sdexit`. One clause to update.

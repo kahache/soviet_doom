@@ -15,6 +15,9 @@ What this suite pins, statically:
   * every line fits the row: an option-menu StaticText does not wrap;
   * Jerry Engelbach's credit is on screen WORD FOR WORD as
     docs/sound/MUSIC-RIGHTS.md 4.5 gives it;
+  * the CEO's disclaimer (D46), "fan project, not affiliated with id
+    Software", is in the team block, the first one on screen, in both
+    languages;
   * every name a licence register obliges us to credit - read from the
     registers themselves, docs/art/LICENSES.md and MUSIC-RIGHTS 4.5 - is in
     the credits of BOTH languages. A new register row whose licence needs
@@ -74,6 +77,16 @@ ALWAYS_CREDITED = (
     ("base game data", "Freedoom", "Freedoom"),
     ("base game data licence", "BSD", "BSD"),
 )
+
+# D46 (2026-10-14): the CEO's disclaimer. It is a public, legal statement, so
+# the suite pins the sentence in both languages, and pins it inside the team
+# block (before the first block header after it), the first screen of the
+# credits. Compared case-insensitively: a row may start it with a capital.
+DISCLAIMER = {
+    "default": "fan project, not affiliated with id Software",
+    "ru": "фанатский проект, не связанный с компанией id Software",
+}
+TEAM_HEADER_ID = "SD_CRED_H_TEAM"
 
 # --- Reading the licence registers -------------------------------------------
 
@@ -315,6 +328,21 @@ class AttributionTest(unittest.TestCase):
                 missing_from(self.credits[lang], names), [],
                 f"[{lang}] credits lack a name a licence register obliges us to credit; "
                 "add SD_CRED_* lines (ADR 009)")
+
+    def test_the_disclaimer_is_in_the_team_block_in_both_languages(self):
+        """D46: "fan project, not affiliated with id Software", in the first
+        block, where it is on screen without scrolling."""
+        code = _menudef_code()
+        sections = parse_language(LANGUAGE_LUMP.read_text(encoding="utf-8"))
+        ids = credit_ids(code)
+        self.assertEqual(ids[0], TEAM_HEADER_ID, "the team block is no longer first")
+        next_header = next((k for k, i in enumerate(ids[1:], 1) if i.startswith("SD_CRED_H_")),
+                           len(ids))
+        self.assertEqual(set(DISCLAIMER), set(REQUIRED_SECTIONS))
+        for lang in REQUIRED_SECTIONS:
+            team = normalise(" ".join(unquote(sections[lang][i]) for i in ids[:next_header]))
+            self.assertIn(DISCLAIMER[lang].lower(), team.lower(),
+                          f"[{lang}] the team block lacks the D46 disclaimer")
 
     def test_always_credited_parties_are_in_both_languages(self):
         for what, english, russian in ALWAYS_CREDITED:

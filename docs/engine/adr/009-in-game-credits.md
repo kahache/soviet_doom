@@ -1,7 +1,9 @@
 # ADR 009 — The in-game credits are an option screen of ours, reached from Options
 
 Date: 2026-10-13. Status: accepted, **not yet seen in the engine** (the PM's
-batched engine pass, D26). Owner: `mod-engineer`.
+batched engine pass, D26). Owner: `mod-engineer`. Amended 2026-10-14 by
+D46: the CEO's answers to "What needs the CEO" (the disclaimer line is in,
+the credits stay under Options).
 Russian mirror: owed (D34), at the same path under `docs/ru/`.
 
 Prepares gate G6 ("licence file, credits…", `docs/ROADMAP.md`). The
@@ -66,7 +68,11 @@ Two constraints from earlier decisions:
   team (the Soviet Doom project and its two licences), music (Engelbach,
   then Gerloff's radio songs),
   engine (GZDoom), game data (Freedoom), sources (Zhukov). The obligatory
-  line is second so it is on the first screen without scrolling. Jerry
+  line is second so it is on the first screen without scrolling. Since
+  D46 the team block also carries the CEO's disclaimer, "A fan project,
+  not affiliated with id Software" / «Фанатский проект, не связанный с
+  компанией id Software» (`SD_CRED_FAN_1`, `_FAN_2`), right under the
+  project's name. Jerry
   Engelbach's line is MUSIC-RIGHTS §4.5's, word for word, split across
   seven ids; the Russian keeps his name in Latin as well, "Джерри Энгельбах
   (Jerry Engelbach)", as `LICENSE.md` does. The team is named "the Soviet
@@ -121,14 +127,27 @@ Two constraints from earlier decisions:
   not. How many rows fit on the first screen.
 - That «» and the Cyrillic print in `NewSmallFont` (they should: it is the
   engine's Unicode font).
+- Since D46 the team block is two rows longer (the disclaimer), so
+  Engelbach's lines start two rows lower: check that they are still on
+  the first screen at 1920×1080 and at a 4:3 mode, in both languages.
 
-## What needs the CEO
+## What needed the CEO — decided in D46 (2026-10-14)
 
 - **Option C**: a "CREDITS" / «АВТОРЫ» row on the main menu, which changes
   his approved look (D31/D32). Cost: one `MENUDEF` line, one `LANGUAGE` id
   per language, and the column moving 8 px up; it would be drawn in
-  `SDMENU` like the other rows. Recommendation: yes, at G6, if a player
-  test shows nobody finds the credits under Options.
+  `SDMENU` like the other rows. Recommendation was: yes, at G6, if a player
+  test shows nobody finds the credits under Options. **Decided by the CEO
+  in D46: the credits stay under Options** (option D as built);
+  `tests/test_credits.py` keeps them off his approved screens. A player
+  test at G6 that shows nobody finds them would be a reason to ask again,
+  not a standing plan.
 - A "fan project, not affiliated with id Software" line is common in
-  Doom mods; it is a public, legal statement, so it is not added without
-  him.
+  Doom mods; it is a public, legal statement, so it was not added without
+  him. **Decided by the CEO in D46: it is added.** English "A fan project,
+  not affiliated / with id Software." and Russian «Фанатский проект, не
+  связанный / с компанией id Software.» («компанией» as in
+  `SD_CRED_ENGINE_4`), two rows under the project's name in the team
+  block; `tests/test_credits.py` pins the sentence there in both
+  languages. The Russian wording is NOT VERIFIED by a native reader
+  (`translator-ru`'s batch, D34).

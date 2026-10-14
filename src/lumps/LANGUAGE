@@ -12,7 +12,10 @@ SD_EP01_NAME  = "Soviet Doom";
 // automap and the intermission print, so the map stopped being "Test Range"
 // the moment it stopped being a test range (docs/levels/MAP01-zarya-7.md).
 SD_MAP01_NAME = "Zarya-7 Cosmodrome";
-SD_MAP02_NAME = "Engineering Test Range";
+// D46, 2026-10-14: the CEO's player-facing name for the range. It was
+// "Engineering Test Range", which said what MAP02 was built as, not what it
+// is (docs/levels/MAP02-practice-range.md 8; docs/engine/MOD-SPEC.md 4).
+SD_MAP02_NAME = "Training Ground";
 // D41: the practice range is the second episode on New Game (MAPINFO;
 // docs/engine/MOD-SPEC.md 4.4). Drawn in SmallFont, like the skill names.
 SD_EP02_NAME  = "Practice Range";
@@ -148,11 +151,15 @@ SD_LANGVAL_RU = "Russian";
 // docs/sound/MUSIC-RIGHTS.md 4.5 gives it; tests/test_credits.py rejoins
 // them and compares, and fails when a licence register gains an attribution
 // that these lines do not carry. Change the register first, then this.
+// The FAN_* lines are the CEO's disclaimer (D46): right under the project's
+// name, so they are on the first screen; the test pins the sentence.
 
 SD_CRED_TITLE     = "Credits";
 
 SD_CRED_H_TEAM    = "Made by";
 SD_CRED_TEAM_1    = "the Soviet Doom project";
+SD_CRED_FAN_1     = "A fan project, not affiliated";
+SD_CRED_FAN_2     = "with id Software.";
 SD_CRED_TEAM_2    = "Code: GNU GPL 3.0 or later";
 SD_CRED_TEAM_3    = "Art, sound, maps and text";
 SD_CRED_TEAM_4    = "under CC BY-NC-SA 4.0";
@@ -231,15 +238,17 @@ SD_OBHIT_PANZER      = "%o was crushed by a Panzermensch.";
 SD_OB_GENERAL        = "%o fell to the General's salvo.";
 
 // The General's order (BESTIARY 9): printed on screen when he summons his
-// two recruits. Placeholder wording until the CEO picks the line in
-// docs/sound/ENEMY-SOUNDS.md 7 C; the text and the sound change together.
+// two recruits. The wording is decided: "Vorwärts." is the CEO's order (D36,
+// docs/sound/ENEMY-SOUNDS.md 7 C) and it prints as "Vorwärts!" in both
+// languages (D37). The voice take is still owed (D36); if the spoken line
+// ever changes, the text and the sound change together.
 SD_GENERAL_ORDER     = "The General: Vorwärts!";
 
 [ru]
 
 SD_EP01_NAME  = "Советский Doom";
 SD_MAP01_NAME = "Космодром «Заря-7»";
-SD_MAP02_NAME = "Инженерный полигон";
+SD_MAP02_NAME = "Учебный полигон";
 SD_EP02_NAME  = "Полигон";
 
 SD_END01_TEXT = "Огни стартовой башни гаснут у вас за спиной.\n\n«Заря-7» снова наша - космодром, на столе которого не осталось ракет, и некому их запускать.\n\nВторжение началось не здесь. Здесь оно только первым приземлилось.\n\nПРОДОЛЖЕНИЕ СЛЕДУЕТ";
@@ -316,12 +325,15 @@ SD_LANGVAL_RU = "Русский";
 // Одна строка экрана на id, не длиннее 40 знаков. Имена, которых требует
 // лицензия, остаются и латиницей: Jerry Engelbach. NOT VERIFIED (для
 // translator-ru): «MIDI-секвенция» взята из LICENSE.md; «Авторы» как
-// заголовок экрана титров; «Движок»; «Петер Герлофф» (Peter Gerloff).
+// заголовок экрана титров; «Движок»; «Петер Герлофф» (Peter Gerloff);
+// «Фанатский проект, не связанный с компанией id Software» (D46).
 
 SD_CRED_TITLE     = "Авторы";
 
 SD_CRED_H_TEAM    = "Создатели";
 SD_CRED_TEAM_1    = "проект Soviet Doom";
+SD_CRED_FAN_1     = "Фанатский проект, не связанный";
+SD_CRED_FAN_2     = "с компанией id Software.";
 SD_CRED_TEAM_2    = "Код: GNU GPL 3.0 или новее";
 SD_CRED_TEAM_3    = "Графика, звук, карты и тексты";
 SD_CRED_TEAM_4    = "по лицензии CC BY-NC-SA 4.0";

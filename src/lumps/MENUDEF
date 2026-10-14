@@ -290,6 +290,10 @@ OptionMenu "SD_OptionsMenu"
 // word for word as docs/sound/MUSIC-RIGHTS.md 4.5 gives it; Peter Gerloff's
 // CC0 radio sequences need no credit and get one as a courtesy (ADR 009).
 //
+// THE DISCLAIMER. "A fan project, not affiliated with id Software" is the
+// CEO's (D46). It sits right under the project's name, the first thing the
+// screen says, two rows because the sentence is longer than 40 characters.
+//
 // SCROLLING. The list is longer than one screen at most resolutions. The
 // mouse wheel and Page Down scroll a menu with no selectable row
 // (OptionMenu.OnUIEvent / MenuEvent, optionmenu.zs:185-206, 343-355); the
@@ -302,6 +306,8 @@ OptionMenu "SD_CreditsMenu"
 	Title "$SD_CRED_TITLE"
 	StaticText "$SD_CRED_H_TEAM", 1
 	StaticText "$SD_CRED_TEAM_1"
+	StaticText "$SD_CRED_FAN_1"
+	StaticText "$SD_CRED_FAN_2"
 	StaticText "$SD_CRED_TEAM_2"
 	StaticText "$SD_CRED_TEAM_3"
 	StaticText "$SD_CRED_TEAM_4"
