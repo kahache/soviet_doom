@@ -744,6 +744,89 @@ def render_axe_frame(style: HandStyle, pose: AxePose) -> Frame:
     return finish(rig)
 
 
+# The ice axe in Freedoom's fist (N4, D63): the axe alone, its grip set into
+# the ring of thumb and index of the approved fist R3-A2 (Freedoom's PUNGC0
+# recoloured, tools/art/hand_study.py), which is a near, big sprite. Drawn
+# whole at the fist's depth the head would be wider than the screen, so the
+# shaft runs from the fist (AXE_FD_GRIP_Z) back to a head placed by screen
+# point and depth, and the head is turned to show its profile (the T of pick
+# and adze) whatever the shaft's depth: Doom's grammar, the weapon drawn to
+# read, not to measure. New code only: nothing above reads it.
+AXE_FD_GRIP_Z = 22.0            # cm: the grip ring's depth (R3-A2's fist is drawn about this near)
+AXE_FD_SHAFT_K = 0.6            # shaft radius at the fist over AXE_SHAFT_R (fits the fist's ring)
+AXE_FD_HEAD_K = 0.9             # ... and under the head (the far end, kept thick enough to read)
+
+
+def screen_to_cam(sx: float, sy: float, z: float, focal: float = FOCAL) -> np.ndarray:
+    """The camera-space point (cm) at depth z that projects to weapon-space (sx, sy)."""
+    return np.array([(sx - SCREEN_CX) * z / focal, (sy - SCREEN_CY) * z / focal, z])
+
+
+def draw_ice_axe_head(rig: Rig, top, A, P, k: float, r: float) -> np.ndarray:
+    """draw_ice_axe's collar, pick and adze without shaft or spike, the
+    head's top at `top`; returns the shaft's top (where a shaft meets it)."""
+    A, P = unit(A), perp(P, unit(A))
+    N = unit(np.cross(A, P))
+    top = np.asarray(top, np.float64)
+    shaft_top = top - A * 5.2 * k
+    rig.capsule(shaft_top + A * 0.2, shaft_top - A * 3.4 * k, r * 1.14, r * 1.1, "steel", 0.48, 0.8)
+    rig.plate(top, P, A, [(u * k, v * k) for u, v in PICK_POLY], AXE_PLATE * k, "steel", 0.52, 0.85,
+              grad=(A, 0.012 / k))
+    adze_dir = unit(-P - A * ADZE_DROOP)
+    rig.plate(top - (A * 1.5 + P * 1.8) * k, adze_dir, N, [(u * k, w * k) for u, w in ADZE_POLY],
+              0.55 * k, "steel", 0.5, 0.85)
+    return shaft_top
+
+
+@dataclass(frozen=True)
+class AxeFdPose:
+    """One held frame of the ice axe in Freedoom's fist. Screen numbers are
+    weapon-space px (320x200, no status bar)."""
+    frame: str
+    name: str
+    fist: tuple             # top-left of the fist sprite
+    angle: float            # the shaft on screen, degrees above the horizontal, towards the left
+    head_z: float           # cm: the head's depth
+    head_y: float | None    # y of the head's top point; None: searched to the D57 height (frame A)
+    k: float = 1.1          # head scale (draw_ice_axe's head_scale)
+    flat: float = 0.35      # the head's axis: depth part over screen part (0: in the screen plane)
+    pick_rot: float = 0.0   # degrees: the pick turned about the view axis (+ clockwise on screen)
+    stub: float = 4.0       # cm of shaft drawn below the grip ring (behind the fist)
+    r_head: float = AXE_FD_HEAD_K
+
+
+# A: at rest, lowered (the scale study: the raised pick was 128 px tall,
+# PISG's band is 50-61): the fist low on the right, mostly under the bar,
+# the head low on the left. Then the swing the .zs plays (PUNG B C D C B):
+# B wound up over the right shoulder, C coming down across the view, D the
+# pick biting at the centre, far and small.
+AXE_FD_POSES = (
+    AxeFdPose("A", "ready, lowered", (150, 152), 35.0, 70.0, None, r_head=1.0),
+    AxeFdPose("B", "swing 1: wound up", (204, 112), 80.0, 60.0, 66.0, stub=12.0),
+    AxeFdPose("C", "swing 2: coming down (the blow)", (170, 128), 22.0, 60.0, 118.0, stub=8.0),
+    AxeFdPose("D", "swing 3: the pick in", (140, 146), 75.0, 95.0, 108.0, k=1.6, flat=1.2, pick_rot=-40.0),
+)
+
+
+def render_axe_fd(pose: AxeFdPose, grip_xy, head_y: float) -> Frame:
+    """The axe alone for one AxeFdPose: the shaft from the grip ring at
+    grip_xy (weapon px, depth AXE_FD_GRIP_Z) to the head, whose top point
+    is head_y px high on the line at pose.angle through the ring."""
+    gx, gy = grip_xy
+    hx = gx - (gy - head_y) / np.tan(np.deg2rad(pose.angle))
+    G = screen_to_cam(gx, gy, AXE_FD_GRIP_Z)
+    top = screen_to_cam(hx, head_y, pose.head_z)
+    ds = np.array([hx - gx, head_y - gy])
+    A = unit([ds[0], ds[1], pose.flat * float(np.hypot(*ds))])
+    c, s = np.cos(np.deg2rad(pose.pick_rot)), np.sin(np.deg2rad(pose.pick_rot))
+    P = unit([A[1] * c + A[0] * s, A[1] * s - A[0] * c, 0.0])     # A turned 90 on screen, then pick_rot
+    rig = Rig()
+    shaft_top = draw_ice_axe_head(rig, top, A, P, pose.k, AXE_SHAFT_R * pose.r_head)
+    rig.capsule(G - unit(top - G) * pose.stub, shaft_top - A * 3.0 * pose.k, AXE_SHAFT_R * AXE_FD_SHAFT_K,
+                AXE_SHAFT_R * pose.r_head, "wood_ash", 0.55, 0.8)
+    return finish(rig)
+
+
 # ----------------------------------------------------------------- pickup
 PICKUP_W, PICKUP_H = 96, 48     # pickup canvas, px
 PICKUP_DIST = 400.0             # cm: far enough that the view is nearly flat
