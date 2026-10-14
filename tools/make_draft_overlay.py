@@ -163,6 +163,7 @@ INSTALLED_ENEMIES: tuple[tuple[str, str], ...] = (
     ("SARG", "SDHN"),    # Reich hound, German shepherd cell A, mirrored pairs (D55; tests/test_hound_sprites.py)
     ("TROO", "SDHS"),    # Hybrid Stormtrooper, cell E, death redone (D56; tests/test_storm_sprites.py)
     ("BAL1", "SDBL"),    # his bolt, SD_StormBolt (D56)
+    ("BOS2", "SDPM"),    # Panzermensch, cell D; the Schwer draws SDPS from its own States (D67)
 )
 
 

@@ -18,7 +18,6 @@ first. The CEO approves what moves into "Next". Order follows the MVP rule
 | N12 | M2 | The General: design sweep, then full set | art-director | — |
 | N13 | M2 | Install the Doughboy (big flag) | mod-engineer | CEO's OK |
 | N14 | M2 | Weapons in hand from the CEO's Fooocus references (ice axe first) | art-director | CEO's images |
-| N5 | M2 | Doughboy C, Panzermensch D (+ Schwer) full sets (D65); then the General's design sweep | art-director | doing |
 | N7b | M1 | Metro v2 (textures aligned); Tankograd v2 after the CEO walks v1 | level-designer | CEO walks each |
 | N8 | M3 | Music per map from PD works already chosen or licence-clean MIDIs (D59) | sound-designer | — |
 | N9 | M3 | Install the effects the CEO approves; wire SNDINFO | sound-designer + mod-engineer | CEO's listening |
