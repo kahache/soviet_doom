@@ -80,6 +80,33 @@ class HandStudyTest(unittest.TestCase):
         fist, _ = hs.freedoom_fist(lumps, pal)
         self.assertEqual(fist.shape[1], hs.decode_patch(lumps[hs.R3_FIST], pal)[0].shape[1] + hs.R3_FIST_PAD)
 
+    @unittest.skipUnless(hs is not None and hs.IWAD.is_file(), "Freedoom IWAD not in iwads/")
+    def test_fist_sleeve_never_touches_skin(self):
+        lumps, pal = hs.read_wad()
+        fist, _ = hs.freedoom_fist(lumps, pal)
+        green = {tuple(c) for c in hs.ramp_cols(hs.R3_SLEEVE)}
+        skin = {tuple(c) for c in hs.ramp_cols(hs.R3_SKIN)[1:]}
+        rgb = [[tuple(px) for px in row] for row in fist[..., :3]]
+        for y in range(1, fist.shape[0]):
+            for x in range(fist.shape[1]):
+                if fist[y, x, 3] and rgb[y][x] in green and fist[y - 1, x, 3]:
+                    self.assertNotIn(rgb[y - 1][x], skin - green, (x, y))
+
+    @unittest.skipUnless(hs is not None and hs.IWAD.is_file() and hs.TT_SRC_DIR.is_dir(), "IWAD or TT-33 renders missing")
+    def test_tt33_on_freedoom_hands_at_pisg_height_and_centred(self):
+        frames = hs.build_tt33_fd()
+        a = frames["SDTTA0"]
+        m = hs.measure(a["sprite"], a["offsets"])
+        lumps, pal = hs.read_wad()
+        pisg, off = hs.decode_patch(lumps["PISGA0"], pal)
+        ref = hs.measure(pisg, off)
+        self.assertLessEqual(abs(m["height"] - ref["height"]), 0.1 * ref["height"])
+        centre = (m["bbox"][0] + m["bbox"][2]) / 2
+        self.assertLess(abs(centre - hs.SCREEN_W / 2), 20)
+        for name in ("SDTTA0", "SDTTB0", "SDTTC0", "SDTFA0"):
+            _, grab = hs.read_png_sprite(hs.TT_OUT_DIR / f"{name}.png")
+            self.assertEqual(tuple(grab), tuple(frames[name]["offsets"]))
+
     def test_four_variants_H1_to_H4(self):
         self.assertEqual(list(hs.VARIANTS), ["H1", "H2", "H3", "H4"])
 
