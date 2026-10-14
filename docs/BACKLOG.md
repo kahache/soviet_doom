@@ -20,6 +20,7 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
+| N12b-1 | M2 | The General CD (D71): turnaround, 8 rotations + firing, to the CEO | art-director | 100 | D71 |
 | N13 | M2 | Install the Doughboy (big flag) + engine pass | mod-engineer | 120 | D70 |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
@@ -27,7 +28,7 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | Needs |
 |---|---|---|---|---|---|
-| N12b | M2 | The General: full set (8 rotations, ~86 lumps: he wears a different flag on each shoulder) + install + engine pass | art-director + mod-engineer | 550 | CEO picks a cell |
+| N12b | M2 | The General CD: full set (8 rotations, ~86 lumps: he wears a different flag on each shoulder) + install + engine pass | art-director + mod-engineer | 450 | CEO approves the turnaround |
 | N14 | M2 | Weapons in hand from the CEO's Fooocus references, one at a time, verified each (ice axe first, then 5 more) | art-director | 250 per weapon, ~1 500 all | CEO's images |
 | N7b | M1+ | Metro v2 (textures aligned), optional: the CEO found M1 "perfecto" | level-designer | 350 | CEO decides if wanted |
 | N7c | M1+ | Tankograd v2, optional (as N7b) | level-designer | 400 | CEO decides if wanted |

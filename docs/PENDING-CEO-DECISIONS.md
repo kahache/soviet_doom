@@ -11,7 +11,7 @@ Previews are sent to you as files; the paths are under `docs/art/previews/`.
 
 | What | Preview | Asks [PM's recommendation] |
 |---|---|---|
-| The General, design sweep (N12) | `2026-10-14_2208_F5_general-sweep.html` | pick a cell [C: the field gun on his shoulder fires while he points; combinable with B's face or D's flag cloak] |
+| The General CD turnaround (D71) | coming | approve -> full set |
 | Hands for the other weapons | Fooocus, your images in `work/art/reference/` | the ice axe first; the PM processes them like the Lenin poster |
 
 ## 2. Waiting for your ears
