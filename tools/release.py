@@ -21,7 +21,10 @@ sovietdoom-<version>/ with exactly:
                    docs/sound/MUSIC-RIGHTS.md 4.5 says to reproduce verbatim,
                    and the provenance of every packed asset as
                    docs/art/LICENSES.md records it
-  README.txt       a short player readme, English and Russian
+  README.txt       generated: the player readme, English and Russian (the
+                   campaign's three maps and the range, what to download,
+                   how to start it, GZDoom's default keys, the hash check);
+                   every map and menu name is read from LANGUAGE
   SHA256SUMS       `sha256sum -c` format, for the six files above
 
 It refuses (exit 1, nothing written) when:
@@ -492,6 +495,14 @@ def _describe_paths(row: RegisterRow, paths: list[str]) -> str:
     return ", ".join(parts)
 
 
+# The player readme (G6 review docs/qa/2026-10-14_2356_G6-readiness.md §2.4,
+# §5). It names only files inside the package, never a repo path. Map, menu,
+# skill and language names come from LANGUAGE (README_IDS), so the readme and
+# the game cannot disagree. The controls are GZDoom 4.14.2's default bindings
+# for a new configuration as the review read them in the engine's gzdoom.pk3
+# (engine/commonbinds.txt + engine/defbinds.txt: W A S D, E uses, Space jumps,
+# Ctrl and the arrows unbound); the sign-off run confirms them on a fresh
+# config (RELEASE.md §2, row 5). The Russian half is reviewed once by N11 (D60).
 README_TEMPLATE = """\
 SOVIET DOOM {version}
 {rule}
@@ -501,38 +512,77 @@ alien factions, Yankee and Nazi, united to defend capital. You are a Spetsnaz
 sergeant who came to this country as a refugee child from Barcelona.
 A fan project, not affiliated with id Software.
 
-This release: the campaign map {map01}, and a practice range
-({newgame} > {ep02}). Built from commit {commit}.
+WHAT IS IN IT
+  The campaign, three maps played in order ({newgame} > {ep01}):
+    1. {map01}
+    2. {map02}
+    3. {map03}, the end of the episode
+  The practice range: every weapon, no story ({newgame} > {ep02}).
+  Five difficulties, from "{skill1}"
+  to "{skill5}".
+  English and Russian, switched inside the game.
+  Built from commit {commit}.
 
 WHAT YOU NEED
-  1. GZDoom {gzdoom} or newer (free): https://zdoom.org/downloads
+  1. GZDoom {gzdoom} or newer, free, for Windows, macOS and Linux:
+     https://zdoom.org/downloads
   2. Freedoom: Phase 2, the file freedoom2.wad (free; tested with
      Freedoom {freedoom}): https://freedoom.github.io/download.html
-     The game data (the IWAD) is NOT in this package; download it yourself.
+     The Freedoom download holds two files: this game needs freedoom2.wad,
+     not freedoom1.wad. The game data (the IWAD) is NOT in this package.
   3. {pk3}, from this package.
 
-HOW TO PLAY
-  Put freedoom2.wad in the GZDoom folder, then drag {pk3} onto
-  gzdoom.exe. Or, from a command line in that folder:
-
+HOW TO START (Windows)
+  1. Unzip GZDoom into a folder of its own.
+  2. Copy freedoom2.wad and {pk3} into that folder.
+  3. Drag {pk3} onto gzdoom.exe. If GZDoom asks which game to play,
+     choose Freedoom: Phase 2.
+  Or, from a command prompt in that folder:
     gzdoom -iwad freedoom2.wad -file {pk3}
+  In PowerShell, type .\\gzdoom instead of gzdoom.
 
-BASIC CONTROLS (GZDoom's defaults; change them in Options > Customize Controls)
-  Move ............ W A S D, or the arrow keys
+HOW TO START (macOS, Linux)
+  Start GZDoom from a terminal with the same two options, giving the path
+  of each file:
+    gzdoom -iwad /path/to/freedoom2.wad -file /path/to/{pk3}
+  On macOS the program is GZDoom.app/Contents/MacOS/gzdoom.
+
+LANGUAGE AND CREDITS
+  {options} > {optmnu} > {language}:
+    {langauto}, {langen} or {langru}.
+  It applies at once and is remembered.
+  The credits are on the same screen: {options} > {optmnu} > {credits}.
+
+CONTROLS (GZDoom's defaults on a new install; change them in
+Options > Customize Controls)
+  Move ............ W A S D
   Turn and aim .... mouse
-  Fire ............ left mouse button, or Ctrl
-  Use ............. E or Space: open doors, press switches
-  Weapons ......... 1 to 7
+  Fire ............ left mouse button
+  Use ............. E: open doors, press switches
+  Jump ............ Space (in classic Doom, Space opened doors)
+  Run ............. hold Shift; Caps Lock toggles always-run
+  Weapons ......... 1 to 7, or the mouse wheel
   Automap ......... Tab
+  Save / load ..... F2 / F3; quick save / quick load: F6 / F9
   Menu ............ Esc
-  Language ........ Options > Soviet Doom > Language (English or Russian)
+  An older GZDoom configuration keeps its own keys.
 
 LICENCE AND CREDITS
   Code: GNU GPL 3.0 or later. Art, sound, maps and text: CC BY-NC-SA 4.0.
   See LICENSE.md; the full texts are LICENSE-GPL-3.0.txt and
   LICENSE-CC-BY-NC-SA-4.0.txt. Everyone credited, and every asset's origin:
   CREDITS.txt.
-  Check the download: SHA256SUMS (sha256sum -c SHA256SUMS).
+
+CHECK THE DOWNLOAD
+  SHA256SUMS holds the SHA-256 of every other file in this package.
+  Linux:   sha256sum -c SHA256SUMS
+  macOS:   shasum -a 256 -c SHA256SUMS
+  Windows, in PowerShell:
+    Get-FileHash {pk3}
+  or in a command prompt:
+    certutil -hashfile {pk3} SHA256
+  and compare the result with the file's line in SHA256SUMS (capital or
+  small letters do not matter).
 
 ----------------------------------------------------------------------------
 
@@ -544,38 +594,77 @@ LICENCE AND CREDITS
 капитала. Вы - сержант спецназа, попавший в эту страну ребёнком-беженцем из
 Барселоны. Фанатский проект, не связанный с компанией id Software.
 
-В этом выпуске: карта кампании - {map01_ru} - и учебный полигон
-({newgame_ru} > {ep02_ru}). Собрано из коммита {commit}.
+ЧТО ВНУТРИ
+  Кампания: три карты, проходятся по порядку ({newgame_ru} > {ep01_ru}):
+    1. {map01_ru}
+    2. {map02_ru}
+    3. {map03_ru} - конец эпизода
+  Полигон: всё оружие, без сюжета ({newgame_ru} > {ep02_ru}).
+  Пять уровней сложности, от «{skill1_ru}»
+  до «{skill5_ru}».
+  Английский и русский языки, переключаются в игре.
+  Собрано из коммита {commit}.
 
 ЧТО НУЖНО
-  1. GZDoom {gzdoom} или новее (бесплатно): https://zdoom.org/downloads
+  1. GZDoom {gzdoom} или новее, бесплатно, для Windows, macOS и Linux:
+     https://zdoom.org/downloads
   2. Freedoom: Phase 2, файл freedoom2.wad (бесплатно; проверено с
      Freedoom {freedoom}): https://freedoom.github.io/download.html
-     Игровых данных (IWAD) в этом архиве НЕТ - скачайте их сами.
+     В архиве Freedoom два файла: игре нужен freedoom2.wad, а не
+     freedoom1.wad. Игровых данных (IWAD) в этом архиве НЕТ.
   3. {pk3} из этого архива.
 
-КАК ИГРАТЬ
-  Положите freedoom2.wad в папку GZDoom и перетащите {pk3} на
-  gzdoom.exe. Или из командной строки в этой папке:
-
+КАК ЗАПУСТИТЬ (Windows)
+  1. Распакуйте GZDoom в отдельную папку.
+  2. Скопируйте в неё freedoom2.wad и {pk3}.
+  3. Перетащите {pk3} на gzdoom.exe. Если GZDoom спросит, в какую
+     игру играть, выберите Freedoom: Phase 2.
+  Или из командной строки в этой папке:
     gzdoom -iwad freedoom2.wad -file {pk3}
+  В PowerShell пишите .\\gzdoom вместо gzdoom.
 
-ОСНОВНОЕ УПРАВЛЕНИЕ (по умолчанию в GZDoom; меняется в настройках управления)
-  Движение ........ W A S D или стрелки
+КАК ЗАПУСТИТЬ (macOS, Linux)
+  Запустите GZDoom из терминала с теми же двумя параметрами, указав путь
+  к каждому файлу:
+    gzdoom -iwad /путь/к/freedoom2.wad -file /путь/к/{pk3}
+  В macOS программа находится в GZDoom.app/Contents/MacOS/gzdoom.
+
+ЯЗЫК И АВТОРЫ
+  {options_ru} (Options) > {optmnu_ru} > {language_ru}:
+    {langauto_ru}, {langen_ru} или {langru_ru}.
+  Применяется сразу и запоминается.
+  Там же список авторов: {options_ru} > {optmnu_ru} > {credits_ru}.
+
+УПРАВЛЕНИЕ (по умолчанию в новом GZDoom; меняется в настройках управления,
+Options > Customize Controls)
+  Движение ........ W A S D
   Поворот, прицел . мышь
-  Огонь ........... левая кнопка мыши или Ctrl
-  Действие ........ E или пробел: открыть дверь, нажать рубильник
-  Оружие .......... 1-7
+  Огонь ........... левая кнопка мыши
+  Действие ........ E: открыть дверь, нажать рубильник
+  Прыжок .......... пробел (в классическом Doom пробел открывал двери)
+  Бег ............. удерживать Shift; Caps Lock - всегда бегом
+  Оружие .......... 1-7 или колесо мыши
   Карта ........... Tab
+  Сохранить/загр. . F2 / F3; быстро: F6 / F9
   Меню ............ Esc
-  Язык ............ Настройки (Options) > Советский Doom > Язык
+  В старой конфигурации GZDoom остаются ваши прежние клавиши.
 
 ЛИЦЕНЗИЯ И АВТОРЫ
   Код: GNU GPL 3.0 или новее. Графика, звук, карты и тексты: CC BY-NC-SA 4.0.
   См. LICENSE.md; полные тексты лицензий: LICENSE-GPL-3.0.txt и
   LICENSE-CC-BY-NC-SA-4.0.txt. Все авторы и происхождение каждого ресурса:
   CREDITS.txt.
-  Проверка загрузки: SHA256SUMS (sha256sum -c SHA256SUMS).
+
+ПРОВЕРКА ЗАГРУЗКИ
+  В SHA256SUMS записаны SHA-256 всех остальных файлов этого архива.
+  Linux:   sha256sum -c SHA256SUMS
+  macOS:   shasum -a 256 -c SHA256SUMS
+  Windows, в PowerShell:
+    Get-FileHash {pk3}
+  или в командной строке:
+    certutil -hashfile {pk3} SHA256
+  и сравните результат со строкой этого файла в SHA256SUMS (регистр букв
+  значения не имеет).
 """
 
 # D3 and D2 (docs/PRD.md): the versions the mod is built and tested against.
@@ -584,7 +673,15 @@ FREEDOOM_TESTED = "0.13.0"
 
 
 # The LANGUAGE ids the readme quotes, so it names things as the game does.
-README_IDS = {"map01": "SD_MAP01_NAME", "ep02": "SD_EP02_NAME", "newgame": "SD_MNU_NEWGAME"}
+README_IDS = {
+    "map01": "SD_MAP01_NAME", "map02": "SD_MAP02_NAME", "map03": "SD_MAP03_NAME",
+    "ep01": "SD_EP01_NAME", "ep02": "SD_EP02_NAME",
+    "newgame": "SD_MNU_NEWGAME", "options": "SD_MNU_OPTIONS",
+    "optmnu": "SD_OPTMNU_TITLE", "language": "SD_OPTMNU_LANGUAGE",
+    "langauto": "SD_LANGVAL_AUTO", "langen": "SD_LANGVAL_EN", "langru": "SD_LANGVAL_RU",
+    "credits": "SD_CRED_TITLE",
+    "skill1": "SD_SKILL_1", "skill5": "SD_SKILL_5",
+}
 
 
 def render_readme(version: str, commit: str, strings: dict[str, dict[str, str]]) -> str:
