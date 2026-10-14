@@ -132,7 +132,9 @@ their death frames bleed `flag_red` 0–5 over black, the rifleman's and the
 Stormtrooper's gib too, and the old olive (`khaki_olive` 1–4) appears in
 none of them. **So do the Panzermensch and the Schwer** (D67;
 `assets/sprites/panzermensch/`; §8): their deaths bleed `flag_red` 0–5 over
-black, the pool spreading from under the body.
+black, the pool spreading from under the body. **So does the Doughboy**
+(D70; `assets/sprites/doughboy/`; §7): its death bleeds `flag_red` 0–5 over
+black, the pool spreading round the deflated sack.
 One value for all seven classes, `BloodColor "AD 27 21"` (`flag_red` 9),
 set in each file under `src/zscript/monsters/` and pinned by
 `tests/test_blood.py`; `SD_PanzermenschSchwer` inherits it.
@@ -326,13 +328,14 @@ F4: every state named a Freedoom sprite, every sound is a logical name
 (`sd/mon/<actor>/<event>`) that `SNDINFO` points at a Freedoom lump. **Since
 D54–D56 (2026-10-14) four classes draw our own sprites**, rendered on the 3D
 rig and approved by the CEO, **and since D67 the Panzermensch and the heavy
-variant too**; two classes and three projectiles still wear Freedoom's. The full tables are contract and live in `MOD-SPEC.md` §6.2
+variant too, and since D70 the Doughboy**; one class (the General) and
+three projectiles still wear Freedoom's. The full tables are contract and live in `MOD-SPEC.md` §6.2
 (sounds) and §6.3 (sprites: final names, frame layouts, what is installed);
 the IWAD sprites still in use are declared in `MOD-SPEC.md` §5, which is
 what lets `tools/check_pk3.py` accept them. Engine pass of the four:
 `docs/qa/evidence/2026-10-14_1900_F5_four-enemies-installed.md`.
 
-**Installed: our own sprites (D54–D56, D67).** Each swap was the rename the
+**Installed: our own sprites (D54–D56, D67, D70).** Each swap was the rename the
 swap rule below promises, not one tic changed (`MOD-SPEC.md` §6.3); the
 Schwer's was a `States` block of its own, the base's line for line.
 
@@ -345,6 +348,7 @@ Schwer's was a `States` block of its own, the base's line for line.
 | `SD_ReichHound` | `SDHN` | 46, `assets/sprites/hound/` | A–H with Doom's mirroring, 5 lumps a frame: rotations 1 and 5 alone, 2–4 as mirrored pairs (`SDHNA2A8`, `A3A7`, `A4A6`) (40); I–N rotation 0 (6) | `SARG` | D50 (German shepherd, cell A), D55 (full set) |
 | `SD_Panzermensch` | `SDPM` | 71, `assets/sprites/panzermensch/` | A–H × 8 (64); I–O rotation 0 (7), the corpse flat | `BOS2` | D65 (cell D, bare skull in an iron mask), D67 (full set) |
 | `SD_PanzermenschSchwer` | `SDPS` | 71, `assets/sprites/panzermensch/` | A–H × 8 (64); I–O rotation 0 (7), dying face down | inherited `BOS2` | D65 (cell D with S2: black, 12 % larger, spikes and stacks), D67 |
+| `SD_Doughboy` | `SDDB` | 54, `assets/sprites/doughboy/` | A–F × 8 (48); G–L rotation 0 (6), the corpse a flat sack | `HEAD` | D65 (cell C, severed), D67 (bigger flag), D70 (full set) |
 
 The three human-shaped figures are handed (the weapon on one side, a patch,
 plate or armband on the other; a mirrored armband would reverse the D12
@@ -352,13 +356,14 @@ symbol), so their walk, attack and pain frames are eight separate rotations
 (`MOD-SPEC.md` §6.3). That is why they cost more images than v1's estimate
 (49, 49, 58), which assumed Doom's mirroring. The hound is drawn symmetric
 and uses it. The Panzermensch is handed too (the banner on his back carries
-the D12 symbol, and he throws with his right): 71 a set, not v1's 47.
+the D12 symbol, and he throws with his right): 71 a set, not v1's 47. So is
+the Doughboy (the helmet sits askew, the flag decal and the buckle on one
+side): 54, not v1's 36.
 
 **Still on Freedoom placeholders.**
 
 | Class | Final sprite | Placeholder | Same frame layout? |
 |---|---|---|---|
-| `SD_Doughboy` | `SDDB` | `HEAD` (cacodemon) | yes |
 | `SD_DoughboyShell` | `SDDL` | `BAL2` | yes |
 | `SD_PanzerShell` | `SDPL` | `BAL7` | yes |
 | `SD_General` | `SDGN` | `CYBR` (cyberdemon) | yes for A–P (v1 aligned §9 to `CYBR`); the two `Summon` lines borrow `CYBR E F` and become `SDGN Q R` |
@@ -803,7 +808,7 @@ should therefore be the one the level designer uses in the dark.
 | Faction | Liberty Legion |
 | DoomEdNum | **21104** |
 | Replaces | `Cacodemon` (3005) |
-| Sprite | `SDDB`; projectile `SDDL` |
+| Sprite | `SDDB` (installed, D70); projectile `SDDL` |
 | Actor code | `DGB` |
 | LANGUAGE | `SD_TAG_DOUGHBOY`, `SD_OB_DOUGHBOY`, `SD_OBHIT_DOUGHBOY` |
 | Russian name | «Каска» ("the Helmet") — Q1(a) had no recommendation; chosen because "Doughboy" means nothing to a Russian-speaking player and the helmet is the unit's identity. One `LANGUAGE` line if the CEO prefers otherwise. |
@@ -847,7 +852,7 @@ to each is different (dodge sideways vs. break line of sight).
 | | | launch (projectile `SeeSound`) | `SDDGBMIS` |
 | | | impact (projectile `DeathSound`) | `SDDGBEXP` |
 | `Pain` | `SDDB E` 3, `E` 3 `A_Pain`, `F` 6 | `pain` | `SDDGBPAI` |
-| `Death` | `SDDB G H I J` 8, `K` 8 `A_SetFloorClip`, `L` −1 | `death` | `SDDGBDTH` |
+| `Death` | `SDDB G H I J` 8, `K` 8 `A_NoBlocking`, `L` −1 `A_SetFloorClip` | `death` | `SDDGBDTH` |
 
 7 sounds (v0 said 8). The death animation must *deflate and sink*, otherwise
 the corpse hangs in the air. Doom's own sequence, read in `cacodemon.zs`, does
@@ -869,13 +874,40 @@ copies that sequence.
 **The cheapest enemy in the bestiary** — a one-frame float cycle is Doom's own
 trick. Worth knowing when F5 is scheduled.
 
+**Installed, D70 (2026-10-14): 54 images, not 36.** The CEO chose cell C of
+the heavies sweep, the head in its M1 helmet, severed, with a neck stump
+and a dangling spine (D65), asked for a bigger flag on the helmet (D67:
+11 × 7 px instead of 5 × 4) and approved the set with it (D70, "OK"); it
+ships as `SDDB` in `assets/sprites/doughboy/` (`tools/art/gen_heavy.py
+--full db`; `MOD-SPEC.md` §6.3, "The Doughboy, installed by D70"). The
+budget above counted on Doom's mirrored pairs; the head is **handed** (the
+helmet sits askew, the flag decal and the buckle on one side, the pain's
+wound on the other), so every rotation is drawn on its own:
+
+| Group | Frames | Rotations | Images |
+|---|---|---|---|
+| Float / chase | A | 8, separate | 8 |
+| Attack | B C D | 8, separate | 24 |
+| Pain | E F | 8, separate | 16 |
+| Death | G–L (6) | 0 | 6 |
+| **Total** | | | **54** |
+
+The death bleeds dark red (D49, §2.1): G the eye bursts while it is still in
+the air, H it lands and the helmet flies, I–K it rolls back and deflates,
+and `SDDBL0` lies on the floor, a flat sack face up in its blood. Only the
+sprite name went from `HEAD` to `SDDB`: not one tic moved
+(`tests/test_doughboy_sprites.py`). The body stays **31 × 56**: the
+drawing is 53–55 px wide (64 at most in the pain's lurch; `HEAD` is 61–69)
+and rises 60–62 px over the actor's z, as `HEAD` did; only the severed
+stump hangs lower (15 px under z, `HEAD`'s jaw 5). The shell, `SDDL`, is not drawn yet and still wears `BAL2`.
+
 Visual brief: *a pink, veined sphere of flesh the size of a man's torso, one
 huge lidless eye, a slack mouth underneath; a battered steel M1 helmet
 strapped onto the top with a chinstrap that goes nowhere. It bobs.*
 
-Freedoom derivation: `HEAD` is a floating round creature of the same
-dimensions — on paper the **best derivation candidate** in the set, because
-the body is a sphere and the work is the helmet. **NOT VERIFIED.**
+Freedoom derivation: none; the set was drawn from scratch on the rig.
+`HEAD` gave the frame layout, the timing and the size the drawing matches,
+and was the placeholder until D70; no pixel of it is in `SDDB`.
 
 ### Legibility
 
@@ -1254,8 +1286,9 @@ coordinates are constants in the map script.
 ## 12. Summary table
 
 **Images** is what the class costs in sprite lumps. For the installed
-classes (D54–D56, D67, §2.7) it is the count actually packed under
-`assets/sprites/`; for the two still on placeholders it is v1's estimate at
+classes (D54–D56, D67, D70, §2.7) it is the count actually packed under
+`assets/sprites/`; for the one still on placeholders and the undrawn
+projectiles it is v1's estimate at
 Doom's mirroring (rotations 2&8, 3&7, 4&6 share one image), the count
 `MOD-SPEC.md` §6.3's frame layouts give.
 
@@ -1265,18 +1298,20 @@ Doom's mirroring (rotations 2&8, 3&7, 4&6 share one image), the count
 | 2 | Legion trooper | `SD_LegionTrooper` | Legion | 21101 | `ShotgunGuy` | 30 | 8 | 170 | 3× hitscan 3–15 | `SDLT`, **installed** (D54) | **70** packed | 6 |
 | 3 | Hybrid Stormtrooper | `SD_Stormtrooper` | both | 21102 | `DoomImp` | 60 | 8 | 200 | melee 3–24 / bolt 3–24 | `SDHS` `SDBL`, **installed** (D56) | **77 + 5** packed | 8 |
 | 4 | Reich hound | `SD_ReichHound` | Reich | 21103 | `Demon` | 150 | **12 (H)** | 180 | melee 4–40 | `SDHN`, **installed** (D55) | **46** packed, mirrored | 5 |
-| 5 | Doughboy | `SD_Doughboy` | Legion | 21104 | `Cacodemon` | 400 | 8 | 128 | melee 10–60 / shell 5–40 | `SDDB` `SDDL` (`HEAD` `BAL2`) | 41 (est.) | 7 |
+| 5 | Doughboy | `SD_Doughboy` | Legion | 21104 | `Cacodemon` | 400 | 8 | 128 | melee 10–60 / shell 5–40 | `SDDB`, **installed** (D70); `SDDL` (`BAL2`) | **54** packed + 5 (est.) | 7 |
 | 6 | Panzermensch | `SD_Panzermensch` | Reich | 21105 | `HellKnight` | **500** | 8 | 50 | melee 10–80 / shell 8–64 | `SDPM`, **installed** (D67); `SDPL` (`BAL7`) | **71** packed + 5 (est.) | 8 |
 | 7 | The General | `SD_General` | Legion | 21106 | `Cyberdemon` | **3000 (H)** | 12 | 20 | 3× shell 8–64; summons 2 riflemen once below 50 % | `SDGN` `SDGL` (`CYBR`; `MANF` `MISL`) | 59 (est.) | 7 |
 | 8 | Heavy Panzermensch | `SD_PanzermenschSchwer` | Reich | 21107 | `BaronOfHell` | 1000 | 8 | 50 | as #6 | `SDPS`, **installed** (D67) | **71** packed | 0 |
 | — | *cloaked hound* | *reserved, not implemented* | Reich | *21108 reserved* | `Spectre` | 150 | 12 | 180 | as #4 | `SDHN` `+SHADOW` | 0 | 0 |
 
-Totals for F5: **8 classes + 4 projectile actors, ≈ 515 sprite images,
-47 sound lumps.** Of the images, **410 are drawn and packed** (70 + 70 + 82 +
-46, and since D67 71 + 71) and **105 are estimated** for what is left (the
-Doughboy 41, the Panzermensch's shell 5, the General 59); if those are drawn
-at eight rotations like the infantry (§2.7), they cost 150 instead (59 + 5 +
-86), ≈ 560 in all. Before D67 the count was ≈ 420 (268 packed, 152
+Totals for F5: **8 classes + 4 projectile actors, ≈ 533 sprite images,
+47 sound lumps.** Of the images, **464 are drawn and packed** (70 + 70 + 82 +
+46, since D67 71 + 71, and since D70 the Doughboy's 54) and **69 are
+estimated** for what is left (the Doughboy's shell 5, the Panzermensch's
+shell 5, the General 59); if the General is drawn at eight rotations like
+the infantry (§2.7), he costs 86 instead of 59 and what is left 96 (5 + 5 +
+86), ≈ 560 in all. Before D70 the count was ≈ 515 (410 packed, 105 estimated):
+the Doughboy's 36 became 54 unmirrored. Before D67 the count was ≈ 420 (268 packed, 152
 estimated): the Panzermensch's 47 became 71 unmirrored, and the Schwer,
 planned as a translation at 0 images, became a drawn set of 71. v1 said ≈ 354: the 202 it gave the
 four installed classes became 268 because the three human-shaped ones were

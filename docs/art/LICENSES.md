@@ -585,3 +585,37 @@ symbol, bolts through the bare arms that seep dark red, blood in `flag_red`
 0-5 and black (D49). Palette v1 only. No photograph, no typeface.
 Freedoom's `BOS2` appears only beside ours on the review sheets, for
 comparison, and never enters a sprite.
+
+## Enemy sprites: the Doughboy (F5, approved by the CEO 2026-10-14, D65, D67 and D70)
+
+CEO verdict: cell **C** of the heavies sweep, the head in its M1 helmet,
+severed, with a neck stump and a dangling spine ("Doughboy C", D65); on the
+full set, "ponle la bandera más grande en la cabeza" (D67: the helmet's US
+flag decal grew from 5 × 4 to 11 × 7 px across the set), then "OK" to that
+set (D70). Files in `assets/sprites/doughboy/`, copied byte for byte from
+`work/art/enemies/heavy/full/SDDB/` (rendered on the Windows PC on
+2026-10-14 by `gen_heavy.py --full db`, seed 104, and rendered again into a
+scratch folder for the install: all 54 identical), so each PNG keeps its
+`grAb` offsets. 54 lumps: frames A-F in eight separate rotations (no
+mirrored pairs: the helmet sits askew with the flag and the buckle on one
+side), G-L in rotation 0. RGBA with hard alpha. Not installed: the GIFs,
+`metrics.json`, `blood_share.json` and `before_flag/` (the set as it was
+before D67). Engine names: MOD-SPEC §6.3.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDDBA1`, `SDDBA2`, `SDDBA3`, `SDDBA4`, `SDDBA5`, `SDDBA6`, `SDDBA7`, `SDDBA8` | float, frame A, rotations 1-8 (the sweep's pose, the bigger flag), `SD_Doughboy` | (a) `tools/art/gen_heavy.py --full db` (`render_full`), cell C on the rig (`tools/art/rig_core.py`, the Legion's materials of `gen_legion.py`) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDDBB1`, `SDDBB2`, `SDDBB3`, `SDDBB4`, `SDDBB5`, `SDDBB6`, `SDDBB7`, `SDDBB8` | attack, frame B (draws breath: the shell kindles in the throat) | (a) idem | idem |
+| `SDDBC1`, `SDDBC2`, `SDDBC3`, `SDDBC4`, `SDDBC5`, `SDDBC6`, `SDDBC7`, `SDDBC8` | attack, frame C (the mouth gapes, the shell white-hot in it) | (a) idem | idem |
+| `SDDBD1`, `SDDBD2`, `SDDBD3`, `SDDBD4`, `SDDBD5`, `SDDBD6`, `SDDBD7`, `SDDBD8` | attack, frame D (spits the shell, the sweep's pose) | (a) idem | idem |
+| `SDDBE1`, `SDDBE2`, `SDDBE3`, `SDDBE4`, `SDDBE5`, `SDDBE6`, `SDDBE7`, `SDDBE8` | pain, frame E (jerks back screaming, a round's hole in its cheek) | (a) idem | idem |
+| `SDDBF1`, `SDDBF2`, `SDDBF3`, `SDDBF4`, `SDDBF5`, `SDDBF6`, `SDDBF7`, `SDDBF8` | pain, frame F (rights itself, bleeding) | (a) idem | idem |
+| `SDDBG0`, `SDDBH0`, `SDDBI0`, `SDDBJ0`, `SDDBK0`, `SDDBL0` | death G-L, dark-red blood (D49): G the eye bursts in the air, H it lands and the helmet flies, `SDDBL0` the corpse, a flat sack face up in its blood | (a) idem, the death model (`db_death_model`, `db_death_blood`) | idem |
+
+Drawn from code on the 3D rig approved as the method (D38), on copies of
+the Legion's material table (`gen_legion.py`, append-only): flesh in
+palette v2's `flesh_pink` (D45), the helmet dark in `steel_blue`, the flag
+decal in the Legion trooper's flag colours, blood in `flag_red` 0-5 and
+black (D49). Palette v2. No photograph, no typeface. Freedoom's `HEAD`
+appears only beside ours on the review sheets, for comparison, and never
+enters a sprite.

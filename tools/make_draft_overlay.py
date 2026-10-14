@@ -164,6 +164,7 @@ INSTALLED_ENEMIES: tuple[tuple[str, str], ...] = (
     ("TROO", "SDHS"),    # Hybrid Stormtrooper, cell E, death redone (D56; tests/test_storm_sprites.py)
     ("BAL1", "SDBL"),    # his bolt, SD_StormBolt (D56)
     ("BOS2", "SDPM"),    # Panzermensch, cell D; the Schwer draws SDPS from its own States (D67)
+    ("HEAD", "SDDB"),    # Doughboy, cell C with the bigger flag (D70; tests/test_doughboy_sprites.py)
 )
 
 

@@ -311,8 +311,11 @@ class ApprovedAssetsTests(unittest.TestCase):
                 # one in an `old_*` folder (the Legion's old_death/, D54), for
                 # the before/after sheet. Those never ship, so they are not
                 # sources; the installed lump must match the current render.
+                # The Doughboy's before_flag/ (gen_heavy.BEFORE_FLAG, the set
+                # before D67's bigger flag, D70) is the same kind of folder.
                 sources = [q for q in sources
-                           if not any(part.startswith("old_") for part in q.relative_to(WORK_ART_DIR).parts)]
+                           if not any(part.startswith("old_") or part == "before_flag"
+                                      for part in q.relative_to(WORK_ART_DIR).parts)]
             if p.relative_to(ASSETS_DIR).parts[0] == "fonts":
                 # Every font variant generates the same codepoint filenames,
                 # so a bare name matches A, B and C at once. What matters is
