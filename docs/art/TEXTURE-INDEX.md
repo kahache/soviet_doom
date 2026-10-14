@@ -56,6 +56,7 @@ unconditional ones; see `docs/qa/GATE-REVIEWS.md`.
 | `SDDOOR1` | wall (door) | 128×128 | no | bunker steel door: riveted frame, green leaf, locking wheel, star and "7" stencils, hazard stripe | (a) seed 1982; text Impact.ttf | approved | 2026-10-12 |
 | `SDPOSTR1` | wall | 128×256 | no (single poster) | Lenin poster: the 1920 Zhukov photograph posterised to four flat palette inks, cream printed border, gold rule and a 46 px band carrying «ЛЕНИН ЖИВ». Four rounds: v1 constructivist silhouette (CEO rejected), v2 naive threshold (PM rejected, no face), v3 hand-drawn silhouette and features (CEO: "no se parece a el EN NADA" — the likeness lives in the photograph, not in a traced outline), **v4 = sweep cell 4C, chosen by the CEO 2026-10-12** from a 15-cell parameter sheet. Slogan rendered through a hard-cut mask: Pillow's antialiasing had invented 95 off-palette colours and `check_pk3` rejected the first build | (a) `tools/art/gen_lenin.py` + (b) `work/art/reference/lenin_1920_zhukov.jpg`, public domain | **approved 2026-10-12** | 2026-10-12 |
 | `SDPOSTR2` | wall (mural) | 128×128 | no | cosmonautics mural: rocket, rays, stars, «СЛАВА СОВЕТСКОЙ КОСМОНАВТИКЕ» | (a) seed 1984; text Impact.ttf | approved (CEO: "me gusta"; the Russian wording, its only condition, confirmed by the CEO the same day) | 2026-10-12 |
+| `SDPOSTR3` | wall | 128×256 | no (single poster) | Stalin poster, the twin of `SDPOSTR1` by commission (CEO: "exactamente como el que hicimos con Lenin, pero con Stalin"): the 1930 frontispiece photograph posterised to four flat palette inks, cream printed border, gold rule and the 46 px band carrying «СЛАВА / СТАЛИНУ!» on two lines at Lenin's 19 px, through the same hard-cut mask. **Sweep cell 4C (four inks, cut +0) and the `slava_short` slogan, chosen by the CEO 2026-10-14 (D55)** from `docs/art/previews/2026-10-14_1601_F2_stalin-sweep.png`. Text-bearing and rendered on Windows: regenerated only there (D27). Placement not decided yet; no map uses it | (a) `tools/art/gen_stalin.py` + (b) `work/art/reference/stalin_1930.jpg`, public domain | **approved 2026-10-14 (D55)** | 2026-10-14 |
 | `SDFLR1` | flat | 64×64 | yes (line continuous on x=2..8) | hangar concrete floor with worn yellow lane line | (a) seed 1985 | approved; 44 px seam repair 2026-10-13 (note below) | 2026-10-12 |
 | `SDFLR2` | flat | 64×64 | yes | plain hangar concrete floor, cracks, oil wear | (a) seed 1986 | approved | 2026-10-12 |
 | `SDFLR3` | flat | 64×64 | yes | grey two-tone Soviet floor tiles, dark grout | (a) seed 1987 | approved | 2026-10-12 |
@@ -189,21 +190,25 @@ questions that verdict left open are decided since: **palette v2** is in
 (D45: a marble red, a cobalt and gold mosaic ramp and the Legion's pink
 flesh ramp in the reserved slots; approved textures keep their colours), and
 **the mosaic is the star with rays**, as drawn in `SDMOSA1` (D47: «Ok a la
-imagen que has puesto del mosaico»), so no figure panel is planned. The
-six below stay as they are: a v2 version of an approved piece is a new
-proposal for the CEO (the two `_v2` rows), never a silent requantisation
-(ART-BIBLE §3).
+imagen que has puesto del mosaico»), so no figure panel is planned. A v2
+version of an approved piece is a new proposal for the CEO (the two `_v2`
+rows), never a silent requantisation (ART-BIBLE §3). The CEO chose between
+them on 2026-10-14 (D56: «mosaico V2»): **`SDMOSA1` is now its palette v2
+rendering** (cobalt and gold), installed under the same lump name, and
+`gen_metro.py` builds it so by default; the D42 v1 panel stays reachable as
+history with `gen_metro.py --mosaic-v1`. **The marble `SDMARB1` stays in
+v1.** The other five pieces are palette v1, as drawn.
 
 | Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
 |---|---|---|---|---|---|---|---|
 | `SDTILE1` | wall | 64×128 | yes | glazed cream tile wall, 8 px tiles, warm grout, a few chipped tiles, grime low down | (a) gen_metro, seed 1936 | approved 2026-10-13 (D42: «OK a las 6 piezas de metro») | 2026-10-13 |
 | `SDTILE2` | wall | 64×128 | yes | the same tile above an oil-painted military-green dado (rows 86-127) under a dark rule | (a) gen_metro, seed 1937 | approved 2026-10-13 (D42) | 2026-10-13 |
 | `SDMARB1` | wall | 64×128 | yes (veins cross the seam) | polished red marble cladding, pale and dark veins, slab joint at mid height; ox-blood rather than warm marble, a palette v1 limit | (a) gen_metro, seed 1938 | approved 2026-10-13 (D42), as drawn in palette v1 | 2026-10-13 |
-| `SDMOSA1` | wall (panel) | 128×128 | as a row (one panel per tile; the ground meets at the side edges) | mosaic panel: gold five-pointed star, ten rays and a cream ring on a slate-blue ground, resolved on a 4 px tessera grid | (a) gen_metro, seed 1939 | approved 2026-10-13 (D42), as drawn in palette v1; the star with rays is the mosaic's motif (D47) | 2026-10-13 |
+| `SDMOSA1` | wall (panel) | 128×128 | as a row (one panel per tile; the ground meets at the side edges) | mosaic panel: smalt-gold five-pointed star, ten rays and a cream ring on a cobalt ground (`mosaic_cobalt`, `mosaic_gold`), resolved on a 4 px tessera grid | (a) gen_metro, seed 1939; palette v2 | approved in palette v2 2026-10-14 (D56: «mosaico V2»), the `SDMOSA1_v2` proposal installed under this name; the star with rays is the mosaic's motif (D47); first approved in palette v1 2026-10-13 (D42), that v1 now history (`gen_metro.py --mosaic-v1`) | 2026-10-14 |
 | `SDBRAS1` | wall (pilaster) | 64×128 | yes (caps on the wrap edges) | fluted brass pilaster, tarnished in the flutes, dark ventilation grille in the middle | (a) gen_metro, seed 1940 | approved 2026-10-13 (D42) | 2026-10-13 |
 | `SDMFLR1` | flat | 64×64 | yes | polished grey granite floor, 32 px slabs, feldspar speckle, darker than the base-set floors | (a) gen_metro, seed 1941 | approved 2026-10-13 (D42) | 2026-10-13 |
 | `SDMARB1_v2` | wall (proposal, replaces `SDMARB1` under that lump name if chosen) | 64×128 | yes (veins cross the seam) | the approved marble, same seed and veins, in palette v2's `marble_red`: warm red stone instead of flag_red's ox-blood | (a) gen_metro --v2, seed 1938; palette v2 (D45) | proposed (sheet `docs/art/previews/2026-10-14_1036_F3_metro-palette-v2.html`, file `work/art/batch2/metro_v2/SDMARB1_v2.png`); the approved v1 stays in `assets/` until the CEO chooses | 2026-10-14 |
-| `SDMOSA1_v2` | wall (panel; proposal, replaces `SDMOSA1` under that lump name if chosen) | 128×128 | as a row | the approved star with rays (motif confirmed by the CEO 2026-10-14), same tesserae, on a `mosaic_cobalt` ground with `mosaic_gold` instead of slate and paint yellow | (a) gen_metro --v2, seed 1939; palette v2 (D45) | proposed (same sheet; file `work/art/batch2/metro_v2/SDMOSA1_v2.png`); the approved v1 stays in `assets/` until the CEO chooses | 2026-10-14 |
+| `SDMOSA1_v2` | wall (panel; proposal, replaces `SDMOSA1` under that lump name if chosen) | 128×128 | as a row | the approved star with rays (motif confirmed by the CEO 2026-10-14), same tesserae, on a `mosaic_cobalt` ground with `mosaic_gold` instead of slate and paint yellow | (a) gen_metro --v2, seed 1939; palette v2 (D45) | chosen 2026-10-14 (D56: «mosaico V2»; same sheet, file `work/art/batch2/metro_v2/SDMOSA1_v2.png`): installed byte for byte as `SDMOSA1`, see that row | 2026-10-14 |
 
 Recommended light (ART-BIBLE §4): 96-128 in corridors, bright islands of
 160 at the station; the `level-designer` owns the final values.

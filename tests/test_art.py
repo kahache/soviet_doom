@@ -176,6 +176,15 @@ class EmblemGeometryTests(unittest.TestCase):
 
 ASSETS_DIR = PROJECT_ROOT / "assets"
 WORK_ART_DIR = PROJECT_ROOT / "work" / "art"
+# Our sprite lumps: SD + 2, a frame letter and a rotation, optionally a
+# second frame and rotation (Doom's mirrored pair, NAMEFRFR; D55's hound).
+SPRITE_LUMP_RE = r"^SD[A-Z0-9]{2}[A-Z][0-8]([A-Z][1-8])?$"
+
+
+def sprite_slots(stem: str) -> list[tuple[str, str]]:
+    """The (frame, rotation) slots a sprite lump fills: one for NAMEFR, two
+    for a mirrored pair NAMEFRFR (the second half is drawn flipped)."""
+    return [(stem[4], stem[5])] + ([(stem[6], stem[7])] if len(stem) == 8 else [])
 FLAT_SIZE = (64, 64)
 WALL_SIZES = [(64, 64), (64, 128), (128, 64), (128, 128), (128, 256)]   # 128x256 for the Lenin poster; 64x64 and 128x64 for the batch-3 crates (D29)
 
@@ -216,15 +225,19 @@ class ApprovedAssetsTests(unittest.TestCase):
                     self.assertTrue(set(img.getchannel("A").getdata()) <= {0, 255}, p)
                     continue
                 if kind == "sprites":
-                    # D48: sprites/<set>/NAMEFR.png, our SD prefix, RGBA
+                    # D48: sprites/<set>/NAMEFR[FR].png, our SD prefix, RGBA
                     # with hard alpha and the grAb offsets inside the file
-                    # (tests/test_weapon_sprites.py and, for the Legion's
-                    # SDLT since D54, tests/test_legion_sprites.py hold the
-                    # offsets). R is 0 (one picture for every angle) or 1-8
-                    # (one lump per rotation; no mirrored NAMEFRFR pairs
-                    # yet), and test_sprite_rotation_sets_are_whole below
-                    # holds each frame's set together.
-                    self.assertRegex(p.stem, r"^SD[A-Z0-9]{2}[A-Z][0-8]$", p)
+                    # (tests/test_weapon_sprites.py and, for the enemies,
+                    # tests/test_legion_sprites.py (D54),
+                    # test_rifleman_sprites.py and test_hound_sprites.py
+                    # (D55), test_storm_sprites.py (D56) hold the offsets).
+                    # R is 0 (one picture for every angle) or 1-8 (one lump
+                    # per rotation). Since D55 a lump may be a Doom MIRRORED
+                    # PAIR, eight characters carrying two rotations: the
+                    # hound's SDHNA2A8 is frame A rotation 2 and, flipped,
+                    # rotation 8. test_sprite_rotation_sets_are_whole below
+                    # reads both halves and holds each frame's set together.
+                    self.assertRegex(p.stem, SPRITE_LUMP_RE, p)
                     self.assertEqual(img.mode, "RGBA", p)
                     alpha = set(img.getchannel("A").getdata())
                     self.assertTrue(alpha <= {0, 255},
@@ -261,13 +274,16 @@ class ApprovedAssetsTests(unittest.TestCase):
     def test_sprite_rotation_sets_are_whole(self):
         """A sprite frame in assets/sprites/ is rotation 0 alone or all of
         rotations 1-8, inside one set folder: a partial set would be filled
-        by nothing and the engine would say "Missing sprite" as it turns."""
+        by nothing and the engine would say "Missing sprite" as it turns. A
+        mirrored pair (NAMEFRFR, the hound's SDHNA2A8 since D55) fills two
+        slots, one per half, each in its own frame."""
         frames: dict[tuple[str, str], set[str]] = {}
         for p in self.pngs:
             rel = p.relative_to(ASSETS_DIR)
             if rel.parts[0] != "sprites":
                 continue
-            frames.setdefault((rel.parent.as_posix(), p.stem[:5]), set()).add(p.stem[5])
+            for frame, rotation in sprite_slots(p.stem):
+                frames.setdefault((rel.parent.as_posix(), p.stem[:4] + frame), set()).add(rotation)
         for (folder, frame), rots in sorted(frames.items()):
             self.assertIn(rots, ({"0"}, set("12345678")), f"{folder}/{frame}: rotations {sorted(rots)}")
 
@@ -310,6 +326,23 @@ class ApprovedAssetsTests(unittest.TestCase):
                 continue
             self.assertEqual(len(sources), 1, f"{p.name}: expected one source in work/, got {sources}")
             self.assertEqual(p.read_bytes(), sources[0].read_bytes(), f"{p} differs from {sources[0]}")
+
+
+class SpriteNameTests(unittest.TestCase):
+    """The two sprite checks above accept Doom's mirrored pairs (D55)."""
+
+    def test_names(self):
+        for good in ("SDHNA1", "SDHNA2A8", "SDHNH4H6", "SDHNI0", "SDLTA8"):
+            self.assertRegex(good, SPRITE_LUMP_RE)
+        for bad in ("SDHNA2A", "SDHNA2A0", "SDHNA9", "POSSA1", "SDHNA2A8X"):
+            self.assertNotRegex(bad, SPRITE_LUMP_RE)
+
+    def test_slots(self):
+        self.assertEqual(sprite_slots("SDHNA1"), [("A", "1")])
+        self.assertEqual(sprite_slots("SDHNA2A8"), [("A", "2"), ("A", "8")])
+        cover = {r for stem in ("SDHNA1", "SDHNA2A8", "SDHNA3A7", "SDHNA4A6", "SDHNA5")
+                 for _, r in sprite_slots(stem)}
+        self.assertEqual(cover, set("12345678"))
 
 
 if __name__ == "__main__":

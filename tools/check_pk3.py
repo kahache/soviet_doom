@@ -647,6 +647,23 @@ def licensed_names(licenses: Path) -> set[str]:
     return names
 
 
+# Lumps approved in palette v2 (docs/art/ART-BIBLE.md section 3). Every other
+# indexed lump must stay inside v1; these may use the v2 ramps too. Sprites
+# are RGBA and are not palette-checked here (tests/test_palette_v2.py is).
+PALETTE_V2_LUMPS = frozenset({"SDMOSA1"})  # D56
+
+
+def palette_v2_colours(palette_json: Path) -> set[tuple[int, int, int]] | None:
+    """Palette v2 (`colours_v2`) as an RGB set, or None if absent."""
+    try:
+        data = json.loads(palette_json.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    colours = {tuple(int(c) for c in rgb) for rgb in data.get("colours_v2", [])
+               if isinstance(rgb, (list, tuple)) and len(rgb) == 3}
+    return colours or None  # type: ignore[return-value]
+
+
 def palette_colours(palette_json: Path) -> set[tuple[int, int, int]] | None:
     """The approved palette as an RGB set, or None if the file is unusable."""
     if not palette_json.is_file():
@@ -991,7 +1008,10 @@ def check_images(pkg: Package, palette: set[tuple[int, int, int]] | None, report
                         f"{png.width}x{png.height} is not one of the agreed wall sizes "
                         + " / ".join(f"{w}x{h}" for w, h in ALLOWED_WALL_SIZES))
         if palette is not None and png.indexed:
-            offending = sorted({c for c in png.used_colours() if c not in palette})
+            allowed = palette
+            if Path(path).stem.upper() in PALETTE_V2_LUMPS:
+                allowed = palette_v2_colours(DEFAULT_PALETTE) or palette
+            offending = sorted({c for c in png.used_colours() if c not in allowed})
             if offending:
                 shown = ", ".join(f"#{r:02X}{g:02X}{b:02X}" for r, g, b in offending[:8])
                 more = f" (+{len(offending) - 8} more)" if len(offending) > 8 else ""

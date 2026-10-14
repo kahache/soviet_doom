@@ -34,11 +34,19 @@ Run with the project venv (Windows: .venv/Scripts/python.exe):
   python tools/art/gen_stalin.py --sweep --candidate 1942
   python tools/art/gen_stalin.py --slogans            # slogan options, needs no photo
   python tools/art/gen_stalin.py --preview            # sweep + the slogans on full posters
-  python tools/art/gen_stalin.py --bias 0 --inks 4    # the lump, once a cell is chosen
+  python tools/art/gen_stalin.py                      # SDPOSTR3 (D55) -> work/art/stalin/SDPOSTR3.png
+
+APPROVED (D55, 2026-10-14): cell 4C (four inks, cut +0) with
+«СЛАВА / СТАЛИНУ!» (`slava_short`, two lines at Lenin's 19 px). Installed as
+`SDPOSTR3` in assets/textures/soviet_base/, copied byte for byte from
+work/art/stalin/SDPOSTR3.png (the default output of a plain run). Where it
+hangs is still the CEO's call (sourcing doc §4); no map uses it yet.
 
 Text-bearing asset (CLAUDE.md, D27): the slogan is rasterised by this
-machine's Impact. Whatever the CEO approves is regenerated only on the
-machine that rendered it.
+machine's Impact. SDPOSTR3 was rendered on the CEO's WINDOWS PC, so it is
+regenerated ONLY ON WINDOWS; on the Mac, Impact rasterises differently and
+the lump would change. tests/test_gen_stalin.py holds the generator to the
+installed lump, and that test runs only on Windows.
 """
 
 from __future__ import annotations
@@ -104,7 +112,7 @@ CANDIDATES: dict[str, Candidate] = {c.key: c for c in (
 )}
 DEFAULT_CANDIDATE = "1930"
 
-# --- separation: Lenin's 4C until the CEO points at a Stalin cell ----------
+# --- separation: cell 4C, chosen by the CEO for Stalin too (D55) -------------
 INK_COUNT = 4
 CUT_BIAS = 0
 SWEEP_INKS = (2, 3, 4)                # rows of the sheet
@@ -118,7 +126,8 @@ SLOGANS = {
     "slava_short": "СЛАВА\nСТАЛИНУ!",                 # the same, at Lenin's size
     "spasibo": "СПАСИБО\nТОВАРИЩУ\nСТАЛИНУ!",         # 1936 slogan, shortened
 }
-SLOGAN = SLOGANS["za_rodinu"]   # proposal; the CEO chooses (sourcing doc §2)
+SLOGAN_KEY = "slava_short"       # D55: the CEO chose «СЛАВА / СТАЛИНУ!» at 19 px
+SLOGAN = SLOGANS[SLOGAN_KEY]
 SLOGAN_SIZE = lenin.SLOGAN_SIZE  # 19 px, Lenin's: the stamp starts here...
 SLOGAN_MIN_SIZE = 12             # ...and shrinks a pixel at a time to fit
 SLOGAN_SIDE_PAD = 3              # px of red between the letters and the border
@@ -128,6 +137,11 @@ SLOGAN_MASK_CUT = lenin.SLOGAN_MASK_CUT
 SLOGAN_MAX_WIDTH = WIDTH - 2 * (BORDER + SLOGAN_SIDE_PAD)
 SLOGAN_MAX_HEIGHT = SLOGAN_BAND - 1 - 2 * SLOGAN_V_PAD   # row 0 is the gold rule
 CAP_REFERENCE = "Н"              # no ascender, no descender: the cap height
+
+# --- the lump (D55) -----------------------------------------------------
+LUMP = "SDPOSTR3"                # SDPOSTR1 is Lenin, SDPOSTR2 the cosmonautics mural
+LUMP_PATH = OUT_DIR / f"{LUMP}.png"   # the file copied byte for byte into assets/
+ASSET_PATH = PROJECT_ROOT / "assets" / "textures" / "soviet_base" / f"{LUMP}.png"
 
 
 def fit_crop(plate: tuple[int, int], crop: tuple[float, float, float],
@@ -258,6 +272,19 @@ def poster(bias: int = CUT_BIAS, slogan: str = SLOGAN, key: str | None = None,
     return im
 
 
+def to_lump(im: Image.Image) -> Image.Image:
+    """RGB poster -> the indexed PNG the PK3 ships, the way gen_lenin writes
+    SDPOSTR1: an adaptive palette exactly as large as the inks used (the
+    poster is a handful of flat palette colours, so nothing is merged)."""
+    used = len({tuple(p) for p in np.array(im).reshape(-1, 3)})
+    return im.convert("P", palette=Image.ADAPTIVE, colors=max(used, 2))
+
+
+def lump(key: str | None = None) -> Image.Image:
+    """SDPOSTR3 as approved (D55): default candidate, cell 4C, slava_short."""
+    return to_lump(poster(CUT_BIAS, SLOGAN, key, INK_COUNT))
+
+
 # --- review sheets --------------------------------------------------------
 def sweep(path: Path, key: str | None = None) -> None:
     """3 ink counts x 5 cut points, the layout of Lenin's sheet; the CEO
@@ -352,13 +379,17 @@ def main(argv: list[str] | None = None) -> int:
         out = args.out_dir / f"stalin_{args.candidate}_sweep.png"
         sweep(out, args.candidate)
     else:
-        out = args.out_dir / "stalin_poster.png"   # lump name is the PM's/level-designer's call
         slogan = SLOGANS.get(args.slogan, args.slogan)
+        approved = (args.candidate, args.bias, args.inks, slogan) == (
+            DEFAULT_CANDIDATE, CUT_BIAS, INK_COUNT, SLOGAN)
+        # Only the approved parameters may write a file named after the lump:
+        # test_art matches assets/SDPOSTR3.png to work/ by name.
+        out = args.out_dir / (f"{LUMP}.png" if approved else "stalin_poster.png")
         im = poster(args.bias, slogan, args.candidate, args.inks)
         used = len({tuple(p) for p in np.array(im).reshape(-1, 3)})
-        im.convert("P", palette=Image.ADAPTIVE, colors=max(used, 2)).save(out)
-        print(f"stalin {args.candidate}  {im.width}x{im.height}  colours={used}  "
-              f"inks={args.inks}  bias={args.bias:+d}")
+        to_lump(im).save(out)
+        print(f"{LUMP if approved else 'stalin'} {args.candidate}  {im.width}x{im.height}  "
+              f"colours={used}  inks={args.inks}  bias={args.bias:+d}")
     print(f"wrote {out}")
     return 0
 

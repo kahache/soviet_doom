@@ -18,7 +18,8 @@ What is enforced here, and why:
               approved v1 texture cannot drift into v2 when it is rebuilt
   assets      no approved asset uses a colour outside the palette version it
               was approved in. Every asset is v1 until it is listed in
-              APPROVED_IN_V2 (the Legion trooper's SDLT set since D54)
+              APPROVED_IN_V2 (the Legion trooper's SDLT set since D54, the
+              metro mosaic SDMOSA1 since D56)
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_palette_v2 -v
 """
@@ -62,9 +63,13 @@ MAX_COLOURS = 256
 # SDMARB1); everything not listed here must stay inside v1.
 # D54 (2026-10-14): the Legion trooper's 70 SDLT lumps, drawn with palette
 # v2's flesh_pink (gen_legion.py), are the first v2 assets approved.
+# D56 (2026-10-14, «mosaico V2»): the metro mosaic SDMOSA1 is replaced by its
+# v2 rendering (mosaic_cobalt, mosaic_gold; gen_metro.py), same lump name.
+# The marble SDMARB1 stays v1.
 APPROVED_IN_V2: set[str] = (
     {f"sprites/legion/SDLT{f}{r}.png" for f in "ABCDEFG" for r in "12345678"}
-    | {f"sprites/legion/SDLT{f}0.png" for f in "HIJKLMNOPQRSTU"})
+    | {f"sprites/legion/SDLT{f}0.png" for f in "HIJKLMNOPQRSTU"}
+    | {"textures/metro/SDMOSA1.png"})
 
 
 def _digest(colours) -> str:
@@ -226,3 +231,17 @@ class ApprovedAssetsStayInTheirVersionTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CheckPk3KnowsTheV2Lumps(unittest.TestCase):
+    """check_pk3 lets exactly the indexed lumps approved in v2 use the v2 ramps."""
+
+    def test_check_pk3_v2_list_matches_the_approved_indexed_lumps(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "check_pk3", Path(__file__).resolve().parents[1] / "tools" / "check_pk3.py")
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules.setdefault("check_pk3", mod)  # dataclasses look the module up
+        spec.loader.exec_module(mod)
+        indexed = {Path(p).stem.upper() for p in APPROVED_IN_V2 if not p.startswith("sprites/")}
+        self.assertEqual(set(mod.PALETTE_V2_LUMPS), indexed)

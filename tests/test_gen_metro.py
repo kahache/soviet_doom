@@ -3,12 +3,15 @@
 The CEO approved the metro's first six pieces as drawn in palette v1
 (D42, 2026-10-13: «OK a las 6 piezas de metro») and then the ten fill
 pieces of gen_metro.py --fill, also as drawn in palette v1 (D48,
-2026-10-14: «PERFECTO»). What is checked:
+2026-10-14: «PERFECTO»). Then the CEO took the mosaic in palette v2 (D56,
+2026-10-14: «mosaico V2»): SDMOSA1 is now its v2 rendering, the only metro
+lump outside v1; SDMARB1 stays v1. What is checked:
 
   installed   assets/textures/metro/ and assets/flats/metro/ hold exactly the
               approved lumps, at the declared sizes, indexed PNGs
   generator   each installed lump is pixel-identical to what gen_metro.py
-              builds from its seed today, so a later edit of the generator
+              builds from its seed today, quantised to the palette version
+              it was approved in, so a later edit of the generator
               (the set is being filled out) cannot silently drift away from
               the approved art
   no font     the generator never rasterises text with a system font, which
@@ -16,6 +19,8 @@ pieces of gen_metro.py --fill, also as drawn in palette v1 (D48,
               Windows (CLAUDE.md, "Text-bearing assets do not reproduce")
   paper       every installed lump has an approved row in TEXTURE-INDEX.md
               and a row in LICENSES.md
+  mosaic v2   D56: SDMOSA1 is the v2 build byte for byte, the D42 v1 stays
+              reachable as history (--mosaic-v1) and is never installed
   fill        the fill pieces (--fill, approved in D48): names, seeds,
               sizes, palette v1, determinism, and the generator never writes
               them into assets/ (the PM installs approved files by hand)
@@ -159,9 +164,8 @@ class GeneratorHoldsApprovedArtTests(unittest.TestCase):
     def test_installed_pixels_match_generator(self):
         import numpy as np
         from PIL import Image
-        from artlib import quantize
         for lump, path in installed_files().items():
-            built = quantize(Image.fromarray(self.builders[lump](), "RGB")).convert("RGB")
+            built = self.g.quantize_lump(lump, self.builders[lump]()).convert("RGB")
             with Image.open(path) as img:
                 shipped = img.convert("RGB")
             a, b = np.asarray(built), np.asarray(shipped)
@@ -272,12 +276,14 @@ class PaletteV2ProposalTests(unittest.TestCase):
             self.assertTrue(np.array_equal(builder(), self.built[lump]), lump)
 
     def test_same_geometry_only_the_inks_change(self):
-        """With the v1 inks, the shared builders give back the approved
-        lumps exactly: the v2 proposals differ in colour alone."""
+        """With the v1 inks, the shared builders give back the D42 lumps
+        exactly: the v2 proposals differ in colour alone. Since D56 the
+        mosaic's D42 v1 is tex_mosa1_v1 and tex_mosa1 is the v2 build."""
         g = self.g
         self.assertTrue(np.array_equal(
             g.marble_field(g.WALL_W, g.WALL_H, g.rng_for("SDMARB1"), g.STONE_V1), g.tex_marb1()))
-        self.assertTrue(np.array_equal(g.mosaic_panel(g.rng_for("SDMOSA1"), g.MOSA_INKS_V1), g.tex_mosa1()))
+        self.assertTrue(np.array_equal(g.mosaic_panel(g.rng_for("SDMOSA1"), g.MOSA_INKS_V1), g.tex_mosa1_v1()))
+        self.assertTrue(np.array_equal(g.tex_mosa1_v2(), g.tex_mosa1()))
 
     def test_quantize_version_1_is_artlib(self):
         from PIL import Image
@@ -315,10 +321,88 @@ class PaletteV2ProposalTests(unittest.TestCase):
                 self.assertGreater(e["v2_colours_used"], 0)
             text = sheet.read_text(encoding="utf-8")
             self.assertEqual(sheet.name, "2099-01-01_0000_F3_metro-palette-v2.html")
+            # D56: SDMOSA1's "v1" view is its rendered history, not assets/
+            self.assertIn("SDMOSA1_v1.png", names)
             for lump in ("SDMARB1", "SDMOSA1"):
                 self.assertIn(f"{lump} &rarr; {lump}_v2", text)
             self.assertIn("v1 approved", text)
             self.assertNotIn('src="http', text)            # self-contained
+
+
+@unittest.skipUnless(HAVE_IMAGING, "needs numpy + Pillow (project venv)")
+class MosaicV2InstalledTests(unittest.TestCase):
+    """D56 (2026-10-14, «mosaico V2»): SDMOSA1 is the palette v2 rendering,
+    the lump name unchanged; the D42 v1 is history; nothing else moved."""
+
+    @classmethod
+    def setUpClass(cls):
+        import gen_metro
+        import palette
+        cls.g = gen_metro
+        cls.v1 = set(palette.colours(1))
+        cls.v2 = set(palette.colours(2))
+        cls.installed = installed_files()["SDMOSA1"]
+
+    @staticmethod
+    def png_bytes(img) -> bytes:
+        import io
+        buf = io.BytesIO()
+        img.save(buf, format="PNG", optimize=True)
+        return buf.getvalue()
+
+    @staticmethod
+    def used(img) -> set:
+        pal = img.getpalette()
+        return {tuple(pal[i * 3:i * 3 + 3]) for i in set(img.get_flattened_data())}
+
+    def test_only_the_mosaic_is_v2(self):
+        self.assertEqual(self.g.palette_version("SDMOSA1"), 2)
+        for lump in INSTALLED:
+            if lump != "SDMOSA1":
+                self.assertEqual(self.g.palette_version(lump), 1, lump)
+        self.assertEqual(self.g.palette_version("SDMARB1"), 1)     # D56: the marble stays v1
+
+    def test_installed_is_the_v2_build_byte_for_byte(self):
+        built = self.png_bytes(self.g.quantize_lump("SDMOSA1", self.g.tex_mosa1()))
+        self.assertEqual(self.installed.read_bytes(), built)
+
+    def test_installed_uses_palette_v2(self):
+        from PIL import Image
+        with Image.open(self.installed) as img:
+            used = self.used(img)
+        self.assertTrue(used <= self.v2, used - self.v2)
+        self.assertGreaterEqual(len(used - self.v1), 8, "the installed mosaic is hardly v2")
+
+    def test_v1_history_is_v1_and_not_installed(self):
+        hist = self.g.quantize_version(self.g.tex_mosa1_v1(), 1)
+        self.assertTrue(self.used(hist) <= self.v1)
+        self.assertNotEqual(self.png_bytes(hist), self.installed.read_bytes())
+
+    def test_v1_lumps_save_exactly_as_artlib(self):
+        """save_lump on a v1 lump is artlib.save_indexed: the other fifteen
+        metro lumps keep their bytes."""
+        import tempfile
+        from artlib import save_indexed
+        rgb = self.g.tex_tile1()
+        with tempfile.TemporaryDirectory() as tmp:
+            a = self.g.save_lump("SDTILE1", rgb, Path(tmp) / "a.png")
+            save_indexed(rgb, Path(tmp) / "b.png")
+            self.assertEqual((Path(tmp) / "a.png").read_bytes(), (Path(tmp) / "b.png").read_bytes())
+            self.assertEqual(a.mode, "P")
+
+    def test_mosaic_v1_flag_writes_history_only(self):
+        import contextlib
+        import io
+        import tempfile
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as tmp:
+            hist = Path(tmp) / "metro_history"
+            with mock.patch.object(self.g, "HIST_DIR", hist),                     mock.patch.object(sys, "argv", ["gen_metro.py", "--mosaic-v1"]),                     contextlib.redirect_stdout(io.StringIO()):
+                self.g.main()
+            names = {p.name for p in hist.glob("*.png")}
+            self.assertEqual(names, {"SDMOSA1_v1.png"})
+            self.assertFalse(names & {f"{lump}.png" for lump in INSTALLED})
+        self.assertNotIn("assets", self.g.HIST_DIR.relative_to(PROJECT_ROOT).parts)
 
 
 if __name__ == "__main__":

@@ -2,7 +2,14 @@
 // into it (BESTIARY section 5). Replaces Doom's DoomImp at its numbers.
 // Claws in melee range, fires SD_StormBolt otherwise.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: TROO, same layout as SDHS.
+// Sprites are OUR OWN since D56 (2026-10-14): SDHS, cell E on the 3D rig
+// (tools/art/gen_storm.py --full, D48) with the death redone so the corpse
+// lies flat (D53, approved in D56), 77 lumps in assets/sprites/storm/: A-H
+// in eight separate rotations, I-U rotation 0. The swap from Freedoom's TROO
+// placeholder renamed the sprite only; every frame letter and tic is as
+// before (tests/test_storm_sprites.py pins them). Doom's own DoomImp, its
+// corpse DeadDoomImp (editor number 20) and StealthDoomImp derive from
+// DoomImp, not from this class, and keep the IWAD's TROO.
 
 class SD_Stormtrooper : SD_Monster replaces DoomImp
 {
@@ -38,38 +45,38 @@ class SD_Stormtrooper : SD_Monster replaces DoomImp
 	States
 	{
 	Spawn:
-		TROO AB 10 A_Look;
+		SDHS AB 10 A_Look;
 		Loop;
 	See:
-		TROO AABBCCDD 3 A_Chase;
+		SDHS AABBCCDD 3 A_Chase;
 		Loop;
 	Melee:
 	Missile:
-		TROO EF 8 A_FaceTarget;
-		TROO G 6 A_SD_MeleeOrMissile(SD_STORM_MELEE_DICE, SD_STORM_MELEE_MULT, "sd/mon/stormtrooper/melee", "SD_StormBolt");
+		SDHS EF 8 A_FaceTarget;
+		SDHS G 6 A_SD_MeleeOrMissile(SD_STORM_MELEE_DICE, SD_STORM_MELEE_MULT, "sd/mon/stormtrooper/melee", "SD_StormBolt");
 		Goto See;
 	Pain:
-		TROO H 2;
-		TROO H 2 A_Pain;
+		SDHS H 2;
+		SDHS H 2 A_Pain;
 		Goto See;
 	Death:
-		TROO I 8;
-		TROO J 8 A_Scream;
-		TROO K 6;
-		TROO L 6 A_NoBlocking;
-		TROO M -1;
+		SDHS I 8;
+		SDHS J 8 A_Scream;
+		SDHS K 6;
+		SDHS L 6 A_NoBlocking;
+		SDHS M -1;
 		Stop;
 	XDeath:
-		TROO N 5;
-		TROO O 5 A_StartSound("sd/mon/stormtrooper/xdeath", CHAN_VOICE);
-		TROO P 5;
-		TROO Q 5 A_NoBlocking;
-		TROO RST 5;
-		TROO U -1;
+		SDHS N 5;
+		SDHS O 5 A_StartSound("sd/mon/stormtrooper/xdeath", CHAN_VOICE);
+		SDHS P 5;
+		SDHS Q 5 A_NoBlocking;
+		SDHS RST 5;
+		SDHS U -1;
 		Stop;
 	Raise:
-		TROO ML 8;
-		TROO KJI 6;
+		SDHS ML 8;
+		SDHS KJI 6;
 		Goto See;
 	}
 }

@@ -1,8 +1,11 @@
 // SD_StormBolt - the Stormtrooper's projectile (BESTIARY section 5).
 // DoomImpBall parity: a dodgeable bolt. Not placeable.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: BAL1, same layout as SDBL
-// (A-B flight, C-E burst).
+// Sprites are OUR OWN since D56 (2026-10-14): SDBL A-B flight, C-E burst,
+// rotation 0, 5 lumps in assets/sprites/storm/ (tools/art/gen_storm.py
+// --full). The swap from Freedoom's BAL1 placeholder renamed the sprite
+// only; tics and Bright are as before (tests/test_storm_sprites.py). Doom's
+// own DoomImpBall keeps the IWAD's BAL1.
 
 class SD_StormBolt : Actor
 {
@@ -31,10 +34,10 @@ class SD_StormBolt : Actor
 	States
 	{
 	Spawn:
-		BAL1 AB 4 Bright;
+		SDBL AB 4 Bright;
 		Loop;
 	Death:
-		BAL1 CDE 6 Bright;
+		SDBL CDE 6 Bright;
 		Stop;
 	}
 }

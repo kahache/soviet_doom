@@ -3,7 +3,7 @@
 
     .venv/Scripts/python.exe tools/make_draft_overlay.py              (Windows)
     .venv/bin/python tools/make_draft_overlay.py                      (macOS)
-    ... make_draft_overlay.py --only weapons|rifleman|all   (default: all)
+    ... make_draft_overlay.py --only weapons|enemies|all    (default: all)
     ... make_draft_overlay.py --hand B      renders of another hand, if any
     ... make_draft_overlay.py --dry-run     print the plan, write nothing
 
@@ -12,37 +12,47 @@
 Why. The CEO judges art by looking and maps in GZDoom. Drafts wait at his
 gate in `work/art/`; the art-director's advice is "approve by judging them
 in GZDoom". Approving means renaming the actors' states to our own sprite
-names (`SDRR`, `SDHK`, ...) and moving the PNGs into `assets/`; this tool
+names (`SDTT`, `SDHK`, ...) and moving the PNGs into `assets/`; this tool
 does neither. It packs a SEPARATE PK3, loaded after the mod, that carries
 our drafts under the names of the Freedoom placeholders our states use
-today (`POSS`, `BFGG`, ...).
+today (`PISG`, `BFGG`, ...).
 
 What is installed, and so never overlaid. D48 (2026-10-14) installed the
 world pickups of six weapons (ice axe option C, TT-33, IZh-58, PPSh-41,
 RPG-7, ROKS-3): their Spawn states name `SDAP`, `SDTP`, `SDIP`, `SDPQ`,
 `SDRP`, `SDKP` and the PNGs ship from `assets/sprites/` (INSTALLED). The
 held and flash frames were held back the same day (the CEO found hand E
-deformed in MAP01) and stay drafts here, with the hand Katyusha and the
-Reich rifleman's rig. A swap whose sprite is already under
+deformed in MAP01) and stay drafts here, with the hand Katyusha. A swap
+whose sprite is already under
 `assets/sprites/` is skipped with a note, so an approval is never shadowed
 by its own draft. D54 (2026-10-14) installed the Liberty Legion trooper's
 full set (`SDLT`, 70 lumps in `assets/sprites/legion/`, its states renamed
 from `SPOS`): the overlay never carried the Legion and carries nothing of
-it now (INSTALLED_ENEMIES; no swap names `SPOS` or `SDLT`).
+it now (INSTALLED_ENEMIES; no swap names `SPOS` or `SDLT`). D55 (2026-10-14)
+installed the Reich rifleman (`SDRR`, 70 lumps in `assets/sprites/rifleman/`,
+renamed from `POSS`) and the Reich hound (`SDHN`, 46 lumps with mirrored
+pairs in `assets/sprites/hound/`, renamed from `SARG`) the same way: the
+rifleman's swap, the overlay's only enemy, is gone, and the hound never had
+one. D56 (2026-10-14) installed the Hybrid Stormtrooper (`SDHS`, 77 lumps)
+and his bolt (`SDBL`, 5) in `assets/sprites/storm/`, renamed from `TROO`
+and `BAL1`; the overlay never carried them either. The `enemies` group keeps the rig machinery (eight rotations, the IWAD
+check) for the next enemy drafted on the rig; today it has no swap, so
+`--only enemies` has nothing to pack and says so.
 
 GZDoom resolves a sprite by lump name and the last-loaded file wins, so the
 drafts show up with no ZScript at all, and removing `-file ...overlay...`
 from the command line puts Freedoom back.
 
 What it reads (never writes):
-  src/zscript/weapons/*.zs, src/zscript/monsters/reich_rifleman.zs
+  src/zscript/weapons/*.zs, src/zscript/monsters/*.zs (an enemy swap's)
                         the frame letters each placeholder sprite is used
                         with in a States block
   assets/sprites/       which of our sprites are installed (never overlaid)
   work/art/weapons/<weapon>/   SD.. A0-style HUD frames, flash, pickup
                         (`*_proposed.png` and `variants/` are skipped: a
                         proposal no state shows is not wired)
-  work/art/enemies/rig/        SDRR A-G rotations 1-8, H-U rotation 0
+  work/art/enemies/rig/        an enemy's rotations 1-8 or 0 (--rig-dir); the
+                        rifleman's SDRR renders still sit there, installed
   iwads/freedoom2.wad (optional) the rotation-safety check below
 
 What it writes: work/overlays/<name>.pk3 (only `sprites/*.png`, copied
@@ -90,7 +100,7 @@ IWAD = PROJECT_ROOT / "iwads" / "freedoom2.wad"
 FORBIDDEN_OUT = ("src", "dist", "assets")
 
 DEFAULT_HAND = "E"          # gen_weapon.py's RECOMMENDED_HAND, the hand drawn
-GROUPS = ("weapons", "rifleman")
+GROUPS = ("weapons", "enemies")
 FIXED_ZIP_TIME = (1980, 1, 1, 0, 0, 0)   # same as tools/sdbuild/pk3.py: reproducible
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 ROTATIONS_8 = "12345678"
@@ -99,7 +109,7 @@ ROTATIONS_8 = "12345678"
 @dataclass(frozen=True)
 class Swap:
     """One placeholder sprite and the draft that stands in for it."""
-    group: str          # "weapons" or "rifleman"
+    group: str          # "weapons" or "enemies"
     item: str           # the work/ folder under the group's root ("" = the root)
     zs: str             # path under src/zscript/, read for the frame letters
     placeholder: str    # the Freedoom sprite our states name today (MOD-SPEC 5.1)
@@ -125,7 +135,9 @@ SWAPS: tuple[Swap, ...] = (
     Swap("weapons", "katyusha", "weapons/katyusha.zs", "BFGG", "SDHK"),
     Swap("weapons", "katyusha", "weapons/katyusha.zs", "BFGF", "SDHF"),
     Swap("weapons", "katyusha", "weapons/katyusha.zs", "BFUG", "SDHP"),
-    Swap("rifleman", "", "monsters/reich_rifleman.zs", "POSS", "SDRR"),
+    # No enemy swap since D55: the rifleman's POSS -> SDRR, the last one, is
+    # installed (INSTALLED_ENEMIES). An enemy drafted on the rig joins as
+    # Swap("enemies", "", "monsters/<file>.zs", "<IWAD>", "SD..").
 )
 
 
@@ -147,6 +159,10 @@ INSTALLED: tuple[tuple[str, str], ...] = (
 # overlay can never shadow or resurrect them (tests/test_legion_sprites.py).
 INSTALLED_ENEMIES: tuple[tuple[str, str], ...] = (
     ("SPOS", "SDLT"),    # Liberty Legion trooper, cell C full set (D54)
+    ("POSS", "SDRR"),    # Reich rifleman, rig cell E, bloody death (D55; tests/test_rifleman_sprites.py)
+    ("SARG", "SDHN"),    # Reich hound, German shepherd cell A, mirrored pairs (D55; tests/test_hound_sprites.py)
+    ("TROO", "SDHS"),    # Hybrid Stormtrooper, cell E, death redone (D56; tests/test_storm_sprites.py)
+    ("BAL1", "SDBL"),    # his bolt, SD_StormBolt (D56)
 )
 
 
@@ -437,8 +453,8 @@ def manifest_text(plan: Plan, out: Path, iwad: Path | None) -> str:
 
 
 def default_out(only: str, hand: str) -> Path:
-    stem = {"all": "sd-draft-sprites", "weapons": "sd-draft-weapons", "rifleman": "sd-draft-rifleman"}[only]
-    if hand != DEFAULT_HAND and only != "rifleman":
+    stem = {"all": "sd-draft-sprites", "weapons": "sd-draft-weapons", "enemies": "sd-draft-enemies"}[only]
+    if hand != DEFAULT_HAND and only != "enemies":
         stem += f"-hand{hand}"
     return OUT_DIR / f"{stem}.pk3"
 

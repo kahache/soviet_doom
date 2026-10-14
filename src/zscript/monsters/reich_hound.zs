@@ -1,7 +1,14 @@
 // SD_ReichHound - the Reich's fast melee beast (BESTIARY section 6).
 // Replaces Doom's Demon at its numbers except speed. Bite only.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: SARG, same layout as SDHN.
+// Sprites are OUR OWN since D55 (2026-10-14): SDHN, the German shepherd of
+// cell A (D50; tools/art/gen_hound.py --full), 46 lumps in
+// assets/sprites/hound/: A-H at eight rotations drawn as Doom's mirrored
+// pairs (SDHNA1, SDHNA2A8, SDHNA3A7, SDHNA4A6, SDHNA5), I-N rotation 0. The
+// swap from Freedoom's SARG placeholder renamed the sprite only; every frame
+// letter and tic is as before (tests/test_hound_sprites.py pins them). Doom's
+// own DeadDemon (editor number 21) and Spectre (58) derive from Demon, not
+// from this class, and keep the IWAD's SARG.
 
 class SD_ReichHound : SD_Monster replaces Demon
 {
@@ -38,30 +45,30 @@ class SD_ReichHound : SD_Monster replaces Demon
 	States
 	{
 	Spawn:
-		SARG AB 10 A_Look;
+		SDHN AB 10 A_Look;
 		Loop;
 	See:
-		SARG AABBCCDD 2 Fast A_Chase;
+		SDHN AABBCCDD 2 Fast A_Chase;
 		Loop;
 	Melee:
-		SARG EF 8 Fast A_FaceTarget;
-		SARG G 8 Fast A_SD_Melee(SD_HOUND_MELEE_DICE, SD_HOUND_MELEE_MULT);
+		SDHN EF 8 Fast A_FaceTarget;
+		SDHN G 8 Fast A_SD_Melee(SD_HOUND_MELEE_DICE, SD_HOUND_MELEE_MULT);
 		Goto See;
 	Pain:
-		SARG H 2 Fast;
-		SARG H 2 Fast A_Pain;
+		SDHN H 2 Fast;
+		SDHN H 2 Fast A_Pain;
 		Goto See;
 	Death:
-		SARG I 8;
-		SARG J 8 A_Scream;
-		SARG K 4;
-		SARG L 4 A_NoBlocking;
-		SARG M 4;
-		SARG N -1;
+		SDHN I 8;
+		SDHN J 8 A_Scream;
+		SDHN K 4;
+		SDHN L 4 A_NoBlocking;
+		SDHN M 4;
+		SDHN N -1;
 		Stop;
 	Raise:
-		SARG N 5;
-		SARG MLKJI 5;
+		SDHN N 5;
+		SDHN MLKJI 5;
 		Goto See;
 	}
 }
