@@ -1,7 +1,7 @@
 # Soviet Doom — Product Requirements Document
 
 Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
-Last update: 2026-10-14 (D25-D64).
+Last update: 2026-10-14 (D25-D65).
 
 ## 1. Vision
 
@@ -98,6 +98,7 @@ until D16 brought it into scope on 2026-10-13.)
 | D62 | 2026-10-14 | **Map slots follow the campaign order** ("para no confundir con los nombres"): MAP01 Zarya-7, **MAP02 the metro-bunker**, MAP03 the factory; the practice range leaves the MAPxx sequence for a name that says it is the test/practice room. Done in one sweep once the agents now editing the maps and the route runner have delivered; dated evidence keeps its old names. | ratified (CEO) |
 | D63 | 2026-10-14 | **Roadmap v2 and the backlog approved** ("Backlog OK · Roadmap OK"): MVP milestones M1-M4, gameplay after; agents launch only from `docs/BACKLOG.md`. **Pickups chosen:** SDCL B, SDCB B, SDSL A, SDSB B, SDRA A, SDRB A, SDFU A, SDFB B, SDKB B (the pass), SDRD B (the radio). **The TT-33 in the Freedoom-based hands is approved** ("está bien"; more colour and grey detail logged as a nice to have for the gameplay phase); the other weapons follow it. **The factory is «Танкоград»** (Tankograd). | ratified (CEO) |
 | D64 | 2026-10-14 | **Pipeline stage 6, Product update** ("súper importante"): when a delivery closes, before the `pmo` stage, Product updates BACKLOG, ROADMAP, PENDING (and CLAUDE.md / HANDOFF at a session's end) with what is done and what is not. `docs/PIPELINE.md` now has eight stages. | ratified (CEO) |
+| D65 | 2026-10-14 | **Doughboy cell C** (the severed head, spine hanging, dark red drip; drawn at its hitbox size) and **Panzermensch cell D** (bare skull in a riveted iron mask): "Doughboy C · Panzermensch D". The Schwer is the PM's call until the CEO says otherwise: cell D with the sweep's S2 treatment (black plate, 12 % larger, spikes and stacks), its own sprite set. Full sets follow (backlog N5); the General's design sweep comes next. | ratified (CEO) |
 | D15 | 2026-10-09 | Licence of the mod: **GPL-3.0** for code (`tools/`, `src/zscript/`, scripts) and **CC BY-NC-SA 4.0** for assets and docs (textures, sprites, maps, sounds, lore). Non-commercial is required anyway by OTEX's terms. Full texts added at F6; `LICENSE.md` states it now. | decided by the PM on CEO delegation |
 
 ## 6. Phases and gates
