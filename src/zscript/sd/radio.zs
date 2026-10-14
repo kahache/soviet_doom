@@ -13,8 +13,11 @@
 //         0 or anything else = 1.
 //   arg1  the reach in map units, measured in 3D; 0 = the default.
 //
-// The sprite is a Freedoom (IWAD) PLACEHOLDER: PMAP A, the computer area
-// map's picture, held still. Final art: SDRD A0 (MOD-SPEC 6.3).
+// The sprite is ours since D63 (2026-10-14): SDRD A0, an Okean-209 on a
+// tabouret (option B of tools/art/gen_pickups.py), 28x44, standing on the
+// floor by its own grAb offsets (MOD-SPEC 6.3). It replaced Freedoom's PMAP
+// A (the computer area map's picture); only the four-letter name changed,
+// not the tics (tests/test_pickup_sprites.py).
 
 class SD_Radio : Actor
 {
@@ -31,7 +34,10 @@ class SD_Radio : Actor
 	const SD_RADIO_PIECE_EJ_UKHNEM   = 1;
 	const SD_RADIO_PIECE_KOLOKOLCHIK = 2;
 
-	// Body: the placeholder picture is 32x28, a set on a desk.
+	// Body: sized on the placeholder picture (32x28, a set on a desk) and
+	// kept when SDRD A replaced it (D63): the drawn set on its tabouret is
+	// 28 wide and 44 tall, so the body is a little lower than the picture.
+	// Changing it would change how the radio blocks; not done here.
 	const SD_RADIO_RADIUS = 16;
 	const SD_RADIO_HEIGHT = 28;
 
@@ -51,7 +57,7 @@ class SD_Radio : Actor
 	States
 	{
 	Spawn:
-		PMAP A -1;     // final art: SDRD A
+		SDRD A -1;     // was PMAP A -1 (IWAD placeholder) until D63
 		Stop;
 	}
 

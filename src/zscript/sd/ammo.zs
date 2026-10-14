@@ -28,21 +28,40 @@
 // have spawned X - map things, monster drops and the Backpack alike - so no
 // map has to know these classes exist.
 //
-// Sprites are still Freedoom's (CLIP/AMMO/SHEL/SBOX/ROCK/BROK/CELL/CELP/BPAK)
-// and are inherited untouched: no Scale, no offsets, no state overrides.
-// They are art debt T8, not an engine bug. When art-director delivers Soviet
-// crates, only the Spawn state of each class below changes.
+// Sprites (D63, 2026-10-14): the eight ammunition pickups wear our own
+// sprites, SDCL/SDCB/SDSL/SDSB/SDRA/SDRB/SDFU/SDFB (MOD-SPEC 6.3), drawn by
+// tools/art/gen_pickups.py and installed from assets/sprites/pickups/. Each
+// class overrides ONLY its Spawn state, and that state is its Doom parent's
+// line for line (`XXXX A -1; Stop;`, gzdoom.pk3 g4.14.2 ->
+// zscript/actors/doom/doomammo.zs) with the four-letter name changed: no tic
+// moves (tests/test_pickup_sprites.py). No Scale, no offsets in code: the
+// offsets are the grAb chunk inside each PNG. The status bar icons
+// (Inventory.Icon CLIPA0, SHELA0, ROCKA0, CELLA0) are inherited and still
+// Freedoom's. The backpack (BPAK) was not part of the sweep and keeps
+// Freedoom's sprite.
 
 // --- 7,62x25: TT-33 and PPSh-41 (Clip pool) --------------------------------
 
 class SD_Clip : Clip replaces Clip
 {
 	Default { Inventory.PickupMessage "$SD_GOT_CLIP"; }
+	States
+	{
+	Spawn:
+		SDCL A -1;
+		Stop;
+	}
 }
 
 class SD_ClipBox : ClipBox replaces ClipBox
 {
 	Default { Inventory.PickupMessage "$SD_GOT_CLIPBOX"; }
+	States
+	{
+	Spawn:
+		SDCB A -1;
+		Stop;
+	}
 }
 
 // --- 12 gauge: IZh-58 (Shell pool) -----------------------------------------
@@ -50,11 +69,23 @@ class SD_ClipBox : ClipBox replaces ClipBox
 class SD_Shell : Shell replaces Shell
 {
 	Default { Inventory.PickupMessage "$SD_GOT_SHELLS"; }
+	States
+	{
+	Spawn:
+		SDSL A -1;
+		Stop;
+	}
 }
 
 class SD_ShellBox : ShellBox replaces ShellBox
 {
 	Default { Inventory.PickupMessage "$SD_GOT_SHELLBOX"; }
+	States
+	{
+	Spawn:
+		SDSB A -1;
+		Stop;
+	}
 }
 
 // --- PG-7V rounds: RPG-7 (RocketAmmo pool) ---------------------------------
@@ -62,11 +93,23 @@ class SD_ShellBox : ShellBox replaces ShellBox
 class SD_RocketAmmo : RocketAmmo replaces RocketAmmo
 {
 	Default { Inventory.PickupMessage "$SD_GOT_ROCKET"; }
+	States
+	{
+	Spawn:
+		SDRA A -1;
+		Stop;
+	}
 }
 
 class SD_RocketBox : RocketBox replaces RocketBox
 {
 	Default { Inventory.PickupMessage "$SD_GOT_ROCKBOX"; }
+	States
+	{
+	Spawn:
+		SDRB A -1;
+		Stop;
+	}
 }
 
 // --- Fuel: ROKS-3 and the hand Katyusha (Cell pool) ------------------------
@@ -76,11 +119,23 @@ class SD_RocketBox : RocketBox replaces RocketBox
 class SD_Cell : Cell replaces Cell
 {
 	Default { Inventory.PickupMessage "$SD_GOT_CELL"; }
+	States
+	{
+	Spawn:
+		SDFU A -1;
+		Stop;
+	}
 }
 
 class SD_CellPack : CellPack replaces CellPack
 {
 	Default { Inventory.PickupMessage "$SD_GOT_CELLPACK"; }
+	States
+	{
+	Spawn:
+		SDFB A -1;
+		Stop;
+	}
 }
 
 // --- Quartermaster's satchel (Backpack) ------------------------------------

@@ -1,4 +1,5 @@
-"""MAP02 as a player-facing practice range (D41; design docs/levels/MAP02-practice-range.md).
+"""The practice range for players: map RANGE, MAP02 until D62 (D41; design
+docs/levels/RANGE-practice-range.md).
 
 Owner: `level-designer`. `tests/test_practice_range.py` (`mod-engineer`'s)
 pins how the range is reached and left in MAPINFO and MENUDEF; this file
@@ -15,7 +16,7 @@ pins the map itself, read back from the generated TEXTMAP like
   `ambush` monster that hears a shot still wakes if it sees the shooter),
   and its row faces away from where the player comes in.
 
-Run:  python3 -m unittest tests.test_map02_practice_range -v
+Run:  python3 -m unittest tests.test_range_map -v
 """
 
 from __future__ import annotations
@@ -47,21 +48,21 @@ DOOR_GAP = 4              # Door_Raise stops 4 under the lowest neighbouring cei
 EYE_HEIGHTS = (32, 48, 72, 96)
 BODY_HEIGHTS = (8, 32, 56)
 HALL_SAMPLE = 64          # the hall is sampled on this grid for the sight test
-MAP02_SOURCE = PROJECT_ROOT / "src" / "maps" / "MAP02" / "map.py"
+RANGE_SOURCE = PROJECT_ROOT / "src" / "maps" / "RANGE" / "map.py"
 
 
-def _load_map02():
-    spec = importlib.util.spec_from_file_location("sdmap_MAP02_test", MAP02_SOURCE)
+def _load_range():
+    spec = importlib.util.spec_from_file_location("sdmap_RANGE_test", RANGE_SOURCE)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
 
-class Map02PracticeRangeTest(unittest.TestCase):
+class RangeMapTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.m = _load_map02()
+        cls.m = _load_range()
         textmap, cls.plan = cls.m.build_plan()
         blocks = parse_textmap(textmap.render())
         cls.sectors = blocks["sector"]
@@ -79,7 +80,7 @@ class Map02PracticeRangeTest(unittest.TestCase):
                 cls.neighbours[a].add(b)
                 cls.neighbours[b].add(a)
         start = [t for t in cls.things if t["type"] == cls.m.ED_PLAYER1_START]
-        assert len(start) == 1, "MAP02 needs exactly one player start"
+        assert len(start) == 1, "RANGE needs exactly one player start"
         cls.start_thing = start[0]
         cls.start = cls.sector_at(start[0]["x"], start[0]["y"])
 

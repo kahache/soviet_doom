@@ -34,7 +34,7 @@ What the suite runs at each level is decided in ONE place,
     art    every discovered test, SD_SKIP_SLOW_ART unset. On top of fast:
            art and sound generator renders, the rig, release end to end,
            the draft overlay, work/ scans (test_art's work/ identity,
-           test_audition's work/audio guard), gzdoom.pk3 reads, MAP01/MAP02
+           test_audition's work/audio guard), gzdoom.pk3 reads, MAP01/RANGE
            sight-line geometry, route.MapData, whole-PK3 re-checks.
     full   the same suite as art (plus the engine smoke).
 
@@ -237,7 +237,10 @@ def is_noise(path: str) -> bool:
     )
 
 
-RE_MAP_PATH = re.compile(r"^src/maps/(MAP\d{2}|E\dM\d)(?:/|$)")
+# A map folder is named after its lump: up to 8 upper-case letters, digits or
+# underscores (MOD-SPEC 3). Not only MAPxx / ExMy: since D62 the practice
+# range is the lump RANGE.
+RE_MAP_PATH = re.compile(r"^src/maps/([A-Z0-9_]{1,8})(?:/|$)")
 
 
 def discover_maps(maps_dir: Path = MAPS_DIR) -> tuple[str, ...]:

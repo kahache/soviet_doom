@@ -5,7 +5,8 @@ docs/engine/adr/008-diegetic-radio.md. What is pinned here, without ever
 starting GZDoom (D26):
 
   * zscript.txt includes radio.zs once, and the file declares SD_Radio as an
-    Actor with balanced braces, a SOLID body and the IWAD placeholder PMAP;
+    Actor with balanced braces, a SOLID body and its own sprite SDRD (D63;
+    the IWAD placeholder PMAP until then);
   * the behaviour ADR 008 promises is in the code: S_ChangeMusic to swap,
     Level.Music to give back, a hysteresis margin, a transient re-sync after
     a load, and no write to the player's music volume;
@@ -13,7 +14,7 @@ starting GZDoom (D26):
   * every piece the radio can name is a legal lump, installed in
     assets/music/ byte-identical to its CC0 candidate, licensed in both
     registers, and packed under music/ in the built PK3;
-  * PMAP is declared in MOD-SPEC 5.1 and frame A is in freedoom2.wad;
+  * PMAP is retired from MOD-SPEC 5.1 (D63) and SDRD is free in freedoom2.wad;
   * editor number 21200 is in the decoration sub-range, written in MOD-SPEC
     6.1, and free: MAPINFO either does not use it yet or gives it to
     SD_Radio, and GZDoom's own MAPINFO does not claim it.
@@ -112,9 +113,10 @@ class IncludeAndParseTest(unittest.TestCase):
         self.assertEqual(28, consts["SD_RADIO_HEIGHT"], "PMAP A is 28 pixels tall")
         self.assertRegex(code, r"\+SOLID\b")
 
-    def test_the_states_wear_the_placeholder(self):
+    def test_the_states_wear_the_final_sprite(self):
+        """D63: SDRD A replaced PMAP A (tests/test_pickup_sprites.py pins the tics)."""
         frames = state_frames(RADIO_ZS.read_text(encoding="utf-8"))
-        self.assertEqual([(PLACEHOLDER_SPRITE, "A")], frames)
+        self.assertEqual([(FINAL_SPRITE, "A")], frames)
 
 
 class BehaviourInTheCodeTest(unittest.TestCase):
@@ -242,8 +244,9 @@ class PackageTest(unittest.TestCase):
 
 
 class SpriteTest(unittest.TestCase):
-    def test_the_placeholder_is_declared_in_mod_spec_5_1(self):
-        self.assertIn(PLACEHOLDER_SPRITE, check_pk3.iwad_sprites_from_spec(check_pk3.DEFAULT_SPEC))
+    def test_the_placeholder_is_retired_from_mod_spec_5_1(self):
+        """D63: no state names PMAP, and a 5.1 row nobody names is stale."""
+        self.assertNotIn(PLACEHOLDER_SPRITE, check_pk3.iwad_sprites_from_spec(check_pk3.DEFAULT_SPEC))
 
     def test_the_final_name_is_reserved(self):
         spec = MOD_SPEC.read_text(encoding="utf-8")

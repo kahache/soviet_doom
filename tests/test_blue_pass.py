@@ -1,12 +1,12 @@
-"""MAP03's blue pass: SD_BluePass replaces Doom's BlueCard.
+"""MAP02's blue pass: SD_BluePass replaces Doom's BlueCard.
 
 Contract: docs/engine/MOD-SPEC.md 6, "The blue pass"; the map:
-docs/levels/MAP03-metro.md 5. What is pinned here, without ever starting
+docs/levels/MAP02-metro.md 5. What is pinned here, without ever starting
 GZDoom (D26):
 
   * zscript.txt includes keys.zs once, and the file declares
     `SD_BluePass : BlueCard replaces BlueCard`, so the editor number 5 that
-    MAP03 places spawns it with the map untouched;
+    MAP02 places spawns it with the map untouched;
   * the class sets `Species "BlueCard"` and its own pickup id, and borrows
     its sprite from BlueCard (no States block: MOD-SPEC 5.1 has no row);
   * LANGUAGE says "pass" / "propusk" in both languages: the pickup line and
@@ -49,7 +49,7 @@ KEYS_ZS = SRC / "zscript" / "sd" / "keys.zs"
 ZSCRIPT_TXT = SRC / "lumps" / "zscript.txt"
 LANGUAGE = SRC / "lumps" / "LANGUAGE"
 OWN_LOCKDEFS = SRC / "lumps" / "LOCKDEFS"
-MAP03 = SRC / "maps" / "MAP03" / "map.py"
+MAP02 = SRC / "maps" / "MAP02" / "map.py"
 MOD_SPEC = PROJECT_ROOT / "docs" / "engine" / "MOD-SPEC.md"
 INCLUDE = "zscript/sd/keys.zs"
 
@@ -198,20 +198,22 @@ class ClassTest(unittest.TestCase):
         code = strip_zs_comments(keys_source())
         self.assertRegex(code, rf"\bclass\s+{CLASS}\s*:\s*{REPLACED}\s+replaces\s+{REPLACED}\b",
                          "SD_BluePass must derive from AND replace BlueCard: the replacement "
-                         "is what puts it where MAP03 places editor number 5")
+                         "is what puts it where MAP02 places editor number 5")
 
     def test_species_is_bluecard(self):
-        """THE line that opens MAP03's blast door (see lock_accepts)."""
+        """THE line that opens MAP02's blast door (see lock_accepts)."""
         self.assertEqual(class_species(), REPLACED)
 
     def test_the_pickup_line_is_an_id_of_ours(self):
         self.assertEqual(zs_default(keys_source(), "Inventory.PickupMessage"), f'"${PICKUP_ID}"')
 
-    def test_the_sprite_is_still_bluecards(self):
-        """No States block: BKEY is inherited from BlueCard (Freedoom's
-        placeholder) until art-director delivers the pass, so MOD-SPEC 5.1
-        needs no row (a row no state names is stale, test_check_pk3)."""
-        self.assertNotRegex(strip_zs_comments(keys_source()), r"\bStates\b")
+    def test_the_sprite_is_the_pass(self):
+        """D63: SDKB A/B replaced BlueCard's inherited BKEY; the states are
+        BlueCard's but for the name (tests/test_pickup_sprites.py)."""
+        code = strip_zs_comments(keys_source())
+        self.assertRegex(code, r"\bStates\b")
+        self.assertRegex(code, r"(?m)^\s*SDKB\s+A\s+10\s*;")
+        self.assertNotRegex(code, r"(?m)^\s*BKEY\s")
 
     def test_the_file_is_ascii(self):
         self.assertTrue(keys_source().isascii(), "every other .zs of the mod is ASCII; keep it so")
@@ -247,7 +249,7 @@ class LanguageTest(unittest.TestCase):
             self.assertNotIn("карт", text, key)
 
     def test_the_overridden_ids_are_lock_2s(self):
-        """The ids we rewrite must be the ones lock 2 prints; MAP03's door
+        """The ids we rewrite must be the ones lock 2 prints; MAP02's door
         works by tag (4), so the player reads the REMOTE one."""
         lock = effective_lock(LOCK)
         self.assertEqual({lock["message"], lock["remote"]}, {"$PD_BLUEC", "$PD_BLUECO"})
@@ -265,7 +267,7 @@ class LockTest(unittest.TestCase):
         lock = effective_lock(LOCK)
         self.assertTrue(lock_accepts(lock, CLASS, class_species()),
                         f"lock {LOCK} ({lock['keys']}) would not open for {CLASS} "
-                        f"with Species {class_species()!r}: MAP03 could not be finished")
+                        f"with Species {class_species()!r}: MAP02 could not be finished")
 
     def test_inheritance_alone_would_not_open_it(self):
         """The trap the Species line avoids: GZDoom does not walk parents."""
@@ -285,10 +287,10 @@ class LockTest(unittest.TestCase):
         self.assertFalse(lock_accepts(lock, "A", None))
         self.assertTrue(lock_accepts(parse_lock("Lock 9 { Any { B C } }", 9), "X", "c"))
 
-    def test_map03_still_asks_for_editor_number_5_and_lock_2(self):
+    def test_map02_still_asks_for_editor_number_5_and_lock_2(self):
         """Read-only: the map is level-designer's. If either constant moves,
         the replacement no longer reaches the map's key or door."""
-        source = MAP03.read_text(encoding="utf-8")
+        source = MAP02.read_text(encoding="utf-8")
         self.assertRegex(source, rf"(?m)^ED_BLUE_CARD\s*=\s*{DOOM_EDNUM}\b")
         self.assertRegex(source, rf"(?m)^LOCK_BLUE_CARD\s*=\s*{LOCK}\b")
 
@@ -306,7 +308,7 @@ class SpecTest(unittest.TestCase):
     def test_mod_spec_records_the_class_and_the_mechanism(self):
         spec = MOD_SPEC.read_text(encoding="utf-8")
         self.assertIn(f"| `{CLASS}` | `{REPLACED}` *replaces {REPLACED}* |", spec)
-        self.assertIn("**The blue pass (MAP03, 2026-10-14).**", spec)
+        self.assertIn("**The blue pass (MAP02, 2026-10-14).**", spec)
         self.assertIn('Species "BlueCard"', spec)
         self.assertIn("give SD_BluePass", spec)
 

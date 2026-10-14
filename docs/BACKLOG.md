@@ -20,7 +20,7 @@ first. The CEO approves what moves into "Next". Order follows the MVP rule
 | N3 | M2 | Install the chosen pickups (D63) and wire their states | mod-engineer | — |
 | N4 | M2 | The other 6 weapons in the Freedoom-based hands, like the TT-33, one sheet each, PM-gated | art-director | — |
 | N5 | M2 | Doughboy C, Panzermensch D (+ Schwer) full sets (D65); then the General's design sweep | art-director | doing |
-| N6 | M2 | Factory textures: the 13 industrial pieces of MAP04-factory §7.2 | art-director | — |
+| N6 | M2 | Factory textures: the 13 industrial pieces of MAP03-factory §7.2 | art-director | — |
 | N7 | M1 | Factory v1 (populated, signposted like the metro v1) and the metro v2 (textures aligned) | level-designer | CEO walks each |
 | N8 | M3 | Music per map from PD works already chosen or licence-clean MIDIs (D59) | sound-designer | — |
 | N9 | M3 | Install the effects the CEO approves; wire SNDINFO | sound-designer + mod-engineer | CEO's listening |

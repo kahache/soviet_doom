@@ -1,4 +1,4 @@
-"""D41: MAP02, the weapons test range, ships as a practice range.
+"""D41: the weapons test range ships as a practice range; D62: as map RANGE.
 
 The contract is docs/engine/MOD-SPEC.md 4.4 (and the episode-screen row of
 6.6); the choice of a second episode over a main-menu item is
@@ -7,15 +7,16 @@ pins, statically:
 
   * MAPINFO declares two episodes, the campaign first, each named by a
     `$SD_*` id that exists in both languages (D7/D21);
-  * the campaign never runs into the range: no map's `next` is MAP02, and
-    no campaign map shares its cluster (D60: the campaign is MAP01 -> MAP03,
-    tests/test_campaign.py); the range's own exit ends cleanly, through its
-    own cluster's text to the title screen;
+  * the range is the lump RANGE, out of the MAPxx slots, which go to the
+    campaign (D62: MAP01 -> MAP02 -> MAP03, tests/test_campaign.py);
+  * the campaign never runs into the range: no map's `next` is RANGE, and
+    no campaign map shares its cluster; the range's own exit ends cleanly,
+    through its own cluster's text to the title screen;
   * the episode screen is redeclared as text, so Freedoom's M_EPISOD ("Which
     episode?") is never drawn: the logo, one SDMENU header that fits, and
     SmallFont LAST because the engine builds the episode items at run time
     in the descriptor's last font;
-  * the packed PK3 carries all of it (MAPINFO, MENUDEF, LANGUAGE, MAP02).
+  * the packed PK3 carries all of it (MAPINFO, MENUDEF, LANGUAGE, RANGE).
 
 What it cannot pin is what the engine draws; that is the PM's engine pass
 (D26): the episode screen in English and Russian, and the range starting
@@ -58,17 +59,24 @@ TOOLS = PROJECT_ROOT / "tools"
 MAPINFO = SRC / "lumps" / "MAPINFO"
 
 CAMPAIGN_MAP = "MAP01"
-# D60 (2026-10-14): the campaign is MAP01 -> MAP03; MAP03 ends it. The full
-# flow is pinned by tests/test_campaign.py; here only the range's isolation.
-CAMPAIGN_MAPS = ("MAP01", "MAP03")
-RANGE_MAP = "MAP02"
+# D62 (2026-10-14): the campaign is MAP01 -> MAP02 -> MAP03; MAP03 ends it.
+# The full flow is pinned by tests/test_campaign.py; here only the range's
+# isolation.
+CAMPAIGN_MAPS = ("MAP01", "MAP02", "MAP03")
+# D62: the range left the MAPxx slots. Up to 8 characters, a WAD lump name;
+# GZDoom's own mapinfo/doom2bfg.txt starts an episode on a non-MAPxx map
+# (`episode level01`), which is the precedent this rests on.
+RANGE_MAP = "RANGE"
+RANGE_WAS = "MAP02"          # its slot until D62
+MAX_LUMP_NAME = 8
 RANGE_CLUSTER = 2
 # MOD-SPEC 4.4: episode order is the menu order, the campaign first.
 EPISODES = [(CAMPAIGN_MAP, "SD_EP01_NAME"), (RANGE_MAP, "SD_EP02_NAME")]
 RANGE_EXIT_TEXT = "SD_END02_TEXT"
-# D46 (2026-10-14): the CEO's player-facing name for MAP02, printed by the
-# automap and the level-load line. It was "Engineering Test Range".
-RANGE_TITLE_ID = "SD_MAP02_NAME"
+# D46 (2026-10-14): the CEO's player-facing name for the range, printed by
+# the automap and the level-load line. It was "Engineering Test Range". The
+# id follows the lump since D62 (it was SD_MAP02_NAME).
+RANGE_TITLE_ID = "SD_RANGE_NAME"
 RANGE_TITLE = {"default": "Training Ground", "ru": "Учебный полигон"}
 EPISODE_HEADER = "$SD_MNU_CHOOSEEPISODE"
 # The engine's episode screen draws this Freedoom picture of English words.
@@ -112,10 +120,20 @@ class PracticeRangeMapinfoTest(unittest.TestCase):
         self.assertEqual(len(keys), len(set(keys)), keys)
 
     def test_the_campaign_never_runs_into_the_range(self):
-        """No map leads to MAP02 (MOD-SPEC 4.4, 4.6)."""
+        """No map leads to the range (MOD-SPEC 4.4, 4.6)."""
         for name, body in self.maps.items():
             self.assertNotEqual((prop(body, "next") or "").upper(), RANGE_MAP,
                                 f"{name} leads into the practice range")
+
+    def test_the_range_holds_no_mapxx_slot(self):
+        """D62: the range is not a MAPxx map, its old slot is the metro's, and
+        its lump name fits a WAD directory."""
+        self.assertIn(RANGE_MAP, self.maps)
+        self.assertNotRegex(RANGE_MAP, r"^MAP\d\d$")
+        self.assertLessEqual(len(RANGE_MAP), MAX_LUMP_NAME)
+        self.assertRegex(RANGE_MAP, r"^[A-Z0-9_]+$")
+        self.assertIn(RANGE_WAS, CAMPAIGN_MAPS, "the range's old slot belongs to the campaign")
+        self.assertNotEqual(prop(self.maps[RANGE_WAS], "cluster"), str(RANGE_CLUSTER))
 
     def test_no_campaign_map_shares_the_ranges_cluster(self):
         """Sharing cluster 2 would print the range's text after a campaign
@@ -126,7 +144,7 @@ class PracticeRangeMapinfoTest(unittest.TestCase):
         self.assertEqual(in_range_cluster, [RANGE_MAP])
 
     def test_the_range_ends_cleanly_in_its_own_cluster(self):
-        """It used to restart itself (`next = "MAP02"`). Now it ends like the
+        """It used to restart itself (`next = "MAP02"`, its slot then). Now it ends like the
         campaign, through its own cluster's text, not the campaign's ending."""
         body = self.maps[RANGE_MAP]
         self.assertEqual(prop(body, "next"), END_TO_TITLE)

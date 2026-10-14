@@ -278,6 +278,52 @@ no typeface, so they reproduce on both machines. Per-lump rows and seeds
 Same sources as the first six: no photograph, no scanned station, no
 typeface; the real metro is a reference for materials only.
 
+## Batch 4 — the factory «Танкоград» (F3, all approved by the CEO 2026-10-14, D66)
+
+CEO verdict, verbatim: «Me gustan TODAS» — every piece of the sheet
+`docs/art/previews/2026-10-14_2017_F3_batch4-factory.html`, with palette v2
+for the brick, the Legion flag's canton and the portal, and the portal in
+cobalt with white filaments (D66). Files in `assets/textures/factory/`
+(walls) and `assets/flats/factory/` (flats), copied byte for byte from
+`work/art/batch4/factory/`, rendered on the Windows PC on 2026-10-14; every
+frame of the two animations is installed. `SDCHAN1` and `SDSLOG1` are
+approved but still wait in `work/` until the validators accept a masked RGBA
+texture and the 256×64 size (`TEXTURE-INDEX.md`); their rows stand here so
+the provenance is on record before they ship. The only lettering (the banner and
+the two pass plates) is set from **our own alphabet** (`assets/fonts/bigfont/`,
+D24, scaled nearest neighbour), never a system font, so every lump
+reproduces byte for byte on both machines. Per-lump rows and seeds
+(`BATCH_SEED` 4100 + offset): `TEXTURE-INDEX.md`, set "Factory".
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDBRCK1` | soot-stained red factory brick | (a) `tools/art/gen_factory.py`, `BATCH_SEED` 4100, **palette v2** (`marble_red`) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDBRCK2` | the same brick whitewashed to 64 | (a) idem, **palette v2** | idem |
+| `SDRUST1` | rusted corrugated sheet | (a) idem, palette v1 | idem |
+| `SDCHAN1` | hanging chain and crane hook, masked (RGBA, hard alpha) | (a) idem, palette v1 | idem |
+| `SDFLR4` | cast-iron chequer plate (flat) | (a) idem, palette v1 | idem |
+| `SDGRAT1` | steel bar grating for the catwalks (flat) | (a) idem, palette v1 | idem |
+| `SDMOLT1` | molten metal, animation frame 1 of 4 (flat) | (a) idem, palette v1 | idem |
+| `SDMOLT2` | molten metal, frame 2 (flat) | (a) idem, palette v1 | idem |
+| `SDMOLT3` | molten metal, frame 3 (flat) | (a) idem, palette v1 | idem |
+| `SDMOLT4` | molten metal, frame 4 (flat) | (a) idem, palette v1 | idem |
+| `SDDOORY` | `SDDOOR1` for the yellow lock, pass plate «ПРОПУСК» in our alphabet | (a) idem, palette v1; the leaf replays `SDDOOR1`'s seed (gen_soviet_base, 1977 + 5), no system font | idem |
+| `SDDOORR` | `SDDOOR1` for the red lock, pass plate «ПРОПУСК» in our alphabet | (a) idem | idem |
+| `SDPORT1` | the portal's surface, cobalt with white filaments, frame 1 of 4 | (a) idem, **palette v2** (`mosaic_cobalt`) | idem |
+| `SDPORT2` | the portal, frame 2 | (a) idem, **palette v2** | idem |
+| `SDPORT3` | the portal, frame 3 | (a) idem, **palette v2** | idem |
+| `SDPORT4` | the portal, frame 4 | (a) idem, **palette v2** | idem |
+| `SDGATE1` | sliding factory gate, green corrugated sheet | (a) idem, palette v1 | idem |
+| `SDWIND1` | industrial glazing at night | (a) idem, palette v1 | idem |
+| `SDSLOG1` | works banner «ТРАКТОРЫ — КОЛХОЗАМ!», 256×64, set in **our alphabet** (bigfont, D24) at 2× | (a) idem, palette v1, no system font | idem |
+| `SDFLAG1` | the Fourth Reich's banner (D12) hung on `SDBRCK1` | (a) idem, **palette v2** (only through the brick) | idem |
+| `SDFLAG2` | the Liberty Legion's banner (D12) hung on `SDBRCK1`, canton in `mosaic_cobalt` | (a) idem, **palette v2** | idem |
+
+No photograph and no scanned building: the Chelyabinsk works and Soviet
+industrial architecture are references for materials only. The two faction
+banners are drawn from code (geometry in the generator), not copied from any
+flag artwork.
+
 ## Music (D43, installed 2026-10-13)
 
 Rows added by `sound-designer` so `tools/check_pk3.py` can see the music
@@ -321,6 +367,36 @@ Drawn from code: tapered capsules, ellipsoids and extruded plates shaded in
 docstring). No photograph, no typeface. Freedoom's own weapon sprites appear
 only beside ours on the review sheets, for comparison, and never enter a
 sprite (`freedoom_sprite()` in the generator).
+
+## Pickups: ammunition, the blue pass and the radio (approved by the CEO 2026-10-14, D63)
+
+CEO choice (D63), one option per object of the pickups sweep (T8, T23 and
+the sprite of T25). Files in `assets/sprites/pickups/`, copied byte for byte
+from `work/art/pickups/<object>/<option>/` (rendered on the Windows PC on
+2026-10-14), so each PNG keeps its `grAb` offsets. RGBA with hard alpha;
+palette v1 for all but the pass, which uses palette v2's cobalt (D45). Not
+installed: the options not chosen, the review sheets and `metrics.json`.
+Engine names: MOD-SPEC §6.3, "The pickups, installed by D63".
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDCLA0` | 7,62×25 rounds, small: a torn paper packet (option B) | (a) `tools/art/gen_pickups.py`, object `clip`, option B | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDCBA0` | 7,62×25 rounds, box: an opened zinc (option B) | (a) idem, `clipbox`, option B | idem |
+| `SDSLA0` | 12-gauge shells, small: four lying (option A) | (a) idem, `shell`, option A | idem |
+| `SDSBA0` | 12-gauge shells, box: open, twenty shells (option B) | (a) idem, `shellbox`, option B | idem |
+| `SDRAA0` | one PG-7V round standing on its tail (option A) | (a) idem, `rocket`, option A | idem |
+| `SDRBA0` | PG-7V rounds, an open crate with two (option A) | (a) idem, `rocketbox`, option A | idem |
+| `SDFUA0` | fuel, small: a 10-litre jerrycan (option A) | (a) idem, `fuel`, option A | idem |
+| `SDFBA0` | fuel, large: two ROKS-3 tanks in their back frame (option B) | (a) idem, `fuelpack`, option B | idem |
+| `SDKBA0` | the blue pass, a laminated card (option B) | (a) idem, `pass`, option B, frame A | idem |
+| `SDKBB0` | the blue pass, its blink frame (option B) | (a) idem, `pass`, option B, frame B | idem |
+| `SDRDA0` | the radio, an Okean-209 on a tabouret (option B) | (a) idem, `radio`, option B | idem |
+
+Drawn from code on gen_weapon's rig: boxes, tins, cylinders and cards shaded
+in `palette.json` ramps, reduced to 1x by majority vote (the generator's
+docstring). No photograph, no typeface, no text. Freedoom's pickups appear
+only beside ours on the review sheet, for comparison, and never enter a
+sprite.
 
 ## Enemy sprites: the Liberty Legion trooper (F5, approved by the CEO 2026-10-14, D48 and D54)
 

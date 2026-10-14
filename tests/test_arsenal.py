@@ -4,7 +4,7 @@ These tests do not run GZDoom. They guard the contract in
 docs/engine/MOD-SPEC.md: the seven weapon classes exist in their own files,
 every class named from MAPINFO or from a weapon slot really exists, editor
 numbers stay inside the reserved range, SNDINFO is well formed and every
-logical sound the ZScript asks for is defined, and MAP02 actually places
+logical sound the ZScript asks for is defined, and RANGE actually places
 the arsenal.
 
 Run:  python3 -m unittest discover -s tests -v
@@ -488,27 +488,27 @@ class ArsenalPk3Test(unittest.TestCase):
                 "SAW", lump.upper(), f"{logical} points at the chainsaw lump {lump}"
             )
 
-    # --- MAP02 test range --------------------------------------------------
+    # --- The practice range, RANGE (MAP02 until D62) -----------------------
 
-    def test_map02_is_packed_and_well_formed(self):
-        self.assertIn("maps/MAP02.wad", self.names)
-        blob = self.zf.read("maps/MAP02.wad")
+    def test_range_is_packed_and_well_formed(self):
+        self.assertIn("maps/RANGE.wad", self.names)
+        blob = self.zf.read("maps/RANGE.wad")
         self.assertEqual(blob[:4], b"PWAD")
-        self.assertEqual([n for n, _, _ in wad.read_directory(blob)], ["MAP02", "TEXTMAP", "ENDMAP"])
+        self.assertEqual([n for n, _, _ in wad.read_directory(blob)], ["RANGE", "TEXTMAP", "ENDMAP"])
 
-    def test_map02_places_the_whole_arsenal_and_a_player_start(self):
-        blob = self.zf.read("maps/MAP02.wad")
+    def test_range_places_the_whole_arsenal_and_a_player_start(self):
+        blob = self.zf.read("maps/RANGE.wad")
         text = wad.read_lump(blob, "TEXTMAP").decode("ascii")
         types = [int(re.search(r"type\s*=\s*(\d+);", t).group(1)) for t in _udmf_things(text)]
-        self.assertIn(1, types, "MAP02 has no player start")
+        self.assertIn(1, types, "RANGE has no player start")
         for slot, (cls_name, _, ednum) in ARSENAL.items():
-            self.assertIn(ednum, types, f"MAP02 does not place {cls_name} ({ednum})")
+            self.assertIn(ednum, types, f"RANGE does not place {cls_name} ({ednum})")
 
-    def test_map02_is_in_mapinfo_with_a_localized_name(self):
-        self.assertRegex(self.mapinfo, r'map\s+MAP02\s+lookup\s+"SD_MAP02_NAME"')
+    def test_range_is_in_mapinfo_with_a_localized_name(self):
+        self.assertRegex(self.mapinfo, r'map\s+RANGE\s+lookup\s+"SD_RANGE_NAME"')
         enu, ru = self._language_sections()
-        self.assertRegex(enu, re.compile(r"^SD_MAP02_NAME\s*=", re.M))
-        self.assertRegex(ru, re.compile(r"^SD_MAP02_NAME\s*=", re.M))
+        self.assertRegex(enu, re.compile(r"^SD_RANGE_NAME\s*=", re.M))
+        self.assertRegex(ru, re.compile(r"^SD_RANGE_NAME\s*=", re.M))
 
 
 class BalanceDocTest(unittest.TestCase):

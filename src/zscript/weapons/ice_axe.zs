@@ -71,7 +71,7 @@ class SD_IceAxe : Fist replaces Fist
 		Goto Ready;
 	Spawn:
 		// Pickup sprite. The ice axe is not in the start inventory
-		// (SD_Player): it is found, on MAP01's dorm rack and on MAP02's range
+		// (SD_Player): it is found, on MAP01's dorm rack and on the practice range (RANGE)
 		// (editor number 21001, MAPINFO DoomEdNums). SDAP A, option C, since
 		// D48; until then it wore Freedoom's chainsaw pickup, which the CEO
 		// took for a chainsaw (MOD-SPEC 6.3).

@@ -13,10 +13,17 @@ SD_EP01_NAME  = "Soviet Doom";
 // the moment it stopped being a test range (docs/levels/MAP01-zarya-7.md).
 SD_MAP01_NAME = "Zarya-7 Cosmodrome";
 // D46, 2026-10-14: the CEO's player-facing name for the range. It was
-// "Engineering Test Range", which said what MAP02 was built as, not what it
-// is (docs/levels/MAP02-practice-range.md 8; docs/engine/MOD-SPEC.md 4).
-SD_MAP02_NAME = "Training Ground";
-SD_MAP03_NAME = "Metro-Bunker";
+// "Engineering Test Range", which said what the map was built as, not what
+// it is (docs/levels/RANGE-practice-range.md 8; docs/engine/MOD-SPEC.md 4).
+// D62: the range is the map lump RANGE, out of the MAPxx slots, and its id
+// follows the lump (it was SD_MAP02_NAME).
+SD_RANGE_NAME = "Training Ground";
+// D62, 2026-10-14: the map slots follow the campaign. MAP02 is the metro
+// (built as MAP03), MAP03 the factory (built as MAP04), named by the CEO
+// (D63): "Tankograd", the wartime nickname of Chelyabinsk, whose tractor
+// works built tanks.
+SD_MAP02_NAME = "Metro-Bunker";
+SD_MAP03_NAME = "Tankograd";
 // D41: the practice range is the second episode on New Game (MAPINFO;
 // docs/engine/MOD-SPEC.md 4.4). Drawn in SmallFont, like the skill names.
 SD_EP02_NAME  = "Practice Range";
@@ -28,12 +35,19 @@ SD_EP02_NAME  = "Practice Range";
 // whether GZDoom wraps a long line itself is NOT VERIFIED
 // (tests/test_campaign.py measures them).
 //
-// Cluster 3: leaving MAP01 for MAP03, down the service lift into the metro.
+// Cluster 3: leaving MAP01 for MAP02, down the service lift into the metro.
 SD_MAP01_EXIT_TEXT = "Zarya-7 is yours again.\n\nThe service lift drops into the dark,\npast the last lit level, and keeps\ngoing. Under the cosmodrome runs a\nmetro line, dug deep for the next war.\n\nThe invaders found it first.\nYou follow them down.";
-// Cluster 1: the end of the episode, shown when MAP03 is left (D60). Until
-// 2026-10-14 it closed MAP01 ("The gantry lights go out behind you. Zarya-7
-// is yours again..."); adapted to the bunker, same frame, same last line.
-SD_END01_TEXT = "The bunker lights go out behind you.\n\nThe station is yours again - a shelter\nbuilt to outlast a war, and no one\nleft alive in it to wait one out.\n\nThe tunnel runs west, to Moscow.\nSo does the invasion.\n\nTO BE CONTINUED";
+// Cluster 4 (D62): leaving MAP02 for MAP03, out of the metro's westbound
+// tunnel at the tractor works' goods spur. From level-designer's draft
+// (docs/levels/MAP03-factory.md 11), with the map's name added.
+SD_MAP02_EXIT_TEXT = "The westbound tunnel climbs into\ndaylight at a goods spur.\n\nBeyond the buffers stand the sheds\nof a tractor works. The tracks in\nthe yard are too wide for tractors.\n\nThe workers have a name for it:\nTankograd.";
+// Cluster 1: the end of the episode, shown when the campaign's last map is
+// left. It closed MAP01 until D60 ("The gantry lights go out behind
+// you..."), the metro until D62 ("The bunker lights go out behind you...");
+// since D62 it is the factory's: the portal's power cut. Same frame (a light
+// out behind you, the place yours again, the invasion moving west), same
+// last line.
+SD_END01_TEXT = "The breaker drops. Behind you the\nportal shrinks to a point of light\nand goes out.\n\nTankograd is yours again: the line\nstands still, and nothing more\ncomes through.\n\nThose already through are marching\nwest, to Moscow.\n\nTO BE CONTINUED";
 // D41: the practice range's exit (cluster 2), then the title screen.
 SD_END02_TEXT = "The range is closed for the day.\n\nThe campaign begins from New Game.";
 
@@ -259,7 +273,7 @@ SD_OB_GENERAL        = "%o fell to the General's salvo.";
 // ever changes, the text and the sound change together.
 SD_GENERAL_ORDER     = "The General: Vorwärts!";
 
-// --- Keys (MAP03, 2026-10-14) -----------------------------------------------
+// --- Keys (the metro, MAP02 since D62; 2026-10-14) ------------------------
 // The metro's blue pass, SD_BluePass (zscript/sd/keys.zs), which replaces
 // Doom's BlueCard; docs/engine/MOD-SPEC.md 6, "The blue pass". Two
 // mechanisms again, as for the ammunition above:
@@ -270,9 +284,9 @@ SD_GENERAL_ORDER     = "The General: Vorwärts!";
 //  * The locked-door lines are ENGINE ids. Lock 2 (gzdoom.pk3 ->
 //    lockdefs.txt) prints "$PD_BLUEC" when the door is pressed directly
 //    (Door_LockedRaise with tag 0) and "$PD_BLUECO" when the press works a
-//    door by tag, as MAP03's blast door does (tag 4: a_doors.cpp passes
+//    door by tag, as the metro's blast door does (tag 4: a_doors.cpp passes
 //    `remote = tag != 0` to P_CheckKeys). Freedoom's DEHACKED does NOT touch
-//    PD_BLUECO, so this override is what the player reads at MAP03's door.
+//    PD_BLUECO, so this override is what the player reads at the metro's door.
 //    It DOES override PD_BLUEC ("Blue passcard needed for this door."), and
 //    that wins over these lines in every language: PD_BLUEC below shows on
 //    doom2.wad only. A tag-0 blue door on Freedoom would need a LOCKDEFS of
@@ -285,12 +299,14 @@ PD_BLUECO          = "You need a blue pass to activate this object";
 
 SD_EP01_NAME  = "Советский Doom";
 SD_MAP01_NAME = "Космодром «Заря-7»";
-SD_MAP02_NAME = "Учебный полигон";
-SD_MAP03_NAME = "Метро-бункер";
+SD_RANGE_NAME = "Учебный полигон";
+SD_MAP02_NAME = "Метро-бункер";
+SD_MAP03_NAME = "Танкоград";
 SD_EP02_NAME  = "Полигон";
 
 SD_MAP01_EXIT_TEXT = "«Заря-7» снова наша.\n\nСлужебный лифт уходит в темноту,\nминует последний освещённый ярус\nи спускается дальше.\nПод космодромом проходит линия\nметро, проложенная глубоко\nна случай войны.\n\nЗахватчики нашли её первыми.\nВы спускаетесь за ними.";
-SD_END01_TEXT = "Огни бункера гаснут у вас за спиной.\n\nСтанция снова наша - убежище,\nпостроенное, чтобы пережить войну,\nи в нём не осталось ни души.\n\nТоннель уходит на запад, к Москве.\nТуда же движется и вторжение.\n\nПРОДОЛЖЕНИЕ СЛЕДУЕТ";
+SD_MAP02_EXIT_TEXT = "Западный тоннель поднимается\nк свету у подъездного пути.\n\nЗа тупиком стоят цеха\nтракторного завода. Колея во дворе\nслишком широка для тракторов.\n\nРабочие зовут его по-своему:\nТанкоград.";
+SD_END01_TEXT = "Рубильник опущен. За вашей спиной\nпортал сжимается в точку света\nи гаснет.\n\nТанкоград снова наш: конвейер\nстоит, и сквозь портал больше\nникто не пройдёт.\n\nТе, кто успел пройти, уже идут\nна запад, к Москве.\n\nПРОДОЛЖЕНИЕ СЛЕДУЕТ";
 SD_END02_TEXT = "Полигон на сегодня закрыт.\n\nКампания начинается из «Новой игры».";
 
 SD_PLAYER_NAME     = "Сержант Виланова";
@@ -449,9 +465,9 @@ SD_OB_GENERAL        = "%o пал под залпом Генерала.";
 
 SD_GENERAL_ORDER     = "Генерал: Vorwärts!";
 
-// --- Ключи (MAP03, 2026-10-14) ---------------------------------------------
+// --- Ключи (метро, MAP02 с D62; 2026-10-14) -------------------------------
 // Синий пропуск дежурного по станции (SD_BluePass). PD_BLUEC и PD_BLUECO -
-// строки самого движка (замок 2); у двери MAP03 игрок читает PD_BLUECO.
+// строки самого движка (замок 2); у двери метро игрок читает PD_BLUECO.
 SD_PICKUP_BLUEPASS = "Синий пропуск.";
 PD_BLUEC           = "Для открытия нужен синий пропуск";
 PD_BLUECO          = "Для применения нужен синий пропуск";

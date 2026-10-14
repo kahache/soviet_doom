@@ -133,7 +133,7 @@ class FreedoomWeaponsTest(unittest.TestCase):
         self.assertEqual(hs.zs_held_letters(hs.AXE_FD_ZS, hs.AXE_FD_PLACEHOLDER), "ABCD")
 
     @slow
-    def test_axe_in_the_fist_at_pisg_height_with_the_fist_untouched(self):
+    def test_axe_in_a_gripping_hand_at_pisg_height(self):
         frames = hs.build_axe_fd()
         self.assertEqual(sorted(frames), ["SDAXA0", "SDAXB0", "SDAXC0", "SDAXD0"])
         lumps, pal = hs.read_wad()
@@ -143,18 +143,43 @@ class FreedoomWeaponsTest(unittest.TestCase):
         m = hs.measure(a["sprite"], a["offsets"])
         self.assertLessEqual(abs(m["height"] - ref["height"]), 0.1 * ref["height"])
         self.assertLess(abs((m["bbox"][0] + m["bbox"][2]) / 2 - hs.SCREEN_W / 2), 20)
-        bare, _, _ = hs.freedoom_fist_bare(lumps, pal)
+        ours = {tuple(c) for c in hs.ramp_cols(hs.R3_SKIN) + hs.ramp_cols(hs.R3_SLEEVE)}
+        fist = hs.build_axe_fd("fist", out_dir=None)
         for name, f in frames.items():
-            # the fist is drawn last, unchanged: each of its pixels is in the frame as it is in R3-A2
+            # the hand is drawn last, in our skin and sleeve only, and the axe is round 1's
+            spr, (lx, ty) = f["sprite"], f["offsets"]
+            hand = f["hand"]
+            hx, hy = f["hand_xy"]
+            x0, y0 = hx + lx, hy - (hs.WEAPONTOP - ty)
+            sub = spr[y0:y0 + hand.shape[0], x0:x0 + hand.shape[1]]
+            mask = hand[..., 3] > 0
+            self.assertTrue((sub[mask] == hand[mask]).all(), name)
+            self.assertTrue({tuple(c) for c in hand[mask, :3]} <= ours, name)
+            self.assertEqual(f["head_y"], fist[name]["head_y"], name)
+            _, grab = hs.read_png_sprite(hs.AXE_FD_OUT_DIR / f"{name}.png")
+            self.assertEqual(tuple(grab), tuple(f["offsets"]), name)
+
+    @slow
+    def test_round1_fist_stays_untouched(self):
+        lumps, pal = hs.read_wad()
+        bare, _, _ = hs.freedoom_fist_bare(lumps, pal)
+        for name, f in hs.build_axe_fd("fist", out_dir=None).items():
             spr, (lx, ty) = f["sprite"], f["offsets"]
             fx, fy = f["pose"].fist
             x0, y0 = fx + lx, fy - (hs.WEAPONTOP - ty)
             sub = spr[y0:y0 + bare.shape[0], x0:x0 + bare.shape[1]]
             mask = bare[..., 3] > 0
             self.assertTrue((sub[mask] == bare[mask]).all(), name)
-            _, grab = hs.read_png_sprite(hs.AXE_FD_OUT_DIR / f"{name}.png")
-            self.assertEqual(tuple(grab), tuple(f["offsets"]), name)
 
+    def test_rotsprite_keeps_the_palette_and_the_pivot(self):
+        img = np.zeros((9, 5, 4), np.uint8)
+        img[:, 2] = (200, 100, 50, 255)
+        img[4, :] = (10, 20, 30, 255)
+        out, piv = hs.rotsprite(img, 90.0, 1.0, (2, 4))
+        cols = {tuple(c) for c in out[out[..., 3] > 0][:, :3]}
+        self.assertTrue(cols <= {(200, 100, 50), (10, 20, 30)})
+        self.assertEqual(out.shape[:2], (5, 9))              # a quarter turn swaps the sides
+        self.assertEqual(tuple(out[piv[1], piv[0], :3]), (10, 20, 30))
 
 if __name__ == "__main__":
     unittest.main()

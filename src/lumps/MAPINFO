@@ -117,14 +117,18 @@ skill sd_posthumous
 // into another (ZDoom wiki, MAPINFO/Cluster definition): two maps in one
 // cluster have nothing between them but the stats screen.
 //
-// D60 (2026-10-14): the campaign is MAP01 -> MAP03. The rule, MOD-SPEC 4.6:
+// D62 (2026-10-14): the map slots follow the campaign. The campaign is
+// MAP01 -> MAP02 (the metro) -> MAP03 (the factory, "Tankograd"), and the
+// practice range left the MAPxx sequence for the lump RANGE. The rule,
+// MOD-SPEC 4.6:
 //   cluster 1  the campaign's ENDING; it always holds the campaign's last map
-//              (MAP03 today, MAP04 when the factory is wired)
-//   cluster 2  the practice range's ending (MAP02, D41)
+//              (MAP03, the factory, since D62)
+//   cluster 2  the practice range's ending (RANGE, D41)
 //   cluster 3+ one chapter per earlier campaign map; its exittext is the
-//              transition into the next map (cluster 3 = MAP01 -> MAP03)
+//              transition into the next map (cluster 3 = MAP01 -> MAP02,
+//              cluster 4 = MAP02 -> MAP03)
 // No cluster has an `entertext`: one crossing, one text. That is what keeps
-// the ending from being printed after MAP01 as well as after MAP03.
+// the ending from being printed anywhere but after the last map.
 
 // The campaign's ending, shown when MAP03 is left (MOD-SPEC 4.6).
 cluster 1
@@ -141,7 +145,7 @@ cluster 1
 	music = ""
 }
 
-// The practice range (D41): MAP02 is its own cluster, so leaving it does
+// The practice range (D41): RANGE is its own cluster, so leaving it does
 // not print the campaign's ending, and its text tells the player where the
 // campaign is. Reached by the range's exit switch behind the start (commit
 // d1e891f; MOD-SPEC 4.4). The console `exit` quits GZDoom instead.
@@ -153,10 +157,20 @@ cluster 2
 }
 
 // MAP01's chapter (D60): leaving Zarya-7 down the service lift, into the
-// metro. Shown after MAP01's stats screen and before MAP03 loads.
+// metro. Shown after MAP01's stats screen and before MAP02 loads.
 cluster 3
 {
 	exittext = lookup, "SD_MAP01_EXIT_TEXT"
+	flat = "SDFLR1"
+	music = ""
+}
+
+// MAP02's chapter (D62): out of the metro's westbound tunnel at the goods
+// spur of the tractor works. Shown after MAP02's stats screen and before
+// MAP03 loads.
+cluster 4
+{
+	exittext = lookup, "SD_MAP02_EXIT_TEXT"
 	flat = "SDFLR1"
 	music = ""
 }
@@ -177,7 +191,13 @@ episode MAP01
 // was one; MENUDEF redeclares it as text so Freedoom's M_EPISOD ("Which
 // episode?") is never drawn. Contract: docs/engine/MOD-SPEC.md 4.4; the
 // choice against a main-menu item: docs/engine/adr/007-practice-range-as-a-second-episode.md.
-episode MAP02
+//
+// D62: the range is the lump RANGE, not a MAPxx slot. A map name that is not
+// MAPxx is plain MAPINFO: GZDoom 4.14.2's own mapinfo/doom2bfg.txt opens its
+// second episode the same way (`episode level01`, maps LEVEL01-LEVEL09 in
+// mapinfo/doom2.txt). A non-MAPxx map has no level number, which only
+// Teleport_NewMap and -warp use; neither reaches the range.
+episode RANGE
 {
 	name = "$SD_EP02_NAME"
 	key = "p"
@@ -196,7 +216,8 @@ map MAP01 lookup "SD_MAP01_NAME"
 	// ZDoom's named end sequence for "roll the ending, then go back to the
 	// title screen" (gzdoom 4.14.2, FMapInfoParser::CheckEndSequence,
 	// src/intermission/intermission_parse.cpp:865). D60 (2026-10-14) grows
-	// the campaign: MAP01 now leads into MAP03, and `endtitle` moved there.
+	// the campaign: MAP01 now leads into the metro (MAP02 since D62), and
+	// `endtitle` moved to the campaign's last map, MAP03.
 	//
 	// THE WORDS ARE NOT HERE, AND CANNOT BE. The obvious spelling,
 	//     next = EndGame { Text = "$SD_END01_TEXT" Pic = "TITLEPIC" }
@@ -208,10 +229,10 @@ map MAP01 lookup "SD_MAP01_NAME"
 	// block and the map only says which cluster it is in.
 	//
 	// D60: cluster 3, not 1. Cluster 1 holds the ending and the ending is
-	// MAP03's now; leaving cluster 3 for cluster 1 prints cluster 3's
-	// transition text (SD_MAP01_EXIT_TEXT) and nothing else.
+	// the last map's; leaving cluster 3 for MAP02's cluster 4 prints cluster
+	// 3's transition text (SD_MAP01_EXIT_TEXT) and nothing else.
 	cluster = 3
-	next = "MAP03"
+	next = "MAP02"
 	// D43: our own MAP01 theme, packed from assets/music/D_SDM01.mid. Still
 	// never an IWAD lump: the mod depends on no Freedoom music. Every music
 	// value in this file is "" or a packed lump (tests/test_mapinfo_music.py),
@@ -246,20 +267,36 @@ map MAP01 lookup "SD_MAP01_NAME"
 //   21000-21019  weapons      21020-21039  ammo and items
 //   21100-21199  enemies      21200-21299  decorations
 
-map MAP03 lookup "SD_MAP03_NAME"
+map MAP02 lookup "SD_MAP02_NAME"
 {
-	// The metro-bunker (docs/levels/MAP03-metro.md), the campaign's second
-	// map: numbered 03 because MAP02 is the practice range (D41). D60
-	// (2026-10-14) wires it in: MAP01's exit leads here, through cluster 3's
-	// transition text, and for now MAP03 ENDS THE EPISODE - it is in
-	// cluster 1, so leaving it prints the campaign's ending (SD_END01_TEXT)
-	// and `endtitle` goes back to the title screen. MAP04, the factory, will
-	// take cluster 1 from it (MOD-SPEC 4.6).
-	cluster = 1
-	next = endtitle
+	// The metro-bunker (docs/levels/MAP02-metro.md), the campaign's second
+	// map. Built as MAP03 while MAP02 was the practice range (D41); D62
+	// (2026-10-14) gave it the slot of its place in the campaign. MAP01's
+	// exit leads here through cluster 3's transition text; its own exit
+	// leads to MAP03, the factory, through cluster 4's (MOD-SPEC 4.6).
+	cluster = 4
+	next = "MAP03"
 	music = ""
 	sky1 = "SKY1"
 	par = 300
+}
+
+map MAP03 lookup "SD_MAP03_NAME"
+{
+	// The tractor works that builds tanks, Tankograd (D63; the Russian title
+	// is in LANGUAGE; docs/levels/MAP03-factory.md): the campaign's third
+	// and last map, the episode's climax at the portal. Built as MAP04 (D60), renumbered by
+	// D62. It holds cluster 1, so leaving it - by the breaker that feeds the
+	// portal - prints the campaign's ending (SD_END01_TEXT), and `endtitle`
+	// goes back to the title screen.
+	cluster = 1
+	next = endtitle
+	// No piece for it yet (D59: public-domain works or licence-clean MIDIs).
+	music = ""
+	sky1 = "SKY1"
+	// level-designer's estimate for a player who knows the route
+	// (docs/levels/MAP03-factory.md 3 and 11). Display only.
+	par = 360
 }
 
 DoomEdNums
@@ -292,18 +329,19 @@ DoomEdNums
 	21200 = SD_Radio                // diegetic radio (MOD-SPEC 6.7, ADR 008)
 }
 
-map MAP02 lookup "SD_MAP02_NAME"
+map RANGE lookup "SD_RANGE_NAME"
 {
 	// Built as the engineering test range (F4), to prove every weapon can be
 	// picked up, fired and made to do damage; titled "Training Ground" since
 	// D46 (both languages in LANGUAGE). Shipped as the practice range (D41):
-	// the second episode on New Game, outside the campaign;
-	// `MAP=MAP02 tools/run.sh` still starts it directly.
+	// the second episode on New Game, outside the campaign. It was MAP02
+	// until D62 (2026-10-14) gave the MAPxx slots to the campaign; the lump
+	// is RANGE now, and `MAP=RANGE tools/run.sh` starts it directly.
 	//
 	// It used to say `next = "MAP02"`, which restarted the range - harmless
 	// for a fixture, wrong for something a player chose from a menu. Now the
-	// exit ends the range like MAP01's ends the campaign: cluster 2's text,
-	// then the title screen. No map's `next` names MAP02, so the campaign
+	// exit ends the range like the last map's ends the campaign: cluster 2's text,
+	// then the title screen. No map's `next` names RANGE, so the campaign
 	// can never run into it (tests/test_practice_range.py).
 	cluster = 2
 	next = endtitle

@@ -623,7 +623,7 @@ these sources in the sound licence file once any file ships.
    (taste, stage 4). Recommendation: listen first to `SDHNDSIT` (the
    bestiary's most important sound), the three launches `SDSTOMIS`,
    `SDDGBMIS`, `SDPZRMIS` one after the other, and `SDPZRSTP`; then the
-   in-game pass on MAP02 with the overlay (§5.9), which only the PM can run
+   in-game pass on the practice range (`RANGE`, MAP02 until D62) with the overlay (§5.9), which only the PM can run
    (D26). Cost: about 15 minutes for the page, 10 for the game.
 2. **`KEN-IMP` and the weapons.** The enemy drafts read 17 `KEN-IMP` files
    (§5.9), which D36 authorised. The weapon drafts being written in parallel

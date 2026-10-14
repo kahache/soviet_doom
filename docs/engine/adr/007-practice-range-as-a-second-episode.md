@@ -7,6 +7,12 @@ batched engine pass, D26). Owner: `mod-engineer`.
 text at 20:57, `docs/qa/evidence/2026-10-13_2057_map02-range-and-c12.md`).
 The two items this ADR left to `level-designer` are done in commit
 `d1e891f`. Marked inline below; the original text is kept.
+**Update, 2026-10-14 (D62):** the range is no longer `MAP02`. The MAPxx
+slots now follow the campaign (MAP02 is the metro), and the range is the
+map lump **`RANGE`**: `episode RANGE`, `map RANGE lookup "SD_RANGE_NAME"`,
+`src/maps/RANGE/`, `MAP=RANGE tools/run.sh`. The decision of this ADR (a
+second episode on New Game) is unchanged; read "MAP02" below as `RANGE`.
+Contract: `docs/engine/MOD-SPEC.md` §4.4 and §4.6.
 Russian mirror: owed (D34), at the same path under `docs/ru/`.
 
 Implements D41 (`docs/PRD.md`): "MAP02, the weapons test range, ships in v1
@@ -78,7 +84,7 @@ prefers another.
   player leaves the range through the menu; the cluster text is reached by
   a future exit switch or the `exit` console command.
   - **Done 2026-10-13, commit `d1e891f`:** MAP02 has an `Exit_Normal`
-    switch behind the player start (`docs/levels/MAP02-practice-range.md`
+    switch behind the player start (`docs/levels/RANGE-practice-range.md`
     §4.1), and pressing it shows `SD_END02_TEXT` over `SDFLR1` in the
     engine (P6, 20:57 evidence). **Correction (QA's G3-F2):** the `exit`
     console command does not reach the cluster text; it quits GZDoom (PM,
@@ -99,7 +105,7 @@ prefers another.
   - **Decided 2026-10-13 by `level-designer`, commit `d1e891f`:**
     reachable, on foot, by a manual door (tag 1) in the hall's north wall
     and a bent passage that comes out behind the row
-    (`docs/levels/MAP02-practice-range.md` §4.2). Seen in the engine (P1-P3,
+    (`docs/levels/RANGE-practice-range.md` §4.2). Seen in the engine (P1-P3,
     P5, 20:57 evidence); P4, the door opened from the passage side, is NOT
     VERIFIED in the engine.
 - Whether MAP02's title, "Engineering Test Range", should change now that *(Decided 2026-10-14, D46: "Training Ground" / «Учебный полигон».)*

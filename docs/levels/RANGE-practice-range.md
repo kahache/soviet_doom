@@ -1,7 +1,12 @@
-# MAP02 — the practice range
+# RANGE — the practice range
 
-Design document. Owner: `level-designer`. Source: `src/maps/MAP02/map.py`;
-tests: `tests/test_map02_practice_range.py` (the map) and
+> **D62 (2026-10-14): the map lump is `RANGE`, out of the MAPxx slots**,
+> which follow the campaign (MAP02 is the metro now). The range was
+> `MAP02` until then; dated evidence and the records below keep that name
+> where they quote a run.
+
+Design document. Owner: `level-designer`. Source: `src/maps/RANGE/map.py`;
+tests: `tests/test_range_map.py` (the map) and
 `tests/test_practice_range.py` (`mod-engineer`'s: how MAPINFO and MENUDEF
 reach and leave it). Russian mirror: owed (D34), at the same path under
 `docs/ru/`.
@@ -18,13 +23,13 @@ each enemy, asleep, to meet one at a time.
 
 ## 2. Where it comes from
 
-MAP02 was built in F4 by `mod-engineer` as an engineering fixture (prove
+The range was built in F4 by `mod-engineer` as an engineering fixture (prove
 each weapon can be picked up, fired and made to do damage), and grew a
 bestiary gallery in F5. Neither had a design document: it was a test bench,
 not a level. **D41** (`docs/PRD.md`) ships it to players as a practice
 range, a second episode on New Game (`docs/engine/adr/007-practice-range-as-a-second-episode.md`;
 contract in `docs/engine/MOD-SPEC.md` §4.4). ADR 007 left two things to
-this role: MAP02 had **no exit line**, so a player could leave only through
+this role: the range had **no exit line**, so a player could leave only through
 the menu; and the gallery was **connected to nothing**, reached only with
 the console (`warp 1024 1152`). This document is v1: the range made
 player-facing. What F4 and F5 built is kept as it was.
@@ -127,7 +132,7 @@ the IWAD look (`STARTAN2`, `FLOOR4_8`, `CEIL3_5`, MOD-SPEC §5), the
 `ambush` flag on every target and enemy, the light of both rooms. Every
 thing is on every skill: skill changes what the engine's rungs change
 (damage taken, ammo given), not what is placed. No secrets, no keys.
-`tools/route.py`'s `map02-start` walk (north up x 288 onto the ice axe) is
+`tools/route.py`'s `range-start` walk (north up x 288 onto the ice axe) is
 still one sector from start to pickup.
 
 ## 5. Textures by zone
@@ -145,7 +150,7 @@ No new texture, no new IWAD reference.
 
 ## 6. Tests
 
-`tests/test_map02_practice_range.py`, read back from the generated TEXTMAP:
+`tests/test_range_map.py`, read back from the generated TEXTMAP:
 
 | Test | Claim |
 |---|---|
@@ -162,7 +167,7 @@ No new texture, no new IWAD reference.
 
 ## 7. Engine checklist for the PM (D26: this role does not start GZDoom)
 
-`SD_ALLOW_ENGINE=1 MAP=MAP02 tools/run.sh`, or New Game → "Practice Range".
+`SD_ALLOW_ENGINE=1 MAP=RANGE tools/run.sh`, or New Game → "Practice Range".
 
 | # | Do | What must happen |
 |---|---|---|
@@ -176,8 +181,8 @@ No new texture, no new IWAD reference.
 
 ## 8. For the CEO: a player-facing name
 
-The map's title, `SD_MAP02_NAME` = "Engineering Test Range" / «Инженерный *(Decided 2026-10-14, D46: "Training Ground" / «Учебный полигон».)*
-полигон», is `mod-engineer`'s (MAPINFO and LANGUAGE) and says what MAP02
+The map's title, `SD_MAP02_NAME` (now `SD_RANGE_NAME`) = "Engineering Test Range" / «Инженерный *(Decided 2026-10-14, D46: "Training Ground" / «Учебный полигон».)*
+полигон», is `mod-engineer`'s (MAPINFO and LANGUAGE) and says what the map
 was, not what it is. **Proposed: "Training Ground" / «Учебный полигон».**
 It sits under the episode name "Practice Range" / «Полигон» without
 repeating it, says who the place is for, and the Russian is the plain term

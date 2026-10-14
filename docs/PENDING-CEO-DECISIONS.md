@@ -64,7 +64,7 @@ in palette v1. Two questions from the same sheet are still open
 
 ## Closed since the previous update (for the record)
 
-The ice axe replaces the shovel (D40). MAP02 ships as a practice range (D41). Every music recommendation of SOUNDTRACK §8, accepted (D43). Title screen and intermission (D18). Switch texture: all four variants
+The ice axe replaces the shovel (D40). MAP02 ships as a practice range (D41; the lump `RANGE` since D62). Every music recommendation of SOUNDTRACK §8, accepted (D43). Title screen and intermission (D18). Switch texture: all four variants
 approved and installed (D25). Music model and La Internacional (D23).
 Alphabet C (D24). Difficulty ladder (D20; the "Pyatiletka in one night" swap
 stays an option, not a pending item). Language switch and Cyrillic

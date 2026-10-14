@@ -1,7 +1,8 @@
 # BALANCE — the arsenal in numbers
 
 Owner: `mod-engineer`. Status: **F4, first pass, verified in GZDoom 4.14.2**
-(every weapon fires, consumes ammo and kills in `MAP02`; see §6).
+(every weapon fires, consumes ammo and kills in `MAP02`, the practice range,
+the lump `RANGE` since D62; see §6).
 Since D40 (2026-10-13) slot 1 is the **ice axe** (`SD_IceAxe`), which
 took over the sapper's shovel's numbers unchanged; text below that
 describes what was measured before that date keeps the shovel's name.
@@ -286,7 +287,8 @@ rounds before the first hound), owned by `level-designer`.
 
 ## 6. How this was verified
 
-GZDoom 4.14.2 over Freedoom 0.13.0, map `MAP02` (`MAP=MAP02 tools/run.sh`):
+GZDoom 4.14.2 over Freedoom 0.13.0, map `MAP02` (`MAP=MAP02 tools/run.sh`; the
+practice range, `MAP=RANGE` since D62):
 
 - All seven classes appear in `printinv` and **no Freedoom weapon does** —
   the player owned exactly `SD_Shovel` (now `SD_IceAxe`, D40), `SD_Tokarev`, `SD_Izh`, `SD_Ppsh`,

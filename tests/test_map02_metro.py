@@ -1,4 +1,4 @@
-"""MAP03, the metro-bunker, v0 and v1 (docs/levels/MAP03-metro.md).
+"""MAP02, the metro-bunker, v0 and v1 (docs/levels/MAP02-metro.md).
 
 Owner: `level-designer`. Read back from the generated TEXTMAP, in the style
 of tests/test_map01.py and the MAP01 half of tests/test_udmf.py. v0's
@@ -29,7 +29,7 @@ v1 (design section 16), after the CEO's v0 walk (D58: the pass not found):
   the depths, the closets on the switches' tags, the weapons on the route,
   consumables scaled down, and G3-8's ammunition margin on every skill.
 
-Run:  python3 -m unittest tests.test_map03 -v
+Run:  python3 -m unittest tests.test_map02_metro -v
 """
 
 from __future__ import annotations
@@ -95,9 +95,9 @@ IZH_AVERAGE = 80       # docs/engine/BALANCE.md 2: one barrel
 PPSH_AVERAGE = 8       # one round
 
 
-def _load_map03():
-    path = PROJECT_ROOT / "src" / "maps" / "MAP03" / "map.py"
-    spec = importlib.util.spec_from_file_location("sdmap_MAP03_test", path)
+def _load_map02():
+    path = PROJECT_ROOT / "src" / "maps" / "MAP02" / "map.py"
+    spec = importlib.util.spec_from_file_location("sdmap_MAP02_test", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -107,11 +107,11 @@ def _packed(name: str) -> bool:
     return any(ASSETS.glob(f"textures/*/{name}.png")) or any(ASSETS.glob(f"flats/*/{name}.png"))
 
 
-class Map03Test(unittest.TestCase):
+class Map02Test(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.m = _load_map03()
+        cls.m = _load_map02()
         textmap, cls.plan = cls.m.build_plan()
         cls.blocks = parse_textmap(textmap.render())
         cls.sectors = cls.blocks["sector"]
@@ -868,7 +868,7 @@ class Map03Test(unittest.TestCase):
         self.assertEqual(m.TAG_GATE, m.TAG_TUNNEL_WAVE)
 
     def test_the_weapons_are_on_every_skill_on_the_route(self):
-        """Pistol start (+map MAP03 gives the TT-33 only): the IZh in the
+        """Pistol start (+map MAP02 gives the TT-33 only): the IZh in the
         kassa and the PPSh in the train before any switch, the RPG-7 in the
         armoury before the command post's Panzermensch; none in a secret,
         each once, on every skill."""

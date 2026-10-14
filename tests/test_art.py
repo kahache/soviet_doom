@@ -324,6 +324,13 @@ class ApprovedAssetsTests(unittest.TestCase):
                     any(q.read_bytes() == blob for q in WORK_ART_DIR.rglob("*.png")),
                     f"{p}: matches no file generated under work/")
                 continue
+            if len(sources) > 1 and p.relative_to(ASSETS_DIR).parts[0] == "sprites":
+                # A sweep names every option as it would ship (the pickups,
+                # work/art/pickups/<object>/<A|B>/SDCLA0.png, D63): the
+                # installed lump must be byte-identical to exactly one of them.
+                same = [q for q in sources if q.read_bytes() == p.read_bytes()]
+                self.assertEqual(len(same), 1, f"{p.name}: matches {len(same)} of {sources}")
+                continue
             self.assertEqual(len(sources), 1, f"{p.name}: expected one source in work/, got {sources}")
             self.assertEqual(p.read_bytes(), sources[0].read_bytes(), f"{p} differs from {sources[0]}")
 

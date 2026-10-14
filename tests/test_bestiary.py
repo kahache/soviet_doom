@@ -16,7 +16,7 @@ time:
   and the per-actor counts equal BESTIARY 12's Sounds column;
 - every placeholder sprite frame and sound lump exists in
   iwads/freedoom2.wad (skipped where there is no IWAD, as in CI);
-- the General's summon is wired as D35 says; MAP02's gallery places all.
+- the General's summon is wired as D35 says; RANGE's gallery places all.
 
 Run:  python3 -m unittest tests.test_bestiary -v
 """
@@ -425,10 +425,10 @@ class BestiaryGeneralTest(unittest.TestCase):
         self.assertNotIn("A_Chase", see, "every See frame must check the summon first")
 
 
-class BestiaryMap02Test(unittest.TestCase):
+class BestiaryRangeTest(unittest.TestCase):
     def test_gallery_places_one_of_each_deaf(self):
         import importlib.util
-        spec = importlib.util.spec_from_file_location("map02", SRC / "maps" / "MAP02" / "map.py")
+        spec = importlib.util.spec_from_file_location("sdmap_RANGE", SRC / "maps" / "RANGE" / "map.py")
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         things = module.build_textmap().things

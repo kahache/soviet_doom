@@ -1821,27 +1821,168 @@ def freedoom_fist_bare(lumps: dict, pal: np.ndarray) -> tuple[np.ndarray, tuple[
     return bare, off, (float(edge + AXE_FD_RING_INSET), ry)
 
 
-def axe_fd_frame(gw, pose, fist: np.ndarray, ring, head_y: float):
-    """One frame: our axe behind the fist placed at pose.fist. Returns
-    (rgba, offsets) in the engine's convention."""
-    fx, fy = pose.fist
-    f = gw.render_axe_fd(pose, (fx + ring[0], fy + ring[1]), head_y)
-    x0, y0 = min(f.left, fx), min(f.top, fy)
-    x1 = max(f.left + f.rgba.shape[1], fx + fist.shape[1])
-    y1 = max(f.top + f.rgba.shape[0], fy + fist.shape[0])
+# The CEO on the first sheet: "el piolet tiene sentido, pero el puño que no
+# lo coge no": a punching fist with the shaft poked through it does not
+# hold anything. Freedoom's chainsaw (SAWG) shows no hand at all; the hand
+# that GRIPS something in Freedoom 0.13 is the shotgun's pump hand, SHTG
+# B-D. SHTGD0's (the clearest: thumb and index closed over the top, the
+# fingers curled round) is cut from its gun, toned onto the approved fist's
+# skin values, given a sleeve below the wrist, and turned (RotSprite: three
+# Scale2x passes, a nearest-neighbour turn, one sample per cell) so the
+# shaft runs through it at the angle each frame gives the shaft.
+AXE_GRIP_SOURCE = "SHTGD0"
+AXE_GRIP_MIN_X = 45                   # SHTGD0 columns left of this are the gun's olive highlight, not skin
+AXE_GRIP_AXIS = (78.0, 98.0)          # SHTGD0 px: the column the gun's grip ran up, and the row the shaft is held at
+AXE_GRIP_SCALE = 1.35                 # the pump hand is smaller than the fist; this puts the shaft in its ring
+AXE_GRIP_SLEEVE = (90, 5)             # rows of sleeve added below the wrist, one px wider every N rows
+AXE_GRIP_SLEEVE_LIGHT = 0.35          # across the sleeve, where its light falls (0 left .. 1 right)
+ROTSPRITE_K = 8                       # three Scale2x passes
+
+
+def scale2x(a: np.ndarray) -> np.ndarray:
+    """EPX / Scale2x: twice the size, diagonals kept sharp (no new colour)."""
+    h, w = a.shape[:2]
+    p = np.pad(a, ((1, 1), (1, 1), (0, 0)), mode="edge")
+    A, B, C, D, E = p[:-2, 1:-1], p[1:-1, 2:], p[1:-1, :-2], p[2:, 1:-1], p[1:-1, 1:-1]
+    eq = lambda x, y: (x == y).all(-1)
+    out = np.zeros((2 * h, 2 * w) + a.shape[2:], a.dtype)
+    out[0::2, 0::2] = np.where((eq(C, A) & ~eq(C, D) & ~eq(A, B))[..., None], A, E)
+    out[0::2, 1::2] = np.where((eq(A, B) & ~eq(A, C) & ~eq(B, D))[..., None], B, E)
+    out[1::2, 0::2] = np.where((eq(D, C) & ~eq(D, B) & ~eq(C, A))[..., None], C, E)
+    out[1::2, 1::2] = np.where((eq(B, D) & ~eq(B, A) & ~eq(D, C))[..., None], D, E)
+    return out
+
+
+def rotsprite(rgba: np.ndarray, angle: float, scale: float, pivot) -> tuple[np.ndarray, tuple[int, int]]:
+    """rgba turned `angle` degrees counter-clockwise and scaled about pivot
+    (x, y px), palette colours only. Returns the cropped sprite and where
+    the pivot landed in it."""
+    big = rgba
+    for _ in range(3):
+        big = scale2x(big)
+    k = ROTSPRITE_K
+    h, w = big.shape[:2]
+    pad = max(h, w)
+    canvas = np.zeros((h + 2 * pad, w + 2 * pad, 4), np.uint8)
+    canvas[pad:pad + h, pad:pad + w] = big
+    px, py = pivot[0] * k + pad + k / 2, pivot[1] * k + pad + k / 2
+    rot = np.array(Image.fromarray(canvas).rotate(angle, resample=Image.Resampling.NEAREST, center=(px, py)))
+    step = k / scale
+    H, W = rot.shape[:2]
+    nx0, ny0 = int(px // step), int(py // step)
+    xi = np.clip((px - (nx0 - np.arange(int(W / step))) * step).astype(int), 0, W - 1)
+    yi = np.clip((py - (ny0 - np.arange(int(H / step))) * step).astype(int), 0, H - 1)
+    out = rot[yi][:, xi]
+    a = out[..., 3] > 0
+    r, c = np.flatnonzero(a.any(1)), np.flatnonzero(a.any(0))
+    return out[r[0]:r[-1] + 1, c[0]:c[-1] + 1], (nx0 - int(c[0]), ny0 - int(r[0]))
+
+
+def tone_match(lum: np.ndarray, mask: np.ndarray, ref: np.ndarray, spec) -> np.ndarray:
+    """Freedoom's values onto one of our ramps by rank: each pixel takes the
+    luminance at its percentile among `ref` (equal values share a rank),
+    then the ramp colour nearest to it. The pump hand comes out as light
+    and as contrasted as the approved fist, not just recoloured."""
+    cols = np.array(ramp_cols(spec))
+    col_l = luminance(cols.astype(np.float32))
+    v = lum[mask]
+    _, inv = np.unique(v, return_inverse=True)
+    order = np.empty(len(v))
+    order[np.argsort(v, kind="stable")] = np.arange(len(v))
+    pct = np.bincount(inv, weights=order) / np.bincount(inv) / max(1, len(v) - 1)
+    target = np.quantile(np.sort(ref), pct[inv])
+    return cols[np.argmin(np.abs(target[:, None] - col_l[None, :]), axis=1)]
+
+
+def shtg_grip_hand(lumps: dict, pal: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """SHTGD0's hand without its gun, toned like R3-A2's skin, with a sleeve
+    added below the wrist (a seam row, then military_green shaded as a
+    cylinder, widening). Returns (rgba in SHTGD0's orientation, the mask of
+    SHTGD0's own hand pixels)."""
+    src, _ = decode_patch(lumps[AXE_GRIP_SOURCE], pal)
+    rgb = src[..., :3].astype(int)
+    alpha = src[..., 3] > 0
+    sat = rgb.max(-1) - rgb.min(-1)
+    warm = alpha & (rgb[..., 0] > rgb[..., 2] + 12) & (sat >= 20)
+    h, w = alpha.shape
+    hand = np.zeros_like(alpha)
+    for y in range(h):                     # the hand: from its first warm pixel to the right, gun pixels out
+        xs = np.flatnonzero(warm[y, AXE_GRIP_MIN_X:])
+        if xs.size:
+            x0 = AXE_GRIP_MIN_X + int(xs[0])
+            hand[y, x0:] = alpha[y, x0:]
+    fist, _, _ = freedoom_fist_bare(lumps, pal)
+    skin_cols = np.array(ramp_cols(R3_SKIN), np.uint8)
+    f_skin = (fist[..., 3] > 0) & (fist[..., None, :3] == skin_cols[None, None]).all(-1).any(-1)
+    ref = luminance(fist[..., :3].astype(np.float32))[f_skin]
+    rows, grow = AXE_GRIP_SLEEVE
+    out = np.zeros((h + rows, w + rows // grow + 2, 4), np.uint8)
+    top = out[:h, :w]
+    top[hand, :3] = tone_match(luminance(src[..., :3].astype(np.float32)), hand, ref, R3_SKIN)
+    top[hand, 3] = 255
+    green = ramp_cols(R3_SLEEVE)
+    last = np.flatnonzero(hand[h - 1])
+    x0, x1 = int(last[0]), int(last[-1])
+    for k in range(rows):
+        g = k // grow
+        lo, hi = x0 - g // 2, x1 + 1 + g - g // 2
+        for x in range(max(0, lo), min(out.shape[1], hi)):
+            t = (x - lo + 0.5) / max(1, hi - lo)
+            if k <= 1:
+                col = ramp_cols(R3_SKIN)[0]           # the seam between hand and sleeve
+            elif x in (lo, hi - 1):
+                col = green[0]
+            else:
+                shade = 0.25 + 0.75 * max(0.0, math.cos((t - AXE_GRIP_SLEEVE_LIGHT) * math.pi * 1.1))
+                col = green[int(round(shade * (len(green) - 2)))]
+            out[h + k, x, :3] = col
+            out[h + k, x, 3] = 255
+    return out, hand
+
+
+def axe_grip_xy(pose, ring) -> tuple[float, float]:
+    """Where the shaft is held, weapon px: round 1's fist ring, kept so the
+    axe stands exactly where round 1 put it, whichever hand holds it."""
+    return pose.fist[0] + ring[0], pose.fist[1] + ring[1]
+
+
+def axe_fd_frame(gw, pose, ring, hand: np.ndarray, hand_xy, head_y: float):
+    """One frame: our axe, then a hand sprite on top at hand_xy (weapon px).
+    Returns (rgba, offsets) in the engine's convention."""
+    f = gw.render_axe_fd(pose, axe_grip_xy(pose, ring), head_y)
+    hx, hy = hand_xy
+    x0, y0 = min(f.left, hx), min(f.top, hy)
+    x1 = max(f.left + f.rgba.shape[1], hx + hand.shape[1])
+    y1 = max(f.top + f.rgba.shape[0], hy + hand.shape[0])
     canvas = np.zeros((y1 - y0, x1 - x0, 4), np.uint8)
-    for layer, (lx, ly) in ((f.rgba, (f.left, f.top)), (fist, (fx, fy))):
+    for layer, (lx, ly) in ((f.rgba, (f.left, f.top)), (hand, (hx, hy))):
         sub = canvas[ly - y0:ly - y0 + layer.shape[0], lx - x0:lx - x0 + layer.shape[1]]
         m = layer[..., 3] > 0
         sub[m] = layer[m]
     return canvas, (-x0, WEAPONTOP - y0)
 
 
-def build_axe_fd() -> dict:
-    """The held frames the .zs plays, written with grAb; returns them."""
+def axe_hand_placer(lumps: dict, pal: np.ndarray, hand: str):
+    """(placer, ring): placer(pose) -> (hand sprite, its top-left) for one
+    hand: "fist" (R3-A2, round 1) or "grip" (SHTGD0, turned per frame)."""
+    fist, _, ring = freedoom_fist_bare(lumps, pal)
+    if hand == "fist":
+        return (lambda pose: (fist, pose.fist)), ring
+    base, _ = shtg_grip_hand(lumps, pal)
+
+    def place_grip(pose):
+        rot, piv = rotsprite(base, 90.0 - pose.angle, AXE_GRIP_SCALE, AXE_GRIP_AXIS)
+        gx, gy = axe_grip_xy(pose, ring)
+        return rot, (int(round(gx - piv[0])), int(round(gy - piv[1])))
+    return place_grip, ring
+
+
+def build_axe_fd(hand: str = "grip", out_dir: Path | None = AXE_FD_OUT_DIR) -> dict:
+    """The held frames the .zs plays; written with grAb to out_dir (None:
+    not written). hand: "grip" (SHTGD0, the candidate) or "fist" (R3-A2)."""
     gw = _gw()
     lumps, pal = read_wad()
-    fist, _, ring = freedoom_fist_bare(lumps, pal)
+    placer, ring = axe_hand_placer(lumps, pal, hand)
     letters = zs_held_letters(AXE_FD_ZS, AXE_FD_PLACEHOLDER)
     poses = {p.frame: p for p in gw.AXE_FD_POSES}
     missing = set(letters) - set(poses)
@@ -1850,63 +1991,78 @@ def build_axe_fd() -> dict:
     frames = {}
     for letter in letters:
         pose = poses[letter]
+        sprite, xy = placer(pose)
         head_y = pose.head_y
         if head_y is None:               # frame A: the head's height that puts the top on PISG's
             lo, hi = 0.0, float(SCREEN_H)
             for _ in range(20):
                 mid = (lo + hi) / 2
-                rgba, off = axe_fd_frame(gw, pose, fist, ring, mid)
+                rgba, off = axe_fd_frame(gw, pose, ring, sprite, xy, mid)
                 if measure(rgba, off)["top"] < TT_TARGET_TOP:
                     lo = mid
                 else:
                     hi = mid
             head_y = round((lo + hi) / 2, 2)
-        rgba, off = axe_fd_frame(gw, pose, fist, ring, head_y)
-        frames[f"{AXE_FD_SPRITE}{letter}0"] = {"sprite": rgba, "offsets": off, "pose": pose, "head_y": head_y}
+        rgba, off = axe_fd_frame(gw, pose, ring, sprite, xy, head_y)
+        frames[f"{AXE_FD_SPRITE}{letter}0"] = {"sprite": rgba, "offsets": off, "pose": pose, "head_y": head_y,
+                                               "hand": sprite, "hand_xy": xy}
+    if out_dir is None:
+        return frames
+    hands = {"grip": f"freedoom-{AXE_GRIP_SOURCE}-grip", "fist": "freedoom-R3A2"}[hand]
     meta = {"_state_machine": {"file": "src/zscript/weapons/ice_axe.zs", "held_placeholder": AXE_FD_PLACEHOLDER,
-                               "held_letters": letters, "hand": "E", "hands": "freedoom-R3A2"},
-            "_view": "gen_weapon.render_axe_fd behind the fist R3-A2 (Freedoom PUNGC0, recoloured)",
-            "_target_top": TT_TARGET_TOP}
+                               "held_letters": letters, "hand": "E", "hands": hands},
+            "_view": f"gen_weapon.render_axe_fd, the hand on top ({hands})", "_target_top": TT_TARGET_TOP}
     for name, f in frames.items():
-        write_sprite(AXE_FD_OUT_DIR / f"{name}.png", f["sprite"], f["offsets"])
+        write_sprite(out_dir / f"{name}.png", f["sprite"], f["offsets"])
         m = measure(f["sprite"], f["offsets"])
         meta[name] = {"size": [f["sprite"].shape[1], f["sprite"].shape[0]], "offsets": list(f["offsets"]),
                       "height_above_bar": m["height"], "bbox_bar_on": m["bbox"], "pose": f["pose"].name,
-                      "head_y": f["head_y"]}
-    (AXE_FD_OUT_DIR / "metrics.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+                      "head_y": f["head_y"], "hand_turn_deg": round(90.0 - f["pose"].angle, 1)}
+    (out_dir / "metrics.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
     return frames
 
 
 def build_axe_fd_sheet(stamp: str) -> Path:
-    """The ice axe's own sheet (D63: one weapon, one sheet, PM-gated)."""
+    """The ice axe's sheet, round 2: the hand that grips (SHTGD0) against
+    round 1's fist, frame by frame (D63: one weapon, one sheet)."""
     lumps, pal = read_wad()
     bg = map01_backdrop()
-    frames = build_axe_fd()
+    frames = build_axe_fd("grip")
+    before = build_axe_fd("fist", out_dir=None)
     pisg, pisg_off = decode_patch(lumps["PISGA0"], pal)
     p_m = measure(pisg, pisg_off)
-    old_path = ROOT / "work" / "art" / "weapons" / "ice_axe" / "SDAXA0.png"
+    shtg, _ = decode_patch(lumps[AXE_GRIP_SOURCE], pal)
+    base, _ = shtg_grip_hand(lumps, pal)
     pad, gap = 24, 16
     f_t, f_b, f_s = font(26), font(16), font(14)
-    W = 2200
-    sheet = Image.new("RGB", (W, 3200), SHEET_BG)
+    W = 2400
+    sheet = Image.new("RGB", (W, 4000), SHEET_BG)
     d = ImageDraw.Draw(sheet)
-    d.text((pad, 14), "N4 / D63, weapon 1 of 6: the ice axe in Freedoom's fist (R3-A2)", font=f_t, fill=INK)
+    d.text((pad, 14), "N4 / D63, weapon 1 of 6, round 2: the ice axe in a hand that grips it", font=f_t, fill=INK)
     a = frames[f"{AXE_FD_SPRITE}A0"]
     a_m = measure(a["sprite"], a["offsets"])
     y = wrap(d, (pad, 56), (
-        f"Held frames {AXE_FD_SPRITE} {''.join(sorted(n[4] for n in frames))} for ice_axe.zs (it plays PUNG A at "
-        f"rest and PUNG B C D C B for the blow, so B wound up, C the blow coming down, D the pick in). The fist is "
-        f"the approved R3-A2 (Freedoom 0.13 PUNGC0, BSD-3, recoloured; its grey grip end removed), unchanged "
-        f"pixel for pixel and only moved; the axe is ours (gen_weapon.render_axe_fd: the approved D48 axe's head, "
-        f"pick and adze, ash shaft), its shaft leaving the fist through the ring of thumb and index. Frame A is "
-        f"LOWERED as the scale study asked: the raised D48 axe stood 128 px above the bar; A now stands "
-        f"{a_m['height']} px, PISGA0 {p_m['height']} px (D57 band {round(p_m['height'] * 0.9)}-"
-        f"{round(p_m['height'] * 1.1)}), its centre at x {(a_m['bbox'][0] + a_m['bbox'][2]) / 2:.0f} (screen "
-        f"centre 160). Written with grAb offsets to work/art/weapons_fd/ice_axe/. Each frame at 1x, 2x and a 4x "
-        f"crop on MAP01 (status bar on), beside Freedoom's PUNG frame of the same letter at the same place."),
-        f_s, INK, W - 2 * pad)
+        "CEO on round 1: the axe makes sense, the fist does not hold it. Freedoom's chainsaw (SAWG A-D) has no "
+        f"hand in it, only the saw, so the hand here is Freedoom's shotgun pump hand {AXE_GRIP_SOURCE} (Freedoom "
+        "0.13, BSD-3), the one Freedoom hand that closes round something: cut from its gun, toned onto the "
+        "approved fist's skin values (rank matching, so it is as light and as contrasted as R3-A2), a "
+        f"military_green sleeve added below its wrist, scaled x{AXE_GRIP_SCALE} and turned per frame (RotSprite) "
+        "so the shaft runs up through the ring of thumb and index at the angle the shaft has in that frame: "
+        "thumb and index close over the shaft, the fingers wrap round its far side. Kept from round 1: the axe "
+        "(head, pick, adze, ash shaft), its place in every frame, the frame letters (SDAX "
+        f"{''.join(sorted(n[4] for n in frames))} for PUNG in ice_axe.zs) and the heights: A stands "
+        f"{a_m['height']} px above the bar, PISGA0 {p_m['height']} px (D57 band {round(p_m['height'] * 0.9)}-"
+        f"{round(p_m['height'] * 1.1)}). Written with grAb offsets to work/art/weapons_fd/ice_axe/ (round 1's "
+        "fist frames are replaced there; hand_study.build_axe_fd('fist') rebuilds them)."), f_s, INK, W - 2 * pad)
     y += 8
-    # the swing as the player sees it, at 1x
+    d.text((pad, y), f"The Freedoom source, {AXE_GRIP_SOURCE}, unchanged (3x), and the hand cut from it, toned and "
+           "sleeved, before any turn (3x)", font=f_b, fill=GOLD)
+    y += 24
+    s_img = zoom(neutral(shtg, [0, 0, shtg.shape[1], shtg.shape[0]]), 3)
+    sheet.paste(s_img, (pad, y))
+    b_img = zoom(neutral(base, [0, 0, base.shape[1], base.shape[0]]), 3)
+    sheet.paste(b_img, (pad + s_img.width + gap, y))
+    y += max(s_img.height, b_img.height) + 26
     d.text((pad, y), "The blow as the .zs plays it, 1x: A (rest), B, C, D, C, B", font=f_b, fill=GOLD)
     y += 24
     x = pad
@@ -1919,42 +2075,40 @@ def build_axe_fd_sheet(stamp: str) -> Path:
         x += SCREEN_W + 8
     y += SCREEN_H + 30
     for name, f in sorted(frames.items()):
-        letter = name[4]
-        ref, ref_off = decode_patch(lumps[f"{AXE_FD_PLACEHOLDER}{letter}0"], pal)
         scr = draw_on_screen(bg, f["sprite"], f["offsets"])
+        old_scr = draw_on_screen(bg, before[name]["sprite"], before[name]["offsets"])
         m = measure(f["sprite"], f["offsets"])
+        turn = 90.0 - f["pose"].angle
         d.text((pad, y), f"{name} ({f['pose'].name}): {m['height']} px above the bar, x {m['bbox'][0]}-"
-               f"{m['bbox'][2]}", font=f_b, fill=GOLD)
+               f"{m['bbox'][2]}; the hand turned {turn:.0f} deg", font=f_b, fill=GOLD)
         y += 24
         x = pad
         sheet.paste(zoom(scr, 1), (x, y))
+        d.text((x, y + SCREEN_H + 2), "now, 1x", font=f_s, fill=DIM)
         x += SCREEN_W + gap
         sheet.paste(zoom(scr, 2), (x, y))
+        d.text((x, y + 2 * SCREEN_H + 2), "now, 2x", font=f_s, fill=DIM)
         x += 2 * SCREEN_W + gap
-        cx0 = int(np.clip((m["bbox"][0] + m["bbox"][2]) // 2 - 70, 0, SCREEN_W - 140))
-        cy0 = int(np.clip(m["bbox"][1] - 6, 0, VIEW_H - 100))
-        crop = zoom(scr[cy0:cy0 + 100, cx0:cx0 + 140], 4)
+        hx, hy = f["hand_xy"]
+        cx0 = int(np.clip(hx - 12, 0, SCREEN_W - 110))
+        cy0 = int(np.clip(hy - 12, 0, VIEW_H - 90))
+        crop = zoom(scr[cy0:cy0 + 90, cx0:cx0 + 110], 4)
         sheet.paste(crop, (x, y))
-        d.text((x, y + crop.height + 2), "4x crop", font=f_s, fill=DIM)
+        d.text((x, y + crop.height + 2), "now, 4x on the hand", font=f_s, fill=DIM)
         x += crop.width + gap
-        sheet.paste(zoom(draw_on_screen(bg, ref, ref_off), 1), (x, y))
-        d.text((x, y + SCREEN_H + 2), f"Freedoom {AXE_FD_PLACEHOLDER}{letter}0, 1x", font=f_s, fill=DIM)
-        y += max(2 * SCREEN_H, crop.height) + 30
-    if old_path.is_file():
-        old, old_off = read_png_sprite(old_path)
-        d.text((pad, y), "Before (D48 draft, hand E, raised): SDAXA0 "
-               f"{measure(old, old_off)['height']} px above the bar", font=f_b, fill=DIM)
-        y += 24
-        sheet.paste(zoom(draw_on_screen(bg, old, old_off), 1), (pad, y))
-        sheet.paste(zoom(draw_on_screen(bg, a["sprite"], a["offsets"]), 1), (pad + SCREEN_W + gap, y))
-        d.text((pad + SCREEN_W + gap, y + SCREEN_H + 2), "now", font=f_s, fill=DIM)
-        y += SCREEN_H + 30
+        sheet.paste(zoom(old_scr, 1), (x, y))
+        d.text((x, y + SCREEN_H + 2), "before (round 1, fist R3-A2), 1x", font=f_s, fill=DIM)
+        hand_img = zoom(neutral(f["hand"], [0, 0, f["hand"].shape[1], f["hand"].shape[0]]), 1)
+        sheet.paste(hand_img, (x, y + SCREEN_H + 24))
+        d.text((x + hand_img.width + 8, y + SCREEN_H + 24), f"{AXE_GRIP_SOURCE} hand,", font=f_s, fill=DIM)
+        d.text((x + hand_img.width + 8, y + SCREEN_H + 42), f"turned {turn:.0f} deg, 1x", font=f_s, fill=DIM)
+        y += max(2 * SCREEN_H + 20, crop.height + 20, SCREEN_H + 24 + hand_img.height) + 24
     y = wrap(d, (pad, y), (
-        "Licence: the fist's pixels are Freedoom's (PUNGC0, Freedoom 0.13.0, BSD-3-Clause, Copyright (c) "
-        "2001-2024 Contributors to the Freedoom project), recoloured to palette v2 flesh_pink and military_green; "
-        "credited as for R3-A1/R3-A2. The axe is our own render. No pixel of a commercial game."),
-        f_s, DIM, W - 2 * pad)
-    path = PREVIEW_DIR / f"{stamp}_F4_ice-axe-on-freedoom-fist.png"
+        f"Licence: the hand's pixels are Freedoom's ({AXE_GRIP_SOURCE}, Freedoom 0.13.0, BSD-3-Clause, Copyright "
+        "(c) 2001-2024 Contributors to the Freedoom project), cut from the gun, toned to palette v2 flesh_pink, "
+        "rescaled and turned; the sleeve below the wrist and the axe are ours. Credited with R3-A1/R3-A2. No pixel "
+        "of a commercial game."), f_s, DIM, W - 2 * pad)
+    path = PREVIEW_DIR / f"{stamp}_F4_ice-axe-gripping-hand.png"
     sheet.crop((0, 0, W, y + 10)).save(path, optimize=True)
     return path
 
