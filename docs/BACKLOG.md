@@ -23,7 +23,6 @@ get better.
 | N12c | M2 | Install the General (SDGN/SDGL) + engine pass | mod-engineer | 200 | D73 |
 | N14-2 | M2 | Ice axe right-handed (D73) + shaft and head polish, cells C1/C3/C4 again | art-director | 100 | D73 |
 | A1 | M2 | Audit: every Freedoom sprite, texture, HUD piece and sound the player still meets | qa-engineer | 80 | CEO, 2026-10-14 |
-| A2 | M2 | Fooocus prompts for the other 5 weapons (Spanish, for the CEO) | art-director | 20 | CEO, 2026-10-14 |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
 ## Next (approved order, D63)
@@ -62,6 +61,8 @@ the Fooocus hand images, sounds and music to hear.
 | **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
+
+A2: Fooocus prompt sheet for the 5 weapons `docs/product/2026-10-14_2356_M2_fooocus-prompts-armas.md` (Spanish, prompts in English; Method B = our/Freedoom frames as input; 6 required images); inputs in `work/art/reference/doom_inputs/`. **Real 213k** (est. 20k: the Method B inputs were added mid-task).
 
 A3: listening sheet `docs/art/previews/2026-10-14_2355_M3_listening-sheet.html` (80 rows + 3 optional; music rendered with GZDoom's own zmusic, the first audible renders of four pieces). **Real 232k** (est. 60k).
 
