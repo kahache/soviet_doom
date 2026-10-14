@@ -11,7 +11,7 @@ Previews are sent to you as files; the paths are under `docs/art/previews/`.
 
 | What | Preview | Asks [PM's recommendation] |
 |---|---|---|
-| The General CD turnaround (D71) | `2026-10-14_2224_F5_general-CD-turnaround.html` | approve -> full set (~500k) |
+| The General CD full set (D72) | coming | approve -> install |
 | Hands for the other weapons | Fooocus, your images in `work/art/reference/` | the ice axe first; the PM processes them like the Lenin poster |
 
 ## 2. Waiting for your ears
