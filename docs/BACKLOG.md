@@ -20,6 +20,7 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
+| N14-4 | M2 | Ice axe final ready frame in colour (D76: L1.7 H1.8, L1.0 shaft width) | art-director | 40 | D76 |
 | N9w | M3 | Install the 25 weapon sounds approved in D74 with a loudness pass; SNDINFO and hooks; engine pass | sound-designer + mod-engineer | 250 | D74 |
 | G9 | M4 | LICENSE.md and CREDITS.txt for the player: no repo-only paths, drop the unused OTEX credit (RU half at N11); ship `LICENSE-FREEDOOM-BSD-3.txt` (D75, hash pinned); the AI-reference line in the credits (D75) | mod-engineer | 40 | — |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
