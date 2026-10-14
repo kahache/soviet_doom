@@ -1,4 +1,5 @@
-"""Contract of tools/art/gen_general.py (F5, backlog N12: the General's design sweep).
+"""Contract of tools/art/gen_general.py (F5, backlog N12: the General's design
+sweep, D71's CD turnaround and D72's full set: see the classes' docstrings).
 
 Cheap tests (no rendering, always run):
 
@@ -290,6 +291,154 @@ class RenderTests(unittest.TestCase):
 
     def test_seed(self):
         np.testing.assert_array_equal(self.g.render(self.g.RECOMMENDED, "A", 1), self.front)
+
+
+# ---------------------------------------------------------------- the full set (D72)
+@unittest.skipUnless(HAVE_IMAGING, "needs numpy and Pillow")
+class FullSetContractTests(unittest.TestCase):
+    """D72: CD's full set. The letters come from general.zs (Summon's
+    borrowed E F become Q R, as the file says); 81 SDGN lumps, 5 SDGL."""
+
+    @classmethod
+    def setUpClass(cls):
+        import gen_general
+        cls.g = gen_general
+
+    def test_frames_come_from_the_zs(self):
+        g = self.g
+        zs = g.GENERAL_ZS.read_text(encoding="utf-8")
+        self.assertIn("final art: SDGN Q", zs)            # the Summon swap the plan applies
+        self.assertIn("final art: SDGN R", zs)
+        self.assertEqual(g.full_frames(), ("ABCDEFGQR", "HIJKLMNOP"))
+        self.assertNotIn("XDeath", g.zs_states())          # no gib
+        plan = g.full_plan()
+        self.assertEqual(len(plan), 81)
+        names = [g.full_lump(f, r) for f, r in plan]
+        self.assertEqual(len(set(names)), 81)
+        self.assertTrue(all(len(x) <= 8 for x in names))
+        rotated, death = g.full_frames()
+        for f in rotated:                                  # handed: 8 drawn rotations, no mirrored pairs
+            self.assertEqual(sorted(r for h, r in plan if h == f), list(range(1, 9)))
+        for f in death:
+            self.assertEqual([r for h, r in plan if h == f], [0])
+        self.assertEqual(set(g.FULL_POSES), set(rotated))
+        self.assertEqual(set(g.FALLS), set(death))
+        self.assertEqual(g.zs_states()["Summon"], [("Q", 15), ("R", 15)])
+
+    def test_shell_has_its_own_sprite(self):
+        g = self.g
+        zs = g.SHELL_ZS.read_text(encoding="utf-8")
+        st = g.hound.zs_states(g.SHELL_ZS)
+        self.assertEqual(len(st["Spawn"]), 2)              # A B in flight
+        self.assertEqual(len(st["Death"]), 3)              # the burst: SDGL C D E
+        self.assertIn("RenderStyle \"Add\"", zs)
+        self.assertEqual(g.SHELL_FRAMES, "ABCDE")
+        self.assertEqual(g.core.grab_offsets(g.SHELL_CV), (g.SHELL_CV.w // 2, g.SHELL_CV.h // 2))
+
+    def test_sprite_names_are_free(self):
+        """SDGN and SDGL are the General's in the docs and nobody else's; in
+        assets/ a lump of that name can only be this set's own render."""
+        g = self.g
+        for name in (g.SPRITE, g.SHELL_SPRITE):
+            self.assertTrue(re.fullmatch(r"SD[A-Z]{2}", name))
+            reserved = set()
+            for doc in ("docs/engine/BESTIARY.md", "docs/engine/MOD-SPEC.md"):
+                for line in (PROJECT_ROOT / doc).read_text(encoding="utf-8").splitlines():
+                    if "General" not in line and name not in line:
+                        reserved |= set(re.findall(r"\bSD[A-Z]{2}\b", line))
+            self.assertNotIn(name, reserved)
+            for png in (PROJECT_ROOT / "assets").rglob(f"{name}*.png"):
+                ours = g.FULL_DIR / name / png.name
+                self.assertTrue(ours.is_file(), png)
+                self.assertEqual(png.read_bytes(), ours.read_bytes(), png)
+
+    def test_full_poses_keep_the_approved_ones(self):
+        g = self.g
+        self.assertIs(g.FULL_POSES["A"], g.POSES["A"])     # the turnaround's A and F, as approved
+        self.assertIs(g.FULL_POSES["F"], g.POSES["F"])
+        self.assertFalse(g.FULL_POSES["E"].fire)
+        for f in "BCDEGQR":
+            self.assertFalse(g.FULL_POSES[f].fire, f)
+            self.assertFalse(g.FULL_POSES[f].no_cap, f)
+
+    def test_blood_is_dark_red(self):
+        g = self.g
+        for name in ("blood", "pool"):
+            m = g.GN_FULL_MATERIALS[name]
+            self.assertEqual(m.ramps, {"flag_red"})
+            self.assertTrue(m.flat)
+            self.assertLessEqual(max(s[2] for s in m.spans if s[0] == "flag_red"), 5)
+        for name in g.GN_BLOOD:
+            self.assertFalse(g.GN_FULL_MATERIALS[name].ramps & g.FORBIDDEN_RAMPS)
+
+    def test_the_dead_are_built_to_lie(self):
+        g = self.g
+        for f in "KLMNOP":                                 # down: the cloak spread, the coat collapsed
+            pose = g.FALLS[f].pose
+            self.assertTrue(pose.spread and pose.coat_flat and pose.no_cap and pose.no_sgun, f)
+            self.assertEqual(g.FALLS[f].cap, "floor")
+            self.assertEqual(g.FALLS[f].gun, "floor")
+        self.assertEqual(g.FALLS["P"].settle, g.SETTLE_ALL)
+        self.assertEqual(g.FALLS["P"].pool, 1.0)
+
+
+@slow
+@unittest.skipUnless(HAVE_IMAGING, "needs numpy and Pillow")
+class FullSetRenderTests(unittest.TestCase):
+    """D72, rendered: the corpse lies flat; no living frame shows the cloak
+    from the front; the lumps on disk are palette v2 with their grAb, and
+    the approved turnaround's views are its pixels."""
+
+    @classmethod
+    def setUpClass(cls):
+        import gen_general as g
+        cls.g = g
+        cls.corpse = g.corpse_metrics("P")
+
+    def test_corpse_lies_flat(self):
+        g, c = self.g, self.corpse
+        for part, y in c["lowest"].items():
+            self.assertLessEqual(abs(y), g.LYING_MAX, part)
+        self.assertLess(c["top"], g.LYING_TOP)
+        self.assertGreaterEqual(c["span"], g.LYING_SPAN)
+        self.assertGreater(c["across"], 0.9)               # lying across the screen
+        self.assertLess(c["loose_top"], 14.0)              # the cap and the gun lie, nothing stands up
+        self.assertGreater(c["loose_lowest"], -0.5)
+
+    def test_no_cloak_from_the_front(self):
+        g = self.g
+        for f in g.full_frames()[0]:
+            prims = g.full_prims(f)
+            lay = g.render_full_layers(f, 1, prims)
+            self.assertEqual(g.cloak_pixels(lay, prims[0]), 0, f)
+
+    def test_shell(self):
+        g = self.g
+        v2 = set(g.heavy.palette_v2())
+        for f in g.SHELL_FRAMES:
+            rgba = g.render_shell(f)
+            a = rgba[..., 3] > 0
+            self.assertTrue(a.any(), f)
+            self.assertTrue({tuple(int(v) for v in p) for p in rgba[..., :3][a]} <= v2, f)
+        np.testing.assert_array_equal(g.render_shell("A"), g.render_shell("A"))
+
+    def test_lumps_on_disk(self):
+        g = self.g
+        d = g.FULL_DIR / g.SPRITE
+        if not (d / "SDGNA1.png").is_file():
+            self.skipTest("the full set is not rendered on this machine (work/ is gitignored)")
+        v2 = set(g.heavy.palette_v2())
+        for f, r in g.full_plan():
+            path = d / f"{g.full_lump(f, r)}.png"
+            rgba = np.asarray(Image.open(path).convert("RGBA"))
+            self.assertTrue(set(np.unique(rgba[..., 3])) <= {0, 255}, path)
+            a = rgba[..., 3] > 0
+            self.assertTrue({tuple(int(v) for v in p) for p in rgba[..., :3][a]} <= v2, path)
+            self.assertEqual(g.core.read_grab(path), g.grab() if f in g.FULL_POSES else
+                             g.core.grab_offsets(g.DEATH_CV), path)
+        spr = g.load_full()
+        ident = g.full_identity(spr)
+        self.assertTrue(all(v is not False for v in ident.values()), ident)
 
 
 if __name__ == "__main__":
