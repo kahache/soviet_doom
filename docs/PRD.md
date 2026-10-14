@@ -1,7 +1,7 @@
 # Soviet Doom — Product Requirements Document
 
 Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
-Last update: 2026-10-14 (D25-D59).
+Last update: 2026-10-14 (D25-D60).
 
 ## 1. Vision
 
@@ -93,6 +93,7 @@ until D16 brought it into scope on 2026-10-13.)
 | D57 | 2026-10-14 | **First-person weapon scale: each weapon at its Doom counterpart's height ±10 %** (`docs/art/previews/2026-10-14_1836_F4_weapon-scale-vs-doom.png`): "ahora la proporción es correcta", **but further left**: "quedan muy a la derecha". Horizontal placement follows the Doom counterpart's centre too. **Hands: H2 is the base** (Doom-style 2D), corrected before any weapon is redrawn: the forearm must taper naturally ("el brazo como un puto palo") and the hand body must be bigger relative to the fingers. Hands are validated alone, round by round. | ratified (CEO) |
 | D58 | 2026-10-14 | **MAP03 v0 walked by the CEO: "me gusta de momento"**, but the blue pass was not found (the CEO used `idclip` to pass the blue door): the pass needs signposting in v1. **Hands, round 3:** base H2c, but the forearm is still "un palo larguísimo" with "una longaniza dentro", and every round-2 thumb is worse than round 1's. The CEO asks to take as much as possible from Doom/Blood: the PM answers that id's and Monolith's pixels cannot be copied (commercial games), but **Freedoom's first-person hands are BSD-licensed and drawn in Doom's own manner**, so round 3 tries one variant built on Freedoom's hand pixels (credited) next to our own redraw with Doom's framing (a short, foreshortened forearm entering from the bottom edge) and round 1's thumb. | ratified (CEO) |
 | D59 | 2026-10-14 | **No more composing or sequencing music.** "No generes música. Son muchísimos tokens y ya tenemos obras libres de copyright y relacionadas con la temática." Music comes from the public-domain works already chosen (SOUNDTRACK, MUSIC-RIGHTS); where a piece is needed as MIDI, a licence-clean MIDI of that work may be **downloaded** (provenance and SHA-256 recorded) instead of sequenced by us. The MAP03 music draft was stopped before it wrote anything. | ratified (CEO) |
+| D60 | 2026-10-14 | **MVP first, gameplay later** (the CEO, "instrucción importantísima"): build a complete, playable game first; balance, hostile passes and other gameplay polish come after. G3's hostile pass (C10) is deferred to the end. **The campaign grows:** amends D5, MAP01 now leads into MAP03, the metro-bunker, with a transition text in both languages; MAP04, the factory, is designed next. In-game Russian review happens only when a delivery has passed the pipeline, never mid-delivery. | ratified (CEO) |
 | D15 | 2026-10-09 | Licence of the mod: **GPL-3.0** for code (`tools/`, `src/zscript/`, scripts) and **CC BY-NC-SA 4.0** for assets and docs (textures, sprites, maps, sounds, lore). Non-commercial is required anyway by OTEX's terms. Full texts added at F6; `LICENSE.md` states it now. | decided by the PM on CEO delegation |
 
 ## 6. Phases and gates
