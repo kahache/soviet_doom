@@ -11,19 +11,7 @@ Previews are sent to you as files; the paths are under `docs/art/previews/`.
 
 | What | Preview | Asks [PM's recommendation] |
 |---|---|---|
-| Ice axe, right-handed (D73) | coming | pick C1 / C3 / C4 |
-
-## 1b. Release decisions (G6 review, `docs/qa/2026-10-14_2356_G6-readiness.md`)
-
-- **Freedoom's BSD notice** must ship once Freedoom-derived hands are packed: allow downloading Freedoom's `COPYING` text (from its GitHub release) [yes].
-- **AI disclosure:** the ice-axe hand comes from your Fooocus/SDXL images; do the credits say "AI-assisted reference" [yes, one line]?
-- **The Impact font** in the text-bearing posters: accept the risk [recommended: re-rendering only reproduces on the Mac] or re-render.
-- **Russian docs mirror:** before v1 (RELEASE.md row 6) or after the MVP (ROADMAP P3) [after, P3].
-
-## 1c. M2 scope (audit `docs/qa/2026-10-14_2357_M2-freedoom-audit.md`)
-
-- Do the **player's own projectiles, bullet puffs, blood shape, teleport fog, barrels and lamp** count for M2 [yes, one effects batch, ~350k]?
-- Do the **status bar, the face, the stats screen and Freedoom's help screens** belong to M2 or to M4 [M4, just before shipping]?
+| Ice axe silhouettes (D75) | coming | pick a shaft length and head size |
 
 ## 2. Waiting for your ears
 
@@ -50,6 +38,8 @@ nothing else waits on them.
 Nothing else open here since D69.
 
 ## Closed since the previous update (for the record)
+
+D75 (2026-10-15): ice axe hand C3; Freedoom's notice downloaded; AI line in the credits; Impact accepted; Russian docs after the MVP; M2 includes the player's effects, the HUD goes to M4. D74: the first 30 weapon sounds judged.
 
 D70 (2026-10-14): M1 passed, the CEO walked the campaign; the Doughboy with the bigger flag approved. D69 (2026-10-14): the licence texts may be downloaded (done by the PM); the Lenin slogan closes as shipped («ЛЕНИН ЖИВ»); mining Freedoom's maps waits for the full-game phase; Ultimate Doom Builder is of interest (backlog N15). D44-D68 (2026-10-14): the Stalin poster 4C «СЛАВА СТАЛИНУ!» in the metro's secret shelter; the hound, rifleman, Stormtrooper, Legion, Panzermensch and Schwer installed; palette v2 for the mosaic and marble; Freedoom-based hands (D61) and the TT-33 in them; the map renumbering (D62); roadmap and backlog (D63); pipeline stage 6 (D64); the 21 Tankograd textures (D66); Tankograd's secret, damage and reward (D68). Details in `docs/PRD.md`.
 
