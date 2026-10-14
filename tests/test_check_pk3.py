@@ -612,13 +612,25 @@ class StateSpriteTest(CheckPk3TestCase):
         self.assertFails(self.run_check(self.entries_with_actor()), "sprites", "MOD-SPEC 5")
 
     def test_real_spec_declares_every_sprite_the_mod_uses(self):
-        """The live MOD-SPEC 5.1 against the live ZScript tree."""
+        """The live MOD-SPEC 5.1 against the live ZScript tree. Our own
+        sprites (assets/sprites/, D48) are packed, so they need no 5.1 row."""
+        declared = check_pk3.iwad_sprites_from_spec(check_pk3.DEFAULT_SPEC)
+        ours = {p.stem.upper()[:check_pk3.SPRITE_NAME_LEN]
+                for p in (PROJECT_ROOT / "assets" / "sprites").rglob("*.png")}
+        used: set[str] = set()
+        for path in sorted((PROJECT_ROOT / "src" / "zscript").rglob("*.zs")):
+            used |= {name for name, _ in check_pk3.zscript_state_sprites(path.read_text(encoding="utf-8"))}
+        missing = sorted(used - declared - ours - check_pk3.ENGINE_SPRITES)
+        self.assertEqual([], missing, "sprites used by ZScript states but neither in MOD-SPEC 5.1 "
+                                      "nor under assets/sprites/")
+
+    def test_real_spec_declares_no_sprite_the_mod_no_longer_uses(self):
+        """A 5.1 row nobody names is stale: the D48 pickups were retired."""
         declared = check_pk3.iwad_sprites_from_spec(check_pk3.DEFAULT_SPEC)
         used: set[str] = set()
         for path in sorted((PROJECT_ROOT / "src" / "zscript").rglob("*.zs")):
             used |= {name for name, _ in check_pk3.zscript_state_sprites(path.read_text(encoding="utf-8"))}
-        missing = sorted(used - declared - check_pk3.ENGINE_SPRITES)
-        self.assertEqual([], missing, "sprites used by ZScript states but not in MOD-SPEC 5.1")
+        self.assertEqual([], sorted(declared - used), "MOD-SPEC 5.1 rows no state uses")
 
 
 # --- 7. Licences -----------------------------------------------------------

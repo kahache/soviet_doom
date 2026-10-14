@@ -12,8 +12,11 @@
 // engine to hand out this class wherever the game would have given a Fist,
 // so Freedoom's melee weapon never shows up.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: PUNG (held) and CSAW (pickup).
-// Final lumps to be drawn by art-director: SDAX A-E (held), SDAP A (pickup).
+// Sprites. The world pickup is ours since D48 (2026-10-14); the held and
+// flash frames stay Freedoom (IWAD) PLACEHOLDERS until the hand is redrawn
+// (the CEO found hand E deformed in MAP01, 2026-10-14). MOD-SPEC 5.1, 6.3.
+// Held: PUNG A-D (final SDAX A-E). Pickup: SDAP A, option C, upright as in
+// a rack (assets/sprites/ice_axe/; was CSAW, Freedoom's chainsaw).
 // Names: docs/engine/MOD-SPEC.md section 6, "Slot 1 since D40".
 // Balance rationale: docs/engine/BALANCE.md.
 
@@ -69,11 +72,10 @@ class SD_IceAxe : Fist replaces Fist
 	Spawn:
 		// Pickup sprite. The ice axe is not in the start inventory
 		// (SD_Player): it is found, on MAP01's dorm rack and on MAP02's range
-		// (editor number 21001, MAPINFO DoomEdNums). CSAW is Freedoom's
-		// chainsaw, a placeholder until art-director draws SDAP; the CEO
-		// took it for a chainsaw, and no IWAD sprite reads better
-		// (MOD-SPEC 6.3).
-		CSAW A -1;
+		// (editor number 21001, MAPINFO DoomEdNums). SDAP A, option C, since
+		// D48; until then it wore Freedoom's chainsaw pickup, which the CEO
+		// took for a chainsaw (MOD-SPEC 6.3).
+		SDAP A -1;
 		Stop;
 	}
 

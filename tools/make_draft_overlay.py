@@ -9,14 +9,23 @@
 
     SD_ALLOW_ENGINE=1 tools/run.sh -file work/overlays/sd-draft-sprites.pk3
 
-Why. The CEO judges art by looking and maps in GZDoom. The first-person
-weapons (hand E) and the Reich rifleman's 3D rig are drafted in `work/art/`
-and wait at his gate; the art-director's advice is "approve by judging them
+Why. The CEO judges art by looking and maps in GZDoom. Drafts wait at his
+gate in `work/art/`; the art-director's advice is "approve by judging them
 in GZDoom". Approving means renaming the actors' states to our own sprite
-names (`SDTT`, `SDRR`, ...) and moving the PNGs into `assets/`; this tool
+names (`SDRR`, `SDHK`, ...) and moving the PNGs into `assets/`; this tool
 does neither. It packs a SEPARATE PK3, loaded after the mod, that carries
 our drafts under the names of the Freedoom placeholders our states use
-today (`PISG`, `POSS`, ...). GZDoom resolves a sprite by lump name and the
+today (`POSS`, `BFGG`, ...).
+
+What is installed, and so never overlaid. D48 (2026-10-14) installed the
+world pickups of six weapons (ice axe option C, TT-33, IZh-58, PPSh-41,
+RPG-7, ROKS-3): their Spawn states name `SDAP`, `SDTP`, `SDIP`, `SDPQ`,
+`SDRP`, `SDKP` and the PNGs ship from `assets/sprites/` (INSTALLED). The
+held and flash frames were held back the same day (the CEO found hand E
+deformed in MAP01) and stay drafts here, with the hand Katyusha and the
+Reich rifleman's rig. A swap whose sprite is already under
+`assets/sprites/` is skipped with a note, so an approval is never shadowed
+by its own draft. GZDoom resolves a sprite by lump name and the
 last-loaded file wins, so the drafts show up with no ZScript at all, and
 removing `-file ...overlay...` from the command line puts Freedoom back.
 
@@ -24,6 +33,7 @@ What it reads (never writes):
   src/zscript/weapons/*.zs, src/zscript/monsters/reich_rifleman.zs
                         the frame letters each placeholder sprite is used
                         with in a States block
+  assets/sprites/       which of our sprites are installed (never overlaid)
   work/art/weapons/<weapon>/   SD.. A0-style HUD frames, flash, pickup
                         (`*_proposed.png` and `variants/` are skipped: a
                         proposal no state shows is not wired)
@@ -64,6 +74,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ZS_ROOT = PROJECT_ROOT / "src" / "zscript"
+SPRITES_DIR = PROJECT_ROOT / "assets" / "sprites"
 WEAPONS_DIR = PROJECT_ROOT / "work" / "art" / "weapons"
 RIG_DIR = PROJECT_ROOT / "work" / "art" / "enemies" / "rig"
 OUT_DIR = PROJECT_ROOT / "work" / "overlays"
@@ -90,31 +101,40 @@ class Swap:
     draft: str          # our reserved name (MOD-SPEC 6.3)
 
 
-# The correspondence placeholder -> our name. It is MOD-SPEC 6.3's table and
-# gen_weapon.py's WeaponSpec (ph_held/ph_flash/ph_pickup) side by side;
-# tests/test_draft_overlay.py holds all three equal.
+# The correspondence placeholder -> our name for the drafts still waiting
+# at the CEO's gate. It is MOD-SPEC 6.3's table and gen_weapon.py's
+# WeaponSpec (ph_held/ph_flash/ph_pickup) side by side;
+# tests/test_draft_overlay.py holds them equal.
 SWAPS: tuple[Swap, ...] = (
     Swap("weapons", "ice_axe", "weapons/ice_axe.zs", "PUNG", "SDAX"),
-    Swap("weapons", "ice_axe", "weapons/ice_axe.zs", "CSAW", "SDAP"),
     Swap("weapons", "tt33", "weapons/tokarev.zs", "PISG", "SDTT"),
     Swap("weapons", "tt33", "weapons/tokarev.zs", "PISF", "SDTF"),
-    Swap("weapons", "tt33", "weapons/tokarev.zs", "PIST", "SDTP"),
     Swap("weapons", "izh", "weapons/izh.zs", "SHTG", "SDIZ"),
     Swap("weapons", "izh", "weapons/izh.zs", "SHTF", "SDIF"),
-    Swap("weapons", "izh", "weapons/izh.zs", "SHOT", "SDIP"),
     Swap("weapons", "ppsh", "weapons/ppsh.zs", "CHGG", "SDPP"),
     Swap("weapons", "ppsh", "weapons/ppsh.zs", "CHGF", "SDPF"),
-    Swap("weapons", "ppsh", "weapons/ppsh.zs", "MGUN", "SDPQ"),
     Swap("weapons", "rpg7", "weapons/rpg7.zs", "MISG", "SDRL"),
     Swap("weapons", "rpg7", "weapons/rpg7.zs", "MISF", "SDRF"),
-    Swap("weapons", "rpg7", "weapons/rpg7.zs", "LAUN", "SDRP"),
     Swap("weapons", "roks3", "weapons/roks3.zs", "PLSG", "SDRK"),
     Swap("weapons", "roks3", "weapons/roks3.zs", "PLSF", "SDKF"),
-    Swap("weapons", "roks3", "weapons/roks3.zs", "PLAS", "SDKP"),
     Swap("weapons", "katyusha", "weapons/katyusha.zs", "BFGG", "SDHK"),
     Swap("weapons", "katyusha", "weapons/katyusha.zs", "BFGF", "SDHF"),
     Swap("weapons", "katyusha", "weapons/katyusha.zs", "BFUG", "SDHP"),
     Swap("rifleman", "", "monsters/reich_rifleman.zs", "POSS", "SDRR"),
+)
+
+
+# Approved and installed (D48, 2026-10-14): the Spawn states name our
+# pickups and the PNGs ship from assets/sprites/, so the overlay carries
+# none of them. (placeholder it replaced, our name), for the record and the
+# tests; the held and flash frames are NOT here (hand E held back, D48).
+INSTALLED: tuple[tuple[str, str], ...] = (
+    ("CSAW", "SDAP"),    # ice axe, pickup option C
+    ("PIST", "SDTP"),    # TT-33
+    ("SHOT", "SDIP"),    # IZh-58
+    ("MGUN", "SDPQ"),    # PPSh-41
+    ("LAUN", "SDRP"),    # RPG-7
+    ("PLAS", "SDKP"),    # ROKS-3
 )
 
 
@@ -226,13 +246,26 @@ def weapon_folder(weapons_dir: Path, item: str, hand: str, plan: Plan) -> Path:
 
 
 # --------------------------------------------------------------------- plan
+def installed_sprites(sprites_dir: Path = SPRITES_DIR) -> set[str]:
+    """The four-letter names of the sprites approved into assets/sprites/."""
+    if not sprites_dir.is_dir():
+        return set()
+    return {p.stem[:4].upper() for p in sprites_dir.rglob("*.png")}
+
+
 def plan_overlay(only: str = "all", hand: str = DEFAULT_HAND, weapons_dir: Path = WEAPONS_DIR,
-                 rig_dir: Path = RIG_DIR, zs_root: Path = ZS_ROOT) -> Plan:
+                 rig_dir: Path = RIG_DIR, zs_root: Path = ZS_ROOT,
+                 sprites_dir: Path = SPRITES_DIR) -> Plan:
     groups = GROUPS if only == "all" else (only,)
     plan = Plan()
     zs_cache: dict[str, str] = {}
+    installed = installed_sprites(sprites_dir)
     for swap in SWAPS:
         if swap.group not in groups:
+            continue
+        if swap.draft in installed:
+            plan.notes.append(f"{swap.draft}: approved and installed under {_rel(sprites_dir)}; "
+                              f"not overlaid on {swap.placeholder}")
             continue
         if swap.zs not in zs_cache:
             zs_cache[swap.zs] = (zs_root / swap.zs).read_text(encoding="utf-8")
@@ -401,6 +434,8 @@ def main(argv=None) -> int:
     ap.add_argument("--out", type=Path, help="output PK3 (default work/overlays/sd-draft-*.pk3)")
     ap.add_argument("--weapons-dir", type=Path, default=WEAPONS_DIR)
     ap.add_argument("--rig-dir", type=Path, default=RIG_DIR)
+    ap.add_argument("--sprites-dir", type=Path, default=SPRITES_DIR,
+                    help="the installed sprites, never overlaid (default assets/sprites)")
     ap.add_argument("--iwad", type=Path, default=IWAD,
                     help="IWAD for the rotation check (skipped when absent)")
     ap.add_argument("--dry-run", action="store_true", help="print the plan, write nothing")
@@ -410,7 +445,8 @@ def main(argv=None) -> int:
     out = args.out or default_out(args.only, args.hand)
     try:
         guard_out(out)
-        plan = plan_overlay(args.only, args.hand, args.weapons_dir, args.rig_dir)
+        plan = plan_overlay(args.only, args.hand, args.weapons_dir, args.rig_dir,
+                            sprites_dir=args.sprites_dir)
         iwad = args.iwad if args.iwad and args.iwad.is_file() else None
         if iwad:
             check_against_iwad(plan, iwad_sprites(iwad))

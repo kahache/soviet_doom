@@ -33,6 +33,11 @@ SEEN IN THE ENGINE** (D26), and its editor number 21200 waits for the PM's
 (§4, the episode name kept: §4.4), and the credits carry "A fan project,
 not affiliated with id Software" in the team block (§6.8); both are
 `LANGUAGE` text, **not yet seen in the engine** (D26).
+**D48, 2026-10-14: the first sprites of our own ship.** The world pickups of
+six weapons (`SDAP`, `SDTP`, `SDIP`, `SDPQ`, `SDRP`, `SDKP`) are packed from
+`assets/sprites/` and named by the weapons' `Spawn` states (§6.3, "Installed
+since D48"); the held and flash frames stay Freedoom's, the hand being
+redrawn. **NOT YET SEEN IN THE ENGINE** (D26).
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -85,7 +90,9 @@ sovietdoom.pk3
 ├── music/D_SDM01.mid        MAP01's music, ours (D43, §4.5)
 ├── music/D_SDRAD1.mid       diegetic radio: «Эй, ухнем», Gerloff's CC0 sequence (D43, §6.7)
 ├── music/D_SDRAD2.mid       diegetic radio: «Колокольчик», Gerloff's CC0 sequence (D43, §6.7)
-├── sprites/  sounds/  patches/  hires/   standard folders, empty today (T1)
+├── sprites/SD*.png          our sprites (D48): the six weapon pickups SDAPA0, SDTPA0, SDIPA0,
+│                           SDPQA0, SDRPA0, SDKPA0 (§6.3); everything else is still the IWAD's (§5.1)
+├── sounds/  patches/  hires/   standard folders, empty today (T1)
 ├── ANIMDEFS                switch pairs SDSW1x -> SDSW2x (§4.3)
 └── (future) TEXTURES, GLDEFS — and no CVARINFO, by decision (ADR 004)
 ```
@@ -122,6 +129,7 @@ assets/   (CEO-approved art only; `work/` is gitignored and never ships)
 ├── <folder>/<set>/NAME.png → <folder>/NAME.png   the set folder is DROPPED
 │     e.g. assets/textures/soviet_base/SDCONC1.png → textures/SDCONC1.png
 │          assets/graphics/shell/TITLEPIC.png      → graphics/TITLEPIC.png
+│          assets/sprites/tt33/SDTPA0.png          → sprites/SDTPA0.png   (the set is the weapon)
 └── fonts/<fontname>/*      → fonts/<fontname>/*   kept whole: the folder IS the font
 ```
 
@@ -453,26 +461,29 @@ bestiary uses were checked against `iwads/freedoom2.wad` 0.13.0 by
 `TNT1` (the engine's invisible sprite) and the `####` / `----` "keep the
 previous sprite" markers are the engine's and need no row.
 
+**Retired 2026-10-14 (D48):** `CSAW`, `PIST`, `SHOT`, `MGUN`, `LAUN` and
+`PLAS`, the pickups of the ice axe, TT-33, IZh-58, PPSh-41, RPG-7 and
+ROKS-3. Our weapons' `Spawn` states name our own pickups now (§6.3). Doom's
+own classes that use those lumps (Freedoom's `Chainsaw`, `Shotgun`,
+`Chaingun`, `RocketLauncher`, `PlasmaRifle`) are untouched: the swap is a
+rename inside our states, not a replacement of the IWAD lump, so nothing
+else changes picture. `BFUG` (the Katyusha's pickup) and every held and
+flash sprite in the table remain.
+
 | Name | Type | Used by | Verification |
 |---|---|---|---|
 | `PUNG` | sprite | `SD_IceAxe` (held) | engine pass F4, 2026-10-12 (as `SD_Shovel`) |
-| `CSAW` | sprite | `SD_IceAxe` (pickup); **reads as a chainsaw**, see §6.3 | idem |
 | `PISG` | sprite | `SD_Tokarev` (held) | idem |
 | `PISF` | sprite | `SD_Tokarev` (flash) | idem |
-| `PIST` | sprite | `SD_Tokarev` (pickup) | idem |
 | `SHTG` | sprite | `SD_Izh` (held) | idem |
 | `SHTF` | sprite | `SD_Izh` (flash) | idem |
-| `SHOT` | sprite | `SD_Izh` (pickup) | idem |
 | `CHGG` | sprite | `SD_Ppsh` (held) | idem |
 | `CHGF` | sprite | `SD_Ppsh` (flash) | idem |
-| `MGUN` | sprite | `SD_Ppsh` (pickup) | idem |
 | `MISG` | sprite | `SD_Rpg7` (held) | idem |
 | `MISF` | sprite | `SD_Rpg7` (flash) | idem |
-| `LAUN` | sprite | `SD_Rpg7` (pickup) | idem |
 | `MISL` | sprite | `SD_Pg7Grenade`, `SD_KatyushaRocket`; burst of `SD_GeneralShell` | idem; bestiary frames B–D in the IWAD (test) |
 | `PLSG` | sprite | `SD_Roks3` (held) | engine pass F4 |
 | `PLSF` | sprite | `SD_Roks3` (flash) | idem |
-| `PLAS` | sprite | `SD_Roks3` (pickup) | idem |
 | `PLSS` | sprite | `SD_FlameBlob` | idem |
 | `PLSE` | sprite | `SD_FlameBlob` (impact) | idem |
 | `BFGG` | sprite | `SD_HandKatyusha` (held) | idem |
@@ -709,6 +720,32 @@ Frame counts follow the Doom weapon each one replaces, so the existing state
 machines need no edit when the art lands — only the four-letter name in
 each state line.
 
+**Installed since D48 (2026-10-14): the world pickups only.** The CEO
+approved hand E and six weapons as drawn, then, after playing MAP01 with the
+draft overlay (§6.9) the same day, found the hand deformed: the held and
+flash frames, which show it, wait for the hands to be redrawn. What ships:
+
+| Weapon | Pickup lump | File | `Spawn` state (was) |
+|---|---|---|---|
+| Ice axe | `SDAPA0`, option C "upright, as in a rack" | `assets/sprites/ice_axe/SDAPA0.png` | `SDAP A -1` (`CSAW A -1`) |
+| TT-33 | `SDTPA0` | `assets/sprites/tt33/SDTPA0.png` | `SDTP A -1` (`PIST A -1`) |
+| IZh-58 | `SDIPA0` | `assets/sprites/izh/SDIPA0.png` | `SDIP A -1` (`SHOT A -1`) |
+| PPSh-41 | `SDPQA0` | `assets/sprites/ppsh/SDPQA0.png` | `SDPQ A -1` (`MGUN A -1`) |
+| RPG-7 | `SDRPA0` | `assets/sprites/rpg7/SDRPA0.png` | `SDRP A -1` (`LAUN A -1`) |
+| ROKS-3 | `SDKPA0` | `assets/sprites/roks3/SDKPA0.png` | `SDKP A -1` (`PLAS A -1`) |
+
+Each PNG is byte-identical to its render in `work/art/weapons/<weapon>/`
+(`gen_weapon.py`, hand E), RGBA, with its `grAb` offsets inside the file
+(about `left = width / 2`, `top` = the floor line, as the IWAD's pickups);
+the build drops the set folder, so the engine sees `sprites/SDAPA0.png`.
+Only the sprite name changed: frame letter, tics and every other state line
+are as before, held by `tests/test_weapon_sprites.py` against the state
+machines as they stood before D48. Not installed: every held and flash
+frame (`SDAX`, `SDTT`/`SDTF`, `SDIZ`/`SDIF`, `SDPP`/`SDPF`, `SDRL`/`SDRF`,
+`SDRK`/`SDKF`), the hand Katyusha (`SDHK`/`SDHF`/`SDHP`, to be redrawn,
+D48), the RPG-7's `_proposed` reload frames (`SDRL` C-D) and the
+projectiles. Licence rows: `docs/art/LICENSES.md`, "Weapon pickups".
+
 **The bestiary (F5).** Reserved names, the frames the art must provide, and
 the Freedoom placeholder each class wears today (declared in §5.1). The
 frame layouts are Doom's, so the swap is a rename; the two exceptions are
@@ -748,7 +785,7 @@ and standing on the floor).
 | Slot | Placeholder in use | What the CEO sees | Reality |
 |---|---|---|---|
 | 1, held | `PUNG` A–D (96×46 / 256×32) | "the sleeve is the same colour as the fist" | It **is** a bare fist: Freedoom's punch sprite, no sleeve, no blade. Replaced by `SDAX` A–E (D40). |
-| 1, pickup | `CSAW` A | a chainsaw on the floor | It **is** Freedoom's chainsaw pickup, and the CEO took it for one. Kept on purpose until `SDAP` A exists: every one of the 140 sprite prefixes in `freedoom2.wad` 0.13.0 was rendered on 2026-10-13 and none is a hand tool. The nearest candidates read worse: `PSTR` (berserk pack) promises a power-up, `PIST` a second pistol, `MEDI` health. A chainsaw at least says "melee weapon", and the pickup line names the ice axe. |
+| 1, pickup | `CSAW` A (**until D48**; `SDAP` A since 2026-10-14) | a chainsaw on the floor | It **was** Freedoom's chainsaw pickup, and the CEO took it for one. Kept on purpose until `SDAP` A existed: every one of the 140 sprite prefixes in `freedoom2.wad` 0.13.0 was rendered on 2026-10-13 and none is a hand tool. The nearest candidates read worse: `PSTR` (berserk pack) promises a power-up, `PIST` a second pistol, `MEDI` health. A chainsaw at least says "melee weapon", and the pickup line names the ice axe. |
 | ammo | `CLIP` 7×12, `AMMO` 17×16, `SHEL` 14×10, `SBOX` 34×13, `ROCK` 10×24, `BROK` 52×20, `CELL` 19×12, `CELP` 32×20, `BPAK` 26×30 | "the ammunition has no three-dimensional look" | Confirmed: Freedoom's own pickup art, flat and lightly shaded. Nothing to fix in code. Soviet crates are art debt **T8**. |
 
 The ammo pickups are the only IWAD sprites the mod now *owns the class of*
@@ -996,6 +1033,13 @@ play with sprites that are drawn but not approved. It is not part of the mod:
 nothing in it enters `assets/`, `src/` or `dist/`, and the mod's states keep
 naming the Freedoom placeholders of §5.1.
 
+**What it no longer carries (D48, 2026-10-14).** The six weapon pickups
+installed by D48 (§6.3) are out: their placeholders are no longer named by
+any state, and the tool skips any swap whose sprite already sits under
+`assets/sprites/` (`INSTALLED` in the tool lists the six). It still carries
+the held and flash frames of all seven weapons (hand E, held back by the
+CEO), the hand Katyusha's pickup and the Reich rifleman.
+
 ```sh
 .venv/Scripts/python.exe tools/make_draft_overlay.py      # → work/overlays/sd-draft-sprites.pk3 (+ .txt manifest)
 SD_ALLOW_ENGINE=1 tools/run.sh -file work/overlays/sd-draft-sprites.pk3   # MAP01 with the drafts on
@@ -1014,8 +1058,10 @@ to `sprites/<PLACEHOLDER><frame><rotation>.png`: `SDTTA0` → `PISGA0`,
 `SDRRA1` → `POSSA1`, and so on through the pairs of §6.3. A draft no state
 shows is not packed (today `SDAXE0`, `SDPFB0`, `SDKFB0`, the `_proposed`
 frames and the Katyusha's `variants/`); a frame with no draft keeps the
-IWAD's. The 2026-10-13 overlay is 107 sprite lumps: 37 weapon frames (all
-seven weapons, hand E, pickups included) and the rifleman's 70.
+IWAD's. The 2026-10-13 overlay was 107 sprite lumps: 37 weapon frames (all
+seven weapons, hand E, pickups included) and the rifleman's 70. Since D48
+it is 101: 31 weapon frames (held and flash of the seven, the Katyusha's
+pickup) and the rifleman's 70.
 
 **Sprite resolution across files** (why a partial frame is refused):
 
@@ -1084,7 +1130,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 
 | # | Debt | Pay it in |
 |---|---|---|
-| T1 | Every weapon sprite and sound is a Freedoom placeholder (§6.2, §6.3). | F4, once `art-director` and `sound-designer` deliver |
+| T1 | Every weapon sprite and sound is a Freedoom placeholder (§6.2, §6.3). **Partly paid 2026-10-14 (D48):** the six world pickups are ours (§6.3, "Installed since D48"). Open: every held and flash frame (the hand is being redrawn), the hand Katyusha whole, the projectiles, and every weapon sound. | F4, once `art-director` redraws the hands and `sound-designer`'s sounds pass the CEO |
 | ~~T2~~ | ~~Ammo pickups still read as Freedoom items.~~ **Paid 2026-10-13** (commit `720acd1`): §6.4. |  |
 | T3 | `Player.DisplayName` is a plain English literal, not a `LANGUAGE` lookup — unverified whether that property resolves `$IDs`. | F5 |
 | T4 | Freedoom's `Chainsaw` and `SuperShotgun` classes still exist; only their editor numbers were removed. | F6, if it ever matters |
@@ -1093,7 +1139,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | T7 | No `CVARINFO` yet; nothing in the arsenal is player-tunable. | when a gameplay option needs it |
 | T8 | Ammo and backpack pickups are Freedoom sprites: flat, not Soviet crates (§6.3). | F5/F6 with the rest of the pickup art |
 | ~~T9~~ | ~~No Cyrillic in the game's font.~~ **Paid 2026-10-13 by D24** (font install `32b384e`, warning removed in `401a02e`): `fonts/defsmallfont/` and `fonts/bigfont/`, 214 glyphs (§2, §6.4). The player-facing warning it carried (`SD_OPTMNU_LANGWARN`, "Cyrillic is not drawn yet") is deleted from `LANGUAGE` and `MENUDEF`. |  |
-| T10 | The slot-1 swing is silent (§6.2), and the ice axe's pickup is Freedoom's chainsaw (§6.3). | F4, when `sound-designer` delivers `SDAXSWG` and `art-director` `SDAP` |
+| T10 | The slot-1 swing is silent (§6.2). ~~The ice axe's pickup is Freedoom's chainsaw~~: **paid 2026-10-14**, `SDAP` A option C (D48, §6.3). | F4, when `sound-designer` delivers `SDAXSWG` |
 | T11 | `AMMO`/`HEALTH`/`ARMS`/`ARMOR` are pixels in the IWAD's `STBAR` (§6.5). Parked in `docs/ICEBOX.md` until F6. | F6, with the HUD art (was blocked on T9; unblocked since D24) |
 | T12 | **Mostly paid 2026-10-13 by D31 (commits `7ff8c5a`, `22567d9`); the CEO walked it on screen and approved the text menu the same day (D32, commit `f3cc523`).** The main menu's items and the skill screen's header are text in `SDMENU` (§6.6); `M_NGAME`, `M_OPTION`, `M_LOADG`, `M_SAVEG`, `M_RDTHIS`, `M_QUITG`, `M_NEWG` and `M_SKILL` are no longer named by `MENUDEF`. **Still Freedoom's:** the skull cursor `M_SKULL1`/`M_SKULL2` (Doom's `DEFAULTLISTMENU` selector), the pause sign `M_PAUSE` (Doom's pause graphic; not yet looked at on screen in this mod), and ~~`M_EPISOD`~~, which the engine would draw once the mod has a second episode: D41 gave it one, and the redeclared `EpisodeMenu` draws a text header instead (§4.4, §6.6). Engine-drawn text (load/save captions, message boxes, the options screens) uses fonts, not Freedoom's pictures. | `art-director` (cursor, pause sign) with the rest of the shell; treatment C, painted per-language menu graphics, is parked by the CEO (D31) |
 | T13 | `MENUDEF` names `OptionsMenuSimple`, and `AddOptionMenu` on a name the engine does not define is a **hard parse error**. If a GZDoom upgrade drops the simple options menu, the lump stops loading until that block goes. | at the next engine upgrade |

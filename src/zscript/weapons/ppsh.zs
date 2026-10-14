@@ -5,8 +5,11 @@
 // runs at 35 tics per second, so 3 tics per round (700 rpm) is the closest
 // honest value that does not make slot 4 outclass everything after it.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: CHGG (held), CHGF (flash),
-// MGUN (pickup). Final lumps: SDPP A-B, SDPF A-B, SDPQ A.
+// Sprites. The world pickup is ours since D48 (2026-10-14); the held and
+// flash frames stay Freedoom (IWAD) PLACEHOLDERS until the hand is redrawn
+// (the CEO found hand E deformed in MAP01, 2026-10-14). MOD-SPEC 5.1, 6.3.
+// Held CHGG (final SDPP A-B), flash CHGF (final SDPF A-B). Pickup: SDPQ A
+// (assets/sprites/ppsh/; was MGUN).
 // Balance rationale: docs/engine/BALANCE.md.
 
 class SD_Ppsh : Chaingun replaces Chaingun
@@ -57,7 +60,7 @@ class SD_Ppsh : Chaingun replaces Chaingun
 		CHGF A 3 Bright A_Light1;
 		Goto LightDone;
 	Spawn:
-		MGUN A -1;
+		SDPQ A -1;
 		Stop;
 	}
 }

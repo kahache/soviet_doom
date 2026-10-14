@@ -269,7 +269,9 @@ class ArsenalContractTests(unittest.TestCase):
     def test_placeholders_are_the_state_machines(self):
         for key, spec in self.g.WEAPONS.items():
             text = (PROJECT_ROOT / "src" / "zscript" / "weapons" / spec.zs).read_text(encoding="utf-8")
-            self.assertRegex(text, rf"\n\s*{spec.ph_pickup} A -1", key)
+            # the placeholder, or our own pickup once installed (D48: TT-33,
+            # IZh-58, RPG-7, ROKS-3; the Katyusha still wears BFUG)
+            self.assertRegex(text, rf"\n\s*({spec.ph_pickup}|{spec.pickup}) A -1", key)
 
     def test_proposals_are_marked(self):
         for key, poses in self.g.WEAPON_POSES.items():

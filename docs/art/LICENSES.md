@@ -240,3 +240,32 @@ phonogram and sequencing, each with its source — is owned by
 | `D_SDM01` | MAP01 loop "Zarya-7" | original composition, `tools/audio/gen_music.py` (sound-designer, 2026-10-13) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
 | `D_SDRAD1` | diegetic radio (`SD_Radio`, MOD-SPEC §6.7): «Эй, ухнем» / *Ey, ukhnem* (Volga Boatmen), Balakirev's setting, pub. 1866 | sequenced by **Peter Gerloff** (Commons: *Rabanus Flavus*, 2021), Wikimedia Commons `File:Ej,_uchnem!.mid`; installed by `mod-engineer` 2026-10-13 byte-identical to `work/audio/candidates/WM_Ej_uchnem.mid` (`D_CND09`), unedited | composition public domain (RU and US); sequencing CC0 1.0 (`{{self\|Cc-zero}}`) — no obligation; Gerloff credited as a courtesy |
 | `D_SDRAD2` | diegetic radio (`SD_Radio`, MOD-SPEC §6.7): «Колокольчик» / *Kolokolchik*, Russian traditional | sequenced by **Peter Gerloff** (2019), Wikimedia Commons `File:Kolokolchik.mid`; installed by `mod-engineer` 2026-10-13 byte-identical to `work/audio/candidates/WM_Kolokolchik.mid` (`D_CND12`), unedited | composition public domain (RU and US); sequencing CC0 1.0 (`{{self\|Cc-zero}}`) — no obligation; Gerloff credited as a courtesy |
+
+## Weapon pickups (F4, approved by the CEO 2026-10-14, D48)
+
+CEO verdict (D48): the ice axe with pickup **C**, the PPSh-41, and "Resto del
+arsenal: OK" for the TT-33, IZh-58, RPG-7 and ROKS-3. Only the **world
+pickups** are installed: after playing MAP01 with the draft overlay the same
+day the CEO found hand E deformed, so the first-person (held) and muzzle-flash
+frames, which show the hand, stay drafts in `work/` until the hands are
+redrawn. Files in `assets/sprites/<weapon>/`, copied byte for byte from
+`work/art/weapons/<weapon>/` (rendered on the Windows PC on 2026-10-13), so
+each PNG keeps its `grAb` offsets. RGBA with hard alpha, every opaque pixel a
+`docs/art/palette.json` colour (`tests/test_gen_weapon.py`). Not installed:
+the held and flash frames, the hand Katyusha (to redo, D48), the `_proposed`
+frames, and the ice axe's pickup options A and B. Engine names: MOD-SPEC §6.3.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDAPA0` | ice axe on the floor, option C "upright, as in a rack" | (a) `tools/art/gen_weapon.py`, `build_axe`, `RECOMMENDED_PICKUP` C | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
+| `SDTPA0` | TT-33 on the floor | (a) idem, `build_weapon("tt33")` | idem |
+| `SDIPA0` | IZh-58 on the floor | (a) idem, `build_weapon("izh")` | idem |
+| `SDPQA0` | PPSh-41 on the floor | (a) idem, `build_ppsh` | idem |
+| `SDRPA0` | RPG-7 on the floor | (a) idem, `build_weapon("rpg7")` | idem |
+| `SDKPA0` | ROKS-3 on the floor | (a) idem, `build_weapon("roks3")` | idem |
+
+Drawn from code: tapered capsules, ellipsoids and extruded plates shaded in
+`palette.json` ramps, reduced to 1x by majority vote (the generator's
+docstring). No photograph, no typeface. Freedoom's own weapon sprites appear
+only beside ours on the review sheets, for comparison, and never enter a
+sprite (`freedoom_sprite()` in the generator).
