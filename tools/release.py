@@ -62,12 +62,24 @@ if str(TOOLS_DIR) not in sys.path:
 
 import build as build_tool  # noqa: E402  (tools/build.py: the one way to build)
 import check_pk3  # noqa: E402
+import licences  # noqa: E402  (tools/licences.py: the one reading of the registers)
+# Re-exported: the tests and the pipeline below have always found them here.
+from licences import (  # noqa: E402,F401
+    MusicRow,
+    RegisterRow,
+    localized_base,
+    normalise,
+    parse_licence_register,
+    parse_music_register,
+    plain,
+    verbatim_music_lines,
+)
 
 MOD_NAME = build_tool.MOD_NAME
 PK3_NAME = f"{MOD_NAME}.pk3"
 DEFAULT_OUT_DIR = PROJECT_ROOT / "dist" / "release"
-DEFAULT_LICENSES = PROJECT_ROOT / "docs" / "art" / "LICENSES.md"
-DEFAULT_MUSIC_RIGHTS = PROJECT_ROOT / "docs" / "sound" / "MUSIC-RIGHTS.md"
+DEFAULT_LICENSES = licences.LICENSES_PATH
+DEFAULT_MUSIC_RIGHTS = licences.MUSIC_RIGHTS_PATH
 DEFAULT_LANGUAGE = PROJECT_ROOT / "src" / "lumps" / "LANGUAGE"
 DEFAULT_LICENCE_FILE = PROJECT_ROOT / "LICENSE.md"
 
@@ -105,53 +117,15 @@ MAPS_DIR = "maps/"
 # "Language variants"; T24). Everything else in the PK3 (lumps, ZScript, maps
 # generated from src/maps/*/map.py) is the project's own source under
 # LICENSE.md.
-LOCALIZED_DIR = check_pk3.LOCALIZED_DIR
+LOCALIZED_DIR = licences.LOCALIZED_DIR
 ASSET_DIRS = tuple(check_pk3.LICENSED_DIRS) + (LOCALIZED_DIR,)
 
-
-def localized_base(path: str) -> str | None:
-    """The base graphic a language variant stands for, or None.
-
-    `localized/textures/M_PAUSE.ru.png` -> `M_PAUSE`: the variant is the same
-    asset in another language, so its base's licence row covers it (a row
-    naming the variant itself also does). check_pk3 category `localized`
-    applies the same rule; this is the shipping side of it.
-    """
-    head, _, filename = path.rpartition("/")
-    if not head or head.split("/", 1)[0].lower() != LOCALIZED_DIR:
-        return None
-    base = filename.split(".", 1)[0]
-    return base or None
-
-# --- Reading the licence registers ------------------------------------------
-# The same reading as tests/test_credits.py (which guards the in-game screen),
-# made strict for shipping: only the FIRST cell of a register table row names
-# what the row covers, and CC0 is a courtesy, not an obligation.
-
-CELL_SPLIT_RE = re.compile(r"(?<!\\)\|")
-TABLE_RULE_RE = re.compile(r"^\s*\|[\s|:-]+\|\s*$")
-HEADING_RE = re.compile(r"^(#{1,6})\s+(.*?)\s*$")
-BACKTICKED_RE = re.compile(r"`([^`]+)`")
-BOLD_RE = re.compile(r"\*\*(.+?)\*\*")
-LICENCE_HEADER_RE = re.compile(r"licen[cs]e", re.I)
-QUOTED_CREDIT_RE = re.compile(r'credit\s+"([^"]+)"', re.I)
-# A licence cell that obliges a credit. "credited as a courtesy" does not
-# match `credit\b`; that is deliberate.
-REQUIRES_CREDIT_RE = re.compile(
-    r"credit\b|\{\{Attribution|\bCC[ -]?BY\b|\bBSD\b|\bMIT\b|\bOFL\b", re.I)
-COURTESY_RE = re.compile(r"\bCC0\b|courtesy", re.I)
-OWN_WORK_RE = re.compile(r"\(D15\)|Soviet Doom project")
-# Our own rows (D15, CC BY-NC-SA 4.0) are attributed by the team line and
-# the licence line, which both languages' credits must carry.
-OWN_WORK_CREDITS = ("Soviet Doom", "CC BY-NC-SA 4.0")
-NOT_A_NAME_RE = re.compile(r"\b(credit|required|accepted|licen[cs]e|none)\b", re.I)
-IDEM = "idem"
-
+# The licence registers are read by tools/licences.py, the same reading
+# tests/test_credits.py uses for the in-game screen; this tool is the strict
+# side of it: every packed asset needs a row whose FIRST cell names it
+# (RegisterRow.covers), and a CC0 (courtesy) name missing from the credits is
+# a warning, not a refusal.
 MUSIC_DIR = "music/"
-MUSIC_SHIPS_HEADING_RE = re.compile(r"^4\.5\b")
-OBLIGATION_HEADER_RE = re.compile(r"^obligation", re.I)
-OBLIGATION_CREDIT_RE = re.compile(r"^credit\s+(.+?)\s*$", re.I)
-VERBATIM_INTRO_RE = re.compile(r"credit line|courtesy line", re.I)
 
 # --- Reading the in-game credits ---------------------------------------------
 
@@ -178,227 +152,12 @@ def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def plain(markdown: str) -> str:
-    """A register cell as plain text: emphasis, code marks and escapes off."""
-    text = markdown.replace("\\|", "|").replace("**", "").replace("`", "")
-    text = re.sub(r"(?<!\w)\*(\S(?:.*?\S)?)\*(?!\w)", r"\1", text)
-    return re.sub(r"\s+", " ", text).strip()
-
-
-def normalise(text: str) -> str:
-    return re.sub(r"\s+", " ", text).strip()
-
-
 def wrap(text: str, indent: str = "  ", hang: str | None = None) -> list[str]:
     """Wrap at TEXT_WIDTH; continuation lines get `hang` (default: indent
     plus two spaces)."""
     hang = indent + "  " if hang is None else hang
     return textwrap.wrap(text, TEXT_WIDTH, initial_indent=indent, subsequent_indent=hang,
                          break_on_hyphens=False, break_long_words=False) or [indent.rstrip()]
-
-
-# --- Markdown tables -------------------------------------------------------------
-
-def _cells(line: str) -> list[str]:
-    return [c.strip() for c in CELL_SPLIT_RE.split(line.strip().strip("|"))]
-
-
-def iter_tables(text: str):
-    """Yield (heading, header cells, [row cells, ...]) for every table."""
-    lines = text.splitlines()
-    heading = ""
-    i = 0
-    while i < len(lines):
-        match = HEADING_RE.match(lines[i])
-        if match:
-            heading = match.group(2)
-        if (i + 1 < len(lines) and lines[i].lstrip().startswith("|")
-                and TABLE_RULE_RE.match(lines[i + 1])):
-            header = _cells(lines[i])
-            rows = []
-            j = i + 2
-            while j < len(lines) and lines[j].lstrip().startswith("|"):
-                rows.append(_cells(lines[j]))
-                j += 1
-            yield heading, header, rows
-            i = j
-            continue
-        i += 1
-
-
-# --- The licence register (docs/art/LICENSES.md) ---------------------------------
-
-@dataclass
-class RegisterRow:
-    """One row of a register table, as far as shipping is concerned."""
-
-    source: str                 # register file name, for messages
-    heading: str                # the section it sits in
-    tokens: tuple[str, ...]     # what it covers: backticked names in its first cell
-    licence: str                # the licence cell, `idem` resolved
-    origin: str                 # origin / author, plain text
-    required: tuple[str, ...]   # names the credits MUST carry
-    courtesy: tuple[str, ...]   # names credited by choice (CC0)
-    problem: str = ""           # a row that needs a credit but names nobody
-
-    def covers(self, path: str) -> bool:
-        stem = Path(path).stem.upper()
-        name = Path(path).name.upper()
-        base = (localized_base(path) or stem).upper()
-        for token in self.tokens:
-            upper = token.upper()
-            if "/" in upper:
-                head, _, tail = upper.rpartition("/")
-                prefix = (head if ("*" in tail or not tail) else upper).rstrip("/") + "/"
-                if path.upper().startswith(prefix):
-                    return True
-            elif upper in (stem, name, base):
-                return True
-        return False
-
-
-def _names_in_row(row: list[str], licence: str) -> list[str]:
-    quoted = QUOTED_CREDIT_RE.findall(licence)
-    if quoted:
-        return quoted
-    names: list[str] = []
-    for cell in row:
-        for span in BOLD_RE.findall(cell):
-            span = span.strip()
-            if not NOT_A_NAME_RE.search(span) and span not in names:
-                names.append(span)
-    return names
-
-
-def _row_tokens(first_cell: str) -> tuple[str, ...]:
-    tokens: list[str] = []
-    for token in BACKTICKED_RE.findall(first_cell):
-        token = token.strip()
-        if token and not token.startswith("{{"):
-            tokens.append(token)
-    return tuple(tokens)
-
-
-def parse_licence_register(text: str, source: str = "docs/art/LICENSES.md") -> list[RegisterRow]:
-    """Every row of every table that has a Licence column."""
-    rows_out: list[RegisterRow] = []
-    for heading, header, rows in iter_tables(text):
-        col = next((k for k, h in enumerate(header) if LICENCE_HEADER_RE.search(h)), None)
-        if col is None:
-            continue
-        origin_cols = [k for k, h in enumerate(header)
-                       if k != col and re.match(r"(origin|author)", h, re.I)]
-        previous: RegisterRow | None = None
-        for row in rows:
-            if col >= len(row) or not row:
-                continue
-            cell = row[col]
-            origin = "; ".join(plain(row[k]) for k in origin_cols if k < len(row) and row[k])
-            if cell.lower().startswith(IDEM) and previous is not None:
-                licence = previous.licence
-                required, courtesy = previous.required, previous.courtesy
-                origin = _resolve_idem(origin, previous.origin)
-                problem = previous.problem
-            else:
-                licence = plain(cell)
-                required, courtesy, problem = _credits_for(row, cell)
-                if previous is not None:
-                    origin = _resolve_idem(origin, previous.origin)
-            entry = RegisterRow(source, heading, _row_tokens(row[0]), licence, origin,
-                                required, courtesy, problem)
-            rows_out.append(entry)
-            previous = entry
-    return rows_out
-
-
-def _resolve_idem(origin: str, previous: str) -> str:
-    """`idem` in an origin cell means "the row above": a bare `(a) idem` is
-    the row above's origin; `(a) idem, variant B` keeps its variant."""
-    if re.fullmatch(r"(\(a\)\s*)?idem\.?", origin, re.I):
-        return previous
-    return re.sub(r"\bidem\b", "same source as above", origin, flags=re.I)
-
-
-def _credits_for(row: list[str], cell: str) -> tuple[tuple[str, ...], tuple[str, ...], str]:
-    quoted = QUOTED_CREDIT_RE.findall(cell)
-    if quoted:
-        return tuple(quoted), (), ""
-    if OWN_WORK_RE.search(cell):
-        return OWN_WORK_CREDITS, (), ""
-    if REQUIRES_CREDIT_RE.search(cell):
-        names = _names_in_row(row, cell)
-        if not names:
-            return (), (), ("its licence requires attribution but the row names nobody "
-                            '(write credit "Name" in the licence cell, or the name in bold)')
-        return tuple(names), (), ""
-    if COURTESY_RE.search(cell):
-        return (), tuple(_names_in_row(row, cell)), ""
-    return (), (), ""
-
-
-# --- The music register (docs/sound/MUSIC-RIGHTS.md 4.5) ---------------------------
-
-@dataclass
-class MusicRow:
-    tokens: tuple[str, ...]
-    obligation: str
-    required: tuple[str, ...]
-
-
-def _section_body(text: str, heading_re: re.Pattern[str]) -> str:
-    """The text under the first heading whose title matches, up to the next
-    heading of the same or a higher level."""
-    lines = text.splitlines()
-    for i, line in enumerate(lines):
-        match = HEADING_RE.match(line)
-        if match and heading_re.search(match.group(2)):
-            level = len(match.group(1))
-            body = []
-            for nxt in lines[i + 1:]:
-                inner = HEADING_RE.match(nxt)
-                if inner and len(inner.group(1)) <= level:
-                    break
-                body.append(nxt)
-            return "\n".join(body)
-    return ""
-
-
-def parse_music_register(text: str) -> list[MusicRow]:
-    out: list[MusicRow] = []
-    for _, header, rows in iter_tables(_section_body(text, MUSIC_SHIPS_HEADING_RE)):
-        col = next((k for k, h in enumerate(header) if OBLIGATION_HEADER_RE.match(h)), None)
-        if col is None:
-            continue
-        for row in rows:
-            if col >= len(row):
-                continue
-            obligation = plain(row[col])
-            match = OBLIGATION_CREDIT_RE.match(obligation)
-            out.append(MusicRow(_row_tokens(row[0]), obligation,
-                                (match.group(1),) if match else ()))
-    return out
-
-
-def verbatim_music_lines(text: str) -> list[str]:
-    """The blockquotes MUSIC-RIGHTS 4.5 introduces as a line to reproduce
-    ("The credit line", "The courtesy line"), as plain text, in order."""
-    section = _section_body(text, MUSIC_SHIPS_HEADING_RE)
-    lines = section.splitlines()
-    out: list[str] = []
-    armed = False
-    quote: list[str] = []
-    for line in lines + [""]:
-        if line.startswith(">"):
-            if armed:
-                quote.append(line.lstrip(">").strip())
-            continue
-        if quote:
-            out.append(plain(" ".join(quote)))
-            quote = []
-            armed = False
-        if VERBATIM_INTRO_RE.search(line):
-            armed = True
-    return out
 
 
 # --- The in-game credits (LANGUAGE SD_CRED_*) -------------------------------------

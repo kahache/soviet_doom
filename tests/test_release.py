@@ -36,6 +36,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 TOOLS_DIR = PROJECT_ROOT / "tools"
 sys.path.insert(0, str(TOOLS_DIR))
 
+import licences  # noqa: E402
 import release  # noqa: E402
 
 VERSION = "0.0-test"
@@ -367,6 +368,20 @@ class LicenceCheckTest(unittest.TestCase):
     def test_the_verbatim_lines_are_read(self):
         self.assertEqual(release.verbatim_music_lines(FAKE_MUSIC_RIGHTS),
                          ["Title music by Jane Roe, used under her attribution licence."])
+
+    def test_the_screen_guard_shares_this_reading(self):
+        """tests/test_credits.py reads the registers through tools/licences.py
+        too: the names its screen must carry are these rows' required and
+        courtesy names, our own rows aside, and the row that names nobody is
+        an error there as well."""
+        self.assertIs(release.parse_licence_register, licences.parse_licence_register)
+        self.assertIs(release.parse_music_register, licences.parse_music_register)
+        with self.assertRaises(licences.RegisterError):
+            licences.credited_names(self.rows)
+        named = [row for row in self.rows if not row.problem]
+        self.assertEqual(licences.credited_names(named),
+                         ["Ola Bjorling (ukiro)", "Jane Roe", "Anna Example"])
+        self.assertEqual(licences.music_attribution_names(FAKE_MUSIC_RIGHTS), ["Jane Roe"])
 
     def test_language_reading_keeps_order_and_drops_comments(self):
         ids = [i for i, _ in self.credits["default"]]
