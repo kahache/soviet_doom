@@ -18,13 +18,35 @@ The levels are a true ladder: each one contains the one below it.
 
     docs   Russian mirror (D34) + repo-path references in the changed
            documents. No build, no suite, no engine.             ~0.1 s
-    fast   build + check_pk3 + the suite WITHOUT the slow art
-           generator runs. No window.                            ~7 s
-    art    fast, plus the slow art generator runs (determinism,
-           palette, tiling, ink count). Still no window.         ~14 s
-    full   art, plus tools/smoke.py on every map. Opens GZDoom.  ~30 s
+    fast   build + check_pk3 + the suite's FAST tier. No window. ~15 s
+    art    build + check_pk3 + EVERY test. Still no window.     ~110 s
+    full   art, plus tools/smoke.py on every map. Opens GZDoom.
 
-Measured on the project machine 2026-10-13; see docs/PIPELINE.md stage 5.
+What the suite runs at each level is decided in ONE place,
+`tests/_tiers.py` (the runner this script calls instead of a bare
+`unittest discover`):
+
+    fast   every discovered test EXCEPT the SLOW table in tests/_tiers.py,
+           with SD_SKIP_SLOW_ART=1 for the files that read that switch.
+           What stays: the build and check_pk3 tests, every text/contract
+           test (LANGUAGE, MAPINFO, ZScript, UDMF, MENUDEF, licences,
+           verify itself), the map plans, the cheap generator contracts.
+    art    every discovered test, SD_SKIP_SLOW_ART unset. On top of fast:
+           art and sound generator renders, the rig, release end to end,
+           the draft overlay, work/ scans (test_art's work/ identity,
+           test_audition's work/audio guard), gzdoom.pk3 reads, MAP01/MAP02
+           sight-line geometry, route.MapData, whole-PK3 re-checks.
+    full   the same suite as art (plus the engine smoke).
+
+Nothing runs only at fast: fast + (art only) = every discovered test;
+`python tests/_tiers.py --list` prints that count. The runner also keeps a
+per-process PK3 build cache keyed by the content of src/, assets/ and
+tools/ (bypassed for tests/test_build.py), so the many tests that build
+the same PK3 build it once.
+
+Measured on the Windows PC 2026-10-14 (other agents running): fast went
+from ~100 s (1595 tests, all in one tier) to ~15 s; art is the old fast plus
+the slow art runs. See docs/qa/COVERAGE.md "Test tiers".
 
 `auto` classifies every path git reports as changed, takes the highest level
 any of them demands, and prints the rule and the reason before running
@@ -77,6 +99,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 TOOLS_DIR = PROJECT_ROOT / "tools"
 TESTS_DIR = PROJECT_ROOT / "tests"
+TIERS_RUNNER = TESTS_DIR / "_tiers.py"  # which test runs at fast vs art, and the runner
 DOCS_DIR = PROJECT_ROOT / "docs"
 RU_DIR = DOCS_DIR / "ru"
 MAPS_DIR = PROJECT_ROOT / "src" / "maps"
@@ -530,6 +553,8 @@ RE_CHECK_COUNTS = re.compile(r"(\d+) error\(s\), (\d+) warning\(s\)")
 RE_TESTS_RAN = re.compile(r"^Ran (\d+) tests? in ([\d.]+)s", re.M)
 RE_TESTS_TAIL = re.compile(r"^(OK|FAILED)(?: \((.*)\))?$", re.M)
 RE_SMOKE_VERDICT = re.compile(r"^VERDICT: (\w+)(.*)$", re.M)
+RE_TIER_DEFERRED = re.compile(r"^tier fast: \d+ of \d+ tests \((\d+) deferred", re.M)
+RE_TIER_STALE = re.compile(r"^WARNING: tests/_tiers\.py SLOW entry '([^']+)'", re.M)
 
 
 def stage_docs(plan: Plan, root: Path = PROJECT_ROOT) -> StageResult:
@@ -602,14 +627,22 @@ def stage_tests(python: str, slow_art: bool, engine_tests: bool) -> StageResult:
         env["SD_ENGINE_TESTS"] = "1"
     else:
         env.pop("SD_ENGINE_TESTS", None)
-    code, out, secs = _run([python, "-m", "unittest", "discover", "-s", str(TESTS_DIR)], env)
+    # tests/_tiers.py is `unittest discover -s tests` plus the tier table and
+    # a per-process PK3 build cache; `art` runs every discovered test.
+    tier = "art" if slow_art else "fast"
+    code, out, secs = _run([python, str(TIERS_RUNNER), tier], env)
     ran = RE_TESTS_RAN.search(out)
     tail = RE_TESTS_TAIL.search(out)
     note = f"{ran.group(1)} tests" if ran else f"unittest exit {code}"
     if tail and tail.group(2):
         note += f", {tail.group(2)}"
     if not slow_art:
-        note += " (slow art skipped)"
+        deferred = RE_TIER_DEFERRED.search(out)
+        note += (f" ({deferred.group(1)} slow ones deferred to art)" if deferred
+                 else " (slow art skipped)")
+    stale = RE_TIER_STALE.findall(out)
+    if stale:
+        note += f"; WARN {len(stale)} stale SLOW entr{'y' if len(stale) == 1 else 'ies'} in tests/_tiers.py"
     return StageResult("tests", code == 0, secs, note, out, EXIT_TESTS)
 
 
@@ -760,7 +793,8 @@ def main(argv: list[str] | None = None) -> int:
             for line in result.output.rstrip().splitlines():
                 print(f"       | {line}")
         elif result.ok and "WARN" in result.note:
-            print("                 (python3 tools/verify.py docs lists them)")
+            print("                 (python3 tests/_tiers.py --list names them)" if result.name == "tests"
+                  else "                 (python3 tools/verify.py docs lists them)")
         if not result.ok:
             return finish(result)
 
