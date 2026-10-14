@@ -4,6 +4,7 @@ a diestro" and the PM's polish notes): reference 1 mirrored to a right hand,
 the haft toned as wood, the head given weight.
 
     python tools/art/hand_ref.py            # cells -> work/art/hand_ref/, sheet + HTML -> docs/art/previews/
+    python tools/art/hand_ref.py silhouettes   # D75: 3x3 axe sizes on C3's hand, flat silhouettes
 
 Why: drawn hands failed the CEO again and again ("dedos como salchichas",
 "el antebrazo un palo larguísimo"); what worked for likeness was deriving
@@ -575,6 +576,9 @@ class Cell:
     size: float               # palm breadth over the TT-33 hand's
     grip_x: float             # weapon px: the column the grip sits on
     why: str
+    shaft_k: float = 1.0      # D75: the shaft above the fist this much longer (the head that much higher)
+    head_k: float = 1.0       # D75: the head this much bigger
+    grip_y: float | None = None   # weapon px of the grip row; None: searched so the top meets the TT-33's
 
 
 # Round 3b (CEO on 2026-10-14_2252: "cámbialo a diestro"; PM: the shaft reads
@@ -672,24 +676,24 @@ def build_cell(cell: Cell, cache: dict | None = None) -> dict:
     hand = hand_sprite(fl, cell.tones, cache["refs"])
     up = fl["up"]
     shaft_half = spec.shaft_half * scale
-    rise = HEAD_RISE * palm_px
+    rise = HEAD_RISE * palm_px * cell.shaft_k
     target_top = cache["top"]               # status bar on
 
     def frame_at(gy: float):
         gxy = (cell.grip_x, gy)
-        axe = render_axe(gxy, up, rise, shaft_half)
+        axe = render_axe(gxy, up, rise, shaft_half, k=HEAD_K * cell.head_k)
         hxy = (int(round(cell.grip_x - fl["grip"][0])), int(round(gy - fl["grip"][1])))
         rgba, off, axe_m = compose(axe, hand, hxy)
         return rgba, off, axe_m, hxy
     lo, hi = 100.0, 199.0                    # weapon px searched for the grip row
-    for _ in range(14):
+    for _ in range(0 if cell.grip_y is not None else 14):
         mid = (lo + hi) / 2
         rgba, off, _, _ = frame_at(mid)
         if hs.measure(rgba, off)["top"] < target_top:
             lo = mid
         else:
             hi = mid
-    gy = round((lo + hi) / 2, 2)
+    gy = cell.grip_y if cell.grip_y is not None else round((lo + hi) / 2, 2)
     rgba, off, axe_m, hxy = frame_at(gy)
     return {"cell": cell, "spec": spec, "sprite": rgba, "offsets": off, "axe_mask": axe_m,
             "hand": hand, "hand_xy": hxy, "grip": (cell.grip_x, gy), "scale": scale,
@@ -959,6 +963,54 @@ def build_sheet(cells: dict, stamp: str, cache: dict) -> tuple[Path, Path]:
     return html_path, png_path
 
 
+# ------------------------------------------------- D75 silhouettes (cheap review)
+# The CEO approved C3's hand (D75) and allows a bigger axe than Freedoom's
+# envelope; he asked for the cheapest review: flat silhouettes on a
+# transparent sheet. C3's hand stays where it is (its grip row is kept);
+# only the shaft above the fist and the head grow.
+SIL_SHAFT = (1.0, 1.35, 1.7)
+SIL_HEAD = (1.0, 1.4, 1.8)
+SIL_INK = (24, 24, 24, 255)
+SIL_LINE = (150, 150, 150, 160)
+SIL_BOX = (110, 20, 290, 200)        # screen box (status bar on) shown per variant
+SIL_SLUG = "F4_ice-axe-silhouettes"
+
+
+def build_silhouettes(stamp: str, out_dir: Path = OUT_DIR / "silhouettes") -> Path:
+    cache: dict = {}
+    base = next(c for c in CELLS if c.key == "C3")
+    gy = build_cell(base, cache)["grip"][1]
+    x0, y0, x1, y1 = SIL_BOX
+    tw, th = 2 * (x1 - x0), 2 * (y1 - y0)
+    f = hs.font(14)
+    sheet = Image.new("RGBA", (3 * tw + 40, 3 * (th + 24) + 10), (0, 0, 0, 0))
+    d = ImageDraw.Draw(sheet)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for i, hk in enumerate(SIL_HEAD):
+        for j, sk in enumerate(SIL_SHAFT):
+            cell = replace(base, key=f"L{sk}_H{hk}", shaft_k=sk, head_k=hk, grip_y=gy)
+            c = build_cell(cell, cache)
+            scr = np.zeros((SCREEN_H, SCREEN_W, 4), np.uint8)
+            spr = c["sprite"]
+            px, py = hs.place(spr, c["offsets"], bar=True)
+            m = spr[..., 3] > 0
+            ys, xs = np.nonzero(m)
+            ys, xs = ys + py, xs + px
+            ok = (ys >= 0) & (ys < hs.VIEW_H) & (xs >= 0) & (xs < SCREEN_W)   # the status bar hides the rest
+            scr[ys[ok], xs[ok]] = SIL_INK
+            tile = scr[y0:y1, x0:x1]
+            tile = np.asarray(Image.fromarray(tile, "RGBA").resize((tw, th), Image.Resampling.NEAREST))
+            Image.fromarray(tile, "RGBA").save(out_dir / f"L{sk}_H{hk}.png")
+            ox, oy = 10 + j * (tw + 10), 5 + i * (th + 24)
+            sheet.alpha_composite(Image.fromarray(tile, "RGBA"), (ox, oy))
+            for yy in (hs.VIEW_H, tt33_top()):          # status bar top, TT-33's top
+                d.line([(ox, oy + 2 * (yy - y0)), (ox + tw, oy + 2 * (yy - y0))], fill=SIL_LINE, width=1)
+            d.text((ox, oy + th + 3), f"L{sk} H{hk}", font=f, fill=(128, 128, 128, 255))
+    path = PREVIEW_DIR / f"{stamp}_{SIL_SLUG}.png"
+    sheet.save(path, optimize=True)
+    return path
+
+
 def build_all(out_dir: Path | None = OUT_DIR, cache: dict | None = None) -> dict:
     """Every cell; written with grAb to out_dir (None: not written)."""
     cache = {} if cache is None else cache
@@ -978,6 +1030,9 @@ def build_all(out_dir: Path | None = OUT_DIR, cache: dict | None = None) -> dict
 
 
 def main() -> None:
+    if len(sys.argv) > 1 and sys.argv[1] == "silhouettes":
+        print("wrote", build_silhouettes(datetime.now().strftime("%Y-%m-%d_%H%M")))
+        return
     stamp = sys.argv[1] if len(sys.argv) > 1 else datetime.now().strftime("%Y-%m-%d_%H%M")
     cache: dict = {}
     cells = build_all(OUT_DIR, cache)
