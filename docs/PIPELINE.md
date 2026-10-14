@@ -162,7 +162,7 @@ with.
 |---|---|---|
 | `docs/`, `work/`, `.claude/`, root `*.md` (`README.md`, `CLAUDE.md`, `LICENSE.md`) | `docs` | nothing here is built, packed or parsed by the engine |
 | `assets/`, `tools/art/`, `tools/audio/` | `art` | art can only break the package, and `check_pk3.py` already proves palette, size, naming and references; the engine sees nothing a validator has not |
-| `tests/`, `tools/` (incl. `tools/check_pk3.py`, `tools/smoke.py`), `.github/`, `.coveragerc`, `.gitignore`, `.gitattributes`, the full licence texts `LICENSE-GPL-3.0.txt` and `LICENSE-CC-BY-NC-SA-4.0.txt` (shipped by `tools/release.py`, hashes pinned in `tests/test_release.py`) | `fast` | tooling and tests are the thing under test and are never packed into the PK3 |
+| `tests/`, `tools/` (incl. `tools/check_pk3.py`, `tools/smoke.py`), `.github/`, `.coveragerc`, `.gitignore`, `.gitattributes`, the full licence texts `LICENSE-GPL-3.0.txt`, `LICENSE-CC-BY-NC-SA-4.0.txt` and `LICENSE-FREEDOOM-BSD-3.txt` (shipped by `tools/release.py`, hashes pinned in `tests/test_release.py`) | `fast` | tooling and tests are the thing under test and are never packed into the PK3 |
 | `src/` — `src/zscript/`, `src/lumps/`, `src/maps/` | `full` | only GZDoom parses ZScript, UDMF and the definition lumps; a bad property or a missing actor appears in no static check |
 | `tools/build.py`, `tools/sdbuild/` | `full` | the packer decides what reaches the engine, and a wrong lump name or layout is only fatal at load time |
 | anything else | `full` | the safe answer to "no rule covers this" is the expensive level |

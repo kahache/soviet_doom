@@ -16,16 +16,21 @@ sovietdoom-<version>/ with exactly:
                    the full licence texts LICENSE.md points to (D15), byte for
                    byte as their publishers serve them: each one's SHA-256 is
                    pinned below (LICENCE_TEXTS)
+  LICENSE-FREEDOOM-BSD-3.txt
+                   Freedoom's BSD-3 notice (D75), verbatim: the licence of the
+                   Freedoom pixels our weapon frames carry (the TT-33 hands),
+                   whose clause 2 asks the notice to travel with the package
   CREDITS.txt      generated: the in-game credits (LANGUAGE SD_CRED_*, English
                    and Russian, in screen order), the credit lines
                    docs/sound/MUSIC-RIGHTS.md 4.5 says to reproduce verbatim,
-                   and the provenance of every packed asset as
-                   docs/art/LICENSES.md records it
+                   the provenance of every packed asset as
+                   docs/art/LICENSES.md records it, and which references were
+                   made with AI (D75); its headings name no repo path
   README.txt       generated: the player readme, English and Russian (the
                    campaign's three maps and the range, what to download,
                    how to start it, GZDoom's default keys, the hash check);
                    every map and menu name is read from LANGUAGE
-  SHA256SUMS       `sha256sum -c` format, for the six files above
+  SHA256SUMS       `sha256sum -c` format, for the seven files above
 
 It refuses (exit 1, nothing written) when:
   * the git tree has uncommitted changes, unless --allow-dirty (tests only:
@@ -107,16 +112,18 @@ README_NAME = "README.txt"
 SUMS_NAME = "SHA256SUMS"
 GPL_TEXT_NAME = "LICENSE-GPL-3.0.txt"
 CC_TEXT_NAME = "LICENSE-CC-BY-NC-SA-4.0.txt"
-RELEASE_FILES = (CREDITS_NAME, CC_TEXT_NAME, GPL_TEXT_NAME, LICENCE_NAME, README_NAME,
-                 SUMS_NAME, PK3_NAME)
+FREEDOOM_TEXT_NAME = "LICENSE-FREEDOOM-BSD-3.txt"
+RELEASE_FILES = (CREDITS_NAME, CC_TEXT_NAME, FREEDOOM_TEXT_NAME, GPL_TEXT_NAME, LICENCE_NAME,
+                 README_NAME, SUMS_NAME, PK3_NAME)
 
 
 @dataclass(frozen=True)
 class LicenceText:
     """A full licence text shipped verbatim: where it was downloaded from and
     the SHA-256 of the bytes served there (backlog N10, downloaded by the PM
-    with the CEO's permission on 2026-10-14). The pin is what makes "verbatim"
-    checkable: an edited, re-wrapped or truncated text stops the release."""
+    with the CEO's permission on 2026-10-14; Freedoom's notice on 2026-10-15,
+    D75). The pin is what makes "verbatim" checkable: an edited, re-wrapped or
+    truncated text stops the release."""
     name: str
     covers: str
     url: str
@@ -126,13 +133,18 @@ class LicenceText:
 CRLF = b"\r\n"
 LF = b"\n"
 
-# The two licences of D15, as LICENSE.md assigns them.
+# The two licences of D15, as LICENSE.md assigns them, and Freedoom's BSD-3
+# notice (D75): Freedoom v0.13.0's COPYING.adoc, the tag the IWAD we test with
+# was built from (D2), for the Freedoom-derived pixels the PK3 packs.
 LICENCE_TEXTS = (
     LicenceText(GPL_TEXT_NAME, "code", "https://www.gnu.org/licenses/gpl-3.0.txt",
                 "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"),
     LicenceText(CC_TEXT_NAME, "assets and documentation",
                 "https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt",
                 "e66c269d4819aaab34b49ef5220c4ddab6756f21bb5180761a4eb8561f2b7bbd"),
+    LicenceText(FREEDOOM_TEXT_NAME, "Freedoom-derived art",
+                "https://raw.githubusercontent.com/freedoom/freedoom/v0.13.0/COPYING.adoc",
+                "ed60abcf1ff64bf61bf8b4c585ab63643d655a21f8997ba284c01f94ed681fc5"),
 )
 
 # Zip determinism. The zip format cannot store a date before 1980.
@@ -426,17 +438,49 @@ def zip_time(commit_time: int | None) -> tuple[int, int, int, int, int, int]:
 
 # --- The generated texts -------------------------------------------------------------
 
+# CREDITS.txt is read by a player who has the package, not the repo (G6 review
+# docs/qa/2026-10-14_2356_G6-readiness.md 2.2, backlog G9): its headings and
+# its own sentences name only files inside the package. (A register cell it
+# quotes, an asset's origin, may still name the generator that drew it.)
+CREDITS_HEADINGS = {
+    "screen_en": "English - as shown in the game (Options > Soviet Doom > Credits)",
+    "ai_en": "Reference images made with AI",
+    "music": "Music credit lines, reproduced word for word",
+    "assets": f"Every picture, sound and piece of music in {PK3_NAME}: origin and licence",
+    "screen_ru": "Русский - как в игре (Настройки (Options) > Советский Doom > Авторы)",
+    "ai_ru": "Референсные изображения, созданные ИИ",
+}
+
+# D75: the credits say which references were generated with AI. One sentence
+# per language here; the in-game screen carries a short form (SD_CRED_SRC_4-6).
+# The Russian is reviewed with the rest of the in-game text in N11.
+AI_DISCLOSURE = {
+    LANG_ENGLISH: ("The reference images for the first-person hands of the weapons were "
+                   "generated by the project lead with an AI image model run locally "
+                   "(Fooocus / SDXL), then reworked into pixel art."),
+    LANG_RUSSIAN: ("Референсные изображения рук с оружием от первого лица созданы "
+                   "руководителем проекта с помощью локально запущенной ИИ-модели "
+                   "генерации изображений (Fooocus / SDXL), а затем переработаны "
+                   "в пиксель-арт."),
+}
+
+
 def render_credits(version: str, commit: str, credits: dict[str, list[tuple[str, str]]],
                    music_lines: list[str], check: LicenceCheck) -> str:
     title = f"Soviet Doom {version} - credits"
     out = [title, "=" * len(title), ""]
-    out += wrap("Generated by tools/release.py from the project's licence registers "
-                "(docs/art/LICENSES.md, docs/sound/MUSIC-RIGHTS.md) and the in-game "
-                f"credits (LANGUAGE), commit {commit}.", "", "")
+    out += wrap("Who made this game and what it is built from: the credits as the game "
+                "shows them, in English and in Russian, the music credit lines their "
+                f"licences ask for, and the origin and licence of every asset in {PK3_NAME}. "
+                f"Built from commit {commit}.", "", "")
     out.append("")
 
-    def screen(lines: list[tuple[str, str]], heading: str) -> None:
+    def section(heading: str, lead: list[str] | None = None) -> None:
         out.extend([heading, "-" * len(heading)])
+        out.extend(lead or [])
+
+    def screen(lines: list[tuple[str, str]], heading: str) -> None:
+        section(heading)
         for ident, text in lines:
             if ident == CREDIT_TITLE_ID:
                 continue
@@ -446,18 +490,24 @@ def render_credits(version: str, commit: str, credits: dict[str, list[tuple[str,
                 out.append("  " + text)
         out.append("")
 
-    screen(credits.get(LANG_ENGLISH, []),
-           "English - as shown in the game (Options > Soviet Doom > Credits)")
+    screen(credits.get(LANG_ENGLISH, []), CREDITS_HEADINGS["screen_en"])
+
+    out.append("")
+    section(CREDITS_HEADINGS["ai_en"], wrap(AI_DISCLOSURE[LANG_ENGLISH], "  ", "  "))
+    out.append("")
 
     if music_lines:
-        heading = "Music credit lines (verbatim, docs/sound/MUSIC-RIGHTS.md 4.5)"
-        out.extend(["", heading, "-" * len(heading)])
+        out.append("")
+        section(CREDITS_HEADINGS["music"])
         for line in music_lines:
             out.extend(wrap(line))
             out.append("")
 
-    heading = "Every packed asset, its origin and its licence (docs/art/LICENSES.md)"
-    out.extend(["", heading, "-" * len(heading), ""])
+    out.append("")
+    section(CREDITS_HEADINGS["assets"],
+            [""] + wrap("Quoted from the project's licence registers. An origin may name the "
+                        "script or file in the project's source repository that made the "
+                        "asset; those are not part of this package.", "", "") + [""])
     for row, paths in check.coverage:
         out.extend(wrap(_describe_paths(row, paths), "* ", "  "))
         if row.origin:
@@ -465,17 +515,21 @@ def render_credits(version: str, commit: str, credits: dict[str, list[tuple[str,
         out.extend(wrap("Licence: " + row.licence, "    "))
         music = [check.music[p] for p in paths if p in check.music]
         for entry in music:
-            out.extend(wrap("Obligation (MUSIC-RIGHTS 4.5): " + entry.obligation, "    "))
+            out.extend(wrap("Obligation: " + entry.obligation, "    "))
         out.append("")
     out.extend(wrap("Everything else in the PK3 (maps, ZScript, definition lumps) is the "
                     "project's own work: code under GNU GPL 3.0 or later, the rest under "
                     "CC BY-NC-SA 4.0 (LICENSE.md; the full texts are "
-                    f"{GPL_TEXT_NAME} and {CC_TEXT_NAME}).", "", ""))
+                    f"{GPL_TEXT_NAME} and {CC_TEXT_NAME}). Art made from Freedoom's "
+                    "pixels keeps Freedoom's BSD licence (BSD 3-clause), whose notice is "
+                    f"{FREEDOOM_TEXT_NAME}.", "", ""))
     out.append("")
 
     out.append("")
-    screen(credits.get(LANG_RUSSIAN, []),
-           "Русский - как в игре (Настройки (Options) > Советский Doom > Авторы)")
+    screen(credits.get(LANG_RUSSIAN, []), CREDITS_HEADINGS["screen_ru"])
+
+    out.append("")
+    section(CREDITS_HEADINGS["ai_ru"], wrap(AI_DISCLOSURE[LANG_RUSSIAN], "  ", "  "))
     return "\n".join(out).rstrip() + "\n"
 
 
@@ -570,8 +624,9 @@ Options > Customize Controls)
 LICENCE AND CREDITS
   Code: GNU GPL 3.0 or later. Art, sound, maps and text: CC BY-NC-SA 4.0.
   See LICENSE.md; the full texts are LICENSE-GPL-3.0.txt and
-  LICENSE-CC-BY-NC-SA-4.0.txt. Everyone credited, and every asset's origin:
-  CREDITS.txt.
+  LICENSE-CC-BY-NC-SA-4.0.txt. Art made from Freedoom's pixels keeps
+  Freedoom's BSD licence: LICENSE-FREEDOOM-BSD-3.txt. Everyone credited, and
+  every asset's origin: CREDITS.txt.
 
 CHECK THE DOWNLOAD
   SHA256SUMS holds the SHA-256 of every other file in this package.
@@ -652,8 +707,9 @@ Options > Customize Controls)
 ЛИЦЕНЗИЯ И АВТОРЫ
   Код: GNU GPL 3.0 или новее. Графика, звук, карты и тексты: CC BY-NC-SA 4.0.
   См. LICENSE.md; полные тексты лицензий: LICENSE-GPL-3.0.txt и
-  LICENSE-CC-BY-NC-SA-4.0.txt. Все авторы и происхождение каждого ресурса:
-  CREDITS.txt.
+  LICENSE-CC-BY-NC-SA-4.0.txt. Графика на основе пикселей Freedoom остаётся
+  под лицензией BSD проекта Freedoom: LICENSE-FREEDOOM-BSD-3.txt. Все авторы
+  и происхождение каждого ресурса: CREDITS.txt.
 
 ПРОВЕРКА ЗАГРУЗКИ
   В SHA256SUMS записаны SHA-256 всех остальных файлов этого архива.
@@ -755,15 +811,15 @@ def _read(path: Path, what: str) -> str:
 def read_licence_text(directory: Path, text: LicenceText) -> bytes:
     """The published bytes of a full licence text, or ReleaseError.
 
-    Line endings: both texts are served with LF only and hold no CR at all,
+    Line endings: the texts are served with LF only and hold no CR at all,
     and the repo has no .gitattributes while this PC runs core.autocrlf=true,
     so a fresh Windows checkout may hand us CRLF. Turning CRLF back into LF
     restores exactly the bytes git stores (and the publisher served); the
     pinned SHA-256 then proves it, so nothing else can slip through."""
     path = directory / text.name
     if not path.is_file():
-        raise ReleaseError(f"{text.name} not found: {path}; it is the full {text.covers} "
-                           f"licence (D15), downloaded verbatim from {text.url}")
+        raise ReleaseError(f"{text.name} not found: {path}; it is the licence text for the "
+                           f"{text.covers}, downloaded verbatim from {text.url}")
     data = path.read_bytes().replace(CRLF, LF)
     digest = sha256(data)
     if digest != text.sha256:

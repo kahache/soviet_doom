@@ -171,7 +171,8 @@ RULES: tuple[Rule, ...] = (
     ),
     Rule(
         "tooling", ("tests/", "tools/", ".github/", ".coveragerc", ".gitignore", ".gitattributes",
-                    "LICENSE-GPL-3.0.txt", "LICENSE-CC-BY-NC-SA-4.0.txt"), Level.FAST,
+                    "LICENSE-GPL-3.0.txt", "LICENSE-CC-BY-NC-SA-4.0.txt",
+                    "LICENSE-FREEDOOM-BSD-3.txt"), Level.FAST,
         "tooling and tests: the suite is the thing under test, and none of "
         "it is packed into the PK3",
     ),
