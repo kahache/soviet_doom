@@ -4,8 +4,11 @@
 // Clip ammo type: the TT-33 and the PPSh-41 historically fire the same
 // 7.62x25 Tokarev cartridge, so one ammo pool is also the accurate choice.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: PISG (held), PISF (muzzle flash),
-// PIST (pickup). Final lumps: SDTT A-E, SDTF A, SDTP A.
+// Sprites. The world pickup is ours since D48 (2026-10-14); the held and
+// flash frames stay Freedoom (IWAD) PLACEHOLDERS until the hand is redrawn
+// (the CEO found hand E deformed in MAP01, 2026-10-14). MOD-SPEC 5.1, 6.3.
+// Held PISG (final SDTT A-C), muzzle flash PISF (final SDTF A). Pickup:
+// SDTP A (assets/sprites/tt33/; was PIST).
 // Balance rationale: docs/engine/BALANCE.md.
 
 class SD_Tokarev : Pistol replaces Pistol
@@ -60,7 +63,7 @@ class SD_Tokarev : Pistol replaces Pistol
 		PISF A 5 Bright A_Light1;
 		Goto LightDone;
 	Spawn:
-		PIST A -1;
+		SDTP A -1;
 		Stop;
 	}
 }

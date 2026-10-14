@@ -4,8 +4,12 @@
 // SD_Pg7Grenade: more damage on a direct hit, a tighter blast, and a
 // noticeably slower reload than Doom's launcher.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: MISG (held), MISF (flash),
-// LAUN (pickup). Final lumps: SDRL A-B, SDRF A-D, SDRP A.
+// Sprites. The world pickup is ours since D48 (2026-10-14); the held and
+// flash frames stay Freedoom (IWAD) PLACEHOLDERS until the hand is redrawn
+// (the CEO found hand E deformed in MAP01, 2026-10-14). MOD-SPEC 5.1, 6.3.
+// Held MISG (final SDRL A-B), flash MISF (final SDRF A-D). Pickup: SDRP A
+// (assets/sprites/rpg7/; was LAUN). The PG-7V in flight and its burst
+// still wear MISL (pg7_grenade.zs).
 // Balance rationale: docs/engine/BALANCE.md.
 
 class SD_Rpg7 : RocketLauncher replaces RocketLauncher
@@ -51,7 +55,7 @@ class SD_Rpg7 : RocketLauncher replaces RocketLauncher
 		MISF CD 4 Bright A_Light2;
 		Goto LightDone;
 	Spawn:
-		LAUN A -1;
+		SDRP A -1;
 		Stop;
 	}
 }

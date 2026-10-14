@@ -8,8 +8,11 @@
 // Freedoom's SSG can never appear. This weapon therefore has to carry the
 // whole of slot 3 and sits between Doom's Shotgun and its SSG in damage.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: SHTG (held), SHTF (flash),
-// SHOT (pickup). Final lumps: SDIZ A-F, SDIF A-B, SDIP A.
+// Sprites. The world pickup is ours since D48 (2026-10-14); the held and
+// flash frames stay Freedoom (IWAD) PLACEHOLDERS until the hand is redrawn
+// (the CEO found hand E deformed in MAP01, 2026-10-14). MOD-SPEC 5.1, 6.3.
+// Held SHTG (final SDIZ A-D), flash SHTF (final SDIF A-B). Pickup: SDIP A
+// (assets/sprites/izh/; was SHOT).
 // Balance rationale: docs/engine/BALANCE.md.
 
 class SD_Izh : Shotgun replaces Shotgun
@@ -79,7 +82,7 @@ class SD_Izh : Shotgun replaces Shotgun
 		SHTF B 3 Bright A_Light2;
 		Goto LightDone;
 	Spawn:
-		SHOT A -1;
+		SDIP A -1;
 		Stop;
 	}
 

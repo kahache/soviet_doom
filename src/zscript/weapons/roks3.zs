@@ -4,8 +4,12 @@
 // reads as pressurised fuel canisters (the Hand Katyusha draws on the same
 // pool, exactly as Doom's plasma rifle and BFG share cells).
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: PLSG (held), PLSF (flash),
-// PLAS (pickup). Final lumps: SDRK A-B, SDKF A-B, SDKP A.
+// Sprites. The world pickup is ours since D48 (2026-10-14); the held and
+// flash frames stay Freedoom (IWAD) PLACEHOLDERS until the hand is redrawn
+// (the CEO found hand E deformed in MAP01, 2026-10-14). MOD-SPEC 5.1, 6.3.
+// Held PLSG (final SDRK A-B), flash PLSF (final SDKF A-B). Pickup: SDKP A
+// (assets/sprites/roks3/; was PLAS). The flame in flight still wears
+// PLSS / PLSE (flame_blob.zs).
 // Balance rationale: docs/engine/BALANCE.md.
 
 class SD_Roks3 : PlasmaRifle replaces PlasmaRifle
@@ -54,7 +58,7 @@ class SD_Roks3 : PlasmaRifle replaces PlasmaRifle
 		PLSF A 3 Bright A_Light1;
 		Goto LightDone;
 	Spawn:
-		PLAS A -1;
+		SDKP A -1;
 		Stop;
 	}
 

@@ -198,8 +198,18 @@ class ApprovedAssetsTests(unittest.TestCase):
         from PIL import Image
         for p in self.pngs:
             kind = p.relative_to(ASSETS_DIR).parts[0]
-            self.assertIn(kind, ("textures", "flats", "graphics", "fonts"), p)
+            self.assertIn(kind, ("textures", "flats", "graphics", "fonts", "sprites"), p)
             with Image.open(p) as img:
+                if kind == "sprites":
+                    # D48: sprites/<weapon>/NAMEFR.png, our SD prefix, RGBA
+                    # with hard alpha and the grAb offsets inside the file
+                    # (tests/test_weapon_sprites.py holds the offsets).
+                    self.assertRegex(p.stem, r"^SD[A-Z0-9]{2}[A-Z][0-8]$", p)
+                    self.assertEqual(img.mode, "RGBA", p)
+                    alpha = set(img.getchannel("A").getdata())
+                    self.assertTrue(alpha <= {0, 255},
+                                    f"{p}: alpha must be hard 0/255, found {sorted(alpha)[:6]}")
+                    continue
                 if kind == "fonts":
                     # A folder font is fonts/<fontname>/<HEX>.png and the
                     # engine identifies the glyph by that hex name. Sizes vary

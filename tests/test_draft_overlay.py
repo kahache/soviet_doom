@@ -22,8 +22,12 @@ What is checked, and why:
              the IWAD has as rotation 0 or 9-G is refused, and mirrored
              pairs (POSSA2A8) are reported as hidden
   hand       --hand picks hand_<X>/ renders, and refuses a hand nobody drew
-  real       (skips without work/art) today's drafts plan 107 lumps: 37
-             weapon frames and the rifleman's 70
+  installed  the six pickups D48 installed (INSTALLED) are named by their
+             Spawn states, ship from assets/sprites/ and are never overlaid;
+             a swap whose sprite is under assets/sprites/ is skipped
+  real       (skips without work/art) today's drafts plan 101 lumps: 31
+             weapon frames (held and flash of all seven, the Katyusha's
+             pickup) and the rifleman's 70
 
 Stdlib only: the tool copies bytes and reads PNG chunks with struct.
 """
@@ -137,7 +141,7 @@ class ContractTests(unittest.TestCase):
         specs = re.findall(r'WeaponSpec\("(\w+)",.*?(\w+)_SPRITE,\s*\w+_FLASH,\s*\w+_PICKUP,\s*'
                            r'"(\w{4})",\s*"(\w{4})",\s*"(\w{4})"', src, re.S)
         self.assertEqual(len(specs), 5, "gen_weapon.py's WEAPONS table changed shape")
-        pairs = {(s.placeholder, s.draft) for s in mdo.SWAPS}
+        pairs = {(s.placeholder, s.draft) for s in mdo.SWAPS} | set(mdo.INSTALLED)
         for key, prefix, *placeholders in specs:
             for ph, ours in zip(placeholders, consts[prefix]):
                 self.assertIn((ph, ours), pairs, f"{key}: gen_weapon says {ph} -> {ours}")
@@ -186,7 +190,8 @@ class _Fixture(unittest.TestCase):
 
     def build(self, *extra: str, out: Path | None = None) -> tuple[int, str, str]:
         return run_main(["--out", str(out or self.out), "--weapons-dir", str(self.weapons),
-                         "--rig-dir", str(self.rig), "--iwad", str(self.no_iwad), *extra])
+                         "--rig-dir", str(self.rig), "--iwad", str(self.no_iwad),
+                         "--sprites-dir", str(self.root / "no-sprites"), *extra])
 
     def members(self) -> list[str]:
         with zipfile.ZipFile(self.out) as zf:
@@ -396,6 +401,39 @@ class HandTests(unittest.TestCase):
             mdo.main(["--hand", "BB", "--dry-run"])
 
 
+# ----------------------------------------------------------------- installed
+class InstalledTests(unittest.TestCase):
+    """D48: the six world pickups ship from assets/sprites/; the overlay
+    must never carry them, nor anything else already installed."""
+
+    def test_installed_pickups_are_not_swapped(self):
+        swapped = {s.draft for s in mdo.SWAPS} | {s.placeholder for s in mdo.SWAPS}
+        for placeholder, ours in mdo.INSTALLED:
+            self.assertNotIn(ours, swapped)
+            self.assertNotIn(placeholder, swapped)
+
+    def test_installed_pickups_are_the_spawn_states_and_ship(self):
+        names = {p.stem for p in mdo.SPRITES_DIR.rglob("*.png")} if mdo.SPRITES_DIR.is_dir() else set()
+        texts = "\n".join(p.read_text(encoding="utf-8") for p in (mdo.ZS_ROOT / "weapons").glob("*.zs"))
+        for placeholder, ours in mdo.INSTALLED:
+            self.assertIn(f"{ours}A0", names, f"{ours}A0 is not under assets/sprites/")
+            self.assertRegex(texts, rf"\n\s*{ours} A -1;", f"no Spawn state shows {ours}")
+            self.assertEqual(mdo.state_letters(texts, placeholder), "", f"{placeholder} is still named")
+            self.assertEqual(mdo.installed_sprites() & {ours}, {ours})
+
+    def test_a_swap_already_installed_is_skipped(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            weapons, rig = make_drafts(root)
+            sprites = root / "sprites" / "tt33"
+            sprites.mkdir(parents=True)
+            (sprites / "SDTTA0.png").write_bytes(png())
+            plan = mdo.plan_overlay("all", "E", weapons, rig, sprites_dir=root / "sprites")
+            self.assertFalse(any(e.lump.startswith("PISG") for e in plan.entries))
+            self.assertTrue(any(e.lump.startswith("PISF") for e in plan.entries))
+            self.assertTrue(any(n.startswith("SDTT: approved and installed") for n in plan.notes), plan.notes)
+
+
 # ---------------------------------------------------------------------- real
 @unittest.skipUnless((mdo.RIG_DIR / "SDRRA1.png").is_file() and (mdo.WEAPONS_DIR / "tt33").is_dir(),
                      "work/art drafts not present (CI has no work/)")
@@ -407,7 +445,8 @@ class RealDraftTests(unittest.TestCase):
         poss = [e for e in plan.entries if e.lump.startswith("POSS")]
         self.assertEqual(len(poss), 70)
         self.assertEqual(sum(e.lump[5] != "0" for e in poss), 56)
-        self.assertEqual(len(plan.entries) - len(poss), 37)
+        self.assertEqual(len(plan.entries) - len(poss), 31)   # 37 until D48 installed the six pickups
+        self.assertFalse({e.lump[:4] for e in plan.entries} & {ph for ph, _ in mdo.INSTALLED})
         self.assertEqual(plan.missing, [])
         self.assertTrue(all(h.startswith("E") for h in plan.hands.values()))
 
@@ -417,7 +456,7 @@ class RealDraftTests(unittest.TestCase):
             code, _, err = run_main(["--out", str(out)])
             self.assertEqual(code, 0, err)
             with zipfile.ZipFile(out) as zf:
-                self.assertEqual(len(zf.namelist()), 107)
+                self.assertEqual(len(zf.namelist()), 101)
 
 
 if __name__ == "__main__":

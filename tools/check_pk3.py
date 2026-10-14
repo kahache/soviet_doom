@@ -983,9 +983,9 @@ def check_images(pkg: Package, palette: set[tuple[int, int, int]] | None, report
 def check_sprites(pkg: Package, report: Report) -> None:
     """Sprite lumps are NAMEFR[FR]; every declared rotation set is complete.
 
-    Empty today (the mod ships no sprites yet), and that is a pass: the first
-    sprite the art-director adds gets validated without anyone remembering to
-    turn this on.
+    Since D48 (2026-10-14) the mod ships its first sprites, the six weapon
+    pickups from assets/sprites/ (all rotation 0); an empty sprites/ is
+    still a pass.
     """
     files = sorted(pkg.files_under("sprites"))
     report.stats["sprites"] = len(files)
