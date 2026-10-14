@@ -195,6 +195,22 @@ DECAL = (
 DECAL_INSIGNIA = core.Insignia("decal", (len(DECAL[0]), len(DECAL)),
                                core.pattern_drawer(DECAL, legion.FLAG_COLOURS), outward=(0.0, 0.0, 1.0),
                                min_px=8, search=3, turned_away=0.35)
+# D67 (CEO, 2026-10-14, on the Doughboy's full set): "ponle la bandera más
+# grande en la cabeza". The full set's decal: 11 x 7 instead of 5 x 4, a
+# canton with stars and seven stripes, so it reads at 1x. The sweep keeps
+# its own small DECAL (its PNGs do not change).
+DECAL_BIG = (
+    "BBBBBRRRRRR",
+    "B*B*BWWWWWW",
+    "BB*BBRRRRRR",
+    "B*B*BWWWWWW",
+    "RRRRRRRRRRR",
+    "WWWWWWWWWWW",
+    "RRRRRRRRRRR",
+)
+DECAL_BIG_INSIGNIA = core.Insignia("decal", (len(DECAL_BIG[0]), len(DECAL_BIG)),
+                                   core.pattern_drawer(DECAL_BIG, legion.FLAG_COLOURS), outward=(0.0, 0.0, 1.0),
+                                   min_px=24, search=3, turned_away=0.35)
 # The Panzermensch's banner (BESTIARY §8, D12): the 7x7 armband symbol on a
 # red panel bolted to his back, seen when he turns away.
 BANNER_INSIGNIA = core.Insignia("banner", (7, 7), core.armband_draw, outward=(0.0, 0.0, -1.0), min_px=24,
@@ -2052,7 +2068,7 @@ def render_full_layers(key: str, frame: str, rotation: int, seed: int = SEED,
     what = full_lump(key, frame, rotation)
     if key == "db":
         return core.render_layers(P, rotation, cv, table, seed=seed, value_shift=0.0, chrome=DB_CHROME,
-                                  insignia=(DECAL_INSIGNIA,), what=what)
+                                  insignia=(DECAL_BIG_INSIGNIA,), what=what)       # D67: the big flag
     return core.render_layers(P, rotation, cv, table, seed=seed, value_shift=PM_VALUE_SHIFT,
                               insignia=(BANNER_INSIGNIA,), what=what)
 
@@ -2362,7 +2378,8 @@ def _verdict(key: str, met: dict, ident: dict) -> tuple[list[str], list[str]]:
             "B C D the attack (it draws breath and the shell kindles in its throat, the mouth gapes with the shell "
             "white-hot in it, it spits), E F the pain (it jerks back screaming, a round's hole in its left cheek, then "
             "rights itself bleeding), at 8 drawn rotations; G-L the death at rotation 0. 54 lumps. No gib: the class "
-            f"has no XDeath. The sweep's views are its pixels byte for byte ({', '.join(same) or 'sweep PNGs not on disk'}).",
+            "has no XDeath. The sweep's views are its pixels byte for byte except where the flag decal shows, "
+            f"made bigger by D67 (identical: {', '.join(same) or 'none'}).",
             "EIGHT ROTATIONS, NOT MIRRORED PAIRS. The figure is handed: the helmet sits askew to its right, the flag "
             "decal and the buckle are on one side, the wound on the other. A mirror would move them.",
             "THE DEATH. G: the eye bursts while it is still in the air (the burst flies from the socket). The engine "
@@ -2436,6 +2453,57 @@ def _verdict(key: str, met: dict, ident: dict) -> tuple[list[str], list[str]]:
     return verdict, ask
 
 
+BEFORE_FLAG = "before_flag"     # SDDB's lumps as the CEO saw them before D67, kept for the before/after
+FLAG_VIEWS = (("A", 1), ("A", 2), ("A", 8), ("D", 1), ("E", 1), ("G", 0), ("H", 0))
+
+
+def flag_changes(spr: dict, before: dict) -> tuple[list[str], tuple[int, int]]:
+    """The lumps whose pixels differ from the set before D67, and the size of
+    the largest box the differences fit in (the decal's, if nothing else moved)."""
+    changed, box = [], (0, 0)
+    for (f, r), a in spr.items():
+        b = before.get((f, r))
+        if b is None or a.shape != b.shape:
+            changed.append(full_lump("db", f, r))
+            continue
+        d = np.any(a != b, axis=-1)
+        if d.any():
+            ys, xs = np.nonzero(d)
+            changed.append(full_lump("db", f, r))
+            box = (max(box[0], int(np.ptp(xs)) + 1), max(box[1], int(np.ptp(ys)) + 1))
+    return sorted(changed), box
+
+
+def _flag_section(spr: dict, before: dict) -> tuple[str, str, str]:
+    """D67: the flag on the helmet, before and after, at 3x and 1x and in the hangar."""
+    changed, box = flag_changes(spr, before)
+    body = ""
+    for zoom in (3, 1):
+        tiles = []
+        for f, r in FLAG_VIEWS:
+            pair = hound.crop_common([before[(f, r)], spr[(f, r)]])
+            name = full_lump("db", f, r)
+            tiles += [core.sprite_tile(pair[0], zoom, f"{name} before"), core.sprite_tile(pair[1], zoom, f"{name} now")]
+        body += _strip(tiles)
+    ga = full_grab("db", "A")
+    figs = [(before[("A", 1)], ga[0], ga[1] + HOVER), (spr[("A", 1)], ga[0], ga[1] + HOVER),
+            (before[("A", 8)], ga[0], ga[1] + HOVER), (spr[("A", 8)], ga[0], ga[1] + HOVER)]
+    af, al = _approved(APPROVED[:2])
+    figs += af
+    for sk, wall, light, what in DB_SCENES[:2]:
+        sc = tall_lineup(figs, wall, light, FULL_SLOT * len(figs))
+        body += _strip([_img_tile(sc, 1, f"{sk} 1x: {wall} at light {light}", what),
+                        _img_tile(sc, 2, f"{sk} 2x")])
+    body += ('<p class="lead">Left to right: SDDBA1 before, now; SDDBA8 before, now; '
+             + html.escape(" · ".join(al)) + f", hung {HOVER} px as a floater. The decal was 5 x 4 px; it is "
+             f"{len(DECAL_BIG[0])} x {len(DECAL_BIG)} now (a starred canton and seven stripes), stamped wherever "
+             f"the helmet's front faces you: {len(changed)} of {len(spr)} lumps changed, every change inside a "
+             f"{box[0]} x {box[1]} px box (the flag); the other lumps are byte for byte the set you saw.</p>")
+    lead = ("Your note: \"ponle la bandera más grande en la cabeza\". The US flag on the helmet, before (left) and "
+            "now (right), 3x then 1x, then in the hangar beside the approved infantries.")
+    return "0 · The flag on the helmet (D67): before and now", lead, body
+
+
 def build_full_sheet(key: str, stamp: str, out_dir: Path = PREVIEW_DIR) -> Path:
     spec = FULL_SPECS[key]
     spr = load_full(key)
@@ -2450,6 +2518,14 @@ def build_full_sheet(key: str, stamp: str, out_dir: Path = PREVIEW_DIR) -> Path:
     dtitles = ({"G": DB_FULL_POSES["G"].title, **{f: x.title for f, x in DB_FALLS.items()}} if key == "db" else
                {f: x.pose.title for f, x in pm_falls(PM[PM_FULL_KEY] if key == "pm" else SCHWER_CELL).items()})
     S = []
+    before_dir = set_dir(key) / BEFORE_FLAG
+    flagged = key == "db" and before_dir.is_dir()
+    if flagged:
+        before = {}
+        for f, r in full_plan(key):
+            with Image.open(before_dir / f"{full_lump(key, f, r)}.png") as im:
+                before[(f, r)] = np.asarray(im.convert("RGBA")).copy()
+        S.append(_flag_section(spr, before))
     # 1. the set
     body = sheetlib.table(["state", f"frames and tics ({spec.zs.name})", "rotations", "letters"], _states_rows(key), 9)
     body += (f"<p class=\"lead\">{len(full_plan(key))} lumps in <code>work/art/enemies/heavy/full/{sprite}/</code>, "
@@ -2564,7 +2640,7 @@ def build_full_sheet(key: str, stamp: str, out_dir: Path = PREVIEW_DIR) -> Path:
              f"rig_core (imported, not edited), seed {SEED}, no system fonts. Draft: nothing in <code>assets/</code>.")
     footer = ("Sprites: tools/art/gen_heavy.py (GPL-3.0 code; art CC BY-NC-SA 4.0, D15), deterministic. Approved "
               "sprites read from assets/sprites/ for scale. MAP01 walls and flats are the mod's own.")
-    path = out_dir / f"{stamp}_F5_{spec.slug}.html"
+    path = out_dir / f"{stamp}_F5_{'doughboy-C-big-flag' if flagged else spec.slug}.html"
     sheetlib.write_sheet(path, lang="en", title=f"{spec.name}: full set (F5, D65)",
                          subtitle=f"{sprite} · {len(full_plan(key))} lumps · 8 rotations · death with blood · draft",
                          intro=intro, sections=S, footer=footer)

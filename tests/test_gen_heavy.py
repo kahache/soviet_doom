@@ -38,7 +38,8 @@ The full sets (D65: Doughboy C, Panzermensch D, the Schwer as D with S2):
               within LYING_MAX of the floor, nothing propped higher than
               LYING_TOP, the supports spread LYING_SPAN, the brutes across the
               screen; and they bleed a lot (blood droplets and pools)
-  (slow) render   the full set's sweep views are the sweep's pixels; the
+  (slow) render   the full set's sweep views are the sweep's pixels (the
+              Doughboy's except its bigger flag decal, D67); the
               lumps on disk are palette v2, hard alpha, with their grAb
 """
 
@@ -232,12 +233,17 @@ class FullSetContractTests(unittest.TestCase):
         name = h.PS_SPRITE
         self.assertTrue(re.fullmatch(r"SD[A-Z]{2}", name))
         self.assertNotEqual(name, h.PM_SPRITE)
-        reserved = set()
+        reserved = set()                # every prefix the docs give another class (lines about the Schwer aside)
         for doc in ("docs/engine/BESTIARY.md", "docs/engine/MOD-SPEC.md"):
-            reserved |= set(re.findall(r"\bSD[A-Z]{2}\b", (PROJECT_ROOT / doc).read_text(encoding="utf-8")))
+            for line in (PROJECT_ROOT / doc).read_text(encoding="utf-8").splitlines():
+                if "Schwer" not in line and name not in line:
+                    reserved |= set(re.findall(r"\bSD[A-Z]{2}\b", line))
         self.assertNotIn(name, reserved)
-        for png in (PROJECT_ROOT / "assets").rglob("*.png"):
-            self.assertFalse(png.stem.startswith(name), png)
+        # in assets/, a lump of that name is the Schwer's own (D67): the render, byte for byte
+        for png in (PROJECT_ROOT / "assets").rglob(f"{name}*.png"):
+            ours = h.set_dir("ps") / png.name
+            if ours.is_file():
+                self.assertEqual(png.read_bytes(), ours.read_bytes(), png)
 
     def test_full_poses_keep_the_sweep(self):
         h = self.h
@@ -329,7 +335,14 @@ class FullSetRenderTests(unittest.TestCase):
 
     def test_the_sweep_views_are_the_sweeps_pixels(self):
         h = self.h
-        np.testing.assert_array_equal(h.render_full("db", "A", 1), h.render_db(h.DB_FULL_KEY, "A", 1))
+        # D67: the full set's flag decal is bigger; every pixel outside it is the sweep's
+        full, sweep = h.render_full("db", "A", 1), h.render_db(h.DB_FULL_KEY, "A", 1)
+        d = np.any(full != sweep, axis=-1)
+        ys, xs = np.nonzero(d)
+        self.assertTrue(d.any())
+        self.assertLessEqual(np.ptp(xs) + 1, len(h.DECAL_BIG[0]))
+        self.assertLessEqual(np.ptp(ys) + 1, len(h.DECAL_BIG))
+        self.assertGreater(len(h.DECAL_BIG[0]) * len(h.DECAL_BIG), 2 * len(h.DECAL[0]) * len(h.DECAL))   # clearly bigger
         np.testing.assert_array_equal(h.render_full("pm", "G", 1), h.render_pm(h.PM_FULL_KEY, "G", 1))
 
     def test_lumps_on_disk(self):
