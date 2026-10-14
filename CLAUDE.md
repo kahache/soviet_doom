@@ -28,7 +28,7 @@ synced in batches at each phase close (D7, D34).
 > | Product notes and dated studies (difficulty names, language switch, research) | `docs/product/` |
 > | Russian mirror of all of the above | `docs/ru/` |
 
-## Status (2026-10-13)
+## Status (2026-10-14)
 
 **F0, F1, F2 — CLOSED.** G0 and G2 PASS with evidence in
 `docs/qa/GATE-REVIEWS.md`; G1 was ratified by the CEO on 2026-10-09
@@ -68,14 +68,13 @@ GZDoom and passes on skills 2, 3 and 4 with monsters (with `god`, the route
 clearing and listing the bodies in its way); left: the hand-played runs
 on skills 2 and 4, the hostile pass and the CEO's G3-9, `docs/qa/GATE-REVIEWS.md`.
 
-**F5 — bestiary, started.** The seven enemies of D35 are playable ZScript
-actors with Freedoom sprites and sounds as placeholders, replacing Doom's
-monsters so maps need no renumbering; drops are our ammo (D35); the
-General summons two recruits once. Engine pass on MAP02's gallery clean
-(`docs/qa/evidence/2026-10-13_1705_F5_map02-bestiary-*`). Own sprites wait
-on the CEO's gate: the Reich rifleman is drafted from a 3D rig (D38), the
-enemies' non-voice sounds are drafted, the voices wait on the CEO's takes
-(D36).
+**F5 — bestiary.** Seven enemy classes in ZScript (D35). Four now draw
+from our own sprites, rendered on a 3D rig and approved by the CEO: the
+Reich rifleman, the Legion trooper, the Stormtrooper and the Reich hound (a
+German shepherd), all with dark red blood and flat corpses (D49-D56; engine
+pass `docs/qa/evidence/2026-10-14_1900_F5_four-enemies-installed.md`). The
+Doughboy, Panzermensch and General still wear Freedoom placeholders; enemy
+sounds are drafts; voices wait on the CEO's takes (D36).
 
 **F4 — arsenal.** Seven period weapons in ZScript, all firing, with Freedoom
 placeholders for sprites and sounds; balance stands as built (D39). Slot 1
