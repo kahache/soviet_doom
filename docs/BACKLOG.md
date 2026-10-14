@@ -20,10 +20,10 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
-| N14-2 | M2 | Ice axe right-handed (D73) + shaft and head polish, cells C1/C3/C4 again | art-director | 100 | D73 |
 | N17 | M2 | Install the approved TT-33 held frames (SDTT/SDTF, D61) into the PK3 + engine pass; today they live only in the draft overlay | mod-engineer | 120 | — |
 | N9a | M3 | Alternatives (3 each) for SDTTPKP, SDIZRLD, SDRKFIR (NO) and SDAXPKP, SDIZPKP (?), D74; small listening page | sound-designer | 120 | D74 |
-| G9 | M4 | LICENSE.md and CREDITS.txt for the player: no repo-only paths, drop the unused OTEX credit (RU half at N11) | mod-engineer | 40 | — |
+| G9 | M4 | LICENSE.md and CREDITS.txt for the player: no repo-only paths, drop the unused OTEX credit (RU half at N11); ship `LICENSE-FREEDOOM-BSD-3.txt` (D75, hash pinned); the AI-reference line in the credits (D75) | mod-engineer | 40 | — |
+| N14-3 | M2 | Ice axe: hand C3 (D75), silhouette sweep of a longer shaft and bigger head | art-director | 40 | D75 |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
 ## Next (approved order, D63)
@@ -32,9 +32,9 @@ get better.
 |---|---|---|---|---|---|
 | M2a | M2 | Pickups sweep + install: health, armour, area map, backpack, yellow and red keycards (113 placed on skill 3), the hand Katyusha's pickup (draft SDHPA0), fullscreen HUD icons, our pickup lines | art-director + mod-engineer | 480 | — |
 | M2b | M2 | Enemy shells: the Doughboy's BAL2, the Panzermensch's BAL7 | art-director + mod-engineer | 150 | — |
-| M2c | M2? | Player projectiles and hit effects (MISL, PLSS/PLSE, PUFF, BLUD shape, TFOG), barrels and lamp | art-director | 350-400 | CEO: in M2 or not |
+| M2c | M2 (D75) | Player projectiles and hit effects (MISL, PLSS/PLSE, PUFF, BLUD shape, TFOG), barrels and lamp | art-director | 350-400 | — |
 | M2d | M2 | Practice range retexture (STARTAN2, FLOOR4_8, CEIL3_5) | level-designer | 40 | — |
-| M2e | M2/M4? | Shell and HUD: STBAR, the face STF*, fonts, stats screen graphics, HELP/CREDIT, DEHACKED pickup and quit lines, intermission music (D_DM2INT plays today) | art-director + mod-engineer | 430-650 | CEO: M2 or M4 |
+| M2e | M4 (D75) | Shell and HUD: STBAR, the face STF*, fonts, stats screen graphics, HELP/CREDIT, DEHACKED pickup and quit lines, intermission music (D_DM2INT plays today) | art-director + mod-engineer | 430-650 | — |
 | N14 | M2 | Weapons in hand from the CEO's Fooocus references, one at a time, verified each (ice axe first, then 5 more) | art-director | 250 per weapon, ~1 500 all | CEO's images |
 | N7b | M1+ | Metro v2 (textures aligned), optional: the CEO found M1 "perfecto" | level-designer | 350 | CEO decides if wanted |
 | N7c | M1+ | Tankograd v2, optional (as N7b) | level-designer | 400 | CEO decides if wanted |
