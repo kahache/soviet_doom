@@ -184,20 +184,22 @@ Approved files live in `assets/textures/metro/` (walls) and
 renders; `tests/test_gen_metro.py` holds the installed set to the generator.
 
 CEO verdict 2026-10-13, verbatim: «OK a las 6 piezas de metro» — the
-direction and all six pieces, **as drawn in palette v1** (D42). Still open
-with the CEO and not decided by this verdict: palette v2 (a marble red and a
-cobalt and gold mosaic ramp in the reserved slots, which would make
-`SDMARB1` warmer and `SDMOSA1` cobalt instead of slate) and the mosaic's
-motif (the star with rays shipped here, or a figure). Whatever the CEO decides,
-the six below stay as they are: a v2 piece would be a new lump or a new
-proposal, never a requantisation of an approved one (ART-BIBLE §3).
+direction and all six pieces, **as drawn in palette v1** (D42). The two
+questions that verdict left open are decided since: **palette v2** is in
+(D45: a marble red, a cobalt and gold mosaic ramp and the Legion's pink
+flesh ramp in the reserved slots; approved textures keep their colours), and
+**the mosaic is the star with rays**, as drawn in `SDMOSA1` (D47: «Ok a la
+imagen que has puesto del mosaico»), so no figure panel is planned. The
+six below stay as they are: a v2 version of an approved piece is a new
+proposal for the CEO (the two `_v2` rows), never a silent requantisation
+(ART-BIBLE §3).
 
 | Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
 |---|---|---|---|---|---|---|---|
 | `SDTILE1` | wall | 64×128 | yes | glazed cream tile wall, 8 px tiles, warm grout, a few chipped tiles, grime low down | (a) gen_metro, seed 1936 | approved 2026-10-13 (D42: «OK a las 6 piezas de metro») | 2026-10-13 |
 | `SDTILE2` | wall | 64×128 | yes | the same tile above an oil-painted military-green dado (rows 86-127) under a dark rule | (a) gen_metro, seed 1937 | approved 2026-10-13 (D42) | 2026-10-13 |
 | `SDMARB1` | wall | 64×128 | yes (veins cross the seam) | polished red marble cladding, pale and dark veins, slab joint at mid height; ox-blood rather than warm marble, a palette v1 limit | (a) gen_metro, seed 1938 | approved 2026-10-13 (D42), as drawn in palette v1 | 2026-10-13 |
-| `SDMOSA1` | wall (panel) | 128×128 | as a row (one panel per tile; the ground meets at the side edges) | mosaic panel: gold five-pointed star, ten rays and a cream ring on a slate-blue ground, resolved on a 4 px tessera grid | (a) gen_metro, seed 1939 | approved 2026-10-13 (D42), as drawn in palette v1; the motif may be joined by a figure panel later (open) | 2026-10-13 |
+| `SDMOSA1` | wall (panel) | 128×128 | as a row (one panel per tile; the ground meets at the side edges) | mosaic panel: gold five-pointed star, ten rays and a cream ring on a slate-blue ground, resolved on a 4 px tessera grid | (a) gen_metro, seed 1939 | approved 2026-10-13 (D42), as drawn in palette v1; the star with rays is the mosaic's motif (D47) | 2026-10-13 |
 | `SDBRAS1` | wall (pilaster) | 64×128 | yes (caps on the wrap edges) | fluted brass pilaster, tarnished in the flutes, dark ventilation grille in the middle | (a) gen_metro, seed 1940 | approved 2026-10-13 (D42) | 2026-10-13 |
 | `SDMFLR1` | flat | 64×64 | yes | polished grey granite floor, 32 px slabs, feldspar speckle, darker than the base-set floors | (a) gen_metro, seed 1941 | approved 2026-10-13 (D42) | 2026-10-13 |
 | `SDMARB1_v2` | wall (proposal, replaces `SDMARB1` under that lump name if chosen) | 64×128 | yes (veins cross the seam) | the approved marble, same seed and veins, in palette v2's `marble_red`: warm red stone instead of flag_red's ox-blood | (a) gen_metro --v2, seed 1938; palette v2 (D45) | proposed (sheet `docs/art/previews/2026-10-14_1036_F3_metro-palette-v2.html`, file `work/art/batch2/metro_v2/SDMARB1_v2.png`); the approved v1 stays in `assets/` until the CEO chooses | 2026-10-14 |
@@ -206,35 +208,77 @@ proposal, never a requantisation of an approved one (ART-BIBLE §3).
 Recommended light (ART-BIBLE §4): 96-128 in corridors, bright islands of
 160 at the station; the `level-designer` owns the final values.
 
-### Metro fill-out — drafts for the next CEO gate (2026-10-13)
+### Metro fill-out — approved 2026-10-14 (D48)
 
 Preview: `docs/art/previews/2026-10-13_2022_F3_batch2-metro-fill.html`
 (English only; the Russian mirror is `translator-ru`'s at the phase close,
 D34). Generator `tools/art/gen_metro.py --fill`, same `BATCH_SEED` 1935,
-offsets 7 to 16 (the six approved seeds do not move); drafts in
+offsets 7 to 16 (the six approved seeds do not move); renders in
 `work/art/batch2/metro_fill/`. Palette v1, nothing added, no typeface, no
-star, no figure: nothing here depends on palette v2 or on the mosaic's
-motif, both still open (D42). Each card carries 4×, 1×, a 2×2 tile and a
+star, no figure: when they were drawn, palette v2 and the mosaic's motif
+were still open, and none of the ten depends on either (both decided
+since, D45 and D47). Each card carries 4×, 1×, a 2×2 tile and a
 view darkened ×0.5 for orientation (not the engine's colormap; NOT
 VERIFIED in GZDoom). The sheet also shows the whole set side by side,
 approved and drafts. New families for ART-BIBLE §2: `MEDG` platform edge,
 `TUNL` tunnel lining, `TUBB` tubbing, `RAIL` track bed, `MCEIL` metro
-ceiling. Known weak points, on record rather than redrawn before the CEO
-looks: the tubbing's rust bleed reads olive more than brown, and the plain
-coffer `SDMCEIL1` is very flat (7 colours).
+ceiling. Known weak points put on record before the CEO looked: the
+tubbing's rust bleed reads olive more than brown, and the plain coffer
+`SDMCEIL1` is very flat (7 colours).
+
+CEO verdict 2026-10-14, verbatim: «PERFECTO» — all ten **as drawn**, both
+tunnels (`SDTUNL1` and `SDTUBB1`) and the chevrons of `SDMEDG1` included
+(D48); the two weak points above stand as accepted. The PM copied the ten
+byte for byte from `work/art/batch2/metro_fill/` into
+`assets/textures/metro/` (walls) and `assets/flats/metro/` (flats);
+`tests/test_gen_metro.py` holds them to the generator pixel for pixel and
+`tests/test_art.py` to their `work/` source byte for byte. With them the
+metro set in `assets/` is sixteen lumps.
 
 | Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
 |---|---|---|---|---|---|---|---|
-| `SDMFLR2` | flat | 64×64 | yes | station hall floor, pale and dark granite in a 32 px checker | (a) gen_metro --fill, seed 1942 | proposed | 2026-10-13 |
-| `SDMFLR3` | flat | 64×64 | along x only (row 63 is the lip; rotate in UDMF) | platform edge from above: dark granite, worn painted yellow warning line, pale coping slabs, dark lip | (a) gen_metro --fill, seed 1943 | proposed | 2026-10-13 |
-| `SDMEDG1` | wall | 64×64 | along x only | platform face towards the track: coping edge, black-and-yellow chevron band, dark damp concrete | (a) gen_metro --fill, seed 1944 | proposed | 2026-10-13 |
-| `SDTUNL1` | wall | 64×128 | yes | running-tunnel concrete cast in boards, damp streaks, two cable bundles on brackets | (a) gen_metro --fill, seed 1945 | proposed | 2026-10-13 |
-| `SDTUBB1` | wall | 128×128 | yes | cast-iron tubbing, two rings by two segments: flanges, ribs, bolts, rust from the joints | (a) gen_metro --fill, seed 1946 | proposed | 2026-10-13 |
-| `SDRAIL1` | flat | 64×64 | along y (one track per 64 px tile) | track bed: oily concrete, creosoted sleepers every 16 px, tie plates, two rails with a polished running edge; no contact rail | (a) gen_metro --fill, seed 1947 | proposed | 2026-10-13 |
-| `SDMCEIL1` | flat | 64×64 | yes | coffered ceiling, whitewashed plaster, two stepped reveals | (a) gen_metro --fill, seed 1948 | proposed | 2026-10-13 |
-| `SDMCEIL2` | flat | 64×64 | yes | the same coffer with a brass ring lamp and an opal glass disc: the station's light source | (a) gen_metro --fill, seed 1949 | proposed | 2026-10-13 |
-| `SDMARB2` | wall | 64×128 | yes | station wall: glazed tile above, red marble below (the `SDMARB1` stone), brass rail on the marble | (a) gen_metro --fill, seed 1950 | proposed | 2026-10-13 |
-| `SDTILE3` | wall | 64×128 | yes | tile wall with a ceramic frieze: cream lozenges on green between two dark rules | (a) gen_metro --fill, seed 1951 | proposed | 2026-10-13 |
+| `SDMFLR2` | flat | 64×64 | yes | station hall floor, pale and dark granite in a 32 px checker | (a) gen_metro --fill, seed 1942 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
+| `SDMFLR3` | flat | 64×64 | along x only (row 63 is the lip; rotate in UDMF) | platform edge from above: dark granite, worn painted yellow warning line, pale coping slabs, dark lip | (a) gen_metro --fill, seed 1943 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
+| `SDMEDG1` | wall | 64×64 | along x only | platform face towards the track: coping edge, black-and-yellow chevron band, dark damp concrete | (a) gen_metro --fill, seed 1944 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
+| `SDTUNL1` | wall | 64×128 | yes | running-tunnel concrete cast in boards, damp streaks, two cable bundles on brackets | (a) gen_metro --fill, seed 1945 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
+| `SDTUBB1` | wall | 128×128 | yes | cast-iron tubbing, two rings by two segments: flanges, ribs, bolts, rust from the joints | (a) gen_metro --fill, seed 1946 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
+| `SDRAIL1` | flat | 64×64 | along y (one track per 64 px tile) | track bed: oily concrete, creosoted sleepers every 16 px, tie plates, two rails with a polished running edge; no contact rail | (a) gen_metro --fill, seed 1947 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
+| `SDMCEIL1` | flat | 64×64 | yes | coffered ceiling, whitewashed plaster, two stepped reveals | (a) gen_metro --fill, seed 1948 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
+| `SDMCEIL2` | flat | 64×64 | yes | the same coffer with a brass ring lamp and an opal glass disc: the station's light source | (a) gen_metro --fill, seed 1949 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
+| `SDMARB2` | wall | 64×128 | yes | station wall: glazed tile above, red marble below (the `SDMARB1` stone), brass rail on the marble | (a) gen_metro --fill, seed 1950 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
+| `SDTILE3` | wall | 64×128 | yes | tile wall with a ceramic frieze: cream lozenges on green between two dark rules | (a) gen_metro --fill, seed 1951 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
+
+## Shell pictures — menu cursor and pause sign (T12, D48)
+
+Not textures: patches the engine finds by name, listed here so the index
+carries every shipped picture. Like `TITLEPIC`, `INTERPIC` and `M_DOOM`
+(provenance in `LICENSES.md`, "Shell screens") they are the documented
+exception to the `SD` prefix (MOD-SPEC §1), and like `M_DOOM` they are
+RGBA with hard alpha, not indexed (ART-BIBLE §2), because they are drawn
+over something else. Sweep sheet:
+`docs/art/previews/2026-10-13_2208_F2_shell-cursor-pause-sweep.html`.
+Generator `tools/art/gen_cursor.py` (no seed: nothing in it is random),
+five cursor options and three pause signs. The pause words are set in the
+installed `SDMENU` folder font, read and never rebuilt, so no system font
+is involved and the pictures reproduce byte for byte on the Mac and on
+Windows. The generator names files by option (`cursor_B_1.png`,
+`pause_P2_en.png` in `work/art/shell_extra/`); they were renamed to the
+engine's lump names on install and copied byte for byte
+(`tests/test_gen_cursor.py` holds them to the generator, `tests/test_art.py`
+to their `work/` source).
+
+CEO verdict 2026-10-14 (D48): menu cursor **B** (hammer and sickle) and
+pause sign **P2** (a plaque per language). The cursor blinks through
+gzdoom.pk3's own ANIMDEFS (`M_SKULL1` / `M_SKULL2`, 8 tics each), so
+nothing in the mod declares it. Only the English plaque is installed: the
+Russian one needs the packer to carry a `localized/` variant, which it does
+not do yet (MOD-SPEC §10, T12).
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `M_SKULL1` | menu patch (cursor, phase 1) | 20×20 | no | option B: the hammer and sickle of `SDSTAR1` v5 (geometry imported from `gen_soviet_base.hammer_sickle()`, never re-traced), gold with a dark-red outline | (a) `tools/art/gen_cursor.py`, `cursor_image("B", 1)`; file `cursor_B_1.png` | approved 2026-10-14 (D48) | 2026-10-14 |
+| `M_SKULL2` | menu patch (cursor, phase 2) | 20×20 | no | the same emblem in its second blink phase, pale cream: the blink is the gold lighting up | (a) `tools/art/gen_cursor.py`, `cursor_image("B", 2)`; file `cursor_B_2.png` | approved 2026-10-14 (D48) | 2026-10-14 |
+| `M_PAUSE` | pause sign | 77×20 | no | option P2, English: «PAUSE» in `SDMENU` (D22 letterforms, it reads PДUSЭ) on a flag-red plaque with a cream border; the canvas also fits the Russian «ПАУЗА», so a localised variant can match its size | (a) `tools/art/gen_cursor.py`, `pause_image("P2", "en")`; file `pause_P2_en.png` | approved 2026-10-14 (D48); the Russian plaque `pause_P2_ru.png` is approved but not installed (packer, MOD-SPEC §10 T12) | 2026-10-14 |
 
 ## The alphabet (D24) — glyph fix and German letters
 

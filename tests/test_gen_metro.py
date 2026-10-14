@@ -1,7 +1,9 @@
-"""Contract of tools/art/gen_metro.py and of the metro set in assets/ (D42).
+"""Contract of tools/art/gen_metro.py and of the metro set in assets/ (D42, D48).
 
 The CEO approved the metro's first six pieces as drawn in palette v1
-(D42, 2026-10-13: «OK a las 6 piezas de metro»). What is checked:
+(D42, 2026-10-13: «OK a las 6 piezas de metro») and then the ten fill
+pieces of gen_metro.py --fill, also as drawn in palette v1 (D48,
+2026-10-14: «PERFECTO»). What is checked:
 
   installed   assets/textures/metro/ and assets/flats/metro/ hold exactly the
               approved lumps, at the declared sizes, indexed PNGs
@@ -14,8 +16,9 @@ The CEO approved the metro's first six pieces as drawn in palette v1
               Windows (CLAUDE.md, "Text-bearing assets do not reproduce")
   paper       every installed lump has an approved row in TEXTURE-INDEX.md
               and a row in LICENSES.md
-  drafts      the fill-out pieces (--fill): names, seeds, sizes, palette v1,
-              determinism, and never written into the approved folder
+  fill        the fill pieces (--fill, approved in D48): names, seeds,
+              sizes, palette v1, determinism, and the generator never writes
+              them into assets/ (the PM installs approved files by hand)
 
 All of it is cheap: the builders run in well under a second, so nothing
 here is gated behind SD_SKIP_SLOW_ART.
@@ -54,7 +57,20 @@ APPROVED_D42 = {
     "SDMFLR1": ("flat", 64, 64),
 }
 D42_BATCH_SEED = 1935
-INSTALLED = dict(APPROVED_D42)      # every metro lump in assets/, approved
+# D48: the ten fill pieces (gen_metro.py --fill), lump -> (kind, width, height).
+APPROVED_D48 = {
+    "SDMFLR2": ("flat", 64, 64),
+    "SDMFLR3": ("flat", 64, 64),
+    "SDMEDG1": ("wall", 64, 64),
+    "SDTUNL1": ("wall", 64, 128),
+    "SDTUBB1": ("wall", 128, 128),
+    "SDRAIL1": ("flat", 64, 64),
+    "SDMCEIL1": ("flat", 64, 64),
+    "SDMCEIL2": ("flat", 64, 64),
+    "SDMARB2": ("wall", 64, 128),
+    "SDTILE3": ("wall", 64, 128),
+}
+INSTALLED = {**APPROVED_D42, **APPROVED_D48}   # every metro lump in assets/, approved
 
 
 def installed_files() -> dict[str, Path]:
@@ -119,7 +135,8 @@ class GeneratorHoldsApprovedArtTests(unittest.TestCase):
     def setUpClass(cls):
         import gen_metro
         cls.g = gen_metro
-        cls.builders = {lump: builder for lump, builder, *_ in gen_metro.TEXTURES}
+        cls.builders = {lump: builder for lump, builder, *_ in
+                        gen_metro.TEXTURES + gen_metro.FILL_TEXTURES}
 
     def test_d42_seeds_unchanged(self):
         self.assertEqual(self.g.BATCH_SEED, D42_BATCH_SEED)
@@ -127,6 +144,17 @@ class GeneratorHoldsApprovedArtTests(unittest.TestCase):
                     "SDMOSA1": 4, "SDBRAS1": 5, "SDMFLR1": 6}
         for lump, offset in expected.items():
             self.assertEqual(self.g.SEED_OFFSET[lump], offset, lump)
+
+    def test_d48_seeds_unchanged(self):
+        expected = {"SDMFLR2": 7, "SDMFLR3": 8, "SDMEDG1": 9, "SDTUNL1": 10,
+                    "SDTUBB1": 11, "SDRAIL1": 12, "SDMCEIL1": 13, "SDMCEIL2": 14,
+                    "SDMARB2": 15, "SDTILE3": 16}
+        self.assertEqual(set(expected), set(APPROVED_D48))
+        for lump, offset in expected.items():
+            self.assertEqual(self.g.SEED_OFFSET[lump], offset, lump)
+
+    def test_every_installed_lump_has_a_builder(self):
+        self.assertEqual(set(self.builders), set(INSTALLED))
 
     def test_installed_pixels_match_generator(self):
         import numpy as np
@@ -148,8 +176,11 @@ LUMP_RE = re.compile(r"^SD[A-Z0-9]{1,6}$")
 
 @unittest.skipUnless(HAVE_IMAGING, "needs numpy + Pillow (project venv)")
 class FillDraftTests(unittest.TestCase):
-    """The fill-out drafts (gen_metro.py --fill, 2026-10-13): proposals for
-    the next CEO gate, palette v1, never in assets/ until approved."""
+    """The fill pieces (gen_metro.py --fill, drafted 2026-10-13, approved by
+    the CEO 2026-10-14 in D48, «PERFECTO»): the generator's contract for
+    them, palette v1. The installed files are held to the generator by
+    GeneratorHoldsApprovedArtTests; here --fill still writes to work/ only,
+    never into the approved folder (the PM copies approved files by hand)."""
 
     @classmethod
     def setUpClass(cls):
