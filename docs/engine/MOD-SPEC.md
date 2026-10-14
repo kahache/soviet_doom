@@ -51,6 +51,11 @@ names: `M_PAUSE` in English, the Russian variant's full path in Russian
 (§6.5.1, ADR 010). `assets/localized/textures/M_PAUSE.ru.png` is installed
 (P2 «ПАУЗА», D48) and `tools/release.py` credits `localized/` through the
 base's licence row. **NOT YET SEEN IN THE ENGINE** (D26).
+**D54, 2026-10-14: the first enemy wears its own sprites.** The Liberty
+Legion trooper's full set, cell C with the redone death (70 `SDLT` lumps,
+`assets/sprites/legion/`), is packed and every `SD_LegionTrooper` state
+names `SDLT` instead of Freedoom's `SPOS`, not one tic changed (§5.1, §6.3,
+"The Legion trooper, installed by D54"). **NOT YET SEEN IN THE ENGINE** (D26).
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -528,6 +533,15 @@ rename inside our states, not a replacement of the IWAD lump, so nothing
 else changes picture. `BFUG` (the Katyusha's pickup) and every held and
 flash sprite in the table remain.
 
+**Retired 2026-10-14 (D54):** `SPOS`, the Legion trooper's placeholder.
+Every `SD_LegionTrooper` state names our `SDLT` now (§6.3, "The Legion
+trooper, installed by D54"). Doom's own `ShotgunGuy` and its corpse
+`DeadShotgunGuy` (editor number 19; it derives from `ShotgunGuy`, not
+from our class, and spawns as `Goto Super::Death+4`, read in g4.14.2's
+`gzdoom.pk3`, `zscript/actors/doom/deadthings.zs`) keep Freedoom's `SPOS`:
+the swap renamed our states and did not replace the IWAD lump. No map of
+ours places 19 (counted in the built MAP01 and MAP02, 2026-10-14).
+
 | Name | Type | Used by | Verification |
 |---|---|---|---|
 | `PUNG` | sprite | `SD_IceAxe` (held) | engine pass F4, 2026-10-12 (as `SD_Shovel`) |
@@ -548,7 +562,6 @@ flash sprite in the table remain.
 | `BFGF` | sprite | `SD_HandKatyusha` (flash) | idem |
 | `BFUG` | sprite | `SD_HandKatyusha` (pickup) | idem |
 | `POSS` | sprite | `SD_ReichRifleman` | frames in the IWAD (test); engine pass 2026-10-13: no `Missing sprite` (not every state was exercised) |
-| `SPOS` | sprite | `SD_LegionTrooper` | idem |
 | `TROO` | sprite | `SD_Stormtrooper` | idem |
 | `BAL1` | sprite | `SD_StormBolt` | idem |
 | `SARG` | sprite | `SD_ReichHound` | idem |
@@ -813,7 +826,7 @@ marked. Images per class and the drawing briefs: `BESTIARY.md` §3–§9, §12.
 | Class | Final sprite | Frames (rotations) | Placeholder today |
 |---|---|---|---|
 | `SD_ReichRifleman` | `SDRR` | A–G (8), H–U (0) | `POSS` |
-| `SD_LegionTrooper` | `SDLT` | A–G (8), H–U (0) | `SPOS` |
+| `SD_LegionTrooper` | `SDLT` | A–G (8), H–U (0) | none: **installed, D54** (was `SPOS`) |
 | `SD_Stormtrooper` | `SDHS` | A–H (8), I–U (0) | `TROO` |
 | `SD_StormBolt` | `SDBL` | A–E (0) | `BAL1` |
 | `SD_ReichHound` | `SDHN` | A–H (8), I–N (0) | `SARG` |
@@ -823,6 +836,37 @@ marked. Images per class and the drawing briefs: `BESTIARY.md` §3–§9, §12.
 | `SD_PanzerShell` | `SDPL` | A–E (0) | `BAL7` |
 | `SD_General` | `SDGN` | A–G (8), H–P (0), Q–R (8) | `CYBR`; **exception**: the `Summon` lines borrow `CYBR E F` and become `SDGN Q R` |
 | `SD_GeneralShell` | `SDGL` | A–E (0) | **exception**: `MANF` A–B in flight, `MISL` B–D burst; the burst becomes `SDGL C D E` |
+
+**The Legion trooper, installed by D54 (2026-10-14).** The CEO chose cell C
+of the Legion sweep (D48) and approved its redone death, the corpse lying
+flat (D54). The whole set ships, 70 lumps in `assets/sprites/legion/`,
+byte-identical to `work/art/enemies/legion/full_C/` (`tools/art/gen_legion.py
+--full`, rendered on the Windows PC on 2026-10-14); the superseded
+`old_death/`, the GIFs, the `pair_*` lineups and `metrics.json` stay in
+`work/`. Unlike the IWAD's placeholders the set has no mirrored pairs: the
+figure is handed (shotgun across the chest, flag patch on the right
+shoulder), so frames A–G are drawn in **eight separate rotations**
+(`SDLTA1` … `SDLTG8`, 56 lumps) and H–U in rotation 0 (14 lumps). Each PNG
+is RGBA with hard alpha and carries its `grAb` offsets: `left = width / 2`,
+`top` = the rig's floor line (64 on the 64×72 and 96×72 standing canvases,
+68 on the 96×80 death canvas, 76 on the 96×88 gib canvas), the same for the
+eight rotations of a frame. The build drops the set folder (`sprites/SDLTA1.png`).
+
+| Frames | Lumps | State |
+|---|---|---|
+| A–D | 32 | `Spawn` (A B), `See` (A A B B C C D D) |
+| E–F | 16 | `Missile` (E aim, F fire, `Bright`) |
+| G | 8 | `Pain` |
+| H–L | 5 | `Death` (L the corpse, `-1`); `Raise` plays L K J I H |
+| M–U | 9 | `XDeath` (U the remains, `-1`) |
+
+Only the four-letter name changed, `SPOS` → `SDLT`: frame letters, tics,
+`Bright`, actions and flow are as before, held by
+`tests/test_legion_sprites.py` against the state machine as it stood
+before D54. Blood stays the engine's sprite recoloured by `BloodColor
+"AD 27 21"` (D49, below); the drawn deaths carry their own dark-red blood.
+Licence rows: `docs/art/LICENSES.md`, "Enemy sprites: the Liberty Legion
+trooper". The draft overlay carries nothing of the Legion (§6.9).
 
 **The radio (§6.7).** `SD_Radio` → final sprite **`SDRD`** A (rotation
 `0`, one picture from every angle: a set on a desk, about 32×28 like its
@@ -1135,7 +1179,11 @@ installed by D48 (§6.3) are out: their placeholders are no longer named by
 any state, and the tool skips any swap whose sprite already sits under
 `assets/sprites/` (`INSTALLED` in the tool lists the six). It still carries
 the held and flash frames of all seven weapons (hand E, held back by the
-CEO), the hand Katyusha's pickup and the Reich rifleman.
+CEO), the hand Katyusha's pickup and the Reich rifleman. **The Legion
+(D54, 2026-10-14)** ships its own `SDLT` from `assets/sprites/legion/` and
+its states no longer name `SPOS`; the overlay never carried it, and
+`INSTALLED_ENEMIES` in the tool records `SPOS` → `SDLT` so that no swap can
+name either (a swap that did would be skipped with a note).
 
 ```sh
 .venv/Scripts/python.exe tools/make_draft_overlay.py      # → work/overlays/sd-draft-sprites.pk3 (+ .txt manifest)
@@ -1243,7 +1291,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | T14 | Four engine menus (`MainMenu`, `SkillMenu`, `EpisodeMenu` since D41, and the `os_Menu` insertion anchor) are copied into `MENUDEF`; since D31 the first two, and since D41 the third, also differ in their items and layout (§6.6). They do not track engine changes. **Since T24, also `D_Display`'s pause drawing** (`src/d_main.cpp`, g4.14.2, lines 1095-1123): `SD_StatusBar.DrawPaused` copies its position and its multiplayer line (§6.5.1). | re-diff at every engine upgrade |
 | T15 | MAP01's `par = 210` is set, the intermission's PAR row appears, but the printed value was never read in an unattended run (§4.1). | `qa-engineer`, with a human at the keyboard |
 | ~~T16~~ | **PAID 2026-10-13**: the ANIMDEFS pairs in `be6525a`, MAP01 v2 retired `SWITCH_PLACEHOLDER` in `bf857a0`. Was: **Paid for the engine, open for the map.** `src/lumps/ANIMDEFS` ships the four `switch` pairs SDSW1x → SDSW2x (2026-10-13), syntax from `gzdoom.pk3 → animdefs.txt`, and `SDSW1A` was seen to flip in engine the same day (§4.3). Open: MAP01 still wears `SDDOOR1` (`SWITCH_PLACEHOLDER`); the click is heard on the CEO's first walk with real switches. | `level-designer`, MAP01 v2 |
-| T18 | **Every bestiary sprite and sound is a Freedoom placeholder** (§5.1, §6.2, §6.3); the heavy Panzermensch looks exactly like the normal one. | F5, as `art-director` and `sound-designer` deliver (D35: own drawings for the five most-seen) |
+| T18 | **Every bestiary sprite and sound is a Freedoom placeholder** (§5.1, §6.2, §6.3); the heavy Panzermensch looks exactly like the normal one. **Partly paid 2026-10-14 (D54):** the Legion trooper's sprites are ours, 70 `SDLT` lumps (§6.3, "The Legion trooper, installed by D54"). Open: the sprites of the other six classes and the four projectiles (the rifleman and the Stormtrooper are drafted, D48/D53), and every bestiary sound, the Legion's included. | F5, as `art-director` and `sound-designer` deliver (D35: own drawings for the five most-seen) |
 | ~~T19~~ | ~~Nothing has been seen in the engine: the eight classes compile only in theory until the PM's batch run (D26).~~ **Paid 2026-10-13** by the PM's engine pass (GZDoom 4.14.2, Freedoom 0.13.0): the classes load with no error, the gallery shows all eight, the drops and the General's single summon were counted, and MAP01 v3's 33 enemies spawn through Doom's numbers. Evidence `docs/qa/evidence/2026-10-13_1705_F5_map02-bestiary.log` and `…-gallery.png` (commit `2b1aba5`), `docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass.log` (commit `bcbf35f`); the table is in ADR 006. What that pass did **not** settle is debt T22. |  |
 | ~~T20~~ | ~~ADR 006 is owed.~~ **Paid 2026-10-13**: `docs/engine/adr/006-bestiary-actors.md` (seven decisions, what the engine showed, what it did not). Written in the working tree; the commit is the PM's (D6). |  |
 | T21 | Doom monsters with no Soviet replacement (65 chaingunner, 58 spectre, the rest of Doom II's roster) still spawn Freedoom's actors. MAP01 §8 plans a "Legion heavy gunner" on 65 that the bestiary does not have. | CEO question, if a seventh enemy is wanted |

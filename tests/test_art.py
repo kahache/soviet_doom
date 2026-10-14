@@ -216,9 +216,14 @@ class ApprovedAssetsTests(unittest.TestCase):
                     self.assertTrue(set(img.getchannel("A").getdata()) <= {0, 255}, p)
                     continue
                 if kind == "sprites":
-                    # D48: sprites/<weapon>/NAMEFR.png, our SD prefix, RGBA
+                    # D48: sprites/<set>/NAMEFR.png, our SD prefix, RGBA
                     # with hard alpha and the grAb offsets inside the file
-                    # (tests/test_weapon_sprites.py holds the offsets).
+                    # (tests/test_weapon_sprites.py and, for the Legion's
+                    # SDLT since D54, tests/test_legion_sprites.py hold the
+                    # offsets). R is 0 (one picture for every angle) or 1-8
+                    # (one lump per rotation; no mirrored NAMEFRFR pairs
+                    # yet), and test_sprite_rotation_sets_are_whole below
+                    # holds each frame's set together.
                     self.assertRegex(p.stem, r"^SD[A-Z0-9]{2}[A-Z][0-8]$", p)
                     self.assertEqual(img.mode, "RGBA", p)
                     alpha = set(img.getchannel("A").getdata())
@@ -253,11 +258,31 @@ class ApprovedAssetsTests(unittest.TestCase):
                 else:
                     self.assertIn(img.size, WALL_SIZES, p)
 
+    def test_sprite_rotation_sets_are_whole(self):
+        """A sprite frame in assets/sprites/ is rotation 0 alone or all of
+        rotations 1-8, inside one set folder: a partial set would be filled
+        by nothing and the engine would say "Missing sprite" as it turns."""
+        frames: dict[tuple[str, str], set[str]] = {}
+        for p in self.pngs:
+            rel = p.relative_to(ASSETS_DIR)
+            if rel.parts[0] != "sprites":
+                continue
+            frames.setdefault((rel.parent.as_posix(), p.stem[:5]), set()).add(p.stem[5])
+        for (folder, frame), rots in sorted(frames.items()):
+            self.assertIn(rots, ({"0"}, set("12345678")), f"{folder}/{frame}: rotations {sorted(rots)}")
+
     def test_identical_to_work_source(self):
         if not WORK_ART_DIR.is_dir():
             self.skipTest("work/ not present (gitignored work-in-progress)")
         for p in self.pngs:
             sources = list(WORK_ART_DIR.rglob(p.name))
+            if p.relative_to(ASSETS_DIR).parts[0] == "sprites":
+                # A redone frame keeps its superseded render beside the new
+                # one in an `old_*` folder (the Legion's old_death/, D54), for
+                # the before/after sheet. Those never ship, so they are not
+                # sources; the installed lump must match the current render.
+                sources = [q for q in sources
+                           if not any(part.startswith("old_") for part in q.relative_to(WORK_ART_DIR).parts)]
             if p.relative_to(ASSETS_DIR).parts[0] == "fonts":
                 # Every font variant generates the same codepoint filenames,
                 # so a bare name matches A, B and C at once. What matters is

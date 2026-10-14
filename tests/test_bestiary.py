@@ -447,9 +447,14 @@ class BestiaryPlaceholdersInIwadTest(unittest.TestCase):
 
     def test_every_placeholder_sprite_frame_exists(self):
         files = [f for f, *_ in ENEMIES.values()] + [f for f, _ in PROJECTILES.values()]
+        # Our own sprites ship from assets/sprites/ (the Legion's SDLT since
+        # D54) and are not placeholders: tests/test_legion_sprites.py checks them.
+        ours = {p.stem[:4].upper() for p in (PROJECT_ROOT / "assets" / "sprites").rglob("*.png")}
         checked = 0
         for filename in files:
             for sprite, frames in state_frames(read_zs(filename)):
+                if sprite in ours:
+                    continue
                 for frame in frames:
                     hit = any(name.startswith(sprite) and (name[4:5] == frame or name[6:7] == frame)
                               for name in self.sprites)
