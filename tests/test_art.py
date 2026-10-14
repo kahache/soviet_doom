@@ -201,8 +201,20 @@ class ApprovedAssetsTests(unittest.TestCase):
         from PIL import Image
         for p in self.pngs:
             kind = p.relative_to(ASSETS_DIR).parts[0]
-            self.assertIn(kind, ("textures", "flats", "graphics", "fonts", "sprites"), p)
+            self.assertIn(kind, ("textures", "flats", "graphics", "fonts", "sprites", "localized"), p)
             with Image.open(p) as img:
+                if kind == "localized":
+                    # ADR 010: localized/textures/<BASE>.<lang>.png, the same
+                    # size as its base shell picture, RGBA with hard alpha.
+                    base, _, lang = p.stem.partition(".")
+                    self.assertEqual(p.parent.relative_to(ASSETS_DIR).as_posix(),
+                                     "localized/textures", p)
+                    self.assertIn(base, self.SHELL_SIZES, p)
+                    self.assertRegex(lang, r"^[a-z]{2,3}$", p)
+                    self.assertEqual(img.size, self.SHELL_SIZES[base], p)
+                    self.assertEqual(img.mode, "RGBA", p)
+                    self.assertTrue(set(img.getchannel("A").getdata()) <= {0, 255}, p)
+                    continue
                 if kind == "sprites":
                     # D48: sprites/<weapon>/NAMEFR.png, our SD prefix, RGBA
                     # with hard alpha and the grAb offsets inside the file

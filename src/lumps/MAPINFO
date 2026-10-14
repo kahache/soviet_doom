@@ -20,6 +20,14 @@ GameInfo
 	// title music the way PlayerClasses overrides its player.
 	// Contract: docs/engine/MOD-SPEC.md 4.5.
 	TitleMusic = "D_SDINTL"
+
+	// T24: the status bar is ours so the pause sign can follow the language.
+	// SD_StatusBar derives from DoomStatusBar, the class gzdoom.pk3's
+	// mapinfo/doomcommon.txt names here, and overrides only DrawPaused, so
+	// the bar itself is Doom's. The engine takes the last StatusBarClass by
+	// file order and this PK3 loads after gzdoom.pk3 and the IWAD (Freedoom
+	// defines none). Contract: docs/engine/MOD-SPEC.md 6.5.1; ADR 010.
+	StatusBarClass = "SD_StatusBar"
 }
 
 // --- Difficulty ladder ----------------------------------------------------
