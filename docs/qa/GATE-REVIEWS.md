@@ -656,3 +656,33 @@ PASS (P4 itself is verified; MAP02's checklist, not G3's), which also
 verifies G3-F4's fix. Prudent, not required: `g3-auto` on 2, 3 and 4 once
 more on `route-3`, since every warp now stops the body first. G3 is
 signed only on a `tools/verify.py full` run.
+
+## MAP03 — `map03-critical`, the scripted critical path (note, not a gate; 2026-10-14)
+
+`tools/route.py --route map03-critical` (helper `route-4`) is MAP03's
+`g3-auto`: A0 start (no key) → BD0 the blue blast door pressed **without**
+the pass (the press must be in the log and tag `TAG_BLAST_DOOR` must stay
+shut: K2's first half) → PASS walked onto, never `give` (a Key owned; the
+shutter still shut) → BD1 the door pressed again (open) and walked through
+into B1 → SWA (shutter open, gate still shut) → SWB (gate open) → E0 from the
+west tunnel through the gate into the exit niche → E1 the exit switch
+(`exit_by="switch"`, `next = endtitle`). Every walk is cleared with
+`sdclear` first. No coordinate is copied: tags, the locked-door special and
+the pass's DoomEdNum come from `src/maps/MAP03/map.py`'s constants, every
+position from the built map, so the route already follows v1's move of the
+pass into the duty officer's booth. `tests/test_route.py` holds the
+geometry and the `--parse` verdicts (clean pass on 2/3/4; the door opening
+without the pass, a press never seen, no pass picked up, a `route-3` log,
+the gate shut and the exit not reached all FAIL).
+**Not run in the engine (D26).** NOT VERIFIED until the PM's run: the
+`route-4` key lines; that a press on a locked line prints its `SDTEST line`
+without the key (the lock message is accepted instead); the walk lengths'
+acceleration allowance (`ACCEL_TICS`). The PM's command:
+`SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route map03-critical --keep-evidence`.
+**Same day, D60/D62 follow-up:** every route now reads where its exit leads
+from MAPINFO (`exit_expectation`): `g3-auto` and `g3-secrets` expect MAP01
+to lead to the metro (`next = "MAP03"`) and FAIL on an end sequence; only the
+metro and the practice range expect one. Routes find their map by its
+map.py constants, not by slot, so D62's renumbering moves them with it.
+NOT VERIFIED: that GZDoom's unload event names the next map as MAPINFO
+spells it (compared without case).
