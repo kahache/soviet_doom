@@ -21,7 +21,6 @@ get better.
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
 | N12 | M2 | The General: design sweep (full set after the CEO picks a cell) | art-director | 250 | CEO, 2026-10-14 |
-| R1 | P2 | Research: a free local tool to generate the enemy voices (like Fooocus), install guide for the CEO | research | 120 | CEO, 2026-10-14 |
 | N10 | M4 | Full licence texts (GPL-3.0, CC BY-NC-SA 4.0) in the package; downloaded by the PM (D69) | mod-engineer | 80 | D69 |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
@@ -61,6 +60,8 @@ the Fooocus hand images, sounds and music to hear.
 | **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
+
+R1: local voice generation study, `docs/product/2026-10-14_2156_P2_local-voice-generation.md` (Spanish, for the CEO): Chatterbox Multilingual (MIT) via Chatterbox-TTS-Server on `Z:`, the CEO's own voice as reference only. **Real cost 147k** (est. 120k).
 
 N2 + v1.1: tankograd-critical route; Tankograd v1.1 (D68). **All three campaign routes PASS in engine on 16427a7** (MAP01 -> MAP02 -> MAP03 -> end). D67: Panzermensch and Schwer installed.
 
