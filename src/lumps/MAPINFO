@@ -222,6 +222,17 @@ map MAP01 lookup "SD_MAP01_NAME"
 //   21000-21019  weapons      21020-21039  ammo and items
 //   21100-21199  enemies      21200-21299  decorations
 
+map MAP03 lookup "SD_MAP03_NAME"
+{
+	// The metro-bunker, v0 grey box (docs/levels/MAP03-metro.md). Not wired
+	// into the campaign yet (D5: v1 ships MAP01): reached with +map MAP03.
+	// No cluster on purpose, so it prints neither ending; next = endtitle.
+	next = endtitle
+	music = ""
+	sky1 = "SKY1"
+	par = 300
+}
+
 DoomEdNums
 {
 	21001 = SD_IceAxe         // slot 1; the shovel until D40, same number
