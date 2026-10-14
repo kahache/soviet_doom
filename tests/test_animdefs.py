@@ -1,9 +1,13 @@
-"""Tests for src/lumps/ANIMDEFS: the switch pairs of MOD-SPEC 4.3 (debt T16).
+"""Tests for src/lumps/ANIMDEFS: the switch pairs of MOD-SPEC 4.3 (debt T16)
+and the Tankograd animations (N6c, D66).
 
-The engine pass (pressing each switch in GZDoom) is the PM's (D26). What can
-be proved without the engine is proved here: the lump ships at the PK3 root,
-every approved OFF face (SDSW1x) has exactly one `switch` line, every line
-pairs SDSW1x with its own SDSW2x, and every name is an approved asset.
+The engine pass (pressing each switch, watching the molten metal and the
+portal move in GZDoom) is the PM's (D26). What can be proved without the
+engine is proved here: the lump ships at the PK3 root, every approved OFF
+face (SDSW1x) has exactly one `switch` line, every line pairs SDSW1x with its
+own SDSW2x, and every name is an approved asset; the molten-metal flat and
+the portal texture each have one animation that names its four installed
+frames in order at 8 tics, a flat as `flat` and a wall as `texture`.
 
 Run:  python3 -m unittest discover -s tests -v
 """
@@ -23,9 +27,11 @@ SRC_DIR = PROJECT_ROOT / "src"
 ASSETS_DIR = PROJECT_ROOT / "assets"
 ANIMDEFS = SRC_DIR / "lumps" / "ANIMDEFS"
 SWITCH_ASSETS = ASSETS_DIR / "textures" / "soviet_base"
+FACTORY_WALLS = ASSETS_DIR / "textures" / "factory"
+FACTORY_FLATS = ASSETS_DIR / "flats" / "factory"
 sys.path.insert(0, str(TOOLS_DIR))
 
-from check_pk3 import animdefs_switch_textures  # noqa: E402
+from check_pk3 import animdefs_anim_textures, animdefs_switch_textures  # noqa: E402
 from sdbuild.pk3 import build as build_pk3  # noqa: E402
 
 # MOD-SPEC 4.3: SDSW + state digit (1 off, 2 on) + variant letter.
@@ -34,6 +40,18 @@ RE_SWITCH_ASSET = re.compile(r"^SDSW([12])([A-Z])\.png$")
 # The exact form the engine uses for its own Doom switches (gzdoom.pk3 ->
 # animdefs.txt, GZDoom g4.14.2): game filter, OFF, `on pic` ON, `tics 0`.
 RE_SWITCH_LINE = re.compile(r"^switch\s+doom\s+1\s+(\S+)\s+on\s+pic\s+(\S+)\s+tics\s+0$")
+# Animations (N6c): the form FTextureAnimator::ParseAnim reads (GZDoom
+# g4.14.2, src/gamedata/textures/animations.cpp): a header `flat NAME` or
+# `texture NAME`, then one `pic FRAME tics N` line per frame.
+RE_ANIM_HEAD = re.compile(r"^(flat|texture)\s+(\S+)$")
+RE_ANIM_PIC = re.compile(r"^pic\s+(\S+)\s+tics\s+(\d+)$")
+ANIM_TICS = 8                      # art-director's rate, 8/35 s a frame (D66)
+ANIM_FRAMES = 4
+# First frame -> (keyword, folder): the molten metal is a floor, the portal a wall.
+ANIMATIONS = {
+    "SDMOLT1": ("flat", FACTORY_FLATS),
+    "SDPORT1": ("texture", FACTORY_WALLS),
+}
 
 
 def switch_lines() -> list[str]:
@@ -43,6 +61,29 @@ def switch_lines() -> list[str]:
         line = raw.split("//", 1)[0].strip()
         if line.lower().startswith("switch"):
             out.append(line)
+    return out
+
+
+def animations() -> dict[str, tuple[str, list[tuple[str, int]]]]:
+    """{first frame: (keyword, [(frame, tics), ...])} for every flat/texture
+    animation of the lump, read line by line in the project's own layout."""
+    out: dict[str, tuple[str, list[tuple[str, int]]]] = {}
+    current = None
+    for raw in ANIMDEFS.read_text(encoding="ascii").splitlines():
+        line = raw.split("//", 1)[0].strip()
+        if not line:
+            continue
+        head = RE_ANIM_HEAD.match(line)
+        pic = RE_ANIM_PIC.match(line)
+        if head:
+            current = head.group(2)
+            if current in out:
+                raise AssertionError(f"{current} is animated twice")
+            out[current] = (head.group(1), [])
+        elif pic and current is not None:
+            out[current][1].append((pic.group(1), int(pic.group(2))))
+        else:
+            current = None
     return out
 
 
@@ -89,6 +130,42 @@ class AnimdefsSourceTest(unittest.TestCase):
             self.assertTrue((SWITCH_ASSETS / f"{name}.png").is_file(), f"{name} is not in {SWITCH_ASSETS}")
 
 
+class AnimdefsAnimationTest(unittest.TestCase):
+    """N6c: SDMOLT1-4 (flat) and SDPORT1-4 (texture), four frames at 8 tics."""
+
+    def test_exactly_the_two_animations(self):
+        self.assertEqual(set(ANIMATIONS), set(animations()))
+
+    def test_keyword_matches_the_kind_of_surface(self):
+        # `flat` looks its names up as flats and `texture` as walls
+        # (ParseAnim); whether the wrong keyword falls back is NOT VERIFIED,
+        # so it is held as an error here.
+        for first, (keyword, folder) in ANIMATIONS.items():
+            self.assertEqual(keyword, animations()[first][0], first)
+            self.assertTrue((folder / f"{first}.png").is_file(), f"{first} is not in {folder}")
+
+    def test_frames_in_order_at_eight_tics(self):
+        for first, (_keyword, frames) in animations().items():
+            stem = first[:-1]
+            self.assertEqual([f"{stem}{i}" for i in range(1, ANIM_FRAMES + 1)],
+                             [name for name, _tics in frames], first)
+            self.assertEqual({ANIM_TICS}, {tics for _name, tics in frames}, first)
+
+    def test_every_frame_is_an_installed_asset(self):
+        for first, (_keyword, folder) in ANIMATIONS.items():
+            for name, _tics in animations()[first][1]:
+                self.assertTrue((folder / f"{name}.png").is_file(), f"{name} is not in {folder}")
+
+    def test_validator_reads_the_same_frames(self):
+        # check_pk3's token parser and this file's line reader agree.
+        names = {name for name, _line, _role in animdefs_anim_textures(ANIMDEFS.read_text(encoding="ascii"))}
+        self.assertEqual({f"{first[:-1]}{i}" for first in ANIMATIONS for i in range(1, ANIM_FRAMES + 1)}, names)
+
+    def test_switch_parser_ignores_the_animations(self):
+        names = {name for name, _line, _role in animdefs_switch_textures(ANIMDEFS.read_text(encoding="ascii"))}
+        self.assertFalse(names & {"SDMOLT1", "SDPORT1"})
+
+
 class AnimdefsPackedTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -111,6 +188,12 @@ class AnimdefsPackedTest(unittest.TestCase):
         packed = {Path(n).stem.upper() for n in self.names if n.startswith("textures/")}
         for name, line, role in animdefs_switch_textures(self.animdefs.decode("ascii")):
             self.assertIn(name, packed, f"ANIMDEFS:{line} {role} texture {name} is not in textures/")
+
+    def test_every_animation_frame_is_packed_in_its_namespace(self):
+        folder = {"flat": "flats/", "texture": "textures/"}
+        for name, line, role in animdefs_anim_textures(self.animdefs.decode("ascii")):
+            packed = {Path(n).stem.upper() for n in self.names if n.startswith(folder[role])}
+            self.assertIn(name, packed, f"ANIMDEFS:{line} {role} frame {name} is not in {folder[role]}")
 
 
 if __name__ == "__main__":

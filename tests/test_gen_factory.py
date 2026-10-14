@@ -91,14 +91,11 @@ TEXTURE_INDEX = PROJECT_ROOT / "docs" / "art" / "TEXTURE-INDEX.md"
 LICENSES = PROJECT_ROOT / "docs" / "art" / "LICENSES.md"
 APPROVED_D66 = {lump: (kind, w, h) for kind, w, h, lumps in EXPECTED.values() for lump in lumps}
 MASKED_D66 = {"SDCHAN1"}                         # RGBA with hard alpha (ART-BIBLE §2 exception)
-# Approved in D66 but NOT yet in assets/: the shared validators still refuse
-# them, and their rules are not the art-director's to change.
-#   SDCHAN1  RGBA: tools/check_pk3.py (check_images) and tests/test_art.py
-#            (test_layout_names_and_sizes) require mode P under textures/
-#   SDSLOG1  256x64: tests/test_art.py WALL_SIZES lacks it (check_pk3 has it)
-# When both accept them, copy the two files from work/art/batch4/factory/
-# and empty this set.
-HELD_D66 = {"SDCHAN1", "SDSLOG1"}
+# Approved in D66 but NOT yet in assets/. Empty since N6b (2026-10-14): SDCHAN1
+# (RGBA) and SDSLOG1 (256x64) waited here until tools/check_pk3.py
+# (MASKED_TEXTURES) and tests/test_art.py (WALL_SIZES) accepted them; both
+# were then copied byte for byte from work/art/batch4/factory/.
+HELD_D66: set[str] = set()
 INSTALLED_D66 = {lump: v for lump, v in APPROVED_D66.items() if lump not in HELD_D66}
 # The seeds the approved art was drawn from: BATCH_SEED + offset, per piece.
 D66_BATCH_SEED = 4100

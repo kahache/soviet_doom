@@ -38,3 +38,39 @@ switch doom 1 SDSW1A on pic SDSW2A tics 0
 switch doom 1 SDSW1B on pic SDSW2B tics 0
 switch doom 1 SDSW1C on pic SDSW2C tics 0
 switch doom 1 SDSW1D on pic SDSW2D tics 0
+
+// ---------------------------------------------------------------------------
+// Animations (N6c, D66). A `flat` or `texture` definition makes the engine
+// swap a surface through its frames on its own, forever: wherever a map uses
+// the first frame, the floor or wall cycles 1 -> 2 -> 3 -> 4 -> 1. The
+// generator drew each loop seamless, so frame 4 leads back into frame 1.
+//
+// SYNTAX SOURCE. Read 2026-10-14 in the engine's parser,
+// FTextureAnimator::ParseAnim in src/gamedata/textures/animations.cpp (GZDoom
+// tag g4.14.2): `flat` and `texture` take the same body, NAME then
+// `pic FRAME tics N` per frame (at least two frames); `flat` looks the names
+// up as flats, `texture` as walls. VERIFIED in the source; the `texture`
+// form is also the one the engine writes itself in gzdoom.pk3 ->
+// animdefs.txt (`texture optional M_SKULL1` / `pic M_SKULL1 tics 8`). The
+// engine's own file has no `flat` line: Doom's flats animate from the binary
+// ANIMATED lump instead. Seen moving in game: NOT VERIFIED (D26).
+//
+// Every frame is named (`pic`), not `range`: a range takes the frames
+// between two names in the texture manager's order, and whether that order
+// follows the file names for loose PNGs in a PK3 is NOT VERIFIED; naming
+// every frame removes the question. 8 tics = 8/35 s, about 0.23 s a frame, a 0.9 s loop: the
+// rate art-director proposed (gen_factory.py previews at GIF_MS = 229, 8
+// tics at 35 Hz; docs/art/TEXTURE-INDEX.md). tests/test_animdefs.py
+// pins both definitions; tools/check_pk3.py checks every frame is packed.
+
+flat SDMOLT1            // molten metal, the casting pit (flats/factory/)
+	pic SDMOLT1 tics 8
+	pic SDMOLT2 tics 8
+	pic SDMOLT3 tics 8
+	pic SDMOLT4 tics 8
+
+texture SDPORT1         // the portal's surface, MAP03's exit (textures/factory/)
+	pic SDPORT1 tics 8
+	pic SDPORT2 tics 8
+	pic SDPORT3 tics 8
+	pic SDPORT4 tics 8

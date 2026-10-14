@@ -21,6 +21,7 @@ import unittest
 import zipfile
 import zlib
 from contextlib import redirect_stdout
+from unittest import mock
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -97,6 +98,27 @@ def png_truecolour(width: int, height: int, rgb: tuple[int, int, int] = (90, 90,
         rows.append(0)
         rows += bytes(rgb) * width
     return _png(width, height, colour_type=2, extra_chunks=[], idat=bytes(rows))
+
+
+def png_masked(width: int, height: int, rgb: tuple[int, int, int] = PALETTE_IN[1],
+             alphas: tuple[int, ...] = (0, 255), filter_type: int = 0) -> bytes:
+    """A valid 8-bit RGBA (colour type 6) PNG, the masked-texture model (D66).
+
+    Pixel x of every row has alpha alphas[x % len(alphas)], so a hard-alpha
+    fixture really holds both 0 and 255. filter_type 1 (Sub) proves the
+    reader unfilters with a 4-byte pixel stride: every byte after the first
+    pixel is stored as a difference from the same channel one pixel left.
+    """
+    rows = bytearray()
+    for _y in range(height):
+        line = bytearray()
+        for x in range(width):
+            line += bytes(rgb) + bytes([alphas[x % len(alphas)]])
+        if filter_type == 1:
+            line = bytearray(line[:4]) + bytearray((line[i] - line[i - 4]) & 0xFF for i in range(4, len(line)))
+        rows.append(filter_type)
+        rows += line
+    return _png(width, height, colour_type=6, extra_chunks=[], idat=bytes(rows))
 
 
 def _png(width: int, height: int, colour_type: int, extra_chunks, idat: bytes) -> bytes:
@@ -473,6 +495,44 @@ class AnimdefsSwitchTest(CheckPk3TestCase):
         )
 
 
+class AnimdefsAnimationTest(CheckPk3TestCase):
+    """N6c: every frame of a `flat` / `texture` animation must resolve."""
+
+    def test_animation_that_resolves_passes(self):
+        entries = good_entries()
+        entries["ANIMDEFS"] = (b"flat SDTEST2\n\tpic SDTEST2 tics 8\n\tpic FLOOR4_8 tics 8\n"
+                               b"texture SDTEST1\n\tpic SDTEST1 tics 8\n\tpic STARTAN2 tics 8\n")
+        report = self.run_check(entries)
+        self.assertClean(report)
+        self.assertEqual(6, report.stats["anim_textures"])
+
+    def test_missing_frame_fails_with_line(self):
+        entries = good_entries()
+        entries["ANIMDEFS"] = b"// two frames\nflat SDTEST2\n\tpic SDTEST2 tics 8\n\tpic SDGHOST3 tics 8\n"
+        finding = self.assertFails(self.run_check(entries), "textures", "SDGHOST3")
+        self.assertEqual("ANIMDEFS:4:flat frame", finding.path)
+
+    def test_parser_reads_every_engine_form(self):
+        # gzdoom.pk3 -> animdefs.txt's `texture optional`, a range, a numeric
+        # pic offset (skipped: not a name), rand, options, a comment, and a
+        # switch around them that is not an animation.
+        text = (
+            "texture optional M_SKULL1\n\tpic M_SKULL1 tics 8\n\tpic M_SKULL2 tics 8\n"
+            "// flat NOTME pic NOTME tics 8\n"
+            "flat NUKAGE1 range NUKAGE3 tics 8\n"
+            "flat SDBARE1 pic 1 tics 4 pic 2 rand 2 6 oscillate\n"
+            "switch doom 1 SW1BRCOM on pic SW2BRCOM tics 0\n"
+            "texture SDWALL1 allowdecals pic SDWALL1 tics 3 pic SDWALL2 tics 3\n"
+        )
+        self.assertEqual(
+            [("M_SKULL1", 1, "texture"), ("M_SKULL1", 2, "texture"), ("M_SKULL2", 3, "texture"),
+             ("NUKAGE1", 5, "flat"), ("NUKAGE3", 5, "flat"),
+             ("SDBARE1", 6, "flat"),
+             ("SDWALL1", 8, "texture"), ("SDWALL1", 8, "texture"), ("SDWALL2", 8, "texture")],
+            check_pk3.animdefs_anim_textures(text),
+        )
+
+
 # --- 5. PNG colour model, palette and size ---------------------------------
 
 class ImageTest(CheckPk3TestCase):
@@ -541,6 +601,85 @@ class ImageTest(CheckPk3TestCase):
         report = self.run_check(entries)
         self.assertEqual([], [f for f in report.errors if f.category == "images"])
         self.assertTrue([f for f in report.warnings if "agreed wall sizes" in f.message])
+
+
+class MaskedTextureTest(CheckPk3TestCase):
+    """D66: a lump in MASKED_TEXTURES may be RGBA with hard alpha; nothing else may."""
+
+    def masked(self, names=frozenset({WALL_TEXTURE})):
+        patcher = mock.patch.object(check_pk3, "MASKED_TEXTURES", frozenset(names))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def image_errors(self, report: check_pk3.Report) -> list[str]:
+        return [f.message for f in report.errors if f.category == "images"]
+
+    def test_the_real_set_is_the_tankograd_chain(self):
+        self.assertEqual(frozenset({"SDCHAN1"}), check_pk3.MASKED_TEXTURES)
+
+    def test_hard_alpha_rgba_masked_texture_passes(self):
+        self.masked()
+        entries = good_entries()
+        entries[f"textures/{WALL_TEXTURE}.png"] = png_masked(64, 128)
+        self.assertClean(self.run_check(entries))
+
+    def test_sub_filtered_rgba_is_unfiltered_per_pixel(self):
+        self.masked()
+        entries = good_entries()
+        entries[f"textures/{WALL_TEXTURE}.png"] = png_masked(64, 128, filter_type=1)
+        self.assertClean(self.run_check(entries))
+        png = check_pk3.read_png(png_masked(8, 8, filter_type=1))
+        self.assertEqual({0, 255}, png.alphas)
+        self.assertEqual({PALETTE_IN[1]}, png.opaque_colours)
+
+    def test_rgba_outside_the_set_is_still_refused(self):
+        entries = good_entries()
+        entries[f"textures/{WALL_TEXTURE}.png"] = png_masked(64, 128)
+        finding = self.assertFails(self.run_check(entries), "images", "colour type 6")
+        self.assertIn("only the masked textures", finding.message)
+
+    def test_partial_alpha_fails(self):
+        self.masked()
+        entries = good_entries()
+        entries[f"textures/{WALL_TEXTURE}.png"] = png_masked(64, 128, alphas=(0, 128, 255))
+        finding = self.assertFails(self.run_check(entries), "images", "partial alpha")
+        self.assertIn("128", finding.message)
+
+    def test_opaque_colour_outside_the_palette_fails(self):
+        self.masked()
+        entries = good_entries()
+        entries[f"textures/{WALL_TEXTURE}.png"] = png_masked(64, 128, rgb=PALETTE_OUT)
+        finding = self.assertFails(self.run_check(entries), "images", "opaque colour")
+        self.assertIn("#FF00FF", finding.message)
+
+    def test_transparent_pixels_carry_any_colour(self):
+        # Fully transparent pixels are never drawn, so their RGB is free.
+        self.masked()
+        png = check_pk3.read_png(png_masked(8, 8, rgb=PALETTE_OUT, alphas=(0,)))
+        self.assertEqual(set(), png.opaque_colours)
+
+    def test_indexed_masked_texture_fails(self):
+        # Declared masked means RGBA: an indexed copy would lose the holes.
+        self.masked()
+        entries = good_entries()
+        self.assertFails(self.run_check(entries), "images", "must be colour type 6")
+
+    def test_a_flat_is_never_masked(self):
+        self.masked({"SDTEST2"})
+        entries = good_entries()
+        entries["flats/SDTEST2.png"] = png_masked(64, 64)
+        self.assertFails(self.run_check(entries), "images", "colour type 6")
+
+    def test_masked_texture_keeps_the_size_rules(self):
+        self.masked()
+        entries = good_entries()
+        entries[f"textures/{WALL_TEXTURE}.png"] = png_masked(60, 128)
+        self.assertFails(self.run_check(entries), "images", "multiples of 8")
+
+    def test_256_by_64_wall_is_agreed(self):
+        entries = good_entries()
+        entries[f"textures/{WALL_TEXTURE}.png"] = png_indexed(256, 64, PALETTE_IN)
+        self.assertClean(self.run_check(entries))
 
 
 # --- 6. Sprites ------------------------------------------------------------
