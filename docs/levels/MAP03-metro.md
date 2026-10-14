@@ -1,15 +1,17 @@
 # MAP03 — Metro-Bunker
 
-Design document. Owner: `level-designer`. Status: **v0 BUILT 2026-10-14
-(§14), not yet walked.** A working brief for the PM; the CEO's verdict comes
-from walking the map, not from reading this (D28). Source:
+Design document. Owner: `level-designer`. Status: **v1 BUILT 2026-10-14
+(§16): the blue pass signposted and the map populated; not yet walked.**
+v0 (§14) was walked by the CEO the same day (§15, D58): "me gusta de
+momento", but the pass was not found. A working brief for the PM; the CEO's
+verdict comes from walking the map, not from reading this (D28). Source:
 `src/maps/MAP03/map.py`; tests: `tests/test_map03.py`. Russian mirror: owed
 at the phase close (D34).
 
 > **Walk it** (the PM or the CEO; agents never start GZDoom, D26):
-> `python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP03 tools/run.sh`.
-> Until `mod-engineer` adds the MAPINFO entry of §11 the map has no title and
-> its exit switch has nowhere to go (checklist K12).
+> `python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP03 SKILL=3 tools/run.sh`.
+> MAPINFO has carried MAP03's entry since v0's engine pass
+> (`docs/qa/evidence/2026-10-14_1902_F3_map03-v0-walk.md`).
 
 Inputs this document obeys and does not restate: `docs/product/LORE.md`
 (the metro-bunker map: "first key, first heavy hybrids", texture set "tiles,
@@ -108,7 +110,8 @@ dormitory · `A` armoury · `K` command post, `Q` its door onto the tunnel ·
 | Z5 | Open track bed | 1280…2816 | 1344…1472 | −64 | 160 | 112 |
 | Z6 | Train: 4 cars, 2 cabs | 1280…2816 | 320…448 | 0 | 112 | 128 |
 | Z7e | East running tunnel | 2816…3200 | 1344…1472 | −64 | 64 | 96 |
-| Z8 | Traction substation (pass, SW-A), stair from D3 | 2880…3072 | 1024…1312 | −48…0 | 64 / 128 | 128 |
+| Z8 | Traction substation (SW-A), stair from D3 | 2880…3072 | 1024…1312 | −48…0 | 64 / 128 | 128 (v1: 144) |
+| Z8b | *v1:* duty officer's booth (**the pass**), two steps up; its window onto the hall's east end (x 2816…2848) | 2848…2944 | 1024…1088 | 32 | 128 (window 80) | **192**, blue (§16.1) |
 | S1 | 1941 shelter, with passage | 2880…3264 | 1504…1872 | −64 | 64 / 192 | 112 |
 | B1 | Gas lock | 1088…1248 | 832…960 | 0 | 128 | 128 |
 | B2 | Bunker spine | 576…1056 | 832…960 | 0 | 128 | 128 |
@@ -153,7 +156,13 @@ request, §14.6). Blue because the station's mosaic ground is cobalt (D56) and
 the door is framed by two of them: the colour of the lock is on the wall
 before it is in the player's hand. Where: on the duty officer's side of the
 traction substation, the room off the east tunnel. Not in a secret, not
-behind the door, on every skill (tested).
+behind the door, on every skill (tested). **Since v1 (§16.1)** it lies
+alone in the duty officer's booth, a lit niche two steps up in the
+substation's corner, whose window looks onto the far east end of the hall:
+from the blue door, turning round, the player sees it. Since 2026-10-14
+the thing number 5 spawns `SD_BluePass` ("Blue pass." / «Синий пропуск.»;
+`docs/engine/MOD-SPEC.md` §6, "The blue pass"), still drawn with Freedoom's
+keycard.
 
 | Id | Where | Type | Special | Can it lock the player out? |
 |---|---|---|---|---|
@@ -251,8 +260,10 @@ approved and packed from `assets/` (tested).
 | Pylons, arches | `SDMARB1` | `SDMFLR2` | `SDMCEIL1` | brass `SDBRAS1` pilasters on the pylon ends (v1) |
 | Platforms | `SDMARB2` | `SDMFLR1`; the open edge `SDMFLR3` coping | `SDMCEIL1` | coping turned 180° so the lip is on the track side: **NOT VERIFIED** (K7) |
 | Platform face | `SDMEDG1`, one whole 64 × 64 tile on the 64 drop (tested) | | | |
-| Track bed | `SDTILE1` outer wall | `SDFLR2`, a 64-wide `SDRAIL1` strip down the middle, turned 90° | | which way the rails run is K8 |
-| Tunnels | `SDTUBB1`: exactly one 128 tile floor to ceiling | `SDFLR2` + `SDRAIL1` | `SDCEIL2` | `SDTUNL1` (cables) on the service passages |
+| Track bed | `SDTILE1` outer wall | v1: the walkway half (platform side) **`SDFLR1`, the yellow lane**, the outer half `SDRAIL1`, both 64 wide and turned 90° (v0: rails in the middle) | | which way the rails run is K8; which edge of the strip the lane's line falls on, L6 |
+| Staff stairs | | v1: `SDFLR1`, turned 90°: the lane comes down them | east stair `SDMCEIL2` lamp | |
+| Tunnels | `SDTUBB1`: exactly one 128 tile floor to ceiling | `SDFLR2` + `SDRAIL1`; the east tunnel's walkway `SDFLR1` up to D3 | `SDCEIL2`; `SDCEIL1` lamp over D3 | `SDTUNL1` (cables) on the service passages |
+| Duty booth (v1) | `SDTILE1`; the window's frame `SDMARB2` on the hall side | `SDFLR3` | `SDCEIL1` (lit panel) | |
 | Train | `SDSTEL1` | `SDFLR2` | `SDCEIL1` (lit panel) | no car texture exists; a request if the train stays (§14.6) |
 | Substation | `SDTUNL1` | `SDFLR2` | `SDCEIL2` | |
 | Gas lock, armoury, command post | `SDSTEL1` | `SDFLR2` | `SDCEIL2` | |
@@ -261,7 +272,7 @@ approved and packed from `assets/` (tested).
 | Doors | `SDDOOR1`, every leaf one tile, 128 × 128 (tested) | | | |
 | Switches | `SDSW1C` (SW-A), `SDSW1B` (SW-B), `SDSW1D` (exit), each drawn once | | | |
 
-Not used yet: `SDBRAS1` (pilasters, v1). `SDMOSA1` is replaced in place by its
+Not used yet: `SDBRAS1` (pilasters, v2 since D58). `SDMOSA1` is replaced in place by its
 palette-v2 rendering (D56); the lump name, and so this map, do not change.
 
 ## 8. Secrets
@@ -284,33 +295,40 @@ of the secret as much as the armour is (D12: poster iconography, no
 character). It faces the player as he comes out of the passage, 256 high,
 alone on that wall.
 
-**The slot is built and marked:** a 128-long wall at the back of a 16-deep
-niche (x 3008…3136, y 1856…1872), exactly 256 from floor to ceiling, so the
-poster is one whole tile (tested: `test_the_stalin_poster_slot_fits_the_poster_whole`).
-Until the poster is committed and listed in `docs/art/TEXTURE-INDEX.md`, the
-slot wears `SDMARB1` (red marble) as a visible placeholder; placing the poster
-is one constant in `map.py`, `STALIN_SLOT_TEXTURE = STALIN_POSTER`. Light:
+**The slot is built and the poster hangs in it:** a 128-long wall at the
+back of a 16-deep niche (x 3008…3136, y 1856…1872), exactly 256 from floor
+to ceiling, so the poster is one whole tile (tested:
+`test_the_stalin_poster_slot_fits_the_poster_whole`). `SDPOSTR3` is in
+`assets/` and `STALIN_SLOT_TEXTURE = STALIN_POSTER`; seen in engine on the
+v0 pass (K9, `docs/qa/evidence/2026-10-14_1902_F3_map03-v0-walk.md`). Light:
 v2 gives the niche a light of its own (MAP01's Lenin lesson, §17.6 there).
 
-## 9. Enemies and resources by skill (plan for v3; v0 places none)
+## 9. Enemies and resources by skill (placed in v1, §16.4)
 
-The bestiary as it stands (D35, `docs/engine/BESTIARY.md`): the map will
-place the Doom stand-ins each `SD_` class replaces, as MAP01 does, so nothing
-renumbers when sprites change. `SD_General` and `SD_PanzermenschSchwer`
-(1000 HP) are kept for the factory.
+The plan was written for v3; D58's brief brought it forward to v1, and it
+is placed as written but for two cells (§16.4). The bestiary as it stands
+(D35, `docs/engine/BESTIARY.md`). **v1 places the bestiary's own editor
+numbers** from MAPINFO's `DoomEdNums` (21100–21105), not the Doom stand-ins
+MAP01 places: the classes exist and each `replaces` its stand-in too, so
+both numbers spawn the same actor, and ours say what is meant (tested
+against MAPINFO). `SD_General` (21106) and `SD_PanzermenschSchwer` (21107,
+1000 HP) are kept for the factory.
 
-| Stand-in | DoomEdNum | Faction | Class | Role here |
+| EdNum | Was planned as | Faction | Class | Role here |
 |---|---|---|---|---|
-| Zombieman | 3004 | Reich | `SD_ReichRifleman`, 20 HP | the tunnels, the substation, the bunker |
-| Shotgun guy | 9 | Legion | `SD_LegionTrooper`, 30 HP | the concourse, the hall, the train |
-| Imp | 3001 | both | `SD_Stormtrooper`, 60 HP | everywhere; SW-A's closets |
-| Demon | 3002 | Reich | `SD_ReichHound`, 150 HP | the dark of the tunnels; the bunker |
-| Cacodemon | 3005 | Legion | `SD_Doughboy`, 400 HP | the escalator shaft (288 high, the map's vertical room) |
-| Hell Knight | 69 | Reich | `SD_Panzermensch`, 500 HP | the command post on every skill; the exit tunnel on 4 |
+| 21100 | Zombieman 3004 | Reich | `SD_ReichRifleman`, 20 HP | the tunnels, the substation, the bunker |
+| 21101 | Shotgun guy 9 | Legion | `SD_LegionTrooper`, 30 HP | the concourse, the hall, the train |
+| 21102 | Imp 3001 | both | `SD_Stormtrooper`, 60 HP | everywhere; SW-A's closets |
+| 21103 | Demon 3002 | Reich | `SD_ReichHound`, 150 HP | the dark of the tunnels; the bunker |
+| 21104 | Cacodemon 3005 | Legion | `SD_Doughboy`, 400 HP | the escalator shaft (288 high, the map's vertical room) |
+| 21105 | Hell Knight 69 | Reich | `SD_Panzermensch`, 500 HP | the command post on every skill; the exit tunnel on 4 |
+
+The plan as written (v1 changes two cells, marked †; §16.4 has the table as
+built):
 
 | Beat / zone | Skill 2 | Skill 3 | Skill 4 |
 |---|---|---|---|
-| Lift (behind D1) | — | — | 1 trooper |
+| Lift (behind D1) | — | — | 1 trooper † |
 | Concourse, kassa | 2 troopers | 3 troopers | 3 troopers + 1 stormtrooper |
 | Escalator shaft | — | 1 Doughboy | 1 Doughboy |
 | Hall, arches (first contact) | 4 troopers + 1 stormtrooper | 5 troopers + 2 stormtroopers | 6 troopers + 3 stormtroopers |
@@ -321,7 +339,7 @@ renumbers when sprites change. `SD_General` and `SD_PanzermenschSchwer`
 | Bunker (gas lock to armoury) | 3 riflemen + 1 hound | 4 riflemen + 1 hound + 1 stormtrooper | 5 riflemen + 2 hounds + 1 stormtrooper |
 | Command post | 1 Panzermensch | 1 Panzermensch | 1 Panzermensch + 1 rifleman |
 | SW-B's closets in the west tunnel | 2 riflemen | 2 riflemen + 1 hound | 3 riflemen + 2 hounds |
-| Exit tunnel | 1 rifleman | 2 riflemen | 1 rifleman + 1 Panzermensch |
+| Exit tunnel | 1 rifleman | 2 riflemen | 1 rifleman + 1 Panzermensch † |
 | **Total** | **23** | **36** | **51** |
 
 Against MAP01's 21 / 33 / 46: a little more, in a map a little longer, and
@@ -332,7 +350,7 @@ Doom's skill pairs (`skill_tier`). Closets follow MAP01 v3: wall panels on
 the switch's own tag (one line, one special), open for good, each a dead end
 with its door open.
 
-**Resources (v3).** Principle unchanged from MAP01 §8: monsters scale up,
+**Resources (placed in v1, §16.5).** Principle unchanged from MAP01 §8: monsters scale up,
 consumables scale down, weapon availability never changes, and the map is
 finishable **from a pistol start** (Doom convention: `+map MAP03` gives the
 TT-33 only). So the weapons are on the route on every skill: the IZh in the
@@ -350,25 +368,32 @@ computed when the things are placed. Health in every nook as in MAP01, scaled
 | Manual door, both faces | `Door_Raise` 12 (tag, 16, 150, 0), `playeruse` + `repeatspecial` | VERIFIED on MAP01 |
 | Push panel, remote door, one-shot switch | `Door_Open` 11 (tag, 16, 0) | VERIFIED on MAP01 |
 | Exit | `Exit_Normal` 243 | VERIFIED on MAP01 |
-| **Locked door that stays open** | `Door_LockedRaise` **13** (tag, 16, **0**, **2**, 0), `playeruse` + `repeatspecial`, both faces | argument shape from `gzdoom.pk3 → xlat/base.txt` (Doom line 133, the blue "open and stay" door: `Door_LockedRaise (tag, D_FAST, 0, BCard …)`); lock 2 = `BlueCard` from `gzdoom.pk3 → lockdefs.txt`; the **number 13 is NOT VERIFIED** (compiled into the engine; it follows the verified 10/11/12): K2 |
+| **Locked door that stays open** | `Door_LockedRaise` **13** (tag, 16, **0**, **2**, 0), `playeruse` + `repeatspecial`, both faces | argument shape from `gzdoom.pk3 → xlat/base.txt` (Doom line 133, the blue "open and stay" door: `Door_LockedRaise (tag, D_FAST, 0, BCard …)`); lock 2 = `BlueCard` from `gzdoom.pk3 → lockdefs.txt`. **VERIFIED in engine on the v0 pass** (K2: without the pass the lock-2 line printed and the door stayed shut; with it the door opened and stayed open) |
+| *v1:* **Coloured sector light** | sector field `lightcolor = 0x90A8FF` (`PASS_BLUE`) on the portal, the booth and its window | field name from the UDMF zdoom spec (as Ultimate Doom Builder writes it); **NOT VERIFIED** in our engine runs: L4. If ignored, nothing breaks; the two places stay the map's only 192s |
+| *v1:* Monster closets | door sectors with no use line, on the switch's tag (`Door_Open` opens every sector with the tag) | VERIFIED on MAP01 v3 (V19–V20) |
+| *v1:* Things | bestiary 21100–21105, arsenal 21003–21005 (MAPINFO `DoomEdNums`); ammo, health, armour by Doom number (our classes replace them, MOD-SPEC §6.4) | the 211xx numbers are first placed in a campaign map here: L12 |
 | The pass | thing 5, `BlueCard` | Doom/Freedoom actor; the status bar is `DoomStatusBar`'s (MOD-SPEC 6.5.1), which draws keys: K2 |
 | Secret sector | `special = 1024` | VERIFIED on MAP01 |
 | Turned flats | sector `rotationfloor` (UDMF zdoom) 180 on the coping, 90 on the rails | field name from the UDMF zdoom spec; **which way the picture turns NOT VERIFIED**: K7, K8 |
 
 Tag plan: **1** D1 · **2** D2 · **3** D3 · **4** blue door · **5** D4 ·
-**6** D5 · **10** SH (SW-A; v3 adds the platform closets) · **11** gate and
-CPD (SW-B; v3 adds the west-tunnel closets) · **101/102** S1/S2. Free:
-7–9, 12–100; v2 will want a light tag for the portal and the gate.
+**6** D5 · **10** SH and, since v1, the platform closets `closet_pw` and
+`closet_pe` (SW-A) · **11** gate, CPD and, since v1, the west-tunnel closets
+`closet_t1` and `closet_t2` (SW-B) · **101/102** S1/S2. Free: 7–9, 12–100;
+v2 may want a light tag for the gate.
 
 `Door_LockedRaise` is not in `tools/sdbuild/udmf.py`; `map.py` defines it
-locally (`SPECIAL_DOOR_LOCKED_RAISE`, `locked_door_style`). If it is
-confirmed in engine, it moves into the builder with the others (my file to
-change, in a later task).
+locally (`SPECIAL_DOOR_LOCKED_RAISE`, `locked_door_style`). It is confirmed
+in engine (K2), so it can move into the builder with the others (my file to
+change, in a later task; not done in v1 to keep the change to this map).
 
 ## 11. MAPINFO: the entry this map needs (for `mod-engineer`)
 
 This role does not touch MAPINFO or LANGUAGE. Two steps, the second only
-when the CEO opens the campaign beyond MAP01 (D5).
+when the CEO opens the campaign beyond MAP01 (D5). **Status 2026-10-14:**
+step 1 is in `src/lumps/MAPINFO` and was seen in engine (the intermission
+named «Метро-бункер»); step 2 is decided (D60: MAP01 now leads into MAP03,
+with a transition text in both languages) and is `mod-engineer`'s.
 
 **Step 1, now (v0–v3):** MAP03 loads with a title and leaves cleanly; the
 campaign is untouched (MAP01 still ends on `endtitle`).
@@ -411,14 +436,15 @@ Each version loads in GZDoom and is walkable from start to exit (MAP01 §12).
 
 | Version | Content | Done when |
 |---|---|---|
-| **v0 — grey box** ✅ **BUILT 2026-10-14** (§14) | the whole plan of §4, every door, switch, the key, the gate, the exit, both secrets, heights and stairs; the approved metro set where it was free (§7); light by zone; **no monsters, no items** but the start and the pass | the CEO walks it and judges the shape (§14.4); `tests/test_map03.py` green |
-| v1 — textured | alignment pass: the hall's 224 walls, pylon pilasters, the station name, the concourse, the train's look; anything the v0 walk moves | the CEO can judge the station as a station from screenshots |
-| v2 — light and detail | lamps, beacons (portal, gate signal, exit), a light tag on SW-A and SW-B, flicker in the tunnels, the poster's light, props | a first-time player finds the pass and the gate without being told |
-| v3 — density, combat, resources | §9 placed with closets on tags 10 and 11, the ammo budget, S3, the density of a median map (D33: ~240 sectors, ~1860 lines) | G3-style criteria for this map, written at v3 |
+| **v0 — grey box** ✅ **BUILT and WALKED 2026-10-14** (§14, §15) | the whole plan of §4, every door, switch, the key, the gate, the exit, both secrets, heights and stairs; the approved metro set where it was free (§7); light by zone; **no monsters, no items** but the start and the pass | the CEO walks it and judges the shape: "me gusta de momento"; the pass not found (D58) |
+| **v1 — the pass signposted, populated** ✅ **BUILT 2026-10-14** (§16) | redefined by D58 and the PM's brief: the duty booth and its window, the blue light, the yellow lane, the lit stair and D3; §9 placed with the four closets, the weapons, the ammo and health budget | **a first-time player finds the pass without being told** (MAP01 v1's criterion, failed there twice before v2 met it); `tests/test_map03.py` green |
+| v2 — textured, light and detail | what v1 was going to be (the hall's 224 walls, pylon pilasters `SDBRAS1`, the station name, the concourse, the train's look) plus lamps, the gate signal, flicker in the tunnels, the poster's light, props | the CEO can judge the station as a station |
+| v3 — density | S3, the density of a median map (D33: ~240 sectors, ~1860 lines), balance from the playtests (D60: after the MVP) | G3-style criteria for this map, written at v3 |
 
 ## 13. Open points for the CEO
 
-1. **Walk v0** (D28): the judgements of §14.4. The only one that blocks v1.
+1. ~~**Walk v0** (D28)~~: walked 2026-10-14 (§15, D58). Now: **walk v1**
+   without being told the route (§16.9).
 2. **The station's name.** Working title "Metro-Bunker" / «Метро-бункер».
    A proposal with the period in it: **«60 лет Октября»** ("60 Years of
    October"), the anniversary of 1977 (LORE's logline), as station names of
@@ -537,3 +563,288 @@ translates from Doom line 133 (a `Door_Open` with a lock in the line's
 - **PM:** commit `SDPOSTR3` to `assets/` and `TEXTURE-INDEX.md` when it is
   ready (another agent's work), then the slot's constant flips; renumber
   LORE's episode table and BESTIARY's "MAP03" references (§2).
+
+## 15. v0 walk, CEO 2026-10-14: the pass was not found (D58)
+
+The PM's engine pass came first
+(`docs/qa/evidence/2026-10-14_1902_F3_map03-v0-walk.md`): K1–K4, K7, K9,
+K11 and K12 seen, the blue door locked without the pass and open for good
+with it (special 13 confirmed), S1 with the Stalin poster, the exit and the
+intermission; nothing in the log. K7/K8 (the coping's and the rails'
+orientation) were too dark to judge.
+
+Then the CEO walked it. **Verdict, D58: "me gusta de momento"; but the
+blue pass was not found, and the CEO crossed the blue door with `idclip`.**
+
+It is MAP01's v0/v1 failure again (MAP01 §14 end, §15 end): the map shows
+the goal and does not show the way to what opens it. Diagnosis, against
+v0 as built:
+
+| # | What v0 did | Why it was not enough |
+|---|---|---|
+| 1 | the pass lay on the substation's floor, a room reached through D3 in the east tunnel's wall | nothing in the station pointed at the substation: from the hall it does not exist |
+| 2 | the way there was: drop off platform N into the track, go east into a tunnel lit 96, find a door in its wall | three steps a passenger never takes, each in the dark, none marked |
+| 3 | the blue door is seen from the escalator (the lock before the key, §5) | the lock was signposted and the key was not: at the door the player knew what he needed and had no idea where it was |
+
+The criterion v1 has to meet, as MAP01 v1 had to: **a player who has never
+seen the map finds the pass without being told.** And the CEO's own form of
+it: arriving at the blue door without the pass, he sees, or remembers,
+where it is.
+
+## 16. v1 build record (2026-10-14)
+
+Source: `src/maps/MAP03/map.py`; tests: `tests/test_map03.py` (v0's 27
+kept, one replaced and two updated; **23 new**). Builder unchanged. **87 sectors, 467
+linedefs, 354 vertices, 130 things** (v0: 73 / 418 / 318 / 2). Not walked in
+GZDoom by this role (D26): the engine pass is the PM's, §16.8.
+
+```sh
+python3 tools/verify.py fast                                                   # build + check_pk3 + suite, no window
+python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP03 SKILL=3 tools/run.sh      # walk it (PM or CEO only)
+```
+
+### 16.1 The pass, signposted by sight
+
+What worked on MAP01, applied (MAP01 §16.1: a window onto the goal, light
+that leads, a lit niche, a sign on the floor), in the order the player
+meets it:
+
+| # | Where | What is built | What it says |
+|---|---|---|---|
+| 1 | the blue door | the portal round it at 192 and, new, in a **pale blue light** (`lightcolor` 0x90A8FF, `PASS_BLUE`) | the lock, in the pass's colour |
+| 2 | turning round at the door | at the far east end of the hall, right of the escalator mouth, **the duty officer's booth**: a window in the hall's east wall (x 2816, y 1024…1088), a 48-high slot at chest height, and behind it a lit niche at **192 in the same blue light**, **the pass alone on its floor** | "that is what opens this door, and it is over there". The booth is the station's *дежурная по станции*, the duty post every Moscow hall has at its end; the pass is the duty officer's |
+| 3 | the hall | the booth is the brightest thing at the hall's east end, as the portal is at the west end. **192 is now kept for these two and nothing else** (tested) | the two ends of the hall are the lock and the key |
+| 4 | the booth's window | sill 32 above the hall (not a step), opening 48 (under the player's 56), the pass 80 units inside (more than a player's 16 and a pickup's 20) | seen through, never climbed, jumped or reached through (tested): the way in is round the back |
+| 5 | platform N's east end | the **east staff stair lit as a beacon** (176 under a `SDMCEIL2` lamp; the west stair stays 144) | the way down is at this end |
+| 6 | the staff stairs and the track bed | **a yellow lane** (`SDFLR1`, MAP01's word for "go here", learnt in its hangar) down both staff stairs and along the walkway half of the track bed, from the west stair's foot (x 1344) into the east tunnel | wherever he drops into the track, the line on the floor leads east |
+| 7 | D3 | the lane **ends at D3 in a pool of light**: 176 under a `SDCEIL1` lamp in a tunnel at 96, the leaf lit by it | the door in the tunnel's wall is the one |
+| 8 | the substation | 128 → 144; the booth at 192 two steps up in its corner, the window onto the hall seen from inside | the pass, and the hall it was seen from |
+
+**Why the booth and not the other options.** The pass could have stayed
+where it was with only lights and a lane leading to it; that answers "how
+do I get there" but not the CEO's own form of the criterion, "at the blue
+door, where is it?". The only place in the station the player looks back
+at from the blue door is the hall's east end, and the substation's corner is
+64 units behind its wall: a window there turns the room nobody knew about
+into the end of the hall's axis. Moving the pass into the station instead
+would have made the track, the tunnel and D3 pointless.
+
+**Sight lines, tested** (`tests/test_map03.py`): from three points in front
+of the blue door, from the middle of the hall and from the window itself to
+eight points of the pass on the booth floor; and from the foot of both
+staff stairs down the lane to nine points of D3's leaf. Negative controls
+(run once by hand, not kept as tests): a point of the booth below the sill
+is hidden from the door, the wall beside the window blocks, and D3 is
+**not** visible from platform N (the platform's east wall is in the way): it
+is the stair's beacon and the lane that carry the player down to where D3
+shows.
+
+**The blue light is NOT VERIFIED** (L4). If GZDoom ignores the field, the
+portal and the booth are still the only two 192s of the map and the rest
+stands.
+
+### 16.2 Changes to v0's geometry
+
+| # | v0 | v1 | Why |
+|---|---|---|---|
+| 1 | the pass at (2976, 1088) on the substation floor | at (2896, 1056) in `z8_booth` | §16.1 |
+| 2 | — | `z8_booth_step` (floor 16), `z8_booth` (floor 32, x 2848…2944, y 1024…1088), `duty_window` (x 2816…2848, floor 32, ceiling 80), painted over the substation's south-west corner | §16.1 |
+| 3 | the rails down the middle of the 128-wide track bed (y 1376…1440), 32 of plain concrete either side | rails on the outer half (y 1408…1472), the lane on the platform half (y 1344…1408), in the track and all three tunnels | a 32-wide strip of `SDFLR1` shows its line or not depending on which way the quarter turn goes (NOT VERIFIED); a 64-wide strip on the 64 grid shows it either way |
+| 4 | staff stairs in `SDFLR2` at 144 | `SDFLR1` turned 90°; the east one at 176 under `SDMCEIL2` | §16.1 |
+| 5 | — | `lane_track`, `lane_tunnel_e`, `lane_d3` (176, `SDCEIL1`) | §16.1 |
+| 6 | — | four monster closets: `closet_pw` (platform N's west wall) and `closet_pe` (its east wall, beside the shutter) on tag 10; `closet_t1`, `closet_t2` (the west tunnel's north wall) on tag 11 | §9's plan, MAP01 v3's method (§17.3 there): the closets ride the switches' own tags, one line, one special |
+| 7 | `LIGHT_SUBSTATION` 128 | 144 | the light rises from the tunnel (96) to D3 (176), the stair and the substation (144), the booth (192) |
+
+The closets' panels wear the wall they are cut into: marble tile
+(`SDMARB2`) on the platform, one tubbing ring (`SDTUBB1`, 128 wide) in the
+tunnel. A sharp eye sees the seam (MAP01 §17.3's rule: deliberate and
+fair). Each is a dead end the player can walk out of; nothing closes them.
+
+### 16.3 What the switches now do
+
+| Switch | Opens (tag) | So that |
+|---|---|---|
+| SW-A (substation) | the shutter onto platform N **and** `closet_pw`, `closet_pe` (10) | the player comes back through the shutter onto a platform he cleared, and it fills from both ends: §6's beat 6, the spike |
+| SW-B (command post) | the gate, the command post's door **and** `closet_t1`, `closet_t2` (11) | the door beside the switch opens onto the tunnel as its north wall opens: §6's beat 9, the climax |
+
+### 16.4 Enemies, as placed
+
+The plan of §9, with two cells changed (†):
+
+| Beat / zone | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| Lift (behind D1) | — | — | — † |
+| Concourse, kassa | 2 troopers | 3 troopers | 3 troopers + 1 stormtrooper |
+| Escalator shaft | — | 1 Doughboy | 1 Doughboy |
+| Hall | 4 troopers + 1 stormtrooper | 5 troopers + 2 stormtroopers | 6 troopers + 3 stormtroopers |
+| Train | 2 troopers | 3 troopers | 4 troopers + 1 stormtrooper |
+| Track, east tunnel | 1 hound + 1 rifleman | 2 hounds + 2 riflemen | 3 hounds + 2 riflemen |
+| Substation | 2 riflemen | 2 riflemen + 1 stormtrooper | 3 riflemen + 1 stormtrooper |
+| SW-A's closets, platform N | 2 stormtroopers | 2 stormtroopers + 1 hound | 3 stormtroopers + 1 hound + 1 trooper |
+| Bunker | 3 riflemen + 1 hound | 4 riflemen + 1 hound + 1 stormtrooper | 5 riflemen + 2 hounds + 1 stormtrooper |
+| Command post | 1 Panzermensch | 1 Panzermensch | 1 Panzermensch + 1 rifleman |
+| SW-B's closets, west tunnel | 2 riflemen | 2 riflemen + 1 hound | 3 riflemen + 2 hounds |
+| Exit tunnel | 1 rifleman | 2 riflemen | 2 riflemen + 1 Panzermensch † |
+| **Total** | **23** | **36** | **51** |
+
+† The plan put a trooper behind D1 on skill 4 and gave the exit tunnel one
+rifleman on skill 4 against two on skill 3. The first is an ambush at the
+start door of a pistol start (a 30 HP trooper firing three pellets at
+point blank before the TT-33 is raised); the second broke the rule that
+whatever fights on an easier skill fights on a harder one (tested). Both
+fixed by moving the lift's trooper to the exit tunnel as its second
+rifleman; the total stays 51.
+
+**On the numbers.** The PM's brief quoted "23/33/51"; §9's table sums to
+**36** on skill 3 (11 troopers, 12 riflemen, 6 stormtroopers, 5 hounds, 1
+Doughboy, 1 Panzermensch), and that is what is placed. MAP01 is 21 / 33 /
+46. If the CEO wants 33 on skill 3, the three cheapest cuts are the third
+trooper in the train, the hall's second stormtrooper and the substation's
+stormtrooper (all tier 3, nothing else moves).
+
+By class on skill 4: riflemen 16, troopers 14, stormtroopers 10, hounds 8,
+Doughboy 1, Panzermensch 2. Both factions as D35 inverted it: **the Legion
+holds the station, the Reich the depths** (tested on the standing
+garrison; the closets are the counter-attack and mix). The Panzermensch is
+at the command post on every skill, the first one an easy-skill player
+meets (LORE: "first heavy hybrids"); the second, on skill 4, in the exit
+tunnel. Every body fits where it stands (corners on walkable floor within a
+step, headroom read from each class's own `RADIUS`/`HEIGHT` constants), and
+no two start inside each other (Doom's square boxes; tested).
+
+### 16.5 Weapons, ammunition, health
+
+Pistol start (`+map MAP03` gives the TT-33 and 50 rounds; D60 now leads
+MAP01 into MAP03, so a campaign player arrives better armed, which only
+makes it easier). The weapons are on the route, on every skill, never in a
+secret (tested): **the IZh in the kassa** (behind D2, beside the first
+fight), **the PPSh-41 on a seat of the train** (car 2), **the RPG-7 and a
+rocket box in the armoury**, before the command post's Panzermensch. The
+ROKS-3 waits for the factory.
+
+Counts outside the secrets, as placed:
+
+| Item | Skill 2 | Skill 3 | Skill 4 | Where |
+|---|---|---|---|---|
+| IZh / PPSh / RPG-7 + rocket box | 1 / 1 / 1+1 | same | same | kassa / train / armoury |
+| Shells (4) | 15 | 12 | 10 | kassa, hall ×2, both platforms, train, east tunnel, vestibule, spine, command post |
+| Box of shells (20) | 3 | 3 | 3 | substation, armoury, east cab |
+| Clips (10) | 11 | 8 | 6 | concourse, platform S, track, spine, exit tunnel, hall |
+| Box of rounds (50) | 4 | 4 | 4 | train, substation, dorm, command post |
+| Stimpack | 8 | 6 | 4 | kassa, east cab, substation, spine |
+| Medikit | 5 | 4 | 3 | substation, armoury, command post |
+| Health bonus | 10 | 10 | 10 | one in each nook: lift, both staff stairs, the portal's corners, the substation stair and passage, the dorm doorway, the east cab, the kassa |
+| Armour bonus | 8 | 8 | 6 | the portal ×2, kassa, dorm ×2, the substation stair |
+| Green armour | 1 | 1 | 1 | armoury |
+| *S1 (shelter)* | blue armour, backpack, 2 medikits, a box of rounds | | | on every skill |
+| *S2 (west cab)* | a box of shells, 2 armour bonuses | | | on every skill |
+
+**G3-8, measured** (`test_g3_8_the_ammo_budget`, MAP01's ruler: rifleman
+and trooper 1 shell, stormtrooper 2, hound 3, Doughboy 6, Panzermensch 8;
+10 rounds = 1 shell; no secret, no drop and no rocket counted):
+
+| | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| needed | 37 | 64 | 96 |
+| × 1.35 (G3-8) | 50.0 | 86.4 | 129.6 |
+| placed | 162.5 | 147.5 | **137.5 (1.43×)** |
+
+MAP01's skill 4 is 1.41×. And stage by stage (MAP01's G3-readiness test,
+ported): before any switch, after SW-A and the blue door, after SW-B, the
+damage placed so far plus the starting rounds is at least 1.35 × the hit
+points met so far, on every skill. On top of it, what the dead drop (D35:
+a trooper drops an IZh with 4 shells, a rifleman a clip of 5 rounds):
+about +64 shell-equivalents on skill 4, not counted. Health: 7 stimpacks
+and medikits outside the secrets on skill 4 (MAP01 asks 5), 6 armour
+bonuses and the flak vest.
+
+**D60, MVP first:** these numbers are a first cut that meets G3-8; the
+balance proper (the Doughboy at the escalator on a pistol start, the
+platform spike, two Panzermenschen on skill 4) is for the playtests after
+the MVP.
+
+### 16.6 Deviations from §3–§12
+
+| # | Said | Built | Why |
+|---|---|---|---|
+| 1 | §12: v1 = texture alignment, v2 = light and beacons ("a first-time player finds the pass"), v3 = §9 placed | v1 = the pass signposted and §9 placed; alignment moves to v2 | D58 and the PM's brief |
+| 2 | §5: the pass on the substation floor | in the booth | §16.1 |
+| 3 | §7: rails down the middle | rails on the outer half, lane on the platform half | §16.2 row 3 |
+| 4 | §9: the Doom stand-ins (3004, 9, …), "as MAP01 does" | the bestiary's numbers 21100–21105 | the PM's brief ("los números de editor de MAPINFO"); the classes exist now, MAP01 predates them |
+| 5 | §9: a trooper behind D1 on skill 4; 1 rifleman + 1 Panzermensch in the exit tunnel on skill 4 | none behind D1; 2 riflemen + 1 Panzermensch | §16.4 † |
+| 6 | §10: "v2 will want a light tag for the portal" | no light tag; the portal is 192 and blue from the start | the lock is shown from the first frame; nothing switches it |
+
+### 16.7 Verification actually run
+
+| Check | Result |
+|---|---|
+| `tests/test_map03.py` | **50 tests, all green**: v0's 27, of which the v0-scope test is replaced (the start and the pass on every skill) and two are updated (the track left by the stairs from the lane; each switch also opens its closets); 23 new: §16.1's signs and sight lines, §16.4–§16.5's population and budget |
+| `tools/verify.py fast` (Windows PC, `.venv/Scripts/python.exe`, 2026-10-14) | **VERDICT: PASS** in 174.5 s: docs PASS (mirror warnings, D34), build PASS, `check_pk3` 0 errors 0 warnings (`maps/MAP03.wad`: 354 vertices, 467 linedefs, 87 sectors, 130 things), **1734 tests**, 112 skipped (slow art). Two runs minutes earlier failed outside this work, each in a file another agent was editing at the time (`tests/test_route.py`, MAP03's critical path in `tools/route.py`; then `tests/test_hand_study.py`); the rerun was clean |
+| GZDoom | **not run** (D26). Owed: §16.8 |
+
+### 16.8 Engine checklist for the PM (D26: this role does not start GZDoom)
+
+Method as on §14.5 and MAP01 §17.10: `warp x y`, turn to the facing (0
+east, 90 north, 180 west, 270 south), `+use`, `wait`, `screenshot`. **Two
+sessions**: geometry with `-nomonsters` on skill 3 (L1–L11), then monsters
+with `god` on skill 3 and once on skill 4 (L12–L14). Log and screenshots to
+`docs/qa/evidence/`. K7 and K8 of §14.5, too dark on the v0 pass, are
+folded into L5 and L6.
+
+| # | Warp to (x y) | Facing | Do | What must show |
+|---|---|---|---|---|
+| L1 | 1312 896 | 180 | `+use` (no pass); then turn to 0 and screenshot | the lock-2 line ("You need a blue pass…"); then, **the deliverable**: down the whole hall, at its far end right of the escalator mouth, a lit window, and in it the pass |
+| L2 | 2780 1056 | 0 | screenshot; then `+forward` 35 tics, screenshot | the window close up: a slot at chest height, the booth lit beyond, the pass on its floor (Freedoom's blue keycard); after walking, the player still in the hall, nothing picked up |
+| L3 | 2048 1000 | 0 | — | from mid-hall: the booth's window is the brightest thing at the east end |
+| L4 | 1400 896 | 180 | — | the portal and the blue door in blue light; compare L2's booth. If both are white, `lightcolor` is ignored: tell this role (nothing breaks) |
+| L5 | 2400 1250 | 0 | — | platform N's east end: the staff stair lit under its lamp, the yellow line on its steps; K7: the coping's painted line and lip on the **track** side |
+| L6 | 1376 1376 | 0 | — | in the track at the west stair's foot: the yellow lane along the platform face running east, the rails on the left, and far ahead in the tunnel, D3 lit; K8: rails running along the track |
+| L7 | 3008 1400 | 270 | `+use` | D3 under its lamp, the leaf lit, the lane ending at it; on use, the substation stair behind it |
+| L8 | 3008 1150 | 210 | — | the substation: the booth two steps up in the corner, the pass on its floor, the window onto the hall beyond it |
+| L9 | 2960 1056 | 180 | `+forward` 20 tics | "Blue pass." / «Синий пропуск.»; the blue key on the status bar |
+| L10 | 2912 1120 | 180 | `+use`, `wait 70`; then warp 2700 1250 facing 0; then warp 1400 1250 facing 180 | `SDSW1C` → `SDSW2C`; the shutter open **and** `closet_pe`'s marble panel open beside it; then `closet_pw` open in the platform's west wall |
+| L11 | 1120 1280 | 90 | `+use`, `wait 70`; then warp 1150 1400 facing 90 | `SDSW1B` → `SDSW2B`, the door beside it rising; from the tunnel, `closet_t2`'s tubbing ring open ahead and `closet_t1` to its left |
+| L12 | 3120 896 | 180 | skill 3, monsters | from the escalator top: the Doughboy in the shaft, the Legion's troopers in the hall *(engine: the 211xx numbers spawn our classes)* |
+| L13 | 700 1400 | 180 | skill 4, monsters | the second Panzermensch in the exit tunnel, two riflemen |
+| L14 | 400 1408 | 180 | `+use` | the intermission: kills of 36 on skill 3 (51 on skill 4), secrets of 2 |
+| L15 | the log | — | — | zero lines matching the G3-2 failure patterns; nothing about `lightcolor`, `rotationfloor`, things 21100–21105, 21003–21005, or `SDFLR1` |
+
+If L1 shows the window but not the pass (too small at 1500 units), the
+criterion still holds by the window; if it shows neither, the sight line
+is wrong in the engine and the test is wrong: tell this role.
+
+### 16.9 For the CEO's walk of v1
+
+`python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP03 SKILL=3 tools/run.sh`,
+from the start, **without being told the route this time**: that is the
+test. What to judge:
+
+1. **The pass.** Did you find it without help? When you reached the blue
+   door, did you see where it was?
+2. **The blue light.** Does it tie the door and the booth together, or is
+   it too much?
+3. **The yellow line in the track.** Did it take you to D3?
+4. **The fights.** The hall, the Doughboy over the escalator, the platform
+   filling from both ends after SW-A, the tunnel's walls opening after
+   SW-B. Fair or not (D60: gameplay polish comes after the MVP; this is the
+   first cut).
+5. **Length.** The intermission prints the time; §3 aims at 8–10 minutes.
+
+### 16.10 What is left, and what other roles hold
+
+- **PM:** the engine pass (§16.8) and the CEO's walk (§16.9).
+- **`mod-engineer`:** nothing blocks v1. D60's campaign wiring (§11 step 2)
+  is theirs; and the lock-2 line in GZDoom's tag-0 case (MOD-SPEC T25)
+  does not apply here, the blue door works by tag.
+- **`art-director`:** the pass sprite (open point 3; Freedoom's `BKEY`
+  meanwhile), a car-side texture if the train stays (open point 6). Nothing
+  blocks v1.
+- **For BESTIARY §11** (the PM's to carry): MAP03 places, on skill 4,
+  riflemen 16, troopers 14, stormtroopers 10, hounds 8, Doughboy 1,
+  Panzermensch 2.
+- **For MOD-SPEC §5** (the PM's to carry): a campaign map now places the
+  bestiary's numbers 21100–21105 directly, and the sector field
+  `lightcolor` (NOT VERIFIED, L4).
+- v2: the alignment §12 moved there, the gate's signal, the poster's light;
+  v3: S3 and density.
+- Russian mirror: synced in a batch at the phase close (D34).
