@@ -19,7 +19,8 @@ What is enforced here, and why:
   assets      no approved asset uses a colour outside the palette version it
               was approved in. Every asset is v1 until it is listed in
               APPROVED_IN_V2 (the Legion trooper's SDLT set since D54, the
-              metro mosaic SDMOSA1 since D56)
+              metro mosaic SDMOSA1 since D56, the Doughboy's SDDB set
+              since D70)
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_palette_v2 -v
 """
@@ -73,13 +74,18 @@ MAX_COLOURS = 256
 # marble_red, the banners SDFLAG1/2 hung on that brick (SDFLAG2's canton in
 # mosaic_cobalt) and the portal's four frames SDPORT1-4 in mosaic_cobalt.
 # All indexed, so check_pk3's PALETTE_V2_LUMPS lists them too.
+# D70 (2026-10-14): the Doughboy's 54 SDDB lumps (gen_heavy.py --full db,
+# cell C with D67's bigger flag), drawn with v2's flesh_pink as the Legion
+# trooper. RGBA, so check_pk3's PALETTE_V2_LUMPS does not list them.
 APPROVED_IN_V2: set[str] = (
     {f"sprites/legion/SDLT{f}{r}.png" for f in "ABCDEFG" for r in "12345678"}
     | {f"sprites/legion/SDLT{f}0.png" for f in "HIJKLMNOPQRSTU"}
     | {"textures/metro/SDMOSA1.png"}
     | {"sprites/pickups/SDKBA0.png", "sprites/pickups/SDKBB0.png"}
     | {f"textures/factory/{lump}.png" for lump in ("SDBRCK1", "SDBRCK2", "SDFLAG1", "SDFLAG2")}
-    | {f"textures/factory/SDPORT{i}.png" for i in range(1, 5)})
+    | {f"textures/factory/SDPORT{i}.png" for i in range(1, 5)}
+    | {f"sprites/doughboy/SDDB{f}{r}.png" for f in "ABCDEF" for r in "12345678"}
+    | {f"sprites/doughboy/SDDB{f}0.png" for f in "GHIJKL"})
 
 
 def _digest(colours) -> str:

@@ -496,7 +496,7 @@ class InstalledTests(unittest.TestCase):
     def test_the_stormtrooper_and_his_bolt_are_installed_whole_and_never_overlaid(self):
         """D56: SDHS and SDBL ship from assets/sprites/storm/ and every state
         names them; the overlay names neither side."""
-        self.assertEqual(mdo.INSTALLED_ENEMIES[3:], (("TROO", "SDHS"), ("BAL1", "SDBL")))
+        self.assertEqual(mdo.INSTALLED_ENEMIES[3:5], (("TROO", "SDHS"), ("BAL1", "SDBL")))
         swapped = {s.draft for s in mdo.SWAPS} | {s.placeholder for s in mdo.SWAPS}
         self.assertFalse(swapped & {"TROO", "SDHS", "BAL1", "SDBL"})
         for zs, old, new, letters in (("stormtrooper.zs", "TROO", "SDHS", "ABCDEFGHIJKLMNOPQRSTU"),

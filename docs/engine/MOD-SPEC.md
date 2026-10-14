@@ -96,6 +96,12 @@ for line on `SDPS`; not one tic changed in either (§5.1, §6.3, "The
 Panzermensch and the Schwer, installed by D67"). The Schwer's body grows
 with its drawing to 27 × 72 (was the base's 24 × 64), checked to fit
 everywhere a map places it. **NOT YET SEEN IN THE ENGINE** (D26).
+**D70, 2026-10-14: the Doughboy wears its own sprites.** Cell C's full set
+with D67's bigger flag (54 `SDDB` lumps, `assets/sprites/doughboy/`) is
+packed; every `SD_Doughboy` state names `SDDB` instead of `HEAD`, not one
+tic changed (§5.1, §6.3, "The Doughboy, installed by D70"). The body stays
+31 × 56: the drawing fits it as `HEAD` did, and every place a map puts it
+was checked. The shell keeps `BAL2`. **NOT YET SEEN IN THE ENGINE** (D26).
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -815,6 +821,16 @@ and `BaronOfHell` (3003) its `BOSS`, but ours replace both, so a map placing
 either spawns ours; Doom ships no corpse thing of either. `BAL7` stays: the
 Panzermensch's shell, `SD_PanzerShell`, is not drawn yet.
 
+**Retired 2026-10-14 (D70):** `HEAD`, the Doughboy's placeholder. Every
+`SD_Doughboy` state names our `SDDB` now (§6.3, "The Doughboy, installed by
+D70"). Doom's own `Cacodemon` (editor number 3005) keeps Freedoom's `HEAD`,
+but ours replaces it, so a map placing 3005 spawns ours (MAP01 does);
+Doom's corpse thing `DeadCacodemon` (editor number 22, derived from
+`Cacodemon`, not from ours; read in g4.14.2's `gzdoom.pk3`) keeps `HEAD`
+too, and no map of ours places it (counted in the built MAP01, MAP02,
+MAP03 and the range, 2026-10-14). `BAL2` stays: the Doughboy's shell,
+`SD_DoughboyShell`, is not drawn yet.
+
 **Retired 2026-10-14 (D63):** `PMAP`, the radio's placeholder (the computer
 area map's pickup picture). `SD_Radio`'s `Spawn` state names our `SDRD` now
 (§6.3, "The pickups, installed by D63"). Doom's own `Allmap` keeps
@@ -844,8 +860,7 @@ Doom's classes); since D63 each of those classes names its own sprite.
 | `BFGG` | sprite | `SD_HandKatyusha` (held) | idem |
 | `BFGF` | sprite | `SD_HandKatyusha` (flash) | idem |
 | `BFUG` | sprite | `SD_HandKatyusha` (pickup) | idem |
-| `HEAD` | sprite | `SD_Doughboy` | frames in the IWAD (test); engine pass 2026-10-13: no `Missing sprite` (not every state was exercised) |
-| `BAL2` | sprite | `SD_DoughboyShell` | idem |
+| `BAL2` | sprite | `SD_DoughboyShell` | frames in the IWAD (test); engine pass 2026-10-13: no `Missing sprite` (not every state was exercised) |
 | `BAL7` | sprite | `SD_PanzerShell` | idem |
 | `CYBR` | sprite | `SD_General` | idem |
 | `MANF` | sprite | `SD_GeneralShell` (flight) | idem |
@@ -1186,7 +1201,7 @@ marked. Images per class and the drawing briefs: `BESTIARY.md` §3–§9, §12.
 | `SD_Stormtrooper` | `SDHS` | A–H (8), I–U (0) | none: **installed, D56** (was `TROO`) |
 | `SD_StormBolt` | `SDBL` | A–E (0) | none: **installed, D56** (was `BAL1`) |
 | `SD_ReichHound` | `SDHN` | A–H (8, as mirrored pairs), I–N (0) | none: **installed, D55** (was `SARG`) |
-| `SD_Doughboy` | `SDDB` | A–F (8), G–L (0) | `HEAD` |
+| `SD_Doughboy` | `SDDB` | A–F (8), G–L (0) | none: **installed, D70** (was `HEAD`) |
 | `SD_DoughboyShell` | `SDDL` | A–E (0) | `BAL2` |
 | `SD_Panzermensch` | `SDPM` | A–H (8), I–O (0) | none: **installed, D67** (was `BOS2`) |
 | `SD_PanzermenschSchwer` | `SDPS` | A–H (8), I–O (0) | none: **installed, D67** (inherited `BOS2` from the base; its own `States` since D67) |
@@ -1382,6 +1397,59 @@ below), inherited by the Schwer; the drawn deaths carry their own dark-red
 blood. Licence rows: `docs/art/LICENSES.md`, "Enemy sprites: the
 Panzermensch and the Schwer". The draft overlay never carried either
 (§6.9). The shell, `SD_PanzerShell`, still wears Freedoom's `BAL7`.
+
+**The Doughboy, installed by D70 (2026-10-14).** The CEO chose cell C of
+the heavies sweep, the head in its M1 helmet, severed, with a neck stump
+and a dangling spine (D65), asked for a bigger flag on the helmet ("ponle
+la bandera más grande en la cabeza", D67: the decal grew from 5 × 4 to
+11 × 7 px across the set) and approved the set with it ("OK", D70). It
+ships, 54 lumps in `assets/sprites/doughboy/`, byte-identical to
+`work/art/enemies/heavy/full/SDDB/` (`tools/art/gen_heavy.py --full db`,
+rendered on the Windows PC on 2026-10-14, and rendered again for the
+install into a scratch folder: all 54 identical); the GIFs, `metrics.json`,
+`blood_share.json` and `before_flag/` stay in `work/`. `SDDB` was reserved
+for it from the start (§6.3's table). The head is handed (the helmet sits
+askew, the flag decal and the buckle on one side), so A–F are **eight
+separate rotations** (48 lumps) and G–L rotation 0 (6). Each PNG is RGBA
+with hard alpha, in palette v2 (`flesh_pink`, D45, as the Legion trooper),
+and carries its `grAb` offsets, the same for every rotation of a frame:
+80×96 for A–F (`left` 40, `top` 76: the floater hangs by the actor's z, no
+feet to sink), 160×108 for the death, G (72, 80), still in the air when
+the eye bursts, and H–L (72, 76), on the floor. The build drops the set
+folder (`sprites/SDDBA1.png`).
+
+| Frames | Lumps | State |
+|---|---|---|
+| A | 8 | `Spawn` (A, `A_Look`), `See` (A, `A_Chase`): Doom's one-frame float |
+| B–D | 24 | `Missile` (no `Melee`, as the cacodemon): B C `A_FaceTarget`, D `Bright`, bite or shell (`A_SD_MeleeOrMissile`) |
+| E–F | 16 | `Pain` |
+| G–L | 6 | `Death` (L the corpse, `-1` with `A_SetFloorClip`: `SDDBL0` a flat sack face up in its blood); `Raise` plays L K J I H G |
+
+Only the four-letter name changed, `HEAD` → `SDDB`: frame letters, tics,
+actions and flow are as they were, held by `tests/test_doughboy_sprites.py`
+against the state machine as it stood at HEAD 093db98, before D70.
+
+**The body stays 31 × 56 (D70).** D67's rule is that the body follows the
+drawing; here the drawing follows the placeholder. Measured on the
+installed lumps: the float and the attack (A–D) are 53–55 px wide,
+inside the 62-unit box, and the pain's lurch (E, F) at most 64, where
+Freedoom's `HEAD` is 61–69 wide; every living frame rises 60–62 px over
+the actor's z, where `HEAD` A–D rise 61–62 (`freedoom2.wad` 0.13.0);
+only the severed stump hangs lower than `HEAD`'s jaw, 15 px under z
+against 5. Placements, checked on the built maps on
+2026-10-14 against that body: MAP01 places thing 3005 at (2760, 1300),
+MAP02 thing 21104 at (2976, 896), MAP03 at (1000, 400), (1150, 520) and
+(864, 1216), the range at (1152, 1600); no wall inside any 31-unit box and
+at least 128 units of opening over each. The test pins them. **NOT
+VERIFIED in the engine** (D26): whether the 15-px stump, with the actor
+resting on the floor at spawn (z = floor until it first floats), is drawn
+into the floor or lifted by GZDoom's sprite clipping.
+
+Blood stays the engine's sprite recoloured by `BloodColor "AD 27 21"` (D49,
+below); the drawn deaths carry their own dark-red blood. Licence rows:
+`docs/art/LICENSES.md`, "Enemy sprites: the Doughboy". The draft overlay
+never carried it and records it as installed whole (`HEAD` → `SDDB`,
+§6.9). The shell, `SD_DoughboyShell`, still wears Freedoom's `BAL2`.
 
 **The radio (§6.7).** `SD_Radio` → final sprite **`SDRD`** A (rotation
 `0`, one picture from every angle), standing on the floor (`left = width /
@@ -1864,7 +1932,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | T14 | Four engine menus (`MainMenu`, `SkillMenu`, `EpisodeMenu` since D41, and the `os_Menu` insertion anchor) are copied into `MENUDEF`; since D31 the first two, and since D41 the third, also differ in their items and layout (§6.6). They do not track engine changes. **Since T24, also `D_Display`'s pause drawing** (`src/d_main.cpp`, g4.14.2, lines 1095-1123): `SD_StatusBar.DrawPaused` copies its position and its multiplayer line (§6.5.1). | re-diff at every engine upgrade |
 | T15 | MAP01's `par = 210` is set, the intermission's PAR row appears, but the printed value was never read in an unattended run (§4.1). | `qa-engineer`, with a human at the keyboard |
 | ~~T16~~ | **PAID 2026-10-13**: the ANIMDEFS pairs in `be6525a`, MAP01 v2 retired `SWITCH_PLACEHOLDER` in `bf857a0`. Was: **Paid for the engine, open for the map.** `src/lumps/ANIMDEFS` ships the four `switch` pairs SDSW1x → SDSW2x (2026-10-13), syntax from `gzdoom.pk3 → animdefs.txt`, and `SDSW1A` was seen to flip in engine the same day (§4.3). Open: MAP01 still wears `SDDOOR1` (`SWITCH_PLACEHOLDER`); the click is heard on the CEO's first walk with real switches. | `level-designer`, MAP01 v2 |
-| T18 | **Every bestiary sprite and sound is a Freedoom placeholder** (§5.1, §6.2, §6.3); the heavy Panzermensch looks exactly like the normal one. **Partly paid 2026-10-14 (D54):** the Legion trooper's sprites are ours, 70 `SDLT` lumps (§6.3, "The Legion trooper, installed by D54"). **Nearly paid for the sprites, 2026-10-14 (D55):** the Reich rifleman's (70 `SDRR`) and the Reich hound's (46 `SDHN`) are ours too (§6.3, "The Reich rifleman and the Reich hound, installed by D55"), so three of the seven classes, both infantries and the hound, wear their own sprites. **D56, the same day:** the Hybrid Stormtrooper (77 `SDHS`) and his bolt (5 `SDBL`) too (§6.3, "The Hybrid Stormtrooper and his bolt, installed by D56"): four of the seven classes and one of the four projectiles. **Nearly paid for the sprites, D67 (2026-10-14):** the Panzermensch (71 `SDPM`) and the heavy variant, drawn as a set of its own (71 `SDPS`, its own `States` block; the planned `Translation` is dropped) (§6.3, "The Panzermensch and the Schwer, installed by D67"): five of the seven classes and the heavy variant. Open: the sprites of the Doughboy (its full set waits on a bigger flag, D67), the General and the three other projectiles, and every bestiary sound, the installed classes' included. | F5, as `art-director` and `sound-designer` deliver (D35: own drawings for the five most-seen) |
+| T18 | **Every bestiary sprite and sound is a Freedoom placeholder** (§5.1, §6.2, §6.3); the heavy Panzermensch looks exactly like the normal one. **Partly paid 2026-10-14 (D54):** the Legion trooper's sprites are ours, 70 `SDLT` lumps (§6.3, "The Legion trooper, installed by D54"). **Nearly paid for the sprites, 2026-10-14 (D55):** the Reich rifleman's (70 `SDRR`) and the Reich hound's (46 `SDHN`) are ours too (§6.3, "The Reich rifleman and the Reich hound, installed by D55"), so three of the seven classes, both infantries and the hound, wear their own sprites. **D56, the same day:** the Hybrid Stormtrooper (77 `SDHS`) and his bolt (5 `SDBL`) too (§6.3, "The Hybrid Stormtrooper and his bolt, installed by D56"): four of the seven classes and one of the four projectiles. **Nearly paid for the sprites, D67 (2026-10-14):** the Panzermensch (71 `SDPM`) and the heavy variant, drawn as a set of its own (71 `SDPS`, its own `States` block; the planned `Translation` is dropped) (§6.3, "The Panzermensch and the Schwer, installed by D67"): five of the seven classes and the heavy variant. **D70, the same day:** the Doughboy (54 `SDDB`) (§6.3, "The Doughboy, installed by D70"): six of the seven classes. Open: the sprites of the General and the three other projectiles, and every bestiary sound, the installed classes' included. | F5, as `art-director` and `sound-designer` deliver (D35: own drawings for the five most-seen) |
 | ~~T19~~ | ~~Nothing has been seen in the engine: the eight classes compile only in theory until the PM's batch run (D26).~~ **Paid 2026-10-13** by the PM's engine pass (GZDoom 4.14.2, Freedoom 0.13.0): the classes load with no error, the gallery shows all eight, the drops and the General's single summon were counted, and MAP01 v3's 33 enemies spawn through Doom's numbers. Evidence `docs/qa/evidence/2026-10-13_1705_F5_map02-bestiary.log` and `…-gallery.png` (commit `2b1aba5`), `docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass.log` (commit `bcbf35f`); the table is in ADR 006. What that pass did **not** settle is debt T22. |  |
 | ~~T20~~ | ~~ADR 006 is owed.~~ **Paid 2026-10-13**: `docs/engine/adr/006-bestiary-actors.md` (seven decisions, what the engine showed, what it did not). Written in the working tree; the commit is the PM's (D6). |  |
 | T21 | Doom monsters with no Soviet replacement (65 chaingunner, 58 spectre, the rest of Doom II's roster) still spawn Freedoom's actors. MAP01 §8 plans a "Legion heavy gunner" on 65 that the bestiary does not have. | CEO question, if a seventh enemy is wanted |
