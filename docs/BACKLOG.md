@@ -24,7 +24,6 @@ get better.
 | N14-2 | M2 | Ice axe right-handed (D73) + shaft and head polish, cells C1/C3/C4 again | art-director | 100 | D73 |
 | A1 | M2 | Audit: every Freedoom sprite, texture, HUD piece and sound the player still meets | qa-engineer | 80 | CEO, 2026-10-14 |
 | A2 | M2 | Fooocus prompts for the other 5 weapons (Spanish, for the CEO) | art-director | 20 | CEO, 2026-10-14 |
-| A3 | M3 | Listening sheet: every sound and music draft with OK/NO per row | sound-designer | 60 | CEO, 2026-10-14 |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
 ## Next (approved order, D63)
@@ -36,7 +35,7 @@ get better.
 | N14 | M2 | Weapons in hand from the CEO's Fooocus references, one at a time, verified each (ice axe first, then 5 more) | art-director | 250 per weapon, ~1 500 all | CEO's images |
 | N7b | M1+ | Metro v2 (textures aligned), optional: the CEO found M1 "perfecto" | level-designer | 350 | CEO decides if wanted |
 | N7c | M1+ | Tankograd v2, optional (as N7b) | level-designer | 400 | CEO decides if wanted |
-| N9 | M3 | Install the effects the CEO approves; wire SNDINFO; engine pass | sound-designer + mod-engineer | 200 | CEO's listening |
+| N9 | M3 | Install the effects the CEO approves; wire SNDINFO; **loudness pass** (drafts are 6-18 dB quieter than the Freedoom sounds they replace; bass-heavy clips); engine pass | sound-designer + mod-engineer | 200 | CEO's listening |
 | N8 | M3 | Music per map: swap any piece the CEO rejects for another PD work or a licence-clean MIDI (D59) | sound-designer | 80 per swap | CEO's listening |
 | N15 | tooling | Evaluate Ultimate Doom Builder (D69, "me interesa"): install, open our UDMF maps, does a round trip keep `tools/sdbuild` working, report | mod-engineer + level-designer | 150 | CEO's OK to download UDB |
 | N11 | M4 | Russian in-game text review, once, at the end of the delivery | translator-ru | 250 | M1-M3 done (D60) |
@@ -63,6 +62,8 @@ the Fooocus hand images, sounds and music to hear.
 | **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
+
+A3: listening sheet `docs/art/previews/2026-10-14_2355_M3_listening-sheet.html` (80 rows + 3 optional; music rendered with GZDoom's own zmusic, the first audible renders of four pieces). **Real 232k** (est. 60k).
 
 A4: G6 readiness review `docs/qa/2026-10-14_2356_G6-readiness.md`: the release tool PASS, G6 blocked by M2/M3, the README, N11, sign-off and tag; gaps G1-G17 (~350k release-only). **Real 184k** (est. 80k).
 
