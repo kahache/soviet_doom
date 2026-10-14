@@ -6,6 +6,7 @@ Run with the project venv:
     ... gen_general.py --stamp 2026-10-14_2157   fixes the sheet's timestamp
     ... gen_general.py --no-sheet                sprites, lineups and metrics only
     ... gen_general.py --only A                  one cell's sprites (a quick look, no sheet)
+    ... gen_general.py --turnaround              D71: cell CD (C's front, D's back) turned round, its sheet
 
 What this is. The General (`SD_General`, sprite `SDGN`, BESTIARY §9) is the
 last enemy still wearing Freedoom (CYBR, the Cyberdemon). He is MAP03's
@@ -72,6 +73,8 @@ Outputs (work/ is gitignored):
     work/art/general/lineup_<scene>.png, metrics.json
     docs/art/previews/<stamp>_F5_general-sweep.html   the sheet
     docs/art/previews/<stamp>_F5_general-sweep.png    its contact sheet
+    work/art/general/turnaround/SDGN_CD_<frame><rot>.png, lineup_<scene>.png, metrics.json (D71)
+    docs/art/previews/<stamp>_F5_general-CD-turnaround.html (+ .png)
 """
 
 from __future__ import annotations
@@ -317,7 +320,7 @@ class Cell:
     key: str
     face: str           # "plate" (chrome, one slot) | "aviator" (pink, aviators, corncob pipe)
     weapon: str         # "revolver" | "shoulder" (field gun on the shoulder, swagger stick in hand)
-    flags: str          # "pennants" | "cloak"
+    flags: str          # "pennants" | "cloak" | "both" (D71: the pennants and a fitted cloak)
     chest: str          # "cuirass" | "dress"
     title: str
 
@@ -334,7 +337,13 @@ CELLS = (
     Cell("E", "plate", "revolver", "pennants", "dress",
          "As A in dress uniform: no cuirass, medals, aiguillette, buttons"),
 )
-CELL = {c.key: c for c in CELLS}
+# D71 (CEO, 2026-10-14): "la C de frente (para que se vean las banderas) y
+# la D de espaldas (con esa capa)". C as drawn, pennants and all, with D's
+# cloak hung down his back and FITTED (see _cloak) so that nothing of it
+# shows from the front: from rotation 1 he is C, from rotation 5 he is D.
+CD = Cell("CD", "plate", "shoulder", "both", "cuirass",
+          "D71: C from the front (the gun, both pennants), D's two-flag cloak down his back")
+CELL = {c.key: c for c in CELLS + (CD,)}
 
 
 @dataclass(frozen=True)
@@ -385,6 +394,14 @@ CAPE_R0, CAPE_R1, CAPE_KZ, CAPE_Z, CAPE_BACK = 21.5, 15.5, 0.85, -1.0, -2.2
 US_STRIPES = 13
 CANTON_STRIPES = 7              # the canton covers the first seven stripes ...
 CANTON_DROP = 22.0              # ... for this many units down from the shoulders (a flag hung vertically)
+# CD's fitted cloak (D71, fitted_segments): from under the pauldrons to just
+# above the coat's hem, never wider than the body in front of it.
+CD_CAPE_Y0 = HEM_Y + 1.5        # its bottom: the hem hides it from the front
+CD_CAPE_WAIST = WAIST_Y + 1.0   # the two trims meet at the coat's top
+CD_CAPE_Y1 = 71.0               # its top: under the pauldrons (clipped at 70.5) and the cuirass's shoulders
+CD_TRIM = 1.2                   # units inside the coat's / cuirass's width
+CD_CAPE_KZ = 0.72               # flatter than D's 0.85: it stands ~1 unit off the coat's back at the hem, so
+                                # at rotations 2 and 8 only a sliver of its edge shows past the coat
 
 
 def torso_z(x: float, y: float) -> float:
@@ -539,7 +556,7 @@ def model(cell: Cell, frame: str = "A") -> tuple[list[core.Prim], dict]:
         for z in np.linspace(-3.2, 3.2, 5):                                                  # its fringe
             top = V(side * (sx_ + 5.4), sy_ + 1.7, sz_ + z)
             add("upper", RC("braid", 0.66, top, top + V(side * 0.6, -3.6, 0), 0.7, 0.55))
-    if cell.flags == "pennants":
+    if cell.flags in ("pennants", "both"):
         for side, grp, tag, mat in ((core.LEFT, "pen_l", "pen_reich", "pennant_red"),
                                     (core.RIGHT, "pen_r", "pen_us", "pennant_white")):
             R = core.rot_y(-side * PENNANT_TILT)
@@ -549,8 +566,8 @@ def model(cell: Cell, frame: str = "A") -> tuple[list[core.Prim], dict]:
             add(grp, RC("braid", 0.7, centre + R @ V(-4.8, 7.6, 0), centre + R @ V(4.8, 7.6, 0), 0.6))  # its bar
             add(grp, RC("braid", 0.66, centre + R @ V(0, 7.6, 0), V(side * 17.0, sy_ + 1.8, sz_ + 3.0), 0.4))
             anch[f"hinge_{grp}"] = (centre + V(0, 7.6, 0), grp)
-    else:                                                                                    # D: the cloak
-        _cloak(add)
+    if cell.flags in ("cloak", "both"):                                                      # D, CD: the cloak
+        _cloak(add, fit=cell.flags == "both")
 
     # --------------------------------------------------------------- arms
     u, v = gun_axes(pose.aim, pose.aim_up)
@@ -600,21 +617,56 @@ def model(cell: Cell, frame: str = "A") -> tuple[list[core.Prim], dict]:
         hinge = anch["hinge_pen_r"][0]
         core.transform(P, anch, {"pen_r"}, core.rot_z(pose.swing_r), hinge)    # swings out to his right
     if pose.twist:
-        core.transform(P, anch, UPPER, core.rot_y(pose.twist), WAIST)
+        # CD's fitted cloak hangs from his back and does not turn with the
+        # chest: it hangs ~16 units behind the axis, so the 8 degrees that
+        # bring his right shoulder forward would swing its edge ~2 units out
+        # past the coat's (seen at F1 before this). D's full cloak turns, as drawn in the sweep.
+        twisted = UPPER - {"cape"} if cell.flags == "both" else UPPER
+        core.transform(P, anch, twisted, core.rot_y(pose.twist), WAIST)
     even_light(P, GN_MATERIALS)
     return P, anch
 
 
-def _cloak(add) -> None:
+def _plane_x_le(slope: float, x0: float, y0: float, side: int) -> tuple[np.ndarray, float]:
+    """The half-space side * x <= x0 + slope * (y - y0), as a unit clip plane."""
+    n = V(side, -slope, 0.0)
+    k = float(np.linalg.norm(n))
+    return n / k, (x0 - slope * y0) / k
+
+
+def fitted_segments() -> list[list]:
+    """CD's cloak (D71), as clip sets: a lower segment trimmed to the coat's
+    width less CD_TRIM, an upper one to the cuirass's, both inside the body's
+    front silhouette. The camera looks down 9 degrees, so a point at the
+    cloak's back (z ~ -19) shows ~3 px higher than the same height at the
+    coat's edge: the trims narrow upwards on the coat (it tapers) and the
+    margin covers the rest. Its bottom stays above the coat's hem and its
+    top under the pauldrons, so neither edge shows above or below him."""
+    coat_slope = (TORSO_R0 + 1.2 - HEM_R) / (WAIST_Y + 1.0 - HEM_Y)
+    torso_slope = (TORSO_R1 - TORSO_R0) / (CHEST_Y - WAIST_Y)
+    lower = [(V(0, -1, 0), -CD_CAPE_Y0), (V(0, 1, 0), CD_CAPE_WAIST)]
+    upper = [(V(0, -1, 0), -CD_CAPE_WAIST), (V(0, 1, 0), CD_CAPE_Y1)]
+    for side in (1, -1):
+        lower.append(_plane_x_le(coat_slope, HEM_R - CD_TRIM, HEM_Y, side))
+        upper.append(_plane_x_le(torso_slope, TORSO_R0 - CD_TRIM, WAIST_Y, side))
+    return [lower, upper]
+
+
+def _cloak(add, fit: bool = False) -> None:
     """D: both flags as one cloak hung from the epaulettes to the boots: the
     Reich's red with the white disc on his LEFT half, the Legion's stars and
     stripes on his RIGHT, hung vertically (stripes running down the back,
-    the canton at the top by the spine). A half cone behind him."""
+    the canton at the top by the spine). A half cone behind him.
+    fit (CD, D71): the same cloth, trimmed by fitted_segments() so it hangs
+    inside his front silhouette: two primitives per piece instead of one."""
     back = [(V(0, 0, 1), CAPE_BACK)]                   # keep z <= CAPE_BACK: the half behind him
+    segments = fitted_segments() if fit else [[]]
 
     def cone(mat, clips, tag=""):
-        return add("cape", core.ccone(mat, 0.6, CAPE_Y0, CAPE_Y1, CAPE_R0, CAPE_R1, kz=CAPE_KZ, z=CAPE_Z,
-                                      clip=back + clips, tag=tag))
+        for seg in segments:
+            add("cape", core.ccone(mat, 0.6, CAPE_Y0, CAPE_Y1, CAPE_R0, CAPE_R1, kz=CD_CAPE_KZ if fit else CAPE_KZ,
+                                   z=CAPE_Z,
+                                   clip=back + clips + seg, tag=tag))
 
     cone("pennant_red", [(V(-1, 0, 0), 0.0)], tag="cape_reich")          # x >= 0: his left half
     # His right half, sliced into stripes by planes through the cone's axis:
@@ -646,7 +698,8 @@ def _cloak(add) -> None:
 
 
 def insignia_for(cell: Cell) -> tuple[core.Insignia, ...]:
-    return PENNANT_INSIGNIA if cell.flags == "pennants" else CLOAK_INSIGNIA
+    return {"pennants": PENNANT_INSIGNIA, "cloak": CLOAK_INSIGNIA,
+            "both": PENNANT_INSIGNIA + CLOAK_INSIGNIA}[cell.flags]
 
 
 def render(key: str, frame: str, rotation: int, seed: int = SEED) -> np.ndarray:
@@ -1013,13 +1066,202 @@ def build_sheet(data: dict, lines: dict, stamp: str, out_dir: Path = PREVIEW_DIR
     return path
 
 
+# ======================================================= the turnaround (D71)
+# The CEO's choice: "la C de frente (para que se vean las banderas) y la D
+# de espaldas (con esa capa)". Before the full set (~81 images), one cell,
+# CD, turned all the way round: the walk/idle frame A at the eight rotations
+# and the firing frame F at 1, 3 and 5, then at 1x in the portal hall. Its
+# front is checked against C's, pixel for pixel, and the cloak's visible
+# pixels are counted per view from the renderer's primitive ids.
+TURN_IDLE = tuple(("A", r) for r in range(1, core.ROTATIONS + 1))
+TURN_FIRE = (("F", 1), ("F", 3), ("F", 5))
+TURN_VIEWS = TURN_IDLE + TURN_FIRE
+TURN_DIR = OUT_DIR / "turnaround"
+ROT_LONG = {1: "front", 2: "front, his left", 3: "his left side", 4: "back, his left", 5: "back",
+            6: "back, his right", 7: "his right side", 8: "front, his right"}
+
+
+def render_cd(frame: str, rotation: int, seed: int = SEED) -> tuple[np.ndarray, int]:
+    """CD at one view: (RGBA, cloak pixels visible)."""
+    prims, anch = model(CD, frame)
+    pose = POSES[frame]
+    lay = core.render_layers(prims, rotation, CV, GN_MATERIALS, seed=seed, value_shift=VALUE_SHIFT,
+                             insignia=insignia_for(CD), muzzle=anch["muzzle"][0] if pose.fire else None,
+                             flash_size=FLASH_SIZE, chrome=CHROME, what=f"{SPRITE} CD {frame}{rotation}")
+    cape = [i for i, q in enumerate(prims) if q.grp == "cape"]
+    return lay.rgba, int(np.isin(lay.pid, cape).sum())
+
+
+def silhouette_width(rgba: np.ndarray) -> int:
+    xs = np.nonzero((rgba[..., 3] > 0).any(axis=0))[0]
+    return int(xs.max() - xs.min() + 1)
+
+
+def build_turnaround(out_dir: Path = TURN_DIR, seed: int = SEED) -> dict:
+    out: dict = {"cd": {}, "cape_px": {}, "c": {}}
+    for frame, rot in TURN_VIEWS:
+        rgba, n = render_cd(frame, rot, seed)
+        heavy.save(rgba, out_dir / f"{lump('CD', frame, rot)}.png", grab())
+        out["cd"][(frame, rot)] = rgba
+        out["cape_px"][f"{frame}{rot}"] = n
+        print(lump("CD", frame, rot), "cloak px", n, flush=True)
+    for frame, rot in (("A", 1), ("F", 1)):                 # what the front must equal
+        out["c"][(frame, rot)] = render("C", frame, rot, seed)
+    m = measure(out["cd"][("A", 1)])
+    for frame, rot in (("A", 1), ("F", 1)):
+        a, b = out["cd"][(frame, rot)], out["c"][(frame, rot)]
+        m[f"front_{frame}{rot}_px_unlike_C"] = int((a != b).any(axis=-1).sum())
+        m[f"front_{frame}{rot}_width"] = silhouette_width(a)
+        m[f"front_{frame}{rot}_width_C"] = silhouette_width(b)
+    m["back_worst_sep"] = measure(out["cd"][("A", 5)])["worst_sep"]
+    m["cape_px"] = out["cape_px"]
+    out["metrics"] = m
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "metrics.json").write_text(json.dumps(m, indent=2) + "\n", encoding="utf-8")
+    figs = [figure(out["cd"][("A", 1)]), figure(out["cd"][("A", 5)])]
+    labels = ["SDGN CD front", "SDGN CD back"]
+    rf, rl = references()
+    out["lines"] = {"labels": labels + rl}
+    for key, wall, light, _ in SCENES:
+        sc = lineup(figs + rf, wall, light)
+        Image.fromarray(sc, "RGB").save(out_dir / f"lineup_{key}.png", optimize=True)
+        out["lines"][key] = sc
+    return out
+
+
+TURN_NOTES = [
+    "WHAT KEEPS THE CLOAK OUT OF THE FRONT. It is D's cloth (the same half cone, the Reich's red and the white "
+    "disc on his left half, the stars and stripes hung vertically on his right) cut in two and trimmed: below "
+    "the waist to the coat's width less 1.2 units, above it to the cuirass's, so from the front it is always "
+    "inside his own outline. Its bottom stops 1.5 units above the coat's hem (the hem hides it; the camera "
+    "looks down 9 degrees, so the back of the cloak shows a little HIGHER than the coat's edge, never lower), "
+    "and its top at 71, under the pauldrons, so it never peeks over the shoulders. It is flatter than D's "
+    "(depth 0.72 of its width against 0.85): it stands about one unit off the coat's back at the hem, which "
+    "keeps rotations 2 and 8 to a sliver. The pennants hang in front of the shoulders and the cloak behind "
+    "the back: they never meet.",
+    "MEASURED (section 3; tests/test_gen_general.py holds it). At rotation 1, standing and firing, not one "
+    "pixel of the cloak shows; the silhouette is C's, the same width, the hourglass untouched. The sprite "
+    "differs from C's in 4 pixels (9 when firing), all shading: the hidden cloak, close behind the coat's "
+    "edge, darkens the renderer's ambient occlusion there by one ramp step. "
+    "Rotations 2 and 8 show its edge as a 2-3 px strip behind the coat's back edge, about 100 px of "
+    "cloth: what a cloak seen three-quarters from the front shows; the silhouette stays the hourglass. "
+    "From 3 to 7 it is D's cloak: the whole alliance across his back at 5.",
+    "SWAY (a note, not drawn). In the full set the coat's hem and the cloak should swing with the walk: the "
+    "hem tilted a few degrees against the leading leg in each of A-D, the cloak's lower segment hinged at the "
+    "waist and lagging one frame behind the hem; in the death frames the cloak falls with him and spreads "
+    "on the floor (the corpse flat, as D55). Both are pose parameters on the rig, no new method.",
+    "HONEST. (1) The trim makes the cloak narrower than D's: from the back he is the cloak plus a band of "
+    "chrome back-plate and the pennants above and beside it, where D's covered him shoulder to shoulder. "
+    "(2) The canton's stars are a 1-px checker at 1x. (3) In profile (3, 7) the cloak's trimmed side is a "
+    "flat face of stripes or red, a panel behind the coat. (4) From the back the red half sits on the "
+    "portal hall's red brick: only 58 % of his back's pixels separate from SDBRCK1 at 128 (85 % from the "
+    "front); the chrome, the cap and the white stripes carry his outline there, and against the drum's steel "
+    "and the portal he separates on 72 % and 96 %. (5) When he fires, the cloak stays with his hips while "
+    "the chest turns 8 degrees (so its edge never swings out past the coat at F1). (6) Light is gen_enemy's "
+    "stand-in, NOT VERIFIED against GZDoom; nothing here has been in the engine.",
+]
+TURN_ASK = [
+    "Approve CD as turned here; then the full set (walk A-D, salvo E-F, pain G, summon Q-R at eight "
+    "rotations, death H-P, the shell SDGL A-E) is rendered on the rig for your gate in GZDoom.",
+    "Or ask for a wider cloak: D's full width shows from the back, at the price of red edges round the coat "
+    "from the front (the sweep's D1).",
+]
+
+
+def build_turnaround_sheet(t: dict, stamp: str, out_dir: Path = PREVIEW_DIR) -> Path:
+    m = t["metrics"]
+    S = []
+    idle = [_tile(t["cd"][("A", r)], 3, f"SDGNA{r}", f"{ROT_LONG[r]} · cloak {t['cape_px'][f'A{r}']} px")
+            for _, r in TURN_IDLE]
+    one = [_tile(t["cd"][("A", r)], 1, f"A{r} 1x") for _, r in TURN_IDLE]
+    S.append(("1 · Walk/idle frame A at the eight rotations",
+              "Doom's rotations: 1 front, 3 his left side, 5 his back, 7 his right side. He is handed (a "
+              "different flag on each shoulder, the gun on his right), so all eight are drawn, none mirrored. "
+              "Under each: the cloak's pixels visible in that view.", _strip(idle) + _strip(one)))
+    fire = [_tile(t["cd"][("F", r)], 3, f"SDGNF{r}", f"fires · {ROT_LONG[r]} · cloak {t['cape_px'][f'F{r}']} px")
+            for _, r in TURN_FIRE]
+    S.append(("2 · The firing frame F at 1, 3 and 5",
+              "general.zs: F fires (A_SD_GeneralShot). The field gun on his right shoulder fires; his hand "
+              "points the swagger stick.", _strip(fire)))
+    cmp_ = [_tile(t["c"][("A", 1)], 3, "C A1", "the sweep's C"), _tile(t["cd"][("A", 1)], 3, "CD A1", "this"),
+            _tile(t["c"][("F", 1)], 3, "C F1", "the sweep's C"), _tile(t["cd"][("F", 1)], 3, "CD F1", "this")]
+    rows = [[f"{f}1", m[f"front_{f}1_px_unlike_C"], m[f"front_{f}1_width"], m[f"front_{f}1_width_C"],
+             t["cape_px"][f"{f}1"]] for f in ("A", "F")]
+    S.append(("3 · From the front he is C",
+              "The CEO's condition: C from the front, so the flags show and the hourglass stays.",
+              _strip(cmp_) + sheetlib.table(["view", "pixels unlike C", "width px", "C's width", "cloak px"],
+                                            rows)))
+    lines = t["lines"]
+    body = ""
+    for key, wall, light, what in SCENES:
+        sc = lines[key]
+        body += _strip([_img_tile(sc, 1, f"{key} 1x: {wall} at light {light}", what),
+                        _img_tile(sc, 2, f"{key} 2x, for the eye")])
+    body += ('<p class="lead">Left to right: ' + html.escape(" · ".join(lines["labels"]))
+             + ". Each sprite stands by its own offsets, as the engine places it.</p>")
+    S.append(("4 · At 1x in the portal hall, front and back, beside the approved enemies",
+              "MAP03's portal hall (SDBRCK1 at 128 over SDFLR4, the drum's SDSTEL1 at 144, the portal's SDPORT1 "
+              "at 144). Light is gen_enemy.py's stand-in, NOT VERIFIED against GZDoom.", body))
+    sils = [_img_tile(heavy.silhouette_rgb(t["cd"][("A", r)]), 5, f"A{r}") for r in (1, 2, 3, 5)]
+    S.append(("5 · 16 px (ART-BIBLE §6.4)", "Black shape, 16 px tall, shown 5x.", _strip(sils)))
+    body = '<div class="verdict">' + "".join(f"<p>{html.escape(p)}</p>" for p in TURN_NOTES) + "</div>"
+    body += '<div class="ask"><b>For the CEO</b><ol>' + "".join(f"<li>{html.escape(a)}</li>" for a in TURN_ASK) \
+            + "</ol></div>"
+    S.append(("6 · How it is built, what does not work, what next", "", body))
+    intro = ("D71: the General is C from the front and D from the back. This is that one cell, CD, turned all the "
+             "way round before the full set: frame A at the eight rotations, the firing frame at 1, 3 and 5, and "
+             "at 1x in the portal hall. Built by <code>tools/art/gen_general.py</code> on "
+             "<code>tools/art/rig_core.py</code> (imported, not edited), palette v2, seed "
+             f"{SEED}, no system fonts. Draft: nothing in <code>assets/</code>.")
+    footer = ("Sprites: tools/art/gen_general.py (GPL-3.0 code; art CC BY-NC-SA 4.0, D15), deterministic, no "
+              "system fonts. Approved sprites read from assets/sprites/ (rifleman, legion, panzermensch). "
+              "Freedoom's CYBRA1 shown for scale only, from freedoom2.wad 0.13.0, BSD-3-Clause (© the Freedoom "
+              "contributors), not used as a source.")
+    path = out_dir / f"{stamp}_F5_general-CD-turnaround.html"
+    sheetlib.write_sheet(path, lang="en", title="The General, cell CD — turnaround (F5, D71)",
+                         subtitle="SDGN · C from the front, D from the back · draft for the CEO's gate",
+                         intro=intro, sections=S, footer=footer)
+    text = path.read_text(encoding="utf-8").replace("</style>", EXTRA_CSS + "</style>", 1)
+    path.write_text(text, encoding="utf-8")
+    Image.fromarray(turnaround_contact(t), "RGB").save(path.with_suffix(".png"), optimize=True)
+    return path
+
+
+def turnaround_contact(t: dict) -> np.ndarray:
+    """Row 1: A1-A8 at 2x; row 2: F1 F3 F5, then C's A1 for the front check;
+    under them the P1 lineup at 2x."""
+    z, gap = CONTACT_ZOOM, 12
+    rows = [[t["cd"][v] for v in TURN_IDLE], [t["cd"][v] for v in TURN_FIRE] + [t["c"][("A", 1)]]]
+    cell_w, cell_h = CV.w * z + gap, CV.h * z + gap
+    lw = t["lines"]["P1"].shape[1] * z
+    width = max(len(rows[0]) * cell_w, lw) + 2 * gap
+    height = gap + cell_h * len(rows) + t["lines"]["P1"].shape[0] * z + 2 * gap
+    canvas = np.zeros((height, width, 3), np.uint8)
+    canvas[:] = CONTACT_BG
+    for i, row in enumerate(rows):
+        for j, spr in enumerate(row):
+            x, y = gap + j * cell_w, gap + i * cell_h
+            canvas[y:y + CV.h * z, x:x + CV.w * z] = core.NEUTRAL
+            _paste(canvas, spr, x, y, z)
+    _paste(canvas, t["lines"]["P1"], gap, gap + cell_h * len(rows) + gap, z)
+    return canvas
+
+
 # ===================================================================== main
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--stamp", default=None, help="sheet timestamp YYYY-MM-DD_HHMM (default: now)")
     ap.add_argument("--no-sheet", action="store_true")
     ap.add_argument("--only", default=None, help="cell letters to render (no sheet)")
+    ap.add_argument("--turnaround", action="store_true", help="D71: cell CD turned round, and its sheet")
     args = ap.parse_args(argv)
+    if args.turnaround:
+        t = build_turnaround()
+        print(json.dumps(t["metrics"], indent=2))
+        if not args.no_sheet:
+            stamp = args.stamp or dt.datetime.now().strftime("%Y-%m-%d_%H%M")
+            print(build_turnaround_sheet(t, stamp))
+        return 0
     data = build_all(keys=args.only)
     if args.only:
         return 0

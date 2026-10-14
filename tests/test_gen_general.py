@@ -153,6 +153,86 @@ class ContractTests(unittest.TestCase):
         self.assertGreater(g.CV.foot_row, g.ACTOR_HEIGHT)
 
 
+@unittest.skipUnless(HAVE_IMAGING, "needs numpy and Pillow")
+class CDContractTests(unittest.TestCase):
+    """D71: CD is C with D's cloak, fitted inside his front silhouette."""
+
+    @classmethod
+    def setUpClass(cls):
+        import gen_general
+        cls.g = gen_general
+
+    def test_cd_is_c_plus_the_cloak(self):
+        g = self.g
+        c, cd = g.CELL["C"], g.CD
+        self.assertEqual((cd.face, cd.weapon, cd.chest), (c.face, c.weapon, c.chest))
+        self.assertEqual(cd.flags, "both")
+        self.assertNotIn(cd, g.CELLS)                    # the sweep's five cells are unchanged
+        tags = {i.tag for i in g.insignia_for(cd)}
+        self.assertEqual(tags, {"pen_reich", "pen_us", "cape_reich", "canton"})
+        prims, _ = g.model(cd, "A")
+        groups = {p.grp for p in prims}
+        self.assertTrue({"pen_l", "pen_r", "cape"} <= groups)
+
+    def test_fitted_cloak_stays_inside_the_body(self):
+        """Every cloak part's clips keep it inside the coat's (below the
+        waist) or the cuirass's (above) width less CD_TRIM, between the
+        hem and the pauldrons."""
+        g = self.g
+        self.assertGreater(g.CD_CAPE_Y0, g.HEM_Y)
+        self.assertLess(g.CD_CAPE_Y1, g.SHOULDER[1])
+        lower, upper = g.fitted_segments()
+        for seg, y0, y1, width in ((lower, g.CD_CAPE_Y0, g.CD_CAPE_WAIST, g.coat_front),
+                                   (upper, g.CD_CAPE_WAIST, g.CD_CAPE_Y1, None)):
+            for y in np.linspace(y0, y1, 9):
+                if width is None:
+                    r = g.TORSO_R0 + (g.TORSO_R1 - g.TORSO_R0) * (y - g.WAIST_Y) / (g.CHEST_Y - g.WAIST_Y)
+                else:
+                    r = g.HEM_R + (g.TORSO_R0 + 1.2 - g.HEM_R) * (y - g.HEM_Y) / (g.WAIST_Y + 1.0 - g.HEM_Y)
+                for x in (r - g.CD_TRIM + 0.05, -(r - g.CD_TRIM + 0.05)):
+                    p = np.array([x, y, -10.0])
+                    self.assertTrue(any(n @ p > off for n, off in seg), (y, x))   # outside: clipped
+
+
+@slow
+@unittest.skipUnless(HAVE_IMAGING, "needs numpy and Pillow")
+class CDRenderTests(unittest.TestCase):
+    """D71: from the front CD is C; from the back the cloak is there."""
+
+    @classmethod
+    def setUpClass(cls):
+        import gen_general as g
+        cls.g = g
+        cls.front, cls.front_cloak = g.render_cd("A", 1)
+        cls.fire, cls.fire_cloak = g.render_cd("F", 1)
+        cls.back, cls.back_cloak = g.render_cd("A", 5)
+        cls.c_front = g.render("C", "A", 1)
+        cls.c_fire = g.render("C", "F", 1)
+
+    def test_front_is_c(self):
+        g = self.g
+        self.assertEqual(self.front_cloak, 0)
+        self.assertEqual(self.fire_cloak, 0)
+        for cd, c in ((self.front, self.c_front), (self.fire, self.c_fire)):
+            np.testing.assert_array_equal(cd[..., 3] > 0, c[..., 3] > 0)        # the same silhouette
+            self.assertEqual(g.silhouette_width(cd), g.silhouette_width(c))
+            self.assertLessEqual(int((cd != c).any(axis=-1).sum()), 12)        # shading only (AO by the hidden cloak)
+
+    def test_back_shows_both_flags(self):
+        g = self.g
+        self.assertGreater(self.back_cloak, 800)
+        r = ramp_sets()
+        a = self.back[..., 3] > 0
+        cols = {tuple(int(v) for v in p) for p in self.back[..., :3][a]}
+        self.assertTrue(cols & r["flag_red"])
+        self.assertIn((0, 0, 0), cols)
+        self.assertIn(tuple(g.core.ramp("plaster_warm")[13]), cols)            # the disc
+        self.assertIn(tuple(g.core.ramp("plaster_warm")[15]), cols)            # the canton's stars
+
+    def test_deterministic(self):
+        np.testing.assert_array_equal(self.g.render_cd("A", 1)[0], self.front)
+
+
 @slow
 @unittest.skipUnless(HAVE_IMAGING, "needs numpy and Pillow")
 class RenderTests(unittest.TestCase):
