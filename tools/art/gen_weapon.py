@@ -77,8 +77,8 @@ Outputs (work/ is gitignored):
     work/art/weapons/izh/        SDIZA0-D0, SDIFA0-B0, SDIPA0, metrics.json
     work/art/weapons/rpg7/       SDRLA0-B0 (+ C0, D0 _proposed), SDRFA0-D0, SDRPA0, metrics.json
     work/art/weapons/roks3/      SDRKA0-B0, SDKFA0-B0, SDKPA0, metrics.json
-    work/art/weapons/katyusha/   SDHKA0-B0 (+ C0 _proposed), SDHFA0-B0, SDHPA0, metrics.json;
-                                 variants/ holds launch-box variants B, C and pickup option F
+    work/art/weapons/katyusha/   pass 3: SDHKA0-B0 (+ C0, D0 _proposed), SDHFA0-B0, SDHPA0, metrics.json;
+                                 variants/ holds variants B and C, launcher_only/ the frames without hands
     docs/art/previews/<stamp>_F4_<slug>.png   the sheet of each delivery
 Sprites are RGBA with hard alpha, like the F5 drafts (ART-BIBLE §2
 exception); the shipped format is decided with the mod-engineer on
@@ -1883,7 +1883,11 @@ def render_katyusha_rails_frame(style: HandStyle, pose: ArmsPose) -> tuple[Frame
 
 
 # ------------------------------------------------- hand Katyusha, pass 2
-# PASS 2: a CLOSED LAUNCH BOX, after the portable salvo launchers (six tubes
+# PASS 2 (sheet 2026-10-13_2243; D48: "algo pobre y deforme", redone as pass
+# 3 below). Kept only so the pass-3 sheet can show it, as GZDoom showed it
+# and composited; nothing is written from it. Its renderers carry _box_ /
+# HKB_ names; the public names (HK_POSES, render_katyusha_frame, ...) are
+# pass 3's. PASS 2: a CLOSED LAUNCH BOX, after the portable salvo launchers (six tubes
 # in an olive case, fired from the shoulder). Seen from behind, the weapon's
 # face is the box's rear end with the six tube mouths in two rows of three,
 # and a rocket's tail in each: a dark nozzle in the middle and the X of its
@@ -2074,7 +2078,7 @@ def draw_launch_box(rig: Rig, origin, bore, up, variant: HKVariant, loaded: bool
 
 # Off the eye's axis, to the right and below: a box that crossed the axis
 # would run to the vanishing point and sit on the crosshair (HK_AIM_CLEAR).
-HK_POSES = (
+HKB_POSES = (
     ArmsPose("A", "ready, six loaded", (11.5, 8.0, 32.0), (0.02, 0.0, 1.0), (0.06, -1.0, 0.0)),
     ArmsPose("B", "salvo: box up, tubes empty", (11.5, 7.2, 31.0), (0.03, -0.05, 1.0), (0.06, -1.0, 0.0),
              state="empty"),
@@ -2085,8 +2089,8 @@ HK_AIM_CLEAR = (16, 0.15)       # px round the crosshair, and the most of that d
 # the elbows are pass 1's HK_RIGHT_ELBOW / HK_LEFT_ELBOW, unchanged
 
 
-def render_katyusha_frame(style: HandStyle, pose: ArmsPose, variant: str = RECOMMENDED_HK) -> tuple[Frame, list]:
-    """A held frame of the launch box and the screen positions (x, y, px
+def render_katyusha_box_frame(style: HandStyle, pose: ArmsPose, variant: str = RECOMMENDED_HK) -> tuple[Frame, list]:
+    """Pass 2: a held frame of the launch box and the screen positions (x, y, px
     per cm) of the six tube mouths, where the flash's motors light."""
     rig = Rig()
     got = draw_launch_box(rig, pose.origin, pose.bore, pose.up, HK_VARIANT[variant], loaded=pose.state != "empty")
@@ -2097,6 +2101,427 @@ def render_katyusha_frame(style: HandStyle, pose: ArmsPose, variant: str = RECOM
               side="left")
     rear = [rig.project(p) for p in got["rear"]]
     return finish(rig), rear
+
+
+# ------------------------------------------------- hand Katyusha, pass 3
+# PASS 3 (D48: the CEO found pass 2 "algo pobre y deforme": in the engine
+# the box was a flat olive board with six circles and a hand beside it).
+# Pass 3 turns the weapon side-on, as Blood holds its heavy weapons: carried
+# low at the right hip, the bore running in to the left so the eye sees its
+# LEFT SIDE AND TOP along its whole length, the near (rear) end big at the
+# bottom right and the six warheads at the far end, under the crosshair;
+# both hands on it. The salvo is six rockets in two rows of three, the
+# BM-13's own arrangement on the rails (one rocket riding over each rail,
+# one slung under it), so katyusha.zs's six projectiles stay true. Three
+# variants of the carrier, sharing the frame, grips, sling and ignition box:
+#   A  open rails: six steel rockets on three I-section rails, two riveted
+#      frame rings; the rockets are seen whole, fins to warheads
+#   B  six bare launch tubes in three riveted bands, warheads out of the
+#      front mouths
+#   C  the riveted launch box (pass 2's idea) turned side-on
+# u from the rear end, v up, w left (gun_basis); all in cm.
+HK3_R = 2.3                     # rocket body radius (46 mm: a hand rocket, not the BM-13's 132)
+HK3_PITCH_W = 6.2               # column pitch, w
+HK3_ROW_V = 3.9                 # rocket centre above / below the rail's axis
+HK3_COLS = (1.0, 0.0, -1.0)     # x pitch: left (towards the eye), middle, right
+HK3_ROWS = (1.0, -1.0)          # over the rail, slung under it
+HK3_ROCKET_U = 2.0              # where a loaded rocket's tail sits on the rails
+HK3_BODY = 36.0                 # body length, tail to the red band
+HK3_BAND = 1.6                  # the red band at the warhead's base: LOADED reads by it
+HK3_WAR = 11.0                  # the ogive warhead
+HK3_WAR_K = 1.2                 # warhead radius over body radius (exaggerated, as the PG-7V is)
+HK3_FUSE = 1.6
+HK3_FIN = (5.0, 0.85, 1.7)      # fin length along u, inner and outer radius (in rocket radii)
+HK3_FIN_W = 0.28
+HK3_FLANGE = (1.3, 0.5)         # rail flange half width, thickness
+HK3_WEB = (0.6, 1.4)            # rail web thickness, half height
+HK3_FRAMES = ((7.0, 9.6), (30.5, 33.1))  # u of the rear and front frame rings (variant A)
+HK3_BANDS = ((5.0, 7.8), (20.0, 22.8))   # variant B: the third band sits HK3_BAND_FRONT from the mouths
+HK3_BAND_FRONT = (6.0, 3.2)
+HK3_FRAME_T = 0.7               # ring bar thickness
+HK3_RIVET_R = 0.36
+HK3_GRIP_U, HK3_HANDLE_U = 20.0, 35.0
+HK3_IGN = (3.0, 12.5, -3.6, 2.6, 2.6)    # ignition box: u from, u to, v from, v to, thickness
+HK3_STAR_R = 2.4
+HK3_SLING_W = 2.4               # strap width
+HK3_SLING_TO = (36.0, 46.0, 14.0)        # camera cm, off the bottom right: where the strap goes (the shoulder)
+HK3_SIDE = 1.0                  # the side that faces the eye: +w, the left (the bore runs in to the left)
+HK3_TUBE = (0.4, 0.1)           # variant B/C: tube outer and bore radius over the rocket's
+HK3_BOX_PAD = 1.15              # variant C: case wall beyond the outer rockets
+
+
+@dataclass(frozen=True)
+class HK3Variant:
+    key: str
+    kind: str               # "rails" | "tubes" | "box"
+    length: float           # rails, tubes or case, from u = 0
+    title: str
+
+
+HK3_VARIANTS = (
+    HK3Variant("A", "rails", 37.6, "Open rails, rockets over and under"),
+    HK3Variant("B", "tubes", 41.0, "Six bare tubes in riveted bands"),
+    HK3Variant("C", "box", 41.0, "The riveted launch box, side-on"),
+)
+HK3_VARIANT = {v.key: v for v in HK3_VARIANTS}
+RECOMMENDED_HK3 = "A"
+
+
+def hk3_slots():
+    """(v, w) of the six rockets: the top row first, left to right."""
+    return [(r * HK3_ROW_V, c * HK3_PITCH_W) for r in HK3_ROWS for c in HK3_COLS]
+
+
+def hk3_half(kind: str) -> tuple[float, float]:
+    """Half width and half height of the outline (frame ring, band or case)."""
+    pad = HK3_BOX_PAD if kind == "box" else (0.55 if kind == "rails" else 0.75 + HK3_TUBE[0])
+    return HK3_PITCH_W + HK3_R + pad, HK3_ROW_V + HK3_R + pad
+
+
+def hk3_rivet(rig: Rig, p, n, r: float = HK3_RIVET_R, base: float = 0.62) -> None:
+    """A round rivet head on a surface of normal n."""
+    n = unit(n)
+    a = perp(np.array([0.3, 1.0, 0.2]), n)
+    b = np.cross(n, a)
+    rig.ellipsoid(np.asarray(p, np.float64) + n * r * 0.25, (a * r, b * r, n * r * 0.6), "steel", base, 0.8)
+
+
+def hk3_rocket(rig: Rig, at, u0: float, v: float, w: float, body: bool = True) -> None:
+    """One rocket from its tail at u0: nozzle, four fins, steel body (or,
+    body=False, only what shows out of a tube: the band and the warhead),
+    the red band, the olive ogive and the fuse."""
+    r = HK3_R
+    rw = r * HK3_WAR_K
+    ub = u0 + HK3_BODY
+    if body:
+        rig.capsule(at(u0 - 0.7, v, w), at(u0 + 0.4, v, w), r * 0.55, r * 0.8, "rubber", 0.2, 0.6, open_ends=True)
+        rig.capsule(at(u0 + 0.3, v, w), at(ub, v, w), r, r, "steel", 0.46, 0.85, open_ends=True,
+                    bands=(HK3_BODY / 3, 0.3, 0.14))
+        L, ri, ro = HK3_FIN
+        U = unit(at(1.0) - at(0.0))
+        for a in (45.0, 135.0, 225.0, 315.0):
+            D = unit(at(0.0, np.sin(np.deg2rad(a)), np.cos(np.deg2rad(a))) - at(0.0))
+            rig.plate(at(u0, v, w), U, D, ((0.0, r * ri), (L, r * ri), (L - 1.2, r * ro), (0.0, r * ro)),
+                      HK3_FIN_W, "steel", 0.52, 0.8)
+    rig.capsule(at(ub - 0.6, v, w), at(ub, v, w), r, rw, "steel", 0.5, 0.85, open_ends=True)
+    rig.capsule(at(ub - 0.05, v, w), at(ub + HK3_BAND, v, w), rw * 1.02, rw * 1.02, "hull_red", 0.6, 0.8,
+                open_ends=True)
+    uw = ub + HK3_BAND
+    rig.capsule(at(uw - 0.1, v, w), at(uw + HK3_WAR * 0.4, v, w), rw, rw * 0.88, "olive_paint", 0.58, 0.8,
+                open_ends=True)
+    rig.capsule(at(uw + HK3_WAR * 0.4 - 0.1, v, w), at(uw + HK3_WAR, v, w), rw * 0.88, rw * 0.28,
+                "olive_paint", 0.62, 0.8)
+    rig.capsule(at(uw + HK3_WAR - 0.5, v, w), at(uw + HK3_WAR + HK3_FUSE, v, w), rw * 0.3, rw * 0.2,
+                "steel", 0.62, 0.85)
+
+
+def hk3_ring(rig: Rig, at, U, V, W, u0: float, u1: float, hw: float, hh: float, t: float,
+             base: float = 0.5) -> None:
+    """A rectangular ring of flat olive bars round the bundle (a frame or a
+    clamp band), from u0 to u1, outer half sizes hw, hh, bars t thick, with
+    a row of rivets on the side that faces the eye and along the top."""
+    du = u1 - u0
+    for sv in (1.0, -1.0):
+        rig.plate(at(u0, sv * (hh - t / 2), 0.0), U, W, ((0.0, -hw), (du, -hw), (du, hw), (0.0, hw)), t,
+                  "olive_paint", base + 0.04 * sv, 0.8)
+    for sw in (1.0, -1.0):
+        rig.plate(at(u0, 0.0, sw * (hw - t / 2)), U, V, ((0.0, -hh), (du, -hh), (du, hh), (0.0, hh)), t,
+                  "olive_paint", base, 0.8)
+    um = u0 + du / 2
+    for vv in np.linspace(-hh + 1.2, hh - 1.2, 4):
+        hk3_rivet(rig, at(um, vv, HK3_SIDE * hw), W * HK3_SIDE)
+    for ww in np.linspace(-hw + 1.2, hw - 1.2, 5):
+        hk3_rivet(rig, at(um, hh, ww), V)
+
+
+def hk3_strap(rig: Rig, pts, face, width: float, base: float = 0.46) -> None:
+    """A flat leather strap through 3D points, its face turned to `face`
+    (walnut-brown: the glove's material stays the hands' own)."""
+    pts = [np.asarray(p, np.float64) for p in pts]
+    for a, b in zip(pts, pts[1:]):
+        t = unit(b - a)
+        n = perp(np.cross(t, face), t) * width / 2
+        rig._plane([a - n, b - n, b + n, a + n], "wood_walnut", base, 0.8)
+
+
+def hk3_mouth(rig: Rig, at, u: float, v: float, w: float) -> None:
+    """An EMPTY tube's front mouth: the steel lip, the bore's shadow and the
+    dark throat. Only for empty tubes: its layers lie at one depth, and on a
+    loaded tube, seen side-on, they would hide the warhead's red band."""
+    proj = lambda pts: [rig.project(p)[:2] for p in pts]
+    ro, ri = HK3_R + HK3_TUBE[0] + 0.3, HK3_R + HK3_TUBE[1]
+    z0 = float(at(u, v, w)[2])
+    rim = proj(hkb_circle(at, u, v, w, ro))
+    hkb_layer(rig, rim, rim, z0, 0.66, "steel")
+    bore = proj(hkb_circle(at, u, v, w, ri))
+    hkb_layer(rig, bore, bore, z0 - HKB_EPS, 0.14, "gunmetal")
+    throat = proj(hkb_circle(at, u - 3.5, v, w, ri))
+    hkb_layer(rig, bore, throat, z0 - 2 * HKB_EPS, 0.03, "gunmetal")
+
+
+def draw_katyusha3(rig: Rig, origin, bore, up, variant: HK3Variant, loaded: bool = True, grip: bool = True,
+                   handle: bool = True, sling_to=HK3_SLING_TO) -> dict:
+    """The pass-3 Katyusha in its own frame. grip / handle False fold the
+    pistol grip and the forward handle (the pickup lies on neither, so it
+    cannot stand on two legs like pass 1's 'bench'); sling_to is the point
+    (camera cm) the strap runs to from the rear swivel, or None."""
+    U, V, W, at = gun_basis(origin, bore, up)
+    kind, L = variant.kind, variant.length
+    hw, hh = hk3_half(kind)
+    S = HK3_SIDE
+    slots = hk3_slots()
+    if kind == "rails":
+        f0, f1 = HK3_FLANGE
+        wt, wh = HK3_WEB
+        for w in [c * HK3_PITCH_W for c in HK3_COLS]:
+            for sv in (1.0, -1.0):
+                rig.plate(at(0.0, sv * (wh + f1 / 2), w), U, W, ((0.0, -f0), (L, -f0), (L, f0), (0.0, f0)), f1,
+                          "gunmetal", 0.46, 0.85)
+            rig.plate(at(0.0, 0.0, w), U, V, ((0.0, -wh), (L, -wh), (L, wh), (0.0, wh)), wt, "gunmetal", 0.26, 0.85)
+        for u0, u1 in HK3_FRAMES:
+            hk3_ring(rig, at, U, V, W, u0, u1, hw, hh, HK3_FRAME_T)
+            rig.plate(at(u0, 0.0, 0.0), U, W, ((0.0, -hw), (u1 - u0, -hw), (u1 - u0, hw), (0.0, hw)), 0.9,
+                      "olive_paint", 0.44, 0.8)            # the cross bar the rails hang from
+        if loaded:
+            for v, w in slots:
+                hk3_rocket(rig, at, HK3_ROCKET_U, v, w)
+    else:
+        if kind == "tubes":
+            ro = HK3_R + HK3_TUBE[0]
+            for v, w in slots:
+                rig.capsule(at(0.0, v, w), at(L, v, w), ro, ro, "gunmetal", 0.5, 0.85, open_ends=True,
+                            bands=(L / 4, 0.3, 0.12))
+                rig.capsule(at(-0.2, v, w), at(1.0, v, w), ro + 0.3, ro + 0.3, "steel", 0.46, 0.85, open_ends=True)
+                rig.capsule(at(L - 1.0, v, w), at(L, v, w), ro + 0.3, ro + 0.3, "steel", 0.52, 0.85, open_ends=True)
+            for u0, u1 in (*HK3_BANDS, (L - HK3_BAND_FRONT[0], L - HK3_BAND_FRONT[1])):
+                hk3_ring(rig, at, U, V, W, u0, u1, hw, hh, HK3_FRAME_T + 0.2, 0.48)
+        else:
+            hkb_box(rig, at, U, W, 0.0, L, hw, hh, "olive_paint", 0.5)
+            for b0, b1 in ((4.0, 6.0), (L - 3.0, L - 1.0)):
+                hkb_box(rig, at, U, W, b0, b1, hw + 0.35, hh + 0.35, "olive_paint", 0.44)
+            for uu in np.arange(8.5, L - 3.0, 4.0):        # rivet lines along the edges that face the eye
+                hk3_rivet(rig, at(uu, hh, S * (hw - 0.8)), V)
+                hk3_rivet(rig, at(uu, hh - 0.8, S * hw), W * S)
+                hk3_rivet(rig, at(uu, -hh + 0.8, S * hw), W * S)
+            hkb_star(rig, at, L * 0.52, S * (hw + 0.03), 3.2)
+        for v, w in slots:
+            if not loaded:
+                hk3_mouth(rig, at, L + HKB_EPS, v, w)
+            else:
+                hk3_rocket(rig, at, L - HK3_BODY + 0.4, v, w, body=False)
+    # the ignition box with its star, on the side that faces the eye (the
+    # box variant carries its star on the case)
+    if kind != "box":
+        i0, i1, j0, j1, bt = HK3_IGN
+        rig.plate(at(0.0, 0.0, S * (hw + bt / 2)), U, V, ((i0, j0), (i1, j0), (i1, j1), (i0, j1)), bt,
+                  "olive_paint", 0.52, 0.8)
+        hkb_star(rig, at, (i0 + i1) / 2, S * (hw + bt + 0.03), HK3_STAR_R)
+        for uu in (i0 + 0.8, i1 - 0.8):
+            for vv in (j0 + 0.7, j1 - 0.7):
+                hk3_rivet(rig, at(uu, vv, S * (hw + bt)), W * S, 0.3)
+    # the frame sight: a post and a ring on the front, a notch at the rear
+    fu = HK3_FRAMES[1][0] + 1.0 if kind == "rails" else L - 4.5
+    if grip:
+        rig.plate(at(fu, hh, 0.0), U, V, ((-0.4, 0.0), (0.4, 0.0), (0.3, 2.2), (-0.3, 2.2)), 0.5,
+                  "gunmetal", 0.42, 0.8)
+        c = at(fu, hh + 3.6, 0.0)
+        ring = [c + 1.5 * (np.cos(a) * V + np.sin(a) * W) for a in np.linspace(0, 2 * np.pi, 13)]
+        for a, b in zip(ring, ring[1:]):
+            rig.capsule(a, b, 0.28, 0.28, "gunmetal", 0.45, 0.8)
+    gu = HK3_GRIP_U
+    if grip:
+        rig.plate(at(gu - 3.5, -hh - 0.4, 0.0), U, V, ((0.0, 0.4), (6.5, 0.4), (6.5, -1.2), (0.0, -1.2)), 2.2,
+                  "gunmetal", 0.38, 0.85)                  # the grip's bracket
+        rig.plate(at(gu, -hh - 1.2), U, V, ((-1.6, 0.4), (2.0, 0.4), (0.8, -9.0), (-2.6, -8.6)), 2.6,
+                  "bakelite", 0.5, 0.8)
+        guard_loop(rig, at, ((gu + 1.6, -hh - 2.0), (gu + 2.4, -hh - 4.4), (gu + 6.0, -hh - 4.0),
+                             (gu + 6.6, -hh - 1.4)))
+        rig.capsule(at(gu + 3.2, -hh - 1.6), at(gu + 2.8, -hh - 3.4), 0.35, 0.3, "gunmetal", 0.45, 0.8)
+        if kind != "box":                                   # the firing cable, grip to ignition box
+            i0, i1, j0, _, bt = HK3_IGN
+            cab = bezier(at(gu - 1.6, -hh - 2.0, S * 1.0), at(gu - 3.0, -hh - 3.0, S * hw),
+                         at(i1 + 1.5, j0 - 2.5, S * (hw + bt + 0.8)), at(i1 - 1.0, j0 + 0.8, S * (hw + bt)), 8)
+            for a, b in zip(cab, cab[1:]):
+                rig.capsule(a, b, 0.32, 0.32, "rubber", 0.3, 0.7)
+    if handle:
+        hu = HK3_HANDLE_U
+        rig.plate(at(hu - 1.5, -hh - 0.4, 0.0), U, V, ((0.0, 0.4), (4.0, 0.4), (4.0, -1.2), (0.0, -1.2)), 2.0,
+                  "gunmetal", 0.38, 0.85)
+        rig.capsule(at(hu, -hh - 1.0), at(hu + 0.6, -hh - 8.0), 1.35, 1.25, "wood_birch", 0.55, 0.8,
+                    bands=(2.2, 0.3, 0.10))
+    # the sling: a leather strap from the rear swivel to the shoulder
+    a = at(2.0, -hh + 0.4, S * (hw + 0.3))
+    rig.capsule(a - V * 0.9, a + V * 0.9, 0.35, 0.35, "steel", 0.55, 0.85)          # swivel
+    b = at(HK3_FRAMES[1][1] + 2.0 if kind == "rails" else L - 1.0, -hh + 0.4, S * (hw + 0.3))
+    rig.capsule(b - V * 0.9, b + V * 0.9, 0.35, 0.35, "steel", 0.55, 0.85)          # front swivel, strap off
+    if sling_to is not None:
+        end = np.asarray(sling_to, np.float64)
+        pts = bezier(a, a - V * 6.0 + W * S * 1.0, end - (end - a) * 0.35 - V * 3.0, end, 10)
+        hk3_strap(rig, pts, W * S, HK3_SLING_W)
+        t = unit(pts[3] - pts[1])
+        rig.plate(pts[2] + W * S * 0.25, t, perp(-V, t), ((-0.8, -1.5), (0.8, -1.5), (0.8, 1.5), (-0.8, 1.5)),
+                  0.4, "steel", 0.52, 0.85)                # the buckle
+    front_u = HK3_ROCKET_U + HK3_BODY if kind == "rails" else L
+    return {"at": at, "U": U, "V": V, "W": W, "hw": hw, "hh": hh,
+            "front": [at(front_u + HK3_BAND + HK3_WAR * 0.5, v, w) for v, w in slots], "rear": at(-1.0)}
+
+
+# Carried low at the right hip, Blood's way, the bore running in to the left
+# and the top rolled towards the eye so the top row of rockets shows. B is
+# the salvo with Blood's exaggerated kick (the muzzle thrown up, the launcher
+# pushed back); C and D are PROPOSALS for a fuller animation (the wind-up
+# before the launch, and the way back down from the kick).
+HK_POSES = (
+    ArmsPose("A", "ready, six loaded", (37.0, 11.5, 33.0), (-1.0, -0.02, 0.8), (0.25, -1.0, -0.45)),
+    ArmsPose("B", "salvo: the kick, empty", (39.5, 11.0, 30.0), (-1.0, -0.33, 0.8), (0.32, -1.0, -0.4),
+             state="empty"),
+    ArmsPose("C", "wind-up, loaded", (41.0, 12.2, 32.5), (-1.0, -0.12, 0.8), (0.27, -1.0, -0.45),
+             wired=False),
+    ArmsPose("D", "recovery, empty", (37.5, 11.8, 33.0), (-1.0, -0.11, 0.8), (0.28, -1.0, -0.45),
+             state="empty", wired=False),
+)
+HK3_RIGHT_ELBOW = (24.0, 44.0, 6.0)
+HK3_LEFT_ELBOW = (-16.0, 44.0, 24.0)
+
+
+def render_katyusha_frame(style: HandStyle, pose: ArmsPose, variant: str = RECOMMENDED_HK3,
+                          hands: bool = True) -> tuple[Frame, dict]:
+    """A held frame and its anchors, screen (x, y, px per cm): the six
+    warheads ("front", where the flash shows the motors leaving), the rear
+    end ("rear", the backblast) and where each hand closes ("grips": the
+    pistol grip and the forward handle). hands=False draws the launcher
+    alone, for the hands being redrawn after Blood (D49)."""
+    rig = Rig()
+    got = draw_katyusha3(rig, pose.origin, pose.bore, pose.up, HK3_VARIANT[variant], loaded=pose.state != "empty")
+    at, U, V, hh = got["at"], got["U"], got["V"], got["hh"]
+    right_at, left_at = at(HK3_GRIP_U - 0.8, -hh - 6.2), at(HK3_HANDLE_U + 0.4, -hh - 4.8)
+    if hands:
+        draw_grip(rig, style, right_at, unit(V + U * 0.16), HK3_RIGHT_ELBOW, 1.6, trigger=True)
+        draw_grip(rig, style, left_at, unit(V - U * 0.09), HK3_LEFT_ELBOW, 1.35, side="left")
+    return finish(rig), {"front": [rig.project(p) for p in got["front"]], "rear": rig.project(got["rear"]),
+                         "grips": {"right": rig.project(right_at), "left": rig.project(left_at)}}
+
+
+HK_FLASH_ON = {"A": "B", "B": "B"}
+HK3_FLASH_MOTOR = 2.3           # a motor's burst, in rocket radii: six stars, not one ball
+HK3_FLASH_BLAST = 5.0           # the backblast at the rear end, cm
+HK3_FLASH_SMOKE = (1.2, 1.8)    # smoke puff size in rocket radii, frames A and B
+
+
+def render_katyusha_flash(which: str, anchors: dict) -> Frame:
+    """SDHF A: the six motors burning just off the rails' fronts, and the
+    backblast out of the rear end, low on the right (Blood's grammar: the
+    shot is loud on screen); B: their smoke, an ember in each."""
+    rig = Rig()
+    rx, ry, rs = anchors["rear"]
+    if which == "A":
+        smoke_puffs(rig, rx, ry, HK3_FLASH_BLAST * rs * 0.8, 4, 90, 0.5)
+        rig.burst(rx, ry, HK3_FLASH_BLAST * rs, 12.0, "flame_red", 9, 0.5)
+        muzzle_burst(rig, rx, ry, HK3_FLASH_BLAST * rs * 0.7, 3.0)
+    else:
+        smoke_puffs(rig, rx, ry - HK3_FLASH_BLAST * rs * 0.4, HK3_FLASH_BLAST * rs, 5, 91, 0.35)
+    for i, (x, y, s) in enumerate(anchors["front"]):
+        r = HK3_R * s
+        if which == "A":
+            smoke_puffs(rig, x, y, r * HK3_FLASH_SMOKE[0], 2, 92 + i, 0.5)
+            muzzle_burst(rig, x, y, r * HK3_FLASH_MOTOR, 7.0 * i)
+        else:
+            smoke_puffs(rig, x, y - r * 0.6, r * HK3_FLASH_SMOKE[1], 3, 98 + i, 0.4)
+            rig.burst(x, y, r * 0.6, 9.0 * i, "ember", 6, 0.5)
+    return finish(rig)
+
+
+HK3_PICKUP_PX_PER_CM = 1.2      # 52 cm of launcher -> ~64 px (Freedoom's BFUGA0 is about 62 wide)
+HK3_PICKUP_TURN = (0.93, 0.36)  # the bore on the floor: (right, towards the eye) parts
+HK3_PICKUP_ROLL = -40.0         # degrees: dropped onto its right side, the pistol grip turned to the eye
+HK3_PICKUP_TILT = 8.0           # degrees, nose down: it rests on the grip and the warheads
+
+
+def render_katyusha_pickup(variant: str = RECOMMENDED_HK3) -> Frame:
+    """SDHP: the launcher where it was dropped, loaded, the warheads to the
+    right and turned a little towards the eye, rolled HK3_PICKUP_ROLL onto
+    its right side and tilted onto its nose. The forward handle is folded,
+    so it rests on ONE grip and the warheads, never on two legs (pass 1
+    read as a bench); the pistol grip and its guard are what say WEAPON at
+    1x rather than a crate of rockets (Doom's box of rockets is exactly
+    that shape)."""
+    rig = gun_pickup_rig(HK3_PICKUP_PX_PER_CM, PICKUP_W, 56)
+    right, away, up = floor_basis()
+    U = unit(right * HK3_PICKUP_TURN[0] - away * HK3_PICKUP_TURN[1])
+    t = np.deg2rad(HK3_PICKUP_ROLL)
+    side = unit(np.cross(U, up))                 # the launcher's left at rest
+    roll_up = unit(up * np.cos(t) + side * np.sin(t))
+    k = np.deg2rad(HK3_PICKUP_TILT)
+    U, roll_up = unit(U * np.cos(k) - up * np.sin(k)), perp(roll_up, unit(U * np.cos(k) - up * np.sin(k)))
+    v = HK3_VARIANT[variant]
+    draw_katyusha3(rig, np.array([0.0, 0.0, PICKUP_DIST]) - U * 26.0, U, roll_up, v, handle=False, sling_to=None)
+    return finish(rig, hud=False)
+
+
+
+# ----------------------------------------- hand Katyusha: the in-game check
+# The pass-3 sheet judges the frames on the MAP01 view the engine itself
+# drew (QA's draft-overlay captures of 2026-10-13 23:10, GZDoom g4.14.2):
+# several screenshots from one standing point, each with a different weapon
+# up, so per pixel the colour most of them agree on is the room without a
+# weapon. Comparison only: nothing of it enters a sprite.
+HK3_ENGINE_SHOTS = (
+    ("docs/qa/evidence/2026-10-13_2310_F4_draft-overlay-roks-katyusha.png", 2, (0, 2)),
+    ("docs/qa/evidence/2026-10-13_2310_F4_draft-overlay-in-map01.png", 2, (0, 1, 2, 3, 4, 5)),
+)                               # (capture, tiles per row, tiles taken: one per weapon, all the same view)
+HK3_ENGINE_TILE = (480, 300)    # px of one tile: the 320x200 weapon space at 1.5x
+HK3_ENGINE_AGREE = 6            # RGB distance under which two tiles agree on a pixel
+HK3_ENGINE_PASS2_TILE = (0, 2)  # (capture, tile) of pass 2's SDHKA0 as GZDoom drew it
+HK3_ENGINE_BAR_TOP = 186        # y in the 320x200 space where GZDoom's status bar starts at this size
+
+
+def hk3_engine_tiles(shot: int) -> list | None:
+    rel, cols, keep = HK3_ENGINE_SHOTS[shot]
+    path = PROJECT_ROOT / rel
+    if not path.is_file():
+        return None
+    with Image.open(path) as im:
+        a = np.asarray(im.convert("RGB"))
+    tw, th = HK3_ENGINE_TILE
+    return [a[(i // cols) * th:(i // cols + 1) * th, (i % cols) * tw:(i % cols + 1) * tw] for i in keep]
+
+
+def hk3_engine_backdrop() -> np.ndarray | None:
+    """MAP01 without a weapon, 320x200, from the engine captures (None if
+    they are missing): per pixel, the tile most other tiles agree with."""
+    tiles = []
+    for shot in range(len(HK3_ENGINE_SHOTS)):
+        got = hk3_engine_tiles(shot)
+        if got is None:
+            return None
+        tiles += got
+    st = np.stack(tiles).astype(np.int16)
+    support = np.zeros(st.shape[:3], np.int16)
+    for i in range(len(tiles)):
+        for j in range(len(tiles)):
+            support[i] += (np.abs(st[i] - st[j]).max(-1) <= HK3_ENGINE_AGREE)
+    pick = support.argmax(0)
+    bg = np.take_along_axis(st, pick[None, ..., None].repeat(3, -1), 0)[0].astype(np.uint8)
+    return np.asarray(Image.fromarray(bg).resize((SCREEN_W, SCREEN_H), Image.Resampling.LANCZOS))
+
+
+def hk3_engine_view(frames, bg: np.ndarray | None) -> np.ndarray:
+    """Frames over the MAP01 engine view, under GZDoom's own status bar."""
+    if bg is None:
+        return on_screen(frames)
+    scr = on_screen(frames, backdrop=bg, statusbar_line=False)
+    scr[HK3_ENGINE_BAR_TOP:] = bg[HK3_ENGINE_BAR_TOP:]
+    return scr
+
+
+def hk3_engine_pass2() -> np.ndarray | None:
+    """Pass 2's SDHKA0 exactly as GZDoom showed it (the 2310 capture)."""
+    shot, tile = HK3_ENGINE_PASS2_TILE
+    got = hk3_engine_tiles(shot)
+    if got is None:
+        return None
+    return np.asarray(Image.fromarray(got[HK3_ENGINE_SHOTS[shot][2].index(tile)]).resize(
+        (SCREEN_W, SCREEN_H), Image.Resampling.LANCZOS))
 
 
 # ------------------------------------------------------------------ flashes
@@ -2193,13 +2618,13 @@ def render_roks3_flash(which: str, nozzle_cam, U_cam) -> Frame:
     return finish(rig)
 
 
-HK_FLASH_ON = {"A": "B", "B": "B"}
+HKB_FLASH_ON = {"A": "B", "B": "B"}
 HK_FLASH_BURST = 1.25           # a motor's burst, in bore radii: six stars, not one ball
 HK_FLASH_SMOKE = (1.0, 1.4)     # smoke puff size in bore radii, frames A and B
 
 
-def render_katyusha_flash(which: str, rear_xy) -> Frame:
-    """SDHF A: the six motors lighting in the six tube mouths (the backblast
+def render_katyusha_box_flash(which: str, rear_xy) -> Frame:
+    """Pass 2's SDHF A: the six motors lighting in the six tube mouths (the backblast
     comes out of the rear, towards the eye); B: their smoke, a red ember
     still in each mouth."""
     rig = Rig()
@@ -2281,7 +2706,7 @@ RECOMMENDED_HK_PICKUP = "D"
 HK_DROP_TILT = 12.0             # degrees, nose down: the box rests on its grip and its front edge
 
 
-def render_katyusha_pickup(variant: str = RECOMMENDED_HK, option: str = RECOMMENDED_HK_PICKUP) -> Frame:
+def render_katyusha_box_pickup(variant: str = RECOMMENDED_HK, option: str = RECOMMENDED_HK_PICKUP) -> Frame:
     """Pass 2: the launch box on the floor, its front end turned towards the
     eye so the six red noses show in their mouths. D, dropped: the pistol
     grip down and the box tilted onto its nose, the way a launcher lies
@@ -2468,47 +2893,53 @@ WEAPON_TEXT = {
         ],
     },
     "katyusha": {
-        "recommend": "VARIANT A (THE CLOSED BOX) AS DRAWN, PICKUP D; SDHK C IF THE MOD-ENGINEER TAKES THE STATE "
-                     "EDIT.",
-        "intro": "SECOND PASS. Pass 1 (six rockets on open rails, sheet 2026-10-13_2219) read along the rails as a "
-                 "bundle of grey sticks, and its pickup as a bench. Pass 2 closes the rockets in a LAUNCH BOX, after "
-                 "the portable salvo launchers: six tubes in two rows of three inside an olive case, carried on the "
-                 "right shoulder, a bakelite pistol grip under it and a handle on its left side. Seen from behind, "
-                 "the face of the weapon is the box's rear end and its six tube mouths; each loaded mouth shows a "
-                 "rocket's tail (a red base ring, a dark nozzle, the X of four fins), each empty one a dark throat "
-                 "inside a lit rim. Three variants of that idea: A the closed box with the mouths flush, B six bare "
-                 "tubes held by three clamp bands, C the box with the tube ends standing proud of it.",
+        "recommend": "VARIANT A (OPEN RAILS) AS DRAWN, ITS PICKUP; C AND D IF THE MOD-ENGINEER TAKES THE FIRE EDIT. "
+                     "THE HANDS FOLLOW D49.",
+        "intro": "THIRD PASS (D48: the CEO found pass 2 \"algo pobre y deforme\"; in GZDoom the launch box was a "
+                 "flat olive board with six circles and a hand beside it). Pass 3 turns the weapon SIDE-ON and "
+                 "carries it as Blood carries its heavy weapons (D49): low at the right hip, both hands on it, the "
+                 "bore running in to the left and the top rolled towards the eye, so the eye gets its length, its "
+                 "top and its left side instead of a rear face. The salvo is six rockets in two rows of three, "
+                 "the BM-13's own arrangement (one rocket riding over each rail, one slung under it), so "
+                 "katyusha.zs's six projectiles stay true. Material: steel rockets with a hard highlight, a red "
+                 "band and an olive ogive warhead each, riveted olive frame rings, an ignition box with the red "
+                 "star and its firing cable, a birch forward handle, the bakelite pistol grip and a leather sling "
+                 "running back to the shoulder. Three variants of the carrier: A open rails (the rockets seen "
+                 "whole), B six bare tubes in riveted bands, C pass 2's launch box turned side-on.",
         "verdict": [
-            "WHY A. At 1x the three variants differ less than the photographs of real launchers would suggest: "
-            "all three show a clean two-by-three grid, which is what pass 1 lacked. A wins on the outline: one "
-            "rectangle, one grid, nothing else, so the six red rings are the only detail the eye finds. B is "
-            "the most literal 'six tubes', but its clamp bands make the outline lumpy and read as straps; C "
-            "gives each mouth a rim of depth but doubles the edges round the grid. The six red rings make "
-            "LOADED readable from across the screen, and the empty tubes of frame SDHK B (dark throats) say the "
-            "salvo has gone; the flash is six stars in the six mouths, so the salvo counts as six rockets.",
-            "THE PICKUP. D lies where it was dropped: the pistol grip down, the box tilted onto its nose, the "
-            "six red noses out of the front mouths and a red star on the side. One grip under it, never two: "
-            "pass 1 stood on its grip and its handle and read as a bench, so the handle folds on every pickup. "
-            "F, flat with the grip folded, is the tidier drawing but reads as a closed crate with rockets in "
-            "it, which is exactly the shape of Doom's box-of-rockets ammo: not recommended.",
-            "SDHK C, PROPOSED, NOT WIRED (SDHKC0_proposed): the box raised to the firing angle and still loaded. "
-            "MOD-SPEC 6.3 already reserves SDHK A-C, so no name changes; using it is a state edit by the "
-            "mod-engineer, same 60 tics: Fire = SDHK A 10 (charge sound), SDHK C 10, SDHK C 10 A_GunFlash, "
-            "SDHK B 10 A_SD_FireKatyusha, SDHK B 20 A_ReFire. It gives the wind-up its 'rails coming up' and "
-            "also fixes pass 1's weakness: today B, already empty, shows for the 10 tics BEFORE the rockets "
-            "leave; with C the tubes stay loaded under the flash until the launch tic. The flash's position is "
-            "the same over C as over B (one pose, loaded or not).",
-            "WHERE IT SITS. Off the eye's axis, low on the right: a box running along the view converges on "
-            "the crosshair, and a first try centred under it hid 66-90 percent of the 16 px round the "
-            "crosshair. Moved right, no held frame covers more than 12 percent of it (pass 1: 34-53), and the box "
-            "shows its left side with the red star, which is where its depth comes from.",
-            "WEAKNESSES. The raise from A to B and C is small (under 1 cm and 3 degrees): it reads as a lift, "
-            "not a swing. The frame sight on the lid is two or three pixels. The empty mouths are the largest "
-            "dark areas in the arsenal (bores about 18 px across); the lit rim and the inner wall keep them from being "
-            "flat black. On SDSTEL1, the green steel of slot 7's sheet, the olive pickup has little contrast; "
-            "the 1x strip shows it on concrete too. Even D may read as ammunition to a player who has not seen "
-            "it held; that is for the engine pass to tell. Positions NOT VERIFIED in GZDoom (engine pass owed, "
-            "D26).",
+            "WHY A. It is the only one of the three in which the rockets are seen: fins, steel body, red band, "
+            "warhead, six times, which is what 'Katyusha' means and what makes the salvo count as rockets "
+            "rather than as holes. Side-on it has volume (top, side and front read as three planes), and the "
+            "detail the CEO asked for sits where the eye is: rivets on the rings, the starred ignition box, the "
+            "cable, the sling. B and C are seen from behind their front face, so only the tips of the "
+            "warheads stick out past it. B reads at 1x as a heavier, industrial pod, but only those tips say "
+            "rockets. "
+            "C is the cleanest outline and the largest plain olive area of the three: the risk of pass 2's "
+            "'pobre' again, so it is offered for comparison, not recommended.",
+            "BLOOD (D49). Held low, both hands on it, and the shot is loud: SDHK B throws the muzzle up about "
+            "13 degrees and the launcher back towards the eye, with six motor bursts at the warheads and "
+            "the backblast out of the rear end. Two PROPOSED frames make the Fire a six-frame animation: "
+            "SDHK C (raised to fire, still loaded) and SDHK D (coming down, empty). Wiring them is the "
+            "mod-engineer's state edit and needs MOD-SPEC 6.3 to reserve SDHK D (it reserves A-C today); same "
+            "60 tics as now: SDHK A 20 (charge sound) · SDHK C 10 · SDHK B 0 A_GunFlash · SDHK B 10 "
+            "A_SD_FireKatyusha · SDHK B 10 · SDHK D 10 A_ReFire. The rockets then leave on the tic the flash "
+            "shows, which also cures pass 1's weakness (today B, empty, shows for 10 tics before the launch).",
+            "THE PICKUP. Dropped where it fell: on its right side, nose down, resting on the warheads and ONE "
+            "pistol grip (the forward handle folds: pass 1 stood on two and read as a bench). The grip and its "
+            "guard are what say WEAPON at 1x, the red bands and warheads say rockets; 65 px wide, Freedoom's "
+            "BFUGA0 is about 62.",
+            "THE IN-GAME CHECK. Section 1 puts every pass on MAP01 as GZDoom drew it, at the size the game "
+            "shows it; the first two views are pass 2's SDHKA0 as the engine showed it and the same sprite "
+            "composited here, so the composite can be trusted to place the frames where the engine does "
+            "(NOT VERIFIED for pass 3 until its own engine pass, owed, D26).",
+            "WEAKNESSES. The hands are the 3D placeholder of hand E: D49 is redrawing them after Blood, so the "
+            "launcher is also delivered without hands (launcher_only/, with the screen position of each grip "
+            "in metrics.json). At rest the bottom row of rockets hides under the top one: the six read by "
+            "their warheads, not by their bodies. The warheads of frame A cover 9 percent of the 16 px round "
+            "the crosshair, all in its lower half (the nearest pixel is 11 px under it; pass 2 covered up to 12 "
+            "percent); the proposed C, raised to fire, covers 21 percent and comes to 7 px of it. In B the rear end and most "
+            "of the backblast are off the 4:3 screen (they show on widescreen). The MAP01 backdrop keeps a few "
+            "ghost pixels of the captured weapons low on the right, under where the launcher sits.",
         ],
     },
 }
@@ -2605,113 +3036,135 @@ def build_weapon(key: str, stamp: str, hand: str = RECOMMENDED_HAND, out_dir: Pa
     return path, metrics
 
 
-HK_PICKUP_CELL_K = 3            # zoom of a pickup cell on the pass-2 sheet
+HK_PICKUP_CELL_K = 3            # zoom of a pickup cell on the Katyusha sheet
+HK3_STRIP = ("A", "C", "B", "B", "D", "A")      # the proposed Fire, frame by frame
+HK3_STRIP_FLASH = (None, None, "A", "B", None, None)
 
 
 def build_katyusha(stamp: str, hand: str = RECOMMENDED_HAND, out_dir: Path = OUT_DIR,
                    preview_dir: Path = PREVIEW_DIR) -> tuple[Path, dict]:
-    """The hand Katyusha's second pass: the launch box in three variants
-    beside pass 1 and Freedoom's placeholder, then every frame of the
-    recommended variant, the proposed SDHK C, and the pickups. The lumps
-    in work/art/weapons/katyusha/ are the recommended variant and pickup;
-    the others go to its variants/ folder."""
+    """The hand Katyusha's third pass: the three side-on variants judged at
+    1x on the MAP01 view GZDoom drew, beside passes 1 and 2 (pass 2 also as
+    the engine showed it); every frame of the recommended variant, the
+    proposed animation, the pickups, and the launcher without hands. The
+    lumps in work/art/weapons/katyusha/ are the recommended variant;
+    variants/ holds B and C, launcher_only/ the frames without hands."""
     spec, style = WEAPONS["katyusha"], HAND[hand]
     wdir = out_dir / "katyusha"
-    vdir = wdir / "variants"
-    held = {v.key: {p.frame: render_katyusha_frame(style, p, v.key) for p in HK_POSES} for v in HK_VARIANTS}
-    rec = held[RECOMMENDED_HK]
+    vdir, ldir = wdir / "variants", wdir / "launcher_only"
+    held = {v.key: {p.frame: render_katyusha_frame(style, p, v.key) for p in HK_POSES} for v in HK3_VARIANTS}
+    rec = held[RECOMMENDED_HK3]
     flashes = {k: render_katyusha_flash(k, rec[on][1]) for k, on in HK_FLASH_ON.items()}
-    pickups = {(v.key, o.key): render_katyusha_pickup(v.key, o.key) for v in HK_VARIANTS for o in HK_PICKUP_OPTIONS}
+    pickups = {v.key: render_katyusha_pickup(v.key) for v in HK3_VARIANTS}
+    bare = {p.frame: render_katyusha_frame(style, p, RECOMMENDED_HK3, hands=False) for p in HK_POSES}
     metrics = {}
 
     def keep(f: Frame, path: Path, info: dict) -> None:
         save_sprite(f, path)
-        metrics[path.stem if path.parent == wdir else f"variants/{path.stem}"] = {
-            **info, "size": list(f.rgba.shape[1::-1]), "offsets": [int(v) for v in f.offsets()]}
+        key = path.stem if path.parent == wdir else f"{path.parent.name}/{path.stem}"
+        metrics[key] = {**info, "size": list(f.rgba.shape[1::-1]), "offsets": [int(v) for v in f.offsets()]}
 
+    rnd = lambda xy: [round(float(c), 1) for c in xy[:2]]
     for pose in HK_POSES:
         name = sprite_name(spec.held, pose.frame, pose.wired)
         keep(rec[pose.frame][0], wdir / f"{name}.png", {"pose": pose.name, "wired": pose.wired,
-                                                         "variant": RECOMMENDED_HK})
-        for v in HK_VARIANTS:
-            if v.key != RECOMMENDED_HK:
+                                                         "variant": RECOMMENDED_HK3})
+        for v in HK3_VARIANTS:
+            if v.key != RECOMMENDED_HK3:
                 keep(held[v.key][pose.frame][0], vdir / f"{name}_variant{v.key}.png",
                      {"pose": pose.name, "wired": False, "variant": v.key})
+        f, anc = bare[pose.frame]
+        keep(f, ldir / f"{name}_nohands.png", {"pose": pose.name, "variant": RECOMMENDED_HK3, "hands": False,
+                                               "grip_right_xy": rnd(anc["grips"]["right"]),
+                                               "grip_left_xy": rnd(anc["grips"]["left"])})
     for letter, f in flashes.items():
         keep(f, wdir / f"{sprite_name(spec.flash, letter)}.png", {"over": f"{spec.held}{HK_FLASH_ON[letter]}0"})
     pname = f"{spec.pickup}A0"
-    for (vk, ok), f in pickups.items():
-        if (vk, ok) == (RECOMMENDED_HK, RECOMMENDED_HK_PICKUP):
-            keep(f, wdir / f"{pname}.png", {"pickup": True, "variant": vk, "option": ok})
-        else:
-            keep(f, vdir / f"{pname}_variant{vk}_option{ok}.png", {"pickup": True, "variant": vk, "option": ok})
+    for vk, f in pickups.items():
+        path = wdir / f"{pname}.png" if vk == RECOMMENDED_HK3 else vdir / f"{pname}_variant{vk}.png"
+        keep(f, path, {"pickup": True, "variant": vk})
     zs_held, zs_flash = zs_letters(spec)
     metrics["_state_machine"] = {"file": f"src/zscript/weapons/{spec.zs}", "held_placeholder": spec.ph_held,
                                  "held_letters": "".join(sorted(zs_held)), "flash_placeholder": spec.ph_flash,
-                                 "flash_letters": "".join(sorted(zs_flash)), "hand": hand,
-                                 "variant": RECOMMENDED_HK, "pickup_option": RECOMMENDED_HK_PICKUP}
+                                 "flash_letters": "".join(sorted(zs_flash)), "hand": hand, "pass": 3,
+                                 "variant": RECOMMENDED_HK3}
     (wdir / "metrics.json").write_text(json.dumps(metrics, indent=2) + "\n", encoding="utf-8")
 
+    bg = hk3_engine_backdrop()
+    view = lambda fs: hk3_engine_view(fs, bg)
     text = WEAPON_TEXT["katyusha"]
-    S = Sheet(2000, f"SOVIET DOOM  ·  F4  ·  {spec.title}, PASS 2  ·  THE LAUNCH BOX", stamp)
+    S = Sheet(2000, f"SOVIET DOOM  ·  F4  ·  {spec.title}, PASS 3  ·  SIDE-ON, CARRIED THE BLOOD WAY", stamp)
     S.para(text["intro"])
-    S.para(f"HAND STYLE {hand}. NAMES, MOD-SPEC 6.3: {spec.held} {spec.reserved} HELD, {spec.flash} A-B FLASH, "
-           f"{spec.pickup} A PICKUP. STATE MACHINE ({spec.zs}, READ, NOT EDITED): {spec.ph_held} "
-           f"{''.join(sorted(zs_held))} -> {spec.held}, {spec.ph_flash} {''.join(sorted(zs_flash))} -> "
-           f"{spec.flash}, {spec.ph_pickup} A -> {spec.pickup}. Built by tools/art/gen_weapon.py katyusha, "
-           "palette v1 only, no system fonts. Draft, nothing in assets/.", S.dim)
+    S.para(f"HAND STYLE {hand} (A PLACEHOLDER: THE HANDS ARE BEING REDRAWN AFTER BLOOD, D49). NAMES, MOD-SPEC 6.3: "
+           f"{spec.held} {spec.reserved} HELD, {spec.flash} A-B FLASH, {spec.pickup} A PICKUP. STATE MACHINE "
+           f"({spec.zs}, READ, NOT EDITED): {spec.ph_held} {''.join(sorted(zs_held))} -> {spec.held}, "
+           f"{spec.ph_flash} {''.join(sorted(zs_flash))} -> {spec.flash}, {spec.ph_pickup} A -> {spec.pickup}. "
+           "Built by tools/art/gen_weapon.py katyusha, palette v1 only, no system fonts. Draft, nothing in "
+           "assets/. The room behind every view is MAP01 as GZDoom drew it (the 2310 draft-overlay captures, "
+           "the weapon removed by taking, per pixel, what the captures agree on), under GZDoom's own status bar.",
+           S.dim)
     S.y += 6
 
-    def row(cells) -> None:
+    def row(cells, k: int = 2, gap: int = 16) -> None:
         x, h_row = S.pad, 0
         for tag, colour, scr in cells:
             S.label((x, S.y), tag, colour)
-            w2, h2 = S.paste(scr, (x, S.y + S.T.line_h() + 4), 2)
-            x += w2 + 16
+            w2, h2 = S.paste(scr, (x, S.y + S.T.line_h() + 4), k)
+            x += w2 + gap
             h_row = max(h_row, h2 + S.T.line_h() + 4)
         S.y += h_row + 14
 
-    S.label((S.pad, S.y), "1. THE THREE VARIANTS, FRAME A (READY, SIX LOADED), 2X", S.gold)
-    S.y += S.T.line_h() + 6
-    row([(f"{v.key} · {v.title.upper()}" + ("  <<<" if v.key == RECOMMENDED_HK else ""),
-          S.red if v.key == RECOMMENDED_HK else S.gold, on_screen([held[v.key]["A"][0]])) for v in HK_VARIANTS])
-    old = render_katyusha_rails_frame(style, HK_RAILS_POSES[0])[0]
-    cmp = [("PASS 1 · OPEN RAILS (2219)", S.dim, on_screen([old]))]
-    fd = [freedoom_sprite(f"{spec.ph_held}A0"), freedoom_sprite(f"{spec.ph_flash}A0")]
-    if fd[0] is not None:
-        cmp.append((f"TODAY · FREEDOOM {spec.ph_held}A0", S.dim, on_screen([fd[0]])))
-    cmp.append(("A · SALVO, SDHF A OVER B", S.gold, on_screen([rec["B"][0], flashes["A"]])))
-    row(cmp)
-    S.label((S.pad, S.y), "THE SAME AT 1X: A, B, C, PASS 1, FREEDOOM", S.gold)
-    S.y += S.T.line_h() + 6
-    ones = [held[v.key]["A"][0] for v in HK_VARIANTS] + [old] + ([fd[0]] if fd[0] is not None else [])
-    for j, f in enumerate(ones):
-        S.paste(on_screen([f]), (S.pad + j * (SCREEN_W + ONE_X_GAP), S.y), 1)
-    S.y += SCREEN_H + 18
+    def heading(t: str) -> None:
+        S.label((S.pad, S.y), t, S.gold)
+        S.y += S.T.line_h() + 6
 
-    S.label((S.pad, S.y), f"2. VARIANT {RECOMMENDED_HK}, EVERY FRAME, 2X (RED: PROPOSED, NOT WIRED)", S.gold)
-    S.y += S.T.line_h() + 6
+    old1 = render_katyusha_rails_frame(style, HK_RAILS_POSES[0])[0]
+    old2 = render_katyusha_box_frame(style, HKB_POSES[0])[0]
+    fd = freedoom_sprite(f"{spec.ph_held}A0")
+    heading("1. IN THE GAME AT 1X: PASS 2 IN GZDOOM AND COMPOSITED HERE, PASS 1, TODAY; PASS 3 A-C")
+    first = []
+    eng = hk3_engine_pass2()
+    if eng is not None:
+        first.append(("PASS 2 IN GZDOOM", S.dim, eng))
+    first += [("PASS 2 COMPOSITED", S.dim, view([old2])), ("PASS 1", S.dim, view([old1]))]
+    if fd is not None:
+        first.append((f"TODAY {spec.ph_held}A0", S.dim, view([fd])))
+    row(first, 1, 10)
+    row([(f"PASS 3 {v.key}" + ("  <<<" if v.key == RECOMMENDED_HK3 else ""),
+          S.red if v.key == RECOMMENDED_HK3 else S.gold, view([held[v.key]["A"][0]])) for v in HK3_VARIANTS], 1, 10)
+    row([(f"PASS 3 {v.key} SALVO", S.gold,
+          view([held[v.key]["B"][0], render_katyusha_flash("A", held[v.key]["B"][1])])) for v in HK3_VARIANTS], 1, 10)
+    heading("2. PASS 2 AGAINST PASS 3 (RECOMMENDED), 2X")
+    row([("PASS 2 · THE LAUNCH BOX", S.dim, view([old2])),
+         (f"PASS 3 {RECOMMENDED_HK3} · READY", S.red, view([rec["A"][0]])),
+         (f"PASS 3 {RECOMMENDED_HK3} · SALVO", S.gold, view([rec["B"][0], flashes["A"]]))])
+    heading("3. THE THREE VARIANTS, FRAME A, 2X")
+    row([(f"{v.key} · {v.title.upper()}" + ("  <<<" if v.key == RECOMMENDED_HK3 else ""),
+          S.red if v.key == RECOMMENDED_HK3 else S.gold, view([held[v.key]["A"][0]])) for v in HK3_VARIANTS])
+    heading(f"4. VARIANT {RECOMMENDED_HK3}, EVERY FRAME, 2X (RED: PROPOSED, NOT WIRED)")
     tag = lambda p: f"{sprite_name(spec.held, p.frame, p.wired)}  ·  {p.name.upper()}"
     pose = {p.frame: p for p in HK_POSES}
-    row([(tag(pose[k]), S.gold if pose[k].wired else S.red, on_screen([rec[k][0]])) for k in "ACB"])
-    row([(f"{spec.held}B0 + {spec.flash}A0", S.gold, on_screen([rec["B"][0], flashes["A"]])),
-         (f"{spec.held}B0 + {spec.flash}B0", S.gold, on_screen([rec["B"][0], flashes["B"]])),
-         (f"{spec.held}C0 + {spec.flash}A0 (PROPOSED)", S.red, on_screen([rec["C"][0], flashes["A"]]))])
+    row([(tag(pose[k]), S.gold if pose[k].wired else S.red, view([rec[k][0]])) for k in "ACB"])
+    row([(tag(pose["D"]), S.red, view([rec["D"][0]])),
+         (f"{spec.held}B0 + {spec.flash}A0", S.gold, view([rec["B"][0], flashes["A"]])),
+         (f"{spec.held}B0 + {spec.flash}B0", S.gold, view([rec["B"][0], flashes["B"]]))])
     items = [f"{k} {m['size'][0]}X{m['size'][1]} GRAB {m['offsets'][0]},{m['offsets'][1]}"
-             for k, m in metrics.items() if not k.startswith(("_", "variants/"))]
+             for k, m in metrics.items() if not k.startswith(("_", "variants/", "launcher_only/"))]
     for i in range(0, len(items), 3):
         S.label((S.pad, S.y), "  ·  ".join(items[i:i + 3]))
         S.y += S.T.line_h()
-    S.para("Each view is the whole 320x200 weapon space at 2x with the frame at rest (no bob); the dotted line "
-           "is the top of the classic status bar.", S.dim)
     S.y += 8
-
-    S.label((S.pad, S.y), f"3. THE PICKUP ON SDFLR2 BEFORE {spec.pickup_wall}, LIGHT {spec.pickup_light}, "
-            f"{HK_PICKUP_CELL_K}X. D: DROPPED, GRIP DOWN, NOSE ON THE FLOOR. F: FLAT, GRIP FOLDED.", S.gold)
-    S.y += S.T.line_h() + 6
-    cells = [(f"{vk}-{ok}" + ("  <<<" if (vk, ok) == (RECOMMENDED_HK, RECOMMENDED_HK_PICKUP) else ""),
-              S.red if (vk, ok) == (RECOMMENDED_HK, RECOMMENDED_HK_PICKUP) else S.gold, f)
-             for (vk, ok), f in pickups.items()]
+    heading("5. THE PROPOSED FIRE, FRAME BY FRAME AT 1X: A (CHARGE) · C · B + FLASH A · B + FLASH B · D · A")
+    strip = []
+    for k, fl in zip(HK3_STRIP, HK3_STRIP_FLASH):
+        strip.append((f"{spec.held}{k}" + (f" + {spec.flash}{fl}" if fl else ""),
+                      S.gold if pose[k].wired else S.red, view([rec[k][0]] + ([flashes[fl]] if fl else []))))
+    row(strip, 1, 6)
+    heading(f"6. THE PICKUP ON SDFLR2 BEFORE {spec.pickup_wall}, LIGHT {spec.pickup_light}, {HK_PICKUP_CELL_K}X, "
+            "THEN 1X BEFORE IT AND BEFORE SDCONC1 (LIGHT 160)")
+    cells = [(f"{vk}" + ("  <<<" if vk == RECOMMENDED_HK3 else ""),
+              S.red if vk == RECOMMENDED_HK3 else S.gold, f) for vk, f in pickups.items()]
+    cells.append(("PASS 2 (D)", S.dim, render_katyusha_box_pickup()))
     cells.append(("PASS 1 (BENCH)", S.dim, render_katyusha_rails_pickup()))
     ph = freedoom_sprite(f"{spec.ph_pickup}A0")
     if ph is not None:
@@ -2728,20 +3181,20 @@ def build_katyusha(stamp: str, hand: str = RECOMMENDED_HAND, out_dir: Path = OUT
             x += cell_w
             h_row = max(h_row, h3 + S.T.line_h() + 4)
         S.y += h_row + 14
-    S.label((S.pad, S.y), f"THE SAME AT 1X, BEFORE {spec.pickup_wall} (LIGHT {spec.pickup_light}) AND BEFORE "
-            "SDCONC1 (LIGHT 160)", S.gold)
-    S.y += S.T.line_h() + 6
     for j, (_, _, f) in enumerate(cells):
         x = S.pad + j * (PICKUP_SCENE_W + ONE_X_GAP)
         S.paste(pickup_scene(f, spec.pickup_light, spec.pickup_wall), (x, S.y), 1)
         S.paste(pickup_scene(f, 160, "SDCONC1"), (x, S.y + PICKUP_WALL_H + PICKUP_FLOOR_H + ONE_X_GAP), 1)
     S.y += 2 * (PICKUP_WALL_H + PICKUP_FLOOR_H) + ONE_X_GAP + 18
-
+    heading(f"7. THE LAUNCHER WITHOUT HANDS, 1X (FOR THE HANDS OF D49: WORK/ART/WEAPONS/KATYUSHA/LAUNCHER_ONLY/, "
+            "GRIP POSITIONS IN METRICS.JSON)")
+    row([(sprite_name(spec.held, k, pose[k].wired), S.gold if pose[k].wired else S.red, view([bare[k][0]]))
+         for k in "ACBD"], 1, 10)
     S.label((S.pad, S.y), f"RECOMMENDATION: {text['recommend']}", S.red)
     S.y += S.T.line_h() + 2
     for v in text["verdict"]:
         S.para(v)
-    path = S.save(preview_dir / f"{stamp}_F4_{spec.slug}-pass2.png")
+    path = S.save(preview_dir / f"{stamp}_F4_{spec.slug}-pass3.png")
     return path, metrics
 
 
