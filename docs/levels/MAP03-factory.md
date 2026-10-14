@@ -7,9 +7,11 @@
 > this document is the metro. Dated evidence keeps its file names (a `map03`
 > there is the metro). Wiring: `docs/engine/MOD-SPEC.md` §4.6.
 
-Design document. Owner: `level-designer`. Status: **v1 BUILT 2026-10-14
-(§15): textured with the Tankograd set, populated, the General in the portal
-hall; not yet walked** (v0, §14, was not walked either). A working brief for the PM; the CEO's verdict comes
+Design document. Owner: `level-designer`. Status: **v1.1 BUILT 2026-10-14
+(§16): v1 (§15, textured with the Tankograd set, populated, the General in
+the portal hall) plus D68's three points: the Hand Katyusha in secret S1,
+the molten channel hurts, the General's death opens his stores; not yet
+walked** (v0, §14, was not walked either). A working brief for the PM; the CEO's verdict comes
 from walking the map, not from reading this (D28). Built MVP first (D60): a
 complete, walkable map from start to exit, gameplay polish later. Source:
 `src/maps/MAP03/map.py`; tests: `tests/test_map03_factory.py`. Russian mirror: owed
@@ -343,6 +345,10 @@ secret has a way back.
 | S2 | A drain under pit B, into the foundry's floor | one pit has a grate the other lacks | armour, a backpack |
 | S3 | The foundry's flue, above the casting platform | a draught of light in a dark corner (v2) | health, rockets |
 
+**S1 is built in v1.1 (D68, §16.1)**, with its clue made of light rather
+than colour (there is one approved locker lump): the locker that is the
+panel stands 16 back from the row, in shadow. S2 and S3 stay v3's.
+
 ## 9. Enemies and resources by skill (placed in v1, §15.4)
 
 The plan as written for v3; the PM's v1 brief brought it forward, as D58 did
@@ -385,7 +391,8 @@ MAP01 and MAP02. The General is 40 × 100 (BESTIARY §9): the portal hall is
 `+BOSSDEATH` "so the exit can be tied to his death". Proposed, not built:
 the drum's gate opens on SW-B **or** on his death (MAPINFO `SpecialAction`,
 NOT VERIFIED), never only on his death, so a player who runs past him is not
-locked out.
+locked out. **Superseded by D68 (§16.3):** his death opens a reward, his
+stores, by his own thing special; the gate stays SW-B's alone.
 
 **Resources (v3).** Pistol-start finishable (`+map MAP03` gives the TT-33
 only): the IZh in the dock, the PPSh-41 in the offices, the RPG-7 on the
@@ -405,11 +412,15 @@ the skill-4 monsters need), the General included; health scaled 2 > 3 > 4.
 | Keys | things 6 (`YellowCard`), 13 (`RedCard`) | Doom actors, drawn by Freedoom |
 | Coloured light | sector `lightcolor` (0xRRGGBB, UDMF zdoom), yellow `0xFFD860`, red `0xFF6048` | field name from the UDMF zdoom spec, as MAP02 v1 uses it; **NOT VERIFIED** in our engine runs: K4 |
 | Turned flats | `rotationfloor` 90 on the rail strips | as MAP02 (its K8) |
+| Secret (v1.1) | sector `special` 1024 (`SECRET_MASK`, `xlat/defines.i`) on S1's store; panel line flag `secret` | as MAP01 and MAP02 |
+| Damaging floor (v1.1) | sector `damageamount` 10, `damageinterval` 32 (UDMF zdoom) | field names **VERIFIED** in the spec; damage in play NOT VERIFIED: §16.5 V2 |
+| Thing special on death (v1.1) | thing `special` 11, `arg0` 12, `arg1` 16 (UDMF base) on the General | **VERIFIED** in the spec and GZDoom's source; in play NOT VERIFIED: §16.5 V4 |
 
-Tag plan: **1** D1 · **2** D2 · **4** yellow door · **5** red door · **10**
-shutter and, since v1, the hall's two closets (SW-A) · **11** the drum's
-gate (SW-B; the drum needs no closet, its guard is behind the gate). Free: 3,
-6–9, 12 and up.
+Tag plan: **1** D1 · **2** D2 · **4** yellow door · **5** red door · **6**
+S1's locker panel (v1.1) · **10** shutter and, since v1, the hall's two
+closets (SW-A) · **11** the drum's gate (SW-B; the drum needs no closet, its
+guard is behind the gate) · **12** the General's stores, opened by his death
+only (v1.1). Free: 3, 7–9, 13 and up.
 
 ## 11. MAPINFO and LANGUAGE (for `mod-engineer`)
 
@@ -475,6 +486,7 @@ Each version loads in GZDoom and is walkable from start to exit.
 |---|---|---|
 | **v0 — grey box** ✅ **BUILT 2026-10-14** (§14) | the whole plan of §4, every door, both keys, both locks, both switches, the gate, the exit, stairs and drops; the approved sets where they fit (§7.1); the signposting of §5 (lit keys, coloured light, the lane, the plaques); light by zone; **no monsters, no items, no secrets** but the start and the two keys | the CEO walks it, finds both keys unaided and judges the shape (§14.4); `tests/test_map03_factory.py` (`test_map04.py` then) green |
 | **v1 — textured and populated** ✅ **BUILT 2026-10-14** (§15) | the Tankograd set of §7.2 as approved (D66), the red lock's plaques removed, the clerestory, the flags, the banner, the chains; **§9 placed** (brought forward from v3 like MAP02's, the PM's brief), SW-A's closets, the General, the weapons and G3-8's budget | the CEO walks it on skill 3 and finishes the episode (§15.9) |
+| **v1.1 — D68** ✅ **BUILT 2026-10-14** (§16) | S1 with the Hand Katyusha (brought forward from v3), the molten channel's damage, the General's death opening his stores | the CEO walks it (§16.6) |
 | v2 — light and detail | the foundry's glow and molten channel (animated once `ANIMDEFS` lands), the portal's light, flicker in the tank line; the tanks and tractors, the Lenin poster in the director's office, lockers, the buffer stop | a first-time player finds both keys and the exit without being told |
 | v3 — secrets and balance | the secrets of §8 (the Hand Katyusha in S1), the General's death and the gate (open point 4), balance after the playtests (D60) | the episode is played through on skill 3 |
 
@@ -489,18 +501,21 @@ Each version loads in GZDoom and is walkable from start to exit.
    имени 60-летия Октября».
 3. **The two keys as passes**, yellow to the closed shop and red to the
    portal shop (§5), and their look (art-director, as for the blue pass).
-4. **The General's death and the gate** (§9): SW-B only, or SW-B or his
-   death.
+4. ~~**The General's death and the gate** (§9): SW-B only, or SW-B or his
+   death.~~ **Decided (D68): "que abra algo"**: his death opens his stores
+   (§16.3); the gate stays SW-B's alone.
 5. **The ending.** The exit is the portal's breaker; the episode's ending
    text has to be rewritten for it (§11, step 2).
 6. ~~**The portal's look** (§7.2, item 9).~~ Decided (D66): cobalt with
    white filaments, `SDPORT1`-`4`; v1 places frame 1 on the drum's back wall.
-7. **The Hand Katyusha** (new, v1). §8 puts it in S1, a v3 secret; until v3
+7. ~~**The Hand Katyusha** (new, v1). §8 puts it in S1, a v3 secret; until v3
    the episode never hands the player slot 7. Keep it for the secret (Doom's
-   way, the BFG hidden in the last map) or put it on the route now?
-8. **The molten channel** (new, v1). It wears molten metal but does not
+   way, the BFG hidden in the last map) or put it on the route now?~~
+   **Decided (D68): "ok secreto"**; S1 is built in v1.1 (§16.1).
+8. ~~**The molten channel** (new, v1). It wears molten metal but does not
    hurt. A damaging floor (sector special) is a one-line change and a
-   trap-free one (the channel is 16 deep, a step): wanted, and how much?
+   trap-free one (the channel is 16 deep, a step): wanted, and how much?~~
+   **Decided (D68): "que haga daño"**; 10 every 32 tics (§16.2).
 
 ## 14. v0 build record (2026-10-14)
 
@@ -882,4 +897,203 @@ route**: that is the test. What to judge:
   Panzermenschen 2, heavy Panzermenschen 2 and the General.
 - v2: the light pass, the tanks and tractors, the poster; v3: the secrets
   of §8 (S1 with the Hand Katyusha) and balance.
+- Russian mirror: synced in a batch at the phase close (D34).
+
+## 16. v1.1 build record (2026-10-14): D68
+
+The CEO on open points 7, 8 and 4 (D68): the Hand Katyusha stays in a secret
+("ok secreto"); the molten channel hurts ("que haga daño"); the General's
+death opens something ("que abra algo"), a reward the player earns by the
+kill, while the exit still depends on SW-B so nobody is locked out.
+
+Source `src/maps/MAP03/map.py`; tests `tests/test_map03_factory.py`.
+**92 sectors, 395 linedefs, 311 vertices, 137 things** (v1: 85 / 366 / 289 /
+130). Nothing of v1 moved: the keys, the locks, the three switches, the
+exit and every v1 constant are where they were (QA's `tankograd-critical`
+route reads them). Not walked in GZDoom by this role (D26): §16.5 is the PM's.
+
+### 16.1 S1, the Hand Katyusha (open point 7)
+
+§8's S1, where §8 put it: **behind the archive's lockers.** The archive's
+east wall (x 2752, y 1952…2208) is now a row of four `SDLOCK1` lockers, one
+tile each. The third from the south is the panel: it stands **16 back**
+from the other three, in a niche lit **96** against the archive's 128, so
+it reads as the one locker in shadow. §8's clue was "a different colour";
+there is one approved locker lump, so the comparison is made with depth and
+light instead (MAP01's rule: a comparison, never a sign). No new texture.
+
+| Zone | x | y | floor / ceil | light | What |
+|---|---|---|---|---|---|
+| `s1_niche` | 2752…2768 | 2080…2144 | 64 / 192 | 96 | the locker set back |
+| `s1_panel` | 2768…2784 | 2080…2144 | 64 / 64, tag **6** | 96 | the locker itself: `Door_Open (6, 16, 0)`, `playeruse` + `repeatspecial`, both faces, line flag `secret` (one-sided on the automap); opens for good |
+| `s1_passage` | 2784…2848 | 2080…2144 | 64 / 192 | 112 | |
+| `s1_store` | 2848…3040 | 1984…2240 | 64 / 192 | 112 | **sector special 1024**, counted as a secret |
+
+In the store, on every skill: **the Hand Katyusha** (21007, `SD_HandKatyusha`,
+slot 7; its pickup gives 40 fuel, one volley) and a fuel canister (20)
+towards a second. Neither counts in G3-8: as on MAP02, the budget is
+measured on what the route hands out.
+
+**When it can be had.** The archive is behind D2 on the office corridor, so
+S1 is open in the first round, before either key, after the hall's fight.
+A player who finds it carries Doom's BFG through the tank line, the foundry
+and the General; that is the tradition D68 kept (the BFG hidden in the last
+map), and the reason it is hidden. If the playtests find it spoils the
+General, the store can move later on the route (S3, the foundry's flue)
+without touching the rest.
+
+Tested: the Katyusha is in S1 only, on every skill, and MAPINFO gives 21007
+to `SD_HandKatyusha`; S1 is the one sector with a `special`, and it is
+1024; the panel is pressed from the archive's side, flagged `secret`, open
+for good; S1 is reached in the first round with no key and no switch, is
+shut without the panel, and has a way back to the start; three lockers
+flush, the fourth set back 16, darker than the archive, one tile high;
+the exit is reached without it.
+
+### 16.2 The molten channel hurts (open point 8)
+
+**How.** The UDMF sector fields of GZDoom's `zdoom` namespace, on `f_channel`:
+`damageamount = 10; damageinterval = 32;` (`CHANNEL_HURTS`). No sector
+`special`.
+
+**Field names and meanings: VERIFIED.**
+
+- `specs/udmf_zdoom.txt` in GZDoom's repository (header "v1.33", changelog
+  to 1.38): `damageamount` is the damage per application, default 0;
+  `damageinterval` is the interval in tics between applications, default
+  32; `damagetype` defaults to "None"; `leakiness` (radiation suit)
+  defaults to 0; `hurtmonsters` defaults to off.
+- The engine has them: `gzdoom.pk3` g4.14.2, `zscript/mapdata.zs`, struct
+  `Sector`: `damagetype`, `damageamount`, `damageinterval`, `leakydamage`.
+- Why not a sector special number: `gzdoom.pk3` → `xlat/defines.i` gives
+  **115 = `Damage_InstantDeath`** (the number the brief half-remembered; it
+  would kill on contact), 69 = `dDamage_Hellslime`, 71 = `dDamage_Nukage`,
+  80 = `dDamage_SuperHellslime`, and Boom's damage bits as `DAMAGE_MASK
+  (0x0300)`; `xlat/doom.txt` maps Doom's types 5, 7 and 16 to those three.
+  The fields state the amount in the map, in words, and leave the `special`
+  field to the secret bit.
+
+**How much: 10 every 32 tics** (about 19 HP a second standing in it), Doom's
+hellslime (type 5): twice nukage (5), half super hellslime (20). Molten
+metal should hurt more than slime, so not 5; and 20 is the damage of Doom's
+end-of-level pools and of lava meant as a wall, while this channel lies in
+the middle of the casting floor where three to six bodies fight on skill 4
+(the Doughboys among them). At 10, stepping across it is a warning, standing
+in it a mistake. Tested to stay between 5 and 20 per 32 tics.
+
+**No trap.** The channel is 16 below the casting floor (a step; `MAX_STEP_UP`
+is 24), 64 across, and every line round it is two-sided onto `f_floor`: no
+wall, no lip, out in any direction within 32 units. Nothing to pick up and
+no monster stands in it. Tested (`test_the_molten_channel_is_no_one_way_trap`):
+all of that, plus a way back from it to the start. Monsters walk it
+unharmed (`hurtmonsters` off), as in Doom.
+
+NOT VERIFIED in play (§16.5 V3): the damage per tick in the engine, and
+whether walking straight across costs one tick or none (hypothesis: the
+period runs on the level clock, so a quick crossing may cost nothing).
+
+### 16.3 The General's death opens his stores (open point 4)
+
+**What.** A steel shutter in the portal hall's north wall, west of the
+booth, in a porch one tile high; behind it **the General's stores**:
+
+| Zone | x | y | floor / ceil | light | What |
+|---|---|---|---|---|---|
+| `p_stores_porch` | 640…768 | 1664…1696 | 0 / 128 | 128 | the recess in the hall's wall; steel |
+| `p_stores_door` | 640…768 | 1696…1728 | 0 / 0, tag **12** | 144 | the shutter: `SDSTEL1` on both faces and **no special on either**: pressing it does nothing, and the player is not shown a door leaf he is meant to open (MAP01's lesson) |
+| `p_stores` | 576…832 | 1728…1920 | 0 / 128 | 144 | two medikits, a shell box (20), a rocket box (5), a flak vest (green armour); every skill |
+
+**How.** The General's thing carries the UDMF thing special
+`special = 11; arg0 = 12; arg1 = 16; arg2 = 0;`, that is `Door_Open (12, 16,
+0)`, the special SW-A and SW-B use, on a tag no line carries. When he dies
+the shutter rises (with the door's sound) wherever the player is.
+
+**VERIFIED:**
+
+- Thing fields `special` and `arg0`…`arg4`: `specs/udmf.txt` (UDMF 1.1),
+  thing block.
+- A monster runs its special when it dies: GZDoom's source (its
+  repository's p_interaction.cpp, under src/playsim), `AActor::Die` ("If the thing has a
+  special, execute and remove it"): it runs when the thing has a special
+  and is a monster (or not a pickup), unless its activation has
+  `THINGSPEC_NoDeathSpecial`. `gzdoom.pk3` → `zscript/constants.zs` defines
+  `THINGSPEC_NoDeathSpecial = 64`, so the default runs it; our `general.zs`
+  and `monster.zs` set no `Activation` and do not override `Die`. The
+  activator is the killer, which `Door_Open` with a tag ignores.
+- His `+BOSSDEATH` (`A_BossDeath` on his last frame) has nothing to act on:
+  MAP03's MAPINFO block has no special action (read 2026-10-14).
+
+**The exit does not depend on him.** The drum's gate (tag 11) has one
+opener, SW-B in the booth; his special names tag 12; the critical route,
+played with nobody killed, reaches the exit the round SW-B is pressed. A
+player who runs past him finishes the map and only misses the stores. With
+`-nomonsters` the stores never open: they are a reward, not the route. If
+another monster kills him, they still open (the special runs on any death).
+The two riflemen he summons carry nothing.
+
+Tested: his thing carries `Door_Open (12, 16, 0)` and no other thing has a
+special; no line carries tag 12 and only the shutter's sector is tagged 12;
+played with the kill (the model treats his death as a switch the player
+works once his sector is reachable) the stores open in the round after he
+is met and never before; played without it they never open, and every
+sector but the props, the shutter and the stores is still reached; from the
+hall the shutter is steel with no special in a 128-high porch; the gate has
+SW-B as its only opener and the exit is reached the round SW-B opens it;
+the stores hold health, ammunition and armour on every skill and no monster.
+
+### 16.4 Verification actually run
+
+| Check | Result |
+|---|---|
+| `tests/test_map03_factory.py` | **74 tests, all green** (v1: 64). Ten new (§16.1–§16.3) and nine changed: the progression model plays the General's death when asked (`kills=True`), and the reachability and no-trap tests run both ways; round 0 now also opens S1's panel; v1's "no secret" became "the only special sectors are the secret and the channel"; G3-8, the budget without heavy weapons, ammunition by stage and the health count are measured on the route only (outside S1 and the stores, MAP02's `outside_secrets`); the zone test covers `SECRET_ITEMS` and `STORES_ITEMS` |
+| Mutation check (scratch script, not committed) | each of nine planted faults turns the suite red: the General without his special (5 tests), his special on the gate's tag (6), the channel harmless (2), the channel at instant-death rates (1), the channel 64 deep (3), the Katyusha out of S1 (1), the Katyusha on the route (1), the niche lit like the archive (1), the stores on SW-A's tag (5) |
+| `tools/check_pk3.py` | `maps/MAP03.wad: MAP03/TEXTMAP/ENDMAP, 311 vertices, 395 linedefs, 92 sectors, 137 things`; 0 errors, 0 warnings |
+| `tools/verify.py fast` (Windows PC, `.venv/Scripts/python.exe`, 2026-10-14) | **VERDICT: PASS** in 20.5 s: docs PASS (mirror and dead-path warnings), build PASS, `check_pk3` 0 errors 0 warnings, **1450 tests**, 136 skipped (the slow art tier) |
+| GZDoom | **not run** (D26). Owed: §16.5 |
+
+### 16.5 Engine checklist for the PM (D26: this role does not start GZDoom)
+
+Method as §15.8. V1–V4 with `-nomonsters` on skill 3 (`buddha` for V3, so
+the damage shows on the HUD); V5–V6 with monsters on skill 3 and `god`; V7
+at the end of a played run. Log and screenshots to `docs/qa/evidence/`.
+
+| # | Warp to (x y) | Facing | Do | What must show |
+|---|---|---|---|---|
+| V1 | 2600 2080 | 0 | — | the archive's east wall: four lockers, the third from the left **set back and darker** than the other three; whole, not tiled or cut |
+| V2 | 2720 2112 | 0 | `+use`, `wait 70`; walk in to 2944 2112 | the locker rises; the passage; on entering the store the engine's secret message; the Hand Katyusha's pickup line on taking it; slot 7 selectable; the automap shows the panel as a wall |
+| V3 | 960 160 | 0 | `buddha`; stand still 5 s, then walk north out | **health drops by 10 about once a second** while in the channel (not one-shot, not zero); stepping north onto the casting floor works from anywhere along it; the damage stops on leaving |
+| V4 | 704 1600 | 90 | — | the stores' porch in the portal hall's north wall: a steel shutter, one tile, nothing that looks pressable; `+use` on it does nothing |
+| V5 | 1350 1500 | 225 | skill 3, monsters, `god`; kill the General (fight him, or `kill SD_General`) | **the shutter at 704 1712 rises** when he dies (its sound from the north wall); the stores lit, two medikits, shells, rockets, the flak vest |
+| V6 | 1216 1760 | 90 | skill 3, monsters, `god`, `notarget`, the General **alive**; `+use`; then warp 736 1216 facing 180, `+use` | SW-B opens the gate with the General standing; the exit ends the episode: **nothing needs his death** |
+| V7 | the intermission | — | — | secrets **0/1** if S1 was not entered (v1 showed 0/0), 1/1 if it was; kills as §15.8 T14 |
+| V8 | the log | — | — | nothing about `damageamount`, `damageinterval`, thing `special`/`arg0`, `SDLOCK1` or 21007; §15.8 T15's other patterns still zero |
+
+§15.8 (T1–T15) and its K4, K5 and K9 still stand; V1–V8 are in addition. If
+V3 shows no damage, doubt the field names first (the spec states them; the
+engine has not yet been seen to read them) and tell this role.
+
+### 16.6 For the CEO's walk of v1.1
+
+§15.9 as written, and:
+
+1. **S1.** Did the locker in shadow read as something to try, without
+   being told? Too easy, or never found?
+2. **The Hand Katyusha that early** (before either key, if S1 is found):
+   does it spoil the General, or is it the right reward for looking?
+3. **The channel.** Does 10 a tick feel like molten metal, or too soft?
+4. **The stores.** When the General fell, did you notice the shutter open,
+   and go in?
+
+### 16.7 What is left, and what other roles hold
+
+- **PM:** the engine pass (§16.5 with §15.8) and the CEO's walk (§16.6).
+- **`qa-engineer`:** the critical route (`tankograd-critical`) needs neither
+  tag 6 nor tag 12, and no v1 constant moved; MAP03 now has one secret
+  (V7), so a route that reads `secrets=0/N` sees N = 1.
+- **`mod-engineer`:** nothing blocks v1.1 (no ZScript touched; 21007 is
+  already in MAPINFO). Optionally later, a `damagetype` for the channel
+  (the map would add `damagetype = "Fire"`) with a burn death.
+- **`art-director`:** nothing. A second locker colour would let S1's clue be
+  §8's literal "different colour"; not needed.
+- §15.10's other items stand; S1 is no longer v3's (S2 and S3 are).
 - Russian mirror: synced in a batch at the phase close (D34).
