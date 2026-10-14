@@ -50,6 +50,10 @@ Outputs (work/ is gitignored):
     work/art/enemies/hound_gsd/SDHN_<cell>_<frame><rot>.png  RGBA, hard alpha, grAb
     work/art/enemies/hound_gsd/*.gif, lineup_*.png, metrics.json
     docs/art/previews/<stamp>_F5_hound-gsd-sweep.html        (the sheet)
+  --full (D50, cell A's whole set, section "the full set" below):
+    work/art/enemies/hound_gsd/full_A/SDHN<frame><rot>[<frame><rot>].png   46 lumps, grAb
+    work/art/enemies/hound_gsd/full_A/*.gif, lineup_*.png, metrics.json
+    docs/art/previews/<stamp>_F5_reich-hound-A-full-set.html
 
 Light model: gen_enemy.py's stand-in (RGB x L/224, re-quantised). NOT
 VERIFIED against GZDoom's light tables. Rotation order checked by hand
@@ -62,8 +66,9 @@ import argparse
 import datetime as dt
 import html
 import json
+import re
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import numpy as np
@@ -212,13 +217,32 @@ def _yz_clip_below(a, b, drop: float):
     return (n, float(n @ p))
 
 
+def body_pitch_of(q: core.QuadRig) -> float:
+    """How far the posed spine is pitched from the build's rest curve, degrees."""
+    return float(np.mean(q.spine_angles)) - float(np.mean(core.spine_chain(
+        V(*GSD_BUILD.pelvis), GSD_BUILD.spine, GSD_BUILD.spine_bends)[1]))
+
+
 def gsd_model(cell: Cell, frame: str) -> list[core.Prim]:
-    """The German shepherd for one frame (A-D gallop, E-G bite), model space:
-    paws on y = 0, facing +z, +x its LEFT."""
+    """The German shepherd for one frame of the sweep (A-D gallop, E-G bite),
+    model space: paws on y = 0, facing +z, +x its LEFT."""
     bite = BITE.get(frame)
     phase = bite.phase if bite else WALK[frame]
     jaw_open = bite.jaw if bite else 0.0
     q = core.pose_quadruped(GSD_BUILD, core.QuadPose(frame, frame, phase))
+    body_pitch = body_pitch_of(q)
+    wag = TAIL_WAG * np.sin(2 * np.pi * phase)
+    return dog(cell, q, jaw_open=jaw_open,
+               head_a=HEAD_ANGLE + (bite.head if bite else 0.0) + HEAD_FOLLOW * body_pitch,
+               tail_a=TAIL_ANGLE + 0.5 * body_pitch + wag)
+
+
+def dog(cell: Cell, q: core.QuadRig, *, jaw_open: float, head_a: float, tail_a: float,
+        tail_bends: tuple = (22.0, 34.0)) -> list[core.Prim]:
+    """The shepherd's shapes hung on a posed skeleton `q` (from pose_quadruped
+    or a death rig), in the skeleton's frame: the skull at `head_a` degrees,
+    the jaw `jaw_open` degrees below it, the first tail bone at `tail_a` and
+    the next two bent by `tail_bends` (down, then the sabre's upturn)."""
     P: list[core.Prim] = []
 
     def add(grp, prim, limb="", side=core.CENTRE, tag=""):
@@ -233,8 +257,6 @@ def gsd_model(cell: Cell, frame: str) -> list[core.Prim]:
     pel_R, chest_R = core.bone_frame(pel_a), core.bone_frame(chest_a)
     at_chest = lambda x, y, z: withers + chest_R @ V(x, y, z)  # noqa: E731
     at_pelvis = lambda x, y, z: sacrum + pel_R @ V(x, y, z)  # noqa: E731
-    body_pitch = float(np.mean(q.spine_angles)) - float(np.mean(core.spine_chain(
-        V(*GSD_BUILD.pelvis), GSD_BUILD.spine, GSD_BUILD.spine_bends)[1]))
 
     # ------------------------------------------------------------ chest (chest bone frame)
     cy, cz = -7.2, -3.6
@@ -288,13 +310,12 @@ def gsd_model(cell: Cell, frame: str) -> list[core.Prim]:
     tag_c = (c0 + c1) / 2 + down * (rc + 0.9) + V(0, 0, 0.4)
     add("neck", core.box("steel", 0.72, tuple(tag_c), (0.85, 1.0, 0.3), rnd=0.25), tag="tag")
     # ------------------------------------------------------------ the tail: long, bushy, sabre
-    wag = TAIL_WAG * np.sin(2 * np.pi * phase)
     root = at_pelvis(0, -0.8, -6.6)
-    t1 = np.deg2rad(TAIL_ANGLE + 0.5 * body_pitch + wag)
+    t1 = np.deg2rad(tail_a)
     k1 = root + 6.0 * V(0, np.sin(t1), -np.cos(t1))
-    t2 = t1 - np.deg2rad(22)
+    t2 = t1 - np.deg2rad(tail_bends[0])
     k2 = k1 + 6.0 * V(0, np.sin(t2), -np.cos(t2))
-    t3 = t2 + np.deg2rad(34)                      # the sabre's upturned tip
+    t3 = t2 + np.deg2rad(tail_bends[1])           # the sabre's upturned tip
     k3 = k2 + 3.6 * V(0, np.sin(t3), -np.cos(t3))
     for (a, b), (r1, r2) in zip(((root, k1), (k1, k2), (k2, k3)), ((1.3, 1.7), (1.7, 1.5), (1.5, 0.7))):
         add("tail", core.rcone("saddle", SADDLE_VALUE, a, b, r1, r2))
@@ -326,7 +347,6 @@ def gsd_model(cell: Cell, frame: str) -> list[core.Prim]:
             add(grp, core.rcone("cream", 0.52, mid + V(0, 0, -0.6), low + V(0, 0, -0.4), 0.9, 0.7), limb, side)
             add(grp, core.ellipsoid("cream", 0.5, tuple(paw + V(0, 0.0, 0.8)), (1.3, 1.05, 1.8)), limb, side)
     # ------------------------------------------------------------ the head (head frame: origin the occiput)
-    head_a = HEAD_ANGLE + (bite.head if bite else 0.0) + HEAD_FOLLOW * body_pitch
     occ = q.neck[-1] + V(0, -0.6, 0.6)
     head: list[core.Prim] = [
         core.ellipsoid("tan", 0.55, (0, -0.8, 2.6), (2.8, 2.5, 3.2)),                # cranium
@@ -689,14 +709,802 @@ def build_sheet(data: dict, scenes: dict, stamp: str, out_dir: Path = PREVIEW_DI
     return path
 
 
+# ================================================================ the full set (D50)
+# D50 (CEO, 2026-10-14): "Perro A". Cell A as drawn, collar and tag
+# included, gets every frame SD_ReichHound's states name
+# (src/zscript/monsters/reich_hound.zs, today on Freedoom's SARG; BESTIARY
+# §6, MOD-SPEC §6.3 reserves SDHN): the gallop A-D (Spawn uses A B), the
+# bite E-G and the pain H at 8 rotations, drawn 1-5 in mirror mode (the
+# dog is symmetric and wears no insignia, so the engine flips 2-4 into
+# 8-6); the death I-N at rotation 0. No XDeath: the class has none
+# (BESTIARY §6, the engine falls back to Death), so there is no gib.
+#
+# Blood (D49): dark red, abundant, flag_red 0-5 and black, as the rifleman's
+# and the Legion's: a round opens the left side of the neck at I, the burst
+# lands as splats, the coat soaks, blood runs from the mouth, and a pool
+# spreads under the neck and chest from L to N.
+#
+# The corpse (the CEO on the Legion's first L0: "parece que se apoye en el
+# hombro"): N lies flat on its right side, the whole body on the floor, the
+# legs relaxed, the head on the floor, in its pool. It is not posed by eye:
+# the body is rolled onto its side and put on the floor, then the neck and
+# head, the tail and the two upper legs are each let FALL about their root
+# (bisection on the angle, rig_core.lowest_y) until they touch the floor.
+# lying_report() measures it and tests/test_gen_hound.py holds it.
+FULL_CELL = CELL["A"]           # D50
+FULL_DIR = OUT_DIR / "full_A"
+ZS = PROJECT_ROOT / "src" / "zscript" / "monsters" / "reich_hound.zs"
+FULL_ROTS = core.drawn_rotations(mirror=True)      # 1-5 traced; 6-8 are the engine's flips
+PAIN_FRAMES = ("H",)
+DEATH_FRAMES = ("I", "J", "K", "L", "M", "N")
+ROTATED_FRAMES = WALK_FRAMES + BITE_FRAMES + PAIN_FRAMES
+FULL_GROUPS = (("gallop", WALK_FRAMES, True), ("bite", BITE_FRAMES, True),
+               ("pain", PAIN_FRAMES, True), ("death", DEATH_FRAMES, False))
+DEATH_CV = Canvas(128, 88, 64, 62)  # a dog lying across, its pool, the burst's splats; axis centred
+
+# ---------------------------------------------------------------- blood materials
+BLOOD_MATERIALS: dict[str, core.Mat] = {
+    "blood": M("flag_red", 1, 5, black_floor=True, shift=False, flat=True),   # spray, splats, stains, runs
+    "pool": M("flag_red", 0, 3, black_floor=True, shift=False, flat=True),    # standing blood: darker
+}
+BLOOD_RAMP = "flag_red"
+BLOOD_MAX_INDEX = 5             # D49: no blood colour brighter than flag_red 5
+
+
+def full_materials(cell: Cell = FULL_CELL) -> dict[str, core.Mat]:
+    """The cell's table (materials_for) with the two blood materials appended."""
+    table = materials_for(cell)
+    for name, mat in BLOOD_MATERIALS.items():
+        core.register_material(name, mat, table)
+    return table
+
+
+# ---------------------------------------------------------------- the states, read from the actor
+def zs_states(path: Path = ZS) -> dict[str, list[tuple[str, int]]]:
+    """SD_ReichHound's state labels and their (frame letter, tics), in order,
+    read from the ZScript file (the sprite name is ignored: it is SARG today)."""
+    out: dict[str, list[tuple[str, int]]] = {}
+    label = None
+    in_states = False
+    for line in path.read_text(encoding="utf-8").splitlines():
+        s = line.split("//")[0].rstrip()
+        if s.strip() == "States":
+            in_states = True
+            continue
+        if not in_states:
+            continue
+        m = re.match(r"^\s*([A-Za-z]+):\s*$", s)
+        if m:
+            label = m.group(1)
+            out[label] = []
+            continue
+        m = re.match(r"^\s*([A-Z0-9]{4})\s+([A-Z]+)\s+(-?\d+)\b", s)
+        if m and label:
+            out[label] += [(ch, int(m.group(3))) for ch in m.group(2)]
+    return out
+
+
+# ---------------------------------------------------------------- pain (H)
+PAIN_PHASE = 0.75               # the forepaws landing: it checks its run
+PAIN_CROUCH = 5.0               # units the body sinks: the hindquarters drop, a cringe
+PAIN_HEAD = 6.0                 # degrees: the head pulled in, level (the bite E holds it up)
+PAIN_JAW = 24.0                 # a yelp
+PAIN_REAR = -3.0                # degrees: the forehand dips, about the hind paws
+PAIN_TUCK = -40.0               # the tail tucked (degrees added to the gallop's)
+PAIN_TAIL = -18.0               # the death's I and J: the tail clamped down
+
+
+def _rigid(prims: list[core.Prim], R: np.ndarray, pivot, offset=(0.0, 0.0, 0.0)) -> None:
+    """Rotate primitives by R about pivot, then move them by offset."""
+    pivot, offset = np.asarray(pivot, float), np.asarray(offset, float)
+    for p in prims:
+        p.xm = R @ p.xm
+        p.xt = R @ (p.xt - pivot) + pivot + offset
+
+
+def _on_floor(prims: list[core.Prim]) -> None:
+    _rigid(prims, np.eye(3), V(0, 0, 0), V(0, -core.lowest_y(prims), 0))
+
+
+def pain_model(cell: Cell = FULL_CELL) -> list[core.Prim]:
+    """H: hit while running, the dog cringes: it checks its stride, the
+    body sinks on its haunches, the head pulled in, the mouth open in a
+    yelp, the tail tucked. Built to read apart from the bite's head-up E."""
+    b = GSD_BUILD
+    build = replace(b, pelvis=(b.pelvis[0], b.pelvis[1] - PAIN_CROUCH, b.pelvis[2]))
+    q = core.pose_quadruped(build, core.QuadPose("H", "pain", PAIN_PHASE))
+    bp = body_pitch_of(q)
+    P = dog(cell, q, jaw_open=PAIN_JAW, head_a=HEAD_ANGLE + PAIN_HEAD + HEAD_FOLLOW * bp,
+            tail_a=TAIL_ANGLE + PAIN_TUCK + 0.5 * bp)
+    _rigid(P, core.rot_x(PAIN_REAR), (q.legs["hl"][3] + q.legs["hr"][3]) / 2)
+    _on_floor(P)
+    return P
+
+
+# ---------------------------------------------------------------- death (I-N)
+def axis_rot(axis, deg: float) -> np.ndarray:
+    """Rotation by `deg` about `axis` (right hand), Rodrigues."""
+    k = np.asarray(axis, float)
+    k = k / np.linalg.norm(k)
+    a = np.deg2rad(deg)
+    K = np.array([[0, -k[2], k[1]], [k[2], 0, -k[0]], [-k[1], k[0], 0]])
+    return np.eye(3) + np.sin(a) * K + (1 - np.cos(a)) * (K @ K)
+
+
+@dataclass(frozen=True)
+class Fall:
+    """One death frame. Standing frames (I, J) pose the gallop skeleton;
+    lying frames (K-N) build the death rig with the legs given by angles."""
+    t: float                    # s after the hit (blood: how far the burst has flown)
+    roll: float                 # degrees onto its right side (90: flat on it)
+    jaw: float
+    head: float                 # degrees added to the skull's angle (standing: the gallop's; lying: the neck's)
+    legs: str = ""              # lying frames: a key of DEATH_LEGS
+    settle: tuple = ()          # what is let fall to the floor: keys of SETTLE_PARTS
+    pool: float = 0.0           # share of the full pool (0: none yet)
+    stain: float = 2.0          # half height of the soaked coat round the wound
+    rear: float = 0.0           # standing: forehand lifted (degrees)
+    crouch: float = 0.0         # standing: how far the body sinks on buckling legs (units)
+
+
+# Leg angles of the death rig, degrees from the body's own "down" (+ towards
+# the head), per bone (hind: femur, tibia, metatarsus; fore: upper arm,
+# forearm, pastern), and a lateral lean (x per unit length; - leans to the
+# floor side once it lies on its right). r = the right (lower) legs, l = the upper.
+DEATH_LEGS = {
+    "stiff": {"fr": ((40, 55, 60), 0.0), "fl": ((48, 62, 66), 0.05),        # the death throe: legs thrown out
+              "hr": ((-35, -50, -55), 0.0), "hl": ((-28, -45, -50), 0.05)},
+    "falling": {"fr": ((10, 30, 45), 0.0), "fl": ((18, 38, 50), 0.0),
+                "hr": ((30, -30, -15), 0.0), "hl": ((35, -22, -10), 0.0)},
+    "easing": {"fr": ((10, 45, 55), 0.0), "fl": ((25, 52, 60), -0.05),
+               "hr": ((-10, -40, -35), 0.0), "hl": ((0, -32, -28), -0.05)},
+    "relaxed": {"fr": ((-12, 22, 48), 0.0), "fl": ((4, 36, 58), -0.08),     # the corpse: a little flexed, scissored
+                "hr": ((18, -38, -22), 0.0), "hl": ((30, -24, -8), -0.08)},
+}
+LYING_SPINE = (3.0, 0.5, -1.0)  # the top line relaxes: no slope, no arch
+LYING_NECK = (10.0, 2.0)        # the neck stretched out along the back
+LYING_TAIL = (-14.0, (6.0, 2.0))    # first bone, then (down, upturn): limp, no sabre
+LYING_HIP_X = 2.6               # the lower hip, pressed in: its thigh lies level with the ribs
+LYING_SHOULDER_X = 3.0
+ROLL_PIVOT_X = 4.0              # it rolls over the line of its right paws
+DEATH_YAW = 90.0                # rotation 0 is seen from the front: turned, it lies across, head screen left
+SETTLE_MAX = 75.0               # degrees a part may fall
+SETTLE_STEPS = 14               # bisection steps
+
+SETTLE_PARTS = {                # what falls: (groups, limb, side, proximal prims kept, the pivot, the tip)
+    "neck": (("neck", "head", "jaw"), "", 0, 0, "withers", "nose"),
+    "tail": (("tail",), "", 0, 0, "tail_root", "tail_tip"),
+    "fl": (("leg_l",), "foreleg", core.LEFT, 0, "shoulder_l", "paw_fl"),     # the upper legs fall whole
+    "hl": (("leg_l",), "hindleg", core.LEFT, 0, "hip_l", "paw_hl"),
+    "fr": (("leg_r",), "foreleg", core.RIGHT, 1, "elbow_r", "paw_fr"),       # the lower ones lie under the
+    "hr": (("leg_r",), "hindleg", core.RIGHT, 2, "knee_r", "paw_hr"),        # body: the thigh stays, the shank falls
+}
+SETTLE_ALL = ("neck", "tail", "fr", "hr", "fl", "hl")   # the corpse: everything that hangs comes to rest
+
+FALLS = {                       # reich_hound.zs Death: I J 8, K L M 4, N -1 (A_Scream on J, A_NoBlocking on L)
+    "I": Fall(0.05, 8.0, 30.0, 30.0, stain=2.0, rear=10.0),
+    "J": Fall(0.28, 32.0, 18.0, 4.0, stain=3.2, crouch=7.0),
+    "K": Fall(0.51, 62.0, 14.0, -4.0, legs="falling", stain=4.2),
+    "L": Fall(0.63, 90.0, 12.0, -6.0, legs="stiff", settle=("neck", "tail"), pool=0.35, stain=4.8),
+    "M": Fall(0.74, 90.0, 8.0, -6.0, legs="easing", settle=SETTLE_ALL, pool=0.65, stain=5.2),
+    "N": Fall(3.0, 90.0, 6.0, -6.0, legs="relaxed", settle=SETTLE_ALL, pool=1.0, stain=4.8),
+}
+WOUND = (4.9, -2.6, 3.4)        # chest bone frame: the left side of the neck's root, where the round went in
+
+
+def death_rig(fall: Fall) -> core.QuadRig:
+    """The skeleton of a lying frame, in the dog's own frame (as if it
+    stood): spine and neck by spine_chain, the legs by DEATH_LEGS' angles."""
+    b = GSD_BUILD
+    pelvis = V(*b.pelvis)
+    spine, s_ang = core.spine_chain(pelvis, b.spine, LYING_SPINE)
+    withers = spine[-1]
+    neck, n_ang = core.spine_chain(withers, b.neck, LYING_NECK, pitch=s_ang[-1])
+    legs = {}
+    for leg in core.LEGS:
+        side = core.LEFT if leg.endswith("l") else core.RIGHT
+        angles, lean = DEATH_LEGS[fall.legs][leg]
+        if leg.startswith("h"):
+            hx = b.hip_x if side == core.LEFT else LYING_HIP_X
+            root = pelvis + core.bone_frame(s_ang[0]) @ V(side * hx, -b.hip_drop, 0.0)
+            lengths = (b.femur, b.tibia, b.meta)
+        else:
+            sx = b.shoulder_x if side == core.LEFT else LYING_SHOULDER_X
+            root = withers + core.bone_frame(s_ang[-1]) @ V(side * sx, -b.shoulder_drop, 0.0)
+            lengths = (b.upper, b.lower, b.pastern + 1.2)
+        joints = [root]
+        for L, a in zip(lengths, angles):
+            r = np.deg2rad(a)
+            d = V(lean, -np.cos(r), np.sin(r))
+            joints.append(joints[-1] + L * d / np.linalg.norm(d))
+        legs[leg] = tuple(joints)
+    return core.QuadRig(spine, s_ang, neck, n_ang, legs, {k: v[-1] for k, v in legs.items()})
+
+
+def settle_part(part: list[core.Prim], pivot: np.ndarray, tip: np.ndarray) -> float:
+    """Let `part` fall about `pivot` (the tip swinging down) until its lowest
+    point touches the floor; returns the angle. Bisection on rig_core.lowest_y."""
+    v = tip - pivot
+    v = v / np.linalg.norm(v)
+    axis = np.cross(v, V(0, -1, 0))
+    if np.linalg.norm(axis) < 1e-6 or core.lowest_y(part) <= 0.0:
+        return 0.0
+    keep = [(p.xm, p.xt) for p in part]
+
+    def low_at(deg):
+        _rigid(part, axis_rot(axis, deg), pivot)
+        y = core.lowest_y(part)
+        for p, (xm, xt) in zip(part, keep):
+            p.xm, p.xt = xm, xt
+        return y
+
+    lo, hi = 0.0, SETTLE_MAX
+    if low_at(hi) > 0.0:
+        lo = hi
+    else:
+        for _ in range(SETTLE_STEPS):
+            mid = (lo + hi) / 2
+            if low_at(mid) > 0.0:
+                lo = mid
+            else:
+                hi = mid
+    _rigid(part, axis_rot(axis, lo), pivot)
+    return lo
+
+
+def settle_prims(P: list[core.Prim], what: str) -> list[core.Prim]:
+    """The primitives of one part that falls (SETTLE_PARTS)."""
+    groups, limb, side, kept, _, _ = SETTLE_PARTS[what]
+    if limb:
+        return [p for p in P if p.grp in groups and p.limb == limb and p.side == side][kept:]
+    return [p for p in P if p.grp in groups]
+
+
+def death_model(frame: str, cell: Cell = FULL_CELL) -> tuple[list[core.Prim], dict]:
+    """The dog of death frame I-N in model space (floor y = 0; rotation 0
+    looks at it from +z), without the floor's blood; and its anchors (the
+    wound, the mouth, the withers, ..., model space)."""
+    fall = FALLS[frame]
+    if fall.legs:                                           # lying: the death rig
+        q = death_rig(fall)
+        P = dog(cell, q, jaw_open=fall.jaw, head_a=q.neck_angles[-1] + fall.head,
+                tail_a=LYING_TAIL[0], tail_bends=LYING_TAIL[1])
+    else:                                                   # still on its paws: the gallop's skeleton
+        b = GSD_BUILD
+        build = replace(b, pelvis=(b.pelvis[0], b.pelvis[1] - fall.crouch, b.pelvis[2]))
+        q = core.pose_quadruped(build, core.QuadPose(frame, "death", 0.0))
+        bp = body_pitch_of(q)
+        P = dog(cell, q, jaw_open=fall.jaw, head_a=HEAD_ANGLE + fall.head + HEAD_FOLLOW * bp,
+                tail_a=TAIL_ANGLE + PAIN_TAIL + 0.5 * bp)
+        if fall.rear:
+            _rigid(P, core.rot_x(fall.rear), (q.legs["hl"][3] + q.legs["hr"][3]) / 2)
+    withers, sacrum = q.spine[-1], q.spine[0]
+    # the coat soaks round the wound (rides the chest), on the side the round went in
+    s = fall.stain
+    for c, r, base in (((WOUND[0] + 0.35, WOUND[1] - s * 0.3, WOUND[2] - 0.4), (1.2, s, s * 1.1), 0.45),
+                       ((WOUND[0] + 0.9, WOUND[1], WOUND[2]), (0.8, 0.9, 0.9), 0.22)):
+        P.append(core.on_bone(core.ellipsoid("blood", base, c, r, grp="body"), withers, q.spine_angles[-1]))
+    nose = next(p for p in P if p.mat == "nose")
+    tail_ends = [p.xm @ p.b + p.xt for p in P if p.grp == "tail" and p.kind == "roundcone"]
+    anchors = {"wound": withers + core.bone_frame(q.spine_angles[-1]) @ V(*WOUND),
+               "withers": withers.copy(), "sacrum": sacrum.copy(),
+               "tail_root": sacrum + core.bone_frame(q.spine_angles[0]) @ V(0, -0.8, -6.6),
+               "tail_tip": min(tail_ends, key=lambda x: x[2]),
+               "nose": nose.xm @ nose.a + nose.xt,
+               **{f"hip_{s}": q.legs[f"h{s}"][0].copy() for s in "lr"},
+               **{f"shoulder_{s}": q.legs[f"f{s}"][0].copy() for s in "lr"},
+               "knee_r": q.legs["hr"][1].copy(), "elbow_r": q.legs["fr"][1].copy(),
+               **{f"paw_{k}": q.legs[k][3].copy() for k in core.LEGS}}
+    # ------------------------------------------------ roll onto its right side, turn it across the screen
+    R = core.rot_y(DEATH_YAW) @ core.rot_z(-fall.roll)
+    pivot = V(-ROLL_PIVOT_X, 0.0, 0.0)
+    _rigid(P, R, pivot)
+    anchors = {k: R @ (v - pivot) + pivot for k, v in anchors.items()}
+    cs = np.array([p.bound()[0] for p in P if p.grp == "body"])
+    centre = (cs.min(axis=0) + cs.max(axis=0)) / 2
+    falling = {id(p) for w in fall.settle for p in settle_prims(P, w)}
+    resting = [p for p in P if id(p) not in falling]
+    shift = V(-centre[0], -core.lowest_y(resting), -centre[2])
+    _rigid(P, np.eye(3), V(0, 0, 0), shift)
+    anchors = {k: v + shift for k, v in anchors.items()}
+    # ------------------------------------------------ let what hangs fall to the floor
+    for what in fall.settle:
+        *_, root, tip = SETTLE_PARTS[what]
+        part = settle_prims(P, what)
+        deg = settle_part(part, anchors[root], anchors[tip])
+        if what == "neck":                                  # the nose and the mouth fall with the head
+            v = anchors["nose"] - anchors["withers"]
+            Rn = axis_rot(np.cross(v / np.linalg.norm(v), V(0, -1, 0)), deg)
+            anchors["nose"] = Rn @ (anchors["nose"] - anchors["withers"]) + anchors["withers"]
+    anchors["mouth"] = np.mean([p.bound()[0] for p in P if p.grp == "jaw"], axis=0)
+    return P, anchors
+
+
+# ---------------------------------------------------------------- blood on the floor
+BLOOD_GRAVITY = 400.0           # units / s^2: the burst lands within the death's first frames
+N_SPRAY = 34                    # droplets of the burst
+SPRAY_X = 52.0                  # landed splats stay inside DEATH_CV (check_edges)
+SPRAY_Z = (-20.0, 24.0)
+AIR_Y = 50.0                    # and so do the ones in the air
+POOL_FULL = (21.0, 11.0)        # (x, z) radii of N's pool under the neck and chest
+POOL_FORWARD = 4.0              # its centre this far towards the camera: a floor pool is seen at 9 degrees
+
+
+def droplet(p0, v, t: float, r: float, grav: float = BLOOD_GRAVITY) -> core.Prim:
+    """A drop `t` s after leaving p0 at v: in the air, or a flat splat once landed."""
+    p0, v = np.asarray(p0, float), np.asarray(v, float)
+    rest = r * 0.3
+    tl = (v[1] + np.sqrt(v[1] ** 2 + 2 * grav * max(p0[1] - rest, 0.0))) / grav
+    tt = min(t, tl)
+    p = p0 + v * tt + V(0, -0.5 * grav * tt * tt, 0)
+    x = float(np.clip(p[0], -SPRAY_X, SPRAY_X))
+    z = float(np.clip(p[2], *SPRAY_Z))
+    if t >= tl:
+        return core.ellipsoid("blood", 0.42, (x, 0.2, z), (r * 2.0, 0.35, r * 1.5), grp="splat")
+    return core.ellipsoid("blood", 0.62, (x, min(float(p[1]), AIR_Y), z), (r, r * 1.15, r), grp="spray")
+
+
+def burst(origin, t: float, rng) -> list[core.Prim]:
+    """The round's spray from the wound: sideways, up, mostly towards the
+    camera (the wound's side faces it at I), every fifth a heavy gout."""
+    out = []
+    for i in range(N_SPRAY):
+        d = V(rng.uniform(-1, 1), rng.uniform(-0.1, 1.0), rng.uniform(-0.3, 1.0))
+        d /= np.linalg.norm(d)
+        gout = i % 5 == 0
+        sp = rng.uniform(8, 24) if gout else rng.uniform(30, 85)
+        r = rng.uniform(1.2, 1.7) if gout else rng.uniform(0.6, 1.05)
+        out.append(droplet(origin, d * sp, t, r))
+    return out
+
+
+def pool(cx: float, cz: float, rx: float, rz: float, rng) -> list[core.Prim]:
+    """A pool on the floor: one flat ellipse and three lobes."""
+    out = [core.ellipsoid("pool", 0.55, (cx, 0.3, cz), (rx, 0.55, rz), grp="pool")]
+    for _ in range(3):
+        ox, oz = rng.uniform(-0.7, 0.7) * rx, rng.uniform(-0.3, 0.6) * rz
+        out.append(core.ellipsoid("pool", 0.62, (cx + ox, 0.32, cz + oz),
+                                  (rx * rng.uniform(0.35, 0.55), 0.6, rz * rng.uniform(0.4, 0.6)), grp="pool"))
+    return out
+
+
+_WOUND_AT_I: dict = {}
+
+
+def wound_at_hit(cell: Cell = FULL_CELL) -> np.ndarray:
+    """Where the wound was when the round hit (frame I): the burst's origin."""
+    if cell.key not in _WOUND_AT_I:
+        _WOUND_AT_I[cell.key] = death_model("I", cell)[1]["wound"]
+    return _WOUND_AT_I[cell.key]
+
+
+def death_blood(frame: str, anchors: dict, cell: Cell = FULL_CELL, seed: int = SEED) -> list[core.Prim]:
+    """The blood off the body for death frame I-N: the burst, the mouth's
+    run, the pool."""
+    fall = FALLS[frame]
+    out = burst(wound_at_hit(cell), fall.t, np.random.default_rng(seed + 11))
+    if frame in "KLMN":                                     # it runs from the mouth
+        m = anchors["mouth"]
+        k = "KLMN".index(frame)
+        out.append(core.rcone("blood", 0.45, m + V(0, 0.4, 0.6), V(m[0] - 0.5, max(m[1] - 2.0 - k, 0.4), m[2] + 1.0),
+                              0.7, 0.55, grp="spray"))
+    if fall.pool:
+        g = fall.pool
+        w, m = anchors["withers"], anchors["mouth"]
+        out += pool(float(w[0]) - 2.0, POOL_FORWARD + 2.0 * g, POOL_FULL[0] * g, POOL_FULL[1] * (0.4 + 0.6 * g),
+                    np.random.default_rng(seed + 14))
+        out += pool(float(m[0]), POOL_FORWARD - 1.0, 4.0 + 3.0 * g, 4.0 + 2.0 * g, np.random.default_rng(seed + 15))
+    return out
+
+
+# The death frames are rotation 0 and lie on the floor, where the player
+# always looks DOWN at them (eye 41 units up: about 25-30 degrees at 64-96
+# units). Seen from the rig's 9 degrees a dog on its side is a tan tube, its
+# legs foreshortened towards the camera and its saddle hidden. So the death
+# frames are drawn from higher: the whole scene, floor blood included, is
+# tipped towards the camera by DEATH_TILT more degrees, ramping in as it
+# falls so I (still standing) matches the gallop. Only the render is
+# tipped; the model the lying test measures stays on its floor.
+DEATH_TILT = {"I": 0.0, "J": 8.0, "K": 18.0, "L": 28.0, "M": 28.0, "N": 28.0}
+
+
+def full_model(frame: str, cell: Cell = FULL_CELL, seed: int = SEED, tilt: bool = True) -> list[core.Prim]:
+    """Every primitive of one lump of the full set, model space (death
+    frames tipped by DEATH_TILT unless `tilt` is False)."""
+    if frame in DEATH_FRAMES:
+        P, anchors = death_model(frame, cell)
+        P = P + death_blood(frame, anchors, cell, seed)
+        if tilt and DEATH_TILT[frame]:
+            _rigid(P, core.rot_x(-DEATH_TILT[frame]), V(0, 0, 0))
+        return P
+    if frame in PAIN_FRAMES:
+        return pain_model(cell)
+    return gsd_model(cell, frame)
+
+
+def full_canvas(frame: str) -> Canvas:
+    return DEATH_CV if frame in DEATH_FRAMES else CV
+
+
+def render_full_layers(frame: str, rotation: int, cell: Cell = FULL_CELL, seed: int = SEED) -> core.Layers:
+    return core.render_layers(full_model(frame, cell, seed), rotation, full_canvas(frame), full_materials(cell),
+                              seed=seed, what=f"{SPRITE}{frame}{rotation}")
+
+
+def render_full(frame: str, rotation: int, cell: Cell = FULL_CELL, seed: int = SEED) -> np.ndarray:
+    """One lump of the full set, RGBA: 6-8 are the flips of 4-2, as the engine draws them."""
+    src = core.MIRRORED.get(rotation)
+    rgba = render_full_layers(frame, src if src is not None else rotation, cell, seed).rgba
+    return core.mirror_sprite(rgba, full_canvas(frame)) if src is not None else rgba
+
+
+def full_plan() -> list[tuple[str, int]]:
+    """(frame, rotation) of every lump drawn: A-H at 1-5 (mirror mode), I-N at 0."""
+    return core.frame_plan(FULL_GROUPS, mirror=True)
+
+
+def full_lump(frame: str, rotation: int) -> str:
+    """The lump name (file stem): SDHNA1, SDHNA2A8, ..., SDHNN0."""
+    return core.rotation_lump(SPRITE, frame, rotation, mirror=True)
+
+
+# ---------------------------------------------------------------- the corpse, measured
+LYING_MAX = 1.0                 # units: a part this far above the floor still lies on it
+LYING_TOP = 15.0                # nothing of the body (blood aside) higher than this: nothing propped up
+LYING_SPAN = 40.0               # the parts on the floor spread at least this far along the body
+
+
+def corpse_parts(P: list[core.Prim]) -> dict[str, list[core.Prim]]:
+    """The lying dog's parts by name: what must rest on the floor."""
+    torso = [p for p in P if p.grp == "body" and p.mat != "blood" and p.limb == ""]
+    out = {"chest": [p for p in torso if p.kind == "ellipsoid" and float(np.max(p.r)) > 9.0],
+           "croup": [p for p in torso if p.kind == "ellipsoid" and abs(float(p.r[2]) - 5.2) < 1e-6]
+           + [p for p in P if p.limb == "hindleg" and p.side == core.RIGHT and p.grp != "body"][:1],
+           "neck": [p for p in P if p.grp == "neck"],
+           "head": [p for p in P if p.grp in ("head", "jaw")],
+           "tail": [p for p in P if p.grp == "tail"]}
+    for name, limb, side in (("fore_right", "foreleg", core.RIGHT), ("fore_left", "foreleg", core.LEFT),
+                             ("hind_right", "hindleg", core.RIGHT), ("hind_left", "hindleg", core.LEFT)):
+        out[f"paw_{name}"] = [p for p in P if p.limb == limb and p.side == side and p.grp != "body"][-1:]
+    return out
+
+
+def lying_report(P: list[core.Prim]) -> dict[str, float]:
+    """Each part's lowest point above the floor, in units (rig_core.lowest_y)."""
+    return {k: round(core.lowest_y(v), 2) for k, v in corpse_parts(P).items() if v}
+
+
+def highest_y(prims: list[core.Prim]) -> float:
+    """The highest surface point: rig_core.lowest_y on the primitives mirrored in y."""
+    F = np.diag([1.0, -1.0, 1.0])
+    flipped = [replace(p, xm=F @ p.xm, xt=F @ p.xt) for p in prims]
+    return -core.lowest_y(flipped)
+
+
+def leg_bends(P: list[core.Prim]) -> dict[str, list[float]]:
+    """Each leg's joint angles in degrees (0: straight), from its bone cones
+    as posed: hind thigh-shank-metatarsus, fore upper arm-forearm."""
+    out = {}
+    for name, limb, side, bones in (("fore_right", "foreleg", core.RIGHT, (0, 1)),
+                                    ("fore_left", "foreleg", core.LEFT, (0, 1)),
+                                    ("hind_right", "hindleg", core.RIGHT, (0, 2, 3)),
+                                    ("hind_left", "hindleg", core.LEFT, (0, 2, 3))):
+        lp = [p for p in P if p.limb == limb and p.side == side and p.grp != "body"]
+        dirs = []
+        for i in bones:
+            d = lp[i].xm @ (lp[i].b - lp[i].a)
+            dirs.append(d / np.linalg.norm(d))
+        out[name] = [round(float(np.degrees(np.arccos(np.clip(a @ b, -1, 1)))), 1)
+                     for a, b in zip(dirs[:-1], dirs[1:])]
+    return out
+
+
+def corpse_metrics(frame: str = "N") -> dict:
+    """The lying checks on one death frame's model (untilted): parts above the
+    floor, the highest point, how far the supports spread, the roll, the legs."""
+    P, anchors = death_model(frame)
+    body = [p for p in P if p.mat != "blood"]
+    parts = corpse_parts(P)
+    rep = {k: round(core.lowest_y(v), 2) for k, v in parts.items() if v}
+    xs = [float(np.mean([p.bound()[0][0] for p in parts[k]])) for k, v in rep.items() if v <= LYING_MAX]
+    chest = parts["chest"][0]
+    return {"lowest": rep, "top": round(highest_y(body), 2), "span": round(max(xs) - min(xs), 1),
+            "back_up": round(float((chest.xm @ V(0, 1, 0))[1]), 3),     # 0: the spine's "up" lies level
+            "spine_drop": round(float(abs(anchors["withers"][1] - anchors["sacrum"][1])), 2),
+            "legs": leg_bends(P)}
+
+
+def crop_common(arrs: list[np.ndarray], pad: int = 2) -> list[np.ndarray]:
+    """The same window cut from every array: the union of their opaque
+    pixels plus `pad`, so a strip or a GIF keeps its frames aligned and
+    drops the empty canvas (the sheet only; the lumps keep their canvas)."""
+    a = np.zeros(arrs[0].shape[:2], bool)
+    for x in arrs:
+        a |= x[..., 3] > 0
+    ys, xs = np.nonzero(a)
+    y0, y1 = max(ys.min() - pad, 0), min(ys.max() + pad + 1, a.shape[0])
+    x0, x1 = max(xs.min() - pad, 0), min(xs.max() + pad + 1, a.shape[1])
+    return [x[y0:y1, x0:x1] for x in arrs]
+
+
+def _gif_runs(seq: list[tuple[str, int]]) -> list[tuple[str, int]]:
+    """Consecutive (letter, tics) merged: SDHN AABBCCDD 2 is A 4, B 4, C 4, D 4."""
+    out: list[tuple[str, int]] = []
+    for f, t in seq:
+        if out and out[-1][0] == f:
+            out[-1] = (f, out[-1][1] + t)
+        else:
+            out.append((f, t))
+    return out
+
+
+HOLD_MS = 1600                  # a -1 frame (the corpse) held this long before the GIF loops
+LINEUP_FRAMES = (("A", 1), ("C", 3), ("F", 3), ("H", 3), ("C", 7))
+CORPSE_SLOT = 120               # lineup slot of a corpse: the dog lies 70 px across
+
+
+def build_full(out_dir: Path = FULL_DIR, seed: int = SEED) -> dict:
+    """Every lump of the full set (PNG with grAb), the GIFs at game speed
+    (tics read from reich_hound.zs), the 1x lineups, metrics.json."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    spr: dict = {}
+    for f, r in full_plan():
+        spr[(f, r)] = render_full(f, r, seed=seed)
+        core.save_sprite(spr[(f, r)], out_dir / f"{full_lump(f, r)}.png", full_canvas(f))
+        print(full_lump(f, r), flush=True)
+    return finish_full({"sprites": _with_mirrors(spr)}, out_dir)
+
+
+def _with_mirrors(spr: dict) -> dict:
+    for f in ROTATED_FRAMES:
+        for r, src in core.MIRRORED.items():
+            spr[(f, r)] = core.mirror_sprite(spr[(f, src)], CV)
+    return spr
+
+
+def load_full(out_dir: Path = FULL_DIR) -> dict:
+    spr = {}
+    for f, r in full_plan():
+        with Image.open(out_dir / f"{full_lump(f, r)}.png") as im:
+            spr[(f, r)] = np.asarray(im.convert("RGBA")).copy()
+    return finish_full({"sprites": _with_mirrors(spr)}, out_dir)
+
+
+def finish_full(data: dict, out_dir: Path = FULL_DIR) -> dict:
+    """GIFs, lineups and metrics from the sprites."""
+    spr = data["sprites"]
+    st = zs_states()
+    ms = lambda n: int(round(n * core.TIC_MS))  # noqa: E731
+    gifs = {}
+
+    def gif(name, seq, rot, bg=core.NEUTRAL):
+        frames = [core.on_bg(x, bg) for x in crop_common([spr[(f, rot)] for f, _ in seq])]
+        durs = [HOLD_MS if t < 0 else ms(t) for _, t in seq]
+        gifs[name] = core.save_gif(frames, durs, out_dir / f"{SPRITE}_{name}.gif")
+
+    see = _gif_runs(st["See"])
+    for r in range(1, core.ROTATIONS + 1):
+        gif(f"see_rot{r}", see, r)
+    gif("spawn_rot1", _gif_runs(st["Spawn"]), 1)
+    for r in (1, 3, 5):
+        gif(f"melee_rot{r}", see + _gif_runs(st["Melee"]), r)
+        gif(f"pain_rot{r}", see + _gif_runs(st["Pain"]) + see, r)
+    gif("death", _gif_runs(st["Death"]), 0)
+    data["gifs"] = gifs
+    # ---------------------------------------------- at 1x on MAP01, beside the rifleman
+    rr = rifleman()
+    rr_side = _rifleman_lump("SDRRA3.png", core.STAND)
+    rr_dead = _rifleman_lump("SDRRL0.png", None)
+    g = grab()
+    gd = core.grab_offsets(DEATH_CV)
+    scenes = {}
+    for key, wall, light, what in SCENES:
+        floor = "SDFLR1" if key == "S6" else "SDFLR2"
+        row = [x for x in (rr, rr_side) if x is not None] + [(spr[fr], *g) for fr in LINEUP_FRAMES]
+        sc = core.lineup(row, wall, light, SLOT_W * len(row), floor, load=load_rgb)
+        dead = [x for x in (rr_dead,) if x is not None] + [(spr[("N", 0)], *gd)]
+        sd = core.lineup(dead, wall, light, CORPSE_SLOT * len(dead), floor, load=load_rgb)
+        Image.fromarray(sc).save(out_dir / f"lineup_{key}.png")
+        Image.fromarray(sd).save(out_dir / f"lineup_{key}_dead.png")
+        labels = (["SDRR A1", "SDRR A3"][:len(row) - len(LINEUP_FRAMES)]
+                  + [f"{SPRITE} {f}{r}" for f, r in LINEUP_FRAMES])
+        scenes[key] = (sc, sd, labels, ["SDRR L0"][:len(dead) - 1] + [f"{SPRITE} N0"], wall, light, what)
+    # the death at game speed on the worst wall, the rifleman standing by
+    key, wall, light, _ = SCENES[2]
+    frames, durs = [], []
+    for f, t in _gif_runs(st["Death"]):
+        row = [x for x in (rr,) if x is not None] + [(spr[(f, 0)], *gd)]
+        frames.append(core.lineup(row, wall, light, CORPSE_SLOT * len(row), "SDFLR2", load=load_rgb))
+        durs.append(HOLD_MS if t < 0 else ms(t))
+    gifs["death_S3"] = core.save_gif(frames, durs, out_dir / f"{SPRITE}_death_S3.gif")
+    frames = []
+    for f, t in see:
+        row = [x for x in (rr,) if x is not None] + [(spr[(f, 3)], *g)]
+        frames.append(core.lineup(row, wall, light, SLOT_W * len(row), "SDFLR2", load=load_rgb))
+    gifs["see_S3"] = core.save_gif(frames, [ms(t) for _, t in see], out_dir / f"{SPRITE}_see_S3.gif")
+    data["scenes"] = scenes
+    # ---------------------------------------------- numbers
+    m = metrics_for(FULL_CELL, spr)
+    m["corpse"] = corpse_metrics("N")
+    tab = full_materials()
+    ids = core.material_ids(tab)
+    blood_ids = [ids["blood"], ids["pool"]]
+    m["blood_share"] = {}
+    for f in DEATH_FRAMES:
+        lay = render_full_layers(f, 0)
+        m["blood_share"][f] = round(float(np.isin(lay.mat, blood_ids).sum() / max((lay.mat >= 0).sum(), 1)), 3)
+    m["heights"] = {f"{f}{r}": int(np.ptp(np.nonzero(spr[(f, r)][..., 3] > 0)[0]) + 1) for f, r in full_plan()}
+    data["metrics"] = m
+    (out_dir / "metrics.json").write_text(json.dumps(m, indent=2) + "\n", encoding="utf-8")
+    return data
+
+
+def _rifleman_lump(name: str, cv) -> tuple | None:
+    path = RIFLEMAN_DIR / name
+    if not path.is_file():
+        return None
+    with Image.open(path) as im:
+        arr = np.asarray(im.convert("RGBA")).copy()
+    return (arr, *(core.grab_offsets(cv) if cv is not None else core.read_grab(path)))
+
+
+FULL_VERDICT = [
+    "WHAT THIS IS. D50: the CEO chose the German shepherd, cell A, with the collar as drawn. This is its whole "
+    "frame set, every letter SD_ReichHound's states name (src/zscript/monsters/reich_hound.zs, read by the "
+    "generator for the timings): the gallop A-D (Spawn idles on A B), the bite E-G, the pain H, all at 8 "
+    "rotations, and the death I-N at rotation 0. 46 lumps, MOD-SPEC 6.3's reserved SDHN. Mirror mode: the dog "
+    "is symmetric and wears no insignia, so 2-4 are traced and the engine flips them into 8-6 (SDHNA2A8, ...). "
+    "No gib: the class has no XDeath (BESTIARY 6) and the engine falls back to Death.",
+    "THE CORPSE. N lies on its right side, the whole length of it on the floor: chest, croup, neck, head and "
+    "tail, all four paws. It is not posed by eye: the body is rolled onto its side and set on the floor, then "
+    "the neck and head, the tail and each leg are let fall about their root until they touch it (the lower "
+    "legs from the knee and elbow, the upper ones from the hip and shoulder, which is what leaves them "
+    "scissored and loose). The test measures every part (section 6) and fails if any is propped up, the "
+    "Legion's L0 fault.",
+    "THE VIEW OF THE DEATH. The rig's camera looks 9 degrees down, which is right for a standing figure; a "
+    "dog lying on its side, seen from there, is a tan tube with its legs end-on. A player looks down at a "
+    "corpse (eye 41 units up, 25-30 degrees at 64-96 units), so the death is drawn from 37 degrees, ramped in "
+    "as it falls (I at 9, matching the gallop). The model the test measures is not tipped, only the render.",
+    "BLOOD (D49). Dark red, flag_red 0-5 and black only, as the rifleman and the Legion: the round opens the "
+    "left side of the neck at I, the burst flies and lands as splats, the coat soaks, blood runs from the "
+    "mouth, the pool spreads from L and is widest under N. The open mouth (bite, pain, the death's I-K) "
+    "keeps the sweep's flag_red 2-8: it is the inside of a mouth, not blood.",
+    "SPEED. The GIFs run at the actor's tics: See is SDHN AABBCCDD at 2 tics, so each picture holds 4 tics "
+    "(114 ms). The sweep's gallop GIF showed each picture 2 tics, twice as fast as the game.",
+    "NOT VERIFIED. All of it is rendered outside the engine (D26): the light is gen_enemy's stand-in, the "
+    "rotation order is rig_core's reading of r_things.c, and the corpse's grAb follows the rifleman's (the "
+    "near paws sit up to 11 px below the anchor; GZDoom's sprite clipping may lift it). The PM's engine pass "
+    "is pending, with the draft overlay (MOD-SPEC 6.9).",
+]
+
+
+def build_full_sheet(data: dict, stamp: str, out_dir: Path = PREVIEW_DIR) -> Path:
+    S = []
+    spr, gifs, met = data["sprites"], data["gifs"], data["metrics"]
+    st = zs_states()
+    rows = []
+    for label, frames, rot in (("Spawn", "AB", "1-8"), ("See", "ABCD", "1-8"), ("Melee", "EFG", "1-8"),
+                               ("Pain", "H", "1-8"), ("Death", "IJKLMN", "0"), ("Raise", "NMLKJI", "0")):
+        seq = " ".join(f"{f} {t}" for f, t in _gif_runs(st[label]))
+        n = len(set(frames)) * (5 if rot == "1-8" else 1)
+        rows.append([label, seq, rot, "reuses A-D" if label in ("Spawn", "Raise") else n])
+    body = sheetlib.table(["state", "frames and tics (reich_hound.zs)", "rotations", "lumps"], rows, 3)
+    body += (f"<p class=\"lead\">{len(full_plan())} lumps in <code>work/art/enemies/hound_gsd/full_A/</code>, "
+             "named as the engine reads them: <code>SDHNA1</code>, <code>SDHNA2A8</code> (2 drawn, 8 its flip), "
+             "<code>SDHNA3A7</code>, <code>SDHNA4A6</code>, <code>SDHNA5</code>, ... <code>SDHNI0</code>-"
+             "<code>SDHNN0</code>. Each PNG carries its grAb offsets. No XDeath state, so no gib.</p>")
+    S.append(("1 · The set", "Every frame SD_ReichHound names, for cell A as approved (D50).", body))
+    # turnaround
+    names = {1: "front", 2: "", 3: "its left", 4: "", 5: "back", 6: "", 7: "its right", 8: ""}
+    body = ""
+    for f in ("A", "C"):
+        cut = dict(zip(range(1, 9), crop_common([spr[(f, r)] for r in range(1, 9)])))
+        body += _strip([core.sprite_tile(cut[r], 3, core.rotation_lump(SPRITE, f, r, mirror=r in (2, 3, 4)
+                                                                                 ) if r <= 5 else
+                                         f"{SPRITE}{f}{r} = {f}{core.MIRRORED[r]} flipped", names[r])
+                        for r in range(1, 9)])
+    body += _strip([core.gif_tile(gifs[f"see_rot{r}"], 3, f"rotation {r}", "See, game speed") for r in range(1, 9)])
+    S.append(("2 · The turnaround",
+              "Frames A (gathered) and C (stretched) at the eight rotations, 3x, then the gallop at each rotation "
+              "at game speed. 6, 7 and 8 are not drawn: they are 4, 3 and 2 flipped, as the engine shows them.",
+              body))
+    # cycles
+    body = ""
+    for r in (1, 3, 5):
+        body += _strip([core.gif_tile(gifs[f"see_rot{r}"], 3, f"See, rotation {r}", "A B C D, 4 tics each"),
+                        core.gif_tile(gifs[f"melee_rot{r}"], 3, f"Melee, rotation {r}", "the gallop, then E F G 8"),
+                        core.gif_tile(gifs[f"pain_rot{r}"], 3, f"Pain, rotation {r}", "gallop, H 4, gallop")]
+                       + [core.sprite_tile(x, 3, core.rotation_lump(SPRITE, f, r, mirror=True)) for f, x in
+                          zip(BITE_FRAMES + PAIN_FRAMES, crop_common([spr[(f, r)] for f in BITE_FRAMES + PAIN_FRAMES]))])
+    body += _strip([core.gif_tile(gifs["spawn_rot1"], 3, "Spawn, rotation 1", "A B, 10 tics: the idle")])
+    S.append(("3 · The cycles at game speed",
+              "Every GIF runs at the tics in reich_hound.zs (35 tics a second). The bite opens the mouth, the "
+              "only red on the living dog; the pain jerks the head up in a yelp and clamps the tail.", body))
+    # death
+    body = _strip([core.sprite_tile(x, 3, f"{SPRITE}{f}0", n) for f, n, x in
+                   zip(DEATH_FRAMES, ("hit: rears", "buckles", "tips over", "down: the throe", "eases", "dead"),
+                       crop_common([spr[(f, 0)] for f in DEATH_FRAMES]))])
+    body += _strip([core.gif_tile(gifs["death"], 3, "Death, game speed", "I J 8, K L M 4, N held"),
+                    core.sprite_tile(crop_common([spr[("N", 0)]])[0], 5, f"{SPRITE}N0 at 5x", "the corpse")])
+    cm = met["corpse"]
+    rows = [[k, v] for k, v in cm["lowest"].items()]
+    body += sheetlib.table(["part of N", "lowest point above the floor (units)"], rows, 1)
+    body += (f"<p class=\"lead\">Highest point of the body {cm['top']} units (the test: under {LYING_TOP}); the parts "
+             f"on the floor spread {cm['span']} units along it (at least {LYING_SPAN}); the spine's up axis has "
+             f"a vertical component of {cm['back_up']} (0: lying exactly on its side); withers and sacrum "
+             f"{cm['spine_drop']} units apart in height. Leg joints (degrees from straight): "
+             + "; ".join(f"{k} {', '.join(str(a) for a in v)}" for k, v in cm["legs"].items())
+             + ". Blood (share of the opaque pixels, blood and pool materials): "
+             + ", ".join(f"{f} {v:.0%}" for f, v in met["blood_share"].items()) + ".</p>")
+    S.append(("4 · The death",
+              "Rotation 0, one picture for every angle, seen from 37 degrees once it is down (the verdict "
+              "says why). Dark red only, flag_red 0-5 and black (D49).", body))
+    # lineups
+    body = ""
+    for key, wall, light, what in SCENES:
+        sc, sd, labels, dlabels, *_ = data["scenes"][key]
+        body += _strip([core.tile(core.png_uri(sc), sc.shape[1], sc.shape[0], 1, f"{key} 1x: {wall} at {light}", what),
+                        core.tile(core.png_uri(sd), sd.shape[1], sd.shape[0], 1, f"{key} 1x, dead",
+                                  " · ".join(dlabels)),
+                        core.tile(core.png_uri(sc), sc.shape[1], sc.shape[0], 2, f"{key} 2x", " · ".join(labels))])
+    body += _strip([core.gif_tile(gifs["see_S3"], 1, "S3 1x: the gallop", "SDSTEL1 at 112, rotation 3"),
+                    core.gif_tile(gifs["see_S3"], 2, "S3 2x"),
+                    core.gif_tile(gifs["death_S3"], 1, "S3 1x: the death", "game speed, the rifleman standing by"),
+                    core.gif_tile(gifs["death_S3"], 2, "S3 2x")])
+    S.append(("5 · At 1x on MAP01, beside the rifleman",
+              "Our rifleman (D38, front and side) then the hound: front, side, bite, pain, the mirrored side; "
+              "and the two corpses side by side, each standing on its own offsets. S3 is the worst case, "
+              "SDSTEL1 green steel at light 112; S6 runs over SDFLR1's lane line. Light is gen_enemy.py's "
+              "stand-in, NOT VERIFIED against GZDoom.", body))
+    rows = [[k, v] for k, v in met["heights"].items()]
+    body = sheetlib.table(["lump", "height px"], rows, 1)
+    body += sheetlib.table(["measure", "value"], [
+        ["side h x w (C3)", f"{met['height_px']} x {met['width_px']}"], ["body luma", met["body_luma"]],
+        ["gap S3 (mean luma)", met["gap_S3"]],
+        ["legible S1/S2/S3/S4/S6", " / ".join(f"{met[f'legible_{k}']:.2f}" for k, *_ in SCENES)],
+        ["tan+cream / saddle", f"{met['tan_share']} / {met['saddle_share']}"]], 1)
+    S.append(("6 · Numbers", "Heights of every lump drawn (BESTIARY 6: the living dog under 40 px), and the "
+              "sweep's legibility measures on this set.", body))
+    body = '<div class="verdict">' + "".join(f"<p>{html.escape(v)}</p>" for v in FULL_VERDICT) + "</div>"
+    body += ('<div class="ask"><b>For the CEO</b><ol>'
+             "<li>Approve the set as drawn, or name the frames to redo (the corpse N above all: is it lying "
+             "naturally?).</li>"
+             "<li>The death seen from above (37 degrees) while the rest is at the rig's 9: keep, or draw it "
+             "at 9 like the rifleman's.</li>"
+             "<li>On approval: mod-engineer renames SARG to SDHN in reich_hound.zs (the frame letters already "
+             "match) and the lumps go to assets/sprites/; the PM's engine pass first.</li></ol></div>")
+    S.append(("7 · How it reads, and what is left", "", body))
+    intro = ("D50: \"Perro A\". The German shepherd of the sweep's cell A, collar and steel tag as drawn, with every "
+             "frame of SD_ReichHound: gallop, bite, pain at 8 rotations (5 drawn, mirror mode), the death at "
+             "rotation 0 with D49's dark red blood, and a corpse that lies flat on its side. Built by "
+             "<code>tools/art/gen_hound.py --full</code> on rig_core. Draft: nothing in <code>assets/</code>.")
+    footer = ("Sprites: tools/art/gen_hound.py on tools/art/rig_core.py (GPL-3.0 code; art CC BY-NC-SA 4.0, D15), "
+              "deterministic, palette v1, no system fonts. MAP01 walls and flats are the mod's own.")
+    path = out_dir / f"{stamp}_F5_reich-hound-A-full-set.html"
+    sheetlib.write_sheet(path, lang="en", title="Reich hound, German shepherd A — full set (F5, D50)",
+                         subtitle="SDHN · 46 lumps · gallop, bite, pain at 8 rotations · death with blood · draft",
+                         intro=intro, sections=S, footer=footer)
+    text = path.read_text(encoding="utf-8").replace("</style>", core.SHEET_CSS + "</style>", 1)
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--stamp", default=dt.datetime.now().strftime("%Y-%m-%d_%H%M"),
                     help="YYYY-MM-DD_HHMM for the sheet's file name")
     ap.add_argument("--no-sheet", action="store_true", help="sprites, GIFs, lineups and metrics only")
     ap.add_argument("--sheet-only", action="store_true",
-                    help="rebuild the lineups and the sheet from the sprites already in work/art/enemies/hound_gsd/")
+                    help="rebuild the lineups and the sheet from the sprites already written")
+    ap.add_argument("--full", action="store_true",
+                    help="D50: cell A's full frame set into work/art/enemies/hound_gsd/full_A/ (not the sweep)")
     args = ap.parse_args()
+    if args.full:
+        data = load_full() if args.sheet_only else build_full()
+        print(json.dumps(data["metrics"]["corpse"]))
+        if not args.no_sheet:
+            print("sheet:", build_full_sheet(data, args.stamp).relative_to(PROJECT_ROOT))
+        return
     data = load_all() if args.sheet_only else build_all()
     for k, m in data["metrics"].items():
         print(k, m)
