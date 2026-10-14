@@ -530,7 +530,8 @@ def tone_shaft(rgba: np.ndarray, wood: np.ndarray, grip, up) -> np.ndarray:
 
 
 def render_axe(grip_xy, up, rise_px: float, shaft_half_px: float, head_z: float = None,
-               flat: float = None, roll: float = None, k: float = None, shaft_w: float = 1.0):
+               flat: float = None, roll: float = None, k: float = None, shaft_w: float = 1.0,
+               straight: bool = False):
     """Our ice axe (D40 head, weighted for 1x; ash shaft) along the screen
     direction `up` from the grip at grip_xy (weapon px, depth GRIP_Z); the
     head's top rise_px up that line at head_z, farther and so smaller. The
@@ -555,6 +556,8 @@ def render_axe(grip_xy, up, rise_px: float, shaft_half_px: float, head_z: float 
     P = gw.unit(P0 * math.cos(math.radians(roll)) + np.cross(A, P0) * math.sin(math.radians(roll)))
     r_grip = shaft_half_px * GRIP_Z / gw.FOCAL
     r_head = r_grip * HEAD_SHAFT_K * shaft_w
+    if straight:
+        return straight_axe(grip_xy, up, top, A, P, k, r_head, shaft_half_px)
     rig = gw.Rig()
     shaft_top = draw_head(rig, top, A, P, k, r_head)
     rig.capsule(G, shaft_top - A * 3.0 * k, r_grip, r_head, "wood_ash", 0.55, 0.8)
@@ -566,6 +569,50 @@ def render_axe(grip_xy, up, rise_px: float, shaft_half_px: float, head_z: float 
     steel = (f.rgba[..., 3] > 0) & ~wood
     f.rgba[edge(steel, ~(f.rgba[..., 3] > 0)), :3] = artlib.ramp(HEAD_RIM[0])[HEAD_RIM[1]]
     return f
+
+
+def straight_axe(grip_xy, up, top, A, P, k: float, r_head: float, half_px: float):
+    """D76 (CEO: "hazlo recto"): the shaft as one straight rigid bar on the
+    screen, constant width 2 * half_px, from SHAFT_BELOW_PX under the grip
+    through the grip to the head's collar; the head moved so its collar
+    sits square on that axis, then drawn over the bar's top end."""
+    gw = _gw()
+    gx, gy = grip_xy
+    up = np.asarray(up, float)
+    n = np.array([-up[1], up[0]])
+    for _ in range(2):                                  # put the collar on the axis
+        rig = gw.Rig()
+        shaft_top = draw_head(rig, top, A, P, k, r_head)
+        cx, cy, _ = rig.project(shaft_top)
+        off = (cx - gx) * n[0] + (cy - gy) * n[1]        # px off the axis, across it
+        top = top - np.array([n[0], n[1], 0.0]) * off * shaft_top[2] / gw.FOCAL
+    head = gw.finish(rig)
+    t_top = (cx - gx) * up[0] + (cy - gy) * up[1]
+    ends = [(gx - up[0] * SHAFT_BELOW_PX, gy - up[1] * SHAFT_BELOW_PX), (gx + up[0] * t_top, gy + up[1] * t_top)]
+    x0 = int(math.floor(min(e[0] for e in ends) - half_px - 1))
+    x1 = int(math.ceil(max(e[0] for e in ends) + half_px + 1))
+    y0 = int(math.floor(min(e[1] for e in ends) - half_px - 1))
+    y1 = int(math.ceil(max(e[1] for e in ends) + half_px + 1))
+    L, T = min(x0, head.left), min(y0, head.top)
+    R = max(x1, head.left + head.rgba.shape[1])
+    B = max(y1, head.top + head.rgba.shape[0])
+    rgba = np.zeros((B - T, R - L, 4), np.uint8)
+    mat = np.full((B - T, R - L), -1, np.int16)
+    yy, xx = np.mgrid[T:B, L:R] + 0.5
+    t = (xx - gx) * up[0] + (yy - gy) * up[1]
+    a = (xx - gx) * n[0] + (yy - gy) * n[1]
+    wood = (np.abs(a) < half_px) & (t >= -SHAFT_BELOW_PX) & (t <= t_top)
+    rgba[wood] = (200, 190, 141, 255)
+    mat[wood] = gw.MAT_ID["wood_ash"]
+    tone_shaft(rgba, wood, (gx - L, gy - T), up)
+    hm = head.rgba[..., 3] > 0
+    sub = rgba[head.top - T:head.top - T + hm.shape[0], head.left - L:head.left - L + hm.shape[1]]
+    sub[hm] = head.rgba[hm]
+    mat[head.top - T:head.top - T + hm.shape[0], head.left - L:head.left - L + hm.shape[1]][hm] = head.mat[hm]
+    steel = hm & (head.mat != gw.MAT_ID["wood_ash"])
+    edge_ = edge(steel, ~hm)
+    sub[edge_, :3] = artlib.ramp(HEAD_RIM[0])[HEAD_RIM[1]]
+    return gw.Frame(rgba, mat, L, T, True)
 
 
 # ------------------------------------------------------------------ cells
@@ -581,6 +628,7 @@ class Cell:
     head_k: float = 1.0       # D75: the head this much bigger
     grip_y: float | None = None   # weapon px of the grip row; None: searched so the top meets the TT-33's
     shaft_w: float = 1.0      # D76: the shaft's radius under the head times this (keeps a long shaft thick)
+    straight: bool = False    # D76b: the shaft drawn as one straight bar of constant width (straight_axe)
 
 
 # Round 3b (CEO on 2026-10-14_2252: "cámbialo a diestro"; PM: the shaft reads
@@ -683,7 +731,8 @@ def build_cell(cell: Cell, cache: dict | None = None) -> dict:
 
     def frame_at(gy: float):
         gxy = (cell.grip_x, gy)
-        axe = render_axe(gxy, up, rise, shaft_half, k=HEAD_K * cell.head_k, shaft_w=cell.shaft_w)
+        axe = render_axe(gxy, up, rise, shaft_half, k=HEAD_K * cell.head_k, shaft_w=cell.shaft_w,
+                         straight=cell.straight)
         hxy = (int(round(cell.grip_x - fl["grip"][0])), int(round(gy - fl["grip"][1])))
         rgba, off, axe_m = compose(axe, hand, hxy)
         return rgba, off, axe_m, hxy
@@ -1001,7 +1050,11 @@ def shaft_width_above_fist(c: dict) -> float:
 # its radius under the head HEAD_Z / GRIP_Z times the fist's (no taper on
 # screen) keeps the 10 px all the way up (measured: 10 px at every step).
 NO_TAPER = HEAD_Z / GRIP_Z / HEAD_SHAFT_K
-D76_PICK = {"shaft_k": 1.7, "head_k": 1.8, "shaft_w": NO_TAPER}
+D76_WIDE = {"shaft_k": 1.7, "head_k": 1.8, "shaft_w": NO_TAPER}
+# D76b, the CEO on the widened one: "Longitud OK, pero te ha salido torcido.
+# Haz el arma recta": the 3D shaft's two capsules drift apart on screen, so
+# the final shaft is a straight bar (straight_axe), 10 px, the head square on it.
+D76_PICK = {"shaft_k": 1.7, "head_k": 1.8, "straight": True}
 
 
 def silhouette_tile(cell: Cell, cache: dict) -> np.ndarray:
@@ -1062,8 +1115,16 @@ def build_silhouette_final(stamp: str, out_dir: Path = OUT_DIR / "silhouettes") 
     base, gy = c3_grip_row()
     variants = [("L1.0 H1.8", replace(base, head_k=1.8, grip_y=gy)),
                 ("L1.7 H1.8", replace(base, shaft_k=1.7, head_k=1.8, grip_y=gy)),
-                ("L1.7 H1.8 wide (D76)", replace(base, key="D76", grip_y=gy, **D76_PICK))]
+                ("L1.7 H1.8 wide (D76)", replace(base, key="D76", grip_y=gy, **D76_WIDE))]
     return silhouette_sheet(variants, PREVIEW_DIR / f"{stamp}_F4_ice-axe-silhouette-final.png", 3, out_dir)
+
+
+def build_silhouette_straight(stamp: str, out_dir: Path = OUT_DIR / "silhouettes") -> Path:
+    """D76b: the straight shaft next to the previous widened one."""
+    base, gy = c3_grip_row()
+    variants = [("L1.7 H1.8 wide (D76)", replace(base, key="D76", grip_y=gy, **D76_WIDE)),
+                ("L1.7 H1.8 straight (D76b)", replace(base, key="D76b", grip_y=gy, **D76_PICK))]
+    return silhouette_sheet(variants, PREVIEW_DIR / f"{stamp}_F4_ice-axe-silhouette-straight.png", 2, out_dir)
 
 
 def build_all(out_dir: Path | None = OUT_DIR, cache: dict | None = None) -> dict:
@@ -1085,8 +1146,10 @@ def build_all(out_dir: Path | None = OUT_DIR, cache: dict | None = None) -> dict
 
 
 def main() -> None:
-    if len(sys.argv) > 1 and sys.argv[1] in ("silhouettes", "silhouette-final"):
-        fn = build_silhouettes if sys.argv[1] == "silhouettes" else build_silhouette_final
+    sil = {"silhouettes": build_silhouettes, "silhouette-final": build_silhouette_final,
+           "silhouette-straight": build_silhouette_straight}
+    if len(sys.argv) > 1 and sys.argv[1] in sil:
+        fn = sil[sys.argv[1]]
         print("wrote", fn(datetime.now().strftime("%Y-%m-%d_%H%M")))
         return
     stamp = sys.argv[1] if len(sys.argv) > 1 else datetime.now().strftime("%Y-%m-%d_%H%M")
