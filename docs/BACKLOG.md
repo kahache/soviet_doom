@@ -9,18 +9,16 @@ first. The CEO approves what moves into "Next". Order follows the MVP rule
 
 | # | Milestone | Task | Role | From |
 |---|---|---|---|---|
-| B4 | — | `verify.py fast` back under ~20 s (saves tokens on every task) | qa-engineer | CEO list #6 |
+| N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) — **not passed by the PM** (the hand reads as a blob in B and D); waiting on the route decision | art-director | D66 |
 
 ## Next (approved order, D63)
 
 | # | Milestone | Task | Role | Needs |
 |---|---|---|---|---|
-| N1 | M1 | **Map renumbering** (D62): metro -> MAP02, factory «Танкоград» -> MAP03, the practice range out of the MAPxx slots; campaign MAP01 -> MAP02 -> MAP03 | mod-engineer + level-designer | B4 delivered |
-| N2 | M1 | Engine pass of the whole campaign through the route runner | PM | N1 |
-| N3 | M2 | Install the chosen pickups (D63) and wire their states | mod-engineer | — |
-| N4 | M2 | The other 6 weapons in the Freedoom-based hands, like the TT-33, one sheet each, PM-gated | art-director | — |
+| N2 | M1 | Route for MAP03 Tankograd once it is populated (v1); MAP01 and the metro routes PASS in engine | qa-engineer | factory v1 |
 | N5 | M2 | Doughboy C, Panzermensch D (+ Schwer) full sets (D65); then the General's design sweep | art-director | doing |
-| N6 | M2 | Factory textures: the 13 industrial pieces of MAP03-factory §7.2 | art-director | — |
+| N6b | M2 | Install SDCHAN1 (masked RGBA) and SDSLOG1 (256x64): teach `test_art` and `check_pk3` both formats | mod-engineer | — |
+| N6c | M2 | ANIMDEFS for SDMOLT1-4 and SDPORT1-4 (lines proposed in the install report) | mod-engineer | — |
 | N7 | M1 | Factory v1 (populated, signposted like the metro v1) and the metro v2 (textures aligned) | level-designer | CEO walks each |
 | N8 | M3 | Music per map from PD works already chosen or licence-clean MIDIs (D59) | sound-designer | — |
 | N9 | M3 | Install the effects the CEO approves; wire SNDINFO | sound-designer + mod-engineer | CEO's listening |
@@ -38,6 +36,8 @@ The TT-33's colour and grey detail (D63, nice to have); G3 hostile pass and hand
 (`docs/ICEBOX.md`); voices; the Russian docs mirror (phase close, D34).
 
 ## Done (recent, newest first)
+
+2026-10-14 night: N1 map renumbering (MAP01 Zarya-7 -> MAP02 metro -> MAP03 Tankograd, RANGE outside; routes PASS in engine for MAP01, the metro and RANGE); N3 pickups installed; N6 Tankograd textures 19/21 installed; B4 fast verify ~13 s; main green again (eea9992).
 
 2026-10-14 evening: metro v1 (signposted pass, populated, route PASS in engine), factory v0, the route runner for the metro and MAPINFO-driven exits, the TT-33 in Freedoom-based hands, the pickups sweep, the blue pass actor, the campaign MAP01 -> metro, the hands study, the Doughboy/Panzermensch sweep.
 
