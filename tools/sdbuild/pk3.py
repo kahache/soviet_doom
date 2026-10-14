@@ -12,6 +12,8 @@ Layout of src/ (see docs/engine/MOD-SPEC.md for the contract):
   src/maps/<MAP>.wad          -> maps/<MAP>.wad copied verbatim (UDB output)
   src/<assetdir>/**           -> <assetdir>/** copied verbatim for the
                                  standard asset folders listed below
+  assets/<folder>/<set>/X.png -> <folder>/X.png (approved art, set dropped)
+  assets/localized/**         -> localized/** (language variants, path kept)
 
 The zip is deterministic: fixed timestamps, sorted entries, so two builds of
 the same sources are byte-identical.
@@ -34,6 +36,16 @@ ASSET_DIRS = ("textures", "flats", "sprites", "sounds", "music", "graphics",
 # texture set is flattened would destroy the font. Listed here so the build
 # keeps the path intact.
 NESTED_ASSET_DIRS = ("fonts",)
+# Language variants of graphics (D21 for pictures, first user the Russian
+# pause plaque of D48). GZDoom scans exactly `localized/textures/` for files
+# named `<BASE>.<lang>[-<lang>...].<ext>` and pairs each with the graphic
+# called <BASE>, which it must match in size (g4.14.2,
+# FTextureManager::AddLocalizedVariants, src/common/textures/texturemanager.cpp).
+# The whole path is the contract, so unlike textures/<set>/ nothing is
+# flattened: assets/localized/textures/M_PAUSE.ru.png packs as
+# localized/textures/M_PAUSE.ru.png. tools/check_pk3.py validates the name,
+# the base and the size; MOD-SPEC 2 says what the engine does with it.
+LOCALIZED_DIR = "localized"
 MAP_SCRIPT_NAME = "map.py"
 FIXED_ZIP_TIME = (1980, 1, 1, 0, 0, 0)  # earliest zip timestamp; reproducible builds
 IGNORED_FILES = {".DS_Store", "Thumbs.db"}
@@ -160,7 +172,22 @@ def collect_assets(assets: Path) -> list[Entry]:
             else:
                 rel = f"{folder}/{p.name}"            # drop the set folder
             entries.append(Entry(rel, p.read_bytes()))
+    entries += collect_localized(assets)
     return entries
+
+
+def collect_localized(assets: Path) -> list[Entry]:
+    """`assets/localized/**` -> `localized/**`, the path kept whole.
+
+    The engine finds a language variant by its folder (`localized/textures/`)
+    and its dotted name (`M_PAUSE.ru.png`), so the build copies both
+    verbatim. Editor leftovers (`.bak`, dotfiles) are skipped as in src/lumps.
+    """
+    base = assets / LOCALIZED_DIR
+    if not base.is_dir():
+        return []
+    return [Entry(p.relative_to(assets).as_posix(), p.read_bytes())
+            for p in _iter_files(base) if not _is_leftover(p.name)]
 
 
 def collect_entries(src: Path, tools_dir: Path, assets: Path | None = None) -> list[Entry]:

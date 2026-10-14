@@ -27,7 +27,7 @@ class SD_Doughboy : SD_Monster replaces Cacodemon
 		+NOGRAVITY
 		Species "SD_Doughboy";
 		SD_Monster.Faction SD_FACTION_LEGION;
-		BloodColor "C6 BD AA";
+		BloodColor "AD 27 21";     // D49: dark red for every faction (flag_red 9 at full bright, BESTIARY 2.1)
 		SeeSound "sd/mon/doughboy/sight";
 		PainSound "sd/mon/doughboy/pain";
 		DeathSound "sd/mon/doughboy/death";

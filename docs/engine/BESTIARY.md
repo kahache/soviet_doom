@@ -104,7 +104,7 @@ Two further verified facts that shape the design:
 | Helmet | Stahlhelm, flared skirt | M1 "pot", round bowl |
 | Accent (D12) | swastika armband: `flag_red` + black + `plaster_warm` | US flag shoulder patch: `flag_red` + `steel_blue` + `plaster_warm` |
 | Forbidden | `military_green` (owned by the world: doors, plates) | large areas of pure `concrete_cold` (camouflage) |
-| Blood | dark olive — `khaki_olive` 1–4 | pale — `plaster_warm` 10–14 |
+| Blood | **dark red** — `flag_red` 0–5 on screen, `BloodColor "AD 27 21"` (D49) | **dark red**, the same (D49) |
 
 Value check against ART-BIBLE §6.1 (walls live in the 0.45–0.70 band, concrete
 mid is 0.58): Reich body ≈ 0.38, Legion body ≈ 0.72–0.80. Both clear the
@@ -113,8 +113,34 @@ factions are told apart by value, not by hue** — that is the whole legibility
 plan and it also survives Doom's sector lighting, which crushes hue first.
 
 Blood colour is set with the `BloodColor` property, which recolours the
-standard blood sprite; no new blood actor is needed. Keep both bloods
-desaturated so the floor never competes with a `flag_red` accent.
+standard blood sprite; no new blood actor is needed.
+
+**Blood is dark red for every faction (D49, CEO 2026-10-14: "rojo oscuro,
+nada de oliva").** This supersedes the original row, which gave the Reich
+dark olive (`khaki_olive` 1–4) and the Legion pale (`plaster_warm` 10–14) so
+that a corpse told the factions apart by value. The CEO's call is about the
+deaths reading as deaths; the factions stay apart by body, helmet and
+accent, which carry the legibility plan above, and the drawn deaths (the
+rifleman's D48 death and gib, the Stormtrooper's) already bleed `flag_red`.
+One value for all seven classes, `BloodColor "AD 27 21"` (`flag_red` 9),
+set in each file under `src/zscript/monsters/` and pinned by
+`tests/test_blood.py`; `SD_PanzermenschSchwer` inherits it.
+
+Why 9 and not the 0–5 the drawn deaths use: GZDoom does not paint the
+`BloodColor` value, it scales it by each blood pixel's brightness,
+`BloodColor × max(r,g,b) / 255` (`CreateBloodTranslation`, g4.14.2
+`src/r_data/r_translate.cpp`, read in the source: VERIFIED as code, the
+on-screen look NOT VERIFIED until the PM's engine pass). The value is the
+colour at full brightness. Freedoom's `BLUD` frames run from 67 to 191 in
+brightness, so `flag_red` 9 comes out as `flag_red` 0–5 on screen: the same
+band as the drawn deaths, darker than the armband's `flag_red` 4–11, so the
+floor still never competes with a `flag_red` accent. The test runs that
+formula on the IWAD's real `BLUD` frames. Particle splashes
+(`P_DrawSplash2`, only with particle blood on) use the value itself, i.e.
+`flag_red` 9.
+
+Rows elsewhere in this document that still say "olive" (§3's "Olive
+blood", §6's Blood row) predate D49 and are superseded by this section.
 
 ### 2.2 Infighting
 

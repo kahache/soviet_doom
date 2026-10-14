@@ -51,7 +51,7 @@ class SD_General : SD_Monster replaces Cyberdemon
 		+BOSSDEATH          // so MAP03's exit can be tied to his death
 		Species "SD_General";
 		SD_Monster.Faction SD_FACTION_LEGION;
-		BloodColor "C6 BD AA";
+		BloodColor "AD 27 21";     // D49: dark red for every faction (flag_red 9 at full bright, BESTIARY 2.1)
 		SeeSound "sd/mon/general/sight";
 		PainSound "sd/mon/general/pain";
 		DeathSound "sd/mon/general/death";

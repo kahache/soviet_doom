@@ -24,7 +24,7 @@ class SD_ReichHound : SD_Monster replaces Demon
 		PainChance SD_HOUND_PAINCHANCE;
 		Species "SD_ReichHound";
 		SD_Monster.Faction SD_FACTION_REICH;
-		BloodColor "53 4A 30";
+		BloodColor "AD 27 21";     // D49: dark red for every faction (flag_red 9 at full bright, BESTIARY 2.1)
 		SeeSound "sd/mon/reichhound/sight";
 		// A_Chase plays AttackSound on entering Melee, as for Doom's demon.
 		AttackSound "sd/mon/reichhound/attack";

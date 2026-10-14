@@ -25,7 +25,7 @@ class SD_Stormtrooper : SD_Monster replaces DoomImp
 		PainChance SD_STORM_PAINCHANCE;
 		Species "SD_Stormtrooper";
 		SD_Monster.Faction SD_FACTION_BOTH;
-		BloodColor "53 4A 30";     // the body is Reich: dark olive blood
+		BloodColor "AD 27 21";     // D49: dark red for every faction (flag_red 9 at full bright, BESTIARY 2.1)
 		SeeSound "sd/mon/stormtrooper/sight";
 		PainSound "sd/mon/stormtrooper/pain";
 		DeathSound "sd/mon/stormtrooper/death";
