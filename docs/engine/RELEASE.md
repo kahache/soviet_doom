@@ -26,15 +26,17 @@ commit in `CREDITS.txt` and `README.txt` and must never be handed out.
 
 ### 1.1 What the zip holds
 
-One folder, `sovietdoom-<version>/`, with exactly five files:
+One folder, `sovietdoom-<version>/`, with exactly seven files:
 
 | File | Where it comes from |
 |---|---|
 | `sovietdoom.pk3` | `tools/build.py` on the checked-out tree, the same build CI makes |
-| `LICENSE.md` | the repo's `LICENSE.md`, byte for byte |
+| `LICENSE.md` | the repo's `LICENSE.md`, as git stores it (LF line endings) |
+| `LICENSE-GPL-3.0.txt` | the full GNU GPL v3 text (the code's licence, D15), byte for byte as https://www.gnu.org/licenses/gpl-3.0.txt served it; SHA-256 `3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986` |
+| `LICENSE-CC-BY-NC-SA-4.0.txt` | the full CC BY-NC-SA 4.0 legal code (the assets' and docs' licence, D15), byte for byte as https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt served it; SHA-256 `e66c269d4819aaab34b49ef5220c4ddab6756f21bb5180761a4eb8561f2b7bbd` |
 | `CREDITS.txt` | generated: the in-game credits (`SD_CRED_*` of the PK3's own `LANGUAGE`, English then Russian, in screen order); the lines `docs/sound/MUSIC-RIGHTS.md` §4.5 says to reproduce verbatim; one entry per register row that covers a packed asset (files, origin, licence, and for music the §4.5 obligation) |
 | `README.txt` | generated: a short player readme in English and Russian: what it is, the D46 disclaimer, what to download (GZDoom ≥ 4.14.2, D3; Freedoom: Phase 2, tested with 0.13.0, D2; **the IWAD is not included**), how to start it, the basic controls. Map and menu names are read from `LANGUAGE`, so the readme names things as the game does |
-| `SHA256SUMS` | `sha256sum -c` format, for the four files above |
+| `SHA256SUMS` | `sha256sum -c` format, for the six files above |
 
 Beside the zip, `sovietdoom-<version>.zip.sha256` holds the hash of the zip
 itself, for the release page.
@@ -42,6 +44,10 @@ itself, for the release page.
 ### 1.2 What it refuses (exit 1, nothing written)
 
 - A dirty tree without `--allow-dirty`; a malformed or missing version.
+- **A full licence text that is missing or not the published one.** Both
+  texts are pinned by SHA-256 in `LICENCE_TEXTS` (`tools/release.py`) and
+  checked before anything is built: an edit, a re-wrap or a truncation stops
+  the release. They are never edited; to restore one, check it out from git.
 - **A packed asset without a licence row.** "Asset" means every file under
   the folders `tools/check_pk3.py` audits (`textures/`, `flats/`, `sprites/`,
   `sounds/`, `music/`, `graphics/`, `patches/`, `hires/`, `fonts/`). Stricter
@@ -76,14 +82,19 @@ time (UTC) as its date; the "made on" system and the permissions are fixed
 PK3 build is already reproducible (`tools/sdbuild/pk3.py`). Across the two
 machines the bytes may still differ if git checks text files out with
 different line endings; make the release on one machine (the Windows PC,
-D27).
+D27). Line endings never reach the shipped licence files: `LICENSE.md` is
+read as text (CRLF becomes LF), and the two full texts, which hold no CR at
+all, have any CRLF turned back into LF before their hash is checked. The
+repo has no `.gitattributes` and this PC runs `core.autocrlf=true`, so a
+fresh Windows checkout may write them with CRLF; the zip is the same either
+way.
 
 ## 2. The G6 checklist, measured 2026-10-14
 
 | # | Item | State | What is missing |
 |---|---|---|---|
 | 1 | **The phases before it are closed.** F6 follows F3, F4 and F5 (`docs/ROADMAP.md`) | **OPEN** | **G3** in progress: C6 and C7 (MAP01 hand-played on skills 2 and 4, no cheats), C10 (the hostile pass, skill 4) and G3-9 (the CEO's "on point") are owed (`docs/qa/GATE-REVIEWS.md`, G3). **G4** started: every weapon still shows Freedoom placeholder sprites and sounds; hand and glove, ice axe, PPSh-41 and the weapon-sound drafts wait on the CEO. **G5** started: own enemy sprites (the Reich rifleman is a draft) and sounds, the voices on the CEO's takes (D36), and the MAP01 playtest. Until they pass, a package would be a preview, not v1 |
-| 2 | **Licence file** | **PARTIAL** | `LICENSE.md` states the dual licence (D15) but says itself that "full licence texts will be added before the v1 release". The GPL-3.0 and CC BY-NC-SA 4.0 texts must be added to the repo (downloading them is the PM's step, with the CEO's OK) and then to `RELEASE_FILES` in `tools/release.py`, with a test |
+| 2 | **Licence file** | **PASS** (2026-10-14, backlog N10) | Nothing. `LICENSE.md` states the dual licence (D15) and points to the two full texts beside it in the repo root: `LICENSE-GPL-3.0.txt` (code), from https://www.gnu.org/licenses/gpl-3.0.txt, SHA-256 `3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986`, and `LICENSE-CC-BY-NC-SA-4.0.txt` (assets and documentation), from https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt, SHA-256 `e66c269d4819aaab34b49ef5220c4ddab6756f21bb5180761a4eb8561f2b7bbd`, downloaded verbatim by the PM with the CEO's permission. Both are in `RELEASE_FILES` and in `SHA256SUMS`; `README.txt` and `CREDITS.txt` name them. Guarded by `tests/test_release.py`: `LicenceTextTest` (fast tier: the repo files hash to the published texts, the tool pins the same hashes and sources, `LICENSE.md` names each file in the bullet of what it covers, an edited or missing text is refused before the build) and `RealReleaseTest` (art tier: both texts in the zip byte-identical to the repo files) |
 | 3 | **Credits** | **DONE, engine pass owed** | In game: Options → Soviet Doom → Credits (ADR 009, MOD-SPEC §6.8), guarded by `tests/test_credits.py`. In the package: `CREDITS.txt`, guarded by `tools/release.py` and `tests/test_release.py`. Owed: the PM's engine pass of the screen (D26), and a check that the credits still name everyone when the drafts (own sprites, Kenney sound sets, D44) enter `assets/` with their register rows |
 | 4 | **README EN/RU** | **DONE for the package, controls NOT VERIFIED** | `README.txt` in the zip, both languages. The controls listed are GZDoom's defaults as we expect them (W A S D, mouse, E or Space to use, 1–7, Tab, Esc); **NOT VERIFIED** against a fresh GZDoom 4.14.2 configuration: QA checks them in the sign-off run (item 5). The repo `README.md` has both languages; its Russian half was brought level with the English on 2026-10-14 |
 | 5 | **QA sign-off** | **OPEN** | `qa-engineer`'s G6 entry in `docs/qa/GATE-REVIEWS.md`, from the package itself, not the repo: (a) `tools/release.py --version 1.0` on a clean tree at the commit to be tagged; (b) `sha256sum -c` on the `.sha256` and on `SHA256SUMS`; (c) unzip into an empty folder with only GZDoom 4.14.2 and `freedoom2.wad`, start it as `README.txt` says (both ways: drag-and-drop and the command line), zero errors in the log (the PM's engine run, D26); (d) MAP01 to the exit and the practice range opened; (e) the credits screen read in English and Russian; (f) the readme's controls tried on a fresh config; (g) the zip listing checked against §1.1 |

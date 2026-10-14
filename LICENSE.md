@@ -17,7 +17,21 @@ Internationale* by Pierre De Geyter, public domain, MIDI sequence by **Jerry
 Engelbach**, used under his attribution licence — credit required, see
 `docs/sound/MUSIC-RIGHTS.md` §4.5). Nothing from commercial games is included.
 
-Full licence texts will be added before the v1 release (gate G6).
+## Full licence texts
+
+Both texts sit beside this file, verbatim as their publishers serve them,
+and ship in the release package with it (`tools/release.py`):
+
+- [`LICENSE-GPL-3.0.txt`](LICENSE-GPL-3.0.txt): the GNU General Public
+  License, version 3, which covers the **code** above (GPL-3.0-or-later).
+  Source: https://www.gnu.org/licenses/gpl-3.0.txt
+- [`LICENSE-CC-BY-NC-SA-4.0.txt`](LICENSE-CC-BY-NC-SA-4.0.txt): the
+  Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+  Public License, which covers the **assets and documentation** above.
+  Source: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt
+
+Third-party material keeps its own licence, as recorded in
+`docs/art/LICENSES.md`; these two texts do not replace it.
 
 ---
 
@@ -34,5 +48,21 @@ Soviet Doom лицензируется по компонентам:
 Сторонние материалы сохраняют свои лицензии и перечислены с источниками в
 `docs/art/LICENSES.md` (титульная музыка «Интернационал» Пьера Дегейтера —
 общественное достояние; MIDI-секвенция **Джерри Энгельбаха** (Jerry
-Engelbach), указание автора обязательно). Ничего из коммерческих игр не включено. Полные тексты
-лицензий будут добавлены перед релизом v1 (гейт G6).
+Engelbach), указание автора обязательно). Ничего из коммерческих игр не включено.
+
+## Полные тексты лицензий
+
+Оба текста лежат рядом с этим файлом без изменений, в том виде, в каком их
+публикуют правообладатели, и входят в релизный архив вместе с ним
+(`tools/release.py`):
+
+- [`LICENSE-GPL-3.0.txt`](LICENSE-GPL-3.0.txt): GNU General Public License,
+  версия 3, — для **кода** (GPL-3.0 или новее).
+  Источник: https://www.gnu.org/licenses/gpl-3.0.txt
+- [`LICENSE-CC-BY-NC-SA-4.0.txt`](LICENSE-CC-BY-NC-SA-4.0.txt): Creative
+  Commons Attribution-NonCommercial-ShareAlike 4.0 International Public
+  License — для **ассетов и документации**.
+  Источник: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt
+
+Сторонние материалы сохраняют свои лицензии (`docs/art/LICENSES.md`); эти
+два текста их не заменяют.

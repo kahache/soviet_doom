@@ -1,0 +1,2 @@
+# The full licence texts ship byte for byte (tools/release.py pins their SHA-256)
+LICENSE-*.txt -text

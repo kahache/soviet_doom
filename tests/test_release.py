@@ -5,6 +5,9 @@ What is pinned:
   * the real release, made twice into temp dirs (`dist/` is never touched):
     the exact member list, the PK3 inside it, LICENSE.md verbatim, the
     generated CREDITS.txt and README.txt, SHA256SUMS, the .sha256 beside it;
+  * the full licence texts (GPL-3.0, CC BY-NC-SA 4.0): byte for byte the
+    repo files, whose SHA-256 is the published text's, named by LICENSE.md,
+    and an edited or missing text refused before anything is built;
   * nothing from work/, tools/, previews or any IWAD in the zip or the PK3;
   * determinism: same commit, same bytes, every timestamp the commit's;
   * the refusals: no --version, a bad version, a dirty tree, an asset with no
@@ -41,6 +44,21 @@ import release  # noqa: E402
 
 VERSION = "0.0-test"
 FOLDER = f"{release.MOD_NAME}-{VERSION}"
+
+# The full licence texts (backlog N10) and the SHA-256 of the bytes their
+# publishers served when the PM downloaded them on 2026-10-14. Written here
+# by hand, not read from release.py: an edit to a text AND to the tool's pin
+# still fails here.
+GPL_TEXT = "LICENSE-GPL-3.0.txt"
+CC_TEXT = "LICENSE-CC-BY-NC-SA-4.0.txt"
+PUBLISHED_SHA256 = {
+    GPL_TEXT: "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    CC_TEXT: "e66c269d4819aaab34b49ef5220c4ddab6756f21bb5180761a4eb8561f2b7bbd",
+}
+PUBLISHED_URL = {
+    GPL_TEXT: "https://www.gnu.org/licenses/gpl-3.0.txt",
+    CC_TEXT: "https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt",
+}
 
 
 def sha(data: bytes) -> str:
@@ -85,12 +103,26 @@ class RealReleaseTest(unittest.TestCase):
         self.assertEqual(self.first.zip_path.name, f"{FOLDER}.zip")
         self.assertEqual(self.first.zip_path.parent.name, "a")
 
-    def test_the_zip_holds_exactly_the_five_files_in_one_folder(self):
+    def test_the_zip_holds_exactly_the_seven_files_in_one_folder(self):
         self.assertEqual([i.filename for i in self.infos],
                          [f"{FOLDER}/{name}" for name in sorted(release.RELEASE_FILES)])
         self.assertEqual(sorted(self.files),
                          sorted(["sovietdoom.pk3", "LICENSE.md", "CREDITS.txt", "README.txt",
-                                 "SHA256SUMS"]))
+                                 "SHA256SUMS", GPL_TEXT, CC_TEXT]))
+
+    def test_the_full_licence_texts_are_the_repo_files_byte_for_byte(self):
+        for name in (GPL_TEXT, CC_TEXT):
+            with self.subTest(name=name):
+                repo = (PROJECT_ROOT / name).read_bytes()
+                # The texts hold no CR; a CRLF checkout (autocrlf, no
+                # .gitattributes) is turned back into the bytes git stores.
+                self.assertEqual(self.files[name], repo.replace(b"\r\n", b"\n"))
+                self.assertEqual(sha(self.files[name]), PUBLISHED_SHA256[name])
+
+    def test_the_readme_and_credits_name_the_full_texts(self):
+        for name in (GPL_TEXT, CC_TEXT):
+            self.assertIn(name, self.readme)
+            self.assertIn(name, self.credits)
 
     def test_the_pk3_is_a_full_build(self):
         for lump in ("MAPINFO", "LANGUAGE", "zscript.txt", "maps/MAP01.wad", "maps/RANGE.wad"):
@@ -101,7 +133,7 @@ class RealReleaseTest(unittest.TestCase):
         self.assertEqual(self.files[release.LICENCE_NAME],
                          (PROJECT_ROOT / "LICENSE.md").read_text(encoding="utf-8").encode("utf-8"))
 
-    def test_sha256sums_lists_the_four_other_files_correctly(self):
+    def test_sha256sums_lists_the_six_other_files_correctly(self):
         lines = self.files[release.SUMS_NAME].decode("ascii").splitlines()
         listed = {}
         for line in lines:
@@ -183,6 +215,87 @@ class RealReleaseTest(unittest.TestCase):
         self.assertEqual(check.errors, [])
         needed = {n for row, _ in check.coverage for n in row.required}
         self.assertIn("Jerry Engelbach", needed, "the register reader lost the Engelbach row")
+
+
+# --- The full licence texts (no build: these run at the fast tier) ----------------
+
+class LicenceTextTest(unittest.TestCase):
+    """LICENSE-GPL-3.0.txt and LICENSE-CC-BY-NC-SA-4.0.txt: in the repo,
+    unedited, pinned in the tool, named by LICENSE.md, and refused when
+    missing or touched."""
+
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory(prefix="sd-test-release-")
+        self.root = Path(self._tmp.name)
+
+    def tearDown(self) -> None:
+        self._tmp.cleanup()
+
+    def test_the_repo_texts_are_the_published_texts(self):
+        for name, digest in PUBLISHED_SHA256.items():
+            with self.subTest(name=name):
+                data = (PROJECT_ROOT / name).read_bytes()
+                self.assertEqual(sha(data.replace(b"\r\n", b"\n")), digest,
+                                 f"{name} was edited; restore it from git")
+                self.assertNotIn(b"\r", data.replace(b"\r\n", b""), f"{name}: a lone CR")
+
+    def test_the_tool_pins_the_same_texts_hashes_and_sources(self):
+        pinned = {t.name: (t.sha256, t.url) for t in release.LICENCE_TEXTS}
+        self.assertEqual(pinned, {n: (PUBLISHED_SHA256[n], PUBLISHED_URL[n])
+                                  for n in PUBLISHED_SHA256})
+        for name in PUBLISHED_SHA256:
+            self.assertIn(name, release.RELEASE_FILES)
+
+    def test_a_crlf_checkout_still_gives_the_published_bytes(self):
+        for text in release.LICENCE_TEXTS:
+            original = (PROJECT_ROOT / text.name).read_bytes().replace(b"\r\n", b"\n")
+            (self.root / text.name).write_bytes(original.replace(b"\n", b"\r\n"))
+            self.assertEqual(release.read_licence_text(self.root, text), original)
+
+    def test_an_edited_or_missing_text_is_refused(self):
+        gpl = next(t for t in release.LICENCE_TEXTS if t.name == GPL_TEXT)
+        with self.assertRaises(release.ReleaseError) as caught:
+            release.read_licence_text(self.root, gpl)
+        self.assertIn("not found", str(caught.exception))
+        original = (PROJECT_ROOT / GPL_TEXT).read_bytes().replace(b"\r\n", b"\n")
+        for edited in (original + b"\n", original.replace(b"GNU", b"GNU's", 1),
+                       original[:-100], original.replace(b"\n", b"\n ", 1)):
+            (self.root / GPL_TEXT).write_bytes(edited)
+            with self.subTest(size=len(edited)), self.assertRaises(release.ReleaseError) as caught:
+                release.read_licence_text(self.root, gpl)
+            self.assertIn("never edit it", str(caught.exception))
+            self.assertIn(gpl.url, str(caught.exception))
+
+    def test_make_release_refuses_an_edited_text_before_building(self):
+        for text in release.LICENCE_TEXTS:
+            (self.root / text.name).write_bytes((PROJECT_ROOT / text.name).read_bytes())
+        (self.root / CC_TEXT).write_bytes(b"not the licence\n")
+        config = release.Config(VERSION, self.root / "out", allow_dirty=True,
+                                licence_texts_dir=self.root)
+        with mock.patch.object(release, "build_pk3") as build:
+            with self.assertRaises(release.ReleaseError) as caught:
+                release.make_release(config)
+        build.assert_not_called()
+        self.assertIn(CC_TEXT, str(caught.exception))
+        self.assertFalse(config.out_dir.exists())
+
+    def test_licence_md_points_to_both_texts_and_says_what_each_covers(self):
+        text = (PROJECT_ROOT / "LICENSE.md").read_text(encoding="utf-8")
+        self.assertNotIn("will be added", text)
+        self.assertNotIn("будут добавлены", text)
+        english = text.split("\n---\n", 1)[0]
+        for name in (GPL_TEXT, CC_TEXT):
+            self.assertIn(name, english)
+            self.assertIn(PUBLISHED_URL[name], english)
+        # Each file named in the bullet that says what it covers (D15).
+        bullets = [b for b in re.split(r"\n- ", english) if "LICENSE-" in b]
+        self.assertTrue(any(GPL_TEXT in b and "**code**" in b and CC_TEXT not in b
+                            for b in bullets), bullets)
+        self.assertTrue(any(CC_TEXT in b and "**assets and documentation**" in b
+                            and GPL_TEXT not in b for b in bullets), bullets)
+        russian = text.split("\n---\n", 1)[1]
+        for name in (GPL_TEXT, CC_TEXT):
+            self.assertIn(name, russian)
 
 
 # --- Refusals of the command line and the tree ------------------------------------

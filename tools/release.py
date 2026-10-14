@@ -12,17 +12,23 @@ sovietdoom-<version>/ with exactly:
 
   sovietdoom.pk3   the mod, built by tools/build.py from the checked-out tree
   LICENSE.md       the repo's licence file, verbatim
+  LICENSE-GPL-3.0.txt, LICENSE-CC-BY-NC-SA-4.0.txt
+                   the full licence texts LICENSE.md points to (D15), byte for
+                   byte as their publishers serve them: each one's SHA-256 is
+                   pinned below (LICENCE_TEXTS)
   CREDITS.txt      generated: the in-game credits (LANGUAGE SD_CRED_*, English
                    and Russian, in screen order), the credit lines
                    docs/sound/MUSIC-RIGHTS.md 4.5 says to reproduce verbatim,
                    and the provenance of every packed asset as
                    docs/art/LICENSES.md records it
   README.txt       a short player readme, English and Russian
-  SHA256SUMS       `sha256sum -c` format, for the four files above
+  SHA256SUMS       `sha256sum -c` format, for the six files above
 
 It refuses (exit 1, nothing written) when:
   * the git tree has uncommitted changes, unless --allow-dirty (tests only:
     a release is made from a commit, so the zip can be traced to it);
+  * a full licence text is missing or is not the published text (its
+    SHA-256 differs from the pinned one);
   * the PK3 packs an asset with no row in docs/art/LICENSES.md (and, for
     music, none in MUSIC-RIGHTS 4.5, the "what ships" table);
   * a packed asset's licence requires attribution and the credits do not
@@ -82,6 +88,7 @@ DEFAULT_LICENSES = licences.LICENSES_PATH
 DEFAULT_MUSIC_RIGHTS = licences.MUSIC_RIGHTS_PATH
 DEFAULT_LANGUAGE = PROJECT_ROOT / "src" / "lumps" / "LANGUAGE"
 DEFAULT_LICENCE_FILE = PROJECT_ROOT / "LICENSE.md"
+DEFAULT_LICENCE_TEXTS_DIR = PROJECT_ROOT   # where LICENSE-*.txt live in the repo
 
 EXIT_OK = 0
 EXIT_REFUSED = 1
@@ -95,7 +102,35 @@ LICENCE_NAME = "LICENSE.md"
 CREDITS_NAME = "CREDITS.txt"
 README_NAME = "README.txt"
 SUMS_NAME = "SHA256SUMS"
-RELEASE_FILES = (CREDITS_NAME, LICENCE_NAME, README_NAME, SUMS_NAME, PK3_NAME)
+GPL_TEXT_NAME = "LICENSE-GPL-3.0.txt"
+CC_TEXT_NAME = "LICENSE-CC-BY-NC-SA-4.0.txt"
+RELEASE_FILES = (CREDITS_NAME, CC_TEXT_NAME, GPL_TEXT_NAME, LICENCE_NAME, README_NAME,
+                 SUMS_NAME, PK3_NAME)
+
+
+@dataclass(frozen=True)
+class LicenceText:
+    """A full licence text shipped verbatim: where it was downloaded from and
+    the SHA-256 of the bytes served there (backlog N10, downloaded by the PM
+    with the CEO's permission on 2026-10-14). The pin is what makes "verbatim"
+    checkable: an edited, re-wrapped or truncated text stops the release."""
+    name: str
+    covers: str
+    url: str
+    sha256: str
+
+
+CRLF = b"\r\n"
+LF = b"\n"
+
+# The two licences of D15, as LICENSE.md assigns them.
+LICENCE_TEXTS = (
+    LicenceText(GPL_TEXT_NAME, "code", "https://www.gnu.org/licenses/gpl-3.0.txt",
+                "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"),
+    LicenceText(CC_TEXT_NAME, "assets and documentation",
+                "https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt",
+                "e66c269d4819aaab34b49ef5220c4ddab6756f21bb5180761a4eb8561f2b7bbd"),
+)
 
 # Zip determinism. The zip format cannot store a date before 1980.
 MIN_ZIP_TIME = (1980, 1, 1, 0, 0, 0)
@@ -431,7 +466,8 @@ def render_credits(version: str, commit: str, credits: dict[str, list[tuple[str,
         out.append("")
     out.extend(wrap("Everything else in the PK3 (maps, ZScript, definition lumps) is the "
                     "project's own work: code under GNU GPL 3.0 or later, the rest under "
-                    "CC BY-NC-SA 4.0 (LICENSE.md).", "", ""))
+                    "CC BY-NC-SA 4.0 (LICENSE.md; the full texts are "
+                    f"{GPL_TEXT_NAME} and {CC_TEXT_NAME}).", "", ""))
     out.append("")
 
     out.append("")
@@ -493,7 +529,9 @@ BASIC CONTROLS (GZDoom's defaults; change them in Options > Customize Controls)
 
 LICENCE AND CREDITS
   Code: GNU GPL 3.0 or later. Art, sound, maps and text: CC BY-NC-SA 4.0.
-  See LICENSE.md. Everyone credited, and every asset's origin: CREDITS.txt.
+  See LICENSE.md; the full texts are LICENSE-GPL-3.0.txt and
+  LICENSE-CC-BY-NC-SA-4.0.txt. Everyone credited, and every asset's origin:
+  CREDITS.txt.
   Check the download: SHA256SUMS (sha256sum -c SHA256SUMS).
 
 ----------------------------------------------------------------------------
@@ -534,7 +572,9 @@ LICENCE AND CREDITS
 
 ЛИЦЕНЗИЯ И АВТОРЫ
   Код: GNU GPL 3.0 или новее. Графика, звук, карты и тексты: CC BY-NC-SA 4.0.
-  См. LICENSE.md. Все авторы и происхождение каждого ресурса: CREDITS.txt.
+  См. LICENSE.md; полные тексты лицензий: LICENSE-GPL-3.0.txt и
+  LICENSE-CC-BY-NC-SA-4.0.txt. Все авторы и происхождение каждого ресурса:
+  CREDITS.txt.
   Проверка загрузки: SHA256SUMS (sha256sum -c SHA256SUMS).
 """
 
@@ -586,6 +626,7 @@ class Config:
     music_rights: Path = DEFAULT_MUSIC_RIGHTS
     language: Path | None = None        # None: the LANGUAGE lump inside the built PK3
     licence_file: Path = DEFAULT_LICENCE_FILE
+    licence_texts_dir: Path = DEFAULT_LICENCE_TEXTS_DIR
     spec: Path = check_pk3.DEFAULT_SPEC
     palette: Path = check_pk3.DEFAULT_PALETTE
 
@@ -614,6 +655,27 @@ def _read(path: Path, what: str) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def read_licence_text(directory: Path, text: LicenceText) -> bytes:
+    """The published bytes of a full licence text, or ReleaseError.
+
+    Line endings: both texts are served with LF only and hold no CR at all,
+    and the repo has no .gitattributes while this PC runs core.autocrlf=true,
+    so a fresh Windows checkout may hand us CRLF. Turning CRLF back into LF
+    restores exactly the bytes git stores (and the publisher served); the
+    pinned SHA-256 then proves it, so nothing else can slip through."""
+    path = directory / text.name
+    if not path.is_file():
+        raise ReleaseError(f"{text.name} not found: {path}; it is the full {text.covers} "
+                           f"licence (D15), downloaded verbatim from {text.url}")
+    data = path.read_bytes().replace(CRLF, LF)
+    digest = sha256(data)
+    if digest != text.sha256:
+        raise ReleaseError(f"{text.name} is not the text published at {text.url} "
+                           f"(SHA-256 {digest}, expected {text.sha256}); a licence text "
+                           "ships verbatim: restore it from git, never edit it")
+    return data
+
+
 def make_release(config: Config) -> Release:
     if not VERSION_RE.match(config.version or ""):
         raise ReleaseError(f"--version {config.version!r} is not a release version "
@@ -626,6 +688,10 @@ def make_release(config: Config) -> Release:
                            f"commit (--allow-dirty is for tests only):\n{listing}{more}")
     # Short hash, and "+dirty" when the tree is not the commit (tests only).
     commit = state.commit[:COMMIT_SHORT] + ("+dirty" if state.dirty else "")
+
+    # Read first: a missing or edited text refuses before anything is built.
+    licence_texts = {text.name: read_licence_text(config.licence_texts_dir, text)
+                     for text in LICENCE_TEXTS}
 
     with tempfile.TemporaryDirectory(prefix="sd-release-") as tmp:
         pk3_path = build_pk3(config, Path(tmp))
@@ -653,6 +719,7 @@ def make_release(config: Config) -> Release:
     files: dict[str, bytes] = {
         PK3_NAME: pk3_bytes,
         LICENCE_NAME: _read(config.licence_file, "LICENSE.md").encode("utf-8"),
+        **licence_texts,
         CREDITS_NAME: render_credits(config.version, commit, credits,
                                      verbatim_music_lines(music_text), check).encode("utf-8"),
         README_NAME: render_readme(config.version, commit,
