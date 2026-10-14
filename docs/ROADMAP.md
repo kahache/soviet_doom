@@ -1,16 +1,51 @@
 # Roadmap
 
-Living document. Owner: PM. Russian mirror: `docs/ru/ROADMAP.md`.
+Living document. Owner: PM. Russian mirror: `docs/ru/ROADMAP.md` (synced at
+phase close, D34). **Status of v2 of this roadmap: PROPOSED by the PM on
+2026-10-14, waiting for the CEO's approval.** The task list lives in
+`docs/BACKLOG.md`; agents are launched only from it.
 
-| Phase | Goal | Gate (measurable) | Status |
+## The rule (D60, "instrucción importantísima")
+
+**MVP first, gameplay later.** A complete, playable game ships first; balance,
+hostile passes and other gameplay polish come after the MVP.
+
+## What the MVP is (v1.0)
+
+A player installs one PK3 next to Freedoom, starts a new game and plays the
+whole episode in English or Russian:
+
+| Area | MVP means | Today |
+|---|---|---|
+| Campaign | **3 maps linked**: MAP01 Zarya-7, MAP02 metro-bunker, MAP03 factory (D62 numbering), each finishable, populated, signposted, textured with our art, with its music | MAP01 v3 done; metro v0 walked, v1 in progress; factory v0 in progress |
+| Arsenal | **7 weapons with our own first-person art** (Freedoom-based hands, D61) and our pickups | pickups installed (6 of 7); first-person: TT-33 in progress, the rest after it |
+| Bestiary | **7 enemies with our own sprites** | 4 of 7 installed (rifleman, Legion, Stormtrooper, hound) |
+| Sound | weapon and enemy effects approved by the CEO (voices optional) | drafts waiting for the CEO's ears |
+| Music | title + one public-domain piece per map (no composing, D59) | title and MAP01 done |
+| Shell | menus, title, pause, credits, practice range | done |
+| Text | every in-game string in EN and RU, the Russian reviewed once at the end | bilingual; review owed |
+| Release | the v1 package (G6) | `tools/release.py` ready; full licence texts owed |
+
+## Milestones to the MVP
+
+| Milestone | Goal | Gate (measurable) | Status |
 |---|---|---|---|
-| F0 | Pipeline works | **G0:** GZDoom loads the PK3 on Freedoom with zero errors, player stands in MAP01 | **PASSED 2026-10-09** (`docs/qa/GATE-REVIEWS.md`) |
-| F1 | Lore + PRD | **G1:** CEO ratifies lore and D1–D13 | **PASSED 2026-10-09** (D1–D14 ratified by the CEO; D15 decided by the PM on delegation; entry in `docs/qa/GATE-REVIEWS.md`, written retrospectively 2026-10-13) |
-| F2 | Art direction + texture batch 1 ("Soviet base" set) | **G2:** ≥ 8 textures approved by the CEO, all with origin and licence; palette fixed | **PASSED 2026-10-12** (`docs/qa/GATE-REVIEWS.md`; 8 clean approvals, origin/licence and palette verified; B2 resolved the same day). Batch 2 continues inside F3: switches shipped (D25) and the metro's first pieces are approved (D42); more metro sketches wait on the CEO. Current state: `CLAUDE.md` |
-| F3 | MAP01 Zarya-7 v0→v3 | **G3:** map finishable on skills 2, 3 and 4 with zero log errors and zero softlocks; CEO verdict "on point" | **IN PROGRESS:** MAP01 v3 built and played through by the CEO (D38); G3 under way: scripted routes PASS on skills 2-4, the hand-played runs, the hostile pass and the CEO's G3-9 remain (`CLAUDE.md`, `docs/qa/GATE-REVIEWS.md`) |
-| F4 | Period arsenal (7 slots) | **G4:** every weapon has sprites, sounds, balance doc and a test range | **STARTED:** balance closed (D39), ice axe in slot 1 (D40), MAP02 ships as a practice range (D41); hand and glove, ice axe, PPSh-41 and weapon-sound drafts wait on the CEO (`CLAUDE.md`) |
-| F5 | Bestiary (both factions) | **G5:** every enemy has states, sounds, balance; MAP01 playtest passes | **STARTED:** bestiary playable with placeholder sprites and sounds; the Reich rifleman in 3D and the enemy effects are drafts waiting on the CEO (`CLAUDE.md`, `docs/qa/GATE-REVIEWS.md`) |
-| F6 | Release v1 | **G6:** licence file, credits, README EN/RU, QA sign-off, tag v1.0 | |
+| F0-F2 | Pipeline, lore, art direction | G0, G1, G2 | **PASSED** (`docs/qa/GATE-REVIEWS.md`) |
+| **M1** | **Campaign playable end to end** | the 3 maps run from New Game to the end text with no `idclip`, zero log errors, scripted route PASS on each (`tools/route.py`); the CEO walks it | MAP01 ✓; metro and factory in progress |
+| **M2** | **Our art everywhere the player looks** | no Freedoom sprite left in first person, on enemies or on pickups; factory textures approved | in progress |
+| **M3** | **Sound and music** | CEO-approved effects installed; one PD piece per map | drafts done, waiting on the CEO |
+| **M4** | **Ship v1** (was F6) | G6: licence file with full texts, credits, README EN/RU, the Russian text reviewed, QA sign-off, tag v1.0 | prep done (`docs/engine/RELEASE.md`) |
 
-Rules: gates are defined before the phase starts; first measurement is honest
-and strict; a gate may be reframed only by a new D-decision of the CEO.
+## After the MVP (gameplay, D60)
+
+| Phase | Goal | Gate |
+|---|---|---|
+| P1 | Gameplay pass | G3's hostile pass and hand-played runs on skills 2 and 4 for every map; balance by playtest (BALANCE §5); the icebox's reloads if wanted |
+| P2 | Voices and polish | the CEO's voice takes (D36); MAP02-range extras |
+| P3 | Russian docs | the full `docs/ru/` mirror (D34) |
+
+The old phases F3 (MAP01), F4 (arsenal) and F5 (bestiary) fold into M1-M3;
+their gates G3-G5 stay as the per-map and per-asset checks inside them.
+
+Rules: gates are defined before the work starts; the first measurement is
+honest and strict; a gate may be reframed only by a new D-decision of the CEO.
