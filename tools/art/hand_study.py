@@ -1299,8 +1299,39 @@ def freedoom_hands(lumps: dict, pal: np.ndarray) -> tuple[np.ndarray, tuple[int,
 
 R3_FIST = "PUNGC0"                    # Freedoom's fist: the clearest single human hand it has
 R3_FIST_PAD = 10                      # columns added on the left for the grip's end
-R3_FIST_SEAM = (64, 57, -0.11)        # wrist seam: from x, at y, slope (rows per column)
+# The glove's wrist seam in PUNGC0 is a curved dark line: it is traced per
+# column (darkest pixel within +-3 rows of this guide polyline, then a
+# 5-column median), and the sleeve is everything below it. D61: the first,
+# straight split put green inside the hand and left the right edge skin.
+R3_FIST_SEAM_GUIDE = ((56, 70), (58, 67), (60, 64), (64, 61), (68, 58), (72, 56), (78, 54), (90, 53), (97, 53), (101, 55))
+R3_FIST_SEAM_X = (58, 102)            # seam traced on these source columns; right of it all is forearm
+R3_FIST_SEAM_RIGHT_Y = 55             # right of the traced part, the forearm starts at this row
+R3_FIST_SEAM_DARK = 100               # a seam pixel darker than this stays a line
+R3_FIST_SEAM_WIN = 3                  # rows searched either side of the guide
+R3_FIST_SEAM_THICK = 3                # the stitched seam is up to 3 rows deep where it runs flat
 R3_FIST_GRIP = (27, 40)               # rows of the grip's end where the thumb and index ring it
+
+
+def fist_seam_rows(src: np.ndarray) -> dict[int, int]:
+    """{source column: seam row} for PUNGC0's wrist seam; columns right of
+    the traced part get R3_FIST_SEAM_RIGHT_Y."""
+    h, w = src.shape[:2]
+    alpha = src[..., 3] > 0
+    lum = luminance(src[..., :3].astype(np.float32))
+    lum[~alpha] = 1e9
+    gx = [p[0] for p in R3_FIST_SEAM_GUIDE]
+    gy = [p[1] for p in R3_FIST_SEAM_GUIDE]
+    x0, x1 = R3_FIST_SEAM_X
+    raw = {}
+    for x in range(x0, x1):
+        g = int(round(np.interp(x, gx, gy)))
+        y0, y1 = max(0, g - R3_FIST_SEAM_WIN), min(h, g + R3_FIST_SEAM_WIN + 1)
+        raw[x] = y0 + int(np.argmin(lum[y0:y1, x]))
+    xs = sorted(raw)
+    rows = {x: int(np.median([raw[k] for k in xs[max(0, i - 2):i + 3]])) for i, x in enumerate(xs)}
+    for x in range(x1, w):
+        rows[x] = R3_FIST_SEAM_RIGHT_Y
+    return rows
 
 
 def freedoom_fist(lumps: dict, pal: np.ndarray) -> tuple[np.ndarray, tuple[int, int]]:
@@ -1313,11 +1344,18 @@ def freedoom_fist(lumps: dict, pal: np.ndarray) -> tuple[np.ndarray, tuple[int, 
     canvas[:, pad:] = src
     alpha = canvas[..., 3] > 0
     yy, xx = np.mgrid[0:h, 0:w + pad]
-    sx, sy, slope = R3_FIST_SEAM
-    seam_y = sy + (xx - pad - sx) * slope
-    sleeve = alpha & (xx - pad >= sx) & (yy >= seam_y)
     lum = luminance(canvas[..., :3].astype(np.float32))
-    seam = alpha & ~sleeve & (xx - pad >= sx - 4) & (yy >= seam_y - 3) & (lum < 60)
+    line = fist_seam_rows(src)
+    seam_y = np.full(w + pad, 10_000)
+    for x, y in line.items():
+        seam_y[x + pad] = y
+    seam = alpha & (yy >= seam_y[None, :]) & (yy <= seam_y[None, :] + R3_FIST_SEAM_THICK - 1) & (lum < R3_FIST_SEAM_DARK)
+    sleeve = alpha & (yy > seam_y[None, :]) & ~seam
+    # no green pixel may touch skin directly: such a pixel becomes seam
+    skin0 = alpha & ~sleeve & ~seam
+    touch = sleeve & (shift(skin0, -1, 0, False) | shift(skin0, 0, -1, False) | shift(skin0, 0, 1, False))
+    seam |= touch
+    sleeve &= ~touch
     skin = alpha & ~sleeve & ~seam
     res = np.zeros_like(canvas)
     res[skin, :3] = recolour(lum, skin, R3_SKIN, R3_SKIN_GAIN)
@@ -1471,6 +1509,232 @@ def build_round3_sheet(stamp: str) -> Path:
     return path
 
 
+# ====================================================== TT-33 on R3-A1 (D61)
+# The approved Freedoom hands (R3-A1, PISGA0-C0 recoloured) holding our own
+# TT-33, rendered from behind by gen_weapon.render_tt33_rear (D61 gate: the
+# side view did not sit in hands seen from behind). The gun's grip point is
+# projected onto the grip of each Freedoom frame; the eye-to-gun distance
+# is searched once, on frame A, so the weapon stands at PISG's height (D57:
+# 55 px above the bar, +-10 %), and kept for B (kick up) and C (coming
+# down). Centred like PISGA0. Written to work/art/weapons_fd/tt33/ with grAb
+# offsets, for make_draft_overlay.py --weapons-dir work/art/weapons_fd.
+TT_OUT_DIR = ROOT / "work" / "art" / "weapons_fd" / "tt33"
+TT_FRAMES = (("SDTTA0", "PISGA0", "A"), ("SDTTB0", "PISGB0", "B"), ("SDTTC0", "PISGC0", "C"))
+TT_FLASH = ("SDTFA0", "SDTTB0")          # our flash and the held frame it shows over
+TT_TARGET_TOP = 113                      # PISGA0's top with the status bar on: 55 px above the bar
+TT_DEPTH_RANGE = (8.0, 60.0)             # cm searched for the eye-to-slide distance
+FD_SEAM_PROBE = (50, 55, 85)             # column and rows where PISG's wrist seam is looked for
+TT_GRIP_BACK_ROWS = 16                   # rows above the grip point that may show the grip's back
+
+
+def fd_hands_for_gun(lumps: dict, pal: np.ndarray, lump: str):
+    """One PISG frame recoloured like R3-A1, its pistol removed and nothing
+    put in (our gun goes behind). Returns sprite, offsets and the grip point
+    (centre of the removed pistol's lowest rows) in sprite pixels."""
+    src, off = decode_patch(lumps[lump], pal)
+    a_src, _ = decode_patch(lumps[R3_SOURCE], pal)
+    h, w = src.shape[:2]
+    rgb = src[..., :3].astype(np.float32)
+    alpha = src[..., 3] > 0
+    sat = rgb.max(-1) - rgb.min(-1)
+    red = (rgb[..., 0] > 2 * rgb[..., 1]) & (rgb[..., 0] > 120)
+    skinlike = alpha & (sat >= 40) & ~red
+    rows = np.flatnonzero(skinlike.sum(1) >= 6)
+    hands_top = int(rows[0])
+    yy, xx = np.mgrid[0:h, 0:w]
+    lum0 = luminance(rgb)
+    steel = alpha & ((sat < 40) | red)
+    # the pistol: grey/red pixels 8-connected to its part above the hands,
+    # then every non-skin pixel between its ends on each row (sights, dots)
+    gun = alpha & (yy < hands_top) & steel
+    while True:
+        grown = gun.copy()
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                grown |= shift(gun, dy, dx, False)
+        grown &= steel
+        if (grown == gun).all():
+            break
+        gun = grown
+    for y in range(h):
+        xs_ = np.flatnonzero(gun[y])
+        if xs_.size:
+            span = np.zeros(w, bool)
+            span[xs_.min():xs_.max() + 1] = True
+            gun[y] |= span & alpha[y] & ((sat[y] < 40) | red[y] | (lum0[y] < 60))
+    ys, xs = np.nonzero(gun)
+    grip = (float(xs[ys >= ys.max() - 3].mean()), float(ys.max()))
+    # the wrist seam moves with the recoil: probe it and shift R3-A1's split
+    def seam_row(img):
+        col = luminance(img[FD_SEAM_PROBE[1]:FD_SEAM_PROBE[2], FD_SEAM_PROBE[0], :3].astype(np.float32))
+        return FD_SEAM_PROBE[1] + int(np.argmin(col))
+    dy = seam_row(src) - seam_row(a_src)
+    alpha2 = alpha & ~gun
+    lum = luminance(rgb)
+    sleeve = alpha2 & (yy >= np.vectorize(forearm_row)(xx) + dy)
+    seam = alpha2 & ~sleeve & (yy >= R3_SEAM[0] + dy) & (lum < R3_SEAM_LUM)
+    skin = alpha2 & ~sleeve & ~seam
+    res = np.zeros_like(src)
+    res[skin, :3] = recolour(lum, skin, R3_SKIN, R3_SKIN_GAIN)
+    res[sleeve, :3] = recolour(lum, sleeve, R3_SLEEVE)
+    res[seam, :3] = ramp_cols(R3_SKIN)[0]
+    res[alpha2, 3] = 255
+    return res, off, grip, gun
+
+
+def write_sprite(path: Path, rgba: np.ndarray, offsets: tuple[int, int]) -> None:
+    from PIL import PngImagePlugin
+    info = PngImagePlugin.PngInfo()
+    info.add(b"grAb", struct.pack(">ii", *offsets))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(rgba, "RGBA").save(path, pnginfo=info)
+
+
+def _gw():
+    import gen_weapon
+    return gen_weapon
+
+
+def tt33_rear_frame(gw, letter: str, depth: float, hands, h_off, grip, hole):
+    """Our rear-view gun behind one Freedoom frame's hands, on one canvas.
+    Returns (rgba, offsets, muzzle_xy); everything in weapon-space px."""
+    hx0, hy0 = place(hands, h_off, bar=False)
+    pose = {p.frame: p for p in gw.TT_REAR_POSES}[letter]
+    frame, muzzle = gw.render_tt33_rear(pose, depth, (hx0 + grip[0], hy0 + grip[1]))
+    g, gx0, gy0 = frame.rgba, frame.left, frame.top
+    x0, y0 = min(gx0, hx0), min(gy0, hy0)
+    x1 = max(gx0 + g.shape[1], hx0 + hands.shape[1])
+    y1 = max(gy0 + g.shape[0], hy0 + hands.shape[0])
+    canvas = np.zeros((y1 - y0, x1 - x0, 4), np.uint8)
+    for layer, (lx, ly) in ((g, (gx0, gy0)), (hands, (hx0, hy0))):
+        sub = canvas[ly - y0:ly - y0 + layer.shape[0], lx - x0:lx - x0 + layer.shape[1]]
+        m = layer[..., 3] > 0
+        sub[m] = layer[m]
+    # where Freedoom's pistol sat between the hands and our gun does not reach
+    sub = canvas[hy0 - y0:hy0 - y0 + hands.shape[0], hx0 - x0:hx0 - x0 + hands.shape[1]]
+    rows = np.mgrid[0:hole.shape[0], 0:hole.shape[1]][0]
+    gap_ = hole & (sub[..., 3] == 0) & (rows >= grip[1] - TT_GRIP_BACK_ROWS)
+    cols_ = np.flatnonzero(gap_.any(0))
+    steel_ = ramp_cols(GRIP_RAMP)
+    for xg in cols_:
+        t = (xg - cols_.min() + 0.5) / max(1, cols_.max() - cols_.min() + 1)
+        sub[gap_[:, xg], xg, :3] = steel_[int((0.4 - 0.35 * t) * (len(steel_) - 1))]
+        sub[gap_[:, xg], xg, 3] = 255
+    return canvas, (-x0, WEAPONTOP - y0), muzzle
+
+
+def build_tt33_fd() -> dict:
+    """The three held frames and the flash; returns their sprites/offsets."""
+    gw = _gw()
+    lumps, pal = read_wad()
+    hands = {ours: fd_hands_for_gun(lumps, pal, theirs) for ours, theirs, _ in TT_FRAMES}
+    first, _, letter_a = TT_FRAMES[0]
+    hs_a, off_a, grip_a, hole_a = hands[first]
+
+    def top_bar(depth):
+        rgba, off, _ = tt33_rear_frame(gw, letter_a, depth, hs_a, off_a, grip_a, hole_a)
+        return measure(rgba, off)["top"]
+    lo, hi = TT_DEPTH_RANGE                 # nearer = bigger = higher top
+    for _ in range(18):
+        mid = (lo + hi) / 2
+        if top_bar(mid) < TT_TARGET_TOP:
+            lo = mid
+        else:
+            hi = mid
+    depth = round((lo + hi) / 2, 2)
+    frames = {}
+    for ours, _, letter in TT_FRAMES:
+        hs_, off_, grip_, hole_ = hands[ours]
+        rgba, offs, muzzle = tt33_rear_frame(gw, letter, depth, hs_, off_, grip_, hole_)
+        frames[ours] = {"sprite": rgba, "offsets": offs, "muzzle": muzzle}
+    fl = gw.render_tt33_flash("A", frames[TT_FLASH[1]]["muzzle"])
+    frames[TT_FLASH[0]] = {"sprite": fl.rgba, "offsets": fl.offsets()}
+    meta = {"_state_machine": {"file": "src/zscript/weapons/tokarev.zs", "held_placeholder": "PISG",
+                               "held_letters": "ABC", "flash_placeholder": "PISF", "flash_letters": "A",
+                               "hand": "E", "hands": "freedoom-R3A1"},
+            "_view": "rear (gen_weapon.render_tt33_rear)", "_depth_cm": depth}
+    for name, f in frames.items():
+        write_sprite(TT_OUT_DIR / f"{name}.png", f["sprite"], f["offsets"])
+        meta[name] = {"size": [f["sprite"].shape[1], f["sprite"].shape[0]], "offsets": list(f["offsets"]),
+                      "height_above_bar": measure(f["sprite"], f["offsets"])["height"]}
+    (TT_OUT_DIR / "metrics.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    return frames | {"_depth": depth}
+
+
+def build_d61_sheet(stamp: str) -> Path:
+    """One sheet: the fixed fist (A2) and the TT-33 on Freedoom's hands."""
+    lumps, pal = read_wad()
+    bg = map01_backdrop()
+    fist, _ = freedoom_fist(lumps, pal)
+    Image.fromarray(fist).save(OUT_DIR / "R3A2_PUNGC0_recoloured.png")
+    frames = build_tt33_fd()
+    depth = frames.pop("_depth")
+    pisg, pisg_off = decode_patch(lumps["PISGA0"], pal)
+    pad, gap = 24, 16
+    f_t, f_b, f_s = font(26), font(16), font(14)
+    W = 2200
+    sheet = Image.new("RGB", (W, 2600), SHEET_BG)
+    d = ImageDraw.Draw(sheet)
+    d.text((pad, 14), "D61: the fist's sleeve fixed, and the TT-33 from behind in Freedoom's hands (R3-A1)",
+           font=f_t, fill=INK)
+    y = 56
+    d.text((pad, y), "R3-A2 fixed: the sleeve now starts under the wrist seam, traced column by column; no green "
+           "inside the hand, the green reaches the right edge; a seam pixel always separates skin and sleeve.",
+           font=f_s, fill=INK)
+    y += 26
+    fn = neutral(fist, [0, 0, fist.shape[1], fist.shape[0]])
+    x = pad
+    for z in (1, 2, 4):
+        im = zoom(fn, z)
+        sheet.paste(im, (x, y))
+        d.text((x, y + im.height + 2), f"{z}x", font=f_s, fill=DIM)
+        x += im.width + gap
+    y += 4 * fist.shape[0] + 34
+    a_m = measure(frames["SDTTA0"]["sprite"], frames["SDTTA0"]["offsets"])
+    p_m = measure(pisg, pisg_off)
+    y = wrap(d, (pad, y), (
+        f"TT-33 frames for tokarev.zs (SDTT A ready, B fire: kick up, C coming down; SDTF A flash on B): our "
+        f"TT-33 rendered from behind (gen_weapon.render_tt33_rear, the slide's back {depth:.1f} cm from the eye), "
+        f"the muzzle into the screen like Freedoom's pistol, so frame A stands "
+        f"{a_m['height']} px above the status bar, PISGA0 {p_m['height']} px (D57 band "
+        f"{round(p_m['height'] * 0.9)}-{round(p_m['height'] * 1.1)}); the grip set into the grip of Freedoom's "
+        f"PISGA0/B0/C0 hands (recoloured as R3-A1), so the weapon is centred like PISGA0. Written with grAb "
+        f"offsets to work/art/weapons_fd/tt33/. Each frame at 1x and 2x on MAP01 (status bar on), beside "
+        f"Freedoom's PISGA0 at the same place."), f_s, INK, W - 2 * pad)
+    y += 8
+    for name, theirs, _ in TT_FRAMES:
+        ref, ref_off = decode_patch(lumps[theirs], pal)
+        p_scr = draw_on_screen(bg, ref, ref_off)
+        if theirs == "PISGB0":
+            pf, pf_off = decode_patch(lumps["PISFA0"], pal)
+            p_scr = composite(p_scr, pf, place(pf, pf_off))
+            p_scr[VIEW_H:] = bg[VIEW_H:]
+        f = frames[name]
+        scr = draw_on_screen(bg, f["sprite"], f["offsets"])
+        if name == "SDTTB0":
+            fl = frames["SDTFA0"]
+            scr = composite(scr, fl["sprite"], place(fl["sprite"], fl["offsets"]))
+            scr[VIEW_H:] = bg[VIEW_H:]
+        m = measure(f["sprite"], f["offsets"])
+        label = {"SDTTA0": "A ready", "SDTTB0": "B fire, kick up + SDTF A flash", "SDTTC0": "C coming down"}[name]
+        d.text((pad, y), f"{name} ({label}): {m['height']} px above the bar, x {m['bbox'][0]}-{m['bbox'][2]}",
+               font=f_b, fill=GOLD)
+        y += 24
+        x = pad
+        sheet.paste(zoom(scr, 1), (x, y))
+        x += SCREEN_W + gap
+        sheet.paste(zoom(scr, 2), (x, y))
+        x += 2 * SCREEN_W + gap
+        sheet.paste(zoom(p_scr, 2), (x, y))
+        d.text((x, y + 2 * SCREEN_H + 2), f"Freedoom {theirs}, same place, 2x", font=f_s, fill=DIM)
+        x += 2 * SCREEN_W + gap
+        sheet.paste(zoom(p_scr, 1), (x, y))
+        y += 2 * SCREEN_H + 30
+    path = PREVIEW_DIR / f"{stamp}_F4_tt33-on-freedoom-hands.png"
+    sheet.crop((0, 0, W, y)).save(path, optimize=True)
+    return path
+
+
 # ------------------------------------------------------------------ main
 def main(argv: list[str]) -> None:
     what = argv[1] if len(argv) > 1 else "all"
@@ -1485,6 +1749,8 @@ def main(argv: list[str]) -> None:
         print(build_round2_sheet(stamp))
     if what == "round3":
         print(build_round3_sheet(stamp))
+    if what == "d61":
+        print(build_d61_sheet(stamp))
 
 
 if __name__ == "__main__":
