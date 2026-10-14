@@ -20,8 +20,7 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
-| N12b | M2 | The General CD full set (~86 lumps, sway, flat death), preview to the CEO; then install + engine pass (N12c, ~150k) | art-director | 500 | D72 |
-| N14-1 | M2 | Ice axe held frame from the CEO's Fooocus references (sweep) | art-director | 250 | CEO's images (arrived) |
+| N12c | M2 | Install the General (SDGN/SDGL, general.zs + general_shell.zs letters per the preview) + engine pass | mod-engineer | 200 | CEO approves the full set |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
 ## Next (approved order, D63)
@@ -58,6 +57,8 @@ the Fooocus hand images, sounds and music to hear.
 | **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
+
+N12b: the General CD full set drafted (81 + 5 lumps), waiting for the CEO; **real ~165k** (est. 500k); N12 all steps ~500k. N14-1: the ice axe from reference 1, three cells to the CEO; **real 327k** (est. 250k).
 
 N13: the Doughboy installed (bcb7de2), engine pass `docs/qa/evidence/2026-10-14_2242_F5_doughboy-installed.md`; **real cost 250k** (est. 120k: the docs and tests mirror of 0bd65d9 is the bulk). N12b-1: the General CD turnaround (9939d6a), waiting for the CEO; **~50k** (est. 100k). Bestiary: 7 of 7 enemies drawn, 6 installed.
 

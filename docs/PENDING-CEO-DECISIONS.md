@@ -11,8 +11,8 @@ Previews are sent to you as files; the paths are under `docs/art/previews/`.
 
 | What | Preview | Asks [PM's recommendation] |
 |---|---|---|
-| The General CD full set (D72) | coming | approve -> install |
-| Hands for the other weapons | Fooocus, your images in `work/art/reference/` | the ice axe first; the PM processes them like the Lenin poster |
+| The General CD full set (D72) | `2026-10-14_2330_F5_general-CD-full-set.html` | approve -> install (N12c) |
+| Ice axe from your reference 1 | `2026-10-14_2252_F4_ice-axe-from-reference.html` | C1 [recommended], C3, C4 or none -> polish the shaft and head, then the swing |
 
 ## 2. Waiting for your ears
 
