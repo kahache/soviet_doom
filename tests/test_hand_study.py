@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import struct
 import sys
 import unittest
@@ -109,6 +110,50 @@ class HandStudyTest(unittest.TestCase):
 
     def test_four_variants_H1_to_H4(self):
         self.assertEqual(list(hs.VARIANTS), ["H1", "H2", "H3", "H4"])
+
+
+slow = unittest.skipIf(os.environ.get("SD_SKIP_SLOW_ART"), "SD_SKIP_SLOW_ART is set: skipping a render")
+
+
+@unittest.skipIf(hs is None, "art tooling (numpy, Pillow) not installed")
+@unittest.skipUnless(hs is not None and hs.IWAD.is_file(), "Freedoom IWAD not in iwads/")
+class FreedoomWeaponsTest(unittest.TestCase):
+    """N4 (D63): the weapons after the TT-33, in Freedoom's hands, one by one."""
+
+    def test_bare_fist_is_pungc0_alone(self):
+        lumps, pal = hs.read_wad()
+        bare, off, ring = hs.freedoom_fist_bare(lumps, pal)
+        src, _ = hs.decode_patch(lumps[hs.R3_FIST], pal)
+        self.assertTrue(((bare[..., 3] > 0)[:, hs.R3_FIST_PAD:] == (src[..., 3] > 0)).all())
+        self.assertFalse((bare[:, :hs.R3_FIST_PAD, 3] > 0).any())
+        self.assertEqual(off, hs.freedoom_fist(lumps, pal)[1])
+        self.assertTrue(hs.R3_FIST_GRIP[0] <= ring[1] < hs.R3_FIST_GRIP[1])
+
+    def test_axe_letters_come_from_the_zs(self):
+        self.assertEqual(hs.zs_held_letters(hs.AXE_FD_ZS, hs.AXE_FD_PLACEHOLDER), "ABCD")
+
+    @slow
+    def test_axe_in_the_fist_at_pisg_height_with_the_fist_untouched(self):
+        frames = hs.build_axe_fd()
+        self.assertEqual(sorted(frames), ["SDAXA0", "SDAXB0", "SDAXC0", "SDAXD0"])
+        lumps, pal = hs.read_wad()
+        pisg, off = hs.decode_patch(lumps["PISGA0"], pal)
+        ref = hs.measure(pisg, off)
+        a = frames["SDAXA0"]
+        m = hs.measure(a["sprite"], a["offsets"])
+        self.assertLessEqual(abs(m["height"] - ref["height"]), 0.1 * ref["height"])
+        self.assertLess(abs((m["bbox"][0] + m["bbox"][2]) / 2 - hs.SCREEN_W / 2), 20)
+        bare, _, _ = hs.freedoom_fist_bare(lumps, pal)
+        for name, f in frames.items():
+            # the fist is drawn last, unchanged: each of its pixels is in the frame as it is in R3-A2
+            spr, (lx, ty) = f["sprite"], f["offsets"]
+            fx, fy = f["pose"].fist
+            x0, y0 = fx + lx, fy - (hs.WEAPONTOP - ty)
+            sub = spr[y0:y0 + bare.shape[0], x0:x0 + bare.shape[1]]
+            mask = bare[..., 3] > 0
+            self.assertTrue((sub[mask] == bare[mask]).all(), name)
+            _, grab = hs.read_png_sprite(hs.AXE_FD_OUT_DIR / f"{name}.png")
+            self.assertEqual(tuple(grab), tuple(f["offsets"]), name)
 
 
 if __name__ == "__main__":

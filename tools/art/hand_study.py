@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 import struct
 import sys
 from datetime import datetime
@@ -1780,6 +1781,184 @@ def build_d61_sheet(stamp: str) -> Path:
     return path
 
 
+# ================================================ ice axe on R3-A2 (N4, D63)
+# The other weapons follow the TT-33 one at a time (D63). The ice axe is a
+# one-hand tool: it is held in the approved fist R3-A2 (Freedoom's PUNGC0
+# recoloured, freedoom_fist), the fist without its grey grip stub, and our
+# own axe (gen_weapon.render_axe_fd) runs out of the ring of thumb and
+# index. Frame A is lowered to PISG's height (the scale study: PUNG is no
+# model for a raised pick, so the axe is held to the sidearm's band, D57),
+# and its letters are the ones ice_axe.zs plays on PUNG. Written to
+# work/art/weapons_fd/ice_axe/ with grAb offsets, like the TT-33.
+WEAPONS_FD_DIR = ROOT / "work" / "art" / "weapons_fd"
+AXE_FD_OUT_DIR = WEAPONS_FD_DIR / "ice_axe"
+AXE_FD_ZS = ROOT / "src" / "zscript" / "weapons" / "ice_axe.zs"
+AXE_FD_PLACEHOLDER, AXE_FD_SPRITE = "PUNG", "SDAX"
+AXE_FD_RING_INSET = 3                 # px from the fist's left edge to the shaft's axis, at the ring's row
+
+
+def zs_held_letters(zs: Path, sprite: str) -> str:
+    """The frame letters a weapon's .zs plays on one sprite (read only)."""
+    text = zs.read_text(encoding="utf-8")
+    letters = set()
+    for m in re.finditer(rf"^\s*{sprite}\s+([A-Z]+)\s", text, re.M):
+        letters |= set(m.group(1))
+    return "".join(sorted(letters))
+
+
+def freedoom_fist_bare(lumps: dict, pal: np.ndarray) -> tuple[np.ndarray, tuple[int, int], tuple[float, float]]:
+    """R3-A2 without the grey grip end (only PUNGC0's own pixels, recoloured
+    by freedoom_fist), and the ring point in sprite px: where the shaft's
+    axis leaves the fist between thumb and index."""
+    fist, off = freedoom_fist(lumps, pal)
+    src, _ = decode_patch(lumps[R3_FIST], pal)
+    own = np.zeros(fist.shape[:2], bool)
+    own[:, R3_FIST_PAD:] = src[..., 3] > 0
+    bare = fist.copy()
+    bare[~own] = 0
+    ry = (R3_FIST_GRIP[0] + R3_FIST_GRIP[1]) / 2
+    edge = int(np.flatnonzero(own[int(ry)])[0])
+    return bare, off, (float(edge + AXE_FD_RING_INSET), ry)
+
+
+def axe_fd_frame(gw, pose, fist: np.ndarray, ring, head_y: float):
+    """One frame: our axe behind the fist placed at pose.fist. Returns
+    (rgba, offsets) in the engine's convention."""
+    fx, fy = pose.fist
+    f = gw.render_axe_fd(pose, (fx + ring[0], fy + ring[1]), head_y)
+    x0, y0 = min(f.left, fx), min(f.top, fy)
+    x1 = max(f.left + f.rgba.shape[1], fx + fist.shape[1])
+    y1 = max(f.top + f.rgba.shape[0], fy + fist.shape[0])
+    canvas = np.zeros((y1 - y0, x1 - x0, 4), np.uint8)
+    for layer, (lx, ly) in ((f.rgba, (f.left, f.top)), (fist, (fx, fy))):
+        sub = canvas[ly - y0:ly - y0 + layer.shape[0], lx - x0:lx - x0 + layer.shape[1]]
+        m = layer[..., 3] > 0
+        sub[m] = layer[m]
+    return canvas, (-x0, WEAPONTOP - y0)
+
+
+def build_axe_fd() -> dict:
+    """The held frames the .zs plays, written with grAb; returns them."""
+    gw = _gw()
+    lumps, pal = read_wad()
+    fist, _, ring = freedoom_fist_bare(lumps, pal)
+    letters = zs_held_letters(AXE_FD_ZS, AXE_FD_PLACEHOLDER)
+    poses = {p.frame: p for p in gw.AXE_FD_POSES}
+    missing = set(letters) - set(poses)
+    if missing:
+        raise ValueError(f"ice_axe.zs plays PUNG {''.join(sorted(missing))}, which has no pose")
+    frames = {}
+    for letter in letters:
+        pose = poses[letter]
+        head_y = pose.head_y
+        if head_y is None:               # frame A: the head's height that puts the top on PISG's
+            lo, hi = 0.0, float(SCREEN_H)
+            for _ in range(20):
+                mid = (lo + hi) / 2
+                rgba, off = axe_fd_frame(gw, pose, fist, ring, mid)
+                if measure(rgba, off)["top"] < TT_TARGET_TOP:
+                    lo = mid
+                else:
+                    hi = mid
+            head_y = round((lo + hi) / 2, 2)
+        rgba, off = axe_fd_frame(gw, pose, fist, ring, head_y)
+        frames[f"{AXE_FD_SPRITE}{letter}0"] = {"sprite": rgba, "offsets": off, "pose": pose, "head_y": head_y}
+    meta = {"_state_machine": {"file": "src/zscript/weapons/ice_axe.zs", "held_placeholder": AXE_FD_PLACEHOLDER,
+                               "held_letters": letters, "hand": "E", "hands": "freedoom-R3A2"},
+            "_view": "gen_weapon.render_axe_fd behind the fist R3-A2 (Freedoom PUNGC0, recoloured)",
+            "_target_top": TT_TARGET_TOP}
+    for name, f in frames.items():
+        write_sprite(AXE_FD_OUT_DIR / f"{name}.png", f["sprite"], f["offsets"])
+        m = measure(f["sprite"], f["offsets"])
+        meta[name] = {"size": [f["sprite"].shape[1], f["sprite"].shape[0]], "offsets": list(f["offsets"]),
+                      "height_above_bar": m["height"], "bbox_bar_on": m["bbox"], "pose": f["pose"].name,
+                      "head_y": f["head_y"]}
+    (AXE_FD_OUT_DIR / "metrics.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    return frames
+
+
+def build_axe_fd_sheet(stamp: str) -> Path:
+    """The ice axe's own sheet (D63: one weapon, one sheet, PM-gated)."""
+    lumps, pal = read_wad()
+    bg = map01_backdrop()
+    frames = build_axe_fd()
+    pisg, pisg_off = decode_patch(lumps["PISGA0"], pal)
+    p_m = measure(pisg, pisg_off)
+    old_path = ROOT / "work" / "art" / "weapons" / "ice_axe" / "SDAXA0.png"
+    pad, gap = 24, 16
+    f_t, f_b, f_s = font(26), font(16), font(14)
+    W = 2200
+    sheet = Image.new("RGB", (W, 3200), SHEET_BG)
+    d = ImageDraw.Draw(sheet)
+    d.text((pad, 14), "N4 / D63, weapon 1 of 6: the ice axe in Freedoom's fist (R3-A2)", font=f_t, fill=INK)
+    a = frames[f"{AXE_FD_SPRITE}A0"]
+    a_m = measure(a["sprite"], a["offsets"])
+    y = wrap(d, (pad, 56), (
+        f"Held frames {AXE_FD_SPRITE} {''.join(sorted(n[4] for n in frames))} for ice_axe.zs (it plays PUNG A at "
+        f"rest and PUNG B C D C B for the blow, so B wound up, C the blow coming down, D the pick in). The fist is "
+        f"the approved R3-A2 (Freedoom 0.13 PUNGC0, BSD-3, recoloured; its grey grip end removed), unchanged "
+        f"pixel for pixel and only moved; the axe is ours (gen_weapon.render_axe_fd: the approved D48 axe's head, "
+        f"pick and adze, ash shaft), its shaft leaving the fist through the ring of thumb and index. Frame A is "
+        f"LOWERED as the scale study asked: the raised D48 axe stood 128 px above the bar; A now stands "
+        f"{a_m['height']} px, PISGA0 {p_m['height']} px (D57 band {round(p_m['height'] * 0.9)}-"
+        f"{round(p_m['height'] * 1.1)}), its centre at x {(a_m['bbox'][0] + a_m['bbox'][2]) / 2:.0f} (screen "
+        f"centre 160). Written with grAb offsets to work/art/weapons_fd/ice_axe/. Each frame at 1x, 2x and a 4x "
+        f"crop on MAP01 (status bar on), beside Freedoom's PUNG frame of the same letter at the same place."),
+        f_s, INK, W - 2 * pad)
+    y += 8
+    # the swing as the player sees it, at 1x
+    d.text((pad, y), "The blow as the .zs plays it, 1x: A (rest), B, C, D, C, B", font=f_b, fill=GOLD)
+    y += 24
+    x = pad
+    for letter in "ABCDCB":
+        f = frames.get(f"{AXE_FD_SPRITE}{letter}0")
+        if f is None:
+            continue
+        sheet.paste(zoom(draw_on_screen(bg, f["sprite"], f["offsets"]), 1), (x, y))
+        d.text((x, y + SCREEN_H + 2), letter, font=f_s, fill=DIM)
+        x += SCREEN_W + 8
+    y += SCREEN_H + 30
+    for name, f in sorted(frames.items()):
+        letter = name[4]
+        ref, ref_off = decode_patch(lumps[f"{AXE_FD_PLACEHOLDER}{letter}0"], pal)
+        scr = draw_on_screen(bg, f["sprite"], f["offsets"])
+        m = measure(f["sprite"], f["offsets"])
+        d.text((pad, y), f"{name} ({f['pose'].name}): {m['height']} px above the bar, x {m['bbox'][0]}-"
+               f"{m['bbox'][2]}", font=f_b, fill=GOLD)
+        y += 24
+        x = pad
+        sheet.paste(zoom(scr, 1), (x, y))
+        x += SCREEN_W + gap
+        sheet.paste(zoom(scr, 2), (x, y))
+        x += 2 * SCREEN_W + gap
+        cx0 = int(np.clip((m["bbox"][0] + m["bbox"][2]) // 2 - 70, 0, SCREEN_W - 140))
+        cy0 = int(np.clip(m["bbox"][1] - 6, 0, VIEW_H - 100))
+        crop = zoom(scr[cy0:cy0 + 100, cx0:cx0 + 140], 4)
+        sheet.paste(crop, (x, y))
+        d.text((x, y + crop.height + 2), "4x crop", font=f_s, fill=DIM)
+        x += crop.width + gap
+        sheet.paste(zoom(draw_on_screen(bg, ref, ref_off), 1), (x, y))
+        d.text((x, y + SCREEN_H + 2), f"Freedoom {AXE_FD_PLACEHOLDER}{letter}0, 1x", font=f_s, fill=DIM)
+        y += max(2 * SCREEN_H, crop.height) + 30
+    if old_path.is_file():
+        old, old_off = read_png_sprite(old_path)
+        d.text((pad, y), "Before (D48 draft, hand E, raised): SDAXA0 "
+               f"{measure(old, old_off)['height']} px above the bar", font=f_b, fill=DIM)
+        y += 24
+        sheet.paste(zoom(draw_on_screen(bg, old, old_off), 1), (pad, y))
+        sheet.paste(zoom(draw_on_screen(bg, a["sprite"], a["offsets"]), 1), (pad + SCREEN_W + gap, y))
+        d.text((pad + SCREEN_W + gap, y + SCREEN_H + 2), "now", font=f_s, fill=DIM)
+        y += SCREEN_H + 30
+    y = wrap(d, (pad, y), (
+        "Licence: the fist's pixels are Freedoom's (PUNGC0, Freedoom 0.13.0, BSD-3-Clause, Copyright (c) "
+        "2001-2024 Contributors to the Freedoom project), recoloured to palette v2 flesh_pink and military_green; "
+        "credited as for R3-A1/R3-A2. The axe is our own render. No pixel of a commercial game."),
+        f_s, DIM, W - 2 * pad)
+    path = PREVIEW_DIR / f"{stamp}_F4_ice-axe-on-freedoom-fist.png"
+    sheet.crop((0, 0, W, y + 10)).save(path, optimize=True)
+    return path
+
+
 # ------------------------------------------------------------------ main
 def main(argv: list[str]) -> None:
     what = argv[1] if len(argv) > 1 else "all"
@@ -1796,6 +1975,8 @@ def main(argv: list[str]) -> None:
         print(build_round3_sheet(stamp))
     if what == "d61":
         print(build_d61_sheet(stamp))
+    if what == "axe_fd":
+        print(build_axe_fd_sheet(stamp))
 
 
 if __name__ == "__main__":
