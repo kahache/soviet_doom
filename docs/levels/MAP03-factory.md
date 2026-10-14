@@ -7,15 +7,16 @@
 > this document is the metro. Dated evidence keeps its file names (a `map03`
 > there is the metro). Wiring: `docs/engine/MOD-SPEC.md` §4.6.
 
-Design document. Owner: `level-designer`. Status: **v0 BUILT 2026-10-14
-(§14), not yet walked.** A working brief for the PM; the CEO's verdict comes
+Design document. Owner: `level-designer`. Status: **v1 BUILT 2026-10-14
+(§15): textured with the Tankograd set, populated, the General in the portal
+hall; not yet walked** (v0, §14, was not walked either). A working brief for the PM; the CEO's verdict comes
 from walking the map, not from reading this (D28). Built MVP first (D60): a
 complete, walkable map from start to exit, gameplay polish later. Source:
 `src/maps/MAP03/map.py`; tests: `tests/test_map03_factory.py`. Russian mirror: owed
 at the phase close (D34).
 
 > **Walk it** (the PM or the CEO; agents never start GZDoom, D26):
-> `python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP03 tools/run.sh`.
+> `python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP03 SKILL=3 tools/run.sh`.
 > MAPINFO wires it since D62 (§11): the metro's exit leads here, and this
 > map's exit ends the episode.
 
@@ -50,7 +51,7 @@ keys of the works, crosses the factory floor, and cuts the portal's power.
 
 | Job | How the layout does it |
 |---|---|
-| Teach two keys | the hub shows **both locked doors at once** from the dock's arch: red at the far west end, yellow in the south wall, each lit in its colour between two star plaques. The yellow key is **seen from the factory floor** up the office stair; the red key is seen **from the foundry's door**. Doom's grammar: lock before key, key before the lock it opens. |
+| Teach two keys | the hub shows **both locked doors at once** from the dock's arch: red at the far west end, yellow in the south wall, each lit in its colour, each leaf trimmed in its key's colour (v1; the yellow between two star plaques, the red between plain whitewashed brick, §15.2). The yellow key is **seen from the factory floor** up the office stair; the red key is seen **from the foundry's door**. Doom's grammar: lock before key, key before the lock it opens. |
 | Answer MAP02's walk (D58) | the CEO never found MAP02's pass. Here no key is in a side room: each lies alone on a lit pedestal on the route, in its lock's colour of light, and is seen from the doorway of its room (tested). A yellow lane on the factory floor joins the yellow door to the stair that leads to the yellow key. Light 192 is spent on five places only: two locks, two keys, the exit. |
 | Be a tractor factory that makes tanks | the assembly hall is the works' public face: two assembly lines, red-striped walls, offices above. Behind the yellow door (the "closed shop") the line is a **tank line**, with inspection pits; behind it the foundry casts the hulls. |
 | Be the climax | the portal hall is the biggest volume of the episode (1024 × 896, 384 high), the portal in a steel drum at its centre on a stepped dais, the General's arena (v3). |
@@ -116,6 +117,12 @@ casting platform, `2` the **red key** on its pedestal · `A` SW-A's niche,
 `X` the shutter (its passage under it) · `n` antechamber, `W` portal hall,
 blank inside `W` the drum's steel ring, `U` inside the drum, `u` porches,
 `E` the **exit** at the top of the dais · `B` control booth.
+
+v1 adds, without moving any of the above (§15.3): two monster closets in the
+hall's walls (south, east of the shutter; north, at the west end), shallow
+recesses for the dock's and the tank line's shut gates and for the two flags
+at the drum, clerestory sills in the hall's long walls, the banner over the
+hall's axis and a hoist over each pit.
 
 | # | Zone | x | y | floor | ceil | light (v0) |
 |---|---|---|---|---|---|---|
@@ -228,7 +235,9 @@ as MAP02's SH: a shortcut found from behind, wall from the hall.
   hangar's yellow line, MAP01's "go here") runs from the yellow door's portal
   up the centre aisle to the office stair (tested adjacency).
 - **Real faces.** Every door wears `SDDOOR1`, one whole tile (tested); every
-  switch its own `SDSW1x` face, one-shot so it stays ON (tested).
+  switch its own `SDSW1x` face, one-shot so it stays ON (tested). Since v1
+  the two locked doors wear their key's trim, `SDDOORY` and `SDDOORR`
+  (§15.2).
 
 Rules that remove whole classes of softlock, kept from MAP01 §4 and MAP02 §5:
 
@@ -275,6 +284,8 @@ Rules that remove whole classes of softlock, kept from MAP01 §4 and MAP02 §5:
 ## 7. Textures
 
 ### 7.1 By zone (v0, all approved and packed, tested)
+
+Superseded by v1 for most zones: the set as built is §15.1.
 
 No industrial set exists yet. v0 dresses the factory in the Soviet base set
 and two metro pieces where they fit; v1 swaps in the industrial pieces of
@@ -332,7 +343,11 @@ secret has a way back.
 | S2 | A drain under pit B, into the foundry's floor | one pit has a grate the other lacks | armour, a backpack |
 | S3 | The foundry's flue, above the casting platform | a draught of light in a dark corner (v2) | health, rockets |
 
-## 9. Enemies and resources by skill (plan for v3; v0 places none)
+## 9. Enemies and resources by skill (placed in v1, §15.4)
+
+The plan as written for v3; the PM's v1 brief brought it forward, as D58 did
+for MAP02. v1 places it with the bestiary's own numbers (21100-21107, not
+the stand-ins below) and changes the cells marked in §15.4.
 
 Doom stand-ins, so nothing renumbers when sprites change (MAP01, MAP02).
 The General and the heavy Panzermensch make their first appearance here
@@ -392,8 +407,9 @@ the skill-4 monsters need), the General included; health scaled 2 > 3 > 4.
 | Turned flats | `rotationfloor` 90 on the rail strips | as MAP02 (its K8) |
 
 Tag plan: **1** D1 · **2** D2 · **4** yellow door · **5** red door · **10**
-shutter (SW-A; v3 adds the hall's closets) · **11** the drum's gate (SW-B;
-v3 adds the drum's closets). Free: 3, 6–9, 12 and up.
+shutter and, since v1, the hall's two closets (SW-A) · **11** the drum's
+gate (SW-B; the drum needs no closet, its guard is behind the gate). Free: 3,
+6–9, 12 and up.
 
 ## 11. MAPINFO and LANGUAGE (for `mod-engineer`)
 
@@ -458,13 +474,14 @@ Each version loads in GZDoom and is walkable from start to exit.
 | Version | Content | Done when |
 |---|---|---|
 | **v0 — grey box** ✅ **BUILT 2026-10-14** (§14) | the whole plan of §4, every door, both keys, both locks, both switches, the gate, the exit, stairs and drops; the approved sets where they fit (§7.1); the signposting of §5 (lit keys, coloured light, the lane, the plaques); light by zone; **no monsters, no items, no secrets** but the start and the two keys | the CEO walks it, finds both keys unaided and judges the shape (§14.4); `tests/test_map03_factory.py` (`test_map04.py` then) green |
-| v1 — textured | the industrial pieces of §7.2 as approved; the tanks and tractors; the Lenin poster in the director's office; the hall's clerestory; anything the v0 walk moves | the CEO judges the factory as a factory from screenshots |
-| v2 — light and detail | the foundry's glow and molten channel, the portal's light, chains, flicker in the tank line, the flags | a first-time player finds both keys and the exit without being told |
-| v3 — density, combat, resources | §9 placed with closets on tags 10 and 11, the General, the secrets of §8, the ammo budget, MAP02-like density | the episode is played through on skill 3 |
+| **v1 — textured and populated** ✅ **BUILT 2026-10-14** (§15) | the Tankograd set of §7.2 as approved (D66), the red lock's plaques removed, the clerestory, the flags, the banner, the chains; **§9 placed** (brought forward from v3 like MAP02's, the PM's brief), SW-A's closets, the General, the weapons and G3-8's budget | the CEO walks it on skill 3 and finishes the episode (§15.9) |
+| v2 — light and detail | the foundry's glow and molten channel (animated once `ANIMDEFS` lands), the portal's light, flicker in the tank line; the tanks and tractors, the Lenin poster in the director's office, lockers, the buffer stop | a first-time player finds both keys and the exit without being told |
+| v3 — secrets and balance | the secrets of §8 (the Hand Katyusha in S1), the General's death and the gate (open point 4), balance after the playtests (D60) | the episode is played through on skill 3 |
 
 ## 13. Open points for the CEO
 
-1. **Walk v0** (D28): the judgements of §14.4. The only one that blocks v1.
+1. ~~**Walk v0** (D28).~~ v1 was built without the walk, under D60 and the
+   PM's brief; walk **v1** instead (§15.9), which asks §14.4's questions too.
 2. ~~**The factory's name.** Working title "Tractor Factory" / «Тракторный
    завод».~~ **Decided (D63): «Танкоград» / Tankograd.** A proposal with the history in it: the works that made tanks in
    the war were nicknamed **«Танкоград»** ("Tankograd"); a fictional works in
@@ -476,8 +493,14 @@ Each version loads in GZDoom and is walkable from start to exit.
    death.
 5. **The ending.** The exit is the portal's breaker; the episode's ending
    text has to be rewritten for it (§11, step 2).
-6. **The portal's look** (§7.2, item 9): its colour and whether it shows
-   the other side.
+6. ~~**The portal's look** (§7.2, item 9).~~ Decided (D66): cobalt with
+   white filaments, `SDPORT1`-`4`; v1 places frame 1 on the drum's back wall.
+7. **The Hand Katyusha** (new, v1). §8 puts it in S1, a v3 secret; until v3
+   the episode never hands the player slot 7. Keep it for the secret (Doom's
+   way, the BFG hidden in the last map) or put it on the route now?
+8. **The molten channel** (new, v1). It wears molten metal but does not
+   hurt. A damaging floor (sector special) is a one-line change and a
+   trap-free one (the channel is 16 deep, a step): wanted, and how much?
 
 ## 14. v0 build record (2026-10-14)
 
@@ -574,3 +597,289 @@ use warp is within 64 of the line it presses. Log and screenshots to
 - ~~**PM:** renumber LORE's episode table and BESTIARY's references.~~ Not
   needed: D62 gave the maps LORE's numbers, so BESTIARY's "MAP03" (the
   General, the heavy Panzermensch) is this map again.
+
+## 15. v1 build record (2026-10-14)
+
+Source: `src/maps/MAP03/map.py`; tests: `tests/test_map03_factory.py`.
+Builder unchanged (`GridMap`), plus one helper, `hang`, that puts a middle
+texture on a built two-sided line (the banner, the chains). **85 sectors, 366
+linedefs, 289 vertices, 130 things** (v0: 65 / 273 / 214 / 3). Not walked in
+GZDoom by this role (D26): the engine pass is the PM's, §15.8.
+
+```sh
+python3 tools/verify.py fast                                                   # build + check_pk3 + suite, no window
+python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP03 SKILL=3 tools/run.sh      # walk it (PM or CEO only)
+```
+
+The brief (N7, the factory's half; D60: complete and playable, balance
+later): the Tankograd textures where the design asked for them, the red
+lock's plaques, §9 placed by skill with MAPINFO's 211xx numbers, the General
+as the boss in the portal hall, weapons, ammunition and health on G3-8's
+budget, no music (the sound-designer's).
+
+### 15.1 Textures, as built
+
+All 19 lumps of batch 4 installed at the brief (D66) are used, the two
+animations by their first frame (`SDMOLT1`, `SDPORT1`, which `ANIMDEFS`
+cycles since N6c); the two held lumps, `SDCHAN1` and `SDSLOG1`, were
+installed by another agent during this build (N6b) and are placed too.
+Each sits behind a constant (`CHAIN`, `SLOGAN`); set either to `None` and
+the map builds without it and its test skips.
+
+| Zone | Walls | Floor | Ceiling | What changed from v0 |
+|---|---|---|---|---|
+| Goods spur | `SDTUBB1` | `SDFLR2` + `SDRAIL1` | `SDCEIL2` | the mouth into the dock is brick (the tunnel ends in the works' wall) |
+| Loading dock, arch | `SDBRCK1` | `SDFLR2` + `SDRAIL1` | `SDCEIL2` | brick; **the yard's road gate** `SDGATE1`, shut, one tile in a recess of the north wall |
+| Assembly hall | `SDBRCK1` (the hall is 320 high, so the whitewashed `SDBRCK2` would repeat its band; it is kept for walls exactly 128 high) | `SDFLR2`, the lane `SDFLR1` | `SDCEIL1` | brick; **the clerestory**: nine 64-wide windows `SDWIND1` on 16-deep sills at 192, one pane tile under the roof, five in the north wall and four in the south, east of the stair and of the yellow door; **the works banner** `SDSLOG1` «ТРАКТОРЫ — КОЛХОЗАМ!» hung from the roof across the hall's axis, x 2624…2640, y 1056…1312, its bottom edge at 256, read the right way from both ends |
+| Assembly lines | `SDSTEL1` | `SDFLR4` | | the tops in chequer plate |
+| Yellow lock | `SDBRCK1`; `SDSTAR1` either side of the leaf | `SDFLR2` | `SDCEIL1` | the leaf is **`SDDOORY`** |
+| Red lock | `SDBRCK1`; **`SDBRCK2`** either side of the leaf | `SDFLR2` | `SDCEIL1` | the leaf is **`SDDOORR`**; the star plaques are gone (§15.2) |
+| Offices | `SDTILE2` | `SDFLR3` | `SDCEIL1` / `SDCEIL2` | unchanged |
+| Vestibule, tank line | **`SDRUST1`** | **`SDFLR4`** | `SDCEIL1` | the closed shop in corrugated rust; **the export gate** `SDGATE1`, shut, in a recess of the east wall; **a chain and hook** `SDCHAN1` over the middle of each pit (the four faces of a 64 × 64 hoist, hanging from the roof to 128) |
+| Pits | `SDCONC1` | `SDFLR2` | | unchanged |
+| Foundry | `SDBRCK1` | casting floor and platform **`SDFLR4`**, the gallery **`SDGRAT1`**, the channel **`SDMOLT1`** | `SDCEIL2` | brick, grating, molten metal (animated by `ANIMDEFS`; it does not hurt, open point 8) |
+| SW-A's passage | `SDBRCK2` (128 high) | `SDFLR2` | | |
+| Antechamber | `SDBRCK2` (128 high) | `SDFLR2` | `SDCEIL2` | |
+| Portal hall | `SDBRCK1` | **`SDFLR4`** | `SDCEIL2` | brick; the drum's ring is **steel** outside now, as it is inside; **the two flags** `SDFLAG1` (Reich) and `SDFLAG2` (Legion), each one tile in a recess of the ring's east face, either side of the gate |
+| Drum | `SDSTEL1`; **`SDPORT1`** on the wall behind the dais, either side of the exit niche | `SDFLR2` | `SDCEIL2` | the portal's cobalt field (animated by `ANIMDEFS`) |
+| Doors, switches | `SDDOOR1` (D1, D2, the gate), `SDDOORY`, `SDDOORR`; `SDSW1B`, `SDSW1A`, `SDSW1D` | | | |
+
+`SDCONC2`, the hall's red stripe in v0, is no longer used: the stripe was
+MAP01's hangar, and red bands round the factory floor would compete with the
+red lock. `SDCONC1` stays in the pits only.
+
+**Not in v1** (v2, §12): the tanks and tractors as props, the Lenin poster in
+the director's office (it needs a 256-high niche; the offices are 128), lockers
+in the archive, the metro's chevron edge on the pits, the buffer stop.
+
+### 15.2 The red lock, signposted again
+
+The art-director's note on v0: the red star plaques either side of the red
+door camouflaged it, and with `SDDOORR` (a red-trimmed leaf) it would be
+worse. The plaques are taken off **that lock only**: the red leaf now stands
+between two panels of whitewashed brick (`SDBRCK2`, light, one tile each),
+so the only red on that wall is the leaf and the red light. The yellow lock
+keeps its pair (red plaques beside a yellow leaf contrast; nothing there to
+hide). Tested: two `SDSTAR1` faces in the map, both at the yellow lock; the
+red lock's wall is `SDBRCK2` either side of `SDDOORR` and nothing else; each
+lock wears its own key's trim on both faces.
+
+### 15.3 Changes to v0's geometry
+
+None to the route or the floor plan of §4; every v0 test of reachability,
+softlock, the four rounds and the sight lines passes unchanged. Added:
+
+| # | What | Where | Why |
+|---|---|---|---|
+| 1 | `closet_hs`, `closet_hn` and their panels (tag 10) | the hall's south wall east of the shutter (x 1856…2048), its north wall at the west end (x 1664…1856) | §9's SW-A closets, MAP02's method: the panel wears the hall's brick, so it is wall until it moves; each a dead end the player walks out of |
+| 2 | `z2_road_gate`, `t_export_gate` | the dock's north wall, the tank line's east wall | the shut gates, one tile each |
+| 3 | `p_flag_reich`, `p_flag_legion` | the drum's east face, either side of the gate | the flags side by side (LORE) |
+| 4 | `prop_clerestory_n1`…`n5`, `_s1`…`_s4` | the hall's long walls | the clerestory; sills at 192, never walked (props) |
+| 5 | `z3_banner` | across the hall's axis | carries the banner on its two long faces |
+| 6 | `t_pit_a_hoist`, `t_pit_b_hoist` | the middle of each pit | carry the chains |
+
+### 15.4 Enemies, as placed
+
+The bestiary's own editor numbers from MAPINFO's `DoomEdNums`: 21100
+rifleman, 21101 trooper, 21102 stormtrooper, 21103 hound, 21104 Doughboy,
+21105 Panzermensch, **21106 the General**, **21107 the heavy Panzermensch**
+(tested against MAPINFO; every class of the bestiary fights here). The plan
+of §9 with the cells marked † changed:
+
+| Beat / zone | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| Dock | 2 riflemen | 3 riflemen | 4 riflemen † |
+| Assembly hall | 6 troopers † + 1 stormtrooper | 8 troopers † + 2 stormtroopers | 10 troopers † + 3 stormtroopers |
+| Offices | 3 troopers † | 4 troopers † | 4 troopers † + 1 stormtrooper |
+| Tank line | 1 hound + 2 riflemen + 1 Panzermensch | 2 hounds + 4 riflemen + 1 Panzermensch | 2 hounds + 5 riflemen + 1 Panzermensch + 1 heavy |
+| Foundry | 2 stormtroopers + 1 Doughboy | 3 stormtroopers + 1 Doughboy | 3 stormtroopers + 2 Doughboys + 1 hound |
+| SW-A's closets in the hall | 2 troopers | 2 troopers + 1 stormtrooper | 3 troopers + 2 stormtroopers |
+| Portal hall | **the General** + 2 hounds | the General + 2 hounds + 2 stormtroopers | the General + 2 hounds + 2 stormtroopers + 1 Panzermensch + 1 heavy |
+| Drum (behind the gate) | 1 stormtrooper | 2 stormtroopers | 2 stormtroopers + 1 Doughboy |
+| **Total** | **25** | **38** | **52** |
+
+† §9 put Reich riflemen in the hall (2/3/4) and the offices (1), and a
+Legion trooper in the dock on skill 4, against §2's own rule (the Legion the
+public face, the Reich the tank line). v1 follows §2, so the factions can be
+tested: those riflemen are troopers and the dock's trooper is a rifleman.
+Same counts, same ruler cost (one shell each). §2 also gave the foundry to
+the Reich, but §9 and §6 put the Doughboys (Legion) in its tall room: v1
+makes the foundry, like the portal hall, **ground both factions share**.
+
+**The factions, tested** (D35, the factory mixes): from each class's own
+ZScript (`SD_Monster.Faction`), the standing garrison of the hall and the
+offices is Legion and hybrids, that of the spur, the dock and the tank line
+Reich and hybrids, and both factions stand in the foundry and in the portal
+hall, where the Legion's General and the Reich's hounds are together on
+every skill. The closets are the counter-attack and are not a garrison.
+
+**The General** (`SD_General`, 3000 HP, 40 × 100, BESTIARY §9): one, on every
+skill, at (480, 1216), behind the drum as seen from the antechamber, so the
+player meets the escort first and the boss comes round the drum. The portal
+hall is 384 high and he never has to pass a door (tested: his box fits).
+His `+BOSSDEATH` triggers nothing yet (open point 4): the gate opens on SW-B
+only, so a player who runs past him is not locked out.
+
+Every body fits where it stands (corners on walkable floor within a step,
+headroom from each class's `RADIUS`/`HEIGHT`; the heavy Panzermensch's from
+its parent's file, which it inherits); no two start inside each other; and
+no body stands, at spawn, on the lines from which the keys are tested to be
+seen (new test).
+
+By class on skill 4: troopers 17, stormtroopers 13, riflemen 9, hounds 5,
+Doughboys 3, Panzermenschen 2, heavy Panzermenschen 2, the General 1.
+
+### 15.5 Weapons, ammunition, health
+
+Pistol start (`+map MAP03` gives the TT-33 and 50 rounds; the campaign player
+arrives better armed). The weapons are on the route, on every skill, never in
+a secret (tested), each before the fight it is for:
+
+| Weapon | Where | Reached in round |
+|---|---|---|
+| IZh-58 | the dock, beside the first picket | 1 (no key) |
+| PPSh-41 | the office corridor's east end | 1 |
+| RPG-7 + a rocket box | the tank line, at the yellow door's foot, nearer the door than either heavy (tested) | 2 (yellow door) |
+| **ROKS-3** | the foundry gallery (MAP02 §9 kept it for the factory) | 2 |
+| Hand Katyusha | not placed: §8's S1, v3 (open point 7) | — |
+
+Counts, as placed (no secret in v1):
+
+| Item | Skill 2 | Skill 3 | Skill 4 | Where |
+|---|---|---|---|---|
+| Shell box (20) | 7 | 7 | 7 | hall ×2, planning office, gallery, booth, portal hall, antechamber |
+| Shells (4) | 11 | 9 | 5 | dock, hall, tank line, casting floor, portal hall; more, and the vestibule, on easier skills |
+| Box of rounds (50) | 4 | 4 | 4 | hall, archive, tank line, portal hall |
+| Clip (10) | 5 | 4 | 3 | dock, hall, casting floor |
+| Rocket box (5) | 3 | 3 | 3 | tank line, antechamber, booth |
+| Rocket (1) | 4 | 4 | 4 | round the drum |
+| Fuel canister (20) | 2 | 2 | 2 | gallery, antechamber |
+| Stimpack | 9 | 8 | 5 | dock, hall, tank line, gallery, portal hall |
+| Medikit | 6 | 6 | 5 | hall, archive, tank line, casting platform, booth |
+| Health bonus | 10 | 10 | 10 | one in each nook: spur, arch, office stair, vestibule, both pits, pouring arch, SW-A's passage, the porch, the dais |
+| Armour bonus | 8 | 8 | 7 | both locks ×2, the director's office ×2, the casting platform |
+| Green armour | 1 | 1 | 1 | tank line |
+| **Blue armour** | 1 | 1 | 1 | antechamber, before the General (tested: reached with the red door, not before) |
+
+**G3-8, measured** (`test_g3_8_the_ammo_budget`). MAP01's ruler (rifleman and
+trooper 1 shell, stormtrooper 2, hound 3, Doughboy 6, Panzermensch 8; about
+62.5 HP a shell), extended by hit points to this map's two: **heavy
+Panzermensch 16, the General 48**. Placed ammunition in shell-equivalents: 10
+rounds = 1 shell, as before; and, new here because this is the map of the
+heavy weapons, **a PG-7V = 2 shells** (135 direct, BALANCE §2; the General
+takes no blast) and **a unit of fuel = 0.25 shell** (a ROKS-3 jet averages
+18). No drop counted.
+
+| | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| needed | 94 | 115 | 181 |
+| × 1.35 (G3-8) | 126.9 | 155.3 | 244.4 |
+| placed | 282.5 | 273.5 | **256.5 (1.42×)** |
+
+MAP01's skill 4 is 1.41×, MAP02's 1.43×. Two more checks: **without the
+heavy weapons** (shells and rounds only) the placed ammunition still covers
+every monster but the General at 1.35×, so the RPG-7 and the ROKS-3 are his;
+and **stage by stage** (MAP01's readiness test, ported, with the PG-7V and
+the fuel at their average damage): before any lock, after the yellow door,
+after the red door and SW-A, after SW-B, the damage placed so far plus the
+starting rounds is at least 1.35 × the hit points met so far, on every
+skill. Health on skill 4: 10 stimpacks and medikits (MAP02: 7), 7 armour
+bonuses, both vests.
+
+**D60, MVP first:** these numbers are a first cut that meets G3-8; the
+balance proper (the General's fight, two heavies on skill 4, the foundry's
+Doughboys on a pistol start) is for the playtests after the MVP.
+
+### 15.6 Deviations from §3–§12
+
+| # | Said | Built | Why |
+|---|---|---|---|
+| 1 | §12: v1 = textures; v3 = §9 placed | v1 = textures and §9 placed; v3 = secrets and balance | the PM's brief (N7), as MAP02's v1 |
+| 2 | §5, §7.1: each lock between two star plaques | the yellow lock only; the red between whitewashed brick | the art-director's note, §15.2 |
+| 3 | §9: riflemen in the hall and offices, a trooper in the dock | troopers in the hall and offices, a rifleman in the dock | §2's factions, §15.4 † |
+| 4 | §2: the Reich holds the foundry | the foundry is shared (Doughboys and stormtroopers, a hound on 4) | §9 and §6 already put the Doughboys there |
+| 5 | §9: Doom stand-ins (3004, 9, …, 16) | the bestiary's numbers 21100-21107 | the brief; MAP02 does the same |
+| 6 | §9: the Hand Katyusha in S1 | not placed | no secrets in v1 (D60); open point 7 |
+| 7 | §9: the PPSh "in the offices" | the corridor's east end | on the route, not behind D1 or D2 |
+| 8 | MAP02's G3-8: no rocket counted | PG-7V and fuel counted at a stated rate | the General's 3000 HP is the RPG-7's and the ROKS-3's job (§15.5) |
+| 9 | §7.1 v1 intentions: tanks, tractors, poster, lockers, buffer stop | not built | v2, §12 |
+
+### 15.7 Verification actually run
+
+| Check | Result |
+|---|---|
+| `tests/test_map03_factory.py` | **64 tests, all green**: v0's 33, of which two are replaced (the start and the keys on every skill; no secret in v1) and four updated (the leaves in three trims; the plaques at the yellow lock only; SW-A also opens the closets; the shutter and the closets are wall from the hall); **31 new**: the Tankograd set placed, the red lock's wall, every wall picture one whole tile, the flags at the drum, the banner and the chains, the steel drum and the portal wall, each lock in its key's trim, each key alone on its pedestal, the banner under the arch's sight line, no body on a key's sight line; and §15.4–§15.5's population, factions (read from ZScript), the General, the heavies, the closets, the weapons, the RPG before the heavies, consumables scaled down, G3-8, the budget without the heavy weapons, ammunition by stage, health and armour |
+| Mutation check (scratch script, not committed) | each of eight planted faults turns the suite red: the red plaques put back (2 tests), the red leaf in yellow trim (3), the General removed (4), a trooper on the yellow key's sight line (1), a Reich rifleman in the hall (1), a shell box on skill 2 only (2), the closets on SW-B's tag (2), the heavy moved into a pit (2) |
+| `tools/check_pk3.py` | `maps/MAP03.wad: MAP03/TEXTMAP/ENDMAP, 289 vertices, 366 linedefs, 85 sectors, 130 things`; 0 errors, 0 warnings |
+| `tools/verify.py fast` (Windows PC, `.venv/Scripts/python.exe`, 2026-10-14) | **VERDICT: PASS** in 16.8 s: docs PASS (mirror warnings, D34), build PASS, `check_pk3` 0 errors 0 warnings, **1402 tests**, 136 skipped (the slow art tier) |
+| GZDoom | **not run** (D26). Owed: §15.8 |
+
+### 15.8 Engine checklist for the PM (D26: this role does not start GZDoom)
+
+Method as §14.5 and MAP02 §16.8: `warp x y`, turn to the facing (0 east, 90
+north, 180 west, 270 south), `+use`, `wait`, `screenshot`. **Two sessions**:
+geometry and textures with `-nomonsters` on skill 3 (T1–T10), then monsters
+with `god` on skill 3 and once on skill 4 (T11–T14). Log and screenshots to
+`docs/qa/evidence/`. v0's checklist (§14.5) was never run; T1–T10 cover its
+K1–K3, K6–K8 and K10–K12, and **K4, K5 and K9 still stand as written** (the
+key tints, and locks 3 and 1 in the engine).
+
+| # | Warp to (x y) | Facing | Do | What must show |
+|---|---|---|---|---|
+| T1 | 3104 1184 | 180 | — | from the arch: the brick hall, the banner high across it («ТРАКТОРЫ — КОЛХОЗАМ!» readable, not mirrored), under it at the far end the **red door, `SDDOORR`, between two plain whitewashed panels, no star plaques**, in red light; the clerestory high on both walls |
+| T2 | 3104 1184 | 211 | — | the yellow door, `SDDOORY`, between its two star plaques |
+| T3 | 3400 1300 | 90 | — | the dock: brick, the shut road gate whole in its recess, the IZh on the floor |
+| T4 | 2304 1184 | 0 | — | the banner's west face, readable from this side too; the arch beyond it |
+| T5 | 2304 400 | 0 | — | the tank line: rust walls, chequer floor, a chain and hook over pit A, the export gate whole at the far end; the RPG-7 at the feet |
+| T6 | 1760 256 | 180 | — | the foundry: grating underfoot, brick, the molten channel (`SDMOLT1`, cycling through its four frames), the red key lit on its pedestal (K6) |
+| T7 | 1632 610 | 90 | `+use`, `wait 70`; then warp 1728 900 facing 270, then 1952 900 facing 270, then 1760 1500 facing 90 | `SDSW1B` → `SDSW2B`; from the hall: the shutter open, **`closet_hs`'s brick panel open** east of it, **`closet_hn`'s** open in the north wall |
+| T8 | 1488 1184 | 180 | — | the antechamber: whitewashed brick, the blue armour; ahead the steel drum, the gate's leaf, **`SDFLAG1` on the left and `SDFLAG2` on the right**, each whole in its recess |
+| T9 | 1216 1760 | 90 | `+use`, `wait 70`; then warp 1056 1216 facing 180 | `SDSW1A` → `SDSW2A`; through the gate the dais and, behind it, **the portal wall in cobalt (`SDPORT1`, cycling)** either side of the lit exit niche |
+| T10 | 2592 256 | 90 | — | in pit A under the hoist: the chain's gaps are see-through (masked; check_pk3's `MASKED_TEXTURES`). If they show black or a colour, tell `mod-engineer` and this role |
+| T11 | 2950 1184 | 180 | skill 3, monsters, `god` | the hall's Legion troopers and stormtroopers between the lines *(engine: 21101 and 21102 spawn our classes)* |
+| T12 | 1350 1500 | 225 | skill 3, monsters, `god`; `wait 140` | the portal hall: the hounds, the stormtroopers, **the General** coming round the drum (Freedoom's placeholder sprite, BESTIARY) *(21106)* |
+| T13 | 2400 380 | 0 | skill 4, monsters, `god` | the tank line on skill 4: the Panzermensch, riflemen, **the heavy Panzermensch** at the export gate *(21107)* |
+| T14 | 736 1216 | 180 | skill 3, played through or after `kill monsters`; `+use` | the intermission: kills of 38 (52 on skill 4) when SW-A was pressed; then `SD_END01_TEXT`, then the title |
+| T15 | the log | — | — | zero lines matching the G3-2 failure patterns of MAP01 §11; nothing about `SDCHAN1`, `SDSLOG1`, `SDPORT1`, `SDMOLT1`, `SDDOORY`, `SDDOORR`, things 21100–21107 or 21006, `lightcolor` or `rotationfloor` |
+
+If T1 shows the banner cutting across the red door, the banner's height or
+place is wrong in the engine and the test that keeps it out of the sight
+line is wrong: tell this role.
+
+### 15.9 For the CEO's walk of v1
+
+`python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP03 SKILL=3 tools/run.sh`,
+or the campaign from MAP01. From the start, **without being told the
+route**: that is the test. What to judge:
+
+1. **Both keys.** Did you find them without help? At each locked door, did
+   you know where its key was?
+2. **The red door.** Does it read as the red lock now, without the star
+   plaques?
+3. **The factory.** Brick, rust, the banner over the floor, the chains, the
+   flags at the drum: a tank works, or a car park?
+4. **The fights.** The factory floor, the tank line's heavies, the
+   Doughboys over the casting floor, the hall's closets after SW-A, **the
+   General**. Fair or not (D60: balance comes after the MVP; this is the
+   first cut).
+5. **The end.** SW-B, the gate, the portal, the breaker: does it end the
+   episode?
+6. Open points 7 (the Hand Katyusha) and 8 (the molten channel).
+
+### 15.10 What is left, and what other roles hold
+
+- **PM:** the engine pass (§15.8) and the CEO's walk (§15.9).
+- **`mod-engineer`:** nothing blocks v1 (the `ANIMDEFS` this map's two
+  animations need landed in N6c). The General's death and the gate (open
+  point 4) when the CEO decides. Optionally `SD_` classes for the two
+  passes (§14.6).
+- **`art-director`:** nothing blocks v1. The General's, the Doughboy's and
+  the Panzermensch's own sprites (F5), the pass sprites.
+- **`sound-designer`:** the factory's music (D59, N8). This role did not
+  touch MAPINFO.
+- **For BESTIARY §11** (the PM's to carry): the factory (MAP03) places, on
+  skill 4, troopers 17, stormtroopers 13, riflemen 9, hounds 5, Doughboys 3,
+  Panzermenschen 2, heavy Panzermenschen 2 and the General.
+- v2: the light pass, the tanks and tractors, the poster; v3: the secrets
+  of §8 (S1 with the Hand Katyusha) and balance.
+- Russian mirror: synced in a batch at the phase close (D34).
