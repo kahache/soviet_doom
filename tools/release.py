@@ -602,7 +602,10 @@ def git_state(root: Path = PROJECT_ROOT) -> TreeState:
 def zip_time(commit_time: int | None) -> tuple[int, int, int, int, int, int]:
     if commit_time is None:
         return MIN_ZIP_TIME
-    stamp = tuple(time.gmtime(commit_time)[:6])
+    # A zip entry stores seconds in steps of two (MS-DOS time), so an odd
+    # commit second would read back one lower; round down here so what is
+    # written is what is read.
+    stamp = tuple(time.gmtime(commit_time - commit_time % 2)[:6])
     return max(stamp, MIN_ZIP_TIME)  # type: ignore[return-value]
 
 
