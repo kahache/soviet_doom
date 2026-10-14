@@ -1,8 +1,7 @@
 # Roadmap
 
 Living document. Owner: PM. Russian mirror: `docs/ru/ROADMAP.md` (synced at
-phase close, D34). **Status of v2 of this roadmap: PROPOSED by the PM on
-2026-10-14, waiting for the CEO's approval.** The task list lives in
+phase close, D34). **Roadmap v2, approved by the CEO on 2026-10-14 (D63).** The task list lives in
 `docs/BACKLOG.md`; agents are launched only from it.
 
 ## The rule (D60, "instrucción importantísima")

@@ -2116,6 +2116,11 @@ def load_route(args: argparse.Namespace) -> Route:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Engine logs carry Cyrillic when the game runs in Russian; a Windows
+    # console (cp1252) cannot print it, so the report is written as UTF-8.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     args = parse_args(argv)
     if args.list_routes:
         for name in route_names():
