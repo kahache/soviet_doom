@@ -1,6 +1,7 @@
-"""MAP03 "Tankograd", the tractor factory - v1: textured, populated, signposted.
+"""MAP03 "Tankograd", the tractor factory - v1.1: v1 plus D68's three points.
 
-Design document: docs/levels/MAP03-factory.md (section 15 is this version).
+Design document: docs/levels/MAP03-factory.md (section 15 is v1, section 16
+is v1.1).
 LORE's third map and the episode's climax ("Tractor factory (actually
 tanks) - episode climax: the portal"). Built as MAP04 while MAP02 was the
 practice range (D41); MAP03 since D62 (2026-10-14), and named Tankograd by
@@ -38,6 +39,20 @@ hall beside the red door (and the hall's two closets) -> red door -> portal
 hall, the General -> control booth, SW-B, which opens the containment drum's
 gate -> the portal, and the exit breaker at the top of its dais.
 
+What v1.1 adds (section 16, D68, the CEO on open points 7, 8 and 4):
+
+* S1, the design's first secret (section 8), with the Hand Katyusha in it:
+  a row of four lockers on the archive's east wall, one set back in shadow;
+  pushed, it opens for good onto a passage and a store room (sector special
+  1024, counted as a secret);
+* the molten channel hurts, by the UDMF sector fields `damageamount` and
+  `damageinterval` (10 every 32 tics, Doom's hellslime); it is 16 deep, a
+  step, open on every side;
+* the General's death opens his stores: his thing carries the special
+  Door_Open on a new tag, 12, and a steel shutter in the portal hall's north
+  wall rises when he dies, onto health, ammunition and armour. Nothing else
+  opens that tag, and the exit still depends on SW-B alone.
+
 Geometry is painted with `GridMap` (tools/sdbuild/udmf.py), MAP01's method.
 
 Run it (the PM or the CEO; agents never start GZDoom, D26):
@@ -48,13 +63,18 @@ exit leads here, and this map's exit ends the episode (cluster 1).
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from sdbuild.udmf import (
     DOOR_SPEED_SLOW,
+    SECTOR_SPECIAL_SECRET,
+    SPECIAL_DOOR_OPEN,
     GridMap,
     LineStyle,
     Sector,
     TextMap,
     Thing,
+    door_open_style,
     door_raise_style,
     exit_switch_style,
     remote_door_style,
@@ -80,6 +100,7 @@ CEIL_PANEL = "SDCEIL1"  # lit panel
 CEIL_CONCRETE = "SDCEIL2"
 DESK_TOP = "SDCRTOP1"   # crate lid, planks: the desk's top
 RAILS = "SDRAIL1"       # metro track bed, rails along the image's y
+LOCKER = "SDLOCK1"      # 64x128 barracks locker (D29), one per 64 of wall: the archive's row (v1.1, S1)
 
 # Tankograd (batch 4, D66: "Me gustan TODAS"), assets/textures/factory and
 # assets/flats/factory. Animated lumps are placed by their first frame;
@@ -178,6 +199,9 @@ LIGHT_PORTAL_HALL = 128
 LIGHT_BOOTH = 144
 LIGHT_DRUM = 144
 LIGHT_CLOSET = 112      # inside a monster closet: unlit storage (MAP01's value)
+LIGHT_S1_NICHE = LIGHT_MIN   # the set-back locker: the one in shadow (S1's clue, v1.1)
+LIGHT_SECRET = 112      # S1's passage and store (MAP02's value)
+LIGHT_STORES = 144      # the General's stores, once open: lit, but not a beacon
 BEACON_ZONES = ("z3_red_portal", "z3_yellow_portal", "o_desk", "f_pedestal", "p_exit_niche")
 
 # The keys' colours, in light: sector field `lightcolor` (0xRRGGBB) of the
@@ -199,6 +223,8 @@ TAG_SHUTTER = 10         # SW-A: the foundry's shutter into the hall, and the ha
 TAG_GATE = 11            # SW-B: the containment drum's gate
 # The closets ride SW-A's own tag (MAP01 v3, MAP02 v1): one line, one special.
 TAG_HALL_AMBUSH = TAG_SHUTTER
+TAG_S1_PANEL = 6         # v1.1: S1's locker panel (Door_Open, pushed, opens for good)
+TAG_GENERAL_STORES = 12  # v1.1: the General's stores; ONLY his death opens it (no line carries it)
 
 # --- Things --------------------------------------------------------------------
 PLAYER_START = (4096, 1184)
@@ -211,7 +237,8 @@ LOCK_PORTALS = {LOCK_YELLOW_CARD: "z3_yellow_portal", LOCK_RED_CARD: "z3_red_por
 # Zone-name families the tests use.
 PROP_PREFIX = "prop_"            # unwalkable by design (the conveyors, the clerestory sills)
 WINDOWS: tuple[str, ...] = ()    # nothing is seen through and never walked
-SECRET_ZONES: tuple[str, ...] = ()   # v1 has no secret (D60; v3 places them, section 8)
+SECRET_ZONES: tuple[str, ...] = ("s1_store",)   # v1.1: S1 (D68); S2 and S3 stay v3's (section 8)
+REWARD_ZONES: tuple[str, ...] = ("p_stores",)   # v1.1: opened by the General's death only (D68)
 CLOSET_PREFIX = "closet_"
 
 # The assembly hall's two lines, split by the centre aisle the lane runs up.
@@ -228,6 +255,32 @@ CLERESTORY_SOUTH = (2560, 2688, 2816, 2944)          # x of each window, y 704
 BANNER = (2624, 1056, 2640, 1312)
 # A chain and hook over the middle of each inspection pit.
 HOISTS = {"t_pit_a": (2592, 224, 2656, 288), "t_pit_b": (3040, 224, 3104, 288)}
+
+# --- v1.1 (D68) ----------------------------------------------------------------
+# S1 (design section 8): a row of four lockers fills the archive's east wall
+# (x 2752, y 1952..2208). The third from the south stands NICHE_DEPTH back,
+# in shadow: the comparison is the clue. It is a push panel that opens for
+# good onto a passage and the store where the Hand Katyusha lies.
+LOCKER_ROW = (2752, 1952, 2208)                 # x, y1, y2: four SDLOCK1 tiles
+LOCKER_WIDTH = 64
+S1_NICHE = (2752, 2080, 2768, 2144)
+S1_PANEL = (2768, 2080, 2784, 2144)
+S1_PASSAGE = (2784, 2080, 2848, 2144)
+S1_STORE = (2848, 1984, 3040, 2240)
+# The molten channel's damage: UDMF zdoom sector fields, VERIFIED in the
+# spec (design section 16.2). 10 every 32 tics is Doom's hellslime (type 5):
+# twice nukage, half super hellslime; about 19 HP a second standing in it.
+CHANNEL_DAMAGE = 10
+CHANNEL_DAMAGE_INTERVAL = 32    # tics: Doom's own sector-damage period (also the field's default)
+CHANNEL_HURTS = {"damageamount": CHANNEL_DAMAGE, "damageinterval": CHANNEL_DAMAGE_INTERVAL}
+# The General's stores: a steel shutter in the portal hall's north wall, in
+# a porch one tile high, and a room behind it. His thing special opens it
+# when he dies (UDMF thing `special` + `arg0..4`; GZDoom runs a monster's
+# special in AActor::Die, design section 16.3).
+STORES_PORCH = (640, 1664, 768, 1696)
+STORES_DOOR = (640, 1696, 768, 1728)
+STORES = (576, 1728, 832, 1920)
+GENERAL_DEATH_SPECIAL = (SPECIAL_DOOR_OPEN, (TAG_GENERAL_STORES, DOOR_SPEED_SLOW, 0, 0, 0))
 
 # --- Editor numbers (src/lumps/MAPINFO, DoomEdNums) ---------------------------
 # The bestiary's own numbers (21100-21107, BESTIARY 2.5), as MAP02 places
@@ -276,6 +329,7 @@ ED_PPSH = 21004
 ED_RPG7 = 21005
 ED_ROKS3 = 21006
 ROUTE_WEAPONS = (ED_IZH, ED_PPSH, ED_RPG7, ED_ROKS3)
+ED_HAND_KATYUSHA = 21007  # SD_HandKatyusha, slot 7: in S1 only (D68), never on the route
 # Ammo, health and armour: Doom's numbers, which our classes replace
 # (src/zscript/sd/ammo.zs; MOD-SPEC 6.4), as on MAP01 and MAP02.
 ED_CLIP = 2007            # 10 rounds of 7.62x25
@@ -465,6 +519,25 @@ ITEMS = (
     ("p_dais_3", ED_HEALTH_BONUS, 736, 1120, 4),
 )
 
+# v1.1 (D68). Kept out of ITEMS on purpose: ITEMS is the route's, and these
+# are not on it. Same row shape; everything here is on every skill (MAP01's
+# rule for secrets, applied to the boss's stores too).
+SECRET_ITEMS = (
+    # S1: the Hand Katyusha (its pickup gives 40 fuel, one volley) and a
+    # canister towards a second.
+    ("s1_store", ED_HAND_KATYUSHA, 2976, 2112, 4),
+    ("s1_store", ED_CELL, 2912, 2048, 4),
+)
+STORES_ITEMS = (
+    # The General's stores: health, ammunition, armour, for the drum's
+    # guard after the boss.
+    ("p_stores", ED_MEDIKIT, 640, 1856, 4),
+    ("p_stores", ED_MEDIKIT, 768, 1856, 4),
+    ("p_stores", ED_SHELL_BOX, 640, 1792, 4),
+    ("p_stores", ED_ROCKET_BOX, 768, 1792, 4),
+    ("p_stores", ED_GREEN_ARMOR, 704, 1888, 4),
+)
+
 
 def _sector(floor: int, ceil: int, tag: int | None = None, *, light: int,
             flat: str = FLOOR_CONCRETE, ceiling: str = CEIL_CONCRETE,
@@ -516,7 +589,7 @@ def hang(tm: TextMap, segment: tuple[int, int, int, int], room: int, texture: st
 
 def build_plan() -> tuple[TextMap, dict[str, int]]:
     """Build the map; return it with {zone name: sector index}."""
-    tm = TextMap(comment=f"{MAP_NAME} v1 generated by src/maps/{MAP_NAME}/map.py - do not edit by hand")
+    tm = TextMap(comment=f"{MAP_NAME} v1.1 generated by src/maps/{MAP_NAME}/map.py - do not edit by hand")
     g = GridMap(tm, wall=BRICK)
     plan: dict[str, int] = {}
 
@@ -660,6 +733,15 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
               light=LIGHT_OFFICES)
     zone("o_archive", OFFICES, OFFICE_CEIL, [(2496, 1952, 2752, 2208)],
          light=LIGHT_OFFICES, flat=FLOOR_TILE, ceiling=CEIL_CONCRETE, wall=TILE_DADO)
+    # v1.1, S1: the set-back locker, its panel, the passage, the store.
+    zone("s1_niche", OFFICES, OFFICE_CEIL, [S1_NICHE], light=LIGHT_S1_NICHE,
+         flat=FLOOR_TILE, ceiling=CEIL_CONCRETE, wall=TILE_DADO)
+    s1_panel = zone("s1_panel", OFFICES, OFFICES, [S1_PANEL], TAG_S1_PANEL,
+                    light=LIGHT_S1_NICHE, flat=FLOOR_TILE, ceiling=CEIL_CONCRETE, wall=TILE_DADO)
+    zone("s1_passage", OFFICES, OFFICE_CEIL, [S1_PASSAGE], light=LIGHT_SECRET,
+         flat=FLOOR_TILE, ceiling=CEIL_CONCRETE, wall=TILE_DADO)
+    zone("s1_store", OFFICES, OFFICE_CEIL, [S1_STORE], light=LIGHT_SECRET,
+         flat=FLOOR_TILE, ceiling=CEIL_CONCRETE, wall=TILE_DADO, special=SECTOR_SPECIAL_SECRET)
 
     # ======================================================================
     # Behind the yellow door: the tank line, where the "tractors" are tanks
@@ -690,7 +772,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     zone("f_floor", FOUNDRY_PIT, FOUNDRY_CEIL, [(384, 64, 1408, 640)],
          light=LIGHT_FOUNDRY, flat=FLOOR_PLATE, wall=BRICK)
-    like("f_floor", "f_channel", [(768, 128, 1152, 192)], floor=CHANNEL, flat=MOLTEN)
+    # v1.1 (D68): it hurts. 16 below the casting floor and open on all four
+    # sides: one step out, anywhere along it.
+    like("f_floor", "f_channel", [(768, 128, 1152, 192)], floor=CHANNEL, flat=MOLTEN,
+         extra=CHANNEL_HURTS)
     zone("f_gallery", GROUND, FOUNDRY_CEIL, [(1408, 64, 1792, 640)],
          light=LIGHT_GALLERY, flat=GRATING, wall=BRICK)
     steps("f_stair", (1376, 1344, 1312), 256, 384,
@@ -727,6 +812,13 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     zone("p_porch", GROUND, DOOR_HEIGHT, [(1024, 1152, 1088, 1280)],
          light=LIGHT_PORTAL_HALL, wall=STEEL)
     like("p_drum", "p_inner_porch", [(896, 1152, 960, 1280)], ceil=DOOR_HEIGHT)
+    # v1.1: the General's stores, behind a steel shutter in the north wall.
+    zone("p_stores_porch", GROUND, DOOR_HEIGHT, [STORES_PORCH],
+         light=LIGHT_PORTAL_HALL, flat=FLOOR_PLATE, wall=STEEL)
+    stores_door = door("p_stores_door", GROUND, TAG_GENERAL_STORES, STORES_DOOR,
+                       light=LIGHT_STORES)
+    zone("p_stores", GROUND, DOOR_HEIGHT, [STORES], light=LIGHT_STORES,
+         flat=FLOOR_PLATE, ceiling=CEIL_PANEL, wall=STEEL)
     for n, x in enumerate((832, 768, 704), start=1):
         like("p_drum", f"p_dais_{n}", [(x, 1088, x + 64, 1344)], floor=GROUND + STEP * n)
     zone("p_exit_niche", GROUND + 3 * STEP, GROUND + 3 * STEP + SWITCH_HEIGHT,
@@ -783,6 +875,20 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for y1, y2 in ((1088, 1184), (1248, 1344)):
         g.style_v(704, y1, y2, LineStyle(texture=PORTAL))
 
+    # v1.1, S1: the archive's row of lockers; the third stands back, in
+    # shadow, and is the panel. Flagged `secret`: one-sided on the automap.
+    lx, ly1, ly2 = LOCKER_ROW
+    g.style_v(lx, ly1, S1_NICHE[1], LineStyle(texture=LOCKER))
+    g.style_v(lx, S1_NICHE[3], ly2, LineStyle(texture=LOCKER))
+    panel = door_open_style(TAG_S1_PANEL, s1_panel, texture=LOCKER)
+    panel = replace(panel, flags=panel.flags + ("secret",))
+    for x in (S1_PANEL[0], S1_PANEL[2]):
+        g.style_v(x, S1_PANEL[1], S1_PANEL[3], panel)
+    # The General's stores: steel on both faces, no special on either, so
+    # pressing it does nothing and nothing but his death opens it.
+    for y in (STORES_DOOR[1], STORES_DOOR[3]):
+        g.style_h(y, STORES_DOOR[0], STORES_DOOR[2], remote_door_style(stores_door, texture=STEEL))
+
     # The tunnel's mouth in the dock's brick, and the hall's closets.
     g.style_v(3648, 1120, 1248, LineStyle(texture=BRICK))
 
@@ -819,8 +925,14 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     tm.add_thing(Thing(x=YELLOW_KEY_SPOT[0], y=YELLOW_KEY_SPOT[1], type=ED_YELLOW_CARD))
     tm.add_thing(Thing(x=RED_KEY_SPOT[0], y=RED_KEY_SPOT[1], type=ED_RED_CARD))
     for _zone, kind, x, y, angle, tier in MONSTERS:
-        tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle))
-    for _zone, ednum, x, y, top in ITEMS:
+        extra = {}
+        if kind == "general":
+            # v1.1 (D68): his death opens the stores. UDMF thing fields.
+            special, args = GENERAL_DEATH_SPECIAL
+            extra = {"special": special, **{f"arg{i}": a for i, a in enumerate(args)}}
+        tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle,
+                                     extra=extra))
+    for _zone, ednum, x, y, top in ITEMS + SECRET_ITEMS + STORES_ITEMS:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     return tm, plan
 
@@ -840,7 +952,7 @@ def lumps() -> list[tuple[str, bytes]]:
 
 # Every lump name this map may put in a sidedef or a sector.
 WALL_TEXTURES = ((CONCRETE, STAR, STEEL, TILE_DADO, CRATE, TUBBING, BRICK, BRICK_DADO, RUST,
-                  PORTAL, ROAD_GATE, WINDOW, FLAG_REICH, FLAG_LEGION)
+                  PORTAL, ROAD_GATE, WINDOW, FLAG_REICH, FLAG_LEGION, LOCKER)
                  + DOOR_LEAVES + SWITCH_FACES + tuple(t for t in (CHAIN, SLOGAN) if t))
 FLAT_TEXTURES = (FLOOR_LANE, FLOOR_CONCRETE, FLOOR_TILE, CEIL_PANEL, CEIL_CONCRETE,
                  DESK_TOP, RAILS, FLOOR_PLATE, GRATING, MOLTEN)

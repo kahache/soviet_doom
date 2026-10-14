@@ -30,6 +30,17 @@ v1 (design section 15):
 * the keys' sight lines still hold with the hall dressed (banner, chains,
   clerestory).
 
+v1.1 (design section 16, D68):
+
+* S1 holds the Hand Katyusha: a sector counted as secret, reached by a push
+  panel in a row of lockers (the one set back in shadow), with a way back,
+  and never needed for the exit;
+* the molten channel hurts (UDMF `damageamount` / `damageinterval`), and it
+  is no trap: a step out on every side, nothing in it;
+* the General's death opens his stores: his thing carries Door_Open on a tag
+  no line carries; the stores are reached only after his death (the model
+  plays the kill once his sector is reachable), and the exit never needs it.
+
 Run:  python3 -m unittest tests.test_map03_factory -v
 """
 
@@ -263,20 +274,31 @@ class Map03Test(unittest.TestCase):
             out[self.m.KEY_LOCKS[t["type"]]] = self.sector_at(t["x"], t["y"])
         return out
 
-    def progression(self):
+    def death_specials(self):
+        """[(tag, sector the monster stands in)] for every monster whose
+        thing special opens a door when it dies (v1.1: the General)."""
+        return [(t["arg0"], self.sector_at(t["x"], t["y"])) for t in self.things
+                if t["type"] in self.monster_numbers and t.get("special") == SPECIAL_DOOR_OPEN]
+
+    def progression(self, kills=False):
         """Play the map as a player can. Manual doors open whenever the
         player can stand at their line; then, one round at a time, every
         switch and locked door he can now reach and work (a locked door only
-        once the sector of ITS key is reachable). Returns one (open tags,
-        reachable sectors, locks held) per round."""
+        once the sector of ITS key is reachable). With `kills`, a monster's
+        death special counts as a switch the player works once he can reach
+        the monster; without it (the default) nobody has to die: the
+        critical route. Returns one (open tags, reachable sectors, locks
+        held) per round."""
         uses = [ld for ld in self.lines if ld.get("playeruse") and ld.get("special") in
                 (SPECIAL_DOOR_OPEN, SPECIAL_DOOR_RAISE, self.m.SPECIAL_DOOR_LOCKED_RAISE)]
         keys = self.key_sectors()
+        deaths = self.death_specials() if kills else []
         opened, rounds = set(), []
         while True:
             reach = self.reachable(opened)
             held = {lock for lock, sector in keys.items() if sector in reach}
             free, gated = set(), set()
+            gated |= {tag for tag, sector in deaths if sector in reach}
             for ld in uses:
                 stand = {self.front(ld)}
                 if "sideback" in ld:
@@ -386,8 +408,9 @@ class Map03Test(unittest.TestCase):
     def test_no_step_is_higher_than_a_stair_step_unless_it_is_a_drop(self):
         """Every height change the player walks UP is 16 at most; anything
         higher is a drop (served by a stair, test_no_trap) or a prop."""
-        h = self.heights(set().union(*(r[0] for r in self.progression())))
-        for a, dsts in self.adjacency(set().union(*(r[0] for r in self.progression()))).items():
+        every = set().union(*(r[0] for r in self.progression(kills=True)))
+        h = self.heights(every)
+        for a, dsts in self.adjacency(every).items():
             for b in dsts:
                 rise = h[b][0] - h[a][0]
                 self.assertLessEqual(rise, self.m.STEP, f"{self.zone_of[a]} -> {self.zone_of[b]}")
@@ -579,16 +602,28 @@ class Map03Test(unittest.TestCase):
                 self.assertTrue(found[0][f"skill{skill}"], f"thing {ed} missing on skill {skill}")
             self.assertTrue(found[0]["single"])
 
-    def test_v1_has_no_secret(self):
-        """Secrets are v3's (design section 8, D60)."""
-        self.assertFalse([i for i, s in enumerate(self.sectors) if s.get("special")])
+    def test_the_only_special_sectors_are_the_secret_and_the_channel(self):
+        """v1.1: S1 is the one sector with a `special`, the secret bit and
+        nothing else; the channel hurts by the UDMF damage fields, not by a
+        special (no Damage_InstantDeath 115, no Boom damage bits). S2 and S3
+        are v3's (design section 8)."""
+        m = self.m
+        special = {self.zone_of[i]: s["special"] for i, s in enumerate(self.sectors) if s.get("special")}
+        self.assertEqual({zone: m.SECTOR_SPECIAL_SECRET for zone in m.SECRET_ZONES}, special)
+        hurting = {self.zone_of[i] for i, s in enumerate(self.sectors) if s.get("damageamount")}
+        self.assertEqual({"f_channel"}, hurting)
 
     # --- reachability and no softlock --------------------------------------
     def test_everything_is_reachable_at_the_end(self):
-        reach = self.progression()[-1][1]
-        unreachable = set(range(len(self.sectors))) - reach
-        self.assertEqual(self.props, unreachable,
-                         f"unexpected: {sorted(self.zone_of[i] for i in unreachable ^ self.props)}")
+        """With the General killed, every sector but the props; without him,
+        every sector but the props and his stores."""
+        shut = self.named(*self.m.REWARD_ZONES, "p_stores_door")
+        for kills, closed in ((True, set()), (False, shut)):
+            reach = self.progression(kills)[-1][1]
+            unreachable = set(range(len(self.sectors))) - reach
+            expected = self.props | closed
+            self.assertEqual(expected, unreachable,
+                             f"kills={kills}: {sorted(self.zone_of[i] for i in unreachable ^ expected)}")
 
     def test_the_exit_is_reached_and_only_in_the_last_round(self):
         rounds = self.progression()
@@ -604,16 +639,18 @@ class Map03Test(unittest.TestCase):
     def test_no_trap_at_any_stage(self):
         """From every sector the player can reach at any stage there is a
         way back to the start with what is open at that stage."""
-        for opened, reach, _held in self.progression():
-            back = self.flood(self.reverse(self.adjacency(opened)), self.start)
-            stranded = sorted(self.zone_of[i] for i in reach - back)
-            self.assertEqual([], stranded, f"with tags {sorted(opened)} open")
+        for kills in (False, True):
+            for opened, reach, _held in self.progression(kills):
+                back = self.flood(self.reverse(self.adjacency(opened)), self.start)
+                stranded = sorted(self.zone_of[i] for i in reach - back)
+                self.assertEqual([], stranded, f"with tags {sorted(opened)} open, kills={kills}")
 
     def test_from_everywhere_the_exit_can_be_reached_at_the_end(self):
-        opened, reach, _ = self.progression()[-1]
-        exit_sector = self.front(self.exit_line())
-        onward = self.flood(self.reverse(self.adjacency(opened)), exit_sector)
-        self.assertEqual([], sorted(self.zone_of[i] for i in reach - onward))
+        for kills in (False, True):
+            opened, reach, _ = self.progression(kills)[-1]
+            exit_sector = self.front(self.exit_line())
+            onward = self.flood(self.reverse(self.adjacency(opened)), exit_sector)
+            self.assertEqual([], sorted(self.zone_of[i] for i in reach - onward), f"kills={kills}")
 
     def test_the_drops_are_left_by_stairs(self):
         """Foundry floor and tank pits are below their rooms: dropping in is
@@ -638,7 +675,9 @@ class Map03Test(unittest.TestCase):
         rounds = self.progression()
         self.assertEqual(4, len(rounds))
         (o0, r0, h0), (o1, r1, h1), (o2, r2, h2), (o3, r3, h3) = rounds
-        self.assertEqual({m.TAG_D1_PLANNING, m.TAG_D2_ARCHIVE}, set(o0))
+        # S1's panel is a push panel like D1 and D2: the model opens it with
+        # them, whether or not a player finds it (it is never needed).
+        self.assertEqual({m.TAG_D1_PLANNING, m.TAG_D2_ARCHIVE, m.TAG_S1_PANEL}, set(o0))
         self.assertEqual({m.LOCK_YELLOW_CARD}, set(h0), "the yellow key with no switch and no key")
         self.assertIn(self.plan["o_desk"], r0)
         line = self.named("t_vestibule", "t_line", "f_gallery", "f_floor", "f_platform")
@@ -661,6 +700,15 @@ class Map03Test(unittest.TestCase):
         rounds = self.progression()
         everything_but_the_shutter = set().union(*(r[0] for r in rounds)) - {m.TAG_SHUTTER}
         self.assertIn(self.plan["p_exit_niche"], self.reachable(everything_but_the_shutter))
+
+    def test_neither_the_secret_nor_the_generals_stores_is_needed(self):
+        """D68: the exit is reached with every tag open but S1's panel and
+        the stores', so nobody needs the secret or the General's death."""
+        m = self.m
+        every = set().union(*(r[0] for r in self.progression(kills=True)))
+        self.assertIn(m.TAG_GENERAL_STORES, every)
+        critical = every - {m.TAG_S1_PANEL, m.TAG_GENERAL_STORES}
+        self.assertIn(self.plan["p_exit_niche"], self.reachable(critical))
 
     # --- the keys ------------------------------------------------------------
     def test_one_yellow_and_one_red_key_on_the_route_outside_any_secret(self):
@@ -839,8 +887,9 @@ class Map03Test(unittest.TestCase):
 
     # --- v1: population --------------------------------------------------------
     def test_every_thing_stands_in_the_zone_its_table_names(self):
-        rows = ([(z, k, x, y) for z, k, x, y, *_ in self.m.MONSTERS]
-                + [(z, e, x, y) for z, e, x, y, _ in self.m.ITEMS])
+        m = self.m
+        rows = ([(z, k, x, y) for z, k, x, y, *_ in m.MONSTERS]
+                + [(z, e, x, y) for z, e, x, y, _ in m.ITEMS + m.SECRET_ITEMS + m.STORES_ITEMS])
         for zone, what, x, y in rows:
             self.assertEqual(self.plan[zone], self.sector_at(x, y),
                              f"{what} at ({x}, {y}) is in {self.zone_of.get(self.sector_at(x, y))}")
@@ -888,7 +937,7 @@ class Map03Test(unittest.TestCase):
                                        f"{b['type']} at ({b['x']}, {b['y']})")
 
     def test_every_pickup_can_be_picked_up(self):
-        reach = self.progression()[-1][1]
+        reach = self.progression(kills=True)[-1][1]
         for t in self.things:
             if t["type"] in self.monster_numbers or t["type"] == self.m.ED_PLAYER1_START:
                 continue
@@ -1058,8 +1107,14 @@ class Map03Test(unittest.TestCase):
         return sum(SHELLS_TO_KILL[self.m.MONSTER_CLASSES[t["type"]]]
                    for t in self.on(skill, self.monsters()))
 
+    def on_route(self, things):
+        """The things outside the secret and the General's stores: what the
+        route itself hands out (MAP02's `outside_secrets`, plus the stores)."""
+        off = self.named(*self.m.SECRET_ZONES, *self.m.REWARD_ZONES)
+        return [t for t in things if self.sector_at(t["x"], t["y"]) not in off]
+
     def ammo_placed(self, skill):
-        placed = self.on(skill, self.things)
+        placed = self.on_route(self.on(skill, self.things))
         return sum(SHELLS_GIVEN.get(t["type"], 0)
                    + ROUNDS_GIVEN.get(t["type"], 0) / ROUNDS_PER_SHELL
                    + ROCKETS_GIVEN.get(t["type"], 0) * SHELLS_PER_ROCKET
@@ -1079,7 +1134,7 @@ class Map03Test(unittest.TestCase):
         every monster but the General: the RPG-7 and the ROKS-3 are for him."""
         m = self.m
         for skill in SKILLS:
-            placed = self.on(skill, self.things)
+            placed = self.on_route(self.on(skill, self.things))
             have = sum(SHELLS_GIVEN.get(t["type"], 0)
                        + ROUNDS_GIVEN.get(t["type"], 0) / ROUNDS_PER_SHELL for t in placed)
             need = self.ammo_needed(skill) - SHELLS_TO_KILL["SD_General"]
@@ -1101,7 +1156,7 @@ class Map03Test(unittest.TestCase):
             hp_so_far, seen = 0, set()
             damage = self.start_rounds() * PPSH_AVERAGE
             for stage, (_opened, reach, _held) in enumerate(rounds):
-                here = [t for t in self.on(skill, self.things)
+                here = [t for t in self.on_route(self.on(skill, self.things))
                         if self.sector_at(t["x"], t["y"]) in reach - seen]
                 hp_so_far += sum(self.hit_points.get(t["type"], 0) for t in here)
                 damage += sum(SHELLS_GIVEN.get(t["type"], 0) * IZH_AVERAGE
@@ -1115,7 +1170,7 @@ class Map03Test(unittest.TestCase):
         """A boss map: at least MAP02's health on skill 4, the flak vest on
         the tank line and the heavy vest before the General."""
         m = self.m
-        found = Counter(t["type"] for t in self.on(4, self.things))
+        found = Counter(t["type"] for t in self.on_route(self.on(4, self.things)))
         self.assertGreaterEqual(found[m.ED_STIMPACK] + found[m.ED_MEDIKIT], 7)
         self.assertGreaterEqual(found[m.ED_ARMOR_BONUS], 6)
         self.assertEqual(1, found[m.ED_GREEN_ARMOR])
@@ -1125,6 +1180,193 @@ class Map03Test(unittest.TestCase):
         where = self.sector_at(vest["x"], vest["y"])
         self.assertIn(where, rounds[2][1])
         self.assertNotIn(where, rounds[1][1])
+
+    # --- v1.1 (D68): S1 and the Hand Katyusha --------------------------------
+    def test_s1_holds_the_hand_katyusha(self):
+        """D68 "ok secreto": slot 7 lies in S1, the one secret sector, on
+        every skill, and nowhere else; MAPINFO gives 21007 to our class."""
+        m = self.m
+        found = self.things_of({m.ED_HAND_KATYUSHA})
+        self.assertEqual(1, len(found))
+        t = found[0]
+        self.assertTrue(all(t[f"skill{n}"] for n in range(1, 6)) and t["single"])
+        where = self.sector_at(t["x"], t["y"])
+        self.assertIn(self.zone_of[where], m.SECRET_ZONES)
+        self.assertTrue(self.sectors[where]["special"] & m.SECTOR_SPECIAL_SECRET)
+        self.assertNotIn(m.ED_HAND_KATYUSHA, m.ROUTE_WEAPONS)
+        text = re.sub(r"//[^\n]*", "", MAPINFO.read_text(encoding="utf-8"))
+        block = re.search(r"DoomEdNums\s*\{(.*?)\}", text, re.S).group(1)
+        assigned = {int(n): c for n, c in re.findall(r"(\d+)\s*=\s*(\w+)", block)}
+        self.assertEqual("SD_HandKatyusha", assigned.get(m.ED_HAND_KATYUSHA))
+
+    def s1_panel_lines(self):
+        return [ld for ld in self.lines if ld.get("special") == SPECIAL_DOOR_OPEN
+                and ld["arg0"] == self.m.TAG_S1_PANEL]
+
+    def test_s1_opens_from_the_archive_with_no_key_and_lets_the_player_out(self):
+        """Reachable without tricks: a push panel (Door_Open, playeruse) on
+        the archive side, open for good, reached in the first round with no
+        key and no switch; without the panel S1 is shut; from S1 there is a
+        way back to the start and on to the exit."""
+        m = self.m
+        lines = self.s1_panel_lines()
+        self.assertEqual(2, len(lines), "both faces of the panel")
+        niche = self.plan["s1_niche"]
+        fronts = {self.front(ld) for ld in lines}
+        self.assertIn(niche, fronts, "pressed from the archive's side")
+        for ld in lines:
+            self.assertIn("sideback", ld)
+            self.assertEqual(self.plan["s1_panel"], self.sides[ld["sideback"]]["sector"])
+            self.assertTrue(ld.get("playeruse") and ld.get("repeatspecial"))
+            self.assertTrue(ld.get("secret"), "one-sided on the automap, as a secret door is")
+        store = self.named(*m.SECRET_ZONES)
+        first = self.progression()[0]
+        self.assertTrue(store <= first[1], "S1 needs no key and no switch")
+        self.assertEqual(set(), set(first[2]) & {m.LOCK_RED_CARD})
+        shut = set().union(*(r[0] for r in self.progression(kills=True))) - {m.TAG_S1_PANEL}
+        self.assertFalse(store & self.reachable(shut), "S1 is entered by its panel only")
+        adj = self.adjacency(first[0])
+        for zone in m.SECRET_ZONES:
+            self.assertIn(self.start, self.flood(adj, self.plan[zone]), f"a way back from {zone}")
+
+    def test_s1s_clue_is_the_locker_in_shadow(self):
+        """MAP01's rule, a comparison and never a sign: four lockers fill the
+        archive's east wall, and the one that is the panel stands 16 back,
+        darker than the other three. Each locker one whole tile."""
+        m = self.m
+        archive = self.plan["o_archive"]
+        x, y1, y2 = m.LOCKER_ROW
+        row = self.one_sided_textures(archive)
+        self.assertEqual(3 * m.LOCKER_WIDTH, row[m.LOCKER], "three lockers flush with the wall")
+        self.assertEqual(4 * m.LOCKER_WIDTH, y2 - y1, "four lockers fill the wall")
+        panel_faces = [ld for ld in self.s1_panel_lines() if self.front(ld) == self.plan["s1_niche"]]
+        self.assertEqual(1, len(panel_faces))
+        ld = panel_faces[0]
+        self.assertEqual(m.LOCKER, self.sides[ld["sidefront"]]["texturetop"], "the fourth is the panel")
+        (ax, ay), (bx, by) = self.line_points(ld)
+        self.assertEqual(x + m.NICHE_DEPTH, ax)
+        self.assertEqual(m.LOCKER_WIDTH, abs(by - ay))
+        niche, panel = self.sectors[self.plan["s1_niche"]], self.sectors[self.plan["s1_panel"]]
+        self.assertEqual(DOOR_TILE, niche["heightceiling"] - panel["heightfloor"], "one locker high")
+        self.assertLess(niche["lightlevel"], self.sectors[archive]["lightlevel"], "the one in shadow")
+        self.assertEqual(self.sectors[archive]["heightfloor"], niche["heightfloor"])
+
+    # --- v1.1 (D68): the molten channel ------------------------------------------
+    def test_the_molten_channel_hurts(self):
+        """D68 "que haga daño": UDMF zdoom `damageamount` every
+        `damageinterval` tics, between Doom's nukage (5) and super
+        hellslime (20) per 32 tics; no sector special for it."""
+        m = self.m
+        channel = self.sectors[self.plan["f_channel"]]
+        self.assertEqual(m.MOLTEN, channel["texturefloor"])
+        self.assertEqual(m.CHANNEL_DAMAGE, channel["damageamount"])
+        self.assertEqual(m.CHANNEL_DAMAGE_INTERVAL, channel["damageinterval"])
+        per_32_tics = channel["damageamount"] * 32 / channel["damageinterval"]
+        self.assertGreaterEqual(per_32_tics, 5)
+        self.assertLessEqual(per_32_tics, 20)
+        self.assertFalse(channel.get("special"))
+
+    def test_the_molten_channel_is_no_one_way_trap(self):
+        """No wall in the channel: every line round it is two-sided onto the
+        casting floor, a step up of 16 the player climbs back from anywhere;
+        it is 64 across, so no point of it is over 32 from the edge; nothing
+        to pick up or fight stands in it."""
+        m = self.m
+        channel = self.plan["f_channel"]
+        around = [ld for ld in self.lines if channel in (self.front(ld),) or
+                  ("sideback" in ld and self.sides[ld["sideback"]]["sector"] == channel)]
+        self.assertTrue(around)
+        width = {"x": set(), "y": set()}
+        for ld in around:
+            self.assertIn("sideback", ld, "a wall in the channel")
+            self.assertFalse(ld.get("blocking"))
+            (ax, ay), (bx, by) = self.line_points(ld)
+            width["x"] |= {ax, bx}
+            width["y"] |= {ay, by}
+        self.assertEqual({self.plan["f_floor"]}, self.neighbours[channel])
+        every = set().union(*(r[0] for r in self.progression(kills=True)))
+        adj = self.adjacency(every)
+        self.assertIn(self.plan["f_floor"], adj[channel], "out of the channel")
+        self.assertIn(channel, adj[self.plan["f_floor"]])
+        rise = self.sectors[self.plan["f_floor"]]["heightfloor"] - self.sectors[channel]["heightfloor"]
+        self.assertLessEqual(rise, m.STEP)
+        narrow = min(max(v) - min(v) for v in width.values())
+        self.assertLessEqual(narrow / 2, 32, "the edge is never more than 32 away")
+        self.assertFalse([t for t in self.things if self.sector_at(t["x"], t["y"]) == channel])
+        self.assertIn(self.start, self.flood(adj, channel), "a way back from the channel")
+
+    # --- v1.1 (D68): the General's death opens his stores ------------------------
+    def test_the_general_carries_the_stores_special(self):
+        """UDMF thing `special` + `arg0..`: Door_Open (11) on the stores' tag,
+        at the doors' speed. Nothing else in the map carries that tag: no
+        line, no other thing; it names one door sector, the stores'."""
+        m = self.m
+        g = self.things_of({m.ED_GENERAL})[0]
+        self.assertEqual(SPECIAL_DOOR_OPEN, g.get("special"))
+        self.assertEqual((m.TAG_GENERAL_STORES, 16, 0), (g["arg0"], g["arg1"], g["arg2"]))
+        others = [t for t in self.things if t.get("special") and t is not g]
+        self.assertFalse(others)
+        self.assertFalse([ld for ld in self.lines if ld.get("special") and ld.get("arg0") == m.TAG_GENERAL_STORES])
+        self.assertEqual(self.named("p_stores_door"), self.doors[m.TAG_GENERAL_STORES])
+        tagged = {i for i, s in enumerate(self.sectors) if s.get("id") == m.TAG_GENERAL_STORES}
+        self.assertEqual(self.named("p_stores_door"), tagged)
+        used = {s.get("id") for i, s in enumerate(self.sectors) if i not in tagged}
+        self.assertNotIn(m.TAG_GENERAL_STORES, used)
+
+    def test_the_stores_open_only_after_his_death(self):
+        """Played with the kill: the stores open in the round after the
+        General can be reached, never before. Played without it: never."""
+        m = self.m
+        stores = self.plan["p_stores"]
+        self.assertFalse([r for r in self.progression() if stores in r[1]], "open without his death")
+        rounds = self.progression(kills=True)
+        first = next(k for k, (opened, _r, _h) in enumerate(rounds) if m.TAG_GENERAL_STORES in opened)
+        g = self.things_of({m.ED_GENERAL})[0]
+        self.assertIn(self.sector_at(g["x"], g["y"]), rounds[first - 1][1], "he is met first")
+        self.assertNotIn(stores, rounds[first - 1][1])
+        self.assertIn(stores, rounds[first][1])
+        # From the portal hall it is a steel shutter in a porch one tile high,
+        # with nothing to press: no door that will not open (MAP01's lesson).
+        face = [ld for ld in self.lines if "sideback" in ld
+                and set(self._pair(ld)) == self.named("p_stores_porch", "p_stores_door")]
+        self.assertEqual(1, len(face))
+        self.assertFalse(face[0].get("special"))
+        side = face[0]["sidefront"] if self.front(face[0]) == self.plan["p_stores_porch"] else face[0]["sideback"]
+        self.assertEqual(m.STEEL, self.sides[side]["texturetop"])
+        porch = self.sectors[self.plan["p_stores_porch"]]
+        self.assertEqual(DOOR_TILE, porch["heightceiling"] - porch["heightfloor"])
+        self.assertIn(self.plan["p_hall"], self.neighbours[self.plan["p_stores_porch"]])
+
+    def test_the_exit_depends_on_sw_b_alone(self):
+        """D68: nobody is locked in if the General lives. The drum's gate has
+        one opener, SW-B in the booth; his special names another tag; and
+        the critical route (nobody killed) reaches the exit the round SW-B
+        opens the gate."""
+        m = self.m
+        openers = [ld for ld in self.lines if ld.get("special") and ld.get("arg0") == m.TAG_GATE]
+        self.assertEqual(1, len(openers))
+        self.assertEqual(self.plan["p_booth"], self.front(openers[0]))
+        self.assertNotEqual(m.TAG_GATE, self.things_of({m.ED_GENERAL})[0]["arg0"])
+        rounds = self.progression()
+        exit_sector = self.front(self.exit_line())
+        first = next(k for k, r in enumerate(rounds) if exit_sector in r[1])
+        self.assertIn(m.TAG_GATE, rounds[first][0])
+        self.assertNotIn(m.TAG_GATE, rounds[first - 1][0])
+        self.assertNotIn(m.TAG_GENERAL_STORES, set().union(*(r[0] for r in rounds)))
+
+    def test_the_stores_hold_health_ammunition_and_armour(self):
+        """The reward, on every skill: health, ammunition and armour."""
+        m = self.m
+        stores = self.plan["p_stores"]
+        for skill in SKILLS:
+            kinds = {t["type"] for t in self.on(skill, self.things)
+                     if self.sector_at(t["x"], t["y"]) == stores}
+            self.assertTrue(kinds & {m.ED_MEDIKIT, m.ED_STIMPACK}, f"skill {skill}: health")
+            self.assertTrue(kinds & {m.ED_SHELL_BOX, m.ED_ROCKET_BOX, m.ED_CLIP_BOX, m.ED_CELL},
+                            f"skill {skill}: ammunition")
+            self.assertTrue(kinds & {m.ED_GREEN_ARMOR, m.ED_BLUE_ARMOR, m.ED_ARMOR_BONUS},
+                            f"skill {skill}: armour")
+        self.assertFalse([t for t in self.monsters() if self.sector_at(t["x"], t["y"]) == stores])
 
 
 if __name__ == "__main__":
