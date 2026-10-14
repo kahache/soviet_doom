@@ -1209,7 +1209,11 @@ class StormPose:
     tilt: float | None = None
     head_pitch: float | None = None         # None: hunch x 0.7, the sweep's
     lean: float = 0.0                       # upper body back (pain, death)
-    roll: float = 0.0                       # degrees he falls to his RIGHT, the chrome side
+    fall: float = 0.0                       # degrees, the whole figure tips BACK about FALL_PIVOT (90: on his back)
+    yaw: float = 0.0                        # degrees, then turns about the vertical (90: lying across the screen)
+    nod: float = 0.0                        # degrees, the whole head (skull plate too) tips back about the neck
+    head_turn: float = 0.0                  # degrees, the whole head turns about the neck (+: towards his left)
+    hip_back: float = 0.0                   # legs moved back inside the greatcoat: on his back they settle on the floor
     glow: str = ""                          # "" | "charge" | "core" | "bolt"
     claws: bool = True
     stain: float = 0.0                      # 0..1, the wet patch on his coat front
@@ -1246,22 +1250,28 @@ STORM_POSES = {
                    hand_l=(13.0, 50.0, 1.0), elbow=(-2.0, -8.0, 1.0), hunch=8.0, tilt=2.0),
     "W": StormPose("W", "the slash (proposed)", (3.6, ANKLE_Y, 4.0), (-4.3, ANKLE_Y, -2.6), -2.0, 0.9,
                    hand_l=(-3.0, 28.0, 13.0), elbow=(-1.8, -8.6, 2.0), hunch=22.0, tilt=10.0),
-    # death, rotation 0: hit in the chest, knees go, he falls to his right (the heavy side)
+    # death, rotation 0 (D53): hit in the chest, the knees go, he falls BACK over his heels twisting
+    # towards his chrome side, and lies on his back across the screen, the cannon arm flat beside him
+    # towards the viewer, the plated half of his skull turned up. M's numbers were fitted so every part
+    # lies within LYING_MAX of the floor (lying_report; tests/test_gen_storm.py holds it).
     "I": StormPose("I", "hit", (3.9, ANKLE_Y, 1.2), (-4.3, ANKLE_Y, -3.6), -1.2, 0.4,
-                   hand_l=(12.5, 45.0, 1.0), **_DOWN, hunch=6.0, lean=20.0, head_pitch=30.0, stain=0.4,
+                   hand_l=(12.5, 45.0, 1.0), **_DOWN, hunch=6.0, lean=20.0, head_pitch=0.0, nod=30.0, stain=0.4,
                    canvas=STORM_DEATH_CV),
-    "J": StormPose("J", "knees go", (3.9, ANKLE_Y, 1.2), (-4.3, ANKLE_Y, -1.0), -7.0, 0.6,
-                   hand_l=(12.0, 40.0, 2.0), **_DOWN, hunch=8.0, lean=22.0, head_pitch=26.0, roll=12.0,
-                   stain=0.7, canvas=STORM_DEATH_CV),
-    "K": StormPose("K", "falling to his right", (3.9, ANKLE_Y, 1.2), (-4.3, ANKLE_Y, 0.0), -11.0, 0.8,
-                   hand_l=(13.0, 37.0, 1.0), **_DOWN, hunch=6.0, lean=14.0, head_pitch=20.0, roll=44.0,
-                   stain=0.9, canvas=STORM_DEATH_CV),
-    "L": StormPose("L", "hits the floor", (3.9, ANKLE_Y, 1.0), (-4.3, ANKLE_Y, 0.5), -9.0, 0.6,
-                   hand_l=(12.0, 38.0, -1.0), **_DOWN, hunch=4.0, lean=6.0, head_pitch=8.0, roll=74.0,
-                   stain=1.0, canvas=STORM_DEATH_CV),
-    "M": StormPose("M", "dead, in his blood", (3.7, ANKLE_Y, 0.6), (-4.3, ANKLE_Y, 1.4), -2.0, 0.4,
-                   hand_l=(10.0, 31.0, 4.0), **_DOWN, hunch=2.0, head_pitch=-10.0, roll=90.0,
-                   stain=1.0, canvas=STORM_DEATH_CV),
+    "J": StormPose("J", "knees go, tipping back", (3.9, ANKLE_Y, 1.2), (-4.3, ANKLE_Y, -1.0), -6.0, 0.6,
+                   hand_l=(14.0, 42.0, 1.0), **_DOWN, hunch=4.0, lean=16.0, head_pitch=0.0, nod=26.0,
+                   fall=18.0, yaw=-22.0, hip_back=0.8, stain=0.7, canvas=STORM_DEATH_CV),
+    "K": StormPose("K", "falling back, twisting", (4.6, ANKLE_Y, 0.5), (-4.6, ANKLE_Y + 1.0, 0.5), -0.5, 0.8,
+                   hand_l=(16.0, 40.0, 0.0), elbow=(-4.6, -7.4, -1.6), aim=(-0.5, -0.8, -0.2), hunch=2.0,
+                   tilt=2.0, lean=10.0, head_pitch=0.0, nod=22.0, head_turn=-15.0, fall=50.0, yaw=-72.0,
+                   hip_back=2.4, stain=0.9, canvas=STORM_DEATH_CV),
+    "L": StormPose("L", "hits the floor", (5.0, ANKLE_Y + 1.0, -1.2), (-4.8, ANKLE_Y + 2.0, -1.0), -0.5, 0.6,
+                   hand_l=(13.5, 29.0, -3.0), elbow=(-5.2, -7.2, -2.4), aim=(-0.55, -0.8, -0.25), hunch=0.0,
+                   tilt=0.0, lean=8.0, head_pitch=0.0, nod=16.0, head_turn=-25.0, fall=86.0, yaw=-84.0,
+                   hip_back=3.8, stain=1.0, canvas=STORM_DEATH_CV),
+    "M": StormPose("M", "dead on his back, in his blood", (5.0, ANKLE_Y, -2.0), (-4.8, ANKLE_Y + 0.6, -2.0), 0.0,
+                   0.4, hand_l=(12.0, 27.0, -5.0), elbow=(-5.5, -7.0, -2.8), aim=(-0.55, -0.8, -0.3),
+                   hunch=0.0, tilt=0.0, lean=7.5, head_pitch=0.0, nod=20.0, head_turn=-35.0, fall=90.0, yaw=-90.0,
+                   hip_back=4.4, stain=1.0, canvas=STORM_DEATH_CV),
     "N": StormPose("N", "the chest bursts", (3.9, ANKLE_Y, 0.8), (-4.3, ANKLE_Y, -3.0), -1.0, 0.3,
                    hand_l=(12.0, 41.0, 2.0), elbow=(-3.0, -6.8, -1.0), aim=(-0.3, -0.7, 0.6),
                    lean=10.0, head_pitch=20.0, stain=1.0, burst=True, canvas=STORM_GIB_CV),
@@ -1272,6 +1282,7 @@ DEATH_T = {"I": 0.12, "J": 0.36, "K": 0.56, "L": 0.74, "M": 2.0}
 DEATH_POOL = {"L": 0.35, "M": 1.0}
 GIB_T = {"N": 0.03, "O": 0.10, "P": 0.24, "Q": 0.38, "R": 0.55, "S": 0.75, "T": 1.0, "U": 1.6}
 WOUND = V(-0.6, 33.0 + STORM_BOB, 3.0)    # the chest wound, model space, where the spray leaves
+FALL_PIVOT = V(0.0, 0.0, -3.0)            # behind his heels: he falls back over them
 GRAVITY = rig.GRAVITY
 FOUNTAIN_DROPS = 46
 GIB_CHUNKS = 24
@@ -1352,6 +1363,13 @@ def storm_full_model(sp: StormPose, seed: int = SEED,
         return prim
 
     _head_parts(cell, add, sp.bob)
+    neck = rig.NECK + V(0, sp.bob, 0)
+    if sp.head_turn:                            # the death's head: the skull plate turns with the face
+        rig.transform(P, {}, {"head"}, rig.rot_y(sp.head_turn), neck)
+    if sp.nod:
+        rig.transform(P, {}, {"head"}, rig.rot_x(sp.nod), neck)
+    if sp.hip_back:
+        rig.transform(P, {}, {"leg_l", "leg_r"}, np.eye(3), V(0, 0, 0), V(0, 0, -sp.hip_back))
     sh = V(-(rig.SHOULDER_X + 0.2), 39.4 + sp.bob, -0.4)
     start = len(P)
     d = V(*sp.aim)
@@ -1379,12 +1397,46 @@ def storm_full_model(sp: StormPose, seed: int = SEED,
     if sp.lean:
         rig.transform(P, anchors, rig.UPPER, rig.rot_x(sp.lean), waist)
         rig.transform(P, anchors, {"skirt"}, rig.rot_x(sp.lean * 0.3), waist)
-    if sp.roll:
-        pivot = V(sp.foot_r[0], 0.0, 0.0)       # his right sole: he goes over the chrome side
-        slide = V(rig.SLIDE * np.sin(np.deg2rad(sp.roll)), 0, 0)
-        rig.transform(P, anchors, rig.ALL_BODY, rig.rot_z(-sp.roll), pivot, slide)
+    if sp.fall or sp.yaw:
+        # D53 (CEO, 2026-10-14: "SDHSM0 ... cae de lado queda artificial"): he
+        # no longer rolls onto his right side, where the chrome shoulder and
+        # the cannon held his chest up; he falls BACK over his heels and twists
+        # as he goes, so he lies on his back across the screen, his weight on
+        # the floor along his whole length (gen_legion.py's fix for the same fault).
+        R = rig.rot_y(sp.yaw) @ rig.rot_x(sp.fall)
+        rig.transform(P, anchors, rig.ALL_BODY, R, FALL_PIVOT)
         rig.rest_on_floor(P, anchors, rig.ALL_BODY)
+        mid = float(np.mean([q.bound()[0][0] for q in P if q.grp in rig.ALL_BODY]))
+        rig.transform(P, anchors, rig.ALL_BODY, np.eye(3), V(0, 0, 0), V(-mid, 0, 0))   # on the actor's axis
     return P, anchors
+
+
+# A corpse lies with its weight on the floor (D53, as gen_legion.py's): every
+# part within LYING_MAX units (1 unit = 1 px at 1:1) of it, and the parts
+# that touch it spread along his length, so he never rests on one point.
+LYING_MAX = 2.0
+LYING_SUPPORT = 1.0             # a part this close to the floor is a support
+LYING_SPAN = 30.0               # supports must spread at least this far along the body
+LYING_HEIGHT_PX = 24            # the dead body on screen, blood aside (the old M0 on his side: 36 with blood)
+
+
+def body_parts(prims: list) -> dict[str, list]:
+    """The posed figure's parts by name (groups, limb labels, tags): what
+    must touch the floor when he lies dead. The cannon arm is one part."""
+    leg = lambda side: [q for q in prims if q.limb == "leg" and q.side == side]  # noqa: E731
+    arm = [q for q in prims if q.limb == "arm" and q.side == core.LEFT and q.mat != "bone"]
+    parts = {"torso": [q for q in prims if q.tag == "torso"], "skirt": [q for q in prims if q.tag == "skirt"],
+             "head": [q for q in prims if q.grp == "head"], "cannon": core.select(prims, limb="graft"),
+             "upper_arm_left": arm[:1], "forearm_left": arm[1:4]}
+    for name, side in (("left", core.LEFT), ("right", core.RIGHT)):
+        lg = leg(side)
+        parts[f"thigh_{name}"], parts[f"shin_{name}"], parts[f"foot_{name}"] = lg[:1], lg[1:2], lg[2:3]
+    return {k: v for k, v in parts.items() if v}
+
+
+def lying_report(prims: list) -> dict[str, float]:
+    """Each part's lowest point above the floor, in units (core.lowest_y)."""
+    return {k: round(core.lowest_y(v), 2) for k, v in body_parts(prims).items()}
 
 
 # ------------------------------------------------------------------ the gore
@@ -1465,7 +1517,7 @@ def _gib_chunks(t: float, seed: int) -> list[rig.Prim]:
 def gib_model(frame: str, seed: int = SEED) -> list[rig.Prim]:
     """XDeath N-U. N: the chest bursts, a fountain starts. Then the upper
     body is chunks on ballistic arcs, the chrome-plated skull and the cannon
-    arm fly whole, the legs stand a moment and fall to his right, and the
+    arm fly whole, the legs stand a moment and fall back flat (D53), and the
     floor fills: splats where every drop lands, a pool under the stump."""
     t = GIB_T[frame]
     whole, anc_w = storm_full_model(STORM_POSES["N"], seed)
@@ -1477,8 +1529,13 @@ def gib_model(frame: str, seed: int = SEED) -> list[rig.Prim]:
         return whole + fountain + seam
     k = float(np.clip((t - 0.2) / 0.6, 0, 1))      # the legs: stand, buckle, fall
     k = k * k * (3 - 2 * k)
-    legs_pose = replace(STORM_POSES["N"], lean=0.0, head_pitch=0.0, bob=-1.0 - 10.0 * k, claws=False,
-                        stain=0.0, burst=False)
+    # D53: the legs buckle, then fall BACK flat as the dead body does (M), not onto their side: the knees
+    # give at mid-fall and straighten as they land, the feet and hips go to M's.
+    dead = STORM_POSES["M"]
+    lerp = lambda a, b: tuple(x + (y - x) * k for x, y in zip(a, b))  # noqa: E731
+    legs_pose = replace(STORM_POSES["N"], lean=0.0, head_pitch=0.0, bob=-1.0 - 7.0 * np.sin(np.pi * k),
+                        foot_l=lerp(STORM_POSES["N"].foot_l, dead.foot_l), foot_r=lerp(STORM_POSES["N"].foot_r, dead.foot_r),
+                        hip_back=dead.hip_back * k, claws=False, stain=0.0, burst=False)
     legs_all, _ = storm_full_model(legs_pose, seed)
     keep = [q for q in legs_all if q.grp in {"leg_l", "leg_r", "skirt"} or q.tag == "belt"]
     for q in keep:
@@ -1492,11 +1549,12 @@ def gib_model(frame: str, seed: int = SEED) -> list[rig.Prim]:
                                                   rng.uniform(-2, 2)), tuple(rng.uniform(1.2, 2.4, 3)), grp="stump"))
     legs = {"leg_l", "leg_r", "skirt", "stump"}
     anc = {"stump": (V(0, rig.WAIST_Y + bob, 0), "stump")}
-    if k > 0:
-        roll = 88.0 * k
-        slide = V(rig.SLIDE * 0.45 * np.sin(np.deg2rad(roll)), 0, 0)
-        rig.transform(keep, anc, legs, rig.rot_z(-roll), V(legs_pose.foot_r[0], 0, 0), slide)
+    if k > 0:                                       # back over the heels and across, as the death (M)
+        R = rig.rot_y(dead.yaw * k) @ rig.rot_x(dead.fall * k)
+        rig.transform(keep, anc, legs, R, FALL_PIVOT)
         rig.rest_on_floor(keep, anc, legs)
+        mid = float(np.mean([q.bound()[0][0] for q in keep if q.grp in legs]))
+        rig.transform(keep, anc, legs, np.eye(3), V(0, 0, 0), V(-mid * k, 0, 0))
     if t >= 0.38:                                   # the pool spreads from where the stump lies
         g = min((t - 0.38) / 0.9, 1.0)
         s = anc["stump"][0]
@@ -1704,19 +1762,34 @@ def write_full_gifs(data: dict, out_dir: Path = FULL_DIR) -> dict:
                                              out_dir / f"claw_rot{r}_proposed.gif")
     out["turn"] = core.save_gif([core.on_bg(spr[("A", r)], core.NEUTRAL) for r in range(1, 9)], [t(12)] * 8,
                                 out_dir / "turntable.gif")
-    death = [core.on_bg(core.pad_to(spr[("A", 1)], STORM_CV, STORM_DEATH_CV), core.NEUTRAL)] + \
-            [core.on_bg(spr[(f, 0)], core.NEUTRAL) for f in "IJKLM"]
-    out["death"] = core.save_gif(death, [t(20)] + [t(tics["Death"][f]) for f in "IJKL"] + [t(70)],
-                                 out_dir / "death.gif")
-    gib = [core.on_bg(core.pad_to(spr[("A", 1)], STORM_CV, STORM_GIB_CV), core.NEUTRAL)] + \
-          [core.on_bg(spr[(f, 0)], core.NEUTRAL) for f in "NOPQRSTU"]
-    out["gib"] = core.save_gif(gib, [t(20)] + [t(tics["XDeath"][f]) for f in "NOPQRST"] + [t(70)],
-                               out_dir / "gib.gif")
+    out.update(write_death_gifs(data, out_dir))
     wall = flat.tile_to(flat.host_rgb("SDCONC1"), BOLT_CV.w, BOLT_CV.h)
     out["bolt_fly"] = core.save_gif([additive(data["bolt"][f], wall) for f in "AB"], [t(4)] * 2,
                                     out_dir / "bolt_flight.gif")
     out["bolt_burst"] = core.save_gif([additive(data["bolt"][f], wall) for f in "CDE"] + [wall],
                                       [t(6)] * 3 + [t(20)], out_dir / "bolt_burst.gif")
+    return out
+
+
+DEATH_FLOOR = ("SDCONC1", 176)     # the hangar's floor and light, where the death sheet shows the corpse at 1x
+
+
+def on_floor(rgba: np.ndarray, cv: Canvas, wall: str = DEATH_FLOOR[0], light: int = DEATH_FLOOR[1]) -> np.ndarray:
+    """One sprite on MAP01's wall over SDFLR2, by its own offsets, at 1x."""
+    return lineup([(rgba, *grab(cv))], wall, light, cv.w)
+
+
+def write_death_gifs(data: dict, out_dir: Path = FULL_DIR) -> dict:
+    """Death and gib at game speed: on neutral grey and on MAP01's floor."""
+    tics = zscript_tics()
+    t = lambda n: int(round(n * core.TIC_MS))  # noqa: E731
+    spr = data["sprites"]
+    out = {}
+    for name, cv, frames, state in (("death", STORM_DEATH_CV, "IJKLM", "Death"), ("gib", STORM_GIB_CV, "NOPQRSTU", "XDeath")):
+        seq = [core.pad_to(spr[("A", 1)], STORM_CV, cv)] + [spr[(f, 0)] for f in frames]
+        durs = [t(20)] + [t(tics[state][f]) for f in frames[:-1]] + [t(70)]
+        out[name] = core.save_gif([core.on_bg(x, core.NEUTRAL) for x in seq], durs, out_dir / f"{name}.gif")
+        out[f"{name}_floor"] = core.save_gif([on_floor(x, cv) for x in seq], durs, out_dir / f"{name}_floor.gif")
     return out
 
 
@@ -1732,8 +1805,8 @@ FULL_VERDICT = [
     "right foot takes his weight (tilt 4.5 to 9.5 degrees through the cycle), and the cannon swings like a dead "
     "weight. The attack is one sequence for both attacks because the ZScript plays E F G for the claw and for "
     "the bolt: the cannon comes up (E), its core lights red (F), the bolt leaves with a recoil (G). He dies "
-    "falling to his right, over the cannon, where the rifleman falls to his left: the two Reich corpses do not "
-    "lie the same way.",
+    "falling back over his heels and lies on his back, the cannon arm flat beside him (redone for D53; the "
+    "first version rolled onto the cannon and looked propped).",
     "BLOOD. Much more of it than the rifleman's D38 deaths, as D48 asked, and dark red as D49 decided (\"rojo "
     "oscuro, nada de oliva\"): a spray from the chest that lands as splats, a second jet from the entry wound "
     "towards the shooter, a wet patch that spreads down the coat and drips, the seam of the graft tearing, and a "
@@ -1834,7 +1907,7 @@ def build_full_sheet(data: dict, stamp: str, out_dir: Path = PREVIEW_DIR, gif_di
     body += strip([G(gif_dir / "gib.gif", 4, "gib (XDeath), game speed", f"{xts} tics, U stays")])
     body += strip([T(spr[(f, 0)], 2, full_lump(f, 0)) for f in "NOPQRSTU"])
     S.append(("6 · Death I-M and gib N-U, with the blood (rotation 0)",
-              "Death: hit in the chest, the knees go, he falls to his right over the cannon and lies in his blood. "
+              "Death: hit in the chest, the knees go, he falls back over his heels and lies on his back in his blood. "
               "Gib: the chest bursts, a fountain, the upper body in chunks, the chrome-plated skull and the cannon "
               "arm fly whole and land, the legs stand a moment and fall, and the floor fills. Olive blood "
               f"({html.escape(BLOOD_NOTE)}).", body))
@@ -1949,6 +2022,169 @@ def build_full_sheet(data: dict, stamp: str, out_dir: Path = PREVIEW_DIR, gif_di
     return path
 
 
+# ============================================================ death redo (D53)
+# The CEO on the full set (2026-10-14): "SDHSM0 mismo error que antes: cuando
+# este soldado muere y cae de lado queda artificial. El resto OK." The frames
+# he saw are kept in full_E/old_death/ for the before/after sheet; the death
+# I-M and the gib's fallen legs were redone (STORM_POSES I-M, gib_model).
+OLD_DEATH_DIR = FULL_DIR / "old_death"
+DEATH_FRAMES = "IJKLMNOPQRSTU"
+
+
+def body_height_px(prims: list, cv: Canvas, seed: int = SEED) -> tuple[int, int]:
+    """(height, lowest row) on screen of the body alone, blood left out."""
+    lay = core.render_layers(prims, 0, cv, MATERIALS, seed=seed, value_shift=rig.VALUE_SHIFT,
+                             insignia=(core.ARMBAND,), what="body height")
+    blood = [i for i, q in enumerate(prims) if q.mat in ("blood", "pool")]
+    body = (lay.pid >= 0) & ~np.isin(lay.pid, blood)
+    ys = np.nonzero(body)[0]
+    return int(ys.max() - ys.min() + 1), int(ys.max())
+
+
+def build_death(out_dir: Path = FULL_DIR, seed: int = SEED) -> dict:
+    """Re-render death I-M and gib N-U only, over the set on disk (A-H and
+    the bolt are read, never rewritten); refresh their metrics and GIFs."""
+    old = out_dir / OLD_DEATH_DIR.name
+    if not (old / f"{full_lump('M', 0)}.png").is_file():
+        raise SystemExit(f"{old} holds no old death: keep the frames the CEO saw before redrawing them")
+    data = load_full(out_dir)
+    for f in DEATH_FRAMES:
+        rgba, mat = render_full(f, 0, seed)
+        save(rgba, out_dir / f"{full_lump(f, 0)}.png", full_canvas(f))
+        data["sprites"][(f, 0)] = rgba
+        m = measure(rgba)
+        m["legion_share"] = round(legion_fraction(mat), 3)
+        m["blood_share"] = round(blood_share(mat), 3)
+        data["metrics"][full_lump(f, 0)] = m
+        print(full_lump(f, 0), flush=True)
+    (out_dir / "metrics.json").write_text(json.dumps(data["metrics"], indent=2) + "\n", encoding="utf-8")
+    write_death_gifs(data, out_dir)
+    return data
+
+
+DEATH_VERDICT = [
+    "WHAT CHANGED. The first M0 rolled onto his right side, and the chrome shoulder and the cannon, the bulkiest "
+    "things on him, held his chest off the floor: a corpse leaning on its arm. Now he falls BACK over his heels and "
+    "twists towards his chrome side as he goes, so he lies on his back across the screen. On M every part of him "
+    "is measured within 2 units (= px) of the floor (section 3): the head, the cannon arm, his left arm, the shins "
+    "and the boots touch it, the greatcoat and the hips settle onto it, and what touches spreads from his skull to "
+    "his boots. The cannon arm lies flat beside him on the side you see, the plated half of the skull turned up, "
+    "the left arm loose at his side, the pool under his chest and hips.",
+    "THE FRAMES THAT LEAD THERE. I (the hit) keeps its pose; now the whole head, chrome plate and all, tips back "
+    "together (before, only the face did). J: his knees go and he tips back. K: falling back, twisting. L: he hits "
+    "the floor, still settling. The gib had the same fault in its last frames (the legs fell onto their side): they "
+    "now fall back flat as M does, and U is the coat and the legs lying on the floor beside the skull and the cannon "
+    "arm. The blood is unchanged: D49's dark red, as much of it.",
+    "HONESTLY. The greatcoat's skirt is deeper than his chest, so where he lies the coat's back and the torso sit a "
+    "little under 2 units up while the head, arms and boots touch; a real coat would flatten, the rig's does not. To "
+    "lie flat his legs settle back inside the coat (a pose parameter, hip_back), which a body does and a rigid rig "
+    "does not. Walk, attack and pain (A-H, 64 lumps), the bolt and the GIFs of A-H are byte-identical to the set "
+    "you approved. Light is gen_enemy.py's stand-in, NOT VERIFIED against GZDoom.",
+]
+DEATH_ASK = [
+    "Approve the new death (recommended); with it the 77 SDHS and 5 SDBL lumps stand ready for assets/sprites/ "
+    "and the TROO to SDHS, BAL1 to SDBL rename.",
+    "Or name the pose: face down instead of on his back, the head the other way, the arms flung wider; each is a "
+    "few numbers in the M pose, one more render.",
+]
+
+
+def build_death_sheet(data: dict, stamp: str, out_dir: Path = PREVIEW_DIR, gif_dir: Path = FULL_DIR,
+                      old_dir: Path = OLD_DEATH_DIR) -> Path:
+    """Old M vs new M (and I-L, and the gib's U), at 4x, at 1x and on MAP01's floor."""
+    spr = data["sprites"]
+    T, ST, G = core.tile, core.sprite_tile, core.gif_tile
+
+    def rd(path):
+        with Image.open(path) as im:
+            return np.asarray(im.convert("RGBA")).copy()
+
+    def strip(items):
+        return '<div class="strip">' + "".join(items) + "</div>"
+
+    old = {f: rd(old_dir / f"{full_lump(f, 0)}.png") for f in DEATH_FRAMES}
+    S = []
+    h_now, _ = body_height_px(storm_full_model(STORM_POSES["M"])[0], STORM_DEATH_CV)
+    mo, mn = measure(old["M"]), measure(spr[("M", 0)])
+    body = strip([ST(old["M"], 4, "SDHSM0 before", f"{mo['height_px']} px with blood: on his side, on the cannon"),
+                  ST(spr[("M", 0)], 4, "SDHSM0 now", f"{mn['height_px']} px with blood, {h_now} px the body: on his back")])
+    fo, fn = on_floor(old["M"], STORM_DEATH_CV), on_floor(spr[("M", 0)], STORM_DEATH_CV)
+    w, l = DEATH_FLOOR
+    body += strip([T(core.png_uri(fo), fo.shape[1], fo.shape[0], 1, "before, 1x", f"{w} @{l}"),
+                   T(core.png_uri(fn), fn.shape[1], fn.shape[0], 1, "now, 1x", f"{w} @{l}"),
+                   T(core.png_uri(fo), fo.shape[1], fo.shape[0], 3, "before, 3x"),
+                   T(core.png_uri(fn), fn.shape[1], fn.shape[0], 3, "now, 3x")])
+    S.append(("1 · The dead Stormtrooper, M0: before and now",
+              f"4x on neutral grey, then on MAP01's hangar floor ({w} over SDFLR2, light {l}) at 1x and 3x, placed by "
+              "its own offsets as the engine does.", body))
+
+    tics = zscript_tics()
+    dts = ", ".join(f"{f} {tics['Death'][f]}" for f in "IJKL")
+    body = strip([ST(old[f], 3, full_lump(f, 0), "before") for f in "IJKLM"])
+    body += strip([ST(spr[(f, 0)], 3, full_lump(f, 0), STORM_POSES[f].title) for f in "IJKLM"])
+    body += strip([G(old_dir / "death.gif", 3, "before", "at game speed"),
+                   G(gif_dir / "death.gif", 3, "now", f"{dts} tics, M held"),
+                   G(gif_dir / "death_floor.gif", 1, "now, 1x on the floor", f"{w} @{l}"),
+                   G(gif_dir / "death_floor.gif", 3, "now, 3x on the floor")])
+    S.append(("2 · The fall I-M: before (top) and now",
+              "Death at the tics of stormtrooper.zs. Now he falls back over his heels and twists towards his chrome "
+              "side, instead of rolling onto it.", body))
+
+    rep = lying_report(storm_full_model(STORM_POSES["M"])[0])
+    rows = [[k, f"{v:.1f}", "touches" if v <= LYING_SUPPORT else ""] for k, v in rep.items()]
+    body = sheetlib.table(["part of M0", "lowest point above the floor (units = px at 1:1)", "support"], rows)
+    body += (f"<p class=\"lead\">tests/test_gen_storm.py holds it, as test_gen_legion.py does for the Legion: every "
+             f"part of M within {LYING_MAX:.0f} units of the floor, the parts that touch it (within "
+             f"{LYING_SUPPORT:.0f}) spread at least {LYING_SPAN:.0f} units along his length, so he cannot rest on "
+             f"one point again; the rendered body, blood aside, at most {LYING_HEIGHT_PX} px tall on the floor line "
+             f"(now {h_now}); and the gib's U lies the same way.</p>")
+    S.append(("3 · Measured: every part on the floor", "", body))
+
+    body = strip([ST(old["U"], 3, "SDHSU0 before", "legs on their side"),
+                  ST(spr[("U", 0)], 3, "SDHSU0 now", "coat and legs flat on the floor")]
+                 + [ST(spr[(f, 0)], 2, full_lump(f, 0)) for f in "QRST"])
+    body += strip([G(old_dir / "gib.gif", 2, "gib before"), G(gif_dir / "gib.gif", 2, "gib now", "N-T 5 tics, U held"),
+                   G(gif_dir / "gib_floor.gif", 1, "gib now, 1x on the floor", f"{w} @{l}"),
+                   G(gif_dir / "gib_floor.gif", 3, "gib now, 3x on the floor")])
+    S.append(("4 · The gib's last frames: the same fault, the same fix", "", body))
+
+    figs, labels = [(spr[("M", 0)], *grab(STORM_DEATH_CV))], ["SDHSM0 (now)"]
+    for path, label in ((RIFLEMAN_DIR / "SDRRL0.png", "SDRRL0, the rifleman"),
+                        (PROJECT_ROOT / "work" / "art" / "enemies" / "legion" / "full_C" / "SDLTL0.png",
+                         "SDLTL0, the Legion trooper (redone the same way)")):
+        got = _read_sprite(path)
+        if got:
+            figs.append(got)
+            labels.append(label)
+    figs.append((spr[("U", 0)], *grab(STORM_GIB_CV)))
+    labels.append("SDHSU0 (now)")
+    sc = lineup(figs, w, l, 128 * len(figs))
+    body = strip([T(core.png_uri(sc), sc.shape[1], sc.shape[0], 1, "1x"),
+                  T(core.png_uri(sc), sc.shape[1], sc.shape[0], 2, "2x")])
+    body += "<p class=\"lead\">Left to right: " + html.escape(" · ".join(labels)) + \
+            " (as on disk when this sheet was built).</p>"
+    S.append(("5 · On MAP01's floor beside the other corpses", "", body))
+
+    body = '<div class="verdict">' + "".join(f"<p>{html.escape(v)}</p>" for v in DEATH_VERDICT) + "</div>"
+    body += '<div class="ask"><b>For the CEO</b><ol>' + "".join(f"<li>{html.escape(a)}</li>" for a in DEATH_ASK) \
+            + "</ol></div>"
+    S.append(("6 · Honest verdict and what you decide", "", body))
+    intro = ("Your note on the Stormtrooper's full set (D53): \"SDHSM0 mismo error que antes: cuando este soldado "
+             "muere y cae de lado queda artificial. El resto OK.\" Redone: the death I-M and the gib's fallen legs "
+             "(O-U), as the Legion trooper's was. Walk, attack and pain (A-H, 64 lumps) and the bolt are "
+             f"byte-identical to the set you approved. Built by <code>tools/art/gen_storm.py --death</code>, seed "
+             f"{SEED}. Draft: nothing in <code>assets/</code>.")
+    footer = ("Sprites: tools/art/gen_storm.py on tools/art/rig_core.py (GPL-3.0 code; art CC BY-NC-SA 4.0, D15), "
+              "deterministic, no system fonts.")
+    path = out_dir / f"{stamp}_F5_stormtrooper-E-death-redo.html"
+    sheetlib.write_sheet(path, lang="en", title="Hybrid Stormtrooper — the death, redone (F5, D53)",
+                         subtitle="SDHS I-M and N-U · before and now · draft for the CEO's gate",
+                         intro=intro, sections=S, footer=footer)
+    text = path.read_text(encoding="utf-8").replace("</style>", core.SHEET_CSS + "</style>", 1)
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--stamp", default=dt.datetime.now().strftime("%Y-%m-%d_%H%M"),
@@ -1962,7 +2198,18 @@ def main() -> None:
                     help="cell E's full frame set (D48): work/art/enemies/storm/full_E/ and its sheet")
     ap.add_argument("--full-sheet-only", action="store_true",
                     help="rebuild the full set's sheet from work/art/enemies/storm/full_E/")
+    ap.add_argument("--death", action="store_true",
+                    help="D53: redo cell E's death I-M and gib N-U in full_E/ (the old ones stay in old_death/) "
+                         "and build the before/after sheet")
+    ap.add_argument("--death-sheet-only", action="store_true", help="rebuild the death sheet from full_E/")
     args = ap.parse_args()
+    if args.death or args.death_sheet_only:
+        data = load_full() if args.death_sheet_only else build_death()
+        if args.no_sheet:
+            return
+        path = build_death_sheet(data, args.stamp)
+        print("sheet:", path.relative_to(PROJECT_ROOT))
+        return
     if args.full or args.full_sheet_only:
         data = load_full() if args.full_sheet_only else build_full()
         if args.no_sheet:

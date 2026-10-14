@@ -36,12 +36,16 @@ The full set of cell E (D48), cheap:
   blood      D49's dark red, the rifleman's materials: flag_red 0-5 over
              black, darker than the armband; not counted as Legion
   models     no military_green, the graft labelled, pools in the corpse
+  lying      D53: the dead (M) lie flat, every part within LYING_MAX of the
+             floor, supports spread head to boots, the cannon flat beside
+             him; the gib's legs (U) the same; A-H take no fall
 
 and rendered (slow):
 
   identity   frame A1 without the talons is the sweep's cell E, pixel for pixel
   palette    death, gib and bolt frames: palette colours, hard alpha
   gore       the corpse and the gib carry a lot of blood
+  flat       the dead body, blood aside, is a low band on the floor line
   bolt       centred on its offsets, brighter than the wall it is added to
 """
 
@@ -302,6 +306,58 @@ class FullSetCheapTests(unittest.TestCase):
         self.assertGreaterEqual(len([q for q in corpse if q.mat == "blood"]), 40)
 
 
+    def test_the_dead_lie_flat_on_the_floor(self):
+        """CEO on the first M0 (D53): "cuando este soldado muere y cae de lado
+        queda artificial". Every part of the corpse within LYING_MAX units
+        (= px at 1:1) of the floor, the parts that touch it spread along his
+        whole length, and the cannon arm flat on the floor beside him."""
+        g, core = self.g, self.core
+        P, _ = g.storm_full_model(g.STORM_POSES["M"])
+        parts = g.body_parts(P)
+        self.assertEqual(len(parts), 12)
+        heights = {k: core.lowest_y(v) for k, v in parts.items()}
+        self.assertAlmostEqual(min(heights.values()), 0.0, delta=0.1)
+        for k, h in heights.items():
+            self.assertLessEqual(h, g.LYING_MAX, k)
+        supports = [k for k, h in heights.items() if h <= g.LYING_SUPPORT]
+        for need in ("head", "cannon"):
+            self.assertIn(need, supports)
+        self.assertTrue({"shin_left", "shin_right", "foot_left", "foot_right"} & set(supports))
+        self.assertTrue({"upper_arm_left", "forearm_left"} & set(supports))
+        xs = [float(np.mean([q.bound()[0][0] for q in parts[k]])) for k in supports]
+        self.assertGreaterEqual(max(xs) - min(xs), g.LYING_SPAN)          # not one support point: head to boots
+        torso = parts["torso"][0]
+        self.assertGreater(abs(float((torso.xm @ core.V(0, 1, 0))[0])), 0.95)   # lying across the screen
+        self.assertGreater(float((torso.xm @ core.V(0, 0, 1))[1]), 0.9)         # on his back: his chest faces up
+        graft_x = float(np.mean([q.bound()[0][2] for q in parts["cannon"]]))
+        torso_x = float(torso.bound()[0][2])
+        self.assertGreater(graft_x, torso_x)                                    # the cannon on the side you see
+
+    def test_the_gibbed_legs_lie_flat(self):
+        g, core = self.g, self.core
+        P = g.gib_model("U")
+        parts = {k: v for k, v in g.body_parts(P).items() if k not in ("head", "cannon")}
+        self.assertEqual(set(parts), {"skirt", "thigh_left", "thigh_right", "shin_left", "shin_right",
+                                      "foot_left", "foot_right"})
+        for k, v in parts.items():
+            self.assertLessEqual(core.lowest_y(v), g.LYING_MAX, k)
+        self.assertAlmostEqual(core.lowest_y([q for q in P if q.grp == "fly"]), 0.0, delta=0.1)   # skull, cannon landed
+
+    def test_the_fall_leads_to_m(self):
+        g = self.g
+        falls = [g.STORM_POSES[f].fall for f in "IJKLM"]
+        yaws = [abs(g.STORM_POSES[f].yaw) for f in "IJKLM"]
+        self.assertEqual(falls, sorted(falls))
+        self.assertEqual(yaws, sorted(yaws))
+        self.assertEqual((g.STORM_POSES["M"].fall, g.STORM_POSES["M"].yaw), (90.0, -90.0))
+        for f in "ABCDEFGHVW":                                       # approved frames: no fall, no settling
+            sp = g.STORM_POSES[f]
+            self.assertEqual((sp.fall, sp.yaw, sp.nod, sp.head_turn, sp.hip_back), (0.0,) * 5, f)
+
+
+POOL_BELOW_SOLE = 5     # px: the body's lowest row sits within this of the sole line
+
+
 @slow
 @unittest.skipUnless(HAVE_IMAGING, "needs Pillow and numpy (.venv)")
 class FullSetRenderTests(unittest.TestCase):
@@ -346,6 +402,12 @@ class FullSetRenderTests(unittest.TestCase):
         self.assertGreater(g.blood_share(self.u0_mat), 0.15)
         m = g.measure(self.m0)
         self.assertLess(m["height_px"], 40)                               # he lies down
+
+    def test_the_dead_body_is_a_low_band(self):
+        g = self.g
+        h, low = g.body_height_px(g.storm_full_model(g.STORM_POSES["M"])[0], g.STORM_DEATH_CV)
+        self.assertLessEqual(h, g.LYING_HEIGHT_PX)                    # the old M0, on the cannon, stood taller
+        self.assertLessEqual(abs(low - g.STORM_DEATH_CV.foot_row), POOL_BELOW_SOLE)
 
     def test_bolt(self):
         g = self.g
