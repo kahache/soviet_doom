@@ -180,7 +180,9 @@ sovietdoom.pk3
 ├── music/D_SDRAD2.mid       diegetic radio: «Колокольчик», Gerloff's CC0 sequence (D43, §6.7)
 ├── sprites/SD*.png          our sprites (D48): the six weapon pickups SDAPA0, SDTPA0, SDIPA0,
 │                           SDPQA0, SDRPA0, SDKPA0 (§6.3); everything else is still the IWAD's (§5.1)
-├── sounds/  patches/  hires/   standard folders, empty today (T1)
+├── sounds/SD*.ogg           our sounds: the 25 weapon sounds of D74 (§6.2), from
+│                           assets/sounds/weapons/ (N9)
+├── patches/  hires/        standard folders, empty today (T1)
 ├── ANIMDEFS                switch pairs SDSW1x -> SDSW2x; animations SDMOLT1-4 (flat),
 │                           SDPORT1-4 (texture) (§4.3)
 └── (future) TEXTURES, GLDEFS — and no CVARINFO, by decision (ADR 004)
@@ -925,6 +927,8 @@ in the IWAD.
 | `SD_Pg7Grenade` | `Rocket` | Shaped-charge projectile. Not placeable. |
 | `SD_FlameBlob` | `Actor` | Fire projectile, 528-unit reach. Not placeable. |
 | `SD_KatyushaRocket` | `Rocket` | Salvo rocket, does not hurt the shooter. Not placeable. |
+| `SD_IceAxePuff` | `BulletPuff` | The ice axe's puff: `BulletPuff` plus `AttackSound` `sd/weapon/iceaxe/wall`, the pick on stone (N9, §6.2). Not placeable. |
+| `SD_WeaponSounds` | `Object` (`play`) | Static helper, never instantiated: `DryClick`, the guns' empty click from `Ready` (N9, §6.2). |
 | `SD_Monster` | `Actor` | Bestiary base (F5): `Monster`, `+FLOORCLIP`, the `Faction` property and the three attack helpers. Not placeable. Why enemies do not derive from Doom's monsters, why each sets its own `Species`: ADR 006 (`BESTIARY.md` §2.4 is the earlier draft). |
 | `SD_ReichRifleman` | `SD_Monster` *replaces ZombieMan* | Reich infantry, 20 HP, one hitscan. Drops `SD_Clip`. |
 | `SD_LegionTrooper` | `SD_Monster` *replaces ShotgunGuy* | Legion infantry, 30 HP, three pellets. Drops `SD_Izh`. |
@@ -1110,39 +1114,76 @@ available to a ZScript class.
 
 ### 6.2 Sounds (SNDINFO)
 
-The code never names a lump; it names a logical sound. F4 points every
-logical name at a Freedoom lump as a placeholder. **`sound-designer` owns the
-right-hand column**; replacing a sound means dropping
-`src/sounds/<LUMP>.ogg` into the tree and editing one line of `SNDINFO`.
+The code never names a lump; it names a logical sound, and `SNDINFO` maps
+it to a lump. **`sound-designer` owns the right-hand column.** Two kinds of
+lump: our own, a file `assets/sounds/<set>/<LUMP>.ogg` packed as
+`sounds/<LUMP>.ogg` (the build drops the set folder, as for textures; lump
+`<LUMP>`); or a Freedoom (IWAD) lump as a placeholder, read from the IWAD
+at run time and never redistributed. Replacing a placeholder changes one
+line of `SNDINFO` and no ZScript; a new event needs a hook as well.
 
-| Logical name | F4 placeholder | Final lump to deliver |
+**The arsenal since N9 (2026-10-15):** the 25 weapon sounds the CEO approved
+in D74, mastered by `tools/audio/master_weapon_sfx.py` and installed in
+`assets/sounds/weapons/` (`docs/sound/WEAPON-SOUNDS.md` §10, licence rows
+in `docs/art/LICENSES.md` § "Weapon sounds"). Six are not approved yet and
+keep their stand-in.
+
+| Logical name | Lump | Played by |
 |---|---|---|
-| `sd/weapon/iceaxe/swing` | **none — silent** | `SDAXSWG` |
-| `sd/weapon/iceaxe/hit` | `DSPUNCH` | `SDAXHIT` |
-| `sd/weapon/tokarev/fire` | `DSPISTOL` | `SDTTFIR` |
-| `sd/weapon/izh/fire` | `DSSHOTGN` | `SDIZFIR` |
-| `sd/weapon/izh/reload` | `DSSGCOCK` | `SDIZRLD` |
-| `sd/weapon/ppsh/fire` | `DSPISTOL` | `SDPPFIR` |
-| `sd/weapon/rpg7/fire` | `DSRLAUNC` | `SDRPFIR` |
-| `sd/weapon/rpg7/explode` | `DSBAREXP` | `SDRPEXP` |
-| `sd/weapon/roks3/fire` | `DSFLAME` | `SDRKFIR` |
-| `sd/weapon/katyusha/charge` | `DSBFG` | `SDHKCHG` |
-| `sd/weapon/katyusha/fire` | `DSRLAUNC` | `SDHKFIR` |
-| `sd/weapon/katyusha/burst` | `DSBAREXP` | `SDHKEXP` |
+| `sd/weapon/iceaxe/swing` | `SDAXSWG` | `SD_IceAxe` Fire, first frame (`PUNG B 5`), `CHAN_WEAPON` |
+| `sd/weapon/iceaxe/hit` | `SDAXHIT` | `A_SD_IceAxeSwing` when the blow finds a target |
+| `sd/weapon/iceaxe/wall` | `SDAXWAL` | `SD_IceAxePuff`'s `AttackSound` (the puff spawned on a wall, floor or ceiling) |
+| `sd/weapon/tokarev/fire` | `SDTTFIR` | `SD_Tokarev` `AttackSound` |
+| `sd/weapon/tokarev/dry` | `SDTTDRY` | `A_SD_WeaponReady` → `SD_WeaponSounds.DryClick` |
+| `sd/weapon/tokarev/reload` | `SDTTRLD` | nothing: parked, no reload state (D47) |
+| `sd/weapon/izh/fire` | `DSSHOTGN` (→ `SDIZFIR`, take not judged) | `SD_Izh` `AttackSound` |
+| `sd/weapon/izh/reload` | `DSSGCOCK` (→ `SDIZRLD`, D74 NO) | `SD_Izh` Reload, first frame |
+| `sd/weapon/izh/dry` | `SDIZDRY` | `A_SD_WeaponReady` |
+| `sd/weapon/ppsh/fire` | `SDPPFIR` | `SD_Ppsh` `AttackSound` |
+| `sd/weapon/ppsh/pickup` | `SDPPPKP` | `Inventory.PickupSound` |
+| `sd/weapon/ppsh/dry` | `SDPPDRY` | `A_SD_WeaponReady` |
+| `sd/weapon/ppsh/reload` | `SDPPRLD` | nothing: parked (D47) |
+| `sd/weapon/rpg7/fire` | `SDRPFIR` | `SD_Pg7Grenade` `SeeSound` |
+| `sd/weapon/rpg7/explode` | `SDRPEXP` | `SD_Pg7Grenade` `DeathSound` |
+| `sd/weapon/rpg7/reload` | `SDRPRLD` | `SD_Rpg7` Fire, `MISG B 10` (the launch frame split 4 + 10), `CHAN_WEAPON` |
+| `sd/weapon/rpg7/pickup` | `SDRPPKP` | `Inventory.PickupSound` |
+| `sd/weapon/rpg7/dry` | `SDRPDRY` | `A_SD_WeaponReady` |
+| `sd/weapon/roks3/fire` | `DSFLAME` (→ `SDRKFIR`, D74 NO) | `A_SD_FireRoks3`, `CHAN_WEAPON` |
+| `sd/weapon/roks3/pickup` | `SDRKPKP` | `Inventory.PickupSound` |
+| `sd/weapon/roks3/dry` | `SDRKDRY` | `A_SD_WeaponReady` |
+| `sd/weapon/roks3/reload` | `SDRKRLD` | nothing: parked (D47) |
+| `sd/weapon/katyusha/charge` | `SDHKCHG` | `SD_HandKatyusha` Fire, `BFGG A 20`, `CHAN_WEAPON` |
+| `sd/weapon/katyusha/fire` | `SDHKFIR` | `A_SD_FireKatyusha`, `CHAN_WEAPON` |
+| `sd/weapon/katyusha/burst` | `SDHKEXP` | `SD_KatyushaRocket` `DeathSound` |
+| `sd/weapon/katyusha/reload` | `SDHKRLD` | `SD_HandKatyusha` Fire, a 0-tic frame before `BFGG B 20 A_ReFire`, `CHAN_5` (`SD_KATYUSHA_RELOAD_CHANNEL`) so the salvo is not cut |
+| `sd/weapon/katyusha/pickup` | `SDHKPKP` | `Inventory.PickupSound` |
+| `sd/weapon/katyusha/dry` | `SDHKDRY` | `A_SD_WeaponReady` |
 
-The slot-1 **swing is deliberately silent** since 2026-10-13, when the
-weapon was still the shovel. It pointed at `DSSAWUP`, the chainsaw
-start-up, and the CEO heard a chainsaw. Freedoom's only swing-through-air
-lump is `DSSKESWG`, the revenant's melee wind-up, which would teach the
-player that a monster is about to hit them; Doom's own `Fist` has no swing
-sound either. Both the `SNDINFO` entry and the `A_StartSound` call in
-`SD_IceAxe`'s `Fire` state are absent, and the two lines that restore them
-are written out at the top of `SNDINFO`. `tests/test_arsenal.py` fails if
-any placeholder points at a `*SAW*` lump. See
+No `PickupSound` on the ice axe, the TT-33 and the IZh-58: their pickups
+(`SDAXPKP` "?", `SDTTPKP` NO, `SDIZPKP` "?" in D74) are not approved, so
+they keep Doom's `misc/w_pkup`. **No hook changes a tic** (D39): the RPG-7's
+14-tic launch frame became 4 + 10 on the same sprite, and the Katyusha's
+reload is a 0-tic frame. **The empty click** (`SD_WeaponSounds.DryClick`,
+called by each gun's `A_SD_WeaponReady` before `A_WeaponReady` on the same
+frame) plays on the tic the fire button goes down while
+`CheckAmmo(PrimaryFire, false)` says the gun cannot fire; with
+`autoSwitch` false it only counts, so the engine's own switch to another
+weapon (`BALANCE.md` §4.1) is untouched. Engine behaviour relied on and
+not yet seen in our engine pass (puff sounds, the click, the channels):
+`WEAPON-SOUNDS.md` §10.3, with what to listen for in §10.4.
+`tests/test_arsenal.py` holds `SNDINFO` and the code in step (every name
+played is defined, every name defined is played but the three parked
+reloads); `tests/test_weapon_sfx_install.py` holds the install.
+
+The slot-1 swing was **deliberately silent** from 2026-10-13 until N9.
+It pointed at `DSSAWUP`, the chainsaw start-up, and the CEO heard a
+chainsaw; Freedoom's only swing-through-air lump is `DSSKESWG`, the
+revenant's melee wind-up. `tests/test_arsenal.py` still fails if any
+placeholder points at a `*SAW*` lump. See
 `docs/engine/adr/003-ammo-naming-and-the-silent-shovel.md` (its title keeps
 the old name: an ADR is a dated record). The ice axe (D40) renamed the
 logical names and the two final lumps (`SDSHSWG` → `SDAXSWG`, `SDSHHIT` →
-`SDAXHIT`); `sound-designer` delivers under the new names.
+`SDAXHIT`).
 
 **The bestiary (F5): 47 logical names, `sd/mon/<actor>/<event>`.** Each line
 of `SNDINFO` names the Freedoom placeholder and, in its comment, the final

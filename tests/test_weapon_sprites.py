@@ -42,9 +42,11 @@ WEAPONS_ZS = SRC_DIR / "zscript" / "weapons"
 ASSET_SPRITES = PROJECT_ROOT / "assets" / "sprites"
 WORK_WEAPONS = PROJECT_ROOT / "work" / "art" / "weapons"
 sys.path.insert(0, str(TOOLS_DIR))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import check_pk3  # noqa: E402
 from sdbuild.pk3 import build as build_pk3  # noqa: E402
+from _n9_sound_hooks import with_sound_hooks  # noqa: E402  (N9's sound hooks, the only other edit)
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
@@ -249,10 +251,12 @@ def installed() -> list[Path]:
 
 class BehaviourTests(unittest.TestCase):
     def test_states_are_the_pre_d48_ones_but_for_the_pickup_name(self):
+        """...and for N9's sound hooks (tests/_n9_sound_hooks.py), which add
+        actions and split one frame but move no tic (next test)."""
         for zs_file, before in BEFORE_D48.items():
             renamed = {**RENAMED, **HELD_RENAMED.get(zs_file, {})}
             expected = [(lb, renamed.get(sp, sp), fr, tics, rest) for lb, sp, fr, tics, rest in before]
-            self.assertEqual(states(zs_file), expected, zs_file)
+            self.assertEqual(states(zs_file), with_sound_hooks(zs_file, expected), zs_file)
 
     def test_tic_totals_per_label_unchanged(self):
         for zs_file, before in BEFORE_D48.items():

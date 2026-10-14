@@ -60,10 +60,11 @@ class SD_IceAxe : Fist replaces Fist
 		Loop;
 	Fire:
 		// 5 + 5 + 6 + 5 + 6 = 27 tics per swing (Doom's Fist: 22).
-		// No swing sound in F4: see the comment at the top of SNDINFO.
-		// Silence is Doom's own behaviour for the Fist; the impact carries
-		// the feedback. The tic count is unchanged.
-		PUNG B 5;
+		// The swing (SDAXSWG, N9, D74) starts with the wind-up and peaks
+		// before the blow; a hit, 5 tics later on the same channel, cuts its
+		// tail, a miss lets it play out. Silent from 2026-10-13 until N9
+		// (MOD-SPEC 6.2). The tic count is unchanged.
+		PUNG B 5 A_StartSound("sd/weapon/iceaxe/swing", CHAN_WEAPON);
 		PUNG C 5 A_SD_IceAxeSwing;
 		PUNG D 6;
 		PUNG C 5;
@@ -94,7 +95,8 @@ class SD_IceAxe : Fist replaces Fist
 		double range = MeleeRange + MELEEDELTA;
 		double pitch = AimLineAttack(ang, range, null, 0., ALF_CHECK3D);
 
-		LineAttack(ang, range, pitch, damage, 'Melee', "BulletPuff", LAF_ISMELEEATTACK, t);
+		// SD_IceAxePuff is BulletPuff with the wall sound (ice_axe_puff.zs).
+		LineAttack(ang, range, pitch, damage, 'Melee', "SD_IceAxePuff", LAF_ISMELEEATTACK, t);
 
 		if (t.linetarget)
 		{

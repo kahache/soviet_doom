@@ -29,12 +29,13 @@ class SD_Rpg7 : RocketLauncher replaces RocketLauncher
 		Obituary "$SD_OB_RPG7";
 		Tag "$SD_TAG_RPG7";
 		Inventory.PickupMessage "$SD_PICKUP_RPG7";
+		Inventory.PickupSound "sd/weapon/rpg7/pickup";   // SDRPPKP (N9, D74)
 	}
 
 	States
 	{
 	Ready:
-		MISG A 1 A_WeaponReady;
+		MISG A 1 A_SD_WeaponReady;
 		Loop;
 	Deselect:
 		MISG A 1 A_Lower;
@@ -43,10 +44,14 @@ class SD_Rpg7 : RocketLauncher replaces RocketLauncher
 		MISG A 1 A_Raise;
 		Loop;
 	Fire:
-		// 8 + 14 + 4 = 26 tics per round (Doom RocketLauncher: 20): the RPG-7
-		// is reloaded from the muzzle, one grenade at a time.
+		// 8 + 4 + 10 + 4 = 26 tics per round (Doom RocketLauncher: 20): the
+		// RPG-7 is reloaded from the muzzle, one grenade at a time. The 14-tic
+		// launch frame is split 4 + 10 (N9) so the reload is heard once the
+		// round has left: same sprite, same total, nothing else in between.
+		// The launch sound is the grenade's SeeSound, so CHAN_WEAPON is free.
 		MISG B 8 A_GunFlash;
-		MISG B 14 A_FireProjectile("SD_Pg7Grenade");
+		MISG B 4 A_FireProjectile("SD_Pg7Grenade");
+		MISG B 10 A_StartSound("sd/weapon/rpg7/reload", CHAN_WEAPON);
 		MISG B 4 A_ReFire;
 		Goto Ready;
 	Flash:
@@ -57,5 +62,14 @@ class SD_Rpg7 : RocketLauncher replaces RocketLauncher
 	Spawn:
 		SDRP A -1;
 		Stop;
+	}
+
+	// Ready with the empty click (N9, D74): A_WeaponReady exactly as before,
+	// plus SDRPDRY on the tic the trigger goes down with too little ammo to
+	// fire (SD_WeaponSounds.DryClick, weapon_sounds.zs). Same frame, same tic.
+	action void A_SD_WeaponReady()
+	{
+		SD_WeaponSounds.DryClick(invoker, "sd/weapon/rpg7/dry");
+		A_WeaponReady();
 	}
 }

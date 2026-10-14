@@ -33,12 +33,13 @@ class SD_Roks3 : PlasmaRifle replaces PlasmaRifle
 		Obituary "$SD_OB_ROKS3";
 		Tag "$SD_TAG_ROKS3";
 		Inventory.PickupMessage "$SD_PICKUP_ROKS3";
+		Inventory.PickupSound "sd/weapon/roks3/pickup";  // SDRKPKP (N9, D74)
 	}
 
 	States
 	{
 	Ready:
-		PLSG A 1 A_WeaponReady;
+		PLSG A 1 A_SD_WeaponReady;
 		Loop;
 	Deselect:
 		PLSG A 1 A_Lower;
@@ -71,5 +72,14 @@ class SD_Roks3 : PlasmaRifle replaces PlasmaRifle
 			true,
 			SD_ROKS3_NOZZLE_X,
 			SD_ROKS3_NOZZLE_Z);
+	}
+
+	// Ready with the empty click (N9, D74): A_WeaponReady exactly as before,
+	// plus SDRKDRY on the tic the trigger goes down with too little ammo to
+	// fire (SD_WeaponSounds.DryClick, weapon_sounds.zs). Same frame, same tic.
+	action void A_SD_WeaponReady()
+	{
+		SD_WeaponSounds.DryClick(invoker, "sd/weapon/roks3/dry");
+		A_WeaponReady();
 	}
 }

@@ -74,6 +74,7 @@ import licences  # noqa: E402
 import make_draft_overlay as mdo  # noqa: E402
 import palette as palette_mod  # noqa: E402  (stdlib only)
 from sdbuild.pk3 import build as build_pk3  # noqa: E402
+from _n9_sound_hooks import with_sound_hooks  # noqa: E402  (N9: the empty click on Ready)
 from test_panzermensch_sprites import (  # noqa: E402  (one PNG/ZScript reader, not two)
     PNG_SIGNATURE, read_grab, states_block, strip_comments)
 
@@ -193,7 +194,7 @@ def on_screen(name: str) -> tuple[int, int, int]:
 class BehaviourTests(unittest.TestCase):
     def test_states_are_the_pre_n17_ones_but_for_the_names(self):
         expected = [(lb, RENAMED.get(sp, sp), fr, tics, rest) for lb, sp, fr, tics, rest in TOKAREV_BEFORE_N17]
-        self.assertEqual(states(), expected)
+        self.assertEqual(states(), with_sound_hooks("tokarev.zs", expected))
 
     def test_tic_totals_per_label_unchanged(self):
         def totals(rows):
