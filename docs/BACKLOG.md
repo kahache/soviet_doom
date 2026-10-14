@@ -17,7 +17,7 @@ first. The CEO approves what moves into "Next". Order follows the MVP rule
 |---|---|---|---|---|
 | N2 | M1 | Route for MAP03 Tankograd once it is populated (v1); MAP01 and the metro routes PASS in engine | qa-engineer | factory v1 |
 | N5 | M2 | Doughboy C, Panzermensch D (+ Schwer) full sets (D65); then the General's design sweep | art-director | doing |
-| N7 | M1 | Factory v1 (populated, signposted like the metro v1) and the metro v2 (textures aligned) | level-designer | CEO walks each |
+| N7b | M1 | Metro v2 (textures aligned); Tankograd v2 after the CEO walks v1 | level-designer | CEO walks each |
 | N8 | M3 | Music per map from PD works already chosen or licence-clean MIDIs (D59) | sound-designer | — |
 | N9 | M3 | Install the effects the CEO approves; wire SNDINFO | sound-designer + mod-engineer | CEO's listening |
 | N10 | M4 | Full licence texts (GPL-3.0, CC BY-NC-SA 4.0) in the package | mod-engineer | CEO allows the download |
@@ -34,6 +34,8 @@ The TT-33's colour and grey detail (D63, nice to have); G3 hostile pass and hand
 (`docs/ICEBOX.md`); voices; the Russian docs mirror (phase close, D34).
 
 ## Done (recent, newest first)
+
+N7: Tankograd v1 (textures, the red lock cleared, 25/38/52 with the General, ammo to G3-8), walked in engine (`docs/qa/evidence/2026-10-14_2131_F3_tankograd-v1-walk.png`, music D_SDGATE playing). N5: the heavies' full sets, waiting for the CEO.
 
 N6b/N6c: SDCHAN1 (masked) and SDSLOG1 installed, the factory set complete (21 of 21); ANIMDEFS for the molten metal and the portal. N8: a PD piece per map in draft.
 
