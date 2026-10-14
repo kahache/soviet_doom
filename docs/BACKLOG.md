@@ -5,35 +5,60 @@ first. The CEO approves what moves into "Next". Order follows the MVP rule
 (D60) and the milestones of `docs/ROADMAP.md`. Status: `todo`, `doing`,
 `waiting CEO`, `done` (done items move to the bottom section once committed).
 
+## Token estimates (D69)
+
+Every open task carries an estimate in **k tokens**: the agent's work plus the
+PM's review, the engine pass and the commit. They are rough (±50 %) and exist
+so the CEO can pick what fits in the rest of a session. Rule of thumb from
+2026-10-14: a design sweep or a texture batch ~200-300k; a full enemy set
+~300-400k with its tests; a map version ~300-500k; an install with an engine
+pass ~100-150k; a research report ~100-150k. When a task closes, its real
+cost goes in the Done line (from the agent's usage report) so the estimates
+get better.
+
 ## Doing (agents at work)
 
-| # | Milestone | Task | Role | From |
-|---|---|---|---|---|
-| N12 | M2 | The General: design sweep (full set after the CEO picks a cell) | art-director | CEO, 2026-10-14 |
-| R1 | P2 | Research: a free local tool to generate the enemy voices (like Fooocus), install guide for the CEO | research | CEO, 2026-10-14 |
-| N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) — **not passed by the PM** (the hand reads as a blob in B and D); waiting on the route decision | art-director | D66 |
+| # | Milestone | Task | Role | Est. k tok | From |
+|---|---|---|---|---|---|
+| N12 | M2 | The General: design sweep (full set after the CEO picks a cell) | art-director | 250 | CEO, 2026-10-14 |
+| R1 | P2 | Research: a free local tool to generate the enemy voices (like Fooocus), install guide for the CEO | research | 120 | CEO, 2026-10-14 |
+| N10 | M4 | Full licence texts (GPL-3.0, CC BY-NC-SA 4.0) in the package; downloaded by the PM (D69) | mod-engineer | 80 | D69 |
+| N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
 ## Next (approved order, D63)
 
-| # | Milestone | Task | Role | Needs |
-|---|---|---|---|---|
-| N13 | M2 | Install the Doughboy (big flag) | mod-engineer | CEO's OK |
-| N14 | M2 | Weapons in hand from the CEO's Fooocus references (ice axe first) | art-director | CEO's images |
-| N7b | M1 | Metro v2 (textures aligned); Tankograd v2 after the CEO walks v1 | level-designer | CEO walks each |
-| N8 | M3 | Music per map from PD works already chosen or licence-clean MIDIs (D59) | sound-designer | — |
-| N9 | M3 | Install the effects the CEO approves; wire SNDINFO | sound-designer + mod-engineer | CEO's listening |
-| N10 | M4 | Full licence texts (GPL-3.0, CC BY-NC-SA 4.0) in the package | mod-engineer | CEO allows the download |
-| N11 | M4 | Russian in-game text review, once, at the end of the delivery | translator-ru | M1-M3 done (D60) |
+| # | Milestone | Task | Role | Est. k tok | Needs |
+|---|---|---|---|---|---|
+| N13 | M2 | Install the Doughboy (big flag) + engine pass | mod-engineer | 120 | CEO's OK |
+| N12b | M2 | The General: full set + install + engine pass | art-director + mod-engineer | 450 | CEO picks a cell |
+| N14 | M2 | Weapons in hand from the CEO's Fooocus references, one at a time, verified each (ice axe first, then 5 more) | art-director | 250 per weapon, ~1 500 all | CEO's images |
+| N7b | M1 | Metro v2 (textures aligned) | level-designer | 350 | the CEO walks the campaign |
+| N7c | M1 | Tankograd v2 | level-designer | 400 | the CEO walks the campaign |
+| N9 | M3 | Install the effects the CEO approves; wire SNDINFO; engine pass | sound-designer + mod-engineer | 200 | CEO's listening |
+| N8 | M3 | Music per map: swap any piece the CEO rejects for another PD work or a licence-clean MIDI (D59) | sound-designer | 80 per swap | CEO's listening |
+| N15 | tooling | Evaluate Ultimate Doom Builder (D69, "me interesa"): install, open our UDMF maps, does a round trip keep `tools/sdbuild` working, report | mod-engineer + level-designer | 150 | CEO's OK to download UDB |
+| N11 | M4 | Russian in-game text review, once, at the end of the delivery | translator-ru | 250 | M1-M3 done (D60) |
+| N16 | M4 | Ship v1: G6 gate, QA sign-off, README EN/RU, tag v1.0 | qa-engineer + PM | 250 | everything above |
+
+MVP left, roughly: **~3 700k tokens** (the six weapons are 40 % of it).
 
 ## Waiting for the CEO
 
-See `docs/PENDING-CEO-DECISIONS.md`: sounds and music to hear, the
-hand-played G3 runs (deferred by D60), voice takes (D36).
+See `docs/PENDING-CEO-DECISIONS.md`: walk the campaign, the Doughboy flag,
+the Fooocus hand images, sounds and music to hear.
 
 ## Parked (after the MVP, D60)
 
-The TT-33's colour and grey detail (D63, nice to have); G3 hostile pass and hand-played runs; balance tuning; weapon reloads
-(`docs/ICEBOX.md`); voices; the Russian docs mirror (phase close, D34).
+| Task | Phase | Est. k tok |
+|---|---|---|
+| The TT-33's colour and grey detail (D63, nice to have) | P1 | 100 |
+| G3 hostile pass and hand-played runs, per map | P1 | 150 per map |
+| Balance tuning by playtest (BALANCE §5) | P1 | 300 |
+| Weapon reloads (`docs/ICEBOX.md`) | P1 | 400 |
+| Voices: process the CEO's takes or the local generator's output (D36, after R1) | P2 | 300 |
+| The Russian docs mirror (phase close, D34) | P3 | 400 |
+| **Mine Freedoom's 68 maps (BSD) to calibrate our map constants** (`docs/product/2026-10-13_0944_F3_ml-level-generation.md` §6), D69: only when the full game starts | P4 | 500 |
+| **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
 
