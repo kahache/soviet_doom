@@ -77,7 +77,7 @@ import datetime as dt
 import html
 import json
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import numpy as np
@@ -89,6 +89,7 @@ if str(ART_TOOLS) not in sys.path:
 
 import artlib  # noqa: E402
 import gen_enemy as flat  # noqa: E402  (light stand-in, far view, silhouette, luma)
+import gen_hound as hound  # noqa: E402  (the full sets: zs_states, settle_part, pool, crop_common, _gif_runs)
 import gen_legion as legion  # noqa: E402  (the Legion's table: chrome, flesh_pink; its flag colours)
 import gen_rig as rig  # noqa: E402  (the Reich's table: khaki_olive, the armband; its value shift)
 import palette as palgen  # noqa: E402
@@ -337,8 +338,9 @@ def _lumps(rng) -> list[core.Prim]:
     return out
 
 
-def _db_mouth(cell: DBCell, attack: bool, add, sphere: core.Prim) -> np.ndarray:
-    """The mouth; returns the point the shell leaves from."""
+def _db_mouth(cell: DBCell, attack: bool, add, sphere: core.Prim, opening: float | None = None) -> np.ndarray:
+    """The mouth; returns the point the shell leaves from. `opening` (the
+    full set's poses) overrides the slack mouth's half height."""
     m = DB_C + MOUTH_DIR * DB_R
     if cell.mouth == "bumper":
         # a chrome jaw over the lower face, a 1950s grille: a shell hinged at
@@ -371,7 +373,7 @@ def _db_mouth(cell: DBCell, attack: bool, add, sphere: core.Prim) -> np.ndarray:
                                       (1.5, 1.5, 1.5)))
         return V(0, jaw_top + opn * 0.2, m[2] + 3.5)
     # slack mouth: a slot cut into the sphere, the dark inside, a hanging lip
-    opn = 6.0 if attack else 3.4
+    opn = (6.0 if attack else 3.4) if opening is None else opening
     sphere.cut.append((m + V(0, -0.5, 0), V(12.5 if attack else 11.5, opn, 7.0)))
     add("head", core.ellipsoid("void", 0.05, tuple(DB_C + MOUTH_DIR * (DB_R - 6.0)), (12.5, opn + 2.0, 5.0)))
     add("head", core.ellipsoid("raw", 0.40, tuple(m + V(1.5, -opn + 0.6, -0.4 + (1.0 if attack else 0.0))),
@@ -443,13 +445,16 @@ def _db_severed(add, rng) -> None:
                                 1.1, 0.7))
 
 
-def db_model(cell: DBCell, frame: str = "A", seed: int = SEED) -> tuple[list[core.Prim], np.ndarray]:
+def db_model(cell: DBCell, frame: str = "A", seed: int = SEED,
+             pose: "DBPose | None" = None) -> tuple[list[core.Prim], np.ndarray]:
     """The Doughboy in rig_core's model space (the actor's z on y=0, facing
-    +z, +x its LEFT). Returns (prims, the point the shell leaves from)."""
+    +z, +x its LEFT). Returns (prims, the point the shell leaves from).
+    `pose` (the full set, D65) varies the mouth, the eye, the shell and the
+    head's tilt; with none, frame A or D is the sweep's figure, unchanged."""
     rng = np.random.default_rng(seed)
     P: list[core.Prim] = []
     add = add_to(P)
-    attack = frame == "D"
+    attack = frame == "D" if pose is None else pose.gape
     sphere = add("head", core.ellipsoid("flesh", 0.78, tuple(DB_C), (DB_R, DB_R * 0.97, DB_R)))
     for v in _veins(rng):
         add("head", v)
@@ -457,21 +462,39 @@ def db_model(cell: DBCell, frame: str = "A", seed: int = SEED) -> tuple[list[cor
     for lump_ in _lumps(rng):
         add("head", lump_)
     add("head", core.ellipsoid("raw", 0.40, tuple(DB_C + EYE_DIR * (DB_R - 4.4)), (11.6, 10.2, 6.6)))
-    add("head", core.ellipsoid("sclera", 0.66, tuple(DB_C + EYE_DIR * (DB_R - 4.0)), (10.2, 9.0, 7.0)))
-    add("head", core.ellipsoid("iris", 0.55, tuple(DB_C + EYE_DIR * (DB_R + 2.4)), (5.0, 5.0, 1.3)))
-    add("head", core.ellipsoid("pupil", 0.0, tuple(DB_C + EYE_DIR * (DB_R + 3.4)), (2.3, 2.7, 0.6)))
-    muzzle = _db_mouth(cell, attack, add, sphere)
+    if pose is not None and pose.eye == "burst":
+        _db_burst_eye(add)
+    else:
+        pk = 1.0 if pose is None else pose.pupil
+        add("head", core.ellipsoid("sclera", 0.66, tuple(DB_C + EYE_DIR * (DB_R - 4.0)), (10.2, 9.0, 7.0)))
+        add("head", core.ellipsoid("iris", 0.55, tuple(DB_C + EYE_DIR * (DB_R + 2.4)), (5.0, 5.0, 1.3)))
+        add("head", core.ellipsoid("pupil", 0.0, tuple(DB_C + EYE_DIR * (DB_R + 3.4)), (2.3 * pk, 2.7 * pk, 0.6)))
+    muzzle = _db_mouth(cell, attack, add, sphere, None if pose is None else pose.mouth)
     if attack and cell.mouth == "bumper":
         hinge = V(0.0, DB_C[1] + MOUTH_DIR[1] * DB_R + 2.0, 4.0)
         core.transform(P, {}, {"jaw"}, core.rot_x(-18.0), hinge, V(0, -3.0, 0.5))
     helmet = _db_helmet(cell, add)
-    core.transform(P, {}, {"helmet"}, core.rot_z(-HELMET_TILT), DB_C)      # askew, to his right
+    knock = 0.0 if pose is None else pose.knock
+    core.transform(P, {}, {"helmet"}, core.rot_z(-HELMET_TILT - knock), DB_C)      # askew, to his right
     del helmet
     if cell.severed:
         _db_severed(add, rng)
-    if attack:      # SD_DoughboyShell leaving the mouth: white-hot core, red trail behind it
+    shell = ("out" if attack else "") if pose is None else pose.shell
+    if shell == "out":      # SD_DoughboyShell leaving the mouth: white-hot core, red trail behind it
         add("shell", core.ellipsoid("sdl_trail", 0.6, tuple(muzzle + V(0, 0, 1.0)), (4.6, 4.2, 3.0)))
         add("shell", core.ellipsoid("sdl_core", 0.8, tuple(muzzle + V(0, 0, 3.4)), (2.9, 2.9, 2.0)))
+    elif shell == "glow":   # B: the shell kindles deep in the throat
+        add("shell", core.ellipsoid("sdl_trail", 0.45, tuple(muzzle + V(0, 0, -3.2)), (3.4, 2.6, 2.0)))
+    elif shell == "core":   # C: white-hot in the open mouth, the red trail round it
+        add("shell", core.ellipsoid("sdl_trail", 0.55, tuple(muzzle + V(0, 0, -1.6)), (4.4, 3.6, 2.4)))
+        add("shell", core.ellipsoid("sdl_core", 0.75, tuple(muzzle + V(0, 0, -0.4)), (2.4, 2.4, 1.6)))
+    if pose is not None:
+        _db_pose_extras(pose, add)
+        groups = {p.grp for p in P}
+        if pose.roll:
+            core.transform(P, {}, groups, core.rot_z(pose.roll), DB_C)
+        if pose.pitch:
+            core.transform(P, {}, groups, core.rot_x(pose.pitch), DB_C)
     return P, muzzle
 
 
@@ -507,6 +530,18 @@ class PMPose:
     hand_r: tuple
     hunch: float        # degrees forward about the waist
     shell: bool = False
+    # The full set's posing (D65); every default leaves the sweep's figure as it was.
+    title: str = ""
+    bob: float = 0.0            # units the hips (and all above them) drop: the knees bend
+    twist: float = 0.0          # degrees about the waist; + brings his LEFT shoulder forward
+    lean: float = 0.0           # degrees sideways about the waist; + tips him to his left
+    head_pitch: float = 0.0     # degrees about the neck; + tips the head back (chin up)
+    head_turn: float = 0.0      # degrees about the neck; + turns the face to his left
+    charge: float = 0.0         # a shell forming in the right fist (its size, 1 = the thrown one)
+    throw_arm: bool = False     # the right elbow bends as in the throw (pole down and out)
+    spurt: float = 0.0          # pain: s since a round opened the chest (a few drops fly)
+    arm_z: float = 0.0          # the dead: the arms shifted towards the floor side (a slack shoulder rolls)
+    leg_z: float = 0.0          # ... and the legs (the hips settle: a thigh is as deep as the faulds)
 
 
 PM_POSES = {
@@ -557,11 +592,15 @@ def _pm_head(cell: PMCell, add) -> None:
                 add("helmet", core.rcone("seep", 0.5, p + V(0, -0.6, 0.1), p + V(0.2, -3.6, 0.2), 0.55, 0.4))
 
 
-def pm_model(cell: PMCell, frame: str = "A", plate: str = "plate", seed: int = SEED) -> list[core.Prim]:
+def pm_model(cell: PMCell, frame: str = "A", plate: str = "plate", seed: int = SEED,
+             pose: PMPose | None = None, anchors: dict | None = None) -> list[core.Prim]:
     """The Panzermensch in rig_core's model space (feet on y=0, facing +z,
     +x his LEFT), posed. `plate` names the armour's material (the Schwer's
-    recolour candidate swaps it)."""
-    pose = PM_POSES[frame]
+    recolour candidate swaps it). `pose` overrides PM_POSES[frame] (the full
+    set); `anchors`, when given, is filled with the joints, posed, as
+    rig_core anchors {name: (point, group)}."""
+    pose = PM_POSES[frame] if pose is None else pose
+    anch: dict = {} if anchors is None else anchors
     P: list[core.Prim] = []
     add = add_to(P)
 
@@ -572,8 +611,10 @@ def pm_model(cell: PMCell, frame: str = "A", plate: str = "plate", seed: int = S
     # ---------------------------------------------------------------- legs
     for side, foot, grp in ((core.LEFT, pose.foot_l, "leg_l"), (core.RIGHT, pose.foot_r, "leg_r")):
         start = len(P)
-        hip = V(side * PM_HIP_X, PM_HIP_Y, 0.0)
+        hip = V(side * PM_HIP_X, PM_HIP_Y + pose.bob, 0.0)
         knee, ankle = core.two_bone(hip, foot, PM_THIGH, PM_SHIN, V(0, 0, 1))
+        s = "l" if side == core.LEFT else "r"
+        anch[f"hip_{s}"], anch[f"knee_{s}"], anch[f"ankle_{s}"] = (hip, grp), (knee, grp), (ankle, grp)
         add(grp, core.rcone("plate", 0.50, hip, knee, 4.7, 4.0))                                   # cuisse
         add(grp, core.ellipsoid("flesh", 0.40, tuple(knee + V(0, 0, -2.2)), (2.8, 2.6, 2.0)))     # the joint shows
         add(grp, core.ellipsoid("plate", 0.62, tuple(knee + V(0, 0.3, 1.8)), (3.8, 3.4, 2.8)))   # knee cop
@@ -581,11 +622,11 @@ def pm_model(cell: PMCell, frame: str = "A", plate: str = "plate", seed: int = S
         add(grp, core.box("plate", 0.38, (ankle[0], ankle[1] - 1.5, ankle[2] + 1.8), (3.0, 1.7, 4.8), rnd=0.9))
         add(grp, core.ellipsoid("rivet", 0.6, tuple(knee + V(0, 0.4, 4.4)), (0.8, 0.8, 0.6)))
         if cell.top in ("stacks", "both"):     # Schürzen: a side skirt plate hung from the belt
-            add(grp, core.box("plate", 0.46, (side * 11.4, 23.0, 0.0), (0.6, 7.0, 7.0), rnd=0.3))
+            add(grp, core.box("plate", 0.46, (side * 11.4, 23.0 + pose.bob, 0.0), (0.6, 7.0, 7.0), rnd=0.3))
             for z in (-4.5, 4.5):
-                add(grp, core.ellipsoid("rivet", 0.6, (side * 12.0, 28.4, z), (0.5, 0.8, 0.8)))
+                add(grp, core.ellipsoid("rivet", 0.6, (side * 12.0, 28.4 + pose.bob, z), (0.5, 0.8, 0.8)))
         label(start, "leg", side)
-    add("upper", core.ccone("plate", 0.48, 24.5, 34.0, 10.8, 9.6, kz=0.84))                      # faulds
+    add("upper", core.ccone("plate", 0.48, 24.5, 34.0, 10.8, 9.6, kz=0.84, tag="faulds"))                    # faulds
     for y in (27.6, 30.8):
         add("upper", core.ccone("plate", 0.22, y - 0.3, y + 0.3, 10.9 - (y - 24.5) * 0.13, 10.8 - (y - 24.5) * 0.13,
                                 kz=0.85))                                                          # lames
@@ -635,9 +676,13 @@ def pm_model(cell: PMCell, frame: str = "A", plate: str = "plate", seed: int = S
     for side in (core.LEFT, core.RIGHT):
         start = len(P)
         sh = V(side * sx, sy, sz)
-        pole = V(side * 1.0, -1.0, -0.4) if (pose.shell and side == core.RIGHT) else V(side * 1.0, -0.3, -1.0)
+        throw = (pose.shell or pose.throw_arm) and side == core.RIGHT
+        pole = V(side * 1.0, -1.0, -0.4) if throw else V(side * 1.0, -0.3, -1.0)
         elbow, wrist = core.two_bone(sh, grips[side], PM_UPPER_ARM, PM_FOREARM, pole)
         fd = unit(wrist - elbow)
+        s = "l" if side == core.LEFT else "r"
+        anch[f"shoulder_{s}"], anch[f"elbow_{s}"], anch[f"wrist_{s}"] = (sh, "arm"), (elbow, "arm"), (wrist, "arm")
+        anch[f"fist_{s}"] = (wrist + fd * 4.2, "arm")
         upper_mat = "flesh" if cell.head == "mask" else "plate"
         add("arm", core.rcone(upper_mat, 0.52, sh, elbow, 5.0 if cell.head == "mask" else 3.8,
                               4.2 if cell.head == "mask" else 3.4))
@@ -661,10 +706,34 @@ def pm_model(cell: PMCell, frame: str = "A", plate: str = "plate", seed: int = S
             add("shell", core.ellipsoid("pzl_smoke", 0.5, tuple(s - V(0, 0, 0.6)), (4.4, 4.4, 3.0)))
             add("shell", core.ellipsoid("pzl_shell", 0.6, tuple(s + V(0, 0, 1.6)), (3.0, 3.2, 2.2)))
             add("shell", core.ellipsoid("pzl_core", 0.8, tuple(s + V(0, 0, 3.2)), (1.6, 1.7, 1.0)))
+        if side == core.RIGHT and pose.charge:      # E, F: the shell forming in the gauntlet's grip
+            k = pose.charge
+            s = fist + fd * 4.6
+            add("shell", core.ellipsoid("pzl_smoke", 0.5, tuple(s), (4.0 * k, 4.0 * k, 4.0 * k)))
+            add("shell", core.ellipsoid("pzl_shell", 0.6, tuple(s + fd * 0.8), (2.8 * k, 2.9 * k, 2.8 * k)))
+            add("shell", core.ellipsoid("pzl_core", 0.8, tuple(s + fd * 1.6), (1.4 * k, 1.5 * k, 1.4 * k)))
+
+    if pose.arm_z:
+        core.transform(P, anch, {"arm"}, np.eye(3), V(0, 0, 0), V(0, 0, pose.arm_z))
+    if pose.leg_z:
+        core.transform(P, anch, {"leg_l", "leg_r"}, np.eye(3), V(0, 0, 0), V(0, 0, pose.leg_z))
+    anch["neck"] = (V(0.0, 56.0, 0.0), "upper")
+    anch["crown"] = (V(0.0, 68.0, 0.6), "helmet")
+    anch["waist"] = (PM_WAIST.copy(), "upper")
 
     # ------------------------------------------------------------- posing
+    if pose.head_turn:
+        core.transform(P, anch, {"helmet"}, core.rot_y(pose.head_turn), anch["neck"][0])
+    if pose.head_pitch:
+        core.transform(P, anch, {"helmet"}, core.rot_x(pose.head_pitch), anch["neck"][0])
+    if pose.twist:
+        core.transform(P, anch, PM_UPPER, core.rot_y(pose.twist), PM_WAIST)
     if pose.hunch:
-        core.transform(P, {}, PM_UPPER, core.rot_x(-pose.hunch), PM_WAIST)
+        core.transform(P, anch, PM_UPPER, core.rot_x(-pose.hunch), PM_WAIST)
+    if pose.lean:
+        core.transform(P, anch, PM_UPPER, core.rot_z(pose.lean), PM_WAIST)
+    if pose.bob:
+        core.transform(P, anch, PM_UPPER, np.eye(3), V(0, 0, 0), V(0, pose.bob, 0))
     del plate
     return P
 
@@ -1144,11 +1213,1386 @@ def build_sheet(data: dict, lines: dict, stamp: str, out_dir: Path = PREVIEW_DIR
     return path
 
 
+# ================================================================ the full sets (D65)
+# D65 (CEO, 2026-10-14): "Doughboy C · Panzermensch D", and the Schwer is
+# the PM's call: cell D with the sweep's S2 treatment (black plate, 12 %
+# larger, spikes and stacks, lit slit), a sprite set of its own. This
+# section renders every frame the three classes' states name, with the
+# letters and tics read from their ZScript files (read, never edited):
+#
+#   SD_Doughboy (doughboy.zs, on Freedoom's HEAD today): Spawn A, See A,
+#     Missile B C D, Pain E E F, Death G H I J K L (L held). No XDeath, so
+#     no gib. 8 rotations for A-F, rotation 0 for G-L: 54 lumps SDDB.
+#   SD_Panzermensch (panzermensch.zs, on BOS2): Spawn A B, See A-D,
+#     Melee/Missile E F G, Pain H, Death I-N and O held. No XDeath. 8
+#     rotations for A-H, 0 for I-O: 71 lumps SDPM.
+#   SD_PanzermenschSchwer: today it inherits SD_Panzermensch's states. Its
+#     own set is the same 71 frames under the proposed name SDPS (the
+#     mod-engineer's change is in the sheet and in SCHWER_HANDOFF).
+#
+# Eight drawn rotations, no mirrored pairs: both figures are handed. The
+# Doughboy's helmet sits askew to its right with the flag decal and the
+# buckle on one side; the Panzermensch's back banner carries the D12
+# symbol (a mirror reverses it) and he throws with his right.
+#
+# The sweep's pixels the CEO chose stay: SDDB A1 A3 A5 D1 are the sweep's
+# SDDB_C_* and SDPM A1 A3 A5 G1 the sweep's SDPM_D_*, byte for byte.
+#
+# The dead (the CEO's rule since the Legion's first L0, "parece que se
+# apoye en el hombro"): the corpse lies with its weight on the floor and
+# is measured, not judged by eye. The Doughboy, a floater, drops when it
+# dies (GZDoom's Die() clears +FLOAT and +NOGRAVITY: NOT VERIFIED here, it
+# is what every dead cacodemon does) and lands as a deflated sack, the
+# helmet knocked off beside it and the spine on the floor; the
+# Panzermensch falls back over his heels, twisting across the screen, and
+# his head, arms and legs are each let fall about their joint until they
+# touch (gen_hound.settle_part, bisection on rig_core.lowest_y). Blood is
+# D49's: dark red, flag_red 0-5 and black, abundant.
+#
+# As the approved hound's death (gen_hound.DEATH_TILT), the frames on the
+# floor are drawn from higher, ramping in as they fall: a player looks
+# down at a corpse. The Doughboy's ramp stops at 18 degrees (27 in all):
+# its sack is 50 units across, and from the hound's 28 its top filled a
+# disc taller on screen than any approved corpse. Only the render is tipped; the lying test measures the
+# model on its floor.
+FULL_DIR = OUT_DIR / "full"
+ZS_DIR = PROJECT_ROOT / "src" / "zscript" / "monsters"
+DB_ZS = ZS_DIR / "doughboy.zs"
+PM_ZS = ZS_DIR / "panzermensch.zs"
+PS_ZS = ZS_DIR / "panzermensch_schwer.zs"
+DB_FULL_KEY = "C"               # D65
+PM_FULL_KEY = "D"               # D65
+PS_SPRITE = "SDPS"              # proposed: free of every reserved prefix (BESTIARY 2.3, MOD-SPEC 6.3)
+BLOOD_GRAVITY = 400.0           # units / s^2, as every approved death's droplets
+TIC_S = 1.0 / 35
+
+
+def zs_states(path: Path) -> dict[str, list[tuple[str, int]]]:
+    """A class's state labels and their (frame letter, tics), read from its
+    ZScript file (gen_hound's reader; the sprite name is ignored)."""
+    return hound.zs_states(path)
+
+
+def zs_frames(path: Path) -> tuple[str, str]:
+    """(the letters drawn at 8 rotations, the death letters at rotation 0):
+    every letter of the living states, then Death's in order."""
+    st = zs_states(path)
+    living = sorted({f for lab, seq in st.items() if lab not in ("Death", "XDeath", "Raise") for f, _ in seq})
+    death = "".join(dict.fromkeys(f for f, _ in st.get("Death", [])))
+    return "".join(living), death
+
+
+# ---------------------------------------------------------------- the Doughboy's poses
+@dataclass(frozen=True)
+class DBPose:
+    key: str
+    title: str
+    mouth: float | None = None  # the slit's half height (None: the sweep's)
+    gape: bool = False          # the attack's mouth: lower teeth, the tongue out, the lip dropped
+    shell: str = ""             # "" | "glow" (deep in the throat) | "core" (in the mouth) | "out" (the sweep's D)
+    pupil: float = 1.0          # the pupil's size (pain: a pinpoint)
+    eye: str = "open"           # "open" | "burst" (the death)
+    pitch: float = 0.0          # degrees the whole head tips back (+) about its centre
+    roll: float = 0.0           # degrees it rolls (+: top to its left, screen right from the front)
+    knock: float = 0.0          # degrees the helmet is knocked further askew
+    wound: float = 0.0          # pain: s since a round opened its cheek (0: no wound)
+
+
+DB_FULL_POSES = {
+    "B": DBPose("B", "draws breath: the shell kindles in the throat", mouth=4.8, shell="glow", pitch=6.0),
+    "C": DBPose("C", "the mouth gapes, the shell white-hot in it", mouth=6.4, gape=True, shell="core", pitch=-3.0),
+    "E": DBPose("E", "hit: it jerks back and screams", mouth=7.0, gape=True, pupil=0.45, pitch=16.0, roll=9.0,
+                knock=8.0, wound=0.05),
+    "F": DBPose("F", "it rights itself, bleeding", mouth=4.6, pupil=0.7, pitch=7.0, roll=4.0, knock=4.0,
+                wound=0.16),
+    "G": DBPose("G", "killed: the eye bursts", mouth=5.6, gape=True, eye="burst", pitch=14.0, roll=-6.0,
+                knock=14.0),
+}
+DB_FRAME_TITLES = {"A": "floats (the sweep's)", "D": "spits the shell (the sweep's)",
+                   **{k: p.title for k, p in DB_FULL_POSES.items()}}
+DB_WOUND_DIR = unit((0.66, 0.02, 0.75))     # its left cheek, beside the eye: screen right from the front
+STAIN_DEPTH = 12.0              # a stain is a big sphere sunk in the surface: a thin cap, any orientation
+STAIN_PROUD = 0.6               # ... standing this far proud of it
+
+
+def _stain(mat: str, base: float, centre: np.ndarray, normal: np.ndarray, radius: float, depth: float = STAIN_DEPTH,
+           grp: str = "head") -> core.Prim:
+    """A flat cap of `radius` on a surface whose outward normal is `normal`
+    at `centre`: a sphere sunk `depth` into it, STAIN_PROUD out of it."""
+    rr = float(np.hypot(radius, depth))
+    c = centre - normal * (rr - STAIN_PROUD)
+    return core.ellipsoid(mat, base, tuple(c), (rr, rr, rr), grp=grp)
+
+
+def _surface_run(start_dir: np.ndarray, drop: float, steps: int, r0: float, r1: float, radius: float = DB_R,
+                 grp: str = "head", mat: str = "blood") -> list[core.Prim]:
+    """A run of blood down the sphere from `start_dir`: segments on its surface."""
+    pts = [DB_C + unit(start_dir + V(0, -drop * k / steps, 0)) * (radius + 0.25) for k in range(steps + 1)]
+    out = []
+    for k, (a, b) in enumerate(zip(pts[:-1], pts[1:])):
+        out.append(core.rcone(mat, 0.42, a, b, r0 + (r1 - r0) * k / steps, r0 + (r1 - r0) * (k + 1) / steps, grp=grp))
+    return out
+
+
+def _db_burst_eye(add) -> None:
+    """The death: the eye gone, a dark socket in the raw rim, rags of the
+    sclera at its edge, blood welling in its lower lid."""
+    c = DB_C + EYE_DIR * (DB_R - 3.0)
+    add("head", core.ellipsoid("void", 0.05, tuple(c + EYE_DIR * 0.5), (8.4, 7.4, 5.2)))
+    add("head", core.ellipsoid("blood", 0.40, tuple(c + EYE_DIR * 3.0 + V(0, -5.5, 0)), (6.5, 2.4, 2.6)))
+    e1 = unit(np.cross(EYE_DIR, V(0, 1, 0)))
+    e2 = np.cross(e1, EYE_DIR)
+    for a in np.linspace(0, 2 * np.pi, 7)[:-1]:
+        d = e1 * np.cos(a) + e2 * np.sin(a)
+        add("head", core.ellipsoid("sclera", 0.55, tuple(c + EYE_DIR * 2.6 + d * 8.6), (2.2, 2.0, 1.2)))
+
+
+def _db_pose_extras(pose: DBPose, add) -> None:
+    """Pain's wound: a hole in its left cheek, the stain, a run, a spurt."""
+    if pose.eye == "burst":         # the socket runs down the face
+        for dx, drop, steps in ((-0.10, 0.85, 5), (0.12, 1.05, 6)):
+            for q in _surface_run(EYE_DIR + V(dx, -0.36, 0), drop, steps, 1.1, 0.7):
+                add("head", q)
+    if not pose.wound:
+        return
+    t = pose.wound
+    w = DB_C + DB_WOUND_DIR * DB_R
+    add("head", _stain("blood", 0.45, w, DB_WOUND_DIR, 3.6 + 6.0 * t))
+    add("head", core.ellipsoid("void", 0.05, tuple(DB_C + DB_WOUND_DIR * (DB_R + 0.2)), (1.4, 1.5, 1.0)))
+    for q in _surface_run(DB_WOUND_DIR + V(0, -0.1, 0), 0.5 + 3.0 * t, 3 if t < 0.1 else 5, 0.9, 0.6):
+        add("head", q)
+    rng = np.random.default_rng(SEED + 31)
+    for _ in range(10):
+        v = DB_WOUND_DIR * rng.uniform(25, 70) + V(rng.uniform(-8, 8), rng.uniform(0, 25), rng.uniform(-8, 8))
+        p = w + v * t + V(0, -0.5 * BLOOD_GRAVITY * t * t, 0)
+        r = rng.uniform(0.8, 1.2)
+        add("spray", core.ellipsoid("blood", 0.62, tuple(p), (r, r * 1.15, r)))
+
+
+# ---------------------------------------------------------------- the Doughboy's death
+@dataclass(frozen=True)
+class DBFall:
+    """A death frame on the floor (H-L)."""
+    title: str
+    t: float                    # s after the kill
+    squash: float               # the sack's height scale (1: round)
+    spread: float               # its width and depth scale
+    helmet: str                 # "flying" | "down"
+    helmet_roll: float          # degrees the helmet is turned (upside down is 180)
+    spine: float                # how far the spine has fallen out along the floor (0..1)
+    pool: float                 # share of the full pool
+    tilt: float                 # degrees the render looks further down (as gen_hound.DEATH_TILT)
+    mouth: float
+    back: float = 0.0           # degrees it has rolled back onto its crown (the face turns up)
+    roll: float = 0.0           # degrees it has rolled to its side
+
+
+DB_FALLS = {                    # doughboy.zs: G H I J K 8 tics, L held; G at the kill
+    "H": DBFall("lands: it splits, the helmet flies", 0.30, 0.80, 1.10, "flying", -55.0, 0.55, 0.25, 6.0, 5.0,
+                back=20.0, roll=4.0),
+    "I": DBFall("rolls back, deflating", 0.53, 0.60, 1.16, "down", -165.0, 0.85, 0.50, 10.0, 4.6, back=38.0, roll=7.0),
+    "J": DBFall("sinks", 0.76, 0.46, 1.21, "down", -152.0, 1.0, 0.70, 14.0, 4.2, back=46.0, roll=9.0),
+    "K": DBFall("collapses", 0.99, 0.36, 1.25, "down", -148.0, 1.0, 0.88, 16.0, 3.8, back=50.0, roll=10.0),
+    "L": DBFall("dead: a flat sack face up in its blood", 3.0, 0.28, 1.28, "down", -150.0, 1.0, 1.0, 18.0, 3.6,
+                back=52.0, roll=10.0),
+}
+DB_G_T = 0.06                   # s after the kill, frame G (still in the air)
+DB_HELMET_DOWN = V(38.0, 0.0, -12.0)     # where the knocked-off helmet lies: beside and behind the sack
+DB_HELMET_FLY = V(24.0, 48.0, -4.0)      # ... and where it is in H, flying off
+DB_SPINE = (V(-6.0, 0.0, 4.0), V(-44.0, 0.0, 14.0))   # the spine on the floor: from under the sack, out
+DB_N_SPRAY = 44
+DB_POOL = (46.0, 21.0)          # (x, z) radii of the full pool: it spreads out round the sack
+DB_POOL_Z = 16.0
+DB_STUMP_POOL = (12.0, 8.0)
+DB_SPRAY_X = (-66.0, 80.0)      # landed splats stay inside the death canvas (check_edges)
+DB_SPRAY_Z = (-20.0, 24.0)
+DB_AIR_Y = 70.0
+DB_NOSEVER = DBCell("C", "m1", "slack", False, "C without its hanging stump (the death lays its own)")
+DB_DEATH_CV = core.Canvas(160, 108, 72, 80)
+DB_DEATH_MATERIALS: dict[str, Mat] = dict(DB_MATERIALS)
+core.register_material("pool", Mat.on_ramp("flag_red", 0, 3, black_floor=True, flat=True), DB_DEATH_MATERIALS)
+DB_LYING_MAX = 2.0              # units: a part this far above the floor still lies on it
+DB_LYING_TOP = 18.0             # nothing of the body (blood and the helmet aside) higher than this
+DB_LYING_SPAN = 40.0            # the parts on the floor spread at least this far
+
+
+def affine_prims(prims: list[core.Prim], A: np.ndarray, pivot) -> None:
+    """Map primitives by the linear map A about `pivot`, in place: a body
+    that tips over and deflates. Exact for ellipsoids (an ellipsoid's affine
+    image is an ellipsoid: its axes and radii are the SVD of A, its old
+    rotation and its radii); a round cone's ends are mapped and its radii
+    take A's mean scale; a cut box is replaced by the box that holds its
+    image (a little larger: a mouth cut stays open). Clip planes are not
+    supported (the head has none)."""
+    pivot = np.asarray(pivot, float)
+    A = np.asarray(A, float)
+    g = float(abs(np.linalg.det(A)) ** (1 / 3))
+    for p in prims:
+        if p.clip:
+            raise ValueError("affine_prims: clip planes are not supported")
+        w = lambda q: pivot + A @ (p.xm @ q + p.xt - pivot)  # noqa: E731  (old local -> new world)
+        if p.kind == "ellipsoid":
+            U, sig, _ = np.linalg.svd(A @ p.xm @ np.diag(np.asarray(p.r, float)))
+            if np.linalg.det(U) < 0:
+                U[:, -1] *= -1
+            c = w(p.a)
+            cuts = [(U.T @ w(cc), np.abs(U.T @ A @ p.xm) @ half) for cc, half in p.cut]
+            p.xm, p.xt, p.a, p.r, p.cut = U, np.zeros(3), U.T @ c, sig, cuts
+        elif p.kind == "roundcone":
+            if p.cut:
+                raise ValueError("affine_prims: a cut round cone is not supported")
+            p.a, p.b = w(p.a), w(p.b)
+            p.xm, p.xt = np.eye(3), np.zeros(3)
+            p.r1, p.r2 = p.r1 * g, p.r2 * g
+        else:
+            raise ValueError(f"affine_prims: {p.kind} not supported")
+
+
+def db_full_cell() -> DBCell:
+    return DB[DB_FULL_KEY]
+
+
+def _db_eye_at_g() -> np.ndarray:
+    """Where the eye burst (frame G, model space): the burst's origin."""
+    pose = DB_FULL_POSES["G"]
+    e = DB_C + EYE_DIR * (DB_R + 1.0)
+    e = core.rot_z(pose.roll) @ (e - DB_C) + DB_C
+    return core.rot_x(pose.pitch) @ (e - DB_C) + DB_C
+
+
+def _droplet(p0, v, t: float, r: float, xr, zr, air: float) -> core.Prim:
+    """A drop `t` s after leaving p0 at v: in the air, or a flat splat once
+    landed (the approved deaths' droplet, clamped to this canvas)."""
+    p0, v = np.asarray(p0, float), np.asarray(v, float)
+    rest = r * 0.3
+    tl = (v[1] + np.sqrt(v[1] ** 2 + 2 * BLOOD_GRAVITY * max(p0[1] - rest, 0.0))) / BLOOD_GRAVITY
+    tt = min(t, tl)
+    p = p0 + v * tt + V(0, -0.5 * BLOOD_GRAVITY * tt * tt, 0)
+    x, z = float(np.clip(p[0], *xr)), float(np.clip(p[2], *zr))
+    if t >= tl:
+        return core.ellipsoid("blood", 0.42, (x, 0.2, z), (r * 2.0, 0.35, r * 1.5), grp="splat")
+    return core.ellipsoid("blood", 0.62, (x, min(float(p[1]), air), z), (r, r * 1.15, r), grp="spray")
+
+
+def _burst(origin, t: float, n: int, rng, forward: np.ndarray, xr, zr, air: float,
+           speed=(30.0, 100.0)) -> list[core.Prim]:
+    """A wound's spray: n droplets out of `origin`, mostly along `forward`,
+    up and sideways, every fifth a heavy gout."""
+    out = []
+    for i in range(n):
+        d = unit(forward * rng.uniform(0.3, 1.0) + V(rng.uniform(-0.9, 0.9), rng.uniform(-0.1, 0.9),
+                                                     rng.uniform(-0.6, 0.4)))
+        gout = i % 5 == 0
+        sp = rng.uniform(8, 24) if gout else rng.uniform(*speed)
+        r = rng.uniform(1.2, 1.7) if gout else rng.uniform(0.6, 1.1)
+        out.append(_droplet(origin, d * sp, t, r, xr, zr, air))
+    return out
+
+
+def db_death_model(frame: str, seed: int = SEED) -> tuple[list[core.Prim], dict]:
+    """The Doughboy of death frame H-L on the floor (y = 0), untilted, without
+    the floor's blood; and its parts by name (sack, spine, helmet)."""
+    f = DB_FALLS[frame]
+    pose = DBPose(frame, f.title, mouth=f.mouth, gape=True, eye="burst")
+    P, _ = db_model(DB_NOSEVER, "A", seed, pose)
+    helmet = [p for p in P if p.grp == "helmet"]
+    head = [p for p in P if p.grp != "helmet"]
+    # the sack: the round head, squashed about its bottom, sitting on the floor
+    # it lands face up: tipped back (and a little to its side) about its centre, then squashed on the floor
+    affine_prims(head, core.rot_z(f.roll) @ core.rot_x(f.back), DB_C)
+    affine_prims(head, np.diag([f.spread, f.squash, f.spread]), V(0.0, 0.0, 0.0))
+    core.rest_on_floor(head, {}, {p.grp for p in head})
+    sack = head[0]
+    # the torn neck where it meets the floor, the spine fallen out of it
+    rng = np.random.default_rng(seed + 41)
+    a, b = DB_SPINE
+    b = a + (b - a) * f.spine
+    neck = a + V(-DB_R * f.spread * 0.55, 0.0, 0.0)
+    gore = []
+    for i in range(7):
+        q = neck + V(rng.uniform(-3, 3), 0.0, rng.uniform(-4, 4))
+        gore.append(core.ellipsoid("raw", 0.40, (q[0], 1.6, q[2]), (3.6, 1.8, 3.2), grp="spine"))
+    n_vert = 8
+    for j in range(n_vert):
+        q = neck + (b - neck) * (j + 0.5) / n_vert + V(0, 0, 1.6 * np.sin(j * 1.1))
+        gore.append(core.ellipsoid("bone", 0.62, (q[0], 1.0, q[2]), (1.9 - 0.08 * j, 1.0, 1.7 - 0.07 * j),
+                                   grp="spine"))
+    for k, (dz, length) in enumerate(((-3.0, 16.0), (4.0, 22.0), (1.0, 11.0))):     # torn vessels
+        q0 = neck + V(0, 0.9, dz)
+        q1 = q0 + V(-length * f.spine, 0.0, dz * 0.8 + 3.0 * np.sin(k))
+        gore.append(core.rcone("raw", 0.35, q0, V(q1[0], 0.7, q1[2]), 1.0, 0.6, grp="spine"))
+    # the helmet, knocked off: flying in H, upside down beside the sack from I
+    if f.helmet == "down":
+        helmet = [p for p in helmet if p.mat not in ("belt",) and p.kind != "box"]      # the strap tears
+        for p in helmet:
+            p.tag = ""          # upside down: no decal (a stamp cannot turn over with it)
+    hc = np.mean([p.bound()[0] for p in helmet], axis=0)
+    target = DB_HELMET_FLY if f.helmet == "flying" else DB_HELMET_DOWN
+    core.transform(helmet, {}, {"helmet"}, core.rot_z(f.helmet_roll), hc, target - hc)
+    if f.helmet == "down":
+        core.rest_on_floor(helmet, {}, {"helmet"})
+    P = head + gore + helmet
+    parts = {"sack": [sack], "spine": [p for p in gore if p.mat == "bone"], "helmet": helmet}
+    return P, parts
+
+
+def _front_z(sack: core.Prim, x: float, y: float, z_far: float = 80.0) -> float | None:
+    """The sack's front surface at (x, y): bisection along z on its SDF."""
+    f = lambda z: float(sack.sd(np.array([[x, y, z]]))[0])  # noqa: E731
+    lo, hi = -z_far, z_far
+    zs = np.linspace(hi, lo, 161)
+    d = sack.sd(np.stack([np.full_like(zs, x), np.full_like(zs, y), zs], axis=1))
+    inside = np.nonzero(d < 0)[0]
+    if not len(inside):
+        return None
+    k = int(inside[0])
+    a, b = zs[k - 1], zs[k]             # outside, inside
+    for _ in range(24):
+        m = (a + b) / 2
+        a, b = (m, b) if f(m) > 0 else (a, m)
+    return float((a + b) / 2)
+
+
+def sdf_normal(prim: core.Prim, p: np.ndarray, h: float = 0.05) -> np.ndarray:
+    """The outward normal of a primitive's surface at p (central differences)."""
+    e = np.eye(3) * h
+    pts = np.concatenate([p + e, p - e])
+    d = prim.sd(pts)
+    return unit(d[:3] - d[3:])
+
+
+def db_death_point(frame: str, model_point: np.ndarray, sack: core.Prim) -> np.ndarray:
+    """Where a point of the round head (model space) is on the sack of death
+    frame H-L: tipped back, squashed, set on the floor as db_death_model does."""
+    f = DB_FALLS[frame]
+    q = core.rot_z(f.roll) @ core.rot_x(f.back) @ (np.asarray(model_point, float) - DB_C) + DB_C
+    return np.diag([f.spread, f.squash, f.spread]) @ q + sack.xt
+
+
+def _sack_run(sack: core.Prim, start: np.ndarray, dx: float, steps: int = 7) -> list[core.Prim]:
+    """A run of blood from `start` down the sack's front to the floor."""
+    pts = []
+    for k in range(steps + 1):
+        y = float(start[1]) * (1.0 - k / steps) + 0.4 * k / steps
+        x = float(start[0]) + dx * k / steps
+        z = _front_z(sack, x, y)
+        if z is None:
+            break
+        pts.append(V(x, y, z + 0.35))
+    return [core.rcone("blood", 0.42, a, b, 1.2 - 0.05 * k, 1.15 - 0.05 * k, grp="spray")
+            for k, (a, b) in enumerate(zip(pts[:-1], pts[1:]))]
+
+
+def db_death_blood(frame: str, P: list[core.Prim], seed: int = SEED) -> list[core.Prim]:
+    """The blood off the head for death frame G-L: the eye's burst, runs on
+    the sack, the neck's spurt, the pools."""
+    xr, zr = DB_SPRAY_X, DB_SPRAY_Z
+    rng = np.random.default_rng(seed + 43)
+    if frame == "G":
+        return _burst(_db_eye_at_g(), DB_G_T, DB_N_SPRAY, rng, EYE_DIR, xr, zr, DB_AIR_Y)
+    f = DB_FALLS[frame]
+    # the eye's burst, landed or landing round the head (it fell with it)
+    out = _burst(DB_C + EYE_DIR * (DB_R + 1.0) + V(0, 6.0, 0), f.t, DB_N_SPRAY, rng, EYE_DIR, xr, zr, DB_AIR_Y)
+    # runs down the sack's face, from the socket and the mouth to the floor
+    sack = P[0]
+    socket = db_death_point(frame, DB_C + EYE_DIR * (DB_R - 1.0), sack)
+    mouth = db_death_point(frame, DB_C + MOUTH_DIR * DB_R, sack)
+    for start, dx in ((socket + V(-3.0, -2.0, 0), -2.0), (socket + V(3.5, -2.5, 0), 3.0), (mouth, 1.0),
+                      (mouth + V(-6.0, 0, 0), -3.0)):
+        out += _sack_run(sack, start, dx)
+    rng3 = np.random.default_rng(seed + 47)
+    for _ in range(int(3 + 6 * f.pool)):        # it soaks: dark stains spread over the face and the crown
+        q = DB_C + unit(EYE_DIR + V(rng3.uniform(-0.9, 0.9), rng3.uniform(-0.2, 0.9), rng3.uniform(-0.6, 0.1))) * DB_R
+        c = db_death_point(frame, q, sack)
+        out.append(_stain("blood", 0.40, c, sdf_normal(sack, c), rng3.uniform(2.5, 5.0), grp="spray"))
+    # the neck pumps while it lands (H, I)
+    if frame in "HI":
+        rng2 = np.random.default_rng(seed + 44)
+        neck = DB_SPINE[0] + V(-DB_R * f.spread * 0.55, 2.0, 0.0)
+        for k in range(12):
+            age = 0.02 + 0.025 * k
+            v = V(rng2.uniform(-30, -5), rng2.uniform(10, 45), rng2.uniform(-5, 15))
+            out.append(_droplet(neck, v, age, rng2.uniform(0.7, 1.1), xr, zr, DB_AIR_Y))
+    if f.pool:
+        g = f.pool
+        out += hound.pool(-4.0, DB_POOL_Z, DB_POOL[0] * g, DB_POOL[1] * (0.45 + 0.55 * g),
+                          np.random.default_rng(seed + 45))
+        n = DB_SPINE[0] + V(-DB_R * f.spread * 0.55, 0, 0)
+        out += hound.pool(float(n[0]) - 4.0, 6.0, DB_STUMP_POOL[0] * g, DB_STUMP_POOL[1] * g,
+                          np.random.default_rng(seed + 46))
+    return out
+
+
+def db_corpse_metrics(frame: str = "L") -> dict:
+    """The lying checks on the untilted model: each part's lowest point above
+    the floor, the body's highest point, how far the supports spread."""
+    P, parts = db_death_model(frame)
+    rep = {k: round(core.lowest_y(v), 2) for k, v in parts.items()}
+    body = parts["sack"] + parts["spine"] + [p for p in P if p.grp == "spine"]
+    xs = [float(np.mean([p.bound()[0][0] for p in parts[k]])) for k, v in rep.items() if v <= DB_LYING_MAX]
+    return {"lowest": rep, "top": round(hound.highest_y(body), 2), "span": round(max(xs) - min(xs), 1)}
+
+
+# ---------------------------------------------------------------- the Panzermensch's poses
+A_ = PM_ANKLE
+PM_FULL_POSES: dict[str, PMPose] = {
+    "A": replace(PM_POSES["A"], title="stands / walk, feet together (the sweep's)"),
+    "B": PMPose("B", (7.0, A_, 8.0), (-7.0, A_ + 1.4, -7.5), (16.0, 31.0, -3.5), (-15.5, 31.5, 8.5), 7.0,
+                title="left foot forward", bob=-1.6, twist=-4.0),
+    "C": PMPose("C", (7.0, A_, -1.5), (-6.6, A_ + 5.0, 2.5), (16.5, 30.5, 1.5), (-16.5, 30.5, 2.5), 6.5,
+                title="right leg passing", bob=0.4),
+    "D": PMPose("D", (7.0, A_ + 1.4, -7.5), (-7.0, A_, 8.0), (15.5, 31.5, 8.5), (-16.0, 31.0, -3.5), 7.0,
+                title="right foot forward", bob=-1.6, twist=4.0),
+    "E": PMPose("E", (7.0, A_, 5.0), (-7.0, A_, -5.5), (14.0, 38.0, 10.0), (-18.0, 38.0, -8.0), 8.0,
+                title="draws back: the shell forms in his fist", twist=14.0, charge=0.7, throw_arm=True),
+    "F": PMPose("F", (7.0, A_, 5.0), (-7.0, A_, -5.0), (13.0, 44.0, 11.0), (-12.0, 66.0, -9.0), 2.0,
+                title="cocks the arm over his head", twist=18.0, head_pitch=6.0, charge=0.85, throw_arm=True),
+    "G": replace(PM_POSES["G"], title="throws (the sweep's)"),
+    "H": PMPose("H", (7.0, A_, 2.0), (-7.0, A_, -4.0), (19.0, 40.0, 5.0), (-19.0, 40.0, 5.0), -8.0,
+                title="pain: struck, he rocks back", bob=-1.0, head_pitch=22.0, head_turn=10.0, spurt=0.05),
+}
+PM_WOUND = (1.5, 45.0)          # (x, y) of the round's hole on the breastplate, upright
+PLATE_STAIN_DEPTH = 0.9         # x the stain's radius: on the curved breastplate the sunk sphere stays inside him
+
+
+@dataclass(frozen=True)
+class PMFall:
+    """A death frame (I-O): the pose he is in, then how far he has fallen."""
+    pose: PMPose
+    t: float                    # s after the hit
+    fall: float                 # degrees back over his heels
+    yaw: float                  # degrees he has twisted (90: lying across the screen)
+    settle: tuple = ()          # what is let fall to the floor: keys of PM_SETTLE
+    pool: float = 0.0           # share of the full pool
+    stain: float = 2.6          # half width of the stain round the wound
+    tilt: float = 0.0           # degrees the render looks further down (as gen_hound.DEATH_TILT)
+
+
+DEAD_ANKLE = 2.3                # the dead legs reach out straight (hip to ankle 28.9 of 29 units)
+_DEAD = PMPose("O", (8.0, DEAD_ANKLE, -2.0), (-8.0, DEAD_ANKLE, -1.0), (16.0, 34.0, -2.0), (-16.0, 33.0, -2.0), 0.0,
+               title="dead", head_pitch=10.0, leg_z=-4.3)
+PM_SETTLE_ALL = ("head", "arm_l", "arm_r", "fore_l", "fore_r", "leg_l", "leg_r", "shin_l", "shin_r")
+PM_FALLS = {                    # panzermensch.zs: I J K L M N 8 tics, O held (A_Scream on J, A_NoBlocking on L)
+    "I": PMFall(PMPose("I", (7.0, A_, 3.0), (-7.0, A_, -2.0), (18.0, 46.0, 6.0), (-17.0, 44.0, 8.0), -16.0,
+                       title="hit: the chest opens", bob=-0.5, head_pitch=28.0), 0.06, 0.0, 0.0, stain=2.6),
+    "J": PMFall(PMPose("J", (7.5, A_, 4.0), (-7.5, A_, 1.0), (18.0, 36.0, 2.0), (-18.0, 34.0, 4.0), -10.0,
+                       title="his knees go", bob=-7.0, head_pitch=30.0, head_turn=8.0), 0.29, 14.0, 12.0, stain=3.6),
+    "K": PMFall(PMPose("K", (7.5, A_, 4.0), (-7.5, A_, 1.0), (17.0, 44.0, 0.0), (-18.0, 40.0, 0.0), -6.0,
+                       title="falling back", bob=-6.0, head_pitch=24.0), 0.52, 48.0, 45.0, stain=4.4, tilt=8.0),
+    "L": PMFall(replace(_DEAD, key="L", title="hits the floor"), 0.75, 84.0, 78.0, ("head",), stain=5.2, tilt=18.0),
+    "M": PMFall(replace(_DEAD, key="M", title="the limbs fall"), 0.98, 90.0, 88.0, ("head", "arm_l", "arm_r"),
+                pool=0.4, stain=5.8, tilt=24.0),
+    "N": PMFall(replace(_DEAD, key="N", title="still"), 1.21, 90.0, 90.0, PM_SETTLE_ALL, pool=0.7, stain=6.3,
+                tilt=28.0),
+    "O": PMFall(replace(_DEAD, head_turn=25.0), 3.0, 90.0, 90.0, PM_SETTLE_ALL, pool=1.0, stain=6.8, tilt=28.0),
+}
+PM_FALL_PIVOT = V(0.0, 0.0, -6.0)       # behind his heels: he falls back over them
+# The Schwer cannot lie on his back: the exhaust stacks bolted to it would
+# prop him 2-3 units off the floor (the fault the CEO named on the Legion's
+# first L0). He folds forward and falls on his face, the stacks and the
+# banner on top, which also tells the two brutes apart when dead.
+PS_FALL_PIVOT = V(0.0, 0.0, 9.0)        # in front of his toes
+_PRONE = PMPose("O", (8.0, A_, 2.0), (-8.0, A_, 1.0), (16.0, 34.0, 2.0), (-16.0, 33.0, 2.0), -3.0,
+                title="dead, face down", bob=-1.5, head_pitch=-6.0)
+PS_FALLS = {
+    "I": PM_FALLS["I"],
+    "J": PMFall(PMPose("J", (7.5, A_, 4.0), (-7.5, A_, 1.0), (17.0, 30.0, 8.0), (-17.0, 30.0, 8.0), 18.0,
+                       title="he folds forward", bob=-9.0, head_pitch=-10.0), 0.29, -10.0, -8.0, stain=3.6),
+    "K": PMFall(PMPose("K", (7.5, A_, 4.0), (-7.5, A_, 1.0), (16.0, 40.0, 14.0), (-16.0, 40.0, 14.0), 12.0,
+                       title="falls on his face", bob=-8.0, head_pitch=-8.0), 0.52, -48.0, -40.0, stain=4.4,
+                tilt=8.0),
+    "L": PMFall(replace(_PRONE, key="L", title="hits the floor"), 0.75, -84.0, -78.0, ("head",), stain=5.2,
+                tilt=18.0),
+    "M": PMFall(replace(_PRONE, key="M", title="the limbs fall"), 0.98, -90.0, -88.0, ("head", "arm_l", "arm_r"),
+                pool=0.4, stain=5.8, tilt=24.0),
+    "N": PMFall(replace(_PRONE, key="N", title="still"), 1.21, -90.0, -90.0, PM_SETTLE_ALL, pool=0.7, stain=6.3, tilt=28.0),
+    "O": PMFall(replace(_PRONE, head_turn=25.0), 3.0, -90.0, -90.0, PM_SETTLE_ALL,
+                pool=1.0, stain=6.8, tilt=28.0),
+}
+PM_SETTLE = {                   # (limb, side, group or "", the prims turned, the prims that must touch, pivot, tip)
+    "head": ("", 0, "helmet", None, None, "neck", "crown"),
+    "arm_l": ("arm", core.LEFT, "", None, slice(0, 3), "shoulder_l", "fist_l"),    # the arm from the shoulder
+    "arm_r": ("arm", core.RIGHT, "", None, slice(0, 3), "shoulder_r", "fist_r"),   # till the upper arm lies,
+    "fore_l": ("arm", core.LEFT, "", slice(3, None), None, "elbow_l", "fist_l"),   # then the forearm from the
+    "fore_r": ("arm", core.RIGHT, "", slice(3, None), None, "elbow_r", "fist_r"),  # elbow till the gauntlet does
+    "leg_l": ("leg", core.LEFT, "", None, slice(0, 3), "hip_l", "ankle_l"),
+    "leg_r": ("leg", core.RIGHT, "", None, slice(0, 3), "hip_r", "ankle_r"),
+    "shin_l": ("leg", core.LEFT, "", slice(3, 5), None, "knee_l", "ankle_l"),     # greave and boot from the knee
+    "shin_r": ("leg", core.RIGHT, "", slice(3, 5), None, "knee_r", "ankle_r"),
+}
+PM_SETTLE_RIDE = {"head": ("crown",), **{f"arm_{s}": (f"elbow_{s}", f"wrist_{s}", f"fist_{s}") for s in "lr"},
+                  **{f"fore_{s}": (f"wrist_{s}", f"fist_{s}") for s in "lr"},
+                  **{f"leg_{s}": (f"knee_{s}", f"ankle_{s}") for s in "lr"}, **{f"shin_{s}": (f"ankle_{s}",) for s in "lr"}}
+SETTLE_DOWN = 75.0              # degrees a part may swing down to the floor ...
+SETTLE_UP = 70.0                # ... or up out of it
+SETTLE_STEPS = 16
+PM_N_SPRAY = 42
+PM_POOL = (26.0, 14.0)          # (x, z) radii of the full pool under his chest
+PM_POOL_Z = 6.0
+PM_SPRAY_X = (-58.0, 104.0)     # landed splats stay inside the death canvas
+PM_SPRAY_Z = (-20.0, 30.0)
+PM_AIR_Y = 84.0
+PM_LYING_MAX = 2.0
+PM_LYING_SUPPORT = 1.0
+PM_LYING_TOP = 26.0             # a brute's breastplate is thick: nothing of him higher than this, lying
+PM_LYING_SPAN = 40.0
+PM_BLOOD = {
+    "blood": Mat.on_ramp("flag_red", 1, 5, black_floor=True, shift=False, flat=True),    # spray, splats, stains
+    "pool": Mat.on_ramp("flag_red", 0, 3, black_floor=True, shift=False, flat=True),     # standing blood
+}
+PM_FULL_MATERIALS: dict[str, Mat] = dict(PM_MATERIALS)
+for _n, _m in PM_BLOOD.items():
+    core.register_material(_n, _m, PM_FULL_MATERIALS)
+SCHWER_CELL = PMCell("DS2", "mask", "both", True, "D with S2: black, x1.12, spikes and stacks, lit slit")
+PM_DEATH_CV = core.Canvas(176, 120, 64, 96)
+PS_CV = core.Canvas(128, 104, 64, 98)
+PS_DEATH_CV = core.Canvas(192, 140, 68, 104)
+
+
+def _pm_rigid(P: list[core.Prim], anch: dict, R: np.ndarray, pivot, offset=(0.0, 0.0, 0.0)) -> None:
+    """Every primitive and every anchor, rotated by R about pivot, then moved."""
+    pivot, offset = np.asarray(pivot, float), np.asarray(offset, float)
+    for p in P:
+        p.xm = R @ p.xm
+        p.xt = R @ (p.xt - pivot) + pivot + offset
+    for k, (pt, g) in list(anch.items()):
+        anch[k] = (R @ (pt - pivot) + pivot + offset, g)
+
+
+def pm_falls(cell: PMCell) -> dict[str, PMFall]:
+    """The Schwer (stacks on his back) falls on his face; the base brute on his back."""
+    return PS_FALLS if cell.top in ("stacks", "both") else PM_FALLS
+
+
+def pm_settle_prims(P: list[core.Prim], what: str) -> list[core.Prim]:
+    limb, side, grp, part, _, _, _ = PM_SETTLE[what]
+    if grp:
+        return [p for p in P if p.grp == grp]
+    out = [p for p in P if p.limb == limb and p.side == side]
+    return out if part is None else out[part]
+
+
+def pm_settle_probe(P: list[core.Prim], what: str) -> list[core.Prim]:
+    limb, side, grp, _, probe, _, _ = PM_SETTLE[what]
+    if grp or probe is None:
+        return pm_settle_prims(P, what)
+    return [p for p in P if p.limb == limb and p.side == side][probe]
+
+
+def pm_settle(part: list[core.Prim], probe: list[core.Prim], pivot: np.ndarray, tip: np.ndarray) -> np.ndarray:
+    """Swing `part` about `pivot` (the tip going down for +) until the lowest
+    point of `probe` (a subset of it) is on the floor: down if it hangs above,
+    up if it is in it. Bisection on rig_core.lowest_y; returns the rotation."""
+    v = unit(tip - pivot)
+    axis = np.cross(v, V(0, -1, 0))
+    if np.linalg.norm(axis) < 1e-6:
+        return np.eye(3)
+    keep = [(p.xm, p.xt) for p in part]
+
+    def low_at(deg):
+        hound._rigid(part, hound.axis_rot(axis, deg), pivot)
+        y = core.lowest_y(probe)
+        for p, (xm, xt) in zip(part, keep):
+            p.xm, p.xt = xm, xt
+        return y
+
+    y0 = low_at(0.0)
+    if abs(y0) < 0.05:
+        return np.eye(3)
+    lo, hi = (0.0, SETTLE_DOWN) if y0 > 0 else (-SETTLE_UP, 0.0)
+    if y0 > 0 and low_at(hi) > 0:
+        lo = hi
+    elif y0 < 0 and low_at(lo) < 0:
+        hi = lo
+    else:
+        for _ in range(SETTLE_STEPS):
+            mid = (lo + hi) / 2
+            if (low_at(mid) > 0) == (y0 > 0):
+                lo, hi = (mid, hi) if y0 > 0 else (lo, mid)
+            else:
+                lo, hi = (lo, mid) if y0 > 0 else (mid, hi)
+    R = hound.axis_rot(axis, lo if y0 > 0 else hi)
+    hound._rigid(part, R, pivot)
+    return R
+
+
+def pm_death_model(cell: PMCell, frame: str, seed: int = SEED) -> tuple[list[core.Prim], dict]:
+    """The Panzermensch of death frame I-O in model space (floor y = 0),
+    untilted, unscaled, without the floor's blood; and its anchors (points)."""
+    f = pm_falls(cell)[frame]
+    anch: dict = {}
+    P = pm_model(cell, frame, seed=seed, pose=f.pose, anchors=anch)
+    if f.fall or f.yaw:
+        pivot = PS_FALL_PIVOT if f.fall < 0 else PM_FALL_PIVOT
+        _pm_rigid(P, anch, core.rot_y(f.yaw) @ core.rot_x(f.fall), pivot)
+    falling = {id(p) for w in f.settle for p in pm_settle_prims(P, w)}
+    resting = [p for p in P if id(p) not in falling]
+    _pm_rigid(P, anch, np.eye(3), V(0, 0, 0), V(0, -core.lowest_y(resting), 0))
+    for what in f.settle:
+        *_, root, tip = PM_SETTLE[what]
+        part = pm_settle_prims(P, what)
+        R = pm_settle(part, pm_settle_probe(P, what), anch[root][0], anch[tip][0])
+        pivot = anch[root][0]
+        for k in PM_SETTLE_RIDE[what]:         # the joints further out ride along
+            pt, g = anch[k]
+            anch[k] = (R @ (pt - pivot) + pivot, g)
+    return P, {k: v[0] for k, v in anch.items()}
+
+
+def _pm_attached(prim: core.Prim, to: core.Prim, grp: str = "blood") -> core.Prim:
+    """`prim`, given in the upright model space, rides `to`'s rigid transform."""
+    prim.xm, prim.xt, prim.grp = to.xm.copy(), to.xt.copy(), grp
+    return prim
+
+
+def _torso_of(P: list[core.Prim]) -> core.Prim:
+    return next(p for p in P if p.tag == "torso")
+
+
+def _mask_of(P: list[core.Prim]) -> core.Prim:
+    return next(p for p in P if p.grp == "helmet" and p.mat == "plate")
+
+
+def pm_wound_world(P: list[core.Prim]) -> np.ndarray:
+    t = _torso_of(P)
+    x, y = PM_WOUND
+    return t.xm @ V(x, y, _torso_front(x, y) + 0.3) + t.xt
+
+
+_PM_HIT: dict = {}
+
+
+def pm_wound_at_hit(cell: PMCell) -> np.ndarray:
+    """Where the wound was when the round hit (frame I): the burst's origin."""
+    if cell.key not in _PM_HIT:
+        _PM_HIT[cell.key] = pm_wound_world(pm_death_model(cell, "I")[0])
+    return _PM_HIT[cell.key]
+
+
+def pm_body_blood(P: list[core.Prim], stain: float, run: int, mouth_run: int) -> list[core.Prim]:
+    """The blood ON him, riding the plate: the hole, the stain soaking wider,
+    the run down the breastplate, the run from under the mask."""
+    out = []
+    t, x, y = _torso_of(P), *PM_WOUND
+    zf = _torso_front(x, y)
+    n = unit(V(x * 0.02, 0.0, 1.0))
+    out.append(_pm_attached(_stain("blood", 0.48, V(x, y - stain * 0.2, zf), n, stain, depth=PLATE_STAIN_DEPTH * stain),
+                            t))
+    out.append(_pm_attached(core.ellipsoid("void", 0.05, (x, y, zf + 0.35), (1.1, 1.2, 0.8)), t))
+    if run:
+        y1 = y - 4.0 - 3.0 * run
+        out.append(_pm_attached(core.rcone("blood", 0.40, V(x + 0.3, y - 1.5, _torso_front(x, y - 1.5) + 0.5),
+                                           V(x + 1.0, y1, _torso_front(x + 1.0, y1) + 0.5), 1.4, 1.0), t))
+    if mouth_run:                   # from under the mask, down the jowls and the gorget
+        m = _mask_of(P)
+        a = V(0.6, 56.6, 6.2)
+        out.append(_pm_attached(core.rcone("blood", 0.42, a, a + V(0.4, -1.6 - 1.4 * mouth_run, 1.2), 0.75, 0.55),
+                                m))
+    return out
+
+
+def pm_death_blood(cell: PMCell, frame: str, P: list[core.Prim], anch: dict, seed: int = SEED) -> list[core.Prim]:
+    """All the blood of death frame I-O, on him and on the floor."""
+    f = pm_falls(cell)[frame]
+    k = "IJKLMNO".index(frame)
+    out = pm_body_blood(P, f.stain, max(k - 1, 0), k)
+    hit = pm_wound_at_hit(cell)
+    out += _burst(hit, f.t, PM_N_SPRAY, np.random.default_rng(seed + 51), V(0, 0.2, 1.0),
+                  PM_SPRAY_X, PM_SPRAY_Z, PM_AIR_Y, speed=(25.0, 75.0))
+    w = pm_wound_world(P)
+    if frame in "JKL":              # the wound bleeds while he falls
+        rng = np.random.default_rng(seed + 52 + k)
+        for j in range(6):
+            v = V(rng.uniform(-4, 4), rng.uniform(-4, 4), rng.uniform(4, 14))
+            out.append(_droplet(w, v, 0.02 + 0.03 * j, rng.uniform(0.6, 0.95), PM_SPRAY_X, PM_SPRAY_Z, PM_AIR_Y))
+    if f.pool:
+        g = f.pool
+        out += hound.pool(float(w[0]), PM_POOL_Z, PM_POOL[0] * g, PM_POOL[1] * (0.45 + 0.55 * g),
+                          np.random.default_rng(seed + 54))
+        m = _mask_of(P)
+        mp = m.xm @ V(0.0, 56.0, 6.0) + m.xt
+        out += hound.pool(float(mp[0]), PM_POOL_Z - 2.0, 5.0 + 4.0 * g, 4.0 + 2.0 * g,
+                          np.random.default_rng(seed + 55))
+    return out
+
+
+def pm_pain_blood(P: list[core.Prim], t: float, seed: int = SEED) -> list[core.Prim]:
+    """H: the round's hole and a short spurt out of the breastplate."""
+    out = pm_body_blood(P, 2.2, 0, 0)
+    w = pm_wound_world(P)
+    rng = np.random.default_rng(seed + 57)
+    for _ in range(9):
+        v = V(rng.uniform(-14, 14), rng.uniform(0, 30), rng.uniform(25, 60))
+        p = w + v * t + V(0, -0.5 * BLOOD_GRAVITY * t * t, 0)
+        r = rng.uniform(0.7, 1.1)
+        out.append(core.ellipsoid("blood", 0.62, tuple(p), (r, r * 1.15, r), grp="spray"))
+    return out
+
+
+def pm_corpse_parts(P: list[core.Prim]) -> dict[str, list[core.Prim]]:
+    """The lying brute's parts by name: what must rest on the floor."""
+    out = {"torso": [_torso_of(P)], "hips": [p for p in P if p.tag == "faulds"],
+           "head": [p for p in P if p.grp == "helmet"]}
+    for name, side in (("left", core.LEFT), ("right", core.RIGHT)):
+        arm = [p for p in P if p.limb == "arm" and p.side == side]
+        leg = [p for p in P if p.limb == "leg" and p.side == side]
+        out[f"upper_arm_{name}"], out[f"gauntlet_{name}"] = arm[:1], arm[5:6]
+        out[f"thigh_{name}"], out[f"greave_{name}"], out[f"boot_{name}"] = leg[:1], leg[3:4], leg[4:5]
+    return out
+
+
+def pm_corpse_metrics(cell: PMCell, frame: str = "O") -> dict:
+    """The lying checks on the untilted model (unscaled; the Schwer is the
+    same model x1.12): parts above the floor, the top, the supports' spread,
+    and how far the torso lies across the screen."""
+    P, _ = pm_death_model(cell, frame)
+    parts = pm_corpse_parts(P)
+    rep = {k: round(core.lowest_y(v), 2) for k, v in parts.items() if v}
+    xs = [float(np.mean([p.bound()[0][0] for p in parts[k]])) for k, v in rep.items() if v <= PM_LYING_SUPPORT]
+    torso = parts["torso"][0]
+    return {"lowest": rep, "top": round(hound.highest_y(P), 2), "span": round(max(xs) - min(xs), 1),
+            "across": round(abs(float((torso.xm @ V(0, 1, 0))[0])), 3)}
+
+
+# ---------------------------------------------------------------- one machinery for the three sets
+@dataclass(frozen=True)
+class FullSpec:
+    key: str                    # "db" | "pm" | "ps"
+    sprite: str
+    zs: Path                    # the states the set is drawn for (the Schwer inherits panzermensch.zs')
+    name: str
+    slug: str
+
+
+FULL_SPECS = {
+    "db": FullSpec("db", DB_SPRITE, DB_ZS, "Doughboy, cell C", "doughboy-C-full-set"),
+    "pm": FullSpec("pm", PM_SPRITE, PM_ZS, "Panzermensch, cell D", "panzermensch-D-full-set"),
+    "ps": FullSpec("ps", PS_SPRITE, PM_ZS, "Panzermensch Schwer, D with S2", "panzermensch-schwer-full-set"),
+}
+
+
+def full_frames(key: str) -> tuple[str, str]:
+    """(the letters at 8 rotations, the death letters) from the class's .zs."""
+    return zs_frames(FULL_SPECS[key].zs)
+
+
+def full_plan(key: str) -> list[tuple[str, int]]:
+    """(frame, rotation) of every lump: 8 drawn rotations (handed figures, no
+    mirrored pairs) for the living frames, rotation 0 for the death."""
+    rotated, death = full_frames(key)
+    return [(f, r) for f in rotated for r in range(1, core.ROTATIONS + 1)] + [(f, 0) for f in death]
+
+
+def full_lump(key: str, frame: str, rotation: int) -> str:
+    """The lump name: SDDBA1 ... SDDBL0, SDPMA1 ... SDPMO0, SDPSA1 ..."""
+    return f"{FULL_SPECS[key].sprite}{frame}{rotation}"
+
+
+def full_canvas(key: str, frame: str) -> core.Canvas:
+    rotated, _ = full_frames(key)
+    live = frame in rotated
+    if key == "db":
+        return DB_CV if live else DB_DEATH_CV
+    if key == "pm":
+        return PM_CV if live else PM_DEATH_CV
+    return PS_CV if live else PS_DEATH_CV
+
+
+def full_grab(key: str, frame: str) -> tuple[int, int]:
+    """grAb: the living Doughboy hangs by the actor's z (no feet to sink), as
+    in the sweep, and so does G (it is still in the air when it dies); what
+    lies on the floor sinks FEET_SINK as every approved corpse does."""
+    cv = full_canvas(key, frame)
+    rotated, _ = full_frames(key)
+    if key == "db" and (frame in rotated or frame == "G"):
+        return cv.cx, cv.foot_row
+    return core.grab_offsets(cv)
+
+
+def full_table(key: str, frame: str) -> dict[str, Mat]:
+    rotated, _ = full_frames(key)
+    if key == "db":
+        return DB_MATERIALS if frame in rotated else DB_DEATH_MATERIALS
+    return PM_MATERIALS if frame in "ABCDEFG" else PM_FULL_MATERIALS
+
+
+def _tilted(P: list[core.Prim], deg: float) -> list[core.Prim]:
+    if deg:
+        hound._rigid(P, core.rot_x(-deg), V(0, 0, 0))
+    return P
+
+
+def full_prims(key: str, frame: str, seed: int = SEED) -> list[core.Prim]:
+    """Every primitive of one frame, model space, ready to render."""
+    if key == "db":
+        cell = db_full_cell()
+        if frame in "AD":
+            return db_model(cell, frame, seed)[0]           # the sweep's figure, as chosen
+        if frame in DB_FULL_POSES:
+            P = db_model(cell, "A", seed, DB_FULL_POSES[frame])[0]
+            return P + db_death_blood("G", P, seed) if frame == "G" else P
+        P, _ = db_death_model(frame, seed)
+        return _tilted(P + db_death_blood(frame, P, seed), DB_FALLS[frame].tilt)
+    cell = PM[PM_FULL_KEY] if key == "pm" else SCHWER_CELL
+    if frame in PM_FULL_POSES:
+        pose = PM_FULL_POSES[frame]
+        P = pm_model(cell, frame, seed=seed, pose=pose)
+        if pose.spurt:
+            P = P + pm_pain_blood(P, pose.spurt, seed)
+    else:
+        P, anch = pm_death_model(cell, frame, seed)
+        P = _tilted(P + pm_death_blood(cell, frame, P, anch, seed), pm_falls(cell)[frame].tilt)
+    return scale_prims(P, SCHWER_SCALE) if key == "ps" else P
+
+
+def render_full_layers(key: str, frame: str, rotation: int, seed: int = SEED,
+                       prims: list[core.Prim] | None = None) -> core.Layers:
+    P = full_prims(key, frame, seed) if prims is None else prims
+    cv, table = full_canvas(key, frame), full_table(key, frame)
+    what = full_lump(key, frame, rotation)
+    if key == "db":
+        return core.render_layers(P, rotation, cv, table, seed=seed, value_shift=0.0, chrome=DB_CHROME,
+                                  insignia=(DECAL_INSIGNIA,), what=what)
+    return core.render_layers(P, rotation, cv, table, seed=seed, value_shift=PM_VALUE_SHIFT,
+                              insignia=(BANNER_INSIGNIA,), what=what)
+
+
+def render_full(key: str, frame: str, rotation: int, seed: int = SEED) -> np.ndarray:
+    """One lump of a full set, RGBA."""
+    return render_full_layers(key, frame, rotation, seed).rgba
+
+
+def blood_share(lay: core.Layers, table: dict[str, Mat]) -> float:
+    """Share of the opaque pixels painted in the blood and pool materials."""
+    ids = core.material_ids(table)
+    want = [ids[n] for n in ("blood", "pool") if n in ids]
+    return round(float(np.isin(lay.mat, want).sum() / max((lay.mat >= 0).sum(), 1)), 3)
+
+
+def _frame_job(job: tuple[str, str, int]) -> tuple[str, str, dict, float | None]:
+    """A worker's unit: one frame of one set at every rotation it needs (the
+    model is built once, the death's settling is the slow part)."""
+    key, frame, seed = job
+    rotated, _ = full_frames(key)
+    rots = range(1, core.ROTATIONS + 1) if frame in rotated else (0,)
+    P = full_prims(key, frame, seed)
+    out, share = {}, None
+    for r in rots:
+        lay = render_full_layers(key, frame, r, seed, prims=P)
+        out[r] = lay.rgba
+        if r == 0:
+            share = blood_share(lay, full_table(key, frame))
+    return key, frame, out, share
+
+
+def set_dir(key: str) -> Path:
+    return FULL_DIR / FULL_SPECS[key].sprite
+
+
+def build_full(keys=("db", "pm", "ps"), jobs: int = 1, seed: int = SEED, only: set[str] | None = None) -> dict:
+    """Render the sets' lumps (PNG with grAb) into work/art/enemies/heavy/full/<SPRITE>/."""
+    work = [(k, f, seed) for k in keys for f in dict.fromkeys(f for f, _ in full_plan(k))
+            if not only or f"{k}:{f}" in only]
+    sprites: dict = {k: {} for k in keys}
+    shares: dict = {k: {} for k in keys}
+
+    def take(res):
+        key, frame, out, share = res
+        for r, rgba in out.items():
+            save(rgba, set_dir(key) / f"{full_lump(key, frame, r)}.png", full_grab(key, frame))
+            sprites[key][(frame, r)] = rgba
+        if share is not None:
+            shares[key][frame] = share
+        print(key, frame, "done", flush=True)
+
+    for k in keys:
+        set_dir(k).mkdir(parents=True, exist_ok=True)
+    if jobs > 1:
+        from concurrent.futures import ProcessPoolExecutor
+        with ProcessPoolExecutor(max_workers=jobs) as ex:
+            for res in ex.map(_frame_job, work):
+                take(res)
+    else:
+        for w in work:
+            take(_frame_job(w))
+    for k in keys:                      # merged, so a partial render (--only) keeps the other frames' shares
+        path = set_dir(k) / "blood_share.json"
+        old = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+        old.update(shares[k])
+        _, death = full_frames(k)
+        path.write_text(json.dumps({f: old[f] for f in death if f in old}, indent=2) + "\n", encoding="utf-8")
+    return sprites
+
+
+def load_full(key: str) -> dict:
+    out = {}
+    for f, r in full_plan(key):
+        with Image.open(set_dir(key) / f"{full_lump(key, f, r)}.png") as im:
+            out[(f, r)] = np.asarray(im.convert("RGBA")).copy()
+    return out
+
+
+# ---------------------------------------------------------------- GIFs, lineups, numbers
+HOLD_MS = 1600                  # a -1 frame (the corpse) held this long before the GIF loops
+LEAD_TICS = 20                  # the living frame before a cycle, as the approved sheets show it
+FULL_SLOT = 72
+DEAD_SLOT = 168
+APPROVED = (("SDRRA1", "rifleman", "Reich rifleman"), ("SDLTA1", "legion", "Legion trooper"),
+            ("SDHSA1", "storm", "Stormtrooper"), ("SDHNA1", "hound", "Reich hound"))
+APPROVED_DEAD = (("SDRRL0", "rifleman", "rifleman"), ("SDLTL0", "legion", "Legion trooper"),
+                 ("SDHSM0", "storm", "Stormtrooper"), ("SDHNN0", "hound", "hound"))
+DOOM_GRAVITY = 1.0              # units / tic^2 a falling actor gains (Doom's GRAVITY, FRACUNIT: NOT VERIFIED in GZDoom)
+
+
+def _ms(tics: int) -> int:
+    return HOLD_MS if tics < 0 else int(round(tics * core.TIC_MS))
+
+
+def _gif(path: Path, frames: list[np.ndarray], durs: list[int]) -> Path:
+    return core.save_gif(frames, durs, path)
+
+
+def _neutral(arrs: list[np.ndarray]) -> list[np.ndarray]:
+    return [core.on_bg(x, core.NEUTRAL) for x in hound.crop_common(arrs)]
+
+
+def fall_z(tic: float, hover: float = HOVER) -> float:
+    """Height of a dead floater `tic` tics after it died: it drops from its
+    hover under Doom's gravity (P_ZMovement, from memory: NOT VERIFIED)."""
+    return max(hover - 0.5 * DOOM_GRAVITY * tic * (tic + 1), 0.0)
+
+
+def write_full_gifs(key: str, spr: dict) -> dict[str, Path]:
+    """Every cycle at game speed, the tics read from the class's .zs."""
+    d = set_dir(key)
+    st = zs_states(FULL_SPECS[key].zs)
+    runs = {lab: hound._gif_runs(seq) for lab, seq in st.items()}
+    sprite = FULL_SPECS[key].sprite
+    out: dict[str, Path] = {}
+
+    def cyc(name, seq, rot):
+        out[name] = _gif(d / f"{sprite}_{name}.gif", _neutral([spr[(f, rot)] for f, _ in seq]), [_ms(t) for _, t in seq])
+
+    out["turntable"] = _gif(d / f"{sprite}_turntable.gif", _neutral([spr[("A", r)] for r in range(1, 9)]),
+                            [_ms(12)] * 8)
+    lead = [("A", LEAD_TICS)]
+    if key == "db":
+        for r in range(1, 9):
+            cyc(f"attack_rot{r}", lead + runs["Missile"], r)
+        for r in (1, 3, 5, 7):
+            cyc(f"pain_rot{r}", lead + runs["Pain"], r)
+    else:
+        see = runs["See"]
+        for r in range(1, 9):
+            cyc(f"see_rot{r}", see, r)
+        for r in (1, 3, 5, 7):
+            cyc(f"attack_rot{r}", see + runs["Missile"], r)
+            cyc(f"pain_rot{r}", see + runs["Pain"] + see, r)
+        cyc("spawn_rot1", runs["Spawn"], 1)
+    death = runs["Death"]
+    out["death"] = _gif(d / f"{sprite}_death.gif", _neutral([spr[(f, 0)] for f, _ in death]),
+                        [_ms(t) for _, t in death])
+    # the death on MAP01's floor, from the living frame, each sprite by its own offsets
+    wall, light = ("SDCONC1", 176) if key == "db" else ("SDCONC1", 144)
+    cvd = full_canvas(key, death[0][0])
+    width = 2 * max(cvd.cx, cvd.w - cvd.cx)
+    frames, durs = [], []
+    alive = ("A", 1)
+    ga = full_grab(key, "A")
+    hover = HOVER if key == "db" else 0
+    frames.append(tall_lineup([(spr[alive], ga[0], ga[1] + hover)], wall, light, width))
+    durs.append(_ms(LEAD_TICS))
+    tic = 0
+    for f, t in death:
+        g = full_grab(key, f)
+        if key == "db" and f == "G":        # it is still falling: the actor drops under gravity
+            for a, b in ((0, t // 2), (t // 2, t)):
+                z = fall_z((a + b) / 2)
+                frames.append(tall_lineup([(spr[(f, 0)], g[0], g[1] + int(round(z)))], wall, light, width))
+                durs.append(_ms(b - a))
+        else:
+            frames.append(tall_lineup([(spr[(f, 0)], g[0], g[1])], wall, light, width))
+            durs.append(_ms(t))
+        tic += max(t, 0)
+    out["death_floor"] = _gif(d / f"{sprite}_death_floor.gif", frames, durs)
+    return out
+
+
+def _approved(table) -> tuple[list, list[str]]:
+    figs, labels = [], []
+    for name, folder, label in table:
+        r = approved(name, folder)
+        if r:
+            figs.append(r)
+            labels.append(f"{name} {label} (approved)")
+    return figs, labels
+
+
+def full_lineups(key: str, spr: dict, base_pm: dict | None = None) -> dict:
+    """At 1x on MAP01, beside the approved enemies (assets/sprites/, read only):
+    the living frames in each scene, then the corpses on the floor."""
+    d = set_dir(key)
+    sprite = FULL_SPECS[key].sprite
+    hover = HOVER if key == "db" else 0
+    picks = {"db": (("A", 1), ("A", 3), ("D", 1), ("E", 1)),
+             "pm": (("A", 1), ("A", 3), ("A", 5), ("G", 1)),
+             "ps": (("A", 1), ("A", 3), ("A", 5), ("G", 1))}[key]
+    figs, labels = [], []
+    if key == "ps" and base_pm:
+        figs.append((base_pm[("A", 1)], *full_grab("pm", "A")))
+        labels.append("SDPMA1 (the 500 HP Panzermensch, this batch)")
+    for f, r in picks:
+        g = full_grab(key, f)
+        figs.append((spr[(f, r)], g[0], g[1] + hover))
+        labels.append(f"{sprite}{f}{r}")
+    af, al = _approved(APPROVED if key != "ps" else APPROVED[:2])
+    figs += af
+    labels += al
+    scenes = DB_SCENES if key == "db" else PM_SCENES
+    out = {"labels": labels, "scenes": {}}
+    for sk, wall, light, what in scenes:
+        sc = tall_lineup(figs, wall, light, FULL_SLOT * len(figs))
+        Image.fromarray(sc, "RGB").save(d / f"lineup_{sk}.png", optimize=True)
+        out["scenes"][sk] = (sc, wall, light, what)
+    _, death = full_frames(key)
+    corpse = death[-1]
+    dead = []
+    dlabels = []
+    if key == "ps" and base_pm:
+        dead.append((base_pm[(corpse, 0)], *full_grab("pm", corpse)))
+        dlabels.append(f"SDPM{corpse}0")
+    dead.append((spr[(corpse, 0)], *full_grab(key, corpse)))
+    dlabels.append(f"{sprite}{corpse}0")
+    df, dl = _approved(APPROVED_DEAD)
+    dead += df
+    dlabels += [x.replace(" (approved)", ", approved") for x in dl]
+    for light in (176, 128):
+        sd = tall_lineup(dead, "SDCONC1", light, DEAD_SLOT * len(dead), wall_h=72)
+        Image.fromarray(sd, "RGB").save(d / f"lineup_dead_{light}.png", optimize=True)
+        out[f"dead_{light}"] = sd
+    out["dead_labels"] = dlabels
+    return out
+
+
+def full_metrics(key: str, spr: dict) -> dict:
+    rotated, death = full_frames(key)
+    scenes = DB_SCENES if key == "db" else PM_SCENES
+    m = {"lumps": len(full_plan(key)), "front": measure(spr[("A", 1)], scenes), "side": measure(spr[("A", 3)], scenes)}
+    m["heights"] = {full_lump(key, f, r): int(np.ptp(np.nonzero(spr[(f, r)][..., 3] > 0)[0]) + 1)
+                    for f, r in full_plan(key)}
+    path = set_dir(key) / "blood_share.json"
+    m["blood_share"] = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+    if key == "db":
+        m["corpse"] = db_corpse_metrics(death[-1])
+    else:
+        m["corpse"] = pm_corpse_metrics(PM[PM_FULL_KEY] if key == "pm" else SCHWER_CELL, death[-1])
+        if key == "ps":
+            m["corpse"]["scaled_by"] = SCHWER_SCALE
+    (set_dir(key) / "metrics.json").write_text(json.dumps(m, indent=2) + "\n", encoding="utf-8")
+    return m
+
+
+def sweep_identity(key: str, spr: dict, sweep_dir: Path = OUT_DIR) -> dict[str, bool | None]:
+    """Whether the set's sweep views are the sweep's pixels the CEO chose
+    (None where the sweep PNG is not on disk; the Schwer has no sweep cell)."""
+    if key == "ps":
+        return {}
+    sprite, cell, views = ((DB_SPRITE, DB_FULL_KEY, DB_VIEWS) if key == "db" else (PM_SPRITE, PM_FULL_KEY, PM_VIEWS))
+    out: dict[str, bool | None] = {}
+    for f, r in views:
+        path = sweep_dir / f"{lump(sprite, cell, f, r)}.png"
+        if not path.is_file():
+            out[full_lump(key, f, r)] = None
+            continue
+        with Image.open(path) as im:
+            out[full_lump(key, f, r)] = bool(np.array_equal(np.asarray(im.convert("RGBA")), spr[(f, r)]))
+    return out
+
+
+# ---------------------------------------------------------------- the sheets
+FULL_ROT_NAMES = {1: "front", 2: "front-left", 3: "its left", 4: "back-left", 5: "back", 6: "back-right",
+                  7: "its right", 8: "front-right"}
+SCHWER_HANDOFF = [
+    "Lump name proposed: SDPS (SD + Panzermensch Schwer). It is free: no weapon or bestiary prefix of BESTIARY "
+    "2.3 or MOD-SPEC 6.3 starts with it, no lump of ours in assets/ or src/ does, and freedoom2.wad has none "
+    "starting with SD. It needs a line in MOD-SPEC 6.3's bestiary table and in BESTIARY 2.3's prefix list.",
+    "What mod-engineer changes in SD_PanzermenschSchwer (src/zscript/monsters/panzermensch_schwer.zs): today the "
+    "class has no States and inherits SD_Panzermensch's, so it draws whatever the base draws. It gets its own "
+    "States block, a copy of the base's with SDPS for the sprite name and nothing else changed (Spawn SDPS AB 10 "
+    "A_Look; See SDPS A 3 A_SD_PanzerStep, SDPS ABBCCDD 3 A_Chase; Melee/Missile SDPS EF 8, SDPS G 8 "
+    "A_SD_MeleeOrMissile(...); Pain SDPS H 2, H 2 A_Pain; Death SDPS I-N 8 with A_Scream on J and A_NoBlocking "
+    "on L, SDPS O -1; Raise SDPS O 8, NMLKJI 8). About 30 lines; A_SD_PanzerStep and the constants are "
+    "inherited, so they resolve as they do today. The header comment's 'a Translation recolours it' goes.",
+    "Two consequences to weigh. (1) The sprite is 12 % taller (about 84 px) than the actor's Height 64, which the "
+    "class inherits: a player shooting the top of the stacks hits nothing. Height 72 (64 x 1.12) would match "
+    "the drawing and still clear the 72-unit arenas BESTIARY 8 asks for, but it changes where he fits, which is "
+    "the level-designer's and the PM's call, not art's. Radius 24 x 1.12 = 27 likewise. (2) Its death differs "
+    "on purpose (it falls on its face, the stacks forbid lying on its back): the Raise state reverses it as "
+    "for the base.",
+]
+
+
+def _states_rows(key: str) -> list[list]:
+    """Each state of the class: its frames and tics (runs merged), the rotations they are drawn at."""
+    st = zs_states(FULL_SPECS[key].zs)
+    rotated, _ = full_frames(key)
+    rows = []
+    for label, seq in st.items():
+        if not seq:
+            continue
+        letters = "".join(dict.fromkeys(f for f, _ in seq))
+        rows.append([label, " ".join(f"{f} {t}" for f, t in hound._gif_runs(seq)),
+                     "1-8" if all(f in rotated for f in letters) else "0", letters])
+    return rows
+
+
+def _crop_tiles(arrs: list[np.ndarray], zoom: int, caps: list[str], subs: list[str] | None = None) -> str:
+    subs = subs or [""] * len(arrs)
+    return _strip([core.sprite_tile(a, zoom, c, s) for a, c, s in zip(hound.crop_common(arrs), caps, subs)])
+
+
+def _verdict(key: str, met: dict, ident: dict) -> tuple[list[str], list[str]]:
+    c = met["corpse"]
+    shares = met["blood_share"]
+    same = [k for k, v in ident.items() if v]
+    if key == "db":
+        verdict = [
+            "WHAT THIS IS. D65: cell C as chosen, the severed head with the spine hanging and the dark-red drip, drawn "
+            "to its hitbox (50 px across, radius 31 actor). Every letter doughboy.zs names: A floats (Spawn and See), "
+            "B C D the attack (it draws breath and the shell kindles in its throat, the mouth gapes with the shell "
+            "white-hot in it, it spits), E F the pain (it jerks back screaming, a round's hole in its left cheek, then "
+            "rights itself bleeding), at 8 drawn rotations; G-L the death at rotation 0. 54 lumps. No gib: the class "
+            f"has no XDeath. The sweep's views are its pixels byte for byte ({', '.join(same) or 'sweep PNGs not on disk'}).",
+            "EIGHT ROTATIONS, NOT MIRRORED PAIRS. The figure is handed: the helmet sits askew to its right, the flag "
+            "decal and the buckle are on one side, the wound on the other. A mirror would move them.",
+            "THE DEATH. G: the eye bursts while it is still in the air (the burst flies from the socket). The engine "
+            "drops a dead floater (its +FLOAT and +NOGRAVITY go when it dies: what every Doom cacodemon visibly "
+            "does, NOT VERIFIED in GZDoom here); the floor GIF lets it fall under Doom's gravity from its hover. H: it "
+            "lands, splits and the helmet flies off; I-K it rolls back onto its crown and deflates; L lies face up as "
+            "a flat sack in a wide pool, the socket and the mouth to the sky, the spine fallen out across the floor, "
+            "the helmet upside down beside it. "
+            f"Measured (section 5): sack, spine and helmet each touch the floor; the body stands {c['top']} units "
+            f"at most (the test: under {DB_LYING_TOP:.0f}); what touches spreads {c['span']} units. Blood is "
+            + ", ".join(f"{k} {v:.0%}" for k, v in shares.items()) + " of the death frames' pixels.",
+            "WHAT DOES NOT, HONESTLY. The attack's three frames differ mostly inside the mouth: at 1x B, C and D read "
+            "as 'the mouth opens' more than as three moments. The pain's tilt is small at range. The corpse is seen "
+            "from 27 degrees (the hound's approved corpse is seen from 37; from there the sack's top filled the "
+            "screen), and it is still the biggest corpse in the game: the head is 50 units across (the hitbox), "
+            "deflated it spreads to about 64, and the upside-down helmet beside it is the tallest thing on the "
+            "floor (about 25 units). The helmet keeps no decal (a stamp cannot turn over with it). The veins still read as cracks (the sweep said so).",
+            "NOT VERIFIED. Outside the engine (D26): the light is gen_enemy's stand-in, rotations are rig_core's "
+            "reading of r_things.c, the hover (28 units) and the fall are from memory of P_ZMovement. The PM's "
+            "engine pass, with the draft overlay (MOD-SPEC 6.9), is pending.",
+        ]
+        ask = ["Approve the 54 SDDB lumps as drawn, or name the frames to redo (the corpse L above all: does the "
+               "flat sack read as the dead Doughboy?).",
+               "On approval: mod-engineer renames HEAD to SDDB in doughboy.zs (the letters already match) and the "
+               "lumps go to assets/sprites/; the shell SDDL is not drawn yet (next batch)."]
+    else:
+        schwer = key == "ps"
+        verdict = [
+            ("WHAT THIS IS. D65: the Schwer is cell D with the sweep's S2 treatment, the PM's call: black plate, 12 % "
+             "larger, the spikes AND the exhaust stacks and side skirts, the mask's slit lit. Its own set of every "
+             "frame the Panzermensch's states name, under the proposed sprite SDPS (section 8 for the name and the "
+             "class change). 71 lumps."
+             if schwer else
+             "WHAT THIS IS. D65: cell D as chosen, the bare khaki skull under a riveted iron mask, bare arms bolted "
+             "through, the red banner on his back. Every letter panzermensch.zs names: A-D the walk (Spawn idles on "
+             "A B), E F G the attack (he draws back with the shell forming in his fist, cocks it over his head, "
+             "throws: the sweep's G), H the pain, at 8 drawn rotations; I-O the death at rotation 0. 71 lumps. No "
+             "XDeath: Doom's bruisers do not gib (BESTIARY 8). The sweep's views are its pixels byte for byte "
+             f"({', '.join(same) or 'sweep PNGs not on disk'})."),
+            "EIGHT ROTATIONS, NOT MIRRORED PAIRS. The banner carries the D12 symbol, which a mirror reverses, and he "
+            "throws with his right.",
+            ("THE DEATH. He cannot lie on his back: the stacks would prop him off the floor (the Legion's first L0 "
+             "fault). Hit at I, he folds forward (J), falls on his face (K, L), and lies prone across the screen with "
+             "the stacks and the banner on top, the pool spreading from under his chest."
+             if schwer else
+             "THE DEATH. Hit in the chest at I (the burst, the stain on the plate), his knees go at J, he falls back "
+             "over his heels twisting (K), hits the floor (L) and lies on his back across the screen; head, arms "
+             "(from the shoulder, then the forearm from the elbow) and legs are each let fall until they touch, "
+             "and the pool grows under his chest and head (M-O).")
+            + f" Measured on the corpse O: every part within {PM_LYING_MAX:.0f} units of the floor (section 5), the "
+              f"body {c['top']} units high at most unscaled (the test: under {PM_LYING_TOP:.0f}), the supports spread "
+              f"{c['span']} units, the torso lying across the screen ({c['across']}). Blood is "
+            + ", ".join(f"{k} {v:.0%}" for k, v in shares.items()) + " of the death frames' pixels.",
+            "WHAT DOES NOT, HONESTLY. He is the darkest thing in the mod, as BESTIARY 2.1 wants, so in Z10 at light "
+            "96 he is a dark shape with khaki arms and skull; the plate reads very dark olive, not neutral black. "
+            "The walk's four frames differ mostly in the legs from the front (side views show the stride). The "
+            "wind-up E hides the forming shell behind him from the front. The corpse is seen from 37 degrees, as the "
+            "approved hound's. The death frames' blood spray is 1-2 px dots at 1x: spray in motion, noise on a still."
+            + (" The sprite is 12 % taller than the hitbox it inherits (section 8)." if schwer else ""),
+            "NOT VERIFIED. Outside the engine (D26): the light stand-in, the rotation order, the grAb offsets "
+            "(rig_core's, as every approved enemy). The PM's engine pass is pending.",
+        ]
+        ask = (["Approve the 71 SDPS lumps as drawn, or name the frames to redo; and the name SDPS.",
+                "On approval: mod-engineer gives SD_PanzermenschSchwer its own States on SDPS (section 8) and the "
+                "lumps go to assets/sprites/; whether its Height and Radius grow with the drawing is the PM's and "
+                "level-designer's call."]
+               if schwer else
+               ["Approve the 71 SDPM lumps as drawn, or name the frames to redo (the corpse O: lying naturally?).",
+                "On approval: mod-engineer renames BOS2 to SDPM in panzermensch.zs (the letters already match) and "
+                "the lumps go to assets/sprites/; the shell SDPL is not drawn yet (next batch)."])
+    return verdict, ask
+
+
+def build_full_sheet(key: str, stamp: str, out_dir: Path = PREVIEW_DIR) -> Path:
+    spec = FULL_SPECS[key]
+    spr = load_full(key)
+    gifs = write_full_gifs(key, spr)
+    base = load_full("pm") if key == "ps" and (set_dir("pm") / "SDPMA1.png").is_file() else None
+    lines = full_lineups(key, spr, base)
+    met = full_metrics(key, spr)
+    ident = sweep_identity(key, spr)
+    rotated, death = full_frames(key)
+    sprite = spec.sprite
+    titles = DB_FRAME_TITLES if key == "db" else {f: p.title for f, p in PM_FULL_POSES.items()}
+    dtitles = ({"G": DB_FULL_POSES["G"].title, **{f: x.title for f, x in DB_FALLS.items()}} if key == "db" else
+               {f: x.pose.title for f, x in pm_falls(PM[PM_FULL_KEY] if key == "pm" else SCHWER_CELL).items()})
+    S = []
+    # 1. the set
+    body = sheetlib.table(["state", f"frames and tics ({spec.zs.name})", "rotations", "letters"], _states_rows(key), 9)
+    body += (f"<p class=\"lead\">{len(full_plan(key))} lumps in <code>work/art/enemies/heavy/full/{sprite}/</code>, "
+             f"named as the engine reads them: <code>{sprite}A1</code> ... <code>{sprite}{rotated[-1]}8</code>, "
+             f"<code>{sprite}{death[0]}0</code> ... <code>{sprite}{death[-1]}0</code>. Eight drawn rotations (no "
+             "mirrored pairs: the figure is handed). Each PNG carries its grAb offsets. No XDeath state, so no gib."
+             "</p>")
+    if key == "ps":
+        body += ("<p class=\"lead\">The Schwer has no states of its own today: it inherits these from "
+                 "<code>panzermensch.zs</code>. Section 8 says what changes.</p>")
+    S.append(("1 · The set", f"Every frame {spec.name} needs, read from {spec.zs.name} (read, not edited).", body))
+    # 2. turnaround
+    body = _crop_tiles([spr[("A", r)] for r in range(1, 9)], 3, [full_lump(key, "A", r) for r in range(1, 9)],
+                       [FULL_ROT_NAMES[r] for r in range(1, 9)])
+    body += _strip([core.sprite_tile(spr[("A", r)], 1, full_lump(key, "A", r)) for r in range(1, 9)]
+                   + [core.gif_tile(gifs["turntable"], 3, "turntable", "12 tics a rotation")])
+    if ident:
+        body += ("<p class=\"lead\">The sweep's views, byte for byte: "
+                 + html.escape(", ".join(f"{k} {'identical' if v else ('differs' if v is False else 'no sweep PNG')}"
+                                         for k, v in ident.items())) + ".</p>")
+    S.append(("2 · Turnaround: frame A at the 8 rotations", "3x on neutral grey, then 1x. 1 faces you, 3 shows its "
+              "left side, 5 its back, 7 its right.", body))
+    # 3. cycles
+    body = ""
+    if key == "db":
+        body += _strip([core.gif_tile(gifs[f"attack_rot{r}"], 3, f"attack, rotation {r}", "A, B 5, C 5, D 5")
+                        for r in range(1, 9)])
+        body += _strip([core.gif_tile(gifs[f"pain_rot{r}"], 3, f"pain, rotation {r}", "A, E 6, F 6")
+                        for r in (1, 3, 5, 7)])
+        lead = ("At the tics of doughboy.zs, 35 a second. Spawn and See hold A (Doom's one-frame float); the attack "
+                "is Missile B C D at 5 tics (D Bright); the pain E E F at 3, 3, 6. Each loop starts on A for 20 tics.")
+    else:
+        body += _strip([core.gif_tile(gifs[f"see_rot{r}"], 3, f"walk, rotation {r}", "A B C D, 6 tics each")
+                        for r in range(1, 9)])
+        body += _strip([core.gif_tile(gifs[f"attack_rot{r}"], 3, f"attack, rotation {r}", "walk, E 8, F 8, G 8")
+                        for r in (1, 3, 5, 7)])
+        body += _strip([core.gif_tile(gifs[f"pain_rot{r}"], 3, f"pain, rotation {r}", "walk, H 4, walk")
+                        for r in (1, 3, 5, 7)] + [core.gif_tile(gifs["spawn_rot1"], 3, "Spawn", "A B, 10 tics")])
+        lead = ("At the tics of panzermensch.zs, 35 a second: See SDPM AABBCCDD at 3 tics (6 a picture; the plated "
+                "footstep sounds on A), Melee/Missile E F G at 8, Pain H H at 2, Spawn A B at 10.")
+    S.append(("3 · The cycles at game speed", lead, body))
+    # 4. every frame
+    body = ""
+    for f in rotated:
+        body += _crop_tiles([spr[(f, r)] for r in range(1, 9)], 2, [full_lump(key, f, r) for r in range(1, 9)],
+                            [titles.get(f, "")] + [""] * 7)
+    S.append(("4 · Every living frame at every rotation", "2x, each row one frame letter.", body))
+    # 5. death
+    max_tilt = max(x.tilt for x in (DB_FALLS.values() if key == "db" else
+                                    pm_falls(PM[PM_FULL_KEY] if key == "pm" else SCHWER_CELL).values()))
+    body = _crop_tiles([spr[(f, 0)] for f in death], 3, [f"{sprite}{f}0" for f in death],
+                       [dtitles.get(f, "") for f in death])
+    body += _strip([core.gif_tile(gifs["death"], 3, "death, game speed", " ".join(
+                        f"{f} {t}" for f, t in hound._gif_runs(zs_states(spec.zs)["Death"]))),
+                    core.gif_tile(gifs["death_floor"], 1, "on MAP01's floor, 1x", "from the living frame"),
+                    core.gif_tile(gifs["death_floor"], 3, "on MAP01's floor, 3x"),
+                    core.sprite_tile(hound.crop_common([spr[(death[-1], 0)]])[0], 5, f"{sprite}{death[-1]}0 at 5x",
+                                     "the corpse")])
+    c = met["corpse"]
+    body += sheetlib.table([f"part of {sprite}{death[-1]}0", "lowest point above the floor (units)"],
+                           [[k, v] for k, v in c["lowest"].items()], 1)
+    lim = (DB_LYING_MAX, DB_LYING_TOP) if key == "db" else (PM_LYING_MAX, PM_LYING_TOP)
+    body += (f"<p class=\"lead\">The corpse measured on its model, untilted{' and unscaled' if key == 'ps' else ''}: "
+             f"each part within {lim[0]:.0f} units of the floor (above or below), the body's highest point "
+             f"{c['top']} units (under {lim[1]:.0f}), the parts on the floor spread {c['span']} units. "
+             "tests/test_gen_heavy.py holds it. Blood, share of the death frames' pixels: "
+             + ", ".join(f"{k} {v:.0%}" for k, v in met["blood_share"].items()) + ".</p>")
+    S.append(("5 · The death, rotation 0, with the blood",
+              "Dark red only, flag_red 0-5 and black (D49). The frames on the floor are seen from higher as they "
+              f"fall (up to {9 + max_tilt:.0f} degrees; the approved hound's corpse is seen from 37), because a "
+              "player looks down at a body.", body))
+    # 6. at 1x on MAP01
+    body = ""
+    for sk, (sc, wall, light, what) in lines["scenes"].items():
+        body += _strip([_img_tile(sc, 1, f"{sk} 1x: {wall} at light {light}", what),
+                        _img_tile(sc, 2, f"{sk} 2x, for the eye")])
+    worst = list(lines["scenes"].values())[0][0]
+    farv = flat.far(worst)
+    val = np.repeat(flat.luma(farv)[..., None].clip(0, 255).astype(np.uint8), 3, -1)
+    body += _strip([_img_tile(farv, 5, "game distance /4", "first scene"), _img_tile(val, 5, "the same, value only")])
+    body += ('<p class="lead">Left to right: ' + html.escape(" · ".join(lines["labels"]))
+             + (f". The Doughboy hangs {HOVER} px above the floor (a floater's height beside a man; NOT VERIFIED)"
+                if key == "db" else "") + ". Each sprite by its own offsets, as the engine places it.</p>")
+    for light in (176, 128):
+        sd = lines[f"dead_{light}"]
+        body += _strip([_img_tile(sd, 1, f"the dead, 1x, SDCONC1 at {light}"), _img_tile(sd, 2, "2x")])
+    body += '<p class="lead">The dead: ' + html.escape(" · ".join(lines["dead_labels"])) + ".</p>"
+    S.append(("6 · At 1x on MAP01 beside the approved enemies",
+              "Approved sprites read from assets/sprites/ (rifleman D55, Legion trooper D54, Stormtrooper D56, "
+              "hound D55). Light is gen_enemy's stand-in re-quantised to palette v2, NOT VERIFIED against GZDoom.",
+              body))
+    # 7. numbers
+    fm, sm = met["front"], met["side"]
+    rows = [["front A1", f"{fm['height_px']} x {fm['width_px']}", fm["body_luma"], fm["worst_gap"], fm["worst_sep"]],
+            ["side A3", f"{sm['height_px']} x {sm['width_px']}", sm["body_luma"], sm["worst_gap"], sm["worst_sep"]]]
+    body = sheetlib.table(["view", "h x w px", "body luma", "worst gap", "worst share apart"], rows, 2)
+    hts = met["heights"]
+    body += sheetlib.table(["lump", "height px"], [[k, v] for k, v in hts.items() if k[5] in "15" or k[5] == "0"], 1)
+    S.append(("7 · Numbers", "Size and value as the sweep measured them; the height of every lump at rotations 1, "
+              "5 and 0.", body))
+    # 8. verdict
+    verdict, ask = _verdict(key, met, ident)
+    body = '<div class="verdict">' + "".join(f"<p>{html.escape(v)}</p>" for v in verdict) + "</div>"
+    if key == "ps":
+        body += "<h3>The name and the class change (for mod-engineer)</h3><div class=\"verdict\">" + "".join(
+            f"<p>{html.escape(v)}</p>" for v in SCHWER_HANDOFF) + "</div>"
+    body += '<div class="ask"><b>For the CEO</b><ol>' + "".join(f"<li>{html.escape(a)}</li>" for a in ask) + "</ol></div>"
+    S.append(("8 · Honest verdict and what you decide", "", body))
+    intro = (f"D65: \"Doughboy C · Panzermensch D\". {html.escape(spec.name)}: every frame its states name, "
+             "rendered on the rig the four approved enemies were drawn on, with D49's dark red blood and a corpse "
+             f"that lies flat on the floor. Built by <code>tools/art/gen_heavy.py --full {key}</code> on "
+             f"rig_core (imported, not edited), seed {SEED}, no system fonts. Draft: nothing in <code>assets/</code>.")
+    footer = ("Sprites: tools/art/gen_heavy.py (GPL-3.0 code; art CC BY-NC-SA 4.0, D15), deterministic. Approved "
+              "sprites read from assets/sprites/ for scale. MAP01 walls and flats are the mod's own.")
+    path = out_dir / f"{stamp}_F5_{spec.slug}.html"
+    sheetlib.write_sheet(path, lang="en", title=f"{spec.name}: full set (F5, D65)",
+                         subtitle=f"{sprite} · {len(full_plan(key))} lumps · 8 rotations · death with blood · draft",
+                         intro=intro, sections=S, footer=footer)
+    text = path.read_text(encoding="utf-8").replace("</style>", EXTRA_CSS + "</style>", 1)
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--stamp", default=dt.datetime.now().strftime("%Y-%m-%d_%H%M"))
     ap.add_argument("--no-sheet", action="store_true")
+    ap.add_argument("--full", default="", help="D65: the full sets, comma-separated keys db,pm,ps (or 'all'), "
+                                                 "into work/art/enemies/heavy/full/<SPRITE>/ (the sweep is untouched)")
+    ap.add_argument("--jobs", type=int, default=1, help="with --full: worker processes")
+    ap.add_argument("--sheet-only", action="store_true", help="with --full: GIFs, lineups and sheets from the lumps on disk")
+    ap.add_argument("--only", default="", help="with --full: frames to render, e.g. db:L,pm:O (no sheet)")
     args = ap.parse_args()
+    if args.full:
+        keys = tuple(FULL_SPECS) if args.full == "all" else tuple(k.strip() for k in args.full.split(","))
+        only = {x.strip() for x in args.only.split(",") if x.strip()} or None
+        if not args.sheet_only:
+            build_full(keys, jobs=args.jobs, only=only)
+        if only or args.no_sheet:
+            return
+        for key in keys:
+            print("sheet:", build_full_sheet(key, args.stamp).relative_to(PROJECT_ROOT), flush=True)
+        return
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     data = build_all()
     lines = write_lineups(data)
