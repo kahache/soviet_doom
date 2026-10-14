@@ -1,7 +1,7 @@
 # Soviet Doom — Product Requirements Document
 
 Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
-Last update: 2026-10-14 (D25-D49).
+Last update: 2026-10-14 (D25-D50).
 
 ## 1. Vision
 
@@ -83,6 +83,7 @@ until D16 brought it into scope on 2026-10-13.)
 | D47 | 2026-10-14 | **The metro mosaic is the star with rays**, as drawn (`SDMOSA1`, approved in D42): "Ok a la imagen que has puesto del mosaico". **Weapon reloads are parked** as a nice to have (`docs/ICEBOX.md`): the TT-33, PPSh-41 and ROKS-3 keep Doom's no-magazine model so D39's balance stands; the IZh's break-open and the RPG-7's muzzle load are unaffected. | ratified (CEO) |
 | D48 | 2026-10-14 | **The CEO's art gate on the 2026-10-13 drafts.** Approved: our own hand **E** (brown glove, field sleeve, telnyashka); the ice axe as drawn with pickup **C**; the PPSh-41; the TT-33, IZh-58, RPG-7 and ROKS-3 ("Resto del arsenal: OK"); the Legion trooper cell **C**; the Stormtrooper cell **E** ("muy macarra, me gusta"; over BESTIARY's 25 % Legion share, accepted); the menu cursor **B** (hammer and sickle) and pause sign **P2** (a plaque per language); the ten metro fill pieces ("PERFECTO", both tunnels and the chevrons as drawn). The Reich rifleman from the rig is OK **with much more blood in the deaths**. To redo: the hand Katyusha ("algo pobre y deforme"); the Reich hound, "muy feo en todas": redraw it as a German shepherd, brown, from a real one's anatomy (supersedes D45's darker khaki hide). The sounds wait for the CEO's ears. | ratified (CEO) |
 | D49 | 2026-10-14 | **First-person hands and weapon animation follow Blood (Monolith, 1997) as the style reference** ("como en Blood"), after the CEO played MAP01 with the drafts and found the 3D-capsule hands "deformes, no humanas". Style only: no Blood asset is copied (no assets from commercial games). The held weapon frames stay on Freedoom's placeholders until the hands are redone; the approved pickups (D48) install meanwhile. **Blood is dark red**, abundant in deaths, for every faction's deaths drawn so far ("rojo oscuro, nada de oliva"), superseding BESTIARY §2.1's olive Reich blood. | ratified (CEO) |
+| D50 | 2026-10-14 | **The Reich hound is the German shepherd, cell A** (classic black and tan, black saddle, leather collar with a steel tag as drawn): "Perro A". Supersedes D45's darker khaki hide. Its full frame set follows on the quadruped rig. | ratified (CEO) |
 | D15 | 2026-10-09 | Licence of the mod: **GPL-3.0** for code (`tools/`, `src/zscript/`, scripts) and **CC BY-NC-SA 4.0** for assets and docs (textures, sprites, maps, sounds, lore). Non-commercial is required anyway by OTEX's terms. Full texts added at F6; `LICENSE.md` states it now. | decided by the PM on CEO delegation |
 
 ## 6. Phases and gates
