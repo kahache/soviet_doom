@@ -22,6 +22,10 @@ get better.
 |---|---|---|---|---|---|
 | N12c | M2 | Install the General (SDGN/SDGL) + engine pass | mod-engineer | 200 | D73 |
 | N14-2 | M2 | Ice axe right-handed (D73) + shaft and head polish, cells C1/C3/C4 again | art-director | 100 | D73 |
+| A1 | M2 | Audit: every Freedoom sprite, texture, HUD piece and sound the player still meets | qa-engineer | 80 | CEO, 2026-10-14 |
+| A2 | M2 | Fooocus prompts for the other 5 weapons (Spanish, for the CEO) | art-director | 20 | CEO, 2026-10-14 |
+| A3 | M3 | Listening sheet: every sound and music draft with OK/NO per row | sound-designer | 60 | CEO, 2026-10-14 |
+| A4 | M4 | G6 readiness review + README proposals | qa-engineer | 80 | CEO, 2026-10-14 |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
 ## Next (approved order, D63)
