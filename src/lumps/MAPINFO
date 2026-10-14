@@ -113,9 +113,20 @@ skill sd_posthumous
 // A cluster is ZDoom's name for a group of maps that end together. Leaving
 // one shows its `exittext` over its `flat`, and that screen is the only
 // place the engine will print an end-of-episode message - see the M3 note
-// on MAP01. v1's campaign has one map, so it has one cluster; the practice
-// range (MAP02, D41) has its own, cluster 2.
+// on MAP01. The text is printed only when the game CROSSES from one cluster
+// into another (ZDoom wiki, MAPINFO/Cluster definition): two maps in one
+// cluster have nothing between them but the stats screen.
+//
+// D60 (2026-10-14): the campaign is MAP01 -> MAP03. The rule, MOD-SPEC 4.6:
+//   cluster 1  the campaign's ENDING; it always holds the campaign's last map
+//              (MAP03 today, MAP04 when the factory is wired)
+//   cluster 2  the practice range's ending (MAP02, D41)
+//   cluster 3+ one chapter per earlier campaign map; its exittext is the
+//              transition into the next map (cluster 3 = MAP01 -> MAP03)
+// No cluster has an `entertext`: one crossing, one text. That is what keeps
+// the ending from being printed after MAP01 as well as after MAP03.
 
+// The campaign's ending, shown when MAP03 is left (MOD-SPEC 4.6).
 cluster 1
 {
 	// `lookup,` makes the engine resolve the rest as a LANGUAGE id, which
@@ -132,12 +143,20 @@ cluster 1
 
 // The practice range (D41): MAP02 is its own cluster, so leaving it does
 // not print the campaign's ending, and its text tells the player where the
-// campaign is. MAP02 has no exit line today (level-designer's geometry), so
-// this is reached by a future exit switch or the `exit` console command;
-// the player otherwise leaves the range through the menu.
+// campaign is. Reached by the range's exit switch behind the start (commit
+// d1e891f; MOD-SPEC 4.4). The console `exit` quits GZDoom instead.
 cluster 2
 {
 	exittext = lookup, "SD_END02_TEXT"
+	flat = "SDFLR1"
+	music = ""
+}
+
+// MAP01's chapter (D60): leaving Zarya-7 down the service lift, into the
+// metro. Shown after MAP01's stats screen and before MAP03 loads.
+cluster 3
+{
+	exittext = lookup, "SD_MAP01_EXIT_TEXT"
 	flat = "SDFLR1"
 	music = ""
 }
@@ -173,10 +192,11 @@ map MAP01 lookup "SD_MAP01_NAME"
 	// It was the right placeholder for verifying Exit_Normal and the wrong
 	// thing to ship.
 	//
-	// D5 says v1 is ONE map, so the exit ENDS THE GAME. `endtitle` is
+	// D5 said v1 was ONE map, so the exit ENDED THE GAME with `endtitle`,
 	// ZDoom's named end sequence for "roll the ending, then go back to the
 	// title screen" (gzdoom 4.14.2, FMapInfoParser::CheckEndSequence,
-	// src/intermission/intermission_parse.cpp:865).
+	// src/intermission/intermission_parse.cpp:865). D60 (2026-10-14) grows
+	// the campaign: MAP01 now leads into MAP03, and `endtitle` moved there.
 	//
 	// THE WORDS ARE NOT HERE, AND CANNOT BE. The obvious spelling,
 	//     next = EndGame { Text = "$SD_END01_TEXT" Pic = "TITLEPIC" }
@@ -184,10 +204,14 @@ map MAP01 lookup "SD_MAP01_NAME"
 	// `vscroll`, `cast` and `music` (ParseEndGame, same file), and GZDoom
 	// answered with "Unknown property 'Text' found in endgame definition"
 	// - tried in-engine 2026-10-13. In ZDoom the end-of-episode text
-	// belongs to the CLUSTER, not to the map, so it lives in the `cluster 1`
-	// block below and the map only says which cluster it is in.
-	cluster = 1
-	next = endtitle
+	// belongs to the CLUSTER, not to the map, so it lives in a cluster
+	// block and the map only says which cluster it is in.
+	//
+	// D60: cluster 3, not 1. Cluster 1 holds the ending and the ending is
+	// MAP03's now; leaving cluster 3 for cluster 1 prints cluster 3's
+	// transition text (SD_MAP01_EXIT_TEXT) and nothing else.
+	cluster = 3
+	next = "MAP03"
 	// D43: our own MAP01 theme, packed from assets/music/D_SDM01.mid. Still
 	// never an IWAD lump: the mod depends on no Freedoom music. Every music
 	// value in this file is "" or a packed lump (tests/test_mapinfo_music.py),
@@ -224,9 +248,14 @@ map MAP01 lookup "SD_MAP01_NAME"
 
 map MAP03 lookup "SD_MAP03_NAME"
 {
-	// The metro-bunker, v0 grey box (docs/levels/MAP03-metro.md). Not wired
-	// into the campaign yet (D5: v1 ships MAP01): reached with +map MAP03.
-	// No cluster on purpose, so it prints neither ending; next = endtitle.
+	// The metro-bunker (docs/levels/MAP03-metro.md), the campaign's second
+	// map: numbered 03 because MAP02 is the practice range (D41). D60
+	// (2026-10-14) wires it in: MAP01's exit leads here, through cluster 3's
+	// transition text, and for now MAP03 ENDS THE EPISODE - it is in
+	// cluster 1, so leaving it prints the campaign's ending (SD_END01_TEXT)
+	// and `endtitle` goes back to the title screen. MAP04, the factory, will
+	// take cluster 1 from it (MOD-SPEC 4.6).
+	cluster = 1
 	next = endtitle
 	music = ""
 	sky1 = "SKY1"

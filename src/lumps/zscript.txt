@@ -13,6 +13,7 @@ version "4.12"
 #include "zscript/sd/ammo.zs"        // Soviet names for the four Doom ammo pools
 #include "zscript/sd/radio.zs"       // the diegetic radio (D43), editor number 21200
 #include "zscript/sd/status_bar.zs"  // Doom's bar + the pause sign per language (T24)
+#include "zscript/sd/keys.zs"        // the metro's blue pass, replaces BlueCard (MAP03)
 
 // --- Arsenal (F4): one class per file, one weapon per Doom slot -----------
 // Projectiles come before the weapons that fire them for readability only;

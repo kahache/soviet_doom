@@ -71,6 +71,14 @@ names `SDHS` instead of `TROO` and every `SD_StormBolt` state `SDBL`
 instead of `BAL1`, not one tic changed (§5.1, §6.3, "The Hybrid
 Stormtrooper and his bolt, installed by D56"). **NOT YET SEEN IN THE
 ENGINE** (D26).
+**MAP03's blue pass, 2026-10-14:** `SD_BluePass` (`zscript/sd/keys.zs`)
+`replaces BlueCard`, so MAP03's editor number 5 spawns it with the map
+untouched; it declares `Species "BlueCard"`, which is what makes lock 2
+accept it (the engine's lock test ignores inheritance; read in g4.14.2's
+source). Pickup line "Blue pass." / «Синий пропуск.»; the locked-door line
+says pass / пропуск through the engine's own `PD_BLUECO` in `LANGUAGE`
+(§6, "The blue pass"). Sprite still Freedoom's `BKEY`. **NOT YET SEEN IN
+THE ENGINE** (D26).
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -107,7 +115,7 @@ sovietdoom.pk3
 ├── SNDINFO                 logical sound name -> lump (F4)
 ├── zscript.txt             ZScript entry: version + #include
 ├── zscript/sd/*.zs         systems (event handlers, player class, ammo, the radio §6.7,
-│                           the status bar class §6.5.1)
+│                           the status bar class §6.5.1, the blue pass §6)
 ├── zscript/weapons/*.zs    the arsenal, one class per file (F4)
 ├── zscript/monsters/*.zs   the bestiary, one class per file (F5, BESTIARY.md)
 ├── maps/MAP01.wad          one WAD per map, lumps MAP01, TEXTMAP, ENDMAP
@@ -242,7 +250,8 @@ assets/   (CEO-approved art only; `work/` is gitignored and never ships)
 
 | Lump | Title (LANGUAGE) | Episode | Status |
 |---|---|---|---|
-| `MAP01` | `SD_MAP01_NAME` = "Zarya-7 Cosmodrome" / «Космодром "Заря-7"» | `SD_EP01_NAME` = "Soviet Doom" / "Советский Doom" | Owned by `level-designer` since F3; design in `docs/levels/MAP01-zarya-7.md`. `cluster = 1`, `next = endtitle`, `par = 210`. Named in-engine 2026-10-13 (the log prints `MAP01 - Zarya-7 Cosmodrome`). |
+| `MAP01` | `SD_MAP01_NAME` = "Zarya-7 Cosmodrome" / «Космодром "Заря-7"» | `SD_EP01_NAME` = "Soviet Doom" / "Советский Doom" | Owned by `level-designer` since F3; design in `docs/levels/MAP01-zarya-7.md`. `cluster = 3`, `next = "MAP03"`, `par = 210` (D60, §4.6; until 2026-10-14 `cluster = 1`, `next = endtitle`). Named in-engine 2026-10-13 (the log prints `MAP01 - Zarya-7 Cosmodrome`). |
+| `MAP03` | `SD_MAP03_NAME` = "Metro-Bunker" / «Метро-бункер» (working title, `docs/levels/MAP03-metro.md` §13) | `SD_EP01_NAME`, the campaign's second and, for now, last map (D60) | Owned by `level-designer`; design in `docs/levels/MAP03-metro.md`. `cluster = 1`, `next = endtitle`, `music = ""`, `par = 300` (D60, §4.6): its exit ends the episode. MAP04, the factory, comes after it. |
 | `MAP02` | `SD_MAP02_NAME` = "Training Ground" / «Учебный полигон» (D46, 2026-10-14; was "Engineering Test Range" / "Инженерный полигон") | `SD_EP02_NAME` = "Practice Range" / «Полигон» (D41, §4.4) | `cluster = 2`, `next = endtitle`, `nointermission`. F4: 2048×768 hall, ceiling 128, light 192, player start at (160,384) facing +x. The seven weapons, the four ammo pools, barrels and six targets (thing 3004, Soviet riflemen since F5). **F5: the bestiary gallery**, a second room 2048×768 at y 1024–1792, ceiling 192, light 192: one of each of the eight enemy classes in a row at y = 1600, deaf (`ambush`) and facing north, away from the arrival spot. Since D41 the player reaches the map from New Game (§4.4); `MAP=MAP02 tools/run.sh` still works. **Since commit `d1e891f` (2026-10-13), v1 for players:** an `Exit_Normal` switch (`SDSW1D`) in a lit alcove straight behind the start, and the gallery reached on foot through a manual door (tag 1) in the hall's north wall and a bent passage that comes out behind the row; the console's `warp 1024 1152` still lands there. Geometry and reasons are `level-designer`'s, `docs/levels/MAP02-practice-range.md`. Built as an engineering fixture; shipped as the practice range. |
 
 MAPINFO conventions: `clearepisodes` + one episode per campaign (plus the
@@ -254,7 +263,7 @@ episode block**, verified B1); every map and cluster names its music, and
 
 ### 4.4 The practice range (D41, 2026-10-13)
 
-> Order note: §4.4 and §4.5 come before §4.1 because they were added later;
+> Order note: §4.4, §4.5 and §4.6 come before §4.1 because they were added later;
 > the sections are not renumbered, since other documents cite them by number.
 
 The CEO: "Se puede publicar como práctica". MAP02 ships in v1 **outside the
@@ -268,7 +277,7 @@ between the ways of reaching it is ADR 007
 | Episode names | `SD_EP02_NAME` = "Practice Range" / «Полигон». The map title under it is `SD_MAP02_NAME` = "Training Ground" / «Учебный полигон» since D46 (§4); the episode name stays (see the note below the table) |
 | Flow | Main menu → New Game → **episode screen** (new: with one episode the engine skipped it) → skill screen → the map |
 | Episode screen (`MENUDEF`) | `LISTMENU "EpisodeMenu"` redeclared like the skill screen (§6.6): logo `M_DOOM` at 60,0, one `SDMENU` header `$SD_MNU_CHOOSEEPISODE` at 32,70 ("CHOOSE MISSION" / «ВЫБЕРИТЕ ЗАДАНИЕ»), then `SmallFont` for the episode names, which the engine appends at run time. **`M_EPISOD` is never drawn** (T12) |
-| MAP01's exit | `next = endtitle`, unchanged: the campaign ends; **no map's `next` is MAP02** |
+| MAP01's exit | `next = endtitle` until D60; since 2026-10-14 `next = "MAP03"` (§4.6), and MAP03's exit ends the campaign. Either way **no map's `next` is MAP02** |
 | MAP02's exit | `cluster = 2`, `next = endtitle`: leaving the range shows `SD_END02_TEXT` ("The range is closed…" / «Полигон закрыт…») over `SDFLR1`, then the title screen. `nointermission` stays: a range has no score worth a stats screen. The player leaves by **the exit switch behind the start** (`Exit_Normal`, pressed; commit `d1e891f`, `docs/levels/MAP02-practice-range.md` §4.1). **Seen in the engine** 2026-10-13: pressing it shows `SD_END02_TEXT` over `SDFLR1` (P6 in `docs/qa/evidence/2026-10-13_2057_map02-range-and-c12.md`). The `map02-start` route of `tools/route.py` (since route-3) presses that same switch, as a player does (`docs/qa/evidence/2026-10-13_2114_F3_g3-map02-map02-start-*`); `netevent sdexit` of the route helper (`Level.ExitLevel`) is only a documented recourse for a map with no exit line, used by no built-in route. **The console `exit` command does not reach it: it quits GZDoom** (G3-F2) |
 | Cluster 2 | `exittext = lookup, "SD_END02_TEXT"`, `flat = "SDFLR1"`, `music = ""` |
 
@@ -334,7 +343,8 @@ The CEO accepted every music recommendation of `docs/sound/SOUNDTRACK.md`
 | Title screen | `GameInfo { TitleMusic = "D_SDINTL" }` | `D_SDINTL`, the Internationale (Engelbach's sequence, credited) |
 | MAP01, Zarya-7 | `map MAP01 { music = "D_SDM01" }` | `D_SDM01`, ours |
 | MAP02, practice range | `music = ""` | none |
-| Clusters 1 and 2 (end texts) | `music = ""` | none |
+| MAP03, metro-bunker | `music = ""` | none until `sound-designer` has a metro piece |
+| Clusters 1, 2 and 3 (end and transition texts, §4.6) | `music = ""` | none |
 | A diegetic radio (§6.7) | **none**: `SD_Radio` swaps the music from ZScript while the player is near it | `D_SDRAD1`, `D_SDRAD2` |
 
 Rule: every `music` / `TitleMusic` value is `""` or a lump packed under
@@ -350,9 +360,94 @@ that `currentmusic` reports `D_SDM01` in MAP01 and no music in MAP02.
 **Still NOT VERIFIED:** that the title music carries on into the main menu
 as Doom's does.
 
+### 4.6 The campaign's flow: MAP01 → MAP03 (D60, 2026-10-14)
+
+D60 amends D5: the campaign is **MAP01, then MAP03**, the metro-bunker, and
+for now it ends there; MAP04, the factory, comes after. MAP02 stays outside
+it (§4.4). What `MAPINFO` says and what the player sees:
+
+| Map | `cluster` | `next` | Leaving it shows |
+|---|---|---|---|
+| `MAP01` | 3 | `"MAP03"` | the stats screen, then cluster 3's `SD_MAP01_EXIT_TEXT` over `SDFLR1`, then MAP03 |
+| `MAP03` | 1 | `endtitle` | the stats screen, then cluster 1's `SD_END01_TEXT` over `SDFLR1`, then the title screen |
+| `MAP02` | 2 | `endtitle` | unchanged (§4.4): no stats (`nointermission`), cluster 2's `SD_END02_TEXT`, the title screen |
+
+| Cluster | `exittext` | Holds | Role |
+|---|---|---|---|
+| 1 | `lookup, "SD_END01_TEXT"` | MAP03 | the campaign's ending; always the campaign's **last** map |
+| 2 | `lookup, "SD_END02_TEXT"` | MAP02 | the range's ending |
+| 3 | `lookup, "SD_MAP01_EXIT_TEXT"` | MAP01 | MAP01's chapter: the transition into MAP03 |
+
+All three: `flat = "SDFLR1"`, `music = ""`, no `entertext`.
+
+**Why MAP01 left cluster 1.** A cluster's text is printed only when the game
+crosses from one cluster into another: `exittext` is "displayed when
+leaving the cluster" (ZDoom wiki, MAPINFO/Cluster definition), and Doom II's
+MAP01–MAP06 share one cluster and print nothing between them. MAP01 and
+MAP03 in one cluster would therefore have **no** text between them. The
+transition needs a cluster boundary, and the ending needs to stay where
+the campaign ends. The rule, so that the next map is mechanical:
+
+- **cluster 1 is the campaign's ending and always holds its last map;**
+  cluster 2 is the range's ending. Clusters 1 and 2 then match the episodes
+  (`SD_EP01_NAME` / `SD_EP02_NAME`) and their endings (`SD_END01_TEXT` /
+  `SD_END02_TEXT`): the `01` and `02` of those ids are **episode** numbers,
+  not map numbers;
+- every earlier campaign map gets its own chapter cluster, numbered from 3
+  upward, whose `exittext` is `SD_MAPnn_EXIT_TEXT`, the way into the next map;
+- when MAP04 is wired: MAP04 joins cluster 1, MAP03 gets cluster 4 with
+  `SD_MAP03_EXIT_TEXT`, MAP03's `next` becomes `"MAP04"`, and
+  `SD_END01_TEXT` is rewritten for the factory.
+
+**The ending prints once.** Only cluster 1 carries `SD_END01_TEXT` and only
+MAP03 is in it, so leaving MAP01 prints cluster 3's transition and never
+the ending. No cluster has an `entertext`: GZDoom would show the next
+cluster's `entertext` in place of the current one's `exittext` (read in the
+engine source, `G_WorldDone`; **NOT VERIFIED in the engine**), and two texts
+competing for one crossing is how an ending gets printed in the wrong place.
+
+**The words.** `SD_MAP01_EXIT_TEXT` is new: the service lift at the end of
+MAP01 going down into the metro (MAP01 §2, MAP03 §1), short, in the second
+person like the ending. `SD_END01_TEXT` is **adapted**, not kept: its old
+words ("The gantry lights go out behind you. Zarya-7 is yours again…") are
+about a place the player left a whole map earlier. The new ending keeps the
+old one's frame (lights out behind you, the place is yours again, where the
+invasion is going, TO BE CONTINUED) and moves it to the bunker and the
+westbound tunnel; "Zarya-7 is yours again" now opens the transition, where
+it is true. Both texts are **broken into lines by hand**, every line within
+300 px of `SmallFont` (Doom draws the text from x 10 on a 320-wide screen):
+whether GZDoom's text screen wraps a long line on its own is **NOT
+VERIFIED**, and hand-broken lines read the same either way
+(`tests/test_campaign.py`). The Russian is the mod-engineer's and waits on
+`translator-ru`'s review when the delivery has passed the pipeline (D60).
+
+**Consequence outside this contract.** `tools/route.py`'s built-in MAP01
+routes (`g3-auto`, `g3-secrets` and their kin) set `end_sequence=True`:
+they fail a run whose level does not unload towards `enDSeQ…`. MAP01 now
+unloads towards `MAP03`, so those routes will report "the level led to
+'MAP03', not to an end sequence" until their owner changes the flag (or the
+check accepts the campaign's next map). Static tests cannot see it; the
+next engine run of a MAP01 route will.
+
+**Engine checks for the PM (D26), NOT VERIFIED until then:**
+
+| # | Do | Expect |
+|---|---|---|
+| C1 | New Game → Soviet Doom → any skill; finish MAP01 by its exit switch | the stats screen titled "Zarya-7 Cosmodrome", then `SD_MAP01_EXIT_TEXT` typing out over `SDFLR1`, then MAP03 loads ("Metro-Bunker" in the log) |
+| C2 | the same with the game in Russian | the Russian text, every line inside the screen, no missing glyph |
+| C3 | finish MAP03 by its exit switch (or `+map MAP03` and exit) | the stats screen titled "Metro-Bunker", then `SD_END01_TEXT` ("The bunker lights go out behind you…"), then the title screen with `D_SDINTL` |
+| C4 | MAP01 → MAP03 in one run | the ending is **not** shown after MAP01; only after MAP03 |
+| C5 | the practice range's exit switch | unchanged: `SD_END02_TEXT`, then the title screen |
+| C6 | the log of all the above | no `Script error` from `MAPINFO`, no `Unknown` lookup |
+
 ### 4.1 How the campaign ends (M3, closed 2026-10-13)
 
-`Exit_Normal` on MAP01 ends the game. Three facts, all verified in-engine,
+> **Since D60 (2026-10-14) the ending is MAP03's, not MAP01's** (§4.6):
+> MAP03 is in cluster 1 and says `next = endtitle`; MAP01 is in cluster 3
+> and leads into MAP03. The three engine facts below still hold; read
+> "MAP01" in them as "the campaign's last map".
+
+`Exit_Normal` on MAP01 ended the game until D60. Three facts, all verified in-engine,
 that anyone touching this needs:
 
 - **The end-of-episode text belongs to the CLUSTER, not to the map.** The
@@ -649,6 +744,7 @@ in the IWAD.
 | `SD_General` | `SD_Monster` *replaces Cyberdemon* | Boss, 3000 HP (H), three-shell salvo; once below half health, summons two `SD_ReichRifleman` and prints `SD_GENERAL_ORDER` (D35). |
 | `SD_StormBolt`, `SD_DoughboyShell`, `SD_PanzerShell`, `SD_GeneralShell` | `Actor` | The four enemy projectiles. Not placeable. |
 | `SD_Radio` | `Actor` | The diegetic radio (D43): a solid decoration that plays one of two CC0 pieces in place of the level's music while the player is near it, and gives the level's music back when the player walks away. Contract §6.7, reasons ADR 008. |
+| `SD_BluePass` | `BlueCard` *replaces BlueCard* | MAP03's blue pass (propusk): Doom's blue keycard under a Soviet name. `Species "BlueCard"` so lock 2 opens for it; own pickup line `SD_PICKUP_BLUEPASS`; Freedoom's `BKEY` sprite and the `STKEYS0` icon, inherited. Placed by Doom's editor number 5. Below, "The blue pass". |
 | `SD_StatusBar` | `DoomStatusBar` | The status bar (T24), registered by `MAPINFO → GameInfo → StatusBarClass`. Doom's bar unchanged; overrides only `DrawPaused`, to draw the pause sign `LANGUAGE` names per language. Contract §6.5.1, reasons ADR 010. |
 
 The bestiary's numbers, states, sounds and the reasons for each are
@@ -694,6 +790,83 @@ filing it under Z1 for `tools/route.py` (`docs/levels/MAP01-zarya-7.md`
 MAP01's dorm rack prints "An ice axe." and `printinv` lists `SD_IceAxe`.
 The sprites seen were Freedoom's placeholders; `SDAX`/`SDAP` and
 `SDAXSWG`/`SDAXHIT` are drafts at the CEO's gate.
+
+**The blue pass (MAP03, 2026-10-14).** MAP03's key is the station duty
+officer's pass (`docs/levels/MAP03-metro.md` §5): editor number 5 on the
+floor of the substation, and a blast door with `Door_LockedRaise (4, 16, 0,
+2, 0)`, lock 2. It was Doom's `BlueCard` with Doom's words; it is ours now,
+and **the map did not change**.
+
+| What | Value |
+|---|---|
+| Class | `SD_BluePass : BlueCard replaces BlueCard`, `zscript/sd/keys.zs` |
+| Editor number | none of its own: Doom's **5** spawns `BlueCard`, which the engine replaces with `SD_BluePass`. `level-designer` keeps `ED_BLUE_CARD = 5` |
+| Lock | **2**, unchanged: GZDoom's own `lockdefs.txt`, no `LOCKDEFS` of ours |
+| Pickup line | `SD_PICKUP_BLUEPASS` = "Blue pass." / «Синий пропуск.» (an id of ours: Freedoom's DEHACKED overrides `GOTBLUECARD`, ADR 003) |
+| Locked-door line (MAP03) | engine id `PD_BLUECO`, overridden in `LANGUAGE`: "You need a blue pass to activate this object" / «Для применения нужен синий пропуск» (was "…blue card…" / «…нужна синяя карта») |
+| Locked-door line, direct press | engine id `PD_BLUEC`, overridden too ("…to open this door" / «Для открытия нужен синий пропуск»), but **on Freedoom its DEHACKED wins** (below) |
+| Sprite | `BKEY`, inherited from `BlueCard`, drawn by Freedoom; no §5.1 row because no state of ours names it. When `art-director` delivers the pass, a `Spawn` state naming the new lump goes into `keys.zs` and a name is reserved in §6.3 |
+| Status bar | the blue-key slot (`STKEYS0`), drawn by `DoomStatusBar.DrawBarKeys` through `CheckKeys(2)` |
+
+How lock 2 decides, read in GZDoom g4.14.2's source (tag `g4.14.2`; the
+`lockdefs.txt` text in the installed `gzdoom.pk3`). **VERIFIED as code,
+NOT VERIFIED in the engine:**
+
+- `gzdoom.pk3 → lockdefs.txt` defines `Lock 2 Doom { BlueCard Message
+  "$PD_BLUEC" RemoteMessage "$PD_BLUECO" Mapcolor 0 0 255 }`.
+- `P_CheckKeys` (gzdoom: src/gamedata/a_keys.cpp) asks each key of the lock
+  `OneKey::check`, which walks the player's inventory and accepts an item
+  when `item->IsA(key)` **or** `item->GetSpecies() == key->TypeName`.
+  `DObject::IsA` is `type == GetClass()` (gzdoom: src/common/objects/dobject.h):
+  the exact class, **not** a subclass. So inheritance alone does **not**
+  open the door: an `SD_BluePass` without a Species would leave MAP03
+  unfinishable.
+- `AActor::GetSpecies` (gzdoom: src/playsim/p_mobj.cpp) returns `Species` when
+  set and otherwise the class's own name (the walk up the parents is for
+  monsters only). `SD_BluePass` sets `Species "BlueCard"`, and lock 2's
+  key is `BlueCard`: they match. The same `check` runs for the status
+  bar's key slot and for the automap's key colour (`P_GetMapColorForKey`),
+  so both show the pass as the blue key. Every other lock that lists
+  `BlueCard` (130, "any blue key") accepts it too.
+- `replaces` is not consulted by the lock: `ParseLock` resolves `BlueCard`
+  with `PClass::FindActor`, which returns the class itself.
+- The console's `give BlueCard` hands over Doom's real `BlueCard`, not ours:
+  `GiveInventory(…, givecheat = true)` spawns with `NO_REPLACE`
+  (`gzdoom.pk3 → zscript/actors/inventory_util.zs`). An engine check of the
+  pass says **`give SD_BluePass`**.
+
+Which message, and why `LANGUAGE` and not `LOCKDEFS`. A lock prints its
+`Message` when the line is the door itself and its `RemoteMessage` when the
+line works a door by tag: `EV_DoDoor` calls `P_CheckKeys (thing, lock, tag
+!= 0)` (gzdoom: src/playsim/mapthinkers/a_doors.cpp). MAP03's blast door is tag
+4, so the player reads **`PD_BLUECO`**, the line the CEO saw in Russian
+(«Для применения нужна синяя карта»). Freedoom 0.13.0's DEHACKED rewrites
+`PD_BLUEC` ("Blue passcard needed for this door.") but **not** `PD_BLUECO`,
+so a `LANGUAGE` override of `PD_BLUECO` reaches the player in both
+languages, and that is the whole change. A DEHACKED string sits in the
+string table's override layer, consulted before any language
+(`FStringTable::UpdateLanguage`, gzdoom: src/common/engine/stringtable.cpp), so
+our `PD_BLUEC` only shows on `doom2.wad`; on Freedoom a **tag-0** blue door
+would print Freedoom's English line in both languages. No map has one. If
+one is ever built, the fix is a `LOCKDEFS` of ours redefining lock 2 with
+`SD_` message ids (`ParseLock` replaces a lock by number, `Locks.InsertNew`);
+it is not written today because nothing needs it (T25).
+
+Engine checks for the PM (D26), MAP03 at skill 3, `+logfile`:
+
+| # | Do | What must show |
+|---|---|---|
+| P1 | `summon BlueCard`, walk onto it (or walk to the pass at the substation) | the pickup line "Blue pass."; `printinv` lists `SD_BluePass`, not `BlueCard`; the blue key on the status bar |
+| P2 | at the blast door (MAP03 §14.5 K2, `warp 1312 896`, facing 180), `+use` with no pass | the door stays shut and prints "You need a blue pass to activate this object" |
+| P3 | `give SD_BluePass`, `+use` (**not** `give BlueCard`: that gives Doom's class and proves nothing about ours) | the door opens and stays open |
+| P4 | `language ru`, then P2 again on a fresh load | «Для применения нужен синий пропуск»; P1 in Russian prints «Синий пропуск.» |
+| P5 | the automap (`am_cheat 2` or `iddt` twice) | the pass drawn in the blue key's colour |
+| P6 | the log | no `Script error`, nothing about `SD_BluePass`, `Species` or `keys.zs` |
+
+`tests/test_blue_pass.py` pins the class, the include, the strings in both
+languages and lock 2's acceptance, modelled on `OneKey::check`; it reads the
+installed `gzdoom.pk3`'s `lockdefs.txt` where there is one and skips that
+one comparison where there is not (CI).
 
 ### 6.1 Editor numbers (DoomEdNums)
 
@@ -1436,4 +1609,5 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | T17 | **The English `LANGUAGE` section still carries Latin transliterations** (`PG-7V`, `7.62x25`) although the glyphs for the Cyrillic forms D17 asks for exist since D24 (§6.4). Two ASCII tests pin the current state (`tests/test_language.py`, `tests/test_arsenal.py`). | `mod-engineer`, one text change plus an engine screenshot of the HUD |
 | T22 | **Bestiary behaviours the engine pass did not show** (ADR 006, "NOT VERIFIED"): infighting between our classes and the native `GetSpecies` rule behind the explicit `Species`; the colour of `BloodColor`; the General's order line on screen (the console log carries it); the recruits entering the chase and the blocked-spot fallback; the attack helpers' damage (both runs were god mode, deaf or `notarget`); how far a dead Doughboy falls; the sounds. | the PM's next engine pass, with enemies awake and one fighting another; `qa-engineer` for the sounds, with a human |
 | T23 | **The radio (§6.7) is unseen and wears a pickup's picture.** `SD_Radio` has not run in the engine (D26), its editor number 21200 is not yet in `MAPINFO`, and its placeholder `PMAP` A is the computer area map's pickup, which MAP01 also places (2026): a player may walk at the radio expecting a pickup. | the PM's engine pass (ADR 008 checklist) and the `MAPINFO` line; `art-director` for `SDRD` A |
+| T25 | **The blue pass (§6, "The blue pass") is unseen and borrowed.** `SD_BluePass` has not run in the engine (D26; checks P1-P6); it wears Freedoom's `BKEY` keycard; and a blue door pressed directly (tag 0) would still print Freedoom's DEHACKED `PD_BLUEC` in English in both languages, because DEHACKED beats `LANGUAGE`. MAP03's only blue door works by tag, so nothing shows it today. | the PM's engine pass; `art-director` for the pass sprite; a `LOCKDEFS` of ours only if a tag-0 blue door is ever built |
 | T24 | **Paid in code 2026-10-14, NOT YET SEEN IN THE ENGINE (D26).** Was: the Russian pause plaque packed but not drawn (§2, "Language variants"): GZDoom g4.14.2 registers `localized/textures/M_PAUSE.ru.png` and checks its size, but its display-time substitution is commented out. Now: `SD_StatusBar : DoomStatusBar`, registered by `GameInfo { StatusBarClass }`, overrides only `DrawPaused` and draws the graphic `LANGUAGE`'s `SD_PAUSE_SIGN` names (`M_PAUSE` / the variant's full path), at `D_Display`'s position, falling back to the engine's own drawing if the name does not resolve (§6.5.1, ADR 010). `assets/localized/textures/M_PAUSE.ru.png` is installed (byte-identical to `work/art/shell_extra/pause_P2_ru.png`), and `tools/release.py` credits `localized/` through the base's licence row. Open: the engine pass, ADR 010's checks E1-E3 (the bar identical, the pause in English, the pause with `language ru`). | the PM's engine pass |
