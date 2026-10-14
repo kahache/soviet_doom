@@ -4,6 +4,7 @@ Living document. Owner: `sound-designer`. Russian mirror: `docs/ru/sound/SOUNDTR
 Created 2026-10-13 (F2, first music); candidate list **closed** 2026-10-13.
 Revised 2026-10-14, **D44**: «Вы жертвою пали» and «Амурские волны» sequenced as drafts from one downloaded public-domain score each; Glinka still blocked (§6, Cards 3-5).
 Revised 2026-10-14, **D54**: Glinka dropped from the anthem slot; Mussorgsky's «Богатырские ворота» sequenced in its place as the draft `D_SDGATE`, from the 1886 Bessel edition (§6, Card 5).
+Revised 2026-10-14, **D62 / backlog N8**: one piece per map. The three drafts are installed and wired to MAP02, MAP03 and RANGE so the CEO hears them in play; **all three are provisional, pending the CEO's ear** (§0, §0.1). Nothing composed or sequenced for it (D59).
 Rights frame: `docs/sound/MUSIC-RIGHTS.md` — that document owns every licence
 fact and this one owns every sound fact.
 
@@ -44,17 +45,68 @@ open recommendation of §8 accepted. What that changed, in one place:
 
 ---
 
-## 0. What plays where (settled by D43)
+## 0. What plays where (D43; maps per D62)
 
 | Cue | File | Status |
 |---|---|---|
 | **Title screen** | **`assets/music/D_SDINTL.mid`** — Engelbach's orchestral *Internationale*, head silence removed by us | **installed and wired** (D43, MAPINFO `TitleMusic`) |
 | **MAP01** | **`assets/music/D_SDM01.mid`** — our own "Zarya-7" | **installed** (D43) as it stood; the enriched version `D_SDM01E` is a draft for the CEO's ear (§6, Card 2b) |
+| **MAP02**, the metro | `assets/music/D_SDFUNR.mid` — «Вы жертвою пали» (Card 3) | `D_SDFUNR` **PROVISIONAL: assigned in draft, pending the CEO's ear** (D62, N8); installed and wired (MAPINFO `music`) so he hears it in play |
+| **MAP03**, Tankograd | `assets/music/D_SDGATE.mid` — «Богатырские ворота» (Card 5) | `D_SDGATE` **PROVISIONAL: assigned in draft, pending the CEO's ear** (D62, N8); installed and wired |
+| **RANGE**, the practice range | `assets/music/D_SDAMUR.mid` — «Амурские волны» (Card 4) | `D_SDAMUR` **PROVISIONAL: assigned in draft, pending the CEO's ear** (D62, N8); installed and wired |
 | **Diegetic radio** | `WM_Ej_uchnem.mid` (`D_CND09`), `WM_Kolokolchik.mid` (`D_CND12`) — CC0, already orchestrated | **settled** (D43); not installed until a map has a radio to put them in (`level-designer`) |
-| **Anthem slot** | ~~Glinka's *Patriotic Song* (`D_SDGLNK`)~~, dropped by **D54**: Mussorgsky's «Богатырские ворота», sequenced by us from the 1886 Bessel edition | **draft** `work/audio/D_SDGATE.mid` (D54), for the CEO's ear (§6, Card 5) |
-| **Death / aftermath** | «Вы жертвою пали», sequenced by us from Detlaf's 1905 edition | **draft** `work/audio/D_SDFUNR.mid` (D44), for the CEO's ear (§6, Card 3) |
-| **Radio waltz** | «Амурские волны» (Kyuss, 1909), sequenced by us from the 1909-1914 Vladivostok edition | **draft** `work/audio/D_SDAMUR.mid` (D44), for the CEO's ear (§6, Card 4) |
+| **Anthem slot** | ~~Glinka's *Patriotic Song* (`D_SDGLNK`)~~, dropped by **D54**: Mussorgsky's «Богатырские ворота», sequenced by us from the 1886 Bessel edition | **draft** (D54), for the CEO's ear (§6, Card 5); since D62 it also plays on MAP03 (row above) |
+| **Death / aftermath** | «Вы жертвою пали», sequenced by us from Detlaf's 1905 edition | **draft** (D44), for the CEO's ear (§6, Card 3); since D62 it also plays on MAP02 (row above) |
+| **Radio waltz** | «Амурские волны» (Kyuss, 1909), sequenced by us from the 1909-1914 Vladivostok edition | **draft** (D44), for the CEO's ear (§6, Card 4); since D62 it also plays on RANGE (row above) |
 | **Our `D_SDTITL`** | **reserved, not retired** | a finished 1:21 Soviet march in D minor, the natural intermission / episode-end cue |
+
+### 0.1 One piece per map (D62, backlog N8) — provisional
+
+D62 renumbered the campaign: MAP01 Zarya-7 → MAP02 the metro-bunker → MAP03
+the factory, «Танкоград», which ends the episode; RANGE is the practice
+range. Only MAP01 had music. **D59** forbids composing or sequencing any
+more, so each map takes a public-domain piece **already in the repo**. The
+three D44/D54 drafts are the only orchestrated ones (the candidates are solo
+piano, §3.2), so they are the three used. They are copied **byte for byte**
+from `work/audio/` into `assets/music/` (`tests/test_music.py` regenerates
+each and compares) and wired in `src/lumps/MAPINFO`.
+
+**Provisional.** The CEO has heard none of them. "Nothing enters `assets/`
+without explicit approval" is bent here on purpose and on the PM's brief:
+the music is installed **as a draft so that he hears it where it will
+play**. If he rejects a piece, its MAPINFO line goes back to `""` and the
+file leaves `assets/music/`; nothing else depends on it.
+
+| Map | Piece | Why, in one line |
+|---|---|---|
+| **MAP02**, the metro | `D_SDFUNR`, «Вы жертвою пали» | The gravest, lowest thing we have, a revolutionary funeral march in F minor at 56 BPM on horns, trombones, tuba, cellos and a muffled floor tom: a tunnel under a dead city. |
+| **MAP03**, Tankograd | `D_SDGATE`, «Богатырские ворота» | The climax: a *maestoso* E-flat hymn of brass, timpani and bells that ends on a Grave, the state's own voice for the last map and the portal. |
+| **RANGE** | `D_SDAMUR`, «Амурские волны» | A light C minor waltz whose loop is the edition's own repeat sign: peacetime music for a room with nothing trying to kill you. Silence was the alternative. |
+
+**What the CEO should listen for**, because measurement cannot settle it
+(§2) and none of the three has been heard or rendered in the engine (D26):
+
+- **Two of the three were written to end, not loop.** `D_SDFUNR` (2:24) and
+  `D_SDGATE` (1:43) close on a held chord and a silent bar; as map music
+  GZDoom restarts them. The silent bar should make the restart a breath, not
+  a cut: **NOT VERIFIED** in play. Over MAP02's par (300 s) the march plays
+  about twice; over MAP03's (360 s) the hymn about three and a half times.
+- **A hymn under combat may sound like victory before the victory.** If
+  `D_SDGATE` reads that way on MAP03, the reserve is `D_CND01`, *Night on
+  Bald Mountain* (menace, ten minutes, but solo piano and a CC BY 3.0 credit
+  to Robert Clausecker and Mutopia, §3).
+- **Double duty.** `D_SDGATE` also holds the anthem slot and `D_SDFUNR` the
+  death / episode-end cue (rows above). If they keep both jobs, the end
+  screen would repeat the last map's music; that is a later choice.
+- For the metro, the other candidate weighed was `D_CND06`, Tchaikovsky's
+  *Dumka* (bleak, the best-shaped piano loop, §3.2): rejected for now
+  because it is solo piano, the "too simple" texture the CEO already named.
+
+No downloadable MIDI was needed: every map found a fitting piece in the repo.
+
+How to hear them, in play (PM or CEO only, D26): `SD_ALLOW_ENGINE=1
+MAP=MAP02 tools/run.sh`, and the same with `MAP03` and `RANGE`; in the
+console, `currentmusic` with a non-zero music volume (§2.1) names the lump.
 
 Three of the twelve downloads are **discarded** and gone, six are kept as
 named reserves (§3). Two needed repair and got it (§5). Works restored in
@@ -584,8 +636,10 @@ card owns the sound.
 | **Generator** | `gen_music.py --only funeral` (`build_funeral`) | `gen_music.py --only amur` (`build_amur`) | `gen_music.py --only gate` (`build_gate`) |
 | **Status** | **draft for the CEO's ear** | **draft for the CEO's ear** | **draft for the CEO's ear** (D54) |
 
-None of the three drafts is in `assets/`; that waits for the CEO. None has
-been heard in the engine (D26): the PM's commands are in §1.
+Since **D62 (N8)** all three are installed in `assets/music/` and wired
+to MAP02, MAP03 and RANGE **as drafts, pending the CEO's ear** (§0.1), so
+he hears them in play. None has been heard in the engine yet (D26): the
+PM's commands are in §1 and §0.1.
 
 #### Card 3 — `D_SDFUNR`, «Вы жертвою пали» — **draft (D44)**
 
@@ -827,7 +881,9 @@ items as they stood, and what each became:
    `D_CND05` and `D_CND07` stay as named reserves. `work/audio/candidates/` is
    tracked in git (D43).
 
-**Open for the CEO's ear:** the enriched `D_SDM01E` (Card 2b), since
+**Open for the CEO's ear:** since D62 the three map assignments of §0.1
+(`D_SDFUNR` on MAP02, `D_SDGATE` on MAP03, `D_SDAMUR` on RANGE), installed
+as drafts; the enriched `D_SDM01E` (Card 2b), since
 D44 the two sequenced drafts `D_SDFUNR` and `D_SDAMUR` (Cards 3-4), and
 since D54 the anthem-slot draft `D_SDGATE` (Card 5); one command each in
 §1. Glinka is closed (D54). If the CEO prefers «Славься» to the Gate, that

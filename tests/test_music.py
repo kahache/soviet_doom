@@ -8,7 +8,11 @@ What is pinned here, without ever starting GZDoom (D26):
   `docs/sound/MUSIC-RIGHTS.md`, which owns the rights analysis).
 - Each installed file is REPRODUCIBLE from its source, byte for byte:
   `D_SDM01` from `tools/audio/gen_music.py`, `D_SDINTL` from Engelbach's
-  download with `midi_edit.py --trim-head`. An approved asset that nobody can
+  download with `midi_edit.py --trim-head`, and the three D62 drafts
+  (`D_SDFUNR`, `D_SDGATE`, `D_SDAMUR`, installed so the CEO hears them in
+  play, still pending his ear) from the builders they were written with
+  under D44 and D54. Nothing is composed or sequenced here (D59): the
+  generator is only run into a temporary folder to compare bytes. An approved asset that nobody can
   regenerate is an asset nobody can repair.
 - The downloaded candidates in `work/audio/candidates/` (tracked in git since
   D43) are exactly the files whose SHA-256 MUSIC-RIGHTS records, every one has
@@ -44,8 +48,14 @@ MUSIC_RIGHTS = PROJECT_ROOT / "docs" / "sound" / "MUSIC-RIGHTS.md"
 SOUNDTRACK = PROJECT_ROOT / "docs" / "sound" / "SOUNDTRACK.md"
 LICENSES = PROJECT_ROOT / "docs" / "art" / "LICENSES.md"
 
+# D62 (N8): drafts installed for the CEO's ear, wired in MAPINFO; lump ->
+# the gen_music.py piece key that wrote it (under D44 / D54, before D59).
+D62_DRAFTS = {"D_SDFUNR": "funeral",                # MAP02, the metro
+              "D_SDGATE": "gate",                   # MAP03, Tankograd
+              "D_SDAMUR": "amur"}                   # RANGE
 INSTALLED = ("D_SDINTL", "D_SDM01",                 # D43
-             "D_SDRAD1", "D_SDRAD2")                # D43 radio, tests/test_radio.py
+             "D_SDRAD1", "D_SDRAD2",                # D43 radio, tests/test_radio.py
+             *D62_DRAFTS)                           # D62 drafts
 ENGELBACH_SOURCE = "WM_Internationale_orch2.mid"
 DISCARDED = ("MU_RimskyKorsakov_FugueBACH.mid",    # D_CND02
              "MU_Scriabin_Prelude_op11n1.mid",     # D_CND04
@@ -85,6 +95,14 @@ class InstalledMusicTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path, _seconds, _size = gen_music.generate("map01", Path(tmp), None, quiet=True)
             self.assertEqual(sha256(MUSIC_ASSETS / "D_SDM01.mid"), sha256(path))
+
+    def test_the_d62_drafts_are_the_files_the_ceo_was_given_to_hear(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            for lump, key in D62_DRAFTS.items():
+                with self.subTest(lump=lump):
+                    path, _seconds, _size = gen_music.generate(key, Path(tmp), None, quiet=True)
+                    self.assertEqual(f"{lump}.mid", path.name)
+                    self.assertEqual(sha256(path), sha256(MUSIC_ASSETS / f"{lump}.mid"))
 
     def test_d_sdintl_is_engelbachs_file_with_the_head_silence_trimmed(self):
         source = CANDIDATES / ENGELBACH_SOURCE

@@ -276,7 +276,7 @@ map MAP02 lookup "SD_MAP02_NAME"
 	// leads to MAP03, the factory, through cluster 4's (MOD-SPEC 4.6).
 	cluster = 4
 	next = "MAP03"
-	music = ""
+	music = "D_SDFUNR"	// D62 draft, pending the CEO's ear (SOUNDTRACK.md 0)
 	sky1 = "SKY1"
 	par = 300
 }
@@ -291,8 +291,7 @@ map MAP03 lookup "SD_MAP03_NAME"
 	// goes back to the title screen.
 	cluster = 1
 	next = endtitle
-	// No piece for it yet (D59: public-domain works or licence-clean MIDIs).
-	music = ""
+	music = "D_SDGATE"	// D62 draft, pending the CEO's ear (SOUNDTRACK.md 0)
 	sky1 = "SKY1"
 	// level-designer's estimate for a player who knows the route
 	// (docs/levels/MAP03-factory.md 3 and 11). Display only.
@@ -345,7 +344,7 @@ map RANGE lookup "SD_RANGE_NAME"
 	// can never run into it (tests/test_practice_range.py).
 	cluster = 2
 	next = endtitle
-	music = ""
+	music = "D_SDAMUR"	// D62 draft, pending the CEO's ear (SOUNDTRACK.md 0)
 	sky1 = "SKY1"
 	nointermission
 }

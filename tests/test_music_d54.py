@@ -16,7 +16,8 @@ and without GZDoom (D26), pinned here:
   a tone of the chord we harmonised it with;
 - the file: zero hanging notes, nothing re-struck while it still sounds, the
   length the tempo map gives, the printed key and metre written in, a silent
-  last bar (the cue ends), and the draft stays out of assets/;
+  last bar (the cue ends), and the draft installed by D62 (N8) for the
+  CEO to hear on MAP03, still marked a draft in SOUNDTRACK;
 - the pieces that already exist come out of the generator unchanged.
 
 Python standard library only. Run:
@@ -167,10 +168,15 @@ class FileTests(unittest.TestCase):
         self.assertLess(max(ons), tail, "the tail starts nothing")
         self.assertLessEqual(max(offs), end_tick)
 
-    def test_the_draft_name_is_a_legal_lump_and_stays_out_of_assets(self):
+    def test_the_draft_name_is_a_legal_lump_installed_as_a_draft(self):
+        """D62 (N8): installed so the CEO hears it on MAP03, still a draft
+        until he approves it by ear."""
         self.assertEqual(gm.GATE_LUMP, validate_lump_name(gm.GATE_LUMP))
-        self.assertFalse((MUSIC_ASSETS / f"{gm.GATE_LUMP}.mid").exists(),
-                         "a draft enters assets/ only on the CEO's approval")
+        self.assertTrue((MUSIC_ASSETS / f"{gm.GATE_LUMP}.mid").is_file(), "D62 installs it")
+        soundtrack = SOUNDTRACK.read_text(encoding="utf-8")
+        self.assertTrue(any(f"`{gm.GATE_LUMP}`" in line and "pending the CEO's ear" in line
+                            for line in soundtrack.splitlines()),
+                        "SOUNDTRACK.md must still call it a draft")
 
 
 class ExistingPiecesTests(unittest.TestCase):
