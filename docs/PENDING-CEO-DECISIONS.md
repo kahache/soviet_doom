@@ -1,21 +1,26 @@
 # Pending CEO decisions
 
-Updated: 2026-10-13, after the CEO closed D40-D43. Ordered by how much
-each item unblocks. What closed since the previous update is listed at the
-end so nothing is lost. Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md`.
+Updated: 2026-10-14 night, after D68 (pipeline stage 6, D64). Ordered by
+how much each item unblocks. What closed since the previous update is listed
+at the end so nothing is lost. Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md`
+(synced at phase close, D34).
 
-## 1. Waiting for your eyes (2026-10-14 afternoon)
+## 0. Walk the campaign (M1's last gate)
+
+MAP01 -> metro -> Танкоград -> the end text pass the scripted routes in the
+engine with zero log errors (commit 16427a7). M1 closes when you walk it from
+New Game without being told the route. Tankograd v1.1 has the hand Katyusha
+in a secret behind the lockers, a molten channel that hurts, and a supply
+room the General's death opens (D68).
+
+## 1. Waiting for your eyes
 
 Previews are sent to you as files; the paths are under `docs/art/previews/`.
 
 | What | Preview | Asks [PM's recommendation] |
 |---|---|---|
-| Stalin poster | `2026-10-14_1601_F2_stalin-sweep.png` | cell [4C, as Lenin]; slogan [«ЗА РОДИНУ! ЗА СТАЛИНА!»]; where it hangs [a sealed wartime shelter in the metro, a secret] |
-| Reich hound, German shepherd A, full set (D50) | `2026-10-14_1204_F5_reich-hound-A-full-set.html` | approve; the death seen from 37° [yes] or at the rifleman's 9° |
-| Reich rifleman, dark red blood, flat corpse | `2026-10-14_1141_F5_reich-rifleman-blood.html` | approve the death and gib |
-| Stormtrooper death redone flat (D53) | `2026-10-14_1151_F5_stormtrooper-E-death-redo.html` | approve |
-| 2D hands on the whole arsenal (D52) | `2026-10-14_1200_F4_hand-2d-arsenal.html`; playable with the draft overlay | approve, or name a frame (TT-2, AX-3…); new Blood-style poses for the RPG-7 and IZh? Katyusha hands too big? |
-| Metro marble and mosaic in palette v2 | `2026-10-14_1036_F3_metro-palette-v2.html` | mosaic [v2]; marble [v2, narrowly] |
+| Doughboy C with the bigger flag (D67) | `2026-10-14_2132_F5_doughboy-C-big-flag.html` | approve -> install `SDDB` |
+| Hands for the other weapons | Fooocus, your images in `work/art/reference/` | the ice axe first; the PM processes them like the Lenin poster |
 
 ## 2. Waiting for your ears
 
@@ -35,20 +40,7 @@ Nothing to decide. **Postponed by the CEO on 2026-10-13** ("lo dejamos
 pending"): the enemies keep Freedoom's voices until the takes arrive, and
 nothing else waits on them.
 
-## 4. Metro set: palette v2 and the mosaic motif
-
-The direction and the first six pieces are approved (D42) and ship as drawn
-in palette v1. Two questions from the same sheet are still open
-(`docs/art/previews/2026-10-13_0952_F2_batch2-metro-first-pieces.html`):
-
-- **Palette v2.** Add a marble red and a cobalt and gold mosaic ramp in the
-  reserved slots? In v1, `SDMARB1` reads ox-blood and `SDMOSA1` slate
-  instead of cobalt. Approved textures keep their colours either way
-  (ART-BIBLE §3).
-- **Mosaic motif.** A star with rays, as drawn, or a figure (cosmonaut,
-  worker), which would be its own commission, like Lenin was.
-
-## 5. Smaller, no hurry
+## 4. Smaller, no hurry
 
 - **Lenin slogan.** Ships with «ЛЕНИН ЖИВ»; Mayakovsky's full line «Ленин
   жил, Ленин жив, Ленин будет жить» also fits in three lines. Say so if you
@@ -63,6 +55,8 @@ in palette v1. Two questions from the same sheet are still open
   it when a map needs hand editing, or stay script-only. Not needed for v2.
 
 ## Closed since the previous update (for the record)
+
+D44-D68 (2026-10-14): the Stalin poster 4C «СЛАВА СТАЛИНУ!» in the metro's secret shelter; the hound, rifleman, Stormtrooper, Legion, Panzermensch and Schwer installed; palette v2 for the mosaic and marble; Freedoom-based hands (D61) and the TT-33 in them; the map renumbering (D62); roadmap and backlog (D63); pipeline stage 6 (D64); the 21 Tankograd textures (D66); Tankograd's secret, damage and reward (D68). Details in `docs/PRD.md`.
 
 The ice axe replaces the shovel (D40). MAP02 ships as a practice range (D41; the lump `RANGE` since D62). Every music recommendation of SOUNDTRACK §8, accepted (D43). Title screen and intermission (D18). Switch texture: all four variants
 approved and installed (D25). Music model and La Internacional (D23).
