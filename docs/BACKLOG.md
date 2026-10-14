@@ -23,6 +23,7 @@ get better.
 | N14-2 | M2 | Ice axe right-handed (D73) + shaft and head polish, cells C1/C3/C4 again | art-director | 100 | D73 |
 | N17 | M2 | Install the approved TT-33 held frames (SDTT/SDTF, D61) into the PK3 + engine pass; today they live only in the draft overlay | mod-engineer | 120 | — |
 | G2 | M4 | Fix the generated README EN/RU (three-map campaign, GZDoom 4.14 default controls, Phase 2 WAD, hash check) from the G6 review's proposal | mod-engineer | 50 | — |
+| N9a | M3 | Alternatives (3 each) for SDTTPKP, SDIZRLD, SDRKFIR (NO) and SDAXPKP, SDIZPKP (?), D74; small listening page | sound-designer | 120 | D74 |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
 ## Next (approved order, D63)
@@ -37,7 +38,7 @@ get better.
 | N14 | M2 | Weapons in hand from the CEO's Fooocus references, one at a time, verified each (ice axe first, then 5 more) | art-director | 250 per weapon, ~1 500 all | CEO's images |
 | N7b | M1+ | Metro v2 (textures aligned), optional: the CEO found M1 "perfecto" | level-designer | 350 | CEO decides if wanted |
 | N7c | M1+ | Tankograd v2, optional (as N7b) | level-designer | 400 | CEO decides if wanted |
-| N9 | M3 | Install the effects the CEO approves; wire SNDINFO; **loudness pass** (drafts are 6-18 dB quieter than the Freedoom sounds they replace; bass-heavy clips); engine pass | sound-designer + mod-engineer | 200 | CEO's listening |
+| N9 | M3 | Install the effects the CEO approves (**25 weapon sounds OK in D74**, after N17 frees tokarev.zs and LICENSES.md); wire SNDINFO; **loudness pass** (drafts are 6-18 dB quieter than the Freedoom sounds they replace; bass-heavy clips); engine pass | sound-designer + mod-engineer | 200 | CEO's listening |
 | N8 | M3 | Music per map: swap any piece the CEO rejects for another PD work or a licence-clean MIDI (D59) | sound-designer | 80 per swap | CEO's listening |
 | N15 | tooling | Evaluate Ultimate Doom Builder (D69, "me interesa"): install, open our UDMF maps, does a round trip keep `tools/sdbuild` working, report | mod-engineer + level-designer | 150 | CEO's OK to download UDB |
 | N11 | M4 | Russian in-game text review, once, at the end of the delivery | translator-ru | 250 | M1-M3 done (D60) |
