@@ -20,8 +20,7 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
-| N12b-1 | M2 | The General CD (D71): turnaround, 8 rotations + firing, to the CEO | art-director | 100 | D71 |
-| N13 | M2 | Install the Doughboy (big flag) + engine pass | mod-engineer | 120 | D70 |
+| N14-1 | M2 | Ice axe held frame from the CEO's Fooocus references (sweep) | art-director | 250 | CEO's images (arrived) |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
 ## Next (approved order, D63)
@@ -59,6 +58,8 @@ the Fooocus hand images, sounds and music to hear.
 | **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
+
+N13: the Doughboy installed (bcb7de2), engine pass `docs/qa/evidence/2026-10-14_2242_F5_doughboy-installed.md`; **real cost 250k** (est. 120k: the docs and tests mirror of 0bd65d9 is the bulk). N12b-1: the General CD turnaround (9939d6a), waiting for the CEO; **~50k** (est. 100k). Bestiary: 7 of 7 enemies drawn, 6 installed.
 
 **M1 PASSED (D70):** the CEO walked the campaign. N12: the General's sweep, five cells A-E, `docs/art/previews/2026-10-14_2208_F5_general-sweep.html`, PM recommends C. **Real cost 282k** (est. 250k).
 
