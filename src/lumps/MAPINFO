@@ -246,9 +246,10 @@ DoomEdNums
 
 map MAP02 lookup "SD_MAP02_NAME"
 {
-	// Engineering test range (F4), shipped as the practice range (D41): the
-	// second episode on New Game, outside the campaign. Built to prove every
-	// weapon can be picked up, fired and made to do damage;
+	// Built as the engineering test range (F4), to prove every weapon can be
+	// picked up, fired and made to do damage; titled "Training Ground" since
+	// D46 (both languages in LANGUAGE). Shipped as the practice range (D41):
+	// the second episode on New Game, outside the campaign;
 	// `MAP=MAP02 tools/run.sh` still starts it directly.
 	//
 	// It used to say `next = "MAP02"`, which restarted the range - harmless

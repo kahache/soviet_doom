@@ -573,8 +573,15 @@ other a dark slope. This is the only enemy whose silhouette is
 **Why this faction.** `LORE.md` assigns the hounds to the Reich. A hound is
 also the right unit to be *organic* while the Legion is chrome.
 
-**Colour.** `khaki_olive` 4–10 hide, black underbelly and muzzle, black claw
-tips. **No red accent at all** — the hound is the one enemy with no faction
+**Colour.** `khaki_olive` **1–9** hide, black underbelly and muzzle, black
+claw tips. **D45 (2026-10-14) moved the hide down the ramp from the 4–10 this
+section first gave:** `art-director`'s first render in 4–10 measured a body
+luma of **99 against `SDSTEL1`'s 101**, a gap of 1, and the hound vanished on
+green steel (`docs/art/previews/2026-10-13_2211_F5_storm-hound-sweep.html`).
+In 1–9 it is Reich-dark like the rifleman (the sweep notes body luma 70–75)
+and separates from `SDSTEL1` by value; §10's **caution** on green steel and
+its light-112 rule still stand. The CEO accepted it with palette v2 (D45,
+`docs/PRD.md`). **No red accent at all** — the hound is the one enemy with no faction
 insignia, because a dog does not wear an armband, and because it gives the
 level designer one enemy that will never be camouflaged against a poster.
 

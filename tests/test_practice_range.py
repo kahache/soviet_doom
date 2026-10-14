@@ -63,6 +63,10 @@ CAMPAIGN_CLUSTER = 1
 # MOD-SPEC 4.4: episode order is the menu order, the campaign first.
 EPISODES = [(CAMPAIGN_MAP, "SD_EP01_NAME"), (RANGE_MAP, "SD_EP02_NAME")]
 RANGE_EXIT_TEXT = "SD_END02_TEXT"
+# D46 (2026-10-14): the CEO's player-facing name for MAP02, printed by the
+# automap and the level-load line. It was "Engineering Test Range".
+RANGE_TITLE_ID = "SD_MAP02_NAME"
+RANGE_TITLE = {"default": "Training Ground", "ru": "Учебный полигон"}
 EPISODE_HEADER = "$SD_MNU_CHOOSEEPISODE"
 # The engine's episode screen draws this Freedoom picture of English words.
 FREEDOOM_EPISODE_GRAPHIC = "M_EPISOD"
@@ -181,6 +185,12 @@ class EpisodeScreenTest(MenudefTestCase):
     def test_range_exit_text_exists_in_both_languages(self):
         for code in REQUIRED_SECTIONS:
             self.assertIn(RANGE_EXIT_TEXT, self.sections[code], f"[{code}]")
+
+    def test_the_range_carries_the_ceos_name(self):
+        """D46: "Training Ground" / «Учебный полигон», in both languages."""
+        self.assertEqual(set(RANGE_TITLE), set(REQUIRED_SECTIONS))
+        for code in REQUIRED_SECTIONS:
+            self.assertEqual(self.string(code, RANGE_TITLE_ID), RANGE_TITLE[code], f"[{code}]")
 
 
 class PracticeRangePk3Test(unittest.TestCase):

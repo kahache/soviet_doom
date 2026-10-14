@@ -176,7 +176,7 @@ No new texture, no new IWAD reference.
 
 ## 8. For the CEO: a player-facing name
 
-The map's title, `SD_MAP02_NAME` = "Engineering Test Range" / «Инженерный
+The map's title, `SD_MAP02_NAME` = "Engineering Test Range" / «Инженерный *(Decided 2026-10-14, D46: "Training Ground" / «Учебный полигон».)*
 полигон», is `mod-engineer`'s (MAPINFO and LANGUAGE) and says what MAP02
 was, not what it is. **Proposed: "Training Ground" / «Учебный полигон».**
 It sits under the episode name "Practice Range" / «Полигон» without

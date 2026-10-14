@@ -38,12 +38,6 @@ Each preview says what it asks; the recommendation is in brackets.
   score per piece, sizes stated first [recommended], or (b) write them from
   memory, marked NOT VERIFIED, checked by someone who knows the tunes.
 
-- **MAP02's name.** "Engineering Test Range" says what it was. Proposed:
-  "Training Ground" / «Учебный полигон» (or "Range No. 7" / «Стрельбище № 7»).
-- **The range's targets shoot first.** On MAP02 the targets fire at the
-  player on spawn, before any weapon is picked up (QA's G3-F5). Keep, or
-  hold them until the player arms (a level-designer change).
-
 Still open from the design document §13, no hurry: no keys (recommended
 yes); a night-sky strip over the hangar, yes or no.
 
