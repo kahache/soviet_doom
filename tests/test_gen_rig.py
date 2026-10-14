@@ -11,6 +11,16 @@ Two tiers. The cheap tests always run (no rendering):
   core       the rifleman is a figure on tools/art/rig_core.py: his table is
              the core's base table plus band and gore (no id moved), his
              limbs carry limb and side labels, all 8 rotations are drawn
+  blood      D48: the death and gib bleed dark red (flag_red 0-5 and black,
+             palette v1) on their own material table, same ids; A-G build
+             exactly as without blood; the burst, the splats, the pool that
+             grows K -> L, the jets and the extra chunks of the gib
+  flat       a corpse lies flat: on the death's L, shoulders (upper body),
+             hips (coat skirt), both legs and the head each rest on the floor;
+             on the gib's U the skirt, both legs and the stump do; nothing is
+             propped on a single support (D38's L was, on its left arm, and
+             the test says so); the dropped helmet and rifle lie on the floor,
+             not in it, and the rifle lies level
 
 The render tests run under `tools/verify.py art`, not `fast` (each sprite is
 a sphere trace of about two seconds; SD_SKIP_SLOW_ART skips them):
@@ -19,8 +29,12 @@ a sphere trace of about two seconds; SD_SKIP_SLOW_ART skips them):
   faction    no military_green on a Reich figure (ART-BIBLE §6.2)
   scale      the standing figure is Doom's 56-unit actor
   armband    the D12 accent is on the front view, and the flash on frame F
-  floor      the corpse lies on the floor, low and wide
+  floor      the corpse lies on the floor, low and wide (its pool a few rows
+             in front of the sole line)
   seed       the same lump renders identically twice
+  blood      the dead and the gibbed lumps carry a lot of dark red; frame A
+             renders byte-identically with and without blood
+  flat       the dead lump is low: a man on his back, not one on his side
 """
 
 from __future__ import annotations
@@ -45,6 +59,9 @@ except ImportError:  # pragma: no cover - the CI interpreter
     HAVE_IMAGING = False
 
 SOURCE = ART_TOOLS / "gen_rig.py"
+POOL_BELOW_SOLE = 5     # px: a floor pool lies in front of the body, below the sole line (D48)
+MAX_CORPSE_PX = 24      # height of the dead L lump: flat on his back (D38's propped corpse: 38)
+MIN_RED_DEAD = 150      # px of blood red on the dead (L) and the gibbed (U) lumps; D38 had 0
 slow = unittest.skipIf(os.environ.get("SD_SKIP_SLOW_ART"),
                        "SD_SKIP_SLOW_ART is set: skipping the rig renders")
 
@@ -144,6 +161,136 @@ class RigTests(unittest.TestCase):
                     self.assertTrue(np.array_equal(np.asarray(im.convert("RGB")), f))
 
 
+@unittest.skipUnless(HAVE_IMAGING, "needs Pillow and numpy (.venv)")
+class BloodTests(unittest.TestCase):
+    """D48: much more blood in the deaths, dark red (no rendering)."""
+
+    @classmethod
+    def setUpClass(cls):
+        import gen_rig
+        cls.g = gen_rig
+
+    def test_blood_table_keeps_ids_and_is_dark_red(self):
+        g = self.g
+        names = list(g.MATERIALS_BLOOD)
+        self.assertEqual(names[:len(g.MATERIALS)], list(g.MATERIALS))     # no id moved
+        self.assertEqual(names[len(g.MATERIALS):], ["blood", "pool"])
+        self.assertEqual(list(g.MATERIALS)[-2:], ["band", "gore"])         # the shared table is untouched
+        reds = g.blood_colours() | {(0, 0, 0)}
+        flag = g.core.ramp("flag_red")
+        self.assertEqual(g.blood_colours(), {tuple(c) for c in flag[:g.BLOOD_MAX_INDEX + 1]})
+        for name in ("blood", "pool", "gore"):
+            self.assertEqual(g.MATERIALS_BLOOD[name].ramps, {"flag_red"}, name)
+            self.assertLessEqual(set(g.MATERIALS_BLOOD[name].colours()), reds, name)
+        band = set(g.MATERIALS["band"].colours())
+        self.assertGreater(min(flag.index(c) for c in band), 0)            # the armband stays brighter
+        self.assertTrue(g.MATERIALS_BLOOD["blood"].flat)                     # no rim: a drop stays red
+
+    def test_walk_aim_fire_pain_do_not_bleed(self):
+        g = self.g
+        for frame in "ABCDEFG":
+            p1, _, t1 = g.build_frame(frame, blood=True)
+            p0, _, t0 = g.build_frame(frame, blood=False)
+            self.assertIs(t1, g.MATERIALS, frame)
+            self.assertIs(t0, g.MATERIALS, frame)
+            self.assertEqual(len(p1), len(p0), frame)
+            self.assertFalse({p.mat for p in p1} & {"blood", "pool"}, frame)
+
+    def test_death_bleeds_and_the_pool_grows(self):
+        g = self.g
+        groups = {}
+        for frame in "HIJKL":
+            prims, _, table = g.build_frame(frame)
+            self.assertIs(table, g.MATERIALS_BLOOD)
+            groups[frame] = prims
+        spray = lambda f: [p for p in groups[f] if p.grp == "spray"]  # noqa: E731
+        splat = lambda f: [p for p in groups[f] if p.grp == "splat"]  # noqa: E731
+        area = lambda f: sum(p.r[0] * p.r[2] for p in groups[f] if p.grp == "pool")  # noqa: E731
+        self.assertGreaterEqual(len(spray("H")), g.N_SPRAY)                 # the burst, all in the air
+        self.assertFalse(splat("H"))
+        self.assertGreater(len(splat("L")), g.N_SPRAY // 2)                  # landed round him
+        self.assertEqual(area("H") + area("I") + area("J"), 0)
+        self.assertGreater(area("K"), 0)
+        self.assertGreater(area("L"), 2 * area("K"))                         # the pool grows K -> L
+        for f in "HIJKL":                                                    # the stain soaks wider
+            stain = max(p.r[0] for p in groups[f] if p.grp == "blood" and p.kind == "ellipsoid")
+            self.assertAlmostEqual(stain, g.STAIN_R[f])
+
+    def test_gib_has_more_blood_and_chunks(self):
+        g = self.g
+        for frame in "PU":
+            with_blood, _ = g.build_gib(frame, blood=True)
+            without, _ = g.build_gib(frame, blood=False)
+            chunks = lambda ps: [p for p in ps if p.grp == "chunk"]  # noqa: E731
+            self.assertEqual(len(chunks(with_blood)), g.N_CHUNKS_BLOODY)
+            self.assertEqual(len(chunks(without)), g.N_CHUNKS)
+            self.assertGreater(len([p for p in with_blood if p.mat == "blood"]), g.N_GIB_SPRAY)
+        p, _ = g.build_gib("P")
+        jet = [q for q in p if q.grp == "spray" and q.bound()[0][1] > g.WAIST_Y]
+        self.assertGreater(len(jet), 10)                                     # the stump's jets in the air
+        u, _ = g.build_gib("U")
+        self.assertTrue([q for q in u if q.grp == "pool"])
+
+    def test_droplet_lands_as_a_splat(self):
+        g = self.g
+        v = g.V(10.0, 20.0, 0.0)
+        flying = g._droplet(g.V(0, 30, 0), v, 0.05, 1.0)
+        landed = g._droplet(g.V(0, 30, 0), v, 2.0, 1.0)
+        self.assertEqual((flying.grp, landed.grp), ("spray", "splat"))
+        self.assertLess(landed.r[1], 0.5)
+        self.assertLessEqual(abs(landed.a[0]), g.SPRAY_X)
+
+
+@unittest.skipUnless(HAVE_IMAGING, "needs Pillow and numpy (.venv)")
+class FlatCorpseTests(unittest.TestCase):
+    """A corpse lies flat: no part held up by a single support (D48 follow-up,
+    the CEO on the Legion's corpse: "parece que se apoye en el hombro")."""
+
+    @classmethod
+    def setUpClass(cls):
+        import gen_rig
+        cls.g = gen_rig
+
+    def assertFlat(self, heights, parts, what):
+        for part in parts:
+            self.assertLessEqual(heights[part], self.g.FLAT_TOL, f"{what}: {part} is held up off the floor")
+            self.assertGreaterEqual(heights[part], -0.2, f"{what}: {part} is sunk into the floor")
+
+    def test_death_l_lies_flat(self):
+        g = self.g
+        prims, _ = g.build_fall("L")
+        h = g.resting(prims, g.FLAT_PARTS + ("arm", "helmet", "rifle"))
+        self.assertFlat(h, g.FLAT_PARTS, "L")
+        self.assertFlat(h, ("arm", "helmet", "rifle"), "L")
+        self.assertTrue(all(p.grp != "helmet" or p.bound()[0][1] < 10 for p in prims))   # off his head
+
+    def test_the_d38_corpse_was_propped(self):
+        """The tripwire works: D38's L rests on its arm alone, the rest held up."""
+        g = self.g
+        prims, _ = g.build_model(g.POSES["L"])
+        h = g.resting(prims, g.FLAT_PARTS + ("arm",))
+        self.assertLessEqual(h["arm"], g.FLAT_TOL)
+        self.assertGreater(max(h[p] for p in g.FLAT_PARTS), 3 * g.FLAT_TOL)
+
+    def test_fall_ends_on_the_floor(self):
+        g = self.g
+        prims, _ = g.build_fall("K")                        # down: torso and hips already on the floor
+        h = g.resting(prims, ("upper", "skirt"))
+        self.assertFlat(h, ("upper", "skirt"), "K")
+        self.assertEqual([f for f, lie in g.LIES.items() if lie and lie.twist >= 89.0], ["L"])  # on his back at L
+
+    def test_gib_u_lies_flat(self):
+        g = self.g
+        prims, _ = g.build_gib("U")
+        h = g.resting(prims, tuple(sorted(g.GIB_LEGS)) + ("helmet", "rifle"))
+        self.assertFlat(h, sorted(g.GIB_LEGS), "U")
+        self.assertFlat(h, ("helmet", "rifle"), "U")
+        rifle = [p for p in prims if p.grp == "rifle" and p.kind == "roundcone"]
+        barrel = max(rifle, key=lambda p: float(np.linalg.norm(p.b - p.a)))
+        a, b = barrel.xm @ barrel.a + barrel.xt, barrel.xm @ barrel.b + barrel.xt
+        self.assertLess(abs(a[1] - b[1]), 0.3)               # level, not propped on its butt
+
+
 @slow
 @unittest.skipUnless(HAVE_IMAGING, "needs Pillow and numpy (.venv)")
 class RenderTests(unittest.TestCase):
@@ -191,13 +338,24 @@ class RenderTests(unittest.TestCase):
         m = g.measure(self.r[("L", 0)])
         self.assertLess(m["height_px"], 40)
         self.assertGreater(m["width_px"], m["height_px"])
-        self.assertLessEqual(abs(m["lowest_row"] - g.DEATH.foot_row), 2)
+        self.assertLessEqual(abs(m["lowest_row"] - g.DEATH.foot_row), POOL_BELOW_SOLE)
         u = g.measure(self.r[("U", 0)])
-        self.assertLessEqual(u["lowest_row"] - g.GIB.foot_row, 4)
+        self.assertLessEqual(u["lowest_row"] - g.GIB.foot_row, POOL_BELOW_SOLE)
 
     def test_deterministic(self):
         again = self.g.render("A", 3)
         self.assertTrue(np.array_equal(again, self.r[("A", 3)]))
+
+    def test_the_dead_bleed_dark_red(self):
+        g = self.g
+        for k in (("L", 0), ("U", 0)):
+            self.assertGreaterEqual(g.red_pixels(self.r[k]), MIN_RED_DEAD, k)
+
+    def test_the_dead_lump_is_low(self):
+        self.assertLessEqual(self.g.measure(self.r[("L", 0)])["height_px"], MAX_CORPSE_PX)
+
+    def test_frame_a_is_untouched_by_blood(self):
+        self.assertTrue(np.array_equal(self.g.render("A", 1, blood=False), self.r[("A", 1)]))
 
     def test_grab_written(self):
         g = self.g
