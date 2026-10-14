@@ -1,7 +1,7 @@
 # Soviet Doom — Product Requirements Document
 
 Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
-Last update: 2026-10-14 (D25-D52).
+Last update: 2026-10-14 (D25-D53).
 
 ## 1. Vision
 
@@ -86,6 +86,7 @@ until D16 brought it into scope on 2026-10-13.)
 | D50 | 2026-10-14 | **The Reich hound is the German shepherd, cell A** (classic black and tan, black saddle, leather collar with a steel tag as drawn): "Perro A". Supersedes D45's darker khaki hide. Its full frame set follows on the quadruped rig. | ratified (CEO) |
 | D51 | 2026-10-14 | **The hand Katyusha is the third pass, variant B** (six banded tubes carried at the hip): "de katiushka me flipa la B". Its held frames take the new hands once chosen (D49). | ratified (CEO) |
 | D52 | 2026-10-14 | **First-person hands are drawn in 2D pixel art** (`tools/art/gen_hands_2d.py`, preview `docs/art/previews/2026-10-14_1105_F4_hand-2d-pixel.png`), style E kept (brown leather glove, field sleeve, telnyashka): "Manos 1". The 3D-capsule hands and the anatomical 3D attempt are dropped. The 2D hands go on every weapon, with the poses raised where the hand fell off screen (TT-33, PPSh-41). | ratified (CEO) |
+| D53 | 2026-10-14 | **The Stormtrooper's full set (cell E, 77 SDHS + 5 SDBL) is approved except its death**: "SDHSM0 mismo error que antes… queda artificial. El resto OK." The death is redone so the corpse lies flat, as the Legion trooper's was. The claw keeps sharing the bolt's frames E F G (PM's recommendation; the proposed V W are not used). | ratified (CEO) |
 | D15 | 2026-10-09 | Licence of the mod: **GPL-3.0** for code (`tools/`, `src/zscript/`, scripts) and **CC BY-NC-SA 4.0** for assets and docs (textures, sprites, maps, sounds, lore). Non-commercial is required anyway by OTEX's terms. Full texts added at F6; `LICENSE.md` states it now. | decided by the PM on CEO delegation |
 
 ## 6. Phases and gates
