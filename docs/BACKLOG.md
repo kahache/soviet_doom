@@ -22,7 +22,6 @@ get better.
 |---|---|---|---|---|---|
 | N12c | M2 | Install the General (SDGN/SDGL) + engine pass | mod-engineer | 200 | D73 |
 | N14-2 | M2 | Ice axe right-handed (D73) + shaft and head polish, cells C1/C3/C4 again | art-director | 100 | D73 |
-| A1 | M2 | Audit: every Freedoom sprite, texture, HUD piece and sound the player still meets | qa-engineer | 80 | CEO, 2026-10-14 |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
 ## Next (approved order, D63)
@@ -31,6 +30,11 @@ get better.
 |---|---|---|---|---|---|
 | N17 | M2 | Install the approved TT-33 held frames (SDTT/SDTF, D61) into the PK3 + engine pass; today they live only in the draft overlay | mod-engineer | 120 | — |
 | G2 | M4 | Fix the generated README EN/RU (three-map campaign, GZDoom 4.14 default controls, Phase 2 WAD, hash check) from the G6 review's proposal | mod-engineer | 50 | — |
+| M2a | M2 | Pickups sweep + install: health, armour, area map, backpack, yellow and red keycards (113 placed on skill 3), the hand Katyusha's pickup (draft SDHPA0), fullscreen HUD icons, our pickup lines | art-director + mod-engineer | 480 | — |
+| M2b | M2 | Enemy shells: the Doughboy's BAL2, the Panzermensch's BAL7 | art-director + mod-engineer | 150 | — |
+| M2c | M2? | Player projectiles and hit effects (MISL, PLSS/PLSE, PUFF, BLUD shape, TFOG), barrels and lamp | art-director | 350-400 | CEO: in M2 or not |
+| M2d | M2 | Practice range retexture (STARTAN2, FLOOR4_8, CEIL3_5) | level-designer | 40 | — |
+| M2e | M2/M4? | Shell and HUD: STBAR, the face STF*, fonts, stats screen graphics, HELP/CREDIT, DEHACKED pickup and quit lines, intermission music (D_DM2INT plays today) | art-director + mod-engineer | 430-650 | CEO: M2 or M4 |
 | N14 | M2 | Weapons in hand from the CEO's Fooocus references, one at a time, verified each (ice axe first, then 5 more) | art-director | 250 per weapon, ~1 500 all | CEO's images |
 | N7b | M1+ | Metro v2 (textures aligned), optional: the CEO found M1 "perfecto" | level-designer | 350 | CEO decides if wanted |
 | N7c | M1+ | Tankograd v2, optional (as N7b) | level-designer | 400 | CEO decides if wanted |
@@ -40,7 +44,7 @@ get better.
 | N11 | M4 | Russian in-game text review, once, at the end of the delivery | translator-ru | 250 | M1-M3 done (D60) |
 | N16 | M4 | Ship v1: G6 gate, QA sign-off, README EN/RU, tag v1.0 | qa-engineer + PM | 250 | everything above |
 
-MVP left, roughly: **~3 700k tokens** (the six weapons are 40 % of it).
+MVP left, roughly: **~4 500k tokens** after the M2 audit (the six weapons ~1 500k, pickups/shells ~630k, HUD/shell 430-650k if in the MVP).
 
 ## Waiting for the CEO
 
@@ -61,6 +65,8 @@ the Fooocus hand images, sounds and music to hear.
 | **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
+
+A1: M2 Freedoom audit `docs/qa/2026-10-14_2357_M2-freedoom-audit.md`: campaign textures 100 % ours; blocks M2: TT-33 install, 6 weapons, Katyusha pickup, two enemy shells, 113 health/armour/key pickups; all sounds still Freedoom's. **Real ~?** (est. 80k).
 
 A2: Fooocus prompt sheet for the 5 weapons `docs/product/2026-10-14_2356_M2_fooocus-prompts-armas.md` (Spanish, prompts in English; Method B = our/Freedoom frames as input; 6 required images); inputs in `work/art/reference/doom_inputs/`. **Real 213k** (est. 20k: the Method B inputs were added mid-task).
 

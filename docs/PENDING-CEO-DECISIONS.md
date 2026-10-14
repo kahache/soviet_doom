@@ -20,6 +20,11 @@ Previews are sent to you as files; the paths are under `docs/art/previews/`.
 - **The Impact font** in the text-bearing posters: accept the risk [recommended: re-rendering only reproduces on the Mac] or re-render.
 - **Russian docs mirror:** before v1 (RELEASE.md row 6) or after the MVP (ROADMAP P3) [after, P3].
 
+## 1c. M2 scope (audit `docs/qa/2026-10-14_2357_M2-freedoom-audit.md`)
+
+- Do the **player's own projectiles, bullet puffs, blood shape, teleport fog, barrels and lamp** count for M2 [yes, one effects batch, ~350k]?
+- Do the **status bar, the face, the stats screen and Freedoom's help screens** belong to M2 or to M4 [M4, just before shipping]?
+
 ## 2. Waiting for your ears
 
 **One page for all of it:** `docs/art/previews/2026-10-14_2355_M3_listening-sheet.html` (OK / NO / ? per row, "Copiar resultado" to paste the verdict in chat). Headphones recommended.
