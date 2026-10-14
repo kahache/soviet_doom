@@ -1,10 +1,22 @@
-"""F5 — Liberty Legion trooper, design sweep on the 3D rig (front, three-quarter, profile, fire).
+"""F5 — Liberty Legion trooper on the 3D rig: the D35 design sweep, and cell C's full frame set (D48).
 
 Run with the project venv:
     .venv/Scripts/python.exe tools/art/gen_legion.py               (Windows)
     .venv/bin/python tools/art/gen_legion.py                       (macOS)
     ... gen_legion.py --stamp 2026-10-13_2215   fixes the sheet's timestamp
     ... gen_legion.py --no-sheet                sprites and metrics only
+    ... gen_legion.py --full                    D48: cell C's 70 SDLT lumps, GIFs and their sheet
+    ... gen_legion.py --full --only SDLTL0      a few lumps, for a quick look (no sheet)
+    ... gen_legion.py --full --sheet-only       the full set's sheet from the lumps on disk
+
+Since D48 (CEO, 2026-10-14: cell C) and D45 (palette v2) two things changed
+here, both described in their sections below: the pink is palette v2's
+official `flesh_pink` (checked identical to the sweep's candidate, so the
+sweep still reproduces byte for byte), and section "the full set" renders
+cell C's whole frame set with the dark-red blood of D48/D49 into
+work/art/enemies/legion/full_C/ (SDLT<frame><rot>.png, GIFs, metrics.json,
+pair_*.png lineups) and docs/art/previews/<stamp>_F5_legion-trooper-C-full-set.html.
+What follows is the sweep's original description.
 
 What this is. D35: the five most-seen enemies get drawings of their own.
 The Liberty Legion trooper (`SD_LegionTrooper`, sprite `SDLT`,
@@ -53,8 +65,9 @@ every PNG it writes byte-identical.
 
 Palette. BESTIARY §2.1 and ART-BIBLE §3 give the Legion's body mass to a
 "reserved pink/flesh ramp, to be added to palette.json v2". Palette v1 has
-no pink. This file does NOT edit docs/art/palette.json: it carries the
-candidate ramp, FLESH_RAMP, 16 colours built with palette.py's own rule
+no pink. This file never edits docs/art/palette.json. The sweep carried a
+candidate ramp (since D45 it is palette v2's flesh_pink, read from
+palette.json; section "palette"), 16 colours built with palette.py's own rule
 (gamma 1.8 between two endpoints) for 16 of the 94 reserved slots. Every
 v1 colour stays as it is (ART-BIBLE §3: later sets only ADD ramps). Every
 opaque pixel is a palette.json v1 colour or a FLESH_RAMP colour, and the
@@ -93,7 +106,7 @@ import datetime as dt
 import html
 import json
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import numpy as np
@@ -123,23 +136,35 @@ STAND, AIM = core.STAND, core.AIM
 SS = core.SS
 
 # ================================================================== palette
-# Candidate for palette v2 (ART-BIBLE §3, BESTIARY §2.1). Endpoints: a
-# near-black with a red cast, so the dark end of the ramp still reads as
-# flesh in sector light 96, and a pale salmon pink at luma ~200, light
-# enough for the Legion's 0.72-0.80 body value.
+# The Legion's pink is palette v2's `flesh_pink` (D45, CEO 2026-10-14),
+# read from docs/art/palette.json through palette.ramp_colours(). The sweep
+# drew it as a local CANDIDATE with these endpoints (a near-black with a red
+# cast, so the dark end still reads as flesh in sector light 96, and a pale
+# salmon pink at luma ~200 for the Legion's 0.72-0.80 body value); D45 took
+# them unchanged into palette.py. They stay here only to prove the official
+# ramp is the candidate the CEO saw, colour for colour: if palette.json ever
+# disagreed, every sweep PNG would stop being reproducible, so the module
+# refuses to load (tests/test_gen_legion.py checks the same).
 FLESH = "flesh_pink"
 FLESH_DARK = (24, 10, 10)
 FLESH_LIGHT = (242, 190, 180)
 FLESH_STEPS = palgen.RAMP_STEPS
 
 
+def candidate_ramp() -> list[tuple[int, int, int]]:
+    """The sweep's candidate, rebuilt with palette.py's one ramp rule."""
+    return [tuple(c) for c in palgen.ramp_rule(FLESH_DARK, FLESH_LIGHT, FLESH_STEPS)]
+
+
 def flesh_ramp() -> list[tuple[int, int, int]]:
-    """The candidate ramp, built with palette.py's own interpolation."""
-    return [tuple(palgen._lerp_gamma(FLESH_DARK[c], FLESH_LIGHT[c], i / (FLESH_STEPS - 1))
-                  for c in range(3)) for i in range(FLESH_STEPS)]
+    """The official palette v2 ramp `flesh_pink` (D45), darkest first."""
+    return palgen.ramp_colours(FLESH)
 
 
-core.register_ramp(FLESH, flesh_ramp())     # the core's materials can now name it
+if flesh_ramp() != candidate_ramp():        # pragma: no cover - a palette.json regression
+    raise RuntimeError("palette v2 flesh_pink differs from the Legion sweep's candidate ramp")
+
+core.register_ramp(FLESH, flesh_ramp())     # the core's materials can name it (core.ramp reads v1 only)
 
 
 def ramp(name: str) -> list[tuple[int, int, int]]:
@@ -151,8 +176,15 @@ def palette_v1() -> list[tuple[int, int, int]]:
 
 
 def palette_ext() -> list[tuple[int, int, int]]:
-    """Palette v1 plus the candidate ramp: what the sheet's scenes use."""
+    """Palette v1 plus flesh_pink: what the SWEEP's scenes were quantised to
+    (kept, so the sweep reproduces byte for byte). The full set's scenes use
+    palette v2 whole (palette_v2)."""
     return palette_v1() + flesh_ramp()
+
+
+def palette_v2() -> list[tuple[int, int, int]]:
+    """Palette v2, 226 colours (D45): v1 as its exact prefix, then the four added ramps."""
+    return palgen.colours(2)
 
 
 def quantize_ext(rgb: np.ndarray) -> np.ndarray:
@@ -230,9 +262,17 @@ class Pose:
     foot_l: tuple       # ankle targets, model space (x = figure's LEFT, z = forward)
     foot_r: tuple
     bob: float
-    carry: str          # "high" (across the chest) | "aim"
+    carry: str          # "high" (across the chest) | "aim" | "free" (he has let go of the shotgun)
     flash: bool
     canvas: core.Canvas
+    # The full set's posing (D48); every default leaves the sweep's figure as it was.
+    gun_tilt: float = 0.0        # small per-frame wobble of the carried shotgun (walk, pain)
+    lean: float = 0.0            # degrees, upper body back about the waist
+    head_pitch: float = 0.0      # degrees, chin up about the neck
+    hand_l: tuple | None = None  # carry "free": hand targets, before lean
+    hand_r: tuple | None = None
+    gun_at: tuple | None = None  # carry "free": (butt, along, up), final model space
+    roll: float = 0.0            # degrees, the whole figure falls to his left about ROLL_PIVOT
 
 
 ANKLE_Y = core.ANKLE_Y
@@ -261,16 +301,26 @@ GUN_AIM_BUTT = (-4.6, 39.2, 3.8)
 GRIP_R, GRIP_L = 6.5, 18.0                      # stock wrist, pump (along the gun)
 FLASH_SIZE = 7.0                                # a shotgun's flash, a little over the rifle's 6
 
+# Posing (the full set, D48): the pivots and groups gen_rig.py uses for the
+# rifleman, on the trooper's proportions.
+NECK = core.V(0.0, 42.0, -0.4)                  # chin pivot: the bull neck's middle
+UPPER = {"upper", "arm", "head", "helmet"}      # what leans with the torso
+ALL_BODY = UPPER | {"leg_l", "leg_r", "seat", "stump"}
+ROLL_PIVOT = core.V(3.9, 0.0, 0.0)              # his left sole: he falls to his left over it
+SLIDE = 30.0                                    # x shift at a full fall, so the corpse lies across the axis
+
 
 def gun_frame(pose: Pose):
+    up = core.V(0, 1, 0)
     if pose.carry == "high":
         butt = core.V(*GUN_HIGH_BUTT) + core.V(0, pose.bob, 0)
-        u = core.V(*GUN_HIGH_DIR)
-    else:
+        u = core.V(*GUN_HIGH_DIR) + core.V(0, pose.gun_tilt, 0)
+    elif pose.carry == "aim":
         butt = core.V(*GUN_AIM_BUTT) + core.V(0, pose.bob, 0)
         u = core.V(0.06, np.tan(np.deg2rad(core.PITCH_DEG)), 1.0)
+    else:                       # "free": he has let go, the shotgun falls on its own
+        butt, u, up = (np.asarray(x, float) for x in pose.gun_at)
     u = u / np.linalg.norm(u)
-    up = core.V(0, 1, 0)
     v = up - (up @ u) * u
     v = v / np.linalg.norm(v)
     return butt, u, v, np.cross(u, v)
@@ -290,8 +340,14 @@ def build_model(cell: Cell, pose: Pose) -> tuple[list, dict]:
 
     E, RC, CC, BX = core.ellipsoid, core.rcone, core.ccone, core.box
 
+    def label(start: int, limb: str, side: int) -> None:
+        """Tag what was added since `start` as one limb of one side (render-neutral)."""
+        for prim in P[start:]:
+            prim.limb, prim.side = limb, side
+
     # ---------------------------------------------------------------- legs
     for side, foot, grp in ((1, pose.foot_l, "leg_l"), (-1, pose.foot_r, "leg_r")):
+        start = len(P)
         hip = core.V(side * 3.5, HIP_Y + bob, 0.0)
         knee, ankle = core.two_bone(hip, foot, THIGH, SHIN, core.V(0, 0, 1))
         add(grp, RC("trouser", 0.62, hip, knee, 3.0, 2.6))
@@ -299,12 +355,13 @@ def build_model(cell: Cell, pose: Pose) -> tuple[list, dict]:
         add(grp, E("trouser", 0.56, tuple(ankle + core.V(0, 4.4, 0.1)), (2.7, 1.3, 2.6)))   # bloused over the boot
         add(grp, RC("boot", 0.55, ankle + core.V(0, 4.0, 0), ankle, 2.25, 2.1))
         add(grp, BX("boot", 0.35, (ankle[0], ankle[1] - 1.15, ankle[2] + 1.4), (1.75, 1.1, 3.1), rnd=0.6))
-    add("upper", E("trouser", 0.60, (0, HIP_Y + 1.0 + bob, -0.2), (6.6, 3.6, 4.3)))     # seat
+        label(start, "leg", side)
+    add("seat", E("trouser", 0.60, (0, HIP_Y + 1.0 + bob, -0.2), (6.6, 3.6, 4.3), tag="seat"))
 
     # ---------------------------------------------------------------- torso
     belt_z = (TORSO_R0 + 0.4) * 0.74
-    add("upper", CC("belt", 0.45, 26.9 + bob, 28.9 + bob, TORSO_R0 + 0.4, TORSO_R0 + 0.35, kz=0.74))
-    add("upper", BX("chrome", 0.6, (0, 27.9 + bob, belt_z + 0.15), (1.2, 0.9, 0.35)))      # buckle
+    add("upper", CC("belt", 0.45, 26.9 + bob, 28.9 + bob, TORSO_R0 + 0.4, TORSO_R0 + 0.35, kz=0.74, tag="belt"))
+    add("upper", BX("chrome", 0.6, (0, 27.9 + bob, belt_z + 0.15), (1.2, 0.9, 0.35), tag="belt"))      # buckle
     ty0, ty1 = WAIST_Y + bob, CHEST_Y + bob
     torso_mat = "chrome" if cell.torso == "cuirass" else "flesh"
     add("upper", core.Prim("cappedcone", torso_mat, 0.66, core.V(0, (ty0 + ty1) / 2, -0.2), h=(ty1 - ty0) / 2,
@@ -374,6 +431,7 @@ def build_model(cell: Cell, pose: Pose) -> tuple[list, dict]:
     for sx in (1, -1):          # chin strap
         add("helmet", RC("belt", 0.4, hp(sx * 3.9, 48.6, 1.4), hp(sx * 2.3, 43.6, 2.2), 0.32))
     anchors["head"] = (c + core.V(0, 47, 1), "head")
+    anchors["helmet"] = (c + core.V(0, 49.6, 0.6), "helmet")
 
     # ---------------------------------------------------------------- shotgun
     butt, u, v, w = gun_frame(pose)
@@ -384,10 +442,15 @@ def build_model(cell: Cell, pose: Pose) -> tuple[list, dict]:
     add("gun", RC("gunmetal", 0.4, at(13.0, -0.45), at(GUN_LEN - 3.0, -0.45), 0.42))    # magazine tube
     add("gun", RC("wood", 0.55, at(15.5, -0.5), at(20.5, -0.5), 0.95))                  # the pump
     anchors["muzzle"] = (at(GUN_LEN + 0.4, 0.45), "gun")
+    anchors["gun"] = (at(GUN_LEN / 2, 0.0), "gun")
 
     # ---------------------------------------------------------------- arms
-    grips = {-1: at(GRIP_R, -0.6), 1: at(GRIP_L, -1.0)}
+    if pose.carry == "free":
+        grips = {1: core.V(*pose.hand_l), -1: core.V(*pose.hand_r)}
+    else:
+        grips = {-1: at(GRIP_R, -0.6), 1: at(GRIP_L, -1.0)}
     for side in (1, -1):
+        start = len(P)
         sh = core.V(side * (SHOULDER_X + 0.2), SHOULDER_Y + bob, -0.4)
         pole = core.V(side * 1.0, -0.4, -0.7)
         elbow, wrist = core.two_bone(sh, grips[side], UPPER_ARM, FOREARM, pole)
@@ -397,6 +460,22 @@ def build_model(cell: Cell, pose: Pose) -> tuple[list, dict]:
         if cell.torso == "bare":
             add("arm", RC("chrome", 0.65, wrist - fd * 3.4, wrist - fd * 0.8, 2.25, 2.15))   # bracers
         add("arm", E("flesh", 0.62, tuple(wrist + fd * 0.9 - v * 0.2), (1.4, 1.55, 1.4)))
+        label(start, "arm", side)
+
+    # ------------------------------------------------------------- posing
+    # The full set's poses (gen_rig's order): chin, then the lean about the
+    # waist, then the fall. The sweep's two poses take none of these.
+    if pose.head_pitch:
+        core.transform(P, anchors, {"head", "helmet"}, core.rot_x(pose.head_pitch), NECK + core.V(0, bob, 0))
+    if pose.lean:
+        waist = core.V(0, WAIST_Y + bob, 0)
+        carried = {"gun"} if pose.carry != "free" else set()
+        core.transform(P, anchors, UPPER | carried, core.rot_x(pose.lean), waist)
+    if pose.roll:
+        body = ALL_BODY | ({"gun"} if pose.carry != "free" else set())
+        slide = core.V(-SLIDE * np.sin(np.deg2rad(pose.roll)), 0, 0)
+        core.transform(P, anchors, body, core.rot_z(pose.roll), ROLL_PIVOT, slide)
+        core.rest_on_floor(P, anchors, body)
     return P, anchors
 
 
@@ -558,7 +637,8 @@ def build_all(out_dir: Path = OUT_DIR, seed: int = SEED) -> tuple[dict, dict]:
     (out_dir / "metrics.json").write_text(json.dumps(metrics, indent=2) + "\n", encoding="utf-8")
     (out_dir / "flesh_ramp_candidate.json").write_text(json.dumps(
         {"name": FLESH, "dark": FLESH_DARK, "light": FLESH_LIGHT, "steps": FLESH_STEPS,
-         "gamma": palgen.RAMP_GAMMA, "status": "candidate for palette v2, NOT in palette.json",
+         "gamma": palgen.RAMP_GAMMA,
+         "status": "the sweep's candidate; since D45 it is palette v2's flesh_pink, colour for colour",
          "colours": [list(c) for c in flesh_ramp()]}, indent=1) + "\n", encoding="utf-8")
     return sprites, metrics
 
@@ -797,14 +877,722 @@ def load_sprites(out_dir: Path = OUT_DIR) -> dict:
     return out
 
 
+# ============================================================ the full set
+# D48 (CEO, 2026-10-14): "the Legion trooper cell C". This renders cell C's
+# whole frame set, as gen_rig.py does for the rifleman: walk A-D, aim E,
+# fire F, pain G at 8 rotations; death H-L and gib M-U at rotation 0. The
+# letters are the ones src/zscript/monsters/legion_trooper.zs plays today on
+# Freedoom's SPOS (Spawn A B, See A-D at 3 tics, Missile E F E at 10/10/10,
+# Pain G G, Death H-K 5 and L held, XDeath M-T 5 and U held, Raise L K J I
+# H), so the swap is the rename SPOS -> SDLT (BESTIARY §2.7). The lump name
+# is MOD-SPEC §6.3's reserved `SDLT`.
+#
+# All 8 rotations are separate lumps, not Doom's mirrored pairs (BESTIARY
+# §4 budgets 49 images with mirroring): the figure is handed, the US flag on
+# his RIGHT shoulder and the shotgun rising to his left, and a mirrored
+# flag would put it on the wrong shoulder. 70 lumps, as the rifleman's.
+#
+# A1-A3, F1 and F3 are the sweep's own cell C, byte for byte (E is F
+# without the flash); the CEO chose THOSE pixels.
+#
+# Blood (D48, D49): "much blood in the deaths, dark red", as the rifleman's
+# D48 deaths in gen_rig.py, section "blood": flag_red 0-5 and true black
+# (palette v1, so valid in v1 and v2), the round's burst, a stain that
+# soaks wider on the chrome, a run from the mouth and down the cuirass,
+# splats, a pool that grows K -> L; the gib's bigger burst, three pulsing
+# jets from the stump, 30 chunks (chrome shards among them) and a wide
+# pool. The burst, droplet, pool and chunk helpers below are COPIES of
+# gen_rig.py's (same constants), not imports: gen_rig.py is being edited by
+# another agent today, and these should move to rig_core.py once it is free
+# (noted for the PM). The flag stays brighter than any blood (flag_red 11).
+FULL_KEY = "C"                  # D48
+FULL_DIR = OUT_DIR / "full_C"
+FULL_CELL = CELL[FULL_KEY]
+DEATH = core.Canvas(96, 80, 48, 72)     # gen_rig's: a corpse lies across
+GIB = core.Canvas(96, 88, 48, 80)       # gen_rig's: the helmet flies higher than his head
+
+GIB_FRAMES = "MNOPQRSTU"
+FULL_GROUPS = (
+    ("walk", "ABCD", True),
+    ("attack", "EF", True),
+    ("pain", "G", True),
+    ("death", "HIJKL", False),
+    ("gib", GIB_FRAMES, False),
+)
+# legion_trooper.zs (and BESTIARY §4: ShotgunGuy parity), in tics
+WALK_TICS = 3
+ATTACK_TICS = (20, 10, 10, 10)          # A (held, for the loop), E, F, E
+PAIN_TICS = (20, 3, 3, 20)
+DEATH_TICS = (20, 5, 5, 5, 5, 70)       # A, H I J K 5 tics, L held
+GIB_TICS = (20,) + (5,) * 8 + (70,)     # A, M-T 5 tics, U held
+
+FLOOR_GUN = ((-15.0, 1.4, 3.0), (1.0, 0.0, 0.0), (0.0, 0.0, -1.0))   # the shotgun lies on its side
+_FIRE = POSES["F"]
+FULL_POSES: dict[str, Pose] = {
+    "A": replace(POSES["A"], title="idle / walk contact"),
+    "B": Pose("B", "left foot forward", (3.7, ANKLE_Y, 6.0), (-3.8, ANKLE_Y + 1.6, -5.2), -0.9, "high", False,
+              STAND, gun_tilt=0.03),
+    "C": Pose("C", "right leg passing", (3.9, ANKLE_Y, 0.2), (-4.0, ANKLE_Y + 2.6, 1.2), 0.4, "high", False, STAND),
+    "D": Pose("D", "right foot forward", (3.8, ANKLE_Y + 1.6, -5.2), (-3.7, ANKLE_Y, 6.0), -0.9, "high", False,
+              STAND, gun_tilt=-0.03),
+    "E": replace(_FIRE, key="E", title="aim", flash=False),
+    "F": replace(_FIRE, title="fire"),
+    "G": Pose("G", "pain", (4.0, ANKLE_Y, 0.8), (-3.8, ANKLE_Y, -3.0), -0.8, "high", False, STAND,
+              gun_tilt=0.22, lean=13.0, head_pitch=22.0),
+    "H": Pose("H", "hit", (3.8, ANKLE_Y, 1.2), (-3.6, ANKLE_Y, -3.6), -1.0, "free", False, DEATH,
+              lean=22.0, head_pitch=32.0, hand_l=(13.0, 47.0, 2.0), hand_r=(-12.0, 34.0, 5.0),
+              gun_at=((-8.0, 22.0, 6.0), (0.85, -0.35, 0.4), (0.0, 1.0, 0.0))),
+    "I": Pose("I", "knees go", (3.8, ANKLE_Y, 1.2), (-3.6, ANKLE_Y, -1.0), -7.0, "free", False, DEATH,
+              lean=26.0, head_pitch=30.0, hand_l=(13.0, 43.0, 1.0), hand_r=(-10.0, 31.0, 7.0),
+              gun_at=((-12.0, 9.0, 7.0), (0.94, -0.25, 0.2), (0.0, 1.0, 0.0)), roll=14.0),
+    "J": Pose("J", "falling", (3.8, ANKLE_Y, 1.2), (-3.6, ANKLE_Y, 0.0), -11.0, "free", False, DEATH,
+              lean=18.0, head_pitch=25.0, hand_l=(14.0, 39.0, 0.0), hand_r=(-8.0, 29.0, 8.0),
+              gun_at=((-16.0, 2.5, 3.0), (0.99, -0.15, 0.0), (0.0, 1.0, 0.0)), roll=42.0),
+    "K": Pose("K", "hits the floor", (3.8, ANKLE_Y, 1.0), (-3.6, ANKLE_Y, 0.5), -9.0, "free", False, DEATH,
+              lean=8.0, head_pitch=10.0, hand_l=(13.0, 41.0, -2.0), hand_r=(-7.0, 31.0, 8.0),
+              gun_at=FLOOR_GUN, roll=74.0),
+    "L": Pose("L", "dead", (3.6, ANKLE_Y, 0.6), (-3.8, ANKLE_Y, 1.4), -2.0, "free", False, DEATH,
+              head_pitch=-10.0, hand_l=(11.0, 31.0, 3.0), hand_r=(-10.0, 31.0, 6.0), gun_at=FLOOR_GUN, roll=90.0),
+}
+GIB_POSE = Pose("M", "chest bursts", (3.8, ANKLE_Y, 0.8), (-3.6, ANKLE_Y, -3.0), -0.8, "high", False, GIB,
+                gun_tilt=0.2, lean=10.0, head_pitch=18.0)
+GIB_TITLES = {"M": "chest bursts", "N": "burst", "O": "chunks fly", "P": "jets", "Q": "legs buckle",
+              "R": "falling", "S": "landing", "T": "down", "U": "dead"}
+
+# ------------------------------------------------------------------ blood
+BLOOD_RAMP = "flag_red"
+BLOOD_MAX_INDEX = 5             # no blood colour brighter than flag_red 5 (the flag is flag_red 11)
+# The gore's value: the rifleman's gore sits at base + 0.18 lift - 0.26 shift;
+# the Legion takes no shift, so the same rendered value is a -0.08 lift.
+GORE_LIFT = -0.08
+MATERIALS_BLOOD: dict[str, Mat] = dict(MATERIALS)   # same ids as the sweep's table; three appended
+core.register_material("gore", Mat.on_ramp(BLOOD_RAMP, 0, 4, black_floor=True, lift=GORE_LIFT), MATERIALS_BLOOD)
+core.register_material("blood", Mat.on_ramp(BLOOD_RAMP, 1, BLOOD_MAX_INDEX, black_floor=True, flat=True),
+                       MATERIALS_BLOOD)                 # droplets, stains, runs: no rim, so a drop stays red
+core.register_material("pool", Mat.on_ramp(BLOOD_RAMP, 0, 3, black_floor=True, flat=True),
+                       MATERIALS_BLOOD)                 # standing blood: darker than the spray
+
+# gen_rig.py's D48 constants, unchanged, so the two infantries bleed alike.
+GRAVITY = 160.0                 # units / s^2, the gib's big pieces
+BLOOD_GRAVITY = 400.0           # droplets land within the death's 4 x 5 tics
+DEATH_T = {"H": 0.08, "I": 0.19, "J": 0.31, "K": 0.46, "L": 3.0}   # s after the hit, 5 tics a frame
+GIB_T = {"N": 0.05, "O": 0.18, "P": 0.32, "Q": 0.46, "R": 0.62, "S": 0.80, "T": 1.0, "U": 1.4}
+N_SPRAY = 36                    # death burst droplets
+N_GIB_SPRAY = 56                # gib burst droplets
+N_CHUNKS = 30                   # gen_rig's N_CHUNKS_BLOODY
+# chrome shards of the cuirass and the pads fly with the meat
+CHUNK_MATS = ("gore", "gore", "gore", "flesh", "gore", "chrome", "flesh", "trouser", "gore", "chrome")
+STAIN_R = {"H": 2.4, "I": 3.4, "J": 4.2, "K": 4.9, "L": 5.6}       # chest stain half width
+POOL = {"K": (8.0, 7.0), "L": (20.0, 13.0)}                          # (x, z) radii under the chest
+POOL_Z = 7.0                    # pool centre in front of the body (the camera is only 9 degrees down)
+SPRAY_X = 40.0                  # landed splats stay inside the canvases (check_edges)
+SPRAY_Z = 24.0                  # ... and no farther in front than this: a splat 9 degrees below the
+                                # camera drops 0.16 px per unit forward, and seed 101 threw some past
+                                # the canvas' floor band (gen_rig's seed 38 happens not to)
+GIB_JETS = ((core.V(-16.0, 104.0, 6.0), 0.00), (core.V(3.0, 118.0, 9.0), 0.04), (core.V(19.0, 98.0, 4.0), 0.02))
+JET_STEP = 0.022                # s between two drops of a jet
+JET_PULSE = 0.13                # s, the heart's beat in the jet
+JET_END = 0.75                  # the jets stop when the legs are down
+WOUND = (0.8, 35.0)             # (x, y) of the round's hole on the cuirass, upright, before bob
+
+
+def _torso_front(x: float, y: float, bob: float) -> float:
+    """z of the cuirass front at (x, y), upright model space (build_model's torso_z)."""
+    ty0, ty1 = WAIST_Y + bob, CHEST_Y + bob
+    r = TORSO_R0 + (TORSO_R1 - TORSO_R0) * (y - ty0) / (ty1 - ty0)
+    return TORSO_KZ * np.sqrt(max(r * r - x * x, 0.0)) - 0.2
+
+
+def _attached(prim: core.Prim, to: core.Prim) -> core.Prim:
+    """`prim`, given in upright model space, rides `to`'s rigid transform."""
+    prim.xm, prim.xt, prim.grp = to.xm.copy(), to.xt.copy(), "blood"
+    return prim
+
+
+def _tagged(prims: list, tag: str) -> core.Prim:
+    return next(p for p in prims if p.tag == tag)
+
+
+def _land_time(y0: float, vy: float, rest: float, grav: float = GRAVITY) -> float:
+    """When a body thrown up at vy from y0 comes down to height `rest`."""
+    return (vy + np.sqrt(vy * vy + 2 * grav * max(y0 - rest, 0.0))) / grav
+
+
+def _ballistic(p0: np.ndarray, v: np.ndarray, t: float, rest: float) -> tuple[np.ndarray, bool]:
+    tl = _land_time(p0[1], v[1], rest)
+    tt = min(t, tl)
+    p = p0 + v * tt + core.V(0, -0.5 * GRAVITY * tt * tt, 0)
+    if t >= tl:
+        p[1] = rest
+    return p, t >= tl
+
+
+def droplet(p0, v, t: float, r: float) -> core.Prim:
+    """A blood droplet `t` s after leaving p0 at v: a drop in the air, a flat
+    splat once it has landed (gen_rig._droplet)."""
+    rest = r * 0.3
+    tl = _land_time(p0[1], v[1], rest, BLOOD_GRAVITY)
+    tt = min(t, tl)
+    p = p0 + v * tt + core.V(0, -0.5 * BLOOD_GRAVITY * tt * tt, 0)
+    if t >= tl:
+        x = float(np.clip(p[0], -SPRAY_X, SPRAY_X))
+        z = float(min(p[2], SPRAY_Z))
+        return core.ellipsoid("blood", 0.42, (x, 0.2, z), (r * 2.0, 0.35, r * 1.5), grp="splat")
+    return core.ellipsoid("blood", 0.62, tuple(p), (r, r * 1.15, r), grp="spray")
+
+
+def burst(origin, t: float, n: int, rng, speed=(30.0, 90.0)) -> list:
+    """A round's spray (gen_rig.burst): n droplets thrown mostly sideways, up
+    and away from the camera, some towards it, every sixth a heavy gout."""
+    out = []
+    for i in range(n):
+        d = core.V(rng.uniform(-1, 1), rng.uniform(-0.25, 1.0), rng.uniform(-1.0, 0.45))
+        d /= np.linalg.norm(d)
+        gout = i % 6 == 0
+        sp = rng.uniform(6, 22) if gout else rng.uniform(*speed)
+        r = rng.uniform(1.3, 1.8) if gout else rng.uniform(0.65, 1.15)
+        out.append(droplet(core.V(*origin), d * sp, t, r))
+    return out
+
+
+def pool(cx: float, cz: float, rx: float, rz: float, rng) -> list:
+    """A pool on the floor: one flat ellipse and three lobes (gen_rig.pool)."""
+    out = [core.ellipsoid("pool", 0.55, (cx, 0.3, cz), (rx, 0.55, rz), grp="pool")]
+    for _ in range(3):
+        ox, oz = rng.uniform(-0.7, 0.7) * rx, rng.uniform(-0.3, 0.6) * rz
+        out.append(core.ellipsoid("pool", 0.62, (cx + ox, 0.32, cz + oz),
+                                  (rx * rng.uniform(0.35, 0.55), 0.6, rz * rng.uniform(0.4, 0.6)), grp="pool"))
+    return out
+
+
+def chunks(t: float, seed: int = SEED, n: int = N_CHUNKS, mats: tuple = CHUNK_MATS) -> list:
+    """The upper body as `n` lumps of gore, flesh, chrome and cloth, `t` s
+    after the burst; landed ones flatten on the floor (gen_rig.chunks)."""
+    rng = np.random.default_rng(seed + 1)
+    out = []
+    for i in range(n):
+        p0 = core.V(rng.uniform(-6, 6), rng.uniform(30, 46), rng.uniform(-3, 3))
+        side = np.sign(p0[0]) or 1.0
+        v = core.V(side * rng.uniform(6, 30), rng.uniform(8, 42), rng.uniform(-6, 3))
+        r = core.V(rng.uniform(1.1, 2.8), rng.uniform(1.0, 2.2), rng.uniform(1.1, 2.6))
+        mat = mats[i % len(mats)]
+        rest = r[1] * 0.5
+        p, landed = _ballistic(p0, v, t, rest)
+        if landed:
+            r = r * core.V(1.35, 0.5, 1.35)
+        out.append(core.ellipsoid(mat, 0.45 if mat != "flesh" else 0.40, tuple(p), tuple(r), grp="chunk"))
+    return out
+
+
+def death_blood(frame: str, prims: list, seed: int = SEED) -> list:
+    """The blood of death frame H-L, for the posed `prims` of that frame."""
+    pose = FULL_POSES[frame]
+    t = DEATH_T[frame]
+    bob = pose.bob
+    torso = _tagged(prims, "torso")
+    out: list = []
+    sx, sy = WOUND[0], WOUND[1] + bob
+    zf = _torso_front(sx, sy, bob)
+    s = STAIN_R[frame]
+    # the wound and its stain on the chrome, soaking wider each frame (rides the torso)
+    out.append(_attached(core.ellipsoid("blood", 0.50, (sx, sy - s * 0.25, zf - 0.3), (s, s * 1.2, 1.5)), torso))
+    out.append(_attached(core.ellipsoid("blood", 0.24, (sx, sy, zf + 0.45), (1.0, 1.0, 0.8)), torso))   # the hole
+    if frame in "JKL":                    # it runs down the cuirass to the belt and the trousers
+        k = "JKL".index(frame)
+        y0, y1 = sy - 2.0, WAIST_Y - 2.0 - 2.5 * k + bob
+        out.append(_attached(core.rcone("blood", 0.40, (1.2, y0, _torso_front(1.2, y0, bob) + 0.5),
+                                        (1.8, y1, _torso_front(1.8, WAIST_Y + bob, bob) + 0.9), 1.3, 0.9), torso))
+    # from the mouth (rides the head): the smooth face's one line of a mouth
+    mouth = min((p for p in prims if p.grp == "head" and p.mat == "void"), key=lambda p: float(np.max(p.r)))
+    if frame in "IJKL":
+        m = mouth.a
+        run = 2.0 + 1.2 * "IJKL".index(frame)
+        out.append(_attached(core.rcone("blood", 0.45, m + core.V(0.3, -0.3, 0.2), m + core.V(0.6, -run, -0.2),
+                                        0.75, 0.55), mouth))
+    # the burst left his chest at H; where those droplets are now
+    p_h, _ = build_model(FULL_CELL, FULL_POSES["H"])
+    th = _tagged(p_h, "torso")
+    hb = FULL_POSES["H"].bob
+    origin = th.xm @ core.V(sx, WOUND[1] + hb, _torso_front(sx, WOUND[1] + hb, hb)) + th.xt
+    out += burst(origin, t, N_SPRAY, np.random.default_rng(seed + 11), speed=(40.0, 120.0))
+    # the wound bleeds while he falls: a short dribble under the hole
+    wound = torso.xm @ core.V(sx, sy, zf + 0.4) + torso.xt
+    if frame in "IJ":
+        rng = np.random.default_rng(seed + 12 + "IJ".index(frame))
+        for k in range(5):
+            age = 0.02 + 0.03 * k
+            out.append(droplet(wound, core.V(rng.uniform(-3, 3), rng.uniform(-4, 2), rng.uniform(6, 14)), age,
+                               rng.uniform(0.6, 0.9)))
+    if frame in POOL:                     # the pool under the chest, growing K -> L
+        rx, rz = POOL[frame]
+        out += pool(float(wound[0]) - 1.0, POOL_Z, rx, rz, np.random.default_rng(seed + 14))
+        head = mouth.xm @ mouth.a + mouth.xt
+        out += pool(float(head[0]), POOL_Z - 2.0, 3.0 + 1.5 * (frame == "L"), 4.0, np.random.default_rng(seed + 15))
+    return out
+
+
+def gib_blood(frame: str, t: float, prims: list, seed: int = SEED) -> list:
+    """The blood of gib frame M-U, `t` s after the burst, for `prims`."""
+    out: list = []
+    base, _ = build_model(FULL_CELL, GIB_POSE)
+    tb = _tagged(base, "torso")
+    gb = GIB_POSE.bob
+    origin = tb.xm @ core.V(0.0, WOUND[1] + gb, _torso_front(0.0, WOUND[1] + gb, gb)) + tb.xt
+    out += burst(origin, max(t, 0.04), N_GIB_SPRAY, np.random.default_rng(seed + 21), speed=(35.0, 105.0))
+    if frame == "M":
+        return out
+    stump = [p for p in prims if p.grp == "stump" and p.mat == "gore"]
+    top = stump[0].bound()[0] + core.V(0, 1.5, 0) if stump else origin
+    rng = np.random.default_rng(seed + 22)
+    for v, lag in GIB_JETS:
+        s = lag
+        while s <= min(t, JET_END):
+            pulse = 0.72 + 0.28 * np.cos(2 * np.pi * (s - lag) / JET_PULSE)
+            fade = max(0.0, 1.0 - s / JET_END)
+            vv = v * pulse * (0.45 + 0.55 * fade) + core.V(*rng.uniform(-4, 4, 3))
+            out.append(droplet(top, vv, t - s, rng.uniform(0.7, 1.05)))
+            s += JET_STEP
+    if t >= 0.46:                         # the pool under him, growing until U
+        g = min((t - 0.46) / 0.7, 1.0)
+        out += pool(0.0, POOL_Z, 9.0 + 15.0 * g, 6.0 + 7.0 * g, np.random.default_rng(seed + 23))
+    return out
+
+
+def build_gib(frame: str, seed: int = SEED) -> tuple[list, dict]:
+    """XDeath frame M-U. M: the chest gives way through the cuirass; from N
+    the upper body is chunks (meat and chrome shards) on ballistic arcs, the
+    M1 and the shotgun fly whole, the legs stand, buckle and fall, and he
+    bleeds as the rifleman does (D48)."""
+    cell = FULL_CELL
+    if frame == "M":
+        prims, anchors = build_model(cell, GIB_POSE)
+        rng = np.random.default_rng(seed + 2)
+        extra = []
+        for _ in range(6):                # gore pushing out through the cuirass front
+            y = rng.uniform(31, 39) + GIB_POSE.bob
+            x = rng.uniform(-4.5, 4.5)
+            p = core.V(x, y, _torso_front(x, y, GIB_POSE.bob) + rng.uniform(0.0, 1.0))
+            extra.append(core.ellipsoid("gore", 0.35, tuple(p), tuple(rng.uniform(1.2, 2.4, 3)), grp="upper"))
+        core.transform(extra, {}, {"upper"}, core.rot_x(GIB_POSE.lean), core.V(0, WAIST_Y + GIB_POSE.bob, 0))
+        prims = prims + extra + gib_blood(frame, 0.0, prims, seed)
+        return prims, anchors
+    t = GIB_T[frame]
+    k = float(np.clip((t - 0.25) / 0.55, 0, 1))          # the legs: stand, buckle, fall
+    k = k * k * (3 - 2 * k)
+    legs = replace(GIB_POSE, lean=0.0, head_pitch=0.0, bob=-0.8 - 10.0 * k, roll=0.0)
+    prims, anchors = build_model(cell, legs)
+    base, _ = build_model(cell, GIB_POSE)
+    keep = [p for p in prims if p.grp in {"leg_l", "leg_r", "seat"} or p.tag == "belt"]
+    for p in keep:
+        if p.tag == "belt":
+            p.grp = "stump"
+    bob = legs.bob
+    rng = np.random.default_rng(seed + 3)
+    stump = [core.ellipsoid("gore", 0.30, (0, WAIST_Y + bob + 0.8, 0), (7.0, 2.4, 5.0), grp="stump")]
+    for _ in range(4):
+        stump.append(core.ellipsoid("gore", 0.40, (rng.uniform(-4, 4), WAIST_Y + bob + rng.uniform(1.0, 3.2),
+                                                   rng.uniform(-2, 2)), tuple(rng.uniform(1.2, 2.2, 3)), grp="stump"))
+    keep += stump
+    groups = {"leg_l", "leg_r", "seat", "stump"}
+    if k > 0:
+        roll = 88.0 * k
+        slide = core.V(-SLIDE * 0.45 * np.sin(np.deg2rad(roll)), 0, 0)
+        core.transform(keep, {}, groups, core.rot_z(roll), ROLL_PIVOT, slide)
+        core.rest_on_floor(keep, {}, groups)
+    keep += gib_blood(frame, t, keep, seed)
+    keep += chunks(t, seed)
+    # the M1 and the shotgun fly whole, spinning, and lie where they land
+    for grp, v, spin, rest, lie in (("helmet", core.V(9.0, 52.0, 0.0), -420.0, 3.6, -100.0),
+                                    ("gun", core.V(-14.0, 26.0, 0.0), 260.0, 1.4, 0.0)):
+        parts = [p for p in base if p.grp == grp]
+        c0 = np.mean([q.bound()[0] for q in parts], axis=0)
+        p, landed = _ballistic(c0, v, t, rest)
+        R = core.rot_z(lie if landed else spin * t)
+        if landed and grp == "gun":         # it lies flat along the floor, behind the legs
+            u = parts[0].b - parts[0].a
+            R = core.rot_y(-np.degrees(np.arctan2(u[2], u[0])))
+            p[2] = -2.0
+        core.transform(parts, {}, {grp}, R, c0, p - c0)
+        if landed:                          # lying: its lowest point on the floor, not in it
+            core.rest_on_floor(parts, {}, {grp})
+        keep += parts
+    return keep, anchors
+
+
+BLOODY_FRAMES = "HIJKL" + GIB_FRAMES   # the frames that bleed; A-G are the sweep's figure
+
+
+def full_canvas(frame: str) -> core.Canvas:
+    return GIB if frame in GIB_FRAMES else FULL_POSES[frame].canvas
+
+
+def build_frame(frame: str, seed: int = SEED) -> tuple[list, dict, dict]:
+    """The posed primitives of one frame, its anchors and its material table
+    (the sweep's MATERIALS for A-G, MATERIALS_BLOOD for H-U)."""
+    if frame in GIB_FRAMES:
+        prims, anchors = build_gib(frame, seed)
+        return prims, anchors, MATERIALS_BLOOD
+    prims, anchors = build_model(FULL_CELL, FULL_POSES[frame])
+    if frame in BLOODY_FRAMES:
+        return prims + death_blood(frame, prims, seed), anchors, MATERIALS_BLOOD
+    return prims, anchors, MATERIALS
+
+
+def render_full(frame: str, rotation: int, seed: int = SEED) -> np.ndarray:
+    """One lump of the full set, RGBA (h, w, 4)."""
+    prims, anchors, table = build_frame(frame, seed)
+    flash = frame in FULL_POSES and FULL_POSES[frame].flash
+    return core.render(prims, rotation, full_canvas(frame), table, seed=seed, value_shift=VALUE_SHIFT,
+                       insignia=(FLAG_INSIGNIA,), muzzle=anchors["muzzle"][0] if flash else None,
+                       flash_size=FLASH_SIZE, chrome=CHROME, what=f"{SPRITE}{frame}{rotation}")
+
+
+def full_plan() -> list[tuple[str, int]]:
+    """All 8 rotations for A-G (handed figure: no mirrored pairs), 0 for H-U."""
+    return core.frame_plan(FULL_GROUPS, mirror=False)
+
+
+def full_lump(frame: str, rotation: int) -> str:
+    """The real lump name, MOD-SPEC §6.3: SDLT + frame + rotation."""
+    return f"{SPRITE}{frame}{rotation}"
+
+
+def blood_colours() -> set[tuple[int, int, int]]:
+    """Every colour the blood can paint: flag_red 0..BLOOD_MAX_INDEX."""
+    return {tuple(c) for c in core.ramp(BLOOD_RAMP)[:BLOOD_MAX_INDEX + 1]}
+
+
+def red_pixels(rgba: np.ndarray) -> int:
+    """Opaque pixels in blood_colours() (the flag is flag_red 11: never counted)."""
+    reds = blood_colours()
+    px = rgba[rgba[..., 3] > 0][:, :3]
+    return sum(1 for c in map(tuple, px.tolist()) if c in reds)
+
+
+def lineup_v2(figures: list, wall: str, light: int, width: int) -> np.ndarray:
+    """The full set's lineups: MAP01 wall over SDFLR2, re-quantised to palette v2 (D45)."""
+    return core.lineup(figures, wall, light, width, load=wall_rgb, palette=palette_v2())
+
+
+def measure_full(sprite: np.ndarray) -> dict:
+    m = measure(sprite)
+    a = sprite[..., 3] > 0
+    m["lowest_row"] = int(np.nonzero(a)[0].max())
+    m["red_px"] = red_pixels(sprite)
+    return m
+
+
+def _seq(sprites: dict, frames: str, rot, cv: core.Canvas) -> list[np.ndarray]:
+    out = []
+    for f in frames:
+        r = 0 if f in BLOODY_FRAMES else rot
+        out.append(core.on_bg(core.pad_to(sprites[(f, r)], full_canvas(f), cv), NEUTRAL))
+    return out
+
+
+FLOOR_SCENES = (("F1", "SDCONC1", 176, "hangar wall"), ("F2", "SDCONC1", 144, "bay shadow, under the catwalk"))
+
+
+def floor_frames(sprites: dict, frames: str, cv: core.Canvas, wall: str, light: int) -> list[np.ndarray]:
+    """Frame A1 then `frames` at rotation 0, each by its own offsets on a
+    MAP01 wall over SDFLR2, in the scene's light."""
+    out = []
+    for f in "A" + frames:
+        spr = core.pad_to(sprites[("A", 1)], STAND, cv) if f == "A" else sprites[(f, 0)]
+        out.append(lineup_v2([(spr, cv.cx, cv.foot_row - FEET_SINK)], wall, light, cv.w))
+    return out
+
+
+def write_full_gifs(sprites: dict, out_dir: Path = FULL_DIR) -> dict[str, Path]:
+    """At game speed (35 tics a second, legion_trooper.zs's tics)."""
+    t = lambda n: int(round(n * core.TIC_MS))  # noqa: E731
+    out = {}
+    for r in range(1, core.ROTATIONS + 1):
+        out[f"walk_{r}"] = core.save_gif(_seq(sprites, "ABCD", r, STAND), [t(WALK_TICS)] * 4,
+                                         out_dir / f"walk_rot{r}.gif")
+        out[f"attack_{r}"] = core.save_gif(_seq(sprites, "AEFE", r, AIM), [t(n) for n in ATTACK_TICS],
+                                           out_dir / f"attack_rot{r}.gif")
+    out["turn"] = core.save_gif([core.on_bg(sprites[("A", r)], NEUTRAL) for r in range(1, 9)], [t(12)] * 8,
+                                out_dir / "turntable.gif")
+    out["pain"] = core.save_gif(_seq(sprites, "AGGA", 1, STAND), [t(n) for n in PAIN_TICS], out_dir / "pain_rot1.gif")
+    out["death"] = core.save_gif(_seq(sprites, "AHIJKL", 1, DEATH), [t(n) for n in DEATH_TICS], out_dir / "death.gif")
+    out["gib"] = core.save_gif(_seq(sprites, "A" + GIB_FRAMES, 1, GIB), [t(n) for n in GIB_TICS],
+                               out_dir / "gib.gif")
+    for key, wall, light, _ in FLOOR_SCENES:
+        out[f"death_{key}"] = core.save_gif(floor_frames(sprites, "HIJKL", DEATH, wall, light),
+                                            [t(n) for n in DEATH_TICS], out_dir / f"death_floor_{key}.gif")
+        out[f"gib_{key}"] = core.save_gif(floor_frames(sprites, GIB_FRAMES, GIB, wall, light),
+                                          [t(n) for n in GIB_TICS], out_dir / f"gib_floor_{key}.gif")
+    return out
+
+
+def build_full(out_dir: Path = FULL_DIR, seed: int = SEED, only: set[str] | None = None) -> dict:
+    """Render the 70 lumps to out_dir (with grAb), then metrics and GIFs."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    sprites = {}
+    for frame, rot in full_plan():
+        name = full_lump(frame, rot)
+        if only and name not in only:
+            continue
+        rgba = render_full(frame, rot, seed)
+        save_sprite(rgba, out_dir / f"{name}.png", full_canvas(frame))
+        sprites[(frame, rot)] = rgba
+        print(name, flush=True)
+    if only:
+        return sprites
+    metrics = {full_lump(f, r): measure_full(s) for (f, r), s in sprites.items()}
+    (out_dir / "metrics.json").write_text(json.dumps(metrics, indent=2) + "\n", encoding="utf-8")
+    write_full_gifs(sprites, out_dir)
+    return sprites
+
+
+def load_full(out_dir: Path = FULL_DIR) -> dict:
+    out = {}
+    for frame, rot in full_plan():
+        with Image.open(out_dir / f"{full_lump(frame, rot)}.png") as im:
+            out[(frame, rot)] = np.asarray(im.convert("RGBA")).copy()
+    return out
+
+
+# ============================================================ full sheet
+def rig_sprite(name: str) -> tuple[np.ndarray, int, int] | None:
+    """One of the Reich rifleman's rig lumps (gen_rig.py's output, read only)
+    with its grAb offsets, if it is on disk."""
+    path = RIG_DIR / f"{name}.png"
+    if not path.is_file():
+        return None
+    with Image.open(path) as im:
+        arr = np.asarray(im.convert("RGBA")).copy()
+    return (arr, *core.read_grab(path))
+
+
+def sweep_identity(sprites: dict, sweep_dir: Path = OUT_DIR) -> dict[str, bool | None]:
+    """Whether the full set's A1-A3, F1, F3 are the sweep's cell C pixels
+    (None where the sweep's PNG is not on disk)."""
+    out: dict[str, bool | None] = {}
+    for f, r in VIEWS:
+        path = sweep_dir / f"{lump_name(FULL_CELL, f, r)}.png"
+        if not path.is_file():
+            out[full_lump(f, r)] = None
+            continue
+        with Image.open(path) as im:
+            out[full_lump(f, r)] = bool(np.array_equal(np.asarray(im.convert("RGBA")), sprites[(f, r)]))
+    return out
+
+
+FULL_ROT_NAMES = {1: "front", 2: "front-left", 3: "his left", 4: "back-left", 5: "back",
+                  6: "back-right", 7: "his right", 8: "front-right"}
+FULL_VERDICT = [
+    "WHAT WORKS. Cell C as you chose it, now in every frame Doom asks for: the front, three-quarter and "
+    "side views and the firing frame are the sweep's pixels, byte for byte, and everything else is the same "
+    "figure posed, so the 70 lumps agree with each other. The chrome football pads, the round M1 and the "
+    "shotgun high across the chest read at every rotation; from behind (4 to 6) he is a chrome back under "
+    "a chrome bowl, still a T. He walks faster than the rifleman (3 tics a frame, ShotgunGuy parity) and the "
+    "legs show because there is no greatcoat over them. Beside the rifleman on MAP01 the two infantries "
+    "cannot be confused: light and broad against dark and narrow, chest gun against hip rifle.",
+    "THE BLOOD (D48, D49). The deaths bleed as the rifleman's: dark red, flag_red 0-5 and black, a burst "
+    "out of the chest at H, a stain soaking wider on the chrome, blood from the mouth and down the cuirass, "
+    "splats, a pool that grows on K and L; the gib bursts through the cuirass, jets from the stump while the "
+    "legs stand, throws 30 chunks of meat and chrome shards, the M1 and the shotgun fly whole, and the floor "
+    "fills. On the Legion the red reads better than on the rifleman: dark red on chrome and pale khaki is "
+    "the strongest contrast he has. The flag stays the brightest red on him (flag_red 11).",
+    "WHAT DOES NOT, HONESTLY. The 'heavy' of BESTIARY 4 is still more promise than fact: he is slimmer than "
+    "Freedoom's shotgun guy even with the pads (the sweep said so; you chose C as drawn, so the build was not "
+    "touched). Up close (4x) he is the rig's rendered mannequin, as the rifleman. The firing frame from the "
+    "front hides the face behind the flash. The pain frame is a lean back, not a flinch of the arms. The pool "
+    "is a band a few pixels deep in front of the body, not a puddle seen from above (the camera looks down "
+    "9 degrees), and at 1x the droplets are 1-2 px dots: spray in motion, noise on a still. In the gib the "
+    "flag goes with the chunks: the legs that stay carry no insignia.",
+    "NOT VERIFIED. Rotation order and grAb offsets are gen_rig's, checked by hand against r_things.c, not in "
+    "GZDoom; the scene light is gen_enemy.py's stand-in, re-quantised to palette v2; the lumps are RGBA PNG "
+    "with hard alpha like the rifleman's, and the shipped format is mod-engineer's call.",
+]
+FULL_ASK = [
+    "Approve the 70 SDLT lumps as drawn (recommended): they go to assets/sprites/, mod-engineer renames SPOS "
+    "to SDLT in SD_LegionTrooper's states (BESTIARY 2.7: the letters already match), and you judge him in "
+    "GZDoom on MAP01's hangar, with the draft overlay first if you want to play him before approving.",
+    "Or name fixes, each a parameter and one more render: a heavier build (thighs, waist), a different pain "
+    "pose, more or less blood (N_SPRAY, POOL, GIB_JETS, the same constants as the rifleman's).",
+]
+
+
+def build_full_sheet(sprites: dict, stamp: str, out_dir: Path = PREVIEW_DIR, gif_dir: Path = FULL_DIR) -> Path:
+    S = []
+    T = core.tile
+
+    def st(arr, zoom, cap, sub=""):
+        return core.sprite_tile(arr, zoom, cap, sub, bg=NEUTRAL)
+
+    def gt(name, zoom, cap, sub=""):
+        return core.gif_tile(gif_dir / name, zoom, cap, sub)
+
+    # 1. turnaround
+    body = strip([st(sprites[("A", r)], 4, full_lump("A", r), FULL_ROT_NAMES[r]) for r in range(1, 9)])
+    body += strip([st(sprites[("A", r)], 1, full_lump("A", r)) for r in range(1, 9)]
+                  + [gt("turntable.gif", 4, "turntable", "animated")])
+    ident = sweep_identity(sprites)
+    same = [k for k, v in ident.items() if v]
+    S.append(("1 · Turnaround: frame A at Doom's 8 rotations",
+              "4x on neutral grey, then true 1x. Rotation 1 faces you, 3 shows his left side, 5 his back, 7 his "
+              "right. Eight separate lumps, not mirrored pairs: the US flag is on his right shoulder and the "
+              "shotgun rises to his left, so a mirror would move the flag. Identical, byte for byte, to the "
+              f"sweep's cell C you chose: {', '.join(same) if same else 'none (sweep PNGs not on disk)'}.", body))
+
+    # 2. walk
+    body = strip([gt(f"walk_rot{r}.gif", 4, f"walk, rotation {r}", FULL_ROT_NAMES[r]) for r in range(1, 9)])
+    for r in (1, 3):
+        body += strip([st(sprites[(f, r)], 4, full_lump(f, r), FULL_POSES[f].title) for f in "ABCD"])
+    S.append(("2 · Walk A-B-C-D, animated at game speed",
+              f"See state SDLT AABBCCDD at {WALK_TICS} tics a frame (legion_trooper.zs, ShotgunGuy parity), 35 tics "
+              "a second, every rotation. Stills of rotations 1 and 3 below. Spawn (idle) plays A B.", body))
+
+    # 3. attack
+    body = strip([gt(f"attack_rot{r}.gif", 4, f"attack, rotation {r}", "A, E 10, F 10, E 10 tics")
+                  for r in (1, 2, 3, 7)])
+    for f in "EF":
+        body += strip([st(sprites[(f, r)], 3, full_lump(f, r)) for r in range(1, 9)])
+    S.append(("3 · Attack: E aims, F fires (three pellets)",
+              "Missile state E 10, F 10 (Bright), E 10. The shotgun comes from across the chest to the shoulder; "
+              "the flash is a little larger than the rifle's and drawn behind him when his body hides the muzzle.",
+              body))
+
+    # 4. pain
+    body = strip([gt("pain_rot1.gif", 4, "pain, rotation 1", "A, G 3, G 3, A")]
+                 + [st(sprites[("G", r)], 3, full_lump("G", r)) for r in range(1, 9)])
+    S.append(("4 · Pain: G", "He recoils: upper body back 13 degrees, chin up, the shotgun muzzle rising.", body))
+
+    # 5. death and gib
+    body = ""
+    for key, wall, light, what in FLOOR_SCENES:
+        sub = f"{wall} over SDFLR2, light {light}"
+        body += strip([gt(f"death_floor_{key}.gif", 1, f"death, 1x, {key}", sub),
+                       gt(f"gib_floor_{key}.gif", 1, f"gib, 1x, {key}", sub),
+                       gt(f"death_floor_{key}.gif", 3, f"death, 3x, {key}", what),
+                       gt(f"gib_floor_{key}.gif", 3, f"gib, 3x, {key}", what)])
+    body += strip([st(sprites[(f, 0)], 3, full_lump(f, 0), FULL_POSES[f].title) for f in "HIJKL"])
+    body += strip([st(sprites[(f, 0)], 2, full_lump(f, 0), GIB_TITLES[f]) for f in GIB_FRAMES])
+    S.append(("5 · Death H-L and gib M-U, with the blood (rotation 0)",
+              "At game speed on MAP01's hangar floor: each loop starts on A1 (20 tics), then Death H I J K at 5 "
+              "tics and L held, or XDeath M to T at 5 tics and U held. Then frame by frame on neutral grey. Dark "
+              "red, flag_red 0-5 and black, the rifleman's D48 blood (D49: every faction's deaths).", body))
+
+    # 6. at 1x, beside the rifleman, on MAP01
+    rr = {n: rig_sprite(n) for n in ("SDRRA1", "SDRRF3", "SDRRL0", "SDRRU0")}
+    figs = [(sprites[("A", 1)], *core.grab_offsets(STAND))]
+    labels = ["SDLTA1"]
+    if rr["SDRRA1"]:
+        figs.append(rr["SDRRA1"])
+        labels.append("SDRRA1, the rifleman")
+    figs.append((sprites[("F", 3)], *core.grab_offsets(AIM)))
+    labels.append("SDLTF3, firing")
+    if rr["SDRRF3"]:
+        figs.append(rr["SDRRF3"])
+        labels.append("SDRRF3, the rifleman firing")
+    body = ""
+    for key, wall, light, what in SCENES[:3]:
+        sc = lineup_v2(figs, wall, light, 64 * len(figs))
+        Image.fromarray(sc, "RGB").save(gif_dir / f"pair_{key}.png", optimize=True)
+        body += strip([T(core.png_uri(sc), sc.shape[1], sc.shape[0], 1, f"{key} 1x", f"{wall} @{light}"),
+                       T(core.png_uri(sc), sc.shape[1], sc.shape[0], 3, f"{key} at 3x for the eye", what)])
+    dead = [(sprites[("L", 0)], *core.grab_offsets(DEATH))]
+    dead_labels = ["SDLTL0"]
+    for n in ("SDRRL0",):
+        if rr[n]:
+            dead.append(rr[n])
+            dead_labels.append(n + ", the rifleman")
+    dead.append((sprites[("U", 0)], *core.grab_offsets(GIB)))
+    dead_labels.append("SDLTU0, gibbed")
+    if rr["SDRRU0"]:
+        dead.append(rr["SDRRU0"])
+        dead_labels.append("SDRRU0, the rifleman gibbed")
+    sc = lineup_v2(dead, "SDCONC1", 176, 96 * len(dead))
+    Image.fromarray(sc, "RGB").save(gif_dir / "pair_dead.png", optimize=True)
+    body += strip([T(core.png_uri(sc), sc.shape[1], sc.shape[0], 1, "the dead, 1x", "SDCONC1 @176"),
+                   T(core.png_uri(sc), sc.shape[1], sc.shape[0], 2, "the dead at 2x")])
+    far = flat.far(lineup_v2(figs, SCENES[1][1], SCENES[1][2], 64 * len(figs)))
+    val = np.repeat(flat.luma(far)[..., None].clip(0, 255).astype(np.uint8), 3, -1)
+    body += strip([T(core.png_uri(far), far.shape[1], far.shape[0], 5, f"{SCENES[1][0]} at game distance /4"),
+                   T(core.png_uri(val), val.shape[1], val.shape[0], 5, "value only")])
+    body += ("<p class=\"lead\">Standing and firing, left to right: " + html.escape(" · ".join(labels))
+             + ". The dead: " + html.escape(" · ".join(dead_labels)) + ". Each sprite stands by its own grAb "
+             "offsets, as the engine places it, in the hangar's light (gen_enemy's stand-in, re-quantised to "
+             "palette v2; NOT VERIFIED against GZDoom). The rifleman's lumps are read from "
+             "work/art/enemies/rig/ as they are on disk today.</p>")
+    S.append(("6 · At 1x beside the Reich rifleman, on MAP01's hangar walls",
+              "Where MAP01 puts the Legion (Z6, the hangar): SDCONC1 at 176 and at 144 under the catwalk, the "
+              "red stripe framing D4. Then both dead on the hangar floor.", body))
+
+    # 7. palette
+    sw = "".join(f'<span class="swatch" title="{c}" style="background:rgb{c}"></span>' for c in flesh_ramp())
+    bl = "".join(f'<span class="swatch" title="{c}" style="background:rgb{c}"></span>'
+                 for c in MATERIALS_BLOOD["blood"].colours())
+    lo, hi = palgen.load()["added_index"][FLESH]
+    body = (f"<p>{sw}</p><p class=\"lead\">The pink is palette v2's <code>{FLESH}</code> (D45), slots {lo}-{hi}, "
+            "read from <code>docs/art/palette.json</code>. The sweep's local candidate is gone; it was checked "
+            f"identical to the official ramp, colour for colour ({FLESH_DARK} to {FLESH_LIGHT}, gamma "
+            f"{palgen.RAMP_GAMMA}), so every pink pixel is the one you approved in the sweep.</p>"
+            f"<p>{bl}</p><p class=\"lead\">Blood: flag_red 1-{BLOOD_MAX_INDEX} and black (pool 0-3, gore 0-4), "
+            "palette v1, the rifleman's D48 colours. Every opaque pixel of the 70 lumps is palette v2.</p>")
+    S.append(("7 · The palette: flesh_pink is official (v2), the blood is the rifleman's", "", body))
+
+    # 8. numbers
+    rows = []
+    for f, r in [(f, r) for f in "ABCDEFG" for r in (1, 3, 5, 7)] + [(f, 0) for f in "HIJKL"] + [("P", 0), ("U", 0)]:
+        m = measure_full(sprites[(f, r)])
+        rows.append([full_lump(f, r), f"{m['height_px']} x {m['width_px']}", m["body_luma"], m["mass_luma"],
+                     m["gap_L1"], m["gap_L2"], m["red_px"], m["lowest_row"] - full_canvas(f).foot_row])
+    body = sheetlib.table(["lump", "h x w px", "body luma", "mass luma", "gap L1", "gap L2", "red px",
+                           "below sole"], rows)
+    body += ("<p class=\"lead\">Body luma is the mean over every opaque pixel, mass luma the median; gap is "
+             "|body - wall| under the scene's light; red px counts blood colours (flag_red 0-5). Below sole: rows "
+             "under the sole line (a pool lies in front of the body, so a few rows lower). Canvas: standing "
+             f"{STAND.w}x{STAND.h}, aiming {AIM.w}x{AIM.h}, death {DEATH.w}x{DEATH.h}, gib {GIB.w}x{GIB.h}; "
+             f"{len(full_plan())} lumps in all.</p>")
+    S.append(("8 · Numbers", "", body))
+
+    # 9. verdict and the ask
+    body = '<div class="verdict">' + "".join(f"<p>{html.escape(v)}</p>" for v in FULL_VERDICT) + "</div>"
+    body += '<div class="ask"><b>For the CEO</b><ol>' + "".join(f"<li>{html.escape(a)}</li>" for a in FULL_ASK) \
+            + "</ol></div>"
+    S.append(("9 · Honest verdict and what you decide", "", body))
+
+    intro = ("D48: you chose the Liberty Legion trooper's cell C (chrome football pads). This is cell C's whole "
+             "frame set on the rig, as the rifleman's: walk, aim, fire and pain at 8 rotations, death and gib at "
+             f"one, {len(full_plan())} lumps named <code>SDLT</code> (MOD-SPEC §6.3), with the letters "
+             "<code>legion_trooper.zs</code> already plays on Freedoom's SPOS. Pink from palette v2's "
+             "<code>flesh_pink</code> (D45); much blood in the deaths, dark red (D48, D49). Built by "
+             f"<code>tools/art/gen_legion.py --full</code>, seed {SEED}, no system fonts. Draft: nothing in "
+             "<code>assets/</code>.")
+    footer = ("Sprites: tools/art/gen_legion.py (GPL-3.0 code; art CC BY-NC-SA 4.0, D15), deterministic, no "
+              "system fonts. The Reich rifleman's lumps are tools/art/gen_rig.py's (ours).")
+    path = out_dir / f"{stamp}_F5_legion-trooper-C-full-set.html"
+    sheetlib.write_sheet(path, lang="en", title="Liberty Legion trooper — cell C, full frame set (F5, D48)",
+                         subtitle=f"SDLT · {len(full_plan())} lumps · draft for the CEO's gate",
+                         intro=intro, sections=S, footer=footer)
+    text = path.read_text(encoding="utf-8").replace("</style>", EXTRA_CSS + "</style>", 1)
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--stamp", default=dt.datetime.now().strftime("%Y-%m-%d_%H%M"),
                     help="YYYY-MM-DD_HHMM for the sheet's file name")
     ap.add_argument("--no-sheet", action="store_true", help="sprites and metrics only")
     ap.add_argument("--sheet-only", action="store_true",
-                    help="rebuild the sheet from the sprites already in work/art/enemies/legion/")
+                    help="rebuild the sheet from the sprites already on disk")
+    ap.add_argument("--full", action="store_true",
+                    help="cell C's full frame set (D48): work/art/enemies/legion/full_C/ and its sheet")
+    ap.add_argument("--only", default="", help="with --full: comma-separated lumps, e.g. SDLTH0,SDLTU0 (no sheet)")
     args = ap.parse_args()
+    if args.full:
+        only = {s.strip().upper() for s in args.only.split(",") if s.strip()} or None
+        sprites = load_full() if args.sheet_only else build_full(only=only)
+        if only or args.no_sheet:
+            return
+        path = build_full_sheet(sprites, args.stamp)
+        print("sheet:", path.relative_to(PROJECT_ROOT))
+        return
     if args.sheet_only:
         sprites = load_sprites()
         metrics = json.loads((OUT_DIR / "metrics.json").read_text(encoding="utf-8"))
