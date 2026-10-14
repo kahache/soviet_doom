@@ -6,6 +6,7 @@ the haft toned as wood, the head given weight.
     python tools/art/hand_ref.py            # cells -> work/art/hand_ref/, sheet + HTML -> docs/art/previews/
     python tools/art/hand_ref.py silhouettes   # D75: 3x3 axe sizes on C3's hand, flat silhouettes
     python tools/art/hand_ref.py silhouette-final   # D76: the pick, its shaft as wide as L1.0's
+    python tools/art/hand_ref.py ppsh       # D77: PPSh-41 silhouettes from the CEO's Gemini render
 
 Why: drawn hands failed the CEO again and again ("dedos como salchichas",
 "el antebrazo un palo larguísimo"); what worked for likeness was deriving
@@ -1127,6 +1128,109 @@ def build_silhouette_straight(stamp: str, out_dir: Path = OUT_DIR / "silhouettes
     return silhouette_sheet(variants, PREVIEW_DIR / f"{stamp}_F4_ice-axe-silhouette-straight.png", 2, out_dir)
 
 
+# ======================================================= PPSh-41 (D77)
+# The CEO's Gemini render (work/art/reference/gemini_ppsh41.jpg, gitignored,
+# never shipped): a first-person PPSh-41 in two bare hands, the left under
+# the barrel jacket, the right on the stock, olive sleeves. Step 1 is the
+# silhouette only: the outline of guns, hands and sleeves traced on the
+# render (PPSH_OUTLINE, render px), the snow seen through it (the trigger
+# guard, the gaps) taken out by colour, then shrunk by area to Doom's scale.
+# The render's own first-person camera is kept. Its HUD's top (PPSH_HUD_Y)
+# is our status bar's line and its right edge, where the right sleeve
+# leaves, the screen's right edge: both sleeves leave the view as in the
+# render. Sizes: Freedoom's chaingun height above the bar (CHGGA0) x1,
+# x1.3, x1.6 (the CEO allowed oversize for the ice axe, D75).
+PPSH_REF = REF_DIR / "gemini_ppsh41.jpg"
+PPSH_HUD_Y = 652                  # render px: first row of the render's status bar
+PPSH_W = 1408                     # the render's width
+# The render's right sleeve leaves through its right edge, level; a Doom
+# frame does not fill the screen and a level forearm continued to the edge
+# reads as a long stick (the CEO's old complaint), so past the wrist the
+# sleeve turns down and leaves under the status bar, as Doom's arms do.
+PPSH_SLEEVE_END = 1340            # render px: where the sleeve's top edge meets the bar
+PPSH_CENTRE_X = 200               # screen px: the gun's (render-width part) centre, centre-right
+PPSH_OUTLINE = (
+    (232, 282), (318, 262), (336, 270), (420, 296), (510, 320), (522, 311), (560, 314), (600, 330),
+    (625, 347), (700, 362), (788, 372), (830, 368), (840, 396), (872, 405), (886, 400), (960, 420),
+    (985, 440), (992, 470), (1020, 483), (1080, 490), (1120, 503), (1180, 525), (1200, 522), (1262, 548),
+    (PPSH_SLEEVE_END, 652), (1060, 652), (960, 648), (935, 625), (930, 590), (900, 598), (835, 580), (785, 548),
+    (785, 505), (725, 480), (720, 560), (700, 620), (650, 648), (600, 652), (553, 652), (287, 652),
+    (353, 583), (420, 517), (440, 503), (433, 417), (440, 350), (420, 363), (227, 303), (226, 290),
+)
+PPSH_SNOW_V, PPSH_SNOW_S = 0.72, 0.15
+PPSH_SIZES = (1.0, 1.3, 1.6)
+PPSH_REF_LUMP = "CHGGA0"          # Freedoom's chaingun: the envelope (35 px above the bar)
+PPSH_SLUG = "F4_ppsh-silhouettes"
+
+
+def ppsh_mask() -> np.ndarray:
+    """The render's guns + hands + sleeves as a bool mask (render px)."""
+    with Image.open(PPSH_REF) as im:
+        rgb = np.asarray(im.convert("RGB"), np.float32) / 255.0
+    _, sat, val = hsv(rgb)
+    h, w = rgb.shape[:2]
+    m = polygon_mask((h, max(w, PPSH_SLEEVE_END + 2)), PPSH_OUTLINE)
+    m[:, :w] &= ~((val > PPSH_SNOW_V) & (sat < PPSH_SNOW_S))
+    m = morph(morph(m, 2, "open"), 2, "close")
+    m[PPSH_HUD_Y:] = False
+    return m
+
+
+def ppsh_height_above_bar() -> int:
+    lumps, pal = hs.read_wad()
+    spr, off = hs.decode_patch(lumps[PPSH_REF_LUMP], pal)
+    return hs.measure(spr, off)["height"]
+
+
+def ppsh_screen(mask: np.ndarray, height_px: float) -> np.ndarray:
+    """The mask scaled so it stands height_px above the status bar, its
+    bottom on the bar and the gun's centre (the render-width part) on
+    PPSH_CENTRE_X; bool 168x320 (the view)."""
+    rows = np.flatnonzero(mask.any(1))
+    cols = np.flatnonzero(mask[:, :PPSH_W].any(0))
+    s_ = height_px / (PPSH_HUD_Y - rows[0])
+    w, h = mask.shape[1], PPSH_HUD_Y
+    img = Image.fromarray(mask[:h].astype(np.float32), "F")
+    nw, nh = max(1, round(w * s_)), max(1, round(h * s_))
+    small = np.asarray(img.resize((nw, nh), Image.Resampling.BOX)) >= COVER
+    out = np.zeros((hs.VIEW_H, SCREEN_W), bool)
+    ox = round(PPSH_CENTRE_X - (cols[0] + cols[-1]) / 2 * nw / w)
+    oy = hs.VIEW_H - nh
+    ys, xs = np.nonzero(small)
+    ys, xs = ys + oy, xs + ox
+    ok = (ys >= 0) & (ys < hs.VIEW_H) & (xs >= 0) & (xs < SCREEN_W)
+    out[ys[ok], xs[ok]] = True
+    return out
+
+
+def build_ppsh_silhouettes(stamp: str, out_dir: Path = OUT_DIR / "ppsh") -> Path:
+    mask = ppsh_mask()
+    base_h = ppsh_height_above_bar()
+    y_top = 40                                   # screen rows shown: 40..168 (the view above the bar)
+    tw, th = 2 * SCREEN_W, 2 * (hs.VIEW_H - y_top) + 8
+    f = hs.font(14)
+    sheet = Image.new("RGBA", (len(PPSH_SIZES) * (tw + 10) + 10, th + 30), (0, 0, 0, 0))
+    d = ImageDraw.Draw(sheet)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for i, k in enumerate(PPSH_SIZES):
+        scr = ppsh_screen(mask, base_h * k)
+        rgba = np.zeros(scr.shape + (4,), np.uint8)
+        rgba[scr] = SIL_INK
+        tile = np.asarray(Image.fromarray(rgba[y_top:], "RGBA").resize((tw, th - 8), Image.Resampling.NEAREST))
+        Image.fromarray(tile, "RGBA").save(out_dir / f"PPSh_x{k}.png")
+        ox = 10 + i * (tw + 10)
+        sheet.alpha_composite(Image.fromarray(tile, "RGBA"), (ox, 5))
+        for yy in (hs.VIEW_H, tt33_top()):
+            d.line([(ox, 5 + 2 * (yy - y_top) - (1 if yy == hs.VIEW_H else 0)),
+                    (ox + tw, 5 + 2 * (yy - y_top) - (1 if yy == hs.VIEW_H else 0))], fill=SIL_LINE, width=1)
+        cols = np.flatnonzero(scr.any(0))
+        d.text((ox, th + 8), f"PPSh x{k} ({PPSH_REF_LUMP} height {base_h} px x{k}; x {cols[0]}-{cols[-1] + 1})",
+               font=f, fill=(128, 128, 128, 255))
+    path = PREVIEW_DIR / f"{stamp}_{PPSH_SLUG}.png"
+    sheet.save(path, optimize=True)
+    return path
+
+
 def build_all(out_dir: Path | None = OUT_DIR, cache: dict | None = None) -> dict:
     """Every cell; written with grAb to out_dir (None: not written)."""
     cache = {} if cache is None else cache
@@ -1147,7 +1251,7 @@ def build_all(out_dir: Path | None = OUT_DIR, cache: dict | None = None) -> dict
 
 def main() -> None:
     sil = {"silhouettes": build_silhouettes, "silhouette-final": build_silhouette_final,
-           "silhouette-straight": build_silhouette_straight}
+           "silhouette-straight": build_silhouette_straight, "ppsh": build_ppsh_silhouettes}
     if len(sys.argv) > 1 and sys.argv[1] in sil:
         fn = sil[sys.argv[1]]
         print("wrote", fn(datetime.now().strftime("%Y-%m-%d_%H%M")))

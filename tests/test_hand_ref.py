@@ -250,5 +250,24 @@ class RenderTest(unittest.TestCase):
             self.assertTrue(cols <= tones, k)
 
 
+@unittest.skipIf(hr is None, "art tooling (numpy, Pillow) not installed")
+@unittest.skipUnless(hr is not None and hr.PPSH_REF.is_file() and hr.hs.IWAD.is_file(),
+                     "the Gemini PPSh render or the IWAD is not here (both gitignored)")
+class PpshSilhouetteTest(unittest.TestCase):
+    """D77: the PPSh-41 silhouette from the CEO's Gemini render (never shipped)."""
+
+    @slow
+    def test_chaingun_envelope_from_the_bottom_centre_right(self):
+        mask = hr.ppsh_mask()
+        base = hr.ppsh_height_above_bar()
+        for k in hr.PPSH_SIZES:
+            scr = hr.ppsh_screen(mask, base * k)
+            rows, cols = np.flatnonzero(scr.any(1)), np.flatnonzero(scr.any(0))
+            self.assertLessEqual(abs((hr.hs.VIEW_H - rows[0]) - base * k), 1.5, k)
+            self.assertEqual(rows[-1], hr.hs.VIEW_H - 1, k)                 # it enters from the bottom
+            self.assertTrue(hr.SCREEN_W / 2 <= (cols[0] + cols[-1]) / 2 <= 216, k)
+            self.assertLess(cols[-1], hr.SCREEN_W - 1, k)                  # the right sleeve leaves under the bar
+
+
 if __name__ == "__main__":
     unittest.main()
