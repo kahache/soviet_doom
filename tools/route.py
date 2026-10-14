@@ -53,9 +53,30 @@ section 7); map02-start walks west into the alcove and presses it. The
 helper's `sdexit` (Level.ExitLevel) stays as a documented recourse for a
 map with no exit line: a JSON route with "exit_by": "console" uses it, no
 built-in route does, and a switch route ended by sdexit fails. The console
-`exit` QUITS GZDoom (PM, 2026-10-13 20:39) and is never typed. Both maps say
-`next = endtitle`, so the report checks that the level led to an end
-sequence.
+`exit` QUITS GZDoom (PM, 2026-10-13 20:39) and is never typed.
+
+Where the exit leads is read from MAPINFO's `next` for the map, never written
+here (exit_expectation): since D60 (9fd800a) MAP01 leads to the metro
+(`next = "MAP03"`), and only the map that ends the episode (the metro, today)
+and the practice range (its own end text) say `next = endtitle`, which the
+report checks as an end sequence. Map names are not written here either
+(D62 renumbers the slots): each route finds its map by the named constants
+its map.py defines (map_defining, ZARYA_MARKERS, RANGE_MARKERS, MAP03_CONSTANTS).
+
+MAP03, the metro-bunker (docs/levels/MAP03-metro.md sections 5 and 14.5):
+`map03-critical` is MAP03's g3-auto. Start; the blue blast door pressed
+WITHOUT the pass (it must stay shut, and the press must be seen); the pass
+picked up by WALKING onto it (never `give`); the blast door pressed again and
+walked through; SW-A (the shutter opens, the gate stays shut); SW-B (the
+gate opens); through the gate to the exit switch, pressed. Nothing in it is a
+copied coordinate: tags, specials and the pass's editor number come from the
+named constants of src/maps/MAP03/map.py, every position from the built map
+(the pass by DoomEdNum, the switches and doors by special and tag, the gate
+by the ray from the exit line), so the route follows the map when v1 moves
+things. The route is built when first asked for (route_by_name), so a MAP03
+caught mid-edit cannot break MAP01's routes. The pass is checked by KEY,
+never by class (SD_BluePass replaces BlueCard and may be renamed): sdinv
+reports every Key in the inventory since route-4.
 
 Usage (the PM's; D26: only the PM sets SD_ALLOW_ENGINE, and on Windows the
 interpreter is .venv/Scripts/python.exe):
@@ -69,6 +90,7 @@ interpreter is .venv/Scripts/python.exe):
   python3 tools/route.py --scan logs/gzdoom.log                 # G3-2 on a hand-played run
   SD_ALLOW_ENGINE=1 python3 tools/route.py --route mural --skills 3 --nomonsters --keep-evidence
   SD_ALLOW_ENGINE=1 python3 tools/route.py --route map02-door --skills 3 --keep-evidence  # MAP02's P4
+  SD_ALLOW_ENGINE=1 python3 tools/route.py --route map03-critical --keep-evidence  # MAP03, skills 2 3 4
   python3 tools/route.py --steps my_route.json --print          # a route of your own
   python3 tools/route.py --list-routes
 
@@ -96,7 +118,13 @@ Nothing is judged on it: the unload line names the end sequence, and the
 END screenshot shows the screen.
 NOT VERIFIED until the PM's next run: route-3's sdstop and the velocity
 reset in sdangle (Actor.Vel and PlayerInfo.vel, read in g4.14.2's
-gzdoom.pk3 on 2026-10-13). Whether a `warp` onto a pickup collects it
+gzdoom.pk3 on 2026-10-13). route-4's key lines in sdinv (`item is "Key"`,
+the base class of every Doom key in gzdoom.pk3's zscript). That a press on
+a LOCKED line still prints its SDTEST line when the key is missing
+(hypothesis from memory of GZDoom's P_ActivateLine: WorldLinePreActivated
+runs before the special, and Door_LockedRaise checks the lock inside the
+special); a step that needs the press also accepts the engine's lock
+message ("You need a blue pass...") at that step, should either be absent. Whether a `warp` onto a pickup collects it
 is still unknown; no step relies on it (each walks onto its pickup).
 Every
 ZScript name it uses was checked against the declarations in GZDoom
@@ -112,7 +140,9 @@ Python 3 standard library only (plus the map's own source for map data).
 from __future__ import annotations
 
 import argparse
+import functools
 import json
+import math
 import re
 import shutil
 import sys
@@ -120,6 +150,7 @@ import zipfile
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+from typing import Callable
 
 TOOLS_DIR = Path(__file__).resolve().parent
 if str(TOOLS_DIR) not in sys.path:
@@ -173,7 +204,7 @@ COUNT_CLASSES = (
     "SD_Clip", "SD_Izh",
 )
 HELPER_CLASS = "SDRouteHelper"
-HELPER_VERSION = "route-3"
+HELPER_VERSION = "route-4"   # route-4: sdinv also names the keys owned (MAP03's pass)
 
 # Monsters as the map places them (DoomEdNums of the Freedoom stand-ins our
 # bestiary replaces, docs/levels/MAP01-zarya-7.md section 8). Used to say how
@@ -250,7 +281,14 @@ class Step:
     The inventory expectations need an `inv` action in the step: `melee`
     is whether a slot-1 weapon is owned at the end of the step (None: not
     checked); `ready_slot` the slot of the raised weapon; `ready_ammo` the
-    rounds in its primary ammo pool.
+    rounds in its primary ammo pool; `key` whether any key is owned (by
+    the Key base class, never by name: MAP03's pass is SD_BluePass, which
+    replaces BlueCard, and may be renamed).
+
+    `presses` lists the (special, arg0) lines the player must be seen
+    pressing during the step (the helper's SDTEST line, or the engine's
+    lock message): a door that stays shut proves nothing if the press
+    never reached it. Needs a `use` action.
     """
 
     id: str
@@ -263,6 +301,8 @@ class Step:
     melee: bool | None = None
     ready_slot: int | None = None
     ready_ammo: int | None = None
+    key: bool | None = None
+    presses: tuple[tuple[int, int], ...] = ()
 
     def __post_init__(self) -> None:
         if not STEP_ID.fullmatch(self.id):
@@ -275,10 +315,12 @@ class Step:
                 raise RouteError(f"step {self.id}: expects tag {tag} but never asks for it")
         if self.checks_inventory and "inv" not in self.actions:
             raise RouteError(f"step {self.id}: expects an inventory but never asks for it")
+        if self.presses and "use" not in self.actions:
+            raise RouteError(f"step {self.id}: expects a press but never presses")
 
     @property
     def checks_inventory(self) -> bool:
-        return (self.melee, self.ready_slot, self.ready_ammo) != (None, None, None)
+        return (self.melee, self.ready_slot, self.ready_ammo, self.key) != (None, None, None, None)
 
 
 @dataclass(frozen=True)
@@ -296,10 +338,68 @@ class Route:
     # sdexit: the recourse for a map with no exit line. No built-in route
     # uses it since MAP02 got its switch, d1e891f; a JSON route may).
     exit_by: str = "switch"
-    # The map's MAPINFO says `next = endtitle`: leaving it must lead to an
-    # end sequence (GZDoom names them "enDSeQ" + hex: the PM's MAP01 run
-    # of 2026-10-13 20:36 unloaded towards "enDSeQ1dce").
+    # The map's MAPINFO says `next = endtitle` (or another end): leaving it
+    # must lead to an end sequence (GZDoom names them "enDSeQ" + hex: the
+    # PM's MAP01 run of 2026-10-13 20:36 unloaded towards "enDSeQ1dce").
+    # Built-in routes take it from MAPINFO (exit_expectation).
     end_sequence: bool = False
+    # The map's MAPINFO names a next map: leaving must lead there (compared
+    # without case). None: not checked.
+    next_map: str | None = None
+
+
+# --- Where a map's exit leads, and which map is which: from the sources -----
+MAPINFO_PATH = PROJECT_ROOT / "src" / "lumps" / "MAPINFO"
+MAPS_DIR = PROJECT_ROOT / "src" / "maps"
+_MAPINFO_COMMENT = re.compile(r"//[^\n]*|/\*.*?\*/", re.S)
+_MAPINFO_MAP = re.compile(r"^[ \t]*map[ \t]+(\S+)[^\n{]*\n?\s*\{(.*?)^[ \t]*\}", re.M | re.S | re.I)
+_MAPINFO_NEXT = re.compile(r"^\s*next\s*=\s*\"?([^\s\"{]+)", re.M | re.I)
+
+
+def mapinfo_next(map_name: str, text: str | None = None) -> str | None:
+    """The `next` of `map <map_name>` in MAPINFO (quotes dropped), or None."""
+    if text is None:
+        text = MAPINFO_PATH.read_text(encoding="utf-8")
+    text = _MAPINFO_COMMENT.sub("", text)
+    for name, body in _MAPINFO_MAP.findall(text):
+        if name.upper() == map_name.upper():
+            found = _MAPINFO_NEXT.search(body)
+            return found.group(1) if found else None
+    return None
+
+
+def exit_expectation(map_name: str, text: str | None = None) -> dict:
+    """Route keywords for where leaving `map_name` must lead, per MAPINFO:
+    {"end_sequence": True} for `endtitle`, `EndGame {...}` and their kin (a
+    next that is not a map), else {"next_map": <that map>}."""
+    if text is None:
+        text = MAPINFO_PATH.read_text(encoding="utf-8")
+    nxt = mapinfo_next(map_name, text)
+    if nxt is None:
+        raise RouteError(f"MAPINFO has no `next` for {map_name}: cannot say where its exit leads")
+    maps = {name.upper() for name, _body in _MAPINFO_MAP.findall(_MAPINFO_COMMENT.sub("", text))}
+    if nxt.upper() not in maps and nxt.lower().startswith("end"):
+        return {"end_sequence": True, "next_map": None}
+    return {"end_sequence": False, "next_map": nxt}
+
+
+def map_defining(*constants: str, maps_dir: Path = MAPS_DIR) -> str:
+    """The one map whose map.py defines every one of `constants` at top level:
+    routes find their map by what it is, not by its slot (D62 renumbers)."""
+    found = []
+    for script in sorted(maps_dir.glob("*/map.py")):
+        source = script.read_text(encoding="utf-8")
+        if all(re.search(rf"^{re.escape(c)}\s*=", source, re.M) for c in constants):
+            found.append(script.parent.name)
+    if len(found) != 1:
+        raise RouteError(f"want one map defining {', '.join(constants)}, found {found or 'none'}")
+    return found[0]
+
+
+# Zarya-7 (the mural and Lenin are its own) and the practice range (its
+# gallery door and weapon row): the constants that say which map is which.
+ZARYA_MARKERS = ("MURAL_NICHE", "LENIN")
+RANGE_MARKERS = ("TAG_GALLERY_DOOR", "WEAPON_ROW")
 
 
 def parse_action(text: str) -> tuple[str, tuple]:
@@ -500,27 +600,315 @@ _MURAL_STEPS = (
          note="close up: the health bonus at the mural's foot. Clutter or fine? (the CEO's call)"),
 )
 
+# --- MAP03 Metro-bunker: the critical path (docs/levels/MAP03-metro.md 5) --
+# Built from the map, never from copied coordinates: another agent is
+# building MAP03 v1 (the pass signposted, the map populated) while this is
+# written, and v1 may move the pass, the switches or the doors. What the
+# route reads, and where from:
+#   * tags, the locked-door special and the pass's editor number: the named
+#     constants of src/maps/MAP03/map.py (MAP03_CONSTANTS);
+#   * the blast door: the line(s) with that special and TAG_BLAST_DOOR, the
+#     face whose front sector is the hall (MAP03_HALL_FAMILY);
+#   * the pass: the one DoomEdNum ED_BLUE_CARD thing spawning on skills 2,
+#     3 and 4 (the same spot on each), walked onto from the first side of
+#     it with a clear lane in its own zone;
+#   * SW-A and SW-B: the one-sided, player-used lines whose arg0 is
+#     TAG_SHUTTER and TAG_GATE;
+#   * the exit: the Exit_Normal line; E0 starts on the ray out of its niche,
+#     GATE_CLEARANCE past the far face of the first TAG_GATE sector it
+#     crosses, so the walk to the switch proves the gate open.
+# Every press is made from USE_DISTANCE in front of the line's front face,
+# facing it. tests/test_route.py holds the geometry on the built map.
+MAP03_CONSTANTS = ("TAG_BLAST_DOOR", "TAG_SHUTTER", "TAG_GATE", "SPECIAL_DOOR_LOCKED_RAISE",
+                   "ED_BLUE_CARD")
+MAP03_HALL_FAMILY = "Z3"        # the blast door is pressed from the hall's portal band
+MAP03_PASS_SKILLS = (2, 3, 4)   # G3's skills: the pass must lie at one spot on each
+USE_DISTANCE = 32               # line to the body's centre: Doom's use range is 64
+PLAYER_RADIUS = 16
+MAX_STEP_UP = 24
+SAMPLE_UNITS = 4                # spacing of the points a walk is checked at
+# +forward from rest does not cover WALK_UNITS_PER_TIC from the first tic:
+# Doom's walk thrust (forwardmove 25 x 2048 / 65536 = 0.78 units/tic^2) and
+# ground friction (0.90625) give a top speed of 8.33 units/tic and leave the
+# body ~9.7 tics behind it when it starts from rest, so n tics cover about
+# 8.33 x (n - 9.7) units. Derived from Doom's constants, NOT VERIFIED in
+# GZDoom; the walks below add ACCEL_TICS to the plain distance / 8, which
+# covers the distance with margin on that model.
+ACCEL_TICS = 12
+PASS_APPROACH = 64     # the pass walk starts here: outside touch (16 + 20)
+PASS_OVERSHOOT = 32    # and is sized to end this far past the pass
+DOOR_CLEARANCE = 64    # BD1 walks this far past the blast door's far face
+GATE_CLEARANCE = 64    # E0 starts this far past the gate's far face
+MAX_RAY = 4096         # how far a ray looks for a door before giving up
+PASS_DIRECTIONS = (0, 180, 90, 270)   # tried in this order; the first clear lane wins
+COMPASS = {0: (1, 0), 90: (0, 1), 180: (-1, 0), 270: (0, -1)}
+
+
+def walk_tics(distance: float) -> int:
+    """+forward tics that carry the body `distance` units from rest."""
+    return math.ceil(distance / WALK_UNITS_PER_TIC) + ACCEL_TICS
+
+
+def _angle_of(vector: tuple[int, int]) -> int:
+    for angle, v in COMPASS.items():
+        if v == vector:
+            return angle
+    raise RouteError(f"not an axis direction: {vector}")
+
+
+def _map_const(md: "MapData", name: str):
+    try:
+        return getattr(md.module, name)
+    except AttributeError:
+        raise RouteError(f"src/maps/{md.map_name}/map.py no longer defines {name}: "
+                         f"the route reads it from there") from None
+
+
+def line_ends(md: "MapData", ld) -> tuple[tuple[float, float], tuple[float, float]]:
+    a, b = md.textmap.vertices[ld.v1], md.textmap.vertices[ld.v2]
+    return (a.x, a.y), (b.x, b.y)
+
+
+def front_normal(md: "MapData", ld) -> tuple[int, int]:
+    """The unit vector out of a line's front face (Doom: the right of v1->v2)."""
+    (x1, y1), (x2, y2) = line_ends(md, ld)
+    if x1 == x2:
+        return (1, 0) if y2 > y1 else (-1, 0)
+    if y1 == y2:
+        return (0, -1) if x2 > x1 else (0, 1)
+    raise RouteError(f"line {ld.v1}->{ld.v2} is not axis-aligned")
+
+
+def approach(md: "MapData", ld, distance: int = USE_DISTANCE) -> tuple[tuple[int, int], int]:
+    """The point `distance` in front of a line's middle, and the facing at it."""
+    (x1, y1), (x2, y2) = line_ends(md, ld)
+    nx, ny = front_normal(md, ld)
+    point = (int((x1 + x2) / 2 + nx * distance), int((y1 + y2) / 2 + ny * distance))
+    return point, _angle_of((-nx, -ny))
+
+
+def _longest(md: "MapData", lines: list, what: str):
+    if not lines:
+        raise RouteError(f"{md.map_name}: no line for {what}")
+    def length(ld):
+        (x1, y1), (x2, y2) = line_ends(md, ld)
+        return abs(x2 - x1) + abs(y2 - y1)
+    return max(lines, key=length)
+
+
+def switch_line(md: "MapData", tag: int, what: str):
+    """The one-sided, player-used switch line whose special acts on `tag`."""
+    found = [ld for ld in md.textmap.linedefs
+             if ld.special and ld.arg0 == tag and ld.sideback is None and "playeruse" in ld.flags]
+    return _longest(md, found, f"{what} (a one-sided switch with arg0 {tag})")
+
+
+def family_at(md: "MapData", point) -> str:
+    return zone_family(md.name_of(md.sector_at(*point)))
+
+
+def _ray_past_door(md: "MapData", start, angle: int, door_tag: int, what: str) -> tuple[int, int]:
+    """From `start` along `angle`: the distance at which the ray leaves the
+    first sector tagged `door_tag`, and the sector it enters there."""
+    dx, dy = COMPASS[angle]
+    inside = False
+    for t in range(SAMPLE_UNITS, MAX_RAY, SAMPLE_UNITS):
+        s = md.sector_at(start[0] + dx * t, start[1] + dy * t)
+        if s is None:
+            raise RouteError(f"{what}: the ray from {start} facing {angle} hits a wall at {t} "
+                             f"before passing a sector tagged {door_tag}")
+        if md.textmap.sectors[s].identifier == door_tag:
+            inside = True
+        elif inside:
+            return t, s
+    raise RouteError(f"{what}: no sector tagged {door_tag} within {MAX_RAY} of {start}")
+
+
+def lane_is_clear(md: "MapData", start, angle: int, must: int, may: int, family: str) -> bool:
+    """A body walking from `start` along `angle` stays in `family` for the
+    first `must` units (lateral edges included, no step over MAX_STEP_UP
+    from where it started, no opening lower than PLAYER_HEIGHT), and up to
+    `may` units either stays in it or is stopped by a wall, a step or a low
+    opening (MAP03 v1's booth window is 48 high)."""
+    dx, dy = COMPASS[angle]
+    px, py = -dy, dx
+    s0 = md.sector_at(*start)
+    if s0 is None:
+        return False
+    floor0 = md.textmap.sectors[s0].heightfloor
+    for t in range(0, may + 1, SAMPLE_UNITS):
+        for off in (-(PLAYER_RADIUS - 1), 0, PLAYER_RADIUS - 1):
+            x, y = start[0] + dx * t + px * off, start[1] + dy * t + py * off
+            s = md.sector_at(x, y)
+            sec = md.textmap.sectors[s] if s is not None else None
+            blocked = (sec is None or sec.heightfloor - floor0 > MAX_STEP_UP
+                       or sec.heightceiling - sec.heightfloor < PLAYER_HEIGHT)
+            if not blocked and zone_family(md.name_of(s)) == family:
+                continue
+            if t <= must:
+                return False
+            return blocked     # past the pass: a wall stops him; another room does not
+    return True
+
+
+def pass_spot(md: "MapData", ednum: int) -> tuple[int, int]:
+    """The pass: the one `ednum` thing of each of MAP03_PASS_SKILLS, one spot."""
+    per_skill = {s: sorted({(int(t.x), int(t.y)) for t in md.things_on(ednum, s)})
+                 for s in MAP03_PASS_SKILLS}
+    spots = {tuple(v) for v in per_skill.values()}
+    if any(len(v) != 1 for v in per_skill.values()) or len(spots) != 1:
+        raise RouteError(f"{md.map_name}: want one DoomEdNum {ednum} at one spot on skills "
+                         f"{MAP03_PASS_SKILLS}, found {per_skill}")
+    return per_skill[MAP03_PASS_SKILLS[0]][0]
+
+
+def pass_walk(md: "MapData", spot) -> tuple[tuple[int, int], int, str, int]:
+    """Where to start the walk onto the pass, facing which way, the zone
+    family it ends in, and its tics."""
+    home = md.sector_at(*spot)
+    family = zone_family(md.name_of(home)) if home is not None else "?"
+    if family == "?":
+        raise RouteError(f"the pass at {spot} lies in sector {md.name_of(home)!r}, which has no "
+                         f"zone family: add a ZONE_PREFIXES row in tools/route.py")
+    tics = walk_tics(PASS_APPROACH + PASS_OVERSHOOT)
+    for angle in PASS_DIRECTIONS:
+        dx, dy = COMPASS[angle]
+        start = (spot[0] - dx * PASS_APPROACH, spot[1] - dy * PASS_APPROACH)
+        if lane_is_clear(md, start, angle, PASS_APPROACH + PLAYER_RADIUS,
+                         tics * WALK_UNITS_PER_TIC, family):
+            return start, angle, family, tics
+    raise RouteError(f"no clear lane of {PASS_APPROACH} units in {family} onto the pass at {spot}")
+
+
+def map03_critical(md: "MapData | None" = None) -> Route:
+    """MAP03's critical path, read off the built map (see the block above)."""
+    md = md or load_map_data(map_defining(*MAP03_CONSTANTS))
+    tag_bd, tag_sh, tag_gate, locked, ed_pass = (_map_const(md, n) for n in MAP03_CONSTANTS)
+    tm = md.textmap
+
+    starts = [t for t in tm.things if t.type == ED_PLAYER1_START]
+    if len(starts) != 1:
+        raise RouteError(f"{md.map_name}: want one player start, found {len(starts)}")
+    start_family = family_at(md, (starts[0].x, starts[0].y))
+
+    # The blast door, its hall face; BD1 walks through it to the room behind.
+    faces = [ld for ld in tm.linedefs if ld.special == locked and ld.arg0 == tag_bd
+             and zone_family(md.name_of(tm.sidedefs[ld.sidefront].sector)) == MAP03_HALL_FAMILY]
+    bd_point, bd_angle = approach(md, _longest(md, faces, f"the blast door's {MAP03_HALL_FAMILY} face"))
+    beyond, room = _ray_past_door(md, bd_point, bd_angle, tag_bd, "the blast door")
+    bd_tics = walk_tics(beyond + DOOR_CLEARANCE)
+    inside_family = zone_family(md.name_of(room))
+
+    spot = pass_spot(md, ed_pass)
+    pass_start, pass_angle, pass_family, pass_tics = pass_walk(md, spot)
+
+    swa = switch_line(md, tag_sh, "SW-A")
+    swa_point, swa_angle = approach(md, swa)
+    swb = switch_line(md, tag_gate, "SW-B")
+    swb_point, swb_angle = approach(md, swb)
+
+    exits = [ld for ld in tm.linedefs if ld.special == SPECIAL_EXIT_NORMAL]
+    exit_line = _longest(md, exits, "the exit switch")
+    exit_mid, exit_angle = approach(md, exit_line, 0)
+    exit_family = zone_family(md.name_of(tm.sidedefs[exit_line.sidefront].sector))
+    out = (exit_angle + 180) % 360
+    past_gate, _room = _ray_past_door(md, exit_mid, out, tag_gate, "the exit tunnel's gate")
+    e0_t = past_gate + GATE_CLEARANCE
+    ox, oy = COMPASS[out]
+    e0_point = (int(exit_mid[0] + ox * e0_t), int(exit_mid[1] + oy * e0_t))
+    e0_tics = walk_tics(e0_t - PLAYER_RADIUS)
+
+    steps = (
+        Step("A0", actions=("level", "count", "inv", "capture"), expect=(start_family,),
+             key=False, note="the player start (from MAP01's lift): no key; monsters on this skill"),
+        Step("BD0", bd_point, bd_angle,
+             ("use", f"wait {DOOR_WAIT}", f"tag {tag_bd}", "inv", "capture"),
+             expect=(family_at(md, bd_point),), tags=((tag_bd, False),), key=False,
+             presses=((locked, tag_bd),),
+             note="the blue door pressed WITHOUT the pass: pressed, and still shut (K2's first half)"),
+        Step("PASS", pass_start, pass_angle,
+             (f"forward {pass_tics}", "inv", f"tag {tag_sh}", "capture"),
+             expect=(pass_family,), tags=((tag_sh, False),), key=True,
+             note=f"walk onto the pass (DoomEdNum {ed_pass} at {spot}), no give: a key is owned; "
+                  "the shutter still shut"),
+        Step("BD1", bd_point, bd_angle,
+             ("use", f"wait {DOOR_WAIT}", f"tag {tag_bd}", f"forward {bd_tics}", "capture"),
+             expect=(inside_family,), tags=((tag_bd, True),), presses=((locked, tag_bd),),
+             note="the blue door with the pass: open; walk through it into the bunker"),
+        Step("SWA", swa_point, swa_angle,
+             ("use", f"wait {SWITCH_WAIT}", f"tag {tag_sh}", f"tag {tag_gate}", "capture"),
+             expect=(family_at(md, swa_point),), tags=((tag_sh, True), (tag_gate, False)),
+             presses=((swa.special, swa.arg0),),
+             note="SW-A: the shutter opens; the gate is still shut"),
+        Step("SWB", swb_point, swb_angle,
+             ("use", f"wait {SWITCH_WAIT}", f"tag {tag_gate}", "capture"),
+             expect=(family_at(md, swb_point),), tags=((tag_gate, True),),
+             presses=((swb.special, swb.arg0),),
+             note="SW-B: the gate and the command post's tunnel door open"),
+        Step("E0", e0_point, exit_angle, ("capture", f"forward {e0_tics}", "capture"),
+             expect=(exit_family,),
+             note="from the west tunnel, through the gate, into the exit niche up to the switch"),
+        Step("E1", actions=("use",), note="the exit switch"),
+    )
+    return Route("map03-critical", md.map_name, steps, expect_secrets=0,
+                 **exit_expectation(md.map_name),
+                 description="the metro's critical path: the blue door shut without the pass, the pass "
+                             "walked onto, the door open, SW-A, SW-B, the gate, out by the exit switch")
+
+
+ED_PLAYER1_START = 1
+
+# Which map each fixed route walks, found by its constants (D62 renumbers the
+# slots), and where its exit must lead, read from MAPINFO (D60: MAP01 now
+# leads to the metro; only an episode's last map and the range end the game).
+ZARYA = map_defining(*ZARYA_MARKERS)
+RANGE = map_defining(*RANGE_MARKERS)
+_ZARYA_EXIT = exit_expectation(ZARYA)
+_RANGE_EXIT = exit_expectation(RANGE)
+
 ROUTES: dict[str, Route] = {
     "g3-auto": Route(
-        "g3-auto", "MAP01", _A_STEPS, expect_secrets=0, end_sequence=True,
+        "g3-auto", ZARYA, _A_STEPS, expect_secrets=0, **_ZARYA_EXIT,
         description="section 17.10's automatic run A1-A12 plus the start inventory (A0) and "
                     "the dorm rack (R1): the critical path, no secret (also G3-5's zero-secret run)"),
     "g3-secrets": Route(
-        "g3-secrets", "MAP01", _SECRET_STEPS, expect_secrets="all", end_sequence=True,
+        "g3-secrets", ZARYA, _SECRET_STEPS, expect_secrets="all", **_ZARYA_EXIT,
         description="the same path with the three secrets of section 7 taken on the way"),
     "map02-start": Route(
-        "map02-start", "MAP02", _MAP02_STEPS, expect_secrets=None, must_exit=True,
-        end_sequence=True,
+        "map02-start", RANGE, _MAP02_STEPS, expect_secrets=None, must_exit=True, **_RANGE_EXIT,
         description="the practice range: the start inventory, the slot-1 pickup, and out by "
                     "its exit switch to the end text"),
     "map02-door": Route(
-        "map02-door", "MAP02", (_MAP02_A0, _MAP02_R1) + _MAP02_P4 + _MAP02_EXIT,
-        expect_secrets=None, must_exit=True, end_sequence=True,
+        "map02-door", RANGE, (_MAP02_A0, _MAP02_R1) + _MAP02_P4 + _MAP02_EXIT,
+        expect_secrets=None, must_exit=True, **_RANGE_EXIT,
         description="map02-start plus P4: the gallery door opened from the passage side"),
     "mural": Route(
-        "mural", "MAP01", _MURAL_STEPS, expect_secrets=None, must_exit=False,
+        "mural", ZARYA, _MURAL_STEPS, expect_secrets=None, must_exit=False,
         description="section 17.13's mural shots M1-M5 (run with --nomonsters)"),
 }
+
+# Routes read off a map that is still being built: made when first asked for,
+# so a MAP03 caught mid-edit fails its own route and nothing else.
+LAZY_ROUTES: dict[str, Callable[[], Route]] = {
+    "map03-critical": map03_critical,
+}
+
+
+def route_names() -> list[str]:
+    return sorted(set(ROUTES) | set(LAZY_ROUTES))
+
+
+def route_by_name(name: str) -> Route:
+    if name in ROUTES:
+        return ROUTES[name]
+    if name in LAZY_ROUTES:
+        return LAZY_ROUTES[name]()
+    raise RouteError(f"no route {name!r} (known: {', '.join(route_names())})")
+
+
+def all_routes() -> dict[str, Route]:
+    """Every built-in route, the lazy ones built (a RouteError propagates)."""
+    return {name: route_by_name(name) for name in route_names()}
 
 
 EXIT_WAYS = ("switch", "console")
@@ -528,9 +916,10 @@ EXIT_WAYS = ("switch", "console")
 
 def route_from_json(data: dict) -> Route:
     """A route of your own: {"name", "map", "expect_secrets"?, "must_exit"?,
-    "exit_by"?: "switch" | "console", "end_sequence"?: bool,
+    "exit_by"?: "switch" | "console", "end_sequence"?: bool, "next_map"?: str,
     "steps": [{"id", "warp"?: [x, y], "angle"?, "do"?: [...], "expect"?: [...],
-    "tags"?: {"10": true}, "melee"?: bool, "ready_slot"?, "ready_ammo"?, "note"?}]}.
+    "tags"?: {"10": true}, "melee"?: bool, "ready_slot"?, "ready_ammo"?,
+    "key"?: bool, "presses"?: [[special, arg0], ...], "note"?}]}.
 
     "exit_by": "console" is the documented recourse for a map with no exit
     line: the route's `exit` action sends the helper's sdexit."""
@@ -547,15 +936,18 @@ def route_from_json(data: dict) -> Route:
                 melee=bool(s["melee"]) if s.get("melee") is not None else None,
                 ready_slot=int(s["ready_slot"]) if s.get("ready_slot") is not None else None,
                 ready_ammo=int(s["ready_ammo"]) if s.get("ready_ammo") is not None else None,
+                key=bool(s["key"]) if s.get("key") is not None else None,
+                presses=tuple((int(p[0]), int(p[1])) for p in s.get("presses", ())),
             )
             for s in data["steps"]
         )
-        route = Route(str(data.get("name", "custom")), str(data.get("map", "MAP01")).upper(),
+        route = Route(str(data.get("name", "custom")), str(data.get("map", ZARYA)).upper(),
                       steps, data.get("expect_secrets"), bool(data.get("must_exit", True)),
                       str(data.get("description", "")),
                       exit_by=str(data.get("exit_by", "switch")),
-                      end_sequence=bool(data.get("end_sequence", False)))
-    except (KeyError, TypeError) as exc:
+                      end_sequence=bool(data.get("end_sequence", False)),
+                      next_map=str(data["next_map"]) if data.get("next_map") else None)
+    except (KeyError, TypeError, IndexError) as exc:
         raise RouteError(f"malformed route file: {exc}") from exc
     if route.exit_by not in EXIT_WAYS:
         raise RouteError(f"exit_by {route.exit_by!r} must be one of {', '.join(EXIT_WAYS)}")
@@ -599,6 +991,15 @@ ZONE_PREFIXES: tuple[tuple[str, str], ...] = (
     ("booth_window", "Z9"),
     ("airlock_", "Z8"), ("frame_d5", "Z8"),
     ("lenin_", "Z10"),
+    # MAP03 (docs/levels/MAP03-metro.md section 4): the bunker's rooms are
+    # B1-B5, and the pieces without a zone number go with the room they serve.
+    # Its z-numbered sectors file by name, so MAP03 shares the Z families'
+    # names with MAP01; a route never mixes maps.
+    ("b1_", "B1"), ("b2_", "B2"), ("b3_", "B3"), ("b4_", "B4"), ("b5_", "B5"),
+    ("cp_stair_", "B4"), ("cp_door", "CPD"), ("blast_door", "BD"),
+    ("esc_", "ESC"), ("prop_turnstiles", "Z2"), ("arches_", "Z3"),
+    ("coping_", "Z4"), ("stair_", "Z4"), ("sub_stair_", "Z8"),
+    ("shutter", "SH"), ("gate", "GATE"),
 )
 _ZONE_IN_NAME = re.compile(r"(?:^|_)(z\d+[ab]?)(?:_|$)")
 _DOOR_NAME = re.compile(r"^(d\d)(?:_|$)")
@@ -626,13 +1027,14 @@ class MapData:
     """The map as its source builds it: sector names, monsters per skill,
     secret sectors, and which sector a point is in."""
 
-    def __init__(self, map_name: str = "MAP01", src: Path = PROJECT_ROOT / "src"):
+    def __init__(self, map_name: str, src: Path = PROJECT_ROOT / "src"):
         from sdbuild.pk3 import _load_map_module  # the build's own importer
 
         script = src / "maps" / map_name / "map.py"
         if not script.is_file():
             raise RouteError(f"no map source {script}")
         module = _load_map_module(script, TOOLS_DIR)
+        self.module = module          # its named constants (map03_critical reads them)
         self.map_name = map_name
         if hasattr(module, "build_plan"):
             self.textmap, self.plan = module.build_plan()
@@ -688,6 +1090,12 @@ class MapData:
 
     def families(self) -> set[str]:
         return {zone_family(n) for n in self.plan}
+
+
+@functools.lru_cache(maxsize=None)
+def load_map_data(map_name: str) -> MapData:
+    """MapData, built once per process (a lazy route and its report share it)."""
+    return MapData(map_name)
 
 
 # ============================================================================
@@ -770,10 +1178,17 @@ def helper_zscript(minimal: bool = False) -> str:
         if (e.Name == "sdinv")
         {{
             // Weapons by SLOT (the classes are being renamed, D40), then the
-            // raised one and the rounds in its primary pool.
-            int owned = 0;
+            // raised one and the rounds in its primary pool. Keys by the Key
+            // base class, never by name (MAP03's pass replaces Doom's blue card).
+            int owned = 0, keys = 0;
             for (let item = pmo.Inv; item; item = item.Inv)
             {{
+                if (item is "Key")
+                {{
+                    Console.Printf("SDTEST key class=%s", item.GetClassName());
+                    keys++;
+                    continue;
+                }}
                 let w = Weapon(item);
                 if (!w) continue;
                 bool wf; int ws, wi;
@@ -792,8 +1207,8 @@ def helper_zscript(minimal: bool = False) -> str:
                 if (rf) readySlot = rs;
                 if (ready.Ammo1) readyAmmo = ready.Ammo1.Amount;
             }}
-            Console.Printf("SDTEST inv weapons=%d ready=%s slot=%d ammo=%d", owned, readyName,
-                readySlot, readyAmmo);
+            Console.Printf("SDTEST inv weapons=%d ready=%s slot=%d ammo=%d keys=%d", owned, readyName,
+                readySlot, readyAmmo, keys);
             return;
         }}
         if (e.Name == "sdpos")
@@ -880,7 +1295,7 @@ def helper_zscript(minimal: bool = False) -> str:
         "//   netevent sdhurt <idx> <amount> damage every live actor of NAMES[idx]\n"
         "//   netevent sdcount               live / total counts of NAMES\n"
         "//   netevent sdpos <step>          position, sector index, health\n"
-        "//   netevent sdinv                 weapons owned by slot, the raised one, its rounds\n"
+        "//   netevent sdinv                 weapons owned by slot, the raised one, its rounds, keys\n"
         "//   netevent sdtag <tag>           floor / ceiling of each sector with the tag\n"
         "//   netevent sdlevel               kills, secrets, items, map time\n"
         "//   netevent sdclear <step> <len> <w> kill live monsters in the walk ahead\n"
@@ -1110,7 +1525,9 @@ RE_STATE = re.compile(r"^SDTEST state gamestate=(\d+)")
 RE_COUNT = re.compile(r"^SDTEST count (\S+) total=(\d+) alive=(\d+)")
 RE_HELPER = re.compile(r"^SDTEST helper (\S+)")
 RE_WEAPON = re.compile(r"^SDTEST weapon class=(\S+) slot=(-?\d+)")
-RE_INV = re.compile(r"^SDTEST inv weapons=(\d+) ready=(\S+) slot=(-?\d+) ammo=(-?\d+)")
+# `keys=` since route-4; a route-3 log has none, and its key count is unknown.
+RE_INV = re.compile(r"^SDTEST inv weapons=(\d+) ready=(\S+) slot=(-?\d+) ammo=(-?\d+)(?: keys=(\d+))?")
+RE_KEY = re.compile(r"^SDTEST key class=(\S+)")
 RE_CLEARED = re.compile(r"^SDTEST cleared step=(\d+) class=(\S+) x=(-?\d+) y=(-?\d+) hp=(-?\d+)"
                         r" dead=([01])")
 RE_CLEAR = re.compile(r"^SDTEST clear step=(\d+) killed=(\d+)")
@@ -1125,6 +1542,14 @@ RE_GOD = re.compile(r"^(God mode on|Degreelessness Mode ON|Invincible Mode ON)",
 # log (logs/gzdoom.log, 2026-10-13 16:21); the SDTEST secret line is the
 # measured signal, this one is corroboration.
 RE_SECRET_MESSAGE = re.compile(r"(?i)\bsecret\b")
+# The blue pass in the engine's words: its pickup line ("Blue pass.") and the
+# lock-2 lines LANGUAGE overrides (PD_BLUEC / PD_BLUECO, "You need a blue
+# pass to ..."; Freedoom's "Blue passcard needed for this door."), English and
+# Russian. Whether the locked-door midprint reaches the log is NOT VERIFIED
+# (pickup and secret messages do). A line that also says "need" is a lock
+# message: proof that the press reached a locked line at that step.
+RE_PASS_MESSAGE = re.compile(r"(?i)\bblue\b|синий|синяя")
+RE_LOCK_WORD = re.compile(r"(?i)\bneed|нуж")
 
 _EXTRA = [(pid, re.compile(rx), why) for pid, rx, why in G3_EXTRA_PATTERNS]
 
@@ -1149,16 +1574,20 @@ class LineUse:
     back: int
     kind: int
     by_player: bool
+    step: int = -1      # the SDSTEP it was printed under
 
 
 @dataclass
 class Inventory:
-    """One `sdinv` answer: weapons as (class, slot), the raised one, its rounds."""
+    """One `sdinv` answer: weapons as (class, slot), the raised one, its rounds,
+    and the keys (route-4; `key_count` None on an older helper's line)."""
 
     weapons: list[tuple[str, int]]
     ready: str
     ready_slot: int
     ammo: int
+    keys: list[str] = field(default_factory=list)
+    key_count: int | None = None
 
     def slots(self) -> set[int]:
         return {slot for _cls, slot in self.weapons}
@@ -1189,6 +1618,11 @@ class RouteLog:
     cleared: list[tuple[int, str, int, int, int, bool]] = field(default_factory=list)
     clears: dict[int, int] = field(default_factory=dict)   # step -> sdclear calls answered
     exitlevel: list[str] = field(default_factory=list)     # maps ended by sdexit
+    pass_messages: list[tuple[int, str]] = field(default_factory=list)  # (step, engine line)
+
+    def lock_steps(self) -> set[int]:
+        """Steps at which the engine said a key was needed."""
+        return {step for step, text in self.pass_messages if RE_LOCK_WORD.search(text)}
 
     @property
     def failures(self) -> list[smoke.LogHit]:
@@ -1201,6 +1635,7 @@ def scan_route_log(text: str, strict: bool = False) -> RouteLog:
     count_block: dict[str, tuple[int, int]] | None = None
     tag_block_step: dict[int, int] = {}
     weapons: list[tuple[str, int]] = []   # the weapon lines before an inv line
+    keys: list[str] = []                  # the key lines before an inv line
     for lineno, raw in enumerate(text.splitlines(), start=1):
         line = raw.rstrip()
         if not smoke.is_benign(line) and not any(h.lineno == lineno for h in log.smoke.failures):
@@ -1227,7 +1662,7 @@ def scan_route_log(text: str, strict: bool = False) -> RouteLog:
         elif m := RE_LINE.match(line):
             g = m.groups()
             log.lines.append(LineUse(int(g[0]), int(g[1]), int(g[2]), int(g[3]), int(g[4]),
-                                     int(g[5]), g[6] == "1"))
+                                     int(g[5]), g[6] == "1", current))
         elif m := RE_SECRET.match(line):
             log.secrets.append(tuple(int(g) for g in m.groups()))
         elif m := RE_LEVEL.match(line):
@@ -1251,15 +1686,21 @@ def scan_route_log(text: str, strict: bool = False) -> RouteLog:
             log.clears[step] = log.clears.get(step, 0) + 1
         elif m := RE_EXITLEVEL.match(line):
             log.exitlevel.append(m.group(1))
+        elif m := RE_KEY.match(line):
+            keys.append(m.group(1))
         elif m := RE_INV.match(line):
-            log.inventory[current] = Inventory(weapons, m.group(2), int(m.group(3)), int(m.group(4)))
-            weapons = []
+            log.inventory[current] = Inventory(
+                weapons, m.group(2), int(m.group(3)), int(m.group(4)), keys,
+                int(m.group(5)) if m.group(5) is not None else None)
+            weapons, keys = [], []
         elif m := RE_HELPER.match(line):
             log.helper = m.group(1)
         elif m := RE_CAPTURED.match(line):
             log.captures.append((current, m.group(1)))
         elif RE_GOD.match(line):
             log.god = True
+        elif current >= 0 and not line.startswith("SDTEST") and RE_PASS_MESSAGE.search(line):
+            log.pass_messages.append((current, line.strip()))
         elif not line.startswith("SDTEST") and RE_SECRET_MESSAGE.search(line):
             log.secret_messages.append(line.strip())
     return log
@@ -1379,6 +1820,22 @@ def evaluate(route: Route, skill: int, log: RouteLog, mapdata: MapData,
             if not ok:
                 problems.append(f"{step.id}: tag {tag} is {detail}, wanted "
                                 f"{'open' if want_open else 'shut'}")
+    # Presses: the line was reached, so a door that stays shut means
+    # something. The helper's line event, or the engine's lock message.
+    locked_at = log.lock_steps()
+    for number, step in enumerate(route.steps):
+        for special, arg0 in step.presses:
+            by_line = any(u.step == number and u.by_player and u.special == special
+                          and u.arg0 == arg0 for u in log.lines)
+            said = [text for at, text in log.pass_messages if at == number and at in locked_at]
+            ok = by_line or bool(said)
+            detail = ("the player's press is in the log" if by_line
+                      else f"the engine said {said[0]!r}" if said
+                      else "NOT SEEN: no SDTEST line for it and no lock message")
+            doors.append((f"press of special {special} arg0 {arg0} at {step.id}", ok, detail))
+            if not ok:
+                problems.append(f"{step.id}: no press of special {special} (arg0 {arg0}) seen: "
+                                "the use never reached the line, so its door proves nothing")
     for r in results:
         if r.step.expect and any(a.startswith("forward") for a in r.step.actions) \
                 and any(a == "use" for a in r.step.actions):
@@ -1423,6 +1880,9 @@ def evaluate(route: Route, skill: int, log: RouteLog, mapdata: MapData,
         problems.append("the level was ended by sdexit, not by its exit switch")
     if exit_reached and route.end_sequence and not left[-1][1].startswith(END_SEQUENCE_PREFIX):
         problems.append(f"the level led to {left[-1][1]!r}, not to an end sequence")
+    if exit_reached and route.next_map and left[-1][1].upper() != route.next_map.upper():
+        problems.append(f"the level led to {left[-1][1]!r}, not to {route.next_map} "
+                        "(MAPINFO's next)")
 
     # The route's own kills (sdclear): never a failure on their own, always
     # reported, so G3 knows a body stood in a scripted walk. A blocker that
@@ -1454,7 +1914,10 @@ def kills_line(rep: "SkillReport") -> str:
 
 def describe_inventory(inv: Inventory) -> str:
     owned = ", ".join(f"{slot}:{cls}" for cls, slot in sorted(inv.weapons, key=lambda w: w[1]))
-    return f"raised slot {inv.ready_slot} ({inv.ready}), {inv.ammo} rounds; owned [{owned or 'none'}]"
+    text = f"raised slot {inv.ready_slot} ({inv.ready}), {inv.ammo} rounds; owned [{owned or 'none'}]"
+    if inv.key_count is not None:
+        text += f"; keys [{', '.join(inv.keys) or 'none'}]"
+    return text
 
 
 def evaluate_inventory(route: Route, skill: int, log: RouteLog, mapdata: MapData,
@@ -1483,6 +1946,12 @@ def evaluate_inventory(route: Route, skill: int, log: RouteLog, mapdata: MapData
             wrong.append(f"raised weapon in slot {inv.ready_slot}, wanted {step.ready_slot}")
         if step.ready_ammo is not None and inv.ammo != step.ready_ammo:
             wrong.append(f"{inv.ammo} rounds, wanted {step.ready_ammo}")
+        if step.key is not None:
+            if inv.key_count is None:
+                wrong.append("keys not reported (a helper older than route-4)")
+            elif (inv.key_count > 0) != step.key:
+                wrong.append("no key owned" if step.key
+                             else f"a key already owned ({', '.join(inv.keys) or inv.key_count})")
         detail = describe_inventory(inv) + (f"  -- {'; '.join(wrong)}" if wrong else "")
         rows.append((step.id, not wrong, detail))
         for w in wrong:
@@ -1520,6 +1989,11 @@ def render_report(rep: SkillReport) -> str:
                f" of {rep.secrets_total}" + ("" if rep.secrets_ok else "  -- NOT AS EXPECTED"))
     for msg in rep.log.secret_messages:
         out.append(f"  engine said  : {msg}")
+    if rep.log.pass_messages:
+        ids_ = {n: s.id for n, s in enumerate(rep.route.steps)}
+        out.append("key messages   :")
+        for step, msg in rep.log.pass_messages:
+            out.append(f"  {ids_.get(step, step)}: {msg}")
     out.append(f"exit           : {'REACHED' if rep.exit_reached else 'NOT REACHED'} ({rep.exit_detail})")
     ids = {n: s.id for n, s in enumerate(rep.route.steps)}
     out.append(f"blockers       : {len(rep.log.cleared) or 'none'} killed by the route's sdclear"
@@ -1597,7 +2071,7 @@ def scan_only(path: Path, strict: bool = False) -> int:
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(prog="tools/route.py", description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--route", default="g3-auto", choices=sorted(ROUTES),
+    p.add_argument("--route", default="g3-auto", choices=route_names(),
                    help="built-in route (default g3-auto)")
     p.add_argument("--steps", type=Path, help="a route of your own, as JSON (overrides --route)")
     p.add_argument("--skills", type=int, nargs="+", default=[2, 3, 4], choices=range(1, 6),
@@ -1638,20 +2112,25 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def load_route(args: argparse.Namespace) -> Route:
     if args.steps:
         return route_from_json(json.loads(args.steps.read_text(encoding="utf-8")))
-    return ROUTES[args.route]
+    return route_by_name(args.route)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     if args.list_routes:
-        for name, r in ROUTES.items():
-            print(f"{name:<12} {r.map_name}  {len(r.steps)} steps  {r.description}")
+        for name in route_names():
+            try:
+                r = route_by_name(name)
+            except (RouteError, OSError) as exc:
+                print(f"{name:<14} UNAVAILABLE: {exc}")
+                continue
+            print(f"{name:<14} {r.map_name}  {len(r.steps)} steps  {r.description}")
         return EXIT_OK
     if args.scan:
         return scan_only(args.scan, args.strict)
     try:
         route = load_route(args)
-        mapdata = MapData(route.map_name)
+        mapdata = load_map_data(route.map_name)
     except (RouteError, OSError, json.JSONDecodeError) as exc:
         print(f"route: {exc}", file=sys.stderr)
         return EXIT_ROUTE_FAILED
