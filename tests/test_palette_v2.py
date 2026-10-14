@@ -20,7 +20,7 @@ What is enforced here, and why:
               was approved in. Every asset is v1 until it is listed in
               APPROVED_IN_V2 (the Legion trooper's SDLT set since D54, the
               metro mosaic SDMOSA1 since D56, the Doughboy's SDDB set
-              since D70)
+              since D70, the General's SDGN set since D73)
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_palette_v2 -v
 """
@@ -77,6 +77,10 @@ MAX_COLOURS = 256
 # D70 (2026-10-14): the Doughboy's 54 SDDB lumps (gen_heavy.py --full db,
 # cell C with D67's bigger flag), drawn with v2's flesh_pink as the Legion
 # trooper. RGBA, so check_pk3's PALETTE_V2_LUMPS does not list them.
+# D73 (2026-10-14): the General's 81 SDGN lumps (gen_general.py --full, the
+# CD design), drawn on the Legion's table with v2's flesh_pink. RGBA, so
+# check_pk3's PALETTE_V2_LUMPS does not list them. His shell's 5 SDGL lumps
+# (same folder) stay inside v1 and are not listed.
 APPROVED_IN_V2: set[str] = (
     {f"sprites/legion/SDLT{f}{r}.png" for f in "ABCDEFG" for r in "12345678"}
     | {f"sprites/legion/SDLT{f}0.png" for f in "HIJKLMNOPQRSTU"}
@@ -85,7 +89,9 @@ APPROVED_IN_V2: set[str] = (
     | {f"textures/factory/{lump}.png" for lump in ("SDBRCK1", "SDBRCK2", "SDFLAG1", "SDFLAG2")}
     | {f"textures/factory/SDPORT{i}.png" for i in range(1, 5)}
     | {f"sprites/doughboy/SDDB{f}{r}.png" for f in "ABCDEF" for r in "12345678"}
-    | {f"sprites/doughboy/SDDB{f}0.png" for f in "GHIJKL"})
+    | {f"sprites/doughboy/SDDB{f}0.png" for f in "GHIJKL"}
+    | {f"sprites/general/SDGN{f}{r}.png" for f in "ABCDEFGQR" for r in "12345678"}
+    | {f"sprites/general/SDGN{f}0.png" for f in "HIJKLMNOP"})
 
 
 def _digest(colours) -> str:

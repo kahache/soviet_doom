@@ -134,7 +134,9 @@ none of them. **So do the Panzermensch and the Schwer** (D67;
 `assets/sprites/panzermensch/`; §8): their deaths bleed `flag_red` 0–5 over
 black, the pool spreading from under the body. **So does the Doughboy**
 (D70; `assets/sprites/doughboy/`; §7): its death bleeds `flag_red` 0–5 over
-black, the pool spreading round the deflated sack.
+black, the pool spreading round the deflated sack. **So does the General**
+(D73; `assets/sprites/general/`; §9): his death bleeds `flag_red` 0–5 over
+black, the pool growing from his chest onto the flags of his cloak.
 One value for all seven classes, `BloodColor "AD 27 21"` (`flag_red` 9),
 set in each file under `src/zscript/monsters/` and pinned by
 `tests/test_blood.py`; `SD_PanzermenschSchwer` inherits it.
@@ -328,16 +330,19 @@ F4: every state named a Freedoom sprite, every sound is a logical name
 (`sd/mon/<actor>/<event>`) that `SNDINFO` points at a Freedoom lump. **Since
 D54–D56 (2026-10-14) four classes draw our own sprites**, rendered on the 3D
 rig and approved by the CEO, **and since D67 the Panzermensch and the heavy
-variant too, and since D70 the Doughboy**; one class (the General) and
-three projectiles still wear Freedoom's. The full tables are contract and live in `MOD-SPEC.md` §6.2
+variant too, since D70 the Doughboy, and since D73 the General and his
+shell**: all seven classes draw their own; two projectiles (the Doughboy's
+and the Panzermensch's shells) still wear Freedoom's. The full tables are contract and live in `MOD-SPEC.md` §6.2
 (sounds) and §6.3 (sprites: final names, frame layouts, what is installed);
 the IWAD sprites still in use are declared in `MOD-SPEC.md` §5, which is
 what lets `tools/check_pk3.py` accept them. Engine pass of the four:
 `docs/qa/evidence/2026-10-14_1900_F5_four-enemies-installed.md`.
 
-**Installed: our own sprites (D54–D56, D67, D70).** Each swap was the rename the
+**Installed: our own sprites (D54–D56, D67, D70, D73).** Each swap was the rename the
 swap rule below promises, not one tic changed (`MOD-SPEC.md` §6.3); the
-Schwer's was a `States` block of its own, the base's line for line.
+Schwer's was a `States` block of its own, the base's line for line, and the
+General's and his shell's took the new frame letters the rule always named
+(`Summon` Q R, the burst C D E).
 
 | Class | Sprite | Lumps packed | How the rotations are drawn | Was | Decision |
 |---|---|---|---|---|---|
@@ -349,6 +354,8 @@ Schwer's was a `States` block of its own, the base's line for line.
 | `SD_Panzermensch` | `SDPM` | 71, `assets/sprites/panzermensch/` | A–H × 8 (64); I–O rotation 0 (7), the corpse flat | `BOS2` | D65 (cell D, bare skull in an iron mask), D67 (full set) |
 | `SD_PanzermenschSchwer` | `SDPS` | 71, `assets/sprites/panzermensch/` | A–H × 8 (64); I–O rotation 0 (7), dying face down | inherited `BOS2` | D65 (cell D with S2: black, 12 % larger, spikes and stacks), D67 |
 | `SD_Doughboy` | `SDDB` | 54, `assets/sprites/doughboy/` | A–F × 8 (48); G–L rotation 0 (6), the corpse a flat sack | `HEAD` | D65 (cell C, severed), D67 (bigger flag), D70 (full set) |
+| `SD_General` | `SDGN` | 81, `assets/sprites/general/` | A–G and Q–R × 8 (72); H–P rotation 0 (9), the corpse on his back on the spread cloak | `CYBR` (`Summon` on `CYBR E F`) | D71 (cells C and D combined), D72 (turnaround), D73 (full set) |
+| `SD_GeneralShell` | `SDGL` | 5, `assets/sprites/general/` | A–B flight, C–E burst, rotation 0 | `MANF` A–B, `MISL` B–D | D73 |
 
 The three human-shaped figures are handed (the weapon on one side, a patch,
 plate or armband on the other; a mirrored armband would reverse the D12
@@ -358,7 +365,8 @@ symbol), so their walk, attack and pain frames are eight separate rotations
 and uses it. The Panzermensch is handed too (the banner on his back carries
 the D12 symbol, and he throws with his right): 71 a set, not v1's 47. So is
 the Doughboy (the helmet sits askew, the flag decal and the buckle on one
-side): 54, not v1's 36.
+side): 54, not v1's 36. So is the General (the gun on his right shoulder,
+the pennants and the cloak's two flags split side to side): 81, not v1's 54.
 
 **Still on Freedoom placeholders.**
 
@@ -366,8 +374,6 @@ side): 54, not v1's 36.
 |---|---|---|---|
 | `SD_DoughboyShell` | `SDDL` | `BAL2` | yes |
 | `SD_PanzerShell` | `SDPL` | `BAL7` | yes |
-| `SD_General` | `SDGN` | `CYBR` (cyberdemon) | yes for A–P (v1 aligned §9 to `CYBR`); the two `Summon` lines borrow `CYBR E F` and become `SDGN Q R` |
-| `SD_GeneralShell` | `SDGL` | `MANF` A–B flight, `MISL` B–D burst (Doom's mancubus shot) | no: the burst becomes `SDGL C D E` |
 
 **Sounds: all seven classes are still on placeholders.** Every one of the 47
 `sd/mon/*` names points at a Freedoom `DS*` lump; our drafts wait on the
@@ -375,8 +381,9 @@ CEO's ears and the voices on his takes (D36).
 
 **The swap rule.** Because the frame letters already follow §3–§9, replacing
 a placeholder is a rename of the four-letter sprite name in that class's
-`States` block, and nothing else — except the four lines named in the last
-two rows. Sounds are a one-line `SNDINFO` change each and no ZScript at all.
+`States` block, and nothing else — except the five lines where the General
+and his shell took new letters (D73: `Summon` `CYBR E F` → `SDGN Q R`, the
+burst `MISL B C D` → `SDGL C D E`). Sounds are a one-line `SNDINFO` change each and no ZScript at all.
 
 **Not swapped by a rename: the heavy Panzermensch (D67).** Until D67 it
 had no sprites of its own and inherited every state from `SD_Panzermensch`,
@@ -1059,7 +1066,7 @@ thing in the mod. See rule 3 of the legibility matrix (§10).
 | Faction | Liberty Legion (commanding both) |
 | DoomEdNum | **21106** |
 | Replaces | `Cyberdemon` (16) |
-| Sprite | `SDGN`; projectile `SDGL` |
+| Sprite | `SDGN` (installed, D73); projectile `SDGL` (installed, D73) |
 | Actor code | `GEN` |
 | LANGUAGE | `SD_TAG_GENERAL`, `SD_OB_GENERAL`, `SD_GENERAL_ORDER` |
 | **Scope** | **First placed in MAP03** (the factory, Tankograd). Implemented in F5 (2026-10-13) so the mechanic can be tested on the practice range's bench (§11; `RANGE`, MAP02 until D62) long before MAP03 exists; no MAP01 places him. |
@@ -1163,12 +1170,45 @@ as Q–R. That keeps the placeholder swap a rename for every state but
 Sprites: walk 4×5 = 20, attack 2×5 = 10, summon 2×5 = 10, pain 1×5 = 5,
 death 9 = **54 images** + 5 projectile.
 
+**Installed, D73 (2026-10-14): 81 images, not 54, and the shell's 5.** The
+CEO combined cells C and D of the sweep, C from the front (the field gun on
+his right shoulder, the swagger stick, the two shoulder pennants) and D's
+two-flag cloak on his back, out of the front view (D71), approved the CD
+turnaround (D72) and the full set ("Ok general", D73); it ships as `SDGN`
+and `SDGL` in `assets/sprites/general/` (`tools/art/gen_general.py
+--full`; `MOD-SPEC.md` §6.3, "The General and his shell, installed by
+D73"). The budget above counted on Doom's mirrored pairs; he is **handed**,
+so every rotation is drawn on its own:
+
+| Group | Frames | Rotations | Images |
+|---|---|---|---|
+| Walk / idle | A–D | 8, separate | 32 |
+| Salvo | E F | 8, separate | 16 |
+| Pain | G | 8, separate | 8 |
+| Summon | Q R | 8, separate | 16 |
+| Death | H–P (9) | 0 | 9 |
+| **Total** | | | **81** |
+| Shell `SDGL` | A–B flight, C–E burst | 0 | 5 |
+
+The death bleeds dark red (D49, §2.1): H the chest opens, I his knees go
+and the cap flies, J he falls back and the gun is torn off, K he lands, and
+from L he lies on his back across the screen on his spread cloak, the pool
+growing onto the flags; `SDGNP0` is the corpse. Only the sprite names went
+from `CYBR` to `SDGN` and from `MANF`/`MISL` to `SDGL`, with the `Summon`
+and burst letters the swap rule named: not one tic moved
+(`tests/test_general_sprites.py`). The body stays **40 × 100**: the
+drawing is 41–63 px wide (`CYBR` is 67–108) and rises 89–92 px over the
+actor's z (`CYBR` 96–105); only Q's raised fist goes over the 100 units, to
+109 px at most, sprite only.
+
 Visual brief: *tall and unhurried, a chromed cuirass over a pale greatcoat
 that flares at the knee; a peaked cap with too much braid; the face is a
 smooth chrome plate with a single slot. A swastika pennant on one shoulder, a
 star-spangled one on the other.*
 
-Freedoom derivation: none — from scratch.
+Freedoom derivation: none; the set was drawn from scratch on the rig.
+`CYBR` gave the frame layout and the timing, and was the placeholder until
+D73; no pixel of it is in `SDGN`.
 
 ### Legibility
 
@@ -1286,9 +1326,8 @@ coordinates are constants in the map script.
 ## 12. Summary table
 
 **Images** is what the class costs in sprite lumps. For the installed
-classes (D54–D56, D67, D70, §2.7) it is the count actually packed under
-`assets/sprites/`; for the one still on placeholders and the undrawn
-projectiles it is v1's estimate at
+classes (D54–D56, D67, D70, D73, §2.7) it is the count actually packed under
+`assets/sprites/`; for the two undrawn projectiles it is v1's estimate at
 Doom's mirroring (rotations 2&8, 3&7, 4&6 share one image), the count
 `MOD-SPEC.md` §6.3's frame layouts give.
 
@@ -1300,17 +1339,16 @@ Doom's mirroring (rotations 2&8, 3&7, 4&6 share one image), the count
 | 4 | Reich hound | `SD_ReichHound` | Reich | 21103 | `Demon` | 150 | **12 (H)** | 180 | melee 4–40 | `SDHN`, **installed** (D55) | **46** packed, mirrored | 5 |
 | 5 | Doughboy | `SD_Doughboy` | Legion | 21104 | `Cacodemon` | 400 | 8 | 128 | melee 10–60 / shell 5–40 | `SDDB`, **installed** (D70); `SDDL` (`BAL2`) | **54** packed + 5 (est.) | 7 |
 | 6 | Panzermensch | `SD_Panzermensch` | Reich | 21105 | `HellKnight` | **500** | 8 | 50 | melee 10–80 / shell 8–64 | `SDPM`, **installed** (D67); `SDPL` (`BAL7`) | **71** packed + 5 (est.) | 8 |
-| 7 | The General | `SD_General` | Legion | 21106 | `Cyberdemon` | **3000 (H)** | 12 | 20 | 3× shell 8–64; summons 2 riflemen once below 50 % | `SDGN` `SDGL` (`CYBR`; `MANF` `MISL`) | 59 (est.) | 7 |
+| 7 | The General | `SD_General` | Legion | 21106 | `Cyberdemon` | **3000 (H)** | 12 | 20 | 3× shell 8–64; summons 2 riflemen once below 50 % | `SDGN` `SDGL`, **installed** (D73) | **81 + 5** packed | 7 |
 | 8 | Heavy Panzermensch | `SD_PanzermenschSchwer` | Reich | 21107 | `BaronOfHell` | 1000 | 8 | 50 | as #6 | `SDPS`, **installed** (D67) | **71** packed | 0 |
 | — | *cloaked hound* | *reserved, not implemented* | Reich | *21108 reserved* | `Spectre` | 150 | 12 | 180 | as #4 | `SDHN` `+SHADOW` | 0 | 0 |
 
-Totals for F5: **8 classes + 4 projectile actors, ≈ 533 sprite images,
-47 sound lumps.** Of the images, **464 are drawn and packed** (70 + 70 + 82 +
-46, since D67 71 + 71, and since D70 the Doughboy's 54) and **69 are
-estimated** for what is left (the Doughboy's shell 5, the Panzermensch's
-shell 5, the General 59); if the General is drawn at eight rotations like
-the infantry (§2.7), he costs 86 instead of 59 and what is left 96 (5 + 5 +
-86), ≈ 560 in all. Before D70 the count was ≈ 515 (410 packed, 105 estimated):
+Totals for F5: **8 classes + 4 projectile actors, ≈ 560 sprite images,
+47 sound lumps.** Of the images, **550 are drawn and packed** (70 + 70 + 82 +
+46, since D67 71 + 71, since D70 the Doughboy's 54, and since D73 the
+General's 81 + 5) and **10 are estimated** for what is left (the Doughboy's
+shell 5, the Panzermensch's shell 5). Before D73 the count was ≈ 533 (464
+packed, 69 estimated): the General's 54 became 81 unmirrored. Before D70 the count was ≈ 515 (410 packed, 105 estimated):
 the Doughboy's 36 became 54 unmirrored. Before D67 the count was ≈ 420 (268 packed, 152
 estimated): the Panzermensch's 47 became 71 unmirrored, and the Schwer,
 planned as a translation at 0 images, became a drawn set of 71. v1 said ≈ 354: the 202 it gave the

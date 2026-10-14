@@ -619,3 +619,49 @@ decal in the Legion trooper's flag colours, blood in `flag_red` 0-5 and
 black (D49). Palette v2. No photograph, no typeface. Freedoom's `HEAD`
 appears only beside ours on the review sheets, for comparison, and never
 enters a sprite.
+
+## Enemy sprites: the General and his shell (F5, approved by the CEO 2026-10-14, D71, D72 and D73)
+
+CEO verdict: cells **C** and **D** of the General's sweep combined, C from
+the front (the field gun on his shoulder, the swagger stick, the two
+shoulder pennants) and D's two-flag cloak on his back, kept out of the
+front view (D71); the CD turnaround ("OK al general", D72); then the full
+set ("Ok general", D73). Files in `assets/sprites/general/`, copied byte
+for byte from `work/art/general/full/SDGN/` and `.../SDGL/` (rendered on
+the Windows PC on 2026-10-14 by `gen_general.py --full`, seed 106, and
+rendered again into a scratch folder for the install: all 86 identical), so
+each PNG keeps its `grAb` offsets. 86 lumps: `SDGN` frames A-G and Q-R in eight
+separate rotations (no mirrored pairs: the gun rides his right shoulder,
+the pennants differ side to side and the cloak's flags are split Reich |
+Legion), H-P in rotation 0, and `SDGL` A-E in rotation 0. RGBA with hard
+alpha. Not installed: the GIFs, `info.json`, `metrics.json`, the sweep's
+cells (`work/art/general/SDGN_<cell>_*.png`), the turnaround
+(`work/art/general/turnaround/`) and the `lineup_*` sheets. Engine names:
+MOD-SPEC §6.3.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDGNA1`, `SDGNA2`, `SDGNA3`, `SDGNA4`, `SDGNA5`, `SDGNA6`, `SDGNA7`, `SDGNA8` | walk, frame A, rotations 1-8 (the approved turnaround's views, byte for byte), `SD_General` | (a) `tools/art/gen_general.py --full` (`build_full`, `render_full_layers`), cell CD on the rig (`tools/art/rig_core.py`, the Legion's materials of `gen_legion.py`) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDGNB1`, `SDGNB2`, `SDGNB3`, `SDGNB4`, `SDGNB5`, `SDGNB6`, `SDGNB7`, `SDGNB8` | walk, frame B | (a) idem | idem |
+| `SDGNC1`, `SDGNC2`, `SDGNC3`, `SDGNC4`, `SDGNC5`, `SDGNC6`, `SDGNC7`, `SDGNC8` | walk, frame C | (a) idem | idem |
+| `SDGND1`, `SDGND2`, `SDGND3`, `SDGND4`, `SDGND5`, `SDGND6`, `SDGND7`, `SDGND8` | walk, frame D | (a) idem | idem |
+| `SDGNE1`, `SDGNE2`, `SDGNE3`, `SDGNE4`, `SDGNE5`, `SDGNE6`, `SDGNE7`, `SDGNE8` | salvo, frame E (aims the stick at the target) | (a) idem | idem |
+| `SDGNF1`, `SDGNF2`, `SDGNF3`, `SDGNF4`, `SDGNF5`, `SDGNF6`, `SDGNF7`, `SDGNF8` | salvo, frame F (the shoulder gun fires) | (a) idem | idem |
+| `SDGNG1`, `SDGNG2`, `SDGNG3`, `SDGNG4`, `SDGNG5`, `SDGNG6`, `SDGNG7`, `SDGNG8` | pain, frame G (struck in the chest, he rocks back) | (a) idem | idem |
+| `SDGNQ1`, `SDGNQ2`, `SDGNQ3`, `SDGNQ4`, `SDGNQ5`, `SDGNQ6`, `SDGNQ7`, `SDGNQ8` | summon, frame Q (the order, "Vorwärts!", his fist raised; `Bright`) | (a) idem | idem |
+| `SDGNR1`, `SDGNR2`, `SDGNR3`, `SDGNR4`, `SDGNR5`, `SDGNR6`, `SDGNR7`, `SDGNR8` | summon, frame R (he points the recruits on) | (a) idem | idem |
+| `SDGNH0`, `SDGNI0`, `SDGNJ0`, `SDGNK0`, `SDGNL0`, `SDGNM0`, `SDGNN0`, `SDGNO0`, `SDGNP0` | death H-P, dark-red blood (D49): H the chest opens, I the cap flies, J the gun is torn off, K he lands, L-P on his back on the spread cloak, the pool growing onto the flags; `SDGNP0` the corpse | (a) idem, the death model (`full_prims`, the spread cloak) | idem |
+| `SDGLA0`, `SDGLB0` | `SD_GeneralShell` in flight, A-B (a white-hot core in a braid-yellow fire, an ember ring) | (a) `tools/art/gen_general.py --full` (`shell_model`, `render_shell`) | idem |
+| `SDGLC0`, `SDGLD0`, `SDGLE0` | `SD_GeneralShell` burst, C-E | (a) idem | idem |
+
+Drawn from code on the 3D rig approved as the method (D38), on a copy of
+the Legion's material table (`gen_legion.py`, append-only): the cuirass and
+the face plate chrome in `steel_blue`, the greatcoat and the cap in
+`plaster_warm`, the braid in `hazard_yellow`, the throat in palette v2's
+`flesh_pink` (D45), the two flags (D12) in `flag_red`, `plaster_warm` and
+`steel_blue`, the cloak's Reich disc stamped with the armband's symbol in
+black, blood in `flag_red` 0-5 and black (D49); the shell `cream_yellow`
+and white at the core, `hazard_yellow` and `flag_red` 7-11 round it.
+Palette v2 for `SDGN`; `SDGL` stays inside v1. No photograph, no typeface.
+Freedoom's `CYBR` appears only beside ours on the review sheets, for
+comparison, and never enters a sprite.

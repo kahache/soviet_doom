@@ -420,7 +420,7 @@ class BestiaryGeneralTest(unittest.TestCase):
         self.assertIn('"sd/mon/general/summon"', code)
         self.assertRegex(code, r"summoned\s*=\s*true;\s*SetStateLabel\(\"Summon\"\)",
                          "the once-only flag must be set before the jump")
-        self.assertRegex(zs_states(text), r"Summon:\s*\n\s*CYBR E 15 Bright A_SD_GeneralSummon;")
+        self.assertRegex(zs_states(text), r"Summon:\s*\n\s*SDGN Q 15 Bright A_SD_GeneralSummon;")
         see = re.search(r"See:(.*?)Loop;", zs_states(text), re.S).group(1)
         self.assertNotIn("A_Chase", see, "every See frame must check the summon first")
 

@@ -82,8 +82,8 @@ Reich rifleman, the Legion trooper, the Stormtrooper and the Reich hound (a
 German shepherd), all with dark red blood and flat corpses (D49-D56; engine
 pass `docs/qa/evidence/2026-10-14_1900_F5_four-enemies-installed.md`). The
 Panzermensch (`SDPM`) and his heavy Schwer variant (`SDPS`) followed (D67).
-The Doughboy's set waits on the CEO (bigger flag) and the General on his
-design sweep; both still wear Freedoom placeholders. Enemy sounds are
+The Doughboy (`SDDB`, D70) and the General with his shell (`SDGN`/`SDGL`,
+D73) completed the bestiary: all seven classes draw our own sprites. Enemy sounds are
 drafts; voices wait on the CEO's takes (D36).
 
 **F4 — arsenal.** Seven period weapons in ZScript, all firing, with Freedoom

@@ -102,6 +102,15 @@ packed; every `SD_Doughboy` state names `SDDB` instead of `HEAD`, not one
 tic changed (§5.1, §6.3, "The Doughboy, installed by D70"). The body stays
 31 × 56: the drawing fits it as `HEAD` did, and every place a map puts it
 was checked. The shell keeps `BAL2`. **NOT YET SEEN IN THE ENGINE** (D26).
+**D73, 2026-10-14: the General and his shell wear their own sprites.** The
+CD design's full set (81 `SDGN` and 5 `SDGL` lumps,
+`assets/sprites/general/`) is packed; every `SD_General` state names `SDGN`
+instead of `CYBR`, the two `Summon` lines with their own frames `Q R`
+(they borrowed `CYBR E F`), and `SD_GeneralShell` names `SDGL` instead of
+`MANF` and `MISL`, its burst on the new letters `C D E`; not one tic
+changed (§5.1, §6.3, "The General and his shell, installed by D73"). The
+body stays 40 × 100, and both places a map puts him were checked. **NOT
+YET SEEN IN THE ENGINE** (D26).
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -831,6 +840,15 @@ too, and no map of ours places it (counted in the built MAP01, MAP02,
 MAP03 and the range, 2026-10-14). `BAL2` stays: the Doughboy's shell,
 `SD_DoughboyShell`, is not drawn yet.
 
+**Retired 2026-10-14 (D73):** `CYBR`, the General's placeholder, and `MANF`,
+his shell's in flight. Every `SD_General` state names our `SDGN` and every
+`SD_GeneralShell` state our `SDGL` now (§6.3, "The General and his shell,
+installed by D73"). Doom's own `Cyberdemon` (editor number 16) keeps
+Freedoom's `CYBR`, but ours replaces it, so a map placing 16 spawns ours;
+Doom ships no corpse thing of it. Doom's `FatShot` keeps `MANF` (the
+mancubus, `Fatso`, is not replaced, debt T21). `MISL` stays, for the PG-7V
+grenade and the Katyusha rocket; only its use as the shell's burst ends.
+
 **Retired 2026-10-14 (D63):** `PMAP`, the radio's placeholder (the computer
 area map's pickup picture). `SD_Radio`'s `Spawn` state names our `SDRD` now
 (§6.3, "The pickups, installed by D63"). Doom's own `Allmap` keeps
@@ -852,7 +870,7 @@ Doom's classes); since D63 each of those classes names its own sprite.
 | `CHGF` | sprite | `SD_Ppsh` (flash) | idem |
 | `MISG` | sprite | `SD_Rpg7` (held) | idem |
 | `MISF` | sprite | `SD_Rpg7` (flash) | idem |
-| `MISL` | sprite | `SD_Pg7Grenade`, `SD_KatyushaRocket`; burst of `SD_GeneralShell` | idem; bestiary frames B–D in the IWAD (test) |
+| `MISL` | sprite | `SD_Pg7Grenade`, `SD_KatyushaRocket` (the burst of `SD_GeneralShell` until D73) | idem |
 | `PLSG` | sprite | `SD_Roks3` (held) | engine pass F4 |
 | `PLSF` | sprite | `SD_Roks3` (flash) | idem |
 | `PLSS` | sprite | `SD_FlameBlob` | idem |
@@ -862,8 +880,6 @@ Doom's classes); since D63 each of those classes names its own sprite.
 | `BFUG` | sprite | `SD_HandKatyusha` (pickup) | idem |
 | `BAL2` | sprite | `SD_DoughboyShell` | frames in the IWAD (test); engine pass 2026-10-13: no `Missing sprite` (not every state was exercised) |
 | `BAL7` | sprite | `SD_PanzerShell` | idem |
-| `CYBR` | sprite | `SD_General` | idem |
-| `MANF` | sprite | `SD_GeneralShell` (flight) | idem |
 
 The sounds are the same kind of borrowing and are listed in §6.2; they are
 not checked by `check_pk3.py` (a missing sound is silence, not an error), but
@@ -1206,8 +1222,8 @@ marked. Images per class and the drawing briefs: `BESTIARY.md` §3–§9, §12.
 | `SD_Panzermensch` | `SDPM` | A–H (8), I–O (0) | none: **installed, D67** (was `BOS2`) |
 | `SD_PanzermenschSchwer` | `SDPS` | A–H (8), I–O (0) | none: **installed, D67** (inherited `BOS2` from the base; its own `States` since D67) |
 | `SD_PanzerShell` | `SDPL` | A–E (0) | `BAL7` |
-| `SD_General` | `SDGN` | A–G (8), H–P (0), Q–R (8) | `CYBR`; **exception**: the `Summon` lines borrow `CYBR E F` and become `SDGN Q R` |
-| `SD_GeneralShell` | `SDGL` | A–E (0) | **exception**: `MANF` A–B in flight, `MISL` B–D burst; the burst becomes `SDGL C D E` |
+| `SD_General` | `SDGN` | A–G (8), H–P (0), Q–R (8) | none: **installed, D73** (was `CYBR`; the `Summon` lines borrowed `CYBR E F` and became `SDGN Q R`) |
+| `SD_GeneralShell` | `SDGL` | A–E (0) | none: **installed, D73** (was `MANF` A–B in flight, `MISL` B–D burst; the burst became `SDGL C D E`) |
 
 **The Legion trooper, installed by D54 (2026-10-14).** The CEO chose cell C
 of the Legion sweep (D48) and approved its redone death, the corpse lying
@@ -1450,6 +1466,70 @@ below); the drawn deaths carry their own dark-red blood. Licence rows:
 `docs/art/LICENSES.md`, "Enemy sprites: the Doughboy". The draft overlay
 never carried it and records it as installed whole (`HEAD` → `SDDB`,
 §6.9). The shell, `SD_DoughboyShell`, still wears Freedoom's `BAL2`.
+
+**The General and his shell, installed by D73 (2026-10-14).** The CEO
+combined cells C and D of the General's sweep, C from the front (the field
+gun on his right shoulder, the swagger stick, the two shoulder pennants)
+and D's two-flag cloak on his back (D71), approved the CD turnaround ("OK
+al general", D72) and then the full set ("Ok general", D73). It ships, 86
+lumps in `assets/sprites/general/`, byte-identical to
+`work/art/general/full/SDGN/` and `.../SDGL/` (`tools/art/gen_general.py
+--full`, seed 106, rendered on the Windows PC on 2026-10-14, and rendered
+again for the install into a scratch folder: all 86 identical); the GIFs,
+`info.json`, `metrics.json`, the sweep's cells and the turnaround stay in
+`work/`. `SDGN` and `SDGL` were reserved from the start (§6.3's table). He
+is handed (the gun rides his right shoulder, the pennants differ, the
+cloak is split Reich | Legion), so A–G and Q–R are **eight separate
+rotations** (72 lumps), H–P rotation 0 (9), and the shell A–E rotation 0
+(5). Each PNG is RGBA with hard alpha, `SDGN` in palette v2 (`flesh_pink`
+at the throat, D45), `SDGL` inside v1, and carries its `grAb` offsets, the
+same for every rotation of a frame: 136×124 for the living frames (`left`
+68, `top` 114: the boots sink 3–6 px under the actor's z, as the other
+walkers'), 300×168 for the death (150, 136: he falls back across the
+screen onto the spread cloak), 40×40 for the shell (20, 20, centred, as the
+storm bolt). The build drops the set folder (`sprites/SDGNA1.png`).
+
+| Frames | Lumps | State |
+|---|---|---|
+| A–D | 32 | `Spawn` (A B, `A_Look`), `See` (A A B B C C D D, `A_SD_GeneralChase`) |
+| E–F | 16 | `Missile`: E aims (`A_FaceTarget`), F fires (`A_SD_GeneralShot`), three times |
+| G | 8 | `Pain` |
+| Q–R | 16 | `Summon`: Q `Bright` (`A_SD_GeneralSummon`, the order, his fist raised), R (he points the recruits on) |
+| H–P | 9 | `Death` (M `A_NoBlocking`; P 30, then P `-1` with `A_BossDeath`: `SDGNP0` on his back on the cloak, the pool on the flags) |
+| `SDGL` A–B, C–E | 5 | `SD_GeneralShell`: `Spawn` A B (flight, `Bright`), `Death` C D E (burst, `Bright`); `RenderStyle "Add"` stays |
+
+Only the four-letter names changed, `CYBR` → `SDGN` and `MANF`/`MISL` →
+`SDGL`, plus the frame letters the art was always going to need: the
+`Summon` lines `CYBR E F` → `SDGN Q R`, the shell's burst `MISL B C D` →
+`SDGL C D E`. Tics, actions and flow are as they were, held by
+`tests/test_general_sprites.py` against the state machines as they stood
+at HEAD 42ac443, before D73. He has no `Raise` state (a boss, as the
+Cyberdemon) and no `XDeath`, so no gib.
+
+**The body stays 40 × 100 (D73).** Measured on the installed lumps: the
+living frames are 41–63 px wide, inside the 80-unit box (Freedoom's `CYBR`
+is 67–108), and rise 89–92 px over the actor's z (`CYBR` 96–105,
+`freedoom2.wad` 0.13.0); only Q's raised fist goes over the 100-unit
+height, to 103–109 px, a sprite-only overhang a few pixels above `CYBR`'s
+tallest frame. The corpse `SDGNP0` is 134 px across (`CYBRP0` 113) and,
+drawn seen from above, reaches 31 px under the offset row, as the other
+big corpses do (`SDPMO0` 23, `SDPSO0` 25, `SDDBL0` 21). Placements, checked
+on the built maps on 2026-10-14 against that body: MAP03 places thing 21106
+once, at (480, 1216) in the portal hall on every skill (ceiling 384), the
+range once, at (1824, 1600) (ceiling 192); MAP01 and MAP02 never, and no
+map places 16. No wall inside either 40-unit box, and the opening over each
+leaves Q's fist 83 units of headroom at the least. The test pins them.
+**NOT VERIFIED in the engine** (D26): Q's fist under a low ceiling (none
+where he is placed; his 100 clears a 112 ceiling, BESTIARY §9, and the fist
+would then poke through it) and the corpse's 31 px under z, whether
+GZDoom's sprite clipping lifts it or draws it into the floor.
+
+Blood stays the engine's sprite recoloured by `BloodColor "AD 27 21"` (D49,
+below); the drawn deaths carry their own dark-red blood. Licence rows:
+`docs/art/LICENSES.md`, "Enemy sprites: the General and his shell". The
+draft overlay never carried either and records them as installed whole
+(`CYBR` → `SDGN`, `MANF` → `SDGL`, §6.9); `MISL` is not recorded there,
+because the PG-7V grenade and the Katyusha rocket still wear it.
 
 **The radio (§6.7).** `SD_Radio` → final sprite **`SDRD`** A (rotation
 `0`, one picture from every angle), standing on the floor (`left = width /
@@ -1819,7 +1899,11 @@ would be skipped with a note). **The Reich rifleman and the Reich hound
 `SDRR`), the overlay's only enemy, is gone, the hound never had one, and
 `INSTALLED_ENEMIES` records `POSS` → `SDRR` and `SARG` → `SDHN`. **The
 Hybrid Stormtrooper and his bolt (D56)**, never overlaid, are recorded the
-same way, `TROO` → `SDHS` and `BAL1` → `SDBL`. The tool's
+same way, `TROO` → `SDHS` and `BAL1` → `SDBL`, and so are the
+Panzermensch (D67, `BOS2` → `SDPM`), the Doughboy (D70, `HEAD` → `SDDB`)
+and the General with his shell (D73, `CYBR` → `SDGN`, `MANF` → `SDGL`;
+`MISL`, the shell's old burst, is not recorded, because the PG-7V grenade
+and the Katyusha rocket still wear it). The tool's
 `enemies` group keeps the rig machinery (eight rotations, the IWAD check)
 for the next enemy drafted on the rig; today it has no swap.
 
@@ -1932,7 +2016,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | T14 | Four engine menus (`MainMenu`, `SkillMenu`, `EpisodeMenu` since D41, and the `os_Menu` insertion anchor) are copied into `MENUDEF`; since D31 the first two, and since D41 the third, also differ in their items and layout (§6.6). They do not track engine changes. **Since T24, also `D_Display`'s pause drawing** (`src/d_main.cpp`, g4.14.2, lines 1095-1123): `SD_StatusBar.DrawPaused` copies its position and its multiplayer line (§6.5.1). | re-diff at every engine upgrade |
 | T15 | MAP01's `par = 210` is set, the intermission's PAR row appears, but the printed value was never read in an unattended run (§4.1). | `qa-engineer`, with a human at the keyboard |
 | ~~T16~~ | **PAID 2026-10-13**: the ANIMDEFS pairs in `be6525a`, MAP01 v2 retired `SWITCH_PLACEHOLDER` in `bf857a0`. Was: **Paid for the engine, open for the map.** `src/lumps/ANIMDEFS` ships the four `switch` pairs SDSW1x → SDSW2x (2026-10-13), syntax from `gzdoom.pk3 → animdefs.txt`, and `SDSW1A` was seen to flip in engine the same day (§4.3). Open: MAP01 still wears `SDDOOR1` (`SWITCH_PLACEHOLDER`); the click is heard on the CEO's first walk with real switches. | `level-designer`, MAP01 v2 |
-| T18 | **Every bestiary sprite and sound is a Freedoom placeholder** (§5.1, §6.2, §6.3); the heavy Panzermensch looks exactly like the normal one. **Partly paid 2026-10-14 (D54):** the Legion trooper's sprites are ours, 70 `SDLT` lumps (§6.3, "The Legion trooper, installed by D54"). **Nearly paid for the sprites, 2026-10-14 (D55):** the Reich rifleman's (70 `SDRR`) and the Reich hound's (46 `SDHN`) are ours too (§6.3, "The Reich rifleman and the Reich hound, installed by D55"), so three of the seven classes, both infantries and the hound, wear their own sprites. **D56, the same day:** the Hybrid Stormtrooper (77 `SDHS`) and his bolt (5 `SDBL`) too (§6.3, "The Hybrid Stormtrooper and his bolt, installed by D56"): four of the seven classes and one of the four projectiles. **Nearly paid for the sprites, D67 (2026-10-14):** the Panzermensch (71 `SDPM`) and the heavy variant, drawn as a set of its own (71 `SDPS`, its own `States` block; the planned `Translation` is dropped) (§6.3, "The Panzermensch and the Schwer, installed by D67"): five of the seven classes and the heavy variant. **D70, the same day:** the Doughboy (54 `SDDB`) (§6.3, "The Doughboy, installed by D70"): six of the seven classes. Open: the sprites of the General and the three other projectiles, and every bestiary sound, the installed classes' included. | F5, as `art-director` and `sound-designer` deliver (D35: own drawings for the five most-seen) |
+| T18 | **Every bestiary sprite and sound is a Freedoom placeholder** (§5.1, §6.2, §6.3); the heavy Panzermensch looks exactly like the normal one. **Partly paid 2026-10-14 (D54):** the Legion trooper's sprites are ours, 70 `SDLT` lumps (§6.3, "The Legion trooper, installed by D54"). **Nearly paid for the sprites, 2026-10-14 (D55):** the Reich rifleman's (70 `SDRR`) and the Reich hound's (46 `SDHN`) are ours too (§6.3, "The Reich rifleman and the Reich hound, installed by D55"), so three of the seven classes, both infantries and the hound, wear their own sprites. **D56, the same day:** the Hybrid Stormtrooper (77 `SDHS`) and his bolt (5 `SDBL`) too (§6.3, "The Hybrid Stormtrooper and his bolt, installed by D56"): four of the seven classes and one of the four projectiles. **Nearly paid for the sprites, D67 (2026-10-14):** the Panzermensch (71 `SDPM`) and the heavy variant, drawn as a set of its own (71 `SDPS`, its own `States` block; the planned `Translation` is dropped) (§6.3, "The Panzermensch and the Schwer, installed by D67"): five of the seven classes and the heavy variant. **D70, the same day:** the Doughboy (54 `SDDB`) (§6.3, "The Doughboy, installed by D70"): six of the seven classes. **Paid for the classes' sprites, D73 (the same day):** the General (81 `SDGN`) and his shell (5 `SDGL`) (§6.3, "The General and his shell, installed by D73"): all seven classes and two of the four projectiles. Open: the sprites of the two other projectiles (`SDDL`, `SDPL`), and every bestiary sound, the installed classes' included. | F5, as `art-director` and `sound-designer` deliver (D35: own drawings for the five most-seen) |
 | ~~T19~~ | ~~Nothing has been seen in the engine: the eight classes compile only in theory until the PM's batch run (D26).~~ **Paid 2026-10-13** by the PM's engine pass (GZDoom 4.14.2, Freedoom 0.13.0): the classes load with no error, the gallery shows all eight, the drops and the General's single summon were counted, and MAP01 v3's 33 enemies spawn through Doom's numbers. Evidence `docs/qa/evidence/2026-10-13_1705_F5_map02-bestiary.log` and `…-gallery.png` (commit `2b1aba5`), `docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass.log` (commit `bcbf35f`); the table is in ADR 006. What that pass did **not** settle is debt T22. |  |
 | ~~T20~~ | ~~ADR 006 is owed.~~ **Paid 2026-10-13**: `docs/engine/adr/006-bestiary-actors.md` (seven decisions, what the engine showed, what it did not). Written in the working tree; the commit is the PM's (D6). |  |
 | T21 | Doom monsters with no Soviet replacement (65 chaingunner, 58 spectre, the rest of Doom II's roster) still spawn Freedoom's actors. MAP01 §8 plans a "Legion heavy gunner" on 65 that the bestiary does not have. | CEO question, if a seventh enemy is wanted |
