@@ -88,6 +88,30 @@ statistics because its diagonal leaves the centre free.
 Lump names are fixed by the engine, so these three are the documented
 exception to the `SD` prefix rule (MOD-SPEC §1).
 
+## Shell: M_SKULL1/2, M_PAUSE (D48)
+
+CEO verdict 2026-10-14 (D48): menu cursor **B** (hammer and sickle) and
+pause sign **P2** (a plaque per language), from the T12 sweep
+`docs/art/previews/2026-10-13_2208_F2_shell-cursor-pause-sweep.html`. Files
+in `assets/graphics/shell/`, renamed on install from the generator's option
+names and copied byte for byte from `work/art/shell_extra/`
+(`cursor_B_1.png` → `M_SKULL1.png`, `cursor_B_2.png` → `M_SKULL2.png`,
+`pause_P2_en.png` → `M_PAUSE.png`). Like `M_DOOM`, RGBA with hard alpha and
+palette colours only (ART-BIBLE §2), and named by the engine, so outside the
+`SD` prefix rule (MOD-SPEC §1). Only the English plaque ships; the Russian
+one (`pause_P2_ru.png`, same origin) waits on the packer (MOD-SPEC §10, T12).
+Per-lump rows: `TEXTURE-INDEX.md`, "Shell pictures".
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `M_SKULL1` / `M_SKULL2` | menu cursor, the two blink phases: the hammer and sickle, gold then pale cream, with a dark-red outline | (a) `tools/art/gen_cursor.py`, `cursor_image("B", 1/2)`, palette v1; the emblem's geometry imported from `gen_soviet_base.hammer_sickle()` (the approved `SDSTAR1` v5), never re-traced | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `M_PAUSE` | pause sign, English: «PAUSE» on a flag-red plaque with a cream border | (a) `tools/art/gen_cursor.py`, `pause_image("P2", "en")`, palette v1; the word set in our own `SDMENU` folder font (read from `assets/fonts/sdmenu/`, above), no system font | idem |
+
+Procedural and drawn from code: no photograph, no typeface, no pixel
+painted by hand. Freedoom's own `M_SKULL1`, `M_SKULL2` and `M_PAUSE` are read
+from the IWAD only to sit beside ours on the sweep sheet
+(`work/art/shell_extra/freedoom/`, never shipped) and never enter a picture.
+
 ## The alphabet (F2, chosen by the CEO 2026-10-13)
 
 Variant **C "Mashina"** of three, picked from a sheet that set all three
@@ -225,6 +249,32 @@ regenerate byte-identical on the Windows PC. Per-lump rows and seeds:
 No typeface, no photograph, no scanned station: the real Moscow metro is
 the reference for the materials only (described in ART-BIBLE §4), and no
 image of it was used as a source.
+
+## Metro fill (D48)
+
+CEO verdict 2026-10-14, verbatim: «PERFECTO» — the ten fill pieces of the
+metro, as drawn in palette v1, both tunnels and the chevrons included (D48).
+Preview `docs/art/previews/2026-10-13_2022_F3_batch2-metro-fill.html`. Files
+in `assets/textures/metro/` (walls) and `assets/flats/metro/` (flats), copied
+byte for byte from `work/art/batch2/metro_fill/`, rendered on the Windows PC;
+no typeface, so they reproduce on both machines. Per-lump rows and seeds
+(1935 + 7 to 16): `TEXTURE-INDEX.md`, "Metro fill-out".
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDMEDG1` | platform face towards the track, chevron band | (a) `tools/art/gen_metro.py --fill`, `BATCH_SEED` 1935, palette v1 | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDTUNL1` | running-tunnel concrete with cable bundles | (a) idem | idem |
+| `SDTUBB1` | cast-iron tubbing segments | (a) idem | idem |
+| `SDMARB2` | tile above red marble, brass rail | (a) idem | idem |
+| `SDTILE3` | tile wall with a ceramic lozenge frieze | (a) idem | idem |
+| `SDMFLR2` | station hall granite checker (flat) | (a) idem | idem |
+| `SDMFLR3` | platform edge from above, yellow warning line (flat) | (a) idem | idem |
+| `SDRAIL1` | track bed, sleepers and rails (flat) | (a) idem | idem |
+| `SDMCEIL1` | coffered whitewashed ceiling (flat) | (a) idem | idem |
+| `SDMCEIL2` | the same coffer with a brass ring lamp (flat) | (a) idem | idem |
+
+Same sources as the first six: no photograph, no scanned station, no
+typeface; the real metro is a reference for materials only.
 
 ## Music (D43, installed 2026-10-13)
 

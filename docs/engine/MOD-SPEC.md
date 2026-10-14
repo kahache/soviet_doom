@@ -38,6 +38,12 @@ six weapons (`SDAP`, `SDTP`, `SDIP`, `SDPQ`, `SDRP`, `SDKP`) are packed from
 `assets/sprites/` and named by the weapons' `Spawn` states (§6.3, "Installed
 since D48"); the held and flash frames stay Freedoom's, the hand being
 redrawn. **NOT YET SEEN IN THE ENGINE** (D26).
+**D48 pause plaque per language and D49 blood, 2026-10-14:** the build
+packs `assets/localized/**` at its own path, for the Russian face of the
+pause sign `M_PAUSE` (§2, "Language variants"), and `check_pk3` validates
+it; **GZDoom g4.14.2 loads such a variant but does not draw it** (read in
+the engine source, T24). Every enemy bleeds dark red, `BloodColor "AD 27 21"`
+(D49, `BESTIARY.md` §2.1, §6.3 below). Both **NOT YET SEEN IN THE ENGINE** (D26).
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -83,6 +89,9 @@ sovietdoom.pk3
 ├── graphics/TITLEPIC.png   title screen, 320×200 (D18)
 ├── graphics/INTERPIC.png   intermission background, 320×200 (D18)
 ├── graphics/M_DOOM.png     main-menu logo, 200×64, placed by MENUDEF (§6.6)
+├── graphics/M_PAUSE.png    pause sign, plaque P2 in English, 77×20 (D48)
+├── localized/textures/     language variants of graphics, path kept whole:
+│                           M_PAUSE.ru.png, plaque P2 in Russian, 77×20 (D48; see the rules)
 ├── fonts/defsmallfont/     <HEX>.png + font.inf — SmallFont glyphs, 107 files (D24)
 ├── fonts/bigfont/          <HEX>.png + font.inf — BigFont glyphs, 107 files (D24)
 ├── fonts/sdmenu/           <HEX>.png + font.inf — menu font SDMENU, 107 files (D31, §6.6)
@@ -114,6 +123,36 @@ Rules:
   fixed: marker `MAPxx` (empty), `TEXTMAP`, `ENDMAP` (empty). No node lumps:
   GZDoom builds them at load (verified at G0).
 - Maps are not extracted: GZDoom reads `maps/MAP01.wad` directly.
+- **Language variants of graphics** (D48's pause plaque, D21 for pictures).
+  GZDoom g4.14.2 has one mechanism for them, read in its source
+  (`FTextureManager::AddLocalizedVariants`, `src/common/textures/texturemanager.cpp`,
+  tag `g4.14.2`; **VERIFIED as code, NOT VERIFIED in the engine**):
+  - it scans **exactly** `localized/textures/` (no other folder, no
+    `filter/` variant) and splits each file name on `.`;
+  - the first token is the **base** graphic (`M_PAUSE`), looked up as a
+    MiscPatch, so `graphics/M_PAUSE.png` qualifies; the second is one or
+    more **language IDs** of 2 or 3 letters joined by `-` (`ru`, `ru-uk`);
+    `M_PAUSE.png` with no ID is ignored. The name we ship:
+    **`localized/textures/M_PAUSE.ru.png`** (case is irrelevant: the engine
+    lower-cases every PK3 path);
+  - a variant whose size differs from its base's is refused ("Localized
+    texture %s must be the same size as the one it replaces"); every
+    refusal is a console line, never a load error, which is why
+    `check_pk3` (category `localized`) turns each into an error offline;
+  - **but in g4.14.2 nothing draws the variant.** The substitution line in
+    `FTextureManager::ResolveTextureIndex` (`texturemanager.h`, line 32) is
+    commented out, and the variant table is consulted only by
+    `OkForLocalization`, which decides whether a menu graphic yields to
+    text. The pause sign itself is drawn by `D_Display` (`src/d_main.cpp`,
+    line 1110) with `GetGameTextureByName(gameinfo.PauseSign)`, which does
+    no localization. So the Russian plaque packs and validates, and the
+    game still shows the English one in Russian. The working route is
+    the status bar's `DrawPaused` virtual (`statusbar.zs`, line 239; the
+    engine calls it first and skips its own drawing if it returns true):
+    T24.
+  - The variant's licence row is its base's (`M_PAUSE`) or its own. It is
+    kept out of `check_pk3.LICENSED_DIRS` because `tools/release.py` reads
+    that list with a stem-only match (T24).
 
 ## 3. `src/` layout (build input)
 
@@ -130,7 +169,9 @@ assets/   (CEO-approved art only; `work/` is gitignored and never ships)
 │     e.g. assets/textures/soviet_base/SDCONC1.png → textures/SDCONC1.png
 │          assets/graphics/shell/TITLEPIC.png      → graphics/TITLEPIC.png
 │          assets/sprites/tt33/SDTPA0.png          → sprites/SDTPA0.png   (the set is the weapon)
-└── fonts/<fontname>/*      → fonts/<fontname>/*   kept whole: the folder IS the font
+├── fonts/<fontname>/*      → fonts/<fontname>/*   kept whole: the folder IS the font
+└── localized/**            → localized/**         kept whole: the path IS the contract (§2)
+      e.g. assets/localized/textures/M_PAUSE.ru.png → localized/textures/M_PAUSE.ru.png
 ```
 
 - **The asset mapping** (`tools/build.py`, packer `tools/sdbuild/pk3.py`,
@@ -773,8 +814,14 @@ and no reserved sprite above starts with `SDRD`.
 
 The heavy Panzermensch has no states of its own: it inherits `SDPM` and gets
 a `Translation` when the art exists. Blood is recoloured by `BloodColor`
-(Reich `khaki_olive` 3, Legion `plaster_warm` 12; `BESTIARY.md` §2.1) on
-the engine's own blood sprite; no blood sprite is reserved.
+on the engine's own blood sprite; no blood sprite is reserved. **Since D49
+(2026-10-14) every class bleeds dark red, `BloodColor "AD 27 21"`**
+(`flag_red` 9; the Reich's olive and the Legion's pale are retired,
+`BESTIARY.md` §2.1). The engine scales that value by each blood pixel's
+brightness (`CreateBloodTranslation`, `src/r_data/r_translate.cpp`, read in
+the g4.14.2 source), so Freedoom's `BLUD` comes out as `flag_red` 0–5, the
+band the drawn deaths use; `tests/test_blood.py` pins the value and runs
+the formula on the IWAD's frames. The on-screen colour stays in T22.
 
 **What the Freedoom placeholders look like today** (CEO play session,
 2026-10-13). These are art defects, not engine defects: the mod sets no
@@ -1141,7 +1188,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | ~~T9~~ | ~~No Cyrillic in the game's font.~~ **Paid 2026-10-13 by D24** (font install `32b384e`, warning removed in `401a02e`): `fonts/defsmallfont/` and `fonts/bigfont/`, 214 glyphs (§2, §6.4). The player-facing warning it carried (`SD_OPTMNU_LANGWARN`, "Cyrillic is not drawn yet") is deleted from `LANGUAGE` and `MENUDEF`. |  |
 | T10 | The slot-1 swing is silent (§6.2). ~~The ice axe's pickup is Freedoom's chainsaw~~: **paid 2026-10-14**, `SDAP` A option C (D48, §6.3). | F4, when `sound-designer` delivers `SDAXSWG` |
 | T11 | `AMMO`/`HEALTH`/`ARMS`/`ARMOR` are pixels in the IWAD's `STBAR` (§6.5). Parked in `docs/ICEBOX.md` until F6. | F6, with the HUD art (was blocked on T9; unblocked since D24) |
-| T12 | **Mostly paid 2026-10-13 by D31 (commits `7ff8c5a`, `22567d9`); the CEO walked it on screen and approved the text menu the same day (D32, commit `f3cc523`).** The main menu's items and the skill screen's header are text in `SDMENU` (§6.6); `M_NGAME`, `M_OPTION`, `M_LOADG`, `M_SAVEG`, `M_RDTHIS`, `M_QUITG`, `M_NEWG` and `M_SKILL` are no longer named by `MENUDEF`. **Still Freedoom's:** the skull cursor `M_SKULL1`/`M_SKULL2` (Doom's `DEFAULTLISTMENU` selector), the pause sign `M_PAUSE` (Doom's pause graphic; not yet looked at on screen in this mod), and ~~`M_EPISOD`~~, which the engine would draw once the mod has a second episode: D41 gave it one, and the redeclared `EpisodeMenu` draws a text header instead (§4.4, §6.6). Engine-drawn text (load/save captions, message boxes, the options screens) uses fonts, not Freedoom's pictures. | `art-director` (cursor, pause sign) with the rest of the shell; treatment C, painted per-language menu graphics, is parked by the CEO (D31) |
+| T12 | **Mostly paid 2026-10-13 by D31 (commits `7ff8c5a`, `22567d9`); the CEO walked it on screen and approved the text menu the same day (D32, commit `f3cc523`).** The main menu's items and the skill screen's header are text in `SDMENU` (§6.6); `M_NGAME`, `M_OPTION`, `M_LOADG`, `M_SAVEG`, `M_RDTHIS`, `M_QUITG`, `M_NEWG` and `M_SKILL` are no longer named by `MENUDEF`. ~~**Still Freedoom's:** the skull cursor `M_SKULL1`/`M_SKULL2`, the pause sign `M_PAUSE`~~: **paid in English 2026-10-14 (D48)**: cursor B (hammer and sickle, blinking through gzdoom.pk3's own `ANIMDEFS`) and pause sign P2 in English ship as `graphics/M_SKULL1`, `M_SKULL2` and `M_PAUSE` (`assets/graphics/shell/`, `docs/art/TEXTURE-INDEX.md` "Shell pictures"); not yet seen in the engine (D26). ~~`M_EPISOD`~~ is never drawn: D41 gave the mod a second episode and the redeclared `EpisodeMenu` draws a text header instead (§4.4, §6.6). Engine-drawn text (load/save captions, message boxes, the options screens) uses fonts, not Freedoom's pictures. **Open: the Russian `M_PAUSE`** (P2's «ПАУЗА» plaque, approved in D48, `work/art/shell_extra/pause_P2_ru.png`, same 77×20 as the English one): the packer does not carry a `localized/` folder. Plan: `tools/sdbuild/pk3.py` and `tools/check_pk3.py` accept `localized/`, then an engine pass confirms the variant's file name (NOT VERIFIED, `tools/art/gen_cursor.py` docstring) and the swap with `language ru`. | `mod-engineer` (packer, `check_pk3`, engine pass) for the Russian `M_PAUSE`; `art-director` hands over the file. Treatment C, painted per-language menu graphics, is parked by the CEO (D31) |
 | T13 | `MENUDEF` names `OptionsMenuSimple`, and `AddOptionMenu` on a name the engine does not define is a **hard parse error**. If a GZDoom upgrade drops the simple options menu, the lump stops loading until that block goes. | at the next engine upgrade |
 | T14 | Four engine menus (`MainMenu`, `SkillMenu`, `EpisodeMenu` since D41, and the `os_Menu` insertion anchor) are copied into `MENUDEF`; since D31 the first two, and since D41 the third, also differ in their items and layout (§6.6). They do not track engine changes. | re-diff at every engine upgrade |
 | T15 | MAP01's `par = 210` is set, the intermission's PAR row appears, but the printed value was never read in an unattended run (§4.1). | `qa-engineer`, with a human at the keyboard |
@@ -1153,3 +1200,4 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | T17 | **The English `LANGUAGE` section still carries Latin transliterations** (`PG-7V`, `7.62x25`) although the glyphs for the Cyrillic forms D17 asks for exist since D24 (§6.4). Two ASCII tests pin the current state (`tests/test_language.py`, `tests/test_arsenal.py`). | `mod-engineer`, one text change plus an engine screenshot of the HUD |
 | T22 | **Bestiary behaviours the engine pass did not show** (ADR 006, "NOT VERIFIED"): infighting between our classes and the native `GetSpecies` rule behind the explicit `Species`; the colour of `BloodColor`; the General's order line on screen (the console log carries it); the recruits entering the chase and the blocked-spot fallback; the attack helpers' damage (both runs were god mode, deaf or `notarget`); how far a dead Doughboy falls; the sounds. | the PM's next engine pass, with enemies awake and one fighting another; `qa-engineer` for the sounds, with a human |
 | T23 | **The radio (§6.7) is unseen and wears a pickup's picture.** `SD_Radio` has not run in the engine (D26), its editor number 21200 is not yet in `MAPINFO`, and its placeholder `PMAP` A is the computer area map's pickup, which MAP01 also places (2026): a player may walk at the radio expecting a pickup. | the PM's engine pass (ADR 008 checklist) and the `MAPINFO` line; `art-director` for `SDRD` A |
+| T24 | **The Russian pause plaque is packed but not drawn** (§2, "Language variants"). GZDoom g4.14.2 registers `localized/textures/M_PAUSE.ru.png` and checks its size, but its display-time substitution is commented out, so the pause sign stays English in Russian. Fix: a status bar class (MAPINFO `GameInfo { StatusBarClass }`, deriving from the Doom one) whose `DrawPaused` draws the graphic a `LANGUAGE` id names (`[enu default]` `M_PAUSE`, `[ru]` the variant's full path, which `TexMan.CheckForTexture` accepts) and returns true; a `LANGUAGE` id follows the menu's language switch, where reading the `language` CVar would miss `auto`. Also: `tools/release.py` does not list `localized/` among the assets it credits. | F6 shell, `mod-engineer`; the PM's engine pass checks `language ru` + pause |

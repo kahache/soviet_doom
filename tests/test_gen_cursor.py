@@ -1,6 +1,7 @@
 """Tests for the T12 sweep of the menu cursor and the pause sign
-(tools/art/gen_cursor.py). A sweep, not an asset: nothing here reads or
-writes assets/ except to READ the installed menu font.
+(tools/art/gen_cursor.py). The generator writes to work/ only; these tests
+READ assets/ (the menu font, and the three shell lumps the CEO approved in
+D48), never write it.
 
   the pictures   every cursor option has two blink phases of one size that
                  differ; every picture is RGBA, hard alpha, palette colours
@@ -13,6 +14,8 @@ writes assets/ except to READ the installed menu font.
   D27            no system font anywhere in the module, and the build is
                  deterministic; the approved font is read, never rewritten
   the build      build() writes only under the directory it is given
+  installed (D48) M_SKULL1/M_SKULL2 are cursor B and M_PAUSE is pause sign
+                 P2 in English, byte for byte what the generator saves today
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_gen_cursor -v
 """
@@ -34,6 +37,13 @@ import gen_cursor  # noqa: E402  (stdlib-only at import time)
 
 PALETTE_JSON = PROJECT_ROOT / "docs" / "art" / "palette.json"
 SDMENU = PROJECT_ROOT / "assets" / "fonts" / "sdmenu"
+SHELL = PROJECT_ROOT / "assets" / "graphics" / "shell"
+
+# D48 (CEO, 2026-10-14): menu cursor B and pause sign P2, a plaque per
+# language. Only the English plaque is installed: the Russian one waits on
+# the packer's localized/ support (MOD-SPEC 10, T12).
+APPROVED_CURSOR = "B"
+APPROVED_PAUSE = ("P2", "en")
 
 try:
     import numpy as np
@@ -178,6 +188,34 @@ class BuildTests(unittest.TestCase):
             self.assertFalse({Path(w).name for w in written} & lumps,
                              "no work file may carry a shell lump's name")
         self.assertEqual(folder_hashes(SDMENU), before)
+
+
+def png_bytes(img) -> bytes:
+    """The bytes build() writes for a picture: Pillow PNG, optimize=True."""
+    import io
+    buf = io.BytesIO()
+    img.save(buf, format="PNG", optimize=True)
+    return buf.getvalue()
+
+
+@imaging
+@font
+@unittest.skipUnless((SHELL / "M_SKULL1.png").is_file(), "D48 shell lumps not installed")
+class InstalledShellTests(unittest.TestCase):
+    """D48: the PM copied cursor_B_1/2.png and pause_P2_en.png into assets/
+    under the engine's names. The installed bytes must be exactly what the
+    generator saves today for B and P2, so a later edit of gen_cursor.py
+    cannot drift away from the approved art unnoticed."""
+
+    def test_cursor_b_is_m_skull(self):
+        for phase in (1, 2):
+            with self.subTest(phase=phase):
+                built = png_bytes(gen_cursor.cursor_image(APPROVED_CURSOR, phase))
+                self.assertEqual((SHELL / f"M_SKULL{phase}.png").read_bytes(), built)
+
+    def test_pause_p2_en_is_m_pause(self):
+        built = png_bytes(gen_cursor.pause_image(*APPROVED_PAUSE))
+        self.assertEqual((SHELL / "M_PAUSE.png").read_bytes(), built)
 
 
 if __name__ == "__main__":

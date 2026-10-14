@@ -191,8 +191,11 @@ class ApprovedAssetsTests(unittest.TestCase):
 
     # Screens the engine names itself. They are the documented exception to
     # the SD prefix (MOD-SPEC 1) and to the indexed-PNG rule: M_DOOM is a menu
-    # patch and needs an alpha channel, hard 0/255 (LICENSES.md, D18).
-    SHELL_SIZES = {"TITLEPIC": (320, 200), "INTERPIC": (320, 200), "M_DOOM": (200, 64)}
+    # patch and needs an alpha channel, hard 0/255 (LICENSES.md, D18). The
+    # menu cursor B (two blink phases, one size) and the English pause sign
+    # P2 joined them in D48 (measured on the installed files, 2026-10-14).
+    SHELL_SIZES = {"TITLEPIC": (320, 200), "INTERPIC": (320, 200), "M_DOOM": (200, 64),
+                   "M_SKULL1": (20, 20), "M_SKULL2": (20, 20), "M_PAUSE": (77, 20)}
 
     def test_layout_names_and_sizes(self):
         from PIL import Image

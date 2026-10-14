@@ -248,8 +248,9 @@ Composition rules for the set:
    into a stack of crates (the hangar's cover is exactly where fights
    happen); if it does, the fix goes on the sprite's value (§6.1) and its
    black, not on the approved crates.
-   Liberty Legion uses the reserved pink ramp + `steel_blue` highlights; no
-   wall uses `steel_blue` above ramp 0.5 in large areas.
+   Liberty Legion uses the `flesh_pink` ramp (in palette v2 since D45, §3) +
+   `steel_blue` highlights; no wall uses `steel_blue` above ramp 0.5 in
+   large areas.
 3. **Accent exclusivity.** Swastika armbands and US flags (D12) are the only
    places where saturated red/white/blue sit on an enemy; walls keep red to
    stripes, plaques and posters so an enemy's accent is never camouflaged.
