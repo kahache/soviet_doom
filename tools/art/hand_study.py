@@ -1522,7 +1522,9 @@ TT_OUT_DIR = ROOT / "work" / "art" / "weapons_fd" / "tt33"
 TT_FRAMES = (("SDTTA0", "PISGA0", "A"), ("SDTTB0", "PISGB0", "B"), ("SDTTC0", "PISGC0", "C"))
 TT_FLASH = ("SDTFA0", "SDTTB0")          # our flash and the held frame it shows over
 TT_TARGET_TOP = 113                      # PISGA0's top with the status bar on: 55 px above the bar
-TT_DEPTH_RANGE = (8.0, 60.0)             # cm searched for the eye-to-slide distance
+TT_DEPTH_RANGE = (8.0, 60.0)             # cm searched for the eye-to-slide distance (at focal 160)
+TT_FOCALS = (160.0,)                    # px: tried 160-480; with TT_REAR_STRETCH the plain 90-degree lens fits best
+TT_GUN_WIDTH = 26                        # px: Freedoom PISGA0's pistol, rear view (measured)
 FD_SEAM_PROBE = (50, 55, 85)             # column and rows where PISG's wrist seam is looked for
 TT_GRIP_BACK_ROWS = 16                   # rows above the grip point that may show the grip's back
 
@@ -1595,13 +1597,40 @@ def _gw():
     return gen_weapon
 
 
-def tt33_rear_frame(gw, letter: str, depth: float, hands, h_off, grip, hole):
+TT_STEEL = ("concrete_cold", 0, 31)      # the gun's tones: Freedoom's pistol is dark steel with bright edges
+TT_STEEL_LUM = (16.0, 150.0, 6.0)        # target luminance: darkest, brightest, curve over the value rank
+TT_STEEL_RIM = ("concrete_cold", 0)      # its outline
+
+
+def steel_contrast(rgba: np.ndarray) -> np.ndarray:
+    """Our render's even mid-grey re-toned like Freedoom's pistol. Each
+    pixel takes a luminance from its value's rank (equal values share a
+    rank, so a flat face stays one tone): most of the gun dark, only the
+    lit edges bright. Nearest steel tone by luminance, outline on the rim."""
+    out = rgba.copy()
+    a = out[..., 3] > 0
+    lum = luminance(out[..., :3].astype(np.float32))
+    vals = lum[a]
+    uniq, inv, counts = np.unique(vals, return_inverse=True, return_counts=True)
+    cum = np.cumsum(counts)
+    rank = (cum - counts / 2) / cum[-1]                  # mid-rank of each distinct value
+    lo, hi, curve = TT_STEEL_LUM
+    target = lo + (hi - lo) * rank[inv] ** curve
+    cols = np.array(ramp_cols(TT_STEEL))
+    col_l = luminance(cols.astype(np.float32))
+    out[a, :3] = cols[np.argmin(np.abs(target[:, None] - col_l[None, :]), axis=1)]
+    edge = a & ~(shift(a, 1, 0, False) & shift(a, -1, 0, False) & shift(a, 0, 1, False) & shift(a, 0, -1, False))
+    out[edge, :3] = ramp(TT_STEEL_RIM[0])[TT_STEEL_RIM[1]]
+    return out
+
+
+def tt33_rear_frame(gw, letter: str, depth: float, hands, h_off, grip, hole, focal: float = 160.0):
     """Our rear-view gun behind one Freedoom frame's hands, on one canvas.
     Returns (rgba, offsets, muzzle_xy); everything in weapon-space px."""
     hx0, hy0 = place(hands, h_off, bar=False)
     pose = {p.frame: p for p in gw.TT_REAR_POSES}[letter]
-    frame, muzzle = gw.render_tt33_rear(pose, depth, (hx0 + grip[0], hy0 + grip[1]))
-    g, gx0, gy0 = frame.rgba, frame.left, frame.top
+    frame, muzzle = gw.render_tt33_rear(pose, depth, (hx0 + grip[0], hy0 + grip[1]), focal)
+    g, gx0, gy0 = steel_contrast(frame.rgba), frame.left, frame.top
     x0, y0 = min(gx0, hx0), min(gy0, hy0)
     x1 = max(gx0 + g.shape[1], hx0 + hands.shape[1])
     y1 = max(gy0 + g.shape[0], hy0 + hands.shape[0])
@@ -1631,34 +1660,47 @@ def build_tt33_fd() -> dict:
     first, _, letter_a = TT_FRAMES[0]
     hs_a, off_a, grip_a, hole_a = hands[first]
 
-    def top_bar(depth):
-        rgba, off, _ = tt33_rear_frame(gw, letter_a, depth, hs_a, off_a, grip_a, hole_a)
-        return measure(rgba, off)["top"]
-    lo, hi = TT_DEPTH_RANGE                 # nearer = bigger = higher top
-    for _ in range(18):
-        mid = (lo + hi) / 2
-        if top_bar(mid) < TT_TARGET_TOP:
-            lo = mid
-        else:
-            hi = mid
-    depth = round((lo + hi) / 2, 2)
+    def depth_for(focal):
+        lo, hi = TT_DEPTH_RANGE[0] * focal / 160.0, TT_DEPTH_RANGE[1] * focal / 160.0
+        for _ in range(16):                 # nearer = bigger = higher top
+            mid = (lo + hi) / 2
+            rgba, off, _ = tt33_rear_frame(gw, letter_a, mid, hs_a, off_a, grip_a, hole_a, focal)
+            if measure(rgba, off)["top"] < TT_TARGET_TOP:
+                lo = mid
+            else:
+                hi = mid
+        return round((lo + hi) / 2, 2)
+
+    def gun_width(focal, depth):
+        pose = {p.frame: p for p in gw.TT_REAR_POSES}[letter_a]
+        hx0, hy0 = place(hs_a, off_a, bar=False)
+        fr, _ = gw.render_tt33_rear(pose, depth, (hx0 + grip_a[0], hy0 + grip_a[1]), focal)
+        return fr.rgba.shape[1]
+    # the focal whose gun is as wide as Freedoom's pistol, at PISG's height
+    best = None
+    for focal in TT_FOCALS:
+        dep = depth_for(focal)
+        err = abs(gun_width(focal, dep) - TT_GUN_WIDTH)
+        if best is None or err < best[0]:
+            best = (err, focal, dep)
+    _, focal, depth = best
     frames = {}
     for ours, _, letter in TT_FRAMES:
         hs_, off_, grip_, hole_ = hands[ours]
-        rgba, offs, muzzle = tt33_rear_frame(gw, letter, depth, hs_, off_, grip_, hole_)
+        rgba, offs, muzzle = tt33_rear_frame(gw, letter, depth, hs_, off_, grip_, hole_, focal)
         frames[ours] = {"sprite": rgba, "offsets": offs, "muzzle": muzzle}
     fl = gw.render_tt33_flash("A", frames[TT_FLASH[1]]["muzzle"])
     frames[TT_FLASH[0]] = {"sprite": fl.rgba, "offsets": fl.offsets()}
     meta = {"_state_machine": {"file": "src/zscript/weapons/tokarev.zs", "held_placeholder": "PISG",
                                "held_letters": "ABC", "flash_placeholder": "PISF", "flash_letters": "A",
                                "hand": "E", "hands": "freedoom-R3A1"},
-            "_view": "rear (gen_weapon.render_tt33_rear)", "_depth_cm": depth}
+            "_view": "rear (gen_weapon.render_tt33_rear)", "_depth_cm": depth, "_focal_px": focal}
     for name, f in frames.items():
         write_sprite(TT_OUT_DIR / f"{name}.png", f["sprite"], f["offsets"])
         meta[name] = {"size": [f["sprite"].shape[1], f["sprite"].shape[0]], "offsets": list(f["offsets"]),
                       "height_above_bar": measure(f["sprite"], f["offsets"])["height"]}
     (TT_OUT_DIR / "metrics.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
-    return frames | {"_depth": depth}
+    return frames | {"_depth": depth, "_focal": focal}
 
 
 def build_d61_sheet(stamp: str) -> Path:
@@ -1669,6 +1711,7 @@ def build_d61_sheet(stamp: str) -> Path:
     Image.fromarray(fist).save(OUT_DIR / "R3A2_PUNGC0_recoloured.png")
     frames = build_tt33_fd()
     depth = frames.pop("_depth")
+    focal = frames.pop("_focal")
     pisg, pisg_off = decode_patch(lumps["PISGA0"], pal)
     pad, gap = 24, 16
     f_t, f_b, f_s = font(26), font(16), font(14)
@@ -1694,7 +1737,9 @@ def build_d61_sheet(stamp: str) -> Path:
     p_m = measure(pisg, pisg_off)
     y = wrap(d, (pad, y), (
         f"TT-33 frames for tokarev.zs (SDTT A ready, B fire: kick up, C coming down; SDTF A flash on B): our "
-        f"TT-33 rendered from behind (gen_weapon.render_tt33_rear, the slide's back {depth:.1f} cm from the eye), "
+        f"TT-33 rendered from behind (gen_weapon.render_tt33_rear, the slide's back {depth:.1f} cm from the eye, focal "
+        f"{focal:.0f} px, drawn {_gw().TT_REAR_STRETCH}x wider for first person like Freedoom's chunky pistol, "
+        f"re-toned to dark steel with bright edges), "
         f"the muzzle into the screen like Freedoom's pistol, so frame A stands "
         f"{a_m['height']} px above the status bar, PISGA0 {p_m['height']} px (D57 band "
         f"{round(p_m['height'] * 0.9)}-{round(p_m['height'] * 1.1)}); the grip set into the grip of Freedoom's "
