@@ -21,14 +21,14 @@ get better.
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
 | N14-2 | M2 | Ice axe right-handed (D73) + shaft and head polish, cells C1/C3/C4 again | art-director | 100 | D73 |
+| N17 | M2 | Install the approved TT-33 held frames (SDTT/SDTF, D61) into the PK3 + engine pass; today they live only in the draft overlay | mod-engineer | 120 | — |
+| G2 | M4 | Fix the generated README EN/RU (three-map campaign, GZDoom 4.14 default controls, Phase 2 WAD, hash check) from the G6 review's proposal | mod-engineer | 50 | — |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
 ## Next (approved order, D63)
 
 | # | Milestone | Task | Role | Est. k tok | Needs |
 |---|---|---|---|---|---|
-| N17 | M2 | Install the approved TT-33 held frames (SDTT/SDTF, D61) into the PK3 + engine pass; today they live only in the draft overlay | mod-engineer | 120 | — |
-| G2 | M4 | Fix the generated README EN/RU (three-map campaign, GZDoom 4.14 default controls, Phase 2 WAD, hash check) from the G6 review's proposal | mod-engineer | 50 | — |
 | M2a | M2 | Pickups sweep + install: health, armour, area map, backpack, yellow and red keycards (113 placed on skill 3), the hand Katyusha's pickup (draft SDHPA0), fullscreen HUD icons, our pickup lines | art-director + mod-engineer | 480 | — |
 | M2b | M2 | Enemy shells: the Doughboy's BAL2, the Panzermensch's BAL7 | art-director + mod-engineer | 150 | — |
 | M2c | M2? | Player projectiles and hit effects (MISL, PLSS/PLSE, PUFF, BLUD shape, TFOG), barrels and lamp | art-director | 350-400 | CEO: in M2 or not |
