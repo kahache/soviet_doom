@@ -162,6 +162,10 @@ def sndinfo_weapon_targets() -> dict[str, str]:
         m = re.match(r"^//\s+(sd/weapon/\S+)\s+([A-Z0-9]+)\s*$", ln)
         if m:
             targets[m.group(1)] = m.group(2)
+        # Installed (N9, D74): the right-hand column is already our lump.
+        m = re.match(r"^(sd/weapon/\S+)\s+(SD[A-Z0-9]+)\b", ln)
+        if m:
+            targets[m.group(1)] = m.group(2)
     return targets
 
 
@@ -274,8 +278,10 @@ class ContractTest(unittest.TestCase):
         self.assertIn("sd/weapon/katyusha/charge", fire[0][2])
         self.assertEqual(fire[0][1], gws.KATYUSHA_CHARGE_TICS)
         salvo = next(i for i, f in enumerate(fire) if "A_SD_FireKatyusha" in f[2])
-        self.assertIn("A_ReFire", fire[salvo + 1][2])
-        self.assertEqual(fire[salvo + 1][1], gws.KATYUSHA_RECOVERY_TICS)
+        # N9: a 0-tic frame starts the reload as the recovery begins.
+        recovery = next(f for f in fire[salvo + 1:] if f[1] > 0)
+        self.assertIn("A_ReFire", recovery[2])
+        self.assertEqual(recovery[1], gws.KATYUSHA_RECOVERY_TICS)
 
     def test_overlay_sndinfo_marks_the_unwired_names(self):
         text = gws.sndinfo_text(gws.LUMPS)

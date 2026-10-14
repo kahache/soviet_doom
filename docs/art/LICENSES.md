@@ -347,6 +347,60 @@ phonogram and sequencing, each with its source — is owned by
 | `D_SDGATE` | MAP03 (Tankograd) music, **D62 draft pending the CEO's ear**: «Богатырские ворота» / *Bogatyrskie vorota* (The Great Gate of Kiev), Mussorgsky, *Pictures at an Exhibition* No. 10, 1874, top voice as printed in Bessel's 1886 edition | sequenced by `sound-designer` under D54 (`tools/audio/gen_music.py`, `build_gate`); installed 2026-10-14 byte-identical to `work/audio/D_SDGATE.mid`; score provenance `docs/sound/MUSIC-RIGHTS.md` §4.6.4 | composition public domain (Mussorgsky d. 1881, pub. 1886; RU and US); our sequencing CC BY-NC-SA 4.0 (D15); no phonogram |
 | `D_SDAMUR` | RANGE (practice range) music, **D62 draft pending the CEO's ear**: «Амурские волны» / *Amurskie volny*, waltz, Max Kyuss op. 12, pub. 1909 | sequenced by `sound-designer` under D44 (`tools/audio/gen_music.py`, `build_amur`); installed 2026-10-14 byte-identical to `work/audio/D_SDAMUR.mid`; score provenance `docs/sound/MUSIC-RIGHTS.md` §4.6.2 | composition public domain (Kyuss d. 1942, pub. 1909; RU and US); our sequencing CC BY-NC-SA 4.0 (D15); no lyric, no phonogram |
 
+## Weapon sounds (F4, approved by the CEO 2026-10-15, D74; installed by N9)
+
+The 25 weapon sounds the CEO marked OK on the M3 listening sheet (D74), in
+the take he chose, after the loudness pass of backlog N9. Files in
+`assets/sounds/weapons/<LUMP>.ogg`, packed as `sounds/<LUMP>.ogg`;
+`src/lumps/SNDINFO` maps the logical names to them. Every one is **our own
+work**: the shots, booms, whooshes, hisses, rings and the relay buzz are
+synthesis (`tools/audio/gen_weapon_sfx.py`, fixed seeds), and the mechanical
+foley mixes in short clips of two CC0 packs already on disk under D36, cut,
+re-pitched, filtered and always layered, never alone: `OGA-100`, rubberduck's
+*100 CC0 SFX* (OpenGameArt), and `KEN-IMP`, Kenney's *Impact Sounds*
+(kenney.nl). No recording of a real firearm is used. Pack rows, URLs and
+archive hashes: `docs/sound/ENEMY-SOUNDS.md` §2.1; the SHA-256 of every
+source file and which lump uses it: `docs/sound/WEAPON-SOUNDS.md` §2.1. The
+mastering (gain, a low shelf on the bass-only sounds, a look-ahead limiter;
+nothing re-synthesised) and each file's SHA-256: WEAPON-SOUNDS §10.
+
+CC0 asks for nothing. The project's rule for CC0 names is a courtesy credit
+(ADR 009); Kenney and rubberduck are not in the in-game credits yet: that
+line is owed in `LANGUAGE` (both languages) by whoever owns the credits
+screen, and is not a licence obligation.
+
+Not installed (D74 NO or "?", or not yet judged): `SDTTPKP`, `SDIZRLD`,
+`SDRKFIR`, `SDAXPKP`, `SDIZPKP`, `SDIZFIR`. They stay on their Freedoom
+stand-ins (or Doom's generic pickup sound) and have no row here.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDAXSWG` | ice axe, swing | `gen_weapon_sfx.py` take C, mastered by `master_weapon_sfx.py`; CC0 layers: none, synthesis only | Soviet Doom project (sound-designer), CC BY-NC-SA 4.0 (D15); its CC0 layers oblige nothing |
+| `SDAXHIT` | ice axe, flesh hit | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `KEN-IMP` impactMetal_light_002, `KEN-IMP` impactPunch_heavy_000, `KEN-IMP` impactSoft_heavy_001 | idem |
+| `SDAXWAL` | ice axe, wall hit | `gen_weapon_sfx.py` take C, mastered by `master_weapon_sfx.py`; CC0 layers: `KEN-IMP` impactMining_002, `KEN-IMP` impactMetal_light_003 | idem |
+| `SDTTFIR` | TT-33, shot | `gen_weapon_sfx.py` take B, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` switch_01 | idem |
+| `SDTTRLD` | TT-33, reload (parked: no reload state, D47) | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` switch_01, `OGA-100` metal_02, `OGA-100` switch_02, `OGA-100` metal_11 | idem |
+| `SDTTDRY` | TT-33, empty click | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` switch_01 | idem |
+| `SDIZDRY` | IZh-58, empty click | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` switch_01, `KEN-IMP` impactGeneric_light_000 | idem |
+| `SDPPFIR` | PPSh-41, shot | `gen_weapon_sfx.py` take C, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` switch_02, `OGA-100` spring_04 | idem |
+| `SDPPRLD` | PPSh-41, reload (parked: no reload state, D47) | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` switch_02, `OGA-100` metal_03, `OGA-100` spring_04, `OGA-100` metal_09, `OGA-100` spring_06, `OGA-100` switch_01, `OGA-100` metal_02 | idem |
+| `SDPPPKP` | PPSh-41, pickup | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `KEN-IMP` impactWood_medium_002, `KEN-IMP` impactMetal_light_003, `OGA-100` spring_04, `OGA-100` switch_02 | idem |
+| `SDPPDRY` | PPSh-41, empty click | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` metal_02, `OGA-100` switch_02, `KEN-IMP` impactMetal_medium_002 | idem |
+| `SDRPFIR` | RPG-7, shot | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDRPEXP` | RPG-7, explosion | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDRPRLD` | RPG-7, reload | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` metal_07, `OGA-100` switch_01 | idem |
+| `SDRPPKP` | RPG-7, pickup | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `KEN-IMP` impactWood_light_000, `OGA-100` metal_07, `KEN-IMP` impactMetal_medium_000 | idem |
+| `SDRPDRY` | RPG-7, empty click | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` switch_01, `KEN-IMP` impactMetal_medium_004 | idem |
+| `SDRKRLD` | ROKS-3, reload (parked: no reload state, D47) | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` metal_01, `OGA-100` switch_02 | idem |
+| `SDRKPKP` | ROKS-3, pickup | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` metal_01, `KEN-IMP` impactTin_medium_001, `OGA-100` splash_01 | idem |
+| `SDRKDRY` | ROKS-3, empty click | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` switch_02 | idem |
+| `SDHKCHG` | hand Katyusha, charge | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` metal_03, `KEN-IMP` impactMetal_heavy_003 | idem |
+| `SDHKFIR` | hand Katyusha, shot | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDHKEXP` | hand Katyusha, per-rocket burst | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDHKRLD` | hand Katyusha, reload | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` metal_02, `OGA-100` metal_09, `OGA-100` switch_01 | idem |
+| `SDHKPKP` | hand Katyusha, pickup | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `KEN-IMP` impactMetal_heavy_001, `OGA-100` metal_12 | idem |
+| `SDHKDRY` | hand Katyusha, empty click | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` switch_01 | idem |
+
 ## Weapon pickups (F4, approved by the CEO 2026-10-14, D48)
 
 CEO verdict (D48): the ice axe with pickup **C**, the PPSh-41, and "Resto del

@@ -44,7 +44,7 @@ class SD_Tokarev : Pistol replaces Pistol
 	States
 	{
 	Ready:
-		SDTT A 1 A_WeaponReady;
+		SDTT A 1 A_SD_WeaponReady;
 		Loop;
 	Deselect:
 		SDTT A 1 A_Lower;
@@ -66,5 +66,14 @@ class SD_Tokarev : Pistol replaces Pistol
 	Spawn:
 		SDTP A -1;
 		Stop;
+	}
+
+	// Ready with the empty click (N9, D74): A_WeaponReady exactly as before,
+	// plus SDTTDRY on the tic the trigger goes down with too little ammo to
+	// fire (SD_WeaponSounds.DryClick, weapon_sounds.zs). Same frame, same tic.
+	action void A_SD_WeaponReady()
+	{
+		SD_WeaponSounds.DryClick(invoker, "sd/weapon/tokarev/dry");
+		A_WeaponReady();
 	}
 }

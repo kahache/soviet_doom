@@ -396,11 +396,22 @@ class ArsenalPk3Test(unittest.TestCase):
         for name in sorted(used):
             self.assertIn(name, defined, f"{name} is played but not defined in SNDINFO")
 
+    # Defined on purpose with nothing playing them: the reloads of the three
+    # guns that have no reload state. The CEO approved the sounds (D74) and
+    # parked magazines (D47); they are packed so a magazine mechanic can be
+    # judged by ear (`playsound`). Wire one and it must leave this set.
+    PARKED_SOUNDS = frozenset({"sd/weapon/tokarev/reload", "sd/weapon/ppsh/reload",
+                               "sd/weapon/roks3/reload"})
+
     def test_every_defined_sound_is_used(self):
         """A dead SNDINFO entry means the sound-designer gets a wrong brief."""
         used = set(re.findall(r'"(sd/[a-z0-9/_]+)"', self.zs_all))
         for name in self._sndinfo_names():
+            if name in self.PARKED_SOUNDS:
+                self.assertNotIn(name, used, f"{name} is played now: take it out of PARKED_SOUNDS")
+                continue
             self.assertIn(name, used, f"{name} is defined in SNDINFO but nothing plays it")
+        self.assertLessEqual(self.PARKED_SOUNDS, set(self._sndinfo_names()))
 
     # --- LANGUAGE ----------------------------------------------------------
 

@@ -2,51 +2,68 @@
 // code asks for, e.g. A_StartSound("sd/weapon/ppsh/fire")) to a LUMP (the
 // actual audio data). ZDoom wiki: https://zdoom.org/wiki/SNDINFO
 //
-// F4 status: every entry below points at a Freedoom (IWAD) lump as a
-// PLACEHOLDER. Nothing is redistributed - the engine resolves the name
-// against the loaded IWAD. When sound-designer delivers the real files into
-// src/sounds/ (lump name = file name without extension), only the right-hand
-// column changes; no ZScript is touched. The requested lump names are in the
-// comment at the end of each line.
+// Two kinds of right-hand column:
+//   SD...    our own sound, packed in the PK3 as sounds/<LUMP>.ogg from
+//            assets/sounds/<set>/ (the build drops the set folder). The
+//            weapon ones are the 25 the CEO approved in D74, mastered and
+//            installed by tools/audio/master_weapon_sfx.py (backlog N9;
+//            docs/sound/WEAPON-SOUNDS.md section 10). The comment says the take.
+//   DS...    a Freedoom (IWAD) lump, a PLACEHOLDER: nothing is redistributed,
+//            the engine resolves the name against the loaded IWAD. The lump
+//            that will replace it is in the comment after "->".
+// Replacing a placeholder changes only the right-hand column, no ZScript.
 
 // --- Slot 1: ice axe (D40; the sapper's shovel until 2026-10-13) ----------
-// The SWING (the pick cutting the air) is DELIBERATELY SILENT in F4. Freedoom
-// has no neutral whoosh: the only swing-through-air lump is DSSKESWG, the
-// revenant's melee wind-up, and borrowing it would teach the player that a
-// monster is about to punch them every time they raise the ice axe. Doom's
-// own Fist has no swing sound either - the feedback is the impact. The
-// placeholder DSSAWUP (chainsaw start-up) was rejected by the CEO on
-// 2026-10-13 and is not replaced: a wrong sound is worse than none.
-// The ice axe renamed the final lumps SDSHSWG/SDSHHIT to SDAXSWG/SDAXHIT
-// (MOD-SPEC 6.2). When sound-designer delivers SDAXSWG, add back BOTH lines:
-//     sd/weapon/iceaxe/swing  SDAXSWG
-//   and in src/zscript/weapons/ice_axe.zs, Fire state, first frame:
-//     PUNG B 5 A_StartSound("sd/weapon/iceaxe/swing", CHAN_WEAPON);
-// (tests/test_arsenal.py enforces that the two stay in step: a logical name
-// defined here with nothing playing it fails, and vice versa.)
-sd/weapon/iceaxe/hit       DSPUNCH     // -> SDAXHIT  steel pick into a body
+// The swing was deliberately silent from 2026-10-13 until N9: Freedoom has no
+// neutral whoosh (DSSKESWG is the revenant's wind-up) and the chainsaw
+// start-up (DSSAWUP) was rejected by the CEO. Ours is played by the first
+// frame of SD_IceAxe's Fire state; the wall sound by SD_IceAxePuff's
+// AttackSound. The pickup keeps Doom's misc/w_pkup until SDAXPKP is
+// decided (D74: "?").
+sd/weapon/iceaxe/swing     SDAXSWG     // take C  the pick cutting the air
+sd/weapon/iceaxe/hit       SDAXHIT     // take A  steel pick into a body
+sd/weapon/iceaxe/wall      SDAXWAL     // take C  pick on stone
 
 // --- Slot 2: TT-33 Tokarev -----------------------------------------------
-sd/weapon/tokarev/fire     DSPISTOL    // -> SDTTFIR  dry, high-velocity crack
+// Pickup: Doom's misc/w_pkup until SDTTPKP is redone (D74: NO).
+sd/weapon/tokarev/fire     SDTTFIR     // take B  dry, high-velocity crack
+sd/weapon/tokarev/dry      SDTTDRY     // take A  hammer on an empty chamber
+sd/weapon/tokarev/reload   SDTTRLD     // take A  PARKED: no reload state (D47)
 
 // --- Slot 3: IZh-58 double barrel ----------------------------------------
+// The shot (take B not yet judged), the break-open (D74: NO) and the pickup
+// (D74: "?") stay on Freedoom until decided.
 sd/weapon/izh/fire         DSSHOTGN    // -> SDIZFIR  one barrel, deep boom
 sd/weapon/izh/reload       DSSGCOCK    // -> SDIZRLD  break open, two shells, snap shut
+sd/weapon/izh/dry          SDIZDRY     // take A  the hammerless lock on nothing
 
 // --- Slot 4: PPSh-41 ------------------------------------------------------
-sd/weapon/ppsh/fire        DSPISTOL    // -> SDPPFIR  fast, tinny, drum rattle
+sd/weapon/ppsh/fire        SDPPFIR     // take C  one round: crack, jacket, bolt
+sd/weapon/ppsh/pickup      SDPPPKP     // take A  stock, jacket, drum, swivel
+sd/weapon/ppsh/dry         SDPPDRY     // take A  an empty drum's hollow clack
+sd/weapon/ppsh/reload      SDPPRLD     // take A  PARKED: no reload state (D47)
 
 // --- Slot 5: RPG-7 --------------------------------------------------------
-sd/weapon/rpg7/fire        DSRLAUNC    // -> SDRPFIR  launch whoosh plus motor
-sd/weapon/rpg7/explode     DSBAREXP    // -> SDRPEXP  shaped-charge crack
+sd/weapon/rpg7/fire        SDRPFIR     // take A  launch and sustainer (the grenade's SeeSound)
+sd/weapon/rpg7/explode     SDRPEXP     // take A  shaped charge (the grenade's DeathSound)
+sd/weapon/rpg7/reload      SDRPRLD     // take A  a PG-7V pushed into the muzzle
+sd/weapon/rpg7/pickup      SDRPPKP     // take A  heat guard and tube
+sd/weapon/rpg7/dry         SDRPDRY     // take A  the hammer on an empty tube
 
 // --- Slot 6: ROKS-3 flamethrower -----------------------------------------
+// The jet stays on Freedoom until SDRKFIR is redone (D74: NO).
 sd/weapon/roks3/fire       DSFLAME     // -> SDRKFIR  short pressurised burst
+sd/weapon/roks3/pickup     SDRKPKP     // take A  the tank pack, fuel sloshing
+sd/weapon/roks3/dry        SDRKDRY     // take A  igniter snap, last breath of gas
+sd/weapon/roks3/reload     SDRKRLD     // take A  PARKED: no reload state (D47)
 
 // --- Slot 7: hand Katyusha ------------------------------------------------
-sd/weapon/katyusha/charge  DSBFG       // -> SDHKCHG  rails rising, 20 tics
-sd/weapon/katyusha/fire    DSRLAUNC    // -> SDHKFIR  six rockets off the rails
-sd/weapon/katyusha/burst   DSBAREXP    // -> SDHKEXP  one rocket detonating
+sd/weapon/katyusha/charge  SDHKCHG     // take A  rails cranked up, 20 tics
+sd/weapon/katyusha/fire    SDHKFIR     // take A  six rockets off the rails
+sd/weapon/katyusha/burst   SDHKEXP     // take A  one rocket detonating (six at once)
+sd/weapon/katyusha/reload  SDHKRLD     // take A  rockets onto the rails, 20 tics
+sd/weapon/katyusha/pickup  SDHKPKP     // take A  the rail frame lifted
+sd/weapon/katyusha/dry     SDHKDRY     // take A  firing switch on empty rails
 
 // === Bestiary (F5) =========================================================
 // Logical names sd/mon/<actor>/<event>; the final lump is the name in the

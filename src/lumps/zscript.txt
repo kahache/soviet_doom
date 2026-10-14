@@ -21,6 +21,8 @@ version "4.12"
 #include "zscript/weapons/pg7_grenade.zs"
 #include "zscript/weapons/flame_blob.zs"
 #include "zscript/weapons/katyusha_rocket.zs"
+#include "zscript/weapons/ice_axe_puff.zs"    // the ice axe's wall sound (N9)
+#include "zscript/weapons/weapon_sounds.zs"   // the guns' empty click (N9)
 
 #include "zscript/weapons/ice_axe.zs"         // slot 1
 #include "zscript/weapons/tokarev.zs"         // slot 2

@@ -16,6 +16,9 @@ class SD_HandKatyusha : BFG9000 replaces BFG9000
 	const SD_KATYUSHA_SPREAD   = 12.5;  // degrees either side of the aim line
 	const SD_KATYUSHA_AMMO_USE = 40;    // same as Doom's BFG
 	const SD_KATYUSHA_AMMO_GIVE = 40;
+	// A sound channel nothing else of the player's uses: the salvo is on
+	// CHAN_WEAPON, pickups on CHAN_ITEM (N9).
+	const SD_KATYUSHA_RELOAD_CHANNEL = CHAN_5;
 
 	Default
 	{
@@ -29,12 +32,13 @@ class SD_HandKatyusha : BFG9000 replaces BFG9000
 		Obituary "$SD_OB_KATYUSHA";
 		Tag "$SD_TAG_KATYUSHA";
 		Inventory.PickupMessage "$SD_PICKUP_KATYUSHA";
+		Inventory.PickupSound "sd/weapon/katyusha/pickup";   // SDHKPKP (N9, D74)
 	}
 
 	States
 	{
 	Ready:
-		BFGG A 1 A_WeaponReady;
+		BFGG A 1 A_SD_WeaponReady;
 		Loop;
 	Deselect:
 		BFGG A 1 A_Lower;
@@ -43,11 +47,15 @@ class SD_HandKatyusha : BFG9000 replaces BFG9000
 		BFGG A 1 A_Raise;
 		Loop;
 	Fire:
-		// 20 + 10 + 10 + 20 = 60 tics (Doom BFG: 60). The long wind-up is
-		// the rails coming up to firing angle.
+		// 20 + 10 + 10 + 0 + 20 = 60 tics (Doom BFG: 60). The long wind-up is
+		// the rails coming up to firing angle. The 0-tic frame (N9) starts the
+		// rails' reload as the 20-tic recovery begins, on its own channel, so
+		// the salvo (1.4 s, started on CHAN_WEAPON 10 tics earlier) is not
+		// cut. No tic is added.
 		BFGG A 20 A_StartSound("sd/weapon/katyusha/charge", CHAN_WEAPON);
 		BFGG B 10 A_GunFlash;
 		BFGG B 10 A_SD_FireKatyusha;
+		BFGG B 0 A_StartSound("sd/weapon/katyusha/reload", SD_KATYUSHA_RELOAD_CHANNEL);
 		BFGG B 20 A_ReFire;
 		Goto Ready;
 	Flash:
@@ -82,5 +90,14 @@ class SD_HandKatyusha : BFG9000 replaces BFG9000
 			double ang = -SD_KATYUSHA_SPREAD + 2.0 * SD_KATYUSHA_SPREAD * frac;
 			A_FireProjectile("SD_KatyushaRocket", ang, false);
 		}
+	}
+
+	// Ready with the empty click (N9, D74): A_WeaponReady exactly as before,
+	// plus SDHKDRY on the tic the trigger goes down with too little ammo to
+	// fire (SD_WeaponSounds.DryClick, weapon_sounds.zs). Same frame, same tic.
+	action void A_SD_WeaponReady()
+	{
+		SD_WeaponSounds.DryClick(invoker, "sd/weapon/katyusha/dry");
+		A_WeaponReady();
 	}
 }

@@ -35,12 +35,13 @@ class SD_Ppsh : Chaingun replaces Chaingun
 		Obituary "$SD_OB_PPSH";
 		Tag "$SD_TAG_PPSH";
 		Inventory.PickupMessage "$SD_PICKUP_PPSH";
+		Inventory.PickupSound "sd/weapon/ppsh/pickup";   // SDPPPKP (N9, D74)
 	}
 
 	States
 	{
 	Ready:
-		CHGG A 1 A_WeaponReady;
+		CHGG A 1 A_SD_WeaponReady;
 		Loop;
 	Deselect:
 		CHGG A 1 A_Lower;
@@ -62,5 +63,14 @@ class SD_Ppsh : Chaingun replaces Chaingun
 	Spawn:
 		SDPQ A -1;
 		Stop;
+	}
+
+	// Ready with the empty click (N9, D74): A_WeaponReady exactly as before,
+	// plus SDPPDRY on the tic the trigger goes down with too little ammo to
+	// fire (SD_WeaponSounds.DryClick, weapon_sounds.zs). Same frame, same tic.
+	action void A_SD_WeaponReady()
+	{
+		SD_WeaponSounds.DryClick(invoker, "sd/weapon/ppsh/dry");
+		A_WeaponReady();
 	}
 }

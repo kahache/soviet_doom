@@ -53,7 +53,7 @@ class SD_Izh : Shotgun replaces Shotgun
 	States
 	{
 	Ready:
-		SHTG A 1 A_WeaponReady;
+		SHTG A 1 A_SD_WeaponReady;
 		Loop;
 	Deselect:
 		SHTG A 1 A_Lower;
@@ -101,5 +101,14 @@ class SD_Izh : Shotgun replaces Shotgun
 	action void A_SD_ReloadIzh()
 	{
 		invoker.barrels = SD_IZH_BARRELS;
+	}
+
+	// Ready with the empty click (N9, D74): A_WeaponReady exactly as before,
+	// plus SDIZDRY on the tic the trigger goes down with too little ammo to
+	// fire (SD_WeaponSounds.DryClick, weapon_sounds.zs). Same frame, same tic.
+	action void A_SD_WeaponReady()
+	{
+		SD_WeaponSounds.DryClick(invoker, "sd/weapon/izh/dry");
+		A_WeaponReady();
 	}
 }
