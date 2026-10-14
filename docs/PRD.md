@@ -1,7 +1,7 @@
 # Soviet Doom — Product Requirements Document
 
 Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
-Last update: 2026-10-14 (D25-D56).
+Last update: 2026-10-14 (D25-D57).
 
 ## 1. Vision
 
@@ -90,6 +90,7 @@ until D16 brought it into scope on 2026-10-13.)
 | D54 | 2026-10-14 | **The Legion trooper's redone death is approved** ("Muerte legión OK"), so its full set (70 SDLT) stands as drawn. **Glinka's Patriotic Song is dropped** from the anthem slot (no reliable public-domain score of the 1833 melody): "busca alternativa, cambiamos pieza musical y ya". The sound-designer picks a public-domain replacement on the same terms as D44 (one score downloaded, provenance recorded). | ratified (CEO) |
 | D55 | 2026-10-14 | **Approved:** the Stalin poster, cell **4C** with «СЛАВА СТАЛИНУ!» ("Stalin 4C con slava stalin"); the Reich hound's full set ("OK perro"); the Reich rifleman's bloody death and flat corpse ("OK"). **Rejected:** the 2D hands on the arsenal ("un desastre… dedos como salchichas… no tienen una forma humana") and the weapons' size on screen ("se ven gigantes"). Hands are now worked on alone, in a hand-only sheet, before any weapon is re-rendered; the workflow is the CEO's to approve. | ratified (CEO) |
 | D56 | 2026-10-14 | **The Stormtrooper's redone death is approved** ("Muerte OK"), so its full set (77 SDHS + 5 SDBL) installs. **The metro mosaic goes to palette v2** ("mosaico V2"): `SDMOSA1` is replaced by its v2 rendering (cobalt and gold); the marble `SDMARB1` stays in v1 (the CEO: "Mármol la que quieras, las 2 están bien"; the PM keeps v1 so `SDMARB2`, approved on v1 marble, stays consistent and nothing approved is redrawn). | ratified (CEO) |
+| D57 | 2026-10-14 | **First-person weapon scale: each weapon at its Doom counterpart's height ±10 %** (`docs/art/previews/2026-10-14_1836_F4_weapon-scale-vs-doom.png`): "ahora la proporción es correcta", **but further left**: "quedan muy a la derecha". Horizontal placement follows the Doom counterpart's centre too. **Hands: H2 is the base** (Doom-style 2D), corrected before any weapon is redrawn: the forearm must taper naturally ("el brazo como un puto palo") and the hand body must be bigger relative to the fingers. Hands are validated alone, round by round. | ratified (CEO) |
 | D15 | 2026-10-09 | Licence of the mod: **GPL-3.0** for code (`tools/`, `src/zscript/`, scripts) and **CC BY-NC-SA 4.0** for assets and docs (textures, sprites, maps, sounds, lore). Non-commercial is required anyway by OTEX's terms. Full texts added at F6; `LICENSE.md` states it now. | decided by the PM on CEO delegation |
 
 ## 6. Phases and gates
