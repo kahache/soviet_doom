@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alternativas de sonido M3</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1d1d1b;--mute:#6b6862;--line:#dcd8cf;--accent:#a3201c;--ok:#1f7a3a;--no:#b3261e;--q:#9a6a00;--chip:#efece4;--warn:#7a4b00;--warnbg:#fff4dc}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--card:#202020;--ink:#ebe8e2;--mute:#a19d95;--line:#3a3834;--accent:#e0574f;--ok:#4cc074;--no:#f0726a;--q:#e3b341;--chip:#2c2b29;--warn:#f0c674;--warnbg:#2f2814}}
+:root[data-theme="dark"]{--bg:#161616;--card:#202020;--ink:#ebe8e2;--mute:#a19d95;--line:#3a3834;--accent:#e0574f;--ok:#4cc074;--no:#f0726a;--q:#e3b341;--chip:#2c2b29;--warn:#f0c674;--warnbg:#2f2814}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px 48px}
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 0}
+header.top .wrap{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding-bottom:0}
+h1{font-size:18px;margin:0;font-weight:650}
+.prog{font-variant-numeric:tabular-nums;color:var(--mute)}
+.prog b{color:var(--ink)}
+.bar{flex:1 1 160px;height:6px;background:var(--chip);border-radius:3px;overflow:hidden;min-width:120px}
+.bar i{display:block;height:100%;background:var(--accent);width:0}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:5px 10px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+label.chk{color:var(--mute);user-select:none}
+.intro{margin:14px 0;color:var(--ink)}
+.intro p{margin:6px 0}
+.intro ul{margin:6px 0;padding-left:20px}
+details.grp{margin:14px 0;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+details.grp>summary{cursor:pointer;padding:10px 12px;font-weight:650;font-size:15px;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.grp>summary::-webkit-details-marker{display:none}
+details.grp>summary::before{content:"\25B8";color:var(--mute)}
+details.grp[open]>summary::before{content:"\25BE"}
+.gcount{margin-left:auto;font-weight:400;color:var(--mute);font-size:13px;font-variant-numeric:tabular-nums}
+.rejnote{font-weight:400;color:var(--mute);font-size:13px}
+.row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) 230px;gap:10px 16px;padding:10px 12px;border-top:1px solid var(--line)}
+.row.hide{display:none}
+.row.v-ok{box-shadow:inset 4px 0 var(--ok)}.row.v-no{box-shadow:inset 4px 0 var(--no)}.row.v-q{box-shadow:inset 4px 0 var(--q)}
+.name code{font:600 14px ui-monospace,Consolas,monospace}
+.ev{display:inline-block;background:var(--chip);border-radius:10px;padding:0 8px;margin-left:6px;font-size:12px;color:var(--mute)}
+.tag{display:inline-block;font-size:11px;border-radius:10px;padding:0 7px;margin-left:4px;border:1px solid var(--line);color:var(--mute)}
+.tag.no{border-color:var(--no);color:var(--no)}.tag.q{border-color:var(--q);color:var(--q)}
+.what{margin:3px 0}
+.meta{color:var(--mute);font-size:12.5px;margin:2px 0}
+.meta b{color:var(--ink);font-weight:600}
+.players{display:flex;flex-direction:column;gap:4px}
+.pl{display:flex;flex-direction:column}
+.pl span{font-size:12px;color:var(--mute)}
+.pl.main span{color:var(--ink);font-weight:600}
+audio{width:100%;height:32px}
+.extra summary{cursor:pointer;font-size:12px;color:var(--mute)}
+.vote{display:flex;flex-direction:column;gap:6px}
+.btns{display:flex;gap:6px}
+.btns button{flex:1;font-weight:650;padding:6px 0}
+.btns button.on.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btns button.on.no{background:var(--no);border-color:var(--no);color:#fff}
+.btns button.on.q{background:var(--q);border-color:var(--q);color:#111}
+textarea.note{width:100%;min-height:34px;resize:vertical;font:inherit;font-size:13px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);padding:5px 7px}
+#result{width:100%;min-height:150px;font:12.5px ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);padding:10px}
+.copied{color:var(--ok);font-weight:600;margin-left:8px}
+footer{color:var(--mute);font-size:12.5px;margin-top:24px}
+@media (max-width:900px){.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <h1>Alternativas de sonido M3</h1>
+  <span class="prog">Juzgadas <b id="pDone">0</b> de <b>15</b></span>
+  <span class="bar"><i id="pBar"></i></span>
+  <label class="chk"><input type="checkbox" id="onlyOpen"> solo sin juzgar</label>
+  <button class="primary" id="copyTop">Copiar resultado</button><span id="copied" class="copied"></span>
+</div></header>
+<div class="wrap">
+<section class="intro">
+  <p>Tres alternativas <b>distintas</b> (otro gesto u otro material, no retoques) para cada sonido de arma que marcaste <b>NO</b> (<code>SDTTPKP</code>, <code>SDIZRLD</code>, <code>SDRKFIR</code>) o <b>?</b> (<code>SDAXPKP</code>, <code>SDIZPKP</code>) en la hoja de escucha (D74). En cada fila: la alternativa, debajo el borrador rechazado y lo que suena hoy en el juego (Freedoom). Pulsa <b>OK</b>, <b>NO</b> o <b>?</b> y escribe una nota si quieres. Se guarda solo en este navegador. Al terminar, <b>Copiar resultado</b> y pégalo en el chat.</p>
+  <ul>
+    <li><b>Volumen: ya están subidas.</b> Pico a −1 dBFS y la parte más fuerte a pocos dB de la de Freedoom (margen: recoger y recarga 3 dB, lanzallamas 0 dB). Los borradores rechazados siguen al volumen antiguo, más bajo: compara el carácter, no el volumen.</li>
+    <li><b>Ninguna depende solo de los graves:</b> al menos la mitad de la energía de cada una está por encima de 300 Hz, para que se oigan en altavoces de portátil.</li>
+    <li><b>Lanzallamas:</b> el juego lo reinicia cada 3 tics mientras aprietas. Por eso cada alternativa tiene una versión «con el gatillo apretado» 1,2 s y soltado; es lo que oirás de verdad. Los primeros 3 tics enlazan consigo mismos sin corte.</li>
+    <li><b>Recarga de la IZh:</b> el cierre cae a 0,62 s, en el fotograma donde el juego cuenta los cartuchos.</li>
+    <li>Fuentes: nuestra síntesis y los dos paquetes CC0 que ya usamos (Kenney Impact Sounds y 100 CC0 SFX). Nada descargado.</li>
+  </ul>
+</section>
+<main id="groups"></main>
+<section>
+  <h2 style="font-size:16px;margin:24px 0 6px">Resultado para pegar en el chat</h2>
+  <p class="meta">Se actualiza solo. Si el botón no copia (algunos navegadores lo bloquean en archivos locales), selecciona el texto y Ctrl+C.</p>
+  <textarea id="result" readonly></textarea>
+  <p><button class="primary" id="copyBottom">Copiar resultado</button> <button id="reset">Borrar todas mis respuestas</button></p>
+</section>
+<footer>Generado 2026-10-15_0033 por sound-designer con <code>tools/audio/gen_weapon_alts.py</code>. Audio: <code>work/audio/alt/</code> (alternativas), <code>work/audio/sfx/weapons/ogg/</code> (rechazados), <code>work/audio/preview/freedoom/</code> (Freedoom de hoy). Margen de volumen: pickup 3 dB, reload 5 dB, fire 0 dB. La página lee los archivos del repo por ruta relativa: no la muevas de <code>docs/art/previews/</code>.</footer>
+</div>
+<script>
+const ITEMS = [{"id": "SDTTPKP_alt1", "lump": "SDTTPKP", "group": "TT-33 (ranura 2)", "ev": "recoger", "label": "Corredera a fondo", "what": "Acero puro: la corredera atrás hasta el tope y suelta de golpe; un clac metálico fuerte.", "verdict": "NO", "rejWhat": "agarrar la pistola y comprobar la recámara con suavidad", "src": "../../../work/audio/alt/SDTTPKP_alt1.ogg", "rej": "../../../work/audio/sfx/weapons/ogg/SDTTPKP.ogg", "rep": "Freedoom DSWPNUP", "repSrc": "../../../work/audio/preview/freedoom/DSWPNUP.wav", "dur": 0.45, "lvl": "pico -1.0 dBFS · fuerza -8.2 dB (Freedoom DSWPNUP: -5.2) · 96 % por encima de 300 Hz", "extras": []}, {"id": "SDTTPKP_alt2", "lump": "SDTTPKP", "group": "TT-33 (ranura 2)", "ev": "recoger", "label": "Funda de cuero", "what": "Sale de la funda: el broche salta, el cuero cruje y roza, el acero cae en la mano, martillo a medio montar.", "verdict": "NO", "rejWhat": "agarrar la pistola y comprobar la recámara con suavidad", "src": "../../../work/audio/alt/SDTTPKP_alt2.ogg", "rej": "../../../work/audio/sfx/weapons/ogg/SDTTPKP.ogg", "rep": "Freedoom DSWPNUP", "repSrc": "../../../work/audio/preview/freedoom/DSWPNUP.wav", "dur": 0.53, "lvl": "pico -1.0 dBFS · fuerza -8.2 dB (Freedoom DSWPNUP: -5.2) · 90 % por encima de 300 Hz", "extras": []}, {"id": "SDTTPKP_alt3", "lump": "SDTTPKP", "group": "TT-33 (ranura 2)", "ev": "recoger", "label": "Cargador de un golpe", "what": "Más pesado: el cargador entra y se encaja con la palma, luego se monta el martillo (dos clics).", "verdict": "NO", "rejWhat": "agarrar la pistola y comprobar la recámara con suavidad", "src": "../../../work/audio/alt/SDTTPKP_alt3.ogg", "rej": "../../../work/audio/sfx/weapons/ogg/SDTTPKP.ogg", "rep": "Freedoom DSWPNUP", "repSrc": "../../../work/audio/preview/freedoom/DSWPNUP.wav", "dur": 0.34, "lvl": "pico -1.0 dBFS · fuerza -8.2 dB (Freedoom DSWPNUP: -5.2) · 83 % por encima de 300 Hz", "extras": []}, {"id": "SDAXPKP_alt1", "lump": "SDAXPKP", "group": "Piolet (ranura 1)", "ev": "recoger", "label": "Acero sobre piedra", "what": "Se levanta del suelo de piedra: la cabeza raspa, el pico golpea y el acero queda sonando.", "verdict": "?", "rejWhat": "mango de madera, cabeza que tintinea, mano que agarra", "src": "../../../work/audio/alt/SDAXPKP_alt1.ogg", "rej": "../../../work/audio/sfx/weapons/ogg/SDAXPKP.ogg", "rep": "Freedoom DSWPNUP", "repSrc": "../../../work/audio/preview/freedoom/DSWPNUP.wav", "dur": 0.64, "lvl": "pico -1.0 dBFS · fuerza -8.2 dB (Freedoom DSWPNUP: -5.2) · 98 % por encima de 300 Hz", "extras": []}, {"id": "SDAXPKP_alt2", "lump": "SDAXPKP", "group": "Piolet (ranura 1)", "ev": "recoger", "label": "Mosquetón y dragonera", "what": "El mosquetón de la dragonera se cierra y tintinea; la mano coge el mango.", "verdict": "?", "rejWhat": "mango de madera, cabeza que tintinea, mano que agarra", "src": "../../../work/audio/alt/SDAXPKP_alt2.ogg", "rej": "../../../work/audio/sfx/weapons/ogg/SDAXPKP.ogg", "rep": "Freedoom DSWPNUP", "repSrc": "../../../work/audio/preview/freedoom/DSWPNUP.wav", "dur": 0.45, "lvl": "pico -1.0 dBFS · fuerza -8.2 dB (Freedoom DSWPNUP: -5.2) · 93 % por encima de 300 Hz", "extras": []}, {"id": "SDAXPKP_alt3", "lump": "SDAXPKP", "group": "Piolet (ranura 1)", "ev": "recoger", "label": "Golpe en la palma", "what": "Un solo golpe pesado: el mango cae en la palma con el peso de la cabeza de acero.", "verdict": "?", "rejWhat": "mango de madera, cabeza que tintinea, mano que agarra", "src": "../../../work/audio/alt/SDAXPKP_alt3.ogg", "rej": "../../../work/audio/sfx/weapons/ogg/SDAXPKP.ogg", "rep": "Freedoom DSWPNUP", "repSrc": "../../../work/audio/preview/freedoom/DSWPNUP.wav", "dur": 0.36, "lvl": "pico -1.0 dBFS · fuerza -8.2 dB (Freedoom DSWPNUP: -5.2) · 61 % por encima de 300 Hz", "extras": []}, {"id": "SDIZPKP_alt1", "lump": "SDIZPKP", "group": "IZh-58 (ranura 3)", "ev": "recoger", "label": "Culata y cañones", "what": "La culata toca el suelo y los dos cañones suenan juntos, con un leve batido.", "verdict": "?", "rejWhat": "la culata golpea; abrir y cerrar para ver que está vacía", "src": "../../../work/audio/alt/SDIZPKP_alt1.ogg", "rej": "../../../work/audio/sfx/weapons/ogg/SDIZPKP.ogg", "rep": "Freedoom DSWPNUP", "repSrc": "../../../work/audio/preview/freedoom/DSWPNUP.wav", "dur": 0.52, "lvl": "pico -1.0 dBFS · fuerza -8.2 dB (Freedoom DSWPNUP: -5.2) · 76 % por encima de 300 Hz", "extras": []}, {"id": "SDIZPKP_alt2", "lump": "SDIZPKP", "group": "IZh-58 (ranura 3)", "ev": "recoger", "label": "Correa al hombro", "what": "Cuero y metal: la correa cruje, las anillas tintinean, la escopeta se asienta en el hombro.", "verdict": "?", "rejWhat": "la culata golpea; abrir y cerrar para ver que está vacía", "src": "../../../work/audio/alt/SDIZPKP_alt2.ogg", "rej": "../../../work/audio/sfx/weapons/ogg/SDIZPKP.ogg", "rep": "Freedoom DSWPNUP", "repSrc": "../../../work/audio/preview/freedoom/DSWPNUP.wav", "dur": 0.53, "lvl": "pico -1.0 dBFS · fuerza -8.2 dB (Freedoom DSWPNUP: -5.2) · 92 % por encima de 300 Hz", "extras": []}, {"id": "SDIZPKP_alt3", "lump": "SDIZPKP", "group": "IZh-58 (ranura 3)", "ev": "recoger", "label": "Cartuchos sueltos", "what": "Se coge el arma y suenan los cartuchos sueltos en la caja.", "verdict": "?", "rejWhat": "la culata golpea; abrir y cerrar para ver que está vacía", "src": "../../../work/audio/alt/SDIZPKP_alt3.ogg", "rej": "../../../work/audio/sfx/weapons/ogg/SDIZPKP.ogg", "rep": "Freedoom DSWPNUP", "repSrc": "../../../work/audio/preview/freedoom/DSWPNUP.wav", "dur": 0.29, "lvl": "pico -1.0 dBFS · fuerza -8.2 dB (Freedoom DSWPNUP: -5.2) · 94 % por encima de 300 Hz", "extras": []}, {"id": "SDIZRLD_alt1", "lump": "SDIZRLD", "group": "IZh-58 (ranura 3)", "ev": "recarga (abrir y cerrar)", "label": "Báscula nítida", "what": "Llave, cañones que caen, dos vainas fuera y al suelo, dos cartuchos dentro, cierre seco a 0,62 s.", "verdict": "NO", "rejWhat": "abrir la báscula, sacar dos vainas, meter dos cartuchos, cerrar", "src": "../../../work/audio/alt/SDIZRLD_alt1.ogg", "rej": "../../../work/audio/sfx/weapons/ogg/SDIZRLD.ogg", "rep": "Freedoom DSSGCOCK", "repSrc": "../../../work/audio/preview/freedoom/DSSGCOCK.wav", "dur": 0.88, "lvl": "pico -1.0 dBFS · fuerza -9.4 dB (Freedoom DSSGCOCK: -4.4) · 84 % por encima de 300 Hz", "extras": []}, {"id": "SDIZRLD_alt2", "lump": "SDIZRLD", "group": "IZh-58 (ranura 3)", "ev": "recarga (abrir y cerrar)", "label": "Vainas al suelo", "what": "Los expulsores lanzan las vainas, que rebotan en el hormigón; cartuchos dentro, cierre a 0,62 s.", "verdict": "NO", "rejWhat": "abrir la báscula, sacar dos vainas, meter dos cartuchos, cerrar", "src": "../../../work/audio/alt/SDIZRLD_alt2.ogg", "rej": "../../../work/audio/sfx/weapons/ogg/SDIZRLD.ogg", "rep": "Freedoom DSSGCOCK", "repSrc": "../../../work/audio/preview/freedoom/DSSGCOCK.wav", "dur": 0.89, "lvl": "pico -1.0 dBFS · fuerza -9.4 dB (Freedoom DSSGCOCK: -4.4) · 94 % por encima de 300 Hz", "extras": []}, {"id": "SDIZRLD_alt3", "lump": "SDIZRLD", "group": "IZh-58 (ranura 3)", "ev": "recarga (abrir y cerrar)", "label": "Pesada y lenta", "what": "Más grave y deliberada: los cañones caen con peso, cartuchos firmes, portazo de acero a 0,62 s.", "verdict": "NO", "rejWhat": "abrir la báscula, sacar dos vainas, meter dos cartuchos, cerrar", "src": "../../../work/audio/alt/SDIZRLD_alt3.ogg", "rej": "../../../work/audio/sfx/weapons/ogg/SDIZRLD.ogg", "rep": "Freedoom DSSGCOCK", "repSrc": "../../../work/audio/preview/freedoom/DSSGCOCK.wav", "dur": 0.89, "lvl": "pico -1.0 dBFS · fuerza -9.4 dB (Freedoom DSSGCOCK: -4.4) · 80 % por encima de 300 Hz", "extras": []}, {"id": "SDRKFIR_alt1", "lump": "SDRKFIR", "group": "ROKS-3, lanzallamas (ranura 6)", "ev": "disparo", "label": "Chorro rugiente", "what": "Rugido ancho del chorro con el siseo del ignitor encima; al soltar se apaga y se oscurece.", "verdict": "NO", "rejWhat": "siseo de válvula y chorro rugiente", "src": "../../../work/audio/alt/SDRKFIR_alt1.ogg", "rej": "../../../work/audio/sfx/weapons/ogg/SDRKFIR.ogg", "rep": "Freedoom DSFLAME", "repSrc": "../../../work/audio/preview/freedoom/DSFLAME.wav", "dur": 0.6, "lvl": "pico -1.0 dBFS · fuerza -11.1 dB (Freedoom DSFLAME: -11.1) · 90 % por encima de 300 Hz", "extras": [{"l": "Esta alternativa con el gatillo apretado 1,2 s y soltado", "src": "../../../work/audio/alt/preview/SDRKFIR_alt1_held.ogg"}, {"l": "El rechazado, igual de apretado", "src": "../../../work/audio/alt/preview/SDRKFIR_rejected_held.ogg"}, {"l": "Freedoom DSFLAME (lo de hoy), igual de apretado", "src": "../../../work/audio/alt/preview/DSFLAME_held.ogg"}]}, {"id": "SDRKFIR_alt2", "lump": "SDRKFIR", "group": "ROKS-3, lanzallamas (ranura 6)", "ev": "disparo", "label": "Soplete con chispa", "what": "Chorro a presión, más agudo: silbido de boquilla y la chispa del ignitor crepitando; al soltar, chisporroteo.", "verdict": "NO", "rejWhat": "siseo de válvula y chorro rugiente", "src": "../../../work/audio/alt/SDRKFIR_alt2.ogg", "rej": "../../../work/audio/sfx/weapons/ogg/SDRKFIR.ogg", "rep": "Freedoom DSFLAME", "repSrc": "../../../work/audio/preview/freedoom/DSFLAME.wav", "dur": 0.51, "lvl": "pico -1.0 dBFS · fuerza -11.1 dB (Freedoom DSFLAME: -11.1) · 97 % por encima de 300 Hz", "extras": [{"l": "Esta alternativa con el gatillo apretado 1,2 s y soltado", "src": "../../../work/audio/alt/preview/SDRKFIR_alt2_held.ogg"}, {"l": "El rechazado, igual de apretado", "src": "../../../work/audio/alt/preview/SDRKFIR_rejected_held.ogg"}, {"l": "Freedoom DSFLAME (lo de hoy), igual de apretado", "src": "../../../work/audio/alt/preview/DSFLAME_held.ogg"}]}, {"id": "SDRKFIR_alt3", "lump": "SDRKFIR", "group": "ROKS-3, lanzallamas (ranura 6)", "ev": "disparo", "label": "Bomba a pulsos", "what": "Grave y pulsante: la bomba empuja el combustible a golpes (justo al ritmo de disparo); al soltar, una llamarada.", "verdict": "NO", "rejWhat": "siseo de válvula y chorro rugiente", "src": "../../../work/audio/alt/SDRKFIR_alt3.ogg", "rej": "../../../work/audio/sfx/weapons/ogg/SDRKFIR.ogg", "rep": "Freedoom DSFLAME", "repSrc": "../../../work/audio/preview/freedoom/DSFLAME.wav", "dur": 0.7, "lvl": "pico -1.0 dBFS · fuerza -11.1 dB (Freedoom DSFLAME: -11.1) · 94 % por encima de 300 Hz", "extras": [{"l": "Esta alternativa con el gatillo apretado 1,2 s y soltado", "src": "../../../work/audio/alt/preview/SDRKFIR_alt3_held.ogg"}, {"l": "El rechazado, igual de apretado", "src": "../../../work/audio/alt/preview/SDRKFIR_rejected_held.ogg"}, {"l": "Freedoom DSFLAME (lo de hoy), igual de apretado", "src": "../../../work/audio/alt/preview/DSFLAME_held.ogg"}]}];
+
+const KEY = "sd-m3-alternatives-2026-10-15_0033";
+let S = {};
+try { S = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { S = {}; }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function st(id){ return S[id] || (S[id] = {v:"", n:""}); }
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = s => s.toFixed(2).replace(".", ",") + " s";
+const audio = src => `<audio controls preload="none" src="${esc(src)}"></audio>`;
+function rowHTML(it){
+  const s = st(it.id);
+  let players = `<div class="pl main"><span>Alternativa ${esc(it.id.slice(-1))} · ${fmt(it.dur)}</span>${audio(it.src)}</div>`;
+  players += `<div class="pl"><span>El rechazado (${esc(it.lump)}, ${esc(it.verdict)})</span>${audio(it.rej)}</div>`;
+  players += `<div class="pl"><span>Hoy en el juego: ${esc(it.rep)}</span>${audio(it.repSrc)}</div>`;
+  if (it.extras.length) players += `<details class="extra" open><summary>Con el gatillo apretado (como en el juego)</summary>${it.extras.map(e => `<div class="pl"><span>${esc(e.l)}</span>${audio(e.src)}</div>`).join("")}</details>`;
+  return `<div class="row" id="r-${it.id}" data-id="${it.id}">
+    <div><div class="name"><code>${esc(it.id)}</code><span class="ev">${esc(it.ev)}</span></div>
+      <div class="what"><b>${esc(it.label)}.</b> ${esc(it.what)}</div>
+      <div class="meta"><b>Nivel:</b> ${esc(it.lvl)}</div></div>
+    <div class="players">${players}</div>
+    <div class="vote"><div class="btns">
+      <button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div>
+      <textarea class="note" placeholder="Nota (opcional)">${esc(s.n || "")}</textarea></div>
+  </div>`;
+}
+function build(){
+  let h = "", lumps = [...new Set(ITEMS.map(i => i.lump))];
+  for (const L of lumps) {
+    const its = ITEMS.filter(i => i.lump === L), a = its[0];
+    const tag = a.verdict === "NO" ? `<span class="tag no">dijiste NO</span>` : `<span class="tag q">dijiste ?</span>`;
+    h += `<details class="grp" open><summary><code>${esc(L)}</code> ${esc(a.group)} · ${esc(a.ev)} ${tag}<span class="rejnote">rechazado: ${esc(a.rejWhat)}</span><span class="gcount" data-l="${esc(L)}"></span></summary>`;
+    for (const it of its) h += rowHTML(it);
+    h += `</details>`;
+  }
+  document.getElementById("groups").innerHTML = h;
+  for (const it of ITEMS) paint(it.id);
+}
+function paint(id){
+  const r = document.getElementById("r-" + id), s = st(id);
+  r.classList.remove("v-ok","v-no","v-q");
+  if (s.v) r.classList.add("v-" + s.v);
+  r.querySelectorAll(".btns button").forEach(b => b.classList.toggle("on", b.dataset.v === s.v));
+  r.classList.toggle("hide", document.getElementById("onlyOpen").checked && !!s.v);
+}
+function summary(){
+  const by = v => ITEMS.filter(i => st(i.id).v === v).map(i => i.id);
+  const done = ITEMS.filter(i => st(i.id).v).length;
+  document.getElementById("pDone").textContent = done;
+  document.getElementById("pBar").style.width = (100 * done / ITEMS.length) + "%";
+  for (const L of new Set(ITEMS.map(i => i.lump))) {
+    const g = ITEMS.filter(i => i.lump === L), d = g.filter(i => st(i.id).v).length;
+    const el = document.querySelector(`.gcount[data-l="${L}"]`); if (el) el.textContent = `${d} / ${g.length}`;
+  }
+  const notes = ITEMS.filter(i => (st(i.id).n || "").trim()).map(i => `${i.id}: «${st(i.id).n.trim().replace(/\s+/g, " ")}»`);
+  const open = ITEMS.filter(i => !st(i.id).v).map(i => i.id);
+  const L = [`Alternativas M3 (2026-10-15_0033): ${done}/${ITEMS.length} juzgadas`,
+    `OK (${by("ok").length}): ${by("ok").join(", ") || "—"}`,
+    `NO (${by("no").length}): ${by("no").join(", ") || "—"}`,
+    `? (${by("q").length}): ${by("q").join(", ") || "—"}`,
+    `notas: ${notes.join(" / ") || "—"}`];
+  if (open.length) L.push(`sin juzgar (${open.length}): ${open.join(", ")}`);
+  document.getElementById("result").value = L.join("\n");
+}
+function copy(){
+  const t = document.getElementById("result"), msg = document.getElementById("copied");
+  summary();
+  const done = () => { msg.textContent = "copiado"; setTimeout(() => msg.textContent = "", 2500); };
+  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? done() : (msg.textContent = "selecciona y Ctrl+C abajo"); } catch (e) { msg.textContent = "selecciona y Ctrl+C abajo"; } t.scrollIntoView({block:"center"}); };
+  try { if (navigator.clipboard && window.isSecureContext !== false) navigator.clipboard.writeText(t.value).then(done, fallback); else fallback(); } catch (e) { fallback(); }
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest(".btns button"); if (!b) return;
+  const id = b.closest(".row").dataset.id, s = st(id);
+  s.v = s.v === b.dataset.v ? "" : b.dataset.v; save(); paint(id); summary();
+});
+document.addEventListener("input", e => {
+  const r = e.target.closest(".row"); if (!r || !e.target.classList.contains("note")) return;
+  st(r.dataset.id).n = e.target.value; save(); summary();
+});
+document.addEventListener("play", e => { document.querySelectorAll("audio").forEach(a => { if (a !== e.target) a.pause(); }); }, true);
+document.getElementById("onlyOpen").addEventListener("change", () => ITEMS.forEach(i => paint(i.id)));
+document.getElementById("copyTop").addEventListener("click", copy);
+document.getElementById("copyBottom").addEventListener("click", copy);
+document.getElementById("reset").addEventListener("click", () => { if (confirm("¿Borrar todas las respuestas y notas de esta hoja?")) { S = {}; save(); build(); summary(); } });
+build(); summary();
+
+</script>
+</body>
+</html>
