@@ -30,8 +30,8 @@ whole episode in English or Russian:
 | Milestone | Goal | Gate (measurable) | Status |
 |---|---|---|---|
 | F0-F2 | Pipeline, lore, art direction | G0, G1, G2 | **PASSED** (`docs/qa/GATE-REVIEWS.md`) |
-| **M1** | **Campaign playable end to end** | the 3 maps run from New Game to the end text with no `idclip`, zero log errors, scripted route PASS on each (`tools/route.py`); the CEO walks it | MAP01 ✓, MAP02 metro v1 ✓ (routes PASS in engine, linked MAP01 -> MAP02 -> MAP03); MAP03 Tankograd v0 (needs v1 and its route); the CEO's walk owed |
-| **M2** | **Our art everywhere the player looks** | no Freedoom sprite left in first person, on enemies or on pickups; factory textures approved | 4 of 7 enemies, 7 of 7 pickups, TT-33 in hand (1 of 7 weapons), Tankograd textures 19 of 21 installed |
+| **M1** | **Campaign playable end to end** | the 3 maps run from New Game to the end text with no `idclip`, zero log errors, scripted route PASS on each (`tools/route.py`); the CEO walks it | **Scripted gate met 2026-10-14:** MAP01 -> MAP02 metro v1 -> MAP03 Tankograd v1.1 -> end, each route PASS in engine with zero log errors (no `idclip`). Left: the CEO walks it |
+| **M2** | **Our art everywhere the player looks** | no Freedoom sprite left in first person, on enemies or on pickups; factory textures approved | 6 of 7 enemies (Doughboy waiting on the CEO, General to design), 7 of 7 pickups, TT-33 in hand (1 of 7 weapons; the rest wait on hand references), Tankograd textures 21 of 21 |
 | **M3** | **Sound and music** | CEO-approved effects installed; one PD piece per map | drafts done, waiting on the CEO |
 | **M4** | **Ship v1** (was F6) | G6: licence file with full texts, credits, README EN/RU, the Russian text reviewed, QA sign-off, tag v1.0 | prep done (`docs/engine/RELEASE.md`) |
 
