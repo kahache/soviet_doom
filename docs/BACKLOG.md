@@ -9,13 +9,14 @@ first. The CEO approves what moves into "Next". Order follows the MVP rule
 
 | # | Milestone | Task | Role | From |
 |---|---|---|---|---|
+| N12 | M2 | The General: design sweep (full set after the CEO picks a cell) | art-director | CEO, 2026-10-14 |
+| R1 | P2 | Research: a free local tool to generate the enemy voices (like Fooocus), install guide for the CEO | research | CEO, 2026-10-14 |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) — **not passed by the PM** (the hand reads as a blob in B and D); waiting on the route decision | art-director | D66 |
 
 ## Next (approved order, D63)
 
 | # | Milestone | Task | Role | Needs |
 |---|---|---|---|---|
-| N12 | M2 | The General: design sweep, then full set | art-director | — |
 | N13 | M2 | Install the Doughboy (big flag) | mod-engineer | CEO's OK |
 | N14 | M2 | Weapons in hand from the CEO's Fooocus references (ice axe first) | art-director | CEO's images |
 | N7b | M1 | Metro v2 (textures aligned); Tankograd v2 after the CEO walks v1 | level-designer | CEO walks each |
