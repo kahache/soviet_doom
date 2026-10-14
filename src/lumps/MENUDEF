@@ -341,6 +341,10 @@ OptionMenu "SD_CreditsMenu"
 	StaticText "$SD_CRED_SRC_1"
 	StaticText "$SD_CRED_SRC_2"
 	StaticText "$SD_CRED_SRC_3"
+	StaticText " "
+	StaticText "$SD_CRED_SRC_4"
+	StaticText "$SD_CRED_SRC_5"
+	StaticText "$SD_CRED_SRC_6"
 }
 
 // --- Getting there --------------------------------------------------------

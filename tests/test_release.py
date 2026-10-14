@@ -5,9 +5,13 @@ What is pinned:
   * the real release, made twice into temp dirs (`dist/` is never touched):
     the exact member list, the PK3 inside it, LICENSE.md verbatim, the
     generated CREDITS.txt and README.txt, SHA256SUMS, the .sha256 beside it;
-  * the full licence texts (GPL-3.0, CC BY-NC-SA 4.0): byte for byte the
-    repo files, whose SHA-256 is the published text's, named by LICENSE.md,
-    and an edited or missing text refused before anything is built;
+  * the full licence texts (GPL-3.0, CC BY-NC-SA 4.0, Freedoom's BSD-3
+    notice): byte for byte the repo files, whose SHA-256 is the published
+    text's, named by LICENSE.md, README.txt and CREDITS.txt, and an edited or
+    missing text refused before anything is built;
+  * CREDITS.txt for a player without the repo (backlog G9): no repo path in
+    its headings or its own sentences, the AI disclosure (D75) in English
+    and Russian;
   * the player readme (fast tier, no build): the three campaign maps in
     MAPINFO order and the practice range in English and Russian, every name
     read from LANGUAGE, GZDoom 4.14.2's default keys (Space jumps, E uses,
@@ -52,19 +56,33 @@ VERSION = "0.0-test"
 FOLDER = f"{release.MOD_NAME}-{VERSION}"
 
 # The full licence texts (backlog N10) and the SHA-256 of the bytes their
-# publishers served when the PM downloaded them on 2026-10-14. Written here
-# by hand, not read from release.py: an edit to a text AND to the tool's pin
-# still fails here.
+# publishers served when the PM downloaded them on 2026-10-14 (Freedoom's
+# notice on 2026-10-15, D75: v0.13.0's COPYING.adoc). Written here by hand,
+# not read from release.py: an edit to a text AND to the tool's pin still
+# fails here.
 GPL_TEXT = "LICENSE-GPL-3.0.txt"
 CC_TEXT = "LICENSE-CC-BY-NC-SA-4.0.txt"
+FREEDOOM_TEXT = "LICENSE-FREEDOOM-BSD-3.txt"
 PUBLISHED_SHA256 = {
     GPL_TEXT: "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
     CC_TEXT: "e66c269d4819aaab34b49ef5220c4ddab6756f21bb5180761a4eb8561f2b7bbd",
+    FREEDOOM_TEXT: "ed60abcf1ff64bf61bf8b4c585ab63643d655a21f8997ba284c01f94ed681fc5",
 }
 PUBLISHED_URL = {
     GPL_TEXT: "https://www.gnu.org/licenses/gpl-3.0.txt",
     CC_TEXT: "https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt",
+    FREEDOOM_TEXT: "https://raw.githubusercontent.com/freedoom/freedoom/v0.13.0/COPYING.adoc",
 }
+FULL_TEXTS = tuple(PUBLISHED_SHA256)
+
+# What a player without the repo cannot open: CREDITS.txt's headings and its
+# own sentences must not send him there (G6 review 2.2, backlog G9).
+REPO_ONLY = ("docs/", "tools/", "tests/", "src/", "work/", "dist/", "iwads/",
+             "LICENSES.md", "MUSIC-RIGHTS", "RELEASE.md", "release.py")
+
+# D75: the credits say which references were generated with AI.
+AI_WORDS = {"default": ("AI", "Fooocus / SDXL", "hands", "pixel art"),
+            "ru": ("ИИ", "Fooocus / SDXL", "рук", "пиксель-арт")}
 
 
 def sha(data: bytes) -> str:
@@ -109,15 +127,15 @@ class RealReleaseTest(unittest.TestCase):
         self.assertEqual(self.first.zip_path.name, f"{FOLDER}.zip")
         self.assertEqual(self.first.zip_path.parent.name, "a")
 
-    def test_the_zip_holds_exactly_the_seven_files_in_one_folder(self):
+    def test_the_zip_holds_exactly_the_eight_files_in_one_folder(self):
         self.assertEqual([i.filename for i in self.infos],
                          [f"{FOLDER}/{name}" for name in sorted(release.RELEASE_FILES)])
         self.assertEqual(sorted(self.files),
                          sorted(["sovietdoom.pk3", "LICENSE.md", "CREDITS.txt", "README.txt",
-                                 "SHA256SUMS", GPL_TEXT, CC_TEXT]))
+                                 "SHA256SUMS", GPL_TEXT, CC_TEXT, FREEDOOM_TEXT]))
 
     def test_the_full_licence_texts_are_the_repo_files_byte_for_byte(self):
-        for name in (GPL_TEXT, CC_TEXT):
+        for name in FULL_TEXTS:
             with self.subTest(name=name):
                 repo = (PROJECT_ROOT / name).read_bytes()
                 # The texts hold no CR; a CRLF checkout (autocrlf, no
@@ -126,9 +144,33 @@ class RealReleaseTest(unittest.TestCase):
                 self.assertEqual(sha(self.files[name]), PUBLISHED_SHA256[name])
 
     def test_the_readme_and_credits_name_the_full_texts(self):
-        for name in (GPL_TEXT, CC_TEXT):
+        for name in FULL_TEXTS:
             self.assertIn(name, self.readme)
             self.assertIn(name, self.credits)
+
+    def test_the_freedoom_notice_ships_because_freedoom_pixels_do(self):
+        """BSD-3 clause 2 (D75): the TT-33 frames carry Freedoom's hands, so
+        the notice travels with them, verbatim."""
+        self.assertTrue(any(n.startswith("sprites/") and "/SDTT" in n for n in self.pk3_names))
+        self.assertIn(b"Contributors to the Freedoom project", self.files[FREEDOOM_TEXT])
+
+    def test_credits_name_no_repo_path_outside_the_quoted_registers(self):
+        """Headings and the tool's own sentences: every line but the quoted
+        register cells (an asset's Origin, Licence and Obligation) and the
+        in-game lines."""
+        own = [line for line in self.credits.splitlines()
+               if not line.startswith(("* ", "  "))]
+        for line in own:
+            for repo_only in REPO_ONLY:
+                self.assertNotIn(repo_only, line)
+
+    def test_credits_carry_the_ai_disclosure_in_both_languages(self):
+        english, russian = self.credits.split(release.CREDITS_HEADINGS["screen_ru"])
+        for half, lang in ((english, "default"), (russian, "ru")):
+            flat = release.normalise(half)
+            self.assertIn(release.normalise(release.AI_DISCLOSURE[lang]), flat)
+            for word in AI_WORDS[lang]:
+                self.assertIn(word, flat, f"[{lang}]")
 
     def test_the_pk3_is_a_full_build(self):
         for lump in ("MAPINFO", "LANGUAGE", "zscript.txt", "maps/MAP01.wad", "maps/RANGE.wad"):
@@ -163,7 +205,10 @@ class RealReleaseTest(unittest.TestCase):
                 self.assertNotIn(banned, parts, name)
             self.assertNotIn("preview", name.lower())
         self.assertFalse(any(i.filename.lower().endswith(".wad") for i in self.infos))
-        self.assertFalse(any("freedoom" in n.lower() for n in names))
+        # Freedoom's licence notice is the one Freedoom file that ships (D75);
+        # nothing else of Freedoom's is named in the zip or the PK3.
+        self.assertFalse(any("freedoom" in n.lower() for n in names
+                             if n != f"{FOLDER}/{FREEDOOM_TEXT}"))
         with zipfile.ZipFile(io.BytesIO(self.pk3)) as zf:
             for name in zf.namelist():
                 self.assertNotEqual(zf.read(name)[:4], b"IWAD", f"{name} is an IWAD")
@@ -367,9 +412,9 @@ class ReadmeTest(unittest.TestCase):
 # --- The full licence texts (no build: these run at the fast tier) ----------------
 
 class LicenceTextTest(unittest.TestCase):
-    """LICENSE-GPL-3.0.txt and LICENSE-CC-BY-NC-SA-4.0.txt: in the repo,
-    unedited, pinned in the tool, named by LICENSE.md, and refused when
-    missing or touched."""
+    """LICENSE-GPL-3.0.txt, LICENSE-CC-BY-NC-SA-4.0.txt and
+    LICENSE-FREEDOOM-BSD-3.txt: in the repo, unedited, pinned in the tool,
+    named by LICENSE.md, and refused when missing or touched."""
 
     def setUp(self) -> None:
         self._tmp = tempfile.TemporaryDirectory(prefix="sd-test-release-")
@@ -431,7 +476,7 @@ class LicenceTextTest(unittest.TestCase):
         self.assertNotIn("will be added", text)
         self.assertNotIn("будут добавлены", text)
         english = text.split("\n---\n", 1)[0]
-        for name in (GPL_TEXT, CC_TEXT):
+        for name in FULL_TEXTS:
             self.assertIn(name, english)
             self.assertIn(PUBLISHED_URL[name], english)
         # Each file named in the bullet that says what it covers (D15).
@@ -440,9 +485,102 @@ class LicenceTextTest(unittest.TestCase):
                             for b in bullets), bullets)
         self.assertTrue(any(CC_TEXT in b and "**assets and documentation**" in b
                             and GPL_TEXT not in b for b in bullets), bullets)
+        self.assertTrue(any(FREEDOOM_TEXT in b and "**Freedoom-derived art**" in b
+                            and GPL_TEXT not in b and CC_TEXT not in b for b in bullets), bullets)
         russian = text.split("\n---\n", 1)[1]
-        for name in (GPL_TEXT, CC_TEXT):
+        for name in FULL_TEXTS:
             self.assertIn(name, russian)
+
+    def test_licence_md_reads_right_inside_the_package(self):
+        """G6 review 2.2 (backlog G9): the player's copy has no docs/, so it
+        says CREDITS.txt reproduces the registers; it credits no pack the
+        game does not use (OTEX: none used, docs/art/LICENSES.md); and the
+        Russian half names the same third parties as the English."""
+        text = (PROJECT_ROOT / "LICENSE.md").read_text(encoding="utf-8")
+        english, russian = text.split("\n---\n", 1)
+        self.assertRegex(release.normalise(english), r"release package.*CREDITS\.txt`? reproduces")
+        self.assertIn("CREDITS.txt", russian)
+        self.assertNotIn("OTEX", text)
+        for half, tt33 in ((english, "TT-33"), (russian, "ТТ-33")):
+            for name in ("Freedoom", "BSD", "Jerry Engelbach", FREEDOOM_TEXT, tt33):
+                self.assertIn(name, half)
+
+    def test_no_otex_texture_is_packed(self):
+        """Why LICENSE.md may drop OTEX: no source lump or asset names it."""
+        for folder in ("src", "assets"):
+            for path in (PROJECT_ROOT / folder).rglob("*"):
+                self.assertNotIn("otex", path.name.lower(), path)
+                if path.is_file() and path.suffix.lower() in ("", ".txt", ".py", ".zs", ".json"):
+                    body = path.read_text(encoding="utf-8", errors="replace").lower()
+                    self.assertNotIn("otex", body, path)
+
+
+# --- CREDITS.txt (no build: these run at the fast tier) ---------------------------
+
+class CreditsTextTest(unittest.TestCase):
+    """CREDITS.txt as render_credits writes it from the repo's LANGUAGE lump
+    and a one-row licence check: what a player without the repo reads."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        language = (PROJECT_ROOT / "src" / "lumps" / "LANGUAGE").read_text(encoding="utf-8")
+        cls.credits_lines = release.parse_credit_lines(language)
+        row = release.parse_licence_register(
+            "| Lump | Origin | Licence |\n|---|---|---|\n"
+            "| `SDTTA0` | (a) `tools/art/hand_study.py`, Freedoom's PISGA0 recoloured "
+            "| modified BSD licence, credit \"Freedoom\" |\n")[0]
+        check = release.LicenceCheck(coverage=[(row, ["sprites/tt33/SDTTA0.png"])])
+        cls.text = release.render_credits("1.0", "0123456789ab", cls.credits_lines,
+                                          ["Music line, verbatim."], check)
+        cls.lines = cls.text.splitlines()
+
+    def test_the_headings_name_no_repo_path(self):
+        for heading in release.CREDITS_HEADINGS.values():
+            self.assertIn(heading, self.lines)
+        # Every underlined line is a heading, whatever the dictionary says.
+        underlined = [self.lines[k - 1] for k, line in enumerate(self.lines)
+                      if k and line and set(line) <= {"-", "="}
+                      and len(line) == len(self.lines[k - 1])]
+        self.assertGreaterEqual(len(underlined), len(release.CREDITS_HEADINGS))
+        for heading in underlined:
+            for repo_only in REPO_ONLY:
+                self.assertNotIn(repo_only, heading)
+
+    def test_the_tools_own_sentences_name_no_repo_path(self):
+        own = [line for line in self.lines if not line.startswith(("* ", "    "))]
+        own = [line for line in own if not any(line == "  " + text
+                                               for lang in self.credits_lines.values()
+                                               for _, text in lang)]
+        for line in own:
+            for repo_only in REPO_ONLY:
+                self.assertNotIn(repo_only, line)
+        self.assertNotIn("(MUSIC-RIGHTS", self.text)
+
+    def test_the_quoted_register_cell_is_kept(self):
+        """Provenance is the register's: an Origin cell may name its
+        generator, and CREDITS.txt quotes it, it does not edit it."""
+        self.assertIn("Origin: (a) tools/art/hand_study.py", self.text)
+
+    def test_the_ai_disclosure_is_in_each_language_half(self):
+        english, russian = self.text.split(release.CREDITS_HEADINGS["screen_ru"])
+        self.assertIn(release.CREDITS_HEADINGS["ai_en"], english)
+        self.assertIn(release.CREDITS_HEADINGS["ai_ru"], russian)
+        for half, lang in ((english, "default"), (russian, "ru")):
+            flat = release.normalise(half)
+            self.assertIn(release.normalise(release.AI_DISCLOSURE[lang]), flat)
+            for word in AI_WORDS[lang]:
+                self.assertIn(word, flat, f"[{lang}]")
+
+    def test_it_names_every_full_text_and_the_notice_for_freedoom_art(self):
+        flat = release.normalise(self.text)
+        for name in FULL_TEXTS:
+            self.assertIn(name, flat)
+        self.assertRegex(flat, r"Freedoom's BSD licence.*" + re.escape(FREEDOOM_TEXT))
+
+    def test_the_tools_own_lines_fit_a_plain_text_window(self):
+        for line in self.lines:
+            if not line.startswith(("* ", "    ")):
+                self.assertLessEqual(len(line), 78, line)
 
 
 # --- Refusals of the command line and the tree ------------------------------------

@@ -1,4 +1,4 @@
-"""Hand study and weapon scale study (D55): two dated preview PNGs, no asset.
+"""Hand study and weapon scale study (D55), and the TT-33 in Freedoom's hands.
 
     python tools/art/hand_study.py scale    # weapon size on screen vs Doom/Freedoom
     python tools/art/hand_study.py hands    # one pose, four hand variants H1-H4
@@ -8,7 +8,8 @@ Scale: every first-person sprite is placed on the 320x200 virtual screen the
 way the engine places it (top-left = (-leftoffset, WEAPONTOP - topoffset),
 WEAPONTOP = 32) and measured: opaque area and height above the status bar.
 Ours come from the drafts' PNGs (grAb offsets); the references are read
-from Freedoom's IWAD (BSD-3, used as a yardstick only, nothing copied).
+from Freedoom's IWAD (BSD-3). In the scale study they are a yardstick only,
+nothing copied.
 
 Hands: a right hand gripping a pistol grip (a neutral grey cylinder, no
 weapon), seen from the player: muzzle up-left, so the grip shows its LEFT
@@ -19,6 +20,14 @@ cut to pixel art: outline, part separation lines, nails, knuckles.
 
 Outputs: work/art/hand_study/ (frames, metrics.json) and two previews in
 docs/art/previews/. Nothing goes to assets/ (D55: hands first, alone).
+
+Freedoom's pixels ARE copied by the round-3 hands (D58, D61) and by
+`build_tt33_fd`: Freedoom 0.13.0's pistol hands (PISGA0-C0) are cut out of
+the IWAD, recoloured to our skin and sleeve and set around our own TT-33.
+Those frames were installed by hand as `assets/sprites/tt33/SDTT*` (N17):
+a derivative of Freedoom's art, shipped under Freedoom's BSD-3 licence with
+its notice (LICENSE-FREEDOOM-BSD-3.txt, D75) and credit (docs/art/LICENSES.md,
+"Weapon frames: the TT-33 in hand").
 """
 
 from __future__ import annotations
