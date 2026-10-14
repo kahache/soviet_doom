@@ -1,7 +1,7 @@
 # Soviet Doom — Product Requirements Document
 
 Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
-Last update: 2026-10-14 (D25-D61).
+Last update: 2026-10-14 (D25-D62).
 
 ## 1. Vision
 
@@ -95,6 +95,7 @@ until D16 brought it into scope on 2026-10-13.)
 | D59 | 2026-10-14 | **No more composing or sequencing music.** "No generes música. Son muchísimos tokens y ya tenemos obras libres de copyright y relacionadas con la temática." Music comes from the public-domain works already chosen (SOUNDTRACK, MUSIC-RIGHTS); where a piece is needed as MIDI, a licence-clean MIDI of that work may be **downloaded** (provenance and SHA-256 recorded) instead of sequenced by us. The MAP03 music draft was stopped before it wrote anything. | ratified (CEO) |
 | D60 | 2026-10-14 | **MVP first, gameplay later** (the CEO, "instrucción importantísima"): build a complete, playable game first; balance, hostile passes and other gameplay polish come after. G3's hostile pass (C10) is deferred to the end. **The campaign grows:** amends D5, MAP01 now leads into MAP03, the metro-bunker, with a transition text in both languages; MAP04, the factory, is designed next. In-game Russian review happens only when a delivery has passed the pipeline, never mid-delivery. | ratified (CEO) |
 | D61 | 2026-10-14 | **Hands from Freedoom (BSD), recoloured: the pistol hands R3-A1 are approved** ("R3A1 ok!"). The fist R3-A2 needed its sleeve fixed (green pixels inside the hand, missing on the right edge); the fixed fist is approved too ("Puño OK", `docs/art/previews/2026-10-14_1940_F4_fist-R3A2-fixed.png`). Next: the TT-33 alone with R3-A1, at the D57 scale and placement, for the CEO to play; the other weapons follow only after. | ratified (CEO) |
+| D62 | 2026-10-14 | **Map slots follow the campaign order** ("para no confundir con los nombres"): MAP01 Zarya-7, **MAP02 the metro-bunker**, MAP03 the factory; the practice range leaves the MAPxx sequence for a name that says it is the test/practice room. Done in one sweep once the agents now editing the maps and the route runner have delivered; dated evidence keeps its old names. | ratified (CEO) |
 | D15 | 2026-10-09 | Licence of the mod: **GPL-3.0** for code (`tools/`, `src/zscript/`, scripts) and **CC BY-NC-SA 4.0** for assets and docs (textures, sprites, maps, sounds, lore). Non-commercial is required anyway by OTEX's terms. Full texts added at F6; `LICENSE.md` states it now. | decided by the PM on CEO delegation |
 
 ## 6. Phases and gates
