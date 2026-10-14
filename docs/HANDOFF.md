@@ -1,19 +1,45 @@
 # Session handoff (living; the PM rewrites it when a session ends)
 
-Updated: 2026-10-14, afternoon. Decisions up to **D54** are in
-`docs/PRD.md`; open CEO items in `docs/PENDING-CEO-DECISIONS.md`.
+Updated: 2026-10-15, ~01:00, the CEO went to sleep. Decisions up to **D77**
+are in `docs/PRD.md`; open CEO items in `docs/PENDING-CEO-DECISIONS.md`;
+tasks with token estimates in `docs/BACKLOG.md` (D69).
 
-## In flight
+## Where we are
 
-Nothing: every task of 2026-10-14 was delivered and committed (up to the
-anthem replacement, D54). Waiting on the CEO: `docs/PENDING-CEO-DECISIONS.md` §1-§2.
+- **M1 PASSED** (D70): the CEO walked MAP01 -> metro -> Tankograd -> end.
+- **M2:** all 7 enemy classes draw our sprites (Doughboy D70, General D73,
+  engine passes in `docs/qa/evidence/2026-10-15_0010_*`); the TT-33 hands
+  are installed (N17, `2026-10-15_0037_*`): 1 of 7 weapons. Open: the 6
+  other weapons (N14), health/armour/key pickups, enemy shells, player
+  effects (M2a-M2d, audit `docs/qa/2026-10-14_2357_M2-freedoom-audit.md`).
+- **M3:** 25 weapon sounds approved (D74) and being installed (N9w); 15
+  alternatives for the other 5 wait for the CEO
+  (`docs/art/previews/2026-10-15_0033_M3_listening-alternatives.html`);
+  50 rows of the big listening sheet unjudged.
+- **M4:** README (G2), licences/credits and Freedoom's BSD notice (G9) done;
+  G6 review `docs/qa/2026-10-14_2356_G6-readiness.md`.
 
-## Next for the PM
+## Weapons: the new method (D77)
 
-- Engine passes owed: the Legion in game; the 2D hands via
-  `tools/make_draft_overlay.py`; the blood colour on hit (not yet seen).
-- G3 still needs the CEO's hand-played runs on skills 2 and 4 and G3-9.
-- Rules learned: agents never commit (D6); give file ownership and ADR
-  numbers up front; send previews to the CEO with SendUserFile and full
-  paths (relative links did not open); PowerShell commands for the CEO,
-  not Git Bash.
+The CEO makes references with **Google Gemini**; they live in
+`work/art/reference/gemini_*` (gitignored, **never pushed**). We draw our
+own frames from them (`tools/art/hand_ref.py`), **bare hands**, one weapon
+at a time, **silhouettes first** (cheapest review), then colour, then the
+animation. PPSh-41 is first. The ice axe (hand C3, shaft x1.7, head x1.8,
+straight shaft) and the IZh wait for bare-hand references. The credits'
+AI line must add Gemini.
+
+## In flight at handoff
+
+Check `git status` and the backlog's "Doing" rows: N14-P (PPSh-41
+silhouettes) and N9w (25 weapon sounds + loudness pass, SNDINFO, hooks).
+If their files are on disk uncommitted, review, `verify.py fast`, commit
+with explicit paths, then the engine pass for the sounds.
+
+## Rules learned
+
+Agents never commit or stage (D6); commit with `git commit -- <paths>`;
+file ownership in every brief; only the PM runs GZDoom (D26) with
+`-config logs/gzdoom-tooling.ini`; the PM gates every draft before the
+CEO; short lists when asking the CEO (he lost track once); PowerShell and
+full paths for the CEO; send images with SendUserFile.
