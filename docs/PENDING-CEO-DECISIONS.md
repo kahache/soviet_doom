@@ -22,6 +22,8 @@ Previews are sent to you as files; the paths are under `docs/art/previews/`.
 
 ## 2. Waiting for your ears
 
+**One page for all of it:** `docs/art/previews/2026-10-14_2355_M3_listening-sheet.html` (OK / NO / ? per row, "Copiar resultado" to paste the verdict in chat). Headphones recommended.
+
 - Weapon sounds (31, Kenney layers since D44), enemy sounds (35 + 8 beds),
   MAP01 music enriched (`D_SDM01E`).
 - New sequenced pieces: «Вы жертвою пали» (`D_SDFUNR`), «Амурские волны»
