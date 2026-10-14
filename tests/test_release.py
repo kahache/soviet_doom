@@ -8,6 +8,12 @@ What is pinned:
   * the full licence texts (GPL-3.0, CC BY-NC-SA 4.0): byte for byte the
     repo files, whose SHA-256 is the published text's, named by LICENSE.md,
     and an edited or missing text refused before anything is built;
+  * the player readme (fast tier, no build): the three campaign maps in
+    MAPINFO order and the practice range in English and Russian, every name
+    read from LANGUAGE, GZDoom 4.14.2's default keys (Space jumps, E uses,
+    no Ctrl, no arrows), "choose Freedoom: Phase 2", launch lines for
+    Windows, PowerShell, macOS and Linux, the hash check for each, no file
+    or repo path the player does not have, no "draft" in shipped text;
   * nothing from work/, tools/, previews or any IWAD in the zip or the PK3;
   * determinism: same commit, same bytes, every timestamp the commit's;
   * the refusals: no --version, a bad version, a dirty tree, an asset with no
@@ -215,6 +221,147 @@ class RealReleaseTest(unittest.TestCase):
         self.assertEqual(check.errors, [])
         needed = {n for row, _ in check.coverage for n in row.required}
         self.assertIn("Jerry Engelbach", needed, "the register reader lost the Engelbach row")
+
+
+# --- The player readme (no build: these run at the fast tier) ---------------------
+
+README_RULE = "-" * 76
+
+
+class ReadmeTest(unittest.TestCase):
+    """README.txt as render_readme writes it from the repo's LANGUAGE lump
+    (the G6 review, docs/qa/2026-10-14_2356_G6-readiness.md §2.4 and §5):
+    the three-map campaign and the range, GZDoom 4.14.2's default keys,
+    Freedoom: Phase 2, launch and hash-check lines for every system, and
+    nothing a player without the repo cannot open."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.language = (PROJECT_ROOT / "src" / "lumps" / "LANGUAGE").read_text(encoding="utf-8")
+        cls.strings = release.language_strings(cls.language)
+        cls.en_names = cls.strings[release.LANG_ENGLISH]
+        cls.ru_names = cls.strings[release.LANG_RUSSIAN]
+        cls.readme = release.render_readme("1.0", "0123456789ab", cls.strings)
+        cls.en, cls.ru = cls.readme.split(README_RULE)
+
+    def _line(self, half: str, label: str) -> str:
+        found = [line for line in half.splitlines() if line.strip().startswith(label + " ..")]
+        self.assertEqual(len(found), 1, f"one controls line {label!r}")
+        return found[0]
+
+    def test_the_campaign_is_three_maps_in_order_in_both_languages(self):
+        for half, names in ((self.en, self.en_names), (self.ru, self.ru_names)):
+            with self.subTest(lang="ru" if half is self.ru else "en"):
+                for number in (1, 2, 3):
+                    self.assertRegex(half, rf"\n    {number}\. {re.escape(names[f'SD_MAP0{number}_NAME'])}")
+                self.assertIn(names["SD_EP01_NAME"], half)
+        self.assertIn("three maps played in order", self.en)
+        self.assertIn("три карты", self.ru)
+        self.assertIn("Tankograd", self.en)
+        self.assertIn("Танкоград", self.ru)
+
+    def test_the_readme_follows_the_mapinfo_chain(self):
+        # The order the readme prints is the order MAPINFO plays.
+        mapinfo = (PROJECT_ROOT / "src" / "lumps" / "MAPINFO").read_text(encoding="utf-8")
+        chain: dict[str, str] = {}
+        current = None
+        for raw in mapinfo.splitlines():
+            line = raw.split("//", 1)[0].strip()
+            head = re.match(r"map (\w+) ", line)
+            if head:
+                current = head.group(1)
+            nxt = re.fullmatch(r'next = "?(\w+)"?', line)
+            if nxt and current:
+                chain.setdefault(current, nxt.group(1))
+        self.assertEqual([chain["MAP01"], chain["MAP02"], chain["MAP03"]],
+                         ["MAP02", "MAP03", "endtitle"])
+
+    def test_the_practice_range_and_the_new_game_paths(self):
+        for half, names, newgame in ((self.en, self.en_names, "New Game"),
+                                     (self.ru, self.ru_names, "Новая игра")):
+            self.assertIn(f"({newgame} > {names['SD_EP01_NAME']})", half)
+            self.assertIn(f"({newgame} > {names['SD_EP02_NAME']})", half)
+
+    def test_every_quoted_name_comes_from_language_in_its_own_half(self):
+        for key, ident in release.README_IDS.items():
+            for half, names in ((self.en, self.en_names), (self.ru, self.ru_names)):
+                value = names[ident]
+                if value.isupper():
+                    value = (value.title() if half is self.en else value.capitalize())
+                self.assertIn(value, half, f"{ident} ({key})")
+
+    def test_the_controls_are_gzdooms_default_bindings(self):
+        # GZDoom 4.14.2, engine/commonbinds.txt + engine/defbinds.txt (G6
+        # review §3.2): Space jumps, E uses, Ctrl and the arrows are unbound.
+        move, fire = self._line(self.en, "Move"), self._line(self.en, "Fire")
+        use, jump = self._line(self.en, "Use"), self._line(self.en, "Jump")
+        self.assertIn("W A S D", move)
+        self.assertNotIn("arrow", move)
+        self.assertIn("left mouse button", fire)
+        self.assertNotIn("Ctrl", fire)
+        self.assertIn("E:", use)
+        self.assertNotIn("Space", use)
+        self.assertIn("Space", jump)
+        for label, keys in (("Weapons", "1 to 7"), ("Automap", "Tab"), ("Menu", "Esc"),
+                            ("Run", "Shift"), ("Save / load", "F2 / F3")):
+            self.assertIn(keys, self._line(self.en, label))
+        self.assertNotIn("arrow", self.en)
+        self.assertNotIn("Ctrl", self.en)
+
+        move, fire = self._line(self.ru, "Движение"), self._line(self.ru, "Огонь")
+        use, jump = self._line(self.ru, "Действие"), self._line(self.ru, "Прыжок")
+        self.assertIn("W A S D", move)
+        self.assertNotIn("стрелк", move)
+        self.assertNotIn("Ctrl", fire)
+        self.assertIn("E:", use)
+        self.assertNotIn("пробел", use)
+        self.assertIn("пробел", jump)
+        self.assertNotIn("стрелк", self.ru)
+        self.assertNotIn("Ctrl", self.ru)
+
+    def test_it_says_to_pick_phase_2_not_phase_1(self):
+        self.assertIn("choose Freedoom: Phase 2", self.en)
+        self.assertIn("выберите Freedoom: Phase 2", self.ru)
+        for half in (self.en, self.ru):
+            self.assertIn("freedoom1.wad", half)
+            self.assertIn("freedoom2.wad", half)
+
+    def test_launch_lines_for_windows_powershell_macos_and_linux(self):
+        for half in (self.en, self.ru):
+            self.assertIn("gzdoom -iwad freedoom2.wad -file sovietdoom.pk3", half)
+            self.assertIn(".\\gzdoom", half)
+            self.assertIn("GZDoom.app/Contents/MacOS/gzdoom", half)
+            self.assertIn("Linux", half)
+
+    def test_hash_check_lines_for_every_system(self):
+        for half in (self.en, self.ru):
+            for command in ("sha256sum -c SHA256SUMS", "shasum -a 256 -c SHA256SUMS",
+                            "Get-FileHash sovietdoom.pk3",
+                            "certutil -hashfile sovietdoom.pk3 SHA256"):
+                self.assertIn(command, half)
+
+    def test_it_names_no_file_the_player_does_not_have(self):
+        shipped = set(release.RELEASE_FILES) | {"freedoom1.wad", "freedoom2.wad", "gzdoom.exe"}
+        named = set(re.findall(r"[\w.-]+\.(?:md|txt|pk3|wad|py|sh|exe|png|zip)\b", self.readme))
+        self.assertEqual(named - shipped, set())
+        for repo_only in ("docs/", "tools/", "src/", "assets/", "tests/", "work/", "dist/",
+                          "iwads/", "LICENSES.md", "MUSIC-RIGHTS", "RELEASE.md"):
+            self.assertNotIn(repo_only, self.readme)
+
+    def test_nothing_shipped_is_marked_as_a_draft(self):
+        for word in ("draft", "черновик", "NOT VERIFIED", "TODO"):
+            self.assertNotIn(word.lower(), self.readme.lower())
+
+    def test_lines_fit_a_plain_text_window(self):
+        for line in self.readme.splitlines():
+            self.assertLessEqual(len(line), 78, line)
+
+    def test_a_missing_quoted_id_refuses(self):
+        strings = {lang: dict(names) for lang, names in self.strings.items()}
+        del strings[release.LANG_RUSSIAN]["SD_MAP03_NAME"]
+        with self.assertRaises(release.ReleaseError) as caught:
+            release.render_readme("1.0", "0123456789ab", strings)
+        self.assertIn("SD_MAP03_NAME", str(caught.exception))
 
 
 # --- The full licence texts (no build: these run at the fast tier) ----------------
