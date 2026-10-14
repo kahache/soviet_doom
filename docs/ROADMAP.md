@@ -23,7 +23,7 @@ whole episode in English or Russian:
 | Music | title + one public-domain piece per map (no composing, D59) | title and MAP01 done |
 | Shell | menus, title, pause, credits, practice range | done |
 | Text | every in-game string in EN and RU, the Russian reviewed once at the end | bilingual; review owed |
-| Release | the v1 package (G6) | `tools/release.py` ready; full licence texts owed |
+| Release | the v1 package (G6) | `tools/release.py` ready, full licence texts shipped (N10) |
 
 ## Milestones to the MVP
 
