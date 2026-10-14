@@ -13,6 +13,13 @@ Previews are sent to you as files; the paths are under `docs/art/previews/`.
 |---|---|---|
 | Ice axe, right-handed (D73) | coming | pick C1 / C3 / C4 |
 
+## 1b. Release decisions (G6 review, `docs/qa/2026-10-14_2356_G6-readiness.md`)
+
+- **Freedoom's BSD notice** must ship once Freedoom-derived hands are packed: allow downloading Freedoom's `COPYING` text (from its GitHub release) [yes].
+- **AI disclosure:** the ice-axe hand comes from your Fooocus/SDXL images; do the credits say "AI-assisted reference" [yes, one line]?
+- **The Impact font** in the text-bearing posters: accept the risk [recommended: re-rendering only reproduces on the Mac] or re-render.
+- **Russian docs mirror:** before v1 (RELEASE.md row 6) or after the MVP (ROADMAP P3) [after, P3].
+
 ## 2. Waiting for your ears
 
 - Weapon sounds (31, Kenney layers since D44), enemy sounds (35 + 8 beds),
