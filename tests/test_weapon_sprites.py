@@ -8,12 +8,15 @@ since D48". What is checked, and why:
   behaviour  every States block of the six weapons is the one that stood
              before D48, line for line (label, frame letters, tics, flags,
              action, flow), with only the pickup's four-letter name
-             changed: the swap is cosmetic, not one tic moves
+             changed: the swap is cosmetic, not one tic moves (and, since
+             N17, the TT-33's held and flash names, HELD_RENAMED; that
+             install has its own suite, tests/test_tt33_sprites.py)
   pickups    each Spawn state shows its SD..P sprite, and no state names the
              retired IWAD pickups (CSAW, PIST, SHOT, MGUN, LAUN, PLAS); the
-             held and flash frames are still the IWAD's (hand held back),
-             and the Katyusha (being redrawn) is untouched
-  files      assets/sprites/<weapon>/ holds exactly the six PNGs, each with
+             held and flash frames of the other five are still the IWAD's
+             (hand held back), and the Katyusha (being redrawn) is untouched
+  files      assets/sprites/<weapon>/ holds exactly the six pickup PNGs
+             (beside the TT-33's held and flash frames since N17), each with
              a grAb chunk before its image data (GZDoom's offsets), and,
              where work/ exists, byte-identical to the render
   package    the built PK3 carries them as sprites/<NAME>.png, check_pk3
@@ -53,8 +56,13 @@ FOLDERS = {"ice_axe": "ice_axe.zs", "tt33": "tokarev.zs", "izh": "izh.zs",
            "ppsh": "ppsh.zs", "rpg7": "rpg7.zs", "roks3": "roks3.zs"}
 
 # The held and flash sprites still on Freedoom (the hand is being redrawn).
-STILL_IWAD = {"ice_axe.zs": {"PUNG"}, "tokarev.zs": {"PISG", "PISF"}, "izh.zs": {"SHTG", "SHTF"},
+# The TT-33's left with N17 (2026-10-15): HELD_RENAMED.
+STILL_IWAD = {"ice_axe.zs": {"PUNG"}, "izh.zs": {"SHTG", "SHTF"},
               "ppsh.zs": {"CHGG", "CHGF"}, "rpg7.zs": {"MISG", "MISF"}, "roks3.zs": {"PLSG", "PLSF"}}
+
+# Held and flash sprites installed after D48, per weapon: IWAD -> ours.
+# N17 (2026-10-15): the TT-33 in the D61 hands (tests/test_tt33_sprites.py).
+HELD_RENAMED = {"tokarev.zs": {"PISG": "SDTT", "PISF": "SDTF"}}
 
 # The States blocks as they stood before D48, with the IWAD names, read from
 # src/zscript/weapons/ on 2026-10-14 before the swap. One row per line:
@@ -227,16 +235,23 @@ def read_grab(data: bytes) -> tuple[int, int] | None:
     return None
 
 
+PICKUP_FILES = {f"{ours}A0.png" for ours in RENAMED.values()}
+
+
 def installed() -> list[Path]:
-    """The weapon pickups: the six weapon folders only. Other sets share
-    assets/sprites/ (the Legion's legion/ since D54, tests/test_legion_sprites.py)."""
-    return sorted(p for folder in FOLDERS for p in (ASSET_SPRITES / folder).glob("*.png"))
+    """The weapon pickups: the six weapon folders only, pickup lumps only.
+    Other sets share assets/sprites/ (the Legion's legion/ since D54,
+    tests/test_legion_sprites.py), and the TT-33's held and flash frames
+    share tt33/ since N17 (tests/test_tt33_sprites.py)."""
+    return sorted(p for folder in FOLDERS for p in (ASSET_SPRITES / folder).glob("*.png")
+                  if p.name in PICKUP_FILES)
 
 
 class BehaviourTests(unittest.TestCase):
     def test_states_are_the_pre_d48_ones_but_for_the_pickup_name(self):
         for zs_file, before in BEFORE_D48.items():
-            expected = [(lb, RENAMED.get(sp, sp), fr, tics, rest) for lb, sp, fr, tics, rest in before]
+            renamed = {**RENAMED, **HELD_RENAMED.get(zs_file, {})}
+            expected = [(lb, renamed.get(sp, sp), fr, tics, rest) for lb, sp, fr, tics, rest in before]
             self.assertEqual(states(zs_file), expected, zs_file)
 
     def test_tic_totals_per_label_unchanged(self):
@@ -268,10 +283,15 @@ class PickupTests(unittest.TestCase):
             "ppsh.zs": ("SDPQ", "A", -1), "rpg7.zs": ("SDRP", "A", -1), "roks3.zs": ("SDKP", "A", -1)})
 
     def test_held_and_flash_frames_stay_on_the_iwad(self):
-        """The hand is being redrawn (D48): only the pickup changed name."""
+        """The hand is being redrawn (D48): only the pickup changed name,
+        but for the TT-33's held and flash frames, installed by N17."""
+        self.assertEqual(set(STILL_IWAD) | set(HELD_RENAMED), set(FOLDERS.values()))
         for zs_file, iwad in STILL_IWAD.items():
             used = {r[1] for r in states(zs_file) if r[1] != "->" and r[0] != "Spawn"}
             self.assertEqual(used, iwad, zs_file)
+        for zs_file, renamed in HELD_RENAMED.items():
+            used = {r[1] for r in states(zs_file) if r[1] != "->" and r[0] != "Spawn"}
+            self.assertEqual(used, set(renamed.values()), zs_file)
 
     def test_no_state_names_a_retired_pickup(self):
         for path in sorted((SRC_DIR / "zscript").rglob("*.zs")):

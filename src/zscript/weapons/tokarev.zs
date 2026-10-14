@@ -4,11 +4,12 @@
 // Clip ammo type: the TT-33 and the PPSh-41 historically fire the same
 // 7.62x25 Tokarev cartridge, so one ammo pool is also the accurate choice.
 //
-// Sprites. The world pickup is ours since D48 (2026-10-14); the held and
-// flash frames stay Freedoom (IWAD) PLACEHOLDERS until the hand is redrawn
-// (the CEO found hand E deformed in MAP01, 2026-10-14). MOD-SPEC 5.1, 6.3.
-// Held PISG (final SDTT A-C), muzzle flash PISF (final SDTF A). Pickup:
-// SDTP A (assets/sprites/tt33/; was PIST).
+// Sprites, all ours (assets/sprites/tt33/). The world pickup SDTP A since
+// D48 (2026-10-14). The held frames SDTT A-C and the muzzle flash SDTF A
+// since N17 (2026-10-15): our TT-33 seen from behind in Freedoom's pistol
+// hands, recoloured (R3-A1, D61; approved in hand by the CEO, D63). They
+// replaced Freedoom's pistol placeholders letter for letter: only the
+// sprite name changed, never a tic, an action or the flow. MOD-SPEC 6.3.
 // Balance rationale: docs/engine/BALANCE.md.
 
 class SD_Tokarev : Pistol replaces Pistol
@@ -43,24 +44,24 @@ class SD_Tokarev : Pistol replaces Pistol
 	States
 	{
 	Ready:
-		PISG A 1 A_WeaponReady;
+		SDTT A 1 A_WeaponReady;
 		Loop;
 	Deselect:
-		PISG A 1 A_Lower;
+		SDTT A 1 A_Lower;
 		Loop;
 	Select:
-		PISG A 1 A_Raise;
+		SDTT A 1 A_Raise;
 		Loop;
 	Fire:
 		// 4 + 6 + 3 + 3 = 16 tics per shot = 2.19 shots/s (Doom Pistol: 19 tics).
-		PISG A 4;
-		PISG B 0 A_GunFlash;
-		PISG B 6 A_FireBullets(SD_TT_SPREAD, 0, SD_TT_BULLETS, SD_TT_DAMAGE);
-		PISG C 3;
-		PISG B 3 A_ReFire;
+		SDTT A 4;
+		SDTT B 0 A_GunFlash;
+		SDTT B 6 A_FireBullets(SD_TT_SPREAD, 0, SD_TT_BULLETS, SD_TT_DAMAGE);
+		SDTT C 3;
+		SDTT B 3 A_ReFire;
 		Goto Ready;
 	Flash:
-		PISF A 5 Bright A_Light1;
+		SDTF A 5 Bright A_Light1;
 		Goto LightDone;
 	Spawn:
 		SDTP A -1;

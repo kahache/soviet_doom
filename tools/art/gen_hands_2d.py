@@ -959,14 +959,16 @@ def zs_states(text: str) -> dict[str, list]:
 
 
 def zs_letters(arm: Arm) -> tuple[set, set]:
-    """The frame letters the .zs shows for the held and flash placeholders."""
+    """The frame letters the .zs shows for the held and flash placeholders,
+    or for our own names once installed (N17: the TT-33's PISG/PISF are
+    SDTT/SDTF since 2026-10-15; the letters did not change)."""
     states = zs_states(zs_text(arm))
     held, flash = set(), set()
     for lines in states.values():
         for st in lines:
-            if st[0] == arm.ph_held:
+            if st[0] in (arm.ph_held, arm.sprite):
                 held |= set(st[1])
-            elif arm.ph_flash and st[0] == arm.ph_flash:
+            elif arm.ph_flash and st[0] in (arm.ph_flash, arm.flash_sprite):
                 flash |= set(st[1])
     return held, flash
 

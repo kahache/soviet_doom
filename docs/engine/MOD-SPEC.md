@@ -111,6 +111,15 @@ instead of `CYBR`, the two `Summon` lines with their own frames `Q R`
 changed (§5.1, §6.3, "The General and his shell, installed by D73"). The
 body stays 40 × 100, and both places a map puts him were checked. **NOT
 YET SEEN IN THE ENGINE** (D26).
+**N17, 2026-10-15: the TT-33 is ours in hand.** Its held frames `SDTT` A–C
+and its flash `SDTF` A, our TT-33 seen from behind in Freedoom's pistol
+hands recoloured (R3-A1, D61; approved in hand, D63), are packed from
+`assets/sprites/tt33/`; every `SD_Tokarev` state names `SDTT`/`SDTF`
+instead of `PISG`/`PISF`, not one tic changed (§5.1, §6.3, "The TT-33 in
+hand, installed by N17"). Until now only the draft overlay showed them.
+The first lumps of the PK3 derived from Freedoom's art (BSD 3-clause,
+`docs/art/LICENSES.md`). **NOT YET SEEN IN THE ENGINE from the PK3**
+(D26); the same files were seen through the overlay on 2026-10-14.
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -849,6 +858,12 @@ Doom ships no corpse thing of it. Doom's `FatShot` keeps `MANF` (the
 mancubus, `Fatso`, is not replaced, debt T21). `MISL` stays, for the PG-7V
 grenade and the Katyusha rocket; only its use as the shell's burst ends.
 
+**Retired 2026-10-15 (N17):** `PISG` and `PISF`, the TT-33's held and
+flash placeholders. Every `SD_Tokarev` state names our `SDTT` and `SDTF`
+now (§6.3, "The TT-33 in hand, installed by N17"). Doom's own `Pistol`
+keeps Freedoom's `PISG`/`PISF`, but ours `replaces Pistol`, so the player
+never holds it; no other class of ours named either.
+
 **Retired 2026-10-14 (D63):** `PMAP`, the radio's placeholder (the computer
 area map's pickup picture). `SD_Radio`'s `Spawn` state names our `SDRD` now
 (§6.3, "The pickups, installed by D63"). Doom's own `Allmap` keeps
@@ -862,8 +877,6 @@ Doom's classes); since D63 each of those classes names its own sprite.
 | Name | Type | Used by | Verification |
 |---|---|---|---|
 | `PUNG` | sprite | `SD_IceAxe` (held) | engine pass F4, 2026-10-12 (as `SD_Shovel`) |
-| `PISG` | sprite | `SD_Tokarev` (held) | idem |
-| `PISF` | sprite | `SD_Tokarev` (flash) | idem |
 | `SHTG` | sprite | `SD_Izh` (held) | idem |
 | `SHTF` | sprite | `SD_Izh` (flash) | idem |
 | `CHGG` | sprite | `SD_Ppsh` (held) | idem |
@@ -1199,11 +1212,47 @@ Each PNG is byte-identical to its render in `work/art/weapons/<weapon>/`
 the build drops the set folder, so the engine sees `sprites/SDAPA0.png`.
 Only the sprite name changed: frame letter, tics and every other state line
 are as before, held by `tests/test_weapon_sprites.py` against the state
-machines as they stood before D48. Not installed: every held and flash
-frame (`SDAX`, `SDTT`/`SDTF`, `SDIZ`/`SDIF`, `SDPP`/`SDPF`, `SDRL`/`SDRF`,
-`SDRK`/`SDKF`), the hand Katyusha (`SDHK`/`SDHF`/`SDHP`, to be redrawn,
+machines as they stood before D48. Not installed by D48: every held and
+flash frame (`SDAX`, `SDTT`/`SDTF`, `SDIZ`/`SDIF`, `SDPP`/`SDPF`,
+`SDRL`/`SDRF`, `SDRK`/`SDKF`; the TT-33's followed with N17, below), the hand Katyusha (`SDHK`/`SDHF`/`SDHP`, to be redrawn,
 D48), the RPG-7's `_proposed` reload frames (`SDRL` C-D) and the
 projectiles. Licence rows: `docs/art/LICENSES.md`, "Weapon pickups".
+
+**The TT-33 in hand, installed by N17 (2026-10-15).** The hands are
+Freedoom's own pistol hands (`PISGA0`, `PISGB0`, `PISGC0`), their pistol
+cut out and every hand pixel recoloured to our skin and sleeve; the CEO
+approved them as R3-A1 ("R3A1 ok!", D61). Our TT-33, rendered from behind
+on the 3D rig, sits in their grip; the CEO approved it in hand ("está
+bien", D63) once it had been shown in engine through the draft overlay
+(`docs/qa/evidence/2026-10-14_1950_F4_tt33-freedoom-hands-in-engine.png`).
+Four lumps ship in `assets/sprites/tt33/`, beside the pickup `SDTPA0`,
+byte-identical to `work/art/weapons_fd/tt33/` (`tools/art/hand_study.py`,
+`build_tt33_fd`; rendered again for the install from commit 33f47e8, the
+code of the frames shown in engine, into a scratch folder: all four
+identical). Hand E's drafts of the same names in `work/art/weapons/tt33/`
+(rejected, D48) do not ship. Each PNG is RGBA with hard alpha (`SDTT` in
+palette v2 for `flesh_pink`, `SDTF` in v1) and carries its `grAb`
+offsets, which place it exactly where the overlay showed it: the overlay
+copied the same bytes under the placeholder names, and neither it nor
+`tokarev.zs` moves a weapon sprite in code (no `A_WeaponOffset`, no
+`Weapon.YAdjust`).
+
+| Lump | State | Size | `grAb` (left, top) | Above the status bar |
+|---|---|---|---|---|
+| `SDTTA0` | `Ready`, `Select`, `Deselect`; `Fire`'s first 4 tics | 82 × 104 | −125, −96 | 56 px (Freedoom's `PISGA0`: 55, D57's ±10 % band) |
+| `SDTTB0` | `Fire`: the shot (`A_GunFlash`, `A_FireBullets`) and `A_ReFire` | 82 × 116 | −125, −82 | 67 px (the kick up) |
+| `SDTTC0` | `Fire`: coming down | 84 × 113 | −124, −87 | 59 px |
+| `SDTFA0` | `Flash` (`Bright`, `A_Light1`), over `SDTTB0`'s muzzle | 19 × 20 | −150, −77 | 75 px |
+
+Only the four-letter names changed, `PISG` → `SDTT` and `PISF` → `SDTF`:
+frame letters, tics, actions and flow are as they were, held by
+`tests/test_tt33_sprites.py` against the state machine as it stood at HEAD
+5c05577, before N17 (and by `tests/test_weapon_sprites.py`, which pins it
+since D48). `SDTT` D–E, reserved above, are not drawn: no state uses them.
+The draft overlay records `PISG` → `SDTT` and `PISF` → `SDTF` as installed
+(§6.9). Licence rows, and what Freedoom's BSD licence asks of a release:
+`docs/art/LICENSES.md`, "Weapon frames: the TT-33 in hand". **NOT VERIFIED
+in the engine from the PK3** (D26): the PM's pass.
 
 **The bestiary (F5).** Reserved names, the frames the art must provide, and
 the Freedoom placeholder each class wears today (declared in §5.1). The
@@ -1889,8 +1938,12 @@ naming the Freedoom placeholders of §5.1.
 installed by D48 (§6.3) are out: their placeholders are no longer named by
 any state, and the tool skips any swap whose sprite already sits under
 `assets/sprites/` (`INSTALLED` in the tool lists the six). It still carries
-the held and flash frames of all seven weapons (hand E, held back by the
-CEO) and the hand Katyusha's pickup. **The Legion (D54, 2026-10-14)** ships
+the held and flash frames of the other weapons (hand E, held back by the
+CEO) and the hand Katyusha's pickup. **The TT-33's held and flash frames
+(N17, 2026-10-15)** ship from `assets/sprites/tt33/` and its states no
+longer name `PISG`/`PISF`: the two swaps are gone and
+`INSTALLED_WEAPON_FRAMES` in the tool records `PISG` → `SDTT` and `PISF` →
+`SDTF`, so hand E's drafts can never be packed over them. **The Legion (D54, 2026-10-14)** ships
 its own `SDLT` from `assets/sprites/legion/` and its states no longer name
 `SPOS`; the overlay never carried it, and `INSTALLED_ENEMIES` in the tool
 records `SPOS` → `SDLT` so that no swap can name either (a swap that did
@@ -1923,14 +1976,16 @@ only hand E exists); `--dry-run` prints the plan.
 with in `src/zscript/weapons/*.zs` (and an enemy swap's file under
 `monsters/`; `reich_rifleman.zs` until D55), and copies our
 draft for each of those frames, byte for byte (so the `grAb` offsets travel),
-to `sprites/<PLACEHOLDER><frame><rotation>.png`: `SDTTA0` → `PISGA0`,
+to `sprites/<PLACEHOLDER><frame><rotation>.png`: `SDIZA0` → `SHTGA0`
+(and `SDTTA0` → `PISGA0` until N17),
 `SDRRA1` → `POSSA1` until D55, and so on through the pairs of §6.3. A draft no state
 shows is not packed (today `SDAXE0`, `SDPFB0`, `SDKFB0`, the `_proposed`
 frames and the Katyusha's `variants/`); a frame with no draft keeps the
 IWAD's. The 2026-10-13 overlay was 107 sprite lumps: 37 weapon frames (all
 seven weapons, hand E, pickups included) and the rifleman's 70. Since D48
 it was 101: 31 weapon frames (held and flash of the seven, the Katyusha's
-pickup) and the rifleman's 70. Since D55 it is the 31 weapon frames.
+pickup) and the rifleman's 70. Since D55 it was the 31 weapon frames;
+since N17 it is 27 (the TT-33's four ship).
 
 **Sprite resolution across files** (why a partial frame is refused):
 
@@ -2000,7 +2055,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 
 | # | Debt | Pay it in |
 |---|---|---|
-| T1 | Every weapon sprite and sound is a Freedoom placeholder (§6.2, §6.3). **Partly paid 2026-10-14 (D48):** the six world pickups are ours (§6.3, "Installed since D48"). Open: every held and flash frame (the hand is being redrawn), the hand Katyusha whole, the projectiles, and every weapon sound. | F4, once `art-director` redraws the hands and `sound-designer`'s sounds pass the CEO |
+| T1 | Every weapon sprite and sound is a Freedoom placeholder (§6.2, §6.3). **Partly paid 2026-10-14 (D48):** the six world pickups are ours (§6.3, "Installed since D48"). **N17 (2026-10-15):** the TT-33's held and flash frames are ours (§6.3, "The TT-33 in hand, installed by N17"). Open: every other held and flash frame (the hands are being redrawn), the hand Katyusha whole, the projectiles, and every weapon sound. | F4, once `art-director` redraws the hands and `sound-designer`'s sounds pass the CEO |
 | ~~T2~~ | ~~Ammo pickups still read as Freedoom items.~~ **Paid 2026-10-13** (commit `720acd1`): §6.4. |  |
 | T3 | `Player.DisplayName` is a plain English literal, not a `LANGUAGE` lookup — unverified whether that property resolves `$IDs`. | F5 |
 | T4 | Freedoom's `Chainsaw` and `SuperShotgun` classes still exist; only their editor numbers were removed. | F6, if it ever matters |
