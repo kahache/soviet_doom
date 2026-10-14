@@ -27,7 +27,7 @@ class SD_Panzermensch : SD_Monster replaces HellKnight
 		// Knight share one: their shells do not start fights between them.
 		Species "SD_Panzermensch";
 		SD_Monster.Faction SD_FACTION_REICH;
-		BloodColor "53 4A 30";
+		BloodColor "AD 27 21";     // D49: dark red for every faction (flag_red 9 at full bright, BESTIARY 2.1)
 		SeeSound "sd/mon/panzermensch/sight";
 		PainSound "sd/mon/panzermensch/pain";
 		DeathSound "sd/mon/panzermensch/death";

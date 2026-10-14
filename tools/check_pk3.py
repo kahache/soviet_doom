@@ -47,6 +47,10 @@ Checks (one block of output per category):
   zscript    every #include, transitively, points at a file in the PK3
   menus      every `Font "X"` in MENUDEF is an engine font or a packed
              fonts/<x>/ folder (MOD-SPEC 6.6: the menu font SDMENU)
+  localized  every language variant sits in localized/textures/, is named
+             <BASE>.<lang>[-<lang>].<ext> with 2-3 letter language IDs, has a
+             packed base graphic and the base's exact size: the four things
+             GZDoom's AddLocalizedVariants checks at load (MOD-SPEC 2)
 
 Usage:
   python3 tools/check_pk3.py                      # dist/sovietdoom.pk3
@@ -173,7 +177,25 @@ ENGINE_FONTS = frozenset(name.upper() for name in (
 FONTS_DIR = "fonts"
 RE_MENUDEF_FONT = re.compile(r'^[ \t]*Font[ \t]+"([^"]+)"', re.M | re.I)
 
-CATEGORIES = ("package", "lumps", "maps", "textures", "images", "sprites", "licences", "zscript", "menus")
+CATEGORIES = ("package", "lumps", "maps", "textures", "images", "sprites", "licences", "zscript", "menus",
+              "localized")
+
+# Language variants of graphics (MOD-SPEC 2; sdbuild.pk3.LOCALIZED_DIR). The
+# rules below are GZDoom g4.14.2's FTextureManager::AddLocalizedVariants
+# (src/common/textures/texturemanager.cpp), read in the source: it scans
+# exactly LOCALIZED_TEXTURES_DIR, splits the file name on ".", takes the
+# first token as the base graphic, the second as "-"-separated language IDs
+# of 2 or 3 characters, and refuses a variant whose size differs from the
+# base's. Each refusal is a console line, not a load error, so without this
+# check a broken variant would ship silently.
+LOCALIZED_DIR = "localized"
+LOCALIZED_TEXTURES_DIR = "localized/textures"
+LANGUAGE_ID_LENGTHS = (2, 3)
+# Extensions the engine refuses to read as a language ID (`M_PAUSE.png`).
+IMAGE_EXTENSIONS = frozenset({"png", "jpg", "gfx", "tga", "lmp"})
+# Where a base graphic can live in our package. The engine looks the base up
+# as a MiscPatch with TryAny, which reaches all of these namespaces.
+LOCALIZED_BASE_DIRS = ("graphics", "textures", "patches", "flats", "sprites", "hires")
 
 
 # --- Findings --------------------------------------------------------------
@@ -1212,6 +1234,96 @@ def check_menus(pkg: Package, report: Report) -> None:
 
 # --- Orchestration ---------------------------------------------------------
 
+def localized_name_parts(filename: str) -> tuple[str, list[str]] | str:
+    """(BASE, [language IDs]) for a variant's file name, or why the engine
+    would ignore it. Mirrors AddLocalizedVariants token by token."""
+    tokens = [t for t in filename.split(".") if t]
+    if len(tokens) < 2 or (len(tokens) == 2 and tokens[1].lower() in IMAGE_EXTENSIONS):
+        return ("contains no language ID: GZDoom ignores it "
+                "(name it <BASE>.<lang>.<ext>, e.g. M_PAUSE.ru.png)")
+    langs = [t for t in tokens[1].lower().split("-") if t]
+    bad = [lang for lang in langs if len(lang) not in LANGUAGE_ID_LENGTHS]
+    if bad or not langs:
+        return (f"invalid language ID {', '.join(repr(b) for b in bad) or repr(tokens[1])}: "
+                f"GZDoom takes {' or '.join(map(str, LANGUAGE_ID_LENGTHS))} letters (ru, enu)")
+    return tokens[0], langs
+
+
+def check_localized(pkg: Package, iwad_names: set[str], declared: set[str], report: Report) -> None:
+    """Language variants: right folder, right name, a base, the same size.
+
+    Also the provenance rule of `licences`: the variant is the same asset in
+    another language, so its base's row in LICENSES.md covers it (or a row
+    of its own). Kept here rather than in LICENSED_DIRS because
+    tools/release.py reads that list with a stem-only match that would ask
+    for a `M_PAUSE.RU` row.
+    """
+    files = sorted(pkg.files_under(LOCALIZED_DIR))
+    report.stats["localized_variants"] = 0
+    if not files:
+        report.note("localized", "no language variants packed")
+        return
+    bases: dict[str, str] = {}
+    for folder in LOCALIZED_BASE_DIRS:
+        for path in pkg.files_under(folder):
+            bases.setdefault(Path(path).stem.upper(), path)
+    valid = 0
+    for path in files:
+        folder, _, filename = path.rpartition("/")
+        if folder.lower() != LOCALIZED_TEXTURES_DIR:
+            report.error("localized", path,
+                         f"outside {LOCALIZED_TEXTURES_DIR}/: GZDoom only scans that folder, "
+                         "so this file is never loaded")
+            continue
+        parts = localized_name_parts(filename)
+        if isinstance(parts, str):
+            report.error("localized", path, parts)
+            continue
+        base, langs = parts
+        problem = lump_name_problem(base)
+        if problem:
+            report.error("localized", path, f"base {problem}")
+            continue
+        key = base.upper()
+        base_path = bases.get(key)
+        if base_path is None:
+            if key in iwad_names:
+                report.warn("localized", path,
+                            f"base {key} is an IWAD graphic: size not checked offline")
+            else:
+                report.error("localized", path,
+                             f"unknown base graphic {key}: nothing packed under "
+                             f"{'/, '.join(LOCALIZED_BASE_DIRS)}/ has that name, so GZDoom "
+                             "prints 'Unknown texture ... for localized variant' and drops it")
+                continue
+        else:
+            try:
+                variant = read_png(pkg.read(path))
+                original = read_png(pkg.read(base_path))
+            except PngError as exc:
+                report.error("localized", path, f"size not comparable with {base_path}: {exc}")
+                continue
+            if (variant.width, variant.height) != (original.width, original.height):
+                report.error("localized", path,
+                             f"{variant.width}x{variant.height}, but {base_path} is "
+                             f"{original.width}x{original.height}: GZDoom refuses a variant "
+                             "that is not the same size as the graphic it replaces")
+                continue
+        if not (key in declared or Path(filename).stem.upper() in declared
+                or filename.upper() in declared):
+            report.error("localized", path,
+                         f"no row for {key!r} (or for the variant) in "
+                         f"{DEFAULT_LICENSES.relative_to(PROJECT_ROOT)}: "
+                         "a packed asset without recorded provenance cannot ship")
+            continue
+        valid += 1
+        report.note("localized", f"{path} -> {key} for {', '.join(langs)}")
+    report.stats["localized_variants"] = valid
+    report.notes.setdefault("localized", []).insert(
+        0, f"{valid} of {len(files)} language variant(s) valid; NB GZDoom g4.14.2 registers "
+           "them but does not draw them (MOD-SPEC 2)")
+
+
 def check_pk3(
     pk3: Path,
     spec: Path = DEFAULT_SPEC,
@@ -1242,6 +1354,7 @@ def check_pk3(
         check_licences(pkg, licensed_names(licenses), report)
         check_zscript(pkg, report)
         check_menus(pkg, report)
+        check_localized(pkg, iwad_assets_from_spec(spec), licensed_names(licenses), report)
     return report
 
 

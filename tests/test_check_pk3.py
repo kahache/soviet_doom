@@ -795,5 +795,101 @@ class WadReaderTest(unittest.TestCase):
         self.assertEqual(["MAP01", "TEXTMAP", "ENDMAP"], [e[0] for e in check_pk3.read_wad_directory(blob)])
 
 
+# --- 10. Language variants (localized/textures/) ---------------------------
+
+PAUSE_SIZE = (77, 20)   # the real M_PAUSE plaque P2 (D48), English and Russian
+
+
+def png_rgba(width: int, height: int) -> bytes:
+    """A valid RGBA (colour type 6) PNG: menu patches are RGBA (ART-BIBLE 2)."""
+    rows = bytearray()
+    for _y in range(height):
+        rows.append(0)
+        rows += bytes((200, 30, 30, 255)) * width
+    return _png(width, height, colour_type=6, extra_chunks=[], idat=bytes(rows))
+
+
+class LocalizedTest(CheckPk3TestCase):
+    """GZDoom's AddLocalizedVariants (g4.14.2) drops a variant with a console
+    line, never an error, when its folder, name, base or size is wrong. Each
+    of those is an error here, proved by a package that breaks it."""
+
+    BASE = "graphics/M_PAUSE.png"
+    VARIANT = "localized/textures/M_PAUSE.ru.png"
+
+    def setUp(self) -> None:
+        super().setUp()
+        row = "| `M_PAUSE` | pause plaque P2 | CC BY-NC-SA 4.0 |\n"
+        self.licenses.write_text(LICENSES_MD + row, encoding="utf-8")
+
+    def entries(self, **extra: bytes) -> dict[str, bytes]:
+        entries = good_entries()
+        entries[self.BASE] = png_rgba(*PAUSE_SIZE)
+        entries[self.VARIANT] = png_rgba(*PAUSE_SIZE)
+        entries.update(extra)
+        return entries
+
+    def test_same_size_variant_passes(self):
+        report = self.run_check(self.entries())
+        self.assertClean(report)
+        self.assertEqual(1, report.stats["localized_variants"])
+        self.assertIn("M_PAUSE for ru", " ".join(report.notes["localized"]))
+
+    def test_package_without_variants_passes(self):
+        report = self.run_check(good_entries())
+        self.assertClean(report)
+        self.assertEqual(0, report.stats["localized_variants"])
+
+    def test_variant_of_another_size_fails(self):
+        entries = self.entries()
+        entries[self.VARIANT] = png_rgba(PAUSE_SIZE[0] + 1, PAUSE_SIZE[1])
+        finding = self.assertFails(self.run_check(entries), "localized", "same size")
+        self.assertEqual(self.VARIANT, finding.path)
+        self.assertIn("78x20", finding.message)
+        self.assertIn("77x20", finding.message)
+
+    def test_variant_outside_localized_textures_fails(self):
+        entries = self.entries()
+        del entries[self.VARIANT]
+        entries["localized/graphics/M_PAUSE.ru.png"] = png_rgba(*PAUSE_SIZE)
+        self.assertFails(self.run_check(entries), "localized", "only scans")
+
+    def test_variant_without_a_language_id_fails(self):
+        entries = self.entries()
+        del entries[self.VARIANT]
+        entries["localized/textures/M_PAUSE.png"] = png_rgba(*PAUSE_SIZE)
+        self.assertFails(self.run_check(entries), "localized", "no language ID")
+
+    def test_invalid_language_id_fails(self):
+        entries = self.entries()
+        del entries[self.VARIANT]
+        entries["localized/textures/M_PAUSE.russian.png"] = png_rgba(*PAUSE_SIZE)
+        self.assertFails(self.run_check(entries), "localized", "invalid language ID")
+
+    def test_variant_without_a_base_fails(self):
+        entries = self.entries()
+        del entries[self.BASE]
+        self.assertFails(self.run_check(entries), "localized", "unknown base graphic M_PAUSE")
+
+    def test_variant_without_provenance_fails(self):
+        self.licenses.write_text(LICENSES_MD, encoding="utf-8")
+        entries = self.entries()
+        del entries[self.BASE]
+        entries["graphics/SDTEST1.png"] = png_rgba(*PAUSE_SIZE)
+        entries["localized/textures/SDTEST9.ru.png"] = png_rgba(*PAUSE_SIZE)
+        del entries[self.VARIANT]
+        report = self.run_check(entries)
+        self.assertFails(report, "localized", "unknown base")
+        entries["graphics/SDTEST9.png"] = png_rgba(*PAUSE_SIZE)
+        self.assertFails(self.run_check(entries), "localized", "no row for 'SDTEST9'")
+
+    def test_several_languages_in_one_name(self):
+        self.assertEqual(("M_PAUSE", ["ru", "uk"]), check_pk3.localized_name_parts("M_PAUSE.ru-uk.png"))
+        self.assertEqual(("m_pause", ["enu"]), check_pk3.localized_name_parts("m_pause.ENU.png"))
+        self.assertIsInstance(check_pk3.localized_name_parts("M_PAUSE"), str)
+        self.assertIsInstance(check_pk3.localized_name_parts("M_PAUSE.lmp"), str)
+        self.assertIsInstance(check_pk3.localized_name_parts("M_PAUSE.r.png"), str)
+
+
 if __name__ == "__main__":
     unittest.main()

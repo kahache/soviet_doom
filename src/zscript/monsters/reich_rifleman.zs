@@ -32,7 +32,7 @@ class SD_ReichRifleman : SD_Monster replaces ZombieMan
 		// (BESTIARY 2.2).
 		Species "SD_ReichRifleman";
 		SD_Monster.Faction SD_FACTION_REICH;
-		BloodColor "53 4A 30";     // khaki_olive 3: the Reich bleeds dark olive
+		BloodColor "AD 27 21";     // D49: dark red for every faction (flag_red 9 at full bright, BESTIARY 2.1)
 		SeeSound "sd/mon/reichrifleman/sight";
 		AttackSound "sd/mon/reichrifleman/attack";
 		PainSound "sd/mon/reichrifleman/pain";

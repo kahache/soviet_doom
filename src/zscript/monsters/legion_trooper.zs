@@ -28,7 +28,7 @@ class SD_LegionTrooper : SD_Monster replaces ShotgunGuy
 		PainChance SD_TROOPER_PAINCHANCE;
 		Species "SD_LegionTrooper";
 		SD_Monster.Faction SD_FACTION_LEGION;
-		BloodColor "C6 BD AA";     // plaster_warm 12: the Legion bleeds pale
+		BloodColor "AD 27 21";     // D49: dark red for every faction (flag_red 9 at full bright, BESTIARY 2.1)
 		SeeSound "sd/mon/legiontrooper/sight";
 		AttackSound "sd/mon/legiontrooper/attack";
 		PainSound "sd/mon/legiontrooper/pain";

@@ -226,3 +226,74 @@ class LumpLeftoverTest(unittest.TestCase):
             (src / "lumps").mkdir(parents=True)
             (src / "lumps" / "zscript.txt").write_text("version \"4.12\"")
             self.assertEqual(["zscript.txt"], [e.path for e in collect_lumps(src)])
+
+
+class LocalizedAssetsTest(unittest.TestCase):
+    """D48's pause plaque has an English and a Russian face. GZDoom finds a
+    language variant by its PATH, `localized/textures/<BASE>.<lang>.<ext>`
+    (g4.14.2, FTextureManager::AddLocalizedVariants), so unlike
+    assets/textures/<set>/ the build must keep that path whole, and the
+    variant must be the size of its base or the engine drops it."""
+
+    def _assets(self, root: Path) -> Path:
+        import check_pk3
+        assets = root / "assets"
+        (assets / "graphics" / "shell").mkdir(parents=True)
+        (assets / "localized" / "textures").mkdir(parents=True)
+        blob = check_pk3.PNG_MAGIC + b"fixture"
+        (assets / "graphics" / "shell" / "M_PAUSE.png").write_bytes(blob)
+        (assets / "localized" / "textures" / "M_PAUSE.ru.png").write_bytes(blob + b"ru")
+        (assets / "localized" / "textures" / "M_PAUSE.ru.png.bak").write_bytes(b"junk")
+        return assets
+
+    def test_collect_keeps_the_localized_path(self):
+        from sdbuild.pk3 import collect_assets
+        with tempfile.TemporaryDirectory() as d:
+            paths = sorted(e.path for e in collect_assets(self._assets(Path(d))))
+        self.assertIn("localized/textures/M_PAUSE.ru.png", paths)
+        self.assertIn("graphics/M_PAUSE.png", paths)          # the set folder still drops
+        self.assertNotIn("localized/textures/M_PAUSE.ru.png.bak", paths)
+        self.assertNotIn("textures/M_PAUSE.ru.png", paths)    # never flattened
+
+    def test_built_pk3_carries_the_variant_at_its_path(self):
+        with tempfile.TemporaryDirectory() as d:
+            assets = self._assets(Path(d))
+            out = Path(d) / "out" / "sovietdoom.pk3"
+            build_pk3(SRC_DIR, out, TOOLS_DIR, assets)
+            with zipfile.ZipFile(out) as zf:
+                names = zf.namelist()
+                self.assertIn("localized/textures/M_PAUSE.ru.png", names)
+                self.assertEqual((assets / "localized" / "textures" / "M_PAUSE.ru.png").read_bytes(),
+                                 zf.read("localized/textures/M_PAUSE.ru.png"))
+
+    def test_every_real_variant_is_packed_at_its_path(self):
+        variants = sorted((PROJECT_ROOT / "assets" / "localized").rglob("*.*")) \
+            if (PROJECT_ROOT / "assets" / "localized").is_dir() else []
+        if not variants:
+            self.skipTest("no assets/localized/ yet")
+        pk3 = PROJECT_ROOT / "dist" / "sovietdoom.pk3"
+        if not pk3.exists():
+            self.skipTest("build the PK3 first: python3 tools/build.py")
+        names = set(zipfile.ZipFile(pk3).namelist())
+        missing = [p.relative_to(PROJECT_ROOT / "assets").as_posix() for p in variants
+                   if p.relative_to(PROJECT_ROOT / "assets").as_posix() not in names]
+        self.assertEqual([], missing)
+
+    def test_every_real_variant_matches_its_base_size(self):
+        import check_pk3
+        assets = PROJECT_ROOT / "assets"
+        folder = assets / "localized" / "textures"
+        variants = sorted(folder.glob("*.png")) if folder.is_dir() else []
+        if not variants:
+            self.skipTest("no assets/localized/textures/ yet")
+        for variant in variants:
+            parts = check_pk3.localized_name_parts(variant.name)
+            self.assertNotIsInstance(parts, str, f"{variant.name}: {parts}")
+            base_name = parts[0].upper()
+            bases = [p for d in check_pk3.LOCALIZED_BASE_DIRS if (assets / d).is_dir()
+                     for p in (assets / d).rglob("*.png") if p.stem.upper() == base_name]
+            self.assertEqual(1, len(bases), f"{variant.name}: base {base_name} found {bases}")
+            got = check_pk3.read_png(variant.read_bytes())
+            want = check_pk3.read_png(bases[0].read_bytes())
+            self.assertEqual((want.width, want.height), (got.width, got.height),
+                             f"{variant.name} must be the size of {bases[0].name}")
