@@ -221,7 +221,8 @@ class FullSetTests(unittest.TestCase):
             full, sweep = g.FULL_POSES[f], g.POSES[f]
             self.assertEqual((full.foot_l, full.foot_r, full.bob, full.carry, full.flash, full.canvas),
                              (sweep.foot_l, sweep.foot_r, sweep.bob, sweep.carry, sweep.flash, sweep.canvas), f)
-            self.assertEqual((full.lean, full.head_pitch, full.roll, full.gun_tilt), (0.0, 0.0, 0.0, 0.0), f)
+            self.assertEqual((full.lean, full.head_pitch, full.fall, full.yaw, full.hip_z, full.gun_tilt),
+                             (0.0,) * 6, f)
         e = g.FULL_POSES["E"]
         self.assertFalse(e.flash)
         self.assertEqual((e.foot_l, e.carry, e.canvas), (g.POSES["F"].foot_l, "aim", g.AIM))
@@ -237,13 +238,47 @@ class FullSetTests(unittest.TestCase):
             self.assertEqual({p.grp for p in core.select(P, limb="leg", side=core.LEFT)}, {"leg_l"})
             self.assertEqual(len(core.select(P, tag="patch")), 1)
 
-    def test_the_fall_lies_on_the_floor(self):
+    def test_the_dead_lie_flat_on_the_floor(self):
+        """CEO on the first L0: "fake estirado, parece que se apoye en el hombro".
+        Every part of the corpse within LYING_MAX units (= px at 1:1) of the
+        floor, and the parts that touch it spread along his whole length."""
         g = self.g
         P, _ = g.build_model(g.FULL_CELL, g.FULL_POSES["L"])
+        parts = g.body_parts(P)
+        self.assertEqual(len(parts), 13)
         body = [p for p in P if p.grp != "gun"]
         self.assertAlmostEqual(g.core.lowest_y(body), 0.0, delta=0.1)
-        torso = next(p for p in P if p.tag == "torso")
-        self.assertLess(float(torso.bound()[0][1]), 22.0)      # on his side, propped by the pads (35 upright)
+        heights = {k: g.core.lowest_y(v) for k, v in parts.items()}
+        for k, h in heights.items():
+            self.assertLessEqual(h, g.LYING_MAX, k)
+        supports = [k for k, h in heights.items() if h <= g.LYING_SUPPORT]
+        for need in ("seat", "head"):
+            self.assertIn(need, supports)
+        self.assertTrue({"shin_left", "shin_right", "foot_left", "foot_right"} & set(supports))
+        self.assertTrue({"upper_arm_left", "upper_arm_right", "forearm_left", "forearm_right"} & set(supports))
+        xs = [float(np.mean([p.bound()[0][0] for p in parts[k]])) for k in supports]
+        self.assertGreaterEqual(max(xs) - min(xs), g.LYING_SPAN)          # not one support point: head to feet
+        torso = parts["torso"][0]
+        self.assertGreater(abs(float((torso.xm @ g.core.V(0, 1, 0))[0])), 0.95)   # lying across the screen
+        gun = [p for p in P if p.grp == "gun"]
+        self.assertAlmostEqual(g.core.lowest_y(gun), 0.0, delta=0.1)       # the shotgun dropped on the floor
+
+    def test_the_gibbed_legs_lie_flat(self):
+        g = self.g
+        P, _ = g.build_gib("U")
+        parts = {k: v for k, v in g.body_parts(P).items() if v and k != "head"}
+        self.assertEqual(set(parts), {"seat", "thigh_left", "thigh_right", "shin_left", "shin_right",
+                                      "foot_left", "foot_right"})
+        for k, v in parts.items():
+            self.assertLessEqual(g.core.lowest_y(v), g.LYING_MAX, k)
+
+    def test_the_fall_leads_to_l(self):
+        g = self.g
+        falls = [g.FULL_POSES[f].fall for f in "HIJKL"]
+        yaws = [g.FULL_POSES[f].yaw for f in "HIJKL"]
+        self.assertEqual(falls, sorted(falls))
+        self.assertEqual(yaws, sorted(yaws))
+        self.assertEqual((falls[-1], yaws[-1]), (90.0, 90.0))
 
 
 @unittest.skipUnless(HAVE_IMAGING, "needs Pillow and numpy (.venv)")
@@ -382,6 +417,7 @@ class RenderTests(unittest.TestCase):
 
 MIN_RED_DEAD = 150      # px of blood red on the dead (L) and the gibbed (U): the rifleman's D48 bar
 POOL_BELOW_SOLE = 5     # px: a floor pool lies in front of the body, below the sole line
+LYING_HEIGHT_PX = 24    # px: the dead body, blood aside, on screen (the first L0, propped on a pauldron, was 35)
 
 
 @slow
@@ -434,6 +470,14 @@ class FullRenderTests(unittest.TestCase):
             self.assertLess(m["height_px"], 40, k)
             self.assertGreater(m["width_px"], m["height_px"], k)
             self.assertLessEqual(abs(m["lowest_row"] - cv.foot_row), POOL_BELOW_SOLE, k)
+        # L0 lies flat: the body (no blood) is a low band on the floor line, not propped up
+        prims, _, table = g.build_frame("L")
+        layers = g.core.render_layers(prims, 0, g.DEATH, table, seed=g.SEED, chrome=g.CHROME)
+        body = (layers.pid >= 0) & ~np.isin(layers.pid, [i for i, p in enumerate(prims)
+                                                         if p.mat in ("blood", "pool")])
+        ys = np.nonzero(body)[0]
+        self.assertLessEqual(ys.max() - ys.min() + 1, LYING_HEIGHT_PX)
+        self.assertLessEqual(abs(int(ys.max()) - g.DEATH.foot_row), POOL_BELOW_SOLE)
 
     def test_scale(self):
         g = self.g

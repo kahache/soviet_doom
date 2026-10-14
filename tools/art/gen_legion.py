@@ -272,7 +272,11 @@ class Pose:
     hand_l: tuple | None = None  # carry "free": hand targets, before lean
     hand_r: tuple | None = None
     gun_at: tuple | None = None  # carry "free": (butt, along, up), final model space
-    roll: float = 0.0            # degrees, the whole figure falls to his left about ROLL_PIVOT
+    fall: float = 0.0            # degrees, the whole figure tips BACK about FALL_PIVOT (90: on his back)
+    yaw: float = 0.0             # degrees, then turns about the vertical (90: lying across the screen)
+    head_turn: float = 0.0       # degrees, head turned about the neck (+: towards his left)
+    gun_rest: bool = False       # carry "free": the dropped shotgun lies on the floor
+    hip_z: float = 0.0           # hips (and seat) moved back: on his back they settle onto the floor
 
 
 ANKLE_Y = core.ANKLE_Y
@@ -306,8 +310,8 @@ FLASH_SIZE = 7.0                                # a shotgun's flash, a little ov
 NECK = core.V(0.0, 42.0, -0.4)                  # chin pivot: the bull neck's middle
 UPPER = {"upper", "arm", "head", "helmet"}      # what leans with the torso
 ALL_BODY = UPPER | {"leg_l", "leg_r", "seat", "stump"}
-ROLL_PIVOT = core.V(3.9, 0.0, 0.0)              # his left sole: he falls to his left over it
-SLIDE = 30.0                                    # x shift at a full fall, so the corpse lies across the axis
+FALL_PIVOT = core.V(0.0, 0.0, -3.0)             # behind his heels: he falls back over them
+GIB_LEGS_SLIDE = 14.0                           # the gibbed legs, fallen, centred on the axis
 
 
 def gun_frame(pose: Pose):
@@ -348,7 +352,7 @@ def build_model(cell: Cell, pose: Pose) -> tuple[list, dict]:
     # ---------------------------------------------------------------- legs
     for side, foot, grp in ((1, pose.foot_l, "leg_l"), (-1, pose.foot_r, "leg_r")):
         start = len(P)
-        hip = core.V(side * 3.5, HIP_Y + bob, 0.0)
+        hip = core.V(side * 3.5, HIP_Y + bob, pose.hip_z)
         knee, ankle = core.two_bone(hip, foot, THIGH, SHIN, core.V(0, 0, 1))
         add(grp, RC("trouser", 0.62, hip, knee, 3.0, 2.6))
         add(grp, RC("trouser", 0.58, knee, ankle + core.V(0, 3.4, 0), 2.6, 2.3))
@@ -356,7 +360,7 @@ def build_model(cell: Cell, pose: Pose) -> tuple[list, dict]:
         add(grp, RC("boot", 0.55, ankle + core.V(0, 4.0, 0), ankle, 2.25, 2.1))
         add(grp, BX("boot", 0.35, (ankle[0], ankle[1] - 1.15, ankle[2] + 1.4), (1.75, 1.1, 3.1), rnd=0.6))
         label(start, "leg", side)
-    add("seat", E("trouser", 0.60, (0, HIP_Y + 1.0 + bob, -0.2), (6.6, 3.6, 4.3), tag="seat"))
+    add("seat", E("trouser", 0.60, (0, HIP_Y + 1.0 + bob, -0.2 + pose.hip_z), (6.6, 3.6, 4.3), tag="seat"))
 
     # ---------------------------------------------------------------- torso
     belt_z = (TORSO_R0 + 0.4) * 0.74
@@ -465,17 +469,27 @@ def build_model(cell: Cell, pose: Pose) -> tuple[list, dict]:
     # ------------------------------------------------------------- posing
     # The full set's poses (gen_rig's order): chin, then the lean about the
     # waist, then the fall. The sweep's two poses take none of these.
+    if pose.head_turn:
+        core.transform(P, anchors, {"head", "helmet"}, core.rot_y(pose.head_turn), NECK + core.V(0, bob, 0))
     if pose.head_pitch:
         core.transform(P, anchors, {"head", "helmet"}, core.rot_x(pose.head_pitch), NECK + core.V(0, bob, 0))
     if pose.lean:
         waist = core.V(0, WAIST_Y + bob, 0)
         carried = {"gun"} if pose.carry != "free" else set()
         core.transform(P, anchors, UPPER | carried, core.rot_x(pose.lean), waist)
-    if pose.roll:
+    if pose.fall or pose.yaw:
+        # The death (since the CEO's note on the first L0, 2026-10-14): he
+        # falls BACK over his heels and twists as he goes, so he ends on his
+        # back across the screen, his weight on the floor along his whole
+        # length, not propped on one pauldron as a fall onto his side was.
         body = ALL_BODY | ({"gun"} if pose.carry != "free" else set())
-        slide = core.V(-SLIDE * np.sin(np.deg2rad(pose.roll)), 0, 0)
-        core.transform(P, anchors, body, core.rot_z(pose.roll), ROLL_PIVOT, slide)
+        R = core.rot_y(pose.yaw) @ core.rot_x(pose.fall)
+        core.transform(P, anchors, body, R, FALL_PIVOT)
         core.rest_on_floor(P, anchors, body)
+        mid = float(np.mean([q.bound()[0][0] for q in P if q.grp in body]))
+        core.transform(P, anchors, body, np.eye(3), core.V(0, 0, 0), core.V(-mid, 0, 0))   # on the actor's axis
+    if pose.carry == "free" and pose.gun_rest:
+        core.rest_on_floor(P, anchors, {"gun"})
     return P, anchors
 
 
@@ -942,17 +956,18 @@ FULL_POSES: dict[str, Pose] = {
     "H": Pose("H", "hit", (3.8, ANKLE_Y, 1.2), (-3.6, ANKLE_Y, -3.6), -1.0, "free", False, DEATH,
               lean=22.0, head_pitch=32.0, hand_l=(13.0, 47.0, 2.0), hand_r=(-12.0, 34.0, 5.0),
               gun_at=((-8.0, 22.0, 6.0), (0.85, -0.35, 0.4), (0.0, 1.0, 0.0))),
-    "I": Pose("I", "knees go", (3.8, ANKLE_Y, 1.2), (-3.6, ANKLE_Y, -1.0), -7.0, "free", False, DEATH,
-              lean=26.0, head_pitch=30.0, hand_l=(13.0, 43.0, 1.0), hand_r=(-10.0, 31.0, 7.0),
-              gun_at=((-12.0, 9.0, 7.0), (0.94, -0.25, 0.2), (0.0, 1.0, 0.0)), roll=14.0),
-    "J": Pose("J", "falling", (3.8, ANKLE_Y, 1.2), (-3.6, ANKLE_Y, 0.0), -11.0, "free", False, DEATH,
-              lean=18.0, head_pitch=25.0, hand_l=(14.0, 39.0, 0.0), hand_r=(-8.0, 29.0, 8.0),
-              gun_at=((-16.0, 2.5, 3.0), (0.99, -0.15, 0.0), (0.0, 1.0, 0.0)), roll=42.0),
-    "K": Pose("K", "hits the floor", (3.8, ANKLE_Y, 1.0), (-3.6, ANKLE_Y, 0.5), -9.0, "free", False, DEATH,
-              lean=8.0, head_pitch=10.0, hand_l=(13.0, 41.0, -2.0), hand_r=(-7.0, 31.0, 8.0),
-              gun_at=FLOOR_GUN, roll=74.0),
-    "L": Pose("L", "dead", (3.6, ANKLE_Y, 0.6), (-3.8, ANKLE_Y, 1.4), -2.0, "free", False, DEATH,
-              head_pitch=-10.0, hand_l=(11.0, 31.0, 3.0), hand_r=(-10.0, 31.0, 6.0), gun_at=FLOOR_GUN, roll=90.0),
+    "I": Pose("I", "knees go", (3.8, ANKLE_Y, 1.2), (-3.6, ANKLE_Y, -1.0), -6.0, "free", False, DEATH,
+              lean=20.0, head_pitch=28.0, hand_l=(14.0, 42.0, 1.0), hand_r=(-11.0, 33.0, 6.0),
+              gun_at=((-12.0, 9.0, 7.0), (0.94, -0.25, 0.2), (0.0, 1.0, 0.0)), fall=18.0, yaw=22.0, hip_z=-0.4),
+    "J": Pose("J", "falling back", (4.4, ANKLE_Y, 1.0), (-4.2, ANKLE_Y + 1.0, 2.0), -0.5, "free", False, DEATH,
+              lean=6.0, head_pitch=18.0, head_turn=12.0, hand_l=(16.0, 41.0, 1.0), hand_r=(-14.0, 37.0, 2.0),
+              gun_at=((-16.0, 2.5, 3.0), (0.99, -0.15, 0.0), (0.0, 1.0, 0.0)), fall=50.0, yaw=72.0, hip_z=-1.0),
+    "K": Pose("K", "hits the floor", (4.8, ANKLE_Y, -1.5), (-4.4, ANKLE_Y + 1.5, -0.5), -1.5, "free", False, DEATH,
+              lean=-3.0, head_pitch=14.0, head_turn=25.0, hand_l=(14.0, 31.0, 1.0), hand_r=(-12.0, 33.0, 1.0),
+              gun_at=FLOOR_GUN, gun_rest=True, fall=86.0, yaw=84.0, hip_z=-2.0),
+    "L": Pose("L", "dead", (5.0, ANKLE_Y, -4.0), (-4.5, ANKLE_Y + 1.0, -3.5), 0.0, "free", False, DEATH,
+              lean=-6.0, head_pitch=24.0, head_turn=35.0, hand_l=(13.0, 27.0, -2.0), hand_r=(-12.0, 29.0, -2.0),
+              gun_at=FLOOR_GUN, gun_rest=True, fall=90.0, yaw=90.0, hip_z=-2.2),
 }
 GIB_POSE = Pose("M", "chest bursts", (3.8, ANKLE_Y, 0.8), (-3.6, ANKLE_Y, -3.0), -0.8, "high", False, GIB,
                 gun_tilt=0.2, lean=10.0, head_pitch=18.0)
@@ -1179,7 +1194,13 @@ def build_gib(frame: str, seed: int = SEED) -> tuple[list, dict]:
     t = GIB_T[frame]
     k = float(np.clip((t - 0.25) / 0.55, 0, 1))          # the legs: stand, buckle, fall
     k = k * k * (3 - 2 * k)
-    legs = replace(GIB_POSE, lean=0.0, head_pitch=0.0, bob=-0.8 - 10.0 * k, roll=0.0)
+    # The legs buckle, then fall back flat as the dead body's do (L): the knees
+    # give at mid-fall and straighten as they land, the feet go to L's.
+    lerp = lambda a, b: tuple(x + (y - x) * k for x, y in zip(a, b))  # noqa: E731
+    dead = FULL_POSES["L"]
+    legs = replace(GIB_POSE, lean=0.0, head_pitch=0.0, bob=-0.8 - 7.0 * np.sin(np.pi * k),
+                   foot_l=lerp(GIB_POSE.foot_l, dead.foot_l), foot_r=lerp(GIB_POSE.foot_r, dead.foot_r),
+                   hip_z=dead.hip_z * k)
     prims, anchors = build_model(cell, legs)
     base, _ = build_model(cell, GIB_POSE)
     keep = [p for p in prims if p.grp in {"leg_l", "leg_r", "seat"} or p.tag == "belt"]
@@ -1194,10 +1215,9 @@ def build_gib(frame: str, seed: int = SEED) -> tuple[list, dict]:
                                                    rng.uniform(-2, 2)), tuple(rng.uniform(1.2, 2.2, 3)), grp="stump"))
     keep += stump
     groups = {"leg_l", "leg_r", "seat", "stump"}
-    if k > 0:
-        roll = 88.0 * k
-        slide = core.V(-SLIDE * 0.45 * np.sin(np.deg2rad(roll)), 0, 0)
-        core.transform(keep, {}, groups, core.rot_z(roll), ROLL_PIVOT, slide)
+    if k > 0:                             # back over the heels and across, as the death (L)
+        R = core.rot_y(dead.yaw * k) @ core.rot_x(dead.fall * k)
+        core.transform(keep, {}, groups, R, FALL_PIVOT, core.V(-GIB_LEGS_SLIDE * k, 0, 0))
         core.rest_on_floor(keep, {}, groups)
     keep += gib_blood(frame, t, keep, seed)
     keep += chunks(t, seed)
@@ -1220,6 +1240,32 @@ def build_gib(frame: str, seed: int = SEED) -> tuple[list, dict]:
 
 
 BLOODY_FRAMES = "HIJKL" + GIB_FRAMES   # the frames that bleed; A-G are the sweep's figure
+
+# A corpse lies with its weight on the floor: every part below within this
+# many units (1 unit = 1 px at 1:1) of it. The CEO on the first L0
+# (2026-10-14): "queda fake estirado porque parece que se apoye en el hombro".
+LYING_MAX = 2.0
+LYING_SUPPORT = 1.0             # a part this close to the floor is a support
+LYING_SPAN = 30.0               # supports must spread at least this far along the body
+
+
+def body_parts(prims: list) -> dict[str, list]:
+    """The posed figure's parts by name (from build_model's groups, limb
+    labels and tags): what must touch the floor when he lies dead."""
+    leg = lambda side: [p for p in prims if p.limb == "leg" and p.side == side]  # noqa: E731
+    arm = lambda side: [p for p in prims if p.limb == "arm" and p.side == side]  # noqa: E731
+    parts = {"torso": [p for p in prims if p.tag == "torso"], "seat": [p for p in prims if p.tag == "seat"],
+             "head": [p for p in prims if p.grp in ("head", "helmet")]}
+    for name, side in (("left", 1), ("right", -1)):
+        lg, am = leg(side), arm(side)
+        parts[f"thigh_{name}"], parts[f"shin_{name}"], parts[f"foot_{name}"] = lg[:1], lg[1:3], lg[3:]
+        parts[f"upper_arm_{name}"], parts[f"forearm_{name}"] = am[:1], am[1:]
+    return parts
+
+
+def lying_report(prims: list) -> dict[str, float]:
+    """Each part's lowest point above the floor, in units (core.lowest_y)."""
+    return {k: round(core.lowest_y(v), 2) for k, v in body_parts(prims).items() if v}
 
 
 def full_canvas(frame: str) -> core.Canvas:
@@ -1396,6 +1442,11 @@ FULL_VERDICT = [
     "legs stand, throws 30 chunks of meat and chrome shards, the M1 and the shotgun fly whole, and the floor "
     "fills. On the Legion the red reads better than on the rifleman: dark red on chrome and pale khaki is "
     "the strongest contrast he has. The flag stays the brightest red on him (flag_red 11).",
+    "THE FALL (redone after your note on the first L0, 'fake estirado, parece que se apoye en el hombro'). "
+    "He no longer falls onto his side, where the football pad held his chest up: hit at H, his knees go at I, "
+    "he falls back over his heels twisting as he goes (J), hits the floor at K and lies on his back across the "
+    "screen at L, torso, hips, legs and head on the floor, head turned, arms and knees a little bent, the "
+    "shotgun dropped beside him and the pool under his chest. The gib's legs fall the same way.",
     "WHAT DOES NOT, HONESTLY. The 'heavy' of BESTIARY 4 is still more promise than fact: he is slimmer than "
     "Freedoom's shotgun guy even with the pads (the sweep said so; you chose C as drawn, so the build was not "
     "touched). Up close (4x) he is the rig's rendered mannequin, as the rifleman. The firing frame from the "
@@ -1574,6 +1625,136 @@ def build_full_sheet(sprites: dict, stamp: str, out_dir: Path = PREVIEW_DIR, gif
     return path
 
 
+# ============================================================ death sheet
+# The CEO on the first full set (2026-10-14): "SDLT L0 queda fake estirado
+# porque parece que se apoye en el hombro. Deberia quedar un tumbado mas
+# natural y real." The frames he saw are kept in full_C/old_death/ for this
+# before/after sheet; the death H-L and the gib's legs were redone.
+OLD_DEATH_DIR = FULL_DIR / "old_death"
+
+
+def _load_rgba(path: Path) -> np.ndarray:
+    with Image.open(path) as im:
+        return np.asarray(im.convert("RGBA")).copy()
+
+
+DEATH_VERDICT = [
+    "WHAT CHANGED. The first L0 fell onto his left side, and the chrome football pad, the broadest thing on "
+    "him, held his chest and his whole body up off the floor: 39 px of corpse standing on a shoulder. Now he "
+    "falls BACK over his heels and twists as he goes, so he lies on his back across the screen. On L every part "
+    "of him is measured on the floor (section 3): the hips, the head and the arms touch it, the legs and the "
+    "cuirass are within 2 px, and what touches spreads from his head to his boots. The head is turned to the "
+    "side, the arms lie relaxed with the elbows a little bent, the knees are a little bent, the shotgun lies "
+    "beside him and the pool spreads under his chest. 19 px tall on the floor instead of 39.",
+    "THE FRAMES THAT LEAD THERE. H (the hit) is unchanged. I: his knees go and he tips back a little. J: falling "
+    "back, twisting towards you. K: he hits the floor, still a little bent, the limbs settling. The gib's last "
+    "frames had the same fault (the legs fell onto their side and lay as a hump); they now fall back flat as L "
+    "does, and U is a pair of legs lying on the floor beside the M1.",
+    "HONESTLY. The chrome cuirass is a rigid shell, so where it meets the floor it is the cuirass's lip that "
+    "touches, not the soft middle of the back (about 1.5 px up). To lie flat the hips settle back a little "
+    "towards the floor (a pose parameter, hip_z), which a real body does and a rigid rig does not. J is a 5-tic "
+    "in-between: it reads in motion, less as a still. A-G are byte-identical to the set you saw.",
+]
+DEATH_ASK = [
+    "Approve the new death (recommended); with it the 70 SDLT lumps stand ready for assets/sprites/ and the "
+    "SPOS to SDLT rename.",
+    "Or name the pose: on his front instead of his back, head the other way, the arms flung wider; each is a "
+    "few numbers in the L pose, one more render.",
+]
+
+
+def build_death_sheet(sprites: dict, stamp: str, out_dir: Path = PREVIEW_DIR, gif_dir: Path = FULL_DIR,
+                      old_dir: Path = OLD_DEATH_DIR) -> Path:
+    """Old L vs new L (and H-K, and the gib's U), at 4x, at 1x and on MAP01's floor."""
+    S = []
+    T = core.tile
+    old = {f: _load_rgba(old_dir / f"{full_lump(f, 0)}.png") for f in "HIJKLU"}
+
+    def st(arr, zoom, cap, sub=""):
+        return core.sprite_tile(arr, zoom, cap, sub, bg=NEUTRAL)
+
+    def floor(spr, cv, wall="SDCONC1", light=176):
+        return lineup_v2([(spr, cv.cx, cv.foot_row - FEET_SINK)], wall, light, cv.w)
+
+    # 1. L: old vs new
+    mo, mn = measure_full(old["L"]), measure_full(sprites[("L", 0)])
+    body = strip([st(old["L"], 4, "SDLTL0 before", f"{mo['height_px']} px tall: on his side, on the pauldron"),
+                  st(sprites[("L", 0)], 4, "SDLTL0 now", f"{mn['height_px']} px tall: on his back, flat")])
+    fo, fn = floor(old["L"], DEATH), floor(sprites[("L", 0)], DEATH)
+    body += strip([T(core.png_uri(fo), fo.shape[1], fo.shape[0], 1, "before, 1x", "SDCONC1 @176"),
+                   T(core.png_uri(fn), fn.shape[1], fn.shape[0], 1, "now, 1x", "SDCONC1 @176"),
+                   T(core.png_uri(fo), fo.shape[1], fo.shape[0], 3, "before, 3x"),
+                   T(core.png_uri(fn), fn.shape[1], fn.shape[0], 3, "now, 3x")])
+    S.append(("1 · The dead trooper, L0: before and now",
+              "4x on neutral grey, then on MAP01's hangar floor (SDCONC1 over SDFLR2, light 176) at 1x and 3x, "
+              "placed by its own offsets as the engine does.", body))
+
+    # 2. the fall
+    body = strip([st(old[f], 3, full_lump(f, 0), "before") for f in "HIJKL"])
+    body += strip([st(sprites[(f, 0)], 3, full_lump(f, 0), FULL_POSES[f].title) for f in "HIJKL"])
+    body += strip([core.gif_tile(old_dir / "death.gif", 3, "before", "at game speed"),
+                   core.gif_tile(gif_dir / "death.gif", 3, "now", "A, H I J K 5 tics, L held"),
+                   core.gif_tile(gif_dir / "death_floor_F1.gif", 1, "now, 1x on the floor", "SDCONC1 @176"),
+                   core.gif_tile(gif_dir / "death_floor_F1.gif", 3, "now, 3x on the floor")])
+    S.append(("2 · The fall H-L: before (top) and now",
+              "Death H I J K at 5 tics and L held (legion_trooper.zs). Now he falls back over his heels and "
+              "twists, instead of rolling onto his side.", body))
+
+    # 3. the measurement
+    prims, _ = build_model(FULL_CELL, FULL_POSES["L"])
+    rep = lying_report(prims)
+    rows = [[k, f"{v:.1f}", "touches" if v <= LYING_SUPPORT else ""] for k, v in rep.items()]
+    body = sheetlib.table(["part of L0", "lowest point above the floor (units = px at 1:1)", "support"], rows)
+    body += (f"<p class=\"lead\">tests/test_gen_legion.py holds it: every part of L within {LYING_MAX:.0f} units "
+             f"of the floor, the parts that touch it (within {LYING_SUPPORT:.0f}) spread at least {LYING_SPAN:.0f} "
+             "units along his length, so he cannot rest on a single point again; and the rendered body, blood "
+             "aside, is a low band on the floor line.</p>")
+    S.append(("3 · Measured: every part on the floor", "", body))
+
+    # 4. the gib's last frame
+    body = strip([st(old["U"], 3, "SDLTU0 before", "legs on their side, a hump"),
+                  st(sprites[("U", 0)], 3, "SDLTU0 now", "legs flat on the floor")]
+                 + [st(sprites[(f, 0)], 2, full_lump(f, 0), GIB_TITLES[f]) for f in "QRST"])
+    body += strip([core.gif_tile(gif_dir / "gib_floor_F1.gif", 1, "gib now, 1x", "SDCONC1 @176"),
+                   core.gif_tile(gif_dir / "gib_floor_F1.gif", 3, "gib now, 3x")])
+    S.append(("4 · The gib's last frame, U: the same fault, the same fix", "", body))
+
+    # 5. beside the rifleman
+    dead = [(sprites[("L", 0)], *core.grab_offsets(DEATH))]
+    labels = ["SDLTL0 (now)"]
+    rr = rig_sprite("SDRRL0")
+    if rr:
+        dead.append(rr)
+        labels.append("SDRRL0, the rifleman")
+    dead.append((sprites[("U", 0)], *core.grab_offsets(GIB)))
+    labels.append("SDLTU0 (now)")
+    sc = lineup_v2(dead, "SDCONC1", 176, 96 * len(dead))
+    body = strip([T(core.png_uri(sc), sc.shape[1], sc.shape[0], 1, "1x"),
+                  T(core.png_uri(sc), sc.shape[1], sc.shape[0], 2, "2x")])
+    body += "<p class=\"lead\">Left to right: " + html.escape(" · ".join(labels)) + ".</p>"
+    S.append(("5 · On MAP01's floor beside the rifleman's corpse", "", body))
+
+    # 6. verdict
+    body = '<div class="verdict">' + "".join(f"<p>{html.escape(v)}</p>" for v in DEATH_VERDICT) + "</div>"
+    body += '<div class="ask"><b>For the CEO</b><ol>' + "".join(f"<li>{html.escape(a)}</li>" for a in DEATH_ASK) \
+            + "</ol></div>"
+    S.append(("6 · Honest verdict and what you decide", "", body))
+
+    intro = ("Your note on the Legion trooper's full set: \"SDLT L0 queda fake estirado porque parece que se apoye "
+             "en el hombro. Debería quedar un tumbado más natural y real.\" Redone: the death H-L and the gib's "
+             "fallen legs (O-U). Walk, aim, fire and pain (A-G, 56 lumps) are byte-identical to the set you saw. "
+             f"Built by <code>tools/art/gen_legion.py --full</code>, seed {SEED}. Draft: nothing in "
+             "<code>assets/</code>.")
+    footer = "Sprites: tools/art/gen_legion.py (GPL-3.0 code; art CC BY-NC-SA 4.0, D15), deterministic, no system fonts."
+    path = out_dir / f"{stamp}_F5_legion-trooper-C-death-redo.html"
+    sheetlib.write_sheet(path, lang="en", title="Liberty Legion trooper — the death, redone (F5)",
+                         subtitle="SDLT H-L and U · before and now · draft for the CEO's gate",
+                         intro=intro, sections=S, footer=footer)
+    text = path.read_text(encoding="utf-8").replace("</style>", EXTRA_CSS + "</style>", 1)
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--stamp", default=dt.datetime.now().strftime("%Y-%m-%d_%H%M"),
@@ -1583,6 +1764,8 @@ def main() -> None:
                     help="rebuild the sheet from the sprites already on disk")
     ap.add_argument("--full", action="store_true",
                     help="cell C's full frame set (D48): work/art/enemies/legion/full_C/ and its sheet")
+    ap.add_argument("--death-sheet", action="store_true",
+                    help="with --full: the before/after sheet of the redone death (old frames in full_C/old_death/)")
     ap.add_argument("--only", default="", help="with --full: comma-separated lumps, e.g. SDLTH0,SDLTU0 (no sheet)")
     args = ap.parse_args()
     if args.full:
@@ -1590,7 +1773,7 @@ def main() -> None:
         sprites = load_full() if args.sheet_only else build_full(only=only)
         if only or args.no_sheet:
             return
-        path = build_full_sheet(sprites, args.stamp)
+        path = (build_death_sheet if args.death_sheet else build_full_sheet)(sprites, args.stamp)
         print("sheet:", path.relative_to(PROJECT_ROOT))
         return
     if args.sheet_only:
