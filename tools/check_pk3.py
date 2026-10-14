@@ -38,11 +38,14 @@ Checks (one block of output per category):
              every colour they use is in docs/art/palette.json, and their
              dimensions follow the contract
   sprites    sprite lumps are NAMEFR[FR]: 4-char name, frame letter,
-             rotation digit; every declared rotation set is complete.
+             rotation digit, and an optional mirrored pair (SDHNA2A8);
+             every declared rotation set is complete, mirrors counted.
              Every sprite a ZScript `States` block names is packed under
              sprites/, is the engine's (TNT1, ####, ----), or is declared
              as an IWAD sprite in MOD-SPEC 5 - the same rule as textures
-             (F5: the bestiary runs on Freedoom placeholder sprites)
+             (F5: four enemies draw our own sprites since D54-D56, the
+             other three and the arsenal's held frames still borrow
+             Freedoom's)
   licences   every packed asset has a row in docs/art/LICENSES.md
   zscript    every #include, transitively, points at a file in the PK3
   menus      every `Font "X"` in MENUDEF is an engine font or a packed
@@ -1025,9 +1028,15 @@ def check_images(pkg: Package, palette: set[tuple[int, int, int]] | None, report
 def check_sprites(pkg: Package, report: Report) -> None:
     """Sprite lumps are NAMEFR[FR]; every declared rotation set is complete.
 
-    Since D48 (2026-10-14) the mod ships its first sprites, the six weapon
-    pickups from assets/sprites/ (all rotation 0); an empty sprites/ is
-    still a pass.
+    What ships today (assets/sprites/, 2026-10-14) exercises every rule:
+    the six weapon pickups of D48, rotation 0 only; the Reich rifleman
+    (SDRR, 70), the Legion trooper (SDLT, 70) and the Stormtrooper (SDHS,
+    77), eight rotations drawn one by one for the frames seen from every
+    side and rotation 0 for the death and gib frames, plus the
+    Stormtrooper's bolt (SDBL, 5, rotation 0); and the Reich hound (SDHN,
+    46), whose rotations 2-4 are mirrored pairs (`SDHNA2A8`: one image
+    serves rotation 2 and, flipped, 8), so a frame is five lumps
+    (D54-D56). An empty sprites/ is still a pass.
     """
     files = sorted(pkg.files_under("sprites"))
     report.stats["sprites"] = len(files)
@@ -1275,8 +1284,10 @@ def check_localized(pkg: Package, iwad_names: set[str], declared: set[str], repo
     Also the provenance rule of `licences`: the variant is the same asset in
     another language, so its base's row in LICENSES.md covers it (or a row
     of its own). Kept here rather than in LICENSED_DIRS because
-    tools/release.py reads that list with a stem-only match that would ask
-    for a `M_PAUSE.RU` row.
+    check_licences above matches a file by its stem, its name or a folder
+    row, and would ask for a `M_PAUSE.RU` row. tools/release.py adds the
+    folder to its own asset list and matches a variant by its base too
+    (tools/licences.py, `localized_base` and `RegisterRow.covers`).
     """
     files = sorted(pkg.files_under(LOCALIZED_DIR))
     report.stats["localized_variants"] = 0

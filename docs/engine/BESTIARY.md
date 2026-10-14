@@ -319,26 +319,49 @@ No Freedoom lump begins with `SD` (verified), so our sprite namespace is free.
 
 ### 2.7 Placeholders until our art and sound arrive (F5, D35)
 
-The classes are playable now, the way the arsenal was in F4: every state
-names a Freedoom sprite, every sound is a logical name (`sd/mon/<actor>/<event>`)
-that `SNDINFO` points at a Freedoom lump. The full tables, with the final
-lump each placeholder stands in for, are contract and live in
-`MOD-SPEC.md` §6.2 (sounds) and §6.3 (sprites); the IWAD sprites are declared
-in `MOD-SPEC.md` §5, which is what lets `tools/check_pk3.py` accept them.
+The classes were playable from the first build, the way the arsenal was in
+F4: every state named a Freedoom sprite, every sound is a logical name
+(`sd/mon/<actor>/<event>`) that `SNDINFO` points at a Freedoom lump. **Since
+D54–D56 (2026-10-14) four classes draw our own sprites**, rendered on the 3D
+rig and approved by the CEO; three classes and their projectiles still wear
+Freedoom's. The full tables are contract and live in `MOD-SPEC.md` §6.2
+(sounds) and §6.3 (sprites: final names, frame layouts, what is installed);
+the IWAD sprites still in use are declared in `MOD-SPEC.md` §5, which is
+what lets `tools/check_pk3.py` accept them. Engine pass of the four:
+`docs/qa/evidence/2026-10-14_1900_F5_four-enemies-installed.md`.
+
+**Installed: our own sprites (D54–D56).** Each swap was the rename the
+swap rule below promises, not one tic changed (`MOD-SPEC.md` §6.3).
+
+| Class | Sprite | Lumps packed | How the rotations are drawn | Was | Decision |
+|---|---|---|---|---|---|
+| `SD_ReichRifleman` | `SDRR` | 70, `assets/sprites/rifleman/` | A–G in all 8 rotations, drawn one by one (56); H–U in rotation 0 (14) | `POSS` | D55 (bloody death, flat corpse) |
+| `SD_LegionTrooper` | `SDLT` | 70, `assets/sprites/legion/` | A–G × 8 (56); H–U rotation 0 (14) | `SPOS` | D54 (cell C, redone death) |
+| `SD_Stormtrooper` | `SDHS` | 77, `assets/sprites/storm/` | A–H × 8 (64); I–U rotation 0 (13); the claw shares the bolt-throw frames E F G (D53) | `TROO` | D56 (cell E, redone death) |
+| `SD_StormBolt` | `SDBL` | 5, `assets/sprites/storm/` | A–B flight, C–E burst, rotation 0 | `BAL1` | D56 |
+| `SD_ReichHound` | `SDHN` | 46, `assets/sprites/hound/` | A–H with Doom's mirroring, 5 lumps a frame: rotations 1 and 5 alone, 2–4 as mirrored pairs (`SDHNA2A8`, `A3A7`, `A4A6`) (40); I–N rotation 0 (6) | `SARG` | D50 (German shepherd, cell A), D55 (full set) |
+
+The three human-shaped figures are handed (the weapon on one side, a patch,
+plate or armband on the other; a mirrored armband would reverse the D12
+symbol), so their walk, attack and pain frames are eight separate rotations
+(`MOD-SPEC.md` §6.3). That is why they cost more images than v1's estimate
+(49, 49, 58), which assumed Doom's mirroring. The hound is drawn symmetric
+and uses it.
+
+**Still on Freedoom placeholders.**
 
 | Class | Final sprite | Placeholder | Same frame layout? |
 |---|---|---|---|
-| `SD_ReichRifleman` | `SDRR` | `POSS` (zombieman) | yes |
-| `SD_LegionTrooper` | `SDLT` | `SPOS` (shotgun guy) | yes |
-| `SD_Stormtrooper` | `SDHS` | `TROO` (imp) | yes (v1 aligned §5's gib to `TROO`'s N–U) |
-| `SD_StormBolt` | `SDBL` | `BAL1` | yes |
-| `SD_ReichHound` | `SDHN` | `SARG` (demon) | yes |
 | `SD_Doughboy` | `SDDB` | `HEAD` (cacodemon) | yes |
 | `SD_DoughboyShell` | `SDDL` | `BAL2` | yes |
 | `SD_Panzermensch` and `SD_PanzermenschSchwer` | `SDPM` | `BOS2` (hell knight) | yes |
 | `SD_PanzerShell` | `SDPL` | `BAL7` | yes |
 | `SD_General` | `SDGN` | `CYBR` (cyberdemon) | yes for A–P (v1 aligned §9 to `CYBR`); the two `Summon` lines borrow `CYBR E F` and become `SDGN Q R` |
 | `SD_GeneralShell` | `SDGL` | `MANF` A–B flight, `MISL` B–D burst (Doom's mancubus shot) | no: the burst becomes `SDGL C D E` |
+
+**Sounds: all seven classes are still on placeholders.** Every one of the 47
+`sd/mon/*` names points at a Freedoom `DS*` lump; our drafts wait on the
+CEO's ears and the voices on his takes (D36).
 
 **The swap rule.** Because the frame letters already follow §3–§9, replacing
 a placeholder is a rename of the four-letter sprite name in that class's
@@ -1191,25 +1214,35 @@ coordinates are constants in the map script.
 
 ## 12. Summary table
 
-| # | Name | Class | Faction | EdNum | Replaces | HP | Spd | Pain | Attack | Sprite (placeholder) | Images | Sounds |
+**Images** is what the class costs in sprite lumps. For the four installed
+classes (D54–D56, §2.7) it is the count actually packed under
+`assets/sprites/`; for the three still on placeholders it is v1's estimate at
+Doom's mirroring (rotations 2&8, 3&7, 4&6 share one image), the count
+`MOD-SPEC.md` §6.3's frame layouts give.
+
+| # | Name | Class | Faction | EdNum | Replaces | HP | Spd | Pain | Attack | Sprite (placeholder, if any) | Images | Sounds |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | Reich rifleman | `SD_ReichRifleman` | Reich | 21100 | `ZombieMan` | 20 | 8 | 200 | hitscan 3–15 | `SDRR` (`POSS`) | 49 | 6 |
-| 2 | Legion trooper | `SD_LegionTrooper` | Legion | 21101 | `ShotgunGuy` | 30 | 8 | 170 | 3× hitscan 3–15 | `SDLT` (`SPOS`) | 49 | 6 |
-| 3 | Hybrid Stormtrooper | `SD_Stormtrooper` | both | 21102 | `DoomImp` | 60 | 8 | 200 | melee 3–24 / bolt 3–24 | `SDHS` `SDBL` (`TROO` `BAL1`) | 58 | 8 |
-| 4 | Reich hound | `SD_ReichHound` | Reich | 21103 | `Demon` | 150 | **12 (H)** | 180 | melee 4–40 | `SDHN` (`SARG`) | 46 | 5 |
-| 5 | Doughboy | `SD_Doughboy` | Legion | 21104 | `Cacodemon` | 400 | 8 | 128 | melee 10–60 / shell 5–40 | `SDDB` `SDDL` (`HEAD` `BAL2`) | 41 | 7 |
-| 6 | Panzermensch | `SD_Panzermensch` | Reich | 21105 | `HellKnight` | **500** | 8 | 50 | melee 10–80 / shell 8–64 | `SDPM` `SDPL` (`BOS2` `BAL7`) | 52 | 8 |
-| 7 | The General | `SD_General` | Legion | 21106 | `Cyberdemon` | **3000 (H)** | 12 | 20 | 3× shell 8–64; summons 2 riflemen once below 50 % | `SDGN` `SDGL` (`CYBR`; `MANF` `MISL`) | 59 | 7 |
+| 1 | Reich rifleman | `SD_ReichRifleman` | Reich | 21100 | `ZombieMan` | 20 | 8 | 200 | hitscan 3–15 | `SDRR`, **installed** (D55) | **70** packed | 6 |
+| 2 | Legion trooper | `SD_LegionTrooper` | Legion | 21101 | `ShotgunGuy` | 30 | 8 | 170 | 3× hitscan 3–15 | `SDLT`, **installed** (D54) | **70** packed | 6 |
+| 3 | Hybrid Stormtrooper | `SD_Stormtrooper` | both | 21102 | `DoomImp` | 60 | 8 | 200 | melee 3–24 / bolt 3–24 | `SDHS` `SDBL`, **installed** (D56) | **77 + 5** packed | 8 |
+| 4 | Reich hound | `SD_ReichHound` | Reich | 21103 | `Demon` | 150 | **12 (H)** | 180 | melee 4–40 | `SDHN`, **installed** (D55) | **46** packed, mirrored | 5 |
+| 5 | Doughboy | `SD_Doughboy` | Legion | 21104 | `Cacodemon` | 400 | 8 | 128 | melee 10–60 / shell 5–40 | `SDDB` `SDDL` (`HEAD` `BAL2`) | 41 (est.) | 7 |
+| 6 | Panzermensch | `SD_Panzermensch` | Reich | 21105 | `HellKnight` | **500** | 8 | 50 | melee 10–80 / shell 8–64 | `SDPM` `SDPL` (`BOS2` `BAL7`) | 52 (est.) | 8 |
+| 7 | The General | `SD_General` | Legion | 21106 | `Cyberdemon` | **3000 (H)** | 12 | 20 | 3× shell 8–64; summons 2 riflemen once below 50 % | `SDGN` `SDGL` (`CYBR`; `MANF` `MISL`) | 59 (est.) | 7 |
 | 8 | Heavy Panzermensch | `SD_PanzermenschSchwer` | Reich | 21107 | `BaronOfHell` | 1000 | 8 | 50 | as #6 | inherits #6 | 0 (a translation) | 0 |
 | — | *cloaked hound* | *reserved, not implemented* | Reich | *21108 reserved* | `Spectre` | 150 | 12 | 180 | as #4 | `SDHN` `+SHADOW` | 0 | 0 |
 
-Totals for F5: **8 classes + 4 projectile actors, ≈ 354 sprite images,
-47 sound lumps.** v0 said 356 and 52. The images moved with the frame
-layouts (§2.7). The sounds never were 52: the per-actor lines of §3, §6, §7,
-§8 and §9 each counted one more sound than their own tables list (7/6, 6/5,
-8/7, 9/8, 8/7), and the tables were right. 47 is the list
-`docs/sound/ENEMY-SOUNDS.md` §1 found by counting rows, the list `SNDINFO`
-now defines (`sd/mon/*`, 47 logical names) and the list
+Totals for F5: **8 classes + 4 projectile actors, ≈ 420 sprite images,
+47 sound lumps.** Of the images, **268 are drawn and packed** (70 + 70 + 82 +
+46) and **152 are estimated** for the three classes left (41 + 52 + 59); if
+those are drawn at eight rotations like the infantry (§2.7), they cost 221
+instead (59 + 76 + 86), ≈ 489 in all. v1 said ≈ 354: the 202 it gave the
+four installed classes became 268 because the three human-shaped ones were
+drawn unmirrored. v0 said 356 and 52 sounds. The sounds never were 52: the
+per-actor lines of §3, §6, §7, §8 and §9 each counted one more sound than
+their own tables list (7/6, 6/5, 8/7, 9/8, 8/7), and the tables were right.
+47 is the list `docs/sound/ENEMY-SOUNDS.md` §1 found by counting rows, the
+list `SNDINFO` now defines (`sd/mon/*`, 47 logical names) and the list
 `tests/test_bestiary.py` holds the two to.
 
 Classes the bestiary does **not** replace, so a map placing them still gets

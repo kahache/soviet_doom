@@ -19,7 +19,8 @@ What this suite pins, statically:
     Software", is in the team block, the first one on screen, in both
     languages;
   * every name a licence register obliges us to credit - read from the
-    registers themselves, docs/art/LICENSES.md and MUSIC-RIGHTS 4.5 - is in
+    registers themselves, docs/art/LICENSES.md and MUSIC-RIGHTS 4.5, by
+    tools/licences.py, the same reading tools/release.py ships with - is in
     the credits of BOTH languages. A new register row whose licence needs
     attribution turns this suite red until the credits carry the name.
 
@@ -36,6 +37,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+
+import licences  # noqa: E402  (tools/licences.py: the one reading of the registers)
 from test_language import (  # noqa: E402  (shared parser, one definition)
     LANGUAGE_LUMP,
     PROJECT_ROOT,
@@ -46,8 +50,8 @@ from test_language import (  # noqa: E402  (shared parser, one definition)
 )
 
 MENUDEF = SRC / "lumps" / "MENUDEF"
-LICENSES = PROJECT_ROOT / "docs" / "art" / "LICENSES.md"
-MUSIC_RIGHTS = PROJECT_ROOT / "docs" / "sound" / "MUSIC-RIGHTS.md"
+LICENSES = licences.LICENSES_PATH
+MUSIC_RIGHTS = licences.MUSIC_RIGHTS_PATH
 
 CREDITS_MENU = "SD_CreditsMenu"
 OWN_OPTIONS_MENU = "SD_OptionsMenu"
@@ -89,131 +93,19 @@ DISCLAIMER = {
 TEAM_HEADER_ID = "SD_CRED_H_TEAM"
 
 # --- Reading the licence registers -------------------------------------------
+# One reading, shared with tools/release.py: tools/licences.py. Every name a
+# register row obliges a credit for (its licence cell says `credit`,
+# `{{Attribution`, CC BY, BSD, MIT or OFL), plus the courtesy credit the
+# project gives CC0 authors anyway (ADR 009, D-009-3); our own rows (D15) are
+# credited by the team line. `idem` repeats the row above. A row that needs a
+# credit and names nobody (in bold, or as `credit "X"`) raises RegisterError:
+# the register must say whom.
 
-# A licence cell that obliges a credit (or, for CC0, the courtesy credit the
-# project gives anyway: ADR 009, D-009-3). Our own rows (D15) are credited
-# by the team line and are skipped before this is asked.
-ATTRIBUTION_RE = re.compile(
-    r"credit\b|\{\{Attribution|\bCC[ -]?BY\b|\bCC0\b|\bBSD\b|\bMIT\b|\bOFL\b",
-    re.IGNORECASE)
-OWN_WORK_RE = re.compile(r"\(D15\)|Soviet Doom project")
-CELL_SPLIT_RE = re.compile(r"(?<!\\)\|")
-BOLD_RE = re.compile(r"\*\*(.+?)\*\*")
-QUOTED_CREDIT_RE = re.compile(r'credit\s+"([^"]+)"', re.IGNORECASE)
-
-
-class RegisterError(ValueError):
-    """A register row needs a credit but does not say whom to credit."""
-
-
-def _cells(line: str) -> list[str]:
-    return [c.strip() for c in CELL_SPLIT_RE.split(line.strip().strip("|"))]
-
-
-def _tables(text: str):
-    """Yield (header cells, [row cells...]) for every Markdown table."""
-    lines = text.splitlines()
-    i = 0
-    while i < len(lines) - 1:
-        if lines[i].lstrip().startswith("|") and re.match(r"^\s*\|[\s|:-]+\|\s*$", lines[i + 1]):
-            header = _cells(lines[i])
-            rows = []
-            j = i + 2
-            while j < len(lines) and lines[j].lstrip().startswith("|"):
-                rows.append(_cells(lines[j]))
-                j += 1
-            yield header, rows
-            i = j
-        else:
-            i += 1
-
-
-def _names_in_row(row: list[str], licence_cell: str) -> list[str]:
-    """Whom a row obliges us to credit: `credit "X"` in the licence cell,
-    else every bold span of the row that is a name, not a sentence."""
-    quoted = QUOTED_CREDIT_RE.findall(licence_cell)
-    if quoted:
-        return quoted
-    names = []
-    for cell in row:
-        for span in BOLD_RE.findall(cell):
-            if not re.search(r"\b(credit|required|accepted|licen[cs]e)\b", span, re.I):
-                names.append(span.strip())
-    return names
-
-
-def attribution_names_from_licences(text: str) -> list[str]:
-    """Every name docs/art/LICENSES.md obliges the credits to carry.
-
-    A row of any table with a Licence column counts when that cell matches
-    ATTRIBUTION_RE and the row is not our own work. `idem` repeats the row
-    above. A row that needs a credit and names nobody in bold (or as
-    `credit "X"`) raises RegisterError: the register must say whom.
-    """
-    names: list[str] = []
-    for header, rows in _tables(text):
-        col = next((k for k, h in enumerate(header) if re.search(r"licen[cs]e", h, re.I)), None)
-        if col is None:
-            continue
-        previous_needs = False
-        previous_names: list[str] = []
-        for row in rows:
-            if col >= len(row):
-                continue
-            cell = row[col]
-            if cell.lower().startswith("idem"):
-                needs, row_names = previous_needs, (_names_in_row(row, cell) or previous_names)
-            elif OWN_WORK_RE.search(cell):
-                needs, row_names = False, []
-            else:
-                needs = bool(ATTRIBUTION_RE.search(cell))
-                row_names = _names_in_row(row, cell) if needs else []
-            if needs and not row_names:
-                raise RegisterError(
-                    f"register row needs a credit but names nobody in bold: {' | '.join(row)}")
-            if needs:
-                names.extend(n for n in row_names if n not in names)
-            previous_needs, previous_names = needs, row_names
-    return names
-
-
-def _section(text: str, heading_re: str) -> str:
-    match = re.search(heading_re + r"[^\n]*\n(.*?)(?=\n#{1,3} |\Z)", text, re.S | re.M)
-    return match.group(1) if match else ""
-
-
-def attribution_names_from_music_rights(text: str) -> list[str]:
-    """Names in the Obligation column of MUSIC-RIGHTS 4.5 ("what ships")."""
-    names: list[str] = []
-    for header, rows in _tables(_section(text, r"^### 4\.5 ")):
-        col = next((k for k, h in enumerate(header) if h.lower().startswith("obligation")), None)
-        if col is None:
-            continue
-        for row in rows:
-            cell = row[col].replace("*", "").strip()
-            match = re.match(r"credit\s+(.+?)\s*$", cell, re.I)
-            if match and match.group(1) not in names:
-                names.append(match.group(1))
-    return names
-
-
-def verbatim_music_credit(text: str) -> str:
-    """The credit line MUSIC-RIGHTS 4.5 says to reproduce verbatim, as plain
-    text: the blockquote after "The credit line", Markdown emphasis and code
-    marks dropped, whitespace collapsed."""
-    section = _section(text, r"^### 4\.5 ")
-    after = section.split("The credit line", 1)[1]
-    quote = []
-    for line in after.splitlines():
-        if line.startswith(">"):
-            quote.append(line.lstrip("> ").strip())
-        elif quote:
-            break
-    return normalise(" ".join(quote).replace("*", "").replace("`", ""))
-
-
-def normalise(text: str) -> str:
-    return re.sub(r"\s+", " ", text).strip()
+attribution_names_from_licences = licences.attribution_names
+attribution_names_from_music_rights = licences.music_attribution_names
+verbatim_music_credit = licences.verbatim_music_credit
+normalise = licences.normalise
+RegisterError = licences.RegisterError
 
 
 def missing_from(credits: str, names) -> list[str]:
