@@ -4,42 +4,28 @@ Updated: 2026-10-13, after the CEO closed D40-D43. Ordered by how much
 each item unblocks. What closed since the previous update is listed at the
 end so nothing is lost. Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md`.
 
-## 1. Drafts waiting for your eyes and ears (2026-10-13 evening)
+## 1. Waiting for your eyes (2026-10-14 afternoon)
 
-Each preview says what it asks; the recommendation is in brackets.
+Previews are sent to you as files; the paths are under `docs/art/previews/`.
 
-| What | Preview | Asks |
+| What | Preview | Asks [PM's recommendation] |
 |---|---|---|
-| Reich rifleman, 3D rig, 70 lumps (D38) | `docs/art/previews/2026-10-13_2039_F5_reich-rifleman-rig.html` | approve as drawn and judge in GZDoom [yes], or fixes first (eye slot or gas mask, folds, fall); gib olive [yes] or rust |
-| Our own hand and glove (D39) | `docs/art/previews/2026-10-13_1930_F4_hand-glove-sweep.png` | style A-F [E: brown glove, field sleeve, telnyashka] |
-| The ice axe, held and pickup (D40) | `docs/art/previews/2026-10-13_2000_F4_ice-axe.png` | swing as drawn; pickup A, B or C [C, upright as in the rack] |
-| PPSh-41 first person | `docs/art/previews/2026-10-13_2100_F4_ppsh41.png` | held at the hip, right? |
-| Metro fill-out, ten pieces (D42) | `docs/art/previews/2026-10-13_2022_F3_batch2-metro-fill.html` | yes/no per piece; tunnel concrete, tubbing or both [both]; chevrons or plain platform face |
-| Weapon sounds, 31 drafts | `docs/art/previews/2026-10-13_2027_F4_weapon-sfx-drafts.html` | per card; A/B/C on six key sounds; clicks and pickups [yes]; reloads [park] (`docs/sound/WEAPON-SOUNDS.md` §9) |
-| Enemy sounds, 35 + 8 beds | `docs/art/previews/2026-10-13_2029_F5_enemy-sfx-drafts.html` | per card (`docs/sound/ENEMY-SOUNDS.md` §7) |
-| MAP01 music enriched, `D_SDM01E` | `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/audio/audition.py --play map01 --lump D_SDM01E` | replace the installed `D_SDM01`? |
-| Rest of the arsenal in first person, hand E | `docs/art/previews/2026-10-13_2219_F4_arsenal-at-rest.png` and one sheet per weapon (`2026-10-13_2219_F4_*`) | TT-33, IZh-58, RPG-7, ROKS-3 as drawn [yes]; the RPG-7 reload frames C-D, a proposal |
-| Hand Katyusha, second pass | `docs/art/previews/2026-10-13_2243_F4_hand-katyusha-pass2.png` | variant A-C [A, closed box]; pickup [D, dropped on its nose]; the raised frame SDHK C [yes, a state change for mod-engineer] |
-| Legion trooper, six cells on the rig | `docs/art/previews/2026-10-13_2212_F5_legion-trooper-sweep.html` | cell [C, chrome football pauldrons]; a pink flesh ramp as palette v2 [needed: v1 has no skin] |
-| Stormtrooper and Reich hound | `docs/art/previews/2026-10-13_2211_F5_storm-hound-sweep.html` | Stormtrooper [B, chrome coil] or B's coil on D's body; hound [D, crocodile jaw]; the hound's hide darker than BESTIARY 6 (`khaki_olive` 1-9) so it reads on green steel |
-| Menu cursor and pause sign (T12) | `docs/art/previews/2026-10-13_2208_F2_shell-cursor-pause-sweep.html` | cursor [A, red star]; pause [P2, a plaque per language; P1 icon as fallback] |
-| In-game credits (ADR 009) | Options → Soviet Doom → Credits; `docs/qa/evidence/2026-10-13_2222_F6_credits-en-ru.png` | fine under Options [yes], or a main-menu item (changes the approved menu); add "fan project, not affiliated with id Software"? |
-| The radio in MAP01 (D43) | the guard post by the IZh rack, «Колокольчик» | as placed [yes]; MAP01's music restarts from the top on walking away |
+| Stalin poster | `2026-10-14_1601_F2_stalin-sweep.png` | cell [4C, as Lenin]; slogan [«ЗА РОДИНУ! ЗА СТАЛИНА!»]; where it hangs [a sealed wartime shelter in the metro, a secret] |
+| Reich hound, German shepherd A, full set (D50) | `2026-10-14_1204_F5_reich-hound-A-full-set.html` | approve; the death seen from 37° [yes] or at the rifleman's 9° |
+| Reich rifleman, dark red blood, flat corpse | `2026-10-14_1141_F5_reich-rifleman-blood.html` | approve the death and gib |
+| Stormtrooper death redone flat (D53) | `2026-10-14_1151_F5_stormtrooper-E-death-redo.html` | approve |
+| 2D hands on the whole arsenal (D52) | `2026-10-14_1200_F4_hand-2d-arsenal.html`; playable with the draft overlay | approve, or name a frame (TT-2, AX-3…); new Blood-style poses for the RPG-7 and IZh? Katyusha hands too big? |
+| Metro marble and mosaic in palette v2 | `2026-10-14_1036_F3_metro-palette-v2.html` | mosaic [v2]; marble [v2, narrowly] |
 
-## 2. Two decisions that unblock work
+## 2. Waiting for your ears
 
-- **Kenney's impact pack.** The enemy sounds use 17 of its files (authorised
-  by D36); the weapon generator left it out because the terms of the tool the
-  pack was made with are unconfirmed. One rule for both: keep Kenney [PM
-  recommends yes], or swap those layers for another CC0 pack (about one session).
-- **Scores for the three self-sequenced pieces** («Вы жертвою пали»,
-  «Амурские волны», Glinka's Patriotic Song, D43). No readable public-domain
-  notation without a download. (a) Authorise downloading one public-domain
-  score per piece, sizes stated first [recommended], or (b) write them from
-  memory, marked NOT VERIFIED, checked by someone who knows the tunes.
-
-Still open from the design document §13, no hurry: no keys (recommended
-yes); a night-sky strip over the hangar, yes or no.
+- Weapon sounds (31, Kenney layers since D44), enemy sounds (35 + 8 beds),
+  MAP01 music enriched (`D_SDM01E`).
+- New sequenced pieces: «Вы жертвою пали» (`D_SDFUNR`), «Амурские волны»
+  (`D_SDAMUR`), and Mussorgsky's «Богатырские ворота» (`D_SDGATE`) in the
+  anthem slot instead of Glinka (D54). If you prefer Glinka's «Славься», the
+  only clean score sits behind IMSLP's human check: the PM would fetch it by
+  hand.
 
 ## 3. Your voice takes for the enemies (D36)
 
