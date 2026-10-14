@@ -148,7 +148,8 @@ sovietdoom.pk3
 ├── sprites/SD*.png          our sprites (D48): the six weapon pickups SDAPA0, SDTPA0, SDIPA0,
 │                           SDPQA0, SDRPA0, SDKPA0 (§6.3); everything else is still the IWAD's (§5.1)
 ├── sounds/  patches/  hires/   standard folders, empty today (T1)
-├── ANIMDEFS                switch pairs SDSW1x -> SDSW2x (§4.3)
+├── ANIMDEFS                switch pairs SDSW1x -> SDSW2x; animations SDMOLT1-4 (flat),
+│                           SDPORT1-4 (texture) (§4.3)
 └── (future) TEXTURES, GLDEFS — and no CVARINFO, by decision (ADR 004)
 ```
 
@@ -549,7 +550,7 @@ throwaway helper that never enters the repo):
 `docs/qa/evidence/2026-10-13_1611_F3_map01-v2-engine-pass-{1,2,3}.png` and
 the log `…-engine-pass.log`, zero failure-pattern lines.
 
-### 4.3 Switch textures and their ANIMDEFS (T16)
+### 4.3 Switch textures, animations and masked textures: ANIMDEFS (T16, N6b, N6c)
 
 Eight switch faces are approved and ship in `textures/` (batch 2,
 2026-10-13; each 64×128, one wall segment on the 64 grid; origin and
@@ -618,6 +619,91 @@ MAP01 v2 wears the real faces: SW-A = `SDSW1A`, SW-B = `SDSW1B`, the exit
 engine pass of 2026-10-13. A repeatable switch returns to OFF after a short
 delay (Doom's behaviour, NOT VERIFIED here), which is why SW-A and SW-B are
 single-use.
+
+#### Animated surfaces (N6c, 2026-10-14)
+
+Two Tankograd surfaces (D66) animate on their own: an **animation** in
+ANIMDEFS tells the engine to swap a surface through a list of pictures,
+forever, wherever a map uses the first one. A map names only frame 1.
+
+| Map names | Keyword | Frames | Rate | Where it lives |
+|---|---|---|---|---|
+| `SDMOLT1` | `flat` (a floor or ceiling) | `SDMOLT1` → `SDMOLT2` → `SDMOLT3` → `SDMOLT4` → `SDMOLT1` | 8 tics each (8/35 s ≈ 0.23 s, a 0.9 s loop) | `flats/factory/` |
+| `SDPORT1` | `texture` (a wall) | `SDPORT1` → `SDPORT2` → `SDPORT3` → `SDPORT4` → `SDPORT1` | 8 tics each | `textures/factory/` |
+
+```
+flat SDMOLT1
+	pic SDMOLT1 tics 8
+	pic SDMOLT2 tics 8
+	pic SDMOLT3 tics 8
+	pic SDMOLT4 tics 8
+
+texture SDPORT1
+	pic SDPORT1 tics 8
+	...
+```
+
+- **Syntax VERIFIED in the engine source** (read 2026-10-14):
+  `FTextureAnimator::InitAnimDefs` in
+  `src/gamedata/textures/animations.cpp`, GZDoom tag g4.14.2, sends both
+  `flat` and `texture` to `ParseAnim`, the first with the flat namespace and
+  the second with the wall namespace; `ParseAnim` reads `[optional] NAME`,
+  then `pic FRAME tics N` per frame or one `range LAST tics N`, and refuses
+  fewer than two frames. The engine's own `gzdoom.pk3 → animdefs.txt` writes
+  the `texture` form the same way (`texture optional M_SKULL1`, `pic M_SKULL1
+  tics 8`) but has **no `flat` line**: Doom's own flats (`NUKAGE1-3`)
+  animate from the binary `ANIMATED` lump in `filter/game-doomchex/`. The
+  keyword follows the namespace (`flat` for a flat, `texture` for a wall);
+  whether the lookup falls back to the other namespace was not read, so
+  the wrong keyword is treated as an error here (NOT VERIFIED either way).
+- **Every frame is named with `pic`**, not `range`: a range takes the frames
+  between two names in the texture manager's order, and whether that order
+  follows the file names for loose PNGs in a PK3 is NOT VERIFIED. Naming
+  each frame removes the question.
+- **The rate** is `art-director`'s proposal (8 tics a frame; the batch-4
+  preview GIFs run at 229 ms, `GIF_MS` in `tools/art/gen_factory.py`). Each
+  loop was drawn seamless, frame 4 leading back into 1.
+- **Seen moving in the engine: NOT VERIFIED** (D26); the PM's engine pass.
+- Guarded by `tests/test_animdefs.py` (`AnimdefsAnimationTest`: exactly the
+  two animations, `flat` for the flat and `texture` for the wall, frames 1-4
+  in order at 8 tics, every frame installed and packed in its own folder)
+  and by `tools/check_pk3.py`, whose `textures` check holds every animation
+  frame to the same rule as a map texture (`animdefs_anim_textures`).
+
+#### Masked textures (N6b, D66, 2026-10-14)
+
+A **masked texture** has holes: placed as the middle texture of a
+two-sided line, the engine draws its opaque pixels and leaves the rest open,
+so the player sees and shoots through the gaps (fences, grates, a hanging
+chain). In this mod it is an **RGBA PNG with hard alpha** (every pixel 0 or
+255), the only exception to the indexed-PNG rule under `textures/`.
+
+| Lump | Size | Use |
+|---|---|---|
+| `SDCHAN1` | 64×128 | Tankograd's hanging chain and crane hook (D66); `texturemiddle` of a two-sided line, not tiling vertically |
+
+- **The engine accepts it: VERIFIED in the source** (read 2026-10-14):
+  GZDoom's PNG loader, `src/common/textures/formats/pngtexture.cpp` (tag
+  g4.14.2), takes colour type 6 at 8 bits and sets `bMasked = true` for
+  every RGBA PNG; in the paletted (software) path each pixel goes through
+  `ImageHelpers::RGBToPalette` with its alpha, and index 0 is the
+  transparent index there. The exact alpha threshold of that function was
+  not read, which is why the alpha is hard: 0 and 255 land on the same side
+  of any threshold. **Seen with its gaps open in the engine: NOT VERIFIED**
+  (D26); the PM's engine pass.
+- **Declared, not inferred:** the set is `MASKED_TEXTURES` in
+  `tools/check_pk3.py`, and `tests/test_art.py` imports it, so the two
+  validators cannot disagree. A lump in the set must be colour type 6 at
+  8 bits, alpha only 0/255, and every opaque pixel in
+  `docs/art/palette.json`; every other PNG under `textures/` and `flats/`
+  stays indexed, and an RGBA one outside the set is still an error. A flat
+  is never masked. Adding a masked texture = add it to `MASKED_TEXTURES`
+  here first (this section), then install it.
+- Guarded by `tests/test_check_pk3.py` (`MaskedTextureTest`: hard-alpha
+  RGBA passes only inside the set, partial alpha, off-palette opaque
+  pixels, an indexed copy of a declared lump and an RGBA flat all fail) and
+  `tests/test_art.py` (`test_layout_names_and_sizes`,
+  `MaskedTexturesTests`).
 
 ## 5. IWAD assets used
 

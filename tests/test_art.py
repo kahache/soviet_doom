@@ -17,6 +17,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 ART_TOOLS = PROJECT_ROOT / "tools" / "art"
 PALETTE_JSON = PROJECT_ROOT / "docs" / "art" / "palette.json"
 sys.path.insert(0, str(ART_TOOLS))
+sys.path.insert(0, str(PROJECT_ROOT / "tools"))
+
+# The masked wall textures (D66): RGBA with hard alpha, the one exception to
+# the indexed rule under textures/. One set, owned by the package validator,
+# so the two checks cannot disagree about which lumps are masked.
+from check_pk3 import MASKED_TEXTURES  # noqa: E402
 
 try:
     import numpy  # noqa: F401
@@ -186,7 +192,8 @@ def sprite_slots(stem: str) -> list[tuple[str, str]]:
     for a mirrored pair NAMEFRFR (the second half is drawn flipped)."""
     return [(stem[4], stem[5])] + ([(stem[6], stem[7])] if len(stem) == 8 else [])
 FLAT_SIZE = (64, 64)
-WALL_SIZES = [(64, 64), (64, 128), (128, 64), (128, 128), (128, 256)]   # 128x256 for the Lenin poster; 64x64 and 128x64 for the batch-3 crates (D29)
+WALL_SIZES = [(64, 64), (64, 128), (128, 64), (128, 128), (128, 256),   # 128x256 for the Lenin poster; 64x64 and 128x64 for the batch-3 crates (D29)
+              (256, 64)]                                                # the Tankograd works banner SDSLOG1 (D66)
 
 
 @unittest.skipUnless(HAVE_IMAGING, "Pillow/numpy not available in this interpreter")
@@ -265,7 +272,14 @@ class ApprovedAssetsTests(unittest.TestCase):
                                         f"{p}: alpha must be hard 0/255, found {sorted(alpha)[:6]}")
                     continue
                 self.assertRegex(p.stem, LUMP_RE)
-                self.assertEqual(img.mode, "P", p)
+                if kind == "textures" and p.stem in MASKED_TEXTURES:
+                    # D66: a masked mid-texture (the chain), RGBA, hard alpha.
+                    self.assertEqual(img.mode, "RGBA", p)
+                    alpha = set(img.getchannel("A").get_flattened_data())
+                    self.assertEqual(alpha, {0, 255},
+                                     f"{p}: a masked texture needs hard 0/255 alpha and both values")
+                else:
+                    self.assertEqual(img.mode, "P", p)
                 if kind == "flats":
                     self.assertEqual(img.size, FLAT_SIZE, p)
                 else:
@@ -333,6 +347,19 @@ class ApprovedAssetsTests(unittest.TestCase):
                 continue
             self.assertEqual(len(sources), 1, f"{p.name}: expected one source in work/, got {sources}")
             self.assertEqual(p.read_bytes(), sources[0].read_bytes(), f"{p} differs from {sources[0]}")
+
+
+class MaskedTexturesTests(unittest.TestCase):
+    """D66: every declared masked texture is installed under textures/."""
+
+    def test_every_masked_texture_is_installed(self):
+        walls = {p.stem for p in (ASSETS_DIR / "textures").rglob("*.png")}
+        self.assertTrue(MASKED_TEXTURES)
+        self.assertLessEqual(set(MASKED_TEXTURES), walls)
+
+    def test_no_masked_flat(self):
+        flats = {p.stem for p in (ASSETS_DIR / "flats").rglob("*.png")}
+        self.assertFalse(set(MASKED_TEXTURES) & flats)
 
 
 class SpriteNameTests(unittest.TestCase):

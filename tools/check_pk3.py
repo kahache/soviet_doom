@@ -34,11 +34,14 @@ Checks (one block of output per category):
              (plus MAPINFO sky1/sky2) exists in the PK3 or is declared as an
              IWAD asset in MOD-SPEC 5. A name that resolves nowhere is
              exactly what the engine reports as "Unknown texture".
-             The OFF and ON textures of every ANIMDEFS `switch` pair are
-             held to the same rule (MOD-SPEC 4.3, debt T16)
+             The OFF and ON textures of every ANIMDEFS `switch` pair, and
+             every frame of a `flat` / `texture` animation, are held to the
+             same rule (MOD-SPEC 4.3, debt T16; animations since N6c)
   images     PNGs under textures/ and flats/ are colour type 3 (indexed),
              every colour they use is in docs/art/palette.json, and their
-             dimensions follow the contract
+             dimensions follow the contract. The one exception is the
+             masked wall textures (MASKED_TEXTURES, D66): RGBA, alpha hard
+             0/255, every opaque pixel in the palette
   sprites    sprite lumps are NAMEFR[FR]: 4-char name, frame letter,
              rotation digit, and an optional mirrored pair (SDHNA2A8);
              every declared rotation set is complete, mirrors counted.
@@ -121,6 +124,20 @@ BUILTIN_TEXTURE_NAMES = frozenset({"-", "", "F_SKY1", "SKY", "AASHITTY", "AASTIN
 # Image contract (docs/art/TEXTURE-INDEX.md batch 1).
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 PNG_COLOUR_TYPE_PALETTE = 3
+PNG_COLOUR_TYPE_RGBA = 6
+PNG_RGBA_CHANNELS = 4
+# Masked wall textures (D66): the only lumps under textures/ that may be RGBA
+# instead of indexed. A masked texture is drawn as the middle texture of a
+# two-sided line and the engine leaves its transparent pixels open, so the
+# player sees through the gaps. GZDoom's PNG loader marks every colour-type-6
+# PNG as masked (`case 6: bMasked = true;` in
+# src/common/textures/formats/pngtexture.cpp, tag g4.14.2; VERIFIED in the
+# source 2026-10-14, NOT VERIFIED on screen until the PM's engine pass, D26).
+# Held to: colour type 6 at 8 bits, alpha only 0 or 255 (hard, like the
+# sprites: the software renderer has no partial transparency on walls), and
+# every opaque pixel inside the palette. Flats can never be masked.
+MASKED_TEXTURES = frozenset({"SDCHAN1"})          # the Tankograd chain and hook
+MASKED_ALPHA = frozenset({0, 255})
 DIMENSION_MULTIPLE = 8                  # Doom tiles on powers of two
 FLAT_SIZE = (64, 64)                    # a Doom flat is 64x64 by definition
 # Wall sizes the project allows (MOD-SPEC 2). 128x256 was added when the CEO
@@ -465,6 +482,10 @@ class PngInfo:
     interlace: int
     palette: list[tuple[int, int, int]]
     used_indices: set[int] | None        # None when not decoded (interlaced)
+    # RGBA (colour type 6, 8 bits, not interlaced) only, else None: the alpha
+    # values present and the RGB of every pixel whose alpha is not 0.
+    alphas: set[int] | None = None
+    opaque_colours: set[tuple[int, int, int]] | None = None
 
     @property
     def indexed(self) -> bool:
@@ -511,10 +532,10 @@ def _paeth(a: int, b: int, c: int) -> int:
     return b if pb <= pc else c
 
 
-def _unfilter(raw: bytes, width: int, height: int, bit_depth: int) -> bytes:
-    """Reverse the PNG per-scanline filters for a 1-channel (palette) image."""
-    stride = (width * bit_depth + 7) // 8
-    bpp = max(1, bit_depth // 8)
+def _unfilter(raw: bytes, width: int, height: int, bit_depth: int, channels: int = 1) -> bytes:
+    """Reverse the PNG per-scanline filters (1 channel for palette, 4 for RGBA)."""
+    stride = (width * channels * bit_depth + 7) // 8
+    bpp = max(1, channels * bit_depth // 8)
     out = bytearray()
     previous = bytearray(stride)
     pos = 0
@@ -592,7 +613,18 @@ def read_png(blob: bytes) -> PngInfo:
         except zlib.error as exc:
             raise PngError(f"IDAT does not inflate: {exc}") from exc
         used = _indices_from_scanlines(_unfilter(raw, width, height, bit_depth), width, height, bit_depth)
-    return PngInfo(width, height, bit_depth, colour_type, interlace, palette, used)
+    alphas: set[int] | None = None
+    opaque: set[tuple[int, int, int]] | None = None
+    if colour_type == PNG_COLOUR_TYPE_RGBA and bit_depth == 8 and interlace == 0:
+        try:
+            raw = zlib.decompress(bytes(idat))
+        except zlib.error as exc:
+            raise PngError(f"IDAT does not inflate: {exc}") from exc
+        pixels = _unfilter(raw, width, height, bit_depth, PNG_RGBA_CHANNELS)
+        alphas = set(pixels[3::PNG_RGBA_CHANNELS])
+        opaque = {tuple(pixels[i:i + 3]) for i in range(0, len(pixels), PNG_RGBA_CHANNELS)  # type: ignore[misc]
+                  if pixels[i + 3]}
+    return PngInfo(width, height, bit_depth, colour_type, interlace, palette, used, alphas, opaque)
 
 
 # --- Reading the documents that hold the contract --------------------------
@@ -926,12 +958,7 @@ def animdefs_switch_textures(text: str) -> list[tuple[str, int, str]]:
     definition may span lines; comments are blanked with their newlines kept
     so the line numbers stay true. Non-switch definitions are skipped.
     """
-    def blank(match: re.Match) -> str:
-        return re.sub(r"[^\n]", " ", match.group(0))
-
-    clean = RE_ANIMDEFS_COMMENT.sub(blank, text)
-    tokens = [(m.group(0).strip('"'), clean.count("\n", 0, m.start()) + 1)
-              for m in RE_ANIMDEFS_TOKEN.finditer(clean)]
+    tokens = _animdefs_tokens(text)
     found: list[tuple[str, int, str]] = []
     i = 0
     while i < len(tokens):
@@ -960,6 +987,52 @@ def animdefs_switch_textures(text: str) -> list[tuple[str, int, str]]:
             elif word == "pic" and i + 1 < len(tokens):
                 i += 1
                 found.append((tokens[i][0].upper(), tokens[i][1], role))
+            i += 1
+    return found
+
+
+def _animdefs_tokens(text: str) -> list[tuple[str, int]]:
+    """(token, line) of an ANIMDEFS text, comments blanked with their newlines kept."""
+    def blank(match: re.Match) -> str:
+        return re.sub(r"[^\n]", " ", match.group(0))
+
+    clean = RE_ANIMDEFS_COMMENT.sub(blank, text)
+    return [(m.group(0).strip('"'), clean.count("\n", 0, m.start()) + 1)
+            for m in RE_ANIMDEFS_TOKEN.finditer(clean)]
+
+
+def animdefs_anim_textures(text: str) -> list[tuple[str, int, str]]:
+    """Every picture name the `flat` and `texture` animations of an ANIMDEFS use.
+
+    Syntax from the engine's parser, FTextureAnimator::ParseAnim in
+    src/gamedata/textures/animations.cpp (GZDoom tag g4.14.2, read
+    2026-10-14): `flat|texture [optional] NAME` then either `pic FRAME tics N`
+    repeated or one `range LAST tics N`; `rand A B` may replace `tics N`, and
+    `oscillate`, `random`, `allowdecals`, `notrim` may appear. A FRAME that
+    is a bare number is an offset from NAME, not a name, so it is skipped.
+    Returns (NAME, line, role) with role "flat" or "texture"; switches and
+    the other definitions are skipped.
+    """
+    tokens = _animdefs_tokens(text)
+    found: list[tuple[str, int, str]] = []
+    i = 0
+    while i < len(tokens):
+        kind = tokens[i][0].lower()
+        if kind not in ("flat", "texture"):
+            i += 1
+            continue
+        i += 1
+        if i < len(tokens) and tokens[i][0].lower() == "optional":
+            i += 1
+        if i >= len(tokens):
+            break
+        found.append((tokens[i][0].upper(), tokens[i][1], kind))
+        i += 1
+        while i < len(tokens) and tokens[i][0].lower() not in ANIMDEFS_TOP_LEVEL:
+            if tokens[i][0].lower() in ("pic", "range") and i + 1 < len(tokens):
+                i += 1
+                if not tokens[i][0].isdigit():
+                    found.append((tokens[i][0].upper(), tokens[i][1], kind))
             i += 1
     return found
 
@@ -995,7 +1068,7 @@ def check_textures(pkg: Package, maps: list[MapInfo], iwad_names: set[str], repo
         for sky in RE_MAPINFO_SKY.findall(text):
             reference(sky, f"{mapinfo_path}:sky")
 
-    switch_names = 0
+    switch_names = anim_names = 0
     for lump in ANIMDEFS_LUMPS:
         animdefs_path = pkg.find(lump)
         if not animdefs_path:
@@ -1004,7 +1077,11 @@ def check_textures(pkg: Package, maps: list[MapInfo], iwad_names: set[str], repo
         for name, line, role in animdefs_switch_textures(text):
             switch_names += 1
             reference(name, f"{animdefs_path}:{line}:switch {role}", by_map=False)
+        for name, line, role in animdefs_anim_textures(text):
+            anim_names += 1
+            reference(name, f"{animdefs_path}:{line}:{role} frame", by_map=False)
     report.stats["switch_textures"] = switch_names
+    report.stats["anim_textures"] = anim_names
 
     from_pk3 = from_iwad = 0
     for name in sorted(referenced):
@@ -1028,9 +1105,34 @@ def check_textures(pkg: Package, maps: list[MapInfo], iwad_names: set[str], repo
                 f"{len(referenced) - from_pk3 - from_iwad} unresolved")
     if switch_names:
         report.note("textures", f"{switch_names} switch texture name(s) in ANIMDEFS checked the same way")
+    if anim_names:
+        report.note("textures", f"{anim_names} animation frame name(s) in ANIMDEFS checked the same way")
     unused = sorted(set(own) - used_by_maps)
     if unused:
         report.note("textures", f"packed but unused by any map: {', '.join(unused)}")
+
+
+def _check_masked(path: str, png: PngInfo, palette: set[tuple[int, int, int]] | None, report: Report) -> None:
+    """A MASKED_TEXTURES lump: 8-bit RGBA, hard alpha, opaque pixels in the palette."""
+    if png.colour_type != PNG_COLOUR_TYPE_RGBA or png.bit_depth != 8:
+        report.error("images", path,
+                     f"PNG colour type {png.colour_type} at {png.bit_depth} bits: a masked texture "
+                     f"must be colour type {PNG_COLOUR_TYPE_RGBA} (RGBA) at 8 bits")
+        return
+    if png.alphas is None:                       # interlaced: not decoded
+        report.warn("images", path, "interlaced RGBA PNG: alpha and colours not checked")
+        return
+    soft = sorted(png.alphas - MASKED_ALPHA)
+    if soft:
+        report.error("images", path,
+                     f"masked texture with partial alpha {soft[:6]}: alpha must be hard 0/255")
+    if palette is not None:
+        offending = sorted(c for c in png.opaque_colours or set() if c not in palette)
+        if offending:
+            shown = ", ".join(f"#{r:02X}{g:02X}{b:02X}" for r, g, b in offending[:8])
+            more = f" (+{len(offending) - 8} more)" if len(offending) > 8 else ""
+            report.error("images", path,
+                         f"{len(offending)} opaque colour(s) outside docs/art/palette.json: {shown}{more}")
 
 
 def check_images(pkg: Package, palette: set[tuple[int, int, int]] | None, report: Report) -> None:
@@ -1050,10 +1152,15 @@ def check_images(pkg: Package, palette: set[tuple[int, int, int]] | None, report
             report.error("images", path, f"unreadable PNG: {exc}")
             continue
         checked += 1
-        if not png.indexed:
+        masked = not is_flat and Path(path).stem.upper() in MASKED_TEXTURES
+        if masked:
+            _check_masked(path, png, palette, report)
+        elif not png.indexed:
             report.error("images", path,
                          f"PNG colour type {png.colour_type}, must be {PNG_COLOUR_TYPE_PALETTE} "
-                         "(indexed / mode P) so the palette discipline is enforceable")
+                         "(indexed / mode P) so the palette discipline is enforceable"
+                         + (f"; only the masked textures ({', '.join(sorted(MASKED_TEXTURES))}) "
+                            "may be RGBA" if png.colour_type == PNG_COLOUR_TYPE_RGBA else ""))
         if png.interlace:
             report.warn("images", path, "interlaced PNG: colours checked against the whole PLTE, not the used pixels")
         if png.width % DIMENSION_MULTIPLE or png.height % DIMENSION_MULTIPLE:
