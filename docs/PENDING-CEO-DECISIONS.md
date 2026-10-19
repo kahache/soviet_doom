@@ -13,6 +13,7 @@ Previews are sent to you as files; the paths are under `docs/art/previews/`.
 |---|---|---|
 | Gemini references with bare hands: ice axe and IZh-58 (D77) | your images in `work/art/reference/` | regenerate bare-handed |
 | PPSh-41 Gemini test | save the two images as `work/art/reference/gemini_ppsh_A.png` and `_B.png` | then the PM processes them |
+| Campaign pickups (M2a) | `2026-10-19_2212_F5_campaign-pickups.html` | A/B/C per item [the recommended]; cobalt for the heavy vest [yes]; **the red cross**: protected emblem (Geneva Conventions; the ICRC asks games not to use it) [swap for another symbol]; Katyusha pickup size A or B [A] |
 | Enemy shells (M2b) | `2026-10-19_2200_F5_enemy-shells.html` | A for both [A] |
 | Player effects (M2c) | `2026-10-19_2208_F4_player-effects.html` | the recommended A of each [A; the teleport fog is the weakest] |
 | Sound alternatives (D74) | `2026-10-15_0033_M3_listening-alternatives.html` | OK/NO per alternative, "Copiar resultado" |

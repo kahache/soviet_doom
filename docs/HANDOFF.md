@@ -28,13 +28,12 @@ at a time, **silhouettes first** (cheapest review), then colour, then the
 animation. PPSh-41 is first. The ice axe (hand C3, shaft x1.7, head x1.8,
 straight shaft) and the IZh wait for bare-hand references. Gemini is inspiration only, never traced and never credited (D78).
 
-## In flight at handoff
+## In flight at handoff (2026-10-19 night)
 
-Nothing running. N14-P (PPSh-41 silhouettes, 5072704) waits for the CEO's
-size; N9w (25 weapon sounds, 70358e0) is installed and loads clean, the
-listening pass is owed (WEAPON-SOUNDS §10.4). Leftover untracked draft
-`docs/art/previews/2026-10-15_0105_F4_ppsh-silhouettes.png` (superseded by
-0106): delete or ignore.
+Nothing running. Waiting on the CEO: the PPSh-41 Gemini-frames test (two
+images to save as files), the sweeps for enemy shells, player effects and
+campaign pickups (installs M2a-i, M2b-i, M2c-i queued), the 15 sound
+alternatives. The range is retextured and passes its route.
 
 ## Rules learned
 
