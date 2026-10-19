@@ -26,12 +26,17 @@ Layout:
   in the gallery. Tested in tests/test_range_map.py. `warp 1024 1152`
   (GALLERY_ARRIVAL) still lands at the passage's mouth for the PM.
 
-Walls, floors and ceilings are the three IWAD assets of
-docs/engine/MOD-SPEC.md section 5. The three things a player must read as
-"press here" wear the approved signs MAP01 taught him: the door leaf
-SDDOOR1 on steel track SDSTEL1, and the exit switch SDSW1D (the hazard
-panel, MAP01's exit switch). The exit alcove's ceiling is the lamp panel
-SDCEIL1.
+Every wall, floor and ceiling is an approved, packed project texture of
+the Zarya-7 base set (docs/art/TEXTURE-INDEX.md), the set MAP01 is built
+from; no IWAD texture or flat is left (M2d, after the M2 audit
+docs/qa/2026-10-14_2357_M2-freedoom-audit.md item A4; until then the range
+wore Freedoom's STARTAN2, FLOOR4_8 and CEIL3_5). The rooms dress as MAP01
+dresses its own: the hall and the gallery are poured concrete (SDCONC1)
+over hangar floor and tiled floor, the dog-leg passage is green steel plate
+like MAP01's airlock. The two things a player must read as "press here"
+still wear the signs MAP01 taught him, and only they do: the door leaf
+SDDOOR1, and the exit switch SDSW1D (the hazard panel, MAP01's exit switch)
+under the lamp panel SDCEIL1.
 
 Targets: explosive barrels prove splash damage; six thing-3004 targets prove
 hitscan and projectile damage on a living actor. 3004 is Doom's zombieman
@@ -61,25 +66,38 @@ HALL_LENGTH = 2048     # x axis; long enough to see projectile travel and
                        # to outrange the ROKS-3 (528 units of reach)
 HALL_WIDTH = 768       # y axis; room to strafe without leaving the lane
 FLOOR_HEIGHT = 0
-CEILING_HEIGHT = 128   # standard Doom height; STARTAN2 is 128 tall and tiles
+CEILING_HEIGHT = 128   # standard Doom height; SDCONC1 is 128 tall and tiles
                        # exactly once, so no texture seams
 LIGHT_LEVEL = 192      # brighter than MAP01: this is a diagnostic space
 HALL = (0, 0, HALL_LENGTH, HALL_WIDTH)
 
-# --- IWAD assets (must exist in both doom2.wad and freedoom2.wad) --------
-WALL_TEXTURE = "STARTAN2"
-FLOOR_FLAT = "FLOOR4_8"
-CEILING_FLAT = "CEIL3_5"
-
 # --- Approved project textures (docs/art/TEXTURE-INDEX.md) ---------------
+# The Zarya-7 base set, chosen as MAP01 chooses (docs/levels/MAP01-zarya-7.md
+# section 6): concrete for rooms, steel plate for the way through. No IWAD
+# name may appear here (tests/test_range_map.py, the M2 audit's check).
+WALL_TEXTURE = "SDCONC1"    # 64x128 prefab concrete: the hall and the gallery
+FLOOR_FLAT = "SDFLR2"       # plain hangar concrete: the hall, the exit, the passage
+CEILING_FLAT = "SDCEIL2"    # plain concrete ceiling panel, every room
+GALLERY_FLOOR = "SDFLR3"    # grey two-tone tiles: the bestiary reads as a
+                            # room apart from the firing hall
+PASSAGE_TEXTURE = "SDSTEL1" # green steel plate: the passage as MAP01's airlock
+
 # Only on what the player presses, so it reads as it did in MAP01.
 DOOR_TEXTURE = "SDDOOR1"    # 128x128 door leaf: the gallery door is 128 wide
 TRACK_TEXTURE = "SDSTEL1"   # the door's jambs, as on every MAP01 door
 EXIT_TEXTURE = "SDSW1D"     # 64x128 hazard panel: MAP01's exit switch
 LAMP_FLAT = "SDCEIL1"       # the lit panel over the exit
 
-WALL_TEXTURES = (WALL_TEXTURE, DOOR_TEXTURE, TRACK_TEXTURE, EXIT_TEXTURE)
-FLAT_TEXTURES = (FLOOR_FLAT, CEILING_FLAT, LAMP_FLAT)
+# Both room materials are 64 wide. A wall run starts its texture at its
+# own first vertex, so a run that starts off the 64 grid (the hall's west
+# wall north of the exit alcove starts at y 416) would end on a cut panel
+# in the corner; world_align() shifts each one-sided room wall so its
+# panels sit on the map's 64 grid, as they would if the wall were unbroken.
+PANEL_WIDTH = 64
+ALIGNED_TEXTURES = (WALL_TEXTURE, PASSAGE_TEXTURE)
+
+WALL_TEXTURES = (WALL_TEXTURE, PASSAGE_TEXTURE, DOOR_TEXTURE, TRACK_TEXTURE, EXIT_TEXTURE)
+FLAT_TEXTURES = (FLOOR_FLAT, CEILING_FLAT, GALLERY_FLOOR, LAMP_FLAT)
 
 # --- Editor numbers -------------------------------------------------------
 # Mod actors: reserved range 21000-21999 (see docs/engine/MOD-SPEC.md).
@@ -230,15 +248,31 @@ TAG_GALLERY_DOOR = 1
 
 
 def _room(floor: int, ceil: int, light: int, ceiling: str = CEILING_FLAT,
-          tag: int | None = None) -> Sector:
+          tag: int | None = None, floor_flat: str = FLOOR_FLAT) -> Sector:
     return Sector(
-        texturefloor=FLOOR_FLAT,
+        texturefloor=floor_flat,
         textureceiling=ceiling,
         heightfloor=floor,
         heightceiling=ceil,
         lightlevel=light,
         identifier=tag,
     )
+
+
+def world_align(tm: TextMap) -> None:
+    """Set offsetx on every one-sided room wall so its panel seams fall on
+    multiples of PANEL_WIDTH in map space (the faces the player presses,
+    the door leaf and the exit switch, are left whole at offset 0)."""
+    for ld in tm.linedefs:
+        if ld.sideback is not None:
+            continue
+        side = tm.sidedefs[ld.sidefront]
+        if side.texturemiddle not in ALIGNED_TEXTURES:
+            continue
+        a, b = tm.vertices[ld.v1], tm.vertices[ld.v2]
+        along = a.x if a.y == b.y else a.y          # every RANGE line is axis-aligned
+        forward = (b.x - a.x) + (b.y - a.y) > 0
+        side.offsetx = int(along if forward else -along) % PANEL_WIDTH
 
 
 def build_plan() -> tuple[TextMap, dict[str, int]]:
@@ -262,8 +296,11 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     door = zone("gallery_door", _room(FLOOR_HEIGHT, FLOOR_HEIGHT, PASSAGE_LIGHT,
                                       tag=TAG_GALLERY_DOOR), [GALLERY_DOOR])
     g.set_wall(door, TRACK_TEXTURE)
-    zone("gallery_passage", _room(FLOOR_HEIGHT, PASSAGE_CEILING, PASSAGE_LIGHT), PASSAGE)
-    zone("gallery", _room(FLOOR_HEIGHT, GALLERY_CEILING, GALLERY_LIGHT),
+    passage = zone("gallery_passage", _room(FLOOR_HEIGHT, PASSAGE_CEILING, PASSAGE_LIGHT), PASSAGE)
+    # Its own walls, and the lintel the gallery sees over the mouth (a
+    # two-sided line wears the material of the sector across it).
+    g.set_wall(passage, PASSAGE_TEXTURE)
+    zone("gallery", _room(FLOOR_HEIGHT, GALLERY_CEILING, GALLERY_LIGHT, floor_flat=GALLERY_FLOOR),
          [(GALLERY_X1, GALLERY_Y1, GALLERY_X2, GALLERY_Y2)])
 
     # Specific faces first: GridMap keeps the first style registered on a
@@ -278,6 +315,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for y in (EXIT_ALCOVE[1], EXIT_ALCOVE[3]):
         g.style_h(y, EXIT_ALCOVE[0], EXIT_ALCOVE[2], LineStyle(texture=TRACK_TEXTURE))
     g.build()
+    world_align(tm)
 
     tm.add_thing(Thing(x=PLAYER_X, y=PLAYER_Y, type=ED_PLAYER1_START, angle=PLAYER_ANGLE))
 

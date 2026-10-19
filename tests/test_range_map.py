@@ -14,7 +14,9 @@ pins the map itself, read back from the generated TEXTMAP like
 * every pickup and every enemy on floor the player can reach;
 * the gallery stays blind to the hall even with the door open (an
   `ambush` monster that hears a shot still wakes if it sees the shooter),
-  and its row faces away from where the player comes in.
+  and its row faces away from where the player comes in;
+* M2d: every texture and flat is our own packed lump, none an IWAD name
+  (the M2 audit's check, also run against freedoom2.wad where present).
 
 Run:  python3 -m unittest tests.test_range_map -v
 """
@@ -23,6 +25,7 @@ from __future__ import annotations
 
 import importlib.util
 import math
+import struct
 import sys
 import unittest
 from collections import defaultdict
@@ -32,6 +35,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 sys.path.insert(0, str(PROJECT_ROOT / "tests"))
 
+import check_pk3  # noqa: E402
 import test_udmf as udmf_tests  # noqa: E402  (as a module: see test_map01)
 
 parse_textmap = udmf_tests.parse_textmap
@@ -49,6 +53,40 @@ EYE_HEIGHTS = (32, 48, 72, 96)
 BODY_HEIGHTS = (8, 32, 56)
 HALL_SAMPLE = 64          # the hall is sampled on this grid for the sight test
 RANGE_SOURCE = PROJECT_ROOT / "src" / "maps" / "RANGE" / "map.py"
+ASSETS = PROJECT_ROOT / "assets"
+MOD_SPEC = PROJECT_ROOT / "docs" / "engine" / "MOD-SPEC.md"
+FREEDOOM = PROJECT_ROOT / "iwads" / "freedoom2.wad"
+WAD_HEADER = struct.Struct("<4sii")
+WAD_ENTRY = struct.Struct("<ii8s")
+MAPTEXTURE_NAME = 8       # a TEXTURE1 entry starts with its 8-byte name
+
+
+def _lump_name(raw: bytes) -> str:
+    return raw.split(b"\0", 1)[0].decode("ascii", "replace").upper()
+
+
+def _iwad_names(blob: bytes) -> tuple[set[str], set[str]]:
+    """({TEXTURE1/TEXTURE2 names}, {flats between F_START and F_END}) of an
+    IWAD, read the way the M2 audit read freedoom2.wad."""
+    _, count, table = WAD_HEADER.unpack_from(blob, 0)
+    walls: set[str] = set()
+    flats: set[str] = set()
+    in_flats = False
+    for i in range(count):
+        pos, size, raw = WAD_ENTRY.unpack_from(blob, table + i * WAD_ENTRY.size)
+        name = _lump_name(raw)
+        if name in ("TEXTURE1", "TEXTURE2"):
+            (n,) = struct.unpack_from("<i", blob, pos)
+            for k in range(n):
+                (off,) = struct.unpack_from("<i", blob, pos + 4 + 4 * k)
+                walls.add(_lump_name(blob[pos + off:pos + off + MAPTEXTURE_NAME]))
+        elif name in ("F_START", "FF_START"):
+            in_flats = True
+        elif name in ("F_END", "FF_END"):
+            in_flats = False
+        elif in_flats and size:
+            flats.add(name)
+    return walls, flats
 
 
 def _load_range():
@@ -324,19 +362,82 @@ class RangeMapTest(unittest.TestCase):
                                         f"{t['type']} at {eye} sees the hall at {target}")
 
     # --- textures -----------------------------------------------------------
-    def test_project_textures_only_where_the_player_presses(self):
-        """The range keeps its IWAD look; the approved signs of MAP01 (door
-        leaf and track, exit switch, the lamp over it) appear only on the
-        door, the exit alcove and nowhere else."""
+    def used_names(self):
+        """({wall texture names}, {flat names}) the TEXTMAP actually wears."""
+        walls = {side.get(k, "-") for side in self.sides
+                 for k in ("texturetop", "texturemiddle", "texturebottom")} - {"-"}
+        flats = ({s["texturefloor"] for s in self.sectors}
+                 | {s["textureceiling"] for s in self.sectors})
+        return walls, flats
+
+    def test_every_name_is_in_the_maps_lists(self):
+        walls, flats = self.used_names()
+        self.assertLessEqual(walls, set(self.m.WALL_TEXTURES))
+        self.assertLessEqual(flats, set(self.m.FLAT_TEXTURES))
+
+    def test_no_iwad_texture_or_flat_every_name_is_ours(self):
+        """M2d (the M2 audit's item A4, docs/qa/2026-10-14_2357_M2-freedoom-audit.md
+        section 5): the range wore Freedoom's STARTAN2, FLOOR4_8 and CEIL3_5.
+        Now every wall texture and flat it names is one of our own packed
+        lumps under assets/, and none is an IWAD asset declared in MOD-SPEC
+        section 5 (the list check_pk3 lets a map borrow from the IWAD)."""
+        walls, flats = self.used_names()
+        for name in sorted(walls):
+            self.assertTrue(any(ASSETS.glob(f"textures/*/{name}.png")),
+                            f"wall {name} is not in assets/textures/")
+        for name in sorted(flats):
+            self.assertTrue(any(ASSETS.glob(f"flats/*/{name}.png")),
+                            f"flat {name} is not in assets/flats/")
+        declared = check_pk3.iwad_assets_from_spec(MOD_SPEC)
+        self.assertIn("STARTAN2", declared, "MOD-SPEC 5 was not read: the check below would be empty")
+        self.assertEqual(set(), (walls | flats) & declared)
+
+    def test_no_name_resolves_in_freedoom(self):
+        """The audit's own check, against the IWAD itself: no wall texture
+        the range names is in freedoom2.wad's TEXTURE1/TEXTURE2, and no flat
+        lies between its F_START and F_END. iwads/ is never committed, so
+        the test skips where the IWAD is absent (CI)."""
+        if not FREEDOOM.is_file():
+            self.skipTest("iwads/freedoom2.wad not present")
+        iwad_walls, iwad_flats = _iwad_names(FREEDOOM.read_bytes())
+        self.assertIn("STARTAN2", iwad_walls, "the IWAD's textures were not read")
+        self.assertIn("FLOOR4_8", iwad_flats, "the IWAD's flats were not read")
+        walls, flats = self.used_names()
+        self.assertEqual(set(), walls & iwad_walls, "IWAD wall textures in RANGE")
+        self.assertEqual(set(), flats & iwad_flats, "IWAD flats in RANGE")
+
+    def test_room_walls_sit_on_the_64_grid(self):
+        """Every one-sided room wall is offset so its 64-wide panels meet
+        the map's 64 grid: a run that starts off it (the hall's west wall at
+        y 416, north of the exit alcove) still ends on a whole panel in the
+        corner. Every other face keeps offset 0 (the switch is seen whole)."""
         m = self.m
-        signs = {m.DOOR_TEXTURE, m.TRACK_TEXTURE, m.EXIT_TEXTURE}
-        allowed = {self.plan["gallery_door"], self.plan["exit_alcove"]}
-        for i, side in enumerate(self.sides):
-            for key in ("texturetop", "texturemiddle", "texturebottom"):
-                name = side.get(key, "-")
-                if name == "-":
+        for i, ld in enumerate(self.lines):
+            for side_key in ("sidefront", "sideback"):
+                if side_key not in ld:
                     continue
-                self.assertIn(name, m.WALL_TEXTURES, f"sidedef {i} {key}")
+                side = self.sides[ld[side_key]]
+                offset = side.get("offsetx", 0)
+                if "sideback" in ld or side.get("texturemiddle") not in m.ALIGNED_TEXTURES:
+                    self.assertEqual(0, offset, f"linedef {i} {side_key}")
+                    continue
+                a, b = self.verts[ld["v1"]], self.verts[ld["v2"]]
+                along = a["x"] if a["y"] == b["y"] else a["y"]
+                forward = (b["x"] - a["x"]) + (b["y"] - a["y"]) > 0
+                start = (along if forward else -along) - offset
+                self.assertEqual(0, start % m.PANEL_WIDTH, f"linedef {i} {side['texturemiddle']}")
+
+    def test_the_signs_only_where_the_player_presses(self):
+        """The door leaf and the exit switch, the faces MAP01 taught as
+        "press here", appear only on the door and in the exit alcove, and
+        the lamp panel lights only the exit. (SDSTEL1, the door's track, is
+        also the passage's plate since M2d, as MAP01's airlock is steel.)"""
+        m = self.m
+        signs = {m.DOOR_TEXTURE, m.EXIT_TEXTURE}
+        allowed = {self.plan["gallery_door"], self.plan["exit_alcove"]}
+        lamps = {i for i, s in enumerate(self.sectors)
+                 if m.LAMP_FLAT in (s["texturefloor"], s["textureceiling"])}
+        self.assertEqual({self.plan["exit_alcove"]}, lamps)
         for ld in self.lines:
             touching = {self.sector_of(ld, "sidefront")}
             if "sideback" in ld:
@@ -348,9 +449,6 @@ class RangeMapTest(unittest.TestCase):
                 used = {side.get(k) for k in ("texturetop", "texturemiddle", "texturebottom")}
                 if used & signs:
                     self.assertTrue(touching & allowed, f"a sign on {sorted(self.zone_of[s] for s in touching)}")
-        for s in self.sectors:
-            self.assertIn(s["texturefloor"], m.FLAT_TEXTURES)
-            self.assertIn(s["textureceiling"], m.FLAT_TEXTURES)
 
 
 if __name__ == "__main__":
