@@ -300,7 +300,9 @@ def installed_sprites(sprites_dir: Path = SPRITES_DIR) -> set[str]:
 
 def plan_overlay(only: str = "all", hand: str = DEFAULT_HAND, weapons_dir: Path = WEAPONS_DIR,
                  rig_dir: Path = RIG_DIR, zs_root: Path = ZS_ROOT,
-                 sprites_dir: Path = SPRITES_DIR) -> Plan:
+                 sprites_dir: Path = SPRITES_DIR, item: str | None = None) -> Plan:
+    """`item` packs one weapon only (e.g. the Gemini test frames, hand G,
+    drawn for the PPSh alone: tools/art/gemini_frames.py)."""
     groups = GROUPS if only == "all" else (only,)
     plan = Plan()
     zs_cache: dict[str, str] = {}
@@ -308,7 +310,7 @@ def plan_overlay(only: str = "all", hand: str = DEFAULT_HAND, weapons_dir: Path 
     retired = {name for pair in INSTALLED_ENEMIES for name in pair}
     retired_frames = {name for pair in INSTALLED_WEAPON_FRAMES for name in pair}
     for swap in SWAPS:
-        if swap.group not in groups:
+        if swap.group not in groups or (item is not None and swap.item != item):
             continue
         if swap.placeholder in retired or swap.draft in retired:
             plan.notes.append(f"{swap.draft}: an enemy installed whole (INSTALLED_ENEMIES); "
@@ -474,10 +476,12 @@ def manifest_text(plan: Plan, out: Path, iwad: Path | None) -> str:
     return "\n".join(lines) + "\n"
 
 
-def default_out(only: str, hand: str) -> Path:
+def default_out(only: str, hand: str, item: str | None = None) -> Path:
     stem = {"all": "sd-draft-sprites", "weapons": "sd-draft-weapons", "enemies": "sd-draft-enemies"}[only]
     if hand != DEFAULT_HAND and only != "enemies":
         stem += f"-hand{hand}"
+    if item:
+        stem += f"-{item}"
     return OUT_DIR / f"{stem}.pk3"
 
 
@@ -486,6 +490,8 @@ def main(argv=None) -> int:
     ap.add_argument("--only", choices=("all", *GROUPS), default="all")
     ap.add_argument("--hand", default=DEFAULT_HAND, type=str.upper,
                     help="which hand's weapon renders to use (default E, the one drawn)")
+    ap.add_argument("--item", choices=sorted({s.item for s in SWAPS if s.group == "weapons"}),
+                    help="pack this weapon only (e.g. --hand G --item ppsh: the Gemini test frames)")
     ap.add_argument("--out", type=Path, help="output PK3 (default work/overlays/sd-draft-*.pk3)")
     ap.add_argument("--weapons-dir", type=Path, default=WEAPONS_DIR)
     ap.add_argument("--rig-dir", type=Path, default=RIG_DIR)
@@ -497,11 +503,11 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
     if not re.fullmatch(r"[A-Z]", args.hand):
         ap.error("--hand takes one letter, A-F in gen_weapon.py's sweep")
-    out = args.out or default_out(args.only, args.hand)
+    out = args.out or default_out(args.only, args.hand, args.item)
     try:
         guard_out(out)
         plan = plan_overlay(args.only, args.hand, args.weapons_dir, args.rig_dir,
-                            sprites_dir=args.sprites_dir)
+                            sprites_dir=args.sprites_dir, item=args.item)
         iwad = args.iwad if args.iwad and args.iwad.is_file() else None
         if iwad:
             check_against_iwad(plan, iwad_sprites(iwad))

@@ -421,6 +421,20 @@ class HandTests(unittest.TestCase):
         self.assertTrue(all(e.grab == (99, 99) for e in plan.entries))
         self.assertTrue(all(h.startswith("B") for h in plan.hands.values()))
 
+    def test_one_item_with_its_own_hand(self):
+        """--hand G --item ppsh: only the PPSh, from hand_G/ppsh/ (the Gemini
+        test frames), and the other weapons' missing hand G is no error."""
+        weapons, rig = make_drafts(self.root, hand_record="E")
+        alt = weapons / "hand_G" / "ppsh"
+        alt.mkdir(parents=True)
+        for f in (weapons / "ppsh").glob("SD*.png"):
+            (alt / f.name).write_bytes(png((77, 77)))
+        plan = mdo.plan_overlay("weapons", "G", weapons, rig, item="ppsh")
+        self.assertTrue(plan.entries)
+        self.assertTrue(all(e.swap.item == "ppsh" and e.grab == (77, 77) for e in plan.entries))
+        self.assertEqual(set(plan.hands), {"ppsh"})
+        self.assertEqual(mdo.default_out("weapons", "G", "ppsh").name, "sd-draft-weapons-handG-ppsh.pk3")
+
     def test_hand_letter_validated(self):
         with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
             mdo.main(["--hand", "BB", "--dry-run"])
