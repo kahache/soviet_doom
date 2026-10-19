@@ -20,7 +20,7 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
-| M2a | M2 | Pickups sweep + install: health, armour, area map, backpack, yellow and red keycards (113 placed on skill 3), the hand Katyusha's pickup (draft SDHPA0), fullscreen HUD icons, our pickup lines | art-director (sweep + full set; install after the CEO) | 480 | CEO, 2026-10-19 |
+| M2a-i | M2 | Install the campaign pickups (11 items, keys SD_YellowPass/SD_RedPass via Species, HUD key icons, pickup lines EN/RU) after the CEO's OK | mod-engineer | 200 | CEO OK on `2026-10-19_2212_F5_campaign-pickups.html` |
 | M2b-i | M2 | Install the enemy shells SDDL/SDPL after the CEO's OK | mod-engineer | 80 | CEO OK on `2026-10-19_2200_F5_enemy-shells.html` |
 | M2c-i | M2 | Install the player effects (SDPG, SDKR, SDPX, SDFJ/SDFX, PUFF, BLUD, TFOG/IFOG, BAR1/BEXP, COLU) after the CEO's OK | mod-engineer | 150 | CEO OK on `2026-10-19_2208_F4_player-effects.html` |
 | N14-P | M2 | PPSh-41 **test of the Gemini-frames method**: process the CEO's two Gemini frames (ready, firing) into CHGG/CHGF, mock + engine; if it works, Gemini is credited | art-director + mod-engineer | 50 | the two images saved as files |
@@ -63,6 +63,8 @@ the Fooocus hand images, sounds and music to hear.
 | **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
+
+M2a: campaign pickups sweep + sets for 11 items (gen_items.py); **real 320k** (est. 480k incl. install).
 
 M2d: range retextured (d8062e4), route PASS; **real 160k** (est. 40k). M2b: enemy shells sweep + sets (0c22bf0); **real 175k** (est. 150k). M2c: player effects sweep + sets (ab03aee); **real 260k** (est. 350-400k). PPSh hand-drawn silhouettes stopped after two rounds (method change).
 
