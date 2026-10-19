@@ -26,8 +26,7 @@ The CEO makes references with **Google Gemini**; they live in
 own frames from them (`tools/art/hand_ref.py`), **bare hands**, one weapon
 at a time, **silhouettes first** (cheapest review), then colour, then the
 animation. PPSh-41 is first. The ice axe (hand C3, shaft x1.7, head x1.8,
-straight shaft) and the IZh wait for bare-hand references. The credits'
-AI line must add Gemini.
+straight shaft) and the IZh wait for bare-hand references. Gemini is inspiration only, never traced and never credited (D78).
 
 ## In flight at handoff
 
