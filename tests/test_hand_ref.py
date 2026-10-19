@@ -269,5 +269,56 @@ class PpshSilhouetteTest(unittest.TestCase):
             self.assertLess(cols[-1], hr.SCREEN_W - 1, k)                  # the right sleeve leaves under the bar
 
 
+@unittest.skipIf(hr is None, "art tooling (numpy, Pillow) not installed")
+class PpshCleanTest(unittest.TestCase):
+    """D77b: the PPSh-41 redrawn as clean shapes (no reference needed: pure geometry)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.scr = hr.ppsh_clean_screen()
+        pad = np.pad(cls.scr, 1, constant_values=False)
+        cls.holes = (~cls.scr) & ~hr.component(~pad, (0, 0))[1:-1, 1:-1]
+        mask = hr.ppsh_clean_mask()
+        cls.slots = hr.ppsh_slot_cells(mask, hr.PPSH_CHGG_HEIGHT * hr.PPSH_CLEAN_SIZE)
+        parts = hr.ppsh_clean_parts()
+        cls.hands = {k: hr.ppsh_screen(parts[k], hr.PPSH_CHGG_HEIGHT * hr.PPSH_CLEAN_SIZE)
+                     for k in ("left", "right")}
+        # ppsh_screen scales by the mask's own top row: rescale the hands with the whole mask's transform
+        s_, ox, oy, nw, nh = hr.ppsh_transform(mask, hr.PPSH_CHGG_HEIGHT * hr.PPSH_CLEAN_SIZE)
+        for k in ("left", "right"):
+            img = hr.Image.fromarray(parts[k][:hr.PPSH_HUD_Y].astype(np.float32), "F")
+            small = np.asarray(img.resize((nw, nh), hr.Image.Resampling.BOX)) >= hr.COVER
+            out = np.zeros_like(cls.scr)
+            ys, xs = np.nonzero(small)
+            ok = (ys + oy < out.shape[0]) & (xs + ox < out.shape[1]) & (xs + ox >= 0)
+            out[ys[ok] + oy, xs[ok] + ox] = True
+            cls.hands[k] = out
+
+    def test_the_only_holes_are_the_jacket_slots(self):
+        slot_px = {(y, x) for slot in self.slots for x, y in slot}
+        holes = set(zip(*np.nonzero(self.holes)))
+        self.assertEqual(holes, slot_px)
+
+    def test_no_hole_inside_the_hands(self):
+        for k, hand in self.hands.items():
+            self.assertTrue(hand.any(), k)
+            self.assertFalse((self.holes & hand).any(), k)
+
+    def test_slots_evenly_spaced_along_the_jacket(self):
+        d = np.array(hr.PPSH_BORE_D) / np.hypot(*hr.PPSH_BORE_D)
+        centres = [np.mean([x * d[0] + y * d[1] for x, y in slot]) for slot in self.slots]
+        gaps = np.diff(centres)
+        self.assertEqual(len(self.slots), hr.PPSH_SLOTS[2])
+        self.assertLessEqual(float(gaps.max() - gaps.min()), 1.0)
+        for slot in self.slots:                                         # each one a hole in the gun, not cut open
+            for x, y in slot:
+                self.assertTrue(self.holes[y, x])
+
+    def test_x16_the_chaingun_from_the_bottom(self):
+        rows = np.flatnonzero(self.scr.any(1))
+        self.assertLessEqual(abs((hr.hs.VIEW_H - rows[0]) - hr.PPSH_CHGG_HEIGHT * hr.PPSH_CLEAN_SIZE), 1.5)
+        self.assertEqual(rows[-1], hr.hs.VIEW_H - 1)
+
+
 if __name__ == "__main__":
     unittest.main()

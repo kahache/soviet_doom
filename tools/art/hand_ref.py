@@ -7,6 +7,7 @@ the haft toned as wood, the head given weight.
     python tools/art/hand_ref.py silhouettes   # D75: 3x3 axe sizes on C3's hand, flat silhouettes
     python tools/art/hand_ref.py silhouette-final   # D76: the pick, its shaft as wide as L1.0's
     python tools/art/hand_ref.py ppsh       # D77: PPSh-41 silhouettes from the CEO's Gemini render
+    python tools/art/hand_ref.py ppsh-clean # D77b: the PPSh-41 redrawn as clean shapes, x1.6, 4x
 
 Why: drawn hands failed the CEO again and again ("dedos como salchichas",
 "el antebrazo un palo larguísimo"); what worked for likeness was deriving
@@ -1160,6 +1161,8 @@ PPSH_OUTLINE = (
 PPSH_SNOW_V, PPSH_SNOW_S = 0.72, 0.15
 PPSH_SIZES = (1.0, 1.3, 1.6)
 PPSH_REF_LUMP = "CHGGA0"          # Freedoom's chaingun: the envelope (35 px above the bar)
+PPSH_CHGG_HEIGHT = 35             # its height above the bar, measured (ppsh_height_above_bar); pinned so
+                                  # the clean silhouette builds without the IWAD
 PPSH_SLUG = "F4_ppsh-silhouettes"
 
 
@@ -1182,20 +1185,26 @@ def ppsh_height_above_bar() -> int:
     return hs.measure(spr, off)["height"]
 
 
-def ppsh_screen(mask: np.ndarray, height_px: float) -> np.ndarray:
-    """The mask scaled so it stands height_px above the status bar, its
-    bottom on the bar and the gun's centre (the render-width part) on
-    PPSH_CENTRE_X; bool 168x320 (the view)."""
+def ppsh_transform(mask: np.ndarray, height_px: float):
+    """Render px -> view px for ppsh_screen: (scale, x offset, y offset, w, h)."""
     rows = np.flatnonzero(mask.any(1))
     cols = np.flatnonzero(mask[:, :PPSH_W].any(0))
     s_ = height_px / (PPSH_HUD_Y - rows[0])
     w, h = mask.shape[1], PPSH_HUD_Y
-    img = Image.fromarray(mask[:h].astype(np.float32), "F")
     nw, nh = max(1, round(w * s_)), max(1, round(h * s_))
+    ox = round(PPSH_CENTRE_X - (cols[0] + cols[-1]) / 2 * nw / w)
+    return s_, ox, hs.VIEW_H - nh, nw, nh
+
+
+def ppsh_screen(mask: np.ndarray, height_px: float) -> np.ndarray:
+    """The mask scaled so it stands height_px above the status bar, its
+    bottom on the bar and the gun's centre (the render-width part) on
+    PPSH_CENTRE_X; bool 168x320 (the view)."""
+    s_, ox, oy, nw, nh = ppsh_transform(mask, height_px)
+    w, h = mask.shape[1], PPSH_HUD_Y
+    img = Image.fromarray(mask[:h].astype(np.float32), "F")
     small = np.asarray(img.resize((nw, nh), Image.Resampling.BOX)) >= COVER
     out = np.zeros((hs.VIEW_H, SCREEN_W), bool)
-    ox = round(PPSH_CENTRE_X - (cols[0] + cols[-1]) / 2 * nw / w)
-    oy = hs.VIEW_H - nh
     ys, xs = np.nonzero(small)
     ys, xs = ys + oy, xs + ox
     ok = (ys >= 0) & (ys < hs.VIEW_H) & (xs >= 0) & (xs < SCREEN_W)
@@ -1231,6 +1240,137 @@ def build_ppsh_silhouettes(stamp: str, out_dir: Path = OUT_DIR / "ppsh") -> Path
     return path
 
 
+# ------------------------------------------------ PPSh-41, clean (D77b)
+# The traced silhouette failed (CEO + PM: the drum and the left hand one blob,
+# ragged edges, stray holes "en la mano izquierda"). Redrawn like
+# straight_axe(): clean shapes, the render only a guide for pose, angle and
+# proportions (no pixel taken from it). Gun parts in bore coordinates (u
+# along the bore from the muzzle, v across it, downwards), hands and sleeves
+# as clean polygons, lobes and capsules; all in the render's pixels, then
+# shrunk to x1.6 the chaingun's height like the traced one. The only holes
+# are the barrel jacket's cooling slots.
+PPSH_BORE_O = (230.0, 292.0)          # render px: the muzzle's centre
+PPSH_BORE_D = (388.0, 63.0)           # the bore's direction in the render (the jacket's axis)
+PPSH_JACKET = (0.0, 400.0, 16.0, 27.0)    # u from, u to, half thickness at the muzzle, at the receiver
+PPSH_SLOTS = (50.0, 45.0, 4, 30.0, 0.45)   # first slot's u, spacing (render px), count (clear of the left thumb); length, height unused
+PPSH_CLEAN_SIZE = 1.6                 # x the chaingun's height (the CEO's pick)
+PPSH_SLOT_PX = 3                      # view px: each slot's length along the jacket
+PPSH_SLOT_H = 1                       # ... and its height
+PPSH_CLEAN_SLUG = "F4_ppsh-silhouette-clean"
+
+
+def _bore():
+    o = np.array(PPSH_BORE_O)
+    d = np.array(PPSH_BORE_D) / np.hypot(*PPSH_BORE_D)
+    n = np.array([-d[1], d[0]])
+    return lambda u, v: tuple(o + u * d + v * n)
+
+
+def _capsule(draw, p0, p1, r, fill):
+    draw.line([p0, p1], fill=fill, width=int(round(2 * r)))
+    for q in (p0, p1):
+        draw.ellipse([q[0] - r, q[1] - r, q[0] + r, q[1] + r], fill=fill)
+
+
+def ppsh_clean_parts(width: int = None) -> dict:
+    """Bool masks (render px) of the clean silhouette's parts: "gun",
+    "left" (hand + sleeve), "right", "slots" (the jacket's cooling slots)."""
+    W, H = width or PPSH_SLEEVE_END + 2, PPSH_HUD_Y
+    P = _bore()
+    u0, u1, t0, t1 = PPSH_JACKET
+    th = lambda u: t0 + (t1 - t0) * (u - u0) / (u1 - u0)          # noqa: E731
+    layers = {k: Image.new("L", (W, H), 0) for k in ("gun", "left", "right", "slots")}
+    g = ImageDraw.Draw(layers["gun"])
+    g.polygon([P(u0, -t0), P(u1, -t1), P(u1, t1), P(u0, t0)], fill=255)                  # barrel jacket
+    g.polygon([P(85, -th(85) - 12), P(100, -th(100) - 12), P(100, 0), P(85, 0)], fill=255)  # front sight
+    g.polygon([P(380, -30), P(700, -30), P(700, 32), P(380, 32)], fill=255)              # receiver
+    g.polygon([P(540, -48), P(600, -48), P(600, -20), P(540, -20)], fill=255)            # rear sight
+    g.polygon([P(690, -38), P(790, -34), P(790, 30), P(690, 34)], fill=255)              # bolt housing
+    g.polygon([(705, 410), (990, 440), (1120, 500), (1260, 560), (1340, 600), (1340, 652), (1080, 652),
+               (960, 580), (880, 548), (780, 520), (705, 500)], fill=255)                 # wooden stock
+    g.chord([790, 420, 900, 600], 0, 180, fill=255)                                      # trigger guard (solid, under the stock)
+    g.polygon([P(430, 20), P(480, 20), P(480, 70), P(430, 70)], fill=255)                # magazine well
+    g.ellipse([548, 418, 716, 642], fill=255)                                            # drum
+    sl = ImageDraw.Draw(layers["slots"])
+    first, step, count, length, frac = PPSH_SLOTS
+    for i in range(count):
+        u = first + i * step
+        h = frac * th(u)
+        sl.polygon([P(u, -h), P(u + length, -h), P(u + length, h), P(u, h)], fill=255)
+    lh = ImageDraw.Draw(layers["left"])
+    lh.polygon([(440, 330), (470, 318), (520, 325), (532, 360), (528, 470), (520, 510), (445, 505),
+                (432, 420)], fill=255)                                                    # palm
+    for cx, cy in ((526, 300), (559, 302), (592, 311), (621, 326)):                       # four fingers over the jacket
+        lh.ellipse([cx - 18, cy - 17, cx + 18, cy + 17], fill=255)
+    _capsule(lh, (447, 420), (462, 314), 13, 255)                                         # thumb
+    lh.polygon([(445, 495), (525, 500), (540, 652), (287, 652), (360, 580), (420, 515)], fill=255)  # sleeve
+    rh = ImageDraw.Draw(layers["right"])
+    rh.polygon([(1000, 490), (1060, 484), (1120, 500), (1180, 525), (1200, 560), (1180, 610), (1080, 640),
+                (990, 600), (975, 520)], fill=255)                                        # back of the hand
+    _capsule(rh, (1010, 505), (955, 540), 15, 255)                                        # thumb over the stock
+    for cx, cy in ((958, 600), (985, 626), (1020, 642)):                                 # fingers under it
+        rh.ellipse([cx - 20, cy - 19, cx + 20, cy + 19], fill=255)
+    _capsule(rh, (950, 562), (830, 548), 10, 255)                                        # index on the trigger
+    rh.polygon([(1180, 525), (1262, 548), (PPSH_SLEEVE_END, 652), (1080, 652), (1150, 615)], fill=255)  # sleeve
+    return {k: np.asarray(v) > 0 for k, v in layers.items()}
+
+
+def ppsh_clean_mask() -> np.ndarray:
+    parts = ppsh_clean_parts()
+    return parts["gun"] | parts["left"] | parts["right"]
+
+
+def fill_holes(mask: np.ndarray) -> np.ndarray:
+    """mask with every transparent region that does not reach the border filled."""
+    pad = np.pad(mask, 1, constant_values=False)
+    outside = component(~pad, (0, 0))
+    return ~outside[1:-1, 1:-1]
+
+
+def ppsh_slot_cells(mask: np.ndarray, height_px: float) -> list[list[tuple[int, int]]]:
+    """The jacket's cooling slots in view px: each a run of PPSH_SLOT_PX
+    pixels on the jacket's axis, evenly spaced along it."""
+    s_, ox, oy, nw, nh = ppsh_transform(mask, height_px)
+    sx, sy = nw / mask.shape[1], nh / PPSH_HUD_Y
+    P = _bore()
+    first, step, count, length, _ = PPSH_SLOTS
+    slots = []
+    for i in range(count):
+        x0, y0 = P(first + i * step, 0.0)
+        cx, cy = ox + x0 * sx, oy + y0 * sy
+        d = np.array(PPSH_BORE_D) / np.hypot(*PPSH_BORE_D)
+        slots.append([(int(round(cx + j * d[0])), int(round(cy + j * d[1])) + k)
+                      for j in range(PPSH_SLOT_PX) for k in range(PPSH_SLOT_H)])
+    return slots
+
+
+def ppsh_clean_screen() -> np.ndarray:
+    """The clean silhouette at x1.6 the chaingun's height, placed like the
+    traced one; bool 168x320. Any hole the shrinking left is filled; then
+    the jacket's slots are punched, the only holes."""
+    mask = ppsh_clean_mask()
+    hpx = PPSH_CHGG_HEIGHT * PPSH_CLEAN_SIZE
+    out = fill_holes(ppsh_screen(mask, hpx))
+    for slot in ppsh_slot_cells(mask, hpx):
+        for x, y in slot:
+            out[y, x] = False
+    return out
+
+
+def build_ppsh_clean(stamp: str, out_dir: Path = OUT_DIR / "ppsh") -> Path:
+    scr = ppsh_clean_screen()
+    r, c = np.flatnonzero(scr.any(1)), np.flatnonzero(scr.any(0))
+    crop = scr[r[0]:r[-1] + 1, c[0]:c[-1] + 1]
+    rgba = np.zeros(crop.shape + (4,), np.uint8)
+    rgba[crop] = SIL_INK
+    img = Image.fromarray(rgba, "RGBA").resize((crop.shape[1] * 4, crop.shape[0] * 4), Image.Resampling.NEAREST)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    img.save(out_dir / "PPSh_clean_x1.6_4x.png")
+    path = PREVIEW_DIR / f"{stamp}_{PPSH_CLEAN_SLUG}.png"
+    img.save(path, optimize=True)
+    return path
+
+
 def build_all(out_dir: Path | None = OUT_DIR, cache: dict | None = None) -> dict:
     """Every cell; written with grAb to out_dir (None: not written)."""
     cache = {} if cache is None else cache
@@ -1251,7 +1391,8 @@ def build_all(out_dir: Path | None = OUT_DIR, cache: dict | None = None) -> dict
 
 def main() -> None:
     sil = {"silhouettes": build_silhouettes, "silhouette-final": build_silhouette_final,
-           "silhouette-straight": build_silhouette_straight, "ppsh": build_ppsh_silhouettes}
+           "silhouette-straight": build_silhouette_straight, "ppsh": build_ppsh_silhouettes,
+           "ppsh-clean": build_ppsh_clean}
     if len(sys.argv) > 1 and sys.argv[1] in sil:
         fn = sil[sys.argv[1]]
         print("wrote", fn(datetime.now().strftime("%Y-%m-%d_%H%M")))
