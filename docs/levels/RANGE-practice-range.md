@@ -15,6 +15,14 @@ Status, 2026-10-13: **v1 BUILT and seen in the engine** the same evening:
 P1-P3, P5 and P6 pass, P4 not exercised
 (`docs/qa/evidence/2026-10-13_2057_map02-range-and-c12.md`; checklist in §7).
 
+Status, 2026-10-19: **M2d retexture BUILT, not yet seen in the engine.**
+Every Freedoom wall texture and flat is gone (the M2 audit's item A4,
+`docs/qa/2026-10-14_2357_M2-freedoom-audit.md` §5): the range now wears
+the Zarya-7 base set only, §5. Geometry, things, tags, specials and both
+`tools/route.py` routes (`range-start`, `range-door`) are unchanged: the
+generated TEXTMAP differs from the v1 one only in texture names and two
+`offsetx` values. Engine look: P8-P10 in §7, the PM's batch (D26).
+
 ## 1. Synopsis
 
 A firing range and a bestiary: every weapon of the arsenal within a few
@@ -128,8 +136,8 @@ How it is done:
 ### 4.3 What did not change
 
 The hall's things and positions (F4), the gallery's row and spacing (F5),
-the IWAD look (`STARTAN2`, `FLOOR4_8`, `CEIL3_5`, MOD-SPEC §5), the
-`ambush` flag on every target and enemy, the light of both rooms. Every
+the IWAD look (`STARTAN2`, `FLOOR4_8`, `CEIL3_5`, MOD-SPEC §5; replaced
+in M2d, §5), the `ambush` flag on every target and enemy, the light of both rooms. Every
 thing is on every skill: skill changes what the engine's rungs change
 (damage taken, ammo given), not what is placed. No secrets, no keys.
 `tools/route.py`'s `range-start` walk (north up x 288 onto the ice axe) is
@@ -137,16 +145,46 @@ still one sector from start to pickup.
 
 ## 5. Textures by zone
 
-| Zone | Walls | Floor / ceiling |
-|---|---|---|
-| hall, gallery, passage | `STARTAN2` (IWAD) | `FLOOR4_8` / `CEIL3_5` (IWAD) |
-| gallery door | leaf `SDDOOR1` on both faces, track `SDSTEL1` | — |
-| exit alcove | switch `SDSW1D`, jambs `SDSTEL1` | `FLOOR4_8` / `SDCEIL1` |
+**M2d (2026-10-19): the Zarya-7 base set, no IWAD name left.** Until M2d
+the hall, gallery and passage wore Freedoom's `STARTAN2`, `FLOOR4_8` and
+`CEIL3_5` (the F4 fixture's diagnostic look); the M2 audit
+(`docs/qa/2026-10-14_2357_M2-freedoom-audit.md` §5, item A4) found RANGE
+the only map still on them. No new art: every lump below is approved in
+`docs/art/TEXTURE-INDEX.md` and packed under `assets/`, and each is used
+as MAP01 uses it (`docs/levels/MAP01-zarya-7.md` §6): concrete for rooms,
+steel plate for the way through, the hazard panel and the lamp only where
+the player presses.
 
-The project's approved textures appear only where the player must read
-"press here", so the range keeps its diagnostic look and the signs mean what
-they mean in MAP01 (tested: `test_project_textures_only_where_the_player_presses`).
-No new texture, no new IWAD reference.
+| Zone | Walls | Floor / ceiling | Why |
+|---|---|---|---|
+| hall | `SDCONC1` | `SDFLR2` / `SDCEIL2` | a poured-concrete firing hall on hangar floor; 128 high, so one panel exactly, no seam |
+| exit alcove | switch `SDSW1D`, jambs `SDSTEL1` | `SDFLR2` / `SDCEIL1` | unchanged signs: the hazard panel under the lamp, as MAP01's exit |
+| gallery door | leaf `SDDOOR1` on both faces, track `SDSTEL1` | `SDFLR2` / `SDCEIL2` (never seen shut) | unchanged: the door as MAP01 taught it |
+| gallery passage | `SDSTEL1` (and the 64-high lintel the gallery sees over the mouth) | `SDFLR2` / `SDCEIL2` | green plate, MAP01's airlock (Z8): a way through, not a room; it continues the door's track |
+| gallery | `SDCONC1` | `SDFLR3` / `SDCEIL2` | the same concrete, 192 high (panels floor-pegged, the cut at the ceiling); the two-tone tiles of MAP01's dorm and komnata set the bestiary apart from the hall underfoot |
+
+| Old (IWAD) | Faces / sectors | New |
+|---|---|---|
+| `STARTAN2` | 25 sidedef parts (17 middle, 4 upper, 4 lower) | `SDCONC1` 17 (11 / 3 / 3), `SDSTEL1` 8 (6 / 1 / 1: the passage) |
+| `FLOOR4_8` | 5 floors | `SDFLR2` 4, `SDFLR3` 1 (the gallery) |
+| `CEIL3_5` | 4 ceilings | `SDCEIL2` 4 |
+
+**Alignment.** Both room materials are 64 wide and a wall run starts its
+texture at its own first vertex. Every one-sided wall of concrete or plate
+is given the `offsetx` that puts its panel seams on the map's 64 grid
+(`world_align()` in `map.py`); only two runs start off it, the hall's west
+wall north of the alcove (y 416, offset 32) and the alcove's north jamb, so
+the hall's corners meet on whole panels and the cut halves sit against the
+alcove. The door leaf and the exit switch keep offset 0, seen whole.
+Vertically the `GridMap` default (`dontpegbottom`) stacks panels from the
+floor, as on every map.
+
+The signs still mean what they mean in MAP01: the door leaf and the
+hazard panel appear only on the door and the exit, the lamp panel only
+over the exit (tested). `SDSTEL1` is no longer only the track: it is the
+passage's plate too, which is how MAP01 uses it. No new texture, no IWAD
+reference; MOD-SPEC §5 still declares `STARTAN2`, `FLOOR4_8` and `CEIL3_5`
+as IWAD assets, which no map uses now (that table is `mod-engineer`'s).
 
 ## 6. Tests
 
@@ -163,7 +201,11 @@ No new texture, no new IWAD reference.
 | `test_every_thing_stands_on_floor_the_player_reaches` | every pickup, target and enemy on reachable floor, none in the door; the row in the gallery |
 | `test_the_passage_comes_out_behind_the_row` | every enemy faces away from the mouth; the warp still lands there |
 | `test_the_gallery_cannot_see_into_the_hall_with_the_door_open` | from every enemy's eye (4 heights) no point of the hall (64 grid, 3 heights) is in view, door open. A straight passage fails it |
-| `test_project_textures_only_where_the_player_presses` | the signs only on the door and the exit; every name in the map's lists |
+| `test_every_name_is_in_the_maps_lists` | every texture and flat the TEXTMAP wears is in `WALL_TEXTURES` / `FLAT_TEXTURES` |
+| `test_no_iwad_texture_or_flat_every_name_is_ours` | **M2d**: every name is a packed lump under `assets/textures/` or `assets/flats/`, and none is an IWAD asset of MOD-SPEC §5 |
+| `test_no_name_resolves_in_freedoom` | **M2d**, the audit's own check: no wall name in `iwads/freedoom2.wad`'s `TEXTURE1`/`TEXTURE2`, no flat between its `F_START`/`F_END` (skips where the IWAD is absent, as in CI) |
+| `test_room_walls_sit_on_the_64_grid` | every one-sided concrete or plate wall has its seams on the 64 grid; every other face at offset 0 |
+| `test_the_signs_only_where_the_player_presses` | door leaf and hazard panel only on the door and the exit; the lamp panel only over the exit |
 
 ## 7. Engine checklist for the PM (D26: this role does not start GZDoom)
 
@@ -178,6 +220,9 @@ No new texture, no new IWAD reference.
 | P5 | back in the hall with the door open, fire the PPSh by the doorway, then walk into the gallery | nobody in the gallery has woken |
 | P6 | press the exit switch | `SD_END02_TEXT` over `SDFLR1`, then the title screen (seen 2026-10-13 20:57; ADR 007 could not test it: the console `exit` quits GZDoom) |
 | P7 | the log | zero `Script error`, `Missing`, `Unknown` |
+| P8 | M2d: at the start, look round the hall | concrete panels on all four walls, hangar floor, plain ceiling panels; no Freedoom `STARTAN2` anywhere; no seam floating mid-wall (the hall is one panel high) |
+| P9 | M2d: the west wall either side of the exit alcove, and the north-west corner | half panels against the alcove's steel jambs, whole panels meeting in the corners |
+| P10 | M2d: the passage, then the gallery from its mouth | the passage is green steel plate with the door's track continuing into it; the gallery's concrete runs 1.5 panels high with the cut at the ceiling, the steel lintel over the mouth, the tiled floor; nothing missing (no HOM, no `Unknown texture` in the log) |
 
 ## 8. For the CEO: a player-facing name
 
