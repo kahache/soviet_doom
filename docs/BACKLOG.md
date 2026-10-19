@@ -20,7 +20,11 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
-| N14-P | M2 | PPSh-41 from the Gemini reference (D77): silhouettes done, waiting for the CEO's size; then colour and fire frames | art-director | 220 | CEO picks a size |
+| M2a | M2 | Pickups sweep + install: health, armour, area map, backpack, yellow and red keycards (113 placed on skill 3), the hand Katyusha's pickup (draft SDHPA0), fullscreen HUD icons, our pickup lines | art-director (sweep + full set; install after the CEO) | 480 | CEO, 2026-10-19 |
+| M2b | M2 | Enemy shells: the Doughboy's BAL2, the Panzermensch's BAL7 | art-director (sweep + full set) | 150 | CEO, 2026-10-19 |
+| M2c | M2 (D75) | Player projectiles and hit effects (MISL, PLSS/PLSE, PUFF, BLUD shape, TFOG), barrels and lamp | art-director (sweep + full set) | 350-400 | CEO, 2026-10-19 |
+| M2d | M2 | Practice range retexture (STARTAN2, FLOOR4_8, CEIL3_5) | level-designer | 40 | CEO, 2026-10-19 |
+| N14-P | M2 | PPSh-41 at x1.6 (D78): clean redrawn silhouette (Gemini only as a guide); then colour and fire frames | art-director | 220 | doing |
 | N14-A | M2 | Ice axe: paused until the CEO's bare-hand Gemini reference (D77); straight-shaft silhouette done | art-director | — | CEO's image |
 | G9 | M4 | LICENSE.md and CREDITS.txt for the player: no repo-only paths, drop the unused OTEX credit (RU half at N11); ship `LICENSE-FREEDOOM-BSD-3.txt` (D75, hash pinned); the AI-reference line in the credits (D75) | mod-engineer | 40 | — |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
@@ -29,10 +33,6 @@ get better.
 
 | # | Milestone | Task | Role | Est. k tok | Needs |
 |---|---|---|---|---|---|
-| M2a | M2 | Pickups sweep + install: health, armour, area map, backpack, yellow and red keycards (113 placed on skill 3), the hand Katyusha's pickup (draft SDHPA0), fullscreen HUD icons, our pickup lines | art-director + mod-engineer | 480 | — |
-| M2b | M2 | Enemy shells: the Doughboy's BAL2, the Panzermensch's BAL7 | art-director + mod-engineer | 150 | — |
-| M2c | M2 (D75) | Player projectiles and hit effects (MISL, PLSS/PLSE, PUFF, BLUD shape, TFOG), barrels and lamp | art-director | 350-400 | — |
-| M2d | M2 | Practice range retexture (STARTAN2, FLOOR4_8, CEIL3_5) | level-designer | 40 | — |
 | M2e | M4 (D75) | Shell and HUD: STBAR, the face STF*, fonts, stats screen graphics, HELP/CREDIT, DEHACKED pickup and quit lines, intermission music (D_DM2INT plays today) | art-director + mod-engineer | 430-650 | — |
 | N14 | M2 | Weapons in hand from the CEO's Fooocus references, one at a time, verified each (ice axe first, then 5 more) | art-director | 250 per weapon, ~1 500 all | CEO's images |
 | N7b | M1+ | Metro v2 (textures aligned), optional: the CEO found M1 "perfecto" | level-designer | 350 | CEO decides if wanted |
