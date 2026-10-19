@@ -1252,11 +1252,11 @@ def build_ppsh_silhouettes(stamp: str, out_dir: Path = OUT_DIR / "ppsh") -> Path
 PPSH_BORE_O = (230.0, 292.0)          # render px: the muzzle's centre
 PPSH_BORE_D = (388.0, 63.0)           # the bore's direction in the render (the jacket's axis)
 PPSH_JACKET = (0.0, 400.0, 16.0, 27.0)    # u from, u to, half thickness at the muzzle, at the receiver
-PPSH_SLOTS = (50.0, 45.0, 4, 30.0, 0.45)   # first slot's u, spacing (render px), count (clear of the left thumb); length, height unused
+PPSH_SLOTS = (40.0, 33.0, 4, 30.0, 0.45)   # first slot's u, spacing (render px), count (clear of the left thumb); length, height unused
 PPSH_CLEAN_SIZE = 1.6                 # x the chaingun's height (the CEO's pick)
 PPSH_SLOT_PX = 3                      # view px: each slot's length along the jacket
 PPSH_SLOT_H = 1                       # ... and its height
-PPSH_CLEAN_SLUG = "F4_ppsh-silhouette-clean"
+PPSH_CLEAN_SLUG = "F4_ppsh-silhouette-v2"
 
 
 def _bore():
@@ -1272,52 +1272,98 @@ def _capsule(draw, p0, p1, r, fill):
         draw.ellipse([q[0] - r, q[1] - r, q[0] + r, q[1] + r], fill=fill)
 
 
+# D77c (CEO on the clean one: "no se ve la mano izquierda, debería
+# superponerse sobre el arma"; "el palo del cañón está desviado"): every
+# body of the gun is a band centred on ONE axis (the bore, v = 0), and the
+# left hand is drawn in front of the gun, its fingers curling over the
+# jacket's top edge, cut from the gun by a 1 px transparent contour.
+# (name, u from, u to, half thickness at u from, at u to): symmetric about v = 0.
+PPSH_AXIS_PARTS = (
+    ("jacket", 0.0, 400.0, 16.0, 27.0),
+    ("receiver", 380.0, 700.0, 31.0, 31.0),
+    ("bolt housing", 690.0, 790.0, 36.0, 34.0),
+    ("stock", 760.0, 1180.0, 34.0, 50.0),
+)
+PPSH_HAND_GRIP_U = (230.0, 335.0)      # the left hand's span along the jacket
+PPSH_KNUCKLE_RISE = 12.0               # render px: the finger lobes' centres above the jacket's top edge
+
+
 def ppsh_clean_parts(width: int = None) -> dict:
     """Bool masks (render px) of the clean silhouette's parts: "gun",
-    "left" (hand + sleeve), "right", "slots" (the jacket's cooling slots)."""
+    "left" (hand + sleeve, drawn in front), "right" (hand + sleeve)."""
     W, H = width or PPSH_SLEEVE_END + 2, PPSH_HUD_Y
     P = _bore()
     u0, u1, t0, t1 = PPSH_JACKET
     th = lambda u: t0 + (t1 - t0) * (u - u0) / (u1 - u0)          # noqa: E731
-    layers = {k: Image.new("L", (W, H), 0) for k in ("gun", "left", "right", "slots")}
+    layers = {k: Image.new("L", (W, H), 0) for k in ("gun", "left", "right")}
     g = ImageDraw.Draw(layers["gun"])
-    g.polygon([P(u0, -t0), P(u1, -t1), P(u1, t1), P(u0, t0)], fill=255)                  # barrel jacket
+    for _, a0, a1, h0, h1 in PPSH_AXIS_PARTS:                                            # one axis
+        g.polygon([P(a0, -h0), P(a1, -h1), P(a1, h1), P(a0, h0)], fill=255)
     g.polygon([P(85, -th(85) - 12), P(100, -th(100) - 12), P(100, 0), P(85, 0)], fill=255)  # front sight
-    g.polygon([P(380, -30), P(700, -30), P(700, 32), P(380, 32)], fill=255)              # receiver
     g.polygon([P(540, -48), P(600, -48), P(600, -20), P(540, -20)], fill=255)            # rear sight
-    g.polygon([P(690, -38), P(790, -34), P(790, 30), P(690, 34)], fill=255)              # bolt housing
-    g.polygon([(705, 410), (990, 440), (1120, 500), (1260, 560), (1340, 600), (1340, 652), (1080, 652),
-               (960, 580), (880, 548), (780, 520), (705, 500)], fill=255)                 # wooden stock
-    g.chord([790, 420, 900, 600], 0, 180, fill=255)                                      # trigger guard (solid, under the stock)
+    gx, gy = P(770, 70)
+    g.chord([gx - 55, gy - 90, gx + 55, gy + 60], 0, 180, fill=255)                      # trigger guard (solid)
     g.polygon([P(430, 20), P(480, 20), P(480, 70), P(430, 70)], fill=255)                # magazine well
     g.ellipse([548, 418, 716, 642], fill=255)                                            # drum
-    sl = ImageDraw.Draw(layers["slots"])
-    first, step, count, length, frac = PPSH_SLOTS
-    for i in range(count):
-        u = first + i * step
-        h = frac * th(u)
-        sl.polygon([P(u, -h), P(u + length, -h), P(u + length, h), P(u, h)], fill=255)
     lh = ImageDraw.Draw(layers["left"])
-    lh.polygon([(440, 330), (470, 318), (520, 325), (532, 360), (528, 470), (520, 510), (445, 505),
-                (432, 420)], fill=255)                                                    # palm
-    for cx, cy in ((526, 300), (559, 302), (592, 311), (621, 326)):                       # four fingers over the jacket
-        lh.ellipse([cx - 18, cy - 17, cx + 18, cy + 17], fill=255)
-    _capsule(lh, (447, 420), (462, 314), 13, 255)                                         # thumb
-    lh.polygon([(445, 495), (525, 500), (540, 652), (287, 652), (360, 580), (420, 515)], fill=255)  # sleeve
+    ga, gb = PPSH_HAND_GRIP_U
+    lh.polygon([P(ga, 2), P(gb, 2), P(gb + 5, 150), P(ga + 5, 150)], fill=255)            # palm, under the jacket
+    for i, u in enumerate(np.linspace(ga + 18, gb - 12, 4)):                              # fingers over the top edge
+        cx, cy = P(u, -th(u) - PPSH_KNUCKLE_RISE)
+        lh.ellipse([cx - 13, cy - 13, cx + 13, cy + 13], fill=255)
+        bx, by = P(u, -th(u) * 0.2)
+        _capsule(lh, (cx, cy + 6), (bx, by), 9, 255)                                         # each finger down the far side
+    _capsule(lh, P(ga + 10, 22), P(ga - 45, 6), 12, 255)                                  # thumb along the near side
+    lh.polygon([P(ga + 5, 140), P(gb + 5, 140), (540, 652), (287, 652), (360, 580)], fill=255)   # wrist and sleeve
     rh = ImageDraw.Draw(layers["right"])
-    rh.polygon([(1000, 490), (1060, 484), (1120, 500), (1180, 525), (1200, 560), (1180, 610), (1080, 640),
-                (990, 600), (975, 520)], fill=255)                                        # back of the hand
-    _capsule(rh, (1010, 505), (955, 540), 15, 255)                                        # thumb over the stock
-    for cx, cy in ((958, 600), (985, 626), (1020, 642)):                                 # fingers under it
-        rh.ellipse([cx - 20, cy - 19, cx + 20, cy + 19], fill=255)
-    _capsule(rh, (950, 562), (830, 548), 10, 255)                                        # index on the trigger
-    rh.polygon([(1180, 525), (1262, 548), (PPSH_SLEEVE_END, 652), (1080, 652), (1150, 615)], fill=255)  # sleeve
+    rh.polygon([P(830, -20), P(960, -25), P(990, 40), P(960, 110), P(860, 120), P(820, 60)], fill=255)  # back of the hand
+    _capsule(rh, P(900, -36), P(820, -30), 13, 255)                                      # thumb over the stock
+    for u in (835, 868, 900):                                                            # fingers under it
+        cx, cy = P(u, 92)
+        rh.ellipse([cx - 19, cy - 18, cx + 19, cy + 18], fill=255)
+    _capsule(rh, P(840, 45), P(745, 40), 10, 255)                                        # index on the trigger
+    rh.polygon([P(950, 0), P(990, 60), (PPSH_SLEEVE_END, 652), (1080, 652), P(880, 110)], fill=255)  # sleeve, down
     return {k: np.asarray(v) > 0 for k, v in layers.items()}
 
 
 def ppsh_clean_mask() -> np.ndarray:
     parts = ppsh_clean_parts()
     return parts["gun"] | parts["left"] | parts["right"]
+
+
+def ppsh_part_screen(part: np.ndarray, whole: np.ndarray, height_px: float) -> np.ndarray:
+    """One part shrunk with the whole silhouette's transform; bool 168x320."""
+    _, ox, oy, nw, nh = ppsh_transform(whole, height_px)
+    img = Image.fromarray(part[:PPSH_HUD_Y].astype(np.float32), "F")
+    small = np.asarray(img.resize((nw, nh), Image.Resampling.BOX)) >= COVER
+    out = np.zeros((hs.VIEW_H, SCREEN_W), bool)
+    ys, xs = np.nonzero(small)
+    ys, xs = ys + oy, xs + ox
+    ok = (ys >= 0) & (ys < hs.VIEW_H) & (xs >= 0) & (xs < SCREEN_W)
+    out[ys[ok], xs[ok]] = True
+    return out
+
+
+def dilate4(m: np.ndarray) -> np.ndarray:
+    p = np.pad(m, 1, constant_values=False)
+    return m | p[:-2, 1:-1] | p[2:, 1:-1] | p[1:-1, :-2] | p[1:-1, 2:]
+
+
+def ppsh_clean_layers() -> dict:
+    """View-px layers: "left" (the hand in front, solid), "contour" (the
+    1 px line cut from the gun round it), "slots", "screen" (the result)."""
+    parts = ppsh_clean_parts()
+    whole = parts["gun"] | parts["left"] | parts["right"]
+    hpx = PPSH_CHGG_HEIGHT * PPSH_CLEAN_SIZE
+    back = fill_holes(ppsh_part_screen(parts["gun"] | parts["right"], whole, hpx))
+    left = fill_holes(ppsh_part_screen(parts["left"], whole, hpx))
+    contour = dilate4(left) & ~left & back
+    slots = np.zeros_like(back)
+    for slot in ppsh_slot_cells(whole, hpx):
+        for x, y in slot:
+            slots[y, x] = True
+    screen = (back & ~contour & ~slots) | left
+    return {"left": left, "contour": contour, "slots": slots & back & ~dilate4(left), "screen": screen}
 
 
 def fill_holes(mask: np.ndarray) -> np.ndarray:
@@ -1345,16 +1391,8 @@ def ppsh_slot_cells(mask: np.ndarray, height_px: float) -> list[list[tuple[int, 
 
 
 def ppsh_clean_screen() -> np.ndarray:
-    """The clean silhouette at x1.6 the chaingun's height, placed like the
-    traced one; bool 168x320. Any hole the shrinking left is filled; then
-    the jacket's slots are punched, the only holes."""
-    mask = ppsh_clean_mask()
-    hpx = PPSH_CHGG_HEIGHT * PPSH_CLEAN_SIZE
-    out = fill_holes(ppsh_screen(mask, hpx))
-    for slot in ppsh_slot_cells(mask, hpx):
-        for x, y in slot:
-            out[y, x] = False
-    return out
+    """The clean silhouette at x1.6 the chaingun's height; bool 168x320."""
+    return ppsh_clean_layers()["screen"]
 
 
 def build_ppsh_clean(stamp: str, out_dir: Path = OUT_DIR / "ppsh") -> Path:
@@ -1365,7 +1403,7 @@ def build_ppsh_clean(stamp: str, out_dir: Path = OUT_DIR / "ppsh") -> Path:
     rgba[crop] = SIL_INK
     img = Image.fromarray(rgba, "RGBA").resize((crop.shape[1] * 4, crop.shape[0] * 4), Image.Resampling.NEAREST)
     out_dir.mkdir(parents=True, exist_ok=True)
-    img.save(out_dir / "PPSh_clean_x1.6_4x.png")
+    img.save(out_dir / "PPSh_clean_v2_x1.6_4x.png")
     path = PREVIEW_DIR / f"{stamp}_{PPSH_CLEAN_SLUG}.png"
     img.save(path, optimize=True)
     return path

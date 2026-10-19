@@ -271,52 +271,81 @@ class PpshSilhouetteTest(unittest.TestCase):
 
 @unittest.skipIf(hr is None, "art tooling (numpy, Pillow) not installed")
 class PpshCleanTest(unittest.TestCase):
-    """D77b: the PPSh-41 redrawn as clean shapes (no reference needed: pure geometry)."""
+    """D77b/c: the PPSh-41 as clean shapes on one axis, the left hand in front
+    (no reference needed: pure geometry)."""
 
     @classmethod
     def setUpClass(cls):
-        cls.scr = hr.ppsh_clean_screen()
+        cls.layers = hr.ppsh_clean_layers()
+        cls.scr = cls.layers["screen"]
         pad = np.pad(cls.scr, 1, constant_values=False)
         cls.holes = (~cls.scr) & ~hr.component(~pad, (0, 0))[1:-1, 1:-1]
-        mask = hr.ppsh_clean_mask()
-        cls.slots = hr.ppsh_slot_cells(mask, hr.PPSH_CHGG_HEIGHT * hr.PPSH_CLEAN_SIZE)
-        parts = hr.ppsh_clean_parts()
-        cls.hands = {k: hr.ppsh_screen(parts[k], hr.PPSH_CHGG_HEIGHT * hr.PPSH_CLEAN_SIZE)
-                     for k in ("left", "right")}
-        # ppsh_screen scales by the mask's own top row: rescale the hands with the whole mask's transform
-        s_, ox, oy, nw, nh = hr.ppsh_transform(mask, hr.PPSH_CHGG_HEIGHT * hr.PPSH_CLEAN_SIZE)
-        for k in ("left", "right"):
-            img = hr.Image.fromarray(parts[k][:hr.PPSH_HUD_Y].astype(np.float32), "F")
-            small = np.asarray(img.resize((nw, nh), hr.Image.Resampling.BOX)) >= hr.COVER
-            out = np.zeros_like(cls.scr)
-            ys, xs = np.nonzero(small)
-            ok = (ys + oy < out.shape[0]) & (xs + ox < out.shape[1]) & (xs + ox >= 0)
-            out[ys[ok] + oy, xs[ok] + ox] = True
-            cls.hands[k] = out
+        cls.whole = hr.ppsh_clean_mask()
+        cls.hpx = hr.PPSH_CHGG_HEIGHT * hr.PPSH_CLEAN_SIZE
+        cls.slots = hr.ppsh_slot_cells(cls.whole, cls.hpx)
 
-    def test_the_only_holes_are_the_jacket_slots(self):
+    def to_screen(self, pt):
+        _, ox, oy, nw, nh = hr.ppsh_transform(self.whole, self.hpx)
+        return ox + pt[0] * nw / self.whole.shape[1], oy + pt[1] * nh / hr.PPSH_HUD_Y
+
+    def test_the_only_enclosed_holes_are_the_slots_and_the_hand_contour(self):
         slot_px = {(y, x) for slot in self.slots for x, y in slot}
+        allowed = slot_px | set(zip(*np.nonzero(self.layers["contour"])))
         holes = set(zip(*np.nonzero(self.holes)))
-        self.assertEqual(holes, slot_px)
+        self.assertTrue(holes <= allowed, sorted(holes - allowed)[:5])
+        self.assertEqual(len(self.slots), hr.PPSH_SLOTS[2])
 
-    def test_no_hole_inside_the_hands(self):
-        for k, hand in self.hands.items():
-            self.assertTrue(hand.any(), k)
-            self.assertFalse((self.holes & hand).any(), k)
+    def test_the_left_hand_is_solid_and_in_front(self):
+        left = self.layers["left"]
+        self.assertTrue((hr.fill_holes(left) == left).all())          # no hole inside the hand
+        self.assertTrue((self.scr[left]).all())                          # drawn over the gun
+        self.assertGreater(int(self.layers["contour"].sum()), 4)        # a 1 px line between hand and gun
+        self.assertFalse((self.layers["contour"] & left).any())
 
-    def test_slots_evenly_spaced_along_the_jacket(self):
+    def test_slots_evenly_spaced_and_closed(self):
         d = np.array(hr.PPSH_BORE_D) / np.hypot(*hr.PPSH_BORE_D)
         centres = [np.mean([x * d[0] + y * d[1] for x, y in slot]) for slot in self.slots]
         gaps = np.diff(centres)
-        self.assertEqual(len(self.slots), hr.PPSH_SLOTS[2])
         self.assertLessEqual(float(gaps.max() - gaps.min()), 1.0)
-        for slot in self.slots:                                         # each one a hole in the gun, not cut open
+        for slot in self.slots:
             for x, y in slot:
                 self.assertTrue(self.holes[y, x])
 
+    def test_jacket_receiver_housing_stock_on_one_axis(self):
+        P = hr._bore()
+        parts = {p[0]: p for p in hr.PPSH_AXIS_PARTS}
+        self.assertEqual(set(parts), {"jacket", "receiver", "bolt housing", "stock"})
+        order = sorted(hr.PPSH_AXIS_PARTS, key=lambda p: p[1])
+        for prev, nxt in zip(order, order[1:]):
+            self.assertLessEqual(nxt[1], prev[2])                       # each body meets the next on the axis
+        # every body's centre line, on screen, lies on the one bore line within 1 px
+        o = np.array(self.to_screen(P(0, 0)))
+        e = np.array(self.to_screen(P(1000, 0)))
+        n = np.array([-(e - o)[1], (e - o)[0]]) / np.hypot(*(e - o))
+        for name, u0, u1, h0, h1 in hr.PPSH_AXIS_PARTS:
+            for u, h in ((u0, h0), (u1, h1)):
+                top = np.array(self.to_screen(P(u, -h)))
+                bot = np.array(self.to_screen(P(u, h)))
+                self.assertLessEqual(abs(((top + bot) / 2 - o) @ n), 1.0, name)
+
+    def test_left_fingers_cross_above_the_jackets_top_edge(self):
+        P = hr._bore()
+        u0, u1, t0, t1 = hr.PPSH_JACKET
+        ga, gb = hr.PPSH_HAND_GRIP_U
+        left = self.layers["left"]
+        above = 0
+        for u in np.linspace(ga + 10, gb - 10, 12):
+            t = t0 + (t1 - t0) * (u - u0) / (u1 - u0)
+            x, y = self.to_screen(P(u, -t))
+            col = int(round(x))
+            rows = np.flatnonzero(left[:, col])
+            if rows.size and rows[0] < y - 1:
+                above += 1
+        self.assertGreaterEqual(above, 6)
+
     def test_x16_the_chaingun_from_the_bottom(self):
         rows = np.flatnonzero(self.scr.any(1))
-        self.assertLessEqual(abs((hr.hs.VIEW_H - rows[0]) - hr.PPSH_CHGG_HEIGHT * hr.PPSH_CLEAN_SIZE), 1.5)
+        self.assertLessEqual(abs((hr.hs.VIEW_H - rows[0]) - self.hpx), 1.5)
         self.assertEqual(rows[-1], hr.hs.VIEW_H - 1)
 
 
