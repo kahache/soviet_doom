@@ -21,10 +21,9 @@ get better.
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
 | M2a | M2 | Pickups sweep + install: health, armour, area map, backpack, yellow and red keycards (113 placed on skill 3), the hand Katyusha's pickup (draft SDHPA0), fullscreen HUD icons, our pickup lines | art-director (sweep + full set; install after the CEO) | 480 | CEO, 2026-10-19 |
-| M2b | M2 | Enemy shells: the Doughboy's BAL2, the Panzermensch's BAL7 | art-director (sweep + full set) | 150 | CEO, 2026-10-19 |
-| M2c | M2 (D75) | Player projectiles and hit effects (MISL, PLSS/PLSE, PUFF, BLUD shape, TFOG), barrels and lamp | art-director (sweep + full set) | 350-400 | CEO, 2026-10-19 |
-| M2d | M2 | Practice range retexture (STARTAN2, FLOOR4_8, CEIL3_5) | level-designer | 40 | CEO, 2026-10-19 |
-| N14-P | M2 | PPSh-41 at x1.6 (D78): clean redrawn silhouette (Gemini only as a guide); then colour and fire frames | art-director | 220 | doing |
+| M2b-i | M2 | Install the enemy shells SDDL/SDPL after the CEO's OK | mod-engineer | 80 | CEO OK on `2026-10-19_2200_F5_enemy-shells.html` |
+| M2c-i | M2 | Install the player effects (SDPG, SDKR, SDPX, SDFJ/SDFX, PUFF, BLUD, TFOG/IFOG, BAR1/BEXP, COLU) after the CEO's OK | mod-engineer | 150 | CEO OK on `2026-10-19_2208_F4_player-effects.html` |
+| N14-P | M2 | PPSh-41 **test of the Gemini-frames method**: process the CEO's two Gemini frames (ready, firing) into CHGG/CHGF, mock + engine; if it works, Gemini is credited | art-director + mod-engineer | 50 | the two images saved as files |
 | N14-A | M2 | Ice axe: paused until the CEO's bare-hand Gemini reference (D77); straight-shaft silhouette done | art-director | — | CEO's image |
 | G9 | M4 | LICENSE.md and CREDITS.txt for the player: no repo-only paths, drop the unused OTEX credit (RU half at N11); ship `LICENSE-FREEDOOM-BSD-3.txt` (D75, hash pinned); the AI-reference line in the credits (D75) | mod-engineer | 40 | — |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
@@ -64,6 +63,8 @@ the Fooocus hand images, sounds and music to hear.
 | **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
+
+M2d: range retextured (d8062e4), route PASS; **real 160k** (est. 40k). M2b: enemy shells sweep + sets (0c22bf0); **real 175k** (est. 150k). M2c: player effects sweep + sets (ab03aee); **real 260k** (est. 350-400k). PPSh hand-drawn silhouettes stopped after two rounds (method change).
 
 N9w: 25 weapon sounds installed (70358e0), load pass clean (`docs/qa/evidence/2026-10-15_0117_M3_weapon-sounds-load.md`), listening pass owed; 13 of 25 are 1-6 dB under target (no saturation, per brief). **Real ~400k** (est. 250k). N14-P: PPSh-41 silhouettes; **real 26k**.
 
