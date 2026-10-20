@@ -297,6 +297,27 @@ class TestGeminiFrames(unittest.TestCase):
         self.assertLessEqual(int((band[:, col] >= 0).sum()), 8)          # a tube of the arm's 8 rows
         self.assertFalse((band[:, -1] >= 0).any())
 
+    def test_straight_sleeve_follows_the_forearm(self):
+        # D84: curve=False runs the banded tube on along the arm's own axis,
+        # as thick as it leaves, with no bend down, out through the side.
+        olive = self.near((110, 104, 50))
+        idx = np.full((60, 30), gf.TRANSPARENT, np.int32)
+        for c in range(30):                                               # a forearm falling 1 row per 3 columns
+            idx[10 + c // 3:18 + c // 3, c] = olive
+        out = gf.extend_edges(idx, 48, 6, tile=8, pal=self.pal, band=True, curve=False)
+        tops, thick = [], set()
+        for k in range(2, 49):
+            rows = np.flatnonzero(out[:, 29 + k] >= 0)
+            tops.append(int(rows[0]))
+            thick.add(len(rows))
+            self.assertEqual(int(rows[-1] - rows[0] + 1), len(rows))     # one solid run
+        self.assertEqual(thick, {8})                                      # never wider
+        slope = np.polyfit(range(len(tops)), tops, 1)[0]
+        self.assertAlmostEqual(slope, 1 / 3, delta=0.05)                  # the forearm's own direction
+        self.assertLessEqual(max(abs(np.diff(tops, 2))), 1)               # straight: no bend
+        self.assertTrue((out[:, -1] >= 0).any())                          # it leaves through the side
+        self.assertEqual(out[tops[-1], -1], out[tops[0], 29 + 2])         # its dark outline on top
+
     def test_weapons_use_the_overlays_reserved_names_and_the_states_letters(self):
         sys.path.insert(0, str(ROOT / "tools"))
         import make_draft_overlay as mdo

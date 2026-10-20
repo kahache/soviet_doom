@@ -139,6 +139,7 @@ class WeaponPair:
     flash_grow: int = 3 # rings of B-only pixels the flash grows over (its smoke)
     flash_halo: int = 0 # px round the flash whose B-only pixels go with it (split_flash)
     arm_band: bool = False  # an arm cut by the side runs on as a tube of its own thickness (extend_edges)
+    arm_curve: bool = True  # False: that tube runs on straight along the forearm's axis (the ice axe, D84)
     taper: bool = False # a flash cut by the image's side ends in a point (taper_cut; the PPSh's is as built)
     mocks: tuple[tuple[str, tuple[str, ...]], ...] = ()   # preview: (label, lumps drawn in order)
 
@@ -207,7 +208,7 @@ WEAPONS = {
         sources=(("A", GEM.format("iceaxe", "A")), ("B", GEM.format("iceaxe", "B"))),
         frames=(Frame("SDAXA0"), Frame("SDAXB0", "A", kick=(4, -6)), Frame("SDAXC0", "B"),
                 Frame("SDAXD0", "B", kick=(-5, 5))),
-        drop=(("B", 210, 215),), arm_band=True,
+        drop=(("B", 210, 215),), arm_band=True, arm_curve=False,
         mocks=(("ready (A)", ("SDAXA0",)), ("strike (C)", ("SDAXC0",)))),
 }
 
@@ -599,15 +600,16 @@ def _runs(rows: list[int], gap: int = 2) -> list[tuple[int, int]]:
 
 
 def stock_axis(idx: np.ndarray, pal: np.ndarray, sleeve_rgb, run: tuple[int, int],
-               probe: int = STOCK_PROBE) -> float:
+               probe: int = STOCK_PROBE, mats: tuple[str, ...] = (WOOD,)) -> float:
     """Rows per column the stock's centre line falls over the last `probe`
-    columns (least squares on the wood pixels near the run); 0 if unknown."""
+    columns (least squares on the wood pixels near the run); 0 if unknown.
+    With `mats` (SLEEVE, SKIN) it is the forearm's axis instead."""
     a, b = run
     h, w = idx.shape
     xs, ys = [], []
     for c in range(max(0, w - probe), w):
         rows = [r for r in range(max(0, a - 4), min(h, b + 5))
-                if idx[r, c] >= 0 and material(pal[idx[r, c]], sleeve_rgb) == WOOD]
+                if idx[r, c] >= 0 and material(pal[idx[r, c]], sleeve_rgb) in mats]
         if rows:
             xs.append(c)
             ys.append((rows[0] + rows[-1]) / 2)
@@ -621,7 +623,8 @@ def wood_ramp(base, pal: np.ndarray) -> list[int]:
 
 
 def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE,
-                 power: float = EXIT_POWER, pal: np.ndarray | None = None, band: bool = False) -> np.ndarray:
+                 power: float = EXIT_POWER, pal: np.ndarray | None = None, band: bool = False,
+                 curve: bool = True) -> np.ndarray:
     """The last row smeared `bottom` rows down; then, if the art touches its
     right side, `right` columns more, built per material (edge_materials)
     so the stock and the sleeve stay separate (the CEO, 2026-10-20: the
@@ -643,6 +646,10 @@ def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE
     rows it leaves (a dark outline under it) instead of filling everything below:
     an arm leaving through the side at mid-height (the ice axe's strike)
     would otherwise turn into a wedge in 16:9.
+    With `band` and not `curve`, that tube does not bend down: it runs on
+    straight along the forearm's own axis (stock_axis over its soft rows),
+    as thick as it leaves, until the canvas's side or bottom (the CEO, D84:
+    the ice axe's strike arm came out curved).
     No column of the art is repeated: mirroring the edge repeated skin and
     stock wood."""
     h, w = idx.shape
@@ -674,9 +681,15 @@ def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE
         top0 = soft[0]
         drop_total = hb - top0
         edges = np.cumsum(SLEEVE_BANDS)
+        straight = band and not curve
+        if straight:
+            arm_slope = stock_axis(out[:, :w], pal, sleeve_rgb, _runs(soft)[0], mats=(SLEEVE, SKIN))
         for k in range(1, right + 1):
             f = k / right
-            t = min(hb, top0 + int(round(drop_total * f ** power + SLEEVE_TAPER * f)))
+            if straight:
+                t = min(hb, max(0, top0 + int(round(arm_slope * k))))
+            else:
+                t = min(hb, top0 + int(round(drop_total * f ** power + SLEEVE_TAPER * f)))
             for a, _, slope, _ in stocks:                # behind the stock: never above it
                 if a <= top0:
                     t = max(t, min(hb, a + int(round(slope * k))))
@@ -709,13 +722,13 @@ def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE
 
 
 def arm_exits(idx: np.ndarray, length: int = ARM_EXIT, bottom: int = BOTTOM_PAD,
-              band: bool = False) -> tuple[np.ndarray, int]:
+              band: bool = False, curve: bool = True) -> tuple[np.ndarray, int]:
     """extend_edges on both sides: (canvas, columns added on the left). An
     arm cut by the left side of the image runs on leftwards the same way."""
-    out = extend_edges(idx, length, bottom, band=band)
+    out = extend_edges(idx, length, bottom, band=band, curve=curve)
     if not (idx[:, 0] >= 0).any():
         return out, 0
-    flipped = extend_edges(out[:, ::-1], length, 0, band=band)
+    flipped = extend_edges(out[:, ::-1], length, 0, band=band, curve=curve)
     return flipped[:, ::-1], length
 
 
@@ -843,7 +856,7 @@ def build(w: WeaponPair, out_dir: Path | None = None) -> dict:
             art = taper_cut(art)
         small, left = mode_resize(art, nw, nh, pal), 0
         if not f.flash:
-            small, left = arm_exits(small, band=w.arm_band)
+            small, left = arm_exits(small, band=w.arm_band, curve=w.arm_curve)
         cx, cy = x0 - left + f.kick[0], y0 + f.kick[1]   # the canvas's top-left on the screen
         canvas_grab = (-cx, WEAPONTOP - BAR_LIFT - cy)
         cuts = visible_cuts(small, canvas_grab, True) + visible_cuts(small, canvas_grab, False)
