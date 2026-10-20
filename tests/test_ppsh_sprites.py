@@ -195,10 +195,11 @@ def on_screen(name: str) -> tuple[int, int, int]:
 
 
 def credit_lines() -> tuple[list[str], list[str]]:
-    """SD_CRED_SRC_4.._6 in [enu default] and in [ru], in file order."""
-    found = re.findall(r'^\s*SD_CRED_SRC_([456])\s*=\s*"([^"]*)"\s*;', LANGUAGE.read_text(encoding="utf-8"), re.M)
-    assert [k for k, _ in found] == list("456456"), found
-    return [t for _, t in found[:3]], [t for _, t in found[3:]]
+    """The AI block, SD_CRED_AI_1.._8 (D93; SD_CRED_SRC_4.._6 until then), in
+    [enu default] and in [ru], in file order."""
+    found = re.findall(r'^\s*SD_CRED_AI_([1-8])\s*=\s*"([^"]*)"\s*;', LANGUAGE.read_text(encoding="utf-8"), re.M)
+    assert [k for k, _ in found] == list("12345678" * 2), found
+    return [t for _, t in found[:8]], [t for _, t in found[8:]]
 
 
 class BehaviourTests(unittest.TestCase):

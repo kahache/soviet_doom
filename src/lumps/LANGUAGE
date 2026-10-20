@@ -228,11 +228,24 @@ SD_CRED_H_SOURCES = "Sources";
 SD_CRED_SRC_1     = "Lenin poster after a photograph";
 SD_CRED_SRC_2     = "by Pavel Zhukov (1920),";
 SD_CRED_SRC_3     = "public domain.";
-// D75: which references were generated with AI (CREDITS.txt has the sentence);
-// D79: Google Gemini named too (the PPSh-41 frames come from its images).
-SD_CRED_SRC_4     = "Weapon hands drawn from AI images";
-SD_CRED_SRC_5     = "(Google Gemini; Fooocus / SDXL, local),";
-SD_CRED_SRC_6     = "then reworked into pixel art.";
+// The CC0 packs layered into our sounds (LICENSES.md, "Weapon sounds" and
+// "Enemy sounds"): no credit is owed, one is given (ADR 009, D-009-3).
+SD_CRED_SFX_1     = "Sound clips: CC0 packs by Kenney,";
+SD_CRED_SFX_2     = "rubberduck and Darsycho (OpenGameArt).";
+
+// D75, D79, D93: every AI tool the game was made with, and what it did; the
+// long form is CREDITS.txt's (tools/release.py, ai_disclosure). Since M2e-i
+// the sergeant's face is Gemini-derived (D89, D90) and since N9e seven
+// Chatterbox takes ship as enemy voices (D91).
+SD_CRED_H_AI      = "Made with AI";
+SD_CRED_AI_1      = "Claude (Anthropic), in Claude Code:";
+SD_CRED_AI_2      = "design, maps, code, textures, sprites,";
+SD_CRED_AI_3      = "sound, music and the Russian text.";
+SD_CRED_AI_4      = "Google Gemini: source images for the";
+SD_CRED_AI_5      = "weapons in hand and the sergeant's face.";
+SD_CRED_AI_6      = "Fooocus / SDXL (local): hand references.";
+SD_CRED_AI_7      = "Chatterbox (Resemble AI, local):";
+SD_CRED_AI_8      = "a few enemy voices.";
 
 // --- Main menu and skill screen (D31, 2026-10-13) --------------------------
 // Drawn in the menu font SDMENU (MENUDEF; docs/engine/MOD-SPEC.md 6.6), which
@@ -257,6 +270,15 @@ SD_MNU_CHOOSEEPISODE = "CHOOSE MISSION";
 // paused (zscript/sd/status_bar.zs; docs/engine/MOD-SPEC.md 6.5.1). English
 // is the pause plaque P2 packed as graphics/M_PAUSE.png (D48).
 SD_PAUSE_SIGN = "M_PAUSE";
+
+// --- Status bar labels (M2e-i, D89, 2026-10-20) ------------------------------
+// Not prose: the NAMES of the pictures SD_StatusBar draws the bar's stencilled
+// labels from (zscript/sd/status_bar.zs; docs/engine/MOD-SPEC.md 6.5.1). In
+// English they are the engine's own STBAR and STARMS, which DoomStatusBar has
+// already drawn, so SD_StatusBar draws nothing more; in Russian, status bar
+// A's Russian pictures, packed as graphics/SDSBRU.png and SDARRU.png.
+SD_SBAR_IMAGE      = "STBAR";
+SD_SBAR_ARMS_IMAGE = "STARMS";
 
 // --- Bestiary (F5, D35) ----------------------------------------------------
 // Names and death messages of the enemies; docs/engine/BESTIARY.md owns who
@@ -489,9 +511,18 @@ SD_CRED_H_SOURCES = "Источники";
 SD_CRED_SRC_1     = "Плакат с Лениным - по фотографии";
 SD_CRED_SRC_2     = "Павла Жукова (1920),";
 SD_CRED_SRC_3     = "общественное достояние.";
-SD_CRED_SRC_4     = "Кадры рук с оружием по изображениям ИИ";
-SD_CRED_SRC_5     = "(Google Gemini; Fooocus / SDXL),";
-SD_CRED_SRC_6     = "затем переработаны в пиксель-арт.";
+SD_CRED_SFX_1     = "Звуки: CC0-наборы Kenney, rubberduck";
+SD_CRED_SFX_2     = "и Darsycho (OpenGameArt).";
+
+SD_CRED_H_AI      = "Сделано с ИИ";
+SD_CRED_AI_1      = "Claude (Anthropic) в Claude Code:";
+SD_CRED_AI_2      = "проект, карты, код, текстуры, спрайты,";
+SD_CRED_AI_3      = "звук, музыка и русский текст.";
+SD_CRED_AI_4      = "Google Gemini: исходные изображения";
+SD_CRED_AI_5      = "оружия в руках и лица сержанта.";
+SD_CRED_AI_6      = "Fooocus / SDXL (локально): образцы рук.";
+SD_CRED_AI_7      = "Chatterbox (Resemble AI, локально):";
+SD_CRED_AI_8      = "несколько голосов врагов.";
 
 // --- Главное меню и экран сложности (D31, 2026-10-13) ----------------------
 // Шрифт SDMENU; кириллица в нём не меняется. ЗАГЛАВНЫЕ - строчных глифов нет.
@@ -509,6 +540,11 @@ SD_MNU_CHOOSEEPISODE = "ВЫБЕРИТЕ ЗАДАНИЕ";
 // Не текст, а ИМЯ графики: полный путь к русскому варианту таблички P2
 // «ПАУЗА» (D48). Имя с «/» движок ищет по пути файла.
 SD_PAUSE_SIGN = "localized/textures/m_pause.ru.png";
+
+// --- Надписи строки состояния (M2e-i, D89) ----------------------------------
+// Не текст, а ИМЕНА картинок русского варианта строки состояния A.
+SD_SBAR_IMAGE      = "SDSBRU";
+SD_SBAR_ARMS_IMAGE = "SDARRU";
 
 // --- Бестиарий (F5, D35) ---------------------------------------------------
 // «Каска» - русское имя Doughboy: само слово ничего не говорит русскому

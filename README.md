@@ -53,15 +53,16 @@ licence is in `docs/art/LICENSES.md`; music rights are in
   which the first-person frames of the PPSh-41, IZh-58, RPG-7, ROKS-3, hand
   Katyusha and ice axe were cut and reworked into pixel art
   (`tools/art/gemini_frames.py`, D79), and the sergeant's status-bar face
-  (42 frames, `tools/art/gemini_face.py`; approved in D90, installation
-  pending). The source images stay on the project lead's machine and are not
-  in this repository.
+  (42 frames, `tools/art/gemini_face.py`; approved in D90, in the game with
+  status bar A since M2e-i). The source images stay on the project lead's
+  machine and are not in this repository.
 - **Fooocus / SDXL, run locally.** Reference images of hands holding the
   weapons, used as references only; not distributed.
 - **Chatterbox Multilingual (Resemble AI), run locally** with the
   predefined voices of Chatterbox-TTS-Server: voice drafts for the enemies'
-  spoken lines (57 takes; seven approved in D91). None is installed yet: the
-  enemies speak with Freedoom's voices.
+  spoken lines (57 takes). The seven approved in D91 are in the game: the
+  Reich rifleman's "Kontakt!" (two takes) and the Liberty Legion trooper's
+  idle radio chatter (five takes).
 
 **Not AI**
 
@@ -143,15 +144,15 @@ python3 tools/verify.py auto  # проверить изменённое: fast (~
   вырезаны и переработаны в пиксель-арт кадры от первого лица для ППШ-41,
   ИЖ-58, РПГ-7, РОКС-3, ручной «Катюши» и ледоруба
   (`tools/art/gemini_frames.py`, D79), а также лицо сержанта в строке
-  состояния (42 кадра, `tools/art/gemini_face.py`; утверждено в D90, ещё не
-  установлено). Исходные изображения остаются на машине руководителя проекта
-  и в этот репозиторий не входят.
+  состояния (42 кадра, `tools/art/gemini_face.py`; утверждено в D90, в игре
+  вместе со строкой состояния A с M2e-i). Исходные изображения остаются на
+  машине руководителя проекта и в этот репозиторий не входят.
 - **Fooocus / SDXL, локально.** Референсные изображения рук с оружием, только
   как образец; не распространяются.
 - **Chatterbox Multilingual (Resemble AI), локально**, со стандартными
-  голосами Chatterbox-TTS-Server: черновики реплик врагов (57 дублей, семь
-  утверждены в D91). Пока ни один не установлен: враги говорят голосами
-  Freedoom.
+  голосами Chatterbox-TTS-Server: черновики реплик врагов (57 дублей). Семь
+  утверждённых в D91 вошли в игру: «Kontakt!» стрелка рейха (два дубля) и
+  радиопереговоры солдата Легиона свободы в покое (пять дублей).
 
 **Не ИИ**
 

@@ -24,6 +24,11 @@ sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 # so the two checks cannot disagree about which lumps are masked.
 from check_pk3 import MASKED_TEXTURES  # noqa: E402
 
+# The status bar lumps (M2e-i): Freedoom's names and sizes, one table.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from test_hud_install import FREEDOOM as HUD_FREEDOOM  # noqa: E402
+from test_hud_install import RUSSIAN as HUD_RUSSIAN  # noqa: E402
+
 try:
     import numpy  # noqa: F401
     from PIL import Image  # noqa: F401
@@ -221,6 +226,11 @@ class ApprovedAssetsTests(unittest.TestCase):
     SHELL_SIZES = {"TITLEPIC": (320, 200), "INTERPIC": (320, 200), "M_DOOM": (200, 64),
                    "M_SKULL1": (20, 20), "M_SKULL2": (20, 20), "M_PAUSE": (77, 20),
                    "STKEYS0": (7, 5), "STKEYS1": (7, 5), "STKEYS2": (7, 5)}
+    # M2e-i (D89, D90, D92): status bar A, the Gemini face and digits N2 under
+    # Freedoom's names and sizes, plus bar A's Russian pictures SDSBRU and
+    # SDARRU (tests/test_hud_install.py holds the set and the offsets).
+    SHELL_SIZES.update({name: (w, h) for name, (w, h, _, _) in HUD_FREEDOOM.items()})
+    SHELL_SIZES.update({ru: HUD_FREEDOOM[base][:2] for ru, base in HUD_RUSSIAN.items()})
 
     def test_layout_names_and_sizes(self):
         from PIL import Image
@@ -353,7 +363,8 @@ class ApprovedAssetsTests(unittest.TestCase):
                     any(q.read_bytes() == blob for q in WORK_ART_DIR.rglob("*.png")),
                     f"{p}: matches no file generated under work/")
                 continue
-            if len(sources) > 1 and p.relative_to(ASSETS_DIR).parts[0] == "sprites":
+            if len(sources) > 1 and (p.relative_to(ASSETS_DIR).parts[0] == "sprites"
+                                     or p.parent.name == "statusbar"):
                 # A sweep names every option as it would ship (the pickups,
                 # work/art/pickups/<object>/<A|B>/SDCLA0.png, D63): the
                 # installed lump must be byte-identical to exactly one of them.
@@ -362,6 +373,9 @@ class ApprovedAssetsTests(unittest.TestCase):
                 # work/art/weapons_2d/katyusha/), so the same bytes may sit in
                 # two pipelines; what must stay unambiguous is the option:
                 # never two siblings of one sweep (<object>/A and <object>/B).
+                # M2e-i: the status bar sweep names its options the same way
+                # (work/art/hud/bar/<A|B|C>/<en|ru>/STBAR.png, digits/<N2|N3>/,
+                # face/<A|B|C>/ and face_gemini/).
                 same = [q for q in sources if q.read_bytes() == p.read_bytes()]
                 self.assertTrue(same, f"{p.name}: matches none of {sources}")
                 self.assertEqual(len({q.parent.parent for q in same}), len(same),

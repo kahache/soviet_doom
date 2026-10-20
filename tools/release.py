@@ -457,7 +457,7 @@ CREDITS_HEADINGS = {
 # what each did. Two claims depend on what the PK3 packs, so they are read
 # from it rather than written by hand (AiShips): the sergeant's face drawn
 # from Gemini images (D89, D90) and voice lines from Chatterbox (D87, D91).
-# The in-game screen carries a short form (SD_CRED_SRC_*). The Russian is
+# The in-game screen carries a short form (SD_CRED_AI_*, D93). The Russian is
 # reviewed with the rest of the in-game text in N11.
 AI_TOOLS = ("Claude", "Anthropic", "Claude Code", "Google Gemini", "Fooocus / SDXL",
             "Chatterbox", "Resemble AI")
