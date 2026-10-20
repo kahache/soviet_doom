@@ -150,7 +150,7 @@ LINES = {
     "SD_GOT_STIMPACK": ("A field dressing.", "Перевязочный пакет."),
     "SD_GOT_MEDIKIT": ("A first-aid box.", "Аптечка."),
     "SD_GOT_HEALTHBONUS": ("Zelyonka.", "Зелёнка."),
-    "SD_GOT_ARMORBONUS": ("A steel helmet.", "Стальная каска."),
+    "SD_GOT_ARMORBONUS": ("A steel helmet.", "Стальной шлем."),
     "SD_GOT_ARMOR": ("A flak vest and a helmet.", "Бронежилет и каска."),
     "SD_GOT_MEGAARMOR": ("A steel breastplate and helmet!", "Стальной нагрудник и каска!"),
     "SD_GOT_MAP": ("A commander's map case. The whole area is on it.",

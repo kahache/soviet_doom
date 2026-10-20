@@ -1054,7 +1054,7 @@ ITEMS: tuple[Item, ...] = (
               "iodine brown sinks into the floors",
          "SD_GOT_HEALTHBONUS"),
     Item("abonus", "SDAB", "ABCD", "ArmorBonus", "BON2", "SD_ArmorBonus", "Armour bonus (+1)",
-         (Option("A", "SSh-68 steel helmet", render_abonus_a, "A steel helmet.", "Стальная каска."),
+         (Option("A", "SSh-68 steel helmet", render_abonus_a, "A steel helmet.", "Стальной шлем."),
           Option("B", "Armour plate in webbing", render_abonus_b, "An armour plate.", "Бронепластина."),
           Option("C", "Tank crew helmet (шлемофон)", render_abonus_c, "A tank crew helmet.", "Шлемофон.")),
          "A", "Doom's armour bonus is a helmet and the SSh-68 is THE Soviet helmet of 1977: its dome and flared skirt "

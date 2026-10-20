@@ -249,7 +249,7 @@ SD_CRED_AI_4      = "Google Gemini: source images for the";
 SD_CRED_AI_5      = "weapons in hand and the sergeant's face.";
 SD_CRED_AI_6      = "Fooocus / SDXL (local): hand references.";
 SD_CRED_AI_7      = "Chatterbox (Resemble AI, local):";
-SD_CRED_AI_8      = "a few enemy voices.";
+SD_CRED_AI_8      = "most enemy voices.";
 
 // --- Main menu and skill screen (D31, 2026-10-13) --------------------------
 // Drawn in the menu font SDMENU (MENUDEF; docs/engine/MOD-SPEC.md 6.6), which
@@ -367,7 +367,7 @@ PD_REDCO             = "You need a red pass to activate this object";
 SD_QUIT_01 = "Leaving your post, Sergeant?\nThe Urals will not hold themselves.\n\n(Press Y to quit.)";
 SD_QUIT_02 = "Russia is vast, but there is nowhere\nto retreat. Moscow is behind us.\n\n(Press Y to quit.)";
 SD_QUIT_03 = "The five-year plan is not fulfilled.\nNobody leaves the shift early.\n\n(Press Y to quit.)";
-SD_QUIT_04 = "The parade is in three weeks.\nWho marches if you go home?\n\n(Press Y to quit.)";
+SD_QUIT_04 = "The parade is only days away.\nWho marches if you go home?\n\n(Press Y to quit.)";
 SD_QUIT_05 = "The Fourth Reich takes no days off.\nNor does the Liberty Legion.\n\n(Press Y to quit.)";
 SD_QUIT_06 = "The canteen closes at eight.\nThe war does not.\n\n(Press Y to quit.)";
 SD_QUIT_07 = "Comrade, the Party committee\nwill want an explanation.\n\n(Press Y to quit.)";
@@ -441,7 +441,7 @@ SD_GOT_BACKPACK  = "Рюкзак десантника. Всё, что можно
 SD_GOT_STIMPACK    = "Перевязочный пакет.";
 SD_GOT_MEDIKIT     = "Аптечка.";
 SD_GOT_HEALTHBONUS = "Зелёнка.";
-SD_GOT_ARMORBONUS  = "Стальная каска.";
+SD_GOT_ARMORBONUS  = "Стальной шлем.";
 SD_GOT_ARMOR       = "Бронежилет и каска.";
 SD_GOT_MEGAARMOR   = "Стальной нагрудник и каска!";
 SD_GOT_MAP         = "Командирский планшет. На карте — вся местность.";
@@ -526,7 +526,7 @@ SD_CRED_AI_4      = "Google Gemini: исходные изображения";
 SD_CRED_AI_5      = "оружия в руках и лица сержанта.";
 SD_CRED_AI_6      = "Fooocus / SDXL (локально): образцы рук.";
 SD_CRED_AI_7      = "Chatterbox (Resemble AI, локально):";
-SD_CRED_AI_8      = "несколько голосов врагов.";
+SD_CRED_AI_8      = "большинство голосов врагов.";
 
 // --- Главное меню и экран сложности (D31, 2026-10-13) ----------------------
 // Шрифт SDMENU; кириллица в нём не меняется. ЗАГЛАВНЫЕ - строчных глифов нет.
@@ -598,7 +598,7 @@ PD_REDCO             = "Для применения нужен красный п
 SD_QUIT_01 = "Покидаете пост, сержант?\nУрал сам себя не удержит.\n\n(Нажмите Y, чтобы выйти.)";
 SD_QUIT_02 = "Велика Россия, а отступать некуда —\nпозади Москва.\n\n(Нажмите Y, чтобы выйти.)";
 SD_QUIT_03 = "Пятилетка не выполнена.\nСмену раньше времени не сдают.\n\n(Нажмите Y, чтобы выйти.)";
-SD_QUIT_04 = "До парада три недели.\nКто встанет в строй, если вы уйдёте?\n\n(Нажмите Y, чтобы выйти.)";
+SD_QUIT_04 = "До парада считанные дни.\nКто встанет в строй, если вы уйдёте?\n\n(Нажмите Y, чтобы выйти.)";
 SD_QUIT_05 = "Четвёртый рейх выходных не берёт.\nЛегион Свободы тоже.\n\n(Нажмите Y, чтобы выйти.)";
 SD_QUIT_06 = "Столовая закрывается в восемь.\nА война — нет.\n\n(Нажмите Y, чтобы выйти.)";
 SD_QUIT_07 = "Товарищ, партком\nпотребует объяснений.\n\n(Нажмите Y, чтобы выйти.)";
