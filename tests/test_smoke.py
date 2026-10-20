@@ -13,6 +13,7 @@ from __future__ import annotations
 import contextlib
 import io
 import os
+import re
 import stat
 import sys
 import tempfile
@@ -382,6 +383,45 @@ class EngineTests(unittest.TestCase):
     def test_smoke_run_passes_on_the_current_pk3(self):
         self.assertEqual(smoke.EXIT_OK, smoke.main(["--map", "MAP01", "--wait", "70"]))
 
+
+
+class LoadReporterTests(unittest.TestCase):
+    """QA-G6-2: the map-start line goes to the console and log, not the HUD.
+
+    src/zscript/sd/load_reporter.zs prints "SOVIETDOOM loaded: map ..." at
+    every map start; the gate reviews quote it from the engine log
+    (docs/qa/GATE-REVIEWS.md). A plain Console.Printf is PRINT_HIGH, which
+    GZDoom also copies to the HUD's notify area, so a player saw an English
+    tooling line at each map start. PRINT_NONOTIFY keeps it out of the
+    notify buffer (gzdoom.pk3:zscript/engine/base.zs, EPrintLevel, g4.14.2).
+    """
+
+    ZS = PROJECT_ROOT / "src" / "zscript" / "sd" / "load_reporter.zs"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.code = "\n".join(line.split("//", 1)[0]
+                             for line in cls.ZS.read_text(encoding="utf-8").splitlines())
+
+    def test_no_plain_printf_reaches_the_hud(self):
+        self.assertNotRegex(self.code, r"Console\.Printf\s*\(")
+        self.assertNotRegex(self.code, r"\bA_(Print|Log)\w*\s*\(")
+
+    def test_the_line_is_printed_without_notify(self):
+        level = re.search(r"const\s+REPORT_PRINT_LEVEL\s*=\s*([^;]+);", self.code)
+        self.assertIsNotNone(level, "the print level must be a named constant")
+        flags = {flag.strip() for flag in level.group(1).split("|")}
+        self.assertIn("PRINT_NONOTIFY", flags, "without it the line is drawn on the HUD")
+        self.assertNotIn("PRINT_NOLOG", flags, "the log must keep the line")
+        self.assertNotIn("PRINT_LOG", flags, "PRINT_LOG hides it from the console too")
+        self.assertRegex(self.code, r'Console\.PrintfEx\s*\(\s*REPORT_PRINT_LEVEL\s*,\s*'
+                                    r'"SOVIETDOOM loaded: map %s \(%s\)"')
+
+    def test_the_log_sample_still_carries_the_line(self):
+        # The wording is what the gate evidence quotes; the clean-log sample
+        # above must keep passing with it.
+        self.assertIn("SOVIETDOOM loaded: map MAP01 (SD: Test Range)", GOOD_LOG)
+        self.assertEqual([], smoke.scan_log(GOOD_LOG).failures)
 
 if __name__ == "__main__":
     unittest.main()

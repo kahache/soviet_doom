@@ -316,8 +316,12 @@ class LanguageMenuTest(unittest.TestCase):
         cls.menudef = "\n".join(strip_comment(line) for line in raw.splitlines())
 
     def test_the_option_drives_the_engine_language_cvar(self):
+        # SDLanguageOption = OptionMenuItemSDLanguageOption, the engine's
+        # Option row that names "eng"/"enu"/"rus" instead of "Unknown"
+        # (QA-G6-1); LanguageRowTest below pins what it may do.
         self.assertRegex(
-            self.menudef, r'Option\s+"\$SD_OPTMNU_LANGUAGE",\s*"language"',
+            self.menudef,
+            r'(?m)^\s*SDLanguageOption\s+"\$SD_OPTMNU_LANGUAGE",\s*"language",\s*"SD_LanguageValues"',
             "the language row must drive GZDoom's own archived `language` CVar, "
             "so the choice persists without the mod writing a CVar of its own")
 
@@ -365,8 +369,9 @@ class LanguageMenuTest(unittest.TestCase):
         MenuEvent (src/common/menu/menu.cpp). A CVar write from Init, Ticker
         or Drawer aborts the VM with "Attempt to change CVAR 'language'
         outside of menu code" and drops the player to the console -- both
-        were reproduced in-engine on 2026-10-13. The menu is pure MENUDEF so
-        that there is nothing left that can abort.
+        were reproduced in-engine on 2026-10-13. The only menu code is the
+        language row's class, which READS the CVar (LanguageRowTest); every
+        write is the engine's own, from MenuEvent.
         """
         self.assertFalse(
             (SRC / "zscript" / "sd" / "language.zs").exists(),
@@ -383,6 +388,99 @@ class LanguageMenuTest(unittest.TestCase):
                          "ZScript writes a CVar; see ADR 004 before allowing it:\n  "
                          + "\n  ".join(offenders))
 
+
+
+class LanguageRowTest(unittest.TestCase):
+    """Bug QA-G6-1: the Language row read "Unknown" for "eng", "enu", "rus".
+
+    The engine's Option row draws "Unknown" when the CVar's value is not in
+    the list (gzdoom.pk3:zscript/engine/ui/menu/optionmenuitems.zs,
+    OptionMenuItemOptionBase.Draw). src/zscript/sd/language_option.zs maps
+    every other spelling onto the list entry of the language the mod's text
+    is actually shown in, and may only READ the CVar (ADR 004, D-004-4).
+    """
+
+    ZS = SRC / "zscript" / "sd" / "language_option.zs"
+    CLASS = "OptionMenuItemSDLanguageOption"
+
+    # What the row must show for each value the `language` CVar can hold.
+    # The mod ships [enu default] and [ru] only, so every code that is not
+    # auto and not Russian reads the default (English) section. "default" is
+    # GZDoom's own "English (US)" (gzdoom.pk3:menudef.txt, LanguageOptions).
+    # "" shows Automatic (the PM's call for QA-G6-1); what the engine does
+    # with an empty `language` is NOT VERIFIED, and no menu writes it.
+    EXPECTED = {
+        "auto": "auto", "AUTO": "auto",
+        "default": "default", "enu": "default", "eng": "default",
+        "en": "default", "EN": "default", "fr": "default", "": "auto",
+        "ru": "ru", "RU": "ru", "rus": "ru",
+    }
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        raw = cls.ZS.read_text(encoding="utf-8")
+        cls.code = "\n".join(strip_comment(line) for line in raw.splitlines())
+        menudef = (SRC / "lumps" / "MENUDEF").read_text(encoding="utf-8")
+        menudef = "\n".join(strip_comment(line) for line in menudef.splitlines())
+        values = re.search(r'OptionString\s+"SD_LanguageValues"\s*\{(.*?)\}', menudef, re.DOTALL)
+        cls.offered = re.findall(r'"([^"]*)",\s*"\$', values.group(1))
+        cls.consts = dict(re.findall(r'const\s+(VALUE_\w+)\s*=\s*"([^"]*)"\s*;', cls.code))
+
+    @staticmethod
+    def reference(value: str) -> str:
+        """Python twin of ListEntryFor; the source checks below tie them."""
+        if value == "" or value.lower() == "auto":
+            return "auto"
+        if value[:2].lower() == "ru":
+            return "ru"
+        return "default"
+
+    def function_body(self, name: str) -> str:
+        match = re.search(r"\b" + name + r"\s*\([^)]*\)\s*\{(.*?)\n\t\}", self.code, re.DOTALL)
+        self.assertIsNotNone(match, f"{name} not found in {self.ZS.name}")
+        return match.group(1)
+
+    def test_the_class_extends_the_engines_option_row(self):
+        self.assertRegex(self.code, r"\bclass\s+" + self.CLASS + r"\s*:\s*OptionMenuItemOption\b")
+
+    def test_the_file_is_included_once(self):
+        entry = (SRC / "lumps" / "zscript.txt").read_text(encoding="utf-8")
+        self.assertEqual(len(re.findall(r'^#include\s+"zscript/sd/language_option\.zs"', entry, re.M)), 1)
+
+    def test_it_overrides_only_the_reading_of_the_cvar(self):
+        # SetSelection and MenuEvent are where the CVar is written; they stay
+        # the engine's so the write happens during input handling only.
+        self.assertEqual(re.findall(r"\boverride\s+\w+\s+(\w+)\s*\(", self.code), ["GetSelection"])
+        self.assertNotRegex(self.code, r"\.Set(String|Int|Float|Bool)\s*\(")
+
+    def test_its_constants_are_the_menudef_entries(self):
+        self.assertEqual(self.offered, ["auto", "default", "ru"])
+        self.assertEqual(self.consts, {"VALUE_AUTO": "auto", "VALUE_ENGLISH": "default",
+                                       "VALUE_RUSSIAN": "ru"})
+
+    def test_every_plausible_value_names_a_listed_language(self):
+        for value, entry in self.EXPECTED.items():
+            with self.subTest(value=value):
+                self.assertEqual(self.reference(value), entry)
+                self.assertIn(entry, self.offered)
+
+    def test_the_zscript_rule_is_the_reference_rule(self):
+        body = self.function_body("ListEntryFor")
+        steps = [r"value\.Length\(\)\s*==\s*0\s*\|\|\s*value\s*~==\s*VALUE_AUTO",
+                 r"return\s+VALUE_AUTO\s*;",
+                 r"value\.Left\(2\)\s*~==\s*VALUE_RUSSIAN",
+                 r"return\s+VALUE_RUSSIAN\s*;",
+                 r"return\s+VALUE_ENGLISH\s*;\s*$"]
+        position = 0
+        for step in steps:
+            match = re.compile(step).search(body, position)
+            self.assertIsNotNone(match, f"ListEntryFor lost the step /{step}/ or its order")
+            position = match.end()
+
+    def test_get_selection_keeps_exact_matches_and_maps_the_rest(self):
+        body = self.function_body("GetSelection")
+        self.assertRegex(body, r"Super\.GetSelection\(\)", "an exact entry must still win")
+        self.assertRegex(body, r"ListEntryFor\(\s*mCVar\.GetString\(\)\s*\)")
 
 class MainMenuLogoTest(unittest.TestCase):
     """The menu's M_DOOM must land on the lockup painted into TITLEPIC.
