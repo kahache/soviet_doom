@@ -1,4 +1,4 @@
-"""First-person weapon frames from a pair of Gemini pixel-art images (a TEST).
+"""First-person weapon frames from a pair of Gemini pixel-art images.
 
     python tools/art/gemini_frames.py ppsh            # the PPSh-41 pair, draft frames + preview
     python tools/art/gemini_frames.py ppsh --no-preview
@@ -9,9 +9,10 @@ _B.jpg (firing, with a muzzle flash). They are gitignored and stay there; this
 tool writes its frames under work/art/weapons/hand_G/<weapon>/ (gitignored),
 where tools/make_draft_overlay.py picks them up with `--hand G --item <weapon>`.
 
-NOTE D78 (2026-10-19): Gemini is inspiration only and no Gemini pixel goes
-into a shipped frame. These frames ARE Gemini pixels: they are an engine
-look for the CEO's decision on the method, never an install.
+D79 (2026-10-20): the method is adopted (D78 superseded) and Google Gemini
+is credited. The frames are installed by copying them, grAb included, into
+assets/sprites/<weapon>/ (the PPSh-41 first: tests/test_ppsh_sprites.py);
+the source images never leave work/ (D77).
 
 The pipeline, every step a pure function on arrays (tests/test_gemini_frames.py):
   1. crop_letterbox   - drop the black bars (columns/rows with nothing bright)
@@ -25,8 +26,15 @@ The pipeline, every step a pure function on arrays (tests/test_gemini_frames.py)
                         from the ready frame shifted by the measured recoil
   7. mode_resize      - to Doom size: the gun's top TARGET px above the status
                         bar (x1.6 Freedoom's CHGGA0 = 56), 1.2 pixel aspect
-  8. extend_edges     - right and bottom edges smeared outward so weapon bob
-                        and full-screen view never show a cut edge
+  8. extend_edges     - every arm leaves the view cleanly: where the art is
+                        cut by the image's side, the arm runs on past the
+                        widest view plus the bob (texture mirrored from its
+                        last columns, no one-column streaks) and curves down
+                        out of the canvas before its end, so no box edge is
+                        ever on screen above the bar; the bottom row is
+                        smeared under the bar
+  9. KICK             - the firing frame (and its flash) sit a few px up and
+                        right: the recoil Gemini's pair does not draw
 """
 from __future__ import annotations
 
@@ -48,7 +56,7 @@ import palette  # noqa: E402
 ROOT = artlib.PROJECT_ROOT
 REF_DIR = ROOT / "work" / "art" / "reference"
 OUT_ROOT = ROOT / "work" / "art" / "weapons" / "hand_G"
-PREVIEW_DIR = ROOT / "docs" / "art" / "previews"
+PREVIEW_DIR = OUT_ROOT / "preview"   # Gemini-derived sheets stay local with the frames (D77)
 TT33_READY = ROOT / "assets" / "sprites" / "tt33" / "SDTTA0.png"
 
 SCREEN_W, SCREEN_H = 320, 200
@@ -56,7 +64,13 @@ VIEW_H = 168                    # above the status bar
 WEAPONTOP, BAR_LIFT = 32, 16    # hand_study's psprite model
 PIXEL_ASPECT = 1.2              # Doom's 320x200 is shown at 4:3: Gemini's square pixels get squashed
 BELOW_BAR = 20                  # px of arm kept under the bar (full-screen view is 16 px lower)
-BOB_PAD = 16                    # px the right edge is smeared outward (Doom's horizontal bob)
+BOB_X = 16                      # Doom's horizontal weapon bob, px either way
+WIDE_MARGIN = 54                # 16:9: the view is 200*1.2*16/9 = 427 px wide, 54 past 320 each side
+ARM_EXIT = 112                  # px an arm cut by the image side runs on (> WIDE_MARGIN + BOB_X)
+EDGE_TILE = 12                  # its texture: the last columns, mirrored back and forth
+EXIT_POWER = 3                  # the curve down: drop ~ (k/ARM_EXIT)**3, nearly straight in 4:3
+BOTTOM_PAD = 16                 # rows the bottom edge is smeared down (under the bar)
+KICK = (2, -3)                  # the firing frame's recoil on screen: 2 px right, 3 px up
 CHGG_HEIGHT_FALLBACK = 35       # hand_ref.PPSH_CHGG_HEIGHT, if hand_ref will not import
 HEIGHT_MULT = 1.6               # the CEO's PPSh choice (D78): x1.6 of CHGGA0 above the bar
 TRANSPARENT = -1
@@ -69,6 +83,7 @@ class WeaponPair:
     gun: str            # our held sprite (MOD-SPEC 6.3)
     flash: str          # our flash sprite
     height_mult: float = HEIGHT_MULT
+    folder: str = ""    # assets/sprites/<folder>/ once installed (defaults to name)
 
 
 WEAPONS = {"ppsh": WeaponPair("ppsh", "SDPP", "SDPF")}
@@ -292,14 +307,56 @@ def split_flash(a: np.ndarray, b: np.ndarray, pal: np.ndarray) -> tuple[np.ndarr
 
 
 # ------------------------------------------------------------ 8. edges
-def extend_edges(idx: np.ndarray, right: int, bottom: int) -> np.ndarray:
-    """Smear the last column right and the last row down, where opaque."""
+def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE,
+                 power: float = EXIT_POWER) -> np.ndarray:
+    """The last row smeared `bottom` rows down; then, if the art touches its
+    right side, `right` columns more: the last `tile` columns mirrored back
+    and forth (the sleeve's texture runs on, no one-column streaks), each
+    new column k dropped by round(D * (k/right)**power) rows, D the strip's
+    height down to the canvas bottom, so the arm curves down and has left
+    the canvas by the last column (which is always empty)."""
     h, w = idx.shape
-    out = np.full((h + bottom, w + right), TRANSPARENT, np.int32)
+    hb = h + bottom
+    out = np.full((hb, w + right), TRANSPARENT, np.int32)
     out[:h, :w] = idx
-    out[:h, w:] = idx[:, w - 1:w]
-    out[h:, :] = out[h - 1:h, :]
+    out[h:, :w] = idx[h - 1:h, :]
+    if right <= 0 or not (idx[:, w - 1] >= 0).any():
+        return out
+    tile = max(1, min(tile, w))
+    strip = out[:, w - tile:w]
+    drop_total = hb - int(np.flatnonzero((strip >= 0).any(axis=1))[0])
+    for k in range(1, right + 1):
+        m = (k - 1) % (2 * tile)                      # w-1, ..., w-tile, w-tile, ..., w-1, ...
+        col = out[:, w - 1 - m if m < tile else w - 2 * tile + m]
+        d = min(hb, int(round(drop_total * (k / right) ** power)))
+        out[d:, w - 1 + k] = col[:hb - d]
     return out
+
+
+def arm_exits(idx: np.ndarray, length: int = ARM_EXIT, bottom: int = BOTTOM_PAD) -> tuple[np.ndarray, int]:
+    """extend_edges on both sides: (canvas, columns added on the left). An
+    arm cut by the left side of the image runs on leftwards the same way."""
+    out = extend_edges(idx, length, bottom)
+    if not (idx[:, 0] >= 0).any():
+        return out, 0
+    flipped = extend_edges(out[:, ::-1], length, 0)
+    return flipped[:, ::-1], length
+
+
+def visible_cuts(sub: np.ndarray, grab: tuple[int, int], bar_on: bool = True,
+                 margin: int = WIDE_MARGIN + BOB_X) -> int:
+    """Opaque pixels on the sprite's left, right or bottom border that some
+    view could show: above the status bar (or above the screen bottom with
+    the bar off, BAR_LIFT lower), within `margin` px of the 320-px screen
+    at any horizontal bob. Doom's vertical bob only lowers the weapon. 0 is
+    a clean exit."""
+    x0, y0 = -grab[0], WEAPONTOP - grab[1] - (BAR_LIFT if bar_on else 0)
+    floor = VIEW_H if bar_on else SCREEN_H
+    h, w = sub.shape
+    ys, xs = np.nonzero(sub >= 0)
+    border = (xs == 0) | (xs == w - 1) | (ys == h - 1)
+    sx, sy = x0 + xs[border], y0 + ys[border]
+    return int(((sy < floor) & (sx >= -margin) & (sx < SCREEN_W + margin)).sum())
 
 
 # --------------------------------------------------------------- output
@@ -337,9 +394,12 @@ def chgg_height() -> int:
         return CHGG_HEIGHT_FALLBACK
 
 
-def check_prefixes(*names: str) -> None:
-    """Our names must not be installed already nor be IWAD sprites."""
-    installed = {p.stem[:4].upper() for p in (ROOT / "assets" / "sprites").rglob("*.png")}
+def check_prefixes(*names: str, own: str = "") -> None:
+    """Our names must not be IWAD sprites nor installed by anything else
+    (assets/sprites/<own>/ is this weapon's install: rebuilding is fine)."""
+    sprites = ROOT / "assets" / "sprites"
+    installed = {p.stem[:4].upper() for p in sprites.rglob("*.png")
+                 if not (own and p.parent == sprites / own)}
     clash = [n for n in names if n in installed]
     iwad = ROOT / "iwads" / "freedoom2.wad"
     if iwad.is_file():
@@ -361,7 +421,7 @@ def load_art(path: Path, pal: np.ndarray) -> tuple[np.ndarray, float]:
 def build(w: WeaponPair, out_dir: Path | None = None) -> dict:
     pal = palette_rgb()
     out_dir = out_dir or OUT_ROOT / w.name
-    check_prefixes(w.gun, w.flash)
+    check_prefixes(w.gun, w.flash, own=w.folder or w.name)
     a, pa = load_art(REF_DIR / f"gemini_{w.name}_A.jpg", pal)
     b, pb = load_art(REF_DIR / f"gemini_{w.name}_B.jpg", pal)
     hh, ww = min(a.shape[0], b.shape[0]), min(a.shape[1], b.shape[1])
@@ -376,14 +436,16 @@ def build(w: WeaponPair, out_dir: Path | None = None) -> dict:
     y0 = VIEW_H - target - round(top * sy)       # screen row of the canvas top
     x0 = SCREEN_W - nw                           # the canvas's right edge on the screen's
     frames = {}
-    for lump, art, pad in ((f"{w.gun}A0", a, True), (f"{w.gun}B0", clean, True), (f"{w.flash}A0", flash, False)):
-        small = mode_resize(art, nw, nh, pal)
+    still = (0, 0)
+    for lump, art, pad, (kx, ky) in ((f"{w.gun}A0", a, True, still), (f"{w.gun}B0", clean, True, KICK),
+                                     (f"{w.flash}A0", flash, False, KICK)):
+        small, left = mode_resize(art, nw, nh, pal), 0
         if pad:
-            small = extend_edges(small, BOB_PAD, 16)
-        sub, grab = crop_with_grab(small, x0, y0)
+            small, left = arm_exits(small)
+        sub, grab = crop_with_grab(small, x0 - left + kx, y0 + ky)
         rgba = to_rgba(sub, pal)
         frames[lump] = {"rgba": rgba, "grab": grab, "path": save_sprite(rgba, grab, out_dir / f"{lump}.png")}
-    return {"frames": frames, "period": (pa, pb), "recoil": recoil, "target": target,
+    return {"frames": frames, "period": (pa, pb), "recoil": recoil, "kick": KICK, "target": target,
             "scale": (round(sx, 3), round(sy, 3)), "out_dir": out_dir}
 
 
@@ -407,7 +469,7 @@ def preview(w: WeaponPair, res: dict, stamp: str) -> Path:
     sheet = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(sheet)
     f = hs.font(16)
-    title = (f"{w.name} from Gemini A/B (TEST, D78: not installable) - art pixel {res['period'][0]:.2f}/"
+    title = (f"{w.name} from Gemini A/B (D79) - art pixel {res['period'][0]:.2f}/"
              f"{res['period'][1]:.2f} src px, recoil {res['recoil']} art px, target {res['target']} px above the bar")
     d.rectangle((0, 0, W, 30), fill=hs.SHEET_BG + (255,))
     d.text((pad, 6), title, font=f, fill=hs.INK)
@@ -426,7 +488,8 @@ def preview(w: WeaponPair, res: dict, stamp: str) -> Path:
         d.text((mx + 4, y + 2), f"{name}: {m['height']} px above the bar, {m['area_pct']} % of view",
                font=f, fill=hs.INK)
         sheet.paste(Image.fromarray(img).resize((640, 400), Image.Resampling.NEAREST), (mx, y + lab))
-    out = PREVIEW_DIR / f"{stamp}_F4_{w.name}-gemini-test.png"
+    PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
+    out = PREVIEW_DIR / f"{stamp}_F4_{w.name}-gemini-frames.png"
     sheet.save(out, optimize=True)
     return out
 

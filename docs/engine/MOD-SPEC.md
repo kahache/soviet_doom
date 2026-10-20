@@ -120,6 +120,13 @@ hand, installed by N17"). Until now only the draft overlay showed them.
 The first lumps of the PK3 derived from Freedoom's art (BSD 3-clause,
 `docs/art/LICENSES.md`). **NOT YET SEEN IN THE ENGINE from the PK3**
 (D26); the same files were seen through the overlay on 2026-10-14.
+**D79, 2026-10-20: the PPSh-41 is ours in hand.** Its held frames `SDPP`
+A–B and its flash `SDPF` A, built by `tools/art/gemini_frames.py` from the
+CEO's Google Gemini pair (the method adopted by D79), are packed from
+`assets/sprites/ppsh/`; every `SD_Ppsh` state names `SDPP`/`SDPF` instead
+of `CHGG`/`CHGF`, not one tic changed (§5.1, §6.3, "The PPSh-41 in hand,
+installed by D79"). **NOT YET SEEN IN THE ENGINE from the PK3** (D26); the
+uncorrected test frames were seen through the overlay on 2026-10-19.
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -866,6 +873,12 @@ now (§6.3, "The TT-33 in hand, installed by N17"). Doom's own `Pistol`
 keeps Freedoom's `PISG`/`PISF`, but ours `replaces Pistol`, so the player
 never holds it; no other class of ours named either.
 
+**Retired 2026-10-20 (D79):** `CHGG` and `CHGF`, the PPSh-41's held and
+flash placeholders. Every `SD_Ppsh` state names our `SDPP` and `SDPF` now
+(§6.3, "The PPSh-41 in hand, installed by D79"). Doom's own `Chaingun`
+keeps Freedoom's `CHGG`/`CHGF`, but ours `replaces Chaingun`, so the
+player never holds it; no other class of ours named either.
+
 **Retired 2026-10-14 (D63):** `PMAP`, the radio's placeholder (the computer
 area map's pickup picture). `SD_Radio`'s `Spawn` state names our `SDRD` now
 (§6.3, "The pickups, installed by D63"). Doom's own `Allmap` keeps
@@ -881,8 +894,6 @@ Doom's classes); since D63 each of those classes names its own sprite.
 | `PUNG` | sprite | `SD_IceAxe` (held) | engine pass F4, 2026-10-12 (as `SD_Shovel`) |
 | `SHTG` | sprite | `SD_Izh` (held) | idem |
 | `SHTF` | sprite | `SD_Izh` (flash) | idem |
-| `CHGG` | sprite | `SD_Ppsh` (held) | idem |
-| `CHGF` | sprite | `SD_Ppsh` (flash) | idem |
 | `MISG` | sprite | `SD_Rpg7` (held) | idem |
 | `MISF` | sprite | `SD_Rpg7` (flash) | idem |
 | `MISL` | sprite | `SD_Pg7Grenade`, `SD_KatyushaRocket` (the burst of `SD_GeneralShell` until D73) | idem |
@@ -1255,7 +1266,7 @@ Only the sprite name changed: frame letter, tics and every other state line
 are as before, held by `tests/test_weapon_sprites.py` against the state
 machines as they stood before D48. Not installed by D48: every held and
 flash frame (`SDAX`, `SDTT`/`SDTF`, `SDIZ`/`SDIF`, `SDPP`/`SDPF`,
-`SDRL`/`SDRF`, `SDRK`/`SDKF`; the TT-33's followed with N17, below), the hand Katyusha (`SDHK`/`SDHF`/`SDHP`, to be redrawn,
+`SDRL`/`SDRF`, `SDRK`/`SDKF`; the TT-33's followed with N17 and the PPSh-41's with D79, below), the hand Katyusha (`SDHK`/`SDHF`/`SDHP`, to be redrawn,
 D48), the RPG-7's `_proposed` reload frames (`SDRL` C-D) and the
 projectiles. Licence rows: `docs/art/LICENSES.md`, "Weapon pickups".
 
@@ -1294,6 +1305,49 @@ The draft overlay records `PISG` → `SDTT` and `PISF` → `SDTF` as installed
 (§6.9). Licence rows, and what Freedoom's BSD licence asks of a release:
 `docs/art/LICENSES.md`, "Weapon frames: the TT-33 in hand". **NOT VERIFIED
 in the engine from the PK3** (D26): the PM's pass.
+
+**The PPSh-41 in hand, installed by D79 (2026-10-20).** The CEO generated
+two images with Google Gemini (bare hands holding the PPSh-41 on flat
+magenta: ready, and firing with a muzzle flash); they stay in
+`work/art/reference/` and never ship (D77). `tools/art/gemini_frames.py
+ppsh` turns them into pixel art (letterbox crop, magenta key, art-grid
+downsample, palette v2, the flash cut out of the firing image, Doom size at
+x1.6 Freedoom's `CHGGA0` above the bar and Doom's 1.2 pixel aspect) into
+`work/art/weapons/hand_G/ppsh/`, with the two fixes D79 asked for after the
+engine look of 2026-10-19: (1) **the arms leave the view cleanly**: where
+the art is cut by the image's side (the right forearm), it runs on 112 px
+past the screen's right edge, its texture mirrored from its last 12
+columns (no one-column streaks), dropping as (k/112)³ so it is almost
+straight within 4:3 and has curved down out of the canvas before its end:
+no opaque pixel on a sprite border shows above the status bar (or the
+screen bottom, bar off) within a 16:9 view (54 px past each side of 320)
+plus the 16-px horizontal bob (`visible_cuts`); the bottom row is smeared
+16 rows under the bar; (2) **recoil**: the firing frame and its flash sit
+2 px right and 3 px up (`KICK`, through their `grAb`), so the flash stays
+on the fired muzzle. Three lumps ship in `assets/sprites/ppsh/`, beside the
+pickup `SDPQA0`, byte-identical to the build (a fresh build reproduces
+them byte for byte where the sources exist). RGBA with hard alpha, all
+three in palette v2; neither the zs nor anything else moves a weapon
+sprite in code.
+
+| Lump | State | Size | `grAb` (left, top) | Above the status bar |
+|---|---|---|---|---|
+| `SDPPA0` | `Ready`, `Select`, `Deselect`; `Fire`'s first round | 279 × 92 | −152, −96 | 56 px (x1.6 Freedoom's `CHGGA0`, 35) |
+| `SDPPB0` | `Fire`'s second round and `A_ReFire` (the kick) | 279 × 92 | −154, −93 | 59 px |
+| `SDPFA0` | `Flash` (`Bright`, `A_Light1`), on `SDPPB0`'s muzzle | 35 × 35 | −144, −81 | 71 px |
+
+Only the four-letter names changed, `CHGG` → `SDPP` and `CHGF` → `SDPF`:
+frame letters, tics, actions and flow are as they were, held by
+`tests/test_ppsh_sprites.py` against the state machine as it stood at HEAD
+c3aad1f, before D79 (and by `tests/test_weapon_sprites.py`). `SDPF` B,
+reserved above, is not drawn: the `Flash` state has one frame, which
+`A_GunFlash` starts on both rounds, so on round A (unkicked) the flash sits
+2 px left and 3 px down of where it sits on B's muzzle. The draft overlay
+records `CHGG` → `SDPP` and `CHGF` → `SDPF` as installed (§6.9). Licence
+rows: `docs/art/LICENSES.md`, "Weapon frames: the PPSh-41 in hand"; the
+credits name Google Gemini (`SD_CRED_SRC_4`–`_6`, `tools/release.py`
+`AI_DISCLOSURE`). **NOT VERIFIED in the engine from the PK3** (D26): the
+PM's pass.
 
 **The bestiary (F5).** Reserved names, the frames the art must provide, and
 the Freedoom placeholder each class wears today (declared in §5.1). The
@@ -2020,13 +2074,14 @@ draft for each of those frames, byte for byte (so the `grAb` offsets travel),
 to `sprites/<PLACEHOLDER><frame><rotation>.png`: `SDIZA0` → `SHTGA0`
 (and `SDTTA0` → `PISGA0` until N17),
 `SDRRA1` → `POSSA1` until D55, and so on through the pairs of §6.3. A draft no state
-shows is not packed (today `SDAXE0`, `SDPFB0`, `SDKFB0`, the `_proposed`
+shows is not packed (today `SDAXE0`, `SDKFB0`, the `_proposed`
 frames and the Katyusha's `variants/`); a frame with no draft keeps the
 IWAD's. The 2026-10-13 overlay was 107 sprite lumps: 37 weapon frames (all
 seven weapons, hand E, pickups included) and the rifleman's 70. Since D48
 it was 101: 31 weapon frames (held and flash of the seven, the Katyusha's
 pickup) and the rifleman's 70. Since D55 it was the 31 weapon frames;
-since N17 it is 27 (the TT-33's four ship).
+since N17 it was 27 (the TT-33's four ship); since D79 it is 24 (the
+PPSh-41's three ship).
 
 **Sprite resolution across files** (why a partial frame is refused):
 
@@ -2096,7 +2151,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 
 | # | Debt | Pay it in |
 |---|---|---|
-| T1 | Every weapon sprite and sound is a Freedoom placeholder (§6.2, §6.3). **Partly paid 2026-10-14 (D48):** the six world pickups are ours (§6.3, "Installed since D48"). **N17 (2026-10-15):** the TT-33's held and flash frames are ours (§6.3, "The TT-33 in hand, installed by N17"). Open: every other held and flash frame (the hands are being redrawn), the hand Katyusha whole, the projectiles, and every weapon sound. | F4, once `art-director` redraws the hands and `sound-designer`'s sounds pass the CEO |
+| T1 | Every weapon sprite and sound is a Freedoom placeholder (§6.2, §6.3). **Partly paid 2026-10-14 (D48):** the six world pickups are ours (§6.3, "Installed since D48"). **N17 (2026-10-15):** the TT-33's held and flash frames are ours (§6.3, "The TT-33 in hand, installed by N17"). **D79 (2026-10-20):** the PPSh-41's too (§6.3, "The PPSh-41 in hand, installed by D79"). Open: every other held and flash frame (the hands are being redrawn), the hand Katyusha whole, the projectiles, and every weapon sound. | F4, once `art-director` redraws the hands and `sound-designer`'s sounds pass the CEO |
 | ~~T2~~ | ~~Ammo pickups still read as Freedoom items.~~ **Paid 2026-10-13** (commit `720acd1`): §6.4. |  |
 | T3 | `Player.DisplayName` is a plain English literal, not a `LANGUAGE` lookup — unverified whether that property resolves `$IDs`. | F5 |
 | T4 | Freedoom's `Chainsaw` and `SuperShotgun` classes still exist; only their editor numbers were removed. | F6, if it ever matters |

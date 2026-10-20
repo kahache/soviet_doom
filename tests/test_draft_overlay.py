@@ -32,11 +32,13 @@ What is checked, and why:
              TROO -> SDHS, BAL1 -> SDBL) are in no swap, and a swap naming
              one would be skipped; the TT-33's held and flash frames,
              installed by N17 (INSTALLED_WEAPON_FRAMES: PISG -> SDTT,
-             PISF -> SDTF), likewise
-  real       (skips without work/art) today's drafts plan 27 lumps: the
-             weapon frames (held and flash of six weapons, the Katyusha's
-             pickup); the TT-33's 4 left with N17 (31 until then), the
-             rifleman's 70 with D55 (101 until then)
+             PISF -> SDTF), and the PPSh-41's by D79 (CHGG -> SDPP,
+             CHGF -> SDPF), likewise
+  real       (skips without work/art) today's drafts plan 24 lumps: the
+             weapon frames (held and flash of five weapons, the Katyusha's
+             pickup); the PPSh-41's 3 left with D79 (27 until then), the
+             TT-33's 4 with N17 (31 until then), the rifleman's 70 with
+             D55 (101 until then)
 
 Stdlib only: the tool copies bytes and reads PNG chunks with struct.
 """
@@ -422,18 +424,19 @@ class HandTests(unittest.TestCase):
         self.assertTrue(all(h.startswith("B") for h in plan.hands.values()))
 
     def test_one_item_with_its_own_hand(self):
-        """--hand G --item ppsh: only the PPSh, from hand_G/ppsh/ (the Gemini
-        test frames), and the other weapons' missing hand G is no error."""
+        """--hand G --item izh: only the IZh, from hand_G/izh/ (a weapon's
+        Gemini frames, as the PPSh's were before D79 installed them), and
+        the other weapons' missing hand G is no error."""
         weapons, rig = make_drafts(self.root, hand_record="E")
-        alt = weapons / "hand_G" / "ppsh"
+        alt = weapons / "hand_G" / "izh"
         alt.mkdir(parents=True)
-        for f in (weapons / "ppsh").glob("SD*.png"):
+        for f in (weapons / "izh").glob("SD*.png"):
             (alt / f.name).write_bytes(png((77, 77)))
-        plan = mdo.plan_overlay("weapons", "G", weapons, rig, item="ppsh")
+        plan = mdo.plan_overlay("weapons", "G", weapons, rig, item="izh")
         self.assertTrue(plan.entries)
-        self.assertTrue(all(e.swap.item == "ppsh" and e.grab == (77, 77) for e in plan.entries))
-        self.assertEqual(set(plan.hands), {"ppsh"})
-        self.assertEqual(mdo.default_out("weapons", "G", "ppsh").name, "sd-draft-weapons-handG-ppsh.pk3")
+        self.assertTrue(all(e.swap.item == "izh" and e.grab == (77, 77) for e in plan.entries))
+        self.assertEqual(set(plan.hands), {"izh"})
+        self.assertEqual(mdo.default_out("weapons", "G", "izh").name, "sd-draft-weapons-handG-izh.pk3")
 
     def test_hand_letter_validated(self):
         with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
@@ -472,12 +475,33 @@ class InstalledTests(unittest.TestCase):
             self.assertTrue(any(e.lump.startswith("SHTF") for e in plan.entries))
             self.assertTrue(any(n.startswith("SDIZ: approved and installed") for n in plan.notes), plan.notes)
 
+    def test_a_swap_naming_the_installed_ppsh_frames_is_skipped(self):
+        """D79: the PPSh-41's old swaps (hand E and the Gemini test, hand G)
+        are never packed again, whatever drafts are on disk."""
+        old = (mdo.Swap("weapons", "ppsh", "weapons/ppsh.zs", "CHGG", "SDPP"),
+               mdo.Swap("weapons", "ppsh", "weapons/ppsh.zs", "CHGF", "SDPF"))
+        self.assertEqual(mdo.INSTALLED_WEAPON_FRAMES[2:], (("CHGG", "SDPP"), ("CHGF", "SDPF")))
+        self.assertFalse([s for s in mdo.SWAPS if s.item == "ppsh"])
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            weapons, rig = make_drafts(root)
+            for folder in (weapons / "ppsh", weapons / "hand_G" / "ppsh"):
+                folder.mkdir(parents=True, exist_ok=True)
+                for name in ("SDPPA0", "SDPPB0", "SDPFA0"):
+                    (folder / f"{name}.png").write_bytes(png())
+            with mock.patch.object(mdo, "SWAPS", mdo.SWAPS + old):
+                plan = mdo.plan_overlay("all", "E", weapons, rig, sprites_dir=root / "no-sprites")
+            self.assertFalse(any(e.lump.startswith(("CHGG", "CHGF", "SDPP", "SDPF")) for e in plan.entries))
+            for draft in ("SDPP", "SDPF"):
+                self.assertTrue(any(n.startswith(f"{draft}: held and flash frames installed whole")
+                                    for n in plan.notes), plan.notes)
+
     def test_a_swap_naming_the_installed_tt33_frames_is_skipped(self):
         """N17: even with the hand E drafts on disk and nothing under
         assets/sprites/, the TT-33's old swaps are never packed again."""
         old = (mdo.Swap("weapons", "tt33", "weapons/tokarev.zs", "PISG", "SDTT"),
                mdo.Swap("weapons", "tt33", "weapons/tokarev.zs", "PISF", "SDTF"))
-        self.assertEqual(mdo.INSTALLED_WEAPON_FRAMES, (("PISG", "SDTT"), ("PISF", "SDTF")))
+        self.assertEqual(mdo.INSTALLED_WEAPON_FRAMES[:2], (("PISG", "SDTT"), ("PISF", "SDTF")))
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             weapons, rig = make_drafts(root)
@@ -569,8 +593,9 @@ class RealDraftTests(unittest.TestCase):
         if IWAD.is_file():
             mdo.check_against_iwad(plan, mdo.iwad_sprites(IWAD))
         # 37 until D48 installed the six pickups; +70 POSS until D55; 31 until
-        # N17 installed the TT-33's held and flash frames (PISG A-C, PISF A)
-        self.assertEqual(len(plan.entries), 27)
+        # N17 installed the TT-33's held and flash frames (PISG A-C, PISF A);
+        # 27 until D79 installed the PPSh-41's (CHGG A-B, CHGF A)
+        self.assertEqual(len(plan.entries), 24)
         self.assertFalse({e.lump[:4] for e in plan.entries} & {ph for ph, _ in mdo.INSTALLED})
         self.assertFalse({e.lump[:4] for e in plan.entries} & {"SPOS", "SDLT"}, "D54: no Legion")
         self.assertFalse({e.lump[:4] for e in plan.entries} & {"POSS", "SDRR", "SARG", "SDHN"},
@@ -579,6 +604,8 @@ class RealDraftTests(unittest.TestCase):
                          "D56: no Stormtrooper, no bolt")
         self.assertFalse({e.lump[:4] for e in plan.entries} & {"PISG", "PISF", "SDTT", "SDTF"},
                          "N17: no TT-33 held or flash frame")
+        self.assertFalse({e.lump[:4] for e in plan.entries} & {"CHGG", "CHGF", "SDPP", "SDPF"},
+                         "D79: no PPSh-41 held or flash frame")
         self.assertEqual(plan.missing, [])
         self.assertTrue(all(h.startswith("E") for h in plan.hands.values()))
 
@@ -588,7 +615,7 @@ class RealDraftTests(unittest.TestCase):
             code, _, err = run_main(["--out", str(out)])
             self.assertEqual(code, 0, err)
             with zipfile.ZipFile(out) as zf:
-                self.assertEqual(len(zf.namelist()), 27)
+                self.assertEqual(len(zf.namelist()), 24)
 
 
 if __name__ == "__main__":

@@ -385,7 +385,8 @@ class LicenceTests(unittest.TestCase):
 
 class OverlayTests(unittest.TestCase):
     def test_recorded_as_installed(self):
-        self.assertEqual(set(mdo.INSTALLED_WEAPON_FRAMES), set(RENAMED.items()))
+        # D79 added the PPSh-41's pairs after these (tests/test_ppsh_sprites.py)
+        self.assertLessEqual(set(RENAMED.items()), set(mdo.INSTALLED_WEAPON_FRAMES))
         self.assertLessEqual({HELD, FLASH}, mdo.installed_sprites())
 
     def test_the_overlay_names_nothing_of_the_tt33(self):

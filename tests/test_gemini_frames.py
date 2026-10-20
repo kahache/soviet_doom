@@ -102,7 +102,50 @@ class TestGeminiFrames(unittest.TestCase):
         cols = np.flatnonzero((small >= 0).any(axis=0))
         # hand_study.place: top-left = (-gx, WEAPONTOP - gy - BAR_LIFT)
         self.assertEqual((-grab[0], gf.WEAPONTOP - grab[1] - gf.BAR_LIFT), (200 + cols[0], 120 + rows[0]))
-        self.assertTrue((small[:, -1] >= 0).any())   # the smear reaches the new right edge
+        self.assertTrue((small[:, -5] >= 0).any())   # the arm runs on to the right
+        self.assertFalse((small[:, -1] >= 0).any())  # and has curved down out before the last column
+
+    def test_arm_runs_on_textured_and_curves_out(self):
+        """D79: no one-column smear (streaks), no box edge: the extension
+        mirrors the last EDGE_TILE columns and drops monotonically."""
+        idx = np.full((30, 40), gf.TRANSPARENT, np.int32)
+        idx[10:30, 20:40] = self.rng.integers(0, len(self.pal), (20, 20))   # an arm cut by the right side
+        out = gf.extend_edges(idx, 48, 6, tile=8)
+        self.assertEqual(out.shape, (36, 88))
+        ext = out[:, 40:]
+        tops = [int(np.flatnonzero(c >= 0)[0]) if (c >= 0).any() else out.shape[0] for c in ext.T]
+        self.assertEqual(tops, sorted(tops))                     # it only ever goes down
+        self.assertEqual(tops[-1], out.shape[0])                 # gone before the last column
+        self.assertTrue((out[10:30, 40] == idx[10:30, 39]).all())    # first new column mirrors the edge
+        self.assertTrue((out[10:30, 41] == idx[10:30, 38]).all())
+        rows = [ext[r, :8] for r in range(11, 16)]
+        self.assertTrue(any(len(set(r.tolist())) > 1 for r in rows), "not a one-column smear")
+
+    def test_arm_exits_left_only_when_cut_there(self):
+        idx = np.full((20, 30), gf.TRANSPARENT, np.int32)
+        idx[5:20, 10:25] = 1
+        out, left = gf.arm_exits(idx, 16, 4)
+        self.assertEqual((left, out.shape), (0, (24, 46)))       # touches neither side:
+        self.assertFalse((out[:, 30:] >= 0).any())               # the new columns stay empty
+        idx[5:20, 0:10] = 2
+        out, left = gf.arm_exits(idx, 16, 4)
+        self.assertEqual((left, out.shape), (16, (24, 62)))
+        self.assertFalse((out[:, 0] >= 0).any())
+
+    def test_visible_cuts(self):
+        sub = np.full((40, 30), 1, np.int32)
+        # top-left at screen (300, 140): the right border at x=329, above the bar
+        grab = (-300, gf.WEAPONTOP - gf.BAR_LIFT - 140)
+        self.assertGreater(gf.visible_cuts(sub, grab), 0)
+        far = (-(gf.SCREEN_W + gf.WIDE_MARGIN + gf.BOB_X), grab[1])   # past the widest view
+        self.assertEqual(gf.visible_cuts(sub[:, :1], far), 0)
+        low = (-300, gf.WEAPONTOP - gf.BAR_LIFT - 190)                # wholly under the bar
+        self.assertEqual(gf.visible_cuts(sub, low), 0)
+        self.assertGreater(gf.visible_cuts(sub, (-300, gf.WEAPONTOP - 150)), 0)   # bar off: 150..190 shows
+
+    def test_kick_is_up_and_right_and_small(self):
+        dx, dy = gf.KICK
+        self.assertTrue(1 <= dx <= 2 and -4 <= dy <= -3, gf.KICK)
 
     def test_flash_split(self):
         gun = int(np.argmin(self.pal.sum(axis=1)))                        # darkest: the gun

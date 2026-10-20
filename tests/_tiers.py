@@ -121,6 +121,8 @@ SLOW: tuple[tuple[str, str], ...] = (
     ("test_generators.SovietBaseTextureTests", "render: every base texture"),
     ("test_hand_study.HandStudyTest.test_tt33_on_freedoom_hands_at_pisg_height_and_centred",
      "render: the TT-33 on the IWAD's hands, 4.3 s alone"),
+    ("test_ppsh_sprites.FileTests.test_a_fresh_build_reproduces_them",
+     "render: gemini_frames rebuilds the PPSh-41 from the Gemini pair (work/ only)"),
     ("test_hound_sprites.PackageTests",
      "package: builds the PK3 and runs check_pk3 on all of it again"),
     ("test_legion_sprites.PackageTests",

@@ -80,9 +80,10 @@ FULL_TEXTS = tuple(PUBLISHED_SHA256)
 REPO_ONLY = ("docs/", "tools/", "tests/", "src/", "work/", "dist/", "iwads/",
              "LICENSES.md", "MUSIC-RIGHTS", "RELEASE.md", "release.py")
 
-# D75: the credits say which references were generated with AI.
-AI_WORDS = {"default": ("AI", "Fooocus / SDXL", "hands", "pixel art"),
-            "ru": ("ИИ", "Fooocus / SDXL", "рук", "пиксель-арт")}
+# D75: the credits say which references were generated with AI; D79: and
+# name Google Gemini, whose images the PPSh-41's frames are derived from.
+AI_WORDS = {"default": ("AI", "Google Gemini", "Fooocus / SDXL", "hands", "pixel art", "not distributed"),
+            "ru": ("ИИ", "Google Gemini", "Fooocus / SDXL", "рук", "пиксель-арт", "не распространяются")}
 
 
 def sha(data: bytes) -> str:
