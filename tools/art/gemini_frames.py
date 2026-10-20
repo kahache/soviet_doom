@@ -75,6 +75,20 @@ SLEEVE_BANDS = (1, 3, 7)        # rows of outline, light, mid from the tube's to
 SLEEVE_TAPER = 6                # the tube's top edge sinks this much more by its end
 EXIT_POWER = 3                  # the curve down: drop ~ (k/ARM_EXIT)**3, nearly straight in 4:3
 BOTTOM_PAD = 16                 # rows the bottom edge is smeared down (under the bar)
+# What the art carries out through its side, per row (edge_materials): only
+# the sleeve (and skin, which ends in the sleeve's cuff) runs on as the tube;
+# wood is a stock and runs on as its own straight bar, in front of the sleeve.
+OUTLINE, METAL, SKIN, WOOD, SLEEVE = "outline", "metal", "skin", "wood", "sleeve"
+DARK_VALUE = 40                 # max channel below this: an outline pixel
+GREY_SAT = 0.2                  # saturation below this (or blue >= red): metal
+SLEEVE_HUE = 8                  # degrees from the sleeve's hue: still sleeve
+SKIN_SAT, SKIN_VALUE = 0.55, 150   # light and less saturated than wood: skin
+EDGE_PROBE = 3                  # last columns whose per-row majority is the row's material
+STOCK_PROBE = 8                 # last columns the stock's axis is measured over
+STOCK_EXIT = 0.75               # the stock has left the canvas by this fraction of the run-on
+WOOD_BANDS = (1, 3, 0.6)        # rows of outline, light, then mid down to this fraction (shadow, outline below)
+WOOD_GRAIN = 0.5                # x the wood colour: the dashed grain line along the stock
+GRAIN_DASH = (7, 4)             # grain period and dash length, columns
 KICK = (2, -3)                  # the firing frame's recoil on screen: 2 px right, 3 px up
 CHGG_HEIGHT_FALLBACK = 35       # hand_ref.PPSH_CHGG_HEIGHT, if hand_ref will not import
 HEIGHT_MULT = 1.6               # the CEO's PPSh choice (D78): x1.6 of CHGGA0 above the bar
@@ -331,17 +345,103 @@ def sleeve_ramp(idx: np.ndarray, pal: np.ndarray, tile: int = EDGE_TILE) -> list
     return [nearest_colour(base * f, pal) for f in SLEEVE_SHADES]
 
 
+def _hue(rgb) -> float:
+    r, g, b = (float(c) for c in rgb)
+    hi, lo = max(r, g, b), min(r, g, b)
+    if hi == lo:
+        return 0.0
+    if hi == r:
+        return 60.0 * (((g - b) / (hi - lo)) % 6)
+    return 60.0 * ((b - r) / (hi - lo) + 2) if hi == g else 60.0 * ((r - g) / (hi - lo) + 4)
+
+
+def material(rgb, sleeve_rgb) -> str:
+    """One palette colour's material by its ramp: near-black is OUTLINE;
+    grey or blue-ish is METAL; within SLEEVE_HUE of the sleeve's hue is
+    SLEEVE; light and soft is SKIN; any other warm colour is WOOD (its dark
+    red grain included). A rule of thumb, not a segmentation."""
+    r, g, b = (float(c) for c in rgb)
+    hi = max(r, g, b)
+    sat = (hi - min(r, g, b)) / hi if hi else 0.0
+    if hi < DARK_VALUE:
+        return OUTLINE
+    if sat < GREY_SAT or b >= r:
+        return METAL
+    if abs(_hue(rgb) - _hue(sleeve_rgb)) <= SLEEVE_HUE:
+        return SLEEVE
+    if sat < SKIN_SAT and hi > SKIN_VALUE:
+        return SKIN
+    return WOOD
+
+
+def edge_materials(idx: np.ndarray, pal: np.ndarray, sleeve_rgb, probe: int = EDGE_PROBE) -> list[str | None]:
+    """Per row, the material the art carries out through its right side:
+    the majority over the last `probe` columns' opaque pixels of that row,
+    None where the edge column itself is empty."""
+    out: list[str | None] = []
+    for row in idx[:, -probe:]:
+        if row[-1] < 0:
+            out.append(None)
+            continue
+        kinds = [material(pal[i], sleeve_rgb) for i in row if i >= 0]
+        out.append(max(set(kinds), key=lambda m: (kinds.count(m), m == kinds[-1])))
+    return out
+
+
+def _runs(rows: list[int], gap: int = 2) -> list[tuple[int, int]]:
+    """Sorted row numbers grouped into (first, last) runs, gaps <= `gap` closed."""
+    runs: list[list[int]] = []
+    for r in rows:
+        if runs and r - runs[-1][1] <= gap + 1:
+            runs[-1][1] = r
+        else:
+            runs.append([r, r])
+    return [(a, b) for a, b in runs]
+
+
+def stock_axis(idx: np.ndarray, pal: np.ndarray, sleeve_rgb, run: tuple[int, int],
+               probe: int = STOCK_PROBE) -> float:
+    """Rows per column the stock's centre line falls over the last `probe`
+    columns (least squares on the wood pixels near the run); 0 if unknown."""
+    a, b = run
+    h, w = idx.shape
+    xs, ys = [], []
+    for c in range(max(0, w - probe), w):
+        rows = [r for r in range(max(0, a - 4), min(h, b + 5))
+                if idx[r, c] >= 0 and material(pal[idx[r, c]], sleeve_rgb) == WOOD]
+        if rows:
+            xs.append(c)
+            ys.append((rows[0] + rows[-1]) / 2)
+    return float(np.polyfit(xs, ys, 1)[0]) if len(xs) >= 2 else 0.0
+
+
+def wood_ramp(base, pal: np.ndarray) -> list[int]:
+    """(outline, light, mid, shadow, grain) for a stock of colour `base`."""
+    base = np.asarray(base, float)
+    return [nearest_colour(base * f, pal) for f in SLEEVE_SHADES + (WOOD_GRAIN,)]
+
+
 def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE,
                  power: float = EXIT_POWER, pal: np.ndarray | None = None) -> np.ndarray:
     """The last row smeared `bottom` rows down; then, if the art touches its
-    right side, `right` columns more of plain sleeve (sleeve_ramp): a tube
-    as tall as the cut (so it hides it) with a 1-px dark seam where it takes
-    over, shaded down from its top edge outline-light-mid-shadow. No column
-    of the art is repeated: mirroring the edge repeated skin and stock wood.
-    Column k's top drops round(D * (k/right)**power) rows plus a taper of
-    SLEEVE_TAPER * k/right, D the cut's height down to the canvas bottom, so
-    the arm curves down and has left the canvas by the last column (always
-    empty)."""
+    right side, `right` columns more, built per material (edge_materials)
+    so the stock and the sleeve stay separate (the CEO, 2026-10-20: the
+    tube had turned the stock into sleeve):
+    - SLEEVE and SKIN rows: plain sleeve (sleeve_ramp), a tube from the top
+      of those rows down, a 1-px dark seam where it takes over (the cuff
+      for skin), shaded outline-light-mid-shadow from its top edge. Column
+      k's top drops round(D * (k/right)**power) rows plus SLEEVE_TAPER *
+      k/right, D its height down to the canvas bottom, so it curves down
+      and has left by the last column (always empty).
+    - WOOD rows: a stock. It runs on as a straight bar in its own wood ramp
+      (wood_ramp), as thick as it leaves, along its own axis (stock_axis),
+      no steeper than needed to leave the canvas bottom by STOCK_EXIT of
+      the run-on (it heads for the shoulder, under the status bar). It is
+      in front: the sleeve never shows above it and its dark bottom outline
+      parts the two.
+    - Anything else at the edge (metal, outline) ends in a 1-px dark cap.
+    No column of the art is repeated: mirroring the edge repeated skin and
+    stock wood."""
     h, w = idx.shape
     hb = h + bottom
     out = np.full((hb, w + right), TRANSPARENT, np.int32)
@@ -349,17 +449,52 @@ def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE
     out[h:, :w] = idx[h - 1:h, :]
     if right <= 0 or not (idx[:, w - 1] >= 0).any():
         return out
+    pal = palette_rgb() if pal is None else pal
     tile = max(1, min(tile, w))
-    outline, light, mid, shadow = sleeve_ramp(out[:, :w], palette_rgb() if pal is None else pal, tile)
-    top0 = int(np.flatnonzero(out[:, w - 1] >= 0)[0])
-    drop_total = hb - top0
-    edges = np.cumsum(SLEEVE_BANDS)
-    for k in range(1, right + 1):
-        f = k / right
-        t = min(hb, top0 + int(round(drop_total * f ** power + SLEEVE_TAPER * f)))
-        s = np.arange(hb - t)
-        col = np.select([s < edges[0], s < edges[1], s < edges[2]], [outline, light, mid], shadow)
-        out[t:, w - 1 + k] = outline if k == 1 else col
+    s_ramp = sleeve_ramp(out[:, :w], pal, tile)
+    sleeve_rgb = pal[s_ramp[2]]
+    kinds = edge_materials(out[:, :w], pal, sleeve_rgb)
+    cut = [r for r, m in enumerate(kinds) if m is not None]
+    # the stocks: (top row at the edge, thickness, slope, ramp)
+    stocks = []
+    for a, b in _runs([r for r, m in enumerate(kinds) if m == WOOD]):
+        while b + 1 < hb and kinds[b + 1] == OUTLINE:   # its own bottom outline
+            b += 1
+        need = (hb - a) / (STOCK_EXIT * right)
+        slope = max(stock_axis(out[:, :w], pal, sleeve_rgb, (a, b)), need)
+        wood = [out[r, w - 1] for r in range(a, b + 1) if kinds[r] == WOOD and out[r, w - 1] >= 0]
+        stocks.append((a, b - a + 1, slope, wood_ramp(pal[_mode(np.array(wood), None)], pal)))
+    soft = [r for r, m in enumerate(kinds) if m in (SLEEVE, SKIN)]
+    for r in cut:                                        # the cap: closes whatever is not run on
+        out[r, w] = s_ramp[0]
+    if soft:
+        top0 = soft[0]
+        drop_total = hb - top0
+        edges = np.cumsum(SLEEVE_BANDS)
+        for k in range(1, right + 1):
+            f = k / right
+            t = min(hb, top0 + int(round(drop_total * f ** power + SLEEVE_TAPER * f)))
+            for a, _, slope, _ in stocks:                # behind the stock: never above it
+                if a <= top0:
+                    t = max(t, min(hb, a + int(round(slope * k))))
+            s = np.arange(hb - t)
+            col = np.select([s < edges[0], s < edges[1], s < edges[2]], s_ramp[:3], s_ramp[3])
+            out[t:, w - 1 + k] = s_ramp[0] if k == 1 else col
+    n_out, n_light, mid_frac = WOOD_BANDS
+    period, dash = GRAIN_DASH
+    for a, thick, slope, (outline, light, mid, shadow, grain) in stocks:
+        s = np.arange(thick)
+        col = np.select([s < n_out, s < n_out + n_light, s < round(thick * mid_frac), s < thick - 1],
+                        [outline, light, mid, shadow], outline)
+        for k in range(1, right + 1):
+            t = a + int(round(slope * k))
+            if t >= hb:
+                break
+            c = col.copy()
+            if (k - 1) % period < dash and thick > n_out + n_light + 3:
+                c[thick // 2] = grain
+            n = min(thick, hb - t)
+            out[t:t + n, w - 1 + k] = c[:n]
     return out
 
 
