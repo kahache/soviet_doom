@@ -1,52 +1,36 @@
 # Pending CEO decisions
 
-Updated: 2026-10-20 ~10:55, after D85 (pipeline stage 6, D64). Ordered by
-how much each item unblocks. What closed since the previous update is listed
-at the end so nothing is lost. Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md`
-(synced at phase close, D34).
+Updated: 2026-10-20 ~16:40, after the v1.0 sign-off (G6 PASS, 4a17a61) and
+D99 (pipeline stage 6, D64). Ordered by how much each item unblocks. What
+closed since the previous update is listed at the end so nothing is lost.
+Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md` (synced at phase close, D34).
 
-## 1. Waiting for your eyes
+## 2. Your own play-through of v1.0 (nothing blocks the release)
 
-Previews are sent to you as files; the paths are under `docs/art/previews/`.
+The sign-off checked these by instrument or not at all; your ears and eyes
+are the check (`docs/qa/evidence/2026-10-20_1635_M4_v1-signoff.md`):
 
-| What | Preview | Asks [PM's recommendation] |
-|---|---|---|
-| **The ice axe's strike frame**, redrawn so the arm leaves the view straight (D84, N14-AX in progress) | coming | OK / NO; the last weapon of M2 (the other four install, N14-I) |
+- sound and music by ear (every engine pass ran `-nosound`);
+- with `freedoom1.wad` also present, which IWAD the start dialog offers (G15);
+- the credits screen at 16:9; the sergeant's face through its full damage ladder;
+- D74's three questions: are the TT-33/PPSh shots strong enough, is the axe
+  hit audible on laptop speakers, keep the three packed reload sounds?
 
-## 2. Waiting for your ears
+Anything you dislike becomes a P1/P2 backlog line, not a v1 blocker.
 
-| What | Page | Asks |
-|---|---|---|
-| Sound alternatives for the 5 weapon rows of D74 that were NO or ? (SDTTPKP, SDIZRLD, SDRKFIR, SDAXPKP, SDIZPKP); they keep Freedoom's sounds until then | `2026-10-15_0033_M3_listening-alternatives.html` (15 alternatives) | OK/NO per alternative, "Copiar resultado" |
-| Coming (N9m, in progress): alternatives for the 8 enemy rows rejected in D83, MAP01 music trimmed to its melodic part (`D_SDM01T`) for the range, and PD candidates for MAP01 | a new listening page | you will get it when it is ready |
+## 3. V2: which phase first
 
-**Installed (D74, 70358e0):** the 25 approved weapon sounds. When you play,
-three questions stay open, none blocks: are the TT-33/PPSh shots strong
-enough next to the rifleman's? Is the axe hit (`SDAXHIT`, bass-heavy)
-audible on laptop speakers? Keep the three reload sounds packed for a future
-magazine mechanic, or drop them?
-
-## 3. Your voice takes for the enemies (D36)
-
-The sound-designer is writing `docs/sound/VOICE-SCRIPT.md`: every line in
-German or English, with instructions for recording or for AI generation.
-Nothing to decide. **Postponed by the CEO on 2026-10-13** ("lo dejamos
-pending"): the enemies keep Freedoom's voices until the takes arrive, and
-nothing else waits on them. D84: the local generator's default voice is not
-the soldier the script needs; **D85: Freedoom's voices until the MVP ships,
-then Chatterbox cloned from your own voice** (P2). Nothing open here.
-
-## 4. Later, at the end of the MVP
-
-- **M2e (HUD and shell art):** its sweeps will come to you for an OK, as the
-  pickups did.
-- **v1.0:** after the sign-off (N16), "publish or not" and the tag (G6
-  readiness G13-G14). Optional calls there: a GAMEINFO IWAD hint (G15),
-  jump/crouch allowed (G17).
-- Whether to build metro v2 / Tankograd v2 (N7b/N7c, optional) and the UDB
-  evaluation download (N15).
+The parked phases with their estimates are in `docs/BACKLOG.md` ("Parked")
+and `docs/ROADMAP.md`: **P1** gameplay pass, **P2** voices and polish,
+**P3** Russian docs, **P4** the full game (15-20 maps, more weapons and
+enemies), **P5** portable downloads per OS, **P6** Catalan; and orchestrated
+music (D99), not yet phased. Calls that wait for their phase: jump/crouch
+(G17, P1), metro v2 / Tankograd v2 (N7b/N7c) and the UDB download (N15),
+both P4. Nothing here blocks anything today.
 
 ## Closed since the previous update (for the record)
+
+D99 (2026-10-20): orchestrated music is a V2 item (Pro Tools, a better soundfont, MusicGen-Melody; Suno/Udio avoided). D98: v1 public by making this repo public (the yes to do it is item 1). D97: publish v1 for friends after the sign-off; N11's open questions closed with the PM's recommendations; Catalan for V2 (P6). D96: 17 aggressive voice takes approved and installed (8 of 12 voices ours). D95: MAP01 music N2 (`D_SDM1N2`). D94: weapon-sound alternatives (random groups), the IZh pickup keeps Freedoom's; freedoom1.wad allowed. D93: P5 portable downloads; every AI and tool credited (done, G11). D92: digits N2; the composed MAP01 piece; alternatives judged with the weapon animated. D91: 7 voice takes OK, the rest paused. D90: the Gemini face. D89: status bar A, the face from Gemini. D88: the ice axe approved (closes section 1 of the previous update). D87: Chatterbox voices. D86: enemy alternatives, `D_SDM01T` to the range, MAP01 downloads. With them closed: the 15 weapon-sound alternatives (N9a, D94), N9m's page (D86), the M2e sweeps (D89, D90, D92), "publish or not" (D97), the tag (v1.0 at d530faa). The Chatterbox-from-your-own-voice plan of D85 was overtaken by D87/D96; the 4 voices left wait for P2.
 
 D85 (2026-10-20): voices Freedoom's until the MVP, then Chatterbox from the CEO's voice. D84 (2026-10-20): four Gemini weapons approved (IZh-58, RPG-7, ROKS-3, hand Katyusha); the ice axe's strike arm goes back. D83 (2026-10-20): the listening sheet judged 80 of 80 (30 enemy sounds and 5 beds OK; 8 rows NO; title, metro, Tankograd, intermission and radio music OK; `D_SDAMUR` NO; MAP01's music moves off MAP01 and is trimmed; SDIZFIR take B). This also closes the Glinka question (`D_SDGATE` stays in the anthem slot). D82: player effects, option A of each. D81: enemy shells, option A for both. D80: campaign pickups (recommended except SDAG C, SDAH C, SDBP B); the red cross question closed with the PM's default (white cross on green). D79: the Gemini-frames method adopted and Gemini credited (supersedes D78); the CEO's images for the five weapons arrived. D76-D77 (2026-10-15): the ice axe's size; Gemini references local only.
 

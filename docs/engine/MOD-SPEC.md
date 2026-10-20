@@ -1321,12 +1321,14 @@ logical names and the two final lumps (`SDSHSWG` → `SDAXSWG`, `SDSHHIT` →
 
 **The bestiary (F5): 47 logical names, `sd/mon/<actor>/<event>`.** Each line
 of `SNDINFO` names the lump it plays: since N9e (2026-10-20; D83, D86,
-D91) ours for 37 of them, installed by `tools/audio/master_enemy_sfx.py` in
+D91, D96) ours for 43 of them, installed by `tools/audio/master_enemy_sfx.py` in
 `assets/sounds/enemies/` (`docs/sound/ENEMY-SOUNDS.md` §5.12, licence rows
-in `docs/art/LICENSES.md` § "Enemy sounds"), two of them voices (D91's
-Chatterbox takes: the rifleman's sight, the trooper's idle); for the other
-ten, voices still waiting for a take (D91), the Freedoom placeholder, with
-the final lump in its comment. The final names
+in `docs/art/LICENSES.md` § "Enemy sounds"), eight of them voices (the
+Chatterbox takes of D91 and D96: the rifleman's idle, sight and death, the
+trooper's idle, sight and pain, the General's sight and his order); for the
+other four, voices still waiting for a take (the rifleman's pain, the
+trooper's death, the General's pain and death), the Freedoom placeholder,
+with the final lump in its comment. The final names
 are the cards of `docs/sound/ENEMY-SOUNDS.md`, which `tests/test_bestiary.py`
 holds equal. The count is 47, not the 52 that BESTIARY v0 printed
 (`BESTIARY.md` §12). Projectiles own their launch (`SeeSound`) and impact
@@ -1341,12 +1343,16 @@ g4.14.2's `filter/game-doomchex/sndinfo.txt`; ZDoom wiki SNDINFO): the
 engine picks one member each time. The lumps take the card's name with its
 last letter replaced by the take's number (`SDSTOPA1`-`SDSTOPA3` for
 `SDSTOPAI`). No ZScript changes: `SeeSound`, `PainSound`, `DeathSound` and
-`A_StartSound` take the alias as they took the single name. Seven groups:
-`sd/mon/reichrifleman/attack` (`SDRRIAT1`-`3`), `sd/mon/stormtrooper/pain`
-(`SDSTOPA1`-`3`), `sd/mon/stormtrooper/death` (`SDSTODT1`-`3`),
-`sd/mon/panzermensch/pain` (`SDPZRPA1`-`3`), the D91 voices
-`sd/mon/reichrifleman/sight` (`SDRRISI1`, `SDRRISI3`) and
-`sd/mon/legiontrooper/active` (`SDLTRAC1`-`5`), and three of the beds
+`A_StartSound` take the alias as they took the single name. Thirteen groups
+(since D96; seven at N9e): `sd/mon/reichrifleman/attack` (`SDRRIAT1`-`3`),
+`sd/mon/stormtrooper/pain` (`SDSTOPA1`-`3`), `sd/mon/stormtrooper/death`
+(`SDSTODT1`-`3`), `sd/mon/panzermensch/pain` (`SDPZRPA1`-`3`), the voices
+`sd/mon/reichrifleman/active` (`SDRRIAC1`-`3`, D96),
+`sd/mon/reichrifleman/sight` (`SDRRISI1`, `3`, `4`, `5`, `6`; D91 and D96),
+`sd/mon/legiontrooper/active` (`SDLTRAC1`-`6`; D91 and D96),
+`sd/mon/legiontrooper/sight` (`SDLTRSI1`-`4`, D96),
+`sd/mon/legiontrooper/pain` (`SDLTRPA1`-`2`, D96) and
+`sd/mon/general/summon` (`SDGENSU1`-`2`, D96), and three of the beds
 below. The weapons use the same form since D94 (above).
 `tests/test_arsenal.py` checks every group's members are defined, under the
 group's name, never nested; **NOT VERIFIED in our engine** (the PM's pass).
@@ -1372,19 +1378,21 @@ reloads.
 
 | Actor (logical `sd/mon/…`) | Event → lump it plays (since N9e); *still a placeholder → final lump* |
 |---|---|
-| `reichrifleman` | attack `$random` `SDRRIAT1`-`3` (D86); sight `$random` `SDRRISI1`, `SDRRISI3` (D91 voice); xdeath `SDRRIXDT`; *active `DSPOSACT` → `SDRRIACT`; pain `DSPOPAIN` → `SDRRIPAI`; death `DSPODTH1` → `SDRRIDTH`* |
-| `legiontrooper` | attack `SDLTRATK` (D86 alt2); active `$random` `SDLTRAC1`-`5` (D91 voice); xdeath `SDLTRXDT`; *sight `DSPOSIT2` → `SDLTRSIT`; pain `DSPOPAIN` → `SDLTRPAI`; death `DSPODTH2` → `SDLTRDTH`* |
+| `reichrifleman` | attack `$random` `SDRRIAT1`-`3` (D86); active `$random` `SDRRIAC1`-`3` (D96 voice); sight `$random` `SDRRISI1`, `3`, `4`, `5`, `6` (D91, D96 voice); death `SDRRIDTH` (D96 voice); xdeath `SDRRIXDT`; *pain `DSPOPAIN` → `SDRRIPAI`* |
+| `legiontrooper` | attack `SDLTRATK` (D86 alt2); active `$random` `SDLTRAC1`-`6` (D91, D96 voice); sight `$random` `SDLTRSI1`-`4` (D96 voice); pain `$random` `SDLTRPA1`-`2` (D96 voice); xdeath `SDLTRXDT`; *death `DSPODTH2` → `SDLTRDTH`* |
 | `stormtrooper` | active `SDSTOACT`; sight `SDSTOSIT`; melee `SDSTOMEL`; missile `SDSTOMIS`; explode `SDSTOEXP`; pain `$random` `SDSTOPA1`-`3` (D86); death `$random` `SDSTODT1`-`3` (D86); xdeath `SDSTOXDT` |
 | `reichhound` | active `SDHNDACT`; sight `SDHNDSIT`; attack `SDHNDATK`; pain `SDHNDPAI`; death `SDHNDDTH` |
 | `doughboy` | active `SDDGBACT`; sight `SDDGBSIT`; melee `SDDGBMEL`; missile `SDDGBMIS`; explode `SDDGBEXP`; pain `SDDGBPAI`; death `SDDGBDTH` |
 | `panzermensch` (and the heavy variant) | active `SDPZRACT`; sight `SDPZRSIT`; melee `SDPZRMEL`; missile `SDPZRMIS`; explode `SDPZREXP`; pain `$random` `SDPZRPA1`-`3` (D86); death `SDPZRDTH`; step `SDPZRSTP` |
-| `general` | active `SDGENACT`; missile `SDGENMIS`; explode `SDGENEXP`; *sight `DSCYBSIT` → `SDGENSIT`; summon `DSVILSIT` → `SDGENSUM`; pain `DSDMPAIN` → `SDGENPAI`; death `DSCYBDTH` → `SDGENDTH`* |
+| `general` | active `SDGENACT`; sight `SDGENSIT` (D96 voice); missile `SDGENMIS`; explode `SDGENEXP`; summon `$random` `SDGENSU1`-`2` (D96 voice, the order `SD_GENERAL_ORDER`); *pain `DSDMPAIN` → `SDGENPAI`; death `DSCYBDTH` → `SDGENDTH`* |
 
 Until N9e the rifleman fired `DSPISTOL`, the TT-33's old stand-in, and the
-trooper `DSDSHTGN`; both fire ours now. One placeholder left is knowingly
-imperfect: the General's order is `DSVILSIT`, a creature's sight sound,
-because Freedoom has no voice that gives an order; it goes when D87's
-`SDGENSUM` is approved.
+trooper `DSDSHTGN`; both fire ours now. The General's order was `DSVILSIT`,
+a creature's sight sound, because Freedoom has no voice that gives an
+order; since D96 it is `sd/mon/general/summon`, two takes of "Vorwarts!"
+(`SDGENSU1`-`2`), and no placeholder is knowingly imperfect any more. The
+four voices left (rifleman pain, trooper death, General pain and death)
+wait for a take.
 
 ### 6.3 Sprites to be drawn (contract with `art-director`)
 
@@ -2601,7 +2609,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | T14 | Four engine menus (`MainMenu`, `SkillMenu`, `EpisodeMenu` since D41, and the `os_Menu` insertion anchor) are copied into `MENUDEF`; since D31 the first two, and since D41 the third, also differ in their items and layout (§6.6). They do not track engine changes. **Since T24, also `D_Display`'s pause drawing** (`src/d_main.cpp`, g4.14.2, lines 1095-1123): `SD_StatusBar.DrawPaused` copies its position and its multiplayer line (§6.5.1). **Since M2e-i, three facts of `DoomStatusBar.DrawMainBar`** (g4.14.2): where `STBAR` and `STARMS` are drawn and its deathmatch/teamplay condition for `STARMS`, which `SD_StatusBar.Draw` repeats for the Russian labels; `tests/test_pause_sign.py` and `tests/test_hud_install.py` re-read them from the installed `gzdoom.pk3`. | re-diff at every engine upgrade |
 | T15 | MAP01's `par = 210` is set, the intermission's PAR row appears, but the printed value was never read in an unattended run (§4.1). | `qa-engineer`, with a human at the keyboard |
 | ~~T16~~ | **PAID 2026-10-13**: the ANIMDEFS pairs in `be6525a`, MAP01 v2 retired `SWITCH_PLACEHOLDER` in `bf857a0`. Was: **Paid for the engine, open for the map.** `src/lumps/ANIMDEFS` ships the four `switch` pairs SDSW1x → SDSW2x (2026-10-13), syntax from `gzdoom.pk3 → animdefs.txt`, and `SDSW1A` was seen to flip in engine the same day (§4.3). Open: MAP01 still wears `SDDOOR1` (`SWITCH_PLACEHOLDER`); the click is heard on the CEO's first walk with real switches. | `level-designer`, MAP01 v2 |
-| T18 | **Every bestiary sprite and sound is a Freedoom placeholder** (§5.1, §6.2, §6.3); the heavy Panzermensch looks exactly like the normal one. **Partly paid 2026-10-14 (D54):** the Legion trooper's sprites are ours, 70 `SDLT` lumps (§6.3, "The Legion trooper, installed by D54"). **Nearly paid for the sprites, 2026-10-14 (D55):** the Reich rifleman's (70 `SDRR`) and the Reich hound's (46 `SDHN`) are ours too (§6.3, "The Reich rifleman and the Reich hound, installed by D55"), so three of the seven classes, both infantries and the hound, wear their own sprites. **D56, the same day:** the Hybrid Stormtrooper (77 `SDHS`) and his bolt (5 `SDBL`) too (§6.3, "The Hybrid Stormtrooper and his bolt, installed by D56"): four of the seven classes and one of the four projectiles. **Nearly paid for the sprites, D67 (2026-10-14):** the Panzermensch (71 `SDPM`) and the heavy variant, drawn as a set of its own (71 `SDPS`, its own `States` block; the planned `Translation` is dropped) (§6.3, "The Panzermensch and the Schwer, installed by D67"): five of the seven classes and the heavy variant. **D70, the same day:** the Doughboy (54 `SDDB`) (§6.3, "The Doughboy, installed by D70"): six of the seven classes. **Paid for the classes' sprites, D73 (the same day):** the General (81 `SDGN`) and his shell (5 `SDGL`) (§6.3, "The General and his shell, installed by D73"): all seven classes and two of the four projectiles. **D81 (2026-10-20):** the two other projectiles too, the Doughboy's shell (`SDDL`) and the Panzermensch's (`SDPL`) (§6.3, "The two enemy shells, installed by D81"): every enemy sprite is ours. **N9e (2026-10-20, D83, D86, D91):** 37 of the 47 bestiary sounds are ours, two of them voices (§6.2; `ENEMY-SOUNDS.md` §5.12), and the eight beds are packed, parked. Open: ten voices of the rifleman, the trooper and the General (D91: they wait for a shouted reference). | F5, as `art-director` and `sound-designer` deliver (D35: own drawings for the five most-seen) |
+| T18 | **Every bestiary sprite and sound is a Freedoom placeholder** (§5.1, §6.2, §6.3); the heavy Panzermensch looks exactly like the normal one. **Partly paid 2026-10-14 (D54):** the Legion trooper's sprites are ours, 70 `SDLT` lumps (§6.3, "The Legion trooper, installed by D54"). **Nearly paid for the sprites, 2026-10-14 (D55):** the Reich rifleman's (70 `SDRR`) and the Reich hound's (46 `SDHN`) are ours too (§6.3, "The Reich rifleman and the Reich hound, installed by D55"), so three of the seven classes, both infantries and the hound, wear their own sprites. **D56, the same day:** the Hybrid Stormtrooper (77 `SDHS`) and his bolt (5 `SDBL`) too (§6.3, "The Hybrid Stormtrooper and his bolt, installed by D56"): four of the seven classes and one of the four projectiles. **Nearly paid for the sprites, D67 (2026-10-14):** the Panzermensch (71 `SDPM`) and the heavy variant, drawn as a set of its own (71 `SDPS`, its own `States` block; the planned `Translation` is dropped) (§6.3, "The Panzermensch and the Schwer, installed by D67"): five of the seven classes and the heavy variant. **D70, the same day:** the Doughboy (54 `SDDB`) (§6.3, "The Doughboy, installed by D70"): six of the seven classes. **Paid for the classes' sprites, D73 (the same day):** the General (81 `SDGN`) and his shell (5 `SDGL`) (§6.3, "The General and his shell, installed by D73"): all seven classes and two of the four projectiles. **D81 (2026-10-20):** the two other projectiles too, the Doughboy's shell (`SDDL`) and the Panzermensch's (`SDPL`) (§6.3, "The two enemy shells, installed by D81"): every enemy sprite is ours. **N9e (2026-10-20, D83, D86, D91, D96):** 43 of the 47 bestiary sounds are ours, eight of them voices (§6.2; `ENEMY-SOUNDS.md` §5.12), and the eight beds are packed, parked. Open: four voices, the rifleman's pain, the trooper's death and the General's pain and death (they keep Freedoom's `DSPOPAIN`, `DSPODTH2`, `DSDMPAIN`, `DSCYBDTH` and wait for a take). | F5, as `art-director` and `sound-designer` deliver (D35: own drawings for the five most-seen) |
 | ~~T19~~ | ~~Nothing has been seen in the engine: the eight classes compile only in theory until the PM's batch run (D26).~~ **Paid 2026-10-13** by the PM's engine pass (GZDoom 4.14.2, Freedoom 0.13.0): the classes load with no error, the gallery shows all eight, the drops and the General's single summon were counted, and MAP01 v3's 33 enemies spawn through Doom's numbers. Evidence `docs/qa/evidence/2026-10-13_1705_F5_map02-bestiary.log` and `…-gallery.png` (commit `2b1aba5`), `docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass.log` (commit `bcbf35f`); the table is in ADR 006. What that pass did **not** settle is debt T22. |  |
 | ~~T20~~ | ~~ADR 006 is owed.~~ **Paid 2026-10-13**: `docs/engine/adr/006-bestiary-actors.md` (seven decisions, what the engine showed, what it did not). Written in the working tree; the commit is the PM's (D6). |  |
 | T21 | Doom monsters with no Soviet replacement (65 chaingunner, 58 spectre, the rest of Doom II's roster) still spawn Freedoom's actors. MAP01 §8 plans a "Legion heavy gunner" on 65 that the bestiary does not have. | CEO question, if a seventh enemy is wanted |

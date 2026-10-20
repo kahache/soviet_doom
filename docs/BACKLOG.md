@@ -18,64 +18,79 @@ get better.
 
 ## Doing (agents at work)
 
-Checked against the repo on 2026-10-20 ~10:45 (pmo / Product, stage 6).
-
-| # | Milestone | Task | Role | Est. k tok | From |
-|---|---|---|---|---|---|
-| M2a-i | M2 | (doing, D80; uncommitted in the working tree: 11 pickup sprites, `pickups.zs`, HUD key icons `STKEYS0-2`, LANGUAGE lines) Install the campaign pickups (11 items incl. the hand Katyusha's `SDHP`, keys SD_YellowPass/SD_RedPass via Species, HUD key icons, pickup lines EN/RU) | mod-engineer | 200 (installs have run ~1.7x their estimate: plan 300) | CEO OK on `2026-10-19_2212_F5_campaign-pickups.html` |
-| N9m | M3 | (doing) Enemy sound alternatives (8), MAP01 music trimmed (`D_SDM01T`, for the range) and PD candidates for MAP01, listening page | sound-designer | 200 | D83 |
-| M2b-i | M2 | (queued behind M2a-i, same files; approved D81) Install the enemy shells SDDL/SDPL (today `BAL2`/`BAL7`) | mod-engineer | 80 (plan 130) | CEO OK on `2026-10-19_2200_F5_enemy-shells.html` |
-| G11 | M4 | Technology and AI credits (D93): the GitHub README, the release README and CREDITS.txt name every tool and AI used; the in-game credits line later (LANGUAGE busy) | mod-engineer | 60 | doing |
-| M2e-i | M4 | (queued) Install status bar A (EN/RU by code) + the 42 Gemini faces (D89, D90) + digits (N2 recommended, CEO to confirm) + engine pass | mod-engineer | 150 | D90 |
-| M2c-i | M2 | (queued behind M2a-i and M2b-i; approved D82) Install the player effects (SDPG, SDKR, SDPX, SDFJ/SDFX, PUFF, BLUD, TFOG/IFOG, BAR1/BEXP, COLU; today `MISL`, `PLSS`/`PLSE` and Freedoom's) | mod-engineer | 150 (plan 250) | CEO OK on `2026-10-19_2208_F4_player-effects.html` |
-| N9e | M3 | (queued behind M2c-i, same files) Install the 30 enemy sounds and 5 beds approved in D83 + SDIZFIR take B, loudness pass, SNDINFO; `D_SDTITL` as intermission music (today Freedoom's `D_DM2INT`) | sound-designer + mod-engineer | 250 (N9w, 25 sounds, cost 400: plan 400) | D83 |
-| N14-I | M2 | (queued behind M2a-i, same files) Install the IZh-58, RPG-7, ROKS-3 and Katyusha Gemini frames (D84) + engine pass | mod-engineer | 120 (PPSh-41 install alone cost 150 + 40: plan 250) | D84 |
-| N14-AX | M2 | Ice axe strike frame: the arm leaves straight, not curved (D84) | art-director | 30, then ~80 to install after the CEO's OK (plan 120) | doing; the CEO's OK (D84) |
+Checked against the repo on 2026-10-20 ~16:40 (Product, stage 6, after the
+v1.0 sign-off 4a17a61). **Nothing in flight.** Every MVP task closed; see
+Done.
 
 ## Next (approved order, D63)
 
+**Empty for v1: the MVP shipped** (tag `v1.0` at d530faa, G6 PASS). The one
+v1 step left is the PM's, not an agent's:
+
 | # | Milestone | Task | Role | Est. k tok | Needs |
 |---|---|---|---|---|---|
-| M2e | M4 (D75) | Shell and HUD: STBAR, the face STF*, fonts, stats screen graphics, HELP/CREDIT, DEHACKED pickup and quit lines (the intermission music moved to N9e, D83) | art-director + mod-engineer | 430-650 | the CEO's OK on the sweeps |
-| N9 | M3 | Install what the CEO approves from the alternatives: N9a's 15 (for SDTTPKP, SDIZRLD, SDRKFIR, SDAXPKP, SDIZPKP; these five keep Freedoom's today) and N9m's 8 enemy rows; MAP01's new PD piece and the range's music (D83). N9w installed the 25 of D74 (70358e0) | sound-designer + mod-engineer | 150 | CEO's listening (N9a page, N9m page) |
-| N8 | M3 | Music per map: any further swap the CEO asks for (D59); MAP01 and RANGE are in N9m/N9 | sound-designer | 80 per swap | CEO's listening |
-| N7b | M1+ | Metro v2 (textures aligned), optional: the CEO found M1 "perfecto" | level-designer | 350 | CEO decides if wanted |
-| N7c | M1+ | Tankograd v2, optional (as N7b) | level-designer | 400 | CEO decides if wanted |
-| N15 | tooling | Evaluate Ultimate Doom Builder (D69, "me interesa"): install, open our UDMF maps, does a round trip keep `tools/sdbuild` working, report | mod-engineer + level-designer | 150 | CEO's OK to download UDB |
-| N11 | M4 | Russian in-game text review, once, at the end of the delivery (after M2a-i and M2e add their lines) | translator-ru | 250 (plan 300) | M1-M3 done (D60) |
-| N16 | M4 | Ship v1: G6 gate, QA sign-off, tag v1.0; with the G6-readiness leftovers G7 (in-game credits refresh for the new assets and sounds), G10 (RELEASE.md §2 refresh: rows 1 and 6 per D75), G16 (repo README status line); optional G15, G17 | qa-engineer + PM + mod-engineer | 250 (plan 350) | everything above; the CEO's "publish or not" |
 
-N14 (weapons from Fooocus references, ~1 500k) and N4 (the ice axe round 2) are
-superseded by D79: the five weapons were drafted from Gemini frames (N14-G,
-dbd82e4); D84 approved four (N14-I) and sent the ice axe back (N14-AX).
-
-**MVP left, recomputed 2026-10-20 with the real costs logged so far: ~3 050k
-tokens (range 2 600-3 800k).** Real costs ran 1.4x the estimates overall
-(21 closed tasks: 4 207k real against 3 005k estimated) and 1.7x on installs
-(N17, N12c, N13, N9w), so the plan numbers above are used: M2 ~1 050k (M2a-i
-300, M2b-i 130, M2c-i 250, N14-I 250, N14-AX 120), M3 ~750k (N9m 200, N9e
-400, N9 150), M4 ~1 250k (M2e ~600, N11 300, N16 350). Not counted: N7b/N7c,
-N15, N8 extra swaps. Snapshot: `docs/product/2026-10-20_1045_P0_mvp-status.md`.
+What the CEO chooses next comes from "Parked" below, phase by phase.
 
 ## Waiting for the CEO
 
-See `docs/PENDING-CEO-DECISIONS.md`: the ice axe's straight strike arm
-(N14-AX), the 15 sound alternatives (N9a), then N9m's listening page.
+See `docs/PENDING-CEO-DECISIONS.md`: his own
+play-through of the release, and the order of the V2 phases.
 
-## Parked (after the MVP, D60)
+## Parked (after the MVP, D60): V2 phases P1-P6
+
+Estimates are raw (±50 %); real costs have run 1.4x overall and 1.7x on
+installs (see Done), so plan for the higher number.
 
 | Task | Phase | Est. k tok |
 |---|---|---|
-| The TT-33's colour and grey detail (D63, nice to have) | P1 | 100 |
-| G3 hostile pass and hand-played runs, per map | P1 | 150 per map |
+| G3 hostile pass and hand-played runs, per map, skills 2 and 4 | P1 | 150 per map |
 | Balance tuning by playtest (BALANCE §5) | P1 | 300 |
-| Weapon reloads (`docs/ICEBOX.md`) | P1 | 400 |
-| Voices: Chatterbox cloned from the CEO's own voice (D85), the script in EN/DE, then processing | P2 | 250 |
-| The Russian docs mirror (phase close, D34) | P3 | 400 |
-| **Mine Freedoom's 68 maps (BSD) to calibrate our map constants** (`docs/product/2026-10-13_0944_F3_ml-level-generation.md` §6), D69: only when the full game starts | P4 | 500 |
-| **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
+| Weapon reloads (`docs/ICEBOX.md`); decides whether the three packed reload sounds stay | P1 | 400 |
+| The TT-33's colour and grey detail (D63, nice to have) | P1 | 100 |
+| G15: a GAMEINFO `IWAD` hint so drag-and-drop picks Phase 2 (two-IWAD behaviour NOT VERIFIED) | P1 | 25 |
+| G17: jump/crouch allowed or not (a gameplay call for the CEO) | P1 | 20 |
+| The CEO's three sound questions of D74 (TT-33/PPSh shot strength, the axe hit on laptops, the reloads), answered by playing | P1 | 0-80 |
+| Voices: the 4 enemy voices still Freedoom's (rifleman pain, trooper death, General pain and death; D91/D96 need a shouted reference) | P2 | 150 |
+| The 8 packed beds mixed under their voices (`sd/bed/`, MOD-SPEC §6.2), or dropped | P2 | 80 |
+| Polish found at the sign-off: the face's full damage ladder by eye, the credits screen at 16:9, the IZh pickup sound (Freedoom's, D94) | P2 | 60 |
+| Practice-range extras | P2 | 100 |
+| The Russian docs mirror (`docs/ru/`, D34, D75) | P3 | 400 |
+| **The full game: 15-20 levels** (D69), a roadmap of its own | P4 | ~400 per map |
+| Mine Freedoom's 68 maps (BSD) to calibrate our map constants (`docs/product/2026-10-13_0944_F3_ml-level-generation.md` §6) | P4 | 500 |
+| More weapons and more enemies (Gemini frames, D79); the seven enemies v2 from Gemini (`docs/ICEBOX.md`) | P4 | 300 per weapon set; enemies v2 to be measured on one enemy first |
+| N15: evaluate Ultimate Doom Builder (D69, needs the CEO's OK to download) | P4 | 150 |
+| N7b / N7c: metro v2, Tankograd v2 (optional) | P4 | 350 / 400 |
+| Portable downloads per OS, GZDoom + Freedoom + our PK3 (D93) | P5 | 300 (NOT measured; no study yet) |
+| Catalan as the third game language (D97), reviewed once like N11 | P6 | 350 (NOT measured) |
+| Orchestrated music (D99): a licence-clean orchestral soundfont, then MusicGen-Melody; the CEO's Pro Tools as baseline | V2, not phased | 150 for the evaluation |
+
+N14 (weapons from Fooocus references) and N4 (the ice axe round 2) were
+superseded by D79. N8 (further music swaps) has no request open.
 
 ## Done (recent, newest first)
+
+**2026-10-20, ~10:45 to 16:35: the rest of the MVP, v1.0 shipped.** At
+10:45 the plan for what was left was ~3 050k tokens (range 2 600-3 800k,
+`docs/product/2026-10-20_1045_P0_mvp-status.md`); all of it closed the same
+day. **Real costs were not logged per task for this delivery** (no agent
+usage report reached the repo), so its estimate-against-real cannot be
+measured here.
+
+| # | What | Commit | Est. k tok (plan) | Real |
+|---|---|---|---|---|
+| M2a-i | Campaign pickups installed (D80), engine pass | e84c56c, add161f | 200 (300) | not logged |
+| N9m | Enemy sound alternatives, MAP01 trimmed, PD candidates (D86) | 517a1e5, 4c7e29e | 200 | not logged |
+| N14-AX | Ice axe swing as one rigid piece (D86, D88) | a3a2812, c04e706 | 30 (120 with install) | not logged |
+| N14-I + M2b-i | IZh-58, RPG-7, ROKS-3, hand Katyusha, ice axe in hand; `SDHP`; shells SDDL/SDPL (D81, D84, D88) | c68ad84, ce90179 | 120 + 80 (250 + 130) | not logged |
+| M2e | Status bar, face and digits sweep; the Gemini face (D89, D90, D92) | 70c01cb, ce90179 | 430-650 (600, with M2e-i) | not logged |
+| M2c-i + N9e + N9 + M4 shell | Player effects; 64 enemy sounds with `$random`; weapon-sound alternatives (D94); SDIZFIR B; the 7 D91 voice takes; MAP01 `D_SDM1N2` (D95), range `D_SDM01T`, intermission `D_SDTITL`; quit lines, help and credit pages | c324f27, ca375c3 | 150 + 250 + 150 (250 + 400 + 150) | not logged |
+| M2e-i | Status bar A EN/RU, 42 Gemini faces, digits N2, in-game AI credits | a5129c1, 7ce0984 | 150 | not logged |
+| G11 + G10 | Every technology and AI credited (D93); RELEASE.md row 6 per D75 | c1044ec | 60 | not logged |
+| Voices | Chatterbox round 1 (D87, 57 takes), round 2 (40 aggressive takes, D96); 17 installed with D91's 7: 8 of 12 voices ours | b1501ba, 7360d20, a98c7c4, d18a40a | not estimated | not logged |
+| MAP01 music | The composed piece (D92 exception), N2 chosen (D95) | b22508e, 042cd02 | not estimated | not logged |
+| N11 | The one-time Russian review (162 ids, README/CREDITS/LICENSE RU halves), D97 follow-up | d42596b, d530faa | 250 (300) | not logged |
+| N16 | Sign-off plan, QA-M4-1, the clean-clone sign-off, tag `v1.0`, the GitHub release; the repo made public (D100) | 4d95475, 4a17a61 | 250 (350) | not logged |
 
 **2026-10-20 morning:** the CEO's verdicts D80-D83 (pickups, shells, effects, the listening sheet 80 of 80); the five other weapons drafted from the CEO's Gemini frames (dbd82e4, preview dc49b40), cost not logged; D84 approved four of them.
 

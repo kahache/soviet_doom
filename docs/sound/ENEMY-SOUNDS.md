@@ -603,7 +603,7 @@ replaced by the take's number (`SDSTOPA1`-`SDSTOPA3`), and the name the
 code asks for becomes a `$random` alias over `<name>/<take>` lines, the
 syntax of gzdoom.pk3's own `$random grunt/sight { grunt/sight1 ... }`
 (read in g4.14.2's `filter/game-doomchex/sndinfo.txt`): the engine picks a
-member each time it plays. Seven groups: the rifleman's attack, the
+member each time it plays. Thirteen groups (since D96; seven at N9e): the rifleman's attack, the
 Stormtrooper's pain and death, the Panzermensch's pain, and the beds of the
 rifleman's pain and the trooper's pain and death.
 
