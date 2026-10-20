@@ -31,7 +31,7 @@ whole episode in English or Russian:
 |---|---|---|---|
 | F0-F2 | Pipeline, lore, art direction | G0, G1, G2 | **PASSED** (`docs/qa/GATE-REVIEWS.md`) |
 | **M1** | **Campaign playable end to end** | the 3 maps run from New Game to the end text with no `idclip`, zero log errors, scripted route PASS on each (`tools/route.py`); the CEO walks it | **PASSED 2026-10-14 (D70):** every route PASS in engine with zero log errors, and the CEO walked it from New Game ("se puede jugar y perfecto") |
-| **M2** | **Our art everywhere the player looks** | no Freedoom sprite left in first person, on enemies or on pickups; factory textures approved | **7 of 7 enemies installed** (their shells: the General's ours, the Doughboy's and Panzermensch's still Freedoom), 6 of 7 weapon pickups (the hand Katyusha still BFUG) and no health/armour/key pickups of our own yet (M2 audit), TT-33 in hand installed (N17, 1 of 7 weapons), Tankograd textures 21 of 21 |
+| **M2** | **Our art everywhere the player looks** | no Freedoom sprite left in first person, on enemies or on pickups; factory textures approved | **7 of 7 enemies installed** (their shells: the General's ours, the Doughboy's and Panzermensch's still Freedoom), 6 of 7 weapon pickups (the hand Katyusha still BFUG) and no health/armour/key pickups of our own yet (M2 audit), TT-33 and PPSh-41 in hand installed (2 of 7 weapons; the rest from the CEO's Gemini frames, D79), Tankograd textures 21 of 21 |
 | **M3** | **Sound and music** | CEO-approved effects installed; one PD piece per map | drafts done, waiting on the CEO |
 | **M4** | **Ship v1** (was F6) | G6: licence file with full texts, credits, README EN/RU, the Russian text reviewed, QA sign-off, tag v1.0 | prep done (`docs/engine/RELEASE.md`) |
 

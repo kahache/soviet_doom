@@ -26,14 +26,18 @@ The CEO makes references with **Google Gemini**; they live in
 own frames from them (`tools/art/hand_ref.py`), **bare hands**, one weapon
 at a time, **silhouettes first** (cheapest review), then colour, then the
 animation. PPSh-41 is first. The ice axe (hand C3, shaft x1.7, head x1.8,
-straight shaft) and the IZh wait for bare-hand references. Gemini is inspiration only, never traced and never credited (D78).
+straight shaft) and the IZh wait for bare-hand references. Since D79 Gemini frames are used directly and Gemini is credited; the source images stay local.
 
-## In flight at handoff (2026-10-19 night)
+## In flight at handoff (2026-10-20, ~03:20)
 
-Nothing running. Waiting on the CEO: the PPSh-41 Gemini-frames test (two
-images to save as files), the sweeps for enemy shells, player effects and
-campaign pickups (installs M2a-i, M2b-i, M2c-i queued), the 15 sound
-alternatives. The range is retextured and passes its route.
+Nothing running. **Weapons now come from the CEO's Gemini frames (D79):**
+`tools/art/gemini_frames.py` turns two images (ready, firing) into the
+weapon's frames; the PPSh-41 is installed that way. Next weapons wait for
+the CEO's images (guide `docs/product/2026-10-20_0030_M2_gemini-armas.md`;
+Claude in Chrome is not connected, so the CEO generates them by hand).
+Waiting on the CEO: the sweeps for campaign pickups, enemy shells and
+player effects (installs M2a-i, M2b-i, M2c-i queued), the 15 sound
+alternatives, the red-cross question.
 
 ## Rules learned
 
