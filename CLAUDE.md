@@ -28,57 +28,54 @@ synced in batches at each phase close (D7, D34).
 > | Product notes and dated studies (difficulty names, language switch, research) | `docs/product/` |
 > | Russian mirror of all of the above | `docs/ru/` |
 
-## Status (2026-10-20)
+## Status (2026-10-20, evening)
 
-**Where the MVP stands** is told by `docs/ROADMAP.md` (milestones M1-M4 and
-their gates, D63), the tasks by `docs/BACKLOG.md`, and the dated snapshot
-`docs/product/2026-10-20_1045_P0_mvp-status.md`. In one line: **M1 PASSED**
-(D70), M2 ~41 % of its asset groups ours, M3 25 of 61 approved effects
-installed, M4 licences, credits and README done; decisions up to **D85**.
+**v1.0 shipped for the CEO's friends (D97):** G6 PASS (4a17a61,
+`docs/qa/GATE-REVIEWS.md`, evidence `docs/qa/evidence/2026-10-20_1635_M4_v1-signoff.md`),
+tag `v1.0` at d530faa, the GitHub release carries `sovietdoom-1.0.zip`; the
+repo is **public** since 2026-10-20 (D98, D100):
+https://github.com/kahache/soviet_doom/releases/tag/v1.0. **M1-M4 all PASSED** (`docs/ROADMAP.md`);
+the V2 phases P1-P6 and their estimates are in `docs/BACKLOG.md` ("Parked");
+the dated checkpoint is `docs/product/2026-10-20_1639_P0_v1-roadmap-checkpoint.md`.
+Decisions up to **D100**.
 
-**F0, F1, F2 — CLOSED** (G0, G1, G2 in `docs/qa/GATE-REVIEWS.md`). The old
-phases F3-F5 fold into M1-M3 (ROADMAP); G3's hostile pass and hand-played
-runs are parked to P1 (D60).
+**F0, F1, F2 — CLOSED** (G0, G1, G2). The old phases F3-F5 folded into
+M1-M3; G3's hostile pass and hand-played runs are parked to P1 (D60).
 
 **The campaign (D60, D62).** Three maps, numbered in play order since D62:
 MAP01 Zarya-7 (v3, D38) → MAP02 the metro-bunker (v1) → MAP03 the factory,
 «Танкоград» / Tankograd (v1.1, D68), which ends the episode at the portal;
-every route PASSes in engine (`tools/route.py`) and the CEO walked it (D70).
-Each crossing prints a transition text and the ending prints once
-(`docs/engine/MOD-SPEC.md` §4.6). The practice range is the lump `RANGE`,
-outside the MAPxx slots, retextured with our set (d8062e4). Dated evidence
-keeps the old numbers (a `map03` there is the metro, a `map02` the range).
-Campaign textures are all ours (M2 audit,
-`docs/qa/2026-10-14_2357_M2-freedoom-audit.md`).
+the CEO walked it (D70) and every route PASSes on the v1.0 zip's PK3 on
+skills 2-4 (G6). Each crossing prints a transition text and the ending
+prints once (`docs/engine/MOD-SPEC.md` §4.6). The practice range is the lump
+`RANGE`, outside the MAPxx slots. Dated evidence keeps the old numbers (a
+`map03` there is the metro, a `map02` the range).
 
-**Bestiary.** All seven enemy classes draw our own sprites (D49-D56, D67,
-D70, D73), with the General's shell and the Stormtrooper's bolt ours; the
-Doughboy's and Panzermensch's shells are approved (D81) and queued.
+**Art.** Every asset group the M2 gate names is ours: the seven enemy classes and
+their four projectiles, the seven weapons in first person (TT-33 on
+Freedoom-based hands, D61; the other six from the CEO's Gemini frames,
+D79-D88), every pickup (D80), the player's effects (D82), status bar A with
+the sergeant's 42 Gemini faces and digits N2 (D89-D92), EN and RU. Campaign
+textures are all ours. The engine's own automap and cheat lines are not.
 
-**Arsenal.** Seven period weapons in ZScript, balance as built (D39), slot 1
-the ice axe (D40). In first person the TT-33 (Freedoom-based hands, D61) and
-the PPSh-41 (Gemini frames, D79) are ours; the IZh-58, RPG-7, ROKS-3 and
-hand Katyusha are approved from Gemini frames (D84) and queued; the ice
-axe's strike frame is being redrawn (D84). World pickups ours except the
-hand Katyusha's; health, armour, keys, map and backpack (D80) are being
-installed. Player effects (D82) approved, queued.
+**Sound and music.** 25 weapon sounds (D74) plus the approved alternatives
+(D94); 81 enemy lumps: 43 of the 47 enemy sounds ours, 8 of the 12 voices
+(24 Chatterbox takes, D91/D96). Still Freedoom's: 4 voices, the IZh pickup
+(D94), player, door, switch and item sounds; the 8 beds are packed, unused
+(P2). Music: title `D_SDINTL`, MAP01 `D_SDM1N2` (composed, D92/D95), MAP02
+`D_SDFUNR`, MAP03 `D_SDGATE`, range `D_SDM01T`, intermission `D_SDTITL`.
+Sources and rights: `docs/sound/`.
 
-**Sound and music.** The 25 weapon sounds of D74 are installed (70358e0);
-D83 approved 30 enemy sounds, 5 beds and SDIZFIR B (install queued, N9e);
-enemies keep Freedoom's voices until the MVP ships (D85; then Chatterbox
-from the CEO's own voice, P2). The
-Internationale (`D_SDINTL`) plays on the title, `D_SDFUNR` on MAP02 and
-`D_SDGATE` on MAP03 (approved D83); MAP01 still plays `D_SDM01`, which D83
-moves off MAP01; the intermission still plays Freedoom's `D_DM2INT` until
-`D_SDTITL` installs. Music sources: `docs/sound/`.
+**Text.** Every in-game string in `[enu default]` and `[ru]` (163 ids),
+reviewed once in Russian (N11, D97). The `docs/ru/` mirror is P3 (D75).
 
 **Tooling.** `tools/verify.py` with `fast`, `art`, `full` and `auto` tiers: fast opens
 no window (`tests/_tiers.py` decides what is slow). `tools/check_pk3.py` validates the package
 without the engine; `tools/smoke.py` runs it with the engine. **Agents never
 start GZDoom (D26):** `SD_ALLOW_ENGINE=1` is the PM's, and the PM batches the
-engine runs. CI on every push (green on dc49b40).
-Suite: the fast tier ran **1 792 tests** at 892cfc7 (2026-10-20, 241 skipped:
-slow or imaging/`work/`-dependent); branch coverage of `tools/` **82%**
+engine runs. CI on every push (green on 4a17a61).
+Suite: the fast tier ran **2 128 tests** in a clean clone of d530faa (the v1.0
+sign-off, 2026-10-20); branch coverage of `tools/` **82%**
 (measured at 1088 tests, `docs/qa/COVERAGE.md`). **Drafts can be played before approval:**
 `tools/make_draft_overlay.py` packs the drafted sprites into
 `work/overlays/sd-draft-sprites.pk3`, loaded after the mod with `-file`
@@ -86,7 +83,7 @@ slow or imaging/`work/`-dependent); branch coverage of `tools/` **82%**
 
 **Working machine: the CEO's Windows PC since 2026-10-13** (the project
 started on a Mac). GZDoom g4.14.2 on Freedoom 0.13.0 loads the PK3 here with a
-clean log (latest engine pass `docs/qa/evidence/2026-10-20_0317_F4_ppsh-sleeve-and-g6-fixes.md`).
+clean log (latest engine pass: the v1.0 sign-off, `docs/qa/evidence/2026-10-20_1635_M4_v1-signoff.md`).
 The Mac's gitignored `work/` arrived as the release asset
 `transfer-work-2026-10-13` on the private repo (manifest
 `work/MANIFEST-from-mac.txt`); the art tier's identity tests need it.
@@ -151,7 +148,7 @@ written in Spanish (the CEO's language); their deliverables follow D7.
   full before release, not in the same task. Code, lumps, classes and
   comments in English. In-game text `[enu default]` and `[ru]` **always, in
   the same task**. Chat with the CEO in Spanish.
-- **Commits (D6):** the PM commits and pushes; agents never do. Private repo
+- **Commits (D6):** the PM commits and pushes; agents never do. Public repo since D100
   `kahache/soviet_doom`.
 - **Models:** judgement roles on the session model; routine subtasks
   (translation, validators, boilerplate) on Sonnet 5, via `translator-ru` or
