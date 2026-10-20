@@ -1,4 +1,10 @@
-// Soviet keys: the metro's blue pass (MAP03, docs/levels/MAP03-metro.md 5).
+// Soviet keys: the three passes (propusk). The metro's blue pass (MAP02,
+// docs/levels/MAP03-metro.md 5) since D63; Tankograd's yellow and red passes
+// (MAP03, locks 3 and 1) since D80, the blue pass's family: the same card in
+// another ground colour (tools/art/gen_items.py, option A of SDKY and SDKK).
+// Everything said below of the blue pass holds for the other two with their
+// own lock and Species: lock 3 lists YellowCard, lock 1 RedCard
+// (gzdoom.pk3 g4.14.2 -> lockdefs.txt).
 //
 // WHAT IT IS
 // ----------
@@ -52,7 +58,8 @@
 // zscript/actors/doom/doomkeys.zs: `BKEY A 10; BKEY B 10 bright; loop;`)
 // with only the four-letter name changed, so the pass blinks exactly as
 // Doom's keys do (tests/test_pickup_sprites.py). The status bar icon is
-// still BlueCard's STKEYS0.
+// still BlueCard's STKEYS0, which since D80 the mod ships as the pass's own
+// 7x5 card (assets/graphics/hud/STKEYS0.png); NOT VERIFIED in the engine.
 
 class SD_BluePass : BlueCard replaces BlueCard
 {
@@ -69,6 +76,49 @@ class SD_BluePass : BlueCard replaces BlueCard
 	Spawn:
 		SDKB A 10;
 		SDKB B 10 Bright;
+		Loop;
+	}
+}
+
+// --- The yellow and red passes (Tankograd, MAP03; D80) ---------------------
+// MAP03 places editor numbers 6 and 13 and asks for locks 3 and 1 at its two
+// coloured doors (Door_LockedRaise, tags 4 and 5): a press works the door by
+// tag, so the line the player reads is PD_YELLOWCO / PD_REDCO (LANGUAGE).
+// Status bar icons: inherited (STKEYS1, STKEYS2), which the mod ships as
+// the passes' own small cards (assets/graphics/hud/), as it does STKEYS0.
+
+class SD_YellowPass : YellowCard replaces YellowCard
+{
+	Default
+	{
+		// Lock 3 matches by exact class or by Species, never by parentage.
+		Species "YellowCard";
+		Inventory.PickupMessage "$SD_PICKUP_YELLOWPASS";
+	}
+
+	States
+	{
+	Spawn:
+		SDKY A 10;
+		SDKY B 10 Bright;
+		Loop;
+	}
+}
+
+class SD_RedPass : RedCard replaces RedCard
+{
+	Default
+	{
+		// Lock 1 matches by exact class or by Species, never by parentage.
+		Species "RedCard";
+		Inventory.PickupMessage "$SD_PICKUP_REDPASS";
+	}
+
+	States
+	{
+	Spawn:
+		SDKK A 10;
+		SDKK B 10 Bright;
 		Loop;
 	}
 }

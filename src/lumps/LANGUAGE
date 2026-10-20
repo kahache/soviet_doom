@@ -129,7 +129,20 @@ SD_GOT_ROCKET    = "One PG-7V round.";
 SD_GOT_ROCKBOX   = "A crate of PG-7V rounds.";
 SD_GOT_CELL      = "A canister of fuel.";
 SD_GOT_CELLPACK  = "A full fuel tank.";
-SD_GOT_BACKPACK  = "Quartermaster's satchel. Everything you can carry!";
+SD_GOT_BACKPACK  = "A paratrooper's pack. Everything you can carry!";  // the RD-54 since D80
+
+// --- Health, armour and the area map (D80, 2026-10-20) ---------------------
+// zscript/sd/pickups.zs: each class replaces its Doom pickup and prints its
+// own SD_GOT_* id, for the reason the ammunition does (Freedoom's DEHACKED
+// overrides GOTSTIM, GOTMEDIKIT, GOTMAP...; ADR 003). One line per object
+// the CEO chose (tools/art/gen_items.py, D80).
+SD_GOT_STIMPACK    = "A field dressing.";
+SD_GOT_MEDIKIT     = "A first-aid box.";
+SD_GOT_HEALTHBONUS = "Zelyonka.";
+SD_GOT_ARMORBONUS  = "A steel helmet.";
+SD_GOT_ARMOR       = "A flak vest and a helmet.";
+SD_GOT_MEGAARMOR   = "A steel breastplate and helmet!";
+SD_GOT_MAP         = "A commander's map case. The whole area is on it.";
 
 // --- Difficulty ladder (CEO decision 2026-10-13) --------------------------
 // The five names the CEO chose; the reasoning for each is in
@@ -300,6 +313,19 @@ SD_PICKUP_BLUEPASS = "Blue pass.";
 PD_BLUEC           = "You need a blue pass to open this door";
 PD_BLUECO          = "You need a blue pass to activate this object";
 
+// Tankograd's yellow and red passes (MAP03, D80): SD_YellowPass and
+// SD_RedPass in zscript/sd/keys.zs, locks 3 and 1. The same two mechanisms:
+// MAP03's coloured doors work by tag, so the player reads PD_YELLOWCO and
+// PD_REDCO, which Freedoom's DEHACKED does not touch; it does override
+// PD_YELLOWC and PD_REDC ("... passcard needed for this door."), so the two
+// lines below show on doom2.wad only.
+SD_PICKUP_YELLOWPASS = "Yellow pass.";
+SD_PICKUP_REDPASS    = "Red pass.";
+PD_YELLOWC           = "You need a yellow pass to open this door";
+PD_YELLOWCO          = "You need a yellow pass to activate this object";
+PD_REDC              = "You need a red pass to open this door";
+PD_REDCO             = "You need a red pass to activate this object";
+
 [ru]
 
 SD_EP01_NAME  = "Советский Doom";
@@ -355,7 +381,16 @@ SD_GOT_ROCKET    = "Один выстрел ПГ-7В.";
 SD_GOT_ROCKBOX   = "Ящик выстрелов ПГ-7В.";
 SD_GOT_CELL      = "Бачок с горючим.";
 SD_GOT_CELLPACK  = "Полный баллон горючего.";
-SD_GOT_BACKPACK  = "Вещмешок старшины. Всё, что унесёшь!";
+SD_GOT_BACKPACK  = "Ранец десантника. Всё, что унесёшь!";  // РД-54 с D80
+
+// --- Аптечки, броня и карта местности (D80, 2026-10-20) ---------------------
+SD_GOT_STIMPACK    = "Перевязочный пакет.";
+SD_GOT_MEDIKIT     = "Аптечка.";
+SD_GOT_HEALTHBONUS = "Зелёнка.";
+SD_GOT_ARMORBONUS  = "Стальная каска.";
+SD_GOT_ARMOR       = "Бронежилет и каска.";
+SD_GOT_MEGAARMOR   = "Стальной нагрудник и каска!";
+SD_GOT_MAP         = "Командирский планшет. На карте — вся местность.";
 
 // --- Уровни сложности (решение CEO 2026-10-13) ----------------------------
 // Пять названий выбраны CEO; обоснование каждого - в
@@ -479,3 +514,12 @@ SD_GENERAL_ORDER     = "Генерал: Vorwärts!";
 SD_PICKUP_BLUEPASS = "Синий пропуск.";
 PD_BLUEC           = "Для открытия нужен синий пропуск";
 PD_BLUECO          = "Для применения нужен синий пропуск";
+
+// Жёлтый и красный пропуска Танкограда (MAP03, D80): замки 3 и 1; у дверей
+// игрок читает PD_YELLOWCO и PD_REDCO.
+SD_PICKUP_YELLOWPASS = "Жёлтый пропуск.";
+SD_PICKUP_REDPASS    = "Красный пропуск.";
+PD_YELLOWC           = "Для открытия нужен жёлтый пропуск";
+PD_YELLOWCO          = "Для применения нужен жёлтый пропуск";
+PD_REDC              = "Для открытия нужен красный пропуск";
+PD_REDCO             = "Для применения нужен красный пропуск";

@@ -53,8 +53,18 @@ frame has exactly the size and offsets of frame A, so nothing jumps.
 Colour. Palette v1 for everything except the heavy armour's option A, in
 palette v2's `mosaic_cobalt` (D45) for the reason the blue pass is: Doom's
 blue armour must read BLUE, and v1's only blue is a grey (option B shows it).
-Sprites are RGBA with hard alpha, as every shipped sprite. The red cross is
-one constant (CROSS_MATERIAL); see the preview's decisions about the emblem.
+Sprites are RGBA with hard alpha, as every shipped sprite. The medical
+cross is the first-aid sign since D80, a white cross on a green field (ISO
+7010 E003), not the protected red-cross emblem: CROSS_MATERIAL and
+FIELD_MATERIAL.
+
+Install (D80, `--install`). The CEO's choice per object is CHOSEN: the
+recommended option except SDAG C, SDAH C and SDBP B. `--install` renders
+every frame of each chosen option into work/art/items/<item>/<option>/ and
+the key icons into work/art/items/hud/, plus a check sheet
+(work/art/items/sheet/install_D80.png); it writes nothing in docs/ or
+assets/: the mod-engineer copies the files (MOD-SPEC 6.3, "The campaign
+pickups, installed by D80").
 
 Outputs (work/ is gitignored):
     work/art/items/<item>/<option>/<LUMP><F>0.png   frame A of every option, every frame of the recommended
@@ -148,10 +158,18 @@ ITEM_MATERIALS: dict[str, Material] = {
     "pass_red": Material("flag_red", 3, 15, black_floor=True),
     "steel_cloth": Material("steel_blue", 1, 13, black_floor=True),   # a blue-grey cover, not metal
     "greatcoat": Material("plaster_warm", 1, 9, black_floor=True),    # the rolled shinel
+    "aid_green": Material("military_green", 5, 15),                   # the first-aid sign's field (D80)
 }
 V2_MATERIALS = frozenset({"cobalt"})
 GLINT = "flash_core"            # gen_weapon's flat cream: no light, no contour
-CROSS_MATERIAL, CROSS_BASE = "hull_red", 0.62
+# The medical cross (D80): not the protected red-cross emblem but the
+# international first-aid sign, a white cross on a green field (ISO 7010
+# E003). Palette v1's only green is military_green, so the field is its upper
+# ramp (the zelyonka's), not ISO's signal green. Until D80 the cross was
+# "hull_red" at 0.62 on a white ground.
+CROSS_MATERIAL, CROSS_BASE = "tel_white", 0.80
+FIELD_MATERIAL, FIELD_BASE = "aid_green", 0.56
+FIELD_MARGIN = 0.15             # the green square's half side over the cross's half length
 FRAME_GAIN = 0.16               # frame B of the armours: value added all over (the pass uses gp.GLINT_GAIN)
 
 
@@ -236,6 +254,12 @@ def cross_poly(cs: float, ct: float, arm: float, bar: float):
     return [(cs + s, ct + t) for s, t in pts]
 
 
+def field_poly(cs: float, ct: float, arm: float):
+    """The first-aid sign's green square behind a cross of half length arm."""
+    a = arm * (1.0 + FIELD_MARGIN)
+    return [(cs - a, ct - a), (cs + a, ct - a), (cs + a, ct + a), (cs - a, ct + a)]
+
+
 def ellipse_poly(rx: float, ry: float, n: int = 28):
     return [(rx * np.cos(2 * np.pi * k / n), ry * np.sin(2 * np.pi * k / n)) for k in range(n)]
 
@@ -266,14 +290,15 @@ ROLL_R, ROLL_L = 3.2, 7.0
 
 
 def render_stim_a(frame: str = "A") -> Frame:
-    """A: the individual dressing packet (ИПП-1), rubberised khaki, a white
-    field with the red cross on top, the tear strip round its face."""
+    """A: the individual dressing packet (ИПП-1), rubberised khaki, the
+    first-aid sign on top (a white cross on a green field, D80), the tear
+    strip round its face."""
     rig = gp.rig_for(STIM_PX)
     X, Y, Z = yawed(BOX_YAW)
     w, d, h = IPP
     b = Box(centre() - Z * h / 2, X, Y, Z, w, d, h)
     b.draw(rig, "canvas", 0.52)
-    b.decal(rig, "top", -w * 0.34, -d * 0.40, w * 0.34, d * 0.40, "tel_white", 0.72)
+    b.decal(rig, "top", -w * 0.34, -d * 0.40, w * 0.34, d * 0.40, FIELD_MATERIAL, FIELD_BASE)
     b.decal_poly(rig, "top", cross_poly(0.0, 0.0, d * 0.32, d * 0.11), CROSS_MATERIAL, CROSS_BASE,
                  lift=DECAL_LIFT * 2)
     b.decal(rig, "front", -w / 2, h * 0.55, w / 2, h * 0.80, "tel_white", 0.58)
@@ -298,7 +323,7 @@ def render_stim_b(frame: str = "A") -> Frame:
 
 def render_stim_c(frame: str = "A") -> Frame:
     """C: a roll of bandage lying, its loose end run out towards the eye
-    with a red cross printed on it."""
+    with the first-aid sign printed on it."""
     rig = gp.rig_for(STIM_PX)
     X, Y, Z = yawed(-18.0)
     c = centre() - Z * ROLL_R
@@ -308,7 +333,9 @@ def render_stim_c(frame: str = "A") -> Frame:
             c + X * (ROLL_L * 0.40) - Y * (ROLL_R + 7.5), c + X * (-ROLL_L * 0.50) - Y * (ROLL_R + 7.5)]
     rig._plane([p + Z * 0.05 for p in tail], "tel_white", 0.68, 0.6)
     mid = c - Y * (ROLL_R + 4.2) + Z * 0.1
-    rig._plane([mid + X * s - Y * t for s, t in cross_poly(0.0, 0.0, 2.4, 0.8)], CROSS_MATERIAL, CROSS_BASE, 0.6)
+    rig._plane([mid + X * s - Y * t for s, t in field_poly(0.0, 0.0, 2.4)], FIELD_MATERIAL, FIELD_BASE, 0.6)
+    rig._plane([mid + X * s - Y * t + Z * 0.05 for s, t in cross_poly(0.0, 0.0, 2.4, 0.8)], CROSS_MATERIAL,
+               CROSS_BASE, 0.6)
     return finish(rig)
 
 
@@ -321,8 +348,8 @@ CHEST = (34.0, 18.0, 18.0)
 
 def render_medi_a(frame: str = "A") -> Frame:
     """A: the white enamelled first-aid box (аптечка) of every Soviet
-    workshop, standing: a big red cross on its face and a small one on its
-    end, the lid seam, a steel handle and latch."""
+    workshop, standing: the first-aid sign (D80) big on its face and small on
+    its end, the lid seam, a steel handle and latch."""
     rig = gp.rig_for(MED_PX)
     X, Y, Z = yawed(22.0)
     w, d, h = MED_BOX
@@ -330,9 +357,12 @@ def render_medi_a(frame: str = "A") -> Frame:
     b.draw(rig, "enamel", 0.58)
     b.decal(rig, "front", -w / 2, h - 4.4, w / 2, h - 3.8, "enamel", 0.22)
     b.decal(rig, "left", -d / 2, h - 4.4, d / 2, h - 3.8, "enamel", 0.18)
-    b.decal_poly(rig, "front", cross_poly(0.0, h * 0.42, 6.4, 2.2), CROSS_MATERIAL, CROSS_BASE, lift=DECAL_LIFT * 2)
-    b.decal_poly(rig, "left", cross_poly(0.0, h * 0.42, 3.4, 1.2), CROSS_MATERIAL, CROSS_BASE - 0.06,
+    b.decal_poly(rig, "front", field_poly(0.0, h * 0.42, 6.4), FIELD_MATERIAL, FIELD_BASE, lift=DECAL_LIFT * 2)
+    b.decal_poly(rig, "front", cross_poly(0.0, h * 0.42, 6.4, 2.2), CROSS_MATERIAL, CROSS_BASE, lift=DECAL_LIFT * 3)
+    b.decal_poly(rig, "left", field_poly(0.0, h * 0.42, 3.4), FIELD_MATERIAL, FIELD_BASE - 0.06,
                  lift=DECAL_LIFT * 2)
+    b.decal_poly(rig, "left", cross_poly(0.0, h * 0.42, 3.4, 1.2), CROSS_MATERIAL, CROSS_BASE - 0.06,
+                 lift=DECAL_LIFT * 3)
     b.decal(rig, "front", -1.4, h - 4.6, 1.4, h - 2.0, "steel", 0.62, lift=DECAL_LIFT * 3)
     p0, p1 = b.pt("top", -6.0, 0.0, 0.0), b.pt("top", 6.0, 0.0, 0.0)
     chain(rig, [p0, p0 + Z * 2.6, p1 + Z * 2.6, p1], 0.7, "steel", 0.55, 0.85)
@@ -341,7 +371,7 @@ def render_medi_a(frame: str = "A") -> Frame:
 
 def render_medi_b(frame: str = "A") -> Frame:
     """B: the medic's satchel (сумка санитарная): khaki canvas, the flap over
-    two thirds of the face with a white disc and the red cross, two steel
+    two thirds of the face with a green disc and the white cross, two steel
     buckles, the strap lying in a loop in front."""
     rig = gp.rig_for(MED_PX)
     X, Y, Z = yawed(18.0)
@@ -350,7 +380,7 @@ def render_medi_b(frame: str = "A") -> Frame:
     b.draw(rig, "canvas", 0.50)
     Box(b.c + Z * (h - 0.4), X, Y, Z, w + 0.6, d + 0.6, 0.9).draw(rig, "canvas", 0.58)
     b.decal(rig, "front", -w / 2 - 0.3, h * 0.30, w / 2 + 0.3, h + 0.4, "canvas", 0.60, lift=0.35)
-    disc(rig, b.pt("front", 0.0, h * 0.64, 0.5), -Y, 4.8, "tel_white", 0.70)
+    disc(rig, b.pt("front", 0.0, h * 0.64, 0.5), -Y, 4.8, FIELD_MATERIAL, FIELD_BASE)
     b.decal_poly(rig, "front", cross_poly(0.0, h * 0.64, 3.4, 1.15), CROSS_MATERIAL, CROSS_BASE, lift=0.65)
     for s in (-w * 0.32, w * 0.32):
         b.decal(rig, "front", s - 1.2, h * 0.30 - 1.6, s + 1.2, h * 0.30 + 1.0, "steel", 0.62, lift=0.6)
@@ -364,7 +394,7 @@ def render_medi_b(frame: str = "A") -> Frame:
 
 def render_medi_c(frame: str = "A") -> Frame:
     """C: a green wooden field medical chest, planked like the ammunition
-    crates, a white panel with the red cross on its face and end, a rope
+    crates, a green panel with the white cross on its face and end, a rope
     handle."""
     px = MED_PX * 0.9
     rig = gp.rig_for(px)
@@ -375,9 +405,9 @@ def render_medi_c(frame: str = "A") -> Frame:
     for s in (-w / 2 + 2.5, w / 2 - 2.5):
         Box(b.pt("top", s, 0.0, 0.0), X, Y, Z, 3.0, d, 1.2).draw(rig, "olive_paint", 0.62)
     gp.crate_planks(rig, b, px_per_cm=px)
-    b.decal(rig, "front", -7.5, 3.0, 7.5, 15.0, "tel_white", 0.66, lift=DECAL_LIFT * 2)
+    b.decal(rig, "front", -7.5, 3.0, 7.5, 15.0, FIELD_MATERIAL, FIELD_BASE, lift=DECAL_LIFT * 2)
     b.decal_poly(rig, "front", cross_poly(0.0, 9.0, 4.6, 1.6), CROSS_MATERIAL, CROSS_BASE, lift=DECAL_LIFT * 3)
-    b.decal(rig, "left", -5.0, 4.0, 5.0, 14.0, "tel_white", 0.58, lift=DECAL_LIFT * 2)
+    b.decal(rig, "left", -5.0, 4.0, 5.0, 14.0, FIELD_MATERIAL, FIELD_BASE - 0.06, lift=DECAL_LIFT * 2)
     b.decal_poly(rig, "left", cross_poly(0.0, 9.0, 3.2, 1.1), CROSS_MATERIAL, CROSS_BASE - 0.06, lift=DECAL_LIFT * 3)
     return finish(rig)
 
@@ -1002,7 +1032,7 @@ ITEMS: tuple[Item, ...] = (
           Option("B", "AI-2 personal kit, orange", render_stim_b, "A personal first-aid kit.",
                  "Аптечка индивидуальная."),
           Option("C", "Bandage roll", render_stim_c, "A bandage.", "Бинт.")),
-         "A", "the white field and the red cross on khaki read 'first aid' from above, and its size says 'small'; "
+         "A", "the first-aid sign on khaki reads 'first aid' from above, and its size says 'small'; "
               "the AI-2 is the most 1970s object but at 1x an orange tile reads as a box of something, not as health; "
               "the bandage is a white smudge on a light floor",
          "SD_GOT_STIMPACK"),
@@ -1099,6 +1129,12 @@ ITEMS: tuple[Item, ...] = (
 )
 ITEM = {i.slug: i for i in ITEMS}
 ITEM_LUMPS = tuple(row[1] for row in NAMES)
+
+# D80 (2026-10-20): the CEO's choice, "todos los que tú recomiendas por
+# defecto, salvo SDAG C, SDAH C, SDBP B"; the Katyusha at its drafted size
+# (A). These are the options installed in assets/sprites/pickups/.
+CHOSEN = {"stim": "A", "medikit": "A", "hbonus": "B", "abonus": "A", "garmor": "C", "barmor": "C",
+          "allmap": "A", "backpack": "B", "ykey": "A", "rkey": "A", "katyusha": "A"}
 
 # Freedoom's sprites (frame A), measured on freedoom2.wad 0.13.0: the size
 # an option is held against (tests/test_gen_items.py, SIZE_RANGE).
@@ -1323,14 +1359,49 @@ def view(label_: str, img: np.ndarray, k: int) -> str:
 
 
 def render_all(items=ITEMS) -> dict[str, dict[str, dict[str, Frame]]]:
-    """Frame A of every option and every frame of the recommended one."""
+    """Frame A of every option and every frame of the recommended and the
+    chosen one (D80)."""
     out: dict = {}
     for it in items:
         out[it.slug] = {}
         for o in it.options:
-            frames = it.frames if o.key == it.recommended else "A"
+            frames = it.frames if o.key in (it.recommended, CHOSEN[it.slug]) else "A"
             out[it.slug][o.key] = {fr: render_option(it, o, fr) for fr in frames}
     return out
+
+
+def render_chosen(items=ITEMS) -> dict[str, dict[str, Frame]]:
+    """Every frame of the option the CEO chose for each object (D80)."""
+    return {it.slug: {fr: render_option(it, it.option(CHOSEN[it.slug]), fr) for fr in it.frames} for it in items}
+
+
+def install(out_dir: Path = OUT_DIR) -> list[Path]:
+    """--install: the chosen sets and the key icons into work/, and a check
+    sheet of the set on both floors and its animations at 4x. Nothing in
+    docs/ or assets/."""
+    written = []
+    chosen = render_chosen()
+    for it in ITEMS:
+        for fr, f in chosen[it.slug].items():
+            written.append(gw.save_sprite(f, out_dir / it.slug / CHOSEN[it.slug] / f"{lump_name(it, fr)}.png"))
+    for lump in KEY_ICON_COLOURS:
+        written.append(save_indexed_v2(key_icon(lump), out_dir / "hud" / f"{lump}.png"))
+    rec = [chosen[it.slug]["A"] for it in ITEMS]
+    rec_k = rec[:10] + [sdkb()] + rec[10:]
+    blocks = []
+    for where in FLOORS:
+        img = scene(rec_k, where)
+        blocks += [label(f"d80 chosen set 1x and 3x - {where}"), img, zoom(img, 3)]
+    for it in ITEMS:
+        if len(it.frames) > 1:
+            blocks += [label(f"{it.lump} {CHOSEN[it.slug]} frames {' '.join(it.frames)} 4x"),
+                       np.concatenate([np.pad(zoom(scene([chosen[it.slug][fr]], "map01"), 4),
+                                              ((0, 0), (0, 8), (0, 0)), constant_values=0) for fr in it.frames], 1)]
+    sheet = out_dir / "sheet" / "install_D80.png"
+    sheet.parent.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(stack(blocks), "RGB").save(sheet, optimize=True)
+    written.append(sheet)
+    return written
 
 
 def build(stamp: str, out_dir: Path = OUT_DIR, preview_dir: Path = PREVIEW_DIR) -> tuple[Path, dict]:
@@ -1538,7 +1609,13 @@ def write_preview(path: Path, cards, lineups, gifs, icons_html, sheet_png: Path)
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--stamp", default=dt.datetime.now().strftime("%Y-%m-%d_%H%M"))
+    ap.add_argument("--install", action="store_true",
+                    help="render only the CEO's chosen sets (D80) and the key icons into work/art/items/")
     args = ap.parse_args(argv)
+    if args.install:
+        for p in install():
+            print(f"wrote {p.relative_to(PROJECT_ROOT)}")
+        return
     preview, m = build(args.stamp)
     print(f"wrote {preview}")
     for slug, im in m["items"].items():

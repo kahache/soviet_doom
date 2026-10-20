@@ -6,14 +6,20 @@ Always (text and small files only, the `fast` tier):
 
   names      eleven rows, each lump four letters SD + two, all distinct;
              SDHP is the name MOD-SPEC 6.3 already reserves for the hand
-             Katyusha's pickup; every other lump collides with nothing: no
-             PNG in assets/ starts with it, no other generator in tools/art/
+             Katyusha's pickup; every other lump collides with nothing: the
+             only PNGs in assets/ that start with one are the frames of the
+             option the CEO chose (D80) in assets/sprites/pickups/ (and the
+             fullscreen HUD's MEDIA0, a copy of SDMDA0, which does not start
+             with one), no other generator in tools/art/
              names it, every MOD-SPEC line that names it is about its own
              class, and no lump of the IWAD starts with it (when present)
   frames     each row's frames are the ones Doom's class plays, and the
              generator's SPAWN table is Doom's Spawn state (gzdoom.pk3
              g4.14.2, quoted below)
   no font    the generator never rasterises text with a system font
+  chosen     CHOSEN is D80: the recommended option except SDAG C, SDAH C,
+             SDBP B; the cross is the first-aid sign (white on green), not
+             the red-cross emblem (D80)
 
 Renders (skipped under SD_SKIP_SLOW_ART, which `verify.py fast` sets):
 
@@ -21,8 +27,10 @@ Renders (skipped under SD_SKIP_SLOW_ART, which `verify.py fast` sets):
              option marked palette=2), alpha hard 0/255
   placement  every sprite stands on its lowest pixel, centred
   size       each option within SIZE_RANGE of the Freedoom sprite it replaces
-  frames     the recommended option has every frame, each the size and
-             offsets of frame A and different from it (it animates)
+  frames     the recommended and the chosen option have every frame, each
+             the size and offsets of frame A and different from it
+  emblem     the chosen dressing packet and first-aid box show the white
+             cross on green and no flag red (D80)
   family     the yellow and red passes' option A is SDKB's card: in cobalt
              it renders exactly as gen_pickups' pass B; each key reads its
              colour (KEY_SHARE_MIN); the Katyusha's option A is the D51 draft
@@ -71,6 +79,9 @@ FREEDOOM = {"Stimpack": "STIM", "Medikit": "MEDI", "HealthBonus": "BON1", "Armor
             "GreenArmor": "ARM1", "BlueArmor": "ARM2", "Allmap": "PMAP", "Backpack": "BPAK",
             "YellowCard": "YKEY", "RedCard": "RKEY", "BFG9000": "BFUG"}
 RESERVED = "SDHP"               # MOD-SPEC 6.3: the hand Katyusha's pickup
+INSTALLED = PROJECT_ROOT / "assets" / "sprites" / "pickups"   # D80
+D80 = {"stim": "A", "medikit": "A", "hbonus": "B", "abonus": "A", "garmor": "C", "barmor": "C",
+       "allmap": "A", "backpack": "B", "ykey": "A", "rkey": "A", "katyusha": "A"}
 OWNER_WORDS = {"BFG9000": ("Katyusha", "BFG9000")}   # MOD-SPEC names the Katyusha's row by the weapon
 MAY_NAME_SDHP = {"gen_weapon.py", "gen_hands_2d.py", "gen_items.py"}
 
@@ -116,10 +127,20 @@ class NameTests(unittest.TestCase):
         self.assertRegex(spec, r"Hand Katyusha \|.*`SDHP` A")
 
     def test_no_installed_sprite_starts_with_a_new_name(self):
+        """Since D80 the chosen frames are installed; nothing else may take
+        one of the names."""
         new = [lump for lump in self.lumps if lump != RESERVED]
+        ours = {f"{lump}{fr}0" for _, lump, frames, _, _ in self.rows for fr in frames}
         for p in (PROJECT_ROOT / "assets").rglob("*.png"):
             for lump in new:
-                self.assertFalse(p.stem.upper().startswith(lump), f"{p} collides with {lump}")
+                if p.stem.upper().startswith(lump):
+                    self.assertEqual(p.parent, INSTALLED, f"{p} collides with {lump}")
+                    self.assertIn(p.stem.upper(), ours, f"{p} collides with {lump}")
+
+    def test_chosen_is_d80(self):
+        text = SOURCE.read_text(encoding="utf-8")
+        m = re.search(r"CHOSEN = \{(.*?)\}", text, re.S)
+        self.assertEqual(dict(re.findall(r'"(\w+)": "([ABC])"', m.group(1))), D80)
 
     def test_no_other_generator_names_them(self):
         for p in sorted(ART_TOOLS.glob("*.py")):
@@ -165,6 +186,21 @@ class SpawnTableTests(unittest.TestCase):
         import gen_items
         got = tuple((it.slug, it.lump, it.frames, it.doom, it.placeholder) for it in gen_items.ITEMS)
         self.assertEqual(got, gen_items.NAMES)
+
+    def test_chosen_table(self):
+        import gen_items
+        self.assertEqual(gen_items.CHOSEN, D80)
+        differ = {it.lump: gen_items.CHOSEN[it.slug] for it in gen_items.ITEMS
+                  if gen_items.CHOSEN[it.slug] != it.recommended}
+        self.assertEqual(differ, {"SDAG": "C", "SDAH": "C", "SDBP": "B"})
+
+    def test_the_cross_is_the_first_aid_sign(self):
+        import gen_items
+        self.assertEqual(gen_items.CROSS_MATERIAL, "tel_white")
+        self.assertEqual(gen_items.FIELD_MATERIAL, "aid_green")
+        self.assertEqual(gen_items.ITEM_MATERIALS["aid_green"].ramp, "military_green")
+        self.assertNotIn("hull_red", re.findall(r"CROSS_MATERIAL, CROSS_BASE = \"(\w+)\"",
+                                                SOURCE.read_text(encoding="utf-8")))
 
     def test_three_options_and_a_recommendation(self):
         import gen_items
@@ -228,16 +264,38 @@ class RenderTests(unittest.TestCase):
                 with self.subTest(item=it.slug, opt=o.key):
                     self.assertTrue(lo <= max(f.rgba.shape[:2]) / ref <= hi)
 
-    def test_recommended_set_is_complete_and_animates(self):
+    def test_recommended_and_chosen_sets_are_complete_and_animate(self):
         for it in self.g.ITEMS:
-            got = self.frames[it.slug][it.recommended]
-            self.assertEqual("".join(sorted(got)), it.frames, it.slug)
-            a = got["A"]
-            for fr in it.frames[1:]:
-                with self.subTest(item=it.slug, frame=fr):
-                    self.assertEqual(got[fr].rgba.shape, a.rgba.shape)
-                    self.assertEqual(tuple(map(int, got[fr].offsets())), tuple(map(int, a.offsets())))
-                    self.assertFalse(np.array_equal(got[fr].rgba, a.rgba))
+            for key in {it.recommended, self.g.CHOSEN[it.slug]}:
+                got = self.frames[it.slug][key]
+                self.assertEqual("".join(sorted(got)), it.frames, (it.slug, key))
+                a = got["A"]
+                for fr in it.frames[1:]:
+                    with self.subTest(item=it.slug, opt=key, frame=fr):
+                        self.assertEqual(got[fr].rgba.shape, a.rgba.shape)
+                        self.assertEqual(tuple(map(int, got[fr].offsets())), tuple(map(int, a.offsets())))
+                        self.assertFalse(np.array_equal(got[fr].rgba, a.rgba))
+
+    def test_render_chosen_is_render_all(self):
+        chosen = self.g.render_chosen()
+        for it in self.g.ITEMS:
+            for fr, f in chosen[it.slug].items():
+                self.assertTrue(np.array_equal(f.rgba, self.frames[it.slug][self.g.CHOSEN[it.slug]][fr].rgba),
+                                (it.slug, fr))
+
+    def test_first_aid_sign_on_the_medical_items(self):
+        """D80: white cross on green, no flag red, on the installed options."""
+        import palette
+        red = set(map(tuple, palette.ramp_colours("flag_red")))
+        green = set(map(tuple, palette.ramp_colours("military_green")))
+        white = set(map(tuple, palette.ramp_colours("plaster_warm")))
+        for slug in ("stim", "medikit"):
+            f = self.frames[slug][self.g.CHOSEN[slug]]["A"]
+            px = self.opaque(f)
+            with self.subTest(item=slug):
+                self.assertFalse(px & red)
+                self.assertTrue(px & green)
+                self.assertTrue(px & white)
 
     def test_saved_names(self):
         for it in self.g.ITEMS:

@@ -22,7 +22,8 @@ What is enforced here, and why:
               metro mosaic SDMOSA1 since D56, the Doughboy's SDDB set
               since D70, the General's SDGN set since D73, the TT-33's
               held SDTT A-C since N17, the PPSh-41's SDPP A-B and
-              SDPF A since D79)
+              SDPF A since D79, the blue pass's status bar icon STKEYS0
+              since D80)
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_palette_v2 -v
 """
@@ -90,6 +91,11 @@ MAX_COLOURS = 256
 # D79 (2026-10-20): the PPSh-41's SDPP A-B and its flash SDPF A
 # (gemini_frames.py snaps the CEO's Gemini pair to all of palette v2: the
 # skin and the flash's warm tones are v2). RGBA, not in PALETTE_V2_LUMPS.
+# D80 (2026-10-20): the blue pass's 7x5 status bar icon STKEYS0
+# (gen_items.py key_icon, mosaic_cobalt like SDKB). Indexed, so check_pk3's
+# PALETTE_V2_LUMPS lists it. STKEYS1-2 are written on the v2 PLTE but use v1
+# colours only, so they are not listed. The campaign pickups of D80 are all
+# v1 (the heavy armour is option C, bare steel, not A's cobalt).
 APPROVED_IN_V2: set[str] = (
     {f"sprites/legion/SDLT{f}{r}.png" for f in "ABCDEFG" for r in "12345678"}
     | {f"sprites/legion/SDLT{f}0.png" for f in "HIJKLMNOPQRSTU"}
@@ -102,7 +108,8 @@ APPROVED_IN_V2: set[str] = (
     | {f"sprites/general/SDGN{f}{r}.png" for f in "ABCDEFGQR" for r in "12345678"}
     | {f"sprites/general/SDGN{f}0.png" for f in "HIJKLMNOP"}
     | {f"sprites/tt33/SDTT{f}0.png" for f in "ABC"}
-    | {"sprites/ppsh/SDPPA0.png", "sprites/ppsh/SDPPB0.png", "sprites/ppsh/SDPFA0.png"})
+    | {"sprites/ppsh/SDPPA0.png", "sprites/ppsh/SDPPB0.png", "sprites/ppsh/SDPFA0.png"}
+    | {"graphics/hud/STKEYS0.png"})
 
 
 def _digest(colours) -> str:

@@ -37,8 +37,10 @@
 // moves (tests/test_pickup_sprites.py). No Scale, no offsets in code: the
 // offsets are the grAb chunk inside each PNG. The status bar icons
 // (Inventory.Icon CLIPA0, SHELA0, ROCKA0, CELLA0) are inherited and still
-// Freedoom's. The backpack (BPAK) was not part of the sweep and keeps
-// Freedoom's sprite.
+// Freedoom's. The backpack was not part of that sweep; it wears our SDBP
+// since D80 (an RD-54 paratrooper's pack, tools/art/gen_items.py option B),
+// its Spawn the Backpack's line for line (`BPAK A -1; Stop;`,
+// doomammo.zs) with the name changed.
 
 // --- 7,62x25: TT-33 and PPSh-41 (Clip pool) --------------------------------
 
@@ -138,9 +140,15 @@ class SD_CellPack : CellPack replaces CellPack
 	}
 }
 
-// --- Quartermaster's satchel (Backpack) ------------------------------------
+// --- The paratrooper's pack (Backpack; RD-54 since D80) ---------------------
 
 class SD_Backpack : Backpack replaces Backpack
 {
 	Default { Inventory.PickupMessage "$SD_GOT_BACKPACK"; }
+	States
+	{
+	Spawn:
+		SDBP A -1;
+		Stop;
+	}
 }

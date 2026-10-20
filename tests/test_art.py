@@ -210,8 +210,11 @@ class ApprovedAssetsTests(unittest.TestCase):
     # patch and needs an alpha channel, hard 0/255 (LICENSES.md, D18). The
     # menu cursor B (two blink phases, one size) and the English pause sign
     # P2 joined them in D48 (measured on the installed files, 2026-10-14).
+    # D80: the status bar's key icons STKEYS0-2 (blue, yellow, red pass),
+    # 7x5 as Freedoom's, which DoomStatusBar names itself.
     SHELL_SIZES = {"TITLEPIC": (320, 200), "INTERPIC": (320, 200), "M_DOOM": (200, 64),
-                   "M_SKULL1": (20, 20), "M_SKULL2": (20, 20), "M_PAUSE": (77, 20)}
+                   "M_SKULL1": (20, 20), "M_SKULL2": (20, 20), "M_PAUSE": (77, 20),
+                   "STKEYS0": (7, 5), "STKEYS1": (7, 5), "STKEYS2": (7, 5)}
 
     def test_layout_names_and_sizes(self):
         from PIL import Image
@@ -345,8 +348,15 @@ class ApprovedAssetsTests(unittest.TestCase):
                 # A sweep names every option as it would ship (the pickups,
                 # work/art/pickups/<object>/<A|B>/SDCLA0.png, D63): the
                 # installed lump must be byte-identical to exactly one of them.
+                # D80: a sweep option may BE an earlier render (the campaign
+                # sweep's Katyusha option A is the D51 draft,
+                # work/art/weapons_2d/katyusha/), so the same bytes may sit in
+                # two pipelines; what must stay unambiguous is the option:
+                # never two siblings of one sweep (<object>/A and <object>/B).
                 same = [q for q in sources if q.read_bytes() == p.read_bytes()]
-                self.assertEqual(len(same), 1, f"{p.name}: matches {len(same)} of {sources}")
+                self.assertTrue(same, f"{p.name}: matches none of {sources}")
+                self.assertEqual(len({q.parent.parent for q in same}), len(same),
+                                 f"{p.name}: matches {len(same)} of {sources}")
                 continue
             self.assertEqual(len(sources), 1, f"{p.name}: expected one source in work/, got {sources}")
             self.assertEqual(p.read_bytes(), sources[0].read_bytes(), f"{p} differs from {sources[0]}")

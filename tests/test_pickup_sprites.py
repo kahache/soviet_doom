@@ -292,7 +292,11 @@ class NameTests(unittest.TestCase):
 
 class FileTests(unittest.TestCase):
     def test_exactly_the_chosen_pickups_are_installed(self):
-        self.assertEqual({p.name for p in PICKUPS.glob("*")}, set(expected_files()))
+        """D63's eleven, and since D80 the campaign pickups
+        (tests/test_pickups_install.py owns those)."""
+        from test_pickups_install import expected_files as d80_files
+        self.assertFalse(set(expected_files()) & set(d80_files()))
+        self.assertEqual({p.name for p in PICKUPS.glob("*")}, set(expected_files()) | set(d80_files()))
 
     def test_rgba_with_offsets_standing_on_the_floor(self):
         for name in expected_files():

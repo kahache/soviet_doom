@@ -699,9 +699,11 @@ def licensed_names(licenses: Path) -> set[str]:
 # are RGBA and are not palette-checked here (tests/test_palette_v2.py is).
 # D66: the Tankograd brick (marble_red), the two banners hung on it (the
 # Legion's canton in mosaic_cobalt) and the four portal frames (mosaic_cobalt).
+# D80: the blue pass's status bar icon STKEYS0 (graphics/, mosaic_cobalt).
 PALETTE_V2_LUMPS = frozenset({"SDMOSA1"}  # D56
                              | {"SDBRCK1", "SDBRCK2", "SDFLAG1", "SDFLAG2"}
-                             | {f"SDPORT{i}" for i in range(1, 5)})
+                             | {f"SDPORT{i}" for i in range(1, 5)}
+                             | {"STKEYS0"})
 
 
 def palette_v2_colours(palette_json: Path) -> set[tuple[int, int, int]] | None:
