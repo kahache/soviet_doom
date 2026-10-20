@@ -24,11 +24,13 @@ sovietdoom-<version>/ with exactly:
                    and Russian, in screen order), the credit lines
                    docs/sound/MUSIC-RIGHTS.md 4.5 says to reproduce verbatim,
                    the provenance of every packed asset as
-                   docs/art/LICENSES.md records it, and which references were
-                   made with AI (D75); its headings name no repo path
+                   docs/art/LICENSES.md records it, and every AI tool the
+                   game was made with and what each did (D75, D79, D93); its
+                   headings name no repo path
   README.txt       generated: the player readme, English and Russian (the
                    campaign's three maps and the range, what to download,
-                   how to start it, GZDoom's default keys, the hash check);
+                   how to start it, GZDoom's default keys, what it was made
+                   with, the hash check);
                    every map and menu name is read from LANGUAGE
   SHA256SUMS       `sha256sum -c` format, for the seven files above
 
@@ -444,31 +446,158 @@ def zip_time(commit_time: int | None) -> tuple[int, int, int, int, int, int]:
 # quotes, an asset's origin, may still name the generator that drew it.)
 CREDITS_HEADINGS = {
     "screen_en": "English - as shown in the game (Options > Soviet Doom > Credits)",
-    "ai_en": "Reference images made with AI",
+    "ai_en": "AI tools used to make the game",
     "music": "Music credit lines, reproduced word for word",
     "assets": f"Every picture, sound and piece of music in {PK3_NAME}: origin and licence",
     "screen_ru": "Русский - как в игре (Настройки (Options) > Советский Doom > Авторы)",
-    "ai_ru": "Референсные изображения, созданные ИИ",
+    "ai_ru": "ИИ-инструменты, с которыми сделана игра",
 }
 
-# D75: the credits say which references were generated with AI. One sentence
-# per language here; the in-game screen carries a short form (SD_CRED_SRC_4-6).
-# The Russian is reviewed with the rest of the in-game text in N11.
-AI_DISCLOSURE = {
-    LANG_ENGLISH: ("The first-person hands of the weapons were drawn from images the "
-                   "project lead generated with AI image models: Google Gemini (the "
-                   "frames of the PPSh-41, IZh-58, RPG-7, ROKS-3, hand Katyusha and ice "
-                   "axe are derived from its images) and Fooocus / SDXL "
-                   "run locally (references). Both were reworked into pixel art; the "
+# D75, D79, D93: the release names every AI tool the game was made with and
+# what each did. Two claims depend on what the PK3 packs, so they are read
+# from it rather than written by hand (AiShips): the sergeant's face drawn
+# from Gemini images (D89, D90) and voice lines from Chatterbox (D87, D91).
+# The in-game screen carries a short form (SD_CRED_SRC_*). The Russian is
+# reviewed with the rest of the in-game text in N11.
+AI_TOOLS = ("Claude", "Anthropic", "Claude Code", "Google Gemini", "Fooocus / SDXL",
+            "Chatterbox", "Resemble AI")
+FACE_LUMP_RE = re.compile(r"^STF(ST|TR|TL|OUCH|EVL|KILL|GOD|DEAD)", re.IGNORECASE)
+VOICE_TOOL_MARK = "chatterbox"          # a register Origin naming it means a take ships
+
+
+@dataclass(frozen=True)
+class AiShips:
+    face: bool = False      # our STF* face lumps are packed (drawn from Gemini images)
+    voices: bool = False    # a packed sound's register row names Chatterbox
+
+
+def ai_ships(check: LicenceCheck) -> AiShips:
+    """What the AI lines may claim, read from the packed assets' register rows."""
+    paths = [path for _, covered in check.coverage for path in covered]
+    return AiShips(
+        face=any(FACE_LUMP_RE.match(Path(path).stem) for path in paths),
+        voices=any(VOICE_TOOL_MARK in (row.origin or "").lower()
+                   for row, covered in check.coverage if covered))
+
+
+_AI_TEXT = {
+    LANG_ENGLISH: {
+        "claude": ("Claude (Anthropic), through Claude Code. The project lead ran the "
+                   "game as a studio of AI agents and approved every asset. Claude wrote "
+                   "the design documents and the game code, generated the maps by "
+                   "program, painted the textures and the pixel art by program, modelled "
+                   "the enemies on a 3D rig of the project's own and rendered their "
+                   "sprites from it, made the sound effects, sequenced the original music "
+                   "and the arrangements of public-domain works, wrote the build and test "
+                   "tools and translated the text into Russian."),
+        "gemini": ("Google Gemini. The project lead generated images with it, from which "
+                   "the first-person frames of the PPSh-41, IZh-58, RPG-7, ROKS-3, hand "
+                   "Katyusha and ice axe{face} were drawn and reworked into pixel art. The "
                    "source images are not distributed."),
-    LANG_RUSSIAN: ("Руки с оружием от первого лица нарисованы по изображениям, которые "
-                   "руководитель проекта создал с помощью ИИ-моделей генерации "
-                   "изображений: Google Gemini (кадры ППШ-41, ИЖ-58, РПГ-7, РОКС-3, "
-                   "ручной «Катюши» и ледоруба получены из его изображений) и локально "
-                   "запущенной Fooocus / SDXL (референсы). "
-                   "Всё переработано в пиксель-арт; исходные изображения не "
-                   "распространяются."),
+        "face": ", and the sergeant's face in the status bar,",
+        "fooocus": ("Fooocus / SDXL, run locally. Reference images of hands holding the "
+                    "weapons, generated by the project lead; used as references only and "
+                    "not distributed."),
+        "voices_no": ("Chatterbox (Resemble AI), run locally. Trial takes of the enemies' "
+                      "voice lines, made with its predefined voices; none is in this "
+                      "release, where the enemies speak with Freedoom's voices."),
+        "voices_yes": ("Chatterbox (Resemble AI), run locally. Some of the enemies' voice "
+                       "lines, made with its predefined voices; the others are Freedoom's."),
+    },
+    LANG_RUSSIAN: {
+        "claude": ("Claude (Anthropic) в Claude Code. Руководитель проекта вёл игру как "
+                   "студию ИИ-агентов и утверждал каждый ресурс. Claude написал проектные "
+                   "документы и код игры, сгенерировал карты программно, программно "
+                   "нарисовал текстуры и пиксель-арт, смоделировал врагов на собственном "
+                   "3D-риге проекта и отрисовал по нему их спрайты, сделал звуковые "
+                   "эффекты, секвенировал оригинальную музыку и обработки произведений из "
+                   "общественного достояния, написал инструменты сборки и проверки и "
+                   "перевёл тексты на русский."),
+        "gemini": ("Google Gemini. Руководитель проекта создал с его помощью изображения, "
+                   "по которым нарисованы кадры от первого лица для ППШ-41, ИЖ-58, РПГ-7, "
+                   "РОКС-3, ручной «Катюши» и ледоруба{face}, переработанные в пиксель-арт. "
+                   "Исходные изображения не распространяются."),
+        "face": ", а также лицо сержанта в строке состояния",
+        "fooocus": ("Fooocus / SDXL, запущенная локально. Референсные изображения рук с "
+                    "оружием, созданные руководителем проекта; использованы только как "
+                    "образец и не распространяются."),
+        "voices_no": ("Chatterbox (Resemble AI), запущенная локально. Пробные дубли "
+                      "реплик врагов, записанные её стандартными голосами; в этот выпуск "
+                      "они не вошли, враги говорят голосами Freedoom."),
+        "voices_yes": ("Chatterbox (Resemble AI), запущенная локально. Часть реплик "
+                       "врагов, записанная её стандартными голосами; остальные - голоса "
+                       "Freedoom."),
+    },
 }
+
+
+def ai_disclosure(lang: str, ships: AiShips = AiShips()) -> list[str]:
+    """One paragraph per AI tool, in CREDITS.txt's order."""
+    text = _AI_TEXT[lang]
+    return [text["claude"],
+            text["gemini"].format(face=text["face"] if ships.face else ""),
+            text["fooocus"],
+            text["voices_yes" if ships.voices else "voices_no"]]
+
+
+# The disclosure as one text per language, before the package is read (the
+# Gemini tests in tests/test_ppsh_sprites.py and test_gemini_weapons_install.py
+# read it); CREDITS.txt itself is written from ai_disclosure(lang, ai_ships()).
+AI_DISCLOSURE = {lang: " ".join(ai_disclosure(lang)) for lang in _AI_TEXT}
+
+
+# README.txt's short form ("MADE WITH"), each line wrapped under the heading.
+_MADE_WITH = {
+    LANG_ENGLISH: {
+        "lead": ("The engine is GZDoom and the game data under it is Freedoom. The game "
+                 "itself was made by a studio of AI agents run by the project lead, who "
+                 "approved every asset:"),
+        "claude": ("Claude (Anthropic), through Claude Code: design, maps, code, "
+                   "textures, sprites, sound effects, music and the Russian text."),
+        "gemini": "Google Gemini: images the first-person weapons{face} were drawn from.",
+        "face": " and the sergeant's face",
+        "fooocus": "Fooocus / SDXL, run locally: reference images of the hands.",
+        "voices_no": ("Chatterbox (Resemble AI), run locally: trial voice takes; in this "
+                      "release the enemies speak with Freedoom's voices."),
+        "voices_yes": "Chatterbox (Resemble AI), run locally: some enemy voice lines.",
+        "rest": ("Sound clips from CC0 packs by Kenney, rubberduck and Darsycho "
+                 "(OpenGameArt); public-domain music, some in MIDI sequences by Jerry "
+                 "Engelbach and Peter Gerloff. Built with Python, Pillow, NumPy and "
+                 f"FFmpeg. Everyone credited: {CREDITS_NAME}."),
+    },
+    LANG_RUSSIAN: {
+        "lead": ("Движок - GZDoom, игровые данные под ним - Freedoom. Саму игру сделала "
+                 "студия ИИ-агентов во главе с руководителем проекта, который "
+                 "утверждал каждый ресурс:"),
+        "claude": ("Claude (Anthropic) в Claude Code: проект, карты, код, текстуры, "
+                   "спрайты, звуковые эффекты, музыка и русский текст."),
+        "gemini": ("Google Gemini: изображения, по которым нарисовано оружие от первого "
+                   "лица{face}."),
+        "face": " и лицо сержанта",
+        "fooocus": "Fooocus / SDXL, запущенная локально: референсные изображения рук.",
+        "voices_no": ("Chatterbox (Resemble AI), запущенная локально: пробные дубли "
+                      "голосов; в этом выпуске враги говорят голосами Freedoom."),
+        "voices_yes": ("Chatterbox (Resemble AI), запущенная локально: часть реплик "
+                       "врагов."),
+        "rest": ("Звуковые фрагменты из CC0-наборов Kenney, rubberduck и Darsycho "
+                 "(OpenGameArt); музыка из общественного достояния, частью в "
+                 "MIDI-секвенциях Джерри Энгельбаха (Jerry Engelbach) и Петера Герлоффа "
+                 "(Peter Gerloff). Инструменты: Python, Pillow, NumPy и FFmpeg. Все "
+                 f"авторы: {CREDITS_NAME}."),
+    },
+}
+
+
+def render_made_with(lang: str, ships: AiShips = AiShips()) -> str:
+    text = _MADE_WITH[lang]
+    out = wrap(text["lead"], "  ", "  ")
+    for item in (text["claude"],
+                 text["gemini"].format(face=text["face"] if ships.face else ""),
+                 text["fooocus"],
+                 text["voices_yes" if ships.voices else "voices_no"]):
+        out += wrap(item, "    ", "      ")
+    out += wrap(text["rest"], "  ", "  ")
+    return "\n".join(out)
 
 
 def render_credits(version: str, commit: str, credits: dict[str, list[tuple[str, str]]],
@@ -496,11 +625,18 @@ def render_credits(version: str, commit: str, credits: dict[str, list[tuple[str,
                 out.append("  " + text)
         out.append("")
 
+    ships = ai_ships(check)
+
+    def ai_section(heading: str, lang: str) -> None:
+        section(heading)
+        for paragraph in ai_disclosure(lang, ships):
+            out.extend(wrap(paragraph, "  ", "  "))
+            out.append("")
+
     screen(credits.get(LANG_ENGLISH, []), CREDITS_HEADINGS["screen_en"])
 
     out.append("")
-    section(CREDITS_HEADINGS["ai_en"], wrap(AI_DISCLOSURE[LANG_ENGLISH], "  ", "  "))
-    out.append("")
+    ai_section(CREDITS_HEADINGS["ai_en"], LANG_ENGLISH)
 
     if music_lines:
         out.append("")
@@ -535,7 +671,7 @@ def render_credits(version: str, commit: str, credits: dict[str, list[tuple[str,
     screen(credits.get(LANG_RUSSIAN, []), CREDITS_HEADINGS["screen_ru"])
 
     out.append("")
-    section(CREDITS_HEADINGS["ai_ru"], wrap(AI_DISCLOSURE[LANG_RUSSIAN], "  ", "  "))
+    ai_section(CREDITS_HEADINGS["ai_ru"], LANG_RUSSIAN)
     return "\n".join(out).rstrip() + "\n"
 
 
@@ -634,6 +770,9 @@ LICENCE AND CREDITS
   Freedoom's BSD licence: LICENSE-FREEDOOM-BSD-3.txt. Everyone credited, and
   every asset's origin: CREDITS.txt.
 
+MADE WITH
+{made_with}
+
 CHECK THE DOWNLOAD
   SHA256SUMS holds the SHA-256 of every other file in this package.
   Linux:   sha256sum -c SHA256SUMS
@@ -717,6 +856,9 @@ Options > Customize Controls)
   под лицензией BSD проекта Freedoom: LICENSE-FREEDOOM-BSD-3.txt. Все авторы
   и происхождение каждого ресурса: CREDITS.txt.
 
+ЧЕМ СДЕЛАНО
+{made_with_ru}
+
 ПРОВЕРКА ЗАГРУЗКИ
   В SHA256SUMS записаны SHA-256 всех остальных файлов этого архива.
   Linux:   sha256sum -c SHA256SUMS
@@ -746,7 +888,8 @@ README_IDS = {
 }
 
 
-def render_readme(version: str, commit: str, strings: dict[str, dict[str, str]]) -> str:
+def render_readme(version: str, commit: str, strings: dict[str, dict[str, str]],
+                  ships: AiShips = AiShips()) -> str:
     title_en = f"SOVIET DOOM {version}"
     title_ru = f"СОВЕТСКИЙ DOOM {version}"
     names: dict[str, str] = {}
@@ -763,7 +906,9 @@ def render_readme(version: str, commit: str, strings: dict[str, dict[str, str]])
     return README_TEMPLATE.format(
         version=version, commit=commit, pk3=PK3_NAME,
         gzdoom=GZDOOM_MINIMUM, freedoom=FREEDOOM_TESTED,
-        rule="=" * len(title_en), rule_ru="=" * len(title_ru), **names)
+        rule="=" * len(title_en), rule_ru="=" * len(title_ru),
+        made_with=render_made_with(LANG_ENGLISH, ships),
+        made_with_ru=render_made_with(LANG_RUSSIAN, ships), **names)
 
 
 def render_sums(files: dict[str, bytes]) -> str:
@@ -881,8 +1026,8 @@ def make_release(config: Config) -> Release:
         **licence_texts,
         CREDITS_NAME: render_credits(config.version, commit, credits,
                                      verbatim_music_lines(music_text), check).encode("utf-8"),
-        README_NAME: render_readme(config.version, commit,
-                                   language_strings(language_text)).encode("utf-8"),
+        README_NAME: render_readme(config.version, commit, language_strings(language_text),
+                                   ai_ships(check)).encode("utf-8"),
     }
     files[SUMS_NAME] = render_sums(files).encode("ascii")
 

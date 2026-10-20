@@ -81,9 +81,16 @@ REPO_ONLY = ("docs/", "tools/", "tests/", "src/", "work/", "dist/", "iwads/",
              "LICENSES.md", "MUSIC-RIGHTS", "RELEASE.md", "release.py")
 
 # D75: the credits say which references were generated with AI; D79: and
-# name Google Gemini, whose images the PPSh-41's frames are derived from.
-AI_WORDS = {"default": ("AI", "Google Gemini", "Fooocus / SDXL", "hands", "pixel art", "not distributed"),
-            "ru": ("ИИ", "Google Gemini", "Fooocus / SDXL", "рук", "пиксель-арт", "не распространяются")}
+# name Google Gemini, whose images the weapon frames are derived from; D93:
+# and every AI tool the game was made with, in both halves of CREDITS.txt and
+# README.txt.
+AI_WORDS = {"default": ("AI", "Google Gemini", "Fooocus / SDXL", "hands", "pixel art", "not distributed",
+                        "Freedoom's voices"),
+            "ru": ("ИИ", "Google Gemini", "Fooocus / SDXL", "рук", "пиксель-арт", "не распространяются",
+                   "голосами Freedoom")}
+# README.txt's "Made with" names the AI tools and the non-AI foundations.
+MADE_WITH_WORDS = ("GZDoom", "Freedoom", "Kenney", "rubberduck", "Darsycho", "OpenGameArt",
+                   "Jerry Engelbach", "Peter Gerloff", "Python", "Pillow", "CREDITS.txt")
 
 
 def sha(data: bytes) -> str:
@@ -119,6 +126,12 @@ class RealReleaseTest(unittest.TestCase):
             cls.language = zf.read("LANGUAGE").decode("utf-8")
         cls.credits = cls.files[release.CREDITS_NAME].decode("utf-8")
         cls.readme = cls.files[release.README_NAME].decode("utf-8")
+        # What the AI lines may claim, read as make_release reads it.
+        cls.ships = release.ai_ships(release.check_licences(
+            cls.pk3_names,
+            release.parse_licence_register(release.DEFAULT_LICENSES.read_text(encoding="utf-8")),
+            release.parse_music_register(release.DEFAULT_MUSIC_RIGHTS.read_text(encoding="utf-8")),
+            release.parse_credit_lines(cls.language)))
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -167,11 +180,27 @@ class RealReleaseTest(unittest.TestCase):
 
     def test_credits_carry_the_ai_disclosure_in_both_languages(self):
         english, russian = self.credits.split(release.CREDITS_HEADINGS["screen_ru"])
+        ships = self.ships
         for half, lang in ((english, "default"), (russian, "ru")):
             flat = release.normalise(half)
-            self.assertIn(release.normalise(release.AI_DISCLOSURE[lang]), flat)
-            for word in AI_WORDS[lang]:
+            for paragraph in release.ai_disclosure(lang, ships):
+                self.assertIn(release.normalise(paragraph), flat)
+            for word in release.AI_TOOLS:
                 self.assertIn(word, flat, f"[{lang}]")
+
+    def test_the_ai_claims_follow_what_the_package_packs(self):
+        """The face line appears once our STF* lumps are packed, the voices
+        line flips once a packed sound's register row names Chatterbox."""
+        face = any(release.FACE_LUMP_RE.match(Path(n).stem) for n in self.pk3_names)
+        for text in (self.credits, self.readme):
+            self.assertEqual("sergeant's face" in text, face)
+            self.assertEqual("speak with Freedoom's voices" in release.normalise(text),
+                             not self.ships.voices)
+
+    def test_the_readme_says_what_the_game_was_made_with(self):
+        en, ru = self.readme.split(README_RULE)
+        for half, lang in ((en, "default"), (ru, "ru")):
+            self.assertIn(release.render_made_with(lang, self.ships), half)
 
     def test_the_pk3_is_a_full_build(self):
         for lump in ("MAPINFO", "LANGUAGE", "zscript.txt", "maps/MAP01.wad", "maps/RANGE.wad"):
@@ -386,6 +415,29 @@ class ReadmeTest(unittest.TestCase):
                             "certutil -hashfile sovietdoom.pk3 SHA256"):
                 self.assertIn(command, half)
 
+    def test_made_with_names_every_ai_tool_and_foundation_in_both_halves(self):
+        self.assertIn("\nMADE WITH\n", self.en)
+        self.assertIn("\nЧЕМ СДЕЛАНО\n", self.ru)
+        for half in (self.en, self.ru):
+            flat = release.normalise(half)
+            for word in release.AI_TOOLS + MADE_WITH_WORDS:
+                self.assertIn(word, flat)
+        self.assertIn("Freedoom's voices", release.normalise(self.en))
+        self.assertIn("голосами Freedoom", release.normalise(self.ru))
+
+    def test_made_with_follows_what_ships(self):
+        face_voices = release.render_readme("1.0", "0123456789ab", self.strings,
+                                            release.AiShips(face=True, voices=True))
+        en, ru = face_voices.split(README_RULE)
+        self.assertIn("the sergeant's face", release.normalise(en))
+        self.assertIn("лицо сержанта", release.normalise(ru))
+        self.assertIn("some enemy voice lines", en)
+        self.assertNotIn("Freedoom's voices", release.normalise(en))
+        self.assertNotIn("голосами Freedoom", release.normalise(ru))
+        self.assertNotIn("sergeant's face", self.readme)
+        for line in face_voices.splitlines():
+            self.assertLessEqual(len(line), 78, line)
+
     def test_it_names_no_file_the_player_does_not_have(self):
         shipped = set(release.RELEASE_FILES) | {"freedoom1.wad", "freedoom2.wad", "gzdoom.exe"}
         named = set(re.findall(r"[\w.-]+\.(?:md|txt|pk3|wad|py|sh|exe|png|zip)\b", self.readme))
@@ -568,9 +620,32 @@ class CreditsTextTest(unittest.TestCase):
         self.assertIn(release.CREDITS_HEADINGS["ai_ru"], russian)
         for half, lang in ((english, "default"), (russian, "ru")):
             flat = release.normalise(half)
-            self.assertIn(release.normalise(release.AI_DISCLOSURE[lang]), flat)
-            for word in AI_WORDS[lang]:
+            for paragraph in release.ai_disclosure(lang):
+                self.assertIn(release.normalise(paragraph), flat)
+            for word in AI_WORDS[lang] + release.AI_TOOLS:
                 self.assertIn(word, flat, f"[{lang}]")
+
+    def test_the_ai_text_names_no_repo_path(self):
+        every = [release.ai_disclosure(lang, release.AiShips(face, voices))
+                 for lang in ("default", "ru") for face in (False, True) for voices in (False, True)]
+        for paragraph in (p for paragraphs in every for p in paragraphs):
+            for repo_only in REPO_ONLY:
+                self.assertNotIn(repo_only, paragraph)
+
+    def test_ai_ships_reads_the_packed_rows(self):
+        rows = release.parse_licence_register(
+            "| Lump | Origin | Licence |\n|---|---|---|\n"
+            "| `STFST00` | drawn from Google Gemini images | CC BY-NC-SA 4.0 |\n"
+            "| `SDRRISIT` | a Chatterbox take, processed | CC BY-NC-SA 4.0 |\n")
+        nothing = release.LicenceCheck(coverage=[(rows[1], [])])
+        self.assertEqual(release.ai_ships(nothing), release.AiShips())
+        both = release.LicenceCheck(coverage=[(rows[0], ["graphics/hud/STFST00.png"]),
+                                              (rows[1], ["sounds/SDRRISIT.ogg"])])
+        self.assertEqual(release.ai_ships(both), release.AiShips(face=True, voices=True))
+        text = release.render_credits("1.0", "0123456789ab", self.credits_lines, [], both)
+        self.assertIn("the sergeant's face in the status bar", release.normalise(text))
+        self.assertIn("Some of the enemies' voice lines", release.normalise(text))
+        self.assertNotIn("speak with Freedoom's voices", release.normalise(text))
 
     def test_it_names_every_full_text_and_the_notice_for_freedoom_art(self):
         flat = release.normalise(self.text)
