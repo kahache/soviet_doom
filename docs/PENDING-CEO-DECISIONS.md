@@ -12,7 +12,6 @@ Previews are sent to you as files; the paths are under `docs/art/previews/`.
 | What | Preview | Asks [PM's recommendation] |
 |---|---|---|
 | Gemini images for the other weapons (D79) | guide `docs/product/2026-10-20_0030_M2_gemini-armas.md` | 2 per weapon, saved in `work/art/reference/` |
-| Player effects (M2c) | `2026-10-19_2208_F4_player-effects.html` | the recommended A of each [A; the teleport fog is the weakest] |
 | Sound alternatives (D74) | `2026-10-15_0033_M3_listening-alternatives.html` | OK/NO per alternative, "Copiar resultado" |
 
 ## 2. Waiting for your ears
