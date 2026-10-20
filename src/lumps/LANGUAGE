@@ -232,6 +232,10 @@ SD_CRED_SRC_3     = "public domain.";
 // "Enemy sounds"): no credit is owed, one is given (ADR 009, D-009-3).
 SD_CRED_SFX_1     = "Sound clips: CC0 packs by Kenney,";
 SD_CRED_SFX_2     = "rubberduck and Darsycho (OpenGameArt).";
+// D96: the voice kurt recorded ("Soldier Voice Acting", OpenGameArt, CC-BY
+// 3.0) is the reference some enemy voices were cloned from: a credit owed
+// (LICENSES.md, the D96 rows; the long form is in CREDITS.txt).
+SD_CRED_SFX_3     = "Voice reference: kurt, CC-BY 3.0.";
 
 // D75, D79, D93: every AI tool the game was made with, and what it did; the
 // long form is CREDITS.txt's (tools/release.py, ai_disclosure). Since M2e-i
@@ -512,6 +516,7 @@ SD_CRED_SRC_2     = "Павла Жукова (1920),";
 SD_CRED_SRC_3     = "общественное достояние.";
 SD_CRED_SFX_1     = "Звуки: CC0-наборы Kenney, rubberduck";
 SD_CRED_SFX_2     = "и Darsycho (OpenGameArt).";
+SD_CRED_SFX_3     = "Образец голоса: kurt, CC-BY 3.0.";
 
 SD_CRED_H_AI      = "Сделано с ИИ";
 SD_CRED_AI_1      = "Claude (Anthropic) в Claude Code:";

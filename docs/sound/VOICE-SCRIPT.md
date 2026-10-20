@@ -165,11 +165,11 @@ sound after cutting; the raw take may be longer. **Takes** is how many to
 record in that file. "Loud" means step back to 40-50 cm (§0.4). Lines in
 *italics* in the line column are wordless.
 
-Several rows feed the same lump: they are alternatives, and I pick the best
-after hearing them. Whether a lump can later play a random choice of two or
-three of them is a `SNDINFO` question (`$random`), **NOT VERIFIED** in the
-ZDoom wiki yet, and the mod-engineer's to decide; until then, one take wins
-per lump.
+Several rows feed the same lump: they are alternatives. Since N9e (D86,
+D91) a sound with several approved takes plays a random one each time
+(`SNDINFO` `$random`, the syntax of gzdoom.pk3's own zombieman sight;
+`docs/sound/ENEMY-SOUNDS.md` §5.12), so every approved take of every row
+of a lump ships; §1.6 lists them.
 
 ### 1.1 Fourth Reich rifleman (`SD_ReichRifleman`) — German, chain `REICH-DRY`
 
@@ -265,6 +265,30 @@ death, 2.5-4 s, pulls it up slightly). Real time is the gaps:
 The earlier figures (15-20 minutes of recording, 30-45 in total) did not
 account for the row changes and were too low.
 Estimate, not measured: the first real session replaces it.
+
+### 1.6 Installed (D91, D96)
+
+The takes are Chatterbox Multilingual (D87; `work/audio/voice_takes/`,
+`AI-LOG.csv`): D91's with predefined voices, D96's cloned from shouted
+references (Thorsten-Voice "angry", CC0; kurt's "Soldier Voice Acting",
+CC-BY 3.0; HaelDB, CC0). Rows with no approved take keep Freedoom's voice.
+The D96 takes say their lines with an exclamation mark ("Vorwärts!", not
+the full stop of G02): that is what the CEO approved.
+
+| Lump (card) | Rows and takes | Ships as | `SNDINFO` |
+|---|---|---|---|
+| `SDRRIACT` | R01 t13, R02 t11, R03 t14 (D96) | `SDRRIAC1`-`3` | `$random sd/mon/reichrifleman/active` |
+| `SDRRISIT` | R06 t01, t03 (D91); R04 t12, t13, R05 t12 (D96) | `SDRRISI1`, `3`, `4`-`6` | `$random sd/mon/reichrifleman/sight` |
+| `SDRRIPAI` | none | Freedoom `DSPOPAIN` | `sd/mon/reichrifleman/pain` |
+| `SDRRIDTH` | R09 t12 (D96) | `SDRRIDTH` | `sd/mon/reichrifleman/death` |
+| `SDLTRACT` | L01 t01, t03, L02 t01-t03 (D91); L03 t12 (D96) | `SDLTRAC1`-`6` | `$random sd/mon/legiontrooper/active` |
+| `SDLTRSIT` | L04 t12, t14, L05 t13, L06 t13 (D96) | `SDLTRSI1`-`4` | `$random sd/mon/legiontrooper/sight` |
+| `SDLTRPAI` | L08 t14, t15 (D96) | `SDLTRPA1`-`2` | `$random sd/mon/legiontrooper/pain` |
+| `SDLTRDTH` | none | Freedoom `DSPODTH2` | `sd/mon/legiontrooper/death` |
+| `SDGENSIT` | G01 t12 (D96) | `SDGENSIT` | `sd/mon/general/sight` |
+| `SDGENSUM` | G02 t13, t14 (D96) | `SDGENSU1`-`2` | `$random sd/mon/general/summon`, played with the printed order |
+| `SDGENPAI` | none | Freedoom `DSDMPAIN` | `sd/mon/general/pain` |
+| `SDGENDTH` | none | Freedoom `DSCYBDTH` | `sd/mon/general/death` |
 
 ---
 

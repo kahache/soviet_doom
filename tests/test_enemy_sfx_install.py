@@ -1,5 +1,5 @@
-"""N9e (D83, D86): the approved enemy sounds and beds, mastered and installed,
-and the two music lumps of D83/D86.
+"""N9e (D83, D86, D91, D96): the approved enemy sounds, beds and voice takes,
+installed, and the two music lumps of D83/D86.
 
 What is pinned, and why:
 
@@ -8,10 +8,11 @@ What is pinned, and why:
              once its final click was lowered; SDLTRATK alt2; SDSTOPAI,
              SDSTODTH, SDPZRPAI alt1-3; the beds SDRRIPAI, SDLTRPAI,
              SDLTRDTH alt1-3); nothing rejected is installed (the D83 NO
-             drafts and beds, SDLTRATK alt1 and alt3); D91's seven voice takes
-             ship as $random groups (the rifleman's sight, the trooper's idle) and
-             the other ten voices keep their Freedoom lumps
-  files      assets/sounds/enemies/ holds exactly the 57 OGGs, each the file
+             drafts and beds, SDLTRATK alt1 and alt3); the 24 voice takes of
+             D91 (7) and D96 (17) ship on eight of the twelve voices, a
+             $random group where a sound has several takes, and the other
+             four voices keep their Freedoom lumps
+  files      assets/sounds/enemies/ holds exactly the 81 OGGs, each the file
              tools/audio/master_enemy_sfx.py installed (SHA-256 pinned),
              each a Vorbis stream
   sndinfo    every approved name resolves: a sound with one take to its
@@ -22,8 +23,16 @@ What is pinned, and why:
              under the voices, D87); no name is defined twice
   music      D_SDTITL is GameInfo's IntermissionMusic, D_SDM01T is RANGE's
              music, both packed, and D_SDAMUR (D83: NO) no longer ships
+  hooks      the classes play the voices: SeeSound, ActiveSound, PainSound,
+             DeathSound (A_Pain, A_Scream in their states) and the General's
+             order in A_SD_GeneralSummon
   licences   a LICENSES.md row per packed enemy sound, ENEMY-SOUNDS 5.12
-             names every installed lump and its OGG hash
+             names every installed lump and its OGG hash; a voice row names
+             Chatterbox (tools/release.py's ai_ships) and, for D96, its
+             reference; kurt's CC-BY credit is in both in-game credits
+  voices     (work/) each D96 take ships byte for byte as the OGG of the
+             CEO's page, but SDGENSU1, which the codec pass re-renders
+             byte-identically from its raw take
   loudness   (numpy + ffmpeg) every installed OGG, decoded, sits within its
              window: the target +-1 dB, or the pinned shortfall; the peak
              never reaches 0 dBFS; the Freedoom references re-measured
@@ -106,13 +115,67 @@ D91_VOICES = {
                                    "sd/mon/reichrifleman/sight/3": "SDRRISI3"},
     "sd/mon/legiontrooper/active": {f"sd/mon/legiontrooper/active/{n}": f"SDLTRAC{n}" for n in range(1, 6)},
 }
-# The voices still waiting (D91): logical name -> the Freedoom lump it keeps.
-VOICES = {"sd/mon/reichrifleman/active": "DSPOSACT",
-          "sd/mon/reichrifleman/pain": "DSPOPAIN", "sd/mon/reichrifleman/death": "DSPODTH1",
-          "sd/mon/legiontrooper/sight": "DSPOSIT2",
-          "sd/mon/legiontrooper/pain": "DSPOPAIN", "sd/mon/legiontrooper/death": "DSPODTH2",
-          "sd/mon/general/sight": "DSCYBSIT", "sd/mon/general/summon": "DSVILSIT",
-          "sd/mon/general/pain": "DSDMPAIN", "sd/mon/general/death": "DSCYBDTH"}
+# D96: the seventeen takes of the aggressive round, lump -> (the processed
+# file in work/audio/voice_takes/aggressive/, the SNDINFO name it gets).
+D96_DIR = PROJECT_ROOT / "work" / "audio" / "voice_takes" / "aggressive"
+D96_TAKES = {
+    "SDRRIAC1": ("R01_SDRRIACT", 13, "sd/mon/reichrifleman/active/1"),
+    "SDRRIAC2": ("R02_SDRRIACT", 11, "sd/mon/reichrifleman/active/2"),
+    "SDRRIAC3": ("R03_SDRRIACT", 14, "sd/mon/reichrifleman/active/3"),
+    "SDRRISI4": ("R04_SDRRISIT", 12, "sd/mon/reichrifleman/sight/4"),
+    "SDRRISI5": ("R04_SDRRISIT", 13, "sd/mon/reichrifleman/sight/5"),
+    "SDRRISI6": ("R05_SDRRISIT", 12, "sd/mon/reichrifleman/sight/6"),
+    "SDRRIDTH": ("R09_SDRRIDTH", 12, "sd/mon/reichrifleman/death"),
+    "SDLTRAC6": ("L03_SDLTRACT", 12, "sd/mon/legiontrooper/active/6"),
+    "SDLTRSI1": ("L04_SDLTRSIT", 12, "sd/mon/legiontrooper/sight/1"),
+    "SDLTRSI2": ("L04_SDLTRSIT", 14, "sd/mon/legiontrooper/sight/2"),
+    "SDLTRSI3": ("L05_SDLTRSIT", 13, "sd/mon/legiontrooper/sight/3"),
+    "SDLTRSI4": ("L06_SDLTRSIT", 13, "sd/mon/legiontrooper/sight/4"),
+    "SDLTRPA1": ("L08_SDLTRPAI", 14, "sd/mon/legiontrooper/pain/1"),
+    "SDLTRPA2": ("L08_SDLTRPAI", 15, "sd/mon/legiontrooper/pain/2"),
+    "SDGENSIT": ("G01_SDGENSIT", 12, "sd/mon/general/sight"),
+    "SDGENSU1": ("G02_SDGENSUM", 13, "sd/mon/general/summon/1"),
+    "SDGENSU2": ("G02_SDGENSUM", 14, "sd/mon/general/summon/2"),
+}
+# The reference each D96 take was cloned from (AI-LOG.csv, column voz).
+D96_REFERENCE = {"R": "Thorsten", "L03": "kurt", "L04": "kurt", "L05": "kurt", "L06": "kurt",
+                 "L08": "HaelDB", "R09": "HaelDB", "G01": "kurt", "G02_13": "kurt", "G02_14": "Thorsten"}
+# The one D96 take the codec pass limited (Vorbis lifted it to -0.02 dBFS).
+D96_CODEC_TRIMMED = {"SDGENSU1"}
+
+
+def d96_file(lump: str) -> Path:
+    stem, take, _ = D96_TAKES[lump]
+    return D96_DIR / f"{stem}_ai_chatterbox_20261020_t{take:02d}.ogg"
+
+
+def d96_reference(lump: str) -> str:
+    stem, take, _ = D96_TAKES[lump]
+    row = stem[:3]
+    return D96_REFERENCE.get(f"{row}_{take}") or D96_REFERENCE.get(row) or D96_REFERENCE[row[0]]
+
+
+def voice_takes() -> dict[str, dict[str, str]]:
+    """Every voice that ships a take: name the game asks for -> {member or itself: lump}."""
+    out = {g: dict(m) for g, m in D91_VOICES.items()}
+    for lump, (_, _, name) in D96_TAKES.items():
+        group = name.rsplit("/", 1)[0] if name[-1].isdigit() else name
+        out.setdefault(group, {})[name] = lump
+    return out
+
+
+VOICE_TAKES = voice_takes()
+VOICE_LUMPS = {lump for members in VOICE_TAKES.values() for lump in members.values()}
+# The twelve voices and the Freedoom lump each played before its takes (the
+# beds' targets are their voice's stand-in).
+STAND_IN = {"sd/mon/reichrifleman/active": "DSPOSACT", "sd/mon/reichrifleman/sight": "DSPOSIT1",
+            "sd/mon/reichrifleman/pain": "DSPOPAIN", "sd/mon/reichrifleman/death": "DSPODTH1",
+            "sd/mon/legiontrooper/active": "DSPOSACT", "sd/mon/legiontrooper/sight": "DSPOSIT2",
+            "sd/mon/legiontrooper/pain": "DSPOPAIN", "sd/mon/legiontrooper/death": "DSPODTH2",
+            "sd/mon/general/sight": "DSCYBSIT", "sd/mon/general/summon": "DSVILSIT",
+            "sd/mon/general/pain": "DSDMPAIN", "sd/mon/general/death": "DSCYBDTH"}
+# The voices still waiting for a take: logical name -> the Freedoom lump it keeps.
+VOICES = {g: lump for g, lump in STAND_IN.items() if g not in VOICE_TAKES}
 
 
 def name_of(card: str, bed: bool = False) -> str:
@@ -132,7 +195,7 @@ def expected() -> dict[str, dict[str, str]]:
     for card, takes in D86_BEDS.items():
         g = name_of(card, True)
         out[g] = {f"{g}/{n}": f"{card[:6]}B{n}" for n in takes}
-    out.update(D91_VOICES)
+    out.update(VOICE_TAKES)
     return out
 
 
@@ -182,13 +245,17 @@ def zscript_text() -> str:
 # --- Contract ------------------------------------------------------------------------
 
 class ContractTests(unittest.TestCase):
-    def test_64_lumps_43_sounds_14_beds_7_voices_nine_random_groups(self):
-        self.assertEqual(len(EXPECTED_LUMPS), 64)
+    def test_81_lumps_43_sounds_14_beds_24_voices_thirteen_random_groups(self):
+        self.assertEqual(len(EXPECTED_LUMPS), 81)
+        self.assertEqual(len(VOICE_LUMPS), 7 + 17)
         self.assertEqual(sum(1 for g in EXPECTED if g.startswith("sd/bed/")), 8)
-        self.assertEqual(sum(1 for g, m in EXPECTED.items() if len(m) > 1), 9)
+        self.assertEqual(sum(1 for g, m in EXPECTED.items() if len(m) > 1), 13)
+        self.assertEqual(len(VOICE_TAKES), 8)
+        self.assertEqual(set(VOICES), {"sd/mon/reichrifleman/pain", "sd/mon/legiontrooper/death",
+                                       "sd/mon/general/pain", "sd/mon/general/death"})
 
     def test_the_tool_installs_exactly_the_approved(self):
-        voices = {lump for g in D91_VOICES.values() for lump in g.values()}
+        voices = VOICE_LUMPS
         self.assertEqual(set(master_constant("VOICE_SHA256")), voices)
         self.assertEqual(set(master_constant("INSTALLED_SHA256")), EXPECTED_LUMPS - voices)
         self.assertEqual(set(master_constant("REJECTED_DRAFTS")), set(REJECTED["drafts"]))
@@ -202,6 +269,12 @@ class ContractTests(unittest.TestCase):
         self.assertLessEqual(set(trimmed), alts_)
         for lump, db in trimmed.items():
             self.assertTrue(0 < db <= 2.0, f"{lump}: {db} dB is a re-voicing, not a codec margin")
+
+    def test_the_voice_codec_trim_is_small_and_only_sdgensu1(self):
+        trimmed = master_constant("VOICE_CODEC_TRIMMED")
+        self.assertEqual(set(trimmed), D96_CODEC_TRIMMED)
+        for lump, db in trimmed.items():
+            self.assertTrue(0.3 <= db <= 1.7, f"{lump}: {db} dB is outside the N9e pass's 0.3-1.7 dB")
 
     def test_short_of_target_names_only_installed_lumps(self):
         short = master_constant("SHORT_OF_TARGET")
@@ -218,7 +291,7 @@ class ContractTests(unittest.TestCase):
 # --- Files -------------------------------------------------------------------------------
 
 class FileTests(unittest.TestCase):
-    def test_exactly_the_64_oggs(self):
+    def test_exactly_the_81_oggs(self):
         self.assertEqual(sorted(p.name for p in ASSET_DIR.iterdir()),
                          sorted(f"{lump}.ogg" for lump in EXPECTED_LUMPS))
 
@@ -237,9 +310,11 @@ class FileTests(unittest.TestCase):
         rejected = set(REJECTED["drafts"]) - {"SDLTRATK"}     # SDLTRATK ships as its alt2 (D86)
         self.assertFalse(names & rejected)
         self.assertFalse(names & set(REJECTED["beds"]))        # bed lumps are ...B<n>, never the voice's name
-        voices = {"SDRRIACT", "SDRRISIT", "SDRRIPAI", "SDRRIDTH", "SDLTRACT", "SDLTRSIT", "SDLTRPAI",
-                  "SDLTRDTH", "SDGENSIT", "SDGENSUM", "SDGENPAI", "SDGENDTH"}
-        self.assertFalse(names & voices, "a voice lump shipped before D87's takes")
+        # A voice card's own name ships only when one take is the whole sound
+        # (SDRRIDTH, SDGENSIT); several takes ship numbered, a waiting voice not at all.
+        cards = {"SDRRIACT", "SDRRISIT", "SDRRIPAI", "SDRRIDTH", "SDLTRACT", "SDLTRSIT", "SDLTRPAI",
+                 "SDLTRDTH", "SDGENSIT", "SDGENSUM", "SDGENPAI", "SDGENDTH"}
+        self.assertEqual(names & cards, {"SDRRIDTH", "SDGENSIT"})
 
 
 # --- SNDINFO ---------------------------------------------------------------------------
@@ -280,15 +355,78 @@ class SndinfoTests(unittest.TestCase):
         beds = [g for g in EXPECTED if g.startswith("sd/bed/")]
         for g in beds:
             voice = g.replace("sd/bed/", "sd/mon/")
-            self.assertTrue(voice in VOICES or voice in D91_VOICES, f"{g} has no voice to go under")
+            self.assertTrue(voice in VOICES or voice in VOICE_TAKES, f"{g} has no voice to go under")
 
     def test_every_sd_mon_name_the_classes_play_is_defined(self):
         played = set(re.findall(r'"(sd/mon/[a-z0-9/_]+)"', zscript_text()))
         defined = set(self.lines) | set(self.groups)
         self.assertLessEqual(played, defined)
 
+    def test_the_voice_groups_hold_every_approved_take(self):
+        # D96: "random among the approved takes of one line", D91's beside D96's
+        self.assertEqual(self.groups["sd/mon/reichrifleman/sight"],
+                         [f"sd/mon/reichrifleman/sight/{n}" for n in (1, 3, 4, 5, 6)])
+        self.assertEqual(self.groups["sd/mon/legiontrooper/active"],
+                         [f"sd/mon/legiontrooper/active/{n}" for n in range(1, 7)])
+        for group, n in (("sd/mon/reichrifleman/active", 3), ("sd/mon/legiontrooper/sight", 4),
+                         ("sd/mon/legiontrooper/pain", 2), ("sd/mon/general/summon", 2)):
+            self.assertEqual(self.groups[group], [f"{group}/{k}" for k in range(1, n + 1)])
+        self.assertEqual(self.lines["sd/mon/reichrifleman/death"], "SDRRIDTH")
+        self.assertEqual(self.lines["sd/mon/general/sight"], "SDGENSIT")
+
     def test_the_izh_shot_is_take_b(self):
         self.assertEqual(self.lines.get("sd/weapon/izh/fire"), "SDIZFIR")
+
+
+# --- Hooks: the classes play the voices ------------------------------------------------------
+
+def _class_text(name: str) -> str:
+    return "\n".join(line.split("//")[0] for line in
+                     (SRC_DIR / "zscript" / "monsters" / name).read_text(encoding="utf-8").splitlines())
+
+
+def _state(text: str, label: str) -> str:
+    return re.search(rf"^\s*{label}:\s*\n(.*?)(?=^\s*[A-Za-z]+:\s*$|^\s*\}})", text, re.M | re.S).group(1)
+
+
+class HookTests(unittest.TestCase):
+    """Each voice with a take is played: by the actor's sound properties,
+    which A_Look/A_Chase (see, active), A_Pain and A_Scream play, or, for
+    the General's order, by A_SD_GeneralSummon."""
+
+    CLASSES = {"reich_rifleman.zs": ("reichrifleman", ("SeeSound", "sight"), ("ActiveSound", "active"),
+                                     ("DeathSound", "death"), ("PainSound", "pain")),
+               "legion_trooper.zs": ("legiontrooper", ("SeeSound", "sight"), ("ActiveSound", "active"),
+                                     ("PainSound", "pain"), ("DeathSound", "death")),
+               "general.zs": ("general", ("SeeSound", "sight"), ("PainSound", "pain"),
+                              ("DeathSound", "death"), ("ActiveSound", "active"))}
+
+    def test_the_sound_properties_name_the_voices(self):
+        for name, (actor, *props) in self.CLASSES.items():
+            text = _class_text(name)
+            for prop, event in props:
+                with self.subTest(name, prop=prop):
+                    self.assertRegex(text, rf'(?m)^\s*{prop}\s+"sd/mon/{actor}/{event}"\s*;')
+        for group in VOICE_TAKES:
+            actor, event = group.split("/")[2:4]
+            if (actor, event) != ("general", "summon"):
+                self.assertTrue(any(a == actor and any(p[1] == event for p in props)
+                                    for a, *props in self.CLASSES.values()), group)
+
+    def test_pain_and_death_states_play_them(self):
+        for name in self.CLASSES:
+            text = _class_text(name)
+            with self.subTest(name):
+                self.assertIn("A_Pain", _state(text, "Pain"))
+                self.assertIn("A_Scream", _state(text, "Death"))
+                self.assertIn("A_Look", _state(text, "Spawn"))
+                self.assertRegex(_state(text, "See"), r"A_Chase|A_SD_GeneralChase")
+
+    def test_the_general_speaks_his_order_when_he_summons(self):
+        text = _class_text("general.zs")
+        body = re.search(r"void A_SD_GeneralSummon\(\)\s*\{(.*?)\n\t\}", text, re.S).group(1)
+        self.assertRegex(body, r'A_StartSound\("sd/mon/general/summon",\s*CHAN_VOICE')
+        self.assertIn("SD_GENERAL_ORDER", body)
 
 
 # --- Music and MAPINFO -------------------------------------------------------------------
@@ -364,10 +502,45 @@ class DocumentTests(unittest.TestCase):
     def test_the_voice_rows_name_chatterbox(self):
         # tools/release.py reads "Chatterbox" in a register Origin to say voice lines ship (D93)
         text = LICENSES.read_text(encoding="utf-8")
-        for members in D91_VOICES.values():
-            for lump in members.values():
-                row = next(ln for ln in text.splitlines() if ln.startswith(f"| `{lump}` |"))
-                self.assertIn("Chatterbox", row)
+        for lump in VOICE_LUMPS:
+            row = next(ln for ln in text.splitlines() if ln.startswith(f"| `{lump}` |"))
+            self.assertIn("Chatterbox", row)
+
+    def test_the_d96_rows_name_their_take_and_reference(self):
+        text = LICENSES.read_text(encoding="utf-8")
+        for lump, (stem, take, _) in D96_TAKES.items():
+            row = next(ln for ln in text.splitlines() if ln.startswith(f"| `{lump}` |"))
+            with self.subTest(lump):
+                self.assertIn("(D96)", row)
+                self.assertIn(f"take {stem[:3]} t{take}", row)
+                self.assertIn("not distributed", row)
+                ref = d96_reference(lump)
+                self.assertIn(ref, row)
+                licence = row.split(" | ")[-1]
+                if ref == "kurt":
+                    self.assertIn('CC-BY 3.0', licence)
+                    self.assertIn('credit "kurt"', licence)
+                else:
+                    self.assertIn("CC0", licence)
+                    self.assertNotIn('credit "', licence)
+
+    def test_kurt_is_credited_in_both_languages_and_the_release_check_passes(self):
+        import licences
+        import release
+        language = (SRC_DIR / "lumps" / "LANGUAGE").read_text(encoding="utf-8")
+        credits = release.parse_credit_lines(language)
+        for lang in (release.LANG_ENGLISH, release.LANG_RUSSIAN):
+            self.assertIn("kurt", release.credits_text(credits[lang]), lang)
+        menu = (SRC_DIR / "lumps" / "MENUDEF").read_text(encoding="utf-8")
+        self.assertIn('StaticText "$SD_CRED_SFX_3"', menu)
+        rows = licences.parse_licence_register(LICENSES.read_text(encoding="utf-8"))
+        names = [f"sounds/{lump}.ogg" for lump in EXPECTED_LUMPS]
+        check = release.check_licences(names, rows, [], credits)
+        self.assertEqual(check.errors, [])
+        self.assertEqual({Path(p).stem for row, paths in check.coverage if "kurt" in row.required
+                          for p in paths},
+                         {lump for lump in D96_TAKES if d96_reference(lump) == "kurt"})
+        self.assertTrue(release.ai_ships(check).voices)
 
 
 # --- Loudness (numpy + ffmpeg) ---------------------------------------------------------------
@@ -404,7 +577,7 @@ class LoudnessTests(unittest.TestCase):
             self.assertLess(alts.peak_db(x), mes.DECODED_PEAK_CEILING_DBFS, v.lump)
             self.assertLessEqual(abs(alts.loud_a_db(x) - v.target_db),
                                  mes.LOUDNESS_TOLERANCE_DB + mes.CODEC_LOUDNESS_DB, v.lump)
-            if v.path.is_file():
+            if v.path.is_file() and v.lump not in mes.VOICE_CODEC_TRIMMED:
                 self.assertEqual((ASSET_DIR / f"{v.lump}.ogg").read_bytes(), v.path.read_bytes(), v.lump)
 
     def test_a_bed_sits_under_its_voices_stand_in(self):
@@ -418,8 +591,7 @@ class LoudnessTests(unittest.TestCase):
         for inst in mes.INSTALLS:
             if inst.source == "alt" and not inst.bed:
                 self.assertEqual(inst.ref, ea.TARGETS[inst.card][1], inst.lump)
-        was = {**VOICES, "sd/mon/legiontrooper/active": "DSPOSACT"}     # its stand-in until D91
-        stand_in = {was[g.replace("sd/bed/", "sd/mon/")] for g in EXPECTED if g.startswith("sd/bed/")}
+        stand_in = {STAND_IN[g.replace("sd/bed/", "sd/mon/")] for g in EXPECTED if g.startswith("sd/bed/")}
         self.assertEqual({i.ref for i in mes.INSTALLS if i.bed}, stand_in)
 
     def test_freedoom_references_remeasured(self):
@@ -447,6 +619,38 @@ class AltIdentityTests(unittest.TestCase):
                 with self.subTest(lump):
                     # the codec-limited ones differ by their trim only (TakeTests)
                     self.assertEqual(same, lump not in trimmed)
+
+
+@unittest.skipUnless(D96_DIR.is_dir(), "work/ not present (CI has no work/)")
+class D96VoiceIdentityTests(unittest.TestCase):
+    def test_each_approved_take_ships_as_the_pages_ogg(self):
+        """D96: the OGG the CEO heard is the one that ships, byte for byte;
+        SDGENSU1 differs by its codec trim only (the next test)."""
+        for lump in D96_TAKES:
+            with self.subTest(lump):
+                same = (ASSET_DIR / f"{lump}.ogg").read_bytes() == d96_file(lump).read_bytes()
+                self.assertEqual(same, lump not in D96_CODEC_TRIMMED)
+
+    def test_the_tool_reads_the_same_files(self):
+        if mes is None:
+            self.skipTest("numpy is not installed")
+        for lump, (_, _, name) in D96_TAKES.items():
+            v = mes.VOICES_BY_LUMP[lump]
+            self.assertEqual((v.path, v.logical, v.decision), (d96_file(lump), name, "D96"))
+
+    @needs_numpy
+    def test_sdgensu1_is_its_raw_take_codec_trimmed(self):
+        if gws.ffmpeg_path() is None:
+            self.skipTest("ffmpeg is not on the PATH")
+        v = mes.VOICES_BY_LUMP["SDGENSU1"]
+        if not v.raw_path.is_file():
+            self.skipTest("the raw take is not in work/")
+        ogg, depth = mes.voice_trimmed_ogg(v)
+        self.assertEqual(ogg, (ASSET_DIR / "SDGENSU1.ogg").read_bytes())
+        self.assertAlmostEqual(depth, mes.VOICE_CODEC_TRIMMED["SDGENSU1"], delta=0.05)
+        # the page's OGG overshot the ceiling; the installed one does not
+        self.assertGreaterEqual(alts.peak_db(gws.decode(d96_file("SDGENSU1"))), mes.DECODED_PEAK_CEILING_DBFS)
+        self.assertLess(alts.peak_db(gws.decode(ASSET_DIR / "SDGENSU1.ogg")), mes.DECODED_PEAK_CEILING_DBFS)
 
 
 # --- Takes: the re-render (slow) ----------------------------------------------------------------
