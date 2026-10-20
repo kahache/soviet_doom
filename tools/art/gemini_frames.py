@@ -2,12 +2,22 @@
 
     python tools/art/gemini_frames.py ppsh            # the PPSh-41 pair, draft frames + preview
     python tools/art/gemini_frames.py ppsh --no-preview
+    python tools/art/gemini_frames.py izh             # also rpg7, roks3, katyusha, ice_axe (drafts)
 
 The CEO's Gemini images (bare hands, flat magenta background, JPEG with black
 letterbox bars) live in work/art/reference/gemini_<weapon>_A.jpg (ready) and
 _B.jpg (firing, with a muzzle flash). They are gitignored and stay there; this
 tool writes its frames under work/art/weapons/hand_G/<weapon>/ (gitignored),
 where tools/make_draft_overlay.py picks them up with `--hand G --item <weapon>`.
+The second round (the five other weapons) is 1024x765 PNGs on a 320x240 art
+grid, the IZh's ready image a 1200x896 JPEG; each WEAPONS entry names its
+images (`sources`, the IZh has a third: the reload) and its lumps (`frames`:
+which image, flash or gun, kick, pose, a fading flash's scale), so the
+states' letters each get a frame. Per weapon, where Gemini's art needs it:
+`drop` (a stray hand), `restore` (smoke drawn over the gun at the image's
+side: A's pixels there), `flash_halo` (sparks and fringe round the flash),
+`taper` (a flame cut by the side ends in a point), `arm_band` (an arm leaving
+through the side at mid-height runs on as a tube, not a wedge).
 
 D79 (2026-10-20): the method is adopted (D78 superseded) and Google Gemini
 is credited. The frames are installed by copying them, grAb included, into
@@ -94,18 +104,112 @@ CHGG_HEIGHT_FALLBACK = 35       # hand_ref.PPSH_CHGG_HEIGHT, if hand_ref will no
 HEIGHT_MULT = 1.6               # the CEO's PPSh choice (D78): x1.6 of CHGGA0 above the bar
 TRANSPARENT = -1
 PINK_PALETTE = 40               # a palette colour with min(r,b)-g above this is never used
+SPARK_MAX = 40                  # art px: a piece of B this small that A lacks is a spark (split_flash, halo on)
+TAPER_LEN = 14                  # art columns a flame cut by the image side narrows over to a point
+TAPER_GAP = 2                   # columns left empty before the side, so nothing touches it
+BOTTOM_GAP = 12                 # rows of background Gemini may leave under the arms (fill_bottom)
+
+
+@dataclass(frozen=True)
+class Frame:
+    """One lump cut from one of a weapon's Gemini images."""
+    lump: str                        # e.g. "SDIZB0"
+    src: str = "A"                   # the image it comes from (WeaponPair.sources)
+    flash: bool = False              # the flash alone (else the art, its flash cut out)
+    kick: tuple[int, int] = (0, 0)   # screen px right and down (KICK on a firing frame)
+    pose: str = ""                   # "A": moved by -recoil onto the ready image's pose
+    scale: float = 1.0               # a flash shrunk about its root (a fading frame)
 
 
 @dataclass(frozen=True)
 class WeaponPair:
-    name: str           # gemini_<name>_A.jpg / _B.jpg
+    name: str           # gemini_<name>_A.jpg / _B.jpg unless `sources` says otherwise
     gun: str            # our held sprite (MOD-SPEC 6.3)
     flash: str          # our flash sprite
     height_mult: float = HEIGHT_MULT
     folder: str = ""    # assets/sprites/<folder>/ once installed (defaults to name)
+    sources: tuple[tuple[str, str], ...] = ()   # (key, file in REF_DIR); "A" is the ready image
+    frames: tuple[Frame, ...] = ()              # default: the PPSh's gun A, gun B kicked, flash A kicked
+    drop: tuple[tuple[str, int, int], ...] = () # (key, x, y): the art piece at (x, y) of that image's
+                                                # art grid is removed (a stray hand Gemini drew)
+    restore: tuple[tuple[str, int, int, int, int], ...] = ()   # (key, x0, y0, x1, y1): in that box of
+                                                # the art grid the image is A's, moved by the recoil
+                                                # (smoke Gemini drew over the gun, cut by the side)
+    x_shift: int = 0    # screen px right of the default placement (the art's right side on the screen's)
+    flash_grow: int = 3 # rings of B-only pixels the flash grows over (its smoke)
+    flash_halo: int = 0 # px round the flash whose B-only pixels go with it (split_flash)
+    arm_band: bool = False  # an arm cut by the side runs on as a tube of its own thickness (extend_edges)
+    taper: bool = False # a flash cut by the image's side ends in a point (taper_cut; the PPSh's is as built)
+    mocks: tuple[tuple[str, tuple[str, ...]], ...] = ()   # preview: (label, lumps drawn in order)
+
+    def files(self) -> dict[str, str]:
+        return dict(self.sources) or {"A": f"gemini_{self.name}_A.jpg", "B": f"gemini_{self.name}_B.jpg"}
+
+    def frame_list(self) -> tuple[Frame, ...]:
+        return self.frames or (Frame(f"{self.gun}A0"), Frame(f"{self.gun}B0", "B", kick=KICK),
+                               Frame(f"{self.flash}A0", "B", flash=True, kick=KICK))
+
+    def mock_list(self) -> tuple[tuple[str, tuple[str, ...]], ...]:
+        return self.mocks or (("ready (A)", (f"{self.gun}A0",)),
+                              ("firing (B, flash on)", (f"{self.gun}B0", f"{self.flash}A0")))
 
 
-WEAPONS = {"ppsh": WeaponPair("ppsh", "SDPP", "SDPF")}
+HALF_KICK = (KICK[0] // 2, KICK[1] // 2)
+GEM = "gemini_{}_{}.png"   # the 1024x765 PNGs of D79's second round (320x240 art pixels each)
+
+WEAPONS = {
+    "ppsh": WeaponPair("ppsh", "SDPP", "SDPF"),
+    # IZh-58 (izh.zs, SHTG/SHTF): fire A+flash, B, C, A; reload D, C, B, A.
+    # B is the shot's recoil, C half of it (the gun settling, or rising as it
+    # snaps shut after the reload), D the break-open reload (image C). The
+    # flash plays over A (the ready pose), so it is moved onto A's pose.
+    "izh": WeaponPair(
+        "izh", "SDIZ", "SDIF", taper=True, flash_halo=6,
+        sources=(("A", "gemini_izh_A.jfif"), ("B", GEM.format("izh", "B")), ("C", GEM.format("izh", "C"))),
+        frames=(Frame("SDIZA0"), Frame("SDIZB0", "B", kick=KICK), Frame("SDIZC0", "B", kick=HALF_KICK),
+                Frame("SDIZD0", "C"),
+                Frame("SDIFA0", "B", flash=True, pose="A"), Frame("SDIFB0", "B", flash=True, pose="A", scale=0.6)),
+        mocks=(("ready (A)", ("SDIZA0",)), ("firing (A + SDIF A)", ("SDIZA0", "SDIFA0")),
+               ("recoil (B)", ("SDIZB0",)), ("reload (D)", ("SDIZD0",)))),
+    # RPG-7 (rpg7.zs, MISG/MISF): B is every firing tic; the flash A-D plays
+    # over B, fading. The backblast cloud at the image's right side is
+    # dropped (behind the shooter; cut by the image side).
+    "rpg7": WeaponPair(
+        "rpg7", "SDRL", "SDRF", taper=True,
+        sources=(("A", GEM.format("rpg7", "A")), ("B", GEM.format("rpg7", "B"))),
+        frames=(Frame("SDRLA0"), Frame("SDRLB0", "B", kick=KICK),
+                Frame("SDRFA0", "B", flash=True, kick=KICK), Frame("SDRFB0", "B", flash=True, kick=KICK, scale=0.8),
+                Frame("SDRFC0", "B", flash=True, kick=KICK, scale=0.6),
+                Frame("SDRFD0", "B", flash=True, kick=KICK, scale=0.4)),
+        restore=(("B", 286, 150, 321, 240),), flash_grow=12, flash_halo=12, arm_band=True),
+    # ROKS-3 (roks3.zs, PLSG/PLSF): the flame plays over A while the trigger
+    # is held; B (20 tics) is the gun once it is let go, in A's pose.
+    "roks3": WeaponPair(
+        "roks3", "SDRK", "SDKF", taper=True, flash_halo=6,
+        sources=(("A", GEM.format("roks3", "A")), ("B", GEM.format("roks3", "B"))),
+        frames=(Frame("SDRKA0"), Frame("SDRKB0", "B", pose="A"), Frame("SDKFA0", "B", flash=True, pose="A")),
+        mocks=(("ready (A)", ("SDRKA0",)), ("firing (A + SDKF A)", ("SDRKA0", "SDKFA0"))),
+        flash_grow=12),
+    # Hand Katyusha (katyusha.zs, BFGG/BFGF): B fires and reloads, the flash
+    # and its smoke A-B play over B.
+    "katyusha": WeaponPair(
+        "katyusha", "SDHK", "SDHF", taper=True, flash_halo=6,
+        sources=(("A", GEM.format("katyusha", "A")), ("B", GEM.format("katyusha", "B"))),
+        frames=(Frame("SDHKA0"), Frame("SDHKB0", "B", kick=KICK),
+                Frame("SDHFA0", "B", flash=True, kick=KICK), Frame("SDHFB0", "B", flash=True, kick=KICK, scale=0.7)),
+        flash_grow=12),
+    # Ice axe (ice_axe.zs, PUNG): fire B, C (the blow), D, C, B. A ready; B
+    # the wind-up (A lifted back); C the strike (image B, its stray left
+    # fist dropped); D the follow-through (C carried on down and left).
+    # Taller than the guns (D76: long shaft, big head).
+    "ice_axe": WeaponPair(
+        "ice_axe", "SDAX", "", height_mult=72 / CHGG_HEIGHT_FALLBACK,
+        sources=(("A", GEM.format("iceaxe", "A")), ("B", GEM.format("iceaxe", "B"))),
+        frames=(Frame("SDAXA0"), Frame("SDAXB0", "A", kick=(4, -6)), Frame("SDAXC0", "B"),
+                Frame("SDAXD0", "B", kick=(-5, 5))),
+        drop=(("B", 210, 215),), arm_band=True,
+        mocks=(("ready (A)", ("SDAXA0",)), ("strike (C)", ("SDAXC0",)))),
+}
 
 
 # ------------------------------------------------------------ palette
@@ -304,10 +408,14 @@ def components(mask: np.ndarray) -> list[np.ndarray]:
     return out
 
 
-def split_flash(a: np.ndarray, b: np.ndarray, pal: np.ndarray) -> tuple[np.ndarray, np.ndarray, tuple[int, int]]:
+def split_flash(a: np.ndarray, b: np.ndarray, pal: np.ndarray,
+                grow: int = 3, halo: int = 0) -> tuple[np.ndarray, np.ndarray, tuple[int, int]]:
     """(B without its flash, the flash alone, recoil). The flash is the
     flash-coloured component of B with most pixels where shifted A is empty;
-    it grows into its outline (B pixels where shifted A is empty, next to it);
+    it grows into its outline (B pixels where shifted A is empty, next to it,
+    `grow` rings: more takes in a smoke cloud round it; then any B-only
+    pixel within `halo` px of it, across the background: the loose sparks
+    and fringe Gemini scatters round a flash);
     its place in B is refilled from shifted A (the barrel end)."""
     dx, dy = estimate_recoil(a, b)
     a_s = shift(a, dx, dy)
@@ -317,12 +425,103 @@ def split_flash(a: np.ndarray, b: np.ndarray, pal: np.ndarray) -> tuple[np.ndarr
     if not comps:
         return b.copy(), np.full_like(b, TRANSPARENT), (dx, dy)
     flash = max(comps, key=lambda c: int((c & (a_s < 0)).sum()))
-    for _ in range(3):   # the outline: B-only pixels touching the flash
+    for _ in range(grow):   # the outline: B-only pixels touching the flash
         flash = flash | (neighbours_any(flash) & (b >= 0) & (a_s < 0))
+    near = flash.copy()
+    for _ in range(halo):
+        near = near | neighbours_any(near)
+    flash = flash | (near & (b >= 0) & (a_s < 0))
+    if halo:   # loose sparks further out: small pieces of B that A does not have
+        for c in components((b >= 0) & ~flash):
+            if c.sum() <= SPARK_MAX and (a_s[c] < 0).mean() > 0.5:
+                flash = flash | c
     clean = b.copy()
     clean[flash] = a_s[flash]
     only = np.where(flash, b, TRANSPARENT)
     return clean, only, (dx, dy)
+
+
+def flash_root(flash: np.ndarray, gun: np.ndarray) -> tuple[float, float]:
+    """(row, column) the flash comes out of: the mean of its pixels touching
+    the gun (the muzzle), or of all of them if none does."""
+    op = flash >= 0
+    root = op & neighbours_any(gun >= 0)
+    ys, xs = np.nonzero(root if root.any() else op)
+    return float(ys.mean()), float(xs.mean())
+
+
+def shrink_flash(flash: np.ndarray, gun: np.ndarray, f: float, pal: np.ndarray) -> np.ndarray:
+    """The flash scaled by `f` about its root (flash_root): a fading frame."""
+    if f == 1.0 or not (flash >= 0).any():
+        return flash.copy()
+    ry, rx = flash_root(flash, gun)
+    rows, cols = np.flatnonzero((flash >= 0).any(axis=1)), np.flatnonzero((flash >= 0).any(axis=0))
+    y0, x0 = int(rows[0]), int(cols[0])
+    sub = flash[y0:rows[-1] + 1, x0:cols[-1] + 1]
+    small = mode_resize(sub, max(1, round(sub.shape[1] * f)), max(1, round(sub.shape[0] * f)), pal)
+    out = np.full_like(flash, TRANSPARENT)
+    ty, tx = round(ry - (ry - y0) * f), round(rx - (rx - x0) * f)
+    h, w = out.shape
+    sh, sw = small.shape
+    ys, xs = slice(max(0, ty), min(h, ty + sh)), slice(max(0, tx), min(w, tx + sw))
+    out[ys, xs] = small[ys.start - ty:ys.stop - ty, xs.start - tx:xs.stop - tx]
+    return out
+
+
+def taper_cut(flash: np.ndarray, length: int = TAPER_LEN, gap: int = TAPER_GAP) -> np.ndarray:
+    """A flash (a flame jet) cut by the image's left or right side or its top
+    ends in a point instead: over the last `length` columns before the cut
+    each column keeps only the middle of its pixels, the kept height
+    shrinking linearly to nothing `gap` columns short of the side."""
+    out = flash.copy()
+    views = ((lambda a: a), (lambda a: a[:, ::-1]), (lambda a: a.T))   # left, right, top
+    for view in views:
+        v = view(out)                   # a view: writing into it writes `out`
+        op = v >= 0
+        if not op[:, 0].any():
+            continue
+        n = min(length, v.shape[1] - 1)
+        for c in range(n):
+            rs = np.flatnonzero(op[:, c])
+            if not rs.size:
+                continue
+            mid, half = (rs[0] + rs[-1]) / 2, (rs[-1] - rs[0]) / 2
+            keep = half * max(0.0, (c - gap) / max(1, n - gap)) if c >= gap else -1.0
+            v[np.abs(np.arange(v.shape[0]) - mid) > keep, c] = TRANSPARENT
+    return out
+
+
+def fill_bottom(idx: np.ndarray, reach: int = BOTTOM_GAP) -> np.ndarray:
+    """Gemini sometimes leaves a strip of background under the arms: the row
+    above the art's last one is smeared down to the image's bottom when the
+    art ends within `reach` rows of it (its own last row is often an
+    outline)."""
+    rows = np.flatnonzero((idx >= 0).any(axis=1))
+    h = idx.shape[0]
+    if not rows.size or rows[-1] == h - 1 or h - 1 - rows[-1] > reach or rows[-1] < 1:
+        return idx
+    out = idx.copy()
+    out[rows[-1]:] = idx[rows[-1] - 1]
+    return out
+
+
+def drop_piece(idx: np.ndarray, x: int, y: int) -> np.ndarray:
+    """idx without the 4-connected piece of art holding pixel (x, y)."""
+    if idx[y, x] < 0:
+        raise ValueError(f"drop_piece: art pixel ({x}, {y}) is empty")
+    out = idx.copy()
+    op = idx >= 0
+    h, w = idx.shape
+    stack, seen = [(y, x)], np.zeros_like(op)
+    seen[y, x] = True
+    while stack:
+        cy, cx = stack.pop()
+        out[cy, cx] = TRANSPARENT
+        for ny, nx in ((cy + 1, cx), (cy - 1, cx), (cy, cx + 1), (cy, cx - 1)):
+            if 0 <= ny < h and 0 <= nx < w and op[ny, nx] and not seen[ny, nx]:
+                seen[ny, nx] = True
+                stack.append((ny, nx))
+    return out
 
 
 # ------------------------------------------------------------ 8. edges
@@ -422,7 +621,7 @@ def wood_ramp(base, pal: np.ndarray) -> list[int]:
 
 
 def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE,
-                 power: float = EXIT_POWER, pal: np.ndarray | None = None) -> np.ndarray:
+                 power: float = EXIT_POWER, pal: np.ndarray | None = None, band: bool = False) -> np.ndarray:
     """The last row smeared `bottom` rows down; then, if the art touches its
     right side, `right` columns more, built per material (edge_materials)
     so the stock and the sleeve stay separate (the CEO, 2026-10-20: the
@@ -440,6 +639,10 @@ def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE
       in front: the sleeve never shows above it and its dark bottom outline
       parts the two.
     - Anything else at the edge (metal, outline) ends in a 1-px dark cap.
+    With `band`, the sleeve is a tube only as thick as the first run of soft
+    rows it leaves (a dark outline under it) instead of filling everything below:
+    an arm leaving through the side at mid-height (the ice axe's strike)
+    would otherwise turn into a wedge in 16:9.
     No column of the art is repeated: mirroring the edge repeated skin and
     stock wood."""
     h, w = idx.shape
@@ -479,7 +682,14 @@ def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE
                     t = max(t, min(hb, a + int(round(slope * k))))
             s = np.arange(hb - t)
             col = np.select([s < edges[0], s < edges[1], s < edges[2]], s_ramp[:3], s_ramp[3])
-            out[t:, w - 1 + k] = s_ramp[0] if k == 1 else col
+            if band:
+                first, last = _runs(soft)[0]
+                thick = last - first + 1
+                col = col[:thick].copy()
+                col[-1:] = s_ramp[0]
+                out[t:t + thick, w - 1 + k] = s_ramp[0] if k == 1 else col[:max(0, min(thick, hb - t))]
+            else:
+                out[t:, w - 1 + k] = s_ramp[0] if k == 1 else col
     n_out, n_light, mid_frac = WOOD_BANDS
     period, dash = GRAIN_DASH
     for a, thick, slope, (outline, light, mid, shadow, grain) in stocks:
@@ -498,13 +708,14 @@ def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE
     return out
 
 
-def arm_exits(idx: np.ndarray, length: int = ARM_EXIT, bottom: int = BOTTOM_PAD) -> tuple[np.ndarray, int]:
+def arm_exits(idx: np.ndarray, length: int = ARM_EXIT, bottom: int = BOTTOM_PAD,
+              band: bool = False) -> tuple[np.ndarray, int]:
     """extend_edges on both sides: (canvas, columns added on the left). An
     arm cut by the left side of the image runs on leftwards the same way."""
-    out = extend_edges(idx, length, bottom)
+    out = extend_edges(idx, length, bottom, band=band)
     if not (idx[:, 0] >= 0).any():
         return out, 0
-    flipped = extend_edges(out[:, ::-1], length, 0)
+    flipped = extend_edges(out[:, ::-1], length, 0, band=band)
     return flipped[:, ::-1], length
 
 
@@ -565,6 +776,7 @@ def check_prefixes(*names: str, own: str = "") -> None:
     sprites = ROOT / "assets" / "sprites"
     installed = {p.stem[:4].upper() for p in sprites.rglob("*.png")
                  if not (own and p.parent == sprites / own)}
+    names = tuple(n for n in names if n)   # a weapon with no flash sprite names ""
     clash = [n for n in names if n in installed]
     iwad = ROOT / "iwads" / "freedoom2.wad"
     if iwad.is_file():
@@ -584,14 +796,31 @@ def load_art(path: Path, pal: np.ndarray) -> tuple[np.ndarray, float]:
 
 
 def build(w: WeaponPair, out_dir: Path | None = None) -> dict:
+    """Every lump of w.frame_list() into out_dir (default hand_G/<name>/).
+    One scale for all of them: A's top row `target` px above the bar."""
     pal = palette_rgb()
     out_dir = out_dir or OUT_ROOT / w.name
     check_prefixes(w.gun, w.flash, own=w.folder or w.name)
-    a, pa = load_art(REF_DIR / f"gemini_{w.name}_A.jpg", pal)
-    b, pb = load_art(REF_DIR / f"gemini_{w.name}_B.jpg", pal)
-    hh, ww = min(a.shape[0], b.shape[0]), min(a.shape[1], b.shape[1])
-    a, b = a[:hh, :ww], b[:hh, :ww]
-    clean, flash, recoil = split_flash(a, b, pal)
+    arts, periods = {}, {}
+    for key, fname in w.files().items():
+        art, periods[key] = load_art(REF_DIR / fname, pal)
+        for k, x, y in w.drop:
+            if k == key:
+                art = drop_piece(art, x, y)
+        arts[key] = fill_bottom(art)
+    hh, ww = min(v.shape[0] for v in arts.values()), min(v.shape[1] for v in arts.values())
+    arts = {k: v[:hh, :ww] for k, v in arts.items()}
+    a = arts["A"]
+    for k, bx0, by0, bx1, by1 in w.restore:
+        dx, dy = estimate_recoil(a, arts[k])
+        arts[k] = arts[k].copy()
+        arts[k][by0:by1, bx0:bx1] = shift(a, dx, dy)[by0:by1, bx0:bx1]
+    # the images whose flash is cut out: (art without it, the flash, recoil from A)
+    split = {f.src: split_flash(a, arts[f.src], pal, w.flash_grow, w.flash_halo) for f in w.frame_list() if f.flash}
+    recoils = {k: v[2] for k, v in split.items()}
+    for f in w.frame_list():
+        if f.pose == "A" and f.src not in recoils:
+            recoils[f.src] = estimate_recoil(a, arts[f.src])
     # scale: A's top row TARGET px above the bar, BELOW_BAR px of arm under it
     target = round(chgg_height() * w.height_mult)
     top = int(np.flatnonzero((a >= 0).any(axis=1))[0])
@@ -599,60 +828,121 @@ def build(w: WeaponPair, out_dir: Path | None = None) -> dict:
     sx = sy * PIXEL_ASPECT
     nw, nh = round(ww * sx), round(hh * sy)
     y0 = VIEW_H - target - round(top * sy)       # screen row of the canvas top
-    x0 = SCREEN_W - nw                           # the canvas's right edge on the screen's
+    x0 = SCREEN_W - nw + w.x_shift               # the canvas's right edge on the screen's (+ x_shift)
     frames = {}
-    still = (0, 0)
-    for lump, art, pad, (kx, ky) in ((f"{w.gun}A0", a, True, still), (f"{w.gun}B0", clean, True, KICK),
-                                     (f"{w.flash}A0", flash, False, KICK)):
+    for f in w.frame_list():
+        if f.flash:
+            clean, flash, _ = split[f.src]
+            art = shrink_flash(flash, clean, f.scale, pal)
+        else:
+            art = split[f.src][0] if f.src in split else arts[f.src]
+        if f.pose == "A" and f.src != "A":
+            dx, dy = recoils[f.src]
+            art = shift(art, -dx, -dy)
+        if f.flash and w.taper:
+            art = taper_cut(art)
         small, left = mode_resize(art, nw, nh, pal), 0
-        if pad:
-            small, left = arm_exits(small)
-        sub, grab = crop_with_grab(small, x0 - left + kx, y0 + ky)
+        if not f.flash:
+            small, left = arm_exits(small, band=w.arm_band)
+        cx, cy = x0 - left + f.kick[0], y0 + f.kick[1]   # the canvas's top-left on the screen
+        canvas_grab = (-cx, WEAPONTOP - BAR_LIFT - cy)
+        cuts = visible_cuts(small, canvas_grab, True) + visible_cuts(small, canvas_grab, False)
+        sub, grab = crop_with_grab(small, cx, cy)
         rgba = to_rgba(sub, pal)
-        frames[lump] = {"rgba": rgba, "grab": grab, "path": save_sprite(rgba, grab, out_dir / f"{lump}.png")}
-    return {"frames": frames, "period": (pa, pb), "recoil": recoil, "kick": KICK, "target": target,
+        frames[f.lump] = {"rgba": rgba, "grab": grab, "cuts": cuts,
+                          "path": save_sprite(rgba, grab, out_dir / f"{f.lump}.png")}
+    first_b = next((k for k in w.files() if k != "A"), "A")
+    return {"frames": frames, "period": tuple(periods.values()), "recoil": recoils.get(first_b, (0, 0)),
+            "recoils": recoils, "kick": KICK, "target": target,
             "scale": (round(sx, 3), round(sy, 3)), "out_dir": out_dir}
 
 
 # -------------------------------------------------------------- preview
+def wide_backdrop() -> np.ndarray:
+    """MAP01 at 16:9 in screen units: (200, 320 + 2 * WIDE_MARGIN) RGB. The
+    filed shot (hand_study.MAP01_SHOT, its pistol painted out as in
+    map01_backdrop) is narrower than 16:9: its sides are mirrored out."""
+    import hand_study as hs
+    shot = np.array(Image.open(hs.MAP01_SHOT).convert("RGB"))
+    bar_top = hs.SHOT_BAR_TOP
+    gx0, gx1, gy0 = hs.SHOT_PISTOL_BOX
+    shot[gy0:bar_top, gx0:gx1] = shot[gy0:bar_top, gx0 - 100:gx1 - 100]
+    view_w = round(bar_top * SCREEN_W / VIEW_H / PIXEL_ASPECT)       # the shot's px per 320 units
+    units = round(shot.shape[1] * SCREEN_W / view_w)
+    wide = SCREEN_W + 2 * WIDE_MARGIN
+    view = np.array(Image.fromarray(shot[:bar_top]).resize((units, VIEW_H), Image.Resampling.BOX))
+    bar = np.array(Image.fromarray(shot[bar_top:]).resize((units, SCREEN_H - VIEW_H), Image.Resampling.BOX))
+    img = np.concatenate([view, bar], axis=0)
+    pad = (wide - units) // 2
+    return np.pad(img, ((0, 0), (pad, wide - units - pad), (0, 0)), mode="reflect")
+
+
+def wide_mock(layers: list[tuple[np.ndarray, tuple[int, int]]], zoom: int = 2) -> Image.Image:
+    """The sprites (rgba, grAb) over wide_backdrop() with the bar on, as a
+    `zoom`x image at the 16:9 shape the player sees (pixels 1.2 tall); the
+    4:3 screen's edges are ticked at the top."""
+    import hand_study as hs
+    bg = wide_backdrop()
+    out = bg.copy()
+    for rgba, grab in layers:
+        x, y = hs.place(rgba, grab)
+        out = hs.composite(out, rgba, (x + WIDE_MARGIN, y))
+    out[VIEW_H:] = bg[VIEW_H:]
+    for x in (WIDE_MARGIN, WIDE_MARGIN + SCREEN_W - 1):
+        out[:4, x] = (255, 255, 0)
+    w = out.shape[1] * zoom
+    return Image.fromarray(out).resize((w, round(SCREEN_H * PIXEL_ASPECT * zoom)), Image.Resampling.NEAREST)
+
+
 def preview(w: WeaponPair, res: dict, stamp: str) -> Path:
+    """One sheet: every lump 3x with its size and grAb, then each mock of
+    w.mock_list() at 2x 16:9, the TT-33 last for scale. Local only (D77)."""
     import hand_study as hs
     frames = res["frames"]
-    gun_a, gun_b, fl = (frames[k] for k in (f"{w.gun}A0", f"{w.gun}B0", f"{w.flash}A0"))
-    bg = hs.map01_backdrop()
-    tt, tt_grab = hs.read_png_sprite(TT33_READY)
-    ready = hs.draw_on_screen(bg, gun_a["rgba"], gun_a["grab"])
-    firing = hs.draw_on_screen(hs.draw_on_screen(bg, gun_b["rgba"], gun_b["grab"]), fl["rgba"], fl["grab"])
-    tt33 = hs.draw_on_screen(bg, tt, tt_grab)
-    pad, lab = 16, 26
-    zooms = [(k, Image.fromarray(v["rgba"]).resize((v["rgba"].shape[1] * 3, v["rgba"].shape[0] * 3),
+    pad, lab, z = 16, 26, 3
+    zooms = [(k, Image.fromarray(v["rgba"]).resize((v["rgba"].shape[1] * z, v["rgba"].shape[0] * z),
                                                     Image.Resampling.NEAREST)) for k, v in frames.items()]
-    row1_h = max(z.height for _, z in zooms) + lab
-    mocks = [("ready (A)", ready, gun_a), ("firing (B, flash on)", firing, gun_b), ("TT-33 SDTTA0 for scale", tt33, None)]
-    W = max(sum(z.width for _, z in zooms) + pad * (len(zooms) + 1), 3 * 640 + 4 * pad)
-    H = 40 + row1_h + pad + lab + 400 + pad
+    tt, tt_grab = hs.read_png_sprite(TT33_READY)
+    mocks = [(name, wide_mock([(frames[k]["rgba"], frames[k]["grab"]) for k in lumps]), frames[lumps[0]])
+             for name, lumps in w.mock_list()]
+    mocks.append(("TT-33 SDTTA0 for scale", wide_mock([(tt, tt_grab)]), {"rgba": tt, "grab": tt_grab}))
+    mw, mh = mocks[0][1].size
+    per_row = 2
+    zrows: list[list] = [[]]
+    for k, im in zooms:                          # zoomed lumps, wrapped at the sheet width
+        if zrows[-1] and sum(i.width + pad for _, i in zrows[-1]) + im.width > per_row * (mw + pad):
+            zrows.append([])
+        zrows[-1].append((k, im))
+    W = max(per_row * (mw + pad) + pad, max(sum(i.width + pad for _, i in r) + pad for r in zrows))
+    zh = sum(max(i.height for _, i in r) + lab + pad for r in zrows)
+    n_mrows = -(-len(mocks) // per_row)
+    H = 40 + zh + n_mrows * (mh + lab + pad)
     sheet = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(sheet)
     f = hs.font(16)
-    title = (f"{w.name} from Gemini A/B (D79) - art pixel {res['period'][0]:.2f}/"
-             f"{res['period'][1]:.2f} src px, recoil {res['recoil']} art px, target {res['target']} px above the bar")
+    periods = "/".join(f"{p:.2f}" for p in res["period"])
+    title = (f"{w.name} from Gemini {'/'.join(w.files())} (D79) - art pixel {periods} src px, recoil "
+             f"{res['recoils']} art px, target {res['target']} px above the bar, scale {res['scale']}")
     d.rectangle((0, 0, W, 30), fill=hs.SHEET_BG + (255,))
     d.text((pad, 6), title, font=f, fill=hs.INK)
-    x = pad
-    for k, z in zooms:
-        g = frames[k]
-        d.rectangle((x, 40, x + z.width, 40 + lab - 4), fill=hs.SHEET_BG + (255,))
-        d.text((x + 4, 42), f"{k} {z.width // 3}x{z.height // 3} grAb {g['grab'][0]},{g['grab'][1]}", font=f, fill=hs.INK)
-        sheet.alpha_composite(z, (x, 40 + lab))
-        x += z.width + pad
-    y = 40 + row1_h + pad
+    y = 40
+    for r in zrows:
+        x = pad
+        for k, im in r:
+            g = frames[k]
+            d.rectangle((x, y, x + max(im.width, 330), y + lab - 4), fill=hs.SHEET_BG + (255,))
+            d.text((x + 4, y + 2), f"{k} {im.width // z}x{im.height // z} grAb {g['grab'][0]},{g['grab'][1]}"
+                   f" cuts {g['cuts']}", font=f, fill=hs.INK)
+            sheet.alpha_composite(im, (x, y + lab))
+            x += max(im.width, 330) + pad
+        y += max(i.height for _, i in r) + lab + pad
     for i, (name, img, g) in enumerate(mocks):
-        mx = pad + i * (640 + pad)
-        m = hs.measure(g["rgba"], g["grab"]) if g else hs.measure(tt, tt_grab)
-        d.rectangle((mx, y, mx + 640, y + lab - 4), fill=hs.SHEET_BG + (255,))
-        d.text((mx + 4, y + 2), f"{name}: {m['height']} px above the bar, {m['area_pct']} % of view",
-               font=f, fill=hs.INK)
-        sheet.paste(Image.fromarray(img).resize((640, 400), Image.Resampling.NEAREST), (mx, y + lab))
+        mx, my = pad + (i % per_row) * (mw + pad), y + (i // per_row) * (mh + lab + pad)
+        m = hs.measure(g["rgba"], g["grab"])
+        d.rectangle((mx, my, mx + mw, my + lab - 4), fill=hs.SHEET_BG + (255,))
+        d.text((mx + 4, my + 2), f"{name}: {m['height']} px above the bar, {m['area_pct']} % of the 4:3 view "
+               f"(16:9, 2x)", font=f, fill=hs.INK)
+        sheet.paste(img, (mx, my + lab))
     PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
     out = PREVIEW_DIR / f"{stamp}_F4_{w.name}-gemini-frames.png"
     sheet.save(out, optimize=True)
@@ -667,9 +957,10 @@ def main(argv=None) -> int:
     w = WEAPONS[args.weapon]
     res = build(w)
     for k, v in res["frames"].items():
-        print(f"{k}: {v['rgba'].shape[1]}x{v['rgba'].shape[0]} grAb {v['grab'][0]},{v['grab'][1]} -> "
+        print(f"{k}: {v['rgba'].shape[1]}x{v['rgba'].shape[0]} grAb {v['grab'][0]},{v['grab'][1]} "
+              f"cuts {v['cuts']} -> "
               f"{v['path'].relative_to(ROOT).as_posix()}")
-    print(f"art pixel {res['period']}, recoil {res['recoil']}, scale {res['scale']}, target {res['target']}")
+    print(f"art pixel {res['period']}, recoils {res['recoils']}, scale {res['scale']}, target {res['target']}")
     if not args.no_preview:
         print("preview:", preview(w, res, datetime.now().strftime("%Y-%m-%d_%H%M")).relative_to(ROOT).as_posix())
     return 0
