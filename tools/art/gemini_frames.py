@@ -27,12 +27,14 @@ The pipeline, every step a pure function on arrays (tests/test_gemini_frames.py)
   7. mode_resize      - to Doom size: the gun's top TARGET px above the status
                         bar (x1.6 Freedoom's CHGGA0 = 56), 1.2 pixel aspect
   8. extend_edges     - every arm leaves the view cleanly: where the art is
-                        cut by the image's side, the arm runs on past the
-                        widest view plus the bob (texture mirrored from its
-                        last columns, no one-column streaks) and curves down
-                        out of the canvas before its end, so no box edge is
-                        ever on screen above the bar; the bottom row is
-                        smeared under the bar
+                        cut by the image's side, a plain sleeve (a tube in
+                        the sleeve's own shade ramp, dark outline on top,
+                        tapering) takes over at the cut and runs on past the
+                        widest view plus the bob, curving down out of the
+                        canvas before its end, so no box edge is ever on
+                        screen above the bar and no skin or wood is repeated
+                        (mirroring the edge read as a hairy log, 2026-10-20);
+                        the bottom row is smeared under the bar
   9. KICK             - the firing frame (and its flash) sit a few px up and
                         right: the recoil Gemini's pair does not draw
 """
@@ -67,7 +69,10 @@ BELOW_BAR = 20                  # px of arm kept under the bar (full-screen view
 BOB_X = 16                      # Doom's horizontal weapon bob, px either way
 WIDE_MARGIN = 54                # 16:9: the view is 200*1.2*16/9 = 427 px wide, 54 past 320 each side
 ARM_EXIT = 112                  # px an arm cut by the image side runs on (> WIDE_MARGIN + BOB_X)
-EDGE_TILE = 12                  # its texture: the last columns, mirrored back and forth
+EDGE_TILE = 12                  # columns of the bottom row whose mode is the sleeve's colour
+SLEEVE_SHADES = (0.3, 1.25, 1.0, 0.72)   # outline, light, mid, shadow: x the sleeve colour
+SLEEVE_BANDS = (1, 3, 7)        # rows of outline, light, mid from the tube's top (shadow below)
+SLEEVE_TAPER = 6                # the tube's top edge sinks this much more by its end
 EXIT_POWER = 3                  # the curve down: drop ~ (k/ARM_EXIT)**3, nearly straight in 4:3
 BOTTOM_PAD = 16                 # rows the bottom edge is smeared down (under the bar)
 KICK = (2, -3)                  # the firing frame's recoil on screen: 2 px right, 3 px up
@@ -307,14 +312,36 @@ def split_flash(a: np.ndarray, b: np.ndarray, pal: np.ndarray) -> tuple[np.ndarr
 
 
 # ------------------------------------------------------------ 8. edges
+def nearest_colour(rgb, pal: np.ndarray) -> int:
+    """The palette index nearest to `rgb`, never a pink one."""
+    d = ((pal.astype(np.int32) - np.clip(np.asarray(rgb, float), 0, 255).astype(np.int32)) ** 2).sum(axis=1)
+    d[magentaness(pal) > PINK_PALETTE] = 1 << 30
+    return int(np.argmin(d))
+
+
+def sleeve_ramp(idx: np.ndarray, pal: np.ndarray, tile: int = EDGE_TILE) -> list[int]:
+    """(outline, light, mid, shadow) for the sleeve the arm leaves in: its
+    colour is the mode of the bottom row's last `tile` opaque pixels (the
+    sleeve is what enters the frame from below), or of the edge column."""
+    row = idx[-1, -tile:]
+    vals = row[row >= 0]
+    if not vals.size:
+        vals = idx[:, -1][idx[:, -1] >= 0]
+    base = pal[_mode(vals, None)].astype(float)
+    return [nearest_colour(base * f, pal) for f in SLEEVE_SHADES]
+
+
 def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE,
-                 power: float = EXIT_POWER) -> np.ndarray:
+                 power: float = EXIT_POWER, pal: np.ndarray | None = None) -> np.ndarray:
     """The last row smeared `bottom` rows down; then, if the art touches its
-    right side, `right` columns more: the last `tile` columns mirrored back
-    and forth (the sleeve's texture runs on, no one-column streaks), each
-    new column k dropped by round(D * (k/right)**power) rows, D the strip's
-    height down to the canvas bottom, so the arm curves down and has left
-    the canvas by the last column (which is always empty)."""
+    right side, `right` columns more of plain sleeve (sleeve_ramp): a tube
+    as tall as the cut (so it hides it) with a 1-px dark seam where it takes
+    over, shaded down from its top edge outline-light-mid-shadow. No column
+    of the art is repeated: mirroring the edge repeated skin and stock wood.
+    Column k's top drops round(D * (k/right)**power) rows plus a taper of
+    SLEEVE_TAPER * k/right, D the cut's height down to the canvas bottom, so
+    the arm curves down and has left the canvas by the last column (always
+    empty)."""
     h, w = idx.shape
     hb = h + bottom
     out = np.full((hb, w + right), TRANSPARENT, np.int32)
@@ -323,13 +350,16 @@ def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE
     if right <= 0 or not (idx[:, w - 1] >= 0).any():
         return out
     tile = max(1, min(tile, w))
-    strip = out[:, w - tile:w]
-    drop_total = hb - int(np.flatnonzero((strip >= 0).any(axis=1))[0])
+    outline, light, mid, shadow = sleeve_ramp(out[:, :w], palette_rgb() if pal is None else pal, tile)
+    top0 = int(np.flatnonzero(out[:, w - 1] >= 0)[0])
+    drop_total = hb - top0
+    edges = np.cumsum(SLEEVE_BANDS)
     for k in range(1, right + 1):
-        m = (k - 1) % (2 * tile)                      # w-1, ..., w-tile, w-tile, ..., w-1, ...
-        col = out[:, w - 1 - m if m < tile else w - 2 * tile + m]
-        d = min(hb, int(round(drop_total * (k / right) ** power)))
-        out[d:, w - 1 + k] = col[:hb - d]
+        f = k / right
+        t = min(hb, top0 + int(round(drop_total * f ** power + SLEEVE_TAPER * f)))
+        s = np.arange(hb - t)
+        col = np.select([s < edges[0], s < edges[1], s < edges[2]], [outline, light, mid], shadow)
+        out[t:, w - 1 + k] = outline if k == 1 else col
     return out
 
 
