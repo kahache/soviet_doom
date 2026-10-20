@@ -772,8 +772,8 @@ explosive barrel (2035), zombieman (3004), medikit (2012), blue armour
 (2019), backpack (8) and the ammo boxes 2046/2048/2049/17. Since F5 the six
 3004 targets spawn **`SD_ReichRifleman`** (`replaces ZombieMan`), so the
 arsenal is tested against our own enemy; the ammo boxes and the backpack
-were already ours (§6.4); the barrel, the medikit and the armour are still
-Freedoom's.
+were already ours (§6.4); the medikit and the armour are ours since D80
+(§6.3); the barrel is still Freedoom's.
 
 **MAP01 (campaign) since v3, 2026-10-13** places Doom editor numbers too:
 monsters 3004, 9, 3001, 3002, 3005 and 69, each spawning our class through
@@ -889,6 +889,21 @@ never had a row here: no state of ours named `CLIP`, `AMMO`, `SHEL`,
 Doom's classes); since D63 each of those classes names its own sprite.
 `BPAK`, the backpack's, is still inherited and still needs no row.
 
+**Retired 2026-10-20 (D80):** `STIM`, `MEDI`, `BON1`, `BON2`, `ARM1`,
+`ARM2`, `PMAP`, `BPAK`, `YKEY` and `RKEY`, Freedoom's pictures of the
+campaign's health, armour, area map, backpack and yellow and red keycards.
+None ever had a row here (each was inherited from Doom's class); since D80
+each of our replacing classes names its own sprite (§6.3, "The campaign
+pickups, installed by D80"), so every Doom editor number the campaign
+places for them (2011, 2012, 2014, 2015, 2018, 2019, 2026, 8, 6, 13)
+spawns our picture. Doom's own classes keep Freedoom's lumps, but ours
+replace them, so no map can spawn one. The armours' and the armour bonus'
+HUD icons are ours too, and the key icons `STKEYS0`-`STKEYS2` are shipped
+by the mod under the engine's names; the fullscreen HUD's health icon
+`MEDIA0` is still Freedoom's (§6.3).
+**`BFUG` is not retired yet**: the hand Katyusha's new pickup picture
+waits for the line in its `Spawn` (§6.3), so its row stays.
+
 | Name | Type | Used by | Verification |
 |---|---|---|---|
 | `PUNG` | sprite | `SD_IceAxe` (held) | engine pass F4, 2026-10-12 (as `SD_Shovel`) |
@@ -952,7 +967,9 @@ in the IWAD.
 | `SD_General` | `SD_Monster` *replaces Cyberdemon* | Boss, 3000 HP (H), three-shell salvo; once below half health, summons two `SD_ReichRifleman` and prints `SD_GENERAL_ORDER` (D35). |
 | `SD_StormBolt`, `SD_DoughboyShell`, `SD_PanzerShell`, `SD_GeneralShell` | `Actor` | The four enemy projectiles. Not placeable. |
 | `SD_Radio` | `Actor` | The diegetic radio (D43): a solid decoration that plays one of two CC0 pieces in place of the level's music while the player is near it, and gives the level's music back when the player walks away. Contract §6.7, reasons ADR 008. |
-| `SD_BluePass` | `BlueCard` *replaces BlueCard* | The metro's blue pass (MAP02 since D62; propusk): Doom's blue keycard under a Soviet name. `Species "BlueCard"` so lock 2 opens for it; own pickup line `SD_PICKUP_BLUEPASS`; Freedoom's `BKEY` sprite and the `STKEYS0` icon, inherited. Placed by Doom's editor number 5. Below, "The blue pass". |
+| `SD_BluePass` | `BlueCard` *replaces BlueCard* | The metro's blue pass (MAP02 since D62; propusk): Doom's blue keycard under a Soviet name. `Species "BlueCard"` so lock 2 opens for it; own pickup line `SD_PICKUP_BLUEPASS`; our own sprite since D63 and the `STKEYS0` icon, inherited (the mod ships its own `STKEYS0` since D80). Placed by Doom's editor number 5. Below, "The blue pass". |
+| `SD_YellowPass`, `SD_RedPass` | `YellowCard`, `RedCard` *replace YellowCard, RedCard* | Tankograd's yellow and red passes (MAP03, D80): `SD_BluePass`'s pattern, `Species "YellowCard"` / `"RedCard"` so locks 3 and 1 open for them; lines `SD_PICKUP_YELLOWPASS` / `SD_PICKUP_REDPASS`; our own sprites (§6.3). Placed by Doom's editor numbers 6 and 13. |
+| `SD_Stimpack`, `SD_Medikit`, `SD_HealthBonus`, `SD_ArmorBonus`, `SD_GreenArmor`, `SD_BlueArmor`, `SD_Allmap` | the Doom class each *replaces* | The campaign's health, armour and area map (D80, `zscript/sd/pickups.zs`): Doom's pickups with our sprite, line (`SD_GOT_*`) and, for the armours, HUD icon; nothing else changes (§6.3, "The campaign pickups, installed by D80"). |
 | `SD_StatusBar` | `DoomStatusBar` | The status bar (T24), registered by `MAPINFO → GameInfo → StatusBarClass`. Doom's bar unchanged; overrides only `DrawPaused`, to draw the pause sign `LANGUAGE` names per language. Contract §6.5.1, reasons ADR 010. |
 
 The bestiary's numbers, states, sounds and the reasons for each are
@@ -1731,6 +1748,87 @@ VERIFIED in the engine**). Licence rows: `docs/art/LICENSES.md`,
 "Pickups: ammunition, the blue pass and the radio". **NOT YET SEEN IN THE
 ENGINE** (D26).
 
+**The campaign pickups, installed by D80 (2026-10-20).** The CEO chose one
+option per object of the campaign pickups sweep (`tools/art/gen_items.py`,
+backlog M2a, audit B3 and B5; preview
+`docs/art/previews/2026-10-19_2212_F5_campaign-pickups.html`): the
+recommended option everywhere except the two armours (C) and the backpack
+(B). The generator's `CHOSEN` table is that choice and `--install` renders
+every frame of it. The names are **reserved** here, and every one but the
+hand Katyusha's ships (below, "Pending"); each row names the Doom class the
+sprite stands for:
+
+| Class (replaces) | Sprite | Frames | Option chosen | `Spawn` (Doom's, renamed) | Pickup line |
+|---|---|---|---|---|---|
+| `SD_Stimpack` (`Stimpack`) | `SDBN` | A (0) | A, a field dressing packet (ИПП) with the first-aid sign | `SDBN A -1; Stop` (`STIM`) | `SD_GOT_STIMPACK` |
+| `SD_Medikit` (`Medikit`) | `SDMD` | A (0) | A, an enamelled first-aid box with the first-aid sign | `SDMD A -1; Stop` (`MEDI`) | `SD_GOT_MEDIKIT`, also its `Health.LowMessage` |
+| `SD_HealthBonus` (`HealthBonus`) | `SDHB` | A–D (0) | B, a bottle of zelyonka | `SDHB ABCDCB 6; Loop` (`BON1`) | `SD_GOT_HEALTHBONUS` |
+| `SD_ArmorBonus` (`ArmorBonus`) | `SDAB` | A–D (0) | A, an SSh-68 steel helmet | `SDAB ABCDCB 6; Loop` (`BON2`); `Inventory.Icon` `SDABA0` | `SD_GOT_ARMORBONUS` |
+| `SD_GreenArmor` (`GreenArmor`) | `SDAG` | A, B (0) | C, a flak vest with an SSh-68 at its foot | `SDAG A 6; SDAG B 7 Bright; Loop` (`ARM1`); `Inventory.Icon` `SDAGA0` | `SD_GOT_ARMOR` |
+| `SD_BlueArmor` (`BlueArmor`) | `SDAH` | A, B (0) | C, a bare-steel SN-42 breastplate and helmet (palette v1) | `SDAH A 6; SDAH B 6 Bright; Loop` (`ARM2`); `Inventory.Icon` `SDAHA0` | `SD_GOT_MEGAARMOR` |
+| `SD_Allmap` (`Allmap`) | `SDMP` | A–D (0) | A, an officer's map case (планшет) | `SDMP ABCDCB 6 Bright; Loop` (`PMAP`) | `SD_GOT_MAP` |
+| `SD_Backpack` (`Backpack`) | `SDBP` | A (0) | B, an RD-54 paratrooper's pack | `SDBP A -1; Stop` (`BPAK`) | `SD_GOT_BACKPACK` |
+| `SD_YellowPass` (`YellowCard`) | `SDKY` | A, B (0) | A, the blue pass's card in yellow | `SDKY A 10; SDKY B 10 Bright; Loop` (`YKEY`) | `SD_PICKUP_YELLOWPASS` |
+| `SD_RedPass` (`RedCard`) | `SDKK` | A, B (0) | A, the blue pass's card in red, gold stamp | `SDKK A 10; SDKK B 10 Bright; Loop` (`RKEY`) | `SD_PICKUP_REDPASS` |
+| `SD_HandKatyusha` (`BFG9000`), Katyusha | `SDHP` | A (0) | A, the D51 draft at its drawn size (70×37) | `SDHP A -1; Stop` (`BFUG`): **pending**, see below | `SD_PICKUP_KATYUSHA` (unchanged) |
+
+Files: `assets/sprites/pickups/<NAME>.png`, byte-identical to the renders in
+`work/art/items/<item>/<option>/` (Windows PC, 2026-10-20), RGBA with hard
+alpha and their `grAb` offsets inside the file (`left = width / 2`, `top =
+height`). All palette v1. Classes: `zscript/sd/pickups.zs` (health,
+armour, the map), `keys.zs` (the passes), `ammo.zs` (the backpack). Each
+`Spawn` label is the Doom parent's line for line, read in GZDoom g4.14.2's
+`gzdoom.pk3` (`doomhealth.zs`, `doomarmor.zs`, `doomartifacts.zs`,
+`doomammo.zs`, `doomkeys.zs`, `weaponbfg.zs`), with only the four-letter
+name changed; the `Default` blocks add the pickup line, the passes'
+`Species`, the armours' icon and the medikit's low-health line (Freedoom's
+DEHACKED prints `GOTMEDINEED` in English), nothing else. The passes copy
+the blue pass: `Species "YellowCard"` and `Species "RedCard"`, because
+locks 3 and 1 match by exact class or Species, never by parentage
+(`keys.zs`).
+
+The medical items wear the **first-aid sign**, a white cross on a green
+field (ISO 7010 E003), not the protected red-cross emblem (D80); the green
+is palette v1's `military_green`, the only green there is.
+
+**HUD.** The status bar's and the fullscreen HUD's key icons are the
+engine's `STKEYS0`-`STKEYS2` (blue, yellow, red; `DoomStatusBar.DrawBarKeys`
+and the keys' `Inventory.Icon`), which the mod now ships as the passes'
+own 7×5 cards: `assets/graphics/hud/STKEYS0.png` to `STKEYS2.png`, indexed
+on palette v2 (`STKEYS0` uses `mosaic_cobalt`, so it is in `check_pk3`'s
+`PALETTE_V2_LUMPS`; the other two use v1 colours only). The fullscreen
+HUD's health icon is the literal `MEDIA0` (`doom_sbar.zs`,
+`DrawFullScreenStuff`) and stays **Freedoom's medikit**: shipping ours
+under that name would be the first sprite without the `SD` prefix (§1,
+`tests/test_art.py`), and the other way, an `SD_StatusBar` override of
+`DrawFullScreenStuff`, is a transcription of engine code (debt like T14).
+Left for the CEO's H2 pass. The armour icon is the
+`Inventory.Icon` of the armour last picked up, drawn at its own size and
+offsets at (20, -22): our vest and breastplate are 39×40 and 36×47 against
+Freedoom's 37×28 and 37×25. Standing on their own floor (`grAb` top =
+height) they end where Freedoom's do, on the medikit icon's top edge
+(y = -22; Freedoom's `MEDIA0` is 29×20 with offsets 14, 20), and rise 12
+and 22 pixels higher, left of the armour count (x 44). **NOT VERIFIED in
+the engine.**
+
+**Pending: the Katyusha's pickup.** `SD_HandKatyusha` lives in
+`zscript/weapons/katyusha.zs`, which another task owned at the install; its
+`Spawn` still says `BFUG A -1;`, so its picture is rendered
+(`work/art/items/katyusha/A/`) but not copied into `assets/`: installed
+alone it would change nothing in the game and would stop the draft overlay
+(§6.9) from showing the D51 draft over `BFUG`. Three steps finish it, in
+one change: the hand Katyusha's line becomes `SDHP A -1;`, the PNG is copied into
+`assets/sprites/pickups/`, and the row `BFUG` leaves §5.1
+(`tests/test_pickups_install.py` checks all three once the line changes;
+`tests/test_draft_overlay.py`'s count of today's drafts then drops by one).
+
+Checked free: no lump of `freedoom2.wad` 0.13.0 starts with any of the ten
+new names, and none collides with a name reserved above
+(`tests/test_gen_items.py`). Licence rows: `docs/art/LICENSES.md`,
+"Pickups: the campaign's health, armour, map, backpack and passes".
+`tests/test_pickups_install.py` pins classes, sprites, frames, lines,
+locks and the campaign maps' things. **NOT YET SEEN IN THE ENGINE** (D26).
+
 The heavy Panzermensch draws its own set, `SDPS`, from a `States` block of
 its own since D67 (above); the `Translation` once planned is dropped. Blood is recoloured by `BloodColor`
 on the engine's own blood sprite; no blood sprite is reserved. **Since D49
@@ -1770,7 +1868,7 @@ instead of "bullets" and "shells" (CEO decision, 2026-10-13).
 | `Shell` | `SD_Shell`, `SD_ShellBox` | `Shell`, `ShellBox` | IZh-58 | `AMMO_SHELLS` — 12 gauge / «Патроны 12 кал.» |
 | `RocketAmmo` | `SD_RocketAmmo`, `SD_RocketBox` | `RocketAmmo`, `RocketBox` | RPG-7 | `AMMO_ROCKETS` — PG-7V / «Выстрелы ПГ-7В» |
 | `Cell` | `SD_Cell`, `SD_CellPack` | `Cell`, `CellPack` | ROKS-3, hand Katyusha | `AMMO_CELLS` — fuel / «Горючее» |
-| — | `SD_Backpack` | `Backpack` | — | pickup line `SD_GOT_BACKPACK` |
+| — | `SD_Backpack` | `Backpack` | — | pickup line `SD_GOT_BACKPACK`; the RD-54's sprite since D80 (§6.3) |
 
 Rules that matter to the other roles:
 
@@ -2175,5 +2273,5 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | T17 | **The English `LANGUAGE` section still carries Latin transliterations** (`PG-7V`, `7.62x25`) although the glyphs for the Cyrillic forms D17 asks for exist since D24 (§6.4). Two ASCII tests pin the current state (`tests/test_language.py`, `tests/test_arsenal.py`). | `mod-engineer`, one text change plus an engine screenshot of the HUD |
 | T22 | **Bestiary behaviours the engine pass did not show** (ADR 006, "NOT VERIFIED"): infighting between our classes and the native `GetSpecies` rule behind the explicit `Species`; the colour of `BloodColor`; the General's order line on screen (the console log carries it); the recruits entering the chase and the blocked-spot fallback; the attack helpers' damage (both runs were god mode, deaf or `notarget`); how far a dead Doughboy falls; the sounds. | the PM's next engine pass, with enemies awake and one fighting another; `qa-engineer` for the sounds, with a human |
 | T23 | **The radio (§6.7) is unseen.** `SD_Radio` has not run in the engine (D26). ~~its editor number 21200 is not yet in `MAPINFO`~~ (`MAPINFO` gives 21200 to `SD_Radio` since; read 2026-10-14). ~~its placeholder `PMAP` A is the computer area map's pickup, which MAP01 also places (2026): a player may walk at the radio expecting a pickup.~~ **The sprite part is paid 2026-10-14 (D63):** `SDRD` A, an Okean-209 on a tabouret (§6.3, "The pickups, installed by D63"); `PMAP` is retired from §5.1. | the PM's engine pass (ADR 008 checklist), which now also sees `SDRD` A draw |
-| T25 | **The blue pass (§6, "The blue pass") is unseen and borrowed.** `SD_BluePass` has not run in the engine (D26; checks P1-P6); ~~it wears Freedoom's `BKEY` keycard~~ (**the sprite part is paid 2026-10-14, D63**: `SDKB` A/B, a laminated card blinking as Doom's keys do, §6.3, "The pickups, installed by D63"; the status bar icon is still `STKEYS0`); and a blue door pressed directly (tag 0) would still print Freedoom's DEHACKED `PD_BLUEC` in English in both languages, because DEHACKED beats `LANGUAGE`. The metro's only blue door works by tag, so nothing shows it today. | the PM's engine pass; a `LOCKDEFS` of ours only if a tag-0 blue door is ever built |
+| T25 | **The blue pass (§6, "The blue pass") is unseen and borrowed.** `SD_BluePass` has not run in the engine (D26; checks P1-P6); ~~it wears Freedoom's `BKEY` keycard~~ (**the sprite part is paid 2026-10-14, D63**: `SDKB` A/B, a laminated card blinking as Doom's keys do, §6.3, "The pickups, installed by D63"; the status bar icon `STKEYS0` is the mod's own 7×5 card since D80); and a blue door pressed directly (tag 0) would still print Freedoom's DEHACKED `PD_BLUEC` in English in both languages, because DEHACKED beats `LANGUAGE`. The metro's only blue door works by tag, so nothing shows it today. | the PM's engine pass; a `LOCKDEFS` of ours only if a tag-0 blue door is ever built |
 | T24 | **Paid in code 2026-10-14, NOT YET SEEN IN THE ENGINE (D26).** Was: the Russian pause plaque packed but not drawn (§2, "Language variants"): GZDoom g4.14.2 registers `localized/textures/M_PAUSE.ru.png` and checks its size, but its display-time substitution is commented out. Now: `SD_StatusBar : DoomStatusBar`, registered by `GameInfo { StatusBarClass }`, overrides only `DrawPaused` and draws the graphic `LANGUAGE`'s `SD_PAUSE_SIGN` names (`M_PAUSE` / the variant's full path), at `D_Display`'s position, falling back to the engine's own drawing if the name does not resolve (§6.5.1, ADR 010). `assets/localized/textures/M_PAUSE.ru.png` is installed (byte-identical to `work/art/shell_extra/pause_P2_ru.png`), and `tools/release.py` credits `localized/` through the base's licence row. Open: the engine pass, ADR 010's checks E1-E3 (the bar identical, the pause in English, the pause with `language ru`). | the PM's engine pass |

@@ -518,6 +518,43 @@ docstring). No photograph, no typeface, no text. Freedoom's pickups appear
 only beside ours on the review sheet, for comparison, and never enter a
 sprite.
 
+## Pickups: the campaign's health, armour, map, backpack and passes (approved by the CEO 2026-10-20, D80)
+
+CEO choice (D80), one option per object of the campaign pickups sweep
+(backlog M2a, audit B3 and B5): the recommended option except the green
+armour (C), the heavy armour (C) and the backpack (B); the hand Katyusha's
+floor pickup at its drawn size (A). Files in `assets/sprites/pickups/`,
+copied byte for byte from `work/art/items/<item>/<option>/` (rendered on the
+Windows PC on 2026-10-20 by `tools/art/gen_items.py --install`), so each PNG
+keeps its `grAb` offsets. RGBA with hard alpha, palette v1. The two medical
+items carry the first-aid sign (a white cross on a green field, ISO 7010
+E003), not the red-cross emblem (D80). The HUD pictures are the engine's
+names: the key icons in `assets/graphics/hud/` (indexed, palette v2 for
+`STKEYS0`, v1 colours for the other two). Not installed: the options not chosen, the review sheets and
+`metrics.json`. Engine names: MOD-SPEC §6.3, "The campaign pickups,
+installed by D80".
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDBNA0` | stimpack: a field dressing packet (ИПП) with the first-aid sign (option A) | (a) `tools/art/gen_items.py`, item `stim`, option A | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDMDA0` | medikit: an enamelled first-aid box with the first-aid sign (option A) | (a) idem, `medikit`, option A | idem |
+| `SDHBA0`, `SDHBB0`, `SDHBC0`, `SDHBD0` | health bonus: a bottle of zelyonka, frames A-D (the glint climbs) (option B) | (a) idem, `hbonus`, option B | idem |
+| `SDABA0`, `SDABB0`, `SDABC0`, `SDABD0` | armour bonus: an SSh-68 steel helmet, frames A-D (option A) | (a) idem, `abonus`, option A | idem |
+| `SDAGA0`, `SDAGB0` | green armour: a flak vest with an SSh-68 at its foot; B is the bright frame (option C) | (a) idem, `garmor`, option C | idem |
+| `SDAHA0`, `SDAHB0` | blue armour: a bare-steel SN-42 breastplate and helmet; B is the bright frame (option C) | (a) idem, `barmor`, option C | idem |
+| `SDMPA0`, `SDMPB0`, `SDMPC0`, `SDMPD0` | area map: an officer's map case (планшет), frames A-D (option A) | (a) idem, `allmap`, option A | idem |
+| `SDBPA0` | backpack: an RD-54 paratrooper's pack (option B) | (a) idem, `backpack`, option B | idem |
+| `SDKYA0`, `SDKYB0` | the yellow pass, the blue pass's card in yellow; B is the blink (option A) | (a) idem, `ykey`, option A | idem |
+| `SDKKA0`, `SDKKB0` | the red pass, the blue pass's card in red with a gold stamp; B is the blink (option A) | (a) idem, `rkey`, option A | idem |
+| `SDHPA0` | the hand Katyusha on the floor, the D51 draft (option A); **not yet in `assets/`**, it ships with `SD_HandKatyusha`'s `Spawn` line (MOD-SPEC §6.3, "Pending") | (a) idem, `katyusha`, option A (`gen_weapon.render_katyusha_pickup`) | idem |
+| `STKEYS0`, `STKEYS1`, `STKEYS2` | status bar key icons, 7×5: the blue, yellow and red passes | (a) idem, `key_icon` (`work/art/items/hud/`) | idem |
+
+Drawn from code on gen_weapon's rig, as the D63 pickups: boxes, domes,
+cylinders and cards shaded in `palette.json` ramps, reduced to 1x by
+majority vote. No photograph, no typeface, no text. Freedoom's pickups
+appear only beside ours on the review sheet, for comparison, and never
+enter a sprite.
+
 ## Enemy sprites: the Liberty Legion trooper (F5, approved by the CEO 2026-10-14, D48 and D54)
 
 CEO verdict: cell **C** of the Legion sweep (D48), then the redone death,
