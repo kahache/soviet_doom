@@ -16,14 +16,14 @@ whole episode in English or Russian:
 
 | Area | MVP means | Today |
 |---|---|---|
-| Campaign | **3 maps linked**: MAP01 Zarya-7, MAP02 metro-bunker, MAP03 factory (D62 numbering), each finishable, populated, signposted, textured with our art, with its music | MAP01 v3 done; metro v0 walked, v1 in progress; factory v0 in progress |
-| Arsenal | **7 weapons with our own first-person art** (Freedoom-based hands, D61) and our pickups | pickups installed (6 of 7); first-person: TT-33 in progress, the rest after it |
-| Bestiary | **7 enemies with our own sprites** | 7 of 7 installed (D73) |
-| Sound | weapon and enemy effects approved by the CEO (voices optional) | drafts waiting for the CEO's ears |
-| Music | title + one public-domain piece per map (no composing, D59) | title and MAP01 done |
-| Shell | menus, title, pause, credits, practice range | done |
-| Text | every in-game string in EN and RU, the Russian reviewed once at the end | bilingual; review owed |
-| Release | the v1 package (G6) | `tools/release.py` ready, full licence texts shipped (N10) |
+| Campaign | **3 maps linked**: MAP01 Zarya-7, MAP02 metro-bunker, MAP03 factory (D62 numbering), each finishable, populated, signposted, textured with our art, with its music | **done**: MAP01 v3, metro v1, Tankograd v1.1 linked, every route PASS in engine, walked by the CEO (M1, D70) |
+| Arsenal | **7 weapons with our own first-person art** (Freedoom-based hands, D61; Gemini frames since D79) and our pickups | first person: **TT-33 and PPSh-41 installed (2 of 7)**; IZh-58, RPG-7, ROKS-3 and hand Katyusha approved from the CEO's Gemini frames (D84), install queued (N14-I); the ice axe's strike arm being redrawn (N14-AX, D84); pickups: 6 of 7 ours, the hand Katyusha's (`SDHP`) installing with M2a-i (in progress) |
+| Bestiary | **7 enemies with our own sprites** | **7 of 7 installed** (D73); shells: the General's and the Stormtrooper's bolt ours, the Doughboy's and Panzermensch's approved (D81), install queued (M2b-i) |
+| Sound | weapon and enemy effects approved by the CEO (voices optional) | **25 weapon sounds installed** (D74); SDIZFIR (take B), 30 enemy sounds and 5 beds approved (D83), install queued (N9e); 5 weapon and 8 enemy rows rejected or undecided, alternatives with the CEO (N9a) or in progress (N9m) |
+| Music | title + one public-domain piece per map (no composing, D59) | approved and playing: title `D_SDINTL`, MAP02 `D_SDFUNR`, MAP03 `D_SDGATE` (D83). Open: MAP01 still plays `D_SDM01`, which D83 moves off MAP01 (a new PD piece, N9m); the intermission still plays Freedoom's `D_DM2INT` (`D_SDTITL` approved, N9e); RANGE plays `D_SDAMUR` (NO, D83) |
+| Shell | menus, title, pause, credits, practice range; the status bar, face, stats screen and help screens (M4, D75) | menus, title, pause, credits, range **done**; status bar, face, stats screen, help screens still Freedoom's (backlog M2e) |
+| Text | every in-game string in EN and RU, the Russian reviewed once at the end | bilingual (pickup lines EN/RU arriving with M2a-i); review owed (N11) |
+| Release | the v1 package (G6) | `tools/release.py` ready; full licence texts (N10), Freedoom's BSD notice, player LICENSE/CREDITS and the AI line (G9), README EN/RU (G2), QA-G6-1/2 fixed (1bcf2e0); left: N11, sign-off, tag (`docs/qa/2026-10-14_2356_G6-readiness.md`) |
 
 ## Milestones to the MVP
 
@@ -31,9 +31,9 @@ whole episode in English or Russian:
 |---|---|---|---|
 | F0-F2 | Pipeline, lore, art direction | G0, G1, G2 | **PASSED** (`docs/qa/GATE-REVIEWS.md`) |
 | **M1** | **Campaign playable end to end** | the 3 maps run from New Game to the end text with no `idclip`, zero log errors, scripted route PASS on each (`tools/route.py`); the CEO walks it | **PASSED 2026-10-14 (D70):** every route PASS in engine with zero log errors, and the CEO walked it from New Game ("se puede jugar y perfecto") |
-| **M2** | **Our art everywhere the player looks** | no Freedoom sprite left in first person, on enemies or on pickups; factory textures approved | **7 of 7 enemies installed** (their shells: the General's ours, the Doughboy's and Panzermensch's still Freedoom), 6 of 7 weapon pickups (the hand Katyusha still BFUG) and no health/armour/key pickups of our own yet (M2 audit), TT-33 and PPSh-41 in hand installed (2 of 7 weapons; the rest from the CEO's Gemini frames, D79), Tankograd textures 21 of 21 |
-| **M3** | **Sound and music** | CEO-approved effects installed; one PD piece per map | drafts done, waiting on the CEO |
-| **M4** | **Ship v1** (was F6) | G6: licence file with full texts, credits, README EN/RU, the Russian text reviewed, QA sign-off, tag v1.0 | prep done (`docs/engine/RELEASE.md`) |
+| **M2** | **Our art everywhere the player looks** | no Freedoom sprite left in first person, on enemies or on pickups; factory textures approved; plus the player's projectiles, puffs, blood, teleport fog, barrels and lamp (D75) | **19 of 46 asset groups ours (~41 %, 2026-10-20):** enemies 7/7; enemy projectiles 2/4 (SDDL/SDPL approved D81, queued M2b-i); first-person weapons 2/7 (four approved D84, queued N14-I; the ice axe redrawn, N14-AX); weapon pickups 6/7 and health/armour/map/backpack/keys 0/10 (approved D80, M2a-i in progress); player effects 0/9 (approved D82, queued M2c-i); Tankograd textures 21/21 and the range retextured (d8062e4). Every remaining group but the ice axe is approved; none waits on a new design |
+| **M3** | **Sound and music** | CEO-approved effects installed; one PD piece per map | **25 of 61 approved effects installed** (the D74 weapon set); 36 approved in D83 queued (N9e); music: 2 of 3 maps play an approved PD piece (MAP02, MAP03), MAP01's replacement in progress (N9m) |
+| **M4** | **Ship v1** (was F6) | G6: licence file with full texts, credits, README EN/RU, the Russian text reviewed, QA sign-off, tag v1.0; the HUD and shell art moves here (D75) | licence texts, Freedoom notice, LICENSE/CREDITS, README EN/RU and QA-G6-1/2 **done** (N10, G9, G2, 1bcf2e0); open: HUD/shell art (M2e), N11, the sign-off and tag (N16), RELEASE.md §2 refresh (G6 readiness G10) |
 
 ## After the MVP (gameplay, D60)
 

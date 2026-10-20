@@ -28,101 +28,68 @@ synced in batches at each phase close (D7, D34).
 > | Product notes and dated studies (difficulty names, language switch, research) | `docs/product/` |
 > | Russian mirror of all of the above | `docs/ru/` |
 
-## Status (2026-10-14)
+## Status (2026-10-20)
 
-**F0, F1, F2 — CLOSED.** G0 and G2 PASS with evidence in
-`docs/qa/GATE-REVIEWS.md`; G1 was ratified by the CEO on 2026-10-09
-(`docs/ROADMAP.md`) and its GATE-REVIEWS entry is written retrospectively on
-2026-10-13. Thirty texture lumps live in `assets/`, all approved:
-batch 1, 12 of 12 (`SDPOSTR1` Lenin 128×256 among them; `SDCONC2` and
-`SDSTAR1` v5 approved inside MAP01 by the CEO, D30), the eight switches of
-batch 2 (D25) and four props of batch 3, crates and a locker (D29), plus
-the metro's first six pieces (D42); ten more metro pieces are drafts. Title screen and
-intermission ship (D18). The Cyrillic alphabet is installed, 224 glyphs (German Ä Ö Ü ß since D37) in
-two sizes (D24), which is what makes D7 and D21 possible inside the game;
-M, М and W were corrected on 2026-10-13 (D29).
+**Where the MVP stands** is told by `docs/ROADMAP.md` (milestones M1-M4 and
+their gates, D63), the tasks by `docs/BACKLOG.md`, and the dated snapshot
+`docs/product/2026-10-20_1045_P0_mvp-status.md`. In one line: **M1 PASSED**
+(D70), M2 ~41 % of its asset groups ours, M3 25 of 61 approved effects
+installed, M4 licences, credits and README done; decisions up to **D85**.
 
-**F3 — MAP01 Zarya-7.** v0 (grey box) and v1 (textured and signposted: red
-stripe, yellow lane, recessed doors; 54 sectors) are BUILT,
-`docs/levels/MAP01-zarya-7.md` §14-§15. The v0 playtest finding (the hangar
-gate read as a dead end) became v1's gate criterion. **The CEO walked v1 on
-2026-10-13 and the criterion is not met:** "ahora sí que funciona", but "me
-quedé en el hangar; la puerta doble no se abre". Not a mechanical bug: the
-PM pressed SW-A in engine and D4 opened
-(`docs/qa/evidence/2026-10-13_1540_F3_map01-v1-swa-opens-d4.png`); the CEO
-later found SW-A unaided ("una puerta q no hace ningún ruido si le das a
-E") and finished the map. **v2 is BUILT** (§16 of the design document): real
-switch faces, SW-A moved to a lit niche with a window onto D4, a gate light
-on tag 30, 16 lamps, flicker, three secrets, crates and lockers; 80 sectors.
-Its engine pass is filed (`docs/qa/evidence/2026-10-13_1611_F3_map01-v2-engine-pass-*`).
-**The CEO walked v2: gate passed without help, menu approved (D32).** Too
-small for a game level, so **v3 densifies it (D33) and is BUILT**: 165
-sectors, 778 lines (Freedoom's MAP01: 211 / 1274), 33 enemies on skill 3
-(21/33/46), Reich first and the Legion holding the hangar (D35), both
-switches release an ambush, subtler secrets, Lenin lit. Engine pass clean
-(`docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass-*`). **The CEO played
-it through on skill 3: "ha sido MUY divertido!!" (D38).** The mural is clear
-and the slot-1 weapon is found on the dorm rack, not issued (both seen in
-engine). **G3 in progress:** `tools/route.py` runs the critical path in
-GZDoom and passes on skills 2, 3 and 4 with monsters (with `god`, the route
-clearing and listing the bodies in its way); left: the hand-played runs
-on skills 2 and 4, the hostile pass and the CEO's G3-9, `docs/qa/GATE-REVIEWS.md`.
+**F0, F1, F2 — CLOSED** (G0, G1, G2 in `docs/qa/GATE-REVIEWS.md`). The old
+phases F3-F5 fold into M1-M3 (ROADMAP); G3's hostile pass and hand-played
+runs are parked to P1 (D60).
 
 **The campaign (D60, D62).** Three maps, numbered in play order since D62:
-MAP01 Zarya-7 → MAP02 the metro-bunker → MAP03 the factory, «Танкоград» /
-Tankograd (D63), which ends the episode at the portal. Each crossing prints
-a transition text and the ending prints once (`docs/engine/MOD-SPEC.md`
-§4.6). The practice range is the lump `RANGE`, outside the MAPxx slots.
-Dated evidence keeps the old numbers (a `map03` there is the metro, a
-`map02` the range).
+MAP01 Zarya-7 (v3, D38) → MAP02 the metro-bunker (v1) → MAP03 the factory,
+«Танкоград» / Tankograd (v1.1, D68), which ends the episode at the portal;
+every route PASSes in engine (`tools/route.py`) and the CEO walked it (D70).
+Each crossing prints a transition text and the ending prints once
+(`docs/engine/MOD-SPEC.md` §4.6). The practice range is the lump `RANGE`,
+outside the MAPxx slots, retextured with our set (d8062e4). Dated evidence
+keeps the old numbers (a `map03` there is the metro, a `map02` the range).
+Campaign textures are all ours (M2 audit,
+`docs/qa/2026-10-14_2357_M2-freedoom-audit.md`).
 
-**F5 — bestiary.** Seven enemy classes in ZScript (D35). Four now draw
-from our own sprites, rendered on a 3D rig and approved by the CEO: the
-Reich rifleman, the Legion trooper, the Stormtrooper and the Reich hound (a
-German shepherd), all with dark red blood and flat corpses (D49-D56; engine
-pass `docs/qa/evidence/2026-10-14_1900_F5_four-enemies-installed.md`). The
-Panzermensch (`SDPM`) and his heavy Schwer variant (`SDPS`) followed (D67).
-The Doughboy (`SDDB`, D70) and the General with his shell (`SDGN`/`SDGL`,
-D73) completed the bestiary: all seven classes draw our own sprites. Enemy sounds are
-drafts; voices wait on the CEO's takes (D36).
+**Bestiary.** All seven enemy classes draw our own sprites (D49-D56, D67,
+D70, D73), with the General's shell and the Stormtrooper's bolt ours; the
+Doughboy's and Panzermensch's shells are approved (D81) and queued.
 
-**F4 — arsenal.** Seven period weapons in ZScript, all firing, with Freedoom
-placeholders for sprites and sounds; balance stands as built (D39). Slot 1
-is an ice axe (D40). Drafts at the CEO's gate: our own hand and glove, the
-ice axe, the PPSh-41, 31 weapon sounds. The weapons test range ships as a
-practice range, a second episode on New Game (D41); its lump is `RANGE`
-since D62 (it was MAP02).
+**Arsenal.** Seven period weapons in ZScript, balance as built (D39), slot 1
+the ice axe (D40). In first person the TT-33 (Freedoom-based hands, D61) and
+the PPSh-41 (Gemini frames, D79) are ours; the IZh-58, RPG-7, ROKS-3 and
+hand Katyusha are approved from Gemini frames (D84) and queued; the ice
+axe's strike frame is being redrawn (D84). World pickups ours except the
+hand Katyusha's; health, armour, keys, map and backpack (D80) are being
+installed. Player effects (D82) approved, queued.
 
-**Music (D43).** The Internationale (`D_SDINTL`, credit Jerry Engelbach) plays
-on the title screen (`currentmusic`, `docs/qa/evidence/2026-10-13_2150_F6_title-music.log`); MAP01 plays our own
-`D_SDM01` (seen with `currentmusic`); an enriched draft waits on the
-CEO; three self-sequenced pieces wait on a score source.
+**Sound and music.** The 25 weapon sounds of D74 are installed (70358e0);
+D83 approved 30 enemy sounds, 5 beds and SDIZFIR B (install queued, N9e);
+enemies keep Freedoom's voices until the MVP ships (D85; then Chatterbox
+from the CEO's own voice, P2). The
+Internationale (`D_SDINTL`) plays on the title, `D_SDFUNR` on MAP02 and
+`D_SDGATE` on MAP03 (approved D83); MAP01 still plays `D_SDM01`, which D83
+moves off MAP01; the intermission still plays Freedoom's `D_DM2INT` until
+`D_SDTITL` installs. Music sources: `docs/sound/`.
 
-**Tooling.** `tools/verify.py` with `fast`, `art`, `full` and `auto` tiers: fast runs
-in about 13 s and opens no window (`tests/_tiers.py` decides what is slow). `tools/check_pk3.py` validates the package
+**Tooling.** `tools/verify.py` with `fast`, `art`, `full` and `auto` tiers: fast opens
+no window (`tests/_tiers.py` decides what is slow). `tools/check_pk3.py` validates the package
 without the engine; `tools/smoke.py` runs it with the engine. **Agents never
 start GZDoom (D26):** `SD_ALLOW_ENGINE=1` is the PM's, and the PM batches the
-engine runs. CI on every push.
-Suite: **1171 tests** (2026-10-13, 23:00), one skip (the opt-in engine test), no expected
-failure; branch coverage of `tools/` **82%** (measured at 1088 tests,
-`docs/qa/COVERAGE.md`). **Drafts can be played before approval:**
+engine runs. CI on every push (green on dc49b40).
+Suite: the fast tier ran **1 792 tests** at 892cfc7 (2026-10-20, 241 skipped:
+slow or imaging/`work/`-dependent); branch coverage of `tools/` **82%**
+(measured at 1088 tests, `docs/qa/COVERAGE.md`). **Drafts can be played before approval:**
 `tools/make_draft_overlay.py` packs the drafted sprites into
 `work/overlays/sd-draft-sprites.pk3`, loaded after the mod with `-file`
-(MOD-SPEC §6.9).
-`tools/audio/audition.py` obeys the same engine gate as `run.sh` and
-`smoke.py` since the same day.
+(MOD-SPEC §6.9). `tools/audio/audition.py` obeys the same engine gate.
 
 **Working machine: the CEO's Windows PC since 2026-10-13** (the project
-started on a Mac). GZDoom g4.14.2 on Freedoom 0.13.0 loads the PK3 here with
-zero errors (`tools/smoke.py`, VERDICT PASS on MAP01 and MAP02, then the range, 2026-10-13;
-the filed run is `docs/qa/evidence/2026-10-13_1448_F3_smoke-map01-windows.log`
-and its MAP02 twin, with screenshots). The Mac's gitignored
-`work/` arrived the same afternoon as the release asset
-`transfer-work-2026-10-13` on the private repo: 785 files plus its logs,
-every one checked against the Mac's own SHA-256 manifest (kept as
-`work/MANIFEST-from-mac.txt`). With it, `tools/verify.py art` here ran 384 (that afternoon)
-tests with one skip, the opt-in engine test: the asset identity checks and
-the Lenin generator tests now run on this PC too.
+started on a Mac). GZDoom g4.14.2 on Freedoom 0.13.0 loads the PK3 here with a
+clean log (latest engine pass `docs/qa/evidence/2026-10-20_0317_F4_ppsh-sleeve-and-g6-fixes.md`).
+The Mac's gitignored `work/` arrived as the release asset
+`transfer-work-2026-10-13` on the private repo (manifest
+`work/MANIFEST-from-mac.txt`); the art tier's identity tests need it.
 
 **Open with the CEO:** `docs/PENDING-CEO-DECISIONS.md`.
 
