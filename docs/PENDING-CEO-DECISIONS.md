@@ -5,6 +5,10 @@ D99 (pipeline stage 6, D64). Ordered by how much each item unblocks. What
 closed since the previous update is listed at the end so nothing is lost.
 Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md` (synced at phase close, D34).
 
+## 1. Downloads for P5 (macOS, Linux, GPL sources)
+
+OK to download the GZDoom g4.14.2 builds for macOS and Linux and the source archives of GZDoom g4.14.2, OpenAL Soft 1.23.1, libsndfile 1.2.2 and ZMusic (to attach to the release) [yes].
+
 ## 2. Your own play-through of v1.0 (nothing blocks the release)
 
 The sign-off checked these by instrument or not at all; your ears and eyes

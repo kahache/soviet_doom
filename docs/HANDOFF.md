@@ -17,6 +17,7 @@ the checkpoint for the CEO is
 
 ## Next steps
 
+0. **P5 Windows one-click package published** (D101, 335d04b): `sovietdoom-1.0-windows.zip` on the v1.0 release, tested unzipped fresh. Next for P5: macOS (~70k) and Linux (~55k) packages — need the CEO's OK to download those GZDoom builds; attach the GZDoom g4.14.2 source archive (and OpenAL Soft 1.23.1, libsndfile 1.2.2, ZMusic) to the release for GPL/LGPL 'same place' compliance (download needs the CEO's OK; today the package carries links + a written offer).
 1. Done 2026-10-20: the README status line, the stage 7 paper-trail fixes
    (MOD-SPEC §6.2, MAPINFO comments) and the repo made public (D100).
    v1.1 details in `docs/ICEBOX.md` (dog sounds, continue after death).
