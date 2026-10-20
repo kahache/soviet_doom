@@ -23,9 +23,7 @@ get better.
 | M2a-i | M2 | Install the campaign pickups (11 items, keys SD_YellowPass/SD_RedPass via Species, HUD key icons, pickup lines EN/RU) after the CEO's OK | mod-engineer | 200 | CEO OK on `2026-10-19_2212_F5_campaign-pickups.html` |
 | M2b-i | M2 | Install the enemy shells SDDL/SDPL after the CEO's OK | mod-engineer | 80 | CEO OK on `2026-10-19_2200_F5_enemy-shells.html` |
 | M2c-i | M2 | Install the player effects (SDPG, SDKR, SDPX, SDFJ/SDFX, PUFF, BLUD, TFOG/IFOG, BAR1/BEXP, COLU) after the CEO's OK | mod-engineer | 150 | CEO OK on `2026-10-19_2208_F4_player-effects.html` |
-| N14-P | M2 | PPSh-41 from the CEO's Gemini frames (D79): arm edge and recoil fixed, installed, Gemini credited | art-director + mod-engineer | 40 | doing |
 | N14-G | M2 | The other weapons from Gemini frames (IZh, RPG-7, ROKS-3, Katyusha, ice axe), guide `docs/product/2026-10-20_0030_M2_gemini-armas.md` | art-director + mod-engineer | ~50 per weapon | the CEO's images |
-| QA-G6-1/2 | M4 | Language row «Unknown»; the load line on the HUD | mod-engineer | 60 | doing |
 | G9 | M4 | LICENSE.md and CREDITS.txt for the player: no repo-only paths, drop the unused OTEX credit (RU half at N11); ship `LICENSE-FREEDOOM-BSD-3.txt` (D75, hash pinned); the AI-reference line in the credits (D75) | mod-engineer | 40 | — |
 | N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
 
@@ -64,6 +62,8 @@ the Fooocus hand images, sounds and music to hear.
 | **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
+
+**2026-10-20 night:** D79, the Gemini-frames method: the PPSh-41 installed (b5bd434, sleeve fix 362df5a), **2 of 7 weapons ours**; test ~48k, install ~150k, sleeve ~40k. QA-G6-1/2 fixed (1bcf2e0), ~66k. Engine evidence `docs/qa/evidence/2026-10-20_0317_*`. Guide for the next weapons `docs/product/2026-10-20_0030_M2_gemini-armas.md`.
 
 M2a: campaign pickups sweep + sets for 11 items (gen_items.py); **real 320k** (est. 480k incl. install).
 
