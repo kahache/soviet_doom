@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Master and install the 25 weapon sounds the CEO approved (D74, backlog N9).
+"""Master and install the weapon sounds the CEO approved (D74, N9; D83 added SDIZFIR B, N9e).
 
 The drafts of `gen_weapon_sfx.py` were levelled for the CEO's ear, not for
 the game: the listening sheet measured them 6-18 dB under the Freedoom sound
@@ -11,7 +11,8 @@ What it does to each approved sound, and nothing else (no re-synthesis: the
 recipe, its seed and the CEO's take are `gen_weapon_sfx.py`'s, untouched):
 
 1. Render the draft with the take the CEO chose (D74: `SDAXSWG` C,
-   `SDAXWAL` C, `SDTTFIR` B, `SDPPFIR` C, the rest A).
+   `SDAXWAL` C, `SDTTFIR` B, `SDPPFIR` C, the rest A; D83: `SDIZFIR` B,
+   installed by N9e on 2026-10-20).
 2. **Shelf**, only if the sound is "bass-only" (under `BASS_FLAG_SHARE`
    above 300 Hz, the sheet's flag): a first-order low shelf at
    `SHELF_CORNER_HZ`, as shallow as reaches `MIN_SHARE_ABOVE_300HZ`, never
@@ -52,6 +53,7 @@ Run:
     .venv/Scripts/python.exe tools/audio/master_weapon_sfx.py --list
     .venv/Scripts/python.exe tools/audio/master_weapon_sfx.py            # masters + MANIFEST in work/
     .venv/Scripts/python.exe tools/audio/master_weapon_sfx.py --install  # and the OGGs into assets/
+    .venv/Scripts/python.exe tools/audio/master_weapon_sfx.py --alts --install  # D94's alternatives (N9e)
     .venv/Scripts/python.exe -m unittest tests.test_weapon_sfx_install -v
 
 Deterministic: the drafts are (gen_weapon_sfx.py), and every step here is
@@ -107,6 +109,7 @@ FREEDOOM_LOUD_A: dict[str, float] = {
     "DSBAREXP": -9.05,     # the PG-7V's and the Katyusha rocket's burst
     "DSFLAME": -11.05,     # the ROKS-3's jet, still in game (SDRKFIR not approved)
     "DSWPNUP": -5.20,      # every weapon pickup today
+    "DSSHOTGN": -8.17,     # the IZh-58's shot until D83 (SDIZFIR B)
 }
 FREEDOOM_TOLERANCE_DB = 0.05
 
@@ -134,7 +137,7 @@ DRY_UNDER_SHOT_DB = -4.0      # where the shot itself is under DSWPNUP - 9 (the 
 
 _DRY = PICKUP_UNDER_DSWPNUP_DB + DRY_UNDER_PICKUP_DB
 
-# The 25 OK of D74 (docs/PRD.md), in slot order. Takes: SDAXSWG C,
+# The 25 OK of D74 and SDIZFIR B of D83 (docs/PRD.md), in slot order. Takes: SDAXSWG C,
 # SDAXWAL C, SDTTFIR B, SDPPFIR C; the rest A.
 INSTALLS: tuple[Install, ...] = (
     Install("SDAXSWG", "C", "swing", "DSPUNCH", SWING_UNDER_HIT_DB, "under the hit, which cuts it"),
@@ -144,6 +147,7 @@ INSTALLS: tuple[Install, ...] = (
     Install("SDTTRLD", "A", "reload", "DSPISTOL", RELOAD_UNDER_SHOT_DB, "under the TT-33's shot"),
     Install("SDTTDRY", "A", "dry", "DSWPNUP", _DRY, "under a pickup"),
     Install("SDIZDRY", "A", "dry", "DSWPNUP", _DRY, "under a pickup"),
+    Install("SDIZFIR", "B", "shot", "DSSHOTGN", 0.0, "replaces DSSHOTGN (D83: take B, N9e)"),
     Install("SDPPFIR", "C", "shot", "DSPISTOL", 0.0, "replaces DSPISTOL"),
     Install("SDPPRLD", "A", "reload", "DSPISTOL", RELOAD_UNDER_SHOT_DB, "under the PPSh's shot"),
     Install("SDPPPKP", "A", "pickup", "DSWPNUP", PICKUP_UNDER_DSWPNUP_DB, "3 dB under DSWPNUP"),
@@ -165,10 +169,10 @@ INSTALLS: tuple[Install, ...] = (
 )
 INSTALLS_BY_LUMP = {i.lump: i for i in INSTALLS}
 
-# Not approved in D74 (NO: SDTTPKP, SDIZRLD, SDRKFIR; ?: SDAXPKP, SDIZPKP;
-# SDIZFIR's take B not yet judged). They stay on Freedoom or silent, and
-# this file refuses them.
-UNDECIDED = ("SDTTPKP", "SDIZRLD", "SDRKFIR", "SDAXPKP", "SDIZPKP", "SDIZFIR")
+# Not approved in D74 (NO: SDTTPKP, SDIZRLD, SDRKFIR; ?: SDAXPKP, SDIZPKP).
+# They stay on Freedoom or silent, and this file refuses them. SDIZFIR left
+# this list with D83 (take B OK).
+UNDECIDED = ("SDTTPKP", "SDIZRLD", "SDRKFIR", "SDAXPKP", "SDIZPKP")
 
 # The reloads of guns with no reload state (D47 parked magazines): packed
 # and named in SNDINFO, played by nothing until a magazine mechanic exists.
@@ -184,6 +188,7 @@ SHORT_OF_TARGET: dict[str, float] = {
     "SDAXHIT": 6.3, "SDAXWAL": 3.3, "SDTTFIR": 2.6, "SDTTRLD": 1.1, "SDTTDRY": 6.2,
     "SDIZDRY": 5.1, "SDPPFIR": 2.6, "SDPPRLD": 1.2, "SDPPPKP": 2.4, "SDPPDRY": 1.8,
     "SDRPEXP": 4.8, "SDRPPKP": 3.2, "SDRKPKP": 3.6,
+    "SDIZFIR": 7.0,     # D83 take B: 88 % of it under 300 Hz, which A-weighting does not count
 }
 SHORT_TOLERANCE_DB = 0.15
 
@@ -206,6 +211,8 @@ INSTALLED_SHA256: dict[str, tuple[str, str]] = {
                 "045ae7e97c90bf730b9188bc9eee5eff3e03f9c9ec91d3fae96f613abe726180"),
     "SDIZDRY": ("bb61fb8191fb9c538c2806a2a196713dfd241d2e6e7475cbdf198f67e944fa47",
                 "cfb39f64fcd7ace268c520d8f150236b25f0af56979b2c382a47a421ed14fc29"),
+    "SDIZFIR": ("a751909955602904217cbfe900d89330b036124ded864812bbe527d4dc183ddc",
+                "21c97f9dc8286c0355eb0822de585e0c1a65f4224d8cd44ba7b3ce3e4526c077"),
     "SDPPFIR": ("f3ac80e99bf96ddc7471bce0a9afdec49e5d3de41bcce3b36ea60db384d11c9a",
                 "95c7c9a43af93c977e0bcdd5a05d234d62ed04ad9f54e734b0503aac52de78a1"),
     "SDPPRLD": ("7ede0d53a6f1bffa4fd327008d3a62e3062e14c0490890ac142525a5f45a209e",
@@ -429,15 +436,155 @@ def write_outputs(done: list[Mastered], work_dir: Path = WORK_DIR,
 def plan_text() -> str:
     rows = [f"{i.lump}  take {i.take}  {i.kind:7s} target {i.target_db:6.1f} dB A ({i.ref} {i.offset_db:+.0f}: {i.why})"
             for i in INSTALLS]
-    return "\n".join(rows + [f"{len(INSTALLS)} approved (D74); not installed: {', '.join(UNDECIDED)}"]) + "\n"
+    return "\n".join(rows + [f"{len(INSTALLS)} approved (D74, D83); not installed: {', '.join(UNDECIDED)}"]) + "\n"
+
+
+# --- D94 (N9e): the weapon-sound alternatives the CEO approved ------------------------
+# docs/art/previews/2026-10-20_1235_M3_listening-alternatives-animated.html,
+# judged with each weapon's frames moving (D92). OK: SDTTPKP alt1+alt2,
+# SDAXPKP alt1+alt3, SDIZRLD alt3, SDRKFIR alt1-3; NO: SDIZPKP alt1-3 (the
+# IZh-58's pickup keeps Doom's generic one). Several takes of one sound all
+# ship under the weapon's 7-letter name plus the take number and the code's
+# name becomes a SNDINFO `$random` over <name>/<take> (MOD-SPEC 6.2). One
+# take keeps the bare name (SDIZRLD).
+#
+# The pass, as for the enemies' D86 alternatives (master_enemy_sfx.py): each
+# was levelled by gen_weapon_alts.py to its target for the CEO's page, so a
+# take in its window ships as rendered; then the codec check (encode,
+# decode; while the decoded peak reaches DECODED_PEAK_CEILING_DBFS, the
+# look-ahead limiter takes the master's ceiling down by the overshoot plus
+# CODEC_MARGIN_DB). The ROKS-3 restarts its fire sound every 3 tics on
+# CHAN_WEAPON (roks3.zs); a $random alias picks a take at each restart.
+
+@dataclass(frozen=True)
+class AltInstall:
+    lump: str            # the lump it ships as
+    alt: str             # gen_weapon_alts.py's name, <CARD>_alt<N>
+    logical: str         # its SNDINFO name
+    group: str           # the name the code plays
+
+    @property
+    def card(self) -> str:
+        return self.alt.split("_alt")[0]
+
+    @property
+    def target_db(self) -> float:
+        return alts.target_db(alts.ALTS_BY_NAME[self.alt])
+
+
+def _alt_group(card: str, logical: str, takes: tuple[int, ...]) -> list[AltInstall]:
+    if len(takes) == 1:
+        return [AltInstall(card, f"{card}_alt{takes[0]}", logical, logical)]
+    return [AltInstall(f"{card}{n}", f"{card}_alt{n}", f"{logical}/{n}", logical) for n in takes]
+
+
+D94_ALTS = (("SDTTPKP", "sd/weapon/tokarev/pickup", (1, 2)), ("SDAXPKP", "sd/weapon/iceaxe/pickup", (1, 3)),
+            ("SDIZRLD", "sd/weapon/izh/reload", (3,)), ("SDRKFIR", "sd/weapon/roks3/fire", (1, 2, 3)))
+ALT_INSTALLS: tuple[AltInstall, ...] = tuple(i for c, lg, t in D94_ALTS for i in _alt_group(c, lg, t))
+ALT_INSTALLS_BY_LUMP = {i.lump: i for i in ALT_INSTALLS}
+REJECTED_ALTS = ("SDTTPKP_alt3", "SDAXPKP_alt2", "SDIZPKP_alt1", "SDIZPKP_alt2", "SDIZPKP_alt3",
+                 "SDIZRLD_alt1", "SDIZRLD_alt2")
+CODEC_MARGIN_DB = 0.2
+CODEC_PASSES = 6
+
+# Written after the run (--alts), pinned by hand: the takes the codec check
+# limited (dB), and (WAV master, OGG) SHA-256 of what is installed.
+ALT_CODEC_TRIMMED: dict[str, float] = {"SDTTPKP2": 0.9, "SDIZRLD": 0.5, "SDRKFIR1": 0.7}
+ALT_INSTALLED_SHA256: dict[str, tuple[str, str]] = {
+    "SDTTPKP1": ("78a28da4bbf2e22e0a5a70f4862d525529d4f8d702f2c59dd9bde786e257d3d7",
+                 "5ed5bbe224888bb2483de7a7339b50f2f7b8c88716e667600f46c29d88a29efe"),
+    "SDTTPKP2": ("ed9ceeb9c76c121aad5f4789e4631239a7a6696f3c87f54744108b37a5c072f0",
+                 "85edcef3644a53b6efeebdf563f4396f199f4d505d8e2578e94d049cf1e35b77"),
+    "SDAXPKP1": ("50b1efba2410d6fb56b154f061ede8e3e34e0ace4f1fd2cc0fbbb95430b07007",
+                 "f4c60daa9351018252ab26972a2ead0895ee4582864b50dacdde7da653d6875b"),
+    "SDAXPKP3": ("b74be921511a9b6ee412ec49e9707425bd8efa72ac78ec21d08c5e2ced21b304",
+                 "535f4a703dc1518713ca3c66fc50dfc3b79de6ec814dc50809f04cdb8c1ff3c5"),
+    "SDIZRLD": ("a9e959f8fb9356b14280849a86de0f5395c91fb144243b97b1a4c33f1cb38e51",
+                 "ec78869141e46c829b58df0797d9fedafb303bf70b8fd7dfada59641d00bbdb2"),
+    "SDRKFIR1": ("069d082b4ac768556bec4b54295d330a9787ba36fc575b69c79d9c4f5297eeda",
+                 "09c2466546f788646339c34710bf09569cb91ffaa30061ec0115979e19a76149"),
+    "SDRKFIR2": ("d34b7f99cc91e19c4d7a028ee7fb25d1acb68d08e453fed66c871ab381c4a6fe",
+                 "9fe85a3fe943d5785e7fc7a9ef86e67f5f69f561b20b20ab6347e6050223da9e"),
+    "SDRKFIR3": ("1560d78336ab7a9209f42108b0298aaa875a3363548b5b0ccd268073d22ac16d",
+                 "53a7b6ed136f8c2647e72acfdd1cb7d39e248725e93b5c8923effc9e6573b80b"),
+}
+
+
+@dataclass
+class AltMastered:
+    install: AltInstall
+    draft: np.ndarray
+    x: np.ndarray
+    untouched: bool
+    codec_db: float
+
+    @property
+    def wav(self) -> bytes:
+        return gws.wav_bytes(self.x)
+
+
+def decoded_peak_db(ogg: bytes) -> float:
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "x.ogg"
+        path.write_bytes(ogg)
+        return alts.peak_db(gws.decode(path))
+
+
+def master_alt(install: AltInstall, sources: alts.AltSources | None = None) -> AltMastered:
+    if install.alt in REJECTED_ALTS:
+        raise ValueError(f"{install.alt} is not approved (D94)")
+    draft, _ = alts.render(alts.ALTS_BY_NAME[install.alt], sources or alts.AltSources())
+    loud = alts.loud_a_db(draft)
+    x = draft if abs(loud - install.target_db) <= LOUDNESS_TOLERANCE_DB else None
+    if x is None:
+        raise ValueError(f"{install.alt}: {loud:.2f} dB A is out of its window; it is not what the CEO heard")
+    depth = 0.0
+    for _ in range(CODEC_PASSES):
+        over = decoded_peak_db(gws.ogg_bytes(gws.wav_bytes(x))) - DECODED_PEAK_CEILING_DBFS
+        if over < 0:
+            return AltMastered(install, draft, x, depth == 0.0, round(depth, 3))
+        depth += over + CODEC_MARGIN_DB
+        x = alts.limit(draft, 10 ** ((alts.peak_db(draft) - depth) / 20))
+    raise RuntimeError(f"{install.lump}: the OGG still overshoots after {CODEC_PASSES} passes")
+
+
+def alt_manifest_text(done: list[AltMastered], oggs: dict[str, bytes]) -> str:
+    lines = ["# master_weapon_sfx.py --alts (N9e, D94): the approved weapon-sound alternatives", ""]
+    for m in done:
+        a = alts.levels(m.x)
+        state = "untouched" if m.untouched else f"codec {m.codec_db:.1f} dB"
+        lines.append(f"{m.install.lump} {m.install.alt:13s} {m.install.logical:30s} target {m.install.target_db:6.1f}  "
+                     f"peak {a['peak']:5.1f} loudA {a['loud_a']:6.1f} >300 {100 * a['above300']:3.0f} %  {state}  "
+                     f"wav {sha256(m.wav)}  ogg {sha256(oggs[m.install.lump])}")
+    return "\n".join(lines) + "\n"
+
+
+def install_alts(asset_dir: Path | None, work_dir: Path = WORK_DIR) -> list[AltMastered]:
+    sources = alts.AltSources()
+    done = [master_alt(i, sources) for i in ALT_INSTALLS]
+    oggs = {m.install.lump: gws.ogg_bytes(m.wav) for m in done}
+    (work_dir / "alt").mkdir(parents=True, exist_ok=True)
+    for m in done:
+        (work_dir / "alt" / f"{m.install.lump}.wav").write_bytes(m.wav)
+        if asset_dir is not None:
+            (asset_dir / f"{m.install.lump}.ogg").write_bytes(oggs[m.install.lump])
+    text = alt_manifest_text(done, oggs)
+    (work_dir / "alt" / "MANIFEST.txt").write_text(text, encoding="utf-8")
+    sys.stdout.write(text)
+    return done
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--list", action="store_true", help="print the plan and write nothing")
     ap.add_argument("--install", action="store_true", help="also write the OGGs into assets/sounds/weapons/")
+    ap.add_argument("--alts", action="store_true", help="the D94 alternatives instead (N9e)")
     ap.add_argument("names", nargs="*", help="only these lumps")
     args = ap.parse_args(argv)
+    if args.alts:
+        install_alts(ASSET_DIR if args.install else None)
+        return 0
     if args.list:
         sys.stdout.write(plan_text())
         return 0

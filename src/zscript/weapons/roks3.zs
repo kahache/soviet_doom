@@ -9,8 +9,8 @@
 // SDKF A since D84 (2026-10-20), built from the CEO's Google Gemini pair by
 // tools/art/gemini_frames.py; only the four-letter names changed, every
 // tic, action and jump is as it was. All in assets/sprites/roks3/.
-// MOD-SPEC 6.3; tests/test_gemini_weapons_install.py. The flame in flight
-// still wears the IWAD's PLSS / PLSE (flame_blob.zs, MOD-SPEC 5.1).
+// MOD-SPEC 6.3; tests/test_gemini_weapons_install.py. The flame is ours
+// too since D82: SDFJ in flight, SDFX on impact (flame_blob.zs).
 // Balance rationale: docs/engine/BALANCE.md.
 
 class SD_Roks3 : PlasmaRifle replaces PlasmaRifle

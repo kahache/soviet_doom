@@ -5,36 +5,51 @@
 // Two kinds of right-hand column:
 //   SD...    our own sound, packed in the PK3 as sounds/<LUMP>.ogg from
 //            assets/sounds/<set>/ (the build drops the set folder). The
-//            weapon ones are the 25 the CEO approved in D74, mastered and
-//            installed by tools/audio/master_weapon_sfx.py (backlog N9;
-//            docs/sound/WEAPON-SOUNDS.md section 10). The comment says the take.
+//            weapon ones are the 25 the CEO approved in D74 and SDIZFIR B
+//            (D83), mastered and installed by tools/audio/master_weapon_sfx.py
+//            (backlog N9; docs/sound/WEAPON-SOUNDS.md section 10); the enemy
+//            ones the 57 of D83 and D86, by tools/audio/master_enemy_sfx.py
+//            (N9e; docs/sound/ENEMY-SOUNDS.md section 5.12). The comment
+//            says the take.
 //   DS...    a Freedoom (IWAD) lump, a PLACEHOLDER: nothing is redistributed,
 //            the engine resolves the name against the loaded IWAD. The lump
 //            that will replace it is in the comment after "->".
 // Replacing a placeholder changes only the right-hand column, no ZScript.
+//
+// $random (ZDoom wiki SNDINFO; the syntax of gzdoom.pk3's own
+// "$random grunt/sight { grunt/sight1 grunt/sight2 grunt/sight3 }"):
+// where the CEO approved several takes of one sound (D86), the name the code
+// asks for is a $random alias and the engine picks one of its members each
+// time it plays. The members are ordinary lines, named <alias>/<take>.
 
 // --- Slot 1: ice axe (D40; the sapper's shovel until 2026-10-13) ----------
 // The swing was deliberately silent from 2026-10-13 until N9: Freedoom has no
 // neutral whoosh (DSSKESWG is the revenant's wind-up) and the chainsaw
 // start-up (DSSAWUP) was rejected by the CEO. Ours is played by the first
 // frame of SD_IceAxe's Fire state; the wall sound by SD_IceAxePuff's
-// AttackSound. The pickup keeps Doom's misc/w_pkup until SDAXPKP is
-// decided (D74: "?").
+// AttackSound. The pickup is ours since D94 (N9e): two takes, $random,
+// SD_IceAxe's Inventory.PickupSound.
 sd/weapon/iceaxe/swing     SDAXSWG     // take C  the pick cutting the air
 sd/weapon/iceaxe/hit       SDAXHIT     // take A  steel pick into a body
 sd/weapon/iceaxe/wall      SDAXWAL     // take C  pick on stone
+$random sd/weapon/iceaxe/pickup { sd/weapon/iceaxe/pickup/1 sd/weapon/iceaxe/pickup/3 }
+sd/weapon/iceaxe/pickup/1  SDAXPKP1    // D94 alt1  steel off a stone floor
+sd/weapon/iceaxe/pickup/3  SDAXPKP3    // D94 alt3  the haft into the palm
 
 // --- Slot 2: TT-33 Tokarev -----------------------------------------------
-// Pickup: Doom's misc/w_pkup until SDTTPKP is redone (D74: NO).
+// Pickup: ours since D94 (N9e), two takes, SD_Tokarev's Inventory.PickupSound.
+$random sd/weapon/tokarev/pickup { sd/weapon/tokarev/pickup/1 sd/weapon/tokarev/pickup/2 }
+sd/weapon/tokarev/pickup/1 SDTTPKP1    // D94 alt1  the slide racked to the stop
+sd/weapon/tokarev/pickup/2 SDTTPKP2    // D94 alt2  out of the leather holster
 sd/weapon/tokarev/fire     SDTTFIR     // take B  dry, high-velocity crack
 sd/weapon/tokarev/dry      SDTTDRY     // take A  hammer on an empty chamber
 sd/weapon/tokarev/reload   SDTTRLD     // take A  PARKED: no reload state (D47)
 
 // --- Slot 3: IZh-58 double barrel ----------------------------------------
-// The shot (take B not yet judged), the break-open (D74: NO) and the pickup
-// (D74: "?") stay on Freedoom until decided.
-sd/weapon/izh/fire         DSSHOTGN    // -> SDIZFIR  one barrel, deep boom
-sd/weapon/izh/reload       DSSGCOCK    // -> SDIZRLD  break open, two shells, snap shut
+// The pickup keeps Doom's generic one (D94: all three alternatives NO). The
+// shot is take B since D83 and the break-open alt3 since D94 (N9e).
+sd/weapon/izh/fire         SDIZFIR     // take B  one barrel, deep boom (D83)
+sd/weapon/izh/reload       SDIZRLD     // D94 alt3  heavy and slow, the snap at 0.62 s
 sd/weapon/izh/dry          SDIZDRY     // take A  the hammerless lock on nothing
 
 // --- Slot 4: PPSh-41 ------------------------------------------------------
@@ -51,8 +66,12 @@ sd/weapon/rpg7/pickup      SDRPPKP     // take A  heat guard and tube
 sd/weapon/rpg7/dry         SDRPDRY     // take A  the hammer on an empty tube
 
 // --- Slot 6: ROKS-3 flamethrower -----------------------------------------
-// The jet stays on Freedoom until SDRKFIR is redone (D74: NO).
-sd/weapon/roks3/fire       DSFLAME     // -> SDRKFIR  short pressurised burst
+// The jet is ours since D94 (N9e): three takes, $random. roks3.zs restarts it
+// every 3 tics on CHAN_WEAPON, so a held trigger picks a take per restart.
+$random sd/weapon/roks3/fire { sd/weapon/roks3/fire/1 sd/weapon/roks3/fire/2 sd/weapon/roks3/fire/3 }
+sd/weapon/roks3/fire/1     SDRKFIR1    // D94 alt1  a broad roar, the igniter's hiss on top
+sd/weapon/roks3/fire/2     SDRKFIR2    // D94 alt2  a torch: nozzle whistle and spark
+sd/weapon/roks3/fire/3     SDRKFIR3    // D94 alt3  a pump pushing fuel in pulses
 sd/weapon/roks3/pickup     SDRKPKP     // take A  the tank pack, fuel sloshing
 sd/weapon/roks3/dry        SDRKDRY     // take A  igniter snap, last breath of gas
 sd/weapon/roks3/reload     SDRKRLD     // take A  PARKED: no reload state (D47)
@@ -66,72 +85,117 @@ sd/weapon/katyusha/pickup  SDHKPKP     // take A  the rail frame lifted
 sd/weapon/katyusha/dry     SDHKDRY     // take A  firing switch on empty rails
 
 // === Bestiary (F5) =========================================================
-// Logical names sd/mon/<actor>/<event>; the final lump is the name in the
-// comment, the one docs/sound/ENEMY-SOUNDS.md has a card for (sound-designer
-// owns that column). 47 lumps: docs/engine/BESTIARY.md 12. Every
-// placeholder below is a Freedoom (IWAD) lump, read from the IWAD at run
-// time and never redistributed; tests/test_bestiary.py checks each exists.
-// Two placeholders are knowingly imperfect: the rifleman fires DSPISTOL,
-// which the TT-33 also uses (the final SDRRIATK must not), and the
-// General's order is DSVILSIT, a creature's sight, until SDGENSUM exists.
+// Logical names sd/mon/<actor>/<event>; 47 sounds, docs/engine/BESTIARY.md 12.
+// Since N9e (D83, D86, D91) 37 of them are ours: an SD lump in the
+// right-hand column, or a $random alias over our takes (two of them the
+// voices D91 approved: the rifleman's sight, the trooper's idle). The other
+// ten are VOICES of the rifleman, the trooper and the General still
+// waiting for a take (D91): they keep a Freedoom (IWAD) lump, read at run time and never
+// redistributed (tests/test_bestiary.py checks each exists), and the
+// comment names the lump that will replace it after "->", the one
+// docs/sound/ENEMY-SOUNDS.md has a card for. The General's order is
+// DSVILSIT, a creature's sight, until SDGENSUM exists.
 
 // --- Reich rifleman (SD_ReichRifleman) -------------------------------------
-sd/mon/reichrifleman/active   DSPOSACT    // -> SDRRIACT  muttered order
-sd/mon/reichrifleman/sight    DSPOSIT1    // -> SDRRISIT  short bark
-sd/mon/reichrifleman/attack   DSPISTOL    // -> SDRRIATK  dry bolt-action crack
-sd/mon/reichrifleman/pain     DSPOPAIN    // -> SDRRIPAI
-sd/mon/reichrifleman/death    DSPODTH1    // -> SDRRIDTH
-sd/mon/reichrifleman/xdeath   DSSLOP      // -> SDRRIXDT  gib
+$random sd/mon/reichrifleman/attack { sd/mon/reichrifleman/attack/1 sd/mon/reichrifleman/attack/2 sd/mon/reichrifleman/attack/3 }
+sd/mon/reichrifleman/attack/1 SDRRIAT1    // D86 alt1  hangar echo, no bolt
+sd/mon/reichrifleman/attack/2 SDRRIAT2    // D86 alt2  receiver steel, bolt (final click lowered)
+sd/mon/reichrifleman/attack/3 SDRRIAT3    // D86 alt3  the round's whip, then the report
+sd/mon/reichrifleman/active   DSPOSACT    // -> SDRRIACT  muttered order (voice, D87)
+$random sd/mon/reichrifleman/sight { sd/mon/reichrifleman/sight/1 sd/mon/reichrifleman/sight/3 }
+sd/mon/reichrifleman/sight/1  SDRRISI1    // D91 R06 t01  "Kontakt!" (Chatterbox, voice Austin)
+sd/mon/reichrifleman/sight/3  SDRRISI3    // D91 R06 t03
+sd/mon/reichrifleman/pain     DSPOPAIN    // -> SDRRIPAI  (voice, D87)
+sd/mon/reichrifleman/death    DSPODTH1    // -> SDRRIDTH  (voice, D87)
+sd/mon/reichrifleman/xdeath   SDRRIXDT    // D83  gib
 
 // --- Liberty Legion trooper (SD_LegionTrooper) -----------------------------
-sd/mon/legiontrooper/active   DSPOSACT    // -> SDLTRACT  radio chatter
-sd/mon/legiontrooper/sight    DSPOSIT2    // -> SDLTRSIT
-sd/mon/legiontrooper/attack   DSDSHTGN    // -> SDLTRATK  not DSSHOTGN: that is the IZh's
-sd/mon/legiontrooper/pain     DSPOPAIN    // -> SDLTRPAI
-sd/mon/legiontrooper/death    DSPODTH2    // -> SDLTRDTH
-sd/mon/legiontrooper/xdeath   DSSLOP      // -> SDLTRXDT
+sd/mon/legiontrooper/attack   SDLTRATK    // D86 alt2  three shells as one, a steel plate
+$random sd/mon/legiontrooper/active { sd/mon/legiontrooper/active/1 sd/mon/legiontrooper/active/2 sd/mon/legiontrooper/active/3 sd/mon/legiontrooper/active/4 sd/mon/legiontrooper/active/5 }
+sd/mon/legiontrooper/active/1 SDLTRAC1    // D91 L01 t01  "Sector four, clear." (Chatterbox, voice Jordan)
+sd/mon/legiontrooper/active/2 SDLTRAC2    // D91 L01 t03
+sd/mon/legiontrooper/active/3 SDLTRAC3    // D91 L02 t01  "Copy. Holding position."
+sd/mon/legiontrooper/active/4 SDLTRAC4    // D91 L02 t02
+sd/mon/legiontrooper/active/5 SDLTRAC5    // D91 L02 t03
+sd/mon/legiontrooper/sight    DSPOSIT2    // -> SDLTRSIT  (voice, D87)
+sd/mon/legiontrooper/pain     DSPOPAIN    // -> SDLTRPAI  (voice, D87)
+sd/mon/legiontrooper/death    DSPODTH2    // -> SDLTRDTH  (voice, D87)
+sd/mon/legiontrooper/xdeath   SDLTRXDT    // D83
 
 // --- Hybrid Stormtrooper (SD_Stormtrooper, SD_StormBolt) -------------------
-sd/mon/stormtrooper/active    DSBGACT     // -> SDSTOACT
-sd/mon/stormtrooper/sight     DSBGSIT1    // -> SDSTOSIT
-sd/mon/stormtrooper/melee     DSCLAW      // -> SDSTOMEL
-sd/mon/stormtrooper/missile   DSFIRSHT    // -> SDSTOMIS  bolt launch (the bolt's SeeSound)
-sd/mon/stormtrooper/explode   DSFIRXPL    // -> SDSTOEXP  bolt impact (its DeathSound)
-sd/mon/stormtrooper/pain      DSDMPAIN    // -> SDSTOPAI
-sd/mon/stormtrooper/death     DSBGDTH1    // -> SDSTODTH
-sd/mon/stormtrooper/xdeath    DSSLOP      // -> SDSTOXDT
+sd/mon/stormtrooper/active    SDSTOACT    // D83
+sd/mon/stormtrooper/sight     SDSTOSIT    // D83
+sd/mon/stormtrooper/melee     SDSTOMEL    // D83
+sd/mon/stormtrooper/missile   SDSTOMIS    // D83  bolt launch (the bolt's SeeSound)
+sd/mon/stormtrooper/explode   SDSTOEXP    // D83  bolt impact (its DeathSound)
+$random sd/mon/stormtrooper/pain { sd/mon/stormtrooper/pain/1 sd/mon/stormtrooper/pain/2 sd/mon/stormtrooper/pain/3 }
+sd/mon/stormtrooper/pain/1    SDSTOPA1    // D86 alt1  a scream turned to metal
+sd/mon/stormtrooper/pain/2    SDSTOPA2    // D86 alt2  a grunt and a short circuit
+sd/mon/stormtrooper/pain/3    SDSTOPA3    // D86 alt3  a shriek chopped up
+$random sd/mon/stormtrooper/death { sd/mon/stormtrooper/death/1 sd/mon/stormtrooper/death/2 sd/mon/stormtrooper/death/3 }
+sd/mon/stormtrooper/death/1   SDSTODT1    // D86 alt1  short circuit and the fall
+sd/mon/stormtrooper/death/2   SDSTODT2    // D86 alt2  a tape that stops
+sd/mon/stormtrooper/death/3   SDSTODT3    // D86 alt3  hydraulics and plates
+sd/mon/stormtrooper/xdeath    SDSTOXDT    // D83
 
 // --- Reich hound (SD_ReichHound) -------------------------------------------
-sd/mon/reichhound/active      DSDMACT     // -> SDHNDACT
-sd/mon/reichhound/sight       DSSGTSIT    // -> SDHNDSIT  must carry through a door
-sd/mon/reichhound/attack      DSSGTATK    // -> SDHNDATK  played by A_Chase on the lunge
-sd/mon/reichhound/pain        DSDMPAIN    // -> SDHNDPAI
-sd/mon/reichhound/death       DSSGTDTH    // -> SDHNDDTH
+sd/mon/reichhound/active      SDHNDACT    // D83
+sd/mon/reichhound/sight       SDHNDSIT    // D83  must carry through a door
+sd/mon/reichhound/attack      SDHNDATK    // D83  played by A_Chase on the lunge
+sd/mon/reichhound/pain        SDHNDPAI    // D83
+sd/mon/reichhound/death       SDHNDDTH    // D83
 
 // --- Doughboy (SD_Doughboy, SD_DoughboyShell) ------------------------------
-sd/mon/doughboy/active        DSDMACT     // -> SDDGBACT
-sd/mon/doughboy/sight         DSCACSIT    // -> SDDGBSIT
-sd/mon/doughboy/melee         DSCLAW      // -> SDDGBMEL
-sd/mon/doughboy/missile       DSFIRSHT    // -> SDDGBMIS
-sd/mon/doughboy/explode       DSFIRXPL    // -> SDDGBEXP
-sd/mon/doughboy/pain          DSDMPAIN    // -> SDDGBPAI
-sd/mon/doughboy/death         DSCACDTH    // -> SDDGBDTH  deflate and sink
+sd/mon/doughboy/active        SDDGBACT    // D83
+sd/mon/doughboy/sight         SDDGBSIT    // D83
+sd/mon/doughboy/melee         SDDGBMEL    // D83
+sd/mon/doughboy/missile       SDDGBMIS    // D83
+sd/mon/doughboy/explode       SDDGBEXP    // D83
+sd/mon/doughboy/pain          SDDGBPAI    // D83
+sd/mon/doughboy/death         SDDGBDTH    // D83  deflate and sink
 
 // --- Panzermensch and the heavy variant (SD_Panzermensch, SD_PanzerShell) --
-sd/mon/panzermensch/active    DSDMACT     // -> SDPZRACT
-sd/mon/panzermensch/sight     DSKNTSIT    // -> SDPZRSIT
-sd/mon/panzermensch/melee     DSSKEPCH    // -> SDPZRMEL
-sd/mon/panzermensch/missile   DSFIRSHT    // -> SDPZRMIS
-sd/mon/panzermensch/explode   DSFIRXPL    // -> SDPZREXP
-sd/mon/panzermensch/pain      DSDMPAIN    // -> SDPZRPAI
-sd/mon/panzermensch/death     DSKNTDTH    // -> SDPZRDTH
-sd/mon/panzermensch/step      DSMETAL     // -> SDPZRSTP  one plated footfall (H)
+sd/mon/panzermensch/active    SDPZRACT    // D83
+sd/mon/panzermensch/sight     SDPZRSIT    // D83
+sd/mon/panzermensch/melee     SDPZRMEL    // D83
+sd/mon/panzermensch/missile   SDPZRMIS    // D83
+sd/mon/panzermensch/explode   SDPZREXP    // D83
+$random sd/mon/panzermensch/pain { sd/mon/panzermensch/pain/1 sd/mon/panzermensch/pain/2 sd/mon/panzermensch/pain/3 }
+sd/mon/panzermensch/pain/1    SDPZRPA1    // D86 alt1  a grunt and the plates
+sd/mon/panzermensch/pain/2    SDPZRPA2    // D86 alt2  inside the helmet
+sd/mon/panzermensch/pain/3    SDPZRPA3    // D86 alt3  a short roar
+sd/mon/panzermensch/death     SDPZRDTH    // D83
+sd/mon/panzermensch/step      SDPZRSTP    // D83  one plated footfall (H)
 
 // --- The General (SD_General, SD_GeneralShell) -----------------------------
-sd/mon/general/active         DSDMACT     // -> SDGENACT
-sd/mon/general/sight          DSCYBSIT    // -> SDGENSIT
-sd/mon/general/missile        DSRLAUNC    // -> SDGENMIS  one shell of the salvo
-sd/mon/general/explode        DSFIRXPL    // -> SDGENEXP
-sd/mon/general/summon         DSVILSIT    // -> SDGENSUM  the order (SD_GENERAL_ORDER)
-sd/mon/general/pain           DSDMPAIN    // -> SDGENPAI
-sd/mon/general/death          DSCYBDTH    // -> SDGENDTH  a cue, not an effect
+sd/mon/general/active         SDGENACT    // D83
+sd/mon/general/sight          DSCYBSIT    // -> SDGENSIT  (voice, D87)
+sd/mon/general/missile        SDGENMIS    // D83  one shell of the salvo
+sd/mon/general/explode        SDGENEXP    // D83
+sd/mon/general/summon         DSVILSIT    // -> SDGENSUM  the order (SD_GENERAL_ORDER; voice, D87)
+sd/mon/general/pain           DSDMPAIN    // -> SDGENPAI  (voice, D87)
+sd/mon/general/death          DSCYBDTH    // -> SDGENDTH  a cue, not an effect (voice, D87)
+
+// === Beds (D83, D86): the non-vocal layers under the voices =================
+// docs/sound/ENEMY-SOUNDS.md 5.10. Packed and named, played by NOTHING yet:
+// each is mixed under its voice take when the CEO approves the takes (D87),
+// as the D47 reloads wait, packed, for a magazine. Audition with the
+// console's `playsound sd/bed/<actor>/<event>`. Lump: SD + actor + the
+// event's initial + B + take (the voice lump keeps the card's name).
+sd/bed/reichrifleman/death    SDRRIDB1    // D83  gear, body, rifle, helmet
+$random sd/bed/reichrifleman/pain { sd/bed/reichrifleman/pain/1 sd/bed/reichrifleman/pain/2 sd/bed/reichrifleman/pain/3 }
+sd/bed/reichrifleman/pain/1   SDRRIPB1    // D86 alt1  rifle butt on the helmet
+sd/bed/reichrifleman/pain/2   SDRRIPB2    // D86 alt2  real buckles
+sd/bed/reichrifleman/pain/3   SDRRIPB3    // D86 alt3  a step back
+sd/bed/legiontrooper/active   SDLTRAB1    // D83  squelch, hiss, squelch
+sd/bed/legiontrooper/sight    SDLTRSB1    // D83  short open and tail
+$random sd/bed/legiontrooper/pain { sd/bed/legiontrooper/pain/1 sd/bed/legiontrooper/pain/2 sd/bed/legiontrooper/pain/3 }
+sd/bed/legiontrooper/pain/1   SDLTRPB1    // D86 alt1  the mic knocked
+sd/bed/legiontrooper/pain/2   SDLTRPB2    // D86 alt2  the link drops out
+sd/bed/legiontrooper/pain/3   SDLTRPB3    // D86 alt3  interference
+$random sd/bed/legiontrooper/death { sd/bed/legiontrooper/death/1 sd/bed/legiontrooper/death/2 sd/bed/legiontrooper/death/3 }
+sd/bed/legiontrooper/death/1  SDLTRDB1    // D86 alt1  the radio hits the floor
+sd/bed/legiontrooper/death/2  SDLTRDB2    // D86 alt2  end-of-transmission beep
+sd/bed/legiontrooper/death/3  SDLTRDB3    // D86 alt3  a drowned carrier
+sd/bed/general/pain           SDGENPB1    // D83  chrome struck, a servo jerks
+sd/bed/general/death          SDGENDB1    // D83  servos down, relays, the chrome falls

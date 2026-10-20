@@ -318,6 +318,30 @@ class TestGeminiFrames(unittest.TestCase):
         self.assertTrue((out[:, -1] >= 0).any())                          # it leaves through the side
         self.assertEqual(out[tops[-1], -1], out[tops[0], 29 + 2])         # its dark outline on top
 
+    def test_rigid_tube_runs_on_straight_in_its_own_ramp(self):
+        # 2026-10-20 (the CEO): the RPG-7's rear tube, olive like a sleeve,
+        # curved down as an arm would. tube=True runs it on straight along
+        # its own axis, its own cross-section repeated, no seam, no curve.
+        olive, light, dark = (self.near(c) for c in ((110, 104, 50), (150, 140, 80), (60, 56, 24)))
+        black = self.near((0, 0, 0))
+        prof = [black, light, light, olive, olive, olive, dark, black]
+        idx = np.full((60, 30), gf.TRANSPARENT, np.int32)
+        for c in range(30):                                               # a tube falling 1 row per 4 columns
+            idx[10 + c // 4:18 + c // 4, c] = prof
+        curved = gf.extend_edges(idx, 48, 6, tile=8, pal=self.pal, band=True)
+        out = gf.extend_edges(idx, 48, 6, tile=8, pal=self.pal, band=True, tube=True)
+        self.assertFalse((curved[:, -1] >= 0).any())                      # the sleeve bends away
+        tops = []
+        for k in range(1, 49):
+            rows = np.flatnonzero(out[:, 29 + k] >= 0)
+            tops.append(int(rows[0]))
+            self.assertEqual(list(out[rows, 29 + k]), prof)              # its own ramp, constant, outlined
+        self.assertAlmostEqual(np.polyfit(range(len(tops)), tops, 1)[0], 1 / 4, delta=0.05)
+        self.assertLessEqual(max(abs(np.diff(tops, 2))), 1)               # straight
+        self.assertTrue((out[:, -1] >= 0).any())                          # out through the side
+        self.assertTrue(gf.WEAPONS["rpg7"].rigid_tube)
+        self.assertEqual([k for k, w in gf.WEAPONS.items() if w.rigid_tube], ["rpg7"])
+
     def test_weapons_use_the_overlays_reserved_names_and_the_states_letters(self):
         sys.path.insert(0, str(ROOT / "tools"))
         import make_draft_overlay as mdo

@@ -428,9 +428,14 @@ class HudTests(unittest.TestCase):
 
     def test_no_iwad_named_sprite_ships(self):
         """MEDIA0 (the fullscreen HUD's health icon) stays Freedoom's: our
-        sprites carry the SD prefix (MOD-SPEC 1)."""
+        sprites carry the SD prefix (MOD-SPEC 1). The one documented
+        exception is D82's engine-actor overrides (PUFF, BLUD, TFOG, IFOG,
+        BAR1, BEXP, COLU), all in assets/sprites/effects/
+        (tests/test_effects_install.py)."""
         sprites = PROJECT_ROOT / "assets" / "sprites"
-        self.assertEqual([p for p in sprites.rglob("*.png") if not p.stem.startswith("SD")], [])
+        overrides = ("PUFF", "BLUD", "TFOG", "IFOG", "BAR1", "BEXP", "COLU")
+        self.assertEqual([p for p in sprites.rglob("*.png") if not p.stem.startswith("SD")
+                          and not (p.stem[:4] in overrides and p.parent.name == "effects")], [])
 
     def test_armour_icons_are_shipped_frames(self):
         for cls in ("SD_ArmorBonus", "SD_GreenArmor", "SD_BlueArmor"):

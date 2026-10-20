@@ -66,6 +66,12 @@ The mod references four of its lumps **by name** (`STARTAN2`, `FLOOR4_8`,
 `PISGB0` and `PISGC0`, recoloured (D61): a derivative of Freedoom's art,
 shipped inside our PK3 under Freedoom's licence, with its credit. Rows and
 the licence's obligations: "Weapon frames: the TT-33 in hand" below.
+**Not an exception (D82, 2026-10-20):** seven sprites ship under the IWAD's
+own names, `PUFF`, `BLUD`, `TFOG`, `IFOG`, `BAR1`, `BEXP` and `COLU`, so
+they replace Freedoom's pictures of the engine's puff, blood, fogs, barrel
+and floor lamp. They are our own drawings (not one Freedoom pixel), with
+their own rows in "Player effects and world sprites" below; only the names
+are the IWAD's.
 
 ## Third-party packs
 
@@ -332,7 +338,10 @@ flag artwork.
 ## Music (D43, installed 2026-10-13)
 
 Rows added by `sound-designer` so `tools/check_pk3.py` can see the music
-lumps' provenance. The full rights analysis — composition, lyrics,
+lumps' provenance. N9e (2026-10-20) added `D_SDTITL` (D83) and `D_SDM01T`
+(D86) and removed `D_SDAMUR`, which the CEO rejected for the range (D83)
+and which no longer ships; D95 put `D_SDM1N2` on MAP01 and `D_SDM01`, MAP01's
+D43 theme, no longer ships either (its cut `D_SDM01T` does). The full rights analysis — composition, lyrics,
 phonogram and sequencing, each with its source — is owned by
 `docs/sound/MUSIC-RIGHTS.md` §4.4; these rows only point at it. Files in
 `assets/music/`, packed as `music/<LUMP>.mid`.
@@ -340,12 +349,13 @@ phonogram and sequencing, each with its source — is owned by
 | Lump | What it is | Origin | Licence |
 |---|---|---|---|
 | `D_SDINTL` | title theme: *The Internationale* (De Geyter, 1888), orchestral MIDI | sequenced by **Jerry Engelbach** (2003), Wikimedia Commons `File:Internationale_orch2.mid`; 1.99 s of head silence removed by us (`tools/audio/midi_edit.py --trim-head`) | melody public domain (`{{PD-Internationale}}`); sequencing `{{Attribution\|Jerry Engelbach}}` — **credit "Jerry Engelbach" is required** |
-| `D_SDM01` | MAP01 loop "Zarya-7" | original composition, `tools/audio/gen_music.py` (sound-designer, 2026-10-13) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `D_SDM1N2` | MAP01 (Zarya-7) music since D95: an original piece in the style of `D_SDM01T`, 48 bars of 4/4 in D minor at 128 BPM, a 1:30 loop | original composition, `tools/audio/compose_map01.py` (variant `D_SDM01N2`, sound-designer, 2026-10-20; D92's one exception to D59); installed by N9e 2026-10-20 byte-identical to `work/audio/D_SDM01N2.mid` under the 8-letter lump name | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
 | `D_SDRAD1` | diegetic radio (`SD_Radio`, MOD-SPEC §6.7): «Эй, ухнем» / *Ey, ukhnem* (Volga Boatmen), Balakirev's setting, pub. 1866 | sequenced by **Peter Gerloff** (Commons: *Rabanus Flavus*, 2021), Wikimedia Commons `File:Ej,_uchnem!.mid`; installed by `mod-engineer` 2026-10-13 byte-identical to `work/audio/candidates/WM_Ej_uchnem.mid` (`D_CND09`), unedited | composition public domain (RU and US); sequencing CC0 1.0 (`{{self\|Cc-zero}}`) — no obligation; Gerloff credited as a courtesy |
 | `D_SDRAD2` | diegetic radio (`SD_Radio`, MOD-SPEC §6.7): «Колокольчик» / *Kolokolchik*, Russian traditional | sequenced by **Peter Gerloff** (2019), Wikimedia Commons `File:Kolokolchik.mid`; installed by `mod-engineer` 2026-10-13 byte-identical to `work/audio/candidates/WM_Kolokolchik.mid` (`D_CND12`), unedited | composition public domain (RU and US); sequencing CC0 1.0 (`{{self\|Cc-zero}}`) — no obligation; Gerloff credited as a courtesy |
 | `D_SDFUNR` | MAP02 (the metro) music, **D62 draft pending the CEO's ear**: «Вы жертвою пали» / *Vy zhertvoyu pali*, revolutionary funeral march, 1870s, voice line as printed in Detlaf's 1905 Moscow edition | sequenced by `sound-designer` under D44 (`tools/audio/gen_music.py`, `build_funeral`); installed 2026-10-14 byte-identical to `work/audio/D_SDFUNR.mid`; score provenance `docs/sound/MUSIC-RIGHTS.md` §4.6.1 | composition public domain (RU and US); our sequencing CC BY-NC-SA 4.0 (D15); no lyric, no phonogram |
 | `D_SDGATE` | MAP03 (Tankograd) music, **D62 draft pending the CEO's ear**: «Богатырские ворота» / *Bogatyrskie vorota* (The Great Gate of Kiev), Mussorgsky, *Pictures at an Exhibition* No. 10, 1874, top voice as printed in Bessel's 1886 edition | sequenced by `sound-designer` under D54 (`tools/audio/gen_music.py`, `build_gate`); installed 2026-10-14 byte-identical to `work/audio/D_SDGATE.mid`; score provenance `docs/sound/MUSIC-RIGHTS.md` §4.6.4 | composition public domain (Mussorgsky d. 1881, pub. 1886; RU and US); our sequencing CC BY-NC-SA 4.0 (D15); no phonogram |
-| `D_SDAMUR` | RANGE (practice range) music, **D62 draft pending the CEO's ear**: «Амурские волны» / *Amurskie volny*, waltz, Max Kyuss op. 12, pub. 1909 | sequenced by `sound-designer` under D44 (`tools/audio/gen_music.py`, `build_amur`); installed 2026-10-14 byte-identical to `work/audio/D_SDAMUR.mid`; score provenance `docs/sound/MUSIC-RIGHTS.md` §4.6.2 | composition public domain (Kyuss d. 1942, pub. 1909; RU and US); our sequencing CC BY-NC-SA 4.0 (D15); no lyric, no phonogram |
+| `D_SDTITL` | intermission (the stats screen between maps; GameInfo `IntermissionMusic`, D83), "Zarya", a Soviet march in D minor | original composition, `tools/audio/gen_music.py` (`build_title`, sound-designer, 2026-10-13); installed by N9e 2026-10-20 byte-identical to `work/audio/D_SDTITL.mid` | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `D_SDM01T` | RANGE (practice range) music since D86: MAP01's theme `D_SDM01E` cut to its melodic part (from bar 49, where the horns take the melody) | our own sequence edited, not composed (D59): `tools/audio/gen_music.py` (`D_SDM01E`), cut by `tools/audio/gen_enemy_alts.py` (`trim_midi`); installed by N9e 2026-10-20 byte-identical to `work/audio/D_SDM01T.mid` | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
 
 ## Weapon sounds (F4, approved by the CEO 2026-10-15, D74; installed by N9)
 
@@ -369,9 +379,12 @@ CC0 asks for nothing. The project's rule for CC0 names is a courtesy credit
 line is owed in `LANGUAGE` (both languages) by whoever owns the credits
 screen, and is not a licence obligation.
 
-Not installed (D74 NO or "?", or not yet judged): `SDTTPKP`, `SDIZRLD`,
-`SDRKFIR`, `SDAXPKP`, `SDIZPKP`, `SDIZFIR`. They stay on their Freedoom
-stand-ins (or Doom's generic pickup sound) and have no row here.
+Not installed (D74 NO or "?"): the drafts `SDTTPKP`, `SDIZRLD`, `SDRKFIR`,
+`SDAXPKP`, `SDIZPKP`. D94 (N9e, 2026-10-20) approved alternatives of the
+first four from `tools/audio/gen_weapon_alts.py` (same packs, same rules),
+rows below (`SDTTPKP1`-`2`, `SDAXPKP1`/`3`, `SDIZRLD`, `SDRKFIR1`-`3`); the
+IZh-58's pickup keeps Doom's generic sound (all three alternatives NO). `SDIZFIR` (take B) was
+approved by D83 and installed by N9e on 2026-10-20.
 
 | Lump | What it is | Origin | Licence |
 |---|---|---|---|
@@ -382,6 +395,7 @@ stand-ins (or Doom's generic pickup sound) and have no row here.
 | `SDTTRLD` | TT-33, reload (parked: no reload state, D47) | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` switch_01, `OGA-100` metal_02, `OGA-100` switch_02, `OGA-100` metal_11 | idem |
 | `SDTTDRY` | TT-33, empty click | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` switch_01 | idem |
 | `SDIZDRY` | IZh-58, empty click | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` switch_01, `KEN-IMP` impactGeneric_light_000 | idem |
+| `SDIZFIR` | IZh-58, shot (D83, installed by N9e) | `gen_weapon_sfx.py` take B, mastered by `master_weapon_sfx.py`; CC0 layers: none, synthesis only | idem |
 | `SDPPFIR` | PPSh-41, shot | `gen_weapon_sfx.py` take C, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` switch_02, `OGA-100` spring_04 | idem |
 | `SDPPRLD` | PPSh-41, reload (parked: no reload state, D47) | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` switch_02, `OGA-100` metal_03, `OGA-100` spring_04, `OGA-100` metal_09, `OGA-100` spring_06, `OGA-100` switch_01, `OGA-100` metal_02 | idem |
 | `SDPPPKP` | PPSh-41, pickup | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `KEN-IMP` impactWood_medium_002, `KEN-IMP` impactMetal_light_003, `OGA-100` spring_04, `OGA-100` switch_02 | idem |
@@ -400,6 +414,119 @@ stand-ins (or Doom's generic pickup sound) and have no row here.
 | `SDHKRLD` | hand Katyusha, reload | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` metal_02, `OGA-100` metal_09, `OGA-100` switch_01 | idem |
 | `SDHKPKP` | hand Katyusha, pickup | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `KEN-IMP` impactMetal_heavy_001, `OGA-100` metal_12 | idem |
 | `SDHKDRY` | hand Katyusha, empty click | `gen_weapon_sfx.py` take A, mastered by `master_weapon_sfx.py`; CC0 layers: `OGA-100` switch_01 | idem |
+| `SDTTPKP1` | TT-33, pickup (take 1 of the `$random` group, D94) | `gen_weapon_alts.py` SDTTPKP alt1, installed as the CEO heard it by `master_weapon_sfx.py --alts`; CC0 layers: `KEN-IMP` impactMetal_light_004, `OGA-100` switch_01, `KEN-IMP` impactMetal_light_002, `OGA-100` metal_02, `KEN-IMP` impactMetal_light_000, `OGA-100` switch_02 | idem |
+| `SDTTPKP2` | TT-33, pickup (take 2 of the `$random` group, D94) | `gen_weapon_alts.py` SDTTPKP alt2, its peaks limited 0.9 dB by `master_weapon_sfx.py --alts` (codec check); CC0 layers: `KEN-IMP` impactSoft_medium_001, `KEN-IMP` impactSoft_medium_003, `KEN-IMP` impactMetal_light_004, `OGA-100` switch_01 | idem |
+| `SDAXPKP1` | ice axe, pickup (take 1 of the `$random` group, D94) | `gen_weapon_alts.py` SDAXPKP alt1, installed as the CEO heard it by `master_weapon_sfx.py --alts`; CC0 layers: `KEN-IMP` footstep_concrete_002, `KEN-IMP` impactMetal_light_003, `KEN-IMP` impactMining_001 | idem |
+| `SDAXPKP3` | ice axe, pickup (take 3 of the `$random` group, D94) | `gen_weapon_alts.py` SDAXPKP alt3, installed as the CEO heard it by `master_weapon_sfx.py --alts`; CC0 layers: `KEN-IMP` impactPunch_medium_002, `KEN-IMP` impactWood_medium_003, `KEN-IMP` impactMetal_medium_001, `KEN-IMP` impactMetal_light_004 | idem |
+| `SDIZRLD` | IZh-58, reload (break-open) (D94) | `gen_weapon_alts.py` SDIZRLD alt3, its peaks limited 0.5 dB by `master_weapon_sfx.py --alts` (codec check); CC0 layers: `OGA-100` metal_06, `OGA-100` switch_02, `KEN-IMP` impactMetal_heavy_000, `KEN-IMP` impactPlate_light_002, `KEN-IMP` impactGeneric_light_002, `KEN-IMP` impactWood_medium_003, `KEN-IMP` impactMetal_light_004, `KEN-IMP` impactPlate_heavy_000, `KEN-IMP` impactMetal_medium_004, `OGA-100` spring_07 | idem |
+| `SDRKFIR1` | ROKS-3, the jet (take 1 of the `$random` group, D94) | `gen_weapon_alts.py` SDRKFIR alt1, its peaks limited 0.7 dB by `master_weapon_sfx.py --alts` (codec check); CC0 layers: none, synthesis only | idem |
+| `SDRKFIR2` | ROKS-3, the jet (take 2 of the `$random` group, D94) | `gen_weapon_alts.py` SDRKFIR alt2, installed as the CEO heard it by `master_weapon_sfx.py --alts`; CC0 layers: none, synthesis only | idem |
+| `SDRKFIR3` | ROKS-3, the jet (take 3 of the `$random` group, D94) | `gen_weapon_alts.py` SDRKFIR alt3, installed as the CEO heard it by `master_weapon_sfx.py --alts`; CC0 layers: none, synthesis only | idem |
+
+## Enemy sounds (F5, approved by the CEO 2026-10-20, D83 and D86; installed by N9e)
+
+The enemy sounds and beds the CEO approved on the M3 listening sheet (D83:
+30 sounds and 5 beds) and on the alternatives page (D86: the takes listed
+in `docs/PRD.md`; SDRRIATK alt2 after its final click was lowered), after
+a loudness pass (`tools/audio/master_enemy_sfx.py`, ENEMY-SOUNDS §5.12).
+Files in `assets/sounds/enemies/<LUMP>.ogg`, packed as `sounds/<LUMP>.ogg`;
+`src/lumps/SNDINFO` maps the logical names to them, with `$random` where
+several takes of one sound were approved. Every one is **our own work**:
+synthesis (`tools/audio/gen_sfx.py`, `tools/audio/gen_enemy_alts.py`,
+fixed seeds) that layers, cut, re-pitched and filtered, short clips of
+the CC0 packs on disk under D36 (`OGA-CRE1`, `OGA-CRE2` and `OGA-100`,
+rubberduck's packs on OpenGameArt; `KEN-IMP`, Kenney's *Impact Sounds*),
+never alone. Pack rows, URLs, archive hashes and the SHA-256 of every
+source file: `docs/sound/ENEMY-SOUNDS.md` §2.1 and §5.9 (the drafts) and
+`tools/audio/gen_enemy_alts.py` `SOURCES` (the alternatives). **Three gibs
+also edit Freedoom's `DSSLOP`** (`SDRRIXDT`, `SDLTRXDT`, `SDSTOXDT`): a
+derivative of a Freedoom sound, shipped under Freedoom's licence with its
+credit, as the TT-33's hands are ("Base IWAD" above; the obligations are
+the ones written under "Weapon frames: the TT-33 in hand").
+
+The beds (`SD...B<n>`) are packed and named but played by nothing until
+they are mixed under the voice takes (D87). Not installed (D83 NO, D86 NO):
+the drafts `SDRRIATK`, `SDLTRATK`, `SDSTOPAI`, `SDSTODTH`, `SDPZRPAI`, the
+beds of `SDRRIPAI`, `SDLTRPAI`, `SDLTRDTH`, and the Legion shotgun's
+alternatives 1 and 3; ten of the twelve voices keep their Freedoom
+stand-ins (the other two are D91's takes, last rows).
+CC0 asks for nothing; the courtesy credit to Kenney and rubberduck is the
+weapon sounds' (above).
+
+**Seven voice takes (D91).** The last rows are the voice lines the CEO
+approved of the Chatterbox drafts (D87): the rifleman's "Kontakt!" and the
+trooper's two idle radio lines, generated locally with Chatterbox
+Multilingual and its predefined male voices, processed by us. Each row
+names Chatterbox, which `tools/release.py` reads to state in the release
+that some voice lines ship (D93). The predefined voices' own origin is not
+documented by their distributor: risk R1 of D87, accepted by the CEO.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDRRIXDT` | Reich rifleman, gib | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; Freedoom's `DSSLOP` (freedoom2.wad:DSSLOP) edited and layered | Freedoom's `DSSLOP`: modified BSD licence (BSD 3-clause), © the Contributors to the Freedoom project, credit "Freedoom"; the edit and the synthesis: Soviet Doom project (sound-designer), CC BY-NC-SA 4.0 (D15) |
+| `SDLTRXDT` | Legion trooper, gib | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; Freedoom's `DSSLOP` (freedoom2.wad:DSSLOP) edited and layered | idem |
+| `SDSTOACT` | Hybrid Stormtrooper, idle | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE1` breath, `OGA-CRE2` breath_02 | Soviet Doom project (sound-designer), CC BY-NC-SA 4.0 (D15); its CC0 layers oblige nothing |
+| `SDSTOSIT` | Hybrid Stormtrooper, sight | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE1` monster_06, `OGA-CRE1` alien_03 | idem |
+| `SDSTOMEL` | Hybrid Stormtrooper, melee | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` impactPunch_medium_001, `KEN-IMP` impactMetal_light_002 | idem |
+| `SDSTOMIS` | Hybrid Stormtrooper, missile launch | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDSTOEXP` | Hybrid Stormtrooper, missile impact | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDSTOXDT` | Hybrid Stormtrooper, gib | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; Freedoom's `DSSLOP` (freedoom2.wad:DSSLOP) edited and layered | Freedoom's `DSSLOP`: modified BSD licence (BSD 3-clause), © the Contributors to the Freedoom project, credit "Freedoom"; the edit and the synthesis: Soviet Doom project (sound-designer), CC BY-NC-SA 4.0 (D15) |
+| `SDHNDACT` | Reich hound, idle | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE2` breath_02, `OGA-CRE1` breath | Soviet Doom project (sound-designer), CC BY-NC-SA 4.0 (D15); its CC0 layers oblige nothing |
+| `SDHNDSIT` | Reich hound, sight | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `OGA-SNARL` monster-snarl-attack, `OGA-CRE2` alien_07 | idem |
+| `SDHNDATK` | Reich hound, attack | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` impactPunch_heavy_002, `OGA-CRE1` eat_02 | idem |
+| `SDHNDPAI` | Reich hound, pain | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE2` monster_10 | idem |
+| `SDHNDDTH` | Reich hound, death | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE2` die_03, `OGA-CRE2` die_02 | idem |
+| `SDDGBACT` | Doughboy, idle | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDDGBSIT` | Doughboy, sight | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE1` scream_02, `OGA-CRE1` monster_03 | idem |
+| `SDDGBMEL` | Doughboy, melee | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE1` eat_02, `KEN-IMP` impactMetal_heavy_001 | idem |
+| `SDDGBMIS` | Doughboy, missile launch | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE1` spit_02 | idem |
+| `SDDGBEXP` | Doughboy, missile impact | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE2` slime_07 | idem |
+| `SDDGBPAI` | Doughboy, pain | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE1` hurt_05 | idem |
+| `SDDGBDTH` | Doughboy, death | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDPZRACT` | Panzermensch, idle | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE1` breath, `OGA-CRE2` breath_02, `KEN-IMP` impactPlate_light_001 | idem |
+| `SDPZRSIT` | Panzermensch, sight | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE2` roar_05, `OGA-CRE1` roar_02, `KEN-IMP` impactPlate_heavy_001, `KEN-IMP` impactMetal_heavy_003 | idem |
+| `SDPZRMEL` | Panzermensch, melee | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` impactPunch_heavy_000, `KEN-IMP` impactPlate_heavy_003 | idem |
+| `SDPZRMIS` | Panzermensch, missile launch | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDPZREXP` | Panzermensch, missile impact | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDPZRDTH` | Panzermensch, death | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE2` die_04, `OGA-CRE2` roar_04, `KEN-IMP` impactPlate_heavy_004, `KEN-IMP` impactMetal_heavy_001, `KEN-IMP` impactPunch_heavy_002, `KEN-IMP` impactPlate_heavy_002 | idem |
+| `SDPZRSTP` | Panzermensch, footstep | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDGENACT` | the General, idle | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDGENMIS` | the General, missile launch | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` impactMetal_heavy_001 | idem |
+| `SDGENEXP` | the General, missile impact | `gen_sfx.py` draft (seed 1977), D83, mastered by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` impactPlate_heavy_000 | idem |
+| `SDRRIAT1` | Reich rifleman, attack (take 1 of the `$random` group) | `gen_enemy_alts.py` SDRRIATK alt1, D86, levelled by `gen_enemy_alts.py`, installed as the CEO heard it by `master_enemy_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDRRIAT2` | Reich rifleman, attack (take 2 of the `$random` group) | `gen_enemy_alts.py` SDRRIATK alt2, D86, levelled by `gen_enemy_alts.py`; its peaks limited 0.5 dB by `master_enemy_sfx.py`'s codec check; CC0 layers: `KEN-IMP` impactMetal_light_001, `KEN-IMP` impactPunch_medium_000, `OGA-100` switch_02, `KEN-IMP` impactMetal_light_004 | idem |
+| `SDRRIAT3` | Reich rifleman, attack (take 3 of the `$random` group) | `gen_enemy_alts.py` SDRRIATK alt3, D86, levelled by `gen_enemy_alts.py`; its peaks limited 0.3 dB by `master_enemy_sfx.py`'s codec check; CC0 layers: none, synthesis only | idem |
+| `SDLTRATK` | Legion trooper, attack | `gen_enemy_alts.py` SDLTRATK alt2, D86, levelled by `gen_enemy_alts.py`; its peaks limited 1.7 dB by `master_enemy_sfx.py`'s codec check; CC0 layers: `KEN-IMP` impactPlate_heavy_003 | idem |
+| `SDSTOPA1` | Hybrid Stormtrooper, pain (take 1 of the `$random` group) | `gen_enemy_alts.py` SDSTOPAI alt1, D86, levelled by `gen_enemy_alts.py`, installed as the CEO heard it by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE1` hurt_04 | idem |
+| `SDSTOPA2` | Hybrid Stormtrooper, pain (take 2 of the `$random` group) | `gen_enemy_alts.py` SDSTOPAI alt2, D86, levelled by `gen_enemy_alts.py`; its peaks limited 0.7 dB by `master_enemy_sfx.py`'s codec check; CC0 layers: `OGA-CRE2` grunt_07 | idem |
+| `SDSTOPA3` | Hybrid Stormtrooper, pain (take 3 of the `$random` group) | `gen_enemy_alts.py` SDSTOPAI alt3, D86, levelled by `gen_enemy_alts.py`, installed as the CEO heard it by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE1` monster_02 | idem |
+| `SDSTODT1` | Hybrid Stormtrooper, death (take 1 of the `$random` group) | `gen_enemy_alts.py` SDSTODTH alt1, D86, levelled by `gen_enemy_alts.py`; its peaks limited 0.4 dB by `master_enemy_sfx.py`'s codec check; CC0 layers: `OGA-CRE2` die_01, `KEN-IMP` impactMetal_heavy_002 | idem |
+| `SDSTODT2` | Hybrid Stormtrooper, death (take 2 of the `$random` group) | `gen_enemy_alts.py` SDSTODTH alt2, D86, levelled by `gen_enemy_alts.py`; its peaks limited 1.0 dB by `master_enemy_sfx.py`'s codec check; CC0 layers: `OGA-CRE1` roar_03 | idem |
+| `SDSTODT3` | Hybrid Stormtrooper, death (take 3 of the `$random` group) | `gen_enemy_alts.py` SDSTODTH alt3, D86, levelled by `gen_enemy_alts.py`; its peaks limited 1.6 dB by `master_enemy_sfx.py`'s codec check; CC0 layers: `OGA-CRE2` monster_12, `KEN-IMP` impactPlate_medium_001, `KEN-IMP` impactPlate_light_004 | idem |
+| `SDPZRPA1` | Panzermensch, pain (take 1 of the `$random` group) | `gen_enemy_alts.py` SDPZRPAI alt1, D86, levelled by `gen_enemy_alts.py`, installed as the CEO heard it by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE2` grunt_06, `KEN-IMP` impactPlate_heavy_003 | idem |
+| `SDPZRPA2` | Panzermensch, pain (take 2 of the `$random` group) | `gen_enemy_alts.py` SDPZRPAI alt2, D86, levelled by `gen_enemy_alts.py`, installed as the CEO heard it by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE1` troll_02 | idem |
+| `SDPZRPA3` | Panzermensch, pain (take 3 of the `$random` group) | `gen_enemy_alts.py` SDPZRPAI alt3, D86, levelled by `gen_enemy_alts.py`, installed as the CEO heard it by `master_enemy_sfx.py`; CC0 layers: `OGA-CRE2` roar_06, `KEN-IMP` impactMetal_heavy_000 | idem |
+| `SDRRIDB1` | Reich rifleman, bed under the death voice | `gen_sfx.py` draft (seed 1977) bed, D83, mastered by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` impactWood_light_002, `KEN-IMP` impactMetal_light_000, `KEN-IMP` impactTin_medium_001 | idem |
+| `SDLTRAB1` | Legion trooper, bed under the idle voice | `gen_sfx.py` draft (seed 1977) bed, D83, mastered by `master_enemy_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDLTRSB1` | Legion trooper, bed under the sight voice | `gen_sfx.py` draft (seed 1977) bed, D83, mastered by `master_enemy_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDGENPB1` | the General, bed under the pain voice | `gen_sfx.py` draft (seed 1977) bed, D83, mastered by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` impactPlate_medium_002 | idem |
+| `SDGENDB1` | the General, bed under the death voice | `gen_sfx.py` draft (seed 1977) bed, D83, mastered by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` impactPlate_heavy_002, `KEN-IMP` impactMetal_heavy_004 | idem |
+| `SDRRIPB1` | Reich rifleman, bed under the pain voice (take 1 of the `$random` group) | `gen_enemy_alts.py` SDRRIPAI alt1, D86, levelled by `gen_enemy_alts.py`, installed as the CEO heard it by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` impactWood_light_001, `KEN-IMP` impactTin_medium_003 | idem |
+| `SDRRIPB2` | Reich rifleman, bed under the pain voice (take 2 of the `$random` group) | `gen_enemy_alts.py` SDRRIPAI alt2, D86, levelled by `gen_enemy_alts.py`, installed as the CEO heard it by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` footstep_carpet_002, `KEN-IMP` impactMetal_light_003 | idem |
+| `SDRRIPB3` | Reich rifleman, bed under the pain voice (take 3 of the `$random` group) | `gen_enemy_alts.py` SDRRIPAI alt3, D86, levelled by `gen_enemy_alts.py`, installed as the CEO heard it by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` footstep_concrete_001, `KEN-IMP` impactGeneric_light_003, `KEN-IMP` impactMetal_light_004 | idem |
+| `SDLTRPB1` | Legion trooper, bed under the pain voice (take 1 of the `$random` group) | `gen_enemy_alts.py` SDLTRPAI alt1, D86, levelled by `gen_enemy_alts.py`, installed as the CEO heard it by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` impactPunch_medium_003 | idem |
+| `SDLTRPB2` | Legion trooper, bed under the pain voice (take 2 of the `$random` group) | `gen_enemy_alts.py` SDLTRPAI alt2, D86, levelled by `gen_enemy_alts.py`, installed as the CEO heard it by `master_enemy_sfx.py`; CC0 layers: none, synthesis only | idem |
+| `SDLTRPB3` | Legion trooper, bed under the pain voice (take 3 of the `$random` group) | `gen_enemy_alts.py` SDLTRPAI alt3, D86, levelled by `gen_enemy_alts.py`, installed as the CEO heard it by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` impactPlate_light_000 | idem |
+| `SDLTRDB1` | Legion trooper, bed under the death voice (take 1 of the `$random` group) | `gen_enemy_alts.py` SDLTRDTH alt1, D86, levelled by `gen_enemy_alts.py`, installed as the CEO heard it by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` impactPlate_medium_003, `KEN-IMP` impactGeneric_light_004, `KEN-IMP` impactSoft_heavy_002 | idem |
+| `SDLTRDB2` | Legion trooper, bed under the death voice (take 2 of the `$random` group) | `gen_enemy_alts.py` SDLTRDTH alt2, D86, levelled by `gen_enemy_alts.py`, installed as the CEO heard it by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` impactSoft_heavy_002, `KEN-IMP` footstep_concrete_001 | idem |
+| `SDLTRDB3` | Legion trooper, bed under the death voice (take 3 of the `$random` group) | `gen_enemy_alts.py` SDLTRDTH alt3, D86, levelled by `gen_enemy_alts.py`, installed as the CEO heard it by `master_enemy_sfx.py`; CC0 layers: `KEN-IMP` impactMetal_light_004, `KEN-IMP` impactMetal_light_001 | idem |
+| `SDRRISI1` | Reich rifleman, sight: "Kontakt!" (voice Austin), a take of the `$random` group (D91) | Chatterbox Multilingual (Resemble AI) via Chatterbox-TTS-Server 2.0.2, run locally 2026-10-20, take R06 t01 (`work/audio/voice_takes/AI-LOG.csv`: tool, model, voice, text, settings); processed and levelled by `tools/audio/process_voice_takes.py`, installed byte for byte by `master_enemy_sfx.py --voices` | the processing: Soviet Doom project (sound-designer), CC BY-NC-SA 4.0 (D15); the take: Chatterbox output, model under MIT (read 2026-10-14, P2 study), with Resemble AI's inaudible PerTh watermark; the predefined voice's origin is not documented by Chatterbox-TTS-Server (D87, risk R1) |
+| `SDRRISI3` | Reich rifleman, sight: "Kontakt!" (voice Austin), a take of the `$random` group (D91) | Chatterbox Multilingual (Resemble AI) via Chatterbox-TTS-Server 2.0.2, run locally 2026-10-20, take R06 t03 (`work/audio/voice_takes/AI-LOG.csv`: tool, model, voice, text, settings); processed and levelled by `tools/audio/process_voice_takes.py`, installed byte for byte by `master_enemy_sfx.py --voices` | the processing: Soviet Doom project (sound-designer), CC BY-NC-SA 4.0 (D15); the take: Chatterbox output, model under MIT (read 2026-10-14, P2 study), with Resemble AI's inaudible PerTh watermark; the predefined voice's origin is not documented by Chatterbox-TTS-Server (D87, risk R1) |
+| `SDLTRAC1` | Legion trooper, idle radio chatter: "Sector four, clear." (voice Jordan), a take of the `$random` group (D91) | Chatterbox Multilingual (Resemble AI) via Chatterbox-TTS-Server 2.0.2, run locally 2026-10-20, take L01 t01 (`work/audio/voice_takes/AI-LOG.csv`: tool, model, voice, text, settings); processed and levelled by `tools/audio/process_voice_takes.py`, installed byte for byte by `master_enemy_sfx.py --voices` | the processing: Soviet Doom project (sound-designer), CC BY-NC-SA 4.0 (D15); the take: Chatterbox output, model under MIT (read 2026-10-14, P2 study), with Resemble AI's inaudible PerTh watermark; the predefined voice's origin is not documented by Chatterbox-TTS-Server (D87, risk R1) |
+| `SDLTRAC2` | Legion trooper, idle radio chatter: "Sector four, clear." (voice Jordan), a take of the `$random` group (D91) | Chatterbox Multilingual (Resemble AI) via Chatterbox-TTS-Server 2.0.2, run locally 2026-10-20, take L01 t03 (`work/audio/voice_takes/AI-LOG.csv`: tool, model, voice, text, settings); processed and levelled by `tools/audio/process_voice_takes.py`, installed byte for byte by `master_enemy_sfx.py --voices` | the processing: Soviet Doom project (sound-designer), CC BY-NC-SA 4.0 (D15); the take: Chatterbox output, model under MIT (read 2026-10-14, P2 study), with Resemble AI's inaudible PerTh watermark; the predefined voice's origin is not documented by Chatterbox-TTS-Server (D87, risk R1) |
+| `SDLTRAC3` | Legion trooper, idle radio chatter: "Copy. Holding position." (voice Jordan), a take of the `$random` group (D91) | Chatterbox Multilingual (Resemble AI) via Chatterbox-TTS-Server 2.0.2, run locally 2026-10-20, take L02 t01 (`work/audio/voice_takes/AI-LOG.csv`: tool, model, voice, text, settings); processed and levelled by `tools/audio/process_voice_takes.py`, installed byte for byte by `master_enemy_sfx.py --voices` | the processing: Soviet Doom project (sound-designer), CC BY-NC-SA 4.0 (D15); the take: Chatterbox output, model under MIT (read 2026-10-14, P2 study), with Resemble AI's inaudible PerTh watermark; the predefined voice's origin is not documented by Chatterbox-TTS-Server (D87, risk R1) |
+| `SDLTRAC4` | Legion trooper, idle radio chatter: "Copy. Holding position." (voice Jordan), a take of the `$random` group (D91) | Chatterbox Multilingual (Resemble AI) via Chatterbox-TTS-Server 2.0.2, run locally 2026-10-20, take L02 t02 (`work/audio/voice_takes/AI-LOG.csv`: tool, model, voice, text, settings); processed and levelled by `tools/audio/process_voice_takes.py`, installed byte for byte by `master_enemy_sfx.py --voices` | the processing: Soviet Doom project (sound-designer), CC BY-NC-SA 4.0 (D15); the take: Chatterbox output, model under MIT (read 2026-10-14, P2 study), with Resemble AI's inaudible PerTh watermark; the predefined voice's origin is not documented by Chatterbox-TTS-Server (D87, risk R1) |
+| `SDLTRAC5` | Legion trooper, idle radio chatter: "Copy. Holding position." (voice Jordan), a take of the `$random` group (D91) | Chatterbox Multilingual (Resemble AI) via Chatterbox-TTS-Server 2.0.2, run locally 2026-10-20, take L02 t03 (`work/audio/voice_takes/AI-LOG.csv`: tool, model, voice, text, settings); processed and levelled by `tools/audio/process_voice_takes.py`, installed byte for byte by `master_enemy_sfx.py --voices` | the processing: Soviet Doom project (sound-designer), CC BY-NC-SA 4.0 (D15); the take: Chatterbox output, model under MIT (read 2026-10-14, P2 study), with Resemble AI's inaudible PerTh watermark; the predefined voice's origin is not documented by Chatterbox-TTS-Server (D87, risk R1) |
 
 ## Weapon pickups (F4, approved by the CEO 2026-10-14, D48)
 
@@ -892,3 +1019,39 @@ Drawn from code on the rig the approved enemies were drawn on, as the
 storm bolt and the General's shell: no photograph, no typeface. Freedoom's
 `BAL2` and `BAL7` appear only beside ours on the review sheet, for
 comparison, and never enter a sprite.
+
+## Player effects and world sprites (M2c, approved by the CEO 2026-10-20, D82)
+
+CEO verdict (D82, "también las recomendadas"): option A of each item of
+the sweep (`docs/art/previews/2026-10-19_2208_F4_player-effects.html`).
+Files in `assets/sprites/effects/`, copied byte for byte from
+`work/art/effects/<SPRITE>/` (rendered on the Windows PC on 2026-10-19 by
+`tools/art/gen_effects.py`, seed 75), so each PNG keeps its `grAb`
+offsets. Fifty lumps: the two rockets in Doom's eight rotations as five
+lumps each (2-8, 3-7, 4-6 mirrored pairs), everything else in rotation 0.
+RGBA with hard alpha, inside palette v1. Five sprites have our `SD` names;
+seven ship under the IWAD's names on purpose, the engine actors'
+overrides (MOD-SPEC §1 and §5.1): every frame of each, exactly Freedoom's
+lump set, so nothing of Freedoom's is left to mix in. Not installed: the
+sweep's other options (`work/art/effects/sweep/`), the GIFs and the
+scenes. Engine names: MOD-SPEC §6.3.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDPGA1`, `SDPGA2A8`, `SDPGA3A7`, `SDPGA4A6`, `SDPGA5` | `SD_Pg7Grenade` in flight, the PG-7V: olive warhead, thin motor, fins, a short yellow-white plume | (a) `tools/art/gen_effects.py`, item pg7, option A | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDKRA1`, `SDKRA2A8`, `SDKRA3A7`, `SDKRA4A6`, `SDKRA5` | `SD_KatyushaRocket` in flight: slim steel body with a red identification band | (a) `tools/art/gen_effects.py`, item katyusha, option A | idem |
+| `SDPXA0`, `SDPXB0`, `SDPXC0` | the burst both rockets share (their `Death`): a dirty fireball, TNT orange with black smoke and grit | (a) `tools/art/gen_effects.py`, item burst, option A | idem |
+| `SDFJA0`, `SDFJB0` | `SD_FlameBlob` in flight, the ROKS-3's fire gob (drawn Add 0.85) | (a) `tools/art/gen_effects.py`, item flame, option A | idem |
+| `SDFXA0`, `SDFXB0`, `SDFXC0`, `SDFXD0`, `SDFXE0` | `SD_FlameBlob` on impact | (a) `tools/art/gen_effects.py`, item flame, option A | idem |
+| `PUFFA0`, `PUFFB0`, `PUFFC0`, `PUFFD0` | the engine's `BulletPuff` (and `SD_IceAxePuff`, which inherits it): a spark, then concrete dust and chips; IWAD name | (a) `tools/art/gen_effects.py`, item puff, option A | idem |
+| `BLUDA0`, `BLUDB0`, `BLUDC0` | the engine's `Blood`: glossy drops, tinted by the D49 `BloodColor`; IWAD name | (a) `tools/art/gen_effects.py`, item blood, option A | idem |
+| `TFOGA0`, `TFOGB0`, `TFOGC0`, `TFOGD0`, `TFOGE0`, `TFOGF0`, `TFOGG0`, `TFOGH0`, `TFOGI0`, `TFOGJ0` | the engine's `TeleportFog` (the General's summon): Tesla arcs over a pale glow; IWAD name | (a) `tools/art/gen_effects.py`, item tfog, option A | idem |
+| `IFOGA0`, `IFOGB0`, `IFOGC0`, `IFOGD0`, `IFOGE0` | the engine's `ItemFog` (item respawn), the same arcs; IWAD name | (a) `tools/art/gen_effects.py`, item tfog, option A | idem |
+| `BAR1A0`, `BAR1B0` | the engine's `ExplosiveBarrel` (editor number 2035): a red 200-litre fuel drum with a cream band; IWAD name | (a) `tools/art/gen_effects.py`, item barrel, option A | idem |
+| `BEXPA0`, `BEXPB0`, `BEXPC0`, `BEXPD0`, `BEXPE0` | the drum bursting (`ExplosiveBarrel` `Death`); IWAD name | (a) `tools/art/gen_effects.py`, item barrel, option A | idem |
+| `COLUA0` | the engine's `Column` (editor number 2028): the Soviet home floor lamp, a *torshier*; IWAD name | (a) `tools/art/gen_effects.py`, item lamp, option A | idem |
+
+Drawn from code (the bestiary's rig for the rockets, the drum and the
+lamp; seeded noise fields for fire, smoke, dust, drops and arcs): no
+photograph, no typeface, no pack. Freedoom's sprites appear only on the
+review sheet beside ours, for scale, and never enter a lump.

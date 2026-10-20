@@ -47,6 +47,16 @@ grids, hard pixels, mid-grey walls, light that drops towards black.
 | Tiling | every wall/flat tiles unless its index entry says "no tile" (doors, posters) | checked visually on the 2×2 view of every preview |
 | Origin | every texture declares (a) script + seed, (b) free pack + licence, or (c) CEO material | no origin, no texture (`LICENSES.md`) |
 
+**Exception to the `SD` prefix: the engine actors' sprites (D82,
+2026-10-20).** Seven sprites of the player-effects set ship under the
+IWAD's own names, `PUFF`, `BLUD`, `TFOG`, `IFOG`, `BAR1`, `BEXP` and
+`COLU` (`assets/sprites/effects/`), so the engine's puff, blood, fogs,
+barrel and floor lamp draw our pictures without a replacing class. Each is
+the complete set Freedoom ships under that name, every frame in rotation 0,
+so no Freedoom frame is left to mix in; a new drawing for one of these
+names must keep exactly that lump set. Every other sprite keeps the `SD`
+prefix. Engine side: `docs/engine/MOD-SPEC.md` §1 and §5.1.
+
 **Exception to the indexed-PNG rule: assets drawn over something else
 (recorded 2026-10-13).** Two families of shipped files are **RGBA PNG**, not
 indexed, because they need transparency: the menu logo `M_DOOM` (its row in

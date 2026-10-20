@@ -146,15 +146,40 @@ def parse_language(text: str) -> dict[str, dict[str, str]]:
     return sections
 
 
+RANDOM_RE = re.compile(r"^\$random\s+(\S+)\s*\{\s*([^}]*?)\s*\}\s*$")
+
+
 def sndinfo_entries() -> list[tuple[str, str, str | None]]:
-    """(logical, placeholder lump, final lump from the comment) for sd/mon/."""
-    out = []
-    for raw in (SRC / "lumps" / "SNDINFO").read_text(encoding="utf-8").splitlines():
+    """(logical, lump it plays, final lump) for the sd/mon/ names the classes
+    play. A placeholder line names its final lump in a `// -> SD...` comment;
+    an installed one (N9e) IS the final lump; a `$random` alias over several
+    approved takes (D86) counts once, as `$random`, with its card's name as
+    the final lump (the members' lump with the take digit back to the card's
+    letter is not recoverable, so the card is read from the group's first
+    member: SDRRIAT1 -> SDRRIATK through ENEMY-SOUNDS' cards)."""
+    out, groups, members = [], {}, set()
+    lines = (SRC / "lumps" / "SNDINFO").read_text(encoding="utf-8").splitlines()
+    for raw in lines:
+        m = RANDOM_RE.match(raw.split("//")[0].strip())
+        if m and m.group(1).startswith(SOUND_PREFIX):
+            groups[m.group(1)] = m.group(2).split()
+            members |= set(groups[m.group(1)])
+    cards = set(re.findall(r"^\|\s*`(SD[A-Z]{6})`\s*\|", ENEMY_SOUNDS_MD.read_text(encoding="utf-8"), re.M))
+    lump_of = {}
+    for raw in lines:
         code, _, comment = raw.partition("//")
         parts = code.split()
         if len(parts) == 2 and parts[0].startswith(SOUND_PREFIX):
+            lump_of[parts[0]] = parts[1].upper()
+            if parts[0] in members:
+                continue
             final = FINAL_LUMP_RE.search(comment)
-            out.append((parts[0], parts[1].upper(), final.group(1) if final else None))
+            lump = parts[1].upper()
+            out.append((parts[0], lump, final.group(1) if final else (lump if lump in cards else None)))
+    for group, ms in groups.items():
+        first = lump_of[ms[0]]
+        card = next((c for c in cards if c[:7] == first[:7]), None)
+        out.append((group, "$random", card))
     return out
 
 
@@ -472,7 +497,12 @@ class BestiaryPlaceholdersInIwadTest(unittest.TestCase):
             self.assertTrue(any(s.startswith(name) for s in self.sprites), f"MOD-SPEC 5.1 {name} not in the IWAD")
 
     def test_every_placeholder_sound_exists(self):
-        for logical, lump, _ in sndinfo_entries():
+        # Since N9e (D83, D86) most lines play our own lumps (packed, held by
+        # tests/test_enemy_sfx_install.py); the Freedoom stand-ins left are
+        # the voices (D87).
+        placeholders = [(logical, lump) for logical, lump, _ in sndinfo_entries() if lump.startswith("DS")]
+        self.assertTrue(placeholders)
+        for logical, lump in placeholders:
             self.assertIn(lump, self.lumps, f"{logical} -> {lump} is not a lump in {IWAD.name}")
 
 

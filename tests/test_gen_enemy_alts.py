@@ -207,6 +207,18 @@ class PackTests(unittest.TestCase, _Checks):
             for r in refs:
                 self.assertEqual(r.sha256, ea.SOURCES[(r.pack, r.name)], a.name)
 
+    def test_rifleman_alt2_final_click_is_quieter_than_the_first(self):
+        """D86: SDRRIATK alt2 is approved "once its final click is quieter than
+        the first". Loudest 50 ms, A-weighted, per part: the crack, the bolt's
+        opening click, its closing ping."""
+        _, x, _ = self.out["SDRRIATK_alt2"]
+        bolt = gws.n_of(ea.RRI_BOLT_AT_S)
+        ping = gws.n_of(ea.RRI_BOLT_AT_S + ea.RRI_FINAL_CLICK_AT_S - 0.01)
+        crack, first, last = wa.loud_a_db(x[:bolt]), wa.loud_a_db(x[bolt:ping]), wa.loud_a_db(x[ping:])
+        self.assertLessEqual(last, first - ea.FINAL_UNDER_FIRST_DB, (crack, first, last))
+        self.assertLess(first, crack)
+        self.assertLess(wa.peak_db(x[ping:]), wa.peak_db(x[bolt:ping]))
+
     def test_every_pack_alternative_carries_our_synthesis(self):
         for a in ea.ALTS:
             if a.sources:

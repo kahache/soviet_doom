@@ -326,6 +326,34 @@ PD_YELLOWCO          = "You need a yellow pass to activate this object";
 PD_REDC              = "You need a red pass to open this door";
 PD_REDCO             = "You need a red pass to activate this object";
 
+// --- Quit messages (M4 shell, audit H5; 2026-10-20) -------------------------
+// The engine draws one of GameInfo's `quitmessages` at random when the player
+// quits. gzdoom.pk3's mapinfo/doomcommon.txt lists "$QUITMSG".."$QUITMSG14",
+// and Freedoom's DEHACKED overrides all fifteen plus DOSY ("(Press Y to exit
+// the program.)") in English, which beats LANGUAGE in every language (ADR
+// 003; the override table is searched first, src/common/engine/
+// stringtable.cpp CheckString, g4.14.2). So our MAPINFO GameInfo replaces
+// the list with "$*SD_QUIT_*": the "$*" form prints the string alone,
+// without DOSY appended (src/menu/doommenu.cpp, CCMD menu_quit, g4.14.2),
+// which is why each line below carries its own "press Y" line. Wry, short,
+// in the Sergeant's world (docs/product/LORE.md); lines of at most 40
+// characters (tests/test_freedoom_text.py).
+SD_QUIT_01 = "Leaving your post, Sergeant?\nThe Urals will not hold themselves.\n\n(Press Y to quit.)";
+SD_QUIT_02 = "Russia is vast, but there is nowhere\nto retreat. Moscow is behind us.\n\n(Press Y to quit.)";
+SD_QUIT_03 = "The five-year plan is not fulfilled.\nNobody leaves the shift early.\n\n(Press Y to quit.)";
+SD_QUIT_04 = "The parade is in three weeks.\nWho marches if you go home?\n\n(Press Y to quit.)";
+SD_QUIT_05 = "The Fourth Reich takes no days off.\nNor does the Liberty Legion.\n\n(Press Y to quit.)";
+SD_QUIT_06 = "The canteen closes at eight.\nThe war does not.\n\n(Press Y to quit.)";
+SD_QUIT_07 = "Comrade, the Party committee\nwill want an explanation.\n\n(Press Y to quit.)";
+SD_QUIT_08 = "Your absence is in the duty log.\nIn pencil, for now.\n\n(Press Y to quit.)";
+SD_QUIT_09 = "Barcelona waited forty years.\nThe Urals can wait one evening.\n\n(Press Y to quit.)";
+SD_QUIT_10 = "The capitalists are counting on you\nto go home early.\n\n(Press Y to quit.)";
+SD_QUIT_11 = "Leave the radio on.\nThe next sentry gets lonely.\n\n(Press Y to quit.)";
+SD_QUIT_12 = "Lenin is watching from the wall.\nHe does not look pleased.\n\n(Press Y to quit.)";
+SD_QUIT_13 = "Your shift ends\nwhen the invaders do.\n\n(Press Y to quit.)";
+SD_QUIT_14 = "Hand your rifle in at the armoury\nand sign for it twice.\n\n(Press Y to quit.)";
+SD_QUIT_15 = "The tea is still hot, Sergeant.\nStay a little longer.\n\n(Press Y to quit.)";
+
 [ru]
 
 SD_EP01_NAME  = "Советский Doom";
@@ -523,3 +551,22 @@ PD_YELLOWC           = "Для открытия нужен жёлтый проп
 PD_YELLOWCO          = "Для применения нужен жёлтый пропуск";
 PD_REDC              = "Для открытия нужен красный пропуск";
 PD_REDCO             = "Для применения нужен красный пропуск";
+
+// Сообщения при выходе (M4, оболочка; аудит H5). GameInfo `quitmessages`
+// указывает на "$*SD_QUIT_*": строка печатается целиком, без DOSY Freedoom,
+// поэтому строка «нажмите Y» входит в каждую.
+SD_QUIT_01 = "Покидаете пост, сержант?\nУрал сам себя не удержит.\n\n(Нажмите Y, чтобы выйти.)";
+SD_QUIT_02 = "Велика Россия, а отступать некуда:\nпозади Москва.\n\n(Нажмите Y, чтобы выйти.)";
+SD_QUIT_03 = "Пятилетка не выполнена.\nСмену раньше времени не сдают.\n\n(Нажмите Y, чтобы выйти.)";
+SD_QUIT_04 = "До парада три недели.\nКто пойдёт в строю, если вы уйдёте?\n\n(Нажмите Y, чтобы выйти.)";
+SD_QUIT_05 = "Четвёртый Рейх выходных не берёт.\nЛегион Свободы тоже.\n\n(Нажмите Y, чтобы выйти.)";
+SD_QUIT_06 = "Столовая закрывается в восемь.\nА война нет.\n\n(Нажмите Y, чтобы выйти.)";
+SD_QUIT_07 = "Товарищ, партком\nпотребует объяснений.\n\n(Нажмите Y, чтобы выйти.)";
+SD_QUIT_08 = "Ваш уход записан в журнал.\nПока карандашом.\n\n(Нажмите Y, чтобы выйти.)";
+SD_QUIT_09 = "Барселона ждала сорок лет.\nУрал подождёт до вечера.\n\n(Нажмите Y, чтобы выйти.)";
+SD_QUIT_10 = "Капиталисты только и ждут,\nчтобы вы ушли домой пораньше.\n\n(Нажмите Y, чтобы выйти.)";
+SD_QUIT_11 = "Оставьте радио включённым.\nСменщику будет не так одиноко.\n\n(Нажмите Y, чтобы выйти.)";
+SD_QUIT_12 = "Ленин смотрит со стены.\nИ не одобряет.\n\n(Нажмите Y, чтобы выйти.)";
+SD_QUIT_13 = "Ваша смена кончится,\nкогда кончатся захватчики.\n\n(Нажмите Y, чтобы выйти.)";
+SD_QUIT_14 = "Сдайте винтовку в оружейку\nи распишитесь дважды.\n\n(Нажмите Y, чтобы выйти.)";
+SD_QUIT_15 = "Чай ещё горячий, сержант.\nПосидите ещё немного.\n\n(Нажмите Y, чтобы выйти.)";

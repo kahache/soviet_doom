@@ -111,7 +111,7 @@ RETIRED = {old for _, renames, _, _ in WEAPONS.values() for old in renames}
 CANVASES = {
     "SDIZA0": (266, 93, -136, -95), "SDIZB0": (260, 93, -144, -92), "SDIZC0": (260, 93, -143, -93),
     "SDIZD0": (275, 121, -128, -67), "SDIFA0": (61, 42, -126, -73), "SDIFB0": (37, 25, -145, -84),
-    "SDRLA0": (296, 92, -131, -96), "SDRLB0": (296, 92, -133, -93),
+    "SDRLA0": (301, 92, -131, -96), "SDRLB0": (301, 92, -133, -93),   # the tube runs on straight (rigid_tube)
     "SDRFA0": (37, 27, -159, -85), "SDRFB0": (29, 21, -164, -88),
     "SDRFC0": (22, 17, -169, -90), "SDRFD0": (13, 11, -175, -93),
     "SDRKA0": (181, 92, -135, -96), "SDRKB0": (181, 92, -135, -96), "SDKFA0": (46, 23, -118, -80),
@@ -297,7 +297,9 @@ class SpriteTests(unittest.TestCase):
     def test_mod_spec_retires_the_placeholders(self):
         declared = check_pk3.iwad_sprites_from_spec(check_pk3.DEFAULT_SPEC)
         self.assertFalse(RETIRED & declared, "MOD-SPEC 5.1 still declares them")
-        self.assertLessEqual({"MISL", "PLSS", "PLSE"}, declared, "the projectiles still wear the IWAD's")
+        # D82 (M2c-i) retired the projectiles' MISL / PLSS / PLSE too
+        # (tests/test_effects_install.py).
+        self.assertFalse({"MISL", "PLSS", "PLSE"} & declared, "the projectiles are ours since D82")
 
     def test_every_frame_a_state_uses_is_installed_and_every_lump_is_used(self):
         for weapon in WEAPONS:

@@ -4,15 +4,18 @@ Contract: docs/engine/MOD-SPEC.md 4.5. The lumps themselves (legal names,
 clean MIDI, rights, reproducibility) are tests/test_music.py's, owned by
 sound-designer; this suite pins only the wiring:
 
-  * GameInfo's TitleMusic is D_SDINTL and MAP01's music is D_SDM01;
+  * GameInfo's TitleMusic is D_SDINTL, its IntermissionMusic D_SDTITL
+    (D83: the stats screen, instead of Freedoom's D_DM2INT), and MAP01's
+    music is D_SDM1N2 (D95: composed for it under D92; D_SDM01 no longer ships);
   * D62 (N8): every map of the campaign plays music, walked from MAP01 along
     `next` to the end, so a map added to the chain without a piece fails
-    here; MAP02 (the metro), MAP03 (Tankograd) and RANGE play the drafts
-    assigned to them, pending the CEO's ear (SOUNDTRACK.md 0);
+    here; MAP02 (the metro) and MAP03 (Tankograd) play the pieces assigned
+    to them, and RANGE D_SDM01T since D86 (MAP01's theme cut to its melodic
+    part; D83 rejected D_SDAMUR, which no longer ships);
   * every lump MAPINFO names has a licence row in docs/art/LICENSES.md (the
     register check_pk3 reads) and a row in MUSIC-RIGHTS.md 4.5 (the one
     tools/release.py reads), and SOUNDTRACK.md still calls each draft one;
-  * every `music` / `TitleMusic` value in MAPINFO is "" or a lump the PK3
+  * every `music` / `TitleMusic` / `IntermissionMusic` value in MAPINFO is "" or a lump the PK3
     packs under music/. A misspelt music lump is the silent failure GZDoom
     does not log (SOUNDTRACK.md 7, qa gap 1), so a test is the only net;
   * the same holds in the built package.
@@ -41,12 +44,14 @@ MAPINFO = SRC / "lumps" / "MAPINFO"
 MUSIC_ASSETS = PROJECT_ROOT / "assets" / "music"
 
 TITLE_MUSIC = "D_SDINTL"
-MAP_MUSIC = {"MAP01": "D_SDM01",       # D43, approved
+INTERMISSION_MUSIC = "D_SDTITL"        # D83 (N9e): instead of Freedoom's D_DM2INT
+MAP_MUSIC = {"MAP01": "D_SDM1N2",      # D95 (N9e): compose_map01.py's D_SDM01N2
              "MAP02": "D_SDFUNR",      # D62 draft: «Вы жертвою пали», the metro
              "MAP03": "D_SDGATE",      # D62 draft: «Богатырские ворота», Tankograd
-             "RANGE": "D_SDAMUR"}      # D62 draft: «Амурские волны», the range
-# Assigned by N8 and wired so the CEO hears them in play; not yet heard.
-DRAFTS = ("D_SDFUNR", "D_SDGATE", "D_SDAMUR")
+             "RANGE": "D_SDM01T"}      # D86: D_SDM01E from bar 49, MAP01's theme cut (N9e)
+RETIRED = ("D_SDAMUR", "D_SDM01")     # D83: NO for the range; D95: MAP01's new piece. Neither packed
+# Assigned by N8 and wired so the CEO hears them in play.
+DRAFTS = ("D_SDFUNR", "D_SDGATE")
 CAMPAIGN_START = "MAP01"
 END_OF_CHAIN = "endtitle"
 DOCS = PROJECT_ROOT / "docs"
@@ -55,7 +60,7 @@ MUSIC_RIGHTS = DOCS / "sound" / "MUSIC-RIGHTS.md"
 SOUNDTRACK = DOCS / "sound" / "SOUNDTRACK.md"
 DRAFT_MARK = "pending the CEO's ear"
 
-RE_MUSIC_VALUE = re.compile(r'^\s*(music|TitleMusic)\s*=\s*"([^"]*)"', re.M | re.I)
+RE_MUSIC_VALUE = re.compile(r'^\s*(music|TitleMusic|IntermissionMusic)\s*=\s*"([^"]*)"', re.M | re.I)
 RE_MAP_BLOCK = re.compile(r'^map\s+(\w+)[^{]*\{(.*?)^\}', re.M | re.S | re.I)
 RE_GAMEINFO = re.compile(r'^GameInfo\s*\{(.*?)^\}', re.M | re.S | re.I)
 RE_NEXT = re.compile(r'^\s*next\s*=\s*"?(\w+)"?', re.M | re.I)
@@ -83,6 +88,16 @@ class MapinfoMusicTest(unittest.TestCase):
         gameinfo = RE_GAMEINFO.search(self.code)
         self.assertIsNotNone(gameinfo, "MAPINFO has no GameInfo block")
         self.assertEqual(music_of(gameinfo.group(1), "TitleMusic"), TITLE_MUSIC)
+
+    def test_intermission_music_is_ours(self):
+        gameinfo = RE_GAMEINFO.search(self.code)
+        self.assertEqual(music_of(gameinfo.group(1), "IntermissionMusic"), INTERMISSION_MUSIC)
+        self.assertIn(INTERMISSION_MUSIC, self.packed)
+
+    def test_the_rejected_range_piece_is_gone(self):
+        for lump in RETIRED:
+            self.assertNotIn(lump, self.packed)
+            self.assertNotIn(f'"{lump}"', self.code)
 
     def test_each_map_plays_its_music(self):
         for name, lump in MAP_MUSIC.items():

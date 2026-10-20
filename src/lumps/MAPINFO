@@ -21,6 +21,14 @@ GameInfo
 	// Contract: docs/engine/MOD-SPEC.md 4.5.
 	TitleMusic = "D_SDINTL"
 
+	// D83: the stats screen between maps plays our "Zarya" march, D_SDTITL
+	// (sound-designer, tools/audio/gen_music.py, 2026-10-13), instead of
+	// Freedoom's D_DM2INT, which gzdoom.pk3's mapinfo/doomcommon.txt names
+	// as `intermissionmusic = "$MUSIC_DM2INT"`. This GameInfo loads after
+	// it and overrides the key, as TitleMusic does. Packed from
+	// assets/music/D_SDTITL.mid. Contract: docs/engine/MOD-SPEC.md 4.5.
+	IntermissionMusic = "D_SDTITL"
+
 	// T24: the status bar is ours so the pause sign can follow the language.
 	// SD_StatusBar derives from DoomStatusBar, the class gzdoom.pk3's
 	// mapinfo/doomcommon.txt names here, and overrides only DrawPaused, so
@@ -28,6 +36,49 @@ GameInfo
 	// file order and this PK3 loads after gzdoom.pk3 and the IWAD (Freedoom
 	// defines none). Contract: docs/engine/MOD-SPEC.md 6.5.1; ADR 010.
 	StatusBarClass = "SD_StatusBar"
+
+	// --- M4 shell: no Freedoom page or text in front of the player ----------
+	// (audit docs/qa/2026-10-14_2357_M2-freedoom-audit.md, H4 and H5).
+	// Keys read in gzdoom g4.14.2 src/gamedata/gi.cpp: InfoPage, CreditPage,
+	// FinalePage and QuitMessages CLEAR the inherited list before adding
+	// (the `add...` spellings append), so each line below replaces
+	// mapinfo/doomcommon.txt's value rather than extending it.
+
+	// F1 (CCMD menu_help) and the main menu's "Read This!" row both open
+	// the menu named ReadThisMenu, which the engine swaps for this class
+	// (src/menu/doommenu.cpp, M_SetSpecialMenu). SD_HelpMenu
+	// (zscript/sd/help_menu.zs) opens our credits screen, SD_CreditsMenu
+	// (ADR 009), instead of Freedoom's HELP and CREDIT pictures. A class
+	// that does not exist is a fatal startup error ("Undefined help menu
+	// class"), so tests/test_freedoom_text.py checks the name.
+	HelpMenuClass = "SD_HelpMenu"
+
+	// The pictures the engine's own ReadThisMenu would draw, should anything
+	// still open it: our title (D18), never Freedoom's HELP/CREDIT.
+	InfoPage = "TITLEPIC"
+
+	// The title's idle loop (src/d_main.cpp, D_DoAdvanceDemo): title for
+	// TitleTime (11 s), then for each IWAD demo DEMO1..DEMO4 a "credit page"
+	// for PageTime (5 s). Freedoom's demos are vanilla recordings that
+	// GZDoom refuses ("Cannot play non-GZDoom demos", src/g_game.cpp), so
+	// until now the loop was ~11 s of our title and ~20 s of Freedoom's
+	// CREDIT. With our title as the credit page the screen never leaves it.
+	CreditPage = "TITLEPIC"
+
+	// The end-of-game picture of the engine's default end sequences. Our
+	// ending goes to the title (`endtitle`, MAP03), so this is not reached
+	// today; it is pointed away from Freedoom's CREDIT for safety.
+	FinalePage = "TITLEPIC"
+
+	// The quit prompt: our fifteen lines (LANGUAGE, SD_QUIT_*) instead of
+	// Freedoom's QUITMSG..QUITMSG14, which its DEHACKED fixes in English for
+	// every language. "$*" prints the string without the engine appending
+	// DOSY, Freedoom's English "(Press Y to exit the program.)"
+	// (src/menu/doommenu.cpp, CCMD menu_quit).
+	QuitMessages = "$*SD_QUIT_01", "$*SD_QUIT_02", "$*SD_QUIT_03", "$*SD_QUIT_04",
+	               "$*SD_QUIT_05", "$*SD_QUIT_06", "$*SD_QUIT_07", "$*SD_QUIT_08",
+	               "$*SD_QUIT_09", "$*SD_QUIT_10", "$*SD_QUIT_11", "$*SD_QUIT_12",
+	               "$*SD_QUIT_13", "$*SD_QUIT_14", "$*SD_QUIT_15"
 }
 
 // --- Difficulty ladder ----------------------------------------------------
@@ -140,8 +191,8 @@ cluster 1
 	// in the PK3 (approved batch 1), so the ending does not borrow a
 	// Freedoom floor to say goodbye on.
 	flat = "SDFLR1"
-	// The ending text is read in silence: no lump for it yet (D43 has an
-	// intermission cue, D_SDTITL, still a candidate).
+	// The ending text is read in silence. D_SDTITL is the stats screen's
+	// (GameInfo IntermissionMusic, D83), not the text screens'.
 	music = ""
 }
 
@@ -233,11 +284,14 @@ map MAP01 lookup "SD_MAP01_NAME"
 	// 3's transition text (SD_MAP01_EXIT_TEXT) and nothing else.
 	cluster = 3
 	next = "MAP02"
-	// D43: our own MAP01 theme, packed from assets/music/D_SDM01.mid. Still
-	// never an IWAD lump: the mod depends on no Freedoom music. Every music
+	// D95: MAP01's own piece, composed for it under D92's one exception to
+	// D59 (tools/audio/compose_map01.py, variant D_SDM01N2, 128 BPM), packed
+	// from assets/music/D_SDM1N2.mid (the 8-letter lump name). It replaced
+	// D_SDM01 (D43), which D83 moved off MAP01 and which no longer ships; its
+	// cut D_SDM01T plays on the range (D86). Never an IWAD lump: every music
 	// value in this file is "" or a packed lump (tests/test_mapinfo_music.py),
 	// because a misspelt one plays nothing and logs nothing.
-	music = "D_SDM01"
+	music = "D_SDM1N2"
 	// SKY1 exists in both doom2.wad and freedoom2.wad. The room has no sky
 	// ceiling, but the engine still wants a valid sky texture per map.
 	sky1 = "SKY1"
@@ -344,7 +398,9 @@ map RANGE lookup "SD_RANGE_NAME"
 	// can never run into it (tests/test_practice_range.py).
 	cluster = 2
 	next = endtitle
-	music = "D_SDAMUR"	// D62 draft, pending the CEO's ear (SOUNDTRACK.md 0)
+	// D83 rejected D_SDAMUR here; D86 put MAP01's old theme on the range,
+	// cut to its melodic part (D_SDM01E from bar 49, gen_enemy_alts.py).
+	music = "D_SDM01T"
 	sky1 = "SKY1"
 	nointermission
 }

@@ -1,14 +1,16 @@
-"""N9 (D74): the 25 approved weapon sounds, mastered and installed.
+"""N9 (D74): the 25 approved weapon sounds, mastered and installed; N9e
+(D83) added the IZh-58's shot, SDIZFIR take B.
 
 What is pinned, and why:
 
-  contract   exactly the 25 OK of D74, each in the take the CEO chose
-             (SDAXSWG C, SDAXWAL C, SDTTFIR B, SDPPFIR C, the rest A); the
-             six not approved (NO, "?", or not judged) are never installed,
+  contract   exactly the 25 OK of D74 and SDIZFIR B (D83), each in the take
+             the CEO chose (SDAXSWG C, SDAXWAL C, SDTTFIR B, SDPPFIR C,
+             SDIZFIR B, the rest A); the five not approved (NO or "?") are
+             never installed,
              never rendered by the mastering tool and still play Freedoom
              (or Doom's generic pickup); the reloads parked by D47 are the
              three guns with no reload state
-  files      assets/sounds/weapons/ holds exactly the 25 OGGs, each the file
+  files      assets/sounds/weapons/ holds exactly the 26 OGGs, each the file
              tools/audio/master_weapon_sfx.py installed (SHA-256 pinned in
              INSTALLED_SHA256), each a Vorbis stream
   package    every SNDINFO weapon alias resolves: to a lump packed as
@@ -90,6 +92,7 @@ D74_OK: dict[str, tuple[str, str]] = {
     "SDTTRLD": ("sd/weapon/tokarev/reload", "A"),
     "SDTTDRY": ("sd/weapon/tokarev/dry", "A"),
     "SDIZDRY": ("sd/weapon/izh/dry", "A"),
+    "SDIZFIR": ("sd/weapon/izh/fire", "B"),          # D83, installed by N9e
     "SDPPFIR": ("sd/weapon/ppsh/fire", "C"),
     "SDPPRLD": ("sd/weapon/ppsh/reload", "A"),
     "SDPPPKP": ("sd/weapon/ppsh/pickup", "A"),
@@ -109,22 +112,34 @@ D74_OK: dict[str, tuple[str, str]] = {
     "SDHKPKP": ("sd/weapon/katyusha/pickup", "A"),
     "SDHKDRY": ("sd/weapon/katyusha/dry", "A"),
 }
-# NO (SDTTPKP, SDIZRLD, SDRKFIR), ? (SDAXPKP, SDIZPKP), and SDIZFIR's take
-# B not yet judged: logical name -> what plays today (None: Doom's generic
-# weapon pickup, i.e. no SNDINFO line and no Inventory.PickupSound).
+# D74's drafts of these five were NO or "?": master_weapon_sfx.py refuses
+# them (UNDECIDED there). D94 (N9e) approved alternatives for four, below;
+# the IZh-58's pickup (all three alternatives NO) keeps Doom's generic one.
+D74_REFUSED = ("SDTTPKP", "SDIZRLD", "SDRKFIR", "SDAXPKP", "SDIZPKP")
+# Still not ours: logical name -> what plays (None: Doom's generic weapon
+# pickup, i.e. no SNDINFO line and no Inventory.PickupSound).
 UNDECIDED: dict[str, tuple[str, str | None]] = {
-    "SDTTPKP": ("sd/weapon/tokarev/pickup", None),
-    "SDIZRLD": ("sd/weapon/izh/reload", "DSSGCOCK"),
-    "SDRKFIR": ("sd/weapon/roks3/fire", "DSFLAME"),
-    "SDAXPKP": ("sd/weapon/iceaxe/pickup", None),
     "SDIZPKP": ("sd/weapon/izh/pickup", None),
-    "SDIZFIR": ("sd/weapon/izh/fire", "DSSHOTGN"),
 }
+# D94 (N9e): the approved alternatives of gen_weapon_alts.py. group -> {member: lump}
+D94: dict[str, dict[str, str]] = {
+    "sd/weapon/tokarev/pickup": {"sd/weapon/tokarev/pickup/1": "SDTTPKP1", "sd/weapon/tokarev/pickup/2": "SDTTPKP2"},
+    "sd/weapon/iceaxe/pickup": {"sd/weapon/iceaxe/pickup/1": "SDAXPKP1", "sd/weapon/iceaxe/pickup/3": "SDAXPKP3"},
+    "sd/weapon/izh/reload": {"sd/weapon/izh/reload": "SDIZRLD"},
+    "sd/weapon/roks3/fire": {"sd/weapon/roks3/fire/1": "SDRKFIR1", "sd/weapon/roks3/fire/2": "SDRKFIR2",
+                             "sd/weapon/roks3/fire/3": "SDRKFIR3"},
+}
+D94_LUMPS = {lump: name for g in D94.values() for name, lump in g.items()}
+D94_ALT_OF = {"SDTTPKP1": "SDTTPKP_alt1", "SDTTPKP2": "SDTTPKP_alt2", "SDAXPKP1": "SDAXPKP_alt1",
+              "SDAXPKP3": "SDAXPKP_alt3", "SDIZRLD": "SDIZRLD_alt3", "SDRKFIR1": "SDRKFIR_alt1",
+              "SDRKFIR2": "SDRKFIR_alt2", "SDRKFIR3": "SDRKFIR_alt3"}
+ALT_PAGE_DIR = PROJECT_ROOT / "work" / "audio" / "alt"
 PARKED = {"SDTTRLD", "SDPPRLD", "SDRKRLD"}       # D47: no reload state
 GUNS = {"tokarev.zs": "tokarev", "izh.zs": "izh", "ppsh.zs": "ppsh", "rpg7.zs": "rpg7",
         "roks3.zs": "roks3", "katyusha.zs": "katyusha"}
-PICKUPS = {"ppsh.zs": "ppsh", "rpg7.zs": "rpg7", "roks3.zs": "roks3", "katyusha.zs": "katyusha"}
-NO_PICKUP_SOUND = ("ice_axe.zs", "tokarev.zs", "izh.zs")
+PICKUPS = {"ppsh.zs": "ppsh", "rpg7.zs": "rpg7", "roks3.zs": "roks3", "katyusha.zs": "katyusha",
+           "tokarev.zs": "tokarev", "ice_axe.zs": "iceaxe"}      # the last two since D94 (N9e)
+NO_PICKUP_SOUND = ("izh.zs",)
 
 # The States' tic totals per label as BALANCE.md pins them (unchanged by N9).
 TIC_TOTALS = {
@@ -153,10 +168,12 @@ def master_constant(name: str):
 
 
 def sndinfo_aliases() -> dict[str, str]:
+    """logical name -> lump; `$random` lines (the enemies' takes, N9e) name
+    no lump and are tests/test_enemy_sfx_install.py's."""
     out: dict[str, str] = {}
     for raw in SNDINFO.read_text(encoding="utf-8").splitlines():
         line = raw.split("//")[0].strip()
-        if not line:
+        if not line or line.startswith("$random"):
             continue
         logical, lump = line.split()
         if logical in out:
@@ -205,8 +222,17 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(found, {lump: take for lump, (_, take) in D74_OK.items()})
 
     def test_the_tool_refuses_the_undecided(self):
-        self.assertEqual(set(master_constant("UNDECIDED")), set(UNDECIDED))
-        self.assertFalse(set(UNDECIDED) & set(D74_OK))
+        self.assertEqual(set(master_constant("UNDECIDED")), set(D74_REFUSED))
+        self.assertFalse(set(D74_REFUSED) & set(D74_OK))
+
+    def test_the_tool_installs_exactly_the_d94_alternatives(self):
+        self.assertEqual(set(master_constant("ALT_INSTALLED_SHA256")), set(D94_LUMPS))
+        trimmed = master_constant("ALT_CODEC_TRIMMED")
+        self.assertLessEqual(set(trimmed), set(D94_LUMPS))
+        for lump, db in trimmed.items():
+            self.assertTrue(0 < db <= 2.0, lump)
+        self.assertTrue({"SDIZPKP_alt1", "SDIZPKP_alt2", "SDIZPKP_alt3"}
+                        <= set(master_constant("REJECTED_ALTS")))
 
     def test_the_parked_reloads_are_the_guns_without_a_reload_state(self):
         self.assertEqual(set(master_constant("PARKED")), PARKED)
@@ -224,9 +250,23 @@ class ContractTests(unittest.TestCase):
 # --- Files ------------------------------------------------------------------------
 
 class FileTests(unittest.TestCase):
-    def test_exactly_the_25_oggs(self):
+    def test_exactly_the_34_oggs(self):
         self.assertEqual(sorted(p.name for p in ASSET_DIR.iterdir()),
-                         sorted(f"{lump}.ogg" for lump in D74_OK))
+                         sorted(f"{lump}.ogg" for lump in {**D74_OK, **D94_LUMPS}))
+
+    def test_each_d94_alternative_is_the_installed_file(self):
+        pins = master_constant("ALT_INSTALLED_SHA256")
+        for lump in D94_LUMPS:
+            data = (ASSET_DIR / f"{lump}.ogg").read_bytes()
+            self.assertEqual(sha256(data), pins[lump][1], lump)
+            self.assertTrue(data.startswith(OGG_MAGIC), lump)
+
+    @unittest.skipUnless(ALT_PAGE_DIR.is_dir(), "work/ not present (CI has no work/)")
+    def test_untrimmed_alternatives_are_the_oggs_the_ceo_heard(self):
+        trimmed = master_constant("ALT_CODEC_TRIMMED")
+        for lump, alt in D94_ALT_OF.items():
+            same = (ASSET_DIR / f"{lump}.ogg").read_bytes() == (ALT_PAGE_DIR / f"{alt}.ogg").read_bytes()
+            self.assertEqual(same, lump not in trimmed, lump)
 
     def test_no_undecided_sound_anywhere_in_assets(self):
         for path in (PROJECT_ROOT / "assets").rglob("*"):
@@ -285,8 +325,25 @@ class PackageTests(unittest.TestCase):
 
     def test_every_packed_sound_has_an_alias(self):
         packed = {Path(n).stem for n in self.names if n.startswith("sounds/")}
-        self.assertEqual(packed, set(D74_OK))
+        weapons = {p.stem for p in ASSET_DIR.glob("*.ogg")}
+        self.assertEqual(weapons, set(D74_OK) | set(D94_LUMPS))
+        self.assertLessEqual(weapons, packed)        # the enemies' (N9e) are packed too
         self.assertLessEqual(packed, set(self.aliases.values()))
+
+    def test_the_d94_groups(self):
+        text = SNDINFO.read_text(encoding="utf-8")
+        for group, members in D94.items():
+            with self.subTest(group):
+                if len(members) == 1:
+                    self.assertEqual(self.aliases.get(group), next(iter(members.values())))
+                else:
+                    m = re.search(rf"(?m)^\$random\s+{re.escape(group)}\s*\{{\s*([^}}]*?)\s*\}}", text)
+                    self.assertIsNotNone(m)
+                    self.assertEqual(m.group(1).split(), list(members))
+                    for name, lump in members.items():
+                        self.assertEqual(self.aliases.get(name), lump)
+                for lump in members.values():
+                    self.assertIn(f"sounds/{lump}.ogg", self.names)
 
     def test_the_undecided_still_play_what_they_played(self):
         for lump, (logical, today) in UNDECIDED.items():
@@ -369,7 +426,7 @@ class HookTests(unittest.TestCase):
 class DocumentTests(unittest.TestCase):
     def test_a_licence_row_per_packed_sound(self):
         text = LICENSES.read_text(encoding="utf-8")
-        for lump in D74_OK:
+        for lump in {**D74_OK, **D94_LUMPS}:
             self.assertRegex(text, rf"(?m)^\| `{lump}` \|", lump)
         for lump in UNDECIDED:
             self.assertNotRegex(text, rf"(?m)^\| `{lump}` \|", lump)
@@ -379,7 +436,7 @@ class DocumentTests(unittest.TestCase):
         section = text[text.index("## 10."):]
         for lump in D74_OK:
             self.assertIn(f"`{lump}`", section, lump)
-        pins = master_constant("INSTALLED_SHA256")
+        pins = {**master_constant("INSTALLED_SHA256"), **master_constant("ALT_INSTALLED_SHA256")}
         for lump, (_, ogg) in pins.items():
             self.assertIn(ogg, section, f"{lump}'s OGG hash is not in WEAPON-SOUNDS section 10")
 
@@ -410,13 +467,28 @@ class LoudnessTests(unittest.TestCase):
     def test_never_clips(self):
         for lump, x in self.decoded.items():
             self.assertLess(alts.peak_db(x), mws.DECODED_PEAK_CEILING_DBFS, lump)
+        for lump in D94_LUMPS:
+            x = gws.decode(ASSET_DIR / f"{lump}.ogg")
+            self.assertLess(alts.peak_db(x), mws.DECODED_PEAK_CEILING_DBFS, lump)
+
+    def test_d94_alternatives_in_their_window(self):
+        # their target is the one gen_weapon_alts.py levelled them to for the
+        # page; a codec trim lowers the peaks, and the level by at most ~1 dB
+        for inst in mws.ALT_INSTALLS:
+            x = gws.decode(ASSET_DIR / f"{inst.lump}.ogg")
+            self.assertLessEqual(abs(alts.loud_a_db(x) - inst.target_db),
+                                 mws.LOUDNESS_TOLERANCE_DB + mws.CODEC_LOUDNESS_DB, inst.lump)
 
     def test_louder_than_the_drafts_were_or_turned_down_to_target(self):
         # The drafts' loudest 50 ms A (WEAPON-SOUNDS section 10, "before"): every
         # short lump gained at least 3 dB; none was turned past its target.
+        # SDIZFIR (D83, take B) is the deepest: 7.0 dB short on its master, a
+        # boom with 88 % of its energy under 300 Hz, where A-weighting counts
+        # little; the codec may take up to CODEC_LOUDNESS_DB more.
         for inst in mws.INSTALLS:
             if inst.lump in mws.SHORT_OF_TARGET:
-                self.assertGreater(alts.loud_a_db(self.decoded[inst.lump]), inst.target_db - 7.0, inst.lump)
+                floor = inst.target_db - 7.0 - (mws.CODEC_LOUDNESS_DB if inst.lump == "SDIZFIR" else 0.0)
+                self.assertGreater(alts.loud_a_db(self.decoded[inst.lump]), floor, inst.lump)
 
     def test_bass_only_lumps_were_lifted(self):
         # SDAXHIT, SDRPEXP, SDHKEXP were flagged on the sheet (> 90 % under 300 Hz).
@@ -510,7 +582,7 @@ class TakeTests(unittest.TestCase):
         self.assertEqual(again.wav, self.done[0].wav)
 
     def test_the_undecided_cannot_be_rendered(self):
-        inst = mws.Install("SDIZFIR", "B", "shot", "DSPISTOL", 0.0, "")
+        inst = mws.Install("SDIZRLD", "A", "reload", "DSSHOTGN", 0.0, "")
         with self.assertRaises(ValueError):
             mws.render_draft(inst, self.src)
 
@@ -520,10 +592,10 @@ class TakeTests(unittest.TestCase):
         out, err = io.StringIO(), io.StringIO()
         with redirect_stdout(out):
             self.assertEqual(mws.main(["--list"]), 0)
-        self.assertIn("25 approved (D74)", out.getvalue())
+        self.assertIn("26 approved (D74, D83)", out.getvalue())
         with redirect_stderr(err):
-            self.assertEqual(mws.main(["SDIZFIR"]), 2)
-        self.assertIn("SDIZFIR", err.getvalue())
+            self.assertEqual(mws.main(["SDIZRLD"]), 2)
+        self.assertIn("SDIZRLD", err.getvalue())
 
 
 if __name__ == "__main__":

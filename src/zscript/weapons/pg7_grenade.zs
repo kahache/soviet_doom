@@ -5,8 +5,9 @@
 // A_Explode deals radius damage.
 //
 // A PG-7V is a shaped charge: it punches much harder on a direct hit than a
-// Doom rocket but its blast is tighter. Sprites are Freedoom (IWAD)
-// PLACEHOLDERS (MISL). Final lumps: SDPG A-B plus SDPX A-C for the burst.
+// Doom rocket but its blast is tighter. Sprites are ours since D82: SDPG A
+// in flight (eight rotations, five lumps) and SDPX A-C for the burst, which
+// the Katyusha rocket shares (MOD-SPEC 6.3).
 
 class SD_Pg7Grenade : Rocket
 {
@@ -33,14 +34,14 @@ class SD_Pg7Grenade : Rocket
 	States
 	{
 	Spawn:
-		MISL A 1 Bright;
+		SDPG A 1 Bright;
 		Loop;
 	Death:
 		// XF_HURTSOURCE is the default: the RPG-7 can kill the sergeant, as
 		// Doom's rocket launcher can. Deliberate - it is the risk weapon.
-		MISL B 8 Bright A_Explode(SD_PG7_BLAST_DAMAGE, SD_PG7_BLAST_RADIUS);
-		MISL C 6 Bright;
-		MISL D 4 Bright;
+		SDPX A 8 Bright A_Explode(SD_PG7_BLAST_DAMAGE, SD_PG7_BLAST_RADIUS);
+		SDPX B 6 Bright;
+		SDPX C 4 Bright;
 		Stop;
 	}
 }

@@ -4,8 +4,9 @@
 // the Spawn state runs a fixed number of frames and then falls through to
 // Death, so range = speed x lifetime instead of an arbitrary cut-off.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS (PLSS in flight, PLSE on impact).
-// Final lumps: SDFL A-B in flight, SDFX A-E on impact.
+// Sprites are ours since D82: SDFJ A-B in flight ("flame jet"; not SDFL,
+// which with frame R and rotation 1 would spell the floor flat SDFLR1) and
+// SDFX A-E on impact (MOD-SPEC 6.3).
 
 class SD_FlameBlob : Actor
 {
@@ -37,10 +38,10 @@ class SD_FlameBlob : Actor
 	{
 	Spawn:
 		// 12 frames x 2 tics = 24 tics of flight, then the jet burns out.
-		PLSS ABABABABABAB 2 Bright;
+		SDFJ ABABABABABAB 2 Bright;
 		Goto Death;
 	Death:
-		PLSE ABCDE 3 Bright;
+		SDFX ABCDE 3 Bright;
 		Stop;
 	}
 }
