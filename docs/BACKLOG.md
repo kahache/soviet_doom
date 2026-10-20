@@ -70,6 +70,8 @@ superseded by D79. N8 (further music swaps) has no request open.
 
 ## Done (recent, newest first)
 
+P5 (part, D101): the Windows one-click package on the v1.0 release (335d04b). Open: macOS ~70k, Linux ~55k, GPL source archives attached (downloads need the CEO).
+
 **2026-10-20, ~10:45 to 16:35: the rest of the MVP, v1.0 shipped.** At
 10:45 the plan for what was left was ~3 050k tokens (range 2 600-3 800k,
 `docs/product/2026-10-20_1045_P0_mvp-status.md`); all of it closed the same
