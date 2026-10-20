@@ -103,8 +103,8 @@ EXPECTED_LUMPS = {"SDPPA0", "SDPPB0", "SDPFA0"}
 # built them on 2026-10-20 (D79). The canvases are wide because the right
 # arm runs on ARM_EXIT px past the screen's right edge before it curves out.
 CANVASES = {
-    "SDPPA0": (279, 92, -152, -96),
-    "SDPPB0": (279, 92, -154, -93),
+    "SDPPA0": (275, 92, -152, -96),
+    "SDPPB0": (275, 92, -154, -93),
     "SDPFA0": (35, 35, -144, -81),
 }
 

@@ -105,21 +105,36 @@ class TestGeminiFrames(unittest.TestCase):
         self.assertTrue((small[:, -5] >= 0).any())   # the arm runs on to the right
         self.assertFalse((small[:, -1] >= 0).any())  # and has curved down out before the last column
 
-    def test_arm_runs_on_textured_and_curves_out(self):
-        """D79: no one-column smear (streaks), no box edge: the extension
-        mirrors the last EDGE_TILE columns and drops monotonically."""
+    def test_arm_runs_on_as_a_plain_sleeve_and_curves_out(self):
+        """2026-10-20: the extension repeats no column of the art (mirroring
+        the edge read as a hairy log); it is a tube in the sleeve's ramp
+        (the bottom row's colour), as tall as the cut so it hides it, a dark
+        seam where it takes over, outline on top, and it drops monotonically
+        out of the canvas before its last column."""
+        olive = int(np.argmin(((self.pal.astype(int) - (92, 71, 25)) ** 2).sum(axis=1)))
         idx = np.full((30, 40), gf.TRANSPARENT, np.int32)
-        idx[10:30, 20:40] = self.rng.integers(0, len(self.pal), (20, 20))   # an arm cut by the right side
-        out = gf.extend_edges(idx, 48, 6, tile=8)
+        idx[10:30, 20:40] = self.rng.integers(0, len(self.pal), (20, 20))   # skin/wood cut by the right side
+        idx[26:30, 20:40] = olive                                         # the sleeve enters from below
+        out = gf.extend_edges(idx, 48, 6, tile=8, pal=self.pal)
         self.assertEqual(out.shape, (36, 88))
+        self.assertTrue((out[:30, :40] == idx).all())                    # the art itself untouched
         ext = out[:, 40:]
         tops = [int(np.flatnonzero(c >= 0)[0]) if (c >= 0).any() else out.shape[0] for c in ext.T]
         self.assertEqual(tops, sorted(tops))                     # it only ever goes down
         self.assertEqual(tops[-1], out.shape[0])                 # gone before the last column
-        self.assertTrue((out[10:30, 40] == idx[10:30, 39]).all())    # first new column mirrors the edge
-        self.assertTrue((out[10:30, 41] == idx[10:30, 38]).all())
-        rows = [ext[r, :8] for r in range(11, 16)]
-        self.assertTrue(any(len(set(r.tolist())) > 1 for r in rows), "not a one-column smear")
+        self.assertEqual(tops[0], 10)                            # as tall as the cut: it hides it
+        ramp = gf.sleeve_ramp(idx, self.pal, 8)
+        self.assertEqual(ramp[2], olive)                         # mid tone = the sleeve's colour
+        self.assertEqual(set(ext[ext >= 0].tolist()), set(ramp))  # only the sleeve's shades
+        self.assertTrue((ext[10:, 0] == ramp[0]).all())          # the seam
+        lum = self.pal[ramp].astype(int).sum(axis=1)
+        self.assertLess(lum[0], lum[3])                          # outline darkest,
+        self.assertLess(lum[3], lum[2])                          # then shadow < mid < light
+        self.assertLess(lum[2], lum[1])
+        col = ext[:, 10]
+        t = int(np.flatnonzero(col >= 0)[0])
+        self.assertEqual(col[t], ramp[0])                        # outline on the tube's top edge
+        self.assertEqual(col[t + 1], ramp[1])
 
     def test_arm_exits_left_only_when_cut_there(self):
         idx = np.full((20, 30), gf.TRANSPARENT, np.int32)
