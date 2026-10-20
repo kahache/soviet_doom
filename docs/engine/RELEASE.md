@@ -135,3 +135,95 @@ is read correctly:
   its Obligation cell either `credit Name` or `none`.
 - Then add the name to the `SD_CRED_*` lines in both languages
   (`tests/test_credits.py` already demands it for the screen).
+
+## 4. Portable packages (P5)
+
+ROADMAP P5 (D93), pulled forward for the CEO's friends: one download per OS
+that needs nothing else. **Windows exists** (`tools/release_portable.py`,
+2026-10-20); macOS and Linux are not made yet (see 4.4).
+
+### 4.1 Making the Windows package
+
+```bash
+.venv/Scripts/python.exe tools/release.py --version 1.0 --out-dir <dir>     # or the v1.0 release asset
+.venv/Scripts/python.exe tools/release_portable.py --version 1.0 --out <outside-the-repo> \
+    --release-zip <dir>/sovietdoom-1.0.zip
+# -> <out>/sovietdoom-1.0-windows.zip and sovietdoom-1.0-windows.zip.sha256
+```
+
+`--out` is mandatory and must be **outside the repo** (the zip is ~36 MB:
+GZDoom and Freedoom are in it). `--release-zip` repackages a zip made by
+`tools/release.py` (checked: one folder, exactly its eight files, its
+SHA256SUMS true), so the portable package carries the very PK3 that was
+signed off; without it, the tool runs `release.make_release` on the tree
+(dirty trees refused unless `--allow-dirty`, tests only). The engine comes
+from the local install (`%LOCALAPPDATA%\Programs\GZDoom`, or `--engine-dir`)
+and must be g4.14.2; `freedoom2.wad` comes from `iwads/` and must be
+Freedoom 0.13.0 (SHA-256 `a8772e08…`, pinned). Nothing is downloaded.
+Same inputs, same bytes: entries sorted, every timestamp the release zip's
+(the commit's time). Tests: `tests/test_release_portable.py`
+(`RealPortableTest`, which needs the installed engine, is in the art tier
+and skips on CI).
+
+### 4.2 What the zip holds
+
+One folder, `SovietDoom/`:
+
+| File | Why |
+|---|---|
+| `Jugar Soviet Doom.bat`, `Play Soviet Doom.bat` | the launchers, same command: `cd /d "%~dp0"`, then `start "" "%~dp0gzdoom.exe" -iwad "%~dp0freedoom2.wad" -file "%~dp0sovietdoom.pk3"`. If `gzdoom.exe` is not beside the .bat (opened from inside the zip without extracting) it says to extract first and waits. ASCII and CRLF |
+| `LEEME.txt`, `README-FIRST.txt` | Spanish and English: unzip anywhere but Program Files, double-click, SmartScreen ("Más información → Ejecutar de todas formas"; or tick "Desbloquear" on the zip before extracting), Russian (the menu path read from `LANGUAGE`), the keys, where saves live, the licences. UTF-8 with BOM, CRLF |
+| `gzdoom.exe`, `gzdoom.pk3`, `zmusic.dll`, `openal32.dll`, `sndfile.dll`, `licenses.zip`, `soundfonts/`, `fm_banks/`, `lights.pk3`, `brightmaps.pk3`, `game_support.pk3`, `game_widescreen_gfx.pk3` | GZDoom g4.14.2 for Windows, unmodified. Only these names are copied (`ENGINE_FILES`, `ENGINE_DIRS`): a user's ini, `Save/`, screenshots or WADs in the install folder never ship |
+| `gzdoom_portable.ini` | GZDoom's portable switch (4.3); comment lines only, GZDoom fills it on the first run |
+| `freedoom2.wad`, `LICENSE-FREEDOOM-BSD-3.txt` | Freedoom: Phase 2 0.13.0 and its BSD notice |
+| `sovietdoom.pk3`, `LICENSE.md`, `LICENSE-GPL-3.0.txt`, `LICENSE-CC-BY-NC-SA-4.0.txt`, `CREDITS.txt` | the release's files, byte for byte |
+| `README.txt` | the release's readme with a note on top (EN/RU) saying GZDoom and Freedoom are already here |
+| `GZDOOM-SOURCE.txt` | GPL: the exact source (the `g4.14.2` tag and its source archives on GitHub), the DLLs' libraries and their source (OpenAL Soft 1.23.1, libsndfile 1.2.2, ZMusic), a written offer, and the SHA-256 of every engine file |
+| `SHA256SUMS` | every other file of the folder |
+
+### 4.3 How GZDoom behaves (read from the g4.14.2 source, not run by an agent)
+
+- **No IWAD picker.** [d_iwad.cpp](https://github.com/ZDoom/gzdoom/blob/g4.14.2/src/d_iwad.cpp), `IdentifyVersion`: the picker opens
+  when `queryiwad` is on and there is no `-iwad`, or when more than one
+  candidate remains; a found `-iwad` leaves one. So `-iwad` alone suffices,
+  even on a PC with Steam/GOG Doom installed; no `+queryiwad 0` (a `+`
+  command runs after the IWAD is chosen anyway). The path is absolute
+  because a relative `-iwad` is only looked up in the config's IWAD search
+  directories.
+- **Portable config.** [i_specialpaths.cpp](https://github.com/ZDoom/gzdoom/blob/g4.14.2/src/common/platform/win32/i_specialpaths.cpp),
+  `IsPortable`: if the program folder is not under `%ProgramFiles%` or
+  `%ProgramFiles(x86)%`, and `gzdoom_portable.ini` exists in it and opens
+  for read and write, GZDoom prints "Using portable configuration" and uses
+  that file as its ini; `Save/`, `Screenshots/` and `Demos/` go in the
+  program folder too, and the "documents" path is the program folder.
+  Under Program Files, or read-only, it falls back to
+  `Documents\My Games\GZDoom` (hence "not in Program Files" in the guides).
+  `M_GetAppDataPath` and `M_GetCachePath` ignore portability
+  (`%LOCALAPPDATA%\gzdoom`, `%LOCALAPPDATA%\zdoom\cache`); on this PC
+  neither folder exists after every engine run of the project, so nothing
+  observed is written there. NOT VERIFIED by running the bundle: the PM
+  tests it (unzip to a fresh folder, run the .bat, check the log says
+  "Using portable configuration" and that `Save\` appears in the folder).
+- **SmartScreen.** GZDoom is unsigned. A zip downloaded from the web
+  carries the mark of the web, and Explorer passes it on to the extracted
+  files, so Windows may show "Windows protected your PC" or the "Open
+  File - Security Warning". Unblocking the zip before extracting removes
+  the mark. Signing would need a code-signing certificate (not planned).
+
+### 4.4 GPL and the other platforms
+
+GZDoom is GPL 3.0, OpenAL Soft and libsndfile LGPL. Distributing their
+binaries from a server is GPL 3.0 §6(d): offer the corresponding source
+"in the same way through the same place", or on another server with clear
+directions next to the binaries; we stay responsible for it remaining
+available. `GZDOOM-SOURCE.txt` gives the directions and a written offer;
+the robust choice is to also attach the GZDoom g4.14.2 source archive
+(and those of the three libraries) to the GitHub release (a CEO decision:
+it is a download).
+
+macOS (a `GZDoom.app` of g4.14.2 with the IWAD and PK3 beside it and a
+`.command` launcher; not signed or notarised by us, so Gatekeeper asks for
+right-click → Open, or System Settings → Privacy & Security → Open Anyway)
+and Linux (a tarball with a start script, or an AppImage) are not made yet;
+which g4.14.2 builds exist for them is NOT VERIFIED (no download was made).
+The P5 row in `docs/BACKLOG.md` carries them.
