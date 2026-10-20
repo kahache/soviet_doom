@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Música nueva MAP01</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1d1d1b;--mute:#6b6862;--line:#dcd8cf;--accent:#a3201c;--ok:#1f7a3a;--no:#b3261e;--q:#9a6a00;--chip:#efece4}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--card:#202020;--ink:#ebe8e2;--mute:#a19d95;--line:#3a3834;--accent:#e0574f;--ok:#4cc074;--no:#f0726a;--q:#e3b341;--chip:#2c2b29}}
+:root[data-theme="dark"]{--bg:#161616;--card:#202020;--ink:#ebe8e2;--mute:#a19d95;--line:#3a3834;--accent:#e0574f;--ok:#4cc074;--no:#f0726a;--q:#e3b341;--chip:#2c2b29}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px 48px}
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 0}
+header.top .wrap{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding-bottom:0}
+h1{font-size:18px;margin:0;font-weight:650}
+h2{font-size:15px;margin:22px 0 8px}
+.prog{font-variant-numeric:tabular-nums;color:var(--mute)}
+.prog b{color:var(--ink)}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:5px 10px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.intro p{margin:6px 0}
+.intro ul{margin:6px 0;padding-left:20px}
+.card{border:1px solid var(--line);border-radius:8px;background:var(--card);margin:12px 0}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:10px 16px;padding:12px}
+.row.v-ok{box-shadow:inset 4px 0 var(--ok)}.row.v-no{box-shadow:inset 4px 0 var(--no)}.row.v-q{box-shadow:inset 4px 0 var(--q)}
+.name code{font:600 14px ui-monospace,Consolas,monospace}
+.ev{display:inline-block;background:var(--chip);border-radius:10px;padding:0 8px;margin-left:6px;font-size:12px;color:var(--mute)}
+.meta{color:var(--mute);font-size:12.5px;margin:3px 0}
+.meta b{color:var(--ink);font-weight:600}
+audio{width:100%;height:34px;margin:6px 0}
+.jumps{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.jumps button{font-size:12px;padding:3px 8px}
+.vote{display:flex;flex-direction:column;gap:6px}
+.btns{display:flex;gap:6px}
+.btns button{flex:1;font-weight:650;padding:6px 0}
+.btns button.on.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btns button.on.no{background:var(--no);border-color:var(--no);color:#fff}
+.btns button.on.q{background:var(--q);border-color:var(--q);color:#111}
+textarea.note{width:100%;min-height:52px;resize:vertical;font:inherit;font-size:13px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);padding:5px 7px}
+.ref{padding:12px}
+.ref .name::after{content:"referencia";margin-left:8px;font-size:11px;border:1px solid var(--line);border-radius:10px;padding:0 7px;color:var(--mute)}
+table.form{width:100%;border-collapse:collapse;font-size:13px}
+table.form th,table.form td{border-top:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+table.form th{color:var(--mute);font-weight:600;font-size:12px}
+#result{width:100%;min-height:120px;font:12.5px ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);padding:10px}
+.copied{color:var(--ok);font-weight:600;margin-left:8px}
+footer{color:var(--mute);font-size:12.5px;margin-top:24px}
+@media (max-width:720px){.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <h1>Música nueva para MAP01 (Zarya-7)</h1>
+  <span class="prog"><b id="pDone">0</b> / 2 juzgadas</span>
+  <button class="primary" id="copyTop">Copiar resultado</button><span class="copied" id="copiedTop"></span>
+</div></header>
+<div class="wrap">
+<div class="intro">
+  <p><b>Qué es (D92).</b> Una pieza <b>nueva y original</b> compuesta para el primer mapa, al estilo de <code>D_SDM01T</code> (la parte melódica que te gustó): las mismas trompas llevando la melodía, la misma orquesta General MIDI que suena en GZDoom (bajo sintético, chelos, cuerdas en trémolo, trombones, trompas, pad frío, cristal) más timbales. Pero con <b>empuje de combate</b>: la melodía entra en el primer compás, debajo nunca para un ritmo (bajo galopando, chelos en corcheas, timbales y caja de marcha) y vuelve al principio sin corte.</p>
+  <p><b>Forma</b> (48 compases, re menor, dos versiones con las mismas notas):</p>
+  <table class="form">
+    <tr><th>Sección</th><th>Compases</th><th>Qué pasa</th></tr>
+    <tr><td><b>A · Tema</b></td><td>1-16</td><td>Las trompas cantan el tema desde el primer golpe; debajo, galope del bajo, chelos en corcheas, timbales en 1 y 3, caja de marcha. Platillo al entrar.</td></tr>
+    <tr><td><b>B · Avance</b></td><td>17-32</td><td>Pasa a fa mayor: los trombones llaman y las trompas responden; luego todos juntos en octavas, con cuerdas en trémolo y caja más densa. Un acorde de mi bemol lo devuelve a la tensión.</td></tr>
+    <tr><td><b>C · Lamento y vuelta</b></td><td>33-48</td><td>12 compases de trompa sola, más lírica, sobre un pulso más ligero pero que no se detiene (con el «cristal» lejano de D_SDM01T); los 4 últimos suben sobre la dominante con redoble de caja y timbales, y el bucle cae de golpe en el tema.</td></tr>
+  </table>
+  <p class="meta">Renders con el propio sintetizador de GZDoom (zmusic + gzdoom.sf2), sin arrancar el juego. Cada audio <b>sigue 10 s después del punto de bucle</b>: lo que suena tras el redoble es el principio otra vez, así se oye la costura. Volumen igualado con D_SDGATE (Tankograd), la pieza de combate aprobada más fuerte. Usa los botones para saltar a cada sección.</p>
+</div>
+
+<h2>Para juzgar</h2>
+<div id="items"></div>
+
+<h2>Referencia: la que te gustó</h2>
+<div class="card ref">
+  <div class="name"><code>D_SDM01T</code><span class="ev">0:53 · 108 BPM</span></div>
+  <p class="meta">La pieza de MAP01 recortada desde el lamento (D86: aprobada, para el campo de tiro). Está aquí solo para comparar estilo e instrumentos.</p>
+  <audio controls preload="none" src="../../../work/audio/music_trim/D_SDM01T.ogg"></audio>
+</div>
+
+<h2>Resultado</h2>
+<textarea id="result" readonly></textarea>
+<p><button class="primary" id="copyBottom">Copiar resultado</button><span class="copied" id="copiedBottom"></span> <button id="reset">Borrar respuestas</button></p>
+<footer>Generador: <code>tools/audio/compose_map01.py</code> · MIDIs: <code>work/audio/D_SDM01N.mid</code>, <code>D_SDM01N2.mid</code> · niveles: <code>work/audio/map01_new/LEVELS.txt</code> · tests: <code>tests/test_compose_map01.py</code>. Nada instalado: si una vale, la instala el PM con tu OK.</footer>
+</div>
+<script>
+const ITEMS = [
+  {id:"D_SDM01N", src:"../../../work/audio/map01_new/D_SDM01N.ogg", len:"1:39", bpm:116,
+   what:"La versión principal: 116 BPM, las trompas solas en el tema (lo más parecido al color de D_SDM01T).",
+   jumps:[["A · Tema",0],["B · Avance",33.1],["C · Lamento",66.2],["Subida",91.0],["Costura (−5 s)",94.3]]},
+  {id:"D_SDM01N2", src:"../../../work/audio/map01_new/D_SDM01N2.ogg", len:"1:30", bpm:128,
+   what:"Más rápida y pesada: 128 BPM, los trombones doblan el tema desde el compás 9, caja en corcheas también en A, bombo doble en B. Mismas notas.",
+   jumps:[["A · Tema",0],["B · Avance",30.0],["C · Lamento",60.0],["Subida",82.5],["Costura (−5 s)",85.0]]},
+];
+const KEY = "sd-2026-10-20_1236_M3_map01-new-music";
+let S = {};
+try { S = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { S = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+const st = id => (S[id] = S[id] || {v:"", n:""});
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function build(){
+  document.getElementById("items").innerHTML = ITEMS.map(it => `
+  <div class="card"><div class="row" id="r-${it.id}" data-id="${it.id}">
+    <div>
+      <div class="name"><code>${it.id}</code><span class="ev">${it.len} · ${it.bpm} BPM · bucle + 10 s</span></div>
+      <p class="meta">${esc(it.what)}</p>
+      <audio controls preload="none" src="${esc(it.src)}"></audio>
+      <div class="jumps">${it.jumps.map(([l, t]) => `<button data-t="${t}">${esc(l)}</button>`).join("")}</div>
+    </div>
+    <div class="vote">
+      <div class="btns"><button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div>
+      <textarea class="note" placeholder="Notas (qué sobra, qué falta, en qué segundo)">${esc(st(it.id).n)}</textarea>
+    </div>
+  </div></div>`).join("");
+  ITEMS.forEach(i => paint(i.id));
+}
+function paint(id){
+  const r = document.getElementById("r-" + id), s = st(id);
+  r.classList.remove("v-ok","v-no","v-q");
+  if (s.v) r.classList.add("v-" + s.v);
+  r.querySelectorAll(".btns button").forEach(b => b.classList.toggle("on", b.dataset.v === s.v));
+}
+function summary(){
+  const label = {ok:"OK", no:"NO", q:"?"};
+  const done = ITEMS.filter(i => st(i.id).v).length;
+  document.getElementById("pDone").textContent = done;
+  const L = [`Música nueva MAP01 (2026-10-20_1236_M3, D92): ${done}/${ITEMS.length} juzgadas`];
+  for (const i of ITEMS) {
+    const s = st(i.id), n = (s.n || "").trim().replace(/\s+/g, " ");
+    L.push(`${i.id}: ${label[s.v] || "sin juzgar"}${n ? ` — «${n}»` : ""}`);
+  }
+  document.getElementById("result").value = L.join("\n");
+}
+function copy(which){
+  const t = document.getElementById("result"), msg = document.getElementById(which);
+  summary();
+  const ok = () => { msg.textContent = "copiado"; setTimeout(() => msg.textContent = "", 2500); };
+  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? ok() : (msg.textContent = "selecciona y Ctrl+C abajo"); } catch (e) { msg.textContent = "selecciona y Ctrl+C abajo"; } };
+  try { if (navigator.clipboard && window.isSecureContext !== false) navigator.clipboard.writeText(t.value).then(ok, fallback); else fallback(); } catch (e) { fallback(); }
+}
+document.addEventListener("click", e => {
+  const j = e.target.closest(".jumps button");
+  if (j) { const a = j.closest(".row").querySelector("audio"); a.currentTime = +j.dataset.t; a.play(); return; }
+  const b = e.target.closest(".btns button"); if (!b) return;
+  const id = b.closest(".row").dataset.id, s = st(id);
+  s.v = s.v === b.dataset.v ? "" : b.dataset.v; save(); paint(id); summary();
+});
+document.addEventListener("input", e => {
+  const r = e.target.closest(".row"); if (!r || !e.target.classList.contains("note")) return;
+  st(r.dataset.id).n = e.target.value; save(); summary();
+});
+document.addEventListener("play", e => { document.querySelectorAll("audio").forEach(a => { if (a !== e.target) a.pause(); }); }, true);
+document.getElementById("copyTop").addEventListener("click", () => copy("copiedTop"));
+document.getElementById("copyBottom").addEventListener("click", () => copy("copiedBottom"));
+document.getElementById("reset").addEventListener("click", () => { if (confirm("¿Borrar las respuestas y notas de esta hoja?")) { S = {}; save(); build(); summary(); } });
+build(); summary();
+</script>
+</body>
+</html>
