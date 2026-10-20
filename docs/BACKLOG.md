@@ -27,9 +27,8 @@ Checked against the repo on 2026-10-20 ~10:45 (pmo / Product, stage 6).
 | M2b-i | M2 | (queued behind M2a-i, same files; approved D81) Install the enemy shells SDDL/SDPL (today `BAL2`/`BAL7`) | mod-engineer | 80 (plan 130) | CEO OK on `2026-10-19_2200_F5_enemy-shells.html` |
 | M2c-i | M2 | (queued behind M2a-i and M2b-i; approved D82) Install the player effects (SDPG, SDKR, SDPX, SDFJ/SDFX, PUFF, BLUD, TFOG/IFOG, BAR1/BEXP, COLU; today `MISL`, `PLSS`/`PLSE` and Freedoom's) | mod-engineer | 150 (plan 250) | CEO OK on `2026-10-19_2208_F4_player-effects.html` |
 | N9e | M3 | (queued behind M2c-i, same files) Install the 30 enemy sounds and 5 beds approved in D83 + SDIZFIR take B, loudness pass, SNDINFO; `D_SDTITL` as intermission music (today Freedoom's `D_DM2INT`) | sound-designer + mod-engineer | 250 (N9w, 25 sounds, cost 400: plan 400) | D83 |
-| N14-I | M2 | (queued behind M2a-i, same files) Install the IZh-58, RPG-7, ROKS-3 and Katyusha Gemini frames (D84) + engine pass | mod-engineer | 120 | D84 |
-| N14-AX | M2 | Ice axe strike frame: the arm leaves straight, not curved (D84) | art-director | 30 | doing |
-| N14-G | M2 | (waiting CEO) The other five weapons from the CEO's Gemini frames (IZh-58, RPG-7, ROKS-3, hand Katyusha, ice axe): **drafted** (dbd82e4, in `work/` and the draft overlay, not installed), seen in engine (`docs/art/previews/2026-10-20_1037_F4_five-weapons-gemini-in-engine.png`); install each after the CEO's OK, as the PPSh-41 (b5bd434) | art-director + mod-engineer | ~120 per weapon install, ~600 for five (PPSh-41: install 150 + fix 40) | the CEO's OK per weapon |
+| N14-I | M2 | (queued behind M2a-i, same files) Install the IZh-58, RPG-7, ROKS-3 and Katyusha Gemini frames (D84) + engine pass | mod-engineer | 120 (PPSh-41 install alone cost 150 + 40: plan 250) | D84 |
+| N14-AX | M2 | Ice axe strike frame: the arm leaves straight, not curved (D84) | art-director | 30, then ~80 to install after the CEO's OK (plan 120) | doing; the CEO's OK (D84) |
 
 ## Next (approved order, D63)
 
@@ -45,20 +44,21 @@ Checked against the repo on 2026-10-20 ~10:45 (pmo / Product, stage 6).
 | N16 | M4 | Ship v1: G6 gate, QA sign-off, tag v1.0; with the G6-readiness leftovers G7 (in-game credits refresh for the new assets and sounds), G10 (RELEASE.md §2 refresh: rows 1 and 6 per D75), G16 (repo README status line); optional G15, G17 | qa-engineer + PM + mod-engineer | 250 (plan 350) | everything above; the CEO's "publish or not" |
 
 N14 (weapons from Fooocus references, ~1 500k) and N4 (the ice axe round 2) are
-superseded by D79: the five weapons were drafted from Gemini frames (N14-G).
+superseded by D79: the five weapons were drafted from Gemini frames (N14-G,
+dbd82e4); D84 approved four (N14-I) and sent the ice axe back (N14-AX).
 
-**MVP left, recomputed 2026-10-20 with the real costs logged so far: ~3 300k
-tokens (range 2 800-4 000k).** Real costs ran 1.4x the estimates overall
+**MVP left, recomputed 2026-10-20 with the real costs logged so far: ~3 050k
+tokens (range 2 600-3 800k).** Real costs ran 1.4x the estimates overall
 (21 closed tasks: 4 207k real against 3 005k estimated) and 1.7x on installs
-(N17, N12c, N13, N9w), so the plan numbers above are used: M2 ~1 280k (M2a-i
-300, M2b-i 130, M2c-i 250, N14-G 600), M3 ~750k (N9m 200, N9e 400, N9 150),
-M4 ~1 250k (M2e ~600, N11 300, N16 350). Not counted: N7b/N7c, N15, N8 extra
-swaps. Snapshot: `docs/product/2026-10-20_1045_P0_mvp-status.md`.
+(N17, N12c, N13, N9w), so the plan numbers above are used: M2 ~1 050k (M2a-i
+300, M2b-i 130, M2c-i 250, N14-I 250, N14-AX 120), M3 ~750k (N9m 200, N9e
+400, N9 150), M4 ~1 250k (M2e ~600, N11 300, N16 350). Not counted: N7b/N7c,
+N15, N8 extra swaps. Snapshot: `docs/product/2026-10-20_1045_P0_mvp-status.md`.
 
 ## Waiting for the CEO
 
-See `docs/PENDING-CEO-DECISIONS.md`: the five Gemini weapons in engine, the
-15 sound alternatives (N9a), then N9m's listening page.
+See `docs/PENDING-CEO-DECISIONS.md`: the ice axe's straight strike arm
+(N14-AX), the 15 sound alternatives (N9a), then N9m's listening page.
 
 ## Parked (after the MVP, D60)
 
@@ -68,14 +68,14 @@ See `docs/PENDING-CEO-DECISIONS.md`: the five Gemini weapons in engine, the
 | G3 hostile pass and hand-played runs, per map | P1 | 150 per map |
 | Balance tuning by playtest (BALANCE §5) | P1 | 300 |
 | Weapon reloads (`docs/ICEBOX.md`) | P1 | 400 |
-| Voices: process the CEO's takes or the local generator's output (D36, after R1) | P2 | 300 |
+| Voices: Chatterbox cloned from the CEO's own voice (D85), the script in EN/DE, then processing | P2 | 250 |
 | The Russian docs mirror (phase close, D34) | P3 | 400 |
 | **Mine Freedoom's 68 maps (BSD) to calibrate our map constants** (`docs/product/2026-10-13_0944_F3_ml-level-generation.md` §6), D69: only when the full game starts | P4 | 500 |
 | **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
 
-**2026-10-20 morning:** the CEO's verdicts D80-D83 (pickups, shells, effects, the listening sheet 80 of 80); the five other weapons drafted from the CEO's Gemini frames (dbd82e4, preview dc49b40), cost not logged.
+**2026-10-20 morning:** the CEO's verdicts D80-D83 (pickups, shells, effects, the listening sheet 80 of 80); the five other weapons drafted from the CEO's Gemini frames (dbd82e4, preview dc49b40), cost not logged; D84 approved four of them.
 
 G9: player LICENSE.md and CREDITS.txt without repo paths, Freedoom's BSD-3 notice in the zip (hash pinned), the AI line in the credits, in-game credits corrected (465a83e); real cost not logged (est. 40k).
 
