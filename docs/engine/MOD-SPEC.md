@@ -926,7 +926,7 @@ in the IWAD.
 
 | Class | Type | Purpose |
 |---|---|---|
-| `SD_LoadReporter` | `EventHandler` | `WorldLoaded` → `Console.PrintfEx(PRINT_HIGH|PRINT_NONOTIFY, "SOVIETDOOM loaded: …")`: console and log only, never the HUD (QA-G6-2). Pipeline smoke test. No gameplay effect. |
+| `SD_LoadReporter` | `EventHandler` | `WorldLoaded` → `Console.PrintfEx(PRINT_HIGH | PRINT_NONOTIFY, "SOVIETDOOM loaded: …")`: console and log only, never the HUD (QA-G6-2). Pipeline smoke test. No gameplay effect. |
 | `OptionMenuItemSDLanguageOption` | `OptionMenuItemOption` | The Language row: overrides `GetSelection` only, so any `language` value shows Automatic, English or Russian (QA-G6-1, ADR 004 D-004-7). Writes nothing. |
 | `SD_Player` | `DoomPlayer` | The sergeant. Starts with `SD_Tokarev` and 50 `Clip`, nothing else: no ice axe and no `Fist`, so slot 1 is empty until the ice axe is picked up (since 2026-10-13, `BALANCE.md` §4.1). Declares slots 1–7. |
 | `SD_IceAxe` | `Fist` *replaces Fist* | Slot 1, melee: the ice axe (D40; was `SD_Shovel`). Found, never issued: MAP01 places it on the dorm's rack (every skill, reachable with every door shut), `RANGE` on the range. |
