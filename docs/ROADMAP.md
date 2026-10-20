@@ -44,6 +44,7 @@ whole episode in English or Russian:
 | P3 | Russian docs | the full `docs/ru/` mirror (D34) |
 | P4 | **The full game: 15-20 levels** (D69) | its own roadmap when v1 ships; starts by mining Freedoom's 68 maps (BSD) to calibrate our map constants; Ultimate Doom Builder if N15 says yes |
 | P5 | **Portable downloads for everyone** (D93) | a public download page on GitHub (Releases of a public repo, no account needed) with a ready-to-run package per OS: Windows (portable zip and/or installer), macOS (app bundle) and Linux (AppImage or tarball), each bundling GZDoom (GPL: source offer), Freedoom (BSD notice) and our PK3; double-click to play. Publishing publicly is a CEO decision at the time. |
+| P6 | **Catalan** (D97) | a third game language: every in-game string, menus, the pause sign and status-bar labels, README and credits in Catalan, with the language switch; reviewed once at the end like N11 |
 
 The old phases F3 (MAP01), F4 (arsenal) and F5 (bestiary) fold into M1-M3;
 their gates G3-G5 stay as the per-map and per-asset checks inside them.
