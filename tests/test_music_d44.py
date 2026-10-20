@@ -157,9 +157,12 @@ class FileTests(unittest.TestCase):
 
     def test_draft_names_are_legal_lumps_installed_as_drafts(self):
         """D62 (N8): installed so the CEO hears them in play (MAP02, RANGE),
-        still drafts until he approves them by ear."""
+        still drafts until he approves them by ear. D83 rejected the waltz for
+        the range: since N9e it no longer ships (D_SDM01T plays there, D86)."""
         soundtrack = SOUNDTRACK.read_text(encoding="utf-8")
-        for lump in (gm.FUNERAL_LUMP, gm.AMUR_LUMP):
+        self.assertEqual(gm.AMUR_LUMP, validate_lump_name(gm.AMUR_LUMP))
+        self.assertFalse((MUSIC_ASSETS / f"{gm.AMUR_LUMP}.mid").exists(), "D83: NO for the range")
+        for lump in (gm.FUNERAL_LUMP,):
             with self.subTest(lump=lump):
                 self.assertEqual(lump, validate_lump_name(lump))
                 self.assertTrue((MUSIC_ASSETS / f"{lump}.mid").is_file(), "D62 installs it")

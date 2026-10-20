@@ -1,12 +1,12 @@
 # WEAPON-SOUNDS — the arsenal's own sounds
 
-Owner: `sound-designer`. Status: **25 of the 31 approved by the CEO (D74,
-2026-10-15) and installed with a loudness pass (backlog N9, §10)**: in
-`assets/sounds/weapons/`, named in `src/lumps/SNDINFO`, hooked in the
-weapons' ZScript. The other six (`SDTTPKP`, `SDIZRLD`, `SDRKFIR` NO;
-`SDAXPKP`, `SDIZPKP` "?"; `SDIZFIR` not yet judged) are still drafts, with
-alternatives in `tools/audio/gen_weapon_alts.py`, and the game still plays
-their Freedoom stand-ins. Drafts 2026-10-13; eight re-layered 2026-10-14
+Owner: `sound-designer`. Status: **30 of the 31 sounds are ours**: 26
+drafts approved by the CEO (D74, 2026-10-15; `SDIZFIR` take B by D83) and
+installed with a loudness pass (backlog N9 and N9e, §10), and alternatives
+of four more (D94: the TT-33's and the ice axe's pickups, the IZh-58's
+reload, the ROKS-3's jet; §10.6), in `assets/sounds/weapons/`, named in
+`src/lumps/SNDINFO`, hooked in the weapons' ZScript. The IZh-58's pickup
+keeps Doom's generic sound (D94: all three alternatives NO). Drafts 2026-10-13; eight re-layered 2026-10-14
 (D44, §2.2).
 Russian mirror: owed at the phase close (D34).
 
@@ -421,7 +421,16 @@ Items 1-4 were answered by D74 and D47. New, after N9 (§10.2):
    `SDRKRLD`, about 33 KB together): keep them for a later magazine
    mechanic, or drop them from the PK3 until one exists.
 
-## 10. Installed (N9, 2026-10-15): the 25 of D74
+## 10. Installed (N9, 2026-10-15): the 25 of D74, and SDIZFIR B (N9e, D83)
+
+**N9e (2026-10-20).** The CEO took `SDIZFIR` take B (D83). It went through
+the same pass, unchanged (`master_weapon_sfx.py`, its row below): target
+`DSSHOTGN` (-8.2 dB A, the shot the IZh-58 played until then), a 2 dB
+shelf (it was bass-only, 9 % above 300 Hz), 1.8 dB of limiting, and **7.0 dB
+short**: a 92 -> 42 Hz boom with 88 % of its energy under 300 Hz even after
+the shelf, which A-weighting counts little; more limiting stops paying. It
+is 1.4 dB louder than its draft by the ruler. Listen for it against a
+Freedoom shotgun (§10.4).
 
 Tool: `tools/audio/master_weapon_sfx.py` (tests:
 `tests/test_weapon_sfx_install.py`). It renders each approved draft with
@@ -479,6 +488,7 @@ clip). "Before" is the draft as the CEO heard it, in his take.
 | `sd/weapon/tokarev/reload` | `SDTTRLD` | A | reload | -14.4 (`DSPISTOL` -4) | -6.7 / -25.7 / 37 % | -1.0 / -15.5 / 48 % | 0 dB | 8.8 dB | 0.0 dB | **1.1 dB short** |
 | `sd/weapon/tokarev/dry` | `SDTTDRY` | A | dry | -14.2 (`DSWPNUP` -9) | -6.0 / -26.1 / 99 % | -1.0 / -20.4 / 98 % | 0 dB | 6.0 dB | 0.0 dB | **6.2 dB short** |
 | `sd/weapon/izh/dry` | `SDIZDRY` | A | dry | -14.2 (`DSWPNUP` -9) | -8.5 / -27.7 / 69 % | -1.0 / -19.3 / 61 % | 0 dB | 7.2 dB | 0.0 dB | **5.1 dB short** |
+| `sd/weapon/izh/fire` | `SDIZFIR` | B | shot | -8.2 (`DSSHOTGN` +0) | -1.0 / -16.6 / 9 % | -1.0 / -15.2 / 12 % | 2 dB | 1.8 dB | 0.0 dB | **7.0 dB short** (N9e, D83) |
 | `sd/weapon/ppsh/fire` | `SDPPFIR` | C | shot | -10.4 (`DSPISTOL` +0) | -2.0 / -16.9 / 82 % | -1.0 / -13.0 / 82 % | 0 dB | 7.6 dB | 0.0 dB | **2.6 dB short** |
 | `sd/weapon/ppsh/reload` | `SDPPRLD` | A | reload | -14.4 (`DSPISTOL` -4) | -11.6 / -30.2 / 23 % | -1.0 / -15.6 / 35 % | 0 dB | 8.5 dB | 0.0 dB | **1.2 dB short** |
 | `sd/weapon/ppsh/pickup` | `SDPPPKP` | A | pickup | -8.2 (`DSWPNUP` -3) | -11.5 / -24.1 / 61 % | -1.0 / -10.6 / 72 % | 0 dB | 7.5 dB | 0.0 dB | **2.4 dB short** |
@@ -498,7 +508,7 @@ clip). "Before" is the draft as the CEO heard it, in his take.
 | `sd/weapon/katyusha/pickup` | `SDHKPKP` | A | pickup | -8.2 (`DSWPNUP` -3) | -11.0 / -23.1 / 80 % | -1.0 / -9.0 / 93 % | 0 dB | 7.7 dB | 0.0 dB | on target |
 | `sd/weapon/katyusha/dry` | `SDHKDRY` | A | dry | -18.2 (`DSRLAUNC` -4) | -9.8 / -28.6 / 45 % | -1.0 / -18.2 / 37 % | 0 dB | 3.5 dB | 0.0 dB | on target |
 
-**12 on target, 13 short.** Every short one is at the pass's ceiling
+**12 on target, 14 short** (13 of D74, and `SDIZFIR` of D83, above). Every short one is at the pass's ceiling
 (peak -1 dBFS, limiting stopped where it stopped paying) and between 1.9
 (`SDRPEXP`) and 14.6 dB (`SDPPRLD`) louder than its draft. Why each family stops short:
 
@@ -536,8 +546,9 @@ clip). "Before" is the draft as the CEO heard it, in his take.
 
 Not wired, on purpose: the TT-33's, the IZh's and the ice axe's pickups
 (no `Inventory.PickupSound`: Doom's `misc/w_pkup` as before); the IZh's
-shot and break-open and the ROKS-3's jet stay on `DSSHOTGN`, `DSSGCOCK`
-and `DSFLAME`.
+break-open and the ROKS-3's jet stay on `DSSGCOCK` and `DSFLAME`. The IZh's
+shot is ours since N9e (`SDIZFIR` B, D83): the right-hand column of
+`SNDINFO` only, no ZScript.
 
 ### 10.4 What to listen for in the engine (the PM, D26)
 
@@ -560,6 +571,9 @@ On the practice range (`RANGE`), with sound:
    TT-33, IZh-58 and ice axe still play Doom's.
 6. **The log**: no "Unknown sound" and no ZScript error (the new classes
    `SD_IceAxePuff` and `SD_WeaponSounds`).
+7. **N9e: the IZh-58's shot** (`SDIZFIR` B): 7 dB under `DSSHOTGN` by the
+   ruler, all low boom; does it hold against the Legion trooper's
+   shotgun and on laptop speakers?
 
 ### 10.5 The installed files
 
@@ -572,6 +586,7 @@ On the practice range (`RANGE`), with sound:
 | `SDTTRLD` | `a692434d44863b3fa02719da69b9b23623f0373e094e5a84e36618a6f1c1f8cd` | `2b169eb4348ef6ed213d5467298c9fcefeb3d9b00b3a1a4e43eac0af78293d4c` |
 | `SDTTDRY` | `c93e8ef4c8a8c67814cbbc0fe30364767ebc56751ff1b9e7b576c21c671979fb` | `045ae7e97c90bf730b9188bc9eee5eff3e03f9c9ec91d3fae96f613abe726180` |
 | `SDIZDRY` | `bb61fb8191fb9c538c2806a2a196713dfd241d2e6e7475cbdf198f67e944fa47` | `cfb39f64fcd7ace268c520d8f150236b25f0af56979b2c382a47a421ed14fc29` |
+| `SDIZFIR` | `a751909955602904217cbfe900d89330b036124ded864812bbe527d4dc183ddc` | `21c97f9dc8286c0355eb0822de585e0c1a65f4224d8cd44ba7b3ce3e4526c077` |
 | `SDPPFIR` | `f3ac80e99bf96ddc7471bce0a9afdec49e5d3de41bcce3b36ea60db384d11c9a` | `95c7c9a43af93c977e0bcdd5a05d234d62ed04ad9f54e734b0503aac52de78a1` |
 | `SDPPRLD` | `7ede0d53a6f1bffa4fd327008d3a62e3062e14c0490890ac142525a5f45a209e` | `628cfaf6396b8aa873889b7aea740076e96a819f13ab7c715356611ed9488fd2` |
 | `SDPPPKP` | `5d683d30c34e53699deb0ded7693834bdc9e0e4c72a21bda2a9143b6dcafd040` | `5646109b593d73ca9bbe9ff54dfb29058ee3440635dbbfb50376878688780225` |
@@ -595,3 +610,33 @@ The WAV hashes reproduce on this PC (the drafts' sources are decoded by the
 local ffmpeg); the OGG hashes depend on the local ffmpeg build, like the
 drafts' (§8). An installed sound is re-encoded only on the machine that
 installed it, or it goes through the tests again as a new install.
+
+### 10.6 N9e: the D94 alternatives (2026-10-20)
+
+The CEO judged the alternatives of `gen_weapon_alts.py` with each weapon
+moving (D92, D94) and approved: `SDTTPKP` alt1 + alt2, `SDAXPKP` alt1 +
+alt3, `SDIZRLD` alt3, `SDRKFIR` alt1-3 (NO: `SDIZPKP` alt1-3, the IZh-58's
+pickup keeps Doom's). `master_weapon_sfx.py --alts` installs them: each
+was levelled for the page to `gen_weapon_alts.py`'s target (a pickup
+`DSWPNUP` - 3, the reload `DSSGCOCK` - 5, the jet `DSFLAME`) and ships as
+rendered, unless Vorbis would lift its decoded peak over -0.1 dBFS: then
+the look-ahead limiter takes the peak down by the overshoot plus 0.2 dB
+(the codec check of ENEMY-SOUNDS §5.12). Several takes of one sound all
+ship (`<LUMP><n>`) and `SNDINFO` names them as a `$random` group; the
+ROKS-3 restarts its fire sound every 3 tics on `CHAN_WEAPON`, so a held
+trigger picks a take at each restart (NOT VERIFIED in the engine: does
+the jet still read as one continuous flame?). Hooks: the TT-33 and the
+ice axe get `Inventory.PickupSound` (they had none); the IZh-58's reload
+plays from its existing hook (`SDIZ D 6`), now `SDIZRLD` instead of
+`DSSGCOCK`; the ROKS-3's pickup was ours already (`SDRKPKP`).
+
+| Lump | Take | Logical name | Target, dB A | Pass | WAV master SHA-256 | Installed OGG SHA-256 |
+|---|---|---|---|---|---|---|
+| `SDTTPKP1` | SDTTPKP_alt1 | `sd/weapon/tokarev/pickup/1` | -8.2 | as rendered | `78a28da4bbf2e22e0a5a70f4862d525529d4f8d702f2c59dd9bde786e257d3d7` | `5ed5bbe224888bb2483de7a7339b50f2f7b8c88716e667600f46c29d88a29efe` |
+| `SDTTPKP2` | SDTTPKP_alt2 | `sd/weapon/tokarev/pickup/2` | -8.2 | codec 0.9 dB | `ed9ceeb9c76c121aad5f4789e4631239a7a6696f3c87f54744108b37a5c072f0` | `85edcef3644a53b6efeebdf563f4396f199f4d505d8e2578e94d049cf1e35b77` |
+| `SDAXPKP1` | SDAXPKP_alt1 | `sd/weapon/iceaxe/pickup/1` | -8.2 | as rendered | `50b1efba2410d6fb56b154f061ede8e3e34e0ace4f1fd2cc0fbbb95430b07007` | `f4c60daa9351018252ab26972a2ead0895ee4582864b50dacdde7da653d6875b` |
+| `SDAXPKP3` | SDAXPKP_alt3 | `sd/weapon/iceaxe/pickup/3` | -8.2 | as rendered | `b74be921511a9b6ee412ec49e9707425bd8efa72ac78ec21d08c5e2ced21b304` | `535f4a703dc1518713ca3c66fc50dfc3b79de6ec814dc50809f04cdb8c1ff3c5` |
+| `SDIZRLD` | SDIZRLD_alt3 | `sd/weapon/izh/reload` | -9.4 | codec 0.5 dB | `a9e959f8fb9356b14280849a86de0f5395c91fb144243b97b1a4c33f1cb38e51` | `ec78869141e46c829b58df0797d9fedafb303bf70b8fd7dfada59641d00bbdb2` |
+| `SDRKFIR1` | SDRKFIR_alt1 | `sd/weapon/roks3/fire/1` | -11.1 | codec 0.7 dB | `069d082b4ac768556bec4b54295d330a9787ba36fc575b69c79d9c4f5297eeda` | `09c2466546f788646339c34710bf09569cb91ffaa30061ec0115979e19a76149` |
+| `SDRKFIR2` | SDRKFIR_alt2 | `sd/weapon/roks3/fire/2` | -11.1 | as rendered | `d34b7f99cc91e19c4d7a028ee7fb25d1acb68d08e453fed66c871ab381c4a6fe` | `9fe85a3fe943d5785e7fc7a9ef86e67f5f69f561b20b20ab6347e6050223da9e` |
+| `SDRKFIR3` | SDRKFIR_alt3 | `sd/weapon/roks3/fire/3` | -11.1 | as rendered | `1560d78336ab7a9209f42108b0298aaa875a3363548b5b0ccd268073d22ac16d` | `53a7b6ed136f8c2647e72acfdd1cb7d39e248725e93b5c8923effc9e6573b80b` |

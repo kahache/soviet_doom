@@ -279,14 +279,27 @@ def r_rri_hangar(c):
     return echo_taps(shot, ((0.085, -9), (0.19, -14), (0.31, -20)))
 
 
+# D86: alt2 is approved "once its final click is quieter than the first". As
+# rendered for the page, the bolt's closing ping (impactMetal_light_004 at
+# +0.09 s) measured -27.0 dB A over its loudest 50 ms against -27.2 for the
+# opening click (switch_02): it rings longer, so it read as the louder. It
+# now sits FINAL_CLICK_DB under the bolt's own level, which puts it at least
+# FINAL_UNDER_FIRST_DB under the first click (and ~20 dB under the crack);
+# tests/test_gen_enemy_alts.py measures both. Before D86 the gain was -4.
+FINAL_CLICK_DB = -11.0
+FINAL_UNDER_FIRST_DB = 6.0
+RRI_BOLT_AT_S = 0.24             # the bolt worked after the crack
+RRI_FINAL_CLICK_AT_S = 0.09      # the closing ping, after the opening click
+
+
 def r_rri_receiver(c):
     """SDRRIATK alt2: a dry crack with the steel of the receiver ringing, then the bolt worked."""
     crack = report(c, 0.09, 0.0008, 0.022, 1200, 7000)
     steel = c.src("KEN-IMP", "impactMetal_light_001.ogg", st=7)
     punch = hp(c.src("KEN-IMP", "impactPunch_medium_000.ogg", st=3), 400)
     bolt = mix((0, c.src("OGA-100", "switch_02.ogg", st=2), 0),
-               (0.09, c.src("KEN-IMP", "impactMetal_light_004.ogg", st=5), -4))
-    return mix((0, peak_normal(crack), 0), (0, steel, -9), (0, punch, -8), (0.24, hp(bolt, 600), -14))
+               (RRI_FINAL_CLICK_AT_S, c.src("KEN-IMP", "impactMetal_light_004.ogg", st=5), FINAL_CLICK_DB))
+    return mix((0, peak_normal(crack), 0), (0, steel, -9), (0, punch, -8), (RRI_BOLT_AT_S, hp(bolt, 600), -14))
 
 
 def r_rri_whip(c):

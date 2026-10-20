@@ -10,7 +10,7 @@
 // tools/art/gemini_frames.py; only the four-letter names changed, every
 // tic, action and jump is as it was. All in assets/sprites/rpg7/.
 // MOD-SPEC 6.3; tests/test_gemini_weapons_install.py. The PG-7V in flight
-// and its burst still wear the IWAD's MISL (pg7_grenade.zs, MOD-SPEC 5.1).
+// and its burst are ours too since D82: SDPG and SDPX (pg7_grenade.zs).
 // Balance rationale: docs/engine/BALANCE.md.
 
 class SD_Rpg7 : RocketLauncher replaces RocketLauncher

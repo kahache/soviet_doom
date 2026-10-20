@@ -1478,9 +1478,21 @@ def sndinfo_rows(path: Path = SNDINFO_PATH) -> dict[str, tuple[str, str]]:
     return out
 
 
+SNDINFO_INSTALLED_LINE = r"^(?P<logical>sd/mon/\S+)\s+(?P<lump>SD[A-Z0-9]{6})\b"
+
+
 def sndinfo_targets(path: Path = SNDINFO_PATH) -> dict[str, str]:
-    """final lump -> logical name, from the comments of src/lumps/SNDINFO."""
-    return {lump: row[0] for lump, row in sndinfo_rows(path).items()}
+    """final lump -> logical name: from the `// -> SD...` comments of the
+    lines still on a Freedoom stand-in, and from the lines installed since
+    N9e (D83), whose right-hand column is the lump itself."""
+    import re
+    out = {lump: row[0] for lump, row in sndinfo_rows(path).items()}
+    rx = re.compile(SNDINFO_INSTALLED_LINE)
+    for line in path.read_text(encoding="utf-8").splitlines():
+        m = rx.match(line.strip())
+        if m:
+            out.setdefault(m.group("lump"), m.group("logical"))
+    return out
 
 
 def overlay_sndinfo(lumps, targets) -> str:
@@ -1675,6 +1687,7 @@ def preview_html(rendered, rows, seed, stamp, out_dir=OUT_DIR, sndinfo=SNDINFO_P
     by_name = {r.name: r for r in rendered}
     numbers = {row["name"]: row for row in rows}
     stand_in = sndinfo_rows(sndinfo)
+    installed = sndinfo_targets(sndinfo)          # N9e: lines whose lump is ours
 
     def player(name):
         _wav, ogg = paths_of(name, out_dir)
@@ -1686,6 +1699,8 @@ def preview_html(rendered, rows, seed, stamp, out_dir=OUT_DIR, sndinfo=SNDINFO_P
         logical, fd = stand_in.get(r.lump, ("-", "-"))
         if r.is_bed:
             what = f"a bed under the voice <code>{r.lump}</code>; not a lump, not in the overlay"
+        elif r.lump not in stand_in and r.lump in installed:
+            what = f"<code>{_esc(installed[r.lump])}</code><br>installed (N9e)"
         else:
             what = f"<code>{_esc(logical)}</code><br>today Freedoom <code>{fd}</code>"
         srcs = "<br>".join(_esc(c) for c in r.provenance())

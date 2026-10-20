@@ -115,8 +115,11 @@ class ContractTests(unittest.TestCase):
             self.assertIn(ref, alts.FREEDOOM_LEVELS, lump)
             logical = gws.LUMPS_BY_NAME[lump].logical
             m = re.search(rf"^{re.escape(logical)}\s+(\S+)", sndinfo, re.M)
-            if m:     # wired today: the stand-in SNDINFO plays is the reference
+            group = re.search(rf"^\$random\s+{re.escape(logical)}\s", sndinfo, re.M)
+            if m and m.group(1).startswith("DS"):   # wired today: the stand-in is the reference
                 self.assertEqual(m.group(1), ref, lump)
+            elif (m and m.group(1) == lump) or group:   # installed by N9e (D94): ref is what it replaced
+                self.assertIn(ref, ("DSWPNUP", "DSSGCOCK", "DSFLAME"), lump)
             else:     # pickups: Doom's generic weapon pickup (MOD-SPEC, WEAPON-SOUNDS §6)
                 self.assertEqual(ref, "DSWPNUP", lump)
         kinds = {a.lump: a.kind for a in alts.ALTS}

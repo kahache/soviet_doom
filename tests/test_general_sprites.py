@@ -27,9 +27,9 @@ borrowed MISL B C D and now names SDGL C D E. What is checked, and why:
              that body (no wall inside its box, the opening over it at least
              100, and over Q's fist too)
   sprite     no state anywhere names CYBR or MANF any more, MOD-SPEC 5.1 no
-             longer declares them but still declares MISL (the PG-7V grenade
-             and the Katyusha rocket wear it), and every frame a state uses
-             has its lumps
+             longer declares them (nor MISL since D82, when the PG-7V
+             grenade and the Katyusha rocket took SDPG/SDKR and the burst
+             SDPX), and every frame a state uses has its lumps
   files      assets/sprites/general/ holds exactly the 86 lumps: SDGN A-G
              and Q-R in eight separate rotations (no mirrored pairs: the gun
              rides his right shoulder, the pennants and the cloak's flags
@@ -95,7 +95,7 @@ RE_FLOW = re.compile(r"^\s*(Goto\s+\w+|Loop|Stop|Wait|Fail)\s*;\s*$")
 OLD, NEW = "CYBR", "SDGN"
 SHELL_OLD = ("MANF", "MISL")          # flight, burst: Doom's mancubus shot and rocket burst
 SHELL_NEW = "SDGL"
-STILL_IWAD = "MISL"                   # the PG-7V grenade and the Katyusha rocket still wear it
+STILL_IWAD = "MISL"                   # the rockets wore it until D82 (SDPG/SDKR, burst SDPX)
 # The letters the swap rule named (BESTIARY 2.7): (label, old letters) -> new.
 NEW_LETTERS = {("Summon", "E"): "Q", ("Summon", "F"): "R",
                ("Death", "B"): "C", ("Death", "C"): "D", ("Death", "D"): "E"}
@@ -316,17 +316,18 @@ class SpriteTests(unittest.TestCase):
             names = {n for n, _ in check_pk3.zscript_state_sprites(path.read_text(encoding="utf-8"))}
             self.assertFalse(names & {OLD, "MANF"}, path.name)
 
-    def test_mod_spec_retires_cybr_and_manf_but_keeps_misl(self):
+    def test_mod_spec_retires_cybr_and_manf_and_since_d82_misl(self):
         declared = check_pk3.iwad_sprites_from_spec(check_pk3.DEFAULT_SPEC)
         self.assertNotIn(OLD, declared)
         self.assertNotIn("MANF", declared)
-        self.assertIn(STILL_IWAD, declared)
+        self.assertNotIn(STILL_IWAD, declared)
 
-    def test_misl_is_still_worn_by_the_weapons(self):
+    def test_misl_left_the_weapons_with_d82(self):
         weapons = SRC_DIR / "zscript" / "weapons"
         for zs in ("pg7_grenade.zs", "katyusha_rocket.zs"):
             names = {n for n, _ in check_pk3.zscript_state_sprites((weapons / zs).read_text(encoding="utf-8"))}
-            self.assertIn(STILL_IWAD, names, zs)
+            self.assertNotIn(STILL_IWAD, names, zs)
+            self.assertIn("SDPX", names, zs)
 
     def test_every_frame_a_state_uses_is_installed(self):
         names = {p.stem for p in installed()}
@@ -495,8 +496,8 @@ class OverlayTests(unittest.TestCase):
         self.assertIn(("MANF", SHELL_NEW), mdo.INSTALLED_ENEMIES)
         self.assertTrue({NEW, SHELL_NEW} <= mdo.installed_sprites())
 
-    def test_misl_is_not_retired(self):
-        """The weapons still wear it: a future PG-7V swap must not be skipped."""
+    def test_misl_is_not_an_installed_enemy(self):
+        """MISL was the rockets' (retired by D82, not by an enemy install)."""
         self.assertNotIn(STILL_IWAD, {name for pair in mdo.INSTALLED_ENEMIES for name in pair})
 
     def test_the_overlay_names_nothing_of_the_general(self):

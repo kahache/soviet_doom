@@ -185,6 +185,12 @@ WORK_ART_DIR = PROJECT_ROOT / "work" / "art"
 # Our sprite lumps: SD + 2, a frame letter and a rotation, optionally a
 # second frame and rotation (Doom's mirrored pair, NAMEFRFR; D55's hound).
 SPRITE_LUMP_RE = r"^SD[A-Z0-9]{2}[A-Z][0-8]([A-Z][1-8])?$"
+# The one exception to the SD prefix among sprites (D82, MOD-SPEC 1 and
+# 5.1): the engine actors' overrides, shipped under the IWAD's own names
+# with exactly Freedoom's lump set, all in sprites/effects/
+# (tests/test_effects_install.py holds the set).
+IWAD_OVERRIDE_SPRITES = ("PUFF", "BLUD", "TFOG", "IFOG", "BAR1", "BEXP", "COLU")
+IWAD_OVERRIDE_RE = r"^(" + "|".join(IWAD_OVERRIDE_SPRITES) + r")[A-Z]0$"
 
 
 def sprite_slots(stem: str) -> list[tuple[str, str]]:
@@ -247,7 +253,10 @@ class ApprovedAssetsTests(unittest.TestCase):
                     # hound's SDHNA2A8 is frame A rotation 2 and, flipped,
                     # rotation 8. test_sprite_rotation_sets_are_whole below
                     # reads both halves and holds each frame's set together.
-                    self.assertRegex(p.stem, SPRITE_LUMP_RE, p)
+                    if p.parent.name == "effects" and p.stem[:4] in IWAD_OVERRIDE_SPRITES:
+                        self.assertRegex(p.stem, IWAD_OVERRIDE_RE, p)
+                    else:
+                        self.assertRegex(p.stem, SPRITE_LUMP_RE, p)
                     self.assertEqual(img.mode, "RGBA", p)
                     alpha = set(img.getchannel("A").getdata())
                     self.assertTrue(alpha <= {0, 255},

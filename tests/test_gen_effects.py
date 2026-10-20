@@ -12,7 +12,8 @@ Fast (reads text and the lump list only):
   override   an IWAD name we override is overridden COMPLETELY: our lumps
              are exactly Freedoom's for that prefix (iwads/ optional)
   prefixes   the new names collide with nothing: no IWAD sprite, no sprite
-             in assets/, no lump stem anywhere in assets/, no other
+             in assets/ outside the installed set (assets/sprites/effects/,
+             D82), no lump stem anywhere else in assets/, no other
              generator, no state line of another actor
 
 Slow (renders; skipped under SD_SKIP_SLOW_ART=1, as verify.py fast sets):
@@ -176,9 +177,11 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(new, {"SDPG", "SDKR", "SDPX", "SDFJ", "SDFX"})
         self.assertEqual(len(fx.NEW_PREFIXES), len(new))
         sprites = PROJECT_ROOT / "assets" / "sprites"
-        shipped = {p.stem[:4] for p in sprites.rglob("*.png")} if sprites.is_dir() else set()
+        installed = sprites / "effects"          # D82: where this set ships (M2c-i)
+        others = [p for p in (PROJECT_ROOT / "assets").rglob("*") if p.is_file() and installed not in p.parents]
+        shipped = {p.stem[:4] for p in others if sprites in p.parents}
         self.assertFalse(new & shipped, "a sprite in assets/ already uses the name")
-        stems = {p.stem.upper() for p in (PROJECT_ROOT / "assets").rglob("*") if p.is_file()}
+        stems = {p.stem.upper() for p in others}
         mine = {n for e in fx.EFFECTS if e.sprite in new for n in fx.lump_names(e)}
         self.assertFalse(mine & stems, "a lump of ours would shadow a file in assets/")
         for py in sorted(ART_TOOLS.glob("*.py")):

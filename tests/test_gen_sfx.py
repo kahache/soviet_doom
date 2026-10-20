@@ -133,11 +133,30 @@ def tearDownModule():
 
 
 def sndinfo_final_lumps() -> set[str]:
-    out = set()
-    for ln in SNDINFO.read_text(encoding="utf-8").splitlines():
-        m = re.match(r"^sd/mon/\S+\s+\S+\s*//\s*->\s*(SD[A-Z0-9]{6})\b", ln.strip())
+    """The 47 cards SNDINFO's sd/mon/ names stand for: the `// -> SD...`
+    comment of a line still on a Freedoom stand-in; the lump itself of a line
+    installed by N9e; and, for a `$random` alias over several approved takes
+    (D86), its card (the members' lump SDxxxAT1 is the card SDxxxATK with the
+    take digit for its last letter)."""
+    out, members, firsts = set(), set(), []
+    raw_lines = SNDINFO.read_text(encoding="utf-8").splitlines()
+    for raw in raw_lines:
+        m = re.match(r"^\$random\s+sd/mon/\S+\s*\{\s*([^}]*?)\s*\}$", raw.split("//")[0].strip())
         if m:
-            out.add(m.group(1))
+            names = m.group(1).split()
+            members |= set(names)
+            firsts.append(names[0])
+    lump_of = {}
+    for raw in raw_lines:
+        m = re.match(r"^(sd/mon/\S+)\s+(\S+)\s*(?://\s*->\s*(SD[A-Z0-9]{6})\b)?", raw.strip())
+        if not m:
+            continue
+        lump_of[m.group(1)] = m.group(2)
+        if m.group(1) not in members:
+            out.add(m.group(3) or m.group(2))
+    cards = set(gs.RECIPES) | set(gs.VOICE_LUMPS) if gs is not None else set()
+    for first in firsts:
+        out |= {c for c in cards if c[:7] == lump_of[first][:7]}
     return out
 
 
@@ -215,9 +234,13 @@ class ContractTest(unittest.TestCase):
             self.assertIs(gs.recipe_of(gs.normalise_name(name.lower())), gs.recipe_of(name))
 
     def test_sndinfo_rows_name_the_freedoom_stand_ins(self):
+        # Only lines still on a Freedoom stand-in carry `// -> SD...` (N9e
+        # installed the hound's sight and the step; the voices wait, D87).
         rows = gs.sndinfo_rows(SNDINFO)
-        self.assertEqual(rows["SDHNDSIT"], ("sd/mon/reichhound/sight", "DSSGTSIT"))
-        self.assertEqual(rows["SDPZRSTP"][0], "sd/mon/panzermensch/step")
+        self.assertEqual(rows["SDRRIACT"], ("sd/mon/reichrifleman/active", "DSPOSACT"))
+        self.assertNotIn("SDRRISIT", rows)        # D91's takes, a $random since N9e
+        self.assertEqual(rows["SDGENSUM"][0], "sd/mon/general/summon")
+        self.assertNotIn("SDHNDSIT", rows)
 
 
 # --- DSP --------------------------------------------------------------------------
@@ -510,7 +533,8 @@ class OverlayTest(unittest.TestCase):
             self.assertEqual(page.count('src="data:audio/ogg;base64,'), len(names))
             for n in names:
                 self.assertIn(f"<code>{n}</code>", page)
-            self.assertIn("today Freedoom <code>DSMETAL</code>", page)
+            # N9e installed both lumps: the page names their logical names.
+            self.assertIn("<code>sd/mon/panzermensch/step</code><br>installed (N9e)", page)
             self.assertIn("SYN gen_sfx.py", page)
 
 

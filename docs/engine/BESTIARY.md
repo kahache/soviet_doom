@@ -375,9 +375,12 @@ the pennants and the cloak's two flags split side to side): 81, not v1's 54.
 **Still on Freedoom placeholders: no sprite.** The two shells, the last,
 were installed by D81 (the table above); only the sounds below remain.
 
-**Sounds: all seven classes are still on placeholders.** Every one of the 47
-`sd/mon/*` names points at a Freedoom `DS*` lump; our drafts wait on the
-CEO's ears and the voices on his takes (D36).
+**Sounds: ours since N9e (2026-10-20, D83, D86, D91) but for ten voices.**
+37 of the 47 `sd/mon/*` names play our lumps (`assets/sounds/enemies/`, six
+of them a `$random` over several approved takes, two of those the D91
+voices: the rifleman's sight, the trooper's idle); the other ten voices of
+the rifleman, the trooper and the General still point at Freedoom `DS*`
+lumps (MOD-SPEC §6.2; `docs/sound/ENEMY-SOUNDS.md` §5.12).
 
 **The swap rule.** Because the frame letters already follow §3–§9, replacing
 a placeholder is a rename of the four-letter sprite name in that class's

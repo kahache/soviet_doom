@@ -446,14 +446,23 @@ orchestration, that is the route; it is a size decision, not a rights one.
 | Lump in `assets/music/` | Cue | Composition | Sequencing | Phonogram | Obligation |
 |---|---|---|---|---|---|
 | `D_SDINTL` | title screen | *L'Internationale*, Pierre De Geyter, 1888 — PD RU+US (§2.1) | **Jerry Engelbach**, 2003, `{{Attribution\|Jerry Engelbach}}` (§4.4); head trimmed by us (§4.4.2) | none — MIDI, synthesised on the player's machine | **credit Jerry Engelbach** |
-| `D_SDM01` | MAP01 | original, `sound-designer` 2026-10-13 (`tools/audio/gen_music.py`) | ours | none | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM1N2` | MAP01 (D95) | original, `sound-designer` 2026-10-20 (`tools/audio/compose_map01.py`, variant `D_SDM01N2`): composed under D92, the one exception to D59; no phrase of another work (`tests/test_compose_map01.py`) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
 | `D_SDRAD1` | diegetic radio (`SD_Radio`, `docs/engine/MOD-SPEC.md` §6.7) | «Эй, ухнем», Balakirev's setting, pub. 1866 — PD RU+US | **Peter Gerloff**, 2021, **CC0** (§4.4, `D_CND09`); byte-identical to `WM_Ej_uchnem.mid`, SHA-256 `109e9125…` above, no edit | none — MIDI | **none**; Gerloff credited as a courtesy |
 | `D_SDRAD2` | diegetic radio (`SD_Radio`, same) | «Колокольчик», Russian traditional — PD RU+US | **Peter Gerloff**, 2019, **CC0** (§4.4, `D_CND12`); byte-identical to `WM_Kolokolchik.mid`, SHA-256 `fec3c370…` above, no edit | none — MIDI | **none**; Gerloff credited as a courtesy |
 | `D_SDFUNR` | MAP02, the metro — **D62 draft, pending the CEO's ear** | «Вы жертвою пали», 1870s, every candidate author d. before 1916 — PD RU+US (§4.6.1) | ours (D44), from the voice line of Detlaf's 1905 edition; harmony and orchestration ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
 | `D_SDGATE` | MAP03, Tankograd — **D62 draft, pending the CEO's ear** | «Богатырские ворота», Mussorgsky (d. 1881), pub. Bessel 1886, ed. Rimsky-Korsakov (d. 1908) — PD RU+US (§4.6.4) | ours (D54), from the top voice of the 1886 edition | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
-| `D_SDAMUR` | RANGE, the practice range — **D62 draft, pending the CEO's ear** | «Амурские волны», Max Kyuss (d. 1942), pub. 1909 — PD RU+US (§4.6.2) | ours (D44), from the 1909-1914 Vladivostok edition | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDTITL` | intermission, the stats screen between maps (D83; GameInfo `IntermissionMusic`, replacing Freedoom's `D_DM2INT`) | original, `sound-designer` 2026-10-13 (`tools/audio/gen_music.py`, `build_title`) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM01T` | RANGE, the practice range (D86) | original, `sound-designer` 2026-10-13: `D_SDM01E` (MAP01's theme, `gen_music.py`) cut to its melodic part from bar 49 by `gen_enemy_alts.py` (an edit of our own sequence, not new music, D59) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
 
-**The D62 drafts (2026-10-14, backlog N8).** The three rows above are
+**N9e (2026-10-20, D83 and D86).** `D_SDTITL` is the intermission and
+`D_SDM01T` the range's piece; `D_SDAMUR`, the range's D62 draft, was
+rejected by the CEO (D83) and no longer ships (its score provenance stays
+in §4.6.2). D95 put `D_SDM1N2` (our composition, D92) on MAP01; `D_SDM01`,
+MAP01's D43 theme, left the package with it. Neither new row adds a credit obligation: both are our own
+sequences.
+
+**The D62 drafts (2026-10-14, backlog N8).** The rows of `D_SDFUNR` and
+`D_SDGATE` above (and `D_SDAMUR`'s, until N9e) were
 installed in `assets/music/` and wired in `src/lumps/MAPINFO` so the CEO
 hears them while playing, **before** his approval: they are drafts until he
 hears them (`SOUNDTRACK.md` §0). Nothing was composed or sequenced for N8

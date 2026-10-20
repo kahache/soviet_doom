@@ -375,11 +375,33 @@ class ArsenalPk3Test(unittest.TestCase):
 
     # --- Sounds ------------------------------------------------------------
 
+    # N9e (D86): where the CEO approved several takes of one sound, the name
+    # the code plays is a `$random` alias over <name>/<take> lines (ZDoom
+    # wiki SNDINFO; gzdoom.pk3's own `$random grunt/sight { ... }`).
+    RE_RANDOM = re.compile(r"^\$random\s+(\S+)\s*\{\s*([^}]*?)\s*\}$")
+
+    def _random_groups(self) -> dict[str, list[str]]:
+        out: dict[str, list[str]] = {}
+        for raw in self.sndinfo.splitlines():
+            line = raw.split("//")[0].strip()
+            if line.startswith("$random"):
+                m = self.RE_RANDOM.match(line)
+                self.assertIsNotNone(m, f"malformed $random line: {raw!r}")
+                self.assertNotIn(m.group(1), out, f"{m.group(1)} is two $random groups")
+                out[m.group(1)] = m.group(2).split()
+        return out
+
     def _sndinfo_names(self) -> dict[str, str]:
+        """logical -> lump; a `$random` alias maps to the string "$random"."""
         out: dict[str, str] = {}
         for raw in self.sndinfo.splitlines():
             line = raw.split("//")[0].strip()
             if not line:
+                continue
+            if line.startswith("$random"):
+                name = self.RE_RANDOM.match(line).group(1)
+                self.assertNotIn(name, out, f"{name} defined twice in SNDINFO")
+                out[name] = "$random"
                 continue
             parts = line.split()
             self.assertEqual(len(parts), 2, f"SNDINFO line is not `logical lump`: {raw!r}")
@@ -403,10 +425,33 @@ class ArsenalPk3Test(unittest.TestCase):
     PARKED_SOUNDS = frozenset({"sd/weapon/tokarev/reload", "sd/weapon/ppsh/reload",
                                "sd/weapon/roks3/reload"})
 
+    # N9e: the beds (D83, D86), the non-vocal layers that go under the
+    # voices, are packed and named under sd/bed/ and played by nothing until
+    # they are mixed under the approved voice takes (D87).
+    PARKED_PREFIX = "sd/bed/"
+
+    def test_random_groups_are_well_formed(self):
+        names = self._sndinfo_names()
+        groups = self._random_groups()
+        members = [m for ms in groups.values() for m in ms]
+        self.assertEqual(len(members), len(set(members)), "a take is in two $random groups")
+        for group, ms in groups.items():
+            self.assertGreaterEqual(len(ms), 2, f"{group}: a $random of one take")
+            for m in ms:
+                self.assertIn(m, names, f"{group}: member {m} is not defined")
+                self.assertNotEqual(names[m], "$random", f"{group}: nested $random {m}")
+                self.assertTrue(m.startswith(group + "/"), f"{group}: member {m} is not <group>/<take>")
+
     def test_every_defined_sound_is_used(self):
         """A dead SNDINFO entry means the sound-designer gets a wrong brief."""
         used = set(re.findall(r'"(sd/[a-z0-9/_]+)"', self.zs_all))
+        members = {m for ms in self._random_groups().values() for m in ms}
         for name in self._sndinfo_names():
+            if name in members:        # played through its $random group
+                continue
+            if name.startswith(self.PARKED_PREFIX):
+                self.assertNotIn(name, used, f"{name} is played now: the beds are parked (N9e)")
+                continue
             if name in self.PARKED_SOUNDS:
                 self.assertNotIn(name, used, f"{name} is played now: take it out of PARKED_SOUNDS")
                 continue

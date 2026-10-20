@@ -50,15 +50,15 @@ open recommendation of §8 accepted. What that changed, in one place:
 | Cue | File | Status |
 |---|---|---|
 | **Title screen** | **`assets/music/D_SDINTL.mid`** — Engelbach's orchestral *Internationale*, head silence removed by us | **installed and wired** (D43, MAPINFO `TitleMusic`) |
-| **MAP01** | **`assets/music/D_SDM01.mid`** — our own "Zarya-7" | **installed** (D43) as it stood; the enriched version `D_SDM01E` is a draft for the CEO's ear (§6, Card 2b) |
+| **MAP01** | **`assets/music/D_SDM1N2.mid`** — a new original piece in the style of `D_SDM01T` (`tools/audio/compose_map01.py`, variant `D_SDM01N2`, 128 BPM) | **approved (D95) and installed** (N9e, 2026-10-20; D92's exception to D59); `D_SDM01` (D43) left MAP01 by D83 and no longer ships |
 | **MAP02**, the metro | `assets/music/D_SDFUNR.mid` — «Вы жертвою пали» (Card 3) | `D_SDFUNR` **PROVISIONAL: assigned in draft, pending the CEO's ear** (D62, N8); installed and wired (MAPINFO `music`) so he hears it in play |
 | **MAP03**, Tankograd | `assets/music/D_SDGATE.mid` — «Богатырские ворота» (Card 5) | `D_SDGATE` **PROVISIONAL: assigned in draft, pending the CEO's ear** (D62, N8); installed and wired |
-| **RANGE**, the practice range | `assets/music/D_SDAMUR.mid` — «Амурские волны» (Card 4) | `D_SDAMUR` **PROVISIONAL: assigned in draft, pending the CEO's ear** (D62, N8); installed and wired |
+| **RANGE**, the practice range | `assets/music/D_SDM01T.mid` — MAP01's theme `D_SDM01E` cut to its melodic part, from bar 49 (`tools/audio/gen_enemy_alts.py`) | **approved (D86) and installed** (N9e, 2026-10-20, MAPINFO `music`); `D_SDAMUR` (Card 4), the D62 draft, was rejected by D83 and no longer ships |
 | **Diegetic radio** | `WM_Ej_uchnem.mid` (`D_CND09`), `WM_Kolokolchik.mid` (`D_CND12`) — CC0, already orchestrated | **settled** (D43); not installed until a map has a radio to put them in (`level-designer`) |
 | **Anthem slot** | ~~Glinka's *Patriotic Song* (`D_SDGLNK`)~~, dropped by **D54**: Mussorgsky's «Богатырские ворота», sequenced by us from the 1886 Bessel edition | **draft** (D54), for the CEO's ear (§6, Card 5); since D62 it also plays on MAP03 (row above) |
 | **Death / aftermath** | «Вы жертвою пали», sequenced by us from Detlaf's 1905 edition | **draft** (D44), for the CEO's ear (§6, Card 3); since D62 it also plays on MAP02 (row above) |
 | **Radio waltz** | «Амурские волны» (Kyuss, 1909), sequenced by us from the 1909-1914 Vladivostok edition | **draft** (D44), for the CEO's ear (§6, Card 4); since D62 it also plays on RANGE (row above) |
-| **Our `D_SDTITL`** | **reserved, not retired** | a finished 1:21 Soviet march in D minor, the natural intermission / episode-end cue |
+| **Intermission** (the stats screen) | **`assets/music/D_SDTITL.mid`** — our "Zarya" march, 1:21, D minor (Card 1) | **approved (D83) and installed** (N9e, 2026-10-20, MAPINFO `GameInfo { IntermissionMusic }`), replacing Freedoom's `D_DM2INT` |
 
 ### 0.1 One piece per map (D62, backlog N8) — provisional
 
@@ -501,7 +501,7 @@ against four distinct entries. That is a fixable criticism, and the cheapest
 fix is not to replace `D_SDM01` but to give it two more instrumental layers
 and a non-repeating C section — a generator change, hours not days (§8.3).
 
-### Card 1 — `D_SDTITL`, "Zarya" — **reserved, proposed for the intermission**
+### Card 1 — `D_SDTITL`, "Zarya" — **the intermission since D83 (installed by N9e, 2026-10-20)**
 
 | Field | Value |
 |---|---|

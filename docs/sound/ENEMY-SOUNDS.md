@@ -8,6 +8,13 @@ the naming rule of §2.3; the SNDINFO contract is `docs/engine/MOD-SPEC.md`
 §6.2. Music rights live in `docs/sound/MUSIC-RIGHTS.md`; this document owns
 **sound-effect and voice rights** only.
 
+> **Status (2026-10-20): INSTALLED (N9e, §5.12)** the 30 sounds and 5 beds
+> the CEO approved in D83, the takes of D86 and the seven voice takes of
+> D91: 64 lumps in `assets/sounds/enemies/`. Two of the twelve voices are
+> ours (the rifleman's sight, the trooper's idle); the other ten wait for a
+> shouted reference (D91), and the beds wait, packed, to go under them.
+> What follows is the history.
+>
 > **Status (2026-10-13, evening): the 35 non-voice lumps are DRAFTED, plus
 > eight beds for the voices; nothing approved, nothing in the PK3.** The
 > generator is `tools/audio/gen_sfx.py` (tests: `tests/test_gen_sfx.py`); the
@@ -540,9 +547,244 @@ No bed for the four calls with nothing but a voice in their card
   it inherits every state and sound of `SD_Panzermensch` (`BESTIARY.md` §12).
   If he should sound heavier, the cheap route is a pitch on his `SNDINFO`
   aliases (`mod-engineer`), not new lumps.
-- **Variation.** One take per lump; GZDoom's random sounds and pitch shift
-  would vary the step and the barks, but their `SNDINFO` syntax is still
-  **NOT VERIFIED** here (§6).
+- **Variation.** One take per lump in these drafts. Since N9e (§5.12) the
+  sounds with several approved takes use `SNDINFO`'s `$random`, the syntax
+  read in gzdoom.pk3's own `SNDINFO`; pitch shift is still unused.
+
+### 5.12 Installed (N9e, 2026-10-20): D83's 30 sounds and 5 beds, D86's takes
+
+Tool: `tools/audio/master_enemy_sfx.py` (tests: `tests/test_enemy_sfx_install.py`),
+the weapons' pass (`master_weapon_sfx.py`, WEAPON-SOUNDS §10) applied to
+the enemies. Nothing is re-synthesised: each approved take is rendered by
+the generator that drew it (`gen_sfx.py` for the D83 drafts and beds,
+seed 1977; `gen_enemy_alts.py` for the D86 alternatives) and levelled.
+
+```bash
+.venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --list       # the plan and the targets, writes nothing
+.venv/Scripts/python.exe tools/audio/master_enemy_sfx.py              # WAV masters + MANIFEST in work/audio/master_enemy/
+.venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --install    # and the OGGs into assets/sounds/enemies/
+```
+
+**Targets.** The ruler is `gen_weapon_alts.py`'s (loudest 50 ms,
+A-weighted). A sound matches the Freedoom lump `SNDINFO` played for it
+before N9e; a bed sits 3 dB under its voice's stand-in (a voice goes on
+top, §5.10; the same allowance `gen_enemy_alts.py` gave the bed
+alternatives). **A sound already in its window is left as it is**: every
+D86 alternative was levelled to these same targets for the CEO's page, and
+five D83 drafts were already there too. The rest (the D83 drafts, levelled
+to `gen_sfx.py`'s quieter class loudness) get the weapons' pass: a low
+shelf only if bass-only, peak at -1 dBFS, gain down or up to 9 dB of
+look-ahead limiting, no saturation.
+
+**The codec check.** Every master is then encoded to Vorbis and decoded;
+while the decoded peak reaches -0.1 dBFS, the look-ahead limiter takes the
+master's ceiling down by the overshoot plus 0.2 dB. Vorbis lifted the
+dense, saturated alternatives well over their -1 dBFS masters (SDLTRATK to
++1.4 dBFS, a clip in any 16-bit path; the page the CEO heard had the
+same), so seven of them were limited by 0.3-1.7 dB (`CODEC_TRIMMED`:
+`SDRRIAT2` 0.5, `SDRRIAT3` 0.3, `SDLTRATK` 1.7, `SDSTOPA2` 0.7, `SDSTODT1`
+0.4, `SDSTODT2` 1.0, `SDSTODT3` 1.6): the same take, its peaks lower, its
+level 0.1-1.3 dB lower (`SDSTODT3` is now 1.4 dB short). The other eleven
+alternatives ship byte for byte the OGG of the page
+(`tests/test_enemy_sfx_install.py`, `AltIdentityTests`).
+
+**SDRRIATK alt2** (D86: "once its final click is quieter than the
+first"): the bolt's closing ping measured -27.0 dB A over its loudest 50 ms
+against -27.2 for the opening click; it rang longer, so it read louder.
+`gen_enemy_alts.py` now mixes it 7 dB lower (`FINAL_CLICK_DB` -11, was
+-4): -34.0 against -27.2, the crack at -10.4 untouched. The page's file
+in `work/audio/enemy_alt/` was re-rendered with it.
+
+**Names and `$random`.** One approved take ships under its card's name.
+Several approved takes of one sound (D86) all ship, the card's last letter
+replaced by the take's number (`SDSTOPA1`-`SDSTOPA3`), and the name the
+code asks for becomes a `$random` alias over `<name>/<take>` lines, the
+syntax of gzdoom.pk3's own `$random grunt/sight { grunt/sight1 ... }`
+(read in g4.14.2's `filter/game-doomchex/sndinfo.txt`): the engine picks a
+member each time it plays. Seven groups: the rifleman's attack, the
+Stormtrooper's pain and death, the Panzermensch's pain, and the beds of the
+rifleman's pain and the trooper's pain and death.
+
+**The beds are parked.** A bed is not its voice: it ships as `SD` + actor +
+the event's initial + `B` + take (`SDRRIDB1`, `SDLTRPB1`-`3`), named
+`sd/bed/<actor>/<event>` in `SNDINFO`, and nothing plays it. It is mixed
+under its voice take when the CEO approves the takes (D87, §5.10: the
+timing in the bed is the proposal), and the voice lump keeps the card's
+name (`SDRRIDTH`). Until then the rifleman, the trooper and the General
+speak with Freedoom's voices, without a bed; hear a bed with the console's
+`playsound sd/bed/legiontrooper/death`. (The Legion's idle bed sits at
+-31.6 dB A because `DSPOSACT`, the murmur it goes under, is -28.6.)
+
+| Lump | Approved | Take | Logical name | Target, dB A (from) | Before: peak / loudA / >300 Hz | After: peak / loudA / >300 Hz | Pass | Window |
+|---|---|---|---|---|---|---|---|---|
+| `SDRRIXDT` | D83 | SDRRIXDT | `sd/mon/reichrifleman/xdeath` | -11.6 (`DSSLOP` +0) | -2.6 / -15.6 / 68 % | -1.0 / -12.1 / 63 % | shelf 0.0, limit 7.5, gain 0.0 dB | on target |
+| `SDLTRXDT` | D83 | SDLTRXDT | `sd/mon/legiontrooper/xdeath` | -11.6 (`DSSLOP` +0) | -2.9 / -15.5 / 71 % | -1.0 / -11.9 / 68 % | shelf 0.0, limit 4.8, gain 0.0 dB | on target |
+| `SDSTOACT` | D83 | SDSTOACT | `sd/mon/stormtrooper/active` | -18.7 (`DSBGACT` +0) | -10.6 / -18.0 / 97 % | -10.6 / -18.0 / 97 % | untouched | on target |
+| `SDSTOSIT` | D83 | SDSTOSIT | `sd/mon/stormtrooper/sight` | -11.0 (`DSBGSIT1` +0) | -4.1 / -13.9 / 66 % | -1.2 / -11.0 / 66 % | shelf 0.0, limit 0.0, gain -0.2 dB | on target |
+| `SDSTOMEL` | D83 | SDSTOMEL | `sd/mon/stormtrooper/melee` | -9.3 (`DSCLAW` +0) | -3.9 / -17.6 / 44 % | -1.0 / -13.9 / 44 % | shelf 0.0, limit 3.0, gain 0.0 dB | **4.7 dB short** |
+| `SDSTOMIS` | D83 | SDSTOMIS | `sd/mon/stormtrooper/missile` | -15.9 (`DSFIRSHT` +0) | -3.9 / -13.5 / 92 % | -6.3 / -15.9 / 92 % | shelf 0.0, limit 0.0, gain -5.3 dB | on target |
+| `SDSTOEXP` | D83 | SDSTOEXP | `sd/mon/stormtrooper/explode` | -20.0 (`DSFIRXPL` +0) | -1.0 / -14.5 / 100 % | -6.5 / -20.0 / 100 % | shelf 0.0, limit 0.0, gain -5.5 dB | on target |
+| `SDSTOXDT` | D83 | SDSTOXDT | `sd/mon/stormtrooper/xdeath` | -11.6 (`DSSLOP` +0) | -2.3 / -15.6 / 70 % | -1.0 / -12.1 / 65 % | shelf 0.0, limit 7.2, gain 0.0 dB | on target |
+| `SDHNDACT` | D83 | SDHNDACT | `sd/mon/reichhound/active` | -12.9 (`DSDMACT` +0) | -5.2 / -15.6 / 74 % | -2.6 / -12.9 / 74 % | shelf 0.0, limit 0.0, gain -1.6 dB | on target |
+| `SDHNDSIT` | D83 | SDHNDSIT | `sd/mon/reichhound/sight` | -11.8 (`DSSGTSIT` +0) | -3.0 / -12.3 / 100 % | -3.0 / -12.3 / 100 % | untouched | on target |
+| `SDHNDATK` | D83 | SDHNDATK | `sd/mon/reichhound/attack` | -6.3 (`DSSGTATK` +0) | -1.0 / -16.8 / 28 % | -1.0 / -14.3 / 26 % | shelf 0.0, limit 8.2, gain 0.0 dB | **8.0 dB short** |
+| `SDHNDPAI` | D83 | SDHNDPAI | `sd/mon/reichhound/pain` | -11.7 (`DSDMPAIN` +0) | -4.4 / -15.6 / 95 % | -1.0 / -11.7 / 95 % | shelf 0.0, limit 0.5, gain 0.0 dB | on target |
+| `SDHNDDTH` | D83 | SDHNDDTH | `sd/mon/reichhound/death` | -14.3 (`DSSGTDTH` +0) | -1.4 / -14.0 / 33 % | -1.4 / -14.0 / 33 % | untouched | on target |
+| `SDDGBACT` | D83 | SDDGBACT | `sd/mon/doughboy/active` | -12.9 (`DSDMACT` +0) | -9.0 / -30.4 / 3 % | -1.0 / -16.8 / 12 % | shelf 9.0, limit 3.0, gain 0.0 dB | **3.9 dB short** |
+| `SDDGBSIT` | D83 | SDDGBSIT | `sd/mon/doughboy/sight` | -11.5 (`DSCACSIT` +0) | -3.2 / -14.3 / 92 % | -1.0 / -11.5 / 91 % | shelf 0.0, limit 3.9, gain 0.0 dB | on target |
+| `SDDGBMEL` | D83 | SDDGBMEL | `sd/mon/doughboy/melee` | -9.3 (`DSCLAW` +0) | -1.0 / -15.0 / 61 % | -1.0 / -12.5 / 65 % | shelf 0.0, limit 4.6, gain 0.0 dB | **3.2 dB short** |
+| `SDDGBMIS` | D83 | SDDGBMIS | `sd/mon/doughboy/missile` | -15.9 (`DSFIRSHT` +0) | -1.0 / -11.7 / 87 % | -5.2 / -15.9 / 87 % | shelf 0.0, limit 0.0, gain -4.2 dB | on target |
+| `SDDGBEXP` | D83 | SDDGBEXP | `sd/mon/doughboy/explode` | -20.0 (`DSFIRXPL` +0) | -1.2 / -14.6 / 41 % | -6.6 / -20.0 / 41 % | shelf 0.0, limit 0.0, gain -5.6 dB | on target |
+| `SDDGBPAI` | D83 | SDDGBPAI | `sd/mon/doughboy/pain` | -11.7 (`DSDMPAIN` +0) | -3.1 / -18.0 / 67 % | -1.0 / -13.1 / 69 % | shelf 0.0, limit 6.6, gain 0.0 dB | **1.4 dB short** |
+| `SDDGBDTH` | D83 | SDDGBDTH | `sd/mon/doughboy/death` | -11.3 (`DSCACDTH` +0) | -2.3 / -13.6 / 72 % | -1.0 / -11.3 / 72 % | shelf 0.0, limit 1.0, gain 0.0 dB | on target |
+| `SDPZRACT` | D83 | SDPZRACT | `sd/mon/panzermensch/active` | -12.9 (`DSDMACT` +0) | -3.6 / -16.7 / 95 % | -1.0 / -12.9 / 95 % | shelf 0.0, limit 1.4, gain 0.0 dB | on target |
+| `SDPZRSIT` | D83 | SDPZRSIT | `sd/mon/panzermensch/sight` | -9.5 (`DSKNTSIT` +0) | -1.0 / -19.7 / 16 % | -1.0 / -16.2 / 16 % | shelf 0.0, limit 8.3, gain 0.0 dB | **6.7 dB short** |
+| `SDPZRMEL` | D83 | SDPZRMEL | `sd/mon/panzermensch/melee` | -13.1 (`DSSKEPCH` +0) | -1.5 / -21.9 / 3 % | -1.0 / -16.6 / 8 % | shelf 9.0, limit 2.5, gain 0.0 dB | **3.5 dB short** |
+| `SDPZRMIS` | D83 | SDPZRMIS | `sd/mon/panzermensch/missile` | -15.9 (`DSFIRSHT` +0) | -2.0 / -16.3 / 49 % | -2.0 / -16.3 / 49 % | untouched | on target |
+| `SDPZREXP` | D83 | SDPZREXP | `sd/mon/panzermensch/explode` | -20.0 (`DSFIRXPL` +0) | -1.0 / -17.8 / 7 % | -5.2 / -20.0 / 13 % | shelf 3.5, limit 0.0, gain -4.2 dB | on target |
+| `SDPZRDTH` | D83 | SDPZRDTH | `sd/mon/panzermensch/death` | -8.9 (`DSKNTDTH` +0) | -1.0 / -17.0 / 9 % | -1.0 / -11.1 / 13 % | shelf 0.5, limit 8.1, gain 0.0 dB | **2.2 dB short** |
+| `SDPZRSTP` | D83 | SDPZRSTP | `sd/mon/panzermensch/step` | -14.7 (`DSMETAL` +0) | -3.4 / -25.8 / 3 % | -1.0 / -17.8 / 9 % | shelf 9.0, limit 3.6, gain 0.0 dB | **3.1 dB short** |
+| `SDGENACT` | D83 | SDGENACT | `sd/mon/general/active` | -12.9 (`DSDMACT` +0) | -13.4 / -29.9 / 9 % | -1.0 / -16.1 / 13 % | shelf 2.5, limit 2.8, gain 0.0 dB | **3.2 dB short** |
+| `SDGENMIS` | D83 | SDGENMIS | `sd/mon/general/missile` | -14.2 (`DSRLAUNC` +0) | -1.0 / -12.3 / 67 % | -2.9 / -14.2 / 67 % | shelf 0.0, limit 0.0, gain -1.9 dB | on target |
+| `SDGENEXP` | D83 | SDGENEXP | `sd/mon/general/explode` | -20.0 (`DSFIRXPL` +0) | -1.0 / -12.8 / 74 % | -8.2 / -20.0 / 74 % | shelf 0.0, limit 0.0, gain -7.2 dB | on target |
+| `SDRRIAT1` | D86 | SDRRIATK_alt1 | `sd/mon/reichrifleman/attack/1` | -10.4 (`DSPISTOL` +0) | -1.0 / -10.4 / 98 % | -1.0 / -10.4 / 98 % | untouched | on target |
+| `SDRRIAT2` | D86 | SDRRIATK_alt2 | `sd/mon/reichrifleman/attack/2` | -10.4 (`DSPISTOL` +0) | -1.0 / -10.4 / 98 % | -1.5 / -10.7 / 98 % | shelf 0.0, limit 0.0, gain 0.0 dB, codec 0.5 dB | on target |
+| `SDRRIAT3` | D86 | SDRRIATK_alt3 | `sd/mon/reichrifleman/attack/3` | -10.4 (`DSPISTOL` +0) | -1.0 / -10.4 / 98 % | -1.3 / -10.4 / 98 % | shelf 0.0, limit 0.0, gain 0.0 dB, codec 0.3 dB | on target |
+| `SDLTRATK` | D86 | SDLTRATK_alt2 | `sd/mon/legiontrooper/attack` | -7.9 (`DSDSHTGN` +0) | -1.0 / -7.9 / 94 % | -2.7 / -8.8 / 94 % | shelf 0.0, limit 0.0, gain 0.0 dB, codec 1.7 dB | on target |
+| `SDSTOPA1` | D86 | SDSTOPAI_alt1 | `sd/mon/stormtrooper/pain/1` | -11.7 (`DSDMPAIN` +0) | -1.0 / -11.7 / 82 % | -1.0 / -11.7 / 82 % | untouched | on target |
+| `SDSTOPA2` | D86 | SDSTOPAI_alt2 | `sd/mon/stormtrooper/pain/2` | -11.7 (`DSDMPAIN` +0) | -1.0 / -12.0 / 97 % | -1.7 / -12.1 / 96 % | shelf 0.0, limit 0.0, gain 0.0 dB, codec 0.7 dB | on target |
+| `SDSTOPA3` | D86 | SDSTOPAI_alt3 | `sd/mon/stormtrooper/pain/3` | -11.7 (`DSDMPAIN` +0) | -1.0 / -11.7 / 99 % | -1.0 / -11.7 / 99 % | untouched | on target |
+| `SDSTODT1` | D86 | SDSTODTH_alt1 | `sd/mon/stormtrooper/death/1` | -7.4 (`DSBGDTH1` +0) | -1.0 / -7.4 / 96 % | -1.4 / -7.7 / 96 % | shelf 0.0, limit 0.0, gain 0.0 dB, codec 0.4 dB | on target |
+| `SDSTODT2` | D86 | SDSTODTH_alt2 | `sd/mon/stormtrooper/death/2` | -7.4 (`DSBGDTH1` +0) | -1.0 / -7.4 / 98 % | -2.0 / -8.0 / 98 % | shelf 0.0, limit 0.0, gain 0.0 dB, codec 1.0 dB | on target |
+| `SDSTODT3` | D86 | SDSTODTH_alt3 | `sd/mon/stormtrooper/death/3` | -7.4 (`DSBGDTH1` +0) | -1.0 / -7.4 / 55 % | -2.6 / -8.7 / 56 % | shelf 0.0, limit 0.0, gain 0.0 dB, codec 1.6 dB | **1.4 dB short** |
+| `SDPZRPA1` | D86 | SDPZRPAI_alt1 | `sd/mon/panzermensch/pain/1` | -11.7 (`DSDMPAIN` +0) | -1.2 / -11.7 / 77 % | -1.2 / -11.7 / 77 % | untouched | on target |
+| `SDPZRPA2` | D86 | SDPZRPAI_alt2 | `sd/mon/panzermensch/pain/2` | -11.7 (`DSDMPAIN` +0) | -1.0 / -11.7 / 83 % | -1.0 / -11.7 / 83 % | untouched | on target |
+| `SDPZRPA3` | D86 | SDPZRPAI_alt3 | `sd/mon/panzermensch/pain/3` | -11.7 (`DSDMPAIN` +0) | -1.0 / -11.7 / 56 % | -1.0 / -11.7 / 56 % | untouched | on target |
+| `SDRRIDB1` | D83 | SDRRIDTH-bed | `sd/bed/reichrifleman/death` | -13.6 (`DSPODTH1` -3) | -2.6 / -20.7 / 15 % | -1.0 / -13.6 / 20 % | shelf 0.0, limit 6.2, gain 0.0 dB | on target |
+| `SDLTRAB1` | D83 | SDLTRACT-bed | `sd/bed/legiontrooper/active` | -31.6 (`DSPOSACT` -3) | -1.0 / -10.3 / 99 % | -22.3 / -31.6 / 99 % | shelf 0.0 dB, limit, 0.0 dB, gain -21.3 dB | on target |
+| `SDLTRSB1` | D83 | SDLTRSIT-bed | `sd/bed/legiontrooper/sight` | -14.2 (`DSPOSIT2` -3) | -4.5 / -14.0 / 100 % | -4.5 / -14.0 / 100 % | untouched | on target |
+| `SDGENPB1` | D83 | SDGENPAI-bed | `sd/bed/general/pain` | -14.7 (`DSDMPAIN` -3) | -4.1 / -17.1 / 84 % | -1.7 / -14.7 / 84 % | shelf 0.0, limit 0.0, gain -0.7 dB | on target |
+| `SDGENDB1` | D83 | SDGENDTH-bed | `sd/bed/general/death` | -14.3 (`DSCYBDTH` -3) | -7.4 / -15.4 / 74 % | -6.4 / -14.3 / 74 % | shelf 0.0, limit 0.0, gain -5.4 dB | on target |
+| `SDRRIPB1` | D86 | SDRRIPAI_alt1 | `sd/bed/reichrifleman/pain/1` | -14.4 (`DSPOPAIN` -3) | -1.0 / -14.4 / 85 % | -1.0 / -14.4 / 85 % | untouched | on target |
+| `SDRRIPB2` | D86 | SDRRIPAI_alt2 | `sd/bed/reichrifleman/pain/2` | -14.4 (`DSPOPAIN` -3) | -2.5 / -14.4 / 95 % | -2.5 / -14.4 / 95 % | untouched | on target |
+| `SDRRIPB3` | D86 | SDRRIPAI_alt3 | `sd/bed/reichrifleman/pain/3` | -14.4 (`DSPOPAIN` -3) | -1.0 / -14.4 / 53 % | -1.0 / -14.4 / 53 % | untouched | on target |
+| `SDLTRPB1` | D86 | SDLTRPAI_alt1 | `sd/bed/legiontrooper/pain/1` | -14.4 (`DSPOPAIN` -3) | -3.9 / -14.4 / 97 % | -3.9 / -14.4 / 97 % | untouched | on target |
+| `SDLTRPB2` | D86 | SDLTRPAI_alt2 | `sd/bed/legiontrooper/pain/2` | -14.4 (`DSPOPAIN` -3) | -6.0 / -14.4 / 98 % | -6.0 / -14.4 / 98 % | untouched | on target |
+| `SDLTRPB3` | D86 | SDLTRPAI_alt3 | `sd/bed/legiontrooper/pain/3` | -14.4 (`DSPOPAIN` -3) | -11.9 / -14.4 / 100 % | -11.9 / -14.4 / 100 % | untouched | on target |
+| `SDLTRDB1` | D86 | SDLTRDTH_alt1 | `sd/bed/legiontrooper/death/1` | -11.3 (`DSPODTH2` -3) | -1.0 / -11.3 / 76 % | -1.0 / -11.3 / 76 % | untouched | on target |
+| `SDLTRDB2` | D86 | SDLTRDTH_alt2 | `sd/bed/legiontrooper/death/2` | -11.3 (`DSPODTH2` -3) | -10.1 / -11.3 / 95 % | -10.1 / -11.3 / 95 % | untouched | on target |
+| `SDLTRDB3` | D86 | SDLTRDTH_alt3 | `sd/bed/legiontrooper/death/3` | -11.3 (`DSPODTH2` -3) | -3.6 / -11.3 / 98 % | -3.6 / -11.3 / 98 % | untouched | on target |
+
+**46 on target, 11 short**: `SDSTODT3` by its codec limiting
+(above); the others at the pass's ceiling (peak -1 dBFS, limiting stopped
+where more stops paying), as the weapons' were:
+the bites, thuds and growls with most of their energy under 1 kHz, where
+A-weighting counts little (`SDHNDATK` 8.0 dB under `DSSGTATK`, the
+loudest Freedoom lump of the set; `SDPZRSIT` 6.7; `SDSTOMEL` 4.7), and the
+three bass-only ones the sheet flagged amber, lifted by the 9 dB shelf
+from 3 % to 8-12 % above 300 Hz (`SDDGBACT`, `SDPZRMEL`, `SDPZRSTP`).
+Reaching their targets would take saturation or a brighter layer, a
+re-voicing, not this pass.
+
+**The installed files.** WAV masters reproduce on this PC; the OGGs depend
+on the local ffmpeg, as the weapons' (WEAPON-SOUNDS §10.5).
+
+| Lump | WAV master SHA-256 | Installed OGG SHA-256 |
+|---|---|---|
+| `SDRRIXDT` | `d4ba799569f917ba95f1796ab911361c37d73b6107b04b7ea3f62b33ac2a0549` | `e8693e626bcca23d8c71406593374481461e849f52cc086709c7ea66033427b0` |
+| `SDLTRXDT` | `ac87aece072979284e154e33636e9a2ca30d77785f631a310c7563b4a5695ae3` | `adb42dcef0f7b20a1be5970d007c29d0c3c622e016f54345125a2851571575d8` |
+| `SDSTOACT` | `363f6f2fbf19b2218ae69cbf7bee9ab3f5a9f6f8f2beeb36a12f0bd0ce19200a` | `7bf1a9bbf726e4d5e52b954d072e0de19d3dc9f6e0b27c8726b66b3a1242e031` |
+| `SDSTOSIT` | `bfeafee3d6d6d38bb26269637dca4d7ae3db1cb4276ffe982ddb26d686b76f3e` | `e845728a07056f511f89415bc366ac65f6c36c6ff0d94cc3231b02a2769e993a` |
+| `SDSTOMEL` | `cf72caae57bc8f66b688a7091b8fdf587901aea597520fa3963425934ae1f5ad` | `cc6529bc5644bf6612ceab953355e3af02b87103e371cdb235e4997f0de7133a` |
+| `SDSTOMIS` | `61dcf55e213a69cddd5a3850f065f8c41fda52453f26af0504f51edc08b32fb0` | `bf844aef30c8e3a6a90b5e1e2be7629902eb1ac63f3a907400cf08973f79091d` |
+| `SDSTOEXP` | `ffe6b22ba8be4d524e513f2acf4c2e2f84ab34c628df7bfdf0a778251cb4c418` | `ae56a4300dc976d16bf6d28db4b00a41558ba14dc2c2982678266b6ebe2f4503` |
+| `SDSTOXDT` | `85cb5cc027427ea886ea560e03bc2ad217ef202e01a505485fd53a2fc24dfdc6` | `080709cb8f1b7aa762fb00249f32b59a2959374bc68434bea5d384aa8a244865` |
+| `SDHNDACT` | `cebac3156b61654dd345781a9fdb112142fcd25ae775e2ff807a4226fa0e6565` | `cf81ac25623e1237b72af92467fc1a4cf24185d73bc16ce6529d0f97f2d6bc37` |
+| `SDHNDSIT` | `5e6a5a268a61c30ea4d9012c6bdfcc1e86d954f23469202a36d12848865486a4` | `c6371ab5398ed60501c08ab05c164a4bad994cf8d8bcc1b386ba12eb9b8c8e04` |
+| `SDHNDATK` | `757dc0b103f4ece927fbe604d48440c63e300b4863b92d883932104a1a6ef0fd` | `6f7c76a9a293a2b906d4913e432d5f2fc236799e7257d20c3fb599a910975f06` |
+| `SDHNDPAI` | `94227677a11a32f17f3e893d4be40b01f77fc7464acab405d415729950b4b6a6` | `8f4c0da74f1e6a04b9b04e748021fbe3cc6b2cd819d83aac27354c9669b81bbe` |
+| `SDHNDDTH` | `1a78ddee26f0c427a9fcad3250ea006c01420cf52c2092e702d841302c609133` | `7b7c0918f9667e500b622b20fef0fd58ac52d7ff771776fa125d44cc5a98964b` |
+| `SDDGBACT` | `7e94cc430a625b78a5f99235a19019f07130d9d43f72c3f23e6e28796cbe12bc` | `fec6c0e2c362aebc89165b397cb19a129a9ba7724c5e1f2487f4e82e22271346` |
+| `SDDGBSIT` | `b7e7475bd5c3ca2fe69d0ee96ea106b03992ef8c59db22ce7b8c976da5cc2917` | `be7bdb3edfca6e034f770fc4b8836beb547b0c2d42311aac2d6bed7b41d518b2` |
+| `SDDGBMEL` | `0d430d460f5449bdb8702438ffd25d993b332f268a2f2687106e8b2ea903dd5b` | `5ab45c9c4f105b9556e79b16c3e24db09679b3f99a4c93a261ed36b2a1c1e3dc` |
+| `SDDGBMIS` | `65b69447fed3217dfe36d066b6adfffecb913a97412719335f9840909c9cb028` | `977598dbd0e94112639758476ee01627c8ed0a62c106bbb1a349e5faa0665e00` |
+| `SDDGBEXP` | `65b8161438fcc654c63e8a3d236651730c23cfea8f4a6b1f9f2f6786b052b46a` | `9723a7459ab21429cea1a7f2d39cb0b34cf74fc4957c364ed459845ff3b02257` |
+| `SDDGBPAI` | `556033abdc803b965a1927f6e305ea9cff6ac7ad3c862e3e2de3f5892bd50aa9` | `e284d65322a99bfb07377aa78914fa6b684deec01f43125b2b7a2e275daee35a` |
+| `SDDGBDTH` | `b2de6b32110a79e4e1aaa2984950819657790d27955d564d911b503c48c242af` | `266a80432998c901e0651ad04ee02119e5b82ef427ba6fe63ba68ee9afcacf18` |
+| `SDPZRACT` | `bef6def1becc11c1b68d95686d2068ce26a5bdb068afd3b12d261f87a9da4935` | `b39cebf99e571252fcdf5df5210e14bdcaf9e36c64e68226ad98759dfb286807` |
+| `SDPZRSIT` | `4749338c615b6292f394238bd3ce9f9c8886657141cdb9090bd6a576da3acd21` | `94ad02e5d7e2a7e644d42b8727377fee3fde040cd7ec3e84d667dd71238f9449` |
+| `SDPZRMEL` | `e61c687e0e5b8ac72f77ef5a1311b0f600336055d3509dbab7a7c9b45c0fb3f5` | `0ba3ad8992a3ec324b8d69f26a20f5c81133518a7fb18d9bd2f927c66eca2291` |
+| `SDPZRMIS` | `4ce86e1aee869854ec40f4db529d1faabf64ba24e3004e9d1389f6c5eac31521` | `175411e473ba2e1951d6a080bc6403364cad9ea11c7fb1253b015207350bf6b0` |
+| `SDPZREXP` | `dfa79c3fdb1edf5459da7d220ab0de71802a20bf42a87b8192bdc0056ecfc853` | `4cfc77bf46889642023acf2988b62e99c684b626b5500a462cbaccaf884edae4` |
+| `SDPZRDTH` | `aeb3e60a5a9377dfefdb4d996b0837df90f39bb8150fcd081de41e2f78b83ffa` | `1f8e3ee6e5ccf24834ecc7481465b216180385c50f59e17696d7051ee26845cf` |
+| `SDPZRSTP` | `64f24acbd46f1d9851e8bfa8c891b038c665c54bfb270dd21483e28ba99dcf49` | `62c0819c0f783c72ebd564d00f452976662e7f7935c99a896d98479598f242d0` |
+| `SDGENACT` | `a2dbd44ec32d7578e6ffb3ed9b961810f49571676b7d63b54010d550c397cb61` | `f9e6cf0cb717220677e796a2e7e5c4eebd45b4b449afeadf5bf93cf4e6b47d8d` |
+| `SDGENMIS` | `068593e58aa9e21e2a2d330a5df05691a686a46871f99dda607d009940c5ba90` | `2846d83a9267ef84b8d2d0d51afd73bfa1469cea51bc90f79cb4de5eaece788e` |
+| `SDGENEXP` | `15c1bf6d5282056b59cbb316ab8de314929bc0809f86a7b2d9679eb8f0790e8d` | `98c8bbcff239bd7db7a160005ee312f5958de85c771757ba2dbb46f78bb1049a` |
+| `SDRRIAT1` | `db54e1f9f6b3782262c3b6af10b3569ed85518b13acf0b68ec64ab2f2cad5e93` | `9b333ed596a8b30a66ecb6c281d4b672f8676d80b62c92dc53e2a1fb7c602953` |
+| `SDRRIAT2` | `0ed4fe60440513f0dbc6846c43307928fcd95097f057115ca613054a72f23770` | `097a909a6849e3cfc9bbe8050f90b59e35e66630f011d714c05bcf5c1739ed8c` |
+| `SDRRIAT3` | `9352f7463d64291aebab0eee0118fb700aa4a9f1520ff7fd013df8e3af27c8f4` | `589810e19523d29b2f0153bfbb7b6ff815d5f5e956a1920d8dc0933799069a71` |
+| `SDLTRATK` | `0ecbc23400d6dafcf7504bdb20bf32187a9c86065c3dde4883b7ef7295e0c4f1` | `b8027da3f66cc94e99e8060bd4cc24b2e689b60f9528fe0c555c28437b4f2359` |
+| `SDSTOPA1` | `73e4b2dfa57222befaf17d891fd872823b4bbfefd5a0c3191a362f2ae27831d6` | `84fe7d232e4b9e8d127246be6cc04e69f7fb7c295c40ce691247d15b486a3b06` |
+| `SDSTOPA2` | `47f8b59bac9bf5b66757e2264cc06c9b3d04030b2474732e8cd0c9fe3fbe26b3` | `37ea2db8151f7dcb7020a98f5f7cc34f39ac2d18ceed295cc346e203d232f179` |
+| `SDSTOPA3` | `3f4dc3450562377defd6741e43ca1d6d439ce71c454211d5454c917b87bc4d11` | `9e4b183ea79f0df236a734f7096ff0134931ba3ebbb653d5789c61b8904031bc` |
+| `SDSTODT1` | `1cfa73fbb27ea21f8e4eda664df01e8a789267f98e4253a5bda79b11eb0d8d58` | `e9458fb00c0a996a2a7b696ca977703f6d006172de962feba4f2c0e85095bc9b` |
+| `SDSTODT2` | `3e974f6dec11b2eb1d96ba578a2dbbb487e2a7cc013aa7070957512437d3fa02` | `abffe18f1f071d37521b845fee790744ee4d3e338c132717b853816ab60b521c` |
+| `SDSTODT3` | `7d88822664590c726ddb727fedc609a534a51e7faa3c3f91d0ae14fe37e22712` | `031acd4243f917d8bf419c2aa72c4a483dc478827939316945761a4de32b3375` |
+| `SDPZRPA1` | `9a8e87b2ee896d921c6e20f96e83d6db5bac90fa7eabb9de96aedf155d9f9500` | `4ed58a5d9dfefed6df1bf785aabd92e86e07460579adba01bf48b5ec71fa1223` |
+| `SDPZRPA2` | `2d1f42d0fa403bc2379ea2a8eef387f260d79872d0404432015818d57cb26bb0` | `3b21a19b619a004e963042bdd713ff20907253be159f075310ea64e085df00d5` |
+| `SDPZRPA3` | `07def89a1e2b27315888c4e7f0513db8d3e17e252d7ca8b28e5830e9ef313b0a` | `a5e1bf5482220e5157cd104f607c4722d8aaf05eb583792baa4d82e3601e15d9` |
+| `SDRRIDB1` | `9522f694b74e244a4bc0a3db6e6a39e2e77bbe1a70de94dad5c99862a12f370b` | `f4c6c406f72e3e87c4a6377f184bfe7460cc25d89d137b76107c584797f89cd1` |
+| `SDLTRAB1` | `438539c9958c3354f9b3837f3d4988c026dbe923ad337409a280d8ee78e81aff` | `2d8ee7917d4b5c41e2eabd56353ee3ac52db33a74a0cda48e7d58b7705040cf0` |
+| `SDLTRSB1` | `36048db0d745230b076d39db45c1765b19452f72c88232c6f3b22b3db474224a` | `dd5ea43ac8b14678577da921d5de9e34b40c0d7c55cbcf8d22085eb3d5e84b8e` |
+| `SDGENPB1` | `7f99843405a9045bbda6a44d3c3b9b4dd74d15ab5918d7916b1ad25412f3d854` | `11064ad61499ffa05f643f37782e8fcb268d0933f2a543d7a0adc652409771aa` |
+| `SDGENDB1` | `5e141851482e4930954e92083917703dda1e7a0f22d432ef480046992ed42e89` | `301e2e38ac884a5eb3f7f0255bbde8a0849137b3cd163f4e596e16d81f84231f` |
+| `SDRRIPB1` | `7970c3ce8486f16825355056beafaad1ae524395a717fdf4da1416f08d479141` | `6b070995908ac95d442b57fc794c3c28402ab17e792b3839cad484b3c8335375` |
+| `SDRRIPB2` | `9062bbeb89c188771aab97704939ebcf56bc64a9c541db4b4fd38f329ca4e50f` | `534d1a706ab3b34e69c8c19bf9a8e1ee0c2380675f8fd34fab4f3e283eec4e13` |
+| `SDRRIPB3` | `05238bc6d26a7a8db31e683774d232510bc6c9f292ebc294c34cf3d9e52d2ebc` | `b2547e903d3cdd2623699d5b2ef9976b0a9b1a2f002140cde83da13e4dac2e83` |
+| `SDLTRPB1` | `6ff3aab059d1be2fd9d9323057b331820f09106ed55fcd4284543eaa453c4518` | `3e826792cc0ec5ff5593eb2c3a2e802a733ff9372344c990fdf932f43ab85f4d` |
+| `SDLTRPB2` | `5d202942535e99fcf7fb23e9ee56b5e45188d446855929b2400f1814b49d2b05` | `39936f454d985b551242215dcc42cdfbd04245f523af67694d3dfbab8e249f75` |
+| `SDLTRPB3` | `11f4bcdba0ef8d6c79096a71f5e908ee9488953cbee9f9def3e2df14aa5f4f74` | `17cea51ca9ca8692bdb14b9142fdd5d41b078408dfaf5295da4217ee15debfe7` |
+| `SDLTRDB1` | `db4ae9f111a842b1e177193ba5e8a56b4e7b566897d50fe4a420c791e002f790` | `6b9cba1e526024640f774877954ede721183953c381d237a3a70606d757850db` |
+| `SDLTRDB2` | `9b45b043beee329051461469e0979a9f78d2ee107e66b99d10bc84f6d402f7b9` | `8d51eb7b51991ea4c7fbc80b0ecbf7d4596647b15c254432d26f27d9a2c28e96` |
+| `SDLTRDB3` | `d5d9200dc1bd2e68216651c02afc37d30a22b5cceeb7e1bb03eff7532d17383a` | `6eb6456a086b7dacd3ceeff657626082dbe61209ee00c2a52ff621ae219edbe1` |
+
+**The seven voice takes (D91, N9e).** The CEO approved seven of the
+Chatterbox drafts (D87; `docs/art/previews/2026-10-20_1135_P2_voice-takes.html`):
+R06 t01 and t03 ("Kontakt!", the rifleman's sight) and L01 t01, t03, L02
+t01-t03 (the trooper's idle radio lines). They ship as the OGGs
+`tools/audio/process_voice_takes.py` made for the page, byte for byte
+(`master_enemy_sfx.py --voices` checks the decoded peak and the loudness
+and copies them; the raw takes cannot be regenerated here without the
+Chatterbox server). Each name is a `$random` group: the rifleman's sight
+over `SDRRISI1`/`SDRRISI3` (the takes' own numbers), the trooper's idle
+over `SDLTRAC1`-`SDLTRAC5` (L01 t01, L01 t03, L02 t01, L02 t02, L02 t03).
+The trooper's idle bed `SDLTRAB1` stays parked: mixing a bed under a
+voice is a new sound the CEO has not heard. The other ten voices keep
+Freedoom's lumps until a shouted reference exists (D91).
+
+| Lump | Take | Logical name | Target, dB A (from) | Installed OGG SHA-256 |
+|---|---|---|---|---|
+| `SDRRISI1` | R06 t01 | `sd/mon/reichrifleman/sight/1` | -10.1 (`DSPOSIT1`) | `dd56db85f651faf912cf09031daa4f5a726455d03758531c809584f1b1e1ef18` |
+| `SDRRISI3` | R06 t03 | `sd/mon/reichrifleman/sight/3` | -10.1 (`DSPOSIT1`) | `9b8063c21dd9caa51f87562ae28de2a7eacdbffb002ce2944cf38cfe8fa7be2b` |
+| `SDLTRAC1` | L01 t01 | `sd/mon/legiontrooper/active/1` | -28.6 (`DSPOSACT`) | `45132e6973126e320508b2373995ccf12ac316f90d8672287f2a9cfa18316d82` |
+| `SDLTRAC2` | L01 t03 | `sd/mon/legiontrooper/active/2` | -28.6 (`DSPOSACT`) | `4ac94a6ee67c10db212f26d4fffff0e0775c0ac4731da6b083a47f5194ec68d9` |
+| `SDLTRAC3` | L02 t01 | `sd/mon/legiontrooper/active/3` | -28.6 (`DSPOSACT`) | `143887b4851dda474433f5ba465b963677ed33675eb9f9f09236b266a059f825` |
+| `SDLTRAC4` | L02 t02 | `sd/mon/legiontrooper/active/4` | -28.6 (`DSPOSACT`) | `c2c02cded81348a5a8264a1c0d42a7532e410145e4184572d178b4654ff7f4c6` |
+| `SDLTRAC5` | L02 t03 | `sd/mon/legiontrooper/active/5` | -28.6 (`DSPOSACT`) | `5acad54da26ab55e5fe929c8c8a42e6c46240a5c6d290a4b572b41aaf1656a16` |
+
+**What to listen for in the engine (the PM, D26).** On the range and in
+MAP01: (1) the log has no "Unknown sound"; (2) the rifleman's shot, the
+Stormtrooper's pain and death and the Panzermensch's pain change from one
+hit to the next (`$random`; NOT VERIFIED in our engine, though it is
+Doom's own zombieman sight); (3) the Legion's shotgun against the IZh-58's
+(`SDLTRATK` alt2 at `DSDSHTGN`'s level); (4) the short ones above, on
+laptop speakers: the hound's bite, the Panzermensch's sight, the
+Doughboy's idle drone; (5) the Panzermensch's step, one per walk cycle,
+not tiring; (6) the rifleman's sight ("Kontakt!") and the trooper's idle
+chatter are D91's Chatterbox takes, varying; the other ten voices are still
+Freedoom's and no bed is heard.
+
 
 ---
 

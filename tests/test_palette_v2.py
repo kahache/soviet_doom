@@ -104,6 +104,9 @@ MAX_COLOURS = 256
 # not in PALETTE_V2_LUMPS. The Katyusha's floor pickup SDHPA0 (D80) and the
 # two enemy shells SDDL / SDPL (D81) are v1 and not listed.
 # D88 (2026-10-20): the ice axe's SDAX A-D, the same way (no flash).
+# D82 (2026-10-20): the player effects (assets/sprites/effects/, SDPG, SDKR,
+# SDPX, SDFJ, SDFX and the IWAD-named PUFF, BLUD, TFOG, IFOG, BAR1, BEXP,
+# COLU) are all v1 (gen_effects.py, palette_v1) and not listed.
 D84_FRAMES = {"izh": ("SDIZ", "ABCD", "SDIF", "AB"), "rpg7": ("SDRL", "AB", "SDRF", "ABCD"),
               "roks3": ("SDRK", "AB", "SDKF", "A"), "katyusha": ("SDHK", "AB", "SDHF", "AB"),
               "ice_axe": ("SDAX", "ABCD", "SDAX", "")}

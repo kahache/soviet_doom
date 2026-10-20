@@ -44,6 +44,7 @@ class SD_IceAxe : Fist replaces Fist
 		Obituary "$SD_OB_ICEAXE";
 		Tag "$SD_TAG_ICEAXE";
 		Inventory.PickupMessage "$SD_PICKUP_ICEAXE";
+		Inventory.PickupSound "sd/weapon/iceaxe/pickup";  // SDAXPKP1/3 $random (N9e, D94)
 		+WEAPON.WIMPY_WEAPON      // never auto-switch TO it when ammo runs out
 		+WEAPON.MELEEWEAPON
 		+WEAPON.NOAUTOSWITCHTO

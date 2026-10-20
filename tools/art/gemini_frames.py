@@ -95,6 +95,7 @@ SLEEVE_HUE = 8                  # degrees from the sleeve's hue: still sleeve
 SKIN_SAT, SKIN_VALUE = 0.55, 150   # light and less saturated than wood: skin
 EDGE_PROBE = 3                  # last columns whose per-row majority is the row's material
 STOCK_PROBE = 8                 # last columns the stock's axis is measured over
+TUBE_PROBE = 6                  # last columns a rigid tube's cross-section is the mode of (along its axis)
 STOCK_EXIT = 0.75               # the stock has left the canvas by this fraction of the run-on
 WOOD_BANDS = (1, 3, 0.6)        # rows of outline, light, then mid down to this fraction (shadow, outline below)
 WOOD_GRAIN = 0.5                # x the wood colour: the dashed grain line along the stock
@@ -148,6 +149,8 @@ class WeaponPair:
     flash_halo: int = 0 # px round the flash whose B-only pixels go with it (split_flash)
     arm_band: bool = False  # an arm cut by the side runs on as a tube of its own thickness (extend_edges)
     arm_curve: bool = True  # False: that tube runs on straight along the forearm's axis (the ice axe, D84)
+    rigid_tube: bool = False  # the soft rows at the side are a launcher tube, not a sleeve: it runs on
+                              # straight, its own cross-section (extend_edges `tube`; the RPG-7, 2026-10-20)
     taper: bool = False # a flash cut by the image's side ends in a point (taper_cut; the PPSh's is as built)
     mocks: tuple[tuple[str, tuple[str, ...]], ...] = ()   # preview: (label, lumps drawn in order)
 
@@ -190,7 +193,7 @@ WEAPONS = {
                 Frame("SDRFA0", "B", flash=True, kick=KICK), Frame("SDRFB0", "B", flash=True, kick=KICK, scale=0.8),
                 Frame("SDRFC0", "B", flash=True, kick=KICK, scale=0.6),
                 Frame("SDRFD0", "B", flash=True, kick=KICK, scale=0.4)),
-        restore=(("B", 286, 150, 321, 240),), flash_grow=12, flash_halo=12, arm_band=True),
+        restore=(("B", 286, 150, 321, 240),), flash_grow=12, flash_halo=12, arm_band=True, rigid_tube=True),
     # ROKS-3 (roks3.zs, PLSG/PLSF): the flame plays over A while the trigger
     # is held; B (20 tics) is the gun once it is let go, in A's pose.
     "roks3": WeaponPair(
@@ -750,9 +753,40 @@ def wood_ramp(base, pal: np.ndarray) -> list[int]:
     return [nearest_colour(base * f, pal) for f in SLEEVE_SHADES + (WOOD_GRAIN,)]
 
 
+def tube_run(kinds: list[str | None], soft: list[int]) -> tuple[int, int]:
+    """The first run of soft rows at the side with the outline rows right
+    above and under it: a rigid tube's rows at the edge, outlines included."""
+    a, b = _runs(soft)[0]
+    while a > 0 and kinds[a - 1] == OUTLINE:
+        a -= 1
+    while b + 1 < len(kinds) and kinds[b + 1] == OUTLINE:
+        b += 1
+    return a, b
+
+
+def tube_profile(idx: np.ndarray, pal: np.ndarray, run: tuple[int, int], slope: float, dark: int,
+                 probe: int = TUBE_PROBE) -> list[int]:
+    """A rigid tube's cross-section where it leaves: per row of `run`, the
+    mode over the last `probe` columns followed along the axis (`slope`
+    rows per column), so its own ramp; first and last rows are its dark
+    outline (`dark` where the art has none there)."""
+    a, b = run
+    h, w = idx.shape
+    prof = []
+    for r in range(a, b + 1):
+        vals = [idx[rr, c] for c in range(max(0, w - probe), w)
+                if 0 <= (rr := r + int(round(slope * (c - (w - 1))))) < h]
+        m = _mode(np.array(vals), None) if vals else TRANSPARENT
+        prof.append(m if m >= 0 else int(idx[r, w - 1]))
+    for i in (0, -1):
+        if max(pal[prof[i]]) >= DARK_VALUE:
+            prof[i] = dark
+    return prof
+
+
 def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE,
                  power: float = EXIT_POWER, pal: np.ndarray | None = None, band: bool = False,
-                 curve: bool = True) -> np.ndarray:
+                 curve: bool = True, tube: bool = False) -> np.ndarray:
     """The last row smeared `bottom` rows down; then, if the art touches its
     right side, `right` columns more, built per material (edge_materials)
     so the stock and the sleeve stay separate (the CEO, 2026-10-20: the
@@ -778,6 +812,13 @@ def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE
     straight along the forearm's own axis (stock_axis over its soft rows),
     as thick as it leaves, until the canvas's side or bottom (the CEO, D84:
     the ice axe's strike arm came out curved).
+    With `tube`, the first run of soft rows (and the outlines just above and
+    under it) is not an arm but a rigid tube leaving the side (the RPG-7's
+    rear, resting on the shoulder; the CEO, 2026-10-20: it had curved down
+    like a sleeve): it runs on straight along its own axis (stock_axis over
+    its soft rows), constant thickness, its own cross-section (tube_profile)
+    repeated along it, no seam and no cap, in front of anything else, until
+    the canvas's side or bottom. Any other soft rows run on as above.
     No column of the art is repeated: mirroring the edge repeated skin and
     stock wood."""
     h, w = idx.shape
@@ -803,6 +844,13 @@ def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE
         wood = [out[r, w - 1] for r in range(a, b + 1) if kinds[r] == WOOD and out[r, w - 1] >= 0]
         stocks.append((a, b - a + 1, slope, wood_ramp(pal[_mode(np.array(wood), None)], pal)))
     soft = [r for r, m in enumerate(kinds) if m in (SLEEVE, SKIN)]
+    rigid = None
+    if tube and soft:
+        ta, tb = tube_run(kinds, soft)
+        t_slope = stock_axis(out[:, :w], pal, sleeve_rgb, _runs(soft)[0], mats=(SLEEVE, SKIN))
+        rigid = (ta, t_slope, tube_profile(out[:, :w], pal, (ta, tb), t_slope, s_ramp[0]))
+        soft = [r for r in soft if not ta <= r <= tb]
+        cut = [r for r in cut if not ta <= r <= tb]
     for r in cut:                                        # the cap: closes whatever is not run on
         out[r, w] = s_ramp[0]
     if soft:
@@ -831,6 +879,14 @@ def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE
                 out[t:t + thick, w - 1 + k] = s_ramp[0] if k == 1 else col[:max(0, min(thick, hb - t))]
             else:
                 out[t:, w - 1 + k] = s_ramp[0] if k == 1 else col
+    if rigid:
+        ta, t_slope, prof = rigid
+        for k in range(1, right + 1):
+            t = ta + int(round(t_slope * k))
+            lo, hi = max(0, t), min(hb, t + len(prof))
+            if lo >= hi:
+                break
+            out[lo:hi, w - 1 + k] = prof[lo - t:hi - t]
     n_out, n_light, mid_frac = WOOD_BANDS
     period, dash = GRAIN_DASH
     for a, thick, slope, (outline, light, mid, shadow, grain) in stocks:
@@ -850,13 +906,13 @@ def extend_edges(idx: np.ndarray, right: int, bottom: int, tile: int = EDGE_TILE
 
 
 def arm_exits(idx: np.ndarray, length: int = ARM_EXIT, bottom: int = BOTTOM_PAD,
-              band: bool = False, curve: bool = True) -> tuple[np.ndarray, int]:
+              band: bool = False, curve: bool = True, tube: bool = False) -> tuple[np.ndarray, int]:
     """extend_edges on both sides: (canvas, columns added on the left). An
     arm cut by the left side of the image runs on leftwards the same way."""
-    out = extend_edges(idx, length, bottom, band=band, curve=curve)
+    out = extend_edges(idx, length, bottom, band=band, curve=curve, tube=tube)
     if not (idx[:, 0] >= 0).any():
         return out, 0
-    flipped = extend_edges(out[:, ::-1], length, 0, band=band, curve=curve)
+    flipped = extend_edges(out[:, ::-1], length, 0, band=band, curve=curve, tube=tube)
     return flipped[:, ::-1], length
 
 
@@ -991,7 +1047,7 @@ def build(w: WeaponPair, out_dir: Path | None = None) -> dict:
         small = mode_resize(art, nw + 2 * round(pad * sx), round(art.shape[0] * sy) if f.rot else nh, pal)
         left = round(pad * sx)
         if not f.flash:
-            small, added = arm_exits(small, band=w.arm_band, curve=w.arm_curve)
+            small, added = arm_exits(small, band=w.arm_band, curve=w.arm_curve, tube=w.rigid_tube)
             left += added
         cx, cy = x0 - left + f.kick[0], y0 + f.kick[1]   # the canvas's top-left on the screen
         canvas_grab = (-cx, WEAPONTOP - BAR_LIFT - cy)

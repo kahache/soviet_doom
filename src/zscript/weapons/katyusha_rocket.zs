@@ -5,7 +5,8 @@
 // would be unusable. Doom's BFG shot does not hurt its owner either, so the
 // slot-7 weapon keeps that contract.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS (MISL). Final lumps: SDKR A-B.
+// Sprites are ours since D82: SDKR A in flight (eight rotations, five
+// lumps) and the PG-7V's burst SDPX A-C (MOD-SPEC 6.3).
 
 class SD_KatyushaRocket : Rocket
 {
@@ -30,12 +31,12 @@ class SD_KatyushaRocket : Rocket
 	States
 	{
 	Spawn:
-		MISL A 1 Bright;
+		SDKR A 1 Bright;
 		Loop;
 	Death:
-		MISL B 6 Bright A_Explode(SD_KAT_BLAST_DAMAGE, SD_KAT_BLAST_RADIUS, SD_KAT_NO_SELF_HARM);
-		MISL C 5 Bright;
-		MISL D 4 Bright;
+		SDPX A 6 Bright A_Explode(SD_KAT_BLAST_DAMAGE, SD_KAT_BLAST_RADIUS, SD_KAT_NO_SELF_HARM);
+		SDPX B 5 Bright;
+		SDPX C 4 Bright;
 		Stop;
 	}
 }

@@ -163,9 +163,15 @@ def sndinfo_weapon_targets() -> dict[str, str]:
         if m:
             targets[m.group(1)] = m.group(2)
         # Installed (N9, D74): the right-hand column is already our lump.
+        # A take of a `$random` group (N9e, D94) is <name>/<n> -> <LUMP><n>:
+        # it stands for the group's name and the card's 7-letter lump.
         m = re.match(r"^(sd/weapon/\S+)\s+(SD[A-Z0-9]+)\b", ln)
         if m:
-            targets[m.group(1)] = m.group(2)
+            logical, lump = m.group(1), m.group(2)
+            take = re.match(r"^(.*)/\d$", logical)
+            if take:
+                logical, lump = take.group(1), lump[:7]
+            targets[logical] = lump
     return targets
 
 

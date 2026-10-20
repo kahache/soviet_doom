@@ -8,8 +8,8 @@
 // flight and MISL B-D for the burst, so the Death state took new frame
 // letters as well as the new name (BESTIARY 2.7); every tic is as before
 // (tests/test_general_sprites.py). RenderStyle Add stays: only the bright
-// colours show, as with the placeholders. MISL stays in the IWAD list for
-// the PG-7V grenade and the Katyusha rocket.
+// colours show, as with the placeholders. The PG-7V grenade and the Katyusha
+// rocket left MISL too with D82 (SDPX for their burst).
 
 class SD_GeneralShell : Actor
 {

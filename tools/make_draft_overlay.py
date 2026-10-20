@@ -205,7 +205,7 @@ INSTALLED_ENEMIES: tuple[tuple[str, str], ...] = (
     ("HEAD", "SDDB"),    # Doughboy, cell C with the bigger flag (D70; tests/test_doughboy_sprites.py)
     ("CYBR", "SDGN"),    # the General, CD (D73; tests/test_general_sprites.py); Summon CYBR E F -> SDGN Q R
     ("MANF", "SDGL"),    # his shell, SD_GeneralShell, in flight; its burst was MISL B-D, not listed:
-                         # the PG-7V grenade and the Katyusha rocket still wear MISL (D73)
+                         # the PG-7V grenade and the Katyusha rocket wore MISL until D82 (SDPG/SDKR/SDPX)
 )
 
 

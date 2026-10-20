@@ -38,6 +38,7 @@ class SD_Tokarev : Pistol replaces Pistol
 		Obituary "$SD_OB_TOKAREV";
 		Tag "$SD_TAG_TOKAREV";
 		Inventory.PickupMessage "$SD_PICKUP_TOKAREV";
+		Inventory.PickupSound "sd/weapon/tokarev/pickup";  // SDTTPKP1/2 $random (N9e, D94)
 		+WEAPON.WIMPY_WEAPON
 	}
 
