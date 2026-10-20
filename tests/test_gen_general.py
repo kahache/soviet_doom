@@ -349,6 +349,8 @@ class FullSetContractTests(unittest.TestCase):
                     if "General" not in line and name not in line:
                         reserved |= set(re.findall(r"\bSD[A-Z]{2}\b", line))
             self.assertNotIn(name, reserved)
+            if not (g.FULL_DIR / name).is_dir():
+                continue    # a clean checkout has no gitignored work/: the identity half needs it
             for png in (PROJECT_ROOT / "assets").rglob(f"{name}*.png"):
                 ours = g.FULL_DIR / name / png.name
                 self.assertTrue(ours.is_file(), png)
