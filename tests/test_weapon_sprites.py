@@ -9,16 +9,20 @@ since D48". What is checked, and why:
              before D48, line for line (label, frame letters, tics, flags,
              action, flow), with only the pickup's four-letter name
              changed: the swap is cosmetic, not one tic moves (and, since
-             N17, the TT-33's held and flash names, and since D79 the
-             PPSh-41's, HELD_RENAMED; those installs have their own suites,
-             tests/test_tt33_sprites.py and tests/test_ppsh_sprites.py)
+             N17, the TT-33's held and flash names, since D79 the
+             PPSh-41's, since D84 the IZh-58's, RPG-7's and ROKS-3's and
+             since D88 the ice axe's, HELD_RENAMED; those installs have their own suites,
+             tests/test_tt33_sprites.py, tests/test_ppsh_sprites.py and
+             tests/test_gemini_weapons_install.py)
   pickups    each Spawn state shows its SD..P sprite, and no state names the
-             retired IWAD pickups (CSAW, PIST, SHOT, MGUN, LAUN, PLAS); the
-             held and flash frames of the other five are still the IWAD's
-             (hand held back), and the Katyusha (being redrawn) is untouched
+             retired IWAD pickups (CSAW, PIST, SHOT, MGUN, LAUN, PLAS); no
+             held or flash frame is the IWAD's since D88 (the ice axe), and
+             the hand Katyusha, outside the six, names only our sprites
+             since D84 (its pickup SDHP, D80)
   files      assets/sprites/<weapon>/ holds exactly the six pickup PNGs
-             (beside the TT-33's held and flash frames since N17 and the
-             PPSh-41's since D79), each with
+             (beside the TT-33's held and flash frames since N17, the
+             PPSh-41's since D79 and the IZh-58's, RPG-7's and ROKS-3's since
+             D84), each with
              a grAb chunk before its image data (GZDoom's offsets), and,
              where work/ exists, byte-identical to the render
   package    the built PK3 carries them as sprites/<NAME>.png, check_pk3
@@ -59,17 +63,22 @@ RENAMED = {"CSAW": "SDAP", "PIST": "SDTP", "SHOT": "SDIP", "MGUN": "SDPQ", "LAUN
 FOLDERS = {"ice_axe": "ice_axe.zs", "tt33": "tokarev.zs", "izh": "izh.zs",
            "ppsh": "ppsh.zs", "rpg7": "rpg7.zs", "roks3": "roks3.zs"}
 
-# The held and flash sprites still on Freedoom (the hand is being redrawn).
-# The TT-33's left with N17 (2026-10-15), the PPSh-41's with D79
-# (2026-10-20): HELD_RENAMED.
-STILL_IWAD = {"ice_axe.zs": {"PUNG"}, "izh.zs": {"SHTG", "SHTF"},
-              "rpg7.zs": {"MISG", "MISF"}, "roks3.zs": {"PLSG", "PLSF"}}
+# The held and flash sprites still on Freedoom: none since D88. The TT-33's
+# left with N17 (2026-10-15), the PPSh-41's with D79, the IZh-58's, RPG-7's
+# and ROKS-3's with D84, the ice axe's with D88 (2026-10-20): HELD_RENAMED.
+STILL_IWAD: dict[str, set[str]] = {}
 
 # Held and flash sprites installed after D48, per weapon: IWAD -> ours.
 # N17 (2026-10-15): the TT-33 in the D61 hands (tests/test_tt33_sprites.py).
 # D79 (2026-10-20): the PPSh-41 from the CEO's Gemini pair (tests/test_ppsh_sprites.py).
+# D84 (2026-10-20): the IZh-58, RPG-7 and ROKS-3 from the CEO's Gemini images
+# (tests/test_gemini_weapons_install.py, which also holds the hand Katyusha).
 HELD_RENAMED = {"tokarev.zs": {"PISG": "SDTT", "PISF": "SDTF"},
-                "ppsh.zs": {"CHGG": "SDPP", "CHGF": "SDPF"}}
+                "ppsh.zs": {"CHGG": "SDPP", "CHGF": "SDPF"},
+                "izh.zs": {"SHTG": "SDIZ", "SHTF": "SDIF"},
+                "rpg7.zs": {"MISG": "SDRL", "MISF": "SDRF"},
+                "roks3.zs": {"PLSG": "SDRK", "PLSF": "SDKF"},
+                "ice_axe.zs": {"PUNG": "SDAX"}}   # D88
 
 # The States blocks as they stood before D48, with the IWAD names, read from
 # src/zscript/weapons/ on 2026-10-14 before the swap. One row per line:
@@ -250,7 +259,8 @@ def installed() -> list[Path]:
     Other sets share assets/sprites/ (the Legion's legion/ since D54,
     tests/test_legion_sprites.py), and the TT-33's held and flash frames
     share tt33/ since N17 (tests/test_tt33_sprites.py), the PPSh-41's
-    ppsh/ since D79 (tests/test_ppsh_sprites.py)."""
+    ppsh/ since D79 (tests/test_ppsh_sprites.py), the IZh-58's, RPG-7's and
+    ROKS-3's theirs since D84 (tests/test_gemini_weapons_install.py)."""
     return sorted(p for folder in FOLDERS for p in (ASSET_SPRITES / folder).glob("*.png")
                   if p.name in PICKUP_FILES)
 
@@ -293,9 +303,9 @@ class PickupTests(unittest.TestCase):
             "ppsh.zs": ("SDPQ", "A", -1), "rpg7.zs": ("SDRP", "A", -1), "roks3.zs": ("SDKP", "A", -1)})
 
     def test_held_and_flash_frames_stay_on_the_iwad(self):
-        """The hand is being redrawn (D48): only the pickup changed name,
-        but for the TT-33's held and flash frames, installed by N17, and
-        the PPSh-41's, installed by D79."""
+        """The hand was held back (D48): only the pickup changed name, but
+        for the held and flash frames installed since: the TT-33's (N17),
+        the PPSh-41's (D79), the IZh-58's, RPG-7's and ROKS-3's (D84)."""
         self.assertEqual(set(STILL_IWAD) | set(HELD_RENAMED), set(FOLDERS.values()))
         for zs_file, iwad in STILL_IWAD.items():
             used = {r[1] for r in states(zs_file) if r[1] != "->" and r[0] != "Spawn"}
@@ -310,9 +320,11 @@ class PickupTests(unittest.TestCase):
             for old in RENAMED:
                 self.assertNotRegex(code, rf"(?m)^\s*{old}\s+[A-Z]", f"{path.name} still names {old}")
 
-    def test_the_katyusha_is_untouched(self):
+    def test_the_katyusha_names_only_ours(self):
+        """D84: held SDHK, flash SDHF, and its pickup SDHP (D80); the
+        install's own suite is tests/test_gemini_weapons_install.py."""
         used = {r[1] for r in states("katyusha.zs") if r[1] != "->"}
-        self.assertEqual(used, {"BFGG", "BFGF", "BFUG"})
+        self.assertEqual(used, {"SDHK", "SDHF", "SDHP"})
 
     def test_mod_spec_retires_the_old_pickups(self):
         declared = check_pk3.iwad_sprites_from_spec(check_pk3.DEFAULT_SPEC)
@@ -320,6 +332,8 @@ class PickupTests(unittest.TestCase):
             self.assertNotIn(old, declared, f"MOD-SPEC 5.1 still declares {old}")
         for iwad in STILL_IWAD.values():
             self.assertLessEqual(iwad, declared)
+        for renamed in HELD_RENAMED.values():
+            self.assertFalse(set(renamed) & declared, "an installed weapon's placeholder is still declared")
 
 
 class FileTests(unittest.TestCase):

@@ -1,7 +1,10 @@
 // SD_DoughboyShell - the Doughboy's projectile (BESTIARY section 7).
 // CacodemonBall parity. Not placeable.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: BAL2, same layout as SDDL.
+// Sprites: ours since D81 (2026-10-20), SDDL A-E, the "comet" (option A of
+// tools/art/gen_shells.py): A-B in flight, C-E the burst, rotation 0, in
+// assets/sprites/doughboy/. Only the four-letter name changed, every tic is
+// as it was. MOD-SPEC 6.3; tests/test_shells_install.py.
 
 class SD_DoughboyShell : Actor
 {
@@ -30,10 +33,10 @@ class SD_DoughboyShell : Actor
 	States
 	{
 	Spawn:
-		BAL2 AB 4 Bright;
+		SDDL AB 4 Bright;
 		Loop;
 	Death:
-		BAL2 CDE 6 Bright;
+		SDDL CDE 6 Bright;
 		Stop;
 	}
 }

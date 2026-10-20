@@ -460,7 +460,11 @@ class BestiaryPlaceholdersInIwadTest(unittest.TestCase):
                               for name in self.sprites)
                     self.assertTrue(hit, f"{filename}: {sprite}{frame} is not a sprite in {IWAD.name}")
                     checked += 1
-        self.assertGreater(checked, 0)
+        # Since D81 (2026-10-20) every enemy and enemy projectile names our own
+        # sprite (the shells were the last): nothing is left to check in the
+        # IWAD. A class added on a placeholder turns this red on purpose: its
+        # frames are then checked above and this line is relaxed with it.
+        self.assertEqual(checked, 0, "D81: no bestiary state names an IWAD sprite")
 
     def test_every_declared_iwad_sprite_exists(self):
         import check_pk3

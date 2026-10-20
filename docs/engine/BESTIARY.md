@@ -331,14 +331,16 @@ F4: every state named a Freedoom sprite, every sound is a logical name
 D54–D56 (2026-10-14) four classes draw our own sprites**, rendered on the 3D
 rig and approved by the CEO, **and since D67 the Panzermensch and the heavy
 variant too, since D70 the Doughboy, and since D73 the General and his
-shell**: all seven classes draw their own; two projectiles (the Doughboy's
-and the Panzermensch's shells) still wear Freedoom's. The full tables are contract and live in `MOD-SPEC.md` §6.2
+shell**: all seven classes draw their own; **since D81 (2026-10-20) the
+last two projectiles too**, the Doughboy's and the Panzermensch's shells, so
+no enemy sprite is Freedoom's any more. The full tables are contract and live in `MOD-SPEC.md` §6.2
 (sounds) and §6.3 (sprites: final names, frame layouts, what is installed);
-the IWAD sprites still in use are declared in `MOD-SPEC.md` §5, which is
-what lets `tools/check_pk3.py` accept them. Engine pass of the four:
+the IWAD sprites still in use (none of the bestiary's since D81) are
+declared in `MOD-SPEC.md` §5, which is what lets `tools/check_pk3.py`
+accept them. Engine pass of the four:
 `docs/qa/evidence/2026-10-14_1900_F5_four-enemies-installed.md`.
 
-**Installed: our own sprites (D54–D56, D67, D70, D73).** Each swap was the rename the
+**Installed: our own sprites (D54–D56, D67, D70, D73, D81).** Each swap was the rename the
 swap rule below promises, not one tic changed (`MOD-SPEC.md` §6.3); the
 Schwer's was a `States` block of its own, the base's line for line, and the
 General's and his shell's took the new frame letters the rule always named
@@ -356,6 +358,8 @@ General's and his shell's took the new frame letters the rule always named
 | `SD_Doughboy` | `SDDB` | 54, `assets/sprites/doughboy/` | A–F × 8 (48); G–L rotation 0 (6), the corpse a flat sack | `HEAD` | D65 (cell C, severed), D67 (bigger flag), D70 (full set) |
 | `SD_General` | `SDGN` | 81, `assets/sprites/general/` | A–G and Q–R × 8 (72); H–P rotation 0 (9), the corpse on his back on the spread cloak | `CYBR` (`Summon` on `CYBR E F`) | D71 (cells C and D combined), D72 (turnaround), D73 (full set) |
 | `SD_GeneralShell` | `SDGL` | 5, `assets/sprites/general/` | A–B flight, C–E burst, rotation 0 | `MANF` A–B, `MISL` B–D | D73 |
+| `SD_DoughboyShell` | `SDDL` | 5, `assets/sprites/doughboy/` | A–B flight, C–E burst, rotation 0 | `BAL2` | D81 (the Doughboy's shell, option A "comet") |
+| `SD_PanzerShell` | `SDPL` | 5, `assets/sprites/panzermensch/` | A–B flight, C–E burst, rotation 0 (`BAL7` had 1–8 in flight) | `BAL7` | D81 (the Panzermensch's shell, option A "ember") |
 
 The three human-shaped figures are handed (the weapon on one side, a patch,
 plate or armband on the other; a mirrored armband would reverse the D12
@@ -368,12 +372,8 @@ the Doughboy (the helmet sits askew, the flag decal and the buckle on one
 side): 54, not v1's 36. So is the General (the gun on his right shoulder,
 the pennants and the cloak's two flags split side to side): 81, not v1's 54.
 
-**Still on Freedoom placeholders.**
-
-| Class | Final sprite | Placeholder | Same frame layout? |
-|---|---|---|---|
-| `SD_DoughboyShell` | `SDDL` | `BAL2` | yes |
-| `SD_PanzerShell` | `SDPL` | `BAL7` | yes |
+**Still on Freedoom placeholders: no sprite.** The two shells, the last,
+were installed by D81 (the table above); only the sounds below remain.
 
 **Sounds: all seven classes are still on placeholders.** Every one of the 47
 `sd/mon/*` names points at a Freedoom `DS*` lump; our drafts wait on the
@@ -847,7 +847,10 @@ funny.
 `SD_DoughboyShell`: sprite `SDDL`, 2 spawn + 3 death frames, additive,
 **`steel_blue` white-hot core with a `flag_red` trail** — it must not be the
 same colour as the Stormtrooper's bolt, because the player's correct reaction
-to each is different (dodge sideways vs. break line of sight).
+to each is different (dodge sideways vs. break line of sight). **Installed,
+D81 (2026-10-20):** the shell's option A, "comet", a white centre in a red
+rim (the bolt turned inside out) and a third larger than the bolt
+(`MOD-SPEC.md` §6.3, "The two enemy shells, installed by D81").
 
 ### States and sounds
 
@@ -906,7 +909,7 @@ sprite name went from `HEAD` to `SDDB`: not one tic moved
 (`tests/test_doughboy_sprites.py`). The body stays **31 × 56**: the
 drawing is 53–55 px wide (64 at most in the pain's lurch; `HEAD` is 61–69)
 and rises 60–62 px over the actor's z, as `HEAD` did; only the severed
-stump hangs lower (15 px under z, `HEAD`'s jaw 5). The shell, `SDDL`, is not drawn yet and still wears `BAL2`.
+stump hangs lower (15 px under z, `HEAD`'s jaw 5). The shell, `SDDL`, is ours since D81 (it wore `BAL2` until then).
 
 Visual brief: *a pink, veined sphere of flesh the size of a man's torso, one
 huge lidless eye, a slack mouth underneath; a battered steel M1 helmet
@@ -985,7 +988,11 @@ the base's line for line, and its body grows with the drawing to **27 × 72**
 
 `SD_PanzerShell`: sprite `SDPL`, 2 + 3 frames, additive, **dull
 `hazard_yellow` core with an olive smoke edge** — Reich ordnance, visually
-heavier and slower-tumbling than the Stormtrooper bolt.
+heavier and slower-tumbling than the Stormtrooper bolt. **Installed, D81
+(2026-10-20):** the shell's option A, "ember", the largest flying shell
+(22 px across against the bolt's 12), fired by the Panzermensch and the
+Schwer alike (`MOD-SPEC.md` §6.3, "The two enemy shells, installed by
+D81").
 
 ### States and sounds
 
@@ -1326,10 +1333,8 @@ coordinates are constants in the map script.
 ## 12. Summary table
 
 **Images** is what the class costs in sprite lumps. For the installed
-classes (D54–D56, D67, D70, D73, §2.7) it is the count actually packed under
-`assets/sprites/`; for the two undrawn projectiles it is v1's estimate at
-Doom's mirroring (rotations 2&8, 3&7, 4&6 share one image), the count
-`MOD-SPEC.md` §6.3's frame layouts give.
+classes and projectiles (D54–D56, D67, D70, D73, D81, §2.7) it is the
+count actually packed under `assets/sprites/`.
 
 | # | Name | Class | Faction | EdNum | Replaces | HP | Spd | Pain | Attack | Sprite (placeholder, if any) | Images | Sounds |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1337,8 +1342,8 @@ Doom's mirroring (rotations 2&8, 3&7, 4&6 share one image), the count
 | 2 | Legion trooper | `SD_LegionTrooper` | Legion | 21101 | `ShotgunGuy` | 30 | 8 | 170 | 3× hitscan 3–15 | `SDLT`, **installed** (D54) | **70** packed | 6 |
 | 3 | Hybrid Stormtrooper | `SD_Stormtrooper` | both | 21102 | `DoomImp` | 60 | 8 | 200 | melee 3–24 / bolt 3–24 | `SDHS` `SDBL`, **installed** (D56) | **77 + 5** packed | 8 |
 | 4 | Reich hound | `SD_ReichHound` | Reich | 21103 | `Demon` | 150 | **12 (H)** | 180 | melee 4–40 | `SDHN`, **installed** (D55) | **46** packed, mirrored | 5 |
-| 5 | Doughboy | `SD_Doughboy` | Legion | 21104 | `Cacodemon` | 400 | 8 | 128 | melee 10–60 / shell 5–40 | `SDDB`, **installed** (D70); `SDDL` (`BAL2`) | **54** packed + 5 (est.) | 7 |
-| 6 | Panzermensch | `SD_Panzermensch` | Reich | 21105 | `HellKnight` | **500** | 8 | 50 | melee 10–80 / shell 8–64 | `SDPM`, **installed** (D67); `SDPL` (`BAL7`) | **71** packed + 5 (est.) | 8 |
+| 5 | Doughboy | `SD_Doughboy` | Legion | 21104 | `Cacodemon` | 400 | 8 | 128 | melee 10–60 / shell 5–40 | `SDDB` `SDDL`, **installed** (D70; the shell D81) | **54 + 5** packed | 7 |
+| 6 | Panzermensch | `SD_Panzermensch` | Reich | 21105 | `HellKnight` | **500** | 8 | 50 | melee 10–80 / shell 8–64 | `SDPM` `SDPL`, **installed** (D67; the shell D81) | **71 + 5** packed | 8 |
 | 7 | The General | `SD_General` | Legion | 21106 | `Cyberdemon` | **3000 (H)** | 12 | 20 | 3× shell 8–64; summons 2 riflemen once below 50 % | `SDGN` `SDGL`, **installed** (D73) | **81 + 5** packed | 7 |
 | 8 | Heavy Panzermensch | `SD_PanzermenschSchwer` | Reich | 21107 | `BaronOfHell` | 1000 | 8 | 50 | as #6 | `SDPS`, **installed** (D67) | **71** packed | 0 |
 | — | *cloaked hound* | *reserved, not implemented* | Reich | *21108 reserved* | `Spectre` | 150 | 12 | 180 | as #4 | `SDHN` `+SHADOW` | 0 | 0 |

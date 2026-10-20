@@ -316,7 +316,7 @@ class ArsenalPk3Test(unittest.TestCase):
         for name, value in expected.items():
             self.assertRegex(axe, rf"const\s+SD_ICEAXE_{name}\s*=\s*{re.escape(value)}\s*;")
         fire = re.search(r"^\s*Fire:(.*?)^\s*Goto Ready;", axe, flags=re.S | re.M).group(1)
-        tics = [int(n) for n in re.findall(r"^\s*PUNG\s+[A-Z]\s+(\d+)", fire, flags=re.M)]
+        tics = [int(n) for n in re.findall(r"^\s*SDAX\s+[A-Z]\s+(\d+)", fire, flags=re.M)]   # PUNG until D88
         self.assertEqual(27, sum(tics), "the swing is 27 tics, as the shovel's was")
 
     def test_mapinfo_declares_the_player_class(self):

@@ -36,10 +36,10 @@ and why:
              and licences categories pass on the built PK3
 
 The hand Katyusha's Spawn lives in zscript/weapons/katyusha.zs, owned by
-another task at the install: while that file still names BFUG its checks
-skip, saying so, and SDHPA0 must NOT be in assets/ (installed alone it would
-only stop the draft overlay from showing it, MOD-SPEC 6.9); once the line
-names SDHP, SDHPA0 must ship like the rest (MOD-SPEC 6.3, "Pending").
+another task at the install, so its picture waited for the weapon's own
+install (D84, 2026-10-20): since then the line names SDHP, SDHPA0 ships like
+the rest and the BFUG row is gone from MOD-SPEC 5.1, all checked here with
+no skip (MOD-SPEC 6.3, "The Katyusha's pickup, installed with D84").
 
 Stdlib only.
 """
@@ -215,21 +215,11 @@ def renamed(cls: str) -> list[tuple]:
     return [(lb, ours if sp == old else sp, fr, tics, rest) for lb, sp, fr, tics, rest in DOOM_SPAWN[parent]]
 
 
-def katyusha_pending() -> bool:
-    return any(r[1] == "BFUG" for r in our_spawn(KATYUSHA))
-
-
-def installed(cls: str) -> bool:
-    return cls != KATYUSHA or not katyusha_pending()
-
-
 def expected_files() -> dict[str, tuple[str, str]]:
-    """PNG name -> (gen_items item, chosen option); the Katyusha's once its
-    Spawn names it."""
+    """PNG name -> (gen_items item, chosen option), the Katyusha's included
+    since D84."""
     out = {}
     for cls, (_, _, item, option, ours, frames) in CLASSES.items():
-        if not installed(cls):
-            continue
         for fr in frames:
             out[f"{ours}{fr}0.png"] = (item, option)
     return out
@@ -289,8 +279,6 @@ class ClassTests(unittest.TestCase):
 
     def test_spawn_is_dooms_with_the_name_changed(self):
         for cls in CLASSES:
-            if not installed(cls):
-                continue
             with self.subTest(cls=cls):
                 self.assertEqual(norm(our_spawn(cls)), norm(renamed(cls)))
                 self.assertEqual(sum(r[3] for r in our_spawn(cls)), sum(r[3] for r in DOOM_SPAWN[CLASSES[cls][1]]))
@@ -303,8 +291,6 @@ class ClassTests(unittest.TestCase):
 
     def test_spawn_names_only_the_frames_installed(self):
         for cls, (_, _, _, _, ours, frames) in CLASSES.items():
-            if not installed(cls):
-                continue
             named = {f for r in our_spawn(cls) if r[1] != "->" for f in r[2]}
             self.assertEqual("".join(sorted(named)), frames, cls)
 
@@ -317,9 +303,6 @@ class ClassTests(unittest.TestCase):
         self.assertRegex(body("SD_Medikit"), rf"const\s+SD_MEDIKIT_LOW_HEALTH\s*=\s*{MEDIKIT_LOW_HEALTH}\s*;")
 
     def test_katyusha_pickup(self):
-        if katyusha_pending():
-            self.skipTest("pending: zscript/weapons/katyusha.zs still names BFUG (owned by another task "
-                          "at the D80 install; MOD-SPEC 6.3)")
         self.assertEqual(norm(our_spawn(KATYUSHA)), norm(renamed(KATYUSHA)))
 
     def test_doom_parents_where_a_gzdoom_pk3_is_installed(self):
@@ -389,8 +372,9 @@ class FileTests(unittest.TestCase):
             self.assertIn(name, names)
 
     def test_the_katyusha_picture_ships_with_its_line(self):
-        """SDHPA0 in assets/ exactly when SD_HandKatyusha's Spawn names it."""
-        self.assertEqual((PICKUPS / "SDHPA0.png").is_file(), not katyusha_pending())
+        """D84: SD_HandKatyusha's Spawn names SDHP and SDHPA0 ships."""
+        self.assertEqual([r[1:4] for r in our_spawn(KATYUSHA) if r[1] != "->"], [("SDHP", "A", -1)])
+        self.assertTrue((PICKUPS / "SDHPA0.png").is_file())
 
     def test_rgba_with_offsets_standing_on_the_floor(self):
         for name in expected_files():
@@ -402,16 +386,12 @@ class FileTests(unittest.TestCase):
 
     def test_frames_of_a_set_share_size_and_offsets(self):
         for cls, (_, _, _, _, ours, frames) in CLASSES.items():
-            if not installed(cls):
-                continue
             heads = {(png_header((PICKUPS / f"{ours}{fr}0.png").read_bytes())[:2],
                       read_grab((PICKUPS / f"{ours}{fr}0.png").read_bytes())) for fr in frames}
             self.assertEqual(len(heads), 1, ours)
 
     def test_frames_differ(self):
         for cls, (_, _, _, _, ours, frames) in CLASSES.items():
-            if not installed(cls):
-                continue
             data = [(PICKUPS / f"{ours}{fr}0.png").read_bytes() for fr in frames]
             self.assertEqual(len(set(data)), len(data), ours)
 
@@ -527,7 +507,7 @@ class PackageTests(unittest.TestCase):
 
     def test_our_own_editor_numbers_in_the_campaign(self):
         """The arsenal's own numbers (21001-21007): every pickup state SD,
-        the hand Katyusha's once its line changes."""
+        the hand Katyusha's included since D84."""
         eds = doomednums()
         for level in CAMPAIGN:
             for t in self.things[level]:
@@ -535,8 +515,6 @@ class PackageTests(unittest.TestCase):
                 if ed not in ARSENAL_EDNUMS or not eds.get(ed, "").startswith("SD_"):
                     continue
                 cls = eds[ed]
-                if cls == KATYUSHA and katyusha_pending():
-                    continue
                 path = next(p for p in ZS_DIR.rglob("*.zs")
                             if re.search(rf"\bclass\s+{cls}\b", p.read_text(encoding="utf-8")))
                 states = block(class_body(strip_comments(path.read_text(encoding="utf-8")), cls), "States")
@@ -551,8 +529,7 @@ class DocTests(unittest.TestCase):
         declared = check_pk3.iwad_sprites_from_spec(check_pk3.DEFAULT_SPEC)
         for old in RETIRED:
             self.assertNotIn(old, declared)
-        if not katyusha_pending():
-            self.assertNotIn("BFUG", declared, "the Katyusha's Spawn names SDHP: retire its row")
+        self.assertNotIn("BFUG", declared, "the Katyusha's Spawn names SDHP: its row is retired (D84)")
 
     def test_mod_spec_6_3_reserves_the_names(self):
         spec = MOD_SPEC.read_text(encoding="utf-8")

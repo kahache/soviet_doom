@@ -123,6 +123,8 @@ SLOW: tuple[tuple[str, str], ...] = (
      "render: the TT-33 on the IWAD's hands, 4.3 s alone"),
     ("test_ppsh_sprites.FileTests.test_a_fresh_build_reproduces_them",
      "render: gemini_frames rebuilds the PPSh-41 from the Gemini pair (work/ only)"),
+    ("test_gemini_weapons_install.FileTests.test_a_fresh_build_reproduces_them",
+     "render: gemini_frames rebuilds the IZh-58, RPG-7, ROKS-3 and hand Katyusha, ~55 s (work/ only)"),
     ("test_gemini_frames.FreshBuildTests",
      "render: gemini_frames builds the five D79 weapons from their Gemini images, ~40 s (work/ only)"),
     ("test_gemini_frames.GeneratedFramesTests",

@@ -127,6 +127,33 @@ CEO's Google Gemini pair (the method adopted by D79), are packed from
 of `CHGG`/`CHGF`, not one tic changed (§5.1, §6.3, "The PPSh-41 in hand,
 installed by D79"). **NOT YET SEEN IN THE ENGINE from the PK3** (D26); the
 uncorrected test frames were seen through the overlay on 2026-10-19.
+**D84, 2026-10-20: the IZh-58, RPG-7, ROKS-3 and hand Katyusha are ours in
+hand.** Their held and flash frames (`SDIZ` A–D and `SDIF` A–B, `SDRL` A–B
+and `SDRF` A–D, `SDRK` A–B and `SDKF` A, `SDHK` A–B and `SDHF` A–B), built
+by `tools/art/gemini_frames.py` from the CEO's Google Gemini images, are
+packed from `assets/sprites/<weapon>/`, and the hand Katyusha's floor
+pickup (the Katyusha's `SDHP` A, D80) from `assets/sprites/pickups/`; every state names
+them instead of `SHTG`/`SHTF`, `MISG`/`MISF`, `PLSG`/`PLSF`,
+`BFGG`/`BFGF`/`BFUG`, not one tic changed (§5.1, §6.3, "The IZh-58, RPG-7,
+ROKS-3 and hand Katyusha in hand, installed by D84"). **NOT YET SEEN IN
+THE ENGINE from the PK3** (D26); the same frames were seen through the
+overlay on 2026-10-20.
+**D88, 2026-10-20: the ice axe is ours in hand.** Its held frames `SDAX`
+A–D, the ready frame from the CEO's Google Gemini image and the swing
+rotated from it as one rigid piece (`tools/art/gemini_frames.py`), are
+packed from `assets/sprites/ice_axe/`; every `SD_IceAxe` state names `SDAX`
+instead of `PUNG`, not one tic changed (§5.1, §6.3, "The ice axe in hand,
+installed by D88"). Every weapon sprite the player holds or picks up is
+ours; only the projectiles in flight still wear Freedoom's. **NOT YET SEEN
+IN THE ENGINE from the PK3** (D26).
+**D81, 2026-10-20: the Doughboy's and the Panzermensch's shells are ours.**
+The Doughboy's shell `SDDL` A–E (option A, "comet") and the Panzermensch's
+shell `SDPL` A–E (option A, "ember"), drawn by `tools/art/gen_shells.py`, are packed from `assets/sprites/doughboy/` and
+`assets/sprites/panzermensch/`; `SD_DoughboyShell` names `SDDL` instead of
+`BAL2` and `SD_PanzerShell` (the Panzermensch's and the Schwer's) `SDPL`
+instead of `BAL7`, not one tic changed (§5.1, §6.3, "The two enemy shells,
+installed by D81"). Every enemy and every enemy projectile draws our own
+sprites. **NOT YET SEEN IN THE ENGINE** (D26).
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -845,8 +872,9 @@ stealth imp (counted in the built MAP01 and the range, then MAP02, 2026-10-14).
 state our `SDPS` now (§6.3, "The Panzermensch and the Schwer, installed by
 D67"). Doom's own `HellKnight` (editor number 69) keeps Freedoom's `BOS2`
 and `BaronOfHell` (3003) its `BOSS`, but ours replace both, so a map placing
-either spawns ours; Doom ships no corpse thing of either. `BAL7` stays: the
-Panzermensch's shell, `SD_PanzerShell`, is not drawn yet.
+either spawns ours; Doom ships no corpse thing of either. `BAL7` stayed: the
+Panzermensch's shell, `SD_PanzerShell`, was not drawn yet (retired by D81,
+below).
 
 **Retired 2026-10-14 (D70):** `HEAD`, the Doughboy's placeholder. Every
 `SD_Doughboy` state names our `SDDB` now (§6.3, "The Doughboy, installed by
@@ -855,8 +883,8 @@ but ours replaces it, so a map placing 3005 spawns ours (MAP01 does);
 Doom's corpse thing `DeadCacodemon` (editor number 22, derived from
 `Cacodemon`, not from ours; read in g4.14.2's `gzdoom.pk3`) keeps `HEAD`
 too, and no map of ours places it (counted in the built MAP01, MAP02,
-MAP03 and the range, 2026-10-14). `BAL2` stays: the Doughboy's shell,
-`SD_DoughboyShell`, is not drawn yet.
+MAP03 and the range, 2026-10-14). `BAL2` stayed: the Doughboy's shell,
+`SD_DoughboyShell`, was not drawn yet (retired by D81, below).
 
 **Retired 2026-10-14 (D73):** `CYBR`, the General's placeholder, and `MANF`,
 his shell's in flight. Every `SD_General` state names our `SDGN` and every
@@ -878,6 +906,33 @@ flash placeholders. Every `SD_Ppsh` state names our `SDPP` and `SDPF` now
 (§6.3, "The PPSh-41 in hand, installed by D79"). Doom's own `Chaingun`
 keeps Freedoom's `CHGG`/`CHGF`, but ours `replaces Chaingun`, so the
 player never holds it; no other class of ours named either.
+
+**Retired 2026-10-20 (D84):** `SHTG`, `SHTF`, `MISG`, `MISF`, `PLSG`,
+`PLSF`, `BFGG` and `BFGF`, the held and flash placeholders of the IZh-58,
+RPG-7, ROKS-3 and hand Katyusha, and `BFUG`, the hand Katyusha's pickup
+(D80). Every `SD_Izh`, `SD_Rpg7`, `SD_Roks3` and `SD_HandKatyusha` state
+names our `SDIZ`/`SDIF`, `SDRL`/`SDRF`, `SDRK`/`SDKF`, `SDHK`/`SDHF` and
+`SDHP` now (§6.3, "The IZh-58, RPG-7, ROKS-3 and hand Katyusha in hand,
+installed by D84"). Doom's own `Shotgun`, `RocketLauncher`, `PlasmaRifle`
+and `BFG9000` keep Freedoom's lumps, but ours replace all four, so the
+player never holds one and no map can spawn one; no other class of ours
+named any of the nine. `MISL` stays (the PG-7V grenade and the Katyusha
+rocket), and `PLSS`/`PLSE` (the flame in flight): the projectiles are not
+drawn yet.
+
+**Retired 2026-10-20 (D88):** `PUNG`, the ice axe's held placeholder
+(Freedoom's fist). Every `SD_IceAxe` state names our `SDAX` now (§6.3, "The
+ice axe in hand, installed by D88"). Doom's own `Fist` keeps Freedoom's
+`PUNG`, but ours `replaces Fist`, so the player never holds it; no other
+class of ours named it.
+
+**Retired 2026-10-20 (D81):** `BAL2` and `BAL7`, the placeholders of the
+Doughboy's and the Panzermensch's shells. Every `SD_DoughboyShell` state
+names our shell `SDDL` and every `SD_PanzerShell` state our shell `SDPL` now (§6.3,
+"The two enemy shells, installed by D81"). Doom's own `CacodemonBall` and
+`BaronBall` keep Freedoom's `BAL2` and `BAL7`; no class of ours fires
+either (the Doughboy and the Panzermensch, which replace the Cacodemon and
+the Hell Knight and Baron, fire ours).
 
 **Retired 2026-10-14 (D63):** `PMAP`, the radio's placeholder (the computer
 area map's pickup picture). `SD_Radio`'s `Spawn` state names our `SDRD` now
@@ -901,26 +956,14 @@ replace them, so no map can spawn one. The armours' and the armour bonus'
 HUD icons are ours too, and the key icons `STKEYS0`-`STKEYS2` are shipped
 by the mod under the engine's names; the fullscreen HUD's health icon
 `MEDIA0` is still Freedoom's (§6.3).
-**`BFUG` is not retired yet**: the hand Katyusha's new pickup picture
-waits for the line in its `Spawn` (§6.3), so its row stays.
+`BFUG`, the hand Katyusha's, followed on the same day with D84's install
+(below).
 
 | Name | Type | Used by | Verification |
 |---|---|---|---|
-| `PUNG` | sprite | `SD_IceAxe` (held) | engine pass F4, 2026-10-12 (as `SD_Shovel`) |
-| `SHTG` | sprite | `SD_Izh` (held) | idem |
-| `SHTF` | sprite | `SD_Izh` (flash) | idem |
-| `MISG` | sprite | `SD_Rpg7` (held) | idem |
-| `MISF` | sprite | `SD_Rpg7` (flash) | idem |
-| `MISL` | sprite | `SD_Pg7Grenade`, `SD_KatyushaRocket` (the burst of `SD_GeneralShell` until D73) | idem |
-| `PLSG` | sprite | `SD_Roks3` (held) | engine pass F4 |
-| `PLSF` | sprite | `SD_Roks3` (flash) | idem |
-| `PLSS` | sprite | `SD_FlameBlob` | idem |
+| `MISL` | sprite | `SD_Pg7Grenade`, `SD_KatyushaRocket` (the burst of `SD_GeneralShell` until D73) | engine pass F4, 2026-10-12 |
+| `PLSS` | sprite | `SD_FlameBlob` | engine pass F4 |
 | `PLSE` | sprite | `SD_FlameBlob` (impact) | idem |
-| `BFGG` | sprite | `SD_HandKatyusha` (held) | idem |
-| `BFGF` | sprite | `SD_HandKatyusha` (flash) | idem |
-| `BFUG` | sprite | `SD_HandKatyusha` (pickup) | idem |
-| `BAL2` | sprite | `SD_DoughboyShell` | frames in the IWAD (test); engine pass 2026-10-13: no `Missing sprite` (not every state was exercised) |
-| `BAL7` | sprite | `SD_PanzerShell` | idem |
 
 The sounds are the same kind of borrowing and are listed in §6.2; they are
 not checked by `check_pk3.py` (a missing sound is silence, not an error), but
@@ -1159,7 +1202,7 @@ keep their stand-in.
 
 | Logical name | Lump | Played by |
 |---|---|---|
-| `sd/weapon/iceaxe/swing` | `SDAXSWG` | `SD_IceAxe` Fire, first frame (`PUNG B 5`), `CHAN_WEAPON` |
+| `sd/weapon/iceaxe/swing` | `SDAXSWG` | `SD_IceAxe` Fire, first frame (`SDAX B 5`), `CHAN_WEAPON` |
 | `sd/weapon/iceaxe/hit` | `SDAXHIT` | `A_SD_IceAxeSwing` when the blow finds a target |
 | `sd/weapon/iceaxe/wall` | `SDAXWAL` | `SD_IceAxePuff`'s `AttackSound` (the puff spawned on a wall, floor or ceiling) |
 | `sd/weapon/tokarev/fire` | `SDTTFIR` | `SD_Tokarev` `AttackSound` |
@@ -1174,17 +1217,17 @@ keep their stand-in.
 | `sd/weapon/ppsh/reload` | `SDPPRLD` | nothing: parked (D47) |
 | `sd/weapon/rpg7/fire` | `SDRPFIR` | `SD_Pg7Grenade` `SeeSound` |
 | `sd/weapon/rpg7/explode` | `SDRPEXP` | `SD_Pg7Grenade` `DeathSound` |
-| `sd/weapon/rpg7/reload` | `SDRPRLD` | `SD_Rpg7` Fire, `MISG B 10` (the launch frame split 4 + 10), `CHAN_WEAPON` |
+| `sd/weapon/rpg7/reload` | `SDRPRLD` | `SD_Rpg7` Fire, `SDRL B 10` (the launch frame split 4 + 10), `CHAN_WEAPON` |
 | `sd/weapon/rpg7/pickup` | `SDRPPKP` | `Inventory.PickupSound` |
 | `sd/weapon/rpg7/dry` | `SDRPDRY` | `A_SD_WeaponReady` |
 | `sd/weapon/roks3/fire` | `DSFLAME` (→ `SDRKFIR`, D74 NO) | `A_SD_FireRoks3`, `CHAN_WEAPON` |
 | `sd/weapon/roks3/pickup` | `SDRKPKP` | `Inventory.PickupSound` |
 | `sd/weapon/roks3/dry` | `SDRKDRY` | `A_SD_WeaponReady` |
 | `sd/weapon/roks3/reload` | `SDRKRLD` | nothing: parked (D47) |
-| `sd/weapon/katyusha/charge` | `SDHKCHG` | `SD_HandKatyusha` Fire, `BFGG A 20`, `CHAN_WEAPON` |
+| `sd/weapon/katyusha/charge` | `SDHKCHG` | `SD_HandKatyusha` Fire, `SDHK A 20`, `CHAN_WEAPON` |
 | `sd/weapon/katyusha/fire` | `SDHKFIR` | `A_SD_FireKatyusha`, `CHAN_WEAPON` |
 | `sd/weapon/katyusha/burst` | `SDHKEXP` | `SD_KatyushaRocket` `DeathSound` |
-| `sd/weapon/katyusha/reload` | `SDHKRLD` | `SD_HandKatyusha` Fire, a 0-tic frame before `BFGG B 20 A_ReFire`, `CHAN_5` (`SD_KATYUSHA_RELOAD_CHANNEL`) so the salvo is not cut |
+| `sd/weapon/katyusha/reload` | `SDHKRLD` | `SD_HandKatyusha` Fire, a 0-tic frame before `SDHK B 20 A_ReFire`, `CHAN_5` (`SD_KATYUSHA_RELOAD_CHANNEL`) so the salvo is not cut |
 | `sd/weapon/katyusha/pickup` | `SDHKPKP` | `Inventory.PickupSound` |
 | `sd/weapon/katyusha/dry` | `SDHKDRY` | `A_SD_WeaponReady` |
 
@@ -1284,8 +1327,8 @@ Only the sprite name changed: frame letter, tics and every other state line
 are as before, held by `tests/test_weapon_sprites.py` against the state
 machines as they stood before D48. Not installed by D48: every held and
 flash frame (`SDAX`, `SDTT`/`SDTF`, `SDIZ`/`SDIF`, `SDPP`/`SDPF`,
-`SDRL`/`SDRF`, `SDRK`/`SDKF`; the TT-33's followed with N17 and the PPSh-41's with D79, below), the hand Katyusha (`SDHK`/`SDHF`/`SDHP`, to be redrawn,
-D48), the RPG-7's `_proposed` reload frames (`SDRL` C-D) and the
+`SDRL`/`SDRF`, `SDRK`/`SDKF`; the TT-33's followed with N17, the PPSh-41's with D79, the IZh-58's, RPG-7's and ROKS-3's with D84 and the ice axe's with D88, below), the hand Katyusha (`SDHK`/`SDHF`/`SDHP`, to be redrawn,
+D48; its frames and pickup followed with D84), the RPG-7's `_proposed` reload frames (`SDRL` C-D) and the
 projectiles. Licence rows: `docs/art/LICENSES.md`, "Weapon pickups".
 
 **The TT-33 in hand, installed by N17 (2026-10-15).** The hands are
@@ -1367,6 +1410,92 @@ credits name Google Gemini (`SD_CRED_SRC_4`–`_6`, `tools/release.py`
 `AI_DISCLOSURE`). **NOT VERIFIED in the engine from the PK3** (D26): the
 PM's pass.
 
+**The IZh-58, RPG-7, ROKS-3 and hand Katyusha in hand, installed by D84
+(2026-10-20).** The CEO approved the four after seeing them in engine
+through the draft overlay
+(`docs/art/previews/2026-10-20_1037_F4_five-weapons-gemini-in-engine.png`;
+the ice axe, the fifth, waited for its strike to be redrawn and followed
+with D88, below). Each was
+built as the PPSh-41 was, by `tools/art/gemini_frames.py <weapon>` from
+the CEO's Google Gemini images (the IZh-58 has three: ready, firing,
+reloading; the others two: ready, firing), which stay in
+`work/art/reference/` and never ship (D77), into
+`work/art/weapons/hand_G/<weapon>/`: the same pipeline, the same height
+(the ready frame's top 56 px above the bar, x1.6 Freedoom's `CHGGA0`, ±2),
+the arms leaving the view with no cut edge (`visible_cuts` is 0 on every
+lump, bar on and off, 16:9 and the bob), the firing frames kicked by
+`KICK` (2 px right, 3 px up) where the gun recoils, the fading flash
+frames shrunk about their root. Twenty lumps ship, byte-identical to the
+build (a fresh build reproduces them byte for byte where the sources
+exist), each folder beside its weapon's world pickup; the hand Katyusha's
+in a new `assets/sprites/katyusha/` (its pickup lives with the campaign's
+in `pickups/`, below). RGBA with hard alpha, all in palette v2; neither
+the zs nor anything else moves a weapon sprite in code.
+
+| Lump | State | Size | `grAb` (left, top) | Above the status bar |
+|---|---|---|---|---|
+| `SDIZA0` | IZh-58: `Ready`, `Select`, `Deselect`; `Fire`'s first and last two frames; the reload's last (shut) | 266 × 93 | −136, −95 | 57 px |
+| `SDIZB0` | `Fire`: the recoil (`KICK`); the reload closing | 260 × 93 | −144, −92 | 60 px |
+| `SDIZC0` | `Fire`: settling (half the kick); the reload | 260 × 93 | −143, −93 | 59 px |
+| `SDIZD0` | `Reload`: broken open | 275 × 121 | −128, −67 | 85 px |
+| `SDIFA0` | `Flash` A (`Bright`, `A_Light1`), on `SDIZA0`'s muzzles | 61 × 42 | −126, −73 | 79 px |
+| `SDIFB0` | `Flash` B (`A_Light2`), the flash fading (x0.6) | 37 × 25 | −145, −84 | 68 px |
+| `SDRLA0` | RPG-7: `Ready`, `Select`, `Deselect` | 296 × 92 | −131, −96 | 56 px |
+| `SDRLB0` | `Fire`, every tic (the launch, the reload, `A_ReFire`; kicked) | 296 × 92 | −133, −93 | 59 px |
+| `SDRFA0`–`SDRFD0` | `Flash` A–D over `SDRLB0`'s muzzle, fading (x1, 0.8, 0.6, 0.4) | 37 × 27 to 13 × 11 | −159, −85 to −175, −93 | 67 to 59 px |
+| `SDRKA0` | ROKS-3: `Ready`, `Select`, `Deselect`; `Fire`'s jets | 181 × 92 | −135, −96 | 56 px |
+| `SDRKB0` | `Fire`: the trigger let go (`A_ReFire`, 20 tics), in A's pose | 181 × 92 | −135, −96 | 56 px |
+| `SDKFA0` | `Flash` (`Bright`, `A_Light1`): the flame at the nozzle | 46 × 23 | −118, −80 | 72 px |
+| `SDHKA0` | hand Katyusha: `Ready`, `Select`, `Deselect`; the 20-tic wind-up | 169 × 92 | −146, −96 | 56 px |
+| `SDHKB0` | `Fire`: the salvo, the reload and `A_ReFire` (kicked) | 169 × 92 | −148, −93 | 59 px |
+| `SDHFA0` | `Flash` A (11 tics, `A_Light1`) over `SDHKB0`'s rails | 74 × 51 | −127, −72 | 80 px |
+| `SDHFB0` | `Flash` B (6 tics, `A_Light2`), the smoke fading (x0.7) | 52 × 35 | −141, −81 | 71 px |
+
+Only the four-letter names changed, `SHTG` → `SDIZ`, `SHTF` → `SDIF`,
+`MISG` → `SDRL`, `MISF` → `SDRF`, `PLSG` → `SDRK`, `PLSF` → `SDKF`, `BFGG`
+→ `SDHK`, `BFGF` → `SDHF` (and the Katyusha's `Spawn`, `BFUG` → `SDHP`):
+frame letters, tics, actions and flow are as they were, held by
+`tests/test_gemini_weapons_install.py` against the state machines as they
+stood at HEAD e84c56c, before D84 (and by `tests/test_weapon_sprites.py`).
+Reserved above and not drawn, because no state uses them: `SDIZ` E–F,
+`SDKF` B, `SDHK` C. The draft overlay records the eight pairs as installed
+(§6.9) and the Katyusha's pickup with the D48 pickups. Licence rows:
+`docs/art/LICENSES.md`, "Weapon frames: the IZh-58, RPG-7, ROKS-3, hand
+Katyusha and ice axe in hand". **NOT VERIFIED in the engine from the PK3** (D26): the
+PM's pass.
+
+**The ice axe in hand, installed by D88 (2026-10-20).** The CEO approved
+the swing ("Piolet aprobado", D88;
+`docs/art/previews/2026-10-20_1112_F4_ice-axe-swing-ABCD.png`) after its
+first strike frame was rejected for an arm that left the view curved (D84).
+`tools/art/gemini_frames.py ice_axe` builds the ready frame from the CEO's
+Google Gemini image, taller than the guns (the top 72 px above the bar:
+D76's long shaft and big head), and the swing by rotating that approved
+frame as one rigid piece about the elbow (palette-safe, RotSprite-style;
+D86): the wind-up lifted back, the strike, the follow-through carried on
+down. The source image stays in `work/art/reference/` (D77). Four lumps ship
+in `assets/sprites/ice_axe/`, beside the pickup `SDAPA0`, byte-identical to
+`work/art/weapons/hand_G/ice_axe/` (a fresh build reproduces them where the
+source exists); RGBA with hard alpha, palette v2; every one runs on under
+the status bar (the build measures no visible cut edge, 16:9 and the bob).
+
+| Lump | State | Size | `grAb` (left, top) | Above the status bar |
+|---|---|---|---|---|
+| `SDAXA0` | `Ready`, `Select`, `Deselect` | 104 × 108 | −185, −80 | 72 px |
+| `SDAXB0` | `Fire`: the wind-up (5 tics, the swing sound) and the last 6 (`A_ReFire`) | 98 × 145 | −210, −73 | 79 px |
+| `SDAXC0` | `Fire`: the strike (`A_SD_IceAxeSwing`) and the return | 268 × 124 | −131, −94 | 58 px |
+| `SDAXD0` | `Fire`: the follow-through (6 tics) | 266 × 99 | −126, −119 | 33 px |
+
+Only the four-letter name changed, `PUNG` → `SDAX`: frame letters, tics,
+actions (N9's swing sound, `A_SD_IceAxeSwing` and its `SD_IceAxePuff`) and
+flow are as they were, held by `tests/test_gemini_weapons_install.py`
+against the state machine at HEAD e84c56c (and by
+`tests/test_weapon_sprites.py`). `SDAX` E, reserved above, is not drawn: no
+state uses it. The draft overlay records `PUNG` → `SDAX` as installed
+(§6.9); no weapon swap is left. Licence rows: `docs/art/LICENSES.md`,
+"Weapon frames: the IZh-58, RPG-7, ROKS-3, hand Katyusha and ice axe in
+hand". **NOT VERIFIED in the engine from the PK3** (D26): the PM's pass.
+
 **The bestiary (F5).** Reserved names, the frames the art must provide, and
 the Freedoom placeholder each class wears today (declared in §5.1). The
 frame layouts are Doom's, so the swap is a rename; the two exceptions are
@@ -1380,10 +1509,10 @@ marked. Images per class and the drawing briefs: `BESTIARY.md` §3–§9, §12.
 | `SD_StormBolt` | `SDBL` | A–E (0) | none: **installed, D56** (was `BAL1`) |
 | `SD_ReichHound` | `SDHN` | A–H (8, as mirrored pairs), I–N (0) | none: **installed, D55** (was `SARG`) |
 | `SD_Doughboy` | `SDDB` | A–F (8), G–L (0) | none: **installed, D70** (was `HEAD`) |
-| `SD_DoughboyShell` | `SDDL` | A–E (0) | `BAL2` |
+| `SD_DoughboyShell` | `SDDL` | A–E (0) | none: **installed, D81** (was `BAL2`) |
 | `SD_Panzermensch` | `SDPM` | A–H (8), I–O (0) | none: **installed, D67** (was `BOS2`) |
 | `SD_PanzermenschSchwer` | `SDPS` | A–H (8), I–O (0) | none: **installed, D67** (inherited `BOS2` from the base; its own `States` since D67) |
-| `SD_PanzerShell` | `SDPL` | A–E (0) | `BAL7` |
+| `SD_PanzerShell` | `SDPL` | A–E (0) | none: **installed, D81** (was `BAL7`; rotations 1-8 in flight, ours rotation 0) |
 | `SD_General` | `SDGN` | A–G (8), H–P (0), Q–R (8) | none: **installed, D73** (was `CYBR`; the `Summon` lines borrowed `CYBR E F` and became `SDGN Q R`) |
 | `SD_GeneralShell` | `SDGL` | A–E (0) | none: **installed, D73** (was `MANF` A–B in flight, `MISL` B–D burst; the burst became `SDGL C D E`) |
 
@@ -1574,7 +1703,8 @@ Blood stays the engine's sprite recoloured by `BloodColor "AD 27 21"` (D49,
 below), inherited by the Schwer; the drawn deaths carry their own dark-red
 blood. Licence rows: `docs/art/LICENSES.md`, "Enemy sprites: the
 Panzermensch and the Schwer". The draft overlay never carried either
-(§6.9). The shell, `SD_PanzerShell`, still wears Freedoom's `BAL7`.
+(§6.9). The shell, `SD_PanzerShell`, wore Freedoom's `BAL7` until D81
+(below).
 
 **The Doughboy, installed by D70 (2026-10-14).** The CEO chose cell C of
 the heavies sweep, the head in its M1 helmet, severed, with a neck stump
@@ -1627,7 +1757,8 @@ Blood stays the engine's sprite recoloured by `BloodColor "AD 27 21"` (D49,
 below); the drawn deaths carry their own dark-red blood. Licence rows:
 `docs/art/LICENSES.md`, "Enemy sprites: the Doughboy". The draft overlay
 never carried it and records it as installed whole (`HEAD` → `SDDB`,
-§6.9). The shell, `SD_DoughboyShell`, still wears Freedoom's `BAL2`.
+§6.9). The shell, `SD_DoughboyShell`, wore Freedoom's `BAL2` until D81
+(below).
 
 **The General and his shell, installed by D73 (2026-10-14).** The CEO
 combined cells C and D of the General's sweep, C from the front (the field
@@ -1692,6 +1823,39 @@ below); the drawn deaths carry their own dark-red blood. Licence rows:
 draft overlay never carried either and records them as installed whole
 (`CYBR` → `SDGN`, `MANF` → `SDGL`, §6.9); `MISL` is not recorded there,
 because the PG-7V grenade and the Katyusha rocket still wear it.
+
+**The two enemy shells, installed by D81 (2026-10-20).** The CEO took the
+recommended option for both ("los que tú recomiendas", D81;
+`docs/art/previews/2026-10-19_2200_F5_enemy-shells.html`): option A of each
+sweep of `tools/art/gen_shells.py`, the Doughboy's "comet" (a white-hot
+core in a `flag_red` corona, the shell its attack frames kindle in the
+mouth) and the Panzermensch's "ember" (a dull `hazard_yellow` ball in an
+olive smoke halo, the ball its gauntlet throws; the Schwer fires the same
+`SD_PanzerShell`). Ten lumps ship, byte-identical to
+`work/art/shells/SDDL/` and `.../SDPL/` (rendered on the Windows PC on
+2026-10-19; the sweep's other options, the GIFs, the scenes and
+`metrics.json` stay in `work/`): the Doughboy's shell `SDDL` A–E in
+`assets/sprites/doughboy/`, the Panzermensch's shell `SDPL` A–E in
+`assets/sprites/panzermensch/`, beside their throwers. Each
+is RGBA with hard alpha, inside palette v1, in rotation 0 (one image for
+every angle, as `SDBL` and `SDGL`; Freedoom's `BAL7` had rotations 1-8 in
+flight), with its `grAb` centring the ball on the actor half its `Height`
+up, as Freedoom hangs its balls:
+
+| Lumps | State | Canvas | `grAb` (left, top) |
+|---|---|---|---|
+| `SDDLA0`, `SDDLB0` | `SD_DoughboyShell` `Spawn`: `SDDL AB 4 Bright` | 48 × 48 | 24, 28 (the centre 4 px above z; `Height` 8) |
+| `SDDLC0`, `SDDLD0`, `SDDLE0` | the shell's `Death`: `SDDL CDE 6 Bright` | 48 × 48 | 24, 28 |
+| `SDPLA0`, `SDPLB0` | `SD_PanzerShell` `Spawn`: `SDPL AB 4 Bright` | 56 × 56 | 28, 36 (the centre 8 px above z; `Height` 16) |
+| `SDPLC0`, `SDPLD0`, `SDPLE0` | the shell's `Death`: `SDPL CDE 6 Bright` | 56 × 56 | 28, 36 |
+
+Only the four-letter names changed, `BAL2` → `SDDL` and `BAL7` → `SDPL`,
+on the two state lines of each class: tics, `Bright`, flow and the
+`RenderStyle "Add"` are as they were (`tests/test_shells_install.py`
+pins them against the classes at HEAD e84c56c). Licence rows:
+`docs/art/LICENSES.md`, "Enemy sprites: the Doughboy's and the
+Panzermensch's shells". **NOT YET SEEN IN THE ENGINE** (D26); the additive
+blend on our walls was a stand-in in the preview, NOT VERIFIED in GZDoom.
 
 **The radio (§6.7).** `SD_Radio` → final sprite **`SDRD`** A (rotation
 `0`, one picture from every angle), standing on the floor (`left = width /
@@ -1770,7 +1934,7 @@ sprite stands for:
 | `SD_Backpack` (`Backpack`) | `SDBP` | A (0) | B, an RD-54 paratrooper's pack | `SDBP A -1; Stop` (`BPAK`) | `SD_GOT_BACKPACK` |
 | `SD_YellowPass` (`YellowCard`) | `SDKY` | A, B (0) | A, the blue pass's card in yellow | `SDKY A 10; SDKY B 10 Bright; Loop` (`YKEY`) | `SD_PICKUP_YELLOWPASS` |
 | `SD_RedPass` (`RedCard`) | `SDKK` | A, B (0) | A, the blue pass's card in red, gold stamp | `SDKK A 10; SDKK B 10 Bright; Loop` (`RKEY`) | `SD_PICKUP_REDPASS` |
-| `SD_HandKatyusha` (`BFG9000`), Katyusha | `SDHP` | A (0) | A, the D51 draft at its drawn size (70×37) | `SDHP A -1; Stop` (`BFUG`): **pending**, see below | `SD_PICKUP_KATYUSHA` (unchanged) |
+| `SD_HandKatyusha` (`BFG9000`), Katyusha | `SDHP` | A (0) | A, the D51 draft at its drawn size (70×37) | `SDHP A -1; Stop` (`BFUG`): installed with D84's weapon frames, see below | `SD_PICKUP_KATYUSHA` (unchanged) |
 
 Files: `assets/sprites/pickups/<NAME>.png`, byte-identical to the renders in
 `work/art/items/<item>/<option>/` (Windows PC, 2026-10-20), RGBA with hard
@@ -1811,16 +1975,14 @@ height) they end where Freedoom's do, on the medikit icon's top edge
 and 22 pixels higher, left of the armour count (x 44). **NOT VERIFIED in
 the engine.**
 
-**Pending: the Katyusha's pickup.** `SD_HandKatyusha` lives in
-`zscript/weapons/katyusha.zs`, which another task owned at the install; its
-`Spawn` still says `BFUG A -1;`, so its picture is rendered
-(`work/art/items/katyusha/A/`) but not copied into `assets/`: installed
-alone it would change nothing in the game and would stop the draft overlay
-(§6.9) from showing the D51 draft over `BFUG`. Three steps finish it, in
-one change: the hand Katyusha's line becomes `SDHP A -1;`, the PNG is copied into
-`assets/sprites/pickups/`, and the row `BFUG` leaves §5.1
-(`tests/test_pickups_install.py` checks all three once the line changes;
-`tests/test_draft_overlay.py`'s count of today's drafts then drops by one).
+**The Katyusha's pickup, installed with D84 (2026-10-20).**
+`SD_HandKatyusha` lives in `zscript/weapons/katyusha.zs`, which another
+task owned at the D80 install, so its picture waited
+(`work/art/items/katyusha/A/`) for the weapon's own install: there the
+Katyusha's `Spawn` became `SDHP A -1;`, the Katyusha's `SDHPA0` was copied
+byte for byte into `assets/sprites/pickups/`, and the row `BFUG` left §5.1,
+in one change (`tests/test_pickups_install.py` checks all three; the draft
+overlay records the Katyusha's `BFUG` → `SDHP` as installed, §6.9).
 
 Checked free: no lump of `freedoom2.wad` 0.13.0 starts with any of the ten
 new names, and none collides with a name reserved above
@@ -2170,17 +2332,20 @@ only hand E exists); `--dry-run` prints the plan.
 with in `src/zscript/weapons/*.zs` (and an enemy swap's file under
 `monsters/`; `reich_rifleman.zs` until D55), and copies our
 draft for each of those frames, byte for byte (so the `grAb` offsets travel),
-to `sprites/<PLACEHOLDER><frame><rotation>.png`: `SDIZA0` → `SHTGA0`
-(and `SDTTA0` → `PISGA0` until N17),
+to `sprites/<PLACEHOLDER><frame><rotation>.png`: `SDAXA0` → `PUNGA0`
+until D88 (and `SDIZA0` → `SHTGA0` until D84, `SDTTA0` → `PISGA0` until N17),
 `SDRRA1` → `POSSA1` until D55, and so on through the pairs of §6.3. A draft no state
-shows is not packed (today `SDAXE0`, `SDKFB0`, the `_proposed`
-frames and the Katyusha's `variants/`); a frame with no draft keeps the
+shows is not packed (the `_proposed` frames, for one); a frame with no draft keeps the
 IWAD's. The 2026-10-13 overlay was 107 sprite lumps: 37 weapon frames (all
 seven weapons, hand E, pickups included) and the rifleman's 70. Since D48
 it was 101: 31 weapon frames (held and flash of the seven, the Katyusha's
 pickup) and the rifleman's 70. Since D55 it was the 31 weapon frames;
-since N17 it was 27 (the TT-33's four ship); since D79 it is 24 (the
-PPSh-41's three ship).
+since N17 it was 27 (the TT-33's four ship); since D79 it was 24 (the
+PPSh-41's three ship); since D84 it was 4, the ice axe's held frames alone
+(the IZh-58's, RPG-7's, ROKS-3's and hand Katyusha's 19 frames and the
+Katyusha's pickup ship). Since D88 it is empty: the ice axe's four ship, no swap is left, and
+the tool says "nothing to pack" and writes nothing until a weapon or an
+enemy is drafted again.
 
 **Sprite resolution across files** (why a partial frame is refused):
 
@@ -2250,7 +2415,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 
 | # | Debt | Pay it in |
 |---|---|---|
-| T1 | Every weapon sprite and sound is a Freedoom placeholder (§6.2, §6.3). **Partly paid 2026-10-14 (D48):** the six world pickups are ours (§6.3, "Installed since D48"). **N17 (2026-10-15):** the TT-33's held and flash frames are ours (§6.3, "The TT-33 in hand, installed by N17"). **D79 (2026-10-20):** the PPSh-41's too (§6.3, "The PPSh-41 in hand, installed by D79"). Open: every other held and flash frame (the hands are being redrawn), the hand Katyusha whole, the projectiles, and every weapon sound. | F4, once `art-director` redraws the hands and `sound-designer`'s sounds pass the CEO |
+| T1 | Every weapon sprite and sound is a Freedoom placeholder (§6.2, §6.3). **Partly paid 2026-10-14 (D48):** the six world pickups are ours (§6.3, "Installed since D48"). **N17 (2026-10-15):** the TT-33's held and flash frames are ours (§6.3, "The TT-33 in hand, installed by N17"). **D79 (2026-10-20):** the PPSh-41's too (§6.3, "The PPSh-41 in hand, installed by D79"). **D84 (2026-10-20):** the IZh-58's, RPG-7's, ROKS-3's and hand Katyusha's held and flash frames, and the Katyusha's pickup (§6.3, "The IZh-58, RPG-7, ROKS-3 and hand Katyusha in hand, installed by D84"); the weapon sounds were paid by N9 (D74). **D88 (2026-10-20):** the ice axe's held frames (§6.3, "The ice axe in hand, installed by D88"): every held, flash and pickup sprite of the arsenal is ours. Open: the projectiles (`MISL`, `PLSS`/`PLSE`). | F4, once `art-director` redraws the hands and `sound-designer`'s sounds pass the CEO |
 | ~~T2~~ | ~~Ammo pickups still read as Freedoom items.~~ **Paid 2026-10-13** (commit `720acd1`): §6.4. |  |
 | T3 | `Player.DisplayName` is a plain English literal, not a `LANGUAGE` lookup — unverified whether that property resolves `$IDs`. | F5 |
 | T4 | Freedoom's `Chainsaw` and `SuperShotgun` classes still exist; only their editor numbers were removed. | F6, if it ever matters |
@@ -2266,7 +2431,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | T14 | Four engine menus (`MainMenu`, `SkillMenu`, `EpisodeMenu` since D41, and the `os_Menu` insertion anchor) are copied into `MENUDEF`; since D31 the first two, and since D41 the third, also differ in their items and layout (§6.6). They do not track engine changes. **Since T24, also `D_Display`'s pause drawing** (`src/d_main.cpp`, g4.14.2, lines 1095-1123): `SD_StatusBar.DrawPaused` copies its position and its multiplayer line (§6.5.1). | re-diff at every engine upgrade |
 | T15 | MAP01's `par = 210` is set, the intermission's PAR row appears, but the printed value was never read in an unattended run (§4.1). | `qa-engineer`, with a human at the keyboard |
 | ~~T16~~ | **PAID 2026-10-13**: the ANIMDEFS pairs in `be6525a`, MAP01 v2 retired `SWITCH_PLACEHOLDER` in `bf857a0`. Was: **Paid for the engine, open for the map.** `src/lumps/ANIMDEFS` ships the four `switch` pairs SDSW1x → SDSW2x (2026-10-13), syntax from `gzdoom.pk3 → animdefs.txt`, and `SDSW1A` was seen to flip in engine the same day (§4.3). Open: MAP01 still wears `SDDOOR1` (`SWITCH_PLACEHOLDER`); the click is heard on the CEO's first walk with real switches. | `level-designer`, MAP01 v2 |
-| T18 | **Every bestiary sprite and sound is a Freedoom placeholder** (§5.1, §6.2, §6.3); the heavy Panzermensch looks exactly like the normal one. **Partly paid 2026-10-14 (D54):** the Legion trooper's sprites are ours, 70 `SDLT` lumps (§6.3, "The Legion trooper, installed by D54"). **Nearly paid for the sprites, 2026-10-14 (D55):** the Reich rifleman's (70 `SDRR`) and the Reich hound's (46 `SDHN`) are ours too (§6.3, "The Reich rifleman and the Reich hound, installed by D55"), so three of the seven classes, both infantries and the hound, wear their own sprites. **D56, the same day:** the Hybrid Stormtrooper (77 `SDHS`) and his bolt (5 `SDBL`) too (§6.3, "The Hybrid Stormtrooper and his bolt, installed by D56"): four of the seven classes and one of the four projectiles. **Nearly paid for the sprites, D67 (2026-10-14):** the Panzermensch (71 `SDPM`) and the heavy variant, drawn as a set of its own (71 `SDPS`, its own `States` block; the planned `Translation` is dropped) (§6.3, "The Panzermensch and the Schwer, installed by D67"): five of the seven classes and the heavy variant. **D70, the same day:** the Doughboy (54 `SDDB`) (§6.3, "The Doughboy, installed by D70"): six of the seven classes. **Paid for the classes' sprites, D73 (the same day):** the General (81 `SDGN`) and his shell (5 `SDGL`) (§6.3, "The General and his shell, installed by D73"): all seven classes and two of the four projectiles. Open: the sprites of the two other projectiles (`SDDL`, `SDPL`), and every bestiary sound, the installed classes' included. | F5, as `art-director` and `sound-designer` deliver (D35: own drawings for the five most-seen) |
+| T18 | **Every bestiary sprite and sound is a Freedoom placeholder** (§5.1, §6.2, §6.3); the heavy Panzermensch looks exactly like the normal one. **Partly paid 2026-10-14 (D54):** the Legion trooper's sprites are ours, 70 `SDLT` lumps (§6.3, "The Legion trooper, installed by D54"). **Nearly paid for the sprites, 2026-10-14 (D55):** the Reich rifleman's (70 `SDRR`) and the Reich hound's (46 `SDHN`) are ours too (§6.3, "The Reich rifleman and the Reich hound, installed by D55"), so three of the seven classes, both infantries and the hound, wear their own sprites. **D56, the same day:** the Hybrid Stormtrooper (77 `SDHS`) and his bolt (5 `SDBL`) too (§6.3, "The Hybrid Stormtrooper and his bolt, installed by D56"): four of the seven classes and one of the four projectiles. **Nearly paid for the sprites, D67 (2026-10-14):** the Panzermensch (71 `SDPM`) and the heavy variant, drawn as a set of its own (71 `SDPS`, its own `States` block; the planned `Translation` is dropped) (§6.3, "The Panzermensch and the Schwer, installed by D67"): five of the seven classes and the heavy variant. **D70, the same day:** the Doughboy (54 `SDDB`) (§6.3, "The Doughboy, installed by D70"): six of the seven classes. **Paid for the classes' sprites, D73 (the same day):** the General (81 `SDGN`) and his shell (5 `SDGL`) (§6.3, "The General and his shell, installed by D73"): all seven classes and two of the four projectiles. **D81 (2026-10-20):** the two other projectiles too, the Doughboy's shell (`SDDL`) and the Panzermensch's (`SDPL`) (§6.3, "The two enemy shells, installed by D81"): every enemy sprite is ours. Open: every bestiary sound, the installed classes' included. | F5, as `art-director` and `sound-designer` deliver (D35: own drawings for the five most-seen) |
 | ~~T19~~ | ~~Nothing has been seen in the engine: the eight classes compile only in theory until the PM's batch run (D26).~~ **Paid 2026-10-13** by the PM's engine pass (GZDoom 4.14.2, Freedoom 0.13.0): the classes load with no error, the gallery shows all eight, the drops and the General's single summon were counted, and MAP01 v3's 33 enemies spawn through Doom's numbers. Evidence `docs/qa/evidence/2026-10-13_1705_F5_map02-bestiary.log` and `…-gallery.png` (commit `2b1aba5`), `docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass.log` (commit `bcbf35f`); the table is in ADR 006. What that pass did **not** settle is debt T22. |  |
 | ~~T20~~ | ~~ADR 006 is owed.~~ **Paid 2026-10-13**: `docs/engine/adr/006-bestiary-actors.md` (seven decisions, what the engine showed, what it did not). Written in the working tree; the commit is the PM's (D6). |  |
 | T21 | Doom monsters with no Soviet replacement (65 chaingunner, 58 spectre, the rest of Doom II's roster) still spawn Freedoom's actors. MAP01 §8 plans a "Legion heavy gunner" on 65 that the bestiary does not have. | CEO question, if a seventh enemy is wanted |

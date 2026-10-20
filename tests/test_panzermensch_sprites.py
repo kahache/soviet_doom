@@ -42,7 +42,9 @@ is checked, and why:
 
 Doom's HellKnight (BOS2) and BaronOfHell (BOSS) are not touched: ours replace
 them, so a map placing 69 or 3003 gets ours; their IWAD lumps stay in the
-IWAD. SD_PanzerShell keeps Freedoom's BAL7 (its SDPL is not drawn).
+IWAD. SD_PanzerShell wears our SDPL since D81 (2026-10-20), its five lumps
+in the same folder (SHELL_LUMPS); that install has its own suite,
+tests/test_shells_install.py.
 
 Stdlib only, but for the blood check, which needs Pillow.
 """
@@ -210,8 +212,16 @@ def constants(path: Path) -> dict[str, int]:
     return {k: int(v) for k, v in re.findall(r"const\s+(\w+)\s*=\s*(-?\d+)\s*;", text)}
 
 
+# D81 (2026-10-20): SD_PanzerShell's SDPL A-E share the folder
+# (tests/test_shells_install.py); they are not the Panzermensch's set.
+SHELL_LUMPS = {f"SDPL{f}0" for f in "ABCDE"}
+
+
 def installed() -> list[Path]:
-    return sorted(PANZER_SPRITES.glob("*.png")) if PANZER_SPRITES.is_dir() else []
+    """SDPM and SDPS only: the shell's lumps share the folder since D81."""
+    if not PANZER_SPRITES.is_dir():
+        return []
+    return sorted(p for p in PANZER_SPRITES.glob("*.png") if p.stem not in SHELL_LUMPS)
 
 
 def blood_colours() -> set[tuple[int, int, int]]:
@@ -303,10 +313,10 @@ class FileTests(unittest.TestCase):
 
     def test_nothing_but_the_lumps_in_the_folder(self):
         """No GIF, no metrics.json, no blood_share.json, no lineup_*: only
-        the lumps ship."""
+        the lumps ship (the shell's SDPL A-E beside them since D81)."""
         if PANZER_SPRITES.is_dir():
             self.assertEqual(sorted(p.name for p in PANZER_SPRITES.iterdir()),
-                             sorted(f"{n}.png" for n in EXPECTED_LUMPS))
+                             sorted(f"{n}.png" for n in EXPECTED_LUMPS | SHELL_LUMPS))
 
     def test_every_sprite_carries_its_canvas_and_offsets(self):
         for p in installed():

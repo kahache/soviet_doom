@@ -270,7 +270,7 @@ class ArsenalContractTests(unittest.TestCase):
         for key, spec in self.g.WEAPONS.items():
             text = (PROJECT_ROOT / "src" / "zscript" / "weapons" / spec.zs).read_text(encoding="utf-8")
             # the placeholder, or our own pickup once installed (D48: TT-33,
-            # IZh-58, RPG-7, ROKS-3; the Katyusha still wears BFUG)
+            # IZh-58, RPG-7, ROKS-3; the Katyusha's SDHP since D84)
             self.assertRegex(text, rf"\n\s*({spec.ph_pickup}|{spec.pickup}) A -1", key)
 
     def test_proposals_are_marked(self):

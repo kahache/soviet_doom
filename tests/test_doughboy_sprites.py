@@ -21,8 +21,9 @@ D67). What is checked, and why:
              box, the opening over it at least 56)
   sprite     no state anywhere names HEAD any more, MOD-SPEC 5.1 no longer
              declares it, and every frame a state uses has its lumps; the
-             shell, SD_DoughboyShell, still names Freedoom's BAL2 (its SDDL
-             is not drawn)
+             shell, SD_DoughboyShell, names our SDDL since D81 (2026-10-20;
+             its install's own suite is tests/test_shells_install.py), and
+             BAL2 is retired with it
   files      assets/sprites/doughboy/ holds exactly the 54 lumps: A-F in
              eight separate rotations (no mirrored pairs: the helmet sits
              askew with the flag and the buckle on one side), G-L in
@@ -86,7 +87,9 @@ RE_LABEL = re.compile(r"^\s*(\w+):\s*$")
 RE_STATE = re.compile(r"^\s*([A-Z0-9#\-]{4})\s+([A-Z\[\]\\#]+)\s+(-?\d+)\s*(.*?)\s*;\s*$")
 RE_FLOW = re.compile(r"^\s*(Goto\s+\w+|Loop|Stop|Wait|Fail)\s*;\s*$")
 OLD, NEW = "HEAD", "SDDB"
-SHELL_SPRITE = "BAL2"                 # SD_DoughboyShell's placeholder; SDDL not drawn yet
+SHELL_SPRITE = "SDDL"                 # SD_DoughboyShell's own since D81 (was Freedoom's BAL2)
+SHELL_OLD = "BAL2"
+SHELL_LUMPS = {f"{SHELL_SPRITE}{f}0" for f in "ABCDE"}   # beside the SDDB set, assets/sprites/doughboy/
 ROTATED_FRAMES = "ABCDEF"             # float A, attack B-D, pain E-F: eight rotations each
 FLAT_FRAMES = "GHIJKL"                # death G-L: rotation 0
 ROTATIONS_8 = "12345678"
@@ -186,7 +189,10 @@ def frame_rows(rows: list[tuple]) -> list[tuple]:
 
 
 def installed() -> list[Path]:
-    return sorted(DOUGHBOY_SPRITES.glob("*.png")) if DOUGHBOY_SPRITES.is_dir() else []
+    """The SDDB set only: the shell's SDDL A-E share the folder since D81."""
+    if not DOUGHBOY_SPRITES.is_dir():
+        return []
+    return sorted(p for p in DOUGHBOY_SPRITES.glob("*.png") if p.stem not in SHELL_LUMPS)
 
 
 def opaque_box(name: str) -> tuple[int, int, int, int]:
@@ -251,12 +257,12 @@ class SpriteTests(unittest.TestCase):
             names = {n for n, _ in check_pk3.zscript_state_sprites(path.read_text(encoding="utf-8"))}
             self.assertNotIn(OLD, names, path.name)
 
-    def test_mod_spec_retires_head_but_not_the_shell(self):
+    def test_mod_spec_retires_head_and_the_shells_bal2(self):
         declared = check_pk3.iwad_sprites_from_spec(check_pk3.DEFAULT_SPEC)
         self.assertNotIn(OLD, declared)
-        self.assertIn(SHELL_SPRITE, declared)
+        self.assertNotIn(SHELL_OLD, declared, "D81: the shell is ours")
 
-    def test_the_shell_still_wears_bal2(self):
+    def test_the_shell_wears_sddl(self):
         names = {n for n, _ in check_pk3.zscript_state_sprites(SHELL_ZS.read_text(encoding="utf-8"))}
         self.assertEqual(names, {SHELL_SPRITE})
 
@@ -283,10 +289,10 @@ class FileTests(unittest.TestCase):
 
     def test_nothing_but_the_lumps_in_the_folder(self):
         """No GIF, no metrics.json, no blood_share.json, no before_flag/:
-        only the lumps ship."""
+        only the lumps ship (the shell's SDDL A-E beside them since D81)."""
         if DOUGHBOY_SPRITES.is_dir():
             self.assertEqual(sorted(p.name for p in DOUGHBOY_SPRITES.iterdir()),
-                             sorted(f"{n}.png" for n in EXPECTED_LUMPS))
+                             sorted(f"{n}.png" for n in EXPECTED_LUMPS | SHELL_LUMPS))
 
     def test_every_sprite_carries_its_canvas_and_offsets(self):
         for p in installed():
