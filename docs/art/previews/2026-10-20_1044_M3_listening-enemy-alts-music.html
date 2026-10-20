@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enemigos y música M3</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1d1d1b;--mute:#6b6862;--line:#dcd8cf;--accent:#a3201c;--ok:#1f7a3a;--no:#b3261e;--q:#9a6a00;--chip:#efece4;--warn:#7a4b00;--warnbg:#fff4dc}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--card:#202020;--ink:#ebe8e2;--mute:#a19d95;--line:#3a3834;--accent:#e0574f;--ok:#4cc074;--no:#f0726a;--q:#e3b341;--chip:#2c2b29;--warn:#f0c674;--warnbg:#2f2814}}
+:root[data-theme="dark"]{--bg:#161616;--card:#202020;--ink:#ebe8e2;--mute:#a19d95;--line:#3a3834;--accent:#e0574f;--ok:#4cc074;--no:#f0726a;--q:#e3b341;--chip:#2c2b29;--warn:#f0c674;--warnbg:#2f2814}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px 48px}
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 0}
+header.top .wrap{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding-bottom:0}
+h1{font-size:18px;margin:0;font-weight:650}
+.prog{font-variant-numeric:tabular-nums;color:var(--mute)}
+.prog b{color:var(--ink)}
+.bar{flex:1 1 160px;height:6px;background:var(--chip);border-radius:3px;overflow:hidden;min-width:120px}
+.bar i{display:block;height:100%;background:var(--accent);width:0}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:5px 10px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+label.chk{color:var(--mute);user-select:none}
+.intro{margin:14px 0;color:var(--ink)}
+.intro p{margin:6px 0}
+.intro ul{margin:6px 0;padding-left:20px}
+details.grp{margin:14px 0;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+details.grp>summary{cursor:pointer;padding:10px 12px;font-weight:650;font-size:15px;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+details.grp>summary::-webkit-details-marker{display:none}
+details.grp>summary::before{content:"\25B8";color:var(--mute)}
+details.grp[open]>summary::before{content:"\25BE"}
+.gcount{margin-left:auto;font-weight:400;color:var(--mute);font-size:13px;font-variant-numeric:tabular-nums}
+.rejnote{font-weight:400;color:var(--mute);font-size:13px}
+.row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) 230px;gap:10px 16px;padding:10px 12px;border-top:1px solid var(--line)}
+.row.hide{display:none}
+.row.v-ok{box-shadow:inset 4px 0 var(--ok)}.row.v-no{box-shadow:inset 4px 0 var(--no)}.row.v-q{box-shadow:inset 4px 0 var(--q)}
+.name code{font:600 14px ui-monospace,Consolas,monospace}
+.ev{display:inline-block;background:var(--chip);border-radius:10px;padding:0 8px;margin-left:6px;font-size:12px;color:var(--mute)}
+.tag{display:inline-block;font-size:11px;border-radius:10px;padding:0 7px;margin-left:4px;border:1px solid var(--line);color:var(--mute)}
+.tag.no{border-color:var(--no);color:var(--no)}.tag.q{border-color:var(--q);color:var(--q)}
+.what{margin:3px 0}
+.meta{color:var(--mute);font-size:12.5px;margin:2px 0}
+.meta b{color:var(--ink);font-weight:600}
+.players{display:flex;flex-direction:column;gap:4px}
+.pl{display:flex;flex-direction:column}
+.pl span{font-size:12px;color:var(--mute)}
+.pl.main span{color:var(--ink);font-weight:600}
+audio{width:100%;height:32px}
+.extra summary{cursor:pointer;font-size:12px;color:var(--mute)}
+.vote{display:flex;flex-direction:column;gap:6px}
+.btns{display:flex;gap:6px}
+.btns button{flex:1;font-weight:650;padding:6px 0}
+.btns button.on.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btns button.on.no{background:var(--no);border-color:var(--no);color:#fff}
+.btns button.on.q{background:var(--q);border-color:var(--q);color:#111}
+textarea.note{width:100%;min-height:34px;resize:vertical;font:inherit;font-size:13px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);padding:5px 7px}
+#result{width:100%;min-height:150px;font:12.5px ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);padding:10px}
+.copied{color:var(--ok);font-weight:600;margin-left:8px}
+footer{color:var(--mute);font-size:12.5px;margin-top:24px}
+@media (max-width:900px){.row{grid-template-columns:1fr}}
+
+table.cand{width:100%;border-collapse:collapse;font-size:13.5px}
+table.cand th,table.cand td{border-top:1px solid var(--line);padding:8px 10px;vertical-align:top;text-align:left}
+table.cand th{font-size:12.5px;color:var(--mute);font-weight:600}
+table.cand td.vote{width:200px}
+table.cand tr.row{display:table-row}table.cand tr.row.hide{display:none}
+table.cand tr.row.v-ok td:first-child{box-shadow:inset 4px 0 var(--ok)}table.cand tr.row.v-no td:first-child{box-shadow:inset 4px 0 var(--no)}table.cand tr.row.v-q td:first-child{box-shadow:inset 4px 0 var(--q)}
+.rec{display:inline-block;font-size:11px;border-radius:10px;padding:0 7px;margin-left:6px;background:var(--ok);color:#fff}
+@media (max-width:900px){table.cand thead{display:none}table.cand tr.row,table.cand td{display:block;width:auto}table.cand td.vote{width:auto}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <h1>Enemigos y música M3</h1>
+  <span class="prog">Juzgadas <b id="pDone">0</b> de <b>31</b></span>
+  <span class="bar"><i id="pBar"></i></span>
+  <label class="chk"><input type="checkbox" id="onlyOpen"> solo sin juzgar</label>
+  <button class="primary" id="copyTop">Copiar resultado</button><span id="copied" class="copied"></span>
+</div></header>
+<div class="wrap">
+<section class="intro">
+  <p>Lo que marcaste <b>NO</b> en la hoja de escucha (D83), con tres alternativas <b>distintas</b> para cada uno (otro gesto u otro material, no retoques); la música de MAP01 recortada para que empiece en la parte melódica; y las obras candidatas para el nuevo MAP01. Pulsa <b>OK</b>, <b>NO</b> o <b>?</b> en cada fila y escribe una nota si quieres. Se guarda solo en este navegador. Al terminar, <b>Copiar resultado</b> y pégalo en el chat.</p>
+  <ul>
+    <li><b>Volumen: ya están subidas</b> a la fuerza del sonido de Freedoom de al lado (disparos y voces al mismo nivel; las capas 3 dB por debajo, porque irán bajo tu voz). Los rechazados siguen al volumen antiguo, más bajo: compara el carácter, no el volumen.</li>
+    <li><b>Portátil:</b> al menos la mitad de la energía de cada alternativa está por encima de 300 Hz.</li>
+    <li><b>Capas (beds):</b> no son voces. Van debajo de tu toma de voz cuando llegue; hoy en el juego suena la voz de Freedoom sola.</li>
+    <li><b>Música:</b> renderizada con la misma librería (<code>zmusic.dll</code>) y la misma soundfont (<code>gzdoom.sf2</code>) de tu GZDoom, sin arrancar el juego. Cada recorte sigue 12 s tras el final para que oigas cómo vuelve a empezar. Propuesta: el recorte pasa al <b>campo de tiro</b> (RANGE), donde rechazaste D_SDAMUR, y MAP01 recibe otra obra.</li>
+    <li>Fuentes: nuestra síntesis y los paquetes CC0 que ya están en disco (rubberduck en OpenGameArt y Kenney). Nada descargado.</li>
+  </ul>
+</section>
+<main id="groups"></main>
+<section id="music"></section>
+<section id="cands"></section>
+<section>
+  <h2 style="font-size:16px;margin:24px 0 6px">Resultado para pegar en el chat</h2>
+  <p class="meta">Se actualiza solo. Si el botón no copia (algunos navegadores lo bloquean en archivos locales), selecciona el texto y Ctrl+C.</p>
+  <textarea id="result" readonly></textarea>
+  <p><button class="primary" id="copyBottom">Copiar resultado</button> <button id="reset">Borrar todas mis respuestas</button></p>
+</section>
+<footer>Generado 2026-10-20_1044 por sound-designer con <code>tools/audio/gen_enemy_alts.py</code>. Audio: <code>work/audio/enemy_alt/</code> (alternativas), <code>work/audio/sfx/enemies/</code> (rechazados), <code>work/audio/preview/freedoom/</code> (Freedoom de hoy), <code>work/audio/music_trim/</code> (música). La página lee los archivos del repo por ruta relativa: no la muevas de <code>docs/art/previews/</code>.</footer>
+</div>
+<script>
+const ITEMS = [{"id": "SDRRIATK_alt1", "sec": "e", "lump": "SDRRIATK", "group": "Fusilero del Reich", "ev": "ataque (disparo)", "label": "Eco de hangar", "what": "Un chasquido seco y el hangar responde con dos o tres ecos cortos. Sin cerrojo.", "rejWhat": "chasquido filtrado y cerrojo a 0,3 s", "bed": false, "src": "../../../work/audio/enemy_alt/SDRRIATK_alt1.ogg", "rej": "../../../work/audio/sfx/enemies/SDRRIATK.ogg", "rep": "Freedoom DSPISTOL", "repSrc": "../../../work/audio/preview/freedoom/DSPISTOL.wav", "dur": 0.48, "lvl": "pico -1.0 dBFS · fuerza -10.4 dB (Freedoom DSPISTOL: -10.4) · 98 % por encima de 300 Hz"}, {"id": "SDRRIATK_alt2", "sec": "e", "lump": "SDRRIATK", "group": "Fusilero del Reich", "ev": "ataque (disparo)", "label": "Cerrojo y acero", "what": "Disparo seco con el acero del cajón sonando; después se acciona el cerrojo, clic-clac.", "rejWhat": "chasquido filtrado y cerrojo a 0,3 s", "bed": false, "src": "../../../work/audio/enemy_alt/SDRRIATK_alt2.ogg", "rej": "../../../work/audio/sfx/enemies/SDRRIATK.ogg", "rep": "Freedoom DSPISTOL", "repSrc": "../../../work/audio/preview/freedoom/DSPISTOL.wav", "dur": 0.43, "lvl": "pico -1.0 dBFS · fuerza -10.4 dB (Freedoom DSPISTOL: -10.4) · 98 % por encima de 300 Hz"}, {"id": "SDRRIATK_alt3", "sec": "e", "lump": "SDRRIATK", "group": "Fusilero del Reich", "ev": "ataque (disparo)", "label": "Latigazo de la bala", "what": "La bala llega antes que el disparo: un latigazo supersónico y, detrás, el estampido lejano.", "rejWhat": "chasquido filtrado y cerrojo a 0,3 s", "bed": false, "src": "../../../work/audio/enemy_alt/SDRRIATK_alt3.ogg", "rej": "../../../work/audio/sfx/enemies/SDRRIATK.ogg", "rep": "Freedoom DSPISTOL", "repSrc": "../../../work/audio/preview/freedoom/DSPISTOL.wav", "dur": 0.61, "lvl": "pico -1.0 dBFS · fuerza -10.4 dB (Freedoom DSPISTOL: -10.4) · 98 % por encima de 300 Hz"}, {"id": "SDLTRATK_alt1", "sec": "e", "lump": "SDLTRATK", "group": "Soldado de la Legión", "ev": "ataque (escopeta)", "label": "Escopeta de corredera", "what": "Escopeta americana: el estampido y luego la corredera, chik-chak. La IZh no hace esto.", "rejWhat": "estampido de ruido, golpe grave de 70 Hz y anillo de peine", "bed": false, "src": "../../../work/audio/enemy_alt/SDLTRATK_alt1.ogg", "rej": "../../../work/audio/sfx/enemies/SDLTRATK.ogg", "rep": "Freedoom DSDSHTGN", "repSrc": "../../../work/audio/preview/freedoom/DSDSHTGN.wav", "dur": 0.86, "lvl": "pico -2.4 dBFS · fuerza -7.9 dB (Freedoom DSDSHTGN: -7.9) · 98 % por encima de 300 Hz"}, {"id": "SDLTRATK_alt2", "sec": "e", "lump": "SDLTRATK", "group": "Soldado de la Legión", "ev": "ataque (escopeta)", "label": "Trueno corto", "what": "Tres cartuchos como uno solo: chasquidos escalonados sobre un cuerpo grave y una placa metálica.", "rejWhat": "estampido de ruido, golpe grave de 70 Hz y anillo de peine", "bed": false, "src": "../../../work/audio/enemy_alt/SDLTRATK_alt2.ogg", "rej": "../../../work/audio/sfx/enemies/SDLTRATK.ogg", "rep": "Freedoom DSDSHTGN", "repSrc": "../../../work/audio/preview/freedoom/DSDSHTGN.wav", "dur": 0.5, "lvl": "pico -1.0 dBFS · fuerza -7.9 dB (Freedoom DSDSHTGN: -7.9) · 94 % por encima de 300 Hz"}, {"id": "SDLTRATK_alt3", "sec": "e", "lump": "SDLTRATK", "group": "Soldado de la Legión", "ev": "ataque (escopeta)", "label": "Cañón cromado", "what": "El estampido y el cañón cromado vibrando como una campana: un «boing» metálico.", "rejWhat": "estampido de ruido, golpe grave de 70 Hz y anillo de peine", "bed": false, "src": "../../../work/audio/enemy_alt/SDLTRATK_alt3.ogg", "rej": "../../../work/audio/sfx/enemies/SDLTRATK.ogg", "rep": "Freedoom DSDSHTGN", "repSrc": "../../../work/audio/preview/freedoom/DSDSHTGN.wav", "dur": 1.16, "lvl": "pico -1.0 dBFS · fuerza -7.9 dB (Freedoom DSDSHTGN: -7.9) · 98 % por encima de 300 Hz"}, {"id": "SDSTOPAI_alt1", "sec": "e", "lump": "SDSTOPAI", "group": "Stormtrooper híbrido", "ev": "dolor", "label": "Grito metálico", "what": "Un grito convertido en metal (modulación en anillo); la cola se rompe a 6 bits.", "rejWhat": "quejido rasposo (hurt_02), servo y tartamudeo digital", "bed": false, "src": "../../../work/audio/enemy_alt/SDSTOPAI_alt1.ogg", "rej": "../../../work/audio/sfx/enemies/SDSTOPAI.ogg", "rep": "Freedoom DSDMPAIN", "repSrc": "../../../work/audio/preview/freedoom/DSDMPAIN.wav", "dur": 0.25, "lvl": "pico -1.0 dBFS · fuerza -11.7 dB (Freedoom DSDMPAIN: -11.7) · 82 % por encima de 300 Hz"}, {"id": "SDSTOPAI_alt2", "sec": "e", "lump": "SDSTOPAI", "group": "Stormtrooper híbrido", "ev": "dolor", "label": "Gruñido y chispazo", "what": "Un gruñido y la mitad máquina en cortocircuito: chispas y el chasquido de un relé.", "rejWhat": "quejido rasposo (hurt_02), servo y tartamudeo digital", "bed": false, "src": "../../../work/audio/enemy_alt/SDSTOPAI_alt2.ogg", "rej": "../../../work/audio/sfx/enemies/SDSTOPAI.ogg", "rep": "Freedoom DSDMPAIN", "repSrc": "../../../work/audio/preview/freedoom/DSDMPAIN.wav", "dur": 0.35, "lvl": "pico -1.0 dBFS · fuerza -12.0 dB (Freedoom DSDMPAIN: -11.7) · 97 % por encima de 300 Hz"}, {"id": "SDSTOPAI_alt3", "sec": "e", "lump": "SDSTOPAI", "group": "Stormtrooper híbrido", "ev": "dolor", "label": "Chillido entrecortado", "what": "Un chillido que se corta en pedazos, 28 veces por segundo, como una señal que se pierde.", "rejWhat": "quejido rasposo (hurt_02), servo y tartamudeo digital", "bed": false, "src": "../../../work/audio/enemy_alt/SDSTOPAI_alt3.ogg", "rej": "../../../work/audio/sfx/enemies/SDSTOPAI.ogg", "rep": "Freedoom DSDMPAIN", "repSrc": "../../../work/audio/preview/freedoom/DSDMPAIN.wav", "dur": 0.32, "lvl": "pico -1.0 dBFS · fuerza -11.7 dB (Freedoom DSDMPAIN: -11.7) · 99 % por encima de 300 Hz"}, {"id": "SDSTODTH_alt1", "sec": "e", "lump": "SDSTODTH", "group": "Stormtrooper híbrido", "ev": "muerte", "label": "Cortocircuito y caída", "what": "Grito de muerte, un cortocircuito que se apaga y el acero del cuerpo contra el suelo.", "rejWhat": "raspado que se derrumba y servo que se apaga", "bed": false, "src": "../../../work/audio/enemy_alt/SDSTODTH_alt1.ogg", "rej": "../../../work/audio/sfx/enemies/SDSTODTH.ogg", "rep": "Freedoom DSBGDTH1", "repSrc": "../../../work/audio/preview/freedoom/DSBGDTH1.wav", "dur": 0.93, "lvl": "pico -1.0 dBFS · fuerza -7.4 dB (Freedoom DSBGDTH1: -7.4) · 96 % por encima de 300 Hz"}, {"id": "SDSTODTH_alt2", "sec": "e", "lump": "SDSTODTH", "group": "Stormtrooper híbrido", "ev": "muerte", "label": "Cinta que se para", "what": "La voz se ralentiza como una cinta sin corriente, se rompe al hundirse y se corta.", "rejWhat": "raspado que se derrumba y servo que se apaga", "bed": false, "src": "../../../work/audio/enemy_alt/SDSTODTH_alt2.ogg", "rej": "../../../work/audio/sfx/enemies/SDSTODTH.ogg", "rep": "Freedoom DSBGDTH1", "repSrc": "../../../work/audio/preview/freedoom/DSBGDTH1.wav", "dur": 0.43, "lvl": "pico -1.0 dBFS · fuerza -7.4 dB (Freedoom DSBGDTH1: -7.4) · 98 % por encima de 300 Hz"}, {"id": "SDSTODTH_alt3", "sec": "e", "lump": "SDSTODTH", "group": "Stormtrooper híbrido", "ev": "muerte", "label": "Hidráulica y placas", "what": "Estertor; la hidráulica cede con un siseo y las placas de la armadura caen al suelo.", "rejWhat": "raspado que se derrumba y servo que se apaga", "bed": false, "src": "../../../work/audio/enemy_alt/SDSTODTH_alt3.ogg", "rej": "../../../work/audio/sfx/enemies/SDSTODTH.ogg", "rep": "Freedoom DSBGDTH1", "repSrc": "../../../work/audio/preview/freedoom/DSBGDTH1.wav", "dur": 1.22, "lvl": "pico -1.0 dBFS · fuerza -7.4 dB (Freedoom DSBGDTH1: -7.4) · 55 % por encima de 300 Hz"}, {"id": "SDPZRPAI_alt1", "sec": "e", "lump": "SDPZRPAI", "group": "Panzermensch", "ev": "dolor", "label": "Gruñido y placas", "what": "Gruñido pesado con el golpe de las placas, en la zona que sí suena en un portátil.", "rejWhat": "gruñido grave: 96 % por debajo de 300 Hz, no se oía en portátil", "bed": false, "src": "../../../work/audio/enemy_alt/SDPZRPAI_alt1.ogg", "rej": "../../../work/audio/sfx/enemies/SDPZRPAI.ogg", "rep": "Freedoom DSDMPAIN", "repSrc": "../../../work/audio/preview/freedoom/DSDMPAIN.wav", "dur": 0.45, "lvl": "pico -1.2 dBFS · fuerza -11.7 dB (Freedoom DSDMPAIN: -11.7) · 77 % por encima de 300 Hz"}, {"id": "SDPZRPAI_alt2", "sec": "e", "lump": "SDPZRPAI", "group": "Panzermensch", "ev": "dolor", "label": "Dentro del casco", "what": "Un bufido dentro del casco de acero: la voz resuena en la cúpula y escapa vapor.", "rejWhat": "gruñido grave: 96 % por debajo de 300 Hz, no se oía en portátil", "bed": false, "src": "../../../work/audio/enemy_alt/SDPZRPAI_alt2.ogg", "rej": "../../../work/audio/sfx/enemies/SDPZRPAI.ogg", "rep": "Freedoom DSDMPAIN", "repSrc": "../../../work/audio/preview/freedoom/DSDMPAIN.wav", "dur": 0.45, "lvl": "pico -1.0 dBFS · fuerza -11.7 dB (Freedoom DSDMPAIN: -11.7) · 83 % por encima de 300 Hz"}, {"id": "SDPZRPAI_alt3", "sec": "e", "lump": "SDPZRPAI", "group": "Panzermensch", "ev": "dolor", "label": "Rugido corto", "what": "Un rugido breve con filo brillante y el golpe metálico de la placa del pecho.", "rejWhat": "gruñido grave: 96 % por debajo de 300 Hz, no se oía en portátil", "bed": false, "src": "../../../work/audio/enemy_alt/SDPZRPAI_alt3.ogg", "rej": "../../../work/audio/sfx/enemies/SDPZRPAI.ogg", "rep": "Freedoom DSDMPAIN", "repSrc": "../../../work/audio/preview/freedoom/DSDMPAIN.wav", "dur": 0.42, "lvl": "pico -1.0 dBFS · fuerza -11.7 dB (Freedoom DSDMPAIN: -11.7) · 56 % por encima de 300 Hz"}, {"id": "SDRRIPAI_alt1", "sec": "e", "lump": "SDRRIPAI", "group": "Fusilero del Reich", "ev": "capa bajo el dolor", "label": "Culata contra el casco", "what": "La culata golpea el casco: madera y un timbre de hojalata, una sola vez.", "rejWhat": "correaje sintético que se sacude", "bed": true, "src": "../../../work/audio/enemy_alt/SDRRIPAI_alt1.ogg", "rej": "../../../work/audio/sfx/enemies/beds/SDRRIPAI-bed.ogg", "rep": "Freedoom DSPOPAIN", "repSrc": "../../../work/audio/preview/freedoom/DSPOPAIN.wav", "dur": 0.21, "lvl": "pico -1.0 dBFS · fuerza -14.4 dB (Freedoom DSPOPAIN: -11.4) · 85 % por encima de 300 Hz"}, {"id": "SDRRIPAI_alt2", "sec": "e", "lump": "SDRRIPAI", "group": "Fusilero del Reich", "ev": "capa bajo el dolor", "label": "Hebillas de verdad", "what": "Hebillas y anillas reales esta vez: pequeños golpes de acero y la tela del abrigo.", "rejWhat": "correaje sintético que se sacude", "bed": true, "src": "../../../work/audio/enemy_alt/SDRRIPAI_alt2.ogg", "rej": "../../../work/audio/sfx/enemies/beds/SDRRIPAI-bed.ogg", "rep": "Freedoom DSPOPAIN", "repSrc": "../../../work/audio/preview/freedoom/DSPOPAIN.wav", "dur": 0.26, "lvl": "pico -2.5 dBFS · fuerza -14.4 dB (Freedoom DSPOPAIN: -11.4) · 95 % por encima de 300 Hz"}, {"id": "SDRRIPAI_alt3", "sec": "e", "lump": "SDRRIPAI", "group": "Fusilero del Reich", "ev": "capa bajo el dolor", "label": "Paso atrás", "what": "El impacto le hace retroceder un paso: bota en el hormigón y el fusil que tintinea.", "rejWhat": "correaje sintético que se sacude", "bed": true, "src": "../../../work/audio/enemy_alt/SDRRIPAI_alt3.ogg", "rej": "../../../work/audio/sfx/enemies/beds/SDRRIPAI-bed.ogg", "rep": "Freedoom DSPOPAIN", "repSrc": "../../../work/audio/preview/freedoom/DSPOPAIN.wav", "dur": 0.15, "lvl": "pico -1.0 dBFS · fuerza -14.4 dB (Freedoom DSPOPAIN: -11.4) · 53 % por encima de 300 Hz"}, {"id": "SDLTRPAI_alt1", "sec": "e", "lump": "SDLTRPAI", "group": "Soldado de la Legión", "ev": "capa bajo el dolor", "label": "Golpe al micrófono", "what": "El golpe sacude el micrófono: un porrazo por la radio y un pitido de acople.", "rejWhat": "ráfaga de estática y sacudida del equipo", "bed": true, "src": "../../../work/audio/enemy_alt/SDLTRPAI_alt1.ogg", "rej": "../../../work/audio/sfx/enemies/beds/SDLTRPAI-bed.ogg", "rep": "Freedoom DSPOPAIN", "repSrc": "../../../work/audio/preview/freedoom/DSPOPAIN.wav", "dur": 0.33, "lvl": "pico -3.9 dBFS · fuerza -14.4 dB (Freedoom DSPOPAIN: -11.4) · 97 % por encima de 300 Hz"}, {"id": "SDLTRPAI_alt2", "sec": "e", "lump": "SDLTRPAI", "group": "Soldado de la Legión", "ev": "capa bajo el dolor", "label": "Enlace que se corta", "what": "La señal se entrecorta: estática troceada 22 veces por segundo y dos clics de relé.", "rejWhat": "ráfaga de estática y sacudida del equipo", "bed": true, "src": "../../../work/audio/enemy_alt/SDLTRPAI_alt2.ogg", "rej": "../../../work/audio/sfx/enemies/beds/SDLTRPAI-bed.ogg", "rep": "Freedoom DSPOPAIN", "repSrc": "../../../work/audio/preview/freedoom/DSPOPAIN.wav", "dur": 0.26, "lvl": "pico -6.0 dBFS · fuerza -14.4 dB (Freedoom DSPOPAIN: -11.4) · 98 % por encima de 300 Hz"}, {"id": "SDLTRPAI_alt3", "sec": "e", "lump": "SDLTRPAI", "group": "Soldado de la Legión", "ev": "capa bajo el dolor", "label": "Interferencia", "what": "Un silbido de interferencia que baja por la banda y el equipo que se sacude.", "rejWhat": "ráfaga de estática y sacudida del equipo", "bed": true, "src": "../../../work/audio/enemy_alt/SDLTRPAI_alt3.ogg", "rej": "../../../work/audio/sfx/enemies/beds/SDLTRPAI-bed.ogg", "rep": "Freedoom DSPOPAIN", "repSrc": "../../../work/audio/preview/freedoom/DSPOPAIN.wav", "dur": 0.29, "lvl": "pico -11.9 dBFS · fuerza -14.4 dB (Freedoom DSPOPAIN: -11.4) · 100 % por encima de 300 Hz"}, {"id": "SDLTRDTH_alt1", "sec": "e", "lump": "SDLTRDTH", "group": "Soldado de la Legión", "ev": "capa bajo la muerte", "label": "Radio al suelo", "what": "La radio cae antes que él: sigue la estática y se corta de golpe con un clic; el cuerpo cae.", "rejWhat": "portadora que cae, squelch y cuerpo al suelo", "bed": true, "src": "../../../work/audio/enemy_alt/SDLTRDTH_alt1.ogg", "rej": "../../../work/audio/sfx/enemies/beds/SDLTRDTH-bed.ogg", "rep": "Freedoom DSPODTH2", "repSrc": "../../../work/audio/preview/freedoom/DSPODTH2.wav", "dur": 1.11, "lvl": "pico -1.0 dBFS · fuerza -11.3 dB (Freedoom DSPODTH2: -8.3) · 76 % por encima de 300 Hz"}, {"id": "SDLTRDTH_alt2", "sec": "e", "lump": "SDLTRDTH", "group": "Soldado de la Legión", "ev": "capa bajo la muerte", "label": "Pitido de fin", "what": "El pitido de fin de transmisión, que se arrastra al morir el aparato; luego el cuerpo.", "rejWhat": "portadora que cae, squelch y cuerpo al suelo", "bed": true, "src": "../../../work/audio/enemy_alt/SDLTRDTH_alt2.ogg", "rej": "../../../work/audio/sfx/enemies/beds/SDLTRDTH-bed.ogg", "rep": "Freedoom DSPODTH2", "repSrc": "../../../work/audio/preview/freedoom/DSPODTH2.wav", "dur": 1.07, "lvl": "pico -10.1 dBFS · fuerza -11.3 dB (Freedoom DSPODTH2: -8.3) · 95 % por encima de 300 Hz"}, {"id": "SDLTRDTH_alt3", "sec": "e", "lump": "SDLTRDTH", "group": "Soldado de la Legión", "ev": "capa bajo la muerte", "label": "Portadora ahogada", "what": "La estática se cierra hasta un retumbo, crepitando, mientras el equipo cae al suelo.", "rejWhat": "portadora que cae, squelch y cuerpo al suelo", "bed": true, "src": "../../../work/audio/enemy_alt/SDLTRDTH_alt3.ogg", "rej": "../../../work/audio/sfx/enemies/beds/SDLTRDTH-bed.ogg", "rep": "Freedoom DSPODTH2", "repSrc": "../../../work/audio/preview/freedoom/DSPODTH2.wav", "dur": 0.86, "lvl": "pico -3.6 dBFS · fuerza -11.3 dB (Freedoom DSPODTH2: -8.3) · 98 % por encima de 300 Hz"}, {"id": "D_SDM01T", "sec": "m", "lump": "D_SDM01T", "label": "Desde el lamento (compás 49)", "what": "Empieza donde las trompas llevan la melodía (sección D, «lamento») y sigue con el cierre (E). Al acabar vuelve al lamento: el cierre termina en el pad solo, así que el bucle entra desde casi silencio. Se quitan A, B y C (1:46 de introducción).", "rec": true, "src": "../../../work/audio/music_trim/D_SDM01T.ogg", "rej": "../../../work/audio/music_trim/D_SDM01E.ogg", "dur": 53.3, "lvl": "bucle de 0:53 (antes 2:40) · corta en el compás 49 · el audio sigue 12 s tras el final para que oigas la vuelta al principio"}, {"id": "D_SDM01U", "sec": "m", "lump": "D_SDM01U", "label": "Desde las trompas que suben (compás 33)", "what": "Variante más larga por si el lamento solo se queda corto: empieza en C, donde las trompas suben por encima de los acordes de metal, y sigue con el lamento y el cierre. Se quitan A y B (1:11 de introducción).", "rec": false, "src": "../../../work/audio/music_trim/D_SDM01U.ogg", "rej": "../../../work/audio/music_trim/D_SDM01E.ogg", "dur": 88.9, "lvl": "bucle de 1:29 (antes 2:40) · corta en el compás 33 · el audio sigue 12 s tras el final para que oigas la vuelta al principio"}, {"sec": "c", "lump": "MAP01", "id": "MAP01-c1", "work": "«Красная армия всех сильней» (Belaya armiya, chorny baron)", "who": "Samuil Pokrass (1897-1939); letra Pável Grigóriev (1895-1961)", "fit": "Marcha del Ejército Rojo de 1920: la guarnición del cosmódromo responde al primer ataque.", "rights": "Música: RU libre desde 1-1-2010 (m. 1939 +70); EE. UU. libre (publicada 1920, antes de 1931). Letra: protegida en Rusia hasta 1-1-2032 → solo instrumental. MUSIC-RIGHTS §2.2.", "disk": "NO está en disco. Hace falta un MIDI con licencia limpia (CC0/CC BY/PD por archivo): no conozco ninguno (§3.2 de SOUNDTRACK: lo que hay en la red no tiene licencia). Descarga a autorizar; si no existe, se descarta (D59: no secuenciamos).", "verdict": "recomendada si aparece un MIDI limpio"}, {"sec": "c", "lump": "MAP01", "id": "MAP01-c2", "work": "Ippolitov-Ivánov, «Шествие сардаря» (Procesión del Sardar), Bocetos caucásicos op. 10", "who": "Mijaíl Ippolitov-Ivánov (1859-1935)", "fit": "Marcha corta de metales, amenazante: la columna enemiga avanzando por la pista.", "rights": "RU libre desde 1-1-2006 (m. 1935 +70; murió antes de la guerra, sin +4); EE. UU. libre (publicada 1894-95). Instrumental, sin letra. MUSIC-RIGHTS §2.3.", "disk": "NO está en disco. Descarga a autorizar: una partitura orquestal PD está en IMSLP (bloqueada por CAPTCHA para un agente, §4.6.5); un MIDI orquestal con licencia limpia NO VERIFICADO que exista.", "verdict": "la mejor por tono; depende de encontrar el MIDI"}, {"sec": "c", "lump": "MAP01", "id": "MAP01-c3", "work": "Borodin, «В Средней Азии» (En las estepas del Asia Central)", "who": "Aleksandr Borodin (1833-1887)", "fit": "Un cosmódromo en la estepa (como Baikonur): amplio y quieto, la calma justo antes de que todo se rompa.", "rights": "RU y EE. UU. libres (m. 1887; compuesta 1880 y publicada en vida del autor, año exacto NO VERIFICADO, en todo caso antes de 1931). Instrumental. MUSIC-RIGHTS §2.3.", "disk": "NO está en disco. Descarga a autorizar; MIDI orquestal limpio NO VERIFICADO.", "verdict": "tema perfecto, pero quizá demasiado tranquilo para combate"}, {"sec": "c", "lump": "MAP01", "id": "MAP01-c4", "work": "Músorgski, «Ночь на лысой горе» (Una noche en el Monte Pelado), transcr. Chernov", "who": "Modest Músorgski (1839-1881); transcripción Konstantin Chernov (m. 1944); MIDI Robert Clausecker / Mutopia 2013", "fit": "La invasión demoníaca por excelencia; amenaza continua, 10 minutos.", "rights": "Composición libre en RU y EE. UU.; transcripción de Chernov libre en RU desde 2015 o 2019 (las dos ya pasadas). El MIDI es CC BY 3.0: hay que acreditar a Clausecker y Mutopia. MUSIC-RIGHTS §4.4.", "disk": "SÍ está en disco: work/audio/candidates/MU_Mussorgsky_BaldMountain.mid (D_CND01). Sin descarga. Pero es piano solo (sin cambios de programa) y su momento más fuerte es el compás 1.", "verdict": "la única lista hoy; piano solo, la textura que ya llamaste simple"}, {"sec": "c", "lump": "MAP01", "id": "MAP01-c5", "work": "«Смело, товарищи, в ногу» (Valientes, camaradas, al paso)", "who": "Leonid Radin (1860-1900), música y letra", "fit": "La canción revolucionaria más soviética que es libre del todo; primer mapa, primer combate.", "rights": "Música y letra libres en RU (m. 1900) y EE. UU. (publicada 1901-02). MUSIC-RIGHTS §2.2.", "disk": "NO está en disco y ya se buscó: no se encontró ni partitura PD fiable (solo un arreglo soviético de 1969, protegido) ni MIDI limpio. MUSIC-RIGHTS §4.6.5.", "verdict": "derechos perfectos, fuente inexistente: hoy no es viable"}];
+const REJECTED = "Rechazadas por derechos o tema: «Прощание славянки» (Agapkin m. 1964, protegida en Rusia hasta 2039), «Священная война» y el himno de Aleksándrov (restaurados en EE. UU. hasta 2037-2040), Prokófiev y Shostakóvich (protegidos), Marche slave y 1812 de Chaikovski (citan el himno zarista).";
+
+const KEY = "sd-m3-enemy-alts-music-2026-10-20_1044";
+let S = {};
+try { S = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { S = {}; }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function st(id){ return S[id] || (S[id] = {v:"", n:""}); }
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = s => s.toFixed(2).replace(".", ",") + " s";
+const audio = src => `<audio controls preload="none" src="${esc(src)}"></audio>`;
+const vote = it => `<div class="vote"><div class="btns"><button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div><textarea class="note" placeholder="Nota (opcional)">${esc(st(it.id).n || "")}</textarea></div>`;
+function rowE(it){
+  let p = `<div class="pl main"><span>Alternativa ${esc(it.id.slice(-1))} · ${fmt(it.dur)}</span>${audio(it.src)}</div>`;
+  p += `<div class="pl"><span>El rechazado (${esc(it.lump)}${it.bed ? " capa" : ""}, dijiste NO)</span>${audio(it.rej)}</div>`;
+  p += `<div class="pl"><span>${it.bed ? "La voz de Freedoom que suena hoy (la capa irá debajo de tu toma)" : "Hoy en el juego: " + esc(it.rep)}</span>${audio(it.repSrc)}</div>`;
+  return `<div class="row" id="r-${it.id}" data-id="${it.id}">
+    <div><div class="name"><code>${esc(it.id)}</code><span class="ev">${esc(it.ev)}</span></div>
+      <div class="what"><b>${esc(it.label)}.</b> ${esc(it.what)}</div>
+      <div class="meta"><b>Nivel:</b> ${esc(it.lvl)}</div></div>
+    <div class="players">${p}</div>${vote(it)}</div>`;
+}
+function rowM(it){
+  const p = `<div class="pl main"><span>${esc(it.lump)} recortada · bucle ${it.dur.toFixed(1).replace(".", ",")} s</span>${audio(it.src)}</div><div class="pl"><span>Sin recortar: D_SDM01E entera</span>${audio(it.rej)}</div>`;
+  return `<div class="row" id="r-${it.id}" data-id="${it.id}">
+    <div><div class="name"><code>${esc(it.id)}</code><span class="ev">${esc(it.label)}</span>${it.rec ? '<span class="rec">recomendada</span>' : ""}</div>
+      <div class="what">${esc(it.what)}</div><div class="meta">${esc(it.lvl)}</div></div>
+    <div class="players">${p}</div>${vote(it)}</div>`;
+}
+function rowC(it){
+  return `<tr class="row" id="r-${it.id}" data-id="${it.id}"><td><b>${esc(it.work)}</b><div class="meta">${esc(it.who)}</div><div class="what">${esc(it.fit)}</div></td>
+    <td>${esc(it.rights)}</td><td>${esc(it.disk)}<div class="meta"><b>${esc(it.verdict)}</b></div></td><td class="vote">${vote(it)}</td></tr>`;
+}
+function build(){
+  let h = "";
+  const E = ITEMS.filter(i => i.sec === "e"), M = ITEMS.filter(i => i.sec === "m"), Cn = ITEMS.filter(i => i.sec === "c");
+  for (const L of [...new Set(E.map(i => i.lump))]) {
+    const its = E.filter(i => i.lump === L), a = its[0];
+    h += `<details class="grp" open><summary><code>${esc(L)}${a.bed ? "-bed" : ""}</code> ${esc(a.group)} · ${esc(a.ev)} <span class="tag no">dijiste NO</span><span class="rejnote">rechazado: ${esc(a.rejWhat)}</span><span class="gcount" data-l="${esc(L)}"></span></summary>`;
+    for (const it of its) h += rowE(it);
+    h += `</details>`;
+  }
+  document.getElementById("groups").innerHTML = h;
+  document.getElementById("music").innerHTML = M.length ? `<details class="grp" open><summary>Música de MAP01 recortada (D_SDM01E desde la parte melódica) <span class="gcount" data-l="m"></span></summary>${M.map(rowM).join("")}</details>` : `<p class="meta">La música no se pudo renderizar en esta máquina.</p>`;
+  document.getElementById("cands").innerHTML = `<details class="grp" open><summary>Candidatas de dominio público para MAP01 <span class="gcount" data-l="c"></span></summary><div style="overflow-x:auto"><table class="cand"><thead><tr><th>Obra y por qué encaja</th><th>Derechos</th><th>¿En disco?</th><th>Tu voto</th></tr></thead><tbody>${Cn.map(rowC).join("")}</tbody></table></div><p class="meta" style="padding:0 12px 10px">${esc(REJECTED)}</p></details>`;
+  for (const it of ITEMS) paint(it.id);
+}
+function paint(id){
+  const r = document.getElementById("r-" + id), s = st(id);
+  r.classList.remove("v-ok","v-no","v-q");
+  if (s.v) r.classList.add("v-" + s.v);
+  r.querySelectorAll(".btns button").forEach(b => b.classList.toggle("on", b.dataset.v === s.v));
+  r.classList.toggle("hide", document.getElementById("onlyOpen").checked && !!s.v);
+}
+function summary(){
+  const by = v => ITEMS.filter(i => st(i.id).v === v).map(i => i.id);
+  const done = ITEMS.filter(i => st(i.id).v).length;
+  document.getElementById("pDone").textContent = done;
+  document.getElementById("pBar").style.width = (100 * done / ITEMS.length) + "%";
+  const groups = {};
+  for (const i of ITEMS) { const k = i.sec === "e" ? i.lump : i.sec; (groups[k] = groups[k] || []).push(i); }
+  for (const [k, g] of Object.entries(groups)) {
+    const el = document.querySelector(`.gcount[data-l="${k}"]`); if (el) el.textContent = `${g.filter(i => st(i.id).v).length} / ${g.length}`;
+  }
+  const notes = ITEMS.filter(i => (st(i.id).n || "").trim()).map(i => `${i.id}: «${st(i.id).n.trim().replace(/\s+/g, " ")}»`);
+  const open = ITEMS.filter(i => !st(i.id).v).map(i => i.id);
+  const L = [`Alternativas de enemigos y música M3 (2026-10-20_1044): ${done}/${ITEMS.length} juzgadas`,
+    `OK (${by("ok").length}): ${by("ok").join(", ") || "—"}`,
+    `NO (${by("no").length}): ${by("no").join(", ") || "—"}`,
+    `? (${by("q").length}): ${by("q").join(", ") || "—"}`,
+    `notas: ${notes.join(" / ") || "—"}`];
+  if (open.length) L.push(`sin juzgar (${open.length}): ${open.join(", ")}`);
+  document.getElementById("result").value = L.join("\n");
+}
+function copy(){
+  const t = document.getElementById("result"), msg = document.getElementById("copied");
+  summary();
+  const done = () => { msg.textContent = "copiado"; setTimeout(() => msg.textContent = "", 2500); };
+  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? done() : (msg.textContent = "selecciona y Ctrl+C abajo"); } catch (e) { msg.textContent = "selecciona y Ctrl+C abajo"; } t.scrollIntoView({block:"center"}); };
+  try { if (navigator.clipboard && window.isSecureContext !== false) navigator.clipboard.writeText(t.value).then(done, fallback); else fallback(); } catch (e) { fallback(); }
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest(".btns button"); if (!b) return;
+  const id = b.closest(".row").dataset.id, s = st(id);
+  s.v = s.v === b.dataset.v ? "" : b.dataset.v; save(); paint(id); summary();
+});
+document.addEventListener("input", e => {
+  const r = e.target.closest(".row"); if (!r || !e.target.classList.contains("note")) return;
+  st(r.dataset.id).n = e.target.value; save(); summary();
+});
+document.addEventListener("play", e => { document.querySelectorAll("audio").forEach(a => { if (a !== e.target) a.pause(); }); }, true);
+document.getElementById("onlyOpen").addEventListener("change", () => ITEMS.forEach(i => paint(i.id)));
+document.getElementById("copyTop").addEventListener("click", copy);
+document.getElementById("copyBottom").addEventListener("click", copy);
+document.getElementById("reset").addEventListener("click", () => { if (confirm("¿Borrar todas las respuestas y notas de esta hoja?")) { S = {}; save(); build(); summary(); } });
+build(); summary();
+
+</script>
+</body>
+</html>
