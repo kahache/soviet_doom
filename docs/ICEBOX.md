@@ -32,3 +32,7 @@ enemies** (new Reich and Legion classes, and the Gemini v2 of the existing
 seven noted above), and **more maps** (the 15-20 level campaign of ROADMAP
 P4, D69). Not scheduled; each gets its own sweep and the CEO's choice when
 P4 starts.
+
+## Orchestrated music (D99, V2)
+
+Render our MIDI pieces with real orchestral sound: the CEO's own Pro Tools rig (synths, orchestral plugins) as the baseline; evaluate first a licence-clean orchestral soundfont for GZDoom's MIDI player, then MusicGen-Melody (local, NC weights) as an AI shortcut. Avoid Suno/Udio.
