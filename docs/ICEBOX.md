@@ -23,3 +23,12 @@ Gemini images (front/side/back turnarounds, attack and death frames on flat
 magenta) processed by `tools/art/gemini_frames.py`, replacing the 3D-rig
 sprites. Cost and consistency across 8 rotations to be tested on one enemy
 first. Not scheduled; nothing blocks on it.
+
+## V2 content: more weapons, more enemies, more maps (CEO, 2026-10-20)
+
+After v1 ships, the full game grows on three axes: **more weapons** (new
+period Soviet arms, made with the Gemini-frames method, D79), **more
+enemies** (new Reich and Legion classes, and the Gemini v2 of the existing
+seven noted above), and **more maps** (the 15-20 level campaign of ROADMAP
+P4, D69). Not scheduled; each gets its own sweep and the CEO's choice when
+P4 starts.
