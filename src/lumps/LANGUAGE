@@ -215,9 +215,10 @@ SD_CRED_H_SOURCES = "Sources";
 SD_CRED_SRC_1     = "Lenin poster after a photograph";
 SD_CRED_SRC_2     = "by Pavel Zhukov (1920),";
 SD_CRED_SRC_3     = "public domain.";
-// D75: which references were generated with AI (CREDITS.txt has the sentence).
-SD_CRED_SRC_4     = "Weapon hand references generated";
-SD_CRED_SRC_5     = "with AI (Fooocus / SDXL, run locally),";
+// D75: which references were generated with AI (CREDITS.txt has the sentence);
+// D79: Google Gemini named too (the PPSh-41 frames come from its images).
+SD_CRED_SRC_4     = "Weapon hands drawn from AI images";
+SD_CRED_SRC_5     = "(Google Gemini; Fooocus / SDXL, local),";
 SD_CRED_SRC_6     = "then reworked into pixel art.";
 
 // --- Main menu and skill screen (D31, 2026-10-13) --------------------------
@@ -425,8 +426,8 @@ SD_CRED_H_SOURCES = "Источники";
 SD_CRED_SRC_1     = "Плакат с Лениным - по фотографии";
 SD_CRED_SRC_2     = "Павла Жукова (1920),";
 SD_CRED_SRC_3     = "общественное достояние.";
-SD_CRED_SRC_4     = "Референсы рук с оружием созданы ИИ";
-SD_CRED_SRC_5     = "(Fooocus / SDXL, локально)";
+SD_CRED_SRC_4     = "Кадры рук с оружием по изображениям ИИ";
+SD_CRED_SRC_5     = "(Google Gemini; Fooocus / SDXL),";
 SD_CRED_SRC_6     = "затем переработаны в пиксель-арт.";
 
 // --- Главное меню и экран сложности (D31, 2026-10-13) ----------------------

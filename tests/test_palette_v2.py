@@ -21,7 +21,8 @@ What is enforced here, and why:
               APPROVED_IN_V2 (the Legion trooper's SDLT set since D54, the
               metro mosaic SDMOSA1 since D56, the Doughboy's SDDB set
               since D70, the General's SDGN set since D73, the TT-33's
-              held SDTT A-C since N17)
+              held SDTT A-C since N17, the PPSh-41's SDPP A-B and
+              SDPF A since D79)
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_palette_v2 -v
 """
@@ -86,6 +87,9 @@ MAX_COLOURS = 256
 # build_tt33_fd, D61/D63), Freedoom's hands recoloured to v2's flesh_pink.
 # RGBA, so check_pk3's PALETTE_V2_LUMPS does not list them. Its flash SDTFA0
 # (same folder) stays inside v1 and is not listed.
+# D79 (2026-10-20): the PPSh-41's SDPP A-B and its flash SDPF A
+# (gemini_frames.py snaps the CEO's Gemini pair to all of palette v2: the
+# skin and the flash's warm tones are v2). RGBA, not in PALETTE_V2_LUMPS.
 APPROVED_IN_V2: set[str] = (
     {f"sprites/legion/SDLT{f}{r}.png" for f in "ABCDEFG" for r in "12345678"}
     | {f"sprites/legion/SDLT{f}0.png" for f in "HIJKLMNOPQRSTU"}
@@ -97,7 +101,8 @@ APPROVED_IN_V2: set[str] = (
     | {f"sprites/doughboy/SDDB{f}0.png" for f in "GHIJKL"}
     | {f"sprites/general/SDGN{f}{r}.png" for f in "ABCDEFGQR" for r in "12345678"}
     | {f"sprites/general/SDGN{f}0.png" for f in "HIJKLMNOP"}
-    | {f"sprites/tt33/SDTT{f}0.png" for f in "ABC"})
+    | {f"sprites/tt33/SDTT{f}0.png" for f in "ABC"}
+    | {"sprites/ppsh/SDPPA0.png", "sprites/ppsh/SDPPB0.png", "sprites/ppsh/SDPFA0.png"})
 
 
 def _digest(colours) -> str:

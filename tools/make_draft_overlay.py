@@ -39,7 +39,10 @@ and `BAL1`; the overlay never carried them either. N17 (2026-10-15)
 installed the TT-33's held and flash frames, the D61 hands (`SDTT` A-C,
 `SDTF` A in `assets/sprites/tt33/`, renamed from `PISG` and `PISF`): their
 two swaps are gone and INSTALLED_WEAPON_FRAMES records them, so the hand E
-drafts in work/art/weapons/tt33/ can never be packed over them. The `enemies` group keeps the rig machinery (eight rotations, the IWAD
+drafts in work/art/weapons/tt33/ can never be packed over them. D79
+(2026-10-20) did the same for the PPSh-41 (`SDPP` A-B, `SDPF` A, built
+from the CEO's Gemini pair by tools/art/gemini_frames.py, renamed from
+`CHGG` and `CHGF`). The `enemies` group keeps the rig machinery (eight rotations, the IWAD
 check) for the next enemy drafted on the rig; today it has no swap, so
 `--only enemies` has nothing to pack and says so.
 
@@ -128,8 +131,6 @@ SWAPS: tuple[Swap, ...] = (
     Swap("weapons", "ice_axe", "weapons/ice_axe.zs", "PUNG", "SDAX"),
     Swap("weapons", "izh", "weapons/izh.zs", "SHTG", "SDIZ"),
     Swap("weapons", "izh", "weapons/izh.zs", "SHTF", "SDIF"),
-    Swap("weapons", "ppsh", "weapons/ppsh.zs", "CHGG", "SDPP"),
-    Swap("weapons", "ppsh", "weapons/ppsh.zs", "CHGF", "SDPF"),
     Swap("weapons", "rpg7", "weapons/rpg7.zs", "MISG", "SDRL"),
     Swap("weapons", "rpg7", "weapons/rpg7.zs", "MISF", "SDRF"),
     Swap("weapons", "roks3", "weapons/roks3.zs", "PLSG", "SDRK"),
@@ -164,6 +165,11 @@ INSTALLED: tuple[tuple[str, str], ...] = (
 INSTALLED_WEAPON_FRAMES: tuple[tuple[str, str], ...] = (
     ("PISG", "SDTT"),    # TT-33 held, A-C (work/art/weapons_fd/tt33/, hand_study.build_tt33_fd)
     ("PISF", "SDTF"),    # its muzzle flash, A
+    # D79 (2026-10-20): the PPSh-41 from the CEO's Gemini pair
+    # (tools/art/gemini_frames.py, work/art/weapons/hand_G/ppsh/;
+    # tests/test_ppsh_sprites.py).
+    ("CHGG", "SDPP"),    # PPSh-41 held, A-B
+    ("CHGF", "SDPF"),    # its muzzle flash, A
 )
 
 # Enemies approved and installed whole: every state names our sprite, the
@@ -301,8 +307,8 @@ def installed_sprites(sprites_dir: Path = SPRITES_DIR) -> set[str]:
 def plan_overlay(only: str = "all", hand: str = DEFAULT_HAND, weapons_dir: Path = WEAPONS_DIR,
                  rig_dir: Path = RIG_DIR, zs_root: Path = ZS_ROOT,
                  sprites_dir: Path = SPRITES_DIR, item: str | None = None) -> Plan:
-    """`item` packs one weapon only (e.g. the Gemini test frames, hand G,
-    drawn for the PPSh alone: tools/art/gemini_frames.py)."""
+    """`item` packs one weapon only (e.g. a weapon's Gemini frames, hand G,
+    tools/art/gemini_frames.py; the PPSh's were installed by D79)."""
     groups = GROUPS if only == "all" else (only,)
     plan = Plan()
     zs_cache: dict[str, str] = {}
@@ -491,7 +497,7 @@ def main(argv=None) -> int:
     ap.add_argument("--hand", default=DEFAULT_HAND, type=str.upper,
                     help="which hand's weapon renders to use (default E, the one drawn)")
     ap.add_argument("--item", choices=sorted({s.item for s in SWAPS if s.group == "weapons"}),
-                    help="pack this weapon only (e.g. --hand G --item ppsh: the Gemini test frames)")
+                    help="pack this weapon only (e.g. --hand G --item izh: a weapon's Gemini frames)")
     ap.add_argument("--out", type=Path, help="output PK3 (default work/overlays/sd-draft-*.pk3)")
     ap.add_argument("--weapons-dir", type=Path, default=WEAPONS_DIR)
     ap.add_argument("--rig-dir", type=Path, default=RIG_DIR)
