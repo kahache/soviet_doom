@@ -4,7 +4,11 @@ Needs no Gemini reference (they are gitignored, work/art/reference/): every
 image here is built in the test. Covers the magenta key (no magenta-ish pixel
 survives, JPEG-like noise included), the letterbox crop, the art-pixel grid
 detection, the mode downsample, palette-only output, the flash split and the
-grAb placement.
+grAb placement; the D79 helpers for the five remaining weapons (flash
+halo, shrink and taper, bottom fill, stray-piece drop, banded sleeve) and
+the WEAPONS table against the draft overlay's reserved names and the
+states. Only GeneratedFramesTests reads work/ (skips without it), and
+FreshBuildTests the Gemini sources (gitignored; skips without them, slow).
 """
 from __future__ import annotations
 
@@ -221,6 +225,161 @@ class TestGeminiFrames(unittest.TestCase):
         self.assertTrue((clean[11:14, 12:40] == gun).all())               # barrel end restored
         self.assertEqual(int((flash >= 0).sum()), 64)
 
+    # ---------------------------------------------- D79, the five weapons
+    def near(self, rgb) -> int:
+        return int(((self.pal - np.array(rgb)) ** 2).sum(axis=1).argmin())
+
+    def test_flash_halo_takes_the_loose_sparks(self):
+        gun = int(np.argmin(self.pal.sum(axis=1)))
+        warm = int(np.argmax(gf.flash_coloured(self.pal[None])[0] * self.pal.sum(axis=1)))
+        a = np.full((30, 40), gf.TRANSPARENT, np.int32)
+        a[20:23, 10:38] = gun
+        b = a.copy()
+        b[17:25, 4:12] = warm
+        b[12, 2] = b[10, 6] = gun                                         # sparks off the flash
+        clean, flash, _ = gf.split_flash(a, b, self.pal)
+        self.assertEqual(int((clean[8:14] >= 0).sum()), 2)                # the PPSh's split: they stay
+        clean, flash, _ = gf.split_flash(a, b, self.pal, halo=6)
+        self.assertFalse((clean[8:14] >= 0).any())
+        self.assertTrue(flash[12, 2] >= 0 and flash[10, 6] >= 0)
+
+    def test_shrink_flash_keeps_its_root(self):
+        gun = np.full((30, 40), gf.TRANSPARENT, np.int32)
+        gun[14:17, 20:40] = 1
+        flash = np.full_like(gun, gf.TRANSPARENT)
+        flash[8:23, 2:20] = 5                                             # root: column 19, rows 14-16
+        half = gf.shrink_flash(flash, gun, 0.5, self.pal)
+        cols = np.flatnonzero((half >= 0).any(axis=0))
+        self.assertIn(int(cols[-1]), (18, 19))                            # still at the muzzle (rounding)
+        self.assertLess(int((half >= 0).sum()), int((flash >= 0).sum()) // 3)
+        self.assertTrue((gf.shrink_flash(flash, gun, 1.0, self.pal) == flash).all())
+
+    def test_taper_cut_points_a_flame_cut_by_the_side(self):
+        f = np.full((20, 40), gf.TRANSPARENT, np.int32)
+        f[5:15, 0:30] = 3                                                 # a jet cut by the left side
+        t = gf.taper_cut(f, length=14, gap=2)
+        self.assertFalse((t[:, :2] >= 0).any())                           # nothing touches the side
+        heights = [int((t[:, c] >= 0).sum()) for c in range(2, 15)]
+        self.assertEqual(heights, sorted(heights))                        # widening away from the cut
+        self.assertTrue((t[:, 14:] == f[:, 14:]).all())
+        inner = np.full_like(f, gf.TRANSPARENT)
+        inner[5:15, 5:30] = 3                                             # not cut: untouched
+        self.assertTrue((gf.taper_cut(inner) == inner).all())
+
+    def test_fill_bottom_closes_a_strip_under_the_arms(self):
+        idx = np.full((30, 10), gf.TRANSPARENT, np.int32)
+        idx[10:25, 2:8] = 4
+        idx[24, 2:8] = 0                                                  # its bottom outline
+        out = gf.fill_bottom(idx)
+        self.assertTrue((out[24:, 2:8] == 4).all())
+        far = np.full_like(idx, gf.TRANSPARENT)
+        far[2:10, 2:8] = 4                                                # a floating thing: left alone
+        self.assertTrue((gf.fill_bottom(far) == far).all())
+
+    def test_drop_piece_removes_only_that_piece(self):
+        idx = np.full((10, 20), gf.TRANSPARENT, np.int32)
+        idx[2:8, 1:5] = 1
+        idx[2:8, 10:15] = 2
+        out = gf.drop_piece(idx, 3, 4)
+        self.assertFalse((out[:, :6] >= 0).any())
+        self.assertTrue((out[2:8, 10:15] == 2).all())
+        with self.assertRaises(ValueError):
+            gf.drop_piece(idx, 0, 0)
+
+    def test_banded_sleeve_keeps_the_arms_thickness(self):
+        olive = self.near((110, 104, 50))
+        idx = np.full((40, 30), gf.TRANSPARENT, np.int32)
+        idx[10:18, 5:] = olive                                            # an arm out through the side, mid-height
+        full = gf.extend_edges(idx, 48, 6, tile=8, pal=self.pal)
+        band = gf.extend_edges(idx, 48, 6, tile=8, pal=self.pal, band=True)
+        col = 30 + 5
+        self.assertGreater(int((full[:, col] >= 0).sum()), 20)           # the wedge down to the bottom
+        self.assertLessEqual(int((band[:, col] >= 0).sum()), 8)          # a tube of the arm's 8 rows
+        self.assertFalse((band[:, -1] >= 0).any())
+
+    def test_weapons_use_the_overlays_reserved_names_and_the_states_letters(self):
+        sys.path.insert(0, str(ROOT / "tools"))
+        import make_draft_overlay as mdo
+        for key, w in gf.WEAPONS.items():
+            swaps = [s for s in mdo.SWAPS if s.item == key]
+            if not swaps:                                                 # installed (the PPSh)
+                continue
+            letters = {}
+            for s in swaps:
+                text = (mdo.ZS_ROOT / s.zs).read_text(encoding="utf-8")
+                letters[s.draft] = set(mdo.state_letters(text, s.placeholder))
+            lumps = [f.lump for f in w.frame_list()]
+            self.assertEqual(len(lumps), len(set(lumps)), key)
+            for f in w.frame_list():
+                self.assertIn(f.lump[:4], letters, f"{key}: {f.lump} is not a name the overlay reserves")
+                self.assertEqual(f.lump[5:], "0", f.lump)
+                self.assertEqual(f.lump[:4], w.flash if f.flash else w.gun, f.lump)
+                self.assertIn(f.src, w.files(), f.lump)
+            for name in (w.gun, w.flash):                                 # every state frame drawn, no more
+                if name:
+                    have = {f.lump[4] for f in w.frame_list() if f.lump[:4] == name}
+                    self.assertEqual(have, letters[name], f"{key} {name}")
+            for _, mock in w.mock_list():
+                self.assertTrue(set(mock) <= set(lumps), key)
+
+
+NEW_WEAPONS = ("izh", "rpg7", "roks3", "katyusha", "ice_axe")
+
+
+def _sources_present(key: str) -> bool:
+    return all((gf.REF_DIR / f).is_file() for f in gf.WEAPONS[key].files().values())
+
+
+@unittest.skipIf(gf is None, "numpy/Pillow not installed (art venv)")
+class GeneratedFramesTests(unittest.TestCase):
+    """The drafts in work/art/weapons/hand_G/<weapon>/ (gitignored): each
+    lump present, palette-only hard alpha, a grAb, the ready frame's top at
+    the weapon's target above the bar. Skips without work/."""
+
+    def test_built_drafts(self):
+        import hand_study as hs
+        lut = {tuple(c) for c in gf.palette_rgb().tolist()}
+        seen = 0
+        for key in NEW_WEAPONS:
+            w = gf.WEAPONS[key]
+            folder = gf.OUT_ROOT / w.name
+            if not folder.is_dir():
+                continue
+            seen += 1
+            for f in w.frame_list():
+                path = folder / f"{f.lump}.png"
+                with self.subTest(lump=f.lump):
+                    self.assertTrue(path.is_file(), path)
+                    rgba, grab = hs.read_png_sprite(path)
+                    self.assertIsNotNone(grab)
+                    self.assertTrue(set(np.unique(rgba[..., 3]).tolist()) <= {0, 255})
+                    self.assertTrue({tuple(c) for c in rgba[rgba[..., 3] > 0][:, :3].tolist()} <= lut)
+            ready, grab = hs.read_png_sprite(folder / f"{w.frame_list()[0].lump}.png")
+            target = round(gf.chgg_height() * w.height_mult)
+            self.assertLessEqual(abs(hs.measure(ready, grab)["height"] - target), 2, key)
+        if not seen:
+            self.skipTest("work/art/weapons/hand_G drafts not present (CI has no work/)")
+
+
+@unittest.skipIf(gf is None, "numpy/Pillow not installed (art venv)")
+class FreshBuildTests(unittest.TestCase):
+    """A fresh build from the Gemini sources: no cut edge shows at 16:9 and
+    any bob, with the bar on or off (visible_cuts on each lump's canvas).
+    Slow (tests/_tiers.py) and local: the sources never leave work/."""
+
+    def test_no_visible_cut_on_any_lump(self):
+        import tempfile
+        ran = 0
+        for key in NEW_WEAPONS:
+            if not _sources_present(key):
+                continue
+            ran += 1
+            with tempfile.TemporaryDirectory() as tmp:
+                res = gf.build(gf.WEAPONS[key], out_dir=Path(tmp))
+            for lump, fr in res["frames"].items():
+                self.assertEqual(fr["cuts"], 0, f"{key} {lump}")
+        if not ran:
+            self.skipTest("Gemini sources not present (work/art/reference/ is gitignored)")
 
 if __name__ == "__main__":
     unittest.main()
