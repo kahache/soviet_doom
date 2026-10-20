@@ -402,5 +402,57 @@ class FreshBuildTests(unittest.TestCase):
         if not ran:
             self.skipTest("Gemini sources not present (work/art/reference/ is gitignored)")
 
+    def test_ice_axe_swing_is_the_ready_frame_turned(self):
+        # D86: B, C and D are A turned as one rigid piece: the hand keeps
+        # its size (no deformed wrist) and the forearm still reaches the
+        # canvas bottom, never the side.
+        if not _sources_present("ice_axe"):
+            self.skipTest("Gemini sources not present (work/art/reference/ is gitignored)")
+        import tempfile
+        pal = gf.palette_rgb()
+        with tempfile.TemporaryDirectory() as tmp:
+            res = gf.build(gf.WEAPONS["ice_axe"], out_dir=Path(tmp))
+        a = res["frames"]["SDAXA0"]["rgba"]
+        sleeve = a[-1][a[-1, :, 3] > 0][-gf.EDGE_TILE:, :3]
+        sleeve_rgb = pal[gf.nearest_colour(np.median(sleeve, axis=0), pal)]
+
+        def skin(rgba):
+            cols = rgba[rgba[..., 3] > 0][:, :3]
+            return sum(gf.material(c, sleeve_rgb) == gf.SKIN for c in cols)
+        hand = skin(a)
+        self.assertGreater(hand, 200)
+        for lump in ("SDAXB0", "SDAXC0", "SDAXD0"):
+            fr = res["frames"][lump]["rgba"]
+            with self.subTest(lump=lump):
+                self.assertLess(abs(skin(fr) - hand) / hand, 0.06)          # same hand, turned
+                self.assertTrue((fr[-1, :, 3] > 0).any())                    # the forearm reaches the bottom
+                self.assertEqual(res["frames"][lump]["cuts"], 0)
+
+
+@unittest.skipIf(gf is None, "numpy/Pillow not installed (art venv)")
+class SwingTests(unittest.TestCase):
+    """rotsprite and swing on synthetic art (D86)."""
+
+    def test_rotsprite_keeps_palette_and_area(self):
+        idx = np.full((40, 40), gf.TRANSPARENT, np.int32)
+        idx[10:30, 16:24] = 5
+        idx[10:12, 16:24] = 9
+        out = gf.rotsprite(idx, 30, (20, 20))
+        self.assertTrue(set(np.unique(out).tolist()) <= {gf.TRANSPARENT, 5, 9})
+        self.assertLess(abs(int((out >= 0).sum()) - 160) / 160, 0.1)
+        self.assertTrue((gf.rotsprite(idx, 0, (20, 20)) == idx).all())
+
+    def test_swing_runs_the_forearm_on_to_the_bottom(self):
+        idx = np.full((40, 40), gf.TRANSPARENT, np.int32)
+        idx[5:12, 8:14] = 7                                               # the hand
+        for r in range(12, 40):                                           # a forearm leaving the bottom
+            idx[r, 10 + (r - 12) // 2:16 + (r - 12) // 2] = 3
+        a, b, slope = gf.bottom_pieces(idx)[0]
+        self.assertAlmostEqual(slope, 0.5, delta=0.1)
+        out = gf.swing(idx, 35, gf.forearm_pivot(idx, 20), 20, 60, lift=8)
+        self.assertEqual(out.shape, (40, 80))
+        self.assertTrue((out[-1] == 3).any())                             # still reaches the bottom
+        self.assertLess(abs(int((out == 7).sum()) - 42) / 42, 0.15)       # the hand intact
+
 if __name__ == "__main__":
     unittest.main()

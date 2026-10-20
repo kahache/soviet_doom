@@ -108,6 +108,12 @@ SPARK_MAX = 40                  # art px: a piece of B this small that A lacks i
 TAPER_LEN = 14                  # art columns a flame cut by the image side narrows over to a point
 TAPER_GAP = 2                   # columns left empty before the side, so nothing touches it
 BOTTOM_GAP = 12                 # rows of background Gemini may leave under the arms (fill_bottom)
+ROT_UP = 8                      # RotSprite: the art scale2x'd to 8x before a turn (D86)
+PIVOT_BELOW = 50                # px under the bar line: the elbow a swing frame turns about (D86)
+RUN_ON_FIT = 16                 # last art rows a piece leaving the bottom is followed up for its axis
+SWING_WINDUP, SWING_STRIKE, SWING_FOLLOW = -11, 38, 48   # the ice axe's swing, degrees CCW (D86)
+SWING_LIFT = 34                 # screen px C is raised after its turn (D the same, 6 px lower): the hand stays in view
+SWING_PAD = 0.5                 # x the art's width added each side before a turn (nothing is cut)
 
 
 @dataclass(frozen=True)
@@ -119,6 +125,8 @@ class Frame:
     kick: tuple[int, int] = (0, 0)   # screen px right and down (KICK on a firing frame)
     pose: str = ""                   # "A": moved by -recoil onto the ready image's pose
     scale: float = 1.0               # a flash shrunk about its root (a fading frame)
+    rot: float = 0.0                 # degrees counter-clockwise: src turned about the elbow (swing, D86)
+    lift: int = 0                    # screen px the turned piece is raised (the elbow comes up with it)
 
 
 @dataclass(frozen=True)
@@ -199,17 +207,21 @@ WEAPONS = {
         frames=(Frame("SDHKA0"), Frame("SDHKB0", "B", kick=KICK),
                 Frame("SDHFA0", "B", flash=True, kick=KICK), Frame("SDHFB0", "B", flash=True, kick=KICK, scale=0.7)),
         flash_grow=12),
-    # Ice axe (ice_axe.zs, PUNG): fire B, C (the blow), D, C, B. A ready; B
-    # the wind-up (A lifted back); C the strike (image B, its stray left
-    # fist dropped); D the follow-through (C carried on down and left).
-    # Taller than the guns (D76: long shaft, big head).
+    # Ice axe (ice_axe.zs, PUNG): fire B, C (the blow), D, C, B. A ready.
+    # D86: the whole swing is A turned as one rigid piece (hand, axe and
+    # forearm) about the elbow, PIVOT_BELOW under the bar, so the hand
+    # never deforms (Gemini's strike image B kept a crooked hand, dropped):
+    # B the wind-up (head back to the right), C the strike (head to the
+    # left, pick down towards the centre), D the follow-through (further
+    # and a little lower). Taller than the guns (D76: long shaft, big head).
     "ice_axe": WeaponPair(
         "ice_axe", "SDAX", "", height_mult=72 / CHGG_HEIGHT_FALLBACK,
-        sources=(("A", GEM.format("iceaxe", "A")), ("B", GEM.format("iceaxe", "B"))),
-        frames=(Frame("SDAXA0"), Frame("SDAXB0", "A", kick=(4, -6)), Frame("SDAXC0", "B"),
-                Frame("SDAXD0", "B", kick=(-5, 5))),
-        drop=(("B", 210, 215),), arm_band=True, arm_curve=False,
-        mocks=(("ready (A)", ("SDAXA0",)), ("strike (C)", ("SDAXC0",)))),
+        sources=(("A", GEM.format("iceaxe", "A")),),
+        frames=(Frame("SDAXA0"), Frame("SDAXB0", rot=SWING_WINDUP), Frame("SDAXC0", rot=SWING_STRIKE, lift=SWING_LIFT),
+                Frame("SDAXD0", rot=SWING_FOLLOW, lift=SWING_LIFT - 6)),
+        arm_band=True, arm_curve=False,
+        mocks=(("ready (A)", ("SDAXA0",)), ("wind-up (B)", ("SDAXB0",)), ("strike (C)", ("SDAXC0",)),
+               ("follow-through (D)", ("SDAXD0",)))),
 }
 
 
@@ -523,6 +535,122 @@ def drop_piece(idx: np.ndarray, x: int, y: int) -> np.ndarray:
                 seen[ny, nx] = True
                 stack.append((ny, nx))
     return out
+
+
+# ------------------------------------------------------------ 7b. swing
+def scale2x(idx: np.ndarray) -> np.ndarray:
+    """EPX/Scale2x: each pixel becomes 2x2, a corner taking a neighbour's
+    colour where two neighbours agree, so diagonals stay clean steps."""
+    p = np.pad(idx, 1, mode="edge")
+    c = p[1:-1, 1:-1]
+    up, down, left, right = p[:-2, 1:-1], p[2:, 1:-1], p[1:-1, :-2], p[1:-1, 2:]
+    h, w = idx.shape
+    out = np.empty((2 * h, 2 * w), idx.dtype)
+    out[0::2, 0::2] = np.where((left == up) & (left != down) & (up != right), up, c)
+    out[0::2, 1::2] = np.where((up == right) & (up != left) & (right != down), right, c)
+    out[1::2, 0::2] = np.where((down == left) & (down != right) & (left != up), left, c)
+    out[1::2, 1::2] = np.where((right == down) & (right != up) & (down != left), down, c)
+    return out
+
+
+def block_mode(big: np.ndarray, f: int, chunk: int = 16) -> np.ndarray:
+    """big downscaled f times: each f x f block opaque if at least half of
+    it is (as _mode), then its commonest index."""
+    h, w = big.shape[0] // f, big.shape[1] // f
+    out = np.full((h, w), TRANSPARENT, np.int32)
+    n = 257                                          # TRANSPARENT and the 256 palette indices
+    for r0 in range(0, h, chunk):
+        r1 = min(h, r0 + chunk)
+        v = big[r0 * f:r1 * f, :w * f].reshape(r1 - r0, f, w, f).transpose(0, 2, 1, 3).reshape(-1, f * f)
+        v = v.astype(np.int64) + 1
+        counts = np.bincount((np.arange(len(v))[:, None] * n + v).ravel(), minlength=len(v) * n).reshape(-1, n)
+        opaque = counts[:, 0] * 2 <= f * f
+        out[r0:r1] = np.where(opaque, counts[:, 1:].argmax(axis=1), TRANSPARENT).reshape(r1 - r0, w)
+    return out
+
+
+def rotsprite(idx: np.ndarray, deg: float, pivot: tuple[float, float], up: int = ROT_UP,
+              out_h: int | None = None, lift: float = 0.0) -> np.ndarray:
+    """idx turned `deg` degrees counter-clockwise as seen (y down) about
+    pivot (x, y) in idx's pixels, same shape (its first `out_h` rows), RotSprite-style: scale2x to
+    `up` times, turned by nearest sampling, back down by block mode. No
+    pixel is blended, so the result is still palette indices. `lift`:
+    then raised that many pixels (what was under the last row comes in)."""
+    big = idx.astype(np.int16)
+    for _ in range(int(round(np.log2(up)))):
+        big = scale2x(big)
+    hb, wb = big.shape
+    t = np.radians(deg)
+    c, s = np.cos(t), np.sin(t)
+    ys, xs = np.mgrid[0:(hb if out_h is None else out_h * up), 0:wb].astype(np.float32)
+    ex, ey = xs + 0.5 - pivot[0] * up, ys + 0.5 + (lift - pivot[1]) * up
+    sx = np.floor(c * ex - s * ey + pivot[0] * up).astype(np.int64)
+    sy = np.floor(s * ex + c * ey + pivot[1] * up).astype(np.int64)
+    inside = (sx >= 0) & (sx < wb) & (sy >= 0) & (sy < hb)
+    out = np.full(xs.shape, TRANSPARENT, np.int16)
+    out[inside] = big[sy[inside], sx[inside]]
+    return block_mode(out, up)
+
+
+def bottom_pieces(idx: np.ndarray, fit: int = RUN_ON_FIT) -> list[tuple[int, int, float]]:
+    """(x0, x1, dx per row down) of each run of art on the last row (the
+    sleeve, the axe's handle): its middle followed up `fit` rows, each
+    row's runs those overlapping the row below's."""
+    h = idx.shape[0]
+    out = []
+    for a, b in _runs(np.flatnonzero(idx[-1] >= 0).tolist(), gap=1):
+        mids, lo, hi = [], a, b
+        for r in range(h - 1, max(-1, h - 1 - fit), -1):
+            near = [(x0, x1) for x0, x1 in _runs(np.flatnonzero(idx[r] >= 0).tolist(), gap=1)
+                    if x1 >= lo - 2 and x0 <= hi + 2]
+            if not near:
+                break
+            lo, hi = near[0][0], near[-1][1]
+            mids.append(((lo + hi) / 2, r))
+        slope = 0.0
+        if len(mids) > 2:
+            m = np.array(mids)
+            slope = float(np.polyfit(m[:, 1], m[:, 0], 1)[0])
+        out.append((a, b, slope))
+    return out
+
+
+def run_on_down(idx: np.ndarray, rows: int) -> np.ndarray:
+    """idx with `rows` more rows: each piece leaving the bottom runs on
+    straight along its own axis (bottom_pieces), its last row copied and
+    slid along, so the sleeve stays a straight sleeve and the handle a handle."""
+    h, w = idx.shape
+    out = np.full((h + rows, w), TRANSPARENT, np.int32)
+    out[:h] = idx
+    for a, b, slope in bottom_pieces(idx):
+        for k in range(1, rows + 1):
+            d = int(round(slope * k))
+            x0, x1 = max(0, a + d), min(w, b + 1 + d)
+            if x0 < x1:
+                out[h - 1 + k, x0:x1] = idx[-1, x0 - d:x1 - d]
+    return out
+
+
+def swing(art: np.ndarray, deg: float, pivot: tuple[float, float], pad: int, below: int,
+          lift: float = 0.0, keep: int = 0) -> np.ndarray:
+    """A swing frame from the ready art (D86): `pad` columns each side,
+    every piece leaving the bottom run on `below` rows along its axis, all
+    turned `deg` counter-clockwise about pivot (art px of the unpadded
+    art) as one rigid piece, raised `lift` rows, cut back to the art's rows
+    plus `keep` under them (so a hand turned low is not cut, just hidden). The hand never
+    deforms and the sleeve stays a straight tube to the bottom."""
+    h, w = art.shape
+    wide = np.full((h, w + 2 * pad), TRANSPARENT, np.int32)
+    wide[:, pad:pad + w] = art
+    long = run_on_down(wide, below)
+    return rotsprite(long, deg, (pivot[0] + pad, pivot[1]), out_h=h + keep, lift=lift)
+
+
+def forearm_pivot(art: np.ndarray, depth: float) -> tuple[float, float]:
+    """The elbow: on the widest piece leaving the bottom (the sleeve), its
+    axis carried on `depth` art rows under the art's last row."""
+    a, b, slope = max(bottom_pieces(art), key=lambda p: p[1] - p[0])
+    return (a + b + 1) / 2 + slope * depth, art.shape[0] - 0.5 + depth
 
 
 # ------------------------------------------------------------ 8. edges
@@ -854,9 +982,17 @@ def build(w: WeaponPair, out_dir: Path | None = None) -> dict:
             art = shift(art, -dx, -dy)
         if f.flash and w.taper:
             art = taper_cut(art)
-        small, left = mode_resize(art, nw, nh, pal), 0
+        pad = 0
+        if f.rot:                                # a swing frame: the art turned about the elbow
+            pad = round(ww * SWING_PAD)
+            depth = (VIEW_H + PIVOT_BELOW - (y0 + nh)) / sy
+            art = swing(art, f.rot, forearm_pivot(art, depth), pad, round(2 * depth + f.lift / sy) + RUN_ON_FIT,
+                        lift=f.lift / sy, keep=round(depth))
+        small = mode_resize(art, nw + 2 * round(pad * sx), round(art.shape[0] * sy) if f.rot else nh, pal)
+        left = round(pad * sx)
         if not f.flash:
-            small, left = arm_exits(small, band=w.arm_band, curve=w.arm_curve)
+            small, added = arm_exits(small, band=w.arm_band, curve=w.arm_curve)
+            left += added
         cx, cy = x0 - left + f.kick[0], y0 + f.kick[1]   # the canvas's top-left on the screen
         canvas_grab = (-cx, WEAPONTOP - BAR_LIFT - cy)
         cuts = visible_cuts(small, canvas_grab, True) + visible_cuts(small, canvas_grab, False)
