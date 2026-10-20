@@ -107,13 +107,15 @@ class TestGeminiFrames(unittest.TestCase):
 
     def test_arm_runs_on_as_a_plain_sleeve_and_curves_out(self):
         """2026-10-20: the extension repeats no column of the art (mirroring
-        the edge read as a hairy log); it is a tube in the sleeve's ramp
-        (the bottom row's colour), as tall as the cut so it hides it, a dark
-        seam where it takes over, outline on top, and it drops monotonically
-        out of the canvas before its last column."""
-        olive = int(np.argmin(((self.pal.astype(int) - (92, 71, 25)) ** 2).sum(axis=1)))
+        the edge read as a hairy log); skin and sleeve run on as a tube in
+        the sleeve's ramp (the bottom row's colour), as tall as their cut so
+        it hides it, a dark seam (the cuff) where it takes over, outline on
+        top, and it drops monotonically out of the canvas before its last
+        column."""
+        olive = self.near((92, 71, 25))
         idx = np.full((30, 40), gf.TRANSPARENT, np.int32)
-        idx[10:30, 20:40] = self.rng.integers(0, len(self.pal), (20, 20))   # skin/wood cut by the right side
+        skin = self.near((230, 170, 140))
+        idx[10:30, 20:40] = skin                                          # a forearm cut by the right side
         idx[26:30, 20:40] = olive                                         # the sleeve enters from below
         out = gf.extend_edges(idx, 48, 6, tile=8, pal=self.pal)
         self.assertEqual(out.shape, (36, 88))
@@ -135,6 +137,50 @@ class TestGeminiFrames(unittest.TestCase):
         t = int(np.flatnonzero(col >= 0)[0])
         self.assertEqual(col[t], ramp[0])                        # outline on the tube's top edge
         self.assertEqual(col[t + 1], ramp[1])
+
+    def near(self, rgb) -> int:
+        return int(np.argmin(((self.pal.astype(int) - rgb) ** 2).sum(axis=1)))
+
+    def test_materials_by_ramp(self):
+        olive = self.pal[self.near((92, 71, 25))]
+        for rgb, kind in (((0, 0, 0), gf.OUTLINE), ((120, 120, 128), gf.METAL), ((40, 50, 90), gf.METAL),
+                          ((92, 71, 25), gf.SLEEVE), ((124, 74, 36), gf.WOOD), ((97, 22, 19), gf.WOOD),
+                          ((181, 108, 53), gf.WOOD), ((230, 170, 140), gf.SKIN)):
+            self.assertEqual(gf.material(self.pal[self.near(rgb)], olive), kind, rgb)
+
+    def test_mixed_wood_and_sleeve_edge_extends_only_the_sleeve(self):
+        """The CEO, 2026-10-20: "has mezclado la manga con la culata". A
+        stock (wood) above a sleeve, both cut by the right side: the sleeve
+        tube starts at the sleeve's rows, never covers or replaces the wood;
+        the stock runs on as a straight bar in its own wood ramp, in front,
+        with a dark outline between the two, and both leave the canvas."""
+        olive, wood, grain = self.near((92, 71, 25)), self.near((124, 74, 36)), self.near((97, 22, 19))
+        idx = np.full((40, 40), gf.TRANSPARENT, np.int32)
+        idx[8:22, 20:40] = wood
+        idx[12:22:4, 20:40] = grain                                       # its grain
+        idx[22, 20:40] = self.near((0, 0, 0))                             # its outline
+        idx[23:40, 20:40] = olive                                         # the sleeve, below
+        out = gf.extend_edges(idx, 48, 6, tile=8, pal=self.pal)
+        self.assertTrue((out[:40, :40] == idx).all())
+        s_ramp = gf.sleeve_ramp(idx, self.pal, 8)
+        w_ramp = gf.wood_ramp(self.pal[wood], self.pal)
+        self.assertTrue(set(s_ramp[1:]).isdisjoint(w_ramp))               # two ramps, two materials
+        ext = out[:, 41:]                                                 # past the cap / seam column
+        sleeve_px = np.isin(ext, s_ramp[1:])
+        wood_px = np.isin(ext, w_ramp[1:])
+        self.assertTrue(wood_px.any() and sleeve_px.any())
+        self.assertFalse(np.isin(out[8:23, 40], s_ramp[1:]).any())        # the cut stock is not sleeve
+        self.assertTrue((out[25:40, 40] == s_ramp[0]).all())             # the sleeve's seam, under the stock
+        for c in range(ext.shape[1]):
+            col = ext[:, c]
+            w_rows, s_rows = np.flatnonzero(np.isin(col, w_ramp)), np.flatnonzero(sleeve_px[:, c])
+            if len(w_rows) and len(s_rows):
+                self.assertLess(w_rows.max(), s_rows.min(), c)            # the sleeve below the stock
+                self.assertIn(col[w_rows.max()], (w_ramp[0], s_ramp[0]))   # a dark outline between them
+        tops = [int(np.flatnonzero(np.isin(c, w_ramp))[0]) for c in ext.T if np.isin(c, w_ramp).any()]
+        self.assertEqual(tops, sorted(tops))                              # the stock: straight, down
+        self.assertLessEqual(tops[0] - 8, 3)                              # from where it left the art
+        self.assertFalse((out[:, -1] >= 0).any())                         # all gone by the last column
 
     def test_arm_exits_left_only_when_cut_there(self):
         idx = np.full((20, 30), gf.TRANSPARENT, np.int32)
