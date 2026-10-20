@@ -36,3 +36,8 @@ P4 starts.
 ## Orchestrated music (D99, V2)
 
 Render our MIDI pieces with real orchestral sound: the CEO's own Pro Tools rig (synths, orchestral plugins) as the baseline; evaluate first a licence-clean orchestral soundfont for GZDoom's MIDI player, then MusicGen-Melody (local, NC weights) as an AI shortcut. Avoid Suno/Udio.
+
+## Small details for v1.1 (CEO, 2026-10-20, D100)
+
+- **The Reich hound sounds like a dog:** real barks, growls, a yelp on pain and a whimper on death (licence-clean dog recordings or our synthesis), replacing today's drafts.
+- **Continue after death:** today the screen just stays on the dead view. Show a clear prompt (EN/RU, e.g. "Press USE to continue" / «Нажмите ИСПОЛЬЗОВАТЬ, чтобы продолжить») and restart the same level (GZDoom already reloads the level on USE in single player; make it obvious, and consider keeping the weapons the player had at the level's start).
