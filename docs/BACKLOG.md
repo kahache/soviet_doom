@@ -22,6 +22,8 @@ get better.
 |---|---|---|---|---|---|
 | M2a-i | M2 | (doing, D80) Install the campaign pickups (11 items, keys SD_YellowPass/SD_RedPass via Species, HUD key icons, pickup lines EN/RU) after the CEO's OK | mod-engineer | 200 | CEO OK on `2026-10-19_2212_F5_campaign-pickups.html` |
 | M2b-i | M2 | (approved D81; queued behind M2a-i, same files) Install the enemy shells SDDL/SDPL | mod-engineer | 80 | CEO OK on `2026-10-19_2200_F5_enemy-shells.html` |
+| N9e | M3 | (queued behind M2c-i, same files) Install the 30 enemy sounds and 5 beds approved in D83 + SDIZFIR take B, loudness pass, SNDINFO; D_SDTITL as intermission music | sound-designer + mod-engineer | 250 | D83 |
+| N9m | M3 | Enemy sound alternatives (8), MAP01 music trimmed (D_SDM01T) and PD candidates for MAP01, listening page | sound-designer | 200 | doing |
 | M2c-i | M2 | (approved D82; queued behind M2a-i and M2b-i) Install the player effects (SDPG, SDKR, SDPX, SDFJ/SDFX, PUFF, BLUD, TFOG/IFOG, BAR1/BEXP, COLU) after the CEO's OK | mod-engineer | 150 | CEO OK on `2026-10-19_2208_F4_player-effects.html` |
 | N14-G | M2 | The other weapons from Gemini frames (IZh, RPG-7, ROKS-3, Katyusha, ice axe), guide `docs/product/2026-10-20_0030_M2_gemini-armas.md` | art-director + mod-engineer | ~50 per weapon | the CEO's images |
 | G9 | M4 | LICENSE.md and CREDITS.txt for the player: no repo-only paths, drop the unused OTEX credit (RU half at N11); ship `LICENSE-FREEDOOM-BSD-3.txt` (D75, hash pinned); the AI-reference line in the credits (D75) | mod-engineer | 40 | — |
