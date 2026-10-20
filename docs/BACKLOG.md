@@ -18,37 +18,47 @@ get better.
 
 ## Doing (agents at work)
 
+Checked against the repo on 2026-10-20 ~10:45 (pmo / Product, stage 6).
+
 | # | Milestone | Task | Role | Est. k tok | From |
 |---|---|---|---|---|---|
-| M2a-i | M2 | (doing, D80) Install the campaign pickups (11 items, keys SD_YellowPass/SD_RedPass via Species, HUD key icons, pickup lines EN/RU) after the CEO's OK | mod-engineer | 200 | CEO OK on `2026-10-19_2212_F5_campaign-pickups.html` |
-| M2b-i | M2 | (approved D81; queued behind M2a-i, same files) Install the enemy shells SDDL/SDPL | mod-engineer | 80 | CEO OK on `2026-10-19_2200_F5_enemy-shells.html` |
-| N9e | M3 | (queued behind M2c-i, same files) Install the 30 enemy sounds and 5 beds approved in D83 + SDIZFIR take B, loudness pass, SNDINFO; D_SDTITL as intermission music | sound-designer + mod-engineer | 250 | D83 |
-| N9m | M3 | Enemy sound alternatives (8), MAP01 music trimmed (D_SDM01T) and PD candidates for MAP01, listening page | sound-designer | 200 | doing |
-| M2c-i | M2 | (approved D82; queued behind M2a-i and M2b-i) Install the player effects (SDPG, SDKR, SDPX, SDFJ/SDFX, PUFF, BLUD, TFOG/IFOG, BAR1/BEXP, COLU) after the CEO's OK | mod-engineer | 150 | CEO OK on `2026-10-19_2208_F4_player-effects.html` |
-| N14-G | M2 | The other weapons from Gemini frames (IZh, RPG-7, ROKS-3, Katyusha, ice axe), guide `docs/product/2026-10-20_0030_M2_gemini-armas.md` | art-director + mod-engineer | ~50 per weapon | the CEO's images |
-| G9 | M4 | LICENSE.md and CREDITS.txt for the player: no repo-only paths, drop the unused OTEX credit (RU half at N11); ship `LICENSE-FREEDOOM-BSD-3.txt` (D75, hash pinned); the AI-reference line in the credits (D75) | mod-engineer | 40 | — |
-| N4 | M2 | Ice axe (weapon 1 of 6): round 2 with Freedoom's gripping hand (SHTGD0) **not passed by the PM** (blobby); waits on the CEO's Fooocus references (N14) | art-director | — | D66 |
+| M2a-i | M2 | (doing, D80; uncommitted in the working tree: 11 pickup sprites, `pickups.zs`, HUD key icons `STKEYS0-2`, LANGUAGE lines) Install the campaign pickups (11 items incl. the hand Katyusha's `SDHP`, keys SD_YellowPass/SD_RedPass via Species, HUD key icons, pickup lines EN/RU) | mod-engineer | 200 (installs have run ~1.7x their estimate: plan 300) | CEO OK on `2026-10-19_2212_F5_campaign-pickups.html` |
+| N9m | M3 | (doing) Enemy sound alternatives (8), MAP01 music trimmed (`D_SDM01T`, for the range) and PD candidates for MAP01, listening page | sound-designer | 200 | D83 |
+| M2b-i | M2 | (queued behind M2a-i, same files; approved D81) Install the enemy shells SDDL/SDPL (today `BAL2`/`BAL7`) | mod-engineer | 80 (plan 130) | CEO OK on `2026-10-19_2200_F5_enemy-shells.html` |
+| M2c-i | M2 | (queued behind M2a-i and M2b-i; approved D82) Install the player effects (SDPG, SDKR, SDPX, SDFJ/SDFX, PUFF, BLUD, TFOG/IFOG, BAR1/BEXP, COLU; today `MISL`, `PLSS`/`PLSE` and Freedoom's) | mod-engineer | 150 (plan 250) | CEO OK on `2026-10-19_2208_F4_player-effects.html` |
+| N9e | M3 | (queued behind M2c-i, same files) Install the 30 enemy sounds and 5 beds approved in D83 + SDIZFIR take B, loudness pass, SNDINFO; `D_SDTITL` as intermission music (today Freedoom's `D_DM2INT`) | sound-designer + mod-engineer | 250 (N9w, 25 sounds, cost 400: plan 400) | D83 |
+| N14-I | M2 | (queued behind M2a-i, same files) Install the IZh-58, RPG-7, ROKS-3 and Katyusha Gemini frames (D84) + engine pass | mod-engineer | 120 | D84 |
+| N14-AX | M2 | Ice axe strike frame: the arm leaves straight, not curved (D84) | art-director | 30 | doing |
+| N14-G | M2 | (waiting CEO) The other five weapons from the CEO's Gemini frames (IZh-58, RPG-7, ROKS-3, hand Katyusha, ice axe): **drafted** (dbd82e4, in `work/` and the draft overlay, not installed), seen in engine (`docs/art/previews/2026-10-20_1037_F4_five-weapons-gemini-in-engine.png`); install each after the CEO's OK, as the PPSh-41 (b5bd434) | art-director + mod-engineer | ~120 per weapon install, ~600 for five (PPSh-41: install 150 + fix 40) | the CEO's OK per weapon |
 
 ## Next (approved order, D63)
 
 | # | Milestone | Task | Role | Est. k tok | Needs |
 |---|---|---|---|---|---|
-| M2e | M4 (D75) | Shell and HUD: STBAR, the face STF*, fonts, stats screen graphics, HELP/CREDIT, DEHACKED pickup and quit lines, intermission music (D_DM2INT plays today) | art-director + mod-engineer | 430-650 | — |
-| N14 | M2 | Weapons in hand from the CEO's Fooocus references, one at a time, verified each (ice axe first, then 5 more) | art-director | 250 per weapon, ~1 500 all | CEO's images |
+| M2e | M4 (D75) | Shell and HUD: STBAR, the face STF*, fonts, stats screen graphics, HELP/CREDIT, DEHACKED pickup and quit lines (the intermission music moved to N9e, D83) | art-director + mod-engineer | 430-650 | the CEO's OK on the sweeps |
+| N9 | M3 | Install what the CEO approves from the alternatives: N9a's 15 (for SDTTPKP, SDIZRLD, SDRKFIR, SDAXPKP, SDIZPKP; these five keep Freedoom's today) and N9m's 8 enemy rows; MAP01's new PD piece and the range's music (D83). N9w installed the 25 of D74 (70358e0) | sound-designer + mod-engineer | 150 | CEO's listening (N9a page, N9m page) |
+| N8 | M3 | Music per map: any further swap the CEO asks for (D59); MAP01 and RANGE are in N9m/N9 | sound-designer | 80 per swap | CEO's listening |
 | N7b | M1+ | Metro v2 (textures aligned), optional: the CEO found M1 "perfecto" | level-designer | 350 | CEO decides if wanted |
 | N7c | M1+ | Tankograd v2, optional (as N7b) | level-designer | 400 | CEO decides if wanted |
-| N9 | M3 | Install the effects the CEO approves (**25 weapon sounds OK in D74**, after N17 frees tokarev.zs and LICENSES.md); wire SNDINFO; **loudness pass** (drafts are 6-18 dB quieter than the Freedoom sounds they replace; bass-heavy clips); engine pass | sound-designer + mod-engineer | 200 | CEO's listening |
-| N8 | M3 | Music per map: swap any piece the CEO rejects for another PD work or a licence-clean MIDI (D59) | sound-designer | 80 per swap | CEO's listening |
 | N15 | tooling | Evaluate Ultimate Doom Builder (D69, "me interesa"): install, open our UDMF maps, does a round trip keep `tools/sdbuild` working, report | mod-engineer + level-designer | 150 | CEO's OK to download UDB |
-| N11 | M4 | Russian in-game text review, once, at the end of the delivery | translator-ru | 250 | M1-M3 done (D60) |
-| N16 | M4 | Ship v1: G6 gate, QA sign-off, README EN/RU, tag v1.0 | qa-engineer + PM | 250 | everything above |
+| N11 | M4 | Russian in-game text review, once, at the end of the delivery (after M2a-i and M2e add their lines) | translator-ru | 250 (plan 300) | M1-M3 done (D60) |
+| N16 | M4 | Ship v1: G6 gate, QA sign-off, tag v1.0; with the G6-readiness leftovers G7 (in-game credits refresh for the new assets and sounds), G10 (RELEASE.md §2 refresh: rows 1 and 6 per D75), G16 (repo README status line); optional G15, G17 | qa-engineer + PM + mod-engineer | 250 (plan 350) | everything above; the CEO's "publish or not" |
 
-MVP left, roughly: **~4 500k tokens** after the M2 audit (the six weapons ~1 500k, pickups/shells ~630k, HUD/shell 430-650k if in the MVP).
+N14 (weapons from Fooocus references, ~1 500k) and N4 (the ice axe round 2) are
+superseded by D79: the five weapons were drafted from Gemini frames (N14-G).
+
+**MVP left, recomputed 2026-10-20 with the real costs logged so far: ~3 300k
+tokens (range 2 800-4 000k).** Real costs ran 1.4x the estimates overall
+(21 closed tasks: 4 207k real against 3 005k estimated) and 1.7x on installs
+(N17, N12c, N13, N9w), so the plan numbers above are used: M2 ~1 280k (M2a-i
+300, M2b-i 130, M2c-i 250, N14-G 600), M3 ~750k (N9m 200, N9e 400, N9 150),
+M4 ~1 250k (M2e ~600, N11 300, N16 350). Not counted: N7b/N7c, N15, N8 extra
+swaps. Snapshot: `docs/product/2026-10-20_1045_P0_mvp-status.md`.
 
 ## Waiting for the CEO
 
-See `docs/PENDING-CEO-DECISIONS.md`: walk the campaign, the Doughboy flag,
-the Fooocus hand images, sounds and music to hear.
+See `docs/PENDING-CEO-DECISIONS.md`: the five Gemini weapons in engine, the
+15 sound alternatives (N9a), then N9m's listening page.
 
 ## Parked (after the MVP, D60)
 
@@ -64,6 +74,10 @@ the Fooocus hand images, sounds and music to hear.
 | **The full game: 15-20 levels** (D69), a roadmap of its own when the MVP ships | P4 | ~400 per map |
 
 ## Done (recent, newest first)
+
+**2026-10-20 morning:** the CEO's verdicts D80-D83 (pickups, shells, effects, the listening sheet 80 of 80); the five other weapons drafted from the CEO's Gemini frames (dbd82e4, preview dc49b40), cost not logged.
+
+G9: player LICENSE.md and CREDITS.txt without repo paths, Freedoom's BSD-3 notice in the zip (hash pinned), the AI line in the credits, in-game credits corrected (465a83e); real cost not logged (est. 40k).
 
 **2026-10-20 night:** D79, the Gemini-frames method: the PPSh-41 installed (b5bd434, sleeve fix 362df5a), **2 of 7 weapons ours**; test ~48k, install ~150k, sleeve ~40k. QA-G6-1/2 fixed (1bcf2e0), ~66k. Engine evidence `docs/qa/evidence/2026-10-20_0317_*`. Guide for the next weapons `docs/product/2026-10-20_0030_M2_gemini-armas.md`.
 
