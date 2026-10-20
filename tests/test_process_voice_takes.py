@@ -23,6 +23,17 @@ What is tested:
   localStorage inside try/catch, every take, its text, language and
   Freedoom sound.
 
+- Round 2 (after D91): the 7 approved takes and their rows left out; every
+  other spoken line at least 3 takes from t11, seeds distinct from round 1;
+  the reference per line (Reich orders: Thorsten, German; Legion and General:
+  kurt, English, cfg 0 when it reads German; pain and death: a pain
+  reference); the same words as the script, one line per clone request; the
+  references one speaker each, CC0 or CC-BY with the credit; the Whisper
+  check (extra words or a cut line reject, a different word only warns);
+  generate2's sidecar and AI-LOG row carry the reference and its licence; a
+  failed take does not stop the run; the reference cutter; the round-2 page
+  (rejected takes out of the vote, the approved row, relative paths).
+
 The server is never called (a fake poster stands in). Nothing is written
 under work/ or docs/ except by the on-disk check, which only reads work/
 and is skipped with SD_SKIP_SLOW_ART=1 (`verify.py fast`).
@@ -356,6 +367,243 @@ class OnDiskTests(unittest.TestCase):
                 self.assertRegex(o.stem, NAME_RE)
                 self.assertTrue((pv.RAW_DIR / f"{o.stem}.wav").is_file())
                 self.assertTrue((pv.RAW_DIR / f"{o.stem}.json").is_file())
+                self.assertIn(f"{o.stem}.wav", logged)
+
+
+ALLOWED_REF_LICENCES = ("CC0 1.0", "CC-BY 3.0")
+
+
+class Round2PlanTests(unittest.TestCase):
+    """Round 2 (after D91): clone mode from aggressive references, approved takes untouched."""
+
+    def test_approved_takes_and_their_rows_are_left_out(self):
+        self.assertEqual(len(pv.APPROVED), 7)
+        for n in pv.APPROVED:
+            self.assertRegex(n, NAME_RE)
+        self.assertEqual(pv.APPROVED_ROWS, ("L01", "L02", "R06"))
+        rows = [l.row for l in pv.round2_lines()]
+        self.assertEqual(len(rows), len(pv.LINES) - 3)
+        self.assertFalse(set(rows) & set(pv.APPROVED_ROWS))
+
+    def test_every_line_three_takes_or_more_from_take_11(self):
+        takes = pv.round2_takes()
+        for l in pv.round2_lines():
+            mine = [t for t in takes if t.line is l]
+            self.assertGreaterEqual(len(mine), 3, l.row)
+            self.assertEqual([t.take for t in mine], list(range(11, 11 + len(mine))))
+            first = [t for t in mine if t.take <= 13]
+            self.assertEqual(len({t.exaggeration for t in first}), 3, "a ladder, not one value")
+
+    def test_seeds_distinct_from_each_other_and_from_round_1(self):
+        r1 = {pv.seed_of(l, t) for l in pv.LINES for t in range(1, pv.takes_of(l) + 1)}
+        r2 = [pv.seed_of(t.line, t.take) for t in pv.round2_takes()]
+        self.assertEqual(len(r2), len(set(r2)))
+        self.assertFalse(r1 & set(r2))
+
+    def test_reference_per_line(self):
+        for t in pv.round2_takes():
+            l = t.line
+            with self.subTest(row=l.row, take=t.take):
+                main = pv.ref_of(l)
+                if l.delivery in ("pain", "death"):
+                    self.assertTrue(main.startswith("pain_"))
+                elif l.cls == "rifleman":
+                    self.assertEqual(main, "de_orders")
+                else:
+                    self.assertEqual(main, "en_orders")
+                if t.take <= 13:
+                    self.assertEqual(t.ref, main)
+                if l.delivery == "shout":
+                    self.assertGreaterEqual(t.exaggeration, 1.0)
+                ref_lang = pv.REFS[t.ref].lang
+                if ref_lang not in ("-", t.lang):
+                    self.assertEqual(t.cfg_weight, pv.CROSS_LINGUAL_CFG)
+
+    def test_same_words_as_the_script_one_line_per_request(self):
+        for t in pv.round2_takes():
+            self.assertEqual(pv.words_of(t.text), pv.words_of(t.line.text), t.line.row)
+            b = pv.request_body2(t, "sd_ref_x_00000000.wav")
+            self.assertEqual(b["voice_mode"], "clone")
+            self.assertEqual(b["reference_audio_filename"], "sd_ref_x_00000000.wav")
+            self.assertIs(b["split_text"], False)
+            self.assertEqual(b["text"], t.text)
+            self.assertEqual(b["language"], t.line.lang)
+            self.assertEqual(b["seed"], pv.seed_of(t.line, t.take))
+
+    def test_references_one_speaker_licence_clean_credited(self):
+        for key, r in pv.REFS.items():
+            with self.subTest(ref=key):
+                self.assertEqual(len({pv.SOURCES[s].author for s in r.sources}), 1, "one speaker")
+                for s in r.sources:
+                    src = pv.SOURCES[s]
+                    self.assertTrue(src.licence.startswith(ALLOWED_REF_LICENCES), src.licence)
+                    if src.licence.startswith("CC-BY"):
+                        self.assertIn(src.author, src.credit)
+                    self.assertTrue(src.url.startswith("https://"))
+                    self.assertFalse(src.path.startswith(("src/", "assets/")))
+                for path, a, b in r.parts:
+                    self.assertTrue(b == 0 or b > a)
+
+
+class AsrCheckTests(unittest.TestCase):
+
+    def test_verdicts(self):
+        self.assertEqual(pv.asr_check(None, "Feind!")[0], "ok")
+        self.assertEqual(pv.asr_check("Feind!", "Feind!")[0], "ok")
+        self.assertEqual(pv.asr_check("Stellung halten.", "Stellung halten!")[0], "ok")
+        self.assertEqual(pv.asr_check("Feind! Feind!", "Feind!")[0], "reject")
+        self.assertEqual(pv.asr_check("Hostile.", "Hostile, front!")[0], "reject")
+        self.assertEqual(pv.asr_check("", "Feind!")[0], "reject")
+        self.assertEqual(pv.asr_check("...", "Feind!")[0], "reject")
+        self.assertEqual(pv.asr_check("Bye.", "Feind!")[0], "warn")
+        self.assertEqual(pv.asr_check("Sanni.", "Sani…")[0], "ok")
+        self.assertEqual(pv.asr_check("Vorwärts!", "Vorwärts!")[0], "ok")
+        self.assertEqual(pv.asr_check("Sector 4, clear.", "Sector four, clear.")[0], "ok")
+        self.assertEqual(pv.asr_check("Ruhe dahinten!", "Ruhe da hinten!")[0], "ok")
+        self.assertEqual(pv.asr_check("Come in, say again.", "Command, say again?")[0], "ok")
+        self.assertEqual(pv.asr_check("Oder hinten.", "Ruhe da hinten!")[0], "reject")
+        self.assertEqual(pv.asr_check("I'm hit! I'm hit!", "I'm hit!")[0], "reject")
+        self.assertEqual(pv.asr_check("Vorwärts! Au!", "Vorwärts!")[0], "reject")
+        self.assertEqual(pv.asr_check("Sani, ahhh!", "Sani…", cries_ok=True)[0], "ok")
+        self.assertEqual(pv.asr_check("Sani, ahhh!", "Sani…")[0], "reject")
+        self.assertEqual(pv.asr_check("Ah!", "Sani…", cries_ok=True)[0], "warn")
+        self.assertEqual(pv.asr_check("Aaaaaaah, nee!", "Sani…", cries_ok=True)[0], "warn")
+
+
+class Generate2Tests(unittest.TestCase):
+
+    def test_generate2_one_request_per_take_logged_with_its_reference(self):
+        calls = []
+
+        def fake(body, server):
+            calls.append(body)
+            return b"RIFF" + json.dumps(body).encode()
+
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            refs = {}
+            for key in pv.REFS:
+                refs[key] = d / f"sd_ref_{key}_00000000.wav"
+                refs[key].write_bytes(b"RIFF" + key.encode())
+            raw = d / "raw"
+            made = pv.generate2("20261020", refs, raw, rows=["R04", "L08"], poster=fake, log=lambda *_: None)
+            want = [t for t in pv.round2_takes() if t.line.row in ("R04", "L08")]
+            self.assertEqual(len(made), len(want))
+            self.assertEqual(len(calls), len(want))
+            self.assertEqual({c["text"] for c in calls}, {"Feind!", "I'm hit!"})
+            side = json.loads((raw / f"{made[0].stem}.json").read_text(encoding="utf-8"))
+            self.assertEqual(side["reference"]["key"], "de_orders")
+            self.assertEqual(side["reference"]["sources"][0]["licence"], "CC0 1.0")
+            self.assertEqual(pv.generate2("20261020", refs, raw, rows=["R04", "L08"], poster=fake,
+                                          log=lambda *_: None), [])
+            rows = pv.log_rows(raw)
+            self.assertEqual(len(rows), len(want))
+            l08 = next(r for r in rows if r["fichero"].startswith("L08_") and "_t11" in r["fichero"])
+            self.assertIn("clone of sd_ref_pain_kurt_00000000.wav", l08["voz"])
+            self.assertIn("CC-BY 3.0", l08["voz"])
+            self.assertIn("credit: Voice reference: kurt", l08["voz"])
+            self.assertIn("voice_mode clone", l08["ajustes"])
+
+    def test_a_failed_take_does_not_stop_the_others(self):
+        def flaky(body, server):
+            if body["seed"] % 2:
+                raise RuntimeError("boom")
+            return b"RIFF"
+
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d)
+            refs = {k: d / f"sd_ref_{k}_0.wav" for k in pv.REFS}
+            for p in refs.values():
+                p.write_bytes(b"RIFF")
+            made = pv.generate2("20261020", refs, d / "raw", rows=["R01"], poster=flaky, log=lambda *_: None)
+            self.assertEqual(len(made), 1)          # seeds 11051, 11052, 11053: one even
+
+
+@needs_numpy
+class RefCutTests(unittest.TestCase):
+
+    def test_tighten_trims_and_shortens_long_pauses(self):
+        sr = pv.REF_SR
+        tone = 0.5 * np.sin(2 * np.pi * 220 * np.arange(int(0.5 * sr)) / sr)
+        x = np.concatenate([np.zeros(sr), tone, np.zeros(2 * sr), tone, np.zeros(sr)])
+        y = pv.tighten(x, sr)
+        self.assertLess(len(y) / sr, 1.0 + pv.REF_MAX_PAUSE_S + 0.05)
+        self.assertGreater(len(y) / sr, 1.0)
+        short = np.concatenate([tone, np.zeros(int(0.2 * sr)), tone])
+        self.assertAlmostEqual(len(pv.tighten(short, sr)) / sr, len(short) / sr, delta=0.02)
+
+    def test_wav16_round_trip(self):
+        import wave
+        x = 0.5 * np.sin(np.linspace(0, 100, 2400))
+        with wave.open(io.BytesIO(pv.wav16(x)), "rb") as w:
+            self.assertEqual((w.getnchannels(), w.getsampwidth(), w.getframerate()), (1, 2, pv.REF_SR))
+            self.assertEqual(w.getnframes(), 2400)
+
+
+@needs_numpy
+class Page2Tests(unittest.TestCase):
+
+    def test_page2(self):
+        t = np.arange(int(0.5 * gws.SR)) / gws.SR
+        x = 0.5 * np.sin(2 * np.pi * 200 * t)
+        takes = pv.round2_takes()
+        done = [pv.Processed(pv.take_name(k.line, k.take, "20261020"), k.line, x, 1.0, 0.0, 0.0) for k in takes]
+        page = PROJECT_ROOT / "docs" / "art" / "previews" / "2026-10-20_0000_P2_voice-takes-aggressive.html"
+        bad = done[0].name
+        asr = {bad: {"text": "Stellung halten, Stellung halten.", "model": "openai-whisper medium"},
+               done[1].name: {"text": "Stellung halten.", "model": "openai-whisper medium"}}
+        h = pv.page2_html(done, page, "2026-10-20_0000", "20261020", asr=asr, refs={})
+        self.assertIn('<html lang="es">', h)
+        self.assertIn("Copiar resultado", h)
+        items = json.loads(re.search(r"const ITEMS = (\[.*?\]);\n", h, re.S).group(1).replace("<\\/", "</"))
+        self.assertEqual(len(items), len(takes) - 1)
+        self.assertNotIn(bad, {i["id"] for i in items})
+        self.assertIn("Rechazadas automáticamente", h)
+        self.assertIn("palabras de más", h)
+        for it in items:
+            self.assertTrue(it["ref"])
+            for key in ("src", "raw", "repSrc"):
+                self.assertTrue(it[key].startswith("../../../work/audio/"), it[key])
+        for n in pv.APPROVED:
+            self.assertIn(n, h)
+        self.assertIn("../../../work/audio/voice_takes/" + pv.APPROVED[0] + ".ogg", h)
+        self.assertIn("kurt", h)
+
+
+@needs_numpy
+@slow
+class OnDiskRound2Tests(unittest.TestCase):
+    """The round-2 drafts and references in work/ (gitignored)."""
+
+    def test_references_cut_to_spec(self):
+        refs = pv.ref_files()
+        if len(refs) < len(pv.REFS):
+            self.skipTest("references not built in work/audio/voice_refs/")
+        import wave
+        for key, p in refs.items():
+            with self.subTest(ref=key), wave.open(str(p), "rb") as w:
+                self.assertEqual((w.getnchannels(), w.getframerate()), (1, pv.REF_SR))
+                s = w.getnframes() / pv.REF_SR
+                self.assertGreaterEqual(s, pv.REF_LEN_S[0])
+                self.assertLessEqual(s, pv.REF_LEN_S[1])
+                x = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2") / 32767
+                self.assertLessEqual(20 * np.log10(np.max(np.abs(x))), pv.REF_PEAK_DBFS + 0.01)
+        tsv = pv.SOURCES_TSV.read_text(encoding="utf-8")
+        for p in refs.values():
+            self.assertIn(p.name, tsv)
+
+    def test_every_round2_take_logged(self):
+        oggs = sorted(pv.AGGR_DIR.glob("*_ai_chatterbox_*_t*.ogg"))
+        log = pv.OUT_DIR / "AI-LOG.csv"
+        if not oggs or not log.is_file():
+            self.skipTest("no round-2 drafts in work/audio/voice_takes/aggressive/")
+        logged = {r["fichero"] for r in csv.DictReader(io.StringIO(log.read_text(encoding="utf-8-sig")),
+                                                       delimiter=";")}
+        for o in oggs:
+            with self.subTest(take=o.stem):
+                self.assertRegex(o.stem, NAME_RE)
+                self.assertGreaterEqual(int(o.stem[-2:]), pv.ROUND2_FIRST_TAKE)
+                self.assertTrue((pv.AGGR_RAW_DIR / f"{o.stem}.json").is_file())
                 self.assertIn(f"{o.stem}.wav", logged)
 
 
