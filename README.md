@@ -8,6 +8,25 @@ Status: **v1.0 released** (2026-10-20): a three-map campaign plus a practice ran
 See `CLAUDE.md` for the operational summary, `docs/PRD.md` for decisions and
 `docs/ru/` for the Russian mirror of all documentation.
 
+## How to play
+
+**Windows, one click:** download `sovietdoom-<version>-windows.zip` from the
+release page (where the release offers it), right-click it → Extract All, open the `SovietDoom` folder and
+double-click `Play Soviet Doom.bat` (`Jugar Soviet Doom.bat` in Spanish).
+GZDoom and Freedoom are inside; nothing is installed, and settings and saves
+stay in that folder. GZDoom is unsigned, so Windows may say "Windows
+protected your PC": click More info → Run anyway (or tick Unblock in the
+zip's Properties before extracting). `README-FIRST.txt` / `LEEME.txt` in the
+folder explain the rest, including the switch to Russian.
+
+**Any OS, with your own GZDoom:** download `sovietdoom-<version>.zip`, get
+GZDoom 4.14.2 or newer (https://zdoom.org/downloads) and Freedoom: Phase 2
+(`freedoom2.wad`, https://freedoom.github.io/download.html), then run
+`gzdoom -iwad freedoom2.wad -file sovietdoom.pk3`; the zip's `README.txt`
+has the details.
+
+How the packages are made: `docs/engine/RELEASE.md`.
+
 ```bash
 python3 tools/build.py        # → dist/sovietdoom.pk3
 tools/run.sh                  # needs GZDoom and freedoom2.wad in iwads/

@@ -140,6 +140,8 @@ SLOW: tuple[tuple[str, str], ...] = (
     ("test_pause_sign.EngineNamesTest", "engine: reads the installed gzdoom.pk3's ZScript"),
     ("test_release.EndToEndRefusalTest", "release: packs release trees end to end, 4.3 s"),
     ("test_release.RealReleaseTest", "release: the real release, 4.1 s"),
+    ("test_release_portable.RealPortableTest",
+     "release: the real release plus the installed GZDoom, zipped twice (~66 MB)"),
     ("test_rifleman_sprites.PackageTests",
      "package: builds the PK3 and runs check_pk3 on all of it again"),
     ("test_route.ParseTest", "geometry: route.MapData for MAP01 and RANGE in setUpClass, 9 s"),
