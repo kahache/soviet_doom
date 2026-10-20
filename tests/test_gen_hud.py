@@ -15,6 +15,11 @@ touches assets/.
                  panel in both languages; EN and RU differ only in the label rows
   D27            no system font in the module; rendering is deterministic
   the build      build() writes only under the directory it is given
+  --face gemini  (D89, tools/art/gemini_face.py) the lump set, the cell
+                 mapping, the fit, the snap and the glance run on synthetic
+                 cells; the 42 lumps built from the CEO's sheets (sizes, grAb,
+                 palette, all different, blood, star, god glow, turns) only
+                 when work/art/reference/gemini_face_*.png is in this clone
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_gen_hud -v
 """
@@ -36,6 +41,7 @@ try:
     import numpy as np
     from PIL import Image
     import gen_hud
+    import gemini_face
     HAVE_IMAGING = True
 except ImportError:  # pragma: no cover - the CI interpreter without Pillow
     HAVE_IMAGING = False
@@ -268,6 +274,150 @@ class HygieneTests(unittest.TestCase):
                     size = im.size
                 w, h, _, _ = gen_hud.FD_LUMPS[name]
                 self.assertEqual(size, (w, h), rel)
+
+
+@imaging
+class GeminiFaceSpecTests(unittest.TestCase):
+    """--face gemini without the (gitignored) sheets."""
+
+    def test_the_cli_offers_the_source(self):
+        self.assertEqual(gen_hud.FACE_SOURCES, ("drawn", "gemini"))
+
+    def test_every_lump_maps_to_a_cell(self):
+        cells = set()
+        for name in gen_hud.FACE_LUMPS:
+            level, kind, gaze = gen_hud.face_lump_spec(name)
+            self.assertIn(kind, set(gemini_face.COL) | {"kill", "god", "dead"}, name)
+            cells.add((kind, level, gaze))
+        self.assertEqual(len(cells), 42)                     # 42 distinct faces
+
+    def test_turn_columns_follow_the_image(self):
+        # column 2 of the sheet faces the viewer's left = STFTL (Doom: TL looks
+        # to the player's left); column 3 faces right = STFTR
+        self.assertEqual((gemini_face.COL["tl"], gemini_face.COL["tr"]), (1, 2))
+
+    def test_fit_maps_the_cell_onto_the_face_box(self):
+        xs, ys = gemini_face.canvas_map(199)
+        self.assertEqual((len(xs), len(ys)), (gen_hud.FW + 1, gen_hud.FH + 1))
+        self.assertAlmostEqual(ys[gemini_face.CANVAS_TOP], gemini_face.SRC_TOP)
+        self.assertAlmostEqual(ys[gemini_face.CANVAS_BOTTOM], gemini_face.SRC_BOTTOM)
+        self.assertAlmostEqual(float(np.interp(gen_hud.CX, np.arange(gen_hud.FW + 1), xs)), 199 / 2)
+        for name in gen_hud.FACE_LUMPS:                      # every box holds the rows the cell lands on
+            w, h, lo, to = gen_hud.FD_LUMPS[name]
+            self.assertLessEqual(-to, gemini_face.CANVAS_TOP, name)
+            self.assertGreaterEqual(-to + h, gemini_face.CANVAS_BOTTOM, name)
+
+    @staticmethod
+    def _synthetic_cell():
+        rgb = np.zeros((199, 199, 3), np.uint8)
+        rgb[:] = (255, 0, 255)                               # magenta
+        rgb[:, 40:160] = (150, 92, 50)                       # a brown block
+        rgb[20:34, 92:106] = (210, 30, 25)                   # a ~2x2-canvas-px red star
+        rgb[90:96, 60:80] = (240, 240, 235)                  # an eye white
+        return rgb, gemini_face.key_magenta(rgb)
+
+    def test_small_features_survive_the_reduction(self):
+        face = gemini_face.finish(gemini_face.reduce_cell(*self._synthetic_cell()))
+        a = face[..., 3] > 0
+        self.assertTrue(a.any())
+        self.assertFalse(a[:gemini_face.CANVAS_TOP].any())   # nothing above the box
+        red = a & (face[..., 0] > 120) & (face[..., 0].astype(int) > 2 * face[..., 1].astype(int))
+        self.assertGreaterEqual(int(red.sum()), 2)
+        self.assertLessEqual({tuple(int(v) for v in c) for c in face[a][:, :3]}, palette_v2())
+        self.assertTrue(set(np.unique(face[..., 3])) <= {0, 255})
+
+    def test_outline_darkens_the_silhouette_but_not_the_bottom_cut(self):
+        face = gemini_face.finish(gemini_face.reduce_cell(*self._synthetic_cell()))
+        ys, xs = np.nonzero(face[..., 3] > 0)
+        top = ys.min()
+        self.assertLess(int(face[top, xs[ys == top][0], :3].max()), 70)
+        self.assertGreater(int(face[gen_hud.FH - 2, 17, :3].max()), 70)
+
+    def test_skin_never_snaps_to_flesh_pink(self):
+        pink = set(gen_hud.palette.ramp_colours("flesh_pink"))
+        rgba = np.ones((1, 4, 4), float)
+        rgba[0, :, :3] = [(222, 150, 100), (110, 80, 70), (160, 100, 60), (90, 60, 45)]
+        out = gemini_face.snap_face(rgba)
+        self.assertFalse({tuple(int(v) for v in c) for c in out[0, :, :3]} & pink)
+
+    def test_glance_moves_the_eyes_one_pixel(self):
+        c = np.zeros((gen_hud.FH, gen_hud.FW, 4), np.uint8)
+        c[10:20, 5:30] = (150, 90, 45, 255)
+        c[15, 12] = (10, 10, 10, 255)
+        for dx in (-1, 1):
+            g = gemini_face.glance(c, [(10, 14, 16, 17)], dx)
+            self.assertEqual(tuple(int(v) for v in g[15, 12 + dx, :3]), (10, 10, 10))
+            self.assertTrue((g[:, :10] == c[:, :10]).all())          # nothing outside the box
+            self.assertTrue(((g[..., 3] > 0) == (c[..., 3] > 0)).all())
+
+
+SHEETS = HAVE_IMAGING and gemini_face.available()
+
+
+@unittest.skipUnless(SHEETS, "the CEO's Gemini face sheets are not in work/art/reference/ (local only)")
+class GeminiFaceBuildTests(unittest.TestCase):
+    """The 42 lumps from the real sheets."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.lumps = gemini_face.face_lumps()
+
+    def test_sizes_and_grab_match_freedoom(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            files = gemini_face.build(Path(tmp))
+            self.assertEqual(set(files), set(gen_hud.FACE_LUMPS))
+            self.assertEqual({p.parent.name for p in files.values()}, {gemini_face.OUT_SUB})
+            for name, p in files.items():
+                w, h, lo, to = gen_hud.FD_LUMPS[name]
+                data = p.read_bytes()
+                i = data.index(b"grAb")
+                self.assertEqual(struct.unpack(">ii", data[i + 4:i + 12]), (lo, to), name)
+                with Image.open(p) as im:
+                    self.assertEqual(im.size, (w, h), name)
+
+    def test_palette_and_hard_alpha(self):
+        pal = palette_v2()
+        for name, rgba in self.lumps.items():
+            self.assertTrue(set(np.unique(rgba[..., 3])) <= {0, 255}, name)
+            self.assertLessEqual({tuple(int(v) for v in c) for c in rgba[rgba[..., 3] > 0][:, :3]}, pal, name)
+
+    def test_all_42_differ(self):
+        seen = {}
+        for name, rgba in self.lumps.items():
+            key = rgba.tobytes() + bytes(rgba.shape)
+            self.assertNotIn(key, seen, f"{name} == {seen.get(key)}")
+            seen[key] = name
+
+    @staticmethod
+    def _red(rgba):
+        r, g, b = (rgba[..., i].astype(int) for i in range(3))
+        return (rgba[..., 3] > 0) & (r > 90) & (r > 2 * g) & (r > 2 * b)
+
+    def test_the_star_survives_and_blood_grows(self):
+        self.assertGreaterEqual(int(self._red(self.lumps["STFST01"])[:8].sum()), 2)    # the red star
+        self.assertGreater(int(self._red(self.lumps["STFST31"]).sum()),
+                           int(self._red(self.lumps["STFST01"]).sum()) + 10)
+
+    def test_god_eyes_glow_yellow(self):
+        g = self.lumps["STFGOD0"].astype(int)
+        yellow = (g[..., 3] > 0) & (g[..., 0] > 200) & (g[..., 1] > 160) & (g[..., 2] < 120)
+        self.assertGreaterEqual(int(yellow.sum()), 2)
+
+    def test_turns_face_opposite_ways(self):
+        for lv in range(5):                                  # the hat's star: left of the axis for TL, right for TR
+            cx = {k: np.nonzero(self._red(gemini_face.canvas(k, lv))[:10])[1].mean() for k in ("tl", "tr")}
+            self.assertLess(cx["tl"], gen_hud.CX, lv)
+            self.assertGreater(cx["tr"], gen_hud.CX, lv)
+
+    def test_head_kept_inside_the_boxes(self):
+        # only the torn flaps of row 4 (ouch, grin, dead) lose a column at a side
+        for name in gen_hud.FACE_LUMPS:
+            level, kind, gaze = gen_hud.face_lump_spec(name)
+            c = gemini_face.canvas(kind, level, gaze)[..., 3] > 0
+            w, h, lo, to = gen_hud.FD_LUMPS[name]
+            box = np.zeros_like(c)
+            box[-to:-to + h, -lo:-lo + w] = True
+            self.assertLessEqual(int((c & ~box)[:22].sum()), 15, name)     # above the shoulders
 
 
 if __name__ == "__main__":

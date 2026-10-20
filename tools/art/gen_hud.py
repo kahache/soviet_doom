@@ -144,6 +144,7 @@ LABELS = {
 }
 BAR_OPTIONS = ("A", "B", "C")
 FACE_OPTIONS = ("A", "B", "C")
+FACE_SOURCES = ("drawn", "gemini")   # --face: the drawn sweep or the Gemini sheets (D89)
 DIGIT_OPTIONS = ("N1", "N2", "N3")
 RECOMMENDED = {"bar": "A", "face": "A", "digits": "N2"}
 
@@ -1653,7 +1654,19 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--stamp", help="YYYY-MM-DD_HHMM: also write the preview sheet")
     ap.add_argument("--out", type=Path, default=OUT_DIR)
+    ap.add_argument("--face", choices=FACE_SOURCES, default="drawn",
+                    help="drawn: the M2e sweep (bars, digits, drawn faces A-C); "
+                         "gemini: the 42 STF lumps from the CEO's Gemini sheets (D89, "
+                         "tools/art/gemini_face.py) under OUT/face_gemini/")
     args = ap.parse_args(argv)
+    if args.face == "gemini":
+        import gemini_face
+        files = gemini_face.build(args.out)
+        print(f"wrote {len(files)} face lumps under {Path(args.out) / gemini_face.OUT_SUB}")
+        if args.stamp:
+            p = gemini_face.preview(PREVIEW_DIR / f"{args.stamp}_M4_face-gemini.png")
+            print(f"wrote {p}")
+        return
     man = build(args.out)
     print(f"wrote {len(man['files'])} lumps under {args.out}")
     if args.stamp:
