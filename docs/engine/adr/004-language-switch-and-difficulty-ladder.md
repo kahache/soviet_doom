@@ -154,6 +154,24 @@ a copy of GZDoom's `IfGame(Doom)` main menu with the one number changed.
 **Consequence:** that copy must be re-diffed against
 `gzdoom.pk3/menudef.txt` whenever the engine is upgraded — debt T14.
 
+### D-004-7 — The row maps other spellings of a language; it still writes nothing (bug QA-G6-1, 2026-10-20)
+
+The G6 review (`docs/qa/2026-10-14_2356_G6-readiness.md`) saw the row read
+"Unknown" again: the `language` CVar can hold codes outside our three
+entries (`eng` from GZDoom's own Language menu, `enu`, `en`, `rus` from the
+console). Adding them to the list would put "English" in the cycle three
+times. **Decision:** the row is `SDLanguageOption`, i.e. the ZScript class
+`OptionMenuItemSDLanguageOption` (`src/zscript/sd/language_option.zs`), the
+engine's `Option` row with only `GetSelection` overridden: an exact entry
+wins; otherwise `""`/`auto` show Automatic, any `ru*` shows Russian, and
+everything else shows English, because the mod ships only `[enu default]`
+and `[ru]`. It only READS the CVar, so D-004-4 stands: the one write is the
+engine's inherited `SetSelection`, from `MenuEvent`. Pinned by
+`LanguageRowTest` in `tests/test_language.py`. Engine check owed (D26):
+`language eng`, `language enu`, `language rus` on the console, then
+Options > Soviet Doom, and also `openmenu SD_OptionsMenu` from the console
+(the route that aborted in D-004-4).
+
 ## Consequences
 
 - src/zscript/sd/language.zs (historical) is deleted and `SD_LANG_CODE` is gone from

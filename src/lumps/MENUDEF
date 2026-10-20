@@ -256,7 +256,10 @@ LISTMENU "MainMenu"
 OptionMenu "SD_OptionsMenu"
 {
 	Title "$SD_OPTMNU_TITLE"
-	Option "$SD_OPTMNU_LANGUAGE", "language", "SD_LanguageValues"
+	// SDLanguageOption = the engine's Option row that also names "eng",
+	// "enu", "rus"... instead of "Unknown" (bug QA-G6-1). It only READS
+	// the CVar; src/zscript/sd/language_option.zs says why that matters.
+	SDLanguageOption "$SD_OPTMNU_LANGUAGE", "language", "SD_LanguageValues"
 	StaticText " "
 	StaticText "$SD_OPTMNU_LANGHELP"
 	StaticText " "
