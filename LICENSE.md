@@ -54,28 +54,30 @@ Third-party material keeps its own licence, as recorded in
 
 # Лицензия (D15)
 
-Soviet Doom лицензируется по компонентам:
+Soviet Doom выпускается под двумя лицензиями, в зависимости от компонента:
 
 - **Код** (`tools/`, `tests/`, `src/zscript/`, `src/maps/*/map.py`, скрипты
-  сборки и арта): **GNU GPL-3.0 или новее**.
-- **Ассеты и документация** (текстуры, флэты, спрайты, звуки, музыка, данные
-  карт, лор, всё в `assets/`, `docs/` и `src/lumps/`):
+  сборки и генерации графики): **GNU GPL-3.0 или новее**.
+  https://www.gnu.org/licenses/gpl-3.0.html
+- **Ресурсы и документация** (текстуры, флэты пола и потолка, спрайты, звуки,
+  музыка, данные карт, описание мира, всё в `assets/`, `docs/` и `src/lumps/`):
   **Creative Commons BY-NC-SA 4.0**.
+  https://creativecommons.org/licenses/by-nc-sa/4.0/
 
 Сторонние материалы сохраняют свои лицензии и перечислены с источниками в
 `docs/art/LICENSES.md`:
 
 - **Freedoom** (freedoom.github.io), © участники проекта Freedoom,
   модифицированная лицензия BSD (BSD 3-clause). Графика, созданная на основе
-  пикселей Freedoom (сейчас - руки с ТТ-33 от первого лица, перекрашенные
+  пикселей Freedoom (сейчас — руки с ТТ-33 от первого лица: перекрашенные
   руки с пистолетом из Freedoom; позже могут добавиться другие виды оружия),
-  распространяется по лицензии Freedoom, текст уведомления которой - в
-  `LICENSE-FREEDOOM-BSD-3.txt`; наши изменения - по CC BY-NC-SA 4.0.
+  распространяется по лицензии Freedoom, текст уведомления которой — в
+  `LICENSE-FREEDOOM-BSD-3.txt`; наши изменения к ней — по CC BY-NC-SA 4.0.
   Остальное из Freedoom читается из IWAD игрока и не распространяется.
-- Титульная музыка «Интернационал» Пьера Дегейтера - общественное
-  достояние; MIDI-секвенция **Джерри Энгельбаха** (Jerry Engelbach), по его
-  лицензии с указанием авторства - указание автора обязательно
-  (`docs/sound/MUSIC-RIGHTS.md` §4.5).
+- Титульная музыка `assets/music/D_SDINTL.mid`, «Интернационал» Пьера
+  Дегейтера, — общественное достояние; MIDI-секвенция **Джерри Энгельбаха**
+  (Jerry Engelbach) используется по его лицензии с обязательным указанием
+  авторства (`docs/sound/MUSIC-RIGHTS.md` §4.5).
 
 Ничего из коммерческих игр не включено. В релизном архиве, где нет папки
 `docs/` репозитория, эти реестры воспроизводит `CREDITS.txt`: каждый
@@ -88,17 +90,17 @@ Soviet Doom лицензируется по компонентам:
 публикуют правообладатели, и входят в релизный архив вместе с ним
 (`tools/release.py`):
 
-- [`LICENSE-GPL-3.0.txt`](LICENSE-GPL-3.0.txt): GNU General Public License,
-  версия 3, — для **кода** (GPL-3.0 или новее).
+- [`LICENSE-GPL-3.0.txt`](LICENSE-GPL-3.0.txt): GNU General Public License
+  версии 3; относится к **коду** (GPL-3.0 или новее).
   Источник: https://www.gnu.org/licenses/gpl-3.0.txt
 - [`LICENSE-CC-BY-NC-SA-4.0.txt`](LICENSE-CC-BY-NC-SA-4.0.txt): Creative
   Commons Attribution-NonCommercial-ShareAlike 4.0 International Public
-  License — для **ассетов и документации**.
+  License; относится к **ресурсам и документации**.
   Источник: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt
 - [`LICENSE-FREEDOOM-BSD-3.txt`](LICENSE-FREEDOOM-BSD-3.txt): уведомление
-  об авторском праве, условия и отказ от гарантий Freedoom (BSD 3-clause) —
-  для **графики на основе Freedoom**. Источник (Freedoom v0.13.0):
+  об авторском праве, условия и отказ от гарантий Freedoom (BSD 3-clause);
+  относится к **графике на основе Freedoom**. Источник (Freedoom v0.13.0):
   https://raw.githubusercontent.com/freedoom/freedoom/v0.13.0/COPYING.adoc
 
-Сторонние материалы сохраняют свои лицензии (`docs/art/LICENSES.md`); эти
-тексты их не заменяют.
+Сторонние материалы сохраняют свои лицензии, как записано в
+`docs/art/LICENSES.md`; эти тексты их не заменяют.

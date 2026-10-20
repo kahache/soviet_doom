@@ -155,7 +155,7 @@ LINES = {
     "SD_GOT_MEGAARMOR": ("A steel breastplate and helmet!", "Стальной нагрудник и каска!"),
     "SD_GOT_MAP": ("A commander's map case. The whole area is on it.",
                    "Командирский планшет. На карте — вся местность."),
-    "SD_GOT_BACKPACK": ("A paratrooper's pack. Everything you can carry!", "Ранец десантника. Всё, что унесёшь!"),
+    "SD_GOT_BACKPACK": ("A paratrooper's pack. Everything you can carry!", "Рюкзак десантника. Всё, что можно унести!"),
     "SD_PICKUP_YELLOWPASS": ("Yellow pass.", "Жёлтый пропуск."),
     "SD_PICKUP_REDPASS": ("Red pass.", "Красный пропуск."),
     "SD_PICKUP_KATYUSHA": ("You got the hand Katyusha. Prototype. Do not drop it.",
