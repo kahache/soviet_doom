@@ -169,6 +169,8 @@ class PrefixTests(unittest.TestCase):
         for k, sh in self.g.SHELLS.items():
             for png in (PROJECT_ROOT / "assets").rglob(f"{sh.sprite}*.png"):   # only after the install: ours
                 ours = self.g.full_path(k, png.stem[4])
+                if not ours.parent.is_dir():
+                    continue    # a clean checkout has no gitignored work/ (QA-M4-1)
                 self.assertTrue(ours.is_file(), png)
                 self.assertEqual(png.read_bytes(), ours.read_bytes(), png)
             if not any((PROJECT_ROOT / "assets").rglob(f"{sh.sprite}*.png")):
