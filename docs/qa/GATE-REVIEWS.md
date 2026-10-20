@@ -750,3 +750,14 @@ each top behave as the walk model says; and whether the General and the
 drum's guards stand in E0's corridor when `sdclear` runs (if they do, they
 are killed and listed as blockers, never hidden). The PM's command:
 `SD_ALLOW_ENGINE=1 .venv/Scripts/python.exe tools/route.py --route tankograd-critical --keep-evidence`.
+
+## G6 — v1.0 release (2026-10-20, PM)
+
+**PASS (friends release, D97/D98).** Evidence `docs/qa/evidence/2026-10-20_1635_M4_v1-signoff.md`:
+clean-clone suite PASS; the deterministic v1.0 zip with verified checksums;
+11 of 11 scripted routes PASS on the zip's own PK3 on skills 2-4 with clean
+logs; Russian screens seen. M1 passed (D70); M2 every player-facing asset ours
+(the M2 audit's list closed by D80-D92); M3 approved sounds, voices and music
+installed (D74-D96); M4 licences, credits incl. every AI tool (D93), README
+EN/RU, the Russian review N11. Left for the CEO's own play: sound and music
+by ear, the two-IWAD dialog, the credits screen at 16:9.
