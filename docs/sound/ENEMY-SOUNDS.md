@@ -9,11 +9,13 @@ the naming rule of §2.3; the SNDINFO contract is `docs/engine/MOD-SPEC.md`
 **sound-effect and voice rights** only.
 
 > **Status (2026-10-20): INSTALLED (N9e, §5.12)** the 30 sounds and 5 beds
-> the CEO approved in D83, the takes of D86 and the seven voice takes of
-> D91: 64 lumps in `assets/sounds/enemies/`. Two of the twelve voices are
-> ours (the rifleman's sight, the trooper's idle); the other ten wait for a
-> shouted reference (D91), and the beds wait, packed, to go under them.
-> What follows is the history.
+> the CEO approved in D83, the takes of D86, the seven voice takes of D91
+> and the seventeen of D96: 81 lumps in `assets/sounds/enemies/`. Eight of
+> the twelve voices are ours (the rifleman's idle, sight and death; the
+> trooper's idle, sight and pain; the General's sight and his order); the
+> rifleman's pain, the trooper's death and the General's pain and death
+> keep Freedoom's (no take approved), and the beds wait, packed, to be
+> mixed under their voices. What follows is the history.
 >
 > **Status (2026-10-13, evening): the 35 non-voice lumps are DRAFTED, plus
 > eight beds for the voices; nothing approved, nothing in the PK3.** The
@@ -610,8 +612,9 @@ the event's initial + `B` + take (`SDRRIDB1`, `SDLTRPB1`-`3`), named
 `sd/bed/<actor>/<event>` in `SNDINFO`, and nothing plays it. It is mixed
 under its voice take when the CEO approves the takes (D87, §5.10: the
 timing in the bed is the proposal), and the voice lump keeps the card's
-name (`SDRRIDTH`). Until then the rifleman, the trooper and the General
-speak with Freedoom's voices, without a bed; hear a bed with the console's
+name (`SDRRIDTH`, R09's take since D96: the bed under it is still
+unmixed, a new sound the CEO has not heard). The voices speak without a
+bed, ours (D91, D96) or Freedoom's; hear a bed with the console's
 `playsound sd/bed/legiontrooper/death`. (The Legion's idle bed sits at
 -31.6 dB A because `DSPOSACT`, the murmur it goes under, is -28.6.)
 
@@ -773,6 +776,62 @@ Freedoom's lumps until a shouted reference exists (D91).
 | `SDLTRAC4` | L02 t02 | `sd/mon/legiontrooper/active/4` | -28.6 (`DSPOSACT`) | `c2c02cded81348a5a8264a1c0d42a7532e410145e4184572d178b4654ff7f4c6` |
 | `SDLTRAC5` | L02 t03 | `sd/mon/legiontrooper/active/5` | -28.6 (`DSPOSACT`) | `5acad54da26ab55e5fe929c8c8a42e6c46240a5c6d290a4b572b41aaf1656a16` |
 
+**The seventeen voice takes (D96, N9e).** The aggressive round
+(`docs/art/previews/2026-10-20_1330_P2_voice-takes-aggressive.html`, 40/40
+judged): Chatterbox Multilingual cloning a shouted reference instead of a
+predefined voice, the answer to D91's diagnosis (the model copies the
+reference's emotion). The references (Thorsten Müller's "angry" style of
+the Thorsten-Voice emotional set, CC0; kurt's "Soldier Voice Acting",
+CC-BY 3.0, OpenGameArt; HaelDB's "Male Grunt/Yelling sounds", CC0) stay
+in `work/` and are not distributed; `work/audio/voice_takes/AI-LOG.csv`
+gives each take's reference with its SHA-256, the text, the seed and the
+settings; kurt's credit is owed and given (`docs/art/LICENSES.md`, the
+in-game credits, CREDITS.txt). `master_enemy_sfx.py --voices` copies the
+processed OGGs from `work/audio/voice_takes/aggressive/` byte for byte,
+after the same checks as D91's, with one exception: **`SDGENSU1`** (G02
+t13) decoded to -0.02 dBFS, over the -0.1 dBFS ceiling (a clip waiting
+in any 16-bit path), so it got the codec pass the D83/D86 sounds got (§5.12 "The codec
+check"): its master, which `process_voice_takes.process_wave` re-renders
+byte-identically from the raw take, limited by **0.6 dB** of peak
+(`VOICE_CODEC_TRIMMED`), now -0.49 dBFS decoded and -9.97 dB A against
+-9.60 (the window is ±1). The other sixteen ship as the page played them.
+
+Where they go (VOICE-SCRIPT §1): a line with several approved takes
+contributes all of them, and a sound with several takes is a `$random`
+group, numbered on after D91's: the rifleman's sight is now five takes
+(R06 t01, t03; R04 t12, t13; R05 t12), the trooper's idle six (L01, L02,
+L03 t12), and new groups are the rifleman's idle (R01-R03), the trooper's
+sight (L04 t12, t14, L05, L06) and pain (L08 t14, t15) and the General's
+order (G02 t13, t14). A sound with one take ships under its card's name
+(`SDRRIDTH`, `SDGENSIT`). No ZScript changed: every alias was already
+played (the rifleman's and trooper's `SeeSound`, `ActiveSound`,
+`PainSound`, `DeathSound` through `A_Look`/`A_Chase`, `A_Pain`,
+`A_Scream`; the General's `SeeSound`; his order by `A_StartSound` in
+`A_SD_GeneralSummon`, the frame that prints `SD_GENERAL_ORDER`), only
+`SNDINFO`'s right-hand column. Still Freedoom's (no take approved): the
+rifleman's pain (`DSPOPAIN`), the trooper's death (`DSPODTH2`), the
+General's pain (`DSDMPAIN`) and death (`DSCYBDTH`).
+
+| Lump | Take | Line | Reference | Logical name | Target, dB A (from) | Installed OGG SHA-256 |
+|---|---|---|---|---|---|---|
+| `SDRRIAC1` | R01 t13 | "Stellung halten!" | Thorsten | `sd/mon/reichrifleman/active/1` | -28.6 (`DSPOSACT`) | `5d34cb6f1e99f8ad4bfd315029f59eb59a6e7351ea1fe3e3f1b3878577f61be7` |
+| `SDRRIAC2` | R02 t11 | "Augen auf!" | Thorsten | `sd/mon/reichrifleman/active/2` | -28.6 (`DSPOSACT`) | `18b440aa6fa0206097308acc0dfcba3668c0f7d0ded32cc7fff14a2405738a6c` |
+| `SDRRIAC3` | R03 t14 | "Ruhe da hinten!" | Thorsten | `sd/mon/reichrifleman/active/3` | -28.6 (`DSPOSACT`) | `56ceff7ffae58567fbe8bf41be4d43f2858d219cb8ff3b284111222ebbb18b80` |
+| `SDRRISI4` | R04 t12 | "Feind!" | Thorsten | `sd/mon/reichrifleman/sight/4` | -10.1 (`DSPOSIT1`) | `fa100a4f8e29167ab3be76651c42b14671a86f47f7ee68fb223deb71589f7089` |
+| `SDRRISI5` | R04 t13 | "Feind!" | Thorsten | `sd/mon/reichrifleman/sight/5` | -10.1 (`DSPOSIT1`) | `a352944e75d086f9a789d9fcf6f539e2a30c29a13a4da6285f205ac0cc4aa552` |
+| `SDRRISI6` | R05 t12 | "Da!" | Thorsten | `sd/mon/reichrifleman/sight/6` | -10.1 (`DSPOSIT1`) | `ac6d58699d67c41b2988344f133f8cfa3a2cfa6be79fb103b7cad85c5653a019` |
+| `SDRRIDTH` | R09 t12 | "Sani…" | HaelDB | `sd/mon/reichrifleman/death` | -10.6 (`DSPODTH1`) | `9de406901cec90a6d6b8f03080ad750c4feaa9651e0550530206e1d89d1552fa` |
+| `SDLTRAC6` | L03 t12 | "Command, say again?" | kurt | `sd/mon/legiontrooper/active/6` | -28.6 (`DSPOSACT`) | `a7c20685c41a9b9314ae16e05eadc6424fe77098e7c2dc6802b57af00bf95593` |
+| `SDLTRSI1` | L04 t12 | "Contact!" | kurt | `sd/mon/legiontrooper/sight/1` | -11.2 (`DSPOSIT2`) | `0b5ab35624419e5d91b9d32186c878f7ce00d0696dab8ff5e6fbc0c2b047c1ad` |
+| `SDLTRSI2` | L04 t14 | "Contact!" | kurt | `sd/mon/legiontrooper/sight/2` | -11.2 (`DSPOSIT2`) | `0fdf1676b4b23efe2b5b6090be356d43a8b9ae62c8c60d7d5af1025579085f62` |
+| `SDLTRSI3` | L05 t13 | "Hostile, front!" | kurt | `sd/mon/legiontrooper/sight/3` | -11.2 (`DSPOSIT2`) | `cc1fd41c09113e96607edce43b7e9906a17c7b2f1e92e1e7ccd6f33b26ea4438` |
+| `SDLTRSI4` | L06 t13 | "Got movement!" | kurt | `sd/mon/legiontrooper/sight/4` | -11.2 (`DSPOSIT2`) | `815ab1a72ec0842a411f96ab484be3e56693a54727640b171e8d27a5039d6ffa` |
+| `SDLTRPA1` | L08 t14 | "I'm hit!" | HaelDB | `sd/mon/legiontrooper/pain/1` | -11.4 (`DSPOPAIN`) | `2f4b26a5e4632a90ce8b8e3bb62915d2c17567e7fc28154b656574c5fb436bee` |
+| `SDLTRPA2` | L08 t15 | "I'm hit!" | HaelDB | `sd/mon/legiontrooper/pain/2` | -11.4 (`DSPOPAIN`) | `249b167901c1122321c5dca0af756f15fe74c8310b372ae91928ce7b86733531` |
+| `SDGENSIT` | G01 t12 | "Engage!" | kurt | `sd/mon/general/sight` | -14.0 (`DSCYBSIT`) | `99669afd3d20cc603180f4d572694ddef781f2a4ace19e4927991c36ca9154dc` |
+| `SDGENSU1` | G02 t13 | "Vorwärts!" | kurt | `sd/mon/general/summon/1` | -9.6 (`DSVILSIT`) | `10184bed9a802498928bd273d5e8b47a80c6fb1764b632a7b2aef014cf6a7785` |
+| `SDGENSU2` | G02 t14 | "Vorwärts!" | Thorsten | `sd/mon/general/summon/2` | -9.6 (`DSVILSIT`) | `31d103bb6d541c19090f577a01292ec7e701950139d75bdaedc059dfe2dfea87` |
+
 **What to listen for in the engine (the PM, D26).** On the range and in
 MAP01: (1) the log has no "Unknown sound"; (2) the rifleman's shot, the
 Stormtrooper's pain and death and the Panzermensch's pain change from one
@@ -781,9 +840,15 @@ Doom's own zombieman sight); (3) the Legion's shotgun against the IZh-58's
 (`SDLTRATK` alt2 at `DSDSHTGN`'s level); (4) the short ones above, on
 laptop speakers: the hound's bite, the Panzermensch's sight, the
 Doughboy's idle drone; (5) the Panzermensch's step, one per walk cycle,
-not tiring; (6) the rifleman's sight ("Kontakt!") and the trooper's idle
-chatter are D91's Chatterbox takes, varying; the other ten voices are still
-Freedoom's and no bed is heard.
+not tiring; (6) the voices of D91 and D96 vary from one time to the next
+(the rifleman: idle German orders, "Kontakt!"/"Feind!"/"Da!" on sight,
+"Sani…" dying; the trooper: idle radio chatter, four sight calls, "I'm
+hit!" in pain; the General: "Engage!" on sight and "Vorwärts!" with the
+printed order, heard across the arena); the long ones do not cut off oddly
+on CHAN_VOICE (the trooper's "I'm hit!" is 1.3-1.6 s where the script
+asked 0.4-0.5 s, and a second hit restarts it); the rifleman's pain, the
+trooper's death and the General's pain and death are still Freedoom's and
+no bed is heard.
 
 
 ---

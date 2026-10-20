@@ -456,7 +456,7 @@ CREDITS_HEADINGS = {
 # D75, D79, D93: the release names every AI tool the game was made with and
 # what each did. Two claims depend on what the PK3 packs, so they are read
 # from it rather than written by hand (AiShips): the sergeant's face drawn
-# from Gemini images (D89, D90) and voice lines from Chatterbox (D87, D91).
+# from Gemini images (D89, D90) and voice lines from Chatterbox (D87, D91, D96).
 # The in-game screen carries a short form (SD_CRED_AI_*, D93). The Russian is
 # reviewed with the rest of the in-game text in N11.
 AI_TOOLS = ("Claude", "Anthropic", "Claude Code", "Google Gemini", "Fooocus / SDXL",
@@ -502,7 +502,9 @@ _AI_TEXT = {
                       "voice lines, made with its predefined voices; none is in this "
                       "release, where the enemies speak with Freedoom's voices."),
         "voices_yes": ("Chatterbox (Resemble AI), run locally. Some of the enemies' voice "
-                       "lines, made with its predefined voices; the others are Freedoom's."),
+                       "lines, made with its predefined voices or cloned from shouted "
+                       "reference recordings (by kurt, CC-BY 3.0; Thorsten Müller and "
+                       "HaelDB, CC0), which are not distributed; the others are Freedoom's."),
     },
     LANG_RUSSIAN: {
         "claude": ("Claude (Anthropic) в Claude Code. Руководитель проекта вёл разработку "
@@ -525,8 +527,10 @@ _AI_TEXT = {
                       "врагов, озвученные стандартными голосами модели; в этот выпуск они "
                       "не вошли, враги говорят голосами Freedoom."),
         "voices_yes": ("Chatterbox (Resemble AI), локальный запуск. Часть реплик врагов, "
-                       "озвученная стандартными голосами модели; остальные — голоса "
-                       "Freedoom."),
+                       "озвученная стандартными голосами модели или голосами, "
+                       "клонированными с записей-образцов криков (kurt, CC-BY 3.0; "
+                       "Thorsten Müller и HaelDB, CC0), которые не распространяются; "
+                       "остальные — голоса Freedoom."),
     },
 }
 

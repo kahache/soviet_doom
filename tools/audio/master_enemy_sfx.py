@@ -56,7 +56,7 @@ Run:
     .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --list
     .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py            # masters + MANIFEST in work/
     .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --install  # and the OGGs into assets/
-    .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --voices --install  # D91's seven voice takes
+    .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --voices --install  # the voice takes of D91 and D96
     .venv/Scripts/python.exe -m unittest tests.test_enemy_sfx_install -v
 
 Deterministic, as the weapon pass: the WAV masters are byte-identical run
@@ -110,6 +110,7 @@ FREEDOOM_LOUD_A: dict[str, float] = {
     "DSMETAL": -14.71, "DSRLAUNC": -14.24, "DSPODTH1": -10.60, "DSPOSACT": -28.63,
     "DSPOSIT2": -11.15, "DSCYBDTH": -11.26, "DSPOPAIN": -11.37, "DSPODTH2": -8.28,
     "DSPISTOL": -10.39, "DSDSHTGN": -7.94, "DSBGDTH1": -7.38, "DSPOSIT1": -10.12,
+    "DSCYBSIT": -14.01, "DSVILSIT": -9.60,
 }
 FREEDOOM_TOLERANCE_DB = mws.FREEDOOM_TOLERANCE_DB
 
@@ -539,39 +540,92 @@ def plan_text() -> str:
 # not approved yet.
 VOICE_DIR = PROJECT_ROOT / "work" / "audio" / "voice_takes"
 VOICE_DAY = "20261020"
+# --- D96: seventeen takes of the aggressive round ----------------------------------
+# docs/art/previews/2026-10-20_1330_P2_voice-takes-aggressive.html, 40/40 judged.
+# OK: R01 t13, R02 t11, R03 t14 (the rifleman's idle), R04 t12+t13, R05 t12
+# (his sight, beside D91's R06), R09 t12 (his death), L03 t12 (the trooper's
+# idle, beside D91's L01/L02), L04 t12+t14, L05 t13, L06 t13 (his sight), L08
+# t14+t15 (his pain), G01 t12 (the General's sight), G02 t13+t14 (his order,
+# "Vorwärts!"). Cloned from shouted references (AI-LOG.csv, column voz:
+# Thorsten-Voice "angry" CC0, kurt's "Soldier Voice Acting" CC-BY 3.0, HaelDB
+# CC0; the references are not distributed), processed by
+# process_voice_takes.py into VOICE_AGGRESSIVE_DIR. All ship byte for byte but
+# one: G02 t13 decodes to -0.02 dBFS, so it gets the codec pass the D83/D86
+# sounds got (codec_safe's loop on its master, which
+# process_voice_takes.process_wave re-renders byte-identically from the raw
+# take): VOICE_CODEC_TRIMMED. Names: a sound with one approved take ships under
+# its card's name (SDRRIDTH, SDGENSIT); several are a $random group, the card's
+# 7 letters plus the member number, numbered on after D91's (the rifleman's
+# sight 4-6 beside R06's 1 and 3, the trooper's idle 6).
+VOICE_AGGRESSIVE_DIR = VOICE_DIR / "aggressive"
 
 
 @dataclass(frozen=True)
 class VoiceInstall:
     lump: str
-    take: str            # the processed file's stem in VOICE_DIR
+    take: str            # the processed file's stem in its folder
     logical: str
-    group: str
+    group: str           # the name the game asks for ($random when several share it)
     ref: str
+    decision: str = "D91"
 
     @property
     def target_db(self) -> float:
         return FREEDOOM_LOUD_A[self.ref]
 
     @property
+    def folder(self) -> Path:
+        return VOICE_DIR if self.decision == "D91" else VOICE_AGGRESSIVE_DIR
+
+    @property
     def path(self) -> Path:
-        return VOICE_DIR / f"{self.take}.ogg"
+        return self.folder / f"{self.take}.ogg"
+
+    @property
+    def raw_path(self) -> Path:
+        return self.folder / "raw" / f"{self.take}.wav"
 
 
-def _voice(lump: str, line: str, card: str, take: int, logical: str, n: int, ref: str) -> VoiceInstall:
-    return VoiceInstall(lump, f"{line}_{card}_ai_chatterbox_{VOICE_DAY}_t{take:02d}", f"{logical}/{n}", logical, ref)
+def _voice(lump: str, line: str, card: str, take: int, logical: str, n: int | None, ref: str,
+           decision: str = "D91") -> VoiceInstall:
+    """n None: the sound's only take, under the logical name itself (no $random)."""
+    name = logical if n is None else f"{logical}/{n}"
+    return VoiceInstall(lump, f"{line}_{card}_ai_chatterbox_{VOICE_DAY}_t{take:02d}", name, logical, ref,
+                        decision)
 
 
+_RR, _LT, _GN = "sd/mon/reichrifleman", "sd/mon/legiontrooper", "sd/mon/general"
 VOICE_INSTALLS: tuple[VoiceInstall, ...] = (
-    _voice("SDRRISI1", "R06", "SDRRISIT", 1, "sd/mon/reichrifleman/sight", 1, "DSPOSIT1"),
-    _voice("SDRRISI3", "R06", "SDRRISIT", 3, "sd/mon/reichrifleman/sight", 3, "DSPOSIT1"),
-    _voice("SDLTRAC1", "L01", "SDLTRACT", 1, "sd/mon/legiontrooper/active", 1, "DSPOSACT"),
-    _voice("SDLTRAC2", "L01", "SDLTRACT", 3, "sd/mon/legiontrooper/active", 2, "DSPOSACT"),
-    _voice("SDLTRAC3", "L02", "SDLTRACT", 1, "sd/mon/legiontrooper/active", 3, "DSPOSACT"),
-    _voice("SDLTRAC4", "L02", "SDLTRACT", 2, "sd/mon/legiontrooper/active", 4, "DSPOSACT"),
-    _voice("SDLTRAC5", "L02", "SDLTRACT", 3, "sd/mon/legiontrooper/active", 5, "DSPOSACT"),
+    _voice("SDRRISI1", "R06", "SDRRISIT", 1, f"{_RR}/sight", 1, "DSPOSIT1"),
+    _voice("SDRRISI3", "R06", "SDRRISIT", 3, f"{_RR}/sight", 3, "DSPOSIT1"),
+    _voice("SDLTRAC1", "L01", "SDLTRACT", 1, f"{_LT}/active", 1, "DSPOSACT"),
+    _voice("SDLTRAC2", "L01", "SDLTRACT", 3, f"{_LT}/active", 2, "DSPOSACT"),
+    _voice("SDLTRAC3", "L02", "SDLTRACT", 1, f"{_LT}/active", 3, "DSPOSACT"),
+    _voice("SDLTRAC4", "L02", "SDLTRACT", 2, f"{_LT}/active", 4, "DSPOSACT"),
+    _voice("SDLTRAC5", "L02", "SDLTRACT", 3, f"{_LT}/active", 5, "DSPOSACT"),
+    # D96
+    _voice("SDRRIAC1", "R01", "SDRRIACT", 13, f"{_RR}/active", 1, "DSPOSACT", "D96"),
+    _voice("SDRRIAC2", "R02", "SDRRIACT", 11, f"{_RR}/active", 2, "DSPOSACT", "D96"),
+    _voice("SDRRIAC3", "R03", "SDRRIACT", 14, f"{_RR}/active", 3, "DSPOSACT", "D96"),
+    _voice("SDRRISI4", "R04", "SDRRISIT", 12, f"{_RR}/sight", 4, "DSPOSIT1", "D96"),
+    _voice("SDRRISI5", "R04", "SDRRISIT", 13, f"{_RR}/sight", 5, "DSPOSIT1", "D96"),
+    _voice("SDRRISI6", "R05", "SDRRISIT", 12, f"{_RR}/sight", 6, "DSPOSIT1", "D96"),
+    _voice("SDRRIDTH", "R09", "SDRRIDTH", 12, f"{_RR}/death", None, "DSPODTH1", "D96"),
+    _voice("SDLTRAC6", "L03", "SDLTRACT", 12, f"{_LT}/active", 6, "DSPOSACT", "D96"),
+    _voice("SDLTRSI1", "L04", "SDLTRSIT", 12, f"{_LT}/sight", 1, "DSPOSIT2", "D96"),
+    _voice("SDLTRSI2", "L04", "SDLTRSIT", 14, f"{_LT}/sight", 2, "DSPOSIT2", "D96"),
+    _voice("SDLTRSI3", "L05", "SDLTRSIT", 13, f"{_LT}/sight", 3, "DSPOSIT2", "D96"),
+    _voice("SDLTRSI4", "L06", "SDLTRSIT", 13, f"{_LT}/sight", 4, "DSPOSIT2", "D96"),
+    _voice("SDLTRPA1", "L08", "SDLTRPAI", 14, f"{_LT}/pain", 1, "DSPOPAIN", "D96"),
+    _voice("SDLTRPA2", "L08", "SDLTRPAI", 15, f"{_LT}/pain", 2, "DSPOPAIN", "D96"),
+    _voice("SDGENSIT", "G01", "SDGENSIT", 12, f"{_GN}/sight", None, "DSCYBSIT", "D96"),
+    _voice("SDGENSU1", "G02", "SDGENSUM", 13, f"{_GN}/summon", 1, "DSVILSIT", "D96"),
+    _voice("SDGENSU2", "G02", "SDGENSUM", 14, f"{_GN}/summon", 2, "DSVILSIT", "D96"),
 )
-# SHA-256 of each installed OGG (= the processed take in VOICE_DIR).
+VOICES_BY_LUMP = {v.lump: v for v in VOICE_INSTALLS}
+# dB the codec pass took off a voice take's master peak (codec_safe's loop and margin).
+VOICE_CODEC_TRIMMED: dict[str, float] = {"SDGENSU1": 0.6}
+# SHA-256 of each installed OGG (= the processed take in its folder, but for the trimmed).
 VOICE_SHA256: dict[str, str] = {
     "SDRRISI1": "dd56db85f651faf912cf09031daa4f5a726455d03758531c809584f1b1e1ef18",
     "SDRRISI3": "9b8063c21dd9caa51f87562ae28de2a7eacdbffb002ce2944cf38cfe8fa7be2b",
@@ -580,23 +634,83 @@ VOICE_SHA256: dict[str, str] = {
     "SDLTRAC3": "143887b4851dda474433f5ba465b963677ed33675eb9f9f09236b266a059f825",
     "SDLTRAC4": "c2c02cded81348a5a8264a1c0d42a7532e410145e4184572d178b4654ff7f4c6",
     "SDLTRAC5": "5acad54da26ab55e5fe929c8c8a42e6c46240a5c6d290a4b572b41aaf1656a16",
+    # D96
+    "SDRRIAC1": "5d34cb6f1e99f8ad4bfd315029f59eb59a6e7351ea1fe3e3f1b3878577f61be7",
+    "SDRRIAC2": "18b440aa6fa0206097308acc0dfcba3668c0f7d0ded32cc7fff14a2405738a6c",
+    "SDRRIAC3": "56ceff7ffae58567fbe8bf41be4d43f2858d219cb8ff3b284111222ebbb18b80",
+    "SDRRISI4": "fa100a4f8e29167ab3be76651c42b14671a86f47f7ee68fb223deb71589f7089",
+    "SDRRISI5": "a352944e75d086f9a789d9fcf6f539e2a30c29a13a4da6285f205ac0cc4aa552",
+    "SDRRISI6": "ac6d58699d67c41b2988344f133f8cfa3a2cfa6be79fb103b7cad85c5653a019",
+    "SDRRIDTH": "9de406901cec90a6d6b8f03080ad750c4feaa9651e0550530206e1d89d1552fa",
+    "SDLTRAC6": "a7c20685c41a9b9314ae16e05eadc6424fe77098e7c2dc6802b57af00bf95593",
+    "SDLTRSI1": "0b5ab35624419e5d91b9d32186c878f7ce00d0696dab8ff5e6fbc0c2b047c1ad",
+    "SDLTRSI2": "0fdf1676b4b23efe2b5b6090be356d43a8b9ae62c8c60d7d5af1025579085f62",
+    "SDLTRSI3": "cc1fd41c09113e96607edce43b7e9906a17c7b2f1e92e1e7ccd6f33b26ea4438",
+    "SDLTRSI4": "815ab1a72ec0842a411f96ab484be3e56693a54727640b171e8d27a5039d6ffa",
+    "SDLTRPA1": "2f4b26a5e4632a90ce8b8e3bb62915d2c17567e7fc28154b656574c5fb436bee",
+    "SDLTRPA2": "249b167901c1122321c5dca0af756f15fe74c8310b372ae91928ce7b86733531",
+    "SDGENSIT": "99669afd3d20cc603180f4d572694ddef781f2a4ace19e4927991c36ca9154dc",
+    "SDGENSU1": "10184bed9a802498928bd273d5e8b47a80c6fb1764b632a7b2aef014cf6a7785",
+    "SDGENSU2": "31d103bb6d541c19090f577a01292ec7e701950139d75bdaedc059dfe2dfea87",
 }
 
 
-def voice_check(v: VoiceInstall) -> tuple[float, float]:
+def voice_groups() -> dict[str, list[str]]:
+    """$random alias -> its members' logical names, for the sounds with several voice takes."""
+    out: dict[str, list[str]] = {}
+    for v in VOICE_INSTALLS:
+        if v.logical != v.group:
+            out.setdefault(v.group, []).append(v.logical)
+    return out
+
+
+def _decode_ogg(ogg: bytes) -> np.ndarray:
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "x.ogg"
+        path.write_bytes(ogg)
+        return gws.decode(path)
+
+
+def voice_trimmed_ogg(v: VoiceInstall) -> tuple[bytes, float]:
+    """The codec pass on a voice take: its master re-rendered from the raw take by
+    process_voice_takes.process_wave, then codec_safe's loop. -> (OGG, dB taken off)."""
+    import process_voice_takes as pvt
+    base, _, _ = pvt.process_wave(gws.decode(v.raw_path), pvt.line_of(v.raw_path.name))
+    x, depth = base, 0.0
+    for _ in range(CODEC_PASSES):
+        ogg = gws.ogg_bytes(gws.wav_bytes(x))
+        over = decoded_peak_db(ogg) - DECODED_PEAK_CEILING_DBFS
+        if over < 0:
+            return ogg, depth
+        depth += over + CODEC_MARGIN_DB
+        x = alts.limit(base, 10 ** ((alts.peak_db(base) - depth) / 20))
+    raise RuntimeError(f"{v.lump}: the OGG still overshoots after {CODEC_PASSES} passes")
+
+
+def voice_ogg(v: VoiceInstall) -> bytes:
+    """The OGG a voice take ships as: the processed take, or its codec-trimmed render."""
+    if v.lump in VOICE_CODEC_TRIMMED:
+        return voice_trimmed_ogg(v)[0]
+    return v.path.read_bytes()
+
+
+def voice_check(v: VoiceInstall, ogg: bytes | None = None) -> tuple[float, float]:
     """-> (decoded peak dBFS, loudest 50 ms A); raises if either is off."""
-    x = gws.decode(v.path)
+    x = gws.decode(v.path) if ogg is None else _decode_ogg(ogg)
     peak, loud = alts.peak_db(x), alts.loud_a_db(x)
     if peak >= DECODED_PEAK_CEILING_DBFS or abs(loud - v.target_db) > LOUDNESS_TOLERANCE_DB + CODEC_LOUDNESS_DB:
         raise ValueError(f"{v.take}: peak {peak:.2f} dBFS, {loud:.2f} dB A against {v.target_db:.2f}")
     return peak, loud
 
 
-def install_voices(asset_dir: Path | None) -> dict[str, str]:
+def install_voices(asset_dir: Path | None, lumps=None) -> dict[str, str]:
     out = {}
     for v in VOICE_INSTALLS:
-        peak, loud = voice_check(v)
-        data = v.path.read_bytes()
+        if lumps and v.lump not in lumps:
+            continue
+        data = voice_ogg(v)
+        peak, loud = voice_check(v, data)
         out[v.lump] = sha256(data)
         if asset_dir is not None:
             asset_dir.mkdir(parents=True, exist_ok=True)
@@ -610,7 +724,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--list", action="store_true", help="print the plan and write nothing")
     ap.add_argument("--install", action="store_true", help="also write the OGGs into assets/sounds/enemies/")
-    ap.add_argument("--voices", action="store_true", help="the seven D91 voice takes instead")
+    ap.add_argument("--voices", action="store_true", help="the voice takes of D91 and D96 instead")
     ap.add_argument("names", nargs="*", help="only these lumps")
     args = ap.parse_args(argv)
     try:
@@ -618,7 +732,11 @@ def main(argv=None) -> int:
     except (AttributeError, ValueError):            # pragma: no cover - a replaced stream
         pass
     if args.voices:
-        install_voices(ASSET_DIR if args.install else None)
+        bad = [n for n in args.names if n not in VOICES_BY_LUMP]
+        if bad:
+            print(f"not an approved voice take: {', '.join(bad)}", file=sys.stderr)
+            return 2
+        install_voices(ASSET_DIR if args.install else None, args.names or None)
         return 0
     if args.list:
         sys.stdout.write(plan_text())

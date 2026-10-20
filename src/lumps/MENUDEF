@@ -347,6 +347,7 @@ OptionMenu "SD_CreditsMenu"
 	StaticText " "
 	StaticText "$SD_CRED_SFX_1"
 	StaticText "$SD_CRED_SFX_2"
+	StaticText "$SD_CRED_SFX_3"
 	StaticText " "
 	StaticText "$SD_CRED_H_AI", 1
 	StaticText "$SD_CRED_AI_1"

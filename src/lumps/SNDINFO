@@ -8,8 +8,9 @@
 //            weapon ones are the 25 the CEO approved in D74 and SDIZFIR B
 //            (D83), mastered and installed by tools/audio/master_weapon_sfx.py
 //            (backlog N9; docs/sound/WEAPON-SOUNDS.md section 10); the enemy
-//            ones the 57 of D83 and D86, by tools/audio/master_enemy_sfx.py
-//            (N9e; docs/sound/ENEMY-SOUNDS.md section 5.12). The comment
+//            ones the 57 of D83 and D86 and the 24 voice takes of D91 and
+//            D96, by tools/audio/master_enemy_sfx.py (N9e;
+//            docs/sound/ENEMY-SOUNDS.md section 5.12). The comment
 //            says the take.
 //   DS...    a Freedoom (IWAD) lump, a PLACEHOLDER: nothing is redistributed,
 //            the engine resolves the name against the loaded IWAD. The lump
@@ -86,39 +87,53 @@ sd/weapon/katyusha/dry     SDHKDRY     // take A  firing switch on empty rails
 
 // === Bestiary (F5) =========================================================
 // Logical names sd/mon/<actor>/<event>; 47 sounds, docs/engine/BESTIARY.md 12.
-// Since N9e (D83, D86, D91) 37 of them are ours: an SD lump in the
-// right-hand column, or a $random alias over our takes (two of them the
-// voices D91 approved: the rifleman's sight, the trooper's idle). The other
-// ten are VOICES of the rifleman, the trooper and the General still
-// waiting for a take (D91): they keep a Freedoom (IWAD) lump, read at run time and never
-// redistributed (tests/test_bestiary.py checks each exists), and the
-// comment names the lump that will replace it after "->", the one
-// docs/sound/ENEMY-SOUNDS.md has a card for. The General's order is
-// DSVILSIT, a creature's sight, until SDGENSUM exists.
+// Since N9e (D83, D86, D91, D96) 43 of them are ours: an SD lump in the
+// right-hand column, or a $random alias over our takes. Eight are the
+// voices D91 and D96 approved (Chatterbox; the D96 takes cloned from a
+// shouted reference): the rifleman's idle, sight and death, the trooper's
+// idle, sight and pain, the General's sight and his order. The other four
+// are VOICES still waiting for a take (the rifleman's pain, the trooper's
+// death, the General's pain and death): they keep a Freedoom (IWAD) lump,
+// read at run time and never redistributed (tests/test_bestiary.py checks
+// each exists), and the comment names the lump that will replace it after
+// "->", the one docs/sound/ENEMY-SOUNDS.md has a card for.
 
 // --- Reich rifleman (SD_ReichRifleman) -------------------------------------
 $random sd/mon/reichrifleman/attack { sd/mon/reichrifleman/attack/1 sd/mon/reichrifleman/attack/2 sd/mon/reichrifleman/attack/3 }
 sd/mon/reichrifleman/attack/1 SDRRIAT1    // D86 alt1  hangar echo, no bolt
 sd/mon/reichrifleman/attack/2 SDRRIAT2    // D86 alt2  receiver steel, bolt (final click lowered)
 sd/mon/reichrifleman/attack/3 SDRRIAT3    // D86 alt3  the round's whip, then the report
-sd/mon/reichrifleman/active   DSPOSACT    // -> SDRRIACT  muttered order (voice, D87)
-$random sd/mon/reichrifleman/sight { sd/mon/reichrifleman/sight/1 sd/mon/reichrifleman/sight/3 }
+$random sd/mon/reichrifleman/active { sd/mon/reichrifleman/active/1 sd/mon/reichrifleman/active/2 sd/mon/reichrifleman/active/3 }
+sd/mon/reichrifleman/active/1 SDRRIAC1    // D96 R01 t13  "Stellung halten!" (Chatterbox, Thorsten "angry" reference)
+sd/mon/reichrifleman/active/2 SDRRIAC2    // D96 R02 t11  "Augen auf!"
+sd/mon/reichrifleman/active/3 SDRRIAC3    // D96 R03 t14  "Ruhe da hinten!"
+$random sd/mon/reichrifleman/sight { sd/mon/reichrifleman/sight/1 sd/mon/reichrifleman/sight/3 sd/mon/reichrifleman/sight/4 sd/mon/reichrifleman/sight/5 sd/mon/reichrifleman/sight/6 }
 sd/mon/reichrifleman/sight/1  SDRRISI1    // D91 R06 t01  "Kontakt!" (Chatterbox, voice Austin)
 sd/mon/reichrifleman/sight/3  SDRRISI3    // D91 R06 t03
+sd/mon/reichrifleman/sight/4  SDRRISI4    // D96 R04 t12  "Feind!" (Chatterbox, Thorsten "angry" reference)
+sd/mon/reichrifleman/sight/5  SDRRISI5    // D96 R04 t13  "Feind!"
+sd/mon/reichrifleman/sight/6  SDRRISI6    // D96 R05 t12  "Da!"
 sd/mon/reichrifleman/pain     DSPOPAIN    // -> SDRRIPAI  (voice, D87)
-sd/mon/reichrifleman/death    DSPODTH1    // -> SDRRIDTH  (voice, D87)
+sd/mon/reichrifleman/death    SDRRIDTH    // D96 R09 t12  "Sani..." (Chatterbox, HaelDB reference)
 sd/mon/reichrifleman/xdeath   SDRRIXDT    // D83  gib
 
 // --- Liberty Legion trooper (SD_LegionTrooper) -----------------------------
 sd/mon/legiontrooper/attack   SDLTRATK    // D86 alt2  three shells as one, a steel plate
-$random sd/mon/legiontrooper/active { sd/mon/legiontrooper/active/1 sd/mon/legiontrooper/active/2 sd/mon/legiontrooper/active/3 sd/mon/legiontrooper/active/4 sd/mon/legiontrooper/active/5 }
+$random sd/mon/legiontrooper/active { sd/mon/legiontrooper/active/1 sd/mon/legiontrooper/active/2 sd/mon/legiontrooper/active/3 sd/mon/legiontrooper/active/4 sd/mon/legiontrooper/active/5 sd/mon/legiontrooper/active/6 }
 sd/mon/legiontrooper/active/1 SDLTRAC1    // D91 L01 t01  "Sector four, clear." (Chatterbox, voice Jordan)
 sd/mon/legiontrooper/active/2 SDLTRAC2    // D91 L01 t03
 sd/mon/legiontrooper/active/3 SDLTRAC3    // D91 L02 t01  "Copy. Holding position."
 sd/mon/legiontrooper/active/4 SDLTRAC4    // D91 L02 t02
 sd/mon/legiontrooper/active/5 SDLTRAC5    // D91 L02 t03
-sd/mon/legiontrooper/sight    DSPOSIT2    // -> SDLTRSIT  (voice, D87)
-sd/mon/legiontrooper/pain     DSPOPAIN    // -> SDLTRPAI  (voice, D87)
+sd/mon/legiontrooper/active/6 SDLTRAC6    // D96 L03 t12  "Command, say again?" (Chatterbox, kurt reference)
+$random sd/mon/legiontrooper/sight { sd/mon/legiontrooper/sight/1 sd/mon/legiontrooper/sight/2 sd/mon/legiontrooper/sight/3 sd/mon/legiontrooper/sight/4 }
+sd/mon/legiontrooper/sight/1  SDLTRSI1    // D96 L04 t12  "Contact!" (Chatterbox, kurt reference)
+sd/mon/legiontrooper/sight/2  SDLTRSI2    // D96 L04 t14  "Contact!"
+sd/mon/legiontrooper/sight/3  SDLTRSI3    // D96 L05 t13  "Hostile, front!"
+sd/mon/legiontrooper/sight/4  SDLTRSI4    // D96 L06 t13  "Got movement!"
+$random sd/mon/legiontrooper/pain { sd/mon/legiontrooper/pain/1 sd/mon/legiontrooper/pain/2 }
+sd/mon/legiontrooper/pain/1   SDLTRPA1    // D96 L08 t14  "I'm hit!" (Chatterbox, HaelDB reference)
+sd/mon/legiontrooper/pain/2   SDLTRPA2    // D96 L08 t15  "I'm hit!"
 sd/mon/legiontrooper/death    DSPODTH2    // -> SDLTRDTH  (voice, D87)
 sd/mon/legiontrooper/xdeath   SDLTRXDT    // D83
 
@@ -169,10 +184,12 @@ sd/mon/panzermensch/step      SDPZRSTP    // D83  one plated footfall (H)
 
 // --- The General (SD_General, SD_GeneralShell) -----------------------------
 sd/mon/general/active         SDGENACT    // D83
-sd/mon/general/sight          DSCYBSIT    // -> SDGENSIT  (voice, D87)
+sd/mon/general/sight          SDGENSIT    // D96 G01 t12  "Engage!" (Chatterbox, kurt reference)
 sd/mon/general/missile        SDGENMIS    // D83  one shell of the salvo
 sd/mon/general/explode        SDGENEXP    // D83
-sd/mon/general/summon         DSVILSIT    // -> SDGENSUM  the order (SD_GENERAL_ORDER; voice, D87)
+$random sd/mon/general/summon { sd/mon/general/summon/1 sd/mon/general/summon/2 }
+sd/mon/general/summon/1       SDGENSU1    // D96 G02 t13  "Vorwarts!" the order (SD_GENERAL_ORDER; Chatterbox, kurt reference; codec pass -0.6 dB)
+sd/mon/general/summon/2       SDGENSU2    // D96 G02 t14  "Vorwarts!" (Chatterbox, Thorsten "angry" reference)
 sd/mon/general/pain           DSDMPAIN    // -> SDGENPAI  (voice, D87)
 sd/mon/general/death          DSCYBDTH    // -> SDGENDTH  a cue, not an effect (voice, D87)
 

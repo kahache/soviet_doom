@@ -58,11 +58,16 @@ licence is in `docs/art/LICENSES.md`; music rights are in
   machine and are not in this repository.
 - **Fooocus / SDXL, run locally.** Reference images of hands holding the
   weapons, used as references only; not distributed.
-- **Chatterbox Multilingual (Resemble AI), run locally** with the
-  predefined voices of Chatterbox-TTS-Server: voice drafts for the enemies'
-  spoken lines (57 takes). The seven approved in D91 are in the game: the
-  Reich rifleman's "Kontakt!" (two takes) and the Liberty Legion trooper's
-  idle radio chatter (five takes).
+- **Chatterbox Multilingual (Resemble AI), run locally**: voice drafts for
+  the enemies' spoken lines, 57 takes with the predefined voices of
+  Chatterbox-TTS-Server and 47 cloned from shouted reference recordings
+  (kurt's "Soldier Voice Acting", CC-BY 3.0; Thorsten Müller's "angry"
+  Thorsten-Voice set and HaelDB's yells, CC0; the references are not in
+  this repository). 24 takes are in the game, 7 approved in D91 and 17 in
+  D96: eight of the twelve enemy voices (the Reich rifleman's idle, sight
+  and death, the Liberty Legion trooper's idle, sight and pain, the
+  General's sight and his order "Vorwärts!"); the other four are still
+  Freedoom's.
 
 **Not AI**
 
@@ -149,10 +154,15 @@ python3 tools/verify.py auto  # проверить изменённое: fast (~
   машине руководителя проекта и в этот репозиторий не входят.
 - **Fooocus / SDXL, локально.** Референсные изображения рук с оружием, только
   как образец; не распространяются.
-- **Chatterbox Multilingual (Resemble AI), локально**, со стандартными
-  голосами Chatterbox-TTS-Server: черновики реплик врагов (57 дублей). Семь
-  утверждённых в D91 вошли в игру: «Kontakt!» стрелка рейха (два дубля) и
-  радиопереговоры солдата Легиона свободы в покое (пять дублей).
+- **Chatterbox Multilingual (Resemble AI), локально**: черновики реплик
+  врагов, 57 дублей стандартными голосами Chatterbox-TTS-Server и 47
+  голосами, клонированными с записей-образцов криков («Soldier Voice
+  Acting» автора kurt, CC-BY 3.0; набор Thorsten-Voice Торстена Мюллера в
+  стиле «angry» и крики HaelDB, CC0; образцы в этот репозиторий не входят).
+  В игре 24 дубля, 7 утверждены в D91 и 17 в D96: восемь из двенадцати
+  голосов врагов (покой, обнаружение и смерть стрелка рейха; покой,
+  обнаружение и боль солдата Легиона свободы; обнаружение и приказ
+  «Vorwärts!» Генерала); остальные четыре пока из Freedoom.
 
 **Не ИИ**
 
