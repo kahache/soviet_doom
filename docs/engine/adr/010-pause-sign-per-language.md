@@ -133,3 +133,21 @@ anyway.
 | E1 | The status bar is identical | MAP01, `screenblocks 10` (the bar) and `11` (fullscreen HUD), screenshot of each; compare with an earlier pass (`docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass-*`) | same bar, face, numbers and keys; the log has no `Unknown status bar class` (what a wrong class name prints) and no `Script error` |
 | E2 | Pause in English | `language default` (or the menu), start MAP01, press Pause, screenshot | P2 «PAUSE» at the top centre, where Freedoom's sign was |
 | E3 | Pause in Russian | `language ru`, Pause, screenshot | P2 «ПАУЗА», same place, same size; the log has no `Unknown texture` |
+
+## Addendum, 2026-10-20 (M2e-i, D89): the status bar's labels
+
+Status bar A has its labels painted in, English and Russian, so the bar meets
+the same wall as the pause sign: a `localized/textures/STBAR.ru.png` would be
+registered and never drawn. The same class takes the same route with one
+more override. `DoomStatusBar.DrawMainBar` is `protected void`, not virtual,
+so `SD_StatusBar` overrides `Draw` instead: it calls `Super.Draw` (Doom draws
+the whole bar, the English pictures `STBAR` and `STARMS` included) and then,
+when the `LANGUAGE` ids `SD_SBAR_IMAGE` / `SD_SBAR_ARMS_IMAGE` name other
+pictures (`[ru]`: our own lumps `SDSBRU`, `SDARRU`), draws them again clipped
+to the label band, the bar's rows 21-31 outside the face, keys and ammo
+table, where Doom draws no number. Own lump names, not D1's full path,
+because these are not localized variants of anything. The consequence above,
+"`SD_StatusBar` inherits `Init`, `Draw` and everything else", now reads: it
+inherits everything but `Draw`, which calls Doom's first. T13 and T14 grow by
+one virtual and three facts of `DrawMainBar` (MOD-SPEC §6.5.1, §10). The
+engine checks are MOD-SPEC §6.5.1's H1-H5.

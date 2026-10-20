@@ -5,9 +5,11 @@ docs/engine/adr/010-pause-sign-per-language.md. What is pinned here, without
 ever starting GZDoom (D26):
 
   * zscript.txt includes status_bar.zs once; the file declares
-    SD_StatusBar : DoomStatusBar with no field and exactly one override,
+    SD_StatusBar : DoomStatusBar with no field and exactly two overrides:
     DrawPaused, which falls back to the engine (return false) and draws at
-    D_Display's y = 4 with DTA_CleanNoMove;
+    D_Display's y = 4 with DTA_CleanNoMove, and (since M2e-i, D89) Draw,
+    which lets Doom draw everything first (tests/test_hud_install.py pins
+    the label band it draws after);
   * MAPINFO's GameInfo registers it with StatusBarClass, once;
   * every engine name the file uses exists in the installed gzdoom.pk3, the
     class it derives from is the one Doom's GameInfo names, the virtual has
@@ -58,6 +60,9 @@ INCLUDE = "zscript/sd/status_bar.zs"
 CLASS = "SD_StatusBar"
 PARENT = "DoomStatusBar"            # gzdoom.pk3:mapinfo/doomcommon.txt
 VIRTUAL = "DrawPaused"
+# M2e-i (D89): Draw, for status bar A's Russian labels, and its one helper.
+OVERRIDES = [VIRTUAL, "Draw"]
+HELPER = "SD_DrawLabelBand"
 STRING_ID = "SD_PAUSE_SIGN"
 ENGLISH_SIGN = "M_PAUSE"
 VARIANT_ASSET = ASSETS / "localized" / "textures" / "M_PAUSE.ru.png"
@@ -71,7 +76,17 @@ SIGN_TOP = 4                        # D_Display: DrawTexture(..., x, 4, DTA_Clea
 OWN_NAMES = frozenset(n.lower() for n in (
     CLASS, "SD_PAUSE_SIGN_ID", "SD_PAUSE_SIGN_TOP", "SD_PAUSED_BY_GAP", "SD_PAUSED_BY_ID",
     "player", "pauseSign", "size", "offset", "x", "fnt", "pausedBy",
+    # M2e-i: the label band (constants, the helper, its parameters, locals)
+    "SD_SBAR_IMAGE_ID", "SD_SBAR_ARMS_IMAGE_ID", "SD_SBAR_ENGINE_IMAGE", "SD_SBAR_ENGINE_ARMS",
+    "SD_SBAR_X", "SD_SBAR_Y", "SD_SBAR_ARMS_X", "SD_SBAR_ARMS_END", "SD_LABEL_TOP",
+    "SD_LABEL_HEIGHT", "SD_LABEL_LEFT_END", "SD_LABEL_RIGHT_X", "SD_LABEL_RIGHT_END",
+    HELPER, "state", "TicFrac", "bar", "arms", "image", "imageX", "left", "right",
+    "cx", "cy", "cw", "ch",
 ))
+
+# CVars, not declarations: ZScript reads them as globals. DrawMainBar tests
+# them itself (EngineNamesTest.test_the_cvars_are_draw_main_bars_own).
+ENGINE_CVARS = frozenset({"deathmatch", "teamplay"})
 
 # Engine names that must be DECLARED, not merely mentioned, in gzdoom.pk3:
 # name -> a regex over the whole ZScript corpus (case-insensitive, as ZScript).
@@ -99,11 +114,20 @@ DECLARATIONS = {
     "Substitute": r"native\s+void\s+Substitute\s*\(\s*String\s+\w+\s*,\s*String",
     "GetUserName": r"native\s+clearscope\s+String\s+GetUserName\s*\(",
     "players": r"native\s+play\s+@PlayerInfo\s+players\s*\[",
+    # M2e-i: the Draw override and the label band
+    "Draw": r"native\s+virtual\s+void\s+Draw\s*\(\s*int\s+\w+\s*,\s*double\s+\w+\s*\)",
+    "HUD_StatusBar": r"^\s*HUD_StatusBar\s*,",
+    "isInventoryBarVisible": r"^\s*bool\s+isInventoryBarVisible\s*\(\s*\)",
+    "GetClipRect": r"native\s+static\s+int\s*,\s*int\s*,\s*int\s*,\s*int\s+GetClipRect\s*\(\s*\)",
+    "SetClipRect": (r"native\s+void\s+SetClipRect\s*\(\s*double\s+\w+\s*,\s*double\s+\w+\s*,"
+                    r"\s*double\s+\w+\s*,\s*double\s+\w+\s*,\s*int\s+\w+\s*=\s*0\s*\)"),
+    "DrawImage": r"native\s+void\s+DrawImage\s*\(\s*String\s+\w+\s*,\s*Vector2\s+\w+\s*,\s*int\s+\w+\s*=\s*0",
+    "DI_ITEM_OFFSETS": r"^\s*DI_ITEM_OFFSETS\s*=",
 }
 
 ZS_KEYWORDS = frozenset({
     "class", "const", "override", "if", "return", "true", "false", "bool", "int",
-    "double", "string", "vector2", "textureid", "font",
+    "double", "string", "vector2", "textureid", "font", "void", "private", "super",
     "y",            # a Vector2's component (`size.y`); `x` is also our local
 })
 
@@ -167,12 +191,17 @@ class IncludeTest(unittest.TestCase):
 
 
 class OnlyDrawPausedTest(unittest.TestCase):
-    """The bar must stay Doom's: one override, no state of our own."""
+    """The bar must stay Doom's: two overrides, no state of our own."""
 
-    def test_exactly_one_override_and_it_is_draw_paused(self):
+    def test_exactly_two_overrides_draw_paused_and_draw(self):
         overrides = re.findall(r"\boverride\s+\w+\s+(\w+)\s*\(", status_bar_code())
-        self.assertEqual(overrides, [VIRTUAL])
+        self.assertEqual(overrides, OVERRIDES)
         self.assertRegex(status_bar_code(), r"\boverride\s+bool\s+DrawPaused\s*\(\s*int\s+player\s*\)")
+
+    def test_draw_lets_doom_draw_everything_first(self):
+        self.assertRegex(status_bar_code(),
+                         r"\boverride\s+void\s+Draw\s*\(\s*int\s+state\s*,\s*double\s+TicFrac\s*\)\s*"
+                         r"\{\s*Super\.Draw\(\s*state\s*,\s*TicFrac\s*\)\s*;")
 
     def test_no_fields_and_no_other_functions(self):
         code = status_bar_code()
@@ -182,18 +211,21 @@ class OnlyDrawPausedTest(unittest.TestCase):
             if depth == 1 and body and not body.startswith(("const ", "}")):
                 members.append(body)
             depth += statement.count("{") - statement.count("}")
-        # At class depth only constants and the one function header may appear.
+        # At class depth only constants and the function headers may appear:
+        # the two overrides and the one private helper (M2e-i).
         headers = [m for m in members if m.endswith("{")]
         others = [m for m in members if not m.endswith("{")]
         self.assertEqual(others, [], "a field (or stray statement) at class level")
-        self.assertEqual(len(headers), 1, headers)   # the class header sits at depth 0
+        self.assertEqual(len(headers), 3, headers)   # the class header sits at depth 0
         self.assertTrue(headers[0].startswith("override bool DrawPaused"), headers)
+        self.assertTrue(headers[1].startswith("override void Draw("), headers)
+        self.assertTrue(headers[2].startswith(f"private void {HELPER}("), headers)
 
     def test_it_falls_back_to_the_engine_and_draws_where_the_engine_does(self):
         raw = STATUS_BAR_ZS.read_text(encoding="utf-8")
         code = status_bar_code()
         self.assertRegex(code, r"if\s*\(\s*!\s*pauseSign\.IsValid\(\)\s*\)\s*\{\s*return\s+false\s*;")
-        self.assertRegex(code, r"return\s+true\s*;\s*\}\s*\}\s*$")
+        self.assertRegex(code, r"return\s+true\s*;\s*\}\s*override\s+void\s+Draw\b")
         self.assertRegex(raw, rf"const\s+SD_PAUSE_SIGN_TOP\s*=\s*{SIGN_TOP}\s*;")
         self.assertRegex(raw, rf'const\s+SD_PAUSE_SIGN_ID\s*=\s*"\${STRING_ID}"\s*;')
         self.assertRegex(code, r"DrawTexture\(\s*pauseSign\s*,\s*true\s*,\s*x\s*,\s*SD_PAUSE_SIGN_TOP\s*,\s*DTA_CleanNoMove\s*,\s*true\s*\)")
@@ -306,8 +338,14 @@ class EngineNamesTest(unittest.TestCase):
         unknown = sorted(foreign - self.words)
         self.assertEqual(unknown, [], "names gzdoom.pk3's ZScript does not have")
         undeclared = sorted(foreign - {k.lower() for k in DECLARATIONS}
-                            - {"texman", "screen", "stringtable"})
+                            - {"texman", "screen", "stringtable"} - ENGINE_CVARS)
         self.assertEqual(undeclared, [], "add these to DECLARATIONS so a rename is caught")
+
+    def test_the_cvars_are_draw_main_bars_own(self):
+        """`deathmatch || teamplay` is DrawMainBar's test for drawing STARMS."""
+        self.assertRegex(self.zscript, r"if\s*\(\s*deathmatch\s*\|\|\s*teamplay\s*\)\s*\{[^}]*\}\s*"
+                                       r"else\s*\{\s*DrawBarWeapons\s*\(\s*\)\s*;")
+        self.assertRegex(status_bar_code(), r"!\s*\(\s*deathmatch\s*\|\|\s*teamplay\s*\)")
 
     def test_doom_names_the_parent_class(self):
         self.assertRegex(self.doomcommon, rf'(?im)^\s*statusbarclass\s*=\s*"{PARENT}"')

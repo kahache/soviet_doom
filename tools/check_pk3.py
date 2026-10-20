@@ -700,6 +700,9 @@ def licensed_names(licenses: Path) -> set[str]:
 # D66: the Tankograd brick (marble_red), the two banners hung on it (the
 # Legion's canton in mosaic_cobalt) and the four portal frames (mosaic_cobalt).
 # D80: the blue pass's status bar icon STKEYS0 (graphics/, mosaic_cobalt).
+# M2e-i (D89, D90, D92): none. Status bar A's four indexed pictures (STBAR,
+# STARMS, SDSBRU, SDARRU) use v1 colours only; the 42 v2 faces STF* are RGBA
+# (tests/test_palette_v2.py lists them in APPROVED_IN_V2).
 PALETTE_V2_LUMPS = frozenset({"SDMOSA1"}  # D56
                              | {"SDBRCK1", "SDBRCK2", "SDFLAG1", "SDFLAG2"}
                              | {f"SDPORT{i}" for i in range(1, 5)}

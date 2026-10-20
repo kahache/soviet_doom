@@ -25,7 +25,8 @@ What is enforced here, and why:
               SDPF A since D79, the blue pass's status bar icon STKEYS0
               since D80, the IZh-58's, RPG-7's, ROKS-3's and hand
               Katyusha's held and flash frames since D84, the ice axe's
-              SDAX A-D since D88)
+              SDAX A-D since D88, the sergeant's 42 Gemini faces STF* since
+              D90)
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_palette_v2 -v
 """
@@ -107,6 +108,16 @@ MAX_COLOURS = 256
 # D82 (2026-10-20): the player effects (assets/sprites/effects/, SDPG, SDKR,
 # SDPX, SDFJ, SDFX and the IWAD-named PUFF, BLUD, TFOG, IFOG, BAR1, BEXP,
 # COLU) are all v1 (gen_effects.py, palette_v1) and not listed.
+# D89, D90, D92 (2026-10-20, M2e-i): the status bar (assets/graphics/statusbar/).
+# The sergeant's 42 STF* faces (gemini_face.py snaps the Gemini sheets to all
+# of palette v2: flesh_pink in the skin) are listed; RGBA, so check_pk3's
+# PALETTE_V2_LUMPS (indexed lumps only) does not list them. Bar A (STBAR,
+# STARMS, SDSBRU, SDARRU; indexed on the v2 PLTE) and digits N2 (RGBA) use v1
+# colours only and are not listed.
+HUD_FACES = ([f"STFST{level}{glance}" for level in range(5) for glance in range(3)]
+             + [f"{kind}{level}" for kind in ("STFOUCH", "STFEVL", "STFKILL") for level in range(5)]
+             + [f"STFT{side}{level}0" for side in "LR" for level in range(5)]
+             + ["STFGOD0", "STFDEAD0"])
 D84_FRAMES = {"izh": ("SDIZ", "ABCD", "SDIF", "AB"), "rpg7": ("SDRL", "AB", "SDRF", "ABCD"),
               "roks3": ("SDRK", "AB", "SDKF", "A"), "katyusha": ("SDHK", "AB", "SDHF", "AB"),
               "ice_axe": ("SDAX", "ABCD", "SDAX", "")}
@@ -125,7 +136,8 @@ APPROVED_IN_V2: set[str] = (
     | {"sprites/ppsh/SDPPA0.png", "sprites/ppsh/SDPPB0.png", "sprites/ppsh/SDPFA0.png"}
     | {"graphics/hud/STKEYS0.png"}
     | {f"sprites/{folder}/{name}{f}0.png" for folder, (held, hf, flash, ff) in D84_FRAMES.items()
-       for name, frames in ((held, hf), (flash, ff)) for f in frames})
+       for name, frames in ((held, hf), (flash, ff)) for f in frames}
+    | {f"graphics/statusbar/{name}.png" for name in HUD_FACES})
 
 
 def _digest(colours) -> str:
@@ -299,5 +311,8 @@ class CheckPk3KnowsTheV2Lumps(unittest.TestCase):
         mod = importlib.util.module_from_spec(spec)
         sys.modules.setdefault("check_pk3", mod)  # dataclasses look the module up
         spec.loader.exec_module(mod)
-        indexed = {Path(p).stem.upper() for p in APPROVED_IN_V2 if not p.startswith("sprites/")}
+        # Sprites are RGBA by rule; a graphic may be either (the faces are
+        # RGBA, the key icon STKEYS0 indexed), so its PNG header decides.
+        indexed = {Path(p).stem.upper() for p in APPROVED_IN_V2
+                   if not p.startswith("sprites/") and (ASSETS / p).read_bytes()[25] == 3}
         self.assertEqual(set(mod.PALETTE_V2_LUMPS), indexed)
