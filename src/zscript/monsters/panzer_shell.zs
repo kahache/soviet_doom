@@ -2,7 +2,10 @@
 // BaronBall parity: faster than the bolt and the Doughboy's shell, which is
 // how a Doom player reads the threat from the projectile alone. Not placeable.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: BAL7, same layout as SDPL.
+// Sprites: ours since D81 (2026-10-20), SDPL A-E, the "ember" (option A of
+// tools/art/gen_shells.py): A-B in flight, C-E the burst, rotation 0, in
+// assets/sprites/panzermensch/. Only the four-letter name changed, every
+// tic is as it was. MOD-SPEC 6.3; tests/test_shells_install.py.
 
 class SD_PanzerShell : Actor
 {
@@ -31,10 +34,10 @@ class SD_PanzerShell : Actor
 	States
 	{
 	Spawn:
-		BAL7 AB 4 Bright;
+		SDPL AB 4 Bright;
 		Loop;
 	Death:
-		BAL7 CDE 6 Bright;
+		SDPL CDE 6 Bright;
 		Stop;
 	}
 }

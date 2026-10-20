@@ -6,8 +6,13 @@
 // weaker against a single boss, better against a crowd. That is the point
 // of a Katyusha and it is what makes slot 7 feel Soviet rather than borrowed.
 //
-// Sprites are Freedoom (IWAD) PLACEHOLDERS: BFGG (held), BFGF (flash),
-// BFUG (pickup). Final lumps: SDHK A-C, SDHF A-B, SDHP A.
+// Sprites, all ours since 2026-10-20. The held frames SDHK A-B and the
+// flash SDHF A-B (D84), built from the CEO's Google Gemini pair by
+// tools/art/gemini_frames.py, in assets/sprites/katyusha/; the floor pickup
+// SDHP A (D80, the D51 draft), in assets/sprites/pickups/. Only the
+// four-letter names changed, every tic, action and jump is as it was.
+// MOD-SPEC 6.3; tests/test_gemini_weapons_install.py and
+// tests/test_pickups_install.py.
 // Balance rationale: docs/engine/BALANCE.md.
 
 class SD_HandKatyusha : BFG9000 replaces BFG9000
@@ -38,13 +43,13 @@ class SD_HandKatyusha : BFG9000 replaces BFG9000
 	States
 	{
 	Ready:
-		BFGG A 1 A_SD_WeaponReady;
+		SDHK A 1 A_SD_WeaponReady;
 		Loop;
 	Deselect:
-		BFGG A 1 A_Lower;
+		SDHK A 1 A_Lower;
 		Loop;
 	Select:
-		BFGG A 1 A_Raise;
+		SDHK A 1 A_Raise;
 		Loop;
 	Fire:
 		// 20 + 10 + 10 + 0 + 20 = 60 tics (Doom BFG: 60). The long wind-up is
@@ -52,18 +57,18 @@ class SD_HandKatyusha : BFG9000 replaces BFG9000
 		// rails' reload as the 20-tic recovery begins, on its own channel, so
 		// the salvo (1.4 s, started on CHAN_WEAPON 10 tics earlier) is not
 		// cut. No tic is added.
-		BFGG A 20 A_StartSound("sd/weapon/katyusha/charge", CHAN_WEAPON);
-		BFGG B 10 A_GunFlash;
-		BFGG B 10 A_SD_FireKatyusha;
-		BFGG B 0 A_StartSound("sd/weapon/katyusha/reload", SD_KATYUSHA_RELOAD_CHANNEL);
-		BFGG B 20 A_ReFire;
+		SDHK A 20 A_StartSound("sd/weapon/katyusha/charge", CHAN_WEAPON);
+		SDHK B 10 A_GunFlash;
+		SDHK B 10 A_SD_FireKatyusha;
+		SDHK B 0 A_StartSound("sd/weapon/katyusha/reload", SD_KATYUSHA_RELOAD_CHANNEL);
+		SDHK B 20 A_ReFire;
 		Goto Ready;
 	Flash:
-		BFGF A 11 Bright A_Light1;
-		BFGF B 6 Bright A_Light2;
+		SDHF A 11 Bright A_Light1;
+		SDHF B 6 Bright A_Light2;
 		Goto LightDone;
 	Spawn:
-		BFUG A -1;
+		SDHP A -1;
 		Stop;
 	}
 

@@ -8,11 +8,12 @@
 // Freedoom's SSG can never appear. This weapon therefore has to carry the
 // whole of slot 3 and sits between Doom's Shotgun and its SSG in damage.
 //
-// Sprites. The world pickup is ours since D48 (2026-10-14); the held and
-// flash frames stay Freedoom (IWAD) PLACEHOLDERS until the hand is redrawn
-// (the CEO found hand E deformed in MAP01, 2026-10-14). MOD-SPEC 5.1, 6.3.
-// Held SHTG (final SDIZ A-D), flash SHTF (final SDIF A-B). Pickup: SDIP A
-// (assets/sprites/izh/; was SHOT).
+// Sprites, all ours. The world pickup since D48 (2026-10-14): SDIP A (was
+// the IWAD's SHOT). The held frames SDIZ A-D and the flash SDIF A-B since
+// D84 (2026-10-20), built from the CEO's Google Gemini images (ready,
+// firing, reloading) by tools/art/gemini_frames.py; only the four-letter
+// names changed, every tic, action and jump is as it was. All in
+// assets/sprites/izh/. MOD-SPEC 6.3; tests/test_gemini_weapons_install.py.
 // Balance rationale: docs/engine/BALANCE.md.
 
 class SD_Izh : Shotgun replaces Shotgun
@@ -53,33 +54,33 @@ class SD_Izh : Shotgun replaces Shotgun
 	States
 	{
 	Ready:
-		SHTG A 1 A_SD_WeaponReady;
+		SDIZ A 1 A_SD_WeaponReady;
 		Loop;
 	Deselect:
-		SHTG A 1 A_Lower;
+		SDIZ A 1 A_Lower;
 		Loop;
 	Select:
-		SHTG A 1 A_Raise;
+		SDIZ A 1 A_Raise;
 		Loop;
 	Fire:
 		// 3 + 6 + 4 + 4 + 3 + 3 = 23 tics per barrel (Doom Shotgun: 44).
-		SHTG A 3;
-		SHTG A 6 A_SD_FireIzh;
-		SHTG B 4;
-		SHTG C 4;
-		SHTG A 3 A_JumpIf(invoker.barrels <= 0, "Reload");
-		SHTG A 3 A_ReFire;
+		SDIZ A 3;
+		SDIZ A 6 A_SD_FireIzh;
+		SDIZ B 4;
+		SDIZ C 4;
+		SDIZ A 3 A_JumpIf(invoker.barrels <= 0, "Reload");
+		SDIZ A 3 A_ReFire;
 		Goto Ready;
 	Reload:
 		// 6 + 8 + 8 + 8 = 30 tics to break the gun open and feed two shells.
-		SHTG D 6 A_StartSound("sd/weapon/izh/reload", CHAN_WEAPON);
-		SHTG C 8;
-		SHTG B 8;
-		SHTG A 8 A_SD_ReloadIzh;
+		SDIZ D 6 A_StartSound("sd/weapon/izh/reload", CHAN_WEAPON);
+		SDIZ C 8;
+		SDIZ B 8;
+		SDIZ A 8 A_SD_ReloadIzh;
 		Goto Ready;
 	Flash:
-		SHTF A 4 Bright A_Light1;
-		SHTF B 3 Bright A_Light2;
+		SDIF A 4 Bright A_Light1;
+		SDIF B 3 Bright A_Light2;
 		Goto LightDone;
 	Spawn:
 		SDIP A -1;

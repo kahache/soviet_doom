@@ -4,12 +4,13 @@
 // SD_Pg7Grenade: more damage on a direct hit, a tighter blast, and a
 // noticeably slower reload than Doom's launcher.
 //
-// Sprites. The world pickup is ours since D48 (2026-10-14); the held and
-// flash frames stay Freedoom (IWAD) PLACEHOLDERS until the hand is redrawn
-// (the CEO found hand E deformed in MAP01, 2026-10-14). MOD-SPEC 5.1, 6.3.
-// Held MISG (final SDRL A-B), flash MISF (final SDRF A-D). Pickup: SDRP A
-// (assets/sprites/rpg7/; was LAUN). The PG-7V in flight and its burst
-// still wear MISL (pg7_grenade.zs).
+// Sprites. The world pickup is ours since D48 (2026-10-14): SDRP A (was
+// the IWAD's LAUN). The held frames SDRL A-B and the flash SDRF A-D since
+// D84 (2026-10-20), built from the CEO's Google Gemini pair by
+// tools/art/gemini_frames.py; only the four-letter names changed, every
+// tic, action and jump is as it was. All in assets/sprites/rpg7/.
+// MOD-SPEC 6.3; tests/test_gemini_weapons_install.py. The PG-7V in flight
+// and its burst still wear the IWAD's MISL (pg7_grenade.zs, MOD-SPEC 5.1).
 // Balance rationale: docs/engine/BALANCE.md.
 
 class SD_Rpg7 : RocketLauncher replaces RocketLauncher
@@ -35,13 +36,13 @@ class SD_Rpg7 : RocketLauncher replaces RocketLauncher
 	States
 	{
 	Ready:
-		MISG A 1 A_SD_WeaponReady;
+		SDRL A 1 A_SD_WeaponReady;
 		Loop;
 	Deselect:
-		MISG A 1 A_Lower;
+		SDRL A 1 A_Lower;
 		Loop;
 	Select:
-		MISG A 1 A_Raise;
+		SDRL A 1 A_Raise;
 		Loop;
 	Fire:
 		// 8 + 4 + 10 + 4 = 26 tics per round (Doom RocketLauncher: 20): the
@@ -49,15 +50,15 @@ class SD_Rpg7 : RocketLauncher replaces RocketLauncher
 		// launch frame is split 4 + 10 (N9) so the reload is heard once the
 		// round has left: same sprite, same total, nothing else in between.
 		// The launch sound is the grenade's SeeSound, so CHAN_WEAPON is free.
-		MISG B 8 A_GunFlash;
-		MISG B 4 A_FireProjectile("SD_Pg7Grenade");
-		MISG B 10 A_StartSound("sd/weapon/rpg7/reload", CHAN_WEAPON);
-		MISG B 4 A_ReFire;
+		SDRL B 8 A_GunFlash;
+		SDRL B 4 A_FireProjectile("SD_Pg7Grenade");
+		SDRL B 10 A_StartSound("sd/weapon/rpg7/reload", CHAN_WEAPON);
+		SDRL B 4 A_ReFire;
 		Goto Ready;
 	Flash:
-		MISF A 3 Bright A_Light1;
-		MISF B 4 Bright;
-		MISF CD 4 Bright A_Light2;
+		SDRF A 3 Bright A_Light1;
+		SDRF B 4 Bright;
+		SDRF CD 4 Bright A_Light2;
 		Goto LightDone;
 	Spawn:
 		SDRP A -1;

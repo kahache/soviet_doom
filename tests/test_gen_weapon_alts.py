@@ -161,9 +161,9 @@ class EngineFactTests(unittest.TestCase):
 
     def test_roks3_restarts_the_fire_sound_every_three_tics(self):
         zs = ROKS3_ZS.read_text(encoding="utf-8")
-        self.assertRegex(zs, rf"PLSG A {alts.ROKS3_TICS_PER_JET} Bright A_SD_FireRoks3;")
+        self.assertRegex(zs, rf"SDRK A {alts.ROKS3_TICS_PER_JET} Bright A_SD_FireRoks3;")
         self.assertIn('A_StartSound("sd/weapon/roks3/fire", CHAN_WEAPON);', zs)
-        self.assertRegex(zs, r"PLSG B \d+ A_ReFire;")
+        self.assertRegex(zs, r"SDRK B \d+ A_ReFire;")
 
     def test_three_tics_are_a_whole_number_of_samples(self):
         self.assertEqual(alts.JET_LOOP_N, 3780)

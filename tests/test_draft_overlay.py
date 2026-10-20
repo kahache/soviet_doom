@@ -11,7 +11,10 @@ What is checked, and why:
              GZDoom after its own `-file`, which is what puts the overlay
              above the mod
   build      the PK3 is built in a temporary folder from synthetic drafts
-             (CI has no work/ and no IWAD), holds only sprites/*.png, every
+             (CI has no work/ and no IWAD) of two fixture weapons standing in
+             since D88 left no real weapon swap (FIXTURE_WEAPONS: SHT2 ->
+             SDXS, SAWG -> SDXW, IWAD sprites no class of ours uses, their
+             state files in a temporary copy of src/zscript/), holds only sprites/*.png, every
              lump is a frame a state uses (and, with the IWAD, a frame the
              IWAD has), the PNG bytes and so the grAb offsets are unchanged,
              two builds are byte-identical
@@ -32,13 +35,18 @@ What is checked, and why:
              TROO -> SDHS, BAL1 -> SDBL) are in no swap, and a swap naming
              one would be skipped; the TT-33's held and flash frames,
              installed by N17 (INSTALLED_WEAPON_FRAMES: PISG -> SDTT,
-             PISF -> SDTF), and the PPSh-41's by D79 (CHGG -> SDPP,
-             CHGF -> SDPF), likewise
-  real       (skips without work/art) today's drafts plan 24 lumps: the
-             weapon frames (held and flash of five weapons, the Katyusha's
-             pickup); the PPSh-41's 3 left with D79 (27 until then), the
-             TT-33's 4 with N17 (31 until then), the rifleman's 70 with
-             D55 (101 until then)
+             PISF -> SDTF), the PPSh-41's by D79 (CHGG -> SDPP,
+             CHGF -> SDPF), and the IZh-58's, RPG-7's, ROKS-3's and hand
+             Katyusha's by D84 (SHTG/SHTF, MISG/MISF, PLSG/PLSF,
+             BFGG/BFGF) and the ice axe's by D88 (PUNG), likewise; the
+             Katyusha's floor pickup joined INSTALLED (BFUG -> SDHP, D80)
+  real       (skips without work/art) no swap is left since D88, so the
+             real overlay has nothing to pack and says so (exit 1, nothing
+             written); the ice axe's 4 left with D88 (4 until then), the 20
+             of the IZh-58, RPG-7, ROKS-3 and hand Katyusha (and its pickup)
+             with D84 (24 until then), the PPSh-41's 3 with D79 (27 until
+             then), the TT-33's 4 with N17 (31 until then), the rifleman's
+             70 with D55 (101 until then)
 
 Stdlib only: the tool copies bytes and reads PNG chunks with struct.
 """
@@ -55,6 +63,7 @@ import unittest
 import zipfile
 import zlib
 from contextlib import redirect_stderr, redirect_stdout
+import shutil
 from pathlib import Path
 from unittest import mock
 
@@ -135,13 +144,63 @@ def section(text: str, start: str, end: str) -> str:
     return text[i:text.index(end, i + len(start))]
 
 
+# Fixture weapons. Since D88 (2026-10-20) every weapon drafted is installed
+# and SWAPS is empty, so two fictitious weapons stand in for the build, hand
+# and installed tests, as FIXTURE_ENEMY does for the rotation rules. Their
+# placeholders are IWAD sprites no class of ours uses (Freedoom's super
+# shotgun SHT2 and chainsaw SAWG, so the IWAD check has frames to find); their
+# state files are written into a temporary copy of src/zscript/, which
+# mdo.ZS_ROOT points at while they run.
+REAL_SWAPS = mdo.SWAPS
+FIXTURE_WEAPONS = (
+    mdo.Swap("weapons", "ssg", "weapons/fixture_ssg.zs", "SHT2", "SDXS"),
+    mdo.Swap("weapons", "saw", "weapons/fixture_saw.zs", "SAWG", "SDXW"),
+)
+FIXTURE_ZS = {
+    "weapons/fixture_ssg.zs": ("States\n{\nReady:\n\tSHT2 A 1 A_WeaponReady;\n\tLoop;\nFire:\n"
+                               "\tSHT2 A 3;\n\tSHT2 B 7 A_FireBullets(11.2, 7.1, 20, 5);\n\tSHT2 C 7;\n"
+                               "\tGoto Ready;\nSpawn:\n\tSDXP A -1;\n\tStop;\n}\n"),
+    "weapons/fixture_saw.zs": ("States\n{\nReady:\n\tSAWG CD 4 A_WeaponReady;\n\tLoop;\nFire:\n"
+                               "\tSAWG AB 4 A_Saw;\n\tSAWG B 0 A_ReFire;\n\tGoto Ready;\n}\n"),
+}
+_fixture_dir: tempfile.TemporaryDirectory | None = None
+
+
+def fixture_zs_root() -> Path:
+    """src/zscript/ copied once into a temporary folder, plus the fixtures."""
+    global _fixture_dir
+    if _fixture_dir is None:
+        _fixture_dir = tempfile.TemporaryDirectory()
+        root = Path(_fixture_dir.name) / "zscript"
+        shutil.copytree(mdo.ZS_ROOT, root)
+        for rel, text in FIXTURE_ZS.items():
+            (root / rel).write_text(text, encoding="utf-8")
+    return Path(_fixture_dir.name) / "zscript"
+
+
+def tearDownModule():
+    if _fixture_dir is not None:
+        _fixture_dir.cleanup()
+
+
+class _FixtureWeapons(unittest.TestCase):
+    """SWAPS holds the two fixture weapons and ZS_ROOT the copy with their
+    state files; no test of its own."""
+
+    def setUp(self):
+        for name, value in (("SWAPS", FIXTURE_WEAPONS), ("ZS_ROOT", fixture_zs_root())):
+            patcher = mock.patch.object(mdo, name, value)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+
 # ------------------------------------------------------------------ contract
 class ContractTests(unittest.TestCase):
     def test_swaps_match_mod_spec(self):
         spec = MOD_SPEC.read_text(encoding="utf-8")
         placeholders = section(spec, "### 5.1 IWAD sprites used as placeholders", "## 6. ZScript")
         reserved = section(spec, "### 6.3 Sprites to be drawn", "### 6.4")
-        for swap in mdo.SWAPS:
+        for swap in REAL_SWAPS:
             self.assertIn(f"| `{swap.placeholder}` | sprite |", placeholders, f"{swap.placeholder} not in 5.1")
             self.assertIn(f"`{swap.draft}`", reserved, f"{swap.draft} not reserved in 6.3")
 
@@ -154,7 +213,7 @@ class ContractTests(unittest.TestCase):
         specs = re.findall(r'WeaponSpec\("(\w+)",.*?(\w+)_SPRITE,\s*\w+_FLASH,\s*\w+_PICKUP,\s*'
                            r'"(\w{4})",\s*"(\w{4})",\s*"(\w{4})"', src, re.S)
         self.assertEqual(len(specs), 5, "gen_weapon.py's WEAPONS table changed shape")
-        pairs = ({(s.placeholder, s.draft) for s in mdo.SWAPS} | set(mdo.INSTALLED)
+        pairs = ({(s.placeholder, s.draft) for s in REAL_SWAPS} | set(mdo.INSTALLED)
                  | set(mdo.INSTALLED_WEAPON_FRAMES))
         for key, prefix, *placeholders in specs:
             for ph, ours in zip(placeholders, consts[prefix]):
@@ -168,12 +227,24 @@ class ContractTests(unittest.TestCase):
     def test_no_enemy_swap_is_left_after_d55(self):
         """The rifleman's POSS -> SDRR was the last enemy swap: installed by
         D55 with the hound, both recorded in INSTALLED_ENEMIES instead."""
-        self.assertEqual([s for s in mdo.SWAPS if s.group != "weapons"], [])
+        self.assertEqual([s for s in REAL_SWAPS if s.group != "weapons"], [])
         self.assertIn(("POSS", "SDRR"), mdo.INSTALLED_ENEMIES)
         self.assertIn(("SARG", "SDHN"), mdo.INSTALLED_ENEMIES)
 
+    def test_no_weapon_swap_is_left_after_d88(self):
+        """The ice axe's PUNG -> SDAX was the last weapon swap (D88)."""
+        self.assertEqual(REAL_SWAPS, ())
+        self.assertIn(("PUNG", "SDAX"), mdo.INSTALLED_WEAPON_FRAMES)
+
+    def test_fixture_weapons_are_iwad_sprites_no_class_of_ours_uses(self):
+        for swap in FIXTURE_WEAPONS:
+            for path in sorted(mdo.ZS_ROOT.rglob("*.zs")):
+                self.assertEqual(mdo.state_letters(path.read_text(encoding="utf-8"), swap.placeholder), "",
+                                 f"{path.name} names {swap.placeholder}")
+            self.assertNotIn(swap.draft, mdo.installed_sprites())
+
     def test_every_placeholder_is_still_named_by_its_state_file(self):
-        for swap in mdo.SWAPS:
+        for swap in REAL_SWAPS:
             self.assertTrue(real_letters(swap), f"src/zscript/{swap.zs} no longer names {swap.placeholder}")
 
     def test_state_letters_parser(self):
@@ -190,10 +261,11 @@ class ContractTests(unittest.TestCase):
 
 
 # --------------------------------------------------------------------- build
-class _Fixture(unittest.TestCase):
+class _Fixture(_FixtureWeapons):
     """Synthetic drafts in a temporary folder; no test of its own."""
 
     def setUp(self):
+        super().setUp()
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
         self.weapons, self.rig = make_drafts(self.root)
@@ -277,7 +349,7 @@ class BuildTests(_Fixture):
         code, out, _ = self.build("--dry-run")
         self.assertEqual(code, 0)
         self.assertFalse(self.out.exists())
-        self.assertIn("sprites/SHTGA0.png", out)
+        self.assertIn("sprites/SHT2A0.png", out)
 
     def test_default_names(self):
         self.assertEqual(mdo.default_out("all", "E").name, "sd-draft-sprites.pk3")
@@ -392,8 +464,9 @@ class RotationTests(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------- hand
-class HandTests(unittest.TestCase):
+class HandTests(_FixtureWeapons):
     def setUp(self):
+        super().setUp()
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
 
@@ -408,7 +481,7 @@ class HandTests(unittest.TestCase):
     def test_unrecorded_hand_is_assumed_default_only(self):
         weapons, rig = make_drafts(self.root, hand_record=None)
         plan = mdo.plan_overlay("weapons", "E", weapons, rig)
-        self.assertIn("assumed", plan.hands["izh"])
+        self.assertIn("assumed", plan.hands["ssg"])
         with self.assertRaisesRegex(mdo.OverlayError, "no renders of hand B"):
             mdo.plan_overlay("weapons", "B", weapons, rig)
 
@@ -424,19 +497,20 @@ class HandTests(unittest.TestCase):
         self.assertTrue(all(h.startswith("B") for h in plan.hands.values()))
 
     def test_one_item_with_its_own_hand(self):
-        """--hand G --item izh: only the IZh, from hand_G/izh/ (a weapon's
-        Gemini frames, as the PPSh's were before D79 installed them), and
-        the other weapons' missing hand G is no error."""
+        """--hand G --item saw: only that weapon, from hand_G/saw/ (a
+        weapon's Gemini frames, as the arsenal's were before D79, D84 and
+        D88 installed them), and the other weapon's missing hand G is no
+        error."""
         weapons, rig = make_drafts(self.root, hand_record="E")
-        alt = weapons / "hand_G" / "izh"
+        alt = weapons / "hand_G" / "saw"
         alt.mkdir(parents=True)
-        for f in (weapons / "izh").glob("SD*.png"):
+        for f in (weapons / "saw").glob("SD*.png"):
             (alt / f.name).write_bytes(png((77, 77)))
-        plan = mdo.plan_overlay("weapons", "G", weapons, rig, item="izh")
+        plan = mdo.plan_overlay("weapons", "G", weapons, rig, item="saw")
         self.assertTrue(plan.entries)
-        self.assertTrue(all(e.swap.item == "izh" and e.grab == (77, 77) for e in plan.entries))
-        self.assertEqual(set(plan.hands), {"izh"})
-        self.assertEqual(mdo.default_out("weapons", "G", "izh").name, "sd-draft-weapons-handG-izh.pk3")
+        self.assertTrue(all(e.swap.item == "saw" and e.grab == (77, 77) for e in plan.entries))
+        self.assertEqual(set(plan.hands), {"saw"})
+        self.assertEqual(mdo.default_out("weapons", "G", "saw").name, "sd-draft-weapons-handG-saw.pk3")
 
     def test_hand_letter_validated(self):
         with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
@@ -444,12 +518,13 @@ class HandTests(unittest.TestCase):
 
 
 # ----------------------------------------------------------------- installed
-class InstalledTests(unittest.TestCase):
+class InstalledTests(_FixtureWeapons):
     """D48: the six world pickups ship from assets/sprites/; the overlay
-    must never carry them, nor anything else already installed."""
+    must never carry them, nor anything else already installed. The fixture
+    weapons stand in for the drafts still waiting (none since D88)."""
 
     def test_installed_pickups_are_not_swapped(self):
-        swapped = {s.draft for s in mdo.SWAPS} | {s.placeholder for s in mdo.SWAPS}
+        swapped = {n for s in REAL_SWAPS + FIXTURE_WEAPONS for n in (s.draft, s.placeholder)}
         for placeholder, ours in mdo.INSTALLED:
             self.assertNotIn(ours, swapped)
             self.assertNotIn(placeholder, swapped)
@@ -464,23 +539,37 @@ class InstalledTests(unittest.TestCase):
             self.assertEqual(mdo.installed_sprites() & {ours}, {ours})
 
     def test_a_swap_already_installed_is_skipped(self):
+        """A held sprite under assets/sprites/ is skipped, its flash still
+        packed. A fixture weapon (XHLG -> SDXH, XHLF -> SDXF) stands in
+        since D84 left the ice axe's single swap the only real one."""
+        held = mdo.Swap("weapons", "fixture", "weapons/fixture.zs", "XHLG", "SDXH")
+        flash = mdo.Swap("weapons", "fixture", "weapons/fixture.zs", "XHLF", "SDXF")
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            weapons, rig = make_drafts(root)
-            sprites = root / "sprites" / "izh"
+            zs = root / "zs" / "weapons"
+            zs.mkdir(parents=True)
+            (zs / "fixture.zs").write_text("States\n{\nReady:\n\tXHLG A 1;\n\tLoop;\nFlash:\n"
+                                           "\tXHLF A 3 Bright;\n\tStop;\n}\n", encoding="utf-8")
+            folder = root / "weapons" / "fixture"
+            folder.mkdir(parents=True)
+            for name in ("SDXHA0", "SDXFA0"):
+                (folder / f"{name}.png").write_bytes(png())
+            sprites = root / "sprites" / "fixture"
             sprites.mkdir(parents=True)
-            (sprites / "SDIZA0.png").write_bytes(png())
-            plan = mdo.plan_overlay("all", "E", weapons, rig, sprites_dir=root / "sprites")
-            self.assertFalse(any(e.lump.startswith("SHTG") for e in plan.entries))
-            self.assertTrue(any(e.lump.startswith("SHTF") for e in plan.entries))
-            self.assertTrue(any(n.startswith("SDIZ: approved and installed") for n in plan.notes), plan.notes)
+            (sprites / "SDXHA0.png").write_bytes(png())
+            with mock.patch.object(mdo, "SWAPS", (held, flash)):
+                plan = mdo.plan_overlay("weapons", "E", root / "weapons", root / "rig", zs_root=root / "zs",
+                                        sprites_dir=root / "sprites")
+            self.assertFalse(any(e.lump.startswith("XHLG") for e in plan.entries))
+            self.assertTrue(any(e.lump.startswith("XHLF") for e in plan.entries))
+            self.assertTrue(any(n.startswith("SDXH: approved and installed") for n in plan.notes), plan.notes)
 
     def test_a_swap_naming_the_installed_ppsh_frames_is_skipped(self):
         """D79: the PPSh-41's old swaps (hand E and the Gemini test, hand G)
         are never packed again, whatever drafts are on disk."""
         old = (mdo.Swap("weapons", "ppsh", "weapons/ppsh.zs", "CHGG", "SDPP"),
                mdo.Swap("weapons", "ppsh", "weapons/ppsh.zs", "CHGF", "SDPF"))
-        self.assertEqual(mdo.INSTALLED_WEAPON_FRAMES[2:], (("CHGG", "SDPP"), ("CHGF", "SDPF")))
+        self.assertEqual(mdo.INSTALLED_WEAPON_FRAMES[2:4], (("CHGG", "SDPP"), ("CHGF", "SDPF")))
         self.assertFalse([s for s in mdo.SWAPS if s.item == "ppsh"])
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -495,6 +584,41 @@ class InstalledTests(unittest.TestCase):
             for draft in ("SDPP", "SDPF"):
                 self.assertTrue(any(n.startswith(f"{draft}: held and flash frames installed whole")
                                     for n in plan.notes), plan.notes)
+
+    def test_a_swap_naming_the_d84_and_d88_weapons_is_skipped(self):
+        """D84 and D88: the IZh-58's, RPG-7's, ROKS-3's, hand Katyusha's and
+        ice axe's old swaps (hand E and the Gemini drafts, hand G) are never
+        packed again, nor the Katyusha's pickup (D80), whatever drafts are
+        on disk."""
+        frames = {"izh": ("weapons/izh.zs", (("SHTG", "SDIZ"), ("SHTF", "SDIF"))),
+                  "rpg7": ("weapons/rpg7.zs", (("MISG", "SDRL"), ("MISF", "SDRF"))),
+                  "roks3": ("weapons/roks3.zs", (("PLSG", "SDRK"), ("PLSF", "SDKF"))),
+                  "katyusha": ("weapons/katyusha.zs", (("BFGG", "SDHK"), ("BFGF", "SDHF"))),
+                  "ice_axe": ("weapons/ice_axe.zs", (("PUNG", "SDAX"),))}
+        self.assertEqual(mdo.INSTALLED_WEAPON_FRAMES[4:],
+                         tuple(pair for _, pairs in frames.values() for pair in pairs))
+        self.assertIn(("BFUG", "SDHP"), mdo.INSTALLED)
+        self.assertEqual(REAL_SWAPS, (), "no weapon waits since D88")
+        old = tuple(mdo.Swap("weapons", item, zs, ph, ours)
+                    for item, (zs, pairs) in frames.items() for ph, ours in pairs)
+        old += (mdo.Swap("weapons", "katyusha", "weapons/katyusha.zs", "BFUG", "SDHP"),)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            weapons, rig = make_drafts(root)
+            for swap in old:
+                for folder in (weapons / swap.item, weapons / "hand_G" / swap.item):
+                    folder.mkdir(parents=True, exist_ok=True)
+                    for letter in "ABCD":
+                        (folder / f"{swap.draft}{letter}0.png").write_bytes(png())
+            with mock.patch.object(mdo, "SWAPS", mdo.SWAPS + old):
+                plan = mdo.plan_overlay("all", "E", weapons, rig, sprites_dir=root / "no-sprites")
+            names = {n for s in old for n in (s.placeholder, s.draft)}
+            self.assertFalse(any(e.lump[:4] in names for e in plan.entries))
+            self.assertTrue(plan.entries, "the fixture weapons are still packed")
+            for _, pairs in frames.values():
+                for _, draft in pairs:
+                    self.assertTrue(any(n.startswith(f"{draft}: held and flash frames installed whole")
+                                        for n in plan.notes), plan.notes)
 
     def test_a_swap_naming_the_installed_tt33_frames_is_skipped(self):
         """N17: even with the hand E drafts on disk and nothing under
@@ -588,34 +712,25 @@ class InstalledTests(unittest.TestCase):
 # ---------------------------------------------------------------------- real
 @unittest.skipUnless((mdo.WEAPONS_DIR / "tt33").is_dir(), "work/art drafts not present (CI has no work/)")
 class RealDraftTests(unittest.TestCase):
-    def test_todays_drafts(self):
-        plan = mdo.plan_overlay()
-        if IWAD.is_file():
-            mdo.check_against_iwad(plan, mdo.iwad_sprites(IWAD))
-        # 37 until D48 installed the six pickups; +70 POSS until D55; 31 until
-        # N17 installed the TT-33's held and flash frames (PISG A-C, PISF A);
-        # 27 until D79 installed the PPSh-41's (CHGG A-B, CHGF A)
-        self.assertEqual(len(plan.entries), 24)
-        self.assertFalse({e.lump[:4] for e in plan.entries} & {ph for ph, _ in mdo.INSTALLED})
-        self.assertFalse({e.lump[:4] for e in plan.entries} & {"SPOS", "SDLT"}, "D54: no Legion")
-        self.assertFalse({e.lump[:4] for e in plan.entries} & {"POSS", "SDRR", "SARG", "SDHN"},
-                         "D55: no rifleman, no hound")
-        self.assertFalse({e.lump[:4] for e in plan.entries} & {"TROO", "SDHS", "BAL1", "SDBL"},
-                         "D56: no Stormtrooper, no bolt")
-        self.assertFalse({e.lump[:4] for e in plan.entries} & {"PISG", "PISF", "SDTT", "SDTF"},
-                         "N17: no TT-33 held or flash frame")
-        self.assertFalse({e.lump[:4] for e in plan.entries} & {"CHGG", "CHGF", "SDPP", "SDPF"},
-                         "D79: no PPSh-41 held or flash frame")
-        self.assertEqual(plan.missing, [])
-        self.assertTrue(all(h.startswith("E") for h in plan.hands.values()))
+    """37 until D48 installed the six pickups; +70 POSS until D55; 31 until
+    N17 installed the TT-33's held and flash frames (PISG A-C, PISF A); 27
+    until D79 installed the PPSh-41's (CHGG A-B, CHGF A); 24 until D84
+    installed the IZh-58's, RPG-7's, ROKS-3's and hand Katyusha's (SHTG A-D,
+    SHTF A-B, MISG A-B, MISF A-D, PLSG A-B, PLSF A, BFGG A-B, BFGF A-B) and
+    the Katyusha's pickup (BFUG A, D80); 4 until D88 installed the ice axe's
+    (PUNG A-D). Since then the real overlay has nothing to pack."""
 
-    def test_builds_from_todays_drafts(self):
+    def test_todays_drafts(self):
+        with self.assertRaisesRegex(mdo.OverlayError, "nothing to pack"):
+            mdo.plan_overlay()
+
+    def test_builds_nothing_from_todays_drafts(self):
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "sd-draft-sprites.pk3"
             code, _, err = run_main(["--out", str(out)])
-            self.assertEqual(code, 0, err)
-            with zipfile.ZipFile(out) as zf:
-                self.assertEqual(len(zf.namelist()), 24)
+            self.assertEqual(code, 1, err)
+            self.assertIn("nothing to pack", err)
+            self.assertFalse(out.exists())
 
 
 if __name__ == "__main__":

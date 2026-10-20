@@ -42,7 +42,15 @@ two swaps are gone and INSTALLED_WEAPON_FRAMES records them, so the hand E
 drafts in work/art/weapons/tt33/ can never be packed over them. D79
 (2026-10-20) did the same for the PPSh-41 (`SDPP` A-B, `SDPF` A, built
 from the CEO's Gemini pair by tools/art/gemini_frames.py, renamed from
-`CHGG` and `CHGF`). The `enemies` group keeps the rig machinery (eight rotations, the IWAD
+`CHGG` and `CHGF`), and D84 (2026-10-20) for the IZh-58 (`SDIZ` A-D,
+`SDIF` A-B), the RPG-7 (`SDRL` A-B, `SDRF` A-D), the ROKS-3 (`SDRK` A-B,
+`SDKF` A) and the hand Katyusha (`SDHK` A-B, `SDHF` A-B), renamed from
+`SHTG`/`SHTF`, `MISG`/`MISF`, `PLSG`/`PLSF` and `BFGG`/`BFGF`; the
+Katyusha's floor pickup `SDHP` (D80, renamed from `BFUG`) went into
+INSTALLED with them. D88 (the same day) installed the ice axe (`SDAX` A-D,
+renamed from `PUNG`): no weapon swap is left, so today the overlay has
+nothing to pack and says so, as `--only enemies` has since D55. The
+machinery stays for the next weapon or enemy drafted. The `enemies` group keeps the rig machinery (eight rotations, the IWAD
 check) for the next enemy drafted on the rig; today it has no swap, so
 `--only enemies` has nothing to pack and says so.
 
@@ -128,16 +136,11 @@ class Swap:
 # WeaponSpec (ph_held/ph_flash/ph_pickup) side by side;
 # tests/test_draft_overlay.py holds them equal.
 SWAPS: tuple[Swap, ...] = (
-    Swap("weapons", "ice_axe", "weapons/ice_axe.zs", "PUNG", "SDAX"),
-    Swap("weapons", "izh", "weapons/izh.zs", "SHTG", "SDIZ"),
-    Swap("weapons", "izh", "weapons/izh.zs", "SHTF", "SDIF"),
-    Swap("weapons", "rpg7", "weapons/rpg7.zs", "MISG", "SDRL"),
-    Swap("weapons", "rpg7", "weapons/rpg7.zs", "MISF", "SDRF"),
-    Swap("weapons", "roks3", "weapons/roks3.zs", "PLSG", "SDRK"),
-    Swap("weapons", "roks3", "weapons/roks3.zs", "PLSF", "SDKF"),
-    Swap("weapons", "katyusha", "weapons/katyusha.zs", "BFGG", "SDHK"),
-    Swap("weapons", "katyusha", "weapons/katyusha.zs", "BFGF", "SDHF"),
-    Swap("weapons", "katyusha", "weapons/katyusha.zs", "BFUG", "SDHP"),
+    # No weapon swap since 2026-10-20: D84 installed the IZh-58's, RPG-7's,
+    # ROKS-3's and hand Katyusha's held and flash frames, D88 the ice axe's
+    # (INSTALLED_WEAPON_FRAMES), with the Katyusha's floor pickup
+    # (INSTALLED). A weapon drafted again joins as
+    # Swap("weapons", "<folder>", "weapons/<file>.zs", "<IWAD>", "SD..").
     # No enemy swap since D55: the rifleman's POSS -> SDRR, the last one, is
     # installed (INSTALLED_ENEMIES). An enemy drafted on the rig joins as
     # Swap("enemies", "", "monsters/<file>.zs", "<IWAD>", "SD..").
@@ -148,6 +151,8 @@ SWAPS: tuple[Swap, ...] = (
 # pickups and the PNGs ship from assets/sprites/, so the overlay carries
 # none of them. (placeholder it replaced, our name), for the record and the
 # tests; the held and flash frames are NOT here (hand E held back, D48).
+# The hand Katyusha's floor pickup joined on 2026-10-20 (D80, its Spawn
+# line changed with D84's install).
 INSTALLED: tuple[tuple[str, str], ...] = (
     ("CSAW", "SDAP"),    # ice axe, pickup option C
     ("PIST", "SDTP"),    # TT-33
@@ -155,6 +160,7 @@ INSTALLED: tuple[tuple[str, str], ...] = (
     ("MGUN", "SDPQ"),    # PPSh-41
     ("LAUN", "SDRP"),    # RPG-7
     ("PLAS", "SDKP"),    # ROKS-3
+    ("BFUG", "SDHP"),    # hand Katyusha, the D51 draft (D80, installed 2026-10-20 in pickups/)
 )
 
 # Held and flash frames approved and installed whole (N17, 2026-10-15): the
@@ -170,6 +176,20 @@ INSTALLED_WEAPON_FRAMES: tuple[tuple[str, str], ...] = (
     # tests/test_ppsh_sprites.py).
     ("CHGG", "SDPP"),    # PPSh-41 held, A-B
     ("CHGF", "SDPF"),    # its muzzle flash, A
+    # D84 (2026-10-20): the IZh-58, RPG-7, ROKS-3 and hand Katyusha from the
+    # CEO's Gemini images (tools/art/gemini_frames.py,
+    # work/art/weapons/hand_G/<weapon>/; tests/test_gemini_weapons_install.py).
+    ("SHTG", "SDIZ"),    # IZh-58 held, A-D
+    ("SHTF", "SDIF"),    # its muzzle flash, A-B
+    ("MISG", "SDRL"),    # RPG-7 held, A-B
+    ("MISF", "SDRF"),    # its backblast and flash, A-D
+    ("PLSG", "SDRK"),    # ROKS-3 held, A-B
+    ("PLSF", "SDKF"),    # its flame at the nozzle, A
+    ("BFGG", "SDHK"),    # hand Katyusha held, A-B
+    ("BFGF", "SDHF"),    # its salvo's flash, A-B
+    # D88 (2026-10-20): the ice axe, its ready frame from the CEO's Gemini
+    # image and the swing rotated from it (gemini_frames.py).
+    ("PUNG", "SDAX"),    # ice axe held, A-D
 )
 
 # Enemies approved and installed whole: every state names our sprite, the
@@ -305,10 +325,14 @@ def installed_sprites(sprites_dir: Path = SPRITES_DIR) -> set[str]:
 
 
 def plan_overlay(only: str = "all", hand: str = DEFAULT_HAND, weapons_dir: Path = WEAPONS_DIR,
-                 rig_dir: Path = RIG_DIR, zs_root: Path = ZS_ROOT,
+                 rig_dir: Path = RIG_DIR, zs_root: Path | None = None,
                  sprites_dir: Path = SPRITES_DIR, item: str | None = None) -> Plan:
     """`item` packs one weapon only (e.g. a weapon's Gemini frames, hand G,
-    tools/art/gemini_frames.py; the PPSh's were installed by D79)."""
+    tools/art/gemini_frames.py; every weapon drafted so far is installed:
+    the PPSh's by D79, the IZh-58's, RPG-7's, ROKS-3's and hand Katyusha's
+    by D84, the ice axe's by D88). `zs_root` defaults to ZS_ROOT as it
+    stands at the call (the tests point it at fixture weapons)."""
+    zs_root = ZS_ROOT if zs_root is None else zs_root
     groups = GROUPS if only == "all" else (only,)
     plan = Plan()
     zs_cache: dict[str, str] = {}
@@ -497,7 +521,7 @@ def main(argv=None) -> int:
     ap.add_argument("--hand", default=DEFAULT_HAND, type=str.upper,
                     help="which hand's weapon renders to use (default E, the one drawn)")
     ap.add_argument("--item", choices=sorted({s.item for s in SWAPS if s.group == "weapons"}),
-                    help="pack this weapon only (e.g. --hand G --item izh: a weapon's Gemini frames)")
+                    help="pack this weapon only (e.g. --hand G --item <weapon>: its Gemini frames)")
     ap.add_argument("--out", type=Path, help="output PK3 (default work/overlays/sd-draft-*.pk3)")
     ap.add_argument("--weapons-dir", type=Path, default=WEAPONS_DIR)
     ap.add_argument("--rig-dir", type=Path, default=RIG_DIR)

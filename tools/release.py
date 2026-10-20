@@ -457,13 +457,15 @@ CREDITS_HEADINGS = {
 AI_DISCLOSURE = {
     LANG_ENGLISH: ("The first-person hands of the weapons were drawn from images the "
                    "project lead generated with AI image models: Google Gemini (the "
-                   "PPSh-41's frames are derived from its images) and Fooocus / SDXL "
+                   "frames of the PPSh-41, IZh-58, RPG-7, ROKS-3, hand Katyusha and ice "
+                   "axe are derived from its images) and Fooocus / SDXL "
                    "run locally (references). Both were reworked into pixel art; the "
                    "source images are not distributed."),
     LANG_RUSSIAN: ("Руки с оружием от первого лица нарисованы по изображениям, которые "
                    "руководитель проекта создал с помощью ИИ-моделей генерации "
-                   "изображений: Google Gemini (кадры ППШ-41 получены из его "
-                   "изображений) и локально запущенной Fooocus / SDXL (референсы). "
+                   "изображений: Google Gemini (кадры ППШ-41, ИЖ-58, РПГ-7, РОКС-3, "
+                   "ручной «Катюши» и ледоруба получены из его изображений) и локально "
+                   "запущенной Fooocus / SDXL (референсы). "
                    "Всё переработано в пиксель-арт; исходные изображения не "
                    "распространяются."),
 }

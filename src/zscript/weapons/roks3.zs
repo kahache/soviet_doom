@@ -4,12 +4,13 @@
 // reads as pressurised fuel canisters (the Hand Katyusha draws on the same
 // pool, exactly as Doom's plasma rifle and BFG share cells).
 //
-// Sprites. The world pickup is ours since D48 (2026-10-14); the held and
-// flash frames stay Freedoom (IWAD) PLACEHOLDERS until the hand is redrawn
-// (the CEO found hand E deformed in MAP01, 2026-10-14). MOD-SPEC 5.1, 6.3.
-// Held PLSG (final SDRK A-B), flash PLSF (final SDKF A-B). Pickup: SDKP A
-// (assets/sprites/roks3/; was PLAS). The flame in flight still wears
-// PLSS / PLSE (flame_blob.zs).
+// Sprites. The world pickup is ours since D48 (2026-10-14): SDKP A (was
+// the IWAD's PLAS). The held frames SDRK A-B and the flame at the nozzle
+// SDKF A since D84 (2026-10-20), built from the CEO's Google Gemini pair by
+// tools/art/gemini_frames.py; only the four-letter names changed, every
+// tic, action and jump is as it was. All in assets/sprites/roks3/.
+// MOD-SPEC 6.3; tests/test_gemini_weapons_install.py. The flame in flight
+// still wears the IWAD's PLSS / PLSE (flame_blob.zs, MOD-SPEC 5.1).
 // Balance rationale: docs/engine/BALANCE.md.
 
 class SD_Roks3 : PlasmaRifle replaces PlasmaRifle
@@ -39,24 +40,24 @@ class SD_Roks3 : PlasmaRifle replaces PlasmaRifle
 	States
 	{
 	Ready:
-		PLSG A 1 A_SD_WeaponReady;
+		SDRK A 1 A_SD_WeaponReady;
 		Loop;
 	Deselect:
-		PLSG A 1 A_Lower;
+		SDRK A 1 A_Lower;
 		Loop;
 	Select:
-		PLSG A 1 A_Raise;
+		SDRK A 1 A_Raise;
 		Loop;
 	Fire:
 		// 3 tics per jet while the trigger is held (same as Doom's plasma);
 		// A_ReFire fires on entry to the next state, so the 20-tic frame is
 		// only paid when the player lets go.
-		PLSG A 0 A_GunFlash;
-		PLSG A 3 Bright A_SD_FireRoks3;
-		PLSG B 20 A_ReFire;
+		SDRK A 0 A_GunFlash;
+		SDRK A 3 Bright A_SD_FireRoks3;
+		SDRK B 20 A_ReFire;
 		Goto Ready;
 	Flash:
-		PLSF A 3 Bright A_Light1;
+		SDKF A 3 Bright A_Light1;
 		Goto LightDone;
 	Spawn:
 		SDKP A -1;

@@ -14,7 +14,7 @@
 // 61-69) and rises 60-62 px above the actor's z, as HEAD did; only the
 // stump hangs lower (15 px below z, HEAD 5). Doom's own Cacodemon, which
 // this class replaces, keeps the IWAD's HEAD. The shell, SD_DoughboyShell,
-// still wears Freedoom's BAL2.
+// wears our SDDL since D81 (doughboy_shell.zs).
 
 class SD_Doughboy : SD_Monster replaces Cacodemon
 {

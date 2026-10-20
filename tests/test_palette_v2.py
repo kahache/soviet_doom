@@ -23,7 +23,9 @@ What is enforced here, and why:
               since D70, the General's SDGN set since D73, the TT-33's
               held SDTT A-C since N17, the PPSh-41's SDPP A-B and
               SDPF A since D79, the blue pass's status bar icon STKEYS0
-              since D80)
+              since D80, the IZh-58's, RPG-7's, ROKS-3's and hand
+              Katyusha's held and flash frames since D84, the ice axe's
+              SDAX A-D since D88)
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_palette_v2 -v
 """
@@ -96,6 +98,15 @@ MAX_COLOURS = 256
 # PALETTE_V2_LUMPS lists it. STKEYS1-2 are written on the v2 PLTE but use v1
 # colours only, so they are not listed. The campaign pickups of D80 are all
 # v1 (the heavy armour is option C, bare steel, not A's cobalt).
+# D84 (2026-10-20): the IZh-58's SDIZ A-D / SDIF A-B, the RPG-7's SDRL A-B /
+# SDRF A-D, the ROKS-3's SDRK A-B / SDKF A and the hand Katyusha's SDHK A-B /
+# SDHF A-B, gemini_frames.py like the PPSh-41's (all of palette v2). RGBA,
+# not in PALETTE_V2_LUMPS. The Katyusha's floor pickup SDHPA0 (D80) and the
+# two enemy shells SDDL / SDPL (D81) are v1 and not listed.
+# D88 (2026-10-20): the ice axe's SDAX A-D, the same way (no flash).
+D84_FRAMES = {"izh": ("SDIZ", "ABCD", "SDIF", "AB"), "rpg7": ("SDRL", "AB", "SDRF", "ABCD"),
+              "roks3": ("SDRK", "AB", "SDKF", "A"), "katyusha": ("SDHK", "AB", "SDHF", "AB"),
+              "ice_axe": ("SDAX", "ABCD", "SDAX", "")}
 APPROVED_IN_V2: set[str] = (
     {f"sprites/legion/SDLT{f}{r}.png" for f in "ABCDEFG" for r in "12345678"}
     | {f"sprites/legion/SDLT{f}0.png" for f in "HIJKLMNOPQRSTU"}
@@ -109,7 +120,9 @@ APPROVED_IN_V2: set[str] = (
     | {f"sprites/general/SDGN{f}0.png" for f in "HIJKLMNOP"}
     | {f"sprites/tt33/SDTT{f}0.png" for f in "ABC"}
     | {"sprites/ppsh/SDPPA0.png", "sprites/ppsh/SDPPB0.png", "sprites/ppsh/SDPFA0.png"}
-    | {"graphics/hud/STKEYS0.png"})
+    | {"graphics/hud/STKEYS0.png"}
+    | {f"sprites/{folder}/{name}{f}0.png" for folder, (held, hf, flash, ff) in D84_FRAMES.items()
+       for name, frames in ((held, hf), (flash, ff)) for f in frames})
 
 
 def _digest(colours) -> str:

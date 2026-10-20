@@ -12,11 +12,13 @@
 // engine to hand out this class wherever the game would have given a Fist,
 // so Freedoom's melee weapon never shows up.
 //
-// Sprites. The world pickup is ours since D48 (2026-10-14); the held and
-// flash frames stay Freedoom (IWAD) PLACEHOLDERS until the hand is redrawn
-// (the CEO found hand E deformed in MAP01, 2026-10-14). MOD-SPEC 5.1, 6.3.
-// Held: PUNG A-D (final SDAX A-E). Pickup: SDAP A, option C, upright as in
-// a rack (assets/sprites/ice_axe/; was CSAW, Freedoom's chainsaw).
+// Sprites, all ours. The pickup since D48 (2026-10-14): SDAP A, option C,
+// upright as in a rack (was CSAW, Freedoom's chainsaw). The held frames
+// SDAX A-D since D88 (2026-10-20), built from the CEO's Google Gemini image
+// by tools/art/gemini_frames.py (ready; the wind-up, strike and
+// follow-through rotate it as one rigid piece about the elbow); only the
+// four-letter name changed, every tic, action and jump is as it was. All in
+// assets/sprites/ice_axe/. MOD-SPEC 6.3; tests/test_gemini_weapons_install.py.
 // Names: docs/engine/MOD-SPEC.md section 6, "Slot 1 since D40".
 // Balance rationale: docs/engine/BALANCE.md.
 
@@ -50,13 +52,13 @@ class SD_IceAxe : Fist replaces Fist
 	States
 	{
 	Ready:
-		PUNG A 1 A_WeaponReady;
+		SDAX A 1 A_WeaponReady;
 		Loop;
 	Deselect:
-		PUNG A 1 A_Lower;
+		SDAX A 1 A_Lower;
 		Loop;
 	Select:
-		PUNG A 1 A_Raise;
+		SDAX A 1 A_Raise;
 		Loop;
 	Fire:
 		// 5 + 5 + 6 + 5 + 6 = 27 tics per swing (Doom's Fist: 22).
@@ -64,11 +66,11 @@ class SD_IceAxe : Fist replaces Fist
 		// before the blow; a hit, 5 tics later on the same channel, cuts its
 		// tail, a miss lets it play out. Silent from 2026-10-13 until N9
 		// (MOD-SPEC 6.2). The tic count is unchanged.
-		PUNG B 5 A_StartSound("sd/weapon/iceaxe/swing", CHAN_WEAPON);
-		PUNG C 5 A_SD_IceAxeSwing;
-		PUNG D 6;
-		PUNG C 5;
-		PUNG B 6 A_ReFire;
+		SDAX B 5 A_StartSound("sd/weapon/iceaxe/swing", CHAN_WEAPON);
+		SDAX C 5 A_SD_IceAxeSwing;
+		SDAX D 6;
+		SDAX C 5;
+		SDAX B 6 A_ReFire;
 		Goto Ready;
 	Spawn:
 		// Pickup sprite. The ice axe is not in the start inventory

@@ -130,7 +130,9 @@ class FreedoomWeaponsTest(unittest.TestCase):
         self.assertTrue(hs.R3_FIST_GRIP[0] <= ring[1] < hs.R3_FIST_GRIP[1])
 
     def test_axe_letters_come_from_the_zs(self):
-        self.assertEqual(hs.zs_held_letters(hs.AXE_FD_ZS, hs.AXE_FD_PLACEHOLDER), "ABCD")
+        # PUNG until D88 installed the Gemini ice axe as SDAX: the same letters
+        self.assertEqual(hs.zs_held_letters(hs.AXE_FD_ZS, hs.AXE_FD_PLACEHOLDER), "")
+        self.assertEqual(hs.zs_held_letters(hs.AXE_FD_ZS, hs.AXE_FD_SPRITE), "ABCD")
 
     @slow
     def test_axe_in_a_gripping_hand_at_pisg_height(self):

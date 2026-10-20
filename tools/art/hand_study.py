@@ -1992,7 +1992,8 @@ def build_axe_fd(hand: str = "grip", out_dir: Path | None = AXE_FD_OUT_DIR) -> d
     gw = _gw()
     lumps, pal = read_wad()
     placer, ring = axe_hand_placer(lumps, pal, hand)
-    letters = zs_held_letters(AXE_FD_ZS, AXE_FD_PLACEHOLDER)
+    # PUNG until D88 (2026-10-20) installed the Gemini ice axe under SDAX
+    letters = zs_held_letters(AXE_FD_ZS, AXE_FD_PLACEHOLDER) or zs_held_letters(AXE_FD_ZS, AXE_FD_SPRITE)
     poses = {p.frame: p for p in gw.AXE_FD_POSES}
     missing = set(letters) - set(poses)
     if missing:
