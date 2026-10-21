@@ -38,5 +38,5 @@ Render our MIDI pieces with real orchestral sound: the CEO's own Pro Tools rig (
 
 ## Small details for v1.1 (CEO, 2026-10-20, D100)
 
-- **The Reich hound sounds like a dog:** real barks, growls, a yelp on pain and a whimper on death (licence-clean dog recordings or our synthesis), replacing today's drafts.
-- **Continue after death:** today the screen just stays on the dead view. Show a clear prompt (EN/RU, e.g. "Press USE to continue" / «Нажмите ИСПОЛЬЗОВАТЬ, чтобы продолжить») and restart the same level (GZDoom already reloads the level on USE in single player; make it obvious, and consider keeping the weapons the player had at the level's start).
+- *(Drafts 2026-10-21, D102: `work/audio/preview/dog_listening.html`, waiting for the CEO.)* **The Reich hound sounds like a dog:** real barks, growls, a yelp on pain and a whimper on death (licence-clean dog recordings or our synthesis), replacing today's drafts.
+- *(Done 2026-10-21 in v1.1, 0f89be2: SD_DeathPrompt; USE reloads the map's entry autosave or restarts MAP01.)* **Continue after death:** today the screen just stays on the dead view. Show a clear prompt (EN/RU, e.g. "Press USE to continue" / «Нажмите ИСПОЛЬЗОВАТЬ, чтобы продолжить») and restart the same level (GZDoom already reloads the level on USE in single player; make it obvious, and consider keeping the weapons the player had at the level's start).

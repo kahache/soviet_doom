@@ -85,9 +85,9 @@ REPO_ONLY = ("docs/", "tools/", "tests/", "src/", "work/", "dist/", "iwads/",
 # and every AI tool the game was made with, in both halves of CREDITS.txt and
 # README.txt.
 AI_WORDS = {"default": ("AI", "Google Gemini", "Fooocus / SDXL", "hands", "pixel art", "not distributed",
-                        "Freedoom's voices"),
+                        "Freedoom's voices", "into Russian and Catalan"),
             "ru": ("ИИ", "Google Gemini", "Fooocus / SDXL", "рук", "пиксель-арт", "не распространяются",
-                   "голосами Freedoom")}
+                   "голосами Freedoom", "на русский и каталанский")}
 # README.txt's "Made with" names the AI tools and the non-AI foundations.
 MADE_WITH_WORDS = ("GZDoom", "Freedoom", "Kenney", "rubberduck", "Darsycho", "OpenGameArt",
                    "Jerry Engelbach", "Peter Gerloff", "Python", "Pillow", "CREDITS.txt")
@@ -255,9 +255,9 @@ class RealReleaseTest(unittest.TestCase):
             self.assertEqual(info.create_system, release.ZIP_CREATE_SYSTEM_UNIX)
             self.assertEqual(info.external_attr >> 16, release.ZIP_FILE_MODE)
 
-    def test_credits_carry_the_in_game_credits_in_both_languages(self):
+    def test_credits_carry_the_in_game_credits_in_every_language(self):
         credits = release.parse_credit_lines(self.language)
-        for lang in (release.LANG_ENGLISH, release.LANG_RUSSIAN):
+        for lang in (release.LANG_ENGLISH, release.LANG_RUSSIAN, release.LANG_CATALAN):
             self.assertTrue(credits[lang], f"no SD_CRED_* in [{lang}]")
             for ident, text in credits[lang]:
                 if ident != release.CREDIT_TITLE_ID:
@@ -424,6 +424,17 @@ class ReadmeTest(unittest.TestCase):
                 self.assertIn(word, flat)
         self.assertIn("Freedoom's voices", release.normalise(self.en))
         self.assertIn("голосами Freedoom", release.normalise(self.ru))
+
+    def test_it_names_the_three_languages(self):
+        """P6: Catalan is the third language, in the list and in the menu path."""
+        self.assertIn("English, Russian and Catalan, switched inside the game.", self.en)
+        self.assertIn("Три языка: английский, русский и каталанский", self.ru)
+        self.assertIn(f"{self.en_names['SD_LANGVAL_RU']} or {self.en_names['SD_LANGVAL_CA']}.",
+                      self.en)
+        self.assertIn(f"{self.ru_names['SD_LANGVAL_RU']} или {self.ru_names['SD_LANGVAL_CA']}.",
+                      self.ru)
+        self.assertIn("the Russian and Catalan text", release.normalise(self.en))
+        self.assertIn("русский и каталанский тексты", release.normalise(self.ru))
 
     def test_made_with_follows_what_ships(self):
         face_voices = release.render_readme("1.0", "0123456789ab", self.strings,
@@ -624,6 +635,23 @@ class CreditsTextTest(unittest.TestCase):
                 self.assertIn(release.normalise(paragraph), flat)
             for word in AI_WORDS[lang] + release.AI_TOOLS:
                 self.assertIn(word, flat, f"[{lang}]")
+
+    def test_the_catalan_screen_closes_the_file(self):
+        """P6: the [ca] credits screen as the game shows it, after the
+        Russian half; a LANGUAGE without [ca] gets no Catalan heading."""
+        heading = release.CREDITS_HEADINGS["screen_ca"]
+        before, catalan = self.text.split(heading)
+        self.assertIn(release.CREDITS_HEADINGS["ai_ru"], before)
+        self.assertNotIn(release.CREDITS_HEADINGS["ai_en"], catalan)
+        for ident, text in self.credits_lines[release.LANG_CATALAN]:
+            if ident != release.CREDIT_TITLE_ID:
+                self.assertIn(text.upper() if ident.startswith(release.CREDIT_HEADER_MARK)
+                              else "  " + text, catalan, ident)
+        self.assertIn("els textos en rus i català", catalan)
+        without = {lang: lines for lang, lines in self.credits_lines.items()
+                   if lang != release.LANG_CATALAN}
+        check = release.LicenceCheck(coverage=[])
+        self.assertNotIn(heading, release.render_credits("1.0", "0123456789ab", without, [], check))
 
     def test_the_ai_text_names_no_repo_path(self):
         every = [release.ai_disclosure(lang, release.AiShips(face, voices))
