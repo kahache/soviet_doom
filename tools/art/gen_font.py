@@ -52,6 +52,8 @@ Usage
                      # H1 proposal: work/art/font_fix/ + docs/art/previews/ sheet
     .venv/bin/python tools/art/gen_font.py --german-umlauts --stamp YYYY-MM-DD_HHMM
                      # F5 proposal (D36): work/art/font_umlaut/ + docs/art/previews/ sheet
+    .venv/bin/python tools/art/gen_font.py --catalan --stamp YYYY-MM-DD
+                     # P6 (D97): work/art/font_ca/ + docs/art/previews/ sheet, see CATALAN_ACCENTS
 """
 from __future__ import annotations
 
@@ -1198,9 +1200,13 @@ def _apply_german(on: bool):
             GLYPHS[ord(ch)] = ("n", _eszett, False)
         else:
             GLYPHS.pop(ord(ch), None)
+    # The German letters go before any Catalan ones (P6), so switching them
+    # off and on again restores PUNCT in its order, not just its contents.
+    later = set(globals().get("CATALAN", ()))
     for ch in GERMAN:
         if on and ch not in PUNCT:
-            PUNCT.append(ch)
+            at = next((i for i, c in enumerate(PUNCT) if c in later), len(PUNCT))
+            PUNCT.insert(at, ch)
         elif not on and ch in PUNCT:
             PUNCT.remove(ch)
 
@@ -1253,6 +1259,176 @@ def build_german(out_root: Path | None = None) -> dict:
     sd = out_root / "sdmenu"
     sd.mkdir(parents=True, exist_ok=True)
     for ch in GERMAN:
+        name = f"{ord(ch):04X}.png"
+        (sd / name).write_bytes((out_root / style.key / "bigfont" / name).read_bytes())
+    report["files"]["fonts/sdmenu/"] = dict(report["files"]["fonts/bigfont/"])
+    (out_root / "manifest.json").write_text(json.dumps(report, indent=1),
+                                            encoding="utf-8", newline="\n")
+    return report
+
+
+# ------------------------------------------------ Catalan letters (D97, P6)
+# À È É Í Ï Ò Ó Ú Ç.  P6 adds `[ca]` to LANGUAGE (D97) and the alphabet had
+# none of them, so the engine drew the base letter ("MUNICIO", "CONTINUARA";
+# FFont::GetCharCode strips the accent, NOT VERIFIED on screen).  Built the
+# way the German letters were (D37): a switch, a `with` block for the
+# proposal and the tests, and a builder that writes only the new files to
+# work/art/font_ca/.  The PM installed them on 2026-10-21 for the P6 review
+# (Q3 of docs/product/2026-10-21_P6_catala-revisio.md); the CEO judges them
+# on docs/art/previews/2026-10-21_P6_font-ca.png.  With CATALAN_ACCENTS
+# False the output is the 224 glyphs of D37, untouched by a single byte;
+# True makes it 242 (121 x 2).
+#
+# Capitals only: the font has no lowercase and the engine folds à onto À as
+# it folds ä onto Ä (NOT VERIFIED for these code points, D26).  `[ca]` uses
+# à ç è é í ò ó ú and À (CONTINUARÀ); Ï is not used yet and is drawn so the
+# set is complete.  The punt volat · (U+00B7) was already in PUNCT.
+#
+# Drawing rules, sharing the umlauts' vertical metrics so Ä and À stand on
+# the same letter box:
+#
+#   accent   the base capital in the umlaut's shorter box (cap - stem -
+#            UMLAUT_GAP rows: 5 small, 8 big) at the baseline, and above it
+#            a stroke ACCENT_ROWS tall, one stem wide, stepping one pixel per
+#            row: down to the right for the grave, down to the left for the
+#            acute.  Its lower end sits on the letter's axis.  Small: the
+#            two rows fill the band, so the stroke touches the letter, as Ё's
+#            dots do (and as 5x7 LCD fonts draw É); big: one blank row stays.
+#   Ï        I in the shorter box, its two dots one pixel outside the stem,
+#            so they stay apart on a letter one stem wide.
+#   Ç        C in the shorter box at the CAP LINE, the cedilla in the rows
+#            freed under it: a stub on the axis that turns left at the
+#            bottom, like the comma.  Every glyph stays exactly cap + shadow
+#            tall (the contract of tests/test_gen_font.py): a cedilla below
+#            the baseline would need a taller PNG, and how GZDoom aligns one
+#            in a folder font is NOT VERIFIED.
+CATALAN_ACCENTS = True                  # installed 2026-10-21 (P6, Q3)
+OUT_ROOT_CATALAN = PROJECT_ROOT / "work" / "art" / "font_ca"
+
+GRAVE, ACUTE = -1, 1                    # which way the stroke's top leans
+CATALAN_ACCENTED = {                    # letter -> (base capital, accent)
+    "À": ("A", GRAVE), "È": ("E", GRAVE), "É": ("E", ACUTE),
+    "Í": ("I", ACUTE), "Ò": ("O", GRAVE), "Ó": ("O", ACUTE),
+    "Ú": ("U", ACUTE),
+}
+I_DIAERESIS = "Ï"
+C_CEDILLA = "Ç"
+CATALAN = list(CATALAN_ACCENTED) + [I_DIAERESIS, C_CEDILLA]
+ACCENT_ROWS = 2         # height of the accent stroke, in rows
+
+
+def _short_letter(p: Pen, base: str) -> np.ndarray:
+    """`base` drawn by its own stroke function in the umlauts' shorter box
+    (cap - stem - UMLAUT_GAP rows), same width as `p`."""
+    _cls, fn, _center = GLYPHS[ord(base)]
+    sub = Pen(p.W, _replace(p.size, cap=p.H - p.stem - UMLAUT_GAP), p.style)
+    fn(sub)
+    return sub.finish()
+
+
+def _axis_column(ink: np.ndarray, stem: int) -> int:
+    """Left column of a stem-wide block centred on the ink's extent."""
+    cols = np.flatnonzero(ink.any(axis=0))
+    centre = (cols[0] + cols[-1] + 1) / 2
+    return Pen._r(centre - stem / 2)
+
+
+def _accent_drawer(base: str, lean: int):
+    def draw(p: Pen):
+        letter = _short_letter(p, base)
+        p.ink[p.H - letter.shape[0]:, :] |= letter
+        foot = _axis_column(letter, p.stem)
+        for row in range(ACCENT_ROWS):
+            c = foot + lean * (ACCENT_ROWS - 1 - row)
+            p.ink[row, c:c + p.stem] = True
+    return draw
+
+
+def _i_diaeresis(p: Pen):
+    letter = _short_letter(p, "I")
+    p.ink[p.H - letter.shape[0]:, :] |= letter
+    mid = letter[letter.shape[0] // 2]
+    stem = np.flatnonzero(mid)
+    dot = p.stem
+    left, right = stem[0] - dot, stem[-1] + 1          # flush outside the stem
+    p.ink[0:dot, left:left + dot] = True
+    p.ink[0:dot, right:right + dot] = True
+
+
+def _c_cedilla(p: Pen):
+    letter = _short_letter(p, "C")
+    p.ink[:letter.shape[0], :] |= letter
+    foot = _axis_column(letter, p.stem)
+    top = letter.shape[0]
+    p.ink[top:p.H - 1, foot:foot + p.stem] = True        # the stub
+    p.ink[p.H - 1, foot - 1:foot - 1 + p.stem] = True    # the turn, left
+
+
+def _apply_catalan(on: bool):
+    """Register (or remove) the Catalan letters in GLYPHS and PUNCT."""
+    drawers = {ch: _accent_drawer(base, lean) for ch, (base, lean) in CATALAN_ACCENTED.items()}
+    drawers[I_DIAERESIS] = _i_diaeresis
+    drawers[C_CEDILLA] = _c_cedilla
+    bases = {**{ch: base for ch, (base, _l) in CATALAN_ACCENTED.items()},
+             I_DIAERESIS: "I", C_CEDILLA: "C"}
+    for ch in CATALAN:
+        if on:
+            cls, _fn, center = GLYPHS[ord(bases[ch])]
+            GLYPHS[ord(ch)] = (cls, drawers[ch], center)
+            if ch not in PUNCT:
+                PUNCT.append(ch)
+        else:
+            GLYPHS.pop(ord(ch), None)
+            if ch in PUNCT:
+                PUNCT.remove(ch)
+
+
+class catalan_accents:
+    """`with catalan_accents(True):` draws with the Catalan letters present,
+    then puts the module state back (as german_umlauts does)."""
+
+    def __init__(self, on: bool = True):
+        self.on = on
+
+    def __enter__(self):
+        self.was = all(ord(c) in GLYPHS for c in CATALAN)
+        _apply_catalan(self.on)
+        return self
+
+    def __exit__(self, *exc):
+        _apply_catalan(self.was)
+        return False
+
+
+if CATALAN_ACCENTS:                     # installed for the P6 review (Q3)
+    _apply_catalan(True)
+
+
+def build_catalan(out_root: Path | None = None) -> dict:
+    """Style C's nine new letters into work/art/font_ca/ (never assets/):
+
+        C/defsmallfont/{00C0,00C8,00C9,00CD,00CF,00D2,00D3,00DA,00C7}.png
+        C/bigfont/{...}.png
+        sdmenu/{...}.png     the big ones, copied: SDMENU is bigfont plus
+                             five Cyrillic substitutions (R N E W A), so its
+                             À and È are bigfont's, Latin letters (as Ä, D37)
+    """
+    out_root = OUT_ROOT_CATALAN if out_root is None else out_root
+    style = STYLES["C"]
+    report = {"proposal": "Catalan letters (D97, P6)", "style": style.key, "files": {}}
+    with catalan_accents(True):
+        for size_key, folder in (("small", "defsmallfont"), ("big", "bigfont")):
+            d = out_root / style.key / folder
+            d.mkdir(parents=True, exist_ok=True)
+            widths = {}
+            for ch in CATALAN:
+                img = glyph_image(ch, style, size_key)
+                img.save(d / f"{ord(ch):04X}.png")
+                widths[f"U+{ord(ch):04X}"] = img.width
+            report["files"][f"fonts/{folder}/"] = widths
+    sd = out_root / "sdmenu"
+    sd.mkdir(parents=True, exist_ok=True)
+    for ch in CATALAN:
         name = f"{ord(ch):04X}.png"
         (sd / name).write_bytes((out_root / style.key / "bigfont" / name).read_bytes())
     report["files"]["fonts/sdmenu/"] = dict(report["files"]["fonts/bigfont/"])
@@ -1740,6 +1916,115 @@ def sheet_german(stamp: str, out_dir: Path | None = None) -> Path:
     return path
 
 
+# ------------------------------------------------ the Catalan-letters sheet
+CATALAN_ZOOM = 8                # glyph close-ups
+CATALAN_WORD_ZOOM = 4           # the phrases, as the PM asked: x4
+CATALAN_PHRASES = [
+    # (font, LANGUAGE id, text as [ca] has it).  Real lines of the [ca]
+    # block; lowercase folds onto the capitals (RenderFont.glyph).
+    ("defsmallfont", "SD_PICKUP_ROKS3", "Has agafat el llançaflames ROKS-3!"),
+    ("defsmallfont", "SD_SKILL_5", "Heroi de la Unió Soviètica, pòstum"),
+    ("defsmallfont", "SD_MAP02_NAME / SD_TAG_STORM", "Metro-búnquer · Soldat d'assalt híbrid"),
+    ("defsmallfont", "SD_SKILL_5_CONFIRM", "La condecoració és pòstuma"),
+    ("bigfont", "SD_MAP01_NAME", "Cosmòdrom Zarya-7"),
+    ("bigfont", "SD_END01_TEXT (last line)", "CONTINUARÀ"),
+    ("sdmenu", "SD_MNU_CHOOSEEPISODE (Q4)", "TRIA LA MISSIÓ"),
+]
+
+
+def sheet_catalan(stamp: str, out_dir: Path | None = None) -> Path:
+    """The P6 sheet: the nine letters beside their bases, 1x and enlarged on
+    a pixel grid, then one real [ca] line per font at 1x and 4x.  SDMENU is
+    bigfont with gen_menu.SUBSTITUTION applied, which is what it draws."""
+    import gen_menu
+
+    style = STYLES["C"]
+    fonts = {}
+    with catalan_accents(True):
+        for size_key in ("small", "big"):
+            f = RenderFont(style, size_key)
+            for _font, _id, text in CATALAN_PHRASES:
+                f.render(text)                 # fill the cache while the switch holds
+            for ch in "AEIOUC" + "".join(CATALAN):
+                f.glyph(ch)
+            fonts[size_key] = f
+    W = 1560
+    img, d = new_sheet(W, 3000)
+    d.rectangle([0, 0, W, 86], fill=PANEL)
+    d.rectangle([0, 84, W, 86], fill=ACCENT)
+    d.text((28, 16), "SOVIET DOOM · ALPHABET C · CATALAN À È É Í Ï Ò Ó Ú Ç (P6, D97)",
+           font=TITLE_FONT, fill=GOLD)
+    d.text((30, 56), "INSTALLED FOR THE P6 REVIEW (Q3)  ·  gen_font.py --catalan  ·  "
+                     "27 new files; the 224 glyphs of D37 are untouched",
+           font=LABEL_FONT, fill=LABEL)
+    d.text((W - 300, 60), stamp, font=LABEL_SMALL, fill=LABEL)
+    x0, y = 28, 112
+    order = ["A", "À", "E", "È", "É", "I", "Í", "Ï", "O", "Ò", "Ó", "U", "Ú", "C", "Ç"]
+    for size_key in ("small", "big"):
+        size = style.small if size_key == "small" else style.big
+        f = fonts[size_key]
+        d.text((x0, y), f"{size_key.upper()} FONT  ·  cap {size.cap} px"
+                        + (f" + {size.shadow} px shadow" if size.shadow else "")
+                        + f"  ·  1× then {CATALAN_ZOOM}×  ·  red = new",
+               font=LABEL_FONT, fill=GOLD)
+        y += 26
+        x, row_h = x0, 0
+        for ch in order:
+            g = f.glyph(ch)
+            tile = _gridded(g, CATALAN_ZOOM)
+            if x + tile.width > W - 28:                  # wrap the big row
+                x, y, row_h = x0, y + row_h + 16, 0
+            new = ch in CATALAN
+            d.text((x, y), f"{ch} U+{ord(ch):04X}" if new else f"{ch} base",
+                   font=LABEL_SMALL, fill=ACCENT if new else LABEL)
+            img.paste(g, (x, y + 18), g)
+            img.paste(tile, (x, y + 18 + g.height + 6))
+            row_h = max(row_h, 18 + g.height + 6 + tile.height)
+            x += max(tile.width, 72) + 26
+        y += row_h + 24
+
+    d.rectangle([x0, y, W - 28, y + 2], fill=ACCENT)
+    y += 14
+    d.text((x0, y), f"REAL [ca] LINES, ONE PER FONT — 1× in Doom's 320-px box, then {CATALAN_WORD_ZOOM}×",
+           font=LABEL_FONT, fill=GOLD)
+    y += 28
+    over_all = []
+    for font_name, lang_id, text in CATALAN_PHRASES:
+        f = fonts["small" if font_name == "defsmallfont" else "big"]
+        shown = text.upper().translate(str.maketrans(gen_menu.SUBSTITUTION)) \
+            if font_name == "sdmenu" else text
+        d.text((x0, y), f"fonts/{font_name}/  ·  {lang_id}  ·  «{text}»", font=LABEL_SMALL, fill=LABEL)
+        y += 18
+        line = f.render(shown)
+        z = scaled(line, CATALAN_WORD_ZOOM)
+        box_h = line.height + 4
+        d.rectangle([x0, y, x0 + SCREEN_W + 2, y + box_h],
+                    outline=artlib.ramp_colour("concrete_cold", 0.32))
+        img.paste(line, (x0 + 2, y + 2), line)
+        if line.width > SCREEN_W:
+            over_all.append(text)
+        img.paste(z, (x0 + SCREEN_W + 30, y), z)
+        y += max(box_h, z.height) + 14
+
+    notes = [
+        "Accents: the base capital in the umlauts' shorter box (5 px small, 8 px big), a 2-row stroke one stem "
+        "wide on its axis; grave leans left at the top, acute right. Small: the stroke touches the letter (as Ё's dots).",
+        "Ç: C in the shorter box at the cap line, the cedilla in the freed rows below; every PNG stays cap + shadow tall.",
+        "SDMENU copies bigfont's new files: its À and È are Latin letters with an accent, not Д / Э (as Ä, D37; Q2).",
+        "NOT VERIFIED in the engine (D26): that GZDoom draws à è é í ò ó ú ç from these capital files.",
+        "Over 320 px: " + ("; ".join(over_all) if over_all else "nothing."),
+    ]
+    for n in notes:
+        d.text((x0, y), "· " + n, font=LABEL_SMALL, fill=LABEL)
+        y += 20
+    img = img.crop((0, 0, W, min(y + 14, img.height)))
+    out_dir = PREVIEW_DIR if out_dir is None else out_dir
+    path = out_dir / f"{stamp}_P6_font-ca.png"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    img.save(path)
+    return path
+
+
 # ------------------------------------------------------------------ cli
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
@@ -1752,7 +2037,15 @@ def main():
     ap.add_argument("--german-umlauts", action="store_true",
                     help="F5 proposal (D36): the German letters into work/art/font_umlaut/, "
                          "and the sheet into docs/art/previews/")
+    ap.add_argument("--catalan", action="store_true",
+                    help="P6 (D97): the Catalan letters into work/art/font_ca/, "
+                         "and the sheet into docs/art/previews/")
     args = ap.parse_args()
+
+    if args.catalan:
+        build_catalan()
+        print(sheet_catalan(args.stamp))
+        return
 
     if args.german_umlauts:
         build_german()

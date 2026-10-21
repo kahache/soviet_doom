@@ -21,9 +21,11 @@
 // truth and a second thing written to their file.
 // See docs/engine/adr/004-language-switch-and-difficulty-ladder.md.
 
-// The three values GZDoom's `language` CVar can hold in this mod.
+// The four values GZDoom's `language` CVar can hold in this mod.
 // "default" is GZDoom's code for the LANGUAGE section marked `default`
-// (ours is `[enu default]`); "ru" selects `[ru]`; "auto" is the engine's
+// (ours is `[enu default]`); "ru" selects `[ru]`; "ca" selects `[ca]`
+// (Catalan, D97, P6: GZDoom ships no Catalan of its own, so the engine's
+// own menus stay English while the mod's text is Catalan); "auto" is the engine's
 // own "ask the operating system", and it is the value in every config that
 // has never been touched.
 //
@@ -48,8 +50,8 @@
 //   game. See docs/engine/adr/004-language-switch-and-difficulty-ladder.md.
 //
 // Declaring the value costs one line and writes nothing, so there is no
-// longer any code of ours that can abort. Choosing English or Russian
-// still writes the CVar - but through the engine's own Option row, during
+// longer any code of ours that can abort. Choosing English, Russian or
+// Catalan still writes the CVar - but through the engine's own Option row, during
 // input handling, where it is legal - and the engine archives it.
 //
 // The labels are localized like everything else, so the Russian build names
@@ -71,6 +73,7 @@ OptionString "SD_LanguageValues"
 	"auto",    "$SD_LANGVAL_AUTO"
 	"default", "$SD_LANGVAL_EN"
 	"ru",      "$SD_LANGVAL_RU"
+	"ca",      "$SD_LANGVAL_CA"
 }
 
 // --- The menu font ----------------------------------------------------------

@@ -194,12 +194,17 @@ def on_screen(name: str) -> tuple[int, int, int]:
     return VIEW_H - (y0 + by0), x0 + bx0, x0 + bx1
 
 
-def credit_lines() -> tuple[list[str], list[str]]:
+# The LANGUAGE sections in file order: English, Russian and, since P6 (D97),
+# Catalan.
+CREDIT_LANGUAGES = ("en", "ru", "ca")
+
+
+def credit_lines() -> tuple[list[str], ...]:
     """The AI block, SD_CRED_AI_1.._8 (D93; SD_CRED_SRC_4.._6 until then), in
-    [enu default] and in [ru], in file order."""
+    [enu default], [ru] and [ca], in file order."""
     found = re.findall(r'^\s*SD_CRED_AI_([1-8])\s*=\s*"([^"]*)"\s*;', LANGUAGE.read_text(encoding="utf-8"), re.M)
-    assert [k for k, _ in found] == list("12345678" * 2), found
-    return [t for _, t in found[:8]], [t for _, t in found[8:]]
+    assert [k for k, _ in found] == list("12345678" * len(CREDIT_LANGUAGES)), found
+    return tuple([t for _, t in found[8 * i:8 * i + 8]] for i in range(len(CREDIT_LANGUAGES)))
 
 
 class BehaviourTests(unittest.TestCase):
@@ -391,7 +396,7 @@ class LicenceTests(unittest.TestCase):
             self.assertIn("the source images are not distributed", row.origin, lump)
 
     def test_the_in_game_credits_name_gemini_in_both_languages(self):
-        for lang, lines in zip(("en", "ru"), credit_lines()):
+        for lang, lines in zip(CREDIT_LANGUAGES, credit_lines(), strict=True):
             joined = " ".join(lines)
             self.assertIn("Google Gemini", joined, lang)
             self.assertIn("Fooocus / SDXL", joined, lang)

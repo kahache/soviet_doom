@@ -44,7 +44,7 @@ LUMPS = SRC / "lumps"
 ZSCRIPT = SRC / "zscript"
 IWAD = PROJECT_ROOT / "iwads" / "freedoom2.wad"
 MAPS = ("MAP01", "MAP02", "MAP03", "RANGE")
-REQUIRED_SECTIONS = ("default", "ru")
+REQUIRED_SECTIONS = ("default", "ru", "ca")   # Catalan since P6 (D97)
 
 # --- ROUTED: reached in our maps, now ours -------------------------------------
 # DEHACKED pickup id -> the Doom class whose replacement must carry an SD_ line.
@@ -276,7 +276,8 @@ class QuitMessagesTest(_Sources):
     def test_each_quit_line_is_short_and_carries_its_own_prompt(self):
         ids = sorted(i for i in self.language["default"] if i.startswith("SD_QUIT_"))
         self.assertEqual(len(ids), 15)
-        prompts = {"default": "(Press Y to quit.)", "ru": "(Нажмите Y, чтобы выйти.)"}
+        prompts = {"default": "(Press Y to quit.)", "ru": "(Нажмите Y, чтобы выйти.)",
+                   "ca": "(Prem Y per sortir.)"}
         for section, prompt in prompts.items():
             for ident in ids:
                 with self.subTest(f"{section}:{ident}"):

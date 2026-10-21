@@ -85,8 +85,12 @@ ESZETT_CAPITAL, ESZETT_SMALL = "ẞ", "ß"
 UMLAUTS = {A_UMLAUT: "A", O_UMLAUT: "O", U_UMLAUT: "U"}
 NEW = [A_UMLAUT, O_UMLAUT, U_UMLAUT, ESZETT_CAPITAL, ESZETT_SMALL]
 NEW_FILES = ["00C4.png", "00D6.png", "00DC.png", "1E9E.png", "00DF.png"]
-EXISTING_CODEPOINTS = 107                     # 214 PNG per style = 107 x 2 sizes, before D37
-INSTALLED_CODEPOINTS = EXISTING_CODEPOINTS + len(NEW)   # 224 PNG = 112 x 2, since D37
+# Every codepoint that is not German: the 107 of before D37 (214 PNG) plus,
+# since P6 (2026-10-21), the nine Catalan capitals (gen_font.CATALAN), which
+# do not depend on this switch. The German five on top: 121 x 2 = 242 PNG.
+CATALAN_CODEPOINTS = 9
+EXISTING_CODEPOINTS = 107 + CATALAN_CODEPOINTS
+INSTALLED_CODEPOINTS = EXISTING_CODEPOINTS + len(NEW)
 
 
 def palette_colours() -> set:

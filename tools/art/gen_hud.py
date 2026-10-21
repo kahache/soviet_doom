@@ -53,6 +53,7 @@ Usage
 -----
     .venv/Scripts/python.exe tools/art/gen_hud.py                          # work/art/hud/
     .venv/Scripts/python.exe tools/art/gen_hud.py --stamp 2026-10-20_1200  # + docs/art/previews/
+    .venv/Scripts/python.exe tools/art/gen_hud.py --catalan --install      # P6: bar A in Catalan only
 """
 from __future__ import annotations
 
@@ -141,7 +142,15 @@ LABELS = {
     "en": {"ammo": "AMMO", "health": "HEALTH", "arms": "ARMS", "armor": "ARMOR"},
     # The words of the Russian Doom ports' status bar: patrons, health, weapons, armour.
     "ru": {"ammo": "ПАТРОНЫ", "health": "ЗДОРОВЬЕ", "arms": "ОРУЖИЕ", "armor": "БРОНЯ"},
+    # P6 (D97, 2026-10-21): Catalan. Ammunition, health, weapons, armour.
+    # Only bar A is drawn in Catalan (catalan_bar below), never in the sweep.
+    "ca": {"ammo": "MUNICIÓ", "health": "SALUT", "arms": "ARMES", "armor": "ARMADURA"},
 }
+# P6: the Catalan pictures of bar A, our own names like the Russian ones
+# (MOD-SPEC 6.5.1), and where --catalan writes them.
+CATALAN_BAR_OPTION = "A"
+CATALAN_LUMPS = {"STBAR": "SDSBCA", "STARMS": "SDARCA"}
+STATUSBAR_ASSETS = PROJECT_ROOT / "assets" / "graphics" / "statusbar"
 BAR_OPTIONS = ("A", "B", "C")
 FACE_OPTIONS = ("A", "B", "C")
 FACE_SOURCES = ("drawn", "gemini")   # --face: the drawn sweep or the Gemini sheets (D89)
@@ -210,18 +219,35 @@ FONT5 = {
 }
 
 
+# Accented capitals (P6, Catalan): the base letter of FONT5 with one row of
+# accent drawn ACCENT_ROWS rows above its top, leaving one blank row between,
+# so the letter itself is never squeezed. Only the letters a label uses.
+ACCENT_ROWS = 2
+FONT5_ACCENTED = {"Ó": ("O", "..#")}       # acute: one pixel up and right
+
+
 def glyph(ch: str) -> np.ndarray:
+    """5 rows; an accented capital has ACCENT_ROWS more on top."""
+    if ch in FONT5_ACCENTED:
+        base, accent = FONT5_ACCENTED[ch]
+        letter = glyph(base)
+        top = np.zeros((ACCENT_ROWS, letter.shape[1]), bool)
+        top[0] = [c == "#" for c in accent]
+        return np.vstack([top, letter])
     rows = FONT5[ch].split("|")
     return np.array([[c == "#" for c in r] for r in rows], bool)
 
 
 def text_mask(text: str, spacing: int = 1) -> np.ndarray:
+    """The ink of `text`, bottom-aligned: 5 rows, or 5 + ACCENT_ROWS when a
+    letter carries an accent (English and Russian never do)."""
     gl = [glyph(c) for c in text]
     w = sum(g.shape[1] for g in gl) + spacing * (len(gl) - 1)
-    out = np.zeros((5, max(w, 1)), bool)
+    h = max([5] + [g.shape[0] for g in gl])
+    out = np.zeros((h, max(w, 1)), bool)
     x = 0
     for g in gl:
-        out[:, x:x + g.shape[1]] |= g
+        out[h - g.shape[0]:, x:x + g.shape[1]] |= g
         x += g.shape[1] + spacing
     return out
 
@@ -233,8 +259,10 @@ def stamp_mask(img: np.ndarray, mask: np.ndarray, x: int, y: int, colour) -> Non
 
 
 def put_text(img, text, cx, y, ink, shadow=None, outline=None, dx=1, dy=1) -> tuple[int, int]:
-    """Centre `text` on column cx. Returns (x0, x1) of the ink."""
+    """Centre `text` on column cx, its letters' top row at y (an accent
+    goes above y). Returns (x0, x1) of the ink."""
     m = text_mask(text)
+    y -= m.shape[0] - 5
     x = int(round(cx - m.shape[1] / 2))
     if outline is not None:
         for ox, oy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
@@ -373,7 +401,8 @@ def _table_slashes(img, colour):
 
 
 def render_bar(option: str, lang: str) -> np.ndarray:
-    """STBAR (320x32 RGB) of one option in one language ('en', 'ru' or 'bi')."""
+    """STBAR (320x32 RGB) of one option in one language ('en', 'ru', 'ca'
+    or 'bi')."""
     return _render_bar(option, lang).copy()
 
 
@@ -1356,6 +1385,40 @@ def build(out_dir: Path = OUT_DIR) -> dict:
     return man
 
 
+def catalan_bar(out_dir: Path = OUT_DIR, install_dir: Path | None = None) -> dict[str, Path]:
+    """P6 (D97): bar A with Catalan labels, nothing else. Writes
+    out_dir/bar/A/ca/STBAR.png and STARMS.png (the render of record, like
+    en/ and ru/) and, with install_dir, the same bytes as SDSBCA.png and
+    SDARCA.png there. The English and Russian pictures are not touched:
+    they are approved assets (CLAUDE.md, "Text-bearing assets"); this
+    generator draws its letters from FONT5, so the Catalan bar is drawn on
+    exactly the plate they were."""
+    bar = render_bar(CATALAN_BAR_OPTION, "ca")
+    work = Path(out_dir) / "bar" / CATALAN_BAR_OPTION / "ca"
+    written = {"STBAR": save_opaque(bar, work / "STBAR.png"),
+               "STARMS": save_opaque(bar[:, ARMS_BOX[0]:ARMS_BOX[2]].copy(), work / "STARMS.png")}
+    if install_dir is not None:
+        install_dir = Path(install_dir)
+        install_dir.mkdir(parents=True, exist_ok=True)
+        for base, name in CATALAN_LUMPS.items():
+            target = install_dir / f"{name}.png"
+            target.write_bytes(written[base].read_bytes())
+            written[name] = target
+    return written
+
+
+def catalan_preview(path: Path, zoom: int = 3) -> Path:
+    """The bar's label band in English, Russian and Catalan, one above the
+    other at `zoom`, for the CEO to judge the Catalan words by eye."""
+    bars = [render_bar(CATALAN_BAR_OPTION, lang) for lang in ("en", "ru", "ca")]
+    gap = np.zeros((4, bars[0].shape[1], 3), np.uint8)
+    sheet_rgb = np.vstack([bars[0], gap, bars[1], gap, bars[2]])
+    big = np.repeat(np.repeat(sheet_rgb, zoom, axis=0), zoom, axis=1)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(big, "RGB").save(path, optimize=True)
+    return path
+
+
 # ======================================================================
 # 7. PREVIEW
 # ======================================================================
@@ -1658,7 +1721,19 @@ def main(argv=None):
                     help="drawn: the M2e sweep (bars, digits, drawn faces A-C); "
                          "gemini: the 42 STF lumps from the CEO's Gemini sheets (D89, "
                          "tools/art/gemini_face.py) under OUT/face_gemini/")
+    ap.add_argument("--catalan", action="store_true",
+                    help="P6: only bar A with Catalan labels, into OUT/bar/A/ca/; with "
+                         "--install also assets/graphics/statusbar/SDSBCA.png and SDARCA.png; "
+                         "with --stamp a zoomed EN/RU/CA preview in docs/art/previews/")
+    ap.add_argument("--install", action="store_true", help="with --catalan: write the two lumps to assets/")
     args = ap.parse_args(argv)
+    if args.catalan:
+        files = catalan_bar(args.out, STATUSBAR_ASSETS if args.install else None)
+        for name, path in files.items():
+            print(f"wrote {name}: {path}")
+        if args.stamp:
+            print(f"wrote {catalan_preview(PREVIEW_DIR / f'{args.stamp}_P6_statusbar-ca.png')}")
+        return
     if args.face == "gemini":
         import gemini_face
         files = gemini_face.build(args.out)

@@ -4,6 +4,8 @@
 // ("$SD_...") and menus. ZDoom wiki: https://zdoom.org/wiki/LANGUAGE
 //
 // D7: in-game copy ships in English (default) and Russian. Ids are prefixed SD_.
+// D97 (V2, P6): Catalan is the third language, [ca], with every id the
+// other two have (tests/test_language.py demands all three).
 
 [enu default]
 
@@ -179,6 +181,8 @@ SD_OPTMNU_LANGHELP = "Applies immediately. Saved for the next session.";
 SD_LANGVAL_AUTO = "Automatic (system)";
 SD_LANGVAL_EN = "English";
 SD_LANGVAL_RU = "Russian";
+// D97 (P6): the third language. Its list entry is "ca" (MENUDEF).
+SD_LANGVAL_CA = "Catalan";
 
 // --- Credits (G6; MENUDEF "SD_CreditsMenu", docs/engine/adr/009-in-game-credits.md)
 // One id per screen line, at most 40 characters: an option-menu row does not
@@ -274,6 +278,12 @@ SD_MNU_CHOOSEEPISODE = "CHOOSE MISSION";
 // paused (zscript/sd/status_bar.zs; docs/engine/MOD-SPEC.md 6.5.1). English
 // is the pause plaque P2 packed as graphics/M_PAUSE.png (D48).
 SD_PAUSE_SIGN = "M_PAUSE";
+
+// --- Death prompt (D100, v1.1; 2026-10-21) ----------------------------------
+// Printed while the player lies dead; the key restarts the level at its
+// start (zscript/sd/death_prompt.zs, written by another task). %s is a KEY
+// NAME the code fills in, so the line stays right whatever the player bound.
+SD_DEATH_PROMPT = "Press %s to continue";
 
 // --- Status bar labels (M2e-i, D89, 2026-10-20) ------------------------------
 // Not prose: the NAMES of the pictures SD_StatusBar draws the bar's stencilled
@@ -469,6 +479,7 @@ SD_OPTMNU_LANGHELP = "Применяется сразу. Запоминаетс�
 SD_LANGVAL_AUTO = "Автоматически (по системе)";
 SD_LANGVAL_EN = "Английский";
 SD_LANGVAL_RU = "Русский";
+SD_LANGVAL_CA = "Каталанский";
 
 // --- Авторы (G6) -----------------------------------------------------------
 // Одна строка экрана на id, не длиннее 40 знаков. Имена, которых требует
@@ -545,6 +556,10 @@ SD_MNU_CHOOSEEPISODE = "ВЫБЕРИТЕ ЗАДАНИЕ";
 // «ПАУЗА» (D48). Имя с «/» движок ищет по пути файла.
 SD_PAUSE_SIGN = "localized/textures/m_pause.ru.png";
 
+// --- Подсказка после смерти (D100, v1.1) -----------------------------------
+// %s - имя клавиши, его подставляет код. На «Вы», как и остальной текст.
+SD_DEATH_PROMPT = "Нажмите %s, чтобы продолжить";
+
 // --- Надписи строки состояния (M2e-i, D89) ----------------------------------
 // Не текст, а ИМЕНА картинок русского варианта строки состояния A.
 SD_SBAR_IMAGE      = "SDSBRU";
@@ -610,3 +625,248 @@ SD_QUIT_12 = "Ленин смотрит со стены.\nИ не одобряе
 SD_QUIT_13 = "Ваша смена кончится,\nкогда кончатся захватчики.\n\n(Нажмите Y, чтобы выйти.)";
 SD_QUIT_14 = "Сдайте винтовку в оружейку\nи распишитесь дважды.\n\n(Нажмите Y, чтобы выйти.)";
 SD_QUIT_15 = "Чай ещё горячий, сержант.\nПосидите немного.\n\n(Нажмите Y, чтобы выйти.)";
+
+[ca]
+
+// Català central normatiu (D97, P6; 2026-10-21). El jugador es tracta de tu,
+// com a la majoria de jocs en català. Es mantenen tal com en anglès els noms
+// propis i els termes russos: Zarya-7, Tankograd, Vilanova, PPSh-41, RPG-7,
+// IZh-58, Katyusha, Zelyonka, Panzermensch, Doughboy, Vorwärts.
+// Els accents (À É È Í Ï Ó Ò Ú Ç) s'escriuen correctament: que la font els
+// dibuixi és feina de la font, no del text (com D22). Fins que les fonts del
+// mod tinguin aquests glifs, el motor els dibuixa amb la lletra base (NO
+// VERIFICAT al motor; tests/test_language.py, CatalanTest).
+// Full de revisió per al CEO: docs/product/2026-10-21_P6_catala-revisio.md.
+
+SD_EP01_NAME  = "Soviet Doom";
+SD_MAP01_NAME = "Cosmòdrom Zarya-7";
+SD_RANGE_NAME = "Camp d'instrucció";
+SD_MAP02_NAME = "Metro-búnquer";
+SD_MAP03_NAME = "Tankograd";
+SD_EP02_NAME  = "Camp de tir";
+
+SD_MAP01_EXIT_TEXT = "Zarya-7 torna a ser a les nostres mans.\n\nL'ascensor de servei baixa cap a la\nfoscor, deixa enrere l'últim nivell\nil·luminat i no s'atura. Sota el\ncosmòdrom hi passa una línia de\nmetro, excavada ben fonda per a la\npropera guerra.\n\nEls invasors la van trobar primer.\nEls segueixes cap avall.";
+SD_MAP02_EXIT_TEXT = "El túnel cap a l'oest surt a la llum\ndel dia en un ramal de mercaderies.\n\nDarrere els topalls s'alcen les naus\nd'una fàbrica de tractors. Al pati hi ha\nrodades massa amples per a tractors.\n\nEls obrers li diuen d'una altra manera:\nTankograd.";
+SD_END01_TEXT = "L'interruptor cau. Darrere teu, el\nportal s'encongeix fins a un punt de\nllum i s'apaga.\n\nTankograd torna a ser a les nostres\nmans: la cadena s'atura, i ja no hi\narriba ningú més.\n\nEls que ja havien passat marxen cap a\nl'oest, cap a Moscou.\n\nCONTINUARÀ";
+SD_END02_TEXT = "El camp de tir tanca per avui.\n\nLa campanya comença a «Nova partida».";
+
+SD_PLAYER_NAME     = "Sergent Vilanova";
+
+SD_TAG_ICEAXE      = "Piolet";
+SD_TAG_TOKAREV     = "Tokarev TT-33";
+SD_TAG_IZH         = "IZh-58 de dos canons";
+SD_TAG_PPSH        = "PPSh-41";
+SD_TAG_RPG7        = "RPG-7";
+SD_TAG_ROKS3       = "Llançaflames ROKS-3";
+SD_TAG_KATYUSHA    = "Katyusha de mà";
+
+SD_PICKUP_ICEAXE   = "Un piolet.";
+SD_PICKUP_TOKAREV  = "Has agafat la Tokarev TT-33!";
+SD_PICKUP_IZH      = "Has agafat l'escopeta de dos canons IZh-58!";
+SD_PICKUP_PPSH     = "Has agafat el PPSh-41!";
+SD_PICKUP_RPG7     = "Has agafat l'RPG-7!";
+SD_PICKUP_ROKS3    = "Has agafat el llançaflames ROKS-3!";
+SD_PICKUP_KATYUSHA = "Has agafat la Katyusha de mà. Prototip. No la deixis caure.";
+
+SD_OB_ICEAXE       = "%o ha topat amb el piolet de %k.";
+SD_OB_TOKAREV      = "%k ha abatut %o amb la Tokarev.";
+SD_OB_IZH          = "%o s'ha menjat els dos canons de %k.";
+SD_OB_PPSH         = "El PPSh-41 de %k ha segat %o.";
+SD_OB_RPG7         = "L'RPG-7 de %k ha fet miques %o.";
+SD_OB_ROKS3        = "El ROKS-3 de %k ha rostit %o.";
+SD_OB_KATYUSHA     = "%o s'ha empassat tota la salva de %k.";
+
+// --- Munició (decisió del CEO 2026-10-13) ----------------------------------
+// Coma decimal i signe de multiplicar, com en rus: 7,62×25.
+
+AMMO_CLIP    = "Cartutxos de 7,62×25";
+AMMO_SHELLS  = "Cartutxos del calibre 12";
+AMMO_ROCKETS = "Projectils PG-7V";
+AMMO_CELLS   = "Combustible";
+
+SD_GOT_CLIP      = "Un carregador. 7,62×25.";
+SD_GOT_CLIPBOX   = "Una caixa de 7,62×25.";
+SD_GOT_SHELLS    = "Quatre cartutxos. Calibre 12.";
+SD_GOT_SHELLBOX  = "Una caixa de cartutxos del calibre 12.";
+SD_GOT_ROCKET    = "Un projectil PG-7V.";
+SD_GOT_ROCKBOX   = "Un caixó de projectils PG-7V.";
+SD_GOT_CELL      = "Un bidó de combustible.";
+SD_GOT_CELLPACK  = "Un dipòsit ple de combustible.";
+SD_GOT_BACKPACK  = "Una motxilla de paracaigudista. Tot el que puguis carregar!";
+
+// --- Salut, blindatge i mapa de la zona (D80) --------------------------------
+SD_GOT_STIMPACK    = "Un embenat de campanya.";
+SD_GOT_MEDIKIT     = "Una farmaciola.";
+SD_GOT_HEALTHBONUS = "Zelyonka.";
+SD_GOT_ARMORBONUS  = "Un casc d'acer.";
+SD_GOT_ARMOR       = "Una armilla antibales i un casc.";
+SD_GOT_MEGAARMOR   = "Una cuirassa d'acer i un casc!";
+SD_GOT_MAP         = "Un portamapes de comandant. Hi surt tota la zona.";
+
+// --- Nivells de dificultat (decisió del CEO 2026-10-13) --------------------
+// docs/product/DIFFICULTY-NAMES.md. «No passaran» és la forma catalana del
+// lema republicà.
+
+SD_SKILL_1 = "Encara soc pioner";
+SD_SKILL_2 = "He vist hiverns pitjors";
+SD_SKILL_3 = "Ni un pas enrere";
+SD_SKILL_4 = "No passaran, camarades";
+SD_SKILL_5 = "Heroi de la Unió Soviètica, pòstum";
+
+SD_SKILL_5_CONFIRM = "La condecoració és pòstuma, i aquí els enemics morts no es queden morts.\n\nN'estàs segur?";
+
+// --- Menú del mod (canvi d'idioma) -------------------------------------------
+
+SD_OPTMNU_TITLE    = "Soviet Doom";
+SD_OPTMNU_LANGUAGE = "Idioma";
+SD_OPTMNU_LANGHELP = "S'aplica a l'acte. Es desa per a la propera sessió.";
+
+SD_LANGVAL_AUTO = "Automàtic (sistema)";
+SD_LANGVAL_EN = "Anglès";
+SD_LANGVAL_RU = "Rus";
+SD_LANGVAL_CA = "Català";
+
+// --- Crèdits (G6) ------------------------------------------------------------
+// Una línia de pantalla per id, com a màxim 40 caràcters. Els noms que la
+// llicència obliga a citar es mantenen tal qual (Jerry Engelbach, Peter
+// Gerloff, kurt, Freedoom).
+
+SD_CRED_TITLE     = "Crèdits";
+
+SD_CRED_H_TEAM    = "Fet per";
+SD_CRED_TEAM_1    = "el projecte Soviet Doom";
+SD_CRED_FAN_1     = "Un projecte de fans, sense cap vincle";
+SD_CRED_FAN_2     = "amb id Software.";
+SD_CRED_TEAM_2    = "Codi: GNU GPL 3.0 o posterior";
+SD_CRED_TEAM_3    = "Art, so, mapes i textos";
+SD_CRED_TEAM_4    = "amb llicència CC BY-NC-SA 4.0";
+
+SD_CRED_H_MUSIC   = "Música";
+SD_CRED_MUSIC_1   = "La Internacional (música d'inici):";
+SD_CRED_MUSIC_2   = "composta per Pierre De Geyter (1888),";
+SD_CRED_MUSIC_3   = "domini públic;";
+SD_CRED_MUSIC_4   = "seqüència MIDI de Jerry Engelbach,";
+SD_CRED_MUSIC_5   = "usada amb la seva llicència";
+SD_CRED_MUSIC_6   = "d'atribució (Wikimedia Commons,";
+SD_CRED_MUSIC_7   = "fitxer Internationale_orch2.mid).";
+SD_CRED_MUSIC_8   = "Ràdio: Ey, ukhnem i Kolokolchik;";
+SD_CRED_MUSIC_9   = "seqüències MIDI de Peter Gerloff, CC0.";
+
+SD_CRED_H_ENGINE  = "Motor";
+SD_CRED_ENGINE_1  = "GZDoom (zdoom.org), GNU GPL 3.0,";
+SD_CRED_ENGINE_2  = "dels desenvolupadors de GZDoom i ZDoom,";
+SD_CRED_ENGINE_3  = "basat en el codi font de Doom";
+SD_CRED_ENGINE_4  = "publicat per id Software.";
+
+SD_CRED_H_IWAD    = "Dades del joc";
+SD_CRED_IWAD_1    = "Freedoom (freedoom.github.io),";
+SD_CRED_IWAD_2    = "dels col·laboradors del projecte";
+SD_CRED_IWAD_3    = "Freedoom, llicència BSD modificada.";
+SD_CRED_IWAD_4    = "Mans de la TT-33: Freedoom, repintades;";
+SD_CRED_IWAD_5    = "altres elements provisionals: de l'IWAD.";
+
+SD_CRED_H_SOURCES = "Fonts";
+SD_CRED_SRC_1     = "Cartell de Lenin a partir d'una foto";
+SD_CRED_SRC_2     = "de Pavel Zhukov (1920),";
+SD_CRED_SRC_3     = "domini públic.";
+SD_CRED_SFX_1     = "Sons: paquets CC0 de Kenney,";
+SD_CRED_SFX_2     = "rubberduck i Darsycho (OpenGameArt).";
+SD_CRED_SFX_3     = "Referència de veu: kurt, CC-BY 3.0.";
+
+SD_CRED_H_AI      = "Fet amb IA";
+SD_CRED_AI_1      = "Claude (Anthropic), a Claude Code:";
+SD_CRED_AI_2      = "disseny, mapes, codi, textures, sprites,";
+SD_CRED_AI_3      = "so, música i els textos en rus i català.";
+SD_CRED_AI_4      = "Google Gemini: imatges d'origen per a";
+SD_CRED_AI_5      = "les armes a la mà i la cara del sergent.";
+SD_CRED_AI_6      = "Fooocus / SDXL (local): models de mans.";
+SD_CRED_AI_7      = "Chatterbox (Resemble AI, local):";
+SD_CRED_AI_8      = "la majoria de veus dels enemics.";
+
+// --- Menú principal i pantalla de dificultat (D31) ---------------------------
+// Font SDMENU: MAJÚSCULES i sense accents, perquè la font no té minúscules ni
+// lletres accentuades (tests/test_menudef.py). La font dibuixa R, N, E, W i A
+// amb formes ciríl·liques (D22): «NOVA PARTIDA» es veu «ИOVД PДЯTIDД».
+
+SD_MNU_NEWGAME     = "NOVA PARTIDA";
+SD_MNU_OPTIONS     = "OPCIONS";
+SD_MNU_LOADGAME    = "CARREGA PARTIDA";
+SD_MNU_SAVEGAME    = "DESA PARTIDA";
+SD_MNU_READTHIS    = "AJUDA";
+SD_MNU_QUITGAME    = "SURT DEL JOC";
+SD_MNU_CHOOSESKILL = "TRIA LA DIFICULTAT";
+SD_MNU_CHOOSEEPISODE = "TRIA LA MISSIÓ";
+
+// --- Rètol de pausa (T24) -----------------------------------------------------
+// No és text: és el NOM del gràfic. Encara no hi ha rètol català («PAUSA»),
+// així que es mostra l'anglès (pendent, docs/product/2026-10-21_P6_catala-revisio.md).
+SD_PAUSE_SIGN = "M_PAUSE";
+
+// --- Avís després de morir (D100, v1.1) ---------------------------------------
+// %s és el nom de la tecla; l'omple el codi.
+SD_DEATH_PROMPT = "Prem %s per continuar";
+
+// --- Rètols de la barra d'estat (M2e-i, D89; P6) -------------------------------
+// No és text: són els NOMS de les imatges de la barra A en català
+// (tools/art/gen_hud.py --catalan), empaquetades com a graphics/SDSBCA.png i
+// SDARCA.png.
+SD_SBAR_IMAGE      = "SDSBCA";
+SD_SBAR_ARMS_IMAGE = "SDARCA";
+
+// --- Bestiari (F5, D35) ---------------------------------------------------------
+// Els obituaris eviten el participi passiu concordat (%o pot ser home o dona):
+// veu activa o «ha caigut», que no concorda.
+
+SD_TAG_RIFLEMAN      = "Fuseller del Reich";
+SD_TAG_TROOPER       = "Soldat de la Legió";
+SD_TAG_STORM         = "Soldat d'assalt híbrid";
+SD_TAG_HOUND         = "Gos del Reich";
+SD_TAG_DOUGHBOY      = "Doughboy";
+SD_TAG_PANZER        = "Panzermensch";
+SD_TAG_PANZER_HEAVY  = "Panzermensch pesant";
+SD_TAG_GENERAL       = "El General";
+
+SD_OB_RIFLEMAN       = "Un fuseller del Reich ha abatut %o.";
+SD_OB_TROOPER        = "Un soldat de la Legió ha cosit %o a trets.";
+SD_OB_STORM          = "La descàrrega d'un soldat d'assalt ha cremat %o.";
+SD_OBHIT_STORM       = "Un soldat d'assalt ha esbudellat %o.";
+SD_OB_HOUND          = "Un gos del Reich ha atrapat %o.";
+SD_OB_DOUGHBOY       = "Un obús d'un Doughboy ha tocat %o.";
+SD_OBHIT_DOUGHBOY    = "Un Doughboy ha mossegat %o.";
+SD_OB_PANZER         = "Un Panzermensch ha bombardejat %o.";
+SD_OBHIT_PANZER      = "Un Panzermensch ha aixafat %o.";
+SD_OB_GENERAL        = "%o ha caigut sota la salva del General.";
+
+SD_GENERAL_ORDER     = "El General: Vorwärts!";
+
+// --- Claus (metro, MAP02; Tankograd, MAP03) -------------------------------------
+// PD_* són ids del motor (panys 1-3); a les portes el jugador llegeix els *CO.
+SD_PICKUP_BLUEPASS = "Passi blau.";
+PD_BLUEC           = "Necessites un passi blau per obrir aquesta porta";
+PD_BLUECO          = "Necessites un passi blau per activar aquest objecte";
+
+SD_PICKUP_YELLOWPASS = "Passi groc.";
+SD_PICKUP_REDPASS    = "Passi vermell.";
+PD_YELLOWC           = "Necessites un passi groc per obrir aquesta porta";
+PD_YELLOWCO          = "Necessites un passi groc per activar aquest objecte";
+PD_REDC              = "Necessites un passi vermell per obrir aquesta porta";
+PD_REDCO             = "Necessites un passi vermell per activar aquest objecte";
+
+// Missatges en sortir (M4, auditoria H5). Cada un porta el seu «prem Y»
+// (GameInfo els imprimeix amb "$*", sense el DOSY de Freedoom). Línies de 40
+// caràcters com a màxim (tests/test_freedoom_text.py).
+SD_QUIT_01 = "Abandones el teu lloc, sergent?\nEls Urals no es defensaran tots sols.\n\n(Prem Y per sortir.)";
+SD_QUIT_02 = "Rússia és immensa, però no hi ha on\nretrocedir: Moscou és al darrere.\n\n(Prem Y per sortir.)";
+SD_QUIT_03 = "El pla quinquennal no s'ha complert.\nAquí ningú no plega abans d'hora.\n\n(Prem Y per sortir.)";
+SD_QUIT_04 = "Falten pocs dies per a la desfilada.\nQui desfilarà si te'n vas a casa?\n\n(Prem Y per sortir.)";
+SD_QUIT_05 = "El Quart Reich no fa festa.\nLa Legió de la Llibertat, tampoc.\n\n(Prem Y per sortir.)";
+SD_QUIT_06 = "El menjador tanca a les vuit.\nLa guerra, no.\n\n(Prem Y per sortir.)";
+SD_QUIT_07 = "Camarada, el comitè del Partit\nvoldrà una explicació.\n\n(Prem Y per sortir.)";
+SD_QUIT_08 = "La teva absència ja consta al registre.\nDe moment, a llapis.\n\n(Prem Y per sortir.)";
+SD_QUIT_09 = "Barcelona va esperar quaranta anys.\nEls Urals poden esperar un vespre.\n\n(Prem Y per sortir.)";
+SD_QUIT_10 = "Els capitalistes compten que\nte'n tornaràs aviat a casa.\n\n(Prem Y per sortir.)";
+SD_QUIT_11 = "Deixa la ràdio encesa.\nAl teu relleu li farà companyia.\n\n(Prem Y per sortir.)";
+SD_QUIT_12 = "Lenin et mira des de la paret.\nI no fa cara de content.\n\n(Prem Y per sortir.)";
+SD_QUIT_13 = "El teu torn s'acaba\nquan s'acabin els invasors.\n\n(Prem Y per sortir.)";
+SD_QUIT_14 = "Torna el fusell a l'armeria\ni signa el rebut dues vegades.\n\n(Prem Y per sortir.)";
+SD_QUIT_15 = "El te encara és calent, sergent.\nQueda't una estona més.\n\n(Prem Y per sortir.)";

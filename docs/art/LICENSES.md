@@ -119,6 +119,7 @@ Per-lump rows: `TEXTURE-INDEX.md`, "Shell pictures".
 |---|---|---|---|
 | `M_SKULL1` / `M_SKULL2` | menu cursor, the two blink phases: the hammer and sickle, gold then pale cream, with a dark-red outline | (a) `tools/art/gen_cursor.py`, `cursor_image("B", 1/2)`, palette v1; the emblem's geometry imported from `gen_soviet_base.hammer_sickle()` (the approved `SDSTAR1` v5), never re-traced | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
 | `M_PAUSE` | pause sign, English: «PAUSE» on a flag-red plaque with a cream border | (a) `tools/art/gen_cursor.py`, `pause_image("P2", "en")`, palette v1; the word set in our own `SDMENU` folder font (read from `assets/fonts/sdmenu/`, above), no system font | idem |
+| `SDCURSOR` | mouse pointer (GameInfo `CursorPic`, D102): the hammer and sickle, gold with a dark-red contour, 28x25, grAb 12,1 at the sickle's tip | (a) `tools/art/gen_mouse_cursor.py`, palette v1; the emblem's geometry imported from `gen_soviet_base.hammer_sickle()` (the approved `SDSTAR1` v5), no font | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
 
 Procedural and drawn from code: no photograph, no typeface, no pixel
 painted by hand. Freedoom's own `M_SKULL1`, `M_SKULL2` and `M_PAUSE` are read
@@ -135,8 +136,8 @@ IWAD, which we do not use (debt T9, now paid).
 
 | Lump | What it is | Origin | Licence |
 |---|---|---|---|
-| `fonts/defsmallfont/*.png` (112) | Small font, cap 7 px, line 9. HUD messages, pickups, the option menu | (a) `tools/art/gen_font.py`, style C, glyphs defined as drawing code rather than images | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
-| `fonts/bigfont/*.png` (112) | Big font, cap 11 px plus a 1 px shadow, line 16. Menu headlines and level titles | idem | idem |
+| `fonts/defsmallfont/*.png` (121) | Small font, cap 7 px, line 9. HUD messages, pickups, the option menu | (a) `tools/art/gen_font.py`, style C, glyphs defined as drawing code rather than images | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
+| `fonts/bigfont/*.png` (121) | Big font, cap 11 px plus a 1 px shadow, line 16. Menu headlines and level titles | idem | idem |
 
 **Drawn, not derived.** Every glyph is constructed from the project's own
 stroke rules in `gen_font.py`; no typeface was traced, subset or converted,
@@ -145,7 +146,7 @@ imitate in spirit — poster grotesque, GOST drawing lettering, slab machinery
 — not after any particular type family.
 
 Coverage: А-Я and Ё, A-Z, 0-9, the German Ä Ö Ü and the sharp s (ẞ U+1E9E
-and ß U+00DF, one drawing), and the punctuation the project uses including
+and ß U+00DF, one drawing), the Catalan À È É Í Ï Ò Ó Ú Ç, and the punctuation the project uses including
 «» × · №, at both sizes.
 
 Format: RGBA PNG, not indexed, with palette colours only and hard 0/255
@@ -181,6 +182,23 @@ build `work/art/font_umlaut/C/` and checked byte for byte. Origin, author and
 licence unchanged. Proposal sheet:
 `docs/art/previews/2026-10-13_1730_F5_font-german-umlauts.png`.
 
+**Catalan letters, 2026-10-21 (P6, D97; installed by the PM for the P6
+review, Q3 of `docs/product/2026-10-21_P6_catala-revisio.md`; the CEO judges
+them on the sheet).** À, È, É, Í, Ï, Ò, Ó, Ú and Ç, so the `[ca]` section of
+`LANGUAGE` prints its accents: nine new files, `00C0.png`, `00C8.png`,
+`00C9.png`, `00CD.png`, `00CF.png`, `00D2.png`, `00D3.png`, `00DA.png` and
+`00C7.png` in both `defsmallfont/` and `bigfont/`, taking the alphabet from
+224 to 242 glyphs, and the same nine copied into `sdmenu/` from `bigfont/`.
+Drawn by the same stroke rules in `tools/art/gen_font.py`
+(`CATALAN_ACCENTS = True`): each accented letter is its base capital in the
+umlauts' shorter box under a two-row accent stroke one stem wide; Ï is I
+under two dots; Ç is C at the cap line with the cedilla in the rows below it,
+inside the cap box. Capitals only, like the rest of the font. No pixel
+painted by hand, no new source, the 224 existing glyphs unchanged byte for
+byte. Copied from the build `work/art/font_ca/` and checked byte for byte.
+Origin, author and licence unchanged. Sheet:
+`docs/art/previews/2026-10-21_P6_font-ca.png`.
+
 ## The menu font SDMENU (D31, approved for in-engine trial 2026-10-13)
 
 The first construction of D22 (level 2: R→Я, N→И, E→Э, W→Ш, A→Д). Used only
@@ -190,7 +208,7 @@ text, so the proper nouns, calibres and key prompts that
 
 | Lump | What it is | Origin | Licence |
 |---|---|---|---|
-| `fonts/sdmenu/*.png` (112) | Menu font: `fonts/bigfont/` (cap 11 px plus a 1 px shadow, line 16) with the five Latin capitals R, N, E, W, A drawn with the forms of Я, И, Э, Ш, Д. Russian strings use Cyrillic code points and are unaffected, so one font serves both languages | (a) `tools/art/gen_menu.py`: 107 glyphs (the German five included since D37) and `font.inf` copied byte for byte from `assets/fonts/bigfont/`; the five substituted glyphs rendered by `gen_font.glyph_image()` from the Cyrillic letters' stroke code, byte-identical to `0414`, `0418`, `042D`, `042F` and `0428` of `bigfont/`. No new drawing, no system font | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
+| `fonts/sdmenu/*.png` (121) | Menu font: `fonts/bigfont/` (cap 11 px plus a 1 px shadow, line 16) with the five Latin capitals R, N, E, W, A drawn with the forms of Я, И, Э, Ш, Д. Russian strings use Cyrillic code points and are unaffected, so one font serves both languages | (a) `tools/art/gen_menu.py`: 116 glyphs (the German five included since D37, the Catalan nine since P6) and `font.inf` copied byte for byte from `assets/fonts/bigfont/`; the five substituted glyphs rendered by `gen_font.glyph_image()` from the Cyrillic letters' stroke code, byte-identical to `0414`, `0418`, `042D`, `042F` and `0428` of `bigfont/`. No new drawing, no system font | Soviet Doom project (art-director), CC BY-NC-SA 4.0 (D15) |
 
 Status: **approved for in-engine trial 2026-10-13 (D31)**; the CEO judges
 it on screen. `tests/test_gen_menu.py` pins the map and checks that only
@@ -1121,6 +1139,8 @@ MOD-SPEC §6.5.
 | `STARMS` | the arms panel over the bar, 38×32, bar A in English | (a) `tools/art/gen_hud.py`, bar A, English labels | idem |
 | `SDSBRU` | the status bar in Russian (bar A, Cyrillic labels); drawn by `SD_StatusBar` for `[ru]` | (a) `tools/art/gen_hud.py`, bar A, Russian labels (`work/art/hud/bar/A/ru/STBAR.png`, renamed) | idem |
 | `SDARRU` | the arms panel in Russian (bar A) | (a) `tools/art/gen_hud.py`, bar A, Russian labels (`work/art/hud/bar/A/ru/STARMS.png`, renamed) | idem |
+| `SDSBCA` | the status bar in Catalan (bar A, labels MUNICIÓ, SALUT, ARMES, ARMADURA; P6, D97); drawn by `SD_StatusBar` for `[ca]` | (a) `tools/art/gen_hud.py --catalan`, bar A, Catalan labels (`work/art/hud/bar/A/ca/STBAR.png`, renamed) | idem |
+| `SDARCA` | the arms panel in Catalan (bar A) | (a) `tools/art/gen_hud.py --catalan`, bar A, Catalan labels (`work/art/hud/bar/A/ca/STARMS.png`, renamed) | idem |
 | `STTNUM0`, `STTNUM1`, `STTNUM2`, `STTNUM3`, `STTNUM4`, `STTNUM5`, `STTNUM6`, `STTNUM7`, `STTNUM8`, `STTNUM9`, `STTMINUS`, `STTPRCNT` | the big red numbers, minus and percent, 13×16: stencil segments (also the fullscreen HUD's font, `HUDFONT_DOOM`) | (a) `tools/art/gen_hud.py`, digits N2 (`work/art/hud/digits/N2/`) | idem |
 | `STYSNUM0`, `STYSNUM1`, `STYSNUM2`, `STYSNUM3`, `STYSNUM4`, `STYSNUM5`, `STYSNUM6`, `STYSNUM7`, `STYSNUM8`, `STYSNUM9` | the small yellow digits, 4×6: a weapon slot owned, and the ammo table (`INDEXFONT_DOOM`) | (a) `tools/art/gen_hud.py`, digits N2 | idem |
 | `STGNUM0`, `STGNUM1`, `STGNUM2`, `STGNUM3`, `STGNUM4`, `STGNUM5`, `STGNUM6`, `STGNUM7`, `STGNUM8`, `STGNUM9` | the small grey digits, 4×6: a weapon slot not owned | (a) `tools/art/gen_hud.py`, digits N2 | idem |

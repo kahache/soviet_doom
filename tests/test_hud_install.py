@@ -7,22 +7,23 @@ The CEO chose status bar A (D89) and the numbers N2 (D92) from the M2e sweep
 The 78 lumps ship in `assets/graphics/statusbar/`. Contract: MOD-SPEC 1 (the
 IWAD-name exception), 6.5 and 6.5.1. What is checked, and why:
 
-  files      exactly the 78 lumps: Freedoom's 76 status bar names that the
+  files      exactly the 80 lumps: Freedoom's 76 status bar names that the
              sweep redraws (STBAR, STARMS, the 42 STF faces, STTNUM0-9,
-             STTMINUS, STTPRCNT, STYSNUM0-9, STGNUM0-9) and the two Russian
-             pictures SDSBRU / SDARRU; each the size and grAb offsets of
+             STTMINUS, STTPRCNT, STYSNUM0-9, STGNUM0-9), the two Russian
+             pictures SDSBRU / SDARRU and, since P6 (D97), the two Catalan
+             ones SDSBCA / SDARCA; each the size and grAb offsets of
              Freedoom 0.13.0's lump (written out below; IwadTests re-reads
              the IWAD where it is present); the bars indexed, the rest RGBA
              with hard alpha; bars and digits inside palette v1, the faces in
              palette v2 and listed in test_palette_v2's APPROVED_IN_V2; where
              work/ exists each is the approved render byte for byte
-  labels     the Russian bar differs from the English one only inside the
-             label band SD_StatusBar redraws (its constants, read from
+  labels     the Russian and Catalan bars differ from the English one only
+             inside the label band SD_StatusBar redraws (its constants, read from
              status_bar.zs), and that band misses every number, key, face
              and table DoomStatusBar draws (positions from doom_sbar.zs,
              re-read from the installed gzdoom.pk3 where present)
   language   SD_SBAR_IMAGE / SD_SBAR_ARMS_IMAGE name the engine pictures in
-             English and the packed Russian ones in [ru]
+             English, the packed Russian ones in [ru] and the Catalan in [ca]
   package    the PK3 carries them flat as graphics/<NAME>.png and check_pk3
              passes; the release reads the face as shipped (AiShips.face)
   licences   one row per lump: the face rows say Google Gemini and that the
@@ -100,10 +101,15 @@ FREEDOOM: dict[str, tuple[int, int, int, int]] = {
 # The Russian pictures of bar A, our own names (ADR 010: localized textures
 # are not drawn in g4.14.2; SD_StatusBar draws these by a LANGUAGE id).
 RUSSIAN = {"SDSBRU": "STBAR", "SDARRU": "STARMS"}
+# P6 (D97): the Catalan pictures, drawn the same way for [ca]
+# (tools/art/gen_hud.py --catalan; only these two, never the approved EN/RU).
+CATALAN = {"SDSBCA": "STBAR", "SDARCA": "STARMS"}
+# Every language variant of the bar: our name -> the engine picture it shadows.
+LOCALIZED = {**RUSSIAN, **CATALAN}
 FACES = sorted(n for n in FREEDOOM if n.startswith("STF"))
-BARS = ("STBAR", "STARMS", *RUSSIAN)
+BARS = ("STBAR", "STARMS", *LOCALIZED)
 DIGITS = sorted(n for n in FREEDOOM if n.startswith(("STT", "STYS", "STG")))
-LUMP_COUNT = 78
+LUMP_COUNT = 80
 # Freedoom's status bar lumps the sweep did not redraw; they stay the IWAD's:
 # the multiplayer face backgrounds, the skull-key icons and their pairs
 # (no skull key exists in the mod), and the HUD message font STCFN*.
@@ -115,6 +121,8 @@ LEFT_FREEDOOM = (*(f"STFB{i}" for i in range(4)), *(f"STPB{i}" for i in range(4)
 def work_source(name: str) -> Path:
     if name in RUSSIAN:
         return WORK_HUD / "bar" / "A" / "ru" / f"{RUSSIAN[name]}.png"
+    if name in CATALAN:
+        return WORK_HUD / "bar" / "A" / "ca" / f"{CATALAN[name]}.png"
     if name in ("STBAR", "STARMS"):
         return WORK_HUD / "bar" / "A" / "en" / f"{name}.png"
     if name.startswith("STF"):
@@ -192,9 +200,9 @@ def iwad_headers() -> dict[str, tuple[int, int, int, int]]:
 
 
 class FileTests(unittest.TestCase):
-    def test_exactly_the_78_lumps(self):
-        self.assertEqual({p.stem for p in lumps()}, set(FREEDOOM) | set(RUSSIAN))
-        self.assertEqual(len(FREEDOOM) + len(RUSSIAN), LUMP_COUNT)
+    def test_exactly_the_80_lumps(self):
+        self.assertEqual({p.stem for p in lumps()}, set(FREEDOOM) | set(LOCALIZED))
+        self.assertEqual(len(FREEDOOM) + len(LOCALIZED), LUMP_COUNT)
 
     def test_every_face_is_present(self):
         names = {p.stem for p in lumps()}
@@ -209,7 +217,7 @@ class FileTests(unittest.TestCase):
     def test_sizes_and_offsets_are_freedooms(self):
         for p in lumps():
             data = p.read_bytes()
-            base = RUSSIAN.get(p.stem, p.stem)
+            base = LOCALIZED.get(p.stem, p.stem)
             w, h, left, top = FREEDOOM[base]
             self.assertEqual(png_header(data)[:2], (w, h), p.name)
             self.assertEqual(read_grab(data), None if (left, top) == (0, 0) else (left, top), p.name)
@@ -260,18 +268,25 @@ class PixelTests(unittest.TestCase):
         self.assertTrue(any({tuple(int(v) for v in c) for c in self.rgba(f)[self.rgba(f)[..., 3] > 0][:, :3]} - v1
                             for f in FACES), "no face uses v2: then none needs listing")
 
-    def test_russian_bar_differs_only_in_the_label_band(self):
+    def test_localized_bars_differ_only_in_the_label_band(self):
+        """[ru] and [ca] (P6): SD_StatusBar redraws only the band, so a label
+        pixel outside it (an accent too high, a word too wide) never shows."""
         bands = label_bands()
-        for ru, en, x in (("SDSBRU", "STBAR", zs_consts()["SD_SBAR_X"]),
-                          ("SDARRU", "STARMS", zs_consts()["SD_SBAR_ARMS_X"])):
-            diff = (self.rgba(ru) != self.rgba(en)).any(axis=2)
-            self.assertTrue(diff.any(), f"{ru} is {en}")
+        xs = {"STBAR": zs_consts()["SD_SBAR_X"], "STARMS": zs_consts()["SD_SBAR_ARMS_X"]}
+        for local, en in LOCALIZED.items():
+            x = xs[en]
+            diff = (self.rgba(local) != self.rgba(en)).any(axis=2)
+            self.assertTrue(diff.any(), f"{local} is {en}")
             redrawn = np.zeros_like(diff)
             for key, (x0, y0, x1, y1) in bands.items():
-                if (ru == "SDARRU") != (key == "arms"):
+                if (en == "STARMS") != (key == "arms"):
                     continue
                 redrawn[max(y0 - 168, 0):y1 - 168 + 1, max(x0 - x, 0):max(x1 - x + 1, 0)] = True
-            self.assertFalse((diff & ~redrawn).any(), f"{ru}: a label pixel outside the band")
+            self.assertFalse((diff & ~redrawn).any(), f"{local}: a label pixel outside the band")
+
+    def test_the_catalan_bar_is_not_the_russian(self):
+        self.assertFalse(np.array_equal(self.rgba("SDSBCA"), self.rgba("SDSBRU")))
+        self.assertFalse(np.array_equal(self.rgba("SDARCA"), self.rgba("SDARRU")))
 
 
 class LabelBandTests(unittest.TestCase):
@@ -372,6 +387,12 @@ class LanguageTests(unittest.TestCase):
         packed = {e.path for e in collect_assets(PROJECT_ROOT / "assets")}
         for ident, name in (("SD_SBAR_IMAGE", "SDSBRU"), ("SD_SBAR_ARMS_IMAGE", "SDARRU")):
             self.assertEqual(self.value("ru", ident), name)
+            self.assertIn(f"graphics/{name}.png", packed)
+
+    def test_catalan_names_the_packed_catalan_pictures(self):
+        packed = {e.path for e in collect_assets(PROJECT_ROOT / "assets")}
+        for ident, name in (("SD_SBAR_IMAGE", "SDSBCA"), ("SD_SBAR_ARMS_IMAGE", "SDARCA")):
+            self.assertEqual(self.value("ca", ident), name)
             self.assertIn(f"graphics/{name}.png", packed)
 
 

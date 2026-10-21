@@ -4,9 +4,9 @@ A GZDoom total conversion. The USSR of the 1970s is invaded by two allied
 alien factions, Yankee and Nazi, united to defend capital. You are a Spetsnaz
 sergeant who came to this country as a refugee child from Barcelona.
 
-Status: **v1.0 released** (2026-10-20): a three-map campaign plus a practice range, seven weapons, seven enemies, English and Russian. Download: https://github.com/kahache/soviet_doom/releases/tag/v1.0. Roadmap for V2 in `docs/ROADMAP.md`; detail in `CLAUDE.md` and `docs/qa/GATE-REVIEWS.md`.
+Status: **v1.0 released** (2026-10-20): a three-map campaign plus a practice range, seven weapons, seven enemies, English and Russian; **Catalan** is the third language in the repository now and ships in the next release (D97). Download: https://github.com/kahache/soviet_doom/releases/tag/v1.0. Roadmap for V2 in `docs/ROADMAP.md`; detail in `CLAUDE.md` and `docs/qa/GATE-REVIEWS.md`.
 See `CLAUDE.md` for the operational summary, `docs/PRD.md` for decisions and
-`docs/ru/` for the Russian mirror of all documentation.
+`docs/ru/` for the Russian mirror of all documentation. En català: [més avall](#soviet-doom-en-català).
 
 ## How to play
 
@@ -19,11 +19,29 @@ protected your PC": click More info → Run anyway (or tick Unblock in the
 zip's Properties before extracting). `README-FIRST.txt` / `LEEME.txt` in the
 folder explain the rest, including the switch to Russian.
 
+**macOS, one click** (Intel and Apple silicon, macOS 10.15+; not yet tested
+on a real Mac): download `sovietdoom-<version>-macos.zip` and double-click it.
+GZDoom is not signed by Apple, so the first time right-click
+`Play Soviet Doom.command` → Open (or run `xattr -dr com.apple.quarantine`
+on the `SovietDoom` folder in Terminal; on macOS 15+ System Settings →
+Privacy & Security → Open Anyway). Then double-click `Play Soviet Doom.command`.
+
+**Linux (x86-64)** (not yet tested on a real machine): download
+`sovietdoom-<version>-linux.tar.gz`, `tar xzf` it, install the libraries
+listed in `README-FIRST.txt` (one `sudo apt install` line), then
+`cd SovietDoom && ./play.sh`. Problems with either: please open an Issue.
+
 **Any OS, with your own GZDoom:** download `sovietdoom-<version>.zip`, get
 GZDoom 4.14.2 or newer (https://zdoom.org/downloads) and Freedoom: Phase 2
 (`freedoom2.wad`, https://freedoom.github.io/download.html), then run
 `gzdoom -iwad freedoom2.wad -file sovietdoom.pk3`; the zip's `README.txt`
 has the details.
+
+**Language:** Options → Soviet Doom → Language: English, Russian or Catalan
+(or the system's language). It applies at once and is remembered; from the
+console, `language default`, `language ru` or `language ca`. GZDoom's own
+option screens stay in English when the game is in Catalan: the engine ships
+no Catalan of its own.
 
 How the packages are made: `docs/engine/RELEASE.md`.
 
@@ -67,7 +85,8 @@ licence is in `docs/art/LICENSES.md`; music rights are in
   of our own (`tools/art/gen_rig.py`) and rendered their sprites from it at
   Doom's eight rotations, designed the sound effects (synthesis, with CC0
   clips layered in), sequenced the original music and the arrangements of
-  public-domain works, and translated the text and docs into Russian.
+  public-domain works, translated the text and docs into Russian, and the
+  game's text into Catalan.
 - **Google Gemini.** Images generated from the project lead's prompts, from
   which the first-person frames of the PPSh-41, IZh-58, RPG-7, ROKS-3, hand
   Katyusha and ice axe were cut and reworked into pixel art
@@ -104,6 +123,33 @@ licence is in `docs/art/LICENSES.md`; music rights are in
   1920; Stalin after a 1930 photograph).
 - **Tooling**: Python, Pillow, NumPy, FFmpeg, GZDoom's ZMusic for renders,
   Git and GitHub Actions.
+
+---
+
+# Soviet Doom en català
+
+Una conversió total per a GZDoom. L'URSS dels anys setanta és envaïda per dues
+faccions alienígenes aliades, ianquis i nazis, unides per defensar el capital.
+Ets un sergent de l'Spetsnaz que va arribar al país de petit, refugiat de
+Barcelona. Tres mapes de campanya (el cosmòdrom Zarya-7, el metro-búnquer i
+Tankograd) i un camp de tir per practicar, set armes i set enemics.
+
+**Com jugar-hi.** A Windows, baixa `sovietdoom-<versió>-windows.zip` de la
+pàgina de la versió (https://github.com/kahache/soviet_doom/releases),
+descomprimeix-lo i fes doble clic a `Play Soviet Doom.bat`: GZDoom i Freedoom
+ja hi són, i no s'instal·la res. Si Windows diu que ha protegit l'ordinador,
+obre «Més informació» i tria executar-lo igualment. Per a macOS i Linux hi ha
+`sovietdoom-<versió>-macos.zip` i `sovietdoom-<versió>-linux.tar.gz`
+(encara sense provar en màquines reals; les instruccions són a
+`README-FIRST.txt`). A qualsevol sistema amb
+GZDoom 4.14.2 o posterior i Freedoom: Phase 2 (`freedoom2.wad`):
+`gzdoom -iwad freedoom2.wad -file sovietdoom.pk3`.
+
+**Com posar-lo en català.** Al menú, Options → Soviet Doom → Language →
+Català. S'aplica a l'acte i es recorda per a la propera vegada; també es pot
+escriure `language ca` a la consola. Les pantalles d'opcions del mateix
+GZDoom es queden en anglès, perquè el motor no porta català. El català arriba
+amb la propera versió: la v1.0 només té anglès i rus.
 
 ---
 

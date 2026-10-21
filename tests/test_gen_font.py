@@ -21,6 +21,11 @@ three styles; style C "Mashina" is the one installed in assets/fonts/
   drawing rules  the few Pen rules whose breakage is invisible at 1x but
                  shifts whole stems (half rounding, mirroring, spacing
                  column, the style switches)
+  Catalan        P6 (D97): the nine capitals A-grave E-grave E-acute
+                 I-acute I-diaeresis O-grave O-acute U-acute C-cedilla,
+                 installed 2026-10-21 (CatalanLettersTests): the 224 glyphs
+                 of before unchanged, the 27 new files what the generator
+                 draws, the accent's direction, the cedilla in the cap box
 
 Rules this file follows (same as tests/test_generators.py):
   - nothing is written to work/ or assets/: every output goes to a
@@ -48,6 +53,7 @@ import json
 import re
 import sys
 import tempfile
+import unicodedata
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -182,6 +188,8 @@ class AlphabetCoverageTests(unittest.TestCase):
         Lowercase is checked as its capital: the font has capitals only and
         RenderFont.glyph() makes the same assumption about the engine
         (NOT VERIFIED here against GZDoom's FFont)."""
+        # P6 (D97): the Catalan capitals were a listed debt until
+        # 2026-10-21; the font draws them now, so [ca] is checked like the rest.
         chars = sorted({c.upper() for c in language_strings()})
         missing = [f"U+{ord(c):04X} {c!r}" for c in chars if ord(c) not in self.gen.GLYPHS]
         self.assertEqual(missing, [], "characters used in src/lumps/LANGUAGE with no glyph")
@@ -345,9 +353,10 @@ class ReproductionTests(unittest.TestCase):
 
     def test_build_is_deterministic(self):
         first, second = self.built("first"), self.built("second")
-        # 112 codepoints + font.inf per folder: 224 glyphs since the German
-        # letters were installed (D37, 2026-10-13); 214 before.
-        self.assertEqual(len(first), 2 * (112 + 1))
+        # 121 codepoints + font.inf per folder: 242 glyphs since the Catalan
+        # letters were installed (P6, 2026-10-21); 224 after the German
+        # letters (D37), 214 before them.
+        self.assertEqual(len(first), 2 * (121 + 1))
         self.assertEqual(sorted(first), sorted(second))
         self.assertEqual([k for k in first if first[k] != second[k]], [])
         self.assertEqual(self.reports[INSTALLED_STYLE], self.again)
@@ -479,11 +488,12 @@ class PenRuleTests(unittest.TestCase):
     def test_flat_apex_switch_reaches_exactly_the_a(self):
         """flat_apex is the poster A (A, C) versus the pointed A (B); it
         must change the two A's and nothing else. Since D37 (2026-10-13)
-        the A-umlaut is drawn on the Latin A's stroke code, so it follows."""
+        the A-umlaut is drawn on the Latin A's stroke code, so it follows;
+        since P6 (2026-10-21) the A-grave too."""
         for key in self.gen.STYLES:
             with self.subTest(style=key):
                 self.assertEqual(self.changed_by(key, flat_apex=not self.gen.STYLES[key].flat_apex),
-                                 {"A", "А", "Ä"})
+                                 {"A", "А", "Ä", "À"})
 
     def test_slashed_zero_switch_reaches_exactly_the_zero(self):
         for key in self.gen.STYLES:
@@ -605,6 +615,191 @@ class SheetsAndCliTests(unittest.TestCase):
         self.assertEqual(printed[0].name, "PREVIEW_F2_font-A-plakat.png")
         self.assertFalse((self.out / "manifest.json").exists())
         self.assertFalse((self.out / "A").exists())
+
+
+# ===========================================================================
+# the Catalan letters (P6, D97): nine capitals, 27 files, nothing else moves
+# ===========================================================================
+CATALAN_NEW = "ÀÈÉÍÏÒÓÚÇ"
+CATALAN_FILES = sorted(f"{ord(c):04X}.png" for c in CATALAN_NEW)
+CATALAN_BEFORE = 112            # codepoints per size with the German letters (D37)
+
+
+@imaging
+@fonts
+class CatalanLettersTests(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        import gen_font as gen
+        cls.gen = gen
+        cls.style = gen.STYLES[INSTALLED_STYLE]
+        cls._tmp = tempfile.TemporaryDirectory()
+        cls.tmp = Path(cls._tmp.name)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._tmp.cleanup()
+
+    def ink(self, ch, size_key):
+        return self.gen.render_glyph(ch, self.style, size_key)[0]
+
+    def size(self, size_key):
+        return self.style.small if size_key == "small" else self.style.big
+
+    def short_letter(self, base, size_key):
+        """`base` in the umlauts' shorter box, drawn the generator's way."""
+        gen, size = self.gen, self.size(size_key)
+        cls, fn, center = gen.GLYPHS[ord(base)]
+        w = gen.ink_width(self.style, size_key, cls, center)
+        pen = gen.Pen(w, dataclasses.replace(size, cap=size.cap - size.stem - gen.UMLAUT_GAP), self.style)
+        fn(pen)
+        return pen.finish()
+
+    def test_the_switch_is_on_and_lists_exactly_the_nine(self):
+        gen = self.gen
+        self.assertIs(gen.CATALAN_ACCENTS, True, "installed for the P6 review (Q3)")
+        self.assertEqual(sorted(gen.CATALAN), sorted(CATALAN_NEW))
+        self.assertEqual(len(gen.GLYPHS), CATALAN_BEFORE + len(CATALAN_NEW))
+        for ch in CATALAN_NEW:
+            self.assertIn(ord(ch), gen.GLYPHS)
+            self.assertIn(ch, gen.PUNCT)
+
+    def test_switch_off_restores_the_d37_set_and_the_module(self):
+        gen = self.gen
+        before = (len(gen.GLYPHS), list(gen.PUNCT))
+        with gen.catalan_accents(False):
+            self.assertEqual(len(gen.GLYPHS), CATALAN_BEFORE)
+            for ch in CATALAN_NEW:
+                self.assertNotIn(ord(ch), gen.GLYPHS)
+                self.assertNotIn(ch, gen.PUNCT)
+        self.assertEqual((len(gen.GLYPHS), gen.PUNCT), before)
+
+    def test_switch_on_changes_no_existing_glyph_in_any_style(self):
+        gen = self.gen
+        off = {}
+        with gen.catalan_accents(False):
+            old = list(gen.GLYPHS)
+            for key, st in gen.STYLES.items():
+                for size_key in FOLDERS.values():
+                    for cp in old:
+                        off[(key, size_key, cp)] = np.asarray(gen.glyph_image(chr(cp), st, size_key)).copy()
+        changed = [f"{key} {size_key} U+{cp:04X}" for (key, size_key, cp), before in off.items()
+                   if not np.array_equal(before, np.asarray(gen.glyph_image(chr(cp), gen.STYLES[key], size_key)))]
+        self.assertEqual(changed, [], "the Catalan section moved an existing glyph")
+
+    def test_installed_files_are_what_the_generator_draws(self):
+        report = self.gen.build_catalan(self.tmp / "ca")
+        for folder in FOLDERS:
+            built = self.tmp / "ca" / INSTALLED_STYLE / folder
+            self.assertEqual(sorted(p.name for p in built.glob("*.png")), CATALAN_FILES)
+            for name in CATALAN_FILES:
+                with self.subTest(folder=folder, name=name):
+                    self.assertEqual((FONTS_DIR / folder / name).read_bytes(), (built / name).read_bytes())
+        for name in CATALAN_FILES:                 # SDMENU carries bigfont's, as for D37
+            with self.subTest(sdmenu=name):
+                self.assertEqual((FONTS_DIR / "sdmenu" / name).read_bytes(),
+                                 (FONTS_DIR / "bigfont" / name).read_bytes())
+                self.assertEqual((self.tmp / "ca" / "sdmenu" / name).read_bytes(),
+                                 (FONTS_DIR / "sdmenu" / name).read_bytes())
+        self.assertEqual(set(report["files"]), {"fonts/defsmallfont/", "fonts/bigfont/", "fonts/sdmenu/"})
+        manifest = json.loads((self.tmp / "ca" / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest, report)
+
+    def test_every_new_glyph_fills_the_cap_box_at_its_base_width(self):
+        for size_key in FOLDERS.values():
+            cap = self.size(size_key).cap
+            for ch in CATALAN_NEW:
+                ink = self.ink(ch, size_key)
+                base = unicodedata.normalize("NFD", ch)[0]
+                with self.subTest(size=size_key, ch=ch):
+                    self.assertEqual(ink.shape, self.ink(base, size_key).shape)
+                    self.assertEqual(ink.shape[0], cap)
+                    self.assertTrue(ink[0].any() and ink[-1].any(), "\n" + ink_ascii(ink))
+
+    def test_accented_letters_sit_on_the_baseline_like_the_umlauts(self):
+        """The letter is its base capital in the umlauts' shorter box, at the
+        bottom: A-grave and A-umlaut share their letter row for row."""
+        for size_key in FOLDERS.values():
+            for ch, (base, _lean) in self.gen.CATALAN_ACCENTED.items():
+                ink, letter = self.ink(ch, size_key), self.short_letter(base, size_key)
+                with self.subTest(size=size_key, ch=ch):
+                    self.assertTrue(np.array_equal(ink[-letter.shape[0]:], letter), "\n" + ink_ascii(ink))
+            n = self.short_letter("A", size_key).shape[0]
+            self.assertTrue(np.array_equal(self.ink("À", size_key)[-n:], self.ink("Ä", size_key)[-n:]))
+
+    def test_the_accent_is_one_stem_per_row_and_leans_the_right_way(self):
+        """Grave: the top of the stroke is left of its foot; acute: right."""
+        gen = self.gen
+        for size_key in FOLDERS.values():
+            stem = self.size(size_key).stem
+            for ch, (_base, lean) in gen.CATALAN_ACCENTED.items():
+                ink = self.ink(ch, size_key)
+                rows = [np.flatnonzero(ink[r]) for r in range(gen.ACCENT_ROWS)]
+                with self.subTest(size=size_key, ch=ch):
+                    for cols in rows:
+                        self.assertEqual(len(cols), stem, "\n" + ink_ascii(ink))
+                        self.assertEqual(cols[-1] - cols[0] + 1, stem)
+                    self.assertEqual(rows[0][0] - rows[-1][0], lean * (gen.ACCENT_ROWS - 1),
+                                     "\n" + ink_ascii(ink))
+                    self.assertEqual(lean, gen.GRAVE if ch in "ÀÈÒ" else gen.ACUTE)
+
+    def test_grave_and_acute_mirror_each_other_on_the_same_foot(self):
+        for size_key in FOLDERS.values():
+            for grave, acute in (("È", "É"), ("Ò", "Ó")):
+                g = [np.flatnonzero(r) for r in self.ink(grave, size_key)[:self.gen.ACCENT_ROWS]]
+                a = [np.flatnonzero(r) for r in self.ink(acute, size_key)[:self.gen.ACCENT_ROWS]]
+                with self.subTest(size=size_key, pair=grave + acute):
+                    self.assertTrue(np.array_equal(g[-1], a[-1]), "the feet share the axis")
+                    self.assertEqual(g[0][0] - g[-1][0], -(a[0][0] - a[-1][0]))
+
+    def test_i_diaeresis_dots_stay_off_the_stem_and_apart(self):
+        gen = self.gen
+        for size_key in FOLDERS.values():
+            ink = self.ink("Ï", size_key)
+            dot = self.size(size_key).stem
+            top = np.flatnonzero(ink[0])
+            mid = np.flatnonzero(ink[ink.shape[0] // 2 + 1])
+            with self.subTest(size=size_key):
+                self.assertEqual(len(top), 2 * dot, "\n" + ink_ascii(ink))
+                self.assertEqual(len(mid), dot, "the stem")
+                self.assertTrue(top[dot - 1] < mid[0] and top[dot] > mid[-1], "\n" + ink_ascii(ink))
+                self.assertFalse(ink[dot:dot + gen.UMLAUT_GAP].any(), "a blank row under the dots")
+
+    def test_c_cedilla_is_c_at_the_cap_line_with_a_hook_below(self):
+        for size_key in FOLDERS.values():
+            ink, letter = self.ink("Ç", size_key), self.short_letter("C", size_key)
+            stem = self.size(size_key).stem
+            below = ink[letter.shape[0]:]
+            with self.subTest(size=size_key):
+                self.assertTrue(np.array_equal(ink[:letter.shape[0]], letter), "\n" + ink_ascii(ink))
+                for r in range(below.shape[0]):
+                    self.assertEqual(len(np.flatnonzero(below[r])), stem, "\n" + ink_ascii(ink))
+                stub, turn = np.flatnonzero(below[0]), np.flatnonzero(below[-1])
+                self.assertEqual(turn[0], stub[0] - 1, "the cedilla turns left at the bottom")
+
+    def test_catalan_text_renders_with_no_missing_glyph(self):
+        for size_key in FOLDERS.values():
+            font = self.gen.RenderFont(self.style, size_key)
+            for _font, _id, text in self.gen.CATALAN_PHRASES:
+                font.render(text)
+                font.render(text.lower())
+            with self.subTest(size=size_key):
+                self.assertEqual(font.missing, set())
+
+    def test_the_cli_writes_only_where_it_is_told(self):
+        out = self.tmp / "cli"
+        out.mkdir()
+        buf = io.StringIO()
+        with mock.patch.object(self.gen, "OUT_ROOT_CATALAN", out / "work"), \
+                mock.patch.object(self.gen, "PREVIEW_DIR", out), \
+                mock.patch.object(sys, "argv", ["gen_font.py", "--catalan", "--stamp", "TEST"]), \
+                contextlib.redirect_stdout(buf):
+            self.gen.main()
+        sheet = Path(buf.getvalue().strip())
+        self.assertEqual(sheet, out / "TEST_P6_font-ca.png")
+        self.assertTrue(sheet.is_file())
+        self.assertEqual(len(list((out / "work").rglob("*.png"))), 3 * len(CATALAN_NEW))
 
 
 if __name__ == "__main__":
