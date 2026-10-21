@@ -8,14 +8,17 @@ D48), never write it.
                  only (ART-BIBLE 2, the exception for drawn-over assets)
   the geometry   the cursor fits the 32 px the selector leaves left of the
                  text and stays on screen at the skill rungs' x = 32
-  the languages  each worded pause option has ONE size for both languages
-                 (GZDoom refuses a localised variant of another size) and
-                 every letter has a glyph in assets/fonts/sdmenu/
+  the languages  each worded pause option has ONE size for every language
+                 (GZDoom refuses a localised variant of another size), D48's
+                 77x20 for P2, sized by English and Russian only; Catalan
+                 (P6) fits inside P2 and is refused by P3; every letter has
+                 a glyph in assets/fonts/sdmenu/
   D27            no system font anywhere in the module, and the build is
                  deterministic; the approved font is read, never rewritten
   the build      build() writes only under the directory it is given
   installed (D48) M_SKULL1/M_SKULL2 are cursor B and M_PAUSE is pause sign
-                 P2 in English, byte for byte what the generator saves today
+                 P2 in English, and M_PAUSE.ru / M_PAUSE.ca are P2 in Russian
+                 and Catalan, byte for byte what the generator saves today
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_gen_cursor -v
 """
@@ -40,10 +43,12 @@ SDMENU = PROJECT_ROOT / "assets" / "fonts" / "sdmenu"
 SHELL = PROJECT_ROOT / "assets" / "graphics" / "shell"
 
 # D48 (CEO, 2026-10-14): menu cursor B and pause sign P2, a plaque per
-# language. Only the English plaque is installed: the Russian one waits on
-# the packer's localized/ support (MOD-SPEC 10, T12).
+# language. English is graphics/M_PAUSE; Russian (T24) and Catalan (P6) are
+# localized/textures/M_PAUSE.ru and M_PAUSE.ca (ADR 010).
 APPROVED_CURSOR = "B"
 APPROVED_PAUSE = ("P2", "en")
+LOCALIZED = PROJECT_ROOT / "assets" / "localized" / "textures"
+APPROVED_PAUSE_SIZE = (77, 20)          # D48; MOD-SPEC 2 and check_pk3 hold it
 
 try:
     import numpy as np
@@ -136,20 +141,47 @@ class PauseTests(unittest.TestCase):
             with self.subTest(lang=lang):
                 self.assertEqual(gen_cursor.missing_glyphs(word), [])
 
-    def test_worded_options_have_one_size_for_both_languages(self):
+    def test_worded_options_have_one_size_for_every_language(self):
         # "Localized texture %s must be the same size as the one it replaces"
-        # (gzdoom.exe g4.14.2): the Russian variant must match the English one.
+        # (gzdoom.exe g4.14.2): every variant must match the English one.
         for opt in ("P2", "P3"):
             with self.subTest(option=opt):
-                sizes = {gen_cursor.pause_image(opt, lang).size for lang in gen_cursor.PAUSE_WORDS}
+                sizes = {gen_cursor.pause_image(opt, lang).size for lang in gen_cursor.pause_languages(opt)}
                 self.assertEqual(sizes, {gen_cursor.pause_canvas_size(opt)})
                 en, ru = (gen_cursor.pause_image(opt, lang) for lang in ("en", "ru"))
                 self.assertNotEqual(en.tobytes(), ru.tobytes())
 
+    def test_the_canvas_is_d48s_and_only_english_and_russian_size_it(self):
+        self.assertEqual(gen_cursor.pause_canvas_size("P2"), APPROVED_PAUSE_SIZE)
+        self.assertEqual(gen_cursor.PAUSE_CANVAS_LANGS, ("en", "ru"))
+
+    def test_catalan_is_p2_only_and_reads_with_d22s_letterforms(self):
+        # P6: «PAUSA» is 3 px wider than PAUSE; it fits the plaque, not P3's
+        # bare canvas, and SDMENU draws its Latin A as Д (D22, review Q2).
+        self.assertEqual(gen_cursor.PAUSE_WORDS["ca"], "PAUSA")
+        self.assertIn("ca", gen_cursor.pause_languages("P2"))
+        self.assertNotIn("ca", gen_cursor.pause_languages("P3"))
+        with self.assertRaises(ValueError):
+            gen_cursor.pause_image("P3", "ca")
+        self.assertEqual(gen_cursor.gen_menu.reads_as("PAUSA"), "PДUSД")
+        ca = gen_cursor.pause_image("P2", "ca")
+        for lang in ("en", "ru"):
+            self.assertNotEqual(ca.tobytes(), gen_cursor.pause_image("P2", lang).tobytes())
+
+    def test_the_catalan_word_keeps_a_red_margin_inside_the_border(self):
+        a = np.asarray(gen_cursor.pause_image("P2", "ca"))
+        cream = np.array(gen_cursor.colours()["cream"])
+        b = gen_cursor.PLAQUE_BORDER
+        inner = a[b + 1:-(b + 1), :, :3]
+        # the columns right inside the border are plaque, not letters
+        for col in (b, a.shape[1] - b - 1):
+            self.assertFalse((a[b + 1:-(b + 1), col, :3] == cream).all(axis=-1).any(), col)
+        self.assertTrue((inner == cream).all(axis=-1).any(), "no letter drawn")
+
     def test_rgba_hard_alpha_palette_only(self):
         palette = palette_colours()
         for opt in gen_cursor.PAUSE_OPTIONS:
-            for lang in gen_cursor.PAUSE_WORDS:
+            for lang in gen_cursor.pause_languages(opt):
                 with self.subTest(option=opt, lang=lang):
                     a = np.asarray(gen_cursor.pause_image(opt, lang))
                     self.assertLessEqual(set(np.unique(a[..., 3]).tolist()), {0, 255})
@@ -178,6 +210,8 @@ class BuildTests(unittest.TestCase):
             for opt in ("P2", "P3"):
                 for lang in ("en", "ru"):
                     self.assertIn(f"pause_{opt}_{lang}.png", written)
+            self.assertIn("pause_P2_ca.png", written)
+            self.assertNotIn("pause_P3_ca.png", written)
             self.assertIn("pause_P1_xx.png", written)
             # every generated name is unique across the tree, so a later
             # install (renamed to M_SKULL1/M_PAUSE) cannot match two sources
@@ -216,6 +250,38 @@ class InstalledShellTests(unittest.TestCase):
     def test_pause_p2_en_is_m_pause(self):
         built = png_bytes(gen_cursor.pause_image(*APPROVED_PAUSE))
         self.assertEqual((SHELL / "M_PAUSE.png").read_bytes(), built)
+
+    def test_the_localized_plaques_are_p2(self):
+        # ADR 010: M_PAUSE.ru (T24) and, since P6, M_PAUSE.ca.
+        for lang in ("ru", "ca"):
+            with self.subTest(lang=lang):
+                built = png_bytes(gen_cursor.pause_image("P2", lang))
+                self.assertEqual((LOCALIZED / f"M_PAUSE.{lang}.png").read_bytes(), built)
+
+
+@imaging
+@font
+class CatalanTests(unittest.TestCase):
+    """P6: --catalan writes the Catalan plaque and nothing else of the sweep."""
+
+    def test_catalan_pause_writes_only_the_plaque(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out, inst = Path(tmp) / "work", Path(tmp) / "assets"
+            files = gen_cursor.catalan_pause(out, inst)
+            self.assertEqual([p.name for p in out.iterdir()], ["pause_P2_ca.png"])
+            self.assertEqual([p.name for p in inst.iterdir()], ["M_PAUSE.ca.png"])
+            self.assertEqual(files["work"].read_bytes(), files["asset"].read_bytes())
+            self.assertEqual(files["work"].read_bytes(), png_bytes(gen_cursor.pause_image("P2", "ca")))
+            self.assertEqual(set(gen_cursor.catalan_pause(Path(tmp) / "w2")), {"work"})
+
+    @unittest.skipUnless(gen_cursor.GAME_SHOT.is_file(), "the MAP01 backdrop is not in this clone")
+    def test_the_preview_stacks_three_signs_at_four_times(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = gen_cursor.catalan_preview(Path(tmp) / "p.png")
+            with Image.open(path) as img:
+                w, h = img.size
+            self.assertEqual(w, gen_cursor.PREVIEW_CROP_W * 4)
+            self.assertEqual(h, (3 * gen_cursor.PREVIEW_CROP_H + 2 * gen_cursor.PREVIEW_GAP) * 4)
 
 
 if __name__ == "__main__":

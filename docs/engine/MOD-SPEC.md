@@ -212,6 +212,7 @@ sovietdoom.pk3
 ├── graphics/SDCURSOR.png   the mouse pointer, hammer and sickle, 28×25, grAb 12,1 (D102; §6.6.1)
 ├── localized/textures/     language variants of graphics, path kept whole:
 │                           M_PAUSE.ru.png, plaque P2 in Russian, 77×20 (D48; see the rules)
+│                           M_PAUSE.ca.png, plaque P2 in Catalan «PAUSA», 77×20 (P6)
 ├── fonts/defsmallfont/     <HEX>.png + font.inf — SmallFont glyphs, 107 files (D24)
 ├── fonts/bigfont/          <HEX>.png + font.inf — BigFont glyphs, 107 files (D24)
 ├── fonts/sdmenu/           <HEX>.png + font.inf — menu font SDMENU, 107 files (D31, §6.6)
@@ -2262,7 +2263,7 @@ That is the hook the mod uses. The contract:
 | Class | `SD_StatusBar : DoomStatusBar`, `zscript/sd/status_bar.zs` | `DoomStatusBar` is the class Doom's `GameInfo` names today (`gzdoom.pk3:mapinfo/doomcommon.txt`, `statusbarclass = "DoomStatusBar"`); deriving from it keeps every pixel of the bar, the fullscreen HUD and the alt-HUD as they are |
 | What it overrides | `DrawPaused` and, since M2e-i, `Draw`; one private helper, `SD_DrawLabelBand`. No field | `tests/test_pause_sign.py` fails on a third `override`, another function or a field |
 | Registration | `MAPINFO → GameInfo → StatusBarClass = "SD_StatusBar"` | key `statusbarclass` (`src/gamedata/gi.cpp`, case-insensitive). The engine uses the last definition by file order, and our PK3 loads after gzdoom.pk3 and the IWAD. Neither `freedoom2.wad` 0.13.0 (no `MAPINFO`, no `SBARINFO` lump) nor GZDoom's support packages (only `filter/harmony/` sets one) define another; checked 2026-10-14 |
-| The graphic's name | `LANGUAGE` id **`SD_PAUSE_SIGN`**: `[enu default]` `"M_PAUSE"`, `[ru]` `"localized/textures/m_pause.ru.png"` | a `LANGUAGE` id follows the language the player chose, `auto` included, which reading the `language` CVar would not. The Russian value is the variant's full path; `TexMan.CheckForTexture` resolves a name with a `/` through the file system. Why not an own lump `M_PAUSER`: ADR 010 |
+| The graphic's name | `LANGUAGE` id **`SD_PAUSE_SIGN`**: `[enu default]` `"M_PAUSE"`, `[ru]` `"localized/textures/m_pause.ru.png"`, `[ca]` `"localized/textures/m_pause.ca.png"` (P6, 2026-10-21) | a `LANGUAGE` id follows the language the player chose, `auto` included, which reading the `language` CVar would not. The Russian and Catalan values are the variants' full paths; `TexMan.CheckForTexture` resolves a name with a `/` through the file system. Why not an own lump `M_PAUSER`: ADR 010 |
 | Lookup | `TexMan.CheckForTexture(name, TexMan.Type_MiscPatch)` (default flags `TryAny`) | the same call the engine's `GetGameTextureByName` makes (`GetTextureID` adds `TEXMAN_TryAny`) |
 | Position | x = (screen width − width × `CleanXfac`) / 2 + left offset × `CleanXfac`; y = 4; `DTA_CleanNoMove`; animated | copied from `D_Display`: centred at the top, scaled by the clean factor, not moved |
 | Multiplayer line | when `player >= 0` and `multiplayer`: `TXT_BY` with `%s` → the pausing player's name, `SmallFont` (`NewSmallFont` under `generic_ui`), `CR_RED`, centred at y = sign height × `CleanYfac` + 4 | `D_Display` draws it only when it draws the sign; returning true skips it, so the class draws it too |
@@ -2283,9 +2284,13 @@ so `Draw` lets Doom draw everything and then redraws the labels:
 | Drawing | `SetClipRect(band)`; `DrawImage(name, position, DI_ITEM_OFFSETS)`; the clip rectangle in force before is restored (`Screen.GetClipRect` / `Screen.SetClipRect`) | the clip-and-restore idiom of the engine's own `DrawBar` (`statusbar.zs`) |
 | Copied from `DrawMainBar` | the two positions, `(0, 168)` for `STBAR` and `(104, 168)` for `STARMS`, and its condition for drawing `STARMS`, not `deathmatch` or `teamplay` (it shows the frags there) | three facts, no code; debt T14 |
 
-Both pause plaques are 77×20 (§2); `check_pk3` refuses a variant of
-another size. **NOT VERIFIED in the engine** (D26): that the bar is
-identical, the sign in English, the sign with `language ru`. `DrawPaused`
+The three pause plaques are 77×20 (§2); `check_pk3` refuses a variant of
+another size. The Catalan «PAUSA» (P6) is fitted inside the canvas English
+and Russian sized (D48), never allowed to grow it; in `SDMENU` its Latin A
+is D22's Д, so it reads PДUSД, as the menu does in Catalan (review sheet
+Q2). **NOT VERIFIED in the engine** (D26): that the bar is
+identical, the sign in English, the sign with `language ru` and with
+`language ca`. `DrawPaused`
 is verified as code in g4.14.2's `gzdoom.pk3`; whether GZDoom 4.12, the
 `version` the mod declares, has it is **NOT VERIFIED** (ADR 010).
 

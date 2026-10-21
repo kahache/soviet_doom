@@ -37,12 +37,13 @@ TRANSLATIONS = tuple(code for code in REQUIRED_SECTIONS if code != "default")
 
 # [ca] ids whose text is the English text on purpose: the game's title, the
 # proper nouns and designations D97 keeps as in English (Tankograd, PPSh-41,
-# RPG-7, Zelyonka, Panzermensch, Doughboy), and the pause sign's graphic name
-# until a Catalan plaque exists. Anything else equal to the English is a gap.
+# RPG-7, Zelyonka, Panzermensch, Doughboy). The pause sign's graphic name left
+# the list in P6: [ca] names its own plaque, M_PAUSE.ca (tests/test_pause_sign.py).
+# Anything else equal to the English is a gap.
 CATALAN_SAME_AS_ENGLISH = frozenset({
     "SD_EP01_NAME", "SD_OPTMNU_TITLE", "SD_MAP03_NAME",
     "SD_TAG_PPSH", "SD_TAG_RPG7", "SD_GOT_HEALTHBONUS",
-    "SD_TAG_DOUGHBOY", "SD_TAG_PANZER", "SD_PAUSE_SIGN",
+    "SD_TAG_DOUGHBOY", "SD_TAG_PANZER",
     # Credit lines made only of names, URLs and licences ("local" is Catalan too).
     "SD_CRED_ENGINE_1", "SD_CRED_IWAD_1", "SD_CRED_AI_7",
 })

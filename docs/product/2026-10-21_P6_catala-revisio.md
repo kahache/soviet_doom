@@ -72,6 +72,21 @@ pantalla de episodio va en la fuente del menú, que no tiene Ó (y el test
 exige que cada letra tenga glifo). «TRIA EL FRONT» encaja con el tono
 militar; si se hace Q3 (con la Ó en `sdmenu`), cambio a «TRIA LA MISSIÓ».
 
+**Q12. RESUELTA (2026-10-21, noche): el letrero de pausa dice
+«PAUSA».** mod-engineer + art-director generó solo la variante catalana con
+`tools/art/gen_cursor.py --catalan --install` (la misma placa P2 de D48, en
+`SDMENU`, sin fuentes del sistema), 77×20 como las otras, instalada como
+`assets/localized/textures/M_PAUSE.ca.png`; `[ca]` `SD_PAUSE_SIGN` apunta a
+`localized/textures/m_pause.ca.png`, igual que hace `[ru]`. Las placas
+inglesa y rusa no han cambiado ni un byte (el lienzo lo siguen fijando
+ellas; «PAUSA» mide 3 px más que «PAUSE» y cabe dentro, con 5-6 px de rojo
+a cada lado). Como dice Q2 (a), la fuente del menú dibuja la A latina como
+Д: se lee **«PДUSД»**, coherente con «ИOVД PДЯTIDД» del menú. Míralo en
+`docs/art/previews/2026-10-21_P6_pause-ca.png` (EN, RU, CA sobre el MAP01,
+×4). **NO VERIFICADO en el motor** (D26): la pausa con `language ca`. Si
+eliges Q2 (b), este letrero se regenera con la otra fuente. Texto original
+de la duda:
+
 **Q12. El letrero de pausa sigue en inglés («PAUSE»).** El ROADMAP pide un
 letrero catalán. Lo genera `tools/art/gen_cursor.py`, que esta noche está
 editando otro agente (cursor), así que no lo he tocado. Cuando haya un
@@ -294,7 +309,7 @@ text.» (39 caracteres); el ruso no cabe en 40 sin partir la línea. Igual el
 | id | EN | CA |
 |---|---|---|
 | `SD_DEATH_PROMPT` | Press %s to continue | Prem %s per continuar |
-| `SD_PAUSE_SIGN` **Q12** | M_PAUSE | M_PAUSE |
+| `SD_PAUSE_SIGN` **Q12** | M_PAUSE | localized/textures/m_pause.ca.png |
 
 ### Mensajes al salir (cada uno termina con «(Prem Y per sortir.)», omitido aquí)
 

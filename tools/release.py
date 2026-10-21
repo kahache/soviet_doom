@@ -43,7 +43,8 @@ It refuses (exit 1, nothing written) when:
   * the PK3 packs an asset with no row in docs/art/LICENSES.md (and, for
     music, none in MUSIC-RIGHTS 4.5, the "what ships" table);
   * a packed asset's licence requires attribution and the credits do not
-    carry the name, in English and in Russian;
+    carry the name, in English, in Russian and (when LANGUAGE has a [ca]
+    section, since P6) in Catalan;
   * anything from work/, tools/, tests/, logs/, iwads/, a preview, or any
     IWAD would enter the zip or the PK3;
   * tools/check_pk3.py rejects the PK3.
@@ -294,15 +295,22 @@ def asset_paths(pk3_names) -> list[str]:
 def check_licences(pk3_names, licence_rows: list[RegisterRow], music_rows: list[MusicRow],
                    credits: dict[str, list[tuple[str, str]]]) -> LicenceCheck:
     """Every packed asset has a register row; every name its licence obliges
-    is in the credits of both languages."""
+    is in the credits of every language the game ships: English, Russian
+    and, when LANGUAGE has a [ca] section (P6, D97), Catalan. A [ca]
+    section without SD_CRED_* lines is refused: the Catalan player would
+    read a credits screen in another language's fallback."""
     result = LicenceCheck()
     english = credits_text(credits.get(LANG_ENGLISH, []))
     russian = credits_text(credits.get(LANG_RUSSIAN, []))
+    catalan = credits_text(credits.get(LANG_CATALAN, []))
     if not english:
         result.errors.append(f"LANGUAGE: no {CREDIT_PREFIX}* lines in [enu default]; "
                              "the credits cannot be generated")
     if not russian:
         result.errors.append(f"LANGUAGE: no {CREDIT_PREFIX}* lines in [ru]; D7 needs both languages")
+    if LANG_CATALAN in credits and not catalan:
+        result.errors.append(f"LANGUAGE: a [ca] section with no {CREDIT_PREFIX}* lines; "
+                             "the Catalan credits must name everyone the English ones do")
 
     covered: dict[int, list[str]] = {}
     for path in asset_paths(pk3_names):
@@ -339,7 +347,7 @@ def check_licences(pk3_names, licence_rows: list[RegisterRow], music_rows: list[
             needed.setdefault(name, []).append(path)
 
     for name, paths in needed.items():
-        for lang, text in ((LANG_ENGLISH, english), (LANG_RUSSIAN, russian)):
+        for lang, text in ((LANG_ENGLISH, english), (LANG_RUSSIAN, russian), (LANG_CATALAN, catalan)):
             if text and name not in text:
                 result.errors.append(
                     f"{paths[0]}: its licence requires the credit {name!r}, which the [{lang}] "

@@ -40,6 +40,10 @@ and three pause-sign options:
      cream border on flag red)
   P3 word alone, cream with its shadow, one picture per language, same size
 
+The canvas is sized by English and Russian (D48). Catalan «PAUSA» (P6) is
+fitted inside P2's approved 77x20 plaque and is not drawn for P3, whose
+bare canvas is narrower than the word (PAUSE_CANVAS_LANGS).
+
 The words are set in SDMENU, READ from assets/fonts/sdmenu/ (D31; the menu
 font, D22 letterforms in English: PAUSE reads PДUSЭ), recoloured the way the
 menu's Font colour does it (gen_menu.FolderFont). No system font is used for
@@ -77,6 +81,7 @@ Usage
 -----
     .venv/Scripts/python.exe tools/art/gen_cursor.py                         # work/art/shell_extra/
     .venv/Scripts/python.exe tools/art/gen_cursor.py --stamp 2026-10-13_2215 # + docs/art/previews/
+    .venv/Scripts/python.exe tools/art/gen_cursor.py --catalan --install --stamp 2026-10-21   # P6: CA plaque only
 """
 from __future__ import annotations
 
@@ -140,7 +145,16 @@ PAUSE_OPTIONS = {
     "P2": ("Word on a plaque", "SDMENU in cream on SDSTAR1's red plaque, one picture per language"),
     "P3": ("Word alone", "SDMENU in cream with its shadow, one picture per language"),
 }
-PAUSE_WORDS = {"en": "PAUSE", "ru": "ПАУЗА"}
+PAUSE_WORDS = {"en": "PAUSE", "ru": "ПАУЗА", "ca": "PAUSA"}
+# The languages that SIZE the canvas: D48 approved P2 at 77x20 from the
+# English and Russian words, and the installed M_PAUSE / M_PAUSE.ru are
+# that size. A later language (Catalan, P6) is fitted INSIDE that canvas,
+# never allowed to grow it: GZDoom refuses a localised variant of another
+# size, and growing it would rewrite the two approved plaques. SDMENU's
+# Latin A is D22's Д, so «PAUSA» reads PДUSД (66 px, 3 more than PAUSE):
+# it fits P2's plaque with 5 px of red each side, but not P3's bare
+# 63 px canvas, so Catalan has P2 only (pause_languages).
+PAUSE_CANVAS_LANGS = ("en", "ru")
 PLAQUE_PAD_X, PLAQUE_PAD_Y = 7, 4
 PLAQUE_BORDER = 1
 ICON_SIZE = 32
@@ -304,17 +318,39 @@ def _word(lang: str, c):
 
 
 def pause_canvas_size(option: str) -> tuple[int, int]:
-    """One size for both languages: the engine refuses a localised variant
+    """One size for every language: the engine refuses a localised variant
     of another size ("Localized texture %s must be the same size as the
-    one it replaces", gzdoom.exe g4.14.2)."""
+    one it replaces", gzdoom.exe g4.14.2). Sized by PAUSE_CANVAS_LANGS only."""
     if option == "P1":
         return ICON_SIZE, ICON_SIZE
     c = colours()
-    words = [_word(lang, c) for lang in PAUSE_WORDS]
+    words = [_word(lang, c) for lang in PAUSE_CANVAS_LANGS]
     w, h = max(x.width for x in words), max(x.height for x in words)
     if option == "P2":
         return w + 2 * PLAQUE_PAD_X, h + 2 * PLAQUE_PAD_Y
     return w, h
+
+
+def pause_room(option: str) -> tuple[int, int]:
+    """The largest word an option's canvas holds: P2 keeps at least one red
+    pixel between the word and the cream border; P3 is the bare word."""
+    W, H = pause_canvas_size(option)
+    if option == "P2":
+        inset = 2 * (PLAQUE_BORDER + 1)
+        return W - inset, H - inset
+    return W, H
+
+
+def pause_languages(option: str) -> tuple[str, ...]:
+    """The languages an option is drawn in: "xx" for the wordless P1, else
+    every PAUSE_WORDS language whose word fits the option's canvas."""
+    if option == "P1":
+        return ("xx",)
+    c = colours()
+    room_w, room_h = pause_room(option)
+    return tuple(lang for lang in PAUSE_WORDS
+                 if lang in PAUSE_CANVAS_LANGS
+                 or (_word(lang, c).width <= room_w and _word(lang, c).height <= room_h))
 
 
 def pause_image(option: str, lang: str):
@@ -323,6 +359,8 @@ def pause_image(option: str, lang: str):
     from artlib import Overlay
     c = colours()
     W, H = pause_canvas_size(option)
+    if option != "P1" and lang not in pause_languages(option):
+        raise ValueError(f"pause sign {option}: {PAUSE_WORDS[lang]!r} ({lang}) does not fit {W}x{H}")
     if option == "P1":
         ov = Overlay(W, H)
         _bevelled_star(ov, W / 2, H / 2 + 1.0, 15.5, c["red_lit"], c["red_shade"], c["red_dark"])
@@ -460,8 +498,7 @@ def build(out_dir: Path = OUT_DIR) -> dict:
     shot = Image.open(GAME_SHOT).convert("RGBA")
     save(shot.convert("RGB"), "context/backdrop_game.png")
     for opt in PAUSE_OPTIONS:
-        langs = ("xx",) if opt == "P1" else tuple(PAUSE_WORDS)
-        for lang in langs:
+        for lang in pause_languages(opt):
             sign = save(pause_image(opt, lang), f"pause_{opt}_{lang}.png")
             save(compose(shot, sign, pause_at(sign, shot.width)).convert("RGB"),
                  f"context/game_{opt}_{lang}.png")
@@ -666,12 +703,12 @@ def sheet(stamp: str, out_dir: Path = OUT_DIR, preview_dir: Path = PREVIEW_DIR) 
                  + "</div></div>")
     for opt, (name, why) in PAUSE_OPTIONS.items():
         rec = opt == RECOMMENDED_PAUSE
-        langs = ("xx",) if opt == "P1" else tuple(PAUSE_WORDS)
+        langs = pause_languages(opt)
         w, h = pause_canvas_size(opt)
         o.append(f"<div class='row{' rec' if rec else ''}'><div class='meta'><h3>{opt} · {name}"
                  f"{'<span class=badge>recommended</span>' if rec else ''}</h3>"
                  f"<div class='cap'>{why}</div><div class='cap'>{w}×{h}"
-                 f"{', both languages' if opt != 'P1' else ''}</div></div>")
+                 f"{', every language drawn' if opt != 'P1' else ''}</div></div>")
         sprites = " ".join(_sprite(f"pause_{opt}_{lang}.png", 4, out_dir) for lang in langs)
         o.append(f"<div class='cell'><span class='cap'>4× ({' / '.join(l.upper() for l in langs if l != 'xx') or 'no text'})"
                  f"</span><div>{sprites}</div></div>")
@@ -703,13 +740,76 @@ def sheet(stamp: str, out_dir: Path = OUT_DIR, preview_dir: Path = PREVIEW_DIR) 
     return path
 
 
+# ------------------------------------------------------- Catalan (P6, D97)
+CATALAN_PAUSE_OPTION = "P2"            # the approved plaque (D48)
+CATALAN_PAUSE_FILE = f"pause_{CATALAN_PAUSE_OPTION}_ca.png"
+# ADR 010: the variant the build packs as localized/textures/M_PAUSE.ca.png.
+PAUSE_LOCALIZED_DIR = PROJECT_ROOT / "assets" / "localized" / "textures"
+CATALAN_PAUSE_LUMP = "M_PAUSE.ca.png"
+PREVIEW_CROP_W, PREVIEW_CROP_H = 120, 30   # the top-centre of the game shot around the sign
+PREVIEW_GAP = 4
+
+
+def catalan_pause(out_dir: Path = OUT_DIR, install_dir: Path | None = None) -> dict[str, Path]:
+    """Write ONLY the Catalan P2 plaque: out_dir/pause_P2_ca.png and, with
+    install_dir, install_dir/M_PAUSE.ca.png, the same bytes. Nothing else of
+    the sweep is rewritten, so the approved English and Russian plaques
+    cannot move."""
+    import io
+    buf = io.BytesIO()
+    pause_image(CATALAN_PAUSE_OPTION, "ca").save(buf, format="PNG", optimize=True)
+    written = {}
+    out_dir.mkdir(parents=True, exist_ok=True)
+    written["work"] = out_dir / CATALAN_PAUSE_FILE
+    written["work"].write_bytes(buf.getvalue())
+    if install_dir is not None:
+        install_dir.mkdir(parents=True, exist_ok=True)
+        written["asset"] = install_dir / CATALAN_PAUSE_LUMP
+        written["asset"].write_bytes(buf.getvalue())
+    return written
+
+
+def catalan_preview(path: Path, zoom: int = 4) -> Path:
+    """P2 in English, Russian and Catalan, each at the top centre of the
+    MAP01 game shot where the engine draws it, one above the other at
+    `zoom` (nearest neighbour), for the CEO to compare by eye."""
+    from PIL import Image
+    shot = Image.open(GAME_SHOT).convert("RGBA")
+    x0 = (shot.width - PREVIEW_CROP_W) // 2
+    tiles = []
+    for lang in ("en", "ru", "ca"):
+        sign = pause_image(CATALAN_PAUSE_OPTION, lang)
+        framed = compose(shot, sign, pause_at(sign, shot.width))
+        tiles.append(framed.crop((x0, 0, x0 + PREVIEW_CROP_W, PREVIEW_CROP_H)))
+    sheet_h = len(tiles) * PREVIEW_CROP_H + (len(tiles) - 1) * PREVIEW_GAP
+    sheet_img = Image.new("RGBA", (PREVIEW_CROP_W, sheet_h), (0, 0, 0, 255))
+    for k, tile in enumerate(tiles):
+        sheet_img.paste(tile, (0, k * (PREVIEW_CROP_H + PREVIEW_GAP)))
+    big = sheet_img.convert("RGB").resize((PREVIEW_CROP_W * zoom, sheet_h * zoom), Image.NEAREST)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    big.save(path, optimize=True)
+    return path
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--stamp", help="also write docs/art/previews/<stamp>_F2_shell-cursor-pause-sweep.html")
     ap.add_argument("--out", type=Path, default=OUT_DIR)
+    ap.add_argument("--catalan", action="store_true",
+                    help="P6: write only the Catalan P2 plaque (work/), and with --stamp the "
+                         "EN/RU/CA preview docs/art/previews/<stamp>_P6_pause-ca.png")
+    ap.add_argument("--install", action="store_true",
+                    help="with --catalan: also write assets/localized/textures/M_PAUSE.ca.png")
     args = ap.parse_args()
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")   # Windows console is cp1252
+    if args.catalan:
+        files = catalan_pause(args.out, PAUSE_LOCALIZED_DIR if args.install else None)
+        for p in files.values():
+            print(f"wrote {p}")
+        if args.stamp:
+            print(f"wrote {catalan_preview(PREVIEW_DIR / f'{args.stamp}_P6_pause-ca.png')}")
+        return
     manifest = build(args.out)
     print(f"{len(manifest['files'])} files in {args.out}")
     if args.stamp:

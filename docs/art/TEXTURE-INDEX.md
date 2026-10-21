@@ -344,7 +344,7 @@ not do yet (MOD-SPEC §10, T12).
 |---|---|---|---|---|---|---|---|
 | `M_SKULL1` | menu patch (cursor, phase 1) | 20×20 | no | option B: the hammer and sickle of `SDSTAR1` v5 (geometry imported from `gen_soviet_base.hammer_sickle()`, never re-traced), gold with a dark-red outline | (a) `tools/art/gen_cursor.py`, `cursor_image("B", 1)`; file `cursor_B_1.png` | approved 2026-10-14 (D48) | 2026-10-14 |
 | `M_SKULL2` | menu patch (cursor, phase 2) | 20×20 | no | the same emblem in its second blink phase, pale cream: the blink is the gold lighting up | (a) `tools/art/gen_cursor.py`, `cursor_image("B", 2)`; file `cursor_B_2.png` | approved 2026-10-14 (D48) | 2026-10-14 |
-| `M_PAUSE` | pause sign | 77×20 | no | option P2, English: «PAUSE» in `SDMENU` (D22 letterforms, it reads PДUSЭ) on a flag-red plaque with a cream border; the canvas also fits the Russian «ПАУЗА», so a localised variant can match its size | (a) `tools/art/gen_cursor.py`, `pause_image("P2", "en")`; file `pause_P2_en.png` | approved 2026-10-14 (D48); the Russian plaque `pause_P2_ru.png` is approved but not installed (packer, MOD-SPEC §10 T12) | 2026-10-14 |
+| `M_PAUSE` | pause sign | 77×20 | no | option P2, English: «PAUSE» in `SDMENU` (D22 letterforms, it reads PДUSЭ) on a flag-red plaque with a cream border; the canvas also fits the Russian «ПАУЗА», so a localised variant can match its size | (a) `tools/art/gen_cursor.py`, `pause_image("P2", "en")`; file `pause_P2_en.png` | approved 2026-10-14 (D48); the Russian plaque ships as `localized/textures/M_PAUSE.ru.png` (T24) and the Catalan «PAUSA» as `M_PAUSE.ca.png` (P6, 2026-10-21, seen in the engine), both 77×20 and chosen by `SD_PAUSE_SIGN` | 2026-10-14 |
 
 ## The alphabet (D24) — glyph fix and German letters
 

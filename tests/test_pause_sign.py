@@ -16,9 +16,10 @@ ever starting GZDoom (D26):
     the signature the override assumes, and nothing Freedoom or GZDoom loads
     for Freedoom sets another status bar (skipped where GZDoom or the IWAD
     is absent, as in CI);
-  * LANGUAGE's SD_PAUSE_SIGN names M_PAUSE in English and, in Russian, the
-    exact path the build packs the variant at;
-  * the variant is P2's Russian plaque byte for byte and the size of M_PAUSE;
+  * LANGUAGE's SD_PAUSE_SIGN names M_PAUSE in English and, in Russian and
+    (since P6) Catalan, the exact path the build packs each variant at;
+  * each variant is P2's plaque in its language byte for byte and the size
+    of M_PAUSE;
   * tools/release.py credits localized/ through the base's licence row.
 
 What it cannot pin is what the engine draws: ADR 010's checks E1-E3.
@@ -69,6 +70,10 @@ VARIANT_ASSET = ASSETS / "localized" / "textures" / "M_PAUSE.ru.png"
 VARIANT_PATH = "localized/textures/M_PAUSE.ru.png"   # its path in the PK3
 BASE_ASSET = ASSETS / "graphics" / "shell" / "M_PAUSE.png"
 P2_RUSSIAN = PROJECT_ROOT / "work" / "art" / "shell_extra" / "pause_P2_ru.png"
+# P6 (D97): the Catalan plaque «PAUSA», same contract as the Russian one.
+CA_VARIANT_ASSET = ASSETS / "localized" / "textures" / "M_PAUSE.ca.png"
+CA_VARIANT_PATH = "localized/textures/M_PAUSE.ca.png"
+P2_CATALAN = PROJECT_ROOT / "work" / "art" / "shell_extra" / "pause_P2_ca.png"
 SIGN_TOP = 4                        # D_Display: DrawTexture(..., x, 4, DTA_CleanNoMove)
 
 # Names the file declares itself (class, constants, locals, the parameter).
@@ -263,6 +268,13 @@ class LanguageTest(unittest.TestCase):
         self.assertIn(russian.lower(), packed, "the [ru] value is not a path the build packs")
         self.assertEqual(packed[russian.lower()], VARIANT_PATH)
 
+    def test_catalan_names_its_packed_variant_by_its_full_path(self):
+        catalan = self.value("ca")
+        self.assertIn("/", catalan, "a full path is what makes CheckForTexture look up the file")
+        packed = {e.path.lower(): e.path for e in collect_assets(ASSETS)}
+        self.assertIn(catalan.lower(), packed, "the [ca] value is not a path the build packs")
+        self.assertEqual(packed[catalan.lower()], CA_VARIANT_PATH)
+
     def test_the_english_sign_is_packed_under_graphics(self):
         packed = {e.path for e in collect_assets(ASSETS)}
         self.assertIn(f"graphics/{ENGLISH_SIGN}.png", packed)
@@ -280,6 +292,20 @@ class AssetTest(unittest.TestCase):
 
     def test_it_differs_from_the_english_plaque(self):
         self.assertNotEqual(VARIANT_ASSET.read_bytes(), BASE_ASSET.read_bytes())
+
+    def test_catalan_same_size_as_the_base(self):
+        self.assertEqual(png_size(CA_VARIANT_ASSET), png_size(BASE_ASSET))
+        self.assertEqual(png_size(CA_VARIANT_ASSET), (77, 20))   # MOD-SPEC 2
+
+    def test_catalan_is_p2_catalan_byte_for_byte(self):
+        if not P2_CATALAN.is_file():
+            self.skipTest("work/ is not in this clone (gitignored)")
+        self.assertEqual(CA_VARIANT_ASSET.read_bytes(), P2_CATALAN.read_bytes())
+
+    def test_catalan_differs_from_the_english_and_russian_plaques(self):
+        blob = CA_VARIANT_ASSET.read_bytes()
+        self.assertNotEqual(blob, BASE_ASSET.read_bytes())
+        self.assertNotEqual(blob, VARIANT_ASSET.read_bytes())
 
 
 class ReleaseCreditTest(unittest.TestCase):
@@ -300,6 +326,13 @@ class ReleaseCreditTest(unittest.TestCase):
         self.assertTrue(any("M_PAUSE" in (t.upper() for t in r.tokens) for r in covering))
         result = release.check_licences([VARIANT_PATH], rows, [], {})
         self.assertFalse([e for e in result.errors if VARIANT_PATH in e], result.errors)
+
+    def test_the_real_register_covers_the_catalan_variant(self):
+        rows = release.parse_licence_register(LICENSES.read_text(encoding="utf-8"))
+        covering = [r for r in rows if r.covers(CA_VARIANT_PATH)]
+        self.assertTrue(covering, "no LICENSES.md row covers the Catalan pause plaque")
+        result = release.check_licences([CA_VARIANT_PATH], rows, [], {})
+        self.assertFalse([e for e in result.errors if CA_VARIANT_PATH in e], result.errors)
 
     def test_a_variant_with_no_row_is_refused(self):
         rows = release.parse_licence_register(LICENSES.read_text(encoding="utf-8"))
@@ -383,7 +416,7 @@ class DocumentsTest(unittest.TestCase):
         spec = MOD_SPEC.read_text(encoding="utf-8")
         self.assertIn("### 6.5.1", spec)
         for needle in (f"`{CLASS}`", f"`{STRING_ID}`", 'StatusBarClass = "SD_StatusBar"',
-                       "localized/textures/m_pause.ru.png"):
+                       "localized/textures/m_pause.ru.png", "localized/textures/m_pause.ca.png"):
             self.assertIn(needle, spec)
         self.assertTrue(ADR.is_file())
         adr = ADR.read_text(encoding="utf-8")

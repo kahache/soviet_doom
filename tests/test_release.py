@@ -839,6 +839,49 @@ class LicenceCheckTest(unittest.TestCase):
         self.assertEqual(len(result.errors), 1)
         self.assertIn("[ru]", result.errors[0])
 
+    # P6 (D97): the Catalan credits screen is checked like the other two.
+    FAKE_CATALAN = (
+        "\n[ca]\n"
+        'SD_CRED_TITLE = "Crèdits";\n'
+        'SD_CRED_H_TEAM = "Fet per";\n'
+        'SD_CRED_TEAM_1 = "el projecte Soviet Doom";\n'
+        'SD_CRED_TEAM_2 = "amb llicència CC BY-NC-SA 4.0";\n'
+        'SD_CRED_MUSIC_1 = "Música del títol: Jane Roe.";\n'
+    )
+
+    def test_a_complete_catalan_screen_passes(self):
+        credits = release.parse_credit_lines(FAKE_LANGUAGE + self.FAKE_CATALAN)
+        result = self.check(["textures/SDOWN1.png", "music/D_ATTR.mid"], credits)
+        self.assertEqual(result.errors, [])
+
+    def test_an_attribution_missing_from_the_catalan_credits_fails(self):
+        credits = release.parse_credit_lines(FAKE_LANGUAGE + self.FAKE_CATALAN.replace("Jane Roe", "algú"))
+        result = self.check(["music/D_ATTR.mid"], credits)
+        self.assertEqual(len(result.errors), 1, result.errors)
+        self.assertIn("[ca]", result.errors[0])
+        self.assertIn("Jane Roe", result.errors[0])
+
+    def test_a_catalan_section_without_credit_lines_fails(self):
+        credits = release.parse_credit_lines(FAKE_LANGUAGE + '\n[ca]\nSD_OTHER = "res";\n')
+        result = self.check(["textures/SDOWN1.png"], credits)
+        self.assertEqual(len(result.errors), 1, result.errors)
+        self.assertIn("[ca]", result.errors[0])
+
+    def test_the_real_catalan_credits_name_everyone(self):
+        """The shipped LANGUAGE: every name a register row or MUSIC-RIGHTS
+        obliges is on the [ca] screen too (the real-PK3 check runs only at
+        the build tier; this one reads the registers directly)."""
+        language = (PROJECT_ROOT / "src" / "lumps" / "LANGUAGE").read_text(encoding="utf-8")
+        credits = release.parse_credit_lines(language)
+        catalan = release.credits_text(credits[release.LANG_CATALAN])
+        rows = release.parse_licence_register(
+            (PROJECT_ROOT / "docs" / "art" / "LICENSES.md").read_text(encoding="utf-8"))
+        music = release.parse_music_register(
+            (PROJECT_ROOT / "docs" / "sound" / "MUSIC-RIGHTS.md").read_text(encoding="utf-8"))
+        needed = {n for row in rows for n in row.required} | {n for m in music for n in m.required}
+        self.assertIn("Jerry Engelbach", needed)
+        self.assertEqual(sorted(n for n in needed if n not in catalan), [])
+
     def test_own_work_needs_the_team_and_the_licence_in_the_credits(self):
         credits = release.parse_credit_lines(FAKE_LANGUAGE.replace("CC BY-NC-SA 4.0", "CC0"))
         result = self.check(["textures/SDOWN1.png"], credits)
