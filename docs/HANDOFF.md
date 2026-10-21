@@ -6,6 +6,19 @@ sign-off). Decisions up to **D99** are in `docs/PRD.md`; open CEO items in
 the checkpoint for the CEO is
 `docs/product/2026-10-20_1639_P0_v1-roadmap-checkpoint.md`.
 
+## NIGHT SHIFT 2026-10-21 (D102) — the PM works alone; resume from here
+
+The CEO is asleep and wants everything advanced; ask him nothing until morning.
+Work items, in this order (tick them here as they land):
+1. [ ] **Cursor:** GZDoom's menu mouse pointer (Freedoom's `doomcurs`/CursorPic) -> our hammer and sickle (GameInfo `CursorPic`), EN/RU-neutral. Small.
+2. [ ] **P5:** PM downloads GZDoom g4.14.2 macOS + Linux builds and the source archives (GZDoom g4.14.2, OpenAL Soft 1.23.1, libsndfile 1.2.2, ZMusic) into isolated scratch dirs; attach the sources to release v1.0; agents build `sovietdoom-1.0-macos.zip` and `-linux.tar.gz` (tools/release_portable.py), test Linux under WSL if available; upload to v1.0.
+3. [ ] **v1.1:** real dog sounds for the Reich hound (licence-clean CC0/CC-BY, sound-designer; listening page for the morning, do not install unheard), and a clear EN/RU "press USE to continue" prompt on death that restarts the level.
+4. [ ] **P2 drafts:** the 4 voices still Freedoom's (rifleman pain, trooper death, General pain/death) with the aggressive references; listening page; do not install unheard.
+5. [ ] **P6 Catalan:** a third language (every LANGUAGE id in `[ca]`, the language option, a CA status-bar label band, README/CREDITS CA section); the CEO reviews in the morning.
+6. [ ] **P1 analysis:** ammo/health budget per map and skill from the UDMF + BALANCE.md; proposals only.
+7. [ ] At the end: verify fast, engine pass, v1.1 **draft** release (not public), stage 6 docs, a Spanish morning report for the CEO.
+Rules: commit with explicit paths; agents never commit; one owner per shared file (LANGUAGE, MAPINFO, SNDINFO, LICENSES.md, MOD-SPEC) — serialize installs; engine runs from a clean worktree.
+
 ## Where we are
 
 - **v1.0 shipped for a friends release:** G6 PASS (4a17a61, evidence
