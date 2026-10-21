@@ -212,6 +212,11 @@ class RouteDefinitionTest(unittest.TestCase):
         cls.range = route.MapData(RANGE)
         cls.maps = {ZARYA: cls.map01, RANGE: cls.range, METRO: route.load_map_data(METRO),
                     FACTORY: route.load_map_data(FACTORY)}
+        # Episode 2's routes (MAP04-MAP06, P4) walk maps of their own: every
+        # map a built-in route names, loaded once.
+        for r in route.all_routes().values():
+            if r.map_name not in cls.maps:
+                cls.maps[r.map_name] = route.load_map_data(r.map_name)
 
     def test_g3_auto_runs_skills_2_3_and_4_by_default(self):
         args = route.parse_args([])

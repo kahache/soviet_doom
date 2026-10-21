@@ -292,6 +292,36 @@ class LanguageLumpTest(unittest.TestCase):
         self.assertEqual(duplicates, [], "duplicate ids:\n  " + "\n  ".join(duplicates))
 
 
+class EpisodeTwoTextTest(unittest.TestCase):
+    """D104 (P4): episode 2, "The Road to Moscow", ships its names in every
+    language at once (D7). The texts' flow and line widths are
+    tests/test_campaign.py's; here the ids and the names."""
+
+    NAMES = {
+        "SD_EP03_NAME": {"default": "The Road to Moscow", "ru": "Дорога на Москву",
+                         "ca": "El camí de Moscou"},
+        "SD_MAP04_NAME": {"default": "Trans-Siberian", "ru": "Транссиб", "ca": "Transsiberià"},
+        "SD_MAP05_NAME": {"default": "Volga Dam", "ru": "Волжская ГЭС", "ca": "La presa del Volga"},
+        "SD_MAP06_NAME": {"default": "Red Square", "ru": "Красная площадь", "ca": "La plaça Roja"},
+    }
+    TEXTS = ("SD_MAP04_EXIT_TEXT", "SD_MAP05_EXIT_TEXT", "SD_END03_TEXT")
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.sections = parse_language(LANGUAGE_LUMP.read_text(encoding="utf-8"))
+
+    def test_the_names_in_every_language(self):
+        for ident, by_code in self.NAMES.items():
+            self.assertEqual(set(by_code), set(REQUIRED_SECTIONS), ident)
+            for code, name in by_code.items():
+                self.assertEqual(self.sections[code].get(ident), f'"{name}"', f"[{code}] {ident}")
+
+    def test_the_texts_in_every_language(self):
+        for ident in self.TEXTS:
+            for code in REQUIRED_SECTIONS:
+                self.assertIn(ident, self.sections[code], f"[{code}] lacks {ident}")
+
+
 class DifficultyLadderTest(unittest.TestCase):
     """The five skills: MAPINFO owns the mechanics, LANGUAGE owns the names."""
 

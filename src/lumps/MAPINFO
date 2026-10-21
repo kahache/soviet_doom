@@ -188,6 +188,9 @@ skill sd_posthumous
 //   cluster 3+ one chapter per earlier campaign map; its exittext is the
 //              transition into the next map (cluster 3 = MAP01 -> MAP02,
 //              cluster 4 = MAP02 -> MAP03)
+// D104 (P4) adds episode 2, MAP04 -> MAP05 -> MAP06, after these: its
+// chapters are clusters 5 (MAP04 -> MAP05) and 6 (MAP05 -> MAP06), and its
+// ending is cluster 7 (MAP06). Cluster 1 stays episode 1's ending.
 // No cluster has an `entertext`: one crossing, one text. That is what keeps
 // the ending from being printed anywhere but after the last map.
 
@@ -236,6 +239,43 @@ cluster 4
 	music = ""
 }
 
+// --- Episode 2, "The Road to Moscow" (D104, P4) ----------------------------
+// MAP04 -> MAP05 -> MAP06, a second campaign episode that starts on MAP04.
+// Episode 1 is closed at three maps: MAP03 still ends it with cluster 1.
+// The same rule as episode 1 (MOD-SPEC 4.6): one chapter cluster per map
+// before the episode's last, numbered on from 5 in play order, whose
+// exittext is SD_MAPnn_EXIT_TEXT; the episode's ending cluster holds only
+// its last map. The ending's id is SD_END03_TEXT because the 01/02/03 of the
+// SD_EPnn / SD_ENDnn ids are the order the EPISODES were declared in (the
+// practice range took 02 in D41), not their place on the menu.
+
+// MAP04's chapter: out of the Sverdlovsk yard on the armoured train, west
+// to the Volga dam. Shown after MAP04's stats screen and before MAP05 loads.
+cluster 5
+{
+	exittext = lookup, "SD_MAP04_EXIT_TEXT"
+	flat = "SDFLR1"
+	music = ""
+}
+
+// MAP05's chapter: over the crest of the dam, then the last metro train
+// into Moscow, to Ploshchad Revolyutsii. Before MAP06 loads.
+cluster 6
+{
+	exittext = lookup, "SD_MAP05_EXIT_TEXT"
+	flat = "SDFLR1"
+	music = ""
+}
+
+// Episode 2's ending, shown when MAP06 (Red Square, the Kremlin gate) is
+// left; then the title screen, as at the end of episode 1.
+cluster 7
+{
+	exittext = lookup, "SD_END03_TEXT"
+	flat = "SDFLR1"
+	music = ""
+}
+
 clearepisodes
 
 episode MAP01
@@ -244,6 +284,16 @@ episode MAP01
 	// not accepted inside an episode block by GZDoom 4.14.2).
 	name = "$SD_EP01_NAME"
 	key = "s"
+}
+
+// D104 (P4): episode 2, "The Road to Moscow", between the first episode and
+// the practice range: the order of the episode blocks is the order of the
+// New Game screen (MOD-SPEC 4.4). It starts on MAP04 and its maps follow the
+// MAPxx slots (D62).
+episode MAP04
+{
+	name = "$SD_EP03_NAME"
+	key = "m"
 }
 
 // D41 (CEO, 2026-10-13: "Se puede publicar como practica"): the weapons test
@@ -360,6 +410,53 @@ map MAP03 lookup "SD_MAP03_NAME"
 	// level-designer's estimate for a player who knows the route
 	// (docs/levels/MAP03-factory.md 3 and 11). Display only.
 	par = 360
+}
+
+// --- Episode 2 maps (D104, P4) ----------------------------------------------
+// Built by level-designer in src/maps/MAP04..MAP06. Each `music` is a
+// PROVISIONAL choice among pieces already approved and packed, until
+// sound-designer gives the episode its own (MOD-SPEC 4.5). Each `par` is the
+// mod-engineer's placeholder, display only, until level-designer times the
+// route. Every map keeps its intermission (the stats screen, then the text).
+
+map MAP04 lookup "SD_MAP04_NAME"
+{
+	// The Trans-Siberian marshalling yard at Sverdlovsk: the armoured train,
+	// the signal box, the locomotive roundhouse. Left on the armoured train,
+	// west, through cluster 5's text.
+	cluster = 5
+	next = "MAP05"
+	// Provisional. D95 kept compose_map01.py's variant N (116 BPM) for a map
+	// of the full game, but it is not in assets/music/, so the episode opens
+	// on D_SDM01T, the cut of MAP01's old theme the range already plays (D86).
+	music = "D_SDM01T"
+	sky1 = "SKY1"
+	par = 300
+}
+
+map MAP05 lookup "SD_MAP05_NAME"
+{
+	// The Volga hydroelectric dam at Zhiguli: the turbine hall, the
+	// spillway, the control room. Left over the crest of the dam, through
+	// cluster 6's text.
+	cluster = 6
+	next = "MAP06"
+	music = "D_SDFUNR"	// provisional: MAP02's piece (approved D83)
+	sky1 = "SKY1"
+	par = 330
+}
+
+map MAP06 lookup "SD_MAP06_NAME"
+{
+	// Moscow: out of the metro at Ploshchad Revolyutsii, through the GUM
+	// galleries, across Red Square to the gate in the Kremlin wall, the boss
+	// arena. Episode 2's last map: cluster 7 prints its ending
+	// (SD_END03_TEXT), and `endtitle` goes back to the title screen.
+	cluster = 7
+	next = endtitle
+	music = "D_SDGATE"	// provisional: MAP03's piece (approved D83)
+	sky1 = "SKY1"
+	par = 420
 }
 
 DoomEdNums

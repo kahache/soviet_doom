@@ -53,6 +53,23 @@ SD_END01_TEXT = "The breaker drops. Behind you the\nportal shrinks to a point of
 // D41: the practice range's exit (cluster 2), then the title screen.
 SD_END02_TEXT = "The range is closed for the day.\n\nThe campaign begins from New Game.";
 
+// --- Episode 2, "The Road to Moscow" (D104, P4; MOD-SPEC 4.6) --------------
+// The 03 is the order the episodes were declared in (the range took 02 in
+// D41), not the place on the New Game screen, where this one is second.
+SD_EP03_NAME  = "The Road to Moscow";
+SD_MAP04_NAME = "Trans-Siberian";
+SD_MAP05_NAME = "Volga Dam";
+SD_MAP06_NAME = "Red Square";
+// Cluster 5: leaving MAP04, the Sverdlovsk yard, on the armoured train, for
+// MAP05, the dam at Zhiguli.
+SD_MAP04_EXIT_TEXT = "The armoured train clears the yard\nand runs west through the night.\nSverdlovsk falls away behind you.\n\nAt dawn the line meets the Volga.\nAcross the water stands the dam at\nZhiguli. Its turbines light half\nthe country.\n\nThis morning the turbines are still.";
+// Cluster 6: leaving MAP05 over the crest of the dam, for MAP06: the last
+// metro train into Moscow, up the stairs to Red Square.
+SD_MAP05_EXIT_TEXT = "You cross the crest of the dam with\nthe spillway roaring below. Behind\nyou the turbines turn again.\n\nThe invasion has reached Moscow,\na thousand kilometres to the west.\n\nThe last train into the centre\nstops at Ploshchad Revolyutsii.\nRed Square is up the stairs.";
+// Cluster 7: episode 2's ending, after MAP06. The Kremlin holds; the
+// invaders' main portal is still open somewhere (the hook for episode 3).
+SD_END03_TEXT = "The last of them falls at the\nKremlin gate. Above you the tower\nclock strikes the hour.\n\nThe Kremlin holds. Moscow is yours\nagain.\n\nBut not all of them came through\nTankograd. Somewhere their main\nportal is still open, and more are\ncoming through it.\n\nTO BE CONTINUED";
+
 // --- Arsenal (F4) ---------------------------------------------------------
 // Tag      = the weapon's name in the HUD and the weapon wheel.
 // Pickup   = the line printed when it is picked up.
@@ -403,6 +420,13 @@ SD_MAP01_EXIT_TEXT = "«Заря-7» снова наша.\n\nСлужебный 
 SD_MAP02_EXIT_TEXT = "Западный тоннель поднимается\nк свету у подъездного пути.\n\nЗа тупиком стоят цеха\nтракторного завода. Колея во дворе\nслишком широка для тракторов.\n\nРабочие зовут его по-своему:\nТанкоград.";
 SD_END01_TEXT = "Рубильник опущен. За вашей спиной\nпортал сжимается в точку света\nи гаснет.\n\nТанкоград снова наш: конвейер\nстоит, и сквозь портал больше\nникто не пройдёт.\n\nТе, кто успел пройти, уже идут\nна запад, к Москве.\n\nПРОДОЛЖЕНИЕ СЛЕДУЕТ";
 SD_END02_TEXT = "Полигон на сегодня закрыт.\n\nКампания начинается с пункта «Новая игра».";
+SD_EP03_NAME  = "Дорога на Москву";
+SD_MAP04_NAME = "Транссиб";
+SD_MAP05_NAME = "Волжская ГЭС";
+SD_MAP06_NAME = "Красная площадь";
+SD_MAP04_EXIT_TEXT = "Бронепоезд покидает сортировочную\nи всю ночь идёт на запад.\nСвердловск остаётся позади.\n\nНа рассвете путь выходит к Волге.\nЗа рекой стоит плотина\nу Жигулей. Её турбины дают свет\nполовине страны.\n\nСегодня утром турбины стоят.";
+SD_MAP05_EXIT_TEXT = "Вы переходите гребень плотины,\nвнизу ревёт водосброс. За вашей\nспиной турбины снова вращаются.\n\nВторжение дошло до Москвы,\nза тысячу километров на запад.\n\nПоследний поезд в центр\nостанавливается на «Площади\nРеволюции». Вверх по лестнице —\nКрасная площадь.";
+SD_END03_TEXT = "Последний из них падает у ворот\nКремля. Над вами куранты\nбьют час.\n\nКремль выстоял. Москва\nснова наша.\n\nНо не все они прошли через\nТанкоград. Где-то их главный\nпортал всё ещё открыт, и через\nнего идут новые.\n\nПРОДОЛЖЕНИЕ СЛЕДУЕТ";
 
 SD_PLAYER_NAME     = "Сержант Виланова";
 
@@ -649,6 +673,13 @@ SD_MAP01_EXIT_TEXT = "Zarya-7 torna a ser a les nostres mans.\n\nL'ascensor de s
 SD_MAP02_EXIT_TEXT = "El túnel cap a l'oest surt a la llum\ndel dia en un ramal de mercaderies.\n\nDarrere els topalls s'alcen les naus\nd'una fàbrica de tractors. Al pati hi ha\nrodades massa amples per a tractors.\n\nEls obrers li diuen d'una altra manera:\nTankograd.";
 SD_END01_TEXT = "L'interruptor cau. Darrere teu, el\nportal s'encongeix fins a un punt de\nllum i s'apaga.\n\nTankograd torna a ser a les nostres\nmans: la cadena s'atura, i ja no hi\narriba ningú més.\n\nEls que ja havien passat marxen cap a\nl'oest, cap a Moscou.\n\nCONTINUARÀ";
 SD_END02_TEXT = "El camp de tir tanca per avui.\n\nLa campanya comença a «Nova partida».";
+SD_EP03_NAME  = "El camí de Moscou";
+SD_MAP04_NAME = "Transsiberià";
+SD_MAP05_NAME = "La presa del Volga";
+SD_MAP06_NAME = "La plaça Roja";
+SD_MAP04_EXIT_TEXT = "El tren blindat surt de l'estació de\nclassificació i corre tota la nit cap\na l'oest. Sverdlovsk queda enrere.\n\nA l'alba la via arriba al Volga.\nA l'altra riba s'alça la presa de\nZhiguli. Les seves turbines donen\nllum a mig país.\n\nAquest matí les turbines no giren.";
+SD_MAP05_EXIT_TEXT = "Travesses el coronament de la presa\namb el sobreeixidor rugint a sota.\nDarrere teu, les turbines tornen a\ngirar.\n\nLa invasió ha arribat a Moscou, mil\nquilòmetres cap a l'oest.\n\nL'últim tren cap al centre s'atura a\nPloshchad Revolyutsii. Escales amunt\nhi ha la plaça Roja.";
+SD_END03_TEXT = "L'últim d'ells cau a la porta del\nKremlin. Damunt teu, el rellotge de\nla torre toca l'hora.\n\nEl Kremlin resisteix. Moscou torna a\nser a les nostres mans.\n\nPerò no tots van passar per\nTankograd. En algun lloc el seu\nportal principal continua obert, i\nper ell n'arriben més.\n\nCONTINUARÀ";
 
 SD_PLAYER_NAME     = "Sergent Vilanova";
 

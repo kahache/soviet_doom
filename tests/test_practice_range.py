@@ -5,8 +5,9 @@ The contract is docs/engine/MOD-SPEC.md 4.4 (and the episode-screen row of
 docs/engine/adr/007-practice-range-as-a-second-episode.md. What this suite
 pins, statically:
 
-  * MAPINFO declares two episodes, the campaign first, each named by a
-    `$SD_*` id that exists in both languages (D7/D21);
+  * MAPINFO declares three episodes, the campaign's two first (D104 added
+    "The Road to Moscow") and the range last, each named by a `$SD_*` id
+    that exists in every language (D7/D21);
   * the range is the lump RANGE, out of the MAPxx slots, which go to the
     campaign (D62: MAP01 -> MAP02 -> MAP03, tests/test_campaign.py);
   * the campaign never runs into the range: no map's `next` is RANGE, and
@@ -61,8 +62,8 @@ MAPINFO = SRC / "lumps" / "MAPINFO"
 CAMPAIGN_MAP = "MAP01"
 # D62 (2026-10-14): the campaign is MAP01 -> MAP02 -> MAP03; MAP03 ends it.
 # The full flow is pinned by tests/test_campaign.py; here only the range's
-# isolation.
-CAMPAIGN_MAPS = ("MAP01", "MAP02", "MAP03")
+# isolation. D104 (P4): episode 2 is MAP04 -> MAP05 -> MAP06.
+CAMPAIGN_MAPS = ("MAP01", "MAP02", "MAP03", "MAP04", "MAP05", "MAP06")
 # D62: the range left the MAPxx slots. Up to 8 characters, a WAD lump name;
 # GZDoom's own mapinfo/doom2bfg.txt starts an episode on a non-MAPxx map
 # (`episode level01`), which is the precedent this rests on.
@@ -70,8 +71,12 @@ RANGE_MAP = "RANGE"
 RANGE_WAS = "MAP02"          # its slot until D62
 MAX_LUMP_NAME = 8
 RANGE_CLUSTER = 2
-# MOD-SPEC 4.4: episode order is the menu order, the campaign first.
-EPISODES = [(CAMPAIGN_MAP, "SD_EP01_NAME"), (RANGE_MAP, "SD_EP02_NAME")]
+# MOD-SPEC 4.4: episode order is the menu order, the campaign first and the
+# range last. D104 (P4) put episode 2, "The Road to Moscow" (MAP04), between
+# them; its id is SD_EP03_NAME, the order the episodes were declared in.
+EPISODE_2_MAP = "MAP04"
+EPISODES = [(CAMPAIGN_MAP, "SD_EP01_NAME"), (EPISODE_2_MAP, "SD_EP03_NAME"),
+            (RANGE_MAP, "SD_EP02_NAME")]
 RANGE_EXIT_TEXT = "SD_END02_TEXT"
 # D46 (2026-10-14): the CEO's player-facing name for the range, printed by
 # the automap and the level-load line. It was "Engineering Test Range". The
@@ -110,7 +115,7 @@ class PracticeRangeMapinfoTest(unittest.TestCase):
         cls.episodes = blocks(cls.code, "episode")
         cls.clusters = dict(blocks(cls.code, "cluster"))
 
-    def test_two_episodes_campaign_first(self):
+    def test_the_episodes_campaign_first_range_last(self):
         self.assertIn("clearepisodes", self.code)
         got = [(name, prop(body, "name")) for name, body in self.episodes]
         self.assertEqual(got, [(m, "$" + ident) for m, ident in EPISODES])
