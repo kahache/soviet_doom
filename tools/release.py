@@ -20,15 +20,16 @@ sovietdoom-<version>/ with exactly:
                    Freedoom's BSD-3 notice (D75), verbatim: the licence of the
                    Freedoom pixels our weapon frames carry (the TT-33 hands),
                    whose clause 2 asks the notice to travel with the package
-  CREDITS.txt      generated: the in-game credits (LANGUAGE SD_CRED_*, English
-                   and Russian, in screen order), the credit lines
+  CREDITS.txt      generated: the in-game credits (LANGUAGE SD_CRED_*, English,
+                   Russian and Catalan, in screen order), the credit lines
                    docs/sound/MUSIC-RIGHTS.md 4.5 says to reproduce verbatim,
                    the provenance of every packed asset as
                    docs/art/LICENSES.md records it, and every AI tool the
                    game was made with and what each did (D75, D79, D93); its
                    headings name no repo path
   README.txt       generated: the player readme, English and Russian (the
-                   campaign's three maps and the range, what to download,
+                   campaign's three maps and the range, the three in-game
+                   languages, what to download,
                    how to start it, GZDoom's default keys, what it was made
                    with, the hash check);
                    every map and menu name is read from LANGUAGE
@@ -186,6 +187,7 @@ CREDIT_TITLE_ID = "SD_CRED_TITLE"
 CREDIT_HEADER_MARK = "SD_CRED_H_"
 LANG_ENGLISH = "default"
 LANG_RUSSIAN = "ru"
+LANG_CATALAN = "ca"
 LANGUAGE_SECTION_RE = re.compile(r"^\[([^\]]+)\]\s*$")
 LANGUAGE_ASSIGN_RE = re.compile(r"^\s*([A-Za-z0-9_]+)\s*=\s*(.*?)\s*;?\s*$")
 LANGUAGE_STRING_RE = re.compile(r'"((?:[^"\\]|\\.)*)"')
@@ -451,6 +453,7 @@ CREDITS_HEADINGS = {
     "assets": f"Every picture, sound and piece of music in {PK3_NAME}: origin and licence",
     "screen_ru": "Русский: как в игре (Настройки > Советский Doom > Авторы)",
     "ai_ru": "ИИ-инструменты, с которыми сделана игра",
+    "screen_ca": "Català: com al joc (Opcions > Soviet Doom > Crèdits)",
 }
 
 # D75, D79, D93: the release names every AI tool the game was made with and
@@ -489,7 +492,7 @@ _AI_TEXT = {
                    "the enemies on a 3D rig of the project's own and rendered their "
                    "sprites from it, made the sound effects, sequenced the original music "
                    "and the arrangements of public-domain works, wrote the build and test "
-                   "tools and translated the text into Russian."),
+                   "tools and translated the text into Russian and Catalan."),
         "gemini": ("Google Gemini. The project lead generated images with it, from which "
                    "the first-person frames of the PPSh-41, IZh-58, RPG-7, ROKS-3, hand "
                    "Katyusha and ice axe{face} were drawn and reworked into pixel art. The "
@@ -514,7 +517,7 @@ _AI_TEXT = {
                    "3D-риге проекта и отрисовал по нему их спрайты, сделал звуковые "
                    "эффекты, секвенировал оригинальную музыку и обработки произведений из "
                    "общественного достояния, написал инструменты сборки и проверки и "
-                   "перевёл тексты на русский."),
+                   "перевёл тексты на русский и каталанский."),
         "gemini": ("Google Gemini. Руководитель проекта создал с его помощью изображения, "
                    "по которым нарисованы кадры от первого лица для ППШ-41, ИЖ-58, РПГ-7, "
                    "РОКС-3, ручной «Катюши» и ледоруба{face}, переработанные в пиксель-арт. "
@@ -557,7 +560,8 @@ _MADE_WITH = {
                  "itself was made by a studio of AI agents run by the project lead, who "
                  "approved every asset:"),
         "claude": ("Claude (Anthropic), through Claude Code: design, maps, code, "
-                   "textures, sprites, sound effects, music and the Russian text."),
+                   "textures, sprites, sound effects, music and the Russian and "
+                   "Catalan text."),
         "gemini": "Google Gemini: images the first-person weapons{face} were drawn from.",
         "face": " and the sergeant's face",
         "fooocus": "Fooocus / SDXL, run locally: reference images of the hands.",
@@ -574,7 +578,8 @@ _MADE_WITH = {
                  "студия ИИ-агентов во главе с руководителем проекта, который "
                  "утверждал каждый ресурс:"),
         "claude": ("Claude (Anthropic) в Claude Code: проект, карты, код, текстуры, "
-                   "спрайты, звуковые эффекты, музыка и русский текст."),
+                   "спрайты, звуковые эффекты, музыка, русский и каталанский "
+                   "тексты."),
         "gemini": ("Google Gemini: изображения, по которым нарисовано оружие от первого "
                    "лица{face}."),
         "face": " и лицо сержанта",
@@ -609,7 +614,7 @@ def render_credits(version: str, commit: str, credits: dict[str, list[tuple[str,
     title = f"Soviet Doom {version} - credits"
     out = [title, "=" * len(title), ""]
     out += wrap("Who made this game and what it is built from: the credits as the game "
-                "shows them, in English and in Russian, the music credit lines their "
+                "shows them, in English, Russian and Catalan, the music credit lines their "
                 f"licences ask for, and the origin and licence of every asset in {PK3_NAME}. "
                 f"Built from commit {commit}.", "", "")
     out.append("")
@@ -676,6 +681,12 @@ def render_credits(version: str, commit: str, credits: dict[str, list[tuple[str,
 
     out.append("")
     ai_section(CREDITS_HEADINGS["ai_ru"], LANG_RUSSIAN)
+
+    # The Catalan screen (P6) as the game shows it; its SD_CRED_AI_* lines are
+    # the short AI form. The long disclosure stays English and Russian.
+    if credits.get(LANG_CATALAN):
+        out.append("")
+        screen(credits[LANG_CATALAN], CREDITS_HEADINGS["screen_ca"])
     return "\n".join(out).rstrip() + "\n"
 
 
@@ -720,7 +731,7 @@ WHAT IS IN IT
   The practice range: every weapon, no story ({newgame} > {ep02}).
   Five difficulties, from "{skill1}"
   to "{skill5}".
-  English and Russian, switched inside the game.
+  English, Russian and Catalan, switched inside the game.
   Built from commit {commit}.
 
 WHAT YOU NEED
@@ -749,7 +760,7 @@ HOW TO START (macOS, Linux)
 
 LANGUAGE AND CREDITS
   {options} > {optmnu} > {language}:
-    {langauto}, {langen} or {langru}.
+    {langauto}, {langen}, {langru} or {langca}.
   It applies at once and is remembered.
   The credits are on the same screen: {options} > {optmnu} > {credits}.
 
@@ -806,7 +817,7 @@ CHECK THE DOWNLOAD
   Полигон: всё оружие, без сюжета ({newgame_ru} > {ep02_ru}).
   Пять уровней сложности, от «{skill1_ru}»
   до «{skill5_ru}».
-  Два языка, английский и русский; переключаются в игре.
+  Три языка: английский, русский и каталанский; переключаются в игре.
   Собрано из коммита {commit}.
 
 ЧТО НУЖНО
@@ -835,7 +846,7 @@ CHECK THE DOWNLOAD
 
 ЯЗЫК И АВТОРЫ
   {options_ru} (Options) > {optmnu_ru} > {language_ru}:
-    {langauto_ru}, {langen_ru} или {langru_ru}.
+    {langauto_ru}, {langen_ru}, {langru_ru} или {langca_ru}.
   Применяется сразу и запоминается.
   Там же список авторов: {options_ru} > {optmnu_ru} > {credits_ru}.
 
@@ -887,6 +898,7 @@ README_IDS = {
     "newgame": "SD_MNU_NEWGAME", "options": "SD_MNU_OPTIONS",
     "optmnu": "SD_OPTMNU_TITLE", "language": "SD_OPTMNU_LANGUAGE",
     "langauto": "SD_LANGVAL_AUTO", "langen": "SD_LANGVAL_EN", "langru": "SD_LANGVAL_RU",
+    "langca": "SD_LANGVAL_CA",
     "credits": "SD_CRED_TITLE",
     "skill1": "SD_SKILL_1", "skill5": "SD_SKILL_5",
 }

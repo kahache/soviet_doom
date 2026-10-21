@@ -1,13 +1,20 @@
 # Pending CEO decisions
 
-Updated: 2026-10-20 ~16:40, after the v1.0 sign-off (G6 PASS, 4a17a61) and
-D99 (pipeline stage 6, D64). Ordered by how much each item unblocks. What
+Updated: 2026-10-21 night, end of the night shift (D102, D103); before that
+2026-10-20 ~16:40, after the v1.0 sign-off (G6 PASS, 4a17a61). Ordered by how much each item unblocks. What
 closed since the previous update is listed at the end so nothing is lost.
 Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md` (synced at phase close, D34).
 
-## 1. Downloads for P5 (macOS, Linux, GPL sources)
+## 1. Morning review of the night shift (D102)
 
-OK to download the GZDoom g4.14.2 builds for macOS and Linux and the source archives of GZDoom g4.14.2, OpenAL Soft 1.23.1, libsndfile 1.2.2 and ZMusic (to attach to the release) [yes].
+Each item waits for your eye or ear; nothing unheard was installed.
+
+1. **v1.1 draft release** (not public): publish it or not. It carries the hammer-and-sickle mouse cursor, the "Press E to continue" prompt on death and Catalan.
+2. **Catalan** (`docs/product/2026-10-21_P6_catala-revisio.md`): the texts and questions Q1-Q23. Q3/Q4 were solved tonight with accented capitals in the three fonts.
+3. **Dog sounds** for the Reich hound (`work/audio/preview/dog_listening.html`): 5 events × 3 candidates, CC0/CC-BY.
+4. **The 4 voices still Freedoom's** (`work/audio/preview/voices_p2_listening.html`): 3 candidates each.
+5. **The cursor** (`work/art/preview/cursor_preview.png`): installed; say if you want it changed.
+6. Replace the published Windows package with the rebuilt one? The only change is GZDOOM-SOURCE.txt, which now points to the attached sources. Default: no.
 
 ## 2. Your own play-through of v1.0 (nothing blocks the release)
 
@@ -33,6 +40,8 @@ music (D99), not yet phased. Calls that wait for their phase: jump/crouch
 both P4. Nothing here blocks anything today.
 
 ## Closed since the previous update (for the record)
+
+D103 (2026-10-21): no balance analysis now. D102: the night shift; P5 downloads approved and done (macOS and Linux packages and the GPL/LGPL sources on release v1.0).
 
 D99 (2026-10-20): orchestrated music is a V2 item (Pro Tools, a better soundfont, MusicGen-Melody; Suno/Udio avoided). D98: v1 public by making this repo public (the yes to do it is item 1). D97: publish v1 for friends after the sign-off; N11's open questions closed with the PM's recommendations; Catalan for V2 (P6). D96: 17 aggressive voice takes approved and installed (8 of 12 voices ours). D95: MAP01 music N2 (`D_SDM1N2`). D94: weapon-sound alternatives (random groups), the IZh pickup keeps Freedoom's; freedoom1.wad allowed. D93: P5 portable downloads; every AI and tool credited (done, G11). D92: digits N2; the composed MAP01 piece; alternatives judged with the weapon animated. D91: 7 voice takes OK, the rest paused. D90: the Gemini face. D89: status bar A, the face from Gemini. D88: the ice axe approved (closes section 1 of the previous update). D87: Chatterbox voices. D86: enemy alternatives, `D_SDM01T` to the range, MAP01 downloads. With them closed: the 15 weapon-sound alternatives (N9a, D94), N9m's page (D86), the M2e sweeps (D89, D90, D92), "publish or not" (D97), the tag (v1.0 at d530faa). The Chatterbox-from-your-own-voice plan of D85 was overtaken by D87/D96; the 4 voices left wait for P2.
 

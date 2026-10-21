@@ -70,6 +70,8 @@ superseded by D79. N8 (further music swaps) has no request open.
 
 ## Done (recent, newest first)
 
+Night shift 2026-10-21 (D102, D103), real token costs: P5 macOS + Linux packages on v1.0 and the four GPL/LGPL source archives attached (1375a96; ~175k, estimate was ~125k; not run on a real Mac or Linux, no WSL here). v1.1 cursor + death prompt (0f89be2; ~290k). P6 Catalan, 165 ids + bar + option + README (0f89be2; ~350k, estimate 350k) and the accented capitals in the three fonts (~130k). Drafts waiting for the CEO's ear, nothing installed: Reich-hound dog sounds, 15 candidates (~250k); the 4 remaining voices, 28 takes (~200k). P1 balance analysis dropped (D103).
+
 P5 (part, D101): the Windows one-click package on the v1.0 release (335d04b). Open: macOS ~70k, Linux ~55k, GPL source archives attached (downloads need the CEO).
 
 **2026-10-20, ~10:45 to 16:35: the rest of the MVP, v1.0 shipped.** At

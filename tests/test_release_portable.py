@@ -300,7 +300,7 @@ class GuideTest(FakeInputs):
         text = self.text(rp.LEEME_NAME)
         for phrase in ("Extraer todo", "Jugar Soviet Doom", "Windows protegió su PC",
                        "Más información", "Ejecutar de todas formas", "Desbloquear",
-                       "Options > Soviet Doom > Language > Russian",
+                       "Options > Soviet Doom > Language > Russian o Catalan",
                        "New Game > Soviet Doom", "gzdoom_portable.ini", "Save",
                        "W A S D", "Program Files", "GZDOOM-SOURCE.txt"):
             self.assertIn(phrase, text)
@@ -309,7 +309,7 @@ class GuideTest(FakeInputs):
         text = self.text(rp.README_FIRST_NAME)
         for phrase in ("Extract All", "Play Soviet Doom", "Windows protected your PC",
                        "More info", "Run anyway", "Unblock",
-                       "Options > Soviet Doom > Language > Russian",
+                       "Options > Soviet Doom > Language > Russian or Catalan",
                        "New Game > Soviet Doom", "gzdoom_portable.ini", "W A S D",
                        "Program Files", "GZDOOM-SOURCE.txt"):
             self.assertIn(phrase, text)
@@ -655,6 +655,7 @@ class MacosPackageTest(UnixInputs):
             self.assertIn("xattr -dr com.apple.quarantine", text)
             self.assertIn("macOS 10.15", text)          # LSMinimumSystemVersion
             self.assertIn("Options > Soviet Doom > Language > Russian", text)
+            self.assertRegex(text, r"Language > Russian (o|or) Catalan\.")
             self.assertIn(f"sovietdoom-{VERSION}-macos.zip", text)
             self.assertIn("gzdoom.ini", text)
         self.assertIn("Abrir igualmente", es)
@@ -828,6 +829,7 @@ class LinuxPackageTest(UnixInputs):
             self.assertIn("libasound2t64", text)
             self.assertIn("./play.sh" if name == "README-FIRST.txt" else "./jugar.sh", text)
             self.assertIn("Options > Soviet Doom > Language > Russian", text)
+            self.assertRegex(text, r"Language > Russian (o|or) Catalan\.")
 
     def test_the_source_file_and_the_licences(self):
         source = self.file("GZDOOM-SOURCE.txt").decode("utf-8")

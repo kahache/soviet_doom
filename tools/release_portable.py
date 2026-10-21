@@ -43,7 +43,7 @@ repo. The zip holds one folder, SovietDoom/, with:
                    the launchers (Spanish and English messages, same command)
   LEEME.txt, README-FIRST.txt
                    how to unzip, start, get past SmartScreen, switch to
-                   Russian, the keys; Spanish and English
+                   Russian or Catalan, the keys; Spanish and English
   GZDOOM-SOURCE.txt
                    GPL: where the exact source of the bundled engine and its
                    libraries is, plus a written offer; the SHA-256 of every
@@ -218,7 +218,7 @@ playing the mod in a GZDoom of your own.
 # names the ids) so the texts and the game agree. The game starts in English
 # on a Spanish or English Windows, so both texts quote the English labels.
 MENU_IDS = ("newgame", "ep01", "ep02", "options", "optmnu", "language", "langru",
-            "langen", "langauto")
+            "langca", "langen", "langauto")
 
 LEEME_TEMPLATE = """\
 SOVIET DOOM {version} PARA WINDOWS - LISTO PARA JUGAR
@@ -247,9 +247,9 @@ SI WINDOWS AVISA
   Para que no avise, ANTES de descomprimir: clic derecho sobre el zip >
   Propiedades > marca "Desbloquear" > Aceptar.
 
-RUSO (O INGLÉS)
-  El juego empieza en inglés. Para jugar en ruso:
-  {options} > {optmnu} > {language} > {langru}.
+RUSO O CATALÁN (O INGLÉS)
+  El juego empieza en inglés. Para jugar en ruso o en catalán:
+  {options} > {optmnu} > {language} > {langru} o {langca}.
   Cambia al momento y se recuerda. Las otras opciones: {langen}, y
   {langauto}, que sigue el idioma de Windows.
 
@@ -307,9 +307,9 @@ IF WINDOWS WARNS YOU
   To avoid the warnings, BEFORE unzipping: right-click the zip >
   Properties > tick "Unblock" > OK.
 
-RUSSIAN
-  The game starts in English. To play in Russian:
-  {options} > {optmnu} > {language} > {langru}.
+RUSSIAN OR CATALAN
+  The game starts in English. To play in Russian or Catalan:
+  {options} > {optmnu} > {language} > {langru} or {langca}.
   It applies at once and is remembered. The other choices: {langen}, and
   {langauto}, which follows Windows' language.
 
@@ -601,9 +601,9 @@ CÓMO JUGAR
   4. En el juego: {newgame} > {ep01}, y elige la dificultad.
      {ep02} es el campo de tiro, con todas las armas.
 
-RUSO (O INGLÉS)
-  El juego empieza en inglés. Para jugar en ruso:
-  {options} > {optmnu} > {language} > {langru}.
+RUSO O CATALÁN (O INGLÉS)
+  El juego empieza en inglés. Para jugar en ruso o en catalán:
+  {options} > {optmnu} > {language} > {langru} o {langca}.
   Cambia al momento y se recuerda. Las otras opciones: {langen}, y
   {langauto}, que sigue el idioma del sistema.
 
@@ -652,9 +652,9 @@ HOW TO PLAY
   4. In the game: {newgame} > {ep01}, then pick a difficulty.
      {ep02} is the shooting range, with every weapon.
 
-RUSSIAN
-  The game starts in English. To play in Russian:
-  {options} > {optmnu} > {language} > {langru}.
+RUSSIAN OR CATALAN
+  The game starts in English. To play in Russian or Catalan:
+  {options} > {optmnu} > {language} > {langru} or {langca}.
   It applies at once and is remembered. The other choices: {langen}, and
   {langauto}, which follows the system's language.
 
@@ -703,9 +703,9 @@ CÓMO JUGAR
   3. En el juego: {newgame} > {ep01}, y elige la dificultad.
      {ep02} es el campo de tiro, con todas las armas.
 
-RUSO (O INGLÉS)
-  El juego empieza en inglés. Para jugar en ruso:
-  {options} > {optmnu} > {language} > {langru}.
+RUSO O CATALÁN (O INGLÉS)
+  El juego empieza en inglés. Para jugar en ruso o en catalán:
+  {options} > {optmnu} > {language} > {langru} o {langca}.
   Cambia al momento y se recuerda. Las otras opciones: {langen}, y
   {langauto}, que sigue el idioma del sistema.
 
@@ -754,9 +754,9 @@ HOW TO PLAY
   3. In the game: {newgame} > {ep01}, then pick a difficulty.
      {ep02} is the shooting range, with every weapon.
 
-RUSSIAN
-  The game starts in English. To play in Russian:
-  {options} > {optmnu} > {language} > {langru}.
+RUSSIAN OR CATALAN
+  The game starts in English. To play in Russian or Catalan:
+  {options} > {optmnu} > {language} > {langru} or {langca}.
   It applies at once and is remembered. The other choices: {langen}, and
   {langauto}, which follows the system's language.
 
