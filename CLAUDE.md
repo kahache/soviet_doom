@@ -30,6 +30,12 @@ synced in batches at each phase close (D7, D34).
 
 ## Status (2026-10-20, evening)
 
+**Night shift 2026-10-21 (D102, D103):** v1.1 waits as a **draft** release
+(Catalan `[ca]`, 165 ids; the "Press E to continue" death prompt; the
+hammer-and-sickle mouse cursor `SDCURSOR`); macOS and Linux one-click packages
+and the GPL/LGPL sources are on release v1.0. Morning report for the CEO:
+`docs/product/2026-10-21_2330_P0_informe-noche.md`.
+
 **v1.0 shipped for the CEO's friends (D97):** G6 PASS (4a17a61,
 `docs/qa/GATE-REVIEWS.md`, evidence `docs/qa/evidence/2026-10-20_1635_M4_v1-signoff.md`),
 tag `v1.0` at d530faa, the GitHub release carries `sovietdoom-1.0.zip`; the
@@ -66,7 +72,7 @@ textures are all ours. The engine's own automap and cheat lines are not.
 `D_SDFUNR`, MAP03 `D_SDGATE`, range `D_SDM01T`, intermission `D_SDTITL`.
 Sources and rights: `docs/sound/`.
 
-**Text.** Every in-game string in `[enu default]` and `[ru]` (163 ids),
+**Text.** Every in-game string in `[enu default]`, `[ru]` and, since P6, `[ca]` (165 ids),
 reviewed once in Russian (N11, D97). The `docs/ru/` mirror is P3 (D75).
 
 **Tooling.** `tools/verify.py` with `fast`, `art`, `full` and `auto` tiers: fast opens
