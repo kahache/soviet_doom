@@ -15,7 +15,8 @@ Work items, in this order (tick them here as they land):
 3. [ ] **v1.1:** real dog sounds for the Reich hound (licence-clean CC0/CC-BY, sound-designer; listening page for the morning, do not install unheard), and a clear EN/RU "press USE to continue" prompt on death that restarts the level.
 4. [ ] **P2 drafts:** the 4 voices still Freedoom's (rifleman pain, trooper death, General pain/death) with the aggressive references; listening page; do not install unheard.
 5. [ ] **P6 Catalan:** a third language (every LANGUAGE id in `[ca]`, the language option, a CA status-bar label band, README/CREDITS CA section); the CEO reviews in the morning.
-6. [ ] **P1 analysis:** ammo/health budget per map and skill from the UDMF + BALANCE.md; proposals only.
+6. [x] ~~**P1 analysis**~~ dropped 2026-10-21 night: the CEO played the campaign and finds it fine; P1 stays parked in V2 until a player complains about difficulty.
+Status 2026-10-21 night: GPL/LGPL sources attached to release v1.0 (4 tarballs). Agents running: P5 macOS/Linux packaging, cursor + death prompt, dog sounds, P2 voices, P6 Catalan (owner of LANGUAGE; adds SD_DEATH_PROMPT in EN/RU/CA). WSL is not installed: the Linux package cannot be run here.
 7. [ ] At the end: verify fast, engine pass, v1.1 **draft** release (not public), stage 6 docs, a Spanish morning report for the CEO.
 Rules: commit with explicit paths; agents never commit; one owner per shared file (LANGUAGE, MAPINFO, SNDINFO, LICENSES.md, MOD-SPEC) — serialize installs; engine runs from a clean worktree.
 
