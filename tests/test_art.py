@@ -27,7 +27,7 @@ from check_pk3 import MASKED_TEXTURES  # noqa: E402
 # The status bar lumps (M2e-i): Freedoom's names and sizes, one table.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_hud_install import FREEDOOM as HUD_FREEDOOM  # noqa: E402
-from test_hud_install import RUSSIAN as HUD_RUSSIAN  # noqa: E402
+from test_hud_install import LOCALIZED as HUD_LOCALIZED  # noqa: E402
 
 try:
     import numpy  # noqa: F401
@@ -225,12 +225,15 @@ class ApprovedAssetsTests(unittest.TestCase):
     # 7x5 as Freedoom's, which DoomStatusBar names itself.
     SHELL_SIZES = {"TITLEPIC": (320, 200), "INTERPIC": (320, 200), "M_DOOM": (200, 64),
                    "M_SKULL1": (20, 20), "M_SKULL2": (20, 20), "M_PAUSE": (77, 20),
-                   "STKEYS0": (7, 5), "STKEYS1": (7, 5), "STKEYS2": (7, 5)}
+                   "STKEYS0": (7, 5), "STKEYS1": (7, 5), "STKEYS2": (7, 5),
+                   # D102: the mouse pointer (GameInfo CursorPic), under 32x32 for Windows.
+                   "SDCURSOR": (28, 25)}
     # M2e-i (D89, D90, D92): status bar A, the Gemini face and digits N2 under
     # Freedoom's names and sizes, plus bar A's Russian pictures SDSBRU and
-    # SDARRU (tests/test_hud_install.py holds the set and the offsets).
+    # SDARRU and, since P6 (D97), the Catalan SDSBCA and SDARCA
+    # (tests/test_hud_install.py holds the set and the offsets).
     SHELL_SIZES.update({name: (w, h) for name, (w, h, _, _) in HUD_FREEDOOM.items()})
-    SHELL_SIZES.update({ru: HUD_FREEDOOM[base][:2] for ru, base in HUD_RUSSIAN.items()})
+    SHELL_SIZES.update({local: HUD_FREEDOOM[base][:2] for local, base in HUD_LOCALIZED.items()})
 
     def test_layout_names_and_sizes(self):
         from PIL import Image

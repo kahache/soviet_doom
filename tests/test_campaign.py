@@ -30,13 +30,14 @@ from __future__ import annotations
 import re
 import sys
 import tempfile
+import unicodedata
 import unittest
 import zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from test_language import parse_language, strip_comment  # noqa: E402
+from test_language import CATALAN_UNDRAWN_ACCENTS, parse_language, strip_comment  # noqa: E402
 from test_menudef import SKILL_FONT_DIR, glyph_path, png_width  # noqa: E402
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -46,7 +47,7 @@ MAPINFO = SRC / "lumps" / "MAPINFO"
 LANGUAGE = SRC / "lumps" / "LANGUAGE"
 
 END_TO_TITLE = "endtitle"
-REQUIRED_SECTIONS = ("default", "ru")
+REQUIRED_SECTIONS = ("default", "ru", "ca")   # Catalan since P6 (D97)
 
 # D62: the campaign, in play order. The slots follow it.
 CAMPAIGN_ORDER = ("MAP01", "MAP02", "MAP03")
@@ -85,16 +86,20 @@ FONT_INF = SKILL_FONT_DIR / "font.inf"
 
 # The ending is the factory's since D62: the portal's power cut. It was the
 # cosmodrome's until D60 and the bunker's until D62 (MOD-SPEC 4.6).
-ENDING_LAST_LINE = {"default": "TO BE CONTINUED", "ru": "ПРОДОЛЖЕНИЕ СЛЕДУЕТ"}
-ENDING_NAMES = {"default": ("portal", "Tankograd"), "ru": ("портал", "Танкоград")}
+ENDING_LAST_LINE = {"default": "TO BE CONTINUED", "ru": "ПРОДОЛЖЕНИЕ СЛЕДУЕТ",
+                    "ca": "CONTINUARÀ"}
+ENDING_NAMES = {"default": ("portal", "Tankograd"), "ru": ("портал", "Танкоград"),
+                "ca": ("portal", "Tankograd")}
 ENDING_MUST_NOT_NAME = {"default": ("Zarya", "gantry", "bunker", "station"),
-                        "ru": ("Заря", "башни", "бункер", "Станция")}
+                        "ru": ("Заря", "башни", "бункер", "Станция"),
+                        "ca": ("Zarya", "búnquer", "estació")}
 # What each transition must say it is: MAP01's goes down the lift into the
 # metro; MAP02's comes out of the tunnel at the tractor works.
 TRANSITION_NAMES = {
-    "SD_MAP01_EXIT_TEXT": {"default": ("lift",), "ru": ("лифт",)},
+    "SD_MAP01_EXIT_TEXT": {"default": ("lift",), "ru": ("лифт",), "ca": ("ascensor",)},
     "SD_MAP02_EXIT_TEXT": {"default": ("tunnel", "tractor", "Tankograd"),
-                           "ru": ("тоннель", "трактор", "Танкоград")},
+                           "ru": ("тоннель", "трактор", "Танкоград"),
+                           "ca": ("túnel", "tractor", "Tankograd")},
 }
 
 RE_BLOCK = re.compile(r'^(map|episode|cluster)\s+(\w+)[^{]*\{(.*?)^\}', re.M | re.S | re.I)
@@ -157,9 +162,19 @@ def text_lines(value: str) -> list[str]:
     return value.strip().strip('"').split(LINE_BREAK)
 
 
+def drawn_as(ch: str) -> str:
+    """The glyph SmallFont draws for `ch` (already a capital). A Catalan
+    accented capital the fonts lack (test_language.CATALAN_UNDRAWN_ACCENTS)
+    is drawn with its base letter by the engine (NOT VERIFIED on screen), so
+    that letter's width is what a line measures."""
+    if ch in CATALAN_UNDRAWN_ACCENTS and not glyph_path(SKILL_FONT_DIR, ch).is_file():
+        return unicodedata.normalize("NFD", ch)[0]
+    return ch
+
+
 def width(line: str) -> int:
     """SmallFont draws lower case with the capital glyphs."""
-    return sum(png_width(glyph_path(SKILL_FONT_DIR, ch)) for ch in line.upper())
+    return sum(png_width(glyph_path(SKILL_FONT_DIR, drawn_as(ch))) for ch in line.upper())
 
 
 class CampaignMapinfoTest(unittest.TestCase):
@@ -315,6 +330,12 @@ class CampaignTextTest(unittest.TestCase):
             self.assertNotEqual(ru, "".join(self.lines("default", ident)), ident)
             self.assertRegex(ru, r"[А-Яа-яЁё]", f"{ident} [ru] is not Cyrillic")
 
+    def test_catalan_is_not_the_english(self):
+        for ident in CAMPAIGN_TEXTS:
+            ca = "".join(self.lines("ca", ident))
+            self.assertNotEqual(ca, "".join(self.lines("default", ident)), ident)
+            self.assertRegex(ca, r"[àèéíïòóúç]", f"{ident} [ca] has no Catalan letter")
+
     def test_the_texts_are_all_different(self):
         for code in REQUIRED_SECTIONS:
             texts = [tuple(self.lines(code, ident)) for ident in CAMPAIGN_TEXTS]
@@ -351,7 +372,7 @@ class CampaignTextTest(unittest.TestCase):
         for code in REQUIRED_SECTIONS:
             for ident in CAMPAIGN_TEXTS:
                 for ch in set("".join(self.lines(code, ident)).upper()):
-                    self.assertTrue(glyph_path(SKILL_FONT_DIR, ch).is_file(),
+                    self.assertTrue(glyph_path(SKILL_FONT_DIR, drawn_as(ch)).is_file(),
                                     f"[{code}] {ident}: SmallFont has no {ch!r} (U+{ord(ch):04X})")
 
 

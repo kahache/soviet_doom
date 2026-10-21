@@ -468,7 +468,9 @@ class ArsenalPk3Test(unittest.TestCase):
         """
         parts = re.split(r"^\[ru\]\s*$", self.language, flags=re.M)
         self.assertEqual(len(parts), 2, "LANGUAGE must have exactly one [ru] header (D7)")
-        return parts[0], parts[1]
+        # The Russian half ends at the next section header ([ca] since P6),
+        # so a check on [ru] never passes on a Catalan line.
+        return parts[0], re.split(r"^\[[^\]]+\]\s*$", parts[1], maxsplit=1, flags=re.M)[0]
 
     def test_every_language_id_used_by_the_arsenal_exists_in_both_languages(self):
         ids = set(re.findall(r'"\$(SD_[A-Z0-9_]+)"', self.zs_all))

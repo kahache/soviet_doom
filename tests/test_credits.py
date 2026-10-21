@@ -89,6 +89,8 @@ ALWAYS_CREDITED = (
 DISCLAIMER = {
     "default": "fan project, not affiliated with id Software",
     "ru": "фанатский проект, не связанный с компанией id Software",
+    # P6 (D97): the CEO reviews the Catalan wording; the test pins it.
+    "ca": "projecte de fans, sense cap vincle amb id Software",
 }
 TEAM_HEADER_ID = "SD_CRED_H_TEAM"
 
@@ -240,6 +242,8 @@ class AttributionTest(unittest.TestCase):
         for what, english, russian in ALWAYS_CREDITED:
             self.assertIn(english, self.credits["default"], f"English credits lack {what}")
             self.assertIn(russian, self.credits["ru"], f"Russian credits lack {what}")
+            # Catalan keeps the Latin names and licence names as English does.
+            self.assertIn(english, self.credits["ca"], f"Catalan credits lack {what}")
 
     def test_the_registers_still_parse(self):
         """Guards the readers: if a heading or a column moves, the names

@@ -1,9 +1,10 @@
 """The LANGUAGE lump: D7 made enforceable.
 
-D7 says in-game copy ships in English and Russian. A half-translated game is
-worse than an English one, because the gaps look like engine bugs -- so this
-suite fails the build when an `SD_*` id exists in one language and not the
-other, and when a lump or a ZScript file asks for an id nobody defined.
+D7 says in-game copy ships in English and Russian; D97 (P6) adds Catalan. A
+half-translated game is worse than an English one, because the gaps look
+like engine bugs -- so this suite fails the build when an `SD_*` id exists
+in one language and not the others, and when a lump or a ZScript file asks
+for an id nobody defined.
 
 Nothing here launches GZDoom: it is a static read of `src/`, so it runs in
 the same second as the rest of the suite. The in-engine proof that the
@@ -29,7 +30,36 @@ MOD_PREFIX = "SD_"
 # Every language section the mod promises to ship, by its GZDoom code. The
 # tuple is the contract: adding a language means adding it here, and the
 # suite then demands a full translation instead of a partial one.
-REQUIRED_SECTIONS = ("default", "ru")
+REQUIRED_SECTIONS = ("default", "ru", "ca")
+
+# The translations: every required section but the English default.
+TRANSLATIONS = tuple(code for code in REQUIRED_SECTIONS if code != "default")
+
+# [ca] ids whose text is the English text on purpose: the game's title, the
+# proper nouns and designations D97 keeps as in English (Tankograd, PPSh-41,
+# RPG-7, Zelyonka, Panzermensch, Doughboy), and the pause sign's graphic name
+# until a Catalan plaque exists. Anything else equal to the English is a gap.
+CATALAN_SAME_AS_ENGLISH = frozenset({
+    "SD_EP01_NAME", "SD_OPTMNU_TITLE", "SD_MAP03_NAME",
+    "SD_TAG_PPSH", "SD_TAG_RPG7", "SD_GOT_HEALTHBONUS",
+    "SD_TAG_DOUGHBOY", "SD_TAG_PANZER", "SD_PAUSE_SIGN",
+    # Credit lines made only of names, URLs and licences ("local" is Catalan too).
+    "SD_CRED_ENGINE_1", "SD_CRED_IWAD_1", "SD_CRED_AI_7",
+})
+
+# Letters Catalan needs that the mod's fonts (assets/fonts/, D24) do not draw
+# yet. GZDoom draws a missing accented capital with its base letter
+# (FFont::GetCharCode strips the accent; read in the engine source, NOT
+# VERIFIED on screen, D26), so "MUNICIÓ" would print "MUNICIO". Listed so
+# the debt is explicit: a glyph added to the fonts can leave this set, and
+# any OTHER character [ca] uses without a glyph still fails.
+# Emptied 2026-10-21: art-director drew À È É Í Ï Ò Ó Ú Ç in all three fonts
+# (tools/art/gen_font.py, CATALAN_ACCENTS).
+CATALAN_UNDRAWN_ACCENTS = frozenset()
+
+# Placeholders a line carries for the engine to fill (%o victim, %k killer,
+# %s a string, %d a number). A translation must keep exactly the English set.
+PLACEHOLDER_RE = re.compile(r"%[okds]")
 
 # Ids defined for the engine's benefit but never shown to a player, so they
 # are allowed to hold the same text in several languages without that being
@@ -135,14 +165,36 @@ class LanguageLumpTest(unittest.TestCase):
     def test_translations_are_not_copies_of_the_english(self):
         """A pasted English line is a gap wearing a translation's clothes."""
         english = self.sections["default"]
-        copied = []
-        for key, value in sorted(self.sections["ru"].items()):
-            if not key.startswith(MOD_PREFIX) or key in NON_PROSE_IDS:
-                continue
-            if value == english.get(key) and re.search(r"[A-Za-z]{3}", value):
-                copied.append(f"{key} = {value}")
-        self.assertEqual(copied, [],
-                         "[ru] repeats the English text verbatim:\n  " + "\n  ".join(copied))
+        allowed = {"ru": NON_PROSE_IDS, "ca": NON_PROSE_IDS | CATALAN_SAME_AS_ENGLISH}
+        for code in TRANSLATIONS:
+            copied = []
+            for key, value in sorted(self.sections[code].items()):
+                if not key.startswith(MOD_PREFIX) or key in allowed[code]:
+                    continue
+                if value == english.get(key) and re.search(r"[A-Za-z]{3}", value):
+                    copied.append(f"{key} = {value}")
+            self.assertEqual(copied, [],
+                             f"[{code}] repeats the English text verbatim:\n  " + "\n  ".join(copied))
+
+    def test_catalan_exceptions_really_are_the_english(self):
+        """The allow-list may not hide a line that has since been translated."""
+        english, catalan = self.sections["default"], self.sections["ca"]
+        for key in sorted(CATALAN_SAME_AS_ENGLISH):
+            self.assertEqual(catalan.get(key), english.get(key), key)
+
+    def test_placeholders_survive_translation(self):
+        """A lost %o prints an obituary without its victim; an extra %s
+        prints garbage. Every translation keeps the English placeholders."""
+        english = self.sections["default"]
+        wrong = [
+            f"[{code}] {key}: {sorted(PLACEHOLDER_RE.findall(value))} != "
+            f"{sorted(PLACEHOLDER_RE.findall(english[key]))}"
+            for code in TRANSLATIONS
+            for key, value in sorted(self.sections[code].items())
+            if key.startswith(MOD_PREFIX) and key in english
+            and sorted(PLACEHOLDER_RE.findall(value)) != sorted(PLACEHOLDER_RE.findall(english[key]))
+        ]
+        self.assertEqual(wrong, [], "placeholders differ from the English:\n  " + "\n  ".join(wrong))
 
     def test_russian_section_is_actually_cyrillic(self):
         """Catches a section header typo that would silently ship English."""
@@ -150,6 +202,16 @@ class LanguageLumpTest(unittest.TestCase):
                           if k.startswith(MOD_PREFIX) and k not in NON_PROSE_IDS)
         self.assertRegex(russian, r"[Ѐ-ӿ]",
                          "[ru] contains no Cyrillic at all")
+
+    def test_catalan_section_is_actually_catalan(self):
+        """Catches a header typo or a pasted Spanish/English block: the
+        Catalan letters (à è ò ç, the l·l of col·laboradors) must be there."""
+        catalan = "".join(v for k, v in self.sections["ca"].items()
+                          if k.startswith(MOD_PREFIX) and k not in NON_PROSE_IDS)
+        for letter in ("à", "è", "ò", "ç", "l·l"):
+            self.assertIn(letter, catalan, f"[ca] never uses {letter!r}")
+        self.assertNotRegex(catalan, r"[ñÑ]", "[ca] contains a Spanish ñ")
+        self.assertNotRegex(catalan, r"l\.l", "[ca] writes l.l: the punt volat is ·")
 
     def test_the_language_probe_is_gone(self):
         """SD_LANG_CODE existed only so ZScript could rewrite the `language`
@@ -325,7 +387,7 @@ class LanguageMenuTest(unittest.TestCase):
             "the language row must drive GZDoom's own archived `language` CVar, "
             "so the choice persists without the mod writing a CVar of its own")
 
-    def test_both_languages_are_offered_explicitly(self):
+    def test_every_language_is_offered_explicitly(self):
         # OptionString, not OptionValue: `language` is a string CVar, and
         # OptionValue parses its left column as a number. Swapping the
         # keyword makes GZDoom 4.14.2 abort during startup (exit 255, log
@@ -339,9 +401,9 @@ class LanguageMenuTest(unittest.TestCase):
         # A row whose CVar holds a value absent from its list draws
         # "Unknown", and the alternative -- ZScript rewriting the CVar --
         # aborts the VM outside menu input handling. ADR 004, D-004-4.
-        self.assertEqual(offered, ["auto", "default", "ru"],
+        self.assertEqual(offered, ["auto", "default", "ru", "ca"],
                          "the list must name every value `language` can hold "
-                         "here: auto, English and Russian")
+                         "here: auto, English, Russian and Catalan (D97)")
 
     def test_the_menu_is_reachable_from_both_options_screens(self):
         """GZDoom has two options screens and opens the SHORT one by default.
@@ -404,8 +466,8 @@ class LanguageRowTest(unittest.TestCase):
     CLASS = "OptionMenuItemSDLanguageOption"
 
     # What the row must show for each value the `language` CVar can hold.
-    # The mod ships [enu default] and [ru] only, so every code that is not
-    # auto and not Russian reads the default (English) section. "default" is
+    # The mod ships [enu default], [ru] and [ca] (D97), so every code that is
+    # not auto, Russian or Catalan reads the default (English) section. "default" is
     # GZDoom's own "English (US)" (gzdoom.pk3:menudef.txt, LanguageOptions).
     # "" shows Automatic (the PM's call for QA-G6-1); what the engine does
     # with an empty `language` is NOT VERIFIED, and no menu writes it.
@@ -414,6 +476,7 @@ class LanguageRowTest(unittest.TestCase):
         "default": "default", "enu": "default", "eng": "default",
         "en": "default", "EN": "default", "fr": "default", "": "auto",
         "ru": "ru", "RU": "ru", "rus": "ru",
+        "ca": "ca", "CA": "ca", "cat": "ca", "es": "default",
     }
 
     @classmethod
@@ -433,6 +496,8 @@ class LanguageRowTest(unittest.TestCase):
             return "auto"
         if value[:2].lower() == "ru":
             return "ru"
+        if value[:2].lower() == "ca":
+            return "ca"
         return "default"
 
     def function_body(self, name: str) -> str:
@@ -454,9 +519,9 @@ class LanguageRowTest(unittest.TestCase):
         self.assertNotRegex(self.code, r"\.Set(String|Int|Float|Bool)\s*\(")
 
     def test_its_constants_are_the_menudef_entries(self):
-        self.assertEqual(self.offered, ["auto", "default", "ru"])
+        self.assertEqual(self.offered, ["auto", "default", "ru", "ca"])
         self.assertEqual(self.consts, {"VALUE_AUTO": "auto", "VALUE_ENGLISH": "default",
-                                       "VALUE_RUSSIAN": "ru"})
+                                       "VALUE_RUSSIAN": "ru", "VALUE_CATALAN": "ca"})
 
     def test_every_plausible_value_names_a_listed_language(self):
         for value, entry in self.EXPECTED.items():
@@ -470,6 +535,8 @@ class LanguageRowTest(unittest.TestCase):
                  r"return\s+VALUE_AUTO\s*;",
                  r"value\.Left\(2\)\s*~==\s*VALUE_RUSSIAN",
                  r"return\s+VALUE_RUSSIAN\s*;",
+                 r"value\.Left\(2\)\s*~==\s*VALUE_CATALAN",
+                 r"return\s+VALUE_CATALAN\s*;",
                  r"return\s+VALUE_ENGLISH\s*;\s*$"]
         position = 0
         for step in steps:
@@ -481,6 +548,80 @@ class LanguageRowTest(unittest.TestCase):
         body = self.function_body("GetSelection")
         self.assertRegex(body, r"Super\.GetSelection\(\)", "an exact entry must still win")
         self.assertRegex(body, r"ListEntryFor\(\s*mCVar\.GetString\(\)\s*\)")
+
+
+class CatalanTest(unittest.TestCase):
+    """P6 (D97): the third language, [ca]. What the D7 tests above do not say.
+
+    The parity of ids, the copies of the English and the placeholders are
+    checked for every language above; here: the ids P6 added, the glyphs the
+    Catalan text needs, and what the status bar draws for [ca]."""
+
+    FONT_DIR = PROJECT_ROOT / "assets" / "fonts" / "defsmallfont"
+    # Not text: names of graphics, never drawn as letters.
+    GRAPHIC_NAME_IDS = frozenset({"SD_PAUSE_SIGN", "SD_SBAR_IMAGE", "SD_SBAR_ARMS_IMAGE"})
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.sections = parse_language(LANGUAGE_LUMP.read_text(encoding="utf-8"))
+
+    def value(self, code: str, key: str) -> str:
+        self.assertIn(key, self.sections[code], f"[{code}] has no {key}")
+        return self.sections[code][key].strip('"')
+
+    def glyph(self, ch: str) -> bool:
+        return (self.FONT_DIR / f"{ord(ch):04X}.png").is_file()
+
+    def test_the_language_names_its_own_row(self):
+        """The fourth row of the language list (MENUDEF) in every language."""
+        self.assertEqual(self.value("default", "SD_LANGVAL_CA"), "Catalan")
+        self.assertEqual(self.value("ru", "SD_LANGVAL_CA"), "Каталанский")
+        self.assertEqual(self.value("ca", "SD_LANGVAL_CA"), "Català")
+
+    def test_the_death_prompt_has_one_key_slot(self):
+        """SD_DEATH_PROMPT (D100): the code fills %s with a key's name."""
+        expected = {"default": "Press %s to continue",
+                    "ru": "Нажмите %s, чтобы продолжить",
+                    "ca": "Prem %s per continuar"}
+        self.assertEqual(set(expected), set(REQUIRED_SECTIONS))
+        for code, text in expected.items():
+            self.assertEqual(self.value(code, "SD_DEATH_PROMPT"), text, code)
+            self.assertEqual(text.count("%s"), 1)
+
+    def test_every_catalan_character_is_drawn_or_a_known_accent(self):
+        """SmallFont draws lower case with the capitals (the skill names in
+        the 0955 screenshot), so each character is looked up as a capital.
+        A character with no glyph must be one of CATALAN_UNDRAWN_ACCENTS,
+        whose base letter is drawn instead (NOT VERIFIED on screen)."""
+        import unicodedata
+        missing = set()
+        for key, raw in self.sections["ca"].items():
+            if not key.startswith(MOD_PREFIX) or key in self.GRAPHIC_NAME_IDS:
+                continue
+            for ch in set(raw.strip('"').replace("\\n", "").upper()):
+                if self.glyph(ch):
+                    continue
+                if ch in CATALAN_UNDRAWN_ACCENTS and self.glyph(unicodedata.normalize("NFD", ch)[0]):
+                    continue
+                missing.add(f"{key}: {ch!r} (U+{ord(ch):04X})")
+        self.assertEqual(sorted(missing), [], "[ca] uses characters the fonts cannot draw")
+
+    def test_the_undrawn_accents_really_are_undrawn(self):
+        """When the fonts gain a Catalan glyph, it leaves the debt list."""
+        drawn = sorted(ch for ch in CATALAN_UNDRAWN_ACCENTS if self.glyph(ch))
+        self.assertEqual(drawn, [], "these accents have glyphs now: drop them from "
+                                    "CATALAN_UNDRAWN_ACCENTS")
+
+    def test_the_status_bar_names_the_catalan_pictures(self):
+        self.assertEqual(self.value("ca", "SD_SBAR_IMAGE"), "SDSBCA")
+        self.assertEqual(self.value("ca", "SD_SBAR_ARMS_IMAGE"), "SDARCA")
+
+    def test_the_skill_ladder_keeps_its_references(self):
+        """DIFFICULTY-NAMES.md: Order 227 and the Republican slogan, in
+        their Catalan form ("No passaran", not the Spanish "No pasarán")."""
+        self.assertEqual(self.value("ca", "SD_SKILL_3"), "Ni un pas enrere")
+        self.assertTrue(self.value("ca", "SD_SKILL_4").startswith("No passaran"))
+
 
 class MainMenuLogoTest(unittest.TestCase):
     """The menu's M_DOOM must land on the lockup painted into TITLEPIC.

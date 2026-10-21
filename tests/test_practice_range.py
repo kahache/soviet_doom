@@ -77,7 +77,8 @@ RANGE_EXIT_TEXT = "SD_END02_TEXT"
 # the automap and the level-load line. It was "Engineering Test Range". The
 # id follows the lump since D62 (it was SD_MAP02_NAME).
 RANGE_TITLE_ID = "SD_RANGE_NAME"
-RANGE_TITLE = {"default": "Training Ground", "ru": "Учебный полигон"}
+RANGE_TITLE = {"default": "Training Ground", "ru": "Учебный полигон",
+               "ca": "Camp d'instrucció"}   # P6 (D97), for the CEO's review
 EPISODE_HEADER = "$SD_MNU_CHOOSEEPISODE"
 # The engine's episode screen draws this Freedoom picture of English words.
 FREEDOOM_EPISODE_GRAPHIC = "M_EPISOD"

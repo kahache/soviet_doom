@@ -6,7 +6,17 @@
 GameInfo
 {
 	// Register the mod's ZScript event handlers (class names in zscript/sd/).
-	AddEventHandlers = "SD_LoadReporter"
+	// SD_DeathPrompt (D100, v1.1): "Press <use key> to continue" on the dead
+	// player's screen (zscript/sd/death_prompt.zs; MOD-SPEC 6.10).
+	AddEventHandlers = "SD_LoadReporter", "SD_DeathPrompt"
+
+	// D102 (v1.1): the mouse pointer over the menus is our hammer and sickle,
+	// graphics/SDCURSOR.png (tools/art/gen_mouse_cursor.py), instead of
+	// game_support.pk3's clawed hand, which replaces the stock "doomcurs"
+	// that gzdoom.pk3's mapinfo/doomcommon.txt names here. The engine reads
+	// it while the vid_cursor CVar is "None", its default (src/d_main.cpp);
+	// the PNG's grAb is the hot spot on Windows. Contract: MOD-SPEC 6.6.1.
+	CursorPic = "SDCURSOR"
 
 	// The mod's own player class (F4). A player pawn cannot be installed
 	// with `replaces`; PlayerClasses is the documented way and it OVERRIDES

@@ -166,8 +166,9 @@ class ProposalBuildTests(unittest.TestCase):
         cls.tmp = Path(cls._tmp.name)
         cls.report = gen.build_serif_fix(cls.tmp / "fix")
         # The historical render predates the German letters too (D37), so
-        # both switches go back to their pre-2026-10-13 values.
-        with gen.mirror_terminals(False), gen.german_umlauts(False):
+        # both switches go back to their pre-2026-10-13 values; so does the
+        # Catalan one (P6, 2026-10-21).
+        with gen.mirror_terminals(False), gen.german_umlauts(False), gen.catalan_accents(False):
             gen.build_variant(gen.STYLES["C"], cls.tmp / "before")
 
     @classmethod

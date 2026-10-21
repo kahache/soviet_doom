@@ -226,7 +226,11 @@ class BarTests(unittest.TestCase):
         for words in gen_hud.LABELS.values():
             for word in words.values():
                 for ch in word:
-                    self.assertIn(ch, gen_hud.FONT5, ch)
+                    self.assertTrue(ch in gen_hud.FONT5 or ch in gen_hud.FONT5_ACCENTED, ch)
+        for ch, (base, accent) in gen_hud.FONT5_ACCENTED.items():
+            self.assertIn(base, gen_hud.FONT5, ch)
+            self.assertEqual(len(accent), gen_hud.glyph(base).shape[1], ch)
+            self.assertEqual(gen_hud.glyph(ch).shape[0], 5 + gen_hud.ACCENT_ROWS, ch)
         for ch, data in gen_hud.FONT5.items():
             rows = data.split("|")
             self.assertEqual(len(rows), 5, ch)
@@ -238,6 +242,35 @@ class BarTests(unittest.TestCase):
             diff = np.nonzero((en != ru).any(-1))[0]
             self.assertTrue(len(diff))
             self.assertGreaterEqual(diff.min(), gen_hud.LABEL_Y, opt)
+
+    def test_only_accents_make_a_taller_mask(self):
+        """English and Russian labels stay 5 rows, so their bars are drawn
+        exactly as approved (D89); only an accented capital adds rows."""
+        for lang in ("en", "ru"):
+            for word in gen_hud.LABELS[lang].values():
+                self.assertEqual(gen_hud.text_mask(word).shape[0], 5, word)
+        self.assertEqual(gen_hud.text_mask("MUNICIÓ").shape[0], 5 + gen_hud.ACCENT_ROWS)
+        self.assertTrue((gen_hud.text_mask("MUNICIÓ")[-5:] == gen_hud.text_mask("MUNICIO")).all())
+
+    def test_catalan_differs_only_in_the_label_rows(self):
+        """P6: the accent of MUNICIÓ reaches ACCENT_ROWS above the letters,
+        still inside SD_StatusBar's band (rows 21-31; test_hud_install)."""
+        en, ca = gen_hud.render_bar("A", "en"), gen_hud.render_bar("A", "ca")
+        diff = np.nonzero((en != ca).any(-1))[0]
+        self.assertTrue(len(diff))
+        self.assertGreaterEqual(diff.min(), gen_hud.LABEL_Y + 1 - gen_hud.ACCENT_ROWS)
+
+    def test_catalan_bar_writes_only_its_own_files(self):
+        """--catalan writes bar A in Catalan under work/ and, installed, the
+        two SD names; nothing English or Russian."""
+        with tempfile.TemporaryDirectory() as tmp:
+            out, inst = Path(tmp) / "work", Path(tmp) / "assets"
+            files = gen_hud.catalan_bar(out, inst)
+            self.assertEqual(sorted(p.name for p in inst.iterdir()), ["SDARCA.png", "SDSBCA.png"])
+            self.assertEqual(sorted(p.relative_to(out).as_posix() for p in out.rglob("*.png")),
+                             ["bar/A/ca/STARMS.png", "bar/A/ca/STBAR.png"])
+            self.assertEqual(files["SDSBCA"].read_bytes(), files["STBAR"].read_bytes())
+            self.assertEqual(files["SDARCA"].read_bytes(), files["STARMS"].read_bytes())
 
     def test_wells_are_dark_for_the_red_digits(self):
         for opt in gen_hud.BAR_OPTIONS:
