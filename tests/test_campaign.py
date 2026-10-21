@@ -1,28 +1,37 @@
-"""D60 and D62: the campaign is MAP01 -> MAP02 -> MAP03, in slot order.
+"""D60, D62, D104: the campaign is two episodes, in slot order.
 
-D60 grew the campaign past MAP01; D62 (2026-10-14) gave the map slots the
-campaign's order: MAP01 Zarya-7, MAP02 the metro-bunker (built as MAP03),
-MAP03 the factory, Tankograd (built as MAP04), and the practice range left
-the MAPxx sequence for the lump RANGE (it was MAP02).
+Episode 1, "Soviet Doom": MAP01 -> MAP02 -> MAP03. D60 grew it past MAP01;
+D62 (2026-10-14) gave the map slots the campaign's order: MAP01 Zarya-7,
+MAP02 the metro-bunker (built as MAP03), MAP03 the factory, Tankograd (built
+as MAP04), and the practice range left the MAPxx sequence for the lump RANGE
+(it was MAP02).
+
+Episode 2, "The Road to Moscow" (D104, P4): MAP04 the Trans-Siberian yard
+at Sverdlovsk -> MAP05 the Volga dam -> MAP06 Red Square and the Kremlin. It
+is a second episode on the New Game screen, between the first and the
+range, and starts on MAP04; episode 1 does not run into it.
 
 The contract is docs/engine/MOD-SPEC.md 4.6. What this suite pins,
 statically, from MAPINFO and LANGUAGE:
 
-  * the campaign's order: MAP01, MAP02, MAP03 in that order, each map
-    leading to the next slot, the last one to endtitle; RANGE -> endtitle;
-  * the clusters (MOD-SPEC 4.6's rule): cluster 1 is the campaign's ending
-    and holds only its last map, cluster 2 the range's, and one transition
-    cluster per earlier map (3 = MAP01's, 4 = MAP02's); no `entertext`;
+  * each episode's order, each map leading to the next slot, the last one
+    to endtitle; RANGE -> endtitle; the episodes are separate chains;
+  * the clusters (MOD-SPEC 4.6's rule): cluster 1 is episode 1's ending and
+    holds only MAP03, cluster 2 the range's, one transition cluster per
+    earlier map numbered from 3 in play order (3 = MAP01's, 4 = MAP02's,
+    5 = MAP04's, 6 = MAP05's), and cluster 7 episode 2's ending, MAP06's
+    alone; no `entertext`;
   * the flow as the engine walks it (a crossing between clusters prints the
-    cluster's text): the campaign prints each transition, then the ending,
-    each ONCE; the range prints its own text and nothing of the campaign's;
-  * the range is isolated: no map leads to it, the campaign never reaches
-    it, and it holds no MAPxx slot;
-  * every text in English and Russian, broken by hand into lines that fit
-    SmallFont on a 320-wide screen, with every glyph drawn.
+    cluster's text): each episode prints its own transitions, then its own
+    ending, each ONCE, and nothing of the other's; the range prints its own
+    text and nothing of the campaign's;
+  * the range is isolated: no map leads to it, no episode reaches it, and it
+    holds no MAPxx slot;
+  * every text in English, Russian and Catalan, broken by hand into lines
+    that fit SmallFont on a 320-wide screen, with every glyph drawn.
 
-What it cannot pin is what the engine shows: the PM's checks C1-C6 of
-MOD-SPEC 4.6 (D26).
+What it cannot pin is what the engine shows: the PM's checks of MOD-SPEC
+4.6 (D26).
 """
 
 from __future__ import annotations
@@ -33,6 +42,7 @@ import tempfile
 import unicodedata
 import unittest
 import zipfile
+from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -49,30 +59,64 @@ LANGUAGE = SRC / "lumps" / "LANGUAGE"
 END_TO_TITLE = "endtitle"
 REQUIRED_SECTIONS = ("default", "ru", "ca")   # Catalan since P6 (D97)
 
-# D62: the campaign, in play order. The slots follow it.
-CAMPAIGN_ORDER = ("MAP01", "MAP02", "MAP03")
+
+@dataclass(frozen=True)
+class Episode:
+    """One campaign episode of MOD-SPEC 4.6: its maps in play order, the
+    cluster that holds its last map and the ending that cluster prints."""
+    order: tuple[str, ...]
+    ending_cluster: int
+    ending_text: str
+
+    @property
+    def start(self) -> str:
+        return self.order[0]
+
+    @property
+    def last(self) -> str:
+        return self.order[-1]
+
+
+# D62: episode 1, in play order; the slots follow it. MAP03 ends it.
+EPISODE_1 = Episode(("MAP01", "MAP02", "MAP03"), 1, "SD_END01_TEXT")
+# D104 (P4): episode 2, "The Road to Moscow", on the next slots. Its ending
+# is SD_END03_TEXT: the ids number the episodes in the order they were
+# declared (the range took 02 in D41), not their place on the menu.
+EPISODE_2 = Episode(("MAP04", "MAP05", "MAP06"), 7, "SD_END03_TEXT")
+CAMPAIGN_EPISODES = (EPISODE_1, EPISODE_2)
+ALL_CAMPAIGN_MAPS = tuple(m for ep in CAMPAIGN_EPISODES for m in ep.order)
 # MOD-SPEC 4.6: map -> (cluster, next).
-CAMPAIGN = {"MAP01": (3, "MAP02"), "MAP02": (4, "MAP03"), "MAP03": (1, END_TO_TITLE)}
+CAMPAIGN = {"MAP01": (3, "MAP02"), "MAP02": (4, "MAP03"), "MAP03": (1, END_TO_TITLE),
+            "MAP04": (5, "MAP05"), "MAP05": (6, "MAP06"), "MAP06": (7, END_TO_TITLE)}
 RANGE_MAP = "RANGE"          # D62: the practice range's lump, out of the MAPxx slots
 RANGE = {RANGE_MAP: (2, END_TO_TITLE)}
-CAMPAIGN_START = "MAP01"
 RANGE_START = RANGE_MAP
-LAST_CAMPAIGN_MAP = "MAP03"
+# MOD-SPEC 4.4: the episode blocks in file order are the New Game screen's.
+EPISODE_STARTS = [EPISODE_1.start, EPISODE_2.start, RANGE_START]
 MAX_LUMP_NAME = 8            # a map name is a WAD lump name
-RE_MAP_SLOT = re.compile(r"^MAP\d\d$")
+RE_MAP_SLOT = re.compile(r"^MAP(\d\d)$")
 
-ENDING_CLUSTER = 1
 RANGE_CLUSTER = 2
-# One chapter cluster per campaign map before the last, in order, each
-# printing SD_MAPnn_EXIT_TEXT on the way into the next map (MOD-SPEC 4.6).
-TRANSITIONS = {"MAP01": (3, "SD_MAP01_EXIT_TEXT"), "MAP02": (4, "SD_MAP02_EXIT_TEXT")}
+FIRST_TRANSITION_CLUSTER = 3
+# One chapter cluster per campaign map before its episode's last, numbered
+# from 3 upward in play order across the episodes, each printing
+# SD_MAPnn_EXIT_TEXT on the way into the next map (MOD-SPEC 4.6).
+TRANSITIONS = {"MAP01": (3, "SD_MAP01_EXIT_TEXT"), "MAP02": (4, "SD_MAP02_EXIT_TEXT"),
+               "MAP04": (5, "SD_MAP04_EXIT_TEXT"), "MAP05": (6, "SD_MAP05_EXIT_TEXT")}
 TRANSITION_TEXTS = tuple(text for _cluster, text in TRANSITIONS.values())
-ENDING_TEXT = "SD_END01_TEXT"
+ENDING_TEXTS = tuple(ep.ending_text for ep in CAMPAIGN_EPISODES)
 RANGE_TEXT = "SD_END02_TEXT"
-CLUSTER_TEXTS = {ENDING_CLUSTER: ENDING_TEXT, RANGE_CLUSTER: RANGE_TEXT,
+CLUSTER_TEXTS = {RANGE_CLUSTER: RANGE_TEXT,
+                 **{ep.ending_cluster: ep.ending_text for ep in CAMPAIGN_EPISODES},
                  **{cluster: text for cluster, text in TRANSITIONS.values()}}
 CLUSTER_FLAT = "SDFLR1"
-CAMPAIGN_TEXTS = TRANSITION_TEXTS + (ENDING_TEXT,)
+CAMPAIGN_TEXTS = TRANSITION_TEXTS + ENDING_TEXTS
+
+
+def episode_texts(episode: Episode) -> tuple[str, ...]:
+    """What an episode prints, in order: its transitions, then its ending."""
+    return tuple(TRANSITIONS[m][1] for m in episode.order[:-1]) + (episode.ending_text,)
+
 
 # The text screen: Doom draws a finale text in SmallFont from x 10 on a
 # 320 x 200 screen, one line per "\n". 300 px leaves the same 10 px on the
@@ -84,22 +128,41 @@ TEXT_MAX_WIDTH = 300
 MAX_LINES = 18
 FONT_INF = SKILL_FONT_DIR / "font.inf"
 
-# The ending is the factory's since D62: the portal's power cut. It was the
-# cosmodrome's until D60 and the bunker's until D62 (MOD-SPEC 4.6).
+# Every ending closes on the same line.
 ENDING_LAST_LINE = {"default": "TO BE CONTINUED", "ru": "ПРОДОЛЖЕНИЕ СЛЕДУЕТ",
                     "ca": "CONTINUARÀ"}
-ENDING_NAMES = {"default": ("portal", "Tankograd"), "ru": ("портал", "Танкоград"),
-                "ca": ("portal", "Tankograd")}
-ENDING_MUST_NOT_NAME = {"default": ("Zarya", "gantry", "bunker", "station"),
-                        "ru": ("Заря", "башни", "бункер", "Станция"),
-                        "ca": ("Zarya", "búnquer", "estació")}
+# Episode 1's ending is the factory's since D62: the portal's power cut. It
+# was the cosmodrome's until D60 and the bunker's until D62 (MOD-SPEC 4.6).
+# Episode 2's (D104) is the Kremlin's, and leaves the invaders' main portal
+# open, the hook for an episode 3.
+ENDING_NAMES = {
+    "SD_END01_TEXT": {"default": ("portal", "Tankograd"), "ru": ("портал", "Танкоград"),
+                      "ca": ("portal", "Tankograd")},
+    "SD_END03_TEXT": {"default": ("Kremlin", "portal", "still open"),
+                      "ru": ("Кремл", "портал", "открыт"),
+                      "ca": ("Kremlin", "portal", "obert")},
+}
+ENDING_MUST_NOT_NAME = {
+    "SD_END01_TEXT": {"default": ("Zarya", "gantry", "bunker", "station"),
+                      "ru": ("Заря", "башни", "бункер", "Станция"),
+                      "ca": ("Zarya", "búnquer", "estació")},
+    "SD_END03_TEXT": {"default": ("Zarya", "dam"), "ru": ("Заря", "плотин"),
+                      "ca": ("Zarya", "presa")},
+}
 # What each transition must say it is: MAP01's goes down the lift into the
-# metro; MAP02's comes out of the tunnel at the tractor works.
+# metro; MAP02's comes out of the tunnel at the tractor works; MAP04's takes
+# the armoured train to the Volga dam; MAP05's crosses the dam to Moscow.
 TRANSITION_NAMES = {
     "SD_MAP01_EXIT_TEXT": {"default": ("lift",), "ru": ("лифт",), "ca": ("ascensor",)},
     "SD_MAP02_EXIT_TEXT": {"default": ("tunnel", "tractor", "Tankograd"),
                            "ru": ("тоннель", "трактор", "Танкоград"),
                            "ca": ("túnel", "tractor", "Tankograd")},
+    "SD_MAP04_EXIT_TEXT": {"default": ("armoured train", "Volga", "dam"),
+                           "ru": ("бронепоезд", "Волг", "плотин"),
+                           "ca": ("tren blindat", "Volga", "presa")},
+    "SD_MAP05_EXIT_TEXT": {"default": ("dam", "Moscow", "Red Square"),
+                           "ru": ("плотин", "Москв", "Красная площадь"),
+                           "ca": ("presa", "Moscou", "plaça Roja")},
 }
 
 RE_BLOCK = re.compile(r'^(map|episode|cluster)\s+(\w+)[^{]*\{(.*?)^\}', re.M | re.S | re.I)
@@ -196,25 +259,30 @@ class CampaignMapinfoTest(unittest.TestCase):
 
     def test_every_map_block_is_known(self):
         """A map added to MAPINFO must find its place here (and in MOD-SPEC
-        4.6) first: in the campaign or outside it."""
+        4.6) first: in an episode or outside the campaign."""
         self.assertEqual(set(self.maps), set(CAMPAIGN) | set(RANGE))
+        self.assertEqual(set(CAMPAIGN), set(ALL_CAMPAIGN_MAPS))
 
     def test_the_slots_follow_the_campaign(self):
-        """D62: MAP01, MAP02, MAP03 in play order; each campaign map leads to
-        the next slot, and only the last one ends the game."""
-        self.assertEqual(tuple(sorted(CAMPAIGN)), CAMPAIGN_ORDER)
-        for here, there in zip(CAMPAIGN_ORDER, CAMPAIGN_ORDER[1:]):
-            self.assertEqual(prop(self.maps[here], "next"), there, f"{here} must lead to {there}")
-        self.assertEqual(prop(self.maps[CAMPAIGN_ORDER[-1]], "next"), END_TO_TITLE)
-        self.assertEqual(CAMPAIGN_ORDER[-1], LAST_CAMPAIGN_MAP)
+        """D62, D104: the MAPxx slots run MAP01, MAP02... in play order with
+        no gap, episode after episode; each map leads to the next slot of its
+        episode, and only an episode's last map ends the game."""
+        numbers = [int(RE_MAP_SLOT.match(m).group(1)) for m in ALL_CAMPAIGN_MAPS]
+        self.assertEqual(numbers, list(range(1, len(numbers) + 1)))
+        for episode in CAMPAIGN_EPISODES:
+            for here, there in zip(episode.order, episode.order[1:]):
+                self.assertEqual(prop(self.maps[here], "next"), there, f"{here} must lead to {there}")
+            self.assertEqual(prop(self.maps[episode.last], "next"), END_TO_TITLE, episode.last)
 
     def test_each_campaign_map_is_led_to_once(self):
-        """Every campaign map but the first is some map's `next`, exactly
-        once: no orphan, no fork."""
+        """Every campaign map but an episode's first is some map's `next`,
+        exactly once: no orphan, no fork. Nothing leads to an episode's
+        start, so no episode runs into another."""
         leads = [(prop(b, "next") or "").upper() for b in self.maps.values()]
-        self.assertNotIn(CAMPAIGN_START, leads, "something leads back to the start")
-        for name in CAMPAIGN_ORDER[1:]:
-            self.assertEqual(leads.count(name), 1, f"{name} is led to {leads.count(name)} times")
+        for episode in CAMPAIGN_EPISODES:
+            self.assertNotIn(episode.start, leads, f"something leads into {episode.start}")
+            for name in episode.order[1:]:
+                self.assertEqual(leads.count(name), 1, f"{name} is led to {leads.count(name)} times")
 
     def test_the_cluster_blocks(self):
         self.assertEqual(set(self.clusters), {str(c) for c in CLUSTER_TEXTS},
@@ -226,12 +294,13 @@ class CampaignMapinfoTest(unittest.TestCase):
             self.assertEqual(prop(body, "music"), "", f"cluster {number}")
 
     def test_each_earlier_map_has_its_own_transition_cluster(self):
-        """MOD-SPEC 4.6: every campaign map before the last owns a chapter
-        cluster, numbered from 3 in play order, whose text is
-        SD_MAPnn_EXIT_TEXT."""
-        self.assertEqual(tuple(TRANSITIONS), CAMPAIGN_ORDER[:-1])
+        """MOD-SPEC 4.6: every campaign map before its episode's last owns a
+        chapter cluster, numbered from 3 in play order across the episodes,
+        whose text is SD_MAPnn_EXIT_TEXT."""
+        earlier = tuple(m for ep in CAMPAIGN_EPISODES for m in ep.order[:-1])
+        self.assertEqual(tuple(TRANSITIONS), earlier)
         for index, (name, (cluster, text)) in enumerate(TRANSITIONS.items()):
-            self.assertEqual(cluster, 3 + index, name)
+            self.assertEqual(cluster, FIRST_TRANSITION_CLUSTER + index, name)
             self.assertEqual(text, f"SD_{name}_EXIT_TEXT")
             self.assertEqual(prop(self.maps[name], "cluster"), str(cluster), name)
             holders = [n for n, b in self.maps.items() if prop(b, "cluster") == str(cluster)]
@@ -243,12 +312,21 @@ class CampaignMapinfoTest(unittest.TestCase):
         for number, body in self.clusters.items():
             self.assertIsNone(prop(body, "entertext"), f"cluster {number}")
 
-    def test_the_ending_cluster_holds_only_the_last_campaign_map(self):
-        holders = [n for n, b in self.maps.items() if prop(b, "cluster") == str(ENDING_CLUSTER)]
-        self.assertEqual(holders, [LAST_CAMPAIGN_MAP])
-        carriers = [n for n, b in self.clusters.items()
-                    if ENDING_TEXT in (lookup_id(b, "exittext"), lookup_id(b, "entertext"))]
-        self.assertEqual(carriers, [str(ENDING_CLUSTER)], "the ending is carried by more than one cluster")
+    def test_each_ending_cluster_holds_only_its_episodes_last_map(self):
+        for episode in CAMPAIGN_EPISODES:
+            holders = [n for n, b in self.maps.items()
+                       if prop(b, "cluster") == str(episode.ending_cluster)]
+            self.assertEqual(holders, [episode.last])
+            carriers = [n for n, b in self.clusters.items()
+                        if episode.ending_text in (lookup_id(b, "exittext"), lookup_id(b, "entertext"))]
+            self.assertEqual(carriers, [str(episode.ending_cluster)],
+                             f"{episode.ending_text} is carried by more than one cluster")
+
+    def test_episode_one_still_ends_at_tankograd(self):
+        """D104 leaves episode 1 as it was: MAP03 in cluster 1, the ending
+        SD_END01_TEXT, then the title screen."""
+        self.assertEqual(EPISODE_1, Episode(("MAP01", "MAP02", "MAP03"), 1, "SD_END01_TEXT"))
+        self.assertEqual(prop(self.maps["MAP03"], "next"), END_TO_TITLE)
 
     def test_consecutive_campaign_maps_are_in_different_clusters(self):
         """Same cluster = no text between them (ZDoom wiki, MAPINFO/Cluster)."""
@@ -258,12 +336,16 @@ class CampaignMapinfoTest(unittest.TestCase):
             self.assertNotEqual(prop(self.maps[name], "cluster"), prop(self.maps[nxt], "cluster"),
                                 f"{name} -> {nxt} would print no transition text")
 
-    def test_the_campaign_flow_prints_each_transition_then_the_ending_once(self):
-        played, texts = walk(self.maps, self.clusters, CAMPAIGN_START)
-        self.assertEqual(tuple(played), CAMPAIGN_ORDER)
-        self.assertEqual(texts, list(CAMPAIGN_TEXTS))
-        self.assertEqual(texts.count(ENDING_TEXT), 1)
-        self.assertEqual(texts[-1], ENDING_TEXT, "the ending must come last")
+    def test_each_episode_prints_its_transitions_then_its_ending_once(self):
+        for episode in CAMPAIGN_EPISODES:
+            with self.subTest(episode=episode.start):
+                played, texts = walk(self.maps, self.clusters, episode.start)
+                self.assertEqual(tuple(played), episode.order)
+                self.assertEqual(tuple(texts), episode_texts(episode))
+                self.assertEqual(texts.count(episode.ending_text), 1)
+                self.assertEqual(texts[-1], episode.ending_text, "the ending must come last")
+                others = set(CAMPAIGN_TEXTS) - set(episode_texts(episode))
+                self.assertFalse(others & set(texts), "an episode prints another's text")
 
     def test_the_range_flow_is_its_own(self):
         played, texts = walk(self.maps, self.clusters, RANGE_START)
@@ -271,22 +353,24 @@ class CampaignMapinfoTest(unittest.TestCase):
         self.assertEqual(texts, [RANGE_TEXT])
 
     def test_the_episodes_start_where_the_flows_start(self):
-        self.assertEqual(list(self.episodes), [CAMPAIGN_START, RANGE_START])
+        """MOD-SPEC 4.4: Soviet Doom, The Road to Moscow, the range."""
+        self.assertEqual(list(self.episodes), EPISODE_STARTS)
 
     def test_the_range_is_outside_the_campaign(self):
-        """D41, D62: no map leads to the range, the campaign never reaches
-        it or its cluster, and it holds no MAPxx slot."""
+        """D41, D62: no map leads to the range, no episode reaches it or its
+        cluster, and it holds no MAPxx slot."""
         for name, body in self.maps.items():
             self.assertNotEqual((prop(body, "next") or "").upper(), RANGE_START, name)
-        played, texts = walk(self.maps, self.clusters, CAMPAIGN_START)
-        self.assertNotIn(RANGE_START, played)
-        self.assertNotIn(RANGE_TEXT, texts)
+        for episode in CAMPAIGN_EPISODES:
+            played, texts = walk(self.maps, self.clusters, episode.start)
+            self.assertNotIn(RANGE_START, played)
+            self.assertNotIn(RANGE_TEXT, texts)
         self.assertNotIn(prop(self.maps[RANGE_START], "cluster"),
                          [prop(self.maps[m], "cluster") for m in CAMPAIGN])
-        self.assertNotRegex(RANGE_MAP, RE_MAP_SLOT)
+        self.assertIsNone(RE_MAP_SLOT.match(RANGE_MAP))
         self.assertLessEqual(len(RANGE_MAP), MAX_LUMP_NAME)
         slots = sorted(n for n in self.maps if RE_MAP_SLOT.match(n))
-        self.assertEqual(tuple(slots), CAMPAIGN_ORDER, "every MAPxx slot is a campaign map")
+        self.assertEqual(tuple(slots), ALL_CAMPAIGN_MAPS, "every MAPxx slot is a campaign map")
 
     def test_campaign_maps_keep_their_intermission(self):
         """The order the PM checks: stats screen, then the text, then the
@@ -319,7 +403,7 @@ class CampaignTextTest(unittest.TestCase):
         self.assertIn(ident, self.sections[code], f"[{code}] lacks {ident}")
         return text_lines(self.sections[code][ident])
 
-    def test_every_text_exists_in_both_languages(self):
+    def test_every_text_exists_in_every_language(self):
         for code in REQUIRED_SECTIONS:
             for ident in CAMPAIGN_TEXTS:
                 self.assertTrue("".join(self.lines(code, ident)).strip(), f"[{code}] {ident} is empty")
@@ -342,21 +426,24 @@ class CampaignTextTest(unittest.TestCase):
             self.assertEqual(len(set(texts)), len(texts), code)
 
     def test_each_transition_says_where_it_goes(self):
+        self.assertEqual(set(TRANSITION_NAMES), set(TRANSITION_TEXTS))
         for ident, by_code in TRANSITION_NAMES.items():
             for code, words in by_code.items():
                 text = " ".join(self.lines(code, ident)).lower()
                 for word in words:
                     self.assertIn(word.lower(), text, f"[{code}] {ident} does not say {word!r}")
 
-    def test_the_ending_is_the_factorys(self):
-        for code in REQUIRED_SECTIONS:
-            lines = self.lines(code, ENDING_TEXT)
-            self.assertEqual(lines[-1], ENDING_LAST_LINE[code], code)
-            text = " ".join(lines)
-            for word in ENDING_NAMES[code]:
-                self.assertIn(word.lower(), text.lower(), f"[{code}] the ending does not name {word!r}")
-            for word in ENDING_MUST_NOT_NAME[code]:
-                self.assertNotIn(word, text, f"[{code}] the ending still names {word!r}")
+    def test_each_ending_is_its_episodes(self):
+        self.assertEqual(set(ENDING_NAMES), set(ENDING_TEXTS))
+        for ident in ENDING_TEXTS:
+            for code in REQUIRED_SECTIONS:
+                lines = self.lines(code, ident)
+                self.assertEqual(lines[-1], ENDING_LAST_LINE[code], f"[{code}] {ident}")
+                text = " ".join(lines)
+                for word in ENDING_NAMES[ident][code]:
+                    self.assertIn(word.lower(), text.lower(), f"[{code}] {ident} does not name {word!r}")
+                for word in ENDING_MUST_NOT_NAME[ident][code]:
+                    self.assertNotIn(word, text, f"[{code}] {ident} still names {word!r}")
 
     def test_every_line_fits_the_text_screen(self):
         self.assertIn("FontHeight", FONT_INF.read_text(encoding="utf-8"))
@@ -394,8 +481,9 @@ class CampaignPk3Test(unittest.TestCase):
             self.assertIn(f"maps/{name}.wad", names)
         self.assertEqual({n for n in names if n.startswith("maps/")},
                          {f"maps/{n}.wad" for n in (*CAMPAIGN, *RANGE)})
-        played, texts = walk(blocks(code, "map"), blocks(code, "cluster"), CAMPAIGN_START)
-        self.assertEqual((tuple(played), tuple(texts)), (CAMPAIGN_ORDER, CAMPAIGN_TEXTS))
+        for episode in CAMPAIGN_EPISODES:
+            played, texts = walk(blocks(code, "map"), blocks(code, "cluster"), episode.start)
+            self.assertEqual((tuple(played), tuple(texts)), (episode.order, episode_texts(episode)))
         for section in REQUIRED_SECTIONS:
             for ident in CAMPAIGN_TEXTS:
                 self.assertIn(ident, language[section])

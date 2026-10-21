@@ -412,7 +412,7 @@ class MapFitTests(unittest.TestCase):
                 yield name, _Geometry(blocks), things
 
     def test_the_doughboy_is_placed_in_every_map(self):
-        self.assertEqual({name for name, _, _ in self.placements()}, {"MAP01", "MAP02", "MAP03", "RANGE"})
+        self.assertEqual({name for name, _, _ in self.placements()}, {"MAP01", "MAP02", "MAP03", "MAP04", "MAP05", "MAP06", "RANGE"})  # episode 2 since D104
 
     def test_every_doughboy_fits_where_it_floats(self):
         for name, geo, things in self.placements():

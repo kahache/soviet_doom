@@ -43,7 +43,8 @@ TOOLS = PROJECT_ROOT / "tools"
 LUMPS = SRC / "lumps"
 ZSCRIPT = SRC / "zscript"
 IWAD = PROJECT_ROOT / "iwads" / "freedoom2.wad"
-MAPS = ("MAP01", "MAP02", "MAP03", "RANGE")
+# D104 (P4): episode 2, MAP04-MAP06, joins the campaign's maps.
+MAPS = ("MAP01", "MAP02", "MAP03", "MAP04", "MAP05", "MAP06", "RANGE")
 REQUIRED_SECTIONS = ("default", "ru", "ca")   # Catalan since P6 (D97)
 
 # --- ROUTED: reached in our maps, now ours -------------------------------------

@@ -12,6 +12,10 @@ sound-designer; this suite pins only the wiring:
     here; MAP02 (the metro) and MAP03 (Tankograd) play the pieces assigned
     to them, and RANGE D_SDM01T since D86 (MAP01's theme cut to its melodic
     part; D83 rejected D_SDAMUR, which no longer ships);
+  * D104 (P4): episode 2, walked from MAP04 to its end, plays music too.
+    Its three pieces are PROVISIONAL, all already approved and packed:
+    MAP04 D_SDM01T (D95's variant N is not packed), MAP05 D_SDFUNR, MAP06
+    D_SDGATE, until sound-designer gives the episode its own;
   * every lump MAPINFO names has a licence row in docs/art/LICENSES.md (the
     register check_pk3 reads) and a row in MUSIC-RIGHTS.md 4.5 (the one
     tools/release.py reads), and SOUNDTRACK.md still calls each draft one;
@@ -48,11 +52,18 @@ INTERMISSION_MUSIC = "D_SDTITL"        # D83 (N9e): instead of Freedoom's D_DM2I
 MAP_MUSIC = {"MAP01": "D_SDM1N2",      # D95 (N9e): compose_map01.py's D_SDM01N2
              "MAP02": "D_SDFUNR",      # D62 draft: «Вы жертвою пали», the metro
              "MAP03": "D_SDGATE",      # D62 draft: «Богатырские ворота», Tankograd
-             "RANGE": "D_SDM01T"}      # D86: D_SDM01E from bar 49, MAP01's theme cut (N9e)
+             "RANGE": "D_SDM01T",      # D86: D_SDM01E from bar 49, MAP01's theme cut (N9e)
+             # D104 (P4), provisional: approved pieces until the episode has its own.
+             "MAP04": "D_SDM01T",      # D95's N (D_SDM01N) is not in assets/music/
+             "MAP05": "D_SDFUNR",
+             "MAP06": "D_SDGATE"}
 RETIRED = ("D_SDAMUR", "D_SDM01")     # D83: NO for the range; D95: MAP01's new piece. Neither packed
 # Assigned by N8 and wired so the CEO hears them in play.
 DRAFTS = ("D_SDFUNR", "D_SDGATE")
 CAMPAIGN_START = "MAP01"
+# D104: each campaign episode's first map and its maps in play order.
+EPISODE_CHAINS = {"MAP01": ["MAP01", "MAP02", "MAP03"],
+                  "MAP04": ["MAP04", "MAP05", "MAP06"]}
 END_OF_CHAIN = "endtitle"
 DOCS = PROJECT_ROOT / "docs"
 LICENSES = DOCS / "art" / "LICENSES.md"
@@ -112,8 +123,8 @@ class MapinfoMusicTest(unittest.TestCase):
                 self.assertIn(value.upper(), self.packed,
                               f'{key} = "{value}" is not in assets/music/: it would play nothing')
 
-    def campaign(self) -> list[str]:
-        chain, name = [], CAMPAIGN_START
+    def campaign(self, start: str = CAMPAIGN_START) -> list[str]:
+        chain, name = [], start
         while name.lower() != END_OF_CHAIN:
             self.assertIn(name, self.maps, f"the campaign leads to {name}, which has no block")
             self.assertNotIn(name, chain, f"the campaign loops back to {name}")
@@ -124,12 +135,13 @@ class MapinfoMusicTest(unittest.TestCase):
         return chain
 
     def test_every_campaign_map_plays_music(self):
-        chain = self.campaign()
-        self.assertEqual(["MAP01", "MAP02", "MAP03"], chain, "D62's campaign order")
-        for name in chain:
-            with self.subTest(map=name):
-                self.assertTrue(music_of(self.maps[name]),
-                                f"{name} is silent: every campaign map has a piece (D62, N8)")
+        for start, order in EPISODE_CHAINS.items():
+            chain = self.campaign(start)
+            self.assertEqual(order, chain, "D62's and D104's campaign order")
+            for name in chain:
+                with self.subTest(map=name):
+                    self.assertTrue(music_of(self.maps[name]),
+                                    f"{name} is silent: every campaign map has a piece (D62, N8)")
 
     def test_every_music_lump_named_has_a_licence_in_both_registers(self):
         licenses = LICENSES.read_text(encoding="utf-8")

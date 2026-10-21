@@ -343,10 +343,13 @@ assets/   (CEO-approved art only; `work/` is gitignored and never ships)
 | `MAP01` | `SD_MAP01_NAME` = "Zarya-7 Cosmodrome" / «Космодром "Заря-7"» | `SD_EP01_NAME` = "Soviet Doom" / "Советский Doom" | Owned by `level-designer` since F3; design in `docs/levels/MAP01-zarya-7.md`. `cluster = 3`, `next = "MAP02"`, `par = 210` (§4.6; `next = "MAP03"` from D60 to D62, `cluster = 1`, `next = endtitle` before D60). Named in-engine 2026-10-13 (the log prints `MAP01 - Zarya-7 Cosmodrome`). |
 | `MAP02` (`MAP03` until D62) | `SD_MAP02_NAME` = "Metro-Bunker" / «Метро-бункер» (working title, `docs/levels/MAP02-metro.md` §13) | `SD_EP01_NAME`, the campaign's second map | Owned by `level-designer`; design in `docs/levels/MAP02-metro.md`. `cluster = 4`, `next = "MAP03"`, `music = ""`, `par = 300` (§4.6): its exit leads to the factory through cluster 4's transition text. |
 | `MAP03` (`MAP04` until D62) | `SD_MAP03_NAME` = "Tankograd" / «Танкоград» (D63) | `SD_EP01_NAME`, the campaign's third and last map | Owned by `level-designer`; design in `docs/levels/MAP03-factory.md` (v0, the grey box). `cluster = 1`, `next = endtitle`, `music = ""`, `par = 360` (`level-designer`'s figure, design §11): its exit, the breaker that feeds the portal, ends the episode (§4.6). |
+| `MAP04` (D104, P4) | `SD_MAP04_NAME` = "Trans-Siberian" / «Транссиб» / «Transsiberià» | `SD_EP03_NAME` = "The Road to Moscow" / «Дорога на Москву» / «El camí de Moscou», episode 2's first map | Owned by `level-designer` (`src/maps/MAP04/`): the Trans-Siberian marshalling yard at Sverdlovsk, the armoured train, the signal box, the locomotive roundhouse; left west on the armoured train. `cluster = 5`, `next = "MAP05"`, `music = "D_SDM01T"` (provisional, §4.5), `par = 300` (the mod-engineer's placeholder) (§4.6). |
+| `MAP05` (D104) | `SD_MAP05_NAME` = "Volga Dam" / «Волжская ГЭС» / «La presa del Volga» | `SD_EP03_NAME`, episode 2's second map | Owned by `level-designer` (`src/maps/MAP05/`): the hydroelectric dam at Zhiguli, the turbine hall, the spillway, the control room; left over the crest of the dam. `cluster = 6`, `next = "MAP06"`, `music = "D_SDFUNR"` (provisional), `par = 330` (placeholder). |
+| `MAP06` (D104) | `SD_MAP06_NAME` = "Red Square" / «Красная площадь» / «La plaça Roja» | `SD_EP03_NAME`, episode 2's third and last map | Owned by `level-designer` (`src/maps/MAP06/`): Moscow, out of the metro at Ploshchad Revolyutsii, the GUM galleries, Red Square, the gate in the Kremlin wall, the boss arena. `cluster = 7`, `next = endtitle`, `music = "D_SDGATE"` (provisional), `par = 420` (placeholder): its exit ends episode 2 (§4.6). |
 | `RANGE` (`MAP02` until D62) | `SD_RANGE_NAME` = "Training Ground" / «Учебный полигон» (D46, 2026-10-14; was "Engineering Test Range" / "Инженерный полигон"; the id was `SD_MAP02_NAME` until D62) | `SD_EP02_NAME` = "Practice Range" / «Полигон» (D41, §4.4) | `cluster = 2`, `next = endtitle`, `nointermission`. F4: 2048×768 hall, ceiling 128, light 192, player start at (160,384) facing +x. The seven weapons, the four ammo pools, barrels and six targets (thing 3004, Soviet riflemen since F5). **F5: the bestiary gallery**, a second room 2048×768 at y 1024–1792, ceiling 192, light 192: one of each of the eight enemy classes in a row at y = 1600, deaf (`ambush`) and facing north, away from the arrival spot. Since D41 the player reaches the map from New Game (§4.4); `MAP=RANGE tools/run.sh` starts it (D62). **Since commit `d1e891f` (2026-10-13), v1 for players:** an `Exit_Normal` switch (`SDSW1D`) in a lit alcove straight behind the start, and the gallery reached on foot through a manual door (tag 1) in the hall's north wall and a bent passage that comes out behind the row; the console's `warp 1024 1152` still lands there. Geometry and reasons are `level-designer`'s, `docs/levels/RANGE-practice-range.md`. Built as an engineering fixture; shipped as the practice range. |
 
-MAPINFO conventions: `clearepisodes` + one episode per campaign (plus the
-practice range, §4.4); **the MAPxx slots follow the campaign's order (D62)**
+MAPINFO conventions: `clearepisodes` + one episode per campaign episode
+(two since D104, §4.6) plus the practice range (§4.4); **the MAPxx slots follow the campaign's order (D62)**
 and a map outside the campaign takes a lump name that is not MAPxx (`RANGE`);
 map titles by `lookup`, episode title by `name = "$ID"` (**`lookup` is not accepted inside an
 episode block**, verified B1); every map and cluster names its music, and
@@ -366,7 +369,7 @@ between the ways of reaching it is ADR 007
 
 | What | Value |
 |---|---|
-| Episodes (`MAPINFO`, in this order) | `episode MAP01` name `$SD_EP01_NAME`, key `s`; `episode RANGE` name `$SD_EP02_NAME`, key `p` (`episode MAP02` until D62) |
+| Episodes (`MAPINFO`, in this order) | `episode MAP01` name `$SD_EP01_NAME`, key `s`; **`episode MAP04` name `$SD_EP03_NAME`, key `m`** (D104, P4: episode 2, "The Road to Moscow"; the `03` is the order the episodes were declared in, the range having taken `02` in D41); `episode RANGE` name `$SD_EP02_NAME`, key `p` (`episode MAP02` until D62). The order of the blocks is the order of the screen: the campaign's two episodes, then the range |
 | The range's lump (D62) | **`RANGE`**: out of the MAPxx slots, which follow the campaign. A non-MAPxx map is plain MAPINFO: GZDoom g4.14.2's own `mapinfo/doom2bfg.txt` opens its second episode with `episode level01` on the maps `LEVEL01`–`LEVEL09` of `mapinfo/doom2.txt` (read in the installed `gzdoom.pk3`, 2026-10-14). The build and `check_pk3` take any lump name of up to 8 characters (`validate_lump_name`, `lump_name_problem`); `tools/verify.py` finds map folders by that rule since D62. Such a map has no level number, which only `Teleport_NewMap` and `-warp` use; neither reaches the range. **NOT VERIFIED in the engine** until the PM's C6-C7 (§4.6) |
 | Episode names | `SD_EP02_NAME` = "Practice Range" / «Полигон». The map title under it is `SD_RANGE_NAME` = "Training Ground" / «Учебный полигон» since D46 (§4; the id was `SD_MAP02_NAME` until D62); the episode name stays (see the note below the table) |
 | Flow | Main menu → New Game → **episode screen** (new: with one episode the engine skipped it) → skill screen → the map |
@@ -439,8 +442,11 @@ The CEO accepted every music recommendation of `docs/sound/SOUNDTRACK.md`
 | MAP01, Zarya-7 | `map MAP01 { music = "D_SDM1N2" }` (since N9e, D95) | `D_SDM1N2`, ours, composed for MAP01 under D92 (`tools/audio/compose_map01.py`, variant `D_SDM01N2`); `D_SDM01` (D43) left MAP01 by D83 and no longer ships |
 | MAP02, metro-bunker | `music = "D_SDFUNR"` (D62) | `D_SDFUNR`, ours (approved D83) |
 | MAP03, Tankograd | `music = "D_SDGATE"` (D62) | `D_SDGATE`, ours (approved D83) |
+| MAP04, Trans-Siberian (D104) | `music = "D_SDM01T"` | **provisional**: the range's cut of MAP01's old theme (approved D86). D95 kept `compose_map01.py`'s variant N (`D_SDM01N`, 116 BPM) for a map of the full game, but it is not in `assets/music/`; installing it is `sound-designer`'s, then MAP04 can take it |
+| MAP05, Volga Dam (D104) | `music = "D_SDFUNR"` | **provisional**: MAP02's piece (approved D83) |
+| MAP06, Red Square (D104) | `music = "D_SDGATE"` | **provisional**: MAP03's piece (approved D83), until episode 2 has its own |
 | RANGE, practice range | `music = "D_SDM01T"` (since N9e, D86) | `D_SDM01T`, MAP01's theme `D_SDM01E` cut to its melodic part (bar 49); `D_SDAMUR` (D62) was rejected by D83 and no longer ships |
-| Clusters 1 to 4 (end and transition texts, §4.6) | `music = ""` | none |
+| Clusters 1 to 7 (end and transition texts, §4.6) | `music = ""` | none |
 | A diegetic radio (§6.7) | **none**: `SD_Radio` swaps the music from ZScript while the player is near it | `D_SDRAD1`, `D_SDRAD2` |
 
 Rule: every `music` / `TitleMusic` / `IntermissionMusic` value is `""` or a lump packed under
@@ -459,7 +465,7 @@ range, `RANGE` since D62).
 as Doom's does; and (N9e, 2026-10-20) that the stats screen after MAP01
 plays `D_SDTITL`, MAP01 `D_SDM1N2` and the range `D_SDM01T` (`currentmusic`, the PM's pass).
 
-### 4.6 The campaign's flow: MAP01 → MAP02 → MAP03 (D60, D62, 2026-10-14)
+### 4.6 The campaign's flow: MAP01 → MAP02 → MAP03, MAP04 → MAP05 → MAP06 (D60, D62, D104)
 
 D60 amended D5: the campaign grew past MAP01. **D62 renumbered the slots to
 follow it** ("para no confundir con los nombres"): MAP01 Zarya-7, **MAP02 the
@@ -476,6 +482,9 @@ design documents moved with `git mv`; dated evidence keeps its old names (a
 | `MAP02` | 4 | `"MAP03"` | the stats screen, then cluster 4's `SD_MAP02_EXIT_TEXT` over `SDFLR1`, then MAP03 |
 | `MAP03` | 1 | `endtitle` | the stats screen, then cluster 1's `SD_END01_TEXT` over `SDFLR1`, then the title screen |
 | `RANGE` | 2 | `endtitle` | unchanged (§4.4): no stats (`nointermission`), cluster 2's `SD_END02_TEXT`, the title screen |
+| `MAP04` (D104) | 5 | `"MAP05"` | the stats screen, then cluster 5's `SD_MAP04_EXIT_TEXT` over `SDFLR1`, then MAP05 |
+| `MAP05` (D104) | 6 | `"MAP06"` | the stats screen, then cluster 6's `SD_MAP05_EXIT_TEXT` over `SDFLR1`, then MAP06 |
+| `MAP06` (D104) | 7 | `endtitle` | the stats screen, then cluster 7's `SD_END03_TEXT` over `SDFLR1`, then the title screen |
 
 | Cluster | `exittext` | Holds | Role |
 |---|---|---|---|
@@ -483,8 +492,11 @@ design documents moved with `git mv`; dated evidence keeps its old names (a
 | 2 | `lookup, "SD_END02_TEXT"` | RANGE | the range's ending |
 | 3 | `lookup, "SD_MAP01_EXIT_TEXT"` | MAP01 | MAP01's chapter: the lift down into the metro |
 | 4 | `lookup, "SD_MAP02_EXIT_TEXT"` | MAP02 | MAP02's chapter: out of the westbound tunnel at the tractor works |
+| 5 | `lookup, "SD_MAP04_EXIT_TEXT"` | MAP04 | MAP04's chapter (D104): the armoured train west from Sverdlovsk to the Volga dam |
+| 6 | `lookup, "SD_MAP05_EXIT_TEXT"` | MAP05 | MAP05's chapter (D104): over the crest of the dam, the last metro train into Moscow |
+| 7 | `lookup, "SD_END03_TEXT"` | MAP06 | episode 2's ending (D104): the Kremlin holds, the invaders' main portal is still open |
 
-All four: `flat = "SDFLR1"`, `music = ""`, no `entertext`.
+All seven: `flat = "SDFLR1"`, `music = ""`, no `entertext`.
 
 **Why each map has its own cluster.** A cluster's text is printed only when
 the game crosses from one cluster into another: `exittext` is "displayed
@@ -502,14 +514,22 @@ the campaign ends. The rule, so that the next map is mechanical:
 - every earlier campaign map gets its own chapter cluster, numbered from 3
   upward in play order, whose `exittext` is `SD_MAPnn_EXIT_TEXT`, the way
   into the next map;
-- a fourth map (MAP04) would join cluster 1, MAP03 would get cluster 5 with
-  `SD_MAP03_EXIT_TEXT` and `next = "MAP04"`, and `SD_END01_TEXT` would be
-  rewritten for MAP04;
+- **D104 (P4) did not grow episode 1; it opened episode 2.** Episode 1
+  stays MAP01 → MAP03 and cluster 1 stays its ending. Episode 2, "The Road
+  to Moscow", is MAP04 → MAP05 → MAP06, a separate chain started from its
+  own `episode MAP04` block: nothing leads into MAP04, and MAP03 still says
+  `endtitle`. Its chapters continue the numbering (cluster 5 = MAP04's,
+  6 = MAP05's) and its ending is cluster 7, MAP06's alone, with
+  `SD_END03_TEXT` (the `03` of the episode ids, `SD_EP03_NAME`, is the order
+  the episodes were declared in, not their place on the menu). A later
+  episode follows the same pattern: its maps on the next MAPxx slots, one
+  chapter cluster per map before its last, numbered on, and one ending
+  cluster;
 - the MAPxx slots stay in play order (D62); a map outside the campaign takes
   a non-MAPxx lump name, as `RANGE` does.
 
 **The ending prints once.** Only cluster 1 carries `SD_END01_TEXT` and only
-MAP03 is in it, so leaving MAP01 or MAP02 prints its own transition and
+MAP03 is in it (and only cluster 7 `SD_END03_TEXT`, with MAP06 alone in it), so leaving MAP01 or MAP02 prints its own transition and
 never the ending. No cluster has an `entertext`: GZDoom would show the next
 cluster's `entertext` in place of the current one's `exittext` (read in the
 engine source, `G_WorldDone`; **NOT VERIFIED in the engine**), and two texts
@@ -554,6 +574,10 @@ The route **names** follow the maps: `range-start`, `range-door` and
 | C6 | New Game → **Practice Range** → any skill (the episode screen, the menu way in); then its exit switch | "RANGE - Training Ground" in the log, the range as before; `SD_END02_TEXT`, then the title screen |
 | C7 | `+map RANGE` from the command line (`MAP=RANGE tools/run.sh`), and `map RANGE` from the console | the range loads by its non-MAPxx name |
 | C8 | the log of all the above | no `Script error` from `MAPINFO`, no `Unknown` lookup, no "map not found" |
+| C9 (D104) | New Game: the episode screen | three episodes in this order: Soviet Doom, The Road to Moscow, Practice Range (and «Дорога на Москву», «El camí de Moscou» in Russian and Catalan), all inside the screen |
+| C10 (D104) | New Game → The Road to Moscow → any skill; finish MAP04 | "MAP04 - Trans-Siberian" in the log; the stats screen, then `SD_MAP04_EXIT_TEXT` ("The armoured train clears the yard…"), then MAP05 |
+| C11 (D104) | finish MAP05 | `SD_MAP05_EXIT_TEXT` ("You cross the crest of the dam…"), then MAP06 ("MAP06 - Red Square") |
+| C12 (D104) | finish MAP06; then MAP03 again from episode 1 | `SD_END03_TEXT` ("The last of them falls at the Kremlin gate…", TO BE CONTINUED), then the title screen; MAP03 still ends with `SD_END01_TEXT` and never leads to MAP04 |
 
 ### 4.1 How the campaign ends (M3, closed 2026-10-13)
 

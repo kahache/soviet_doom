@@ -1,0 +1,429 @@
+# MAP06 — «Красная площадь» (Red Square), episode 2's last map
+
+Design document. Owner: `level-designer`. Status: **v1 BUILT 2026-10-22,
+not yet walked, no engine pass yet** (D26: this role never starts GZDoom).
+Built MVP first (D60): the whole plan, textured with approved lumps only,
+populated, stocked, three keys, three secrets, the boss and the exit. Source:
+`src/maps/MAP06/map.py`; tests: `tests/test_map06_red_square.py` (the map,
+53 tests) and `tests/test_map06_route.py` (the route, 12); top-down view:
+`docs/levels/shots/MAP06-overview.png`. Russian mirror: owed at the phase
+close (D34).
+
+> **Walk it** (the PM or the CEO; agents never start GZDoom, D26):
+> `python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP06 SKILL=3 tools/run.sh`
+> — or `-file dist/sovietdoom.pk3 +map MAP06 -skill 3` by hand.
+> The automatic run: `SD_ALLOW_ENGINE=1 python3 tools/route.py --route redsquare-critical --keep-evidence`.
+
+Inputs this document obeys and does not restate: D104 (P4, episode 2 «The
+Road to Moscow»), `docs/product/LORE.md` (D12, the rules of respect),
+`docs/PRD.md` (D35 factions, D58 the key lesson, D60 MVP first, D68 thing
+specials), `docs/art/TEXTURE-INDEX.md` (approved lumps only),
+`docs/engine/MOD-SPEC.md` §6.1 (editor numbers), `docs/engine/BALANCE.md`,
+and the method of `docs/levels/MAP03-factory.md`, whose arena and boss this
+map's end follows.
+
+## 1. Synopsis
+
+Moscow, November 1977, days before the anniversary parade (`SD_QUIT_04`):
+Sergeant Vilanova comes up out of the metro at Ploshchad Revolyutsii into a
+capital held by the Fourth Reich and the Liberty Legion, fights down
+Nikolskaya and through the looted GUM, takes Red Square from the parade that
+was staged for the invaders, and goes through the Kremlin wall's Spasskaya
+gate to kill the episode's boss in the Kremlin courtyard.
+
+## 2. Its place in the campaign
+
+| | |
+|---|---|
+| Comes after | MAP05, the Volga dam (another agent's, D104). The episode's road ends in Moscow; the arrival by metro ties it to MAP02's tunnels. |
+| Its number | MAP06, episode 2's last slot (MAPINFO: cluster 7, the episode's ending; mod-engineer's). |
+| What it adds | **three keys** (MAP03 taught two), the campaign's **first open air at scale** (a square 1792 × 2304 under the sky), **verticality you fight across** (the GUM's gallery and bridge, the reviewing stands), and an **exit opened by a death**: the boss's. |
+| Climax | the Kremlin courtyard behind the Spasskaya gate: the boss on a dais, both factions round him; his death opens the exit gate. |
+| Factions (D35) | the Reich holds the station, the street and the slope (the military occupation); the Legion holds the GUM ("capital", in the department store) and springs the museum's counter-attack; both hold the square and both guard the boss (tested). |
+
+## 3. What the map has to do
+
+| Job | How the layout does it |
+|---|---|
+| Be Moscow, without new art | four recognisable places in their real order: the metro hall with bronze figures in its arches, Nikolskaya, the GUM's glass-roofed line, Red Square with the Kremlin's crenellated wall, the Spasskaya tower, the mausoleum and its reviewing stands, Minin and Pozharsky; the parade's vehicles halted on the square. All built from approved lumps (§7); what a Moscow set would do better is §8. |
+| Be the biggest and hardest map | extent 5552 × 4928 units (MAP03: 3776 × 2144); 42 / 68 / 96 monsters (MAP03: 25 / 38 / 52), every class of the bestiary, the boss on every skill. |
+| Teach three keys | each lock is seen before its key (tested): the blue door from the GUM's north hall, down the arcade; the red gate, the yellow gatehouse **and the yellow key** all at once from the blue door, across the parade. Each key lies alone on its own lit spot in its lock's colour of light (D58). |
+| Open space and height | the square is open air; the GUM has a gallery 128 up along its line, a bridge across it and an upper floor of shops; the stands are 7 steps to a top row 128 up. Snipers above, a Doughboy under the glass roof, the parade's vehicles as cover. |
+| End the episode | the exit gate in the courtyard's west wall opens only when the boss dies (his thing special); the exit switch is behind it. |
+
+Target length: 15–18 minutes first run on skill 3; about 7 once known
+(par proposal: 420 s, §13).
+
+## 4. Plan
+
+The authoritative plan is the top-down render generated from the source:
+`docs/levels/shots/MAP06-overview.png` (north up). Schematic (not to scale):
+
+```
+                                    +---------- STATION (z1, -128) ---------+--S1
+                         pavilion<==escalator  hall, arches with statues    |
+                          (z2)      (8 steps)  platforms + tracks both sides|
+                  S3 yard   |                  start ->                     |
+           +----------------+---- NIKOLSKAYA STREET (z3, sky) -------------+
+           | Resurrection   |   barricades, a truck, three courtyard gates
+           | gate (barred)  |
+  +--------+----museum----------+   +--------- GUM north hall (z4) ---------+
+  |  closet W   closet E        |   | arcade |shops| line (z5, glass roof) |gallery|upper shops
+  |                             |   |        |     |     ...bridge+BLUE KEY|  +128 |   S2
+  | stand N (YELLOW KEY, +128)  |   |        |     |                       |       |
+ K| mausoleum      RED SQUARE   |[B]| blue   |atrium+fountain  stairs ---- |       |
+ r| stand S (ROKS-3)  (z6, sky) |   | door   |     |                       |       |
+ e|    parade vehicles as cover |   |        |     |                       |       |
+ m[R] Spasskaya tower           |   +--------- GUM south hall ------------+
+ l|                    [Y] gatehouse
+ i|   VEHICLE PARK (z7, sky): RED KEY on the command post's plinth
+ n+-----------------------------+
+ |
+ KREMLIN COURTYARD (z9): boss on the dais, Tsar Bell, Tsar Cannon --[gate]-- exit (z10)
+ (through [R], the passage z8)
+```
+
+| # | Zone | x | y | floor | ceiling | light |
+|---|---|---|---|---|---|---|
+| Z1 | Station hall (start), Ploshchad Revolyutsii | 4096…5376 | 4736…4992 | −128 | 64 | 144 |
+| — | Arches, 4 a side, 2 bronze figures each (props 96 high) | 4224…5120 | 4672…4736, 4992…5056 | −128 | 0 | 144 |
+| — | Platforms, edges, tracks (16 down) | 4096…5376 | 4352…4736, 5056…5376 | −128 / −144 | 64 | 128 / 112 |
+| — | Escalator, 8 steps of 16, rising west | 3840…4096 | 4800…4928 | −112…0 | +128 | 128 |
+| Z2 | Street pavilion | 3520…3840 | 4160…4992 | 0 | 192 | 128 |
+| Z3 | Nikolskaya street (sky) | 2816…4352 | 3648…4096 | 0 | sky 320 | 112 |
+| — | Resurrection gate: 2 arches, barricades 64 high across them | 2816…3136 | 3456…3648 | 0 / 64 | 192 | 112 / 144 |
+| Z4 | GUM north hall · south hall | 3520…4352 | 3328…3584 · 1152…1408 | 0 | 256 | 128 |
+| Z4 | Arcade (west line), 4 columns; facade windows (sill 112) onto the square | 3520…3776 | 1408…3328 | 0 | 192 | 128 |
+| Z4 | Blue lock band (one tile) · blue door · square-side portal | 3520…3584 · 3488…3520 · 3456…3488 | 2176…2560 · 2304…2432 | 0 | 128 | **192**, blue |
+| Z4 | Four looted shops (two pass through to the arcade); doorways 128 high | 3808…3936 | 1472…3264 | 0 | 160 | 112 |
+| Z5 | The line under the glass roof (south, north of the bridge) | 3968…4224 | 1408…2944, 3008…3328 | 0 | sky 448 | 144 |
+| Z5 | Atrium, fountain (prop) | 3808…4352 | 2176…2496 | 0 | sky 448 | 160 |
+| Z5 | Gallery, south and north parts; 8-step stairs from the atrium | 4224…4352 | 1536…1920, 2752…3264 | +128 | sky 448 | 144 |
+| Z5 | **Bridge** across the line; the **blue key** on its lit middle | 3968…4224 | 2944…3008 | +128 | sky 448 | 144 / **192**, blue |
+| Z5 | West upper room (green armour) · three upper shops | 3808…3968 · 4384…4608 | 2880…3072 · 1600…3264 | +128 | 448 / 256 | 144 / 112 |
+| Z6 | **Red Square** (sky) | 1664…3456 | 1152…3456 | 0 | sky 384 | 144 |
+| Z6 | Kremlin wall: merlons/crenels, 32 wide, closed sky blocks | 1600…1664 | 448…3456 | 288 / 256 | = floor | 144 |
+| Z6 | Spasskaya tower: base, star tier, green tent (closed sky blocks) in an apron of sky 768 | 1600…1856 | 1216…1408 | 448 / 576 / 704 | = floor | 144 |
+| Z6 | **Red lock** portal (the Spasskaya gate) in front of an apron of sky 288 | 1600…1664 | 1472…1600 | 0 | 128 | **192**, red |
+| Z6 | Mausoleum, three tiers (prop) | 1664…1856 | 2176…2432 | 64 / 112 / 144 | sky | 144 |
+| Z6 | Reviewing stands N and S: 7 steps of 16 up to a top row 96 deep | 1664…1984 | 2560…3008, 1856…2112 | 16…128 | sky | 144; N top **192**, yellow (the **yellow key**) |
+| Z6 | Parade vehicles: 3 tanks, 2 lorries, 2 missile carriers (props) | §4.2 | | 48–96 | sky | 144 |
+| Z6 | Museum's two closets (the red key's ambush) | 1920…2112, 2304…2496 | 3472…3584 | 0 | 128 | 112 |
+| Z6 | **Yellow lock** portal; the gatehouse is the square's south wall | 2688…2816 | 1120…1152 | 0 | 128 | **192**, yellow |
+| — | Parapet over the slope (closed sky block) | 1664…2560 | 1088…1152 | 128 | = floor | 144 |
+| Z7 | Vehicle park on the slope (sky); porch behind the yellow door | 1664…2944 | 448…1088 | 0 | sky 384 | 128 |
+| Z7 | Command post's plinth: the **red key** | 2112…2240 | 640…768 | 16 | sky | **192**, red |
+| Z8 | Spasskaya gate's passage (blue armour, cells, rockets) | 1408…1568 | 1472…1600 | 0 | 128 | 112 |
+| Z9 | **Kremlin courtyard** (sky); its own crenellated east wall | 512…1344 | 768…2048 | 0 | sky 512 | 144 |
+| Z9 | Dais, 2 steps; the boss at `MAP06_BOSS_SPOT` (960, 1536) | 832…1088 | 1408…1664 | 16 / 32 | sky | 144 |
+| Z9 | Tsar Bell (128 high), Tsar Cannon (64), four columns | | | | | |
+| Z10 | Exit gate (`SDGATE1`, tag 12) · exit hall · exit niche (`SDSW1D`) | 416…448 · 192…416 · 176…192 | 1472…1600 | 0 | 128 | 128; niche **192** |
+
+Every height is a multiple of 16; no step up is over 16 (tested).
+
+### 4.1 The open air: skies at several heights (NOT VERIFIED in engine)
+
+Each one-sided wall shows as tall as the ceiling of the sector it bounds; two
+sky ceilings side by side draw no wall between them (Doom's sky hack, kept by
+GZDoom). The map uses that to give each building its height:
+
+- the square's sky is at **384**: the GUM's facade and the museum stand
+  three storeys high; door portals (ceiling 128) show the facade above them;
+- the Kremlin wall is a strip of **closed sky blocks** (floor = ceiling):
+  merlons at 288 and crenels at 256, alternating every 32 units, so the wall
+  reads as crenellated brick against the sky (the swallowtail is §8's);
+- the Spasskaya tower: three closed sky blocks at 448, 576 and 704, the
+  middle tier's 128-high faces the star plaque `SDSTAR1` (the ruby star,
+  suggested), the top's `SDSTEL1` (the green tent); round it an apron of
+  sky 768 so the stages show; in front of the gate an apron of sky 288, so
+  the wall above the gate's portal is the wall's own height;
+- the parapet over the slope: a closed sky block 128 high, seen as a low
+  wall with the sky beyond.
+
+If the hardware renderer draws any of this wrong (a "sky wall" over a
+lower sky, a tower clipped at 384), the fallback is to flatten the aprons to
+the square's 384: nothing else moves (engine check E1, §12).
+
+### 4.2 The parade, halted
+
+Tanks (hull 48 high, turret 80), lorries (48) and missile carriers (64, the
+missile 96), all `SDSTEL1` with chequer-plate decks, in two columns along the
+parade's axis and a third in the middle. Every vehicle stands clear of the
+three sight lines the square must give from the blue door (red gate, yellow
+gatehouse, yellow key; tested). Three more stand in the vehicle park.
+
+## 5. Progression, keys, doors and the exit
+
+```mermaid
+graph LR
+  S[Z1 Station<br/>start] --> E[escalator] --> P[Z2 pavilion] --> N[Z3 Nikolskaya]
+  N --> GN[Z4 GUM north hall<br/>SEES the blue door + the blue key]
+  GN --> A[arcade / shops] --> AT[Z5 atrium] --> GS[gallery stair] --> BR[bridge<br/>BLUE KEY]
+  A -->|blue door| SQ[Z6 Red Square<br/>SEES red gate, yellow gate, yellow key]
+  SQ --> ST[north stand<br/>YELLOW KEY]
+  SQ -->|yellow gatehouse| PK[Z7 vehicle park<br/>RED KEY: closets open]
+  SQ -->|Spasskaya gate| PS[Z8 passage] --> K[Z9 courtyard<br/>the boss]
+  K -->|his death opens the gate| X[Z10 EXIT]
+```
+
+**The keys.** Doom's three keycards under their Soviet names (MOD-SPEC §6:
+`SD_BluePass` 5, `SD_YellowPass` 6, `SD_RedPass` 13), locks 2, 3 and 1
+(gzdoom.pk3 `lockdefs.txt`, as MAP02 and MAP03 cite it).
+
+| Id | Where | Type | Special | Can it lock the player out? |
+|---|---|---|---|---|
+| **BD** | GUM facade, arcade → square, 128 wide, `SDDOOR1` between two cobalt mosaics (MAP02's blue door) | locked, opens for good | `Door_LockedRaise (4, 16, 0, 2, 0)`, both faces | no |
+| **YD** | The gatehouse, square → vehicle park, `SDDOORY` | locked, opens for good | `Door_LockedRaise (5, 16, 0, 3, 0)` | no |
+| **RD** | The Spasskaya gate, square → passage, `SDDOORR` | locked, opens for good | `Door_LockedRaise (6, 16, 0, 1, 0)` | no |
+| S1, S2, S3 | push panels (§9) | open for good | `Door_Open (1/2/3, 16)`, both faces, `secret` | no |
+| CL | the museum's two closets | open for good | tag 10, **no line**: the red key's thing special `Door_Open (10, 16)` | no |
+| GATE | courtyard → exit hall, `SDGATE1` both faces, no special | opens for good | tag 12, **no line**: the boss's thing special `Door_Open (12, 16)` | only if the boss could not die: §11 |
+| EXIT | back of a 16-deep niche, `SDSW1D` | | `Exit_Normal (0)` | — |
+
+**The order, as the tests play it** (`test_the_route_is_the_designed_one`),
+five rounds: (0) station, street, GUM and its upper floor, the **blue key**
+(and the three secrets' panels, never needed); (1) the blue door: the square,
+the stands, the **yellow key**; (2) the yellow gatehouse: the park, the **red
+key**, whose pickup opens the closets; (3) the Spasskaya gate and the closets:
+the passage, the courtyard; (4) the boss's death: the exit gate, the exit.
+
+Signposting (D58): each key is alone on its lit spot, coloured like its lock
+(sector `lightcolor`, as MAP02 and MAP03), and seen before it is reached:
+the blue key from the GUM's north hall and the line below the bridge; the
+yellow key from the blue door; the red key through the yellow gatehouse
+(tested, and no monster stands on any of those sight lines at spawn). Light
+192 is spent on eight sectors only: the three portals of the locks, the blue
+band, the three key spots, the exit niche (tested).
+
+Softlock rules, MAP01's and MAP03's: no door closes behind the player; no
+lift; every drop (the gallery and bridge edges, the tracks) has a way back
+up; no secret is needed (tested). From every sector reachable at every
+stage there is a way back to the start, with and without the boss's death
+(tested), and at the end the exit is reachable from everywhere.
+
+## 6. Intensity curve
+
+| Beat | Space | Feeling | Mechanic |
+|---|---|---|---|
+| 1 | Station | the warm-up: a Reich picket among bronze figures | the IZh at once |
+| 2 | Nikolskaya | night street, a checkpoint, a hound | cover behind barricades |
+| 3 | GUM north hall | the department store: the blue door down the arcade, the key on the bridge above | **a key seen and out of reach** |
+| 4 | GUM line, atrium, gallery | snipers above, a Doughboy under the glass | **height**: the stair, the bridge |
+| 5 | Red Square | **the reveal and the open battle**: the parade, the wall, the tower, three goals at once | open space, vehicles as cover |
+| 6 | The stand | climbing in the open for the yellow key | exposure |
+| 7 | Vehicle park | the Reich's heavies on the slope | the red key |
+| 8 | Back across the square | **spike**: the museum's closets open behind the player | MAP03's pattern, sprung by a key |
+| 9 | Courtyard | **climax**: the boss and both factions | the boss |
+| 10 | Exit | the gate opens on his death | — |
+
+## 7. Textures, by zone (all approved and packed; tested)
+
+| Zone | Walls | Floor | Ceiling |
+|---|---|---|---|
+| Station hall | `SDMARB1` red marble; arches with `SDBRAS1` figures; east band `SDMOSA1` | `SDMFLR2` | `SDMCEIL2` (lamps) |
+| Platforms, tracks | `SDMARB2`; edge `SDMEDG1`; track walls `SDTUBB1` | `SDMFLR1`, `SDMFLR3`, `SDRAIL1` (turned) | `SDMCEIL1` |
+| Escalator | `SDTILE1` | `SDFLR4` | `SDMCEIL1` |
+| Pavilion, street | `SDCONC1`; courtyard gates `SDGATE1`; barricades `SDCRAT2`, a truck `SDSTEL1` | `SDMFLR1` / `SDFLR2` | `SDMCEIL1` / sky |
+| Resurrection gate, museum, Kremlin | `SDBRCK1` | `SDMFLR1` | — / sky |
+| GUM halls, arcade | `SDMARB2`; facade `SDCONC1` with window slits | `SDMFLR2` / `SDMFLR1` | `SDMCEIL1` |
+| GUM line, gallery | `SDWIND1` (shopfronts below and above the gallery) | `SDMFLR2` / `SDMFLR1` | sky (the glass roof) |
+| Shops | `SDTILE1`; loot `SDCRAT1` / `SDCRTOP1` | `SDMFLR1` | `SDMCEIL1` |
+| Square | facades `SDCONC1`, museum `SDBRCK1`, wall `SDBRCK1`, flags `SDFLAG1`/`SDFLAG2` side by side, tower `SDBRCK1` / `SDSTAR1` / `SDSTEL1`, mausoleum `SDMARB1`, stands `SDCONC1`, Minin `SDMARB1` + `SDBRAS1`, parapet `SDBRCK2` | `SDMFLR1` | sky |
+| Vehicles | `SDSTEL1` | `SDFLR4` | sky |
+| Park | `SDCONC1` | `SDFLR2` | sky |
+| Courtyard | `SDBRCK1`, flags; Tsar Bell and Cannon `SDBRAS1`; dais `SDMARB1` | `SDMFLR1` / `SDMFLR2` | sky |
+| Doors, switch | `SDDOOR1` (blue, between `SDMOSA1`), `SDDOORY`, `SDDOORR`, `SDGATE1` (exit gate); exit `SDSW1D` | | |
+
+## 8. Pending textures (for the art-director's draft "Moscow" set)
+
+Each stands in for a piece the map would wear better; swapping is one
+constant in `map.py` (the name in brackets), nothing moves.
+
+| # | Wanted | Stand-in now | Where |
+|---|---|---|---|
+| 1 | Cobblestones (granite setts), flat 64×64 | `SDMFLR1` (`GRANITE`) | the square, the courtyard |
+| 2 | Asphalt with tram rails / kerb, flat | `SDFLR2` (`FLOOR_ASPHALT`) | Nikolskaya, the park |
+| 3 | GUM facade: pale limestone with arched windows, 64×128 | `SDCONC1` (`CONCRETE`) | the square's east side, the street |
+| 4 | GUM shopfront: arched glazing with a gilt sign, looted, 64×128 | `SDWIND1` (`WINDOW`) | the line, the gallery |
+| 5 | GUM glass roof (iron-framed vault), flat | the sky | the line, the atrium |
+| 6 | Kremlin wall with swallowtail merlons, 64×128 (or a masked crest) | `SDBRCK1` blocks 256/288 | the wall, the courtyard |
+| 7 | Spasskaya: clock face 128×128, white-stone trim, the ruby star | `SDSTAR1` plaque, `SDSTEL1` tent | the tower |
+| 8 | Mausoleum: red granite and black labradorite bands, 64×128 | `SDMARB1` (`MARBLE`) | the mausoleum |
+| 9 | Historical Museum's red brick with white trim | `SDBRCK1` | the museum wall |
+| 10 | Blue-trimmed door leaf `SDDOORB` (twin of `SDDOORY`/`SDDOORR`) | `SDDOOR1` between `SDMOSA1` | the blue door |
+| 11 | Parade vehicle sides (tank, carrier), or sprites | `SDSTEL1` blocks | the square, the park |
+| 12 | Bronze statue texture or sprites (Ploshchad Revolyutsii's figures, Minin and Pozharsky) | `SDBRAS1` blocks | the station, the square |
+| 13 | Water flat for the fountain | `SDMFLR1` | the atrium |
+| 14 | A Moscow night sky (MAPINFO `sky1`, mod-engineer's) | Freedoom's `SKY1` | everywhere outdoors |
+| 15 | Saint Basil's as a skyline sprite or sky band | — (not built) | beyond the slope |
+
+## 9. Secrets
+
+MAP01's rule: a clue is a comparison, never a sign; each has a way back
+(tested).
+
+| # | Where | Clue | Reward |
+|---|---|---|---|
+| S1 | Station hall, east end, behind the start | of the two mosaics in the end wall, the second stands 16 back, in shadow (light 96) | backpack, flak vest, shell box |
+| S2 | GUM, upper shop U2 | its back wall is a wall of crates where the other upper shops show tile | the **Hand Katyusha** and a cell pack (Doom's BFG in the episode's last map; MAP03's S1 tradition) |
+| S3 | Nikolskaya, north side | of three courtyard gates, the middle one is set twice as deep and darker | a courtyard (open sky): two medikits, rockets |
+
+Each panel is `Door_Open` on both faces with the `secret` line flag (one-sided
+on the automap); each room is a sector with special 1024. None is needed for
+the exit (tested).
+
+## 10. Enemies and resources by skill
+
+Placed with the bestiary's own numbers (21100–21107); the boss on every
+skill. Skill pairs nested (`skill_tier`), as MAP01–MAP03.
+
+| Zone | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| Station | 3 riflemen | +2 riflemen | +1 rifleman, 1 stormtrooper |
+| Pavilion | 1 trooper | +1 trooper | +1 stormtrooper |
+| Nikolskaya | 3 riflemen, 1 stormtrooper, 1 hound | +2 riflemen, 1 stormtrooper | +1 rifleman, 1 stormtrooper, 1 hound |
+| GUM ground floor | 4 troopers, 1 stormtrooper | +2 troopers, 1 stormtrooper | +2 troopers, 1 Doughboy |
+| GUM line and upstairs | 2 troopers, 1 stormtrooper, 1 Doughboy | +1 trooper, 1 stormtrooper | +1 trooper, 1 stormtrooper, 1 Doughboy |
+| Red Square | 6 riflemen, 3 stormtroopers, 2 hounds, 1 Panzermensch, 1 Doughboy | +3 riflemen, 2 stormtroopers, 1 hound, 1 Doughboy | +3 riflemen, 2 stormtroopers, 1 hound, 1 Panzermensch, 1 heavy |
+| Museum closets (red key) | 2 troopers | +1 trooper, 1 stormtrooper | +2 stormtroopers |
+| Vehicle park | 3 riflemen, 1 hound, 1 Panzermensch | +2 riflemen, 1 stormtrooper | +1 stormtrooper, 1 hound, 1 heavy |
+| Gate passage | — | 1 stormtrooper | — |
+| Courtyard | **the boss**, 2 stormtroopers, 1 Doughboy | +2 hounds | +1 Panzermensch, 1 heavy, 1 Doughboy |
+| **Total** | **42** | **68** | **96** |
+
+By class on skill 4: 29 riflemen, 17 troopers, 25 stormtroopers, 10 hounds,
+7 Doughboys, 4 Panzermenschen, 3 heavy Panzermenschen, the boss.
+
+**Resources.** Pistol-start finishable: the IZh in the station hall, the
+PPSh in the GUM's north hall, the RPG-7 on the north gallery (before the
+square's Panzermensch), the ROKS-3 on the south stand's top row (before the
+slope's heavies), all on the route on every skill; the Hand Katyusha in S2.
+G3-8 (MAP03's ruler, in IZh shells; secrets not counted):
+
+| Skill | Needed | Placed | Ratio | Shells and rounds alone |
+|---|---|---|---|---|
+| 2 | 134 | 609.5 | 4.55 | 459.5 |
+| 3 | 179 | 571.5 | 3.19 | 421.5 |
+| 4 | 296 | 494.5 | 1.67 (≥ 1.35, < 3) | 359.5 (≥ 1.35 × all but the boss) |
+
+Also tested at every stage of the route. Health on skill 4: 6 stimpacks, 6
+medikits, 9 health bonuses; 6 armour bonuses (two at each lock), the flak
+vest in the GUM's west upper room, the heavy vest in the gate's passage,
+before the boss. Skills 3 and 2 add stimpacks, medikits and ammunition.
+
+## 11. The boss (stand-in)
+
+Episode 2's boss is a new Liberty Legion enemy that does not exist yet
+(D104). Until it does, **the General** (MAP03's boss, `SD_General`, 21106,
+3000 HP) stands in, at the named constant **`MAP06_BOSS_SPOT = (960, 1536)`**
+on the courtyard's dais, facing the gate (`BOSS_ANGLE = 0`), on every skill.
+
+- **To swap him:** set `BOSS_KIND` in `map.py` to the new enemy's kind and
+  add it to `MONSTER_KINDS` / `MONSTER_CLASSES` (and to `CLASS_FILES` in the
+  test). The spot, the facing and the death special stay. The route reads
+  the class from the map and refuses to build if the helper cannot hurt it
+  (add it to `COUNT_CLASSES` in `tools/route.py`).
+- **His death opens the exit**, MAP03 v1.1's mechanism (D68): his thing
+  carries `special = 11` (`Door_Open`), `arg0 = 12`, `arg1 = 16`; no line
+  carries tag 12, so pressing the gate does nothing (tested). GZDoom runs a
+  monster's special when it dies (`AActor::Die`), whoever killed it.
+- **Room:** the courtyard is 832 × 1280 under a sky of 512, the dais two
+  steps of 16; he never has to pass a door (the gate's passage is 128 high
+  and wide, so he can follow the player onto the square; his death opens the
+  gate wherever it happens).
+- **The risk, said plainly:** if the death special did not fire in the
+  engine, the exit would be unreachable. MAP03's stores use the same
+  mechanism and it is still NOT VERIFIED in play (MAP03 §16.5 V4). Check E3
+  (§12) settles it; the belt-and-braces fix is the mod-engineer's: a MAPINFO
+  `SpecialAction = "SD_General", "Door_Open", 12, 16` in MAP06's block, which
+  opens the same tag when the last General dies (§13). With `-nomonsters`
+  the exit cannot open, as on Doom's boss maps.
+
+## 12. Engine elements used, and the PM's engine checklist (D26)
+
+| Need | Emitted | Status |
+|---|---|---|
+| Locked doors | `Door_LockedRaise` 13, locks 1, 2, 3 | VERIFIED on MAP02 (2) and MAP03 (1, 3) |
+| Push panels (secrets) | `Door_Open` 11, line flag `secret`, sector special 1024 | VERIFIED on MAP01–MAP03 |
+| Exit | `Exit_Normal` 243 | VERIFIED |
+| Coloured light | sector `lightcolor` | as MAP02/MAP03 (their K4) |
+| Turned flats | `rotationfloor` 90 / 180 | as MAP02 |
+| **Thing special on death** | the boss: `special` 11, `arg0` 12 | spec VERIFIED; **in play NOT VERIFIED** |
+| **Thing special on pickup** | the red key: `special` 11, `arg0` 10 | Hexen-style item special; **NOT VERIFIED** |
+| **Skies at several heights, closed sky blocks** | §4.1 | **NOT VERIFIED** |
+
+Engine checklist for the PM (one pass, skill 3, then the route on 2, 3, 4):
+
+- **E1** the square: the Kremlin wall shows merlons against the sky; the
+  tower's three stages show over it from the square's middle and from the
+  blue door; no sky-coloured slab above a door portal, no HOM.
+- **E2** the red key: picking it up opens the museum's closets (the route's
+  RKEY step checks tag 10 open).
+- **E3** the boss: killing him opens the exit gate (the route's BOSS1 step
+  checks tag 12 open after the helper's damage); and by hand once.
+- **E4** the GUM: the blue key is visible on the bridge from the north hall;
+  the gallery stairs climb; the bridge crosses the line.
+- **E5** the window slits on the GUM's facade: seen through, never passed.
+- **E6** the parade's vehicles and statues: nobody gets stuck on a corner.
+
+## 13. MAPINFO and LANGUAGE (for the scaffolding agent / `mod-engineer`)
+
+Not this role's files. What the map needs:
+
+- `map MAP06 lookup "SD_MAP06_NAME"`: «Красная площадь» / "Red Square"
+  (and `[ca]` «Plaça Roja»), episode 2's ending cluster (7);
+- `par = 420` (level-designer's estimate for a player who knows the route);
+- `sky1`: a Moscow night sky when one exists (§8 #14);
+- recommended: `SpecialAction = "SD_General", "Door_Open", 12, 16` as the
+  fallback for the boss's death special (§11), changed to the new boss's
+  class when it replaces him;
+- music: the episode's, sound-designer's.
+
+## 14. The automatic route: `redsquare-critical`
+
+`tools/route.py`, read off the built map like `tankograd-critical` (nothing
+copied: tags, locks, keys, the boss's class and spot come from `map.py`):
+A0 start (no key) → BD0 the blue door refused → BKEY the blue key walked onto
+on the bridge → BD1 the blue door, onto the square → YD0, RD0 the yellow and
+red gates refused on one key → YKEY up the stand onto the yellow key → YD1
+the gatehouse → RDY the red gate refused on two keys → RKEY the red key (and
+tag 10 must be open: the closets) → RD1 the Spasskaya gate → BOSS0 in the
+courtyard, the exit gate shut → BOSS1 the boss hurt past his health (helper
+damage), the exit gate open → E0 through the gate to the switch → E1 pressed.
+Its geometry is tested in `tests/test_map06_route.py` (no engine).
+
+## 15. Rules of respect (D12)
+
+The map shows real places of the capital as the setting of an invasion, and
+treats them as architecture. The mausoleum is a closed block: nothing
+stands, lies or fights on it (tested), no key or reward is there; the
+occupiers' banners hang on the Kremlin wall and in its courtyard (LORE: both
+flags side by side over taken Soviet buildings); no poster, text or joke
+touches real victims.
+
+## 16. v1 build record (2026-10-22)
+
+**Verification actually run** (no engine, D26): `tests/test_map06_red_square.py`
+53 tests OK; `tests/test_map06_route.py` 12 OK; `tests/test_route.py` 107 OK with
+the new route registered; `tools/check_pk3.py` on a fresh build: 0 errors, 0
+warnings (MAP06: 886 vertices, 1180 linedefs, 197 sectors, 215 things).
+`tools/verify.py fast` could not replace `dist/sovietdoom.pk3` while a GZDoom
+process held it (the PM's engine run); the same pieces were run separately
+(build to a scratch path, check_pk3, `tests/_tiers.py fast`). The fast tier
+found one geometry fault of this map, fixed: a stack of crates 64 high under
+a 128 ceiling left a 64-high space a Panzermensch fits and the heavy one does
+not (`test_panzermensch_sprites`); the shops are now 160 high and the crates
+stand clear of the doorways. Two cross-map tests still name the maps a class
+may stand in and do not know episode 2 yet (`test_doughboy_sprites`,
+`test_general_sprites`: the General stands in MAP06 by design, §11); their
+owners update the expected sets.
+
+**Open points for the CEO** (judged by walking it, D28):
+
+1. Is the square the right size? (1792 × 2304; Doom's open areas rarely
+   pass 2048 a side.)
+2. The GUM: is the bridge-and-gallery enough height, or should the upper
+   floor run the whole length (one more stair)?
+3. The tower's stand-in look (star plaque tier, green tent) until §8 #7.
+4. The red key's ambush from the museum: keep, or also wake the square's
+   survivors?

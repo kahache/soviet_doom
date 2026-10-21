@@ -1,0 +1,953 @@
+"""MAP05 «Волжская ГЭС» / Volga Dam - v1: the whole map, textured and populated.
+
+Design document: docs/levels/MAP05-volga-dam.md (section 13 is this build).
+Episode 2, «The Road to Moscow» (D104, P4), its second map: the Zhiguli
+hydroelectric station on the Volga, November 1977, held by the Fourth Reich
+and the Liberty Legion. Sergeant Vilanova arrives where MAP04 leaves him: in
+the armoured train, at the dam's station on the east bank, level with the
+crest; he leaves by the west bank's door at the far end of the crest.
+
+Built MVP first (D60): complete and walkable from start to exit, both keys
+on the route in plain sight on lit places in their lock's colour (MAP02's
+lesson, D58), the population and the ammunition of G3-8's budget, three
+secrets. Balance and light are later passes.
+
+The route, in one line: the station (the BLUE GATE onto the crest seen at
+once, shut) -> the gatehouse, D1 -> the inspection gallery, three flights
+down inside the concrete -> the lower gallery -> the turbine hall (the
+YELLOW DOOR seen high on the north catwalk) -> the spillway gallery -> the
+spillway: the YELLOW KEY on the winch house across the water (the channel
+hurts a little) -> back to the hall, up the catwalk stair, the yellow door
+(and the catwalk's two closets) -> the control room, SW-A, which opens the
+cable gallery -> up the cable gallery to the substation: the BLUE KEY on the
+transformer pad, and SW-B, which opens a shutter straight back into the
+station -> the blue gate (and the station's two closets) -> the crest,
+westwards, the last fight -> D2, the west bank's door -> the exit switch.
+
+Heights: the turbine hall is the ground (0); the catwalk and the control
+room are at +192; the station, the substation and the crest at +384; the
+spillway's channel at -64. The descent is three flights inside the dam, the
+climb back one flight in the cable gallery: the dam is 384 high and the map
+uses all of it.
+
+Geometry is painted with `GridMap` (tools/sdbuild/udmf.py), MAP01's method.
+Outdoors (station, spillway, substation, crest) the ceiling is F_SKY1, the
+engine's sky marker (MAPINFO names SKY1 for MAP05). The parapets carry a
+low sky ceiling (Doom's open-air trick): beyond them the sky, never a wall.
+
+Run it (the PM or the CEO; agents never start GZDoom, D26):
+    python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP05 SKILL=3 tools/run.sh
+"""
+
+from __future__ import annotations
+
+from dataclasses import replace
+
+from sdbuild.udmf import (
+    DOOR_SPEED_SLOW,
+    SECTOR_SPECIAL_SECRET,
+    GridMap,
+    LineStyle,
+    Sector,
+    TextMap,
+    Thing,
+    door_open_style,
+    door_raise_style,
+    exit_switch_style,
+    remote_door_style,
+    skill_tier,
+    switch_door_open_style,
+)
+
+MAP_NAME = "MAP05"
+
+# --- The approved sets (docs/art/TEXTURE-INDEX.md) ---------------------------
+# No "Dam" set is approved yet (the art-director is drawing one): every place
+# that wants one wears the nearest approved lump, listed in the design
+# document's section 7.2, "Pending textures", with the lump it waits for.
+CONCRETE = "SDCONC1"     # prefab panels: the dam's faces, the spillway, the parapets
+CONCRETE_STRIPE = "SDCONC2"  # concrete with the red stripe: the turbine hall (pending SDTURB2)
+STEEL = "SDSTEL1"        # green riveted plate: generators, catwalk, train, transformers, consoles
+TILE_DADO = "SDTILE2"    # tile over a green dado: the control room, the gatehouse
+TUNNEL = "SDTUNL1"       # board-cast concrete with cable runs: the inspection and cable galleries
+BRICK = "SDBRCK1"        # works brick: the station's buildings
+RUST = "SDRUST1"         # corrugated sheet: the substation's fence, the crane huts
+DOOR = "SDDOOR1"         # D1, D2 and, until a blue trim exists, the blue gate (pending SDDOORB)
+DOOR_YELLOW = "SDDOORY"  # the yellow lock's trim
+ROAD_GATE = "SDGATE1"    # corrugated gate: the sluice gates, S3's shut hut
+WINDOW = "SDWIND1"       # industrial glazing at night: the turbine hall's clerestory
+FLAG_REICH = "SDFLAG1"   # both banners side by side by the blue gate (D35)
+FLAG_LEGION = "SDFLAG2"
+CRATE = "SDCRAT1"        # crate faces: the crest's barricades
+FLOOR_LANE = "SDFLR1"    # concrete with a yellow lane line: the road on the crest
+FLOOR_CONCRETE = "SDFLR2"
+FLOOR_TILE = "SDFLR3"    # the turbine hall's and the control room's floor
+CEIL_PANEL = "SDCEIL1"
+CEIL_CONCRETE = "SDCEIL2"
+CRATE_TOP = "SDCRTOP1"
+RAILS = "SDRAIL1"        # track bed, rails along the image's y: turned a quarter
+FLOOR_PLATE = "SDFLR4"   # chequer plate: generator tops, consoles, pads
+GRATING = "SDGRAT1"      # the catwalk
+WATER = "SDMFLR1"        # dark polished granite standing in for the Volga (pending SDWATR1-4)
+SKY = "F_SKY1"           # the engine's sky marker, not a lump of ours (check_pk3 knows it)
+
+# Switches (D25), one variant per switch; the exit keeps the hazard panel
+# every map's exit wears.
+SW_A_FACE = "SDSW1A"     # control room: the knife switch, opens the cable gallery
+SW_B_FACE = "SDSW1B"     # substation: the push button, opens the shutter into the station
+EXIT_FACE = "SDSW1D"
+SWITCH_FACES = (SW_A_FACE, SW_B_FACE, EXIT_FACE)
+SWITCH_WIDTH = 64
+SWITCH_HEIGHT = 128
+TILE = 128               # door leaves, gates, flags, panes: one whole tile
+DOOR_LEAVES = (DOOR, DOOR_YELLOW)
+
+# --- Specials and keys -------------------------------------------------------
+# Door_LockedRaise (tag, speed, delay, lock, lighttag): 13, VERIFIED in engine
+# on MAP02 and MAP03. Delay 0: opens and stays open.
+SPECIAL_DOOR_LOCKED_RAISE = 13
+# Lock numbers from gzdoom.pk3 g4.14.2 -> lockdefs.txt: `Lock 2 Doom
+# { BlueCard ... }`, `Lock 3 Doom { YellowCard ... }`. Both already opened
+# in the engine (MAP02's blue door, MAP03's yellow door).
+LOCK_BLUE_CARD = 2
+LOCK_YELLOW_CARD = 3
+# Doom's editor numbers; SD_BluePass and SD_YellowPass replace the cards
+# (src/zscript/sd/keys.zs), so the passes are drawn as ours.
+ED_BLUE_CARD = 5
+ED_YELLOW_CARD = 6
+KEY_LOCKS = {ED_BLUE_CARD: LOCK_BLUE_CARD, ED_YELLOW_CARD: LOCK_YELLOW_CARD}
+
+ED_PLAYER1_START = 1
+
+# --- Heights -------------------------------------------------------------------
+GROUND = 0              # the turbine hall, the lower gallery, the spillway's walkways
+CATWALK = 192           # the hall's north catwalk and the control room behind it
+CREST = 384             # the station, the substation, the crest: the top of the dam
+CHANNEL = -64           # the spillway's water
+STEP = 16               # every stair step; under MAX_STEP_UP 24
+STEP_RUN = 32           # every stair step is 32 deep
+FLIGHT_STEPS = 7        # seven steps and a landing: 128 down per flight
+FLIGHT_DROP = (FLIGHT_STEPS + 1) * STEP
+DOOR_HEIGHT = 128
+GALLERY_HEIGHT = 128    # every inspection gallery: one door high
+PARAPET = 32            # the crest's parapets: cover to the waist, never a step
+PAD = 16                # the key pads and the winch house: one step up
+CONSOLE = 32            # the control room's consoles: waist high
+GENERATOR = 48          # the generators' housings: chest high, cover, not a step
+TRANSFORMER = 96        # the substation's transformers
+TRAIN = 128             # the armoured train standing in the station
+CRATES = 64             # the crest's barricades
+HALL_CEIL = 448
+CONTROL_CEIL = CATWALK + 160
+ROOF = CREST + DOOR_HEIGHT          # 512: every roofed room at crest level
+SKY_CEIL = 768                      # outdoors: the sky over the dam
+PARAPET_SKY = CREST + PARAPET + 16  # 432: the open-air trick over the parapets
+CLERESTORY_SILL = HALL_CEIL - TILE  # 320
+WINDOW_SILL = CATWALK + 48          # the control room's windows onto the hall
+WINDOW_TOP = CATWALK + 128   # an 80-high slot: never the 64..72 gap only the base Panzermensch fits (D67)
+NICHE_DEPTH = 16
+CLOSET_HEIGHT = 128
+
+# --- Light ---------------------------------------------------------------------
+# A November night. 192 is spent on five places only: the two locks, the two
+# keys and the exit (MAP02 v1's rule).
+LIGHT_MIN = 96
+LIGHT_MAX = 192
+LIGHT_BEACON = LIGHT_MAX
+LIGHT_OUTDOORS = 128    # the station, the crest, the substation under the floodlights
+LIGHT_SPILLWAY = 112    # the spillway: the darkest outdoor place
+LIGHT_GATEHOUSE = 144
+LIGHT_GALLERY = 112     # the inspection galleries inside the concrete
+LIGHT_HALL = 160
+LIGHT_CONTROL = 160
+LIGHT_CLOSET = 112
+LIGHT_HUT = 112
+LIGHT_SHADOW = LIGHT_MIN    # a secret's set-back panel: the one in shadow
+LIGHT_SECRET = 112
+BEACON_ZONES = ("z1_blue_portal", "z5_yellow_portal", "z7_winch", "z9_pad", "z11_exit_niche")
+
+# The keys' colours, in light (sector `lightcolor`, UDMF zdoom, as MAP02 and
+# MAP03): the colour of the lock is the colour of where its key lies. The
+# blue is MAP02's pass blue, the yellow MAP03's.
+BLUE = 0x90A8FF
+YELLOW = 0xFFD860
+BLUE_LIGHT = {"lightcolor": BLUE}
+YELLOW_LIGHT = {"lightcolor": YELLOW}
+
+# --- The spillway's water -----------------------------------------------------
+# A light sting, not a trap (the brief: "daño leve, sin abusar"): Doom's
+# nukage, 5 every 32 tics, about 5 HP a second; the channel is 256 across
+# with steps out on both banks at two places. UDMF zdoom sector fields, as
+# MAP03's molten channel (VERIFIED in the spec there).
+WATER_DAMAGE = 5
+WATER_DAMAGE_INTERVAL = 32
+WATER_HURTS = {"damageamount": WATER_DAMAGE, "damageinterval": WATER_DAMAGE_INTERVAL}
+
+# --- Tags --------------------------------------------------------------------
+TAG_D1_GATEHOUSE = 1
+TAG_D2_WEST = 2          # the west bank's door, the last door before the exit
+TAG_BLUE_GATE = 3        # the crest gate: Door_LockedRaise, lock 2; and the station's closets
+TAG_YELLOW_DOOR = 4      # the control room: Door_LockedRaise, lock 3; and the catwalk's closets
+TAG_S1_PANEL = 5
+TAG_S2_PANEL = 6
+TAG_S3_PANEL = 7
+TAG_CABLE_SHUTTER = 10   # SW-A: the cable gallery
+TAG_STATION_SHUTTER = 11  # SW-B: the shortcut from the substation into the station
+# Closets ride the lock that lets the player past them (MAP03 rides SW-A's):
+# the yellow door opens the catwalk's two, the blue gate the station's two.
+TAG_CATWALK_AMBUSH = TAG_YELLOW_DOOR
+TAG_STATION_AMBUSH = TAG_BLUE_GATE
+
+# --- The plan (x east, y north; design document section 4) ---------------------
+# The station, on the east bank, level with the crest.
+STATION = (4288, 1408, 4864, 2048)
+TRAIN_BLOCK = (4544, 1856, 4864, 1984)
+STATION_RAILS = (4288, 1888, 4544, 1952)
+BLUE_PORTAL = (4224, 1856, 4288, 1984)
+BLUE_GATE = (4192, 1856, 4224, 1984)
+GATE_PORCH = (4128, 1856, 4192, 1984)
+D1_PORCH = (4480, 1408, 4608, 1440)
+D1_DOOR = (4480, 1376, 4608, 1408)
+GATEHOUSE = (4416, 1152, 4672, 1376)
+FLAG_RECESSES = {FLAG_REICH: (4272, 1728, 4288, 1792), FLAG_LEGION: (4272, 1792, 4288, 1856)}
+# The inspection gallery: three flights of seven steps, two landings.
+G1_X = (4480, 4608)
+LANDING_1 = (4416, 800, 4672, 928)
+LANDING_2 = (4416, 448, 4672, 576)
+LOWER_GALLERY = (3456, 448, 4192, 576)
+# The turbine hall.
+HALL = (1664, 128, 3456, 896)
+GENERATOR_X = (1984, 2368, 2752, 3136)     # centres
+GENERATOR_Y = 448
+GENERATOR_HALF = 96
+COLUMN_HALF = 32         # the generator's shaft, solid, up to the roof
+CATWALK_Y = (768, 896)
+CATWALK_STAIR_STEPS = CATWALK // STEP - 1   # 11 steps, the catwalk is the 12th rise
+CATWALK_X0 = HALL[0] + CATWALK_STAIR_STEPS * STEP_RUN    # 2016
+YELLOW_PORTAL = (2560, 768, 2688, 896)
+YELLOW_DOOR = (2560, 896, 2688, 928)
+CLERESTORY = (1856, 2240, 2624, 3008, 3264)  # x of each pane in the hall's south wall
+# The control room, behind the yellow door.
+CONTROL = (2304, 928, 2944, 1312)
+CONTROL_PORCH = (2560, 928, 2688, 960)
+CONTROL_WINDOWS = {"win_z6_w": (2368, 896, 2496, 928), "win_z6_e": (2752, 896, 2880, 928)}
+CONSOLES = ((2368, 1088, 2496, 1152), (2752, 1088, 2880, 1152))
+SWA_NICHE = (2944, 1216, 2960, 1280)
+CABLE_PORCH = (2912, 1056, 2944, 1184)
+CABLE_SHUTTER = (2944, 1056, 2976, 1184)
+CABLE_Y = (1056, 1184)
+CABLE_FLAT = (2976, 3072)
+CABLE_STAIR_STEPS = (CREST - CATWALK) // STEP - 1      # 11, the top corridor is the 12th rise
+CABLE_TOP = (3072 + CABLE_STAIR_STEPS * STEP_RUN, 3584)  # 3424..3584
+# The substation.
+SUBSTATION = (3584, 896, 4160, 1664)
+TRANSFORMERS = ((3712, 928, 3840, 1120), (3712, 1440, 3840, 1632), (3968, 928, 4096, 1120))
+PYLONS = ((3632, 1376, 3664, 1408), (3632, 1536, 3664, 1568))   # solid, 32 square
+BLUE_PAD = (3904, 1216, 4032, 1344)
+SWB_NICHE = (4176, 1600, 4240, 1616)   # in the passage's north wall, beside the shutter
+STATION_PASSAGE = (4160, 1472, 4256, 1600)
+STATION_SHUTTER = (4256, 1472, 4288, 1600)
+# The spillway, west of the hall, its north end under the crest's parapet.
+SPILL_GALLERY = (1408, 256, 1664, 384)
+EAST_WALK = (1152, 128, 1408, 1760)
+CHANNEL_RECT = (896, 128, 1152, 1760)
+WEST_WALK = (512, 128, 896, 1760)
+STEPS_Y = ((448, 576), (1280, 1408))       # where the banks have steps out of the water
+WINCH = (576, 832, 768, 1024)
+# The crest, from the blue gate west to the west bank.
+CREST_RECT = (640, 1792, 4192, 2048)
+CREST_RAILS = (704, 1888, 4128, 1952)
+PARAPET_N = (640, 2048, 4192, 2080)
+PARAPET_S = (640, 1760, 4192, 1792)
+STATION_PARAPET = (4288, 2048, 4864, 2080)
+HUT_W = (2304, 1632, 2560, 1760)           # the open crane hut (the comparison)
+HUT_E = (3200, 1632, 3456, 1760)           # S3: the shut one
+HUT_FRONT_X = {"w": (2368, 2496), "e": (3264, 3392)}
+BARRICADES = ((1536, 1808, 1664, 1856), (2048, 1984, 2176, 2032), (2880, 1808, 3008, 1856),
+              (3584, 1984, 3712, 2032))
+WEST_PORCH = (640, 1856, 704, 1984)
+WEST_DOOR = (608, 1856, 640, 1984)
+WEST_HALL = (448, 1792, 608, 2048)
+EXIT_NICHE = (432, 1888, 448, 1952)
+# The closets.
+CATWALK_CLOSETS = {"closet_z5_w": (2112, 2240), "closet_z5_e": (3200, 3328)}
+STATION_CLOSETS = {"closet_z1_s": ((4704, 1392, 4832, 1408), (4704, 1264, 4832, 1392)),
+                   "closet_z1_e": ((4864, 1472, 4880, 1600), (4880, 1472, 5008, 1600))}
+# The secrets (design section 8).
+S1_NICHE = (960, 112, 1088, 128)    # the channel's outfall, set back in shadow
+S1_PANEL = (960, 96, 1088, 112)
+S1_CULVERT = (960, -32, 1088, 96)
+S1_STORE = (896, -224, 1152, -32)
+S2_NICHE = (3776, 432, 3840, 448)   # the one gallery panel with no cables on it
+S2_PANEL = (3776, 416, 3840, 432)
+S2_PASSAGE = (3776, 352, 3840, 416)
+S2_STORE = (3648, 160, 3968, 352)
+
+# --- Things --------------------------------------------------------------------
+PLAYER_START = (4704, 1664)
+PLAYER_ANGLE = 180       # facing west, along the platform, towards the blue gate
+YELLOW_KEY_SPOT = (672, 928)     # on the winch house, across the spillway's water
+BLUE_KEY_SPOT = (3968, 1280)     # on the transformer pad, in the substation
+KEY_ZONES = {ED_YELLOW_CARD: "z7_winch", ED_BLUE_CARD: "z9_pad"}
+LOCK_PORTALS = {LOCK_YELLOW_CARD: "z5_yellow_portal", LOCK_BLUE_CARD: "z1_blue_portal"}
+
+# Zone-name families the tests use.
+PROP_PREFIX = "prop_"            # unwalkable by design
+WINDOWS = tuple(CONTROL_WINDOWS)  # seen through, never walked
+SECRET_ZONES = ("s1_store", "s2_store", "s3_hut")
+CLOSET_PREFIX = "closet_"
+
+# --- Editor numbers (src/lumps/MAPINFO, DoomEdNums) ---------------------------
+ED_RIFLEMAN = 21100       # SD_ReichRifleman, Reich
+ED_TROOPER = 21101        # SD_LegionTrooper, Legion
+ED_STORMTROOPER = 21102   # SD_Stormtrooper, both
+ED_HOUND = 21103          # SD_ReichHound, Reich
+ED_DOUGHBOY = 21104       # SD_Doughboy, Legion, flies
+ED_PANZERMENSCH = 21105   # SD_Panzermensch, Reich
+ED_PANZER_HEAVY = 21107   # SD_PanzermenschSchwer, Reich
+MONSTER_KINDS = {
+    "rifleman": ED_RIFLEMAN,
+    "trooper": ED_TROOPER,
+    "stormtrooper": ED_STORMTROOPER,
+    "hound": ED_HOUND,
+    "doughboy": ED_DOUGHBOY,
+    "panzermensch": ED_PANZERMENSCH,
+    "heavy": ED_PANZER_HEAVY,
+}
+MONSTER_CLASSES = {
+    ED_RIFLEMAN: "SD_ReichRifleman",
+    ED_TROOPER: "SD_LegionTrooper",
+    ED_STORMTROOPER: "SD_Stormtrooper",
+    ED_HOUND: "SD_ReichHound",
+    ED_DOUGHBOY: "SD_Doughboy",
+    ED_PANZERMENSCH: "SD_Panzermensch",
+    ED_PANZER_HEAVY: "SD_PanzermenschSchwer",
+}
+REICH = ("rifleman", "hound", "panzermensch", "heavy")
+LEGION = ("trooper", "doughboy")
+# Where each faction stands (D35: both on the map). The Legion holds the
+# east bank's station and the open water (the spillway, where its Doughboys
+# fly); the Reich runs the machine: the galleries, the turbine hall and the
+# substation. Both man the control room and both hold the crest, the last
+# fight. Stormtroopers are hybrids and stand anywhere; the closets are
+# counter-attacks, not garrisons. The General is MAP03's and is not here.
+LEGION_GROUND = ("z1_", "z2_", "z7_")
+REICH_GROUND = ("z3_", "z4_", "z5_", "z8_", "z9_")
+BOTH_GROUND = ("z6_", "z10_", "z11_")
+# The arsenal (MAPINFO DoomEdNums 21000-21019).
+ED_IZH = 21003
+ED_PPSH = 21004
+ED_RPG7 = 21005
+ED_ROKS3 = 21006
+ROUTE_WEAPONS = (ED_IZH, ED_PPSH, ED_RPG7, ED_ROKS3)
+ED_HAND_KATYUSHA = 21007  # in S3 only, on the crest, for the last fight
+# Ammo, health and armour: Doom's numbers, which our classes replace.
+ED_CLIP = 2007
+ED_CLIP_BOX = 2048
+ED_SHELLS = 2008
+ED_SHELL_BOX = 2049
+ED_ROCKET = 2010
+ED_ROCKET_BOX = 2046
+ED_CELL = 2047
+ED_STIMPACK = 2011
+ED_MEDIKIT = 2012
+ED_HEALTH_BONUS = 2014
+ED_ARMOR_BONUS = 2015
+ED_GREEN_ARMOR = 2018
+ED_BLUE_ARMOR = 2019
+
+# Design section 9: monsters per skill, Doom's skill pairs (udmf.skill_tier).
+ENEMY_TOTALS = {2: 31, 3: 46, 4: 60}
+
+# Every monster: (zone, kind, x, y, facing, lowest skill tier). Facing: 0
+# east, 90 north, 180 west, 270 south.
+MONSTERS = (
+    # The station: the Legion's picket at the train, facing the platform.
+    ("z1_station", "trooper", 4352, 1520, 0, 2),
+    ("z1_station", "trooper", 4400, 2000, 270, 2),
+    ("z1_station", "stormtrooper", 4400, 1456, 0, 4),
+    # The gatehouse.
+    ("z2_gatehouse", "trooper", 4480, 1216, 90, 2),
+    ("z2_gatehouse", "stormtrooper", 4608, 1312, 270, 4),
+    # The inspection gallery, inside the concrete: the Reich's.
+    ("z3_landing_1", "rifleman", 4544, 864, 90, 2),
+    ("z3_landing_1", "rifleman", 4640, 832, 90, 3),
+    ("z3_landing_2", "hound", 4544, 512, 90, 3),
+    ("z4_gallery", "rifleman", 3712, 512, 0, 2),
+    ("z4_gallery", "rifleman", 3968, 480, 0, 2),
+    ("z4_gallery", "hound", 3584, 512, 0, 3),
+    # The turbine hall: the Reich at the machines; the Panzermensch at the
+    # far west end on every skill, the RPG-7 at the door the player enters by.
+    ("z5_hall", "panzermensch", 1792, 288, 0, 2),
+    ("z5_hall", "rifleman", 2176, 256, 0, 2),
+    ("z5_hall", "rifleman", 2560, 672, 0, 2),
+    ("z5_hall", "stormtrooper", 2944, 256, 0, 2),
+    ("z5_catwalk", "rifleman", 2304, 832, 270, 2),
+    ("z5_hall", "hound", 2176, 672, 0, 3),
+    ("z5_hall", "stormtrooper", 2560, 256, 0, 3),
+    ("z5_catwalk", "rifleman", 3008, 832, 270, 3),
+    ("z5_hall", "hound", 1792, 640, 0, 4),
+    ("z5_hall", "stormtrooper", 3328, 704, 180, 4),
+    # The spillway: the Legion on the walkways, its Doughboys over the water.
+    ("z7_channel", "doughboy", 1024, 1088, 270, 2),
+    ("z7_west_walk", "trooper", 640, 576, 0, 2),
+    ("z7_west_walk", "trooper", 704, 1344, 0, 2),
+    ("z7_west_walk", "stormtrooper", 800, 1152, 0, 3),
+    ("z7_channel", "doughboy", 1024, 1536, 270, 4),
+    ("z7_west_walk", "trooper", 640, 1600, 270, 4),
+    # The control room: both factions at the consoles.
+    ("z6_control", "trooper", 2400, 1248, 270, 2),
+    ("z6_control", "rifleman", 2848, 1024, 180, 2),
+    ("z6_control", "stormtrooper", 2624, 1248, 270, 2),
+    ("z6_control", "trooper", 2848, 1248, 180, 3),
+    ("z6_control", "stormtrooper", 2400, 1024, 0, 4),
+    # The yellow door's closets on the catwalk: the Reich comes back.
+    ("closet_z5_w", "rifleman", 2144, 944, 270, 2),
+    ("closet_z5_w", "stormtrooper", 2208, 1008, 270, 4),
+    ("closet_z5_e", "hound", 3288, 952, 270, 2),
+    ("closet_z5_e", "rifleman", 3224, 1016, 270, 3),
+    # The substation: the Reich's heavies among the transformers.
+    ("z9_substation", "hound", 3640, 1280, 0, 2),
+    ("z9_substation", "rifleman", 4096, 1216, 180, 2),
+    ("z9_substation", "rifleman", 3904, 1568, 180, 2),
+    ("z9_substation", "panzermensch", 3904, 1024, 270, 2),
+    ("z9_substation", "hound", 4064, 1600, 180, 3),
+    ("z9_substation", "heavy", 4064, 1456, 180, 4),
+    # The blue gate's closets in the station: the Legion behind the player.
+    ("closet_z1_s", "trooper", 4736, 1312, 90, 2),
+    ("closet_z1_s", "stormtrooper", 4800, 1360, 90, 3),
+    ("closet_z1_e", "trooper", 4944, 1504, 180, 2),
+    ("closet_z1_e", "trooper", 4944, 1568, 180, 4),
+    # The crest, the last fight: both factions, the heavy by the west door.
+    ("z10_crest", "panzermensch", 2048, 1856, 0, 2),
+    ("z10_crest", "stormtrooper", 3648, 1840, 0, 2),
+    ("z10_crest", "rifleman", 3008, 2000, 0, 2),
+    ("z10_crest", "rifleman", 2688, 1840, 0, 2),
+    ("z10_crest", "doughboy", 2432, 2000, 0, 2),
+    ("z10_crest", "trooper", 1408, 1840, 0, 2),
+    ("z10_crest", "stormtrooper", 1792, 1840, 0, 3),
+    ("z10_crest", "doughboy", 1216, 2000, 0, 3),
+    ("z10_crest", "heavy", 896, 1840, 0, 3),
+    ("z10_hut_w", "trooper", 2432, 1696, 90, 3),
+    ("z10_crest", "hound", 2688, 2000, 0, 4),
+    ("z10_crest", "doughboy", 3200, 1840, 0, 4),
+    ("z10_crest", "rifleman", 1088, 2000, 0, 4),
+    ("z11_west_hall", "stormtrooper", 512, 1840, 0, 4),
+)
+
+# Consumables scale DOWN with skill: (zone, editor number, x, y, highest
+# skill tier it appears on - 4 = every skill, 3 = medium and easier, 2 =
+# easy only). Weapons are on every skill.
+ITEMS = (
+    # The weapons, on every skill, on the route, each before the fight it is
+    # for: the IZh on the platform, the PPSh in the lower gallery, the RPG-7
+    # at the turbine hall's door (before the Panzermensch), the ROKS-3 in
+    # the control room (for the substation and the crest).
+    ("z1_station", ED_IZH, 4480, 1664, 4),
+    ("z4_gallery", ED_PPSH, 3840, 512, 4),
+    ("z5_hall", ED_RPG7, 3392, 512, 4),
+    ("z6_control", ED_ROKS3, 2624, 1056, 4),
+    # Shell boxes (20).
+    ("z5_hall", ED_SHELL_BOX, 1760, 192, 4),
+    ("z7_east_walk", ED_SHELL_BOX, 1280, 1664, 4),
+    ("z6_control", ED_SHELL_BOX, 2880, 1280, 4),
+    ("z9_substation", ED_SHELL_BOX, 3648, 960, 4),
+    ("z10_crest", ED_SHELL_BOX, 3968, 1840, 4),
+    ("z10_crest", ED_SHELL_BOX, 1984, 2000, 4),
+    # Shells (4).
+    ("z1_station", ED_SHELLS, 4544, 1504, 4),
+    ("z2_gatehouse", ED_SHELLS, 4608, 1216, 4),
+    ("z4_gallery", ED_SHELLS, 3520, 480, 4),
+    ("z5_hall", ED_SHELLS, 3008, 704, 4),
+    ("z7_gallery", ED_SHELLS, 1536, 320, 4),
+    ("z8_cable_gallery", ED_SHELLS, 3024, 1120, 4),
+    ("z10_crest", ED_SHELLS, 2816, 2000, 4),
+    ("z10_crest", ED_SHELLS, 1280, 1840, 4),
+    ("z1_station", ED_SHELLS, 4608, 1504, 3),
+    ("z5_hall", ED_SHELLS, 2368, 224, 3),
+    ("z7_west_walk", ED_SHELLS, 576, 1088, 3),
+    ("z9_substation", ED_SHELLS, 4096, 1376, 3),
+    ("z10_crest", ED_SHELLS, 3456, 1840, 3),
+    ("z4_gallery", ED_SHELLS, 3584, 544, 2),
+    ("z5_hall", ED_SHELLS, 2752, 704, 2),
+    ("z10_crest", ED_SHELLS, 2304, 2000, 2),
+    # Boxes of rounds (50).
+    ("z5_hall", ED_CLIP_BOX, 2752, 192, 4),
+    ("z6_control", ED_CLIP_BOX, 2368, 1264, 4),
+    ("z10_crest", ED_CLIP_BOX, 3840, 2000, 4),
+    # Clips (10).
+    ("z1_station", ED_CLIP, 4352, 1472, 4),
+    ("z3_landing_1", ED_CLIP, 4448, 832, 4),
+    ("z4_gallery", ED_CLIP, 4032, 512, 4),
+    ("z7_east_walk", ED_CLIP, 1216, 320, 4),
+    ("z1_station", ED_CLIP, 4416, 1472, 3),
+    ("z5_hall", ED_CLIP, 1984, 224, 3),
+    ("z1_station", ED_CLIP, 4480, 1472, 2),
+    # PG-7V: a box with the RPG-7, rounds for the substation and the crest.
+    ("z5_hall", ED_ROCKET_BOX, 3392, 640, 4),
+    ("z9_substation", ED_ROCKET_BOX, 3648, 1600, 4),
+    ("z10_crest", ED_ROCKET, 3904, 2000, 4),
+    ("z10_crest", ED_ROCKET, 2560, 1840, 4),
+    ("z10_crest", ED_ROCKET, 1600, 2000, 4),
+    ("z9_passage", ED_ROCKET, 4192, 1536, 3),
+    # Fuel for the ROKS-3.
+    ("z6_control", ED_CELL, 2688, 1056, 4),
+    ("z9_substation", ED_CELL, 4096, 1632, 4),
+    ("z10_crest", ED_CELL, 3136, 2000, 4),
+    # Stimpacks.
+    ("z1_station", ED_STIMPACK, 4800, 1472, 4),
+    ("z4_gallery", ED_STIMPACK, 3520, 544, 4),
+    ("z5_hall", ED_STIMPACK, 2368, 672, 4),
+    ("z7_west_walk", ED_STIMPACK, 576, 192, 4),
+    ("z9_substation", ED_STIMPACK, 3648, 1472, 4),
+    ("z10_crest", ED_STIMPACK, 3072, 1840, 4),
+    ("z2_gatehouse", ED_STIMPACK, 4448, 1312, 3),
+    ("z7_east_walk", ED_STIMPACK, 1216, 1408, 3),
+    ("z10_crest", ED_STIMPACK, 1792, 2000, 3),
+    ("z5_hall", ED_STIMPACK, 1760, 448, 2),
+    ("z10_crest", ED_STIMPACK, 3584, 1840, 2),
+    # Medikits.
+    ("z5_hall", ED_MEDIKIT, 2368, 736, 4),
+    ("z7_west_walk", ED_MEDIKIT, 576, 1664, 4),
+    ("z6_control", ED_MEDIKIT, 2336, 960, 4),
+    ("z9_passage", ED_MEDIKIT, 4208, 1504, 4),
+    ("z10_crest", ED_MEDIKIT, 2304, 1840, 4),
+    ("z10_crest", ED_MEDIKIT, 1216, 1840, 3),
+    ("z9_substation", ED_MEDIKIT, 3648, 1216, 3),
+    # Armour: the flak vest up on the catwalk (for climbing it), the heavy
+    # vest in the substation's passage before the station's closets and the
+    # crest; plates at the locks and the keys' rooms.
+    ("z5_catwalk", ED_GREEN_ARMOR, 3424, 800, 4),
+    ("z9_passage", ED_BLUE_ARMOR, 4192, 1568, 4),
+    ("z5_catwalk", ED_ARMOR_BONUS, 2496, 832, 4),
+    ("z5_catwalk", ED_ARMOR_BONUS, 2752, 832, 4),
+    ("z1_station", ED_ARMOR_BONUS, 4352, 1856, 4),
+    ("z1_station", ED_ARMOR_BONUS, 4352, 1984, 4),
+    ("z7_west_walk", ED_ARMOR_BONUS, 640, 800, 4),
+    ("z7_west_walk", ED_ARMOR_BONUS, 640, 1056, 4),
+    ("z6_control", ED_ARMOR_BONUS, 2496, 1248, 3),
+    # Health bonuses: one in each nook, for whoever looks into it.
+    ("z3_landing_2", ED_HEALTH_BONUS, 4640, 480, 4),
+    ("z5_stair_6", ED_HEALTH_BONUS, 1840, 832, 4),
+    ("z7_gallery", ED_HEALTH_BONUS, 1600, 288, 4),
+    ("z8_cable_top", ED_HEALTH_BONUS, 3456, 1088, 4),
+    ("z9_substation", ED_HEALTH_BONUS, 4128, 1376, 4),
+    ("z10_hut_w", ED_HEALTH_BONUS, 2336, 1664, 4),
+    ("z10_hut_w", ED_HEALTH_BONUS, 2528, 1664, 4),
+    ("z10_gate_porch", ED_HEALTH_BONUS, 4160, 1920, 4),
+    ("z11_west_hall", ED_HEALTH_BONUS, 528, 2000, 4),
+)
+
+# The secrets' rewards, on every skill (MAP01's rule); kept out of ITEMS,
+# which is the route's.
+SECRET_ITEMS = (
+    # S1, the drain under the spillway: rockets and health.
+    ("s1_store", ED_ROCKET_BOX, 960, -128, 4),
+    ("s1_store", ED_MEDIKIT, 1088, -128, 4),
+    ("s1_store", ED_SHELL_BOX, 1024, -192, 4),
+    # S2, the pump room behind the gallery: the flak vest and shells.
+    ("s2_store", ED_GREEN_ARMOR, 3808, 256, 4),
+    ("s2_store", ED_SHELL_BOX, 3712, 224, 4),
+    ("s2_store", ED_STIMPACK, 3904, 224, 4),
+    # S3, the shut crane hut on the crest: the Hand Katyusha, for the last
+    # fight, and a canister towards a second volley.
+    ("s3_hut", ED_HAND_KATYUSHA, 3328, 1696, 4),
+    ("s3_hut", ED_CELL, 3264, 1664, 4),
+    ("s3_hut", ED_CELL, 3392, 1664, 4),
+)
+
+
+def _sector(floor: int, ceil: int, tag: int | None = None, *, light: int,
+            flat: str = FLOOR_CONCRETE, ceiling: str = CEIL_CONCRETE,
+            special: int = 0, extra: dict | None = None) -> Sector:
+    return Sector(texturefloor=flat, textureceiling=ceiling, heightfloor=floor,
+                  heightceiling=ceil, lightlevel=light, identifier=tag,
+                  special=special, extra=dict(extra or {}))
+
+
+def locked_door_style(tag: int, door_sector: int, lock: int,
+                      texture: str | None = None) -> LineStyle:
+    """A door that opens with a key and STAYS open (delay 0), on both faces.
+    MAP02's and MAP03's helper, repeated so each map stays one file."""
+    return LineStyle(
+        special=SPECIAL_DOOR_LOCKED_RAISE,
+        args=(tag, DOOR_SPEED_SLOW, 0, lock, 0),
+        flags=("playeruse", "repeatspecial"),
+        back_sector=door_sector,
+        texture=texture,
+        peg_bottom=False,
+    )
+
+
+def secret_panel_style(tag: int, panel_sector: int, texture: str) -> LineStyle:
+    """A push panel that opens for good, one-sided on the automap."""
+    style = door_open_style(tag, panel_sector, texture=texture)
+    return replace(style, flags=style.flags + ("secret",))
+
+
+BLOCKING = LineStyle(flags=("blocking",))   # a parapet's edge: nobody crosses it, not even jumping
+
+
+def build_plan() -> tuple[TextMap, dict[str, int]]:
+    """Build the map; return it with {zone name: sector index}."""
+    tm = TextMap(comment=f"{MAP_NAME} v1 generated by src/maps/{MAP_NAME}/map.py - do not edit by hand")
+    g = GridMap(tm, wall=CONCRETE)
+    plan: dict[str, int] = {}
+
+    def zone(name: str, floor: int, ceil: int, rects, tag: int | None = None, *,
+             light: int, flat: str = FLOOR_CONCRETE, ceiling: str = CEIL_CONCRETE,
+             wall: str | None = None, special: int = 0, extra: dict | None = None) -> int:
+        if name in plan:
+            raise ValueError(f"duplicate zone name {name!r}")
+        index = tm.add_sector(_sector(floor, ceil, tag, light=light, flat=flat,
+                                      ceiling=ceiling, special=special, extra=extra))
+        g.paint_all(index, rects)
+        if wall:
+            g.set_wall(index, wall)
+        plan[name] = index
+        return index
+
+    def like(room: str, name: str, rects, *, floor: int | None = None,
+             ceil: int | None = None, light: int | None = None, **kw) -> int:
+        s = tm.sectors[plan[room]]
+        kw.setdefault("flat", s.texturefloor)
+        kw.setdefault("ceiling", s.textureceiling)
+        kw.setdefault("extra", dict(s.extra))
+        kw.setdefault("wall", g.wall_of(plan[room]))
+        return zone(name, s.heightfloor if floor is None else floor,
+                    s.heightceiling if ceil is None else ceil, rects,
+                    light=s.lightlevel if light is None else light, **kw)
+
+    def door(name: str, floor: int, tag: int, rect, *, light: int, wall: str = STEEL) -> int:
+        """A closed door sector; its own walls are the steel track."""
+        return zone(name, floor, floor, [rect], tag, light=light, wall=wall)
+
+    def rails(room: str, name: str, rect) -> None:
+        """A rail strip along x: SDRAIL1 runs its rails along the image's y."""
+        like(room, name, [rect], flat=RAILS, extra={**tm.sectors[plan[room]].extra, "rotationfloor": 90.0})
+
+    def recess(room: str, name: str, rect, *, ceil: int, back, texture: str) -> int:
+        """A shallow recess one tile high, its back wall one tile of `texture`."""
+        index = like(room, name, [rect], ceil=ceil)
+        kind, coord, lo, hi = back
+        if kind == "v":
+            g.style_v(coord, lo, hi, LineStyle(texture=texture))
+        else:
+            g.style_h(coord, lo, hi, LineStyle(texture=texture))
+        return index
+
+    def closet(name: str, door_rect, room_rect, tag: int, floor: int, *, leaf: str) -> int:
+        """A monster closet (MAP01 v3's, MAP03's): a panel in a wall that opens
+        for good with the lock that owns `tag`, wearing the wall it is cut
+        into, so it is wall until it moves; a dead end the player walks out of."""
+        door_index = zone(f"{name}_door", floor, floor, [door_rect], tag, light=LIGHT_CLOSET, wall=leaf)
+        zone(name, floor, floor + CLOSET_HEIGHT, [room_rect], light=LIGHT_CLOSET, wall=leaf)
+        return door_index
+
+    # ======================================================================
+    # The station: the armoured train in, the blue gate onto the crest
+    # ======================================================================
+    zone("z1_station", CREST, SKY_CEIL, [STATION], light=LIGHT_OUTDOORS,
+         ceiling=SKY, wall=BRICK)
+    rails("z1_station", "rails_z1_station", STATION_RAILS)
+    zone(f"{PROP_PREFIX}z1_train", CREST + TRAIN, SKY_CEIL, [TRAIN_BLOCK], light=LIGHT_OUTDOORS,
+         flat=FLOOR_PLATE, ceiling=SKY, wall=STEEL)
+    zone("z1_blue_portal", CREST, ROOF, [BLUE_PORTAL], light=LIGHT_BEACON,
+         ceiling=CEIL_PANEL, wall=BRICK, extra=BLUE_LIGHT)
+    blue_gate = door("z12_blue_gate", CREST, TAG_BLUE_GATE, BLUE_GATE, light=LIGHT_OUTDOORS)
+    zone("z1_d1_porch", CREST, ROOF, [D1_PORCH], light=LIGHT_OUTDOORS, wall=BRICK)
+    for texture, rect in FLAG_RECESSES.items():
+        x1, y1, x2, y2 = rect
+        recess("z1_station", f"z1_flag_{texture.lower()}", rect, ceil=CREST + TILE,
+               back=("v", x1, y1, y2), texture=texture)
+    zone(f"{PROP_PREFIX}z1_parapet_n", CREST + PARAPET, PARAPET_SKY, [STATION_PARAPET],
+         light=LIGHT_OUTDOORS, ceiling=SKY, wall=CONCRETE)
+    d1 = door("d1_gatehouse", CREST, TAG_D1_GATEHOUSE, D1_DOOR, light=LIGHT_GATEHOUSE)
+    zone("z2_gatehouse", CREST, ROOF, [GATEHOUSE], light=LIGHT_GATEHOUSE,
+         flat=FLOOR_TILE, ceiling=CEIL_PANEL, wall=TILE_DADO)
+
+    # ======================================================================
+    # The inspection gallery: three flights down inside the concrete
+    # ======================================================================
+    gx1, gx2 = G1_X
+    y = GATEHOUSE[1]
+    floor = CREST
+    for n in range(1, FLIGHT_STEPS + 1):          # flight 1, south
+        floor -= STEP
+        zone(f"z3_flight1_{n}", floor, floor + GALLERY_HEIGHT, [(gx1, y - STEP_RUN, gx2, y)],
+             light=LIGHT_GALLERY, wall=TUNNEL)
+        y -= STEP_RUN
+    floor -= STEP
+    zone("z3_landing_1", floor, floor + GALLERY_HEIGHT, [LANDING_1], light=LIGHT_GALLERY, wall=TUNNEL)
+    y = LANDING_1[1]
+    for n in range(1, FLIGHT_STEPS + 1):          # flight 2, south
+        floor -= STEP
+        zone(f"z3_flight2_{n}", floor, floor + GALLERY_HEIGHT, [(gx1, y - STEP_RUN, gx2, y)],
+             light=LIGHT_GALLERY, wall=TUNNEL)
+        y -= STEP_RUN
+    floor -= STEP
+    zone("z3_landing_2", floor, floor + GALLERY_HEIGHT, [LANDING_2], light=LIGHT_GALLERY, wall=TUNNEL)
+    x = LANDING_2[0]
+    for n in range(1, FLIGHT_STEPS + 1):          # flight 3, west
+        floor -= STEP
+        zone(f"z3_flight3_{n}", floor, floor + GALLERY_HEIGHT,
+             [(x - STEP_RUN, LANDING_2[1], x, LANDING_2[3])], light=LIGHT_GALLERY, wall=TUNNEL)
+        x -= STEP_RUN
+    floor -= STEP
+    assert floor == GROUND and x == LOWER_GALLERY[2], (floor, x)
+    zone("z4_gallery", GROUND, GALLERY_HEIGHT, [LOWER_GALLERY], light=LIGHT_GALLERY, wall=TUNNEL)
+    # S2: one panel of the gallery's south wall has no cables on it, and
+    # stands back in shadow; it opens onto the pump room.
+    zone("s2_niche", GROUND, GALLERY_HEIGHT, [S2_NICHE], light=LIGHT_SHADOW, wall=TUNNEL)
+    s2_panel = zone("s2_panel", GROUND, GROUND, [S2_PANEL], TAG_S2_PANEL, light=LIGHT_SHADOW,
+                    wall=TUNNEL)
+    zone("s2_passage", GROUND, GALLERY_HEIGHT, [S2_PASSAGE], light=LIGHT_SECRET, wall=CONCRETE)
+    zone("s2_store", GROUND, GALLERY_HEIGHT, [S2_STORE], light=LIGHT_SECRET, wall=CONCRETE,
+         special=SECTOR_SPECIAL_SECRET)
+
+    # ======================================================================
+    # The turbine hall: four generators, the catwalk, the yellow door
+    # ======================================================================
+    zone("z5_hall", GROUND, HALL_CEIL, [HALL], light=LIGHT_HALL, flat=FLOOR_TILE,
+         ceiling=CEIL_PANEL, wall=CONCRETE_STRIPE)
+    for n, cx in enumerate(GENERATOR_X, start=1):
+        like("z5_hall", f"{PROP_PREFIX}z5_generator_{n}",
+             [(cx - GENERATOR_HALF, GENERATOR_Y - GENERATOR_HALF,
+               cx + GENERATOR_HALF, GENERATOR_Y + GENERATOR_HALF)],
+             floor=GROUND + GENERATOR, flat=FLOOR_PLATE, wall=STEEL)
+        g.carve(cx - COLUMN_HALF, GENERATOR_Y - COLUMN_HALF, cx + COLUMN_HALF, GENERATOR_Y + COLUMN_HALF)
+    cy1, cy2 = CATWALK_Y
+    for n in range(1, CATWALK_STAIR_STEPS + 1):
+        x = HALL[0] + STEP_RUN * (n - 1)
+        like("z5_hall", f"z5_stair_{n}", [(x, cy1, x + STEP_RUN, cy2)], floor=GROUND + STEP * n,
+             flat=GRATING, wall=STEEL)
+    like("z5_hall", "z5_catwalk", [(CATWALK_X0, cy1, HALL[2], cy2)], floor=CATWALK,
+         flat=GRATING, wall=STEEL)
+    zone("z5_yellow_portal", CATWALK, CATWALK + DOOR_HEIGHT, [YELLOW_PORTAL], light=LIGHT_BEACON,
+         flat=GRATING, ceiling=CEIL_PANEL, wall=STEEL, extra=YELLOW_LIGHT)
+    yellow_door = door("yellow_door", CATWALK, TAG_YELLOW_DOOR, YELLOW_DOOR, light=LIGHT_CONTROL)
+    for n, x in enumerate(CLERESTORY, start=1):
+        recess("z5_hall", f"{PROP_PREFIX}z5_clerestory_{n}", (x, HALL[1] - NICHE_DEPTH, x + 64, HALL[1]),
+               ceil=HALL_CEIL, back=("h", HALL[1] - NICHE_DEPTH, x, x + 64), texture=WINDOW)
+        tm.sectors[plan[f"{PROP_PREFIX}z5_clerestory_{n}"]].heightfloor = CLERESTORY_SILL
+    for name, (x1, x2) in CATWALK_CLOSETS.items():
+        closet(name, (x1, cy2, x2, cy2 + NICHE_DEPTH), (x1, cy2 + NICHE_DEPTH, x2, cy2 + NICHE_DEPTH + TILE),
+               TAG_CATWALK_AMBUSH, CATWALK, leaf=CONCRETE_STRIPE)
+
+    # ======================================================================
+    # The control room, behind the yellow door
+    # ======================================================================
+    zone("z6_control", CATWALK, CONTROL_CEIL, [CONTROL], light=LIGHT_CONTROL, flat=FLOOR_TILE,
+         ceiling=CEIL_PANEL, wall=TILE_DADO)
+    zone("z6_porch", CATWALK, CATWALK + DOOR_HEIGHT, [CONTROL_PORCH], light=LIGHT_CONTROL,
+         flat=FLOOR_TILE, ceiling=CEIL_PANEL, wall=STEEL)
+    for name, rect in CONTROL_WINDOWS.items():
+        zone(name, WINDOW_SILL, WINDOW_TOP, [rect], light=LIGHT_CONTROL, flat=FLOOR_PLATE,
+             ceiling=CEIL_CONCRETE, wall=STEEL)
+    for n, rect in enumerate(CONSOLES, start=1):
+        like("z6_control", f"{PROP_PREFIX}z6_console_{n}", [rect], floor=CATWALK + CONSOLE,
+             flat=FLOOR_PLATE, wall=STEEL)
+    zone("z6_swa_niche", CATWALK, CATWALK + SWITCH_HEIGHT, [SWA_NICHE], light=LIGHT_CONTROL,
+         flat=FLOOR_TILE, wall=STEEL)
+    zone("z6_cable_porch", CATWALK, CATWALK + DOOR_HEIGHT, [CABLE_PORCH], light=LIGHT_CONTROL,
+         flat=FLOOR_TILE, wall=STEEL)
+    cable_shutter = door("shutter_cable", CATWALK, TAG_CABLE_SHUTTER, CABLE_SHUTTER, light=LIGHT_GALLERY)
+
+    # ======================================================================
+    # The cable gallery, up to the substation
+    # ======================================================================
+    ky1, ky2 = CABLE_Y
+    zone("z8_cable_gallery", CATWALK, CATWALK + GALLERY_HEIGHT, [(CABLE_FLAT[0], ky1, CABLE_FLAT[1], ky2)],
+         light=LIGHT_GALLERY, wall=TUNNEL)
+    for n in range(1, CABLE_STAIR_STEPS + 1):
+        x = CABLE_FLAT[1] + STEP_RUN * (n - 1)
+        f = CATWALK + STEP * n
+        zone(f"z8_cable_stair_{n}", f, f + GALLERY_HEIGHT, [(x, ky1, x + STEP_RUN, ky2)],
+             light=LIGHT_GALLERY, wall=TUNNEL)
+    zone("z8_cable_top", CREST, ROOF, [(CABLE_TOP[0], ky1, CABLE_TOP[1], ky2)],
+         light=LIGHT_GALLERY, wall=TUNNEL)
+
+    # ======================================================================
+    # The substation: transformers, the blue key, SW-B
+    # ======================================================================
+    zone("z9_substation", CREST, SKY_CEIL, [SUBSTATION], light=LIGHT_OUTDOORS, ceiling=SKY, wall=RUST)
+    for n, rect in enumerate(TRANSFORMERS, start=1):
+        zone(f"{PROP_PREFIX}z9_transformer_{n}", CREST + TRANSFORMER, SKY_CEIL, [rect],
+             light=LIGHT_OUTDOORS, flat=FLOOR_PLATE, ceiling=SKY, wall=STEEL)
+    for rect in PYLONS:
+        g.carve(*rect)
+    zone("z9_pad", CREST + PAD, SKY_CEIL, [BLUE_PAD], light=LIGHT_BEACON, flat=FLOOR_PLATE,
+         ceiling=SKY, wall=STEEL, extra=BLUE_LIGHT)
+    zone("z9_passage", CREST, ROOF, [STATION_PASSAGE], light=LIGHT_OUTDOORS, wall=BRICK)
+    zone("z9_swb_niche", CREST, CREST + SWITCH_HEIGHT, [SWB_NICHE], light=LIGHT_OUTDOORS, wall=STEEL)
+    station_shutter = door("shutter_station", CREST, TAG_STATION_SHUTTER, STATION_SHUTTER,
+                           light=LIGHT_OUTDOORS)
+
+    # ======================================================================
+    # The spillway: the gallery out, the walkways, the water, the winch
+    # ======================================================================
+    zone("z7_gallery", GROUND, GALLERY_HEIGHT, [SPILL_GALLERY], light=LIGHT_GALLERY, wall=TUNNEL)
+    zone("z7_east_walk", GROUND, SKY_CEIL, [EAST_WALK], light=LIGHT_SPILLWAY, ceiling=SKY, wall=CONCRETE)
+    zone("z7_channel", CHANNEL, SKY_CEIL, [CHANNEL_RECT], light=LIGHT_SPILLWAY, flat=WATER,
+         ceiling=SKY, wall=CONCRETE, extra=WATER_HURTS)
+    zone("z7_west_walk", GROUND, SKY_CEIL, [WEST_WALK], light=LIGHT_SPILLWAY, ceiling=SKY, wall=CONCRETE)
+    wx1, _wy1, wx2, _wy2 = CHANNEL_RECT
+    for k, (sy1, sy2) in enumerate(STEPS_Y, start=1):
+        for n in range(1, 4):      # three steps up from the water on each bank
+            f = CHANNEL + STEP * n
+            east = wx2 - STEP_RUN * (4 - n)
+            like("z7_channel", f"z7_steps_e{k}_{n}", [(east, sy1, east + STEP_RUN, sy2)], floor=f,
+                 flat=FLOOR_CONCRETE, extra={})
+            west = wx1 + STEP_RUN * (3 - n)
+            like("z7_channel", f"z7_steps_w{k}_{n}", [(west, sy1, west + STEP_RUN, sy2)], floor=f,
+                 flat=FLOOR_CONCRETE, extra={})
+    zone("z7_winch", GROUND + PAD, GROUND + PAD + DOOR_HEIGHT, [WINCH], light=LIGHT_BEACON,
+         flat=FLOOR_PLATE, ceiling=CEIL_PANEL, wall=STEEL, extra=YELLOW_LIGHT)
+    # S1: the channel's outfall, at its south end, set back in shadow.
+    zone("s1_niche", CHANNEL, CHANNEL + TILE, [S1_NICHE], light=LIGHT_SHADOW, flat=WATER, wall=CONCRETE)
+    s1_panel = zone("s1_panel", CHANNEL, CHANNEL, [S1_PANEL], TAG_S1_PANEL, light=LIGHT_SHADOW,
+                    flat=WATER, wall=CONCRETE)
+    zone("s1_culvert", CHANNEL, CHANNEL + GALLERY_HEIGHT, [S1_CULVERT], light=LIGHT_SECRET, wall=TUNNEL)
+    zone("s1_store", CHANNEL, CHANNEL + GALLERY_HEIGHT, [S1_STORE], light=LIGHT_SECRET, wall=TUNNEL,
+         special=SECTOR_SPECIAL_SECRET)
+
+    # ======================================================================
+    # The crest: the road west along the top of the dam
+    # ======================================================================
+    zone("z10_crest", CREST, SKY_CEIL, [CREST_RECT], light=LIGHT_OUTDOORS, flat=FLOOR_LANE,
+         ceiling=SKY, wall=CONCRETE, extra={"rotationfloor": 90.0})
+    rails("z10_crest", "rails_z10_crest", CREST_RAILS)
+    zone(f"{PROP_PREFIX}z10_parapet_n", CREST + PARAPET, PARAPET_SKY, [PARAPET_N],
+         light=LIGHT_OUTDOORS, ceiling=SKY, wall=CONCRETE)
+    zone(f"{PROP_PREFIX}z10_parapet_s", CREST + PARAPET, PARAPET_SKY, [PARAPET_S],
+         light=LIGHT_OUTDOORS, ceiling=SKY, wall=CONCRETE)
+    zone("z10_gate_porch", CREST, ROOF, [GATE_PORCH], light=LIGHT_OUTDOORS, wall=CONCRETE)
+    zone("z10_west_porch", CREST, ROOF, [WEST_PORCH], light=LIGHT_OUTDOORS, wall=CONCRETE)
+    for n, rect in enumerate(BARRICADES, start=1):
+        zone(f"{PROP_PREFIX}z10_barricade_{n}", CREST + CRATES, SKY_CEIL, [rect],
+             light=LIGHT_OUTDOORS, flat=CRATE_TOP, ceiling=SKY, wall=CRATE)
+    # The two crane huts on the crest's south side: the west one open, the
+    # east one (S3) shut by a corrugated gate that is a push panel.
+    hx1, hx2 = HUT_FRONT_X["w"]
+    zone("z10_hut_w", CREST, ROOF, [HUT_W], light=LIGHT_HUT, wall=RUST)
+    zone("z10_hut_w_door", CREST, ROOF, [(hx1, PARAPET_S[1], hx2, PARAPET_S[3])], light=LIGHT_HUT, wall=RUST)
+    zone("z10_hut_w_porch", CREST, ROOF, [(hx1, CREST_RECT[1], hx2, CREST_RECT[1] + 32)],
+         light=LIGHT_OUTDOORS, wall=RUST)
+    ex1, ex2 = HUT_FRONT_X["e"]
+    zone("s3_hut", CREST, ROOF, [HUT_E], light=LIGHT_HUT, wall=RUST, special=SECTOR_SPECIAL_SECRET)
+    s3_panel = zone("s3_panel", CREST, CREST, [(ex1, PARAPET_S[1], ex2, PARAPET_S[3])], TAG_S3_PANEL,
+                    light=LIGHT_HUT, wall=RUST)
+    zone("z10_hut_e_porch", CREST, ROOF, [(ex1, CREST_RECT[1], ex2, CREST_RECT[1] + 32)],
+         light=LIGHT_OUTDOORS, wall=RUST)
+    # The huts' fronts either side of the doorway and the panel are solid:
+    # the parapet never touches a door or a doorway.
+    for (fx1, fx2), (hut_x1, _hy1, hut_x2, _hy2) in ((HUT_FRONT_X["w"], HUT_W), (HUT_FRONT_X["e"], HUT_E)):
+        g.carve(hut_x1, PARAPET_S[1], fx1, PARAPET_S[3])
+        g.carve(fx2, PARAPET_S[1], hut_x2, PARAPET_S[3])
+    d2 = door("d2_west", CREST, TAG_D2_WEST, WEST_DOOR, light=LIGHT_OUTDOORS)
+    zone("z11_west_hall", CREST, ROOF, [WEST_HALL], light=LIGHT_GATEHOUSE, flat=FLOOR_TILE,
+         ceiling=CEIL_PANEL, wall=TILE_DADO)
+    zone("z11_exit_niche", CREST, CREST + SWITCH_HEIGHT, [EXIT_NICHE], light=LIGHT_BEACON, wall=STEEL)
+
+    # ======================================================================
+    # The station's closets, on the blue gate's tag
+    # ======================================================================
+    for name, (door_rect, room_rect) in STATION_CLOSETS.items():
+        closet(name, door_rect, room_rect, TAG_STATION_AMBUSH, CREST, leaf=BRICK)
+
+    # ======================================================================
+    # Line styles. The FIRST rule registered on a segment wins, so the
+    # specific ones (doors, panels, doorways) come before the parapets.
+    # ======================================================================
+    # Manual doors, both faces.
+    for sector, (x1, y1, x2, y2), horizontal in ((d1, D1_DOOR, True), (d2, WEST_DOOR, False)):
+        tag = tm.sectors[sector].identifier
+        if horizontal:
+            for yy in (y1, y2):
+                g.style_h(yy, x1, x2, door_raise_style(tag, sector, texture=DOOR))
+        else:
+            for xx in (x1, x2):
+                g.style_v(xx, y1, y2, door_raise_style(tag, sector, texture=DOOR))
+    # The yellow door, both faces.
+    for yy in (YELLOW_DOOR[1], YELLOW_DOOR[3]):
+        g.style_h(yy, YELLOW_DOOR[0], YELLOW_DOOR[2],
+                  locked_door_style(TAG_YELLOW_DOOR, yellow_door, LOCK_YELLOW_CARD, texture=DOOR_YELLOW))
+    # The blue gate, both faces (SDDOOR1 until SDDOORB exists).
+    for xx in (BLUE_GATE[0], BLUE_GATE[2]):
+        g.style_v(xx, BLUE_GATE[1], BLUE_GATE[3],
+                  locked_door_style(TAG_BLUE_GATE, blue_gate, LOCK_BLUE_CARD, texture=DOOR))
+    # The cable gallery's shutter: steel both sides, SW-A beside it.
+    for xx in (CABLE_SHUTTER[0], CABLE_SHUTTER[2]):
+        g.style_v(xx, CABLE_SHUTTER[1], CABLE_SHUTTER[3], remote_door_style(cable_shutter, texture=STEEL))
+    g.style_v(SWA_NICHE[2], SWA_NICHE[1], SWA_NICHE[3],
+              switch_door_open_style(TAG_CABLE_SHUTTER, texture=SW_A_FACE, repeatable=False))
+    # The station's shutter: steel from the substation's passage; from the
+    # station, the station's own brick (a shortcut found from behind).
+    g.style_v(STATION_SHUTTER[0], STATION_SHUTTER[1], STATION_SHUTTER[3],
+              remote_door_style(station_shutter, texture=STEEL))
+    g.style_v(STATION_SHUTTER[2], STATION_SHUTTER[1], STATION_SHUTTER[3],
+              remote_door_style(station_shutter, texture=BRICK))
+    g.style_h(SWB_NICHE[3], SWB_NICHE[0], SWB_NICHE[2],
+              switch_door_open_style(TAG_STATION_SHUTTER, texture=SW_B_FACE, repeatable=False))
+    # The sluice gates: the dam's face over the channel's north end.
+    g.style_h(CHANNEL_RECT[3], CHANNEL_RECT[0], CHANNEL_RECT[2], LineStyle(texture=ROAD_GATE))
+    # The secrets' panels.
+    for x_or_y in (S1_PANEL[1], S1_PANEL[3]):
+        g.style_h(x_or_y, S1_PANEL[0], S1_PANEL[2], secret_panel_style(TAG_S1_PANEL, s1_panel, CONCRETE))
+    for x_or_y in (S2_PANEL[1], S2_PANEL[3]):
+        g.style_h(x_or_y, S2_PANEL[0], S2_PANEL[2], secret_panel_style(TAG_S2_PANEL, s2_panel, CONCRETE))
+    for x_or_y in (PARAPET_S[1], PARAPET_S[3]):
+        g.style_h(x_or_y, ex1, ex2, secret_panel_style(TAG_S3_PANEL, s3_panel, ROAD_GATE))
+    # The open hut's doorway and both huts' porches are walked through.
+    g.style_h(PARAPET_S[3], hx1, hx2, LineStyle())
+    g.style_h(CREST_RECT[1] + 32, hx1, hx2, LineStyle())
+    g.style_h(CREST_RECT[1] + 32, ex1, ex2, LineStyle())
+    # The parapets' crest-side edges: nobody crosses them, not even jumping
+    # (the drop beyond the south one is the spillway, 448 down).
+    g.style_h(PARAPET_S[3], PARAPET_S[0], PARAPET_S[2], BLOCKING)
+    g.style_h(PARAPET_N[1], PARAPET_N[0], PARAPET_N[2], BLOCKING)
+    g.style_h(STATION_PARAPET[1], STATION_PARAPET[0], STATION_PARAPET[2], BLOCKING)
+    # The exit: the switch at the back of its niche, in the west bank's hall.
+    g.style_v(EXIT_NICHE[0], EXIT_NICHE[1], EXIT_NICHE[3], exit_switch_style(texture=EXIT_FACE))
+
+    g.build()
+
+    tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START, angle=PLAYER_ANGLE))
+    tm.add_thing(Thing(x=YELLOW_KEY_SPOT[0], y=YELLOW_KEY_SPOT[1], type=ED_YELLOW_CARD))
+    tm.add_thing(Thing(x=BLUE_KEY_SPOT[0], y=BLUE_KEY_SPOT[1], type=ED_BLUE_CARD))
+    for _zone, kind, x, y, angle, tier in MONSTERS:
+        tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle))
+    for _zone, ednum, x, y, top in ITEMS + SECRET_ITEMS:
+        tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
+    return tm, plan
+
+
+def build_textmap() -> TextMap:
+    return build_plan()[0]
+
+
+def lumps() -> list[tuple[str, bytes]]:
+    """Return the WAD lumps in directory order (contract used by the build)."""
+    return [
+        (MAP_NAME, b""),
+        ("TEXTMAP", build_textmap().to_bytes()),
+        ("ENDMAP", b""),
+    ]
+
+
+# Every lump name this map may put in a sidedef or a sector.
+WALL_TEXTURES = ((CONCRETE, CONCRETE_STRIPE, STEEL, TILE_DADO, TUNNEL, BRICK, RUST, ROAD_GATE,
+                  WINDOW, FLAG_REICH, FLAG_LEGION, CRATE) + DOOR_LEAVES + SWITCH_FACES)
+FLAT_TEXTURES = (FLOOR_LANE, FLOOR_CONCRETE, FLOOR_TILE, CEIL_PANEL, CEIL_CONCRETE, CRATE_TOP,
+                 RAILS, FLOOR_PLATE, GRATING, WATER)
+BUILTIN_FLATS = (SKY,)
+# What the "Dam" set will replace (design section 7.2): {placeholder: what it stands for}.
+PENDING_TEXTURES = {
+    WATER: "SDWATR1-4, the Volga's water (animated flat)",
+    CONCRETE_STRIPE: "SDTURB2, the turbine hall's walls",
+    STEEL: "SDTURB1, the generators' casings (and the control consoles: SDPANL2)",
+    TILE_DADO: "SDPANL1, the control room's mimic panels",
+    ROAD_GATE: "SDSLUC1, the sluice gates",
+    DOOR: "SDDOORB, the blue lock's trim (the blue gate)",
+    RUST: "SDHVLT1, the substation's fence with the high-voltage plate",
+}

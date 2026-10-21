@@ -61,6 +61,26 @@ the map lumps carry these numbers (the metro was built as MAP03 and the
 factory as MAP04 while MAP02 was the practice range, which is now the lump
 `RANGE`, outside the campaign).
 
+### Episode 2, «The Road to Moscow» / «Дорога на Москву» / «El camí de Moscou» (D104, P4)
+
+The invaders who got through before Tankograd's portal went out march west.
+The sergeant follows them along the railway, across the Volga and into the
+capital. A second episode on the New Game screen, between the first and the
+practice range; it starts on MAP04.
+
+| Map | Place | Narrative function | Leaves by |
+|---|---|---|---|
+| MAP04 | **Trans-Siberian** («Транссиб»): the marshalling yard at Sverdlovsk, the armoured train, the signal box, the locomotive roundhouse | the road west begins | the armoured train, west, to the Volga |
+| MAP05 | **Volga Dam** («Волжская ГЭС»): the hydroelectric dam at Zhiguli, the turbine hall, the spillway, the control room | the turbines that light half the country are taken back | over the crest of the dam; the last metro train into Moscow |
+| MAP06 | **Red Square** («Красная площадь»): out of the metro at Ploshchad Revolyutsii, the GUM galleries, Red Square, the gate in the Kremlin wall | episode climax: the boss at the Kremlin gate | the end of the episode |
+
+The ending: the Kremlin holds, but not all the invaders came through
+Tankograd; their main portal is still open somewhere (the hook for an
+episode 3). TO BE CONTINUED. The texts are in `LANGUAGE`
+(`SD_MAP04_EXIT_TEXT`, `SD_MAP05_EXIT_TEXT`, `SD_END03_TEXT`); the flow is
+`docs/engine/MOD-SPEC.md` §4.6. Texture sets and music are P4's work; the
+maps play approved pieces provisionally (MOD-SPEC §4.5).
+
 ## Arsenal (D13), one per Doom slot
 
 | Slot | Weapon | Note |
