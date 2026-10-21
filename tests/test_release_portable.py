@@ -18,10 +18,22 @@ What is pinned:
     same bytes, every timestamp the release zip's);
   * the refusals: --out inside the repo, an engine missing a required file
     or not g4.14.2, a freedoom2.wad that is not 0.13.0, a malformed release
-    zip; and a user's ini, saves or WADs in the engine folder never ship.
+    zip; and a user's ini, saves or WADs in the engine folder never ship;
+  * macOS (D101/D102): every GZDoom.app entry of the official zip keeps its
+    bytes and its external_attr (gzdoom 755, symlinks stay symlinks, the
+    AppleDouble signature files ship), the .command launchers are 755, sh,
+    `cd "$(dirname "$0")"`, -iwad/-file/-config/-savedir inside the folder;
+    the guides explain Gatekeeper; SHA256SUMS skips only the ._* files;
+  * Linux: /opt/gzdoom of the .deb (ar + data.tar, no dpkg) as gzdoom/,
+    play.sh/jugar.sh 755, folders 755, files 644, owner root, the release's
+    mtime, a gzip header with no name or time; the guides list the .deb's
+    Depends and the apt command; the licence texts from the source archive;
+  * both: determinism, and refusals for unsafe paths, escaping symlinks,
+    other engine versions, broken archives.
 
 Fast tests use a fake engine folder, a fake IWAD and a fake release zip whose
-PK3 carries the repo's real LANGUAGE. RealPortableTest uses the installed
+PK3 carries the repo's real LANGUAGE, plus a small fake macOS zip, .deb and
+GZDoom source archive (never the real downloads). RealPortableTest uses the installed
 GZDoom, iwads/freedoom2.wad and a real release build; it skips when either is
 absent (CI) and runs in the art tier (tests/_tiers.py SLOW).
 
@@ -30,13 +42,17 @@ Run:  python -m unittest tests.test_release_portable -v
 
 from __future__ import annotations
 
+import calendar
 import hashlib
 import io
+import plistlib
+import stat
 import sys
+import tarfile
 import tempfile
 import unittest
 import zipfile
-from contextlib import redirect_stderr
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest import mock
 
@@ -388,6 +404,521 @@ class RefusalTest(FakeInputs):
         self.assertIn("no GZDoom", err.getvalue())
         self.assertEqual(code, rp.EXIT_REFUSED)
         self.assertFalse(out.exists())
+
+
+class WindowsDefaultTest(FakeInputs):
+    """--platform windows is the default and keeps its name and engine source."""
+
+    def test_the_default_platform_is_windows(self):
+        self.assertEqual(self.config().platform, "windows")
+        self.assertEqual(rp.zip_name(VERSION), f"sovietdoom-{VERSION}-windows.zip")
+
+    def test_the_source_file_names_the_archives_on_the_v1_0_release(self):
+        _, files = self.make()
+        source = files[rp.SOURCE_NAME].decode("utf-8")
+        self.assertIn("https://github.com/kahache/soviet_doom/releases/tag/v1.0", source)
+        for name in ("gzdoom-g4.14.2-source.tar.gz", "openal-soft-1.23.1-source.tar.gz",
+                     "libsndfile-1.2.2-source.tar.gz", "zmusic-1.1.14-source.tar.gz"):
+            self.assertIn(name, source)
+        self.assertIn("for Windows (64-bit)", source)
+        self.assertIn("licenses.zip (GZDoom's own file, unchanged)", source)
+
+    def test_an_engine_archive_is_refused_on_windows(self):
+        config = self.config(engine_archive=self.root / "x.zip")
+        with self.assertRaises(rp.PortableError) as caught:
+            rp.make_portable(config)
+        self.assertIn("for macos and linux", str(caught.exception))
+
+    def test_an_unknown_platform_is_refused(self):
+        with self.assertRaises(rp.PortableError):
+            rp.make_portable(self.config(platform="beos"))
+
+
+# --- macOS and Linux (fake engine archives) ---------------------------------------------
+
+S_DIR = stat.S_IFDIR | 0o755
+S_FILE = stat.S_IFREG | 0o644
+S_EXEC = stat.S_IFREG | 0o755
+S_LINK = stat.S_IFLNK | 0o755
+FAKE_PLIST = plistlib.dumps({"CFBundleExecutable": "gzdoom",
+                             "CFBundleShortVersionString": "g4.14.2",
+                             "LSMinimumSystemVersion": "10.15"})
+APPLEDOUBLE = b"\x00\x05\x16\x07\x00\x02\x00\x00Mac OS X        com.apple.cs.CodeDirectory"
+# (name, Unix mode, data): a symlink's data is its target.
+FAKE_MAC = [
+    ("GZDoom.app/", S_DIR, b""),
+    ("GZDoom.app/Contents/", S_DIR, b""),
+    ("GZDoom.app/Contents/Info.plist", S_FILE, FAKE_PLIST),
+    ("GZDoom.app/Contents/MacOS/", S_DIR, b""),
+    ("GZDoom.app/Contents/MacOS/gzdoom", S_EXEC, b"\xca\xfe\xba\xbe fake GZDoom g4.14.2"),
+    ("GZDoom.app/Contents/MacOS/gzdoom.pk3", S_FILE, b"PK engine"),
+    ("GZDoom.app/Contents/MacOS/._gzdoom.pk3", S_FILE, APPLEDOUBLE),
+    ("GZDoom.app/Contents/Frameworks/", S_DIR, b""),
+    ("GZDoom.app/Contents/Frameworks/libfoo.1.dylib", S_FILE, b"dylib"),
+    ("GZDoom.app/Contents/Frameworks/libfoo.dylib", S_LINK, b"libfoo.1.dylib"),
+    ("GZDoom.app/Contents/Current", S_LINK, b"MacOS"),
+    ("Licenses/", S_DIR, b""),
+    ("Licenses/gpl.txt", S_FILE, b"GNU GPL 3"),
+    ("Licenses/bsd.txt", S_FILE, b"BSD"),
+    ("__MACOSX/._GZDoom.app", S_FILE, b"junk"),
+]
+MAC_LAUNCHERS = ("Jugar Soviet Doom.command", "Play Soviet Doom.command")
+LINUX_LAUNCHERS = ("jugar.sh", "play.sh")
+EXEC_LINE = ('exec "$ENGINE" -iwad "$HERE/freedoom2.wad" -file "$HERE/sovietdoom.pk3" '
+             '-config "$HERE/gzdoom.ini" -savedir "$HERE/saves" "$@"')
+FAKE_CONTROL = """\
+Package: gzdoom
+Version: 4.14.2
+Architecture: amd64
+Depends: libc6, libsdl2-2.0-0 (>= 2.0.8), libasound2 | libasound2t64, libopus0:amd64
+Recommends: libopenal1
+Description: OpenGL version of ZDoom.
+ A second line.
+"""
+# (name, tar type, mode, data or link target)
+FAKE_DEB_DATA = [
+    ("./", tarfile.DIRTYPE, 0o755, b""),
+    ("./opt/", tarfile.DIRTYPE, 0o755, b""),
+    ("./opt/gzdoom/", tarfile.DIRTYPE, 0o755, b""),
+    ("./opt/gzdoom/gzdoom", tarfile.REGTYPE, 0o755, b"\x7fELF fake GZDoom g4.14.2"),
+    ("./opt/gzdoom/gzdoom.pk3", tarfile.REGTYPE, 0o644, b"PK engine"),
+    ("./opt/gzdoom/libzmusic.so.1", tarfile.REGTYPE, 0o644, b"\x7fELF zmusic"),
+    ("./opt/gzdoom/libzmusic.so", tarfile.SYMTYPE, 0o777, b"libzmusic.so.1"),
+    ("./opt/gzdoom/soundfonts/gzdoom.sf2", tarfile.REGTYPE, 0o664, b"RIFF sf2"),
+    ("./usr/games/gzdoom", tarfile.REGTYPE, 0o755, b"#!/bin/bash\nexec /opt/gzdoom/gzdoom\n"),
+]
+FAKE_SOURCE = {
+    "gzdoom-g4.14.2/docs/licenses/gpl.txt": b"GNU GPL 3",
+    "gzdoom-g4.14.2/docs/licenses/bsd.txt": b"BSD",
+    "gzdoom-g4.14.2/src/d_main.cpp": b"// source",
+}
+
+
+def fake_macos_zip(entries=FAKE_MAC) -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as zf:
+        for name, mode, data in entries:
+            info = zipfile.ZipInfo(name, (2025, 5, 3, 11, 3, 10))
+            info.create_system = 3
+            info.external_attr = (mode << 16) | (0x10 if stat.S_ISDIR(mode) else 0)
+            zf.writestr(info, data)
+    return buffer.getvalue()
+
+
+def fake_tar(entries, mode: str = "w:xz") -> bytes:
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode=mode) as tf:
+        for name, kind, perm, data in entries:
+            info = tarfile.TarInfo(name)
+            info.type, info.mode, info.mtime = kind, perm, 1746242438
+            if kind == tarfile.SYMTYPE:
+                info.linkname = data.decode()
+                tf.addfile(info)
+            elif kind == tarfile.REGTYPE:
+                info.size = len(data)
+                tf.addfile(info, io.BytesIO(data))
+            else:
+                tf.addfile(info)
+    return buffer.getvalue()
+
+
+def ar_archive(members: list[tuple[str, bytes]]) -> bytes:
+    out = bytearray(b"!<arch>\n")
+    for name, data in members:
+        out += f"{name:<16}{0:<12}{0:<6}{0:<6}{'100644':<8}{len(data):<10}".encode() + b"`\n"
+        out += data + (b"\n" if len(data) % 2 else b"")
+    return bytes(out)
+
+
+def fake_deb(control: str = FAKE_CONTROL, data=FAKE_DEB_DATA) -> bytes:
+    control_tar = fake_tar([("./", tarfile.DIRTYPE, 0o755, b""),
+                            ("./control", tarfile.REGTYPE, 0o644, control.encode())])
+    return ar_archive([("debian-binary", b"2.0\n"), ("control.tar.xz", control_tar),
+                       ("data.tar.xz", fake_tar(data))])
+
+
+def fake_source() -> bytes:
+    return fake_tar([(name, tarfile.REGTYPE, 0o644, data) for name, data in FAKE_SOURCE.items()],
+                    mode="w:gz")
+
+
+class UnixInputs(FakeInputs):
+    """The Windows fakes plus a fake macOS zip, .deb and source archive."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.mac_zip = self.root / "gzdoom-4-14-2-macos.zip"
+        self.mac_zip.write_bytes(fake_macos_zip())
+        self.deb = self.root / "gzdoom_4.14.2_amd64.deb"
+        self.deb.write_bytes(fake_deb())
+        self.source = self.root / "gzdoom-g4.14.2-source.tar.gz"
+        self.source.write_bytes(fake_source())
+
+    def mac_config(self, out: str = "mac", **kw) -> rp.Config:
+        base = dict(platform="macos", engine_archive=self.mac_zip)
+        base.update(kw)
+        return self.config(out, **base)
+
+    def linux_config(self, out: str = "linux", **kw) -> rp.Config:
+        base = dict(platform="linux", engine_archive=self.deb, gzdoom_source=self.source)
+        base.update(kw)
+        return self.config(out, **base)
+
+    def assert_refused(self, config: rp.Config, words: str) -> None:
+        with self.assertRaises(rp.PortableError) as caught:
+            rp.make_portable(config)
+        self.assertIn(words, str(caught.exception))
+        self.assertFalse(config.out_dir.exists(), "nothing is written on a refusal")
+
+    def assert_launcher(self, data: bytes, exe: str) -> list[str]:
+        text = data.decode("ascii")
+        self.assertNotIn("\r", text)
+        lines = text.split("\n")
+        self.assertEqual(lines[0], "#!/bin/sh")
+        self.assertIn('cd "$(dirname "$0")" || exit 1', lines)
+        self.assertIn(f'ENGINE="$HERE/{exe}"', lines)
+        self.assertIn('mkdir -p "$HERE/saves"', lines)
+        self.assertEqual([ln for ln in lines if ln.startswith("exec ")], [EXEC_LINE])
+        self.assertEqual(lines[-2:], [EXEC_LINE, ""])
+        return lines
+
+
+class MacosPackageTest(UnixInputs):
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.made = rp.make_portable(self.mac_config())
+        with zipfile.ZipFile(self.made.zip_path) as zf:
+            self.infos = {i.filename: i for i in zf.infolist()}
+            self.data = {name: zf.read(name) for name in self.infos}
+
+    def mode(self, name: str) -> int:
+        return self.infos[f"{FOLDER}/{name}"].external_attr >> 16
+
+    def file(self, name: str) -> bytes:
+        return self.data[f"{FOLDER}/{name}"]
+
+    def test_name_and_folder(self):
+        self.assertEqual(self.made.zip_path.name, f"sovietdoom-{VERSION}-macos.zip")
+        self.assertTrue(all(name.startswith(FOLDER + "/") for name in self.infos))
+        for name in (*MAC_LAUNCHERS, "freedoom2.wad", "sovietdoom.pk3", "LEEME.txt",
+                     "README-FIRST.txt", "GZDOOM-SOURCE.txt", "SHA256SUMS", "LICENSE.md",
+                     "LICENSE-GPL-3.0.txt", "gzdoom-licenses/gpl.txt",
+                     "gzdoom-licenses/bsd.txt"):
+            self.assertIn(f"{FOLDER}/{name}", self.infos, name)
+
+    def test_every_app_entry_keeps_its_bytes_and_its_external_attr(self):
+        for name, mode, data in FAKE_MAC:
+            if not name.startswith("GZDoom.app"):
+                continue
+            info = self.infos[f"{FOLDER}/{name}"]
+            self.assertEqual(info.external_attr >> 16, mode, name)
+            self.assertEqual(info.create_system, 3, name)
+            self.assertEqual(self.data[info.filename], data, name)
+
+    def test_the_executable_stays_755_and_symlinks_stay_symlinks(self):
+        self.assertEqual(self.mode("GZDoom.app/Contents/MacOS/gzdoom"), S_EXEC)
+        for name, target in (("GZDoom.app/Contents/Frameworks/libfoo.dylib", b"libfoo.1.dylib"),
+                             ("GZDoom.app/Contents/Current", b"MacOS")):
+            self.assertTrue(stat.S_ISLNK(self.mode(name)), name)
+            self.assertEqual(self.file(name), target)
+        self.assertTrue(stat.S_ISDIR(self.mode("GZDoom.app/Contents/MacOS/")))
+
+    def test_the_appledouble_signatures_ship_beside_their_files(self):
+        self.assertEqual(self.file("GZDoom.app/Contents/MacOS/._gzdoom.pk3"), APPLEDOUBLE)
+
+    def test_junk_outside_the_app_is_not_packed(self):
+        self.assertFalse(any("__MACOSX" in name for name in self.infos))
+        self.assertTrue(any("__MACOSX" in w for w in self.made.warnings))
+
+    def test_the_launchers(self):
+        for name in MAC_LAUNCHERS:
+            self.assertEqual(self.mode(name), S_EXEC, name)
+            lines = self.assert_launcher(self.file(name), "GZDoom.app/Contents/MacOS/gzdoom")
+            self.assertIn("  read -r _", lines)       # the Terminal window waits
+        self.assertIn(b"Descomprime", self.file(MAC_LAUNCHERS[0]))
+        self.assertIn(b"Unzip the package", self.file(MAC_LAUNCHERS[1]))
+
+    def test_our_files_are_644(self):
+        for name in ("LEEME.txt", "freedoom2.wad", "sovietdoom.pk3", "SHA256SUMS",
+                     "gzdoom-licenses/gpl.txt"):
+            self.assertEqual(self.mode(name), S_FILE, name)
+
+    def test_the_guides_explain_gatekeeper(self):
+        es = self.file("LEEME.txt")
+        en = self.file("README-FIRST.txt")
+        for data in (es, en):
+            self.assertTrue(data.startswith(rp.UTF8_BOM))
+            self.assertNotIn(b"\r", data)
+        es, en = es.decode("utf-8-sig"), en.decode("utf-8-sig")
+        for text in (es, en):
+            self.assertIn("xattr -dr com.apple.quarantine", text)
+            self.assertIn("macOS 10.15", text)          # LSMinimumSystemVersion
+            self.assertIn("Options > Soviet Doom > Language > Russian", text)
+            self.assertIn(f"sovietdoom-{VERSION}-macos.zip", text)
+            self.assertIn("gzdoom.ini", text)
+        self.assertIn("Abrir igualmente", es)
+        self.assertIn("Jugar Soviet Doom.command", es)
+        self.assertIn("Open Anyway", en)
+        self.assertIn("Play Soviet Doom.command", en)
+
+    def test_the_readme_note_says_macos(self):
+        self.assertIn(b"PORTABLE MACOS PACKAGE", self.file("README.txt"))
+
+    def test_the_source_file(self):
+        source = self.file("GZDOOM-SOURCE.txt").decode("utf-8")
+        self.assertNotIn("\r", source)
+        self.assertIn("macOS (Intel and Apple\nsilicon)", source)
+        self.assertIn("https://github.com/kahache/soviet_doom/releases/tag/v1.0", source)
+        self.assertIn("zmusic-1.1.14-source.tar.gz", source)
+        self.assertIn("MoltenVK", source)
+        self.assertIn("WRITTEN OFFER", source)
+        exe = dict((n, d) for n, _, d in FAKE_MAC)["GZDoom.app/Contents/MacOS/gzdoom"]
+        self.assertIn(f"{hashlib.sha256(exe).hexdigest()}  GZDoom.app/Contents/MacOS/gzdoom",
+                      source)
+
+    def test_sha256sums_skips_only_the_appledouble_files(self):
+        lines = self.file("SHA256SUMS").decode("ascii").splitlines()
+        listed = {line.split("  ", 1)[1]: line.split("  ", 1)[0] for line in lines}
+        regular = {i.filename.split("/", 1)[1] for i in self.infos.values()
+                   if stat.S_ISREG(i.external_attr >> 16)}
+        expected = {n for n in regular if n != "SHA256SUMS" and "/._" not in n}
+        self.assertEqual(set(listed), expected)
+        for name, digest in listed.items():
+            self.assertEqual(hashlib.sha256(self.file(name)).hexdigest(), digest, name)
+
+    def test_deterministic_with_the_release_timestamp(self):
+        again = rp.make_portable(self.mac_config("mac2"))
+        self.assertEqual(again.zip_path.read_bytes(), self.made.zip_path.read_bytes())
+        self.assertEqual({i.date_time for i in self.infos.values()}, {STAMP})
+        names = list(self.infos)
+        self.assertEqual(names, sorted(names))
+
+    def test_the_sha256_beside_the_zip(self):
+        digest = hashlib.sha256(self.made.zip_path.read_bytes()).hexdigest()
+        self.assertEqual(self.made.sha_path.read_text(encoding="ascii"),
+                         f"{digest}  sovietdoom-{VERSION}-macos.zip\n")
+
+
+class MacosRefusalTest(UnixInputs):
+
+    def with_mac(self, entries) -> rp.Config:
+        self.mac_zip.write_bytes(fake_macos_zip(entries))
+        return self.mac_config()
+
+    def test_no_engine_archive(self):
+        self.assert_refused(self.mac_config(engine_archive=None), "--engine-archive not found")
+
+    def test_another_gzdoom_version(self):
+        plist = plistlib.dumps({"CFBundleShortVersionString": "g4.12.2"})
+        entries = [(n, m, plist if n.endswith("Info.plist") else d) for n, m, d in FAKE_MAC]
+        self.assert_refused(self.with_mac(entries), "does not say g4.14.2")
+
+    def test_a_symlink_that_leaves_the_app(self):
+        entries = FAKE_MAC + [("GZDoom.app/Contents/evil", S_LINK, b"../../../etc/passwd")]
+        self.assert_refused(self.with_mac(entries), "leaves GZDoom.app/")
+
+    def test_an_absolute_symlink(self):
+        entries = FAKE_MAC + [("GZDoom.app/Contents/evil", S_LINK, b"/etc/passwd")]
+        self.assert_refused(self.with_mac(entries), "leaves GZDoom.app/")
+
+    def test_an_unsafe_path(self):
+        entries = FAKE_MAC + [("GZDoom.app/../../evil", S_FILE, b"x")]
+        self.assert_refused(self.with_mac(entries), "unsafe path")
+
+    def test_an_executable_without_its_bit(self):
+        entries = [(n, S_FILE if n.endswith("MacOS/gzdoom") else m, d) for n, m, d in FAKE_MAC]
+        self.assert_refused(self.with_mac(entries), "is not executable")
+
+    def test_no_licences(self):
+        entries = [e for e in FAKE_MAC if not e[0].startswith("Licenses")]
+        self.assert_refused(self.with_mac(entries), "licence texts")
+
+
+class LinuxPackageTest(UnixInputs):
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.made = rp.make_portable(self.linux_config())
+        self.raw = self.made.zip_path.read_bytes()
+        with tarfile.open(self.made.zip_path) as tf:
+            self.members = {m.name: m for m in tf.getmembers()}
+            self.data = {m.name: tf.extractfile(m).read() for m in tf.getmembers() if m.isreg()}
+
+    def member(self, name: str) -> tarfile.TarInfo:
+        return self.members[f"{FOLDER}/{name}"] if name else self.members[FOLDER]
+
+    def file(self, name: str) -> bytes:
+        return self.data[f"{FOLDER}/{name}"]
+
+    def test_name_and_folder(self):
+        self.assertEqual(self.made.zip_path.name, f"sovietdoom-{VERSION}-linux.tar.gz")
+        self.assertTrue(all(n == FOLDER or n.startswith(FOLDER + "/") for n in self.members))
+        for name in (*LINUX_LAUNCHERS, "freedoom2.wad", "sovietdoom.pk3", "LEEME.txt",
+                     "README-FIRST.txt", "GZDOOM-SOURCE.txt", "SHA256SUMS",
+                     "gzdoom/gzdoom", "gzdoom/gzdoom.pk3", "gzdoom/libzmusic.so.1",
+                     "gzdoom/soundfonts/gzdoom.sf2", "gzdoom-licenses/gpl.txt",
+                     "gzdoom-licenses/bsd.txt"):
+            self.assertIn(f"{FOLDER}/{name}", self.members, name)
+
+    def test_only_opt_gzdoom_is_packed(self):
+        self.assertFalse(any("usr/games" in n for n in self.members))
+        self.assertTrue(any("/usr/games/gzdoom" in w for w in self.made.warnings))
+        self.assertNotIn(f"{FOLDER}/gzdoom-licenses/d_main.cpp", self.members)
+
+    def test_modes(self):
+        for name, member in self.members.items():
+            if member.isdir():
+                self.assertEqual(member.mode, 0o755, name)
+        for name in ("gzdoom/gzdoom", *LINUX_LAUNCHERS):
+            self.assertEqual(self.member(name).mode, 0o755, name)
+        for name in ("gzdoom/gzdoom.pk3", "gzdoom/libzmusic.so.1", "LEEME.txt",
+                     "freedoom2.wad", "gzdoom/soundfonts/gzdoom.sf2"):   # 664 in the .deb
+            self.assertEqual(self.member(name).mode, 0o644, name)
+
+    def test_every_parent_folder_is_an_entry(self):
+        for name in self.members:
+            parent = name.rsplit("/", 1)[0]
+            if "/" in name:
+                self.assertTrue(self.members[parent].isdir(), parent)
+
+    def test_symlinks_stay_symlinks(self):
+        link = self.member("gzdoom/libzmusic.so")
+        self.assertTrue(link.issym())
+        self.assertEqual(link.linkname, "libzmusic.so.1")
+
+    def test_owner_mtime_and_gzip_header_are_fixed(self):
+        mtime = calendar.timegm((*STAMP, 0, 0, 0))
+        for name, member in self.members.items():
+            self.assertEqual((member.uid, member.gid, member.uname, member.gname),
+                             (0, 0, "root", "root"), name)
+            self.assertEqual(member.mtime, mtime, name)
+        self.assertEqual(self.raw[:3], b"\x1f\x8b\x08")
+        self.assertEqual(self.raw[3] & 0x08, 0, "no file name in the gzip header")
+        self.assertEqual(self.raw[4:8], b"\x00\x00\x00\x00", "no time in the gzip header")
+
+    def test_deterministic(self):
+        again = rp.make_portable(self.linux_config("linux2"))
+        self.assertEqual(again.zip_path.read_bytes(), self.raw)
+        names = list(self.members)
+        self.assertEqual(names, sorted(names))
+
+    def test_the_launchers(self):
+        for name in LINUX_LAUNCHERS:
+            lines = self.assert_launcher(self.file(name), "gzdoom/gzdoom")
+            self.assertNotIn("  read -r _", lines)
+        self.assertIn(f"tar xzf sovietdoom-{VERSION}-linux.tar.gz".encode(),
+                      self.file("play.sh"))
+
+    def test_the_guides_list_the_debs_dependencies_and_the_apt_command(self):
+        for name in ("LEEME.txt", "README-FIRST.txt"):
+            data = self.file(name)
+            self.assertFalse(data.startswith(rp.UTF8_BOM), name)
+            text = data.decode("utf-8")
+            self.assertIn("libc6, libsdl2-2.0-0, libasound2, libopus0", text)
+            apt = text[text.index("sudo apt install"):].split("\n")
+            command = ""
+            for line in apt:
+                command += line.strip().rstrip("\\")
+                if not line.endswith("\\"):
+                    break
+            self.assertEqual(command.split(), ["sudo", "apt", "install", "libc6",
+                                               "libsdl2-2.0-0", "libasound2", "libopus0",
+                                               "libopenal1", "libsndfile1"])
+            self.assertIn("libasound2t64", text)
+            self.assertIn("./play.sh" if name == "README-FIRST.txt" else "./jugar.sh", text)
+            self.assertIn("Options > Soviet Doom > Language > Russian", text)
+
+    def test_the_source_file_and_the_licences(self):
+        source = self.file("GZDOOM-SOURCE.txt").decode("utf-8")
+        self.assertIn("for Linux (x86-64", source)
+        self.assertIn("libzmusic.so.1", source)
+        self.assertIn("https://github.com/kahache/soviet_doom/releases/tag/v1.0", source)
+        self.assertIn(f"{hashlib.sha256(b'PK engine').hexdigest()}  gzdoom/gzdoom.pk3", source)
+        self.assertEqual(self.file("gzdoom-licenses/gpl.txt"), b"GNU GPL 3")
+
+    def test_sha256sums(self):
+        lines = self.file("SHA256SUMS").decode("ascii").splitlines()
+        listed = {line.split("  ", 1)[1]: line.split("  ", 1)[0] for line in lines}
+        regular = {n.split("/", 1)[1] for n in self.data}
+        self.assertEqual(set(listed), regular - {"SHA256SUMS"})
+        for name, digest in listed.items():
+            self.assertEqual(hashlib.sha256(self.file(name)).hexdigest(), digest, name)
+
+
+class LinuxRefusalTest(UnixInputs):
+
+    def test_no_source_archive(self):
+        self.assert_refused(self.linux_config(gzdoom_source=None), "--gzdoom-source not found")
+
+    def test_a_source_archive_of_another_version(self):
+        self.source.write_bytes(fake_tar([("gzdoom-g4.12.2/docs/licenses/gpl.txt",
+                                           tarfile.REGTYPE, 0o644, b"GPL")], mode="w:gz"))
+        self.assert_refused(self.linux_config(), "is not GZDoom g4.14.2's source")
+
+    def test_another_deb_version(self):
+        self.deb.write_bytes(fake_deb(FAKE_CONTROL.replace("4.14.2", "4.12.2")))
+        self.assert_refused(self.linux_config(), "is not GZDoom g4.14.2")
+
+    def test_not_an_ar_archive(self):
+        self.deb.write_bytes(b"PK not a deb")
+        self.assert_refused(self.linux_config(), "no ar header")
+
+    def test_a_cut_ar_archive(self):
+        self.deb.write_bytes(fake_deb()[:-100])
+        self.assert_refused(self.linux_config(), "cut short")
+
+    def test_a_symlink_that_leaves_the_engine(self):
+        data = FAKE_DEB_DATA + [("./opt/gzdoom/evil", tarfile.SYMTYPE, 0o777, b"../../etc/x")]
+        self.deb.write_bytes(fake_deb(data=data))
+        self.assert_refused(self.linux_config(), "leaves gzdoom/")
+
+    def test_a_device_or_hard_link(self):
+        data = FAKE_DEB_DATA + [("./opt/gzdoom/hard", tarfile.LNKTYPE, 0o644, b"gzdoom")]
+        self.deb.write_bytes(fake_deb(data=data))
+        self.assert_refused(self.linux_config(), "neither a file")
+
+    def test_the_cli_builds_linux(self):
+        out = self.root / "cli"
+        with redirect_stderr(io.StringIO()), redirect_stdout(io.StringIO()) as printed:
+            code = rp.main(["--platform", "linux", "--version", VERSION, "--out", str(out),
+                            "--iwad", str(self.iwad), "--release-zip", str(self.release_zip),
+                            "--engine-archive", str(self.deb),
+                            "--gzdoom-source", str(self.source)])
+        self.assertEqual(code, rp.EXIT_OK)
+        self.assertTrue((out / f"sovietdoom-{VERSION}-linux.tar.gz").is_file())
+        self.assertIn("SovietDoom/play.sh", printed.getvalue())
+
+
+class DebHelpersTest(unittest.TestCase):
+
+    def test_parse_control_joins_continuation_lines(self):
+        fields = rp.parse_control(FAKE_CONTROL)
+        self.assertEqual(fields["Version"], "4.14.2")
+        self.assertEqual(fields["Description"], "OpenGL version of ZDoom. A second line.")
+
+    def test_deb_packages_drops_versions_alternatives_and_arch(self):
+        self.assertEqual(rp.deb_packages("libc6, libsdl2-2.0-0 (>= 2.0.8), "
+                                         "libasound2 | libasound2t64, libopus0:amd64"),
+                         ["libc6", "libsdl2-2.0-0", "libasound2", "libopus0"])
+        self.assertEqual(rp.deb_packages(""), [])
+
+    def test_read_ar(self):
+        members = rp.read_ar(ar_archive([("a", b"odd"), ("b/", b"even")]), "t")
+        self.assertEqual(members, {"a": b"odd", "b": b"even"})
+
+    def test_apt_command_lines_end_in_backslashes(self):
+        text = rp.apt_command([f"libpackage{i}" for i in range(20)])
+        lines = text.split("\n")
+        self.assertGreater(len(lines), 1)
+        self.assertTrue(all(line.endswith(" \\") for line in lines[:-1]))
+        self.assertTrue(all(len(line) <= 76 for line in lines))
+
+    def test_safe_path(self):
+        self.assertEqual(rp.safe_path("./opt/gzdoom/", "t"), "opt/gzdoom")
+        for bad in ("/etc/passwd", "a/../b", "..", "a\\b", "C:/x", "a//b"):
+            with self.assertRaises(rp.PortableError, msg=bad):
+                rp.safe_path(bad, "t")
 
 
 ENGINE_PRESENT = (rp.DEFAULT_ENGINE_DIR / rp.ENGINE_EXE).is_file()

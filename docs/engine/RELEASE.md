@@ -139,8 +139,9 @@ is read correctly:
 ## 4. Portable packages (P5)
 
 ROADMAP P5 (D93), pulled forward for the CEO's friends: one download per OS
-that needs nothing else. **Windows exists** (`tools/release_portable.py`,
-2026-10-20); macOS and Linux are not made yet (see 4.4).
+that needs nothing else. **Windows** (`tools/release_portable.py`,
+2026-10-20), **macOS and Linux** (`--platform macos|linux`, 2026-10-21,
+D101/D102; see 4.5). Windows is the default platform.
 
 ### 4.1 Making the Windows package
 
@@ -178,7 +179,7 @@ One folder, `SovietDoom/`:
 | `freedoom2.wad`, `LICENSE-FREEDOOM-BSD-3.txt` | Freedoom: Phase 2 0.13.0 and its BSD notice |
 | `sovietdoom.pk3`, `LICENSE.md`, `LICENSE-GPL-3.0.txt`, `LICENSE-CC-BY-NC-SA-4.0.txt`, `CREDITS.txt` | the release's files, byte for byte |
 | `README.txt` | the release's readme with a note on top (EN/RU) saying GZDoom and Freedoom are already here |
-| `GZDOOM-SOURCE.txt` | GPL: the exact source (the `g4.14.2` tag and its source archives on GitHub), the DLLs' libraries and their source (OpenAL Soft 1.23.1, libsndfile 1.2.2, ZMusic), a written offer, and the SHA-256 of every engine file |
+| `GZDOOM-SOURCE.txt` | GPL: the exact source, attached to the v1.0 release as `gzdoom-g4.14.2-source.tar.gz`, `openal-soft-1.23.1-source.tar.gz`, `libsndfile-1.2.2-source.tar.gz`, `zmusic-1.1.14-source.tar.gz` (since 2026-10-21), and the `g4.14.2` tag and its source archives on GitHub; the DLLs' libraries and their source; a written offer; the SHA-256 of every engine file |
 | `SHA256SUMS` | every other file of the folder |
 
 ### 4.3 How GZDoom behaves (read from the g4.14.2 source, not run by an agent)
@@ -216,14 +217,63 @@ GZDoom is GPL 3.0, OpenAL Soft and libsndfile LGPL. Distributing their
 binaries from a server is GPL 3.0 §6(d): offer the corresponding source
 "in the same way through the same place", or on another server with clear
 directions next to the binaries; we stay responsible for it remaining
-available. `GZDOOM-SOURCE.txt` gives the directions and a written offer;
-the robust choice is to also attach the GZDoom g4.14.2 source archive
-(and those of the three libraries) to the GitHub release (a CEO decision:
-it is a download).
+available. Since 2026-10-21 the source archives of GZDoom g4.14.2, OpenAL
+Soft 1.23.1, libsndfile 1.2.2 and ZMusic 1.1.14 are attached to the
+[v1.0 release](https://github.com/kahache/soviet_doom/releases/tag/v1.0);
+`GZDOOM-SOURCE.txt` (every platform) names them first, then the upstream
+links and the written offer. They stay valid for every package that ships
+g4.14.2, whatever the mod's version.
 
-macOS (a `GZDoom.app` of g4.14.2 with the IWAD and PK3 beside it and a
-`.command` launcher; not signed or notarised by us, so Gatekeeper asks for
-right-click → Open, or System Settings → Privacy & Security → Open Anyway)
-and Linux (a tarball with a start script, or an AppImage) are not made yet;
-which g4.14.2 builds exist for them is NOT VERIFIED (no download was made).
-The P5 row in `docs/BACKLOG.md` carries them.
+### 4.5 macOS and Linux
+
+```bash
+python tools/release_portable.py --platform macos --version 1.0 --out <outside-the-repo> \
+    --release-zip <dir>/sovietdoom-1.0.zip --engine-archive <dl>/gzdoom-4-14-2-macos.zip
+python tools/release_portable.py --platform linux --version 1.0 --out <outside-the-repo> \
+    --release-zip <dir>/sovietdoom-1.0.zip --engine-archive <dl>/gzdoom_4.14.2_amd64.deb \
+    --gzdoom-source <dl>/gzdoom-g4.14.2-source.tar.gz
+# -> sovietdoom-1.0-macos.zip / sovietdoom-1.0-linux.tar.gz, each with its .sha256
+```
+
+The engine archives are the official g4.14.2 downloads from
+[GZDoom's release page](https://github.com/ZDoom/gzdoom/releases/tag/g4.14.2),
+read as data (never run, never extracted to disk). The tool checks the
+version (`Info.plist` `CFBundleShortVersionString`, the `.deb` control
+`Version`, and the `g4.14.2` string in the executable), refuses unsafe paths
+and symlinks that leave the engine folder, and lists what it leaves out.
+
+**macOS** (`sovietdoom-<v>-macos.zip`, folder `SovietDoom/`):
+
+| File | Why |
+|---|---|
+| `GZDoom.app/` | every entry of the official zip under `GZDoom.app/`, bytes and `external_attr` copied verbatim: `Contents/MacOS/gzdoom` stays 755 (a universal x86_64 + arm64 binary, macOS 10.15+ per `Info.plist`), symlinks stay symlinks (g4.14.2 has none), and the AppleDouble `._*` files beside the data files in `Contents/MacOS/` ship too: they hold the `com.apple.cs.*` code-signature attributes of those files, and macOS's unzip turns them back into attributes |
+| `gzdoom-licenses/` | the official zip's `Licenses/` (GPL, LGPL, BSD and the others) |
+| `Jugar Soviet Doom.command`, `Play Soviet Doom.command` | sh, mode 755, LF: `cd "$(dirname "$0")"`, then `exec GZDoom.app/Contents/MacOS/gzdoom -iwad freedoom2.wad -file sovietdoom.pk3 -config gzdoom.ini -savedir saves` with absolute paths built from the folder; if the engine is missing, a message and a wait for Enter |
+| `LEEME.txt`, `README-FIRST.txt` | Spanish and English, UTF-8 with BOM (TextEdit), LF: Gatekeeper (`xattr -dr com.apple.quarantine SovietDoom`, or right-click → Open; on macOS 15+ System Settings → Privacy & Security → Open Anyway), Russian, keys, saves |
+| the rest | as on Windows: `freedoom2.wad`, the release's files, `README.txt` with a macOS note, `GZDOOM-SOURCE.txt` (the libraries linked into the executable: ZMusic, OpenAL Soft, libsndfile 1.2.2, MoltenVK), `SHA256SUMS` (every regular file except the `._*` ones, which are gone after macOS unzips) |
+
+**Linux** (`sovietdoom-<v>-linux.tar.gz`, folder `SovietDoom/`): a tarball
+because a zip loses the modes with many unzippers.
+
+| File | Why |
+|---|---|
+| `gzdoom/` | `/opt/gzdoom` of the `.deb` (ar archive → `data.tar.xz`, parsed in Python, no dpkg): `gzdoom` (RPATH `$ORIGIN`, so it finds `libzmusic.so.1` beside it), the engine pk3s, `soundfonts/`, `fm_banks/`. The `/usr/games` wrapper, the `.desktop` file and the icon are left out |
+| `gzdoom-licenses/` | `docs/licenses/` of `gzdoom-g4.14.2-source.tar.gz` (`--gzdoom-source`): the `.deb` ships no licence texts |
+| `play.sh`, `jugar.sh` | mode 755, same command as the `.command` files, no wait |
+| `LEEME.txt`, `README-FIRST.txt` | UTF-8, LF: the `.deb` control's `Depends` (read from the file, not copied by hand), its `Recommends` (`libopenal1`: no sound without it), plus `libsndfile1` (`libzmusic.so.1` names `libsndfile.so.1` and the mod's sounds are OGG; the `.deb` does not declare it), and one `sudo apt install` line for them; Ubuntu 24.04+ may need `libasound2t64` for `libasound2` (NOT VERIFIED) |
+| the rest | `freedoom2.wad`, the release's files, `README.txt` with a Linux note, `GZDOOM-SOURCE.txt`, `SHA256SUMS` |
+
+Tar entries: sorted, every parent folder present, folders and executables
+755, other files 644, owner root (0:0), every mtime the release zip's, GNU
+format; the gzip header carries no name and no time. Same inputs, same bytes
+(both packages, checked by rebuilding).
+
+**Verified on this PC (Windows, 2026-10-21):** listings, modes, that every
+`GZDoom.app` entry equals the official zip's (bytes and `external_attr`), the
+PK3 equals the v1.0 release's, `sha256sum -c SHA256SUMS` passes in both
+extracted folders, `sh -n` parses the four launchers, two builds give the
+same bytes. **NOT VERIFIED:** running either package. Nobody has opened the
+macOS zip on a Mac (Archive Utility's handling of the `._*` files,
+Gatekeeper's dialogs, `-savedir`/`-config` in practice), and WSL is not
+installed here, so the Linux package has not run on Linux (the library
+list comes from the `.deb` control and the strings in the binaries).
