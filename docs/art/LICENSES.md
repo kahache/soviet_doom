@@ -111,14 +111,20 @@ names and copied byte for byte from `work/art/shell_extra/`
 (`cursor_B_1.png` → `M_SKULL1.png`, `cursor_B_2.png` → `M_SKULL2.png`,
 `pause_P2_en.png` → `M_PAUSE.png`). Like `M_DOOM`, RGBA with hard alpha and
 palette colours only (ART-BIBLE §2), and named by the engine, so outside the
-`SD` prefix rule (MOD-SPEC §1). Only the English plaque ships; the Russian
-one (`pause_P2_ru.png`, same origin) waits on the packer (MOD-SPEC §10, T12).
+`SD` prefix rule (MOD-SPEC §1). The Russian plaque (`pause_P2_ru.png`,
+same origin) ships since T24 as `assets/localized/textures/M_PAUSE.ru.png`
+and the Catalan one (`pause_P2_ca.png`, P6, 2026-10-21) as
+`M_PAUSE.ca.png` beside it, both byte for byte from `work/art/shell_extra/`
+and drawn by `SD_StatusBar` (MOD-SPEC §6.5.1, ADR 010); `M_PAUSE`'s row
+covers them as language variants, and each has its own row below.
 Per-lump rows: `TEXTURE-INDEX.md`, "Shell pictures".
 
 | Lump | What it is | Origin | Licence |
 |---|---|---|---|
 | `M_SKULL1` / `M_SKULL2` | menu cursor, the two blink phases: the hammer and sickle, gold then pale cream, with a dark-red outline | (a) `tools/art/gen_cursor.py`, `cursor_image("B", 1/2)`, palette v1; the emblem's geometry imported from `gen_soviet_base.hammer_sickle()` (the approved `SDSTAR1` v5), never re-traced | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
 | `M_PAUSE` | pause sign, English: «PAUSE» on a flag-red plaque with a cream border | (a) `tools/art/gen_cursor.py`, `pause_image("P2", "en")`, palette v1; the word set in our own `SDMENU` folder font (read from `assets/fonts/sdmenu/`, above), no system font | idem |
+| `M_PAUSE.ru.png` | pause sign, Russian: «ПАУЗА» on the same plaque, 77x20 (T24) | (a) `tools/art/gen_cursor.py`, `pause_image("P2", "ru")`, palette v1, `SDMENU` as above | idem |
+| `M_PAUSE.ca.png` | pause sign, Catalan: «PAUSA» on the same plaque, 77x20 (P6); `SDMENU`'s D22 letterforms make it read PДUSД, as the menu does in Catalan | (a) `tools/art/gen_cursor.py`, `pause_image("P2", "ca")` (`--catalan --install`), palette v1, `SDMENU` as above; fitted inside the English and Russian canvas, which it does not change | idem |
 | `SDCURSOR` | mouse pointer (GameInfo `CursorPic`, D102): the hammer and sickle, gold with a dark-red contour, 28x25, grAb 12,1 at the sickle's tip | (a) `tools/art/gen_mouse_cursor.py`, palette v1; the emblem's geometry imported from `gen_soviet_base.hammer_sickle()` (the approved `SDSTAR1` v5), no font | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
 
 Procedural and drawn from code: no photograph, no typeface, no pixel

@@ -980,7 +980,8 @@ class WadReaderTest(unittest.TestCase):
 
 # --- 10. Language variants (localized/textures/) ---------------------------
 
-PAUSE_SIZE = (77, 20)   # the real M_PAUSE plaque P2 (D48), English and Russian
+PAUSE_SIZE = (77, 20)   # the real M_PAUSE plaque P2 (D48), English, Russian and Catalan (P6)
+CA_VARIANT = "localized/textures/M_PAUSE.ca.png"
 
 
 def png_rgba(width: int, height: int) -> bytes:
@@ -1017,6 +1018,20 @@ class LocalizedTest(CheckPk3TestCase):
         self.assertClean(report)
         self.assertEqual(1, report.stats["localized_variants"])
         self.assertIn("M_PAUSE for ru", " ".join(report.notes["localized"]))
+
+    def test_russian_and_catalan_variants_pass_together(self):
+        # P6 (D97): the shipped package carries M_PAUSE.ru and M_PAUSE.ca.
+        report = self.run_check(self.entries(**{CA_VARIANT: png_rgba(*PAUSE_SIZE)}))
+        self.assertClean(report)
+        self.assertEqual(2, report.stats["localized_variants"])
+        notes = " ".join(report.notes["localized"])
+        self.assertIn("M_PAUSE for ru", notes)
+        self.assertIn("M_PAUSE for ca", notes)
+
+    def test_catalan_variant_of_another_size_fails(self):
+        entries = self.entries(**{CA_VARIANT: png_rgba(PAUSE_SIZE[0] + 3, PAUSE_SIZE[1])})
+        finding = self.assertFails(self.run_check(entries), "localized", "same size")
+        self.assertEqual(CA_VARIANT, finding.path)
 
     def test_package_without_variants_passes(self):
         report = self.run_check(good_entries())

@@ -798,9 +798,9 @@ SD_MNU_CHOOSESKILL = "TRIA LA DIFICULTAT";
 SD_MNU_CHOOSEEPISODE = "TRIA LA MISSIÓ";
 
 // --- Rètol de pausa (T24) -----------------------------------------------------
-// No és text: és el NOM del gràfic. Encara no hi ha rètol català («PAUSA»),
-// així que es mostra l'anglès (pendent, docs/product/2026-10-21_P6_catala-revisio.md).
-SD_PAUSE_SIGN = "M_PAUSE";
+// No és text: és el NOM del gràfic, el camí sencer de la variant catalana
+// del rètol P2 «PAUSA» (D48, P6). Un nom amb «/» el motor el busca pel camí.
+SD_PAUSE_SIGN = "localized/textures/m_pause.ca.png";
 
 // --- Avís després de morir (D100, v1.1) ---------------------------------------
 // %s és el nom de la tecla; l'omple el codi.
