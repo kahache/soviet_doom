@@ -26,7 +26,7 @@ GZDoom is not signed by Apple, so the first time right-click
 on the `SovietDoom` folder in Terminal; on macOS 15+ System Settings →
 Privacy & Security → Open Anyway). Then double-click `Play Soviet Doom.command`.
 
-**Linux (x86-64)** (not yet tested on a real machine): download
+**Linux (x86-64)** (tested on Ubuntu 24.04; there use `libasound2t64` for `libasound2`): download
 `sovietdoom-<version>-linux.tar.gz`, `tar xzf` it, install the libraries
 listed in `README-FIRST.txt` (one `sudo apt install` line), then
 `cd SovietDoom && ./play.sh`. Problems with either: please open an Issue.
@@ -140,7 +140,7 @@ descomprimeix-lo i fes doble clic a `Play Soviet Doom.bat`: GZDoom i Freedoom
 ja hi són, i no s'instal·la res. Si Windows diu que ha protegit l'ordinador,
 obre «Més informació» i tria executar-lo igualment. Per a macOS i Linux hi ha
 `sovietdoom-<versió>-macos.zip` i `sovietdoom-<versió>-linux.tar.gz`
-(encara sense provar en màquines reals; les instruccions són a
+(el de Linux provat a Ubuntu 24.04, el de macOS encara no; les instruccions són a
 `README-FIRST.txt`). A qualsevol sistema amb
 GZDoom 4.14.2 o posterior i Freedoom: Phase 2 (`freedoom2.wad`):
 `gzdoom -iwad freedoom2.wad -file sovietdoom.pk3`.
