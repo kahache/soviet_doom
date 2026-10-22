@@ -14,7 +14,9 @@ What is pinned here, without ever starting GZDoom (D26):
   `gen_music.py`, and `D_SDM01T`, the range's, which is `D_SDM01E` (also
   `gen_music.py`) cut at bar 49 by `gen_enemy_alts.trim_midi` (that half
   needs numpy), and D106's ten episode 2 pieces from
-  `tools/audio/compose_episode2.py` at the CC7 scale each was calibrated to.
+  `tools/audio/compose_episode2.py` at the CC7 scale each was calibrated to,
+  and D113's ten episode 3 pieces (the boss loops are pieces of their own,
+  not cuts) from `tools/audio/compose_episode3.py` the same way.
   `D_SDAMUR` (D83: NO) no longer ships. Nothing is composed or sequenced here (D59): the
   generator is only run into a temporary folder to compare bytes. An approved asset that nobody can
   regenerate is an asset nobody can repair.
@@ -70,11 +72,21 @@ EPISODE2 = {"D_SDM04A": 0.921, "D_SDM04B": 0.953,
             "D_SDM06A": 0.848, "D_SDM06B": 0.8352,
             "D_SDE2IA": 0.88, "D_SDE2IB": 0.825}
 EPISODE2_BOSS = {"D_SDBS6A": "D_SDM06A", "D_SDBS6B": "D_SDM06B"}
+# D113 (CEO, "las doy por buenas", approved unheard): episode 3's pieces, lump
+# -> the CC7 scale in work/audio/episode3/render/meta.json (3 places; each one
+# gives back the bytes compose_episode3.calibrate_and_render wrote). The boss
+# loops D_SDBS9A/B are songs of their own in compose_episode3.all_songs().
+EPISODE3 = {"D_SDM07A": 0.936, "D_SDM07B": 0.853,
+            "D_SDM08A": 0.912, "D_SDM08B": 0.88,
+            "D_SDM09A": 0.81, "D_SDM09B": 0.794,
+            "D_SDBS9A": 0.811, "D_SDBS9B": 0.787,
+            "D_SDE3IA": 0.833, "D_SDE3IB": 0.81}
 INSTALLED = ("D_SDINTL", N9E_MAP01[0],              # D43; MAP01's since D95
              "D_SDRAD1", "D_SDRAD2",                # D43 radio, tests/test_radio.py
              *D62_DRAFTS,                           # D62 drafts
              N9E_TITLE[0], N9E_RANGE[0],            # N9e
-             *EPISODE2, *EPISODE2_BOSS)             # D106
+             *EPISODE2, *EPISODE2_BOSS,             # D106
+             *EPISODE3)                             # D113
 ENGELBACH_SOURCE = "WM_Internationale_orch2.mid"
 DISCARDED = ("MU_RimskyKorsakov_FugueBACH.mid",    # D_CND02
              "MU_Scriabin_Prelude_op11n1.mid",     # D_CND04
@@ -132,6 +144,17 @@ class InstalledMusicTests(unittest.TestCase):
             with self.subTest(lump=boss):
                 self.assertEqual(sha256(MUSIC_ASSETS / f"{boss}.mid"),
                                  hashlib.sha256(songs[lump].midi(*ce.BOSS_BARS)).hexdigest())
+
+    def test_episode_3_is_what_compose_episode3_writes(self):
+        import compose_episode3 as c3
+        songs = {v.lump: s for _key, v, s in c3.all_songs()}
+        self.assertEqual(set(EPISODE3), set(songs))
+        for lump, scale in EPISODE3.items():
+            song = songs[lump]
+            song.volume_scale = scale
+            with self.subTest(lump=lump):
+                self.assertEqual(sha256(MUSIC_ASSETS / f"{lump}.mid"),
+                                 hashlib.sha256(song.midi()).hexdigest())
 
     def test_the_d62_drafts_are_the_files_the_ceo_was_given_to_hear(self):
         with tempfile.TemporaryDirectory() as tmp:

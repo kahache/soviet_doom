@@ -1,4 +1,5 @@
-"""D106: episode 2's A/B music and MAP06's boss loop (SD_MusicVariant).
+"""D106, D113: episodes 2 and 3's A/B music and the boss loops of MAP06 and
+MAP09 (SD_MusicVariant).
 
 Contract: docs/engine/MOD-SPEC.md 4.5 and 6.11. What is pinned here, without
 ever starting GZDoom (D26):
@@ -8,10 +9,11 @@ ever starting GZDoom (D26):
     AddEventHandlers after SD_LoadReporter;
   * the switches SD_MUSIC_VARIANTS_ENABLED and SD_BOSS_MUSIC_ENABLED exist
     and are on;
-  * the table: SD_MUSIC_ROWS rows of SD_MUSIC_COLS cells, exactly MAP04,
-    MAP05 and MAP06; each A is that map's `music` in MAPINFO, each B its
-    D106 pair, only MAP06 has boss lumps (MAP03, whose General is also a
-    BOSS, has no row), and every lump is packed under music/ and licensed;
+  * the table: SD_MUSIC_ROWS rows of SD_MUSIC_COLS cells, exactly MAP04-MAP06
+    (D106) and MAP07-MAP09 (D113); each A is that map's `music` in MAPINFO,
+    each B its approved pair, only MAP06 and MAP09 have boss lumps (MAP03,
+    whose General is also a BOSS, has no row), and every lump is packed
+    under music/ and licensed;
   * the behaviour the contract promises is in the code: a load is left to
     the engine (IsSaveGame), the draw uses a named play RNG, the B and the
     boss loop go through S_ChangeMusic, the boss is found by the BOSS flag
@@ -22,8 +24,8 @@ ever starting GZDoom (D26):
     (skipped where GZDoom is absent, as in CI).
 
 What it cannot pin is what the engine plays: the PM's pass (`currentmusic`
-in MAP04-06 over several New Games, a save/load on a B, the boss loop on
-MAP06 and none on MAP03).
+in MAP04-09 over several New Games, a save/load on a B, the boss loop on
+MAP06 and MAP09 and none on MAP03).
 
 Run:  python3 -m unittest tests.test_music_variant -v
 """
@@ -59,11 +61,17 @@ PARENT = "EventHandler"
 FIRST_HANDLER = "SD_LoadReporter"
 OVERRIDES = {"WorldLoaded", "WorldThingSpawned", "WorldThingDamaged", "WorldTick"}
 
-# D106: map -> (A, B, boss with A, boss with B). The A is MAPINFO's `music`.
+# D106, D113: map -> (A, B, boss with A, boss with B). The A is MAPINFO's `music`.
 TABLE = {"MAP04": ("D_SDM04A", "D_SDM04B", "", ""),
          "MAP05": ("D_SDM05A", "D_SDM05B", "", ""),
-         "MAP06": ("D_SDM06A", "D_SDM06B", "D_SDBS6A", "D_SDBS6B")}
-NO_ROW = ("MAP01", "MAP02", "MAP03", "RANGE")   # MAP03's General must not swap the music
+         "MAP06": ("D_SDM06A", "D_SDM06B", "D_SDBS6A", "D_SDBS6B"),
+         "MAP07": ("D_SDM07A", "D_SDM07B", "", ""),
+         "MAP08": ("D_SDM08A", "D_SDM08B", "", ""),
+         "MAP09": ("D_SDM09A", "D_SDM09B", "D_SDBS9A", "D_SDBS9B")}
+# The maps with a boss loop (D106: MAP06; D113: MAP09, the final boss).
+BOSS_MAPS = {"MAP06", "MAP09"}
+# MAP03's General must not swap the music.
+NO_ROW = ("MAP01", "MAP02", "MAP03", "RANGE")
 
 
 def raw() -> str:
@@ -122,7 +130,7 @@ class TableTest(unittest.TestCase):
         cls.table = table()
         cls.maps = dict(RE_MAP_BLOCK.findall(mapinfo_code(MAPINFO.read_text(encoding="utf-8"))))
 
-    def test_the_table_is_d106s(self):
+    def test_the_table_is_d106s_and_d113s(self):
         self.assertEqual(TABLE, self.table)
         self.assertEqual(len(TABLE), int(const("SD_MUSIC_ROWS")))
         self.assertEqual(5, int(const("SD_MUSIC_COLS")))
@@ -135,7 +143,7 @@ class TableTest(unittest.TestCase):
     def test_no_other_map_has_a_row(self):
         for name in NO_ROW:
             self.assertNotIn(name, self.table)
-        self.assertEqual({"MAP06"}, {m for m, row in self.table.items() if row[2] or row[3]})
+        self.assertEqual(BOSS_MAPS, {m for m, row in self.table.items() if row[2] or row[3]})
 
     def test_every_lump_is_packed_and_licensed(self):
         packed = {p.stem for p in MUSIC_ASSETS.glob("*.mid")}

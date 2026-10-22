@@ -220,6 +220,8 @@ sovietdoom.pk3
 ├── music/D_SDM1N2.mid       MAP01's music, ours (D95, §4.5)
 ├── music/D_SDM04A.mid … D_SDE2IB.mid  episode 2's ten pieces, ours (D106, §4.5, §6.11):
 │                           A/B of MAP04-06, MAP06's boss loops D_SDBS6A/B, intermission D_SDE2IA/B
+├── music/D_SDM07A.mid … D_SDE3IB.mid  episode 3's ten pieces, ours (D113, §4.5, §6.11):
+│                           A/B of MAP07-09, MAP09's final boss loops D_SDBS9A/B, intermission D_SDE3IA/B
 ├── music/D_SDRAD1.mid       diegetic radio: «Эй, ухнем», Gerloff's CC0 sequence (D43, §6.7)
 ├── music/D_SDRAD2.mid       diegetic radio: «Колокольчик», Gerloff's CC0 sequence (D43, §6.7)
 ├── sprites/SD*.png          our sprites (D48): the six weapon pickups SDAPA0, SDTPA0, SDIPA0,
@@ -345,13 +347,16 @@ assets/   (CEO-approved art only; `work/` is gitignored and never ships)
 | `MAP01` | `SD_MAP01_NAME` = "Zarya-7 Cosmodrome" / «Космодром "Заря-7"» | `SD_EP01_NAME` = "Soviet Doom" / "Советский Doom" | Owned by `level-designer` since F3; design in `docs/levels/MAP01-zarya-7.md`. `cluster = 3`, `next = "MAP02"`, `par = 210` (§4.6; `next = "MAP03"` from D60 to D62, `cluster = 1`, `next = endtitle` before D60). Named in-engine 2026-10-13 (the log prints `MAP01 - Zarya-7 Cosmodrome`). |
 | `MAP02` (`MAP03` until D62) | `SD_MAP02_NAME` = "Metro-Bunker" / «Метро-бункер» (working title, `docs/levels/MAP02-metro.md` §13) | `SD_EP01_NAME`, the campaign's second map | Owned by `level-designer`; design in `docs/levels/MAP02-metro.md`. `cluster = 4`, `next = "MAP03"`, `music = ""`, `par = 300` (§4.6): its exit leads to the factory through cluster 4's transition text. |
 | `MAP03` (`MAP04` until D62) | `SD_MAP03_NAME` = "Tankograd" / «Танкоград» (D63) | `SD_EP01_NAME`, the campaign's third and last map | Owned by `level-designer`; design in `docs/levels/MAP03-factory.md` (v0, the grey box). `cluster = 1`, `next = endtitle`, `music = ""`, `par = 360` (`level-designer`'s figure, design §11): its exit, the breaker that feeds the portal, ends the episode (§4.6). |
-| `MAP04` (D104, P4) | `SD_MAP04_NAME` = "Trans-Siberian" / «Транссиб» / «Transsiberià» | `SD_EP03_NAME` = "The Road to Moscow" / «Дорога на Москву» / «El camí de Moscou», episode 2's first map | Owned by `level-designer` (`src/maps/MAP04/`): the Trans-Siberian marshalling yard at Sverdlovsk, the armoured train, the signal box, the locomotive roundhouse; left west on the armoured train. `cluster = 5`, `next = "MAP05"`, `music = "D_SDM01T"` (provisional, §4.5), `par = 300` (the mod-engineer's placeholder) (§4.6). |
-| `MAP05` (D104) | `SD_MAP05_NAME` = "Volga Dam" / «Волжская ГЭС» / «La presa del Volga» | `SD_EP03_NAME`, episode 2's second map | Owned by `level-designer` (`src/maps/MAP05/`): the hydroelectric dam at Zhiguli, the turbine hall, the spillway, the control room; left over the crest of the dam. `cluster = 6`, `next = "MAP06"`, `music = "D_SDFUNR"` (provisional), `par = 330` (placeholder). |
-| `MAP06` (D104) | `SD_MAP06_NAME` = "Red Square" / «Красная площадь» / «La plaça Roja» | `SD_EP03_NAME`, episode 2's third and last map | Owned by `level-designer` (`src/maps/MAP06/`): Moscow, out of the metro at Ploshchad Revolyutsii, the GUM galleries, Red Square, the gate in the Kremlin wall, the boss arena. `cluster = 7`, `next = endtitle`, `music = "D_SDGATE"` (provisional), `par = 420` (placeholder): its exit ends episode 2 (§4.6). |
+| `MAP04` (D104, P4) | `SD_MAP04_NAME` = "Trans-Siberian" / «Транссиб» / «Transsiberià» | `SD_EP03_NAME` = "The Road to Moscow" / «Дорога на Москву» / «El camí de Moscou», episode 2's first map | Owned by `level-designer` (`src/maps/MAP04/`): the Trans-Siberian marshalling yard at Sverdlovsk, the armoured train, the signal box, the locomotive roundhouse; left west on the armoured train. `cluster = 5`, `next = "MAP05"`, `music = "D_SDM04A"` (D106, §4.5), `par = 300` (the mod-engineer's placeholder) (§4.6). |
+| `MAP05` (D104) | `SD_MAP05_NAME` = "Volga Dam" / «Волжская ГЭС» / «La presa del Volga» | `SD_EP03_NAME`, episode 2's second map | Owned by `level-designer` (`src/maps/MAP05/`): the hydroelectric dam at Zhiguli, the turbine hall, the spillway, the control room; left over the crest of the dam. `cluster = 6`, `next = "MAP06"`, `music = "D_SDM05A"` (D106), `par = 330` (placeholder). |
+| `MAP06` (D104) | `SD_MAP06_NAME` = "Red Square" / «Красная площадь» / «La plaça Roja» | `SD_EP03_NAME`, episode 2's third and last map | Owned by `level-designer` (`src/maps/MAP06/`): Moscow, out of the metro at Ploshchad Revolyutsii, the GUM galleries, Red Square, the gate in the Kremlin wall, the boss arena. `cluster = 7`, `next = endtitle`, `music = "D_SDM06A"` (D106), `par = 420` (placeholder): its exit ends episode 2 (§4.6). |
+| `MAP07` (D112, P4) | `SD_MAP07_NAME` = "Novaya Zemlya" / «Новая Земля» / «Nova Zembla» | `SD_EP04_NAME` = "The Portal" / «Портал» / «El portal», episode 3's first map | Owned by `level-designer` (`src/maps/MAP07/`): the Arctic radar station on Novaya Zemlya, the radomes, the barracks, the nuclear test site; the invaders use it to guide something in. `cluster = 8`, `next = "MAP08"`, `music = "D_SDM04B"`, `intermusic = "D_SDE2IB"` (both provisional, §4.5), `par = 330` (placeholder) (§4.6). |
+| `MAP08` (D112) | `SD_MAP08_NAME` = "Severomorsk" / «Североморск» / «Severomorsk» | `SD_EP04_NAME`, episode 3's second map | Owned by `level-designer` (`src/maps/MAP08/`): the Northern Fleet's submarine base at Severomorsk, the covered docks, a nuclear submarine, the cranes, the tunnels in the rock. `cluster = 9`, `next = "MAP09"`, `music = "D_SDM05B"`, `intermusic = "D_SDE2IB"` (provisional), `par = 360` (placeholder). |
+| `MAP09` (D112) | `SD_MAP09_NAME` = "Tunguska" / «Тунгуска» / «Tunguska» | `SD_EP04_NAME`, episode 3's third and last map | Owned by `level-designer` (`src/maps/MAP09/`): the invaders' main portal at Tunguska, the taiga flattened in 1908, an alien-industrial complex eating the forest, the portal, the final boss arena. `cluster = 10`, `next = endtitle`, `music = "D_SDM06B"` (provisional), `par = 480` (placeholder): its exit ends episode 3 and the first cycle (§4.6). |
 | `RANGE` (`MAP02` until D62) | `SD_RANGE_NAME` = "Training Ground" / «Учебный полигон» (D46, 2026-10-14; was "Engineering Test Range" / "Инженерный полигон"; the id was `SD_MAP02_NAME` until D62) | `SD_EP02_NAME` = "Practice Range" / «Полигон» (D41, §4.4) | `cluster = 2`, `next = endtitle`, `nointermission`. F4: 2048×768 hall, ceiling 128, light 192, player start at (160,384) facing +x. The seven weapons, the four ammo pools, barrels and six targets (thing 3004, Soviet riflemen since F5). **F5: the bestiary gallery**, a second room 2048×768 at y 1024–1792, ceiling 192, light 192: one of each of the eight enemy classes in a row at y = 1600, deaf (`ambush`) and facing north, away from the arrival spot. Since D41 the player reaches the map from New Game (§4.4); `MAP=RANGE tools/run.sh` starts it (D62). **Since commit `d1e891f` (2026-10-13), v1 for players:** an `Exit_Normal` switch (`SDSW1D`) in a lit alcove straight behind the start, and the gallery reached on foot through a manual door (tag 1) in the hall's north wall and a bent passage that comes out behind the row; the console's `warp 1024 1152` still lands there. Geometry and reasons are `level-designer`'s, `docs/levels/RANGE-practice-range.md`. Built as an engineering fixture; shipped as the practice range. |
 
 MAPINFO conventions: `clearepisodes` + one episode per campaign episode
-(two since D104, §4.6) plus the practice range (§4.4); **the MAPxx slots follow the campaign's order (D62)**
+(two since D104, three since D112, §4.6) plus the practice range (§4.4); **the MAPxx slots follow the campaign's order (D62)**
 and a map outside the campaign takes a lump name that is not MAPxx (`RANGE`);
 map titles by `lookup`, episode title by `name = "$ID"` (**`lookup` is not accepted inside an
 episode block**, verified B1); every map and cluster names its music, and
@@ -371,7 +376,7 @@ between the ways of reaching it is ADR 007
 
 | What | Value |
 |---|---|
-| Episodes (`MAPINFO`, in this order) | `episode MAP01` name `$SD_EP01_NAME`, key `s`; **`episode MAP04` name `$SD_EP03_NAME`, key `m`** (D104, P4: episode 2, "The Road to Moscow"; the `03` is the order the episodes were declared in, the range having taken `02` in D41); `episode RANGE` name `$SD_EP02_NAME`, key `p` (`episode MAP02` until D62). The order of the blocks is the order of the screen: the campaign's two episodes, then the range |
+| Episodes (`MAPINFO`, in this order) | `episode MAP01` name `$SD_EP01_NAME`, key `s`; **`episode MAP04` name `$SD_EP03_NAME`, key `m`** (D104, P4: episode 2, "The Road to Moscow"; the `03` is the order the episodes were declared in, the range having taken `02` in D41); `episode RANGE` name `$SD_EP02_NAME`, key `p` (`episode MAP02` until D62). **`episode MAP07` name `$SD_EP04_NAME`, key `t`** (D112, P4: episode 3, "The Portal" / «Портал» / «El portal»; `04`, the fourth declared), after episode 2. The order of the blocks is the order of the screen: the campaign's three episodes, then the range |
 | The range's lump (D62) | **`RANGE`**: out of the MAPxx slots, which follow the campaign. A non-MAPxx map is plain MAPINFO: GZDoom g4.14.2's own `mapinfo/doom2bfg.txt` opens its second episode with `episode level01` on the maps `LEVEL01`–`LEVEL09` of `mapinfo/doom2.txt` (read in the installed `gzdoom.pk3`, 2026-10-14). The build and `check_pk3` take any lump name of up to 8 characters (`validate_lump_name`, `lump_name_problem`); `tools/verify.py` finds map folders by that rule since D62. Such a map has no level number, which only `Teleport_NewMap` and `-warp` use; neither reaches the range. **NOT VERIFIED in the engine** until the PM's C6-C7 (§4.6) |
 | Episode names | `SD_EP02_NAME` = "Practice Range" / «Полигон». The map title under it is `SD_RANGE_NAME` = "Training Ground" / «Учебный полигон» since D46 (§4; the id was `SD_MAP02_NAME` until D62); the episode name stays (see the note below the table) |
 | Flow | Main menu → New Game → **episode screen** (new: with one episode the engine skipped it) → skill screen → the map |
@@ -447,11 +452,14 @@ The CEO accepted every music recommendation of `docs/sound/SOUNDTRACK.md`
 | MAP04, Trans-Siberian (D104) | `music = "D_SDM04A"`, `intermusic = "D_SDE2IA"` (D106) | `D_SDM04A`, ours (`tools/audio/compose_episode2.py`); its B `D_SDM04B` is drawn at random by `SD_MusicVariant` (§6.11). The stats screen after MAP04 plays `D_SDE2IA` |
 | MAP05, Volga Dam (D104) | `music = "D_SDM05A"`, `intermusic = "D_SDE2IA"` (D106) | `D_SDM05A`, ours; B `D_SDM05B` (§6.11); stats screen `D_SDE2IA` |
 | MAP06, Red Square (D104) | `music = "D_SDM06A"` (D106) | `D_SDM06A`, ours; B `D_SDM06B`; the boss loop `D_SDBS6A` / `D_SDBS6B` (§6.11). Its stats screen keeps `D_SDTITL` |
+| MAP07, Novaya Zemlya (D112) | `music = "D_SDM07A"`, `intermusic = "D_SDE3IA"` (D113) | `D_SDM07A`, ours (`tools/audio/compose_episode3.py`); B `D_SDM07B` (§6.11). The stats screen after MAP07 plays `D_SDE3IA`. Replaces D112's provisional `D_SDM04B` / `D_SDE2IB` |
+| MAP08, Severomorsk (D112) | `music = "D_SDM08A"`, `intermusic = "D_SDE3IA"` (D113) | `D_SDM08A`, ours; B `D_SDM08B` (§6.11); stats screen `D_SDE3IA` |
+| MAP09, Tunguska (D112) | `music = "D_SDM09A"` (D113) | `D_SDM09A`, ours; B `D_SDM09B`; the final boss loop `D_SDBS9A` / `D_SDBS9B` (§6.11). Its stats screen keeps `D_SDTITL` |
 | RANGE, practice range | `music = "D_SDM01T"` (since N9e, D86) | `D_SDM01T`, MAP01's theme `D_SDM01E` cut to its melodic part (bar 49); `D_SDAMUR` (D62) was rejected by D83 and no longer ships |
-| Clusters 1 to 7 (end and transition texts, §4.6) | `music = ""` | none |
+| Clusters 1 to 10 (end and transition texts, §4.6) | `music = ""` | none |
 | A diegetic radio (§6.7) | **none**: `SD_Radio` swaps the music from ZScript while the player is near it | `D_SDRAD1`, `D_SDRAD2` |
-| Episode 2's B pieces and MAP06's boss loop (§6.11) | **none**: `SD_MusicVariant` swaps them in from ZScript | `D_SDM04B`, `D_SDM05B`, `D_SDM06B`, `D_SDBS6A`, `D_SDBS6B` |
-| Episode 2's intermission, variant B | **none yet**: packed, not wired (the stats screen's music is MAPINFO's alone) | `D_SDE2IB` |
+| Episodes 2 and 3's B pieces and the boss loops of MAP06 and MAP09 (§6.11) | **none**: `SD_MusicVariant` swaps them in from ZScript (D113 ended D112's provisional use of episode 2's B pieces on MAP07-09) | `D_SDM04B`, `D_SDM05B`, `D_SDM06B`, `D_SDBS6A`, `D_SDBS6B`, `D_SDM07B`, `D_SDM08B`, `D_SDM09B`, `D_SDBS9A`, `D_SDBS9B` |
+| Each episode's intermission, variant B | **none**: packed, not wired (the stats screen's music is MAPINFO's, §6.11) | `D_SDE2IB`, `D_SDE3IB` |
 
 **`intermusic`, per map (D106).** The stats screen asks the level being LEFT
 for its music: `FLevelLocals::SetInterMusic` (gzdoom g4.14.2
@@ -459,8 +467,9 @@ src/g_level.cpp 2318-2327, called by `StatusScreen.StartMusic`,
 `gzdoom.pk3:zscript/ui/statscreen/statscreen.zs` 827-831) plays the map's
 `mapintermusic` for the next map if any, else its `intermusic`, else
 GameInfo's `IntermissionMusic`. So MAP04's and MAP05's `intermusic =
-"D_SDE2IA"` gives episode 2 its own stats-screen music and every other map
-keeps `D_SDTITL`. The key is parsed by `DEFINE_MAP_OPTION(intermusic)`
+"D_SDE2IA"` gives episode 2 its own stats-screen music, MAP07's and MAP08's
+`"D_SDE3IA"` episode 3 its own (D113), and every other map keeps
+`D_SDTITL`. The key is parsed by `DEFINE_MAP_OPTION(intermusic)`
 (src/gamedata/g_mapinfo.cpp 1166-1170).
 
 Rule: every `music` / `intermusic` / `TitleMusic` / `IntermissionMusic` value is `""` or a lump packed under
@@ -479,9 +488,12 @@ range, `RANGE` since D62).
 as Doom's does; and (N9e, 2026-10-20) that the stats screen after MAP01
 plays `D_SDTITL`, MAP01 `D_SDM1N2` and the range `D_SDM01T` (`currentmusic`, the PM's pass);
 and (D106) that MAP04-06 play their A or B, the stats screens after MAP04
-and MAP05 `D_SDE2IA`, and MAP06's boss its loop (§6.11).
+and MAP05 `D_SDE2IA`, and MAP06's boss its loop (§6.11); and (D113) that
+MAP07-09 play their A or B, the stats screens after MAP07 and MAP08
+`D_SDE3IA`, and MAP09's boss its loop (§6.11). D113's ten pieces were
+approved unheard, so that pass is also the first listening.
 
-### 4.6 The campaign's flow: MAP01 → MAP02 → MAP03, MAP04 → MAP05 → MAP06 (D60, D62, D104)
+### 4.6 The campaign's flow: MAP01 → MAP02 → MAP03, MAP04 → MAP05 → MAP06, MAP07 → MAP08 → MAP09 (D60, D62, D104, D112)
 
 D60 amended D5: the campaign grew past MAP01. **D62 renumbered the slots to
 follow it** ("para no confundir con los nombres"): MAP01 Zarya-7, **MAP02 the
@@ -501,6 +513,9 @@ design documents moved with `git mv`; dated evidence keeps its old names (a
 | `MAP04` (D104) | 5 | `"MAP05"` | the stats screen, then cluster 5's `SD_MAP04_EXIT_TEXT` over `SDFLR1`, then MAP05 |
 | `MAP05` (D104) | 6 | `"MAP06"` | the stats screen, then cluster 6's `SD_MAP05_EXIT_TEXT` over `SDFLR1`, then MAP06 |
 | `MAP06` (D104) | 7 | `endtitle` | the stats screen, then cluster 7's `SD_END03_TEXT` over `SDFLR1`, then the title screen |
+| `MAP07` (D112) | 8 | `"MAP08"` | the stats screen, then cluster 8's `SD_MAP07_EXIT_TEXT` over `SDFLR1`, then MAP08 |
+| `MAP08` (D112) | 9 | `"MAP09"` | the stats screen, then cluster 9's `SD_MAP08_EXIT_TEXT` over `SDFLR1`, then MAP09 |
+| `MAP09` (D112) | 10 | `endtitle` | the stats screen, then cluster 10's `SD_END04_TEXT` over `SDFLR1`, then the title screen |
 
 | Cluster | `exittext` | Holds | Role |
 |---|---|---|---|
@@ -511,8 +526,11 @@ design documents moved with `git mv`; dated evidence keeps its old names (a
 | 5 | `lookup, "SD_MAP04_EXIT_TEXT"` | MAP04 | MAP04's chapter (D104): the armoured train west from Sverdlovsk to the Volga dam |
 | 6 | `lookup, "SD_MAP05_EXIT_TEXT"` | MAP05 | MAP05's chapter (D104): over the crest of the dam, the last metro train into Moscow |
 | 7 | `lookup, "SD_END03_TEXT"` | MAP06 | episode 2's ending (D104): the Kremlin holds, the invaders' main portal is still open |
+| 8 | `lookup, "SD_MAP07_EXIT_TEXT"` | MAP07 | MAP07's chapter (D112): the radar on Novaya Zemlya goes dark; its log points to Severomorsk, across the Barents Sea |
+| 9 | `lookup, "SD_MAP08_EXIT_TEXT"` | MAP08 | MAP08's chapter (D112): the submarine's warheads were bound for Tunguska; a night flight east |
+| 10 | `lookup, "SD_END04_TEXT"` | MAP09 | episode 3's ending (D112): the main portal closes, the end of the first cycle; closes on THE END / КОНЕЦ / FI, not TO BE CONTINUED |
 
-All seven: `flat = "SDFLR1"`, `music = ""`, no `entertext`.
+All ten: `flat = "SDFLR1"`, `music = ""`, no `entertext`.
 
 **Why each map has its own cluster.** A cluster's text is printed only when
 the game crosses from one cluster into another: `exittext` is "displayed
@@ -541,11 +559,19 @@ the campaign ends. The rule, so that the next map is mechanical:
   episode follows the same pattern: its maps on the next MAPxx slots, one
   chapter cluster per map before its last, numbered on, and one ending
   cluster;
+- **D112 (P4) opened episode 3 that way.** "The Portal" is MAP07 → MAP08 →
+  MAP09, started from its own `episode MAP07` block (after episode 2's on
+  the menu, before the range); nothing leads into MAP07 and MAP06 still
+  says `endtitle`. Its chapters are clusters 8 (MAP07's) and 9 (MAP08's),
+  its ending cluster 10, MAP09's alone, with `SD_END04_TEXT`
+  (`SD_EP04_NAME`: the fourth episode declared). From episode 2 on, each
+  episode takes the next numbers, its chapters and then its ending
+  (`tests/test_campaign.py`, `expected_cluster_numbers`);
 - the MAPxx slots stay in play order (D62); a map outside the campaign takes
   a non-MAPxx lump name, as `RANGE` does.
 
 **The ending prints once.** Only cluster 1 carries `SD_END01_TEXT` and only
-MAP03 is in it (and only cluster 7 `SD_END03_TEXT`, with MAP06 alone in it), so leaving MAP01 or MAP02 prints its own transition and
+MAP03 is in it (and only cluster 7 `SD_END03_TEXT`, with MAP06 alone in it, and only cluster 10 `SD_END04_TEXT`, with MAP09 alone), so leaving MAP01 or MAP02 prints its own transition and
 never the ending. No cluster has an `entertext`: GZDoom would show the next
 cluster's `entertext` in place of the current one's `exittext` (read in the
 engine source, `G_WorldDone`; **NOT VERIFIED in the engine**), and two texts
@@ -594,6 +620,10 @@ The route **names** follow the maps: `range-start`, `range-door` and
 | C10 (D104) | New Game → The Road to Moscow → any skill; finish MAP04 | "MAP04 - Trans-Siberian" in the log; the stats screen, then `SD_MAP04_EXIT_TEXT` ("The armoured train clears the yard…"), then MAP05 |
 | C11 (D104) | finish MAP05 | `SD_MAP05_EXIT_TEXT` ("You cross the crest of the dam…"), then MAP06 ("MAP06 - Red Square") |
 | C12 (D104) | finish MAP06; then MAP03 again from episode 1 | `SD_END03_TEXT` ("The last of them falls at the Kremlin gate…", TO BE CONTINUED), then the title screen; MAP03 still ends with `SD_END01_TEXT` and never leads to MAP04 |
+| C13 (D112) | New Game: the episode screen | four episodes in this order: Soviet Doom, The Road to Moscow, The Portal, Practice Range («Портал», «El portal» in Russian and Catalan), all inside the screen |
+| C14 (D112) | New Game → The Portal → any skill; finish MAP07 | "MAP07 - Novaya Zemlya" in the log; the stats screen (with `D_SDE2IB`), then `SD_MAP07_EXIT_TEXT` ("The radar goes dark…"), then MAP08 ("MAP08 - Severomorsk") |
+| C15 (D112) | finish MAP08 | `SD_MAP08_EXIT_TEXT` ("The submarine settles at its berth…"), then MAP09 ("MAP09 - Tunguska") |
+| C16 (D112) | finish MAP09; then MAP06 again from episode 2 | `SD_END04_TEXT` ("The portal folds in on itself…", THE END), then the title screen; MAP06 still ends with `SD_END03_TEXT` and never leads to MAP07 |
 
 ### 4.1 How the campaign ends (M3, closed 2026-10-13)
 
@@ -1112,7 +1142,7 @@ in the IWAD.
 | `SD_General` | `SD_Monster` *replaces Cyberdemon* | Boss, 3000 HP (H), three-shell salvo; once below half health, summons two `SD_ReichRifleman` and prints `SD_GENERAL_ORDER` (D35). |
 | `SD_StormBolt`, `SD_DoughboyShell`, `SD_PanzerShell`, `SD_GeneralShell` | `Actor` | The four enemy projectiles. Not placeable. |
 | `SD_Radio` | `Actor` | The diegetic radio (D43): a solid decoration that plays one of two CC0 pieces in place of the level's music while the player is near it, and gives the level's music back when the player walks away. Contract §6.7, reasons ADR 008. |
-| `SD_MusicVariant` | `EventHandler` | Episode 2's music (D106): on a fresh MAP04, MAP05 or MAP06 draws the A (MAPINFO's) or the B piece at random and swaps to the B; on MAP06 swaps to the boss loop when a BOSS monster engages. A load keeps what was playing. Contract §6.11. |
+| `SD_MusicVariant` | `EventHandler` | Episodes 2 and 3's music (D106, D113): on a fresh MAP04-MAP09 draws the A (MAPINFO's) or the B piece at random and swaps to the B; on MAP06 and MAP09 swaps to the boss loop when a BOSS monster engages. A load keeps what was playing. Contract §6.11. |
 | `SD_BluePass` | `BlueCard` *replaces BlueCard* | The metro's blue pass (MAP02 since D62; propusk): Doom's blue keycard under a Soviet name. `Species "BlueCard"` so lock 2 opens for it; own pickup line `SD_PICKUP_BLUEPASS`; our own sprite since D63 and the `STKEYS0` icon, inherited (the mod ships its own `STKEYS0` since D80). Placed by Doom's editor number 5. Below, "The blue pass". |
 | `SD_YellowPass`, `SD_RedPass` | `YellowCard`, `RedCard` *replace YellowCard, RedCard* | Tankograd's yellow and red passes (MAP03, D80): `SD_BluePass`'s pattern, `Species "YellowCard"` / `"RedCard"` so locks 3 and 1 open for them; lines `SD_PICKUP_YELLOWPASS` / `SD_PICKUP_REDPASS`; our own sprites (§6.3). Placed by Doom's editor numbers 6 and 13. |
 | `SD_Stimpack`, `SD_Medikit`, `SD_HealthBonus`, `SD_ArmorBonus`, `SD_GreenArmor`, `SD_BlueArmor`, `SD_Allmap` | the Doom class each *replaces* | The campaign's health, armour and area map (D80, `zscript/sd/pickups.zs`): Doom's pickups with our sprite, line (`SD_GOT_*`) and, for the armours, HUD icon; nothing else changes (§6.3, "The campaign pickups, installed by D80"). |
@@ -2662,10 +2692,10 @@ the string in every language has a glyph in both fonts. **NOT VERIFIED in
 the engine** (D26): the PM's pass dies in MAP01 and in MAP02, at 320×200
 and at 16:9, in English and Russian, and presses the key.
 
-## 6.11 Episode 2's music: A/B variants and the boss loop (D106, 2026-10-22)
+## 6.11 Episodes 2 and 3's music: A/B variants and the boss loops (D106, D113, 2026-10-22)
 
-The CEO approved two pieces per map of episode 2 and the PM chose to play
-both. `SD_MusicVariant` (`zscript/sd/music_variant.zs`, an `EventHandler`
+The CEO approved two pieces per map of episode 2 (D106) and of episode 3
+(D113, unheard) and the PM chose to play both. `SD_MusicVariant` (`zscript/sd/music_variant.zs`, an `EventHandler`
 registered by `AddEventHandlers` after `SD_DeathPrompt`) does it; MAPINFO
 keeps naming the A, so with the handler off every map plays its A.
 
@@ -2674,12 +2704,15 @@ keeps naming the A, so with the handler off every map plays its A.
 | MAP04 | `D_SDM04A` | `D_SDM04B` | — | — |
 | MAP05 | `D_SDM05A` | `D_SDM05B` | — | — |
 | MAP06 | `D_SDM06A` | `D_SDM06B` | `D_SDBS6A` | `D_SDBS6B` |
+| MAP07 (D113) | `D_SDM07A` | `D_SDM07B` | — | — |
+| MAP08 (D113) | `D_SDM08A` | `D_SDM08B` | — | — |
+| MAP09 (D113) | `D_SDM09A` | `D_SDM09B` | `D_SDBS9A` | `D_SDBS9B` |
 
 | When | What it does | Engine fact it rests on (g4.14.2) |
 |---|---|---|
 | `WorldLoaded`, a fresh map with a row | draws `random[SD_MusicVariant](0, 1)` (a play RNG: per-game seed, network-safe); on 1, `S_ChangeMusic(B)` | `P_SetupLevel` has already started the A (`Level.SetMusic()`, src/p_setup.cpp 446-451) before `WorldLoaded` fires (src/g_level.cpp 1520-1522) |
 | `WorldLoaded` of a savegame or a hub return | nothing | the save holds the song that was **playing** and restarts it (`FLevelLocals::SerializeSounds`, src/p_saveg.cpp 572-593; it falls back to the level's `music` only if that fails); the handler's `variant`, `bossStarted` and `bosses` are saved with the level (src/p_saveg.cpp 1024-1027) |
-| MAP06: the first time a tracked BOSS monster has a player as `target` (polled every 4 tics) or a player damages one (`WorldThingDamaged`) | `S_ChangeMusic` to the boss loop of the drawn variant; it plays to the end of the map | BOSS monsters are found by flag (`bBOSS && bISMONSTER`): those on the map at `WorldLoaded` (a `ThinkerIterator`) and any spawned later (`WorldThingSpawned`). Today that is `SD_General` standing in; `SD_LibertyColossus` later, with no change here |
+| MAP06 and MAP09 (the rows with boss lumps): the first time a tracked BOSS monster has a player as `target` (polled every 4 tics) or a player damages one (`WorldThingDamaged`) | `S_ChangeMusic` to the boss loop of the drawn variant; it plays to the end of the map | BOSS monsters are found by flag (`bBOSS && bISMONSTER`): those on the map at `WorldLoaded` (a `ThinkerIterator`) and any spawned later (`WorldThingSpawned`). Today that is `SD_General` standing in; `SD_LibertyColossus` on MAP06 and a final boss on MAP09 later (D112), with no change here |
 | Once a second | if the A is playing but the map wants B or the boss loop, puts it back | `SD_Radio` gives back `Level.Music` (§6.7), always the A; the same check repairs a load whose saved song failed to restart |
 
 MAP03, whose General is also a BOSS, has no row: its music never changes.
@@ -2688,13 +2721,14 @@ Switches: `SD_MUSIC_VARIANTS_ENABLED = 0` plays always A;
 entry autosave keeps the variant (it is a load); one that restarts the map
 from scratch (no save, §6.10) draws again. The stats screen cannot follow
 the draw: no handler ticks there and its music is MAPINFO's (§4.5), so the
-intermission is `D_SDE2IA` whichever variant played, and `D_SDE2IB` ships
-unwired. `tests/test_music_variant.py` pins the include, the registration,
+intermission is `D_SDE2IA` / `D_SDE3IA` whichever variant played, and
+`D_SDE2IB` / `D_SDE3IB` ship unwired. `tests/test_music_variant.py` pins the include, the registration,
 the switches, the table against MAPINFO and the package, and the behaviour
 above in the code. **NOT VERIFIED in the engine** (D26): the PM's pass
-checks `currentmusic` on MAP04-06 over several New Games (both variants
-appear), a save and load on a B (still B), the boss loop when the General of
-MAP06 sees the player, none on MAP03, and the intermission after MAP04.
+checks `currentmusic` on MAP04-09 over several New Games (both variants
+appear), a save and load on a B (still B), the boss loop when the boss of
+MAP06 and of MAP09 sees the player, none on MAP03, and the intermission
+after MAP04 and MAP07.
 
 ## 7. Commands
 

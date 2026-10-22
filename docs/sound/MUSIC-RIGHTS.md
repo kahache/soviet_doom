@@ -463,6 +463,16 @@ orchestration, that is the route; it is a size decision, not a rights one.
 | `D_SDBS6B` | MAP06's boss loop with B (bars 29-52 of `D_SDM06B`) | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
 | `D_SDE2IA` | episode 2's intermission, after MAP04 and MAP05 (`intermusic`) | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
 | `D_SDE2IB` | episode 2's intermission, variant B (packed, not wired) | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM07A` | MAP07, the radar station on Novaya Zemlya (D113), variant A | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM07B` | MAP07, variant B (`SD_MusicVariant`) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM08A` | MAP08, the submarine base at Severomorsk (D113), variant A | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM08B` | MAP08, variant B (`SD_MusicVariant`) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM09A` | MAP09, the portal at Tunguska (D113), variant A | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM09B` | MAP09, variant B (`SD_MusicVariant`) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDBS9A` | MAP09's final boss loop with A (a piece of its own, not a cut) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDBS9B` | MAP09's final boss loop with B (a piece of its own) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDE3IA` | episode 3's intermission, after MAP07 and MAP08 (`intermusic`) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDE3IB` | episode 3's intermission, variant B (packed, not wired) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
 
 **N9e (2026-10-20, D83 and D86).** `D_SDTITL` is the intermission and
 `D_SDM01T` the range's piece; `D_SDAMUR`, the range's D62 draft, was
@@ -477,6 +487,17 @@ episode's two intermission pieces, installed byte for byte from
 `work/audio/episode2/` (`tests/test_music.py` regenerates each). All ten are
 our own compositions, written under the D104 brief: no rights question beyond
 our own licence, no credit obligation.
+
+**D113 (2026-10-22).** The CEO approved, without hearing them, all ten
+episode 3 pieces ("las doy por buenas"): the A and B of MAP07, MAP08 and
+MAP09, the final boss's two loops (pieces of their own, not cuts) and the
+episode's two intermission pieces, installed byte for byte from
+`work/audio/episode3/` (`tests/test_music.py` regenerates each). All ten are
+our own compositions under the D112 brief: the generator's self-check finds
+no two-bar shape of Episodes 1-2's themes and no eight-note run of any other
+installed MIDI. No rights question beyond our own licence, no credit
+obligation. Episode 2's B pieces, which D112 had borrowed provisionally for
+MAP07-MAP09, are again only episode 2's variants.
 
 **The D62 drafts (2026-10-14, backlog N8).** The rows of `D_SDFUNR` and
 `D_SDGATE` above (and `D_SDAMUR`'s, until N9e) were
