@@ -1,0 +1,83 @@
+=== route tunguska-critical / MAP09 / skill 4 ===
+helper         : route-4
+god mode       : on
+monsters       : engine 122, map data 122
+bestiary (start): SD_ReichRifleman 28/28, SD_LegionTrooper 26/26, SD_Stormtrooper 26/26, SD_ReichHound 19/19, SD_Doughboy 11/11, SD_Panzermensch 11/11, SD_PanzermenschSchwer 5/5, SD_General 1/1, SD_Clip 5/5, SD_Izh 1/1
+steps:
+  [ok ] A0   expect Z1           got Z1   z1_platform @ (7299, 640, 16) hp 97
+  [ok ] BD0  expect Z3           got Z3   z3_blue_portal @ (1984, 1856, 0) hp 97
+  [ok ] BKEY expect Z3           got Z3   z3_lab_hall @ (1692, 1424, 16) hp 97
+  [ok ] BD1  expect Z4           got Z4   z4_forest @ (1984, 2033, 0) hp 98
+  [ok ] YD0  expect Z5           got Z5   z5_yellow_portal @ (5440, 4736, 0) hp 98
+  [ok ] RD0  expect Z5           got Z5   z5_works @ (3968, 3968, 0) hp 98
+  [ok ] YKEY expect Z5           got Z5   z5_derrick @ (4234, 5024, 128) hp 98
+  [ok ] YD1  expect Z6           got Z6   z6_refinery @ (5617, 4736, 0) hp 98
+  [ok ] RDY  expect Z5           got Z5   z5_works @ (3968, 3968, 0) hp 98
+  [ok ] RKEY expect Z6           got Z6   z6_refinery @ (7279, 4736, 0) hp 98
+  [ok ] RD1  expect Z7           got Z7   z7_rim @ (3968, 3782, 0) hp 98
+  [ok ] BOSS0 expect Z8           got Z8   z8_tier_1 @ (3968, 3676, -16) hp 98
+  [ok ] BOSS1 expect -            got Z8   z8_tier_1 @ (3968, 3676, -16) hp 98
+  [ok ] E0   expect Z9           got Z9   z9_hall @ (3968, 1536, 0) hp 99
+  [ok ] E1   expect -            got -  -- no position reported
+zones reached  : Z1 -> Z3 -> Z4 -> Z5 -> Z6 -> Z7 -> Z8 -> Z9
+doors:
+  [ok ] tag 4 at BD0: want shut: shut (1 sector(s): Z4:z4_blue_door)
+  [ok ] tag 4 at BKEY: want shut: shut (1 sector(s): Z4:z4_blue_door)
+  [ok ] tag 4 at BD1: want open: open (1 sector(s): Z4:z4_blue_door)
+  [ok ] tag 5 at YD0: want shut: shut (1 sector(s): Z6:z6_yellow_door)
+  [ok ] tag 6 at RD0: want shut: shut (1 sector(s): Z7:z7_red_door)
+  [ok ] tag 5 at YKEY: want shut: shut (1 sector(s): Z6:z6_yellow_door)
+  [ok ] tag 5 at YD1: want open: open (1 sector(s): Z6:z6_yellow_door)
+  [ok ] tag 6 at RDY: want shut: shut (1 sector(s): Z7:z7_red_door)
+  [ok ] tag 6 at RKEY: want shut: shut (1 sector(s): Z7:z7_red_door)
+  [ok ] tag 10 at RKEY: want open: open (2 sector(s): Z5:closet_z5_e_door, Z5:closet_z5_w_door)
+  [ok ] tag 6 at RD1: want open: open (1 sector(s): Z7:z7_red_door)
+  [ok ] tag 12 at BOSS0: want shut: shut (1 sector(s): Z9:z9_gate)
+  [ok ] tag 12 at BOSS1: want open: open (1 sector(s): Z9:z9_gate)
+  [ok ] press of special 13 arg0 4 at BD0: the player's press is in the log
+  [ok ] press of special 13 arg0 4 at BD1: the player's press is in the log
+  [ok ] press of special 13 arg0 5 at YD0: the player's press is in the log
+  [ok ] press of special 13 arg0 6 at RD0: the player's press is in the log
+  [ok ] press of special 13 arg0 5 at YD1: the player's press is in the log
+  [ok ] press of special 13 arg0 6 at RDY: the player's press is in the log
+  [ok ] press of special 13 arg0 6 at RD1: the player's press is in the log
+  [ok ] walk-through at BD1: ended in Z4 (z4_forest)
+  [ok ] walk-through at YD1: ended in Z6 (z6_refinery)
+  [ok ] walk-through at RD1: ended in Z7 (z7_rim)
+inventory (by slot):
+  [ok ] A0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [none]
+  [ok ] BD0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [none]
+  [ok ] BKEY: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [SD_BluePass]
+  [ok ] YD0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [SD_BluePass]
+  [ok ] RD0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [SD_BluePass]
+  [ok ] YKEY: raised slot 3 (SD_Izh), 4 rounds; owned [2:SD_Tokarev, 3:SD_Izh]; keys [SD_YellowPass, SD_BluePass]
+  [ok ] RDY: raised slot 3 (SD_Izh), 24 rounds; owned [2:SD_Tokarev, 3:SD_Izh]; keys [SD_YellowPass, SD_BluePass]
+  [ok ] RKEY: raised slot 3 (SD_Izh), 24 rounds; owned [2:SD_Tokarev, 3:SD_Izh]; keys [SD_RedPass, SD_YellowPass, SD_BluePass]
+secrets        : 0 of 3
+key messages   :
+  BD0: You need a blue pass to activate this object
+  BKEY: Blue pass.
+  YD0: You need a yellow pass to activate this object
+  RD0: You need a red pass to activate this object
+  YKEY: Yellow pass.
+  RDY: You need a red pass to activate this object
+  RKEY: Red pass.
+exit           : REACHED (exit switch pressed: yes; level unloaded towards: enDSeQ1e92; after it: NOT SEEN (the helper cannot ask once the level is gone; judge the END shot))
+blockers       : 13 killed by the route's sdclear (sdclear answered 7 time(s))
+  [ok ] BKEY: SD_LegionTrooper at (1440, 1344), 30 hp, dead
+  [ok ] BKEY: SD_LegionTrooper at (1728, 1504), 30 hp, dead
+  [ok ] BKEY: SD_LegionTrooper at (1408, 1520), 30 hp, dead
+  [ok ] BKEY: SD_Doughboy at (1700, 1371), 400 hp, dead
+  [ok ] BD1: SD_ReichHound at (1935, 1821), 150 hp, dead
+  [ok ] BD1: SD_ReichHound at (1919, 2152), 150 hp, dead
+  [ok ] YKEY: SD_LegionTrooper at (4108, 5004), 30 hp, dead
+  [ok ] YKEY: SD_LegionTrooper at (4052, 5092), 30 hp, dead
+  [ok ] YD1: SD_ReichRifleman at (5669, 4773), 20 hp, dead
+  [ok ] RD1: SD_LegionTrooper at (3968, 3656), 30 hp, dead
+  [ok ] E0: SD_ReichHound at (3886, 1363), 150 hp, dead
+  [ok ] E0: SD_Stormtrooper at (3964, 1375), 60 hp, dead
+  [ok ] E0: SD_Stormtrooper at (4032, 1376), 60 hp, dead
+kills          : 28 of 122, of which 13 by the route's sdclear
+screenshots    : 16
+log failures   : none
+VERDICT        : PASS (13 blocker(s) killed by the route, listed above)
