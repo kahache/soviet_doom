@@ -136,7 +136,9 @@ PNG_RGBA_CHANNELS = 4
 # Held to: colour type 6 at 8 bits, alpha only 0 or 255 (hard, like the
 # sprites: the software renderer has no partial transparency on walls), and
 # every opaque pixel inside the palette. Flats can never be masked.
-MASKED_TEXTURES = frozenset({"SDCHAN1"})          # the Tankograd chain and hook
+MASKED_TEXTURES = frozenset({"SDCHAN1",            # the Tankograd chain and hook (D66)
+                             "SDKREM2",            # the Kremlin merlon, MAP06 (D107)
+                             "SDINSL1"})           # the dam's HV insulator string, MAP05 (D107)
 MASKED_ALPHA = frozenset({0, 255})
 DIMENSION_MULTIPLE = 8                  # Doom tiles on powers of two
 FLAT_SIZE = (64, 64)                    # a Doom flat is 64x64 by definition
@@ -706,7 +708,14 @@ def licensed_names(licenses: Path) -> set[str]:
 PALETTE_V2_LUMPS = frozenset({"SDMOSA1"}  # D56
                              | {"SDBRCK1", "SDBRCK2", "SDFLAG1", "SDFLAG2"}
                              | {f"SDPORT{i}" for i in range(1, 5)}
-                             | {"STKEYS0"})
+                             | {"STKEYS0"}
+                             # D107: Episode 2's bricks in marble_red, as SDBRCK1
+                             # (D66): the roundhouse, the Kremlin wall, the banner
+                             # hung on it and the Spasskaya stone.
+                             | {"SDBRCK3", "SDKREM1", "SDBANR1", "SDSPAS1"})
+# The masked lumps (RGBA, so not in PALETTE_V2_LUMPS, which is indexed lumps
+# only) approved in v2: D107's merlon SDKREM2 is SDKREM1's brick cut out.
+PALETTE_V2_MASKED = frozenset({"SDKREM2"})
 
 
 def palette_v2_colours(palette_json: Path) -> set[tuple[int, int, int]] | None:
@@ -1131,6 +1140,8 @@ def _check_masked(path: str, png: PngInfo, palette: set[tuple[int, int, int]] | 
     if soft:
         report.error("images", path,
                      f"masked texture with partial alpha {soft[:6]}: alpha must be hard 0/255")
+    if palette is not None and Path(path).stem.upper() in PALETTE_V2_MASKED:
+        palette = palette_v2_colours(DEFAULT_PALETTE) or palette
     if palette is not None:
         offending = sorted(c for c in png.opaque_colours or set() if c not in palette)
         if offending:

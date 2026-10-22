@@ -74,3 +74,16 @@ texture SDPORT1         // the portal's surface, MAP03's exit (textures/factory/
 	pic SDPORT2 tics 8
 	pic SDPORT3 tics 8
 	pic SDPORT4 tics 8
+
+// Episode 2 (D107, 2026-10-22): the Volga under the dam, MAP05. A flat, like
+// Doom's own water (FWATER1-4: four frames at 8 tics in vanilla Doom's
+// animdefs table, p_spec.c, from memory, NOT re-read for this entry): same
+// frame count and rate, written here the SDMOLT1 way.
+// gen_dam.py drew the loop seamless (frame 4 leads back into 1) and previews
+// it at GIF_MS = 229, 8 tics at 35 Hz.
+
+flat SDWATR1            // the Volga's water, MAP05 (flats/dam/)
+	pic SDWATR1 tics 8
+	pic SDWATR2 tics 8
+	pic SDWATR3 tics 8
+	pic SDWATR4 tics 8

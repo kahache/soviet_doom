@@ -614,8 +614,33 @@ class MaskedTextureTest(CheckPk3TestCase):
     def image_errors(self, report: check_pk3.Report) -> list[str]:
         return [f.message for f in report.errors if f.category == "images"]
 
-    def test_the_real_set_is_the_tankograd_chain(self):
-        self.assertEqual(frozenset({"SDCHAN1"}), check_pk3.MASKED_TEXTURES)
+    def test_the_real_set_is_the_chain_the_merlon_and_the_insulator(self):
+        # D66 the Tankograd chain; D107 the Kremlin merlon and the dam's insulator.
+        self.assertEqual(frozenset({"SDCHAN1", "SDKREM2", "SDINSL1"}), check_pk3.MASKED_TEXTURES)
+        self.assertEqual(frozenset({"SDKREM2"}), check_pk3.PALETTE_V2_MASKED)
+        self.assertLessEqual(check_pk3.PALETTE_V2_MASKED, check_pk3.MASKED_TEXTURES)
+
+    def _v2_only(self) -> tuple[int, int, int]:
+        """A colour of the real palette v2 that v1 lacks (and the fixture's palette too)."""
+        v1 = check_pk3.palette_colours(check_pk3.DEFAULT_PALETTE)
+        v2 = check_pk3.palette_v2_colours(check_pk3.DEFAULT_PALETTE)
+        return sorted(v2 - v1)[0]
+
+    def test_v2_masked_texture_may_use_v2(self):
+        # D107: SDKREM2 is SDKREM1's marble_red brick cut into a merlon.
+        self.masked()
+        patcher = mock.patch.object(check_pk3, "PALETTE_V2_MASKED", frozenset({WALL_TEXTURE}))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        entries = good_entries()
+        entries[f"textures/{WALL_TEXTURE}.png"] = png_masked(64, 128, rgb=self._v2_only())
+        self.assertEqual([], self.image_errors(self.run_check(entries)))
+
+    def test_v1_masked_texture_may_not_use_v2(self):
+        self.masked()
+        entries = good_entries()
+        entries[f"textures/{WALL_TEXTURE}.png"] = png_masked(64, 128, rgb=self._v2_only())
+        self.assertFails(self.run_check(entries), "images", "opaque colour")
 
     def test_hard_alpha_rgba_masked_texture_passes(self):
         self.masked()

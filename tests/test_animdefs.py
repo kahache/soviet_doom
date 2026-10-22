@@ -29,6 +29,7 @@ ANIMDEFS = SRC_DIR / "lumps" / "ANIMDEFS"
 SWITCH_ASSETS = ASSETS_DIR / "textures" / "soviet_base"
 FACTORY_WALLS = ASSETS_DIR / "textures" / "factory"
 FACTORY_FLATS = ASSETS_DIR / "flats" / "factory"
+DAM_FLATS = ASSETS_DIR / "flats" / "dam"          # Episode 2, MAP05 (D107)
 sys.path.insert(0, str(TOOLS_DIR))
 
 from check_pk3 import animdefs_anim_textures, animdefs_switch_textures  # noqa: E402
@@ -51,6 +52,7 @@ ANIM_FRAMES = 4
 ANIMATIONS = {
     "SDMOLT1": ("flat", FACTORY_FLATS),
     "SDPORT1": ("texture", FACTORY_WALLS),
+    "SDWATR1": ("flat", DAM_FLATS),      # the Volga's water, like Doom's FWATER (D107)
 }
 
 
@@ -131,9 +133,10 @@ class AnimdefsSourceTest(unittest.TestCase):
 
 
 class AnimdefsAnimationTest(unittest.TestCase):
-    """N6c: SDMOLT1-4 (flat) and SDPORT1-4 (texture), four frames at 8 tics."""
+    """N6c: SDMOLT1-4 (flat) and SDPORT1-4 (texture); D107: SDWATR1-4 (flat).
+    Four frames at 8 tics each."""
 
-    def test_exactly_the_two_animations(self):
+    def test_exactly_the_three_animations(self):
         self.assertEqual(set(ANIMATIONS), set(animations()))
 
     def test_keyword_matches_the_kind_of_surface(self):
@@ -163,7 +166,7 @@ class AnimdefsAnimationTest(unittest.TestCase):
 
     def test_switch_parser_ignores_the_animations(self):
         names = {name for name, _line, _role in animdefs_switch_textures(ANIMDEFS.read_text(encoding="ascii"))}
-        self.assertFalse(names & {"SDMOLT1", "SDPORT1"})
+        self.assertFalse(names & set(ANIMATIONS))
 
 
 class AnimdefsPackedTest(unittest.TestCase):

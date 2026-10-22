@@ -218,6 +218,8 @@ sovietdoom.pk3
 ├── fonts/sdmenu/           <HEX>.png + font.inf — menu font SDMENU, 107 files (D31, §6.6)
 ├── music/D_SDINTL.mid       title music, Engelbach's Internationale (D43, §4.5)
 ├── music/D_SDM1N2.mid       MAP01's music, ours (D95, §4.5)
+├── music/D_SDM04A.mid … D_SDE2IB.mid  episode 2's ten pieces, ours (D106, §4.5, §6.11):
+│                           A/B of MAP04-06, MAP06's boss loops D_SDBS6A/B, intermission D_SDE2IA/B
 ├── music/D_SDRAD1.mid       diegetic radio: «Эй, ухнем», Gerloff's CC0 sequence (D43, §6.7)
 ├── music/D_SDRAD2.mid       diegetic radio: «Колокольчик», Gerloff's CC0 sequence (D43, §6.7)
 ├── sprites/SD*.png          our sprites (D48): the six weapon pickups SDAPA0, SDTPA0, SDIPA0,
@@ -442,14 +444,26 @@ The CEO accepted every music recommendation of `docs/sound/SOUNDTRACK.md`
 | MAP01, Zarya-7 | `map MAP01 { music = "D_SDM1N2" }` (since N9e, D95) | `D_SDM1N2`, ours, composed for MAP01 under D92 (`tools/audio/compose_map01.py`, variant `D_SDM01N2`); `D_SDM01` (D43) left MAP01 by D83 and no longer ships |
 | MAP02, metro-bunker | `music = "D_SDFUNR"` (D62) | `D_SDFUNR`, ours (approved D83) |
 | MAP03, Tankograd | `music = "D_SDGATE"` (D62) | `D_SDGATE`, ours (approved D83) |
-| MAP04, Trans-Siberian (D104) | `music = "D_SDM01T"` | **provisional**: the range's cut of MAP01's old theme (approved D86). D95 kept `compose_map01.py`'s variant N (`D_SDM01N`, 116 BPM) for a map of the full game, but it is not in `assets/music/`; installing it is `sound-designer`'s, then MAP04 can take it |
-| MAP05, Volga Dam (D104) | `music = "D_SDFUNR"` | **provisional**: MAP02's piece (approved D83) |
-| MAP06, Red Square (D104) | `music = "D_SDGATE"` | **provisional**: MAP03's piece (approved D83), until episode 2 has its own |
+| MAP04, Trans-Siberian (D104) | `music = "D_SDM04A"`, `intermusic = "D_SDE2IA"` (D106) | `D_SDM04A`, ours (`tools/audio/compose_episode2.py`); its B `D_SDM04B` is drawn at random by `SD_MusicVariant` (§6.11). The stats screen after MAP04 plays `D_SDE2IA` |
+| MAP05, Volga Dam (D104) | `music = "D_SDM05A"`, `intermusic = "D_SDE2IA"` (D106) | `D_SDM05A`, ours; B `D_SDM05B` (§6.11); stats screen `D_SDE2IA` |
+| MAP06, Red Square (D104) | `music = "D_SDM06A"` (D106) | `D_SDM06A`, ours; B `D_SDM06B`; the boss loop `D_SDBS6A` / `D_SDBS6B` (§6.11). Its stats screen keeps `D_SDTITL` |
 | RANGE, practice range | `music = "D_SDM01T"` (since N9e, D86) | `D_SDM01T`, MAP01's theme `D_SDM01E` cut to its melodic part (bar 49); `D_SDAMUR` (D62) was rejected by D83 and no longer ships |
 | Clusters 1 to 7 (end and transition texts, §4.6) | `music = ""` | none |
 | A diegetic radio (§6.7) | **none**: `SD_Radio` swaps the music from ZScript while the player is near it | `D_SDRAD1`, `D_SDRAD2` |
+| Episode 2's B pieces and MAP06's boss loop (§6.11) | **none**: `SD_MusicVariant` swaps them in from ZScript | `D_SDM04B`, `D_SDM05B`, `D_SDM06B`, `D_SDBS6A`, `D_SDBS6B` |
+| Episode 2's intermission, variant B | **none yet**: packed, not wired (the stats screen's music is MAPINFO's alone) | `D_SDE2IB` |
 
-Rule: every `music` / `TitleMusic` / `IntermissionMusic` value is `""` or a lump packed under
+**`intermusic`, per map (D106).** The stats screen asks the level being LEFT
+for its music: `FLevelLocals::SetInterMusic` (gzdoom g4.14.2
+src/g_level.cpp 2318-2327, called by `StatusScreen.StartMusic`,
+`gzdoom.pk3:zscript/ui/statscreen/statscreen.zs` 827-831) plays the map's
+`mapintermusic` for the next map if any, else its `intermusic`, else
+GameInfo's `IntermissionMusic`. So MAP04's and MAP05's `intermusic =
+"D_SDE2IA"` gives episode 2 its own stats-screen music and every other map
+keeps `D_SDTITL`. The key is parsed by `DEFINE_MAP_OPTION(intermusic)`
+(src/gamedata/g_mapinfo.cpp 1166-1170).
+
+Rule: every `music` / `intermusic` / `TitleMusic` / `IntermissionMusic` value is `""` or a lump packed under
 `music/` (`tests/test_mapinfo_music.py`, and `tests/test_enemy_sfx_install.py`
 for N9e's two); a typo plays nothing and logs
 nothing, which is why it is a test and not an engine-pass finding.
@@ -463,7 +477,9 @@ range, `RANGE` since D62).
 (`currentmusic`, `docs/qa/evidence/2026-10-13_2150_F6_title-music.log`).
 **Still NOT VERIFIED:** that the title music carries on into the main menu
 as Doom's does; and (N9e, 2026-10-20) that the stats screen after MAP01
-plays `D_SDTITL`, MAP01 `D_SDM1N2` and the range `D_SDM01T` (`currentmusic`, the PM's pass).
+plays `D_SDTITL`, MAP01 `D_SDM1N2` and the range `D_SDM01T` (`currentmusic`, the PM's pass);
+and (D106) that MAP04-06 play their A or B, the stats screens after MAP04
+and MAP05 `D_SDE2IA`, and MAP06's boss its loop (§6.11).
 
 ### 4.6 The campaign's flow: MAP01 → MAP02 → MAP03, MAP04 → MAP05 → MAP06 (D60, D62, D104)
 
@@ -734,6 +750,7 @@ forever, wherever a map uses the first one. A map names only frame 1.
 |---|---|---|---|---|
 | `SDMOLT1` | `flat` (a floor or ceiling) | `SDMOLT1` → `SDMOLT2` → `SDMOLT3` → `SDMOLT4` → `SDMOLT1` | 8 tics each (8/35 s ≈ 0.23 s, a 0.9 s loop) | `flats/factory/` |
 | `SDPORT1` | `texture` (a wall) | `SDPORT1` → `SDPORT2` → `SDPORT3` → `SDPORT4` → `SDPORT1` | 8 tics each | `textures/factory/` |
+| `SDWATR1` | `flat` (MAP05's Volga, D107) | `SDWATR1` → `SDWATR2` → `SDWATR3` → `SDWATR4` → `SDWATR1` | 8 tics each, Doom's own water rate (FWATER1-4) | `flats/dam/` |
 
 ```
 flat SDMOLT1
@@ -769,7 +786,7 @@ texture SDPORT1
   loop was drawn seamless, frame 4 leading back into 1.
 - **Seen moving in the engine: NOT VERIFIED** (D26); the PM's engine pass.
 - Guarded by `tests/test_animdefs.py` (`AnimdefsAnimationTest`: exactly the
-  two animations, `flat` for the flat and `texture` for the wall, frames 1-4
+  three animations, `flat` for a flat and `texture` for a wall, frames 1-4
   in order at 8 tics, every frame installed and packed in its own folder)
   and by `tools/check_pk3.py`, whose `textures` check holds every animation
   frame to the same rule as a map texture (`animdefs_anim_textures`).
@@ -785,6 +802,8 @@ chain). In this mod it is an **RGBA PNG with hard alpha** (every pixel 0 or
 | Lump | Size | Use |
 |---|---|---|
 | `SDCHAN1` | 64×128 | Tankograd's hanging chain and crane hook (D66); `texturemiddle` of a two-sided line, not tiling vertically |
+| `SDKREM2` | 64×128 | MAP06's Kremlin merlon (D107), `SDKREM1`'s brick cut out, palette v2 (`PALETTE_V2_MASKED`); `texturemiddle` of a two-sided line on the wall top, tiles along x |
+| `SDINSL1` | 64×128 | MAP05's high-voltage insulator string (D107); `texturemiddle` of a two-sided line, tiles along x |
 
 - **The engine accepts it: VERIFIED in the source** (read 2026-10-14):
   GZDoom's PNG loader, `src/common/textures/formats/pngtexture.cpp` (tag
@@ -1093,6 +1112,7 @@ in the IWAD.
 | `SD_General` | `SD_Monster` *replaces Cyberdemon* | Boss, 3000 HP (H), three-shell salvo; once below half health, summons two `SD_ReichRifleman` and prints `SD_GENERAL_ORDER` (D35). |
 | `SD_StormBolt`, `SD_DoughboyShell`, `SD_PanzerShell`, `SD_GeneralShell` | `Actor` | The four enemy projectiles. Not placeable. |
 | `SD_Radio` | `Actor` | The diegetic radio (D43): a solid decoration that plays one of two CC0 pieces in place of the level's music while the player is near it, and gives the level's music back when the player walks away. Contract §6.7, reasons ADR 008. |
+| `SD_MusicVariant` | `EventHandler` | Episode 2's music (D106): on a fresh MAP04, MAP05 or MAP06 draws the A (MAPINFO's) or the B piece at random and swaps to the B; on MAP06 swaps to the boss loop when a BOSS monster engages. A load keeps what was playing. Contract §6.11. |
 | `SD_BluePass` | `BlueCard` *replaces BlueCard* | The metro's blue pass (MAP02 since D62; propusk): Doom's blue keycard under a Soviet name. `Species "BlueCard"` so lock 2 opens for it; own pickup line `SD_PICKUP_BLUEPASS`; our own sprite since D63 and the `STKEYS0` icon, inherited (the mod ships its own `STKEYS0` since D80). Placed by Doom's editor number 5. Below, "The blue pass". |
 | `SD_YellowPass`, `SD_RedPass` | `YellowCard`, `RedCard` *replace YellowCard, RedCard* | Tankograd's yellow and red passes (MAP03, D80): `SD_BluePass`'s pattern, `Species "YellowCard"` / `"RedCard"` so locks 3 and 1 open for them; lines `SD_PICKUP_YELLOWPASS` / `SD_PICKUP_REDPASS`; our own sprites (§6.3). Placed by Doom's editor numbers 6 and 13. |
 | `SD_Stimpack`, `SD_Medikit`, `SD_HealthBonus`, `SD_ArmorBonus`, `SD_GreenArmor`, `SD_BlueArmor`, `SD_Allmap` | the Doom class each *replaces* | The campaign's health, armour and area map (D80, `zscript/sd/pickups.zs`): Doom's pickups with our sprite, line (`SD_GOT_*`) and, for the armours, HUD icon; nothing else changes (§6.3, "The campaign pickups, installed by D80"). |
@@ -2641,6 +2661,40 @@ registration, the constants, the key lookup and that every character of
 the string in every language has a glyph in both fonts. **NOT VERIFIED in
 the engine** (D26): the PM's pass dies in MAP01 and in MAP02, at 320×200
 and at 16:9, in English and Russian, and presses the key.
+
+## 6.11 Episode 2's music: A/B variants and the boss loop (D106, 2026-10-22)
+
+The CEO approved two pieces per map of episode 2 and the PM chose to play
+both. `SD_MusicVariant` (`zscript/sd/music_variant.zs`, an `EventHandler`
+registered by `AddEventHandlers` after `SD_DeathPrompt`) does it; MAPINFO
+keeps naming the A, so with the handler off every map plays its A.
+
+| Table row (`MusicCell`) | A (= MAPINFO `music`) | B | Boss with A | Boss with B |
+|---|---|---|---|---|
+| MAP04 | `D_SDM04A` | `D_SDM04B` | — | — |
+| MAP05 | `D_SDM05A` | `D_SDM05B` | — | — |
+| MAP06 | `D_SDM06A` | `D_SDM06B` | `D_SDBS6A` | `D_SDBS6B` |
+
+| When | What it does | Engine fact it rests on (g4.14.2) |
+|---|---|---|
+| `WorldLoaded`, a fresh map with a row | draws `random[SD_MusicVariant](0, 1)` (a play RNG: per-game seed, network-safe); on 1, `S_ChangeMusic(B)` | `P_SetupLevel` has already started the A (`Level.SetMusic()`, src/p_setup.cpp 446-451) before `WorldLoaded` fires (src/g_level.cpp 1520-1522) |
+| `WorldLoaded` of a savegame or a hub return | nothing | the save holds the song that was **playing** and restarts it (`FLevelLocals::SerializeSounds`, src/p_saveg.cpp 572-593; it falls back to the level's `music` only if that fails); the handler's `variant`, `bossStarted` and `bosses` are saved with the level (src/p_saveg.cpp 1024-1027) |
+| MAP06: the first time a tracked BOSS monster has a player as `target` (polled every 4 tics) or a player damages one (`WorldThingDamaged`) | `S_ChangeMusic` to the boss loop of the drawn variant; it plays to the end of the map | BOSS monsters are found by flag (`bBOSS && bISMONSTER`): those on the map at `WorldLoaded` (a `ThinkerIterator`) and any spawned later (`WorldThingSpawned`). Today that is `SD_General` standing in; `SD_LibertyColossus` later, with no change here |
+| Once a second | if the A is playing but the map wants B or the boss loop, puts it back | `SD_Radio` gives back `Level.Music` (§6.7), always the A; the same check repairs a load whose saved song failed to restart |
+
+MAP03, whose General is also a BOSS, has no row: its music never changes.
+Switches: `SD_MUSIC_VARIANTS_ENABLED = 0` plays always A;
+`SD_BOSS_MUSIC_ENABLED = 0` drops the boss loop. A death that reloads the
+entry autosave keeps the variant (it is a load); one that restarts the map
+from scratch (no save, §6.10) draws again. The stats screen cannot follow
+the draw: no handler ticks there and its music is MAPINFO's (§4.5), so the
+intermission is `D_SDE2IA` whichever variant played, and `D_SDE2IB` ships
+unwired. `tests/test_music_variant.py` pins the include, the registration,
+the switches, the table against MAPINFO and the package, and the behaviour
+above in the code. **NOT VERIFIED in the engine** (D26): the PM's pass
+checks `currentmusic` on MAP04-06 over several New Games (both variants
+appear), a save and load on a B (still B), the boss loop when the General of
+MAP06 sees the player, none on MAP03, and the intermission after MAP04.
 
 ## 7. Commands
 

@@ -11,8 +11,13 @@ own (1x and zoomed), as a 3x3 mosaic and in a sample room (a small Doom-like
 view, NOT the engine), with OK / NO / ? and «Copiar resultado» like the
 listening sheets, and the table of proposed lump names.
 
-Nothing goes to assets/, TEXTURE-INDEX.md or LICENSES.md: that happens when
-the CEO approves (the PM installs).
+Nothing goes to assets/, TEXTURE-INDEX.md or LICENSES.md from here: that
+happens when the CEO approves (the PM installs). APPROVED 2026-10-22, 25/25
+(D107): the 28 lumps were copied byte for byte from work/art/episode2/<set>/
+into assets/textures/<set>/ (walls) and assets/flats/<set>/ (flats);
+SDSIGL1 is for single use only (a signal or a panel), never as a mosaic.
+Re-running this script rewrites the CEO's judged sheet: don't, unless a new
+proposal is wanted.
 """
 
 from __future__ import annotations
@@ -61,17 +66,26 @@ SPRITE_LIKE = re.compile(r"^[A-Z0-9]{4}[A-Z][0-9]([A-Z][0-9])?$")
 
 
 # ================================================================ names
-def existing_lumps() -> set[str]:
+def existing_lumps(own: frozenset[str] = frozenset()) -> set[str]:
     """Every lump name already in use: files under assets/ and work/ (sprites,
-    textures, sounds...) and every SD name the texture index mentions."""
+    textures, sounds...) and every SD name the texture index mentions.
+
+    `own` are this episode's lumps: since D107 (approved 2026-10-22) they are
+    installed in assets/{textures,flats}/<set>/ and have rows in the index,
+    so those copies and rows are not a clash with themselves. A file of the
+    same name anywhere else in assets/ still is."""
     names = set()
+    sets = {mod.SET_NAME for mod, *_ in SETS}
     for root in (PROJECT_ROOT / "assets", PROJECT_ROOT / "work"):
         if root.is_dir():
             for p in root.rglob("*"):
-                if p.is_file() and not p.is_relative_to(ep2lib.WORK_ROOT):
-                    names.add(p.stem.upper())
+                if not p.is_file() or p.is_relative_to(ep2lib.WORK_ROOT):
+                    continue
+                if root.name == "assets" and p.stem.upper() in own and p.parent.name in sets:
+                    continue
+                names.add(p.stem.upper())
     if TEXTURE_INDEX.is_file():
-        names |= set(re.findall(r"\bSD[A-Z0-9]{1,6}\b", TEXTURE_INDEX.read_text(encoding="utf-8")))
+        names |= set(re.findall(r"\bSD[A-Z0-9]{1,6}\b", TEXTURE_INDEX.read_text(encoding="utf-8"))) - own
     return names
 
 
@@ -461,7 +475,7 @@ const ITEMS = {data};
 # ================================================================ main
 def main() -> None:
     all_lumps = [l for mod, *_ in SETS for p in mod.PIECES for l in p.lumps]
-    problems = name_problems(all_lumps, existing_lumps())
+    problems = name_problems(all_lumps, existing_lumps(frozenset(all_lumps)))
     for mod, *_ in SETS:
         for p in mod.PIECES:
             if p.palette == 2:

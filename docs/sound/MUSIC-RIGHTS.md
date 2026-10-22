@@ -453,6 +453,16 @@ orchestration, that is the route; it is a size decision, not a rights one.
 | `D_SDGATE` | MAP03, Tankograd — **D62 draft, pending the CEO's ear** | «Богатырские ворота», Mussorgsky (d. 1881), pub. Bessel 1886, ed. Rimsky-Korsakov (d. 1908) — PD RU+US (§4.6.4) | ours (D54), from the top voice of the 1886 edition | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
 | `D_SDTITL` | intermission, the stats screen between maps (D83; GameInfo `IntermissionMusic`, replacing Freedoom's `D_DM2INT`) | original, `sound-designer` 2026-10-13 (`tools/audio/gen_music.py`, `build_title`) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
 | `D_SDM01T` | RANGE, the practice range (D86) | original, `sound-designer` 2026-10-13: `D_SDM01E` (MAP01's theme, `gen_music.py`) cut to its melodic part from bar 49 by `gen_enemy_alts.py` (an edit of our own sequence, not new music, D59) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM04A` | MAP04, the Trans-Siberian (D106), variant A | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM04B` | MAP04, variant B (`SD_MusicVariant`) | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM05A` | MAP05, the Volga Dam (D106), variant A | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM05B` | MAP05, variant B (`SD_MusicVariant`) | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM06A` | MAP06, Red Square (D106), variant A | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM06B` | MAP06, variant B (`SD_MusicVariant`) | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDBS6A` | MAP06's boss loop with A (bars 29-52 of `D_SDM06A`) | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDBS6B` | MAP06's boss loop with B (bars 29-52 of `D_SDM06B`) | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDE2IA` | episode 2's intermission, after MAP04 and MAP05 (`intermusic`) | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDE2IB` | episode 2's intermission, variant B (packed, not wired) | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
 
 **N9e (2026-10-20, D83 and D86).** `D_SDTITL` is the intermission and
 `D_SDM01T` the range's piece; `D_SDAMUR`, the range's D62 draft, was
@@ -460,6 +470,13 @@ rejected by the CEO (D83) and no longer ships (its score provenance stays
 in §4.6.2). D95 put `D_SDM1N2` (our composition, D92) on MAP01; `D_SDM01`,
 MAP01's D43 theme, left the package with it. Neither new row adds a credit obligation: both are our own
 sequences.
+
+**D106 (2026-10-22).** The CEO approved all ten episode 2 pieces ("10/10 OK"):
+the A and B of MAP04, MAP05 and MAP06, MAP06's two boss loops and the
+episode's two intermission pieces, installed byte for byte from
+`work/audio/episode2/` (`tests/test_music.py` regenerates each). All ten are
+our own compositions, written under the D104 brief: no rights question beyond
+our own licence, no credit obligation.
 
 **The D62 drafts (2026-10-14, backlog N8).** The rows of `D_SDFUNR` and
 `D_SDGATE` above (and `D_SDAMUR`'s, until N9e) were

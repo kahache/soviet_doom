@@ -8,7 +8,9 @@ GameInfo
 	// Register the mod's ZScript event handlers (class names in zscript/sd/).
 	// SD_DeathPrompt (D100, v1.1): "Press <use key> to continue" on the dead
 	// player's screen (zscript/sd/death_prompt.zs; MOD-SPEC 6.10).
-	AddEventHandlers = "SD_LoadReporter", "SD_DeathPrompt"
+	// SD_MusicVariant (D106): episode 2's A/B music and MAP06's boss loop
+	// (zscript/sd/music_variant.zs; MOD-SPEC 6.11).
+	AddEventHandlers = "SD_LoadReporter", "SD_DeathPrompt", "SD_MusicVariant"
 
 	// D102 (v1.1): the mouse pointer over the menus is our hammer and sickle,
 	// graphics/SDCURSOR.png (tools/art/gen_mouse_cursor.py), instead of
@@ -413,11 +415,19 @@ map MAP03 lookup "SD_MAP03_NAME"
 }
 
 // --- Episode 2 maps (D104, P4) ----------------------------------------------
-// Built by level-designer in src/maps/MAP04..MAP06. Each `music` is a
-// PROVISIONAL choice among pieces already approved and packed, until
-// sound-designer gives the episode its own (MOD-SPEC 4.5). Each `par` is the
-// mod-engineer's placeholder, display only, until level-designer times the
-// route. Every map keeps its intermission (the stats screen, then the text).
+// Built by level-designer in src/maps/MAP04..MAP06. D106 (2026-10-22): each
+// map plays its own piece, composed for it (tools/audio/compose_episode2.py)
+// and approved by the CEO with its B variant ("10/10 OK"). `music` names the
+// A; SD_MusicVariant (zscript/sd/music_variant.zs, MOD-SPEC 6.11) swaps in
+// the B on a fresh visit half the time, and on MAP06 the boss loop when the
+// boss engages. Its table must agree with the `music` lines below
+// (tests/test_music_variant.py). The stats screens after MAP04 and MAP05 play
+// the episode's own intermission piece (`intermusic`, read from the map being
+// LEFT: FLevelLocals::SetInterMusic, gzdoom g4.14.2 src/g_level.cpp 2318-2327,
+// called by the stats screen's StartMusic with the next map's name). Each
+// `par` is the mod-engineer's placeholder, display only, until
+// level-designer times the route. Every map keeps its intermission (the
+// stats screen, then the text).
 
 map MAP04 lookup "SD_MAP04_NAME"
 {
@@ -426,10 +436,11 @@ map MAP04 lookup "SD_MAP04_NAME"
 	// west, through cluster 5's text.
 	cluster = 5
 	next = "MAP05"
-	// Provisional. D95 kept compose_map01.py's variant N (116 BPM) for a map
-	// of the full game, but it is not in assets/music/, so the episode opens
-	// on D_SDM01T, the cut of MAP01's old theme the range already plays (D86).
-	music = "D_SDM01T"
+	// D106: the rail-yard piece, 138 BPM (B: D_SDM04B, 132 BPM).
+	music = "D_SDM04A"
+	// D106: the episode 2 intermission, 92 BPM, on the stats screen after
+	// this map instead of GameInfo's D_SDTITL.
+	intermusic = "D_SDE2IA"
 	sky1 = "SKY1"
 	par = 300
 }
@@ -441,7 +452,8 @@ map MAP05 lookup "SD_MAP05_NAME"
 	// cluster 6's text.
 	cluster = 6
 	next = "MAP06"
-	music = "D_SDFUNR"	// provisional: MAP02's piece (approved D83)
+	music = "D_SDM05A"	// D106: the dam, 116 BPM (B: D_SDM05B, 108 BPM)
+	intermusic = "D_SDE2IA"	// D106: as after MAP04
 	sky1 = "SKY1"
 	par = 330
 }
@@ -454,7 +466,9 @@ map MAP06 lookup "SD_MAP06_NAME"
 	// (SD_END03_TEXT), and `endtitle` goes back to the title screen.
 	cluster = 7
 	next = endtitle
-	music = "D_SDGATE"	// provisional: MAP03's piece (approved D83)
+	// D106: the Red Square march, 120 BPM (B: D_SDM06B, 112 BPM). Its boss
+	// loop, D_SDBS6A / D_SDBS6B, is SD_MusicVariant's, not a MAPINFO key.
+	music = "D_SDM06A"
 	sky1 = "SKY1"
 	par = 420
 }

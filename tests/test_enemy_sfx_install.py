@@ -1,5 +1,5 @@
-"""N9e (D83, D86, D91, D96): the approved enemy sounds, beds and voice takes,
-installed, and the two music lumps of D83/D86.
+"""N9e (D83, D86, D91, D96, D107, D110): the approved enemy sounds, beds, voice
+takes and the hound's dogs, installed, and the two music lumps of D83/D86.
 
 What is pinned, and why:
 
@@ -8,11 +8,13 @@ What is pinned, and why:
              once its final click was lowered; SDLTRATK alt2; SDSTOPAI,
              SDSTODTH, SDPZRPAI alt1-3; the beds SDRRIPAI, SDLTRPAI,
              SDLTRDTH alt1-3); nothing rejected is installed (the D83 NO
-             drafts and beds, SDLTRATK alt1 and alt3); the 24 voice takes of
-             D91 (7) and D96 (17) ship on eight of the twelve voices, a
-             $random group where a sound has several takes, and the other
-             four voices keep their Freedoom lumps
-  files      assets/sounds/enemies/ holds exactly the 81 OGGs, each the file
+             drafts and beds, SDLTRATK alt1 and alt3); the 31 voice takes of
+             D91 (7), D96 (17) and D110 (7) ship on eleven of the twelve
+             voices, a $random group where a sound has several takes, and the
+             General's death keeps its Freedoom lump; D107's fifteen dog takes
+             replace D83's five synthetic hound sounds, three takes a sound,
+             each sound a $random group, and SDHNDACT-SDHNDDTH no longer ship
+  files      assets/sounds/enemies/ holds exactly the 98 OGGs, each the file
              tools/audio/master_enemy_sfx.py installed (SHA-256 pinned),
              each a Vorbis stream
   sndinfo    every approved name resolves: a sound with one take to its
@@ -28,11 +30,14 @@ What is pinned, and why:
              order in A_SD_GeneralSummon
   licences   a LICENSES.md row per packed enemy sound, ENEMY-SOUNDS 5.12
              names every installed lump and its OGG hash; a voice row names
-             Chatterbox (tools/release.py's ai_ships) and, for D96, its
-             reference; kurt's CC-BY credit is in both in-game credits
-  voices     (work/) each D96 take ships byte for byte as the OGG of the
-             CEO's page, but SDGENSU1, which the codec pass re-renders
-             byte-identically from its raw take
+             Chatterbox (tools/release.py's ai_ships) and, for D96 and D110,
+             its take and reference; kurt's CC-BY credit is in both in-game credits; the dog rows name their recordings, and the CC BY
+             growls oblige congusbongus and juskiddink in every language
+  voices     (work/) each D96 and D110 take ships byte for byte as the OGG
+             of the CEO's page, but SDGENSU1, which the codec pass re-renders
+             byte-identically from its raw take, and SDLTRDT3 (L09 t04), whose
+             raw take is cut before the blip the CEO heard at its end ("se
+             cuela algo al final") and rendered by the page's own chain
   loudness   (numpy + ffmpeg) every installed OGG, decoded, sits within its
              window: the target +-1 dB, or the pinned shortfall; the peak
              never reaches 0 dBFS; the Freedoom references re-measured
@@ -98,7 +103,7 @@ EVENT = {"ACT": "active", "SIT": "sight", "ATK": "attack", "MEL": "melee", "MIS"
 
 # --- D83 and D86, as ratified (docs/PRD.md) ------------------------------------------
 D83_SOUNDS = ("SDRRIXDT", "SDLTRXDT", "SDSTOACT", "SDSTOSIT", "SDSTOMEL", "SDSTOMIS", "SDSTOEXP",
-              "SDSTOXDT", "SDHNDACT", "SDHNDSIT", "SDHNDATK", "SDHNDPAI", "SDHNDDTH", "SDDGBACT",
+              "SDSTOXDT", "SDDGBACT",
               "SDDGBSIT", "SDDGBMEL", "SDDGBMIS", "SDDGBEXP", "SDDGBPAI", "SDDGBDTH", "SDPZRACT",
               "SDPZRSIT", "SDPZRMEL", "SDPZRMIS", "SDPZREXP", "SDPZRDTH", "SDPZRSTP", "SDGENACT",
               "SDGENMIS", "SDGENEXP")
@@ -115,6 +120,28 @@ D91_VOICES = {
                                    "sd/mon/reichrifleman/sight/3": "SDRRISI3"},
     "sd/mon/legiontrooper/active": {f"sd/mon/legiontrooper/active/{n}": f"SDLTRAC{n}" for n in range(1, 6)},
 }
+# D83's hound sounds, retired by D107 (real dogs in their place), and the
+# Freedoom lump each was mastered to, which its dogs were levelled to.
+D83_HOUND = {"SDHNDACT": "DSDMACT", "SDHNDSIT": "DSSGTSIT", "SDHNDATK": "DSSGTATK",
+             "SDHNDPAI": "DSDMPAIN", "SDHNDDTH": "DSSGTDTH"}
+# D107: all fifteen dog candidates of work/audio/preview/dog_listening.html,
+# three takes a sound, card -> (the lump stem of its takes, the take the page
+# recommended). Every take ships; the recommended one is among them.
+D107_DOGS = {"SDHNDACT": ("SDHNDAC", 1), "SDHNDSIT": ("SDHNDSI", 2), "SDHNDATK": ("SDHNDAT", 1),
+             "SDHNDPAI": ("SDHNDPA", 1), "SDHNDDTH": ("SDHNDDT", 2)}
+# The four takes that mix congusbongus' CC BY growls (work/audio/sfx_sources/dog/SOURCES.md).
+D107_CC_BY = {"SDHNDAC1", "SDHNDAC2", "SDHNDSI1", "SDHNDAT2"}
+DOG_DIR = PROJECT_ROOT / "work" / "audio" / "candidates" / "dog"
+
+
+def dog_card(lump: str) -> str:
+    return next(c for c, (stem, _) in D107_DOGS.items() if lump.startswith(stem))
+
+
+def dog_file(lump: str) -> Path:
+    return DOG_DIR / f"{dog_card(lump)}_dog{lump[-1]}.ogg"
+
+
 # D96: the seventeen takes of the aggressive round, lump -> (the processed
 # file in work/audio/voice_takes/aggressive/, the SNDINFO name it gets).
 D96_DIR = PROJECT_ROOT / "work" / "audio" / "voice_takes" / "aggressive"
@@ -155,10 +182,35 @@ def d96_reference(lump: str) -> str:
     return D96_REFERENCE.get(f"{row}_{take}") or D96_REFERENCE.get(row) or D96_REFERENCE[row[0]]
 
 
+# D110: the seven takes of the P2 round (work/audio/preview/voices_p2_listening.html),
+# lump -> (the processed file's stem in work/audio/voice_takes/p2/, take, SNDINFO name),
+# numbered in the CEO's order ("OK t06, t02").
+D110_DIR = PROJECT_ROOT / "work" / "audio" / "voice_takes" / "p2"
+D110_TAKES = {
+    "SDRRIPA1": ("R07_SDRRIPAI", 6, "sd/mon/reichrifleman/pain/1"),
+    "SDRRIPA2": ("R07_SDRRIPAI", 2, "sd/mon/reichrifleman/pain/2"),
+    "SDLTRDT1": ("L09_SDLTRDTH", 1, "sd/mon/legiontrooper/death/1"),
+    "SDLTRDT2": ("L09_SDLTRDTH", 2, "sd/mon/legiontrooper/death/2"),
+    "SDLTRDT3": ("L09_SDLTRDTH", 4, "sd/mon/legiontrooper/death/3"),
+    "SDGENPA1": ("G03_SDGENPAI", 6, "sd/mon/general/pain/1"),
+    "SDGENPA2": ("G03_SDGENPAI", 4, "sd/mon/general/pain/2"),
+}
+# The reference each D110 take was cloned from (p2/AI-LOG.csv, column voz).
+D110_REFERENCE = {"SDRRIPA1": "Thorsten", "SDRRIPA2": "HaelDB", "SDLTRDT1": "kurt", "SDLTRDT2": "kurt",
+                  "SDLTRDT3": "HaelDB", "SDGENPA1": "kurt", "SDGENPA2": "kurt"}
+# L09 t04: OK "once its tail is trimmed" (D110).
+D110_TAIL_CUT = {"SDLTRDT3"}
+
+
+def d110_file(lump: str) -> Path:
+    stem, take, _ = D110_TAKES[lump]
+    return D110_DIR / f"{stem}_ai_chatterbox_20261021_t{take:02d}.ogg"
+
+
 def voice_takes() -> dict[str, dict[str, str]]:
     """Every voice that ships a take: name the game asks for -> {member or itself: lump}."""
     out = {g: dict(m) for g, m in D91_VOICES.items()}
-    for lump, (_, _, name) in D96_TAKES.items():
+    for lump, (_, _, name) in {**D96_TAKES, **D110_TAKES}.items():
         group = name.rsplit("/", 1)[0] if name[-1].isdigit() else name
         out.setdefault(group, {})[name] = lump
     return out
@@ -196,9 +248,18 @@ def expected() -> dict[str, dict[str, str]]:
         g = name_of(card, True)
         out[g] = {f"{g}/{n}": f"{card[:6]}B{n}" for n in takes}
     out.update(VOICE_TAKES)
+    out.update(DOG_TAKES)
     return out
 
 
+def dog_takes() -> dict[str, dict[str, str]]:
+    """The hound's sounds: name the game asks for -> {member: lump}."""
+    return {name_of(card): {f"{name_of(card)}/{n}": f"{stem}{n}" for n in (1, 2, 3)}
+            for card, (stem, _) in D107_DOGS.items()}
+
+
+DOG_TAKES = dog_takes()
+DOG_LUMPS = {lump for members in DOG_TAKES.values() for lump in members.values()}
 EXPECTED = expected()
 EXPECTED_LUMPS = {lump for members in EXPECTED.values() for lump in members.values()}
 RANDOM_RE = re.compile(r"^\$random\s+(\S+)\s*\{\s*([^}]*?)\s*\}$")
@@ -245,19 +306,23 @@ def zscript_text() -> str:
 # --- Contract ------------------------------------------------------------------------
 
 class ContractTests(unittest.TestCase):
-    def test_81_lumps_43_sounds_14_beds_24_voices_thirteen_random_groups(self):
-        self.assertEqual(len(EXPECTED_LUMPS), 81)
-        self.assertEqual(len(VOICE_LUMPS), 7 + 17)
+    def test_98_lumps_14_beds_31_voices_15_dogs_twenty_one_random_groups(self):
+        self.assertEqual(len(EXPECTED_LUMPS), 81 - 5 + 15 + 7)
+        self.assertEqual(len(VOICE_LUMPS), 7 + 17 + 7)
+        self.assertEqual(len(DOG_LUMPS), 15)
         self.assertEqual(sum(1 for g in EXPECTED if g.startswith("sd/bed/")), 8)
-        self.assertEqual(sum(1 for g, m in EXPECTED.items() if len(m) > 1), 13)
-        self.assertEqual(len(VOICE_TAKES), 8)
-        self.assertEqual(set(VOICES), {"sd/mon/reichrifleman/pain", "sd/mon/legiontrooper/death",
-                                       "sd/mon/general/pain", "sd/mon/general/death"})
+        self.assertEqual(sum(1 for g, m in EXPECTED.items() if len(m) > 1), 13 + 5 + 3)
+        self.assertEqual(len(VOICE_TAKES), 11)
+        # D110: G04 all NO, redrafted; the General's death keeps DSCYBDTH
+        self.assertEqual(VOICES, {"sd/mon/general/death": "DSCYBDTH"})
 
     def test_the_tool_installs_exactly_the_approved(self):
         voices = VOICE_LUMPS
         self.assertEqual(set(master_constant("VOICE_SHA256")), voices)
-        self.assertEqual(set(master_constant("INSTALLED_SHA256")), EXPECTED_LUMPS - voices)
+        self.assertEqual(set(master_constant("DOG_SHA256")), DOG_LUMPS)
+        self.assertEqual(set(master_constant("INSTALLED_SHA256")), EXPECTED_LUMPS - voices - DOG_LUMPS)
+        self.assertEqual(set(master_constant("DOG_RECOMMENDED")),
+                         {f"{stem}{n}" for stem, n in D107_DOGS.values()})
         self.assertEqual(set(master_constant("REJECTED_DRAFTS")), set(REJECTED["drafts"]))
         self.assertEqual(set(master_constant("REJECTED_BEDS")), set(REJECTED["beds"]))
         self.assertEqual(set(master_constant("REJECTED_ALTS")), set(REJECTED["alts"]))
@@ -269,6 +334,13 @@ class ContractTests(unittest.TestCase):
         self.assertLessEqual(set(trimmed), alts_)
         for lump, db in trimmed.items():
             self.assertTrue(0 < db <= 2.0, f"{lump}: {db} dB is a re-voicing, not a codec margin")
+
+    def test_the_only_tail_cut_is_l09_t04_and_it_only_trims_the_end(self):
+        cut = master_constant("VOICE_TAIL_CUT")
+        self.assertEqual(set(cut), D110_TAIL_CUT)
+        # L09 t04's cry ends at 1.17 s and the blip starts at 1.39 s (D110): the cut
+        # falls in that silence, after the whole cry
+        self.assertTrue(1.17 <= cut["SDLTRDT3"] <= 1.39, cut)
 
     def test_the_voice_codec_trim_is_small_and_only_sdgensu1(self):
         trimmed = master_constant("VOICE_CODEC_TRIMMED")
@@ -291,13 +363,14 @@ class ContractTests(unittest.TestCase):
 # --- Files -------------------------------------------------------------------------------
 
 class FileTests(unittest.TestCase):
-    def test_exactly_the_81_oggs(self):
+    def test_exactly_the_98_oggs(self):
         self.assertEqual(sorted(p.name for p in ASSET_DIR.iterdir()),
                          sorted(f"{lump}.ogg" for lump in EXPECTED_LUMPS))
 
     def test_each_is_the_installed_file_and_a_vorbis_stream(self):
         pins = {k: v[1] for k, v in master_constant("INSTALLED_SHA256").items()}
         pins.update(master_constant("VOICE_SHA256"))
+        pins.update(master_constant("DOG_SHA256"))
         for lump in EXPECTED_LUMPS:
             with self.subTest(lump):
                 data = (ASSET_DIR / f"{lump}.ogg").read_bytes()
@@ -315,6 +388,13 @@ class FileTests(unittest.TestCase):
         cards = {"SDRRIACT", "SDRRISIT", "SDRRIPAI", "SDRRIDTH", "SDLTRACT", "SDLTRSIT", "SDLTRPAI",
                  "SDLTRDTH", "SDGENSIT", "SDGENSUM", "SDGENPAI", "SDGENDTH"}
         self.assertEqual(names & cards, {"SDRRIDTH", "SDGENSIT"})
+
+    def test_the_synthetic_hound_no_longer_ships(self):
+        # D107: real dogs replace D83's five; nothing else played them
+        names = {p.stem.upper() for p in (PROJECT_ROOT / "assets" / "sounds").rglob("*.ogg")}
+        self.assertFalse(names & set(D83_HOUND))
+        code = "\n".join(line.split("//")[0] for line in SNDINFO.read_text(encoding="utf-8").splitlines())
+        self.assertEqual(set(re.findall(r"\bSDHND\w*", code)), DOG_LUMPS)
 
 
 # --- SNDINFO ---------------------------------------------------------------------------
@@ -369,10 +449,22 @@ class SndinfoTests(unittest.TestCase):
         self.assertEqual(self.groups["sd/mon/legiontrooper/active"],
                          [f"sd/mon/legiontrooper/active/{n}" for n in range(1, 7)])
         for group, n in (("sd/mon/reichrifleman/active", 3), ("sd/mon/legiontrooper/sight", 4),
-                         ("sd/mon/legiontrooper/pain", 2), ("sd/mon/general/summon", 2)):
+                         ("sd/mon/legiontrooper/pain", 2), ("sd/mon/general/summon", 2),
+                         ("sd/mon/reichrifleman/pain", 2), ("sd/mon/legiontrooper/death", 3),
+                         ("sd/mon/general/pain", 2)):            # the last three D110's
             self.assertEqual(self.groups[group], [f"{group}/{k}" for k in range(1, n + 1)])
         self.assertEqual(self.lines["sd/mon/reichrifleman/death"], "SDRRIDTH")
         self.assertEqual(self.lines["sd/mon/general/sight"], "SDGENSIT")
+
+    def test_each_hound_sound_is_its_three_dogs(self):
+        # D107: "TODOS OK"; the PM: the three takes of each sound, $random (as D94)
+        for card, (stem, rec) in D107_DOGS.items():
+            group = name_of(card)
+            with self.subTest(group):
+                self.assertEqual(self.groups.get(group), [f"{group}/{n}" for n in (1, 2, 3)])
+                self.assertEqual([self.lines[f"{group}/{n}"] for n in (1, 2, 3)],
+                                 [f"{stem}{n}" for n in (1, 2, 3)])
+                self.assertIn(f"{group}/{rec}", self.groups[group])
 
     def test_the_izh_shot_is_take_b(self):
         self.assertEqual(self.lines.get("sd/weapon/izh/fire"), "SDIZFIR")
@@ -421,6 +513,14 @@ class HookTests(unittest.TestCase):
                 self.assertIn("A_Scream", _state(text, "Death"))
                 self.assertIn("A_Look", _state(text, "Spawn"))
                 self.assertRegex(_state(text, "See"), r"A_Chase|A_SD_GeneralChase")
+
+    def test_the_hound_plays_its_five_groups(self):
+        text = _class_text("reich_hound.zs")
+        for prop, event in (("SeeSound", "sight"), ("ActiveSound", "active"), ("AttackSound", "attack"),
+                            ("PainSound", "pain"), ("DeathSound", "death")):
+            self.assertRegex(text, rf'(?m)^\s*{prop}\s+"sd/mon/reichhound/{event}"\s*;')
+        self.assertIn("A_Pain", _state(text, "Pain"))
+        self.assertIn("A_Scream", _state(text, "Death"))
 
     def test_the_general_speaks_his_order_when_he_summons(self):
         text = _class_text("general.zs")
@@ -495,6 +595,7 @@ class DocumentTests(unittest.TestCase):
         section = text[text.index("### 5.12"):]
         pins = {k: v[1] for k, v in master_constant("INSTALLED_SHA256").items()}
         pins.update(master_constant("VOICE_SHA256"))
+        pins.update(master_constant("DOG_SHA256"))
         for lump, ogg in pins.items():
             self.assertIn(f"`{lump}`", section, lump)
             self.assertIn(ogg, section, f"{lump}'s OGG hash is not in ENEMY-SOUNDS 5.12")
@@ -524,6 +625,74 @@ class DocumentTests(unittest.TestCase):
                     self.assertIn("CC0", licence)
                     self.assertNotIn('credit "', licence)
 
+    def test_the_d110_rows_name_their_take_and_reference(self):
+        text = LICENSES.read_text(encoding="utf-8")
+        for lump, (stem, take, _) in D110_TAKES.items():
+            row = next(ln for ln in text.splitlines() if ln.startswith(f"| `{lump}` |"))
+            with self.subTest(lump):
+                self.assertIn("(D110)", row)
+                self.assertIn(f"take {stem[:3]} t{take}", row)
+                self.assertIn("not distributed", row)
+                self.assertIn("voice_takes/p2/AI-LOG.csv", row)
+                ref = D110_REFERENCE[lump]
+                self.assertIn(ref, row)
+                licence = row.split(" | ")[-1]
+                if ref == "kurt":
+                    self.assertIn("CC-BY 3.0", licence)
+                    self.assertIn('credit "kurt"', licence)
+                else:
+                    self.assertIn("CC0", licence)
+                    self.assertNotIn('credit "', licence)
+                self.assertEqual("tail cut" in row, lump in D110_TAIL_CUT)
+
+    def test_the_dog_rows_name_their_recordings_and_licences(self):
+        text = LICENSES.read_text(encoding="utf-8")
+        self.assertNotRegex(text, r"(?m)^\| `SDHND(ACT|SIT|ATK|PAI|DTH)` \|")
+        by = set()
+        for lump in sorted(DOG_LUMPS):
+            row = next(ln for ln in text.splitlines() if ln.startswith(f"| `{lump}` |"))
+            cells = [c.strip() for c in row.strip().strip("|").split(" | ")]
+            origin, licence = cells[2], cells[3]
+            with self.subTest(lump):
+                self.assertIn("(D107", row)
+                self.assertIn(dog_file(lump).stem, origin)
+                self.assertRegex(origin, r"https://(bigsoundbank\.com|opengameart\.org)/")
+                self.assertIn("make_dog_candidates.py", origin)
+                self.assertIn(D83_HOUND[dog_card(lump)], origin)
+                if "congusbongus" in origin:
+                    by.add(lump)
+                    self.assertIn("juskiddink", origin)
+                    self.assertIn("freesound.org/people/juskiddink/sounds/121565", origin)
+                    self.assertIn("CC BY 3.0", licence)
+                    self.assertIn('credit "congusbongus"', licence)
+                    self.assertIn('credit "juskiddink"', licence)
+                else:
+                    self.assertIn("CC0 1.0", licence)
+                    self.assertNotIn('credit "', licence)
+                self.assertIn("CC BY-NC-SA 4.0 (D15)", licence)
+        self.assertEqual(by, D107_CC_BY)
+
+    def test_the_dogs_are_credited_in_every_language_and_the_release_check_passes(self):
+        import licences
+        import release
+        language = (SRC_DIR / "lumps" / "LANGUAGE").read_text(encoding="utf-8")
+        credits = release.parse_credit_lines(language)
+        for lang in (release.LANG_ENGLISH, release.LANG_RUSSIAN, release.LANG_CATALAN):
+            text = release.credits_text(credits[lang])
+            for name in ("congusbongus", "juskiddink", "CC-BY 3.0", "Joseph Sardin", "qubodup", "pauliuw"):
+                self.assertIn(name, text, f"[{lang}] {name}")
+        menu = (SRC_DIR / "lumps" / "MENUDEF").read_text(encoding="utf-8")
+        for k in (4, 5, 6, 7):
+            self.assertIn(f'StaticText "$SD_CRED_SFX_{k}"', menu)
+        rows = licences.parse_licence_register(LICENSES.read_text(encoding="utf-8"))
+        check = release.check_licences([f"sounds/{lump}.ogg" for lump in EXPECTED_LUMPS], rows, [], credits)
+        self.assertEqual(check.errors, [])
+        owed = [(row, {Path(p).stem for p in paths}) for row, paths in check.coverage
+                if "juskiddink" in row.required]
+        self.assertEqual(set().union(*(stems for _, stems in owed)), D107_CC_BY)
+        for row, _ in owed:
+            self.assertEqual(set(row.required), {"congusbongus", "juskiddink"})
+
     def test_kurt_is_credited_in_both_languages_and_the_release_check_passes(self):
         import licences
         import release
@@ -539,7 +708,8 @@ class DocumentTests(unittest.TestCase):
         self.assertEqual(check.errors, [])
         self.assertEqual({Path(p).stem for row, paths in check.coverage if "kurt" in row.required
                           for p in paths},
-                         {lump for lump in D96_TAKES if d96_reference(lump) == "kurt"})
+                         {lump for lump in D96_TAKES if d96_reference(lump) == "kurt"}
+                         | {lump for lump, ref in D110_REFERENCE.items() if ref == "kurt"})
         self.assertTrue(release.ai_ships(check).voices)
 
 
@@ -577,8 +747,18 @@ class LoudnessTests(unittest.TestCase):
             self.assertLess(alts.peak_db(x), mes.DECODED_PEAK_CEILING_DBFS, v.lump)
             self.assertLessEqual(abs(alts.loud_a_db(x) - v.target_db),
                                  mes.LOUDNESS_TOLERANCE_DB + mes.CODEC_LOUDNESS_DB, v.lump)
-            if v.path.is_file() and v.lump not in mes.VOICE_CODEC_TRIMMED:
+            if v.path.is_file() and v.lump not in {**mes.VOICE_CODEC_TRIMMED, **mes.VOICE_TAIL_CUT}:
                 self.assertEqual((ASSET_DIR / f"{v.lump}.ogg").read_bytes(), v.path.read_bytes(), v.lump)
+
+    def test_the_dogs_in_their_window(self):
+        for d in mes.DOG_INSTALLS:
+            x = gws.decode(ASSET_DIR / f"{d.lump}.ogg")
+            with self.subTest(d.lump):
+                self.assertLess(alts.peak_db(x), mes.DECODED_PEAK_CEILING_DBFS)
+                self.assertLessEqual(abs(alts.loud_a_db(x) - d.target_db),
+                                     mes.LOUDNESS_TOLERANCE_DB + mes.CODEC_LOUDNESS_DB)
+                # levelled to the Freedoom lump the D83 sound it replaces was mastered to
+                self.assertEqual(d.ref, D83_HOUND[dog_card(d.lump)])
 
     def test_a_bed_sits_under_its_voices_stand_in(self):
         for inst in mes.INSTALLS:
@@ -621,6 +801,22 @@ class AltIdentityTests(unittest.TestCase):
                     self.assertEqual(same, lump not in trimmed)
 
 
+@unittest.skipUnless(DOG_DIR.is_dir(), "work/ not present (CI has no work/)")
+class D107DogIdentityTests(unittest.TestCase):
+    def test_each_take_ships_as_the_pages_ogg(self):
+        """D107: the OGG the CEO heard is the one that ships, byte for byte."""
+        for lump in sorted(DOG_LUMPS):
+            with self.subTest(lump):
+                self.assertEqual((ASSET_DIR / f"{lump}.ogg").read_bytes(), dog_file(lump).read_bytes())
+
+    def test_the_tool_reads_the_same_files(self):
+        if mes is None:
+            self.skipTest("numpy is not installed")
+        self.assertEqual({d.lump: (d.path, d.logical, d.group) for d in mes.DOG_INSTALLS},
+                         {lump: (dog_file(lump), name, group) for group, members in DOG_TAKES.items()
+                          for name, lump in members.items()})
+
+
 @unittest.skipUnless(D96_DIR.is_dir(), "work/ not present (CI has no work/)")
 class D96VoiceIdentityTests(unittest.TestCase):
     def test_each_approved_take_ships_as_the_pages_ogg(self):
@@ -651,6 +847,53 @@ class D96VoiceIdentityTests(unittest.TestCase):
         # the page's OGG overshot the ceiling; the installed one does not
         self.assertGreaterEqual(alts.peak_db(gws.decode(d96_file("SDGENSU1"))), mes.DECODED_PEAK_CEILING_DBFS)
         self.assertLess(alts.peak_db(gws.decode(ASSET_DIR / "SDGENSU1.ogg")), mes.DECODED_PEAK_CEILING_DBFS)
+
+
+@unittest.skipUnless(D110_DIR.is_dir(), "work/ not present (CI has no work/)")
+class D110VoiceIdentityTests(unittest.TestCase):
+    def test_each_approved_take_ships_as_the_pages_ogg(self):
+        """D110: the OGG the CEO heard ships byte for byte, but L09 t04 (its tail cut)."""
+        for lump in D110_TAKES:
+            with self.subTest(lump):
+                same = (ASSET_DIR / f"{lump}.ogg").read_bytes() == d110_file(lump).read_bytes()
+                self.assertEqual(same, lump not in D110_TAIL_CUT)
+
+    def test_the_tool_reads_the_same_files(self):
+        if mes is None:
+            self.skipTest("numpy is not installed")
+        for lump, (_, _, name) in D110_TAKES.items():
+            v = mes.VOICES_BY_LUMP[lump]
+            self.assertEqual((v.path, v.logical, v.decision), (d110_file(lump), name, "D110"))
+
+    @needs_numpy
+    def test_sdltrdt3_is_its_raw_take_cut_and_rendered_by_the_pages_chain(self):
+        if gws.ffmpeg_path() is None:
+            self.skipTest("ffmpeg is not on the PATH")
+        v = mes.VOICES_BY_LUMP["SDLTRDT3"]
+        if not v.raw_path.is_file():
+            self.skipTest("the raw take is not in work/")
+        # the chain, uncut, is the page's OGG byte for byte: only the cut differs
+        self.assertEqual(gws.ogg_bytes(gws.wav_bytes(mes.voice_render(v))), d110_file("SDLTRDT3").read_bytes())
+        self.assertEqual(mes.voice_tail_cut_ogg(v), (ASSET_DIR / "SDLTRDT3.ogg").read_bytes())
+
+    @needs_numpy
+    def test_sdltrdt3_ends_in_its_fade_not_in_the_blip(self):
+        """Energy at the end (10 ms frames, dBFS): the page's take ends in a blip
+        louder than -20 dB after silence; the installed one fades to the end."""
+        if gws.ffmpeg_path() is None:
+            self.skipTest("ffmpeg is not on the PATH")
+        import process_voice_takes as pvt
+        page = pvt.frames_db(gws.decode(d110_file("SDLTRDT3")), gws.SR)
+        shipped = pvt.frames_db(gws.decode(ASSET_DIR / "SDLTRDT3.ogg"), gws.SR)
+        self.assertGreater(page[-10:].max(), -20.0)               # the blip
+        self.assertLess(page[-20:-10].min(), -90.0)              # after silence
+        self.assertLess(shipped[-10:].max(), -40.0)              # the last 100 ms: the fade
+        self.assertLess(shipped[-1], shipped[-10])
+        self.assertTrue((shipped[-15:-1] > -120.0).all())        # no gap left before the end
+        # the cry itself is the same: same loudness; the cut takes 0.25-0.35 s off
+        self.assertAlmostEqual(alts.loud_a_db(gws.decode(ASSET_DIR / "SDLTRDT3.ogg")),
+                               alts.loud_a_db(gws.decode(d110_file("SDLTRDT3"))), delta=0.1)
+        self.assertTrue(0.25 <= (len(page) - len(shipped)) / 100 <= 0.35)
 
 
 # --- Takes: the re-render (slow) ----------------------------------------------------------------
@@ -735,7 +978,7 @@ class TakeTests(unittest.TestCase):
         out, err = io.StringIO(), io.StringIO()
         with redirect_stdout(out):
             self.assertEqual(mes.main(["--list"]), 0)
-        self.assertIn("57 approved (D83, D86)", out.getvalue())
+        self.assertIn("52 approved (D83, D86)", out.getvalue())
         with redirect_stderr(err):
             self.assertEqual(mes.main(["SDSTOPAI"]), 2)
         self.assertIn("SDSTOPAI", err.getvalue())

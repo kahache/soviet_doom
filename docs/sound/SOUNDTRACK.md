@@ -59,6 +59,10 @@ open recommendation of §8 accepted. What that changed, in one place:
 | **Death / aftermath** | «Вы жертвою пали», sequenced by us from Detlaf's 1905 edition | **draft** (D44), for the CEO's ear (§6, Card 3); since D62 it also plays on MAP02 (row above) |
 | **Radio waltz** | «Амурские волны» (Kyuss, 1909), sequenced by us from the 1909-1914 Vladivostok edition | **draft** (D44), for the CEO's ear (§6, Card 4); since D62 it also plays on RANGE (row above) |
 | **Intermission** (the stats screen) | **`assets/music/D_SDTITL.mid`** — our "Zarya" march, 1:21, D minor (Card 1) | **approved (D83) and installed** (N9e, 2026-10-20, MAPINFO `GameInfo { IntermissionMusic }`), replacing Freedoom's `D_DM2INT` |
+| **MAP04**, the Trans-Siberian (episode 2) | **`assets/music/D_SDM04A.mid`**, or its B `D_SDM04B` (§0.2) | **approved (D106) and installed** (2026-10-22); MAPINFO `music` names the A, `SD_MusicVariant` draws the B half the time |
+| **MAP05**, the Volga Dam | **`assets/music/D_SDM05A.mid`**, or `D_SDM05B` | **approved (D106) and installed**, same mechanism |
+| **MAP06**, Red Square | **`assets/music/D_SDM06A.mid`**, or `D_SDM06B`; the boss loop `D_SDBS6A` / `D_SDBS6B` once a BOSS monster engages | **approved (D106) and installed**, same mechanism; the boss loop follows the variant drawn |
+| **Intermission after MAP04 and MAP05** | **`assets/music/D_SDE2IA.mid`** — the three maps' motifs in one 16-bar loop, 92 BPM | **approved (D106) and installed** (MAPINFO `intermusic` on MAP04 and MAP05); its B `D_SDE2IB` is packed but not wired (§0.2) |
 
 ### 0.1 One piece per map (D62, backlog N8) — provisional
 
@@ -111,6 +115,39 @@ console, `currentmusic` with a non-zero music volume (§2.1) names the lump.
 Three of the twelve downloads are **discarded** and gone, six are kept as
 named reserves (§3). Two needed repair and got it (§5). Works restored in
 the United States are excluded (`MUSIC-RIGHTS.md` §5(b)).
+
+### 0.2 Episode 2: two pieces per map, drawn at random (D106, 2026-10-22)
+
+Composed for episode 2 under the D104 brief by `tools/audio/compose_episode2.py`
+(original, no quotation: the generator's self-check; rights `MUSIC-RIGHTS.md`
+§4.5) and approved by the CEO all ten, "10/10 OK" (D106). Installed byte for
+byte from `work/audio/episode2/`; `tests/test_music.py` regenerates each at
+its calibrated CC7 scale and compares.
+
+| Lump | Cue | Tempo · loop |
+|---|---|---|
+| `D_SDM04A` / `D_SDM04B` | MAP04, the Trans-Siberian yard: rail ostinato, brass | 138 BPM 2:05 / 132 BPM 2:11 |
+| `D_SDM05A` / `D_SDM05B` | MAP05, the Volga Dam: broad, organ hum under the bass | 116 BPM 2:12 / 108 BPM 2:22 |
+| `D_SDM06A` / `D_SDM06B` | MAP06, Red Square: march, brass choir | 120 BPM 2:24 / 112 BPM 2:34 |
+| `D_SDBS6A` / `D_SDBS6B` | MAP06's boss arena: bars 29-52 of the matching MAP06 piece as their own loop | 0:48 / 0:51 |
+| `D_SDE2IA` / `D_SDE2IB` | episode 2's intermission (the stats screen) | 92 BPM 0:42 / 104 BPM 0:37 |
+
+**How the pair is played** (the PM's choice, both approved): MAPINFO names
+the A of each map; the event handler `SD_MusicVariant`
+(`src/zscript/sd/music_variant.zs`, `docs/engine/MOD-SPEC.md` §6.11) draws A
+or B on every fresh visit and swaps to the B with `S_ChangeMusic`. A
+savegame keeps the song that was playing. On MAP06, the first time any BOSS
+monster has the player as its target or is hurt by him, the music becomes
+the boss loop of the variant drawn, until the map ends. Switch-off: the
+handler's `SD_MUSIC_VARIANTS_ENABLED` and `SD_BOSS_MUSIC_ENABLED`.
+
+**The intermission is A only.** The stats screen's music is chosen by the
+engine from MAPINFO (`intermusic` of the map being left; gzdoom g4.14.2
+`FLevelLocals::SetInterMusic`), and no event handler ticks on that screen, so
+the draw cannot reach it. `D_SDE2IB` ships so the PM can swap it in by
+editing two `intermusic` lines. The stats screen after MAP06 keeps GameInfo's
+`D_SDTITL`, as the brief asked (only MAP04's and MAP05's are episode 2's
+intermission).
 
 ---
 
