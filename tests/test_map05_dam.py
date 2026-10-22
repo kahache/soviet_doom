@@ -6,6 +6,10 @@ of tests/test_map03_factory.py, whose model of play it repeats:
 * structure: every sector closed and clockwise, no duplicate vertex, no step
   up over 16;
 * only approved, packed textures (F_SKY1 is the engine's sky marker);
+* the Dam set (D107) in place of every stand-in of v1 (design section 7.2):
+  the water, the dam's concrete on one grid with its waterline on the water,
+  the generators, the control room's boards and consoles, the spillway's
+  rack, the masked insulators only as middle textures, SDSIGL1 once;
 * everything is reachable and the exit is reached playing the map's own
   doors, switches and its TWO keys (blue and yellow) in order; no trap at
   any stage; the shortcut (SW-B) and the three secrets are never needed;
@@ -414,18 +418,250 @@ class Map05Test(unittest.TestCase):
             self.assertFalse(zone.startswith(("z5_", "z6_", "z4_", "z3_", "z8_", "d", "s", "closet_")), zone)
             self.assertNotIn(self.plan[zone], self.door_sectors)
 
-    def test_pending_textures_are_named(self):
-        """Every placeholder of the "Dam" set is a lump this map places,
-        approved, with the lump it waits for (design section 7.2)."""
+    def used_textures(self):
         used = set()
         for sd in self.sides:
             used |= {sd.get(k) for k in ("texturetop", "texturemiddle", "texturebottom")}
         for s in self.sectors:
             used |= {s["texturefloor"], s["textureceiling"]}
-        for placeholder, waits_for in self.m.PENDING_TEXTURES.items():
-            self.assertIn(placeholder, used, placeholder)
-            self.assertTrue(_packed(placeholder))
-            self.assertRegex(waits_for, r"SD[A-Z0-9]{2,6}")
+        return used - {None, "-"}
+
+    def drawn(self, ld, side_key):
+        """[(part, height its texture is pegged to)] for the parts of this
+        side the engine draws: Doom's pegging, written out again here so
+        the map's own helper is not graded by itself."""
+        side = self.sides[ld[side_key]]
+        s = self.sectors[side["sector"]]
+        other_key = "sideback" if side_key == "sidefront" else "sidefront"
+        if other_key not in ld:
+            return [("texturemiddle", s["heightfloor"] if ld.get("dontpegbottom") else s["heightceiling"])]
+        o = self.sectors[self.sides[ld[other_key]]["sector"]]
+        parts = []
+        if o["heightfloor"] > s["heightfloor"]:
+            parts.append(("texturebottom", s["heightceiling"] if ld.get("dontpegbottom") else o["heightfloor"]))
+        sky = self.m.SKY
+        if o["heightceiling"] < s["heightceiling"] and not (s["textureceiling"] == sky == o["textureceiling"]):
+            parts.append(("texturetop", s["heightceiling"] if ld.get("dontpegtop") else o["heightceiling"]))
+        return parts
+
+    def faces(self, texture, part=None):
+        """Every drawn face wearing `texture`: (linedef, side key, part, pegging height)."""
+        out = []
+        for ld in self.lines:
+            for key in ("sidefront", "sideback"):
+                if key not in ld:
+                    continue
+                for name, ref in self.drawn(ld, key):
+                    if self.sides[ld[key]].get(name) == texture and part in (None, name):
+                        out.append((ld, key, name, ref))
+        return out
+
+    def test_the_dam_set_is_on_the_map(self):
+        """Design section 7.2 settled (D107): every lump the design proposed
+        is worn, as itself where the art-director drew it, as the nearest
+        approved piece where he did not; every piece of the installed Dam
+        set is placed (the water's frames 2-4 by ANIMDEFS)."""
+        m = self.m
+        used = self.used_textures()
+        for proposed, worn in m.DAM_SET.items():
+            self.assertIn(worn, used, proposed)
+            self.assertTrue(_packed(worn), worn)
+            if _packed(proposed):
+                self.assertEqual(proposed, worn, f"{proposed} was drawn: worn as itself")
+            else:
+                self.assertNotEqual(proposed, worn, proposed)
+        dam = {p.stem for p in ASSETS.glob("textures/dam/*.png")} | {p.stem for p in ASSETS.glob("flats/dam/*.png")}
+        self.assertEqual(dam - {"SDWATR2", "SDWATR3", "SDWATR4"}, dam & used)
+
+    def test_what_still_waits_is_not_drawn_yet(self):
+        used = self.used_textures()
+        for proposed, what in self.m.PENDING_TEXTURES.items():
+            self.assertFalse(_packed(proposed), f"{proposed} exists: put it on the map")
+            self.assertNotIn(proposed, used)
+            self.assertTrue(what)
+
+    def test_no_stand_in_of_v1_is_left(self):
+        """The lumps that stood in for the Dam set in v1 are gone where the
+        set now stands: SDCONC2 (the hall), SDMFLR1 (the water), SDGRAT1 (the
+        catwalk); SDGATE1 is S3's hut only, not the dam's face."""
+        used = self.used_textures()
+        for lump in ("SDCONC2", "SDMFLR1", "SDGRAT1"):
+            self.assertNotIn(lump, used)
+        gates = [ld for ld, *_ in self.faces(self.m.ROAD_GATE)]
+        self.assertTrue(gates)
+        for ld in gates:
+            self.assertEqual(self.m.TAG_S3_PANEL, ld.get("arg0"), "SDGATE1 only on S3's panel")
+
+    def test_the_water_is_the_volga(self):
+        m = self.m
+        for zone in ("z7_channel", "s1_niche", "s1_panel"):
+            self.assertEqual(m.WATER, self.sectors[self.plan[zone]]["texturefloor"], zone)
+        self.assertEqual("SDWATR1", m.WATER)
+        for zone in ("z5_catwalk", "z5_yellow_portal", *(f"z5_stair_{n}" for n in range(1, m.CATWALK_STAIR_STEPS + 1))):
+            self.assertEqual(m.GRATING, self.sectors[self.plan[zone]]["texturefloor"], zone)
+        self.assertEqual("SDGRAT2", m.GRATING)
+
+    def column(self, ld, key):
+        """Where the map's grid puts the first column of this side's texture:
+        Doom runs a front side from v1 to v2, a back side from v2 to v1."""
+        (ax, ay), (bx, by) = self.line_points(ld)
+        if key == "sideback":
+            (ax, ay), (bx, by) = (bx, by), (ax, ay)
+        if ay == by:
+            return ax if bx > ax else -ax
+        return ay if by > ay else -ay
+
+    def test_the_dams_concrete_is_one_grid(self):
+        """SDDAM1 everywhere is pegged to one grid: its foot on the hall's
+        floor and every 128 above and below, whatever floor or ceiling a face
+        hangs from, so the lift joints run level round the map; and along
+        each wall its columns fall where the map's grid puts them, so a wall
+        split by a neighbour's corner shows no seam."""
+        m = self.m
+        faces = self.faces(m.DAM)
+        self.assertGreater(len(faces), 100)
+        for ld, key, part, ref in faces:
+            where = f"{self.zone_of[self.sides[ld[key]]['sector']]} {part}"
+            self.assertEqual((m.GROUND - ref) % m.WALL_TILE, self.sides[ld[key]].get("offsety", 0), where)
+            self.assertEqual(self.column(ld, key) % m.LUMP_WIDTH[m.DAM], self.sides[ld[key]].get("offsetx", 0), where)
+        for zone in ("z5_hall", "z5_catwalk", "z7_east_walk", "z7_west_walk", "z7_channel", "z10_crest"):
+            self.assertIn(m.DAM, self.one_sided_textures(self.plan[zone]), zone)
+
+    def test_the_banks_are_wet_at_the_waterline(self):
+        """Every face rising out of the water (onto a walkway or a step)
+        wears SDDAM2 with its foot on the water: the tide mark 72 px down the
+        tile sits 8 under the walkways' edge. The dam's face over the
+        channel is the spillway's rack, standing in the water too."""
+        m = self.m
+        water = {self.plan["z7_channel"]} | {i for n, i in self.plan.items() if n.startswith("z7_steps_")}
+        wet = self.faces(m.DAM_WET)
+        self.assertGreaterEqual(len(wet), 4)
+        for ld, key, part, ref in wet:
+            self.assertEqual("texturebottom", part)
+            self.assertIn(self.sides[ld[key]]["sector"], water)
+            self.assertEqual((m.CHANNEL - ref) % m.WALL_TILE, self.sides[ld[key]]["offsety"])
+        for ld in self.lines:
+            if "sideback" not in ld:
+                continue
+            for key, other in (("sidefront", "sideback"), ("sideback", "sidefront")):
+                low, high = self.sides[ld[key]]["sector"], self.sides[ld[other]]["sector"]
+                if low == self.plan["z7_channel"] and high in self.named("z7_east_walk", "z7_west_walk"):
+                    self.assertEqual(m.DAM_WET, self.sides[ld[key]]["texturebottom"])
+                    self.assertEqual(m.WALL_TILE - (m.GROUND - m.CHANNEL), self.sides[ld[key]]["offsety"])
+        rack = self.faces(m.SPILLWAY)
+        self.assertEqual(1, len(rack))
+        ld, key, part, ref = rack[0]
+        self.assertEqual(self.plan["z7_channel"], self.sides[ld[key]]["sector"])
+        self.assertEqual(m.CHANNEL_RECT[2] - m.CHANNEL_RECT[0], self.length(ld))
+        self.assertEqual((m.CHANNEL - ref) % m.WALL_TILE, self.sides[ld[key]]["offsety"])
+
+    def test_the_generators_wear_their_housings(self):
+        """SDTURB1 on the four housings, seen from the hall: 48 high, the
+        tile's foot (flange and plinth) on the floor; the shafts steel."""
+        m = self.m
+        housings = self.faces(m.TURBINE, "texturebottom")
+        hall = self.plan["z5_hall"]
+        generators = self.named(*(f"{m.PROP_PREFIX}z5_generator_{n}" for n in range(1, len(m.GENERATOR_X) + 1)))
+        self.assertEqual(4 * len(m.GENERATOR_X), len(housings))
+        for ld, key, _part, ref in housings:
+            self.assertEqual(hall, self.sides[ld[key]]["sector"])
+            self.assertEqual(m.GROUND + m.GENERATOR, ref)
+            self.assertEqual(m.WALL_TILE - m.GENERATOR, self.sides[ld[key]]["offsety"])
+        for g in generators:
+            self.assertEqual({m.STEEL}, set(self.one_sided_textures(g)), self.zone_of[g])
+
+    def test_the_control_room_has_its_boards(self):
+        """SDCTRL1 four times on the control room's walls, each a middle
+        texture on an impassable line, standing on the floor, whole 64 px
+        sections, drawn once under the 160 ceiling; the consoles show its
+        desk (rows 64-95)."""
+        m = self.m
+        control = self.plan["z6_control"]
+        boards = [ld for ld in self.lines if "sideback" in ld and m.CONTROL_PANEL in
+                  (self.sides[ld["sidefront"]].get("texturemiddle"), self.sides[ld["sideback"]].get("texturemiddle"))]
+        self.assertEqual(len(m.CONTROL_BOARDS), len(boards))
+        room = self.sectors[control]
+        self.assertGreaterEqual(room["heightceiling"] - room["heightfloor"], m.WALL_TILE)
+        for ld in boards:
+            self.assertTrue(ld.get("blocking") and ld.get("dontpegbottom"))
+            self.assertFalse(ld.get("wrapmidtex"))
+            self.assertEqual(0, self.length(ld) % 64)
+            self.assertGreaterEqual(self.length(ld), m.WALL_TILE)
+            sides = [k for k in ("sidefront", "sideback") if self.sides[ld[k]].get("texturemiddle") == m.CONTROL_PANEL]
+            self.assertEqual(1, len(sides))
+            self.assertEqual(control, self.sides[ld[sides[0]]]["sector"])
+            other = self.sectors[self.back(ld) if sides[0] == "sidefront" else self.front(ld)]
+            self.assertEqual((room["heightfloor"], room["heightceiling"]),
+                             (other["heightfloor"], other["heightceiling"]))
+        for name in m.CONTROL_BOARDS:
+            self.assertNotIn(self.plan[name], self.rounds[-1][1], f"{name}: nobody walks into a board")
+        consoles = self.faces(m.CONTROL_PANEL, "texturebottom")
+        self.assertEqual(4 * len(m.CONSOLES), len(consoles))
+        for ld, key, _part, ref in consoles:
+            self.assertEqual(m.CATWALK + m.CONSOLE, ref)
+            self.assertEqual(m.CONTROL_DESK_ROW, self.sides[ld[key]]["offsety"])
+
+    def test_the_insulators_hang_from_the_gantry(self):
+        """SDINSL1 is masked: only a middle texture of a two-sided line
+        anyone can walk under, here the gantry's two long faces towards the
+        substation, two strings each, the strings' foot over every head."""
+        m = self.m
+        lines = [ld for ld in self.lines if m.INSULATOR in
+                 (self.sides[ld["sidefront"]].get("texturemiddle"),
+                  self.sides[ld["sideback"]].get("texturemiddle") if "sideback" in ld else None)]
+        self.assertEqual(2, len(lines))
+        gantry = self.sectors[self.plan["z9_gantry"]]
+        self.assertEqual(m.GANTRY, gantry["heightceiling"])
+        tallest = max(height for _radius, height in self.body.values())
+        self.assertGreater(m.GANTRY - m.WALL_TILE - gantry["heightfloor"], tallest)
+        for ld in lines:
+            self.assertIn("sideback", ld)
+            self.assertFalse(ld.get("blocking") or ld.get("dontpegbottom"))
+            self.assertEqual(self.named("z9_gantry", "z9_substation"), set(self._pair(ld)))
+            self.assertEqual(2 * 64, self.length(ld))
+            for key in ("sidefront", "sideback"):
+                side = self.sides[ld[key]]
+                worn = side.get("texturemiddle", "-")
+                self.assertEqual(m.INSULATOR if side["sector"] == self.plan["z9_substation"] else "-", worn)
+        self.assertIn(self.plan["z9_gantry"], self.rounds[-1][1], "walked under")
+
+    def test_middle_textures_are_only_the_boards_and_the_strings(self):
+        m = self.m
+        for i, sd in enumerate(self.sides):
+            for key in ("texturetop", "texturebottom"):
+                self.assertNotEqual(m.INSULATOR, sd.get(key), f"sidedef {i}")
+        for ld in self.lines:
+            if "sideback" in ld:
+                for key in ("sidefront", "sideback"):
+                    self.assertIn(self.sides[ld[key]].get("texturemiddle", "-"), ("-",) + m.MIDDLE_TEXTURES)
+            else:
+                self.assertNotIn(self.sides[ld["sidefront"]].get("texturemiddle"), m.MIDDLE_TEXTURES)
+
+    def test_the_signal_is_used_once(self):
+        """D107: SDSIGL1 single use, one 64 span, never tiled: the one face
+        of the post by the station's track, exactly one tile high."""
+        m = self.m
+        faces = self.faces(m.SIGNAL)
+        self.assertEqual(1, len(faces))
+        ld, key, part, ref = faces[0]
+        self.assertEqual(64, self.length(ld))
+        post = self.sectors[self.plan[f"{m.PROP_PREFIX}z1_signal"]]
+        station = self.sectors[self.plan["z1_station"]]
+        self.assertEqual("texturebottom", part)
+        self.assertEqual(station["heightfloor"] + m.WALL_TILE, post["heightfloor"])
+        self.assertEqual(0, self.sides[ld[key]].get("offsety", 0))
+        self.assertEqual(self.plan["z1_station"], self.sides[ld[key]]["sector"])
+
+    def test_the_train_is_armoured_with_one_star_per_face(self):
+        m = self.m
+        stars = self.faces(m.ARMOUR_STAR)
+        self.assertEqual(len(m.TRAIN_STARS), len(stars), "one star, on one line")
+        train = self.sectors[self.plan[f"{m.PROP_PREFIX}z1_train"]]
+        for ld, _key, part, ref in stars:
+            self.assertEqual(("texturebottom", train["heightfloor"]), (part, ref))
+            self.assertEqual(m.WALL_TILE, self.length(ld))
+            self.assertEqual(m.WALL_TILE, train["heightfloor"] - m.CREST, "one panel high, never stacked")
+        self.assertTrue(self.faces(m.ARMOUR))
 
     def test_every_door_leaf_is_one_tile(self):
         faces = Counter()
@@ -1117,17 +1353,19 @@ class Map05Test(unittest.TestCase):
 
     def test_the_first_two_clues_are_a_panel_in_shadow(self):
         """MAP01's rule, a comparison and never a sign: S1's outfall and S2's
-        panel stand 16 back from their wall, darker than the room; S2's
-        panel is the one stretch of the gallery's wall with no cables on it."""
+        panel stand 16 back from their wall, darker than the room; S1's panel
+        is the dam's own concrete, like the channel's walls; S2's panel is the
+        one stretch of the gallery's wall with no cables on it."""
         m = self.m
-        for niche, panel, room in (("s1_niche", "s1_panel", "z7_channel"), ("s2_niche", "s2_panel", "z4_gallery")):
+        for niche, panel, room, face in (("s1_niche", "s1_panel", "z7_channel", m.DAM),
+                                         ("s2_niche", "s2_panel", "z4_gallery", m.CONCRETE)):
             n = self.sectors[self.plan[niche]]
             self.assertLess(n["lightlevel"], self.sectors[self.plan[room]]["lightlevel"], niche)
             self.assertIn(self.plan[room], self.neighbours[self.plan[niche]])
             faces = [ld for ld in self.panel_lines(self.sectors[self.plan[panel]]["id"])
                      if self.front(ld) == self.plan[niche]]
             self.assertEqual(1, len(faces))
-            self.assertEqual(m.CONCRETE, self.sides[faces[0]["sidefront"]]["texturetop"])
+            self.assertEqual(face, self.sides[faces[0]["sidefront"]]["texturetop"])
         gallery = self.one_sided_textures(self.plan["z4_gallery"])
         self.assertEqual({m.TUNNEL}, set(gallery), "every other stretch of the gallery has its cables")
 
