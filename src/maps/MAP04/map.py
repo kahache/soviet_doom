@@ -10,9 +10,11 @@ armoured train, by the regulator in its locomotive's cab.
 
 Built at once as MAP03's v1 was (D60 "MVP first", the PM's brief): the whole
 floor plan walkable from start to exit, textured with the approved sets
-(Soviet base, metro, Tankograd; the Railway set is the art-director's draft
-and every place it should go is listed in the design document's "Pending
-textures"), populated on the bestiary's own numbers, secrets in.
+(Soviet base, metro, Tankograd, and since 2026-10-22 episode 2's Railway set,
+D107: ballast and track, the wagons, the tank, the armoured train, the
+signals, the roundhouse brick, the warehouse's gates; what is still missing
+is listed in the design document's "Pending textures"), populated on the
+bestiary's own numbers, secrets in.
 
 The route, in one line: service tunnel -> the yard (the YELLOW door seen in
 its south wall, the signal box glowing yellow over the wagons) -> up the
@@ -57,7 +59,7 @@ MAP_NAME = "MAP04"
 # Soviet base.
 CONCRETE = "SDCONC1"    # 64x128 prefab panels: pit walls, the goods ramp, S1's cable box
 STAR = "SDSTAR1"        # 128x128 star plaque: either side of the YELLOW door
-STEEL = "SDSTEL1"       # green riveted plate: the armoured train, the turntable, military wagons
+STEEL = "SDSTEL1"       # green riveted plate: the loco and its cab, the turntable, the lever frame, door tracks
 TILE_DADO = "SDTILE2"   # 64x128 tile over a green dado: the signal box, the offices
 CRATE = "SDCRAT1"       # 64x64 crate face: flatcar loads, the warehouse's stacks, S3's row
 DOOR = "SDDOOR1"        # 128x128 door leaf: D1, D2, the train's hatch
@@ -75,7 +77,6 @@ RAILS = "SDRAIL1"       # track bed, rails along the image's y: turned 90 to run
 # Tankograd (D66).
 BRICK = "SDBRCK1"       # 64x128 soot brick: the yard, the warehouse, the roundhouse
 BRICK_DADO = "SDBRCK2"  # 64x128 whitewashed to 64: the passages, the red door's flanks
-RUST = "SDRUST1"        # 64x128 corrugated rust: boxcars and gondolas
 DOOR_YELLOW = "SDDOORY"  # 128x128 the yellow lock's leaf
 DOOR_RED = "SDDOORR"    # 128x128 the red lock's leaf
 ROAD_GATE = "SDGATE1"   # 128x128 shut sliding gate: the roundhouse's stalls
@@ -84,6 +85,17 @@ FLAG_REICH = "SDFLAG1"  # 64x128 the Fourth Reich's banner on brick
 FLAG_LEGION = "SDFLAG2"  # 64x128 the Liberty Legion's banner on brick
 FLOOR_PLATE = "SDFLR4"  # 64x64 chequer plate: wagon roofs, the train's floor, the hub
 GRATING = "SDGRAT1"     # 64x64 grating: the signal box's step
+# Episode 2 (D107, approved 2026-10-22): the Railway set, and one dam piece.
+TRACK = "SDTRAK1"       # flat: track on ballast, rails along the image's y: turned 90 to run along x
+BALLAST = "SDBLST1"     # flat: loose ballast, the yard's ground and the roundhouse's stalls
+WAGON_SIDE = "SDWAGN1"  # 128x128 covered goods wagon: boxcars, the rake, the gondolas
+TANK_SIDE = "SDTANK1"   # 128x128 tank wagon «НЕФТЬ»
+ARMOUR_STAR = "SDARMR1"  # 128x128 armour plate with the red star: one panel per face, never stacked
+ARMOUR = "SDARMR2"      # 64x128 the same plate, plain: the armoured train
+SIGNAL = "SDSIGL1"      # 64x128 colour-light signal: SINGLE USE (D107), one 64 span per signal
+ROUNDHOUSE_BRICK = "SDBRCK3"  # 64x128 roundhouse brick, a frieze on top
+GOODS_GATE = "SDGATE2"  # 128x128 the warehouse's padlocked sliding gate «СКЛАД»
+DECK = "SDGRAT2"        # flat (dam set): expanded metal over a void, the turntable bridge's deck
 
 # Switches (D25), one variant per switch; the exit keeps the hazard panel
 # every map's exit wears.
@@ -140,6 +152,19 @@ STALL_CEIL = 128        # a stall is one gate high
 LOCO_STALL_CEIL = 192
 CLERESTORY_SILL = ROUNDHOUSE_CEIL - TILE   # one SDWIND1 tile under the roof
 NICHE_DEPTH = 16
+GOODS_GATES = ((2112, 2240), (2880, 3008))   # the warehouse's two shut gates on the yard, x spans
+# The Railway set's alignment (D107). A wagon side is one 128 tile; a car
+# stands 96 high, so its top 32 rows are cut and the underframe sits on the
+# ground. Along x every car starts on a plank post and ends on the tile's
+# seam (a 320 car is half a tile and two tiles); the tank shows «НЕФТЬ» twice,
+# centred, never cut.
+WAGON_TILE = 128
+WAGON_OFFSET_Y = WAGON_TILE - WAGON
+WAGON_OFFSET_X = 64
+TANK_OFFSET_X = 96
+ARMOUR_WIDTH = 64       # SDARMR2's plate
+SIGNAL_WIDTH = 64       # SDSIGL1: one span per signal (D107)
+SIGNAL_PILLAR = TILE    # the signal's concrete pillar: one tile high, so the face is never stacked
 
 # --- The posters (CEO 2026-10-22: «que esos posters puedan aparecer en
 # cualquier nivel»; tests/test_posters.py) -----------------------------------
@@ -257,6 +282,11 @@ HUB_RECT = (992, 1152, 1056, 1216)
 ROAD = (1664, 1120, 1760, 1248)             # the roundhouse's road out to the yard
 SW_A_NICHE = (1680, 1248, 1744, 1264)       # SW-A, in the road's north wall beside the gate
 BALCONY = (2304, 2432, 2496, 2592)          # the train's rear balcony, open to the platform
+TRAIN_FLANK = (2432, 576, 2304)             # y, x1, x2: the train's side along the coping
+# The red star (SDARMR1): one panel per face, never stacked or side by side,
+# each a wall exactly one tile high: both long walls of the gun wagon, and
+# the back of the rear balcony, the star the platform sees. (y, x1, x2)
+STAR_PANELS = ((2464, 1472, 1600), (2592, 1472, 1600), (2592, 2336, 2464))
 
 # The yard's wagons (x1, y1, x2, y2, height, side texture). Row 1 is south of
 # the main track, row 2 north of it, row 3 the coupled rake whose roofs are
@@ -265,9 +295,9 @@ ROW_1 = (960, 1088)
 ROW_2 = (1280, 1408)
 ROW_3 = (1536, 1664)
 WAGONS = {
-    "prop_wagon_1a": (2048, 960, 2368, 1088, WAGON, RUST),
+    "prop_wagon_1a": (2048, 960, 2368, 1088, WAGON, WAGON_SIDE),     # a boxcar
     "prop_flatcar_1": (2880, 960, 3072, 1088, FLATCAR, CRATE),
-    "prop_wagon_2a": (1984, 1280, 2304, 1408, WAGON, STEEL),
+    "prop_wagon_2a": (1984, 1280, 2304, 1408, WAGON, TANK_SIDE),     # a tank wagon «НЕФТЬ»
     "prop_flatcar_2": (2432, 1280, 2752, 1408, FLATCAR, CRATE),
 }
 ROOFS = ((2304, 2624), (2624, 2944), (2944, 3264), (3264, 3584))   # four boxcars, coupled
@@ -306,8 +336,16 @@ S3_NICHE = (2688, 112, 2752, 128)
 S3_PANEL = (2688, 96, 2752, 112)
 S3_STORE = (2624, 0, 2816, 96)
 CRATE_WIDTH = 64
-# Two signal masts in the yard: steel posts, solid, cover in the aisles.
-SIGNAL_MASTS = ((3264, 1456, 3296, 1488), (3456, 1088, 3488, 1120))
+# Two colour-light signals in the yard: each a concrete pillar one tile high
+# (cover in the aisles) wearing SDSIGL1 on ONE 64-long face (D107: single
+# use, never tiled, never stacked); the other faces are the pillar's
+# concrete. (name, pillar, face line as (x, y1, y2)). The main track's
+# signal faces east, the tunnel's mouth: the first thing seen out of it;
+# the north aisle's faces west, towards the box.
+SIGNALS = (
+    ("prop_signal_main", (3456, 1088, 3488, 1152), (3488, 1088, 1152)),
+    ("prop_signal_north", (3264, 1440, 3296, 1504), (3264, 1440, 1504)),
+)
 # The roundhouse's clerestory, in its north wall.
 CLERESTORY = (512, 704, 896, 1088, 1280, 1472)
 # The platform's canopy columns: carved solid, marble-clad.
@@ -572,6 +610,45 @@ def secret_panel_style(tag: int, door_sector: int, texture: str) -> LineStyle:
     return replace(panel, flags=panel.flags + ("secret",))
 
 
+def align_run(tm: TextMap, vertical: bool, coord: int, lo: int, hi: int, *, width: int,
+              base: int = 0, offset_y: int | None = None) -> None:
+    """Make one texture run continuously along the segment [lo, hi] of a grid
+    line, however the painter split it into linedefs: on every sidedef there,
+    the x offset is the run's `base` plus the distance from the segment's
+    end on the viewer's left (each side sees its own left), modulo `width`.
+    `offset_y`, when given, is set on the same sidedefs."""
+    for ld in tm.linedefs:
+        a, b = tm.vertices[ld.v1], tm.vertices[ld.v2]
+        if vertical:
+            if not a.x == b.x == coord:
+                continue
+            p, q = a.y, b.y
+        else:
+            if not a.y == b.y == coord:
+                continue
+            p, q = a.x, b.x
+        if min(p, q) < lo or max(p, q) > hi:
+            continue
+        # The front side reads its texture from v1 to v2, the back from v2 to v1.
+        for side, start, end in ((ld.sidefront, p, q), (ld.sideback, q, p)):
+            if side is None:
+                continue
+            sd = tm.sidedefs[side]
+            sd.offsetx = int(base + (start - lo if end > start else hi - start)) % width
+            if offset_y is not None:
+                sd.offsety = offset_y
+
+
+def align_car(tm: TextMap, rect, *, base: int) -> None:
+    """A wagon's four faces: the long sides continuous from `base`, the ends
+    whole; every face lifted WAGON_OFFSET_Y so the underframe meets the ground."""
+    x1, y1, x2, y2 = rect
+    for y in (y1, y2):
+        align_run(tm, False, y, x1, x2, width=WAGON_TILE, base=base, offset_y=WAGON_OFFSET_Y)
+    for x in (x1, x2):
+        align_run(tm, True, x, y1, y2, width=WAGON_TILE, offset_y=WAGON_OFFSET_Y)
+
+
 def build_plan() -> tuple[TextMap, dict[str, int]]:
     """Build the map; return it with {zone name: sector index}."""
     tm = TextMap(comment=f"{MAP_NAME} v1 generated by src/maps/{MAP_NAME}/map.py - do not edit by hand")
@@ -606,9 +683,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         """A closed door sector; its own walls are the steel track."""
         return zone(name, floor, floor, [rect], tag, light=light, wall=wall)
 
-    def rails(room: str, name: str, rect) -> int:
-        """A 64-wide track along x: SDRAIL1 turned a quarter (MAP02's K8)."""
-        return like(room, name, [rect], flat=RAILS, extra={"rotationfloor": 90.0})
+    def rails(room: str, name: str, rect, flat: str = TRACK) -> int:
+        """A 64-wide track along x, one flat tile wide on the 64 grid (so one
+        track, never a rail of the next): turned a quarter (MAP02's K8)."""
+        return like(room, name, [rect], flat=flat, extra={"rotationfloor": 90.0})
 
     def recess(room: str, name: str, rect, *, ceil: int, back, texture: str) -> int:
         """A shallow recess one tile high in `room`'s wall, its back wall one
@@ -626,7 +704,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     zone("z1_tunnel", TUNNEL_FLOOR, TUNNEL_CEIL, [(4032, 1120, 4544, 1248)],
          light=LIGHT_TUNNEL, wall=TUBBING)
-    rails("z1_tunnel", "z1_tunnel_rails", (4032, 1152, 4544, 1216))
+    # The tunnel keeps the metro's track bed on concrete (Tankograd's line).
+    rails("z1_tunnel", "z1_tunnel_rails", (4032, 1152, 4544, 1216), flat=RAILS)
     for n, x in enumerate((4000, 3968, 3936), start=1):
         zone(f"z1_stair_{n}", TUNNEL_FLOOR + STEP * n, GROUND + TILE, [(x, 1120, x + 32, 1248)],
              light=LIGHT_TUNNEL, wall=CONCRETE)
@@ -650,38 +729,45 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # Z2: the yard, the hub. Night; its ceiling stands in for the sky.
     # ======================================================================
     zone("z2_yard", GROUND, YARD_CEIL, [(1792, 768, 3840, 1920)],
-         light=LIGHT_YARD, wall=BRICK)
+         light=LIGHT_YARD, flat=BALLAST, wall=BRICK)
     # The main track, from the tunnel's rails to the roundhouse's road gate,
-    # and a siding along the north wall.
+    # and a siding along the north wall: track on ballast, each strip one
+    # tile of the 64 grid.
     rails("z2_yard", "z2_rails_main", (1792, 1152, 3840, 1216))
     rails("z2_yard", "z2_rails_north", (1792, 1728, 3840, 1792))
     for name, (x1, y1, x2, y2, height, side) in WAGONS.items():
         like("z2_yard", name, [(x1, y1, x2, y2)], floor=GROUND + height, wall=side,
              flat=FLOOR_PLATE if height == WAGON else "SDCRTOP1")
-    # The gondolas: an open bed inside a rust shell; the side towards the main
-    # track is the red key's (it drops to the ground when the key is taken).
+    # The gondolas: an open bed inside a wagon's shell; the side towards the
+    # main track is the red key's (it drops to the ground when the key is taken).
     for name, (shell, bed, side) in GONDOLAS.items():
         like("z2_yard", f"{PROP_PREFIX}{name[3:]}_shell", [shell], floor=GROUND + WAGON,
-             wall=RUST, flat=FLOOR_PLATE)
-        like("z2_yard", name, [bed], floor=GONDOLA_FLOOR, light=LIGHT_GONDOLA, wall=RUST)
-        like("z2_yard", f"{name}_side", [side], floor=GROUND + WAGON, wall=RUST,
+             wall=WAGON_SIDE, flat=FLOOR_PLATE)
+        like("z2_yard", name, [bed], floor=GONDOLA_FLOOR, light=LIGHT_GONDOLA, wall=WAGON_SIDE,
+             flat=FLOOR_PLATE)
+        like("z2_yard", f"{name}_side", [side], floor=GROUND + WAGON, wall=WAGON_SIDE,
              flat=FLOOR_PLATE)
         tm.sectors[plan[f"{name}_side"]].identifier = TAG_GONDOLAS
     # The coupled rake: four boxcars' roofs, end to end, and the goods ramp
     # up to its east end.
     for n, (x1, x2) in enumerate(ROOFS, start=1):
         like("z2_yard", f"z2_roof_{n}", [(x1, ROW_3[0], x2, ROW_3[1])], floor=GROUND + WAGON,
-             wall=RUST, flat=FLOOR_PLATE, light=LIGHT_ROOFS)
+             wall=WAGON_SIDE, flat=FLOOR_PLATE, light=LIGHT_ROOFS)
     for n, x in enumerate(RAMP_XS, start=1):
         like("z2_yard", f"z2_ramp_{n}", [(x, ROW_3[0], x + 32, ROW_3[1])],
-             floor=GROUND + WAGON - STEP * n, wall=CONCRETE)
-    # The signal masts: carved solid, armour-plate posts.
-    for x1, y1, x2, y2 in SIGNAL_MASTS:
-        g.carve(x1, y1, x2, y2)
-        for y in (y1, y2):
-            g.style_h(y, x1, x2, LineStyle(texture=STEEL))
-        for x in (x1, x2):
-            g.style_v(x, y1, y2, LineStyle(texture=STEEL))
+             floor=GROUND + WAGON - STEP * n, wall=CONCRETE, flat=FLOOR_CONCRETE)
+    # The signals: a concrete pillar one tile high each, the signal on one
+    # face only (D107).
+    for name, pillar, (fx, fy1, fy2) in SIGNALS:
+        like("z2_yard", name, [pillar], floor=GROUND + SIGNAL_PILLAR, wall=CONCRETE,
+             flat=FLOOR_CONCRETE)
+        g.style_v(fx, fy1, fy2, LineStyle(texture=SIGNAL))
+    # The goods warehouse's own gates on the yard, shut and padlocked, either
+    # side of the yellow lock and well clear of it: each a whole tile at the
+    # back of a recess cut to its height.
+    for n, (x1, x2) in enumerate(GOODS_GATES, start=1):
+        recess("z2_yard", f"z2_goods_gate_{n}", (x1, 768 - NICHE_DEPTH, x2, 768),
+               ceil=GROUND + TILE, back=("h", 768 - NICHE_DEPTH, x1, x2), texture=GOODS_GATE)
     # The Reich's banner either side of the tunnel's mouth.
     recess("z2_yard", "z2_flag_s", (3840, 960, 3840 + NICHE_DEPTH, 1024),
            ceil=GROUND + TILE, back=("v", 3840 + NICHE_DEPTH, 960, 1024), texture=FLAG_REICH)
@@ -746,7 +832,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # Z5: the roundhouse and its turntable
     # ======================================================================
     zone("z5_hall", GROUND, ROUNDHOUSE_CEIL, [(384, 384, 1664, 1664)],
-         light=LIGHT_ROUNDHOUSE, wall=BRICK)
+         light=LIGHT_ROUNDHOUSE, wall=ROUNDHOUSE_BRICK)
     like("z5_hall", "z5_porch", [(1600, 448, 1664, 576)], ceil=DOOR_HEIGHT)
     tx1, ty1, tx2, ty2 = TURNTABLE
     bx1, by1, bx2, by2 = TURNTABLE_BRIDGE
@@ -760,8 +846,12 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         y = ty2 - 32 * n
         like("z5_hall", f"z5_pit_n_{n}", [(960, y, 1088, y + 32)], floor=GROUND - STEP * n,
              wall=CONCRETE)
-    like("z5_hall", "z5_bridge", [TURNTABLE_BRIDGE], flat=RAILS, wall=STEEL,
-         extra={"rotationfloor": 90.0})
+    # The bridge: an expanded-metal deck over the pit, its one track down
+    # the middle (either side of the king post), in line with the yard's.
+    like("z5_hall", "z5_bridge", [TURNTABLE_BRIDGE], flat=DECK, wall=STEEL, extra={})
+    hx1, hy1, hx2, hy2 = HUB_RECT
+    rails("z5_bridge", "z5_bridge_track_w", (bx1, hy1, hx1, hy2))
+    rails("z5_bridge", "z5_bridge_track_e", (hx2, hy1, bx2, hy2))
     zone("z5_hub", HUB, ROUNDHOUSE_CEIL, [HUB_RECT], light=LIGHT_BEACON, flat=FLOOR_PLATE,
          wall=STEEL, extra=RED_LIGHT)
     rails("z5_hall", "z5_rails_road", (bx2, 1152, 1664, 1216))
@@ -769,23 +859,24 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # The road out to the yard and its gate (SW-A): steel from the
     # roundhouse, the yard's own brick from the yard (wall until it opens).
     zone("z5_road", GROUND, DOOR_HEIGHT, [ROAD],
-         light=LIGHT_ROUNDHOUSE, wall=BRICK)
+         light=LIGHT_ROUNDHOUSE, wall=ROUNDHOUSE_BRICK)
     shutter = door("shutter", GROUND, TAG_SHUTTER, (1760, 1120, 1792, 1248), light=LIGHT_YARD)
     zone("z5_swa_niche", GROUND, GROUND + SWITCH_HEIGHT, [SW_A_NICHE], light=LIGHT_ROUNDHOUSE,
-         wall=BRICK)
+         wall=ROUNDHOUSE_BRICK)
     # The stalls: a locomotive in the first, a shut gate at the back of the
-    # second, and the third dark, its gate S2's panel.
+    # second, and the third dark, its gate S2's panel. Ballast underfoot: a
+    # stall is 128 wide, and a track flat across it would show a second
+    # track's rails (the stall's track is pending, design document §7.2).
     for name, rect in STALLS.items():
         ceil = LOCO_STALL_CEIL if name == "z5_stall_1" else STALL_CEIL
         light = LIGHT_DARK_STALL if name == "z5_stall_3" else LIGHT_STALL
-        zone(name, GROUND, ceil, [rect], light=light, flat=RAILS, wall=BRICK,
-             extra={"rotationfloor": 90.0})
+        zone(name, GROUND, ceil, [rect], light=light, flat=BALLAST, wall=ROUNDHOUSE_BRICK)
     like("z5_stall_1", f"{PROP_PREFIX}loco", [(192, 464, 352, 560)], floor=GROUND + WAGON,
          wall=STEEL, flat=FLOOR_PLATE)
     g.style_v(192, 1120, 1248, LineStyle(texture=ROAD_GATE))
     s2_panel = zone("s2_panel", GROUND, GROUND, [S2_PANEL], TAG_S2_PANEL,
                     light=LIGHT_DARK_STALL, wall=ROAD_GATE)
-    zone("s2_store", GROUND, GROUND + TILE, [S2_STORE], light=LIGHT_SECRET, wall=BRICK,
+    zone("s2_store", GROUND, GROUND + TILE, [S2_STORE], light=LIGHT_SECRET, wall=ROUNDHOUSE_BRICK,
          special=SECTOR_SPECIAL_SECRET)
     for n, x in enumerate(CLERESTORY, start=1):
         recess("z5_hall", f"{PROP_PREFIX}clerestory_{n}", (x, 1664, x + 64, 1664 + NICHE_DEPTH),
@@ -812,16 +903,18 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     zone("z6_office", PLATFORM, PLATFORM + SWITCH_HEIGHT, [(2944, 1952, 3200, 2048)],
          light=LIGHT_STATIONMASTER, flat=FLOOR_TILE, ceiling=CEIL_PANEL, wall=TILE_DADO)
     zone("z6_balcony", TRAIN_FLOOR, TRAIN_CEIL, [BALCONY],
-         light=LIGHT_TRAIN, flat=FLOOR_PLATE, wall=STEEL)
+         light=LIGHT_TRAIN, flat=FLOOR_PLATE, wall=ARMOUR)
 
     # ======================================================================
-    # Z7: the armoured train, rear hatch to the locomotive's cab
+    # Z7: the armoured train, rear hatch to the locomotive's cab. Armour
+    # plate (one tile high inside: 48..176); the locomotive's cab keeps the
+    # green steel until its own piece exists (design document §7.2).
     # ======================================================================
-    train = dict(light=LIGHT_TRAIN, flat=FLOOR_PLATE, ceiling=CEIL_CONCRETE, wall=STEEL)
+    train = dict(light=LIGHT_TRAIN, flat=FLOOR_PLATE, ceiling=CEIL_CONCRETE, wall=ARMOUR)
     zone("z7_exit_niche", TRAIN_FLOOR, TRAIN_CEIL, [(624, 2496, 640, 2560)],
-         **{**train, "light": LIGHT_BEACON})
+         **{**train, "light": LIGHT_BEACON, "wall": STEEL})
     zone("z7_cab", TRAIN_FLOOR, TRAIN_CEIL, [(640, 2464, 832, 2592)],
-         **{**train, "light": LIGHT_CAB, "ceiling": CEIL_PANEL})
+         **{**train, "light": LIGHT_CAB, "ceiling": CEIL_PANEL, "wall": STEEL})
     zone("z7_engine", TRAIN_FLOOR, TRAIN_CEIL, [(832, 2464, 1216, 2592)], **train)
     zone("z7_couple_1", TRAIN_FLOOR, TRAIN_CEIL, [(1216, 2496, 1280, 2560)], **train)
     zone("z7_gun", TRAIN_FLOOR, TRAIN_CEIL, [(1280, 2464, 1792, 2592)], **train)
@@ -877,8 +970,13 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         g.style_v(x, 2464, 2592, remote_door_style(hatch, texture=DOOR))
     g.style_h(1952, 3040, 3104, switch_door_open_style(TAG_HATCH, texture=SW_B_FACE,
                                                        repeatable=False))
-    # The train's flank along the platform is armour plate, not station tile.
-    g.style_h(2432, 576, 2304, LineStyle(texture=STEEL))
+    # The train's flank along the platform is armour plate, not station tile:
+    # plain plate (224 high, so a star there would be stacked), 27 whole
+    # plates from the coping up; the stars are on the faces one tile high.
+    flank_y, flank_x1, flank_x2 = TRAIN_FLANK
+    g.style_h(flank_y, flank_x1, flank_x2, LineStyle(texture=ARMOUR))
+    for y, x1, x2 in STAR_PANELS:
+        g.style_h(y, x1, x2, LineStyle(texture=ARMOUR_STAR))
     # The exit: the regulator panel on the cab's front wall.
     g.style_v(624, 2496, 2560, exit_switch_style(texture=EXIT_FACE))
     # The secrets' panels, flagged secret (one-sided on the automap).
@@ -895,6 +993,22 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     g.style_h(cy, S3_NICHE[2], cx2, LineStyle(texture=CRATE))
 
     g.build()
+
+    # ======================================================================
+    # Alignment of the Railway set (after the painter has split the lines)
+    # ======================================================================
+    for x1, y1, x2, y2, _height, side in WAGONS.values():
+        if side in (WAGON_SIDE, TANK_SIDE):
+            align_car(tm, (x1, y1, x2, y2),
+                      base=WAGON_OFFSET_X if side == WAGON_SIDE else TANK_OFFSET_X)
+    for shell, _bed, _side in GONDOLAS.values():
+        align_car(tm, shell, base=WAGON_OFFSET_X)
+    for x1, x2 in ROOFS:
+        align_car(tm, (x1, ROW_3[0], x2, ROW_3[1]), base=WAGON_OFFSET_X)
+    # The balcony's back: the star panel starts on a plate seam.
+    _y, star_x1, _x2 = STAR_PANELS[-1]
+    align_run(tm, False, BALCONY[3], BALCONY[0], BALCONY[2], width=ARMOUR_WIDTH,
+              base=BALCONY[0] - star_x1)
 
     tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START,
                        angle=PLAYER_ANGLE))
@@ -924,8 +1038,9 @@ def lumps() -> list[tuple[str, bytes]]:
 
 # Every lump name this map may put in a sidedef or a sector.
 WALL_TEXTURES = ((CONCRETE, STAR, STEEL, TILE_DADO, CRATE, TUBBING, TUNNEL_WALL, STATION,
-                  BRICK, BRICK_DADO, RUST, ROAD_GATE, WINDOW, FLAG_REICH, FLAG_LEGION,
-                  LENIN, STALIN, MURAL)
+                  BRICK, BRICK_DADO, ROAD_GATE, WINDOW, FLAG_REICH, FLAG_LEGION,
+                  LENIN, STALIN, MURAL,
+                  WAGON_SIDE, TANK_SIDE, ARMOUR_STAR, ARMOUR, SIGNAL, ROUNDHOUSE_BRICK, GOODS_GATE)
                  + DOOR_LEAVES + SWITCH_FACES + ((MARX_ENGELS,) if MARX_ENGELS else ()))
 FLAT_TEXTURES = (FLOOR_CONCRETE, FLOOR_TILE, CEIL_PANEL, CEIL_CONCRETE, FLOOR_STATION,
-                 FLOOR_COPING, RAILS, FLOOR_PLATE, GRATING, "SDCRTOP1")
+                 FLOOR_COPING, RAILS, FLOOR_PLATE, GRATING, "SDCRTOP1", TRACK, BALLAST, DECK)
