@@ -233,6 +233,36 @@ stage there is a way back to the start, with and without the boss's death
 | Park | `SDCONC1` | `SDFLR2` | sky |
 | Courtyard | `SDBRCK1`, flags; Tsar Bell and Cannon `SDBRAS1`; dais `SDMARB1` | `SDMFLR1` / `SDMFLR2` | sky |
 | Doors, switch | `SDDOOR1` (blue, between `SDMOSA1`), `SDDOORY`, `SDDOORR`, `SDGATE1` (exit gate); exit `SDSW1D` | | |
+| Posters | `SDPOSTR1` Lenin, `SDPOSTR3` Stalin (section 7.1) | | |
+
+### 7.1 The posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
+
+Four pictures and two slots, each a whole 128×256 poster: one one-sided
+line 128 long in a sector exactly 256 high, pegged to the floor, offset 0
+(`POSTERS` in `map.py`; `tests/test_posters.py`). Only texture lines and
+four shallow niches; no route, key, door or sight line moves.
+
+| Name | Poster | Where | Why |
+|---|---|---|---|
+| `gum_north_lenin` | Lenin | GUM north hall, south wall, x 3808-3936 at y 3328 (the hall is 256 high: no niche) | the first thing ahead coming in from Nikolskaya, beside the way on under the glass roof: the shop of the nation still has its portrait |
+| `gum_north_slot` | Stalin (slot) | GUM north hall, east wall, x 4352, y 3392-3520 | — |
+| `square_facade_lenin` | Lenin | the GUM's facade on the square, north of the blue door: niche `prop_z6_portrait_lenin` (x 3456-3472, y 2496-2624), floor 64, ceiling 320 | the parade portraits: hung high on the facade, either side of the doors, as on 7 November; the floodlights (144) are on them |
+| `square_facade_stalin` | Stalin | the same, south of the blue door: `prop_z6_portrait_stalin` (y 2112-2240) | the pair, symmetric about the blue door; seen from the stands and on every crossing |
+| `courtyard_stalin` | Stalin | the Kremlin courtyard's north wall, recess `z9_portrait_stalin` (x 1024-1152, y 2048-2064), 256 high | **taken**: the occupiers' two banners (D12) hang beside him in the boss's room |
+| `courtyard_slot` | Lenin (slot) | the same wall, recess `z9_portrait_slot` (x 576-704), the banners between the two | — |
+
+The facade niches are props (floor 64, above any step: never walked, never
+reached; `prop_` in the reachability tests); their mouth shows the facade's
+`SDCONC1` below (0-64) and above (320-384). The courtyard's recesses are 16
+deep, at the courtyard's floor, like the banners' own.
+
+**The Marx-Engels slots.** `POSTER_SLOTS_MARX_ENGELS` names the two slots;
+until `SDPOSTR4` exists they wear the stand-in in the table. The swap is one
+line in `map.py`: `MARX_ENGELS = "SDPOSTR4"` (it also adds the lump to
+`WALL_TEXTURES`). The slots assume `SDPOSTR4` is 128×256 like Lenin and
+Stalin; another size moves the slots' heights, nothing else.
+
+No row of section 8 is a poster or a propaganda piece, so none is replaced.
 
 ## 8. Pending textures (for the art-director's draft "Moscow" set)
 
@@ -365,6 +395,11 @@ Engine checklist for the PM (one pass, skill 3, then the route on 2, 3, 4):
   the gallery stairs climb; the bridge crosses the line.
 - **E5** the window slits on the GUM's facade: seen through, never passed.
 - **E6** the parade's vehicles and statues: nobody gets stuck on a corner.
+- **E7** the posters (section 7.1): each whole, not cut or tiled; the two
+  facade portraits hang at 64-320 under the square's sky with the facade's
+  concrete above them (no sky slab, no HOM in the 16-deep niche) and read
+  across the square at light 144; the courtyard's Stalin and slot read
+  beside the banners.
 
 ## 13. MAPINFO and LANGUAGE (for the scaffolding agent / `mod-engineer`)
 

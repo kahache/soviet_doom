@@ -286,6 +286,37 @@ Hit points met per round (tested to rise from round 0 to round 2):
 | Stationmaster's office | `SDTILE2` | `SDFLR3` | `SDCEIL1` |
 | Armoured train | `SDSTEL1` | `SDFLR4` | `SDCEIL2`; cab `SDCEIL1` |
 | Doors, switches | `SDDOOR1` (D1, D2, the hatch), `SDDOORY`, `SDDOORR`; `SDSW1B` (SW-A), `SDSW1A` (SW-B), `SDSW1D` (exit) | | |
+| Posters (§7.3) | `SDPOSTR1` Lenin, `SDPOSTR3` Stalin, `SDPOSTR2` the cosmonautics mural | niches: their room's floor | niches: `SDCEIL1` |
+
+### 7.3 The posters (CEO 2026-10-22; `tests/test_posters.py`)
+
+«Reutiliza cuadros [...] y en los nuevos el de Lenin y Stalin, que esos
+posters puedan aparecer en cualquier nivel». Four pictures and two slots,
+all in `POSTERS` in `map.py`; each is whole (one line exactly 128 long, in
+a sector exactly the picture's height, pegged to the floor, offset 0).
+Where the room is taller than the picture, the picture hangs at the back of
+a 16-deep niche whose ceiling is cut to its height (the banners' method);
+each niche is lit one lamp step (16) over its room so the face reads at
+night. The niches are flush decoration: 16 deep, nobody stands in them,
+and no route, key, lock or secret moves.
+
+| Name | Picture | Where | Why |
+|---|---|---|---|
+| `yard_red_door_lenin` | Lenin | yard, north wall, niche x 2432-2560 (back at y 1936), west of the red door's portal | the station building's front on the yard: the rake's roofs look down on it with the red lock (§5) |
+| `yard_red_door_stalin` | Stalin | yard, north wall, niche x 2944-3072 (back at y 1936), east of the red door's portal | Lenin's twin on the other side of the lock |
+| `warehouse_legion_stalin` | Stalin | warehouse, east wall x 3328, y 320-448 (the room is 256: no niche) | **taken**: the Legion hung its banner (`SDFLAG2`, y 192-256) beside the Stalin that was already there |
+| `platform_mural` | mural | platform, the building's wall, niche x 1024-1152 (back at y 2032), 128 high | the station's mural, facing the armoured train, west of the two factions' banners |
+| `roundhouse_south` | Lenin (stand-in) | roundhouse, south wall, niche x 960-1088 (back at y 368), on the turntable stairs' axis | **Marx-Engels slot**: the depot's own poster |
+| `warehouse_west` | Lenin (stand-in) | warehouse, west wall x 1920, y 320-448, beside the passage to the roundhouse | **Marx-Engels slot** |
+
+**The Marx-Engels slots** (`POSTER_SLOTS_MARX_ENGELS`). `SDPOSTR4` is in
+preparation and not a lump yet; both slots are built at 128×256 (the size
+it is commissioned at, Lenin's and Stalin's) and wear Lenin until then. The
+swap is one line in `map.py`: `MARX_ENGELS: str | None = None` becomes
+`MARX_ENGELS = "SDPOSTR4"`, which also lists it in `WALL_TEXTURES`;
+`tests/test_posters.py` checks that it moves the slots and nothing else.
+
+§7.2 has no poster or propaganda row to replace: nothing pending changes.
 
 ### 7.2 Pending textures (the art-director's "Railway" set, in draft)
 
@@ -431,7 +462,7 @@ its slot. Its exit is judged against MAPINFO's `next` (MAP05).
 
 Everything in §4-§9: 104 sectors, 481 lines, 132 things (the start, two
 keys, 56 monsters on skill 4, 3 secrets). Built in one pass with `GridMap`,
-as MAP03 v1.
+as MAP03 v1. The posters (§7.3, 2026-10-22) add four niche sectors: 108.
 
 ### 13.2 Verification actually run
 
@@ -462,6 +493,7 @@ as MAP03 v1.
 | K6 | The coping's lip lies on the train's side (`rotationfloor` 180, as MAP02's K7) | a screenshot on the platform |
 | K7 | Monsters in the gondolas do not see out before the trap (their bed is 16, the sides 96) | watch from the ground; from the roofs they can be seen and shot, by design |
 | K8 | The yard's ceiling at 384 reads as night, not as a low roof (until §7.2 #1) | a screenshot |
+| K9 | The posters (§7.3) are whole and read: the two at the red door from the rake's roofs (light 144 in a 128 yard), the warehouse's Stalin beside the Legion banner, the platform's mural, the roundhouse's slot over the turntable; none is cut at the top or tiled, and the 16-deep niches do not snag a strafe along the walls | screenshots from the roofs, the warehouse's vestibule, the platform and the bridge |
 
 ### 13.4 Open points for the CEO
 

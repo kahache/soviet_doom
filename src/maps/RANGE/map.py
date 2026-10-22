@@ -96,7 +96,45 @@ LAMP_FLAT = "SDCEIL1"       # the lit panel over the exit
 PANEL_WIDTH = 64
 ALIGNED_TEXTURES = (WALL_TEXTURE, PASSAGE_TEXTURE)
 
-WALL_TEXTURES = (WALL_TEXTURE, PASSAGE_TEXTURE, DOOR_TEXTURE, TRACK_TEXTURE, EXIT_TEXTURE)
+# --- The posters (CEO, 2026-10-22: «que esos posters puedan aparecer en
+# cualquier nivel»; tests/test_posters.py, design document section 5.1) ------
+# The range is a room of the Zarya-7 base, so it hangs what the base hangs.
+# Each picture is one 128-long wall line in a room exactly its height, so it
+# is seen whole: the 128x256 portraits in the gallery (256 high), the 128x128
+# mural in the hall (128 high). world_align() leaves them at offset 0: it
+# shifts only ALIGNED_TEXTURES.
+LENIN = "SDPOSTR1"          # 128x256 Lenin poster
+STALIN = "SDPOSTR3"         # 128x256 Stalin poster (D55)
+MURAL = "SDPOSTR2"          # 128x128 cosmonautics mural
+# The Marx-Engels poster SDPOSTR4 is in preparation and is not a lump yet.
+# Its slots are built and wear a stand-in; approving it is this one line:
+MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
+# (name, texture, axis, coord, lo, hi): the segment one GridMap style paints.
+# The gallery's far wall, the one the bestiary row faces and the player sees
+# over it from the passage's mouth, carries Lenin and Stalin either side of
+# the axis (x 1024); its two end walls carry the Marx-Engels slots, facing
+# each other across the row. The mural hangs in the hall's west wall beside
+# the exit alcove: the player turns to it to leave.
+POSTERS = (
+    ("gallery_lenin", LENIN, "h", 1792, 832, 960),
+    ("gallery_stalin", STALIN, "h", 1792, 1088, 1216),
+    ("gallery_west_slot", LENIN, "v", 0, 1344, 1472),
+    ("gallery_east_slot", STALIN, "v", 2048, 1344, 1472),
+    ("hall_mural", MURAL, "v", 0, 448, 576),
+)
+POSTER_SLOTS_MARX_ENGELS = ("gallery_west_slot", "gallery_east_slot")
+
+
+def poster_faces() -> tuple[tuple[str, str, str, int, int, int], ...]:
+    """POSTERS with every Marx-Engels slot wearing SDPOSTR4 once it exists."""
+    return tuple(
+        (name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS else texture,
+         axis, coord, lo, hi)
+        for name, texture, axis, coord, lo, hi in POSTERS)
+
+
+WALL_TEXTURES = (WALL_TEXTURE, PASSAGE_TEXTURE, DOOR_TEXTURE, TRACK_TEXTURE, EXIT_TEXTURE,
+                 LENIN, STALIN, MURAL) + ((MARX_ENGELS,) if MARX_ENGELS else ())
 FLAT_TEXTURES = (FLOOR_FLAT, CEILING_FLAT, GALLERY_FLOOR, LAMP_FLAT)
 
 # --- Editor numbers -------------------------------------------------------
@@ -202,7 +240,11 @@ GALLERY_X1 = 0
 GALLERY_X2 = HALL_LENGTH
 GALLERY_Y1 = 1024          # 256 units of solid void above the hall's north wall
 GALLERY_Y2 = 1792          # as wide as the hall
-GALLERY_CEILING = 192      # the General is 100 tall; the Doughboy needs air to float
+# 256 since the posters (CEO, 2026-10-22): two SDCONC1 panels exactly, where
+# 192 cut the second at the ceiling, and the height a 128x256 portrait needs.
+# It was 192 for the General (100 tall) and the floating Doughboy: they keep
+# more air, not less.
+GALLERY_CEILING = 256
 GALLERY_LIGHT = 192        # BESTIARY 10 rule 3: the Panzermensch needs >= 128
 
 # Where the passage comes out, and where the PM lands with `warp 1024 1152`:
@@ -314,6 +356,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # The alcove's side walls are the panel's steel frame.
     for y in (EXIT_ALCOVE[1], EXIT_ALCOVE[3]):
         g.style_h(y, EXIT_ALCOVE[0], EXIT_ALCOVE[2], LineStyle(texture=TRACK_TEXTURE))
+    # The pictures: plain wall lines, no special, nothing moves.
+    for _name, texture, axis, coord, lo, hi in poster_faces():
+        (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=texture))
     g.build()
     world_align(tm)
 

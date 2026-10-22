@@ -67,6 +67,7 @@ DOOR = "SDDOOR1"      # bunker door leaf, 128x128, hazard stripe along its foot
 PLAQUE = "SDSTAR1"    # 128x128 emblem plaque
 LENIN = "SDPOSTR1"    # 128x256 Lenin poster
 MURAL = "SDPOSTR2"    # 128x128 cosmonautics mural
+STALIN = "SDPOSTR3"   # 128x256 Stalin poster (D55), Lenin's twin
 
 LANE = "SDFLR1"       # hangar concrete with the yellow lane line
 CONCRETE_FLOOR = "SDFLR2"
@@ -169,6 +170,49 @@ KOMNATA_RECT = (0, 960, 640, 1408)           # the room itself; the niche opens 
 # move AWAY from the mural's sight cone, so D38's tests are unaffected.
 KOMNATA_LAMP_Y = 1376
 KOMNATA_LAMPS_X = (160, 480)
+
+# --- The posters (CEO 2026-10-22: «que esos posters puedan aparecer en
+# cualquier nivel»; tests/test_posters.py, design section 6.1) -------------
+# A 128x256 portrait needs a one-sided wall exactly 128 long in a sector
+# exactly 256 high. The exit room is that already; the hangar is 320, so
+# its two portraits hang at the back of a 16-deep niche whose ceiling is
+# 256 over the hangar floor, and the hangar's concrete closes the 64 above
+# them like a frame. No niche is ever taller than its room: seen from
+# across the room, its ceiling would cut the face.
+POSTER_WIDTH = 128
+POSTER_HEIGHT = 256
+POSTER_NICHE_DEPTH = 16
+# Stalin over the transporter's east field, between the two rails that run
+# out to the east wall: the Legion's trooper holds the hangar under him.
+# Seen from the entry stair across the whole hangar, in its 176.
+STALIN_NICHE = (2688, 1008, 2688 + POSTER_NICHE_DEPTH, 1008 + POSTER_WIDTH)
+# The first Marx-Engels slot: the hangar's north wall between the pilaster
+# and the catwalk, facing the gantry; Lenin stands in for it.
+HANGAR_SLOT_NICHE = (1664, 1600, 1664 + POSTER_WIDTH, 1600 + POSTER_NICHE_DEPTH)
+# The second: the lift room's east wall beside the exit switch, 256 high
+# already (no niche). Lit like Lenin's halo, one panel over the room's 96,
+# so the founders read beside the way out; Stalin stands in for it.
+EXIT_SLOT_LIGHT = (3232, 480, 3264, 608)
+# The Marx-Engels poster SDPOSTR4 is in preparation and is not a lump yet.
+# Its slots are built and wear a stand-in; approving it is this one line:
+MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
+# (name, texture, axis, coord, lo, hi): one GridMap style per picture.
+POSTERS = (
+    ("exit_lenin", LENIN, "h", 864, 3072, 3200),
+    ("komnata_mural", MURAL, "h", 1440, 256, 384),
+    ("hangar_stalin", STALIN, "v", STALIN_NICHE[2], STALIN_NICHE[1], STALIN_NICHE[3]),
+    ("hangar_north_slot", LENIN, "h", HANGAR_SLOT_NICHE[3],
+     HANGAR_SLOT_NICHE[0], HANGAR_SLOT_NICHE[2]),
+    ("exit_east_slot", STALIN, "v", EXIT_SLOT_LIGHT[2], EXIT_SLOT_LIGHT[1], EXIT_SLOT_LIGHT[3]),
+)
+POSTER_SLOTS_MARX_ENGELS = ("hangar_north_slot", "exit_east_slot")
+
+
+def poster_faces() -> tuple[tuple[str, str, str, int, int, int], ...]:
+    """POSTERS with each Marx-Engels slot wearing SDPOSTR4 once it exists."""
+    return tuple((name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS
+                  else texture, axis, coord, lo, hi)
+                 for name, texture, axis, coord, lo, hi in POSTERS)
 
 # --- Sector tags ----------------------------------------------------------
 TAG_D1_DORM_WASHROOM = 1
@@ -901,6 +945,14 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     closet("closet_e1", (2688, 1216, 2704, 1344), (2704, 1200, 2816, 1360),
            TAG_HANGAR_WAVE_2, leaf=CONC)
 
+    # --- the hangar's two portraits (design section 6.1) ------------------
+    # 16-deep niches, 256 over the hangar floor: the poster whole, the
+    # hangar's concrete above it. Too shallow to stand in; the floor is the
+    # hangar's, so nothing on any route changes.
+    like("z6_hangar", "z6_stalin_niche", [STALIN_NICHE], ceil=HANGAR_FLOOR + POSTER_HEIGHT)
+    like("z6_hangar", "z6_slot_niche", [HANGAR_SLOT_NICHE],
+         ceil=HANGAR_FLOOR + POSTER_HEIGHT)
+
     # ======================================================================
     # Act 3b - fuel bay (SW-A) and the sump secret under it
     # ======================================================================
@@ -990,6 +1042,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     like("z10_exit", "lenin_halo", [(3040, 768, 3232, 864)], light=LIGHT_LENIN_HALO)
     like("z10_exit", "lenin_light", [(3072, 800, 3200, 864)], light=LIGHT_LENIN,
          ceiling=CEIL_LAMP)
+    # The Marx-Engels slot beside the exit switch gets the halo's light: a
+    # strip of lamp panel along the east wall, one step dimmer than Lenin.
+    like("z10_exit", "z10_slot_light", [EXIT_SLOT_LIGHT], light=LIGHT_LENIN_HALO,
+         ceiling=CEIL_LAMP)
     zone("z10_exit_niche", HANGAR_FLOOR, HANGAR_FLOOR + SWITCH_HEIGHT,
          [(3264, 608, 3296, 672)], ceiling=CEIL_LAMP, light=LIGHT_EXIT_SWITCH)
     zone("d5_recess", HANGAR_FLOOR, HANGAR_FLOOR + DOOR_LEAF_HEIGHT,
@@ -1053,10 +1109,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # (steel) is for their FRONT face, not for the wall they stand against.
     g.style_h(320, 1376, 2240, LineStyle(texture=CONC))
 
-    # --- the three pictures ----------------------------------------------
+    # --- the plaque and the posters (POSTERS) -----------------------------
     g.style_h(448, 352, 480, LineStyle(texture=PLAQUE))
-    g.style_h(1440, 256, 384, LineStyle(texture=MURAL))
-    g.style_h(864, 3072, 3200, LineStyle(texture=LENIN))
+    for _name, texture, axis, coord, lo, hi in poster_faces():
+        (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=texture))
 
     # --- the red route ----------------------------------------------------
     g.style_v(192, 512, 960, LineStyle(texture=STRIPE))      # Z3, both walls
@@ -1109,6 +1165,7 @@ def lumps() -> list[tuple[str, bytes]]:
 
 # Every lump name this map may put in a sidedef or a sector, for the tests
 # and for criterion G3-3. Nothing outside this set reaches the TEXTMAP.
-WALL_TEXTURES = (CONC, STRIPE, STEEL, DOOR, PLAQUE, LENIN, MURAL,
-                 CRATE_FACE, CRATE_LONG, LOCKER) + SWITCH_FACES
+WALL_TEXTURES = (CONC, STRIPE, STEEL, DOOR, PLAQUE, LENIN, MURAL, STALIN,
+                 CRATE_FACE, CRATE_LONG, LOCKER) + SWITCH_FACES + (
+                     (MARX_ENGELS,) if MARX_ENGELS else ())
 FLAT_TEXTURES = (LANE, CONCRETE_FLOOR, TILE, CEIL_LAMP, CEIL, CRATE_TOP)

@@ -246,11 +246,11 @@ Measured (hit points met, by beat; `test_the_intensity_rises`):
 
 | Zone | Walls | Floor | Ceiling |
 |---|---|---|---|
-| Station | `SDBRCK1` (the station's buildings), the two flags `SDFLAG1`/`SDFLAG2` in recesses either side of the blue gate's wall | `SDFLR2`, rails `SDRAIL1` | sky |
+| Station | `SDBRCK1` (the station's buildings), the two flags `SDFLAG1`/`SDFLAG2` in recesses either side of the blue gate's wall, Stalin `SDPOSTR3` in a recess beside them (7.3) | `SDFLR2`, rails `SDRAIL1` | sky |
 | The armoured train | `SDSTEL1` | `SDFLR4` | sky |
 | Gatehouse, west hall, control room | `SDTILE2` | `SDFLR3` | `SDCEIL1` |
 | Inspection, lower and cable galleries | `SDTUNL1` (board-cast concrete with cable runs) | `SDFLR2` | `SDCEIL2` |
-| Turbine hall | `SDCONC2` (three and a half stripe bands), clerestory `SDWIND1` | `SDFLR3` | `SDCEIL1` |
+| Turbine hall | `SDCONC2` (three and a half stripe bands), clerestory `SDWIND1`, Lenin `SDPOSTR1` in the west wall, two portraits on the catwalk's back wall (7.3) | `SDFLR3` | `SDCEIL1` |
 | Generators | `SDSTEL1` | `SDFLR4` | |
 | Catwalk and its stair | `SDSTEL1` faces | `SDGRAT1` | |
 | Spillway | `SDCONC1`; the sluice gates over the channel `SDGATE1` | `SDFLR2`; the water `SDMFLR1` | sky |
@@ -282,6 +282,34 @@ them; `test_pending_textures_are_named` keeps the list honest).
 
 Text-bearing pieces (`SDPANL1`, `SDHVLT1`) are rendered on one machine only
 (D27).
+
+### 7.3 Posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
+
+The approved pictures, not pending ones: no row of 7.2 was a poster or a
+piece of propaganda, so none is replaced. Five pictures, each whole: one
+one-sided line exactly the poster's width, in a sector exactly its height,
+pegged to the floor, offset 0 (`tests/test_posters.py`). They are listed in
+`POSTERS` in `map.py`.
+
+| Name | Lump | Where | Why |
+|---|---|---|---|
+| `z5_lenin` | `SDPOSTR1` Lenin | turbine hall, west wall, x 1648, y 576…704: a recess 16 deep, 256 high (`z5_lenin_niche`) in the 448-high hall | the end of the hall the player looks down on entering from the lower gallery, clear of the generators' shafts: Lenin over the turbines («Communism is Soviet power plus the electrification of the whole country») |
+| `z1_stalin` | `SDPOSTR3` Stalin | station, west wall, x 4272, y 1600…1728: a recess 16 deep, 256 high (`z1_stalin_niche`, its own concrete ceiling so the brick shows above it under the sky) | the first wall the player sees on arrival, between the shutter and the occupiers' two banners: the station's portrait, the invaders' flags hung beside it |
+| `z6_mural` | `SDPOSTR2` cosmonautics mural | control room, north wall, x 2560…2688, y 1328: a recess 16 deep on a 32 sill (`prop_z6_mural_niche`, floor 224, ceiling 352) | straight ahead through the yellow door; the room is 160 high, the mural 128 |
+| `z5_catwalk_w` | `SDPOSTR3` (Marx-Engels slot) | catwalk's back wall, y 896, x 2240…2368 (256 high: catwalk 192 to roof 448) | flanks the yellow door with its twin, 320 from its axis |
+| `z5_catwalk_e` | `SDPOSTR1` (Marx-Engels slot) | catwalk's back wall, y 896, x 2880…3008 | the mirror of the west one |
+
+**Marx-Engels slots.** `POSTER_SLOTS_MARX_ENGELS = ("z5_catwalk_w",
+"z5_catwalk_e")`. `SDPOSTR4` is in preparation and not a lump yet, so each
+slot wears its stand-in (Stalin west, Lenin east). Once it is approved and
+packed the swap is one line in `map.py`: `MARX_ENGELS = "SDPOSTR4"`
+(assumed 128×256, the twin of the other two portraits; nothing else moves,
+tested). Seen from the hall floor the catwalk's edge hides the lowest ~30-40
+units of the two catwalk portraits (their slogan band); from the catwalk they
+are whole.
+
+Geometry added: three 16-deep recesses (the three sectors above); no floor
+the route uses moves, nothing a key, a door or a secret depends on.
 
 ## 8. Secrets (built in v1)
 
@@ -420,6 +448,7 @@ P4 agents).
 | V7 | The Doughboys fly over the water and the crest and do not stick on the parapets | watch them |
 | V8 | `lightcolor` blue and yellow on the locks and the keys' places | as MAP02's L4, MAP03's K4 |
 | V9 | The three secrets count (3 of 3 on the intermission) | push each panel, walk in |
+| V10 | The posters (7.3) are whole and readable: Stalin's recess shows brick above it, not sky (its ceiling is concrete under a sky room); Lenin reads from the hall's east door at 160; the mural sits on its sill through the yellow door; the catwalk portraits from the floor and from the catwalk | arrive; walk the hall and the catwalk |
 
 ### 13.4 For the CEO's walk
 

@@ -46,7 +46,7 @@ player-facing. What F4 and F5 built is kept as it was.
 
 ```
 y 1792 +----------------------------------------------------------------+
-       |  BESTIARY GALLERY   ceiling 192, light 192                      |
+       |  BESTIARY GALLERY   ceiling 256, light 192   [ME] Lenin Stalin [ME] |
 y 1600 |   Ri   Le   St   Hd   Db   Pz   PzS  Gn    (row, facing north)  |
        |                                                                 |
 y 1152 |                         * arrival (1024, 1152)                  |
@@ -71,9 +71,10 @@ y    0 +-------------------------------------------------------------------+
 | `exit_alcove` | -32,352 – 0,416 | 0 / 128 | 224 | **new:** the way out, behind the start |
 | `gallery_door` | 640,768 – 768,832 | 0 / 0 (closed) | 160 | **new:** the gallery door, tag 1 |
 | `gallery_passage` | A 640,832 – 768,896; C 640,896 – 1088,960; B 960,960 – 1088,1024 | 0 / 128 | 160 | **new:** a dog-leg, one sector painted as three rectangles |
-| `gallery` | 0,1024 – 2048,1792 | 0 / 192 | 192 | F5's gallery, unchanged |
+| `gallery` | 0,1024 – 2048,1792 | 0 / 256 | 192 | F5's gallery; 192 high until the posters (2026-10-22, §5.1) |
 
-5 sectors, 26 lines, 39 things (F5: 2 sectors, 8 lines, 39 things).
+5 sectors, 36 lines, 39 things (F5: 2 sectors, 8 lines, 39 things; 26 lines before
+the posters split five wall runs, §5.1).
 
 ## 4. The two v1 changes
 
@@ -160,8 +161,9 @@ the player presses.
 | hall | `SDCONC1` | `SDFLR2` / `SDCEIL2` | a poured-concrete firing hall on hangar floor; 128 high, so one panel exactly, no seam |
 | exit alcove | switch `SDSW1D`, jambs `SDSTEL1` | `SDFLR2` / `SDCEIL1` | unchanged signs: the hazard panel under the lamp, as MAP01's exit |
 | gallery door | leaf `SDDOOR1` on both faces, track `SDSTEL1` | `SDFLR2` / `SDCEIL2` (never seen shut) | unchanged: the door as MAP01 taught it |
-| gallery passage | `SDSTEL1` (and the 64-high lintel the gallery sees over the mouth) | `SDFLR2` / `SDCEIL2` | green plate, MAP01's airlock (Z8): a way through, not a room; it continues the door's track |
-| gallery | `SDCONC1` | `SDFLR3` / `SDCEIL2` | the same concrete, 192 high (panels floor-pegged, the cut at the ceiling); the two-tone tiles of MAP01's dorm and komnata set the bestiary apart from the hall underfoot |
+| gallery passage | `SDSTEL1` (and the lintel the gallery sees over the mouth: 128 high, one plate, since the gallery is 256) | `SDFLR2` / `SDCEIL2` | green plate, MAP01's airlock (Z8): a way through, not a room; it continues the door's track |
+| gallery | `SDCONC1`; Lenin `SDPOSTR1` and Stalin `SDPOSTR3` on the far wall, two Marx-Engels slots on the end walls (§5.1) | `SDFLR3` / `SDCEIL2` | the same concrete, 256 high since the posters: two panels exactly, no cut (it was 192, the second panel cut at the ceiling); the two-tone tiles of MAP01's dorm and komnata set the bestiary apart from the hall underfoot |
+| hall, west wall | the mural `SDPOSTR2` north of the exit alcove (§5.1) | | |
 
 | Old (IWAD) | Faces / sectors | New |
 |---|---|---|
@@ -186,6 +188,38 @@ passage's plate too, which is how MAP01 uses it. No new texture, no IWAD
 reference; MOD-SPEC §5 still declares `STARTAN2`, `FLOOR4_8` and `CEIL3_5`
 as IWAD assets, which no map uses now (that table is `mod-engineer`'s).
 
+### 5.1 The posters (CEO, 2026-10-22)
+
+«reutiliza cuadros [...] que esos posters puedan aparecer en cualquier
+nivel». The range is a room of the Zarya-7 base and hangs what the base
+hangs: the approved pictures of `docs/art/TEXTURE-INDEX.md`, no new art.
+Each is one 128-long one-sided line in a room exactly its height, floor
+pegged, at offset 0 (`world_align()` shifts only concrete and plate), so it
+is seen whole: `POSTERS` in `map.py`, checked by `tests/test_posters.py`.
+
+| Name | Picture | Line | Room | Why there |
+|---|---|---|---|---|
+| `gallery_lenin` | Lenin `SDPOSTR1` 128×256 | y 1792, x 832–960 | gallery (256) | the far wall the row faces: from the passage's mouth the player sees the eight invaders lined up under Lenin and Stalin, either side of the axis (x 1024) |
+| `gallery_stalin` | Stalin `SDPOSTR3` 128×256 | y 1792, x 1088–1216 | gallery (256) | the pair's other half |
+| `gallery_west_slot` | Marx-Engels slot, Lenin until then | x 0, y 1344–1472 | gallery (256) | the west end wall, mid-depth |
+| `gallery_east_slot` | Marx-Engels slot, Stalin until then | x 2048, y 1344–1472 | gallery (256) | the east end wall, facing it across the row |
+| `hall_mural` | the cosmonautics mural `SDPOSTR2` 128×128 | x 0, y 448–576 | hall (128) | beside the exit alcove: the player turns round to leave and finds it, the base's mural in the base's range |
+
+**The one geometry change.** A 128×256 portrait needs a room 256 high, and
+the range had none (hall 128, gallery 192). The gallery's ceiling rises
+from 192 to 256 (`GALLERY_CEILING`). Nothing else moves: floors, the door,
+the passage, the row, the sight-line test (no line of sight from the
+gallery into the hall: walls, not ceilings, decide it) are unchanged; the
+General (100 tall) and the floating Doughboy get more air, not less; the
+concrete stacks two whole panels where 192 cut the second.
+
+**Marx-Engels.** `POSTER_SLOTS_MARX_ENGELS` names the two slots. The
+poster `SDPOSTR4` is in preparation (assumed 128×256, the twin of Lenin and
+Stalin); once it is approved and packed, the swap is one line in `map.py`,
+`MARX_ENGELS = "SDPOSTR4"`, which also adds it to `WALL_TEXTURES`. The
+gallery's far wall then reads Marx-Engels, Lenin, Stalin, Marx-Engels
+across the room's three walls.
+
 ## 6. Tests
 
 `tests/test_range_map.py`, read back from the generated TEXTMAP:
@@ -206,6 +240,7 @@ as IWAD assets, which no map uses now (that table is `mod-engineer`'s).
 | `test_no_name_resolves_in_freedoom` | **M2d**, the audit's own check: no wall name in `iwads/freedoom2.wad`'s `TEXTURE1`/`TEXTURE2`, no flat between its `F_START`/`F_END` (skips where the IWAD is absent, as in CI) |
 | `test_room_walls_sit_on_the_64_grid` | every one-sided concrete or plate wall has its seams on the 64 grid; every other face at offset 0 |
 | `test_the_signs_only_where_the_player_presses` | door leaf and hazard panel only on the door and the exit; the lamp panel only over the exit |
+| `tests/test_posters.py` `RangePosters` | the pictures of §5.1 whole (one line, the poster's width, a room its height, floor pegged, offset 0); the two Marx-Engels slots; the one-line swap moves the slots and nothing else |
 
 ## 7. Engine checklist for the PM (D26: this role does not start GZDoom)
 
@@ -222,7 +257,8 @@ as IWAD assets, which no map uses now (that table is `mod-engineer`'s).
 | P7 | the log | zero `Script error`, `Missing`, `Unknown` |
 | P8 | M2d: at the start, look round the hall | concrete panels on all four walls, hangar floor, plain ceiling panels; no Freedoom `STARTAN2` anywhere; no seam floating mid-wall (the hall is one panel high) |
 | P9 | M2d: the west wall either side of the exit alcove, and the north-west corner | half panels against the alcove's steel jambs, whole panels meeting in the corners |
-| P10 | M2d: the passage, then the gallery from its mouth | the passage is green steel plate with the door's track continuing into it; the gallery's concrete runs 1.5 panels high with the cut at the ceiling, the steel lintel over the mouth, the tiled floor; nothing missing (no HOM, no `Unknown texture` in the log) |
+| P10 | M2d: the passage, then the gallery from its mouth | the passage is green steel plate with the door's track continuing into it; the gallery's concrete runs 2 panels high (256 since the posters), the steel lintel over the mouth one plate high, the tiled floor; nothing missing (no HOM, no `Unknown texture` in the log) |
+| P11 | the posters (§5.1): from the passage's mouth look north, then west and east; at the start turn 180 | Lenin and Stalin whole behind the row, the slogan bands at the foot not cut, no vertical repeat; the two slots whole on the end walls; the mural whole beside the exit alcove, concrete half panel between it and the alcove's jamb; no HOM |
 
 ## 8. For the CEO: a player-facing name
 
