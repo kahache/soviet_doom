@@ -1,0 +1,67 @@
+=== route transsib-critical / MAP04 / skill 2 ===
+helper         : route-4
+god mode       : on
+monsters       : engine 29, map data 29
+bestiary (start): SD_ReichRifleman 12/12, SD_LegionTrooper 6/6, SD_Stormtrooper 3/3, SD_ReichHound 3/3, SD_Doughboy 2/2, SD_Panzermensch 1/1, SD_Clip 4/4, SD_Izh 1/1, SD_LegionGunner 2/2
+steps:
+  [ok ] A0   expect Z1           got Z1   z1_tunnel_rails @ (4480, 1184, -64) hp 100
+  [ok ] YD0  expect Z2           got Z2   z2_yellow_portal @ (2560, 800, 0) hp 100
+  [ok ] RD0  expect Z2           got Z2   z2_red_portal @ (2752, 1888, 0) hp 100
+  [ok ] YKEY expect Z3           got Z3   z3_frame @ (2096, 1600, 144) hp 100
+  [ok ] YD1  expect Z4           got Z4   z4_hall @ (2560, 614, 0) hp 100
+  [ok ] RDY  expect Z2           got Z2   z2_red_portal @ (2752, 1888, 0) hp 100
+  [ok ] RKEY expect Z5           got Z5   z5_bridge_track_e @ (1161, 1184, 0) hp 100
+  [ok ] SWA  expect Z5           got Z5   z5_road @ (1712, 1232, 0) hp 100
+  [ok ] RD1  expect Z6           got Z6   z6_platform @ (2752, 2065, 32) hp 100
+  [ok ] SWB  expect Z6           got Z6   z6_office @ (3072, 1984, 32) hp 100
+  [ok ] E0   expect Z7           got Z7   z7_cab @ (640, 2528, 48) hp 102
+  [ok ] E1   expect -            got -  -- no position reported
+zones reached  : Z1 -> Z2 -> Z3 -> Z4 -> Z5 -> Z6 -> Z7
+doors:
+  [ok ] tag 4 at YD0: want shut: shut (1 sector(s): YD:yellow_door)
+  [ok ] tag 5 at RD0: want shut: shut (1 sector(s): RD:red_door)
+  [ok ] tag 4 at YKEY: want shut: shut (1 sector(s): YD:yellow_door)
+  [ok ] tag 5 at YKEY: want shut: shut (1 sector(s): RD:red_door)
+  [ok ] tag 4 at YD1: want open: open (1 sector(s): YD:yellow_door)
+  [ok ] tag 5 at RDY: want shut: shut (1 sector(s): RD:red_door)
+  [ok ] tag 5 at RKEY: want shut: shut (1 sector(s): RD:red_door)
+  [ok ] tag 10 at RKEY: want shut: shut (1 sector(s): SH:shutter)
+  [ok ] tag 10 at SWA: want open: open (1 sector(s): SH:shutter)
+  [ok ] tag 11 at SWA: want shut: shut (1 sector(s): Z7:z7_hatch)
+  [ok ] tag 5 at RD1: want open: open (1 sector(s): RD:red_door)
+  [ok ] tag 11 at SWB: want open: open (1 sector(s): Z7:z7_hatch)
+  [ok ] press of special 13 arg0 4 at YD0: the player's press is in the log
+  [ok ] press of special 13 arg0 5 at RD0: the player's press is in the log
+  [ok ] press of special 13 arg0 4 at YD1: the player's press is in the log
+  [ok ] press of special 13 arg0 5 at RDY: the player's press is in the log
+  [ok ] press of special 11 arg0 10 at SWA: the player's press is in the log
+  [ok ] press of special 13 arg0 5 at RD1: the player's press is in the log
+  [ok ] press of special 11 arg0 11 at SWB: the player's press is in the log
+  [ok ] walk-through at YD1: ended in Z4 (z4_hall)
+  [ok ] walk-through at RD1: ended in Z6 (z6_platform)
+inventory (by slot):
+  [ok ] A0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [none]
+  [ok ] YD0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [none]
+  [ok ] RD0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [none]
+  [ok ] YKEY: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [SD_YellowPass]
+  [ok ] RDY: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [SD_YellowPass]
+  [ok ] RKEY: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [SD_RedPass, SD_YellowPass]
+secrets        : 0 of 3
+key messages   :
+  YD0: You need a yellow pass to activate this object
+  RD0: You need a red pass to activate this object
+  YKEY: Yellow pass.
+  RDY: You need a red pass to activate this object
+  RKEY: Red pass.
+exit           : REACHED (exit switch pressed: yes; level unloaded towards: MAP05; after it: NOT SEEN (the helper cannot ask once the level is gone; judge the END shot))
+blockers       : 6 killed by the route's sdclear (sdclear answered 5 time(s))
+  [ok ] YKEY: SD_LegionTrooper at (2149, 1674), 30 hp, dead
+  [ok ] YD1: SD_ReichRifleman at (2609, 857), 20 hp, dead
+  [ok ] YD1: SD_LegionTrooper at (2560, 492), 30 hp, dead
+  [ok ] RD1: SD_LegionGunner at (2701, 2238), 80 hp, dead
+  [ok ] E0: SD_Stormtrooper at (1516, 2528), 60 hp, dead
+  [ok ] E0: SD_ReichRifleman at (2016, 2528), 20 hp, dead
+kills          : 7 of 29, of which 6 by the route's sdclear
+screenshots    : 13
+log failures   : none
+VERDICT        : PASS (6 blocker(s) killed by the route, listed above)

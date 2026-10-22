@@ -1,0 +1,101 @@
+Log started: 2026-10-22 20:55:37
+GZDoom version g4.14.2
+W_Init: Init WADfiles.
+adding C:/Users/littl/AppData/Local/Programs/GZDoom/gzdoom.pk3, 692 lumps
+adding C:/Users/littl/AppData/Local/Programs/GZDoom/game_support.pk3, 3308 lumps
+adding C:/Users/littl/AppData/Local/Temp/claude/C--Users-littl-Desktop-Claude/bf93b294-5d32-4820-bb78-8d68b86106b5/scratchpad/wt_all2/iwads/freedoom2.wad, 3610 lumps
+adding C:/Users/littl/AppData/Local/Programs/GZDoom/game_widescreen_gfx.pk3, 214 lumps
+adding C:/Users/littl/AppData/Local/Temp/claude/C--Users-littl-Desktop-Claude/bf93b294-5d32-4820-bb78-8d68b86106b5/scratchpad/wt_all2/dist/sovietdoom.pk3, 1522 lumps
+adding C:/Users/littl/AppData/Local/Temp/claude/C--Users-littl-Desktop-Claude/bf93b294-5d32-4820-bb78-8d68b86106b5/scratchpad/wt_all2/logs/route/sdroute-helper.pk3, 2 lumps
+S_Init: Setting up sound.
+I_InitInput
+I_StartupMouse
+I_StartupKeyboard
+I_StartupXInput
+I_StartupRawPS2
+I_StartupDirectInputJoystick
+Initialization of Vulkan failed: Could not create vulkan instance: incompatible driver
+GL_VENDOR: NVIDIA Corporation
+GL_RENDERER: NVIDIA GeForce RTX 3050/PCIe/SSE2
+GL_VERSION: 4.6.0 NVIDIA 560.94
+GL_SHADING_LANGUAGE_VERSION: 4.60 NVIDIA
+GL_EXTENSIONS:
+GL Version parsed = 4.600000
+GL_MAX_TEXTURE_SIZE: 32768
+GLES choosing mode: GLES_MODE_OGL3
+Resolution: 464 x 281
+I_Init: Setting up machine state.
+CPU speed: 3598 MHz
+CPU Vendor ID: GenuineIntel
+  Name: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
+  Family 6, Model 60, Stepping 3
+  Features: SSE2 SSE3 SSSE3 SSE4.1 SSE4.2 AVX AVX2 F16C FMA3 BMI1 BMI2 HyperThreading
+V_Init: allocate screen.
+ST_Init: Init startup screen.
+Checking cmd-line parameters...
+S_InitData: Load sound definitions.
+G_ParseMapInfo: Load map definitions.
+Texman.Init: Init texture manager.
+ParseTeamInfo: Load team definitions.
+LoadActors: Load actor definitions.
+script parsing took 591.00 ms
+R_Init: Init Doom refresh subsystem.
+DecalLibrary: Load decals.
+Adding dehacked patch freedoom2.wad:DEHACKED
+Patch installed
+M_Init: Init menus.
+P_Init: Init Playloop state.
+ParseSBarInfo: Loading custom status bar definition.
+===========================================================================
+This is Freedoom, the free content first person shooter.
+
+Freedoom is freely redistributable under the terms of the modified BSD
+license. Check out the Freedoom website for more information:
+
+    https://freedoom.github.io/
+============================================================================
+D_CheckNetGame: Checking network game status.
+player 1 of 1 (1 nodes)
+
+----------------------------------------
+
+RANGE - Training Ground
+
+SOVIETDOOM loaded: map RANGE (Training Ground)
+SDTEST helper route-4 map=RANGE
+God mode on.
+SDSTEP 0 A0
+SDTEST level map=RANGE monsters=0/14 secrets=0/0 items=0/0 time=143
+SDTEST weapon class=SD_Tokarev slot=2
+SDTEST inv weapons=1 ready=SD_Tokarev slot=2 ammo=50 keys=0
+Captured Screenshot_Doom_20261022_205544.png
+SDTEST pos step=0 x=160 y=384 z=0 sector=0 angle=0 health=100
+SDSTEP 1 R1
+SDTEST clear step=1 killed=0
+An ice axe.
+SDTEST weapon class=SD_IceAxe slot=1
+SDTEST weapon class=SD_Tokarev slot=2
+SDTEST inv weapons=2 ready=SD_IceAxe slot=1 ammo=-1 keys=0
+Captured Screenshot_Doom_20261022_205545.png
+SDTEST pos step=1 x=288 y=751 z=0 sector=0 angle=90 health=100
+SDSTEP 2 P4a
+SDTEST tag 1 sector=2 floor=0 ceil=0
+Captured Screenshot_Doom_20261022_205546.png
+SDTEST pos step=2 x=672 y=864 z=0 sector=3 angle=270 health=100
+SDSTEP 3 P4b
+SDTEST line index=25 special=12 arg0=1 front=3 back=2 type=2 player=1
+SDTEST tag 1 sector=2 floor=0 ceil=124
+SDTEST clear step=3 killed=0
+Captured Screenshot_Doom_20261022_205549.png
+SDTEST pos step=3 x=672 y=630 z=0 sector=0 angle=270 health=100
+SDSTEP 4 E0
+Captured Screenshot_Doom_20261022_205550.png
+SDTEST clear step=4 killed=0
+Captured Screenshot_Doom_20261022_205551.png
+SDTEST pos step=4 x=-15 y=384 z=0 sector=1 angle=180 health=100
+SDSTEP 5 E1
+SDTEST line index=0 special=243 arg0=0 front=1 back=-1 type=2 player=1
+SDTEST unloaded map=RANGE next=enDSeQ1ebc kills=3/14 secrets=0/0 items=0/0 time=419
+Captured Screenshot_Doom_20261022_205601.png
+SDSTEP 6 END
+Captured Screenshot_Doom_20261022_205603.png
