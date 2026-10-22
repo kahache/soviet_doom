@@ -9,8 +9,13 @@ normalisation, the helmet scale, palette-only hard-alpha output with a
 neutral outline, the placement (feet on the floor line, one canvas per
 frame), the lump names against the shipped set and the states, an
 end-to-end build of a tiny spec, the overlay and the review sheet, and that
-nothing is ever written under assets/, src/ or dist/. GeneratedSetTests
-reads the real build in work/ (skips without it; art tier).
+nothing is ever written under assets/, src/ or dist/. D105 (the Legion
+trooper and the hybrid stormtrooper): the armband side marker that keeps a
+body part on its side, the derived sole under boots cut by the sheet's
+edge, the `box` and `none` armband modes, the quality gate, a per-enemy
+in-game height, and the two new specs against the shipped sets and their
+classes. GeneratedSetTests reads the real builds in work/ (skips without
+them; art tier).
 """
 from __future__ import annotations
 
@@ -308,6 +313,187 @@ class PixelTests(unittest.TestCase):
         self.assertTrue((ge.add_blood(idx, 0, pal, 3) == idx).all())
 
 
+def banded(cross: bool = True, h: int = 80) -> tuple[np.ndarray, np.ndarray, tuple[int, int, int, int]]:
+    """A figure whose armband is a red band with a WHITE cross on it (the
+    hybrid's), returned with the cross' box."""
+    rgb, m = person(h, band=False)
+    cx = h // 2
+    by, bx = h // 4, cx + h // 7 - 10
+    rgb[by:by + 12, bx:bx + 10] = RED
+    m[by:by + 12, bx:bx + 10] = True
+    box = (by + 3, bx + 2, by + 9, bx + 8)
+    if cross:
+        rgb[by + 3:by + 9, bx + 4:bx + 6] = WHITE
+        rgb[by + 5:by + 7, bx + 2:bx + 8] = WHITE
+    return rgb, m, box
+
+
+@unittest.skipIf(ge is None, "art venv (numpy, Pillow) missing")
+class D105ArmbandTests(unittest.TestCase):
+    def test_box_mode_turns_a_white_cross_into_a_plain_field(self):
+        rgb, m, (y0, x0, y1, x1) = banded()
+        out, painted = ge.blank_armband(rgb, m, "box")
+        self.assertGreater(painted, 0)
+        self.assertTrue(ge.white_mask(out[y0:y1, x0:x1]).all())
+        self.assertTrue((out[:y0 - 1] == rgb[:y0 - 1]).all())         # nothing above the band moved
+
+    def test_blank_mode_leaves_a_cross_on_red(self):
+        rgb, m, _ = banded()
+        out, painted = ge.blank_armband(rgb, m, "blank")
+        self.assertEqual(painted, 0)
+        self.assertTrue((out == rgb).all())
+
+    def test_none_mode_leaves_everything(self):
+        rgb, m = person(symbol=True)
+        out, painted = ge.blank_armband(rgb, m, "none")
+        self.assertEqual(painted, 0)
+        self.assertTrue((out == rgb).all())
+
+    def test_box_mode_spares_a_highlight_that_only_touches_the_band(self):
+        rgb, m, _ = banded(cross=False)
+        cx = 40
+        by, bx = 20, cx + 80 // 7 - 10
+        grey = np.array([[(170, 170, 176) if (i + j) % 3 == 0 else (90, 92, 100) for i in range(8)] for j in range(8)],
+                        np.uint8)      # gun metal: pale highlights among mid greys
+        rgb[by + 12:by + 20, bx:bx + 8] = grey
+        m[by + 12:by + 20, bx:bx + 8] = True
+        out, painted = ge.blank_armband(rgb, m, "box")
+        self.assertEqual(painted, 0)
+        self.assertLess(ge.field_purity(rgb, m, (by + 12, bx, by + 20, bx + 8)), ge.BOX_PURITY)
+
+    def test_box_mode_refuses_a_field_too_big_for_an_armband(self):
+        rgb, m, _ = banded(cross=False)
+        h = ge.FIELD_BOX_MAX + 6
+        rgb[2:2 + h, 2:2 + h] = WHITE        # a glowing ball touching the red
+        m[2:2 + h, 2:2 + h] = True
+        rgb[2 + h:4 + h, 2:2 + h] = RED
+        m[2 + h:4 + h, 2:2 + h] = True
+        out, _ = ge.blank_armband(rgb, m, "box")
+        self.assertTrue((out[2:2 + h, 2:2 + h] == rgb[2:2 + h, 2:2 + h]).all())
+
+
+@unittest.skipIf(ge is None, "art venv (numpy, Pillow) missing")
+class D105SideAndSoleTests(unittest.TestCase):
+    def test_marker_side_reads_the_band(self):
+        rgb, m = person(rifle=False)
+        self.assertEqual(ge.marker_side(rgb, m), "right")
+        self.assertEqual(ge.marker_side(rgb[:, ::-1], m[:, ::-1]), "left")
+        rgb2, m2 = person(rifle=False, band=False)
+        self.assertIsNone(ge.marker_side(rgb2, m2))
+
+    def test_a_front_view_drawn_mirrored_is_put_back(self):
+        good = person(80, rifle=False)
+        flipped = (good[0][:, ::-1].copy(), good[1][:, ::-1].copy())
+        img = sheet([good, person(80), person(80), person(80), flipped], halo=False)
+        sh = ge.Sheet("x.png", 5, ("front", "left", "left", "left", "front"))
+        sc = ge.cut_sheet(img, sh, "blank", armband_side="right")
+        self.assertEqual([f.mirrored for f in sc.figs], [False, False, False, False, True])
+        self.assertEqual(sc.figs[4].marker, "left")                  # read before the fix
+        self.assertEqual(ge.marker_side(sc.figs[4].rgb, sc.figs[4].mask), "right")
+        sc2 = ge.cut_sheet(img, sh, "blank")                          # no rule: nothing mirrored
+        self.assertEqual([f.mirrored for f in sc2.figs], [False] * 5)
+
+    def test_back_view_expects_the_other_side(self):
+        rgb, m = person(80, rifle=False)
+        img = sheet([(rgb[:, ::-1].copy(), m[:, ::-1].copy())], halo=False)
+        sc = ge.cut_sheet(img, ge.Sheet("x.png", 1, ("back",)), "blank", armband_side="right")
+        self.assertFalse(sc.figs[0].mirrored)
+
+    def test_sole_under_feet_cut_by_the_edge(self):
+        img = sheet([person(80)], pad=0, halo=False)                   # feet on the last row
+        self.assertIn("bottom", ge.touched_edges(ge.key_background(img)))
+        sc = ge.cut_sheet(img, ge.Sheet("x.png", 1, (), sole=4))
+        f = sc.figs[0]
+        self.assertEqual(f.sole, 4)
+        self.assertEqual(f.mask.shape[0], 84)
+        self.assertTrue((f.mask[-4:] == f.mask[-5]).all())
+        self.assertTrue((f.rgb[-4:][f.mask[-4:]] == ge.SOLE_RGB).all())
+        roomy_img = np.concatenate([img, np.full((6, img.shape[1], 3), MAGENTA, np.uint8)])
+        roomy = ge.cut_sheet(roomy_img, ge.Sheet("x.png", 1, (), sole=4))
+        self.assertEqual(roomy.figs[0].sole, 0)                         # not cut: nothing added
+        self.assertEqual(roomy.figs[0].mask.shape[0], 80)
+
+    def test_quality_gate_names_cut_art_and_sole(self):
+        img = sheet([person(80), person(80)], pad=0, halo=False)
+        cuts = {"a": ge.cut_sheet(img, ge.Sheet("a.png", 2, ())),
+                "b": ge.cut_sheet(img, ge.Sheet("b.png", 2, (), sole=3))}
+        spec = ge.EnemySpec(name="g", sprite="SDGG", folder="g",
+                            sheets={"a": ge.Sheet("a.png", 2, ()), "b": ge.Sheet("b.png", 2, (), sole=3)},
+                            rotated={}, single={"A": ge.Src("a", 0)})
+        gate = ge.quality_gate(spec, cuts, ["SDGGA0"])
+        self.assertEqual(sum("a.png" in g and "cortado" in g for g in gate), 2)
+        self.assertEqual(sum("b.png" in g and "suela derivada (3 px)" in g for g in gate), 2)
+        self.assertIn("los lumps escritos no son el conjunto de la spec", ge.quality_gate(spec, cuts, ["SDGGB0"]))
+
+
+def _state_letters(zs: Path, sprite: str) -> set:
+    letters = set()
+    for m in re.finditer(rf"^\s*{sprite}\s+([A-Z]+)\s", zs.read_text(encoding="utf-8"), re.M):
+        letters |= set(m.group(1))
+    return letters
+
+
+@unittest.skipIf(ge is None, "art venv (numpy, Pillow) missing")
+class D105SpecTests(unittest.TestCase):
+    CASES = (("LEGION", "legion_trooper.zs", 70, "G"), ("STORM", "stormtrooper.zs", 77, "H"))
+
+    def test_names_are_the_shipped_sets(self):
+        for attr, _, count, last_rot in self.CASES:
+            spec = getattr(ge, attr)
+            names = ge.lump_names(spec)
+            self.assertEqual(len(names), count, attr)
+            for n in names:
+                self.assertRegex(n, rf"^{spec.sprite}[A-U][0-8]$")
+                self.assertEqual(n[5] == "0", n[4] > last_rot, n)
+            shipped = ge.current_names(spec)
+            if shipped:
+                self.assertEqual(names, shipped, attr)
+
+    def test_every_state_letter_is_drawn(self):
+        for attr, zs_name, _, _ in self.CASES:
+            spec = getattr(ge, attr)
+            zs = ROOT / "src" / "zscript" / "monsters" / zs_name
+            if not zs.is_file():
+                self.skipTest(f"{zs_name} not present")
+            drawn = set(spec.rotated) | set(spec.single)
+            self.assertEqual(_state_letters(zs, spec.sprite), drawn, attr)
+            self.assertFalse(set(spec.rotated) & set(spec.single), attr)
+
+    def test_sources_exist_on_their_sheets(self):
+        for attr, _, _, _ in self.CASES:
+            spec = getattr(ge, attr)
+            for letter, rot in spec.rotated.items():
+                self.assertIn(rot.sheet, spec.sheets, letter)
+                self.assertGreaterEqual(spec.sheets[rot.sheet].count, 5, letter)
+                for _, src in rot.override:
+                    self.assertLess(src.view, spec.sheets[src.sheet].count, letter)
+            for letter, src in spec.single.items():
+                self.assertLess(src.view, spec.sheets[src.sheet].count, letter)
+
+    def test_d105_rules_in_the_specs(self):
+        self.assertEqual(ge.LEGION.armband, "none")          # the US flag is not an armband
+        self.assertEqual(ge.STORM.armband, "box")            # the white cross goes to a plain field
+        self.assertEqual(ge.RIFLEMAN.armband, "blank")
+        self.assertEqual(ge.STORM.armband_side, "right")
+        self.assertTrue(all(s.sole for s in ge.STORM.sheets.values()))
+        self.assertEqual((ge.LEGION.target_height, ge.STORM.target_height, ge.RIFLEMAN.target_height),
+                         (ge.LEGION_HEIGHT, ge.STORM_HEIGHT, ge.TARGET_HEIGHT))
+        for spec in (ge.LEGION, ge.STORM):
+            self.assertTrue(spec.reask)
+            for f, prompt in spec.reask:
+                self.assertTrue(f.startswith("gem_") and prompt, f)
+        self.assertEqual(set(ge.ENEMIES), {"rifleman", "legion", "storm"})
+
+    def test_shipped_heights_are_the_targets(self):
+        for spec in (ge.RIFLEMAN, ge.LEGION, ge.STORM):
+            p = ROOT / "assets" / "sprites" / spec.folder / f"{spec.sprite}A1.png"
+            if not p.is_file():
+                self.skipTest("shipped sprites not present")
+            a = _png(p)[..., 3] > 0
+            ys = np.flatnonzero(a.any(axis=1))
+            self.assertEqual(ys[-1] - ys[0] + 1, spec.target_height, spec.name)
+
+
 @unittest.skipIf(ge is None, "art venv (numpy, Pillow) missing")
 class PlaceTests(unittest.TestCase):
     def test_one_canvas_feet_on_floor(self):
@@ -440,6 +626,17 @@ class BuildTests(unittest.TestCase):
         ys = np.flatnonzero(a.any(axis=1))
         self.assertLessEqual(abs((ys[-1] - ys[0] + 1) - ge.TARGET_HEIGHT), 1)
 
+    def test_per_enemy_target_height(self):
+        spec = ge.EnemySpec(**{**self.spec.__dict__, "target_height": 40})
+        out = self.tmp / "h40"
+        m = ge.build(spec, out, ref_dir=self.tmp / "ref")
+        a = _png(out / "SDTYA1.png")[..., 3] > 0
+        ys = np.flatnonzero(a.any(axis=1))
+        self.assertLessEqual(abs((ys[-1] - ys[0] + 1) - 40), 1)
+        self.assertEqual(m["target_height"], 40)
+        self.assertIn("gate", m)
+        self.assertIn("reask", m)
+
     def test_mirrored_rotations_and_facing(self):
         for r in ge.MIRRORED_ROTS:
             a = _png(self.out / f"SDTYA{r}.png")
@@ -498,18 +695,46 @@ class BuildTests(unittest.TestCase):
         self.assertNotIn("/*ITEMS*/", text)
         self.assertNotIn("gem_t_", text.split("const ITEMS")[1].split("SDTY")[0])
 
+    def test_review_sheet_carries_gate_and_reask(self):
+        spec = ge.EnemySpec(**{**self.spec.__dict__, "name": "out",
+                               "reask": (("gem_t_turn.png", "redraw with room under the boots"),)})
+        folder = self.tmp / "out"
+        metrics = (folder / "metrics.json").read_text(encoding="utf-8")
+        try:
+            import json
+            m = json.loads(metrics)
+            m["reask"] = [list(r) for r in spec.reask]
+            m["gate"] = ["gem_t_turn.png figura 1: botas cortadas"]
+            (folder / "metrics.json").write_text(json.dumps(m), encoding="utf-8")
+            html = ge.review_sheet([spec], out=self.tmp / "sheet2.html", out_root=self.tmp,
+                                   sprites_dir=self.tmp / "none")
+            text = html.read_text(encoding="utf-8")
+            self.assertIn("redraw with room under the boots", text)
+            self.assertIn("botas cortadas", text)
+            self.assertIn("Pedir otra vez a Gemini", text)
+        finally:
+            (folder / "metrics.json").write_text(metrics, encoding="utf-8")
+
 
 @unittest.skipIf(ge is None or os.environ.get("SD_SKIP_SLOW_ART") == "1", "art tier only")
 class GeneratedSetTests(unittest.TestCase):
-    """The real rifleman build in work/ (gitignored), if it exists."""
-    def test_rifleman_build(self):
-        folder = ge.OUT_ROOT / "rifleman"
-        if not folder.is_dir():
-            self.skipTest("work/art/enemies_gemini/rifleman/ not built")
-        names = sorted(p.stem for p in folder.glob("SDRR*.png"))
-        self.assertEqual(names, ge.lump_names(ge.RIFLEMAN))
-        for p in folder.glob("SDRR*.png"):
-            self.assertIsNotNone(ge.read_grab(p), p.name)
+    """The real builds in work/ (gitignored), if they exist."""
+    def test_builds(self):
+        built = 0
+        for spec in ge.ENEMIES.values():
+            folder = ge.OUT_ROOT / spec.name
+            if not folder.is_dir():
+                continue
+            built += 1
+            names = sorted(p.stem for p in folder.glob(f"{spec.sprite}*.png"))
+            self.assertEqual(names, ge.lump_names(spec), spec.name)
+            for p in folder.glob(f"{spec.sprite}*.png"):
+                self.assertIsNotNone(ge.read_grab(p), p.name)
+            a = _png(folder / f"{spec.sprite}B1.png")[..., 3] > 0
+            ys = np.flatnonzero(a.any(axis=1))
+            self.assertLessEqual(abs((ys[-1] - ys[0] + 1) - spec.target_height), 1, spec.name)
+        if not built:
+            self.skipTest("work/art/enemies_gemini/ not built")
 
 
 if __name__ == "__main__":
