@@ -1,5 +1,6 @@
-// SD_MusicVariant - episode 2's music: an A or a B piece per map, picked at
-// random, and the boss loop on MAP06 (D106, 2026-10-22).
+// SD_MusicVariant - episodes 2 and 3's music: an A or a B piece per map,
+// picked at random, and the boss loop on MAP06 (D106, 2026-10-22) and on
+// MAP09 (D113, 2026-10-22).
 //
 // Contract: docs/engine/MOD-SPEC.md 4.5 (what plays where) and 6.11 (this
 // handler). Registered in MAPINFO -> GameInfo -> AddEventHandlers. An
@@ -9,9 +10,10 @@
 // whether its boss music started survive a save and a load.
 //
 // WHY. The CEO approved two pieces per map of episode 2 (D106, "10/10 OK")
-// and the PM chose to play both: each new visit to MAP04, MAP05 or MAP06
-// draws A or B. MAPINFO names the A (`music`), so with this handler off - or
-// before it runs - the map plays A, as any other map plays its piece.
+// and of episode 3 (D113, "las doy por buenas") and the PM chose to play
+// both: each new visit to MAP04-MAP06 or MAP07-MAP09 draws A or B. MAPINFO
+// names the A (`music`), so with this handler off - or before it runs - the
+// map plays A, as any other map plays its piece.
 //
 // HOW.
 //   * WorldLoaded (a fresh map, not a load): draw the variant from the play
@@ -24,8 +26,8 @@
 //     own `music` only if that fails (FLevelLocals::SerializeSounds,
 //     src/p_saveg.cpp 572-593); this handler's fields come back with it.
 //     A load therefore keeps B, or the boss loop, from the start of the song.
-//   * The boss (MAP06 only, the only row with boss lumps): any monster with
-//     the BOSS flag on that map - today SD_General standing in, later the
+//   * The boss (MAP06 and MAP09, the rows with boss lumps): any monster with
+//     the BOSS flag on that map - today SD_General standing in, later each
 //     episode's own boss, with no change here - starts the boss loop of the
 //     drawn variant the first time it has a player as its target (it saw or
 //     heard him: A_Look
@@ -51,7 +53,7 @@ class SD_MusicVariant : EventHandler
 	const SD_VARIANT_B = 1;
 
 	// The table: SD_MUSIC_ROWS rows of SD_MUSIC_COLS cells (MusicCell).
-	const SD_MUSIC_ROWS = 3;
+	const SD_MUSIC_ROWS = 6;
 	const SD_MUSIC_COLS = 5;
 	const SD_COL_MAP    = 0;
 	const SD_COL_A      = 1;   // must equal the map's `music` in MAPINFO
@@ -79,7 +81,11 @@ class SD_MusicVariant : EventHandler
 			// map    A (MAPINFO)  B            boss with A  boss with B
 			"MAP04",  "D_SDM04A",  "D_SDM04B",  "",          "",
 			"MAP05",  "D_SDM05A",  "D_SDM05B",  "",          "",
-			"MAP06",  "D_SDM06A",  "D_SDM06B",  "D_SDBS6A",  "D_SDBS6B"
+			"MAP06",  "D_SDM06A",  "D_SDM06B",  "D_SDBS6A",  "D_SDBS6B",
+			// D113: episode 3; MAP09's loops are the final boss's own pieces.
+			"MAP07",  "D_SDM07A",  "D_SDM07B",  "",          "",
+			"MAP08",  "D_SDM08A",  "D_SDM08B",  "",          "",
+			"MAP09",  "D_SDM09A",  "D_SDM09B",  "D_SDBS9A",  "D_SDBS9B"
 		};
 		return SD_MUSIC_TABLE[row * SD_MUSIC_COLS + col];
 	}

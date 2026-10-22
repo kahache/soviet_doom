@@ -18,6 +18,12 @@ sound-designer; this suite pins only the wiring:
     boss loop, tests/test_music_variant.py), and the stats screens after
     MAP04 and MAP05 play D_SDE2IA (`intermusic`), while every other map's
     falls back to GameInfo's D_SDTITL;
+  * D112 (P4): episode 3, walked from MAP07 to its end, plays music too;
+    D113 gave it its own pieces (replacing D112's provisional borrowing of
+    episode 2's B pieces): MAP07 D_SDM07A, MAP08 D_SDM08A, MAP09 D_SDM09A,
+    and the stats screens after MAP07 and MAP08 play D_SDE3IA; the B
+    pieces, MAP09's final boss loops and both intermission B pieces ship but
+    are never MAPINFO values (SD_MusicVariant swaps the B and boss pieces in);
   * every lump MAPINFO names has a licence row in docs/art/LICENSES.md (the
     register check_pk3 reads) and a row in MUSIC-RIGHTS.md 4.5 (the one
     tools/release.py reads), and SOUNDTRACK.md still calls each draft one;
@@ -58,20 +64,29 @@ MAP_MUSIC = {"MAP01": "D_SDM1N2",      # D95 (N9e): compose_map01.py's D_SDM01N2
              # D106: episode 2's own pieces, the A of each approved pair.
              "MAP04": "D_SDM04A",
              "MAP05": "D_SDM05A",
-             "MAP06": "D_SDM06A"}
-# D106: the stats screen after these maps plays episode 2's intermission
-# piece; no other map sets `intermusic` (they keep GameInfo's D_SDTITL).
-INTER_MUSIC = {"MAP04": "D_SDE2IA", "MAP05": "D_SDE2IA"}
-# D106: installed with their A but played only by SD_MusicVariant (or, for
-# D_SDE2IB, the approved alternative nobody wires yet): never a MAPINFO value.
-EPISODE2_UNWIRED = ("D_SDM04B", "D_SDM05B", "D_SDM06B", "D_SDBS6A", "D_SDBS6B", "D_SDE2IB")
+             "MAP06": "D_SDM06A",
+             # D113: episode 3's own pieces, the A of each approved pair.
+             "MAP07": "D_SDM07A",
+             "MAP08": "D_SDM08A",
+             "MAP09": "D_SDM09A"}
+# D106, D113: the stats screen after these maps plays its episode's
+# intermission piece; no other map sets `intermusic` (they keep GameInfo's
+# D_SDTITL).
+INTER_MUSIC = {"MAP04": "D_SDE2IA", "MAP05": "D_SDE2IA",
+               "MAP07": "D_SDE3IA", "MAP08": "D_SDE3IA"}
+# Installed and played only by SD_MusicVariant, or not wired at all (the
+# intermission B pieces): never a MAPINFO value. D113 ended D112's provisional
+# use of episode 2's B pieces on episode 3's maps.
+UNWIRED = ("D_SDM04B", "D_SDM05B", "D_SDM06B", "D_SDBS6A", "D_SDBS6B", "D_SDE2IB",   # D106
+           "D_SDM07B", "D_SDM08B", "D_SDM09B", "D_SDBS9A", "D_SDBS9B", "D_SDE3IB")   # D113
 RETIRED = ("D_SDAMUR", "D_SDM01")     # D83: NO for the range; D95: MAP01's new piece. Neither packed
 # Assigned by N8 and wired so the CEO hears them in play.
 DRAFTS = ("D_SDFUNR", "D_SDGATE")
 CAMPAIGN_START = "MAP01"
 # D104: each campaign episode's first map and its maps in play order.
 EPISODE_CHAINS = {"MAP01": ["MAP01", "MAP02", "MAP03"],
-                  "MAP04": ["MAP04", "MAP05", "MAP06"]}
+                  "MAP04": ["MAP04", "MAP05", "MAP06"],
+                  "MAP07": ["MAP07", "MAP08", "MAP09"]}   # D112
 END_OF_CHAIN = "endtitle"
 DOCS = PROJECT_ROOT / "docs"
 LICENSES = DOCS / "art" / "LICENSES.md"
@@ -124,14 +139,14 @@ class MapinfoMusicTest(unittest.TestCase):
             self.assertIn(name, self.maps, f"no map {name} block")
             self.assertEqual(music_of(self.maps[name]), lump, name)
 
-    def test_episode_2s_stats_screens_play_its_intermission(self):
+    def test_episodes_2_and_3s_stats_screens_play_their_intermission(self):
         for name, block in self.maps.items():
             with self.subTest(map=name):
                 self.assertEqual(INTER_MUSIC.get(name), music_of(block, "intermusic"))
 
-    def test_episode_2s_other_pieces_ship_but_are_not_mapinfo_values(self):
+    def test_the_b_and_boss_pieces_ship_but_are_not_mapinfo_values(self):
         values = {value for _key, value in RE_MUSIC_VALUE.findall(self.code)}
-        for lump in EPISODE2_UNWIRED:
+        for lump in UNWIRED:
             with self.subTest(lump=lump):
                 self.assertIn(lump, self.packed)
                 self.assertNotIn(lump, values)
@@ -158,7 +173,7 @@ class MapinfoMusicTest(unittest.TestCase):
     def test_every_campaign_map_plays_music(self):
         for start, order in EPISODE_CHAINS.items():
             chain = self.campaign(start)
-            self.assertEqual(order, chain, "D62's and D104's campaign order")
+            self.assertEqual(order, chain, "D62's, D104's and D112's campaign order")
             for name in chain:
                 with self.subTest(map=name):
                     self.assertTrue(music_of(self.maps[name]),

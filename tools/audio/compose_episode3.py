@@ -1189,10 +1189,15 @@ def midi_voices(data: bytes) -> list[list[int]]:
     return out
 
 
-def reference_ngrams(folder: Path = INSTALLED_MUSIC) -> dict[tuple, str]:
-    """Interval runs of every installed piece (Episodes 1-2), mapped to the first lump having it."""
+def reference_ngrams(folder: Path = INSTALLED_MUSIC, skip: frozenset[str] = frozenset()) -> dict[tuple, str]:
+    """Interval runs of every installed piece (Episodes 1-2), mapped to the first lump having it.
+
+    `skip`: lumps left out of the scan. Since D113 installed Episode 3's own ten pieces in
+    assets/music/, self_check skips them: a piece always "quotes" itself."""
     found: dict[tuple, str] = {}
     for path in sorted(folder.glob("*.mid")):
+        if path.stem in skip:
+            continue
         for voice in midi_voices(path.read_bytes()):
             for g in interval_ngrams(voice):
                 found.setdefault(g, path.stem)
@@ -1224,7 +1229,7 @@ def self_check(songs) -> list[str]:
         if clash:
             problems.append(f"{name}: a two-bar shape equals one of Episode 1-2's ({len(clash)})")
     if INSTALLED_MUSIC.is_dir():
-        problems += quote_hits(ours)
+        problems += quote_hits(ours, reference_ngrams(skip=frozenset(v.lump for _k, v, _s in songs)))
     else:
         problems.append(f"{INSTALLED_MUSIC} missing: the quotation scan did not run")
     by_key: dict[str, list] = {}

@@ -63,6 +63,10 @@ open recommendation of §8 accepted. What that changed, in one place:
 | **MAP05**, the Volga Dam | **`assets/music/D_SDM05A.mid`**, or `D_SDM05B` | **approved (D106) and installed**, same mechanism |
 | **MAP06**, Red Square | **`assets/music/D_SDM06A.mid`**, or `D_SDM06B`; the boss loop `D_SDBS6A` / `D_SDBS6B` once a BOSS monster engages | **approved (D106) and installed**, same mechanism; the boss loop follows the variant drawn |
 | **Intermission after MAP04 and MAP05** | **`assets/music/D_SDE2IA.mid`** — the three maps' motifs in one 16-bar loop, 92 BPM | **approved (D106) and installed** (MAPINFO `intermusic` on MAP04 and MAP05); its B `D_SDE2IB` is packed but not wired (§0.2) |
+| **MAP07**, Novaya Zemlya (episode 3) | **`assets/music/D_SDM07A.mid`**, or its B `D_SDM07B` (§0.3) | **approved unheard (D113) and installed** (2026-10-22); same mechanism as episode 2. Replaces D112's provisional `D_SDM04B` |
+| **MAP08**, Severomorsk | **`assets/music/D_SDM08A.mid`**, or `D_SDM08B` | **approved unheard (D113) and installed**, same mechanism (replaces D112's provisional `D_SDM05B`) |
+| **MAP09**, Tunguska | **`assets/music/D_SDM09A.mid`**, or `D_SDM09B`; the final boss loop `D_SDBS9A` / `D_SDBS9B` once a BOSS monster engages | **approved unheard (D113) and installed**, same mechanism; the boss loop follows the variant drawn (replaces D112's provisional `D_SDM06B`) |
+| **Intermission after MAP07 and MAP08** | **`assets/music/D_SDE3IA.mid`** — the three maps' motifs in one 16-bar loop, 96 BPM | **approved unheard (D113) and installed** (MAPINFO `intermusic` on MAP07 and MAP08, replacing D112's provisional `D_SDE2IB`); its B `D_SDE3IB` is packed but not wired (§0.3) |
 
 ### 0.1 One piece per map (D62, backlog N8) — provisional
 
@@ -148,6 +152,31 @@ the draw cannot reach it. `D_SDE2IB` ships so the PM can swap it in by
 editing two `intermusic` lines. The stats screen after MAP06 keeps GameInfo's
 `D_SDTITL`, as the brief asked (only MAP04's and MAP05's are episode 2's
 intermission).
+
+### 0.3 Episode 3: the same, with the final boss's own loop (D113, 2026-10-22)
+
+Composed for episode 3 under the D112 brief by `tools/audio/compose_episode3.py`
+(original, no quotation: the generator's self-check, which since D113 leaves
+the episode's own installed lumps out of its scan; rights `MUSIC-RIGHTS.md`
+§4.5). The CEO approved all ten **without hearing them**, "las doy por
+buenas" (D113), so the first time anyone hears them in the engine is the PM's
+pass. Installed byte for byte from `work/audio/episode3/`;
+`tests/test_music.py` regenerates each at its calibrated CC7 scale and
+compares.
+
+| Lump | Cue | Tempo · loop |
+|---|---|---|
+| `D_SDM07A` / `D_SDM07B` | MAP07, the Arctic radar station: radar pings (celesta / vibraphone and glockenspiel), horn call, tremolo strings | 116 BPM 2:21 / 122 BPM 2:14 |
+| `D_SDM08A` / `D_SDM08B` | MAP08, the submarine base: low brass, shipyard metal, sonar | 124 BPM 2:12 / 120 BPM 2:16 |
+| `D_SDM09A` / `D_SDM09B` | MAP09, the portal: brass choir, church organ, choir, a semiquaver ostinato | 132 BPM 2:04 / 138 BPM 1:58 |
+| `D_SDBS9A` / `D_SDBS9B` | MAP09's final boss arena: a piece of its own (not a cut, unlike `D_SDBS6A`/`B`) | 140 BPM 1:09 / 146 BPM 1:06 |
+| `D_SDE3IA` / `D_SDE3IB` | episode 3's intermission (the stats screen) | 96 BPM 0:40 / 108 BPM 0:36 |
+
+Played exactly as episode 2's (§0.2): MAPINFO names the A, `SD_MusicVariant`
+draws A or B per fresh visit, and on MAP09 the first BOSS monster to engage
+the player switches to the boss loop of the variant drawn. The intermission
+is A only; `D_SDE3IB` ships so the PM can swap it in on two `intermusic`
+lines. The stats screen after MAP09 keeps GameInfo's `D_SDTITL`.
 
 ---
 
