@@ -1,6 +1,8 @@
 """Enemy sprite sets from Gemini model sheets (D104/D105: "redo the enemies, let Gemini improve them").
 
     python tools/art/gemini_enemy.py rifleman            # lumps + metrics into work/art/enemies_gemini/rifleman/
+    python tools/art/gemini_enemy.py legion|storm        # the Legion trooper (SDLT), the hybrid stormtrooper (SDHS)
+    python tools/art/gemini_enemy.py all                 # every enemy, then the overlay and the sheet
     python tools/art/gemini_enemy.py rifleman --check    # print the plan (sheets, figures, facings, scales) only
     python tools/art/gemini_enemy.py overlay             # every built enemy -> work/overlays/sd-draft-enemies.pk3
     python tools/art/gemini_enemy.py sheet               # the CEO's review sheet (docs/art/previews/...)
@@ -29,14 +31,24 @@ The steps (pure functions on arrays, tests/test_gemini_enemy.py):
                            ATTACH_PX of a figure joins it (a flash, a dropped
                            rifle, blood drops), anything further is dropped
                            (the stray helmet, the A/B/C letters)
+  3b. sole               - a figure cut by the sheet's bottom edge (the
+                           stormtrooper's 193-px sheets) gets `Sheet.sole`
+                           rows of dark boot sole under its last row
   4. blank_armband       - any symbol inside the armband's white field is
                            painted white (Gemini's own symbol on the death
-                           sheet). The CEO's D12 symbol is NOT composed (CEO,
-                           2026-10-22): see `armband` for the proposal
+                           sheet); `box` mode paints the field's whole box
+                           white (a white cross on red becomes a plain white
+                           patch); `none` leaves it (the Legion's US flag).
+                           The CEO's D12 symbol is NOT composed (CEO,
+                           2026-10-22, D105): see `armband` for the proposal
   5. normalise_facing    - a side view that faces right is mirrored, so views
                            2-4 face left (Doom's rotations 2-4); `auto` reads
                            the facing from where the art reaches further from
-                           the legs' axis (the rifle's muzzle)
+                           the legs' axis (the rifle's muzzle). With
+                           `armband_side`, a front (back) view whose armband
+                           is on the other side of the legs' axis is mirrored
+                           too, so a body part (the hybrid's mechanical arm)
+                           keeps its side of the body in every sheet
   6. sheet scale         - every sheet to the turn sheet's scale by the helmet's
                            width (death2 is drawn larger); one global scale puts
                            the turn sheet's front view at TARGET_HEIGHT rows,
@@ -103,6 +115,16 @@ ARMBAND_NEAR = 4                   # px: a white group this close to red is the 
 FIELD_GAP = 2                      # px: white pixels this close are one field
 MIN_FIELD = 4                      # white px: a smaller group is a glint, not a field
 TARGET_HEIGHT = 59      # rows of SDRRA1's figure today (10..68): the new set is as tall in game
+LEGION_HEIGHT = 56      # rows of SDLTA1's figure today (13..68)
+STORM_HEIGHT = 50       # rows of SDHSA1's figure today (19..68)
+SOLE_RGB = (26, 24, 20)  # the derived boot sole under a figure cut by the sheet's bottom edge
+STORM_SOLE = 5          # source rows: the stormtrooper's boots end at the 193-px sheets' last row
+FIELD_BOX_MAX = 14      # source px: a `box`-mode field taller or wider is not an armband (sparks, the energy ball)
+BOX_WHITE_MIN = 125     # `box` mode: the hybrid's field is beige in shade (182,172,145)
+BOX_PURITY = 0.45       # `box` mode: a field's box must be this much white or red (measured: bands 0.48-1.0, cannon 0.17)
+MARKER_RED_MIN = 60     # the armband's red for the side test: darker than RED_MIN (the hybrid's band in shade)
+MARKER_MIN_PX = 8       # red px needed to read a side
+MARKER_OFFSET = 4.0     # source px: the band's mean column must be this far off the legs' axis
 FEET_SINK = 4           # the feet's last row is this far under `top` (as SDRRA1: top 64, feet 68)
 PIXEL_ASPECT = 1.2      # Doom's 320x200 is shown at 4:3: square Gemini pixels are squashed
 CANVAS_PAD = 2          # px of air round the widest rotation
@@ -123,6 +145,7 @@ class Sheet:
     count: int
     facing: tuple[str, ...] = ()     # per figure: front/back/left/right/auto (side views)
     scale_ref: int | None = 0        # the figure whose helmet sets the sheet's scale; None: 1.0
+    sole: int = 0                    # source rows of derived sole under a figure touching the bottom edge
 
 
 @dataclass(frozen=True)
@@ -154,6 +177,10 @@ class EnemySpec:
     derived: tuple[str, ...] = ()    # what is not Gemini's own drawing, for the report
     anims: tuple = ()                # (label, ((letter, tics), ...), loop)
     notes: str = ""
+    target_height: int = TARGET_HEIGHT   # rows of the turn sheet's front view in game (the shipped A1's)
+    armband: str = "blank"           # blank: a symbol in the field goes; box: the field's box goes white; none
+    armband_side: str | None = None  # side of the legs' axis the armband is on in a FRONT view (normalised)
+    reask: tuple = ()                # (file, short prompt): what to ask Gemini for again (the quality gate)
 
 
 STAND = ("front", "left", "left", "left", "back")
@@ -196,7 +223,118 @@ RIFLEMAN = EnemySpec(
         ("reventar (XDeath: M-T 5, U)", tuple((c, 5) for c in "MNOPQRST") + (("U", 45),), True),
     ),
 )
-ENEMIES = {"rifleman": RIFLEMAN}
+
+LEGION = EnemySpec(
+    name="legion", sprite="SDLT", folder="legion", target_height=LEGION_HEIGHT, armband="none",
+    sheets={
+        "turn": Sheet("gem_legion_turn.png", 5, SIDES_AUTO),
+        "walkL": Sheet("gem_legion_walkL.png", 5, SIDES_AUTO),
+        "walkR": Sheet("gem_legion_walkR.png", 5, SIDES_AUTO),
+        "aim": Sheet("gem_legion_aim.png", 5, SIDES_AUTO),
+        "fire": Sheet("gem_legion_fire.png", 5, SIDES_AUTO),
+        "death": Sheet("gem_legion_death.png", 5),         # pain, impact, falling 45, nearly down, lying
+    },
+    rotated={
+        "A": Rotated("walkL"), "B": Rotated("turn"), "C": Rotated("walkR"), "D": Rotated("turn"),
+        "E": Rotated("aim"), "F": Rotated("fire"),
+        "G": Rotated("turn", tilt=PAIN_TILT, override=((1, Src("death", 0)),)),
+    },
+    single={
+        "H": Src("death", 0), "I": Src("death", 1), "J": Src("death", 2), "K": Src("death", 3),
+        "L": Src("death", 4),
+        "M": Src("death", 0, blood=1), "N": Src("death", 1, blood=1), "O": Src("death", 1, blood=2),
+        "P": Src("death", 2, blood=2), "Q": Src("death", 2, blood=3), "R": Src("death", 3, blood=3),
+        "S": Src("death", 4, blood=4), "T": Src("death", 4, blood=5), "U": Src("death", 4, blood=6),
+    },
+    derived=(
+        "B y D: la vista de pie (turn); A = walkL, C = walkR",
+        "G2-G8 (dolor): la vista de pie inclinada 9 grados; G1 = el dolor de Gemini (death, figura 1)",
+        "H-L (muerte): las 5 figuras de la hoja death tal cual (dolor, impacto, cayendo, casi en el suelo, tumbado)",
+        "M-U (reventón, XDeath): sin hoja de Gemini; los frames de muerte con sangre procedural (chorro y charco)",
+        "rotaciones 6-8: las 4-2 en espejo. La bandera: Gemini la pintó en el hombro DERECHO del soldado "
+        "(izquierda de la imagen de frente), coherente en las 5 vistas; con el espejo pasa al otro hombro en "
+        "2-3 (Gemini dibujó la 3/4 y el perfil mirando a la derecha) y queda en su hombro en 7-8. "
+        "A escala de juego mide ~3x2 px: se acepta, como la escopeta que cambia de mano. Para que sea exacto "
+        "basta pedir a Gemini las 3 vistas del otro lado (ver la lista) y ponerlas como override de 2-4",
+        "brazalete: ninguno (la Legión no lleva; la bandera no se toca: armband='none')",
+    ),
+    anims=(
+        ("andar (See: A A B B C C D D, 3 tics)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
+        ("disparar (Missile: E 10, F 10, E 10)", (("E", 10), ("F", 10), ("E", 10), ("B", 12)), True),
+        ("dolor (Pain: G 3, G 3)", (("B", 20), ("G", 6), ("B", 14)), True),
+        ("morir (Death: H I J K 5, L)", (("H", 5), ("I", 5), ("J", 5), ("K", 5), ("L", 45)), True),
+        ("reventar (XDeath: M-T 5, U)", tuple((c, 5) for c in "MNOPQRST") + (("U", 45),), True),
+    ),
+    reask=(
+        ("gem_legion_turnB.png", "Same Liberty Legion trooper, same style and scale, magenta background: "
+         "3/4 front, profile and 3/4 back views facing LEFT, US flag patch on his RIGHT shoulder, "
+         "10 px of background under the boots"),
+        ("gem_legion_death.png", "Same 5 death frames, with 12 px of background on every side: the lying "
+         "body's dropped shotgun is cut by the right and bottom edges"),
+    ),
+)
+
+STORM = EnemySpec(
+    name="storm", sprite="SDHS", folder="storm", target_height=STORM_HEIGHT, armband="box",
+    armband_side="right",
+    sheets={   # one canvas size and scale (193 px): no helmet normalisation (scale_ref None)
+        "turn": Sheet("gem_storm_turn.png", 5, SIDES_AUTO, None, STORM_SOLE),
+        "walkL": Sheet("gem_storm_walkL.png", 5, SIDES_AUTO, None, STORM_SOLE),
+        "walkR": Sheet("gem_storm_walkR.png", 5, SIDES_AUTO, None, STORM_SOLE),
+        "aim": Sheet("gem_storm_aim.png", 5, SIDES_AUTO, None, STORM_SOLE),
+        "fire": Sheet("gem_storm_fire.png", 5, SIDES_AUTO, None, STORM_SOLE),
+        "death": Sheet("gem_storm_death.png", 5, scale_ref=None, sole=STORM_SOLE),
+    },
+    rotated={
+        "A": Rotated("walkL"), "B": Rotated("turn"), "C": Rotated("walkR"), "D": Rotated("turn"),
+        "E": Rotated("aim"), "F": Rotated("aim"), "G": Rotated("fire"),
+        "H": Rotated("turn", tilt=PAIN_TILT, override=((1, Src("death", 0)),)),
+    },
+    single={
+        "I": Src("death", 0), "J": Src("death", 1), "K": Src("death", 2), "L": Src("death", 3),
+        "M": Src("death", 4),
+        "N": Src("death", 0, blood=1), "O": Src("death", 1, blood=1), "P": Src("death", 1, blood=2),
+        "Q": Src("death", 2, blood=2), "R": Src("death", 2, blood=3), "S": Src("death", 3, blood=3),
+        "T": Src("death", 4, blood=5), "U": Src("death", 4, blood=6),
+    },
+    derived=(
+        "B y D: la vista de pie (turn); A = walkL, C = walkR",
+        "E y F: la misma carga (aim) dos veces (la clase pide E F 8 tics antes de G); G = fire (el rayo). "
+        "El cuerpo a cuerpo (Melee) usa los mismos E F G",
+        "H2-H8 (dolor): la vista de pie inclinada 9 grados; H1 = el dolor de Gemini (death, figura 1)",
+        "I-M (muerte): las 5 figuras de la hoja death tal cual (la 2 con las chispas, la 5 con el humo)",
+        "N-U (reventón, XDeath): sin hoja de Gemini; los frames de muerte con sangre procedural",
+        "botas: las seis hojas (193 px) cortan las suelas en la última fila; se añade una suela oscura "
+        "de 5 px de origen (~1 px en juego) bajo cada figura que toca el borde",
+        "brazo mecánico: medido por el brazalete (brazo izquierdo) en las vistas de frente y espalda de las "
+        "6 hojas, el cuerpo NO está invertido en ninguna (el brazo mecánico grande es siempre el derecho, a la "
+        "izquierda de la imagen de frente). Lo que cambia es el ARMA: en turn/walk el cañón-taladro sale del "
+        "brazo mecánico; en aim/fire el cañón de energía sale del brazo izquierdo (el del brazalete) y el "
+        "mecánico cuelga. Espejar aim/fire invertiría el cuerpo y la bola saltaría de lado al pasar de andar "
+        "a disparar, así que la regla (armband_side) no espeja ninguna vista; si el CEO quiere el rayo en el "
+        "brazo mecánico, se pide de nuevo a Gemini (ver la lista)",
+        "rotaciones 6-8: las 4-2 en espejo (brazo mecánico y brazalete cambian de lado, como en el fusilero)",
+        "brazalete: rojo con el campo blanco VACÍO (D105); la cruz blanca de Gemini se pinta a blanco liso (modo box)",
+    ),
+    anims=(
+        ("andar (See: A A B B C C D D, 3 tics)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
+        ("atacar (Missile: E F 8, G 6)", (("E", 8), ("F", 8), ("G", 6), ("B", 14)), True),
+        ("dolor (Pain: H 2, H 2)", (("B", 20), ("H", 4), ("B", 14)), True),
+        ("morir (Death: I 8 J 8 K 6 L 6, M)", (("I", 8), ("J", 8), ("K", 6), ("L", 6), ("M", 45)), True),
+        ("reventar (XDeath: N-T 5, U)", tuple((c, 5) for c in "NOPQRST") + (("U", 45),), True),
+    ),
+    reask=(
+        ("gem_storm_turn.png, _walkL, _walkR, _aim, _fire, _death", "Same sheets on a 1024x238 canvas "
+         "(not 193): the boots' soles are cut by the bottom edge; leave 10 px of background under the feet"),
+        ("gem_storm_aim2.png, gem_storm_fire2.png", "Only if the CEO wants it: the energy ball charged and "
+         "the bolt fired from the MECHANICAL right arm (image left when facing us), the human left arm "
+         "with the red armband (plain white field, no symbol) hanging"),
+        ("gem_storm_charge.png", "Optional: the same 5 views with a smaller, half-charged ball, so E and F differ"),
+        ("gem_storm_aim.png, gem_storm_fire.png (views 4-5)", "Back views: the ball's glow must stay in front "
+         "of him (hidden by the body), not painted over his back; the bolt starts AT the muzzle, no gap"),
+    ),
+)
+ENEMIES = {"rifleman": RIFLEMAN, "legion": LEGION, "storm": STORM}
 
 
 # ------------------------------------------------------------- palette
@@ -358,22 +496,24 @@ def crop(rgb: np.ndarray, mask: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 
 
 # ------------------------------------------------------- 4. the armband
-def red_mask(rgb: np.ndarray) -> np.ndarray:
+def red_mask(rgb: np.ndarray, rmin: int = RED_MIN) -> np.ndarray:
     r, g, b = (rgb[..., k].astype(np.int32) for k in range(3))
-    return (r > RED_MIN) & (g < RED_GB_MAX) & (b < RED_GB_MAX) & (r > 2 * g) & (r > 2 * b)
+    return (r > rmin) & (g < RED_GB_MAX) & (b < RED_GB_MAX) & (r > 2 * g) & (r > 2 * b)
 
 
-def white_mask(rgb: np.ndarray) -> np.ndarray:
+def white_mask(rgb: np.ndarray, wmin: int = WHITE_MIN) -> np.ndarray:
     a = rgb.astype(np.int32)
-    return (a.min(axis=-1) > WHITE_MIN) & (a.max(axis=-1) - a.min(axis=-1) < WHITE_SPREAD)
+    return (a.min(axis=-1) > wmin) & (a.max(axis=-1) - a.min(axis=-1) < WHITE_SPREAD)
 
 
-def armband_fields(rgb: np.ndarray, mask: np.ndarray) -> list[tuple[int, int, int, int]]:
+def armband_fields(rgb: np.ndarray, mask: np.ndarray, loose: bool = False) -> list[tuple[int, int, int, int]]:
     """Bounding boxes (y0, x0, y1, x1) of the armband's white fields: white
     pixels grouped within FIELD_GAP px (a ring broken by the symbol is one
-    field), kept when the group lies within ARMBAND_NEAR px of the red."""
-    white = mask & white_mask(rgb)
-    near_red = _dilate(red_mask(rgb) & mask, ARMBAND_NEAR)
+    field), kept when the group lies within ARMBAND_NEAR px of the red.
+    `loose`: a beige field on a band in shade counts (BOX_WHITE_MIN, MARKER_RED_MIN)."""
+    wmin, rmin = (BOX_WHITE_MIN, MARKER_RED_MIN) if loose else (WHITE_MIN, RED_MIN)
+    white = mask & white_mask(rgb, wmin)
+    near_red = _dilate(red_mask(rgb, rmin) & mask, ARMBAND_NEAR)
     lab, n = label(_dilate(white, FIELD_GAP))
     out = []
     for i in range(1, n + 1):
@@ -384,16 +524,43 @@ def armband_fields(rgb: np.ndarray, mask: np.ndarray) -> list[tuple[int, int, in
     return out
 
 
-def blank_armband(rgb: np.ndarray, mask: np.ndarray) -> tuple[np.ndarray, int]:
+def field_purity(rgb: np.ndarray, mask: np.ndarray, box: tuple[int, int, int, int]) -> float:
+    """Fraction of the figure's pixels in `box` that are the field's white or
+    the band's red (loose thresholds): a field ON the armband is nearly all
+    white and red; a pale highlight touching the band (the hybrid's cannon
+    metal, sparks) is mostly something else."""
+    y0, x0, y1, x1 = box
+    sub, m = rgb[y0:y1, x0:x1], mask[y0:y1, x0:x1]
+    if not m.any():
+        return 0.0
+    ok = (white_mask(sub, BOX_WHITE_MIN) | red_mask(sub, MARKER_RED_MIN)) & m
+    return float(ok.sum()) / float(m.sum())
+
+
+def blank_armband(rgb: np.ndarray, mask: np.ndarray, mode: str = "blank") -> tuple[np.ndarray, int]:
     """Paint white whatever lies INSIDE an armband's white field (a symbol
     Gemini drew): in the field's box, a pixel with white on both sides in
-    its row AND in its column (a broken ring still encloses). Returns (rgb,
-    pixels painted)."""
+    its row AND in its column (a broken ring still encloses). Mode `box`:
+    the field's whole box (within the figure) goes white, so a white symbol
+    on the red (a cross) becomes a plain white patch; a field bigger than
+    FIELD_BOX_MAX is not an armband and is left. Mode `none`: nothing.
+    Returns (rgb, pixels painted)."""
     rgb = rgb.copy()
     painted = 0
-    for y0, x0, y1, x1 in armband_fields(rgb, mask):
+    if mode == "none":
+        return rgb, 0
+    for y0, x0, y1, x1 in armband_fields(rgb, mask, loose=mode == "box"):
         box = rgb[y0:y1, x0:x1]
-        white = white_mask(box)
+        white = white_mask(box, BOX_WHITE_MIN if mode == "box" else WHITE_MIN)
+        if mode == "box":
+            if max(y1 - y0, x1 - x0) > FIELD_BOX_MAX \
+                    or field_purity(rgb, mask, (y0, x0, y1, x1)) < BOX_PURITY:
+                continue
+            hole = ~white & mask[y0:y1, x0:x1]
+            if hole.any():
+                box[hole] = box[white].mean(axis=0).astype(rgb.dtype)
+                painted += int(hole.sum())
+            continue
         h, w = white.shape
         cols, rows = np.arange(w)[None, :], np.arange(h)[:, None]
         first_x = np.where(white.any(axis=1, keepdims=True), white.argmax(axis=1)[:, None], w)
@@ -438,6 +605,33 @@ def facing_of(sheet: Sheet, view: int, mask: np.ndarray) -> str:
     if got is None:
         raise ValueError(f"{sheet.file} view {view + 1}: facing is ambiguous, name it in the spec")
     return got
+
+
+def marker_side(rgb: np.ndarray, mask: np.ndarray) -> str | None:
+    """'left' or 'right': the side of the legs' axis the armband's red lies on
+    (a dark red counts: MARKER_RED_MIN); None when too little red or too
+    near the axis to tell."""
+    a = rgb.astype(np.int32)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    red = mask & (r > MARKER_RED_MIN) & (r > 2 * g) & (r > 2 * b)
+    if red.sum() < MARKER_MIN_PX:
+        return None
+    off = float(np.nonzero(red)[1].mean()) - body_axis(mask)
+    if abs(off) < MARKER_OFFSET:
+        return None
+    return "right" if off > 0 else "left"
+
+
+def add_sole(rgb: np.ndarray, mask: np.ndarray, rows: int) -> tuple[np.ndarray, np.ndarray]:
+    """`rows` rows of dark sole under the figure's last row (its footprint
+    repeated): the boots a sheet's bottom edge cut off."""
+    if rows <= 0:
+        return rgb, mask
+    last = mask[-1]
+    rgb = np.concatenate([rgb, np.zeros((rows,) + rgb.shape[1:], rgb.dtype)])
+    mask = np.concatenate([mask, np.repeat(last[None], rows, axis=0)])
+    rgb[-rows:][mask[-rows:]] = SOLE_RGB
+    return rgb, mask
 
 
 def normalise(rgb: np.ndarray, mask: np.ndarray, facing: str) -> tuple[np.ndarray, np.ndarray, bool]:
@@ -648,6 +842,9 @@ class Cut:
     facing: str
     mirrored: bool
     painted: int
+    edges: tuple = ()           # sheet edges the figure touches (top/bottom/left/right): cut art
+    sole: int = 0               # rows of derived sole added
+    marker: str | None = None   # side the armband was read on (front/back views, armband_side)
 
 
 @dataclass
@@ -663,22 +860,39 @@ def load_rgb(path: Path) -> np.ndarray:
         return np.asarray(im.convert("RGB"))
 
 
-def cut_sheet(rgb: np.ndarray, sheet: Sheet) -> SheetCut:
+def touched_edges(mask: np.ndarray) -> tuple[str, ...]:
+    """The sheet edges a figure's mask reaches (its art is likely cut there)."""
+    return tuple(n for n, line in (("top", mask[0]), ("bottom", mask[-1]),
+                                   ("left", mask[:, 0]), ("right", mask[:, -1])) if line.any())
+
+
+def cut_sheet(rgb: np.ndarray, sheet: Sheet, armband: str = "blank",
+              armband_side: str | None = None) -> SheetCut:
     bg = estimate_background(rgb)
     fg = key_background(rgb, bg)
     sc = SheetCut(tuple(round(float(v)) for v in bg))
     for i, m in enumerate(figures(fg, sheet.count)):
+        edges = touched_edges(m)
         c_rgb, c_mask = crop(rgb, m)
-        c_rgb, painted = blank_armband(c_rgb, c_mask)
+        sole = sheet.sole if "bottom" in edges else 0
+        c_rgb, c_mask = add_sole(c_rgb, c_mask, sole)
+        c_rgb, painted = blank_armband(c_rgb, c_mask, armband)
         face = facing_of(sheet, i, c_mask) if i in SIDE_VIEWS and sheet.facing else \
             (sheet.facing[i] if i < len(sheet.facing) else "front")
         c_rgb, c_mask, mir = normalise(c_rgb, c_mask, face)
-        sc.figs.append(Cut(c_rgb, c_mask, face, mir, painted))
+        marker = None
+        if armband_side and sheet.facing and face in ("front", "back"):
+            marker = marker_side(c_rgb, c_mask)
+            want = armband_side if face == "front" else {"left": "right", "right": "left"}[armband_side]
+            if marker is not None and marker != want:      # the body is drawn mirrored: put it back
+                c_rgb, c_mask, mir = c_rgb[:, ::-1].copy(), c_mask[:, ::-1].copy(), True
+        sc.figs.append(Cut(c_rgb, c_mask, face, mir, painted, edges, sole, marker))
     return sc
 
 
 def plan(spec: EnemySpec, ref_dir: Path = REF_DIR) -> dict[str, SheetCut]:
-    cuts = {k: cut_sheet(load_rgb(ref_dir / s.file), s) for k, s in spec.sheets.items()}
+    cuts = {k: cut_sheet(load_rgb(ref_dir / s.file), s, spec.armband, spec.armband_side)
+            for k, s in spec.sheets.items()}
     ref = cuts[spec.ref_sheet]
     ref_h = ref.figs[0].mask.shape[0]
     band = max(4, int(HELMET_BAND * ref_h))
@@ -709,7 +923,7 @@ def build(spec: EnemySpec, out_dir: Path | None = None, ref_dir: Path = REF_DIR)
     out_dir = out_dir or OUT_ROOT / spec.name
     guard_out(out_dir)
     cuts = plan(spec, ref_dir)
-    base = TARGET_HEIGHT / cuts[spec.ref_sheet].figs[0].mask.shape[0]
+    base = spec.target_height / cuts[spec.ref_sheet].figs[0].mask.shape[0]
     frames: dict[str, dict[str, np.ndarray]] = {}
     for letter, rot in spec.rotated.items():
         over = dict(rot.override)
@@ -737,17 +951,46 @@ def build(spec: EnemySpec, out_dir: Path | None = None, ref_dir: Path = REF_DIR)
             written.append(lump)
             grabs[lump] = {"size": [int(idx.shape[1]), int(idx.shape[0])], "grab": list(grab)}
     metrics = {
-        "enemy": spec.name, "sprite": spec.sprite, "lumps": len(written), "target_height": TARGET_HEIGHT,
+        "enemy": spec.name, "sprite": spec.sprite, "lumps": len(written), "target_height": spec.target_height,
         "base_scale": round(base, 4), "pixel_aspect": PIXEL_ASPECT,
         "sheets": {k: {"file": spec.sheets[k].file, "background": list(c.bg), "helmet_px": c.helmet,
                        "scale": round(c.scale, 4),
                        "figures": [{"size": [int(f.mask.shape[1]), int(f.mask.shape[0])], "facing": f.facing,
-                                    "mirrored": f.mirrored, "armband_px_blanked": f.painted} for f in c.figs]}
+                                    "mirrored": f.mirrored, "armband_px_blanked": f.painted,
+                                    "edges": list(f.edges), "sole_rows": f.sole, "armband_side": f.marker}
+                                   for f in c.figs]}
                    for k, c in cuts.items()},
         "derived": list(spec.derived), "frames": grabs,
+        "gate": quality_gate(spec, cuts, written),
+        "reask": [list(r) for r in spec.reask],
     }
     (out_dir / "metrics.json").write_text(json.dumps(metrics, indent=1), encoding="utf-8")
     return metrics
+
+
+# ------------------------------------------------------------------ gate
+def quality_gate(spec: EnemySpec, cuts: dict, written=None) -> list[str]:
+    """What the build could not do cleanly, in Spanish for the CEO: art cut
+    by a sheet edge (with or without a derived sole), a front/back view
+    whose armband side could not be read or had to be mirrored, a lump set
+    that is not the spec's."""
+    out = []
+    for k, c in cuts.items():
+        for i, f in enumerate(c.figs):
+            where = f"{spec.sheets[k].file} figura {i + 1}"
+            cut = [e for e in f.edges if not (e == "bottom" and f.sole)]
+            if cut:
+                out.append(f"{where}: el dibujo toca el borde ({', '.join(cut)}): cortado")
+            if f.sole:
+                out.append(f"{where}: botas cortadas por el borde inferior, suela derivada ({f.sole} px)")
+            if spec.armband_side and spec.sheets[k].facing and f.facing in ("front", "back"):
+                if f.marker is None:
+                    out.append(f"{where}: no se lee el lado del brazalete (sin comprobar)")
+                elif f.mirrored:
+                    out.append(f"{where}: cuerpo invertido respecto a turn: espejado")
+    if written is not None and sorted(written) != lump_names(spec):
+        out.append("los lumps escritos no son el conjunto de la spec")
+    return out
 
 
 # --------------------------------------------------------------- overlay
@@ -823,6 +1066,7 @@ def review_sheet(specs=None, out: Path = SHEET_HTML, out_root: Path = OUT_ROOT,
             "cur": _frames_json(sprites_dir / spec.folder, spec.sprite),
             "new": _frames_json(new_dir, spec.sprite),
             "derived": list(spec.derived), "notes": spec.notes,
+            "gate": metrics.get("gate", []), "reask": metrics.get("reask", []),
             "sheets": {k: [f["facing"] + (" (espejo)" if f["mirrored"] else "") for f in v["figures"]]
                        for k, v in metrics["sheets"].items()},
         })
@@ -885,9 +1129,10 @@ ul{margin:6px 0;padding-left:20px}
 </div></header>
 <div class="wrap">
 <p>Cada enemigo: el <b>actual</b> (instalado) frente al <b>nuevo</b> (de las hojas de Gemini, D104/D105), ampliados ×3 sin suavizado,
-sobre su línea de suelo (la raya clara) con los offsets reales. Mismos nombres de lump: el overlay
-<code>work/overlays/sd-draft-enemies.pk3</code> los sustituye al cargarlo después del mod. El brazalete va con el cuadro blanco
-<b>vacío</b> (decisión del CEO, 2026-10-22); la propuesta del símbolo está aparte en
+sobre su línea de suelo (la raya clara) con los offsets reales. Enemigos: fusilero <code>SDRR</code>, soldado de la Legión
+<code>SDLT</code>, stormtrooper híbrido <code>SDHS</code>. Mismos nombres de lump: el overlay
+<code>work/overlays/sd-draft-enemies.pk3</code> los sustituye al cargarlo después del mod. En los dos del Reich el brazalete va
+con el cuadro blanco <b>vacío</b> (decisión del CEO, 2026-10-22, D105); la propuesta del símbolo está aparte en
 <code>docs/art/previews/2026-10-22_P4_rifleman-armband-proposal.png</code>. Marca OK / NO / ? por fila y pulsa <b>Copiar resultado</b>.</p>
 <div id="enemies"></div>
 <h2>Nota general</h2>
@@ -936,6 +1181,8 @@ function build(){
   for (const it of ITEMS) {
     html += `<h2>${esc(it.id)} <code>${it.sprite}</code></h2><p class="meta">Derivado (no dibujado por Gemini):</p><ul class="meta">` +
       it.derived.map(d => `<li>${esc(d)}</li>`).join("") + `</ul>` +
+      ((it.gate || []).length ? `<p class="meta">Gate de calidad (medido):</p><ul class="meta">` + it.gate.map(d => `<li>${esc(d)}</li>`).join("") + `</ul>` : "") +
+      ((it.reask || []).length ? `<p class="meta">Pedir otra vez a Gemini:</p><ul class="meta">` + it.reask.map(([f, p]) => `<li><code>${esc(f)}</code>: ${esc(p)}</li>`).join("") + `</ul>` : "") +
       `<p class="meta">Orientación leída por hoja: ` + Object.entries(it.sheets).map(([k, v]) => `<b>${k}</b> ${v.join(", ")}`).join(" · ") + `</p>`;
     for (const L of it.letters) {
       html += row(`${it.id}-${L}`, `Fotograma ${L}: las 8 rotaciones (arriba actual, abajo nuevo)`,
@@ -1163,7 +1410,7 @@ def armband_proposal(spec: EnemySpec = RIFLEMAN, out: Path = ARMBAND_PNG, ref_di
     at x PROPOSAL_ZOOM. Writes nothing but `out`."""
     pal = palette_rgb()
     cuts = plan(spec, ref_dir)
-    base = TARGET_HEIGHT / cuts[spec.ref_sheet].figs[0].mask.shape[0]
+    base = spec.target_height / cuts[spec.ref_sheet].figs[0].mask.shape[0]
     rows = []
     for label_txt, sheet, view, width, quarter in PROPOSAL_VIEWS:
         cut = cuts[sheet].figs[view]
@@ -1225,9 +1472,15 @@ ARMBAND_NOTES = (
 # ------------------------------------------------------------------ CLI
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("what", help="an enemy (" + ", ".join(ENEMIES) + "), 'overlay', 'sheet' or 'armband'")
+    ap.add_argument("what", help="an enemy (" + ", ".join(ENEMIES) + "), 'all', 'overlay', 'sheet' or 'armband'")
     ap.add_argument("--check", action="store_true", help="print the plan only, write nothing")
     args = ap.parse_args(argv)
+    if args.what == "all" and not args.check:
+        for spec in ENEMIES.values():
+            m = build(spec)
+            print(f"gemini_enemy: {spec.name}: {m['lumps']} lumps, {len(m['gate'])} gate notes")
+        print(f"gemini_enemy: wrote {review_sheet().relative_to(ROOT).as_posix()}")
+        args.what = "overlay"
     if args.what == "overlay":
         out = write_overlay(overlay_plan())
         print(f"gemini_enemy: wrote {out.relative_to(ROOT).as_posix()} (+ .txt)")
@@ -1244,7 +1497,8 @@ def main(argv=None) -> int:
     if args.check:
         for k, c in plan(spec).items():
             print(k, "bg", c.bg, "helmet", c.helmet, "scale", round(c.scale, 3),
-                  [(f.mask.shape[1], f.mask.shape[0], f.facing, f.mirrored, f.painted) for f in c.figs])
+                  [(f.mask.shape[1], f.mask.shape[0], f.facing, f.mirrored, f.painted, f.edges, f.marker)
+                   for f in c.figs])
         return 0
     m = build(spec)
     print(f"gemini_enemy: {m['lumps']} lumps -> work/art/enemies_gemini/{spec.name}/ (base scale {m['base_scale']})")
