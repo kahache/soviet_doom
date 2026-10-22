@@ -6,6 +6,26 @@ and D114). Before that: 2026-10-21 ~23:30 (night shift closed, D102/D103) and
 `docs/PRD.md`; open CEO items in `docs/PENDING-CEO-DECISIONS.md`; tasks and
 estimates in `docs/BACKLOG.md`; the phase view in `docs/ROADMAP.md` ("P4 today").
 
+## RESUME HERE FIRST (2026-10-22 ~15:00, PC shut down at the CEO's request)
+
+Nothing in flight: no agents, no Fooocus/Chatterbox, all work committed and pushed (HEAD e27f99a + this note).
+State: 9 maps in 3 episodes + RANGE, all routes PASS on skills 2-4 (33/33, evidence 2026-10-22_13*/14*);
+Gemini enemies, E2/E3 music, E2/E3 textures, skies SDSKY1-7, posters, safe starts installed.
+Draft releases (not public): v1.1 and **v1.2-rc1** (everything of today).
+
+**Next, in order:**
+1. **Gemini** (daily image limit reset 22 Oct 17:33; drive the CEO's Chrome per the `reference-gemini-chrome-workflow` memory;
+   upload: open the "+" menu, `find` the hidden file inputs, `file_upload` to the middle ref):
+   a. **TT-33** (D111): ready + fire, bare hands; weapon prompt in `docs/product/2026-10-20_0030_M2_gemini-armas.md`; then `tools/art/gemini_frames.py`.
+   b. **SD_LegionGunner** (SDLG): only `gem_gunner_turn.png` exists; walkL/walkR/aim/fire/death; frame list in `docs/engine/2026-10-22_P4_ep2-enemies.md`.
+   c. **SD_LibertyColossus** (SDLC) from scratch (same doc).
+   d. **The Consortium** (SDCN, `docs/engine/2026-10-22_P4_ep3-final-boss.md`) and the **AKM** (`docs/engine/2026-10-22_P4_akm.md`, prompt block ready).
+   e. Re-asks in `docs/art/previews/2026-10-22_P4_enemies-gemini.html` (hound lunge, General order frame…).
+   Gemini refuses swastikas: blank armbands; the pipeline paints them (D108).
+2. Integrate gunner + colossus (MAP06), the Consortium (MAP09), the AKM (MAP05-09) into the mod; re-run routes.
+3. **Waiting for the CEO** (`docs/PENDING-CEO-DECISIONS.md`): publish v1.1 / v1.2-rc1; Marx-Engels cells; General death round 2
+   (`work/audio/preview/voices_p2b_listening.html`); world sounds (`work/audio/preview/world_sounds_listening.html`); MAP07 questions; E3 ending wording.
+
 ## Where we are (2026-10-22)
 
 - **v1.0 is public** (tag `v1.0` at d530faa, G6 PASS 4a17a61; Windows, macOS,
