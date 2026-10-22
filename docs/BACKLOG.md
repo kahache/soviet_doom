@@ -30,6 +30,16 @@ commits it):
 | The seven Gemini enemies installed in `assets/sprites/` with their armbands (D109, D114): ~540 modified lumps | `assets/sprites/*`, `tools/art/gen_*.py`, tests |
 | Dog-sound candidates (untracked) | `work/audio/candidates/dog/` |
 
+**D119 (CEO playtest of Episodes 2 and 3, 2026-10-23), agents at work now.** Estimates in k tokens (D69), ±50 %:
+
+| What | Role | Est. k tok | Status |
+|---|---|---|---|
+| Soviet flags: every Nazi and American standard/flag texture in the maps redrawn as USSR flags and Soviet banners, same lump names, with our generators (D113; **not** in the Gemini queue) | `art-director` | 80 | Doing |
+| Ammunition rebalance: less ammo in the maps and a weapon mix that does not leave the player on the shotgun (re-measure the ammo budgets) | `level-designer`, `mod-engineer` | 120 | Doing |
+| ROKS-3 flamethrower toned down (too strong) | `mod-engineer` | 40 | Doing |
+| Bosses at classic Doom's level: the Consortium and the Colossus brought down to Cyberdemon/Spider Mastermind hit points | `mod-engineer` | 60 | Doing |
+| Catalan for the engine's missing lines ("A secret is revealed" and any other) with `[ca]` | `mod-engineer` | 40 | Doing |
+
 ## Next (proposed order; the CEO approves what moves in, D63)
 
 D104 and D113 leave the PM free to push P4 on its own; the order below is the

@@ -74,6 +74,7 @@ Que desbloquea cada pieza:
    sin letras ni numeros; perfil mirando a la izquierda; misma escala en las cinco figuras; el brazalete del Reich,
    rojo con un cuadro blanco **vacio**. **Armas:** manos desnudas, cinco dedos, mano derecha a la derecha, fondo
    magenta liso, el arma entera, casi recta y centrada; sin guantes, enemigos, barra de estado, texto ni arma cortada.
+9. **Banderas sovieticas: NO van a la cola de Gemini** (D119). Las banderas y estandartes de los mapas se hacen con nuestros generadores procedurales (D113), no con Gemini.
 
 ## 3. Bloques comunes (informativo: **ya estan pegados dentro de cada prompt**)
 
@@ -136,6 +137,10 @@ prompt de walkL. Las demas hojas siguen en el mismo chat. Fotogramas que pide la
 (aim, tambien la pausa entre rafagas), F disparar (fire, con fogonazo en la cadera), G dolor (derivado de `turn`), H-L
 muerte (la hoja death, 5 figuras), M-U reventon (derivado con efectos del pipeline). Por eso solo faltan 5 hojas.
 
+**Playtest del CEO (D119):** *"el soldado que dispara ametralladora, que es todo de color ocre, su dibujo disparando parece que dispare lateral y no frontal"*. Los prompts de **aim** y **fire** ya piden que la **vista 1 (frontal) dispare directamente hacia la camara** (canon en escorzo hacia el espectador, fogonazo delante del arma, en el centro) y que las demas vistas apunten hacia donde mira cada una. El aspecto "todo ocre" de hoy es el sprite provisional tenido (D116) y desaparecera con el arte de Gemini.
+
+**Comprobacion antes de guardar aim y fire (D119):** en la figura 1 (frontal) el arma apunta **a la camara** (se ve el canon de frente, en escorzo, no de lado) y, en fire, el fogonazo esta **delante del arma, en el centro** de la figura, no a un costado; en la 3 (perfil) el canon apunta a la **izquierda**; en las vistas de espalda el canon se ve mas alla de su lado lejano. Si la frontal sale disparando de lado, repite solo la hoja con *"View 1 must fire straight at the camera, barrel foreshortened toward the viewer, flash in front of the weapon."*
+
 #### Imagen 3 de 27 (SDLG 1/5)
 - **Chat:** Chat 2 (Legion gunner)
 - **Adjuntar:** work/art/reference/enemies/gemini/gem_gunner_turn.png (adjunta esta hoja en este primer mensaje del chat)
@@ -179,6 +184,7 @@ BACKGROUND: perfectly flat, uniform solid magenta (#FF00FF) everywhere. No groun
 - **Chat:** Chat 2 (Legion gunner)
 - **Adjuntar:** nada (misma conversacion)
 - **Guardar como:** `work/art/reference/enemies/gemini/gem_gunner_aim.png`
+- **Nota:** vista 1 (frontal): apunta hacia la camara, el canon en escorzo hacia el espectador (D119), ver la comprobacion de abajo
 
 ```text
 Same character as the attached reference sheet and the previous sheets, new pose sheet: AIMING.
@@ -187,7 +193,7 @@ Hand-pixelled game sprite sheet in the style of a 1993-1996 PC first-person shoo
 
 CHARACTER: the Liberty Legion heavy gunner of the reference sheet: the same figure, same proportions, same chrome-and-pink-flesh skin with glowing pale-blue eyes, same white M1 steel helmet, same grey shirt with rolled sleeves, same two crossed bandoliers of brass-coloured ammunition, same khaki trousers, same black boots, same small US flag patch on his RIGHT shoulder sleeve, and the same belt-fed M1919 machine gun carried at his hip with a belt of brass rounds hanging from it.
 
-POSE: AIMING. He plants his feet wide and braces, the M1919 levelled at hip height held with both hands, the barrel pointing straight ahead at the target. In the front view the muzzle points at the camera (foreshortened), in the profile the barrel points horizontally to the LEFT, in the back views the barrel is seen beyond his far side. Face scowling, gun steady, NO muzzle flash.
+POSE: AIMING. He plants his feet wide and braces, the M1919 levelled at hip height held with both hands, the barrel always pointing in the direction each view faces. VIEW 1 (front): he aims DIRECTLY AT THE CAMERA, head-on, not sideways: the gun is seen end-on and foreshortened, the muzzle opening a dark circle pointing straight at the viewer, centred in front of his belly, both arms reaching toward the viewer, shoulders square to the camera. View 2 (three-quarter front): the barrel angles toward the camera and to the LEFT. View 3 (profile facing LEFT): the barrel points horizontally to the LEFT. View 4 (three-quarter back): the barrel is seen beyond his far side, pointing away from the camera. View 5 (straight back): the gun is hidden mostly behind his body, only the end of the barrel showing beyond his far side, pointing away from the camera. Face scowling, gun steady, NO muzzle flash.
 
 LAYOUT: exactly FIVE views of the SAME single figure in ONE horizontal row, left to right: 1) front, 2) three-quarter front, 3) side profile facing LEFT, 4) three-quarter back, 5) straight back. All five at exactly the same scale and height, standing on one common baseline, evenly spaced, none touching or overlapping its neighbour, nothing cut off by the image edges, at least 10 px of empty background on every side and under the feet.
 
@@ -198,7 +204,7 @@ BACKGROUND: perfectly flat, uniform solid magenta (#FF00FF) everywhere. No groun
 - **Chat:** Chat 2 (Legion gunner)
 - **Adjuntar:** nada (misma conversacion)
 - **Guardar como:** `work/art/reference/enemies/gemini/gem_gunner_fire.png`
-- **Nota:** los destellos que tocan a la figura vecina fueron lo que complico la hoja fire del General
+- **Nota:** los destellos que tocan a la figura vecina fueron lo que complico la hoja fire del General. **Vista 1 (frontal): dispara hacia la camara** (D119), ver la comprobacion de abajo
 
 ```text
 Same character as the attached reference sheet and the previous sheets, new pose sheet: FIRING.
@@ -207,7 +213,7 @@ Hand-pixelled game sprite sheet in the style of a 1993-1996 PC first-person shoo
 
 CHARACTER: the Liberty Legion heavy gunner of the reference sheet: the same figure, same proportions, same chrome-and-pink-flesh skin with glowing pale-blue eyes, same white M1 steel helmet, same grey shirt with rolled sleeves, same two crossed bandoliers of brass-coloured ammunition, same khaki trousers, same black boots, same small US flag patch on his RIGHT shoulder sleeve, and the same belt-fed M1919 machine gun carried at his hip with a belt of brass rounds hanging from it.
 
-POSE: FIRING. The same braced stance as the aiming sheet, but now the M1919 is blasting a burst: a bright yellow-orange muzzle flash with a small white-hot core at the muzzle, a few brass casings flying out, the gun and shoulders jerked back slightly by the recoil, mouth open shouting. Keep the muzzle flash small and compact, well clear of the neighbouring figures (they must not touch). In the back views the flash shows only beyond his far side, never painted over his back.
+POSE: FIRING. The same braced stance as the aiming sheet, but now the M1919 is blasting a burst: a bright yellow-orange muzzle flash with a small white-hot core at the muzzle, a few brass casings flying out, the gun and shoulders jerked back slightly by the recoil, mouth open shouting. DIRECTION OF FIRE: in VIEW 1 (front) he fires DIRECTLY AT THE CAMERA, NOT sideways: the M1919 is seen end-on and foreshortened with its barrel pointing straight at the viewer, shoulders square to the camera, and the muzzle flash is a star-shaped burst IN FRONT of the weapon, centred on the barrel in the middle of the figure (not off to one side), with the casings flying out to the sides. In view 2 (three-quarter front) the barrel and the flash angle toward the camera and to the LEFT; in view 3 (profile facing LEFT) the barrel and the flash point horizontally to the LEFT; in views 4 and 5 (back) the flash shows only beyond his far side, pointing away from the camera, never painted over his back. Keep the muzzle flash small and compact, well clear of the neighbouring figures (they must not touch).
 
 LAYOUT: exactly FIVE views of the SAME single figure in ONE horizontal row, left to right: 1) front, 2) three-quarter front, 3) side profile facing LEFT, 4) three-quarter back, 5) straight back. All five at exactly the same scale and height, standing on one common baseline, evenly spaced, none touching or overlapping its neighbour, nothing cut off by the image edges, at least 10 px of empty background on every side and under the feet.
 
