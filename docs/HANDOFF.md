@@ -6,6 +6,12 @@ sign-off). Decisions up to **D99** are in `docs/PRD.md`; open CEO items in
 the checkpoint for the CEO is
 `docs/product/2026-10-20_1639_P0_v1-roadmap-checkpoint.md`.
 
+## P4 PUSH 2026-10-22 (D104, D105) — resume from here after a cut
+Done and pushed: Episode 2 maps MAP04-06 (routes PASS skills 2-4), scaffolding, music and texture drafts (pages for the CEO), the Episode 2 enemies as a draft overlay (`tools/make_ep2_enemy_overlay.py`), the Gemini enemy pipeline (`tools/art/gemini_enemy.py all` -> `work/overlays/sd-draft-enemies.pk3`) with SDRR, SDLT, SDHS redrawn.
+Gemini sheets: `work/art/reference/enemies/gemini/` (local only, D77); prompts: upload `work/art/reference/enemies/clean_<enemy>.png` (swastikas blanked) via the hidden image input, then turn / walkL / walkR / aim / fire / death (cartoonish, no blood words). Gemini's daily image limit hit at ~07:40 (reset 08:19).
+Next: the hound (only `gem_hound_turn.png` done), Doughboy, Panzermensch, General (blank the coat symbol too), then the new SD_LegionGunner (SDLG) and SD_LibertyColossus (SDLC) from scratch; re-asks listed in the review sheet.
+**Swastika (D105): never applied until the CEO picks A/B in `docs/art/previews/2026-10-22_P4_rifleman-armband-proposal.png`.**
+
 ## NIGHT SHIFT 2026-10-21 (D102) — DONE 23:30; the morning report is `docs/product/2026-10-21_2330_P0_informe-noche.md`
 
 The CEO is asleep and wants everything advanced; ask him nothing until morning.
