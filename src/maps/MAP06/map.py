@@ -1,4 +1,4 @@
-"""MAP06 "Red Square" (Красная площадь), episode 2's last map - v1.
+"""MAP06 "Red Square" (ÐšÑ€Ð°ÑÐ½Ð°Ñ Ð¿Ð»Ð¾Ñ‰Ð°Ð´ÑŒ), episode 2's last map - v1.
 
 Design document: docs/levels/MAP06-red-square.md (section 4 is the plan,
 section 5 the route, section 9 the population).
@@ -10,11 +10,12 @@ Ploshchad Revolyutsii, crosses Nikolskaya into the GUM, takes the square,
 and goes through the Kremlin wall's Spasskaya gate to the episode's boss.
 
 Built v1 straight away, MVP first (D60): the whole plan, textured with the
-approved sets only (Soviet base, metro, Tankograd), populated and stocked.
-Where a Moscow piece would read better (cobbles, the GUM's facade, the
-Kremlin's swallowtail merlons, the mausoleum's granite) the nearest approved
-lump stands in, and the design document lists it under "Pending textures"
-for the art-director's draft "Moscow" set.
+approved sets only, populated and stocked. v1.1 (2026-10-22) dresses it in
+episode 2's Moscow set (D107): the square's setts with granite lines, the
+Kremlin wall's brick with its swallowtail merlons against the sky, the GUM's
+facade, the tribunes' and the mausoleum's granite, the Spasskaya's stone,
+the parade banners on the wall, armour plate on the parade's vehicles. What
+is still a stand-in is listed under "Pending textures" in the design document.
 
 The route, in one line: the station's hall (statues in its arches) ->
 escalator -> the street pavilion -> Nikolskaya street -> the GUM's north
@@ -33,9 +34,11 @@ design document for the PM's engine pass (D26: this role never starts
 GZDoom):
 
 * open air at several sky heights: the square's sky (ceiling F_SKY1) sits at
-  the GUM facade's height, the Kremlin wall is a strip of closed sky sectors
-  (floor = ceiling) 256 and 288 high in 32-unit steps, so the wall shows
-  merlons against the sky, and the Spasskaya tower rises in three closed sky
+  the GUM facade's height; the Kremlin wall is a closed sky block (floor =
+  ceiling) with a walk 32 deep in front of it, open to the sky from
+  WALL_WALK to MERLON_TOP, and the line between the walk and the square wears
+  the masked SDKREM2 as its middle texture, so the swallowtail merlons stand
+  against the sky; the Spasskaya tower rises in three closed sky
   blocks inside an apron whose sky is higher (Doom's sky hack: no upper
   texture is drawn between two sky ceilings). NOT VERIFIED in engine;
 * the exit depends on a death: the boss's thing carries Door_Open on
@@ -77,9 +80,9 @@ MAP_NAME = "MAP06"
 
 # --- The approved sets (docs/art/TEXTURE-INDEX.md) ---------------------------
 # Soviet base (batch 1-3)
-CONCRETE = "SDCONC1"    # 64x128 pale prefab panels: the GUM's and Nikolskaya's facades (stand-in)
-STAR = "SDSTAR1"        # 128x128 star plaque: the Spasskaya tower's upper stage (the ruby star, suggested)
-STEEL = "SDSTEL1"       # military-green riveted plate: parade vehicles, door jambs, the tower's spire
+CONCRETE = "SDCONC1"    # 64x128 pale prefab panels: Nikolskaya's other houses, the gatehouse, the park
+STAR = "SDSTAR1"        # 128x128 star plaque: the Spasskaya tower's clock stage (stand-in: the clock, the ruby star)
+STEEL = "SDSTEL1"       # military-green riveted plate: door jambs, the street's truck, the tower's tent
 DOOR = "SDDOOR1"        # 128x128 door leaf: the blue door (framed by the metro's cobalt mosaics)
 CRATE = "SDCRAT1"       # 64x64 crate face: looted stock in the shops, S2's wall of crates
 LONG_CRATE = "SDCRAT2"  # 128x64 long crate: the street's barricades
@@ -89,20 +92,20 @@ CEIL_CONCRETE = "SDCEIL2"
 EXIT_FACE = "SDSW1D"    # the hazard panel every map's exit wears
 # Metro (batch 2, D42, D48)
 TILE = "SDTILE1"        # glazed cream tile: the escalator, the GUM's shops
-MARBLE = "SDMARB1"      # red marble: the station's hall; the mausoleum (stand-in for its granite)
+MARBLE = "SDMARB1"      # red marble: the station's hall, the fountain, the courtyard's dais
 STATION_WALL = "SDMARB2"    # tile over red marble with a brass rail: platforms, the GUM's halls
 MOSAIC = "SDMOSA1"      # 128x128 cobalt star mosaic: the blue lock's frame (MAP02's), S1's row
 BRASS = "SDBRAS1"       # 64x128 brass pilaster: the bronze statues, Minin and Pozharsky, the Tsar Bell
 TUBBING = "SDTUBB1"     # 128x128 cast-iron tubbing: the track walls
 PLATFORM_FACE = "SDMEDG1"   # 64x64 platform face: the edge towards the track
-GRANITE = "SDMFLR1"     # grey granite: the square (cobbles, stand-in), the arcade, the courtyard
+GRANITE = "SDMFLR1"     # grey granite: the arcade, thresholds, the stands, the monuments' tops
 GRANITE_CHECK = "SDMFLR2"   # checker granite: the station hall, the GUM's floors
 PLATFORM_EDGE = "SDMFLR3"   # platform edge from above, lip on row 63 (rotated per side)
 RAILS = "SDRAIL1"       # track bed, rails along the image's y (turned a quarter)
 CEIL_COFFER = "SDMCEIL1"    # whitewashed coffer: the GUM's halls and shops
 CEIL_LAMP = "SDMCEIL2"      # coffer with a brass ring lamp: the station hall
 # Tankograd (batch 4, D66): the Kremlin is red brick
-BRICK = "SDBRCK1"       # 64x128 red brick: the Kremlin wall and towers, the Historical Museum
+BRICK = "SDBRCK1"       # 64x128 red brick: the Historical Museum, the courtyard's palaces (the flags' ground)
 BRICK_DADO = "SDBRCK2"  # the same brick whitewashed to 64: the parapet over the slope
 DOOR_YELLOW = "SDDOORY"     # the yellow gatehouse's leaf
 DOOR_RED = "SDDOORR"        # the Spasskaya gate's leaf
@@ -111,12 +114,24 @@ WINDOW = "SDWIND1"      # 64x128 glazing at night (one pane broken, one boarded)
 FLAG_REICH = "SDFLAG1"  # the Fourth Reich's banner on brick (D12)
 FLAG_LEGION = "SDFLAG2"     # the Liberty Legion's banner on brick (D12)
 PLATE = "SDFLR4"        # 64x64 chequer plate: the parade vehicles' decks
+# Episode 2, Moscow (D107): Red Square and the Kremlin
+COBBLES = "SDCOBL1"     # flat: the square's dark setts, the Kremlin courtyard
+COBBLES_LINE = "SDCOBL2"    # flat: the setts with a line of pale granite slabs along x
+KREMLIN = "SDKREM1"     # 64x128 the Kremlin wall's red brick
+MERLON = "SDKREM2"      # 64x128 masked: SDKREM1's brick cut to a swallowtail in its top half
+GUM_FACADE = "SDGUM1"   # 128x128 one bay of the GUM's facade: an arched window, a cornice
+TRIBUNE = "SDTRIB1"     # 64x128 dark red granite, a black labradorite band on top
+BANNER = "SDBANR1"      # 64x128 a parade banner hung on SDKREM1's brick
+SPASSKAYA = "SDSPAS1"   # 64x128 the tower's brick and white stone, its frieze on top
+# Episode 2, railway (D107): the armoured train's plate dresses the parade
+ARMOUR_STAR = "SDARMR1"     # 128x128 armour plate with a red star: the missile carriers' flanks
+ARMOUR = "SDARMR2"      # 64x128 the same plate without the star: every other vehicle face
 # The engine's sky marker (check_pk3 BUILTIN_TEXTURE_NAMES); MAPINFO's sky1
 # says which picture (mod-engineer's; a Moscow night sky is pending).
 SKY = "F_SKY1"
 
-# The approved posters (CEO 2026-10-22: «que esos posters puedan aparecer en
-# cualquier nivel»; tests/test_posters.py). Lenin and Stalin are 128x256.
+# The approved posters (CEO 2026-10-22: Â«que esos posters puedan aparecer en
+# cualquier nivelÂ»; tests/test_posters.py). Lenin and Stalin are 128x256.
 LENIN = "SDPOSTR1"
 STALIN = "SDPOSTR3"
 MURAL = "SDPOSTR2"      # 128x128; not hung here (no 128-high wall on the route fits it)
@@ -170,18 +185,25 @@ WINDOW_SILL = 112       # the GUM's facade windows: a slit 48 high, seen through
 WINDOW_HEAD = 160
 # The square's skies. Each one-sided wall shows as high as the sky of the
 # sector it bounds; two sky ceilings side by side draw no wall between them.
-SQUARE_SKY = 384        # the GUM's facade and the museum: three storeys
-STREET_SKY = 320
+SQUARE_SKY = 384        # the GUM's facade and the museum: three storeys, three bays of SDGUM1
+STREET_SKY = SQUARE_SKY     # the GUM's north facade on Nikolskaya: the same three bays
 PASSAGE_SKY = 448       # the GUM's glass roof over its line (the night through it)
-WALL_TOP = 256          # the Kremlin wall: crenels
-MERLON_TOP = 288        # and merlons, 32 wide each
+# The Kremlin wall: a body (closed sky block) at WALL_WALK and, on its open
+# side, a walk WALL_WALK_DEPTH deep open to the sky up to MERLON_TOP. The
+# line between the walk and the square wears MERLON as its middle texture:
+# one tile, pegged to the walk's sky, its solid lower half the parapet and
+# its upper half the swallowtails. The face below the walk is one tile of
+# KREMLIN, so a BANNER hangs on it whole.
+WALL_WALK = TILE_SIZE   # 128
+MERLON_TOP = WALL_WALK + TILE_SIZE      # 256: the merlons' tips
+WALL_WALK_DEPTH = 32
 GATE_APRON_SKY = MERLON_TOP     # in front of the Spasskaya gate: the wall's own height over its arch
 TOWER_APRON_SKY = 768   # round the tower: high enough to show its three stages
 TOWER_BASE = 448
 TOWER_STAGE = TOWER_BASE + TILE_SIZE    # 576: the star plaque's tier
 TOWER_SPIRE = TOWER_STAGE + TILE_SIZE   # 704: the green tent
 PARAPET = 128           # the stone parapet over the slope: seen over, not climbed
-FLAG_SILL = MERLON_TOP - TILE_SIZE      # 160: a banner hung from the parapet, one tile
+FLAG_SILL = MERLON_TOP - TILE_SIZE      # 128: an occupier's flag hung in the crown, one tile
 ARENA_SKY = 512
 YARD_SKY = 256
 MAUSOLEUM = (64, 112, 144)  # its three granite tiers (a prop: never walked, never fought on)
@@ -312,6 +334,26 @@ TRIBUNE_S_Y = (1856, 2112)
 TRIBUNE_X = (1664, 1984)        # a top row 96 deep, then 7 steps of 32 down to the square
 TRIBUNE_TOP_DEPTH = 96
 FLAGS_ON_THE_WALL = ((3136, FLAG_REICH), (3264, FLAG_LEGION))
+FLAG_WIDTH = 64
+# The square's floor: dark setts, crossed by three lines of pale granite slabs
+# (SDCOBL2, one line per 64 tile), each a strip of its own sector one tile
+# deep on the flat grid. They cross where no thing stands (tested).
+SQUARE_LINES_Y = (1728, 2240, 2816)
+SQUARE_LINE_DEPTH = 64
+# The parade banners (SDBANR1) on the Kremlin wall's face, each one 64 span of
+# it, whole: two by the Spasskaya gate, one either side of the mausoleum, two
+# at the north end. None under the occupiers' flags.
+BANNERS_Y = (1664, 1792, 2112, 2432, 3008, 3392)
+BANNER_WIDTH = 64
+# World-aligned textures: {lump: the height their tile rows count from}. Their
+# columns run with the world's x or y and their rows from that height, so the
+# brick, the bays and the frieze run on unbroken from one line to the next.
+ALIGN_PERIOD = 128      # every aligned lump is 128 high and 64 or 128 wide
+ALIGNED = {KREMLIN: 0, MERLON: 0, BANNER: 0, GUM_FACADE: 0, SPASSKAYA: TOWER_BASE}
+# The missile carriers' flanks: SDARMR1 with its star (rows 29-88, measured on
+# the approved lump) whole on a 64-high hull, one star per 128.
+STAR_ROWS = (29, 88)
+STAR_OFFSET = 28
 # The parade, halted where it was staged (design section 4.4): (name, hull, deck
 # height, top piece, top height). Every one stands clear of the sight lines from
 # the blue door to the three things the square must show (tested).
@@ -722,18 +764,98 @@ def secret_panel_style(tag: int, panel: int, texture: str) -> LineStyle:
     return replace(style, flags=style.flags + ("secret",))
 
 
-def merlon_cells(y1: int, y2: int, x1: int, x2: int):
-    """Split a strip of wall top into 32-unit cells along y, merlon first:
-    ([merlon rects], [crenel rects])."""
-    merlons, crenels = [], []
-    for n, y in enumerate(range(y1, y2, 32)):
-        (merlons if n % 2 == 0 else crenels).append((x1, y, x2, min(y + 32, y2)))
-    return merlons, crenels
+def _sides(tm: TextMap, ld):
+    """[(sidedef, its sector, the other sector or None, start, end)] for each
+    side of `ld`: start and end are the side's own run (v1->v2 for the front,
+    v2->v1 for the back), the way the engine lays its texture."""
+    a, b = tm.vertices[ld.v1], tm.vertices[ld.v2]
+    front = tm.sidedefs[ld.sidefront]
+    if ld.sideback is None:
+        return [(front, tm.sectors[front.sector], None, a, b)]
+    back = tm.sidedefs[ld.sideback]
+    fs, bs = tm.sectors[front.sector], tm.sectors[back.sector]
+    return [(front, fs, bs, a, b), (back, bs, fs, b, a)]
+
+
+def _run(start, end) -> tuple[int, int]:
+    """The unit direction of an axis-aligned run."""
+    return ((end.x > start.x) - (end.x < start.x), (end.y > start.y) - (end.y < start.y))
+
+
+def hang_merlons(tm: TextMap, walks: set[int], faces_x: tuple[int, ...]) -> None:
+    """SDKREM2 on the face of each wall walk: the middle texture of every
+    two-sided line on `faces_x` between a walk and the open ground, on the
+    ground's side. The line is impassable (nothing floats onto the walk).
+    GridMap dresses only the upper and lower parts of a two-sided line, so
+    this is done on the built map, as MAP03 hangs its chains."""
+    for ld in tm.linedefs:
+        a, b = tm.vertices[ld.v1], tm.vertices[ld.v2]
+        if ld.sideback is None or a.x != b.x or a.x not in faces_x:
+            continue
+        front, back = tm.sidedefs[ld.sidefront], tm.sidedefs[ld.sideback]
+        for walk, face in ((front, back), (back, front)):
+            if walk.sector in walks and face.sector not in walks:
+                face.texturemiddle = MERLON
+                ld.blocking = True
+
+
+def dress_carriers(tm: TextMap, carriers: dict[int, tuple[int, int, int, int]]) -> None:
+    """The missile carriers' long flanks wear SDARMR1, its star whole: one
+    star per 128 from the flank's end, raised STAR_OFFSET rows."""
+    for ld in tm.linedefs:
+        if ld.sideback is None:
+            continue
+        indices = (tm.sidedefs[ld.sidefront].sector, tm.sidedefs[ld.sideback].sector)
+        for (side, sector, other, start, end), far in zip(_sides(tm, ld), reversed(indices)):
+            hull = carriers.get(far)
+            if hull is None or side.texturebottom != ARMOUR or sector.heightfloor >= other.heightfloor:
+                continue
+            x1, y1, x2, y2 = hull
+            if not (start.x == end.x and start.x in (x1, x2)):
+                continue    # the short ends keep the plain plate
+            dx, dy = _run(start, end)
+            first = min(y1 * dy, y2 * dy)
+            side.texturebottom = ARMOUR_STAR
+            side.offsetx = int(start.y * dy - first) % ALIGN_PERIOD
+            side.extra["offsety_bottom"] = STAR_OFFSET
+
+
+def align_to_world(tm: TextMap) -> None:
+    """Give every side that wears an ALIGNED lump the offsets that lay it on
+    the world: its columns follow x or y (so the brick runs on across lines),
+    its rows count from the lump's height in ALIGNED. The anchors are Doom's
+    pegging rules, per part (UDMF's offsety_top / _mid / _bottom)."""
+    for ld in tm.linedefs:
+        flags = set(ld.flags)
+        for side, sector, other, start, end in _sides(tm, ld):
+            parts = {"top": side.texturetop, "mid": side.texturemiddle, "bottom": side.texturebottom}
+            if not any(t in ALIGNED for t in parts.values()):
+                continue
+            dx, dy = _run(start, end)
+            side.offsetx = int(start.x * dx + start.y * dy) % ALIGN_PERIOD
+            for part, texture in parts.items():
+                if texture not in ALIGNED:
+                    continue
+                if other is None:
+                    anchor = (sector.heightfloor + ALIGN_PERIOD if "dontpegbottom" in flags
+                              else sector.heightceiling)
+                elif part == "top":
+                    anchor = (sector.heightceiling if "dontpegtop" in flags
+                              else other.heightceiling + ALIGN_PERIOD)
+                elif part == "bottom":
+                    anchor = sector.heightceiling if "dontpegbottom" in flags else other.heightfloor
+                else:
+                    anchor = (max(sector.heightfloor, other.heightfloor) + ALIGN_PERIOD
+                              if "dontpegbottom" in flags
+                              else min(sector.heightceiling, other.heightceiling))
+                offset = (ALIGNED[texture] - anchor) % ALIGN_PERIOD
+                if offset:
+                    side.extra[f"offsety_{part}"] = offset
 
 
 def build_plan() -> tuple[TextMap, dict[str, int]]:
     """Build the map; return it with {zone name: sector index}."""
-    tm = TextMap(comment=f"{MAP_NAME} v1 generated by src/maps/{MAP_NAME}/map.py - do not edit by hand")
+    tm = TextMap(comment=f"{MAP_NAME} v1.1 generated by src/maps/{MAP_NAME}/map.py - do not edit by hand")
     g = GridMap(tm, wall=CONCRETE)
     plan: dict[str, int] = {}
 
@@ -852,6 +974,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     zone("z3_street", GROUND, STREET_SKY, [STREET], light=LIGHT_STREET, flat=FLOOR_ASPHALT,
          ceiling=SKY, wall=CONCRETE)
     sx1, sy1, sx2, sy2 = STREET
+    # The GUM's north facade, across the street from the courtyard gates.
+    g.style_h(sy1, GUM_NORTH[0], GUM_NORTH[2], LineStyle(texture=GUM_FACADE))
     for n, gx in enumerate(STREET_GATES_X, start=1):
         if n == 2:
             continue    # S3, below
@@ -980,72 +1104,92 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     # Z6 Red Square
     # ======================================================================
-    zone("z6_square", GROUND, SQUARE_SKY, [SQUARE], light=LIGHT_SQUARE, flat=GRANITE,
+    zone("z6_square", GROUND, SQUARE_SKY, [SQUARE], light=LIGHT_SQUARE, flat=COBBLES,
          ceiling=SKY, wall=CONCRETE)
     sq_x1, sq_y1, sq_x2, sq_y2 = SQUARE
+    # The granite lines across the setts (before anything stands on them).
+    for n, ly in enumerate(SQUARE_LINES_Y, start=1):
+        like("z6_square", f"z6_line_{n}", [(sq_x1, ly, sq_x2, ly + SQUARE_LINE_DEPTH)],
+             flat=COBBLES_LINE)
+    # The GUM's facade on the square: three storeys of bays, the blue door's
+    # portal, the window slits and the portraits' niches cut into it.
+    g.style_v(sq_x2, sq_y1, sq_y2, LineStyle(texture=GUM_FACADE))
     # Higher skies round the Spasskaya tower, and the wall's own height in
     # front of its gate.
     tx1, ty1, tx2, ty2 = TOWER
     like("z6_square", "z6_tower_apron", [(tx2, sq_y1, 2048, GATE_Y[0]), (sq_x1, ty2, tx2, GATE_Y[0]),
                                          (sq_x1, sq_y1, tx2, ty1)], ceil=TOWER_APRON_SKY)
     like("z6_square", "z6_gate_apron", [(sq_x1, GATE_Y[0], 1792, GATE_Y[1])], ceil=GATE_APRON_SKY)
-    # The Kremlin wall: 32-unit merlons and crenels against the sky, on the
-    # square and down the slope (the vehicle park's west side).
+    # The Kremlin wall, on the square and down the slope (the vehicle park's
+    # west side): the body, and the walk whose face wears the swallowtails
+    # (hang_merlons, after the build). Where the parapet over the slope meets
+    # it, a solid pier as high as the merlons.
     kx1, kx2 = KREMLIN_STRIP_X
-    merlons, crenels = [], []
-    for y1, y2 in ((PARK[1], ty1), (ty2, GATE_Y[0]), (GATE_Y[1], sq_y2)):
-        m, c = merlon_cells(y1, y2, kx1, kx2)
-        merlons += m
-        crenels += c
-    block("prop_z6_crenels", WALL_TOP, crenels, wall=BRICK, light=LIGHT_SQUARE)
-    merlon = block("prop_z6_merlons", MERLON_TOP, merlons, wall=BRICK, light=LIGHT_SQUARE)
-    # The occupiers' two banners side by side, hung from the parapet (D12, LORE).
+    walk_x = kx2 - WALL_WALK_DEPTH
+    spans = ((PARK[1], ty1), (ty2, GATE_Y[0]), (GATE_Y[1], sq_y2))
+    block("prop_z6_wall", WALL_WALK, [(kx1, y1, walk_x, y2) for y1, y2 in spans],
+          wall=KREMLIN, light=LIGHT_SQUARE)
+    zone("prop_z6_wall_walk", WALL_WALK, MERLON_TOP, [(walk_x, y1, kx2, y2) for y1, y2 in spans],
+         light=LIGHT_SQUARE, ceiling=SKY, wall=KREMLIN)
+    piers = block("prop_z6_wall_piers", MERLON_TOP, [(kx1, PARK[3], kx2, sq_y1)], wall=KREMLIN,
+                  light=LIGHT_SQUARE)
+    # The occupiers' two flags side by side in the crown, where the merlons
+    # give way (D12, LORE): each on a pier's face, one tile, behind the walk.
     for n, (fy, texture) in enumerate(FLAGS_ON_THE_WALL, start=1):
-        zone(f"{PROP_PREFIX}z6_flag_{n}", FLAG_SILL, MERLON_TOP, [(kx1 + 32, fy, kx2, fy + 64)],
-             light=LIGHT_SQUARE, ceiling=SKY, wall=BRICK)
-        g.paint(merlon, kx1, fy, kx1 + 32, fy + 64)
-        g.style_v(kx1 + 32, fy, fy + 64, LineStyle(texture=texture))
-    # The Spasskaya tower: brick base, the star plaque's tier, the green tent.
-    block("prop_z6_tower", TOWER_BASE, [TOWER], wall=BRICK, light=LIGHT_SQUARE)
+        zone(f"{PROP_PREFIX}z6_flag_{n}", FLAG_SILL, MERLON_TOP, [(walk_x, fy, kx2, fy + FLAG_WIDTH)],
+             light=LIGHT_SQUARE, ceiling=SKY, wall=KREMLIN)
+        g.paint(piers, kx1, fy, walk_x, fy + FLAG_WIDTH)
+        g.style_v(walk_x, fy, fy + FLAG_WIDTH, LineStyle(texture=texture))
+    # The parade's banners on the wall's face, below the walk.
+    for by in BANNERS_Y:
+        g.style_v(kx2, by, by + BANNER_WIDTH, LineStyle(texture=BANNER))
+    # The Spasskaya tower: its stone base, the clock stage (the star plaque
+    # stands in), the green tent.
+    block("prop_z6_tower", TOWER_BASE, [TOWER], wall=SPASSKAYA, light=LIGHT_SQUARE)
     block("prop_z6_tower_mid", TOWER_STAGE, [TOWER_MID], wall=STAR, light=LIGHT_SQUARE)
     block("prop_z6_tower_top", TOWER_SPIRE, [TOWER_TOP], wall=STEEL, light=LIGHT_SQUARE)
     # The red lock: the Spasskaya gate, in the wall beside the tower.
     zone("z6_red_portal", GROUND, DOOR_HEIGHT, [(kx1, GATE_Y[0], kx2, GATE_Y[1])],
-         light=LIGHT_BEACON, flat=GRANITE, ceiling=CEIL_CONCRETE, wall=BRICK, extra=RED_LIGHT)
+         light=LIGHT_BEACON, flat=GRANITE, ceiling=CEIL_CONCRETE, wall=KREMLIN, extra=RED_LIGHT)
     red_door = door("z8_red_door", GROUND, TAG_RED_DOOR, (1568, GATE_Y[0], kx1, GATE_Y[1]),
                     light=LIGHT_PASSAGE_GATE)
     # The mausoleum, three granite tiers, closed: architecture, nothing else
     # (D12: no fight on it, nothing on it; tested).
     for n, (rect, top) in enumerate(zip(((sq_x1, 2176, 1856, 2432), (sq_x1, 2208, 1824, 2400),
                                          (sq_x1, 2240, 1792, 2368)), MAUSOLEUM), start=1):
-        prop("z6_square", f"z6_mausoleum_{n}", rect, top, wall=MARBLE)
+        prop("z6_square", f"z6_mausoleum_{n}", rect, top, wall=TRIBUNE, flat=GRANITE)
     # The two reviewing stands either side of it: seven steps up to a top row
     # against the wall. The yellow key lies on the north one's top row.
     for side, (ty_1, ty_2), extra in (("n", TRIBUNE_N_Y, YELLOW_LIGHT), ("s", TRIBUNE_S_Y, {})):
         top_light = LIGHT_BEACON if side == "n" else LIGHT_SQUARE
         zone(f"z6_tribune_{side}_top", STAND_TOP, SQUARE_SKY,
              [(TRIBUNE_X[0], ty_1, TRIBUNE_X[0] + TRIBUNE_TOP_DEPTH, ty_2)], light=top_light,
-             flat=GRANITE, ceiling=SKY, wall=CONCRETE, extra=extra)
+             flat=GRANITE, ceiling=SKY, wall=TRIBUNE, extra=extra)
         for k in range(1, 8):
             x2 = TRIBUNE_X[1] - STEP_DEPTH * (k - 1)
             zone(f"z6_tribune_{side}_{k}", STEP * k, SQUARE_SKY, [(x2 - STEP_DEPTH, ty_1, x2, ty_2)],
-                 light=LIGHT_SQUARE, flat=GRANITE, ceiling=SKY, wall=CONCRETE)
-    # The parade, halted.
+                 light=LIGHT_SQUARE, flat=GRANITE, ceiling=SKY, wall=TRIBUNE)
+    # The parade, halted: armour plate (dress_carriers puts the star on the
+    # missile carriers' flanks after the build).
+    carriers: dict[int, tuple[int, int, int, int]] = {}
     for name, hull, deck, top, top_h in VEHICLES:
         room = "z7_park" if name.startswith("p") else "z6_square"
         if room == "z7_park":
             continue    # below, once the park exists
-        prop(room, f"z6_vehicle_{name}", hull, deck, wall=STEEL, flat=PLATE)
+        index = prop(room, f"z6_vehicle_{name}", hull, deck, wall=ARMOUR, flat=PLATE)
+        if deck == CARRIER_HULL:
+            carriers[index] = hull
         if top:
-            prop(room, f"z6_vehicle_{name}_top", top, top_h, wall=STEEL, flat=PLATE)
+            prop(room, f"z6_vehicle_{name}_top", top, top_h, wall=ARMOUR, flat=PLATE)
     # Minin and Pozharsky: bronze on a granite plinth, at the square's south end.
-    prop("z6_square", "z6_minin_plinth", (3136, 1344, 3264, 1408), MININ_PLINTH, wall=MARBLE)
-    prop("z6_square", "z6_minin", (3168, 1360, 3232, 1392), MININ_BRONZE, wall=BRASS)
+    prop("z6_square", "z6_minin_plinth", (3136, 1344, 3264, 1408), MININ_PLINTH, wall=TRIBUNE,
+         flat=GRANITE)
+    prop("z6_square", "z6_minin", (3168, 1360, 3232, 1392), MININ_BRONZE, wall=BRASS, flat=GRANITE)
     # The parade portraits on the GUM's facade, raised over the cobbles.
     for who, (py1, py2) in PORTRAIT_NICHES.items():
         like("z6_square", f"{PROP_PREFIX}z6_portrait_{who}", [(sq_x2, py1, sq_x2 + NICHE_DEPTH, py2)],
              floor=GROUND + PORTRAIT_SILL, ceil=GROUND + PORTRAIT_SILL + POSTER_HEIGHT,
-             ceiling=CEIL_CONCRETE)
+             ceiling=CEIL_CONCRETE, flat=GRANITE)
     # The Historical Museum's red brick, and its two closets.
     g.style_h(sq_y2, MUSEUM_X[0], MUSEUM_X[1], LineStyle(texture=BRICK))
     for name, (cx1, cx2) in CLOSETS.items():
@@ -1074,9 +1218,11 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for name, hull, deck, top, top_h in VEHICLES:
         if not name.startswith("p"):
             continue
-        prop("z7_park", f"z7_vehicle_{name}", hull, deck, wall=STEEL, flat=PLATE)
+        index = prop("z7_park", f"z7_vehicle_{name}", hull, deck, wall=ARMOUR, flat=PLATE)
+        if deck == CARRIER_HULL:
+            carriers[index] = hull
         if top:
-            prop("z7_park", f"z7_vehicle_{name}_top", top, top_h, wall=STEEL, flat=PLATE)
+            prop("z7_park", f"z7_vehicle_{name}_top", top, top_h, wall=ARMOUR, flat=PLATE)
     zone("z7_pedestal", GROUND + STEP, SQUARE_SKY, [(2112, 640, 2240, 768)], light=LIGHT_BEACON,
          flat=PLATE, ceiling=SKY, wall=STEEL, extra=RED_LIGHT)
 
@@ -1084,19 +1230,24 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # Z8 The Spasskaya gate's passage, Z9 the Kremlin courtyard, Z10 the exit
     # ======================================================================
     zone("z8_passage", GROUND, DOOR_HEIGHT, [(ARENA_STRIP_X[1], GATE_Y[0], 1568, GATE_Y[1])],
-         light=LIGHT_PASSAGE_GATE, flat=GRANITE, ceiling=CEIL_CONCRETE, wall=BRICK)
+         light=LIGHT_PASSAGE_GATE, flat=GRANITE, ceiling=CEIL_CONCRETE, wall=KREMLIN)
     ax1, ay1, ax2, ay2 = ARENA
-    zone("z9_arena", GROUND, ARENA_SKY, [ARENA], light=LIGHT_ARENA, flat=GRANITE, ceiling=SKY,
+    zone("z9_arena", GROUND, ARENA_SKY, [ARENA], light=LIGHT_ARENA, flat=COBBLES, ceiling=SKY,
          wall=BRICK)
     zone("z9_gate_apron", GROUND, GATE_APRON_SKY, [(ARENA_STRIP_X[0], GATE_Y[0], ARENA_STRIP_X[1], GATE_Y[1])],
-         light=LIGHT_ARENA, flat=GRANITE, ceiling=SKY, wall=BRICK)
-    am, ac = [], []
-    for y1, y2 in ((ay1, GATE_Y[0]), (GATE_Y[1], ay2)):
-        m, c = merlon_cells(y1, y2, *ARENA_STRIP_X)
-        am += m
-        ac += c
-    block("prop_z9_crenels", WALL_TOP, ac, wall=BRICK, light=LIGHT_ARENA)
-    block("prop_z9_merlons", MERLON_TOP, am, wall=BRICK, light=LIGHT_ARENA)
+         light=LIGHT_ARENA, flat=COBBLES, ceiling=SKY, wall=KREMLIN)
+    # The Kremlin wall from inside: its walk on the courtyard's side, the
+    # body behind; two piers as high as the merlons flank the gate's passage.
+    zx1, zx2 = ARENA_STRIP_X
+    zwalk_x = zx1 + WALL_WALK_DEPTH
+    zspans = ((ay1, GATE_Y[0] - WALL_WALK_DEPTH), (GATE_Y[1] + WALL_WALK_DEPTH, ay2))
+    zone("prop_z9_wall_walk", WALL_WALK, MERLON_TOP, [(zx1, y1, zwalk_x, y2) for y1, y2 in zspans],
+         light=LIGHT_ARENA, ceiling=SKY, wall=KREMLIN)
+    block("prop_z9_wall", WALL_WALK, [(zwalk_x, y1, zx2, y2) for y1, y2 in zspans],
+          wall=KREMLIN, light=LIGHT_ARENA)
+    block("prop_z9_wall_piers", MERLON_TOP, [(zx1, GATE_Y[0] - WALL_WALK_DEPTH, zx2, GATE_Y[0]),
+                                            (zx1, GATE_Y[1], zx2, GATE_Y[1] + WALL_WALK_DEPTH)],
+          wall=KREMLIN, light=LIGHT_ARENA)
     zone("z9_dais_1", GROUND + DAIS, ARENA_SKY, [(832, 1408, 1088, 1664)], light=LIGHT_ARENA,
          flat=GRANITE_CHECK, ceiling=SKY, wall=MARBLE)
     zone("z9_dais_2", GROUND + 2 * DAIS, ARENA_SKY, [(896, 1472, 1024, 1600)], light=LIGHT_ARENA,
@@ -1143,6 +1294,12 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
 
     g.build()
 
+    # Middle textures and offsets, on the built lines.
+    hang_merlons(tm, {plan["prop_z6_wall_walk"], plan["prop_z9_wall_walk"]},
+                 (KREMLIN_STRIP_X[1], ARENA_STRIP_X[0]))
+    dress_carriers(tm, carriers)
+    align_to_world(tm)
+
     # Things.
     tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START,
                        angle=PLAYER_ANGLE))
@@ -1179,7 +1336,8 @@ def lumps() -> list[tuple[str, bytes]]:
 # Every lump name this map may put in a sidedef or a sector.
 WALL_TEXTURES = ((CONCRETE, STAR, STEEL, CRATE, LONG_CRATE, TILE, MARBLE, STATION_WALL, MOSAIC,
                  BRASS, TUBBING, PLATFORM_FACE, BRICK, BRICK_DADO, WINDOW, FLAG_REICH,
-                 FLAG_LEGION, LENIN, STALIN) + DOOR_LEAVES + SWITCH_FACES
+                 FLAG_LEGION, LENIN, STALIN, KREMLIN, MERLON, GUM_FACADE, TRIBUNE, BANNER,
+                 SPASSKAYA, ARMOUR_STAR, ARMOUR) + DOOR_LEAVES + SWITCH_FACES
                  + ((MARX_ENGELS,) if MARX_ENGELS else ()))
 FLAT_TEXTURES = (FLOOR_ASPHALT, CEIL_CONCRETE, CRATE_TOP, GRANITE, GRANITE_CHECK, PLATFORM_EDGE,
-                 RAILS, CEIL_COFFER, CEIL_LAMP, PLATE, SKY)
+                 RAILS, CEIL_COFFER, CEIL_LAMP, PLATE, COBBLES, COBBLES_LINE, SKY)

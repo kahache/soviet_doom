@@ -7,9 +7,15 @@ of tests/test_map03_factory.py. The contract:
   step up higher than a stair step;
 * only approved, packed textures (and the engine's sky marker F_SKY1); every
   picture on a wall one whole tile; the three locks wear their key's look;
+* the Moscow set (D107, v1.1): setts with granite lines on the square, the
+  GUM's facade, the tribunes' and the mausoleum's granite, the Spasskaya's
+  stone, banners whole on the wall, armour on the parade with the carriers'
+  stars whole, and every world-aligned lump laid on the world, so the brick
+  runs on from line to line;
 * the open air: every outdoor zone has the sky, every closed sky block is a
-  wall top (floor = ceiling), the Kremlin wall's merlons alternate against
-  the sky, the tower rises over the wall;
+  wall top (floor = ceiling), the Kremlin wall's swallowtails (SDKREM2, a
+  middle texture) stand on its brick against the sky, the tower rises over
+  the wall;
 * everything is reachable playing the map's own doors, its THREE keys in
   order, the red key's pickup (the closets) and the boss's death (the exit
   gate); no trap at any stage; the exit only after the boss dies, and no
@@ -382,7 +388,7 @@ class Map06Test(unittest.TestCase):
                 s = self.sectors[i]
                 lowest = min(self.sectors[n]["heightceiling"] for n in self.neighbours[i])
                 self.assertEqual(self.m.DOOR_HEIGHT, lowest - s["heightfloor"], self.zone_of[i])
-        for texture in (self.m.MOSAIC, self.m.GATE, self.m.FLAG_REICH, self.m.FLAG_LEGION):
+        for texture in (self.m.MOSAIC, self.m.GATE, self.m.FLAG_REICH, self.m.FLAG_LEGION, self.m.BANNER):
             faces = 0
             for ld in self.lines:
                 sides = [ld["sidefront"]] + ([ld["sideback"]] if "sideback" in ld else [])
@@ -417,17 +423,213 @@ class Map06Test(unittest.TestCase):
                    and self.sides[ld["sidefront"]].get("texturemiddle") == m.MOSAIC]
         self.assertEqual(2, len(mosaics))
 
-    def test_the_kremlin_wall_is_crenellated_brick_against_the_sky(self):
-        """Merlons and crenels are closed sky blocks of brick, 288 and 256
-        high, alternating every 32 along the wall."""
+    def sides_of(self, ld):
+        """[(sidedef, its sector, the other sector or None, start, end)], each
+        side's run the way the engine lays its texture."""
+        a, b = self.verts[ld["v1"]], self.verts[ld["v2"]]
+        front = self.sides[ld["sidefront"]]
+        if "sideback" not in ld:
+            return [(front, front["sector"], None, a, b)]
+        back = self.sides[ld["sideback"]]
+        return [(front, front["sector"], back["sector"], a, b), (back, back["sector"], front["sector"], b, a)]
+
+    def wall_faces(self, x):
+        """[(outer sidedef, outer sector, walk sector)] on the wall face at x."""
+        walks = self.named("prop_z6_wall_walk", "prop_z9_wall_walk")
+        out = []
+        for lx, _y1, _y2, ld in self.vertical:
+            if lx != x or "sideback" not in ld:
+                continue
+            for sd, sector, other, _s, _e in self.sides_of(ld):
+                if other in walks and sector not in walks:
+                    out.append((sd, sector, other, ld))
+        return out
+
+    def test_the_kremlin_wall_wears_its_swallowtails_against_the_sky(self):
+        """The body is a closed sky block at WALL_WALK; the walk in front of
+        it is open to the sky from WALL_WALK to MERLON_TOP, exactly one tile,
+        and every line between the walk and the open ground wears SDKREM2 as
+        its middle texture on the ground's side, over one tile of SDKREM1
+        (or a banner), and is impassable."""
         m = self.m
-        for name, top in (("prop_z6_merlons", m.MERLON_TOP), ("prop_z6_crenels", m.WALL_TOP),
-                          ("prop_z9_merlons", m.MERLON_TOP), ("prop_z9_crenels", m.WALL_TOP)):
+        self.assertEqual(m.TILE_SIZE, m.MERLON_TOP - m.WALL_WALK)
+        for name, floor, ceiling in (("prop_z6_wall", m.WALL_WALK, m.WALL_WALK),
+                                     ("prop_z9_wall", m.WALL_WALK, m.WALL_WALK),
+                                     ("prop_z6_wall_walk", m.WALL_WALK, m.MERLON_TOP),
+                                     ("prop_z9_wall_walk", m.WALL_WALK, m.MERLON_TOP),
+                                     ("prop_z6_wall_piers", m.MERLON_TOP, m.MERLON_TOP),
+                                     ("prop_z9_wall_piers", m.MERLON_TOP, m.MERLON_TOP)):
             s = self.sectors[self.plan[name]]
-            self.assertEqual((top, top, SKY_FLAT), (s["heightfloor"], s["heightceiling"], s["textureceiling"]))
-        x = (m.KREMLIN_STRIP_X[0] + m.KREMLIN_STRIP_X[1]) // 2
-        seen = [self.zone_of[self.sector_at(x, y)] for y in range(3008 + 16, 3136, 32)]
-        self.assertEqual(["prop_z6_merlons", "prop_z6_crenels"] * 2, seen)
+            self.assertEqual((floor, ceiling, SKY_FLAT), (s["heightfloor"], s["heightceiling"], s["textureceiling"]),
+                             name)
+        merlons = 0
+        for x in (m.KREMLIN_STRIP_X[1], m.ARENA_STRIP_X[0]):
+            faces = self.wall_faces(x)
+            self.assertTrue(faces, x)
+            for sd, sector, walk, ld in faces:
+                where = f"x {x}, {self.zone_of[sector]}"
+                self.assertEqual(m.MERLON, sd.get("texturemiddle"), where)
+                self.assertTrue(ld.get("blocking"), where)
+                floor = self.sectors[sector]["heightfloor"]
+                if floor < m.WALL_WALK:
+                    self.assertIn(sd.get("texturebottom"), (m.KREMLIN, m.BANNER), where)
+                merlons += 1
+        worn = sum(1 for sd in self.sides if sd.get("texturemiddle") == m.MERLON)
+        self.assertEqual(merlons, worn, "SDKREM2 only on the wall's faces")
+        # The square's wall: the walk runs its whole length but for the flags.
+        x = m.KREMLIN_STRIP_X[1] - m.WALL_WALK_DEPTH // 2
+        flags = [(fy, fy + m.FLAG_WIDTH) for fy, _ in m.FLAGS_ON_THE_WALL]
+        for y in range(m.GATE_Y[1] + 16, m.SQUARE[3], 32):
+            expected = ("prop_z6_flag" if any(a < y < b for a, b in flags) else "prop_z6_wall_walk")
+            self.assertTrue(self.zone_of[self.sector_at(x, y)].startswith(expected), y)
+
+    def test_the_wall_walk_is_out_of_reach(self):
+        """The stands' top rows are as high as the walk: only the impassable
+        merlon line keeps the player (and a floating Doughboy) off it."""
+        m = self.m
+        walk = self.plan["prop_z6_wall_walk"]
+        for side in ("n", "s"):
+            top = self.plan[f"z6_tribune_{side}_top"]
+            self.assertEqual(m.WALL_WALK, self.sectors[top]["heightfloor"])
+            self.assertIn(walk, self.neighbours[top])
+            self.assertNotIn(walk, self.adjacency(frozenset())[top])
+
+    def visible_parts(self, sd, sector, other, ld=None):
+        """{part: (texture, anchor)}: each drawn part with Doom's row anchor
+        before offsets (the height of the texture's row 0), for an unflagged
+        two-sided line or a wall (pegged to its floor when flagged so)."""
+        s = self.sectors[sector]
+        if other is None:
+            pegged = ld is None or ld.get("dontpegbottom")
+            return {"mid": (sd.get("texturemiddle"),
+                            s["heightfloor"] + self.m.ALIGN_PERIOD if pegged else s["heightceiling"])}
+        o = self.sectors[other]
+        parts = {}
+        if o["heightfloor"] > s["heightfloor"]:
+            parts["bottom"] = (sd.get("texturebottom"), o["heightfloor"])
+        both_sky = s["textureceiling"] == o["textureceiling"] == SKY_FLAT
+        if o["heightceiling"] < s["heightceiling"] and not both_sky:
+            parts["top"] = (sd.get("texturetop"), o["heightceiling"] + self.m.ALIGN_PERIOD)
+        if sd.get("texturemiddle") not in (None, "-"):
+            parts["mid"] = (sd["texturemiddle"], min(s["heightceiling"], o["heightceiling"]))
+        return parts
+
+    def test_the_moscow_lumps_are_laid_on_the_world(self):
+        """Every drawn part wearing an ALIGNED lump has its row 0 at the
+        lump's height (mod one tile) and its column 0 on the world's grid,
+        so the brick, the merlons, the bays and the frieze run on unbroken."""
+        m = self.m
+        checked = Counter()
+        for ld in self.lines:
+            if ld.get("dontpegtop") or (ld.get("dontpegbottom") and "sideback" in ld):
+                continue    # no aligned lump sits on a flagged two-sided line
+            for sd, sector, other, start, end in self.sides_of(ld):
+                for part, (texture, anchor) in self.visible_parts(sd, sector, other, ld).items():
+                    if texture not in m.ALIGNED:
+                        continue
+                    offset = sd.get(f"offsety_{part}", 0) + sd.get("offsety", 0)
+                    self.assertEqual(m.ALIGNED[texture] % m.ALIGN_PERIOD, (anchor + offset) % m.ALIGN_PERIOD,
+                                     f"{texture} {part} on {self.zone_of[sector]}")
+                    dx = (end["x"] > start["x"]) - (end["x"] < start["x"])
+                    dy = (end["y"] > start["y"]) - (end["y"] < start["y"])
+                    self.assertEqual((start["x"] * dx + start["y"] * dy) % m.ALIGN_PERIOD,
+                                     sd.get("offsetx", 0) % m.ALIGN_PERIOD, f"{texture} on {self.zone_of[sector]}")
+                    checked[texture] += 1
+        self.assertEqual(set(m.ALIGNED), set(checked), "every aligned lump is on the map")
+
+    def test_the_banners_hang_whole_on_the_wall(self):
+        m = self.m
+        hung = []
+        for sd, sector, walk, ld in self.wall_faces(m.KREMLIN_STRIP_X[1]):
+            if sd.get("texturebottom") != m.BANNER:
+                continue
+            a, b = self.line_points(ld)
+            y1, y2 = sorted((a[1], b[1]))
+            hung.append(y1)
+            self.assertEqual(m.BANNER_WIDTH, y2 - y1)
+            self.assertEqual(0, y1 % m.BANNER_WIDTH, "its column 0 on the line's start")
+            self.assertEqual(m.TILE_SIZE, self.sectors[walk]["heightfloor"] - self.sectors[sector]["heightfloor"])
+            for fy, _ in m.FLAGS_ON_THE_WALL:
+                self.assertFalse(fy < y2 and y1 < fy + m.FLAG_WIDTH, "a Soviet banner under an occupier's flag")
+        self.assertEqual(sorted(m.BANNERS_Y), sorted(hung))
+
+    def test_the_square_is_setts_crossed_by_granite_lines(self):
+        m = self.m
+        square = self.sectors[self.plan["z6_square"]]
+        self.assertEqual(m.COBBLES, square["texturefloor"])
+        self.assertEqual(m.COBBLES, self.sectors[self.plan["z9_arena"]]["texturefloor"])
+        for n, y in enumerate(m.SQUARE_LINES_Y, start=1):
+            line = self.sectors[self.plan[f"z6_line_{n}"]]
+            self.assertEqual(m.COBBLES_LINE, line["texturefloor"])
+            for key in ("heightfloor", "heightceiling", "textureceiling", "lightlevel"):
+                self.assertEqual(square[key], line[key], key)
+            self.assertEqual((0, 64), (y % 64, m.SQUARE_LINE_DEPTH), "one line of slabs, on the flat grid")
+
+    def test_the_monuments_wear_their_stone(self):
+        """The GUM's facade on the square and on Nikolskaya; the stands and
+        the mausoleum in the tribune's granite; the Spasskaya's base."""
+        m = self.m
+        sq_x1, sq_y1, sq_x2, sq_y2 = m.SQUARE
+        square_side = self.named("z6_square", "z6_line_1", "z6_line_2", "z6_line_3")
+        facade = 0
+        for lx, y1, y2, ld in self.vertical:
+            if lx != sq_x2:
+                continue
+            for sd, sector, other, _s, _e in self.sides_of(ld):
+                if sector in square_side:
+                    for part, (texture, _a) in self.visible_parts(sd, sector, other).items():
+                        if part != "mid":
+                            self.assertEqual(m.GUM_FACADE, texture, (y1, y2, part))
+                            facade += 1
+                        elif other is None:
+                            self.assertEqual(m.GUM_FACADE, texture, (y1, y2))
+                            facade += 1
+        self.assertGreater(facade, 10)
+        street = [sd for ld in self.lines for sd, sector, other, s, e in self.sides_of(ld)
+                  if sector == self.plan["z3_street"] and s["y"] == e["y"] == m.STREET[1]
+                  and m.GUM_NORTH[0] <= min(s["x"], e["x"]) and max(s["x"], e["x"]) <= m.GUM_NORTH[2]]
+        self.assertTrue(street)
+        for sd in street:
+            self.assertIn(m.GUM_FACADE, (sd.get("texturemiddle"), sd.get("texturetop")))
+        stone = {m.TRIBUNE: [n for n in self.plan if n.startswith(("z6_tribune_", "prop_z6_mausoleum"))],
+                 m.SPASSKAYA: ["prop_z6_tower"]}
+        for texture, names in stone.items():
+            for name in names:
+                index = self.plan[name]
+                flanks = [sd for ld in self.lines for sd, sector, other, _s, _e in self.sides_of(ld)
+                          if other == index and self.sectors[sector]["heightfloor"] < self.sectors[index]["heightfloor"]
+                          and sector not in self.named("prop_z6_wall", "prop_z6_wall_walk")]
+                self.assertTrue(flanks, name)
+                for sd in flanks:
+                    self.assertEqual(texture, sd["texturebottom"], name)
+
+    def test_the_parade_wears_armour_and_the_carriers_their_stars_whole(self):
+        m = self.m
+        carriers = {}
+        for name, hull, deck, _top, _h in m.VEHICLES:
+            family = "z7" if name.startswith("p") else "z6"
+            if deck == m.CARRIER_HULL:
+                carriers[self.plan[f"prop_{family}_vehicle_{name}"]] = hull
+        vehicles = {i for n, i in self.plan.items() if "_vehicle_" in n}
+        stars = 0
+        for ld in self.lines:
+            for sd, sector, other, start, end in self.sides_of(ld):
+                if other not in vehicles or self.sectors[sector]["heightfloor"] >= self.sectors[other]["heightfloor"]:
+                    continue
+                self.assertIn(sd["texturebottom"], (m.ARMOUR, m.ARMOUR_STAR), self.zone_of[other])
+                if sd["texturebottom"] != m.ARMOUR_STAR:
+                    continue
+                stars += 1
+                self.assertIn(other, carriers)
+                x1, y1, x2, y2 = carriers[other]
+                self.assertTrue(start["x"] == end["x"] in (x1, x2), "on a long flank")
+                height = self.sectors[other]["heightfloor"] - self.sectors[sector]["heightfloor"]
+                first = sd["offsety_bottom"]
+                self.assertTrue(first <= m.STAR_ROWS[0] and m.STAR_ROWS[1] < first + height, "the star whole")
+                dy = (end["y"] > start["y"]) - (end["y"] < start["y"])
+                self.assertEqual((start["y"] * dy - min(y1 * dy, y2 * dy)) % m.ALIGN_PERIOD, sd["offsetx"])
+                self.assertEqual(0, (y2 - y1) % m.ALIGN_PERIOD, "a whole number of stars")
+        self.assertGreaterEqual(stars, 2 * len(carriers))
 
     def test_the_tower_rises_over_the_wall_and_the_apron_shows_it(self):
         m = self.m
