@@ -509,8 +509,8 @@ the radar console `texture SDRADR1`, four frames at **12 tics** (the beam
 turns 90° a frame: a 1.4 s sweep), and the acid `flat SDACID1`, four frames
 at 8 tics like `SDWATR1`. The masked crane jib `SDCRAN1` is RGBA with hard
 alpha, in `MASKED_TEXTURES`. **Not yet on any map** (MAP07-09 still wear
-stand-ins and Freedoom's `SKY1`; applying the set is the `level-designer`'s
-next task) and not yet seen in the engine (D26). New families: ART-BIBLE §2.
+stand-ins; applying the set is the `level-designer`'s next task; their skies
+are `SDSKY3-5` since 2026-10-22, below) and not yet seen in the engine (D26). New families: ART-BIBLE §2.
 
 ### Arctic — MAP07, the radar station on Novaya Zemlya (`gen_arctic.py`, 5700)
 
@@ -572,6 +572,29 @@ polar day, inside the submarine 112-144.
 
 Recommended light: the burnt taiga 96-128 at night, the cabin 112-144, the
 portal and the acid 176-208 as in the foundry (MAP03).
+
+### Sky — MAPINFO `sky1` of MAP07-09 (`gen_episode3_skies.py`, 6000)
+
+Episode 3's own skies, replacing Freedoom's `SKY1` (brown daylight cloud)
+on MAP07-09. Same format and method as `SDSKY1`/`SDSKY2`: 1024×128, one
+360° turn that wraps in x and never repeats inside it, the horizon at row
+100 (`gen_episode2b.HORIZON`), the ground below it; no lettering. Seeds
+6000 + offset, the clear space the seed note above asks for. Installed in
+`assets/textures/sky/` under D113's standing approval, byte for byte from
+`work/art/episode3_skies/sky/` (`tests/test_gen_episode3_skies.py`);
+declared in `SKY_TEXTURES`. Preview (panorama at 2×, the wrap seam, two
+screen views each): `docs/art/previews/2026-10-22_P4_episode3-skies.png`.
+Palette: the aurora has **no green-teal ramp** to use, so `SDSKY3` draws it
+with v1's `military_green` (olive) fading into `steel_blue`; a true aurora
+green would be a new ramp, **not opened** (CEO's call). `SDSKY5` adds v2's
+`mosaic_cobalt` on the D66 precedent, only where the portal's light falls.
+Not yet seen in the engine (D26): where GZDoom puts row 100 is NOT VERIFIED.
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDSKY3` | sky (wall namespace) | 1024×128 | along x (wraps round the full turn) | the polar night over Novaya Zemlya: a clear black sky full of stars, three curtains of aurora (a bright green lower seam with rays, grey-blue higher up), the island's glaciated range catching their light, the sea ice to the horizon with broken pressure ridges | (a) gen_episode3_skies, seed 6001, palette v1 | approved 2026-10-22 (D113 standing approval, PM gate pending); MAPINFO `sky1` of MAP07 | 2026-10-22 |
+| `SDSKY4` | sky (wall namespace) | 1024×128 | along x (wraps round the full turn) | the Kola fjord at Severomorsk at night: a low overcast lit brown by the base's sodium, black gneiss cliffs with snow on the ledges and a radio mast, the far shore with the piers' lights, cranes with red lights and two moored submarines, the fjord's mouth open to the sea and a lighthouse on the headland, its beam in the mist and on the black water | (a) gen_episode3_skies, seed 6002, palette v1 | approved 2026-10-22 (D113 standing approval, PM gate pending); MAPINFO `sky1` of MAP08 | 2026-10-22 |
+| `SDSKY5` | sky (wall namespace) | 1024×128 | along x (wraps round the full turn) | the Tunguska taiga at night: torn cloud lit cobalt from below by the portal on the horizon, a pillar of its light into the overcast with white filaments at its foot, the far living taiga's line and, in front, the dead forest of 1908 (stripped trunks standing, snapped tops, felled logs lying away from the portal), black and rimmed with its glow | (a) gen_episode3_skies, seed 6003, palette v2 (`mosaic_cobalt`, only near the portal) | approved 2026-10-22 (D113 standing approval, PM gate pending); MAPINFO `sky1` of MAP09 | 2026-10-22 |
 
 ## Shell pictures — menu cursor and pause sign (T12, D48)
 
@@ -636,7 +659,7 @@ Reference sheet `docs/art/previews/2026-10-13_1554_F2_menu-sweep.png`.
 | `STARTAN2` | wall 64×128 | MAP01 (F0 room) | IWAD, to be replaced by `SDCONC1` (approved 2026-10-12) |
 | `FLOOR4_8` | flat | MAP01 (F0 room) | IWAD, to be replaced by `SDFLR2` (approved 2026-10-12) |
 | `CEIL3_5` | flat | MAP01 (F0 room) | IWAD, to be replaced by `SDCEIL2` (approved 2026-10-12) |
-| `SKY1` | sky | MAPINFO | IWAD, kept until an own sky exists |
+| `SKY1` | sky | MAPINFO | IWAD, kept on MAP01-03 and the range; MAP04-09 have their own (`SDSKY1-5`) |
 
 ## Discarded
 

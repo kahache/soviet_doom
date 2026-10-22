@@ -720,8 +720,8 @@ class SkyTextureTest(CheckPk3TestCase):
     def size_warnings(self, report: check_pk3.Report) -> list[str]:
         return [f.message for f in report.warnings if f.category == "images"]
 
-    def test_the_real_set_is_the_two_night_skies(self):
-        self.assertEqual(frozenset({"SDSKY1", "SDSKY2"}), check_pk3.SKY_TEXTURES)
+    def test_the_real_set_is_the_five_night_skies(self):
+        self.assertEqual(frozenset({f"SDSKY{i}" for i in range(1, 6)}), check_pk3.SKY_TEXTURES)
         self.assertEqual(((1024, 128),), check_pk3.SKY_SIZES)
         self.assertFalse(set(check_pk3.SKY_SIZES) & set(check_pk3.ALLOWED_WALL_SIZES))
 

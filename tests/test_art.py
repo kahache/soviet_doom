@@ -450,6 +450,13 @@ EP2B_INSTALLED = {
     "SDMUSE1": ("textures/moscow", (64, 128), False), "SDFLAG3": ("textures/moscow", (64, 128), False),
     "SDFLAG4": ("textures/moscow", (64, 128), False),
 }
+# Episode 3's three skies (gen_episode3_skies.py, installed 2026-10-22 under
+# D113's standing approval): MAPINFO sky1 of MAP07-09, in the same
+# textures/sky/ as round 2's two. Episode2InstallTests leaves them out.
+EP3_SKIES_INSTALLED = {
+    "SDSKY3": ("textures/sky", (1024, 128), False), "SDSKY4": ("textures/sky", (1024, 128), False),
+    "SDSKY5": ("textures/sky", (1024, 128), False),
+}
 EP2_FOLDERS = ("textures/railway", "textures/dam", "textures/moscow", "textures/sky",
                "flats/railway", "flats/dam", "flats/moscow")
 
@@ -463,6 +470,8 @@ class Episode2InstallTests(unittest.TestCase):
         out = {}
         for folder in EP2_FOLDERS:
             for p in sorted((ASSETS_DIR / folder).glob("*.png")):
+                if p.stem in EP3_SKIES_INSTALLED:
+                    continue
                 self.assertNotIn(p.stem, out, f"{p.stem} installed twice")
                 out[p.stem] = p
         return out
@@ -500,7 +509,17 @@ class Episode2InstallTests(unittest.TestCase):
     def test_skies_agree_with_check_pk3(self):
         skies = {lump for lump, (folder, _s, _m) in EP2B_INSTALLED.items() if folder == "textures/sky"}
         self.assertEqual({"SDSKY1", "SDSKY2"}, skies)
-        self.assertEqual(skies, set(SKY_TEXTURES))
+        self.assertEqual(skies | set(EP3_SKIES_INSTALLED), set(SKY_TEXTURES))
+
+    def test_episode3_skies_installed(self):
+        from PIL import Image
+        for lump, (folder, size, _m) in EP3_SKIES_INSTALLED.items():
+            p = ASSETS_DIR / folder / f"{lump}.png"
+            self.assertTrue(p.is_file(), p)
+            with Image.open(p) as img:
+                self.assertEqual(size, img.size, lump)
+                self.assertEqual("P", img.mode, lump)
+            self.assertEqual(1, len(list(ASSETS_DIR.rglob(f"{lump}.png"))), lump)
 
     def test_no_name_clash_with_any_other_installed_lump(self):
         ours = {p.resolve() for p in self.installed().values()}

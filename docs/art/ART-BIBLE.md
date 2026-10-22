@@ -141,7 +141,12 @@ D113's standing approval, PM gate 2026-10-22; sets `sky` (new), `railway`,
   in near-black silhouette with red obstruction lights. Listed in
   `SKY_TEXTURES` / `SKY_SIZES` (`tools/check_pk3.py`); how GZDoom stretches
   a 1024-wide sky and where its horizon falls is NOT VERIFIED until the PM's
-  engine pass (D26).
+  engine pass (D26). Since 2026-10-22 Episode 3 has its own three, same
+  format (`tools/art/gen_episode3_skies.py`): `SDSKY3` the polar night with
+  aurora (MAP07; v1 has no aurora green, so `military_green` into
+  `steel_blue`), `SDSKY4` the Kola fjord at night (MAP08), `SDSKY5` the
+  Tunguska taiga under the portal's glow (MAP09; `mosaic_cobalt` only where
+  the portal lights it, D66).
 - **Family codes:** `SKY` sky; railway (MAP04) `WROF` wagon roof (flat),
   `GOND` gondola floor (flat), `CAB` locomotive cab, `SBOX` signal-box
   glazing, `LEVR` lever frame (`1` the flat from above, `2` the wall from

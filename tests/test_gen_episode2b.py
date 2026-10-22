@@ -109,7 +109,13 @@ class SourceTests(unittest.TestCase):
 class DefinitionTests(unittest.TestCase):
     def test_names(self):
         lumps = g.all_lumps()
-        self.assertEqual(g.name_problems(), [])
+        # Episode 3's skies SDSKY3-5 (gen_episode3_skies.py) are this family's
+        # siblings in textures/sky/, not sprite frames: they must not make
+        # SDSK a sprite prefix. They still clash if a name is reused.
+        siblings = {"SDSKY3", "SDSKY4", "SDSKY5"}
+        taken = g.existing_lumps(frozenset(lumps)) - siblings
+        self.assertEqual(g.gen_episode2.name_problems(lumps, taken), [])
+        self.assertFalse(siblings & set(lumps))
         self.assertEqual(len(lumps), len(set(lumps)))
 
     def test_own_drafts_are_not_a_clash(self):
@@ -293,8 +299,8 @@ class PaperTests(unittest.TestCase):
             self.assertIn("CC BY-NC-SA 4.0", rows[0], lump)
 
     def test_mapinfo_skies(self):
-        """MAP04 and MAP05 under the Urals night, MAP06 under Moscow's; the
-        other maps keep Freedoom's SKY1 for now."""
+        """MAP04 and MAP05 under the Urals night, MAP06 under Moscow's
+        (MAP07-09's own skies are tests/test_gen_episode3_skies.py's)."""
         skies = {}
         current = None
         for line in self.mapinfo.splitlines():
@@ -305,9 +311,7 @@ class PaperTests(unittest.TestCase):
             if s and current:
                 skies[current] = s.group(1)
         self.assertEqual({"MAP04": "SDSKY1", "MAP05": "SDSKY1", "MAP06": "SDSKY2"},
-                         {k: v for k, v in skies.items() if v.startswith("SDSKY")})
-        for name in ("MAP07", "MAP08", "MAP09"):
-            self.assertEqual("SKY1", skies.get(name), name)
+                         {k: v for k, v in skies.items() if v in g.all_lumps()})
 
 
 if __name__ == "__main__":

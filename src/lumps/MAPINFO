@@ -552,7 +552,7 @@ map MAP07 lookup "SD_MAP07_NAME"
 	// D113: the episode 3 intermission, 96 BPM, on the stats screen after
 	// this map instead of GameInfo's D_SDTITL.
 	intermusic = "D_SDE3IA"
-	sky1 = "SKY1"
+	sky1 = "SDSKY3"
 	par = 330
 }
 
@@ -565,7 +565,7 @@ map MAP08 lookup "SD_MAP08_NAME"
 	next = "MAP09"
 	music = "D_SDM08A"	// D113: the submarine base, 124 BPM (B: D_SDM08B, 120 BPM)
 	intermusic = "D_SDE3IA"	// D113: as after MAP07
-	sky1 = "SKY1"
+	sky1 = "SDSKY4"
 	par = 360
 }
 
@@ -580,7 +580,7 @@ map MAP09 lookup "SD_MAP09_NAME"
 	// D113: the portal, 132 BPM (B: D_SDM09B, 138 BPM). Its final boss
 	// loop, D_SDBS9A / D_SDBS9B, is SD_MusicVariant's, not a MAPINFO key.
 	music = "D_SDM09A"
-	sky1 = "SKY1"
+	sky1 = "SDSKY5"
 	par = 480
 }
 
