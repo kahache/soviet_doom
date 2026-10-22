@@ -22,7 +22,10 @@ projectile dropped, a bridged pair cut at a fixed column with the flash
 given to its owner, the lettered armband turned into a plain field (and a
 glove, a flag, a glint left alone), the hand-named field, the black plate,
 the death sheet drawn smaller, and the five new specs against the shipped
-sets and their classes.
+sets and their classes. D108 (the mix): which enemies carry the symbol (the
+General's flag left alone), the close pictures (profiles and corpses), the
+symbol drawn after the mirror and before the black plate, the cache read
+(missing, then a repaint), the per-lump report of a build and the control sheet.
 """
 from __future__ import annotations
 
@@ -995,6 +998,147 @@ class BuildTests(unittest.TestCase):
             self.assertIn("Pedir otra vez a Gemini", text)
         finally:
             (folder / "metrics.json").write_text(metrics, encoding="utf-8")
+
+
+def armed(width: int = 30, height: int = 100, field_r: int = 7):
+    """(rgb, mask) of a tall olive figure with a red band and a white disc off its axis."""
+    rgb = np.zeros((height, width + 10, 3), np.uint8)
+    mask = np.zeros(rgb.shape[:2], bool)
+    mask[:, 5:5 + width] = True
+    rgb[mask] = OLIVE
+    rgb[38:63, 5:5 + width] = RED
+    rgb[88:, 5:5 + width] = DARK
+    yy, xx = np.mgrid[0:height, 0:width + 10]
+    rgb[((yy - 50) ** 2 + (xx - 18) ** 2 <= field_r ** 2) & mask] = WHITE
+    return rgb, mask
+
+
+@unittest.skipIf(ge is None, "art venv (numpy, Pillow) missing")
+class D108SymbolTests(unittest.TestCase):
+    """D108, "la mezcla": option 1 on the Reich, option 2 from the cache on the close pictures."""
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="sd_d108_"))
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_which_enemies_carry_it(self):
+        want = {"rifleman": "white", "storm": "box", "panzer": "plain", "panzer_heavy": "plain", "general": "ring"}
+        for name, spec in ge.ENEMIES.items():
+            if name in want:
+                self.assertEqual(spec.symbol, "warp", name)
+                self.assertEqual(spec.symbol_fields, want[name], name)
+                self.assertTrue(spec.corpse and set(spec.corpse) <= set(spec.single), name)
+                self.assertIsNotNone(ge.symbol_pass(spec))
+            else:      # the Legion, the doughboy, the hound: none
+                self.assertEqual(spec.symbol, "none", name)
+                self.assertIsNone(ge.symbol_pass(spec))
+        self.assertIsNone(ge.symbol_pass(ge.RIFLEMAN, "none"))
+        self.assertIsNotNone(ge.symbol_pass(ge.LEGION, "warp"))
+
+    def test_the_general_keeps_his_flag(self):
+        # his flag has white and red side by side: the ring mode wants a red patch walled in white, and no blue
+        import armband_symbol as asym
+        rgb = np.zeros((60, 60, 3), np.uint8)
+        mask = np.ones((60, 60), bool)
+        rgb[:] = (226, 214, 180)                               # the cream coat
+        for k in range(8):                                     # stripes
+            rgb[20 + 2 * k:21 + 2 * k, 10:40] = RED
+            rgb[21 + 2 * k:22 + 2 * k, 10:40] = WHITE
+        rgb[20:28, 10:22] = (30, 40, 150)                      # the canton
+        self.assertEqual(asym.select_fields(rgb, mask, "ring", ge.GENERAL_FIELD_MAX)[1], [])
+
+    def test_close_sources_are_profiles_and_corpses(self):
+        close = ge.close_sources(ge.RIFLEMAN)
+        for key in (("turn", 2, False, False), ("turn", 2, True, False), ("walkL", 2, True, False),
+                    ("death2", 2, False, False), ("death2", 1, False, False)):
+            self.assertIn(key, close)
+        self.assertNotIn(("turn", 0, False, False), close)
+        self.assertNotIn(("turn", 1, False, False), close)
+        src = ge.lump_sources(ge.RIFLEMAN)
+        for lump in ("SDRRB3", "SDRRB7", "SDRRG3", "SDRRL0", "SDRRU0", "SDRRK0"):
+            self.assertIn(src[lump][:4], close, lump)       # U: the gib's corpse is the corpse's picture
+        self.assertNotIn(src["SDRRB1"][:4], close)
+        self.assertEqual(set(src), set(ge.lump_names(ge.RIFLEMAN)))
+
+    def test_symbol_after_the_mirror(self):
+        rgb, mask = armed()
+        cut = ge.Cut(rgb, mask, "left", False, 0)
+        sp = ge.SymbolPass("warp", "white")
+        got, gmask, st = ge.source_picture(cut, mirror=True, symbol=sp)
+        self.assertEqual(st, "option1")
+        want, _ = ge.symbolise(np.ascontiguousarray(rgb[:, ::-1]), np.ascontiguousarray(mask[:, ::-1]), sp)
+        np.testing.assert_array_equal(got, want)
+        painted_then_flipped = ge.symbolise(rgb, mask, sp)[0][:, ::-1]
+        self.assertFalse(np.array_equal(got, painted_then_flipped))    # a flipped symbol would be the wrong way round
+        self.assertFalse(np.array_equal(got, rgb[:, ::-1]))
+
+    def test_plate_after_the_symbol(self):
+        rgb, mask = armed()
+        cut = ge.Cut(rgb, mask, "left", False, 0)
+        sp = ge.SymbolPass("warp", "white")
+        plain = ge.source_picture(cut, symbol=sp)[0]
+        dark = ge.source_picture(cut, shade=ge.PLATE_SHADE, symbol=sp)[0]
+        np.testing.assert_array_equal(dark, ge.darken(plain, mask, ge.PLATE_SHADE))
+
+    def test_no_field_no_symbol(self):
+        rgb, mask = armed()
+        rgb[rgb.min(axis=-1) > 200] = OLIVE
+        out, st = ge.symbolise(rgb, mask, ge.SymbolPass())
+        self.assertEqual(st, "nofield")
+        self.assertIs(out, rgb)
+
+    def test_the_cache_is_used(self):
+        import armband_symbol as asym
+        rgb, mask = armed()
+        cut = ge.Cut(rgb, mask, "left", False, 0)
+        sp = ge.SymbolPass("warp", "white", fooocus=True, cache_dir=self.tmp)
+        opt1 = ge.source_picture(cut, symbol=ge.SymbolPass("warp", "white"))[0]
+        got, _, st = ge.source_picture(cut, symbol=sp)
+        self.assertEqual(st, "missing")                          # nothing generated: option 1 stays
+        np.testing.assert_array_equal(got, opt1)
+        key = asym.picture_key(rgb, mask)
+        field = asym.select_fields(rgb, mask, "white")[1][0]
+        ty, tx, n = asym.crop_box(field)
+        patch = np.zeros((n, n, 4), np.uint8)
+        patch[...] = (0, 250, 0, 255)
+        asym.write_cache(key, {"label": "t", "fields": [{"k": 0, "status": "fooocus", "crop": [ty, tx, n]}]},
+                         {0: patch}, self.tmp)
+        got, _, st = ge.source_picture(cut, symbol=sp)
+        self.assertEqual(st, "fooocus")
+        self.assertTrue((got == (0, 250, 0)).all(axis=-1)[field].all())
+        mir = ge.source_picture(cut, mirror=True, symbol=sp)       # the mirror is another picture: its own key
+        self.assertEqual(mir[2], "missing")
+
+    @unittest.skipIf(os.environ.get("SD_SKIP_SLOW_ART") == "1", "art tier: two builds and a control sheet, 2.5 s")
+    def test_build_reports_the_symbol_per_lump(self):
+        ref = self.tmp / "ref"
+        ref.mkdir()
+        stand = [person(80, rifle=False), person(80), person(80), person(80), person(80, rifle=False)]
+        Image.fromarray(sheet(stand, bg=MAGENTA)).save(ref / "gem_t_turn.png")
+        aim = [person(80, rifle=False), person(80, facing="right"), person(80, facing="right"),
+               person(80), person(80, rifle=False)]
+        Image.fromarray(sheet(aim, bg=PINK)).save(ref / "gem_t_aim.png")
+        Image.fromarray(sheet([person(80), person(80)], bg=DARK_MAGENTA)).save(ref / "gem_t_death.png")
+        spec = ge.EnemySpec(**{**tiny_spec().__dict__, "symbol": "warp", "corpse": ("D",)})
+        m = ge.build(spec, self.tmp / "out", ref_dir=ref, cache_dir=self.tmp / "cache")
+        close = set(m["symbol_close"])
+        self.assertTrue({"SDTYA3", "SDTYA7", "SDTYB3", "SDTYB7", "SDTYD0", "SDTYE0"} <= close)
+        self.assertNotIn("SDTYA1", close)
+        for lump, st in m["symbol"].items():
+            self.assertIn(st, ("missing", "nofield") if lump in close else ("option1", "nofield"), lump)
+        self.assertIn("option1", m["symbol"].values())
+        self.assertIn("missing", m["symbol"].values())
+        off = ge.build(spec, self.tmp / "off", ref_dir=ref, symbol="none")
+        self.assertEqual(off["symbol"], {})
+        self.assertIn("missing", ge.symbol_summary(m))
+        png = ge.control_sheet([spec], out=self.tmp / "ctl.png", ref_dir=ref, cache_dir=self.tmp / "cache")
+        self.assertTrue(png.is_file())
+
+    def test_control_sheet_never_under_assets(self):
+        with self.assertRaises(SystemExit):
+            ge.control_sheet([], out=ROOT / "assets" / "x.png")
+        ge.guard_out(ge.CONTROL_PNG)
 
 
 @unittest.skipIf(ge is None or os.environ.get("SD_SKIP_SLOW_ART") == "1", "art tier only")
