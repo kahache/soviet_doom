@@ -2,6 +2,7 @@
 
     python tools/art/gemini_enemy.py rifleman            # lumps + metrics into work/art/enemies_gemini/rifleman/
     python tools/art/gemini_enemy.py legion|storm        # the Legion trooper (SDLT), the hybrid stormtrooper (SDHS)
+    python tools/art/gemini_enemy.py hound|doughboy|panzer|panzer_heavy|general   # D105 batch 2
     python tools/art/gemini_enemy.py all                 # every enemy, then the overlay and the sheet
     python tools/art/gemini_enemy.py rifleman --check    # print the plan (sheets, figures, facings, scales) only
     python tools/art/gemini_enemy.py overlay             # every built enemy -> work/overlays/sd-draft-enemies.pk3
@@ -12,7 +13,16 @@ Input: the PM's Gemini sheets in work/art/reference/enemies/gemini/gem_<enemy>_<
 (gitignored, never pushed, D77): one row of figures on a flat background that
 is magenta-ish but not exactly #FF00FF (pale pink, dark magenta). A standing
 pose sheet holds the five views front, 3/4 front, profile, 3/4 back, back;
-the death sheets hold rotation-0 frames.
+the death sheets hold rotation-0 frames. Batch 2 (D105): the hound's sheets are
+a 2 x 4 grid (`Sheet.rows`, `Sheet.pick` chooses the five views) with a painted
+ground shadow (`Sheet.shadow`); the hound ships mirror pairs (`EnemySpec.pairs`,
+SDHNA2A8); the doughboy hangs under its origin (`feet_sink`); misplaced glows
+and an ember in flight are erased (`Sheet.erase`), a projectile dropped
+(`Sheet.core`); figures bridged by a flash or smoke are cut at fixed columns
+with the bridge given to its owner (`Sheet.split_x`); the Panzermensch's
+lettered armbands become plain fields (`patch` mode) and the Schwer is the
+same art larger with a black plate (`shade`); the General's death armbands
+are covered by hand (`Sheet.patch`).
 
 Output: the SAME lumps the enemy ships today in assets/sprites/<folder>/
 (same frame letters, same rotations, same names), RGBA with hard alpha, in
@@ -135,6 +145,36 @@ MIRRORED_ROTS = (6, 7, 8)
 SIDE_VIEWS = (1, 2, 3)  # views that face a side; normalised to face LEFT (Doom rotations 2-4)
 BLOOD_RGB = ((92, 10, 10), (128, 16, 14), (165, 26, 20), (60, 6, 6))
 TICS_PER_SEC = 35
+# D105, batch 2 (hound, doughboy, Panzermensch, General)
+HOUND_HEIGHT = 36       # rows of SDHNA3A7's figure today (20..55): the hound is sized by its PROFILE
+DOUGHBOY_HEIGHT = 77    # rows of SDDBA1's figure today (14..90)
+PANZER_HEIGHT = 68      # rows of SDPMA1's figure today (23..90)
+PANZER_HEAVY_HEIGHT = 76  # SDPM x 1.12: the Schwer is drawn 12 % larger (D65, D67)
+GENERAL_HEIGHT = 96     # rows of SDGNA1's figure today (24..119)
+DOUGHBOY_SINK = 14      # the floating head hangs 14 px under its origin (SDDBA1: top 76, last row 90)
+SHADOW_G = 0.45         # a painted ground shadow: green under this x min(r, b) ...
+SHADOW_RB = 0.35        # ... red and blue within this fraction of each other (the background's hue, darker)
+SHADOW_MIN = 30         # ... and not black
+GLOW_BLUE = 25          # `erase`: a glow pixel is this much bluer than red ...
+GLOW_WHITE = 205        # ... or this bright in every channel (the white-hot core)
+BRIDGE_FIRE_R, BRIDGE_FIRE_G = 225, 0.55     # a split's flash: red above, green above this x red, blue under green
+BRIDGE_SMOKE_SPREAD, BRIDGE_SMOKE_MIN, BRIDGE_SMOKE_MAX = 26, 110, 240   # a split's smoke: grey, light, not white
+FIRE_R, FIRE_G, FIRE_B = 170, 0.35, 30   # `erase` fire: red above, green above this x red, blue under green + this
+ERASE_KEEP = 0.03       # after an erase, pieces under this fraction of the figure go (stray sparks)
+FLAG_BLUE = 0.08        # a white field whose box is this much blue is a US flag, not an armband: left alone
+PATCH_LIGHT = 110       # `patch` mode: a light mark on the band has every channel above this ...
+PATCH_SPREAD = 100      # ... and max - min under this (white to the E's pink in shade)
+PATCH_RING = 3          # px round a `patch` mark whose figure pixels ...
+PATCH_RING_RED = 0.2    # ... must be at least this much red (measured: the E's 0.26-0.93, glints and gloves 0.0-0.11)
+PATCH_PURITY = 0.55     # a `patch` box this much light or red (the E's 0.56-0.83; a glint on the armour 0.29-0.46)
+PATCH_YELLOW = 20       # ... and no more than this yellower (blue under green): the General's coat is
+PATCH_TINT = 12         # a light mark may be this much greener than red (a cold white)
+PATCH_FLAG_BLUE = 0.03  # blue within a field's width round a `patch` mark: a US flag, left alone
+PATCH_MIN_SIDE = 3      # source px: a light mark thinner than this is a glint (between the visor's eyes)
+PATCH_RGB = (226, 220, 206)   # the plain field painted over it (the proposal's field colour)
+PANZER_FIELD_MAX = 20   # source px: the «E» (~13) and the back emblem's field (~17); a glow is bigger
+SHADE_KEEP = 190        # a pixel this bright in some channel is a glow: the plate's shade spares it
+PLATE_SHADE = 0.55      # the Schwer's black plate (D65): every colour but red and white x this
 
 
 # ------------------------------------------------------------------ specs
@@ -146,6 +186,14 @@ class Sheet:
     facing: tuple[str, ...] = ()     # per figure: front/back/left/right/auto (side views)
     scale_ref: int | None = 0        # the figure whose helmet sets the sheet's scale; None: 1.0
     sole: int = 0                    # source rows of derived sole under a figure touching the bottom edge
+    rows: int = 1                    # a grid sheet (the hound's 2 x 4): figures are read row by row
+    pick: tuple[int, ...] = ()       # grid-order figures used, in view order (front ... back); () all
+    core: bool = False               # keep each figure's biggest piece only (a projectile in flight goes)
+    shadow: bool = False             # key out Gemini's painted ground shadow (the background's hue, darker)
+    erase: tuple = ()                # (view, (x0, y0, x1, y1) fractions of the box[, "glow"|"fire"]): that goes
+    split_x: tuple = ()              # (sheet column, "fire"|"smoke"|""): where figures bridged by a flash or smoke are cut
+    rel_scale: float = 1.0           # with scale_ref None: the sheet drawn this much smaller than turn
+    patch: tuple = ()                # (view, (x0, y0, x1, y1) source px of the figure's crop): painted a plain field
 
 
 @dataclass(frozen=True)
@@ -155,6 +203,8 @@ class Src:
     view: int                        # figure index on the sheet
     tilt: float = 0.0                # degrees leaning back (a derived pain frame)
     blood: int = 0                   # procedural blood: 0 none, 1-3 spray, 4-6 pool (the gib)
+    mirror: bool = False             # flipped (an override for a rotation that faces the other way)
+    core: bool = False               # the figure's biggest piece only (smoke or debris left behind)
 
 
 @dataclass(frozen=True)
@@ -181,6 +231,11 @@ class EnemySpec:
     armband: str = "blank"           # blank: a symbol in the field goes; box: the field's box goes white; none
     armband_side: str | None = None  # side of the legs' axis the armband is on in a FRONT view (normalised)
     reask: tuple = ()                # (file, short prompt): what to ask Gemini for again (the quality gate)
+    pairs: bool = False              # rotations 2-4 written as mirror pairs (SDHNA2A8), as the shipped set
+    feet_sink: int = FEET_SINK       # rows of the picture under `top` (a floating head hangs lower)
+    ref_view: int = 0                # the ref sheet's view whose height is target_height
+    shade: float = 1.0               # every colour but red and white x this (the Schwer's black plate)
+    field_max: int | None = None     # source px: a white field bigger than this is not an armband (blank/fill)
 
 
 STAND = ("front", "left", "left", "left", "back")
@@ -334,7 +389,275 @@ STORM = EnemySpec(
          "of him (hidden by the body), not painted over his back; the bolt starts AT the muzzle, no gap"),
     ),
 )
-ENEMIES = {"rifleman": RIFLEMAN, "legion": LEGION, "storm": STORM}
+# -------------------------------------------------- D105, second batch
+HOUND_PICK = (0, 1, 2, 6, 3)   # 2 x 4 grid: front, 3/4 front, profile (top row), 3/4 back (bottom), back (top)
+HOUND_LUNGE = 8.0       # degrees the bite leans forward for the derived snap (G)
+GENERAL_DEATH_SCALE = 0.72   # the death sheet is drawn smaller: its bazooka is 152 px, the aim sheet's 210
+GENERAL_FIRE_SPLIT = ((626, "fire"), (828, "smoke"), (418, "fire|smoke>"))   # the profile's muzzle flash and the 3/4 back's back-blast bridge figures
+PANZER_EMBER = tuple((v, box, kind) for v in (0, 1) for box, kind in (   # the ember in flight, stuck to the fist
+    ((0.75, 0.0, 1.0, 0.35), "fire"), ((0.8, 0.0, 1.0, 0.2), "all")))
+PANZER_SOLE = 3         # source rows: the Panzermensch's boots end at the 182-px sheets' last row
+# the symbol Gemini drew in the armband of death frames 1-4, by hand: the band is shaded and
+# the symbol touches the glove and the coat, so the automatic grouping cannot isolate it
+GENERAL_DEATH_FIELDS = ((0, (136, 71, 149, 83)), (1, (132, 104, 145, 116)), (2, (109, 58, 121, 68)),
+                        (3, (151, 78, 159, 90)))
+GENERAL_FIELD_MAX = 40  # source px: the General's armband field; his coat and the cape's stripes are bigger
+STAND_RIGHT = ("front", "left", "right", "left", "back")   # the General's profile faces right on every sheet
+
+
+def _hound(file: str) -> Sheet:
+    return Sheet(file, 8, STAND, None, rows=2, pick=HOUND_PICK, shadow=True)
+
+
+HOUND = EnemySpec(
+    name="hound", sprite="SDHN", folder="hound", target_height=HOUND_HEIGHT, armband="none",
+    pairs=True, ref_view=2,
+    sheets={
+        "turn": _hound("gem_hound_turn.png"),
+        "walkL": _hound("gem_hound_walkL.png"),
+        "walkR": _hound("gem_hound_walkR.png"),
+        "bite": _hound("gem_hound_bite.png"),
+        # pain, rearing, falling, sinking (drawn facing left), collapsing, lying: normalised to face left
+        "death": Sheet("gem_hound_death.png", 6, ("right", "right", "right", "left", "right", "right"),
+                       None, rows=2, shadow=True),
+    },
+    rotated={
+        "A": Rotated("walkL"), "B": Rotated("turn"), "C": Rotated("walkR"), "D": Rotated("turn"),
+        "E": Rotated("turn"), "F": Rotated("bite"), "G": Rotated("bite", tilt=-HOUND_LUNGE),
+        "H": Rotated("turn", tilt=PAIN_TILT, override=((3, Src("death", 0)),)),
+    },
+    single={
+        "I": Src("death", 0), "J": Src("death", 1), "K": Src("death", 2), "L": Src("death", 3),
+        "M": Src("death", 4), "N": Src("death", 5),
+    },
+    derived=(
+        "hojas en rejilla 2 x 4 (no 1 x 5): de cada hoja se usan frente (fila 1, figura 1), 3/4 delante "
+        "(fila 1, 2), perfil (fila 1, 3), 3/4 detrás (fila 2, 3) y espalda (fila 1, 4); las otras tres "
+        "(frente y espalda repetidos, el perfil grande de la fila 2) sobran. Las sombras pintadas en el "
+        "suelo (walkR, bite, death) se quitan con la clave (el magenta oscuro del fondo)",
+        "tamaño: el perfil (A3A7 hoy, 36 filas) fija la altura; el frente queda en ~37 filas (hoy 31, "
+        "pero el frente de hoy mide 14 px de ancho: el de Gemini es un perro de frente de verdad)",
+        "rotaciones en pares espejo (SDHNA2A8...), como el set de hoy: el motor espeja 6-8",
+        "B y D: la vista quieta (turn); A = walkL, C = walkR",
+        "ataque (Melee E F G): E = turn (gruñe), F = bite, G = bite inclinado 8 grados hacia delante "
+        "(la dentellada). La hoja bite apenas cambia de pose (boca más abierta y babas): NO sirve como "
+        "ataque por sí sola; ver la lista",
+        "H (dolor): la vista quieta inclinada 9 grados; H3H7 = el dolor de Gemini (death, figura 1, de perfil)",
+        "I-N (muerte, 6 frames): las 6 figuras de death tal cual: dolor, encabritado, cayendo, hundiéndose "
+        "(dibujado mirando al otro lado: espejado), desplomándose, tumbado; todas miran a la izquierda",
+        "brazalete: ninguno (armband='none')",
+    ),
+    anims=(
+        ("correr (See: A A B B C C D D, 2 tics)", (("A", 4), ("B", 4), ("C", 4), ("D", 4)), True),
+        ("morder (Melee: E F 8, G 8)", (("E", 8), ("F", 8), ("G", 8), ("B", 12)), True),
+        ("dolor (Pain: H 2, H 2)", (("B", 20), ("H", 4), ("B", 14)), True),
+        ("morir (Death: I 8 J 8 K L M 4, N)", (("I", 8), ("J", 8), ("K", 4), ("L", 4), ("M", 4), ("N", 45)), True),
+    ),
+    reask=(
+        ("gem_hound_lunge.png", "Same Reich hound, same style, scale and 2x4 grid, magenta background, NO "
+         "ground shadow: the attack lunge, front paws off the ground, jaws wide open at full stretch, head "
+         "thrust forward; front, 3/4 front, profile facing left, 3/4 back, back"),
+        ("gem_hound_walkL.png, gem_hound_walkR.png", "Optional: the two strides more different (legs "
+         "fully extended vs. gathered under the body), one row of 5 views, no shadow"),
+        ("gem_hound_pain.png", "Optional: the hound flinching from a hit, head jerked aside, front view "
+         "(for H1, today derived by tilting the standing view)"),
+    ),
+)
+
+DOUGHBOY = EnemySpec(
+    name="doughboy", sprite="SDDB", folder="doughboy", target_height=DOUGHBOY_HEIGHT, armband="none",
+    feet_sink=DOUGHBOY_SINK,
+    sheets={
+        "turn": Sheet("gem_doughboy_turn.png", 5, STAND, None),
+        # the profile's second glow on the back of the head and the glow on the 3/4 back's nape go
+        "attack": Sheet("gem_doughboy_attack.png", 5, STAND, None,
+                        erase=((2, (0.68, 0.25, 1.0, 0.9)), (3, (0.70, 0.3, 1.0, 0.9)))),
+        "death": Sheet("gem_doughboy_death.png", 6, (), None),
+    },
+    rotated={
+        "A": Rotated("turn"), "B": Rotated("turn"), "C": Rotated("attack"), "D": Rotated("attack"),
+        "E": Rotated("turn", tilt=PAIN_TILT, override=((1, Src("death", 0)),)),
+        "F": Rotated("turn", tilt=PAIN_TILT / 2, override=((1, Src("death", 1)),)),
+    },
+    single={
+        "G": Src("death", 0), "H": Src("death", 1), "I": Src("death", 2), "J": Src("death", 3),
+        "K": Src("death", 4), "L": Src("death", 5),
+    },
+    derived=(
+        "A y B: la vista quieta (turn); C y D: la boca abierta con la bola (attack). La clase pide B C D "
+        "de 5 tics: no hay un frame de 'abre la boca' intermedio, así que B es la cabeza quieta",
+        "attack, vista 3 (perfil): el brillo duplicado en la nuca se borra; vista 4 (3/4 detrás): el "
+        "brillo pintado sobre la nuca se borra (la boca no se ve desde ahí). Se quitan sus píxeles azules "
+        "y blancos; queda la cabeza",
+        "E (dolor): E1 = el dolor de Gemini (death, figura 1, con chispas); E2-E8 la vista quieta "
+        "inclinada 9 grados. F (sigue el dolor): F1 = el golpe (death, figura 2); F2-F8 inclinada 4,5 grados",
+        "G-L (muerte, 6 frames): las 6 figuras de death tal cual (dolor, golpe, se raja, cae, montón, "
+        "restos con el casco)",
+        "cuelga 14 px bajo su origen como hoy (cabeza flotante); la bandera del casco (D12) no se toca: "
+        "armband='none'",
+        "rotaciones 6-8: las 4-2 en espejo (la bandera del casco se ve en el otro lado, como en la Legión)",
+    ),
+    anims=(
+        ("flotar (See: A 3)", (("A", 3),), True),
+        ("atacar (Missile: B C D 5)", (("B", 5), ("C", 5), ("D", 5), ("A", 15)), True),
+        ("dolor (Pain: E 3 E 3 F 6)", (("A", 20), ("E", 6), ("F", 6), ("A", 14)), True),
+        ("morir (Death: G-K 8, L)", (("G", 8), ("H", 8), ("I", 8), ("J", 8), ("K", 8), ("L", 45)), True),
+    ),
+    reask=(
+        ("gem_doughboy_attack.png (views 3-4)", "Same 5 views: the profile with ONE energy ball, in the "
+         "open mouth only; the 3/4 back view with no glow on the back of the head (the mouth faces away)"),
+        ("gem_doughboy_charge.png", "Optional: the same 5 views with the mouth half open and a small "
+         "spark, for the frame before the shot (B)"),
+    ),
+)
+
+
+def _panzer(file: str, facing=STAND, core: bool = False, count: int = 5) -> Sheet:
+    return Sheet(file, count, facing, None, PANZER_SOLE, core=core)
+
+
+PANZER_SHEETS = {
+    "turn": _panzer("gem_panzer_turn.png"),
+    "walkL": _panzer("gem_panzer_walkL.png"),
+    "walkR": _panzer("gem_panzer_walkR.png"),
+    "aim": _panzer("gem_panzer_aim.png"),
+    "fire": Sheet("gem_panzer_fire.png", 5, ("front", "right", "right", "left", "back"), None, PANZER_SOLE,
+                  core=True, erase=PANZER_EMBER),
+    "death": _panzer("gem_panzer_death.png", (), count=6),
+}
+PANZER_ROTATED = {
+    "A": Rotated("walkL"), "B": Rotated("turn"), "C": Rotated("walkR"), "D": Rotated("turn"),
+    "E": Rotated("aim"), "F": Rotated("aim"), "G": Rotated("fire"),
+    "H": Rotated("turn", tilt=PAIN_TILT, override=((1, Src("death", 0)),)),
+}
+PANZER_SINGLE = {
+    "I": Src("death", 0), "J": Src("death", 1), "K": Src("death", 2), "L": Src("death", 3),
+    "M": Src("death", 4), "N": Src("death", 5), "O": Src("death", 5, core=True),
+}
+PANZER_DERIVED = (
+    "B y D: la vista quieta (turn); A = walkL, C = walkR",
+    "E y F: el brazo atrás con el proyectil (aim) dos veces (la clase pide E F 8 tics); G = fire (el "
+    "lanzamiento). El proyectil en vuelo de la hoja fire se quita (es su propio actor, SDPL)",
+    "H (dolor): H1 = el dolor de Gemini (death, figura 1); H2-H8 la vista quieta inclinada 9 grados",
+    "I-N (muerte): las 6 figuras de death; O (el cadáver, -1) = la figura 6 sin el humo (se ha ido)",
+    "botas: las seis hojas (182 px) cortan la suela en la última fila; se añade una suela oscura de "
+    "3 px de origen bajo cada figura que toca el borde",
+    "brazaletes (los dos brazos en fire) y el emblema de la espalda: campo blanco VACÍO (D105); la «E» "
+    "de Gemini se pinta a blanco (modo fill: también lo rojo encerrado en el campo)",
+    "rotaciones 6-8: las 4-2 en espejo",
+)
+PANZER_REASK = (
+    ("gem_panzer_turn.png, _walkL, _walkR, _aim, _fire, _death", "Same sheets on a taller canvas "
+     "(1024x200): the boots' soles and the raised glowing fist are cut by the bottom and top edges; "
+     "leave 10 px of background all round"),
+    ("gem_panzer_aim.png, gem_panzer_fire.png", "Armbands and the back emblem: red with a PLAIN WHITE "
+     "field, no letter, no symbol"),
+    ("gem_panzer_fire.png (views 2-3)", "Optional: 3/4 front and profile throwing to the LEFT, as the "
+     "turn sheet faces (today mirrored, so the armband changes arm)"),
+)
+
+PANZER = EnemySpec(
+    name="panzer", sprite="SDPM", folder="panzermensch", target_height=PANZER_HEIGHT, armband="patch",
+    field_max=PANZER_FIELD_MAX,
+    sheets=PANZER_SHEETS, rotated=PANZER_ROTATED, single=PANZER_SINGLE,
+    derived=PANZER_DERIVED,
+    anims=(
+        ("andar (See: A 3, A B B C C D D 3)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
+        ("lanzar (Missile: E F 8, G 8)", (("E", 8), ("F", 8), ("G", 8), ("B", 14)), True),
+        ("dolor (Pain: H 2, H 2)", (("B", 20), ("H", 4), ("B", 14)), True),
+        ("morir (Death: I-N 8, O)", tuple((c, 8) for c in "IJKLMN") + (("O", 45),), True),
+    ),
+    reask=PANZER_REASK,
+)
+
+PANZER_HEAVY = EnemySpec(
+    name="panzer_heavy", sprite="SDPS", folder="panzermensch", target_height=PANZER_HEAVY_HEIGHT,
+    armband="patch", field_max=PANZER_FIELD_MAX, shade=PLATE_SHADE,
+    sheets=PANZER_SHEETS, rotated=PANZER_ROTATED, single=PANZER_SINGLE,
+    derived=PANZER_DERIVED[:-1] + (
+        "el Schwer comparte el arte del Panzermensch (la clase es la base con SDPS por SDPM): las mismas "
+        "hojas de Gemini, 12 % más grande (76 filas, D65/D67) y con la placa ennegrecida (x0,55 todo "
+        "menos rojos y blancos), como la «placa negra» de D65. Sin chimeneas ni pinchos extra; muere "
+        "boca arriba (el de hoy, boca abajo)",
+        "rotaciones 6-8: las 4-2 en espejo",
+    ),
+    anims=PANZER.anims,
+    reask=PANZER_REASK + (
+        ("gem_panzer_heavy_turn.png", "Optional: the heavy Panzermensch, same sheets, black armour "
+         "plate, larger spikes and two exhaust stacks on the back"),
+    ),
+)
+
+GENERAL = EnemySpec(
+    name="general", sprite="SDGN", folder="general", target_height=GENERAL_HEIGHT, armband="none",
+    field_max=GENERAL_FIELD_MAX,
+    sheets={
+        "turn": Sheet("gem_general_turn.png", 5, STAND_RIGHT, None),
+        "walkL": Sheet("gem_general_walkL.png", 5, STAND_RIGHT, None),
+        "walkR": Sheet("gem_general_walkR.png", 5, STAND_RIGHT, None),
+        "aim": Sheet("gem_general_aim.png", 5, STAND_RIGHT, None),
+        "fire": Sheet("gem_general_fire.png", 5, STAND_RIGHT, None, split_x=GENERAL_FIRE_SPLIT),
+        "death": Sheet("gem_general_death.png", 5, (), None, rel_scale=GENERAL_DEATH_SCALE,
+                       patch=GENERAL_DEATH_FIELDS),
+    },
+    rotated={
+        "A": Rotated("walkL"), "B": Rotated("turn"), "C": Rotated("walkR"), "D": Rotated("turn"),
+        "E": Rotated("aim"), "F": Rotated("fire"),
+        "G": Rotated("turn", tilt=PAIN_TILT, override=((1, Src("death", 0)),)),
+        "Q": Rotated("turn"), "R": Rotated("aim"),
+    },
+    single={
+        "H": Src("death", 0), "I": Src("death", 1), "J": Src("death", 2), "K": Src("death", 2, tilt=PAIN_TILT),
+        "L": Src("death", 3), "M": Src("death", 3), "N": Src("death", 4), "O": Src("death", 4),
+        "P": Src("death", 4),
+    },
+    derived=(
+        "B y D: la vista quieta (turn); A = walkL, C = walkR; E = aim (bazuca apuntando), F = fire "
+        "(fogonazo y humo trasero). En fire cuatro figuras se tocan (fogonazo con humo, fogonazo con "
+        "cara, humo con hombrera): se cortan en columnas fijas y el fogonazo o el humo que cruza va "
+        "entero a la figura que lo dispara (split_x por color)",
+        "G (dolor): G1 = el dolor de Gemini (death, figura 1, el monóculo saltando); G2-G8 la vista "
+        "quieta inclinada 9 grados",
+        "Q (la orden, 'Vorwärts!') y R (los señala): Gemini no los dibujó. Q = la vista quieta, R = aim "
+        "(señala con la bazuca). Ver la lista",
+        "H-P (muerte, 9 frames de la clase, 5 de Gemini): H = dolor con el monóculo, I = golpe (suelta la "
+        "bazuca, la gorra vuela), J = se agarra el pecho, K = el mismo inclinado 9 grados (se tambalea), "
+        "L y M = de rodillas, N O P = tumbado con la capa",
+        "la hoja death está dibujada más pequeña (la bazuca mide 152 px; en aim 210): se escala x1,39",
+        "perfil: Gemini lo dibujó mirando a la DERECHA en las seis hojas: se espeja (Doom 2-4 miran a la "
+        "izquierda). La bandera pasa al brazo de fuera en 3 y queda en su brazo en 7, como en la Legión",
+        "brazalete (brazo izquierdo): en turn/walk/aim/fire Gemini lo dibujó rojo con un cuadro blanco "
+        "vacío: se deja tal cual. En la muerte (H-L) pintó una «C» dentro: se tapa con un campo blanco "
+        "liso, a mano (4 cajas, Sheet.patch): la banda está en sombra y el símbolo toca el guante y el "
+        "abrigo, la detección automática no lo aísla. Bandera de EEUU y capa de barras: intactas",
+        "OJO, coherencia de Gemini: en las vistas de frente y de espalda la bandera está en el brazo "
+        "IZQUIERDO (donde va el brazalete en 3/4). No se corrige (espejar el frente pasaría la bazuca "
+        "al otro hombro): ver la lista",
+        "rotaciones 6-8: las 4-2 en espejo",
+    ),
+    anims=(
+        ("andar (See: A A B B C C D D, 3 tics)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
+        ("disparar (Missile: E 6 F 12 E 12 F 12)", (("E", 6), ("F", 12), ("E", 12), ("F", 12), ("B", 14)), True),
+        ("dolor (Pain: G 10)", (("B", 20), ("G", 10), ("B", 14)), True),
+        ("la orden (Summon: Q 15, R 15)", (("Q", 15), ("R", 15), ("B", 14)), True),
+        ("morir (Death: H-O 10, P)", tuple((c, 10) for c in "HIJKLMNO") + (("P", 45),), True),
+    ),
+    reask=(
+        ("gem_general_summon.png", "Same General, same style and scale, magenta background, 5 views "
+         "(front, 3/4 front, profile facing left, 3/4 back, back): left fist raised high giving an "
+         "order, bazooka on the right shoulder; and a second sheet pointing forward with the left arm"),
+        ("gem_general_turn.png, _walkL, _walkR, _aim, _fire (views 1 and 5)", "Front and back views: "
+         "US flag patch on his RIGHT arm, red armband with a plain white field on his LEFT arm, as in "
+         "the 3/4 views"),
+        ("gem_general_fire.png", "Same 5 views with more space between figures: the muzzle flash and "
+         "the back-blast smoke must not touch the next figure"),
+        ("gem_general_death.png", "Same 5 frames at the same scale as the turn sheet (they are ~30 % "
+         "smaller), plus a frame falling between kneeling and lying; armband field plain white"),
+    ),
+)
+
+ENEMIES = {"rifleman": RIFLEMAN, "legion": LEGION, "storm": STORM, "hound": HOUND, "doughboy": DOUGHBOY,
+           "panzer": PANZER, "panzer_heavy": PANZER_HEAVY, "general": GENERAL}
 
 
 # ------------------------------------------------------------- palette
@@ -440,19 +763,70 @@ def _dilate(mask: np.ndarray, r: int) -> np.ndarray:
     return mask
 
 
-def split_merged(mask: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Cut a component holding two figures at its emptiest column (away from its ends)."""
+def bridge_mask(rgb: np.ndarray, kind: str) -> np.ndarray:
+    """The colour of what bridges two figures: `fire` a muzzle flash (bright
+    yellow to white-hot, not the gold of an epaulette), `smoke` a back-blast
+    cloud (light neutral grey)."""
+    a = rgb.astype(np.int32)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    lo, hi = a.min(axis=-1), a.max(axis=-1)
+    if kind == "fire":
+        return (lo > GLOW_WHITE) | ((r > BRIDGE_FIRE_R) & (g > BRIDGE_FIRE_G * r) & (b < g))
+    if kind == "smoke":
+        return (hi - lo < BRIDGE_SMOKE_SPREAD) & (lo > BRIDGE_SMOKE_MIN) & (hi < BRIDGE_SMOKE_MAX)
+    return np.zeros(a.shape[:2], bool)
+
+
+def _fixed_cut(cols: np.ndarray, at: tuple) -> tuple | None:
+    """The first (x, kind) of `at` inside the columns `cols`, away from their ends."""
+    c0, c1 = cols[0], cols[-1]
+    m = int((c1 - c0) * SPLIT_MARGIN)
+    return next(((x, k) for x, k in at if c0 + m < x < c1 - m), None)
+
+
+def split_merged(mask: np.ndarray, at: tuple = (), rgb: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray]:
+    """Cut a component holding two figures at its emptiest column (away from
+    its ends), or at the first sheet column of `at` ((x, kind) pairs) inside
+    it, away from its ends as well: a flash or a smoke cloud bridging two figures puts the emptiest
+    column in the wrong place. With a `kind` (see bridge_mask) every piece
+    of that colour reaching left of the cut goes whole to the LEFT figure
+    (the profile's flash in front of the next figure's face); a kind ending
+    in `>` sends its pieces reaching right of the cut to the RIGHT figure;
+    `|` joins several kinds. After such a
+    fixed cut, crumbs under ERASE_KEEP of a side go."""
     cols = np.flatnonzero(mask.any(axis=0))
     c0, c1 = cols[0], cols[-1]
     m = int((c1 - c0) * SPLIT_MARGIN)
-    counts = mask[:, c0 + m:c1 - m + 1].sum(axis=0)
-    cut = c0 + m + int(counts.argmin())
+    fixed = _fixed_cut(cols, at)
+    if fixed:
+        cut, kind = fixed
+    else:
+        counts = mask[:, c0 + m:c1 - m + 1].sum(axis=0)
+        cut, kind = c0 + m + int(counts.argmin()), ""
     left = mask.copy()
     left[:, cut:] = False
-    return left, mask & ~left
+    for k in (kind.split("|") if kind and rgb is not None else ()):
+        lab, n = label(mask & bridge_mask(rgb, k.rstrip(">")))
+        if k.endswith(">"):      # every piece reaching right of the cut goes to the RIGHT figure
+            reach = np.unique(lab[:, cut:])
+            left &= ~np.isin(lab, reach[reach > 0])
+        else:
+            reach = np.unique(lab[:, :cut])
+            left |= np.isin(lab, reach[reach > 0])
+    right = mask & ~left
+    if fixed:
+        left, right = _drop_crumbs(left), _drop_crumbs(right)
+    return left, right
 
 
-def figures(fg: np.ndarray, count: int) -> list[np.ndarray]:
+def _drop_crumbs(mask: np.ndarray) -> np.ndarray:
+    lab, n = label(mask)
+    areas = np.bincount(lab.ravel(), minlength=n + 1)
+    keep = np.flatnonzero(areas >= ERASE_KEEP * mask.sum())
+    return np.isin(lab, keep[keep > 0])
+
+
+def figures(fg: np.ndarray, count: int, split_x: tuple = (), rgb: np.ndarray | None = None) -> list[np.ndarray]:
     """The `count` figures of a sheet, left to right, each a bool mask with its satellites."""
     lab, n = label(fg)
     areas = np.bincount(lab.ravel(), minlength=n + 1)
@@ -464,8 +838,10 @@ def figures(fg: np.ndarray, count: int) -> list[np.ndarray]:
     big = [c for c in comps if c.sum() >= FIGURE_FRAC * comps[0].sum()]
     rest = [c for c in comps if c.sum() < FIGURE_FRAC * comps[0].sum()]
     while len(big) < count:            # two figures merged (touching flashes)
-        widest = max(range(len(big)), key=lambda i: np.ptp(np.flatnonzero(big[i].any(axis=0))))
-        a, b = split_merged(big.pop(widest))
+        spans = [np.flatnonzero(c.any(axis=0)) for c in big]
+        # a piece a fixed cut applies to goes first (its emptiest column may be a flash), then the widest
+        widest = max(range(len(big)), key=lambda i: (_fixed_cut(spans[i], split_x) is not None, np.ptp(spans[i])))
+        a, b = split_merged(big.pop(widest), split_x, rgb)
         big += [a, b]
     big.sort(key=lambda c: -int(c.sum()))
     rest += big[count:]
@@ -487,6 +863,69 @@ def figures(fg: np.ndarray, count: int) -> list[np.ndarray]:
         pending = left
     big.sort(key=lambda c: float(np.flatnonzero(c.any(axis=0)).mean()))
     return big
+
+
+def shadow_mask(rgb: np.ndarray) -> np.ndarray:
+    """Gemini's painted ground shadow: the background's magenta hue, darker
+    (green far under red and blue, red and blue alike, not black)."""
+    a = rgb.astype(np.int32)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    lo, hi = np.minimum(r, b), np.maximum(r, b)
+    return (g < SHADOW_G * lo) & (hi - lo < SHADOW_RB * hi) & (lo > SHADOW_MIN)
+
+
+def grid_order(masks: list[np.ndarray], rows: int, height: int) -> list[np.ndarray]:
+    """Figures of a `rows`-row grid sheet, row by row, left to right in each
+    row (the row is the band of the sheet holding the figure's centre)."""
+    def key(m):
+        ys, xs = np.nonzero(m)
+        return min(rows - 1, int(ys.mean() * rows / height)), float(xs.mean())
+    return sorted(masks, key=key)
+
+
+def largest(mask: np.ndarray) -> np.ndarray:
+    """The biggest 8-connected piece of a mask."""
+    lab, n = label(mask)
+    if n <= 1:
+        return mask
+    return lab == 1 + int(np.argmax(np.bincount(lab.ravel(), minlength=n + 1)[1:]))
+
+
+def erase_glow(rgb: np.ndarray, mask: np.ndarray, box: tuple[float, float, float, float],
+               kind: str = "glow") -> np.ndarray:
+    """A glow Gemini painted where it does not belong (a duplicated muzzle
+    glow, one on the back of the head; `fire`: an ember in flight stuck to
+    the fist): in `box` (fractions x0, y0, x1, y1 of the figure's box) its
+    pixels (`glow`: blue and white-hot; `fire`: yellow, orange and
+    white-hot; `all`: everything, the ember's halo ring) leave the mask, then pieces under ERASE_KEEP of the figure
+    go (the sparks or the ember's rim left floating)."""
+    h, w = mask.shape
+    x0, y0, x1, y1 = (int(round(f * n)) for f, n in zip(box, (w, h, w, h)))
+    a = rgb[y0:y1, x0:x1].astype(np.int32)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    hot = a.min(axis=-1) > GLOW_WHITE
+    if kind == "all":
+        glow = np.ones_like(hot)
+    elif kind == "fire":
+        glow = hot | ((r > FIRE_R) & (g > FIRE_G * r) & (b < g + FIRE_B))
+    else:
+        glow = hot | (b - r > GLOW_BLUE)
+    mask = mask.copy()
+    mask[y0:y1, x0:x1] &= ~glow
+    lab, n = label(mask)
+    areas = np.bincount(lab.ravel(), minlength=n + 1)
+    keep = np.flatnonzero(areas >= ERASE_KEEP * mask.sum())
+    return np.isin(lab, keep[keep > 0])
+
+
+def darken(rgb: np.ndarray, mask: np.ndarray, k: float) -> np.ndarray:
+    """Every colour of the figure but its reds, whites and glows x k (a black plate)."""
+    if k == 1.0:
+        return rgb
+    keep = red_mask(rgb, MARKER_RED_MIN) | white_mask(rgb) | (rgb.max(axis=-1) > SHADE_KEEP)
+    out = rgb.astype(np.float64)
+    out[mask & ~keep] *= k
+    return np.clip(out, 0, 255).astype(np.uint8)
 
 
 def crop(rgb: np.ndarray, mask: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -537,19 +976,90 @@ def field_purity(rgb: np.ndarray, mask: np.ndarray, box: tuple[int, int, int, in
     return float(ok.sum()) / float(m.sum())
 
 
-def blank_armband(rgb: np.ndarray, mask: np.ndarray, mode: str = "blank") -> tuple[np.ndarray, int]:
+def blue_frac(rgb: np.ndarray, mask: np.ndarray) -> float:
+    """Fraction of the figure's pixels that are blue (a US flag's canton)."""
+    a = rgb.astype(np.int32)
+    blue = mask & (a[..., 2] > a[..., 0] + GLOW_BLUE) & (a[..., 2] > a[..., 1])
+    return float(blue.sum()) / max(1, int(mask.sum()))
+
+
+def light_mask(rgb: np.ndarray) -> np.ndarray:
+    """A letter or field painted light on the band: pale, white to pink, in
+    shade too; not the yellowish beige of a coat or a cap (PATCH_YELLOW)."""
+    a = rgb.astype(np.int32)
+    lo, hi = a.min(axis=-1), a.max(axis=-1)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    return (lo > PATCH_LIGHT) & (hi - lo < PATCH_SPREAD) & (r >= g - PATCH_TINT) & (b >= g - PATCH_YELLOW)
+
+
+def patch_armband(rgb: np.ndarray, mask: np.ndarray, field_max: int) -> tuple[np.ndarray, int]:
+    """Mode `patch`: a light mark ON the red band (the Panzermensch's white
+    «E», a white field with or without a symbol) becomes one plain white
+    patch, its whole box painted PATCH_RGB: pale pixels grouped within
+    FIELD_GAP, near the band's red (dark red in shade counts), no bigger
+    than `field_max`, the box mostly light or red (PATCH_PURITY), the ring of
+    PATCH_RING px round it mostly red (PATCH_RING_RED: it sits ON the band;
+    a glove or a cape's stripe does not) and no blue near it (a US flag).
+    A mark the grouping cannot isolate is named by hand (Sheet.patch)."""
+    rgb = rgb.copy()
+    light = light_mask(rgb) & mask
+    red = red_mask(rgb, MARKER_RED_MIN) & mask
+    near_red = _dilate(red, ARMBAND_NEAR)
+    lab, n = label(_dilate(light, FIELD_GAP))
+    boxes = []
+    for i in range(1, n + 1):
+        blob = (lab == i) & light
+        if blob.sum() < MIN_FIELD or not (blob & near_red).any():
+            continue
+        ys, xs = np.nonzero(blob)
+        boxes.append((ys.min(), xs.min(), ys.max() + 1, xs.max() + 1))
+    painted = 0
+    for y0, x0, y1, x1 in boxes:
+        if max(y1 - y0, x1 - x0) > field_max or min(y1 - y0, x1 - x0) < PATCH_MIN_SIDE:
+            continue
+        m = mask[y0:y1, x0:x1]
+        if float(((light | red)[y0:y1, x0:x1] & m).sum()) / float(m.sum()) < PATCH_PURITY:
+            continue
+        ry0, rx0 = max(0, y0 - PATCH_RING), max(0, x0 - PATCH_RING)
+        ry1, rx1 = y1 + PATCH_RING, x1 + PATCH_RING
+        ring = mask[ry0:ry1, rx0:rx1].copy()
+        ring[y0 - ry0:y1 - ry0, x0 - rx0:x1 - rx0] = False
+        if not ring.any() or float((red[ry0:ry1, rx0:rx1] & ring).sum()) / float(ring.sum()) < PATCH_RING_RED:
+            continue                     # not ON the band: a glove, a stripe of the cape
+        g = max(y1 - y0, x1 - x0)          # the canton may lie a field's width away
+        gy0, gx0 = max(0, y0 - g), max(0, x0 - g)
+        if blue_frac(rgb[gy0:y1 + g, gx0:x1 + g], mask[gy0:y1 + g, gx0:x1 + g]) >= PATCH_FLAG_BLUE:
+            continue                     # a US flag (its canton)
+        sub = rgb[y0:y1, x0:x1]
+        painted += int((m & ~(sub == PATCH_RGB).all(axis=-1)).sum())
+        sub[m] = PATCH_RGB
+    return rgb, painted
+
+
+def blank_armband(rgb: np.ndarray, mask: np.ndarray, mode: str = "blank",
+                  field_max: int | None = None) -> tuple[np.ndarray, int]:
     """Paint white whatever lies INSIDE an armband's white field (a symbol
     Gemini drew): in the field's box, a pixel with white on both sides in
-    its row AND in its column (a broken ring still encloses). Mode `box`:
+    its row AND in its column (a broken ring still encloses). Mode `fill`:
+    as `blank`, and a red pixel enclosed both ways goes white too (a white
+    ring on the red, the General's, becomes a plain field). Mode `box`:
     the field's whole box (within the figure) goes white, so a white symbol
     on the red (a cross) becomes a plain white patch; a field bigger than
     FIELD_BOX_MAX is not an armband and is left. Mode `none`: nothing.
+    In every mode a field bigger than `field_max` (a coat, a cape's stripe)
+    or with a blue canton (a US flag, FLAG_BLUE) is left.
     Returns (rgb, pixels painted)."""
     rgb = rgb.copy()
     painted = 0
     if mode == "none":
         return rgb, 0
+    if mode == "patch":
+        return patch_armband(rgb, mask, field_max or FIELD_BOX_MAX)
     for y0, x0, y1, x1 in armband_fields(rgb, mask, loose=mode == "box"):
+        if field_max is not None and max(y1 - y0, x1 - x0) > field_max:
+            continue
+        if blue_frac(rgb[y0:y1, x0:x1], mask[y0:y1, x0:x1]) >= FLAG_BLUE:
+            continue
         box = rgb[y0:y1, x0:x1]
         white = white_mask(box, BOX_WHITE_MIN if mode == "box" else WHITE_MIN)
         if mode == "box":
@@ -567,8 +1077,10 @@ def blank_armband(rgb: np.ndarray, mask: np.ndarray, mode: str = "blank") -> tup
         last_x = np.where(white.any(axis=1, keepdims=True), w - 1 - white[:, ::-1].argmax(axis=1)[:, None], -1)
         first_y = np.where(white.any(axis=0, keepdims=True), white.argmax(axis=0)[None, :], h)
         last_y = np.where(white.any(axis=0, keepdims=True), h - 1 - white[::-1].argmax(axis=0)[None, :], -1)
-        inside = ((cols > first_x) & (cols < last_x)) | ((rows > first_y) & (rows < last_y))
-        hole = inside & ~white & ~red_mask(box) & mask[y0:y1, x0:x1]
+        in_row, in_col = (cols > first_x) & (cols < last_x), (rows > first_y) & (rows < last_y)
+        hole = (in_row | in_col) & ~white & ~red_mask(box) & mask[y0:y1, x0:x1]
+        if mode == "fill":
+            hole |= in_row & in_col & ~white & mask[y0:y1, x0:x1]
         if hole.any():
             box[hole] = box[white].mean(axis=0).astype(rgb.dtype)
             painted += int(hole.sum())
@@ -763,14 +1275,15 @@ def _ceil8(v: float) -> int:
     return int(math.ceil(v / 8.0)) * 8
 
 
-def place_frame(pics: dict[str, np.ndarray]) -> tuple[dict[str, np.ndarray], tuple[int, int]]:
+def place_frame(pics: dict[str, np.ndarray],
+                sink: int = FEET_SINK) -> tuple[dict[str, np.ndarray], tuple[int, int]]:
     """One canvas for every picture of a frame letter: legs' axis at `left`,
-    the last row FEET_SINK under `top`. Returns ({lump: canvas}, (left, top))."""
+    the last row `sink` under `top`. Returns ({lump: canvas}, (left, top))."""
     half, above, below = 0.0, 0, 0
     anchors = {}
     for lump, idx in pics.items():
         ax, last = feet_anchor(idx)
-        floor = last - FEET_SINK
+        floor = last - sink
         anchors[lump] = (ax, floor)
         half = max(half, ax + 1, idx.shape[1] - ax)
         above = max(above, floor)
@@ -790,8 +1303,27 @@ def place_frame(pics: dict[str, np.ndarray]) -> tuple[dict[str, np.ndarray], tup
 
 
 # ---------------------------------------------------------------- names
+PAIR_ROTS = (1, 2, 3, 4, 5)   # with mirror pairs: rotations 6-8 are 4-2 flipped by the engine
+
+
+def rot_lump(spec: EnemySpec, letter: str, r: int) -> str:
+    """SDRRA2, or SDHNA2A8 for a set written in mirror pairs."""
+    if spec.pairs and 2 <= r <= 4:
+        return f"{spec.sprite}{letter}{r}{letter}{10 - r}"
+    return f"{spec.sprite}{letter}{r}"
+
+
+def rots_of(spec: EnemySpec) -> tuple[int, ...]:
+    return PAIR_ROTS if spec.pairs else tuple(range(1, 9))
+
+
+def ref_lump(spec: EnemySpec, letter: str = "B") -> str:
+    """The lump whose figure is target_height tall: the ref view's rotation."""
+    return rot_lump(spec, letter, spec.ref_view + 1)
+
+
 def lump_names(spec: EnemySpec) -> list[str]:
-    names = [f"{spec.sprite}{f}{r}" for f in sorted(spec.rotated) for r in range(1, 9)]
+    names = [rot_lump(spec, f, r) for f in sorted(spec.rotated) for r in rots_of(spec)]
     names += [f"{spec.sprite}{f}0" for f in sorted(spec.single)]
     return sorted(names)
 
@@ -867,16 +1399,37 @@ def touched_edges(mask: np.ndarray) -> tuple[str, ...]:
 
 
 def cut_sheet(rgb: np.ndarray, sheet: Sheet, armband: str = "blank",
-              armband_side: str | None = None) -> SheetCut:
+              armband_side: str | None = None, field_max: int | None = None) -> SheetCut:
     bg = estimate_background(rgb)
     fg = key_background(rgb, bg)
+    if sheet.shadow:
+        fg &= ~shadow_mask(rgb)
     sc = SheetCut(tuple(round(float(v)) for v in bg))
-    for i, m in enumerate(figures(fg, sheet.count)):
+    masks = figures(fg, sheet.count, sheet.split_x, rgb)
+    if sheet.rows > 1:
+        masks = grid_order(masks, sheet.rows, rgb.shape[0])
+    if sheet.pick:
+        masks = [masks[k] for k in sheet.pick]
+    erase: dict[int, list] = {}
+    for view, box, *kind in sheet.erase:
+        erase.setdefault(view, []).append((box, kind[0] if kind else "glow"))
+    for i, m in enumerate(masks):
+        if sheet.core:
+            m = largest(m)
         edges = touched_edges(m)
         c_rgb, c_mask = crop(rgb, m)
+        for box, kind in erase.get(i, ()):
+            c_mask = erase_glow(c_rgb, c_mask, box, kind)
+        if i in erase:
+            c_rgb, c_mask = crop(c_rgb, c_mask)
         sole = sheet.sole if "bottom" in edges else 0
         c_rgb, c_mask = add_sole(c_rgb, c_mask, sole)
-        c_rgb, painted = blank_armband(c_rgb, c_mask, armband)
+        c_rgb, painted = blank_armband(c_rgb, c_mask, armband, field_max)
+        for view, (x0, y0, x1, y1) in sheet.patch:
+            if view == i:
+                sub, m = c_rgb[y0:y1, x0:x1], c_mask[y0:y1, x0:x1]
+                painted += int(m.sum())
+                sub[m] = PATCH_RGB
         face = facing_of(sheet, i, c_mask) if i in SIDE_VIEWS and sheet.facing else \
             (sheet.facing[i] if i < len(sheet.facing) else "front")
         c_rgb, c_mask, mir = normalise(c_rgb, c_mask, face)
@@ -891,23 +1444,26 @@ def cut_sheet(rgb: np.ndarray, sheet: Sheet, armband: str = "blank",
 
 
 def plan(spec: EnemySpec, ref_dir: Path = REF_DIR) -> dict[str, SheetCut]:
-    cuts = {k: cut_sheet(load_rgb(ref_dir / s.file), s, spec.armband, spec.armband_side)
+    cuts = {k: cut_sheet(load_rgb(ref_dir / s.file), s, spec.armband, spec.armband_side, spec.field_max)
             for k, s in spec.sheets.items()}
     ref = cuts[spec.ref_sheet]
-    ref_h = ref.figs[0].mask.shape[0]
+    ref_h = ref.figs[spec.ref_view].mask.shape[0]
     band = max(4, int(HELMET_BAND * ref_h))
     for k, s in spec.sheets.items():
         if s.scale_ref is not None:
             cuts[k].helmet = helmet_width(cuts[k].figs[s.scale_ref].mask, band)
     ref_helmet = ref.helmet or 1
     for k, s in spec.sheets.items():
-        cuts[k].scale = ref_helmet / cuts[k].helmet if s.scale_ref is not None else 1.0
+        cuts[k].scale = ref_helmet / cuts[k].helmet if s.scale_ref is not None else 1.0 / s.rel_scale
     return cuts
 
 
 def render(cut: Cut, scale: float, pal: np.ndarray, tilt_deg: float = 0.0, mirror: bool = False,
-           blood: int = 0, seed: int = 0) -> np.ndarray:
+           blood: int = 0, seed: int = 0, core: bool = False, shade: float = 1.0) -> np.ndarray:
     rgb, mask = cut.rgb, cut.mask
+    if core:
+        rgb, mask = crop(rgb, largest(mask))
+    rgb = darken(rgb, mask, shade)
     if mirror:
         rgb, mask = rgb[:, ::-1], mask[:, ::-1]
     if tilt_deg:
@@ -923,29 +1479,33 @@ def build(spec: EnemySpec, out_dir: Path | None = None, ref_dir: Path = REF_DIR)
     out_dir = out_dir or OUT_ROOT / spec.name
     guard_out(out_dir)
     cuts = plan(spec, ref_dir)
-    base = spec.target_height / cuts[spec.ref_sheet].figs[0].mask.shape[0]
+    base = spec.target_height / cuts[spec.ref_sheet].figs[spec.ref_view].mask.shape[0]
     frames: dict[str, dict[str, np.ndarray]] = {}
     for letter, rot in spec.rotated.items():
         over = dict(rot.override)
+        if spec.pairs and set(over) - set(PAIR_ROTS):
+            raise ValueError(f"{spec.name} {letter}: a mirror-pair set draws no rotation "
+                             f"{sorted(set(over) - set(PAIR_ROTS))}")
         pics = {}
-        for r in range(1, 9):
+        for r in rots_of(spec):
             src = over.get(r)
             if src is not None:
                 sc = cuts[src.sheet]
-                pics[f"{spec.sprite}{letter}{r}"] = render(sc.figs[src.view], base * sc.scale, pal,
-                                                           src.tilt, False, src.blood)
+                pics[rot_lump(spec, letter, r)] = render(sc.figs[src.view], base * sc.scale, pal, src.tilt,
+                                                         src.mirror, src.blood, core=src.core, shade=spec.shade)
                 continue
             sc = cuts[rot.sheet]
-            pics[f"{spec.sprite}{letter}{r}"] = render(sc.figs[VIEW_OF_ROT[r]], base * sc.scale, pal,
-                                                       rot.tilt, r in MIRRORED_ROTS)
+            pics[rot_lump(spec, letter, r)] = render(sc.figs[VIEW_OF_ROT[r]], base * sc.scale, pal,
+                                                     rot.tilt, r in MIRRORED_ROTS, shade=spec.shade)
         frames[letter] = pics
     for n, (letter, src) in enumerate(sorted(spec.single.items())):
         sc = cuts[src.sheet]
         frames[letter] = {f"{spec.sprite}{letter}0": render(sc.figs[src.view], base * sc.scale, pal,
-                                                            src.tilt, False, src.blood, seed=7000 + n)}
+                                                            src.tilt, src.mirror, src.blood, seed=7000 + n,
+                                                            core=src.core, shade=spec.shade)}
     written, grabs = [], {}
     for letter in sorted(frames):
-        canv, grab = place_frame(frames[letter])
+        canv, grab = place_frame(frames[letter], spec.feet_sink)
         for lump, idx in sorted(canv.items()):
             save_sprite(to_rgba(idx, pal), grab, out_dir / f"{lump}.png")
             written.append(lump)
@@ -1130,9 +1690,11 @@ ul{margin:6px 0;padding-left:20px}
 <div class="wrap">
 <p>Cada enemigo: el <b>actual</b> (instalado) frente al <b>nuevo</b> (de las hojas de Gemini, D104/D105), ampliados ×3 sin suavizado,
 sobre su línea de suelo (la raya clara) con los offsets reales. Enemigos: fusilero <code>SDRR</code>, soldado de la Legión
-<code>SDLT</code>, stormtrooper híbrido <code>SDHS</code>. Mismos nombres de lump: el overlay
-<code>work/overlays/sd-draft-enemies.pk3</code> los sustituye al cargarlo después del mod. En los dos del Reich el brazalete va
-con el cuadro blanco <b>vacío</b> (decisión del CEO, 2026-10-22, D105); la propuesta del símbolo está aparte en
+<code>SDLT</code>, stormtrooper híbrido <code>SDHS</code>, sabueso del Reich <code>SDHN</code>, doughboy <code>SDDB</code>,
+Panzermensch <code>SDPM</code> y Panzermensch Schwer <code>SDPS</code> (el mismo arte, más grande y con la placa negra),
+El General <code>SDGN</code>. Mismos nombres de lump (el sabueso, en pares espejo como hoy: «(espejo)» es la rotación que
+el motor voltea): el overlay <code>work/overlays/sd-draft-enemies.pk3</code> los sustituye al cargarlo después del mod. En todo
+lo del Reich el brazalete y el emblema van con el campo blanco <b>vacío</b>, ninguna esvástica (decisión del CEO, 2026-10-22, D105); la propuesta del símbolo está aparte en
 <code>docs/art/previews/2026-10-22_P4_rifleman-armband-proposal.png</code>. Marca OK / NO / ? por fila y pulsa <b>Copiar resultado</b>.</p>
 <div id="enemies"></div>
 <h2>Nota general</h2>
@@ -1154,17 +1716,30 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch
 const st = id => (S[id] = S[id] || {v: "", n: ""});
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const ROWS = [];
-function box(set, names){
-  // one stage size for a group of lumps: the union of their extents about (left, top)
+function frame(set, sp, L, r){
+  // the picture of letter L in rotation r: its own lump, a mirror pair (SDHNA2A8), or the
+  // pair's other half flipped as the engine does (offset mirrored too), or the rotation-0 lump
+  if (r && set[sp + L + r]) return set[sp + L + r];
+  if (r >= 2 && r <= 4 && set[sp + L + r + L + (10 - r)]) return set[sp + L + r + L + (10 - r)];
+  if (r >= 6 && r <= 8) { const g = set[sp + L + (10 - r) + L + r]; if (g) return Object.assign({}, g, {left: g.w - g.left, flip: true}); }
+  return set[sp + L + "0"] || null;
+}
+function box(frames){
+  // one stage size for a group of pictures: the union of their extents about (left, top)
   let l = 0, r = 0, u = 0, d = 0;
-  for (const n of names) { const f = set[n]; if (!f) continue;
+  for (const f of frames) { if (!f) continue;
     l = Math.max(l, f.left); r = Math.max(r, f.w - f.left); u = Math.max(u, f.top); d = Math.max(d, f.h - f.top); }
   return {l, r, u, d, w: l + r, h: u + d};
+}
+function place(img, f, b){
+  img.src = f.src; img.width = f.w * Z; img.height = f.h * Z;
+  img.style.left = (b.l - f.left) * Z + "px"; img.style.top = (b.u - f.top) * Z + "px";
+  img.style.transform = f.flip ? "scaleX(-1)" : "";
 }
 function stage(f, b, id){
   if (!f) return `<div class="stage" style="width:${b.w*Z}px;height:${b.h*Z}px"></div>`;
   return `<div class="stage" style="width:${b.w*Z}px;height:${b.h*Z}px"><div class="floor" style="top:${b.u*Z}px"></div>` +
-    `<img ${id ? `id="${id}"` : ""} src="${f.src}" width="${f.w*Z}" height="${f.h*Z}" style="left:${(b.l-f.left)*Z}px;top:${(b.u-f.top)*Z}px" alt=""></div>`;
+    `<img ${id ? `id="${id}"` : ""} src="${f.src}" width="${f.w*Z}" height="${f.h*Z}" style="left:${(b.l-f.left)*Z}px;top:${(b.u-f.top)*Z}px${f.flip ? ";transform:scaleX(-1)" : ""}" alt=""></div>`;
 }
 function row(id, title, body){
   ROWS.push({id, title});
@@ -1173,8 +1748,8 @@ function row(id, title, body){
     <textarea class="note" placeholder="Notas (qué pedir otra vez a Gemini, qué cambiar…)">${esc(st(id).n)}</textarea></div></div></div>`;
 }
 function rotStrip(set, sp, L){
-  const names = [1,2,3,4,5,6,7,8].map(r => sp + L + r), b = box(set, names);
-  return `<div class="strip">` + names.map(n => `<div class="cell">${stage(set[n], b)}${n.slice(4)}</div>`).join("") + `</div>`;
+  const fr = [1,2,3,4,5,6,7,8].map(r => frame(set, sp, L, r)), b = box(fr);
+  return `<div class="strip">` + fr.map((f, k) => `<div class="cell">${stage(f, b)}${L}${k + 1}${f && f.flip ? " (espejo)" : ""}</div>`).join("") + `</div>`;
 }
 function build(){
   let html = "";
@@ -1188,9 +1763,9 @@ function build(){
       html += row(`${it.id}-${L}`, `Fotograma ${L}: las 8 rotaciones (arriba actual, abajo nuevo)`,
         `<h3>actual</h3>${rotStrip(it.cur, it.sprite, L)}<h3>nuevo</h3>${rotStrip(it.new, it.sprite, L)}`);
     }
-    const singles = Object.keys(it.new).filter(n => n.endsWith("0")).sort();
-    const bs = box(it.new, singles), bc = box(it.cur, singles);
-    html += row(`${it.id}-death`, `Muerte y reventón (rotación 0): ${singles.map(n => n[4]).join(" ")}`,
+    const singles = Object.keys(it.new).filter(n => n.length === 6 && n.endsWith("0")).sort();
+    const bs = box(singles.map(n => it.new[n])), bc = box(singles.map(n => it.cur[n]));
+    html += row(`${it.id}-death`, `Muerte${singles.length > 7 ? " y reventón" : ""} (rotación 0): ${singles.map(n => n[4]).join(" ")}`,
       `<h3>actual</h3><div class="strip">` + singles.map(n => `<div class="cell">${stage(it.cur[n], bc)}${n[4]}</div>`).join("") +
       `</div><h3>nuevo</h3><div class="strip">` + singles.map(n => `<div class="cell">${stage(it.new[n], bs)}${n[4]}</div>`).join("") + `</div>`);
     it.anims.forEach((a, k) => {
@@ -1206,17 +1781,16 @@ function build(){
   for (const it of ITEMS) it.anims.forEach((a, k) => startAnim(it, a, `${it.id}-anim${k}`, 1));
 }
 const TIMERS = {};
-function lumpFor(set, sp, L, rot){ return set[sp + L + rot] ? sp + L + rot : (set[sp + L + "0"] ? sp + L + "0" : null); }
 function startAnim(it, a, id, rot){
   clearTimeout(TIMERS[id + "c"]); clearTimeout(TIMERS[id + "n"]);
   for (const [which, set] of [["cur", it.cur], ["new", it.new]]) {
-    const names = a.seq.map(([L]) => lumpFor(set, it.sprite, L, rot)).filter(Boolean), b = box(set, names);
+    const fr = a.seq.map(([L]) => frame(set, it.sprite, L, rot)), b = box(fr);
     const el = document.getElementById(`${id}-${which}`);
-    el.innerHTML = stage(set[names[0]], b, `${id}-${which}-img`) + (which === "cur" ? "actual" : "nuevo");
+    el.innerHTML = stage(fr.find(Boolean), b, `${id}-${which}-img`) + (which === "cur" ? "actual" : "nuevo");
     let i = 0;
     const step = () => {
-      const [L, tics] = a.seq[i], n = lumpFor(set, it.sprite, L, rot), f = set[n], img = document.getElementById(`${id}-${which}-img`);
-      if (f && img) { img.src = f.src; img.width = f.w * Z; img.height = f.h * Z; img.style.left = (b.l - f.left) * Z + "px"; img.style.top = (b.u - f.top) * Z + "px"; }
+      const [, tics] = a.seq[i], f = fr[i], img = document.getElementById(`${id}-${which}-img`);
+      if (f && img) place(img, f, b);
       i = (i + 1) % a.seq.length;
       TIMERS[id + which[0]] = setTimeout(step, tics * TIC);
     };
