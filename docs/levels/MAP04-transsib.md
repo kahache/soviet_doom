@@ -296,7 +296,7 @@ Episode 2's Railway set (D107, approved 2026-10-22, `docs/art/TEXTURE-INDEX.md`
 ### 7.3 The posters (CEO 2026-10-22; `tests/test_posters.py`)
 
 «Reutiliza cuadros [...] y en los nuevos el de Lenin y Stalin, que esos
-posters puedan aparecer en cualquier nivel». Four pictures and two slots,
+posters puedan aparecer en cualquier nivel». Four pictures and the Marx-Engels pair,
 all in `POSTERS` in `map.py`; each is whole (one line exactly 128 long, in
 a sector exactly the picture's height, pegged to the floor, offset 0).
 Where the room is taller than the picture, the picture hangs at the back of
@@ -311,15 +311,15 @@ and no route, key, lock or secret moves.
 | `yard_red_door_stalin` | Stalin | yard, north wall, niche x 2944-3072 (back at y 1936), east of the red door's portal | Lenin's twin on the other side of the lock |
 | `warehouse_legion_stalin` | Stalin | warehouse, east wall x 3328, y 320-448 (the room is 256: no niche) | **taken**: the Legion hung its banner (`SDFLAG2`, y 192-256) beside the Stalin that was already there |
 | `platform_mural` | mural | platform, the building's wall, niche x 1024-1152 (back at y 2032), 128 high | the station's mural, facing the armoured train, west of the two factions' banners |
-| `roundhouse_south` | Lenin (stand-in) | roundhouse, south wall, niche x 960-1088 (back at y 368), on the turntable stairs' axis | **Marx-Engels slot**: the depot's own poster |
-| `warehouse_west` | Lenin (stand-in) | warehouse, west wall x 1920, y 320-448, beside the passage to the roundhouse | **Marx-Engels slot** |
+| `roundhouse_south` | **Engels** (`SDPOSTR5`) | roundhouse, south wall, niche x 960-1088 (back at y 368), on the turntable stairs' axis | **Marx-Engels slot**: the depot's own poster, «СОЕДИНЯЙТЕСЬ!» over the turntable |
+| `warehouse_west` | **Marx** (`SDPOSTR4`) | warehouse, west wall x 1920, y 320-448, beside the passage to the roundhouse | **Marx-Engels slot**: met first (warehouse, then the passage, then the roundhouse), so his half of the line comes first |
 
-**The Marx-Engels slots** (`POSTER_SLOTS_MARX_ENGELS`). `SDPOSTR4` is in
-preparation and not a lump yet; both slots are built at 128×256 (the size
-it is commissioned at, Lenin's and Stalin's) and wear Lenin until then. The
-swap is one line in `map.py`: `MARX_ENGELS: str | None = None` becomes
-`MARX_ENGELS = "SDPOSTR4"`, which also lists it in `WALL_TEXTURES`;
-`tests/test_posters.py` checks that it moves the slots and nothing else.
+**The Marx-Engels pair (D117, 2026-10-22)** hangs in the two slots
+(`POSTER_SLOTS_MARX_ENGELS`, Marx's first), 128×256 each like Lenin and
+Stalin: `SDPOSTR4` Marx «ПРОЛЕТАРИИ / ВСЕХ СТРАН,» and `SDPOSTR5` Engels
+«СОЕДИНЯЙТЕСЬ!», mirrored so he looks at Marx. `MARX_ENGELS = ("SDPOSTR4",
+"SDPOSTR5")` lists them in `WALL_TEXTURES`; `tests/test_posters.py` holds
+the placement (`PAIR`).
 
 §7.2 has no poster or propaganda row to replace: nothing pending changes.
 

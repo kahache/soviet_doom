@@ -1112,9 +1112,9 @@ sector exactly its height, pegged to the floor, at offset 0.
 | Name | Texture | Where (line) | Room | Why there |
 |---|---|---|---|---|
 | `dock_lenin` | `SDPOSTR1` Lenin | x 3136, y 960…1088 | loading dock (256 high), west wall, south of the arch | the player comes off the spur facing west: the works' wall, the arch into the hall, Lenin beside it. The dock is the Reich's ground (§9): he still hangs over them |
-| `dock_slot_n` | `SDPOSTR3` Stalin (stand-in) | x 3136, y 1280…1408 | the same wall, north of the arch, symmetric about it | **Marx-Engels slot** |
+| `dock_slot_n` | `SDPOSTR4` **Marx** | x 3136, y 1280…1408 | the same wall, north of the arch, symmetric about it | **Marx-Engels slot**: the first of the pair on the route, beside Lenin |
 | `hall_stalin` | `SDPOSTR3` Stalin | x 1584, y 1472…1600, niche `z3_poster_n` (1584…1600) | assembly hall, west wall, north of the red door's portal | the wall a player faces from the arch, down the whole hall: the works' red corner, now held by the Legion |
-| `hall_slot_s` | `SDPOSTR1` Lenin (stand-in) | x 1584, y 768…896, niche `z3_poster_s` | the same wall, south of the portal, symmetric about the door's axis (y 1184) | **Marx-Engels slot** |
+| `hall_slot_s` | `SDPOSTR5` **Engels** | x 1584, y 768…896, niche `z3_poster_s` | the same wall, south of the portal, symmetric about the door's axis (y 1184) | **Marx-Engels slot**: the second, beside Stalin |
 | `director_mural` | `SDPOSTR2` mural | y 2208, x 2240…2368 | director's office (128 high), north wall, centred behind the desk | §7.1 wanted a portrait behind the desk; the office is 128 high and a 256 niche with a ceiling over the room's would cut the head off at any distance, so the mural, which fits whole, takes the place |
 
 **The hall's niches.** The hall is 320 high; a 128 × 256 poster on its
@@ -1125,11 +1125,13 @@ wall. The niches copy the hall's light (160) and lit ceiling. Both stand
 96 clear of the red portal band (y 992…1376), so the red leaf stays the
 only red thing at the end of the hall (§15.2's lesson).
 
-**Marx-Engels.** `SDPOSTR4` is in preparation (art-director) and is not a
-lump yet; it is commissioned at 128 × 256 like Lenin and Stalin. The two
-slots wear a portrait today. Once it is approved and packed, the swap is
-one line in `src/maps/MAP03/map.py`: `MARX_ENGELS = "SDPOSTR4"`. The dock
-then shows Lenin and Marx-Engels, the hall Stalin and Marx-Engels.
+**Marx-Engels (D117, 2026-10-22).** The pair hangs in the two slots
+(`POSTER_SLOTS_MARX_ENGELS`, Marx's first): `SDPOSTR4` Marx «ПРОЛЕТАРИИ /
+ВСЕХ СТРАН,» on the dock, the first the player sees, and `SDPOSTR5` Engels
+«СОЕДИНЯЙТЕСЬ!» (mirrored, looking towards Marx) in the hall;
+`MARX_ENGELS = ("SDPOSTR4", "SDPOSTR5")` lists them in `WALL_TEXTURES`. The
+dock shows Lenin and Marx, the hall Engels and Stalin (`tests/test_posters.py`,
+`PAIR`).
 
 **Engine checklist for the PM** (D26: this role does not start GZDoom): the
 two portraits in the hall read whole from the arch (x 3072) and are not

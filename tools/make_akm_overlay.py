@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 """Pack the AKM DRAFT overlay: the second slot-4 weapon, playable by `give`.
 
+SUPERSEDED (D116, 2026-10-22). The overlay's classes are in the mod now:
+SD_Akm and SD_AkmAmmo (on the PPSh-41's and the magazine's existing sprites) live under src/zscript/, with their editor numbers, strings and
+sounds in src/lumps/ (MOD-SPEC 6.12). Kept, not deleted, as the record
+of the draft; it now refuses the real source work/overlays/akm/
+(the mod declares its classes and assigns its numbers), so the old
+overlay can no longer be built over the mod by mistake. tests/test_akm.py
+still runs its refusals on a synthetic source.
+
     .venv/Scripts/python.exe tools/make_akm_overlay.py --sprites   # (re)draw the provisional sprites (Pillow)
     python tools/make_akm_overlay.py             # -> work/overlays/sd-draft-akm.pk3 (+ .txt)
     python tools/make_akm_overlay.py --dry-run   # print the plan, write nothing

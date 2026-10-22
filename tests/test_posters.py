@@ -3,27 +3,29 @@
 «reutiliza cuadros, mételos en niveles anteriores y en los nuevos el de
 Lenin y Stalin, que esos posters puedan aparecer en cualquier nivel».
 
-Owner: `level-designer`. Every campaign map (MAP01-MAP06) and the practice
+Owner: `level-designer`. Every campaign map (MAP01-MAP09) and the practice
 range declare the same small contract in their `map.py`:
 
 * `POSTERS`: every picture on the map, `(name, texture, axis, coord, lo,
   hi)`, the segment one `GridMap.style_h`/`style_v` call paints;
-* `POSTER_SLOTS_MARX_ENGELS`: the two or three names in `POSTERS` kept for
-  the Marx-Engels poster `SDPOSTR4` (in preparation: not a lump yet). Until
-  it exists each slot wears the Lenin or Stalin it is listed with;
-* `MARX_ENGELS`: `None` today. Setting it to "SDPOSTR4" is the one-line swap
-  that puts the new poster in every slot of that map;
-* `poster_faces()`: `POSTERS` with the slots resolved.
+* `POSTER_SLOTS_MARX_ENGELS`: the two names in `POSTERS` that carry the
+  Marx-Engels pair (D117, 2026-10-22), Marx's slot first: `SDPOSTR4` Marx
+  «ПРОЛЕТАРИИ / ВСЕХ СТРАН,» and `SDPOSTR5` Engels «СОЕДИНЯЙТЕСЬ!»;
+* `MARX_ENGELS`: the pair, `("SDPOSTR4", "SDPOSTR5")`, in the slots' order;
+* `poster_faces()`: every picture as painted (`POSTERS` itself since D117).
 
 What is checked, read back from the generated TEXTMAP:
 
 * each map shows at least one approved poster, Lenin or Stalin among them,
-  between two and five pictures besides the slots (no wallpapering);
-* MAP04-MAP06, the new episode, show both Lenin and Stalin;
+  between two and five pictures besides the pair (no wallpapering);
+* MAP04-MAP06, the second episode, show both Lenin and Stalin;
 * every picture is whole: one one-sided line exactly the poster's width,
   in a sector exactly the poster's height, pegged to the floor and at
   offset 0 (MAP01's rule, tests/test_udmf.py);
-* the Marx-Engels slots exist and the swap moves them, and only them.
+* every map hangs the pair, Marx once and Engels once, in the two slots
+  (PAIR names them); where the two share a wall, Marx is on the left as the
+  wall is seen from the room (from v1 to v2 along the front side), so the
+  two bands read the Manifesto's line left to right.
 
 Run:  python -m unittest tests.test_posters -v
 """
@@ -31,9 +33,7 @@ Run:  python -m unittest tests.test_posters -v
 from __future__ import annotations
 
 import importlib.util
-import re
 import sys
-import types
 import unittest
 from pathlib import Path
 
@@ -48,18 +48,34 @@ parse_textmap = udmf_tests.parse_textmap
 LENIN = "SDPOSTR1"
 MURAL = "SDPOSTR2"
 STALIN = "SDPOSTR3"
-MARX_ENGELS = "SDPOSTR4"      # in preparation; assumed the twin of Lenin and Stalin
+MARX = "SDPOSTR4"             # D117: Marx, «ПРОЛЕТАРИИ / ВСЕХ СТРАН,»
+ENGELS = "SDPOSTR5"           # D117: Engels, «СОЕДИНЯЙТЕСЬ!», mirrored to look at Marx
+MARX_ENGELS = (MARX, ENGELS)
 # docs/art/TEXTURE-INDEX.md: width x height of each approved picture.
 POSTER_SIZE = {LENIN: (128, 256), MURAL: (128, 128), STALIN: (128, 256),
-               MARX_ENGELS: (128, 256)}
-APPROVED = (LENIN, MURAL, STALIN)
+               MARX: (128, 256), ENGELS: (128, 256)}
+APPROVED = (LENIN, MURAL, STALIN, MARX, ENGELS)
 PORTRAITS = (LENIN, STALIN)
 
 CAMPAIGN = ("MAP01", "MAP02", "MAP03", "MAP04", "MAP05", "MAP06")
 MAPS = CAMPAIGN + ("RANGE",)
 NEW_EPISODE = ("MAP04", "MAP05", "MAP06")
 PICTURES_MIN, PICTURES_MAX = 2, 5
-SLOTS_MIN, SLOTS_MAX = 2, 3
+# Where the pair hangs (D117), (Marx's slot, Engels's slot); each map's
+# design document (docs/levels/, its posters section) says why.
+PAIR = {
+    "MAP01": ("hangar_north_slot", "exit_east_slot"),      # the hangar first, the way out last
+    "MAP02": ("shelter_east_slot", "shelter_south_slot"),  # Engels round the corner, to Marx's right
+    "MAP03": ("dock_slot_n", "hall_slot_s"),               # the dock first, the hall after
+    "MAP04": ("warehouse_west", "roundhouse_south"),       # the warehouse first, the roundhouse after
+    "MAP05": ("z5_catwalk_w", "z5_catwalk_e"),             # one wall, either side of the yellow door
+    "MAP06": ("gum_north_slot", "courtyard_slot"),         # the GUM first, the Kremlin last
+    "MAP07": ("z6_slot_e", "z6_slot_w"),                   # one wall, the south one: east is left
+    "MAP08": ("z3_slot_w", "z3_slot_e"),                   # one wall, either side of the blue door
+    "MAP09": ("lab_hall_slot_n", "lab_hall_slot_s"),       # facing walls; Marx beside Lenin
+    "RANGE": ("gallery_west_slot", "gallery_east_slot"),   # end walls; west is left from the passage
+}
+SAME_WALL = {"MAP05", "MAP07", "MAP08"}
 
 
 def _load(name: str):
@@ -67,24 +83,6 @@ def _load(name: str):
     spec = importlib.util.spec_from_file_location(f"sdmap_{name}_posters_test", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module
-
-
-SWAP_LINE = re.compile(r"^MARX_ENGELS(: str \| None)? = None\b.*$", re.M)
-
-
-def _load_swapped(name: str):
-    """The map with its one Marx-Engels line changed, nothing else: the
-    swap the art-director's approval of SDPOSTR4 will make."""
-    path = PROJECT_ROOT / "src" / "maps" / name / "map.py"
-    source = path.read_text(encoding="utf-8")
-    lines = SWAP_LINE.findall(source)
-    if len(lines) != 1:
-        raise AssertionError(f"{name}: {len(lines)} MARX_ENGELS = None lines, not one")
-    module = types.ModuleType(f"sdmap_{name}_swapped_test")
-    module.__file__ = str(path)
-    exec(compile(SWAP_LINE.sub(f'MARX_ENGELS = "{MARX_ENGELS}"', source), str(path), "exec"),
-         module.__dict__)
     return module
 
 
@@ -119,8 +117,8 @@ class _PosterCase:
             self.assertTrue(hasattr(m, name), f"{self.MAP} has no {name}")
         names = [p[0] for p in m.POSTERS]
         self.assertEqual(len(names), len(set(names)), "two posters share a name")
-        self.assertIsNone(m.MARX_ENGELS, "SDPOSTR4 is not approved yet: the slots wear stand-ins")
-        self.assertEqual(len(m.POSTERS), len(m.poster_faces()))
+        self.assertEqual(MARX_ENGELS, tuple(m.MARX_ENGELS))
+        self.assertEqual(tuple(m.POSTERS), tuple(m.poster_faces()))
 
     def test_the_map_shows_approved_posters_without_wallpapering(self):
         m = self.m
@@ -161,34 +159,47 @@ class _PosterCase:
                 self.assertEqual(0, side.get("offsety", 0))
         self.assertTrue(used & set(APPROVED), "no approved poster reaches the TEXTMAP")
 
-    def test_the_marx_engels_slots_exist(self):
+    def test_the_pair_hangs_in_the_two_slots(self):
+        """Marx once and Engels once, each in its slot (PAIR), nowhere else,
+        and both listed among the map's wall textures."""
         m = self.m
-        slots = m.POSTER_SLOTS_MARX_ENGELS
-        self.assertGreaterEqual(len(slots), SLOTS_MIN)
-        self.assertLessEqual(len(slots), SLOTS_MAX)
+        self.assertEqual(PAIR[self.MAP], tuple(m.POSTER_SLOTS_MARX_ENGELS))
         faces = {p[0]: p for p in m.poster_faces()}
-        for name in slots:
+        for name, texture in zip(m.POSTER_SLOTS_MARX_ENGELS, MARX_ENGELS):
             self.assertIn(name, faces, f"slot {name} is not in POSTERS")
-            # Stand-ins are portraits: the slot is already 128x256, the size
-            # SDPOSTR4 is commissioned at.
-            self.assertIn(faces[name][1], PORTRAITS, f"slot {name} stands in with {faces[name][1]}")
+            self.assertEqual(texture, faces[name][1], name)
+        worn = [p[1] for p in m.poster_faces()]
+        self.assertEqual((1, 1), (worn.count(MARX), worn.count(ENGELS)))
+        for texture in MARX_ENGELS:
+            self.assertIn(texture, m.WALL_TEXTURES)
+        on_lines = [sd.get("texturemiddle") for sd in self.blocks["sidedef"]]
+        self.assertEqual((1, 1), (on_lines.count(MARX), on_lines.count(ENGELS)),
+                         "the TEXTMAP does not carry the pair exactly once")
 
-    def test_the_swap_is_one_line(self):
-        """MARX_ENGELS = "SDPOSTR4" puts the new poster in every slot and
-        moves nothing else."""
-        before = self.blocks
-        m = _load_swapped(self.MAP)
-        self.assertEqual(MARX_ENGELS, m.MARX_ENGELS)
-        after = parse_textmap(m.build_textmap().render())
-        slots = set(m.POSTER_SLOTS_MARX_ENGELS)
-        for name, texture, axis, coord, lo, hi in m.poster_faces():
-            ((_, side),) = _faces_on(after, axis, coord, lo, hi)
-            self.assertEqual(MARX_ENGELS if name in slots else texture, side["texturemiddle"], name)
-        self.assertIn(MARX_ENGELS, m.WALL_TEXTURES, "the swapped map would not list SDPOSTR4")
-        changed = [i for i, (x, y) in enumerate(zip(before["sidedef"], after["sidedef"])) if x != y]
-        self.assertEqual(len(slots), len(changed))
-        self.assertEqual(before["linedef"], after["linedef"])
-        self.assertEqual(before["sector"], after["sector"])
+    def test_marx_is_on_the_left_where_the_two_share_a_wall(self):
+        """Seen from the room, a one-sided line runs from v1 on the left to v2
+        on the right (its front side is the room). On a shared wall Marx's
+        line comes first along that direction."""
+        verts = self.blocks["vertex"]
+        faces = {p[0]: p for p in self.m.poster_faces()}
+        (_, _, ax_m, co_m, lo_m, hi_m), (_, _, ax_e, co_e, lo_e, hi_e) = (
+            faces[n] for n in self.m.POSTER_SLOTS_MARX_ENGELS)
+        same_wall = (ax_m, co_m) == (ax_e, co_e)
+        self.assertEqual(self.MAP in SAME_WALL, same_wall, "SAME_WALL is out of date")
+        if not same_wall:
+            return
+        ((ld_m, _),) = _faces_on(self.blocks, ax_m, co_m, lo_m, hi_m)
+        ((ld_e, _),) = _faces_on(self.blocks, ax_e, co_e, lo_e, hi_e)
+
+        def run(ld):
+            a, b = verts[ld["v1"]], verts[ld["v2"]]
+            return (b["x"] - a["x"], b["y"] - a["y"]), ((a["x"] + b["x"]) / 2, (a["y"] + b["y"]) / 2)
+
+        (dx, dy), mid_m = run(ld_m)
+        (ex, ey), mid_e = run(ld_e)
+        self.assertGreater(dx * ex + dy * ey, 0, "the two lines face different ways")
+        self.assertLess(dx * mid_m[0] + dy * mid_m[1], dx * mid_e[0] + dy * mid_e[1],
+                        "Engels hangs left of Marx")
 
 
 class Map01Posters(_PosterCase, unittest.TestCase):
@@ -250,6 +261,8 @@ class Map09Posters(_PosterCase, unittest.TestCase):
 
 
 class CampaignPosters(unittest.TestCase):
+    def test_every_map_and_the_range_hang_the_pair(self):
+        self.assertEqual(set(PAIR), set(MAPS) | {"MAP07", "MAP08", "MAP09"})
     def test_lenin_and_stalin_both_hang_in_every_episode(self):
         worn = {name: {p[1] for p in _load(name).poster_faces()} for name in MAPS}
         for episode in (("MAP01", "MAP02", "MAP03"), NEW_EPISODE):

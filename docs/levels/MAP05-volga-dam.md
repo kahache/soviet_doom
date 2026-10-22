@@ -378,15 +378,16 @@ pegged to the floor, offset 0 (`tests/test_posters.py`). They are listed in
 | `z5_lenin` | `SDPOSTR1` Lenin | turbine hall, west wall, x 1648, y 576…704: a recess 16 deep, 256 high (`z5_lenin_niche`) in the 448-high hall | the end of the hall the player looks down on entering from the lower gallery, clear of the generators' shafts: Lenin over the turbines («Communism is Soviet power plus the electrification of the whole country») |
 | `z1_stalin` | `SDPOSTR3` Stalin | station, west wall, x 4272, y 1600…1728: a recess 16 deep, 256 high (`z1_stalin_niche`, its own concrete ceiling so the brick shows above it under the sky) | the first wall the player sees on arrival, between the shutter and the occupiers' two banners: the station's portrait, the invaders' flags hung beside it |
 | `z6_mural` | `SDPOSTR2` cosmonautics mural | control room, north wall, x 2560…2688, y 1328: a recess 16 deep on a 32 sill (`prop_z6_mural_niche`, floor 224, ceiling 352) | straight ahead through the yellow door; the room is 160 high, the mural 128 |
-| `z5_catwalk_w` | `SDPOSTR3` (Marx-Engels slot) | catwalk's back wall, y 896, x 2240…2368 (256 high: catwalk 192 to roof 448) | flanks the yellow door with its twin, 320 from its axis |
-| `z5_catwalk_e` | `SDPOSTR1` (Marx-Engels slot) | catwalk's back wall, y 896, x 2880…3008 | the mirror of the west one |
+| `z5_catwalk_w` | `SDPOSTR4` **Marx** (Marx-Engels slot) | catwalk's back wall, y 896, x 2240…2368 (256 high: catwalk 192 to roof 448) | flanks the yellow door with Engels, 320 from its axis; the left one seen from the hall (facing north) |
+| `z5_catwalk_e` | `SDPOSTR5` **Engels** (Marx-Engels slot) | catwalk's back wall, y 896, x 2880…3008 | the mirror of the west one, on the right |
 
-**Marx-Engels slots.** `POSTER_SLOTS_MARX_ENGELS = ("z5_catwalk_w",
-"z5_catwalk_e")`. `SDPOSTR4` is in preparation and not a lump yet, so each
-slot wears its stand-in (Stalin west, Lenin east). Once it is approved and
-packed the swap is one line in `map.py`: `MARX_ENGELS = "SDPOSTR4"`
-(assumed 128×256, the twin of the other two portraits; nothing else moves,
-tested). Seen from the hall floor the catwalk's edge hides the lowest ~30-40
+**The Marx-Engels pair (D117, 2026-10-22).** `POSTER_SLOTS_MARX_ENGELS =
+("z5_catwalk_w", "z5_catwalk_e")`, Marx's first: `SDPOSTR4` Marx «ПРОЛЕТАРИИ /
+ВСЕХ СТРАН,» on the left of the yellow door, `SDPOSTR5` Engels «СОЕДИНЯЙТЕСЬ!»
+(mirrored, looking at Marx) on its right, so the two bands read the
+Manifesto's line across the door; `MARX_ENGELS = ("SDPOSTR4", "SDPOSTR5")`
+lists them in `WALL_TEXTURES` (`tests/test_posters.py` checks Marx is the
+left one). Seen from the hall floor the catwalk's edge hides the lowest ~30-40
 units of the two catwalk portraits (their slogan band); from the catwalk they
 are whole.
 

@@ -403,6 +403,14 @@ class ArsenalPk3Test(unittest.TestCase):
                 self.assertNotIn(name, out, f"{name} defined twice in SNDINFO")
                 out[name] = "$random"
                 continue
+            if line.startswith("$"):
+                # D116: the AKM's report pitched down. Only this directive,
+                # and only on a name defined on a line of its own.
+                parts = line.split()
+                self.assertEqual(parts[0], "$pitchset", f"unexpected SNDINFO directive: {raw!r}")
+                self.assertEqual(len(parts), 3, raw)
+                self.assertGreater(float(parts[2]), 0, raw)
+                continue
             parts = line.split()
             self.assertEqual(len(parts), 2, f"SNDINFO line is not `logical lump`: {raw!r}")
             logical, lump = parts

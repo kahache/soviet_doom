@@ -275,7 +275,7 @@ approved and packed from `assets/` (tested).
 | Substation | `SDTUNL1` | `SDFLR2` | `SDCEIL2` | |
 | Gas lock, armoury, command post | `SDSTEL1` | `SDFLR2` | `SDCEIL2` | |
 | Bunker spine, dormitory | `SDTILE2` (green dado: one tile, 128 high) | `SDFLR2` | `SDCEIL2` | |
-| S1 shelter | `SDTILE2`; the portraits of §7.1: `SDPOSTR3` (north niche), `SDPOSTR1` (west wall), two Marx-Engels slots (east and south walls) | `SDFLR3` | `SDCEIL2` | 256 high: the dado repeats once; the 1941 look wants its own piece, maybe |
+| S1 shelter | `SDTILE2`; the portraits of §7.1: `SDPOSTR3` (north niche), `SDPOSTR1` (west wall), `SDPOSTR4` Marx (east wall) and `SDPOSTR5` Engels (south wall) | `SDFLR3` | `SDCEIL2` | 256 high: the dado repeats once; the 1941 look wants its own piece, maybe |
 | Doors | `SDDOOR1`, every leaf one tile, 128 × 128 (tested) | | | |
 | Switches | `SDSW1C` (SW-A), `SDSW1B` (SW-B), `SDSW1D` (exit), each drawn once | | | |
 
@@ -299,15 +299,19 @@ is exactly 128.
 | `concourse_mural` | `SDPOSTR2` mural | x 3136, y 960…1088 | concourse (128 high, light 160) | the vestibule's mosaic panel, beside the escalator's mouth: straight ahead of the player as he steps out of the lift |
 | `shelter_stalin` | `SDPOSTR3` Stalin | y 1872, x 3008…3136 (the niche) | S1 | §8: alone on the north wall, facing the passage |
 | `shelter_lenin` | `SDPOSTR1` Lenin | x 2880, y 1664…1792 | S1 | the west wall, on the left as the player comes in: a 1941 red corner |
-| `shelter_east_slot` | Marx-Engels slot, stands in as `SDPOSTR1` | x 3264, y 1664…1792 | S1 | faces Lenin across the room |
-| `shelter_south_slot` | Marx-Engels slot, stands in as `SDPOSTR3` | y 1600, x 3136…3264 | S1 | beside the passage's mouth, faces Stalin |
+| `shelter_east_slot` | `SDPOSTR4` **Marx** (Marx-Engels slot) | x 3264, y 1664…1792 | S1 | faces Lenin across the room |
+| `shelter_south_slot` | `SDPOSTR5` **Engels** (Marx-Engels slot) | y 1600, x 3136…3264 | S1 | beside the passage's mouth, faces Stalin; round the corner to Marx's right |
 
-**The Marx-Engels slots** (`POSTER_SLOTS_MARX_ENGELS`) are for `SDPOSTR4`,
-in preparation and assumed 128 × 256 like Lenin and Stalin. When it is
-approved and packed, the swap is one line in `map.py`:
-`MARX_ENGELS: str | None = None` becomes `MARX_ENGELS = "SDPOSTR4"`; both
-slots wear it and nothing else moves (tested). Until then the shelter shows
-each portrait twice, facing itself across the room.
+**The Marx-Engels pair (D117, 2026-10-22)** hangs in the two slots
+(`POSTER_SLOTS_MARX_ENGELS`, Marx's first): `SDPOSTR4` Marx «ПРОЛЕТАРИИ /
+ВСЕХ СТРАН,» and `SDPOSTR5` Engels «СОЕДИНЯЙТЕСЬ!», mirrored so he looks at
+Marx; `MARX_ENGELS = ("SDPOSTR4", "SDPOSTR5")` lists them in
+`WALL_TEXTURES`. The two walls meet at the shelter's south-east corner:
+facing the east wall, the south wall is on the right, so Marx is on the
+east wall and Engels round the corner, and the sentence reads left to right
+as the player turns. The shelter is now the full red corner: Marx and
+Engels, Lenin and Stalin, one on each wall (`tests/test_posters.py`,
+`PAIR`).
 
 Not used yet: `SDBRAS1` (pilasters, v2 since D58). `SDMOSA1` is replaced in place by its
 palette-v2 rendering (D56); the lump name, and so this map, do not change.

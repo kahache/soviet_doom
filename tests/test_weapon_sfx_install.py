@@ -173,7 +173,7 @@ def sndinfo_aliases() -> dict[str, str]:
     out: dict[str, str] = {}
     for raw in SNDINFO.read_text(encoding="utf-8").splitlines():
         line = raw.split("//")[0].strip()
-        if not line or line.startswith("$random"):
+        if not line or line.startswith("$"):   # $random, and the AKM's $pitchset (D116)
             continue
         logical, lump = line.split()
         if logical in out:

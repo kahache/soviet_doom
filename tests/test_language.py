@@ -48,6 +48,8 @@ CATALAN_SAME_AS_ENGLISH = frozenset({
     "SD_CRED_ENGINE_1", "SD_CRED_IWAD_1", "SD_CRED_AI_7",
     # D112: place names Catalan writes as English does (Severomorsk, Tunguska).
     "SD_MAP08_NAME", "SD_MAP09_NAME",
+    # D116: the rifle's name is its designation in every Latin-script language.
+    "SD_TAG_AKM",
 })
 
 # Letters Catalan needs that the mod's fonts (assets/fonts/, D24) do not draw

@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 """Pack the Episode 2 enemies DRAFT overlay: two new classes, playable by summon.
 
+SUPERSEDED (D116, 2026-10-22). The overlay's classes are in the mod now:
+SD_LegionGunner, SD_LibertyColossus and their two projectiles live under src/zscript/, with their editor numbers, strings and
+sounds in src/lumps/ (MOD-SPEC 6.12). Kept, not deleted, as the record
+of the draft; it now refuses the real source work/overlays/ep2-enemies/
+(the mod declares its classes and assigns its numbers), so the old
+overlay can no longer be built over the mod by mistake. tests/test_ep2_enemies.py
+still runs its refusals on a synthetic source.
+
     python tools/make_ep2_enemy_overlay.py             # -> work/overlays/sd-ep2-enemies.pk3 (+ .txt)
     python tools/make_ep2_enemy_overlay.py --dry-run   # print the plan, write nothing
 

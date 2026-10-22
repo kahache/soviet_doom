@@ -135,9 +135,12 @@ MURAL = "SDPOSTR2"      # 128x128 cosmonautics mural
 POSTER_WIDTH = 128
 POSTER_HEIGHT = 256     # Lenin, Stalin and (commissioned at the same size) Marx-Engels
 MURAL_HEIGHT = 128
-# The Marx-Engels poster SDPOSTR4 is in preparation and is not a lump yet.
-# Its slots are built and wear a Lenin or a Stalin; approving it is this line:
-MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
+# The Marx-Engels pair (D117), 128x256 each like Lenin and Stalin: Marx
+# carries «ПРОЛЕТАРИИ / ВСЕХ СТРАН,», Engels «СОЕДИНЯЙТЕСЬ!» (his face mirrored
+# to look at Marx). Hung on the two Marx-Engels slots, Marx's first.
+MARX = "SDPOSTR4"
+ENGELS = "SDPOSTR5"
+MARX_ENGELS = (MARX, ENGELS)     # in the order of POSTER_SLOTS_MARX_ENGELS
 # The assembly hall is 320 high: its two portraits hang at the back of
 # niches 16 deep and exactly POSTER_HEIGHT high, one either side of the red
 # door's portal in the hall's west wall, the wall a player faces from the
@@ -154,23 +157,23 @@ POSTERS = (
     # The dock, 256 high: the two flank the arch into the hall, the first
     # thing the player sees coming off the spur (he arrives facing west).
     ("dock_lenin", LENIN, "v", 3136, 960, 1088),
-    ("dock_slot_n", STALIN, "v", 3136, 1280, 1408),
+    ("dock_slot_n", MARX, "v", 3136, 1280, 1408),
     # The assembly hall, either side of the red door: the works' red corner,
     # now under the Legion's guns.
     ("hall_stalin", STALIN, "v", 1600 - POSTER_NICHE_DEPTH, 1472, 1600),
-    ("hall_slot_s", LENIN, "v", 1600 - POSTER_NICHE_DEPTH, 768, 896),
+    ("hall_slot_s", ENGELS, "v", 1600 - POSTER_NICHE_DEPTH, 768, 896),
     # The director's office is 128 high, so the portrait design section 7.1
     # wanted behind his desk cannot hang whole there: the mural does, on
     # the north wall, centred behind the desk where the yellow key lies.
     ("director_mural", MURAL, "h", 2208, 2240, 2368),
 )
-POSTER_SLOTS_MARX_ENGELS = ("dock_slot_n", "hall_slot_s")
+POSTER_SLOTS_MARX_ENGELS = ("dock_slot_n", "hall_slot_s")   # Marx, Engels
 
 
 def poster_faces() -> tuple[tuple[str, str, str, int, int, int], ...]:
-    """POSTERS with each Marx-Engels slot wearing SDPOSTR4 once it exists."""
-    return tuple((name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS else texture,
-                  axis, coord, lo, hi) for name, texture, axis, coord, lo, hi in POSTERS)
+    """Every picture as painted: (name, texture, axis, coord, lo, hi). Since
+    D117 each Marx-Engels slot wears its own poster in POSTERS itself."""
+    return POSTERS
 
 # Switches (D25), one variant per switch. The exit keeps the hazard panel it
 # wears on MAP01, the range and MAP02: the same face, the same meaning.
@@ -1006,7 +1009,7 @@ def lumps() -> list[tuple[str, bytes]]:
 WALL_TEXTURES = ((CONCRETE, STAR, STEEL, TILE_DADO, CRATE, TUBBING, BRICK, BRICK_DADO, RUST,
                   PORTAL, ROAD_GATE, WINDOW, FLAG_REICH, FLAG_LEGION, LOCKER)
                  + DOOR_LEAVES + SWITCH_FACES + tuple(t for t in (CHAIN, SLOGAN) if t)
-                 + (LENIN, STALIN, MURAL) + ((MARX_ENGELS,) if MARX_ENGELS else ()))
+                 + (LENIN, STALIN, MURAL) + MARX_ENGELS)
 FLAT_TEXTURES = (FLOOR_LANE, FLOOR_CONCRETE, FLOOR_TILE, CEIL_PANEL, CEIL_CONCRETE,
                  DESK_TOP, RAILS, FLOOR_PLATE, GRATING, MOLTEN)
 # The Tankograd lumps (D66) this map places, frame 1 standing for each animation.

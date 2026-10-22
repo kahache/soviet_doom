@@ -228,11 +228,12 @@ the picture's height, pegged to the floor (`POSTERS`; `tests/test_posters.py`).
 | `lab_hall_lenin` | Lenin | the hall's north wall, x 1504-1632 (the hall is 256 high) | over the bench where the blue key lies: the first thing seen from the vestibule |
 | `lab_hall_stalin` | Stalin | the hall's west wall, y 1360-1488 | the station's other portrait |
 | `lab_instr_mural` | cosmonautics mural (128×128) | the instrument room's west wall (128 high) | a science station's own picture, beside the boards |
-| `lab_hall_slot_n` | Stalin (slot) | the hall's north wall, x 1664-1792 | — |
-| `lab_hall_slot_s` | Lenin (slot) | the hall's south wall, x 1344-1472 | — |
+| `lab_hall_slot_n` | **Marx** `SDPOSTR4` (slot) | the hall's north wall, x 1664-1792 | beside Lenin over the bench: the founders' line on one wall |
+| `lab_hall_slot_s` | **Engels** `SDPOSTR5` (slot) | the hall's south wall, x 1344-1472 | facing Marx across the hall |
 
-**The Marx-Engels slots**: `POSTER_SLOTS_MARX_ENGELS`; the swap is the one
-line `MARX_ENGELS = "SDPOSTR4"`.
+**The Marx-Engels pair (D117, 2026-10-22).** `POSTER_SLOTS_MARX_ENGELS`,
+Marx's first: `SDPOSTR4` Marx «ПРОЛЕТАРИИ / ВСЕХ СТРАН,» and `SDPOSTR5` Engels «СОЕДИНЯЙТЕСЬ!» (mirrored, looking at Marx), 128×256 like Lenin and Stalin; `MARX_ENGELS = ("SDPOSTR4", "SDPOSTR5")` lists them in `WALL_TEXTURES`. The two slots face each other across the
+hall, so each reads alone (`tests/test_posters.py`, `PAIR`).
 
 ## 8. Pending textures
 

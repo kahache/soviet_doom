@@ -600,9 +600,14 @@ DoomEdNums
 	21005 = SD_Rpg7
 	21006 = SD_Roks3
 	21007 = SD_HandKatyusha
+	21008 = SD_Akm            // slot 4's second weapon (D116); replaces nothing
 
-	// The arsenal is exactly seven weapons (D13). Doom's chainsaw and super
-	// shotgun have no Soviet counterpart, so their editor numbers spawn
+	// Ammo and items (21020-21039). The AKM's own pool (D116, ADR 011): the
+	// mod's other ammo keeps Doom's numbers through `replaces`.
+	21020 = SD_AkmAmmo        // one 30-round 7.62x39 magazine
+
+	// The arsenal was seven weapons (D13), eight with the AKM (D116). Doom's
+	// chainsaw and super shotgun have no Soviet counterpart, so their editor numbers spawn
 	// nothing: a stray Freedoom pickup can never reintroduce them.
 	82 = None     // SuperShotgun
 	2005 = None   // Chainsaw
@@ -618,6 +623,11 @@ DoomEdNums
 	21105 = SD_Panzermensch         // replaces HellKnight (69)
 	21106 = SD_General              // replaces Cyberdemon (16)
 	21107 = SD_PanzermenschSchwer   // replaces BaronOfHell (3003)
+	// P4 (D104, D112), in the mod since D116 on provisional sprites;
+	// 21108-21109 stay reserved (BESTIARY 2.5), so they open at 21110.
+	21110 = SD_LegionGunner         // replaces ChaingunGuy (65); Episode 2
+	21111 = SD_LibertyColossus      // replaces SpiderMastermind (7); Episode 2's boss
+	21112 = SD_Consortium           // replaces nothing; Episode 3's final boss
 	21200 = SD_Radio                // diegetic radio (MOD-SPEC 6.7, ADR 008)
 }
 

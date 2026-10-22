@@ -2,9 +2,11 @@
 //
 // WHY THESE CLASSES EXIST
 // -----------------------
-// The mod does NOT invent new ammo pools: the four Doom pools (Clip, Shell,
-// RocketAmmo, Cell) are exactly the four the Soviet arsenal needs, and every
-// weapon in zscript/weapons/ already declares one of them as its AmmoType.
+// The seven weapons of D13 use the four Doom pools (Clip, Shell,
+// RocketAmmo, Cell), exactly the four they need. Since D116 there is ONE
+// pool of our own, SD_AkmAmmo at the end of this file, for the AKM's
+// 7.62x39 (ADR 011); every other weapon in zscript/weapons/ declares a Doom
+// pool as its AmmoType.
 // What the CEO asked for (2026-10-13) is that the player stop reading
 // "bullets" and "shells" and start reading 1977 Soviet nomenclature.
 //
@@ -149,6 +151,56 @@ class SD_Backpack : Backpack replaces Backpack
 	{
 	Spawn:
 		SDBP A -1;
+		Stop;
+	}
+}
+
+// --- 7,62x39: AKM (its own pool, D116; ADR 011) ----------------------------
+// SD_AkmAmmo - the AKM's 7.62x39 pool, and the 30-round magazine that fills
+// it (docs/engine/2026-10-22_P4_akm.md section 3). The mod's only pool that
+// is not one of Doom's four. Why its own rather than the PPSh-41's Clip:
+// the TT-33 and the PPSh-41 share Clip because they fire the same 7.62x25
+// Tokarev round (BALANCE.md section 4); the AKM fires another cartridge.
+// And sharing would retire the PPSh: from one pool the AKM gives 12 damage
+// a round to the PPSh's 8 and more DPS too. Apart, the PPSh is the abundant
+// gun and the AKM the scarce, efficient one.
+//
+// Unlike every class above, this one derives from Ammo DIRECTLY, on
+// purpose: that is what makes it a pool (GetParentAmmo() is itself). It is
+// both the pool and its pickup, as Doom's Clip is; a crate would derive from
+// it, as ClipBox from Clip, and feed the same pool. Placed by its own editor
+// number, 21020 (MOD-SPEC 6.1), and dropped by the Legion gunner.
+//
+// PROVISIONAL LOOK (D116): the 7.62x25 magazine's sprite SDCL A, tinted
+// plum-orange by the line marked PROVISIONAL-D116, until Gemini's SDAM A is
+// drawn; the HUD icon is SDCL A untinted (an icon takes no Translation).
+// The swap when SDAM lands in assets/sprites/pickups/: SDCL -> SDAM in the
+// Spawn line and in Inventory.Icon, and delete the marked line (MOD-SPEC
+// 6.12).
+
+class SD_AkmAmmo : Ammo
+{
+	const SD_AKM_MAG          = 30;    // one AKM magazine
+	const SD_AKM_MAX          = 150;   // five magazines: Clip carries 200 rounds of a pistol cartridge
+	const SD_AKM_BACKPACK     = 30;    // Doom's rule: a backpack gives one small pickup of every pool
+	const SD_AKM_BACKPACK_MAX = 300;   // Doom's rule: the backpack doubles the maximum
+
+	Default
+	{
+		Inventory.PickupMessage "$SD_GOT_AKMMAG";
+		Inventory.Amount SD_AKM_MAG;
+		Inventory.MaxAmount SD_AKM_MAX;
+		Ammo.BackpackAmount SD_AKM_BACKPACK;
+		Ammo.BackpackMaxAmount SD_AKM_BACKPACK_MAX;
+		Inventory.Icon "SDCLA0";
+		Tag "$SD_AMMO_AKM";
+		Translation "0:255=%[0.10,0.03,0.05]:[1.45,0.85,0.55]";   // PROVISIONAL-D116
+	}
+
+	States
+	{
+	Spawn:
+		SDCL A -1;
 		Stop;
 	}
 }

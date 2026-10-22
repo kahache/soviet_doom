@@ -1,32 +1,30 @@
-"""D104 (P4): the Episode 2 enemies DRAFT overlay, static checks.
+"""D104 (P4), integrated by D116: the Legion gunner and the Liberty Colossus.
 
-`tools/make_ep2_enemy_overlay.py` packs `work/overlays/ep2-enemies/` (the
-heavy machine-gunner SD_LegionGunner and the boss SD_LibertyColossus, with
-the colossus's rocket and flame) into `work/overlays/sd-ep2-enemies.pk3`,
-loaded after the mod with `-file`. Design:
+Until D116 (2026-10-22) the two Episode 2 enemies lived in a DRAFT overlay,
+`work/overlays/ep2-enemies/`, packed by `tools/make_ep2_enemy_overlay.py`.
+D116 moved them into the mod on provisional sprites (MOD-SPEC 6.12); the
+overlay and its tool are SUPERSEDED, kept, not deleted. Design:
 docs/engine/2026-10-22_P4_ep2-enemies.md. What is checked, and why:
 
-  tool       on a synthetic source (CI has no work/): it builds, holds
-             exactly the source's files, two builds are byte-identical; it
-             refuses an editor number the mod uses or one outside
-             21100-21199, a class the mod declares, a path that would
-             shadow a mod file, a .zs no #include names, an #include of a
-             missing file, a stray file, and an --out under src/, dist/ or
-             assets/
-  mod        nothing under src/ names the two new classes yet: the overlay
-             does not touch the mod (flips when the CEO approves the art)
-  real       (skips without work/overlays/ep2-enemies/) the overlay builds;
-             its classes exist and derive from classes the mod has; its
-             editor numbers are free in the mod's MAPINFO and outside the
-             numbers MOD-SPEC 6.1 / BESTIARY 2.5 reserve; every frame a
-             state shows (the parent's inherited Spawn included) has its
-             lumps in assets/sprites/ (all of rotations 1-8, or 0); every
-             sound is a name the mod's SNDINFO defines; every $SD_ id is
-             in its LANGUAGE in all three languages and none overrides a
-             mod id; the brief's numbers hold (gunner 80 HP, burst 4-6,
-             pain under the trooper's, drops the PPSh-41; colossus the
-             General's health x 1.5 and his boss flags, A_BossDeath)
-  doc        the design document names both classes and both numbers
+  tool       (the superseded tool, still on a synthetic source; CI has no
+             work/): it builds, holds exactly the source's files, two builds
+             are byte-identical; it refuses an editor number the mod uses or
+             one outside 21100-21199, a class the mod declares, a path that
+             would shadow a mod file, a .zs no #include names, an #include
+             of a missing file, a stray file, and an --out under src/,
+             dist/ or assets/; and now the real overlay itself
+  mod        the four classes in src/zscript/monsters/, one per file, each
+             #included; the gunner replaces ChaingunGuy and the colossus
+             SpiderMastermind; 21110 and 21111 in MAPINFO; every frame a
+             state shows has its lumps in assets/sprites/; the provisional
+             tint is on marked lines only and the header's documented swap
+             leaves the final sprite and no tint; every sound is the class's
+             own SNDINFO name over a lump the mod ships (or a DS placeholder)
+             with its final lump named; five ids in three languages; the
+             brief's numbers (gunner 80 HP, bursts of 4-6, pain under the
+             trooper's, drops SD_AkmAmmo; colossus the General's health x 1.5
+             and his boss flags); placed in no map yet
+  doc        the design document and the contracts name them
 
 Stdlib only.
 """
@@ -47,6 +45,9 @@ PROJECT_ROOT = TESTS_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 
 import make_ep2_enemy_overlay as ov  # noqa: E402
+
+sys.path.insert(0, str(TESTS_DIR))
+import _p4_mod as p4  # noqa: E402
 
 SRC = PROJECT_ROOT / "src"
 SPRITES = PROJECT_ROOT / "assets" / "sprites"
@@ -236,111 +237,192 @@ class ToolTests(unittest.TestCase):
                 self.assertFalse((PROJECT_ROOT / name / "x.pk3").exists())
 
 
-class ModUntouchedTests(unittest.TestCase):
-    def test_src_does_not_name_the_new_classes(self):
-        for p in SRC.rglob("*"):
-            if p.is_file() and p.suffix in ("", ".zs", ".txt", ".py"):
-                text = p.read_text(encoding="utf-8", errors="replace")
-                for cls in NEW_CLASSES:
-                    self.assertNotIn(cls, text, f"{p} names {cls}: the draft entered the mod")
+class SupersededOverlayTests(unittest.TestCase):
+    """D116: the classes are the mod's now, so the overlay tool refuses the
+    real source (a class the mod declares, a number its MAPINFO assigns):
+    the old overlay can no longer be built over the mod by mistake."""
+
+    def test_tool_says_superseded(self):
+        self.assertIn("SUPERSEDED", ov.__doc__)
+
+    @unittest.skipUnless(REAL_SRC.is_dir(), "no work/overlays/ep2-enemies/ (gitignored work/)")
+    def test_real_overlay_is_refused(self):
+        with self.assertRaises(ov.OverlayError):
+            ov.plan_overlay(REAL_SRC, SRC)
 
 
-# -------------------------------------------------------------------- real
-@unittest.skipUnless(REAL_SRC.is_dir(), "no work/overlays/ep2-enemies/ (gitignored work/)")
-class RealOverlayTests(unittest.TestCase):
+# --------------------------------------------------------------------- mod
+FILES = {
+    "SD_LegionGunner": "zscript/monsters/legion_gunner.zs",
+    "SD_LibertyColossus": "zscript/monsters/liberty_colossus.zs",
+    "SD_ColossusRocket": "zscript/monsters/colossus_rocket.zs",
+    "SD_ColossusFlame": "zscript/monsters/colossus_flame.zs",
+}
+REPLACES = {"SD_LegionGunner": "ChaingunGuy", "SD_LibertyColossus": "SpiderMastermind"}
+PROJECTILE_PARENTS = {"SD_ColossusRocket": "SD_Pg7Grenade", "SD_ColossusFlame": "SD_FlameBlob"}
+# Provisional sprite -> final sprite (MOD-SPEC 6.12).
+SWAPS = {"SD_LegionGunner": (("SDLT", "SDLG"),), "SD_LibertyColossus": (("SDGN", "SDLC"),)}
+SOUND_KEYS = {"SD_LegionGunner": "legiongunner", "SD_LibertyColossus": "colossus"}
+SOUND_COUNT = 13   # gunner 6, colossus 7 (BESTIARY 12)
+IDS = {"SD_TAG_GUNNER", "SD_TAG_COLOSSUS", "SD_OB_GUNNER", "SD_OB_COLOSSUS", "SD_OBHIT_COLOSSUS"}
+
+
+class ModTests(unittest.TestCase):
+    """The gunner and the colossus as the mod ships them (D116)."""
+
     @classmethod
     def setUpClass(cls):
-        cls.plan = ov.plan_overlay(REAL_SRC, SRC)
+        cls.text = {c: p4.read(f) for c, f in FILES.items()}
         cls.blocks: dict[str, tuple[str | None, str]] = {}
-        for rel, path in cls.plan.files.items():
-            if rel.endswith(".zs"):
-                cls.blocks.update(class_blocks(path.read_text(encoding="utf-8")))
-        cls.zs_text = "\n".join(strip(p.read_text(encoding="utf-8"))
-                                for r, p in cls.plan.files.items() if r.endswith(".zs"))
-        cls.mod_classes = mod_class_files()
+        for p in (SRC / "zscript").rglob("*.zs"):
+            cls.blocks.update(p4.class_blocks(p.read_text(encoding="utf-8")))
+        cls.gunner = cls.blocks["SD_LegionGunner"][1]
+        cls.colossus = cls.blocks["SD_LibertyColossus"][1]
 
-    def test_builds(self):
-        with tempfile.TemporaryDirectory() as d:
-            out = Path(d) / "sd-ep2-enemies.pk3"
-            self.assertEqual(run_tool(["--src", str(REAL_SRC), "--out", str(out)]), 0)
-            self.assertEqual(sorted(zipfile.ZipFile(out).namelist()), sorted(self.plan.files))
-
-    def test_classes(self):
-        self.assertEqual(set(self.plan.classes), EXPECTED_CLASSES)
-        for cls, (parent, _) in self.blocks.items():
+    def test_one_class_per_file_and_included(self):
+        inc = p4.includes()
+        for cls, rel in FILES.items():
             with self.subTest(cls=cls):
-                self.assertIn(parent, self.mod_classes, f"{cls} derives from {parent}, not a mod class")
+                self.assertEqual(list(p4.class_blocks(self.text[cls])), [cls])
+                self.assertIn(rel.lower(), inc)
+
+    def test_parents_and_replacements(self):
+        for cls, doom in REPLACES.items():
+            self.assertEqual(p4.class_head(self.text[cls], cls), f"class {cls} : SD_Monster replaces {doom}")
+        for cls, parent in PROJECTILE_PARENTS.items():
+            self.assertEqual(p4.class_head(self.text[cls], cls), f"class {cls} : {parent}")
 
     def test_editor_numbers(self):
-        self.assertEqual(self.plan.ednums, EXPECTED_EDNUMS)
-        mod = ov.mapinfo_ednums((SRC / "lumps" / "MAPINFO").read_text(encoding="utf-8"))
-        for num in self.plan.ednums:
-            self.assertNotIn(num, mod)
+        ednums = p4.mapinfo_ednums()
+        for num, cls in EXPECTED_EDNUMS.items():
+            self.assertEqual(ednums.get(num), cls)
             self.assertNotIn(num, RESERVED_EDNUMS)
-            self.assertIn(num, ov.ENEMY_EDNUMS)
+        for cls in PROJECTILE_PARENTS:
+            self.assertNotIn(cls, ednums.values(), "a projectile is not placeable")
 
     def test_every_frame_has_its_sprites(self):
-        for cls, (parent, body) in self.blocks.items():
-            frames = state_frames(body)
-            labels = set(re.findall(r"^\s*(\w+):", states_block(body), flags=re.M))
-            if "Spawn" not in labels and parent in self.mod_classes:
-                # the inherited Spawn (the projectiles' flight)
-                pbody = class_blocks(self.mod_classes[parent].read_text(encoding="utf-8"))[parent][1]
-                frames |= state_frames(pbody)
+        for cls in FILES:
+            frames = p4.frames_with_inheritance(cls, self.blocks)
             self.assertTrue(frames, cls)
             for sprite, frame in sorted(frames):
                 with self.subTest(cls=cls, sprite=sprite, frame=frame):
-                    rots = sprite_rotations(sprite).get(frame, set())
+                    rots = p4.sprite_rotations(sprite).get(frame, set())
                     self.assertTrue("0" in rots or set("12345678") <= rots,
                                     f"{sprite}{frame}: rotations {sorted(rots)}")
 
-    def test_sounds_are_defined(self):
-        defined = sndinfo_names((SRC / "lumps" / "SNDINFO").read_text(encoding="utf-8"))
-        used = set(re.findall(r'"(sd/[^"]+)"', self.zs_text))
-        self.assertTrue(used)
-        for name in sorted(used):
-            self.assertIn(name.lower(), defined, name)
+    def test_provisional_look_and_its_documented_swap(self):
+        """MOD-SPEC 6.12: today an existing sprite, tinted; the header's sed
+        renames it to the final name and deletes only the marked lines."""
+        for cls, swaps in SWAPS.items():
+            with self.subTest(cls=cls):
+                text = self.text[cls]
+                marked = p4.provisional_code_lines(text)
+                self.assertTrue(any(l.startswith("Translation ") for l in marked), marked)
+                for line in marked:
+                    self.assertRegex(line, r"^(Translation |Scale |const SD_\w+_SCALE )", line)
+                swapped, pairs = p4.apply_documented_swap(text)
+                self.assertEqual(tuple(pairs), swaps)
+                frames = p4.state_frames(p4.class_blocks(swapped)[cls][1])
+                self.assertEqual({s for s, _ in frames}, {swaps[0][1]})
+                self.assertEqual({f for _, f in frames}, {f for _, f in p4.state_frames(self.blocks[cls][1])})
+                code = p4.strip_comments(swapped)
+                self.assertNotIn("Translation", code)
+                self.assertNotRegex(code, r"\bScale\b")
+                self.assertFalse(p4.sprite_rotations(swaps[0][1]), f"{swaps[0][1]} is drawn: do the swap")
+
+    def test_sounds_are_their_own_names_over_existing_lumps(self):
+        lines = p4.sndinfo_lines()
+        shipped = {p.stem.upper() for p in (PROJECT_ROOT / "assets" / "sounds").rglob("*.ogg")}
+        for cls in FILES:
+            used = set(re.findall(r'"(sd/[a-z0-9/_]+)"', p4.strip_comments(self.text[cls])))
+            for name in sorted(used):
+                with self.subTest(cls=cls, name=name):
+                    self.assertIn(name, lines, f"{name} not in SNDINFO")
+                    key = SOUND_KEYS.get(cls)
+                    if key and name.startswith("sd/mon/"):
+                        self.assertTrue(name.startswith(f"sd/mon/{key}/"), name)
+        finals = []
+        for name, (lump, comment) in lines.items():
+            if name.startswith(tuple(f"sd/mon/{k}/" for k in SOUND_KEYS.values())):
+                with self.subTest(name=name):
+                    self.assertTrue(lump in shipped or lump.startswith("DS"), lump)
+                    final = p4.FINAL_LUMP_RE.search(comment)
+                    self.assertIsNotNone(final, f"{name}: no '-> final lump' in its comment")
+                    self.assertNotIn(final.group(1), shipped, "the final lump is not recorded yet")
+                    finals.append(final.group(1))
+        self.assertEqual(len(finals), len(set(finals)))
+        self.assertEqual(len(finals), SOUND_COUNT)
 
     def test_strings_in_three_languages(self):
-        overlay = language_sections(self.plan.files["LANGUAGE"].read_text(encoding="utf-8"))
-        mod = language_sections((SRC / "lumps" / "LANGUAGE").read_text(encoding="utf-8"))
-        used = set(re.findall(r'"\$(SD_\w+)"', self.zs_text))
-        self.assertTrue(used)
+        sections = p4.language_sections()
+        used = set(re.findall(r'"\$(SD_\w+)"', "\n".join(self.blocks[c][1] for c in FILES)))
+        self.assertEqual(used, IDS)
         for lang in LANGS:
             with self.subTest(lang=lang):
-                self.assertEqual(set(overlay.get(lang, {})), used)
-                self.assertFalse(used & set(mod.get(lang, {})), "an overlay id overrides a mod id")
+                self.assertLessEqual(IDS, set(sections[lang]))
+                for sid in IDS:
+                    if sid.startswith("SD_OB"):
+                        self.assertIn("%o", sections[lang][sid])
+        for sid in IDS:
+            self.assertTrue(sections["enu default"][sid].isascii(), sid)
 
     def test_gunner_numbers(self):
-        body = self.blocks["SD_LegionGunner"][1]
-        trooper = class_blocks((SRC / "zscript" / "monsters" / "legion_trooper.zs").read_text(encoding="utf-8"))
-        tbody = trooper["SD_LegionTrooper"][1]
-        self.assertEqual(const_value(body, "SD_GUNNER_HEALTH"), 80)
-        self.assertEqual((const_value(body, "SD_GUNNER_BURST_MIN"), const_value(body, "SD_GUNNER_BURST_MAX")), (4, 6))
-        self.assertLess(const_value(body, "SD_GUNNER_PAINCHANCE"), const_value(tbody, "SD_TROOPER_PAINCHANCE"))
-        self.assertIn('DropItem "SD_Ppsh"', body)
-        self.assertIn("SD_FACTION_LEGION", body)
+        tbody = self.blocks["SD_LegionTrooper"][1]
+        self.assertEqual(const_value(self.gunner, "SD_GUNNER_HEALTH"), 80)
+        self.assertEqual((const_value(self.gunner, "SD_GUNNER_BURST_MIN"),
+                          const_value(self.gunner, "SD_GUNNER_BURST_MAX")), (4, 6))
+        self.assertLess(const_value(self.gunner, "SD_GUNNER_PAINCHANCE"), const_value(tbody, "SD_TROOPER_PAINCHANCE"))
+        self.assertIn("SD_FACTION_LEGION", self.gunner)
+
+    def test_gunner_drops_akm_magazines(self):
+        """D116, the AKM doc section 3: the Legion's heavy infantry carries
+        7.62x39; no amount, so a dropped magazine is half of one (15)."""
+        self.assertEqual(re.findall(r'DropItem\s+"([^"]+)"', self.gunner), ["SD_AkmAmmo"])
+        self.assertRegex(self.gunner, r'DropItem\s+"SD_AkmAmmo"\s*;')
+        self.assertEqual(self.blocks["SD_AkmAmmo"][0], "Ammo")
 
     def test_colossus_is_a_boss(self):
-        body = self.blocks["SD_LibertyColossus"][1]
-        general = class_blocks((SRC / "zscript" / "monsters" / "general.zs").read_text(encoding="utf-8"))
-        gbody = general["SD_General"][1]
-        self.assertEqual(const_value(body, "SD_COLOSSUS_HEALTH"), const_value(gbody, "SD_GENERAL_HEALTH") * 1.5)
+        gbody = self.blocks["SD_General"][1]
+        self.assertEqual(const_value(self.colossus, "SD_COLOSSUS_HEALTH"),
+                         const_value(gbody, "SD_GENERAL_HEALTH") * 1.5)
         for flag in ("+BOSS", "+NORADIUSDMG", "+DONTMORPH", "+BOSSDEATH"):
             self.assertIn(flag, gbody)
-            self.assertIn(flag, body)
-        self.assertIn("A_BossDeath", body)
-        self.assertIn("A_NoBlocking", body)
+            self.assertIn(flag, self.colossus)
+        self.assertIn("A_BossDeath", self.colossus)
+        self.assertIn("A_NoBlocking", self.colossus)
         for label in ("Rockets:", "Flame:", "Stomp:", "Death:"):
-            self.assertIn(label, body)
-        self.assertEqual(body.count("A_SD_ColossusRocket;"), 3)   # the three-rocket salvo
+            self.assertIn(label, self.colossus)
+        self.assertEqual(self.colossus.count("A_SD_ColossusRocket;"), 3)   # the three-rocket salvo
+        for cls in PROJECTILE_PARENTS:
+            self.assertIn(f'"{cls}"', self.colossus)
+            self.assertIn('Obituary ""', self.blocks[cls][1])
+
+    def test_placed_in_no_map_yet(self):
+        """D116: level-designer places them later; nothing under src/maps/
+        names the classes or their editor numbers."""
+        for p in (SRC / "maps").rglob("*.py"):
+            text = p.read_text(encoding="utf-8")
+            for cls in REPLACES:
+                self.assertNotIn(cls, text, p)
+            for num in EXPECTED_EDNUMS:
+                self.assertIsNone(re.search(rf"\b{num}\b", text), f"{p} names {num}")
 
 
 class DocTests(unittest.TestCase):
-    def test_doc_names_both(self):
+    def test_doc_names_both_and_says_integrated(self):
         text = DOC.read_text(encoding="utf-8")
-        for needle in (*NEW_CLASSES, "21110", "21111", "make_ep2_enemy_overlay.py"):
+        for needle in (*NEW_CLASSES, "21110", "21111", "make_ep2_enemy_overlay.py", "D116", "SDLG", "SDLC"):
             self.assertIn(needle, text)
+
+    def test_contracts_name_them(self):
+        spec = (PROJECT_ROOT / "docs" / "engine" / "MOD-SPEC.md").read_text(encoding="utf-8")
+        bestiary = (PROJECT_ROOT / "docs" / "engine" / "BESTIARY.md").read_text(encoding="utf-8")
+        balance = (PROJECT_ROOT / "docs" / "engine" / "BALANCE.md").read_text(encoding="utf-8")
+        for num, cls in EXPECTED_EDNUMS.items():
+            self.assertIsNotNone(re.search(rf"\|\s*{num}\s*\|\s*`{cls}`", spec), f"MOD-SPEC 6.1 lacks {num}")
+            self.assertTrue(f"`{cls}`" in bestiary, f"BESTIARY lacks {cls}")
+        for name in ("Legion gunner", "Liberty Colossus"):
+            self.assertTrue(name in balance, f"BALANCE lacks {name}")
 
 
 if __name__ == "__main__":

@@ -53,12 +53,16 @@ sustained killer and slot 7 is the panic button.
 | 2 | TT-33 Tokarev | 1 Clip | 12 (6–18) | 16 | 2.19 | 26.3 | ~1024 |
 | 3 | IZh-58 double barrel | 1 Shell | 80 (8 pellets) | 23, +30 every 2 shots | 0.92 sustained | 73.7 sustained / 121.8 burst | ~512 |
 | 4 | PPSh-41 | 1 Clip | 8 (4–12) | 3 | 11.67 | 93.3 | ~768 |
+| 4b | AKM (D112, in the mod since D116) | 1 `SD_AkmAmmo` | 12 (6–18) | 4 | 8.75 | 105.0 | ~1024 (short bursts) |
 | 5 | RPG-7 | 1 RocketAmmo | 135 direct + 100 blast / 104 u | 26 | 1.35 | 181.7 direct | unlimited |
 | 6 | ROKS-3 flamethrower | 1 Cell | 18 (4–32) | 3 | 11.67 | 210.0 | **528 hard limit** |
 | 7 | Hand Katyusha | 40 Cell | 6 x (112.5 direct + 70 blast / 96 u) | 60 | 0.58 | ~394 if all six land | unlimited, fan ±12.5° |
 
 The ladder (19 → 26 → 74 → 93 → 182 → 210 → 394) keeps Doom's shape: every
-slot beats the one below it, and the jumps land in the same places.
+slot beats the one below it, and the jumps land in the same places. The
+AKM (slot 4's second weapon since D116) slots in at **105**, above the
+PPSh-41 and well under the RPG-7, as Doom II's super shotgun is slot 3's
+better gun; it pays with a scarcer pool of its own (§4).
 
 ## 3. Why each number
 
@@ -127,6 +131,22 @@ ammo per second**. That is the trade the icon of the mod should make: it
 wins fights and empties your pockets. Pickup gives 35 rounds (half a
 captured 71-round drum) rather than Doom's 20.
 
+### Slot 4b — AKM (`SD_Akm`, replaces nothing; D112, in the mod since D116)
+
+`6 x random(1,3)` = 6–18, avg 12 (the TT-33's round), every **4 tics**
+(525 rpm; the real AKM's ~600 would be 3.5, and 3 tics would make it the
+PPSh-41 with other dice): **105 DPS, +12.5 %** over the PPSh-41 for 25 %
+fewer rounds a second. **Accurate in short bursts:** the first round of a
+burst is pinpoint (Doom's rule for one bullet with no refire), rounds 2–3
+spread ±2.0°, and from the 4th ±5.0° plus ±1.5° vertical (the muzzle
+climbs), still under the PPSh's 7.0°. Tap it and it is a rifle for the
+long sightlines of Episodes 2 and 3; hold it and it is a PPSh with a better
+round. The weapon gives 30 rounds (one magazine). Selection order 650 (the
+PPSh-41's 700): an empty AKM falls back to the PPSh. Every number is a
+constant in `zscript/weapons/akm.zs`; the long why, the spread table and
+the shots against the bestiary are `docs/engine/2026-10-22_P4_akm.md` §2.
+**NOT YET MEASURED** (T5).
+
 ### Slot 5 — RPG-7 (replaces Rocket launcher)
 
 PG-7V round: `30 x random(1,8)` = avg 135 direct, plus 100 blast damage over
@@ -169,8 +189,9 @@ unusable, and Doom's BFG shot does not hurt its owner either.
 
 ## 4. Ammunition
 
-The arsenal reuses Doom's four pools unchanged, so every Freedoom ammo
-pickup and the whole status bar keep working:
+The seven weapons of D13 reuse Doom's four pools unchanged, so every
+Freedoom ammo pickup and the whole status bar keep working; the AKM (D116)
+has a pool of its own (last row; ADR 011):
 
 | Pool | Reads as | Used by | Pickup gives |
 |---|---|---|---|
@@ -178,6 +199,7 @@ pickup and the whole status bar keep working:
 | `Shell` | 12-gauge shells | IZh-58 | 8 |
 | `RocketAmmo` | PG-7V grenades | RPG-7 | 2 |
 | `Cell` | fuel canisters | ROKS-3, hand Katyusha | 40 |
+| `SD_AkmAmmo` (ours, D116) | 7.62x39 rounds | AKM | 30 a magazine (the weapon too); 15 from a Legion gunner's drop; maximum 150, 300 with the backpack, which also gives 30 |
 
 Since 2026-10-13 the "reads as" column is no longer only a figure of speech:
 the player sees those names. The pools are still Doom's — nothing in the
@@ -319,6 +341,21 @@ stagger and blast are not in it.
 | Panzermensch | 500 | 34 | 42 | 7 | 63 | 4 | 28 | 5 |
 | Heavy Panzermensch | 1000 | 67 | 84 | 13 | 125 | 8 | 56 | 9 |
 | The General | 3000 | 200 | 250 | 38 | 375 | 23 | 167 | 27 |
+| Legion gunner (P4, D116) | 80 | 6 | 7 | 1 | 10 | 1 | 5 | 1 |
+| Liberty Colossus (P4, D116) | 4500 | 300 | 375 | 57 | 563 | 34 | 250 | 40 |
+| The Consortium (P4, D116), whole | 9000 | 600 | 750 | 113 | 1125 | 67 | 500 | 80 |
+
+**The AKM** (slot 4b, avg 12 a round, D116) against the same rows:
+rifleman 2, trooper 3, Stormtrooper 5, hound 13, Doughboy 34, Panzermensch
+42, heavy Panzermensch 84, the General 250, the Legion gunner 7, the
+Liberty Colossus 375, the Consortium 750 rounds (a 30-round magazine is
+~360 at 100 %). An infantry gun: the bosses stay the RPG-7's and the
+Katyusha's. The three P4 rows' numbers and their reasons are their design
+documents (`2026-10-22_P4_ep2-enemies.md` §2–§3,
+`2026-10-22_P4_ep3-final-boss.md` §3); the colossus and the Consortium have
+`+NORADIUSDMG`, so their RPG-7 column is the impact only, and the
+Consortium's servants add to its bill (50 HP a rooted pair, 600 at its
+Breach, 180 a free pair).
 
 What it says, before anyone has played it:
 
@@ -337,6 +374,9 @@ What it says, before anyone has played it:
   weapon.
 - **The General summons two riflemen at 1500 HP**, so the fight's second
   half adds two TT-33 pairs or one IZh barrel each to the bill.
+- **The Legion gunner dies to one IZh-58 barrel about half the time** (80
+  HP against an average 80); his drop, half an AKM magazine (15 rounds,
+  ~180 damage), pays for the 7 rounds he costs at about a 45 % hit rate.
 
 `MOD-SPEC.md` debt T5 stays open until these numbers are measured in a
 playtest.

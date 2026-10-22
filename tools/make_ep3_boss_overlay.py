@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 """Pack the Episode 3 final boss DRAFT overlay: the Consortium, playable by summon.
 
+SUPERSEDED (D116, 2026-10-22). The overlay's classes are in the mod now:
+SD_Consortium, its three projectiles and the SD_ConsortiumWounded fixture live under src/zscript/, with their editor numbers, strings and
+sounds in src/lumps/ (MOD-SPEC 6.12). Kept, not deleted, as the record
+of the draft; it now refuses the real source work/overlays/ep3-boss/
+(the mod declares its classes and assigns its numbers), so the old
+overlay can no longer be built over the mod by mistake. tests/test_ep3_boss.py
+still runs its refusals on a synthetic source.
+
     python tools/make_ep3_boss_overlay.py             # -> work/overlays/sd-ep3-boss.pk3 (+ .txt)
     python tools/make_ep3_boss_overlay.py --dry-run   # print the plan, write nothing
 

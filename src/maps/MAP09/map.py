@@ -142,9 +142,12 @@ STALIN = "SDPOSTR3"
 MURAL = "SDPOSTR2"      # 128x128 cosmonautics mural: the instrument room
 POSTER_WIDTH = 128
 POSTER_HEIGHT = 256
-# The Marx-Engels poster SDPOSTR4 is in preparation and is not a lump yet. Its
-# slots are built and wear a stand-in; approving it is this one line:
-MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
+# The Marx-Engels pair (D117), 128x256 each like Lenin and Stalin: Marx
+# carries «ПРОЛЕТАРИИ / ВСЕХ СТРАН,», Engels «СОЕДИНЯЙТЕСЬ!» (his face mirrored
+# to look at Marx). Hung on the two Marx-Engels slots, Marx's first.
+MARX = "SDPOSTR4"
+ENGELS = "SDPOSTR5"
+MARX_ENGELS = (MARX, ENGELS)     # in the order of POSTER_SLOTS_MARX_ENGELS
 
 DOOR_LEAVES = (DOOR, DOOR_YELLOW, DOOR_RED, GATE)
 SWITCH_FACES = (EXIT_FACE,)
@@ -429,18 +432,18 @@ POSTERS = (
     # west wall, the two slots either side.
     ("lab_hall_lenin", LENIN, "h", LAB_HALL[3], 1504, 1632),
     ("lab_hall_stalin", STALIN, "v", LAB_HALL[0], 1360, 1488),
-    ("lab_hall_slot_n", STALIN, "h", LAB_HALL[3], 1664, 1792),
-    ("lab_hall_slot_s", LENIN, "h", LAB_HALL[1], 1344, 1472),
+    ("lab_hall_slot_n", MARX, "h", LAB_HALL[3], 1664, 1792),
+    ("lab_hall_slot_s", ENGELS, "h", LAB_HALL[1], 1344, 1472),
     # The instrument room (128 high): the cosmonautics mural beside the boards.
     ("lab_instr_mural", MURAL, "v", LAB_INSTR[0], LAB_INSTR[1], LAB_INSTR[3]),
 )
-POSTER_SLOTS_MARX_ENGELS = ("lab_hall_slot_n", "lab_hall_slot_s")
+POSTER_SLOTS_MARX_ENGELS = ("lab_hall_slot_n", "lab_hall_slot_s")   # Marx, Engels
 
 
-def poster_faces():
-    """POSTERS with each Marx-Engels slot wearing SDPOSTR4 once it exists."""
-    return tuple((name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS else texture,
-                  axis, coord, lo, hi) for name, texture, axis, coord, lo, hi in POSTERS)
+def poster_faces() -> tuple[tuple[str, str, str, int, int, int], ...]:
+    """Every picture as painted: (name, texture, axis, coord, lo, hi). Since
+    D117 each Marx-Engels slot wears its own poster in POSTERS itself."""
+    return POSTERS
 
 
 def log_direction(cx: int, cy: int) -> str:
@@ -1408,6 +1411,6 @@ WALL_TEXTURES = ((CONCRETE, STEEL, CRATE, LOCKER, TILE, TILE_DADO, BRICK, RUST, 
                   FLAG_REICH, FLAG_LEGION, WAGON, ARMOUR_STAR, ARMOUR, SIGNAL, TURBINE, CONTROL,
                   CAB_FRONT, CAB_SIDE, BARK, BIRCH, LOG_WALL, ALIEN, GLYPH, PORTAL_RIM,
                   LENIN, STALIN, MURAL) + DOOR_LEAVES + SWITCH_FACES
-                 + ((MARX_ENGELS,) if MARX_ENGELS else ()))
+                 + MARX_ENGELS)
 FLAT_TEXTURES = (CRATE_TOP, LAB_FLOOR, CEIL_LAMP, CEIL_CONCRETE, PLATE, GRATING, MOLTEN, TRACK,
                  BALLAST, BURNT, PEAT, MOSS, ACID, SKY)

@@ -211,9 +211,12 @@ MURAL = "SDPOSTR2"      # 128x128 cosmonautics mural
 POSTER_WIDTH = 128
 POSTER_HEIGHT = 256
 MURAL_HEIGHT = 128
-# The Marx-Engels poster SDPOSTR4 is in preparation (not a lump yet). Its
-# slots are built and wear a stand-in; approving it is this one line:
-MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
+# The Marx-Engels pair (D117), 128x256 each like Lenin and Stalin: Marx
+# carries «ПРОЛЕТАРИИ / ВСЕХ СТРАН,», Engels «СОЕДИНЯЙТЕСЬ!» (his face mirrored
+# to look at Marx). Hung on the two Marx-Engels slots, Marx's first.
+MARX = "SDPOSTR4"
+ENGELS = "SDPOSTR5"
+MARX_ENGELS = (MARX, ENGELS)     # in the order of POSTER_SLOTS_MARX_ENGELS
 # Every picture: (name, texture, axis, coord, lo, hi), one GridMap style
 # each. A portrait hangs on a one-sided line exactly 128 long in a sector
 # exactly 256 high (the warehouse's own walls, or a 16-deep niche cut to
@@ -230,13 +233,13 @@ POSTERS = (
     # The platform: the station's mural on the building's wall, between
     # the banners and the red door's vestibule, facing the train.
     ("platform_mural", MURAL, "h", 2048 - NICHE_DEPTH, 1024, 1152),
-    # Marx-Engels slots (stand-in Lenin): the roundhouse's south wall, the
+    # The Marx-Engels pair (D117): Engels on the roundhouse's south wall, the
     # depot's own poster over the turntable's stairs; and the warehouse's
-    # west wall beside the passage to the roundhouse.
-    ("roundhouse_south", LENIN, "h", 384 - NICHE_DEPTH, 960, 1088),
-    ("warehouse_west", LENIN, "v", 1920, 320, 448),
+    # west wall beside the passage to the roundhouse: Marx, met first.
+    ("roundhouse_south", ENGELS, "h", 384 - NICHE_DEPTH, 960, 1088),
+    ("warehouse_west", MARX, "v", 1920, 320, 448),
 )
-POSTER_SLOTS_MARX_ENGELS = ("roundhouse_south", "warehouse_west")
+POSTER_SLOTS_MARX_ENGELS = ("warehouse_west", "roundhouse_south")   # Marx, Engels
 # The niches cut for them: (zone, room, rect, ceiling height above the floor).
 POSTER_NICHES = (
     ("z2_poster_lenin", "z2_yard", (2432, 1920, 2560, 1920 + NICHE_DEPTH), POSTER_HEIGHT),
@@ -246,10 +249,10 @@ POSTER_NICHES = (
 )
 
 
-def poster_faces():
-    """POSTERS with each Marx-Engels slot wearing SDPOSTR4 once it exists."""
-    return tuple((name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS else texture,
-                  axis, coord, lo, hi) for name, texture, axis, coord, lo, hi in POSTERS)
+def poster_faces() -> tuple[tuple[str, str, str, int, int, int], ...]:
+    """Every picture as painted: (name, texture, axis, coord, lo, hi). Since
+    D117 each Marx-Engels slot wears its own poster in POSTERS itself."""
+    return POSTERS
 
 
 # --- Light ---------------------------------------------------------------------
@@ -1180,7 +1183,7 @@ WALL_TEXTURES = ((CONCRETE, STAR, STEEL, TILE_DADO, CRATE, TUBBING, TUNNEL_WALL,
                   LENIN, STALIN, MURAL,
                   WAGON_SIDE, TANK_SIDE, ARMOUR_STAR, ARMOUR, SIGNAL, ROUNDHOUSE_BRICK, GOODS_GATE,
                   CAB_FRONT, CAB_SIDE, BOX_GLAZING, LEVER_FRONT, STALL_DOORS, STATION_BOARD)
-                 + DOOR_LEAVES + SWITCH_FACES + ((MARX_ENGELS,) if MARX_ENGELS else ()))
+                 + DOOR_LEAVES + SWITCH_FACES + MARX_ENGELS)
 FLAT_TEXTURES = (FLOOR_CONCRETE, FLOOR_TILE, CEIL_PANEL, CEIL_CONCRETE, FLOOR_STATION,
                  FLOOR_COPING, RAILS, FLOOR_PLATE, GRATING, "SDCRTOP1", TRACK, BALLAST, DECK,
                  WAGON_ROOF, GONDOLA_BED, LEVER_TOP)

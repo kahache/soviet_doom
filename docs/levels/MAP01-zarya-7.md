@@ -292,9 +292,8 @@ Texture conventions for the builder (settled by the v1 build, §15):
 ### 6.1 The posters (CEO, 2026-10-22)
 
 «reutiliza cuadros, mételos en niveles anteriores [...] que esos posters
-puedan aparecer en cualquier nivel». MAP01 hangs three pictures and keeps
-two slots for the Marx-Engels poster `SDPOSTR4` (in preparation, not a lump
-yet). All of them are the `POSTERS` table in `src/maps/MAP01/map.py`;
+puedan aparecer en cualquier nivel». MAP01 hangs three pictures and, in its
+two slots, the Marx-Engels pair `SDPOSTR4`/`SDPOSTR5` (D117). All of them are the `POSTERS` table in `src/maps/MAP01/map.py`;
 `tests/test_posters.py` checks each one is whole (one 128-long one-sided
 line, a sector exactly the poster's height, pegged to the floor, offset 0).
 
@@ -303,8 +302,8 @@ line, a sector exactly the poster's height, pegged to the floor, offset 0).
 | `exit_lenin` | `SDPOSTR1` Lenin | north wall, y 864, x 3072–3200 | Z10 lift room, 256 high | unchanged since v1: the last Soviet face before the metro, under his own light (§17.6) |
 | `komnata_mural` | `SDPOSTR2` mural | north niche, y 1440, x 256–384 | Z4 komnata | unchanged since v1 (D38) |
 | `hangar_stalin` | `SDPOSTR3` Stalin | east wall niche, x 2704, y 1008–1136 | Z6 hangar, 176 | over the transporter's east field, between the two rails that run out to the wall. The Liberty Legion holds the hangar under his portrait: the invaders took the room, not the picture |
-| `hangar_north_slot` | Marx-Engels slot, **Lenin** stands in | north wall niche, y 1616, x 1664–1792 | Z6 hangar, 176 | between the pilaster and the catwalk, facing the gantry across the hangar; Lenin in the north, Stalin in the east |
-| `exit_east_slot` | Marx-Engels slot, **Stalin** stands in | east wall, x 3264, y 480–608 | Z10 lift room | beside the exit switch, so the founders see the player off with Lenin; lit by `z10_slot_light` (128, one lamp strip, Lenin's halo value) so it reads in the darkest room |
+| `hangar_north_slot` | `SDPOSTR4` **Marx** (Marx-Engels slot) | north wall niche, y 1616, x 1664–1792 | Z6 hangar, 176 | between the pilaster and the catwalk, facing the gantry across the hangar; Marx in the north, Stalin in the east. The first of the pair on the route, so his band («ПРОЛЕТАРИИ / ВСЕХ СТРАН,») comes first |
+| `exit_east_slot` | `SDPOSTR5` **Engels** (Marx-Engels slot) | east wall, x 3264, y 480–608 | Z10 lift room | beside the exit switch: «СОЕДИНЯЙТЕСЬ!» sees the player off with Lenin; lit by `z10_slot_light` (128, one lamp strip, Lenin's halo value) so it reads in the darkest room |
 
 Geometry added, none of it on a route: the hangar is 320 high, so its two
 portraits hang at the back of 16-deep niches (`z6_stalin_niche`,
@@ -317,11 +316,13 @@ niche is never taller than its room: seen from across it, its ceiling would
 cut the face. The komnata (192) and every other room are too low for a
 portrait.
 
-**The swap.** When `SDPOSTR4` is approved and packed (assumed 128×256, the
-twin of Lenin and Stalin), the one line `MARX_ENGELS: str | None = None` in
-`map.py` becomes `MARX_ENGELS = "SDPOSTR4"`: both slots wear it, it joins
-`WALL_TEXTURES`, nothing else moves (`tests/test_posters.py` builds that
-swap and checks it).
+**The Marx-Engels pair (D117, 2026-10-22).** Two 128×256 posters, the twins
+of Lenin and Stalin: `SDPOSTR4` Marx and `SDPOSTR5` Engels (mirrored, so he
+looks at Marx), whose bands read the Manifesto's line across the two. The
+slots wear them directly in `POSTERS`; `POSTER_SLOTS_MARX_ENGELS` names
+Marx's slot first and `MARX_ENGELS = ("SDPOSTR4", "SDPOSTR5")` lists both in
+`WALL_TEXTURES`. They hang in two rooms here, so each reads alone, in route
+order. `tests/test_posters.py` holds the placement (`PAIR`).
 
 ## 7. Secrets
 

@@ -307,7 +307,7 @@ the polar night sky with the aurora (MAPINFO's sky, the scaffolding's call).
 
 ### 7.3 Posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
 
-Three pictures and two Marx-Engels slots, each whole: one one-sided line
+Three pictures and the Marx-Engels pair, each whole: one one-sided line
 exactly the poster's width, in a recess exactly its height, pegged to the
 floor, offset 0 (`tests/test_posters.py`, `Map08Posters`).
 
@@ -316,11 +316,13 @@ floor, offset 0 (`tests/test_posters.py`, `Map08Posters`).
 | `z6_lenin` | `SDPOSTR1` Lenin | barracks hall, north wall, x 2752…2880 (recess 16 deep, 256 high) | the fleet's hall, the first wall seen through D2 |
 | `z3_stalin` | `SDPOSTR3` Stalin | the dock's south wall, x 1536…1664, beside D1 (recess 256 high) | facing the boat across the water |
 | `z6_mural` | `SDPOSTR2` cosmonautics mural | the mess's south wall, x 3136…3264, on a 32 sill | the mess's «red corner» |
-| `z3_slot_w` | `SDPOSTR3` (Marx-Engels slot) | north quay's north wall, x 1408…1536 | flanks the blue door with its twin, 256 from its axis |
-| `z3_slot_e` | `SDPOSTR1` (Marx-Engels slot) | north quay's north wall, x 1920…2048 | the mirror of the west one |
+| `z3_slot_w` | `SDPOSTR4` **Marx** (Marx-Engels slot) | north quay's north wall, x 1408…1536 | flanks the blue door with Engels, 256 from its axis; the left one seen from the quay |
+| `z3_slot_e` | `SDPOSTR5` **Engels** (Marx-Engels slot) | north quay's north wall, x 1920…2048 | the mirror of the west one, on the right |
 
-`POSTER_SLOTS_MARX_ENGELS = ("z3_slot_w", "z3_slot_e")`; the swap is the one
-line `MARX_ENGELS = "SDPOSTR4"` (tested to move only the two slots).
+**The Marx-Engels pair (D117, 2026-10-22).** `POSTER_SLOTS_MARX_ENGELS =
+("z3_slot_w", "z3_slot_e")`, Marx's first: `SDPOSTR4` Marx «ПРОЛЕТАРИИ / ВСЕХ СТРАН,» and `SDPOSTR5` Engels «СОЕДИНЯЙТЕСЬ!» (mirrored, looking at Marx), 128×256 like Lenin and Stalin; `MARX_ENGELS = ("SDPOSTR4", "SDPOSTR5")` lists them in `WALL_TEXTURES`. Facing the
+north wall from the quay, west is on the left: Marx west, Engels east, the
+bands reading across the blue door (`tests/test_posters.py` checks it).
 
 ## 8. Secrets (built in v1)
 

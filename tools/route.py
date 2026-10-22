@@ -222,6 +222,10 @@ COUNT_CLASSES = (
     "SD_ReichRifleman", "SD_LegionTrooper", "SD_Stormtrooper", "SD_ReichHound",
     "SD_Doughboy", "SD_Panzermensch", "SD_PanzermenschSchwer", "SD_General",
     "SD_Clip", "SD_Izh",
+    # D116: the P4 enemies, in the mod on provisional sprites, so a route can
+    # hurt MAP06's and MAP09's bosses once level-designer places them.
+    # Appended: the indices above (netevent sdhurt) do not move.
+    "SD_LegionGunner", "SD_LibertyColossus", "SD_Consortium", "SD_AkmAmmo",
 )
 HELPER_CLASS = "SDRouteHelper"
 HELPER_VERSION = "route-4"   # route-4: sdinv also names the keys owned (MAP02's pass)
@@ -231,8 +235,11 @@ HELPER_VERSION = "route-4"   # route-4: sdinv also names the keys owned (MAP02's
 # many monsters the engine should spawn on each skill.
 # Plus the Doom numbers of the two the episode has not placed yet (16, 3003)
 # and our own numbers (MOD-SPEC 6.1: 21100-21107; RANGE's gallery uses
-# them), so the count holds on any map.
-MONSTER_EDNUMS = frozenset({3004, 9, 3001, 3002, 3005, 69, 16, 3003} | set(range(21100, 21108)))
+# them), so the count holds on any map. D116 adds the P4 enemies: Doom's
+# chaingunner (65) and Spider Mastermind (7), which they replace, and
+# 21110-21112.
+MONSTER_EDNUMS = frozenset({3004, 9, 3001, 3002, 3005, 69, 16, 3003, 65, 7}
+                           | set(range(21100, 21108)) | {21110, 21111, 21112})
 SECTOR_SPECIAL_SECRET = 1024     # udmf.SECTOR_SPECIAL_SECRET
 SPECIAL_EXIT_NORMAL = 243        # udmf.SPECIAL_EXIT_NORMAL
 GS_INTERMISSION = 1              # EGameState in GZDoom's zscript/engine/base.zs

@@ -84,8 +84,8 @@ SD_MAP07_EXIT_TEXT = "The radar goes dark. Whatever the\nstation was guiding in 
 SD_MAP08_EXIT_TEXT = "The submarine settles at its berth,\nits reactor cold. The invaders were\nloading its warheads onto a train.\n\nThe waybills name one destination:\nTunguska, in the Siberian taiga,\nwhere the sky fell in 1908.\n\nAn An-12 flies you east all night.\nAt dawn the forest below turns grey,\nand then it is gone.";
 // Cluster 10: episode 3's ending, after MAP09. The main portal that
 // SD_END03_TEXT left open closes; the end of the first cycle, so it closes
-// on THE END instead of TO BE CONTINUED, with one line left open.
-SD_END04_TEXT = "The portal folds in on itself. For a\nmoment the taiga is as bright as it\nwas in 1908. Then it is dark.\n\nNothing more comes through. The\nmachines that were eating the forest\nstand still in the ash.\n\nFrom Zarya-7 to Tunguska, the land\nis yours again.\n\nThe sky over the taiga is empty.\nFor now.\n\nTHE END";
+// on TO BE CONTINUED like the others (D117), with one line left open.
+SD_END04_TEXT = "The portal folds in on itself. For a\nmoment the taiga is as bright as it\nwas in 1908. Then it is dark.\n\nNothing more comes through. The\nmachines that were eating the forest\nstand still in the ash.\n\nFrom Zarya-7 to Tunguska, the land\nis yours again.\n\nThe sky over the taiga is empty.\nFor now.\n\nTO BE CONTINUED";
 
 // --- Arsenal (F4) ---------------------------------------------------------
 // Tag      = the weapon's name in the HUD and the weapon wheel.
@@ -102,6 +102,7 @@ SD_TAG_PPSH        = "PPSh-41";
 SD_TAG_RPG7        = "RPG-7";
 SD_TAG_ROKS3       = "ROKS-3 flamethrower";
 SD_TAG_KATYUSHA    = "Hand Katyusha";
+SD_TAG_AKM         = "AKM";                  // slot 4, the second (D116)
 
 SD_PICKUP_ICEAXE   = "An ice axe.";
 SD_PICKUP_TOKAREV  = "You got the TT-33 Tokarev!";
@@ -110,6 +111,7 @@ SD_PICKUP_PPSH     = "You got the PPSh-41!";
 SD_PICKUP_RPG7     = "You got the RPG-7!";
 SD_PICKUP_ROKS3    = "You got the ROKS-3 flamethrower!";
 SD_PICKUP_KATYUSHA = "You got the hand Katyusha. Prototype. Do not drop it.";
+SD_PICKUP_AKM      = "You got the AKM!";
 
 SD_OB_ICEAXE       = "%o met %k's ice axe.";
 SD_OB_TOKAREV      = "%o was shot by %k's Tokarev.";
@@ -118,6 +120,7 @@ SD_OB_PPSH         = "%o was cut down by %k's PPSh-41.";
 SD_OB_RPG7         = "%o was blown apart by %k's RPG-7.";
 SD_OB_ROKS3        = "%o burned under %k's ROKS-3.";
 SD_OB_KATYUSHA     = "%o caught %k's whole salvo.";
+SD_OB_AKM          = "%o was cut down by a burst from %k's AKM.";
 
 // --- Ammunition (CEO decision 2026-10-13) ---------------------------------
 // The four ammo pools are the IWAD's own classes (Clip, Shell, RocketAmmo,
@@ -156,6 +159,7 @@ AMMO_CLIP    = "7.62x25 rounds";       // TT-33 and PPSh-41 share the pistol rou
 AMMO_SHELLS  = "12 gauge shells";      // IZh-58
 AMMO_ROCKETS = "PG-7V rounds";         // an RPG-7 round is a "vystrel", not a rocket
 AMMO_CELLS   = "Fuel";                 // ROKS-3 fuel; the hand Katyusha shares the pool
+SD_AMMO_AKM  = "7.62x39 rounds";       // the AKM's own pool, SD_AkmAmmo (D116, ADR 011): an SD_ id, its class is ours
 
 SD_GOT_CLIP      = "A magazine. 7.62x25.";
 SD_GOT_CLIPBOX   = "A box of 7.62x25.";
@@ -166,6 +170,7 @@ SD_GOT_ROCKBOX   = "A crate of PG-7V rounds.";
 SD_GOT_CELL      = "A canister of fuel.";
 SD_GOT_CELLPACK  = "A full fuel tank.";
 SD_GOT_BACKPACK  = "A paratrooper's pack. Everything you can carry!";  // the RD-54 since D80
+SD_GOT_AKMMAG    = "An AKM magazine. 7.62x39.";
 
 // --- Health, armour and the area map (D80, 2026-10-20) ---------------------
 // zscript/sd/pickups.zs: each class replaces its Doom pickup and prints its
@@ -351,6 +356,9 @@ SD_TAG_DOUGHBOY      = "Doughboy";
 SD_TAG_PANZER        = "Panzermensch";
 SD_TAG_PANZER_HEAVY  = "Heavy Panzermensch";
 SD_TAG_GENERAL       = "The General";
+SD_TAG_GUNNER        = "Legion gunner";            // P4 (D104, D112), in the mod since D116
+SD_TAG_COLOSSUS      = "The Liberty Colossus";
+SD_TAG_CONSORTIUM    = "The Consortium";
 
 SD_OB_RIFLEMAN       = "%o was shot by a Reich rifleman.";
 SD_OB_TROOPER        = "%o was blasted by a Legion trooper.";
@@ -362,6 +370,10 @@ SD_OBHIT_DOUGHBOY    = "%o was bitten by a Doughboy.";
 SD_OB_PANZER         = "%o was shelled by a Panzermensch.";
 SD_OBHIT_PANZER      = "%o was crushed by a Panzermensch.";
 SD_OB_GENERAL        = "%o fell to the General's salvo.";
+SD_OB_GUNNER         = "%o was mowed down by a Legion gunner.";
+SD_OB_COLOSSUS       = "%o was burned and blasted by the Liberty Colossus.";
+SD_OBHIT_COLOSSUS    = "%o was trampled by the Liberty Colossus.";
+SD_OB_CONSORTIUM     = "%o was consumed by the Consortium.";
 
 // The General's order (BESTIARY 9): printed on screen when he summons his
 // two recruits. The wording is decided: "Vorwärts." is the CEO's order (D36,
@@ -369,6 +381,10 @@ SD_OB_GENERAL        = "%o fell to the General's salvo.";
 // languages (D37). The voice take is still owed (D36); if the spoken line
 // ever changes, the text and the sound change together.
 SD_GENERAL_ORDER     = "The General: Vorwärts!";
+
+// The Consortium tears itself free of the portal at half health (its
+// second phase): printed on every screen (docs/engine/2026-10-22_P4_ep3-final-boss.md 4.2).
+SD_CONSORTIUM_FREE   = "The Consortium tears itself free of the portal!";
 
 // --- Keys (the metro, MAP02 since D62; 2026-10-14) ------------------------
 // The metro's blue pass, SD_BluePass (zscript/sd/keys.zs), which replaces
@@ -459,7 +475,7 @@ SD_MAP08_NAME = "Североморск";
 SD_MAP09_NAME = "Тунгуска";
 SD_MAP07_EXIT_TEXT = "Радар гаснет. То, что станция\nнаводила сюда, теперь летит\nвслепую.\n\nПо журналу видно, куда уходил\nсигнал: на базу Северного флота\nв Североморске.\n\nСторожевой катер везёт вас\nчерез Баренцево море. База\nне выходит на связь третьи сутки.";
 SD_MAP08_EXIT_TEXT = "Подлодка оседает у причала,\nеё реактор заглушен. Захватчики\nгрузили её боеголовки в эшелон.\n\nВ накладных одно место\nназначения: Тунгуска, сибирская\nтайга, где в 1908 году упало небо.\n\nАн-12 всю ночь несёт вас\nна восток. На рассвете лес внизу\nсерый, а потом его нет.";
-SD_END04_TEXT = "Портал схлопывается. На миг\nтайга светла, как в 1908 году.\nПотом наступает темнота.\n\nСквозь портал больше никто\nне пройдёт. Машины, пожиравшие\nлес, застыли в пепле.\n\nОт «Зари-7» до Тунгуски\nземля снова наша.\n\nНебо над тайгой пусто.\nПока.\n\nКОНЕЦ";
+SD_END04_TEXT = "Портал схлопывается. На миг\nтайга светла, как в 1908 году.\nПотом наступает темнота.\n\nСквозь портал больше никто\nне пройдёт. Машины, пожиравшие\nлес, застыли в пепле.\n\nОт «Зари-7» до Тунгуски\nземля снова наша.\n\nНебо над тайгой пусто.\nПока.\n\nПРОДОЛЖЕНИЕ СЛЕДУЕТ";
 
 SD_PLAYER_NAME     = "Сержант Виланова";
 
@@ -470,6 +486,7 @@ SD_TAG_PPSH        = "ППШ-41";
 SD_TAG_RPG7        = "РПГ-7";
 SD_TAG_ROKS3       = "Огнемёт РОКС-3";
 SD_TAG_KATYUSHA    = "Ручная «Катюша»";
+SD_TAG_AKM         = "АКМ";
 
 SD_PICKUP_ICEAXE   = "Ледоруб.";
 SD_PICKUP_TOKAREV  = "Вы подобрали ТТ-33 Токарева!";
@@ -478,6 +495,7 @@ SD_PICKUP_PPSH     = "Вы подобрали ППШ-41!";
 SD_PICKUP_RPG7     = "Вы подобрали РПГ-7!";
 SD_PICKUP_ROKS3    = "Вы подобрали огнемёт РОКС-3!";
 SD_PICKUP_KATYUSHA = "Вы подобрали ручную «Катюшу». Опытный образец. Не ронять.";
+SD_PICKUP_AKM      = "Вы подобрали АКМ!";
 
 SD_OB_ICEAXE       = "%o встретил ледоруб %k.";
 SD_OB_TOKAREV      = "%o застрелен из ТТ %k.";
@@ -486,6 +504,7 @@ SD_OB_PPSH         = "%o скошен ППШ-41 %k.";
 SD_OB_RPG7         = "%o разорван выстрелом РПГ-7 %k.";
 SD_OB_ROKS3        = "%o сгорел в пламени РОКС-3 %k.";
 SD_OB_KATYUSHA     = "%o попал под залп %k.";
+SD_OB_AKM          = "%o сражён очередью из АКМ %k.";
 
 // --- Боеприпасы (решение CEO 2026-10-13) ----------------------------------
 
@@ -493,6 +512,7 @@ AMMO_CLIP    = "Патроны 7,62×25";
 AMMO_SHELLS  = "Патроны 12 кал.";
 AMMO_ROCKETS = "Выстрелы ПГ-7В";
 AMMO_CELLS   = "Горючее";
+SD_AMMO_AKM  = "Патроны 7,62×39";
 
 SD_GOT_CLIP      = "Магазин. 7,62×25.";
 SD_GOT_CLIPBOX   = "Коробка патронов 7,62×25.";
@@ -503,6 +523,7 @@ SD_GOT_ROCKBOX   = "Ящик выстрелов ПГ-7В.";
 SD_GOT_CELL      = "Бачок с горючим.";
 SD_GOT_CELLPACK  = "Полный баллон горючего.";
 SD_GOT_BACKPACK  = "Рюкзак десантника. Всё, что можно унести!";  // РД-54 с D80
+SD_GOT_AKMMAG    = "Магазин АКМ. 7,62×39.";
 
 // --- Аптечки, броня и карта местности (D80, 2026-10-20) ---------------------
 SD_GOT_STIMPACK    = "Перевязочный пакет.";
@@ -638,6 +659,9 @@ SD_TAG_DOUGHBOY      = "Каска";
 SD_TAG_PANZER        = "Панцерменш";
 SD_TAG_PANZER_HEAVY  = "Тяжёлый панцерменш";
 SD_TAG_GENERAL       = "Генерал";
+SD_TAG_GUNNER        = "Пулемётчик легиона";
+SD_TAG_COLOSSUS      = "Колосс Свободы";
+SD_TAG_CONSORTIUM    = "Консорциум";
 
 SD_OB_RIFLEMAN       = "%o застрелен стрелком рейха.";
 SD_OB_TROOPER        = "%o расстрелян легионером.";
@@ -649,8 +673,13 @@ SD_OBHIT_DOUGHBOY    = "%o укушен Каской.";
 SD_OB_PANZER         = "%o накрыт снарядом панцерменша.";
 SD_OBHIT_PANZER      = "%o раздавлен панцерменшем.";
 SD_OB_GENERAL        = "%o пал под залпом Генерала.";
+SD_OB_GUNNER         = "%o скошен пулемётчиком легиона.";
+SD_OB_COLOSSUS       = "%o сожжён Колоссом Свободы.";
+SD_OBHIT_COLOSSUS    = "%o растоптан Колоссом Свободы.";
+SD_OB_CONSORTIUM     = "%o поглощён Консорциумом.";
 
 SD_GENERAL_ORDER     = "Генерал: Vorwärts!";
+SD_CONSORTIUM_FREE   = "Консорциум отрывается от портала!";
 
 // --- Ключи (метро, MAP02 с D62; 2026-10-14) -------------------------------
 // Синий пропуск дежурного по станции (SD_BluePass). PD_BLUEC и PD_BLUECO -
@@ -723,7 +752,7 @@ SD_MAP08_NAME = "Severomorsk";
 SD_MAP09_NAME = "Tunguska";
 SD_MAP07_EXIT_TEXT = "El radar s'apaga. Allò que l'estació\nguiava cap aquí ara vola a cegues.\n\nEl registre mostra on anava el\nsenyal: a la base de la Flota del\nNord, a Severomorsk.\n\nUna patrullera et porta a través\ndel mar de Barents. La base no\nrespon per ràdio des de fa tres dies.";
 SD_MAP08_EXIT_TEXT = "El submarí s'enfonsa al moll, amb\nel reactor aturat. Els invasors\ncarregaven les seves ogives en un tren.\n\nEls albarans diuen una sola\ndestinació: Tunguska, a la taigà\nsiberiana, on el cel va caure el 1908.\n\nUn An-12 et porta cap a l'est tota la\nnit. A l'alba el bosc de sota és gris,\ni després ja no hi és.";
-SD_END04_TEXT = "El portal es plega sobre si mateix.\nPer un moment la taigà brilla com\nl'any 1908. Després es fa fosc.\n\nJa no hi passa ningú més. Les\nmàquines que es menjaven el bosc\nresten quietes entre la cendra.\n\nDe Zarya-7 a Tunguska, la terra\ntorna a ser a les nostres mans.\n\nEl cel sobre la taigà és buit.\nDe moment.\n\nFI";
+SD_END04_TEXT = "El portal es plega sobre si mateix.\nPer un moment la taigà brilla com\nl'any 1908. Després es fa fosc.\n\nJa no hi passa ningú més. Les\nmàquines que es menjaven el bosc\nresten quietes entre la cendra.\n\nDe Zarya-7 a Tunguska, la terra\ntorna a ser a les nostres mans.\n\nEl cel sobre la taigà és buit.\nDe moment.\n\nCONTINUARÀ";
 
 SD_PLAYER_NAME     = "Sergent Vilanova";
 
@@ -734,6 +763,7 @@ SD_TAG_PPSH        = "PPSh-41";
 SD_TAG_RPG7        = "RPG-7";
 SD_TAG_ROKS3       = "Llançaflames ROKS-3";
 SD_TAG_KATYUSHA    = "Katyusha de mà";
+SD_TAG_AKM         = "AKM";
 
 SD_PICKUP_ICEAXE   = "Un piolet.";
 SD_PICKUP_TOKAREV  = "Has agafat la Tokarev TT-33!";
@@ -742,6 +772,7 @@ SD_PICKUP_PPSH     = "Has agafat el PPSh-41!";
 SD_PICKUP_RPG7     = "Has agafat l'RPG-7!";
 SD_PICKUP_ROKS3    = "Has agafat el llançaflames ROKS-3!";
 SD_PICKUP_KATYUSHA = "Has agafat la Katyusha de mà. Prototip. No la deixis caure.";
+SD_PICKUP_AKM      = "Has agafat l'AKM!";
 
 SD_OB_ICEAXE       = "%o ha topat amb el piolet de %k.";
 SD_OB_TOKAREV      = "%k ha abatut %o amb la Tokarev.";
@@ -750,6 +781,7 @@ SD_OB_PPSH         = "El PPSh-41 de %k ha segat %o.";
 SD_OB_RPG7         = "L'RPG-7 de %k ha fet miques %o.";
 SD_OB_ROKS3        = "El ROKS-3 de %k ha rostit %o.";
 SD_OB_KATYUSHA     = "%o s'ha empassat tota la salva de %k.";
+SD_OB_AKM          = "Una ràfega de l'AKM de %k ha abatut %o.";
 
 // --- Munició (decisió del CEO 2026-10-13) ----------------------------------
 // Coma decimal i signe de multiplicar, com en rus: 7,62×25.
@@ -758,6 +790,7 @@ AMMO_CLIP    = "Cartutxos de 7,62×25";
 AMMO_SHELLS  = "Cartutxos del calibre 12";
 AMMO_ROCKETS = "Projectils PG-7V";
 AMMO_CELLS   = "Combustible";
+SD_AMMO_AKM  = "Cartutxos de 7,62×39";
 
 SD_GOT_CLIP      = "Un carregador. 7,62×25.";
 SD_GOT_CLIPBOX   = "Una caixa de 7,62×25.";
@@ -768,6 +801,7 @@ SD_GOT_ROCKBOX   = "Un caixó de projectils PG-7V.";
 SD_GOT_CELL      = "Un bidó de combustible.";
 SD_GOT_CELLPACK  = "Un dipòsit ple de combustible.";
 SD_GOT_BACKPACK  = "Una motxilla de paracaigudista. Tot el que puguis carregar!";
+SD_GOT_AKMMAG    = "Un carregador d'AKM. 7,62×39.";
 
 // --- Salut, blindatge i mapa de la zona (D80) --------------------------------
 SD_GOT_STIMPACK    = "Un embenat de campanya.";
@@ -904,6 +938,9 @@ SD_TAG_DOUGHBOY      = "Doughboy";
 SD_TAG_PANZER        = "Panzermensch";
 SD_TAG_PANZER_HEAVY  = "Panzermensch pesant";
 SD_TAG_GENERAL       = "El General";
+SD_TAG_GUNNER        = "Metrallador de la Legió";
+SD_TAG_COLOSSUS      = "El Colós de la Llibertat";
+SD_TAG_CONSORTIUM    = "El Consorci";
 
 SD_OB_RIFLEMAN       = "Un fuseller del Reich ha abatut %o.";
 SD_OB_TROOPER        = "Un soldat de la Legió ha cosit %o a trets.";
@@ -915,8 +952,13 @@ SD_OBHIT_DOUGHBOY    = "Un Doughboy ha mossegat %o.";
 SD_OB_PANZER         = "Un Panzermensch ha bombardejat %o.";
 SD_OBHIT_PANZER      = "Un Panzermensch ha aixafat %o.";
 SD_OB_GENERAL        = "%o ha caigut sota la salva del General.";
+SD_OB_GUNNER         = "Un metrallador de la Legió ha segat %o.";
+SD_OB_COLOSSUS       = "El Colós de la Llibertat ha cremat %o.";
+SD_OBHIT_COLOSSUS    = "El Colós de la Llibertat ha trepitjat %o.";
+SD_OB_CONSORTIUM     = "El Consorci ha engolit %o.";
 
 SD_GENERAL_ORDER     = "El General: Vorwärts!";
+SD_CONSORTIUM_FREE   = "El Consorci s'arrenca del portal!";
 
 // --- Claus (metro, MAP02; Tankograd, MAP03) -------------------------------------
 // PD_* són ids del motor (panys 1-3); a les portes el jugador llegeix els *CO.
