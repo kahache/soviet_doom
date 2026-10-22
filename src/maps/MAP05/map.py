@@ -62,20 +62,32 @@ from sdbuild.udmf import (
 MAP_NAME = "MAP05"
 
 # --- The approved sets (docs/art/TEXTURE-INDEX.md) ---------------------------
-# No "Dam" set is approved yet (the art-director is drawing one): every place
-# that wants one wears the nearest approved lump, listed in the design
-# document's section 7.2, "Pending textures", with the lump it waits for.
-CONCRETE = "SDCONC1"     # prefab panels: the dam's faces, the spillway, the parapets
-CONCRETE_STRIPE = "SDCONC2"  # concrete with the red stripe: the turbine hall (pending SDTURB2)
-STEEL = "SDSTEL1"        # green riveted plate: generators, catwalk, train, transformers, consoles
+# The "Dam" set (tools/art/gen_dam.py) is approved and installed with the rest
+# of episode 2 (25/25, D107) and is on the map. Design section 7.2 says where
+# each piece went; `DAM_SET` below maps every lump the design proposed to the
+# approved lump the map wears for it (a proposed name never drawn takes the
+# nearest approved one).
+DAM = "SDDAM1"           # 64x128 mass concrete, a lift joint every 64: the dam itself, outside and in
+DAM_WET = "SDDAM2"       # 64x128 the same at the waterline (mark 72 px down, slime at the foot): the channel's banks
+TURBINE = "SDTURB1"      # 128x128 generator housing, the 1957 maker's plate, a plinth at the foot
+CONTROL_PANEL = "SDCTRL1"  # 128x128 control board in 64 px sections: the control room's boards and consoles
+SPILLWAY = "SDSPIL1"     # 64x128 trash rack before running water: the dam's face over the channel
+INSULATOR = "SDINSL1"    # 64x128 MASKED (RGBA, hard alpha, like SDCHAN1): HV strings, a middle texture
+CONCRETE = "SDCONC1"     # prefab panels: S2's pump room and its panel (the gallery's comparison)
+STEEL = "SDSTEL1"        # green riveted plate: catwalk, transformers, pylons, door tracks
 TILE_DADO = "SDTILE2"    # tile over a green dado: the control room, the gatehouse
 TUNNEL = "SDTUNL1"       # board-cast concrete with cable runs: the inspection and cable galleries
 BRICK = "SDBRCK1"        # works brick: the station's buildings
 RUST = "SDRUST1"         # corrugated sheet: the substation's fence, the crane huts
-DOOR = "SDDOOR1"         # D1, D2 and, until a blue trim exists, the blue gate (pending SDDOORB)
+DOOR = "SDDOOR1"         # D1, D2 and the blue gate (no blue trim was drawn: SDDOORB, DAM_SET)
 DOOR_YELLOW = "SDDOORY"  # the yellow lock's trim
-ROAD_GATE = "SDGATE1"    # corrugated gate: the sluice gates, S3's shut hut
+ROAD_GATE = "SDGATE1"    # corrugated gate: S3's shut hut
 WINDOW = "SDWIND1"       # industrial glazing at night: the turbine hall's clerestory
+# From the railway set (gen_railway.py, D107): MAP04's armoured train, which
+# brings the player here, and one signal at the end of the station's track.
+ARMOUR = "SDARMR2"       # 64x128 armour plate: the armoured train, as MAP04's
+ARMOUR_STAR = "SDARMR1"  # 128x128 the plate with the red star: one panel per face, never stacked
+SIGNAL = "SDSIGL1"       # 64x128 colour-light signal: SINGLE USE (D107), one 64 span, red over the track
 FLAG_REICH = "SDFLAG1"   # both banners side by side by the blue gate (D35)
 FLAG_LEGION = "SDFLAG2"
 # The posters (CEO 2026-10-22: «que esos posters puedan aparecer en cualquier
@@ -95,10 +107,12 @@ CEIL_PANEL = "SDCEIL1"
 CEIL_CONCRETE = "SDCEIL2"
 CRATE_TOP = "SDCRTOP1"
 RAILS = "SDRAIL1"        # track bed, rails along the image's y: turned a quarter
-FLOOR_PLATE = "SDFLR4"   # chequer plate: generator tops, consoles, pads
-GRATING = "SDGRAT1"      # the catwalk
-WATER = "SDMFLR1"        # dark polished granite standing in for the Volga (pending SDWATR1-4)
+FLOOR_PLATE = "SDFLR4"   # chequer plate: generator tops, consoles, pads, the gantry's underside
+GRATING = "SDGRAT2"      # expanded metal over the void (dam set): the catwalk and its stair
+WATER = "SDWATR1"        # the Volga: SDWATR1-4 animate through ANIMDEFS (8 tics a frame)
 SKY = "F_SKY1"           # the engine's sky marker, not a lump of ours (check_pk3 knows it)
+# The widths of the lumps `align_to_world` lines up along a wall as well.
+LUMP_WIDTH = {DAM: 64, DAM_WET: 64, SPILLWAY: 64, TURBINE: 128, ARMOUR: 64}
 
 # Switches (D25), one variant per switch; the exit keeps the hazard panel
 # every map's exit wears.
@@ -157,6 +171,9 @@ WINDOW_TOP = CATWALK + 128   # an 80-high slot: never the 64..72 gap only the ba
 NICHE_DEPTH = 16
 CLOSET_HEIGHT = 128
 POSTER_HEIGHT = 256     # SDPOSTR1 and SDPOSTR3: a recess exactly this high
+GANTRY = CREST + 320    # 704: the substation gantry's underside; its insulator strings hang 128 from it
+WALL_TILE = 128         # the height every wall lump of the Dam set repeats at (all are 128 high)
+CONTROL_DESK_ROW = 64   # SDCTRL1: the desk (mimic bars, buttons, toggles) starts at this row
 
 # --- Light ---------------------------------------------------------------------
 # A November night. 192 is spent on five places only: the two locks, the two
@@ -213,6 +230,13 @@ TAG_STATION_AMBUSH = TAG_BLUE_GATE
 STATION = (4288, 1408, 4864, 2048)
 TRAIN_BLOCK = (4544, 1856, 4864, 1984)
 STATION_RAILS = (4288, 1888, 4544, 1952)
+# The train's star (SDARMR1, one panel, never stacked): the middle 128 of
+# its south side, the face along the platform. Its west end stands on the
+# station's rails, which split that face in three: plain plate there.
+TRAIN_STARS = (("h", TRAIN_BLOCK[1], 4640, 4768),)
+# SDSIGL1, single use: a concrete post 16 x 64 north of the track, its east
+# face the signal, red, towards the train: the line ends at the shut gate.
+SIGNAL_POST = (4304, 1968, 4320, 2032)
 BLUE_PORTAL = (4224, 1856, 4288, 1984)
 BLUE_GATE = (4192, 1856, 4224, 1984)
 GATE_PORCH = (4128, 1856, 4192, 1984)
@@ -253,6 +277,9 @@ CABLE_TOP = (3072 + CABLE_STAIR_STEPS * STEP_RUN, 3584)  # 3424..3584
 SUBSTATION = (3584, 896, 4160, 1664)
 TRANSFORMERS = ((3712, 928, 3840, 1120), (3712, 1440, 3840, 1632), (3968, 928, 4096, 1120))
 PYLONS = ((3632, 1376, 3664, 1408), (3632, 1536, 3664, 1568))   # solid, 32 square
+# The gantry: a beam from pylon to pylon at GANTRY, SDINSL1 hung on both its
+# long faces (two strings each), against the sky. Walked under, never on.
+GANTRY_RECT = (PYLONS[0][0], PYLONS[0][3], PYLONS[1][2], PYLONS[1][1])
 BLUE_PAD = (3904, 1216, 4032, 1344)
 SWB_NICHE = (4176, 1600, 4240, 1616)   # in the passage's north wall, beside the shutter
 STATION_PASSAGE = (4160, 1472, 4256, 1600)
@@ -302,6 +329,22 @@ POSTERS = (
     ("z5_catwalk_e", LENIN, "h", CATWALK_Y[1], *CATWALK_SLOTS_X["z5_catwalk_e"]),
 )
 POSTER_SLOTS_MARX_ENGELS = ("z5_catwalk_w", "z5_catwalk_e")
+# The control room's boards (SDCTRL1, for the design's SDPANL1): each a strip
+# BOARD_DEPTH deep along a wall, the board a middle texture on its room face,
+# drawn once and standing on the floor (128 of the room's 160; the tiled wall
+# shows above it). Two flank the mural on the north wall, one tile on each
+# side wall faces the other across the room. {name: (strip, board face)}.
+BOARD_DEPTH = 8
+CONTROL_BOARDS = {
+    "prop_z6_board_nw": ((CONTROL[0], CONTROL[3] - BOARD_DEPTH, CONTROL_MURAL_NICHE[0], CONTROL[3]),
+                         ("h", CONTROL[3] - BOARD_DEPTH, CONTROL[0], CONTROL_MURAL_NICHE[0])),
+    "prop_z6_board_ne": ((CONTROL_MURAL_NICHE[2], CONTROL[3] - BOARD_DEPTH, CONTROL[2], CONTROL[3]),
+                         ("h", CONTROL[3] - BOARD_DEPTH, CONTROL_MURAL_NICHE[2], CONTROL[2])),
+    "prop_z6_board_w": ((CONTROL[0], CONTROL[1], CONTROL[0] + BOARD_DEPTH, CONTROL[1] + TILE),
+                        ("v", CONTROL[0] + BOARD_DEPTH, CONTROL[1], CONTROL[1] + TILE)),
+    "prop_z6_board_e": ((CONTROL[2] - BOARD_DEPTH, CONTROL[1], CONTROL[2], CONTROL[1] + TILE),
+                        ("v", CONTROL[2] - BOARD_DEPTH, CONTROL[1], CONTROL[1] + TILE)),
+}
 # The closets.
 CATWALK_CLOSETS = {"closet_z5_w": (2112, 2240), "closet_z5_e": (3200, 3328)}
 STATION_CLOSETS = {"closet_z1_s": ((4704, 1392, 4832, 1408), (4704, 1264, 4832, 1392)),
@@ -532,7 +575,7 @@ ITEMS = (
     ("z4_gallery", ED_STIMPACK, 3520, 544, 4),
     ("z5_hall", ED_STIMPACK, 2368, 672, 4),
     ("z7_west_walk", ED_STIMPACK, 576, 192, 4),
-    ("z9_substation", ED_STIMPACK, 3648, 1472, 4),
+    ("z9_gantry", ED_STIMPACK, 3648, 1472, 4),     # between the pylons, under the strings
     ("z10_crest", ED_STIMPACK, 3072, 1840, 4),
     ("z2_gatehouse", ED_STIMPACK, 4448, 1312, 3),
     ("z7_east_walk", ED_STIMPACK, 1216, 1408, 3),
@@ -625,12 +668,105 @@ def secret_panel_style(tag: int, panel_sector: int, texture: str) -> LineStyle:
 
 
 BLOCKING = LineStyle(flags=("blocking",))   # a parapet's edge: nobody crosses it, not even jumping
+# A control board's face: impassable (the board is a picture on a two-sided
+# line), lower-unpegged so its middle texture stands on the floor.
+BOARD_EDGE = LineStyle(flags=("blocking",), peg_bottom=True)
+
+
+def hang(tm: TextMap, segment: tuple[int, int, int, int], room: int, texture: str) -> None:
+    """Hang a middle texture on the two-sided line `segment`, on its face
+    towards `room` (MAP03's helper, repeated so each map stays one file).
+    GridMap dresses only the upper and lower parts of a two-sided line, so
+    this is done on the built map. Doom draws a two-sided middle texture
+    once, never tiled downwards: its top at the lower of the two ceilings,
+    or, with `dontpegbottom`, its foot on the higher of the two floors."""
+    x1, y1, x2, y2 = segment
+    ends = {(float(x1), float(y1)), (float(x2), float(y2))}
+    for ld in tm.linedefs:
+        a, b = tm.vertices[ld.v1], tm.vertices[ld.v2]
+        if ld.sideback is None or {(float(a.x), float(a.y)), (float(b.x), float(b.y))} != ends:
+            continue
+        for side in (ld.sidefront, ld.sideback):
+            if tm.sidedefs[side].sector == room:
+                tm.sidedefs[side].texturemiddle = texture
+                return
+    raise ValueError(f"no two-sided line {segment} facing sector {room}")
+
+
+def drawn_parts(tm: TextMap, ld, side: int, other: int | None) -> list[tuple[str, int]]:
+    """The parts of sidedef `side` the engine draws, each with the height
+    Doom pegs its texture to: a one-sided wall to its floor (lower-unpegged)
+    or ceiling; a lower texture to the higher floor (or, lower-unpegged, to
+    its own ceiling); an upper texture to the lower ceiling (or, upper-
+    unpegged, to its own). Where two sky ceilings meet nothing is drawn."""
+    flags = set(ld.flags)
+    s = tm.sectors[tm.sidedefs[side].sector]
+    if other is None:
+        return [("texturemiddle", s.heightfloor if "dontpegbottom" in flags else s.heightceiling)]
+    o = tm.sectors[tm.sidedefs[other].sector]
+    parts = []
+    if o.heightfloor > s.heightfloor:
+        parts.append(("texturebottom", s.heightceiling if "dontpegbottom" in flags else o.heightfloor))
+    both_sky = s.textureceiling == SKY and o.textureceiling == SKY
+    if o.heightceiling < s.heightceiling and not both_sky:
+        parts.append(("texturetop", s.heightceiling if "dontpegtop" in flags else o.heightceiling))
+    return parts
+
+
+def align_to_world(tm: TextMap, bases: dict[str, int], sectors: set[int] | None = None) -> None:
+    """Peg every drawn face of the lumps in `bases` to one grid: the texture's
+    foot on the height `bases` names, and every WALL_TILE above and below it,
+    whichever floor or ceiling the face hangs from. A sidedef's `offsety`
+    (Doom's row offset: positive raises the texture) moves each face onto the
+    grid, so the dam's lift joints run level from the spillway's floor to the
+    parapets and round the hall, and SDDAM2's waterline sits on the water.
+    Along the wall the same: `offsetx` puts every column of a lump in
+    LUMP_WIDTH where it would fall on a wall from the map's origin, so a
+    wall split by its neighbours' corners shows no seam.
+    `sectors` limits it to the faces seen from those sectors."""
+    for ld in tm.linedefs:
+        for side, other in ((ld.sidefront, ld.sideback), (ld.sideback, ld.sidefront)):
+            if side is None or (sectors is not None and tm.sidedefs[side].sector not in sectors):
+                continue
+            sd = tm.sidedefs[side]
+            for key, ref in drawn_parts(tm, ld, side, other):
+                texture = getattr(sd, key)
+                base = bases.get(texture)
+                if base is not None:
+                    sd.offsety = (base - ref) % WALL_TILE
+                    if texture in LUMP_WIDTH:
+                        sd.offsetx = world_column(tm, ld, side) % LUMP_WIDTH[texture]
+                    break
+
+
+def world_column(tm: TextMap, ld, side: int) -> int:
+    """The offset that starts this side's texture where the map's grid
+    would have it. Doom runs a front side's texture from v1 to v2 and a back
+    side's from v2 to v1; every line here is axis-aligned."""
+    a, b = tm.vertices[ld.v1], tm.vertices[ld.v2]
+    if side == ld.sideback:
+        a, b = b, a
+    if a.y == b.y:
+        return int(a.x) if b.x > a.x else -int(a.x)
+    return int(a.y) if b.y > a.y else -int(a.y)
+
+
+def wet_the_banks(tm: TextMap, water: set[int], banks: set[int]) -> None:
+    """SDDAM2 on every face that rises out of the water onto a bank or a
+    step: the lower texture of the side standing in the water."""
+    for ld in tm.linedefs:
+        if ld.sideback is None:
+            continue
+        for low, high in ((ld.sidefront, ld.sideback), (ld.sideback, ld.sidefront)):
+            ls, hs = tm.sidedefs[low].sector, tm.sidedefs[high].sector
+            if ls in water and hs in banks and tm.sectors[hs].heightfloor > tm.sectors[ls].heightfloor:
+                tm.sidedefs[low].texturebottom = DAM_WET
 
 
 def build_plan() -> tuple[TextMap, dict[str, int]]:
     """Build the map; return it with {zone name: sector index}."""
     tm = TextMap(comment=f"{MAP_NAME} v1 generated by src/maps/{MAP_NAME}/map.py - do not edit by hand")
-    g = GridMap(tm, wall=CONCRETE)
+    g = GridMap(tm, wall=DAM)
     plan: dict[str, int] = {}
 
     def zone(name: str, floor: int, ceil: int, rects, tag: int | None = None, *,
@@ -690,7 +826,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
          ceiling=SKY, wall=BRICK)
     rails("z1_station", "rails_z1_station", STATION_RAILS)
     zone(f"{PROP_PREFIX}z1_train", CREST + TRAIN, SKY_CEIL, [TRAIN_BLOCK], light=LIGHT_OUTDOORS,
-         flat=FLOOR_PLATE, ceiling=SKY, wall=STEEL)
+         flat=FLOOR_PLATE, ceiling=SKY, wall=ARMOUR)
+    zone(f"{PROP_PREFIX}z1_signal", CREST + TILE, SKY_CEIL, [SIGNAL_POST], light=LIGHT_OUTDOORS,
+         ceiling=SKY, wall=DAM)
     zone("z1_blue_portal", CREST, ROOF, [BLUE_PORTAL], light=LIGHT_BEACON,
          ceiling=CEIL_PANEL, wall=BRICK, extra=BLUE_LIGHT)
     blue_gate = door("z12_blue_gate", CREST, TAG_BLUE_GATE, BLUE_GATE, light=LIGHT_OUTDOORS)
@@ -704,7 +842,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     like("z1_station", "z1_stalin_niche", [STALIN_NICHE], ceil=CREST + POSTER_HEIGHT,
          ceiling=CEIL_CONCRETE)
     zone(f"{PROP_PREFIX}z1_parapet_n", CREST + PARAPET, PARAPET_SKY, [STATION_PARAPET],
-         light=LIGHT_OUTDOORS, ceiling=SKY, wall=CONCRETE)
+         light=LIGHT_OUTDOORS, ceiling=SKY, wall=DAM)
     d1 = door("d1_gatehouse", CREST, TAG_D1_GATEHOUSE, D1_DOOR, light=LIGHT_GATEHOUSE)
     zone("z2_gatehouse", CREST, ROOF, [GATEHOUSE], light=LIGHT_GATEHOUSE,
          flat=FLOOR_TILE, ceiling=CEIL_PANEL, wall=TILE_DADO)
@@ -752,20 +890,20 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # The turbine hall: four generators, the catwalk, the yellow door
     # ======================================================================
     zone("z5_hall", GROUND, HALL_CEIL, [HALL], light=LIGHT_HALL, flat=FLOOR_TILE,
-         ceiling=CEIL_PANEL, wall=CONCRETE_STRIPE)
+         ceiling=CEIL_PANEL, wall=DAM)
     for n, cx in enumerate(GENERATOR_X, start=1):
         like("z5_hall", f"{PROP_PREFIX}z5_generator_{n}",
              [(cx - GENERATOR_HALF, GENERATOR_Y - GENERATOR_HALF,
                cx + GENERATOR_HALF, GENERATOR_Y + GENERATOR_HALF)],
-             floor=GROUND + GENERATOR, flat=FLOOR_PLATE, wall=STEEL)
+             floor=GROUND + GENERATOR, flat=FLOOR_PLATE, wall=TURBINE)
         g.carve(cx - COLUMN_HALF, GENERATOR_Y - COLUMN_HALF, cx + COLUMN_HALF, GENERATOR_Y + COLUMN_HALF)
     cy1, cy2 = CATWALK_Y
     for n in range(1, CATWALK_STAIR_STEPS + 1):
         x = HALL[0] + STEP_RUN * (n - 1)
         like("z5_hall", f"z5_stair_{n}", [(x, cy1, x + STEP_RUN, cy2)], floor=GROUND + STEP * n,
-             flat=GRATING, wall=STEEL)
+             flat=GRATING, wall=DAM)
     like("z5_hall", "z5_catwalk", [(CATWALK_X0, cy1, HALL[2], cy2)], floor=CATWALK,
-         flat=GRATING, wall=STEEL)
+         flat=GRATING, wall=DAM)
     like("z5_hall", "z5_lenin_niche", [LENIN_NICHE], ceil=GROUND + POSTER_HEIGHT)
     zone("z5_yellow_portal", CATWALK, CATWALK + DOOR_HEIGHT, [YELLOW_PORTAL], light=LIGHT_BEACON,
          flat=GRATING, ceiling=CEIL_PANEL, wall=STEEL, extra=YELLOW_LIGHT)
@@ -776,7 +914,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         tm.sectors[plan[f"{PROP_PREFIX}z5_clerestory_{n}"]].heightfloor = CLERESTORY_SILL
     for name, (x1, x2) in CATWALK_CLOSETS.items():
         closet(name, (x1, cy2, x2, cy2 + NICHE_DEPTH), (x1, cy2 + NICHE_DEPTH, x2, cy2 + NICHE_DEPTH + TILE),
-               TAG_CATWALK_AMBUSH, CATWALK, leaf=CONCRETE_STRIPE)
+               TAG_CATWALK_AMBUSH, CATWALK, leaf=DAM)
 
     # ======================================================================
     # The control room, behind the yellow door
@@ -790,7 +928,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
              ceiling=CEIL_CONCRETE, wall=STEEL)
     for n, rect in enumerate(CONSOLES, start=1):
         like("z6_control", f"{PROP_PREFIX}z6_console_{n}", [rect], floor=CATWALK + CONSOLE,
-             flat=FLOOR_PLATE, wall=STEEL)
+             flat=FLOOR_PLATE, wall=CONTROL_PANEL)
+    for name, (rect, _face) in CONTROL_BOARDS.items():
+        like("z6_control", name, [rect])
     like("z6_control", f"{PROP_PREFIX}z6_mural_niche", [CONTROL_MURAL_NICHE], floor=CATWALK + MURAL_SILL)
     zone("z6_swa_niche", CATWALK, CATWALK + SWITCH_HEIGHT, [SWA_NICHE], light=LIGHT_CONTROL,
          flat=FLOOR_TILE, wall=STEEL)
@@ -821,6 +961,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
              light=LIGHT_OUTDOORS, flat=FLOOR_PLATE, ceiling=SKY, wall=STEEL)
     for rect in PYLONS:
         g.carve(*rect)
+    zone("z9_gantry", CREST, GANTRY, [GANTRY_RECT], light=LIGHT_OUTDOORS, ceiling=FLOOR_PLATE, wall=STEEL)
     zone("z9_pad", CREST + PAD, SKY_CEIL, [BLUE_PAD], light=LIGHT_BEACON, flat=FLOOR_PLATE,
          ceiling=SKY, wall=STEEL, extra=BLUE_LIGHT)
     zone("z9_passage", CREST, ROOF, [STATION_PASSAGE], light=LIGHT_OUTDOORS, wall=BRICK)
@@ -832,10 +973,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # The spillway: the gallery out, the walkways, the water, the winch
     # ======================================================================
     zone("z7_gallery", GROUND, GALLERY_HEIGHT, [SPILL_GALLERY], light=LIGHT_GALLERY, wall=TUNNEL)
-    zone("z7_east_walk", GROUND, SKY_CEIL, [EAST_WALK], light=LIGHT_SPILLWAY, ceiling=SKY, wall=CONCRETE)
+    zone("z7_east_walk", GROUND, SKY_CEIL, [EAST_WALK], light=LIGHT_SPILLWAY, ceiling=SKY, wall=DAM)
     zone("z7_channel", CHANNEL, SKY_CEIL, [CHANNEL_RECT], light=LIGHT_SPILLWAY, flat=WATER,
-         ceiling=SKY, wall=CONCRETE, extra=WATER_HURTS)
-    zone("z7_west_walk", GROUND, SKY_CEIL, [WEST_WALK], light=LIGHT_SPILLWAY, ceiling=SKY, wall=CONCRETE)
+         ceiling=SKY, wall=DAM, extra=WATER_HURTS)
+    zone("z7_west_walk", GROUND, SKY_CEIL, [WEST_WALK], light=LIGHT_SPILLWAY, ceiling=SKY, wall=DAM)
     wx1, _wy1, wx2, _wy2 = CHANNEL_RECT
     for k, (sy1, sy2) in enumerate(STEPS_Y, start=1):
         for n in range(1, 4):      # three steps up from the water on each bank
@@ -849,9 +990,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     zone("z7_winch", GROUND + PAD, GROUND + PAD + DOOR_HEIGHT, [WINCH], light=LIGHT_BEACON,
          flat=FLOOR_PLATE, ceiling=CEIL_PANEL, wall=STEEL, extra=YELLOW_LIGHT)
     # S1: the channel's outfall, at its south end, set back in shadow.
-    zone("s1_niche", CHANNEL, CHANNEL + TILE, [S1_NICHE], light=LIGHT_SHADOW, flat=WATER, wall=CONCRETE)
+    zone("s1_niche", CHANNEL, CHANNEL + TILE, [S1_NICHE], light=LIGHT_SHADOW, flat=WATER, wall=DAM)
     s1_panel = zone("s1_panel", CHANNEL, CHANNEL, [S1_PANEL], TAG_S1_PANEL, light=LIGHT_SHADOW,
-                    flat=WATER, wall=CONCRETE)
+                    flat=WATER, wall=DAM)
     zone("s1_culvert", CHANNEL, CHANNEL + GALLERY_HEIGHT, [S1_CULVERT], light=LIGHT_SECRET, wall=TUNNEL)
     zone("s1_store", CHANNEL, CHANNEL + GALLERY_HEIGHT, [S1_STORE], light=LIGHT_SECRET, wall=TUNNEL,
          special=SECTOR_SPECIAL_SECRET)
@@ -860,14 +1001,14 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # The crest: the road west along the top of the dam
     # ======================================================================
     zone("z10_crest", CREST, SKY_CEIL, [CREST_RECT], light=LIGHT_OUTDOORS, flat=FLOOR_LANE,
-         ceiling=SKY, wall=CONCRETE, extra={"rotationfloor": 90.0})
+         ceiling=SKY, wall=DAM, extra={"rotationfloor": 90.0})
     rails("z10_crest", "rails_z10_crest", CREST_RAILS)
     zone(f"{PROP_PREFIX}z10_parapet_n", CREST + PARAPET, PARAPET_SKY, [PARAPET_N],
-         light=LIGHT_OUTDOORS, ceiling=SKY, wall=CONCRETE)
+         light=LIGHT_OUTDOORS, ceiling=SKY, wall=DAM)
     zone(f"{PROP_PREFIX}z10_parapet_s", CREST + PARAPET, PARAPET_SKY, [PARAPET_S],
-         light=LIGHT_OUTDOORS, ceiling=SKY, wall=CONCRETE)
-    zone("z10_gate_porch", CREST, ROOF, [GATE_PORCH], light=LIGHT_OUTDOORS, wall=CONCRETE)
-    zone("z10_west_porch", CREST, ROOF, [WEST_PORCH], light=LIGHT_OUTDOORS, wall=CONCRETE)
+         light=LIGHT_OUTDOORS, ceiling=SKY, wall=DAM)
+    zone("z10_gate_porch", CREST, ROOF, [GATE_PORCH], light=LIGHT_OUTDOORS, wall=DAM)
+    zone("z10_west_porch", CREST, ROOF, [WEST_PORCH], light=LIGHT_OUTDOORS, wall=DAM)
     for n, rect in enumerate(BARRICADES, start=1):
         zone(f"{PROP_PREFIX}z10_barricade_{n}", CREST + CRATES, SKY_CEIL, [rect],
              light=LIGHT_OUTDOORS, flat=CRATE_TOP, ceiling=SKY, wall=CRATE)
@@ -937,11 +1078,41 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
               remote_door_style(station_shutter, texture=BRICK))
     g.style_h(SWB_NICHE[3], SWB_NICHE[0], SWB_NICHE[2],
               switch_door_open_style(TAG_STATION_SHUTTER, texture=SW_B_FACE, repeatable=False))
-    # The sluice gates: the dam's face over the channel's north end.
-    g.style_h(CHANNEL_RECT[3], CHANNEL_RECT[0], CHANNEL_RECT[2], LineStyle(texture=ROAD_GATE))
+    # The dam's face over the channel's north end: the spillway's trash rack,
+    # the water running out under it (SDSPIL1 for the design's SDSLUC1).
+    g.style_h(CHANNEL_RECT[3], CHANNEL_RECT[0], CHANNEL_RECT[2], LineStyle(texture=SPILLWAY))
+    # The turbine hall's catwalk and its stair are steel in front of the
+    # hall's concrete: their face to the hall and every riser.
+    g.style_h(CATWALK_Y[0], HALL[0], HALL[2], LineStyle(texture=STEEL))
+    for n in range(1, CATWALK_STAIR_STEPS + 1):
+        g.style_v(HALL[0] + STEP_RUN * n, CATWALK_Y[0], CATWALK_Y[1], LineStyle(texture=STEEL))
+    # The generators' columns: steel shafts out of the SDTURB1 housings.
+    for cx in GENERATOR_X:
+        x1, y1 = cx - COLUMN_HALF, GENERATOR_Y - COLUMN_HALF
+        x2, y2 = cx + COLUMN_HALF, GENERATOR_Y + COLUMN_HALF
+        for xx in (x1, x2):
+            g.style_v(xx, y1, y2, LineStyle(texture=STEEL))
+        for yy in (y1, y2):
+            g.style_h(yy, x1, x2, LineStyle(texture=STEEL))
+    # The substation's pylons: steel towers carrying the gantry.
+    for x1, y1, x2, y2 in PYLONS:
+        for xx in (x1, x2):
+            g.style_v(xx, y1, y2, LineStyle(texture=STEEL))
+        for yy in (y1, y2):
+            g.style_h(yy, x1, x2, LineStyle(texture=STEEL))
+    # The control room's boards: every edge of each strip impassable.
+    for (x1, y1, x2, y2), _face in CONTROL_BOARDS.values():
+        for xx in (x1, x2):
+            g.style_v(xx, y1, y2, BOARD_EDGE)
+        for yy in (y1, y2):
+            g.style_h(yy, x1, x2, BOARD_EDGE)
+    # The armoured train's stars, and the signal at the end of its track.
+    for axis, coord, lo, hi in TRAIN_STARS:
+        (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=ARMOUR_STAR))
+    g.style_v(SIGNAL_POST[2], SIGNAL_POST[1], SIGNAL_POST[3], LineStyle(texture=SIGNAL))
     # The secrets' panels.
     for x_or_y in (S1_PANEL[1], S1_PANEL[3]):
-        g.style_h(x_or_y, S1_PANEL[0], S1_PANEL[2], secret_panel_style(TAG_S1_PANEL, s1_panel, CONCRETE))
+        g.style_h(x_or_y, S1_PANEL[0], S1_PANEL[2], secret_panel_style(TAG_S1_PANEL, s1_panel, DAM))
     for x_or_y in (S2_PANEL[1], S2_PANEL[3]):
         g.style_h(x_or_y, S2_PANEL[0], S2_PANEL[2], secret_panel_style(TAG_S2_PANEL, s2_panel, CONCRETE))
     for x_or_y in (PARAPET_S[1], PARAPET_S[3]):
@@ -959,6 +1130,28 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     g.style_v(EXIT_NICHE[0], EXIT_NICHE[1], EXIT_NICHE[3], exit_switch_style(texture=EXIT_FACE))
 
     g.build()
+
+    # ======================================================================
+    # Dressing the built lines: the waterline, one grid for the dam's
+    # concrete, the machines' faces, the boards, the insulators
+    # ======================================================================
+    water = {plan["z7_channel"]} | {i for n, i in plan.items() if n.startswith("z7_steps_")}
+    wet_the_banks(tm, water, water | {plan["z7_east_walk"], plan["z7_west_walk"]})
+    # SDDAM1 world-aligned from the hall's floor; SDDAM2's and the rack's foot
+    # on the water, so the tide mark runs 8 under the walkways' edge.
+    align_to_world(tm, {DAM: GROUND, DAM_WET: CHANNEL, SPILLWAY: CHANNEL, ARMOUR: CREST})
+    # The generators' housings, 48 high, show the foot of SDTURB1 (the lower
+    # flange and the concrete plinth on the floor); the steel shafts rise
+    # out of them.
+    align_to_world(tm, {TURBINE: GROUND}, sectors={plan["z5_hall"]})
+    # The consoles, 32 high, show the board's desk (rows 64-95).
+    align_to_world(tm, {CONTROL_PANEL: CATWALK + CONSOLE + CONTROL_DESK_ROW}, sectors={plan["z6_control"]})
+    for _rect, (axis, coord, lo, hi) in CONTROL_BOARDS.values():
+        segment = (lo, coord, hi, coord) if axis == "h" else (coord, lo, coord, hi)
+        hang(tm, segment, plan["z6_control"], CONTROL_PANEL)
+    gx1, gy1, gx2, gy2 = GANTRY_RECT
+    for xx in (gx1, gx2):
+        hang(tm, (xx, gy1, xx, gy2), plan["z9_substation"], INSULATOR)
 
     tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START, angle=PLAYER_ANGLE))
     tm.add_thing(Thing(x=YELLOW_KEY_SPOT[0], y=YELLOW_KEY_SPOT[1], type=ED_YELLOW_CARD))
@@ -984,19 +1177,31 @@ def lumps() -> list[tuple[str, bytes]]:
 
 
 # Every lump name this map may put in a sidedef or a sector.
-WALL_TEXTURES = ((CONCRETE, CONCRETE_STRIPE, STEEL, TILE_DADO, TUNNEL, BRICK, RUST, ROAD_GATE,
-                  WINDOW, FLAG_REICH, FLAG_LEGION, CRATE, LENIN, STALIN, MURAL)
+WALL_TEXTURES = ((DAM, DAM_WET, TURBINE, CONTROL_PANEL, SPILLWAY, INSULATOR, CONCRETE, STEEL, TILE_DADO,
+                  TUNNEL, BRICK, RUST, ROAD_GATE, WINDOW, FLAG_REICH, FLAG_LEGION, CRATE, LENIN, STALIN,
+                  MURAL, ARMOUR, ARMOUR_STAR, SIGNAL)
                  + DOOR_LEAVES + SWITCH_FACES + ((MARX_ENGELS,) if MARX_ENGELS else ()))
 FLAT_TEXTURES = (FLOOR_LANE, FLOOR_CONCRETE, FLOOR_TILE, CEIL_PANEL, CEIL_CONCRETE, CRATE_TOP,
                  RAILS, FLOOR_PLATE, GRATING, WATER)
 BUILTIN_FLATS = (SKY,)
-# What the "Dam" set will replace (design section 7.2): {placeholder: what it stands for}.
+# Middle textures on two-sided lines, drawn once: the masked insulators and
+# the control boards. Nothing else hangs in mid-air.
+MIDDLE_TEXTURES = (INSULATOR, CONTROL_PANEL)
+# Design section 7.2, settled: {lump the design proposed: the approved lump
+# the map wears for it}. Proposed names the art-director drew are worn as
+# themselves; the ones never drawn (no such lump in assets/) take the nearest
+# approved piece (D107's set, or the approved lump that stood in).
+DAM_SET = {
+    "SDWATR1": WATER,           # drawn: the channel, S1's outfall (SDWATR2-4 by ANIMDEFS)
+    "SDTURB1": TURBINE,         # drawn: the four generators' housings
+    "SDTURB2": DAM,             # never drawn: the turbine hall wears the dam's own concrete
+    "SDPANL1": CONTROL_PANEL,   # never drawn: four SDCTRL1 boards on the control room's walls
+    "SDPANL2": CONTROL_PANEL,   # never drawn: SDCTRL1's desk on the two consoles
+    "SDSLUC1": SPILLWAY,        # never drawn: the trash rack on the dam's face over the channel
+    "SDHVLT1": RUST,            # never drawn: the fence stays SDRUST1; the gantry's SDINSL1 says high voltage
+    "SDDOORB": DOOR,            # never drawn: the blue gate stays SDDOOR1 in blue light
+}
+# Still waiting, with nothing standing in: {proposed lump: what and where}.
 PENDING_TEXTURES = {
-    WATER: "SDWATR1-4, the Volga's water (animated flat)",
-    CONCRETE_STRIPE: "SDTURB2, the turbine hall's walls",
-    STEEL: "SDTURB1, the generators' casings (and the control consoles: SDPANL2)",
-    TILE_DADO: "SDPANL1, the control room's mimic panels",
-    ROAD_GATE: "SDSLUC1, the sluice gates",
-    DOOR: "SDDOORB, the blue lock's trim (the blue gate)",
-    RUST: "SDHVLT1, the substation's fence with the high-voltage plate",
+    "SDGRIL1": "steel bars, masked: the control room's two windows onto the hall (v2); open meanwhile",
 }
