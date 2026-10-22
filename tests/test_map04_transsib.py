@@ -448,15 +448,92 @@ class Map04Test(unittest.TestCase):
         m = self.m
         platform = self.one_sided_textures(self.plan["z6_platform"])
         coping = self.one_sided_textures(self.plan["z6_coping"])
-        self.assertGreaterEqual(coping[m.STEEL] + platform[m.STEEL], 1024, "the armoured train alongside")
+        self.assertGreaterEqual(coping[m.ARMOUR] + platform[m.ARMOUR], 1024, "the armoured train alongside")
+        _y, x1, x2 = m.TRAIN_FLANK
+        self.assertEqual(0, (x2 - x1) % m.ARMOUR_WIDTH, "whole plates along the flank")
         self.assertGreater(platform[m.STATION], 0)
-        for zone in ("z7_cab", "z7_engine", "z7_gun", "z7_troop"):
-            self.assertEqual({m.STEEL}, set(self.one_sided_textures(self.plan[zone])), zone)
+        for zone in ("z7_engine", "z7_gun", "z7_troop", "z7_couple_1", "z7_couple_2"):
+            self.assertLessEqual(set(self.one_sided_textures(self.plan[zone])), {m.ARMOUR, m.ARMOUR_STAR}, zone)
+        self.assertEqual({m.STEEL}, set(self.one_sided_textures(self.plan["z7_cab"])),
+                         "the locomotive's cab keeps the steel until its own piece (section 7.2)")
+        self.assertIn(m.ARMOUR_STAR, self.one_sided_textures(self.plan["z6_balcony"]),
+                      "the star the platform sees")
         self.assertEqual(m.FLOOR_COPING, self.sectors[self.plan["z6_coping"]]["texturefloor"])
 
+    def test_each_star_is_one_panel_one_tile_high_and_alone(self):
+        """SDARMR1 is a panel, not a fill: every face exactly one tile wide
+        on a wall exactly one tile high (never stacked), no two touching."""
+        m = self.m
+        stars = [ld for ld in self.lines
+                 if self.sides[ld["sidefront"]].get("texturemiddle") == m.ARMOUR_STAR]
+        self.assertEqual(len(m.STAR_PANELS), len(stars))
+        ends = Counter()
+        for ld in stars:
+            self.assertNotIn("sideback", ld)
+            (ax, ay), (bx, by) = self.line_points(ld)
+            self.assertEqual(m.TILE, abs(bx - ax) + abs(by - ay))
+            self.assertEqual(0, self.sides[ld["sidefront"]].get("offsetx", 0) % m.ARMOUR_WIDTH,
+                             "the star starts on a plate seam")
+            s = self.sectors[self.front(ld)]
+            self.assertEqual(m.TILE, s["heightceiling"] - s["heightfloor"], self.zone_of[self.front(ld)])
+            ends.update((ld["v1"], ld["v2"]))
+        self.assertEqual(1, max(ends.values()), "two stars side by side")
+
+    def wagon_faces(self, rect, car_sectors):
+        """{y: [(start, end, u at start, sidedef)]} along a car's two long
+        sides, each piece as the yard sees it, ordered from the viewer's left."""
+        x1, y1, x2, y2 = rect
+        faces = {}
+        for y in (y1, y2):
+            pieces = []
+            for ld in self.lines:
+                if "sideback" not in ld:
+                    continue
+                (ax, ay), (bx, by) = self.line_points(ld)
+                if not (ay == by == y and x1 <= min(ax, bx) and max(ax, bx) <= x2):
+                    continue
+                # The front side reads its texture from v1 to v2, the back from v2 to v1.
+                for key, start, end in (("sidefront", ax, bx), ("sideback", bx, ax)):
+                    sd = self.sides[ld[key]]
+                    if sd["sector"] not in car_sectors:
+                        pieces.append((start, end, sd.get("offsetx", 0), sd))
+            faces[y] = sorted(pieces, key=lambda p: p[0] if p[1] > p[0] else -p[0])
+        return faces
+
+    def test_wagon_sides_run_whole_and_continuous(self):
+        """Each car's side is one run of its texture, however the painter
+        split the line (the gondolas' dropping sides): it starts on a post
+        (SDWAGN1) or centres the tank's two tiles (SDTANK1), runs on without
+        a jump, and is lifted so the underframe stands on the ground; a
+        boxcar ends on the tile's seam, so the rake reads as cars."""
+        m = self.m
+        cars = [(rect[:4], {self.plan[name]}, rect[5]) for name, rect in m.WAGONS.items()
+                if rect[5] in (m.WAGON_SIDE, m.TANK_SIDE)]
+        roofs = {self.plan[f"z2_roof_{n}"] for n in range(1, len(m.ROOFS) + 1)}
+        cars += [((x1, m.ROW_3[0], x2, m.ROW_3[1]), roofs, m.WAGON_SIDE) for x1, x2 in m.ROOFS]
+        cars += [(shell, {self.plan[f"prop_{name[3:]}_shell"], self.plan[name], self.plan[f"{name}_side"]},
+                  m.WAGON_SIDE) for name, (shell, _bed, _side) in m.GONDOLAS.items()]
+        self.assertEqual(8, len(cars), "a boxcar, a tank wagon, four boxcars in the rake, two gondolas")
+        for rect, car_sectors, texture in cars:
+            base = m.WAGON_OFFSET_X if texture == m.WAGON_SIDE else m.TANK_OFFSET_X
+            for y, pieces in self.wagon_faces(rect, car_sectors).items():
+                self.assertTrue(pieces, (rect, y))
+                self.assertEqual(base, pieces[0][2], f"{rect} y {y}: the run's start")
+                for (s0, e0, u0, sd), nxt in zip(pieces, pieces[1:] + [None]):
+                    self.assertEqual(texture, sd.get("texturebottom"), (rect, y))
+                    self.assertEqual(m.WAGON_OFFSET_Y, sd.get("offsety", 0), (rect, y))
+                    if nxt:
+                        self.assertEqual((u0 + abs(e0 - s0)) % m.WAGON_TILE, nxt[2], f"{rect} y {y}: a jump")
+                if texture == m.WAGON_SIDE:
+                    self.assertEqual(0, (base + rect[2] - rect[0]) % m.WAGON_TILE, f"{rect}: ends on the seam")
+        x1, _y1, x2, _y2, _h, side = m.WAGONS["prop_wagon_2a"]
+        self.assertEqual(m.TANK_SIDE, side, "a tank wagon in the second row")
+        self.assertEqual(m.WAGON_TILE - m.TANK_OFFSET_X, (m.TANK_OFFSET_X + x2 - x1) % m.WAGON_TILE,
+                         "the tank's two whole tiles centred")
+
     def test_the_wagons_are_wagons(self):
-        """Boxcars and gondolas in corrugated rust, the military wagon in
-        armour plate, the flatcars a crate high; the rake's roofs plate."""
+        """Boxcars, the rake and the gondolas in the goods wagon's side, the
+        tank wagon, the flatcars a crate high; the roofs plate."""
         m = self.m
         for name, (*_rect, height, side) in m.WAGONS.items():
             s = self.sectors[self.plan[name]]
@@ -470,14 +547,77 @@ class Map04Test(unittest.TestCase):
         self.assertTrue(flank)
         for ld in flank:
             yard_side = ld["sidefront"] if self.front(ld) == self.plan["z2_yard"] else ld["sideback"]
-            self.assertEqual(m.RUST, self.sides[yard_side].get("texturebottom"))
+            self.assertEqual(m.WAGON_SIDE, self.sides[yard_side].get("texturebottom"))
 
-    def test_the_signal_masts_are_solid_steel_posts_in_the_yard(self):
+    def test_the_signals_are_single_use(self):
+        """D107: SDSIGL1 only as a signal on its own, never a mosaic: every
+        face one span of 64 at most, one tile high at most (never stacked),
+        no two faces touching; one face per signal, on a pillar in the yard
+        that stays cover (a prop)."""
         m = self.m
-        yard_steel = sum(n for t, n in self.one_sided_textures(self.plan["z2_yard"]).items() if t == m.STEEL)
-        self.assertEqual(sum(2 * (x2 - x1) + 2 * (y2 - y1) for x1, y1, x2, y2 in m.SIGNAL_MASTS), yard_steel)
-        for x1, y1, x2, y2 in m.SIGNAL_MASTS:
-            self.assertIsNone(self.sector_at((x1 + x2) // 2, (y1 + y2) // 2))
+        parts = ("texturetop", "texturemiddle", "texturebottom")
+        faces = [ld for ld in self.lines
+                 if m.SIGNAL in {self.sides[ld[k]].get(t) for k in ("sidefront", "sideback") if k in ld
+                                 for t in parts}]
+        self.assertEqual(len(m.SIGNALS), len(faces))
+        ends = Counter()
+        for ld in faces:
+            (ax, ay), (bx, by) = self.line_points(ld)
+            self.assertLessEqual(abs(bx - ax) + abs(by - ay), m.SIGNAL_WIDTH)
+            if "sideback" in ld:
+                a, b = (self.sectors[s] for s in self._pair(ld))
+                self.assertLessEqual(abs(a["heightfloor"] - b["heightfloor"]), m.TILE, "stacked")
+                self.assertEqual(a["heightceiling"], b["heightceiling"], "a second face above")
+            else:
+                s = self.sectors[self.front(ld)]
+                self.assertLessEqual(s["heightceiling"] - s["heightfloor"], m.TILE, "stacked")
+            ends.update((ld["v1"], ld["v2"]))
+        self.assertEqual(1, max(ends.values()), "two signal faces touching")
+        for name, (x1, y1, x2, y2), _face in m.SIGNALS:
+            self.assertTrue(name.startswith(m.PROP_PREFIX))
+            pillar = self.plan[name]
+            self.assertEqual(pillar, self.sector_at((x1 + x2) // 2, (y1 + y2) // 2))
+            self.assertEqual(m.GROUND + m.SIGNAL_PILLAR, self.sectors[pillar]["heightfloor"])
+            self.assertIn(self.plan["z2_yard"], self.neighbours[pillar])
+
+    def test_the_railway_set_dresses_the_yard_and_the_roundhouse(self):
+        m = self.m
+
+        def sector(name):
+            return self.sectors[self.plan[name]]
+
+        self.assertEqual(m.BALLAST, sector("z2_yard")["texturefloor"])
+        for name in ("z2_rails_main", "z2_rails_north", "z5_rails_road", "z5_rails_stall",
+                     "z5_bridge_track_w", "z5_bridge_track_e"):
+            s = sector(name)
+            self.assertEqual((m.TRACK, 90.0), (s["texturefloor"], s.get("rotationfloor")), name)
+        self.assertEqual(m.RAILS, sector("z1_tunnel_rails")["texturefloor"], "the tunnel's metro bed")
+        # Every track strip is one tile of the 64 grid across: one track, never
+        # a rail of the next tile.
+        ys = defaultdict(set)
+        for ld in self.lines:
+            for key in ("sidefront", "sideback"):
+                if key in ld:
+                    ys[self.sides[ld[key]]["sector"]] |= {self.verts[ld["v1"]]["y"], self.verts[ld["v2"]]["y"]}
+        for i, s in enumerate(self.sectors):
+            if s["texturefloor"] in (m.TRACK, m.RAILS):
+                self.assertEqual(64, max(ys[i]) - min(ys[i]), self.zone_of[i])
+                self.assertEqual(0, min(ys[i]) % 64, self.zone_of[i])
+        self.assertEqual(m.DECK, sector("z5_bridge")["texturefloor"])
+        for name in m.STALLS:
+            self.assertEqual(m.BALLAST, sector(name)["texturefloor"], name)
+        for name in ("z5_hall", "z5_road", "z5_stall_1", "z5_stall_2", "z5_stall_3"):
+            self.assertIn(m.ROUNDHOUSE_BRICK, self.one_sided_textures(self.plan[name]), name)
+        self.assertNotIn(m.ROUNDHOUSE_BRICK, self.one_sided_textures(self.plan["z2_yard"]))
+        gates = [ld for ld in self.lines if "sideback" not in ld
+                 and self.sides[ld["sidefront"]].get("texturemiddle") == m.GOODS_GATE]
+        self.assertEqual(len(m.GOODS_GATES), len(gates))
+        for ld in gates:
+            (ax, ay), (bx, by) = self.line_points(ld)
+            self.assertEqual(m.TILE, abs(bx - ax) + abs(by - ay))
+            s = self.sectors[self.front(ld)]
+            self.assertEqual(m.TILE, s["heightceiling"] - s["heightfloor"], "one whole gate")
+            self.assertIn(self.plan["z2_yard"], self.neighbours[self.front(ld)])
 
     def test_the_flags_of_both_factions(self):
         m = self.m
@@ -794,8 +934,8 @@ class Map04Test(unittest.TestCase):
     # --- the gondolas: the red key's counter-attack ---------------------------------
     def test_the_red_key_drops_the_gondolas_sides(self):
         """The red key carries Floor_LowerToLowest on a tag no line carries;
-        the tag is the two gondolas' sides, each a rust panel a boxcar high
-        in a rust shell, facing the main track; once lowered, each gondola
+        the tag is the two gondolas' sides, each a wagon-side panel a boxcar
+        high in a wagon's shell, facing the main track; once lowered, each gondola
         opens onto the yard by a step."""
         m = self.m
         key = self.things_of({m.ED_RED_CARD})[0]
@@ -807,7 +947,7 @@ class Map04Test(unittest.TestCase):
         yard = self.flood(self.adjacency({m.TAG_GONDOLAS}), self.plan["z2_yard"])
         for name in m.GONDOLAS:
             bed, side = self.plan[name], self.plan[f"{name}_side"]
-            self.assertEqual(m.RUST, self.sides[[ld for ld in self.lines if "sideback" in ld and
+            self.assertEqual(m.WAGON_SIDE, self.sides[[ld for ld in self.lines if "sideback" in ld and
                                                  side in self._pair(ld)][0]["sidefront"]].get("texturebottom"))
             self.assertNotIn(side, shut[bed], f"{name} is shut until the key")
             self.assertIn(side, opened[bed], f"{name} opens")

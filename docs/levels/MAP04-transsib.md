@@ -2,7 +2,8 @@
 
 Design document. Owner: `level-designer`. Status: **v1 BUILT 2026-10-22
 (§13): the whole floor plan, textured with the approved sets, populated on
-skills 1-5, three secrets; not yet walked, not yet run in the engine.** Episode
+skills 1-5, three secrets; dressed in episode 2's Railway set on 2026-10-22
+(D107, §7, §13.6); not yet walked, not yet run in the engine.** Episode
 2, «The Road to Moscow», opens here (D104, phase P4). Built MVP first (D60)
 the way MAP02 and MAP03 reached their v1: complete and finishable, balance
 after the playtests. A working brief for the PM; the CEO's verdict comes from
@@ -49,7 +50,7 @@ armoured train waiting at the passenger platform, which carries him west.
 
 | Job | How the layout does it |
 |---|---|
-| Be a railway yard | four tracks across the yard, wagons on them (boxcars in rust, a military wagon in armour plate, flatcars a crate high, two open gondolas), two signal masts, a raised **signal box** with windows all round, a **roundhouse** with a turntable whose bridge carries a track, a goods warehouse with crate stacks, a passenger platform with a coping edge and canopy columns, and the **armoured train** on the platform's track. |
+| Be a railway yard | four tracks across the yard, wagons on them (goods boxcars, a tank wagon «НЕФТЬ», flatcars a crate high, two open gondolas), two colour-light signals on their pillars, a raised **signal box** with windows all round, a **roundhouse** with a turntable whose bridge carries a track, a goods warehouse with crate stacks, a passenger platform with a coping edge and canopy columns, and the **armoured train** on the platform's track. |
 | Use the wagons | rows of wagons are **cover** in the yard (96 high: a monster behind one is hidden, the player too); a coupled **rake of four boxcars** is a raised walkway 1280 long, reached by the goods ramp at its east end, with snipers on it; the only way into the signal box is along those roofs. |
 | Teach the key grammar again (D58) | the **yellow lock is the first thing seen** out of the tunnel (lit yellow in the yard's south wall); the signal box's **yellow windows glow over the wagons** from the same spot; the **red lock** is seen from the roofs, below in the north wall, in round 0. Each key lies alone, lit 192, on a pedestal in its lock's colour, and is seen from where its room is entered (tested). |
 | Ritmo creciente | hit points met per round of the route grow round on round on every skill (tested): tunnel and yard, then warehouse and roundhouse, then gondolas and platform; the train is the coda. |
@@ -128,7 +129,7 @@ platform, `B` stationmaster's office (SW-B), `b` the train's rear balcony,
 | — | Stair, 3 steps of 16; the mouth | 3936…4032; 3840…3936 | 1120…1248 | −48…−16; 0 | 128 | 112; 128 |
 | — | Refuge niches (S1's is the middle one, 96) | 4160…4480 | 1248…1264 | −64 | 64 | 112 / 96 |
 | Z2 | The yard (night; the ceiling stands in for the sky) | 1792…3840 | 768…1920 | 0 | 384 | 128 |
-| — | Wagon rows 1 and 2 (boxcar 96, military wagon 96, flatcars 64, gondolas 96 with a bed at 16) | 1984…3072 | 960…1088, 1280…1408 | 64 / 96 | 384 | 128 / 112 |
+| — | Wagon rows 1 and 2 (boxcar 96, tank wagon 96, flatcars 64, gondolas 96 with a bed at 16); two signals on concrete pillars 128 high | 1984…3072 | 960…1088, 1280…1408 | 64 / 96 | 384 | 128 / 112 |
 | — | The rake's roofs, four boxcars coupled | 2304…3584 | 1536…1664 | 96 | 384 | 128 |
 | — | The goods ramp, 5 steps of 16 | 3584…3744 | 1536…1664 | 80…16 | 384 | 128 |
 | — | Yellow door's portal band | 2368…2752 | 768…832 | 0 | 128 | **192**, yellow |
@@ -271,20 +272,24 @@ Hit points met per round (tested to rise from round 0 to round 2):
 
 ### 7.1 By zone (all approved and packed; tested)
 
+Episode 2's Railway set (D107, approved 2026-10-22, `docs/art/TEXTURE-INDEX.md`
+"Episode 2") is in since 2026-10-22; where it goes, and how it is aligned, is
+§7.2.
+
 | Zone | Walls | Floor | Ceiling |
 |---|---|---|---|
-| Service tunnel | `SDTUBB1` (one tile, as MAP02 and MAP03's tunnels); niches `SDTUNL1` | `SDFLR2` + `SDRAIL1` strip (turned) | `SDCEIL2` |
+| Service tunnel | `SDTUBB1` (one tile, as MAP02 and MAP03's tunnels); niches `SDTUNL1` | `SDFLR2` + `SDRAIL1` strip (turned: the metro's bed, Tankograd's line) | `SDCEIL2` |
 | Stair, goods ramp, pit walls | `SDCONC1` | `SDFLR2` | — |
-| Yard | `SDBRCK1`; signal masts `SDSTEL1`; the Reich's flag `SDFLAG1` either side of the mouth | `SDFLR2`, tracks `SDRAIL1` (turned) | `SDCEIL2` (placeholder for the night sky, §7.2) |
-| Wagons | boxcars and gondolas `SDRUST1`; the military wagon `SDSTEL1`; flatcars `SDCRAT1` (one crate high) | roofs `SDFLR4`; flatcars `SDCRTOP1` | — |
+| Yard | `SDBRCK1`; the two signals `SDSIGL1` (one face each) on `SDCONC1` pillars; the Reich's flag `SDFLAG1` either side of the mouth; the warehouse's two shut gates `SDGATE2` | **`SDBLST1`** ballast, tracks **`SDTRAK1`** (turned) | `SDCEIL2` (placeholder for the night sky, §7.2) |
+| Wagons | boxcars, the rake and both gondolas **`SDWAGN1`**; the tank wagon **`SDTANK1`**; flatcars `SDCRAT1` (one crate high) | roofs `SDFLR4`; flatcars `SDCRTOP1`; gondola beds `SDFLR4` | — |
 | Lock portals | yellow: `SDSTAR1` plaques either side of `SDDOORY`; red: `SDBRCK2` either side of `SDDOORR` (MAP03 v1's rule) | `SDFLR2` | `SDCEIL1` |
 | Signal box | `SDTILE2` inside, `SDBRCK1` tower outside; lever frame `SDSTEL1` | `SDFLR3`; frame `SDFLR4`; step `SDGRAT1` | `SDCEIL1` |
 | Warehouse | `SDBRCK1`; passages `SDBRCK2`; crate stacks and S3's row `SDCRAT1`; the Legion's flag `SDFLAG2` | `SDFLR2`; stacks `SDCRTOP1` | `SDCEIL1` |
 | Warehouse office | `SDTILE2` | `SDFLR3` | `SDCEIL1` |
-| Roundhouse | `SDBRCK1`; clerestory `SDWIND1`; stalls' gates `SDGATE1`; the loco `SDSTEL1` | `SDFLR2`; tracks, bridge and stalls `SDRAIL1` (turned); king post `SDFLR4` | `SDCEIL2` |
-| Platform | `SDMARB2` (the station's tile over red marble); the train's flank `SDSTEL1`; both flags | `SDMFLR2`; coping `SDMFLR3` (turned 180, MAP02's K7) | `SDCEIL1` |
+| Roundhouse | **`SDBRCK3`** (hall, road, stalls, SW-A's niche, S2's store); clerestory `SDWIND1`; stalls' gates `SDGATE1`; the loco `SDSTEL1`; the bridge's flanks `SDSTEL1` | `SDFLR2`; tracks **`SDTRAK1`** (turned); bridge deck **`SDGRAT2`** with its track `SDTRAK1`; stalls **`SDBLST1`**; king post `SDFLR4` | `SDCEIL2` |
+| Platform | `SDMARB2` (the station's tile over red marble); the train's flank **`SDARMR2`**; both flags | `SDMFLR2`; coping `SDMFLR3` (turned 180, MAP02's K7) | `SDCEIL1` |
 | Stationmaster's office | `SDTILE2` | `SDFLR3` | `SDCEIL1` |
-| Armoured train | `SDSTEL1` | `SDFLR4` | `SDCEIL2`; cab `SDCEIL1` |
+| Armoured train | **`SDARMR2`**, the red star **`SDARMR1`** on the gun wagon's two long walls and the rear balcony's back; the cab and the exit niche `SDSTEL1` | `SDFLR4` | `SDCEIL2`; cab `SDCEIL1` |
 | Doors, switches | `SDDOOR1` (D1, D2, the hatch), `SDDOORY`, `SDDOORR`; `SDSW1B` (SW-A), `SDSW1A` (SW-B), `SDSW1D` (exit) | | |
 | Posters (§7.3) | `SDPOSTR1` Lenin, `SDPOSTR3` Stalin, `SDPOSTR2` the cosmonautics mural | niches: their room's floor | niches: `SDCEIL1` |
 
@@ -318,33 +323,55 @@ swap is one line in `map.py`: `MARX_ENGELS: str | None = None` becomes
 
 §7.2 has no poster or propaganda row to replace: nothing pending changes.
 
-### 7.2 Pending textures (the art-director's "Railway" set, in draft)
+### 7.2 The Railway set: where each piece went, and what is still pending
 
-Where a railway piece would read better, v1 wears the nearest approved
-lump. Each row is a swap in `src/maps/MAP04/map.py` (one named constant or
-one zone's `wall`/`flat`) once the piece is approved; none blocks v1.
+**Applied 2026-10-22** (D107; `tests/test_map04_transsib.py` holds each row).
+No route, key, lock, door, switch, secret or poster moved; the new geometry is
+decoration only: the two signals' pillars (props, replacing the two steel
+posts in the same aisles), the warehouse's two 16-deep gate recesses, and
+the turntable bridge's track as two strips either side of the king post.
 
-| # | Wanted | Kind | Where | v1 wears now |
+| Piece | Where | How it is aligned |
+|---|---|---|
+| `SDBLST1` ballast | the yard's ground; the roundhouse's three stalls | world-aligned, plain |
+| `SDTRAK1` track on ballast | the yard's main track and north siding; the roundhouse's road and stall tracks; the turntable bridge's track | `rotationfloor` 90 (rails along x, as `SDRAIL1` was); every strip exactly one 64 tile across on the 64 grid, so one track and never a rail of the next tile (tested). The tunnel keeps `SDRAIL1`, the metro's concrete bed from Tankograd. The stalls are 128 wide and get ballast, not track: a track flat there would show a second track's rails |
+| `SDWAGN1` goods wagon | the boxcar of row 1, the four boxcars of the rake, both gondolas' shells and dropping sides | a car stands 96 in a 128 tile: `offsety` 32 cuts the top, so the underframe stands on the ground. Along x each long side is **one run**: it starts on a plank post (`offsetx` 64 at the viewer's left end), runs on across the painter's splits without a jump (the gondolas' sides are separate sectors) and a 320 car ends on the tile's seam, so the rake reads as four coupled cars, not one wall; the ends show one whole tile (all tested) |
+| `SDTANK1` tank wagon «НЕФТЬ» | row 2's wagon (it was the "military wagon" in `SDSTEL1`) | `offsety` 32; `offsetx` 96, so its 320 shows two whole tiles centred: «НЕФТЬ» twice, never cut (tested) |
+| `SDARMR2` armour plate | the train's flank on the platform (1728 = 27 whole plates, pegged on the coping), every wagon of the train inside, the rear balcony | plain fill |
+| `SDARMR1` armour with the red star | three panels: the gun wagon's two long walls (centred, x 1472-1600) and the rear balcony's back wall (x 2336-2464, the star the platform sees) | each one tile wide on a wall exactly one tile high (inside the train 48-176), never stacked and never side by side (tested). The flank on the platform is 224 high: a star there would show twice, one above the other, so it stays plain plate. The balcony's plain pieces are offset so the star starts on a plate seam |
+| `SDSIGL1` colour-light signal | **two signals, one face each (D107: single use)**: the main track's, east face of a pillar at x 3488, y 1088-1152, facing the tunnel's mouth (the first thing seen out of it); the north aisle's, west face of a pillar at x 3264, y 1440-1504, facing the box | each pillar is a prop sector 128 high (`SDCONC1` on its other faces), so the face is a lower texture exactly one tile high, whole; tested: no face over 64 long, none over one tile high, no two touching, one per signal |
+| `SDBRCK3` roundhouse brick | the roundhouse's hall, road, stalls, SW-A's niche, S2's store | floor-pegged: the frieze runs at 128 and 256 in the 320 hall, under the ceiling in the stalls. The road gate's yard face stays `SDBRCK1` (the yard's brick, tested) |
+| `SDGATE2` «СКЛАД» | the warehouse's two shut, padlocked goods gates on the yard's south wall, x 2112-2240 and 2880-3008, well clear of the yellow lock | each a whole tile at the back of a 16-deep recess cut to 128 (the banners' method) |
+| `SDGRAT2` (dam set) | the turntable bridge's deck over the pit, either side of its track | world-aligned; "expanded metal over a void" is what a turntable bridge is |
+
+Not used, on purpose: `SDSPIL1`, `SDCTRL1`, `SDTURB1` and the rest of the dam
+and Moscow sets have no place in a marshalling yard. The yard's walls stay
+`SDBRCK1`.
+
+**Still pending** (each one swap in `src/maps/MAP04/map.py` once the piece
+exists; none blocks the map):
+
+| # | Wanted | Kind | Where | Wears now |
 |---|---|---|---|---|
-| 1 | **Night sky** over the yard (a sky texture for `sky1`, and the ceiling flat `F_SKY1` on the yard, the roofs, the ramp, the gondolas and the signal box's tower) | sky | the yard is outdoors | `SDCEIL2` at 384, light 128. With a sky, the box's tower top and the yard's upper walls stop reading as a roof |
-| 2 | **Boxcar side**: planked or corrugated wagon side with a sliding door, running gear below | wall 128×96 or 64×128 | boxcars and the rake | `SDRUST1` (corrugated rust) |
-| 3 | **Wagon roof**: curved wagon roof seen from above, a walkway plank | flat 64 | the rake's roofs | `SDFLR4` (chequer plate) |
-| 4 | **Gondola** (open wagon) side and bed | wall + flat | the two gondolas | `SDRUST1`, bed `SDFLR2` |
-| 5 | **Ballast**: gravel between and under tracks; a track-on-ballast flat (`SDRAIL1` is a metro track bed on concrete) | flat 64 | yard floor, all tracks | `SDFLR2`, `SDRAIL1` |
-| 6 | **Armoured train plating**: riveted armour with a gun port, a red star, «ЗА РОДИНУ» stencil (text-bearing: D27) | wall 128×128 | the train's flank on the platform, the gun wagon | `SDSTEL1` |
-| 7 | **Locomotive cab**: gauges, regulator, firebox door; an exit-switch variant in the same language | wall 64×128 (+ switch pair) | the cab's walls; the exit | `SDSTEL1`; exit `SDSW1D` |
+| 1 | **Night sky** over the yard (a sky texture for `sky1`, and the ceiling flat `F_SKY1` on the yard, the roofs, the ramp, the gondolas, the signals and the signal box's tower) | sky | the yard is outdoors | `SDCEIL2` at 384, light 128. With a sky, the box's tower top and the yard's upper walls stop reading as a roof |
+| 3 | **Wagon roof** seen from above, a walkway plank | flat 64 | the rake's roofs, the boxcar and tank tops, the gondolas' rims | `SDFLR4` (chequer plate) |
+| 4 | **Gondola** bed (the open wagon's floor) | flat 64 | the two gondolas' beds | `SDFLR4` |
+| 7 | **Locomotive cab**: gauges, regulator, firebox door; an exit switch in the same language | wall 64×128 (+ switch pair) | the cab's walls; the exit | `SDSTEL1`; exit `SDSW1D` |
 | 8 | **Signal lever frame**: a row of levers seen from above / a frame front | flat 64 + wall 64×16 | the lever frame (the yellow key's pedestal) | `SDFLR4`, `SDSTEL1` |
 | 9 | **Signal box glazing** (lit from inside, seen from the yard) | wall 64×48 | the box's window openings (sills 160…208) | open: the windows are holes, `SDBRCK1` above and below |
-| 10 | **Signal mast** (lattice or pole with a semaphore arm, masked mid-texture) | wall 32×128, masked | the two masts in the yard | `SDSTEL1` posts |
-| 11 | **Turntable**: the pit's ring rail flat, the bridge's girder side | flat 64 + wall 64×64 | the pit floor, the bridge's flanks | `SDFLR2`, `SDSTEL1` |
-| 12 | **Roundhouse stall doors**: wooden engine-shed doors | wall 128×128 | stalls 2 and 3 (S2's panel is the third) | `SDGATE1` |
+| 11 | **Turntable** bridge's girder side | wall 64×64 | the bridge's flanks over the pit | `SDSTEL1` |
+| 12 | **Roundhouse stall doors**: wooden engine-shed doors | wall 128×128 | stalls 2 and 3 (S2's panel is the third; all three must stay the same face, S2's clue) | `SDGATE1` |
 | 13 | **Station sign** «СВЕРДЛОВСК-СОРТИРОВОЧНЫЙ» (text-bearing: D27, render on one machine) | wall 256×64, mid-texture | over the platform | none |
 | 14 | **Platform canopy** columns (cast-iron) and canopy ceiling | wall 64×128, flat | the five canopy columns | `SDMARB2` (the columns are carved out of the platform) |
-| 15 | **Loco** front (a steam engine's smokebox door) as a prop face | wall 128×96 | stall 1's locomotive | `SDSTEL1` |
+| 15 | **Loco** front (a steam engine's smokebox door) | wall 128×96 | stall 1's locomotive | `SDSTEL1` |
 | 16 | **The yard's goods sheds** wall (timber) | wall 64×128 | the yard's north wall | `SDBRCK1` |
+| 17 | **A track across the stalls and the road** (geometry, this role's: a 64 strip inside each 128 stall and across the road and the gate, splitting sectors that hold things and S2's panel) | — | stalls, the road (1664…1792) | ballast in the stalls, concrete on the road: the track stops at each stall's mouth and at the road |
 
-Sprites (art-director's; classes `mod-engineer`'s), optional: buffer stops,
-a water crane, lamp posts with light (v2 light pass), wagon wheel sets.
+Rows 2, 5, 6 and 10 of the v1 list are done (above).
+
+Sprites (art-director's; classes `mod-engineer`'s), optional: buffer stops
+(where the track ends at the stalls), a water crane, lamp posts with light
+(v2 light pass), wagon wheel sets.
 
 ## 8. Secrets
 
@@ -420,6 +447,7 @@ warehouse). The heavy vest is S3's.
 | **Floor_LowerToLowest** | special 21 (tag, speed) | number from ZDoom's (Hexen's) special table, the action `xlat/doom.txt` maps Doom's lower-floor lines to; **NOT VERIFIED** in our engine (the numbers are compiled in): K3 |
 | Coloured light | sector `lightcolor` yellow `0xFFD860`, red `0xFF6048` | as MAP03 |
 | Turned flats | `rotationfloor` 90 on tracks, 180 on the coping | as MAP02 (K7, K8) |
+| Texture offsets on wall faces | sidedef `offsetx` / `offsety` (UDMF base) on the wagons and the balcony (§7.2); a two-sided line's lower texture left unpegged, so its top row is the raised floor's edge and `offsety` lifts it | Doom's own behaviour; **NOT VERIFIED** on this map: K10 |
 | Secrets | sector `special` 1024; panel lines flagged `secret` | as MAP01-MAP03 |
 
 Tag plan: **1** D1 · **2** D2 · **4** yellow door · **5** red door · **6**
@@ -463,6 +491,8 @@ its slot. Its exit is judged against MAPINFO's `next` (MAP05).
 Everything in §4-§9: 104 sectors, 481 lines, 132 things (the start, two
 keys, 56 monsters on skill 4, 3 secrets). Built in one pass with `GridMap`,
 as MAP03 v1. The posters (§7.3, 2026-10-22) add four niche sectors: 108.
+The Railway set (§7.2, §13.6) adds six decoration sectors: 114 sectors,
+522 lines.
 
 ### 13.2 Verification actually run
 
@@ -493,7 +523,29 @@ as MAP03 v1. The posters (§7.3, 2026-10-22) add four niche sectors: 108.
 | K6 | The coping's lip lies on the train's side (`rotationfloor` 180, as MAP02's K7) | a screenshot on the platform |
 | K7 | Monsters in the gondolas do not see out before the trap (their bed is 16, the sides 96) | watch from the ground; from the roofs they can be seen and shot, by design |
 | K8 | The yard's ceiling at 384 reads as night, not as a low roof (until §7.2 #1) | a screenshot |
+| K10 | **The wagons' sides** (§7.2): the underframe on the ground (`offsety` 32), each boxcar of the rake starting on a post and ending on a seam, the gondolas' sides with no jump where the dropping panel meets the shell, and after the drop no misaligned leftover; the tank's «НЕФТЬ» twice, whole | screenshots from the mouth, along row 1, and from the roofs after RKEY |
+| K11 | **The two signals** (`SDSIGL1`): one whole head each, not cut or doubled; the main track's seen from the tunnel's mouth, its red lens reading as a light | screenshots from the mouth and from the box's step |
+| K12 | The star panels (`SDARMR1`) whole in the gun wagon and on the balcony's back as the platform sees it; the flank's 27 plates in `SDARMR2` with no seam floating at mid-height; `SDTRAK1` running along x on the yard's tracks and the turntable bridge (turned 90) with its rails continuing the yard's; ballast and track the same colour; the roundhouse's `SDBRCK3` frieze at 128 and 256 | screenshots on the platform, in the train, at the mouth and on the bridge |
 | K9 | The posters (§7.3) are whole and read: the two at the red door from the rake's roofs (light 144 in a 128 yard), the warehouse's Stalin beside the Legion banner, the platform's mural, the roundhouse's slot over the turntable; none is cut at the top or tiled, and the 16-deep niches do not snag a strafe along the walls | screenshots from the roofs, the warehouse's vestibule, the platform and the bridge |
+
+### 13.6 The Railway set pass (2026-10-22)
+
+The 25 approved episode-2 pieces (D107) applied as §7.2 says, by
+`level-designer`. Geometry untouched where it matters: no route, key,
+lock, door, switch, secret, poster or monster moved; the sight-line tests
+(the yellow door and the box from the mouth, the red door from the roofs,
+the keys) pass unchanged. Decoration added: the signals' pillars
+(props, in the steel posts' aisles), two gate recesses, the bridge's
+track strips.
+
+- `python -m unittest tests.test_map04_transsib tests.test_posters`: 105
+  tests OK, among them the new `test_the_signals_are_single_use` (D107: no
+  `SDSIGL1` face over 64 long or one tile high, none touching another),
+  `test_each_star_is_one_panel_one_tile_high_and_alone`,
+  `test_wagon_sides_run_whole_and_continuous` and
+  `test_the_railway_set_dresses_the_yard_and_the_roundhouse`.
+- `python tools/verify.py fast`: PASS (build, check_pk3, 2762 tests).
+- **Not run: GZDoom** (D26): K10-K12 are the PM's.
 
 ### 13.4 Open points for the CEO
 
@@ -508,7 +560,8 @@ as MAP03 v1. The posters (§7.3, 2026-10-22) add four niche sectors: 108.
 
 ### 13.5 What other roles hold
 
-- `art-director`: the Railway set (§7.2), the sky first.
+- `art-director`: what §7.2 still lists, the sky first; then a wagon roof
+  and the loco cab.
 - `mod-engineer` / scaffolding: MAPINFO and LANGUAGE for MAP04 (done by the
   P4 scaffolding agent), the episode's music.
 - `qa-engineer` / the PM: §13.3's engine pass.
