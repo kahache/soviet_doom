@@ -152,7 +152,7 @@ FLAT_SIZE = (64, 64)                    # a Doom flat is 64x64 by definition
 # 256x64 since D66: the Tankograd works banner SDSLOG1, one slogan in two lines.
 ALLOWED_WALL_SIZES = ((64, 64), (64, 128), (128, 64), (128, 128), (128, 256),  # crates since D29
                       (256, 64))
-# Sky textures (D113): MAPINFO's sky1 of MAP04-06 names our own skies, one
+# Sky textures (D113): MAPINFO's sky1 of MAP04-09 names our own skies, one
 # 360-degree turn at 1024x128 (Freedoom's SKY1 is 256x128 and repeats four
 # times round the view; how GZDoom maps the wider picture is NOT VERIFIED
 # until the PM's engine pass, D26). Declared, like the masked textures: a
@@ -160,7 +160,10 @@ ALLOWED_WALL_SIZES = ((64, 64), (64, 128), (128, 64), (128, 128), (128, 256),  #
 # still an unagreed size.
 SKY_SIZES = ((1024, 128),)
 SKY_TEXTURES = frozenset({"SDSKY1",                # the Urals at night, MAP04 and MAP05
-                          "SDSKY2"})               # Moscow at night, MAP06
+                          "SDSKY2",                # Moscow at night, MAP06
+                          "SDSKY3",                # the polar night with aurora, MAP07 (gen_episode3_skies)
+                          "SDSKY4",                # the Kola fjord at night, MAP08
+                          "SDSKY5"})               # the Tunguska taiga and the portal's glow, MAP09
 
 # Sprite naming (Doom convention): NAMEFR or NAMEFRFR.
 SPRITE_NAME_LEN = 4
@@ -732,7 +735,10 @@ PALETTE_V2_LUMPS = frozenset({"SDMOSA1"}  # D56
                              # the Spasskaya clock and the Historical Museum
                              # (marble_red) and the two banners on SDKREM1
                              # (marble_red; SDFLAG4's canton mosaic_cobalt).
-                             | {"SDPRTE1", "SDDOORB", "SDCLOK1", "SDMUSE1", "SDFLAG3", "SDFLAG4"})
+                             | {"SDPRTE1", "SDDOORB", "SDCLOK1", "SDMUSE1", "SDFLAG3", "SDFLAG4"}
+                             # D113: MAP09's sky, the portal's glow in mosaic_cobalt
+                             # (only where the portal lights it; gen_episode3_skies).
+                             | {"SDSKY5"})
 # The masked lumps (RGBA, so not in PALETTE_V2_LUMPS, which is indexed lumps
 # only) approved in v2: D107's merlon SDKREM2 is SDKREM1's brick cut out.
 PALETTE_V2_MASKED = frozenset({"SDKREM2"})

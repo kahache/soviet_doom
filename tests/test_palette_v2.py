@@ -134,7 +134,10 @@ EP2_BRICKS = (("railway", "SDBRCK3"), ("moscow", "SDKREM1"), ("moscow", "SDKREM2
 # canton, mosaic_cobalt). All indexed. Every other lump of both batches is v1,
 # the three round-2 masked pieces and the crane included.
 D113_V2 = (("taiga", "SDPRTE1"), ("dam", "SDDOORB"), ("moscow", "SDCLOK1"),
-           ("moscow", "SDMUSE1"), ("moscow", "SDFLAG3"), ("moscow", "SDFLAG4"))
+           ("moscow", "SDMUSE1"), ("moscow", "SDFLAG3"), ("moscow", "SDFLAG4"),
+           # MAP09's sky (gen_episode3_skies.py): the portal's glow in
+           # mosaic_cobalt, only where the portal lights it. SDSKY3/4 are v1.
+           ("sky", "SDSKY5"))
 # D109, D114 (installed 2026-10-22): the seven enemies redrawn from Google
 # Gemini (gemini_enemy.py snaps every set to all of palette v2): SDRR, SDLT,
 # SDHS, SDHN, SDDB, SDPM, SDPS and SDGN, 540 RGBA lumps (not in

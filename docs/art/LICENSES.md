@@ -508,6 +508,23 @@ are references for materials and forms only.
 | `SDGLYP1` | invader glyph plate (an invented grammar, not letters) | (a) `tools/art/gen_taiga.py`, seed 5909, palette v1 | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
 | `SDPRTE1` | the portal's rim | (a) `tools/art/gen_taiga.py`, seed 5910, **palette v2** (`mosaic_cobalt`) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
 
+## Episode 3 — skies (P4, approved 2026-10-22 under D113's standing approval)
+
+Three 1024×128 skies for MAPINFO's `sky1` of MAP07-09, in
+`assets/textures/sky/`, copied byte for byte from
+`work/art/episode3_skies/sky/` (rendered on the Windows PC on 2026-10-22,
+identical to a fresh render, `tests/test_gen_episode3_skies.py`). All
+procedural, one generator, `tools/art/gen_episode3_skies.py`, seed =
+`BATCH_SEED` 6000 + offset, on top of `gen_episode2b.py` and `ep2lib.py`
+(read only). No lettering, no photograph. Preview
+`docs/art/previews/2026-10-22_P4_episode3-skies.png`.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDSKY3` | the polar night with aurora over Novaya Zemlya, 1024×128 sky (MAPINFO `sky1` of MAP07) | (a) `tools/art/gen_episode3_skies.py`, seed 6001, palette v1 | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDSKY4` | the Kola fjord at Severomorsk at night, 1024×128 sky (MAPINFO `sky1` of MAP08) | (a) `tools/art/gen_episode3_skies.py`, seed 6002, palette v1 | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDSKY5` | the Tunguska taiga with the portal's cobalt glow, 1024×128 sky (MAPINFO `sky1` of MAP09) | (a) `tools/art/gen_episode3_skies.py`, seed 6003, **palette v2** (`mosaic_cobalt`, only near the portal) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+
 ## Music (D43, installed 2026-10-13)
 
 Rows added by `sound-designer` so `tools/check_pk3.py` can see the music
