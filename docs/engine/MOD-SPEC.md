@@ -361,8 +361,9 @@ and a map outside the campaign takes a lump name that is not MAPxx (`RANGE`);
 map titles by `lookup`, episode title by `name = "$ID"` (**`lookup` is not accepted inside an
 episode block**, verified B1); every map and cluster names its music, and
 `music = ""` where there is none (verified: silence, no warning; §4.5);
-`sky1 = "SKY1"` (Freedoom's), except MAP04 and MAP05 `sky1 = "SDSKY1"` and
-MAP06 `sky1 = "SDSKY2"` since D113 (2026-10-22): our own night skies,
+`sky1 = "SKY1"` (Freedoom's) on MAP02 only (the metro has no sky sector);
+since D113 (2026-10-22) MAP01 and RANGE `sky1 = "SDSKY6"`, MAP03 `"SDSKY7"`,
+MAP04 and MAP05 `"SDSKY1"`, MAP06 `"SDSKY2"`, MAP07-09 `"SDSKY3"`-`"SDSKY5"`: our own night skies,
 1024×128 (one 360° turn), packed under `textures/` and declared in
 `check_pk3`'s `SKY_TEXTURES`. How the engine maps a 1024-wide sky (its
 stretch and where the horizon row falls) is NOT VERIFIED until the PM's
@@ -882,7 +883,7 @@ here and in the `art-director`'s texture index flagged "IWAD".
 | `STARTAN2` | wall texture 64×128 | MAP01, 4 walls | verified on freedoom2.wad 0.13.0 (G0 screenshot) |
 | `FLOOR4_8` | flat (floor) | MAP01 | verified |
 | `CEIL3_5` | flat (ceiling) | MAP01 | verified |
-| `SKY1` | sky texture | MAPINFO `sky1` (every map but MAP04-06, which wear `SDSKY1`/`SDSKY2` since D113) | loads without error |
+| `SKY1` | sky texture | MAPINFO `sky1` of MAP02 only (every other map wears its own `SDSKY1-7` since D113) | loads without error |
 
 IWAD elements used implicitly: the status bar's layout and code
 (`DoomStatusBar`; since M2e-i its pictures are ours, §6.5, but for the

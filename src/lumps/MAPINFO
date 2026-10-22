@@ -400,9 +400,12 @@ map MAP01 lookup "SD_MAP01_NAME"
 	// value in this file is "" or a packed lump (tests/test_mapinfo_music.py),
 	// because a misspelt one plays nothing and logs nothing.
 	music = "D_SDM1N2"
-	// SKY1 exists in both doom2.wad and freedoom2.wad. The room has no sky
-	// ceiling, but the engine still wants a valid sky texture per map.
-	sky1 = "SKY1"
+	// D113: our own sky, the Zarya-7 cosmodrome before a November dawn
+	// (the steppe, the launch pad and its rocket; 1024x128, one 360-degree
+	// turn; textures/sky/, docs/art/TEXTURE-INDEX.md). The map has no sky
+	// ceiling yet (the strip over the hangar is open with the CEO), but the
+	// engine wants a valid sky texture per map and this one is ready for it.
+	sky1 = "SDSKY6"
 	// M4: the intermission's target time, in seconds. 210 is
 	// `level-designer`'s figure for a player who knows the route
 	// (docs/levels/MAP01-zarya-7.md). It is a display value only - nothing
@@ -439,6 +442,8 @@ map MAP02 lookup "SD_MAP02_NAME"
 	cluster = 4
 	next = "MAP03"
 	music = "D_SDFUNR"	// D62 draft, approved by the CEO in D83 (SOUNDTRACK.md 0)
+	// D113: the metro has no sky sector at all, so it keeps Freedoom's SKY1,
+	// which nothing in it shows (MAP01, MAP03 and the range wear our own).
 	sky1 = "SKY1"
 	par = 300
 }
@@ -454,7 +459,9 @@ map MAP03 lookup "SD_MAP03_NAME"
 	cluster = 1
 	next = endtitle
 	music = "D_SDGATE"	// D62 draft, approved by the CEO in D83 (SOUNDTRACK.md 0)
-	sky1 = "SKY1"
+	// D113: our own sky, Tankograd at night: low cloud lit orange by the
+	// blast furnaces, chimneys and smoke (textures/sky/).
+	sky1 = "SDSKY7"
 	// level-designer's estimate for a player who knows the route
 	// (docs/levels/MAP03-factory.md 3 and 11). Display only.
 	par = 360
@@ -633,6 +640,8 @@ map RANGE lookup "SD_RANGE_NAME"
 	// D83 rejected D_SDAMUR here; D86 put MAP01's old theme on the range,
 	// cut to its melodic part (D_SDM01E from bar 49, gen_enemy_alts.py).
 	music = "D_SDM01T"
-	sky1 = "SKY1"
+	// D113: the range is a room of the Zarya-7 base, so it wears MAP01's
+	// sky (it has no sky sector either; textures/sky/).
+	sky1 = "SDSKY6"
 	nointermission
 }
