@@ -46,6 +46,8 @@ CATALAN_SAME_AS_ENGLISH = frozenset({
     "SD_TAG_DOUGHBOY", "SD_TAG_PANZER",
     # Credit lines made only of names, URLs and licences ("local" is Catalan too).
     "SD_CRED_ENGINE_1", "SD_CRED_IWAD_1", "SD_CRED_AI_7",
+    # D112: place names Catalan writes as English does (Severomorsk, Tunguska).
+    "SD_MAP08_NAME", "SD_MAP09_NAME",
 })
 
 # Letters Catalan needs that the mod's fonts (assets/fonts/, D24) do not draw
@@ -320,6 +322,19 @@ class EpisodeTwoTextTest(unittest.TestCase):
         for ident in self.TEXTS:
             for code in REQUIRED_SECTIONS:
                 self.assertIn(ident, self.sections[code], f"[{code}] lacks {ident}")
+
+
+class EpisodeThreeTextTest(EpisodeTwoTextTest):
+    """D112 (P4): episode 3, "The Portal", the same way. SD_EP04_NAME is the
+    fourth episode declared (the range took 02)."""
+
+    NAMES = {
+        "SD_EP04_NAME": {"default": "The Portal", "ru": "Портал", "ca": "El portal"},
+        "SD_MAP07_NAME": {"default": "Novaya Zemlya", "ru": "Новая Земля", "ca": "Nova Zembla"},
+        "SD_MAP08_NAME": {"default": "Severomorsk", "ru": "Североморск", "ca": "Severomorsk"},
+        "SD_MAP09_NAME": {"default": "Tunguska", "ru": "Тунгуска", "ca": "Tunguska"},
+    }
+    TEXTS = ("SD_MAP07_EXIT_TEXT", "SD_MAP08_EXIT_TEXT", "SD_END04_TEXT")
 
 
 class DifficultyLadderTest(unittest.TestCase):

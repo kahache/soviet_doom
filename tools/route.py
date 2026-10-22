@@ -1367,6 +1367,347 @@ def redsquare_critical(md: "MapData | None" = None) -> Route:
                              "yellow key on the stand, the yellow gatehouse, the red key (the "
                              "closets open), the Spasskaya gate, the boss killed, his gate, the exit")
 
+# --- MAP09 Tunguska: the critical path (docs/levels/MAP09-tunguska.md 5, 14)
+# redsquare-critical's method on the campaign's last map: three keys, a key
+# whose pickup springs an ambush, and a boss whose death opens the exit.
+# Nothing is a copied coordinate or a class name; what the route reads:
+#   * tags, the locked-door special, the three locks and the three keys'
+#     editor numbers: the named constants of src/maps/MAP09/map.py
+#     (TUNGUSKA_CONSTANTS);
+#   * each locked door: the Door_LockedRaise line with its tag AND its lock
+#     whose front sector is in the family the design presses it from (the
+#     blue gate from the station's yard, Z3; the yellow door and the red gate
+#     from the works, Z5), walked through DOOR_CLEARANCE past its far face;
+#   * each key: the one thing of its editor number on skills 2, 3 and 4,
+#     walked onto, never given; the red key's pickup opens TAG_AMBUSH (the
+#     works' closets), so RKEY expects that tag open;
+#   * the boss: the class of map.py's BOSS_KIND, which must be one the helper
+#     can hurt (COUNT_CLASSES); BOSS0 stands on the crater's first terrace
+#     (Z8) with the bunker's gate (TAG_BOSS_EXIT) shut, BOSS1 hurts him past
+#     his health and expects the gate open (no line carries the tag);
+#   * the exit: E0 on the ray out of the exit's niche, past the bunker's gate.
+# The order is the design's: the blue gate refused, the blue key in the
+# laboratory, the blue gate; the yellow door and the red gate refused on the
+# blue key; the yellow key on the derrick, the yellow door; the red gate
+# refused on two keys; the red key in the refinery (the closets open); the
+# red gate; the boss; the exit.
+TUNGUSKA_CONSTANTS = ("TAG_BLUE_DOOR", "TAG_YELLOW_DOOR", "TAG_RED_DOOR", "TAG_AMBUSH",
+                      "TAG_BOSS_EXIT", "SPECIAL_DOOR_LOCKED_RAISE", "LOCK_BLUE_CARD",
+                      "LOCK_YELLOW_CARD", "LOCK_RED_CARD", "ED_BLUE_CARD", "ED_YELLOW_CARD",
+                      "ED_RED_CARD", "MAP09_BOSS_SPOT", "BOSS_KIND")
+TUNGUSKA_STATION_FAMILY = "Z3"    # the blue gate is pressed from the station's yard
+TUNGUSKA_WORKS_FAMILY = "Z5"      # the yellow door and the red gate from the works
+TUNGUSKA_CRATER_FAMILY = "Z8"     # the crater's terraces and floor, where the boss stands
+
+
+def tunguska_critical(md: "MapData | None" = None) -> Route:
+    """MAP09's critical path, read off the built map (see the block above)."""
+    md = md or load_map_data(map_defining(*TUNGUSKA_CONSTANTS))
+    (tag_bd, tag_yd, tag_rd, tag_amb, tag_exit, locked, lock_b, lock_y, lock_r,
+     ed_b, ed_y, ed_r, boss_spot, boss_kind) = (_map_const(md, n) for n in TUNGUSKA_CONSTANTS)
+    kinds, classes = _map_const(md, "MONSTER_KINDS"), _map_const(md, "MONSTER_CLASSES")
+    boss_class = classes[kinds[boss_kind]]
+    if boss_class not in COUNT_CLASSES:
+        raise RouteError(f"the boss {boss_class} is not in COUNT_CLASSES: the helper cannot hurt it")
+    if family_at(md, boss_spot) != TUNGUSKA_CRATER_FAMILY:
+        raise RouteError(f"MAP09_BOSS_SPOT {boss_spot} is not in the crater ({TUNGUSKA_CRATER_FAMILY})")
+
+    a0_family = start_family(md)
+    bd = locked_door_walk(md, locked, tag_bd, TUNGUSKA_STATION_FAMILY, "the blue gate", lock_b)
+    yd = locked_door_walk(md, locked, tag_yd, TUNGUSKA_WORKS_FAMILY, "the yellow door", lock_y)
+    rd = locked_door_walk(md, locked, tag_rd, TUNGUSKA_WORKS_FAMILY, "the red gate", lock_r)
+    walks = {}
+    for name, ed in (("b", ed_b), ("y", ed_y), ("r", ed_r)):
+        spot = pass_spot(md, ed)
+        walks[name] = (spot,) + pass_walk(md, spot, KEY_APPROACH)
+
+    # BOSS0/BOSS1 stand where the red gate's porch opens onto the crater: on
+    # the gate's line, a body's width onto the first terrace.
+    dx, dy = COMPASS[rd.angle]
+    for t in range(SAMPLE_UNITS, MAX_RAY, SAMPLE_UNITS):
+        if family_at(md, (rd.point[0] + dx * t, rd.point[1] + dy * t)) == TUNGUSKA_CRATER_FAMILY:
+            break
+    else:
+        raise RouteError(f"the ray through the red gate never reaches {TUNGUSKA_CRATER_FAMILY}")
+    t += 2 * PLAYER_RADIUS
+    crater_point = (rd.point[0] + dx * t, rd.point[1] + dy * t)
+    e0_point, exit_angle, e0_tics, exit_family = exit_walk(md, tag_exit, "the bunker's gate")
+
+    press = ("use", f"wait {DOOR_WAIT}")
+    (b_spot, b_start, b_angle, b_family, b_tics) = walks["b"]
+    (y_spot, y_start, y_angle, y_family, y_tics) = walks["y"]
+    (r_spot, r_start, r_angle, r_family, r_tics) = walks["r"]
+    steps = (
+        Step("A0", actions=("level", "count", "inv", "capture"), expect=(a0_family,), keys=0,
+             note="the player start on the railhead's platform: no key; monsters on this skill"),
+        Step("BD0", bd.point, bd.angle, press + (f"tag {tag_bd}", "inv", "capture"),
+             expect=(family_at(md, bd.point),), tags=((tag_bd, False),), keys=0,
+             presses=((locked, tag_bd),),
+             note=f"the blue gate in the invaders' fence (lock {lock_b}) pressed with no key: still shut"),
+        Step("BKEY", b_start, b_angle, (f"forward {b_tics}", "inv", f"tag {tag_bd}", "capture"),
+             expect=(b_family,), tags=((tag_bd, False),), keys=1,
+             note=f"walk onto the blue key on the laboratory's bench (DoomEdNum {ed_b} at {b_spot}): one key"),
+        Step("BD1", bd.point, bd.angle, press + (f"tag {tag_bd}", f"forward {bd.tics}", "capture"),
+             expect=(bd.inside,), tags=((tag_bd, True),), presses=((locked, tag_bd),),
+             note="the blue gate with its key: open; walk through it into the standing forest"),
+        Step("YD0", yd.point, yd.angle, press + (f"tag {tag_yd}", "inv", "capture"),
+             expect=(family_at(md, yd.point),), tags=((tag_yd, False),), keys=1,
+             presses=((locked, tag_yd),),
+             note=f"the refinery's yellow door (lock {lock_y}) pressed with the blue key: still shut"),
+        Step("RD0", rd.point, rd.angle, press + (f"tag {tag_rd}", "inv", "capture"),
+             expect=(family_at(md, rd.point),), tags=((tag_rd, False),), keys=1,
+             presses=((locked, tag_rd),),
+             note=f"the crater's red gate (lock {lock_r}) pressed with the blue key: still shut"),
+        Step("YKEY", y_start, y_angle, (f"forward {y_tics}", "inv", f"tag {tag_yd}", "capture"),
+             expect=(y_family,), tags=((tag_yd, False),), keys=2,
+             note=f"across the derrick onto the yellow key (DoomEdNum {ed_y} at {y_spot}): two keys"),
+        Step("YD1", yd.point, yd.angle, press + (f"tag {tag_yd}", f"forward {yd.tics}", "capture"),
+             expect=(yd.inside,), tags=((tag_yd, True),), presses=((locked, tag_yd),),
+             note="the yellow door with its key: open; walk through into the refinery"),
+        Step("RDY", rd.point, rd.angle, press + (f"tag {tag_rd}", "inv", "capture"),
+             expect=(family_at(md, rd.point),), tags=((tag_rd, False),), keys=2,
+             presses=((locked, tag_rd),),
+             note="the red gate pressed with the blue and yellow keys: still shut"),
+        Step("RKEY", r_start, r_angle,
+             (f"forward {r_tics}", f"wait {DOOR_WAIT}", "inv", f"tag {tag_rd}", f"tag {tag_amb}",
+              "capture"),
+             expect=(r_family,), tags=((tag_rd, False), (tag_amb, True)), keys=3,
+             note=f"walk onto the red key (DoomEdNum {ed_r} at {r_spot}): three keys, and its "
+                  "pickup opens the works' closets (the item special, NOT VERIFIED until this passes)"),
+        Step("RD1", rd.point, rd.angle, press + (f"tag {tag_rd}", f"forward {rd.tics}", "capture"),
+             expect=(rd.inside,), tags=((tag_rd, True),), presses=((locked, tag_rd),),
+             note="the red gate with its key: open; walk through onto the crater's rim"),
+        Step("BOSS0", crater_point, rd.angle, (f"tag {tag_exit}", "count", "capture"),
+             expect=(family_at(md, crater_point),), tags=((tag_exit, False),),
+             note=f"on the crater's first terrace: the bunker's gate is shut while the boss ({boss_class}) lives"),
+        Step("BOSS1", actions=(f"hurt {boss_class} {BOSS_HURT}", f"wait {BOSS_WAIT}",
+                               f"tag {tag_exit}", "count", "capture"),
+             tags=((tag_exit, True),),
+             note="the boss killed (helper damage): his death special opens the bunker's gate"),
+        Step("E0", e0_point, exit_angle, ("capture", f"forward {e0_tics}", "capture"),
+             expect=(exit_family,),
+             note="through the bunker's gate, down its hall to the portal's breaker"),
+        Step("E1", actions=("use",), note="the breaker: the portal shuts, episode 3's end"),
+    )
+    return Route("tunguska-critical", md.map_name, steps, expect_secrets=0,
+                 **exit_expectation(md.map_name),
+                 description="Tunguska's critical path: the blue gate refused, the blue key in the "
+                             "laboratory, the blue gate, the yellow door and red gate refused, the "
+                             "yellow key on the derrick, the yellow door, the red key (the closets "
+                             "open), the red gate, the boss killed, his gate, the breaker")
+
+
+# --- MAP07 Novaya Zemlya: the critical path (docs/levels/MAP07-novaya-zemlya.md 5, 13)
+# dam-critical's method on the Arctic radar station, episode 3's first map.
+# What the route reads, and where from (nothing copied, nothing named by class):
+#   * tags, specials, the two locks and the two keys' editor numbers (6
+#     yellow, 13 red: SD_YellowPass and SD_RedPass replace Doom's cards): the
+#     named constants of src/maps/MAP07/map.py (ZEMLYA_CONSTANTS; RADOME is
+#     the map's own, so no other map answers to the set);
+#   * the yellow door: its Door_LockedRaise face (tag AND lock) in the
+#     hangar's portal (family Z2); the red gate: its face in the runway's
+#     portal (Z1); each walked through into the room beyond;
+#   * each key: the one thing of its editor number on skills 2, 3 and 4,
+#     walked onto from KEY_APPROACH (the yellow on a pad on the antenna's
+#     platform, the red on a plinth in the test chamber);
+#   * SW-A and SW-B: the one-sided switches whose arg0 is TAG_BUNKER_SHUTTER
+#     and TAG_RUNWAY_SHUTTER;
+#   * the exit: D3, the conning tower's MANUAL hatch (Door_Raise,
+#     TAG_D3_HATCH), pressed from the deck's porch (Z11); the walk goes on
+#     straight through it to the exit switch, on the same line.
+# Order: both locks shut with no key (RG0, YD0); the yellow key; the yellow
+# door; SW-A; the red key (the gate and the runway's shutter still shut);
+# SW-B, the shortcut; the red gate with its key; D3; the switch.
+ZEMLYA_CONSTANTS = ("TAG_RED_GATE", "TAG_YELLOW_DOOR", "TAG_BUNKER_SHUTTER", "TAG_RUNWAY_SHUTTER",
+                    "TAG_D3_HATCH", "SPECIAL_DOOR_LOCKED_RAISE", "LOCK_RED_CARD", "LOCK_YELLOW_CARD",
+                    "ED_RED_CARD", "ED_YELLOW_CARD", "RADOME")
+ZEMLYA_YELLOW_FAMILY = "Z2"   # the yellow door is pressed from its portal in the hangar
+ZEMLYA_RED_FAMILY = "Z1"      # the red gate from its portal at the runway's west end
+ZEMLYA_DECK_FAMILY = "Z11"    # D3 from the hatch's porch on the submarine's deck
+ZEMLYA_SPECIAL_DOOR_RAISE = 12   # Door_Raise, udmf.SPECIAL_DOOR_RAISE: D3 is a manual door
+
+
+def zemlya_critical(md: "MapData | None" = None) -> Route:
+    """MAP07's critical path, read off the built map (see the block above)."""
+    md = md or load_map_data(map_defining(*ZEMLYA_CONSTANTS))
+    (tag_rg, tag_yd, tag_sha, tag_shb, tag_d3, locked, lock_r, lock_y, ed_r, ed_y, _radome) = (
+        _map_const(md, n) for n in ZEMLYA_CONSTANTS)
+    tm = md.textmap
+
+    a0_family = start_family(md)
+    yd = locked_door_walk(md, locked, tag_yd, ZEMLYA_YELLOW_FAMILY, "the yellow door", lock_y)
+    rg = locked_door_walk(md, locked, tag_rg, ZEMLYA_RED_FAMILY, "the red gate", lock_r)
+    yd_family, rg_family = family_at(md, yd.point), family_at(md, rg.point)
+
+    y_spot = pass_spot(md, ed_y)
+    y_start, y_angle, y_family, y_tics = pass_walk(md, y_spot, KEY_APPROACH)
+    r_spot = pass_spot(md, ed_r)
+    r_start, r_angle, r_family, r_tics = pass_walk(md, r_spot, KEY_APPROACH)
+
+    swa = switch_line(md, tag_sha, "SW-A")
+    swa_point, swa_angle = approach(md, swa)
+    swb = switch_line(md, tag_shb, "SW-B")
+    swb_point, swb_angle = approach(md, swb)
+
+    # D3 and the exit switch on one line: press the hatch, walk to the switch.
+    d3_faces = [ld for ld in tm.linedefs if ld.special == ZEMLYA_SPECIAL_DOOR_RAISE and ld.arg0 == tag_d3
+                and zone_family(md.name_of(tm.sidedefs[ld.sidefront].sector)) == ZEMLYA_DECK_FAMILY]
+    d3_point, d3_angle = approach(md, _longest(md, d3_faces, f"D3's {ZEMLYA_DECK_FAMILY} face"))
+    exit_line = _longest(md, [ld for ld in tm.linedefs if ld.special == SPECIAL_EXIT_NORMAL], "the exit switch")
+    exit_mid, exit_angle = approach(md, exit_line, 0)
+    if exit_angle != d3_angle or (d3_point[0] - exit_mid[0]) * (d3_point[1] - exit_mid[1]) != 0:
+        raise RouteError(f"D3 at {d3_point} facing {d3_angle} and the exit switch at {exit_mid} "
+                         f"facing {exit_angle} are not on one line")
+    e0_tics = walk_tics(math.dist(d3_point, exit_mid) - PLAYER_RADIUS)
+    exit_family = zone_family(md.name_of(tm.sidedefs[exit_line.sidefront].sector))
+
+    press = ("use", f"wait {DOOR_WAIT}")
+    steps = (
+        Step("A0", actions=("level", "count", "inv", "capture"), expect=(a0_family,), keys=0,
+             note="the player start (off the Il-14 on the runway): no key; monsters on this skill"),
+        Step("RG0", rg.point, rg.angle, press + (f"tag {tag_rg}", "inv", "capture"),
+             expect=(rg_family,), tags=((tag_rg, False),), keys=0, presses=((locked, tag_rg),),
+             note=f"the red gate (lock {lock_r}) pressed with no key: pressed, and still shut"),
+        Step("YD0", yd.point, yd.angle, press + (f"tag {tag_yd}", "inv", "capture"),
+             expect=(yd_family,), tags=((tag_yd, False),), keys=0, presses=((locked, tag_yd),),
+             note=f"the yellow door (lock {lock_y}) in the hangar pressed with no key: still shut"),
+        Step("YKEY", y_start, y_angle,
+             (f"forward {y_tics}", "inv", f"tag {tag_yd}", f"tag {tag_rg}", "capture"),
+             expect=(y_family,), tags=((tag_yd, False), (tag_rg, False)), keys=1,
+             note=f"walk onto the yellow key (DoomEdNum {ed_y} at {y_spot}) on the antenna's "
+                  "platform, no give: one key; both locks still shut"),
+        Step("YD1", yd.point, yd.angle, press + (f"tag {tag_yd}", f"forward {yd.tics}", "capture"),
+             expect=(yd.inside,), tags=((tag_yd, True),), presses=((locked, tag_yd),),
+             note="the yellow door with its key: open (and the hangar's closets); into the command room"),
+        Step("SWA", swa_point, swa_angle,
+             ("use", f"wait {SWITCH_WAIT}", f"tag {tag_sha}", f"tag {tag_shb}", "capture"),
+             expect=(family_at(md, swa_point),), tags=((tag_sha, True), (tag_shb, False)),
+             presses=((swa.special, swa.arg0),),
+             note="SW-A: the bunker's shutter opens; the runway's shutter still shut"),
+        Step("RKEY", r_start, r_angle,
+             (f"forward {r_tics}", "inv", f"tag {tag_rg}", f"tag {tag_shb}", "capture"),
+             expect=(r_family,), tags=((tag_rg, False), (tag_shb, False)), keys=2,
+             note=f"walk onto the red key (DoomEdNum {ed_r} at {r_spot}) before the core, no "
+                  "give: two keys; the red gate and the runway's shutter still shut"),
+        Step("SWB", swb_point, swb_angle,
+             ("use", f"wait {SWITCH_WAIT}", f"tag {tag_shb}", "capture"),
+             expect=(family_at(md, swb_point),), tags=((tag_shb, True),),
+             presses=((swb.special, swb.arg0),),
+             note="SW-B at the escape stair's head: the shutter onto the runway opens, the shortcut"),
+        Step("RG1", rg.point, rg.angle, press + (f"tag {tag_rg}", f"forward {rg.tics}", "capture"),
+             expect=(rg.inside,), tags=((tag_rg, True),), presses=((locked, tag_rg),),
+             note="the red gate with its key: open (and the runway's closets); onto the harbour road"),
+        Step("E0", d3_point, d3_angle,
+             press + (f"tag {tag_d3}", "capture", f"forward {e0_tics}", "capture"),
+             expect=(exit_family,), tags=((tag_d3, True),), presses=((ZEMLYA_SPECIAL_DOOR_RAISE, tag_d3),),
+             note="D3, the conning tower's hatch, pressed from the deck; through it to the exit switch"),
+        Step("E1", actions=("use",), note="the exit switch: down the submarine, on to the next map"),
+    )
+    return Route("zemlya-critical", md.map_name, steps, expect_secrets=0,
+                 **exit_expectation(md.map_name),
+                 description="Novaya Zemlya's critical path: both locks shut without keys, the yellow "
+                             "key on the antenna's platform and its door, SW-A, the red key in the "
+                             "bunker, SW-B, the red gate onto the harbour, D3, the exit switch")
+
+
+# --- MAP08 «Североморск» / Severomorsk: the critical path ---------------------
+# (docs/levels/MAP08-severomorsk.md 5, 13). dam-critical's method with three
+# keys, on episode 3's submarine base. What the route reads, and where from:
+#   * tags, the locked-door special, the three locks and the three keys'
+#     editor numbers (5 blue, 6 yellow, 13 red): the named constants of the
+#     map that defines SEVEROMORSK_CONSTANTS (TAG_WT_SHUTTER, the boat's
+#     watertight door, is its own);
+#   * each lock: its Door_LockedRaise face (tag AND lock) in its portal: the
+#     red gate's in the container yard (Z2), the blue and the yellow door's
+#     on the dock's north quay (Z3); each walked through into the room beyond;
+#   * each key: the one thing of its number on skills 2-4, walked onto from
+#     KEY_APPROACH, never given (tray, cart and lid are one step up);
+#   * SW-A and SW-B: the one-sided switches on TAG_WT_SHUTTER (the boat's
+#     control room) and TAG_BARRACKS_SHUTTER (the reactor's passage);
+#   * the exit: the Exit_Normal line in the locomotive's cab; E0 stands in the
+#     cab before it (the walk from the gate to the bay is the open tunnel).
+# Order: the three locks refused with no key; SW-A; the blue key; the blue
+# door; the yellow key; the yellow door; the red key; SW-B, the way back; the
+# red gate; the regulator. Where the exit leads is MAPINFO's `next`.
+SEVEROMORSK_CONSTANTS = ("TAG_BLUE_DOOR", "TAG_YELLOW_DOOR", "TAG_RED_GATE", "TAG_WT_SHUTTER",
+                         "TAG_BARRACKS_SHUTTER", "SPECIAL_DOOR_LOCKED_RAISE", "LOCK_BLUE_CARD",
+                         "LOCK_YELLOW_CARD", "LOCK_RED_CARD", "ED_BLUE_CARD", "ED_YELLOW_CARD",
+                         "ED_RED_CARD")
+SEVEROMORSK_YARD_FAMILY = "Z2"   # the red gate is pressed from its portal in the yard's cliff
+SEVEROMORSK_DOCK_FAMILY = "Z3"   # the blue and yellow doors from their portals on the north quay
+
+
+def severomorsk_critical(md: "MapData | None" = None) -> Route:
+    """MAP08's critical path, read off the built map (see the block above)."""
+    md = md or load_map_data(map_defining(*SEVEROMORSK_CONSTANTS))
+    (tag_bd, tag_yd, tag_rg, tag_wt, tag_sh, locked, lock_b, lock_y, lock_r, ed_b, ed_y, ed_r) = (
+        _map_const(md, n) for n in SEVEROMORSK_CONSTANTS)
+    tm = md.textmap
+
+    a0_family = start_family(md)
+    rg = locked_door_walk(md, locked, tag_rg, SEVEROMORSK_YARD_FAMILY, "the red gate", lock_r)
+    bd = locked_door_walk(md, locked, tag_bd, SEVEROMORSK_DOCK_FAMILY, "the blue door", lock_b)
+    yd = locked_door_walk(md, locked, tag_yd, SEVEROMORSK_DOCK_FAMILY, "the yellow door", lock_y)
+
+    walks = {}
+    for ed in (ed_b, ed_y, ed_r):
+        spot = pass_spot(md, ed)
+        walks[ed] = (spot,) + pass_walk(md, spot, KEY_APPROACH)
+
+    swa = switch_line(md, tag_wt, "SW-A")
+    swa_point, swa_angle = approach(md, swa)
+    swb = switch_line(md, tag_sh, "SW-B")
+    swb_point, swb_angle = approach(md, swb)
+    exit_line = _longest(md, [ld for ld in tm.linedefs if ld.special == SPECIAL_EXIT_NORMAL], "the exit switch")
+    e0_point, e0_angle = approach(md, exit_line)
+
+    def key_step(sid, ed, keys, tags, note):
+        spot, start, angle, family, tics = walks[ed]
+        return Step(sid, start, angle, (f"forward {tics}", "inv") + tuple(f"tag {t}" for t in tags) + ("capture",),
+                    expect=(family,), tags=tuple((t, False) for t in tags), keys=keys,
+                    note=f"walk onto {note} (DoomEdNum {ed} at {spot}), no give")
+
+    press = ("use", f"wait {DOOR_WAIT}")
+
+    def refused(sid, door, tag, lock, what):
+        return Step(sid, door.point, door.angle, press + (f"tag {tag}", "inv", "capture"),
+                    expect=(family_at(md, door.point),), tags=((tag, False),), keys=0,
+                    presses=((locked, tag),), note=f"{what} (lock {lock}) pressed with no key: still shut")
+
+    def opened(sid, door, tag, note):
+        return Step(sid, door.point, door.angle, press + (f"tag {tag}", f"forward {door.tics}", "capture"),
+                    expect=(door.inside,), tags=((tag, True),), presses=((locked, tag),), note=note)
+
+    steps = (
+        Step("A0", actions=("level", "count", "inv", "capture"), expect=(a0_family,), keys=0,
+             note="the player start on the outer pier (off MAP07's launch): no key"),
+        refused("RG0", rg, tag_rg, lock_r, "the red gate of the rail tunnel"),
+        refused("BD0", bd, tag_bd, lock_b, "the blue door on the north quay"),
+        refused("YD0", yd, tag_yd, lock_y, "the yellow door on the north quay"),
+        Step("SWA", swa_point, swa_angle, ("use", f"wait {SWITCH_WAIT}", f"tag {tag_wt}", f"tag {tag_sh}", "capture"),
+             expect=(family_at(md, swa_point),), tags=((tag_wt, True), (tag_sh, False)),
+             presses=((swa.special, swa.arg0),),
+             note="SW-A in the boat's control room: the watertight door opens; the barracks' shutter still shut"),
+        key_step("BKEY", ed_b, 1, (tag_bd, tag_yd, tag_rg), "the blue key on the torpedo room's tray"),
+        opened("BD1", bd, tag_bd, "the blue door with its key: into the workshops"),
+        key_step("YKEY", ed_y, 2, (tag_yd, tag_rg), "the yellow key on the torpedo cart"),
+        opened("YD1", yd, tag_yd, "the yellow door with its key (and the tunnel's closets): down the rock tunnel"),
+        key_step("RKEY", ed_r, 3, (tag_rg, tag_sh), "the red key on the reactor's lid"),
+        Step("SWB", swb_point, swb_angle, ("use", f"wait {SWITCH_WAIT}", f"tag {tag_sh}", "capture"),
+             expect=(family_at(md, swb_point),), tags=((tag_sh, True),), presses=((swb.special, swb.arg0),),
+             note="SW-B in the passage: the shutter into the barracks opens, the way back"),
+        opened("RG1", rg, tag_rg, "the red gate with its key (and the yard's closets): into the rail tunnel"),
+        Step("E0", e0_point, e0_angle, ("capture",), expect=(family_at(md, e0_point),),
+             note="in the locomotive's cab at the loading bay, before the regulator"),
+        Step("E1", actions=("use",), note="the regulator: the goods train east, on to MAP09"),
+    )
+    return Route("severomorsk-critical", md.map_name, steps, expect_secrets=0,
+                 **exit_expectation(md.map_name),
+                 description="the submarine base's critical path: the three locks refused, SW-A in the "
+                             "boat, the blue key in the torpedo room, the blue door, the yellow key in "
+                             "the torpedo store, the yellow door, the red key on the reactor's lid, "
+                             "SW-B, the red gate, the regulator in the locomotive's cab")
+
 
 ED_PLAYER1_START = 1
 
@@ -1408,6 +1749,9 @@ LAZY_ROUTES: dict[str, Callable[[], Route]] = {
     "transsib-critical": transsib_critical,
     "dam-critical": dam_critical,
     "redsquare-critical": redsquare_critical,
+    "severomorsk-critical": severomorsk_critical,
+    "zemlya-critical": zemlya_critical,
+    "tunguska-critical": tunguska_critical,
 }
 
 

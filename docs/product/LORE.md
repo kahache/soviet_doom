@@ -81,6 +81,29 @@ episode 3). TO BE CONTINUED. The texts are in `LANGUAGE`
 `docs/engine/MOD-SPEC.md` §4.6. Texture sets and music are P4's work; the
 maps play approved pieces provisionally (MOD-SPEC §4.5).
 
+### Episode 3, «The Portal» / «Портал» / «El portal» (D112, P4)
+
+Moscow holds, but the invaders' main portal is still open. The sergeant
+follows their trail north to the Arctic, then east to where it began: the
+place in the Siberian taiga where the sky fell in 1908. A third episode on
+the New Game screen, after the second and before the practice range; it
+starts on MAP07 and closes the first cycle of the story.
+
+| Map | Place | Narrative function | Leaves by |
+|---|---|---|---|
+| MAP07 | **Novaya Zemlya** («Новая Земля» / «Nova Zembla»): the Arctic radar station, the radomes, the barracks, the nuclear test site | the invaders use the radar to guide something in; the sergeant cuts the beam | a patrol boat across the Barents Sea, to the Northern Fleet's base, which has not answered the radio for three days |
+| MAP08 | **Severomorsk** («Североморск»): the Northern Fleet's submarine base, the covered docks, a nuclear submarine, the cranes, the tunnels in the rock | the invaders were loading the submarine's warheads onto a train; the waybills name Tunguska | an all-night flight east over Siberia |
+| MAP09 | **Tunguska** («Тунгуска»): the taiga flattened in 1908, an alien-industrial complex eating the forest, the main portal | the climax of the first cycle: the final boss at the portal | the end of the episode |
+
+The ending: the portal folds in on itself, the machines stand still in the
+ash, and the land from Zarya-7 to Tunguska is ours again. One line stays
+open ("The sky over the taiga is empty. For now."), but it closes on THE
+END, not TO BE CONTINUED. The texts are in `LANGUAGE` (`SD_MAP07_EXIT_TEXT`,
+`SD_MAP08_EXIT_TEXT`, `SD_END04_TEXT`); the flow is
+`docs/engine/MOD-SPEC.md` §4.6. Until the episode has its own music, its
+maps play episode 2's approved B pieces provisionally (MOD-SPEC §4.5); the
+boss is a stand-in until a final boss exists (D112).
+
 ## Arsenal (D13), one per Doom slot
 
 | Slot | Weapon | Note |
