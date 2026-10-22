@@ -1,5 +1,14 @@
 """D70 (2026-10-14): the Doughboy wears its own sprites.
 
+REDRAWN by D109 and D114 (2026-10-22): the set that ships now is the
+Google Gemini redraw built by `tools/art/gemini_enemy.py doughboy` into
+`work/art/enemies_gemini/doughboy/` (MOD-SPEC 6.3, "The seven enemies redrawn
+from Google Gemini"), same lump names, frame letters and rotations, so the
+state machine below is untouched. The `files` checks read that build; the
+rig render named below is history (the generator is kept), and a lump of
+it shipping again is a failure. tests/test_gemini_enemy_install.py holds
+the install itself.
+
 The CEO chose cell C of the heavies sweep, the head in its M1 helmet,
 severed (D65, "Doughboy C"), asked for a bigger flag on the helmet (D67,
 "ponle la bandera más grande en la cabeza") and approved the set with it
@@ -62,7 +71,8 @@ SRC_DIR = PROJECT_ROOT / "src"
 DOUGHBOY_ZS = SRC_DIR / "zscript" / "monsters" / "doughboy.zs"
 SHELL_ZS = SRC_DIR / "zscript" / "monsters" / "doughboy_shell.zs"
 DOUGHBOY_SPRITES = PROJECT_ROOT / "assets" / "sprites" / "doughboy"
-WORK_SET = PROJECT_ROOT / "work" / "art" / "enemies" / "heavy" / "full" / "SDDB"
+WORK_SET = PROJECT_ROOT / "work" / "art" / "enemies" / "heavy" / "full" / "SDDB"   # the rig set, history since D109
+WORK_GEMINI = PROJECT_ROOT / "work" / "art" / "enemies_gemini" / "doughboy"       # what ships since D109
 PALETTE_JSON = PROJECT_ROOT / "docs" / "art" / "palette.json"
 sys.path.insert(0, str(TOOLS_DIR))
 sys.path.insert(0, str(TOOLS_DIR / "art"))
@@ -97,20 +107,24 @@ EXPECTED_LUMPS = {f"{NEW}{f}{r}" for f in ROTATED_FRAMES for r in ROTATIONS_8} \
     | {f"{NEW}{f}0" for f in FLAT_FRAMES}
 BLOOD_MAX_INDEX = 5                   # D49: the drawn blood is flag_red 0-5 (gen_heavy.py)
 
-# (canvas width, height, grAb left, top) per frame, as gen_heavy.py drew
-# them (DB_CV for A-F, DB_DEATH_CV for G-L; full_grab: the living frames
-# and G, still in the air when it dies, hang by the actor's z, H-L sink
-# FEET_SINK onto the floor): measured on the approved files 2026-10-14.
-LIVING_CANVAS = (80, 96, 40, 76)
-CANVASES = {**{f: LIVING_CANVAS for f in ROTATED_FRAMES},
-            "G": (160, 108, 72, 80),
-            **{f: (160, 108, 72, 76) for f in "HIJKL"}}
+# (canvas width, height, grAb left, top) per frame, as gemini_enemy.py
+# placed the Gemini redraw (D109): one canvas a frame for its rotations,
+# `left` the axis, `top` 14 px above the opaque bottom (DOUGHBOY_SINK, the
+# head hangs under its origin as the rig set's did): measured on the
+# installed files 2026-10-22. (The rig set had 80 x 96 for A-F, 160 x 108
+# for the death.)
+CANVASES = {"A": (72, 80, 36, 64), "B": (72, 80, 36, 64), "C": (72, 80, 36, 63),
+            "D": (72, 80, 36, 63), "E": (80, 80, 40, 64), "F": (72, 80, 36, 64),
+            "G": (80, 80, 40, 58), "H": (72, 80, 36, 61), "I": (96, 80, 48, 61),
+            "J": (72, 64, 36, 47), "K": (72, 40, 36, 22), "L": (96, 40, 48, 23)}
 
 # The body: Cacodemon parity, unchanged by D70.
 RADIUS, HEIGHT = 31, 56
 HEAD_RISE = 62                        # Freedoom's HEAD A-D rise 61-62 px over their offset row (freedoom2.wad 0.13.0)
-HEAD_MAX_WIDTH = 69                   # ... and are 61-69 px wide (HEADE3E7); ours lurch to 64 in pain
-BOXED_FRAMES = "ABCD"                 # the float and the attack: inside the 2 x RADIUS box (53-55 px)
+HEAD_MAX_WIDTH = 69                   # ... and are 61-69 px wide (HEADE3E7)
+BOXED_FRAMES = "ABCD"                 # the float and the attack: about the 2 x RADIUS box ...
+BOX_OVERHANG = 3                      # ... the Gemini head (D109) is 60-65 px wide: up to 3 px past 62
+PAIN_OVERHANG = 1                     # its pain lurch reaches 70 px, 1 past HEAD's widest
 DOUGHBOY_NUMBERS = {"21104", "3005"}  # ours, and Doom's Cacodemon, which it replaces
 
 # The corpse lies flat (the CEO's rule since the Legion's first L0). The
@@ -236,15 +250,19 @@ class BodyTests(unittest.TestCase):
 
     @unittest.skipUnless(HAVE_PIL, "Pillow not available in this interpreter")
     def test_the_drawing_fits_the_body_as_head_did(self):
-        """No wider and no taller over z than Freedoom's HEAD, the float and
-        the attack inside the box, so 31 x 56 hits what it hit before (D67's
-        rule: the body follows the drawing; here the drawing follows the
-        placeholder)."""
+        """No taller over z than Freedoom's HEAD, and as wide as the body
+        within a few px, so 31 x 56 hits what it hit before (D67's rule: the
+        body follows the drawing; here the drawing follows the placeholder).
+        The rig set sat inside the box (53-55 px, pain 64); the Gemini redraw
+        the CEO approved (D109) is 60-65 px wide, its pain 70: a sprite-only
+        overhang of at most 3 px, the hit box unchanged (NOT VERIFIED in the
+        engine, D26)."""
         for f in ROTATED_FRAMES:
             for r in ROTATIONS_8:
                 name = f"{NEW}{f}{r}"
                 left, _, right, _ = opaque_box(name)
-                self.assertLessEqual(right - left, 2 * RADIUS if f in BOXED_FRAMES else HEAD_MAX_WIDTH, name)
+                widest = 2 * RADIUS + BOX_OVERHANG if f in BOXED_FRAMES else HEAD_MAX_WIDTH + PAIN_OVERHANG
+                self.assertLessEqual(right - left, widest, name)
                 self.assertLessEqual(rise(name), HEAD_RISE, name)
 
 
@@ -307,10 +325,10 @@ class FileTests(unittest.TestCase):
             if p.stem[4] in ROTATED_FRAMES:
                 self.assertEqual(left, width // 2, p.name)
 
-    @unittest.skipUnless(WORK_SET.is_dir(), "work/ not present (CI has no work/)")
+    @unittest.skipUnless(WORK_GEMINI.is_dir(), "work/ not present (CI has no work/)")
     def test_byte_identical_to_the_approved_render(self):
         for p in installed():
-            source = WORK_SET / p.name
+            source = WORK_GEMINI / p.name
             self.assertTrue(source.is_file(), source)
             self.assertEqual(p.read_bytes(), source.read_bytes(), p)
 
@@ -328,10 +346,11 @@ class FileTests(unittest.TestCase):
 
     @unittest.skipUnless(HAVE_PIL, "Pillow not available in this interpreter")
     def test_the_deaths_bleed_dark_red(self):
-        """D49: every death frame G-L carries flag_red 0-5 blood, more of it
-        than any living frame (the living frames hold some in the stump's
-        drip and the pain's wound: at most 301 px, SDDBE1; the deaths 312
-        to 1073, growing as the pool spreads)."""
+        """D49: every death frame G-L carries flag_red 0-5 blood. The rig set
+        had more of it in every death frame than in any living one, growing
+        as the pool spread; Gemini's death sheet, approved as drawn (D109),
+        bleeds less (98 to 264 px a frame, the living head up to ~200 in its
+        stump and flesh), so what holds is that each death frame shows some."""
         data = json.loads(PALETTE_JSON.read_text(encoding="utf-8"))
         ramp = next(r for r in data["ramps"] if r["name"] == "flag_red")
         red = {tuple(c) for c in ramp["colours"][:BLOOD_MAX_INDEX + 1]}
@@ -341,11 +360,8 @@ class FileTests(unittest.TestCase):
                 raw = img.convert("RGBA").tobytes()
             return sum(1 for i in range(0, len(raw), 4) if raw[i + 3] and tuple(raw[i:i + 3]) in red)
 
-        living = max(count(f"{NEW}{f}{r}") for f in ROTATED_FRAMES for r in ROTATIONS_8)
-        deaths = [count(f"{NEW}{f}0") for f in FLAT_FRAMES]
-        for f, n in zip(FLAT_FRAMES, deaths):
-            self.assertGreater(n, living, f"{NEW}{f}0")
-        self.assertEqual(deaths, sorted(deaths), "the pool spreads frame by frame")
+        for f in FLAT_FRAMES:
+            self.assertGreater(count(f"{NEW}{f}0"), 0, f"{NEW}{f}0")
 
     @unittest.skipUnless(HAVE_PIL, "Pillow not available in this interpreter")
     def test_the_corpse_lies_flat(self):
@@ -354,6 +370,18 @@ class FileTests(unittest.TestCase):
         self.assertLessEqual((bottom - top) / (right - left), CORPSE_MAX_ASPECT, name)
         lowest_living = min(rise(f"{NEW}{f}{r}") for f in ROTATED_FRAMES for r in ROTATIONS_8)
         self.assertLessEqual(rise(name), CORPSE_MAX_RISE_SHARE * lowest_living, name)
+
+
+    @unittest.skipUnless(WORK_SET.is_dir(), "work/ not present (CI has no work/)")
+    def test_the_rig_set_no_longer_ships(self):
+        """D109: every lump of the set is the Gemini redraw, none the rig
+        render it replaced (that set stays in work/, history)."""
+        for p in installed():
+            if not p.stem.startswith(NEW):
+                continue
+            old = WORK_SET / p.name
+            if old.is_file():
+                self.assertNotEqual(p.read_bytes(), old.read_bytes(), p.name)
 
 
 class PackageTests(unittest.TestCase):

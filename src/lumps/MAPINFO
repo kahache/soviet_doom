@@ -487,7 +487,9 @@ map MAP04 lookup "SD_MAP04_NAME"
 	// D106: the episode 2 intermission, 92 BPM, on the stats screen after
 	// this map instead of GameInfo's D_SDTITL.
 	intermusic = "D_SDE2IA"
-	sky1 = "SKY1"
+	// D113: our own sky, the Urals at night over Sverdlovsk (1024x128, one
+	// 360-degree turn; textures/sky/, docs/art/TEXTURE-INDEX.md).
+	sky1 = "SDSKY1"
 	par = 300
 }
 
@@ -500,7 +502,9 @@ map MAP05 lookup "SD_MAP05_NAME"
 	next = "MAP06"
 	music = "D_SDM05A"	// D106: the dam, 116 BPM (B: D_SDM05B, 108 BPM)
 	intermusic = "D_SDE2IA"	// D106: as after MAP04
-	sky1 = "SKY1"
+	// D113: MAP04's Urals night (dark wooded hills, a broken cloud deck)
+	// fits the Zhiguli hills over the dam better than Moscow's skyline.
+	sky1 = "SDSKY1"
 	par = 330
 }
 
@@ -515,7 +519,9 @@ map MAP06 lookup "SD_MAP06_NAME"
 	// D106: the Red Square march, 120 BPM (B: D_SDM06B, 112 BPM). Its boss
 	// loop, D_SDBS6A / D_SDBS6B, is SD_MusicVariant's, not a MAPINFO key.
 	music = "D_SDM06A"
-	sky1 = "SKY1"
+	// D113: our own sky, Moscow at night under its sodium glow, the Stalin
+	// high-rises and Ostankino on the skyline (textures/sky/).
+	sky1 = "SDSKY2"
 	par = 420
 }
 

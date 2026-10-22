@@ -2,8 +2,10 @@
 
 Design document. Owner: `level-designer`. Status: **v1 BUILT 2026-10-22
 (§13): the whole map, walkable from start to exit, textured with approved
-lumps only (the Arctic set's stand-ins listed, §7.2), populated, three
-secrets; not yet walked, no engine pass yet (D26).** Episode 3, «The
+lumps only, populated, three secrets; since 2026-10-22 (D113) it wears
+Episode 3's Arctic set and the Naval set's submarine (§7.1), three
+undrawn lumps resolved with stand-ins (§7.2); not yet walked, no engine
+pass yet (D26).** Episode 3, «The
 Portal» (D112), first map. Built MVP first (D60). Source:
 `src/maps/MAP07/map.py`; tests: `tests/test_map07_novaya_zemlya.py` (the
 map), `tests/test_map07_route.py` (its automatic route) and the `Map07Posters`
@@ -226,41 +228,61 @@ Measured (hit points met, by beat; `test_the_intensity_rises`):
 
 ### 7.1 By zone (all approved and packed, tested)
 
+Episode 3's lumps (D113, `docs/art/TEXTURE-INDEX.md`, "Arctic" and
+"Naval") in **bold**.
+
 | Zone | Walls | Floor | Ceiling |
 |---|---|---|---|
-| Runway | the bunker block's front `SDCONC1`; the hangar's front `SDRUST1`; the gatehouse `SDBRCK1` with the banners `SDFLAG1`/`SDFLAG2`; kerbs `SDCONC1` | `SDFLR2`, centreline `SDFLR1` turned | sky |
-| The Il-14 | `SDSTEL1` (fuselage, wings, nacelles, tailplane, the tail over the ramp); the cargo ramp `SDGATE1` (S1) | `SDFLR4` | sky |
+| Runway | the bunker block's front `SDCONC1`; the hangar's front `SDRUST1`; the gatehouse `SDBRCK1` with the banners `SDFLAG1`/`SDFLAG2`; snowbanks (kerbs) **`SDICE2`** | **`SDRWY1`**, the centre strip **`SDRWY2`**, both turned 90° (`rotationfloor`); the snowbanks' tops **`SDSNOW1`** | sky |
+| The Il-14 | `SDSTEL1` (fuselage, wings, nacelles, tailplane, the tail over the ramp; no `SDPLAN1` drawn, §7.2); the cargo ramp `SDGATE1` (S1) | `SDFLR4`; the porch under the tail **`SDRWY1`** turned | sky |
 | Fuel bowser | `SDTANK1` («НЕФТЬ»), one tile high | `SDFLR4` | sky |
-| Hangar | `SDRUST1`; crates `SDCRAT1`/`SDCRTOP1`; Lenin `SDPOSTR1` in a recess | `SDFLR2` | `SDCEIL1` |
+| Hangar | `SDRUST1`; crates `SDCRAT1`/`SDCRTOP1`; Lenin `SDPOSTR1` in a recess | `SDFLR2`; D1's porch outside **`SDSNOW1`** | `SDCEIL1` |
 | Tunnels | `SDTUNL1` | `SDFLR2` | `SDCEIL2` |
 | Barracks | `SDCONC2`; locker alcoves `SDLOCK1`; bunks `SDSTEL1`; the mural `SDPOSTR2` on a sill | `SDFLR3` | `SDCEIL1` |
-| Radome | `SDCONC1` (stand-in, §7.2); dish rim, platform, gallery `SDSTEL1` | `SDFLR2`; platform `SDGRAT2`; gallery `SDFLR4` | `SDCEIL2`; the dish's underside `SDGRAT2` (the mesh) |
-| Command room | `SDTILE1`; three `SDCTRL1` boards standing on the floor; consoles `SDCTRL1`'s desk; Stalin `SDPOSTR3`; two Marx-Engels slots | `SDFLR3`; consoles and map table `SDFLR4` | `SDCEIL1` |
-| Bunker | `SDTUBB1`; the chamber's passage `SDMEDG1` (hazard chevrons); the core `SDPORT1` (animated) | `SDFLR4` | `SDCEIL2`, lamp `SDCEIL1` |
-| Harbour | warehouses and sheds `SDBRCK3`; the quay wall `SDDAM2` (tide mark on the water); ice faces `SDDAM1`; S3's door `SDGATE2` | `SDFLR2`; the sea `SDWATR1` (animated); floes and pack ice `SDMFLR1` | sky |
-| Submarine | hull and tower `SDARMR2`, one `SDARMR1` star on the tower; gangway `SDSTEL1` | `SDFLR4` | sky; tower `SDFLR4` |
-| Doors, switches | `SDDOOR1` (D1-D3), `SDDOORY`, `SDDOORR`; `SDSW1A`, `SDSW1B`, `SDSW1D` | | |
+| Radome | **`SDRADM1`** (the walls, the chamfers and the crown); dish rim, platform, gallery `SDSTEL1` | `SDFLR2`; platform `SDGRAT2`; gallery `SDFLR4` | `SDCEIL2`; the dish's underside `SDGRAT2` (the mesh) |
+| Command room | `SDTILE1`; the two boards flanking Stalin **`SDRADR1`** (two PPI scopes each, animated `SDRADR1-4`), the east board `SDCTRL1`, all standing on the floor; consoles `SDCTRL1`'s desk; Stalin `SDPOSTR3`; two Marx-Engels slots | `SDFLR3`; consoles and map table `SDFLR4` | `SDCEIL1` |
+| Bunker | `SDTUBB1`; the chamber's passage `SDMEDG1` (hazard chevrons); the core `SDPORT1` (animated); the shutter from the command room **`SDHERM1`** both faces, the escape shutter **`SDHERM1`** on the stair's face (from the runway it stays `SDCONC1`, wall) | `SDFLR4` | `SDCEIL2`, lamp `SDCEIL1` |
+| Harbour | warehouses `SDBRCK3`; the two sheds inside **`SDHUT1`** (alike, S3's comparison); the quay wall `SDDAM2` (tide mark on the water); ice faces **`SDICE2`**; snowbanks **`SDICE2`**; S3's door `SDGATE2` | road, quay, porches, snowbanks **`SDSNOW1`**; the sea `SDWATR1` (animated); floes and pack ice **`SDICE1`** | sky |
+| Submarine | hull and tower **`SDHULL1`** (Naval set), «471» **`SDHULL2`** once on the tower's south face, one `SDARMR1` star on its north face; inside the tower **`SDNAVC1`**; gangway `SDSTEL1` | deck and the hatch's porch **`SDRUBR1`** (Naval set; the worn path along y, the boat lies along y); inside `SDFLR4` | sky; tower `SDFLR4` |
+| Doors, switches | `SDDOOR1` (D1, D2), D3 **`SDBULK1`** (the watertight door «3», Naval set), `SDDOORY`, `SDDOORR`; `SDSW1A`, `SDSW1B`, `SDSW1D`. No blue lock on this map, so no `SDDOORB` | | |
 
-### 7.2 Pending textures: the Arctic set
+**Alignment (tested).** `SDRADM1` on one grid from the radome's floor:
+whole 128 panels to the 512 rim and to the 704 crown. `SDHULL1` with its
+deck edge on the deck (32) and on the tower's top (160): from the water
+the hull shows the tile's upper 96 rows, deck edge up. `SDICE2` from the
+ground on the snowbanks, from the water (-64) on the floes and the pack
+ice. The three run on the world's x/y grid (`LUMP_WIDTH`), so a split line
+shows no seam. `SDRWY1` and `SDRWY2` are twins turned alike: the dash
+(tile columns 27-36) lands on world y 283-293, the middle of the 64-wide
+strip at y 256-320, whichever way the engine turns it. `SDRADR1` hangs on
+256- and 128-long boards from their start: two whole scopes each. The
+single pieces (`SDHERM1`, `SDBULK1`, `SDHULL2`, the star) on lines exactly
+128 long, offset 0.
 
-Snow, ice and a radome do not exist among the approved lumps. Each piece
-below is the request to the art-director (drawing an "Arctic" set now); the
-map wears the stand-in meanwhile (`ARCTIC_SET` in `map.py`, tested: the
-stand-in is worn and packed, the proposed name is not in `assets/`; the day
-it is, the test turns red until the map wears it).
+### 7.2 The Arctic set: what was asked, what is worn
 
-| Proposed | Kind | What | Stand-in worn now | Where |
+The request to the art-director, as built v1 (`ARCTIC_SET` in `map.py`,
+tested: where the proposed lump exists the map wears it; where it does
+not, the stand-in is worn, and the day the proposed lump appears in
+`assets/` the test turns red until the map wears it).
+
+| Proposed | Kind | What | Worn now | Where |
 |---|---|---|---|---|
-| `SDSNOW1` | flat | packed snow, tyre and boot tracks | `SDFLR2` | runway, road, quay |
-| `SDSNOW2` | wall 64×128 | snowbank face (low, wind-cut) | `SDCONC1` | the kerbs round the runway and the quay |
-| `SDICE1` | flat | sea ice, cracked, blue-white | `SDMFLR1` | floes, pack ice |
-| `SDICE2` | wall 64×128 | the ice's edge at the water | `SDDAM1` | floes' and pack ice's faces |
-| `SDRADM1` | wall 64×128 | radome inner skin: triangular fibreglass panels, pale | `SDCONC1` | radome walls |
-| `SDPLAN1` | wall 64×128 | Il-14 skin in polar aviation's red and silver, rivets | `SDSTEL1` | the plane |
-| `SDSUBH1` | wall 64×128 | submarine hull, black rubber tiles, a waterline | `SDARMR2` | hull, tower |
-| `SDMAPT1` | flat | plotting table with the Arctic on it | `SDFLR4` | command room's table |
-| `SDRADR1` | wall 128×128 | radar console with a round green PPI scope | `SDCTRL1` | command room's boards (could replace one) |
-| `SDAURO1` | sky | the polar night with an aurora | — (MAPINFO's sky, scaffolding's) | `PENDING_TEXTURES` |
+| `SDSNOW1` | flat | packed snow | **`SDSNOW1`** | road, quay, porches, snowbanks' tops (the runway wears `SDRWY1`, drawn for it) |
+| `SDSNOW2` | wall 64×128 | snowbank face | `SDICE2` (not drawn; the glacier ice is the nearest) | the snowbanks round the runway and the quay |
+| `SDICE1` | flat | sea ice | **`SDICE1`** | floes, pack ice |
+| `SDICE2` | wall 64×128 | the ice's edge at the water | **`SDICE2`** | floes' and pack ice's faces |
+| `SDRADM1` | wall | radome skin | **`SDRADM1`** (drawn 128×128) | radome walls and crown |
+| `SDPLAN1` | wall 64×128 | Il-14 skin in polar aviation's red and silver | `SDSTEL1` (not drawn; S1's clue is the plane's steel against its corrugated ramp) | the plane |
+| `SDSUBH1` | wall | submarine hull | `SDHULL1` (drawn under that name in the Naval set) | hull, tower |
+| `SDMAPT1` | flat | plotting table with the Arctic on it | `SDFLR4` (not drawn; no installed flat is a map) | command room's table |
+| `SDRADR1` | wall 128×128 | radar console with a round PPI scope | **`SDRADR1`** | the two north boards |
+| `SDAURO1` | sky | the polar night with an aurora | — (MAPINFO's sky, scaffolding's: Freedoom's `SKY1`) | `PENDING_TEXTURES` |
+
+Still for the `art-director`, if the CEO wants them: `SDPLAN1`, `SDMAPT1`,
+`SDAURO1`. Drawn but not used here: `SDRUBR1`'s twin `SDRUBR2` (a flush
+deck hatch; MAP07's hatch is a door in the tower) and the rest of the
+Naval set (MAP08's).
 
 ### 7.3 Posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
 
@@ -347,9 +369,10 @@ down with skill (tested).
 | Damaging floor | `damageamount` 5, `damageinterval` 32 on the sea | as MAP05 (in play NOT VERIFIED there either): V4 |
 | Sky and the open-air trick | `F_SKY1`; kerbs and pack ice with a sky 16 over their top | as MAP05's parapets: V2 |
 | Impassable kerbs | two-sided lines `blocking` | Doom's flag |
-| Middle textures | three `SDCTRL1` boards, `blocking` + `dontpegbottom` | as MAP05: V13 |
-| Animated textures | `SDWATR1` (flat), `SDPORT1` (wall) through ANIMDEFS | both in ANIMDEFS already; NOT VERIFIED here: V11 |
-| Texture offsets | `SDDAM2` on the quay wall, `SDCTRL1` on the consoles | MAP05's helper; V12 |
+| Middle textures | three boards (two `SDRADR1`, one `SDCTRL1`), `blocking` + `dontpegbottom` | as MAP05: V13 |
+| Animated textures | `SDWATR1` (flat), `SDPORT1` (wall), `SDRADR1` (wall, a middle texture, 12 tics) through ANIMDEFS | all in ANIMDEFS already; NOT VERIFIED here: V11, V15 |
+| Texture offsets | `SDDAM2` on the quay wall, `SDCTRL1` on the consoles, `SDRADM1`, `SDHULL1`, `SDICE2` on their grids | MAP05's helper; V12, V16 |
+| Flat rotation | `rotationfloor` 90 on the runway (`SDRWY1`) and its centre strip (`SDRWY2`) | GZDoom UDMF; NOT VERIFIED here: V17 |
 
 Tag plan: **1** D1 · **2** D2 · **3** D3 · **4** yellow door + hangar
 closets · **5** red gate + runway closets · **6** S1 · **7** S2 · **8** S3 ·
@@ -365,8 +388,8 @@ more. A par of about 360 is fair for a player who knows the route.
 
 | Version | Content | Done when |
 |---|---|---|
-| **v1 — whole, textured, populated** ✅ **BUILT 2026-10-22** (§13) | §4-§10 with approved lumps and the Arctic stand-ins | the CEO walks it on skill 3 and reaches MAP08 |
-| v2 — the Arctic set and light | swap `ARCTIC_SET`'s stand-ins as each lump is approved (one line each); the aurora sky; floodlight pools on the runway and the quay; a radar console (`SDRADR1`) | a first-time player finds both keys and the exit without being told |
+| **v1 — whole, textured, populated** ✅ **BUILT 2026-10-22** (§13) | §4-§10 with approved lumps; the Arctic set and the submarine applied the same day (D113, §7) | the CEO walks it on skill 3 and reaches MAP08 |
+| v2 — light and the rest | the aurora sky (`SDAURO1`, if drawn); floodlight pools on the runway and the quay; `SDPLAN1`/`SDMAPT1` if drawn (one line each in `ARCTIC_SET`) | a first-time player finds both keys and the exit without being told |
 | v3 — balance | after the playtests (D60) | played through on skill 3 |
 
 ## 13. v1 build record (2026-10-22)
@@ -388,6 +411,9 @@ episode-3 agents).
   `test_doughboy_sprites` pins the maps that place a Doughboy to MAP01-MAP06
   and RANGE, and MAP07, MAP08 and MAP09 now place them (13.5).
 - **No engine run** (D26).
+- 2026-10-22, D113, the Arctic and Naval sets applied (§7):
+  `python -m unittest tests.test_map07_novaya_zemlya tests.test_map07_route`
+  — 92 tests, OK.
 
 ### 13.3 Engine checklist for the PM (D26)
 
@@ -407,6 +433,10 @@ episode-3 agents).
 | V12 | `SDDAM2`'s tide mark just under the quay's edge; the consoles show the desk | look |
 | V13 | The command room's three boards stand on the floor, drawn once, stop the player | walk into one |
 | V14 | The Il-14 reads as a plane (fuselage, low wings, nacelles, the tail over the ramp) | arrive |
+| V15 | The radar consoles' scopes sweep (`SDRADR1`-`4`, a middle texture) | stand before the north boards |
+| V16 | Episode 3's walls on their grids: the radome's panels whole to rim and crown, the hull's deck edge on the deck from the water, the ice faces without seams | look at the radome, the submarine from the quay, the floes |
+| V17 | The runway's slabs and centre line run down the runway (east-west), the dash in the middle of its strip, no seam between `SDRWY1` and `SDRWY2` | arrive, look west |
+| V18 | The conning tower from the deck: above the tower's top (160), round its inner room and over the hatch's porch, the upper texture against the sky (the room's and the porch's ceilings are `SDFLR4`, not sky) shows as a box up to 512 (`SDHULL1` over the porch, `SDSTEL1` round the room, as v1). If so, the porch's and the room's ceilings want the sky (a design call: the bridge open to the night) | look at the tower from the gangway |
 
 ### 13.4 For the CEO's walk
 
@@ -419,7 +449,8 @@ episode-3 agents).
 
 ### 13.5 What other roles hold
 
-- `art-director`: the Arctic set, §7.2 (the request, by lump name).
+- `art-director`: what is left of the Arctic request, §7.2 (`SDPLAN1`,
+  `SDMAPT1`, `SDAURO1`), if the CEO wants them.
 - Scaffolding / `mod-engineer`: MAPINFO and LANGUAGE for MAP07 are in place.
 - **Shared tests not this role's**: `tests/test_doughboy_sprites.py`
   (`test_the_doughboy_is_placed_in_every_map`) pins the set of maps that

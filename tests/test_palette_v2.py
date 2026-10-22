@@ -26,7 +26,8 @@ What is enforced here, and why:
               since D80, the IZh-58's, RPG-7's, ROKS-3's and hand
               Katyusha's held and flash frames since D84, the ice axe's
               SDAX A-D since D88, the sergeant's 42 Gemini faces STF* since
-              D90)
+              D90, Episode 2's bricks since D107, the portal rim and Episode
+              2 round 2's six v2 walls since D113)
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_palette_v2 -v
 """
@@ -125,6 +126,24 @@ HUD_FACES = ([f"STFST{level}{glance}" for level in range(5) for glance in range(
 # and the Spasskaya stone SDSPAS1. Every other Episode 2 lump is v1.
 EP2_BRICKS = (("railway", "SDBRCK3"), ("moscow", "SDKREM1"), ("moscow", "SDKREM2"),
               ("moscow", "SDBANR1"), ("moscow", "SDSPAS1"))
+# D113 (installed 2026-10-22): Episode 3's portal rim SDPRTE1 (gen_taiga.py,
+# mosaic_cobalt, the look of SDPORT1-4) and Episode 2 round 2's v2 pieces
+# (gen_episode2b.py): the blue key door SDDOORB (mosaic_cobalt), the Spasskaya
+# clock SDCLOK1 and the Historical Museum SDMUSE1 (marble_red), and the two
+# banners on SDKREM1, SDFLAG3 (marble_red) and SDFLAG4 (marble_red and, in the
+# canton, mosaic_cobalt). All indexed. Every other lump of both batches is v1,
+# the three round-2 masked pieces and the crane included.
+D113_V2 = (("taiga", "SDPRTE1"), ("dam", "SDDOORB"), ("moscow", "SDCLOK1"),
+           ("moscow", "SDMUSE1"), ("moscow", "SDFLAG3"), ("moscow", "SDFLAG4"))
+# D109, D114 (installed 2026-10-22): the seven enemies redrawn from Google
+# Gemini (gemini_enemy.py snaps every set to all of palette v2): SDRR, SDLT,
+# SDHS, SDHN, SDDB, SDPM, SDPS and SDGN, 540 RGBA lumps (not in
+# PALETTE_V2_LUMPS). The lump lists are tests/test_gemini_enemy_install.py's.
+# Their projectiles SDBL, SDGL, SDDL and SDPL were not redrawn and stay v1.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from test_gemini_enemy_install import SETS as GEMINI_ENEMY_SETS  # noqa: E402
+GEMINI_ENEMIES = {f"sprites/{folder}/{name}.png"
+                  for folder, _, names, _ in GEMINI_ENEMY_SETS.values() for name in names}
 D84_FRAMES = {"izh": ("SDIZ", "ABCD", "SDIF", "AB"), "rpg7": ("SDRL", "AB", "SDRF", "ABCD"),
               "roks3": ("SDRK", "AB", "SDKF", "A"), "katyusha": ("SDHK", "AB", "SDHF", "AB"),
               "ice_axe": ("SDAX", "ABCD", "SDAX", "")}
@@ -145,7 +164,9 @@ APPROVED_IN_V2: set[str] = (
     | {f"sprites/{folder}/{name}{f}0.png" for folder, (held, hf, flash, ff) in D84_FRAMES.items()
        for name, frames in ((held, hf), (flash, ff)) for f in frames}
     | {f"graphics/statusbar/{name}.png" for name in HUD_FACES}
-    | {f"textures/{folder}/{lump}.png" for folder, lump in EP2_BRICKS})
+    | {f"textures/{folder}/{lump}.png" for folder, lump in EP2_BRICKS}
+    | {f"textures/{folder}/{lump}.png" for folder, lump in D113_V2}
+    | GEMINI_ENEMIES)
 
 
 def _digest(colours) -> str:

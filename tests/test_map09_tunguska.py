@@ -8,11 +8,14 @@ map's tests stay one file). The contract:
   up higher than a stair step; the campaign's biggest map;
 * only approved, packed textures (and the engine's sky marker F_SKY1); every
   picture, board, flag, signal and door leaf one whole tile; the three locks
-  wear their key's look;
+  wear their key's look; the episode's "Taiga/Alien" set where the design
+  puts it (D113), the stand-ins gone, every face of it on the world's grid,
+  each glyph plate whole, the portal framed, the locomotive's cab whole;
 * the open air: every outdoor zone has the sky, every closed sky block (the
   roofs) is a prop; the fallen trunks lie away from the crater, seen over and
   not climbed; the standing forest's trunks are columns of void;
-* the molten pits hurt and are one step deep: walked out of;
+* the pits hurt (acid in the works and the crater, molten metal in the
+  refinery) and are one step deep: walked out of;
 * everything is reachable playing the map's own doors, its THREE keys in
   order, the red key's pickup (the works' closets) and the boss's death (the
   bunker's gate); no trap at any stage; the exit only after the boss dies;
@@ -448,10 +451,165 @@ class Map09Test(unittest.TestCase):
 
     def test_each_lock_wears_its_keys_look(self):
         m = self.m
+        self.assertEqual("SDDOORB", m.DOOR, "the blue key's own door (D113)")
         leaf = {m.TAG_BLUE_DOOR: m.DOOR, m.TAG_YELLOW_DOOR: m.DOOR_YELLOW, m.TAG_RED_DOOR: m.DOOR_RED}
         for ld in self.lines:
             if ld.get("special") == m.SPECIAL_DOOR_LOCKED_RAISE:
                 self.assertEqual(leaf[ld["arg0"]], self.sides[ld["sidefront"]]["texturetop"])
+
+    # --- the Taiga/Alien set (D113) -------------------------------------------
+    def walls_of(self, texture):
+        """{zone} of every sector that has a drawn face wearing `texture`."""
+        return {zone for _, zone in self.faces_of(texture)}
+
+    def test_the_taiga_set_dresses_the_map(self):
+        """The episode's own set where the design puts it; the stand-ins gone."""
+        m = self.m
+        floors = {"z1_yard": m.MOSS, "z2_taiga": m.BURNT, "z3_yard": m.MOSS, "z4_forest": m.PEAT,
+                  "z5_edge": m.BURNT, "z7_rim": m.BURNT, "z1_ballast": m.BALLAST}
+        floors.update({f"z8_tier_{k}": m.BURNT for k in range(1, m.TERRACES + 1)})
+        for zone, flat in floors.items():
+            self.assertEqual(flat, self.sectors[self.plan[zone]]["texturefloor"], zone)
+        self.assertEqual(m.BURNT_TURN, self.sectors[self.plan["z2_taiga"]].get("rotationfloor"))
+        used = {sd.get(p) for sd in self.sides for p in ("texturetop", "texturemiddle", "texturebottom")}
+        used |= {s[k] for s in self.sectors for k in ("texturefloor", "textureceiling")}
+        for gone in ("SDTUBB1", "SDDOOR1"):
+            self.assertNotIn(gone, used, f"{gone} was a stand-in")
+        # Planking only on the goods wagon and the platform's edge; rust only on the vats.
+        self.assertEqual({"z1_ballast", "z1_track", "z1_yard"}, self.walls_of(m.WAGON))
+        self.assertEqual({"z6_refinery"}, self.walls_of(m.RUST))
+        # Logs on every hut, inside and out, and on the palisade.
+        logs = self.walls_of(m.LOG_WALL)
+        for zone in ("z1_halt", "z1_yard", "z3_izba_a", "z3_izba_b", "z3_izba_c", "z3_yard",
+                     "z2_taiga", "s1_store"):
+            self.assertIn(zone, logs)
+        # Charred larch for the treeline and the trunks, birch here and there.
+        for zone in ("z1_ballast", "z2_taiga", "z4_forest"):
+            self.assertIn(zone, self.walls_of(m.BARK))
+        self.assertTrue({"z2_taiga", "z4_forest", "z1_ballast"} <= self.walls_of(m.BIRCH))
+        self.assertTrue(m.birch_trunks())
+        self.assertLess(len(m.birch_trunks()), len(m.trunk_spots()) // 4, "birch is the odd one")
+        for n, (x, y, length) in enumerate(m.LOGS, start=1):
+            s = self.sectors[self.plan[f"prop_z2_log_{n}"]]
+            self.assertEqual(m.MOSS if n in m.BIRCH_LOGS else m.BURNT, s["texturefloor"], n)
+        # The invaders' metal on their works, fence, containment and crater.
+        alien = self.walls_of(m.ALIEN)
+        for zone in ("z5_works", "z3_yard", "z4_forest", "z7_rim", "z8_floor", "z8_tier_4",
+                     "z5_red_portal", "closet_z5_w"):
+            self.assertIn(zone, alien)
+        self.assertEqual({"z5_works", "z7_rim", "z8_floor"}, self.walls_of(m.GLYPH))
+
+    def test_every_glyph_plate_is_whole(self):
+        """SDGLYP1 is one 64 plate: every line wearing it is a whole number of
+        plates, starting on a plate's edge, and its faces a whole number of
+        tiles high (the pylons two, the towers two, the gates' walls four)."""
+        m = self.m
+        n = 0
+        for ld in self.lines:
+            for side in [ld["sidefront"]] + ([ld["sideback"]] if "sideback" in ld else []):
+                sd = self.sides[side]
+                if m.GLYPH not in (sd.get("texturemiddle"), sd.get("texturebottom")):
+                    continue
+                if self.sectors[sd["sector"]]["heightfloor"] == self.sectors[sd["sector"]]["heightceiling"]:
+                    continue
+                (a, b) = self.line_points(ld)
+                self.assertEqual(0, (abs(a[0] - b[0]) + abs(a[1] - b[1])) % 64, ld)
+                self.assertEqual(0, sd.get("offsetx", 0), ld)
+                n += 1
+        self.assertGreaterEqual(n, 4 * len(m.PYLONS) + 4 * len(m.TOWERS) + len(m.GATE_GLYPHS))
+        for height, zone in self.faces_of(m.GLYPH):
+            self.assertEqual(0, height % m.TILE_SIZE, zone)
+
+    def drawn_refs(self, texture):
+        """[(offsety, the height the face is pegged to)] for every drawn part
+        wearing `texture` (Doom's pegging, as map.drawn_parts has it)."""
+        out = []
+        for ld in self.lines:
+            pairs = [(ld["sidefront"], ld.get("sideback"))]
+            if "sideback" in ld:
+                pairs.append((ld["sideback"], ld["sidefront"]))
+            for side, other in pairs:
+                sd = self.sides[side]
+                s = self.sectors[sd["sector"]]
+                if other is None:
+                    if sd.get("texturemiddle") == texture:
+                        out.append((sd.get("offsety", 0), s["heightfloor"] if ld.get("dontpegbottom")
+                                    else s["heightceiling"]))
+                    continue
+                o = self.sectors[self.sides[other]["sector"]]
+                if o["heightfloor"] > s["heightfloor"] and sd.get("texturebottom") == texture:
+                    out.append((sd.get("offsety", 0), s["heightceiling"] if ld.get("dontpegbottom")
+                                else o["heightfloor"]))
+        return out
+
+    def test_the_new_set_sits_on_the_world_grid(self):
+        """Every face of the logs, the bark, the alien metal and the glyphs has
+        its rows on one grid from the ground: the logs' joints meet every
+        floor (the huts' one step up too), the glyph plates and the membrane
+        run on through the terraces."""
+        m = self.m
+        for texture in (m.LOG_WALL, m.BARK, m.BIRCH, m.ALIEN, m.GLYPH):
+            refs = self.drawn_refs(texture)
+            self.assertTrue(refs, texture)
+            for offsety, ref in refs:
+                self.assertEqual(0, (ref + offsety - m.GROUND) % m.TILE_SIZE, (texture, ref, offsety))
+        # SDLOGW1's joints every 16: the huts' floor (16) lands on one.
+        self.assertEqual(0, m.HUT_FLOOR % 16)
+
+    def test_the_portal_has_its_frame(self):
+        """Four posts of SDPRTE1 in the field's corners, over the field, each
+        32 face showing the middle of the lump (the cobalt channel); between
+        them the field is one tile of SDPORT1 wide."""
+        m = self.m
+        posts = m.frame_posts()
+        self.assertEqual(4, len(posts))
+        for n, (x1, y1, x2, y2) in enumerate(posts, start=1):
+            s = self.sectors[self.plan[f"prop_z8_frame_{n}"]]
+            self.assertEqual(m.FRAME_TOP, s["heightfloor"])
+            self.assertGreater(m.FRAME_TOP, m.PORTAL_TOP)
+            self.assertEqual(self.plan[f"prop_z8_frame_{n}"], self.sector_at((x1 + x2) // 2, (y1 + y2) // 2))
+        rims = [(ld, self.sides[s]) for ld in self.lines
+                for s in [ld["sidefront"]] + ([ld["sideback"]] if "sideback" in ld else [])
+                if self.sides[s].get("texturebottom") == m.PORTAL_RIM
+                and self.sectors[self.sides[s]["sector"]]["heightfloor"] < m.FRAME_TOP]
+        self.assertTrue(rims)
+        for ld, sd in rims:
+            (a, b) = self.line_points(ld)
+            self.assertEqual(m.FRAME_POST, abs(a[0] - b[0]) + abs(a[1] - b[1]))
+            self.assertEqual(m.FRAME_OFFSET, sd["offsetx"])
+        fx1, fy1, fx2, fy2 = m.PORTAL_FIELD
+        self.assertEqual(m.TILE_SIZE, fx2 - fx1 - 2 * m.FRAME_POST)
+        self.assertEqual(m.TILE_SIZE, fy2 - fy1 - 2 * m.FRAME_POST)
+
+    def test_the_locomotive_has_its_cab(self):
+        """The train he came on: a cab the player steps into from beside the
+        platform, SDCAB1 forward as one whole 128 picture, SDCAB2 on the
+        other walls, each a whole tile high on the cab's floor."""
+        m = self.m
+        cab = self.plan["z1_cab"]
+        self.assertIn(cab, self.reachable(frozenset()))
+        fronts = [(ld, self.sides[s]) for ld in self.lines
+                  for s in [ld["sidefront"]] + ([ld["sideback"]] if "sideback" in ld else [])
+                  if self.sides[s].get("texturebottom") == m.CAB_FRONT and self.sides[s]["sector"] == cab]
+        self.assertEqual(1, len(fronts))
+        ld, sd = fronts[0]
+        (a, b) = self.line_points(ld)
+        self.assertEqual(128, abs(a[0] - b[0]) + abs(a[1] - b[1]))
+        self.assertEqual(0, sd["offsetx"])
+        self.assertEqual([(m.TILE_SIZE, "z1_cab")], self.faces_of(m.CAB_FRONT))
+        self.assertTrue(self.faces_of(m.CAB_SIDE))
+        for height, zone in self.faces_of(m.CAB_SIDE):
+            self.assertEqual((m.TILE_SIZE, "z1_cab"), (height, zone))
+        for texture in (m.CAB_FRONT, m.CAB_SIDE):
+            for offsety, ref in self.drawn_refs(texture):
+                self.assertEqual(0, (ref + offsety - m.HUT_FLOOR) % m.TILE_SIZE, texture)
+        # Every SDCAB2 run on the cab's walls is whole windows.
+        for ld in self.lines:
+            for s in [ld["sidefront"]] + ([ld["sideback"]] if "sideback" in ld else []):
+                if self.sides[s].get("texturebottom") == m.CAB_SIDE and self.sides[s]["sector"] == cab:
+                    (a, b) = self.line_points(ld)
+                    self.assertEqual(0, (abs(a[0] - b[0]) + abs(a[1] - b[1])) % 64)
+                    self.assertEqual(0, self.sides[s]["offsetx"] % 64)
 
     def test_the_outdoors_has_the_sky_and_every_sky_block_is_a_prop(self):
         for name in ("z1_ballast", "z1_yard", "z1_platform", "z2_taiga", "z3_yard", "z4_forest",
@@ -498,20 +656,30 @@ class Map09Test(unittest.TestCase):
         cx1, cy1, cx2, cy2 = m.CLEARING
         self.assertEqual(forest, self.sector_at((cx1 + cx2) // 2, (cy1 + cy2) // 2))
 
-    def test_the_molten_pits_hurt_and_are_walked_out_of(self):
+    def test_the_pits_hurt_and_are_walked_out_of(self):
+        """Acid in the invaders' works and round the portal, molten metal in
+        the refinery's channel: both hurt alike (the sector's damage, not the
+        flat's), and every pit is one step deep."""
         m = self.m
         hurting = [i for i, s in enumerate(self.sectors) if s.get("damageamount")]
-        self.assertEqual(len(m.WORKS_LAVA) + len(m.CRATER_LAVA) + 1, len(hurting))
+        self.assertEqual(len(m.WORKS_PITS) + len(m.CRATER_PITS) + 1, len(hurting))
+        expected = {**{f"z5_acid_{n}": m.ACID for n in range(1, len(m.WORKS_PITS) + 1)},
+                    **{f"z8_acid_{n}": m.ACID for n in range(1, len(m.CRATER_PITS) + 1)},
+                    "z6_channel": m.MOLTEN}
+        self.assertEqual(set(expected), {self.zone_of[i] for i in hurting})
         for i in hurting:
             s = self.sectors[i]
             zone = self.zone_of[i]
-            self.assertEqual((m.LAVA_DAMAGE, m.LAVA_DAMAGE_INTERVAL, m.MOLTEN),
+            self.assertEqual((m.LAVA_DAMAGE, m.LAVA_DAMAGE_INTERVAL, expected[zone]),
                              (s["damageamount"], s["damageinterval"], s["texturefloor"]), zone)
             walkable = [n for n in self.neighbours[i] if n not in self.unwalkable]
             self.assertTrue(walkable, zone)
             for n in walkable:
                 self.assertEqual(m.STEP, self.sectors[n]["heightfloor"] - s["heightfloor"],
                                  f"{zone} -> {self.zone_of[n]}")
+        # Nothing else is acid; the vats' tops stay molten (they cannot be walked on).
+        acid = {self.zone_of[i] for i, s in enumerate(self.sectors) if s["texturefloor"] == m.ACID}
+        self.assertEqual({z for z, f in expected.items() if f == m.ACID}, acid)
 
     def test_the_portal_stands_at_the_crater_centre(self):
         m = self.m

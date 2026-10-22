@@ -393,7 +393,7 @@ class Map04Test(unittest.TestCase):
                     self.assertIn(name, walls, f"sidedef {i}.{key}")
         for i, s in enumerate(self.sectors):
             self.assertIn(s["texturefloor"], flats, f"sector {self.zone_of[i]}")
-            self.assertIn(s["textureceiling"], flats, f"sector {self.zone_of[i]}")
+            self.assertIn(s["textureceiling"], flats | set(self.m.BUILTIN_FLATS), f"sector {self.zone_of[i]}")
         for name in walls | flats:
             self.assertTrue(_packed(name), f"{name} is not in assets/")
 
@@ -454,8 +454,8 @@ class Map04Test(unittest.TestCase):
         self.assertGreater(platform[m.STATION], 0)
         for zone in ("z7_engine", "z7_gun", "z7_troop", "z7_couple_1", "z7_couple_2"):
             self.assertLessEqual(set(self.one_sided_textures(self.plan[zone])), {m.ARMOUR, m.ARMOUR_STAR}, zone)
-        self.assertEqual({m.STEEL}, set(self.one_sided_textures(self.plan["z7_cab"])),
-                         "the locomotive's cab keeps the steel until its own piece (section 7.2)")
+        self.assertEqual({m.CAB_FRONT, m.CAB_SIDE}, set(self.one_sided_textures(self.plan["z7_cab"])),
+                         "the locomotive's cab from inside (section 7.2, round 2)")
         self.assertIn(m.ARMOUR_STAR, self.one_sided_textures(self.plan["z6_balcony"]),
                       "the star the platform sees")
         self.assertEqual(m.FLOOR_COPING, self.sectors[self.plan["z6_coping"]]["texturefloor"])
@@ -540,7 +540,8 @@ class Map04Test(unittest.TestCase):
             self.assertEqual(height, s["heightfloor"], name)
         for n in range(1, len(m.ROOFS) + 1):
             s = self.sectors[self.plan[f"z2_roof_{n}"]]
-            self.assertEqual((m.WAGON, m.FLOOR_PLATE), (s["heightfloor"], s["texturefloor"]))
+            self.assertEqual((m.WAGON, m.WAGON_ROOF, 90.0),
+                             (s["heightfloor"], s["texturefloor"], s.get("rotationfloor")))
         flank = [ld for ld in self.lines if "sideback" in ld
                  and self.plan["z2_yard"] in self._pair(ld)
                  and self.plan["z2_roof_2"] in self._pair(ld)]
@@ -618,6 +619,190 @@ class Map04Test(unittest.TestCase):
             s = self.sectors[self.front(ld)]
             self.assertEqual(m.TILE, s["heightceiling"] - s["heightfloor"], "one whole gate")
             self.assertIn(self.plan["z2_yard"], self.neighbours[self.front(ld)])
+
+    # --- round 2 (D113): the sky and the Railway set's second batch ---------
+    def test_the_night_sky_is_over_the_yard_only(self):
+        """F_SKY1 over the yard and everything standing in it (wagons, roofs,
+        the ramp, the signals), the signal box's window band and its porch;
+        never over a roofed room, a door or a recess cut into the yard's
+        walls (a recess under the sky would lose the wall above it)."""
+        m = self.m
+        sky = {self.zone_of[i] for i, s in enumerate(self.sectors) if s["textureceiling"] == m.SKY}
+        for zone in ("z2_yard", "z2_rails_main", "z2_rails_north", "z2_roof_1", "z2_ramp_1",
+                     "prop_wagon_1a", "prop_signal_main", "z2_gondola_1", "z2_gondola_1_side",
+                     "prop_cabin_sills", "z3_step"):
+            self.assertIn(zone, sky)
+        for zone in sky:
+            self.assertTrue(zone.startswith(("z2_", "prop_", "z3_step")), zone)
+            self.assertNotIn(self.plan[zone], self.door_sectors, zone)
+            self.assertFalse(zone.startswith(("z2_goods_gate", "z2_flag", "z2_poster", "z2_yellow",
+                                              "z2_red")), zone)
+        for zone in ("z3_cabin", "z3_frame", "z1_mouth", "z2_goods_gate_1", "z2_flag_s", "z2_poster_lenin"):
+            self.assertNotIn(zone, sky)
+
+    def test_the_wagons_wear_their_roofs_and_the_gondolas_their_floors(self):
+        """SDWROF1 on every car's top seen from the roofs (boxcars, the
+        rake, the tank, the gondolas' rims and dropping sides), its walkway
+        turned along the car; SDGOND1 on the gondolas' beds, turned the same
+        way and panned 16 both ways, so the flaps' 32 grid meets the bed's
+        edges (which lie 16 off it)."""
+        m = self.m
+        roofs = [f"z2_roof_{n}" for n in range(1, len(m.ROOFS) + 1)]
+        roofs += [n for n, r in m.WAGONS.items() if r[4] == m.WAGON]
+        for name in m.GONDOLAS:
+            roofs += [f"prop_{name[3:]}_shell", f"{name}_side"]
+            bed = self.sectors[self.plan[name]]
+            self.assertEqual((m.GONDOLA_BED, 90.0), (bed["texturefloor"], bed.get("rotationfloor")), name)
+            x1, y1, _x2, _y2 = m.GONDOLAS[name][1]
+            for key, edge in (("xpanningfloor", x1), ("ypanningfloor", y1)):
+                self.assertEqual(m.GONDOLA_PAN, bed.get(key), (name, key))
+                self.assertEqual(m.GONDOLA_PAN, edge % 32, (name, key, "the bed's edge, 16 off the flaps"))
+        for name in roofs:
+            s = self.sectors[self.plan[name]]
+            self.assertEqual((m.WAGON_ROOF, 90.0), (s["texturefloor"], s.get("rotationfloor")), name)
+        self.assertEqual(len(m.ROOFS) + 2 + 2 * len(m.GONDOLAS), len(roofs))
+
+    def test_the_lever_frame_is_one_whole_frame(self):
+        """SDLEVR1 on the frame's top, one flat tile exactly (64 x 64, 32 off
+        the grid both ways, panned 32); SDLEVR2 on its 16-high front and
+        ends towards the cabin, rows 45-60 (the brass plates and the bed)."""
+        m = self.m
+        x1, y1, x2, y2 = m.LEVER_FRAME_RECT
+        self.assertEqual((64, 64), (x2 - x1, y2 - y1))
+        frame = self.sectors[self.plan["z3_frame"]]
+        self.assertEqual((m.LEVER_TOP, m.LEVER_ROTATION), (frame["texturefloor"], frame.get("rotationfloor")))
+        for key, edge in (("xpanningfloor", x1), ("ypanningfloor", y1)):
+            self.assertEqual(m.LEVER_PAN, frame.get(key))
+            self.assertEqual(m.LEVER_PAN, edge % 64)
+        self.assertEqual(m.STEP, m.LEVER_FRAME - m.CABIN, "the front is 16 high")
+        faces = 0
+        for ld in self.lines:
+            if "sideback" not in ld or set(self._pair(ld)) != self.named("z3_frame", "z3_cabin"):
+                continue
+            key = "sidefront" if self.front(ld) == self.plan["z3_cabin"] else "sideback"
+            self.assertEqual(m.LEVER_FRONT, self.sides[ld[key]].get("texturebottom"))
+            self.assertEqual(m.LEVER_FRONT_ROW, self.sides[ld[key]].get("offsety", 0))
+            (ax, ay), (bx, by) = self.line_points(ld)
+            self.assertEqual(64, abs(bx - ax) + abs(by - ay), "one whole frame a face")
+            faces += 1
+        self.assertEqual(3, faces, "the front and both ends; the back is the window's wall")
+
+    def test_the_cab_is_a_steam_cab_from_inside(self):
+        """SDCAB1 once, as one tile across the cab's 128 front: the exit's
+        niche cut into its middle, its two pieces continuing the one tile
+        (columns 0-31 and 96-127); SDCAB2 on the sides, whole tiles."""
+        m = self.m
+        fx, fy1, fy2 = m.CAB_FRONT_WALL
+        self.assertEqual(m.TILE, fy2 - fy1)
+        fronts = [ld for ld in self.lines if "sideback" not in ld
+                  and self.sides[ld["sidefront"]].get("texturemiddle") == m.CAB_FRONT]
+        self.assertEqual(2, len(fronts))
+        columns = set()
+        for ld in fronts:
+            self.assertEqual(self.plan["z7_cab"], self.front(ld))
+            (ax, ay), (bx, by) = self.line_points(ld)
+            self.assertEqual(fx, ax)
+            self.assertEqual(fx, bx)
+            start = self.sides[ld["sidefront"]].get("offsetx", 0)
+            columns.add((start, start + abs(by - ay)))
+        self.assertEqual({(0, 32), (96, 128)}, columns, "one backhead, its middle the exit's niche")
+        cab = self.sectors[self.plan["z7_cab"]]
+        self.assertEqual(m.TILE, cab["heightceiling"] - cab["heightfloor"])
+        for ld in self.lines:
+            if "sideback" in ld or self.front(ld) != self.plan["z7_cab"]:
+                continue
+            if self.sides[ld["sidefront"]].get("texturemiddle") == m.CAB_SIDE:
+                (ax, ay), (bx, by) = self.line_points(ld)
+                self.assertEqual(0, (abs(bx - ax) + abs(by - ay)) % 64)
+                self.assertEqual(0, min(ax, bx) % 64, "whole tiles from the grid")
+
+    def test_the_signal_box_is_glazed_from_the_yard(self):
+        """SDSBOX1 in every window of the box: the middle texture of each
+        line between the window band and the open air, on the open air's
+        side only, row 8 at the window head (offsety_mid), whole panes on the
+        64 grid; the line blocks the monsters' sight (the glass is opaque)."""
+        m = self.m
+        sills = self.plan["prop_cabin_sills"]
+        glazed = 0
+        for ld in self.lines:
+            for key, other in (("sidefront", "sideback"), ("sideback", "sidefront")):
+                if key not in ld or self.sides[ld[key]].get("texturemiddle") != m.BOX_GLAZING:
+                    continue
+                self.assertIn(other, ld)
+                self.assertEqual(sills, self.sides[ld[other]]["sector"])
+                self.assertEqual("-", self.sides[ld[other]].get("texturemiddle", "-"), "from inside, the yard")
+                self.assertEqual(m.BOX_GLAZING_ROW, self.sides[ld[key]].get("offsety_mid"))
+                self.assertEqual(0, self.sides[ld[key]].get("offsetx", 0))
+                self.assertTrue(ld.get("blocksight"))
+                (ax, ay), (bx, by) = self.line_points(ld)
+                self.assertEqual(0, (abs(bx - ax) + abs(by - ay)) % m.GLAZING_WIDTH)
+                self.assertEqual(0, min(ax, bx) % 64 if ay == by else min(ay, by) % 64)
+                band = self.sectors[sills]
+                self.assertEqual(64 - 2 * m.BOX_GLAZING_ROW, band["heightceiling"] - band["heightfloor"])
+                glazed += abs(bx - ax) + abs(by - ay)
+        x1, y1, x2, y2 = m.CABIN_OUTER
+        step = m.CABIN_STEP[3] - m.CABIN_STEP[1]
+        self.assertEqual(2 * (x2 - x1) + 2 * (y2 - y1) - step, glazed, "every window, all round but the porch")
+
+    def test_the_station_board_hangs_over_the_platforms_edge(self):
+        """SDSTAN1 once: the middle texture of one line exactly 256 long, the
+        platform's edge, on the platform's side, pegged to the canopy (256
+        down to 192, over every head) and read from the red door."""
+        m = self.m
+        boards = [(ld, key) for ld in self.lines for key in ("sidefront", "sideback")
+                  if key in ld and self.sides[ld[key]].get("texturemiddle") == m.STATION_BOARD]
+        self.assertEqual(1, len(boards))
+        ld, key = boards[0]
+        self.assertEqual(self.plan["z6_platform"], self.sides[ld[key]]["sector"])
+        (ax, ay), (bx, by) = self.line_points(ld)
+        self.assertEqual((m.COPING_EDGE_Y, m.COPING_EDGE_Y), (ay, by))
+        self.assertEqual(m.STATION_BOARD_X, (min(ax, bx), max(ax, bx)))
+        self.assertEqual(m.STATION_BOARD_SIZE[0], abs(bx - ax))
+        self.assertEqual(0, self.sides[ld[key]].get("offsetx", 0))
+        self.assertFalse(ld.get("blocking"))
+        platform = self.sectors[self.plan["z6_platform"]]
+        under = self.sectors[self.plan["z6_coping_board"]]
+        self.assertEqual(platform["heightceiling"], under["heightceiling"])
+        foot = platform["heightceiling"] - m.STATION_BOARD_SIZE[1]
+        tallest = max(height for _radius, height in self.body.values())
+        self.assertGreater(foot - platform["heightfloor"], tallest, "over every head")
+        coping = self.sectors[self.plan["z6_coping"]]
+        for field in ("heightfloor", "texturefloor", "rotationfloor", "lightlevel"):
+            self.assertEqual(coping.get(field), under.get(field), field)
+        for spot in ((2700, 2300), (1600, 2200)):
+            eye = self.eye(*spot, "z6_platform")
+            for x in (2080, 2176, 2272):
+                self.assertIsNone(self.blocked(eye, (x, m.COPING_EDGE_Y, foot + 32)), f"{spot}: board x {x}")
+
+    def test_middle_textures_are_only_the_glazing_and_the_board(self):
+        m = self.m
+        for ld in self.lines:
+            for key in ("sidefront", "sideback"):
+                if key not in ld:
+                    continue
+                mid = self.sides[ld[key]].get("texturemiddle", "-")
+                if "sideback" in ld:
+                    self.assertIn(mid, ("-",) + m.MIDDLE_TEXTURES)
+                else:
+                    self.assertNotIn(mid, m.MIDDLE_TEXTURES)
+
+    def test_the_stalls_wear_their_road_doors(self):
+        """SDRHDR1 on stall 2's back and on S2's panel in stall 3 (the same
+        face: the clue is the shadow), each one whole tile."""
+        m = self.m
+        stalls = self.named("z5_stall_2", "z5_stall_3")
+        faces = [(ld, key) for ld in self.lines for key in ("sidefront", "sideback")
+                 if key in ld and self.sides[ld[key]]["sector"] in stalls
+                 and m.STALL_DOORS in (self.sides[ld[key]].get("texturemiddle"),
+                                       self.sides[ld[key]].get("texturetop"))]
+        rooms = {self.sides[ld[key]]["sector"] for ld, key in faces}
+        self.assertLessEqual(self.named("z5_stall_2", "z5_stall_3"), rooms)
+        for ld, _key in faces:
+            (ax, ay), (bx, by) = self.line_points(ld)
+            self.assertEqual(m.TILE, abs(bx - ax) + abs(by - ay))
+        for name in ("z5_stall_2", "z5_stall_3"):
+            s = self.sectors[self.plan[name]]
+            self.assertEqual(m.TILE, s["heightceiling"] - s["heightfloor"], name)
 
     def test_the_flags_of_both_factions(self):
         m = self.m
@@ -1234,9 +1419,9 @@ class Map04Test(unittest.TestCase):
         panel_face = [ld for ld in self.panel_lines(m.TAG_S1_PANEL) if self.front(ld) == niches[1]][0]
         self.assertEqual(m.CONCRETE, self.sides[panel_face["sidefront"]]["texturetop"])
         lit, dark = self.plan["z5_stall_2"], self.plan["z5_stall_3"]
-        self.assertEqual(128, self.one_sided_textures(lit)[m.ROAD_GATE])
+        self.assertEqual(128, self.one_sided_textures(lit)[m.STALL_DOORS])
         gate_face = [ld for ld in self.panel_lines(m.TAG_S2_PANEL) if self.front(ld) == dark][0]
-        self.assertEqual(m.ROAD_GATE, self.sides[gate_face["sidefront"]]["texturetop"])
+        self.assertEqual(m.STALL_DOORS, self.sides[gate_face["sidefront"]]["texturetop"])
         self.assertLess(self.sectors[dark]["lightlevel"], self.sectors[lit]["lightlevel"])
         hall = self.plan["z4_hall"]
         self.assertEqual(3 * m.CRATE_WIDTH, self.one_sided_textures(hall)[m.CRATE],

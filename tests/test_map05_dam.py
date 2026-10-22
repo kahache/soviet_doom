@@ -625,7 +625,85 @@ class Map05Test(unittest.TestCase):
                 self.assertEqual(m.INSULATOR if side["sector"] == self.plan["z9_substation"] else "-", worn)
         self.assertIn(self.plan["z9_gantry"], self.rounds[-1][1], "walked under")
 
-    def test_middle_textures_are_only_the_boards_and_the_strings(self):
+    def test_the_windows_are_barred(self):
+        """SDGRIL1 (masked, D113) in both of the control room's windows: the
+        middle texture of the line between the window and the catwalk, on
+        both its sides (seen from the hall and from the room), row 2 at the
+        window's head so its 80 rows show both riveted flats, two whole
+        panels on the 64 grid. The sill keeps anyone from climbing in."""
+        m = self.m
+        lines = [ld for ld in self.lines if "sideback" in ld and m.GRILL in
+                 (self.sides[ld["sidefront"]].get("texturemiddle"), self.sides[ld["sideback"]].get("texturemiddle"))]
+        self.assertEqual(len(m.CONTROL_WINDOWS), len(lines))
+        windows = {self.plan[name] for name in m.CONTROL_WINDOWS}
+        for ld in lines:
+            pair = set(self._pair(ld))
+            self.assertIn(self.plan["z5_catwalk"], pair)
+            self.assertTrue(pair & windows)
+            self.assertEqual(2 * 64, self.length(ld))
+            for key in ("sidefront", "sideback"):
+                side = self.sides[ld[key]]
+                self.assertEqual(m.GRILL, side.get("texturemiddle"))
+                self.assertEqual(m.WINDOW_BARS_ROW, side.get("offsety_mid"))
+                self.assertEqual(0, side.get("offsetx", 0), "whole panels from the grid")
+        self.assertEqual(80, m.WINDOW_TOP - m.WINDOW_SILL)
+        self.assertGreater(m.WINDOW_SILL - m.CATWALK, MAX_STEP_UP, "never climbed in")
+        for ld in self.lines:
+            if "sideback" not in ld:
+                self.assertNotEqual(m.GRILL, self.sides[ld["sidefront"]].get("texturemiddle"))
+
+    def test_the_substation_is_fenced_north_and_south(self):
+        """SDHVLT1 (masked, D113) on the substation's north and south sides:
+        the middle texture of an impassable two-sided line, on the
+        substation's side only, one run each corner to corner with its posts
+        on the 64 grid; behind it a strip open to a sky exactly the fence's
+        height (the fence hangs whole from it to the ground), and behind that
+        a closed sky block, so the sky shows through the wire. Nobody reaches
+        the strips. The east and west sides stay corrugated sheet."""
+        m = self.m
+        sub = self.plan["z9_substation"]
+        x1, y1, x2, y2 = m.SUBSTATION
+        found = [(ld, key) for ld in self.lines for key in ("sidefront", "sideback")
+                 if key in ld and self.sides[ld[key]].get("texturemiddle") == m.FENCE]
+        self.assertEqual(2, len(found))
+        self.assertEqual((y1, y2), m.FENCE_SIDES_Y)
+        for ld, key in found:
+            other = "sideback" if key == "sidefront" else "sidefront"
+            self.assertIn(other, ld)
+            self.assertEqual(sub, self.sides[ld[key]]["sector"])
+            self.assertEqual("-", self.sides[ld[other]].get("texturemiddle", "-"))
+            self.assertTrue(ld.get("blocking"))
+            self.assertEqual(x2 - x1, self.length(ld))
+            self.assertEqual(0, self.sides[ld[key]].get("offsetx", 0))
+            (_ax, ay), (_bx, by) = self.line_points(ld)
+            self.assertEqual(ay, by)
+            self.assertIn(ay, m.FENCE_SIDES_Y)
+            strip = self.sectors[self.sides[ld[other]]["sector"]]
+            self.assertEqual((m.CREST, m.CREST + m.FENCE_HEIGHT, m.SKY),
+                             (strip["heightfloor"], strip["heightceiling"], strip["textureceiling"]))
+        self.assertEqual((0, 0), (x1 % m.FENCE_WIDTH, x2 % m.FENCE_WIDTH), "a post at each corner")
+        for side in "sn":
+            fence, verge = self.plan[f"prop_z9_fence_{side}"], self.plan[f"prop_z9_verge_{side}"]
+            v = self.sectors[verge]
+            self.assertEqual((m.CREST, m.CREST, m.SKY), (v["heightfloor"], v["heightceiling"], v["textureceiling"]))
+            self.assertIn(fence, self.neighbours[verge])
+            self.assertNotIn(fence, self.rounds[-1][1])
+        walls = self.one_sided_textures(sub)
+        self.assertIn(m.RUST, walls)
+        self.assertNotIn(m.FENCE, walls)
+        self.assertEqual(2 * (y2 - y1) - (m.CABLE_Y[1] - m.CABLE_Y[0])
+                         - (m.STATION_PASSAGE[3] - m.STATION_PASSAGE[1]), walls[m.RUST],
+                         "east and west, but for the gallery's and the passage's mouths")
+
+    def test_the_blue_gate_wears_its_trim(self):
+        m = self.m
+        faces = [ld for ld in self.lines if ld.get("special") == m.SPECIAL_DOOR_LOCKED_RAISE
+                 and ld["arg0"] == m.TAG_BLUE_GATE]
+        self.assertEqual(2, len(faces))
+        for ld in faces:
+            self.assertEqual(m.DOOR_BLUE, self.sides[ld["sidefront"]]["texturetop"])
+
+    def test_middle_textures_are_only_the_boards_the_strings_the_bars_and_the_fence(self):
         m = self.m
         for i, sd in enumerate(self.sides):
             for key in ("texturetop", "texturebottom"):
@@ -679,8 +757,8 @@ class Map05Test(unittest.TestCase):
                 self.assertEqual(DOOR_TILE, self.length(ld), f"linedef {i}")
                 drop = self.sectors[room]["heightceiling"] - self.sectors[door]["heightfloor"]
                 self.assertEqual(DOOR_TILE, drop, f"linedef {i}: leaf of {self.zone_of[door]}")
-        self.assertEqual({self.m.DOOR: 6, self.m.DOOR_YELLOW: 2}, dict(faces),
-                         "D1, D2 and the blue gate in SDDOOR1, the yellow door in its trim")
+        self.assertEqual({self.m.DOOR: 4, self.m.DOOR_YELLOW: 2, self.m.DOOR_BLUE: 2}, dict(faces),
+                         "D1 and D2 in SDDOOR1, the yellow door and the blue gate in their trims")
 
     def test_the_yellow_door_wears_its_trim(self):
         m = self.m

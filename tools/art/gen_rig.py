@@ -1,5 +1,11 @@
 """F5 — Reich rifleman as a 3D rig, rendered at Doom's 8 rotations.
 
+HISTORICAL since D109 (2026-10-22) for the rifleman's rig set (`SDRR`,
+D38-D55). The rifleman that ships is redrawn from Google Gemini images by
+tools/art/gemini_enemy.py (rifleman); this generator is kept so the approved F5
+renders stay reproducible, but its output no longer matches assets/. Still
+current as a library: its materials and body are imported by other generators.
+
 Run with the project venv:
     .venv/Scripts/python.exe tools/art/gen_rig.py               (Windows)
     .venv/bin/python tools/art/gen_rig.py                       (macOS)

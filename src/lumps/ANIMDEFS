@@ -87,3 +87,23 @@ flat SDWATR1            // the Volga's water, MAP05 (flats/dam/)
 	pic SDWATR2 tics 8
 	pic SDWATR3 tics 8
 	pic SDWATR4 tics 8
+
+// Episode 3 (D113 standing approval, installed 2026-10-22). Both drawn as
+// seamless four-frame loops by tools/art/gen_arctic.py and gen_taiga.py.
+// The radar console is a wall (`texture`): its beam turns 90 degrees a frame,
+// so 12 tics a frame (48 tics, about 1.4 s, a full sweep) reads as a radar
+// and not as a blink; the art-director's rate. The invaders' acid is a flat,
+// at the water's 8 tics (SDWATR1 above). The acid's damage is the map's
+// sector special, not this file: ANIMDEFS only moves the picture.
+
+texture SDRADR1         // the radar console's PPI sweep, MAP07 (textures/arctic/)
+	pic SDRADR1 tics 12
+	pic SDRADR2 tics 12
+	pic SDRADR3 tics 12
+	pic SDRADR4 tics 12
+
+flat SDACID1            // the invaders' green acid, MAP09 (flats/taiga/)
+	pic SDACID1 tics 8
+	pic SDACID2 tics 8
+	pic SDACID3 tics 8
+	pic SDACID4 tics 8

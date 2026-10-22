@@ -399,6 +399,180 @@ galleries 96-128.
 Recommended light: the square 160-192 (the finale, in full daylight), the
 GUM interiors 128-144. Reused in MAP06: `SDMARB1` (set "Metro", D42).
 
+## Episode 2, round 2 — approved 2026-10-22 (P4, D112, D113)
+
+Preview: `docs/art/previews/2026-10-22_P4_episode2-textures-round2.html`
+(the sheet, in Spanish: each piece alone, as a 3×3 mosaic, in a sample room
+and, for the skies, as a panorama). One generator, `tools/art/gen_episode2b.py`
+(`BATCH_SEED` 5700, seed = 5700 + offset), on top of `ep2lib.py`,
+`gen_factory.py` and `gen_moscow.py`, which it only reads. The pieces MAP04-06
+still wore as stand-ins (the "still pending" tables of
+`docs/levels/MAP04-transsib.md` §7.2, `MAP05-volga-dam.md` §7.2 and
+`MAP06-red-square.md` §8). **No system font:** «СВЕРДЛОВСК / СОРТИРОВОЧНЫЙ»,
+«ПРОПУСК», «СТОЙ!» and the GUM's «ТКАНИ», «ОБУВЬ», «ЧАСЫ» are set from our own
+alphabet (`assets/fonts/bigfont/`, D24), the digits are `ep2lib.py`'s 3×5
+pixels, so every lump reproduces byte for byte on both machines. Palette v1,
+except six walls that add a v2 ramp and say why: `SDCLOK1`, `SDMUSE1` and
+`SDFLAG3` (`marble_red`, brick), `SDDOORB` (`mosaic_cobalt`, the blue key
+colour; v1's `steel_blue` reads grey) and `SDFLAG4` (both: the Kremlin brick
+and the Legion's canton, as `SDFLAG2`, D66). Never `mosaic_gold` or
+`flesh_pink`.
+
+**Approved under D113's standing approval** (the CEO approves procedural
+textures in advance), **PM gate 2026-10-22**: 21 pieces, 23 lumps, copied
+byte for byte from `work/art/episode2b/<set>/` into `assets/textures/<set>/`
+(walls and skies) and `assets/flats/<set>/` (flats): sets `sky` (new),
+`railway`, `dam` and `moscow` (round 1's folders). `tests/test_gen_episode2b.py`
+holds the installed files to a fresh render of the generator and
+`tests/test_art.py` (`Episode2InstallTests`) to their names, folders and
+sizes. The three masked lumps `SDGRIL1`, `SDHVLT1` and `SDRUBY1` are RGBA with
+hard alpha, declared in `MASKED_TEXTURES` (`tools/check_pk3.py`), for the
+middle texture of a two-sided line. The skies are declared in `SKY_TEXTURES`
+(`SKY_SIZES` = 1024×128). **In `src/lumps/MAPINFO` since 2026-10-22:** MAP04
+`sky1 = "SDSKY1"`, MAP05 `sky1 = "SDSKY1"` (the Urals night's dark wooded hills
+and broken cloud fit the Zhiguli hills over the dam better than Moscow's
+skyline; the two floodlight towers on its east are the yard's, a small
+liberty), MAP06 `sky1 = "SDSKY2"`. The other pieces are **not yet on any map**
+(applying them is the `level-designer`'s next task) and nothing is seen in
+the engine yet (D26). Seed note: this generator's 5700 + offset space
+overlaps Episode 3's `gen_arctic.py` (also 5700 + offset); the generators
+are different, so no output is shared, but the next batch takes a clear
+space (6000+). New families: ART-BIBLE §2.
+
+### Sky — MAPINFO `sky1` of MAP04-06 (`gen_episode2b.py`)
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDSKY1` | sky (wall namespace) | 1024×128 | along x (wraps round the full turn) | the Urals at night over Sverdlovsk: broken cloud with the moon behind it and silvered edges near it, a few stars in the gaps, the warm glow of the city and Uralmash under the cloud, black taiga hills, chimneys with smoke and red obstruction lights, a radio mast and, to the east, the yard's own two floodlight towers. One 360° turn, where Freedoom's `SKY1` (256×128) repeats four times | (a) gen_episode2b, seed 5701 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22); MAPINFO `sky1` of MAP04 and MAP05 | 2026-10-22 |
+| `SDSKY2` | sky (wall namespace) | 1024×128 | along x (wraps round the full turn) | Moscow at night: a low cloud deck lit brownish orange by the city's sodium, colder and darker at the zenith; a skyline of blocks with lit windows, three Stalin high-rises with their stars and the Ostankino tower's spire (1967) with its red lights | (a) gen_episode2b, seed 5702 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22); MAPINFO `sky1` of MAP06 | 2026-10-22 |
+
+### Railway, round 2 — MAP04 (`gen_episode2b.py`)
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDWROF1` | flat | 64×64 | yes | goods-wagon roof from above: red-oxide sheet with transverse ribs every 16 px, locomotive soot, rust on the ribs and the plank walkway along y on its brackets | (a) gen_episode2b, seed 5703 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDGOND1` | flat | 64×64 | yes | a Soviet open wagon's floor: the discharge flaps (joints, two pressed ribs each, hinges at the sides), rust, coal dust and lumps of coal in the corners | (a) gen_episode2b, seed 5704 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDCAB1` | wall | 128×128 | no (one cab front) | inside a steam locomotive's cab, looking forward: the black riveted boiler backhead, the firebox door with fire at the slot and the air holes, brass boiler and brake gauges, two water glasses, the regulator, red handwheels on the steam pipes and the round cab windows onto the night (a red signal far off) | (a) gen_episode2b, seed 5705 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDCAB2` | wall | 64×128 | along x | the cab's side from inside: green-painted sheet over riveted seams, the sliding window onto the yard at night (a signal, far lights, a reflection), the wooden armrest, a valve handwheel and an enamel plate, a darker boot-scuffed skirting | (a) gen_episode2b, seed 5706 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDSBOX1` | wall | 64×64 | along x | the signal box's glazing seen from the yard at night, lit inside: white-painted glazing bars, warmer light under the hanging lamp, the levers' silhouettes below, one cracked pane; concrete lintel on top and sill below. Rows 8-55 are the 48-high opening | (a) gen_episode2b, seed 5707 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDLEVR1` | flat | 64×64 | along x | the mechanical lever frame from above: the iron bed with its slots on the boards, eight levers painted by function (red signals, black points, blue locks, yellow distant, white spare) with polished grips, three pulled, brass plates 1-8, the boards worn where the signalman stands | (a) gen_episode2b, seed 5708 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDLEVR2` | wall | 64×64 | along x | the lever frame from the front: eight levers out of the arched cast-iron bed, painted by function, polished grip and catch, three pulled towards us, numbered brass plates, the box's green wall behind | (a) gen_episode2b, seed 5709 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDRHDR1` | wall | 128×128 | along x | one road's doors of the roundhouse, a pair per tile: two leaves of vertical boards in faded depot green down to the wood, glazing on top (two panes broken, one boarded), rails and braces, black iron strap hinges, a drop bar, soot over the top. No number: roads 2 and 3 and S2's panel wear the same face | (a) gen_episode2b, seed 5710 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDSTAN1` | wall | 256×64 | no (one board) | the station board: white enamel in a steel frame, «СВЕРДЛОВСК» large and «СОРТИРОВОЧНЫЙ» ("marshalling") below in black from our alphabet, a red rule, enamel chipped to rust, runs from the four bolts, soot on top | (a) gen_episode2b, seed 5711; text from bigfont | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+
+### Dam, round 2 — MAP05 (`gen_episode2b.py`)
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDGRIL1` | wall (masked mid-texture) | 64×128 | along x | window bars on a transparent ground: four round bars per tile through two riveted flats, dark paint chipped to rust. RGBA with hard alpha, for the control room's two windows over the hall (middle texture of a two-sided line) | (a) gen_episode2b, seed 5712 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDDOORB` | wall | 128×128 | no (a door) | the blue key door: the recipe of `SDDOORY` and `SDDOORR` (`SDDOOR1`'s green leaf, wheel and rivets) with frame, ribs, plate and hazard band in cobalt and «ПРОПУСК» ("pass") in cream from our alphabet | (a) gen_episode2b, seed 5713; the leaf replays `SDDOOR1`'s seed 1982 like `SDDOORY`/`SDDOORR`; text from bigfont; palette v2 (`mosaic_cobalt`) | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDHVLT1` | wall (masked mid-texture) | 64×128 | along x | the substation's high-voltage fence on a transparent ground: galvanised chain-link between angle posts (the post on the tile edge), a top rail, two strands of barbed wire and the Soviet danger plate «СТОЙ!» ("halt!") with the red lightning arrow, tied to the mesh. RGBA with hard alpha | (a) gen_episode2b, seed 5714; text from bigfont | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+
+### Moscow, round 2 — MAP06 (`gen_episode2b.py`)
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDCLOK1` | wall | 128×128 | no (one clock face) | the Spasskaya tower's clock: a black dial in a gold ring, gold hour marks and minute dots, a gold inner ring and sun at the centre, gold hands at five to twelve; the dial in a square of white limestone with gold rosettes in the spandrels, on the tower's red brick | (a) gen_episode2b, seed 5715, palette v2 (`marble_red`) | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDRUBY1` | wall (masked mid-texture) | 128×128 | no (one star) | the Kremlin's ruby star on a transparent ground: five arms of ruby glass, each with a lit and a shaded facet, glowing from inside, gold frame and ribs, a gold inner star; below, the gold ball and the spire's stem. RGBA with hard alpha, for a two-sided line against the sky | (a) gen_episode2b, seed 5716 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDGUMS1` | wall | 64×128 | along x | a shopfront of the GUM's galleries: black glass sign with gold letters from our alphabet, «ТКАНИ» ("fabrics"), a round-arched shop window over the dark empty shop, one smashed pane (looting), polished wooden plinth over a brass rail, stone pilasters at the edges | (a) gen_episode2b, seed 5717; text from bigfont | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDGUMS2` | wall | 64×128 | along x | the same shopfront, «ОБУВЬ» ("shoes"); differs from `SDGUMS1` only in the sign | (a) gen_episode2b, seed 5717; text from bigfont | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDGUMS3` | wall | 64×128 | along x | the same shopfront, «ЧАСЫ» ("watches") | (a) gen_episode2b, seed 5717; text from bigfont | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDGUMR1` | flat | 64×64 | yes | the GUM's glass vault from below: the arch's iron rib on the edge, a purlin in the middle, glazing bars, dirty panes dark at night and warmed by the city glow, grime against the iron, two panes missing and one cracked | (a) gen_episode2b, seed 5718 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDMUSE1` | wall | 64×128 | yes | the Historical Museum's red brick with its white dressings: a deeper, browner red than the Kremlin's with fine light joints, a white band of square panels («ширинки») with a brick lozenge each, a row of white pendants below and a white dentilled string course | (a) gen_episode2b, seed 5719, palette v2 (`marble_red`) | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDFLAG3` | wall | 64×128 | along x (on `SDKREM1`) | the Fourth Reich's banner `SDFLAG1` as approved, hung on the Kremlin brick `SDKREM1` instead of `SDBRCK1`: the brick round the cloth no longer changes colour beside the wall | (a) gen_episode2b, seed 5720; the cloth replays `SDFLAG1`'s seed 4114, the wall `SDKREM1`'s 5603; palette v2 (`marble_red`) | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDFLAG4` | wall | 64×128 | along x (on `SDKREM1`) | the Liberty Legion's banner `SDFLAG2` as approved, hung on `SDKREM1` instead of `SDBRCK1` | (a) gen_episode2b, seed 5721; the cloth replays `SDFLAG2`'s seed 4115, the wall `SDKREM1`'s 5603; palette v2 (`marble_red`, `mosaic_cobalt` in the canton) | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+
+## Episode 3 «The Portal» — approved 2026-10-22 (P4, D112, D113)
+
+Preview: `docs/art/previews/2026-10-22_P4_episode3-textures.html` (the sheet,
+in Spanish: each piece alone, as a 3×3 mosaic and in a sample room).
+Generators `tools/art/gen_arctic.py` (MAP07, `BATCH_SEED` 5700),
+`tools/art/gen_naval.py` (MAP08, 5800) and `tools/art/gen_taiga.py` (MAP09,
+5900), seed = `BATCH_SEED` + offset; shared machinery `tools/art/ep3lib.py`
+(on top of `ep2lib.py`, read only), sheet `tools/art/gen_episode3.py`. Three
+twins replay their pair's seed on purpose and equal it outside the paint:
+`SDRWY2` (= `SDRWY1`), `SDHULL2` (= `SDHULL1`), `SDRUBR2` (= `SDRUBR1`).
+**No system font:** «471», «ММФ» and «3» are set from our alphabet
+(`assets/fonts/bigfont/`, D24), the container number in `ep2lib.py`'s 3×5
+digits; the invaders' glyphs are an invented grammar of rings and strokes,
+not letters. Palette v1, except the portal rim `SDPRTE1`, which adds palette
+v2's `mosaic_cobalt` and nothing else (the look of `SDPORT1-4`, D66).
+
+**Approved under D113's standing approval** (the CEO approves procedural
+textures in advance), **PM gate 2026-10-22**: 30 pieces, 36 lumps, copied
+byte for byte from `work/art/episode3/<set>/` into `assets/textures/<set>/`
+(walls) and `assets/flats/<set>/` (flats), sets `arctic`, `naval` and
+`taiga`; `tests/test_gen_episode3.py` holds the installed files to a fresh
+render of the generators and `tests/test_art.py` (`Episode3InstallTests`) to
+their names, folders and sizes. Two animations in `ANIMDEFS` (MOD-SPEC §4.3):
+the radar console `texture SDRADR1`, four frames at **12 tics** (the beam
+turns 90° a frame: a 1.4 s sweep), and the acid `flat SDACID1`, four frames
+at 8 tics like `SDWATR1`. The masked crane jib `SDCRAN1` is RGBA with hard
+alpha, in `MASKED_TEXTURES`. **Not yet on any map** (MAP07-09 still wear
+stand-ins and Freedoom's `SKY1`; applying the set is the `level-designer`'s
+next task) and not yet seen in the engine (D26). New families: ART-BIBLE §2.
+
+### Arctic — MAP07, the radar station on Novaya Zemlya (`gen_arctic.py`, 5700)
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDSNOW1` | flat | 64×64 | yes | wind-packed snow: long sastrugi ridges across the tile, lit on the face that looks up the tile, blue in the lee, the odd glint | (a) gen_arctic, seed 5701 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDICE1` | flat | 64×64 | yes | sea ice: refrozen floes in different blues, white pressure cracks at their edges, veils of frost, rows of trapped bubbles | (a) gen_arctic, seed 5702 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDICE2` | wall | 64×128 | yes | glacier ice wall: wavy annual layers, white bubble bands, a thin vein of moraine gravel, vertical melt runs and fracture facets | (a) gen_arctic, seed 5703 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDRADM1` | wall | 128×128 | yes | radome skin: white fibreglass panels of a geodesic dome (staggered rows of triangles, the two families of faces lit differently), flanged bolted joints, frost on the horizontal flanges, dirt streaks | (a) gen_arctic, seed 5704 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDHUT1` | wall | 64×128 | along x | barracks wall of corrugated sheet in faded 4BO green: riveted lap joint, rust at the joint and the foot, feathers of frost on the crests (more lower down), a snowdrift against the base and icicles under the eave | (a) gen_arctic, seed 5705 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDRADR1` | wall (animated, frame 1 of 4) | 128×128 | along x | radar console with its round PPI screen: the beam turns 90° a frame leaving a green trail, range rings, heading cross and five echoes that light as the beam passes and fade; grey-blue hammer-finish cabinet, knobs, pilot lamps and plates that look like text and say nothing | (a) gen_arctic, seed 5706 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDRADR2` | wall (animated, frame 2) | 128×128 | along x | the radar console, frame 2 | (a) gen_arctic, seed 5706 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDRADR3` | wall (animated, frame 3) | 128×128 | along x | the radar console, frame 3 | (a) gen_arctic, seed 5706 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDRADR4` | wall (animated, frame 4) | 128×128 | along x | the radar console, frame 4, leads back into frame 1 | (a) gen_arctic, seed 5706 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDHERM1` | wall | 128×128 | no (a door) | hermetic blast door («гермодверь»): steel frame with hazard stripes, a thick 4BO-green leaf with a rubber seal, two locking levers, two hinges, a plate; frost creeping in from every edge, thicker below, icicles from the lintel | (a) gen_arctic, seed 5707 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDRWY1` | flat | 64×64 | yes | airfield runway slabs, staggered, with the rows of anti-skid dimples of Soviet PAG plates, packed snow in the joints, powder snow drifting across and dark tyre marks along y | (a) gen_arctic, seed 5708 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDRWY2` | flat | 64×64 | along y | the same slabs (same seed) with the white centre line, 40 px painted and 24 bare, worn so the dimples show through | (a) gen_arctic, seed 5708 (replays `SDRWY1`'s on purpose) | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+
+Recommended light (art-director's proposal; `level-designer` decides):
+snowy outdoors 128-160 (the snow is already bright; higher burns it), the
+barracks and the radar room 112-144, the radar screen as its own light.
+
+### Naval — MAP08, the submarine base at Severomorsk (`gen_naval.py`, 5800)
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDHULL1` | wall | 128×128 | along x | submarine hull side: staggered black anechoic rubber tiles (a few missing, the reddish primer showing), the deck edge against the sky, the row of flooding holes of a Soviet submarine and salt streaks | (a) gen_naval, seed 5801 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDHULL2` | wall | 128×128 | no (one numeral) | the same hull (same seed) with the tactical number «471» painted in white over the tiles, worn where the tiles have shifted; digits from our alphabet | (a) gen_naval, seed 5801 (replays `SDHULL1`'s on purpose); text from bigfont | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDRUBR1` | flat | 64×64 | yes | the submarine's deck from above: staggered black anechoic rubber tiles, a worn path along y, the odd lost tile (rusty steel), salt bloom | (a) gen_naval, seed 5802 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDRUBR2` | flat | 64×64 | no (single piece) | the same deck (same seed) with a flush round escape hatch: steel coaming, rubber-clad lid, hinge and a small handwheel. Single piece | (a) gen_naval, seed 5802 (replays `SDRUBR1`'s on purpose) | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDROCK1` | wall | 64×128 | yes | the excavated shelters' living rock: dark gneiss in blast facets lit from the upper left, pink feldspar specks, quartz veins, seepage runs, the half-barrels of the perimeter drill holes and a rock bolt | (a) gen_naval, seed 5803 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDROCK2` | flat | 64×64 | yes | the same rock as a ceiling: facets, drips, two bolt plates on the 32 px grid and calcite bloom | (a) gen_naval, seed 5804 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDBULK1` | wall | 128×128 | no (a door) | round watertight door in a grey «шаровый» bulkhead: bare steel coaming, a leaf with a stiffening ring, six lever dogs, two hinges, a red handwheel, the compartment number «3» in red (bigfont), oil and scuffs below | (a) gen_naval, seed 5805; text from bigfont | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDNAVC1` | wall | 128×128 | along x | control-room panel: grey-green steel, four black-faced gauges (depth and pressure), the mimic of the submarine's compartments with its pilot lamps, two rows of annunciators (some lit, their labels are dashes) and a row of toggle switches | (a) gen_naval, seed 5806 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDCONT1` | wall | 128×128 | along x | shipping container side: trapezoidal corrugation in faded red, top and bottom rails, corner posts with their castings, rust bleeding from the rails, «ММФ» (the Merchant Fleet) in white from our alphabet, the box number in 3×5 digits and a plate | (a) gen_naval, seed 5807; text from bigfont | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDCRAN1` | wall (masked mid-texture) | 64×128 | yes (by alpha: the two 64 px bays are equal) | a quay crane's jib lattice on a transparent ground: two angle chords, battens every 64 px, zigzag diagonals with gussets and rivets, faded yellow paint and rust. RGBA with hard alpha, for a two-sided line | (a) gen_naval, seed 5808 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDPIER1` | flat | 64×64 | along x (along the quay) | concrete quay from above: slabs with oil stains, a cast-iron bollard on its plate with a mooring line to the edge, the yellow-and-black kerb and the steel angle over the water (at the tile's bottom) | (a) gen_naval, seed 5809 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+
+Recommended light: the excavated shelter 96-128, the outer quay 144-160 in
+polar day, inside the submarine 112-144.
+
+### Taiga/Alien — MAP09, the portal at Tunguska (`gen_taiga.py`, 5900)
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDBARK1` | wall | 64×128 | yes | birch trunk: chalk-white bark, horizontal lenticels, cracked black plates and the chevron scars of fallen branches, a strip of bark peeling to its orange underside | (a) gen_taiga, seed 5901 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDBARK2` | wall | 64×128 | yes | larch trunk after the fire: deep vertical furrows, charred plates with charcoal's alligator crazing, surviving reddish bark in the furrows, grey ash | (a) gen_taiga, seed 5902 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDLOGW1` | wall | 128×128 | yes | log-cabin wall: round 16 px logs weathered to silver grey with brown in the checks, moss chinking between them and two knots | (a) gen_taiga, seed 5903 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDPEAT1` | flat | 64×64 | yes | peat bog: dark brown fibrous peat, sphagnum tufts and black pools holding a little sky | (a) gen_taiga, seed 5904 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDBURN1` | flat | 64×64 | yes | burnt ground: grey ash on black charcoal, patches of scorched red earth and charred trunks all lying the same way, as the blast left them | (a) gen_taiga, seed 5905 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDMOSS1` | flat | 64×64 | yes | taiga floor: moss cushions, pale reindeer lichen and a few red lingonberries | (a) gen_taiga, seed 5906 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDALNM1` | wall | 128×128 | yes | the invaders' organic metal: a dark membrane with veins glowing acid green, vertebral ribs every 32 px that sway, and two fleshy tubes crossing them with glowing joints | (a) gen_taiga, seed 5907 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDACID1` | flat (animated, frame 1 of 4) | 64×64 | yes | the invaders' acid: thick green body, crests turning yellow, bubbles that grow along the loop and burst, drifting one tile per loop. **A damaging floor: the damage is the map's sector special, not the texture's** (the `level-designer` sets it; this picture only looks the part) | (a) gen_taiga, seed 5908 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDACID2` | flat (animated, frame 2) | 64×64 | yes | the acid, frame 2 | (a) gen_taiga, seed 5908 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDACID3` | flat (animated, frame 3) | 64×64 | yes | the acid, frame 3 | (a) gen_taiga, seed 5908 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDACID4` | flat (animated, frame 4) | 64×64 | yes | the acid, frame 4, leads back into frame 1 | (a) gen_taiga, seed 5908 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDGLYP1` | wall | 64×128 | yes | invader technology plate: dark mottled metal in bevelled panels, two columns of engraved glyphs glowing acid green (with their engraving shadow) and lit channels at the sides; the glyphs are an invented grammar of rings and strokes, not letters | (a) gen_taiga, seed 5909 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDPRTE1` | wall | 64×128 | along y | the portal's frame: a column of the invaders' metal in 16 px segments split by a channel of the portal's cobalt with white filaments (the look of `SDPORT1-4`), the glow spilling onto the metal and filaments cracking it. Symmetrical, serves both sides | (a) gen_taiga, seed 5910, palette v2 (`mosaic_cobalt`) | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+
+Recommended light: the burnt taiga 96-128 at night, the cabin 112-144, the
+portal and the acid 176-208 as in the foundry (MAP03).
+
 ## Shell pictures — menu cursor and pause sign (T12, D48)
 
 Not textures: patches the engine finds by name, listed here so the index

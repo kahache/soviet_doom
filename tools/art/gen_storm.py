@@ -1,5 +1,11 @@
 """F5 — Hybrid Stormtrooper and Reich hound, design sweeps on the 3D rig.
 
+HISTORICAL since D109 (2026-10-22) for the stormtrooper's rig set (`SDHS`,
+D48-D56). The stormtrooper that ships is redrawn from Google Gemini images by
+tools/art/gemini_enemy.py (storm); this generator is kept so the approved F5
+renders stay reproducible, but its output no longer matches assets/. Still
+current: the bolt `SDBL` (`bolt_model`), which was not redrawn.
+
 Run with the project venv:
     .venv/Scripts/python.exe tools/art/gen_storm.py               (Windows)
     .venv/bin/python tools/art/gen_storm.py                       (macOS)

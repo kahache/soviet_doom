@@ -1,5 +1,14 @@
 """D55 (2026-10-14): the Reich rifleman wears its own sprites.
 
+REDRAWN by D109 and D114 (2026-10-22): the set that ships now is the
+Google Gemini redraw built by `tools/art/gemini_enemy.py rifleman` into
+`work/art/enemies_gemini/rifleman/` (MOD-SPEC 6.3, "The seven enemies redrawn
+from Google Gemini"), same lump names, frame letters and rotations, so the
+state machine below is untouched. The `files` checks read that build; the
+rig render named below is history (the generator is kept), and a lump of
+it shipping again is a failure. tests/test_gemini_enemy_install.py holds
+the install itself.
+
 The CEO approved the rifleman drawn on the 3D rig (cell E, D38), asked for
 much more blood in the deaths (D48), and approved the bloody death and the
 flat corpse (D55, "OK"): the full set of 70 `SDRR` lumps rendered by
@@ -49,7 +58,8 @@ TOOLS_DIR = PROJECT_ROOT / "tools"
 SRC_DIR = PROJECT_ROOT / "src"
 RIFLEMAN_ZS = SRC_DIR / "zscript" / "monsters" / "reich_rifleman.zs"
 RIFLEMAN_SPRITES = PROJECT_ROOT / "assets" / "sprites" / "rifleman"
-WORK_RIG = PROJECT_ROOT / "work" / "art" / "enemies" / "rig"
+WORK_RIG = PROJECT_ROOT / "work" / "art" / "enemies" / "rig"          # the rig set, history since D109
+WORK_GEMINI = PROJECT_ROOT / "work" / "art" / "enemies_gemini" / "rifleman"   # what ships since D109
 PALETTE_JSON = PROJECT_ROOT / "docs" / "art" / "palette.json"
 sys.path.insert(0, str(TOOLS_DIR))
 
@@ -242,24 +252,37 @@ class FileTests(unittest.TestCase):
                 seen.add((struct.unpack(">II", data[16:24]), read_grab(data)))
             self.assertEqual(len(seen), 1, f"{NEW}{f}: {seen}")
 
-    @unittest.skipUnless(WORK_RIG.is_dir(), "work/ not present (CI has no work/)")
+    @unittest.skipUnless(WORK_GEMINI.is_dir(), "work/ not present (CI has no work/)")
     def test_byte_identical_to_the_approved_render(self):
         for p in installed():
-            source = WORK_RIG / p.name
+            source = WORK_GEMINI / p.name
             self.assertTrue(source.is_file(), source)
             self.assertEqual(p.read_bytes(), source.read_bytes(), p)
 
     @unittest.skipUnless(HAVE_PIL, "Pillow not available in this interpreter")
     def test_the_deaths_bleed_dark_red(self):
-        """D48/D55: the approved death and gib are the bloody ones, in D49's
-        flag_red 0-5, not D38's olive (gen_rig.render(..., blood=False)):
-        every one of H-U shows some (measured 43 to 325 pixels a frame)."""
+        """D48/D55: the death and gib are bloody, in D49's flag_red 0-5: every
+        one of H-U shows some. The Gemini redraw (D109) keeps it: Gemini's
+        two death sheets carry their own, the derived gib M-U gemini_enemy's
+        procedural blood (measured 14 to 288 pixels a frame)."""
         red = blood_colours()
         for f in FLAT_FRAMES:
             with Image.open(RIFLEMAN_SPRITES / f"{NEW}{f}0.png") as img:
                 raw = img.convert("RGBA").tobytes()
             count = sum(1 for i in range(0, len(raw), 4) if raw[i + 3] and tuple(raw[i:i + 3]) in red)
             self.assertGreater(count, 0, f"{NEW}{f}0 has no flag_red 0-{BLOOD_MAX_INDEX} blood")
+
+
+    @unittest.skipUnless(WORK_RIG.is_dir(), "work/ not present (CI has no work/)")
+    def test_the_rig_set_no_longer_ships(self):
+        """D109: every lump of the set is the Gemini redraw, none the rig
+        render it replaced (that set stays in work/, history)."""
+        for p in installed():
+            if not p.stem.startswith("SDRR"):
+                continue
+            old = WORK_RIG / p.name
+            if old.is_file():
+                self.assertNotEqual(p.read_bytes(), old.read_bytes(), p.name)
 
 
 class PackageTests(unittest.TestCase):

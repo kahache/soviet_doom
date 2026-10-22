@@ -1,11 +1,12 @@
 # MAP09 — «Тунгуска» (Tunguska), episode 3's last map
 
-Design document. Owner: `level-designer`. Status: **v1 BUILT 2026-10-22,
-not yet walked, no engine pass yet** (D26: this role never starts GZDoom).
-Built MVP first (D60): the whole plan, approved and packed lumps only (the
-taiga and the alien works wear stand-ins, §8), populated, stocked, three
-keys, three secrets, the boss and the exit. Source: `src/maps/MAP09/map.py`;
-tests: `tests/test_map09_tunguska.py` (the map, 54 tests) and
+Design document. Owner: `level-designer`. Status: **v1.1 BUILT 2026-10-22
+(textured in the episode's own set, D113), not yet walked, no engine pass
+yet** (D26: this role never starts GZDoom). Built MVP first (D60): the whole
+plan, approved and packed lumps only, populated, stocked, three keys, three
+secrets, the boss and the exit; v1.1 swaps the stand-ins for the
+"Taiga/Alien" set (§7; what it does not draw, §8). Source: `src/maps/MAP09/map.py`;
+tests: `tests/test_map09_tunguska.py` (the map, 59 tests) and
 `tests/test_map09_route.py` (the route, 12); posters:
 `tests/test_posters.py` (`Map09Posters`); top-down view:
 `docs/levels/shots/MAP09-overview.png`. Russian mirror: owed at the phase
@@ -41,7 +42,7 @@ invaders keep their **main portal** (Tankograd's was a secondary one,
 |---|---|
 | Comes after | MAP08, the Northern Fleet's base (another agent's, D112); he arrives by rail. |
 | Its number | MAP09, episode 3's last slot (MAPINFO: the episode's ending cluster; the scaffolding agent's / mod-engineer's, §13). |
-| What it adds | the campaign's **largest map** (extent 7040 × 5504; MAP06 5552 × 4928) and **hardest** (57 / 88 / 122 monsters; MAP06 42 / 68 / 96); **quiet before the storm** (the railhead, the taiga and the standing forest are sparse and dark; the works, the refinery and the crater are not); **molten pits that hurt** (MAP03's channel, now across the route); a **crater you fight down into**, seven terraces to the portal. |
+| What it adds | the campaign's **largest map** (extent 7040 × 5504; MAP06 5552 × 4928) and **hardest** (57 / 88 / 122 monsters; MAP06 42 / 68 / 96); **quiet before the storm** (the railhead, the taiga and the standing forest are sparse and dark; the works, the refinery and the crater are not); **pits that hurt** (acid in the works and the crater, MAP03's molten channel in the refinery); a **crater you fight down into**, seven terraces to the portal. |
 | Climax | the crater: the boss on its floor before the portal, both factions on the terraces; his death opens the control bunker; its breaker shuts the portal and ends the episode. |
 | Factions (D35) | the Reich holds the railhead, the taiga and the station's yard (the military occupation); the Legion holds the laboratory (capital takes the science) and springs the closets; both hold the forest, the works, the refinery and the crater, and both guard the boss (tested). |
 
@@ -50,7 +51,7 @@ invaders keep their **main portal** (Tankograd's was a secondary one,
 | Job | How the layout does it |
 |---|---|
 | Be Tunguska | the 1908 blast's real signature: in the outer ring the trees lie **flat and radial**, every trunk pointing away from the epicentre (`LOGS`, oriented by `log_direction` from `CRATER_CENTRE`, tested); at the epicentre they still **stand, stripped** (the "telegraph forest": columns of void rising out of sight into a sky at 448). A Soviet research station in the manner of Kulik's expeditions (log izbas, a concrete laboratory). |
-| Be the invaders' main portal | their works sprawl into the dead forest (cast-iron towers with glowing cores of the portal's field, conduits, molten pits); their refinery; the crater ringed by a containment wall, terraced down to the portal, a column of the cobalt field two tiles high. |
+| Be the invaders' main portal | their works sprawl into the dead forest (towers of their organic metal with glowing cores of the portal's field, conduits, acid pits); their refinery; the crater ringed by a containment wall, terraced down to the portal, a column of the cobalt field two tiles high. |
 | Be the biggest and hardest map | see §2; every class of the bestiary, the boss on every skill. |
 | Teach three keys again | each lock is seen before its key (tested): the blue gate from the station's yard before the laboratory; the red gate, the yellow door **and the yellow key** all at once from the forest's edge in the works; the red key from the yellow door. Each key alone on its lit spot in its lock's colour of light (D58). |
 | Calm, then hell | §6: 2 + 4 monsters on skill 2 from the start to the station; the works alone hold 15. |
@@ -68,7 +69,7 @@ The authoritative plan is the top-down render generated from the source:
                  S3
      +-----------++------------------------------+   +---------------------+
      |  Z5 THE INVADERS' WORKS (sky 512)         |   | Z6 REFINERY (320)   |
-     |  towers (cores), conduits, molten pits    [Y]=| vats, turbines,     |
+     |  towers (cores), conduits, acid pits      [Y]=| vats, turbines,     |
      |  derrick + stair: YELLOW KEY (+128)       |   | molten channel,     |
      |  closets W   [R] red gate   closets E     |   | bridge; RED KEY dais|
 +----+----------------++-------------------------+   +---------------------+
@@ -87,7 +88,8 @@ The authoritative plan is the top-down render generated from the source:
 
 | # | Zone | x | y | floor | ceiling | light |
 |---|---|---|---|---|---|---|
-| Z1 | Railhead: ballast, track (turned `SDTRAK1`), the train (goods wagon, armoured wagon, locomotive: props 128) | 5888…7552 | 384…576 | 0 | sky 320 | 128 |
+| Z1 | Railhead: ballast, track (turned `SDTRAK1`), the train (goods wagon, armoured wagon, the locomotive's boiler: props 128) | 5888…7552 | 384…576 | 0 | sky 320 | 128 |
+| Z1 | The locomotive's cab: a shell 144 square (block 160, walls 8), the cab inside 128 square (16…144), its doorway at the back of the north side, towards the platform | 7344…7488 | 416…560 | 16 | 144 / sky 160 | 112 |
 | Z1 | Yard; platform (start at 7296, 640, facing west); the halt (roof block 160, room 16…144) | 5888…7488 | 576…1152 | 0 / 16 | sky 320 / 144 | 128 / 112 |
 | Z2 | Fallen taiga: 15 trunks (props 32 high, 256 long, radial; the diagonal ones staircases of 48-unit blocks) | 2304…5888 | 384…1408 | 0 | sky 320 | 112 |
 | Z3 | Station yard (palisade) and its gate from the taiga | 512…2304 | 448…1856 | 0 | sky 256 | 128 |
@@ -95,8 +97,8 @@ The authoritative plan is the top-down render generated from the source:
 | Z3 | Laboratory: hall a poster high, instrument room, vestibule; **blue key** on the bench (32) | 1312…2048 | 896…1600 | 16 / 32 | 272 / 144 | 144 / 128; bench **192**, blue |
 | Z3/Z4 | **Blue gate** in the invaders' fence: portal · door · porch | 1920…2048 | 1856…1952 | 0 | 128 | portal **192**, blue |
 | Z4 | Standing forest: 56 trunks (32-unit columns of void), a clearing | 1024…2752 | 1952…4608 | 0 | sky 448 | 104 |
-| Z5 | Works; scorched edge (`SDBLST1`) towards the forest | 2752…5440 | 3968…5632 | 0 | sky 512 | 144 / 120 |
-| Z5 | Two molten pits (damage), three towers (256, cores 384), four conduits (96) | | | −16 | | 176 |
+| Z5 | Works; scorched edge (`SDBURN1`) towards the forest | 2752…5440 | 3968…5632 | 0 | sky 512 | 144 / 120 |
+| Z5 | Two acid pits (damage), three towers (256, cores 384), four conduits (96) | | | −16 | | 176 |
 | Z5 | Derrick: stair of 7 × 16 north from y 4768, platform 128; **yellow key** at the stair's head | 4000…4256 | 4768…5184 | 16…128 | sky 512 | key **192**, yellow |
 | Z5 | Four pipe recesses in the north wall (S3 the third) | 3584…4480 | 5632…5648 | 0 | 128 | 144 / 96 |
 | Z5/Z7 | **Red gate** in the containment wall: portal · door · porch; the two **closets** either side | 3456…4480 | 3840…3968 | 0 | 128 | portal **192**, red |
@@ -104,7 +106,7 @@ The authoritative plan is the top-down render generated from the source:
 | Z6 | Refinery: four vats (96, molten tops), two turbines (`SDTURB1`, 128), a console (`SDCTRL1`), the molten channel (−16, damage) and its bridge; the banners | 5536…7296 | 3968…5376 | 0 | 320 | 128 |
 | Z6 | Dais: the **red key** | 7104…7232 | 4672…4800 | 16 | 320 | **192**, red |
 | Z7 | Crater rim, 128 wide, inside the containment wall | 2944…4992 | 1792…3840 | 0 | sky 512 | 160 |
-| Z8 | Seven terraces (64 wide, 16 down each) and the floor; four molten pits, four pylons; the portal (plinth −96, field to 160) | 3520…4416 | 2368…3264 | −16…−128 | sky 512 | 160; field 176 |
+| Z8 | Seven terraces (64 wide, 16 down each) and the floor; four acid pits, four pylons; the portal (plinth −96, field to 160, framed by four posts 32 square to 192 in its corners) | 3520…4416 | 2368…3264 | −16…−128 | sky 512 | 160; field and frame 176 |
 | Z9 | Exit porch · bunker gate (`SDGATE1`, tag 12) · hall · niche (`SDSW1D`) | 3840…4096 | 1520…1792 | 0 | 128 | 128; niche **192** |
 
 Every height is a multiple of 16; no step up is over 16 (tested).
@@ -137,7 +139,7 @@ Keys: `SD_BluePass` 5, `SD_YellowPass` 6, `SD_RedPass` 13; locks 2, 3, 1.
 
 | Id | Where | Type | Special | Can it lock the player out? |
 |---|---|---|---|---|
-| **BD** | the invaders' fence north of the station, `SDDOOR1` (SDDOORB pending, §8) | locked, opens for good | `Door_LockedRaise (4, 16, 0, 2, 0)`, both faces | no |
+| **BD** | the invaders' fence north of the station, `SDDOORB` | locked, opens for good | `Door_LockedRaise (4, 16, 0, 2, 0)`, both faces | no |
 | **YD** | the refinery's west wall, `SDDOORY` | locked, opens for good | `Door_LockedRaise (5, 16, 0, 3, 0)` | no |
 | **RD** | the crater's containment wall, `SDDOORR` | locked, opens for good | `Door_LockedRaise (6, 16, 0, 1, 0)` | no |
 | S1, S2, S3 | push panels (§9) | open for good | `Door_Open (1/2/3, 16)`, both faces, `secret` | no |
@@ -161,7 +163,7 @@ refinery's bridge. No monster stands on any key's sight line at spawn
 three key spots, the exit niche (tested).
 
 Softlock rules: no door closes behind the player; no lift; every drop (the
-derrick, the terraces) has a way back up; every molten pit is one step deep
+derrick, the terraces) has a way back up; every pit, acid or molten, is one step deep
 (tested); no secret is needed. From every sector reachable at every stage
 there is a way back to the start, with and without the boss's death, and at
 the end the exit is reachable from everywhere (tested).
@@ -175,7 +177,7 @@ the end the exit is reachable from everywhere (tested).
 | 3 | Station yard | the Reich's guard among the izbas; the blue gate | the PPSh in an izba |
 | 4 | Laboratory | the Legion has taken the science; Lenin over the bench | **the blue key**; S2's prototype |
 | 5 | Standing forest | **the eeriest place**: bare poles to the sky, heads drifting in the clearing | the RPG-7 at its far edge |
-| 6 | The works | **the reveal and the battle**: towers, molten pits, three goals in sight | the ROKS-3; height (the derrick) |
+| 6 | The works | **the reveal and the battle**: towers, acid pits, three goals in sight | the ROKS-3; height (the derrick) |
 | 7 | Refinery | the heavies; the molten channel or the guarded bridge | the red key |
 | 8 | Back through the works | **spike**: the closets open behind the player | MAP06's pattern |
 | 9 | Crater | **climax**: down seven terraces to the portal, the boss, both factions | the boss |
@@ -183,19 +185,38 @@ the end the exit is reachable from everywhere (tested).
 
 ## 7. Textures, by zone (all approved and packed; tested)
 
+v1.1 (D113): the episode's "Taiga/Alien" set (`docs/art/TEXTURE-INDEX.md`),
+`SDDOORB` and the cab `SDCAB1`/`SDCAB2` from episode 2's second round.
+
 | Zone | Walls | Floor | Ceiling |
 |---|---|---|---|
-| Railhead | treeline `SDWAGN1`; goods wagon `SDWAGN1`, armoured wagon `SDARMR1` flanks (a star per 128) / `SDARMR2`, locomotive `SDARMR2`; buffer `SDSTEL1`; the signal `SDSIGL1` once (D107) | `SDBLST1`, track `SDTRAK1` (turned 90), platform `SDCRTOP1` | sky |
-| Halt, izbas | `SDWAGN1`; the halt's lockers `SDLOCK1` | `SDCRTOP1` | `SDCRTOP1` |
-| Taiga | treeline `SDWAGN1`; trunks `SDWAGN1` with `SDCRTOP1` tops | `SDBLST1` | sky |
-| Station yard | palisade `SDWAGN1`; the fence `SDSTEL1`; the laboratory's outside `SDCONC1`; radio mast `SDSTEL1` | `SDBLST1` | sky |
+| Railhead | treeline `SDBARK2` (a birch `SDBARK1` here and there); goods wagon `SDWAGN1`, armoured wagon `SDARMR1` flanks (a star per 128) / `SDARMR2`, the locomotive's boiler and cab outside `SDARMR2`; buffer `SDSTEL1`; the signal `SDSIGL1` once (D107); the platform's edge `SDWAGN1`, its back wall `SDLOGW1` | `SDBLST1` under the train, track `SDTRAK1` (turned 90), the yard `SDMOSS1`, platform `SDCRTOP1` | sky |
+| The cab | forward `SDCAB1` (one 128 face, whole), sides and back `SDCAB2` (whole windows) | `SDFLR4` | `SDFLR4` |
+| Halt, izbas | `SDLOGW1` inside and out; the halt's lockers `SDLOCK1` | `SDCRTOP1` | `SDCRTOP1` |
+| Taiga | treeline `SDBARK2` (birches); its west wall the palisade `SDLOGW1`; fallen trunks `SDBARK2` with `SDBURN1` tops, three birch (`SDBARK1`, `SDMOSS1` tops: logs 3, 8, 13) | `SDBURN1`, turned 90 (`BURNT_TURN`) | sky |
+| Station yard | palisade `SDLOGW1`; the invaders' fence `SDALNM1`; the laboratory's outside `SDCONC1`; radio mast `SDSTEL1` | `SDMOSS1` | sky |
 | Laboratory | hall `SDTILE1`, instrument room `SDTILE2`, boards `SDCTRL1`, vestibule `SDCONC1`, bench `SDSTEL1` | `SDFLR3` | `SDCEIL1` |
-| Forest | trunks `SDRUST1`; treeline `SDWAGN1`; containment wall `SDTUBB1`; fence `SDSTEL1` | `SDBLST1` | sky |
-| Works | `SDTUBB1` (walls, towers), cores `SDPORT1`, conduits and derrick `SDSTEL1`, molten pits `SDMOLT1` | `SDFLR4`, edge `SDBLST1`, derrick `SDGRAT1` | sky |
-| Refinery | `SDBRCK1`; vats `SDRUST1`; turbines `SDTURB1`; console `SDCTRL1`; banners `SDFLAG1`/`SDFLAG2` side by side | `SDFLR4`, bridge `SDGRAT1`, channel `SDMOLT1` | `SDCEIL2` |
-| Crater | containment `SDTUBB1`; terraces `SDSTEL1`; pylons `SDTUBB1`; plinth `SDSTEL1`; the portal `SDPORT1` (two tiles) | `SDBLST1`, floor `SDFLR4`, pits `SDMOLT1` | sky |
-| Bunker | `SDSTEL1`; gate `SDGATE1`; exit `SDSW1D` | `SDFLR4` | `SDCEIL1` |
-| Doors | `SDDOOR1` (blue), `SDDOORY`, `SDDOORR` | | |
+| Forest | trunks `SDBARK2`, every seventh `SDBARK1` (`birch_trunks`); treeline `SDBARK2`; fence and containment `SDALNM1` | `SDPEAT1` (the Southern Swamp) | sky |
+| Works | `SDALNM1` (walls, towers, conduits, recesses, closets), a strip of `SDGLYP1` up the middle of each tower face and a plate either side of the red gate, cores `SDPORT1`, derrick `SDSTEL1`, the edge's west wall `SDBARK2`; acid pits `SDACID1` | `SDFLR4`, edge `SDBURN1`, derrick `SDGRAT1` | sky |
+| Refinery | `SDBRCK1`; vats `SDRUST1`; turbines `SDTURB1`; console `SDCTRL1`; banners `SDFLAG1`/`SDFLAG2` side by side | `SDFLR4`, bridge `SDGRAT1`, channel and vats `SDMOLT1` | `SDCEIL2` |
+| Crater | containment and terraces `SDALNM1`; pylons `SDGLYP1` (one plate a face); plinth `SDALNM1`; the portal `SDPORT1` (two tiles, one wide between the posts) in a frame of `SDPRTE1`; a glyph plate either side of the bunker's gate | rim and terraces `SDBURN1`, floor `SDFLR4`, pits `SDACID1` | sky |
+| Bunker | `SDSTEL1`; porch `SDALNM1`; gate `SDGATE1`; exit `SDSW1D` | `SDFLR4` | `SDCEIL1` |
+| Doors | `SDDOORB` (blue, jambs `SDALNM1`), `SDDOORY`, `SDDOORR` (jambs `SDALNM1`); thresholds `SDFLR4` | | |
+
+**Acid or molten, decided:** green acid wherever the invaders work: the
+works' two pits and the crater's four round the portal (the colour of their
+veins and glyphs). Molten metal where they smelt: the refinery's channel and
+its four vats (Tankograd's look, MAP03). Both hurt alike: the sector's
+`damageamount` 10 every 32 tics, not the flat's (tested).
+
+**Alignment.** `align_to_world` (MAP05's method) pegs every face of
+`SDLOGW1`, `SDBARK1`/`2`, `SDALNM1`, `SDGLYP1` and `SDARMR2` to rows from the
+ground (the logs' joints, every 16, meet the huts' floor one step up as well
+as the ground) and to the map's columns, so a wall split by its neighbours
+shows no seam and every glyph plate starts on its edge (they all stand on
+multiples of 64; tested). The cab's pictures sit on its floor and start at
+each wall's left end (`SDCAB1` whole, `SDCAB2` whole windows); each frame post
+shows the middle 32 of `SDPRTE1`, its cobalt channel (tested).
 
 ### 7.1 The posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
 
@@ -215,24 +236,18 @@ line `MARX_ENGELS = "SDPOSTR4"`.
 
 ## 8. Pending textures
 
-Each stands in for a piece of the art-director's "Taiga/Alien" draft set;
-swapping is one constant in `map.py` (in brackets), nothing moves.
+What the "Taiga/Alien" set (D113) does not draw; each is still a stand-in,
+swapped by one constant in `map.py`.
 
 | # | Wanted | Stand-in now | Where |
 |---|---|---|---|
-| 1 | **Burnt earth / moss** ground, flat (64×64), and a tundra variant | `SDBLST1` (`BALLAST`) | every outdoor floor |
-| 2 | **Dead-taiga treeline**, wall 128×256 (a wall of standing burnt trunks against the sky) | `SDWAGN1` (`WAGON`) | every outdoor boundary |
-| 3 | **Bark** for fallen trunks (wall, along x) and **sawn ends** (flat) | `SDWAGN1` / `SDCRTOP1` | the taiga's 15 trunks |
-| 4 | **Stripped, charred trunk** (wall 32-64 wide, tiling up) | `SDRUST1` (`RUST`) | the forest's 56 standing trunks |
-| 5 | **Log-cabin wall** (izba: round logs, moss in the joints) and a plank floor | `SDWAGN1`, `SDCRTOP1` | the halt, the izbas, the palisade |
-| 6 | **Alien metal**: plating, ribbed conduits, a tower skin (128×128) | `SDTUBB1` (`TUBBING`), `SDSTEL1` | the works, the containment, the pylons |
-| 7 | **Alien floor** (plating) | `SDFLR4` (`PLATE`) | the works, the refinery, the crater floor |
-| 8 | **Acid** (an animated flat distinct from the molten metal and the Volga) | `SDMOLT1` only | the works' pits could alternate molten / acid |
-| 9 | **Fused crater earth** (glassy, cracked) for the terraces | `SDBLST1` | the crater |
-| 10 | The invaders' **fence** (alien wire/plate, 64×128) | `SDSTEL1` | the station's north fence |
-| 11 | Blue-trimmed door leaf `SDDOORB` (as MAP06 #10) | `SDDOOR1` | the blue gate |
-| 12 | **Siberian night sky** (MAPINFO `sky1`, mod-engineer's) | Freedoom's `SKY1` | everywhere outdoors |
-| 13 | **Steam locomotive / passenger car** sides (the train he came on) | `SDARMR2`, `SDWAGN1` | the railhead |
+| 1 | **Dead-taiga treeline**, wall 128×256: standing burnt trunks with the sky between them (a masked or sky-topped wall) | `SDBARK2` tiled (`BARK`): reads as one wall of bark | every outdoor boundary |
+| 2 | **Bark along a lying trunk** (furrows running along it): GZDoom cannot turn a wall texture, and `SDBARK1`/`2` are standing bark | `SDBARK2` / `SDBARK1` (a 32 strip of their top rows) | the taiga's 15 fallen trunks |
+| 3 | **Sawn or broken trunk ends** (flat) | `SDBURN1` / `SDMOSS1` | the fallen trunks' tops |
+| 4 | **Alien floor** (plating) | `SDFLR4` (`PLATE`) | the works, the refinery, the crater's floor, the cab |
+| 5 | **Fused crater earth** (glassy, cracked) for the terraces | `SDBURN1` | the crater |
+| 6 | **Steam locomotive, outside** (boiler, smokebox, wheels) | `SDARMR2` (an armoured locomotive) | the boiler and the cab's shell |
+| 7 | **Siberian night sky** (MAPINFO `sky1`, mod-engineer's) | Freedoom's `SKY1` | everywhere outdoors |
 
 ## 9. Secrets
 
@@ -242,7 +257,7 @@ MAP01's rule: a clue is a comparison, never a sign; each has a way back (tested)
 |---|---|---|---|
 | S1 | the halt, east wall | of three lockers the middle one stands 16 back, in shadow (light 96) | backpack, flak vest, shell box |
 | S2 | the laboratory's instrument room | of three instrument boards the middle one stands back, in shadow | the **Hand Katyusha**, the laboratory's prototype, and a cell pack |
-| S3 | the works' north wall | of four cast-iron recesses the third is twice as deep and darker | two medikits, a box of PG-7V |
+| S3 | the works' north wall | of four recesses in the invaders' metal the third is twice as deep and darker | two medikits, a box of PG-7V |
 
 ## 10. Enemies and resources by skill
 
@@ -310,6 +325,8 @@ facing the red gate (`BOSS_ANGLE = 90`), on every skill.
 | Thing special on death / on pickup | the boss (tag 12), the red key (tag 10) | NOT VERIFIED in play (MAP06 E2, E3) |
 | Skies at five heights, closed sky blocks as roofs, sky doorways | §4.1 | **NOT VERIFIED** |
 | Animated walls and flats | `SDPORT1`, `SDMOLT1` (ANIMDEFS) | VERIFIED (MAP03) |
+| Animated acid | `SDACID1-4` (ANIMDEFS, 8 tics) | NOT VERIFIED (never on a map before) |
+| A turned flat that is not a track | `SDBURN1`, `rotationfloor` 90 on the taiga | NOT VERIFIED which way the trunks lie |
 
 Engine checklist (one pass on skill 3, then the route on 2, 3, 4):
 
@@ -318,12 +335,19 @@ Engine checklist (one pass on skill 3, then the route on 2, 3, 4):
 - **E2** the standing forest: the trunks rise out of sight; no HOM where 56
   columns meet a sky at 448.
 - **E3** the works: the towers' cores (`SDPORT1`) whole on top of the
-  cast iron; the yellow key visible on the derrick from the forest's edge.
+  invaders' metal; the yellow key visible on the derrick from the forest's edge.
 - **E4** the red key opens the works' closets (route step RKEY).
 - **E5** the boss's death opens the bunker's gate (route step BOSS1).
-- **E6** the molten pits hurt and are walked out of; the refinery's channel
+- **E6** the acid pits and the molten channel hurt and are walked out of; the refinery's channel
   is crossed on the bridge without harm.
 - **E7** the posters whole in the laboratory; the signal whole on its post.
+- **E8** the acid pits animate and hurt like the molten channel; green and
+  orange read as two different things.
+- **E9** the cab: `SDCAB1` whole forward, the windows whole, no slab over its
+  doorway (the huts' sky trick again); the shell reads as the loco's cab.
+- **E10** the logs' joints meet the floor in the huts and on the palisade;
+  the glyph strips and plates whole; the portal's posts show their cobalt
+  channel; the taiga's charred trunks lie roughly towards the crater.
 
 ## 13. MAPINFO and LANGUAGE (for the scaffolding agent / `mod-engineer`)
 
@@ -369,6 +393,23 @@ suite 3094 tests, one failure not this map's alone:
 maps a Doughboy may stand in and does not know MAP07, MAP08 or MAP09 yet (its
 owner adds them). MAP09: 883 vertices, 962 linedefs, 133 sectors, 249
 things. The engine pass (§12) is the PM's.
+
+### 16.1 v1.1, the episode's textures (2026-10-22, D113)
+
+Every stand-in of §8 v1 the set covers is swapped (§7); the blue door wears
+`SDDOORB`; the locomotive gained a cab one can step into (the only geometry
+added: a shell, a room and a doorway at the railhead, off the route) and the
+portal a frame (four posts in the field's corners, inside its footprint: no
+walkable cell changed). No door, key, secret, monster, item, light, poster or
+the boss moved. Tests: 59 in `tests/test_map09_tunguska.py` (five new: the
+set where the design puts it, whole glyph plates, the world grid, the
+portal's frame, the cab; the pits' test now tells acid from molten), the
+route's 12 unchanged, all OK. MAP09: 962 vertices, 1048 linedefs, 140
+sectors, 249 things. `tools/verify.py fast` the same day: build and
+`check_pk3` PASS (0 errors, 0 warnings); the suite, 3127 tests, 23 failures
+and 1 error, none of them MAP09's (the redrawn enemies' sprite tests and
+MAP05's door leaves, other work in progress on the same tree). The engine
+pass (§12, E1-E10) is the PM's.
 
 ## 17. Open points
 

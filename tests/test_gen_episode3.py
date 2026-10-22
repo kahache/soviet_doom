@@ -2,11 +2,15 @@
 gen_naval.py, gen_taiga.py (MAP07-09), their shared ep3lib.py (on top of
 ep2lib.py, read only) and the sheet builder gen_episode3.py.
 
-DRAFTS: nothing is installed. What is held:
+APPROVED under D113's standing approval (PM gate 2026-10-22) and installed
+in assets/{textures,flats}/<arctic|naval|taiga>/. What is held:
 
   names      every lump is an SD name of <= 8 upper-case characters, unique
              across the three sets, not already used in assets/, work/ or
-             TEXTURE-INDEX.md, and not readable as a sprite frame
+             TEXTURE-INDEX.md (its own installed copy and rows aside), and
+             not readable as a sprite frame
+  installed  assets/ holds the generators' bytes; one approved row per lump
+             in TEXTURE-INDEX.md, one in LICENSES.md
   sizes      walls at an ART-BIBLE §2 size, flats 64x64, multiples of 8
   seeds      one seed per piece in each set's own space (5700/5800/5900),
              except the twins that replay a seed on purpose (SDRWY2,
@@ -14,7 +18,7 @@ DRAFTS: nothing is installed. What is held:
   no font    the generators never rasterise a system font (D27)
   writes     PNGs go to work/art/episode3/, the sheet to docs/art/previews/;
              assets/ is only ever read (approved reference lumps for the
-             scenes); TEXTURE-INDEX.md and LICENSES.md do not name a draft
+             scenes)
   palette    v1 pieces carry v1 colours only; the one v2 piece is the
              portal rim, with mosaic_cobalt and nothing else (D66)
   masked     the crane is RGBA with hard 0/255 alpha
@@ -119,8 +123,14 @@ class DefinitionTests(unittest.TestCase):
 
     def test_names(self):
         lumps = [lump for _, p in self.all_pieces() for lump in p.lumps]
-        self.assertEqual(gen_episode3.name_problems(lumps, gen_episode3.existing_lumps()), [])
+        self.assertEqual(gen_episode3.name_problems(lumps, gen_episode3.existing_lumps(frozenset(lumps))), [])
         self.assertEqual(len(lumps), len(set(lumps)))
+
+    def test_installed_copies_are_not_a_clash_but_strangers_are(self):
+        # D113: the installed copies and the index rows are the lumps themselves.
+        self.assertIn("SDSNOW1", gen_episode3.existing_lumps())
+        self.assertNotIn("SDSNOW1", gen_episode3.existing_lumps(frozenset({"SDSNOW1"})))
+        self.assertIn("SDKREM1", gen_episode3.existing_lumps(frozenset({"SDSNOW1"})))
 
     def test_sprite_prefix_is_caught(self):
         # SDRD is a sprite: a console called SDRDR1 would read as one of its frames.
@@ -129,14 +139,6 @@ class DefinitionTests(unittest.TestCase):
     def test_every_lump_has_a_new_family(self):
         for _, p in self.all_pieces():
             self.assertTrue(gen_episode3.family_of(p.lumps[0]), p.key)
-
-    def test_drafts_are_not_in_the_paper(self):
-        index = (PROJECT_ROOT / "docs" / "art" / "TEXTURE-INDEX.md").read_text(encoding="utf-8")
-        licences = (PROJECT_ROOT / "docs" / "art" / "LICENSES.md").read_text(encoding="utf-8")
-        for _, p in self.all_pieces():
-            for lump in p.lumps:
-                self.assertNotRegex(index, rf"\b{lump}\b", f"{lump} is a draft: no index row until approved")
-                self.assertNotRegex(licences, rf"\b{lump}\b", f"{lump} is a draft: no licence row until approved")
 
     def test_sizes(self):
         for _, p in self.all_pieces():
@@ -302,10 +304,49 @@ class RenderTests(unittest.TestCase):
                         self.skipTest("work/art/episode3 not rendered on this machine")
                     self.assertEqual(w.read_bytes(), (d / f"{lump}.png").read_bytes(), lump)
 
-    def test_nothing_installed(self):
-        for _, _, p in self.pieces():
+    def test_installed_lumps_are_what_the_generators_build(self):
+        """D113: assets/ holds exactly the generators' bytes (walls under
+        textures/<set>/, flats under flats/<set>/). Runs without work/."""
+        for mod, d, p in self.pieces():
+            kind = "flats" if p.kind == "flat" else "textures"
             for lump in p.lumps:
-                self.assertEqual(list((PROJECT_ROOT / "assets").rglob(f"{lump}.png")), [], f"{lump} is a draft")
+                installed = PROJECT_ROOT / "assets" / kind / mod.SET_NAME / f"{lump}.png"
+                self.assertTrue(installed.is_file(), installed)
+                self.assertEqual(installed.read_bytes(), (d / f"{lump}.png").read_bytes(), lump)
+                self.assertEqual(len(list((PROJECT_ROOT / "assets").rglob(f"{lump}.png"))), 1,
+                                 f"{lump} installed twice")
+
+
+@needs_imaging
+class PaperTests(unittest.TestCase):
+    """D113: every installed lump has one approved row in TEXTURE-INDEX.md and
+    one row in LICENSES.md naming its generator and seed."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.index = (PROJECT_ROOT / "docs" / "art" / "TEXTURE-INDEX.md").read_text(encoding="utf-8")
+        cls.licenses = (PROJECT_ROOT / "docs" / "art" / "LICENSES.md").read_text(encoding="utf-8")
+        cls.lumps = [lump for mod in modules() for p in mod.PIECES for lump in p.lumps]
+
+    def rows(self, text: str, lump: str) -> list[str]:
+        return [line for line in text.splitlines() if line.startswith(f"| `{lump}` |")]
+
+    def test_one_approved_index_row_each(self):
+        for lump in self.lumps:
+            rows = self.rows(self.index, lump)
+            self.assertEqual(len(rows), 1, f"{lump}: expected one row in TEXTURE-INDEX.md")
+            self.assertIn("approved 2026-10-22 (D113", rows[0], lump)
+
+    def test_a_licence_row_each(self):
+        for lump in self.lumps:
+            rows = self.rows(self.licenses, lump)
+            self.assertEqual(len(rows), 1, f"{lump}: expected one row in LICENSES.md")
+            self.assertRegex(rows[0], r"\(a\) .*gen_(arctic|naval|taiga)\.py.*seed \d{4}", lump)
+            self.assertIn("CC BY-NC-SA 4.0", rows[0], lump)
+
+    def test_the_acid_row_leaves_the_damage_to_the_map(self):
+        # The damage is the map's sector special, not the texture's.
+        self.assertIn("sector special", self.rows(self.index, "SDACID1")[0])
 
 
 if __name__ == "__main__":

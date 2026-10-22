@@ -1,5 +1,14 @@
 """D54 (2026-10-14): the Liberty Legion trooper wears its own sprites.
 
+REDRAWN by D109 and D114 (2026-10-22): the set that ships now is the
+Google Gemini redraw built by `tools/art/gemini_enemy.py legion` into
+`work/art/enemies_gemini/legion/` (MOD-SPEC 6.3, "The seven enemies redrawn
+from Google Gemini"), same lump names, frame letters and rotations, so the
+state machine below is untouched. The `files` checks read that build; the
+rig render named below is history (the generator is kept), and a lump of
+it shipping again is a failure. tests/test_gemini_enemy_install.py holds
+the install itself.
+
 The CEO approved cell C of the Legion sweep (D48) and, after it was redone
 so the corpse lies flat, its death (D54, "Muerte legion OK"): the full set
 of 70 `SDLT` lumps rendered by `tools/art/gen_legion.py --full` into
@@ -45,7 +54,8 @@ TOOLS_DIR = PROJECT_ROOT / "tools"
 SRC_DIR = PROJECT_ROOT / "src"
 TROOPER_ZS = SRC_DIR / "zscript" / "monsters" / "legion_trooper.zs"
 LEGION_SPRITES = PROJECT_ROOT / "assets" / "sprites" / "legion"
-WORK_FULL_C = PROJECT_ROOT / "work" / "art" / "enemies" / "legion" / "full_C"
+WORK_FULL_C = PROJECT_ROOT / "work" / "art" / "enemies" / "legion" / "full_C"   # the rig set, history since D109
+WORK_GEMINI = PROJECT_ROOT / "work" / "art" / "enemies_gemini" / "legion"       # what ships since D109
 sys.path.insert(0, str(TOOLS_DIR))
 
 import check_pk3  # noqa: E402
@@ -221,21 +231,23 @@ class FileTests(unittest.TestCase):
                 seen.add((struct.unpack(">II", data[16:24]), read_grab(data)))
             self.assertEqual(len(seen), 1, f"{NEW}{f}: {seen}")
 
-    @unittest.skipUnless(WORK_FULL_C.is_dir(), "work/ not present (CI has no work/)")
+    @unittest.skipUnless(WORK_GEMINI.is_dir(), "work/ not present (CI has no work/)")
     def test_byte_identical_to_the_approved_render(self):
         for p in installed():
-            source = WORK_FULL_C / p.name
+            source = WORK_GEMINI / p.name
             self.assertTrue(source.is_file(), source)
             self.assertEqual(p.read_bytes(), source.read_bytes(), p)
 
-    @unittest.skipUnless((WORK_FULL_C / "old_death").is_dir(), "work/ not present (CI has no work/)")
-    def test_the_death_is_the_redone_one(self):
-        """D54 approved the redone death (the corpse lies flat): the old L0
-        and U0 stay in work/, superseded, and did not ship."""
-        for name in ("SDLTL0.png", "SDLTU0.png"):
-            old = WORK_FULL_C / "old_death" / name
+    @unittest.skipUnless(WORK_FULL_C.is_dir(), "work/ not present (CI has no work/)")
+    def test_the_rig_set_no_longer_ships(self):
+        """D109: every lump of the set is the Gemini redraw, none the rig
+        render it replaced (that set stays in work/, history)."""
+        for p in installed():
+            if not p.stem.startswith("SDLT"):
+                continue
+            old = WORK_FULL_C / p.name
             if old.is_file():
-                self.assertNotEqual((LEGION_SPRITES / name).read_bytes(), old.read_bytes(), name)
+                self.assertNotEqual(p.read_bytes(), old.read_bytes(), p.name)
 
 
 class PackageTests(unittest.TestCase):

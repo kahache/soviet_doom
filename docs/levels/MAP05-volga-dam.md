@@ -129,7 +129,7 @@ clerestory panes are 32 and 16 deep and do not show at this scale.
 | Z7c | The channel (water, hurts 5/32 tics), steps out at y 448–576 and 1280–1408 | 896…1152 | 128…1760 | −64 | sky | 112 |
 | Z7k | Winch house, the yellow key | 576…768 | 832…1024 | 16 | 144 | **192**, yellow |
 | Z8 | Cable gallery: flat, 11 steps, top corridor | 2976…3584 | 1056…1184 | 192→384 | +128 | 112 |
-| Z9 | Substation (3 transformers +96, 2 pylons solid) | 3584…4160 | 896…1664 | 384 | sky | 128 |
+| Z9 | Substation (3 transformers +96, 2 pylons solid); the high-voltage fence on its south and north sides, a strip 16 deep behind each (sky at 512) and a closed sky block 16 deep behind that (props, out of reach) | 3584…4160 | 896…1664 (strips 864…896, 1664…1696) | 384 | sky | 128 |
 | Z9p | Transformer pad, the blue key | 3904…4032 | 1216…1344 | 400 | sky | **192**, blue |
 | Z9s | Passage to the station's shutter, SW-B | 4160…4256 | 1472…1600 | 384 | 512 | 128 |
 | Z10 | The crest, road (`SDFLR1`) and rails, 4 barricades, 2 crane huts | 640…4192 | 1792…2048 | 384 | sky | 128 |
@@ -187,8 +187,8 @@ four rounds:
 **Signposting** (D58, as on MAP03): each key alone on a lit place (192) in
 its lock's colour (`lightcolor` blue `0x90A8FF`, MAP02's pass; yellow
 `0xFFD860`, MAP03's) and nothing else in the map wears either colour
-(tested). The yellow door wears `SDDOORY`; the blue gate wears `SDDOOR1` in
-blue light until a blue trim exists (§7.2). Every switch is a real switch
+(tested). The yellow door wears `SDDOORY`; the blue gate wears its own blue
+leaf `SDDOORB` (since D113, §7.2) in blue light. Every switch is a real switch
 face, one-shot, in sight of the shutter it opens (tested).
 
 Rules that remove whole classes of softlock (MAP01 §4, MAP03 §5), all
@@ -250,17 +250,18 @@ Measured (hit points met, by beat; `test_the_intensity_rises`):
 | Station | `SDBRCK1` (the station's buildings), the two flags `SDFLAG1`/`SDFLAG2` in recesses either side of the blue gate's wall, Stalin `SDPOSTR3` in a recess beside them (7.3); the parapet `SDDAM1`; the signal post `SDSIGL1` (once, D107) | `SDFLR2`, rails `SDRAIL1` | sky |
 | The armoured train | `SDARMR2` (MAP04's train), one `SDARMR1` star in the middle of its south side | `SDFLR4` | sky |
 | Gatehouse, west hall | `SDTILE2` | `SDFLR3` | `SDCEIL1` |
-| Control room | `SDTILE2`, four `SDCTRL1` boards standing on the floor (two flanking the mural, one on each side wall); the consoles `SDCTRL1`'s desk | `SDFLR3`; consoles `SDFLR4` | `SDCEIL1` |
+| Control room | `SDTILE2`, four `SDCTRL1` boards standing on the floor (two flanking the mural, one on each side wall); the consoles `SDCTRL1`'s desk; the bars `SDGRIL1` (masked) in its two windows over the hall | `SDFLR3`; consoles `SDFLR4` | `SDCEIL1` |
 | Inspection, lower and cable galleries | `SDTUNL1` (board-cast concrete with cable runs) | `SDFLR2` | `SDCEIL2` |
 | Turbine hall | `SDDAM1` (the dam's concrete), clerestory `SDWIND1`, Lenin `SDPOSTR1` in the west wall, two portraits on the catwalk's back wall (7.3) | `SDFLR3` | `SDCEIL1` |
 | Generators | housings `SDTURB1` (48 high: the tile's foot, flange and plinth on the floor), shafts `SDSTEL1` | `SDFLR4` | |
 | Catwalk and its stair | face to the hall and risers `SDSTEL1`; back wall `SDDAM1` (the hall's) | `SDGRAT2` | |
 | Spillway | `SDDAM1`; the banks out of the water `SDDAM2` (the tide mark on the water); the dam's face over the channel the rack `SDSPIL1` | `SDFLR2`; the water `SDWATR1` (animated) | sky |
-| Substation | `SDRUST1` fence, transformers `SDSTEL1`, pylons and the gantry between them `SDSTEL1`, insulator strings `SDINSL1` (masked) under the gantry | `SDFLR2`, pad `SDFLR4`; the gantry's underside `SDFLR4` | sky |
+| Substation | the high-voltage fence `SDHVLT1` (masked) on its south and north sides, `SDRUST1` corrugated sheet on its east and west (where the cable gallery and the passage come in), transformers `SDSTEL1`, pylons and the gantry between them `SDSTEL1`, insulator strings `SDINSL1` (masked) under the gantry | `SDFLR2`, pad `SDFLR4`; the gantry's underside `SDFLR4` | sky |
 | Crest | `SDDAM1` parapets and porches, barricades `SDCRAT1` / `SDCRTOP1`, crane huts `SDRUST1`, S3's gate `SDGATE1` | `SDFLR1` (the yellow lane line as the road's centre line), rails `SDRAIL1` | sky |
-| Doors, switches | `SDDOOR1` (D1, D2, blue gate), `SDDOORY` (yellow door); `SDSW1A` (SW-A), `SDSW1B` (SW-B), `SDSW1D` (exit) | | |
+| Doors, switches | `SDDOOR1` (D1, D2), `SDDOORB` (blue gate), `SDDOORY` (yellow door); `SDSW1A` (SW-A), `SDSW1B` (SW-B), `SDSW1D` (exit) | | |
 
-The sky is `F_SKY1`, the engine's marker (MAPINFO's `SKY1`); the parapets
+The sky is `F_SKY1`, the engine's marker; MAPINFO's `sky1` is `SDSKY1`, the
+Urals at night (D113, the PM's); the parapets
 carry a sky ceiling 16 over their top (432), Doom's open-air trick: beyond
 them the night sky, never a wall.
 
@@ -280,9 +281,11 @@ itself, one that does not is worn as its substitute):
 | `SDPANL1` | no | `SDCTRL1` | four boards on the control room's walls (below) |
 | `SDPANL2` | no | `SDCTRL1`, its desk rows 64-95 | the two consoles' faces, 32 high |
 | `SDSLUC1` | no | `SDSPIL1` | the dam's face over the channel's north end: the trash rack with water running out under it |
-| `SDHVLT1` | no | `SDRUST1` (unchanged) | the substation's fence; the high voltage is said by `SDINSL1` on the gantry instead |
-| `SDDOORB` | no | `SDDOOR1` in blue light (unchanged) | the blue gate (open point 14.2) |
-| `SDGRIL1` | no | — | **still pending** (`PENDING_TEXTURES`): bars on the control room's two windows, v2; open meanwhile |
+| `SDHVLT1` | yes (round 2, D113) | `SDHVLT1` | the substation's fence, south and north: a masked middle texture on a two-sided line (below) |
+| `SDDOORB` | yes (round 2, D113) | `SDDOORB` | the blue gate, both faces |
+| `SDGRIL1` | yes (round 2, D113) | `SDGRIL1` | bars in the control room's two windows over the hall (below) |
+
+Nothing of this table waits any more (`PENDING_TEXTURES` is empty).
 
 New pieces the section did not propose: `SDDAM1`/`SDDAM2` (the dam's
 concrete, outside and in), `SDGRAT2` (the catwalk and its stair, replacing
@@ -326,6 +329,30 @@ strings hang from it on both long faces, two each, from 704 down to 576,
 against the sky, 192 over the floor (over every head). The gantry is walked
 under (a walkable zone); the stimpack that lay between the pylons is now in
 it (its table row says `z9_gantry`; it did not move).
+
+**The window bars (round 2).** `SDGRIL1` is masked: the middle texture of
+the line between each window and the catwalk (y 896), on both its sides,
+so the bars are seen from the hall (flush with its face) and, through the
+32-deep slot, from the room. Doom hangs it from the window's head (320, the
+lower ceiling); `offsety_mid` 2 (UDMF zdoom, the per-part row offset MAP06
+uses) puts row 2 there, so the window's 80 rows (240…320) show rows 2-81:
+both riveted flats inside the opening. Two whole panels on the 64 grid per
+window. The sill, 48 over the catwalk, is what keeps anyone out, as before.
+
+**The high-voltage fence (round 2).** `SDHVLT1` is masked and only a
+middle texture can show it, so the substation's south (y 896) and north
+(y 1664) sides became one impassable two-sided line each, corner to corner
+(576 = nine panels, a post on every 64 of the world's grid, so one at each
+corner). Behind each line a strip 16 deep (`prop_z9_fence_s` / `_n`) open
+to a sky at 512, exactly the fence's height, so the fence hangs whole from
+that sky to the ground; behind the strip a closed sky block 16 deep
+(`prop_z9_verge_s` / `_n`, floor = ceiling = 384): two sky ceilings side by
+side draw no wall between them, so through the wire the night comes down to
+the dam's edge instead of a wall. The east and west sides stay `SDRUST1`:
+the cable gallery and the passage to the station come in through them, and
+a fence there would leave their roofed mouths standing alone. The danger
+plate is on every panel (the tile carries it), as on a real substation's
+fence.
 
 **The signal.** `SDSIGL1` once (D107: single use, one 64 span, never tiled):
 a concrete post 16 × 64 north of the station's track (x 4304…4320, y
@@ -460,7 +487,7 @@ of 330 is fair for a player who knows the route (§3); my estimate is 360.
 | Version | Content | Done when |
 |---|---|---|
 | **v1 — whole, textured, populated** ✅ **BUILT 2026-10-22** (§13) | the plan of §4 with every door, both keys, both locks, both switches, the shortcut, the exit; approved lumps only (§7.1) with the pending list (§7.2); §8's three secrets; §9's population and budget | the CEO walks it on skill 3 and reaches MAP06 |
-| v2 — light and detail | ~~the Dam set swapped in~~ done 2026-10-22 (§7.2, §13.6); light: the generators' glow, floodlights over the substation, the crest's lamps (the art-director recommends crest and spillway 160-192, hall 128-160); bars on the control room's windows (`SDGRIL1`, not drawn); a reservoir sector over the north parapet (`SDWATR1` exists now; the sky trick behind it needs an engine check) | a first-time player finds both keys and the exit without being told |
+| v2 — light and detail | ~~the Dam set swapped in~~ done 2026-10-22 (§7.2, §13.6); light: the generators' glow, floodlights over the substation, the crest's lamps (the art-director recommends crest and spillway 160-192, hall 128-160); ~~bars on the control room's windows~~ done in round 2 (`SDGRIL1`, §7.2); a reservoir sector over the north parapet (`SDWATR1` exists now; the sky trick behind it needs an engine check) | a first-time player finds both keys and the exit without being told |
 | v3 — balance | after the playtests (D60) | the map is played through on skill 3 |
 
 ## 13. v1 build record (2026-10-22)
@@ -510,6 +537,7 @@ P4 agents).
 | V12 | The Dam set's offsets (§7.2): `SDDAM1`'s lift joints level from the spillway up the parapet's 416 face and round the hall and catwalk, no seam at a split wall; `SDDAM2`'s tide mark just under the walkways' edge, the slime at the water; the rack from the water up; the generators' plinths on the floor; the consoles show the desk. If every face is off by the same amount, the offset's sign is the other way: flip it in `align_to_world` | walk the spillway, the hall, the control room |
 | V13 | The middle textures: four `SDCTRL1` boards stand on the control room's floor, drawn once (the tile wall above, not a second board), and stop the player; the `SDINSL1` strings hang from the gantry with sky between them (no garbage in the transparent pixels), the player walks under | the control room; the substation |
 | V14 | `SDSIGL1` once on the station's post, `SDARMR1`'s star whole on the train's south side | arrive |
+| V15 | Round 2 (D113): the bars `SDGRIL1` in both windows, both flats inside the opening, seen from the hall and from the room, no garbage in their transparent pixels; the **fence** `SDHVLT1` on the substation's south and north sides, whole from the ground to its top rail, a post at each corner, the night sky through the wire right down to the ground (not a wall, not HOM: the closed sky block behind the strip), nobody (player or Doughboy) crosses it; `SDDOORB` on the blue gate, both faces; the sky `SDSKY1` round the whole turn | the substation from the cable gallery's mouth and from its middle; the control room; the station |
 | V10 | The posters (7.3) are whole and readable: Stalin's recess shows brick above it, not sky (its ceiling is concrete under a sky room); Lenin reads from the hall's east door at 160; the mural sits on its sill through the yellow door; the catwalk portraits from the floor and from the catwalk | arrive; walk the hall and the catwalk |
 
 ### 13.4 For the CEO's walk
@@ -524,10 +552,8 @@ P4 agents).
 
 ### 13.5 What other roles hold
 
-- `art-director`: the Dam set is in (§7.2). Still wanted: `SDGRIL1` (masked
-  bars for the control room's windows, v2); optional, if the CEO wants them:
-  a blue-trimmed leaf `SDDOORB` (open point 14.2) and a fence with the
-  high-voltage plate (`SDHVLT1`, text-bearing, one machine, D27).
+- `art-director`: the Dam set is in, round 2 too (§7.2, §13.7): nothing of
+  §7.2 waits.
 - `mod-engineer` / scaffolding: MAPINFO and LANGUAGE are in place (§11);
   nothing more is needed by the map.
 - PM: §13.3.
@@ -551,7 +577,29 @@ post are too small to show at that scale).
 ## 14. Open points for the CEO
 
 1. **Walk v1** (§13.4).
-2. **The blue gate's look**: `SDDOOR1` in blue light (the Dam set has no
-   blue-trimmed leaf); ask the art-director for `SDDOORB`?
+2. ~~The blue gate's look~~: settled in round 2 (D113), the gate wears
+   `SDDOORB`.
 3. **The Hand Katyusha in S3 again** (MAP03 hid it in S1): keep it secret on
    the crest, or put it on the route for episode 2?
+
+### 13.7 Round 2 applied (2026-10-22, D113)
+
+The Dam set's round 2 (`docs/art/TEXTURE-INDEX.md` "Episode 2, round 2"):
+`SDGRIL1` in the control room's windows, `SDHVLT1` on the substation's
+south and north sides, `SDDOORB` on the blue gate (§7.2); MAPINFO's `sky1`
+is `SDSKY1` (the PM's). **Geometry added**: four props behind the fence
+(two 16-deep strips with a sky at 512, two closed sky blocks), out of
+reach behind an impassable line; the substation's south and north walls
+became that line. Nothing else moved: no door, key, lock, switch, secret,
+poster, monster or item; the route and the reachability rounds are the
+same (tested). 154 sectors, 621 linedefs, 470 vertices.
+
+**Verification actually run** (no engine, D26): `tests/test_map05_dam.py`
+82 tests OK (new: the windows barred, the substation fenced north and
+south, the blue gate's trim; updated: the door leaves, the middle
+textures; the two that failed on purpose, `test_the_dam_set_is_on_the_map`
+and `test_what_still_waits_is_not_drawn_yet`, pass now that the pieces are
+worn); `tests/test_map05_route.py` 10 OK; `tools/verify.py fast`: build and
+`check_pk3` PASS; the test stage's only failures are outside this map (the
+redrawn enemy sprites' byte-identity and blood tests, `test_gen_shells`'
+docs). The engine pass is V15 (§13.3).

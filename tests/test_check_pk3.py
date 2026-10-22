@@ -614,9 +614,11 @@ class MaskedTextureTest(CheckPk3TestCase):
     def image_errors(self, report: check_pk3.Report) -> list[str]:
         return [f.message for f in report.errors if f.category == "images"]
 
-    def test_the_real_set_is_the_chain_the_merlon_and_the_insulator(self):
-        # D66 the Tankograd chain; D107 the Kremlin merlon and the dam's insulator.
-        self.assertEqual(frozenset({"SDCHAN1", "SDKREM2", "SDINSL1"}), check_pk3.MASKED_TEXTURES)
+    def test_the_real_set(self):
+        # D66 the Tankograd chain; D107 the Kremlin merlon and the dam's insulator;
+        # D113 the Severomorsk crane, the dam's window bars and HV fence, the ruby star.
+        self.assertEqual(frozenset({"SDCHAN1", "SDKREM2", "SDINSL1",
+                                    "SDCRAN1", "SDGRIL1", "SDHVLT1", "SDRUBY1"}), check_pk3.MASKED_TEXTURES)
         self.assertEqual(frozenset({"SDKREM2"}), check_pk3.PALETTE_V2_MASKED)
         self.assertLessEqual(check_pk3.PALETTE_V2_MASKED, check_pk3.MASKED_TEXTURES)
 
@@ -705,6 +707,48 @@ class MaskedTextureTest(CheckPk3TestCase):
         entries = good_entries()
         entries[f"textures/{WALL_TEXTURE}.png"] = png_indexed(256, 64, PALETTE_IN)
         self.assertClean(self.run_check(entries))
+
+
+class SkyTextureTest(CheckPk3TestCase):
+    """D113: a lump in SKY_TEXTURES may be a sky size (1024x128); nothing else may."""
+
+    def sky(self, names=frozenset({WALL_TEXTURE})):
+        patcher = mock.patch.object(check_pk3, "SKY_TEXTURES", frozenset(names))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def size_warnings(self, report: check_pk3.Report) -> list[str]:
+        return [f.message for f in report.warnings if f.category == "images"]
+
+    def test_the_real_set_is_the_two_night_skies(self):
+        self.assertEqual(frozenset({"SDSKY1", "SDSKY2"}), check_pk3.SKY_TEXTURES)
+        self.assertEqual(((1024, 128),), check_pk3.SKY_SIZES)
+        self.assertFalse(set(check_pk3.SKY_SIZES) & set(check_pk3.ALLOWED_WALL_SIZES))
+
+    def test_declared_sky_at_1024_by_128_is_clean(self):
+        self.sky()
+        entries = good_entries()
+        entries[f"textures/{WALL_TEXTURE}.png"] = png_indexed(1024, 128, PALETTE_IN)
+        self.assertClean(self.run_check(entries))
+
+    def test_undeclared_wall_at_sky_size_is_still_a_warning(self):
+        entries = good_entries()
+        entries[f"textures/{WALL_TEXTURE}.png"] = png_indexed(1024, 128, PALETTE_IN)
+        self.assertTrue([m for m in self.size_warnings(self.run_check(entries)) if "agreed wall sizes" in m])
+
+    def test_declared_sky_at_another_size_is_a_warning(self):
+        self.sky()
+        entries = good_entries()
+        entries[f"textures/{WALL_TEXTURE}.png"] = png_indexed(256, 128, PALETTE_IN)
+        report = self.run_check(entries)
+        self.assertEqual([], [f for f in report.errors if f.category == "images"])
+        self.assertTrue([m for m in self.size_warnings(report) if "agreed sky sizes" in m])
+
+    def test_a_sky_keeps_the_colour_rules(self):
+        self.sky()
+        entries = good_entries()
+        entries[f"textures/{WALL_TEXTURE}.png"] = png_indexed(1024, 128, PALETTE_IN + [PALETTE_OUT])
+        self.assertFails(self.run_check(entries), "images", "outside docs/art/palette.json")
 
 
 # --- 6. Sprites ------------------------------------------------------------

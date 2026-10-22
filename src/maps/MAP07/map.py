@@ -11,9 +11,11 @@ takes him on to MAP08.
 Built MVP first (D60): complete and walkable from start to exit, both keys on
 the route in plain sight on lit places in their lock's colour (D58), the
 population and the ammunition of G3-8's budget, three secrets. Balance and
-light are later passes. There is no snow and no ice among the approved
-textures yet: every stand-in is in `ARCTIC_SET` below (the art-director is
-drawing an "Arctic" set; design section 7.2).
+light are later passes. Since D113 it wears Episode 3's Arctic set (snow, ice,
+the runway's slabs, the radome's skin, the radar consoles, the hermetic door)
+and the Naval set's submarine (hull, deck, bulkhead, panel); the three lumps
+the design asked for and nobody drew are resolved in `ARCTIC_SET` below
+(design section 7.2).
 
 The route, in one line: the runway (the RED GATE to the harbour seen at once,
 down the runway, shut) -> D1, the hangar (the YELLOW DOOR seen in its west
@@ -67,13 +69,12 @@ MAP_NAME = "MAP07"
 
 # --- The approved sets (docs/art/TEXTURE-INDEX.md) ---------------------------
 # Soviet base.
-CONCRETE = "SDCONC1"     # 64x128 prefab panels: the runway's buildings and kerbs, the radome (stand-in)
+CONCRETE = "SDCONC1"     # 64x128 prefab panels: the runway's buildings, the escape stair's head
 CONCRETE_STRIPE = "SDCONC2"  # 64x128 the red-striped concrete: the barracks
-STEEL = "SDSTEL1"        # green riveted plate: the Il-14 (stand-in), the dish, door tracks, the gangway
+STEEL = "SDSTEL1"        # green riveted plate: the Il-14 (no SDPLAN1 drawn), the dish, door tracks, the gangway
 DOOR = "SDDOOR1"         # D1, D2, D3
 CRATE = "SDCRAT1"        # 64x64 crate face: the runway's and the hangar's stacks
 LOCKER = "SDLOCK1"       # 64x128 barracks lockers: the alcoves, S2's panel
-FLOOR_LANE = "SDFLR1"    # concrete with a yellow lane line: the runway's centreline, turned
 FLOOR_CONCRETE = "SDFLR2"
 FLOOR_TILE = "SDFLR3"
 CEIL_PANEL = "SDCEIL1"
@@ -84,7 +85,6 @@ TILE = "SDTILE1"         # 64x128 cream glazed tile: the command room
 TUNNEL = "SDTUNL1"       # 64x128 tunnel concrete with cable runs: the covered service tunnels
 TUBBING = "SDTUBB1"      # 128x128 cast-iron tubbing: the nuclear-test bunker
 HAZARD = "SDMEDG1"       # 64x64 chevron band: the test chamber's passage
-ICE_FLOOR = "SDMFLR1"    # 64x64 polished grey granite: the ice floes (stand-in for SDICE1)
 # Tankograd (D66).
 BRICK = "SDBRCK1"        # 64x128 soot brick: the port's gatehouse at the runway's west end
 RUST = "SDRUST1"         # 64x128 corrugated sheet: the hangar
@@ -94,18 +94,34 @@ DOOR_YELLOW = "SDDOORY"  # the yellow lock's leaf
 DOOR_RED = "SDDOORR"     # the red lock's leaf
 RAMP = "SDGATE1"         # 128x128 corrugated gate: the Il-14's cargo ramp (S1's panel)
 CORE = "SDPORT1"         # 128x128 the portal's cobalt (SDPORT1-4 by ANIMDEFS): the bunker's sealed core
-PLATE = "SDFLR4"         # chequer plate: the plane's and the consoles' tops, the deck, the map table
+PLATE = "SDFLR4"         # chequer plate: the plane's and the consoles' tops, the tower, the map table
 # Episode 2 (D107).
-DAM = "SDDAM1"           # 64x128 pale mass concrete: the ice faces (stand-in for SDICE2)
+DAM = "SDDAM1"           # 64x128 pale mass concrete: the steps up the quay wall (drawn wet, SDDAM2)
 DAM_WET = "SDDAM2"       # 64x128 the same at the waterline: the quay wall over the sea
-CONTROL_PANEL = "SDCTRL1"  # 128x128 control board: the command room's boards and consoles
+CONTROL_PANEL = "SDCTRL1"  # 128x128 control board: the command room's east board and the consoles' desk
 GRATING = "SDGRAT2"      # expanded metal: the antenna's platform and the dish's mesh, seen from below
 WATER = "SDWATR1"        # the Barents Sea's open lead (SDWATR2-4 by ANIMDEFS)
 TANKER = "SDTANK1"       # 128x128 black tank wagon «НЕФТЬ»: the runway's fuel bowser
-ARMOUR = "SDARMR2"       # 64x128 armour plate: the submarine's hull (stand-in for SDSUBH1)
 ARMOUR_STAR = "SDARMR1"  # 128x128 the plate with the red star: once, on the conning tower
 WAREHOUSE = "SDBRCK3"    # 64x128 roundhouse brick: the harbour's warehouses and sheds
 STORE_GATE = "SDGATE2"   # 128x128 goods-shed door «СКЛАД»: S3's panel
+# Episode 3 (D112, D113): the Arctic set (gen_arctic.py) and the Naval set's
+# submarine (gen_naval.py, MAP08's; a submarine is a submarine).
+SNOW = "SDSNOW1"         # flat: wind-packed snow: the road, the quay, the snowbanks, the porches outside
+RUNWAY_SLABS = "SDRWY1"  # flat: the runway's PAG slabs; tyre marks along the tile's y ...
+RUNWAY_LINE = "SDRWY2"   # flat: ... the same slabs (same seed) with the centre-line dash along y
+RUNWAY_TURN = {"rotationfloor": 90.0}   # both turned alike: y runs down the runway, the twins meet seamless
+SEA_ICE = "SDICE1"       # flat: sea ice: the floes and the pack ice
+ICE_WALL = "SDICE2"      # 64x128 glacier ice: the floes', the pack ice's and the snowbanks' faces
+RADOME_SKIN = "SDRADM1"  # 128x128 the radome's fibreglass panels, its walls and its crown
+HUT = "SDHUT1"           # 64x128 frosted corrugated sheet: the harbour's two sheds inside
+RADAR = "SDRADR1"        # 128x128 radar console (SDRADR1-4 by ANIMDEFS): the command room's north boards
+BLAST_DOOR = "SDHERM1"   # 128x128 the hermetic door: the bunker's two shutters, on the bunker's side
+HULL_SIDE = "SDHULL1"    # 128x128 the submarine's black rubber-tiled hull and conning tower
+HULL_NUMBER = "SDHULL2"  # 128x128 the same with «471»: once, on the tower's south face
+DECK_RUBBER = "SDRUBR1"  # flat: the deck's rubber tiles, the worn path along y (the boat lies along y)
+BULKHEAD = "SDBULK1"     # 128x128 round watertight door «3»: D3, the conning tower's hatch
+NAV_PANEL = "SDNAVC1"    # 128x128 control-room panel: inside the conning tower, round the exit
 SKY = "F_SKY1"           # the engine's sky marker, not a lump of ours (check_pk3 knows it)
 # The posters (CEO 2026-10-22: «que esos posters puedan aparecer en cualquier
 # nivel»; tests/test_posters.py).
@@ -115,8 +131,8 @@ MURAL = "SDPOSTR2"       # 128x128 cosmonautics mural: the barracks' red corner,
 # The Marx-Engels poster SDPOSTR4 is in preparation (not a lump yet). Its
 # slots are built and wear a stand-in; approving it is this one line:
 MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
-LUMP_WIDTH = {DAM_WET: 64}
-WALL_TILE = 128          # the height SDDAM2 and SDCTRL1 repeat at
+LUMP_WIDTH = {DAM_WET: 64, ICE_WALL: 64, RADOME_SKIN: 128, HULL_SIDE: 128}
+WALL_TILE = 128          # the height SDDAM2, SDCTRL1, SDICE2, SDRADM1 and SDHULL1 repeat at
 CONTROL_DESK_ROW = 64    # SDCTRL1: the desk (mimic bars, buttons, toggles) starts at this row
 
 # Switches (D25), one variant per switch; the exit keeps the hazard panel
@@ -128,23 +144,23 @@ SWITCH_FACES = (SW_A_FACE, SW_B_FACE, EXIT_FACE)
 SWITCH_WIDTH = 64
 SWITCH_HEIGHT = 128
 DOOR_TILE = 128
-DOOR_LEAVES = (DOOR, DOOR_YELLOW, DOOR_RED)
+DOOR_LEAVES = (DOOR, DOOR_YELLOW, DOOR_RED, BULKHEAD, BLAST_DOOR)
 
-# --- The Arctic set: proposed, not drawn yet ---------------------------------
-# {proposed lump: the approved lump the map wears for it meanwhile}. The
-# art-director is drawing an "Arctic" set as this is built; each name below is
-# the request (design section 7.2). Once a lump is approved and in assets/,
-# tests/test_map07_novaya_zemlya.py turns red until the map wears it.
+# --- The Arctic set: what the design asked for, what the map wears ----------
+# {lump the design proposed (section 7.2): the lump the map wears for it}.
+# Where the proposed lump was drawn (D113) the two are the same; where it was
+# not, the nearest installed lump stands in. The day a proposed lump appears
+# in assets/, tests/test_map07_novaya_zemlya.py turns red until the map wears it.
 ARCTIC_SET = {
-    "SDSNOW1": FLOOR_CONCRETE,   # flat: packed snow on the runway, the road and the quay
-    "SDSNOW2": CONCRETE,         # wall: the snowbanks round the runway and the quay (the kerbs)
-    "SDICE1": ICE_FLOOR,         # flat: sea ice, the floes and the pack ice
-    "SDICE2": DAM,               # wall: the ice's edge, the floes' and the pack's faces
-    "SDRADM1": CONCRETE,         # wall: the radome's inner skin, fibreglass panels
-    "SDPLAN1": STEEL,            # wall: the Il-14's skin in polar aviation's red and silver
-    "SDSUBH1": ARMOUR,           # wall: the submarine's black hull
-    "SDMAPT1": PLATE,            # flat: the command room's plotting table, the Arctic on it
-    "SDRADR1": CONTROL_PANEL,    # wall: a radar console with a round PPI scope
+    "SDSNOW1": SNOW,             # flat: packed snow on the road, the quay, the snowbanks (the runway is SDRWY1)
+    "SDSNOW2": ICE_WALL,         # not drawn: the snowbanks' faces wear the glacier ice
+    "SDICE1": SEA_ICE,           # flat: sea ice, the floes and the pack ice
+    "SDICE2": ICE_WALL,          # wall: the ice's edge, the floes' and the pack's faces
+    "SDRADM1": RADOME_SKIN,      # wall: the radome's fibreglass panels
+    "SDPLAN1": STEEL,            # not drawn: the Il-14 stays riveted steel (S1 is steel against the ramp)
+    "SDSUBH1": HULL_SIDE,        # not drawn under that name: the Naval set's SDHULL1 is the hull
+    "SDMAPT1": PLATE,            # not drawn: no installed flat is a map; the table stays chequer plate
+    "SDRADR1": RADAR,            # wall: the radar console, its PPI scope sweeping (ANIMDEFS)
 }
 
 # --- Specials and keys -------------------------------------------------------
@@ -352,6 +368,9 @@ CONTROL_BOARDS = {
     "prop_z6_board_e": ((COMMAND[2] - BOARD_DEPTH, 1152, COMMAND[2], 1280),
                         ("v", COMMAND[2] - BOARD_DEPTH, 1152, 1280)),
 }
+# The boards' faces: the two flanking Stalin are radar consoles (two PPI scopes
+# each, 256 long); the east one stays the control board the consoles' desk matches.
+BOARD_FACES = {"prop_z6_board_nw": RADAR, "prop_z6_board_ne": RADAR, "prop_z6_board_e": CONTROL_PANEL}
 # The bunker: the stair from the command room, the hall, the test chamber.
 BUNKER_STAIR_Y = (1152, 1280)
 STAIR_TOP = (2592, 1152, 2656, 1280)
@@ -379,6 +398,7 @@ HATCH = (416, 736, 448, 864)
 HATCH_PORCH = (448, 736, 480, 864)
 EXIT_NICHE = (288, 768, 304, 832)
 SAIL_STAR = ("h", SAIL[3], 296, 424)        # SDARMR1 once, on the tower's north face
+SAIL_NUMBER = ("h", SAIL[1], 296, 424)      # SDHULL2 «471» once, on its south face
 SHED = (1168, 1088, 1344, 1280)             # the open shed (the comparison)
 SHED_DOORWAY = (1152, 1120, 1168, 1248)
 SHED_PORCH = (1120, 1120, 1152, 1248)
@@ -810,6 +830,17 @@ def wet_the_banks(tm: TextMap, water: set[int], banks: set[int]) -> None:
                 tm.sidedefs[low].texturebottom = DAM_WET
 
 
+def dress_lower(tm: TextMap, room: int, neighbours: set[int], texture: str) -> None:
+    """`texture` on the lower part of every side of `room` that faces one of
+    `neighbours`: the flank of a raised floor seen from inside `room`."""
+    for ld in tm.linedefs:
+        if ld.sideback is None:
+            continue
+        for near, far in ((ld.sidefront, ld.sideback), (ld.sideback, ld.sidefront)):
+            if tm.sidedefs[near].sector == room and tm.sidedefs[far].sector in neighbours:
+                tm.sidedefs[near].texturebottom = texture
+
+
 def corner_chamfers(rect: tuple[int, int, int, int]) -> list[tuple[int, int, int, int]]:
     """The stepped corners that make the radome's square an octagon."""
     x1, y1, x2, y2 = rect
@@ -877,10 +908,11 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     # The runway: the Il-14, the red gate at the far end
     # ======================================================================
-    zone("z1_runway", GROUND, SKY_CEIL, [RUNWAY], light=LIGHT_OUTDOORS, ceiling=SKY, wall=CONCRETE)
-    like("z1_runway", "z1_centreline", [CENTRELINE], flat=FLOOR_LANE, extra={"rotationfloor": 90.0})
+    zone("z1_runway", GROUND, SKY_CEIL, [RUNWAY], light=LIGHT_OUTDOORS, flat=RUNWAY_SLABS, ceiling=SKY,
+         wall=CONCRETE, extra=RUNWAY_TURN)
+    like("z1_runway", "z1_centreline", [CENTRELINE], flat=RUNWAY_LINE, extra=RUNWAY_TURN)
     for key, rect in KERBS.items():
-        rim(f"z1_kerb_{key}", rect, GROUND + KERB, GROUND + KERB_SKY, CONCRETE, FLOOR_CONCRETE)
+        rim(f"z1_kerb_{key}", rect, GROUND + KERB, GROUND + KERB_SKY, ICE_WALL, SNOW)
     for n, rect in enumerate(WINGS, start=1):
         prop("z1_runway", f"z1_wing_{n}", rect, WING, STEEL)
     for n, rect in enumerate(NACELLES, start=1):
@@ -892,7 +924,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     zone("s1_hold", GROUND, ROOF, [S1_HOLD], light=LIGHT_SECRET, flat=PLATE, ceiling=PLATE,
          wall=STEEL, special=SECTOR_SPECIAL_SECRET)
     s1_panel = zone("s1_panel", GROUND, GROUND, [S1_PANEL], TAG_S1_PANEL, light=LIGHT_SECRET, wall=STEEL)
-    zone("z1_ramp_porch", GROUND, ROOF, [RAMP_PORCH], light=LIGHT_OUTDOORS, ceiling=PLATE, wall=STEEL)
+    zone("z1_ramp_porch", GROUND, ROOF, [RAMP_PORCH], light=LIGHT_OUTDOORS, flat=RUNWAY_SLABS, ceiling=PLATE,
+         wall=STEEL, extra=RUNWAY_TURN)
     prop("z1_runway", "z1_tanker", TANKER_RECT, TANKER_TOP, TANKER)
     for n, rect in enumerate(RUNWAY_CRATES, start=1):
         prop("z1_runway", f"z1_crates_{n}", rect, CRATES, CRATE, flat=CRATE_TOP)
@@ -912,7 +945,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     # The hangar
     # ======================================================================
-    zone("z1_d1_porch", GROUND, ROOF, [D1_OUT], light=LIGHT_OUTDOORS, ceiling=CEIL_PANEL, wall=RUST)
+    zone("z1_d1_porch", GROUND, ROOF, [D1_OUT], light=LIGHT_OUTDOORS, flat=SNOW, ceiling=CEIL_PANEL, wall=RUST)
     d1 = door("d1_hangar", GROUND, TAG_D1_HANGAR, D1_DOOR, light=LIGHT_HANGAR)
     zone("z2_hangar", GROUND, HANGAR_CEIL, [HANGAR], light=LIGHT_HANGAR, ceiling=CEIL_PANEL, wall=RUST)
     like("z2_hangar", "z2_d1_porch", [D1_IN], ceil=ROOF)
@@ -955,7 +988,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     # The radome: the gallery, the antenna's platform, the dish
     # ======================================================================
-    zone("z5_radome", GROUND, RADOME_CEIL, [RADOME], light=LIGHT_RADOME, ceiling=CEIL_CONCRETE, wall=CONCRETE)
+    zone("z5_radome", GROUND, RADOME_CEIL, [RADOME], light=LIGHT_RADOME, ceiling=CEIL_CONCRETE,
+         wall=RADOME_SKIN)
     like("z5_radome", "z5_dome", [DOME], ceil=DOME_CEIL)
     zone("z5_dish", GROUND, DISH_CEIL, [DISH], light=LIGHT_DISH, ceiling=GRATING, wall=STEEL)
     zone("z5_platform", GALLERY, DISH_CEIL, [PLATFORM], light=LIGHT_DISH, flat=GRATING, ceiling=GRATING,
@@ -1044,17 +1078,19 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     # The harbour: the road, the quay and its sheds, the sea, the submarine
     # ======================================================================
-    zone("z8_gate_porch", GROUND, ROOF, [GATE_PORCH], light=LIGHT_OUTDOORS, ceiling=CEIL_PANEL, wall=BRICK)
-    zone("z8_road", GROUND, SKY_CEIL, [ROAD], light=LIGHT_OUTDOORS, ceiling=SKY, wall=WAREHOUSE)
-    zone("z9_quay", GROUND, SKY_CEIL, [QUAY], light=LIGHT_OUTDOORS, ceiling=SKY, wall=WAREHOUSE)
+    zone("z8_gate_porch", GROUND, ROOF, [GATE_PORCH], light=LIGHT_OUTDOORS, flat=SNOW, ceiling=CEIL_PANEL,
+         wall=BRICK)
+    zone("z8_road", GROUND, SKY_CEIL, [ROAD], light=LIGHT_OUTDOORS, flat=SNOW, ceiling=SKY, wall=WAREHOUSE)
+    zone("z9_quay", GROUND, SKY_CEIL, [QUAY], light=LIGHT_OUTDOORS, flat=SNOW, ceiling=SKY, wall=WAREHOUSE)
     for key, rect in QUAY_KERBS.items():
-        rim(f"z9_kerb_{key}", rect, GROUND + KERB, GROUND + KERB_SKY, CONCRETE, FLOOR_CONCRETE)
-    zone("z9_shed", GROUND, ROOF, [SHED], light=LIGHT_SHED, wall=WAREHOUSE)
+        rim(f"z9_kerb_{key}", rect, GROUND + KERB, GROUND + KERB_SKY, ICE_WALL, SNOW)
+    # The two sheds alike inside (S3's comparison): frosted corrugated sheet.
+    zone("z9_shed", GROUND, ROOF, [SHED], light=LIGHT_SHED, wall=HUT)
     zone("z9_shed_doorway", GROUND, ROOF, [SHED_DOORWAY], light=LIGHT_SHED, wall=WAREHOUSE)
-    zone("z9_shed_porch", GROUND, ROOF, [SHED_PORCH], light=LIGHT_OUTDOORS, wall=WAREHOUSE)
-    zone("s3_shed", GROUND, ROOF, [S3_SHED], light=LIGHT_SHED, wall=WAREHOUSE, special=SECTOR_SPECIAL_SECRET)
+    zone("z9_shed_porch", GROUND, ROOF, [SHED_PORCH], light=LIGHT_OUTDOORS, flat=SNOW, wall=WAREHOUSE)
+    zone("s3_shed", GROUND, ROOF, [S3_SHED], light=LIGHT_SHED, wall=HUT, special=SECTOR_SPECIAL_SECRET)
     s3_panel = zone("s3_panel", GROUND, GROUND, [S3_PANEL], TAG_S3_PANEL, light=LIGHT_SHED, wall=WAREHOUSE)
-    zone("z9_s3_porch", GROUND, ROOF, [S3_PORCH], light=LIGHT_OUTDOORS, wall=WAREHOUSE)
+    zone("z9_s3_porch", GROUND, ROOF, [S3_PORCH], light=LIGHT_OUTDOORS, flat=SNOW, wall=WAREHOUSE)
     # The sheds' fronts either side of the doorway and the panel are solid.
     for (dy1, dy2), (_x1, hy1, _x2, hy2) in (((SHED_DOORWAY[1], SHED_DOORWAY[3]), SHED),
                                            ((S3_PANEL[1], S3_PANEL[3]), S3_SHED)):
@@ -1063,24 +1099,26 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     zone("z10_sea", SEA, SKY_CEIL, [SEA_RECT], light=LIGHT_SEA, flat=WATER, ceiling=SKY, wall=DAM,
          extra=WATER_HURTS)
     for key, rect in PACK_ICE.items():
-        zone(f"{PROP_PREFIX}z10_ice_{key}", ICE_LIP, ICE_SKY, [rect], light=LIGHT_SEA, flat=ICE_FLOOR,
-             ceiling=SKY, wall=DAM)
+        zone(f"{PROP_PREFIX}z10_ice_{key}", ICE_LIP, ICE_SKY, [rect], light=LIGHT_SEA, flat=SEA_ICE,
+             ceiling=SKY, wall=ICE_WALL)
     for n, rect in enumerate(FLOES, start=1):
-        zone(f"z10_floe_{n}", ICE_LIP, SKY_CEIL, [rect], light=LIGHT_SEA, flat=ICE_FLOOR, ceiling=SKY, wall=DAM)
+        zone(f"z10_floe_{n}", ICE_LIP, SKY_CEIL, [rect], light=LIGHT_SEA, flat=SEA_ICE, ceiling=SKY,
+             wall=ICE_WALL)
     for k, (sy1, sy2) in enumerate(SEA_STEPS_Y, start=1):
         for n in range(1, 4):      # three steps up the quay wall
             x0 = QUAY[0] - STEP_RUN * (4 - n)
             zone(f"z10_steps_{k}_{n}", SEA + STEP * n, SKY_CEIL, [(x0, sy1, x0 + STEP_RUN, sy2)],
                  light=LIGHT_SEA, ceiling=SKY, wall=DAM)
-    zone("z11_deck", DECK, SKY_CEIL, list(HULL), light=LIGHT_OUTDOORS, flat=PLATE, ceiling=SKY, wall=ARMOUR)
+    zone("z11_deck", DECK, SKY_CEIL, list(HULL), light=LIGHT_OUTDOORS, flat=DECK_RUBBER, ceiling=SKY,
+         wall=HULL_SIDE)
     zone("z11_gangway", GROUND + STEP, SKY_CEIL, [GANGWAY], light=LIGHT_OUTDOORS, flat=PLATE, ceiling=SKY,
          wall=STEEL)
     zone(f"{PROP_PREFIX}z11_sail", SAIL_TOP, SKY_CEIL, [SAIL], light=LIGHT_OUTDOORS, flat=PLATE,
-         ceiling=SKY, wall=ARMOUR)
+         ceiling=SKY, wall=HULL_SIDE)
     zone("z12_sail", DECK, SAIL_TOP, [SAIL_ROOM], light=LIGHT_SHED, flat=PLATE, ceiling=PLATE, wall=STEEL)
     d3 = door("d3_hatch", DECK, TAG_D3_HATCH, HATCH, light=LIGHT_SHED)
-    zone("z11_hatch_porch", DECK, SAIL_TOP, [HATCH_PORCH], light=LIGHT_OUTDOORS, flat=PLATE, ceiling=PLATE,
-         wall=ARMOUR)
+    zone("z11_hatch_porch", DECK, SAIL_TOP, [HATCH_PORCH], light=LIGHT_OUTDOORS, flat=DECK_RUBBER,
+         ceiling=PLATE, wall=HULL_SIDE)
     zone("z12_exit_niche", DECK, DECK + SWITCH_HEIGHT, [EXIT_NICHE], light=LIGHT_BEACON, flat=PLATE,
          wall=STEEL)
     g.carve(SAIL[0], EXIT_NICHE[1], EXIT_NICHE[0], EXIT_NICHE[3])   # solid behind the switch
@@ -1092,15 +1130,15 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for _name, texture, axis, coord, lo, hi in poster_faces():
         (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=texture))
     # Manual doors, both faces.
-    for sector, (x1, y1, x2, y2), horizontal in ((d1, D1_DOOR, True), (d2, D2_DOOR, True),
-                                                  (d3, HATCH, False)):
+    for sector, (x1, y1, x2, y2), horizontal, leaf in ((d1, D1_DOOR, True, DOOR), (d2, D2_DOOR, True, DOOR),
+                                                        (d3, HATCH, False, BULKHEAD)):
         tag = tm.sectors[sector].identifier
         if horizontal:
             for yy in (y1, y2):
-                g.style_h(yy, x1, x2, door_raise_style(tag, sector, texture=DOOR))
+                g.style_h(yy, x1, x2, door_raise_style(tag, sector, texture=leaf))
         else:
             for xx in (x1, x2):
-                g.style_v(xx, y1, y2, door_raise_style(tag, sector, texture=DOOR))
+                g.style_v(xx, y1, y2, door_raise_style(tag, sector, texture=leaf))
     # The locks, both faces.
     for xx in (YELLOW_DOOR[0], YELLOW_DOOR[2]):
         g.style_v(xx, YELLOW_DOOR[1], YELLOW_DOOR[3],
@@ -1108,15 +1146,15 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for xx in (RED_GATE[0], RED_GATE[2]):
         g.style_v(xx, RED_GATE[1], RED_GATE[3],
                   locked_door_style(TAG_RED_GATE, red_gate, LOCK_RED_CARD, texture=DOOR_RED))
-    # The bunker's shutter: steel both sides, SW-A beside it.
+    # The bunker's shutter: the hermetic door both sides, SW-A beside it.
     for xx in (BUNKER_SHUTTER[0], BUNKER_SHUTTER[2]):
-        g.style_v(xx, BUNKER_SHUTTER[1], BUNKER_SHUTTER[3], remote_door_style(bunker_shutter, texture=STEEL))
+        g.style_v(xx, BUNKER_SHUTTER[1], BUNKER_SHUTTER[3], remote_door_style(bunker_shutter, texture=BLAST_DOOR))
     g.style_v(SWA_NICHE[0], SWA_NICHE[1], SWA_NICHE[3],
               switch_door_open_style(TAG_BUNKER_SHUTTER, texture=SW_A_FACE, repeatable=False))
-    # The escape stair's shutter: steel from the stair; from the runway, the
-    # bunker block's own concrete (a shortcut found from behind).
+    # The escape stair's shutter: the hermetic door from the stair; from the
+    # runway, the bunker block's own concrete (a shortcut found from behind).
     g.style_h(RUNWAY_SHUTTER[3], RUNWAY_SHUTTER[0], RUNWAY_SHUTTER[2],
-              remote_door_style(runway_shutter, texture=STEEL))
+              remote_door_style(runway_shutter, texture=BLAST_DOOR))
     g.style_h(RUNWAY_SHUTTER[1], RUNWAY_SHUTTER[0], RUNWAY_SHUTTER[2],
               remote_door_style(runway_shutter, texture=CONCRETE))
     g.style_v(SWB_NICHE[2], SWB_NICHE[1], SWB_NICHE[3],
@@ -1136,9 +1174,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
             g.style_h(yy, x1, x2, BOARD_EDGE)
     # The sealed core behind its slot, the cobalt animated (SDPORT1-4).
     g.style_h(CORE_SLOT[3], CORE_SLOT[0], CORE_SLOT[2], LineStyle(texture=CORE))
-    # The conning tower's star, once.
-    axis, coord, lo, hi = SAIL_STAR
-    g.style_h(coord, lo, hi, LineStyle(texture=ARMOUR_STAR))
+    # The conning tower's star and its number, once each.
+    for (axis, coord, lo, hi), texture in ((SAIL_STAR, ARMOUR_STAR), (SAIL_NUMBER, HULL_NUMBER)):
+        g.style_h(coord, lo, hi, LineStyle(texture=texture))
     # The facades on the runway: the hangar's corrugated front, the
     # gatehouse's brick at the west end (the banners hang on its pixels).
     g.style_h(RUNWAY[3], *HANGAR_FRONT_X, LineStyle(texture=RUST))
@@ -1164,9 +1202,21 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     align_to_world(tm, {DAM_WET: SEA})
     # The consoles, 32 high, show the board's desk (rows 64-95).
     align_to_world(tm, {CONTROL_PANEL: GROUND + CONSOLE + CONTROL_DESK_ROW}, sectors={plan["z6_command"]})
-    for _rect, (axis, coord, lo, hi) in CONTROL_BOARDS.values():
+    for name, (_rect, (axis, coord, lo, hi)) in CONTROL_BOARDS.items():
         segment = (lo, coord, hi, coord) if axis == "h" else (coord, lo, coord, hi)
-        hang(tm, segment, plan["z6_command"], CONTROL_PANEL)
+        hang(tm, segment, plan["z6_command"], BOARD_FACES[name])
+    # Episode 3's walls on one grid each: the radome's panels from its floor
+    # (whole tiles to the rim and the crown), the hull's deck edge on the deck
+    # (and on the tower's top), the snowbanks' ice from the ground, the sea
+    # ice's from the water.
+    align_to_world(tm, {RADOME_SKIN: GROUND, HULL_SIDE: DECK})
+    banks = {i for n, i in plan.items() if n.startswith((f"{PROP_PREFIX}z1_kerb_", f"{PROP_PREFIX}z9_kerb_"))}
+    align_to_world(tm, {ICE_WALL: GROUND}, sectors=banks | {plan["z1_runway"], plan["z9_quay"]})
+    ice = {i for n, i in plan.items() if n.startswith((f"{PROP_PREFIX}z10_ice_", "z10_floe_"))}
+    align_to_world(tm, {ICE_WALL: SEA}, sectors=ice | water)
+    # Inside the conning tower: the tower's own flank is its inner wall, so
+    # the room round the exit wears the control-room panel, not the hull.
+    dress_lower(tm, plan["z12_sail"], {plan[f"{PROP_PREFIX}z11_sail"]}, NAV_PANEL)
 
     tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START, angle=PLAYER_ANGLE))
     tm.add_thing(Thing(x=YELLOW_KEY_SPOT[0], y=YELLOW_KEY_SPOT[1], type=ED_YELLOW_CARD))
@@ -1209,15 +1259,16 @@ def lumps() -> list[tuple[str, bytes]]:
 
 # Every lump name this map may put in a sidedef or a sector.
 WALL_TEXTURES = ((CONCRETE, CONCRETE_STRIPE, STEEL, CRATE, LOCKER, TILE, TUNNEL, TUBBING, HAZARD, BRICK,
-                  RUST, FLAG_REICH, FLAG_LEGION, RAMP, CORE, DAM, DAM_WET, CONTROL_PANEL, TANKER, ARMOUR,
-                  ARMOUR_STAR, WAREHOUSE, STORE_GATE, LENIN, STALIN, MURAL)
+                  RUST, FLAG_REICH, FLAG_LEGION, RAMP, CORE, DAM, DAM_WET, CONTROL_PANEL, TANKER,
+                  ARMOUR_STAR, WAREHOUSE, STORE_GATE, LENIN, STALIN, MURAL,
+                  ICE_WALL, RADOME_SKIN, HUT, RADAR, HULL_SIDE, HULL_NUMBER, NAV_PANEL)
                  + DOOR_LEAVES + SWITCH_FACES + ((MARX_ENGELS,) if MARX_ENGELS else ()))
-FLAT_TEXTURES = (FLOOR_LANE, FLOOR_CONCRETE, FLOOR_TILE, CEIL_PANEL, CEIL_CONCRETE, CRATE_TOP, PLATE,
-                 GRATING, WATER, ICE_FLOOR)
+FLAT_TEXTURES = (FLOOR_CONCRETE, FLOOR_TILE, CEIL_PANEL, CEIL_CONCRETE, CRATE_TOP, PLATE,
+                 GRATING, WATER, SNOW, RUNWAY_SLABS, RUNWAY_LINE, SEA_ICE, DECK_RUBBER)
 BUILTIN_FLATS = (SKY,)
 # Middle textures on two-sided lines, drawn once: the command room's boards.
-MIDDLE_TEXTURES = (CONTROL_PANEL,)
-# Still waiting, with nothing standing in (no approved lump is near enough).
+MIDDLE_TEXTURES = (CONTROL_PANEL, RADAR)
+# Still waiting, with nothing standing in (no installed lump is near enough).
 PENDING_TEXTURES = {
     "SDAURO1": "the polar night's sky with the aurora (MAPINFO's sky1, scaffolding's): SKY1 meanwhile",
 }

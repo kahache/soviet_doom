@@ -1,5 +1,11 @@
 """F5 — the two heavies, Doughboy and Panzermensch: design sweeps on the 3D rig (D35).
 
+HISTORICAL since D109 (2026-10-22) for the Doughboy's and the Panzermensch's
+rig sets (`SDDB`, `SDPM`, `SDPS`, D65-D70). The heavies that ship is redrawn
+from Google Gemini images by tools/art/gemini_enemy.py (doughboy, panzer,
+panzer_heavy); this generator is kept so the approved F5 renders stay
+reproducible, but its output no longer matches assets/.
+
 Run with the project venv:
     .venv/Scripts/python.exe tools/art/gen_heavy.py               (Windows)
     .venv/bin/python tools/art/gen_heavy.py                       (macOS)

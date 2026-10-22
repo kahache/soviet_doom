@@ -1,5 +1,14 @@
 """D56 (2026-10-14): the Hybrid Stormtrooper and his bolt wear their own sprites.
 
+REDRAWN by D109 and D114 (2026-10-22): the set that ships now is the
+Google Gemini redraw built by `tools/art/gemini_enemy.py storm` into
+`work/art/enemies_gemini/storm/` (MOD-SPEC 6.3, "The seven enemies redrawn
+from Google Gemini"), same lump names, frame letters and rotations, so the
+state machine below is untouched. The `files` checks read that build; the
+rig render named below is history (the generator is kept), and a lump of
+it shipping again is a failure. tests/test_gemini_enemy_install.py holds
+the install itself.
+
 The CEO approved cell E of the Stormtrooper sweep (D48, "muy macarra"), its
 full set but for the death (D53), and the redone death, the corpse lying
 flat (D56, "Muerte OK"): the 77 `SDHS` and 5 `SDBL` lumps rendered by
@@ -58,7 +67,8 @@ SRC_DIR = PROJECT_ROOT / "src"
 STORM_ZS = SRC_DIR / "zscript" / "monsters" / "stormtrooper.zs"
 BOLT_ZS = SRC_DIR / "zscript" / "monsters" / "storm_bolt.zs"
 STORM_SPRITES = PROJECT_ROOT / "assets" / "sprites" / "storm"
-WORK_FULL_E = PROJECT_ROOT / "work" / "art" / "enemies" / "storm" / "full_E"
+WORK_FULL_E = PROJECT_ROOT / "work" / "art" / "enemies" / "storm" / "full_E"   # the rig set (and the bolt SDBL)
+WORK_GEMINI = PROJECT_ROOT / "work" / "art" / "enemies_gemini" / "storm"       # SDHS since D109
 PALETTE_JSON = PROJECT_ROOT / "docs" / "art" / "palette.json"
 sys.path.insert(0, str(TOOLS_DIR))
 
@@ -292,28 +302,25 @@ class FileTests(unittest.TestCase):
                 seen.add((struct.unpack(">II", data[16:24]), read_grab(data)))
             self.assertEqual(len(seen), 1, f"{NEW}{f}: {seen}")
 
-    @unittest.skipUnless(WORK_FULL_E.is_dir(), "work/ not present (CI has no work/)")
+    @unittest.skipUnless(WORK_GEMINI.is_dir() and WORK_FULL_E.is_dir(), "work/ not present (CI has no work/)")
     def test_byte_identical_to_the_approved_render(self):
+        """SDHS from the Gemini build (D109); the bolt SDBL, not redrawn,
+        from the rig render."""
         for p in installed():
-            source = WORK_FULL_E / p.name
+            source = (WORK_GEMINI if p.stem.startswith(NEW) else WORK_FULL_E) / p.name
             self.assertTrue(source.is_file(), source)
             self.assertEqual(p.read_bytes(), source.read_bytes(), p)
 
-    @unittest.skipUnless((WORK_FULL_E / "old_death").is_dir(), "work/ not present (CI has no work/)")
-    def test_the_death_is_the_redone_one(self):
-        """D56 approved the redone death (D53: the corpse lies flat): the old
-        frames stay in work/, superseded, and did not ship. The redo changed
-        the death I-M and the gib from P on, where the legs fall; the gib's
-        N and O (the burst, before the legs go) came out byte-identical."""
-        for f in FLAT_FRAMES:
-            old = WORK_FULL_E / "old_death" / f"{NEW}{f}0.png"
-            if not old.is_file():
+    @unittest.skipUnless(WORK_FULL_E.is_dir(), "work/ not present (CI has no work/)")
+    def test_the_rig_set_no_longer_ships(self):
+        """D109: every lump of the set is the Gemini redraw, none the rig
+        render it replaced (that set stays in work/, history)."""
+        for p in installed():
+            if not p.stem.startswith(NEW):
                 continue
-            new = (STORM_SPRITES / old.name).read_bytes()
-            if f in "NO":
-                self.assertEqual(new, old.read_bytes(), old.name)
-            else:
-                self.assertNotEqual(new, old.read_bytes(), old.name)
+            old = WORK_FULL_E / p.name
+            if old.is_file():
+                self.assertNotEqual(p.read_bytes(), old.read_bytes(), p.name)
 
     def test_the_proposed_claw_frames_did_not_ship(self):
         """V and W (proposed_melee/) show only if Melee is split from
@@ -322,8 +329,10 @@ class FileTests(unittest.TestCase):
 
     @unittest.skipUnless(HAVE_PIL, "Pillow not available in this interpreter")
     def test_the_deaths_bleed_dark_red(self):
-        """D49: death I-M and gib N-U carry flag_red 0-5 blood (measured 90
-        to 687 pixels a frame); the standing frames carry none."""
+        """D49: death I-M and gib N-U carry flag_red 0-5 blood (the Gemini
+        redraw, D109: 7 to 166 pixels a frame, the derived gib's procedural
+        blood the most). The rig set's "standing frames carry none" is gone:
+        the redrawn armband's red is flag_red too (15 px on SDHSA1)."""
         red = blood_colours()
 
         def count(name: str) -> int:
@@ -333,8 +342,6 @@ class FileTests(unittest.TestCase):
 
         for f in FLAT_FRAMES:
             self.assertGreater(count(f"{NEW}{f}0"), 0, f"{NEW}{f}0 has no flag_red 0-{BLOOD_MAX_INDEX} blood")
-        for f in "ABCD":
-            self.assertEqual(count(f"{NEW}{f}1"), 0, f"{NEW}{f}1: blood on a walking soldier")
 
 
 class PackageTests(unittest.TestCase):

@@ -1,5 +1,12 @@
 """F5 — the General, episode boss: design sweep on the 3D rig (backlog N12, D35).
 
+HISTORICAL since D109 (2026-10-22) for the General's rig set (`SDGN`, D71-D73).
+The General who ships is redrawn from Google Gemini images by
+tools/art/gemini_enemy.py (general); this generator is kept so the approved F5
+renders stay reproducible, but its output no longer matches assets/. Still
+current: the shell `SDGL` (`shell_model`, `render_shell`), which was not
+redrawn.
+
 Run with the project venv:
     .venv/Scripts/python.exe tools/art/gen_general.py               (Windows)
     .venv/bin/python tools/art/gen_general.py                       (macOS)

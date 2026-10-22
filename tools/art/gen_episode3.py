@@ -74,18 +74,27 @@ def all_pieces():
 
 
 # ================================================================ names
-def existing_lumps() -> set[str]:
+def existing_lumps(own: frozenset[str] = frozenset()) -> set[str]:
     """Every lump name already in use: files under assets/ and work/
     (sprites, textures, sounds...) except this episode's own drafts, and
-    every SD name the texture index mentions."""
+    every SD name the texture index mentions.
+
+    `own` are this episode's lumps: since D113 (installed 2026-10-22) they
+    sit in assets/{textures,flats}/<arctic|naval|taiga>/ and have rows in the
+    index, so those copies and rows are not a clash with themselves. A file
+    of the same name anywhere else in assets/ still is."""
     names = set()
+    sets = {mod.SET_NAME for mod, *_ in SETS}
     for root in (PROJECT_ROOT / "assets", PROJECT_ROOT / "work"):
         if root.is_dir():
             for p in root.rglob("*"):
-                if p.is_file() and not p.is_relative_to(ep3lib.WORK_ROOT):
-                    names.add(p.stem.upper())
+                if not p.is_file() or p.is_relative_to(ep3lib.WORK_ROOT):
+                    continue
+                if root.name == "assets" and p.stem.upper() in own and p.parent.name in sets:
+                    continue
+                names.add(p.stem.upper())
     if TEXTURE_INDEX.is_file():
-        names |= set(re.findall(r"\bSD[A-Z0-9]{1,6}\b", TEXTURE_INDEX.read_text(encoding="utf-8")))
+        names |= set(re.findall(r"\bSD[A-Z0-9]{1,6}\b", TEXTURE_INDEX.read_text(encoding="utf-8"))) - own
     return names
 
 
@@ -355,7 +364,7 @@ const ITEMS = {data};
 # ================================================================ main
 def main() -> None:
     all_lumps = [lump for _, p in all_pieces() for lump in p.lumps]
-    problems = name_problems(all_lumps, existing_lumps())
+    problems = name_problems(all_lumps, existing_lumps(frozenset(all_lumps)))
     A: dict = {}
     built = []
     for mod, *_ in SETS:
