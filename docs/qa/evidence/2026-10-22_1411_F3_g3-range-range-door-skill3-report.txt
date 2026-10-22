@@ -1,0 +1,26 @@
+=== route range-door / RANGE / skill 3 ===
+helper         : route-4
+god mode       : on
+monsters       : engine 14, map data 14
+steps:
+  [ok ] A0   expect HALL         got HALL hall @ (160, 384, 0) hp 100
+  [ok ] R1   expect HALL         got HALL hall @ (288, 751, 0) hp 100
+  [ok ] P4a  expect PASSAGE      got PASSAGE gallery_passage @ (672, 864, 0) hp 100
+  [ok ] P4b  expect HALL         got HALL hall @ (672, 630, 0) hp 100
+  [ok ] E0   expect EXIT         got EXIT exit_alcove @ (-15, 384, 0) hp 100
+  [ok ] E1   expect -            got -  -- no position reported
+zones reached  : HALL -> PASSAGE -> EXIT
+doors:
+  [ok ] tag 1 at P4a: want shut: shut (1 sector(s): GDOOR:gallery_door)
+  [ok ] tag 1 at P4b: want open: open (1 sector(s): GDOOR:gallery_door)
+  [ok ] walk-through at P4b: ended in HALL (hall)
+inventory (by slot):
+  [ok ] A0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [none]
+  [ok ] R1: raised slot 1 (SD_IceAxe), -1 rounds; owned [1:SD_IceAxe, 2:SD_Tokarev]; keys [none]
+secrets        : 0 of 0
+exit           : REACHED (exit switch pressed: yes; level unloaded towards: enDSeQ1e92; after it: NOT SEEN (the helper cannot ask once the level is gone; judge the END shot))
+blockers       : none killed by the route's sdclear (sdclear answered 3 time(s))
+kills          : 3 of 14, of which 0 by the route's sdclear
+screenshots    : 8
+log failures   : none
+VERDICT        : PASS
