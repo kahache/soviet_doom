@@ -12,14 +12,16 @@ sound-designer; this suite pins only the wiring:
     here; MAP02 (the metro) and MAP03 (Tankograd) play the pieces assigned
     to them, and RANGE D_SDM01T since D86 (MAP01's theme cut to its melodic
     part; D83 rejected D_SDAMUR, which no longer ships);
-  * D104 (P4): episode 2, walked from MAP04 to its end, plays music too.
-    Its three pieces are PROVISIONAL, all already approved and packed:
-    MAP04 D_SDM01T (D95's variant N is not packed), MAP05 D_SDFUNR, MAP06
-    D_SDGATE, until sound-designer gives the episode its own;
+  * D104 (P4): episode 2, walked from MAP04 to its end, plays music too;
+    D106 gave it its own pieces: MAP04 D_SDM04A, MAP05 D_SDM05A, MAP06
+    D_SDM06A (the A of each pair; SD_MusicVariant swaps in the B and MAP06's
+    boss loop, tests/test_music_variant.py), and the stats screens after
+    MAP04 and MAP05 play D_SDE2IA (`intermusic`), while every other map's
+    falls back to GameInfo's D_SDTITL;
   * every lump MAPINFO names has a licence row in docs/art/LICENSES.md (the
     register check_pk3 reads) and a row in MUSIC-RIGHTS.md 4.5 (the one
     tools/release.py reads), and SOUNDTRACK.md still calls each draft one;
-  * every `music` / `TitleMusic` / `IntermissionMusic` value in MAPINFO is "" or a lump the PK3
+  * every `music` / `intermusic` / `TitleMusic` / `IntermissionMusic` value in MAPINFO is "" or a lump the PK3
     packs under music/. A misspelt music lump is the silent failure GZDoom
     does not log (SOUNDTRACK.md 7, qa gap 1), so a test is the only net;
   * the same holds in the built package.
@@ -53,10 +55,16 @@ MAP_MUSIC = {"MAP01": "D_SDM1N2",      # D95 (N9e): compose_map01.py's D_SDM01N2
              "MAP02": "D_SDFUNR",      # D62 draft: «Вы жертвою пали», the metro
              "MAP03": "D_SDGATE",      # D62 draft: «Богатырские ворота», Tankograd
              "RANGE": "D_SDM01T",      # D86: D_SDM01E from bar 49, MAP01's theme cut (N9e)
-             # D104 (P4), provisional: approved pieces until the episode has its own.
-             "MAP04": "D_SDM01T",      # D95's N (D_SDM01N) is not in assets/music/
-             "MAP05": "D_SDFUNR",
-             "MAP06": "D_SDGATE"}
+             # D106: episode 2's own pieces, the A of each approved pair.
+             "MAP04": "D_SDM04A",
+             "MAP05": "D_SDM05A",
+             "MAP06": "D_SDM06A"}
+# D106: the stats screen after these maps plays episode 2's intermission
+# piece; no other map sets `intermusic` (they keep GameInfo's D_SDTITL).
+INTER_MUSIC = {"MAP04": "D_SDE2IA", "MAP05": "D_SDE2IA"}
+# D106: installed with their A but played only by SD_MusicVariant (or, for
+# D_SDE2IB, the approved alternative nobody wires yet): never a MAPINFO value.
+EPISODE2_UNWIRED = ("D_SDM04B", "D_SDM05B", "D_SDM06B", "D_SDBS6A", "D_SDBS6B", "D_SDE2IB")
 RETIRED = ("D_SDAMUR", "D_SDM01")     # D83: NO for the range; D95: MAP01's new piece. Neither packed
 # Assigned by N8 and wired so the CEO hears them in play.
 DRAFTS = ("D_SDFUNR", "D_SDGATE")
@@ -71,7 +79,8 @@ MUSIC_RIGHTS = DOCS / "sound" / "MUSIC-RIGHTS.md"
 SOUNDTRACK = DOCS / "sound" / "SOUNDTRACK.md"
 DRAFT_MARK = "pending the CEO's ear"
 
-RE_MUSIC_VALUE = re.compile(r'^\s*(music|TitleMusic|IntermissionMusic)\s*=\s*"([^"]*)"', re.M | re.I)
+RE_MUSIC_VALUE = re.compile(r'^\s*(music|intermusic|TitleMusic|IntermissionMusic)\s*=\s*"([^"]*)"',
+                            re.M | re.I)
 RE_MAP_BLOCK = re.compile(r'^map\s+(\w+)[^{]*\{(.*?)^\}', re.M | re.S | re.I)
 RE_GAMEINFO = re.compile(r'^GameInfo\s*\{(.*?)^\}', re.M | re.S | re.I)
 RE_NEXT = re.compile(r'^\s*next\s*=\s*"?(\w+)"?', re.M | re.I)
@@ -114,6 +123,18 @@ class MapinfoMusicTest(unittest.TestCase):
         for name, lump in MAP_MUSIC.items():
             self.assertIn(name, self.maps, f"no map {name} block")
             self.assertEqual(music_of(self.maps[name]), lump, name)
+
+    def test_episode_2s_stats_screens_play_its_intermission(self):
+        for name, block in self.maps.items():
+            with self.subTest(map=name):
+                self.assertEqual(INTER_MUSIC.get(name), music_of(block, "intermusic"))
+
+    def test_episode_2s_other_pieces_ship_but_are_not_mapinfo_values(self):
+        values = {value for _key, value in RE_MUSIC_VALUE.findall(self.code)}
+        for lump in EPISODE2_UNWIRED:
+            with self.subTest(lump=lump):
+                self.assertIn(lump, self.packed)
+                self.assertNotIn(lump, values)
 
     def test_every_music_value_is_silence_or_a_packed_lump(self):
         values = RE_MUSIC_VALUE.findall(self.code)

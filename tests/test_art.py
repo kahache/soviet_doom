@@ -401,6 +401,73 @@ class MaskedTexturesTests(unittest.TestCase):
         self.assertFalse(set(MASKED_TEXTURES) & flats)
 
 
+# Episode 2 «The Road to Moscow» (D104 drafts, approved 25/25 on 2026-10-22,
+# D107): lump -> (folder under assets/, size, masked). Written out, not
+# imported from the generators, so a renamed or resized piece shows up here.
+EP2_INSTALLED = {
+    # MAP04 railway (gen_railway.py)
+    "SDTRAK1": ("flats/railway", (64, 64), False), "SDBLST1": ("flats/railway", (64, 64), False),
+    "SDWAGN1": ("textures/railway", (128, 128), False), "SDTANK1": ("textures/railway", (128, 128), False),
+    "SDARMR1": ("textures/railway", (128, 128), False), "SDARMR2": ("textures/railway", (64, 128), False),
+    "SDSIGL1": ("textures/railway", (64, 128), False), "SDBRCK3": ("textures/railway", (64, 128), False),
+    "SDGATE2": ("textures/railway", (128, 128), False),
+    # MAP05 dam (gen_dam.py)
+    "SDDAM1": ("textures/dam", (64, 128), False), "SDDAM2": ("textures/dam", (64, 128), False),
+    "SDTURB1": ("textures/dam", (128, 128), False), "SDCTRL1": ("textures/dam", (128, 128), False),
+    "SDSPIL1": ("textures/dam", (64, 128), False), "SDINSL1": ("textures/dam", (64, 128), True),
+    "SDWATR1": ("flats/dam", (64, 64), False), "SDWATR2": ("flats/dam", (64, 64), False),
+    "SDWATR3": ("flats/dam", (64, 64), False), "SDWATR4": ("flats/dam", (64, 64), False),
+    "SDGRAT2": ("flats/dam", (64, 64), False),
+    # MAP06 moscow (gen_moscow.py)
+    "SDCOBL1": ("flats/moscow", (64, 64), False), "SDCOBL2": ("flats/moscow", (64, 64), False),
+    "SDKREM1": ("textures/moscow", (64, 128), False), "SDKREM2": ("textures/moscow", (64, 128), True),
+    "SDGUM1": ("textures/moscow", (128, 128), False), "SDTRIB1": ("textures/moscow", (64, 128), False),
+    "SDBANR1": ("textures/moscow", (64, 128), False), "SDSPAS1": ("textures/moscow", (64, 128), False),
+}
+EP2_FOLDERS = ("textures/railway", "textures/dam", "textures/moscow",
+               "flats/railway", "flats/dam", "flats/moscow")
+
+
+@unittest.skipUnless(HAVE_IMAGING, "Pillow/numpy not available in this interpreter")
+class Episode2InstallTests(unittest.TestCase):
+    """D107: the 25 approved pieces, 28 lumps, in their set folders."""
+
+    def installed(self) -> dict[str, Path]:
+        out = {}
+        for folder in EP2_FOLDERS:
+            for p in sorted((ASSETS_DIR / folder).glob("*.png")):
+                self.assertNotIn(p.stem, out, f"{p.stem} installed twice")
+                out[p.stem] = p
+        return out
+
+    def test_exactly_the_approved_lumps(self):
+        self.assertEqual(28, len(EP2_INSTALLED))
+        self.assertEqual(set(EP2_INSTALLED), set(self.installed()))
+
+    def test_folder_size_mode_and_name(self):
+        from PIL import Image
+        for lump, p in self.installed().items():
+            folder, size, masked = EP2_INSTALLED[lump]
+            self.assertEqual(folder, p.parent.relative_to(ASSETS_DIR).as_posix(), lump)
+            self.assertRegex(lump, LUMP_RE)
+            self.assertLessEqual(len(lump), 8)
+            with Image.open(p) as img:
+                self.assertEqual(size, img.size, lump)
+                self.assertEqual("RGBA" if masked else "P", img.mode, lump)
+
+    def test_masked_set_agrees_with_check_pk3(self):
+        ep2_masked = {lump for lump, (_f, _s, masked) in EP2_INSTALLED.items() if masked}
+        self.assertEqual({"SDKREM2", "SDINSL1"}, ep2_masked)
+        self.assertLessEqual(ep2_masked, set(MASKED_TEXTURES))
+        self.assertFalse({lump for lump, (folder, _s, _m) in EP2_INSTALLED.items()
+                          if folder.startswith("flats/")} & set(MASKED_TEXTURES))
+
+    def test_no_name_clash_with_any_other_installed_lump(self):
+        ours = {p.resolve() for p in self.installed().values()}
+        others = {p.stem.upper() for p in ASSETS_DIR.rglob("*.png") if p.resolve() not in ours}
+        self.assertFalse(set(EP2_INSTALLED) & others)
+
+
 class SpriteNameTests(unittest.TestCase):
     """The two sprite checks above accept Doom's mirrored pairs (D55)."""
 

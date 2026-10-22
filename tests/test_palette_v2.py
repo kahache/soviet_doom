@@ -118,6 +118,13 @@ HUD_FACES = ([f"STFST{level}{glance}" for level in range(5) for glance in range(
              + [f"{kind}{level}" for kind in ("STFOUCH", "STFEVL", "STFKILL") for level in range(5)]
              + [f"STFT{side}{level}0" for side in "LR" for level in range(5)]
              + ["STFGOD0", "STFDEAD0"])
+# D107 (2026-10-22): Episode 2's five bricks (gen_railway.py, gen_moscow.py),
+# v1 plus marble_red only, as SDBRCK1 (D66): the roundhouse SDBRCK3, the
+# Kremlin wall SDKREM1, its merlon SDKREM2 (RGBA, masked: check_pk3 lists it in
+# PALETTE_V2_MASKED, not PALETTE_V2_LUMPS), the banner SDBANR1 hung on the wall
+# and the Spasskaya stone SDSPAS1. Every other Episode 2 lump is v1.
+EP2_BRICKS = (("railway", "SDBRCK3"), ("moscow", "SDKREM1"), ("moscow", "SDKREM2"),
+              ("moscow", "SDBANR1"), ("moscow", "SDSPAS1"))
 D84_FRAMES = {"izh": ("SDIZ", "ABCD", "SDIF", "AB"), "rpg7": ("SDRL", "AB", "SDRF", "ABCD"),
               "roks3": ("SDRK", "AB", "SDKF", "A"), "katyusha": ("SDHK", "AB", "SDHF", "AB"),
               "ice_axe": ("SDAX", "ABCD", "SDAX", "")}
@@ -137,7 +144,8 @@ APPROVED_IN_V2: set[str] = (
     | {"graphics/hud/STKEYS0.png"}
     | {f"sprites/{folder}/{name}{f}0.png" for folder, (held, hf, flash, ff) in D84_FRAMES.items()
        for name, frames in ((held, hf), (flash, ff)) for f in frames}
-    | {f"graphics/statusbar/{name}.png" for name in HUD_FACES})
+    | {f"graphics/statusbar/{name}.png" for name in HUD_FACES}
+    | {f"textures/{folder}/{lump}.png" for folder, lump in EP2_BRICKS})
 
 
 def _digest(colours) -> str:
@@ -316,3 +324,7 @@ class CheckPk3KnowsTheV2Lumps(unittest.TestCase):
         indexed = {Path(p).stem.upper() for p in APPROVED_IN_V2
                    if not p.startswith("sprites/") and (ASSETS / p).read_bytes()[25] == 3}
         self.assertEqual(set(mod.PALETTE_V2_LUMPS), indexed)
+        # D107: the masked walls approved in v2 (RGBA under textures/).
+        masked = {Path(p).stem.upper() for p in APPROVED_IN_V2
+                  if p.startswith("textures/") and (ASSETS / p).read_bytes()[25] == 6}
+        self.assertEqual(set(mod.PALETTE_V2_MASKED), masked)

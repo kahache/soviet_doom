@@ -8,8 +8,9 @@
 //            weapon ones are the 25 the CEO approved in D74 and SDIZFIR B
 //            (D83), mastered and installed by tools/audio/master_weapon_sfx.py
 //            (backlog N9; docs/sound/WEAPON-SOUNDS.md section 10); the enemy
-//            ones the 57 of D83 and D86 and the 24 voice takes of D91 and
-//            D96, by tools/audio/master_enemy_sfx.py (N9e;
+//            ones the 52 of D83 and D86, the 31 voice takes of D91, D96
+//            and D110 and the 15 dog takes of D107, by
+//            tools/audio/master_enemy_sfx.py (N9e;
 //            docs/sound/ENEMY-SOUNDS.md section 5.12). The comment
 //            says the take.
 //   DS...    a Freedoom (IWAD) lump, a PLACEHOLDER: nothing is redistributed,
@@ -87,15 +88,15 @@ sd/weapon/katyusha/dry     SDHKDRY     // take A  firing switch on empty rails
 
 // === Bestiary (F5) =========================================================
 // Logical names sd/mon/<actor>/<event>; 47 sounds, docs/engine/BESTIARY.md 12.
-// Since N9e (D83, D86, D91, D96) 43 of them are ours: an SD lump in the
-// right-hand column, or a $random alias over our takes. Eight are the
-// voices D91 and D96 approved (Chatterbox; the D96 takes cloned from a
-// shouted reference): the rifleman's idle, sight and death, the trooper's
-// idle, sight and pain, the General's sight and his order. The other four
-// are VOICES still waiting for a take (the rifleman's pain, the trooper's
-// death, the General's pain and death): they keep a Freedoom (IWAD) lump,
+// Since N9e (D83, D86, D91, D96, D110; the hound's five D107) 46 of them are
+// ours: an SD lump in the right-hand column, or a $random alias over our takes.
+// Eleven are the voices D91, D96 and D110 approved (Chatterbox; the D96 and
+// D110 takes cloned from a shouted reference): the rifleman's idle, sight,
+// pain and death, the trooper's idle, sight, pain and death, the General's
+// sight, his order and his pain. One VOICE still waits for a take (the
+// General's death, redrafted after D110): it keeps a Freedoom (IWAD) lump,
 // read at run time and never redistributed (tests/test_bestiary.py checks
-// each exists), and the comment names the lump that will replace it after
+// it exists), and the comment names the lump that will replace it after
 // "->", the one docs/sound/ENEMY-SOUNDS.md has a card for.
 
 // --- Reich rifleman (SD_ReichRifleman) -------------------------------------
@@ -113,7 +114,9 @@ sd/mon/reichrifleman/sight/3  SDRRISI3    // D91 R06 t03
 sd/mon/reichrifleman/sight/4  SDRRISI4    // D96 R04 t12  "Feind!" (Chatterbox, Thorsten "angry" reference)
 sd/mon/reichrifleman/sight/5  SDRRISI5    // D96 R04 t13  "Feind!"
 sd/mon/reichrifleman/sight/6  SDRRISI6    // D96 R05 t12  "Da!"
-sd/mon/reichrifleman/pain     DSPOPAIN    // -> SDRRIPAI  (voice, D87)
+$random sd/mon/reichrifleman/pain { sd/mon/reichrifleman/pain/1 sd/mon/reichrifleman/pain/2 }
+sd/mon/reichrifleman/pain/1   SDRRIPA1    // D110 R07 t06  "Argh!" (Chatterbox, Thorsten "angry" reference)
+sd/mon/reichrifleman/pain/2   SDRRIPA2    // D110 R07 t02  "Argh!" (Chatterbox, HaelDB reference)
 sd/mon/reichrifleman/death    SDRRIDTH    // D96 R09 t12  "Sani..." (Chatterbox, HaelDB reference)
 sd/mon/reichrifleman/xdeath   SDRRIXDT    // D83  gib
 
@@ -134,7 +137,10 @@ sd/mon/legiontrooper/sight/4  SDLTRSI4    // D96 L06 t13  "Got movement!"
 $random sd/mon/legiontrooper/pain { sd/mon/legiontrooper/pain/1 sd/mon/legiontrooper/pain/2 }
 sd/mon/legiontrooper/pain/1   SDLTRPA1    // D96 L08 t14  "I'm hit!" (Chatterbox, HaelDB reference)
 sd/mon/legiontrooper/pain/2   SDLTRPA2    // D96 L08 t15  "I'm hit!"
-sd/mon/legiontrooper/death    DSPODTH2    // -> SDLTRDTH  (voice, D87)
+$random sd/mon/legiontrooper/death { sd/mon/legiontrooper/death/1 sd/mon/legiontrooper/death/2 sd/mon/legiontrooper/death/3 }
+sd/mon/legiontrooper/death/1  SDLTRDT1    // D110 L09 t01  a cry (Chatterbox, kurt reference)
+sd/mon/legiontrooper/death/2  SDLTRDT2    // D110 L09 t02  a cry that fades (Chatterbox, kurt reference)
+sd/mon/legiontrooper/death/3  SDLTRDT3    // D110 L09 t04  a cry, its tail cut at 1.20 s (Chatterbox, HaelDB reference)
 sd/mon/legiontrooper/xdeath   SDLTRXDT    // D83
 
 // --- Hybrid Stormtrooper (SD_Stormtrooper, SD_StormBolt) -------------------
@@ -154,11 +160,32 @@ sd/mon/stormtrooper/death/3   SDSTODT3    // D86 alt3  hydraulics and plates
 sd/mon/stormtrooper/xdeath    SDSTOXDT    // D83
 
 // --- Reich hound (SD_ReichHound) -------------------------------------------
-sd/mon/reichhound/active      SDHNDACT    // D83
-sd/mon/reichhound/sight       SDHNDSIT    // D83  must carry through a door
-sd/mon/reichhound/attack      SDHNDATK    // D83  played by A_Chase on the lunge
-sd/mon/reichhound/pain        SDHNDPAI    // D83
-sd/mon/reichhound/death       SDHNDDTH    // D83
+// Real dogs since D107: the CEO approved all fifteen candidates of
+// work/audio/preview/dog_listening.html (five sounds x three), so each sound
+// is a $random group of its three takes (BigSoundBank and OpenGameArt
+// recordings, CC0 and CC BY 3.0; docs/art/LICENSES.md, ENEMY-SOUNDS 5.12).
+// They replace D83's synthetic SDHNDACT-SDHNDDTH, which no longer ship.
+// "rec" marks the take the listening page recommended.
+$random sd/mon/reichhound/active { sd/mon/reichhound/active/1 sd/mon/reichhound/active/2 sd/mon/reichhound/active/3 }
+sd/mon/reichhound/active/1    SDHNDAC1    // D107 dog1 rec  a low growl (Labradors; CC BY 3.0)
+sd/mon/reichhound/active/2    SDHNDAC2    // D107 dog2  panting and a short growl under it
+sd/mon/reichhound/active/3    SDHNDAC3    // D107 dog3  a grumble
+$random sd/mon/reichhound/sight { sd/mon/reichhound/sight/1 sd/mon/reichhound/sight/2 sd/mon/reichhound/sight/3 }
+sd/mon/reichhound/sight/1     SDHNDSI1    // D107 dog1  a growl bursting into two deep barks
+sd/mon/reichhound/sight/2     SDHNDSI2    // D107 dog2 rec  a double bark, 3 semitones down
+sd/mon/reichhound/sight/3     SDHNDSI3    // D107 dog3  bared teeth, then two big barks
+$random sd/mon/reichhound/attack { sd/mon/reichhound/attack/1 sd/mon/reichhound/attack/2 sd/mon/reichhound/attack/3 }
+sd/mon/reichhound/attack/1    SDHNDAT1    // D107 dog1 rec  a short growl and a hard bark (played by A_Chase on the lunge)
+sd/mon/reichhound/attack/2    SDHNDAT2    // D107 dog2  a growl and the teeth clacking
+sd/mon/reichhound/attack/3    SDHNDAT3    // D107 dog3  one big close bark
+$random sd/mon/reichhound/pain { sd/mon/reichhound/pain/1 sd/mon/reichhound/pain/2 sd/mon/reichhound/pain/3 }
+sd/mon/reichhound/pain/1      SDHNDPA1    // D107 dog1 rec  a yelp
+sd/mon/reichhound/pain/2      SDHNDPA2    // D107 dog2  a lower, saturated yelp
+sd/mon/reichhound/pain/3      SDHNDPA3    // D107 dog3  a bark breaking into a whine
+$random sd/mon/reichhound/death { sd/mon/reichhound/death/1 sd/mon/reichhound/death/2 sd/mon/reichhound/death/3 }
+sd/mon/reichhound/death/1     SDHNDDT1    // D107 dog1  a long whine that dies away
+sd/mon/reichhound/death/2     SDHNDDT2    // D107 dog2 rec  a yelp, then a whine sinking low
+sd/mon/reichhound/death/3     SDHNDDT3    // D107 dog3  the last bark breaks, the body falls
 
 // --- Doughboy (SD_Doughboy, SD_DoughboyShell) ------------------------------
 sd/mon/doughboy/active        SDDGBACT    // D83
@@ -190,7 +217,9 @@ sd/mon/general/explode        SDGENEXP    // D83
 $random sd/mon/general/summon { sd/mon/general/summon/1 sd/mon/general/summon/2 }
 sd/mon/general/summon/1       SDGENSU1    // D96 G02 t13  "Vorwarts!" the order (SD_GENERAL_ORDER; Chatterbox, kurt reference; codec pass -0.6 dB)
 sd/mon/general/summon/2       SDGENSU2    // D96 G02 t14  "Vorwarts!" (Chatterbox, Thorsten "angry" reference)
-sd/mon/general/pain           DSDMPAIN    // -> SDGENPAI  (voice, D87)
+$random sd/mon/general/pain { sd/mon/general/pain/1 sd/mon/general/pain/2 }
+sd/mon/general/pain/1         SDGENPA1    // D110 G03 t06  "Argh!" (Chatterbox, kurt reference)
+sd/mon/general/pain/2         SDGENPA2    // D110 G03 t04  "Hngh!" (Chatterbox, kurt reference)
 sd/mon/general/death          DSCYBDTH    // -> SDGENDTH  a cue, not an effect (voice, D87)
 
 // === Beds (D83, D86): the non-vocal layers under the voices =================

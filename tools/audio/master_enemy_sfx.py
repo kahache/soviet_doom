@@ -7,7 +7,8 @@ enemy needs. No re-synthesis: every recipe, seed and take belongs to the
 generator that drew it, untouched:
 
   draft   the D83 OKs, the 2026-10-13 drafts of `gen_sfx.py` (seed 1977),
-          rendered as that file renders them; 30 sounds and 5 beds
+          rendered as that file renders them; 30 sounds and 5 beds (25
+          sounds since D107 put real dogs in the hound's place: `--dogs`)
   alt     the D86 OKs, the alternatives of `gen_enemy_alts.py`, rendered as
           that file renders them (SDRRIATK alt2 with its final click
           lowered, as D86 asked; the fix is in `gen_enemy_alts.py`)
@@ -56,7 +57,8 @@ Run:
     .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --list
     .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py            # masters + MANIFEST in work/
     .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --install  # and the OGGs into assets/
-    .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --voices --install  # the voice takes of D91 and D96
+    .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --voices --install  # the voice takes of D91, D96 and D110
+    .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --dogs --install    # the hound's dogs (D107)
     .venv/Scripts/python.exe -m unittest tests.test_enemy_sfx_install -v
 
 Deterministic, as the weapon pass: the WAV masters are byte-identical run
@@ -173,13 +175,13 @@ def _alts(card: str, ref: str, takes: tuple[int, ...]) -> list[Install]:
 
 
 # D83 (docs/PRD.md): 30 enemy sounds OK, each against the Freedoom lump
-# SNDINFO played for it before N9e.
+# SNDINFO played for it before N9e. The hound's five (SDHNDACT-SDHNDDTH)
+# were retired by D107, which put real dogs in their place (DOG_INSTALLS):
+# 25 remain.
 D83_SOUNDS: tuple[tuple[str, str], ...] = (
     ("SDRRIXDT", "DSSLOP"), ("SDLTRXDT", "DSSLOP"),
     ("SDSTOACT", "DSBGACT"), ("SDSTOSIT", "DSBGSIT1"), ("SDSTOMEL", "DSCLAW"), ("SDSTOMIS", "DSFIRSHT"),
     ("SDSTOEXP", "DSFIRXPL"), ("SDSTOXDT", "DSSLOP"),
-    ("SDHNDACT", "DSDMACT"), ("SDHNDSIT", "DSSGTSIT"), ("SDHNDATK", "DSSGTATK"), ("SDHNDPAI", "DSDMPAIN"),
-    ("SDHNDDTH", "DSSGTDTH"),
     ("SDDGBACT", "DSDMACT"), ("SDDGBSIT", "DSCACSIT"), ("SDDGBMEL", "DSCLAW"), ("SDDGBMIS", "DSFIRSHT"),
     ("SDDGBEXP", "DSFIRXPL"), ("SDDGBPAI", "DSDMPAIN"), ("SDDGBDTH", "DSCACDTH"),
     ("SDPZRACT", "DSDMACT"), ("SDPZRSIT", "DSKNTSIT"), ("SDPZRMEL", "DSSKEPCH"), ("SDPZRMIS", "DSFIRSHT"),
@@ -221,7 +223,7 @@ REJECTED_ALTS = ("SDLTRATK_alt1", "SDLTRATK_alt3")
 # written after the run, re-measured by the tests. WHY per lump in
 # ENEMY-SOUNDS §5.12.
 SHORT_OF_TARGET: dict[str, float] = {
-    "SDSTOMEL": 4.7, "SDHNDATK": 8.0, "SDDGBACT": 3.9, "SDDGBMEL": 3.2, "SDDGBPAI": 1.4,
+    "SDSTOMEL": 4.7, "SDDGBACT": 3.9, "SDDGBMEL": 3.2, "SDDGBPAI": 1.4,
     "SDPZRSIT": 6.7, "SDPZRMEL": 3.5, "SDPZRDTH": 2.2, "SDPZRSTP": 3.1, "SDGENACT": 3.2,
     "SDSTODT3": 1.4,
 }
@@ -254,16 +256,6 @@ INSTALLED_SHA256: dict[str, tuple[str, str]] = {
                  "ae56a4300dc976d16bf6d28db4b00a41558ba14dc2c2982678266b6ebe2f4503"),
     "SDSTOXDT": ("85cb5cc027427ea886ea560e03bc2ad217ef202e01a505485fd53a2fc24dfdc6",
                  "080709cb8f1b7aa762fb00249f32b59a2959374bc68434bea5d384aa8a244865"),
-    "SDHNDACT": ("cebac3156b61654dd345781a9fdb112142fcd25ae775e2ff807a4226fa0e6565",
-                 "cf81ac25623e1237b72af92467fc1a4cf24185d73bc16ce6529d0f97f2d6bc37"),
-    "SDHNDSIT": ("5e6a5a268a61c30ea4d9012c6bdfcc1e86d954f23469202a36d12848865486a4",
-                 "c6371ab5398ed60501c08ab05c164a4bad994cf8d8bcc1b386ba12eb9b8c8e04"),
-    "SDHNDATK": ("757dc0b103f4ece927fbe604d48440c63e300b4863b92d883932104a1a6ef0fd",
-                 "6f7c76a9a293a2b906d4913e432d5f2fc236799e7257d20c3fb599a910975f06"),
-    "SDHNDPAI": ("94227677a11a32f17f3e893d4be40b01f77fc7464acab405d415729950b4b6a6",
-                 "8f4c0da74f1e6a04b9b04e748021fbe3cc6b2cd819d83aac27354c9669b81bbe"),
-    "SDHNDDTH": ("1a78ddee26f0c427a9fcad3250ea006c01420cf52c2092e702d841302c609133",
-                 "7b7c0918f9667e500b622b20fef0fd58ac52d7ff771776fa125d44cc5a98964b"),
     "SDDGBACT": ("7e94cc430a625b78a5f99235a19019f07130d9d43f72c3f23e6e28796cbe12bc",
                  "fec6c0e2c362aebc89165b397cb19a129a9ba7724c5e1f2487f4e82e22271346"),
     "SDDGBSIT": ("b7e7475bd5c3ca2fe69d0ee96ea106b03992ef8c59db22ce7b8c976da5cc2917",
@@ -558,6 +550,22 @@ VOICE_DAY = "20261020"
 # 7 letters plus the member number, numbered on after D91's (the rifleman's
 # sight 4-6 beside R06's 1 and 3, the trooper's idle 6).
 VOICE_AGGRESSIVE_DIR = VOICE_DIR / "aggressive"
+# --- D110: seven takes of the P2 round (the wordless voices) -------------------------
+# work/audio/preview/voices_p2_listening.html (gen_p2.py, page_p2.py). OK: R07
+# t06+t02 (the rifleman's pain, "Argh!"; t05 NO), L09 t01+t02 and t04 once its
+# tail is cut (the trooper's death), G03 t06+t04 (the General's pain; t03 NO);
+# G04 (the General's death) all NO, redrafted in voice_takes/p2b/. Chatterbox
+# Multilingual on the CPU (the server's own Python, special tokens dropped),
+# cloned from the D96 references: Thorsten "angry" CC0 (R07 t06), HaelDB CC0
+# (R07 t02, L09 t04), kurt's "Soldier Voice Acting" CC-BY 3.0 (wounded.ogg and
+# battlecries.ogg: L09 t01, t02, G03 t04, t06). Processed by gen_p2.py with
+# process_voice_takes.process_wave and levelled to the Freedoom lump they
+# replace; all ship byte for byte but L09 t04, VOICE_TAIL_CUT. Every sound has
+# several takes: $random groups, the card's 7 letters plus the member number in
+# the CEO's order (SDRRIPA1 = R07 t06, SDLTRDT3 = L09 t04, SDGENPA1 = G03 t06);
+# the beds' lumps are ...B<n>, so no name is shared.
+VOICE_P2_DIR = VOICE_DIR / "p2"
+VOICE_DAYS = {"D91": VOICE_DAY, "D96": VOICE_DAY, "D110": "20261021"}
 
 
 @dataclass(frozen=True)
@@ -575,7 +583,7 @@ class VoiceInstall:
 
     @property
     def folder(self) -> Path:
-        return VOICE_DIR if self.decision == "D91" else VOICE_AGGRESSIVE_DIR
+        return {"D91": VOICE_DIR, "D96": VOICE_AGGRESSIVE_DIR, "D110": VOICE_P2_DIR}[self.decision]
 
     @property
     def path(self) -> Path:
@@ -590,8 +598,8 @@ def _voice(lump: str, line: str, card: str, take: int, logical: str, n: int | No
            decision: str = "D91") -> VoiceInstall:
     """n None: the sound's only take, under the logical name itself (no $random)."""
     name = logical if n is None else f"{logical}/{n}"
-    return VoiceInstall(lump, f"{line}_{card}_ai_chatterbox_{VOICE_DAY}_t{take:02d}", name, logical, ref,
-                        decision)
+    return VoiceInstall(lump, f"{line}_{card}_ai_chatterbox_{VOICE_DAYS[decision]}_t{take:02d}", name, logical,
+                        ref, decision)
 
 
 _RR, _LT, _GN = "sd/mon/reichrifleman", "sd/mon/legiontrooper", "sd/mon/general"
@@ -621,11 +629,25 @@ VOICE_INSTALLS: tuple[VoiceInstall, ...] = (
     _voice("SDGENSIT", "G01", "SDGENSIT", 12, f"{_GN}/sight", None, "DSCYBSIT", "D96"),
     _voice("SDGENSU1", "G02", "SDGENSUM", 13, f"{_GN}/summon", 1, "DSVILSIT", "D96"),
     _voice("SDGENSU2", "G02", "SDGENSUM", 14, f"{_GN}/summon", 2, "DSVILSIT", "D96"),
+    # D110
+    _voice("SDRRIPA1", "R07", "SDRRIPAI", 6, f"{_RR}/pain", 1, "DSPOPAIN", "D110"),
+    _voice("SDRRIPA2", "R07", "SDRRIPAI", 2, f"{_RR}/pain", 2, "DSPOPAIN", "D110"),
+    _voice("SDLTRDT1", "L09", "SDLTRDTH", 1, f"{_LT}/death", 1, "DSPODTH2", "D110"),
+    _voice("SDLTRDT2", "L09", "SDLTRDTH", 2, f"{_LT}/death", 2, "DSPODTH2", "D110"),
+    _voice("SDLTRDT3", "L09", "SDLTRDTH", 4, f"{_LT}/death", 3, "DSPODTH2", "D110"),
+    _voice("SDGENPA1", "G03", "SDGENPAI", 6, f"{_GN}/pain", 1, "DSDMPAIN", "D110"),
+    _voice("SDGENPA2", "G03", "SDGENPAI", 4, f"{_GN}/pain", 2, "DSDMPAIN", "D110"),
 )
 VOICES_BY_LUMP = {v.lump: v for v in VOICE_INSTALLS}
 # dB the codec pass took off a voice take's master peak (codec_safe's loop and margin).
 VOICE_CODEC_TRIMMED: dict[str, float] = {"SDGENSU1": 0.6}
-# SHA-256 of each installed OGG (= the processed take in its folder, but for the trimmed).
+# D110: "has cortado mal el audio, se cuela algo al final" (L09 t04). The raw take
+# has the cry, 0.22 s of digital silence (1.17-1.39 s) and then a 0.08 s blip at
+# -11 dB; process_voice_takes.trim only ends a line after a gap of MAX_GAP_S
+# (0.45 s), so the blip stayed. The raw take is cut here, in seconds, before the
+# blip, and processed as gen_p2.py processed it (voice_tail_cut_ogg).
+VOICE_TAIL_CUT: dict[str, float] = {"SDLTRDT3": 1.20}
+# SHA-256 of each installed OGG (= the processed take in its folder, but for the trimmed and the tail-cut).
 VOICE_SHA256: dict[str, str] = {
     "SDRRISI1": "dd56db85f651faf912cf09031daa4f5a726455d03758531c809584f1b1e1ef18",
     "SDRRISI3": "9b8063c21dd9caa51f87562ae28de2a7eacdbffb002ce2944cf38cfe8fa7be2b",
@@ -652,6 +674,14 @@ VOICE_SHA256: dict[str, str] = {
     "SDGENSIT": "99669afd3d20cc603180f4d572694ddef781f2a4ace19e4927991c36ca9154dc",
     "SDGENSU1": "10184bed9a802498928bd273d5e8b47a80c6fb1764b632a7b2aef014cf6a7785",
     "SDGENSU2": "31d103bb6d541c19090f577a01292ec7e701950139d75bdaedc059dfe2dfea87",
+    # D110
+    "SDRRIPA1": "7f9c6bd1c66f5168291187048da86c5532f1656766ff47084795308449eef58f",
+    "SDRRIPA2": "f9679ad86ca6e38be275c1f57b3f4ea1d3fa6cd405e80a3daa5b0874bf65aa25",
+    "SDLTRDT1": "bf926b27325553784457c312f086ee3503a853ea8c8f914e0d05c5144adb9b16",
+    "SDLTRDT2": "015ece147d92c6a80ef03f87d6ebe9967206560d5079d29279b1e600bb8ab592",
+    "SDLTRDT3": "092c8c7d40763d74f171b796832df009a58f0424bd351d23312580802eae935c",
+    "SDGENPA1": "d6025787d6b86ca32f89a953576a443c33880197dc67edddf8a7f2e48948a570",
+    "SDGENPA2": "4ed7fc422994149fffd20f994b824543fb900f188f35c53b9924517ee79be1ad",
 }
 
 
@@ -688,10 +718,34 @@ def voice_trimmed_ogg(v: VoiceInstall) -> tuple[bytes, float]:
     raise RuntimeError(f"{v.lump}: the OGG still overshoots after {CODEC_PASSES} passes")
 
 
+def voice_render(v: VoiceInstall, cut_s: float | None = None) -> np.ndarray:
+    """process_voice_takes.process_wave's chain on the raw take, the target given (the
+    wordless rows of D110 have no Line there): high-pass, trim, the trooper's radio
+    colour, level to the Freedoom lump, the last samples silent. cut_s: the raw take
+    ends there first."""
+    import process_voice_takes as pvt
+    x = gws.decode(v.raw_path)
+    if cut_s is not None:
+        x = x[:int(round(cut_s * gws.SR))]
+    y, _ = pvt.trim(pvt.high_pass(x), gws.SR)
+    if v.logical.startswith(_LT + "/"):
+        y = pvt.radio_colour(y)
+    y, _ = pvt.level(y, v.target_db)
+    y[-gws.n_of(pvt.TAIL_SILENCE_S):] = 0.0
+    return y
+
+
+def voice_tail_cut_ogg(v: VoiceInstall) -> bytes:
+    """A take whose raw tail is cut (VOICE_TAIL_CUT), rendered as its page's OGG was."""
+    return gws.ogg_bytes(gws.wav_bytes(voice_render(v, VOICE_TAIL_CUT[v.lump])))
+
+
 def voice_ogg(v: VoiceInstall) -> bytes:
-    """The OGG a voice take ships as: the processed take, or its codec-trimmed render."""
+    """The OGG a voice take ships as: the processed take, or its codec-trimmed or tail-cut render."""
     if v.lump in VOICE_CODEC_TRIMMED:
         return voice_trimmed_ogg(v)[0]
+    if v.lump in VOICE_TAIL_CUT:
+        return voice_tail_cut_ogg(v)
     return v.path.read_bytes()
 
 
@@ -720,17 +774,127 @@ def install_voices(asset_dir: Path | None, lumps=None) -> dict[str, str]:
     return out
 
 
+# --- D107: the Reich hound's real dogs ------------------------------------------------
+# work/audio/preview/dog_listening.html: five sounds x three candidates, built
+# by work/audio/candidates/dog/make_dog_candidates.py from recordings of real
+# dogs (BigSoundBank, Joseph Sardin, CC0; OpenGameArt: qubodup and pauliuw,
+# CC0, congusbongus after juskiddink, CC BY 3.0; two Kenney CC0 clips already
+# on disk; sources, licences and hashes in work/audio/sfx_sources/dog/SOURCES.md)
+# and levelled there to the Freedoom lump of their sound, as the D86
+# alternatives were. The CEO approved all fifteen ("TODOS OK"); the PM ships
+# the three takes of each sound as a $random group (D107, as D94). They
+# replace D83's synthetic SDHNDACT-SDHNDDTH. Each ships byte for byte as the
+# page's OGG; the pass only checks it (decoded peak under
+# DECODED_PEAK_CEILING_DBFS, loudness in its window), as for the voices.
+# Lumps: the card's 7 letters with its last letter replaced by the take
+# number, as the D86 groups (SDHNDAC1-3, SDHNDSI1-3, SDHNDAT1-3, SDHNDPA1-3,
+# SDHNDDT1-3).
+DOG_DIR = PROJECT_ROOT / "work" / "audio" / "candidates" / "dog"
+
+
+@dataclass(frozen=True)
+class DogInstall:
+    lump: str
+    candidate: str       # the page's file stem in DOG_DIR
+    logical: str
+    group: str           # the name the game asks for ($random over the three)
+    ref: str
+    decision: str = "D107"
+
+    @property
+    def target_db(self) -> float:
+        return FREEDOOM_LOUD_A[self.ref]
+
+    @property
+    def path(self) -> Path:
+        return DOG_DIR / f"{self.candidate}.ogg"
+
+
+# card -> (its D107 lump stem, the Freedoom lump it was levelled to)
+_DOG_CARDS: tuple[tuple[str, str, str], ...] = (
+    ("SDHNDACT", "SDHNDAC", "DSDMACT"), ("SDHNDSIT", "SDHNDSI", "DSSGTSIT"),
+    ("SDHNDATK", "SDHNDAT", "DSSGTATK"), ("SDHNDPAI", "SDHNDPA", "DSDMPAIN"),
+    ("SDHNDDTH", "SDHNDDT", "DSSGTDTH"),
+)
+DOG_INSTALLS: tuple[DogInstall, ...] = tuple(
+    DogInstall(f"{stem}{n}", f"{card}_dog{n}",
+               f"sd/mon/reichhound/{EVENT_KEY[card[5:]]}/{n}", f"sd/mon/reichhound/{EVENT_KEY[card[5:]]}", ref)
+    for card, stem, ref in _DOG_CARDS for n in (1, 2, 3))
+DOGS_BY_LUMP = {d.lump: d for d in DOG_INSTALLS}
+# The take the page recommended per sound (by measurement, not by ear); all ship.
+DOG_RECOMMENDED = ("SDHNDAC1", "SDHNDSI2", "SDHNDAT1", "SDHNDPA1", "SDHNDDT2")
+# SHA-256 of each installed OGG (= the page's candidate, byte for byte).
+DOG_SHA256: dict[str, str] = {
+    "SDHNDAC1": "6950d36709683616c0e57694baf22dbaf3a7e4ddef4e0854356f98ae25be6ca9",
+    "SDHNDAC2": "e3f737f9f614c3bf708c0210e14fcf24dd3b037f3a8466ff871dd2fa72f0ed2d",
+    "SDHNDAC3": "0c18ad0cc69afda409c56e9b83e16087e0fb58235621ca0273c422dea196ccad",
+    "SDHNDSI1": "90f10758b6019d250fd88ba222ee76f949db0497952a040830ba397270ae13f2",
+    "SDHNDSI2": "370cf96c6f42e7d14a5c956414df03fd704070d1c601d43e77aa1183bb469f22",
+    "SDHNDSI3": "46e478093a5c547b74eb45acb462f146b5d7d7eee2c6b808b879243e2453aff8",
+    "SDHNDAT1": "78f7f51620043d4947ab698afe5f2ef8a2469b5914360794392c942fe9797589",
+    "SDHNDAT2": "835c00bdc30ff223e008c058136d531af7c719f9bf240015695eb23bef332a43",
+    "SDHNDAT3": "e385fa91be42551964f9bf606c3902e18c7cae0f3d33b1b29245e5f185094ae2",
+    "SDHNDPA1": "c2ad1d6ba82b8a8232c86a980a9a63fd91e7279fc5878096db397f98661b8046",
+    "SDHNDPA2": "ad58d480f9c2aef8fa7883600948afb018c8f24d5d92a59a1ae4ab1592bac149",
+    "SDHNDPA3": "a8767b25f821818cad7593347734c63a49e75df209c57a60399c2ed706865777",
+    "SDHNDDT1": "4c85b6e34050f8f52569568b2457cf50d0b311aef059c2d5f64a043db8429f83",
+    "SDHNDDT2": "f97a3f619f510e1f8db8f64af8d0fea53ac968e4fb5e7440351a249331b4fefb",
+    "SDHNDDT3": "8116e8e0d502349c3225bee83c9e42032f920a1706d946d758b2f1a35d16cbb9",
+}
+
+
+def dog_groups() -> dict[str, list[str]]:
+    """$random alias -> its three members' logical names."""
+    out: dict[str, list[str]] = {}
+    for d in DOG_INSTALLS:
+        out.setdefault(d.group, []).append(d.logical)
+    return out
+
+
+def dog_check(d: DogInstall, ogg: bytes | None = None) -> tuple[float, float]:
+    """-> (decoded peak dBFS, loudest 50 ms A); raises if either is off."""
+    x = gws.decode(d.path) if ogg is None else _decode_ogg(ogg)
+    peak, loud = alts.peak_db(x), alts.loud_a_db(x)
+    if peak >= DECODED_PEAK_CEILING_DBFS or abs(loud - d.target_db) > LOUDNESS_TOLERANCE_DB + CODEC_LOUDNESS_DB:
+        raise ValueError(f"{d.candidate}: peak {peak:.2f} dBFS, {loud:.2f} dB A against {d.target_db:.2f}")
+    return peak, loud
+
+
+def install_dogs(asset_dir: Path | None, lumps=None) -> dict[str, str]:
+    out = {}
+    for d in DOG_INSTALLS:
+        if lumps and d.lump not in lumps:
+            continue
+        data = d.path.read_bytes()
+        peak, loud = dog_check(d, data)
+        out[d.lump] = sha256(data)
+        if asset_dir is not None:
+            asset_dir.mkdir(parents=True, exist_ok=True)
+            (asset_dir / f"{d.lump}.ogg").write_bytes(data)
+        print(f"{d.lump} {d.candidate} {d.logical:30s} peak {peak:5.2f} loudA {loud:6.2f} "
+              f"(target {d.target_db:6.2f}, {d.ref})  ogg {out[d.lump]}")
+    return out
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--list", action="store_true", help="print the plan and write nothing")
     ap.add_argument("--install", action="store_true", help="also write the OGGs into assets/sounds/enemies/")
-    ap.add_argument("--voices", action="store_true", help="the voice takes of D91 and D96 instead")
+    ap.add_argument("--voices", action="store_true", help="the voice takes of D91, D96 and D110 instead")
+    ap.add_argument("--dogs", action="store_true", help="the hound's dog takes of D107 instead")
     ap.add_argument("names", nargs="*", help="only these lumps")
     args = ap.parse_args(argv)
     try:
         sys.stdout.reconfigure(encoding="utf-8")
     except (AttributeError, ValueError):            # pragma: no cover - a replaced stream
         pass
+    if args.dogs:
+        bad = [n for n in args.names if n not in DOGS_BY_LUMP]
+        if bad:
+            print(f"not an approved dog take: {', '.join(bad)}", file=sys.stderr)
+            return 2
+        install_dogs(ASSET_DIR if args.install else None, args.names or None)
+        return 0
     if args.voices:
         bad = [n for n in args.names if n not in VOICES_BY_LUMP]
         if bad:

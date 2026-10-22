@@ -2,11 +2,15 @@
 gen_dam.py, gen_moscow.py (MAP04-06), their shared ep2lib.py and the sheet
 builder gen_episode2.py.
 
-DRAFTS: nothing here is approved or installed. What is held:
+APPROVED 2026-10-22, 25/25 (D107) and installed in assets/{textures,flats}/
+<railway|dam|moscow>/. What is held:
 
   names      every lump is an SD name of <= 8 upper-case characters, unique
              across the three sets, not already used in assets/, work/ or
-             TEXTURE-INDEX.md, and not readable as a sprite frame
+             TEXTURE-INDEX.md (its own installed copy and rows aside), and
+             not readable as a sprite frame
+  installed  assets/ holds the generators' bytes; one approved row per lump
+             in TEXTURE-INDEX.md, one in LICENSES.md; SDSIGL1 single use
   sizes      walls at an ART-BIBLE §2 size, flats 64x64, multiples of 8
   seeds      one seed per piece in each set's own space (5400/5500/5600),
              except the merlon, which replays the Kremlin wall's seed on purpose
@@ -105,8 +109,15 @@ class DefinitionTests(unittest.TestCase):
 
     def test_names(self):
         lumps = [l for _, p in self.all_pieces() for l in p.lumps]
-        self.assertEqual(gen_episode2.name_problems(lumps, gen_episode2.existing_lumps()), [])
+        taken = gen_episode2.existing_lumps(frozenset(lumps))
+        self.assertEqual(gen_episode2.name_problems(lumps, taken), [])
         self.assertEqual(len(lumps), len(set(lumps)))
+
+    def test_installed_copies_are_not_a_clash_but_strangers_are(self):
+        # D107: the installed copies and the index rows are the lumps themselves.
+        self.assertIn("SDKREM1", gen_episode2.existing_lumps())
+        self.assertNotIn("SDKREM1", gen_episode2.existing_lumps(frozenset({"SDKREM1"})))
+        self.assertIn("SDBRCK1", gen_episode2.existing_lumps(frozenset({"SDKREM1"})))
 
     def test_sizes(self):
         for _, p in self.all_pieces():
@@ -234,6 +245,50 @@ class RenderTests(unittest.TestCase):
                     if not w.is_file():
                         self.skipTest("work/art/episode2 not rendered on this machine")
                     self.assertEqual(w.read_bytes(), (d / f"{lump}.png").read_bytes(), lump)
+
+    def test_installed_lumps_are_what_the_generators_build(self):
+        """D107: assets/ holds exactly the generators' bytes (walls under
+        textures/<set>/, flats under flats/<set>/). Runs without work/."""
+        for mod, d, _ in self.out.values():
+            for p in mod.PIECES:
+                kind = "flats" if p.kind == "flat" else "textures"
+                for lump in p.lumps:
+                    installed = PROJECT_ROOT / "assets" / kind / mod.SET_NAME / f"{lump}.png"
+                    self.assertTrue(installed.is_file(), installed)
+                    self.assertEqual(installed.read_bytes(), (d / f"{lump}.png").read_bytes(), lump)
+
+
+@needs_imaging
+class PaperTests(unittest.TestCase):
+    """D107: every installed lump has one approved row in TEXTURE-INDEX.md and a
+    row in LICENSES.md; SDSIGL1 carries the CEO's single-use note."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.index = (PROJECT_ROOT / "docs" / "art" / "TEXTURE-INDEX.md").read_text(encoding="utf-8")
+        cls.licenses = (PROJECT_ROOT / "docs" / "art" / "LICENSES.md").read_text(encoding="utf-8")
+        cls.lumps = [l for mod in (gen_railway, gen_dam, gen_moscow) for p in mod.PIECES for l in p.lumps]
+
+    def rows(self, text: str, lump: str) -> list[str]:
+        return [line for line in text.splitlines() if line.startswith(f"| `{lump}` |")]
+
+    def test_one_approved_index_row_each(self):
+        for lump in self.lumps:
+            rows = self.rows(self.index, lump)
+            self.assertEqual(len(rows), 1, f"{lump}: expected one row in TEXTURE-INDEX.md")
+            self.assertIn("approved 2026-10-22 (D107", rows[0], lump)
+
+    def test_a_licence_row_each(self):
+        for lump in self.lumps:
+            rows = self.rows(self.licenses, lump)
+            self.assertEqual(len(rows), 1, f"{lump}: expected one row in LICENSES.md")
+            self.assertRegex(rows[0], r"\(a\) .*(gen_(railway|dam|moscow)\.py|idem).*seed \d{4}", lump)
+            self.assertRegex(rows[0], r"CC BY-NC-SA 4\.0|\| idem \|$", lump)
+
+    def test_the_signal_is_for_single_use(self):
+        row = self.rows(self.index, "SDSIGL1")[0]
+        self.assertIn("single use", row)
+        self.assertIn("never as a mosaic", row)
 
 
 if __name__ == "__main__":

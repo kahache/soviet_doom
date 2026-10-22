@@ -235,14 +235,14 @@ class ContractTest(unittest.TestCase):
 
     def test_sndinfo_rows_name_the_freedoom_stand_ins(self):
         # Only lines still on a Freedoom stand-in carry `// -> SD...` (N9e
-        # installed the hound's sight and the step; D91 and D96 eight of the
-        # twelve voices; four voices still wait, D87).
+        # installed the hound's sight and the step; D91, D96 and D110 eleven of
+        # the twelve voices; the General's death still waits, D110).
         rows = gs.sndinfo_rows(SNDINFO)
-        self.assertEqual(rows["SDRRIPAI"], ("sd/mon/reichrifleman/pain", "DSPOPAIN"))
-        self.assertEqual(rows["SDGENDTH"][0], "sd/mon/general/death")
-        for ours in ("SDRRIACT", "SDRRISIT", "SDGENSUM", "SDHNDSIT"):   # $random or ours since N9e
+        self.assertEqual(rows["SDGENDTH"], ("sd/mon/general/death", "DSCYBDTH"))
+        for ours in ("SDRRIACT", "SDRRISIT", "SDGENSUM", "SDHNDSIT",     # $random or ours since N9e
+                     "SDRRIPAI", "SDLTRDTH", "SDGENPAI"):                 # $random since D110
             self.assertNotIn(ours, rows)
-        self.assertEqual(set(rows), {"SDRRIPAI", "SDLTRDTH", "SDGENPAI", "SDGENDTH"})
+        self.assertEqual(set(rows), {"SDGENDTH"})
 
 
 # --- DSP --------------------------------------------------------------------------
@@ -486,7 +486,8 @@ class SourcedTest(unittest.TestCase):
 class OverlayTest(unittest.TestCase):
 
     def test_overlay_layout_reproducible_and_without_voices_or_beds(self):
-        lumps = ["SDHNDSIT", "SDPZRSTP"]
+        # the hound's sight is a $random group since D107: a single-line draft instead
+        lumps = ["SDSTOSIT", "SDPZRSTP"]
         with tempfile.TemporaryDirectory() as tmp:
             ogg_dir = Path(tmp)
             for lump in lumps:
@@ -495,15 +496,15 @@ class OverlayTest(unittest.TestCase):
             b = gs.pack_overlay(lumps, ogg_dir, ogg_dir / "b.pk3", SNDINFO)
             self.assertEqual(a.read_bytes(), b.read_bytes())
             with zipfile.ZipFile(a) as zf:
-                self.assertEqual(zf.namelist(), ["SNDINFO", "sounds/SDHNDSIT.ogg", "sounds/SDPZRSTP.ogg"])
+                self.assertEqual(zf.namelist(), ["SNDINFO", "sounds/SDSTOSIT.ogg", "sounds/SDPZRSTP.ogg"])
                 self.assertTrue(all(i.date_time == gs.FIXED_ZIP_TIME for i in zf.infolist()))
                 text = zf.read("SNDINFO").decode("ascii")
-            self.assertRegex(text, r"(?m)^sd/mon/reichhound/sight\s+SDHNDSIT$")
+            self.assertRegex(text, r"(?m)^sd/mon/stormtrooper/sight\s+SDSTOSIT$")
             self.assertRegex(text, r"(?m)^sd/mon/panzermensch/step\s+SDPZRSTP$")
             no_names = Path(tmp) / "SNDINFO"
             no_names.write_text("// nothing", encoding="utf-8")
             with self.assertRaises(SystemExit):
-                gs.pack_overlay(["SDHNDSIT"], ogg_dir, ogg_dir / "c.pk3", no_names)
+                gs.pack_overlay(["SDSTOSIT"], ogg_dir, ogg_dir / "c.pk3", no_names)
 
     def test_main_lists_and_rejects(self):
         out = io.StringIO()

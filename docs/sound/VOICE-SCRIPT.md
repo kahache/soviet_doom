@@ -266,12 +266,15 @@ The earlier figures (15-20 minutes of recording, 30-45 in total) did not
 account for the row changes and were too low.
 Estimate, not measured: the first real session replaces it.
 
-### 1.6 Installed (D91, D96)
+### 1.6 Installed (D91, D96, D110)
 
 The takes are Chatterbox Multilingual (D87; `work/audio/voice_takes/`,
 `AI-LOG.csv`): D91's with predefined voices, D96's cloned from shouted
 references (Thorsten-Voice "angry", CC0; kurt's "Soldier Voice Acting",
-CC-BY 3.0; HaelDB, CC0). Rows with no approved take keep Freedoom's voice.
+CC-BY 3.0; HaelDB, CC0), and D110's, the wordless rows, cloned from the
+same references (`work/audio/voice_takes/p2/`). Rows with no approved take
+keep Freedoom's voice: since D110 only G04, redrafted
+(`work/audio/voice_takes/p2b/`).
 The D96 takes say their lines with an exclamation mark ("Vorwärts!", not
 the full stop of G02): that is what the CEO approved.
 
@@ -279,16 +282,16 @@ the full stop of G02): that is what the CEO approved.
 |---|---|---|---|
 | `SDRRIACT` | R01 t13, R02 t11, R03 t14 (D96) | `SDRRIAC1`-`3` | `$random sd/mon/reichrifleman/active` |
 | `SDRRISIT` | R06 t01, t03 (D91); R04 t12, t13, R05 t12 (D96) | `SDRRISI1`, `3`, `4`-`6` | `$random sd/mon/reichrifleman/sight` |
-| `SDRRIPAI` | none | Freedoom `DSPOPAIN` | `sd/mon/reichrifleman/pain` |
+| `SDRRIPAI` | R07 t06, t02 (D110) | `SDRRIPA1`-`2` | `$random sd/mon/reichrifleman/pain` |
 | `SDRRIDTH` | R09 t12 (D96) | `SDRRIDTH` | `sd/mon/reichrifleman/death` |
 | `SDLTRACT` | L01 t01, t03, L02 t01-t03 (D91); L03 t12 (D96) | `SDLTRAC1`-`6` | `$random sd/mon/legiontrooper/active` |
 | `SDLTRSIT` | L04 t12, t14, L05 t13, L06 t13 (D96) | `SDLTRSI1`-`4` | `$random sd/mon/legiontrooper/sight` |
 | `SDLTRPAI` | L08 t14, t15 (D96) | `SDLTRPA1`-`2` | `$random sd/mon/legiontrooper/pain` |
-| `SDLTRDTH` | none | Freedoom `DSPODTH2` | `sd/mon/legiontrooper/death` |
+| `SDLTRDTH` | L09 t01, t02, t04 with its tail cut (D110) | `SDLTRDT1`-`3` | `$random sd/mon/legiontrooper/death` |
 | `SDGENSIT` | G01 t12 (D96) | `SDGENSIT` | `sd/mon/general/sight` |
 | `SDGENSUM` | G02 t13, t14 (D96) | `SDGENSU1`-`2` | `$random sd/mon/general/summon`, played with the printed order |
-| `SDGENPAI` | none | Freedoom `DSDMPAIN` | `sd/mon/general/pain` |
-| `SDGENDTH` | none | Freedoom `DSCYBDTH` | `sd/mon/general/death` |
+| `SDGENPAI` | G03 t06, t04 (D110) | `SDGENPA1`-`2` | `$random sd/mon/general/pain` |
+| `SDGENDTH` | none (D110: all NO; new round) | Freedoom `DSCYBDTH` | `sd/mon/general/death` |
 
 ---
 

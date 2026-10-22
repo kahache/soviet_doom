@@ -257,6 +257,15 @@ SD_CRED_SFX_2     = "rubberduck and Darsycho (OpenGameArt).";
 // 3.0) is the reference some enemy voices were cloned from: a credit owed
 // (LICENSES.md, the D96 rows; the long form is in CREDITS.txt).
 SD_CRED_SFX_3     = "Voice reference: kurt, CC-BY 3.0.";
+// D107: the Reich hound's real dogs. BigSoundBank's, qubodup's and pauliuw's
+// recordings are CC0 (a courtesy credit); congusbongus' "Dog growls"
+// (OpenGameArt), cut from juskiddink's "Dogs growling.wav" (Freesound), is
+// CC-BY 3.0: a credit owed to both (LICENSES.md, the SDHND* rows; the long
+// form, with titles, addresses and changes, is in CREDITS.txt).
+SD_CRED_SFX_4     = "Dogs: Joseph Sardin (BigSoundBank),";
+SD_CRED_SFX_5     = "qubodup, pauliuw (OpenGameArt), CC0;";
+SD_CRED_SFX_6     = "growls: congusbongus after juskiddink,";
+SD_CRED_SFX_7     = "CC-BY 3.0 (OpenGameArt, Freesound).";
 
 // D75, D79, D93: every AI tool the game was made with, and what it did; the
 // long form is CREDITS.txt's (tools/release.py, ai_disclosure). Since M2e-i
@@ -552,6 +561,10 @@ SD_CRED_SRC_3     = "общественное достояние.";
 SD_CRED_SFX_1     = "Звуки: CC0-наборы Kenney, rubberduck";
 SD_CRED_SFX_2     = "и Darsycho (OpenGameArt).";
 SD_CRED_SFX_3     = "Образец голоса: kurt, CC-BY 3.0.";
+SD_CRED_SFX_4     = "Собаки: Joseph Sardin (BigSoundBank),";
+SD_CRED_SFX_5     = "qubodup и pauliuw (OpenGameArt), CC0;";
+SD_CRED_SFX_6     = "рычание: congusbongus (по juskiddink),";
+SD_CRED_SFX_7     = "CC-BY 3.0 (OpenGameArt и Freesound).";
 
 SD_CRED_H_AI      = "Сделано с ИИ";
 SD_CRED_AI_1      = "Claude (Anthropic) в Claude Code:";
@@ -803,6 +816,10 @@ SD_CRED_SRC_3     = "domini públic.";
 SD_CRED_SFX_1     = "Sons: paquets CC0 de Kenney,";
 SD_CRED_SFX_2     = "rubberduck i Darsycho (OpenGameArt).";
 SD_CRED_SFX_3     = "Referència de veu: kurt, CC-BY 3.0.";
+SD_CRED_SFX_4     = "Gossos: Joseph Sardin (BigSoundBank),";
+SD_CRED_SFX_5     = "qubodup i pauliuw (OpenGameArt), CC0;";
+SD_CRED_SFX_6     = "grunys: congusbongus segons juskiddink,";
+SD_CRED_SFX_7     = "CC-BY 3.0 (OpenGameArt i Freesound).";
 
 SD_CRED_H_AI      = "Fet amb IA";
 SD_CRED_AI_1      = "Claude (Anthropic), a Claude Code:";

@@ -56,7 +56,7 @@ unconditional ones; see `docs/qa/GATE-REVIEWS.md`.
 | `SDDOOR1` | wall (door) | 128×128 | no | bunker steel door: riveted frame, green leaf, locking wheel, star and "7" stencils, hazard stripe | (a) seed 1982; text Impact.ttf | approved | 2026-10-12 |
 | `SDPOSTR1` | wall | 128×256 | no (single poster) | Lenin poster: the 1920 Zhukov photograph posterised to four flat palette inks, cream printed border, gold rule and a 46 px band carrying «ЛЕНИН ЖИВ». Four rounds: v1 constructivist silhouette (CEO rejected), v2 naive threshold (PM rejected, no face), v3 hand-drawn silhouette and features (CEO: "no se parece a el EN NADA" — the likeness lives in the photograph, not in a traced outline), **v4 = sweep cell 4C, chosen by the CEO 2026-10-12** from a 15-cell parameter sheet. Slogan rendered through a hard-cut mask: Pillow's antialiasing had invented 95 off-palette colours and `check_pk3` rejected the first build | (a) `tools/art/gen_lenin.py` + (b) `work/art/reference/lenin_1920_zhukov.jpg`, public domain | **approved 2026-10-12** | 2026-10-12 |
 | `SDPOSTR2` | wall (mural) | 128×128 | no | cosmonautics mural: rocket, rays, stars, «СЛАВА СОВЕТСКОЙ КОСМОНАВТИКЕ» | (a) seed 1984; text Impact.ttf | approved (CEO: "me gusta"; the Russian wording, its only condition, confirmed by the CEO the same day) | 2026-10-12 |
-| `SDPOSTR3` | wall | 128×256 | no (single poster) | Stalin poster, the twin of `SDPOSTR1` by commission (CEO: "exactamente como el que hicimos con Lenin, pero con Stalin"): the 1930 frontispiece photograph posterised to four flat palette inks, cream printed border, gold rule and the 46 px band carrying «СЛАВА / СТАЛИНУ!» on two lines at Lenin's 19 px, through the same hard-cut mask. **Sweep cell 4C (four inks, cut +0) and the `slava_short` slogan, chosen by the CEO 2026-10-14 (D55)** from `docs/art/previews/2026-10-14_1601_F2_stalin-sweep.png`. Text-bearing and rendered on Windows: regenerated only there (D27). Placement not decided yet; no map uses it | (a) `tools/art/gen_stalin.py` + (b) `work/art/reference/stalin_1930.jpg`, public domain | **approved 2026-10-14 (D55)** | 2026-10-14 |
+| `SDPOSTR3` | wall | 128×256 | no (single poster) | Stalin poster, the twin of `SDPOSTR1` by commission (CEO: "exactamente como el que hicimos con Lenin, pero con Stalin"): the 1930 frontispiece photograph posterised to four flat palette inks, cream printed border, gold rule and the 46 px band carrying «СЛАВА / СТАЛИНУ!» on two lines at Lenin's 19 px, through the same hard-cut mask. **Sweep cell 4C (four inks, cut +0) and the `slava_short` slogan, chosen by the CEO 2026-10-14 (D55)** from `docs/art/previews/2026-10-14_1601_F2_stalin-sweep.png`. Text-bearing and rendered on Windows: regenerated only there (D27). **Placement (2026-10-22, CEO: «que esos posters puedan aparecer en cualquier nivel»):** every map, always one 128-long line in a room or niche exactly 256 high: MAP01 the hangar's east wall (a 16-deep niche); MAP02 the sealed 1941 shelter (secret S1, its niche since 3d24d39); MAP03 the assembly hall's west wall (niche); MAP04 the yard's station front beside the red door (niche) and the warehouse beside the Legion's banner; MAP05 the station's arrival wall beside the invaders' banners (niche); MAP06 the GUM facade over the square (niche, hung at 64) and the Kremlin courtyard beside the banners; RANGE the gallery's far wall. It also stands in for the Marx-Engels poster `SDPOSTR4` (in preparation) in some of the 2-3 slots each map keeps (`POSTER_SLOTS_MARX_ENGELS`; the swap is the one line `MARX_ENGELS = "SDPOSTR4"`). Each map's design document lists its pictures; `tests/test_posters.py` checks them | (a) `tools/art/gen_stalin.py` + (b) `work/art/reference/stalin_1930.jpg`, public domain | **approved 2026-10-14 (D55)** | 2026-10-14 |
 | `SDFLR1` | flat | 64×64 | yes (line continuous on x=2..8) | hangar concrete floor with worn yellow lane line | (a) seed 1985 | approved; 44 px seam repair 2026-10-13 (note below) | 2026-10-12 |
 | `SDFLR2` | flat | 64×64 | yes | plain hangar concrete floor, cracks, oil wear | (a) seed 1986 | approved | 2026-10-12 |
 | `SDFLR3` | flat | 64×64 | yes | grey two-tone Soviet floor tiles, dark grout | (a) seed 1987 | approved | 2026-10-12 |
@@ -313,6 +313,91 @@ until then each shows its first frame. Not yet seen in the engine (D26).
 Recommended light (ART-BIBLE §4): 112-144 in the halls, the molten metal and
 the portal as bright islands (they read as light sources); the
 `level-designer` owns the final values.
+
+## Episode 2 «The Road to Moscow» — approved 2026-10-22 (P4, D104, D107)
+
+Preview: `docs/art/previews/2026-10-22_P4_episode2-textures.html` (the
+CEO's sheet, in Spanish: each piece alone, as a 3×3 mosaic and in a sample
+room). Generators `tools/art/gen_railway.py` (MAP04, `BATCH_SEED` 5400),
+`tools/art/gen_dam.py` (MAP05, 5500) and `tools/art/gen_moscow.py` (MAP06,
+5600), seed = `BATCH_SEED` + offset; shared machinery `tools/art/ep2lib.py`,
+sheet `tools/art/gen_episode2.py`. **No system font:** «НЕФТЬ», «СКЛАД» and
+«М2» are set from our own alphabet (`assets/fonts/bigfont/`, D24) and the
+digits are 3×5 px drawn in `ep2lib.py`, so every lump reproduces byte for
+byte on both machines. Palette v1, except the five bricks (`SDBRCK3`,
+`SDKREM1`, `SDKREM2`, `SDBANR1`, `SDSPAS1`), which add palette v2's
+`marble_red` and nothing else: v1 has no fired-clay red, the precedent of
+`SDBRCK1` (D66).
+
+CEO verdict 2026-10-22: **25/25 pieces, 28 lumps**, all OK except `SDSIGL1`,
+marked «?»: «Me gusta, pero como semáforo solo está bien, en mosaico se ve
+raro» ("I like it, but it only works on its own, as a signal; as a mosaic it
+looks odd"). D107: installed anyway, **for single use only** (its row). The
+28 lumps were copied byte for byte from `work/art/episode2/<set>/` into
+`assets/textures/<set>/` (walls) and `assets/flats/<set>/` (flats), sets
+`railway`, `dam` and `moscow`; `tests/test_gen_episode2.py` holds the
+installed files to a fresh render of the generators and `tests/test_art.py`
+(`Episode2InstallTests`) to their names, folders and sizes. The water
+`SDWATR1-4` animates through `ANIMDEFS` (`flat SDWATR1`, four frames at 8
+tics, like Doom's own water; MOD-SPEC §4.3); the two masked lumps `SDKREM2`
+and `SDINSL1` are RGBA with hard alpha, declared in `MASKED_TEXTURES`
+(`tools/check_pk3.py`) like `SDCHAN1`, for the middle texture of a
+two-sided line. MAP06's red marble of Ploshchad Revolyutsii is the approved
+`SDMARB1` (D42), reused, not redrawn. **Not yet on any map** (applying them
+is the `level-designer`'s next task) and not yet seen in the engine (D26).
+New families: ART-BIBLE §2.
+
+### Railway — MAP04, the Sverdlovsk marshalling yard, 1977 (`gen_railway.py`, 5400)
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDTRAK1` | flat | 64×64 | yes (rails along y; side by side in x, parallel tracks) | yard track seen from above: granite ballast, Soviet concrete sleepers every 16 px, tie plates and clips, two rails with a polished head and rusty sides | (a) gen_railway, seed 5402 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDBLST1` | flat | 64×64 | yes | loose ballast between the tracks: crushed granite, rust dust and wagon oil | (a) gen_railway, seed 5401 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDWAGN1` | wall | 128×128 | along x | Soviet covered goods wagon, side: red-oxide planking worn to grey wood, steel posts and braces, sole bar, dark underframe, an 8-digit stencilled number (our own pixel digits) | (a) gen_railway, seed 5403 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDTANK1` | wall | 128×128 | along x | black four-axle tank wagon, side: top-lit barrel, riveted ring seams, straps, oil runs under the dome, «НЕФТЬ» ("oil") in cream from our alphabet | (a) gen_railway, seed 5404; text from bigfont | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDARMR1` | wall | 128×128 | along x | armoured-train plate with a red star: olive faded to khaki, riveted 64 px plates, scratches and hits, rust under the rivets, cream-edged star | (a) gen_railway, seed 5405 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDARMR2` | wall | 64×128 | yes | the same armour plate without the star, the fill between `SDARMR1` panels | (a) gen_railway, seed 5406 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDSIGL1` | wall | 64×128 | **no — single use only (D107)** | colour-light signal on its mast against a concrete pillar: black head, three hooded lenses (green, yellow, lit red), shunting plate «М2» from our alphabet. **Level designers: single use only, as a signal or a panel on its own, never as a mosaic** (the CEO: tiled, it looks odd); one 64 px span per signal, on a pillar or a short line, never repeated along a wall or stacked | (a) gen_railway, seed 5407; text from bigfont | approved 2026-10-22 (D107: «?», installed for single use only) | 2026-10-22 |
+| `SDBRCK3` | wall | 64×128 | yes | locomotive roundhouse brick: the approved factory-brick recipe, a little lighter and less sooty, with a frieze on top (projecting course, dog-tooth course, projecting course) | (a) gen_railway, seed 5408, palette v2 (`marble_red`) | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDGATE2` | wall | 128×128 | along x | goods-shed sliding door: planks in red-brown paint flaking to the wood, two rails and a brace, steel edge, track with two rollers, hasp and padlock, plate «СКЛАД» ("store") and a big painted 3 | (a) gen_railway, seed 5409; text from bigfont | approved 2026-10-22 (D107) | 2026-10-22 |
+
+Recommended light (art-director's proposal; `level-designer` decides):
+outdoors 144-176 under an overcast day, sheds and roundhouse 112-144.
+
+### Dam — MAP05, the Volga dam at Zhiguli (`gen_dam.py`, 5500)
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDDAM1` | wall | 64×128 | yes | mass concrete of the dam: board-formwork marks, a lift joint every 64 px, tie holes with white calcite runs | (a) gen_dam, seed 5501 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDDAM2` | wall | 64×128 | along x | the same concrete at the waterline: dark and wet below an irregular mark (72 px from the top), green slime at the foot | (a) gen_dam, seed 5502 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDTURB1` | wall | 128×128 | along x | turbine-generator housing: steel in 4BO green, ribs, two bolted flanges, a brass maker's plate (illegible pixel text and the year 1957), bolted hatch, oil weeping under the flange, concrete plinth | (a) gen_dam, seed 5503 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDCTRL1` | wall | 128×128 | along x (64 px sections: a long board) | Soviet control board: light-grey panels, round gauges with a red zone, a row of pilot lamps (some lit), plates that look like text and say nothing, a mimic diagram of bars and switches on the desk, toggle switches, dark plinth | (a) gen_dam, seed 5504 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDSPIL1` | wall | 64×128 | yes | spillway trash rack: rusty vertical bars and stiffeners in front of running water, foam between the bars | (a) gen_dam, seed 5505 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDWATR1` | flat (animated, frame 1 of 4) | 64×64 | yes | the Volga's water: slow body, crests turning one full phase and drifting one tile per loop; grey-blue from `steel_blue`, never the portal's cobalt | (a) gen_dam, seed 5506 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDWATR2` | flat (animated, frame 2) | 64×64 | yes | the water, frame 2 | (a) gen_dam, seed 5506 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDWATR3` | flat (animated, frame 3) | 64×64 | yes | the water, frame 3 | (a) gen_dam, seed 5506 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDWATR4` | flat (animated, frame 4) | 64×64 | yes | the water, frame 4, leads back into frame 1 | (a) gen_dam, seed 5506 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDINSL1` | wall (masked mid-texture) | 64×128 | along x (cross-arm and conductor cross the tile: a row of strings) | high-voltage suspension insulator string on a transparent ground: cross-arm, clevis, eight glazed brown porcelain discs, clamp and conductor; RGBA with hard alpha, for a two-sided line | (a) gen_dam, seed 5507 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDGRAT2` | flat | 64×64 | yes | galvanised expanded-metal floor over the void (glints of water below), a few rust patches; no frame, so it tiles seamlessly, unlike the factory's `SDGRAT1` panels | (a) gen_dam, seed 5508 | approved 2026-10-22 (D107) | 2026-10-22 |
+
+Recommended light: crest and spillway 160-192, turbine hall 128-160,
+galleries 96-128.
+
+### Moscow — MAP06, Red Square and the Kremlin (`gen_moscow.py`, 5600)
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDCOBL1` | flat | 64×64 | yes | Red Square setts: dark diabase in courses, each course offset, rounded and polished by the parades; dark on purpose so the red wall leads | (a) gen_moscow, seed 5601 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDCOBL2` | flat | 64×64 | along x (rotate in UDMF for the other direction) | the same setts with a line of light granite slabs, the lines that divide the square into fields | (a) gen_moscow, seed 5602 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDKREM1` | wall | 64×128 | yes | Kremlin wall: red brick in stretcher bond, light lime joints, a few restored bricks, rain washes; cleaner and redder than `SDBRCK1` | (a) gen_moscow, seed 5603, palette v2 (`marble_red`) | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDKREM2` | wall (masked mid-texture) | 64×128 | along x | the wall's "swallowtail" merlon: `SDKREM1`'s brick pixel for pixel, cut into an M-shaped merlon with a loophole; the sky shows between merlons and in the notch. RGBA with hard alpha, for a two-sided line on top of the wall | (a) gen_moscow, seed 5603 (replays `SDKREM1`'s on purpose), palette v2 (`marble_red`) | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDGUM1` | wall | 128×128 | along x | one bay of the GUM facade: pale coursed stone, round-arched window (dark glass, white frames, fanlight), voussoirs and keystone, a half rusticated pilaster at each edge, cornice with dentils, sill | (a) gen_moscow, seed 5604 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDTRIB1` | wall | 64×128 | yes | the tribune's polished dark-red granite in 64×32 blocks, black, pink and grey speckle, a soft sheen, a band of black labradorite with blue glints on top | (a) gen_moscow, seed 5605 | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDBANR1` | wall | 64×128 | along x (on `SDKREM1`) | parade banner hung on the Kremlin wall (`SDKREM1`'s pixels): kumach red with folds, gold star and the approved hammer and sickle, gold fringe, pole and brackets; no text (D12) | (a) gen_moscow, seed 5606, palette v2 (only through the brick; the cloth is v1) | approved 2026-10-22 (D107) | 2026-10-22 |
+| `SDSPAS1` | wall | 64×128 | yes | Spasskaya tower stone: red brick with white limestone dressings, a frieze of pointed arcading with pendants, white pilasters at the edges, a dentilled string course | (a) gen_moscow, seed 5607, palette v2 (`marble_red`) | approved 2026-10-22 (D107) | 2026-10-22 |
+
+Recommended light: the square 160-192 (the finale, in full daylight), the
+GUM interiors 128-144. Reused in MAP06: `SDMARB1` (set "Metro", D42).
 
 ## Shell pictures — menu cursor and pause sign (T12, D48)
 

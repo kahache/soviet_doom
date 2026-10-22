@@ -18,6 +18,7 @@ version "4.12"
 #include "zscript/sd/pickups.zs"     // health, armour and the area map (D80)
 #include "zscript/sd/help_menu.zs"   // F1 opens our credits, not Freedoom's HELP (M4 shell)
 #include "zscript/sd/death_prompt.zs" // "Press <use> to continue" after death (D100, v1.1)
+#include "zscript/sd/music_variant.zs" // episode 2's A/B music and MAP06's boss loop (D106)
 
 // --- Arsenal (F4): one class per file, one weapon per Doom slot -----------
 // Projectiles come before the weapons that fire them for readability only;

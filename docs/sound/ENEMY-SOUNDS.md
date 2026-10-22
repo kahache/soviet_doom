@@ -297,6 +297,13 @@ only one allowed both voices.
 Organic, alien, **not a dog and not a wolf** (`BESTIARY.md` §6). The `OGA-CRE1`
 "Barking" and "Howl" files are therefore **not used**.
 
+> **Superseded for v1.1 (D100, D102, D107).** The CEO asked for real dog
+> barks and approved fifteen takes of real dogs, three per sound; they ship
+> as `$random` groups (`SDHNDAC1`-`3`, `SDHNDSI1`-`3`, `SDHNDAT1`-`3`,
+> `SDHNDPA1`-`3`, `SDHNDDT1`-`3`) and the five synthetic lumps below no
+> longer ship (§5.12, "The Reich hound's real dogs"). The cards stay as the
+> record of D83.
+
 | Lump | State | Must convey | Origin | Source / status |
 |---|---|---|---|---|
 | `SDHNDACT` | Spawn (idle) | Wet, rhythmic panting under a low purr, ~1 s | **B**: `OGA-CRE1` Breath/Monster, slowed | `OGA-CRE1` PENDING; `FD:DSDMACT` (22 kHz, 1.4 s) |
@@ -553,7 +560,7 @@ No bed for the four calls with nothing but a voice in their card
   sounds with several approved takes use `SNDINFO`'s `$random`, the syntax
   read in gzdoom.pk3's own `SNDINFO`; pitch shift is still unused.
 
-### 5.12 Installed (N9e, 2026-10-20): D83's 30 sounds and 5 beds, D86's takes
+### 5.12 Installed (N9e, 2026-10-20): D83's 30 sounds and 5 beds, D86's takes, D107's dogs
 
 Tool: `tools/audio/master_enemy_sfx.py` (tests: `tests/test_enemy_sfx_install.py`),
 the weapons' pass (`master_weapon_sfx.py`, WEAPON-SOUNDS §10) applied to
@@ -628,11 +635,11 @@ bed, ours (D91, D96) or Freedoom's; hear a bed with the console's
 | `SDSTOMIS` | D83 | SDSTOMIS | `sd/mon/stormtrooper/missile` | -15.9 (`DSFIRSHT` +0) | -3.9 / -13.5 / 92 % | -6.3 / -15.9 / 92 % | shelf 0.0, limit 0.0, gain -5.3 dB | on target |
 | `SDSTOEXP` | D83 | SDSTOEXP | `sd/mon/stormtrooper/explode` | -20.0 (`DSFIRXPL` +0) | -1.0 / -14.5 / 100 % | -6.5 / -20.0 / 100 % | shelf 0.0, limit 0.0, gain -5.5 dB | on target |
 | `SDSTOXDT` | D83 | SDSTOXDT | `sd/mon/stormtrooper/xdeath` | -11.6 (`DSSLOP` +0) | -2.3 / -15.6 / 70 % | -1.0 / -12.1 / 65 % | shelf 0.0, limit 7.2, gain 0.0 dB | on target |
-| `SDHNDACT` | D83 | SDHNDACT | `sd/mon/reichhound/active` | -12.9 (`DSDMACT` +0) | -5.2 / -15.6 / 74 % | -2.6 / -12.9 / 74 % | shelf 0.0, limit 0.0, gain -1.6 dB | on target |
-| `SDHNDSIT` | D83 | SDHNDSIT | `sd/mon/reichhound/sight` | -11.8 (`DSSGTSIT` +0) | -3.0 / -12.3 / 100 % | -3.0 / -12.3 / 100 % | untouched | on target |
-| `SDHNDATK` | D83 | SDHNDATK | `sd/mon/reichhound/attack` | -6.3 (`DSSGTATK` +0) | -1.0 / -16.8 / 28 % | -1.0 / -14.3 / 26 % | shelf 0.0, limit 8.2, gain 0.0 dB | **8.0 dB short** |
-| `SDHNDPAI` | D83 | SDHNDPAI | `sd/mon/reichhound/pain` | -11.7 (`DSDMPAIN` +0) | -4.4 / -15.6 / 95 % | -1.0 / -11.7 / 95 % | shelf 0.0, limit 0.5, gain 0.0 dB | on target |
-| `SDHNDDTH` | D83 | SDHNDDTH | `sd/mon/reichhound/death` | -14.3 (`DSSGTDTH` +0) | -1.4 / -14.0 / 33 % | -1.4 / -14.0 / 33 % | untouched | on target |
+| `SDHNDACT` | D83, retired by D107 | SDHNDACT | `sd/mon/reichhound/active` | -12.9 (`DSDMACT` +0) | -5.2 / -15.6 / 74 % | -2.6 / -12.9 / 74 % | shelf 0.0, limit 0.0, gain -1.6 dB | on target |
+| `SDHNDSIT` | D83, retired by D107 | SDHNDSIT | `sd/mon/reichhound/sight` | -11.8 (`DSSGTSIT` +0) | -3.0 / -12.3 / 100 % | -3.0 / -12.3 / 100 % | untouched | on target |
+| `SDHNDATK` | D83, retired by D107 | SDHNDATK | `sd/mon/reichhound/attack` | -6.3 (`DSSGTATK` +0) | -1.0 / -16.8 / 28 % | -1.0 / -14.3 / 26 % | shelf 0.0, limit 8.2, gain 0.0 dB | **8.0 dB short** |
+| `SDHNDPAI` | D83, retired by D107 | SDHNDPAI | `sd/mon/reichhound/pain` | -11.7 (`DSDMPAIN` +0) | -4.4 / -15.6 / 95 % | -1.0 / -11.7 / 95 % | shelf 0.0, limit 0.5, gain 0.0 dB | on target |
+| `SDHNDDTH` | D83, retired by D107 | SDHNDDTH | `sd/mon/reichhound/death` | -14.3 (`DSSGTDTH` +0) | -1.4 / -14.0 / 33 % | -1.4 / -14.0 / 33 % | untouched | on target |
 | `SDDGBACT` | D83 | SDDGBACT | `sd/mon/doughboy/active` | -12.9 (`DSDMACT` +0) | -9.0 / -30.4 / 3 % | -1.0 / -16.8 / 12 % | shelf 9.0, limit 3.0, gain 0.0 dB | **3.9 dB short** |
 | `SDDGBSIT` | D83 | SDDGBSIT | `sd/mon/doughboy/sight` | -11.5 (`DSCACSIT` +0) | -3.2 / -14.3 / 92 % | -1.0 / -11.5 / 91 % | shelf 0.0, limit 3.9, gain 0.0 dB | on target |
 | `SDDGBMEL` | D83 | SDDGBMEL | `sd/mon/doughboy/melee` | -9.3 (`DSCLAW` +0) | -1.0 / -15.0 / 61 % | -1.0 / -12.5 / 65 % | shelf 0.0, limit 4.6, gain 0.0 dB | **3.2 dB short** |
@@ -810,7 +817,8 @@ played (the rifleman's and trooper's `SeeSound`, `ActiveSound`,
 `A_SD_GeneralSummon`, the frame that prints `SD_GENERAL_ORDER`), only
 `SNDINFO`'s right-hand column. Still Freedoom's (no take approved): the
 rifleman's pain (`DSPOPAIN`), the trooper's death (`DSPODTH2`), the
-General's pain (`DSDMPAIN`) and death (`DSCYBDTH`).
+General's pain (`DSDMPAIN`) and death (`DSCYBDTH`); D110 (below) replaced
+all four but the General's death.
 
 | Lump | Take | Line | Reference | Logical name | Target, dB A (from) | Installed OGG SHA-256 |
 |---|---|---|---|---|---|---|
@@ -832,6 +840,88 @@ General's pain (`DSDMPAIN`) and death (`DSCYBDTH`).
 | `SDGENSU1` | G02 t13 | "Vorwärts!" | kurt | `sd/mon/general/summon/1` | -9.6 (`DSVILSIT`) | `10184bed9a802498928bd273d5e8b47a80c6fb1764b632a7b2aef014cf6a7785` |
 | `SDGENSU2` | G02 t14 | "Vorwärts!" | Thorsten | `sd/mon/general/summon/2` | -9.6 (`DSVILSIT`) | `31d103bb6d541c19090f577a01292ec7e701950139d75bdaedc059dfe2dfea87` |
 
+**The seven voice takes of the wordless voices (D110).** The P2 round
+(`work/audio/preview/voices_p2_listening.html`; `work/audio/voice_takes/p2/`
+`gen_p2.py`, `page_p2.py`, `AI-LOG.csv`, `METRICS.json`): Chatterbox
+Multilingual run on the CPU in the server's own Python (the GPU server
+crashed on the short cries; special tokens >= 6561 dropped before S3Gen),
+cloned from D96's three references, processed by
+`process_voice_takes.process_wave` and levelled to the Freedoom lump each
+replaces. The CEO's verdicts: R07 (the rifleman's pain) OK t06, t02, NO t05
+("poco agresiva"); L09 (the trooper's death) OK t01, t02, and t04 "once its
+tail is cut"; G03 (the General's pain) OK t06, t04, NO t03; G04 (the
+General's death) NO to all, redrafted (`work/audio/voice_takes/p2b/`,
+`work/audio/preview/voices_p2b_listening.html`), so `sd/mon/general/death`
+keeps `DSCYBDTH`. Each sound is a `$random` group in the CEO's order
+(`SDRRIPA1`-`2`, `SDLTRDT1`-`3`, `SDGENPA1`-`2`: the card's seven letters
+and the member number; the beds are `...B<n>`, no name is shared). Six ship
+byte for byte as the page played them. **`SDLTRDT3`** (L09 t04): "se cuela
+algo al final". Measured on the raw take (10 ms frames): the cry fades to
+-66 dBFS at 1.16 s, then 0.22 s of digital silence, then a 0.08 s blip at
+-11 to -14 dBFS (1.39-1.47 s); `process_voice_takes.trim` ends a line only
+after a 0.45 s gap, so the blip stayed. `master_enemy_sfx.py --voices`
+cuts the raw take at **1.20 s** (`VOICE_TAIL_CUT`) and renders it by the
+same chain (`voice_render`, which re-renders the uncut take to the page's
+OGG byte for byte): 1.18 s, its last 150 ms a fade from -31 to -103 dBFS,
+the same -8.28 dB A. No ZScript changed: `PainSound` and `DeathSound` were
+already the logical names.
+
+| Lump | Take | Line | Reference | Logical name | Target, dB A (from) | Installed OGG SHA-256 |
+|---|---|---|---|---|---|---|
+| `SDRRIPA1` | R07 t06 | "Argh!" | Thorsten | `sd/mon/reichrifleman/pain/1` | -11.4 (`DSPOPAIN`) | `7f9c6bd1c66f5168291187048da86c5532f1656766ff47084795308449eef58f` |
+| `SDRRIPA2` | R07 t02 | "Argh!" | HaelDB | `sd/mon/reichrifleman/pain/2` | -11.4 (`DSPOPAIN`) | `f9679ad86ca6e38be275c1f57b3f4ea1d3fa6cd405e80a3daa5b0874bf65aa25` |
+| `SDLTRDT1` | L09 t01 | "Aaargh!" | kurt | `sd/mon/legiontrooper/death/1` | -8.3 (`DSPODTH2`) | `bf926b27325553784457c312f086ee3503a853ea8c8f914e0d05c5144adb9b16` |
+| `SDLTRDT2` | L09 t02 | "Aaaaah... ugh." | kurt | `sd/mon/legiontrooper/death/2` | -8.3 (`DSPODTH2`) | `015ece147d92c6a80ef03f87d6ebe9967206560d5079d29279b1e600bb8ab592` |
+| `SDLTRDT3` | L09 t04, tail cut at 1.20 s | "Aaaargh!" | HaelDB | `sd/mon/legiontrooper/death/3` | -8.3 (`DSPODTH2`) | `092c8c7d40763d74f171b796832df009a58f0424bd351d23312580802eae935c` |
+| `SDGENPA1` | G03 t06 | "Argh!" | kurt | `sd/mon/general/pain/1` | -11.7 (`DSDMPAIN`) | `d6025787d6b86ca32f89a953576a443c33880197dc67edddf8a7f2e48948a570` |
+| `SDGENPA2` | G03 t04 | "Hngh!" | kurt | `sd/mon/general/pain/2` | -11.7 (`DSDMPAIN`) | `4ed7fc422994149fffd20f994b824543fb900f188f35c53b9924517ee79be1ad` |
+
+**The Reich hound's real dogs (D107).** The CEO heard five sounds x three
+candidates on `work/audio/preview/dog_listening.html` (built by
+`work/audio/candidates/dog/make_dog_candidates.py` from recordings of real
+dogs; every download, its licence and SHA-256 and which candidate mixes it:
+`work/audio/sfx_sources/dog/SOURCES.md`) and approved all fifteen ("TODOS
+OK, elige los que tú creas conveniente"). The PM's call (D107, as D94): all
+three takes of each sound ship and the sound is a `$random` group over them,
+the take the page recommended (by measurement, not by ear) among them. They
+replace D83's synthetic `SDHNDACT`-`SDHNDDTH` (rows above, retired: no longer
+in `assets/` nor in the PK3; nothing else played them; `gen_sfx.py` keeps
+their recipes). The candidates were levelled on the page to the same targets
+as the sounds they replace (the Freedoom lump of each, ±1 dB on the WAV),
+so `master_enemy_sfx.py --dogs` copies them byte for byte after the voices'
+checks: decoded peak under -0.1 dBFS and loudness in the window (target ±1,
++0.5 for the codec). All fifteen pass; none was left out: the durations
+(0.31-1.66 s) sit where the D83 cards asked (the bite 0.31-0.56 s against
+0.3-0.5, the yelps 0.40-0.55 s against 0.2-0.45, the longest death 1.66 s
+against 0.9-1.6: a tenth over, harmless on CHAN_VOICE) and the levels within
+0.7 dB of their targets. Names: the card's seven letters with the take
+number (`SDHNDAC1`-`3`, ...), as the D86 groups. Four takes mix
+congusbongus' "Dog growls" (OpenGameArt, CC BY 3.0, cut from juskiddink's
+Freesound #121565): the credit is owed and given (`docs/art/LICENSES.md`, the
+in-game credits `SD_CRED_SFX_6`/`7` in English, Russian and Catalan,
+CREDITS.txt); the CC0 authors (Joseph Sardin of BigSoundBank, qubodup,
+pauliuw) by courtesy, `SD_CRED_SFX_4`/`5`. No ZScript changed: `SD_ReichHound`
+already plays the five names (`SeeSound`, `ActiveSound`, `AttackSound` on
+A_Chase's lunge, `PainSound` by `A_Pain`, `DeathSound` by `A_Scream`).
+
+| Lump | Candidate | What | Recordings (licence) | Logical name | Target, dB A (from) | Decoded peak / loudA | Installed OGG SHA-256 |
+|---|---|---|---|---|---|---|---|
+| `SDHNDAC1` | SDHNDACT_dog1 (rec.) | a low growl | congusbongus/juskiddink 2.ogg (CC BY 3.0) | `sd/mon/reichhound/active/1` | -12.9 (`DSDMACT`) | -1.3 / -13.0 | `6950d36709683616c0e57694baf22dbaf3a7e4ddef4e0854356f98ae25be6ca9` |
+| `SDHNDAC2` | SDHNDACT_dog2 | panting, a short growl under it | BSB #1547 (CC0); congusbongus/juskiddink 0.ogg (CC BY 3.0) | `sd/mon/reichhound/active/2` | -12.9 (`DSDMACT`) | -2.9 / -13.3 | `e3f737f9f614c3bf708c0210e14fcf24dd3b037f3a8466ff871dd2fa72f0ed2d` |
+| `SDHNDAC3` | SDHNDACT_dog3 | a grumble | qubodup dog-grumble, dog-growl (CC0) | `sd/mon/reichhound/active/3` | -12.9 (`DSDMACT`) | -3.8 / -13.1 | `0c18ad0cc69afda409c56e9b83e16087e0fb58235621ca0273c422dea196ccad` |
+| `SDHNDSI1` | SDHNDSIT_dog1 | a growl bursting into two deep barks | congusbongus/juskiddink 3.ogg (CC BY 3.0); BSB #0112 (CC0) | `sd/mon/reichhound/sight/1` | -11.8 (`DSSGTSIT`) | -3.2 / -11.8 | `90f10758b6019d250fd88ba222ee76f949db0497952a040830ba397270ae13f2` |
+| `SDHNDSI2` | SDHNDSIT_dog2 (rec.) | a double bark, 3 semitones down | BSB #0916 (CC0) | `sd/mon/reichhound/sight/2` | -11.8 (`DSSGTSIT`) | -6.2 / -11.9 | `370cf96c6f42e7d14a5c956414df03fd704070d1c601d43e77aa1183bb469f22` |
+| `SDHNDSI3` | SDHNDSIT_dog3 | bared teeth, then two big barks | qubodup dog-snarl; BSB #0916 (CC0) | `sd/mon/reichhound/sight/3` | -11.8 (`DSSGTSIT`) | -4.9 / -11.8 | `46e478093a5c547b74eb45acb462f146b5d7d7eee2c6b808b879243e2453aff8` |
+| `SDHNDAT1` | SDHNDATK_dog1 (rec.) | a short growl and a hard bark | qubodup dog-snarl; BSB #0112 (CC0) | `sd/mon/reichhound/attack/1` | -6.3 (`DSSGTATK`) | -0.8 / -6.9 | `78f7f51620043d4947ab698afe5f2ef8a2469b5914360794392c942fe9797589` |
+| `SDHNDAT2` | SDHNDATK_dog2 | a growl and the teeth clacking | congusbongus/juskiddink 5.ogg (CC BY 3.0); `KEN-IMP` impactPunch_heavy_002 (CC0) | `sd/mon/reichhound/attack/2` | -6.3 (`DSSGTATK`) | -0.3 / -6.7 | `835c00bdc30ff223e008c058136d531af7c719f9bf240015695eb23bef332a43` |
+| `SDHNDAT3` | SDHNDATK_dog3 | one big close bark | BSB #0916 (CC0) | `sd/mon/reichhound/attack/3` | -6.3 (`DSSGTATK`) | -0.5 / -6.2 | `e385fa91be42551964f9bf606c3902e18c7cae0f3d33b1b29245e5f185094ae2` |
+| `SDHNDPA1` | SDHNDPAI_dog1 (rec.) | a yelp | pauliuw Dog.wav (CC0) | `sd/mon/reichhound/pain/1` | -11.7 (`DSDMPAIN`) | -2.6 / -11.9 | `c2ad1d6ba82b8a8232c86a980a9a63fd91e7279fc5878096db397f98661b8046` |
+| `SDHNDPA2` | SDHNDPAI_dog2 | a lower, saturated yelp | pauliuw Dog.wav (CC0) | `sd/mon/reichhound/pain/2` | -11.7 (`DSDMPAIN`) | -6.6 / -11.7 | `ad58d480f9c2aef8fa7883600948afb018c8f24d5d92a59a1ae4ab1592bac149` |
+| `SDHNDPA3` | SDHNDPAI_dog3 | a bark breaking into a whine | BSB #1546 (CC0) | `sd/mon/reichhound/pain/3` | -11.7 (`DSDMPAIN`) | -1.1 / -11.7 | `a8767b25f821818cad7593347734c63a49e75df209c57a60399c2ed706865777` |
+| `SDHNDDT1` | SDHNDDTH_dog1 | a long whine dying away | pauliuw Sad Dog.wav (CC0) | `sd/mon/reichhound/death/1` | -14.3 (`DSSGTDTH`) | -8.0 / -14.3 | `4c85b6e34050f8f52569568b2457cf50d0b311aef059c2d5f64a043db8429f83` |
+| `SDHNDDT2` | SDHNDDTH_dog2 (rec.) | a yelp, then a whine sinking low | pauliuw Dog.wav, Sad Dog.wav (CC0) | `sd/mon/reichhound/death/2` | -14.3 (`DSSGTDTH`) | -5.9 / -14.4 | `f97a3f619f510e1f8db8f64af8d0fea53ac968e4fb5e7440351a249331b4fefb` |
+| `SDHNDDT3` | SDHNDDTH_dog3 | the last bark breaks, the body falls | BSB #1546; `KEN-IMP` impactSoft_heavy_001 (CC0) | `sd/mon/reichhound/death/3` | -14.3 (`DSSGTDTH`) | -5.2 / -14.2 | `8116e8e0d502349c3225bee83c9e42032f920a1706d946d758b2f1a35d16cbb9` |
+
 **What to listen for in the engine (the PM, D26).** On the range and in
 MAP01: (1) the log has no "Unknown sound"; (2) the rifleman's shot, the
 Stormtrooper's pain and death and the Panzermensch's pain change from one
@@ -846,9 +936,14 @@ not tiring; (6) the voices of D91 and D96 vary from one time to the next
 hit!" in pain; the General: "Engage!" on sight and "Vorwärts!" with the
 printed order, heard across the arena); the long ones do not cut off oddly
 on CHAN_VOICE (the trooper's "I'm hit!" is 1.3-1.6 s where the script
-asked 0.4-0.5 s, and a second hit restarts it); the rifleman's pain, the
-trooper's death and the General's pain and death are still Freedoom's and
-no bed is heard.
+asked 0.4-0.5 s, and a second hit restarts it); since D110 the rifleman's
+pain (two "Argh!"), the trooper's death (three cries, the third ending in
+its fade, no click after it) and the General's pain (two grunts) are ours
+and vary; only the General's death is still Freedoom's, and no bed is heard; (7) the hound (D107) is a real dog: its bark on sight
+carries through a door and changes from one hound to the next, its idle
+growl/pant, its lunge bark, its yelp and its death whine each vary among
+three takes, and none sounds out of level against the shotgun or the
+rifleman (NOT VERIFIED in the engine).
 
 
 ---
