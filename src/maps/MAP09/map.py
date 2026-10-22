@@ -45,8 +45,9 @@ GZDoom), each as MAP06 v1.1 left it:
   forest 448, works and crater 512) and roofed buildings as closed sky
   blocks (the halt, the izbas): Doom's sky hack, NOT VERIFIED in engine;
 * the exit depends on a death: the boss's thing carries Door_Open on
-  TAG_BOSS_EXIT and NO line carries that tag. He stands at MAP09_BOSS_SPOT;
-  until episode 3's own final boss exists he is the General (BOSS_KIND);
+  TAG_BOSS_EXIT and NO line carries that tag. It stands at MAP09_BOSS_SPOT:
+  since D116 the Consortium (BOSS_KIND), episode 3's own final boss, the
+  portal behind it;
 * a key that springs an ambush: the red key's thing carries Door_Open on
   TAG_AMBUSH (Hexen-style item special). NOT VERIFIED in engine.
 
@@ -273,13 +274,16 @@ TAG_BOSS_EXIT = 12      # the control bunker's gate; ONLY the boss's death opens
 SECRET_PANEL_TAGS = (TAG_S1_PANEL, TAG_S2_PANEL, TAG_S3_PANEL)
 
 # --- The boss --------------------------------------------------------------------
-# Episode 3's final boss does not exist yet (D112). Until it does, the General
-# stands in. To swap him: change BOSS_KIND (and add the new class to
-# MONSTER_KINDS/MONSTER_CLASSES); the spot, the facing and the death special stay.
+# Episode 3's final boss, the Consortium (D112, in the mod since D116;
+# docs/engine/2026-10-22_P4_ep3-final-boss.md). It replaced the General, who
+# stood in until it existed: the spot, the facing and the death special did not
+# move. Rooted in phase 1, it calls its servants through the portal BEHIND it
+# (144 behind, 80 to either side): it faces north, the red gate, so the portal
+# (PORTAL_BASE, 192 south of the spot) is at its back (tested).
 CRATER_CENTRE = (3968, 2816)    # the portal; the fallen trunks lie away from it
 MAP09_BOSS_SPOT = (3968, 3136)  # on the crater's floor before the portal, facing the red gate
 BOSS_ANGLE = 90
-BOSS_KIND = "general"
+BOSS_KIND = "consortium"
 BOSS_DEATH_SPECIAL = (SPECIAL_DOOR_OPEN, (TAG_BOSS_EXIT, DOOR_SPEED_SLOW, 0, 0, 0))
 RED_KEY_SPECIAL = (SPECIAL_DOOR_OPEN, (TAG_AMBUSH, DOOR_SPEED_SLOW, 0, 0, 0))
 
@@ -516,8 +520,9 @@ ED_STORMTROOPER = 21102
 ED_HOUND = 21103
 ED_DOUGHBOY = 21104
 ED_PANZERMENSCH = 21105
-ED_GENERAL = 21106        # the stand-in boss
 ED_PANZER_HEAVY = 21107
+ED_GUNNER = 21110         # the Legion's heavy machine-gunner (D116): long lines, cover
+ED_CONSORTIUM = 21112     # episode 3's final boss (D116): 9000 HP, two phases
 MONSTER_KINDS = {
     "rifleman": ED_RIFLEMAN,
     "trooper": ED_TROOPER,
@@ -525,8 +530,9 @@ MONSTER_KINDS = {
     "hound": ED_HOUND,
     "doughboy": ED_DOUGHBOY,
     "panzermensch": ED_PANZERMENSCH,
-    "general": ED_GENERAL,
     "heavy": ED_PANZER_HEAVY,
+    "gunner": ED_GUNNER,
+    "consortium": ED_CONSORTIUM,
 }
 MONSTER_CLASSES = {
     ED_RIFLEMAN: "SD_ReichRifleman",
@@ -535,11 +541,14 @@ MONSTER_CLASSES = {
     ED_HOUND: "SD_ReichHound",
     ED_DOUGHBOY: "SD_Doughboy",
     ED_PANZERMENSCH: "SD_Panzermensch",
-    ED_GENERAL: "SD_General",
     ED_PANZER_HEAVY: "SD_PanzermenschSchwer",
+    ED_GUNNER: "SD_LegionGunner",
+    ED_CONSORTIUM: "SD_Consortium",
 }
 REICH = ("rifleman", "hound", "panzermensch", "heavy")
-LEGION = ("trooper", "doughboy", "general")
+LEGION = ("trooper", "doughboy", "gunner")
+# The Consortium is both factions in one body (SD_FACTION_BOTH), like the
+# stormtrooper: in neither tuple.
 # Where each faction stands (D35): the Reich holds the railhead, the taiga and
 # the station's yard (the military occupation); the Legion holds the
 # laboratory (capital takes the science) and springs the closets; both hold
@@ -552,8 +561,10 @@ ED_IZH = 21003
 ED_PPSH = 21004
 ED_RPG7 = 21005
 ED_ROKS3 = 21006
-ROUTE_WEAPONS = (ED_IZH, ED_PPSH, ED_RPG7, ED_ROKS3)
+ED_AKM = 21008            # slot 4's second weapon (D116): the station's armoury, after the PPSh
+ROUTE_WEAPONS = (ED_IZH, ED_PPSH, ED_AKM, ED_RPG7, ED_ROKS3)
 ED_HAND_KATYUSHA = 21007  # in S2 only: the laboratory's secret prototype
+ED_AKM_MAG = 21020        # SD_AkmAmmo: one 30-round 7.62x39 magazine (ADR 011)
 ED_CLIP = 2007
 ED_CLIP_BOX = 2048
 ED_SHELLS = 2008
@@ -571,7 +582,8 @@ ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
 
 # Design section 10: monsters per skill, Doom's skill pairs (udmf.skill_tier).
-ENEMY_TOTALS = {2: 57, 3: 88, 4: 122}
+# The boss's servants are not here: it calls them in the fight (section 11).
+ENEMY_TOTALS = {2: 60, 3: 92, 4: 127}
 
 # Every monster: (zone, kind, x, y, facing, lowest skill tier). Facing: 0
 # east, 90 north, 180 west, 270 south; most face where the player comes from.
@@ -625,6 +637,11 @@ MONSTERS = (
     ("z4_forest", "doughboy", 1536, 3520, 0, 4),
     ("z4_forest", "hound", 2048, 4288, 270, 4),
     ("z4_forest", "stormtrooper", 1280, 2496, 0, 4),
+    # The Legion's machine-gunners (D116): three, four, five by skill, each by
+    # cover with a long line down the ground the player has to cross.
+    # At the clearing's east edge, a trunk at his shoulder: the clearing and
+    # the forest's depth back to the blue gate down his sights.
+    ("z4_forest", "gunner", 2400, 3104, 90, 3),
     # The works: the invaders' industry, both factions, facing the forest.
     ("z5_works", "rifleman", 3392, 4352, 180, 2),
     ("z5_works", "rifleman", 3648, 4928, 180, 2),
@@ -658,6 +675,8 @@ MONSTERS = (
     ("z5_works", "doughboy", 4736, 5056, 180, 4),
     ("z5_works", "rifleman", 5312, 4992, 180, 4),
     ("z5_works", "stormtrooper", 3392, 4800, 180, 4),
+    # South of the east conduit: the works' whole width west to the forest's edge.
+    ("z5_works", "gunner", 5184, 4800, 180, 2),
     # The works' closets (TAG_AMBUSH, the red key's pickup): the Legion's
     # counter-attack behind the player as he comes back for the red gate.
     ("closet_z5_w", "trooper", 3520, 3904, 90, 2),
@@ -690,6 +709,8 @@ MONSTERS = (
     ("z6_refinery", "panzermensch", 7168, 4352, 180, 4),
     ("z6_refinery", "trooper", 6528, 4864, 180, 4),
     ("z6_refinery", "hound", 7104, 5312, 180, 4),
+    # Past the channel in a vat's lee, the bridge and the yellow door down his sights.
+    ("z6_refinery", "gunner", 6720, 4416, 180, 2),
     # The crater: the boss before the portal, both factions on the terraces.
     ("z8_floor", BOSS_KIND, MAP09_BOSS_SPOT[0], MAP09_BOSS_SPOT[1], BOSS_ANGLE, 2),
     ("z8_floor", "stormtrooper", 3584, 2880, 90, 2),
@@ -708,6 +729,10 @@ MONSTERS = (
     ("z8_tier_5", "stormtrooper", 4512, 3392, 180, 4),
     ("z8_tier_5", "stormtrooper", 3424, 3392, 0, 4),
     ("z8_tier_1", "heavy", 3104, 2048, 90, 4),
+    # Across the crater from the red gate, firing up the terraces at whoever
+    # comes down them: the boss's covering fire.
+    ("z8_tier_2", "gunner", 4480, 2016, 90, 2),
+    ("z8_tier_6", "gunner", 3712, 2272, 90, 4),
 )
 
 # Consumables scale DOWN with skill: (zone, editor number, x, y, highest skill
@@ -716,6 +741,7 @@ ITEMS = (
     # The weapons, on every skill, each before the fight it is for.
     ("z1_halt", ED_IZH, 7040, 864, 4),
     ("z3_izba_a", ED_PPSH, 832, 736, 4),
+    ("z3_izba_a", ED_AKM, 736, 640, 4),     # the station's rifle, beside the PPSh (D116)
     ("z4_forest", ED_RPG7, 2560, 4288, 4),
     ("z5_edge", ED_ROKS3, 3008, 4800, 4),
     # Shell boxes (20).
@@ -801,7 +827,34 @@ ITEMS = (
     ("z7_rim", ED_CELL, 3328, 3776, 4),
     ("z7_red_porch", ED_CELL_PACK, 4000, 3872, 4),
     ("z7_rim", ED_CELL, 4608, 3776, 3),
-    # Stimpacks: 7 on every skill, +3 medium, +2 easy.
+    # AKM magazines on the route, 2 / 3 / 4 on skills 4 / 3 / 2 (D116).
+    ("z4_forest", ED_AKM_MAG, 2112, 3456, 4),
+    ("z6_refinery", ED_AKM_MAG, 5632, 4608, 4),
+    ("z5_works", ED_AKM_MAG, 5376, 4864, 3),
+    ("z3_lab_hall", ED_AKM_MAG, 1376, 1376, 2),
+    # The Consortium's arena (D116): 9000 HP and its servants. The crater's
+    # first terrace, the ring the player circles on, carries a second stock
+    # on top of the rim's: rockets (it takes no blast, so impacts only),
+    # fuel, magazines, shells, and health for a long fight.
+    ("z8_tier_1", ED_ROCKET_BOX, 3104, 2560, 4),
+    ("z8_tier_1", ED_ROCKET_BOX, 4832, 2560, 4),
+    ("z8_tier_1", ED_ROCKET, 3456, 1952, 4),
+    ("z8_tier_1", ED_ROCKET, 4480, 1952, 4),
+    ("z8_tier_1", ED_ROCKET_BOX, 3104, 3072, 3),
+    ("z8_tier_1", ED_ROCKET_BOX, 4832, 3072, 3),
+    ("z8_tier_1", ED_ROCKET, 3456, 3680, 2),
+    ("z8_tier_1", ED_ROCKET, 4480, 3680, 2),
+    ("z8_tier_1", ED_CELL_PACK, 3104, 2304, 4),
+    ("z8_tier_1", ED_CELL, 3968, 1952, 4),
+    ("z8_tier_1", ED_CELL_PACK, 4832, 2304, 3),
+    ("z8_tier_1", ED_AKM_MAG, 3104, 2816, 4),
+    ("z8_tier_1", ED_AKM_MAG, 4832, 2816, 4),
+    ("z8_tier_1", ED_AKM_MAG, 3968, 3680, 3),
+    ("z8_tier_1", ED_SHELL_BOX, 3104, 3328, 4),
+    ("z8_tier_1", ED_SHELL_BOX, 4832, 3328, 4),
+    ("z8_tier_1", ED_SHELL_BOX, 4736, 1952, 4),
+    ("z8_tier_1", ED_CLIP_BOX, 3712, 3680, 4),
+    # Stimpacks: 9 on every skill, +4 medium, +3 easy.
     ("z1_halt", ED_STIMPACK, 7168, 800, 4),
     ("z3_izba_c", ED_STIMPACK, 736, 1728, 4),
     ("z4_forest", ED_STIMPACK, 1280, 4288, 4),
@@ -814,7 +867,11 @@ ITEMS = (
     ("z7_rim", ED_STIMPACK, 3968, 1856, 3),
     ("z3_lab_vest", ED_STIMPACK, 1856, 1440, 2),
     ("z6_refinery", ED_STIMPACK, 7232, 4160, 2),
-    # Medikits: 7 on every skill, +2 medium.
+    ("z8_tier_1", ED_STIMPACK, 3712, 1952, 4),      # the arena's
+    ("z8_tier_1", ED_STIMPACK, 4224, 1952, 4),
+    ("z8_tier_1", ED_STIMPACK, 3200, 3680, 3),
+    ("z8_tier_1", ED_STIMPACK, 4736, 3680, 2),
+    # Medikits: 9 on every skill, +3 medium.
     ("z3_izba_b", ED_MEDIKIT, 928, 1152, 4),
     ("z4_forest", ED_MEDIKIT, 2176, 3328, 4),
     ("z5_works", ED_MEDIKIT, 5376, 4096, 4),
@@ -824,6 +881,9 @@ ITEMS = (
     ("z7_rim", ED_MEDIKIT, 4928, 2880, 4),
     ("z5_edge", ED_MEDIKIT, 2816, 3968 + 64, 3),
     ("z7_rim", ED_MEDIKIT, 4160, 1856, 3),
+    ("z8_tier_1", ED_MEDIKIT, 3104, 3584, 4),       # the arena's
+    ("z8_tier_1", ED_MEDIKIT, 4832, 3584, 4),
+    ("z8_tier_1", ED_MEDIKIT, 4224, 3680, 3),
     # Armour: the flak vest in the station's store izba, the heavy vest at
     # the red gate before the crater; plates at the three locks.
     ("z3_izba_c", ED_GREEN_ARMOR, 928, 1664, 4),

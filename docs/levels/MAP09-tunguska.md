@@ -5,9 +5,13 @@ Design document. Owner: `level-designer`. Status: **v1.1 BUILT 2026-10-22
 yet** (D26: this role never starts GZDoom). Built MVP first (D60): the whole
 plan, approved and packed lumps only, populated, stocked, three keys, three
 secrets, the boss and the exit; v1.1 swaps the stand-ins for the
-"Taiga/Alien" set (§7; what it does not draw, §8). Source: `src/maps/MAP09/map.py`;
-tests: `tests/test_map09_tunguska.py` (the map, 59 tests) and
-`tests/test_map09_route.py` (the route, 12); posters:
+"Taiga/Alien" set (§7; what it does not draw, §8); **v1.2 (D116, 2026-10-22)
+puts episode 3's own final boss, the Consortium, in the General's place,
+the Legion's machine-gunners in the forest, the works, the refinery and the
+crater, the AKM beside the PPSh, and recounts the crater's stock for a
+9000 HP boss** (§10, §11, §16.2). Source: `src/maps/MAP09/map.py`;
+tests: `tests/test_map09_tunguska.py` (the map, 63 tests) and
+`tests/test_map09_route.py` (the route, 13); posters:
 `tests/test_posters.py` (`Map09Posters`); top-down view:
 `docs/levels/shots/MAP09-overview.png`. Russian mirror: owed at the phase
 close (D34).
@@ -43,7 +47,7 @@ invaders keep their **main portal** (Tankograd's was a secondary one,
 | Comes after | MAP08, the Northern Fleet's base (another agent's, D112); he arrives by rail. |
 | Its number | MAP09, episode 3's last slot (MAPINFO: the episode's ending cluster; the scaffolding agent's / mod-engineer's, §13). |
 | What it adds | the campaign's **largest map** (extent 7040 × 5504; MAP06 5552 × 4928) and **hardest** (57 / 88 / 122 monsters; MAP06 42 / 68 / 96); **quiet before the storm** (the railhead, the taiga and the standing forest are sparse and dark; the works, the refinery and the crater are not); **pits that hurt** (acid in the works and the crater, MAP03's molten channel in the refinery); a **crater you fight down into**, seven terraces to the portal. |
-| Climax | the crater: the boss on its floor before the portal, both factions on the terraces; his death opens the control bunker; its breaker shuts the portal and ends the episode. |
+| Climax | the crater: the boss, the Consortium (D116), on its floor before the portal, both factions on the terraces; its death opens the control bunker; its breaker shuts the portal and ends the episode. |
 | Factions (D35) | the Reich holds the railhead, the taiga and the station's yard (the military occupation); the Legion holds the laboratory (capital takes the science) and springs the closets; both hold the forest, the works, the refinery and the crater, and both guard the boss (tested). |
 
 ## 3. What the map has to do
@@ -132,7 +136,7 @@ graph LR
   W --> D[derrick<br/>YELLOW KEY]
   W -->|yellow door| R[Z6 refinery<br/>RED KEY: closets open]
   W -->|red gate| C[Z7/Z8 crater<br/>the boss]
-  C -->|his death opens the gate| X[Z9 bunker: the breaker, EXIT]
+  C -->|its death opens the gate| X[Z9 bunker: the breaker, EXIT]
 ```
 
 Keys: `SD_BluePass` 5, `SD_YellowPass` 6, `SD_RedPass` 13; locks 2, 3, 1.
@@ -181,7 +185,7 @@ the end the exit is reachable from everywhere (tested).
 | 7 | Refinery | the heavies; the molten channel or the guarded bridge | the red key |
 | 8 | Back through the works | **spike**: the closets open behind the player | MAP06's pattern |
 | 9 | Crater | **climax**: down seven terraces to the portal, the boss, both factions | the boss |
-| 10 | Bunker | the gate opens on his death; the breaker shuts the portal | — |
+| 10 | Bunker | the gate opens on its death; the breaker shuts the portal | — |
 
 ## 7. Textures, by zone (all approved and packed; tested)
 
@@ -272,47 +276,98 @@ MAP01's rule: a clue is a comparison, never a sign; each has a way back (tested)
 | Works | 4 riflemen, 5 troopers, 2 stormtroopers, 2 hounds, 1 Panzermensch, 1 Doughboy | +2 riflemen, 2 troopers, 2 stormtroopers, 1 hound, 1 Doughboy | +2 riflemen, 1 trooper, 2 stormtroopers, 1 hound, 1 Doughboy, 1 Panzermensch, 1 heavy |
 | Works' closets (red key) | 2 troopers | +1 trooper, 1 stormtrooper | +2 stormtroopers |
 | Refinery | 2 riflemen, 3 troopers, 3 stormtroopers, 1 hound, 1 Panzermensch, 1 Doughboy | +1 rifleman, 1 trooper, 1 stormtrooper, 1 hound, 1 heavy, 1 Doughboy | +1 rifleman, 1 trooper, 1 stormtrooper, 1 hound, 1 heavy, 1 Panzermensch |
-| Crater | **the boss**, 2 riflemen, 1 trooper, 2 stormtroopers, 1 hound, 1 Panzermensch, 1 Doughboy | +2 troopers, 1 hound, 1 heavy | +2 stormtroopers, 1 Doughboy, 1 heavy |
-| **Total** | **57** | **88** | **122** |
+| Crater | **the boss**, 2 riflemen, 1 trooper, 2 stormtroopers, 1 hound, 1 Panzermensch, 1 Doughboy, 1 gunner | +2 troopers, 1 hound, 1 heavy | +2 stormtroopers, 1 Doughboy, 1 heavy, 1 gunner |
+| **Total** | **60** | **92** | **127** |
+
+The Legion's machine-gunners (D116, `SD_LegionGunner`, 21110, 80 HP; they
+drop half an AKM magazine), 3 / 4 / 5 on skills 2 / 3 / 4, each by cover
+with a long line down ground the player must cross (tested: none in a
+closet, each with a prop, a wall or a step within 128):
+
+| Skill | Where | Line | Cover |
+|---|---|---|---|
+| 2 | the works, (5184, 4800), facing west | the works' width to the forest's edge | the east conduit at his back |
+| 2 | the refinery, (6720, 4416), facing west | across the channel: the bridge and the yellow door | a vat at his shoulder |
+| 2 | the crater's second terrace, south, (4480, 2016), facing north | up the terraces to the red gate | the terrace's step |
+| 3 | the standing forest, (2400, 3104), the clearing's east edge, facing north | the clearing and the forest back to the blue gate | a trunk at his shoulder |
+| 4 | the crater's sixth terrace, south, (3712, 2272), facing north | across the crater floor and the portal | the terrace's step |
 
 By class on skill 4: 28 riflemen, 26 troopers, 26 stormtroopers, 19 hounds,
-11 Doughboys, 6 Panzermenschen, 5 heavy Panzermenschen, the boss.
+11 Doughboys, 6 Panzermenschen, 5 gunners, 5 heavy Panzermenschen, the boss.
+The boss's servants (§11) are not in the totals: they arrive in the fight.
 
-**Resources.** Pistol-start finishable: the IZh in the halt, the PPSh in the
-first izba, the RPG-7 at the standing forest's far edge, the ROKS-3 on the
-works' scorched edge, all on the route on every skill; the Hand Katyusha in
-S2. G3-8 (MAP03's ruler, in IZh shells; secrets not counted):
+**Resources.** Pistol-start finishable: the IZh in the halt, the PPSh and
+the **AKM** (D116, `SD_Akm` 21008) in the first izba, the RPG-7 at the
+standing forest's far edge, the ROKS-3 on the works' scorched edge, all on
+the route on every skill; the Hand Katyusha in S2. AKM magazines
+(`SD_AkmAmmo` 21020, 30 rounds) on the route before the crater **4 / 3 / 2**
+on skills 2 / 3 / 4 (the laboratory's hall, the forest, the works, the
+refinery), plus the arena's (below). G3-8 (MAP03's ruler, in IZh shells at
+~62.5 HP a shell, the AKM's 30 rounds 4.5 shells; secrets not counted;
+**the Consortium is 144 shells, and its servants 39 more**, see §11):
 
 | Skill | Needed | Placed | Ratio | Shells and rounds alone |
 |---|---|---|---|---|
-| 2 | 169 | 774.5 | 4.58 | 616.5 |
-| 3 | 266 | 720.5 | 2.71 | 562.5 |
-| 4 | 405 | 617.5 | 1.52 (≥ 1.35, < 3) | 484.5 (≥ 1.35 × all but the boss) |
+| 2 | 310 | 978.5 | 3.16 | 717.5 |
+| 3 | 409 | 916.0 | 2.24 | 659.0 |
+| 4 | 550 | 759.0 | 1.38 (≥ 1.35, < 3) | 572.0 (≥ 1.35 × all but the boss: 548.1) |
 
-Also tested at every stage of the route. Health on skill 4: 7 stimpacks, 7
-medikits, 7 health bonuses; 6 armour bonuses (two at each lock), the flak
-vest in the third izba, the heavy vest at the red gate's porch, before the
-crater. Skills 3 and 2 add stimpacks, medikits and ammunition.
+Also tested at every stage of the route, the boss's servants' hit points
+counted with its own. **The arena's own stock (the rim, the red gate's
+porch and the crater's first terrace, the ring the fight circles on)**,
+tested to cover the Consortium's 9000 HP and its servants' 1700 on every
+skill by itself, with rockets and fuel a third of that:
 
-## 11. The boss (stand-in)
+| Skill | PG-7V | ROKS-3 fuel | AKM magazines | Shells | Stimpacks + medikits | Damage, all of it (avg) |
+|---|---|---|---|---|---|---|
+| 2 | 48 | 360 | 3 | 160 | 7 + 6 | 28 040 |
+| 3 | 46 | 360 | 3 | 160 | 6 + 6 | 27 770 |
+| 4 | 31 | 240 | 2 | 160 | 4 + 4 | 23 225 |
 
-Episode 3's final boss does not exist yet (D112). Until it does, **the
-General** (`SD_General`, 21106, 3000 HP) stands in, at the named constant
-**`MAP09_BOSS_SPOT = (3968, 3136)`** on the crater's floor before the portal,
-facing the red gate (`BOSS_ANGLE = 90`), on every skill.
+v1.2 added to the first terrace: 2 rocket boxes and 2 rockets on every
+skill (+2 boxes skill 3 and easier, +2 rockets skill 2), a fuel pack and a
+canister (+a pack skill 3 and easier), 2 AKM magazines (+1 skill 3 and
+easier), 3 shell boxes and a box of rounds, 2 stimpacks and 2 medikits (+1
+of each skill 3 and easier, +1 stimpack skill 2).
 
-- **To swap him:** set `BOSS_KIND` to the new enemy's kind and add it to
-  `MONSTER_KINDS` / `MONSTER_CLASSES` (and to `CLASS_FILES` in the test, and
-  to `COUNT_CLASSES` in `tools/route.py` so the route can hurt it). The spot,
-  the facing and the death special stay.
-- **His death opens the exit**: his thing carries `special = 11`
+Health on skill 4: 9 stimpacks, 9 medikits, 7 health bonuses; 6 armour
+bonuses (two at each lock), the flak vest in the third izba, the heavy vest
+at the red gate's porch, before the crater. Skills 3 and 2 add stimpacks,
+medikits and ammunition.
+
+## 11. The boss: the Consortium (D112, placed D116)
+
+Episode 3's final boss, **the Consortium** (`SD_Consortium`, 21112, 9000
+HP, radius 56, height 128; its design and behaviour:
+`docs/engine/2026-10-22_P4_ep3-final-boss.md`), stands at the named
+constant **`MAP09_BOSS_SPOT = (3968, 3136)`** on the crater's floor before
+the portal, facing the red gate (`BOSS_ANGLE = 90`), on every skill
+(`BOSS_KIND = "consortium"`). Until D116 the General (`SD_General`, 21106,
+3000 HP) stood in; the spot, the facing and the death special did not move,
+and the General is no longer placed here.
+
+- **The portal at its back.** Rooted in phase 1, it calls its servants
+  through the portal behind it: 144 behind and 80 to either side, then
+  straight behind. Facing north, those spots are (3888, 2992), (4048, 2992)
+  and (3968, 2992): on the crater's floor between it and the portal's base
+  (which ends at y 2944), clear of the acid pits, with room for a hound or
+  a Doughboy (tested: `test_the_portal_is_at_the_bosss_back`).
+- **Its death opens the exit**: its thing carries `special = 11`
   (`Door_Open`), `arg0 = 12`, `arg1 = 16`; no line carries tag 12 (tested).
+  Its death also kills its servants (`A_KillChildren`).
 - **Room:** the crater is 2048 square under a sky of 512 (640 over its
-  floor); terraces of 16, so he walks anywhere in it.
+  floor, five times its 128); terraces of 16, so once free (phase 2) it
+  walks anywhere in it. Its 112-wide body fits the floor at its spot.
+- **The bill.** 9000 HP (`+NORADIUSDMG`: 67 RPG-7 impacts, or 13-14 full
+  hand-Katyusha salvoes) and its servants, counted as a long fight's worth
+  (H): four rooted pairs (rifleman and trooper, 50 HP a pair), the Breach's
+  wave of four (600) and five free pairs (hound and trooper, 180 a pair),
+  1700 HP, 39 shells on G3-8's ruler. The arena's stock (§10) is tested to
+  pay for both on its own.
 - **The risk, said plainly:** if the death special did not fire, the exit
-  would be unreachable (MAP06's E3 check settles the mechanism for both
-  maps). The belt-and-braces fix is the mod-engineer's: a MAPINFO
-  `SpecialAction = "SD_General", "Door_Open", 12, 16` in MAP09's block (§13).
+  would be unreachable. The belt-and-braces fix is the mod-engineer's: a
+  MAPINFO `SpecialAction = "SD_Consortium", "Door_Open", 12, 16` in MAP09's
+  block (§13; not there on 2026-10-22).
 
 ## 12. Engine elements used, and the PM's engine checklist (D26)
 
@@ -358,8 +413,9 @@ Not this role's files. What the map needs:
   «Tunguska»), episode 3's ending cluster;
 - `par = 540`;
 - `sky1`: a Siberian night sky when one exists (§8 #12);
-- recommended: `SpecialAction = "SD_General", "Door_Open", 12, 16` as the
-  fallback for the boss's death special (§11);
+- recommended: `SpecialAction = "SD_Consortium", "Door_Open", 12, 16` as
+  the fallback for the boss's death special (§11; it was the General's
+  until D116);
 - the ending text: the portal shut (the episode's last text is the
   scaffolding agent's).
 
@@ -372,8 +428,17 @@ forest → YD0, RD0 the yellow door and red gate refused on one key → YKEY the
 yellow key on the derrick → YD1 the yellow door → RDY the red gate refused
 on two keys → RKEY the red key (tag 10 must be open: the closets) → RD1 the
 red gate → BOSS0 on the crater's first terrace, the bunker's gate shut →
-BOSS1 the boss hurt past his health, the gate open → E0 through the gate to
+BOSS1 the boss hurt past its health, the gate open → E0 through the gate to
 the breaker → E1 pressed. Geometry tested in `tests/test_map09_route.py`.
+
+**The Consortium in BOSS1 (D116).** The helper's `hurt` is 100 000, past
+ten times its 9000. At full health one hurt kills it: its Breach (phase 2,
+65 tics invulnerable) is checked in its chase, never in its damage, and
+nothing else on the route hurts it (monsters cannot; the route does not
+shoot). Should it ever be mid-Breach when BOSS1 runs, the first hurt does
+nothing, so BOSS1 waits `TUNGUSKA_BREACH_WAIT` (70 tics) and hurts it again
+before it reads the gate (a dead boss is not hurt twice: the helper skips
+health ≤ 0). NOT VERIFIED in engine until the PM runs the route.
 
 ## 15. Rules of respect (D12)
 
@@ -412,9 +477,36 @@ and 1 error, none of them MAP09's (the redrawn enemies' sprite tests and
 MAP05's door leaves, other work in progress on the same tree). The engine
 pass (§12, E1-E10) is the PM's.
 
+### 16.2 v1.2, the episode's own boss, the gunners and the AKM (2026-10-22, D116)
+
+- **The boss:** `BOSS_KIND` from `"general"` to `"consortium"` (21112);
+  the General left `MONSTER_KINDS` / `MONSTER_CLASSES`. Spot, facing and
+  death special unchanged (§11).
+- **The gunners:** five `SD_LegionGunner` (21110), 3 / 4 / 5 by skill (§10).
+- **The AKM:** `SD_Akm` (21008) in the first izba beside the PPSh, in
+  `ROUTE_WEAPONS`; magazines (21020) 4 / 3 / 2 on the route, 3 / 3 / 2 in
+  the arena.
+- **The arena recounted** for 9000 HP and the servants (§10, §11): rockets,
+  fuel, magazines, shells, health on the crater's first terrace.
+- **The route:** BOSS1 hurts the boss twice, 70 tics apart (§14).
+- Totals 60 / 92 / 127 (were 57 / 88 / 122); 284 things.
+- Tests: `tests/test_map09_tunguska.py` 63 (new: the portal at the boss's
+  back, the crater pays for the boss, the gunners, the AKM's magazines; the
+  class reader takes each constant's first value, since the boss's file
+  also declares a quake's radius; the crater's height check now measures
+  sky minus floor, 640); `tests/test_map09_route.py` 13 (new: the second
+  hurt past the Breach; the boss's health read from its own file);
+  `tests/test_safe_starts.py` unchanged and green. The engine pass (E5 with
+  the Consortium, and its E1-E10 in `2026-10-22_P4_ep3-final-boss.md`) is
+  the PM's.
+
 ## 17. Open points
 
-1. `test_doughboy_sprites` needs MAP07-MAP09 in its expected maps (§16).
+1. Done: `test_doughboy_sprites` lists MAP07-MAP09.
+4. D116: is the Consortium fight the right length? 9000 HP is the brief's
+   number; the arena's stock is counted for it plus ~1700 HP of servants
+   (H). The PM's play measures it; the first lever is the boss's health
+   (mod-engineer), the second the arena's rockets here.
 2. For the CEO, by walking it: is the taiga calm enough (or too empty)? Is
    the crater's descent the right finale, or should the portal itself be
    reachable (a platform round it)?

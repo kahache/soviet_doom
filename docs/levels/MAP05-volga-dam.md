@@ -410,19 +410,30 @@ rooms sector special 1024. S1 and S2 open in round 0; S3 on the crest.
 
 ## 9. Enemies and resources by skill
 
-Bestiary numbers (MAPINFO DoomEdNums 21100-21107), nested by Doom's skill
-pairs (`skill_tier`). Every class but the General.
+Bestiary numbers (MAPINFO DoomEdNums 21100-21107, and 21110 the Legion
+gunner since D116), nested by Doom's skill pairs (`skill_tier`). Every class
+but the General.
 
 | Beat / zone | Skill 2 | Skill 3 | Skill 4 |
 |---|---|---|---|
 | Station, gatehouse | 3 troopers | 3 troopers | 3 troopers + 2 stormtroopers |
 | Inspection and lower galleries | 3 riflemen | 4 riflemen + 2 hounds | 4 riflemen + 2 hounds |
 | Turbine hall (catwalk included) | Panzermensch + 3 riflemen + 1 stormtrooper | Panzermensch + 4 riflemen + 2 stormtroopers + 1 hound | Panzermensch + 4 riflemen + 3 stormtroopers + 2 hounds |
-| Spillway | Doughboy + 2 troopers | Doughboy + 2 troopers + 1 stormtrooper | 2 Doughboys + 3 troopers + 1 stormtrooper |
-| Control room + the catwalk's closets (yellow tag) | 1 trooper + 2 riflemen + 1 stormtrooper + 1 hound | 2 troopers + 3 riflemen + 1 stormtrooper + 1 hound | 2 troopers + 3 riflemen + 3 stormtroopers + 1 hound |
+| Spillway | Doughboy + 1 trooper + **1 gunner** | Doughboy + 1 trooper + 1 gunner + 1 stormtrooper | 2 Doughboys + 1 trooper + **2 gunners** + 1 stormtrooper |
+| Control room + the catwalk's closets (yellow tag) | 1 trooper + 2 riflemen + 1 stormtrooper + 1 hound | 1 trooper + **1 gunner** + 3 riflemen + 1 stormtrooper + 1 hound | 1 trooper + 1 gunner + 3 riflemen + 3 stormtroopers + 1 hound |
 | Substation | Panzermensch + 2 riflemen + 1 hound | Panzermensch + 2 riflemen + 2 hounds | Panzermensch + heavy + 2 riflemen + 2 hounds |
-| Station's closets (blue tag), crest, west hall | Panzermensch + Doughboy + 3 troopers + 2 riflemen + 1 stormtrooper | Panzermensch + **heavy** + 2 Doughboys + 4 troopers + 2 riflemen + 3 stormtroopers | Panzermensch + heavy + 3 Doughboys + 5 troopers + 3 riflemen + 4 stormtroopers + 1 hound |
+| Station's closets (blue tag), crest, west hall | Panzermensch + Doughboy + 2 troopers + **1 gunner** + 2 riflemen + 1 stormtrooper | Panzermensch + **heavy** + 2 Doughboys + 3 troopers + 1 gunner + 2 riflemen + 3 stormtroopers | Panzermensch + heavy + 3 Doughboys + 4 troopers + 1 gunner + 3 riflemen + 4 stormtroopers + 1 hound |
 | **Total** | **31** | **46** | **60** |
+
+**The Legion gunners** (`SD_LegionGunner`, 80 HP, bursts of hitscan, D116;
+`docs/engine/2026-10-22_P4_ep2-enemies.md` §2): 2 / 3 / 4 on skills 2 / 3 /
+4, each in a trooper's place (same faction, same count) where a burst has a
+long line and the gunner has cover: the spillway's west walkway (640, 576;
+on skill 4 also 640, 1600), the parapet at his back and the channel's width
+in front; the control room's east end (2848, 1248, skill 3 up), down the
+console rows; the crest (1408, 1840), its whole length to fire along. Each
+drops 15 AKM rounds (not counted below). None within sight of the start
+(`tests/test_safe_starts.py`). Pinned by `test_the_legion_gunners`.
 
 **Safe start** (`tests/test_safe_starts.py`, 2026-10-22): on skills 2, 3 and 4 no monster sees the start zone (the start and a step round it) within 768 units; Doom's own sight test, run on the built map. The whole station lies within 768 of the start, so the Legion's picket (2 troopers, and the stormtrooper on skill 4) no longer stands on the open platform (it saw the start from 370 and 450): it waits in the lee of the armoured train, between the train and the parapet (4592, 4688, 4784 at y 2016, facing the train), met as the player rounds the train's west end towards the blue gate. Same count, same round.
 
@@ -435,16 +446,25 @@ fly (tested).
 skill, on the route, each before the fight it is for: the **IZh** on the
 platform, the **PPSh-41** in the lower gallery, the **RPG-7** at the turbine
 hall's door (nearer than the hall's Panzermensch, tested), the **ROKS-3** in
-the control room; the **Hand Katyusha** in S3.
+the control room; the **Hand Katyusha** in S3. Since D116 the **AKM**
+(`SD_Akm`, 21008, 30 rounds) lies at the lower gallery's west end (3648,
+512): past the PPSh (the gallery is walked east to west) and before the
+hall's door and its RPG-7, the episode's new rifle for the dam's long
+sightlines (`docs/engine/2026-10-22_P4_akm.md` §6). **AKM magazines**
+(`SD_AkmAmmo`, 21020, 30 rounds) 4 / 3 / 2 on skills 2 / 3 / 4: beside the
+rifle and on the crest on every skill, in the control room up to skill 3,
+on the spillway's west walkway on skill 2 (`test_the_akm_between_the_ppsh_and_the_rpg`).
 
 **Ammunition** (G3-8's ruler, MAP03's test: kills in IZh shells, PG-7V at 2
-shells, fuel at ¼; route only, no drop, no secret):
+shells, fuel at ¼, AKM rounds at 80 / 12 a shell (avg 12 a round, BALANCE
+§2); a gunner costs 2 shells, as a Stormtrooper; route only, no drop, no
+secret). Recounted 2026-10-22 with the gunners and the AKM (D116):
 
 | | Skill 2 | Skill 3 | Skill 4 |
 |---|---|---|---|
-| Needed | 69 | 116 | 165 |
-| Placed | 274.5 | 261.5 | 237.5 |
-| Ratio (≥ 1.35, and < 3 on skill 4) | 3.98 | 2.25 | 1.44 |
+| Needed | 71 | 119 | 169 |
+| Placed | 297.0 | 279.5 | 251.0 |
+| Ratio (≥ 1.35, and < 3 on skill 4) | 4.18 | 2.35 | 1.49 |
 
 Also checked at every round of the route (damage placed so far against hit
 points met so far). **Health** on skill 4: 6 stimpacks + 5 medikits, 9

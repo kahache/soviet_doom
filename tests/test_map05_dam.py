@@ -76,13 +76,16 @@ CLASS_FILES = {
     "SD_Doughboy": "doughboy.zs",
     "SD_Panzermensch": "panzermensch.zs",
     "SD_PanzermenschSchwer": "panzermensch_schwer.zs",
+    "SD_LegionGunner": "legion_gunner.zs",
 }
 CLASS_PARENT = {"SD_PanzermenschSchwer": "SD_Panzermensch"}
 # G3-8 as MAP01-MAP03 measure it: each kill in IZh shells, heavy weapons
 # converted at the ruler's ~62.5 HP a shell (MAP03's test, unchanged).
 SHELLS_TO_KILL = {"SD_ReichRifleman": 1, "SD_LegionTrooper": 1, "SD_Stormtrooper": 2,
                   "SD_ReichHound": 3, "SD_Doughboy": 6, "SD_Panzermensch": 8,
-                  "SD_PanzermenschSchwer": 16}
+                  "SD_PanzermenschSchwer": 16,
+                  # D116: 80 HP, one IZh barrel kills him half the time: two, as the Stormtrooper.
+                  "SD_LegionGunner": 2}
 G3_8_MARGIN = 1.35
 SHELLS_GIVEN = {2008: 4, 2049: 20, 21003: 8}
 ROUNDS_GIVEN = {2007: 10, 2048: 50, 21004: 35}
@@ -95,6 +98,11 @@ IZH_AVERAGE = 80
 PPSH_AVERAGE = 8
 RPG_AVERAGE = 135
 ROKS_AVERAGE = 18
+# D116: the AKM's own pool (30 a magazine, 30 with the rifle), avg 12 a
+# round (BALANCE section 2): 80 / 12 rounds make one IZh shell.
+AKM_ROUNDS_GIVEN = {21008: 30, 21020: 30}
+AKM_AVERAGE = 12
+AKM_ROUNDS_PER_SHELL = IZH_AVERAGE / AKM_AVERAGE
 
 
 def _load_map05():
@@ -1333,6 +1341,35 @@ class Map05Test(unittest.TestCase):
             self.assertIn(where, self.rounds[stage][1])
         self.assertFalse(self.things_of({2001, 2002, 2003, 2004, 2005, 2006, 82}))
 
+    def test_the_akm_between_the_ppsh_and_the_rpg(self):
+        """D116 (docs/engine/2026-10-22_P4_akm.md section 6): the AKM once,
+        on every skill, in the lower gallery on the route, past the PPSh
+        (the gallery is walked east to west) and before the hall's door and
+        its RPG-7; magazines 4 / 3 / 2 on skills 2 / 3 / 4, none in a secret."""
+        m = self.m
+        akm = self.things_of({m.ED_AKM})
+        self.assertEqual(1, len(akm))
+        a = akm[0]
+        self.assertTrue(all(a[f"skill{n}"] for n in range(1, 6)))
+        self.assertEqual(self.plan["z4_gallery"], self.sector_at(a["x"], a["y"]))
+        self.assertIn(self.plan["z4_gallery"], self.rounds[0][1])
+        ppsh, rpg = self.things_of({m.ED_PPSH})[0], self.things_of({m.ED_RPG7})[0]
+        self.assertLess(rpg["x"], m.HALL[2], "the RPG-7 is inside the hall's door")
+        self.assertLess(m.HALL[2], a["x"])
+        self.assertLess(a["x"], ppsh["x"], "past the PPSh, walking west")
+        mags = self.things_of({m.ED_AKM_AMMO})
+        self.assertEqual({2: 4, 3: 3, 4: 2}, {s: len(self.on(s, mags)) for s in SKILLS})
+        self.assertEqual(mags, self.on_route(mags))
+
+    def test_the_legion_gunners(self):
+        """D116: 2 / 3 / 4 on skills 2 / 3 / 4, on the long lines: the
+        spillway's west walkway, the control room's console rows, the crest."""
+        m = self.m
+        gunners = self.things_of({m.ED_GUNNER})
+        self.assertEqual({2: 2, 3: 3, 4: 4}, {s: len(self.on(s, gunners)) for s in SKILLS})
+        self.assertEqual(self.named("z7_west_walk", "z6_control", "z10_crest"),
+                         {self.sector_at(t["x"], t["y"]) for t in gunners})
+
     def test_the_rpg_is_met_before_the_halls_panzermensch(self):
         m = self.m
         rpg = self.things_of({m.ED_RPG7})[0]
@@ -1361,6 +1398,7 @@ class Map05Test(unittest.TestCase):
         placed = self.on_route(self.on(skill, self.things))
         return sum(SHELLS_GIVEN.get(t["type"], 0)
                    + ROUNDS_GIVEN.get(t["type"], 0) / ROUNDS_PER_SHELL
+                   + AKM_ROUNDS_GIVEN.get(t["type"], 0) / AKM_ROUNDS_PER_SHELL
                    + ROCKETS_GIVEN.get(t["type"], 0) * SHELLS_PER_ROCKET
                    + CELLS_GIVEN.get(t["type"], 0) * SHELLS_PER_CELL for t in placed)
 
@@ -1390,6 +1428,7 @@ class Map05Test(unittest.TestCase):
                 hp_so_far += sum(self.hit_points.get(t["type"], 0) for t in here)
                 damage += sum(SHELLS_GIVEN.get(t["type"], 0) * IZH_AVERAGE
                               + ROUNDS_GIVEN.get(t["type"], 0) * PPSH_AVERAGE
+                              + AKM_ROUNDS_GIVEN.get(t["type"], 0) * AKM_AVERAGE
                               + ROCKETS_GIVEN.get(t["type"], 0) * RPG_AVERAGE
                               + CELLS_GIVEN.get(t["type"], 0) * ROKS_AVERAGE for t in here)
                 self.assertGreaterEqual(damage, G3_8_MARGIN * hp_so_far, f"skill {skill}, stage {stage}")

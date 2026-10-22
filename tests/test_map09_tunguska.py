@@ -24,9 +24,13 @@ map's tests stay one file). The contract:
   and no monster between;
 * three secrets, none needed, each with a way back; the Hand Katyusha in S2;
 * the population: per skill and nested, on the bestiary's MAPINFO numbers,
-  with room for every body, factions where the design puts them, the boss at
-  MAP09_BOSS_SPOT; weapons on the route, consumables scaled down, G3-8's
-  ammunition margin on every skill and at every stage, health on skill 4.
+  with room for every body, factions where the design puts them, the boss
+  (the Consortium since D116) at MAP09_BOSS_SPOT with the portal at its back,
+  the Legion's gunners three, four and five by skill; weapons on the route
+  (the AKM after the PPSh), consumables scaled down, the AKM's magazines
+  4 / 3 / 2, G3-8's ammunition margin on every skill and at every stage (the
+  boss's servants in the bill), the crater's own stock for the boss, health
+  on skill 4.
 
 Run:  python3 -m unittest tests.test_map09_tunguska -v
 """
@@ -76,19 +80,32 @@ CLASS_FILES = {
     "SD_ReichHound": "reich_hound.zs",
     "SD_Doughboy": "doughboy.zs",
     "SD_Panzermensch": "panzermensch.zs",
-    "SD_General": "general.zs",
     "SD_PanzermenschSchwer": "panzermensch_schwer.zs",
+    "SD_LegionGunner": "legion_gunner.zs",
+    "SD_Consortium": "consortium.zs",
 }
 CLASS_PARENT = {"SD_PanzermenschSchwer": "SD_Panzermensch"}
-# G3-8 as MAP03 measures it (tests/test_map03_factory.py): kills in IZh shells.
+# G3-8 as MAP03 measures it (tests/test_map03_factory.py): kills in IZh shells,
+# at the ruler's ~62.5 HP a shell (the General's 3000 was 48). D116: the
+# gunner's 80 is two (one barrel kills him half the time), the Consortium's
+# 9000 is 144.
 SHELLS_TO_KILL = {"SD_ReichRifleman": 1, "SD_LegionTrooper": 1, "SD_Stormtrooper": 2,
                   "SD_ReichHound": 3, "SD_Doughboy": 6, "SD_Panzermensch": 8,
-                  "SD_PanzermenschSchwer": 16, "SD_General": 48}
+                  "SD_PanzermenschSchwer": 16, "SD_LegionGunner": 2, "SD_Consortium": 144}
+# The Consortium's servants, added to its bill (H; its design, section 3-4.4):
+# four rooted pairs (rifleman and trooper, 50 HP a pair), the Breach's wave
+# of four (600) and five free pairs (hound and trooper, 180 a pair), a long
+# fight's worth: 200 + 600 + 900 HP.
+SERVANT_HIT_POINTS = 4 * 50 + 600 + 5 * 180
+SERVANT_SHELLS = 4 * 2 + (1 + 1 + 3 + 6) + 5 * (3 + 1)
 G3_8_MARGIN = 1.35
 SHELLS_GIVEN = {2008: 4, 2049: 20, 21003: 8}
 ROUNDS_GIVEN = {2007: 10, 2048: 50, 21004: 35}
 ROCKETS_GIVEN = {2010: 1, 2046: 5, 21005: 2}
 CELLS_GIVEN = {2047: 20, 17: 100, 21006: 40}
+AKM_ROUNDS_GIVEN = {21020: 30, 21008: 30}   # a magazine; the rifle comes with one
+AKM_AVERAGE = 12                             # 6 x random(1,3) a round (BALANCE slot 4b)
+AKM_ROUNDS_PER_SHELL = 80 / AKM_AVERAGE      # an IZh barrel's 80
 ROUNDS_PER_SHELL = 10
 SHELLS_PER_ROCKET = 2
 SHELLS_PER_CELL = 0.25
@@ -123,9 +140,13 @@ def _packed(name: str) -> bool:
 
 
 def _class_facts(name: str) -> dict:
+    """RADIUS, HEIGHT, HEALTH and FACTION of a bestiary class, from its file:
+    the FIRST constant of each (the boss's file also declares a quake's and a
+    stomp's radius further down)."""
     text = (MONSTER_ZS / CLASS_FILES[name]).read_text(encoding="utf-8")
-    facts = {k: int(v) for k, v in
-             re.findall(r"const\s+SD_\w+?_(RADIUS|HEIGHT|HEALTH)\s*=\s*(\d+)", text)}
+    facts = {}
+    for k, v in re.findall(r"const\s+SD_\w+?_(RADIUS|HEIGHT|HEALTH)\s*=\s*(\d+)", text):
+        facts.setdefault(k, int(v))
     faction = re.search(r"SD_Monster\.Faction\s+SD_FACTION_(\w+)", text)
     if faction:
         facts["FACTION"] = faction.group(1)
@@ -891,9 +912,41 @@ class Map09Test(unittest.TestCase):
         him and its terraces and floor are open."""
         m = self.m
         height = self.body[m.MONSTER_KINDS[m.BOSS_KIND]][1]
-        self.assertGreater(m.CRATER_SKY + m.CRATER_FLOOR, 3 * height)
+        self.assertGreater(m.CRATER_SKY - m.CRATER_FLOOR, 3 * height)
         x1, y1, x2, y2 = m.CRATER
         self.assertGreaterEqual(min(x2 - x1, y2 - y1), 2048)
+
+    # The Consortium calls its servants from behind it (its design, 4.4): 144
+    # behind and 80 to either side, then straight behind, then 120 to its
+    # right and left, then in front: (behind, to its right).
+    SERVANT_SPOTS = ((144, 80), (144, -80), (144, 0))
+    SERVANT_KINDS = ("rifleman", "trooper", "hound", "doughboy")
+
+    def test_the_portal_is_at_the_bosss_back(self):
+        """The boss is the Consortium (D116), facing the red gate with the
+        portal behind it: its first servant spots fall between it and the
+        portal's base, on the crater's floor, with room for each servant."""
+        m = self.m
+        self.assertEqual("SD_Consortium", m.MONSTER_CLASSES[m.MONSTER_KINDS[m.BOSS_KIND]])
+        bx, by = m.MAP09_BOSS_SPOT
+        fx = round(math.cos(math.radians(m.BOSS_ANGLE)))
+        fy = round(math.sin(math.radians(m.BOSS_ANGLE)))
+        px1, py1, px2, py2 = m.PORTAL_BASE
+        centre = ((px1 + px2) / 2, (py1 + py2) / 2)
+        self.assertLess((centre[0] - bx) * fx + (centre[1] - by) * fy, 0, "the portal is behind it")
+        self.assertEqual(m.CRATER_CENTRE[0], bx, "on the portal's axis")
+        floor = self.plan["z8_floor"]
+        servants = [m.MONSTER_KINDS[k] for k in self.SERVANT_KINDS]
+        radius = max(self.body[e][0] for e in servants)
+        height = max(self.body[e][1] for e in servants)
+        sec = self.sectors[floor]
+        self.assertGreaterEqual(sec["heightceiling"] - sec["heightfloor"], height)
+        for behind, right in self.SERVANT_SPOTS:
+            # forward is (fx, fy), its right (fy, -fx)
+            x, y = bx - fx * behind + fy * right, by - fy * behind - fx * right
+            self.assertTrue(px1 <= x <= px2, f"servant spot ({x}, {y}) not before the portal")
+            under = {self.sector_at(x + dx, y + dy) for dx in (-radius, radius) for dy in (-radius, radius)}
+            self.assertEqual({floor}, under, f"servant spot ({x}, {y})")
 
     def test_the_red_key_springs_the_works_closets(self):
         m = self.m
@@ -1070,6 +1123,7 @@ class Map09Test(unittest.TestCase):
     def test_the_weapons_are_on_every_skill_on_the_route_in_order(self):
         m = self.m
         for ednum, zone, stage in ((m.ED_IZH, "z1_halt", 0), (m.ED_PPSH, "z3_izba_a", 0),
+                                   (m.ED_AKM, "z3_izba_a", 0),
                                    (m.ED_RPG7, "z4_forest", 1), (m.ED_ROKS3, "z5_edge", 1)):
             found = self.things_of({ednum})
             self.assertEqual(1, len(found), ednum)
@@ -1089,8 +1143,24 @@ class Map09Test(unittest.TestCase):
             self.assertGreaterEqual(n[2], n[3], kind)
             self.assertGreaterEqual(n[3], n[4], kind)
 
+    def boss_number(self):
+        return self.m.MONSTER_KINDS[self.m.BOSS_KIND]
+
     def ammo_needed(self, skill):
-        return sum(SHELLS_TO_KILL[self.m.MONSTER_CLASSES[t["type"]]] for t in self.on(skill, self.monsters()))
+        """In shells: every monster on the skill, and the boss's servants."""
+        return SERVANT_SHELLS + sum(SHELLS_TO_KILL[self.m.MONSTER_CLASSES[t["type"]]]
+                                    for t in self.on(skill, self.monsters()))
+
+    def hit_points_of(self, t):
+        """A thing's hit points; the boss's carry its servants'."""
+        extra = SERVANT_HIT_POINTS if t["type"] == self.boss_number() else 0
+        return self.hit_points.get(t["type"], 0) + extra
+
+    @staticmethod
+    def damage_of(t):
+        return (SHELLS_GIVEN.get(t["type"], 0) * IZH_AVERAGE + ROUNDS_GIVEN.get(t["type"], 0) * PPSH_AVERAGE
+                + AKM_ROUNDS_GIVEN.get(t["type"], 0) * AKM_AVERAGE
+                + ROCKETS_GIVEN.get(t["type"], 0) * RPG_AVERAGE + CELLS_GIVEN.get(t["type"], 0) * ROKS_AVERAGE)
 
     def on_route(self, things):
         off = self.named(*self.m.SECRET_ZONES)
@@ -1099,6 +1169,7 @@ class Map09Test(unittest.TestCase):
     def ammo_placed(self, skill, heavy=True):
         placed = self.on_route(self.on(skill, self.things))
         return sum(SHELLS_GIVEN.get(t["type"], 0) + ROUNDS_GIVEN.get(t["type"], 0) / ROUNDS_PER_SHELL
+                   + AKM_ROUNDS_GIVEN.get(t["type"], 0) / AKM_ROUNDS_PER_SHELL
                    + heavy * (ROCKETS_GIVEN.get(t["type"], 0) * SHELLS_PER_ROCKET
                               + CELLS_GIVEN.get(t["type"], 0) * SHELLS_PER_CELL) for t in placed)
 
@@ -1123,18 +1194,66 @@ class Map09Test(unittest.TestCase):
             for stage, (_opened, reach, _held) in enumerate(self.rounds):
                 here = [t for t in self.on_route(self.on(skill, self.things))
                         if self.sector_at(t["x"], t["y"]) in reach - seen]
-                hp_so_far += sum(self.hit_points.get(t["type"], 0) for t in here)
-                damage += sum(SHELLS_GIVEN.get(t["type"], 0) * IZH_AVERAGE
-                              + ROUNDS_GIVEN.get(t["type"], 0) * PPSH_AVERAGE
-                              + ROCKETS_GIVEN.get(t["type"], 0) * RPG_AVERAGE
-                              + CELLS_GIVEN.get(t["type"], 0) * ROKS_AVERAGE for t in here)
+                hp_so_far += sum(self.hit_points_of(t) for t in here)
+                damage += sum(self.damage_of(t) for t in here)
                 self.assertGreaterEqual(damage, G3_8_MARGIN * hp_so_far, f"skill {skill}, stage {stage}")
                 seen = reach
+
+    def arena(self):
+        return {i for name, i in self.plan.items() if name.startswith(("z7_", "z8_"))}
+
+    def test_the_crater_alone_pays_for_the_boss(self):
+        """D116: the arena's stock (the rim, the red gate's porch, the
+        terraces) is at least the Consortium's 9000 HP and its servants on
+        every skill, a magazine among it, and the boss is never left to the
+        shotgun: the rockets and fuel there alone are a third of its bill."""
+        m = self.m
+        boss = self.hit_points_of({"type": self.boss_number()})
+        for skill in SKILLS:
+            here = [t for t in self.on(skill, self.things) if self.sector_at(t["x"], t["y"]) in self.arena()]
+            total = sum(self.damage_of(t) for t in here)
+            heavy = sum(ROCKETS_GIVEN.get(t["type"], 0) * RPG_AVERAGE
+                        + CELLS_GIVEN.get(t["type"], 0) * ROKS_AVERAGE for t in here)
+            self.assertGreaterEqual(total, boss, f"skill {skill}: {total} for {boss}")
+            self.assertGreaterEqual(3 * heavy, boss, f"skill {skill}: {heavy} in rockets and fuel")
+            self.assertTrue(any(t["type"] == m.ED_AKM_MAG for t in here), f"skill {skill}: no magazine")
+
+    def test_the_gunners_three_four_five_by_skill_by_cover(self):
+        """D116: the Legion's machine-gunners, 3 / 4 / 5 on skills 2 / 3 / 4,
+        never in a closet, each with something to stand behind within 128
+        (a prop, a wall or a step)."""
+        m = self.m
+        gunners = self.things_of({m.ED_GUNNER})
+        self.assertEqual({2: 3, 3: 4, 4: 5}, {s: len(self.on(s, gunners)) for s in SKILLS})
+        for t in gunners:
+            here = self.sector_at(t["x"], t["y"])
+            zone = self.zone_of[here]
+            self.assertFalse(zone.startswith(m.CLOSET_PREFIX), zone)
+            near = {self.sector_at(t["x"] + dx, t["y"] + dy)
+                    for dx in range(-128, 129, 32) for dy in range(-128, 129, 32)}
+            stepped = any(self.sectors[s]["heightfloor"] != self.sectors[here]["heightfloor"]
+                          for s in near if s is not None)
+            self.assertTrue(None in near or near & self.unwalkable or stepped,
+                            f"gunner at ({t['x']}, {t['y']}) in {zone}: nothing to stand behind")
+
+    def test_the_akm_magazines_four_three_two_and_the_arenas(self):
+        """D116: on the route before the crater, AKM magazines 4 / 3 / 2 on
+        skills 2 / 3 / 4 (the arena's are on top); the rifle beside the PPSh."""
+        m = self.m
+        mags = [t for t in self.things_of({m.ED_AKM_MAG})
+                if self.sector_at(t["x"], t["y"]) not in self.arena()]
+        self.assertEqual({2: 4, 3: 3, 4: 2}, {s: len(self.on(s, mags)) for s in SKILLS})
+        akm = self.things_of({m.ED_AKM})[0]
+        ppsh = self.things_of({m.ED_PPSH})[0]
+        self.assertEqual(self.sector_at(ppsh["x"], ppsh["y"]), self.sector_at(akm["x"], akm["y"]))
 
     def test_health_and_armour_on_skill_4(self):
         m = self.m
         found = Counter(t["type"] for t in self.on_route(self.on(4, self.things)))
-        self.assertGreaterEqual(found[m.ED_STIMPACK] + found[m.ED_MEDIKIT], 14)
+        self.assertGreaterEqual(found[m.ED_STIMPACK] + found[m.ED_MEDIKIT], 18)
+        arena = Counter(t["type"] for t in self.on(4, self.things)
+                        if self.sector_at(t["x"], t["y"]) in self.arena())
+        self.assertGreaterEqual(arena[m.ED_STIMPACK] + arena[m.ED_MEDIKIT], 8, "a long fight")
         self.assertGreaterEqual(found[m.ED_ARMOR_BONUS], 6)
         self.assertEqual(1, found[m.ED_GREEN_ARMOR])
         self.assertEqual(1, found[m.ED_BLUE_ARMOR])

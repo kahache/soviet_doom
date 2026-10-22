@@ -77,18 +77,26 @@ CLASS_FILES = {
     "SD_Doughboy": "doughboy.zs",
     "SD_Panzermensch": "panzermensch.zs",
     "SD_PanzermenschSchwer": "panzermensch_schwer.zs",
+    "SD_LegionGunner": "legion_gunner.zs",
+    "SD_LibertyColossus": "liberty_colossus.zs",
 }
 CLASS_PARENT = {"SD_PanzermenschSchwer": "SD_Panzermensch"}
 # G3-8 as MAP01-MAP05 measure it: each kill in IZh shells, heavy weapons
 # converted at the ruler's ~62.5 HP a shell (MAP03's test, unchanged).
 SHELLS_TO_KILL = {"SD_ReichRifleman": 1, "SD_LegionTrooper": 1, "SD_Stormtrooper": 2,
                   "SD_ReichHound": 3, "SD_Doughboy": 6, "SD_Panzermensch": 8,
-                  "SD_PanzermenschSchwer": 16}
+                  "SD_PanzermenschSchwer": 16, "SD_LegionGunner": 2,
+                  "SD_LibertyColossus": 72}
+# D116: the gunner's 80 HP is two shells (one barrel kills him half the
+# time); the Liberty Colossus's 4500 is 72.
 G3_8_MARGIN = 1.35
 SHELLS_GIVEN = {2008: 4, 2049: 20, 21003: 8}
 ROUNDS_GIVEN = {2007: 10, 2048: 50, 21004: 35}
 ROCKETS_GIVEN = {2010: 1, 2046: 5, 21005: 2}
 CELLS_GIVEN = {2047: 20, 17: 100, 21006: 40}
+AKM_ROUNDS_GIVEN = {21020: 30, 21008: 30}   # a magazine; the rifle comes with one (D116)
+AKM_AVERAGE = 12                             # 6 x random(1,3) a round (BALANCE slot 4b)
+AKM_ROUNDS_PER_SHELL = 80 / AKM_AVERAGE      # an IZh barrel's 80
 ROUNDS_PER_SHELL = 10
 SHELLS_PER_ROCKET = 2
 SHELLS_PER_CELL = 0.25
@@ -111,10 +119,13 @@ def _packed(name: str) -> bool:
 
 
 def _class_facts(name: str) -> dict:
-    """RADIUS, HEIGHT, HEALTH and FACTION of a bestiary class, from its file."""
+    """RADIUS, HEIGHT, HEALTH and FACTION of a bestiary class, from its file:
+    the FIRST constant of each (the colossus's file also declares a stomp's
+    radius further down)."""
     text = (MONSTER_ZS / CLASS_FILES[name]).read_text(encoding="utf-8")
-    facts = {k: int(v) for k, v in
-             re.findall(r"const\s+SD_\w+?_(RADIUS|HEIGHT|HEALTH)\s*=\s*(\d+)", text)}
+    facts = {}
+    for k, v in re.findall(r"const\s+SD_\w+?_(RADIUS|HEIGHT|HEALTH)\s*=\s*(\d+)", text):
+        facts.setdefault(k, int(v))
     faction = re.search(r"SD_Monster\.Faction\s+SD_FACTION_(\w+)", text)
     if faction:
         facts["FACTION"] = faction.group(1)
@@ -1337,6 +1348,7 @@ class Map08Test(unittest.TestCase):
         secret."""
         m = self.m
         for ednum, zone, stage in ((m.ED_IZH, "z1_pier", 0), (m.ED_PPSH, "z6_hall", 0),
+                                   (m.ED_AKM, "z3_gallery", 0),
                                    (m.ED_RPG7, "z3_gallery", 0), (m.ED_ROKS3, "z5_store", 2)):
             found = self.things_of({ednum})
             self.assertEqual(1, len(found), ednum)
@@ -1377,6 +1389,7 @@ class Map08Test(unittest.TestCase):
         placed = self.on_route(self.on(skill, self.things))
         return sum(SHELLS_GIVEN.get(t["type"], 0)
                    + ROUNDS_GIVEN.get(t["type"], 0) / ROUNDS_PER_SHELL
+                   + AKM_ROUNDS_GIVEN.get(t["type"], 0) / AKM_ROUNDS_PER_SHELL
                    + ROCKETS_GIVEN.get(t["type"], 0) * SHELLS_PER_ROCKET
                    + CELLS_GIVEN.get(t["type"], 0) * SHELLS_PER_CELL for t in placed)
 
@@ -1406,10 +1419,52 @@ class Map08Test(unittest.TestCase):
                 hp_so_far += sum(self.hit_points.get(t["type"], 0) for t in here)
                 damage += sum(SHELLS_GIVEN.get(t["type"], 0) * IZH_AVERAGE
                               + ROUNDS_GIVEN.get(t["type"], 0) * PPSH_AVERAGE
+                              + AKM_ROUNDS_GIVEN.get(t["type"], 0) * AKM_AVERAGE
                               + ROCKETS_GIVEN.get(t["type"], 0) * RPG_AVERAGE
                               + CELLS_GIVEN.get(t["type"], 0) * ROKS_AVERAGE for t in here)
                 self.assertGreaterEqual(damage, G3_8_MARGIN * hp_so_far, f"skill {skill}, stage {stage}")
                 seen = reach
+
+    def test_the_gunners_three_four_five_by_skill_by_cover(self):
+        """D116: the Legion's machine-gunners, 3 / 4 / 5 on skills 2 / 3 / 4,
+        never in a closet, each with something to stand behind within 128
+        (a prop, a wall or a step)."""
+        m = self.m
+        gunners = self.things_of({m.ED_GUNNER})
+        self.assertEqual({2: 3, 3: 4, 4: 5}, {s: len(self.on(s, gunners)) for s in SKILLS})
+        for t in gunners:
+            here = self.sector_at(t["x"], t["y"])
+            zone = self.zone_of[here]
+            self.assertFalse(zone.startswith(m.CLOSET_PREFIX), zone)
+            near = {self.sector_at(t["x"] + dx, t["y"] + dy)
+                    for dx in range(-128, 129, 32) for dy in range(-128, 129, 32)}
+            stepped = any(self.sectors[s]["heightfloor"] != self.sectors[here]["heightfloor"]
+                          for s in near if s is not None)
+            self.assertTrue(None in near or near & self.unwalkable or stepped,
+                            f"gunner at ({t['x']}, {t['y']}) in {zone}: nothing to stand behind")
+
+    def test_the_akm_magazines_four_three_two(self):
+        """D116: AKM magazines 4 / 3 / 2 on skills 2 / 3 / 4, on the route."""
+        m = self.m
+        mags = self.on_route(self.things_of({m.ED_AKM_MAG}))
+        self.assertEqual({2: 4, 3: 3, 4: 2}, {s: len(self.on(s, mags)) for s in SKILLS})
+
+    def test_the_colossus_holds_the_bay_on_skills_3_and_4(self):
+        """D116: the Liberty Colossus as the bay's mini-boss, skills 3 and 4
+        only, under the bay's roof with room for his 110, and the bay and the
+        rail tunnel carry rockets and fuel for him: a third of his 4500 in
+        the two alone on skills 3 and 4 (he takes no blast)."""
+        m = self.m
+        colossi = self.things_of({m.ED_COLOSSUS})
+        self.assertEqual({2: 0, 3: 1, 4: 1}, {s: len(self.on(s, colossi)) for s in SKILLS})
+        bay = self.named("z10_bay", "z9_tunnel", "z9_rails", "z9_refuge_1", "z9_refuge_2", "z10_rails")
+        self.assertEqual({self.plan["z10_bay"]}, {self.sector_at(t["x"], t["y"]) for t in colossi})
+        hp = self.hit_points[m.ED_COLOSSUS]
+        for skill in (3, 4):
+            here = [t for t in self.on(skill, self.things) if self.sector_at(t["x"], t["y"]) in bay]
+            heavy = sum(ROCKETS_GIVEN.get(t["type"], 0) * RPG_AVERAGE
+                        + CELLS_GIVEN.get(t["type"], 0) * ROKS_AVERAGE for t in here)
+            self.assertGreaterEqual(3 * heavy, hp, f"skill {skill}: {heavy}")
 
     def test_health_and_armour_on_skill_4(self):
         m = self.m

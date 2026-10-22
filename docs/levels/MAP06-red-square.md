@@ -380,57 +380,96 @@ the exit (tested).
 
 ## 10. Enemies and resources by skill
 
-Placed with the bestiary's own numbers (21100–21107); the boss on every
-skill. Skill pairs nested (`skill_tier`), as MAP01–MAP03.
+Placed with the bestiary's own numbers (21100–21107, and since D116 21110
+the Legion gunner and 21111 the Liberty Colossus); the boss on every skill.
+Skill pairs nested (`skill_tier`), as MAP01–MAP03.
 
 | Zone | Skill 2 | Skill 3 | Skill 4 |
 |---|---|---|---|
 | Station | 3 riflemen | +2 riflemen | +1 rifleman, 1 stormtrooper |
 | Pavilion | 1 trooper | +1 trooper | +1 stormtrooper |
 | Nikolskaya | 3 riflemen, 1 stormtrooper, 1 hound | +2 riflemen, 1 stormtrooper | +1 rifleman, 1 stormtrooper, 1 hound |
-| GUM ground floor | 4 troopers, 1 stormtrooper | +2 troopers, 1 stormtrooper | +2 troopers, 1 Doughboy |
-| GUM line and upstairs | 2 troopers, 1 stormtrooper, 1 Doughboy | +1 trooper, 1 stormtrooper | +1 trooper, 1 stormtrooper, 1 Doughboy |
-| Red Square | 6 riflemen, 3 stormtroopers, 2 hounds, 1 Panzermensch, 1 Doughboy | +3 riflemen, 2 stormtroopers, 1 hound, 1 Doughboy | +3 riflemen, 2 stormtroopers, 1 hound, 1 Panzermensch, 1 heavy |
+| GUM ground floor | 3 troopers, **1 gunner**, 1 stormtrooper | +2 troopers, 1 stormtrooper | +2 troopers, 1 Doughboy |
+| GUM line and upstairs | 1 trooper, **1 gunner**, 1 stormtrooper, 1 Doughboy | +1 trooper, 1 stormtrooper | +1 trooper, 1 stormtrooper, 1 Doughboy |
+| Red Square | 6 riflemen, 3 stormtroopers, 2 hounds, 1 Panzermensch, 1 Doughboy | +3 riflemen, 2 stormtroopers, 1 hound, 1 Doughboy, **1 gunner** | +3 riflemen, 2 stormtroopers, 1 hound, 1 Panzermensch, 1 heavy, **1 gunner** |
 | Museum closets (red key) | 2 troopers | +1 trooper, 1 stormtrooper | +2 stormtroopers |
 | Vehicle park | 3 riflemen, 1 hound, 1 Panzermensch | +2 riflemen, 1 stormtrooper | +1 stormtrooper, 1 hound, 1 heavy |
 | Gate passage | — | 1 stormtrooper | — |
-| Courtyard | **the boss**, 2 stormtroopers, 1 Doughboy | +2 hounds | +1 Panzermensch, 1 heavy, 1 Doughboy |
-| **Total** | **42** | **68** | **96** |
+| Courtyard | **the boss** (the Liberty Colossus), 2 stormtroopers, 1 Doughboy | +2 hounds | +1 Panzermensch, 1 heavy, 1 Doughboy |
+| **Total** | **42** | **69** | **98** |
+
+**The Legion gunners** (`SD_LegionGunner`, 80 HP, bursts of hitscan, D116;
+`docs/engine/2026-10-22_P4_ep2-enemies.md` §2): 2 / 3 / 4 on skills 2 / 3 /
+4 where a burst has a long line and he has cover. On every skill two take a
+trooper's place: the GUM's arcade (3600, 2900), its whole length north and
+south, and the south gallery upstairs (4288, 1700), along the gallery. From
+skill 3 one more stands on Red Square behind the halted parade's west
+vehicle (2176, 2450), and on skill 4 another behind the east vehicle of the
+north line (2810, 1900): both added, both facing the GUM's doors across the
+square's width. Each drops 15 AKM rounds (not counted below). None sees the
+start (`tests/test_safe_starts.py`).
 
 **Safe start** (`tests/test_safe_starts.py`, 2026-10-22): on skills 2, 3 and 4 no monster sees the start zone (the start and a step round it) within 768 units; Doom's own sight test, run on the built map. The station hall's first rifleman moved from 4600, 4864 (616 off) to 4384, 4896, 830 down the hall: seen, but the first shot the player's. Same count, same zone.
 
-By class on skill 4: 29 riflemen, 17 troopers, 25 stormtroopers, 10 hounds,
-7 Doughboys, 4 Panzermenschen, 3 heavy Panzermenschen, the boss.
+By class on skill 4: 29 riflemen, 15 troopers, 4 gunners, 25 stormtroopers,
+10 hounds, 7 Doughboys, 4 Panzermenschen, 3 heavy Panzermenschen, the boss.
 
 **Resources.** Pistol-start finishable: the IZh in the station hall, the
 PPSh in the GUM's north hall, the RPG-7 on the north gallery (before the
 square's Panzermensch), the ROKS-3 on the south stand's top row (before the
 slope's heavies), all on the route on every skill; the Hand Katyusha in S2.
-G3-8 (MAP03's ruler, in IZh shells; secrets not counted):
+No AKM: the rifle is MAP05's (`docs/engine/2026-10-22_P4_akm.md` §6); **AKM
+magazines** (`SD_AkmAmmo`, 21020, 30 rounds) 4 / 3 / 2 on skills 2 / 3 / 4,
+none in the courtyard (the boss is the RPG-7's): by the PPSh in the GUM's
+north hall and on the square on every skill, in the vehicle park up to
+skill 3, on the north gallery on skill 2.
 
-| Skill | Needed | Placed | Ratio | Shells and rounds alone |
+G3-8 (MAP03's ruler, in IZh shells; secrets not counted), **recounted for the
+colossus (D116)**: he costs 72 shells (4500 HP at the General's rate, 3000 for
+48), a gunner 2; AKM rounds at 80 / 12 a shell (avg 12 a round):
+
+| Skill | Needed | Placed | Ratio | Shells, rounds and AKM alone |
 |---|---|---|---|---|
-| 2 | 134 | 609.5 | 4.55 | 459.5 |
-| 3 | 179 | 571.5 | 3.19 | 421.5 |
-| 4 | 296 | 494.5 | 1.67 (≥ 1.35, < 3) | 359.5 (≥ 1.35 × all but the boss) |
+| 2 | 160 | 647.5 | 4.05 | 477.5 |
+| 3 | 207 | 605.0 | 2.92 | 435.0 |
+| 4 | 326 | 523.5 | 1.61 (≥ 1.35, < 3) | 368.5 (≥ 1.35 × all but the boss: 342.9) |
+
+**The last stretch alone** (the gate's passage and the courtyard, z8 and z9,
+in damage against the hit points met there, the boss included): with the
+General it was 9220 against 5780 on skill 4 (1.60); the colossus's 4500 made
+it 9220 against 7280 (**1.27, under G3-8's 1.35**), so **two more PG-7V boxes**
+went into the courtyard on every skill, one by the gate where he is met
+(1250, 1300) and one behind his dais for the player who circles him (640,
+1536): 10 rockets, 1350 at the RPG-7's average impact (`+NORADIUSDMG`: the
+impact only). Now 10930 / 5020 (2.18), 10930 / 5380 (2.03) and 10570 / 7280
+(**1.45**) on skills 2 / 3 / 4; in the passage and the courtyard, 30 PG-7V on
+every skill (34 direct hits kill him, BALANCE §7), the ROKS-3's 140-160 fuel
+and 40 shells besides (`test_the_final_stretch_pays_for_the_colossus`).
 
 Also tested at every stage of the route. Health on skill 4: 6 stimpacks, 6
 medikits, 9 health bonuses; 6 armour bonuses (two at each lock), the flak
 vest in the GUM's west upper room, the heavy vest in the gate's passage,
 before the boss. Skills 3 and 2 add stimpacks, medikits and ammunition.
 
-## 11. The boss (stand-in)
+## 11. The boss: the Liberty Colossus (D116)
 
-Episode 2's boss is a new Liberty Legion enemy that does not exist yet
-(D104). Until it does, **the General** (MAP03's boss, `SD_General`, 21106,
-3000 HP) stands in, at the named constant **`MAP06_BOSS_SPOT = (960, 1536)`**
-on the courtyard's dais, facing the gate (`BOSS_ANGLE = 0`), on every skill.
+Episode 2's boss is **the Liberty Colossus** (`SD_LibertyColossus`, 21111,
+4500 HP, radius 44, height 110, `+BOSS +NORADIUSDMG`;
+`docs/engine/2026-10-22_P4_ep2-enemies.md` §3), at the named constant
+**`MAP06_BOSS_SPOT = (960, 1536)`** on the courtyard's dais, facing the gate
+(`BOSS_ANGLE = 0`), on every skill. **The General** (MAP03's boss,
+`SD_General`, 3000 HP) stood in until D116 and is gone from the map.
 
-- **To swap him:** set `BOSS_KIND` in `map.py` to the new enemy's kind and
-  add it to `MONSTER_KINDS` / `MONSTER_CLASSES` (and to `CLASS_FILES` in the
-  test). The spot, the facing and the death special stay. The route reads
-  the class from the map and refuses to build if the helper cannot hurt it
-  (add it to `COUNT_CLASSES` in `tools/route.py`).
+- **The swap (2026-10-22):** `BOSS_KIND = "colossus"`, the class in
+  `MONSTER_KINDS` / `MONSTER_CLASSES` and the test's `CLASS_FILES`; the spot,
+  the facing and the death special unchanged. The route reads the class
+  from the map (it is in `COUNT_CLASSES`) and hurts him past his health
+  (`BOSS_HURT` 100000); `tools/route.py` needed no edit.
+- **He fits:** the dais's top (`z9_dais_2`, 128 × 128) holds his 88-wide body
+  with 20 to spare a side, the courtyard's sky (512) is over four times his
+  height, and the gate's passage (128 × 128) lets him follow the player out
+  (tested: `test_every_monster_has_room_for_its_body`,
+  `test_the_courtyard_is_his_size`, `test_the_boss_is_the_liberty_colossus`).
 - **His death opens the exit**, MAP03 v1.1's mechanism (D68): his thing
   carries `special = 11` (`Door_Open`), `arg0 = 12`, `arg1 = 16`; no line
   carries tag 12, so pressing the gate does nothing (tested). GZDoom runs a
@@ -443,8 +482,9 @@ on the courtyard's dais, facing the gate (`BOSS_ANGLE = 0`), on every skill.
   engine, the exit would be unreachable. MAP03's stores use the same
   mechanism and it is still NOT VERIFIED in play (MAP03 §16.5 V4). Check E3
   (§12) settles it; the belt-and-braces fix is the mod-engineer's: a MAPINFO
-  `SpecialAction = "SD_General", "Door_Open", 12, 16` in MAP06's block, which
-  opens the same tag when the last General dies (§13). With `-nomonsters`
+  `SpecialAction = "SD_LibertyColossus", "Door_Open", 12, 16` in MAP06's
+  block, which opens the same tag when the last colossus dies (§13; his
+  `+BOSSDEATH` and final `A_BossDeath` allow it). With `-nomonsters`
   the exit cannot open, as on Doom's boss maps.
 
 ## 12. Engine elements used, and the PM's engine checklist (D26)
@@ -518,9 +558,9 @@ Not this role's files. What the map needs:
   (and `[ca]` «Plaça Roja»), episode 2's ending cluster (7);
 - `par = 420` (level-designer's estimate for a player who knows the route);
 - `sky1 = "SDSKY2"`, Moscow at night (in MAPINFO since 2026-10-22, D113);
-- recommended: `SpecialAction = "SD_General", "Door_Open", 12, 16` as the
-  fallback for the boss's death special (§11), changed to the new boss's
-  class when it replaces him;
+- recommended: `SpecialAction = "SD_LibertyColossus", "Door_Open", 12, 16`
+  as the fallback for the boss's death special (§11; the General's line
+  until D116);
 - music: the episode's, sound-designer's.
 
 ## 14. The automatic route: `redsquare-critical`
@@ -559,8 +599,8 @@ a 128 ceiling left a 64-high space a Panzermensch fits and the heavy one does
 not (`test_panzermensch_sprites`); the shops are now 160 high and the crates
 stand clear of the doorways. Two cross-map tests still name the maps a class
 may stand in and do not know episode 2 yet (`test_doughboy_sprites`,
-`test_general_sprites`: the General stands in MAP06 by design, §11); their
-owners update the expected sets.
+`test_general_sprites`: the General stood in MAP06 by design until D116,
+§11); their owners update the expected sets.
 
 ## 16b. v1.1 build record (2026-10-22): the Moscow set
 
@@ -635,3 +675,26 @@ brick, the open air); `tests/test_map06_route.py` 12 OK;
 `check_pk3` PASS (0 errors, 0 warnings); the test stage's only failures are
 outside this map (the redrawn enemy sprites' byte-identity and blood tests,
 `test_gen_shells`' docs). The engine pass is the PM's: §12 E9.
+
+## 16d. D116 (2026-10-22): the colossus, the Legion gunners, the AKM's magazines
+
+- **The boss:** `BOSS_KIND = "colossus"`, `SD_LibertyColossus` (21111) on
+  `MAP06_BOSS_SPOT`, the General gone (§11). His death special unchanged
+  (`Door_Open (12, 16)` on his thing); he fits the dais and the courtyard
+  (tested). `tools/route.py` unchanged: `redsquare-critical` reads the class
+  from `BOSS_KIND` and hurts him (`netevent sdhurt 11`, his index in
+  `COUNT_CLASSES`).
+- **The gunners** 2 / 3 / 4 (§10): two troopers became gunners (the arcade,
+  the south gallery), two gunners added on the square (skill 3, skill 4):
+  totals 42 / 69 / 98.
+- **AKM magazines** 4 / 3 / 2, none in the courtyard; no rifle (MAP05's).
+- **Ammunition recounted** for 4500 HP (§10): two PG-7V boxes added in the
+  courtyard on every skill; the last stretch from 1.27 to 1.45 on skill 4.
+- **Tests:** `tests/test_map06_red_square.py` (new: the boss is the
+  colossus, the last stretch pays for him, the gunners and the magazines;
+  `_class_facts` now keeps a class's first body constants, since the
+  colossus's file also has `SD_STOMP_RADIUS` and `SD_STOMP_QUAKE_RADIUS`),
+  `tests/test_map06_route.py` (the boss's health from his own file, the
+  hurt index his), `tests/test_safe_starts.py` green.
+- **Engine pass owed (D26, the PM):** E3 with the colossus (his death opens
+  tag 12); `redsquare-critical` on skills 2-4.

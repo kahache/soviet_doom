@@ -164,10 +164,14 @@ class RedSquareRouteTest(tr.BuiltMapRoute, unittest.TestCase):
         self.assertEqual("Z9", route.zone_family(md.name_of(here)))
         self.assertEqual("Z9", route.family_at(md, m.MAP06_BOSS_SPOT))
 
+    BOSS_FILES = {"SD_General": "general.zs", "SD_LibertyColossus": "liberty_colossus.zs"}
+
     def hp(self, cls):
-        text = (PROJECT_ROOT / "src" / "zscript" / "monsters" / "general.zs").read_text(encoding="utf-8")
-        self.assertEqual("SD_General", cls, "a new boss: read his health from his own file")
-        return int(re.search(r"SD_GENERAL_HEALTH\s*=\s*(\d+)", text).group(1))
+        """The boss's health from his own file (the General stood in until
+        D116; the Liberty Colossus is episode 2's boss)."""
+        self.assertIn(cls, self.BOSS_FILES, "a new boss: read his health from his own file")
+        text = (PROJECT_ROOT / "src" / "zscript" / "monsters" / self.BOSS_FILES[cls]).read_text(encoding="utf-8")
+        return int(re.search(r"const\s+SD_\w+?_HEALTH\s*=\s*(\d+)", text).group(1))
 
     def test_a_boss_the_helper_cannot_hurt_has_no_route(self):
         md = route.MapData(REDSQUARE)
@@ -219,7 +223,9 @@ class RedSquareRouteTest(tr.BuiltMapRoute, unittest.TestCase):
         m = self.m
         for tag in (m.TAG_BLUE_DOOR, m.TAG_YELLOW_DOOR, m.TAG_RED_DOOR, m.TAG_AMBUSH, m.TAG_BOSS_EXIT):
             self.assertIn(f"netevent sdtag {tag}", out)
-        self.assertIn(f"netevent sdhurt {route.COUNT_CLASSES.index('SD_General')} {route.BOSS_HURT}", out)
+        boss_class = m.MONSTER_CLASSES[m.MONSTER_KINDS[m.BOSS_KIND]]
+        self.assertEqual("SD_LibertyColossus", boss_class, "D116: episode 2's own boss")
+        self.assertIn(f"netevent sdhurt {route.COUNT_CLASSES.index(boss_class)} {route.BOSS_HURT}", out)
         self.assertNotIn("sdexit", out)
         self.assertNotRegex(out, r"(?m)^\s+give\b")
 

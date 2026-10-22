@@ -462,6 +462,8 @@ ED_HOUND = 21103
 ED_DOUGHBOY = 21104
 ED_PANZERMENSCH = 21105
 ED_PANZER_HEAVY = 21107
+ED_GUNNER = 21110         # SD_LegionGunner, Legion (D116): the heavy machine-gunner
+ED_COLOSSUS = 21111       # SD_LibertyColossus, Legion (D116): episode 2's boss, the bay's mini-boss here
 MONSTER_KINDS = {
     "rifleman": ED_RIFLEMAN,
     "trooper": ED_TROOPER,
@@ -470,6 +472,8 @@ MONSTER_KINDS = {
     "doughboy": ED_DOUGHBOY,
     "panzermensch": ED_PANZERMENSCH,
     "heavy": ED_PANZER_HEAVY,
+    "gunner": ED_GUNNER,
+    "colossus": ED_COLOSSUS,
 }
 MONSTER_CLASSES = {
     ED_RIFLEMAN: "SD_ReichRifleman",
@@ -479,9 +483,11 @@ MONSTER_CLASSES = {
     ED_DOUGHBOY: "SD_Doughboy",
     ED_PANZERMENSCH: "SD_Panzermensch",
     ED_PANZER_HEAVY: "SD_PanzermenschSchwer",
+    ED_GUNNER: "SD_LegionGunner",
+    ED_COLOSSUS: "SD_LibertyColossus",
 }
 REICH = ("rifleman", "hound", "panzermensch", "heavy")
-LEGION = ("trooper", "doughboy")
+LEGION = ("trooper", "doughboy", "gunner", "colossus")
 # Where each faction stands (D35: both on the map). The Legion came by sea:
 # it holds the pier, the yard, the dock, the boat and the barracks it made
 # its quarters. The Reich came by rail: it holds the workshops, the rock
@@ -495,7 +501,8 @@ ED_IZH = 21003
 ED_PPSH = 21004
 ED_RPG7 = 21005
 ED_ROKS3 = 21006
-ROUTE_WEAPONS = (ED_IZH, ED_PPSH, ED_RPG7, ED_ROKS3)
+ED_AKM = 21008            # slot 4's second weapon (D116): by the RPG-7 on the gallery
+ROUTE_WEAPONS = (ED_IZH, ED_PPSH, ED_AKM, ED_RPG7, ED_ROKS3)
 ED_HAND_KATYUSHA = 21007  # in S3 only, the crane's cab
 ED_CLIP = 2007
 ED_CLIP_BOX = 2048
@@ -504,6 +511,8 @@ ED_SHELL_BOX = 2049
 ED_ROCKET = 2010
 ED_ROCKET_BOX = 2046
 ED_CELL = 2047
+ED_CELL_PACK = 17
+ED_AKM_MAG = 21020        # SD_AkmAmmo: one 30-round 7.62x39 magazine (ADR 011)
 ED_STIMPACK = 2011
 ED_MEDIKIT = 2012
 ED_HEALTH_BONUS = 2014
@@ -512,7 +521,7 @@ ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
 
 # Design section 9: monsters per skill (MAP05's size, a step above it).
-ENEMY_TOTALS = {2: 33, 3: 50, 4: 64}
+ENEMY_TOTALS = {2: 36, 3: 55, 4: 70}
 
 # Every monster: (zone, kind, x, y, facing, lowest skill tier). Facing: 0
 # east, 90 north, 180 west, 270 south.
@@ -528,6 +537,12 @@ MONSTERS = (
     ("z2_yard", "doughboy", 2176, 1376, 180, 3),
     ("z2_yard", "stormtrooper", 1600, 1408, 270, 4),
     ("z2_yard", "trooper", 2240, 640, 180, 4),
+    # The Legion's machine-gunners (D116): three, four, five by skill, each
+    # by cover with a long line. In the yard's north-east corner behind the
+    # cargo, the yard's length west to the pier; on skill 4 another in the
+    # middle crates' lee (both 1200+ from the start: tests/test_safe_starts.py).
+    ("z2_yard", "gunner", 2560, 1408, 180, 2),
+    ("z2_yard", "gunner", 1920, 880, 180, 4),
     # The barracks: the Legion's quarters.
     ("z6_hall", "trooper", 2880, 960, 180, 2),
     ("z6_mess", "trooper", 3200, 736, 90, 2),
@@ -539,8 +554,11 @@ MONSTERS = (
     ("z3_north_quay", "trooper", 2048, 2272, 270, 2),
     ("z3_north_quay", "stormtrooper", 2816, 2240, 270, 2),
     ("z3_gallery", "trooper", 2944, 1648, 90, 3),
+    # Up on the crane gallery behind its railing, the south quay to D1.
+    ("z3_gallery", "gunner", 2880, 1648, 180, 2),
     ("z4_deck", "doughboy", 2816, 1984, 180, 2),
     ("z4_deck", "trooper", 2048, 1984, 180, 4),
+    ("z4_deck", "gunner", 2592, 1984, 180, 3),      # in the fin's lee, the deck aft to the gangway
     # Inside the boat: close quarters.
     ("z4_control", "trooper", 3648, 1920, 180, 2),
     ("z4_control", "stormtrooper", 3520, 2064, 0, 2),
@@ -594,6 +612,12 @@ MONSTERS = (
     ("z10_bay", "doughboy", 3904, 480, 0, 4),
     ("z10_bay", "stormtrooper", 4416, 96, 180, 4),
     ("z10_bay", "rifleman", 4224, 96, 90, 4),
+    # On the track at the tunnel's mouth, the goods wagon at his back: the
+    # rail tunnel's 1000 units down his sights.
+    ("z10_rails", "gunner", 3776, 352, 180, 2),
+    # The bay's mini-boss on skills 3 and 4 (D116): the Liberty Colossus,
+    # episode 2's boss, guarding the cargo by the locomotive.
+    ("z10_bay", "colossus", 4352, 512, 180, 3),
 )
 
 # Consumables scale DOWN with skill: (zone, editor number, x, y, highest
@@ -603,6 +627,7 @@ ITEMS = (
     ("z1_pier", ED_IZH, 736, 832, 4),
     ("z6_hall", ED_PPSH, 2752, 960, 4),
     ("z3_gallery", ED_RPG7, 3136, 1648, 4),
+    ("z3_gallery", ED_AKM, 2752, 1648, 4),     # the AKM (D116), at the head of the gallery's stair
     ("z5_store", ED_ROKS3, 2752, 2640, 4),
     # Shell boxes (20).
     ("z2_yard", ED_SHELL_BOX, 1152, 1408, 4),
@@ -646,6 +671,18 @@ ITEMS = (
     ("z9_refuge_1", ED_ROCKET, 3104, 464, 4),
     ("z5_workshop", ED_ROCKET, 1536, 2752 - 64, 4),
     ("z10_bay", ED_ROCKET, 3776, 448, 3),
+    # The colossus's (D116): rockets in the tunnel, fuel and a medikit in the bay.
+    ("z9_rails", ED_ROCKET_BOX, 3456, 352, 4),
+    ("z9_rails", ED_SHELL_BOX, 2880, 352, 4),
+    ("z9_rails", ED_SHELL_BOX, 3040, 352, 4),
+    ("z10_bay", ED_SHELL_BOX, 3968, 96, 4),
+    ("z10_bay", ED_CELL_PACK, 4032, 704, 4),
+    ("z10_bay", ED_MEDIKIT, 4032, 448, 4),
+    # AKM magazines (D116): 2 / 3 / 4 on skills 4 / 3 / 2.
+    ("z6_mess", ED_AKM_MAG, 3328, 736, 4),
+    ("z8_hall", ED_AKM_MAG, 4416, 1792, 4),
+    ("z5_store", ED_AKM_MAG, 2688, 2640, 3),
+    ("z2_yard", ED_AKM_MAG, 1408, 1120, 2),
     # Fuel for the ROKS-3.
     ("z5_store", ED_CELL, 2816, 2640, 4),
     ("z8_hall", ED_CELL, 4416, 1920, 4),

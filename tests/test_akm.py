@@ -21,7 +21,7 @@ deleted. Design and balance: docs/engine/2026-10-22_P4_akm.md. Checked:
              over the PPSh-41's lumps, the shot pitched by $pitchset; five
              ids in three languages; the balance (4 tics, avg 12, 105 DPS
              between the PPSh-41 and the RPG-7, tighter spread); placed in
-             no map yet
+             the P4 maps only (MAP05 the rifle, MAP06 magazines)
   doc        the design document, ADR 011 and the contracts name it
 
 Stdlib only.
@@ -420,13 +420,19 @@ class ModTests(unittest.TestCase):
         self.assertIn("player.refire", self.akm)
         self.assertIn("A_ReFire", "\n".join(label_block(self.akm, "Fire")))
 
-    def test_placed_in_no_map_yet(self):
+    # D116, placed (level-designer, 2026-10-22; section 6 of the design):
+    # the rifle and its magazines in the P4 maps only, never in episode 1 or
+    # the range. MAP04 places neither (the gunners' drops only).
+    P4_MAPS = {"MAP05", "MAP06", "MAP07", "MAP08", "MAP09"}
+
+    def test_placed_only_in_the_p4_maps(self):
+        found = set()
         for p in (SRC / "maps").rglob("*.py"):
             text = p.read_text(encoding="utf-8")
-            for cls in NEW_CLASSES:
-                self.assertIsNone(re.search(rf"\b{cls}\b", text), f"{p} names {cls}")
-            for num in EXPECTED_EDNUMS:
-                self.assertIsNone(re.search(rf"\b{num}\b", text), f"{p} names {num}")
+            if any(re.search(rf"\b{num}\b", text) for num in EXPECTED_EDNUMS):
+                self.assertIn(p.parent.name, self.P4_MAPS, f"{p} names the AKM")
+                found.add(p.parent.name)
+        self.assertLessEqual({"MAP05", "MAP06"}, found)
 
 
 class DocTests(unittest.TestCase):

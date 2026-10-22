@@ -23,7 +23,8 @@ docs/engine/2026-10-22_P4_ep2-enemies.md. What is checked, and why:
              with its final lump named; five ids in three languages; the
              brief's numbers (gunner 80 HP, bursts of 4-6, pain under the
              trooper's, drops SD_AkmAmmo; colossus the General's health x 1.5
-             and his boss flags); placed in no map yet
+             and his boss flags); placed where the design says (the gunner
+             in MAP04-MAP06, the colossus MAP06's boss)
   doc        the design document and the contracts name them
 
 Stdlib only.
@@ -397,15 +398,30 @@ class ModTests(unittest.TestCase):
             self.assertIn(f'"{cls}"', self.colossus)
             self.assertIn('Obituary ""', self.blocks[cls][1])
 
-    def test_placed_in_no_map_yet(self):
-        """D116: level-designer places them later; nothing under src/maps/
-        names the classes or their editor numbers."""
+    # D116, placed (level-designer, 2026-10-22): both only in the P4 maps
+    # (episodes 2 and 3); the gunner must be in MAP04-MAP06 and the colossus
+    # is MAP06's boss (episode 3's maps may reuse him, e.g. MAP08's bay).
+    P4_MAPS = {"MAP04", "MAP05", "MAP06", "MAP07", "MAP08", "MAP09"}
+    PLACED_IN = {"SD_LegionGunner": P4_MAPS, "SD_LibertyColossus": P4_MAPS}
+    MUST_PLACE = {"SD_LegionGunner": {"MAP04", "MAP05", "MAP06"}, "SD_LibertyColossus": {"MAP06"}}
+
+    def test_placed_where_the_design_says(self):
+        """Episode 1's maps and the range stay as v1.0 shipped them; each new
+        class is named only by the maps that place it, by its class and its
+        editor number together (the map's MONSTER_CLASSES)."""
+        number = {cls: num for num, cls in EXPECTED_EDNUMS.items()}
+        found = {cls: set() for cls in REPLACES}
         for p in (SRC / "maps").rglob("*.py"):
             text = p.read_text(encoding="utf-8")
             for cls in REPLACES:
-                self.assertNotIn(cls, text, p)
-            for num in EXPECTED_EDNUMS:
-                self.assertIsNone(re.search(rf"\b{num}\b", text), f"{p} names {num}")
+                named = cls in text or re.search(rf"\b{number[cls]}\b", text)
+                if named:
+                    self.assertIn(p.parent.name, self.PLACED_IN[cls], f"{p} names {cls}")
+                    self.assertIn(cls, text, p)
+                    self.assertRegex(text, rf"\b{number[cls]}\b", p)
+                    found[cls].add(p.parent.name)
+        for cls, maps in self.MUST_PLACE.items():
+            self.assertLessEqual(maps, found[cls], cls)
 
 
 class DocTests(unittest.TestCase):

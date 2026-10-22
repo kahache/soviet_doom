@@ -1,4 +1,4 @@
-"""N9e (D83, D86, D91, D96, D107, D110): the approved enemy sounds, beds, voice
+"""N9e (D83, D86, D91, D96, D107, D110, D118): the approved enemy sounds, beds, voice
 takes and the hound's dogs, installed, and the two music lumps of D83/D86.
 
 What is pinned, and why:
@@ -8,13 +8,13 @@ What is pinned, and why:
              once its final click was lowered; SDLTRATK alt2; SDSTOPAI,
              SDSTODTH, SDPZRPAI alt1-3; the beds SDRRIPAI, SDLTRPAI,
              SDLTRDTH alt1-3); nothing rejected is installed (the D83 NO
-             drafts and beds, SDLTRATK alt1 and alt3); the 31 voice takes of
-             D91 (7), D96 (17) and D110 (7) ship on eleven of the twelve
-             voices, a $random group where a sound has several takes, and the
-             General's death keeps its Freedoom lump; D107's fifteen dog takes
+             drafts and beds, SDLTRATK alt1 and alt3); the 36 voice takes of
+             D91 (7), D96 (17), D110 (7) and D118 (5) ship on all twelve
+             voices, a $random group where a sound has several takes (the
+             General's death, D118, no longer plays Freedoom's DSCYBDTH); D107's fifteen dog takes
              replace D83's five synthetic hound sounds, three takes a sound,
              each sound a $random group, and SDHNDACT-SDHNDDTH no longer ship
-  files      assets/sounds/enemies/ holds exactly the 98 OGGs, each the file
+  files      assets/sounds/enemies/ holds exactly the 103 OGGs, each the file
              tools/audio/master_enemy_sfx.py installed (SHA-256 pinned),
              each a Vorbis stream
   sndinfo    every approved name resolves: a sound with one take to its
@@ -33,7 +33,7 @@ What is pinned, and why:
              Chatterbox (tools/release.py's ai_ships) and, for D96 and D110,
              its take and reference; kurt's CC-BY credit is in both in-game credits; the dog rows name their recordings, and the CC BY
              growls oblige congusbongus and juskiddink in every language
-  voices     (work/) each D96 and D110 take ships byte for byte as the OGG
+  voices     (work/) each D96, D110 and D118 take ships byte for byte as the OGG
              of the CEO's page, but SDGENSU1, which the codec pass re-renders
              byte-identically from its raw take, and SDLTRDT3 (L09 t04), whose
              raw take is cut before the blip the CEO heard at its end ("se
@@ -207,10 +207,24 @@ def d110_file(lump: str) -> Path:
     return D110_DIR / f"{stem}_ai_chatterbox_20261021_t{take:02d}.ogg"
 
 
+# D118: the five takes of the P2b round (work/audio/preview/voices_p2b_listening.html),
+# G04 redrafted after D110's all-NO: "OK t01, t07, t08, t05, t12", numbered in that
+# order; NO t10, t03, t04. All cloned from kurt's reference; all ship byte for byte.
+D118_DIR = PROJECT_ROOT / "work" / "audio" / "voice_takes" / "p2b"
+D118_TAKES = {f"SDGENDT{n}": ("G04_SDGENDTH", take, f"sd/mon/general/death/{n}")
+              for n, take in enumerate((1, 7, 8, 5, 12), 1)}
+D118_REJECTED = (10, 3, 4)
+
+
+def d118_file(lump: str) -> Path:
+    stem, take, _ = D118_TAKES[lump]
+    return D118_DIR / f"{stem}_ai_chatterbox_20261022_t{take:02d}.ogg"
+
+
 def voice_takes() -> dict[str, dict[str, str]]:
     """Every voice that ships a take: name the game asks for -> {member or itself: lump}."""
     out = {g: dict(m) for g, m in D91_VOICES.items()}
-    for lump, (_, _, name) in {**D96_TAKES, **D110_TAKES}.items():
+    for lump, (_, _, name) in {**D96_TAKES, **D110_TAKES, **D118_TAKES}.items():
         group = name.rsplit("/", 1)[0] if name[-1].isdigit() else name
         out.setdefault(group, {})[name] = lump
     return out
@@ -308,15 +322,16 @@ def zscript_text() -> str:
 # --- Contract ------------------------------------------------------------------------
 
 class ContractTests(unittest.TestCase):
-    def test_98_lumps_14_beds_31_voices_15_dogs_twenty_one_random_groups(self):
-        self.assertEqual(len(EXPECTED_LUMPS), 81 - 5 + 15 + 7)
-        self.assertEqual(len(VOICE_LUMPS), 7 + 17 + 7)
+    def test_103_lumps_14_beds_36_voices_15_dogs_twenty_two_random_groups(self):
+        self.assertEqual(len(EXPECTED_LUMPS), 81 - 5 + 15 + 7 + 5)
+        self.assertEqual(len(VOICE_LUMPS), 7 + 17 + 7 + 5)
         self.assertEqual(len(DOG_LUMPS), 15)
         self.assertEqual(sum(1 for g in EXPECTED if g.startswith("sd/bed/")), 8)
-        self.assertEqual(sum(1 for g, m in EXPECTED.items() if len(m) > 1), 13 + 5 + 3)
-        self.assertEqual(len(VOICE_TAKES), 11)
-        # D110: G04 all NO, redrafted; the General's death keeps DSCYBDTH
-        self.assertEqual(VOICES, {"sd/mon/general/death": "DSCYBDTH"})
+        self.assertEqual(sum(1 for g, m in EXPECTED.items() if len(m) > 1), 13 + 5 + 3 + 1)
+        # D118: twelve of the twelve voices are ours; none waits on a Freedoom lump
+        self.assertEqual(len(VOICE_TAKES), 12)
+        self.assertEqual(set(VOICE_TAKES), set(STAND_IN))
+        self.assertEqual(VOICES, {})
 
     def test_the_tool_installs_exactly_the_approved(self):
         voices = VOICE_LUMPS
@@ -365,7 +380,7 @@ class ContractTests(unittest.TestCase):
 # --- Files -------------------------------------------------------------------------------
 
 class FileTests(unittest.TestCase):
-    def test_exactly_the_98_oggs(self):
+    def test_exactly_the_103_oggs(self):
         self.assertEqual(sorted(p.name for p in ASSET_DIR.iterdir()),
                          sorted(f"{lump}.ogg" for lump in EXPECTED_LUMPS))
 
@@ -427,9 +442,12 @@ class SndinfoTests(unittest.TestCase):
                 self.assertTrue(m.startswith(f"{group}/"), m)
                 self.assertRegex(self.lines[m], r"^SD[A-Z]{5}[0-9]$")
 
-    def test_the_voices_keep_their_freedoom_lumps(self):
-        for logical, lump in VOICES.items():
-            self.assertEqual(self.lines.get(logical), lump, logical)
+    def test_no_voice_plays_a_freedoom_lump(self):
+        # D118: the General's death was the last voice on DSCYBDTH
+        for voice in STAND_IN:
+            lumps = [self.lines[m] for m in self.groups.get(voice, [voice])]
+            self.assertTrue(all(lp.startswith("SD") for lp in lumps), (voice, lumps))
+        self.assertNotIn("sd/mon/general/death", self.lines)
 
     def test_the_beds_are_parked(self):
         code = zscript_text()
@@ -453,7 +471,8 @@ class SndinfoTests(unittest.TestCase):
         for group, n in (("sd/mon/reichrifleman/active", 3), ("sd/mon/legiontrooper/sight", 4),
                          ("sd/mon/legiontrooper/pain", 2), ("sd/mon/general/summon", 2),
                          ("sd/mon/reichrifleman/pain", 2), ("sd/mon/legiontrooper/death", 3),
-                         ("sd/mon/general/pain", 2)):            # the last three D110's
+                         ("sd/mon/general/pain", 2),             # the last three D110's
+                         ("sd/mon/general/death", 5)):           # D118's
             self.assertEqual(self.groups[group], [f"{group}/{k}" for k in range(1, n + 1)])
         self.assertEqual(self.lines["sd/mon/reichrifleman/death"], "SDRRIDTH")
         self.assertEqual(self.lines["sd/mon/general/sight"], "SDGENSIT")
@@ -647,6 +666,22 @@ class DocumentTests(unittest.TestCase):
                     self.assertNotIn('credit "', licence)
                 self.assertEqual("tail cut" in row, lump in D110_TAIL_CUT)
 
+    def test_the_d118_rows_name_their_take_and_kurt(self):
+        text = LICENSES.read_text(encoding="utf-8")
+        for lump, (stem, take, _) in D118_TAKES.items():
+            row = next(ln for ln in text.splitlines() if ln.startswith(f"| `{lump}` |"))
+            with self.subTest(lump):
+                self.assertIn("(D118)", row)
+                self.assertIn(f"take {stem[:3]} t{take},", row)
+                self.assertIn("not distributed", row)
+                self.assertIn("voice_takes/p2b/AI-LOG.csv", row)
+                licence = row.split(" | ")[-1]
+                self.assertIn("kurt", licence)
+                self.assertIn("CC-BY 3.0", licence)
+                self.assertIn('credit "kurt"', licence)
+        for take in D118_REJECTED:
+            self.assertNotRegex(text, rf"take G04 t{take}\b")
+
     def test_the_dog_rows_name_their_recordings_and_licences(self):
         text = LICENSES.read_text(encoding="utf-8")
         self.assertNotRegex(text, r"(?m)^\| `SDHND(ACT|SIT|ATK|PAI|DTH)` \|")
@@ -711,7 +746,8 @@ class DocumentTests(unittest.TestCase):
         self.assertEqual({Path(p).stem for row, paths in check.coverage if "kurt" in row.required
                           for p in paths},
                          {lump for lump in D96_TAKES if d96_reference(lump) == "kurt"}
-                         | {lump for lump, ref in D110_REFERENCE.items() if ref == "kurt"})
+                         | {lump for lump, ref in D110_REFERENCE.items() if ref == "kurt"}
+                         | set(D118_TAKES))
         self.assertTrue(release.ai_ships(check).voices)
 
 
@@ -896,6 +932,30 @@ class D110VoiceIdentityTests(unittest.TestCase):
         self.assertAlmostEqual(alts.loud_a_db(gws.decode(ASSET_DIR / "SDLTRDT3.ogg")),
                                alts.loud_a_db(gws.decode(d110_file("SDLTRDT3"))), delta=0.1)
         self.assertTrue(0.25 <= (len(page) - len(shipped)) / 100 <= 0.35)
+
+
+@unittest.skipUnless(D118_DIR.is_dir(), "work/ not present (CI has no work/)")
+class D118VoiceIdentityTests(unittest.TestCase):
+    def test_each_approved_take_ships_as_the_pages_ogg(self):
+        """D118: the OGG the CEO heard ships byte for byte, all five."""
+        for lump in D118_TAKES:
+            with self.subTest(lump):
+                self.assertEqual((ASSET_DIR / f"{lump}.ogg").read_bytes(), d118_file(lump).read_bytes())
+
+    def test_no_rejected_take_ships(self):
+        shipped = {sha256(p.read_bytes()) for p in ASSET_DIR.glob("*.ogg")}
+        for take in D118_REJECTED:
+            rejected = D118_DIR / f"G04_SDGENDTH_ai_chatterbox_20261022_t{take:02d}.ogg"
+            if rejected.is_file():
+                self.assertNotIn(sha256(rejected.read_bytes()), shipped, take)
+
+    def test_the_tool_reads_the_same_files(self):
+        if mes is None:
+            self.skipTest("numpy is not installed")
+        for lump, (_, _, name) in D118_TAKES.items():
+            v = mes.VOICES_BY_LUMP[lump]
+            self.assertEqual((v.path, v.logical, v.decision, v.ref),
+                             (d118_file(lump), name, "D118", "DSCYBDTH"))
 
 
 # --- Takes: the re-render (slow) ----------------------------------------------------------------
