@@ -127,6 +127,51 @@ SLOGAN_SIZE = (256, 64)
 
 HALL_WALL = BRICK       # what the hall's walls (and the shutter from the hall) wear
 
+# --- The posters (CEO 2026-10-22: «que esos posters puedan aparecer en
+# cualquier nivel»; tests/test_posters.py, design section 17) --------------
+LENIN = "SDPOSTR1"      # 128x256 Lenin poster «ЛЕНИН ЖИВ»
+STALIN = "SDPOSTR3"     # 128x256 Stalin poster «СЛАВА СТАЛИНУ!» (D55)
+MURAL = "SDPOSTR2"      # 128x128 cosmonautics mural
+POSTER_WIDTH = 128
+POSTER_HEIGHT = 256     # Lenin, Stalin and (commissioned at the same size) Marx-Engels
+MURAL_HEIGHT = 128
+# The Marx-Engels poster SDPOSTR4 is in preparation and is not a lump yet.
+# Its slots are built and wear a Lenin or a Stalin; approving it is this line:
+MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
+# The assembly hall is 320 high: its two portraits hang at the back of
+# niches 16 deep and exactly POSTER_HEIGHT high, one either side of the red
+# door's portal in the hall's west wall, the wall a player faces from the
+# arch (the flags' and the gates' recess pattern). Symmetric about the
+# door's axis, y 1184, 96 clear of the portal band so the red leaf stays
+# the only red thing at the end of the hall (section 15.2).
+POSTER_NICHE_DEPTH = 16
+POSTER_NICHES = {
+    "z3_poster_s": (1600 - POSTER_NICHE_DEPTH, 768, 1600, 896),
+    "z3_poster_n": (1600 - POSTER_NICHE_DEPTH, 1472, 1600, 1600),
+}
+# Every picture: (name, texture, axis, coord, lo, hi), one GridMap style.
+POSTERS = (
+    # The dock, 256 high: the two flank the arch into the hall, the first
+    # thing the player sees coming off the spur (he arrives facing west).
+    ("dock_lenin", LENIN, "v", 3136, 960, 1088),
+    ("dock_slot_n", STALIN, "v", 3136, 1280, 1408),
+    # The assembly hall, either side of the red door: the works' red corner,
+    # now under the Legion's guns.
+    ("hall_stalin", STALIN, "v", 1600 - POSTER_NICHE_DEPTH, 1472, 1600),
+    ("hall_slot_s", LENIN, "v", 1600 - POSTER_NICHE_DEPTH, 768, 896),
+    # The director's office is 128 high, so the portrait design section 7.1
+    # wanted behind his desk cannot hang whole there: the mural does, on
+    # the north wall, centred behind the desk where the yellow key lies.
+    ("director_mural", MURAL, "h", 2208, 2240, 2368),
+)
+POSTER_SLOTS_MARX_ENGELS = ("dock_slot_n", "hall_slot_s")
+
+
+def poster_faces() -> tuple[tuple[str, str, str, int, int, int], ...]:
+    """POSTERS with each Marx-Engels slot wearing SDPOSTR4 once it exists."""
+    return tuple((name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS else texture,
+                  axis, coord, lo, hi) for name, texture, axis, coord, lo, hi in POSTERS)
+
 # Switches (D25), one variant per switch. The exit keeps the hazard panel it
 # wears on MAP01, the range and MAP02: the same face, the same meaning.
 SW_A_FACE = "SDSW1B"    # foundry: push button, opens the shutter into the hall
@@ -697,6 +742,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
          light=LIGHT_HALL, flat=FLOOR_LANE, ceiling=CEIL_PANEL, wall=HALL_WALL)
     # The works banner, hung from the roof across the hall's axis.
     like("z3_hall", "z3_banner", [BANNER])
+    # The two portraits' niches in the west wall (POSTER_NICHES).
+    for name, rect in POSTER_NICHES.items():
+        like("z3_hall", name, [rect], ceil=GROUND + POSTER_HEIGHT)
     # The clerestory: sills one pane tile under the roof, glazing behind.
     for n, x in enumerate(CLERESTORY_NORTH, start=1):
         recess("z3_hall", f"{PROP_PREFIX}clerestory_n{n}", (x, 1664, x + 64, 1664 + NICHE_DEPTH),
@@ -833,6 +881,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     # Line styles: doors, locks, switches, the exit, the drum
     # ======================================================================
+    # The posters first: GridMap keeps the first style registered on a segment.
+    for _name, texture, axis, coord, lo, hi in poster_faces():
+        (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=texture))
+
     for sector, y, (x1, x2) in ((d1, 1920, (1920, 2048)), (d1, 1952, (1920, 2048)),
                                 (d2, 1920, (2560, 2688)), (d2, 1952, (2560, 2688))):
         tag = tm.sectors[sector].identifier
@@ -953,7 +1005,8 @@ def lumps() -> list[tuple[str, bytes]]:
 # Every lump name this map may put in a sidedef or a sector.
 WALL_TEXTURES = ((CONCRETE, STAR, STEEL, TILE_DADO, CRATE, TUBBING, BRICK, BRICK_DADO, RUST,
                   PORTAL, ROAD_GATE, WINDOW, FLAG_REICH, FLAG_LEGION, LOCKER)
-                 + DOOR_LEAVES + SWITCH_FACES + tuple(t for t in (CHAIN, SLOGAN) if t))
+                 + DOOR_LEAVES + SWITCH_FACES + tuple(t for t in (CHAIN, SLOGAN) if t)
+                 + (LENIN, STALIN, MURAL) + ((MARX_ENGELS,) if MARX_ENGELS else ()))
 FLAT_TEXTURES = (FLOOR_LANE, FLOOR_CONCRETE, FLOOR_TILE, CEIL_PANEL, CEIL_CONCRETE,
                  DESK_TOP, RAILS, FLOOR_PLATE, GRATING, MOLTEN)
 # The Tankograd lumps (D66) this map places, frame 1 standing for each animation.

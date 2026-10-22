@@ -141,6 +141,55 @@ LOCO_STALL_CEIL = 192
 CLERESTORY_SILL = ROUNDHOUSE_CEIL - TILE   # one SDWIND1 tile under the roof
 NICHE_DEPTH = 16
 
+# --- The posters (CEO 2026-10-22: «que esos posters puedan aparecer en
+# cualquier nivel»; tests/test_posters.py) -----------------------------------
+LENIN = "SDPOSTR1"      # 128x256 «ЛЕНИН ЖИВ»
+STALIN = "SDPOSTR3"     # 128x256 «СЛАВА СТАЛИНУ!»
+MURAL = "SDPOSTR2"      # 128x128 cosmonautics mural
+POSTER_WIDTH = 128
+POSTER_HEIGHT = 256
+MURAL_HEIGHT = 128
+# The Marx-Engels poster SDPOSTR4 is in preparation (not a lump yet). Its
+# slots are built and wear a stand-in; approving it is this one line:
+MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
+# Every picture: (name, texture, axis, coord, lo, hi), one GridMap style
+# each. A portrait hangs on a one-sided line exactly 128 long in a sector
+# exactly 256 high (the warehouse's own walls, or a 16-deep niche cut to
+# 256 in the yard and the roundhouse); the mural in a niche 128 high.
+POSTERS = (
+    # The station's front on the yard: Lenin and Stalin either side of the
+    # red door's portal, the faces the rake's roofs look down on. Each in
+    # a niche of its own, lit one step over the night.
+    ("yard_red_door_lenin", LENIN, "h", 1920 + NICHE_DEPTH, 2432, 2560),
+    ("yard_red_door_stalin", STALIN, "h", 1920 + NICHE_DEPTH, 2944, 3072),
+    # The goods warehouse, taken: the Legion hung its banner beside the
+    # Stalin that was already on the east wall.
+    ("warehouse_legion_stalin", STALIN, "v", 3328, 320, 448),
+    # The platform: the station's mural on the building's wall, between
+    # the banners and the red door's vestibule, facing the train.
+    ("platform_mural", MURAL, "h", 2048 - NICHE_DEPTH, 1024, 1152),
+    # Marx-Engels slots (stand-in Lenin): the roundhouse's south wall, the
+    # depot's own poster over the turntable's stairs; and the warehouse's
+    # west wall beside the passage to the roundhouse.
+    ("roundhouse_south", LENIN, "h", 384 - NICHE_DEPTH, 960, 1088),
+    ("warehouse_west", LENIN, "v", 1920, 320, 448),
+)
+POSTER_SLOTS_MARX_ENGELS = ("roundhouse_south", "warehouse_west")
+# The niches cut for them: (zone, room, rect, ceiling height above the floor).
+POSTER_NICHES = (
+    ("z2_poster_lenin", "z2_yard", (2432, 1920, 2560, 1920 + NICHE_DEPTH), POSTER_HEIGHT),
+    ("z2_poster_stalin", "z2_yard", (2944, 1920, 3072, 1920 + NICHE_DEPTH), POSTER_HEIGHT),
+    ("z6_poster_mural", "z6_platform", (1024, 2048 - NICHE_DEPTH, 1152, 2048), MURAL_HEIGHT),
+    ("z5_poster_slot", "z5_hall", (960, 384 - NICHE_DEPTH, 1088, 384), POSTER_HEIGHT),
+)
+
+
+def poster_faces():
+    """POSTERS with each Marx-Engels slot wearing SDPOSTR4 once it exists."""
+    return tuple((name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS else texture,
+                  axis, coord, lo, hi) for name, texture, axis, coord, lo, hi in POSTERS)
+
+
 # --- Light ---------------------------------------------------------------------
 # 192 is spent on five places only: the two locks, the two keys and the exit
 # (MAP02 and MAP03's rule).
@@ -163,6 +212,7 @@ LIGHT_CAB = 144
 LIGHT_NICHE = LIGHT_MIN         # S1's and S3's clue: the niche in shadow
 LIGHT_SECRET = 112
 LIGHT_GONDOLA = 112
+LIGHT_POSTER_STEP = 16          # a poster's niche: one lamp step over its room
 BEACON_ZONES = ("z2_yellow_portal", "z2_red_portal", "z3_frame", "z5_hub", "z7_exit_niche")
 
 YELLOW = 0xFFD860       # MAP03's two colours: the lock's colour is where its key lies
@@ -780,8 +830,19 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     hatch = door("z7_hatch", TRAIN_FLOOR, TAG_HATCH, (2272, 2464, 2304, 2592), light=LIGHT_TRAIN)
 
     # ======================================================================
-    # Line styles: doors, locks, switches, the exit, the train
+    # The posters' niches (tests/test_posters.py)
     # ======================================================================
+    for name, room, rect, height in POSTER_NICHES:
+        s = tm.sectors[plan[room]]
+        like(room, name, [rect], ceil=s.heightfloor + height,
+             light=s.lightlevel + LIGHT_POSTER_STEP, ceiling=CEIL_PANEL)
+
+    # ======================================================================
+    # Line styles: the posters first (GridMap keeps the first style
+    # registered on a segment), doors, locks, switches, the exit, the train
+    # ======================================================================
+    for _name, texture, axis, coord, lo, hi in poster_faces():
+        (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=texture))
     # D1 and D2: manual doors, a leaf on both faces.
     for x in (1664, 1696):
         g.style_v(x, 448, 576, door_raise_style(TAG_D1_ROUNDHOUSE, d1, texture=DOOR))
@@ -863,7 +924,8 @@ def lumps() -> list[tuple[str, bytes]]:
 
 # Every lump name this map may put in a sidedef or a sector.
 WALL_TEXTURES = ((CONCRETE, STAR, STEEL, TILE_DADO, CRATE, TUBBING, TUNNEL_WALL, STATION,
-                  BRICK, BRICK_DADO, RUST, ROAD_GATE, WINDOW, FLAG_REICH, FLAG_LEGION)
-                 + DOOR_LEAVES + SWITCH_FACES)
+                  BRICK, BRICK_DADO, RUST, ROAD_GATE, WINDOW, FLAG_REICH, FLAG_LEGION,
+                  LENIN, STALIN, MURAL)
+                 + DOOR_LEAVES + SWITCH_FACES + ((MARX_ENGELS,) if MARX_ENGELS else ()))
 FLAT_TEXTURES = (FLOOR_CONCRETE, FLOOR_TILE, CEIL_PANEL, CEIL_CONCRETE, FLOOR_STATION,
                  FLOOR_COPING, RAILS, FLOOR_PLATE, GRATING, "SDCRTOP1")

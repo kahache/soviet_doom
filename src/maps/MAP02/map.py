@@ -118,6 +118,46 @@ STALIN_SLOT_TEXTURE = STALIN_POSTER
 POSTER_WIDTH = 128
 POSTER_HEIGHT = 256
 
+# --- The posters (CEO 2026-10-22: «que esos posters puedan aparecer en
+# cualquier nivel»; tests/test_posters.py) ---------------------------------
+# A 128x256 portrait needs a one-sided wall exactly 128 long in a sector
+# exactly 256 high, and the only 256 in this station is the 1941 shelter:
+# the hall is 224, the platforms 160, everything else 128 (a niche taller
+# than its room shows the poster's head only from close by). So the
+# portraits are the shelter's red corner and the mural goes on the route,
+# in the concourse, whose walls are exactly its 128.
+LENIN = "SDPOSTR1"      # 128x256
+STALIN = STALIN_POSTER  # 128x256, D55
+MURAL = "SDPOSTR2"      # 128x128 cosmonautics mural
+# The Marx-Engels poster SDPOSTR4 is in preparation (not a lump yet). Its
+# slots are built and wear a stand-in; approving it is this one line:
+MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
+# (name, texture, axis, coord, lo, hi): one GridMap style per picture.
+POSTERS = (
+    # The concourse's west wall, beside the escalator's mouth: straight ahead
+    # of the player as he steps out of the lift (a vestibule mosaic panel).
+    ("concourse_mural", MURAL, "v", 3136, 960, 1088),
+    # S1, the 1941 shelter. Stalin alone on the north wall, at the back of
+    # his niche, facing the passage (section 8: the one place in a 1977
+    # station where he can still hang).
+    ("shelter_stalin", STALIN, "h", 1872, 3008, 3136),
+    # Lenin on the west wall, on the left as the player comes in.
+    ("shelter_lenin", LENIN, "v", 2880, 1664, 1792),
+    # The Marx-Engels slots: the east wall, facing Lenin across the room,
+    # and the south wall beside the passage's mouth, facing Stalin.
+    ("shelter_east_slot", LENIN, "v", 3264, 1664, 1792),
+    ("shelter_south_slot", STALIN, "h", 1600, 3136, 3264),
+)
+POSTER_SLOTS_MARX_ENGELS = ("shelter_east_slot", "shelter_south_slot")
+
+
+def poster_faces():
+    """POSTERS with each Marx-Engels slot wearing SDPOSTR4 once it exists."""
+    return tuple((name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS
+                  else texture, axis, coord, lo, hi)
+                 for name, texture, axis, coord, lo, hi in POSTERS)
+
+
 # --- Specials not in sdbuild.udmf ----------------------------------------
 # Door_LockedRaise (tag, speed, delay, lock, lighttag). The argument SHAPE is
 # read from gzdoom.pk3 g4.14.2 -> xlat/base.txt, e.g. Doom's blue "open and
@@ -797,8 +837,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for x in CAB_W_PARTITION:
         g.style_v(x, GANGWAY_Y[0], GANGWAY_Y[1], door_open_style(TAG_S2_CAB, s2_panel,
                                                                   texture=STEEL))
-    # The poster slot.
-    g.style_h(1872, 3008, 3136, LineStyle(texture=STALIN_SLOT_TEXTURE))
+    # The posters: Stalin's slot in S1's niche, Lenin and the Marx-Engels
+    # slots on the shelter's other walls, the mural in the concourse.
+    for _name, texture, axis, coord, lo, hi in poster_faces():
+        (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=texture))
 
     # The platform face towards the open track: 64 high, one SDMEDG1 tile,
     # hung from its top edge.
@@ -831,6 +873,6 @@ def lumps() -> list[tuple[str, bytes]]:
 
 # Every lump name this map may put in a sidedef or a sector.
 WALL_TEXTURES = (TILE, TILE_DADO, TILE_FRIEZE, MARBLE, STATION, MOSAIC, TUNNEL,
-                 TUBBING, EDGE, STEEL, DOOR, STALIN_POSTER) + SWITCH_FACES
+                 TUBBING, EDGE, STEEL, DOOR, STALIN_POSTER, LENIN, MURAL) + SWITCH_FACES     + ((MARX_ENGELS,) if MARX_ENGELS else ())
 FLAT_TEXTURES = (FLOOR_GRANITE, FLOOR_HALL, FLOOR_COPING, RAILS, CEIL_COFFER,
                  CEIL_LAMP, FLOOR_CONCRETE, FLOOR_TILE, CEIL_CONCRETE, CEIL_PANEL, LANE)

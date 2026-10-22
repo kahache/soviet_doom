@@ -859,8 +859,12 @@ class Map01V3Test(unittest.TestCase):
         The poster is drawn at the light of the sector in front of it: that
         sector is a lamp, ringed by a step dimmer, in the darkest room."""
         m = self.m
+        # The exit's own Lenin, not a Marx-Engels slot Lenin stands in for
+        # (tests/test_posters.py): the slot's niche is not lenin_light.
         poster = [ld for ld in self.lines
-                  if self.sides[ld["sidefront"]]["texturemiddle"] == m.LENIN]
+                  if self.sides[ld["sidefront"]]["texturemiddle"] == m.LENIN
+                  and self.sides[ld["sidefront"]]["sector"] not in
+                  {self.plan["z6_slot_niche"]}]
         self.assertEqual(1, len(poster))
         lit = self.sides[poster[0]["sidefront"]]["sector"]
         self.assertEqual(self.plan["lenin_light"], lit)

@@ -115,6 +115,17 @@ PLATE = "SDFLR4"        # 64x64 chequer plate: the parade vehicles' decks
 # says which picture (mod-engineer's; a Moscow night sky is pending).
 SKY = "F_SKY1"
 
+# The approved posters (CEO 2026-10-22: «que esos posters puedan aparecer en
+# cualquier nivel»; tests/test_posters.py). Lenin and Stalin are 128x256.
+LENIN = "SDPOSTR1"
+STALIN = "SDPOSTR3"
+MURAL = "SDPOSTR2"      # 128x128; not hung here (no 128-high wall on the route fits it)
+POSTER_WIDTH = 128
+POSTER_HEIGHT = 256
+# The Marx-Engels poster SDPOSTR4 is in preparation and is not a lump yet. Its
+# slots are built and wear a stand-in; approving it is this one line:
+MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
+
 DOOR_LEAVES = (DOOR, DOOR_YELLOW, DOOR_RED, GATE)
 SWITCH_FACES = (EXIT_FACE,)
 SWITCH_HEIGHT = 128     # SDSW1D is 64x128
@@ -318,6 +329,39 @@ VEHICLES = (
     ("p2", (2432, 512, 2528, 768), CARRIER_HULL, (2464, 544, 2496, 736), CARRIER_MISSILE),
     ("p3", (2688, 704, 2784, 896), VEHICLE_HULL, None, None),
 )
+# The parade portraits on the GUM's facade, either side of its doors onto the
+# square (design section 7.1): each hangs in a niche NICHE_DEPTH deep, raised
+# PORTRAIT_SILL over the cobbles and exactly POSTER_HEIGHT tall, so the poster
+# is whole and the facade shows above and below it. Floor 64: not a step.
+PORTRAIT_SILL = 64
+PORTRAIT_NICHES = {"lenin": (2496, 2624), "stalin": (2112, 2240)}     # y spans, facade x 3456
+# The Kremlin courtyard's north wall: the occupiers' two banners (D12) hang
+# between Stalin and the Marx-Engels slot, each picture in a recess a
+# poster high (the Kremlin taken: their flags among our portraits).
+COURTYARD_PORTRAITS = {"stalin": (1024, 1152), "slot": (576, 704)}    # x spans, arena y 2048
+# Every picture on the map: (name, texture, axis, coord, lo, hi), the segment
+# one GridMap style paints. Slots wear their stand-in until SDPOSTR4 exists.
+POSTERS = (
+    # The GUM's north hall: Lenin faces the player coming in from Nikolskaya,
+    # beside the way on under the glass roof; the slot on the hall's east wall.
+    ("gum_north_lenin", LENIN, "h", 3328, 3808, 3936),
+    ("gum_north_slot", STALIN, "v", 4352, 3392, 3520),
+    # Red Square: the parade portraits on the GUM's facade.
+    ("square_facade_lenin", LENIN, "v", 3456 + NICHE_DEPTH, *PORTRAIT_NICHES["lenin"]),
+    ("square_facade_stalin", STALIN, "v", 3456 + NICHE_DEPTH, *PORTRAIT_NICHES["stalin"]),
+    # The Kremlin courtyard, the boss's room.
+    ("courtyard_stalin", STALIN, "h", 2048 + NICHE_DEPTH, *COURTYARD_PORTRAITS["stalin"]),
+    ("courtyard_slot", LENIN, "h", 2048 + NICHE_DEPTH, *COURTYARD_PORTRAITS["slot"]),
+)
+POSTER_SLOTS_MARX_ENGELS = ("gum_north_slot", "courtyard_slot")
+
+
+def poster_faces():
+    """POSTERS with each Marx-Engels slot wearing SDPOSTR4 once it exists."""
+    return tuple((name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS else texture,
+                  axis, coord, lo, hi) for name, texture, axis, coord, lo, hi in POSTERS)
+
+
 CLOSETS = {"closet_z6_w": (1920, 2112), "closet_z6_e": (2304, 2496)}    # x spans, museum wall
 MUSEUM_X = (1664, 2752)
 PARK = (1664, 448, 2944, 1088)
@@ -742,6 +786,11 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         (g.style_v if kind == "v" else g.style_h)(coord, lo, hi, style)
         return index
 
+    # The posters first: GridMap keeps the first style registered on a
+    # segment, so nothing broader can paint over them.
+    for _name, texture, axis, coord, lo, hi in poster_faces():
+        (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=texture))
+
     # ======================================================================
     # Z1 The station, Ploshchad Revolyutsii (start)
     # ======================================================================
@@ -992,6 +1041,11 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # Minin and Pozharsky: bronze on a granite plinth, at the square's south end.
     prop("z6_square", "z6_minin_plinth", (3136, 1344, 3264, 1408), MININ_PLINTH, wall=MARBLE)
     prop("z6_square", "z6_minin", (3168, 1360, 3232, 1392), MININ_BRONZE, wall=BRASS)
+    # The parade portraits on the GUM's facade, raised over the cobbles.
+    for who, (py1, py2) in PORTRAIT_NICHES.items():
+        like("z6_square", f"{PROP_PREFIX}z6_portrait_{who}", [(sq_x2, py1, sq_x2 + NICHE_DEPTH, py2)],
+             floor=GROUND + PORTRAIT_SILL, ceil=GROUND + PORTRAIT_SILL + POSTER_HEIGHT,
+             ceiling=CEIL_CONCRETE)
     # The Historical Museum's red brick, and its two closets.
     g.style_h(sq_y2, MUSEUM_X[0], MUSEUM_X[1], LineStyle(texture=BRICK))
     for name, (cx1, cx2) in CLOSETS.items():
@@ -1055,6 +1109,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for n, (fx, texture) in enumerate(((768, FLAG_REICH), (896, FLAG_LEGION)), start=1):
         recess("z9_arena", f"z9_flag_{n}", (fx, ay2, fx + 64, ay2 + NICHE_DEPTH),
                ceil=GROUND + TILE_SIZE, back=("h", ay2 + NICHE_DEPTH, fx, fx + 64), texture=texture)
+    for who, (px1, px2) in COURTYARD_PORTRAITS.items():
+        like("z9_arena", f"z9_portrait_{who}", [(px1, ay2, px2, ay2 + NICHE_DEPTH)],
+             ceil=GROUND + POSTER_HEIGHT, ceiling=CEIL_CONCRETE)
     zone("z9_exit_porch", GROUND, DOOR_HEIGHT, [(448, EXIT_Y[0], ax1, EXIT_Y[1])],
          light=LIGHT_ARENA, flat=GRANITE, ceiling=CEIL_CONCRETE, wall=BRICK)
     exit_gate = door("z10_gate", GROUND, TAG_BOSS_EXIT, (416, EXIT_Y[0], 448, EXIT_Y[1]),
@@ -1120,8 +1177,9 @@ def lumps() -> list[tuple[str, bytes]]:
 
 
 # Every lump name this map may put in a sidedef or a sector.
-WALL_TEXTURES = (CONCRETE, STAR, STEEL, CRATE, LONG_CRATE, TILE, MARBLE, STATION_WALL, MOSAIC,
+WALL_TEXTURES = ((CONCRETE, STAR, STEEL, CRATE, LONG_CRATE, TILE, MARBLE, STATION_WALL, MOSAIC,
                  BRASS, TUBBING, PLATFORM_FACE, BRICK, BRICK_DADO, WINDOW, FLAG_REICH,
-                 FLAG_LEGION) + DOOR_LEAVES + SWITCH_FACES
+                 FLAG_LEGION, LENIN, STALIN) + DOOR_LEAVES + SWITCH_FACES
+                 + ((MARX_ENGELS,) if MARX_ENGELS else ()))
 FLAT_TEXTURES = (FLOOR_ASPHALT, CEIL_CONCRETE, CRATE_TOP, GRANITE, GRANITE_CHECK, PLATFORM_EDGE,
                  RAILS, CEIL_COFFER, CEIL_LAMP, PLATE, SKY)

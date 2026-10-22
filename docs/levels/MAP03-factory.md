@@ -300,7 +300,7 @@ and two metro pieces where they fit; v1 swaps in the industrial pieces of
 | Assembly hall | `SDCONC2` in three bands (MAP01's hangar, D30) | `SDFLR2`, the lane `SDFLR1` | `SDCEIL1` | brick, clerestory windows, the slogan banner, the two flags (LORE) |
 | Assembly lines | `SDSTEL1` | `SDFLR2` | | the tractors on them (props) |
 | Lock portals | `SDSTAR1` plaques either side of each leaf, each one whole 128 × 128 tile (tested) | `SDFLR2` | `SDCEIL1` | key-trimmed door leaves (§7.2) |
-| Offices | `SDTILE2` (green dado, one tile, 128 high) | `SDFLR3` | `SDCEIL1` / `SDCEIL2` | the Lenin poster `SDPOSTR1` behind the director's desk (a 256-high niche), lockers `SDLOCK1` in the archive |
+| Offices | `SDTILE2` (green dado, one tile, 128 high) | `SDFLR3` | `SDCEIL1` / `SDCEIL2` | the Lenin poster `SDPOSTR1` behind the director's desk (a 256-high niche), lockers `SDLOCK1` in the archive. **Superseded by §17**: the offices are 128 high, so the mural `SDPOSTR2` hangs there and the portraits went to the dock and the hall |
 | Director's desk | `SDCRAT1` front | `SDCRTOP1` | | |
 | Tank line | `SDSTEL1` | `SDFLR2` | `SDCEIL1` | rust, chains and hooks over the pits; `SDMEDG1` (the metro's chevron edge) on the pit edges |
 | Pits | `SDCONC1` | `SDFLR2` | | |
@@ -664,7 +664,8 @@ MAP01's hangar, and red bands round the factory floor would compete with the
 red lock. `SDCONC1` stays in the pits only.
 
 **Not in v1** (v2, §12): the tanks and tractors as props, the Lenin poster in
-the director's office (it needs a 256-high niche; the offices are 128), lockers
+the director's office (it needs a 256-high niche; the offices are 128; §17
+hangs the posters elsewhere and the mural there), lockers
 in the archive, the metro's chevron edge on the pits, the buffer stop.
 
 ### 15.2 The red lock, signposted again
@@ -1097,3 +1098,42 @@ engine has not yet been seen to read them) and tell this role.
   §8's literal "different colour"; not needed.
 - §15.10's other items stand; S1 is no longer v3's (S2 and S3 are).
 - Russian mirror: synced in a batch at the phase close (D34).
+
+## 17. The posters (2026-10-22)
+
+The CEO, 2026-10-22: «reutiliza cuadros, mételos en niveles anteriores y en
+los nuevos el de Lenin y Stalin, que esos posters puedan aparecer en
+cualquier nivel». Textures only, plus two niches 16 deep; no route, key,
+secret or door moved. The contract every map shares (`POSTERS`,
+`POSTER_SLOTS_MARX_ENGELS`, `MARX_ENGELS`, `poster_faces()`) is tested in
+`tests/test_posters.py`: each picture is one line exactly its width, in a
+sector exactly its height, pegged to the floor, at offset 0.
+
+| Name | Texture | Where (line) | Room | Why there |
+|---|---|---|---|---|
+| `dock_lenin` | `SDPOSTR1` Lenin | x 3136, y 960…1088 | loading dock (256 high), west wall, south of the arch | the player comes off the spur facing west: the works' wall, the arch into the hall, Lenin beside it. The dock is the Reich's ground (§9): he still hangs over them |
+| `dock_slot_n` | `SDPOSTR3` Stalin (stand-in) | x 3136, y 1280…1408 | the same wall, north of the arch, symmetric about it | **Marx-Engels slot** |
+| `hall_stalin` | `SDPOSTR3` Stalin | x 1584, y 1472…1600, niche `z3_poster_n` (1584…1600) | assembly hall, west wall, north of the red door's portal | the wall a player faces from the arch, down the whole hall: the works' red corner, now held by the Legion |
+| `hall_slot_s` | `SDPOSTR1` Lenin (stand-in) | x 1584, y 768…896, niche `z3_poster_s` | the same wall, south of the portal, symmetric about the door's axis (y 1184) | **Marx-Engels slot** |
+| `director_mural` | `SDPOSTR2` mural | y 2208, x 2240…2368 | director's office (128 high), north wall, centred behind the desk | §7.1 wanted a portrait behind the desk; the office is 128 high and a 256 niche with a ceiling over the room's would cut the head off at any distance, so the mural, which fits whole, takes the place |
+
+**The hall's niches.** The hall is 320 high; a 128 × 256 poster on its
+wall would tile. Each portrait hangs at the back of a niche 16 deep, 128
+wide, floor 0 and ceiling 256 (`POSTER_NICHES`), the pattern of the flags'
+and the gates' recesses; the 64 of brick above the niche is the hall's
+wall. The niches copy the hall's light (160) and lit ceiling. Both stand
+96 clear of the red portal band (y 992…1376), so the red leaf stays the
+only red thing at the end of the hall (§15.2's lesson).
+
+**Marx-Engels.** `SDPOSTR4` is in preparation (art-director) and is not a
+lump yet; it is commissioned at 128 × 256 like Lenin and Stalin. The two
+slots wear a portrait today. Once it is approved and packed, the swap is
+one line in `src/maps/MAP03/map.py`: `MARX_ENGELS = "SDPOSTR4"`. The dock
+then shows Lenin and Marx-Engels, the hall Stalin and Marx-Engels.
+
+**Engine checklist for the PM** (D26: this role does not start GZDoom): the
+two portraits in the hall read whole from the arch (x 3072) and are not
+cut at the top by the hall's ceiling (their niche ceiling is 256, under the
+hall's 320); the dock pair reads from the spur's mouth; the mural is whole
+behind the desk and does not hide the yellow key's beacon; `tankograd-critical`
+still PASSes on skills 2-4.

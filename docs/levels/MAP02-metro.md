@@ -259,7 +259,7 @@ approved and packed from `assets/` (tested).
 | Zone | Walls | Floor | Ceiling | v1 note |
 |---|---|---|---|---|
 | Lift | `SDSTEL1` (MAP01's steel: the cage that brought him) | `SDFLR2` | `SDCEIL2` | |
-| Concourse | `SDTILE3` (the frieze) | `SDMFLR1` | `SDMCEIL1` | the station's name in our alphabet, later (needs a sign texture) |
+| Concourse | `SDTILE3` (the frieze); **`SDPOSTR2`, the cosmonautics mural**, on the west wall beside the escalator's mouth (§7.1) | `SDMFLR1` | `SDMCEIL1` | the station's name in our alphabet, later (needs a sign texture) |
 | Kassa | `SDTILE1` | `SDFLR3` | `SDCEIL2` | |
 | Escalator | `SDMARB1` | `SDMFLR1` | `SDMCEIL1` | balustrade lamps are things (v2) |
 | Hall | `SDMARB2` (tile over marble, brass rail) | `SDMFLR2` checker | `SDMCEIL1`, five `SDMCEIL2` lamps on the axis | 224 high: the marble band repeats above 128; v1 decides between a 128 wainscot sector and accepting it (MAP01's D30 precedent) |
@@ -275,9 +275,39 @@ approved and packed from `assets/` (tested).
 | Substation | `SDTUNL1` | `SDFLR2` | `SDCEIL2` | |
 | Gas lock, armoury, command post | `SDSTEL1` | `SDFLR2` | `SDCEIL2` | |
 | Bunker spine, dormitory | `SDTILE2` (green dado: one tile, 128 high) | `SDFLR2` | `SDCEIL2` | |
-| S1 shelter | `SDTILE2` | `SDFLR3` | `SDCEIL2` | 256 high: the dado repeats once; the 1941 look wants its own piece, maybe |
+| S1 shelter | `SDTILE2`; the portraits of §7.1: `SDPOSTR3` (north niche), `SDPOSTR1` (west wall), two Marx-Engels slots (east and south walls) | `SDFLR3` | `SDCEIL2` | 256 high: the dado repeats once; the 1941 look wants its own piece, maybe |
 | Doors | `SDDOOR1`, every leaf one tile, 128 × 128 (tested) | | | |
 | Switches | `SDSW1C` (SW-A), `SDSW1B` (SW-B), `SDSW1D` (exit), each drawn once | | | |
+
+### 7.1 Posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
+
+The approved pictures, declared in `POSTERS` in `src/maps/MAP02/map.py` and
+checked by `tests/test_posters.py` (each whole: one one-sided line exactly
+128 long, in a sector exactly the picture's height, pegged to the floor, at
+offset 0). Texture changes on existing walls only: no new sector, no line
+moved.
+
+A 128 × 256 portrait needs a wall exactly 256 high, and the station has one
+room that tall: the 1941 shelter. The hall is 224, the platforms 160, the
+concourse, bunker and command post 128; a niche taller than its room would
+show the poster's head only from close by. So the portraits are the
+shelter's red corner, and the route gets the 128 × 128 mural where a wall
+is exactly 128.
+
+| Name | Picture | Line | Room | Why |
+|---|---|---|---|---|
+| `concourse_mural` | `SDPOSTR2` mural | x 3136, y 960…1088 | concourse (128 high, light 160) | the vestibule's mosaic panel, beside the escalator's mouth: straight ahead of the player as he steps out of the lift |
+| `shelter_stalin` | `SDPOSTR3` Stalin | y 1872, x 3008…3136 (the niche) | S1 | §8: alone on the north wall, facing the passage |
+| `shelter_lenin` | `SDPOSTR1` Lenin | x 2880, y 1664…1792 | S1 | the west wall, on the left as the player comes in: a 1941 red corner |
+| `shelter_east_slot` | Marx-Engels slot, stands in as `SDPOSTR1` | x 3264, y 1664…1792 | S1 | faces Lenin across the room |
+| `shelter_south_slot` | Marx-Engels slot, stands in as `SDPOSTR3` | y 1600, x 3136…3264 | S1 | beside the passage's mouth, faces Stalin |
+
+**The Marx-Engels slots** (`POSTER_SLOTS_MARX_ENGELS`) are for `SDPOSTR4`,
+in preparation and assumed 128 × 256 like Lenin and Stalin. When it is
+approved and packed, the swap is one line in `map.py`:
+`MARX_ENGELS: str | None = None` becomes `MARX_ENGELS = "SDPOSTR4"`; both
+slots wear it and nothing else moves (tested). Until then the shelter shows
+each portrait twice, facing itself across the room.
 
 Not used yet: `SDBRAS1` (pilasters, v2 since D58). `SDMOSA1` is replaced in place by its
 palette-v2 rendering (D56); the lump name, and so this map, do not change.

@@ -1014,7 +1014,8 @@ class Map01Test(unittest.TestCase):
                                "airlock_niche_s", "frame_d5_airlock") | closets("a1", "a2", "a3"),
                          after_sw_a - before_switches)
         self.assertEqual(named("d5", "d5_recess", "z10_exit", "z10_exit_niche", "z10_lift",
-                               "lenin_halo", "lenin_light") | closets("w1", "w2", "e1"),
+                               "lenin_halo", "lenin_light", "z10_slot_light")
+                         | closets("w1", "w2", "e1"),
                          after_sw_b - after_sw_a)
         self.assertIn(self.plan["d4_recess"], before_switches,
                       "the shut gate must be walked up to before SW-A is found")

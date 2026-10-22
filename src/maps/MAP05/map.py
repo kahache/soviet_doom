@@ -78,6 +78,15 @@ ROAD_GATE = "SDGATE1"    # corrugated gate: the sluice gates, S3's shut hut
 WINDOW = "SDWIND1"       # industrial glazing at night: the turbine hall's clerestory
 FLAG_REICH = "SDFLAG1"   # both banners side by side by the blue gate (D35)
 FLAG_LEGION = "SDFLAG2"
+# The posters (CEO 2026-10-22: «que esos posters puedan aparecer en cualquier
+# nivel»; tests/test_posters.py). Approved pictures, not pending ones: no
+# "Dam" piece waits for them (design section 7.3).
+LENIN = "SDPOSTR1"       # 128x256: presides over the turbine hall (electrification)
+STALIN = "SDPOSTR3"      # 128x256: the station's, now beside the occupiers' banners
+MURAL = "SDPOSTR2"       # 128x128 cosmonautics mural: the control room
+# The Marx-Engels poster SDPOSTR4 is in preparation (not a lump yet). Its
+# slots are built and wear a stand-in; approving it is this one line:
+MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
 CRATE = "SDCRAT1"        # crate faces: the crest's barricades
 FLOOR_LANE = "SDFLR1"    # concrete with a yellow lane line: the road on the crest
 FLOOR_CONCRETE = "SDFLR2"
@@ -147,6 +156,7 @@ WINDOW_SILL = CATWALK + 48          # the control room's windows onto the hall
 WINDOW_TOP = CATWALK + 128   # an 80-high slot: never the 64..72 gap only the base Panzermensch fits (D67)
 NICHE_DEPTH = 16
 CLOSET_HEIGHT = 128
+POSTER_HEIGHT = 256     # SDPOSTR1 and SDPOSTR3: a recess exactly this high
 
 # --- Light ---------------------------------------------------------------------
 # A November night. 192 is spent on five places only: the two locks, the two
@@ -269,6 +279,29 @@ WEST_PORCH = (640, 1856, 704, 1984)
 WEST_DOOR = (608, 1856, 640, 1984)
 WEST_HALL = (448, 1792, 608, 2048)
 EXIT_NICHE = (432, 1888, 448, 1952)
+# The posters (design section 7.3). Lenin in a recess in the turbine hall's
+# west wall, at the end the player looks down on entering from the lower
+# gallery, clear of the generators' shafts; Stalin in a recess in the
+# station's west wall, between the shutter and the occupiers' two banners:
+# the first wall the player sees, the picture the invaders hung their flags
+# beside. The cosmonautics mural on a 32-high sill in the control room's
+# north wall, straight ahead through the yellow door: the room is 160 high,
+# the mural 128. The two portraits on the catwalk's back wall flank the
+# yellow door symmetrically (320 either side of its axis): the Marx-Engels
+# slots.
+LENIN_NICHE = (HALL[0] - NICHE_DEPTH, 576, HALL[0], 704)
+STALIN_NICHE = (STATION[0] - NICHE_DEPTH, 1600, STATION[0], 1728)
+CONTROL_MURAL_NICHE = (2560, CONTROL[3], 2688, CONTROL[3] + NICHE_DEPTH)
+MURAL_SILL = CONTROL_CEIL - CATWALK - TILE     # 32: the mural's foot over the floor
+CATWALK_SLOTS_X = {"z5_catwalk_w": (2240, 2368), "z5_catwalk_e": (2880, 3008)}
+POSTERS = (
+    ("z5_lenin", LENIN, "v", LENIN_NICHE[0], LENIN_NICHE[1], LENIN_NICHE[3]),
+    ("z1_stalin", STALIN, "v", STALIN_NICHE[0], STALIN_NICHE[1], STALIN_NICHE[3]),
+    ("z6_mural", MURAL, "h", CONTROL_MURAL_NICHE[3], CONTROL_MURAL_NICHE[0], CONTROL_MURAL_NICHE[2]),
+    ("z5_catwalk_w", STALIN, "h", CATWALK_Y[1], *CATWALK_SLOTS_X["z5_catwalk_w"]),
+    ("z5_catwalk_e", LENIN, "h", CATWALK_Y[1], *CATWALK_SLOTS_X["z5_catwalk_e"]),
+)
+POSTER_SLOTS_MARX_ENGELS = ("z5_catwalk_w", "z5_catwalk_e")
 # The closets.
 CATWALK_CLOSETS = {"closet_z5_w": (2112, 2240), "closet_z5_e": (3200, 3328)}
 STATION_CLOSETS = {"closet_z1_s": ((4704, 1392, 4832, 1408), (4704, 1264, 4832, 1392)),
@@ -557,6 +590,12 @@ SECRET_ITEMS = (
 )
 
 
+def poster_faces() -> tuple[tuple[str, str, str, int, int, int], ...]:
+    """POSTERS with each Marx-Engels slot wearing SDPOSTR4 once it exists."""
+    return tuple((name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS else texture,
+                  axis, coord, lo, hi) for name, texture, axis, coord, lo, hi in POSTERS)
+
+
 def _sector(floor: int, ceil: int, tag: int | None = None, *, light: int,
             flat: str = FLOOR_CONCRETE, ceiling: str = CEIL_CONCRETE,
             special: int = 0, extra: dict | None = None) -> Sector:
@@ -660,6 +699,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         x1, y1, x2, y2 = rect
         recess("z1_station", f"z1_flag_{texture.lower()}", rect, ceil=CREST + TILE,
                back=("v", x1, y1, y2), texture=texture)
+    # Stalin's recess: its own concrete ceiling, so the station's brick shows
+    # above it under the sky.
+    like("z1_station", "z1_stalin_niche", [STALIN_NICHE], ceil=CREST + POSTER_HEIGHT,
+         ceiling=CEIL_CONCRETE)
     zone(f"{PROP_PREFIX}z1_parapet_n", CREST + PARAPET, PARAPET_SKY, [STATION_PARAPET],
          light=LIGHT_OUTDOORS, ceiling=SKY, wall=CONCRETE)
     d1 = door("d1_gatehouse", CREST, TAG_D1_GATEHOUSE, D1_DOOR, light=LIGHT_GATEHOUSE)
@@ -723,6 +766,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
              flat=GRATING, wall=STEEL)
     like("z5_hall", "z5_catwalk", [(CATWALK_X0, cy1, HALL[2], cy2)], floor=CATWALK,
          flat=GRATING, wall=STEEL)
+    like("z5_hall", "z5_lenin_niche", [LENIN_NICHE], ceil=GROUND + POSTER_HEIGHT)
     zone("z5_yellow_portal", CATWALK, CATWALK + DOOR_HEIGHT, [YELLOW_PORTAL], light=LIGHT_BEACON,
          flat=GRATING, ceiling=CEIL_PANEL, wall=STEEL, extra=YELLOW_LIGHT)
     yellow_door = door("yellow_door", CATWALK, TAG_YELLOW_DOOR, YELLOW_DOOR, light=LIGHT_CONTROL)
@@ -747,6 +791,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for n, rect in enumerate(CONSOLES, start=1):
         like("z6_control", f"{PROP_PREFIX}z6_console_{n}", [rect], floor=CATWALK + CONSOLE,
              flat=FLOOR_PLATE, wall=STEEL)
+    like("z6_control", f"{PROP_PREFIX}z6_mural_niche", [CONTROL_MURAL_NICHE], floor=CATWALK + MURAL_SILL)
     zone("z6_swa_niche", CATWALK, CATWALK + SWITCH_HEIGHT, [SWA_NICHE], light=LIGHT_CONTROL,
          flat=FLOOR_TILE, wall=STEEL)
     zone("z6_cable_porch", CATWALK, CATWALK + DOOR_HEIGHT, [CABLE_PORCH], light=LIGHT_CONTROL,
@@ -859,6 +904,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # Line styles. The FIRST rule registered on a segment wins, so the
     # specific ones (doors, panels, doorways) come before the parapets.
     # ======================================================================
+    # The posters: each on its own one-sided line, whole.
+    for _name, texture, axis, coord, lo, hi in poster_faces():
+        (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=texture))
     # Manual doors, both faces.
     for sector, (x1, y1, x2, y2), horizontal in ((d1, D1_DOOR, True), (d2, WEST_DOOR, False)):
         tag = tm.sectors[sector].identifier
@@ -937,7 +985,8 @@ def lumps() -> list[tuple[str, bytes]]:
 
 # Every lump name this map may put in a sidedef or a sector.
 WALL_TEXTURES = ((CONCRETE, CONCRETE_STRIPE, STEEL, TILE_DADO, TUNNEL, BRICK, RUST, ROAD_GATE,
-                  WINDOW, FLAG_REICH, FLAG_LEGION, CRATE) + DOOR_LEAVES + SWITCH_FACES)
+                  WINDOW, FLAG_REICH, FLAG_LEGION, CRATE, LENIN, STALIN, MURAL)
+                 + DOOR_LEAVES + SWITCH_FACES + ((MARX_ENGELS,) if MARX_ENGELS else ()))
 FLAT_TEXTURES = (FLOOR_LANE, FLOOR_CONCRETE, FLOOR_TILE, CEIL_PANEL, CEIL_CONCRETE, CRATE_TOP,
                  RAILS, FLOOR_PLATE, GRATING, WATER)
 BUILTIN_FLATS = (SKY,)
