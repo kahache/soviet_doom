@@ -409,7 +409,7 @@ but the General (he fell at Tankograd). Nested by Doom's skill pairs
 
 | Zone | Skill 2 | Skill 3 | Skill 4 |
 |---|---|---|---|
-| Tunnel mouth | 1 rifleman | 1 rifleman | 2 riflemen |
+| Tunnel mouth (in the yard either side of it) | 1 rifleman | 1 rifleman | 2 riflemen |
 | Yard (ground) | 3 riflemen + 1 hound | 4 riflemen + 1 hound + 1 stormtrooper | 5 riflemen + 1 hound + 2 stormtroopers |
 | The rake's roofs | 2 riflemen | 3 riflemen | 3 riflemen + 1 stormtrooper |
 | Signal box | 1 trooper | 1 trooper | 2 troopers |
@@ -419,6 +419,8 @@ but the General (he fell at Tankograd). Nested by Doom's skill pairs
 | Platform | 1 Panzermensch + 2 troopers + 2 riflemen + 1 stormtrooper + 1 Doughboy | + 1 trooper + 1 Doughboy + 1 hound | 1 Panzermensch + 3 troopers + 3 riflemen + 2 stormtroopers + 2 Doughboys + 1 hound + **1 heavy Panzermensch** |
 | Armoured train | 1 stormtrooper + 1 rifleman | + 1 rifleman (the cab) | + 1 Panzermensch (the gun wagon) |
 | **Total** | **29** | **42** | **56** |
+
+**Safe start** (`tests/test_safe_starts.py`, 2026-10-22): on skills 2, 3 and 4 no monster sees the start zone (the start and a step round it) within 768 units; Doom's own sight test, run on the built map. The tunnel mouth's picket stood at the top of the stair (3888, 1150 and 1220), 593 straight down the tunnel from the start; it now stands in the yard either side of the mouth, backs to the yard's east wall (3776, 1056 facing north; 3776, 1312 facing south, skill 4), out of the tunnel's line and met at the mouth. Same count, same round (0).
 
 Against MAP03's 25 / 38 / 52 (with the General's 3000 HP on every skill):
 a little more in numbers, less in weight; the first map of an episode.

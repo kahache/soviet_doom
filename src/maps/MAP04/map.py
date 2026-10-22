@@ -453,9 +453,12 @@ ENEMY_TOTALS = {2: 29, 3: 42, 4: 56}
 # every skill, 3 from medium up, 4 on hard only. Facing: 0 east, 90 north,
 # 180 west, 270 south; most face where the player comes from.
 MONSTERS = (
-    # The tunnel's mouth: the Reich's picket at the top of the stair.
-    ("z1_mouth", "rifleman", 3888, 1150, 0, 2),
-    ("z1_mouth", "rifleman", 3888, 1220, 0, 4),
+    # The tunnel's mouth: the Reich's picket either side of it in the yard,
+    # backs to the yard's east wall, out of the tunnel's line: the start is
+    # safe (tests/test_safe_starts.py); at the top of the stair they saw the
+    # start 593 off, straight down the tunnel.
+    ("z2_yard", "rifleman", 3776, 1056, 90, 2),
+    ("z2_yard", "rifleman", 3776, 1312, 270, 4),
     # The yard, the Reich among the wagons.
     ("z2_yard", "rifleman", 3450, 900, 0, 2),
     ("z2_yard", "rifleman", 3550, 1460, 0, 2),

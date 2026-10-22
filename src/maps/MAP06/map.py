@@ -508,7 +508,9 @@ ENEMY_TOTALS = {2: 42, 3: 68, 4: 96}
 # east, 90 north, 180 west, 270 south; most face where the player comes from.
 MONSTERS = (
     # The station: a Reich picket on the platforms, facing the start.
-    ("z1_hall", "rifleman", 4600, 4864, 0, 2),
+    # The hall's first rifleman 830 down the hall, seen but past the safe
+    # distance (tests/test_safe_starts.py; at 4600 he was 616 off).
+    ("z1_hall", "rifleman", 4384, 4896, 0, 2),
     ("z1_plat_s", "rifleman", 4400, 4576, 0, 2),
     ("z1_plat_n", "rifleman", 4800, 5156, 0, 2),
     ("z1_hall", "rifleman", 4300, 4816, 0, 3),
