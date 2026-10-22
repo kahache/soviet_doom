@@ -32,6 +32,10 @@ seven noted above), and **more maps** (the 15-20 level campaign of ROADMAP
 P4, D69). Not scheduled; each gets its own sweep and the CEO's choice when
 P4 starts.
 
+## V3: pickups that fire events (CEO, 2026-10-23, D119)
+
+- **V3 - Keys and objects that trigger events when picked up** (thing specials on pickup: open doors, lower walls, release ambushes). The CEO wants it available for level design (D119); it is already used in MAP04 (red key -> gondolas). To do: document the pattern in the level-design guide and offer it in the map generators for the next maps.
+
 ## Orchestrated music (D99, V2)
 
 Render our MIDI pieces with real orchestral sound: the CEO's own Pro Tools rig (synths, orchestral plugins) as the baseline; evaluate first a licence-clean orchestral soundfont for GZDoom's MIDI player, then MusicGen-Melody (local, NC weights) as an AI shortcut. Avoid Suno/Udio.
