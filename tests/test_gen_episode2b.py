@@ -23,8 +23,9 @@ assets/textures/<sky|railway|dam|moscow>/ and assets/flats/<set>/. What is held:
              the skies wrap round the full turn
   skies      dark at the zenith, lighter at the horizon; Moscow warmer than
              the Urals; red obstruction lights on both skylines
-  derived    SDFLAG3/4 hang on SDKREM1's own brick; SDDOORB differs from the
-             approved SDDOORY only where the key colour goes
+  derived    SDDOORB differs from the approved SDDOORY only where the key
+             colour goes (SDFLAG3/4, round 2's banners on SDKREM1, are Soviet
+             flags since D119: tests/test_gen_soviet_flags.py)
   text       the words come from our alphabet (letters present, legible ink)
   sheet      the review sheet lists every lump and has the vote and copy UI
   repeat     two renders are identical
@@ -149,10 +150,15 @@ class DefinitionTests(unittest.TestCase):
                 self.assertTrue(p.why_v2, f"{p.key} asks for v2 without saying why")
 
     def test_patched_restores(self):
-        before = gen_factory.banner_ground
-        with g._patched(gen_factory, banner_ground=g.kremlin_ground):
-            self.assertIs(gen_factory.banner_ground, g.kremlin_ground)
-        self.assertIs(gen_factory.banner_ground, before)
+        before = gen_factory.KEY_INKS
+        stand_in = {}
+        with g._patched(gen_factory, KEY_INKS=stand_in):
+            self.assertIs(gen_factory.KEY_INKS, stand_in)
+        self.assertIs(gen_factory.KEY_INKS, before)
+
+    def test_flags_left_to_gen_soviet_flags(self):
+        """D119: round 2 no longer draws the occupiers' banners."""
+        self.assertFalse({"SDFLAG3", "SDFLAG4"} & set(g.all_lumps()))
 
 
 @needs_imaging
@@ -215,12 +221,6 @@ class RenderTests(unittest.TestCase):
         red = np.array(ep2lib.col("flag_red", 1.0))
         for name, sky in (("SDSKY1", urals), ("SDSKY2", moscow)):
             self.assertGreaterEqual(int((sky[..., :3] == red).all(-1).sum()), 4, f"{name}: red lights on the skyline")
-
-    def test_flags_hang_on_the_kremlin_brick(self):
-        wall = self.A["SDKREM1"] if "SDKREM1" in self.A else ep2lib.load_approved("SDKREM1")
-        below = gen_factory.CLOTH_Y1 + gen_factory.FRINGE_H + 2
-        for lump in ("SDFLAG3", "SDFLAG4"):
-            self.assertTrue(np.array_equal(self.A[lump][below:, :, :3], wall[below:, :, :3]), lump)
 
     def test_blue_door_is_the_key_door_twin(self):
         yellow = ep2lib.load_approved("SDDOORY")[..., :3].astype(int)

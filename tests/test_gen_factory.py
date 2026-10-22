@@ -21,7 +21,10 @@ byte from work/art/batch4/factory/. What is held:
              each reads in its key's colour, apart from SDDOOR1 and each other
   animation  four distinct frames per animated piece, and the loop's last
              step (4 -> 1) no bigger than its others
-  banners    SDFLAG1/2 hang on SDBRCK1's own pixels (no seam beside a brick tile)
+  D119       the occupiers' banners SDFLAG1/2 this set drew are Soviet flags
+             since D119, drawn by gen_soviet_flags.py under the same lumps in
+             the same folder; tests/test_gen_soviet_flags.py holds them, and
+             this file leaves them out of the set
   writes     the generator writes to work/ and docs/art/previews/ only, never assets/
   installed  (D66) assets/textures/factory/ and assets/flats/factory/ hold
              exactly the approved lumps, walls and flats in their folders,
@@ -78,9 +81,10 @@ EXPECTED = {
     "SDGATE1": ("wall", 128, 128, ["SDGATE1"]),
     "SDWIND1": ("wall", 64, 128, ["SDWIND1"]),
     "SDSLOG1": ("wall", 256, 64, ["SDSLOG1"]),
-    "SDFLAG1": ("wall", 64, 128, ["SDFLAG1"]),
-    "SDFLAG2": ("wall", 64, 128, ["SDFLAG2"]),
 }
+# D119 (2026-10-23): SDFLAG1/2 live in assets/textures/factory/ but are
+# gen_soviet_flags.py's (tests/test_gen_soviet_flags.py), not this set's.
+D119_FLAGS = {"SDFLAG1", "SDFLAG2"}
 LUMP_RE = re.compile(r"^SD[A-Z0-9]{1,6}$")
 OTHER_BATCH_SEEDS = {1935, 1977, 2077, 3077}     # gen_metro, gen_soviet_base/gen_shell, gen_switch, gen_props
 
@@ -102,9 +106,8 @@ D66_BATCH_SEED = 4100
 D66_SEED_OFFSET = {
     "SDBRCK1": 1, "SDBRCK2": 2, "SDRUST1": 3, "SDCHAN1": 4, "SDFLR4": 5, "SDGRAT1": 6, "SDMOLT": 7,
     "SDDOORY": 8, "SDDOORR": 9, "SDPORT": 10, "SDGATE1": 11, "SDWIND1": 12, "SDSLOG1": 13,
-    "SDFLAG1": 14, "SDFLAG2": 15,
-}
-D66_PALETTE_V2 = {"SDBRCK1", "SDBRCK2", "SDFLAG1", "SDFLAG2", "SDPORT"}
+}                                                # 14, 15 were SDFLAG1/2 until D119
+D66_PALETTE_V2 = {"SDBRCK1", "SDBRCK2", "SDPORT"}
 
 
 def installed_files() -> dict[str, Path]:
@@ -112,7 +115,8 @@ def installed_files() -> dict[str, Path]:
     for base in (FACTORY_WALLS, FACTORY_FLATS):
         if base.is_dir():
             for p in sorted(base.glob("*.png")):
-                out[p.stem] = p
+                if p.stem not in D119_FLAGS:
+                    out[p.stem] = p
     return out
 
 
@@ -229,7 +233,7 @@ class RenderTests(unittest.TestCase):
         import palette as palgen
         v1 = set(palgen.colours(1))
         for piece, version in self.g.PALETTE_VERSION.items():
-            if version != 2 or piece == "SDFLAG1":     # SDFLAG1 is v2 only through its brick ground
+            if version != 2:
                 continue
             lump = next(p[4] for p in self.g.PIECES if p[0] == piece)[0]
             used = {tuple(int(v) for v in c) for c in self.quant[lump][..., :3].reshape(-1, 3)}
@@ -289,15 +293,6 @@ class RenderTests(unittest.TestCase):
         # and the key colour covers a large share of the door
         _, frame, ribs, plate, band = self.g.door_masks()
         self.assertGreater((frame | ribs | plate).mean(), 0.40)
-
-    def test_banners_hang_on_sdbrck1(self):
-        brick = self.quant["SDBRCK1"]
-        for lump in ("SDFLAG1", "SDFLAG2"):
-            q = self.quant[lump]
-            # the edge columns, outside the rod's brackets and the cloth's shadow
-            for x in (0, 63):
-                rows = slice(self.g.ROD_Y1 + 4, 128)
-                self.assertTrue(np.array_equal(q[rows, x], brick[rows, x]), (lump, x))
 
     def test_slogan_carries_its_letters(self):
         import artlib

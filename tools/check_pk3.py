@@ -718,8 +718,9 @@ def licensed_names(licenses: Path) -> set[str]:
 # Lumps approved in palette v2 (docs/art/ART-BIBLE.md section 3). Every other
 # indexed lump must stay inside v1; these may use the v2 ramps too. Sprites
 # are RGBA and are not palette-checked here (tests/test_palette_v2.py is).
-# D66: the Tankograd brick (marble_red), the two banners hung on it (the
-# Legion's canton in mosaic_cobalt) and the four portal frames (mosaic_cobalt).
+# D66: the Tankograd brick (marble_red), the two banners hung on it (Soviet
+# flags since D119, v2 only through the brick) and the four portal frames
+# (mosaic_cobalt).
 # D80: the blue pass's status bar icon STKEYS0 (graphics/, mosaic_cobalt).
 # M2e-i (D89, D90, D92): none. Status bar A's four indexed pictures (STBAR,
 # STARMS, SDSBRU, SDARRU) use v1 colours only; the 42 v2 faces STF* are RGBA
@@ -736,7 +737,7 @@ PALETTE_V2_LUMPS = frozenset({"SDMOSA1"}  # D56
                              # Episode 2 round 2's blue key door (mosaic_cobalt),
                              # the Spasskaya clock and the Historical Museum
                              # (marble_red) and the two banners on SDKREM1
-                             # (marble_red; SDFLAG4's canton mosaic_cobalt).
+                             # (marble_red; Soviet flags since D119).
                              | {"SDPRTE1", "SDDOORB", "SDCLOK1", "SDMUSE1", "SDFLAG3", "SDFLAG4"}
                              # D113: MAP09's sky, the portal's glow in mosaic_cobalt
                              # (only where the portal lights it; gen_episode3_skies).

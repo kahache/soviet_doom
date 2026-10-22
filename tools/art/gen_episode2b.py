@@ -22,27 +22,26 @@ What it draws (the "still pending" tables of docs/levels/MAP04-transsib.md
            high-voltage fence SDHVLT1 (masked) with its «СТОЙ!» plate
   moscow   the Spasskaya clock SDCLOK1 and ruby star SDRUBY1 (masked), the
            GUM shopfronts SDGUMS1-3 and glass roof SDGUMR1, the Historical
-           Museum's brick SDMUSE1, and SDFLAG3/SDFLAG4: the occupiers' banners
-           of SDFLAG1/2 hung on the Kremlin brick SDKREM1 instead of SDBRCK1
+           Museum's brick SDMUSE1. Round 2 also drew SDFLAG3/SDFLAG4, the
+           occupiers' banners on the Kremlin brick SDKREM1 (D113); since
+           D119 they are Soviet flags drawn by gen_soviet_flags.py under
+           the same lump names, and this script no longer builds them
 
 Method: ep2lib's (imported, never edited): one seed per piece (BATCH_SEED +
 offset), tileable numpy fields, vector overlays at SUPERSAMPLE x, no dither.
 Palette v1; a piece adds a v2 ramp only where it says why (`ramps`):
 marble_red for brick (D66, D107), mosaic_cobalt for the blue key door (the
-cobalt mosaic SDMOSA1 frames it in MAP06) and for the Legion banner's canton
-(SDFLAG2, D66). Never mosaic_gold or flesh_pink.
+cobalt mosaic SDMOSA1 frames it in MAP06). Never mosaic_gold or flesh_pink.
 
 Lettering: never a system font (D27). Words come from our alphabet
 (assets/fonts/bigfont, D24) through gen_factory.glyph_masks, each glyph
 trimmed to its ink; digits are ep2lib's 3x5 pixels. Every lump therefore
 reproduces byte for byte on the Mac and on Windows.
 
-Three pieces replay approved recipes on purpose, by setting gen_factory's
+One piece replays an approved recipe on purpose, by setting gen_factory's
 module state for the length of one call (`_patched`), never by editing it:
 SDDOORB is gen_factory.key_door with a cobalt trim (its leaf is SDDOOR1's,
-as SDDOORY's and SDDOORR's are); SDFLAG3/SDFLAG4 are gen_factory.tex_flag1 /
-tex_flag2 with the ground swapped for gen_moscow.kremlin_brick, so the brick
-round the cloth is SDKREM1 pixel for pixel. The sample rooms set ep2lib's
+as SDDOORY's and SDDOORR's are). The sample rooms set ep2lib's
 room height and v2 ramps the same way.
 """
 
@@ -1455,25 +1454,6 @@ def tex_muse1() -> np.ndarray:
     return rgb
 
 
-def kremlin_ground() -> np.ndarray:
-    """SDKREM1's pixels before quantisation (gen_moscow, seed 5603)."""
-    return gen_moscow.kremlin_brick(gen_moscow.WALL_W, gen_moscow.WALL_H, gen_moscow.rng_for(3))
-
-
-def tex_flag3() -> np.ndarray:
-    """SDFLAG1, the Fourth Reich's banner (D12), as approved (its own seed,
-    4114), hung on the Kremlin brick SDKREM1 instead of SDBRCK1."""
-    with _patched(gen_factory, banner_ground=kremlin_ground):
-        return gen_factory.tex_flag1()
-
-
-def tex_flag4() -> np.ndarray:
-    """SDFLAG2, the Liberty Legion's banner (D12), as approved (seed 4115),
-    hung on SDKREM1 instead of SDBRCK1."""
-    with _patched(gen_factory, banner_ground=kremlin_ground):
-        return gen_factory.tex_flag2()
-
-
 # ================================================================ pieces
 WHY_BRICK = "v2 solo por marble_red, como SDBRCK1 y SDKREM1 aprobados (D66, D107): v1 no tiene rojo de ladrillo cocido."
 PIECES = [
@@ -1582,7 +1562,7 @@ PIECES = [
            "remaches) con el marco, los nervios, la placa y la banda de peligro en cobalto y «ПРОПУСК» en crema.",
            set_name="dam", ramps=("mosaic_cobalt",),
            why_v2="v2 solo por mosaic_cobalt: el azul de v1 (steel_blue) es gris y no se lee como llave azul. Es el "
-                  "cobalto del mosaico SDMOSA1, que enmarca esta misma puerta en MAP06, y del cantón de SDFLAG2 (D66).",
+                  "cobalto del mosaico SDMOSA1, que enmarca esta misma puerta en MAP06.",
            replays="hoja: semilla 1982 (SDDOOR1), como SDDOORY/SDDOORR",
            rec_why="Gemela de las puertas amarilla y roja aprobadas: el jugador ya sabe leerla. La usan MAP05 (la "
                    "puerta azul) y MAP06 (la puerta azul entre mosaicos)."),
@@ -1635,22 +1615,6 @@ PIECES = [
            set_name="moscow", ramps=("marble_red",), why_v2=WHY_BRICK,
            rec_why="Distinto de SDKREM1 (más pardo) y de SDSPAS1 (sin pilastras, con casetones): tres rojos de "
                    "ladrillo que se distinguen en la misma plaza."),
-    Piece2("SDFLAG3", tex_flag3, "wall", (64, 128), ["SDFLAG3"], 20, "x",
-           "Estandarte del Cuarto Reich sobre el Kremlin",
-           "SDFLAG1 tal como está aprobada (su semilla, 4114), colgada sobre el ladrillo del Kremlin SDKREM1 en vez "
-           "de SDBRCK1: el borde de ladrillo alrededor del paño ya no cambia de color junto a la muralla.",
-           set_name="moscow", ramps=("marble_red",),
-           why_v2="v2 solo por marble_red: el ladrillo es el de SDKREM1. El paño es el aprobado (flag_red, crema, negro).",
-           replays="paño: semilla 4114 (SDFLAG1); muro: semilla 5603 (SDKREM1)",
-           rec_why="Nueva pieza derivada, no regenera SDFLAG1 (que sigue igual en la fábrica y en el patio de MAP06). "
-                   "Para la corona de la muralla."),
-    Piece2("SDFLAG4", tex_flag4, "wall", (64, 128), ["SDFLAG4"], 21, "x",
-           "Estandarte de la Liberty Legion sobre el Kremlin",
-           "SDFLAG2 tal como está aprobada (su semilla, 4115), colgada sobre SDKREM1 en vez de SDBRCK1.",
-           set_name="moscow", ramps=("marble_red", "mosaic_cobalt"),
-           why_v2="v2 por marble_red (el ladrillo de SDKREM1) y por mosaic_cobalt (el cantón, como en SDFLAG2, D66).",
-           replays="paño: semilla 4115 (SDFLAG2); muro: semilla 5603 (SDKREM1)",
-           rec_why="La pareja de SDFLAG3; mismas razones."),
 ]
 
 SETS = (("sky", "Cielos", "MAP04 y MAP06"),
@@ -1694,8 +1658,6 @@ SCENES = {
     "SDGUMS": {"back": "SDGUMS2", "left": "SDGUMS1", "right": "SDGUMS3", "floor": "SDMARB1f", "ceil": "SDGUMR1"},
     "SDGUMR1": {"back": "SDGUMS3", "left": "SDGUMS1", "right": "SDGUMS2", "floor": "SDMARB1f", "ceil": "SDGUMR1"},
     "SDMUSE1": {"back": "SDMUSE1", "left": "SDMUSE1", "right": "SDKREM1", "floor": "SDCOBL1"},
-    "SDFLAG3": {"back": ("row", "SDKREM1", "SDFLAG3"), "left": "SDKREM1", "right": "SDKREM1", "floor": "SDCOBL1"},
-    "SDFLAG4": {"back": ("row", "SDKREM1", "SDFLAG4"), "left": "SDKREM1", "right": "SDKREM1", "floor": "SDCOBL1"},
 }
 SCENE_SKY = {"railway": "SDSKY1", "moscow": "SDSKY2", "sky": None, "dam": None}
 OVERVIEWS = {
@@ -1711,7 +1673,8 @@ OVERVIEWS = {
 # v2 ramps of the approved lumps the scenes borrow (so the room keeps their colours).
 APPROVED_RAMPS = {"SDMOSA1": ("mosaic_cobalt",), "SDKREM1": ("marble_red",), "SDKREM2": ("marble_red",),
                   "SDSPAS1": ("marble_red",), "SDBRCK1": ("marble_red",), "SDBRCK3": ("marble_red",),
-                  "SDBANR1": ("marble_red",), "SDMARB1": ("marble_red",), "SDMARB1f": ("marble_red",)}
+                  "SDBANR1": ("marble_red",), "SDMARB1": ("marble_red",), "SDMARB1f": ("marble_red",),
+                  "SDFLAG3": ("marble_red",), "SDFLAG4": ("marble_red",)}   # D119: gen_soviet_flags.py
 SKY_YAWS = (0, 90, 180, 270)
 SKY_VIEW_ROOM_H = 64          # the sky views: walls half as high, so more sky shows
 GIF_MS = gen_episode2.GIF_MS
@@ -1853,14 +1816,6 @@ def make_views(entries: dict, A: dict) -> dict:
             path = vdir / f"overview{i}.png"
             Image.fromarray(render_scene(spec, A, sky)).save(path, optimize=True)
             V[f"{set_name}_overview{i}"] = path
-    # side by side: the approved banners on SDKREM1 against the new pair
-    for old, new in (("SDFLAG1", "SDFLAG3"), ("SDFLAG2", "SDFLAG4")):
-        wall = lookup("SDKREM1", A)[..., :3]
-        strip = np.hstack([wall, lookup(old, A)[..., :3], wall, np.zeros((128, 8, 3), np.uint8),
-                           wall, A[new][..., :3], wall])
-        path = WORK_ROOT / "moscow" / "views" / f"{new}_compare.png"
-        Image.fromarray(strip).save(path, optimize=True)
-        V[f"{new}_compare"] = path
     door = np.hstack([lookup("SDDOORY", A)[..., :3], lookup("SDDOORR", A)[..., :3], A["SDDOORB"][..., :3]])
     path = WORK_ROOT / "dam" / "views" / "SDDOORB_compare.png"
     Image.fromarray(door).save(path, optimize=True)
@@ -1980,9 +1935,7 @@ document.getElementById("general").value = S._general || "";
 build(); summary();
 """
 
-EXTRAS = {"SDFLAG3": ("Antes y después sobre SDKREM1: SDFLAG1 aprobada (izquierda) y SDFLAG3 (derecha), 2×", "SDFLAG3_compare"),
-          "SDFLAG4": ("Antes y después sobre SDKREM1: SDFLAG2 aprobada (izquierda) y SDFLAG4 (derecha), 2×", "SDFLAG4_compare"),
-          "SDDOORB": ("Las tres puertas de llave juntas: SDDOORY, SDDOORR (aprobadas) y SDDOORB, 2×", "SDDOORB_compare")}
+EXTRAS = {"SDDOORB": ("Las tres puertas de llave juntas: SDDOORY, SDDOORR (aprobadas) y SDDOORB, 2×", "SDDOORB_compare")}
 
 
 def items_json(entries: dict, A: dict, V: dict) -> list[dict]:
@@ -2058,10 +2011,9 @@ mínima tipo Doom; no es GZDoom, sirve para escala y repetición). Las salas de 
 <li><b>Texto:</b> ninguna fuente del sistema. «СВЕРДЛОВСК / СОРТИРОВОЧНЫЙ», «СТОЙ!», «ПРОПУСК», «ТКАНИ», «ОБУВЬ» y
 «ЧАСЫ» salen de nuestro alfabeto (bigfont, D24), así que se generan igual en el Mac y en Windows; los números de las
 palancas son los dígitos de 3×5 píxeles.</li>
-<li><b>Piezas derivadas:</b> <code>SDDOORB</code> repite la receta de las puertas amarilla y roja; <code>SDFLAG3</code> y
-<code>SDFLAG4</code> son las banderas aprobadas colgadas sobre el ladrillo del Kremlin. Son lumps nuevos: las aprobadas
-(<code>SDFLAG1/2</code>, <code>SDDOORY/R</code>) no se tocan ni se regeneran.</li>
-<li><b>D12:</b> lugares y piedra; las banderas de los ocupantes son las ya aprobadas, sin nada nuevo.</li>
+<li><b>Pieza derivada:</b> <code>SDDOORB</code> repite la receta de las puertas amarilla y roja. Es un lump nuevo: las
+aprobadas (<code>SDDOORY/R</code>) no se tocan ni se regeneran.</li>
+<li><b>D12:</b> lugares y piedra.</li>
 </ul>
 <p>Marca <b>OK / NO / ?</b> en cada una, escribe notas si quieres y pulsa <b>Copiar resultado</b> para pegármelo.</p>
 </div>"""
@@ -2069,7 +2021,7 @@ palancas son los dígitos de 3×5 píxeles.</li>
 <div class="ask"><p><b>Además del OK/NO, cuatro preguntas:</b></p><ol>
 <li><b>Formato del cielo.</b> 1024×128, una vuelta entera sin repetirse (mi recomendación), o 256×128 repetido cuatro
 veces como el SKY1 de Freedoom (más pequeño, pero las chimeneas y los rascacielos se verían cuatro veces).</li>
-<li><b>La puerta azul en cobalto</b> (v2), como el mosaico que la enmarca en MAP06 y el cantón de SDFLAG2. La alternativa
+<li><b>La puerta azul en cobalto</b> (v2), como el mosaico que la enmarca en MAP06. La alternativa
 en v1 es gris azulado y no se lee como «azul». Recomiendo cobalto.</li>
 <li><b>La valla de alta tensión enmascarada</b> (se ve a través): el level-designer tendría que convertir la valla de la
 subestación en una línea de dos caras. Si prefieres una valla opaca (chapa con la placa), es una variante rápida.</li>

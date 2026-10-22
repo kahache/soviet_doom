@@ -271,7 +271,12 @@ both machines. Palette v1 except where the row says v2 (the generator's
 
 CEO verdict 2026-10-14, verbatim: «Me gustan TODAS» — every piece as drawn,
 including **palette v2** for the brick, the Legion flag's canton and the
-portal, and the portal in cobalt with white filaments (D66). The PM copied
+portal, and the portal in cobalt with white filaments (D66). **D119
+(2026-10-23):** the two occupiers' banners `SDFLAG1` / `SDFLAG2` are Soviet
+flags now (CEO playtest: they read as part of the setting, not the enemy's),
+drawn by `tools/art/gen_soviet_flags.py` on the same `SDBRCK1` pixels under
+the same lump names; `tests/test_gen_soviet_flags.py` holds them, and
+`gen_factory.py` no longer builds them (seeds 4114/4115 retired). The PM copied
 19 of the 21 lumps, every animation frame included, byte for byte from
 `work/art/batch4/factory/` into `assets/textures/factory/` (walls) and
 `assets/flats/factory/` (flats). **Two approved lumps wait in `work/`**
@@ -309,8 +314,8 @@ until then each shows its first frame. Not yet seen in the engine (D26).
 | `SDGATE1` | wall | 128×128 | yes | sliding factory gate, green corrugated sheet in a steel frame, braces, roller track, handle; shut | (a) gen_factory, seed 4111 | approved 2026-10-14 (D66) | 2026-10-14 |
 | `SDWIND1` | wall | 64×128 | yes | industrial glazing at night, 4×8 panes, one broken, one boarded | (a) gen_factory, seed 4112 | approved 2026-10-14 (D66) | 2026-10-14 |
 | `SDSLOG1` | wall (banner) | **256×64** | no | works banner «ТРАКТОРЫ — КОЛХОЗАМ!» ("Tractors for the collective farms!"), cream on kumach, our alphabet at 2× | (a) gen_factory, seed 4113; text from bigfont | approved 2026-10-14 (D66); installed 2026-10-14 (N6b, 256×64 accepted by test_art) | 2026-10-14 |
-| `SDFLAG1` | wall | 64×128 | yes (on `SDBRCK1`) | the Fourth Reich's banner (D12) hung on `SDBRCK1`'s own pixels | (a) gen_factory, seed 4114, palette v2 (through the brick) | approved 2026-10-14 (D66) | 2026-10-14 |
-| `SDFLAG2` | wall | 64×128 | yes (on `SDBRCK1`) | the Liberty Legion's banner (D12), the US flag hung vertically on `SDBRCK1`, canton in `mosaic_cobalt` | (a) gen_factory, seed 4115, palette v2 | approved 2026-10-14 (D66) | 2026-10-14 |
+| `SDFLAG1` | wall | 64×128 | yes (on `SDBRCK1`) | the USSR state flag hung vertically from an iron rod on `SDBRCK1`'s own pixels: plain red 1:2 cloth (50×100) with a sleeve, the gold-bordered red star over the gold hammer and sickle (`SDSTAR1`'s geometry) in the upper hoist corner; no text. Replaces the occupiers' banner (D119) | (a) gen_soviet_flags, seed 6120, palette v2 (only through the brick) | approved 2026-10-23 (D119, D113 standing approval) | 2026-10-23 |
+| `SDFLAG2` | wall | 64×128 | yes (on `SDBRCK1`) | a Red Army standard on `SDBRCK1`: wooden staff (left) with a gold spearhead, wall clamps and an iron ferrule, red cloth with a gold border and fringe, the big gold-bordered red star with the hammer and sickle inside, a gold cord ending in a tassel; no text. Replaces the occupiers' banner (D119) | (a) gen_soviet_flags, seed 6121, palette v2 (only through the brick) | approved 2026-10-23 (D119, D113 standing approval) | 2026-10-23 |
 
 Recommended light (ART-BIBLE §4): 112-144 in the halls, the molten metal and
 the portal as bright islands (they read as light sources); the
@@ -416,9 +421,14 @@ alphabet (`assets/fonts/bigfont/`, D24), the digits are `ep2lib.py`'s 3×5
 pixels, so every lump reproduces byte for byte on both machines. Palette v1,
 except six walls that add a v2 ramp and say why: `SDCLOK1`, `SDMUSE1` and
 `SDFLAG3` (`marble_red`, brick), `SDDOORB` (`mosaic_cobalt`, the blue key
-colour; v1's `steel_blue` reads grey) and `SDFLAG4` (both: the Kremlin brick
-and the Legion's canton, as `SDFLAG2`, D66). Never `mosaic_gold` or
-`flesh_pink`.
+colour; v1's `steel_blue` reads grey) and `SDFLAG4` (until D119 both: the
+Kremlin brick and the Legion's canton). Never `mosaic_gold` or
+`flesh_pink`. **D119 (2026-10-23):** `SDFLAG3` / `SDFLAG4`, the occupiers'
+banners on `SDKREM1`, are Soviet flags now (a parade gonfalon and a
+battle-torn state flag), drawn by `tools/art/gen_soviet_flags.py` on the same
+`SDKREM1` pixels under the same lump names, `marble_red` only through the
+brick; `gen_episode2b.py` no longer builds them. Before/after:
+`docs/art/previews/2026-10-23_P4_soviet-flags.png`.
 
 **Approved under D113's standing approval** (the CEO approves procedural
 textures in advance), **PM gate 2026-10-22**: 21 pieces, 23 lumps, copied
@@ -481,8 +491,8 @@ space (6000+). New families: ART-BIBLE §2.
 | `SDGUMS3` | wall | 64×128 | along x | the same shopfront, «ЧАСЫ» ("watches") | (a) gen_episode2b, seed 5717; text from bigfont | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
 | `SDGUMR1` | flat | 64×64 | yes | the GUM's glass vault from below: the arch's iron rib on the edge, a purlin in the middle, glazing bars, dirty panes dark at night and warmed by the city glow, grime against the iron, two panes missing and one cracked | (a) gen_episode2b, seed 5718 | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
 | `SDMUSE1` | wall | 64×128 | yes | the Historical Museum's red brick with its white dressings: a deeper, browner red than the Kremlin's with fine light joints, a white band of square panels («ширинки») with a brick lozenge each, a row of white pendants below and a white dentilled string course | (a) gen_episode2b, seed 5719, palette v2 (`marble_red`) | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
-| `SDFLAG3` | wall | 64×128 | along x (on `SDKREM1`) | the Fourth Reich's banner `SDFLAG1` as approved, hung on the Kremlin brick `SDKREM1` instead of `SDBRCK1`: the brick round the cloth no longer changes colour beside the wall | (a) gen_episode2b, seed 5720; the cloth replays `SDFLAG1`'s seed 4114, the wall `SDKREM1`'s 5603; palette v2 (`marble_red`) | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
-| `SDFLAG4` | wall | 64×128 | along x (on `SDKREM1`) | the Liberty Legion's banner `SDFLAG2` as approved, hung on `SDKREM1` instead of `SDBRCK1` | (a) gen_episode2b, seed 5721; the cloth replays `SDFLAG2`'s seed 4115, the wall `SDKREM1`'s 5603; palette v2 (`marble_red`, `mosaic_cobalt` in the canton) | approved 2026-10-22 (D113 standing approval, PM gate 2026-10-22) | 2026-10-22 |
+| `SDFLAG3` | wall | 64×128 | along x (on `SDKREM1`) | a parade gonfalon on the Kremlin brick `SDKREM1`: red cloth from a wooden crossbar on a staff (right), swallowtail foot with a gold fringe, the bordered star over the hammer and sickle in a gold wreath with a red ribbon, two gold tassels; no text. Replaces the occupiers' banner (D119) | (a) gen_soviet_flags, seed 6122, palette v2 (`marble_red`, only through the brick) | approved 2026-10-23 (D119, D113 standing approval) | 2026-10-23 |
+| `SDFLAG4` | wall | 64×128 | along x (on `SDKREM1`) | the USSR state flag after the battle, on `SDKREM1`: as `SDFLAG1` (star and hammer and sickle in the hoist corner) but faded, its foot torn and burnt with two tongues burnt away, five bullet holes with charred rims (the brick shows through), a tear, soot rising from the foot; no text. Replaces the occupiers' banner (D119) | (a) gen_soviet_flags, seed 6123, palette v2 (`marble_red`, only through the brick) | approved 2026-10-23 (D119, D113 standing approval) | 2026-10-23 |
 
 ## Episode 3 «The Portal» — approved 2026-10-22 (P4, D112, D113)
 
