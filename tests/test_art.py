@@ -457,6 +457,12 @@ EP3_SKIES_INSTALLED = {
     "SDSKY3": ("textures/sky", (1024, 128), False), "SDSKY4": ("textures/sky", (1024, 128), False),
     "SDSKY5": ("textures/sky", (1024, 128), False),
 }
+# Episode 1's two skies (gen_episode1_skies.py, installed 2026-10-22 under
+# D113's standing approval): MAPINFO sky1 of MAP01 and RANGE (SDSKY6) and
+# MAP03 (SDSKY7), in the same textures/sky/. Episode2InstallTests leaves them out.
+EP1_SKIES_INSTALLED = {
+    "SDSKY6": ("textures/sky", (1024, 128), False), "SDSKY7": ("textures/sky", (1024, 128), False),
+}
 EP2_FOLDERS = ("textures/railway", "textures/dam", "textures/moscow", "textures/sky",
                "flats/railway", "flats/dam", "flats/moscow")
 
@@ -470,7 +476,7 @@ class Episode2InstallTests(unittest.TestCase):
         out = {}
         for folder in EP2_FOLDERS:
             for p in sorted((ASSETS_DIR / folder).glob("*.png")):
-                if p.stem in EP3_SKIES_INSTALLED:
+                if p.stem in EP3_SKIES_INSTALLED or p.stem in EP1_SKIES_INSTALLED:
                     continue
                 self.assertNotIn(p.stem, out, f"{p.stem} installed twice")
                 out[p.stem] = p
@@ -509,11 +515,11 @@ class Episode2InstallTests(unittest.TestCase):
     def test_skies_agree_with_check_pk3(self):
         skies = {lump for lump, (folder, _s, _m) in EP2B_INSTALLED.items() if folder == "textures/sky"}
         self.assertEqual({"SDSKY1", "SDSKY2"}, skies)
-        self.assertEqual(skies | set(EP3_SKIES_INSTALLED), set(SKY_TEXTURES))
+        self.assertEqual(skies | set(EP3_SKIES_INSTALLED) | set(EP1_SKIES_INSTALLED), set(SKY_TEXTURES))
 
     def test_episode3_skies_installed(self):
         from PIL import Image
-        for lump, (folder, size, _m) in EP3_SKIES_INSTALLED.items():
+        for lump, (folder, size, _m) in {**EP3_SKIES_INSTALLED, **EP1_SKIES_INSTALLED}.items():
             p = ASSETS_DIR / folder / f"{lump}.png"
             self.assertTrue(p.is_file(), p)
             with Image.open(p) as img:

@@ -109,10 +109,11 @@ class SourceTests(unittest.TestCase):
 class DefinitionTests(unittest.TestCase):
     def test_names(self):
         lumps = g.all_lumps()
-        # Episode 3's skies SDSKY3-5 (gen_episode3_skies.py) are this family's
-        # siblings in textures/sky/, not sprite frames: they must not make
-        # SDSK a sprite prefix. They still clash if a name is reused.
-        siblings = {"SDSKY3", "SDSKY4", "SDSKY5"}
+        # Episode 3's skies SDSKY3-5 (gen_episode3_skies.py) and Episode 1's
+        # SDSKY6-7 (gen_episode1_skies.py) are this family's siblings in
+        # textures/sky/, not sprite frames: they must not make SDSK a sprite
+        # prefix. They still clash if a name is reused.
+        siblings = {"SDSKY3", "SDSKY4", "SDSKY5", "SDSKY6", "SDSKY7"}
         taken = g.existing_lumps(frozenset(lumps)) - siblings
         self.assertEqual(g.gen_episode2.name_problems(lumps, taken), [])
         self.assertFalse(siblings & set(lumps))

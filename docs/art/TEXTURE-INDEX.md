@@ -596,6 +596,30 @@ Not yet seen in the engine (D26): where GZDoom puts row 100 is NOT VERIFIED.
 | `SDSKY4` | sky (wall namespace) | 1024×128 | along x (wraps round the full turn) | the Kola fjord at Severomorsk at night: a low overcast lit brown by the base's sodium, black gneiss cliffs with snow on the ledges and a radio mast, the far shore with the piers' lights, cranes with red lights and two moored submarines, the fjord's mouth open to the sea and a lighthouse on the headland, its beam in the mist and on the black water | (a) gen_episode3_skies, seed 6002, palette v1 | approved 2026-10-22 (D113 standing approval, PM gate pending); MAPINFO `sky1` of MAP08 | 2026-10-22 |
 | `SDSKY5` | sky (wall namespace) | 1024×128 | along x (wraps round the full turn) | the Tunguska taiga at night: torn cloud lit cobalt from below by the portal on the horizon, a pillar of its light into the overcast with white filaments at its foot, the far living taiga's line and, in front, the dead forest of 1908 (stripped trunks standing, snapped tops, felled logs lying away from the portal), black and rimmed with its glow | (a) gen_episode3_skies, seed 6003, palette v2 (`mosaic_cobalt`, only near the portal) | approved 2026-10-22 (D113 standing approval, PM gate pending); MAPINFO `sky1` of MAP09 | 2026-10-22 |
 
+### Sky — MAPINFO `sky1` of MAP01, MAP03 and RANGE (`gen_episode1_skies.py`, 6010)
+
+Episode 1's own skies, replacing Freedoom's `SKY1` (brown daylight cloud)
+on MAP01, MAP03 and the practice range. Same format and method as
+`SDSKY1-5`: 1024×128, one 360° turn that wraps in x and never repeats
+inside it, the horizon at row 100 (`gen_episode2b.HORIZON`), the ground
+below it; no lettering. Seeds 6010 + offset. Installed in
+`assets/textures/sky/` under D113's standing approval, byte for byte from
+`work/art/episode1_skies/sky/` (`tests/test_gen_episode1_skies.py`);
+declared in `SKY_TEXTURES`. Preview (panorama at 2×, the wrap seam, two
+screen views each): `docs/art/previews/2026-10-22_P4_episode1-skies.png`.
+Palette v1 only: MAP03's portal sits in its drum inside the closed shop, so
+its cobalt cannot light the clouds and `SDSKY7` takes no v2 ramp. **MAP02
+(the metro) has no sky sector and keeps `SKY1`**, which nothing in it shows.
+None of MAP01, MAP03 or the range has a sky sector today either (MAP01's
+strip over the hangar is open with the CEO, `MAP01-zarya-7.md` §13 point 5):
+the skies are set so the day one is opened it shows the right place. Not yet
+seen in the engine (D26).
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDSKY6` | sky (wall namespace) | 1024×128 | along x (wraps round the full turn) | the Zarya-7 cosmodrome before a November dawn, 1977: a cold clear sky full of stars, a thin warm dawn band low in the east under streaks of stratus, the flat steppe dusted with snow; far off the launch pad, a Soyuz-type rocket floodlit beside its lattice service tower with red lights, venting, the four floodlight masts and their beams; the base's blocks with lit windows, the assembly hangar with its lit gate, a water tower, a radio mast, a tracking dish, an empty second pad, the road of lamps out to the pad | (a) gen_episode1_skies, seed 6011, palette v1 | approved 2026-10-22 (D113 standing approval, PM gate pending); MAPINFO `sky1` of MAP01 and RANGE (the range is a room of the same base) | 2026-10-22 |
+| `SDSKY7` | sky (wall namespace) | 1024×128 | along x (wraps round the full turn) | Tankograd at night: a low cloud deck lit orange from below by the works, colder and darker at the zenith; three blast furnaces with skip bridges, stoves and gas flares, molten slag running down a heap, chimneys with smoke and red lights, the open-hearth shop's row of six stacks, sawtooth halls with lit glazing, a cooling tower and its steam, two gantry cranes, the gate tower's red star; the yard's dirty snow, rails catching the glow, the goods spur coming at us | (a) gen_episode1_skies, seed 6012, palette v1 | approved 2026-10-22 (D113 standing approval, PM gate pending); MAPINFO `sky1` of MAP03 | 2026-10-22 |
+
 ## Shell pictures — menu cursor and pause sign (T12, D48)
 
 Not textures: patches the engine finds by name, listed here so the index
@@ -659,7 +683,7 @@ Reference sheet `docs/art/previews/2026-10-13_1554_F2_menu-sweep.png`.
 | `STARTAN2` | wall 64×128 | MAP01 (F0 room) | IWAD, to be replaced by `SDCONC1` (approved 2026-10-12) |
 | `FLOOR4_8` | flat | MAP01 (F0 room) | IWAD, to be replaced by `SDFLR2` (approved 2026-10-12) |
 | `CEIL3_5` | flat | MAP01 (F0 room) | IWAD, to be replaced by `SDCEIL2` (approved 2026-10-12) |
-| `SKY1` | sky | MAPINFO | IWAD, kept on MAP01-03 and the range; MAP04-09 have their own (`SDSKY1-5`) |
+| `SKY1` | sky | MAPINFO | IWAD, kept on MAP02 only (the metro, no sky sector); MAP01, MAP03-09 and the range have their own (`SDSKY1-7`) |
 
 ## Discarded
 

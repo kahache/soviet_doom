@@ -130,8 +130,14 @@ class RenderTests(unittest.TestCase):
         return self.root / g.SET_NAME / f"{lump}.png"
 
     def test_names(self):
-        """Not used anywhere else (scans assets/ and work/, hence slow)."""
-        self.assertEqual([], g.name_problems())
+        """Not used anywhere else (scans assets/ and work/, hence slow).
+        Episode 1's SDSKY6-7 (gen_episode1_skies.py) are siblings like
+        SDSKY1/2: taken names, not a sprite prefix."""
+        ep1 = {"SDSKY6", "SDSKY7"}
+        lumps = g.all_lumps()
+        taken = g.existing_lumps() - g.sky_siblings() - ep1
+        self.assertEqual([], g.e2b.gen_episode2.name_problems(lumps, taken))
+        self.assertFalse(set(lumps) & (g.sky_siblings() | ep1))
 
     def test_files_sizes_and_modes(self):
         for lump in LUMPS:

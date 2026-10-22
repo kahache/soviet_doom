@@ -146,7 +146,11 @@ D113's standing approval, PM gate 2026-10-22; sets `sky` (new), `railway`,
   aurora (MAP07; v1 has no aurora green, so `military_green` into
   `steel_blue`), `SDSKY4` the Kola fjord at night (MAP08), `SDSKY5` the
   Tunguska taiga under the portal's glow (MAP09; `mosaic_cobalt` only where
-  the portal lights it, D66).
+  the portal lights it, D66). Episode 1 followed the same day
+  (`tools/art/gen_episode1_skies.py`, v1 only): `SDSKY6` the Zarya-7
+  cosmodrome before a November dawn, a rocket floodlit on its pad (MAP01
+  and the range), `SDSKY7` Tankograd's cloud lit orange by the blast
+  furnaces (MAP03). MAP02, the metro, has no sky sector and keeps `SKY1`.
 - **Family codes:** `SKY` sky; railway (MAP04) `WROF` wagon roof (flat),
   `GOND` gondola floor (flat), `CAB` locomotive cab, `SBOX` signal-box
   glazing, `LEVR` lever frame (`1` the flat from above, `2` the wall from

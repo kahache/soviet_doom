@@ -525,6 +525,23 @@ procedural, one generator, `tools/art/gen_episode3_skies.py`, seed =
 | `SDSKY4` | the Kola fjord at Severomorsk at night, 1024×128 sky (MAPINFO `sky1` of MAP08) | (a) `tools/art/gen_episode3_skies.py`, seed 6002, palette v1 | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
 | `SDSKY5` | the Tunguska taiga with the portal's cobalt glow, 1024×128 sky (MAPINFO `sky1` of MAP09) | (a) `tools/art/gen_episode3_skies.py`, seed 6003, **palette v2** (`mosaic_cobalt`, only near the portal) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
 
+## Episode 1 — skies (P4, approved 2026-10-22 under D113's standing approval)
+
+Two 1024×128 skies for MAPINFO's `sky1` of MAP01 and RANGE (`SDSKY6`) and
+MAP03 (`SDSKY7`), in `assets/textures/sky/`, copied byte for byte from
+`work/art/episode1_skies/sky/` (rendered on the Windows PC on 2026-10-22,
+identical to a fresh render, `tests/test_gen_episode1_skies.py`). All
+procedural, one generator, `tools/art/gen_episode1_skies.py`, seed =
+`BATCH_SEED` 6010 + offset, on top of `gen_episode2b.py`,
+`gen_episode3_skies.py` and `ep2lib.py` (read only). No lettering, no
+photograph, no reference image. Preview
+`docs/art/previews/2026-10-22_P4_episode1-skies.png`.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDSKY6` | the Zarya-7 cosmodrome on the steppe before dawn, a rocket on its pad, 1024×128 sky (MAPINFO `sky1` of MAP01 and RANGE) | (a) `tools/art/gen_episode1_skies.py`, seed 6011, palette v1 | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDSKY7` | Tankograd at night, cloud lit orange by the blast furnaces, 1024×128 sky (MAPINFO `sky1` of MAP03) | (a) `tools/art/gen_episode1_skies.py`, seed 6012, palette v1 | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+
 ## Music (D43, installed 2026-10-13)
 
 Rows added by `sound-designer` so `tools/check_pk3.py` can see the music
