@@ -129,9 +129,12 @@ POSTER_HEIGHT = 256
 LENIN = "SDPOSTR1"      # 128x256
 STALIN = STALIN_POSTER  # 128x256, D55
 MURAL = "SDPOSTR2"      # 128x128 cosmonautics mural
-# The Marx-Engels poster SDPOSTR4 is in preparation (not a lump yet). Its
-# slots are built and wear a stand-in; approving it is this one line:
-MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
+# The Marx-Engels pair (D117), 128x256 each like Lenin and Stalin: Marx
+# carries «ПРОЛЕТАРИИ / ВСЕХ СТРАН,», Engels «СОЕДИНЯЙТЕСЬ!» (his face mirrored
+# to look at Marx). Hung on the two Marx-Engels slots, Marx's first.
+MARX = "SDPOSTR4"
+ENGELS = "SDPOSTR5"
+MARX_ENGELS = (MARX, ENGELS)     # in the order of POSTER_SLOTS_MARX_ENGELS
 # (name, texture, axis, coord, lo, hi): one GridMap style per picture.
 POSTERS = (
     # The concourse's west wall, beside the escalator's mouth: straight ahead
@@ -143,19 +146,19 @@ POSTERS = (
     ("shelter_stalin", STALIN, "h", 1872, 3008, 3136),
     # Lenin on the west wall, on the left as the player comes in.
     ("shelter_lenin", LENIN, "v", 2880, 1664, 1792),
-    # The Marx-Engels slots: the east wall, facing Lenin across the room,
-    # and the south wall beside the passage's mouth, facing Stalin.
-    ("shelter_east_slot", LENIN, "v", 3264, 1664, 1792),
-    ("shelter_south_slot", STALIN, "h", 1600, 3136, 3264),
+    # The Marx-Engels pair (D117): Marx on the east wall, facing Lenin
+    # across the room; Engels round the corner to his right, on the south
+    # wall beside the passage's mouth, facing Stalin.
+    ("shelter_east_slot", MARX, "v", 3264, 1664, 1792),
+    ("shelter_south_slot", ENGELS, "h", 1600, 3136, 3264),
 )
-POSTER_SLOTS_MARX_ENGELS = ("shelter_east_slot", "shelter_south_slot")
+POSTER_SLOTS_MARX_ENGELS = ("shelter_east_slot", "shelter_south_slot")   # Marx, Engels
 
 
-def poster_faces():
-    """POSTERS with each Marx-Engels slot wearing SDPOSTR4 once it exists."""
-    return tuple((name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS
-                  else texture, axis, coord, lo, hi)
-                 for name, texture, axis, coord, lo, hi in POSTERS)
+def poster_faces() -> tuple[tuple[str, str, str, int, int, int], ...]:
+    """Every picture as painted: (name, texture, axis, coord, lo, hi). Since
+    D117 each Marx-Engels slot wears its own poster in POSTERS itself."""
+    return POSTERS
 
 
 # --- Specials not in sdbuild.udmf ----------------------------------------
@@ -873,6 +876,6 @@ def lumps() -> list[tuple[str, bytes]]:
 
 # Every lump name this map may put in a sidedef or a sector.
 WALL_TEXTURES = (TILE, TILE_DADO, TILE_FRIEZE, MARBLE, STATION, MOSAIC, TUNNEL,
-                 TUBBING, EDGE, STEEL, DOOR, STALIN_POSTER, LENIN, MURAL) + SWITCH_FACES     + ((MARX_ENGELS,) if MARX_ENGELS else ())
+                 TUBBING, EDGE, STEEL, DOOR, STALIN_POSTER, LENIN, MURAL) + SWITCH_FACES     + MARX_ENGELS
 FLAT_TEXTURES = (FLOOR_GRANITE, FLOOR_HALL, FLOOR_COPING, RAILS, CEIL_COFFER,
                  CEIL_LAMP, FLOOR_CONCRETE, FLOOR_TILE, CEIL_CONCRETE, CEIL_PANEL, LANE)

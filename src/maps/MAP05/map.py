@@ -100,9 +100,12 @@ FLAG_LEGION = "SDFLAG2"
 LENIN = "SDPOSTR1"       # 128x256: presides over the turbine hall (electrification)
 STALIN = "SDPOSTR3"      # 128x256: the station's, now beside the occupiers' banners
 MURAL = "SDPOSTR2"       # 128x128 cosmonautics mural: the control room
-# The Marx-Engels poster SDPOSTR4 is in preparation (not a lump yet). Its
-# slots are built and wear a stand-in; approving it is this one line:
-MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
+# The Marx-Engels pair (D117), 128x256 each like Lenin and Stalin: Marx
+# carries «ПРОЛЕТАРИИ / ВСЕХ СТРАН,», Engels «СОЕДИНЯЙТЕСЬ!» (his face mirrored
+# to look at Marx). Hung on the two Marx-Engels slots, Marx's first.
+MARX = "SDPOSTR4"
+ENGELS = "SDPOSTR5"
+MARX_ENGELS = (MARX, ENGELS)     # in the order of POSTER_SLOTS_MARX_ENGELS
 CRATE = "SDCRAT1"        # crate faces: the crest's barricades
 FLOOR_LANE = "SDFLR1"    # concrete with a yellow lane line: the road on the crest
 FLOOR_CONCRETE = "SDFLR2"
@@ -343,10 +346,10 @@ POSTERS = (
     ("z5_lenin", LENIN, "v", LENIN_NICHE[0], LENIN_NICHE[1], LENIN_NICHE[3]),
     ("z1_stalin", STALIN, "v", STALIN_NICHE[0], STALIN_NICHE[1], STALIN_NICHE[3]),
     ("z6_mural", MURAL, "h", CONTROL_MURAL_NICHE[3], CONTROL_MURAL_NICHE[0], CONTROL_MURAL_NICHE[2]),
-    ("z5_catwalk_w", STALIN, "h", CATWALK_Y[1], *CATWALK_SLOTS_X["z5_catwalk_w"]),
-    ("z5_catwalk_e", LENIN, "h", CATWALK_Y[1], *CATWALK_SLOTS_X["z5_catwalk_e"]),
+    ("z5_catwalk_w", MARX, "h", CATWALK_Y[1], *CATWALK_SLOTS_X["z5_catwalk_w"]),
+    ("z5_catwalk_e", ENGELS, "h", CATWALK_Y[1], *CATWALK_SLOTS_X["z5_catwalk_e"]),
 )
-POSTER_SLOTS_MARX_ENGELS = ("z5_catwalk_w", "z5_catwalk_e")
+POSTER_SLOTS_MARX_ENGELS = ("z5_catwalk_w", "z5_catwalk_e")   # Marx, Engels
 # The control room's boards (SDCTRL1, for the design's SDPANL1): each a strip
 # BOARD_DEPTH deep along a wall, the board a middle texture on its room face,
 # drawn once and standing on the floor (128 of the room's 160; the tiled wall
@@ -656,9 +659,9 @@ SECRET_ITEMS = (
 
 
 def poster_faces() -> tuple[tuple[str, str, str, int, int, int], ...]:
-    """POSTERS with each Marx-Engels slot wearing SDPOSTR4 once it exists."""
-    return tuple((name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS else texture,
-                  axis, coord, lo, hi) for name, texture, axis, coord, lo, hi in POSTERS)
+    """Every picture as painted: (name, texture, axis, coord, lo, hi). Since
+    D117 each Marx-Engels slot wears its own poster in POSTERS itself."""
+    return POSTERS
 
 
 def _sector(floor: int, ceil: int, tag: int | None = None, *, light: int,
@@ -1245,7 +1248,7 @@ def lumps() -> list[tuple[str, bytes]]:
 WALL_TEXTURES = ((DAM, DAM_WET, TURBINE, CONTROL_PANEL, SPILLWAY, INSULATOR, CONCRETE, STEEL, TILE_DADO,
                   TUNNEL, BRICK, RUST, ROAD_GATE, WINDOW, FLAG_REICH, FLAG_LEGION, CRATE, LENIN, STALIN,
                   MURAL, ARMOUR, ARMOUR_STAR, SIGNAL, GRILL, FENCE)
-                 + DOOR_LEAVES + SWITCH_FACES + ((MARX_ENGELS,) if MARX_ENGELS else ()))
+                 + DOOR_LEAVES + SWITCH_FACES + MARX_ENGELS)
 FLAT_TEXTURES = (FLOOR_LANE, FLOOR_CONCRETE, FLOOR_TILE, CEIL_PANEL, CEIL_CONCRETE, CRATE_TOP,
                  RAILS, FLOOR_PLATE, GRATING, WATER)
 BUILTIN_FLATS = (SKY,)

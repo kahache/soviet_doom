@@ -1,31 +1,28 @@
-"""D112 (P4): the AKM DRAFT overlay, static checks.
+"""D112 (P4), integrated by D116: the AKM, slot 4's second weapon, and its pool.
 
-`tools/make_akm_overlay.py` packs `work/overlays/akm/` (SD_Akm, slot 4's
-second weapon, and SD_AkmAmmo, its 7.62x39 pool and magazine, with their
-provisional sprites, strings and sound names) into
-`work/overlays/sd-draft-akm.pk3`, loaded after the mod with `-file`.
-Design and balance: docs/engine/2026-10-22_P4_akm.md. What is checked:
+Until D116 (2026-10-22) the AKM lived in a DRAFT overlay,
+`work/overlays/akm/`, packed by `tools/make_akm_overlay.py` with tinted
+copies of the PPSh-41's frames. D116 moved it into the mod with NO new
+picture: it shows the PPSh-41's installed frames (MOD-SPEC 6.12) until
+Gemini's are drawn. The overlay and its tool are SUPERSEDED, kept, not
+deleted. Design and balance: docs/engine/2026-10-22_P4_akm.md. Checked:
 
-  tool       on a synthetic source (CI has no work/): it builds, holds
-             exactly the source's files, two builds are byte-identical; it
-             refuses an editor number the mod uses or one outside
-             21000-21039, a class the mod declares, a .zs no #include
-             names, an #include of a missing file, a stray file, a sprite
-             that is not the AKM's, one whose name the mod's assets use,
-             one that is not a PNG, and an --out under src/, dist/ or
-             assets/; the grAb writer round-trips; the tint keeps alpha
-  mod        nothing under src/ names the two classes or uses their two
-             editor numbers yet (flips when the CEO approves the weapon)
-  real       (skips without work/overlays/akm/) the overlay builds; its
-             classes and numbers; every frame a state shows has its PNG,
-             rotation 0, with grAb offsets; every sound it plays is in its
-             SNDINFO and every lump there is one the mod ships; every
-             $SD_ id in three languages, English ASCII, none a mod id;
-             the brief's numbers against the PPSh-41 (slower, harder per
-             round, tighter, between the PPSh and the RPG-7 in DPS, own
-             pool that is not Clip, slot 4)
-  doc        the design document names both classes, both numbers, the
-             tool and the Gemini block
+  tool       (the superseded tool, on a synthetic source; CI has no work/):
+             it builds reproducibly, round-trips grAb, tints keeping alpha,
+             and refuses a number outside 21000-21039 or one the mod uses,
+             a class the mod declares, an orphan .zs, a missing #include, a
+             stray file, a sprite that is not the AKM's or one the mod uses,
+             an --out under src/, dist/ or assets/; and now the real overlay
+  mod        SD_Akm in zscript/weapons/akm.zs (replaces nothing) and
+             SD_AkmAmmo, the one pool of our own, in zscript/sd/ammo.zs;
+             21008 and 21020; slot 4 lists the PPSh-41 then the AKM; every
+             frame names an installed sprite; the documented swap gives SDAK,
+             SDAF, SDAQ and drops the one tint line; three sounds of its own
+             over the PPSh-41's lumps, the shot pitched by $pitchset; five
+             ids in three languages; the balance (4 tics, avg 12, 105 DPS
+             between the PPSh-41 and the RPG-7, tighter spread); placed in
+             no map yet
+  doc        the design document, ADR 011 and the contracts name it
 
 Stdlib only.
 """
@@ -48,6 +45,9 @@ PROJECT_ROOT = TESTS_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 
 import make_akm_overlay as ov  # noqa: E402
+
+sys.path.insert(0, str(TESTS_DIR))
+import _p4_mod as p4  # noqa: E402
 
 SRC = PROJECT_ROOT / "src"
 SOUNDS = PROJECT_ROOT / "assets" / "sounds"
@@ -276,106 +276,131 @@ class ToolTests(unittest.TestCase):
         self.assertGreater(out[1][0], out[1][2])   # warm: more red than blue
 
 
-class ModUntouchedTests(unittest.TestCase):
-    def test_src_does_not_name_the_new_classes(self):
-        for p in SRC.rglob("*"):
-            if p.is_file() and p.suffix in ("", ".zs", ".txt", ".py"):
-                text = p.read_text(encoding="utf-8", errors="replace")
-                for cls in NEW_CLASSES:
-                    self.assertIsNone(re.search(rf"\b{cls}\b", text), f"{p} names {cls}: the draft entered the mod")
+class SupersededOverlayTests(unittest.TestCase):
+    """D116: the AKM is the mod's now, so the overlay tool refuses the real
+    source (a class the mod declares, a number its MAPINFO assigns)."""
 
-    def test_numbers_still_free_in_the_mod(self):
-        mod = ov.mapinfo_ednums((SRC / "lumps" / "MAPINFO").read_text(encoding="utf-8"))
-        for num in EXPECTED_EDNUMS:
-            self.assertNotIn(num, mod)
+    def test_tool_says_superseded(self):
+        self.assertIn("SUPERSEDED", ov.__doc__)
+
+    @unittest.skipUnless(REAL_SRC.is_dir(), "no work/overlays/akm/ (gitignored work/)")
+    def test_real_overlay_is_refused(self):
+        with self.assertRaises(ov.OverlayError):
+            ov.plan_overlay(REAL_SRC, SRC)
 
 
-# -------------------------------------------------------------------- real
-@unittest.skipUnless(REAL_SRC.is_dir(), "no work/overlays/akm/ (gitignored work/)")
-class RealOverlayTests(unittest.TestCase):
+# --------------------------------------------------------------------- mod
+AKM_FILE = "zscript/weapons/akm.zs"
+AMMO_FILE = "zscript/sd/ammo.zs"
+SWAP = [("SDPP", "SDAK"), ("SDPF", "SDAF"), ("SDPQ", "SDAQ")]   # MOD-SPEC 6.12
+IDS = {"SD_TAG_AKM", "SD_PICKUP_AKM", "SD_OB_AKM", "SD_AMMO_AKM", "SD_GOT_AKMMAG"}
+PITCH = 0.85      # the AKM's report, a little lower than the PPSh-41's (SNDINFO $pitchset)
+
+
+class ModTests(unittest.TestCase):
+    """The AKM and its pool as the mod ships them (D116)."""
+
     @classmethod
     def setUpClass(cls):
-        cls.plan = ov.plan_overlay(REAL_SRC, SRC)
-        cls.blocks: dict[str, tuple[str | None, str]] = {}
-        for rel, path in cls.plan.files.items():
-            if rel.endswith(".zs"):
-                cls.blocks.update(class_blocks(path.read_text(encoding="utf-8")))
-        cls.zs_text = "\n".join(strip(p.read_text(encoding="utf-8"))
-                                for r, p in cls.plan.files.items() if r.endswith(".zs"))
-        cls.akm = cls.blocks["SD_Akm"][1]
-        cls.ammo = cls.blocks["SD_AkmAmmo"][1]
-        cls.ppsh = class_blocks((SRC / "zscript" / "weapons" / "ppsh.zs").read_text(encoding="utf-8"))["SD_Ppsh"][1]
+        cls.akm_text = p4.read(AKM_FILE)
+        cls.ammo_text = p4.read(AMMO_FILE)
+        cls.akm = p4.class_blocks(cls.akm_text)["SD_Akm"][1]
+        cls.ammo = p4.class_blocks(cls.ammo_text)["SD_AkmAmmo"][1]
+        cls.ppsh = p4.class_blocks(p4.read("zscript/weapons/ppsh.zs"))["SD_Ppsh"][1]
+        cls.player = p4.class_blocks(p4.read("zscript/sd/player.zs"))["SD_Player"][1]
 
-    def test_builds(self):
-        with tempfile.TemporaryDirectory() as d:
-            out = Path(d) / "sd-draft-akm.pk3"
-            self.assertEqual(run_tool(["--src", str(REAL_SRC), "--out", str(out)]), 0)
-            self.assertEqual(sorted(zipfile.ZipFile(out).namelist()), sorted(self.plan.files))
-
-    def test_classes(self):
-        self.assertEqual(set(self.plan.classes), set(NEW_CLASSES))
-        known = set(mod_class_files()) | ENGINE_PARENTS
-        for cls, (parent, _) in self.blocks.items():
-            with self.subTest(cls=cls):
-                self.assertIn(parent, known)
-                self.assertNotIn("replaces", self.blocks[cls][1].splitlines()[0], "the AKM replaces nothing")
+    def test_classes_files_and_includes(self):
+        self.assertEqual(list(p4.class_blocks(self.akm_text)), ["SD_Akm"])
+        self.assertEqual(p4.class_head(self.akm_text, "SD_Akm"), "class SD_Akm : DoomWeapon")
+        self.assertEqual(p4.class_head(self.ammo_text, "SD_AkmAmmo"), "class SD_AkmAmmo : Ammo")
+        inc = p4.includes()
+        self.assertIn(AKM_FILE, inc)
+        self.assertIn(AMMO_FILE, inc)
 
     def test_editor_numbers(self):
-        self.assertEqual(self.plan.ednums, EXPECTED_EDNUMS)
+        ednums = p4.mapinfo_ednums()
+        for num, cls in EXPECTED_EDNUMS.items():
+            self.assertEqual(ednums.get(num), cls)
         self.assertIn(21008, range(21000, 21020))   # MOD-SPEC 6.1 weapons
         self.assertIn(21020, range(21020, 21040))   # ammo and items
 
-    def test_every_frame_has_its_sprite(self):
-        have = {Path(r).stem for r in self.plan.files if r.startswith("sprites/")}
-        for cls, (_, body) in self.blocks.items():
-            frames = state_frames(body)
-            self.assertTrue(frames, cls)
-            for sprite, frame in sorted(frames):
-                with self.subTest(cls=cls, sprite=sprite, frame=frame):
-                    self.assertIn(f"{sprite}{frame}0", have)
-                    self.assertIsNotNone(ov.png_grab(self.plan.files[f"sprites/{sprite}{frame}0.png"].read_bytes()))
-        self.assertIn('Inventory.Icon "SDAMA0"', self.ammo)
-        self.assertIn("SDAMA0", have)
-
-    def test_sounds(self):
-        snd = sndinfo_map(self.plan.files["SNDINFO"].read_text(encoding="utf-8"))
-        used = set(re.findall(r'"(sd/[^"]+)"', self.zs_text))
-        self.assertTrue(used)
-        for name in sorted(used):
-            with self.subTest(name=name):
-                self.assertIn(name.lower(), snd)
-                self.assertTrue(name.startswith("sd/weapon/akm/"))
-        mod = sndinfo_map((SRC / "lumps" / "SNDINFO").read_text(encoding="utf-8"))
-        shipped = {p.stem.upper() for p in SOUNDS.rglob("*.ogg")}
-        for name, lump in snd.items():
-            with self.subTest(name=name):
-                self.assertNotIn(name, mod, "an overlay name overrides a mod name")
-                self.assertIn(lump.upper(), shipped)
-
-    def test_strings_in_three_languages(self):
-        overlay = language_sections(self.plan.files["LANGUAGE"].read_text(encoding="utf-8"))
-        mod = language_sections((SRC / "lumps" / "LANGUAGE").read_text(encoding="utf-8"))
-        used = set(re.findall(r'"\$(SD_\w+)"', self.zs_text))
-        self.assertEqual(used, {"SD_TAG_AKM", "SD_PICKUP_AKM", "SD_OB_AKM", "SD_AMMO_AKM", "SD_GOT_AKMMAG"})
-        for lang in LANGS:
-            with self.subTest(lang=lang):
-                self.assertEqual(set(overlay.get(lang, {})), used)
-                self.assertFalse(used & set(mod.get(lang, {})), "an overlay id overrides a mod id")
-        for k, v in overlay["enu default"].items():
-            self.assertTrue(v.isascii(), k)
-        self.assertIn("АКМ", overlay["ru"]["SD_TAG_AKM"])
-
-    def test_slot_four_beside_the_ppsh(self):
+    def test_slot_four_holds_the_ppsh_then_the_akm(self):
+        code = p4.strip_comments(self.player)
+        self.assertRegex(code, r'Player\.WeaponSlot\s+4\s*,\s*"SD_Ppsh"\s*,\s*"SD_Akm"\s*;')
         self.assertEqual(default_value(self.akm, "Weapon.SlotNumber"), "4")
         self.assertEqual(default_value(self.ppsh, "Weapon.SlotNumber"), "4")
         self.assertLess(int(default_value(self.akm, "Weapon.SelectionOrder")),
                         int(default_value(self.ppsh, "Weapon.SelectionOrder")))
+        self.assertNotIn("SD_Akm", re.findall(r'Player\.StartItem\s+"(\w+)"', code))
+
+    def test_every_frame_has_its_sprite(self):
+        for cls, body in (("SD_Akm", self.akm), ("SD_AkmAmmo", self.ammo)):
+            frames = state_frames(body)
+            self.assertTrue(frames, cls)
+            for sprite, frame in sorted(frames):
+                with self.subTest(cls=cls, sprite=sprite, frame=frame):
+                    self.assertIn("0", p4.sprite_rotations(sprite).get(frame, set()), f"{sprite}{frame}0")
+        icon = default_value(self.ammo, "Inventory.Icon")
+        self.assertTrue(list(p4.SPRITES.rglob(f"{icon}.png")), icon)
+
+    def test_provisional_look_and_its_documented_swap(self):
+        """MOD-SPEC 6.12: the PPSh-41's frames today, the pickup tinted; the
+        header's sed gives the final names and drops the marked line."""
+        marked = p4.provisional_code_lines(self.akm_text)
+        self.assertEqual(len(marked), 1)
+        self.assertTrue(marked[0].startswith("Translation "))
+        swapped, pairs = p4.apply_documented_swap(self.akm_text)
+        self.assertEqual(pairs, SWAP)
+        frames = state_frames(p4.class_blocks(swapped)["SD_Akm"][1])
+        self.assertEqual({s for s, _ in frames}, {"SDAK", "SDAF", "SDAQ"})
+        self.assertEqual({(new, f) for (old, new) in SWAP for (s, f) in state_frames(self.akm) if s == old},
+                         frames)
+        self.assertNotIn("Translation", p4.strip_comments(swapped))
+        for _, new in SWAP:
+            self.assertFalse(p4.sprite_rotations(new), f"{new} is drawn: do the swap")
+        ammo_marked = [l for l in p4.provisional_code_lines(self.ammo_text)]
+        self.assertEqual(len(ammo_marked), 1)
+        self.assertTrue(ammo_marked[0].startswith("Translation "))
+        self.assertFalse(p4.sprite_rotations("SDAM"), "SDAM is drawn: do the swap")
+
+    def test_sounds(self):
+        lines = p4.sndinfo_lines()
+        shipped = {p.stem.upper() for p in SOUNDS.rglob("*.ogg")}
+        used = set(re.findall(r'"(sd/[^"]+)"', p4.strip_comments(self.akm_text)))
+        self.assertEqual(used, {"sd/weapon/akm/fire", "sd/weapon/akm/dry", "sd/weapon/akm/pickup"})
+        finals = set()
+        for name in sorted(used):
+            with self.subTest(name=name):
+                lump, comment = lines[name]
+                self.assertIn(lump, shipped)
+                final = p4.FINAL_LUMP_RE.search(comment)
+                self.assertIsNotNone(final)
+                self.assertTrue(final.group(1).startswith("SDAK"))
+                self.assertNotIn(final.group(1), shipped)
+                finals.add(final.group(1))
+        self.assertEqual(len(finals), 3)
+        self.assertEqual(lines["sd/weapon/akm/fire"][0], lines["sd/weapon/ppsh/fire"][0])
+        self.assertIn(["$pitchset", "sd/weapon/akm/fire", str(PITCH)], p4.sndinfo_directives())
+
+    def test_strings_in_three_languages(self):
+        sections = p4.language_sections()
+        used = set(re.findall(r'"\$(SD_\w+)"', p4.strip_comments(self.akm + self.ammo)))
+        self.assertEqual(used, IDS)
+        for lang in LANGS:
+            with self.subTest(lang=lang):
+                self.assertLessEqual(IDS, set(sections[lang]))
+        for sid in IDS:
+            self.assertTrue(sections["enu default"][sid].isascii(), sid)
+        self.assertIn("АКМ", sections["ru"]["SD_TAG_AKM"])
+        self.assertIn("%o", sections["ca"]["SD_OB_AKM"])
 
     def test_own_pool_not_clip(self):
         self.assertEqual(default_value(self.akm, "Weapon.AmmoType"), "SD_AkmAmmo")
-        self.assertEqual(self.blocks["SD_AkmAmmo"][0], "Ammo")   # its own pool: GetParentAmmo() is itself
         self.assertEqual(const_value(self.akm, "SD_AKM_AMMO_GIVE"), const_value(self.ammo, "SD_AKM_MAG"))
         self.assertEqual(const_value(self.ammo, "SD_AKM_BACKPACK_MAX"), 2 * const_value(self.ammo, "SD_AKM_MAX"))
+        # the only pool of ours: every other ammo class still derives from a Doom pool
+        heads = re.findall(r"^class\s+(\w+)\s*:\s*Ammo\b", p4.strip_comments(self.ammo_text), flags=re.M)
+        self.assertEqual(heads, ["SD_AkmAmmo"])
 
     def test_slower_harder_tighter_than_the_ppsh(self):
         akm_tics = tics_per_round(self.akm, "A_SD_FireAkm")
@@ -395,13 +420,31 @@ class RealOverlayTests(unittest.TestCase):
         self.assertIn("player.refire", self.akm)
         self.assertIn("A_ReFire", "\n".join(label_block(self.akm, "Fire")))
 
+    def test_placed_in_no_map_yet(self):
+        for p in (SRC / "maps").rglob("*.py"):
+            text = p.read_text(encoding="utf-8")
+            for cls in NEW_CLASSES:
+                self.assertIsNone(re.search(rf"\b{cls}\b", text), f"{p} names {cls}")
+            for num in EXPECTED_EDNUMS:
+                self.assertIsNone(re.search(rf"\b{num}\b", text), f"{p} names {num}")
+
 
 class DocTests(unittest.TestCase):
     def test_doc_names_everything(self):
         text = DOC.read_text(encoding="utf-8")
         for needle in (*NEW_CLASSES, "21008", "21020", "make_akm_overlay.py", "sd-draft-akm.pk3",
-                       "[WEAPON]", "gemini_akm_A.png", "give SD_Akm"):
+                       "[WEAPON]", "gemini_akm_A.png", "give SD_Akm", "D116"):
             self.assertIn(needle, text)
+
+    def test_adr_and_contracts(self):
+        adr = PROJECT_ROOT / "docs" / "engine" / "adr" / "011-akm-ammo-pool.md"
+        self.assertTrue(adr.is_file(), "ADR 011 (the mod's first ammo pool of its own) is owed")
+        spec = (PROJECT_ROOT / "docs" / "engine" / "MOD-SPEC.md").read_text(encoding="utf-8")
+        for num, cls in EXPECTED_EDNUMS.items():
+            self.assertIsNotNone(re.search(rf"\|\s*{num}\s*\|\s*`{cls}`", spec), f"MOD-SPEC 6.1 lacks {num}")
+        self.assertTrue("011-akm-ammo-pool.md" in spec, "MOD-SPEC 6.4 must cite ADR 011")
+        balance = (PROJECT_ROOT / "docs" / "engine" / "BALANCE.md").read_text(encoding="utf-8")
+        self.assertTrue("AKM" in balance and "SD_AkmAmmo" in balance, "BALANCE lacks the AKM")
 
 
 if __name__ == "__main__":

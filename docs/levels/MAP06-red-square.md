@@ -262,7 +262,7 @@ stage there is a way back to the start, with and without the boss's death
 
 ### 7.1 The posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
 
-Four pictures and two slots, each a whole 128×256 poster: one one-sided
+Four pictures and the Marx-Engels pair, each a whole 128×256 poster: one one-sided
 line 128 long in a sector exactly 256 high, pegged to the floor, offset 0
 (`POSTERS` in `map.py`; `tests/test_posters.py`). Only texture lines and
 four shallow niches; no route, key, door or sight line moves.
@@ -270,11 +270,11 @@ four shallow niches; no route, key, door or sight line moves.
 | Name | Poster | Where | Why |
 |---|---|---|---|
 | `gum_north_lenin` | Lenin | GUM north hall, south wall, x 3808-3936 at y 3328 (the hall is 256 high: no niche) | the first thing ahead coming in from Nikolskaya, beside the way on under the glass roof: the shop of the nation still has its portrait |
-| `gum_north_slot` | Stalin (slot) | GUM north hall, east wall, x 4352, y 3392-3520 | — |
+| `gum_north_slot` | **Marx** `SDPOSTR4` (slot) | GUM north hall, east wall, x 4352, y 3392-3520 | the first of the pair on the route, «ПРОЛЕТАРИИ / ВСЕХ СТРАН,» |
 | `square_facade_lenin` | Lenin | the GUM's facade on the square, north of the blue door: niche `prop_z6_portrait_lenin` (x 3456-3472, y 2496-2624), floor 64, ceiling 320 | the parade portraits: hung high on the facade, either side of the doors, as on 7 November; the floodlights (144) are on them |
 | `square_facade_stalin` | Stalin | the same, south of the blue door: `prop_z6_portrait_stalin` (y 2112-2240) | the pair, symmetric about the blue door; seen from the stands and on every crossing |
 | `courtyard_stalin` | Stalin | the Kremlin courtyard's north wall, recess `z9_portrait_stalin` (x 1024-1152, y 2048-2064), 256 high | **taken**: the occupiers' two banners (D12) hang beside him in the boss's room |
-| `courtyard_slot` | Lenin (slot) | the same wall, recess `z9_portrait_slot` (x 576-704), the banners between the two | — |
+| `courtyard_slot` | **Engels** `SDPOSTR5` (slot) | the same wall, recess `z9_portrait_slot` (x 576-704), the banners between the two | the last: «СОЕДИНЯЙТЕСЬ!» in the boss's room, the occupiers' banners between him and Stalin |
 
 The facade niches are props (floor 64, above any step: never walked, never
 reached; `prop_` in the reachability tests); their mouth shows the facade's
@@ -282,11 +282,12 @@ reached; `prop_` in the reachability tests); their mouth shows the facade's
 `SDCONC1`. The courtyard's recesses are 16
 deep, at the courtyard's floor, like the banners' own.
 
-**The Marx-Engels slots.** `POSTER_SLOTS_MARX_ENGELS` names the two slots;
-until `SDPOSTR4` exists they wear the stand-in in the table. The swap is one
-line in `map.py`: `MARX_ENGELS = "SDPOSTR4"` (it also adds the lump to
-`WALL_TEXTURES`). The slots assume `SDPOSTR4` is 128×256 like Lenin and
-Stalin; another size moves the slots' heights, nothing else.
+**The Marx-Engels pair (D117, 2026-10-22).** `POSTER_SLOTS_MARX_ENGELS`
+names the two slots, Marx's first: `SDPOSTR4` Marx and `SDPOSTR5` Engels
+(mirrored, looking towards Marx), 128×256 like Lenin and Stalin, in route
+order, so each reads alone. `MARX_ENGELS = ("SDPOSTR4", "SDPOSTR5")` lists
+them in `WALL_TEXTURES`; `tests/test_posters.py` holds the placement
+(`PAIR`).
 
 No row of section 8 is a poster or a propaganda piece, so none is replaced.
 The parade banners `SDBANR1` (v1.1) are cloth on the Kremlin wall, not

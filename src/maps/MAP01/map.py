@@ -187,32 +187,34 @@ POSTER_NICHE_DEPTH = 16
 # Seen from the entry stair across the whole hangar, in its 176.
 STALIN_NICHE = (2688, 1008, 2688 + POSTER_NICHE_DEPTH, 1008 + POSTER_WIDTH)
 # The first Marx-Engels slot: the hangar's north wall between the pilaster
-# and the catwalk, facing the gantry; Lenin stands in for it.
+# and the catwalk, facing the gantry: Marx (SDPOSTR4), the first the player meets.
 HANGAR_SLOT_NICHE = (1664, 1600, 1664 + POSTER_WIDTH, 1600 + POSTER_NICHE_DEPTH)
 # The second: the lift room's east wall beside the exit switch, 256 high
 # already (no niche). Lit like Lenin's halo, one panel over the room's 96,
-# so the founders read beside the way out; Stalin stands in for it.
+# so the founders read beside the way out: Engels (SDPOSTR5).
 EXIT_SLOT_LIGHT = (3232, 480, 3264, 608)
-# The Marx-Engels poster SDPOSTR4 is in preparation and is not a lump yet.
-# Its slots are built and wear a stand-in; approving it is this one line:
-MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
+# The Marx-Engels pair (D117), 128x256 each like Lenin and Stalin: Marx
+# carries «ПРОЛЕТАРИИ / ВСЕХ СТРАН,», Engels «СОЕДИНЯЙТЕСЬ!» (his face mirrored
+# to look at Marx). Hung on the two Marx-Engels slots, Marx's first.
+MARX = "SDPOSTR4"
+ENGELS = "SDPOSTR5"
+MARX_ENGELS = (MARX, ENGELS)     # in the order of POSTER_SLOTS_MARX_ENGELS
 # (name, texture, axis, coord, lo, hi): one GridMap style per picture.
 POSTERS = (
     ("exit_lenin", LENIN, "h", 864, 3072, 3200),
     ("komnata_mural", MURAL, "h", 1440, 256, 384),
     ("hangar_stalin", STALIN, "v", STALIN_NICHE[2], STALIN_NICHE[1], STALIN_NICHE[3]),
-    ("hangar_north_slot", LENIN, "h", HANGAR_SLOT_NICHE[3],
+    ("hangar_north_slot", MARX, "h", HANGAR_SLOT_NICHE[3],
      HANGAR_SLOT_NICHE[0], HANGAR_SLOT_NICHE[2]),
-    ("exit_east_slot", STALIN, "v", EXIT_SLOT_LIGHT[2], EXIT_SLOT_LIGHT[1], EXIT_SLOT_LIGHT[3]),
+    ("exit_east_slot", ENGELS, "v", EXIT_SLOT_LIGHT[2], EXIT_SLOT_LIGHT[1], EXIT_SLOT_LIGHT[3]),
 )
-POSTER_SLOTS_MARX_ENGELS = ("hangar_north_slot", "exit_east_slot")
+POSTER_SLOTS_MARX_ENGELS = ("hangar_north_slot", "exit_east_slot")   # Marx, Engels
 
 
 def poster_faces() -> tuple[tuple[str, str, str, int, int, int], ...]:
-    """POSTERS with each Marx-Engels slot wearing SDPOSTR4 once it exists."""
-    return tuple((name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS
-                  else texture, axis, coord, lo, hi)
-                 for name, texture, axis, coord, lo, hi in POSTERS)
+    """Every picture as painted: (name, texture, axis, coord, lo, hi). Since
+    D117 each Marx-Engels slot wears its own poster in POSTERS itself."""
+    return POSTERS
 
 # --- Sector tags ----------------------------------------------------------
 TAG_D1_DORM_WASHROOM = 1
@@ -1166,6 +1168,5 @@ def lumps() -> list[tuple[str, bytes]]:
 # Every lump name this map may put in a sidedef or a sector, for the tests
 # and for criterion G3-3. Nothing outside this set reaches the TEXTMAP.
 WALL_TEXTURES = (CONC, STRIPE, STEEL, DOOR, PLAQUE, LENIN, MURAL, STALIN,
-                 CRATE_FACE, CRATE_LONG, LOCKER) + SWITCH_FACES + (
-                     (MARX_ENGELS,) if MARX_ENGELS else ())
+                 CRATE_FACE, CRATE_LONG, LOCKER) + SWITCH_FACES + MARX_ENGELS
 FLAT_TEXTURES = (LANE, CONCRETE_FLOOR, TILE, CEIL_LAMP, CEIL, CRATE_TOP)

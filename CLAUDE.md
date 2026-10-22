@@ -38,7 +38,7 @@ Portal» (MAP07 Novaya Zemlya, MAP08 Severomorsk, MAP09 Tunguska) are built,
 and every route PASSes in the engine on skills 2, 3 and 4 (18 of 18 reports,
 `docs/qa/evidence/2026-10-22_*_report.txt`; last 9133be1). The three episodes
 are in the New Game menu; the range is the lump `RANGE`, outside the MAPxx
-slots (MOD-SPEC §4.6). Episode 3 ends on «THE END / For now». MAP06 and MAP09
+slots (MOD-SPEC §4.6). Episode 3 ends on «For now… TO BE CONTINUED» (D117). MAP06 and MAP09
 use the General as a stand-in boss until the Legion's own bosses exist.
 **Decisions up to D114** (`docs/PRD.md`). Per-map design: `docs/levels/`.
 The phase view and what is missing: `docs/ROADMAP.md` ("P4 today").

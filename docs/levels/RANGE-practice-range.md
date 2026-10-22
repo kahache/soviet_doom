@@ -162,7 +162,7 @@ the player presses.
 | exit alcove | switch `SDSW1D`, jambs `SDSTEL1` | `SDFLR2` / `SDCEIL1` | unchanged signs: the hazard panel under the lamp, as MAP01's exit |
 | gallery door | leaf `SDDOOR1` on both faces, track `SDSTEL1` | `SDFLR2` / `SDCEIL2` (never seen shut) | unchanged: the door as MAP01 taught it |
 | gallery passage | `SDSTEL1` (and the lintel the gallery sees over the mouth: 128 high, one plate, since the gallery is 256) | `SDFLR2` / `SDCEIL2` | green plate, MAP01's airlock (Z8): a way through, not a room; it continues the door's track |
-| gallery | `SDCONC1`; Lenin `SDPOSTR1` and Stalin `SDPOSTR3` on the far wall, two Marx-Engels slots on the end walls (§5.1) | `SDFLR3` / `SDCEIL2` | the same concrete, 256 high since the posters: two panels exactly, no cut (it was 192, the second panel cut at the ceiling); the two-tone tiles of MAP01's dorm and komnata set the bestiary apart from the hall underfoot |
+| gallery | `SDCONC1`; Lenin `SDPOSTR1` and Stalin `SDPOSTR3` on the far wall, Marx `SDPOSTR4` and Engels `SDPOSTR5` on the end walls (§5.1) | `SDFLR3` / `SDCEIL2` | the same concrete, 256 high since the posters: two panels exactly, no cut (it was 192, the second panel cut at the ceiling); the two-tone tiles of MAP01's dorm and komnata set the bestiary apart from the hall underfoot |
 | hall, west wall | the mural `SDPOSTR2` north of the exit alcove (§5.1) | | |
 
 | Old (IWAD) | Faces / sectors | New |
@@ -201,8 +201,8 @@ is seen whole: `POSTERS` in `map.py`, checked by `tests/test_posters.py`.
 |---|---|---|---|---|
 | `gallery_lenin` | Lenin `SDPOSTR1` 128×256 | y 1792, x 832–960 | gallery (256) | the far wall the row faces: from the passage's mouth the player sees the eight invaders lined up under Lenin and Stalin, either side of the axis (x 1024) |
 | `gallery_stalin` | Stalin `SDPOSTR3` 128×256 | y 1792, x 1088–1216 | gallery (256) | the pair's other half |
-| `gallery_west_slot` | Marx-Engels slot, Lenin until then | x 0, y 1344–1472 | gallery (256) | the west end wall, mid-depth |
-| `gallery_east_slot` | Marx-Engels slot, Stalin until then | x 2048, y 1344–1472 | gallery (256) | the east end wall, facing it across the row |
+| `gallery_west_slot` | Marx `SDPOSTR4` 128×256 (Marx-Engels slot) | x 0, y 1344–1472 | gallery (256) | the west end wall, mid-depth: on the left from the passage's mouth |
+| `gallery_east_slot` | Engels `SDPOSTR5` 128×256 (Marx-Engels slot) | x 2048, y 1344–1472 | gallery (256) | the east end wall, facing Marx across the row |
 | `hall_mural` | the cosmonautics mural `SDPOSTR2` 128×128 | x 0, y 448–576 | hall (128) | beside the exit alcove: the player turns round to leave and finds it, the base's mural in the base's range |
 
 **The one geometry change.** A 128×256 portrait needs a room 256 high, and
@@ -213,12 +213,10 @@ gallery into the hall: walls, not ceilings, decide it) are unchanged; the
 General (100 tall) and the floating Doughboy get more air, not less; the
 concrete stacks two whole panels where 192 cut the second.
 
-**Marx-Engels.** `POSTER_SLOTS_MARX_ENGELS` names the two slots. The
-poster `SDPOSTR4` is in preparation (assumed 128×256, the twin of Lenin and
-Stalin); once it is approved and packed, the swap is one line in `map.py`,
-`MARX_ENGELS = "SDPOSTR4"`, which also adds it to `WALL_TEXTURES`. The
-gallery's far wall then reads Marx-Engels, Lenin, Stalin, Marx-Engels
-across the room's three walls.
+**Marx-Engels (D117, 2026-10-22).** `POSTER_SLOTS_MARX_ENGELS` names the
+two slots, Marx's first: `SDPOSTR4` Marx «ПРОЛЕТАРИИ / ВСЕХ СТРАН,» and `SDPOSTR5` Engels «СОЕДИНЯЙТЕСЬ!» (mirrored, looking at Marx), 128×256 like Lenin and Stalin; `MARX_ENGELS = ("SDPOSTR4", "SDPOSTR5")` lists them in `WALL_TEXTURES`. Looking north from the
+passage's mouth, the gallery reads Marx, Lenin, Stalin, Engels across its
+three walls, left to right.
 
 ## 6. Tests
 
@@ -240,7 +238,7 @@ across the room's three walls.
 | `test_no_name_resolves_in_freedoom` | **M2d**, the audit's own check: no wall name in `iwads/freedoom2.wad`'s `TEXTURE1`/`TEXTURE2`, no flat between its `F_START`/`F_END` (skips where the IWAD is absent, as in CI) |
 | `test_room_walls_sit_on_the_64_grid` | every one-sided concrete or plate wall has its seams on the 64 grid; every other face at offset 0 |
 | `test_the_signs_only_where_the_player_presses` | door leaf and hazard panel only on the door and the exit; the lamp panel only over the exit |
-| `tests/test_posters.py` `RangePosters` | the pictures of §5.1 whole (one line, the poster's width, a room its height, floor pegged, offset 0); the two Marx-Engels slots; the one-line swap moves the slots and nothing else |
+| `tests/test_posters.py` `RangePosters` | the pictures of §5.1 whole (one line, the poster's width, a room its height, floor pegged, offset 0); the Marx-Engels pair in its two slots, Marx west and Engels east (D117) |
 
 ## 7. Engine checklist for the PM (D26: this role does not start GZDoom)
 

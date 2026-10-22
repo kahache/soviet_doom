@@ -1,13 +1,18 @@
 """Contract tests for tools/art/gen_marx_engels.py: the Marx-Engels pair.
 
 The format the CEO approved (2026-10-22): two posters of SDPOSTR1/3's size and
-style, 128x256 each, Marx (SDPOSTR4) carrying «ПРОЛЕТАРИИ ВСЕХ / СТРАН,» and
+style, 128x256 each, Marx (SDPOSTR4) carrying «ПРОЛЕТАРИИ / ВСЕХ СТРАН,» and
 Engels (SDPOSTR5) carrying «СОЕДИНЯЙТЕСЬ!», hung Marx on the left. The
 contract is Lenin's (N flat palette inks plus the gold rule, cream border,
 the slogan through a hard-cut mask) plus what the pair adds: one slogan size
 for both bands, Engels's line on the row of Marx's last line, the optional
 mirror of Engels, a clean stop when a photograph is missing, gen_lenin left
 exactly as it was, and nothing written to assets/.
+
+D117 (2026-10-22) approved Marx 4D, Engels 4C mirrored, the `short` split at
+17 px, `pair` alignment; the lumps are installed. ApprovedCellTests pins those
+parameters; InstalledLumpIdentityTests (Windows only, D27, and only with the
+reference photographs) holds the generator to the installed pixels.
 
 The pipeline runs on synthetic plates in a temp directory. The few tests
 that need the real photographs (work/art/reference/, gitignored, downloaded
@@ -217,12 +222,12 @@ class DeclarationTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             me.pair(engels="1848")
 
-    def test_the_proposal_never_takes_a_lump_name(self):
-        """Nothing is approved: test_art matches assets/ to work/ BY NAME."""
+    def test_a_proposal_never_takes_a_lump_name(self):
+        """test_art matches assets/ to work/ BY NAME: a render at other
+        parameters must not be mistaken for the installed lump."""
         for p in me.PEOPLE:
             for lump in me.LUMPS.values():
                 self.assertNotIn(lump, me.poster_file(p))
-            self.assertFalse((ASSETS / "textures" / "soviet_base" / f"{me.LUMPS[p]}.png").exists())
 
 
 # ===========================================================================
@@ -235,7 +240,8 @@ class SloganTests(unittest.TestCase):
     def test_the_two_bands_read_the_manifesto_line(self):
         for split, (m, e) in me.SPLITS.items():
             self.assertEqual(" ".join((*m, *e)), "ПРОЛЕТАРИИ ВСЕХ СТРАН, СОЕДИНЯЙТЕСЬ!", split)
-        self.assertEqual(me.SPLITS[me.DEFAULT_SPLIT], (("ПРОЛЕТАРИИ ВСЕХ", "СТРАН,"), ("СОЕДИНЯЙТЕСЬ!",)))
+        self.assertEqual(me.SPLITS["ceo"], (("ПРОЛЕТАРИИ ВСЕХ", "СТРАН,"), ("СОЕДИНЯЙТЕСЬ!",)))
+        self.assertEqual(me.SPLITS[me.DEFAULT_SPLIT], (("ПРОЛЕТАРИИ", "ВСЕХ СТРАН,"), ("СОЕДИНЯЙТЕСЬ!",)))
 
     def test_one_size_for_both_bands_measured_on_this_machine(self):
         """Impact on Windows (D27): the CEO's split fits at 15 px, the short
@@ -403,20 +409,34 @@ class PipelineTests(SyntheticPhotos, unittest.TestCase):
         self.assertTrue(np.array_equal(a[:, :128], np.asarray(self.img["marx"])))
         self.assertTrue(np.array_equal(a[:, 128:], np.asarray(self.img["engels"])))
 
-    def test_the_cli_writes_indexed_files_under_proposal_names_only(self):
-        out = self.tmp / "cli"
+    def test_the_plain_run_writes_the_two_lumps_and_nothing_else(self):
+        out = self.tmp / "cli_plain"
         before = asset_listing()
         with contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(me.main(["--out-dir", str(out)]), 0)
-            self.assertEqual(me.main(["--out-dir", str(out), "--split", "short", "--align", "centre",
-                                      "--bias", "-9", "--inks", "3", "--engels-as-photographed",
-                                      "--engels", "1891"]), 0)
-        self.assertEqual(sorted(p.name for p in out.iterdir()),
-                         ["marx_engels_engels_poster.png", "marx_engels_marx_poster.png"])
-        for p in out.iterdir():
-            with Image.open(p) as im:
+        self.assertEqual(sorted(p.name for p in out.iterdir()), ["SDPOSTR4.png", "SDPOSTR5.png"])
+        for person, name in me.LUMPS.items():
+            with Image.open(out / f"{name}.png") as im:
                 self.assertEqual((im.mode, im.size), ("P", (128, 256)))
-                self.assertTrue(colours_of(im) <= palette_colours(), p.name)
+                self.assertTrue(colours_of(im) <= palette_colours(), name)
+                self.assertTrue(np.array_equal(np.asarray(im.convert("RGB")),
+                                               np.asarray(me.lump(person).convert("RGB"))), name)
+        self.assertEqual(asset_listing(), before, "the generator touched assets/")
+
+    def test_other_parameters_never_write_a_file_named_after_a_lump(self):
+        before = asset_listing()
+        for i, extra in enumerate((["--split", "ceo"], ["--align", "centre"], ["--bias", "-9"],
+                                   ["--inks", "3"], ["--engels-as-photographed"], ["--engels", "1891"],
+                                   ["--marx", "1875s"])):
+            out = self.tmp / f"cli_other_{i}"
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(me.main(["--out-dir", str(out), *extra]), 0)
+            self.assertEqual(sorted(p.name for p in out.iterdir()),
+                             ["marx_engels_engels_poster.png", "marx_engels_marx_poster.png"], extra)
+            for p in out.iterdir():
+                with Image.open(p) as im:
+                    self.assertEqual((im.mode, im.size), ("P", (128, 256)))
+                    self.assertTrue(colours_of(im) <= palette_colours(), p.name)
         self.assertEqual(asset_listing(), before, "the generator touched assets/")
 
     @slow
@@ -467,6 +487,66 @@ class RealPhotographTests(unittest.TestCase):
     def test_the_real_pair_is_four_inks_and_gold(self):
         for p, im in me.posters().items():
             self.assertEqual(colours_of(im), set(me.inks()) | {me.gold()}, p)
+
+
+# ===========================================================================
+# SDPOSTR4 and SDPOSTR5, the approved pair (D117)
+# ===========================================================================
+@imaging
+class ApprovedCellTests(unittest.TestCase):
+    """D117, 2026-10-22: Marx 4D, Engels 4C mirrored, «ПРОЛЕТАРИИ / ВСЕХ
+    СТРАН,» + «СОЕДИНЯЙТЕСЬ!» at 17 px, Engels on Marx's second row."""
+
+    def test_the_parameters_are_the_ones_the_ceo_chose(self):
+        self.assertEqual((me.INK_COUNT["marx"], me.CUT_BIAS["marx"]), (4, 9))
+        self.assertEqual((me.INK_COUNT["engels"], me.CUT_BIAS["engels"]), (4, 0))
+        self.assertEqual(me.cell_name(me.INK_COUNT["marx"], me.CUT_BIAS["marx"]), "4D")
+        self.assertEqual(me.cell_name(me.INK_COUNT["engels"], me.CUT_BIAS["engels"]), "4C")
+        self.assertTrue(me.MIRROR_ENGELS)
+        self.assertEqual((me.DEFAULT_SPLIT, me.DEFAULT_ALIGN), ("short", "pair"))
+        self.assertEqual((me.DEFAULT_MARX, me.DEFAULT_ENGELS), ("1875", "1877"))
+
+    def test_the_lump_names_and_paths(self):
+        for person, name in me.LUMPS.items():
+            self.assertEqual(me.LUMP_PATHS[person].relative_to(PROJECT_ROOT).as_posix(),
+                             f"work/art/marx_engels/{name}.png")
+            self.assertEqual(me.ASSET_PATHS[person].relative_to(PROJECT_ROOT).as_posix(),
+                             f"assets/textures/soviet_base/{name}.png")
+
+    @fonts
+    @unittest.skipUnless(sys.platform == "win32", "D27: the 17 px was measured with Windows' Impact")
+    def test_the_approved_split_stamps_at_17_px(self):
+        self.assertEqual(me.pair_size(me.DEFAULT_SPLIT), 17)
+
+
+@imaging
+@fonts
+@real_photos
+@unittest.skipUnless(sys.platform == "win32",
+                     "D27: SDPOSTR4/5 were rendered on Windows (Impact rasterises differently on "
+                     "the Mac); they are regenerated, and so checked against the generator, only on Windows")
+class InstalledLumpIdentityTests(unittest.TestCase):
+    """The generator still produces the installed SDPOSTR4 and SDPOSTR5
+    pixel for pixel. Pixels, not PNG bytes: the bytes depend on Pillow's
+    zlib build. The byte-for-byte copy work/ -> assets/ is test_art's check."""
+
+    def test_the_assets_are_installed_and_indexed(self):
+        for person, path in me.ASSET_PATHS.items():
+            self.assertTrue(path.is_file(), path)
+            with Image.open(path) as im:
+                self.assertEqual((im.mode, im.size), ("P", (128, 256)), person)
+                self.assertTrue(colours_of(im) <= palette_colours(), person)
+                self.assertEqual(colours_of(im), set(me.inks()) | {me.gold()}, person)
+
+    def test_the_generator_reproduces_the_installed_lumps(self):
+        for person, path in me.ASSET_PATHS.items():
+            regenerated = me.lump(person)
+            with Image.open(path) as installed:
+                self.assertEqual(regenerated.mode, installed.mode, person)
+                self.assertTrue(np.array_equal(np.asarray(regenerated.convert("RGB")),
+                                               np.asarray(installed.convert("RGB"))),
+                                f"gen_marx_engels.lump({person!r}) no longer renders the installed "
+                                f"{me.LUMPS[person]}")
 
 
 if __name__ == "__main__":

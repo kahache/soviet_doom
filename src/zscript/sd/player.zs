@@ -35,11 +35,16 @@ class SD_Player : DoomPlayer
 		Player.StartItem "SD_Tokarev";
 		Player.StartItem "Clip", SD_START_CLIP;
 
-		// One weapon per slot - the arsenal ratified by the CEO (D13).
+		// One weapon per slot - the arsenal ratified by the CEO (D13) - but
+		// slot 4, which holds two since D116: the PPSh-41 and the AKM, in
+		// that order (the key 4 raises the first owned, then cycles), as
+		// Doom II's slot 3 holds the shotgun and the super shotgun. Stated
+		// here rather than left to Weapon.SlotNumber, whose order between
+		// two weapons of one slot is not documented.
 		Player.WeaponSlot 1, "SD_IceAxe";
 		Player.WeaponSlot 2, "SD_Tokarev";
 		Player.WeaponSlot 3, "SD_Izh";
-		Player.WeaponSlot 4, "SD_Ppsh";
+		Player.WeaponSlot 4, "SD_Ppsh", "SD_Akm";
 		Player.WeaponSlot 5, "SD_Rpg7";
 		Player.WeaponSlot 6, "SD_Roks3";
 		Player.WeaponSlot 7, "SD_HandKatyusha";

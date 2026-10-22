@@ -60,6 +60,20 @@ sd/weapon/ppsh/pickup      SDPPPKP     // take A  stock, jacket, drum, swivel
 sd/weapon/ppsh/dry         SDPPDRY     // take A  an empty drum's hollow clack
 sd/weapon/ppsh/reload      SDPPRLD     // take A  PARKED: no reload state (D47)
 
+// --- Slot 4, second: AKM (D116; docs/engine/2026-10-22_P4_akm.md 4) ------
+// Its own logical names over the PPSh-41's lumps until sound-designer
+// records the AKM's (the final lump after "->"; MOD-SPEC 6.2, "P4 sounds").
+// Replacing one changes the right-hand column only, and the $pitchset line
+// goes with the shot.
+sd/weapon/akm/fire         SDPPFIR     // REUSED (the PPSh-41's round) -> SDAKFIR
+sd/weapon/akm/dry          SDPPDRY     // REUSED -> SDAKDRY
+sd/weapon/akm/pickup       SDPPPKP     // REUSED -> SDAKPKP
+// The same report a little lower, so the 7.62x39 reads heavier than the
+// 7.62x25: (logical name, pitch), ZDoom wiki SNDINFO; the keyword is in
+// g4.14.2's gzdoom.exe. NOT VERIFIED in the engine: a refused line shows in
+// the log and the shot plays at the PPSh's pitch.
+$pitchset sd/weapon/akm/fire 0.85
+
 // --- Slot 5: RPG-7 --------------------------------------------------------
 sd/weapon/rpg7/fire        SDRPFIR     // take A  launch and sustainer (the grenade's SeeSound)
 sd/weapon/rpg7/explode     SDRPEXP     // take A  shaped charge (the grenade's DeathSound)
@@ -221,6 +235,41 @@ $random sd/mon/general/pain { sd/mon/general/pain/1 sd/mon/general/pain/2 }
 sd/mon/general/pain/1         SDGENPA1    // D110 G03 t06  "Argh!" (Chatterbox, kurt reference)
 sd/mon/general/pain/2         SDGENPA2    // D110 G03 t04  "Hngh!" (Chatterbox, kurt reference)
 sd/mon/general/death          DSCYBDTH    // -> SDGENDTH  a cue, not an effect (voice, D87)
+
+// === P4 enemies (D104, D112; in the mod since D116) =========================
+// Their own logical names, sd/mon/<actor>/<event>, over lumps the mod already
+// plays for its seven classes (REUSED) or the IWAD's (a DS... placeholder),
+// until sound-designer records theirs: the final lump is after "->" (names
+// checked free; MOD-SPEC 6.2, "P4 sounds"). Not part of the 47 above
+// (BESTIARY 12 counts them per row); tests/test_ep2_enemies.py and
+// tests/test_ep3_boss.py hold them to the code.
+
+// --- Legion gunner (SD_LegionGunner, 21110) --------------------------------
+sd/mon/legiongunner/sight     SDLTRSI3    // REUSED the trooper's "Hostile, front!" -> SDLGNSIT
+sd/mon/legiongunner/active    SDLTRAC3    // REUSED the trooper's "Copy. Holding position." -> SDLGNACT
+sd/mon/legiongunner/pain      SDLTRPA1    // REUSED the trooper's "I'm hit!" -> SDLGNPAI
+sd/mon/legiongunner/death     SDLTRDT1    // REUSED the trooper's cry -> SDLGNDTH
+sd/mon/legiongunner/attack    SDPPFIR     // REUSED the PPSh-41's round -> SDLGNATK  a slower, heavier M1919
+sd/mon/legiongunner/xdeath    SDLTRXDT    // REUSED the trooper's gib -> SDLGNXDT
+
+// --- Liberty Colossus (SD_LibertyColossus, 21111; projectiles inherit the RPG-7's and ROKS-3's)
+sd/mon/colossus/sight         SDGENSIT    // REUSED the General's "Engage!" -> SDCOLSIT  metal groaning, not a voice
+sd/mon/colossus/active        SDGENACT    // REUSED -> SDCOLACT
+sd/mon/colossus/pain          SDGENPA1    // REUSED -> SDCOLPAI
+sd/mon/colossus/death         DSCYBDTH    // -> SDCOLDTH  (the General's own placeholder)
+sd/mon/colossus/step          SDPZRSTP    // REUSED the Panzermensch's footfall -> SDCOLSTP
+sd/mon/colossus/stomp         SDRPEXP     // REUSED the RPG-7's burst -> SDCOLSTM
+sd/mon/colossus/flame         SDRKFIR1    // REUSED the ROKS-3's jet -> SDCOLFLM
+
+// --- The Consortium (SD_Consortium, 21112; projectiles inherit the RPG-7's, the General's and the ROKS-3's)
+sd/mon/consortium/sight       SDPZRSIT    // REUSED the Panzermensch's -> SDCNSSIT  two voices in one throat
+sd/mon/consortium/active      SDPZRACT    // REUSED -> SDCNSACT
+sd/mon/consortium/pain        SDPZRPA3    // REUSED -> SDCNSPAI
+sd/mon/consortium/death       DSCYBDTH    // -> SDCNSDTH  (the General's own placeholder)
+sd/mon/consortium/call        SDGENSU1    // REUSED the General's "Vorwarts!" -> SDCNSCAL  the portal's hum, no words
+sd/mon/consortium/breach      SDPZRDTH    // REUSED the Panzermensch's death -> SDCNSBRC  cables snapping, a roar
+sd/mon/consortium/step        SDPZRSTP    // REUSED -> SDCNSSTP
+sd/mon/consortium/flame       SDRKFIR2    // REUSED the ROKS-3's jet -> SDCNSFLM
 
 // === Beds (D83, D86): the non-vocal layers under the voices =================
 // docs/sound/ENEMY-SOUNDS.md 5.10. Packed and named, played by NOTHING yet:

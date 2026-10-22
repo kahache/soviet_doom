@@ -5,9 +5,16 @@ CEO, 2026-10-22: "quiero más cuadros comunistas; siguiendo los de Lenin y
 Stalin que quedaron muy bien, haz uno con Marx y Engels". Format approved the
 same day (phase 2 of the commission): two posters the size and style of
 SDPOSTR1/3, heads at their scale (~85-95 px wide), Marx on the left carrying
-«ПРОЛЕТАРИИ ВСЕХ / СТРАН,», Engels on the right carrying «СОЕДИНЯЙТЕСЬ!», so
+«ПРОЛЕТАРИИ / ВСЕХ СТРАН,», Engels on the right carrying «СОЕДИНЯЙТЕСЬ!», so
 that hung together they read the closing line of the Communist Manifesto and
 each one still works alone.
+
+APPROVED (D117, 2026-10-22): Marx cell 4D (four inks, cut +9), Engels cell 4C
+(four inks, cut +0) MIRRORED so he looks at Marx, the `short` split at 17 px,
+Engels's word on the row of Marx's second line (`pair`). Installed as
+SDPOSTR4 (Marx) and SDPOSTR5 (Engels) in assets/textures/soviet_base/, each
+copied byte for byte from work/art/marx_engels/SDPOSTR4.png / SDPOSTR5.png,
+the default output of a plain run.
 
 So each poster is gen_stalin's twin of Lenin, nothing more:
 
@@ -26,8 +33,8 @@ Orientation (seen on the plates, 2026-10-22): Marx faces the viewer, his body
 turned towards the left edge; Engels is a three-quarter view looking towards
 the RIGHT edge, i.e. away from Marx once hung on his right. MIRROR_ENGELS
 flips Engels's portrait so the two face each other. A flip changes the
-likeness (hair parting, beard), so it is PROPOSED and marked for the CEO; the
-preview sheet shows the pair both ways.
+likeness (hair parting, beard); the CEO approved it (D117) on a sheet that
+showed the pair both ways.
 
 Reuse, not copy: the posterisation and the frame are gen_lenin.poster, run
 through gen_stalin's patch-and-restore pipeline with each photograph's path,
@@ -44,16 +51,19 @@ Run with the project venv (Windows: .venv/Scripts/python.exe):
   python tools/art/gen_marx_engels.py --preview   # the CEO's sheet (two sweeps + the pair)
   python tools/art/gen_marx_engels.py --sweep     # one sweep sheet per portrait
   python tools/art/gen_marx_engels.py --slogans   # the two bands, needs no photo
-  python tools/art/gen_marx_engels.py             # the pair at the proposed cell
+  python tools/art/gen_marx_engels.py             # SDPOSTR4 + SDPOSTR5 (D117) -> work/art/marx_engels/
   options: --inks 4 --bias 0 --engels-as-photographed --split ceo|short --align pair|centre
 
-PROPOSAL, not approved: a plain run writes marx_engels_<person>_poster.png,
-never a lump's name, and nothing goes to assets/. Once the CEO picks the
-cells, the defaults are set to them and the plain run is pointed at the lump
-names, as gen_stalin did for D55.
+Only the approved parameters write files named after the lumps (as gen_stalin
+does for D55): any option that changes a pixel writes
+marx_engels_<person>_poster.png instead, because tests/test_art.py matches
+assets/ to work/ by name. Nothing here writes to assets/; installing is a
+byte-for-byte copy.
 
 Text-bearing asset (CLAUDE.md, D27): the slogan is rasterised by this
-machine's Impact. Rendered on the CEO's Windows PC, so regenerated only there.
+machine's Impact. SDPOSTR4/5 were rendered on the CEO's WINDOWS PC, so they
+are regenerated ONLY ON WINDOWS; tests/test_gen_marx_engels.py holds the
+generator to the installed lumps there and skips on the Mac.
 """
 
 from __future__ import annotations
@@ -135,9 +145,9 @@ ENGELS: dict[str, Candidate] = {c.key: c for c in (
               (0.50, 0.02, 0.77), "W. E. Debenham, London 1891 - PROVISIONAL crop"),
 )}
 DEFAULT_MARX, DEFAULT_ENGELS = "1875", "1877"
-MIRROR_ENGELS = True                  # PROPOSED: so the two face each other (CEO to confirm)
+MIRROR_ENGELS = True                  # APPROVED (D117): flipped so the two face each other
 
-# --- separation: the cells PROPOSED to the CEO (not chosen yet) -------------
+# --- separation: the cells the CEO approved (D117) ---------------------------
 # Marx 4D: at 4C the light studio wall left of his head turns into a cream
 # field; one column darker it drops to red and the mane and beard stand out.
 # Engels 4C, Lenin's and Stalin's cell: 4D speckles his face with red.
@@ -148,16 +158,17 @@ SWEEP_BIASES = stalin.SWEEP_BIASES    # columns: -18 .. +18
 
 # --- slogan: one sentence over two posters ------------------------------------
 # Each split is (Marx's lines, Engels's lines). "ceo" is the split the CEO
-# approved; "short" breaks Marx's text earlier so the pair stamps 2 px larger.
+# first asked for (15 px); "short" breaks Marx's text earlier so the pair
+# stamps 2 px larger (17 px): the one APPROVED (D117).
 SPLITS = {
     "ceo": (("ПРОЛЕТАРИИ ВСЕХ", "СТРАН,"), ("СОЕДИНЯЙТЕСЬ!",)),
     "short": (("ПРОЛЕТАРИИ", "ВСЕХ СТРАН,"), ("СОЕДИНЯЙТЕСЬ!",)),
 }
-DEFAULT_SPLIT = "ceo"
+DEFAULT_SPLIT = "short"                # D117
 # "pair": Engels's word on the row of Marx's LAST line, so the sentence runs
 # across; "centre": each band centred on its own.
 ALIGNS = ("pair", "centre")
-DEFAULT_ALIGN = "pair"
+DEFAULT_ALIGN = "pair"                 # D117
 SLOGAN_SIZE = lenin.SLOGAN_SIZE       # 19 px, Lenin's: the stamp starts here...
 SLOGAN_MIN_SIZE = stalin.SLOGAN_MIN_SIZE   # ...and shrinks a pixel at a time to 12
 SLOGAN_SIDE_PAD = stalin.SLOGAN_SIDE_PAD
@@ -168,13 +179,19 @@ SLOGAN_MAX_WIDTH = WIDTH - 2 * (BORDER + SLOGAN_SIDE_PAD)
 SLOGAN_MAX_HEIGHT = SLOGAN_BAND - 1 - 2 * SLOGAN_V_PAD   # row 0 is the gold rule
 CAP_REFERENCE = stalin.CAP_REFERENCE
 
-# --- the lumps (proposed, not approved) ------------------------------------
+# --- the lumps (approved, D117) ------------------------------------------------
 LUMPS = {"marx": "SDPOSTR4", "engels": "SDPOSTR5"}
 PEOPLE = ("marx", "engels")           # hanging order, left to right
+# The files copied byte for byte into assets/ (the plain run's output) and
+# where they are installed.
+LUMP_PATHS = {p: OUT_DIR / f"{name}.png" for p, name in LUMPS.items()}
+ASSET_PATHS = {p: PROJECT_ROOT / "assets" / "textures" / "soviet_base" / f"{name}.png"
+               for p, name in LUMPS.items()}
 
 
 def poster_file(person: str) -> str:
-    """Never a lump's name before approval: test_art matches assets/ to work/ by name."""
+    """The name of a NON-approved render: never a lump's name, because
+    test_art matches assets/ to work/ by name."""
     return f"marx_engels_{person}_poster.png"
 
 
@@ -327,7 +344,7 @@ def poster(person: str, bias: int | None = None, ink_count: int | None = None,
 
 
 def posters(**kw) -> dict[str, Image.Image]:
-    """Both, at their proposed cells; keyword arguments go to poster()."""
+    """Both, at their approved cells; keyword arguments go to poster()."""
     return {p: poster(p, **kw) for p in PEOPLE}
 
 
@@ -340,6 +357,12 @@ def mounted(left: Image.Image, right: Image.Image, gap: int = 0) -> Image.Image:
 
 
 to_lump = stalin.to_lump   # RGB -> indexed PNG, an adaptive palette exactly the inks used
+
+
+def lump(person: str) -> Image.Image:
+    """SDPOSTR4 (marx) or SDPOSTR5 (engels) as approved (D117): the default
+    photographs, cells, mirror, split and alignment."""
+    return to_lump(poster(person))
 
 
 # --- review sheets ----------------------------------------------------------
@@ -396,7 +419,7 @@ def slogan_sheet(path: Path, zoom: int = 3) -> None:
     d.text((gap, 6), f"Marx | Engels bands, as hung ({zoom}x)", font=fs, fill=TITLE_INK)
     for i, (s, a) in enumerate(combos):
         y = 24 + i * (SLOGAN_BAND * zoom + label + gap)
-        star = "  (proposed)" if (s, a) == (DEFAULT_SPLIT, DEFAULT_ALIGN) else ""
+        star = "  (approved)" if (s, a) == (DEFAULT_SPLIT, DEFAULT_ALIGN) else ""
         d.text((gap, y), f"split {s}, align {a}: {pair_size(s)} px (Lenin's is {SLOGAN_SIZE}){star}",
                font=fs, fill=LABEL_INK)
         bands = mounted(slogan_band("marx", s, a), slogan_band("engels", s, a)).crop((0, 0, 2 * WIDTH, SLOGAN_BAND))
@@ -406,15 +429,16 @@ def slogan_sheet(path: Path, zoom: int = 3) -> None:
 
 def preview(path: Path, marx: str | None = None, engels: str | None = None, zoom: int = 2) -> None:
     """The CEO's sheet: Marx's 15 cells and Engels's 15 cells side by side,
-    then the pair hung together at the proposed cells: as proposed, with
+    then the pair hung together at the approved cells: as approved, with
     Engels as photographed, with the short split, and centred bands."""
     chosen = pair(marx, engels)
     sweeps = [sweep_sheet(p, chosen[p], p == "engels" and MIRROR_ENGELS, zoom) for p in PEOPLE]
     kw = {"marx": chosen["marx"].key, "engels": chosen["engels"].key}
+    other = next(s for s in SPLITS if s != DEFAULT_SPLIT)
     variants = [
-        ("PROPOSED: Engels mirrored (faces Marx)", {}),
+        ("APPROVED (D117): Engels mirrored (faces Marx)", {}),
         ("Engels as photographed (looks away)", {"mirror": False}),
-        (f"split 'short' ({pair_size('short')} px)", {"split": "short"}),
+        (f"split '{other}' ({pair_size(other)} px)", {"split": other}),
         ("bands centred, each on its own", {"align": "centre"}),
     ]
     mounts = []
@@ -481,14 +505,20 @@ def main(argv: list[str] | None = None) -> int:
                        MIRROR_ENGELS and not args.engels_as_photographed):
             print(f"wrote {p}")
         return 0
+    # Only the approved parameters may write a file named after a lump:
+    # test_art matches assets/SDPOSTR4.png and SDPOSTR5.png to work/ by name.
+    approved = (args.bias is None and args.inks is None and not args.engels_as_photographed
+                and (args.split, args.align) == (DEFAULT_SPLIT, DEFAULT_ALIGN)
+                and (args.marx, args.engels) == (DEFAULT_MARX, DEFAULT_ENGELS))
     for p in PEOPLE:
         mirror = False if args.engels_as_photographed else None
         im = poster(p, args.bias, args.inks, mirror, args.split, args.align,
                     chosen["marx"].key, chosen["engels"].key)
         used = len({tuple(px) for px in np.array(im).reshape(-1, 3)})
-        out = args.out_dir / poster_file(p)
+        out = args.out_dir / (f"{LUMPS[p]}.png" if approved else poster_file(p))
         to_lump(im).save(out)
-        print(f"{LUMPS[p]} (proposal) {p} {chosen[p].key}  {im.width}x{im.height}  colours={used}")
+        print(f"{LUMPS[p] if approved else 'proposal'} {p} {chosen[p].key}  {im.width}x{im.height}  "
+              f"colours={used}")
         print(f"wrote {out}")
     return 0
 

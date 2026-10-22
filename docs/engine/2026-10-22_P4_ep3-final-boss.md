@@ -1,5 +1,22 @@
 # Episode 3 final boss: the Consortium (D112, P4)
 
+> **Update, 2026-10-22 (D116): integrated into the mod, the overlay
+> superseded.** The CEO's art comes from Gemini a little at a time and from
+> no other generator, so the boss and its three projectiles moved to
+> `src/zscript/monsters/` on the provisional sprite below, with 21112 in
+> `MAPINFO`, the three ids in `LANGUAGE` and its own sound names in
+> `SNDINFO` (`docs/engine/MOD-SPEC.md` §6.12 and §6.2 "P4 sounds"; the final
+> lumps are eight letters there, `SDCNSSIT`…). `SD_ConsortiumWounded` is
+> **kept** for the PM's engine pass, in a file of its own
+> (`consortium_wounded.zs`, a test fixture, summon only), to be deleted when
+> the pass no longer needs it. The art swap is one `sed` in the class's
+> header (`SDPS` → `SDCN`, the marked `Translation`/`Scale` lines deleted)
+> plus the two state edits of §7 step 2. `tools/make_ep3_boss_overlay.py`
+> and `work/overlays/ep3-boss/` are kept, marked SUPERSEDED. It still
+> replaces nothing (§2.1). Placed in no map yet: §7 step 5 (MAP09's
+> `BOSS_KIND`) is level-designer's. The engine checks E1–E10 stand, run on
+> the built mod without the overlay. Below is the snapshot as written.
+
 Dated design snapshot, 2026-10-22, mod-engineer. Status: **DRAFT, playable
 by summon, not in the mod.** Owner of the living numbers once integrated:
 `docs/engine/BESTIARY.md` (who it is) and `docs/engine/MOD-SPEC.md` §6

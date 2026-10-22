@@ -11,6 +11,19 @@ engine pass of 2026-10-13 loaded them clean, counted the drops and the
 General's single summon, and left infighting, blood colour and the attack
 numbers unseen (`docs/engine/adr/006-bestiary-actors.md`, debt T22).
 
+**P4 (D116, 2026-10-22): three more classes in the mod.** The Legion gunner
+`SD_LegionGunner` (21110) and the Liberty Colossus `SD_LibertyColossus`
+(21111) of Episode 2 (D104), and Episode 3's final boss, the Consortium
+`SD_Consortium` (21112, D112), left their draft overlays for
+`src/zscript/monsters/`. They wear existing sprites tinted in code and
+existing sounds under their own names until Gemini's frames and their own
+takes arrive (`MOD-SPEC.md` §6.12, §6.2 "P4 sounds"), and **no map places
+them yet**. Their behaviour and the reasons for every number are their
+design documents, `docs/engine/2026-10-22_P4_ep2-enemies.md` and
+`docs/engine/2026-10-22_P4_ep3-final-boss.md`; §12 below carries their row,
+held to the code by `tests/test_bestiary.py`. **NOT YET SEEN IN THE
+ENGINE** (D26).
+
 This document is the contract for the six ratified enemies (D13) between
 `mod-engineer` (classes, numbers, states), `art-director` (sprites, colour)
 and `sound-designer` (sound lumps). Product facts — the two allied factions,
@@ -276,8 +289,9 @@ language switch, menu text). Where the two differ, the ADR is later.
 
 The bestiary spends the **21100–21199** sub-range already reserved for
 enemies by ADR 002 and MOD-SPEC §6.1. Assignments: 21100–21109 the seven
-classes plus two reserved variants (§12); 21110–21199 free for later
-enemies; invader-side corpses and decorations belong to the decoration
+classes plus two reserved variants (§12); since D116 21110 the Legion
+gunner, 21111 the Liberty Colossus and 21112 the Consortium; 21113–21199
+free for later enemies; invader-side corpses and decorations belong to the decoration
 sub-range **21200–21299**, not here.
 
 **Editor numbers are assigned only in MAPINFO's `DoomEdNums` block**, which
@@ -1349,6 +1363,9 @@ count actually packed under `assets/sprites/`.
 | 6 | Panzermensch | `SD_Panzermensch` | Reich | 21105 | `HellKnight` | **500** | 8 | 50 | melee 10–80 / shell 8–64 | `SDPM` `SDPL`, **installed** (D67; the shell D81) | **71 + 5** packed | 8 |
 | 7 | The General | `SD_General` | Legion | 21106 | `Cyberdemon` | **3000 (H)** | 12 | 20 | 3× shell 8–64; summons 2 riflemen once below 50 % | `SDGN` `SDGL`, **installed** (D73) | **81 + 5** packed | 7 |
 | 8 | Heavy Panzermensch | `SD_PanzermenschSchwer` | Reich | 21107 | `BaronOfHell` | 1000 | 8 | 50 | as #6 | `SDPS`, **installed** (D67) | **71** packed | 0 |
+| 9 | Legion gunner | `SD_LegionGunner` | Legion | 21110 | `ChaingunGuy` | 80 (H) | 8 | 150 | bursts of 4–6× hitscan 3–15, then a 20-tic pause; drops `SD_AkmAmmo` | `SDLT` tinted brass, **provisional** (D116); final `SDLG` | 0 (70 to draw) | 6 |
+| 10 | Liberty Colossus | `SD_LibertyColossus` | Legion | 21111 | `SpiderMastermind` | 4500 (H) | 10 | 20 | 3× rocket 10–80 + blast 64 / fire jet 4–32 a blob / stomp 5–40, jumpable | `SDGN` ×1.3 tinted chrome, **provisional** (D116); final `SDLC` | 0 (81 to draw) | 7 |
+| 11 | The Consortium | `SD_Consortium` | both | 21112 | nothing | 9000 (H) | 8 (free; rooted it does not walk) | 10 | rockets 10–80, orb fans 6–48, fire 4–32; servants of both factions; a second phase at half health | `SDPS` ×1.75 tinted cobalt, **provisional** (D116); final `SDCN` | 0 (95 to draw) | 8 |
 | — | *cloaked hound* | *reserved, not implemented* | Reich | *21108 reserved* | `Spectre` | 150 | 12 | 180 | as #4 | `SDHN` `+SHADOW` | 0 | 0 |
 
 Totals for F5: **8 classes + 4 projectile actors, ≈ 560 sprite images,
@@ -1368,14 +1385,22 @@ their own tables list (7/6, 6/5, 8/7, 9/8, 8/7), and the tables were right.
 list `SNDINFO` now defines (`sd/mon/*`, 47 logical names) and the list
 `tests/test_bestiary.py` holds the two to.
 
+Rows 9–11 (P4, D116) are not in the F5 totals above: their sprites are
+the installed sets of rows 2, 7 and 8 reused (0 new images; 246 to draw
+when Gemini's frames come), their 21 sounds are their own logical names
+over shipped lumps (MOD-SPEC §6.2, "P4 sounds"), outside the 47, and their
+projectiles (`SD_ColossusRocket`, `SD_ColossusFlame`, `SD_ConsortiumRocket`,
+`SD_ConsortiumOrb`, `SD_ConsortiumFlame`) subclass the RPG-7's grenade, the
+ROKS-3's flame and the General's shell, on their sprites.
+
 Classes the bestiary does **not** replace, so a map placing them still gets
-Freedoom's actor: `ChaingunGuy` (65), `Spectre` (58, reserved above),
-`LostSoul`, `PainElemental`, `Revenant`, `Fatso`, `Arachnotron`, `Archvile`,
-`SpiderMastermind`, `WolfensteinSS`, `CommanderKeen` and the boss-brain set.
-**`level-designer`: MAP01 §8 plans a "Legion heavy gunner" on thing 65; no
-such class exists or is ratified (D13 lists six enemies).** Either it is cut,
-or it becomes a CEO question for a seventh enemy; until then 65 is a Freedoom
-chaingunner.
+Freedoom's actor: `Spectre` (58, reserved above), `LostSoul`,
+`PainElemental`, `Revenant`, `Fatso`, `Arachnotron`, `Archvile`,
+`WolfensteinSS`, `CommanderKeen` and the boss-brain set (the Consortium
+takes none of them: its design doc §2.1). Since D116 `ChaingunGuy` (65) is
+the Legion gunner and `SpiderMastermind` (7) the Liberty Colossus; no map
+of ours places either. MAP01 §8's "Legion heavy gunner" on thing 65 exists
+now, should `level-designer` want it.
 
 ---
 

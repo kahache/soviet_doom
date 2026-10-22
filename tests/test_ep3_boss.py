@@ -1,34 +1,29 @@
-"""D112 (P4): the Episode 3 final boss DRAFT overlay, static checks.
+"""D112 (P4), integrated by D116: the Episode 3 final boss, the Consortium.
 
-`tools/make_ep3_boss_overlay.py` packs `work/overlays/ep3-boss/` (the boss
-SD_Consortium, its draft-only half-health twin SD_ConsortiumWounded and its
-three projectiles) into `work/overlays/sd-ep3-boss.pk3`, loaded after the
-mod with `-file`. Design: docs/engine/2026-10-22_P4_ep3-final-boss.md. What
-is checked, and why:
+Until D116 (2026-10-22) the boss lived in a DRAFT overlay,
+`work/overlays/ep3-boss/`, packed by `tools/make_ep3_boss_overlay.py`. D116
+moved it into the mod on a provisional sprite (MOD-SPEC 6.12); the overlay
+and its tool are SUPERSEDED, kept, not deleted. Design:
+docs/engine/2026-10-22_P4_ep3-final-boss.md. What is checked, and why:
 
-  tool       on a synthetic source (CI has no work/): it builds, holds
-             exactly the source's files, two builds are byte-identical; it
-             refuses an editor number the mod uses, one a sibling overlay
-             uses (the ep2-enemies overlay's 21110 and 21111) or one outside
-             21100-21199, a class the mod or a sibling declares, a path that
-             would shadow a mod file, a .zs no #include names, an #include
-             of a missing file, a stray file, and an --out under src/,
-             dist/ or assets/
-  mod        nothing under src/ names the new classes yet (flips at
-             integration)
-  real       (skips without work/overlays/ep3-boss/) the overlay builds; its
-             classes exist and derive from classes the mod (or the overlay)
-             has; its editor number is free in the mod and in the ep2
-             overlay; every frame a state shows (the parent's inherited
-             Spawn included) has its lumps in assets/sprites/; every sound
-             is a name the mod's SNDINFO defines; every $SD_ id is in its
-             LANGUAGE in all three languages and none overrides a mod id;
-             the brief holds: health twice the colossus's, the General's
-             boss flags, A_BossDeath, two phases split at half health, the
-             three existing projectiles, reinforcements from both factions,
-             its own fire passing through monsters
-  doc        the design document names the class, the number, the tool, and
-             MAP09's swap (BOSS_KIND, MAP09_BOSS_SPOT)
+  tool       (the superseded tool, on a synthetic source; CI has no work/):
+             it builds reproducibly and refuses an editor number the mod or
+             a sibling overlay uses or one outside 21100-21199, a class the
+             mod or a sibling declares, a shadowing path, an orphan .zs, a
+             missing #include, a stray file, an --out under src/, dist/ or
+             assets/; and now the real overlay itself
+  mod        the boss, its three projectiles and the half-health test
+             fixture SD_ConsortiumWounded in src/zscript/monsters/, one per
+             file, each #included; the boss replaces nothing and is 21112;
+             every frame has its sprites; the provisional tint is on marked
+             lines only and the documented swap leaves SDCN and no tint; its
+             eight sounds are its own SNDINFO names over shipped lumps (or a
+             DS placeholder) with final lumps named; three ids in three
+             languages; the brief (health twice the colossus's, the
+             General's boss flags, two phases at half health, the arsenal's
+             projectiles passing through monsters, servants from both
+             factions); placed in no map yet
+  doc        the design document and the contracts name it
 
 Stdlib only.
 """
@@ -49,6 +44,9 @@ PROJECT_ROOT = TESTS_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 
 import make_ep3_boss_overlay as ov  # noqa: E402
+
+sys.path.insert(0, str(TESTS_DIR))
+import _p4_mod as p4  # noqa: E402
 
 SRC = PROJECT_ROOT / "src"
 SPRITES = PROJECT_ROOT / "assets" / "sprites"
@@ -274,126 +272,141 @@ class ToolTests(unittest.TestCase):
                 self.assertFalse((PROJECT_ROOT / name / "x.pk3").exists())
 
 
-class ModUntouchedTests(unittest.TestCase):
-    def test_src_does_not_name_the_new_classes(self):
-        for p in SRC.rglob("*"):
-            if p.is_file() and p.suffix in ("", ".zs", ".txt", ".py"):
-                text = p.read_text(encoding="utf-8", errors="replace")
-                for cls in NEW_CLASSES:
-                    self.assertNotIn(cls, text, f"{p} names {cls}: the draft entered the mod")
+class SupersededOverlayTests(unittest.TestCase):
+    """D116: the classes are the mod's now, so the overlay tool refuses the
+    real source (a class the mod declares, a number its MAPINFO assigns)."""
+
+    def test_tool_says_superseded(self):
+        self.assertIn("SUPERSEDED", ov.__doc__)
+
+    @unittest.skipUnless(REAL_SRC.is_dir(), "no work/overlays/ep3-boss/ (gitignored work/)")
+    def test_real_overlay_is_refused(self):
+        with self.assertRaises(ov.OverlayError):
+            ov.plan_overlay(REAL_SRC, SRC)
 
 
-# -------------------------------------------------------------------- real
-@unittest.skipUnless(REAL_SRC.is_dir(), "no work/overlays/ep3-boss/ (gitignored work/)")
-class RealOverlayTests(unittest.TestCase):
+# --------------------------------------------------------------------- mod
+FILES = {
+    BOSS: "zscript/monsters/consortium.zs",
+    "SD_ConsortiumRocket": "zscript/monsters/consortium_rocket.zs",
+    "SD_ConsortiumOrb": "zscript/monsters/consortium_orb.zs",
+    "SD_ConsortiumFlame": "zscript/monsters/consortium_flame.zs",
+    "SD_ConsortiumWounded": "zscript/monsters/consortium_wounded.zs",
+}
+SOUND_COUNT = 8    # sight, active, pain, death, call, breach, step, flame (BESTIARY 12)
+IDS = {"SD_TAG_CONSORTIUM", "SD_OB_CONSORTIUM", "SD_CONSORTIUM_FREE"}
+
+
+class ModTests(unittest.TestCase):
+    """The Consortium as the mod ships it (D116)."""
+
     @classmethod
     def setUpClass(cls):
-        cls.plan = ov.plan_overlay(REAL_SRC, SRC)
+        cls.text = {c: p4.read(f) for c, f in FILES.items()}
         cls.blocks: dict[str, tuple[str | None, str]] = {}
-        for rel, path in cls.plan.files.items():
-            if rel.endswith(".zs"):
-                cls.blocks.update(class_blocks(path.read_text(encoding="utf-8")))
-        cls.zs_text = "\n".join(strip(p.read_text(encoding="utf-8"))
-                                for r, p in cls.plan.files.items() if r.endswith(".zs"))
-        cls.mod_classes = mod_class_files()
+        for p in (SRC / "zscript").rglob("*.zs"):
+            cls.blocks.update(p4.class_blocks(p.read_text(encoding="utf-8")))
         cls.boss = cls.blocks[BOSS][1]
 
-    def parent_body(self, parent: str) -> str:
-        if parent in self.blocks:
-            return self.blocks[parent][1]
-        return class_blocks(self.mod_classes[parent].read_text(encoding="utf-8"))[parent][1]
-
-    def test_builds(self):
-        with tempfile.TemporaryDirectory() as d:
-            out = Path(d) / "sd-ep3-boss.pk3"
-            self.assertEqual(run_tool(["--src", str(REAL_SRC), "--out", str(out)]), 0)
-            self.assertEqual(sorted(zipfile.ZipFile(out).namelist()), sorted(self.plan.files))
-
-    def test_classes(self):
-        self.assertEqual(set(self.plan.classes), set(NEW_CLASSES))
-        for cls, (parent, _) in self.blocks.items():
+    def test_one_class_per_file_and_included(self):
+        inc = p4.includes()
+        for cls, rel in FILES.items():
             with self.subTest(cls=cls):
-                self.assertTrue(parent in self.mod_classes or parent in self.blocks,
-                                f"{cls} derives from {parent}, not a mod class")
+                self.assertEqual(list(p4.class_blocks(self.text[cls])), [cls])
+                self.assertIn(rel.lower(), inc)
+
+    def test_parents_and_replaces_nothing(self):
+        """Design doc 2.1: the Icon of Sin is a scripted wall target, not a
+        monster, and every other Doom boss is taken: its own number only."""
+        self.assertEqual(p4.class_head(self.text[BOSS], BOSS), f"class {BOSS} : SD_Monster")
         for cls, parent in PROJECTILE_PARENTS.items():
-            self.assertEqual(self.blocks[cls][0], parent)
-        self.assertEqual(self.blocks[BOSS][0], "SD_Monster")
-        self.assertEqual(self.blocks["SD_ConsortiumWounded"][0], BOSS)
+            self.assertEqual(p4.class_head(self.text[cls], cls), f"class {cls} : {parent}")
+        self.assertEqual(p4.class_head(self.text["SD_ConsortiumWounded"], "SD_ConsortiumWounded"),
+                         f"class SD_ConsortiumWounded : {BOSS}")
 
     def test_editor_numbers(self):
-        self.assertEqual(self.plan.ednums, EXPECTED_EDNUMS)
-        mod = ov.mapinfo_ednums((SRC / "lumps" / "MAPINFO").read_text(encoding="utf-8"))
-        for num in self.plan.ednums:
-            self.assertNotIn(num, mod)
-            self.assertNotIn(num, RESERVED_EDNUMS)
-            self.assertIn(num, ov.ENEMY_EDNUMS)
-        if (EP2_SRC / "MAPINFO").is_file():
-            ep2 = ov.mapinfo_ednums((EP2_SRC / "MAPINFO").read_text(encoding="utf-8"))
-            self.assertFalse(set(ep2) & set(self.plan.ednums))
+        ednums = p4.mapinfo_ednums()
+        self.assertEqual(ednums.get(21112), BOSS)
+        for cls in (*PROJECTILE_PARENTS, "SD_ConsortiumWounded"):
+            self.assertNotIn(cls, ednums.values(), f"{cls} is not placeable")
 
     def test_every_frame_has_its_sprites(self):
-        for cls, (parent, body) in self.blocks.items():
-            frames = state_frames(body)
-            p, labels = parent, state_labels(body)
-            # inherited states (the projectiles' flight, the twin's everything)
-            while "Spawn" not in labels and p is not None and (p in self.blocks or p in self.mod_classes):
-                pbody = self.parent_body(p)
-                frames |= state_frames(pbody)
-                labels |= state_labels(pbody)
-                p = self.blocks[p][0] if p in self.blocks else None
+        for cls in FILES:
+            frames = p4.frames_with_inheritance(cls, self.blocks)
             self.assertTrue(frames, cls)
             for sprite, frame in sorted(frames):
                 with self.subTest(cls=cls, sprite=sprite, frame=frame):
-                    rots = sprite_rotations(sprite).get(frame, set())
+                    rots = p4.sprite_rotations(sprite).get(frame, set())
                     self.assertTrue("0" in rots or set("12345678") <= rots,
                                     f"{sprite}{frame}: rotations {sorted(rots)}")
 
-    def test_sounds_are_defined(self):
-        defined = sndinfo_names((SRC / "lumps" / "SNDINFO").read_text(encoding="utf-8"))
-        used = set(re.findall(r'"(sd/[^"]+)"', self.zs_text))
-        self.assertTrue(used)
+    def test_provisional_look_and_its_documented_swap(self):
+        text = self.text[BOSS]
+        marked = p4.provisional_code_lines(text)
+        self.assertTrue(any(l.startswith("Translation ") for l in marked), marked)
+        for line in marked:
+            self.assertRegex(line, r"^(Translation |Scale |const SD_\w+_SCALE )", line)
+        swapped, pairs = p4.apply_documented_swap(text)
+        self.assertEqual(pairs, [("SDPS", "SDCN")])
+        frames = p4.state_frames(p4.class_blocks(swapped)[BOSS][1])
+        self.assertEqual({s for s, _ in frames}, {"SDCN"})
+        code = p4.strip_comments(swapped)
+        self.assertNotIn("Translation", code)
+        self.assertNotRegex(code, r"\bScale\b")
+        self.assertFalse(p4.sprite_rotations("SDCN"), "SDCN is drawn: do the swap")
+        # the two state edits the drawing adds are named in the header
+        self.assertIn("rooted See shows SDCN Q R", text)
+
+    def test_sounds_are_its_own_names_over_existing_lumps(self):
+        lines = p4.sndinfo_lines()
+        shipped = {p.stem.upper() for p in (PROJECT_ROOT / "assets" / "sounds").rglob("*.ogg")}
+        used = set(re.findall(r'"(sd/[a-z0-9/_]+)"', p4.strip_comments(self.text[BOSS])))
         for name in sorted(used):
-            self.assertIn(name.lower(), defined, name)
+            with self.subTest(name=name):
+                self.assertIn(name, lines)
+                if name.startswith("sd/mon/"):
+                    self.assertTrue(name.startswith("sd/mon/consortium/"), name)
+        finals = []
+        for name, (lump, comment) in lines.items():
+            if name.startswith("sd/mon/consortium/"):
+                with self.subTest(name=name):
+                    self.assertIn(name, used, f"{name} is defined but the boss does not play it")
+                    self.assertTrue(lump in shipped or lump.startswith("DS"), lump)
+                    final = p4.FINAL_LUMP_RE.search(comment)
+                    self.assertIsNotNone(final, f"{name}: no '-> final lump' in its comment")
+                    self.assertNotIn(final.group(1), shipped)
+                    finals.append(final.group(1))
+        self.assertEqual(len(finals), len(set(finals)))
+        self.assertEqual(len(finals), SOUND_COUNT)
 
     def test_strings_in_three_languages(self):
-        overlay = language_sections(self.plan.files["LANGUAGE"].read_text(encoding="utf-8"))
-        mod = language_sections((SRC / "lumps" / "LANGUAGE").read_text(encoding="utf-8"))
-        used = set(re.findall(r'"\$(SD_\w+)"', self.zs_text))
-        self.assertTrue(used)
+        sections = p4.language_sections()
+        used = set(re.findall(r'"\$(SD_\w+)"', "\n".join(self.blocks[c][1] for c in FILES)))
+        self.assertEqual(used, IDS)
         for lang in LANGS:
             with self.subTest(lang=lang):
-                self.assertEqual(set(overlay.get(lang, {})), used)
-                self.assertFalse(used & set(mod.get(lang, {})), "an overlay id overrides a mod id")
-                for sid, text in overlay[lang].items():
-                    if sid.startswith("SD_OB_"):
-                        self.assertIn("%o", text, f"{lang} {sid}")
-        if (EP2_SRC / "LANGUAGE").is_file():
-            ep2 = language_sections((EP2_SRC / "LANGUAGE").read_text(encoding="utf-8"))
-            self.assertFalse(used & set(ep2.get("enu default", {})), "an id collides with the ep2 overlay")
+                self.assertLessEqual(IDS, set(sections[lang]))
+                self.assertIn("%o", sections[lang]["SD_OB_CONSORTIUM"])
+        for sid in IDS:
+            self.assertTrue(sections["enu default"][sid].isascii(), sid)
 
     def test_health_is_twice_the_colossus(self):
-        colossus = COLOSSUS_HEALTH
-        ep2 = EP2_SRC / "zscript" / "sd_ep2" / "liberty_colossus.zs"
-        if ep2.is_file():
-            colossus = const_value(class_blocks(ep2.read_text(encoding="utf-8"))["SD_LibertyColossus"][1],
-                                   "SD_COLOSSUS_HEALTH")
+        colossus = const_value(self.blocks["SD_LibertyColossus"][1], "SD_COLOSSUS_HEALTH")
+        self.assertEqual(colossus, COLOSSUS_HEALTH)
         self.assertEqual(const_value(self.boss, "SD_CONSORTIUM_HEALTH"), 2 * colossus)
 
     def test_boss_flags_are_the_generals(self):
-        gbody = class_blocks((SRC / "zscript" / "monsters" / "general.zs").read_text(encoding="utf-8"))["SD_General"][1]
+        gbody = self.blocks["SD_General"][1]
         for flag in ("+BOSS", "+NORADIUSDMG", "+DONTMORPH", "+BOSSDEATH"):
             self.assertIn(flag, gbody)
             self.assertIn(flag, self.boss)
         self.assertIn("A_BossDeath", self.boss)
-        self.assertIn("A_NoBlocking", self.boss)
-        self.assertNotRegex(self.boss, r"^\s*class\s+SD_Consortium\s*:\s*SD_Monster\s+replaces",
-                            "replaces nothing (design doc 2)")
-        death = states_block(self.boss).split("Death:")[1]
+        death = p4.states_block(self.boss).split("Death:")[1]
         self.assertLess(death.index("A_NoBlocking"), death.index("A_BossDeath"))
 
     def test_two_phases_at_half_health(self):
         self.assertEqual(const_value(self.boss, "SD_CONSORTIUM_BREACH_FRACTION"), 0.5)
-        labels = state_labels(self.boss)
+        labels = p4.state_labels(self.boss)
         for label in ("Spawn", "See", "Walk", "Missile", "Orbs", "Rockets", "Flame", "Summon",
                       "Breach", "Volley", "Barrage", "Sweep", "Pain", "Death"):
             self.assertIn(label, labels)
@@ -404,7 +417,6 @@ class RealOverlayTests(unittest.TestCase):
         self.assertIn("bInvulnerable = false", self.boss)
         self.assertLess(const_value(self.boss, "SD_CONSORTIUM_FREE_MISSILE_CHANCE_MULT"),
                         const_value(self.boss, "SD_CONSORTIUM_MISSILE_CHANCE_MULT"))
-        # every attack state of each phase is reachable from the chooser
         for label in ("Orbs", "Rockets", "Flame", "Summon", "Volley", "Barrage", "Sweep"):
             self.assertIn(f'SetStateLabel("{label}")', self.boss)
 
@@ -417,18 +429,14 @@ class RealOverlayTests(unittest.TestCase):
 
     def test_reinforcements_from_both_factions(self):
         faction = {}
-        for cls, path in self.mod_classes.items():
-            body = class_blocks(path.read_text(encoding="utf-8")).get(cls, (None, ""))[1]
+        for cls, (_, body) in self.blocks.items():
             m = re.search(r"SD_Monster\.Faction\s+(SD_FACTION_\w+)", body)
             if m:
                 faction[cls] = m.group(1)
         called = set(re.findall(r'class<Actor>\s+\w+\s*=\s*"(SD_\w+)"', self.boss))
         self.assertTrue(called)
-        for cls in called:
-            self.assertIn(cls, self.mod_classes, cls)
         sides = {faction[c] for c in called}
-        self.assertIn("SD_FACTION_REICH", sides)
-        self.assertIn("SD_FACTION_LEGION", sides)
+        self.assertEqual(sides, {"SD_FACTION_REICH", "SD_FACTION_LEGION"})
         self.assertIn("A_KillChildren", self.boss)
         self.assertIn("servant.master = self", self.boss)
         self.assertIn("bNoInfighting = true", self.boss)
@@ -438,13 +446,35 @@ class RealOverlayTests(unittest.TestCase):
                              const_value(self.boss, "SD_CONSORTIUM_CAP_FREE"))
         self.assertIn("override int DamageMobj", self.boss)
 
+    def test_wounded_fixture_starts_over_the_breach(self):
+        """The test fixture spawns over the Breach threshold, so the first
+        hits trigger it; it carries no string, sound or number of its own."""
+        body = self.blocks["SD_ConsortiumWounded"][1]
+        self.assertIn("SD_CONSORTIUM_BREACH_FRACTION", body)
+        self.assertGreater(const_value(body, "SD_WOUNDED_MARGIN"), 0)
+        self.assertNotRegex(body, r'"\$SD_|"sd/')
+
+    def test_placed_in_no_map_yet(self):
+        for p in (SRC / "maps").rglob("*.py"):
+            text = p.read_text(encoding="utf-8")
+            self.assertNotIn(BOSS, text, p)
+            self.assertIsNone(re.search(r"\b21112\b", text), f"{p} names 21112")
+
 
 class DocTests(unittest.TestCase):
     def test_doc_names_the_boss_and_the_swap(self):
         text = DOC.read_text(encoding="utf-8")
         for needle in (BOSS, "21112", "make_ep3_boss_overlay.py", "BOSS_KIND", "MAP09_BOSS_SPOT",
-                       "Door_Open", "SDCN", "SD_ConsortiumWounded"):
+                       "Door_Open", "SDCN", "SD_ConsortiumWounded", "D116"):
             self.assertIn(needle, text)
+
+    def test_contracts_name_it(self):
+        spec = (PROJECT_ROOT / "docs" / "engine" / "MOD-SPEC.md").read_text(encoding="utf-8")
+        bestiary = (PROJECT_ROOT / "docs" / "engine" / "BESTIARY.md").read_text(encoding="utf-8")
+        balance = (PROJECT_ROOT / "docs" / "engine" / "BALANCE.md").read_text(encoding="utf-8")
+        self.assertIsNotNone(re.search(rf"\|\s*21112\s*\|\s*`{BOSS}`", spec))
+        self.assertTrue(f"`{BOSS}`" in bestiary, "BESTIARY lacks the boss")
+        self.assertTrue("The Consortium" in balance, "BALANCE lacks the boss")
 
 
 if __name__ == "__main__":

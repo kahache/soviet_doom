@@ -11,7 +11,7 @@ version "4.12"
 #include "zscript/sd/load_reporter.zs"
 #include "zscript/sd/language_option.zs" // the Language row of Options > Soviet Doom (QA-G6-1)
 #include "zscript/sd/player.zs"
-#include "zscript/sd/ammo.zs"        // Soviet names for the four Doom ammo pools
+#include "zscript/sd/ammo.zs"        // Soviet names for the four Doom ammo pools, and the AKM's own (D116)
 #include "zscript/sd/radio.zs"       // the diegetic radio (D43), editor number 21200
 #include "zscript/sd/status_bar.zs"  // Doom's bar + the pause sign per language (T24)
 #include "zscript/sd/keys.zs"        // the three passes: blue (MAP02), yellow and red (MAP03)
@@ -21,6 +21,7 @@ version "4.12"
 #include "zscript/sd/music_variant.zs" // episode 2's A/B music and MAP06's boss loop (D106)
 
 // --- Arsenal (F4): one class per file, one weapon per Doom slot -----------
+// (but slot 4, which holds two since D116: the PPSh-41 and the AKM)
 // Projectiles come before the weapons that fire them for readability only;
 // ZScript resolves class names regardless of include order.
 #include "zscript/weapons/pg7_grenade.zs"
@@ -33,6 +34,7 @@ version "4.12"
 #include "zscript/weapons/tokarev.zs"         // slot 2
 #include "zscript/weapons/izh.zs"             // slot 3
 #include "zscript/weapons/ppsh.zs"            // slot 4
+#include "zscript/weapons/akm.zs"             // slot 4, the second (D116), 21008
 #include "zscript/weapons/rpg7.zs"            // slot 5
 #include "zscript/weapons/roks3.zs"           // slot 6
 #include "zscript/weapons/katyusha.zs"        // slot 7
@@ -40,7 +42,7 @@ version "4.12"
 // --- Bestiary (F5): one class per file; contract docs/engine/BESTIARY.md ---
 // The base first (it also declares the SD_FACTION_* constants), then the
 // projectiles, then the enemies in BESTIARY's order. Editor numbers are in
-// MAPINFO (DoomEdNums), 21100-21107.
+// MAPINFO (DoomEdNums), 21100-21107; the P4 enemies (D116) 21110-21112.
 #include "zscript/monsters/monster.zs"           // SD_Monster, shared base
 
 #include "zscript/monsters/storm_bolt.zs"
@@ -56,3 +58,15 @@ version "4.12"
 #include "zscript/monsters/panzermensch.zs"      // 21105
 #include "zscript/monsters/general.zs"           // 21106
 #include "zscript/monsters/panzermensch_schwer.zs" // 21107
+
+// P4 (D104, D112), in the mod since D116 on provisional sprites (MOD-SPEC
+// 6.12); placed in no map yet. Their projectiles subclass the arsenal's.
+#include "zscript/monsters/legion_gunner.zs"       // 21110, Episode 2
+#include "zscript/monsters/liberty_colossus.zs"    // 21111, Episode 2's boss
+#include "zscript/monsters/colossus_rocket.zs"     // his torch's rockets
+#include "zscript/monsters/colossus_flame.zs"      // his torch's fire jet
+#include "zscript/monsters/consortium.zs"          // 21112, Episode 3's final boss
+#include "zscript/monsters/consortium_rocket.zs"   // its Reich arm's rockets
+#include "zscript/monsters/consortium_orb.zs"      // its Legion arm's energy balls
+#include "zscript/monsters/consortium_flame.zs"    // its core's fire
+#include "zscript/monsters/consortium_wounded.zs"  // test fixture for the engine pass (summon only)

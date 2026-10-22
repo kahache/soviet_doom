@@ -66,6 +66,9 @@ from sdbuild.wad import validate_lump_name  # noqa: E402
 needs_numpy = unittest.skipIf(np is None, "numpy is not installed (CI's system python)")
 
 SNDINFO = PROJECT_ROOT / "src" / "lumps" / "SNDINFO"
+# D116: the P4 enemies' own names play existing lumps until sound-designer
+# records theirs; they are not gen_sfx.py's 47 cards (gen_sfx.P4_SNDINFO_PREFIXES).
+P4_PREFIXES = ("sd/mon/legiongunner/", "sd/mon/colossus/", "sd/mon/consortium/")
 PLAN = PROJECT_ROOT / "docs" / "sound" / "ENEMY-SOUNDS.md"
 REAL_OUT = PROJECT_ROOT / "work" / "audio" / "sfx" / "enemies"
 REAL_PK3 = PROJECT_ROOT / "work" / "audio" / "sfx" / "sd-enemy-sfx-draft.pk3"
@@ -149,7 +152,7 @@ def sndinfo_final_lumps() -> set[str]:
     lump_of = {}
     for raw in raw_lines:
         m = re.match(r"^(sd/mon/\S+)\s+(\S+)\s*(?://\s*->\s*(SD[A-Z0-9]{6})\b)?", raw.strip())
-        if not m:
+        if not m or m.group(1).startswith(P4_PREFIXES):   # D116: not this generator's cards
             continue
         lump_of[m.group(1)] = m.group(2)
         if m.group(1) not in members:

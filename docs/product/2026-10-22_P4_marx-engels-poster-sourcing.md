@@ -225,7 +225,7 @@ head at their scale, ~85-95 px wide), hung Marx on the left:
 | `SDPOSTR5`, Engels | «СОЕДИНЯЙТЕСЬ!» |
 
 Hung together, the two bands read the Manifesto's line; each poster also
-works on its own. Nothing is installed in `assets/` yet.
+works on its own. Installed after the verdict below (D117).
 
 ### The downloads
 
@@ -322,22 +322,49 @@ of `gen_lenin.poster` through `gen_stalin`'s patch-and-restore pipeline.
 - **Real plates:** the hashes above, every ink used in quantity, four inks
   plus the gold.
 
-### Waiting on the CEO
+### The verdict (D117, 2026-10-22)
 
-1. A cell for Marx (4D proposed) and one for Engels (4C proposed).
-2. Engels mirrored to face Marx (proposed), or as photographed.
-3. The CEO's split at 15 px, or `short` at 17 px.
-4. The `pair` alignment, or centred.
+The CEO approved the proposal as drawn on the sheet:
 
-After the verdict:
-- The generator's defaults are set to the CEO's choices.
-- The plain run is pointed at the lump names.
-- The two lumps are copied into `assets/textures/soviet_base/`.
-- `TEXTURE-INDEX.md` and `LICENSES.md` get their rows.
-- `level-designer` hangs the two posters. Its slots are 128 × 256 already,
-  but each holds one poster, and the pair needs **two adjacent slots**,
-  `SDPOSTR4` on the left and `SDPOSTR5` on the right. A lone slot can take
-  either poster, which works on its own.
+| Question | Answer |
+|---|---|
+| Marx's cell | **4D** (four inks, cut +9) |
+| Engels's cell | **4C** (four inks, cut +0) |
+| Engels | **mirrored**, so he looks at Marx |
+| Split | **`short`**: «ПРОЛЕТАРИИ / ВСЕХ СТРАН,» + «СОЕДИНЯЙТЕСЬ!», **17 px** |
+| Alignment | **`pair`**: Engels's word on the row of Marx's second line |
+
+### Installed (2026-10-22)
+
+- **Generator.** `tools/art/gen_marx_engels.py`'s defaults are the verdict
+  (`DEFAULT_SPLIT = "short"`, `MIRROR_ENGELS = True`, cells 4D and 4C). A
+  plain run writes `work/art/marx_engels/SDPOSTR4.png` and `SDPOSTR5.png`;
+  any other option writes `marx_engels_<person>_poster.png`, never a lump's
+  name. `lump(person)` returns the approved lump.
+- **Lumps.** Both copied byte for byte into `assets/textures/soviet_base/`:
+  indexed PNG, 128 × 256, five colours each (four inks plus the gold), all
+  in palette v1.
+
+  | Lump | Bytes | SHA-256 |
+  |---|---|---|
+  | `SDPOSTR4` | 3,189 | `f4d6a48251346d32fed255e4afa3b2f2a89b4f0e82496680b9c34cb5d750d5f2` |
+  | `SDPOSTR5` | 3,535 | `b7062f3b2689df644a7e30e71d0cfcbe583ed17eea799eec2edb15a239d5f81f` |
+
+- **Text-bearing (D27).** Rendered with this Windows PC's Impact, so they
+  are regenerated only here. `tests/test_gen_marx_engels.py`
+  (`InstalledLumpIdentityTests`, Windows only, needs the two photographs)
+  holds the generator to the installed pixels; `tests/test_art.py` holds the
+  byte-for-byte copy.
+- **Registers.** `docs/art/TEXTURE-INDEX.md` has the two rows (with the
+  placement); `docs/art/LICENSES.md` has the two lumps (Engels's flip noted)
+  and the two reference photographs (author, date, Commons URL, public
+  domain, SHA-256).
+- **Hung on every map.** Each map's two `POSTER_SLOTS_MARX_ENGELS` carry the
+  pair, Marx's slot first; where both slots share a wall (MAP05, MAP07,
+  MAP08) Marx is on the left as the wall is seen from the room, so the
+  sentence reads left to right; elsewhere each poster reads alone, Marx
+  first along the route. The table is `PAIR` in `tests/test_posters.py`;
+  each map's design document (posters section) says where and why.
 
 ## Sources
 

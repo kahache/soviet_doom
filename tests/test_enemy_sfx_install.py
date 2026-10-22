@@ -292,6 +292,8 @@ def sndinfo() -> tuple[dict[str, str], dict[str, list[str]]]:
                 raise AssertionError(f"{m.group(1)} defined twice")
             groups[m.group(1)] = m.group(2).split()
             continue
+        if line.startswith("$"):      # another directive: the AKM's $pitchset (D116)
+            continue
         logical, lump = line.split()
         if logical in lines or logical in groups:
             raise AssertionError(f"{logical} defined twice")

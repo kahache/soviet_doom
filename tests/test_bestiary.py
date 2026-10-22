@@ -51,7 +51,22 @@ ENEMIES = {
     "SD_General": ("general.zs", "SD_Monster", "Cyberdemon", 21106, "SD_GENERAL", "general"),
     "SD_PanzermenschSchwer": ("panzermensch_schwer.zs", "SD_Panzermensch", "BaronOfHell", 21107,
                               "SD_PANZER_HEAVY", None),
+    # P4 (D104, D112), in the mod since D116 on provisional sprites (MOD-SPEC
+    # 6.12). The Consortium replaces nothing (its design doc 2.1): None.
+    "SD_LegionGunner": ("legion_gunner.zs", "SD_Monster", "ChaingunGuy", 21110, "SD_GUNNER", "legiongunner"),
+    "SD_LibertyColossus": ("liberty_colossus.zs", "SD_Monster", "SpiderMastermind", 21111, "SD_COLOSSUS",
+                           "colossus"),
+    "SD_Consortium": ("consortium.zs", "SD_Monster", None, 21112, "SD_CONSORTIUM", "consortium"),
 }
+# The P4 classes: placed in no map yet (level-designer's), so not on RANGE's
+# gallery; their sounds are their own names over existing lumps, outside the
+# F5 bestiary's 47 (SNDINFO "P4 enemies").
+P4_ENEMIES = frozenset({"SD_LegionGunner", "SD_LibertyColossus", "SD_Consortium"})
+P4_SOUND_PREFIXES = ("sd/mon/legiongunner/", "sd/mon/colossus/", "sd/mon/consortium/")
+# Their projectiles subclass the arsenal's (tests/test_ep2_enemies.py and
+# test_ep3_boss.py check them), and the Consortium's half-health test fixture.
+P4_OTHER_FILES = ("colossus_rocket.zs", "colossus_flame.zs", "consortium_rocket.zs", "consortium_orb.zs",
+                  "consortium_flame.zs", "consortium_wounded.zs")
 PROJECTILES = {
     "SD_StormBolt": ("storm_bolt.zs", "SD_STORMBOLT"),
     "SD_DoughboyShell": ("doughboy_shell.zs", "SD_DOUGHBOYSHELL"),
@@ -259,12 +274,16 @@ class BestiaryClassesTest(unittest.TestCase):
         on_disk = {f"zscript/monsters/{p.name}".lower() for p in MONSTERS_DIR.glob("*.zs")}
         expected = {f"zscript/monsters/{f}".lower() for f, *_ in ENEMIES.values()}
         expected |= {f"zscript/monsters/{f}".lower() for f, _ in PROJECTILES.values()}
+        expected |= {f"zscript/monsters/{f}" for f in P4_OTHER_FILES}
         expected.add(f"zscript/monsters/{BASE[1]}")
         self.assertEqual(expected, on_disk, "zscript/monsters/ holds exactly the bestiary's files")
         self.assertEqual(set(), on_disk - included, "monster files that nothing #includes")
 
     def test_parent_and_replacement(self):
         for cls, (filename, parent, replaced, *_rest) in ENEMIES.items():
+            if replaced is None:      # the Consortium (D116): its own number only
+                self.assertRegex(strip_zs_comments(read_zs(filename)), rf"(?m)^class\s+{cls}\s*:\s*{parent}\s*$")
+                continue
             self.assertRegex(read_zs(filename),
                              rf"class\s+{cls}\s*:\s*{parent}\s+replaces\s+{replaced}\b",
                              f"{cls} must derive from {parent} and replace {replaced} (BESTIARY 2.4)")
@@ -317,7 +336,7 @@ class BestiaryEditorNumbersTest(unittest.TestCase):
         for cls, (_f, _p, replaced, ednum, *_rest) in ENEMIES.items():
             self.assertIn(cls, summary, f"{cls} missing from BESTIARY 12")
             self.assertEqual(ednum, number(summary[cls]["ednum"]))
-            self.assertIn(replaced, summary[cls]["replaces"])
+            self.assertIn(replaced or "nothing", summary[cls]["replaces"])
 
     def test_mod_spec_lists_the_numbers(self):
         spec = (PROJECT_ROOT / "docs" / "engine" / "MOD-SPEC.md").read_text(encoding="utf-8")
@@ -388,7 +407,8 @@ class BestiaryDropsTest(unittest.TestCase):
                 drops.setdefault(cls, []).append(item)
                 self.assertTrue(item.startswith("SD_"), f"{cls} drops {item}, not one of ours")
                 self.assertIn(item, ours, f"{cls} drops {item}, which no ZScript class declares")
-        self.assertEqual({"SD_ReichRifleman": ["SD_Clip"], "SD_LegionTrooper": ["SD_Izh"]}, drops)
+        self.assertEqual({"SD_ReichRifleman": ["SD_Clip"], "SD_LegionTrooper": ["SD_Izh"],
+                          "SD_LegionGunner": ["SD_AkmAmmo"]}, drops)   # D116: the AKM's magazine
 
 
 class BestiaryLanguageTest(unittest.TestCase):
@@ -408,7 +428,7 @@ class BestiaryLanguageTest(unittest.TestCase):
 
 class BestiarySoundsTest(unittest.TestCase):
     def test_47_sounds_matching_the_sound_designers_cards(self):
-        entries = sndinfo_entries()
+        entries = [e for e in sndinfo_entries() if not e[0].startswith(P4_SOUND_PREFIXES)]
         self.assertEqual(BESTIARY_SOUND_TOTAL, len(entries))
         finals = [f for _, _, f in entries]
         self.assertNotIn(None, finals, "every bestiary SNDINFO line names its final lump in a comment")
@@ -458,7 +478,8 @@ class BestiaryRangeTest(unittest.TestCase):
         spec.loader.exec_module(module)
         things = module.build_textmap().things
         placed = [t for t in things if ENEMY_EDNUM_MIN <= t.type <= ENEMY_EDNUM_MAX]
-        self.assertEqual(sorted(e[3] for e in ENEMIES.values()), sorted(t.type for t in placed))
+        self.assertEqual(sorted(e[3] for c, e in ENEMIES.items() if c not in P4_ENEMIES),
+                         sorted(t.type for t in placed))
         for thing in placed:
             self.assertTrue(thing.extra.get("ambush"), f"{thing.type} must be deaf")
             self.assertTrue(module.GALLERY_Y1 < thing.y < module.GALLERY_Y2, "inside the gallery")

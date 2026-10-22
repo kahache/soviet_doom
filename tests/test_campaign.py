@@ -15,7 +15,7 @@ Episode 3, "The Portal" (D112, P4): MAP07 the Arctic radar station on Novaya
 Zemlya -> MAP08 the Northern Fleet's submarine base at Severomorsk -> MAP09
 the invaders' main portal at Tunguska. A third episode on the New Game
 screen, after the second and before the range, started on MAP07; it ends
-the first cycle, so its ending closes on THE END, not TO BE CONTINUED.
+the first cycle; its ending closes on TO BE CONTINUED like the others (D117).
 
 The contract is docs/engine/MOD-SPEC.md 4.6. What this suite pins,
 statically, from MAPINFO and LANGUAGE:
@@ -169,7 +169,7 @@ TO_BE_CONTINUED = {"default": "TO BE CONTINUED", "ru": "ПРОДОЛЖЕНИЕ �
 # first cycle; it closes on THE END (and keeps one line open above it).
 THE_END = {"default": "THE END", "ru": "КОНЕЦ", "ca": "FI"}
 ENDING_LAST_LINE = {"SD_END01_TEXT": TO_BE_CONTINUED, "SD_END03_TEXT": TO_BE_CONTINUED,
-                    "SD_END04_TEXT": THE_END}
+                    "SD_END04_TEXT": TO_BE_CONTINUED}  # D117 (was THE END)
 # Episode 1's ending is the factory's since D62: the portal's power cut. It
 # was the cosmodrome's until D60 and the bunker's until D62 (MOD-SPEC 4.6).
 # Episode 2's (D104) is the Kremlin's, and leaves the invaders' main portal
@@ -191,9 +191,9 @@ ENDING_MUST_NOT_NAME = {
                       "ca": ("Zarya", "búnquer", "estació")},
     "SD_END03_TEXT": {"default": ("Zarya", "dam"), "ru": ("Заря", "плотин"),
                       "ca": ("Zarya", "presa")},
-    "SD_END04_TEXT": {"default": ("Kremlin", "dam", "TO BE CONTINUED"),
-                      "ru": ("Кремл", "плотин", "ПРОДОЛЖЕНИЕ"),
-                      "ca": ("Kremlin", "presa", "CONTINUARÀ")},
+    "SD_END04_TEXT": {"default": ("Kremlin", "dam"),
+                      "ru": ("Кремл", "плотин"),
+                      "ca": ("Kremlin", "presa")},
 }
 # What each transition must say it is: MAP01's goes down the lift into the
 # metro; MAP02's comes out of the tunnel at the tractor works; MAP04's takes

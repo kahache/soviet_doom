@@ -106,35 +106,37 @@ ALIGNED_TEXTURES = (WALL_TEXTURE, PASSAGE_TEXTURE)
 LENIN = "SDPOSTR1"          # 128x256 Lenin poster
 STALIN = "SDPOSTR3"         # 128x256 Stalin poster (D55)
 MURAL = "SDPOSTR2"          # 128x128 cosmonautics mural
-# The Marx-Engels poster SDPOSTR4 is in preparation and is not a lump yet.
-# Its slots are built and wear a stand-in; approving it is this one line:
-MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
+# The Marx-Engels pair (D117), 128x256 each like Lenin and Stalin: Marx
+# carries «ПРОЛЕТАРИИ / ВСЕХ СТРАН,», Engels «СОЕДИНЯЙТЕСЬ!» (his face mirrored
+# to look at Marx). Hung on the two Marx-Engels slots, Marx's first.
+MARX = "SDPOSTR4"
+ENGELS = "SDPOSTR5"
+MARX_ENGELS = (MARX, ENGELS)     # in the order of POSTER_SLOTS_MARX_ENGELS
 # (name, texture, axis, coord, lo, hi): the segment one GridMap style paints.
 # The gallery's far wall, the one the bestiary row faces and the player sees
 # over it from the passage's mouth, carries Lenin and Stalin either side of
-# the axis (x 1024); its two end walls carry the Marx-Engels slots, facing
-# each other across the row. The mural hangs in the hall's west wall beside
+# the axis (x 1024); its two end walls carry the Marx-Engels pair (D117),
+# facing each other across the row: Marx west, on the left from the passage's
+# mouth, Engels east. The mural hangs in the hall's west wall beside
 # the exit alcove: the player turns to it to leave.
 POSTERS = (
     ("gallery_lenin", LENIN, "h", 1792, 832, 960),
     ("gallery_stalin", STALIN, "h", 1792, 1088, 1216),
-    ("gallery_west_slot", LENIN, "v", 0, 1344, 1472),
-    ("gallery_east_slot", STALIN, "v", 2048, 1344, 1472),
+    ("gallery_west_slot", MARX, "v", 0, 1344, 1472),
+    ("gallery_east_slot", ENGELS, "v", 2048, 1344, 1472),
     ("hall_mural", MURAL, "v", 0, 448, 576),
 )
-POSTER_SLOTS_MARX_ENGELS = ("gallery_west_slot", "gallery_east_slot")
+POSTER_SLOTS_MARX_ENGELS = ("gallery_west_slot", "gallery_east_slot")   # Marx, Engels
 
 
 def poster_faces() -> tuple[tuple[str, str, str, int, int, int], ...]:
-    """POSTERS with every Marx-Engels slot wearing SDPOSTR4 once it exists."""
-    return tuple(
-        (name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS else texture,
-         axis, coord, lo, hi)
-        for name, texture, axis, coord, lo, hi in POSTERS)
+    """Every picture as painted: (name, texture, axis, coord, lo, hi). Since
+    D117 each Marx-Engels slot wears its own poster in POSTERS itself."""
+    return POSTERS
 
 
 WALL_TEXTURES = (WALL_TEXTURE, PASSAGE_TEXTURE, DOOR_TEXTURE, TRACK_TEXTURE, EXIT_TEXTURE,
-                 LENIN, STALIN, MURAL) + ((MARX_ENGELS,) if MARX_ENGELS else ())
+                 LENIN, STALIN, MURAL) + MARX_ENGELS
 FLAT_TEXTURES = (FLOOR_FLAT, CEILING_FLAT, GALLERY_FLOOR, LAMP_FLAT)
 
 # --- Editor numbers -------------------------------------------------------

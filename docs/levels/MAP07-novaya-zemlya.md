@@ -240,7 +240,7 @@ Episode 3's lumps (D113, `docs/art/TEXTURE-INDEX.md`, "Arctic" and
 | Tunnels | `SDTUNL1` | `SDFLR2` | `SDCEIL2` |
 | Barracks | `SDCONC2`; locker alcoves `SDLOCK1`; bunks `SDSTEL1`; the mural `SDPOSTR2` on a sill | `SDFLR3` | `SDCEIL1` |
 | Radome | **`SDRADM1`** (the walls, the chamfers and the crown); dish rim, platform, gallery `SDSTEL1` | `SDFLR2`; platform `SDGRAT2`; gallery `SDFLR4` | `SDCEIL2`; the dish's underside `SDGRAT2` (the mesh) |
-| Command room | `SDTILE1`; the two boards flanking Stalin **`SDRADR1`** (two PPI scopes each, animated `SDRADR1-4`), the east board `SDCTRL1`, all standing on the floor; consoles `SDCTRL1`'s desk; Stalin `SDPOSTR3`; two Marx-Engels slots | `SDFLR3`; consoles and map table `SDFLR4` | `SDCEIL1` |
+| Command room | `SDTILE1`; the two boards flanking Stalin **`SDRADR1`** (two PPI scopes each, animated `SDRADR1-4`), the east board `SDCTRL1`, all standing on the floor; consoles `SDCTRL1`'s desk; Stalin `SDPOSTR3`; Marx `SDPOSTR4` and Engels `SDPOSTR5` on the south wall | `SDFLR3`; consoles and map table `SDFLR4` | `SDCEIL1` |
 | Bunker | `SDTUBB1`; the chamber's passage `SDMEDG1` (hazard chevrons); the core `SDPORT1` (animated); the shutter from the command room **`SDHERM1`** both faces, the escape shutter **`SDHERM1`** on the stair's face (from the runway it stays `SDCONC1`, wall) | `SDFLR4` | `SDCEIL2`, lamp `SDCEIL1` |
 | Harbour | warehouses `SDBRCK3`; the two sheds inside **`SDHUT1`** (alike, S3's comparison); the quay wall `SDDAM2` (tide mark on the water); ice faces **`SDICE2`**; snowbanks **`SDICE2`**; S3's door `SDGATE2` | road, quay, porches, snowbanks **`SDSNOW1`**; the sea `SDWATR1` (animated); floes and pack ice **`SDICE1`** | sky |
 | Submarine | hull and tower **`SDHULL1`** (Naval set), «471» **`SDHULL2`** once on the tower's south face, one `SDARMR1` star on its north face; inside the tower **`SDNAVC1`**; gangway `SDSTEL1` | deck and the hatch's porch **`SDRUBR1`** (Naval set; the worn path along y, the boat lies along y); inside `SDFLR4` | sky; tower `SDFLR4` |
@@ -295,11 +295,14 @@ block `Map07Posters`).
 | `z2_lenin` | `SDPOSTR1` Lenin | hangar, east wall, x 4368, y 960…1088, a recess 16 deep and 256 high; faces the yellow door across the hangar |
 | `z6_stalin` | `SDPOSTR3` Stalin | command room, north wall, y 1344, x 2944…3072, between the two boards (the room is 256 high) |
 | `z4_mural` | `SDPOSTR2` cosmonautics | barracks' red corner, north wall, y 2192, x 3840…3968, on a 32 sill between the locker alcoves |
-| `z6_slot_w` | `SDPOSTR3` (Marx-Engels slot) | command room, south wall, y 832, x 2752…2880 |
-| `z6_slot_e` | `SDPOSTR1` (Marx-Engels slot) | command room, south wall, y 832, x 3136…3264 |
+| `z6_slot_e` | `SDPOSTR4` **Marx** (Marx-Engels slot) | command room, south wall, y 832, x 3136…3264: the left one seen from the room (facing south) |
+| `z6_slot_w` | `SDPOSTR5` **Engels** (Marx-Engels slot) | command room, south wall, y 832, x 2752…2880: the right one |
 
-`POSTER_SLOTS_MARX_ENGELS = ("z6_slot_w", "z6_slot_e")`; the swap is one
-line, `MARX_ENGELS = "SDPOSTR4"` (tested).
+**The Marx-Engels pair (D117, 2026-10-22).** `POSTER_SLOTS_MARX_ENGELS =
+("z6_slot_e", "z6_slot_w")`, Marx's first: `SDPOSTR4` Marx «ПРОЛЕТАРИИ / ВСЕХ СТРАН,» and `SDPOSTR5` Engels «СОЕДИНЯЙТЕСЬ!» (mirrored, looking at Marx), 128×256 like Lenin and Stalin; `MARX_ENGELS = ("SDPOSTR4", "SDPOSTR5")` lists them in `WALL_TEXTURES`. The wall is
+the room's south wall, so seen from inside east is on the left: Marx east,
+Engels west, and the two bands read the Manifesto's line left to right
+across the room's axis (`tests/test_posters.py` checks it).
 
 ## 8. Secrets (built in v1)
 

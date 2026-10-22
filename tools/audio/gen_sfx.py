@@ -1466,6 +1466,12 @@ SNDINFO_LINE = (r"^(?P<logical>sd/mon/\S+)\s+(?P<placeholder>\S+)\s*//\s*->\s*"
                 r"(?P<lump>SD[A-Z0-9]{6})\b")
 
 
+# D116: the P4 enemies' own names (MOD-SPEC 6.2, "P4 sounds") play existing
+# lumps until sound-designer records theirs; this generator's cards are the
+# F5 bestiary's 47, so their lines are not its targets.
+P4_SNDINFO_PREFIXES = ("sd/mon/legiongunner/", "sd/mon/colossus/", "sd/mon/consortium/")
+
+
 def sndinfo_rows(path: Path = SNDINFO_PATH) -> dict[str, tuple[str, str]]:
     """final lump -> (logical name, Freedoom stand-in), from src/lumps/SNDINFO."""
     import re
@@ -1473,7 +1479,7 @@ def sndinfo_rows(path: Path = SNDINFO_PATH) -> dict[str, tuple[str, str]]:
     out = {}
     for line in path.read_text(encoding="utf-8").splitlines():
         m = rx.match(line.strip())
-        if m:
+        if m and not m.group("logical").startswith(P4_SNDINFO_PREFIXES):
             out[m.group("lump")] = (m.group("logical"), m.group("placeholder"))
     return out
 
@@ -1490,7 +1496,7 @@ def sndinfo_targets(path: Path = SNDINFO_PATH) -> dict[str, str]:
     rx = re.compile(SNDINFO_INSTALLED_LINE)
     for line in path.read_text(encoding="utf-8").splitlines():
         m = rx.match(line.strip())
-        if m:
+        if m and not m.group("logical").startswith(P4_SNDINFO_PREFIXES):
             out.setdefault(m.group("lump"), m.group("logical"))
     return out
 

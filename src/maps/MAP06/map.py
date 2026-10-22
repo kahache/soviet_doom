@@ -151,9 +151,12 @@ STALIN = "SDPOSTR3"
 MURAL = "SDPOSTR2"      # 128x128; not hung here (no 128-high wall on the route fits it)
 POSTER_WIDTH = 128
 POSTER_HEIGHT = 256
-# The Marx-Engels poster SDPOSTR4 is in preparation and is not a lump yet. Its
-# slots are built and wear a stand-in; approving it is this one line:
-MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
+# The Marx-Engels pair (D117), 128x256 each like Lenin and Stalin: Marx
+# carries «ПРОЛЕТАРИИ / ВСЕХ СТРАН,», Engels «СОЕДИНЯЙТЕСЬ!» (his face mirrored
+# to look at Marx). Hung on the two Marx-Engels slots, Marx's first.
+MARX = "SDPOSTR4"
+ENGELS = "SDPOSTR5"
+MARX_ENGELS = (MARX, ENGELS)     # in the order of POSTER_SLOTS_MARX_ENGELS
 
 DOOR_LEAVES = (DOOR_BLUE, DOOR_YELLOW, DOOR_RED, GATE)
 SWITCH_FACES = (EXIT_FACE,)
@@ -405,26 +408,26 @@ PORTRAIT_NICHES = {"lenin": (2496, 2624), "stalin": (2112, 2240)}     # y spans,
 # poster high (the Kremlin taken: their flags among our portraits).
 COURTYARD_PORTRAITS = {"stalin": (1024, 1152), "slot": (576, 704)}    # x spans, arena y 2048
 # Every picture on the map: (name, texture, axis, coord, lo, hi), the segment
-# one GridMap style paints. Slots wear their stand-in until SDPOSTR4 exists.
+# one GridMap style paints. The slots wear Marx (the GUM) and Engels (the Kremlin).
 POSTERS = (
     # The GUM's north hall: Lenin faces the player coming in from Nikolskaya,
     # beside the way on under the glass roof; the slot on the hall's east wall.
     ("gum_north_lenin", LENIN, "h", 3328, 3808, 3936),
-    ("gum_north_slot", STALIN, "v", 4352, 3392, 3520),
+    ("gum_north_slot", MARX, "v", 4352, 3392, 3520),
     # Red Square: the parade portraits on the GUM's facade.
     ("square_facade_lenin", LENIN, "v", 3456 + NICHE_DEPTH, *PORTRAIT_NICHES["lenin"]),
     ("square_facade_stalin", STALIN, "v", 3456 + NICHE_DEPTH, *PORTRAIT_NICHES["stalin"]),
     # The Kremlin courtyard, the boss's room.
     ("courtyard_stalin", STALIN, "h", 2048 + NICHE_DEPTH, *COURTYARD_PORTRAITS["stalin"]),
-    ("courtyard_slot", LENIN, "h", 2048 + NICHE_DEPTH, *COURTYARD_PORTRAITS["slot"]),
+    ("courtyard_slot", ENGELS, "h", 2048 + NICHE_DEPTH, *COURTYARD_PORTRAITS["slot"]),
 )
-POSTER_SLOTS_MARX_ENGELS = ("gum_north_slot", "courtyard_slot")
+POSTER_SLOTS_MARX_ENGELS = ("gum_north_slot", "courtyard_slot")   # Marx, Engels
 
 
-def poster_faces():
-    """POSTERS with each Marx-Engels slot wearing SDPOSTR4 once it exists."""
-    return tuple((name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS else texture,
-                  axis, coord, lo, hi) for name, texture, axis, coord, lo, hi in POSTERS)
+def poster_faces() -> tuple[tuple[str, str, str, int, int, int], ...]:
+    """Every picture as painted: (name, texture, axis, coord, lo, hi). Since
+    D117 each Marx-Engels slot wears its own poster in POSTERS itself."""
+    return POSTERS
 
 
 CLOSETS = {"closet_z6_w": (1920, 2112), "closet_z6_e": (2304, 2496)}    # x spans, museum wall
@@ -1447,6 +1450,6 @@ WALL_TEXTURES = ((CONCRETE, STEEL, CRATE, LONG_CRATE, TILE, MARBLE, STATION_WALL
                  FLAG_LEGION, LENIN, STALIN, KREMLIN, MERLON, GUM_FACADE, TRIBUNE, BANNER,
                  SPASSKAYA, ARMOUR_STAR, ARMOUR, CLOCK, RUBY_STAR, MUSEUM, FLAG_REICH_KREMLIN,
                  FLAG_LEGION_KREMLIN) + SHOPFRONTS + DOOR_LEAVES + SWITCH_FACES
-                 + ((MARX_ENGELS,) if MARX_ENGELS else ()))
+                 + MARX_ENGELS)
 FLAT_TEXTURES = (FLOOR_ASPHALT, CEIL_CONCRETE, CRATE_TOP, GRANITE, GRANITE_CHECK, PLATFORM_EDGE,
                  RAILS, CEIL_COFFER, CEIL_LAMP, PLATE, COBBLES, COBBLES_LINE, GLASS_ROOF, SKY)

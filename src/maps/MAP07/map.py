@@ -128,9 +128,12 @@ SKY = "F_SKY1"           # the engine's sky marker, not a lump of ours (check_pk
 LENIN = "SDPOSTR1"       # 128x256: the hangar's east wall, facing the yellow door
 STALIN = "SDPOSTR3"      # 128x256: the command room's north wall, between the boards
 MURAL = "SDPOSTR2"       # 128x128 cosmonautics mural: the barracks' red corner, on a sill
-# The Marx-Engels poster SDPOSTR4 is in preparation (not a lump yet). Its
-# slots are built and wear a stand-in; approving it is this one line:
-MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
+# The Marx-Engels pair (D117), 128x256 each like Lenin and Stalin: Marx
+# carries «ПРОЛЕТАРИИ / ВСЕХ СТРАН,», Engels «СОЕДИНЯЙТЕСЬ!» (his face mirrored
+# to look at Marx). Hung on the two Marx-Engels slots, Marx's first.
+MARX = "SDPOSTR4"
+ENGELS = "SDPOSTR5"
+MARX_ENGELS = (MARX, ENGELS)     # in the order of POSTER_SLOTS_MARX_ENGELS
 LUMP_WIDTH = {DAM_WET: 64, ICE_WALL: 64, RADOME_SKIN: 128, HULL_SIDE: 128}
 WALL_TILE = 128          # the height SDDAM2, SDCTRL1, SDICE2, SDRADM1 and SDHULL1 repeat at
 CONTROL_DESK_ROW = 64    # SDCTRL1: the desk (mimic bars, buttons, toggles) starts at this row
@@ -411,16 +414,17 @@ SHED_FRONT_X = 1152
 # command room's north wall between its boards (the room is 256 high); the
 # mural on a sill in the barracks' red corner, between the locker alcoves;
 # the two Marx-Engels slots straight on the command room's south wall, either
-# side of the room's axis.
+# side of the room's axis: seen from the room (facing south) Marx is the east
+# one, on the left, and Engels the west one (D117).
 LENIN_NICHE = (HANGAR[2], 960, HANGAR[2] + NICHE_DEPTH, 1088)
 POSTERS = (
     ("z2_lenin", LENIN, "v", LENIN_NICHE[2], LENIN_NICHE[1], LENIN_NICHE[3]),
     ("z6_stalin", STALIN, "h", COMMAND[3], *STALIN_X),
     ("z4_mural", MURAL, "h", RED_CORNER_NICHE[3], RED_CORNER_NICHE[0], RED_CORNER_NICHE[2]),
-    ("z6_slot_w", STALIN, "h", COMMAND[1], *SLOTS_X["z6_slot_w"]),
-    ("z6_slot_e", LENIN, "h", COMMAND[1], *SLOTS_X["z6_slot_e"]),
+    ("z6_slot_w", ENGELS, "h", COMMAND[1], *SLOTS_X["z6_slot_w"]),
+    ("z6_slot_e", MARX, "h", COMMAND[1], *SLOTS_X["z6_slot_e"]),
 )
-POSTER_SLOTS_MARX_ENGELS = ("z6_slot_w", "z6_slot_e")
+POSTER_SLOTS_MARX_ENGELS = ("z6_slot_e", "z6_slot_w")   # Marx, Engels
 
 # --- Things --------------------------------------------------------------------
 PLAYER_START = (3712, 224)
@@ -714,9 +718,9 @@ SECRET_ITEMS = (
 
 
 def poster_faces() -> tuple[tuple[str, str, str, int, int, int], ...]:
-    """POSTERS with each Marx-Engels slot wearing SDPOSTR4 once it exists."""
-    return tuple((name, MARX_ENGELS if MARX_ENGELS and name in POSTER_SLOTS_MARX_ENGELS else texture,
-                  axis, coord, lo, hi) for name, texture, axis, coord, lo, hi in POSTERS)
+    """Every picture as painted: (name, texture, axis, coord, lo, hi). Since
+    D117 each Marx-Engels slot wears its own poster in POSTERS itself."""
+    return POSTERS
 
 
 def _sector(floor: int, ceil: int, tag: int | None = None, *, light: int,
@@ -1267,7 +1271,7 @@ WALL_TEXTURES = ((CONCRETE, CONCRETE_STRIPE, STEEL, CRATE, LOCKER, TILE, TUNNEL,
                   RUST, FLAG_REICH, FLAG_LEGION, RAMP, CORE, DAM, DAM_WET, CONTROL_PANEL, TANKER,
                   ARMOUR_STAR, WAREHOUSE, STORE_GATE, LENIN, STALIN, MURAL,
                   ICE_WALL, RADOME_SKIN, HUT, RADAR, HULL_SIDE, HULL_NUMBER, NAV_PANEL)
-                 + DOOR_LEAVES + SWITCH_FACES + ((MARX_ENGELS,) if MARX_ENGELS else ()))
+                 + DOOR_LEAVES + SWITCH_FACES + MARX_ENGELS)
 FLAT_TEXTURES = (FLOOR_CONCRETE, FLOOR_TILE, CEIL_PANEL, CEIL_CONCRETE, CRATE_TOP, PLATE,
                  GRATING, WATER, SNOW, RUNWAY_SLABS, RUNWAY_LINE, SEA_ICE, DECK_RUBBER)
 BUILTIN_FLATS = (SKY,)
