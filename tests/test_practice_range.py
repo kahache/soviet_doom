@@ -62,8 +62,10 @@ MAPINFO = SRC / "lumps" / "MAPINFO"
 CAMPAIGN_MAP = "MAP01"
 # D62 (2026-10-14): the campaign is MAP01 -> MAP02 -> MAP03; MAP03 ends it.
 # The full flow is pinned by tests/test_campaign.py; here only the range's
-# isolation. D104 (P4): episode 2 is MAP04 -> MAP05 -> MAP06.
-CAMPAIGN_MAPS = ("MAP01", "MAP02", "MAP03", "MAP04", "MAP05", "MAP06")
+# isolation. D104 (P4): episode 2 is MAP04 -> MAP05 -> MAP06; D112 (P4):
+# episode 3 is MAP07 -> MAP08 -> MAP09.
+CAMPAIGN_MAPS = ("MAP01", "MAP02", "MAP03", "MAP04", "MAP05", "MAP06",
+                 "MAP07", "MAP08", "MAP09")
 # D62: the range left the MAPxx slots. Up to 8 characters, a WAD lump name;
 # GZDoom's own mapinfo/doom2bfg.txt starts an episode on a non-MAPxx map
 # (`episode level01`), which is the precedent this rests on.
@@ -74,9 +76,11 @@ RANGE_CLUSTER = 2
 # MOD-SPEC 4.4: episode order is the menu order, the campaign first and the
 # range last. D104 (P4) put episode 2, "The Road to Moscow" (MAP04), between
 # them; its id is SD_EP03_NAME, the order the episodes were declared in.
+# D112 (P4) put episode 3, "The Portal" (MAP07, SD_EP04_NAME), after it.
 EPISODE_2_MAP = "MAP04"
+EPISODE_3_MAP = "MAP07"
 EPISODES = [(CAMPAIGN_MAP, "SD_EP01_NAME"), (EPISODE_2_MAP, "SD_EP03_NAME"),
-            (RANGE_MAP, "SD_EP02_NAME")]
+            (EPISODE_3_MAP, "SD_EP04_NAME"), (RANGE_MAP, "SD_EP02_NAME")]
 RANGE_EXIT_TEXT = "SD_END02_TEXT"
 # D46 (2026-10-14): the CEO's player-facing name for the range, printed by
 # the automap and the level-load line. It was "Engineering Test Range". The

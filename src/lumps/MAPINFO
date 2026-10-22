@@ -193,6 +193,9 @@ skill sd_posthumous
 // D104 (P4) adds episode 2, MAP04 -> MAP05 -> MAP06, after these: its
 // chapters are clusters 5 (MAP04 -> MAP05) and 6 (MAP05 -> MAP06), and its
 // ending is cluster 7 (MAP06). Cluster 1 stays episode 1's ending.
+// D112 (P4) adds episode 3, MAP07 -> MAP08 -> MAP09, after these: its
+// chapters are clusters 8 (MAP07 -> MAP08) and 9 (MAP08 -> MAP09), and its
+// ending is cluster 10 (MAP09).
 // No cluster has an `entertext`: one crossing, one text. That is what keeps
 // the ending from being printed anywhere but after the last map.
 
@@ -278,6 +281,40 @@ cluster 7
 	music = ""
 }
 
+// --- Episode 3, "The Portal" (D112, P4) ------------------------------------
+// MAP07 -> MAP08 -> MAP09, a third campaign episode that starts on MAP07.
+// Episodes 1 and 2 are closed: MAP03 and MAP06 still end them. The same
+// rule (MOD-SPEC 4.6): one chapter cluster per map before the last,
+// numbered on from 8, and one ending cluster that holds only MAP09. Its
+// ids are SD_EP04_NAME and SD_END04_TEXT, the fourth episode declared.
+
+// MAP07's chapter: the radar on Novaya Zemlya goes dark; its log points to
+// the Northern Fleet's base. Shown after MAP07's stats screen, before MAP08.
+cluster 8
+{
+	exittext = lookup, "SD_MAP07_EXIT_TEXT"
+	flat = "SDFLR1"
+	music = ""
+}
+
+// MAP08's chapter: the submarine at Severomorsk; the waybills of its
+// warheads name Tunguska. Before MAP09 loads.
+cluster 9
+{
+	exittext = lookup, "SD_MAP08_EXIT_TEXT"
+	flat = "SDFLR1"
+	music = ""
+}
+
+// Episode 3's ending, shown when MAP09 (the portal at Tunguska) is left:
+// the portal closes, the end of the first cycle. Then the title screen.
+cluster 10
+{
+	exittext = lookup, "SD_END04_TEXT"
+	flat = "SDFLR1"
+	music = ""
+}
+
 clearepisodes
 
 episode MAP01
@@ -296,6 +333,15 @@ episode MAP04
 {
 	name = "$SD_EP03_NAME"
 	key = "m"
+}
+
+// D112 (P4): episode 3, "The Portal", after episode 2 and before the
+// practice range, on the next MAPxx slots. Its id is SD_EP04_NAME: the
+// fourth episode declared (MOD-SPEC 4.4).
+episode MAP07
+{
+	name = "$SD_EP04_NAME"
+	key = "t"
 }
 
 // D41 (CEO, 2026-10-13: "Se puede publicar como practica"): the weapons test
@@ -471,6 +517,65 @@ map MAP06 lookup "SD_MAP06_NAME"
 	music = "D_SDM06A"
 	sky1 = "SKY1"
 	par = 420
+}
+
+// --- Episode 3 maps (D112, P4) ----------------------------------------------
+// Built by level-designer in src/maps/MAP07..MAP09. D113 (2026-10-22): each
+// map plays its own piece, composed for it (tools/audio/compose_episode3.py)
+// and approved by the CEO with its B variant ("las doy por buenas"), as
+// episode 2's (D106): `music` names the A; SD_MusicVariant
+// (zscript/sd/music_variant.zs, MOD-SPEC 6.11) swaps in the B on a fresh
+// visit half the time, and on MAP09 the final boss's own loop when any BOSS
+// monster engages. Its table must agree with the `music` lines below
+// (tests/test_music_variant.py). The stats screens after MAP07 and MAP08 play
+// episode 3's intermission piece (`intermusic`, read from the map being
+// left). These replace D112's provisional borrowing of episode 2's B pieces,
+// which are again only episode 2's variants. Each `par` is the
+// mod-engineer's placeholder, display only, until level-designer times the
+// route.
+
+map MAP07 lookup "SD_MAP07_NAME"
+{
+	// The Arctic radar station on Novaya Zemlya: the radomes, the barracks,
+	// the nuclear test site; the invaders use it to guide something in.
+	// Left by cluster 8's text, for MAP08.
+	cluster = 8
+	next = "MAP08"
+	// D113: the radar station, 116 BPM (B: D_SDM07B, 122 BPM).
+	music = "D_SDM07A"
+	// D113: the episode 3 intermission, 96 BPM, on the stats screen after
+	// this map instead of GameInfo's D_SDTITL.
+	intermusic = "D_SDE3IA"
+	sky1 = "SKY1"
+	par = 330
+}
+
+map MAP08 lookup "SD_MAP08_NAME"
+{
+	// The Northern Fleet's submarine base at Severomorsk: the covered docks,
+	// a nuclear submarine, the cranes, the tunnels in the rock. Left by
+	// cluster 9's text, for MAP09.
+	cluster = 9
+	next = "MAP09"
+	music = "D_SDM08A"	// D113: the submarine base, 124 BPM (B: D_SDM08B, 120 BPM)
+	intermusic = "D_SDE3IA"	// D113: as after MAP07
+	sky1 = "SKY1"
+	par = 360
+}
+
+map MAP09 lookup "SD_MAP09_NAME"
+{
+	// The invaders' main portal at Tunguska, Siberia: the taiga flattened in
+	// 1908, an alien-industrial complex eating the forest, the portal; the
+	// final boss arena. Episode 3's last map: cluster 10 prints its ending
+	// (SD_END04_TEXT), and `endtitle` goes back to the title screen.
+	cluster = 10
+	next = endtitle
+	// D113: the portal, 132 BPM (B: D_SDM09B, 138 BPM). Its final boss
+	// loop, D_SDBS9A / D_SDBS9B, is SD_MusicVariant's, not a MAPINFO key.
+	music = "D_SDM09A"
+	sky1 = "SKY1"
+	par = 480
 }
 
 DoomEdNums

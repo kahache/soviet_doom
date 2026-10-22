@@ -1,0 +1,439 @@
+# MAP07 — «Новая Земля» (Novaya Zemlya), the Arctic radar station
+
+Design document. Owner: `level-designer`. Status: **v1 BUILT 2026-10-22
+(§13): the whole map, walkable from start to exit, textured with approved
+lumps only (the Arctic set's stand-ins listed, §7.2), populated, three
+secrets; not yet walked, no engine pass yet (D26).** Episode 3, «The
+Portal» (D112), first map. Built MVP first (D60). Source:
+`src/maps/MAP07/map.py`; tests: `tests/test_map07_novaya_zemlya.py` (the
+map), `tests/test_map07_route.py` (its automatic route) and the `Map07Posters`
+block of `tests/test_posters.py`; route `zemlya-critical` in `tools/route.py`;
+overview `docs/levels/shots/MAP07-overview.png`. Russian mirror: owed at the
+phase close (D34).
+
+> **Walk it** (the PM or the CEO; agents never start GZDoom, D26):
+> `python3 tools/build.py && SD_ALLOW_ENGINE=1 MAP=MAP07 SKILL=3 tools/run.sh`.
+> Automatic run: `SD_ALLOW_ENGINE=1 python3 tools/route.py --route zemlya-critical --keep-evidence`.
+
+Inputs this document obeys and does not restate: `docs/PRD.md` (D35 the
+factions, D58 the unfound pass, D60 MVP first, D112 episode 3),
+`docs/engine/BESTIARY.md`, `docs/engine/BALANCE.md`, `docs/engine/MOD-SPEC.md`
+(DoomEdNums, locks, the passes), `docs/art/TEXTURE-INDEX.md` (approved lumps
+only) and the method of `docs/levels/MAP05-volga-dam.md`.
+
+![MAP07 from above](shots/MAP07-overview.png)
+
+## 1. Synopsis
+
+November 1977, the polar night. A polar-aviation Il-14 sets Sergeant
+Vilanova down on the iced runway of the radar station on Novaya Zemlya,
+which the invaders have turned into a beacon that guides their
+reinforcements to the portal. He crosses the hangar and the covered service
+tunnels to the radome, takes the antenna's pass, opens the command room,
+goes down into the nuclear-test bunker for the harbour's pass, and fights
+his way onto the frozen quay and down the conning tower of the submarine
+that takes him to MAP08.
+
+## 2. Its place in the campaign
+
+| | |
+|---|---|
+| Comes after | MAP06 (episode 2's end). Episode 3 opens here: the player arrives by air, the Il-14 standing on the runway behind him. |
+| Comes before | MAP08: the exit is the submarine's conning tower; the transition text is the scaffolding agent's (`SD_MAP07_EXIT_TEXT`, cluster 8). |
+| What it adds | an **outdoor arrival under the polar night**, a **domed hall with a hanging dish** (the radome, the key on the antenna's platform seen across the drop from the gallery), an **underground bunker with a glowing core** (the inquietante touch), a **harbour with open water and a boarding** (the gangway, the submarine), the same grammar as MAP05: two keys, two locks seen first, a shortcut found from behind, counter-attacks on the locks' own tags. |
+| Factions (D35) | both. The Liberty Legion came by air: it holds the airfield (runway, hangar) and sleeps in the barracks; the Fourth Reich runs the beacon: the tunnels, the radome, the bunker. Both man the command room and both hold the harbour. Doughboys fly over the runway and the open water. The General is not here. |
+| MAPINFO, LANGUAGE | the scaffolding agent's (in place at the time of writing: `map MAP07 lookup "SD_MAP07_NAME"`, `cluster = 8`, `next = "MAP08"`). This role touches neither (§11). |
+
+## 3. What the map has to do
+
+| Job | How the layout does it |
+|---|---|
+| Be an Arctic radar station | an airfield (runway, Il-14, fuel bowser, hangar), barracks joined by **covered tunnels** (nobody walks outside between buildings), a **radome** (a stepped octagon, a crown, the dish hanging over the antenna's platform), a command room with boards, consoles and a plotting table, a **nuclear-test bunker** under the station, and a **harbour** with open water, floes, pack ice and a submarine at the quay. |
+| Use the height | the radome's gallery and the antenna's platform 128 over its floor; the bunker 256 under the runway (two flights down from the command room, one long escape stair up); the sea 64 under the quay; the submarine's deck 32 over it. No lift. |
+| Teach the order of two keys | the **red gate** is the first thing seen, at the far end of the runway, lit red; the **yellow door** in the hangar's west wall is seen on entering the hangar; the **yellow key** lies on the antenna's platform; the **red key** in the bunker, behind the yellow door's command room. Lock before key, both times (tested). |
+| Answer D58 again | each key alone on a lit place (192, its lock's colour) on the route, seen from where its room is entered (tested: the yellow key from the radome's gallery across the drop, the red key from the test chamber's door). |
+| Reward knowing the map | SW-B at the head of the bunker's escape stair opens a shutter straight onto the runway, 200 units from the red gate; without it the way back is the long one (the bunker's stair, the command room, the hangar, the runway: about 2500 units). Tested as not needed. |
+| Rise | three thirds by hit points met, each heavier than the one before on every skill, and the harbour the heaviest beat of all (tested, §6). |
+
+Target length: 13–16 minutes first run on skill 3; about 6 once known.
+
+## 4. Plan
+
+From the built map, 64 × 64 units per character, north up. Floors: runway,
+hangar, barracks, command room, radome's floor, quay **0**; the radome's
+gallery and the antenna's platform **+128**; the bunker **−256**; the sea
+**−64**; the submarine's deck **+32**.
+
+```
+     y   x 0 ............................................................... 4608
+  2496                                      RRRRRRRRR
+  2368          CCCCCCC                   RRRRRRRRRRRRR                22222
+  2240          CCC!CCC                  RRRRRRRRRRRRRR                  2
+  2112          CCCCCCC                  RRRRpppyRRRggggg    BBBBBBBBBBBBBB
+  1984          ccc                      RRRRpPppRRRgggg~~~~BBBBBBBBBBBBBB
+  1856                                   RRRRRsRRRRRgg      BBBBBBBBBBBBBB
+  1792  ~~~~~~~QQQQQQ   UUUUUUUUUU       RRRRRsRRRRRRRR      BBBBBBBBBBBBBB
+  1600  ~~~~~~~QQQQQQ3  UUUUUUUUUU        RRRRRRRRRRRR             tt
+  1472  ~~~~~~~QQQQQQ3  UUUUUUUUUU          RRRRRRRR               tt
+  1280  ~~SSSS~QQQQQQ   UUUUUUUUUUssssssssssss    MMMMMMMMMMM       #
+  1152  ~~SSSSsssQQQQqq UUUUUUUUUU           #MMMMMMMMMMMyHHHHHHHHHHHHkk
+  1024  ~~SSSSsssQQQQqq    ee                MMMMMMMMMMMyHHHHHHHHHHHHkk
+   896  ~~SSSS~QQQQQQ      ee                MMMMMMMMMMM HHHHHHHHHHHHkk
+   768  ~~E#SS~QQQQQQ      ee                            HHHHHHHHHHHH
+   640  ~~SSSS~QQQQQQ      ee#  kk kk                   #
+   448  ~~SSSS~QQQQQQrrrrrr    ==================      ===========
+   320  ~~SSSS~QQQQQQrrrrr#rWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+   192  ~~SSSS~QQQQQQrrrrrr  WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW@ooooooooo1
+    64  ~~~~~~~QQQQQQ        WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+  -128  ~~~~~~~QQQQQQ        =============================================
+```
+
+Legend: `W` runway (start `@` beside the Il-14, `o` the plane) · `#` doors
+and shutters · `H` hangar, `y` the yellow door's portal · `k` closets ·
+`t` covered tunnel · `B` barracks · `g` the tunnel's stair up to the
+radome's gallery · `R` radome, `p` the antenna's platform with the pedestal
+`P` and the yellow key `y` on its pad, `s` its stair · `M` command room ·
+`s` (row 1280) the bunker's two flights · `U` bunker hall, `C` test chamber
+with the red key `!` and the core's slot `c` · `e` the escape stair up to
+SW-B's shutter onto the runway · `r` the harbour road through the red gate
+· `Q` quay, `q` the open shed, `3` S3 the shut shed · `~` sea, `S` the
+submarine, `E` its conning tower (exit) · `=` kerbs and pack ice · `1`, `2`,
+`3`: secrets S1 (the plane's hold), S2 (behind the lockers), S3. The
+overview PNG is exact; this sketch is not to scale.
+
+| # | Zone | x | y | floor | ceil | light |
+|---|---|---|---|---|---|---|
+| Z1 | Runway (start), centreline, the Il-14 (props), fuel bowser, crates | 1664…4608 | 0…576 | 0 | sky 512 | 128 |
+| Z1r | Red gate's portal (in the gatehouse) | 1600…1664 | 224…352 | 0 | 128 | **192**, red |
+| — | Red gate (lock 1) | 1568…1600 | 224…352 | 0 | door | |
+| Z2 | Hangar (crates, an Il-14 airframe under repair) | 3456…4352 | 704…1344 | 0 | 320 | 144 |
+| Z2y | Yellow door's portal | 3392…3456 | 960…1088 | 0 | 128 | **192**, yellow |
+| — | Yellow door (lock 3) | 3360…3392 | 960…1088 | 0 | door | |
+| Z3 | Covered tunnel north; the tunnel's stair west (8 rises) | 3840…3968; 3200…3456 | 1376…1728; 1920…2048 | 0; 16…128 | +128 | 112 |
+| Z4 | Barracks (bunks, locker alcoves, the mural's sill) | 3456…4352 | 1728…2176 | 0 | 160 | 128 |
+| Z5 | Radome (stepped octagon; crown 704; dish 640 over the centre) | 2176…3200 | 1536…2560 | 0 | 512 / 704 / 640 | 144 / 128 |
+| Z5g | Gallery (the tunnel arrives here), stair down north (7 steps) | 3008…3200 | 1856…2336 | 128…16 | 512 | 144 |
+| Z5p | Antenna's platform, stair up from the south (7 steps), pedestal solid | 2560…2816 | 1696…2176 | 128 | 640 | 128 |
+| Z5k | Key pad on the platform's east edge | 2752…2816 | 2016…2080 | 144 | 640 | **192**, yellow |
+| Z6 | Command room (2 consoles, map table, 3 boards) | 2688…3328 | 832…1344 | 0 | 256 | 160 |
+| Z7 | Bunker stair: 7 steps, landing, 7 steps | 2080…2656 | 1152…1280 | 0 → −256 | +128 | 112 |
+| Z7h | Bunker hall (2 pillars, the flickering lamp) | 1536…2080 | 1152…1856 | −256 | −32 | 112 (lamp 144, flicker) |
+| Z7c | Test chamber; the core's slot (prop, SDPORT1) | 1536…2048 | 1920…2368 | −256 | −32 | 96 (core 176) |
+| Z7k | Plinth, the red key | 1760…1824 | 2112…2176 | −240 | −32 | **192**, red |
+| Z7e | Escape stair (15 steps) and its head, SW-B | 1792…1920 | 608…1152 | 0 → −240 | +128 | 112 |
+| Z8 | Harbour road | 1152…1536 | 128…448 | 0 | sky | 128 |
+| Z9 | Quay, the open shed, S3's shed | 768…1344 | −256…1664 | 0 | sky / 128 | 128 / 112 |
+| Z10 | The sea (hurts 5/32 tics), steps up at y 128, 768, 1408, two floes | 0…768 | −256…1664 | −64 | sky | 112 |
+| Z11 | Submarine's deck, gangway (+16), the hatch's porch | 256…768 | 192…1344 | 32 | sky / 160 | 128 |
+| Z12 | Conning tower; exit niche | 288…416 | 736…864 | 32 | 160 | 112; **192** |
+
+Extent 4672 × 2848 units (MAP05: 4576 × 2304). 169 sectors, 697 lines.
+Every height is a multiple of 16; no step up is over 16 (tested).
+
+## 5. Progression, keys, switches and the exit
+
+```mermaid
+graph LR
+  W[Runway<br/>start, SEES the red gate] -->|D1| H[Hangar<br/>SEES the yellow door]
+  H -->|D2| T[Covered tunnel] --> B[Barracks<br/>RPG-7] --> G[Radome's gallery<br/>SEES the yellow key]
+  G --> R[Radome floor] --> YK[Antenna's platform<br/>YELLOW KEY]
+  H -->|yellow door + its closets| C[Command room]
+  C -->|SW-A opens the stair| K[Bunker, two flights down] --> RK[Test chamber<br/>RED KEY]
+  K --> E[Escape stair] -->|SW-B opens the shutter| W
+  W -->|red gate + its closets| Q[Road, quay] --> S[Gangway, deck] -->|D3| X[Conning tower<br/>EXIT]
+```
+
+**The keys.** Doom's yellow and red cards, editor numbers **6** and **13**,
+locks **3** and **1** (`gzdoom.pk3 → lockdefs.txt`, g4.14.2), both opened in
+the engine on MAP03. They spawn as `SD_YellowPass` and `SD_RedPass`.
+
+| Id | Where | Type | Special | Can it lock the player out? |
+|---|---|---|---|---|
+| D1 | Runway → hangar | manual door | `Door_Raise (1)`, both faces | no |
+| D2 | Hangar → covered tunnel | manual door | `Door_Raise (2)`, both faces | no |
+| **YD** | Hangar → command room | **locked, opens for good**; also the hangar's two closets (tag 4) | `Door_LockedRaise (4, 16, 0, 3, 0)`, both faces | no |
+| SH-A | Command room → the bunker's stair | remote, opens for good, steel both sides | tag 10 | no |
+| SW-A | Command room's west wall, beside SH-A | `SDSW1A`, one-shot | `Door_Open (10, 16, 0)` | no |
+| SH-B | Escape stair's head → runway | remote, opens for good. Steel from the stair; **the bunker block's concrete from the runway** (found from behind) | tag 11 | no |
+| SW-B | Escape stair's head, east wall | `SDSW1B`, one-shot | `Door_Open (11, 16, 0)` | no |
+| **RG** | Runway → harbour road | **locked, opens for good**; also the runway's two closets (tag 5) | `Door_LockedRaise (5, 16, 0, 1, 0)`, both faces | no |
+| D3 | Deck → conning tower (the hatch) | manual door | `Door_Raise (3)`, both faces | no |
+| EXIT | The tower's west wall, on D3's line | `SDSW1D` | `Exit_Normal (0)` | — |
+
+**The order, as the tests play it** (`test_the_route_is_the_designed_one`),
+four rounds:
+
+1. With D1, D2 and the push panels: runway, hangar, tunnel, barracks,
+   radome, **the yellow key**. The red gate seen from the start, the yellow
+   door from the hangar (both tested).
+2. The yellow door (and the hangar's closets): the command room, SW-A.
+3. SW-A: the bunker, **the red key**, the escape stair, SW-B.
+4. The red gate (and the runway's closets) and SW-B's shutter: the road, the
+   quay, the submarine, D3, the **exit**; S3 on the way.
+
+**Signposting** (D58): each key alone on a lit place (192) in its lock's
+colour (`lightcolor` yellow `0xFFD860`, red `0xFF6048`, MAP03's) and nothing
+else wears either colour (tested). The yellow door wears `SDDOORY`, the red
+gate `SDDOORR`. Every switch is a real face, one-shot, in sight of what it
+opens (tested).
+
+No softlock, all tested: no door closes behind the player; no lift; no drop
+without a climb back (the gallery's stair, the platform's stair, three
+steps up the quay wall at three places, the floes a step out of the water);
+the kerbs and the pack ice are **impassable lines** (`blocking`); no secret
+and no shortcut is needed; from every reachable sector at every stage there
+is a way back to the start and, at the end, a way on to the exit.
+
+## 6. Intensity curve
+
+```
+  high |                                                              ######
+       |                                                              ######  <- the harbour:
+ press |                          ####                 ####   ##     ######     Panzermensch,
+  ure  |   ##                     ####          ##     ####   ##     ######     heavy, Doughboys,
+       |   ##   ##    ##          ####   ##     ##     ####   ##     ######     both factions
+   low |   ##   ##    ##     ##   ####   ##     ##     ####   ##     ######  ##
+       +------------------------------------------------------------------------>
+        runway hangar tunnel barracks radome command bunker chamber  road harbour sub
+                                          closets               closets
+        0:00                                                                 ~15:00
+```
+
+| Beat | Space | Feeling | Mechanic introduced |
+|---|---|---|---|
+| 1 | Runway | off the plane into the polar night; a Legion picket; **the view**: the red gate at the far end, shut | the lock shown first |
+| 2 | Hangar | the Legion's ground crew; **the yellow door** in the west wall | — |
+| 3 | Tunnels, barracks | close quarters; the RPG-7 | — |
+| 4 | Radome | the big domed room, the dish overhead; **the yellow key across the drop** from the gallery; the Panzermensch under the crown | the key seen, not reached |
+| 5 | Yellow door, command room | **spike**: the hangar's closets open behind; both factions at the map table; SW-A | the lock's own counter-attack |
+| 6 | Bunker | down into the dark; hounds; the flickering lamp; **the core glowing cobalt** behind the red key | the inquietante touch |
+| 7 | Escape stair, SW-B | the shutter opens onto the runway: **the shortcut** | the shortcut from behind |
+| 8 | Red gate, road, harbour | **spike** from the runway's closets; then the **climax** on the quay: both factions, the heavy by the gangway, Doughboys over the water | — |
+| 9 | Submarine | the gangway, the deck, D3, the exit | — |
+
+Measured (hit points met, by beat; `test_the_intensity_rises`):
+
+| Beat | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| Runway, hangar | 180 | 640 | 730 |
+| Tunnels, barracks | 110 | 320 | 350 |
+| Radome | 710 | 920 | 1090 |
+| Command room + hangar closets | 170 | 220 | 340 |
+| Bunker | 710 | 880 | 2030 |
+| Runway closets, road, harbour, submarine | **1170** | **2740** | **3500** |
+
+## 7. Textures
+
+### 7.1 By zone (all approved and packed, tested)
+
+| Zone | Walls | Floor | Ceiling |
+|---|---|---|---|
+| Runway | the bunker block's front `SDCONC1`; the hangar's front `SDRUST1`; the gatehouse `SDBRCK1` with the banners `SDFLAG1`/`SDFLAG2`; kerbs `SDCONC1` | `SDFLR2`, centreline `SDFLR1` turned | sky |
+| The Il-14 | `SDSTEL1` (fuselage, wings, nacelles, tailplane, the tail over the ramp); the cargo ramp `SDGATE1` (S1) | `SDFLR4` | sky |
+| Fuel bowser | `SDTANK1` («НЕФТЬ»), one tile high | `SDFLR4` | sky |
+| Hangar | `SDRUST1`; crates `SDCRAT1`/`SDCRTOP1`; Lenin `SDPOSTR1` in a recess | `SDFLR2` | `SDCEIL1` |
+| Tunnels | `SDTUNL1` | `SDFLR2` | `SDCEIL2` |
+| Barracks | `SDCONC2`; locker alcoves `SDLOCK1`; bunks `SDSTEL1`; the mural `SDPOSTR2` on a sill | `SDFLR3` | `SDCEIL1` |
+| Radome | `SDCONC1` (stand-in, §7.2); dish rim, platform, gallery `SDSTEL1` | `SDFLR2`; platform `SDGRAT2`; gallery `SDFLR4` | `SDCEIL2`; the dish's underside `SDGRAT2` (the mesh) |
+| Command room | `SDTILE1`; three `SDCTRL1` boards standing on the floor; consoles `SDCTRL1`'s desk; Stalin `SDPOSTR3`; two Marx-Engels slots | `SDFLR3`; consoles and map table `SDFLR4` | `SDCEIL1` |
+| Bunker | `SDTUBB1`; the chamber's passage `SDMEDG1` (hazard chevrons); the core `SDPORT1` (animated) | `SDFLR4` | `SDCEIL2`, lamp `SDCEIL1` |
+| Harbour | warehouses and sheds `SDBRCK3`; the quay wall `SDDAM2` (tide mark on the water); ice faces `SDDAM1`; S3's door `SDGATE2` | `SDFLR2`; the sea `SDWATR1` (animated); floes and pack ice `SDMFLR1` | sky |
+| Submarine | hull and tower `SDARMR2`, one `SDARMR1` star on the tower; gangway `SDSTEL1` | `SDFLR4` | sky; tower `SDFLR4` |
+| Doors, switches | `SDDOOR1` (D1-D3), `SDDOORY`, `SDDOORR`; `SDSW1A`, `SDSW1B`, `SDSW1D` | | |
+
+### 7.2 Pending textures: the Arctic set
+
+Snow, ice and a radome do not exist among the approved lumps. Each piece
+below is the request to the art-director (drawing an "Arctic" set now); the
+map wears the stand-in meanwhile (`ARCTIC_SET` in `map.py`, tested: the
+stand-in is worn and packed, the proposed name is not in `assets/`; the day
+it is, the test turns red until the map wears it).
+
+| Proposed | Kind | What | Stand-in worn now | Where |
+|---|---|---|---|---|
+| `SDSNOW1` | flat | packed snow, tyre and boot tracks | `SDFLR2` | runway, road, quay |
+| `SDSNOW2` | wall 64×128 | snowbank face (low, wind-cut) | `SDCONC1` | the kerbs round the runway and the quay |
+| `SDICE1` | flat | sea ice, cracked, blue-white | `SDMFLR1` | floes, pack ice |
+| `SDICE2` | wall 64×128 | the ice's edge at the water | `SDDAM1` | floes' and pack ice's faces |
+| `SDRADM1` | wall 64×128 | radome inner skin: triangular fibreglass panels, pale | `SDCONC1` | radome walls |
+| `SDPLAN1` | wall 64×128 | Il-14 skin in polar aviation's red and silver, rivets | `SDSTEL1` | the plane |
+| `SDSUBH1` | wall 64×128 | submarine hull, black rubber tiles, a waterline | `SDARMR2` | hull, tower |
+| `SDMAPT1` | flat | plotting table with the Arctic on it | `SDFLR4` | command room's table |
+| `SDRADR1` | wall 128×128 | radar console with a round green PPI scope | `SDCTRL1` | command room's boards (could replace one) |
+| `SDAURO1` | sky | the polar night with an aurora | — (MAPINFO's sky, scaffolding's) | `PENDING_TEXTURES` |
+
+### 7.3 Posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
+
+Each whole: one one-sided line exactly the poster's width, in a sector
+exactly its height, pegged to the floor, offset 0 (`tests/test_posters.py`,
+block `Map07Posters`).
+
+| Name | Lump | Where |
+|---|---|---|
+| `z2_lenin` | `SDPOSTR1` Lenin | hangar, east wall, x 4368, y 960…1088, a recess 16 deep and 256 high; faces the yellow door across the hangar |
+| `z6_stalin` | `SDPOSTR3` Stalin | command room, north wall, y 1344, x 2944…3072, between the two boards (the room is 256 high) |
+| `z4_mural` | `SDPOSTR2` cosmonautics | barracks' red corner, north wall, y 2192, x 3840…3968, on a 32 sill between the locker alcoves |
+| `z6_slot_w` | `SDPOSTR3` (Marx-Engels slot) | command room, south wall, y 832, x 2752…2880 |
+| `z6_slot_e` | `SDPOSTR1` (Marx-Engels slot) | command room, south wall, y 832, x 3136…3264 |
+
+`POSTER_SLOTS_MARX_ENGELS = ("z6_slot_w", "z6_slot_e")`; the swap is one
+line, `MARX_ENGELS = "SDPOSTR4"` (tested).
+
+## 8. Secrets (built in v1)
+
+MAP01's rule: a clue is a comparison, never a sign; each secret has a way
+back; none is needed (tested).
+
+| # | Where | Clue | Reward (every skill) |
+|---|---|---|---|
+| S1 | The Il-14's hold | the plane the player stepped off is riveted steel on every face but one: the corrugated cargo ramp (`SDGATE1`) under its tail, which is the push panel (tag 6) | shell box, medikit, box of rounds |
+| S2 | Behind the barracks' lockers | in the east alcove of lockers one 64-wide bay stands 16 further back, in shadow (96 against 128); it is a locker like the rest and the push panel (tag 7) to the commissar's store | PG-7V box, stimpack, shell box |
+| S3 | The quay's second shed | two sheds alike on the quay; the south one stands open (two health bonuses), the north one is shut by a goods door «СКЛАД» (`SDGATE2`), the push panel (tag 8) | the **Hand Katyusha** and two fuel canisters: the panic button for the harbour |
+
+Panels carry the `secret` flag; rooms the sector special 1024. S1 and S2
+open in round 0, S3 in round 3.
+
+## 9. Enemies and resources by skill
+
+Bestiary numbers (MAPINFO DoomEdNums 21100-21107), nested by Doom's skill
+pairs. Every class but the General.
+
+| Beat / zone | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| Runway, hangar | 4 troopers + 1 stormtrooper | 6 troopers + 1 stormtrooper + Doughboy | 7 troopers + 2 stormtroopers + Doughboy |
+| Tunnel, barracks | 1 rifleman + 3 troopers | + 1 hound + 1 stormtrooper | + 1 trooper |
+| Radome | Panzermensch + 3 riflemen + 1 hound | + 1 hound + 1 stormtrooper | + 1 rifleman + 1 hound |
+| Command room + hangar closets (yellow tag) | 3 troopers + 1 rifleman + 1 stormtrooper | + 1 trooper + 1 rifleman | + 2 stormtroopers |
+| Bunker | Panzermensch + 3 riflemen + 1 hound | + 1 hound + 1 rifleman | + 1 hound + **heavy** before the core |
+| Runway closets (red tag), road, harbour, submarine | Panzermensch + Doughboy + 3 troopers + 3 riflemen + 2 stormtroopers | + **heavy** + Doughboy + 1 trooper + 1 rifleman + 2 stormtroopers | + Doughboy + 3 troopers + 1 hound + 2 stormtroopers |
+| **Total** | **34** | **51** | **67** |
+
+Against MAP05's 31 / 46 / 60: episode 3 opens a notch above (tested). Three
+Panzermenschen on every skill (radome, bunker, quay), the heavy from skill 3
+(quay) and on skill 4 also before the core. Doughboys only under the sky
+(runway, open water; tested).
+
+**Weapons** (pistol start), on every skill, on the route, each before its
+fight: the **IZh** by the plane, the **PPSh-41** in the hangar, the **RPG-7**
+in the barracks (the only way into the radome crosses them, tested), the
+**ROKS-3** in the command room (for the bunker); the **Hand Katyusha** in S3.
+
+**Ammunition** (G3-8's ruler, MAP05's test: kills in IZh shells, PG-7V at 2
+shells, fuel at ¼; route only, no drop, no secret):
+
+| | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| Needed | 68 | 120 | 167 |
+| Placed | 320.5 | 307.5 | 261.5 |
+| Ratio (≥ 1.35, and < 3 on skill 4) | 4.71 | 2.56 | 1.57 |
+
+Also checked at every round of the route. **Health** on skill 4: 6
+stimpacks + 5 medikits, 9 health bonuses; **armour**: the flak vest in the
+hangar (for the radome), the heavy vest at the escape stair's head (round 2,
+before the runway's closets and the harbour), 6 plates. Consumables scale
+down with skill (tested).
+
+## 10. Engine elements used
+
+| Need | Emitted | Status |
+|---|---|---|
+| Manual door | `Door_Raise` 12 (tag, 16, 150, 0) | VERIFIED on MAP01 |
+| Remote door, one-shot switch | `Door_Open` 11 (tag, 16, 0) | VERIFIED on MAP01 |
+| Locked door that stays open | `Door_LockedRaise` 13 (tag, 16, 0, lock, 0) | VERIFIED on MAP02/MAP03 |
+| A locked door's tag opening closets | closets share the lock's tag | NOT VERIFIED in the engine (as MAP05's V3): V3 |
+| Keys | things 6, 13 (`SD_YellowPass`, `SD_RedPass`) | as MAP03 |
+| Coloured light | sector `lightcolor` | as MAP02-MAP06 |
+| Flickering light | sector special 65 on the bunker's lamp | as MAP01 |
+| Damaging floor | `damageamount` 5, `damageinterval` 32 on the sea | as MAP05 (in play NOT VERIFIED there either): V4 |
+| Sky and the open-air trick | `F_SKY1`; kerbs and pack ice with a sky 16 over their top | as MAP05's parapets: V2 |
+| Impassable kerbs | two-sided lines `blocking` | Doom's flag |
+| Middle textures | three `SDCTRL1` boards, `blocking` + `dontpegbottom` | as MAP05: V13 |
+| Animated textures | `SDWATR1` (flat), `SDPORT1` (wall) through ANIMDEFS | both in ANIMDEFS already; NOT VERIFIED here: V11 |
+| Texture offsets | `SDDAM2` on the quay wall, `SDCTRL1` on the consoles | MAP05's helper; V12 |
+
+Tag plan: **1** D1 · **2** D2 · **3** D3 · **4** yellow door + hangar
+closets · **5** red gate + runway closets · **6** S1 · **7** S2 · **8** S3 ·
+**10** SH-A · **11** SH-B. Free: 9, 12 and up.
+
+## 11. MAPINFO and LANGUAGE (not this role's)
+
+The scaffolding agent's: `map MAP07 lookup "SD_MAP07_NAME"`, `cluster = 8`,
+`next = "MAP08"`, the sky and the music. Nothing in the map depends on
+more. A par of about 360 is fair for a player who knows the route.
+
+## 12. Version plan
+
+| Version | Content | Done when |
+|---|---|---|
+| **v1 — whole, textured, populated** ✅ **BUILT 2026-10-22** (§13) | §4-§10 with approved lumps and the Arctic stand-ins | the CEO walks it on skill 3 and reaches MAP08 |
+| v2 — the Arctic set and light | swap `ARCTIC_SET`'s stand-ins as each lump is approved (one line each); the aurora sky; floodlight pools on the runway and the quay; a radar console (`SDRADR1`) | a first-time player finds both keys and the exit without being told |
+| v3 — balance | after the playtests (D60) | played through on skill 3 |
+
+## 13. v1 build record (2026-10-22)
+
+### 13.1 What is in it
+
+Everything in §4-§10, built in one pass from a placeholder (one room, a
+start and an exit, written first so the build never failed for the other
+episode-3 agents).
+
+### 13.2 Verification actually run
+
+- `python -m unittest tests.test_map07_novaya_zemlya` — 77 tests, OK.
+- `python -m unittest tests.test_posters` (`Map07Posters`, 6) — OK.
+- `python -m unittest tests.test_map07_route tests.test_route` — 117 tests,
+  OK (`zemlya-critical` registered; MAPINFO's `next` for MAP07 is MAP08).
+- `python tools/verify.py fast` (2026-10-22, 3094 tests): docs, build and
+  check_pk3 PASS; one failure, shared and not MAP07's alone:
+  `test_doughboy_sprites` pins the maps that place a Doughboy to MAP01-MAP06
+  and RANGE, and MAP07, MAP08 and MAP09 now place them (13.5).
+- **No engine run** (D26).
+
+### 13.3 Engine checklist for the PM (D26)
+
+| # | Check | How |
+|---|---|---|
+| V1 | Loads with a clean log; `zemlya-critical` PASSes on skills 2, 3, 4 | `SD_ALLOW_ENGINE=1 python3 tools/route.py --route zemlya-critical --keep-evidence` |
+| V2 | Outdoors read as outdoors: sky over the runway and the harbour, no upper texture between two skies, beyond the kerbs and the pack ice the sky | walk the runway and the quay |
+| V3 | The yellow door opens the hangar's two closets; the red gate the runway's two | open each lock, look back |
+| V4 | The sea hurts (~5 HP a second), the steps and the floes lead out | stand in the water |
+| V5 | Nobody crosses a kerb or the pack ice; Doughboys over the water do not stick on the pack ice | try; watch |
+| V6 | The radome reads as a dome: the crown, the dish hanging over the platform (its mesh underside), the key seen from the gallery | stand on the gallery |
+| V7 | The bunker: the lamp flickers, the core's slot shows `SDPORT1` animated, whole, cobalt | stand in the chamber |
+| V8 | `lightcolor` yellow and red on the locks and the keys' places | as MAP05's V8 |
+| V9 | The three secrets count (3 of 3) | push each panel |
+| V10 | The posters whole (Lenin's recess, Stalin on the wall, the mural on its sill, the slots) | walk the hangar, the command room, the barracks |
+| V11 | The sea moves (`SDWATR1`-`4`) | stand at the quay |
+| V12 | `SDDAM2`'s tide mark just under the quay's edge; the consoles show the desk | look |
+| V13 | The command room's three boards stand on the floor, drawn once, stop the player | walk into one |
+| V14 | The Il-14 reads as a plane (fuselage, low wings, nacelles, the tail over the ramp) | arrive |
+
+### 13.4 For the CEO's walk
+
+1. Does the arrival read: the plane, the runway in the polar night, the red
+   gate at the far end?
+2. The radome: is the yellow key across the drop readable, and the dish?
+3. The bunker: inquietante enough (the flicker, the core)?
+4. The harbour: the right last fight; the submarine as the way out?
+5. The shortcut (SW-B onto the runway): found, and worth it?
+
+### 13.5 What other roles hold
+
+- `art-director`: the Arctic set, §7.2 (the request, by lump name).
+- Scaffolding / `mod-engineer`: MAPINFO and LANGUAGE for MAP07 are in place.
+- **Shared tests not this role's**: `tests/test_doughboy_sprites.py`
+  (`test_the_doughboy_is_placed_in_every_map`) pins the set of maps that
+  place a Doughboy and needs `"MAP07"` added (MAP07 places four).
+- A trap for every new map: a map that defines both `MURAL_NICHE` and
+  `LENIN` answers to MAP01's route markers (`ZARYA_MARKERS`) and
+  `tools/route.py` raises on import. MAP07 calls its niche
+  `RED_CORNER_NICHE`.
+- PM: §13.3.
+
+## 14. Open points for the CEO
+
+1. **Walk v1** (§13.4).
+2. **The exit vehicle**: a submarine (as built) or an icebreaker? The quay
+   takes either; the conning tower becomes a bridge door.
+3. **The Hand Katyusha in S3 again** (as MAP05): keep it secret, or give it
+   on the route at the start of episode 3?

@@ -476,7 +476,7 @@ class MapFitTests(unittest.TestCase):
                 yield name, _Geometry(blocks), things
 
     def test_the_general_is_placed_in_map03_and_the_range(self):
-        self.assertEqual({name for name, _, _ in self.placements()}, {"MAP03", "MAP06", "RANGE"})  # MAP06: stand-in boss until episode 2 has its own (D104)
+        self.assertEqual({name for name, _, _ in self.placements()}, {"MAP03", "MAP06", "MAP09", "RANGE"})  # MAP06, MAP09: stand-in bosses until episodes 2 and 3 have their own (D104, D112)
 
     def test_every_general_fits_where_he_stands(self):
         for name, geo, things in self.placements():

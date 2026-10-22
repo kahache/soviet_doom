@@ -219,6 +219,36 @@ class RangePosters(_PosterCase, unittest.TestCase):
     MAP = "RANGE"
 
 
+# --- MAP07 Novaya Zemlya (episode 3, D112; owner level-designer) -----------
+class Map07Posters(_PosterCase, unittest.TestCase):
+    MAP = "MAP07"
+
+    def test_episode_3_opens_with_lenin_and_stalin(self):
+        worn = {p[1] for p in self.m.poster_faces() if p[0] not in self.m.POSTER_SLOTS_MARX_ENGELS}
+        self.assertTrue({LENIN, STALIN} <= worn, sorted(worn))
+
+
+
+# --- MAP08 Severomorsk (episode 3, D112; level-designer's block) -------------
+class Map08Posters(_PosterCase, unittest.TestCase):
+    MAP = "MAP08"
+
+    def test_episode_3s_base_shows_lenin_and_stalin(self):
+        slots = set(self.m.POSTER_SLOTS_MARX_ENGELS)
+        worn = {p[1] for p in self.m.poster_faces() if p[0] not in slots}
+        self.assertTrue({LENIN, STALIN} <= worn, sorted(worn))
+
+# --- MAP09 Tunguska (episode 3, D112; level-designer's block) ----------------
+class Map09Posters(_PosterCase, unittest.TestCase):
+    MAP = "MAP09"
+
+    def test_the_research_station_shows_lenin_stalin_and_the_mural(self):
+        slots = set(self.m.POSTER_SLOTS_MARX_ENGELS)
+        worn = {p[1] for p in self.m.poster_faces() if p[0] not in slots}
+        self.assertEqual({LENIN, STALIN, MURAL}, worn)
+        self.assertTrue(all(p[0].startswith("lab_") for p in self.m.POSTERS), "all in the laboratory")
+
+
 class CampaignPosters(unittest.TestCase):
     def test_lenin_and_stalin_both_hang_in_every_episode(self):
         worn = {name: {p[1] for p in _load(name).poster_faces()} for name in MAPS}

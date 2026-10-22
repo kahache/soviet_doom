@@ -70,6 +70,23 @@ SD_MAP05_EXIT_TEXT = "You cross the crest of the dam with\nthe spillway roaring 
 // invaders' main portal is still open somewhere (the hook for episode 3).
 SD_END03_TEXT = "The last of them falls at the\nKremlin gate. Above you the tower\nclock strikes the hour.\n\nThe Kremlin holds. Moscow is yours\nagain.\n\nBut not all of them came through\nTankograd. Somewhere their main\nportal is still open, and more are\ncoming through it.\n\nTO BE CONTINUED";
 
+// --- Episode 3, "The Portal" (D112, P4; MOD-SPEC 4.6) ----------------------
+// The 04 is the order the episodes were declared in, as for SD_EP03_NAME.
+SD_EP04_NAME  = "The Portal";
+SD_MAP07_NAME = "Novaya Zemlya";
+SD_MAP08_NAME = "Severomorsk";
+SD_MAP09_NAME = "Tunguska";
+// Cluster 8: leaving MAP07, the radar station on Novaya Zemlya, for MAP08,
+// the Northern Fleet's base at Severomorsk, across the Barents Sea.
+SD_MAP07_EXIT_TEXT = "The radar goes dark. Whatever the\nstation was guiding in is flying\nblind now.\n\nThe log shows where the signal went:\nto the Northern Fleet's base at\nSeveromorsk.\n\nA patrol boat takes you across the\nBarents Sea. The base has not\nanswered the radio for three days.";
+// Cluster 9: leaving MAP08, the submarine base, for MAP09: the warheads'
+// waybills name Tunguska; a night flight east over Siberia.
+SD_MAP08_EXIT_TEXT = "The submarine settles at its berth,\nits reactor cold. The invaders were\nloading its warheads onto a train.\n\nThe waybills name one destination:\nTunguska, in the Siberian taiga,\nwhere the sky fell in 1908.\n\nAn An-12 flies you east all night.\nAt dawn the forest below turns grey,\nand then it is gone.";
+// Cluster 10: episode 3's ending, after MAP09. The main portal that
+// SD_END03_TEXT left open closes; the end of the first cycle, so it closes
+// on THE END instead of TO BE CONTINUED, with one line left open.
+SD_END04_TEXT = "The portal folds in on itself. For a\nmoment the taiga is as bright as it\nwas in 1908. Then it is dark.\n\nNothing more comes through. The\nmachines that were eating the forest\nstand still in the ash.\n\nFrom Zarya-7 to Tunguska, the land\nis yours again.\n\nThe sky over the taiga is empty.\nFor now.\n\nTHE END";
+
 // --- Arsenal (F4) ---------------------------------------------------------
 // Tag      = the weapon's name in the HUD and the weapon wheel.
 // Pickup   = the line printed when it is picked up.
@@ -436,6 +453,13 @@ SD_MAP06_NAME = "Красная площадь";
 SD_MAP04_EXIT_TEXT = "Бронепоезд покидает сортировочную\nи всю ночь идёт на запад.\nСвердловск остаётся позади.\n\nНа рассвете путь выходит к Волге.\nЗа рекой стоит плотина\nу Жигулей. Её турбины дают свет\nполовине страны.\n\nСегодня утром турбины стоят.";
 SD_MAP05_EXIT_TEXT = "Вы переходите гребень плотины,\nвнизу ревёт водосброс. За вашей\nспиной турбины снова вращаются.\n\nВторжение дошло до Москвы,\nза тысячу километров на запад.\n\nПоследний поезд в центр\nостанавливается на «Площади\nРеволюции». Вверх по лестнице —\nКрасная площадь.";
 SD_END03_TEXT = "Последний из них падает у ворот\nКремля. Над вами куранты\nбьют час.\n\nКремль выстоял. Москва\nснова наша.\n\nНо не все они прошли через\nТанкоград. Где-то их главный\nпортал всё ещё открыт, и через\nнего идут новые.\n\nПРОДОЛЖЕНИЕ СЛЕДУЕТ";
+SD_EP04_NAME  = "Портал";
+SD_MAP07_NAME = "Новая Земля";
+SD_MAP08_NAME = "Североморск";
+SD_MAP09_NAME = "Тунгуска";
+SD_MAP07_EXIT_TEXT = "Радар гаснет. То, что станция\nнаводила сюда, теперь летит\nвслепую.\n\nПо журналу видно, куда уходил\nсигнал: на базу Северного флота\nв Североморске.\n\nСторожевой катер везёт вас\nчерез Баренцево море. База\nне выходит на связь третьи сутки.";
+SD_MAP08_EXIT_TEXT = "Подлодка оседает у причала,\nеё реактор заглушен. Захватчики\nгрузили её боеголовки в эшелон.\n\nВ накладных одно место\nназначения: Тунгуска, сибирская\nтайга, где в 1908 году упало небо.\n\nАн-12 всю ночь несёт вас\nна восток. На рассвете лес внизу\nсерый, а потом его нет.";
+SD_END04_TEXT = "Портал схлопывается. На миг\nтайга светла, как в 1908 году.\nПотом наступает темнота.\n\nСквозь портал больше никто\nне пройдёт. Машины, пожиравшие\nлес, застыли в пепле.\n\nОт «Зари-7» до Тунгуски\nземля снова наша.\n\nНебо над тайгой пусто.\nПока.\n\nКОНЕЦ";
 
 SD_PLAYER_NAME     = "Сержант Виланова";
 
@@ -693,6 +717,13 @@ SD_MAP06_NAME = "La plaça Roja";
 SD_MAP04_EXIT_TEXT = "El tren blindat surt de l'estació de\nclassificació i corre tota la nit cap\na l'oest. Sverdlovsk queda enrere.\n\nA l'alba la via arriba al Volga.\nA l'altra riba s'alça la presa de\nZhiguli. Les seves turbines donen\nllum a mig país.\n\nAquest matí les turbines no giren.";
 SD_MAP05_EXIT_TEXT = "Travesses el coronament de la presa\namb el sobreeixidor rugint a sota.\nDarrere teu, les turbines tornen a\ngirar.\n\nLa invasió ha arribat a Moscou, mil\nquilòmetres cap a l'oest.\n\nL'últim tren cap al centre s'atura a\nPloshchad Revolyutsii. Escales amunt\nhi ha la plaça Roja.";
 SD_END03_TEXT = "L'últim d'ells cau a la porta del\nKremlin. Damunt teu, el rellotge de\nla torre toca l'hora.\n\nEl Kremlin resisteix. Moscou torna a\nser a les nostres mans.\n\nPerò no tots van passar per\nTankograd. En algun lloc el seu\nportal principal continua obert, i\nper ell n'arriben més.\n\nCONTINUARÀ";
+SD_EP04_NAME  = "El portal";
+SD_MAP07_NAME = "Nova Zembla";
+SD_MAP08_NAME = "Severomorsk";
+SD_MAP09_NAME = "Tunguska";
+SD_MAP07_EXIT_TEXT = "El radar s'apaga. Allò que l'estació\nguiava cap aquí ara vola a cegues.\n\nEl registre mostra on anava el\nsenyal: a la base de la Flota del\nNord, a Severomorsk.\n\nUna patrullera et porta a través\ndel mar de Barents. La base no\nrespon per ràdio des de fa tres dies.";
+SD_MAP08_EXIT_TEXT = "El submarí s'enfonsa al moll, amb\nel reactor aturat. Els invasors\ncarregaven les seves ogives en un tren.\n\nEls albarans diuen una sola\ndestinació: Tunguska, a la taigà\nsiberiana, on el cel va caure el 1908.\n\nUn An-12 et porta cap a l'est tota la\nnit. A l'alba el bosc de sota és gris,\ni després ja no hi és.";
+SD_END04_TEXT = "El portal es plega sobre si mateix.\nPer un moment la taigà brilla com\nl'any 1908. Després es fa fosc.\n\nJa no hi passa ningú més. Les\nmàquines que es menjaven el bosc\nresten quietes entre la cendra.\n\nDe Zarya-7 a Tunguska, la terra\ntorna a ser a les nostres mans.\n\nEl cel sobre la taigà és buit.\nDe moment.\n\nFI";
 
 SD_PLAYER_NAME     = "Sergent Vilanova";
 
