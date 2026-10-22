@@ -17,15 +17,18 @@ art, which goes back to the CEO as a new proposal.
 
 Method, the metro's (tools/art/gen_metro.py): every piece is procedural,
 one seed per piece (BATCH_SEED + offset), deterministic, quantised without
-dither. Two exceptions to "one seed of its own", both on purpose:
+dither. One exception to "one seed of its own", on purpose:
 
   - SDDOORY and SDDOORR start from SDDOOR1's own seed (gen_soviet_base,
     1977 + 5) and replay its first random draws, so their steel, paint and
     chips are SDDOOR1's pixel for pixel; only the trim, the pass plate and
     the hazard band differ (tests/test_gen_factory.py holds them to the
     approved file outside those areas). The trim's wear has its own seed.
-  - SDFLAG1 and SDFLAG2 hang on SDBRCK1's exact pixels, so a flag tile next
-    to a brick tile continues the bond with no seam.
+
+D119 (2026-10-23, CEO playtest): the two occupiers' banners SDFLAG1/SDFLAG2
+that this set drew (seeds 4114/4115) are Soviet flags now, drawn by
+tools/art/gen_soviet_flags.py on SDBRCK1's pixels under the same lump names;
+this script no longer builds them and their seeds are retired.
 
 No system font (D27): the only lettering, the works banner SDSLOG1 and the
 pass plates on the two doors, is set from our own alphabet, read from
@@ -81,8 +84,8 @@ SEED_OFFSET = {
     "SDBRCK1": 1, "SDBRCK2": 2, "SDRUST1": 3, "SDCHAN1": 4, "SDFLR4": 5, "SDGRAT1": 6,
     "SDMOLT": 7,                      # one piece, four frames, one seed
     "SDDOORY": 8, "SDDOORR": 9,       # the trim's wear only; the leaf is SDDOOR1's seed
-    "SDPORT": 10, "SDGATE1": 11, "SDWIND1": 12, "SDSLOG1": 13, "SDFLAG1": 14, "SDFLAG2": 15,
-}
+    "SDPORT": 10, "SDGATE1": 11, "SDWIND1": 12, "SDSLOG1": 13,
+}                                     # 14, 15: SDFLAG1/2 until D119, retired
 DOOR1_SEED = base.BATCH_SEED + 5      # gen_soviet_base.tex_door1: rng_for(5)
 
 WALL_W, WALL_H = 64, 128
@@ -92,17 +95,13 @@ FRAMES = 4                            # animated pieces: SDMOLT1-4, SDPORT1-4
 
 # Which palette each piece is quantised to, and why when it is not v1.
 PALETTE_VERSION = {
-    "SDBRCK1": 2, "SDBRCK2": 2, "SDFLAG1": 2, "SDFLAG2": 2, "SDPORT": 2,
+    "SDBRCK1": 2, "SDBRCK2": 2, "SDPORT": 2,
 }
 PALETTE_WHY = {
     "SDBRCK1": "v2 for marble_red: v1 has no brick red. flag_red is signage red and reads as paint; "
                "rust_brown alone gives a brown, Doom-generic brick. marble_red is a fired-clay red, with "
                "rust_brown kept for the browner bricks of the bond.",
     "SDBRCK2": "v2: the same brick as SDBRCK1 above the whitewash.",
-    "SDFLAG1": "v2 only because it hangs on SDBRCK1's pixels; the banner itself is v1 (flag_red, plaster_warm, black).",
-    "SDFLAG2": "v2: the canton is mosaic_cobalt. v1's only blue is steel_blue, a grey that makes the US "
-               "canton read as slate at banner size (the 7x5 shoulder patch gets away with it, a 28x40 "
-               "canton does not). Also hangs on SDBRCK1's pixels.",
     "SDPORT": "v2 for mosaic_cobalt: the portal must not look like anything in the world, and every v1 "
               "ramp belongs to the world (concrete, paint, rust, signage). A true cobalt does not.",
 }
@@ -832,108 +831,6 @@ def tex_slog1() -> np.ndarray:
     return np.where((crack & letters)[..., None], np.array(ramp_colour("cream_yellow", 0.70), np.uint8), rgb)
 
 
-# ============================================================ banners
-CLOTH_X0, CLOTH_X1 = 6, 58   # 52 px: 13 stripes of 4 for the Legion
-CLOTH_Y0, CLOTH_Y1 = 10, 110
-ROD_Y0, ROD_Y1 = 6, 9
-FRINGE_H = 4
-CLOTH_FOLDS = 3              # soft vertical folds across the banner
-DISC_C, DISC_R = (32, 48), 19
-SWAS_CELL = 4.6              # one cell of the 5x5 hooked cross, px
-# The hooked cross on the same 5x5 grid as the Reich's armband
-# (gen_enemy.ARMBAND, D12): K is black.
-SWASTIKA = ("K.KKK",
-            "K.K..",
-            "KKKKK",
-            "..K.K",
-            "KKK.K")
-STRIPES = 13
-STRIPE_W = 4
-CANTON_W, CANTON_H = 7 * STRIPE_W, 40
-STAR_STEP = (4, 5)           # stars on a 4 x 5 px lattice in the canton
-
-
-def banner_ground() -> np.ndarray:
-    """SDBRCK1's pixels: a banner tile beside a brick tile continues the bond."""
-    return tex_brck1()
-
-
-def cloth_mask(w: int = WALL_W, h: int = WALL_H) -> np.ndarray:
-    yy, xx = np.mgrid[0:h, 0:w]
-    return (xx >= CLOTH_X0) & (xx < CLOTH_X1) & (yy >= CLOTH_Y0) & (yy < CLOTH_Y1)
-
-
-def hang(rgb_wall: np.ndarray, cloth: np.ndarray, rng: np.random.Generator) -> np.ndarray:
-    """Put a banner (cloth RGB, same size as the wall, only its cloth area
-    used) on the wall: shadow on the brick, folds, a rod and brackets, a
-    gold fringe."""
-    w, h = WALL_W, WALL_H
-    m = cloth_mask()
-    yy, xx = np.mgrid[0:h, 0:w]
-    sh = np.roll(np.roll(m, 2, axis=0), 2, axis=1) & ~m
-    rgb = np.where(sh[..., None], shade(rgb_wall, 0.50), rgb_wall)
-    span = CLOTH_X1 - CLOTH_X0
-    fold = 1 + 0.10 * np.sin(2 * np.pi * CLOTH_FOLDS * (xx - CLOTH_X0) / span)
-    fold *= 1 + 0.04 * (fbm(w, h, 4, 2, rng, aspect=4.0) - 0.5)
-    cloth = shade(cloth, fold)
-    cloth = shade(cloth, 1 + grain(w, h, rng, 0.03))
-    rgb = np.where(m[..., None], cloth, rgb)
-    fringe = (xx >= CLOTH_X0) & (xx < CLOTH_X1) & (yy >= CLOTH_Y1) & (yy < CLOTH_Y1 + FRINGE_H)
-    thread = np.where((xx % 2 == 0)[..., None], np.array(ramp_colour("hazard_yellow", 0.72), np.uint8),
-                      np.array(ramp_colour("hazard_yellow", 0.48), np.uint8))
-    rgb = np.where((fringe & ((xx % 2 == 0) | (yy < CLOTH_Y1 + 2)))[..., None], thread, rgb)
-    ov = Overlay(w, h)
-    ov.rect(1, ROD_Y0, w - 1, ROD_Y1, fill=ramp_colour("steel_blue", 0.22))
-    ov.rect(1, ROD_Y0, w - 1, ROD_Y0 + 1, fill=ramp_colour("steel_blue", 0.55))
-    for bx in (3, w - 5):
-        ov.rect(bx, ROD_Y0 - 3, bx + 2, ROD_Y1 + 3, fill=ramp_colour("steel_blue", 0.12))
-    return ov.composite(rgb)
-
-
-def tex_flag1() -> np.ndarray:
-    """The Fourth Reich's banner (D12): red, a white disc, the black hooked
-    cross turned 45 degrees, on SDBRCK1."""
-    rng = rng_for("SDFLAG1")
-    w, h = WALL_W, WALL_H
-    red = to_rgb(np.clip(0.72 + grain(w, h, rng, 0.02), 0, 1), "flag_red")
-    ov = Overlay(w, h)
-    cx, cy = DISC_C
-    ov.ellipse(cx - DISC_R, cy - DISC_R, cx + DISC_R, cy + DISC_R, fill=ramp_colour("plaster_warm", 0.95))
-    c45, s45 = np.cos(np.pi / 4), np.sin(np.pi / 4)
-    for j, rowtxt in enumerate(SWASTIKA):
-        for i, ch in enumerate(rowtxt):
-            if ch != "K":
-                continue
-            corners = [(i - 2.5, j - 2.5), (i - 1.5, j - 2.5), (i - 1.5, j - 1.5), (i - 2.5, j - 1.5)]
-            pts = [(cx + SWAS_CELL * (u * c45 - v * s45), cy + SWAS_CELL * (u * s45 + v * c45)) for u, v in corners]
-            ov.polygon(pts, (0, 0, 0))
-    cloth = ov.composite(red)
-    return hang(banner_ground(), cloth, rng)
-
-
-def tex_flag2() -> np.ndarray:
-    """The Liberty Legion's banner (D12): the US flag hung vertically,
-    thirteen stripes, the canton top left as the flag code hangs it, on
-    SDBRCK1. Same inks as the Legion's shoulder patch except the canton
-    (mosaic_cobalt instead of steel_blue, PALETTE_WHY)."""
-    rng = rng_for("SDFLAG2")
-    w, h = WALL_W, WALL_H
-    yy, xx = np.mgrid[0:h, 0:w]
-    stripe = ((xx - CLOTH_X0) // STRIPE_W) % 2 == 0
-    red = to_rgb(np.clip(0.72 + grain(w, h, rng, 0.02), 0, 1), "flag_red")
-    white = to_rgb(np.clip(0.93 + grain(w, h, rng, 0.02), 0, 1), "plaster_warm")
-    cloth = np.where(stripe[..., None], red, white)
-    canton = (xx >= CLOTH_X0) & (xx < CLOTH_X0 + CANTON_W) & (yy >= CLOTH_Y0) & (yy < CLOTH_Y0 + CANTON_H)
-    blue = any_to_rgb(np.clip(0.20 + grain(w, h, rng, 0.02), 0, 1), "mosaic_cobalt")
-    cloth = np.where(canton[..., None], blue, cloth)
-    sx, sy = STAR_STEP
-    lx, ly = xx - CLOTH_X0, yy - CLOTH_Y0
-    star = canton & (lx % sx == 2) & (ly % sy == 2) & (lx < CANTON_W - 1) & (ly < CANTON_H - 2)
-    star &= ((lx // sx + ly // sy) % 2 == 0)
-    cloth = np.where(star[..., None], np.array(ramp_colour("plaster_warm", 1.0), np.uint8), cloth)
-    return hang(banner_ground(), cloth, rng)
-
-
 # ================================================================ registry
 # piece, builder, kind, (w, h), lumps, tiles, masked, description
 PIECES = [
@@ -973,10 +870,6 @@ PIECES = [
     ("SDSLOG1", tex_slog1, "wall", (256, 64), ["SDSLOG1"], False, False,
      "Works banner «ТРАКТОРЫ — КОЛХОЗАМ!» (\"Tractors for the collective farms!\"), cream on "
      "kumach, set in our own alphabet (bigfont, D24) at 2x."),
-    ("SDFLAG1", tex_flag1, "wall", (64, 128), ["SDFLAG1"], True, False,
-     "The Fourth Reich's banner (D12) hung on SDBRCK1: red, white disc, black hooked cross."),
-    ("SDFLAG2", tex_flag2, "wall", (64, 128), ["SDFLAG2"], True, False,
-     "The Liberty Legion's banner (D12) hung on SDBRCK1: the US flag hung vertically."),
 ]
 
 # piece -> (verdict, why). Written after looking at the sheet, PM gate.
@@ -1011,10 +904,6 @@ RECOMMEND = {
                 "clerestory), where its darkness is sky, not a hole in the wall."),
     "SDSLOG1": ("yes", "Our alphabet at 2x reads from across the hall, and the pixels match the menu and "
                 "the HUD text. 256x64 is a new wall size (ART-BIBLE §2 lists up to 128x256): one row to add."),
-    "SDFLAG1": ("yes", "Hang high (above 128): a banner behind an enemy's chest would break ART-BIBLE §6.3 "
-                "(the armband must be the only red-white-black near a Reich soldier)."),
-    "SDFLAG2": ("yes", "Same rule: high. Beside SDFLAG1 the two read as two allied flags at one glance, "
-                "which is what LORE asks of the hall."),
 }
 
 
@@ -1158,8 +1047,6 @@ def context(piece: str, A: dict) -> np.ndarray:
     if piece == "SDSLOG1":
         top = row([g("SDBRCK1")[:64], g("SDSLOG1"), g("SDBRCK1")[:64]])
         return np.vstack([top, row([g("SDBRCK2")] * 6)])
-    if piece in ("SDFLAG1", "SDFLAG2"):
-        return row([g("SDBRCK1"), g("SDFLAG1"), g("SDFLAG2"), g("SDBRCK1"), g("SDCONC1")])
     raise KeyError(piece)
 
 
@@ -1185,8 +1072,8 @@ def scenes(A: dict) -> dict[str, np.ndarray]:
 
 
 SCENE_LEGEND = {
-    "hall": ("Assembly hall (elevation). Top: clerestory SDWIND1 between SDBRCK1 piers, the two banners "
-             "side by side high on the middle pier (where I recommend they hang). Middle: SDSLOG1 on SDBRCK1. "
+    "hall": ("Assembly hall (elevation). Top: clerestory SDWIND1 between SDBRCK1 piers, the two flags "
+             "side by side high on the middle pier (SDFLAG1/2, Soviet since D119, read from assets/). Middle: SDSLOG1 on SDBRCK1. "
              "Bottom: the SDBRCK2 dado, the yellow lock (approved SDSTAR1 | SDDOORY | SDSTAR1, as MAP04 "
              "builds it), SDRUST1, and SDCHAN1 hanging in front of SDBRCK2."),
     "portal": ("Portal hall (elevation). Top: approved SDTUBB1 and SDTUNL1 (metro), SDGATE1, SDBRCK1, approved "
@@ -1258,10 +1145,10 @@ INTRO = (
     "<b>Batch 4, the factory «Танкоград» (MAP04, BACKLOG N6): the thirteen industrial pieces of "
     "MAP04-factory §7.2, as drafts.</b> Brick and its whitewashed dado, rusted corrugated sheet, a "
     "chain and hook, cast-iron and grating floors, molten metal (4 frames), the two key doors, the "
-    "portal (4 frames), a sliding gate, night glazing, the works banner and the two enemy banners. "
+    "portal (4 frames), a sliding gate, night glazing, and the works banner. "
     "All procedural, one seed per piece, as the metro. The only lettering (the banner, the pass "
     "plates) is set in <b>our own alphabet</b> from <code>assets/fonts/bigfont/</code> (D24, D27), so "
-    "every piece reproduces byte for byte on both machines. Five pieces use <b>palette v2</b> and say "
+    "every piece reproduces byte for byte on both machines. Three pieces use <b>palette v2</b> and say "
     "why on their card. Each card shows the piece at 4x, 1x, tiled 2x2, at ~light 128 and in place "
     "beside approved soviet-base and metro walls; the first section shows the factory assembled. "
     "Nothing here is in <code>assets/</code>.")

@@ -161,13 +161,16 @@ D113's standing approval, PM gate 2026-10-22; sets `sky` (new), `railway`,
   not animation frames), `GUMR` the GUM's glass roof (flat), `MUSE` the
   Historical Museum's brick. `SDDOORB` is `DOOR` with the key colour last
   (B blue, as `DOORY` / `DOORR`); `SDFLAG3` / `SDFLAG4` are new numbers in
-  `FLAG`, the approved banners hung on `SDKREM1`.
+  `FLAG`, flags hung on `SDKREM1`. Since D119 every `FLAG` lump
+  (`SDFLAG1-4`) is a Soviet flag (`tools/art/gen_soviet_flags.py`): the
+  occupiers show their colours only on their own sprites (D108, D114).
 - **Three more masked wall textures:** `SDGRIL1`, `SDHVLT1` and `SDRUBY1`,
   in `MASKED_TEXTURES`, palette v1.
 - **Palette:** v1, plus `marble_red` for `SDCLOK1`, `SDMUSE1`, `SDFLAG3` and
   `SDFLAG4` (brick) and `mosaic_cobalt` for `SDDOORB` (v1's `steel_blue`
-  reads grey, not as a blue key) and `SDFLAG4`'s canton (as `SDFLAG2`);
-  listed in `APPROVED_IN_V2` and `PALETTE_V2_LUMPS`.
+  reads grey, not as a blue key); listed in `APPROVED_IN_V2` and
+  `PALETTE_V2_LUMPS`. (`SDFLAG4`'s cobalt canton went with the Legion's
+  banner in D119.)
 
 **Added 2026-10-22 with Episode 3 «The Portal» (D112 drafts, installed under
 D113's standing approval, PM gate 2026-10-22; sets `arctic`, `naval`,
@@ -267,8 +270,8 @@ geometry as the approved D42 lumps, new inks only), sheet
 «Танкоград» with palette v2 where `tools/art/gen_factory.py`
 (`PALETTE_VERSION`, `PALETTE_WHY`) asks for it: the brick `SDBRCK1` /
 `SDBRCK2` in `marble_red` (v1 has no fired-clay red), the two banners
-`SDFLAG1` / `SDFLAG2` hung on that brick (`SDFLAG2`'s canton in
-`mosaic_cobalt`, since v1's `steel_blue` reads slate at banner size) and the
+`SDFLAG1` / `SDFLAG2` hung on that brick (until D119 `SDFLAG2`'s canton was
+`mosaic_cobalt`; since D119 both are Soviet flags, v2 only through the brick) and the
 portal `SDPORT1-4` in `mosaic_cobalt` with white filaments (nothing in the
 world may share its colour). Drawn in v2 from the start, not requantised
 approved art. Listed in `APPROVED_IN_V2` (`tests/test_palette_v2.py`) and

@@ -355,13 +355,12 @@ reproduces byte for byte on both machines. Per-lump rows and seeds
 | `SDGATE1` | sliding factory gate, green corrugated sheet | (a) idem, palette v1 | idem |
 | `SDWIND1` | industrial glazing at night | (a) idem, palette v1 | idem |
 | `SDSLOG1` | works banner «ТРАКТОРЫ — КОЛХОЗАМ!», 256×64, set in **our alphabet** (bigfont, D24) at 2× | (a) idem, palette v1, no system font | idem |
-| `SDFLAG1` | the Fourth Reich's banner (D12) hung on `SDBRCK1` | (a) idem, **palette v2** (only through the brick) | idem |
-| `SDFLAG2` | the Liberty Legion's banner (D12) hung on `SDBRCK1`, canton in `mosaic_cobalt` | (a) idem, **palette v2** | idem |
 
 No photograph and no scanned building: the Chelyabinsk works and Soviet
 industrial architecture are references for materials only. The two faction
-banners are drawn from code (geometry in the generator), not copied from any
-flag artwork.
+banners this set drew (`SDFLAG1`, `SDFLAG2`) were replaced by Soviet flags
+in D119 under the same lump names: their rows are in "Soviet flags (D119)"
+below.
 
 ## Episode 2 «The Road to Moscow» — textures (P4, approved by the CEO 2026-10-22, D107)
 
@@ -429,7 +428,9 @@ All procedural, one generator, `tools/art/gen_episode2b.py`, seed =
 `marble_red` and `mosaic_cobalt` only where a row says so. No photograph,
 no scanned building: Sverdlovsk, the Spasskaya tower, the ruby stars, the
 GUM and the Historical Museum are references for materials and forms only;
-the two faction banners replay the approved `SDFLAG1`/`SDFLAG2` (D66).
+round 2's two faction banners on `SDKREM1` (`SDFLAG3`, `SDFLAG4`) were
+replaced by Soviet flags in D119: their rows are in "Soviet flags (D119)"
+below.
 
 | Lump | What it is | Origin | Licence |
 |---|---|---|---|
@@ -454,8 +455,27 @@ the two faction banners replay the approved `SDFLAG1`/`SDFLAG2` (D66).
 | `SDGUMS3` | GUM shopfront «ЧАСЫ» in our alphabet | (a) `tools/art/gen_episode2b.py`, seed 5717, palette v1, no system font | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
 | `SDGUMR1` | the GUM's glass vault from below (flat) | (a) `tools/art/gen_episode2b.py`, seed 5718, palette v1 | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
 | `SDMUSE1` | the Historical Museum's brick with white dressings | (a) `tools/art/gen_episode2b.py`, seed 5719, **palette v2** (`marble_red`) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
-| `SDFLAG3` | the Fourth Reich's banner `SDFLAG1` hung on `SDKREM1` | (a) `tools/art/gen_episode2b.py`, seed 5720, **palette v2** (`marble_red`); the cloth replays `SDFLAG1`'s seed 4114, the wall `SDKREM1`'s 5603 | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
-| `SDFLAG4` | the Liberty Legion's banner `SDFLAG2` hung on `SDKREM1` | (a) `tools/art/gen_episode2b.py`, seed 5721, **palette v2** (`marble_red`, `mosaic_cobalt` in the canton); the cloth replays `SDFLAG2`'s seed 4115, the wall `SDKREM1`'s 5603 | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+
+## Soviet flags (D119) — the occupiers' banners replaced (P4, approved 2026-10-23 under D113's standing approval)
+
+CEO playtest, D119: the Reich's and the Legion's banners "no pegan: no parece
+que sean del enemigo sino del entorno"; all four become Soviet flags, same
+lump names and sizes, so the maps change without edits. One generator,
+`tools/art/gen_soviet_flags.py`, seed = `BATCH_SEED` 6119 + offset, reading
+`gen_factory.py`, `gen_moscow.py`, `ep2lib.py` and `gen_soviet_base.py`
+(the approved hammer and sickle, `SDSTAR1`'s geometry). The wall round each
+flag is the approved `SDBRCK1` / `SDKREM1` pixel for pixel. No text, no
+font, no photograph or flag artwork copied: the emblem is our own vector
+geometry. Palette v1 for the cloth, gold, wood and iron; v2 only through the
+brick (`marble_red`). The enemies' own armbands and flags (sprites, D108,
+D114) are unchanged.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDFLAG1` | the USSR state flag hung vertically from a rod, on `SDBRCK1` | (a) `tools/art/gen_soviet_flags.py`, seed 6120, **palette v2** (only through the brick); the wall is `SDBRCK1` (gen_factory, seed 4101) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDFLAG2` | a Red Army standard on a staff with cord and tassel, on `SDBRCK1` | (a) `tools/art/gen_soviet_flags.py`, seed 6121, **palette v2** (only through the brick); the wall is `SDBRCK1` (gen_factory, seed 4101) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDFLAG3` | a parade gonfalon on a crossbar, emblem in a wreath, on `SDKREM1` | (a) `tools/art/gen_soviet_flags.py`, seed 6122, **palette v2** (`marble_red`, only through the brick); the wall is `SDKREM1` (gen_moscow, seed 5603) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDFLAG4` | the state flag torn and burnt in battle, on `SDKREM1` | (a) `tools/art/gen_soviet_flags.py`, seed 6123, **palette v2** (`marble_red`, only through the brick); the wall is `SDKREM1` (gen_moscow, seed 5603) | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
 
 ## Episode 3 «The Portal» — textures (P4, approved 2026-10-22 under D113's standing approval)
 

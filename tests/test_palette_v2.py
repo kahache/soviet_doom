@@ -79,7 +79,9 @@ MAX_COLOURS = 256
 # check_pk3's PALETTE_V2_LUMPS (indexed lumps only) does not list it.
 # D66 (2026-10-14): Tankograd (gen_factory.py). The brick SDBRCK1/2 in
 # marble_red, the banners SDFLAG1/2 hung on that brick (SDFLAG2's canton in
-# mosaic_cobalt) and the portal's four frames SDPORT1-4 in mosaic_cobalt.
+# mosaic_cobalt until D119; since D119 both are Soviet flags by
+# gen_soviet_flags.py, v2 only through the brick) and the portal's four
+# frames SDPORT1-4 in mosaic_cobalt.
 # All indexed, so check_pk3's PALETTE_V2_LUMPS lists them too.
 # D70 (2026-10-14): the Doughboy's 54 SDDB lumps (gen_heavy.py --full db,
 # cell C with D67's bigger flag), drawn with v2's flesh_pink as the Legion
@@ -130,8 +132,9 @@ EP2_BRICKS = (("railway", "SDBRCK3"), ("moscow", "SDKREM1"), ("moscow", "SDKREM2
 # mosaic_cobalt, the look of SDPORT1-4) and Episode 2 round 2's v2 pieces
 # (gen_episode2b.py): the blue key door SDDOORB (mosaic_cobalt), the Spasskaya
 # clock SDCLOK1 and the Historical Museum SDMUSE1 (marble_red), and the two
-# banners on SDKREM1, SDFLAG3 (marble_red) and SDFLAG4 (marble_red and, in the
-# canton, mosaic_cobalt). All indexed. Every other lump of both batches is v1,
+# banners on SDKREM1, SDFLAG3 and SDFLAG4 (marble_red; SDFLAG4's canton was
+# mosaic_cobalt until D119, when both became Soviet flags drawn by
+# gen_soviet_flags.py, v2 only through the brick). All indexed. Every other lump of both batches is v1,
 # the three round-2 masked pieces and the crane included.
 D113_V2 = (("taiga", "SDPRTE1"), ("dam", "SDDOORB"), ("moscow", "SDCLOK1"),
            ("moscow", "SDMUSE1"), ("moscow", "SDFLAG3"), ("moscow", "SDFLAG4"),
