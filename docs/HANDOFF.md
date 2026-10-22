@@ -6,7 +6,20 @@ and D114). Before that: 2026-10-21 ~23:30 (night shift closed, D102/D103) and
 `docs/PRD.md`; open CEO items in `docs/PENDING-CEO-DECISIONS.md`; tasks and
 estimates in `docs/BACKLOG.md`; the phase view in `docs/ROADMAP.md` ("P4 today").
 
-## RESUME HERE FIRST (2026-10-22 ~15:00, PC shut down at the CEO's request)
+## RESUME HERE FIRST (2026-10-22 ~21:00, PC suspended at the CEO's request)
+
+Since 15:00: Gemini hit its daily cap (next window 23 Oct 08:19; D116: art only from Gemini, no Fooocus).
+Done: gunner, colossus (MAP06 boss, MAP08 mini-boss s3-4), the Consortium (MAP09 final boss) and the AKM integrated
+with provisional tinted sprites (swap lines marked PROVISIONAL-D116) and placed; Marx-Engels pair hung (D117);
+E3 ends TO BE CONTINUED; General's death voice (D118, 12/12 voices ours). 33/33 routes PASS on 87585b2.
+The CEO plays tonight from Desktop/SovietDoom-prueba/SovietDoom (v1.2-rc2 Windows package, not published);
+after playing he decides whether to build three more maps (an Episode 4) or stop at nine (D117). Nothing to publish yet.
+Next tomorrow: Gemini with docs/product/2026-10-23_P4_gemini-prompt-pack.md (27 images by priority), then swap the
+provisional sprites. Pending CEO: rest of the world sounds sheet (17/56 judged: player sounds OK except jump; OOF w1 to be
+layered with w3's impact), MAP07 questions, v1.2 publish.
+
+## Earlier resume note (2026-10-22 ~15:00)
+
 
 Nothing in flight: no agents, no Fooocus/Chatterbox, all work committed and pushed (HEAD e27f99a + this note).
 State: 9 maps in 3 episodes + RANGE, all routes PASS on skills 2-4 (33/33, evidence 2026-10-22_13*/14*);
