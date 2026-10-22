@@ -400,6 +400,7 @@ ED_HOUND = 21103          # SD_ReichHound, Reich, 150 HP
 ED_DOUGHBOY = 21104       # SD_Doughboy, Legion, 400 HP
 ED_PANZERMENSCH = 21105   # SD_Panzermensch, Reich, 500 HP
 ED_PANZER_HEAVY = 21107   # SD_PanzermenschSchwer, Reich, 1000 HP
+ED_GUNNER = 21110         # SD_LegionGunner, Legion, 80 HP: bursts of hitscan; drops 15 AKM rounds (D116)
 MONSTER_KINDS = {
     "rifleman": ED_RIFLEMAN,
     "trooper": ED_TROOPER,
@@ -408,6 +409,7 @@ MONSTER_KINDS = {
     "doughboy": ED_DOUGHBOY,
     "panzermensch": ED_PANZERMENSCH,
     "heavy": ED_PANZER_HEAVY,
+    "gunner": ED_GUNNER,
 }
 MONSTER_CLASSES = {
     ED_RIFLEMAN: "SD_ReichRifleman",
@@ -417,9 +419,10 @@ MONSTER_CLASSES = {
     ED_DOUGHBOY: "SD_Doughboy",
     ED_PANZERMENSCH: "SD_Panzermensch",
     ED_PANZER_HEAVY: "SD_PanzermenschSchwer",
+    ED_GUNNER: "SD_LegionGunner",
 }
 REICH = ("rifleman", "hound", "panzermensch", "heavy")
-LEGION = ("trooper", "doughboy")
+LEGION = ("trooper", "doughboy", "gunner")
 # Where each faction stands (D35). The Reich holds the yard and the
 # roundhouse (the locomotives), the Legion the signal box and the goods
 # warehouse (the supplies); both guard the platform and the train. The
@@ -478,11 +481,16 @@ MONSTERS = (
     ("z2_roof_1", "stormtrooper", 2470, 1600, 0, 4),
     # The signal box: the Legion's signalmen.
     ("z3_cabin", "trooper", 2240, 1530, 0, 2),
-    ("z3_cabin", "trooper", 2240, 1670, 0, 4),
+    # On hard the second signalman is the Legion's machine-gunner: the box's
+    # windows over the roofs and the yard are his loophole (D116).
+    ("z3_cabin", "gunner", 2240, 1670, 0, 4),
     # The goods warehouse: the Legion's depot, its first Doughboy.
     ("z4_hall", "trooper", 2560, 380, 90, 2),
     ("z4_hall", "trooper", 2100, 380, 90, 2),
-    ("z4_hall", "trooper", 3050, 200, 90, 2),
+    # The Legion gunner's debut (D116): at the warehouse's back wall, the
+    # whole hall's length to fire down; his drop is the episode's first AKM
+    # rounds, kept for MAP05's rifle.
+    ("z4_hall", "gunner", 3050, 200, 90, 2),
     ("z4_hall", "stormtrooper", 2800, 380, 90, 2),
     ("z4_hall", "doughboy", 2600, 200, 90, 2),
     ("z4_office", "trooper", 3200, 600, 270, 2),
@@ -508,13 +516,15 @@ MONSTERS = (
     # The platform, the climax: both factions round the armoured train.
     ("z6_platform", "panzermensch", 1100, 2300, 0, 2),
     ("z6_platform", "trooper", 2000, 2150, 0, 2),
-    ("z6_platform", "trooper", 2600, 2340, 0, 2),
+    # Two gunners down the platform's length (D116), behind the canopy's
+    # columns: the second from medium up.
+    ("z6_platform", "gunner", 2600, 2340, 0, 2),
     ("z6_platform", "rifleman", 3100, 2300, 180, 2),
     ("z6_platform", "rifleman", 1600, 2340, 0, 2),
     ("z6_platform", "stormtrooper", 1300, 2150, 0, 2),
     ("z6_platform", "doughboy", 1800, 2300, 0, 2),
     ("z6_platform", "doughboy", 700, 2200, 0, 3),
-    ("z6_platform", "trooper", 2300, 2200, 0, 3),
+    ("z6_platform", "gunner", 2300, 2200, 0, 3),
     ("z6_platform", "hound", 1500, 2130, 0, 3),
     ("z6_platform", "heavy", 500, 2300, 0, 4),
     ("z6_platform", "stormtrooper", 2800, 2300, 180, 4),

@@ -57,7 +57,7 @@ Run:
     .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --list
     .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py            # masters + MANIFEST in work/
     .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --install  # and the OGGs into assets/
-    .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --voices --install  # the voice takes of D91, D96 and D110
+    .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --voices --install  # the voice takes of D91, D96, D110 and D118
     .venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --dogs --install    # the hound's dogs (D107)
     .venv/Scripts/python.exe -m unittest tests.test_enemy_sfx_install -v
 
@@ -565,7 +565,18 @@ VOICE_AGGRESSIVE_DIR = VOICE_DIR / "aggressive"
 # the CEO's order (SDRRIPA1 = R07 t06, SDLTRDT3 = L09 t04, SDGENPA1 = G03 t06);
 # the beds' lumps are ...B<n>, so no name is shared.
 VOICE_P2_DIR = VOICE_DIR / "p2"
-VOICE_DAYS = {"D91": VOICE_DAY, "D96": VOICE_DAY, "D110": "20261021"}
+# --- D118: five takes of the P2b round (the General's death) ------------------------
+# work/audio/preview/voices_p2b_listening.html (gen_p2b.py, page_p2b.py): G04
+# redrafted after D110's all-NO. OK t01, t07, t08, t05, t12; NO t10, t03, t04.
+# Chatterbox Multilingual on the CPU as D110, cloned from kurt's "Soldier Voice
+# Acting" (CC-BY 3.0): wounded.ogg + battlecries.ogg (t01, t07, t08) or
+# battlecries.ogg alone (t05, t12). Processed by gen_p2b.py with
+# process_voice_takes (t01 and t05: the junk after a long gap cut there, as the
+# page played them) and levelled to DSCYBDTH, the Freedoom lump they replace.
+# All five ship byte for byte as the page's OGGs; a $random group in the CEO's
+# order (SDGENDT1 = t01 ... SDGENDT5 = t12). The bed stays SDGENDB1 (parked).
+VOICE_P2B_DIR = VOICE_DIR / "p2b"
+VOICE_DAYS = {"D91": VOICE_DAY, "D96": VOICE_DAY, "D110": "20261021", "D118": "20261022"}
 
 
 @dataclass(frozen=True)
@@ -583,7 +594,8 @@ class VoiceInstall:
 
     @property
     def folder(self) -> Path:
-        return {"D91": VOICE_DIR, "D96": VOICE_AGGRESSIVE_DIR, "D110": VOICE_P2_DIR}[self.decision]
+        return {"D91": VOICE_DIR, "D96": VOICE_AGGRESSIVE_DIR, "D110": VOICE_P2_DIR,
+                "D118": VOICE_P2B_DIR}[self.decision]
 
     @property
     def path(self) -> Path:
@@ -637,6 +649,12 @@ VOICE_INSTALLS: tuple[VoiceInstall, ...] = (
     _voice("SDLTRDT3", "L09", "SDLTRDTH", 4, f"{_LT}/death", 3, "DSPODTH2", "D110"),
     _voice("SDGENPA1", "G03", "SDGENPAI", 6, f"{_GN}/pain", 1, "DSDMPAIN", "D110"),
     _voice("SDGENPA2", "G03", "SDGENPAI", 4, f"{_GN}/pain", 2, "DSDMPAIN", "D110"),
+    # D118
+    _voice("SDGENDT1", "G04", "SDGENDTH", 1, f"{_GN}/death", 1, "DSCYBDTH", "D118"),
+    _voice("SDGENDT2", "G04", "SDGENDTH", 7, f"{_GN}/death", 2, "DSCYBDTH", "D118"),
+    _voice("SDGENDT3", "G04", "SDGENDTH", 8, f"{_GN}/death", 3, "DSCYBDTH", "D118"),
+    _voice("SDGENDT4", "G04", "SDGENDTH", 5, f"{_GN}/death", 4, "DSCYBDTH", "D118"),
+    _voice("SDGENDT5", "G04", "SDGENDTH", 12, f"{_GN}/death", 5, "DSCYBDTH", "D118"),
 )
 VOICES_BY_LUMP = {v.lump: v for v in VOICE_INSTALLS}
 # dB the codec pass took off a voice take's master peak (codec_safe's loop and margin).
@@ -682,6 +700,12 @@ VOICE_SHA256: dict[str, str] = {
     "SDLTRDT3": "092c8c7d40763d74f171b796832df009a58f0424bd351d23312580802eae935c",
     "SDGENPA1": "d6025787d6b86ca32f89a953576a443c33880197dc67edddf8a7f2e48948a570",
     "SDGENPA2": "4ed7fc422994149fffd20f994b824543fb900f188f35c53b9924517ee79be1ad",
+    # D118
+    "SDGENDT1": "e6f27e5e9a4571eb2b898bbc1ff764619443bb8b5f3c0d460108a09d85534e67",
+    "SDGENDT2": "b9ed883e6ee645187b86151aefb06849a174ecedbeed6e15c4554071fe3cea9c",
+    "SDGENDT3": "0b93f029ae3accef66bb192eef1c486335bd3c3bedee3da17914c6aeefe28085",
+    "SDGENDT4": "564a603043146f6526afd9746c0e5e8fd67f09eff2a5e3a5f2b81817a0c74eee",
+    "SDGENDT5": "ef093366d886a14049f25d362bf55f9061dd592963a81f02c518b4f736f61cc6",
 }
 
 
@@ -880,7 +904,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--list", action="store_true", help="print the plan and write nothing")
     ap.add_argument("--install", action="store_true", help="also write the OGGs into assets/sounds/enemies/")
-    ap.add_argument("--voices", action="store_true", help="the voice takes of D91, D96 and D110 instead")
+    ap.add_argument("--voices", action="store_true", help="the voice takes of D91, D96, D110 and D118 instead")
     ap.add_argument("--dogs", action="store_true", help="the hound's dog takes of D107 instead")
     ap.add_argument("names", nargs="*", help="only these lumps")
     args = ap.parse_args(argv)

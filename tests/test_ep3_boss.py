@@ -22,7 +22,7 @@ docs/engine/2026-10-22_P4_ep3-final-boss.md. What is checked, and why:
              languages; the brief (health twice the colossus's, the
              General's boss flags, two phases at half health, the arsenal's
              projectiles passing through monsters, servants from both
-             factions); placed in no map yet
+             factions); placed in MAP09 only (D116, its BOSS_KIND)
   doc        the design document and the contracts name it
 
 Stdlib only.
@@ -454,11 +454,18 @@ class ModTests(unittest.TestCase):
         self.assertGreater(const_value(body, "SD_WOUNDED_MARGIN"), 0)
         self.assertNotRegex(body, r'"\$SD_|"sd/')
 
-    def test_placed_in_no_map_yet(self):
+    def test_placed_in_map09_only(self):
+        """D116: MAP09's BOSS_KIND (level-designer); no other map names the
+        class or its editor number, and MAP09 names both."""
+        found = set()
         for p in (SRC / "maps").rglob("*.py"):
             text = p.read_text(encoding="utf-8")
-            self.assertNotIn(BOSS, text, p)
-            self.assertIsNone(re.search(r"\b21112\b", text), f"{p} names 21112")
+            if BOSS in text or re.search(r"\b21112\b", text):
+                self.assertEqual("MAP09", p.parent.name, f"{p} names {BOSS}")
+                self.assertIn(BOSS, text, p)
+                self.assertRegex(text, r"\b21112\b", p)
+                found.add(p.parent.name)
+        self.assertEqual({"MAP09"}, found)
 
 
 class DocTests(unittest.TestCase):

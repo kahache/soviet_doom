@@ -77,14 +77,18 @@ CLASS_FILES = {
     "SD_ReichHound": "reich_hound.zs",
     "SD_Doughboy": "doughboy.zs",
     "SD_Panzermensch": "panzermensch.zs",
-    "SD_General": "general.zs",
     "SD_PanzermenschSchwer": "panzermensch_schwer.zs",
+    "SD_LegionGunner": "legion_gunner.zs",
+    "SD_LibertyColossus": "liberty_colossus.zs",
 }
 CLASS_PARENT = {"SD_PanzermenschSchwer": "SD_Panzermensch"}
 # G3-8 as MAP03 measures it (tests/test_map03_factory.py): kills in IZh shells.
 SHELLS_TO_KILL = {"SD_ReichRifleman": 1, "SD_LegionTrooper": 1, "SD_Stormtrooper": 2,
                   "SD_ReichHound": 3, "SD_Doughboy": 6, "SD_Panzermensch": 8,
-                  "SD_PanzermenschSchwer": 16, "SD_General": 48}
+                  "SD_PanzermenschSchwer": 16,
+                  # D116: the gunner's 80 HP as the Stormtrooper's two; the
+                  # colossus's 4500 at the General's rate (3000 for 48).
+                  "SD_LegionGunner": 2, "SD_LibertyColossus": 72}
 G3_8_MARGIN = 1.35
 SHELLS_GIVEN = {2008: 4, 2049: 20, 21003: 8}
 ROUNDS_GIVEN = {2007: 10, 2048: 50, 21004: 35}
@@ -97,6 +101,11 @@ IZH_AVERAGE = 80
 PPSH_AVERAGE = 8
 RPG_AVERAGE = 135
 ROKS_AVERAGE = 18
+# D116: the AKM's own pool (30 a magazine), avg 12 a round (BALANCE
+# section 2): 80 / 12 rounds make one IZh shell.
+AKM_ROUNDS_GIVEN = {21008: 30, 21020: 30}
+AKM_AVERAGE = 12
+AKM_ROUNDS_PER_SHELL = IZH_AVERAGE / AKM_AVERAGE
 
 
 def _load_map06():
@@ -113,8 +122,11 @@ def _packed(name: str) -> bool:
 
 def _class_facts(name: str) -> dict:
     text = (MONSTER_ZS / CLASS_FILES[name]).read_text(encoding="utf-8")
-    facts = {k: int(v) for k, v in
-             re.findall(r"const\s+SD_\w+?_(RADIUS|HEIGHT|HEALTH)\s*=\s*(\d+)", text)}
+    # The class's own body comes first in its file; later constants (the
+    # colossus's SD_STOMP_RADIUS, SD_STOMP_QUAKE_RADIUS) are not his body.
+    facts = {}
+    for k, v in re.findall(r"const\s+SD_\w+?_(RADIUS|HEIGHT|HEALTH)\s*=\s*(\d+)", text):
+        facts.setdefault(k, int(v))
     faction = re.search(r"SD_Monster\.Faction\s+SD_FACTION_(\w+)", text)
     if faction:
         facts["FACTION"] = faction.group(1)
@@ -978,6 +990,46 @@ class Map06Test(unittest.TestCase):
         height = self.body[m.MONSTER_KINDS[m.BOSS_KIND]][1]
         self.assertGreater(m.ARENA_SKY, 4 * height)
 
+    def test_the_boss_is_the_liberty_colossus(self):
+        """D116: episode 2's own boss replaced the General's stand-in; the
+        General is gone from the map (MAP03's)."""
+        m = self.m
+        self.assertEqual("SD_LibertyColossus", m.MONSTER_CLASSES[m.MONSTER_KINDS[m.BOSS_KIND]])
+        self.assertEqual((44, 110), self.body[m.MONSTER_KINDS[m.BOSS_KIND]])
+        self.assertFalse(self.things_of({21106}), "the General is MAP03's")
+
+    def test_the_final_stretch_pays_for_the_colossus(self):
+        """G3-8 on the last stretch alone (the gate's passage and the
+        courtyard): the damage placed there is at least 1.35 times the hit
+        points met there, the colossus's 4500 included, on every skill."""
+        final = {i for n, i in self.plan.items() if n.startswith(("z8_", "z9_"))}
+        for skill in SKILLS:
+            here = [t for t in self.on_route(self.on(skill, self.things))
+                    if self.sector_at(t["x"], t["y"]) in final]
+            hp = sum(self.hit_points.get(t["type"], 0) for t in here)
+            damage = sum(SHELLS_GIVEN.get(t["type"], 0) * IZH_AVERAGE
+                         + ROUNDS_GIVEN.get(t["type"], 0) * PPSH_AVERAGE
+                         + AKM_ROUNDS_GIVEN.get(t["type"], 0) * AKM_AVERAGE
+                         + ROCKETS_GIVEN.get(t["type"], 0) * RPG_AVERAGE
+                         + CELLS_GIVEN.get(t["type"], 0) * ROKS_AVERAGE for t in here)
+            self.assertGreaterEqual(damage, G3_8_MARGIN * hp, f"skill {skill}: {damage} for {hp}")
+
+    def test_the_legion_gunners_and_the_akm_magazines(self):
+        """D116: gunners 2 / 3 / 4 on skills 2 / 3 / 4 on the long lines (the
+        arcade, the gallery, behind the parade's vehicles on the square);
+        AKM magazines 4 / 3 / 2, none in the boss's courtyard, and no rifle
+        (MAP05 hands it out; docs/engine/2026-10-22_P4_akm.md section 6)."""
+        m = self.m
+        gunners = self.things_of({m.ED_GUNNER})
+        self.assertEqual({2: 2, 3: 3, 4: 4}, {s: len(self.on(s, gunners)) for s in SKILLS})
+        self.assertEqual(self.named("z4_arcade", "z5_gallery_s", "z6_square"),
+                         {self.sector_at(t["x"], t["y"]) for t in gunners})
+        mags = self.things_of({m.ED_AKM_AMMO})
+        self.assertEqual({2: 4, 3: 3, 4: 2}, {s: len(self.on(s, mags)) for s in SKILLS})
+        courtyard = {i for n, i in self.plan.items() if n.startswith("z9_")}
+        self.assertFalse([t for t in mags if self.sector_at(t["x"], t["y"]) in courtyard])
+        self.assertFalse(self.things_of({21008}), "the AKM is MAP05's")
+
     def test_the_red_key_springs_the_museums_closets(self):
         m = self.m
         red = self.things_of({m.ED_RED_CARD})[0]
@@ -1167,6 +1219,7 @@ class Map06Test(unittest.TestCase):
     def ammo_placed(self, skill, heavy=True):
         placed = self.on_route(self.on(skill, self.things))
         return sum(SHELLS_GIVEN.get(t["type"], 0) + ROUNDS_GIVEN.get(t["type"], 0) / ROUNDS_PER_SHELL
+                   + AKM_ROUNDS_GIVEN.get(t["type"], 0) / AKM_ROUNDS_PER_SHELL
                    + heavy * (ROCKETS_GIVEN.get(t["type"], 0) * SHELLS_PER_ROCKET
                               + CELLS_GIVEN.get(t["type"], 0) * SHELLS_PER_CELL) for t in placed)
 
@@ -1194,6 +1247,7 @@ class Map06Test(unittest.TestCase):
                 hp_so_far += sum(self.hit_points.get(t["type"], 0) for t in here)
                 damage += sum(SHELLS_GIVEN.get(t["type"], 0) * IZH_AVERAGE
                               + ROUNDS_GIVEN.get(t["type"], 0) * PPSH_AVERAGE
+                              + AKM_ROUNDS_GIVEN.get(t["type"], 0) * AKM_AVERAGE
                               + ROCKETS_GIVEN.get(t["type"], 0) * RPG_AVERAGE
                               + CELLS_GIVEN.get(t["type"], 0) * ROKS_AVERAGE for t in here)
                 self.assertGreaterEqual(damage, G3_8_MARGIN * hp_so_far, f"skill {skill}, stage {stage}")

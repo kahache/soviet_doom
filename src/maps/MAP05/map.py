@@ -402,6 +402,7 @@ ED_HOUND = 21103          # SD_ReichHound, Reich
 ED_DOUGHBOY = 21104       # SD_Doughboy, Legion, flies
 ED_PANZERMENSCH = 21105   # SD_Panzermensch, Reich
 ED_PANZER_HEAVY = 21107   # SD_PanzermenschSchwer, Reich
+ED_GUNNER = 21110         # SD_LegionGunner, Legion, 80 HP: bursts of hitscan; drops 15 AKM rounds (D116)
 MONSTER_KINDS = {
     "rifleman": ED_RIFLEMAN,
     "trooper": ED_TROOPER,
@@ -410,6 +411,7 @@ MONSTER_KINDS = {
     "doughboy": ED_DOUGHBOY,
     "panzermensch": ED_PANZERMENSCH,
     "heavy": ED_PANZER_HEAVY,
+    "gunner": ED_GUNNER,
 }
 MONSTER_CLASSES = {
     ED_RIFLEMAN: "SD_ReichRifleman",
@@ -419,9 +421,10 @@ MONSTER_CLASSES = {
     ED_DOUGHBOY: "SD_Doughboy",
     ED_PANZERMENSCH: "SD_Panzermensch",
     ED_PANZER_HEAVY: "SD_PanzermenschSchwer",
+    ED_GUNNER: "SD_LegionGunner",
 }
 REICH = ("rifleman", "hound", "panzermensch", "heavy")
-LEGION = ("trooper", "doughboy")
+LEGION = ("trooper", "doughboy", "gunner")
 # Where each faction stands (D35: both on the map). The Legion holds the
 # east bank's station and the open water (the spillway, where its Doughboys
 # fly); the Reich runs the machine: the galleries, the turbine hall and the
@@ -436,7 +439,8 @@ ED_IZH = 21003
 ED_PPSH = 21004
 ED_RPG7 = 21005
 ED_ROKS3 = 21006
-ROUTE_WEAPONS = (ED_IZH, ED_PPSH, ED_RPG7, ED_ROKS3)
+ED_AKM = 21008            # SD_Akm, slot 4's second weapon (D116): 30 rounds of its own pool
+ROUTE_WEAPONS = (ED_IZH, ED_PPSH, ED_RPG7, ED_ROKS3, ED_AKM)
 ED_HAND_KATYUSHA = 21007  # in S3 only, on the crest, for the last fight
 # Ammo, health and armour: Doom's numbers, which our classes replace.
 ED_CLIP = 2007
@@ -446,6 +450,7 @@ ED_SHELL_BOX = 2049
 ED_ROCKET = 2010
 ED_ROCKET_BOX = 2046
 ED_CELL = 2047
+ED_AKM_AMMO = 21020       # SD_AkmAmmo, one 30-round 7.62x39 magazine (D116, ADR 011)
 ED_STIMPACK = 2011
 ED_MEDIKIT = 2012
 ED_HEALTH_BONUS = 2014
@@ -491,16 +496,18 @@ MONSTERS = (
     ("z5_hall", "stormtrooper", 3328, 704, 180, 4),
     # The spillway: the Legion on the walkways, its Doughboys over the water.
     ("z7_channel", "doughboy", 1024, 1088, 270, 2),
-    ("z7_west_walk", "trooper", 640, 576, 0, 2),
+    # The Legion gunners (D116) on the west walkway: the channel's whole
+    # width to fire across, the parapet for cover; the second on hard.
+    ("z7_west_walk", "gunner", 640, 576, 0, 2),
     ("z7_west_walk", "trooper", 704, 1344, 0, 2),
     ("z7_west_walk", "stormtrooper", 800, 1152, 0, 3),
     ("z7_channel", "doughboy", 1024, 1536, 270, 4),
-    ("z7_west_walk", "trooper", 640, 1600, 270, 4),
+    ("z7_west_walk", "gunner", 640, 1600, 270, 4),
     # The control room: both factions at the consoles.
     ("z6_control", "trooper", 2400, 1248, 270, 2),
     ("z6_control", "rifleman", 2848, 1024, 180, 2),
     ("z6_control", "stormtrooper", 2624, 1248, 270, 2),
-    ("z6_control", "trooper", 2848, 1248, 180, 3),
+    ("z6_control", "gunner", 2848, 1248, 180, 3),     # D116: down the console rows
     ("z6_control", "stormtrooper", 2400, 1024, 0, 4),
     # The yellow door's closets on the catwalk: the Reich comes back.
     ("closet_z5_w", "rifleman", 2144, 944, 270, 2),
@@ -525,7 +532,7 @@ MONSTERS = (
     ("z10_crest", "rifleman", 3008, 2000, 0, 2),
     ("z10_crest", "rifleman", 2688, 1840, 0, 2),
     ("z10_crest", "doughboy", 2432, 2000, 0, 2),
-    ("z10_crest", "trooper", 1408, 1840, 0, 2),
+    ("z10_crest", "gunner", 1408, 1840, 0, 2),        # D116: the crest's length to fire along
     ("z10_crest", "stormtrooper", 1792, 1840, 0, 3),
     ("z10_crest", "doughboy", 1216, 2000, 0, 3),
     ("z10_crest", "heavy", 896, 1840, 0, 3),
@@ -548,6 +555,10 @@ ITEMS = (
     ("z4_gallery", ED_PPSH, 3840, 512, 4),
     ("z5_hall", ED_RPG7, 3392, 512, 4),
     ("z6_control", ED_ROKS3, 2624, 1056, 4),
+    # The AKM (D116; docs/engine/2026-10-22_P4_akm.md section 6): the
+    # episode's new rifle, at the gallery's west end, after the PPSh and
+    # before the hall's door and its RPG-7, for the dam's long sightlines.
+    ("z4_gallery", ED_AKM, 3648, 512, 4),
     # Shell boxes (20).
     ("z5_hall", ED_SHELL_BOX, 1760, 192, 4),
     ("z7_east_walk", ED_SHELL_BOX, 1280, 1664, 4),
@@ -584,6 +595,12 @@ ITEMS = (
     ("z1_station", ED_CLIP, 4416, 1472, 3),
     ("z5_hall", ED_CLIP, 1984, 224, 3),
     ("z1_station", ED_CLIP, 4480, 1472, 2),
+    # AKM magazines (30): 4 / 3 / 2 on skills 2 / 3 / 4, plus the gunners'
+    # drops (15 each, not counted).
+    ("z4_gallery", ED_AKM_AMMO, 3616, 512, 4),
+    ("z10_crest", ED_AKM_AMMO, 3040, 1872, 4),
+    ("z6_control", ED_AKM_AMMO, 2496, 1056, 3),
+    ("z7_west_walk", ED_AKM_AMMO, 576, 1408, 2),
     # PG-7V: a box with the RPG-7, rounds for the substation and the crest.
     ("z5_hall", ED_ROCKET_BOX, 3392, 640, 4),
     ("z9_substation", ED_ROCKET_BOX, 3648, 1600, 4),

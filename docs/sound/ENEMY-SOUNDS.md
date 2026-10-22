@@ -8,6 +8,12 @@ the naming rule of §2.3; the SNDINFO contract is `docs/engine/MOD-SPEC.md`
 §6.2. Music rights live in `docs/sound/MUSIC-RIGHTS.md`; this document owns
 **sound-effect and voice rights** only.
 
+> **Status (2026-10-22): twelve of the twelve enemy voices are ours.**
+> D110 installed the rifleman's pain, the trooper's death and the General's
+> pain; D118 the General's death (five takes of the P2b round, `SDGENDT1`-`5`,
+> §5.12). No enemy voice plays a Freedoom lump any more; `DSCYBDTH` stays
+> only as the P4 placeholder of the Colossus's and the Consortium's deaths.
+>
 > **Status (2026-10-20): INSTALLED (N9e, §5.12)** the 30 sounds and 5 beds
 > the CEO approved in D83, the takes of D86, the seven voice takes of D91
 > and the seventeen of D96: 81 lumps in `assets/sounds/enemies/`. Eight of
@@ -818,7 +824,7 @@ played (the rifleman's and trooper's `SeeSound`, `ActiveSound`,
 `SNDINFO`'s right-hand column. Still Freedoom's (no take approved): the
 rifleman's pain (`DSPOPAIN`), the trooper's death (`DSPODTH2`), the
 General's pain (`DSDMPAIN`) and death (`DSCYBDTH`); D110 (below) replaced
-all four but the General's death.
+all four but the General's death, and D118 (below) that one.
 
 | Lump | Take | Line | Reference | Logical name | Target, dB A (from) | Installed OGG SHA-256 |
 |---|---|---|---|---|---|---|
@@ -875,6 +881,32 @@ already the logical names.
 | `SDLTRDT3` | L09 t04, tail cut at 1.20 s | "Aaaargh!" | HaelDB | `sd/mon/legiontrooper/death/3` | -8.3 (`DSPODTH2`) | `092c8c7d40763d74f171b796832df009a58f0424bd351d23312580802eae935c` |
 | `SDGENPA1` | G03 t06 | "Argh!" | kurt | `sd/mon/general/pain/1` | -11.7 (`DSDMPAIN`) | `d6025787d6b86ca32f89a953576a443c33880197dc67edddf8a7f2e48948a570` |
 | `SDGENPA2` | G03 t04 | "Hngh!" | kurt | `sd/mon/general/pain/2` | -11.7 (`DSDMPAIN`) | `4ed7fc422994149fffd20f994b824543fb900f188f35c53b9924517ee79be1ad` |
+
+**The General's death, five takes (D118).** G04 was all NO in D110 and
+redrafted in the P2b round (`work/audio/preview/voices_p2b_listening.html`;
+`work/audio/voice_takes/p2b/` `gen_p2b.py`, `page_p2b.py`, `AI-LOG.csv`,
+`METRICS.json`): Chatterbox Multilingual on the CPU as D110, all twelve
+takes cloned from kurt's "Soldier Voice Acting" (CC-BY 3.0; wounded.ogg +
+battlecries.ogg, or battlecries.ogg alone for t05 and t12), processed by
+`process_voice_takes` and levelled to `DSCYBDTH`, the lump they replace.
+The CEO's verdict: OK t01, t07, t08, t05, t12; NO t10, t03, t04. A `$random`
+group in the CEO's order (`SDGENDT1` = t01 ... `SDGENDT5` = t12; the bed is
+`SDGENDB1`, no name is shared). All five ship **byte for byte** as the
+page's OGGs (`master_enemy_sfx.py --voices` only checks them: decoded peak
+-0.53 to -3.91 dBFS, loudness -11.21 to -11.30 dB A against -11.26). gen_p2b
+had already cut junk after a long gap from t01 (3.01 s) and t05 (1.80 s);
+that is what the page played. Lengths 1.8-3.6 s, inside the card's "up to
+~4 s". No ZScript changed: `DeathSound "sd/mon/general/death"` was already
+the logical name. With these, **twelve of the twelve enemy voices are
+ours**.
+
+| Lump | Take | Line | Reference | Logical name | Target, dB A (from) | Installed OGG SHA-256 |
+|---|---|---|---|---|---|---|
+| `SDGENDT1` | G04 t01 | "Aaaaaaaaaaargh... aaaaah." | kurt | `sd/mon/general/death/1` | -11.3 (`DSCYBDTH`) | `e6f27e5e9a4571eb2b898bbc1ff764619443bb8b5f3c0d460108a09d85534e67` |
+| `SDGENDT2` | G04 t07 | "Neeeeeiiiin!" | kurt | `sd/mon/general/death/2` | -11.3 (`DSCYBDTH`) | `b9ed883e6ee645187b86151aefb06849a174ecedbeed6e15c4554071fe3cea9c` |
+| `SDGENDT3` | G04 t08 | "Urgh... aaaaaaaaah... ah." | kurt | `sd/mon/general/death/3` | -11.3 (`DSCYBDTH`) | `0b93f029ae3accef66bb192eef1c486335bd3c3bedee3da17914c6aeefe28085` |
+| `SDGENDT4` | G04 t05 | "Nein! Aaaaaaaaaaah..." | kurt | `sd/mon/general/death/4` | -11.3 (`DSCYBDTH`) | `564a603043146f6526afd9746c0e5e8fd67f09eff2a5e3a5f2b81817a0c74eee` |
+| `SDGENDT5` | G04 t12 | "Aaaargh... no..." | kurt | `sd/mon/general/death/5` | -11.3 (`DSCYBDTH`) | `ef093366d886a14049f25d362bf55f9061dd592963a81f02c518b4f736f61cc6` |
 
 **The Reich hound's real dogs (D107).** The CEO heard five sounds x three
 candidates on `work/audio/preview/dog_listening.html` (built by
@@ -939,7 +971,9 @@ on CHAN_VOICE (the trooper's "I'm hit!" is 1.3-1.6 s where the script
 asked 0.4-0.5 s, and a second hit restarts it); since D110 the rifleman's
 pain (two "Argh!"), the trooper's death (three cries, the third ending in
 its fade, no click after it) and the General's pain (two grunts) are ours
-and vary; only the General's death is still Freedoom's, and no bed is heard; (7) the hound (D107) is a real dog: its bark on sight
+and vary; since D118 the General's death too (five takes: a long cry, a
+"Nein!", German and English, each ringing up to 3.6 s, not cut off by his
+fall), and no bed is heard; (7) the hound (D107) is a real dog: its bark on sight
 carries through a door and changes from one hound to the next, its idle
 growl/pant, its lunge bark, its yelp and its death whine each vary among
 three takes, and none sounds out of level against the shotgun or the

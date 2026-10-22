@@ -47,8 +47,9 @@ GZDoom):
   ceilings). NOT VERIFIED in engine;
 * the exit depends on a death: the boss's thing carries Door_Open on
   TAG_BOSS_EXIT (MAP03 v1.1's thing special, D68), and NO line carries that
-  tag. The boss stands at MAP06_BOSS_SPOT; until episode 2's own boss exists
-  it is the General (BOSS_KIND), so the class changes in one place;
+  tag. The boss stands at MAP06_BOSS_SPOT; he is the Liberty Colossus
+  (BOSS_KIND, D116; the General stood in until then), the class named in
+  one place;
 * a key that springs an ambush: the red key's thing carries Door_Open on
   TAG_AMBUSH, run when it is picked up (Hexen-style item special), which
   opens two closets in the museum's wall on the square behind the player.
@@ -289,13 +290,14 @@ TAG_BOSS_EXIT = 12      # the exit gate; ONLY the boss's death opens it (no line
 SECRET_PANEL_TAGS = (TAG_S1_PANEL, TAG_S2_PANEL, TAG_S3_PANEL)
 
 # --- The boss --------------------------------------------------------------------
-# Episode 2's boss is a new Liberty Legion enemy that does not exist yet
-# (D104). Until it does, the General (MAP03's boss) stands in. To swap him:
-# change BOSS_KIND (and add the new class to MONSTER_KINDS/MONSTER_CLASSES);
-# the spot, the facing and the death special stay.
+# Episode 2's boss is the Liberty Colossus (D104, in the mod since D116;
+# docs/engine/2026-10-22_P4_ep2-enemies.md section 3), who replaced the
+# General's stand-in here. Radius 44 / height 110: the dais's top (128 x 128)
+# holds him, the courtyard's sky (ARENA_SKY) is far over him. The spot, the
+# facing and the death special did not change with him.
 MAP06_BOSS_SPOT = (960, 1536)   # on the dais in the Kremlin courtyard, facing the gate
 BOSS_ANGLE = 0
-BOSS_KIND = "general"
+BOSS_KIND = "colossus"
 BOSS_DEATH_SPECIAL = (SPECIAL_DOOR_OPEN, (TAG_BOSS_EXIT, DOOR_SPEED_SLOW, 0, 0, 0))
 RED_KEY_SPECIAL = (SPECIAL_DOOR_OPEN, (TAG_AMBUSH, DOOR_SPEED_SLOW, 0, 0, 0))
 
@@ -447,8 +449,9 @@ ED_STORMTROOPER = 21102   # SD_Stormtrooper, both factions, 60 HP
 ED_HOUND = 21103          # SD_ReichHound, Reich, 150 HP
 ED_DOUGHBOY = 21104       # SD_Doughboy, Legion, 400 HP
 ED_PANZERMENSCH = 21105   # SD_Panzermensch, Reich, 500 HP
-ED_GENERAL = 21106        # SD_General, Legion, 3000 HP: the stand-in boss
 ED_PANZER_HEAVY = 21107   # SD_PanzermenschSchwer, Reich, 1000 HP
+ED_GUNNER = 21110         # SD_LegionGunner, Legion, 80 HP: bursts of hitscan; drops 15 AKM rounds (D116)
+ED_COLOSSUS = 21111       # SD_LibertyColossus, Legion, 4500 HP: episode 2's boss (D116)
 MONSTER_KINDS = {
     "rifleman": ED_RIFLEMAN,
     "trooper": ED_TROOPER,
@@ -456,8 +459,9 @@ MONSTER_KINDS = {
     "hound": ED_HOUND,
     "doughboy": ED_DOUGHBOY,
     "panzermensch": ED_PANZERMENSCH,
-    "general": ED_GENERAL,
     "heavy": ED_PANZER_HEAVY,
+    "gunner": ED_GUNNER,
+    "colossus": ED_COLOSSUS,
 }
 MONSTER_CLASSES = {
     ED_RIFLEMAN: "SD_ReichRifleman",
@@ -466,11 +470,12 @@ MONSTER_CLASSES = {
     ED_HOUND: "SD_ReichHound",
     ED_DOUGHBOY: "SD_Doughboy",
     ED_PANZERMENSCH: "SD_Panzermensch",
-    ED_GENERAL: "SD_General",
     ED_PANZER_HEAVY: "SD_PanzermenschSchwer",
+    ED_GUNNER: "SD_LegionGunner",
+    ED_COLOSSUS: "SD_LibertyColossus",
 }
 REICH = ("rifleman", "hound", "panzermensch", "heavy")
-LEGION = ("trooper", "doughboy", "general")
+LEGION = ("trooper", "doughboy", "gunner", "colossus")
 # Where each faction stands (D35's grammar, D104's Moscow): the Reich holds
 # the station, the street and the slope (the military occupation); the
 # Legion holds the GUM (capital, in the department store) and its
@@ -496,6 +501,7 @@ ED_ROCKET = 2010          # 1 PG-7V
 ED_ROCKET_BOX = 2046      # 5
 ED_CELL = 2047            # 20 fuel
 ED_CELL_PACK = 17         # 100 fuel
+ED_AKM_AMMO = 21020       # SD_AkmAmmo, one 30-round 7.62x39 magazine (D116, ADR 011)
 ED_BACKPACK = 8           # SD_Backpack
 ED_STIMPACK = 2011
 ED_MEDIKIT = 2012
@@ -505,7 +511,7 @@ ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
 
 # Design section 9: monsters per skill, Doom's skill pairs (udmf.skill_tier).
-ENEMY_TOTALS = {2: 42, 3: 68, 4: 96}
+ENEMY_TOTALS = {2: 42, 3: 69, 4: 98}
 
 # Every monster: (zone, kind, x, y, facing, lowest skill tier). Facing: 0
 # east, 90 north, 180 west, 270 south; most face where the player comes from.
@@ -539,7 +545,8 @@ MONSTERS = (
     # The GUM's ground floor: the Legion in the shop of the nation.
     ("z4_north", "trooper", 3700, 3450, 90, 2),
     ("z4_north", "trooper", 4250, 3420, 90, 2),
-    ("z4_arcade", "trooper", 3600, 2900, 90, 2),
+    # The Legion gunner (D116) down the arcade's length, the GUM's long line.
+    ("z4_arcade", "gunner", 3600, 2900, 90, 2),
     ("z4_shop_c", "stormtrooper", 3872, 2688, 0, 2),
     ("z4_south", "trooper", 3800, 1280, 90, 2),
     ("z4_north", "stormtrooper", 3900, 3400, 90, 3),
@@ -551,7 +558,7 @@ MONSTERS = (
     # Upstairs and under the glass roof: snipers on the gallery, a Doughboy
     # floating over the line.
     ("z5_gallery_n", "trooper", 4288, 3100, 180, 2),
-    ("z5_gallery_s", "trooper", 4288, 1700, 180, 2),
+    ("z5_gallery_s", "gunner", 4288, 1700, 180, 2),    # D116: along the gallery
     ("z5_atrium", "stormtrooper", 3900, 2300, 90, 2),
     ("z5_passage_s", "doughboy", 4096, 1800, 90, 2),
     ("z5_upper_w", "trooper", 3870, 2920, 0, 3),
@@ -581,6 +588,9 @@ MONSTERS = (
     ("z6_square", "stormtrooper", 3200, 2550, 0, 3),
     ("z6_square", "hound", 2600, 3000, 0, 3),
     ("z6_square", "doughboy", 2100, 2400, 0, 3),
+    # The Legion's gunners (D116) behind the halted parade's vehicles, the
+    # square's width to fire across at the GUM's doors.
+    ("z6_square", "gunner", 2176, 2450, 0, 3),
     ("z6_square", "rifleman", 3300, 1700, 0, 4),
     ("z6_square", "rifleman", 2800, 3350, 0, 4),
     ("z6_square", "rifleman", 1950, 1700, 0, 4),
@@ -589,6 +599,7 @@ MONSTERS = (
     ("z6_square", "heavy", 2750, 1700, 0, 4),
     ("z6_square", "panzermensch", 2450, 3300, 0, 4),
     ("z6_square", "hound", 3000, 2350, 0, 4),
+    ("z6_square", "gunner", 2810, 1900, 0, 4),
     # The museum's closets (TAG_AMBUSH, the red key's pickup): the Legion's
     # counter-attack on the square already crossed, as the player comes back.
     ("closet_z6_w", "trooper", 1960, 3528, 270, 2),
@@ -692,6 +703,11 @@ ITEMS = (
     ("z8_passage", ED_ROCKET_BOX, 1440, 1580, 4),
     ("z9_arena", ED_ROCKET_BOX, 560, 820, 4),
     ("z9_arena", ED_ROCKET_BOX, 560, 2000, 4),
+    # D116, the colossus's 4500 HP (the General had 3000): two more boxes,
+    # one by the gate as he is met, one behind his dais for the player who
+    # circles him (docs/levels/MAP06-red-square.md section 10).
+    ("z9_arena", ED_ROCKET_BOX, 1250, 1300, 4),
+    ("z9_arena", ED_ROCKET_BOX, 640, 1536, 4),
     ("z9_arena", ED_ROCKET, 1300, 900, 4),
     ("z9_arena", ED_ROCKET, 1300, 1300, 4),
     ("z9_arena", ED_ROCKET, 1300, 1750, 4),
@@ -701,6 +717,13 @@ ITEMS = (
     ("z6_square", ED_ROCKET, 3400, 2650, 4),
     ("z7_park", ED_ROCKET, 2900, 700, 4),
     ("z6_square", ED_ROCKET_BOX, 2000, 3400, 3),
+    # AKM magazines (30), D116: 4 / 3 / 2 on skills 2 / 3 / 4, none in the
+    # boss's courtyard (the boss is the RPG-7's); the rifle itself is
+    # MAP05's, and the gunners drop 15 rounds each (not counted).
+    ("z4_north", ED_AKM_AMMO, 3720, 3500, 4),
+    ("z6_square", ED_AKM_AMMO, 3350, 2050, 4),
+    ("z7_park", ED_AKM_AMMO, 2700, 950, 3),
+    ("z5_gallery_n", ED_AKM_AMMO, 4288, 2960, 2),
     # Fuel for the ROKS-3: a canister beside it, more on the slope and before
     # the boss, a pack in the gate's passage.
     ("z6_tribune_s_top", ED_CELL, 1712, 1900, 4),

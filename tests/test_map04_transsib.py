@@ -73,12 +73,15 @@ CLASS_FILES = {
     "SD_Doughboy": "doughboy.zs",
     "SD_Panzermensch": "panzermensch.zs",
     "SD_PanzermenschSchwer": "panzermensch_schwer.zs",
+    "SD_LegionGunner": "legion_gunner.zs",
 }
 CLASS_PARENT = {"SD_PanzermenschSchwer": "SD_Panzermensch"}
 # G3-8, MAP03's ruler: what each kill costs in IZh shells.
 SHELLS_TO_KILL = {"SD_ReichRifleman": 1, "SD_LegionTrooper": 1, "SD_Stormtrooper": 2,
                   "SD_ReichHound": 3, "SD_Doughboy": 6, "SD_Panzermensch": 8,
-                  "SD_PanzermenschSchwer": 16}
+                  "SD_PanzermenschSchwer": 16,
+                  # D116: 80 HP, one IZh barrel kills him half the time: two, as the Stormtrooper.
+                  "SD_LegionGunner": 2}
 G3_8_MARGIN = 1.35
 SHELLS_GIVEN = {2008: 4, 2049: 20, 21003: 8}
 ROUNDS_GIVEN = {2007: 10, 2048: 50, 21004: 35}
@@ -1287,6 +1290,19 @@ class Map04Test(unittest.TestCase):
         db = self.things_of({m.ED_DOUGHBOY})
         self.assertEqual(self.named("z4_hall", "z6_platform"),
                          {self.sector_at(t["x"], t["y"]) for t in db if t["skill2"]})
+
+    def test_the_legion_gunners(self):
+        """D116: the Legion gunner's debut, 2 / 3 / 4 on skills 2 / 3 / 4, on
+        long lines (the warehouse's length, the platform's, the signal box's
+        windows over the yard). No AKM and no AKM magazine here: the
+        gunners' drops are the episode's first 7.62x39, MAP05 hands out the
+        rifle (docs/engine/2026-10-22_P4_akm.md section 6)."""
+        m = self.m
+        gunners = self.things_of({m.ED_GUNNER})
+        self.assertEqual({2: 2, 3: 3, 4: 4}, {s: len(self.on(s, gunners)) for s in SKILLS})
+        self.assertEqual(self.named("z4_hall", "z6_platform", "z3_cabin"),
+                         {self.sector_at(t["x"], t["y"]) for t in gunners})
+        self.assertFalse(self.things_of({21008, 21020}), "no AKM and no magazine on MAP04")
 
     def test_the_weapons_are_on_every_skill_on_the_route(self):
         """Pistol start (episode 2 opens here): the IZh in the tunnel before

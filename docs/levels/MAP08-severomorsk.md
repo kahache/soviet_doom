@@ -337,8 +337,9 @@ secret has a way back; none is needed (tested). All three open in round 0.
 
 ## 9. Enemies and resources by skill
 
-Bestiary numbers (MAPINFO DoomEdNums 21100-21107), nested by Doom's skill
-pairs. Every class but the General.
+Bestiary numbers (MAPINFO DoomEdNums 21100-21107, and since D116 21110
+the gunner and 21111 the Liberty Colossus), nested by Doom's skill pairs.
+Every class but the General and the Consortium.
 
 | | Skill 2 | Skill 3 | Skill 4 |
 |---|---|---|---|
@@ -349,7 +350,36 @@ pairs. Every class but the General.
 | Hounds | 2 | 5 | 6 |
 | Panzermenschen (workshops, reactor, bay) | 3 | 3 | 3 |
 | Heavy Panzermenschen (reactor, bay) | 0 | 2 | 2 |
-| **Total** | **33** | **50** | **64** |
+| Legion gunners (D116) | 3 | 4 | 5 |
+| **The Liberty Colossus** (the bay's mini-boss, D116) | 0 | 1 | 1 |
+| **Total** | **36** | **55** | **70** |
+
+The Legion's machine-gunners (D116, `SD_LegionGunner`, 21110, 80 HP; they
+drop half an AKM magazine), 3 / 4 / 5 on skills 2 / 3 / 4, each by cover
+with a long line down ground the player must cross (tested: none in a
+closet, each with a prop, a wall or a step within 128; the safe start
+holds):
+
+| Skill | Where | Line | Cover |
+|---|---|---|---|
+| 2 | the yard's north-east corner, (2560, 1408), facing west | the yard's length to the pier (2030 from the start) | the cargo and the cliff |
+| 2 | the dock's crane gallery, (2880, 1648), facing west | the south quay to D1, from 192 up | the gallery's railing and its edge |
+| 2 | the bay, on the track at the tunnel's mouth, (3776, 352), facing west | the rail tunnel's 1000 units | the goods wagon at his back |
+| 3 | the submarine's deck, (2592, 1984), facing west | the deck aft to the gangway | the fin |
+| 4 | the yard, (1920, 880), facing west | the yard to the pier (1310 from the start) | the middle crates |
+
+**The Liberty Colossus** (D116, `SD_LibertyColossus`, 21111, 4500 HP, 88
+wide and 110 high, `+NORADIUSDMG`; episode 2's boss) stands in the loading
+bay on **skills 3 and 4** as the map's mini-boss, by the locomotive at
+(4352, 512), facing west where the player comes out of the rail tunnel.
+The bay is 768 by 704 under a roof at 320, so he has room and the train is
+cover. He opens nothing: his death special is none, and MAP08's MAPINFO
+block has no boss-death flag (his `A_BossDeath` does nothing here; NOT
+VERIFIED in engine). The exit is not behind him: the player may run past
+him to the cab. **For him**: a PG-7V box in the rail tunnel, a fuel pack
+and a medikit in the bay, on every skill (tested: rockets and fuel in the
+tunnel and the bay at least a third of his 4500 on skills 3 and 4), plus
+three shell boxes along the tunnel and the bay for G3-8.
 
 **Safe start** (`tests/test_safe_starts.py`, 2026-10-22): on skills 2, 3 and 4 no monster sees the start zone (the start and a step round it) within 768 units; Doom's own sight test, run on the built map. The pier's trooper moved from 928, 1344 (604 off) to the pier's far north-east corner, 976, 1568 (820 off): seen across the pier, past the safe distance. Same count, same zone.
 
@@ -360,15 +390,20 @@ fight it is for: the **IZh** on the pier beside the start, the **PPSh-41**
 in the barracks hall, the **RPG-7** on the dock's crane gallery (round 0,
 before the first Panzermensch, round 2, tested), the **ROKS-3** in the
 torpedo store (for the reactor and the bay); the **Hand Katyusha** in S3.
+The **AKM** (D116, `SD_Akm` 21008) at the head of the gallery's stair, by
+the RPG-7; **AKM magazines** (`SD_AkmAmmo` 21020) 4 / 3 / 2 on skills
+2 / 3 / 4: the mess and the reactor hall on every skill, the torpedo store
+from skill 3, the yard on skill 2 (tested).
 
-**Ammunition** (G3-8's ruler, MAP05's test: kills in IZh shells, PG-7V at 2
-shells, fuel at ¼; route only, no drop, no secret):
+**Ammunition** (G3-8's ruler, MAP05's test: kills in IZh shells, a gunner
+2, the colossus 72, PG-7V at 2 shells, fuel at ¼, an AKM magazine 4.5;
+route only, no drop, no secret; v1.2, D116):
 
 | | Skill 2 | Skill 3 | Skill 4 |
 |---|---|---|---|
-| Needed | 72 | 134 | 160 |
-| Placed | 270.5 | 257.5 | 233.5 |
-| Ratio (≥ 1.35, and < 3 on skill 4) | 3.76 | 1.92 | 1.46 |
+| Needed | 78 | 214 | 242 |
+| Placed | 388.0 | 370.5 | 342.0 |
+| Ratio (≥ 1.35, and < 3 on skill 4) | 4.97 | 1.73 | 1.41 |
 
 Also checked at every round of the route. **Health** on skill 4: 7
 stimpacks + 6 medikits, 8 health bonuses; **armour**: the flak vest in the
@@ -476,6 +511,7 @@ episode-3 agents).
 1. **Walk v1** (§13.4).
 2. **The blue door's look**: settled, `SDDOORB` (v1.1).
 3. **The Hand Katyusha in S3** (the crane's cab), as MAP05 kept it in a secret.
+4. **The colossus in the bay** (D116, skills 3-4): the right mini-boss for the episode's middle map, or too much on top of the bay's heavies? He is one line to drop (`MONSTERS`) or to move to skill 4 only.
 
 ## 15. v1.1 record: the "Naval" set worn (2026-10-22, D113)
 
@@ -521,3 +557,27 @@ Verification actually run: `python -m unittest tests.test_map08_severomorsk
 tests.test_map08_route tests.test_posters` OK; `python tools/verify.py fast`
 (see the PM's report). **No engine run** (D26): V11 and V12 (§13.3) are the
 new checks.
+
+## 16. v1.2 record: the gunners, the colossus and the AKM (2026-10-22, D116)
+
+Population and pickups only: no geometry, door, key, secret or poster moved.
+
+- **Five Legion machine-gunners** (`SD_LegionGunner`, 21110), 3 / 4 / 5 on
+  skills 2 / 3 / 4, and **the Liberty Colossus** (`SD_LibertyColossus`,
+  21111) as the bay's mini-boss on skills 3 and 4 (§9): totals 36 / 55 / 70
+  (were 33 / 50 / 64). The intensity still rises, the bay the heaviest
+  beat; the safe start holds.
+- **The AKM** (`SD_Akm`, 21008) on the crane gallery by the RPG-7, in
+  `ROUTE_WEAPONS`; **magazines** (`SD_AkmAmmo`, 21020) 4 / 3 / 2 by skill.
+- **For the colossus**: a PG-7V box in the rail tunnel, a fuel pack
+  (`ED_CELL_PACK` 17) and a medikit in the bay, three shell boxes along the
+  tunnel and the bay, on every skill.
+- Tests (`tests/test_map08_severomorsk.py`): the gunners (count by skill,
+  never in a closet, cover within 128), the colossus (skills 3-4 only, in
+  the bay, rockets and fuel for him), the magazines 4 / 3 / 2, the AKM on
+  the route, its rounds in G3-8; the class reader takes each constant's
+  first value (the colossus's file also declares a stomp's radius).
+- Engine checks for the PM: **V13** the colossus in the bay on skill 3:
+  room to walk round the train, his flame and stomp, nothing on his death
+  (no exit, no door, no log line); **V14** the tunnel-mouth gunner's burst
+  down the rail tunnel.

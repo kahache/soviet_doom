@@ -448,6 +448,7 @@ ED_HOUND = 21103          # SD_ReichHound, Reich
 ED_DOUGHBOY = 21104       # SD_Doughboy, Legion, flies
 ED_PANZERMENSCH = 21105   # SD_Panzermensch, Reich
 ED_PANZER_HEAVY = 21107   # SD_PanzermenschSchwer, Reich
+ED_GUNNER = 21110         # SD_LegionGunner, Legion (D116): the heavy machine-gunner
 MONSTER_KINDS = {
     "rifleman": ED_RIFLEMAN,
     "trooper": ED_TROOPER,
@@ -456,6 +457,7 @@ MONSTER_KINDS = {
     "doughboy": ED_DOUGHBOY,
     "panzermensch": ED_PANZERMENSCH,
     "heavy": ED_PANZER_HEAVY,
+    "gunner": ED_GUNNER,
 }
 MONSTER_CLASSES = {
     ED_RIFLEMAN: "SD_ReichRifleman",
@@ -465,9 +467,10 @@ MONSTER_CLASSES = {
     ED_DOUGHBOY: "SD_Doughboy",
     ED_PANZERMENSCH: "SD_Panzermensch",
     ED_PANZER_HEAVY: "SD_PanzermenschSchwer",
+    ED_GUNNER: "SD_LegionGunner",
 }
 REICH = ("rifleman", "hound", "panzermensch", "heavy")
-LEGION = ("trooper", "doughboy")
+LEGION = ("trooper", "doughboy", "gunner")
 # Where each faction stands (D35: both on the map). The Liberty Legion came
 # by air: it holds the airfield (the runway, the hangar) and sleeps in the
 # barracks; the Fourth Reich runs the beacon: the tunnels, the radome and
@@ -482,7 +485,8 @@ ED_IZH = 21003
 ED_PPSH = 21004
 ED_RPG7 = 21005
 ED_ROKS3 = 21006
-ROUTE_WEAPONS = (ED_IZH, ED_PPSH, ED_RPG7, ED_ROKS3)
+ED_AKM = 21008            # slot 4's second weapon (D116): episode 3 may start here, with the pistol
+ROUTE_WEAPONS = (ED_IZH, ED_PPSH, ED_AKM, ED_RPG7, ED_ROKS3)
 ED_HAND_KATYUSHA = 21007  # in S3 only, on the quay, for the last fight
 # Ammo, health and armour: Doom's numbers, which our classes replace.
 ED_CLIP = 2007
@@ -498,9 +502,10 @@ ED_HEALTH_BONUS = 2014
 ED_ARMOR_BONUS = 2015
 ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
+ED_AKM_MAG = 21020        # SD_AkmAmmo: one 30-round 7.62x39 magazine (ADR 011)
 
 # Design section 9: monsters per skill, Doom's skill pairs (udmf.skill_tier).
-ENEMY_TOTALS = {2: 34, 3: 51, 4: 67}
+ENEMY_TOTALS = {2: 37, 3: 55, 4: 72}
 
 # Every monster: (zone, kind, x, y, facing, lowest skill tier). Facing: 0
 # east, 90 north, 180 west, 270 south.
@@ -517,11 +522,20 @@ MONSTERS = (
     ("z1_runway", "doughboy", 2176, 448, 0, 3),
     ("z1_runway", "stormtrooper", 2560, 160, 0, 4),
     ("z1_runway", "trooper", 1920, 480, 0, 4),
+    # The Legion's machine-gunners (D116): three, four, five by skill, each
+    # by cover with a long line down ground the player must cross. On the
+    # runway, behind the west crates, the runway's whole length east of him
+    # (1480 from the start: tests/test_safe_starts.py); by the red gate on
+    # skill 4, the gate's flags at his back.
+    ("z1_runway", "gunner", 2240, 416, 0, 2),
+    ("z1_runway", "gunner", 1792, 96, 0, 4),
     # The hangar: the Legion's ground crew.
     ("z2_hangar", "trooper", 3648, 960, 270, 2),
     ("z2_hangar", "trooper", 4096, 1024, 180, 2),
     ("z2_hangar", "stormtrooper", 3648, 1280, 270, 2),
     ("z2_hangar", "trooper", 4224, 1280, 180, 3),
+    # Behind the airframe under repair, the hangar's floor to its door.
+    ("z2_hangar", "gunner", 3872, 1264, 270, 2),
     # The covered tunnel: the Reich's sentries.
     ("z3_tunnel_n", "rifleman", 3904, 1504, 270, 2),
     ("z3_tunnel_n", "hound", 3904, 1632, 270, 3),
@@ -589,6 +603,10 @@ MONSTERS = (
     ("z9_quay", "stormtrooper", 1024, 1600, 270, 4),
     ("z10_sea", "doughboy", 128, 128, 0, 4),
     ("z11_deck", "stormtrooper", 448, 1024, 270, 4),
+    # At the quay's south end, by the kerb, the whole quay north down his
+    # sights; on the deck by the hull's edge from skill 3, down the boat.
+    ("z9_quay", "gunner", 1056, -192, 90, 2),
+    ("z11_deck", "gunner", 320, 1216, 270, 3),
 )
 
 # Consumables scale DOWN with skill: (zone, editor number, x, y, highest
@@ -601,6 +619,10 @@ ITEMS = (
     # room (for the bunker's corridors).
     ("z1_runway", ED_IZH, 3520, 160, 4),
     ("z2_hangar", ED_PPSH, 3712, 1024, 4),
+    # The AKM (D116) in the hangar's racks, after the PPSh, before the RPG-7:
+    # episode 3 can be started here with the pistol (D104), so it is on the
+    # route even for whoever took one at the Volga dam.
+    ("z2_hangar", ED_AKM, 4032, 768, 4),
     ("z4_barracks", ED_RPG7, 3648, 2144, 4),
     ("z6_command", ED_ROKS3, 3008, 1072, 4),
     # Shell boxes (20).
@@ -650,6 +672,11 @@ ITEMS = (
     ("z9_quay", ED_ROCKET, 832, 1408, 4),
     ("z5_dome", ED_ROCKET, 3040, 2400, 3),
     ("z7_escape_top", ED_ROCKET, 1824, 640, 3),
+    # AKM magazines (D116): 2 / 3 / 4 on skills 4 / 3 / 2.
+    ("z4_barracks", ED_AKM_MAG, 3584, 2016, 4),
+    ("z9_quay", ED_AKM_MAG, 1024, 1408, 4),
+    ("z6_command", ED_AKM_MAG, 3200, 1184, 3),
+    ("z7_hall", ED_AKM_MAG, 1856, 1216, 2),
     # Fuel for the ROKS-3.
     ("z6_command", ED_CELL, 3072, 1072, 4),
     ("z7_hall", ED_CELL, 2016, 1600, 4),

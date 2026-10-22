@@ -102,16 +102,15 @@ sd/weapon/katyusha/dry     SDHKDRY     // take A  firing switch on empty rails
 
 // === Bestiary (F5) =========================================================
 // Logical names sd/mon/<actor>/<event>; 47 sounds, docs/engine/BESTIARY.md 12.
-// Since N9e (D83, D86, D91, D96, D110; the hound's five D107) 46 of them are
-// ours: an SD lump in the right-hand column, or a $random alias over our takes.
-// Eleven are the voices D91, D96 and D110 approved (Chatterbox; the D96 and
-// D110 takes cloned from a shouted reference): the rifleman's idle, sight,
-// pain and death, the trooper's idle, sight, pain and death, the General's
-// sight, his order and his pain. One VOICE still waits for a take (the
-// General's death, redrafted after D110): it keeps a Freedoom (IWAD) lump,
-// read at run time and never redistributed (tests/test_bestiary.py checks
-// it exists), and the comment names the lump that will replace it after
-// "->", the one docs/sound/ENEMY-SOUNDS.md has a card for.
+// Since N9e (D83, D86, D91, D96, D110, D118; the hound's five D107) all 47
+// are ours: an SD lump in the right-hand column, or a $random alias over our
+// takes. Twelve are the voices D91, D96, D110 and D118 approved (Chatterbox;
+// the D96, D110 and D118 takes cloned from a shouted reference): the
+// rifleman's idle, sight, pain and death, the trooper's idle, sight, pain and
+// death, the General's sight, his order, his pain and his death. A line still
+// on a Freedoom (IWAD) lump (the P4 enemies below) reads it at run time,
+// never redistributed (tests/test_bestiary.py checks it exists), and its
+// comment names the lump that will replace it after "->".
 
 // --- Reich rifleman (SD_ReichRifleman) -------------------------------------
 $random sd/mon/reichrifleman/attack { sd/mon/reichrifleman/attack/1 sd/mon/reichrifleman/attack/2 sd/mon/reichrifleman/attack/3 }
@@ -234,7 +233,12 @@ sd/mon/general/summon/2       SDGENSU2    // D96 G02 t14  "Vorwarts!" (Chatterbo
 $random sd/mon/general/pain { sd/mon/general/pain/1 sd/mon/general/pain/2 }
 sd/mon/general/pain/1         SDGENPA1    // D110 G03 t06  "Argh!" (Chatterbox, kurt reference)
 sd/mon/general/pain/2         SDGENPA2    // D110 G03 t04  "Hngh!" (Chatterbox, kurt reference)
-sd/mon/general/death          DSCYBDTH    // -> SDGENDTH  a cue, not an effect (voice, D87)
+$random sd/mon/general/death { sd/mon/general/death/1 sd/mon/general/death/2 sd/mon/general/death/3 sd/mon/general/death/4 sd/mon/general/death/5 }
+sd/mon/general/death/1        SDGENDT1    // D118 G04 t01  "Aaaaaaaaaaargh... aaaaah." (Chatterbox, kurt reference)
+sd/mon/general/death/2        SDGENDT2    // D118 G04 t07  "Neeeeeiiiin!" (Chatterbox, kurt reference)
+sd/mon/general/death/3        SDGENDT3    // D118 G04 t08  "Urgh... aaaaaaaaah... ah." (Chatterbox, kurt reference)
+sd/mon/general/death/4        SDGENDT4    // D118 G04 t05  "Nein! Aaaaaaaaaaah..." (Chatterbox, kurt reference)
+sd/mon/general/death/5        SDGENDT5    // D118 G04 t12  "Aaaargh... no..." (Chatterbox, kurt reference)
 
 // === P4 enemies (D104, D112; in the mod since D116) =========================
 // Their own logical names, sd/mon/<actor>/<event>, over lumps the mod already
@@ -256,7 +260,7 @@ sd/mon/legiongunner/xdeath    SDLTRXDT    // REUSED the trooper's gib -> SDLGNXD
 sd/mon/colossus/sight         SDGENSIT    // REUSED the General's "Engage!" -> SDCOLSIT  metal groaning, not a voice
 sd/mon/colossus/active        SDGENACT    // REUSED -> SDCOLACT
 sd/mon/colossus/pain          SDGENPA1    // REUSED -> SDCOLPAI
-sd/mon/colossus/death         DSCYBDTH    // -> SDCOLDTH  (the General's own placeholder)
+sd/mon/colossus/death         DSCYBDTH    // -> SDCOLDTH  (the General's placeholder until D118)
 sd/mon/colossus/step          SDPZRSTP    // REUSED the Panzermensch's footfall -> SDCOLSTP
 sd/mon/colossus/stomp         SDRPEXP     // REUSED the RPG-7's burst -> SDCOLSTM
 sd/mon/colossus/flame         SDRKFIR1    // REUSED the ROKS-3's jet -> SDCOLFLM
@@ -265,7 +269,7 @@ sd/mon/colossus/flame         SDRKFIR1    // REUSED the ROKS-3's jet -> SDCOLFLM
 sd/mon/consortium/sight       SDPZRSIT    // REUSED the Panzermensch's -> SDCNSSIT  two voices in one throat
 sd/mon/consortium/active      SDPZRACT    // REUSED -> SDCNSACT
 sd/mon/consortium/pain        SDPZRPA3    // REUSED -> SDCNSPAI
-sd/mon/consortium/death       DSCYBDTH    // -> SDCNSDTH  (the General's own placeholder)
+sd/mon/consortium/death       DSCYBDTH    // -> SDCNSDTH  (the General's placeholder until D118)
 sd/mon/consortium/call        SDGENSU1    // REUSED the General's "Vorwarts!" -> SDCNSCAL  the portal's hum, no words
 sd/mon/consortium/breach      SDPZRDTH    // REUSED the Panzermensch's death -> SDCNSBRC  cables snapping, a roar
 sd/mon/consortium/step        SDPZRSTP    // REUSED -> SDCNSSTP

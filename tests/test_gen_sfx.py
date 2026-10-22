@@ -238,14 +238,14 @@ class ContractTest(unittest.TestCase):
 
     def test_sndinfo_rows_name_the_freedoom_stand_ins(self):
         # Only lines still on a Freedoom stand-in carry `// -> SD...` (N9e
-        # installed the hound's sight and the step; D91, D96 and D110 eleven of
-        # the twelve voices; the General's death still waits, D110).
+        # installed the hound's sight and the step; D91, D96, D110 and D118 the
+        # twelve voices, the General's death last): no bestiary card is left.
         rows = gs.sndinfo_rows(SNDINFO)
-        self.assertEqual(rows["SDGENDTH"], ("sd/mon/general/death", "DSCYBDTH"))
         for ours in ("SDRRIACT", "SDRRISIT", "SDGENSUM", "SDHNDSIT",     # $random or ours since N9e
-                     "SDRRIPAI", "SDLTRDTH", "SDGENPAI"):                 # $random since D110
+                     "SDRRIPAI", "SDLTRDTH", "SDGENPAI",                  # $random since D110
+                     "SDGENDTH"):                                         # $random since D118
             self.assertNotIn(ours, rows)
-        self.assertEqual(set(rows), {"SDGENDTH"})
+        self.assertEqual(rows, {})
 
 
 # --- DSP --------------------------------------------------------------------------

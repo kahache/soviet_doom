@@ -1391,7 +1391,12 @@ def redsquare_critical(md: "MapData | None" = None) -> Route:
 #   * the boss: the class of map.py's BOSS_KIND, which must be one the helper
 #     can hurt (COUNT_CLASSES); BOSS0 stands on the crater's first terrace
 #     (Z8) with the bunker's gate (TAG_BOSS_EXIT) shut, BOSS1 hurts him past
-#     his health and expects the gate open (no line carries the tag);
+#     his health and expects the gate open (no line carries the tag). Since
+#     D116 the boss is the Consortium (9000 HP): one hurt at full health
+#     kills it outright (its Breach is checked in its chase, never in the
+#     damage). Should it be mid-Breach (65 tics invulnerable), the first hurt
+#     does nothing, so BOSS1 hurts it again after TUNGUSKA_BREACH_WAIT; a
+#     dead boss is not hurt twice (the helper skips health <= 0);
 #   * the exit: E0 on the ray out of the exit's niche, past the bunker's gate.
 # The order is the design's: the blue gate refused, the blue key in the
 # laboratory, the blue gate; the yellow door and the red gate refused on the
@@ -1405,6 +1410,7 @@ TUNGUSKA_CONSTANTS = ("TAG_BLUE_DOOR", "TAG_YELLOW_DOOR", "TAG_RED_DOOR", "TAG_A
 TUNGUSKA_STATION_FAMILY = "Z3"    # the blue gate is pressed from the station's yard
 TUNGUSKA_WORKS_FAMILY = "Z5"      # the yellow door and the red gate from the works
 TUNGUSKA_CRATER_FAMILY = "Z8"     # the crater's terraces and floor, where the boss stands
+TUNGUSKA_BREACH_WAIT = 70         # past the Consortium's Breach (65 tics invulnerable)
 
 
 def tunguska_critical(md: "MapData | None" = None) -> Route:
@@ -1487,10 +1493,12 @@ def tunguska_critical(md: "MapData | None" = None) -> Route:
         Step("BOSS0", crater_point, rd.angle, (f"tag {tag_exit}", "count", "capture"),
              expect=(family_at(md, crater_point),), tags=((tag_exit, False),),
              note=f"on the crater's first terrace: the bunker's gate is shut while the boss ({boss_class}) lives"),
-        Step("BOSS1", actions=(f"hurt {boss_class} {BOSS_HURT}", f"wait {BOSS_WAIT}",
+        Step("BOSS1", actions=(f"hurt {boss_class} {BOSS_HURT}", f"wait {TUNGUSKA_BREACH_WAIT}",
+                               f"hurt {boss_class} {BOSS_HURT}", f"wait {BOSS_WAIT}",
                                f"tag {tag_exit}", "count", "capture"),
              tags=((tag_exit, True),),
-             note="the boss killed (helper damage): his death special opens the bunker's gate"),
+             note="the boss killed (helper damage, again past a Breach): its death special "
+                  "opens the bunker's gate"),
         Step("E0", e0_point, exit_angle, ("capture", f"forward {e0_tics}", "capture"),
              expect=(exit_family,),
              note="through the bunker's gate, down its hall to the portal's breaker"),

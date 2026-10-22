@@ -162,10 +162,33 @@ class TunguskaRouteTest(tr.BuiltMapRoute, unittest.TestCase):
         self.assertEqual("Z8", route.zone_family(md.name_of(here)))
         self.assertEqual("Z8", route.family_at(md, m.MAP09_BOSS_SPOT))
 
+    def test_the_boss_is_hurt_again_past_its_breach(self):
+        """D116: the Consortium is invulnerable for its Breach (65 tics, the
+        Breach state's length in its own file); BOSS1 hurts it a second time
+        after more than that, before it reads the gate."""
+        boss_class = self.m.MONSTER_CLASSES[self.m.MONSTER_KINDS[self.m.BOSS_KIND]]
+        self.assertEqual("SD_Consortium", boss_class)
+        hurt = f"hurt {boss_class} {route.BOSS_HURT}"
+        b1 = self.steps["BOSS1"].actions
+        self.assertEqual([0, 2], [i for i, a in enumerate(b1) if a == hurt])
+        self.assertEqual(f"wait {route.TUNGUSKA_BREACH_WAIT}", b1[1])
+        text = self.class_file(boss_class).read_text(encoding="utf-8")
+        breach = int(re.search(r"SD_CONSORTIUM_BREACH_QUAKE_TICS\s*=\s*(\d+)", text).group(1))
+        self.assertGreater(route.TUNGUSKA_BREACH_WAIT, breach)
+        self.assertLess(b1.index(hurt, 1), b1.index(f"tag {self.m.TAG_BOSS_EXIT}"))
+
+    @staticmethod
+    def class_file(cls):
+        """The ZScript file that declares `cls`."""
+        for path in (PROJECT_ROOT / "src" / "zscript" / "monsters").glob("*.zs"):
+            if re.search(rf"^class\s+{cls}\b", path.read_text(encoding="utf-8"), re.M):
+                return path
+        raise AssertionError(f"no file declares {cls}")
+
     def hp(self, cls):
-        text = (PROJECT_ROOT / "src" / "zscript" / "monsters" / "general.zs").read_text(encoding="utf-8")
-        self.assertEqual("SD_General", cls, "a new boss: read his health from his own file")
-        return int(re.search(r"SD_GENERAL_HEALTH\s*=\s*(\d+)", text).group(1))
+        """The boss's health, read from its own file (its first *_HEALTH)."""
+        text = self.class_file(cls).read_text(encoding="utf-8")
+        return int(re.search(r"const\s+SD_\w+_HEALTH\s*=\s*(\d+)", text).group(1))
 
     def test_a_boss_the_helper_cannot_hurt_has_no_route(self):
         md = route.MapData(TUNGUSKA)
@@ -217,7 +240,8 @@ class TunguskaRouteTest(tr.BuiltMapRoute, unittest.TestCase):
         m = self.m
         for tag in (m.TAG_BLUE_DOOR, m.TAG_YELLOW_DOOR, m.TAG_RED_DOOR, m.TAG_AMBUSH, m.TAG_BOSS_EXIT):
             self.assertIn(f"netevent sdtag {tag}", out)
-        self.assertIn(f"netevent sdhurt {route.COUNT_CLASSES.index('SD_General')} {route.BOSS_HURT}", out)
+        boss = m.MONSTER_CLASSES[m.MONSTER_KINDS[m.BOSS_KIND]]
+        self.assertEqual(2, out.count(f"netevent sdhurt {route.COUNT_CLASSES.index(boss)} {route.BOSS_HURT}"))
         self.assertNotIn("sdexit", out)
         self.assertNotRegex(out, r"(?m)^\s+give\b")
 

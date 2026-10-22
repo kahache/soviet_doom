@@ -4,7 +4,8 @@ Design document. Owner: `level-designer`. Status: **v1 BUILT 2026-10-22
 (§13): the whole map, walkable from start to exit, textured with approved
 lumps only, populated, three secrets; since 2026-10-22 (D113) it wears
 Episode 3's Arctic set and the Naval set's submarine (§7.1), three
-undrawn lumps resolved with stand-ins (§7.2); not yet walked, no engine
+undrawn lumps resolved with stand-ins (§7.2); v1.2 (D116) adds the
+Legion's machine-gunners and the AKM (§9); not yet walked, no engine
 pass yet (D26).** Episode 3, «The
 Portal» (D112), first map. Built MVP first (D60). Source:
 `src/maps/MAP07/map.py`; tests: `tests/test_map07_novaya_zemlya.py` (the
@@ -320,8 +321,9 @@ open in round 0, S3 in round 3.
 
 ## 9. Enemies and resources by skill
 
-Bestiary numbers (MAPINFO DoomEdNums 21100-21107), nested by Doom's skill
-pairs. Every class but the General.
+Bestiary numbers (MAPINFO DoomEdNums 21100-21107, and 21110 the gunner
+since D116), nested by Doom's skill pairs. Every class but the General,
+the colossus and the Consortium.
 
 | Beat / zone | Skill 2 | Skill 3 | Skill 4 |
 |---|---|---|---|
@@ -331,7 +333,22 @@ pairs. Every class but the General.
 | Command room + hangar closets (yellow tag) | 3 troopers + 1 rifleman + 1 stormtrooper | + 1 trooper + 1 rifleman | + 2 stormtroopers |
 | Bunker | Panzermensch + 3 riflemen + 1 hound | + 1 hound + 1 rifleman | + 1 hound + **heavy** before the core |
 | Runway closets (red tag), road, harbour, submarine | Panzermensch + Doughboy + 3 troopers + 3 riflemen + 2 stormtroopers | + **heavy** + Doughboy + 1 trooper + 1 rifleman + 2 stormtroopers | + Doughboy + 3 troopers + 1 hound + 2 stormtroopers |
-| **Total** | **34** | **51** | **67** |
+| Gunners (D116) | 3: runway, hangar, quay | + 1 on the deck | + 1 by the red gate |
+| **Total** | **37** | **55** | **72** |
+
+The Legion's machine-gunners (D116, `SD_LegionGunner`, 21110, 80 HP; they
+drop half an AKM magazine), 3 / 4 / 5 on skills 2 / 3 / 4, each by cover
+with a long line down ground the player must cross (tested: none in a
+closet, each with a prop, a wall or a step within 128; the safe start
+holds):
+
+| Skill | Where | Line | Cover |
+|---|---|---|---|
+| 2 | the runway, (2240, 416), facing east | the runway's length east to the plane (1480 from the start) | the west crates |
+| 2 | the hangar, (3872, 1264), facing south | the hangar's floor to its door | the airframe under repair |
+| 2 | the quay's south end, (1056, -192), facing north | the whole quay | the quay's kerb |
+| 3 | the submarine's deck, (320, 1216), facing south | down the hull | the hull's edge |
+| 4 | the runway's west end, (1792, 96), facing east | the runway's length | the kerb and the gate's wall |
 
 **Safe start** (`tests/test_safe_starts.py`, 2026-10-22): on skills 2, 3 and 4 no monster sees the start zone (the start and a step round it) within 768 units; Doom's own sight test, run on the built map. The PM's engine pass (2026-10-22 14:13, skill 3, no god mode) found the runway's two nearest troopers (3456, 384 and 3136, 192: 300 and 580 off) taking the player from 100 % to 3 % in about 1.3 s. The first now crouches behind the crates west of the plane (3296, 128), out of sight until the player walks round them; the second stands on the runway 840 off (2880, 352), seen, the first shot the player's. Same count, same zone, same round.
 
@@ -341,18 +358,24 @@ Panzermenschen on every skill (radome, bunker, quay), the heavy from skill 3
 (runway, open water; tested).
 
 **Weapons** (pistol start), on every skill, on the route, each before its
-fight: the **IZh** by the plane, the **PPSh-41** in the hangar, the **RPG-7**
-in the barracks (the only way into the radome crosses them, tested), the
-**ROKS-3** in the command room (for the bunker); the **Hand Katyusha** in S3.
+fight: the **IZh** by the plane, the **PPSh-41** in the hangar, the **AKM**
+(D116, `SD_Akm` 21008) in the hangar's racks after it (episode 3 starts here
+with the pistol, so it is on the route even for whoever took one at the dam),
+the **RPG-7** in the barracks (the only way into the radome crosses them,
+tested), the **ROKS-3** in the command room (for the bunker); the **Hand
+Katyusha** in S3. **AKM magazines** (`SD_AkmAmmo` 21020, 30 rounds) 4 / 3 / 2
+on skills 2 / 3 / 4: the barracks and the quay on every skill, the command
+room from skill 3, the bunker's hall on skill 2 (tested).
 
-**Ammunition** (G3-8's ruler, MAP05's test: kills in IZh shells, PG-7V at 2
-shells, fuel at ¼; route only, no drop, no secret):
+**Ammunition** (G3-8's ruler, MAP05's test: kills in IZh shells, a gunner
+2, PG-7V at 2 shells, fuel at ¼, an AKM magazine 4.5; route only, no drop,
+no secret; v1.2, D116):
 
 | | Skill 2 | Skill 3 | Skill 4 |
 |---|---|---|---|
-| Needed | 68 | 120 | 167 |
-| Placed | 320.5 | 307.5 | 261.5 |
-| Ratio (≥ 1.35, and < 3 on skill 4) | 4.71 | 2.56 | 1.57 |
+| Needed | 74 | 128 | 177 |
+| Placed | 343.0 | 325.5 | 275.0 |
+| Ratio (≥ 1.35, and < 3 on skill 4) | 4.64 | 2.54 | 1.55 |
 
 Also checked at every round of the route. **Health** on skill 4: 6
 stimpacks + 5 medikits, 9 health bonuses; **armour**: the flak vest in the
@@ -473,3 +496,22 @@ episode-3 agents).
    takes either; the conning tower becomes a bridge door.
 3. **The Hand Katyusha in S3 again** (as MAP05): keep it secret, or give it
    on the route at the start of episode 3?
+
+## 15. v1.2 record: the gunners and the AKM (2026-10-22, D116)
+
+Population and pickups only: no geometry, door, key, secret or poster moved.
+
+- **Five Legion machine-gunners** (`SD_LegionGunner`, 21110), 3 / 4 / 5 on
+  skills 2 / 3 / 4 (§9): totals 37 / 55 / 72 (were 34 / 51 / 67). The
+  intensity still rises through the three thirds, the harbour the
+  heaviest beat; the safe start holds.
+- **The AKM** (`SD_Akm`, 21008) in the hangar, after the PPSh and before
+  the RPG-7, in `ROUTE_WEAPONS`; **magazines** (`SD_AkmAmmo`, 21020)
+  4 / 3 / 2 by skill.
+- Tests (`tests/test_map07_novaya_zemlya.py`): the gunners (count by skill,
+  never in a closet, cover within 128), the magazines 4 / 3 / 2, the AKM on
+  the route, its rounds in G3-8 (30 a magazine, avg 12 a round); the class
+  reader takes each constant's first value.
+- Engine checks for the PM: **V19** the gunners' bursts from cover at range
+  (runway, hangar, quay); **V20** the AKM in the hangar picks up and fires
+  (MOD-SPEC §6.12: it still wears the PPSh's frames until Gemini's are drawn).

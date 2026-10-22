@@ -266,15 +266,15 @@ The earlier figures (15-20 minutes of recording, 30-45 in total) did not
 account for the row changes and were too low.
 Estimate, not measured: the first real session replaces it.
 
-### 1.6 Installed (D91, D96, D110)
+### 1.6 Installed (D91, D96, D110, D118): twelve of twelve
 
 The takes are Chatterbox Multilingual (D87; `work/audio/voice_takes/`,
 `AI-LOG.csv`): D91's with predefined voices, D96's cloned from shouted
 references (Thorsten-Voice "angry", CC0; kurt's "Soldier Voice Acting",
 CC-BY 3.0; HaelDB, CC0), and D110's, the wordless rows, cloned from the
-same references (`work/audio/voice_takes/p2/`). Rows with no approved take
-keep Freedoom's voice: since D110 only G04, redrafted
-(`work/audio/voice_takes/p2b/`).
+same references (`work/audio/voice_takes/p2/`), and D118's, G04 redrafted
+(`work/audio/voice_takes/p2b/`, kurt's reference). **Twelve of the twelve
+enemy voices are ours**: since D118 no enemy voice plays a Freedoom lump.
 The D96 takes say their lines with an exclamation mark ("Vorwärts!", not
 the full stop of G02): that is what the CEO approved.
 
@@ -291,7 +291,7 @@ the full stop of G02): that is what the CEO approved.
 | `SDGENSIT` | G01 t12 (D96) | `SDGENSIT` | `sd/mon/general/sight` |
 | `SDGENSUM` | G02 t13, t14 (D96) | `SDGENSU1`-`2` | `$random sd/mon/general/summon`, played with the printed order |
 | `SDGENPAI` | G03 t06, t04 (D110) | `SDGENPA1`-`2` | `$random sd/mon/general/pain` |
-| `SDGENDTH` | none (D110: all NO; new round) | Freedoom `DSCYBDTH` | `sd/mon/general/death` |
+| `SDGENDTH` | G04 t01, t07, t08, t05, t12 (D118; D110's round all NO) | `SDGENDT1`-`5` | `$random sd/mon/general/death` |
 
 ---
 
