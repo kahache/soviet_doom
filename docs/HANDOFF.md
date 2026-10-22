@@ -1,16 +1,62 @@
 # Session handoff (living; the PM rewrites it when a session ends)
 
-Updated: 2026-10-21, ~23:30 (night shift closed, D102/D103). Before that: 2026-10-20, ~16:40 (Product + pmo, stages 6 and 7, after the v1.0
-sign-off). Decisions up to **D99** are in `docs/PRD.md`; open CEO items in
-`docs/PENDING-CEO-DECISIONS.md`; tasks and V2 estimates in `docs/BACKLOG.md`;
-the checkpoint for the CEO is
-`docs/product/2026-10-20_1639_P0_v1-roadmap-checkpoint.md`.
+Updated: 2026-10-22 (Product, stage 6, after Episode 3's routes PASS at 9133be1
+and D114). Before that: 2026-10-21 ~23:30 (night shift closed, D102/D103) and
+2026-10-20 ~16:40 (v1.0 sign-off). Decisions up to **D114** are in
+`docs/PRD.md`; open CEO items in `docs/PENDING-CEO-DECISIONS.md`; tasks and
+estimates in `docs/BACKLOG.md`; the phase view in `docs/ROADMAP.md` ("P4 today").
 
-## P4 PUSH 2026-10-22 (D104, D105) — resume from here after a cut
-Done and pushed: Episode 2 maps MAP04-06 (routes PASS skills 2-4), scaffolding, music and texture drafts (pages for the CEO), the Episode 2 enemies as a draft overlay (`tools/make_ep2_enemy_overlay.py`), the Gemini enemy pipeline (`tools/art/gemini_enemy.py all` -> `work/overlays/sd-draft-enemies.pk3`) with SDRR, SDLT, SDHS redrawn.
-Gemini sheets: `work/art/reference/enemies/gemini/` (local only, D77); prompts: upload `work/art/reference/enemies/clean_<enemy>.png` (swastikas blanked) via the hidden image input, then turn / walkL / walkR / aim / fire / death (cartoonish, no blood words). Gemini's daily image limit hit at ~07:40 (reset 08:19).
-Gemini sheets done for all seven current enemies (hound, Doughboy, Panzermensch, General added 08:20-08:45; the General from a text prompt, option B). New SD_LegionGunner: only `gem_gunner_turn.png`. Gemini limit again until 22 Oct 17:33: then the TT-33 (D111, ready + fire, `docs/product/2026-10-20_0030_M2_gemini-armas.md` block), then the gunner frames (walkL/walkR/aim/fire/death) and SD_LibertyColossus from scratch; re-asks listed in the review sheet.
-**Swastika (D105): never applied until the CEO picks A/B in `docs/art/previews/2026-10-22_P4_rifleman-armband-proposal.png`.**
+## Where we are (2026-10-22)
+
+- **v1.0 is public** (tag `v1.0` at d530faa, G6 PASS 4a17a61; Windows, macOS,
+  Linux packages and sources attached). **v1.1 is a draft** (target c9414c2:
+  cursor, death prompt, Catalan); the CEO has not said publish or wait for a
+  v1.2 (PENDING §1). Nothing of P4 is in a release.
+- **P4 is under way (D104-D114): 9 maps in 3 episodes + RANGE.** Episode 2
+  (MAP04-06) and Episode 3 (MAP07-09) are built; **18 of 18 routes PASS on
+  skills 2-4** (`docs/qa/evidence/2026-10-22_*_report.txt`). Music of both
+  episodes is installed (D106, D113); Episode 2's 25 textures are installed
+  (D107) and Episode 3's three sets are on disk (D113); the seven enemies are
+  redrawn with Gemini and carry the approved armbands (D105-D109, D114);
+  posters are in every map (two slots per map wait for the Marx-Engels pair).
+- **Uncommitted in the work tree** (at the time of writing; other agents still
+  editing): Episode 2 texture round 2 and Episode 3's textures (assets, maps,
+  tests, `docs/levels/`, `docs/art/LICENSES.md`, `TEXTURE-INDEX.md`,
+  `docs/engine/MOD-SPEC.md`, `tools/check_pk3.py`, `tools/release.py`), ~540
+  modified enemy sprite lumps, `work/audio/candidates/dog/`. Commit with
+  explicit paths; run `tools/verify.py fast` and `pmo` (stage 7) first.
+
+## Resume here
+
+1. Let the agents finish the work-tree batch above; then `tools/verify.py fast`,
+   one engine pass on MAP04-MAP09 (the Episode 2 route evidence is from
+   00:18-00:28, before round 2 textures), stage 7 `pmo`, then commit.
+2. Gemini's daily image limit resets 2026-10-22 17:33: then the TT-33 (D111),
+   the Legion gunner's frames (walkL/walkR/aim/fire/death) and the Colossus
+   from scratch, and the enemy re-asks listed in the review sheet. Method and
+   prompts: `tools/art/gemini_enemy.py`, `docs/product/2026-10-20_0030_M2_gemini-armas.md`.
+   Sheets are local only (D77): `work/art/reference/enemies/gemini/`.
+3. The CEO owes: v1.1 or v1.2; the Marx-Engels pair (cells, mirror, slogan
+   split, alignment); the General's death voice (new round in
+   `work/audio/preview/voices_p2b_listening.html`); MAP07's questions and the
+   end of Episode 3 (PENDING §2-§4). Nothing else blocks.
+4. Still no D-number: the AKM and the world sounds (BACKLOG Next #9, #10); the
+   final boss of MAP09 is not designed (Next #5). Ask the CEO before building.
+5. Standing rules from D104 and D113: the PM may push P4 on its own; composed
+   music and procedural textures install without the CEO's review; sprites,
+   voices, anything with a real person's likeness or a political symbol go to
+   him first. **The swastika is shown to the CEO before it is applied (D105)**;
+   the applied armbands were approved in D114.
+
+## Earlier state, kept for the thread
+
+P4 push (2026-10-22 morning, D104/D105): Episode 2 maps, scaffolding, music and
+texture drafts, the Episode 2 enemies as a draft overlay
+(`tools/make_ep2_enemy_overlay.py`) and the Gemini enemy pipeline
+(`tools/art/gemini_enemy.py all` -> `work/overlays/sd-draft-enemies.pk3`). Gemini
+prompts: upload `work/art/reference/enemies/clean_<enemy>.png` (swastikas blanked)
+through the hidden image input, then turn / walkL / walkR / aim / fire / death
+(cartoonish, no blood words).
 
 ## NIGHT SHIFT 2026-10-21 (D102) — DONE 23:30; the morning report is `docs/product/2026-10-21_2330_P0_informe-noche.md`
 
@@ -22,33 +68,15 @@ Work items, in this order (tick them here as they land):
 4. [x] **P2 drafts:** the 4 voices still Freedoom's (rifleman pain, trooper death, General pain/death) with the aggressive references; listening page; do not install unheard.
 5. [x] **P6 Catalan:** a third language (every LANGUAGE id in `[ca]`, the language option, a CA status-bar label band, README/CREDITS CA section); the CEO reviews in the morning.
 6. [x] ~~**P1 analysis**~~ dropped 2026-10-21 night: the CEO played the campaign and finds it fine; P1 stays parked in V2 until a player complains about difficulty.
-Closed 23:30: v1.1 DRAFT release created (not public, 8 assets, target c9414c2 after the Catalan pause sign); macOS/Linux packages on v1.0; dog and P2 voice listening pages waiting for the CEO (nothing installed); Chatterbox server stopped (poisoned by a CUDA assert, see the P2 page). Earlier: GPL/LGPL sources attached to release v1.0 (4 tarballs). Agents running: P5 macOS/Linux packaging, cursor + death prompt, dog sounds, P2 voices, P6 Catalan (owner of LANGUAGE; adds SD_DEATH_PROMPT in EN/RU/CA). WSL is not installed: the Linux package cannot be run here.
+Closed 23:30: v1.1 DRAFT release created (not public, 8 assets, target c9414c2 after the Catalan pause sign); macOS/Linux packages on v1.0; dog and P2 voice listening pages waiting for the CEO (nothing installed); Chatterbox server stopped (poisoned by a CUDA assert, see the P2 page). Earlier: GPL/LGPL sources attached to release v1.0 (4 tarballs). Agents running: P5 macOS/Linux packaging, cursor + death prompt, dog sounds, P2 voices, P6 Catalan (owner of LANGUAGE; adds SD_DEATH_PROMPT in EN/RU/CA). (Superseded by D104: WSL was authorised and the Linux package ran on Ubuntu 24.04, add90e3.)
 7. [x] At the end: verify fast, engine pass, v1.1 **draft** release (not public), stage 6 docs, a Spanish morning report for the CEO.
 Rules: commit with explicit paths; agents never commit; one owner per shared file (LANGUAGE, MAPINFO, SNDINFO, LICENSES.md, MOD-SPEC) — serialize installs; engine runs from a clean worktree.
 
-## Where we are
-
-- **v1.0 shipped for a friends release:** G6 PASS (4a17a61, evidence
-  `docs/qa/evidence/2026-10-20_1635_M4_v1-signoff.md`), tag `v1.0` at
-  d530faa, GitHub release with `sovietdoom-1.0.zip` (SHA-256 `1b4731aa…`)
-  on the repo, **public** since D100. CI green on 4a17a61; `main` = `origin/main`.
-- **M1-M4 all PASSED** (`docs/ROADMAP.md`).
-- **Nothing in flight.** No agent is working; the backlog's "Doing" is empty.
-
-## Next steps
-
-0. **P5 Windows one-click package published** (D101, 335d04b): `sovietdoom-1.0-windows.zip` on the v1.0 release, tested unzipped fresh. Next for P5: macOS (~70k) and Linux (~55k) packages — need the CEO's OK to download those GZDoom builds; attach the GZDoom g4.14.2 source archive (and OpenAL Soft 1.23.1, libsndfile 1.2.2, ZMusic) to the release for GPL/LGPL 'same place' compliance (download needs the CEO's OK; today the package carries links + a written offer).
-1. Done 2026-10-20: the README status line, the stage 7 paper-trail fixes
-   (MOD-SPEC §6.2, MAPINFO comments) and the repo made public (D100).
-   v1.1 details in `docs/ICEBOX.md` (dog sounds, continue after death).
-2. The CEO plays the release: sound and music by ear, the two-IWAD dialog,
-   the credits at 16:9, the face ladder (PENDING §2).
-3. The CEO picks the first V2 phase (P1-P6, BACKLOG "Parked").
-
 ## Untracked on disk
 
-`work/audio/candidates/borodin_steppes/` shows as untracked (Borodin was
-rejected for MAP01, D92): gitignore it or delete it; it is not part of v1.
+`work/audio/candidates/dog/` (the dog candidates, already installed under D107)
+and, if it still shows, `work/audio/candidates/borodin_steppes/` (Borodin was
+rejected for MAP01, D92): gitignore or delete; neither is part of a release.
 
 ## Rules learned
 
@@ -57,5 +85,5 @@ file ownership in every brief; only the PM runs GZDoom (D26) with
 `-config logs/gzdoom-tooling.ini`; the PM gates every draft before the
 CEO; short lists when asking the CEO (he lost track once); PowerShell and
 full paths for the CEO; send images with SendUserFile; log each task's real
-token cost in the BACKLOG's Done line when it closes (today's delivery was
-not logged, so its estimates cannot be checked).
+token cost in the BACKLOG's Done line when it closes (the v1.0 delivery and the whole of P4 so far
+were not logged, so their estimates cannot be checked).

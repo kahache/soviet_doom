@@ -1,22 +1,61 @@
 # Pending CEO decisions
 
-Updated: 2026-10-21 night, end of the night shift (D102, D103); before that
-2026-10-20 ~16:40, after the v1.0 sign-off (G6 PASS, 4a17a61). Ordered by how much each item unblocks. What
-closed since the previous update is listed at the end so nothing is lost.
+Updated: 2026-10-22, after Episode 3's routes PASS (9133be1, D114); before that
+2026-10-21 night (D102, D103) and 2026-10-20 ~16:40 (v1.0 sign-off, G6 PASS,
+4a17a61). Ordered by how much each item unblocks. What closed since the
+previous update is listed at the end so nothing is lost.
 Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md` (synced at phase close, D34).
 
-## 1. Morning review of the night shift (D102)
+## 1. Release: v1.1 now, or wait for v1.2 (D109)
 
-Each item waits for your eye or ear; nothing unheard was installed.
+The **v1.1 draft release** (not public; target c9414c2) carries the
+hammer-and-sickle cursor, the "Press E to continue" prompt on death and
+Catalan (accepted, D110). Since then P4 added Episodes 2 and 3 (six maps), the
+Gemini enemies, new music and textures, none of it in v1.1.
 
-1. **v1.1 draft release** (not public): publish it or not. It carries the hammer-and-sickle mouse cursor, the "Press E to continue" prompt on death and Catalan.
-2. **Catalan** (`docs/product/2026-10-21_P6_catala-revisio.md`): the texts and questions Q1-Q23. Q3/Q4 were solved tonight with accented capitals in the three fonts.
-3. **Dog sounds** for the Reich hound (`work/audio/preview/dog_listening.html`): 5 events × 3 candidates, CC0/CC-BY.
-4. **The 4 voices still Freedoom's** (`work/audio/preview/voices_p2_listening.html`): 3 candidates each.
-5. **The cursor** (`work/art/preview/cursor_preview.png`): installed; say if you want it changed.
-6. Replace the published Windows package with the rebuilt one? The only change is GZDOOM-SOURCE.txt, which now points to the attached sources. Default: no.
+- **Publish v1.1 as it is**, or **wait for a v1.2** with everything of P4.
+  The PM suggests v1.2 (D109): v1.1 would ship the old three-map game. A v1.2 needs a G6-style
+  sign-off first (BACKLOG Next #12).
+- Replace the published Windows package of v1.0 with the rebuilt one? The
+  only change is GZDOOM-SOURCE.txt, which now points to the attached sources.
+  Default: no.
 
-## 2. Your own play-through of v1.0 (nothing blocks the release)
+## 2. Marx and Engels poster pair (D106)
+
+The sweep is `docs/art/previews/2026-10-22_P4_marx-engels-sweep.png` (study:
+`docs/product/2026-10-22_P4_marx-engels-poster-sourcing.md` §8). Four calls,
+the PM's proposal first; nothing is installed until you answer:
+
+1. **Cells:** Marx 4D, Engels 4C (point at another in the sweep if you prefer).
+2. **Mirror:** Engels flipped so the two face each other (proposed; a flip
+   changes his likeness: parting, beard), or as photographed.
+3. **The slogan's cut:** «ПРОЛЕТАРИИ ВСЕХ / СТРАН,» + «СОЕДИНЯЙТЕСЬ!» at 15 px
+   (your split), or «ПРОЛЕТАРИИ / ВСЕХ СТРАН,» at 17 px.
+4. **Alignment:** Engels's word on the row of Marx's second line (proposed),
+   or centred.
+
+## 3. The General's death voice (D110)
+
+Every take was NO (D110); a **new round** is drafted
+(`work/audio/preview/voices_p2b_listening.html`). Until you pick one, his death
+keeps Freedoom's sound.
+
+## 4. Episode 3: open points (walk MAP07-MAP09)
+
+No walk of Episodes 2 or 3 by the CEO is recorded in the PRD (D113 covers music and textures, not
+the maps). Questions that only your eye can answer:
+
+- **MAP07 (`docs/levels/MAP07-novaya-zemlya.md` §14):** the exit vehicle,
+  **a submarine (as built) or an icebreaker?** (the conning tower becomes a
+  bridge door); and the **Hand Katyusha**: keep it in secret S3, or give it on
+  the route at the start of Episode 3? (MAP05 and MAP08 keep it in a secret as built.)
+- **MAP09 (§17):** is the taiga calm enough or too empty? Is the crater's
+  descent the right finale, or should the portal itself be reachable?
+- **The end of Episode 3** (`SD_END04_TEXT`): «THE END / For now» («КОНЕЦ /
+  Пока»), the first ending that is not «TO BE CONTINUED»; Episodes 1 and 2 still
+  end on «TO BE CONTINUED». Right as written?
+
+## 5. Your own play-through of v1.0 (nothing blocks the release)
 
 The sign-off checked these by instrument or not at all; your ears and eyes
 are the check (`docs/qa/evidence/2026-10-20_1635_M4_v1-signoff.md`):
@@ -29,7 +68,7 @@ are the check (`docs/qa/evidence/2026-10-20_1635_M4_v1-signoff.md`):
 
 Anything you dislike becomes a P1/P2 backlog line, not a v1 blocker.
 
-## 3. V2: which phase first
+## 6. V2: which phase first
 
 The parked phases with their estimates are in `docs/BACKLOG.md` ("Parked")
 and `docs/ROADMAP.md`: **P1** gameplay pass, **P2** voices and polish,
@@ -40,6 +79,8 @@ music (D99), not yet phased. Calls that wait for their phase: jump/crouch
 both P4. Nothing here blocks anything today.
 
 ## Closed since the previous update (for the record)
+
+D104-D114 (2026-10-21 to 2026-10-22): the cursor and the Catalan letters approved (D104), and the Catalan texts accepted with the PM's answers to Q1-Q23 (D110); the night shift's review items are all closed: the 15 dog sounds OK and installed (D107), three of the four P2 voices OK and installed (D110; the General's death is §3), the cursor installed. The armband swastika: the mix approved and the seven Gemini enemies approved (D108, D109, D114). Episode 2's 10 pieces (D106) and 25 textures (D107) approved. Standing approval for composed music and procedural textures (D113): the CEO no longer reviews those. Episodes 2 and 3 opened under the long autonomous push (D104, D112); the TT-33 queued for Gemini (D111).
 
 D103 (2026-10-21): no balance analysis now. D102: the night shift; P5 downloads approved and done (macOS and Linux packages and the GPL/LGPL sources on release v1.0).
 
