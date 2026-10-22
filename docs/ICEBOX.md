@@ -32,9 +32,30 @@ seven noted above), and **more maps** (the 15-20 level campaign of ROADMAP
 P4, D69). Not scheduled; each gets its own sweep and the CEO's choice when
 P4 starts.
 
-## V3: pickups that fire events (CEO, 2026-10-23, D119)
+## V3 scope (CEO, 2026-10-23, D119/D120)
 
-- **V3 - Keys and objects that trigger events when picked up** (thing specials on pickup: open doors, lower walls, release ambushes). The CEO wants it available for level design (D119); it is already used in MAP04 (red key -> gondolas). To do: document the pattern in the level-design guide and offer it in the map generators for the next maps.
+V2 closes with the D119 playtest fixes. The CEO chose these for V3 from the PM's
+proposals (`docs/product/2026-10-23_P4_propuestas-siguientes-versiones.md`, costs there):
+
+- **A2 - Keys and objects that trigger events when picked up** (thing specials on pickup: open doors, lower walls, release ambushes). The CEO wants it available for level design (D119); it is already used in MAP04 (red key -> gondolas). To do: document the pattern in the level-design guide, offer it in the map generators, retrofit the nine maps.
+- **A3 - Map set pieces:** the MAP03 train that starts, the MAP05 dam that bursts, lifts and sinking floors carrying monsters.
+- **A4 - RGD-5 hand grenade**, a thrown weapon with its own ammo.
+- **B1 - Operations map between levels:** a USSR map with advancing red arrows (intermission).
+- **B2 - End-of-episode illustrations** with Gemini (3 images) besides the text.
+- **B3 - Medals at the end of an episode** (Hero of the Soviet Union, Order of Lenin...) from kills, secrets and time.
+- **B4 - The HUD face redrawn with Gemini** (42 faces) to the level of the new enemies.
+- **B5 - Propaganda radio ambience:** loudspeakers that play as the player comes near.
+- **D3 - A 60 s trailer** from engine captures and the composed music.
+
+## Proposals pending (CEO, 2026-10-23, D120: not scheduled)
+
+- **A1 - Episode 4** (MAP10-12): through the portal to the invaders' world, or a new invasion elsewhere in the USSR (also PENDING-CEO-DECISIONS §6).
+- **A5 - The hand Katyusha** in a secret (MAP07 question, PENDING-CEO-DECISIONS §4).
+- **C1 - A second CEO play-through** at skill 3 after the D119 rebalance.
+- **C2 - Secondary attacks:** bayonet on the Mosin, rifle butt on the AKM.
+- **C3 - Shield or cover-taking enemies** (a new assault trooper).
+- **D1 - Spanish** as a fourth language.
+- **D2 - itch.io and ModDB pages** (needs the CEO's account and his OK to publish).
 
 ## Orchestrated music (D99, V2)
 
