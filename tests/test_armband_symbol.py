@@ -6,17 +6,25 @@ against the approved sprite's grid (ge.SYMBOL) and its 45-degree tilt, that
 it is never mirrored, the cylinder's foreshortening near the silhouette,
 the clip to the field, the multiply that keeps the field's light, the
 measured edge softness, the seeded grain, the arm axis (standing, lying,
-a hint), and the pipeline hook being OFF by default.
+a hint), and the pipeline hook being OFF by default. D108 (the mix): the
+field modes (white, box, plain, ring; flags, sparks and coats refused),
+the symbol's parts and their mirror, the frame scaled to a crop, the
+objective repaint check (passes its own start, fails the wrong handedness,
+a missing arm, extra ink, ink outside the disc), the seed pick, the
+cache round trip (missing, fooocus, fallback) and the denoise by size.
 """
 from __future__ import annotations
 
 import argparse
 import math
+import shutil
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 import numpy as np
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools" / "art"))
@@ -168,10 +176,12 @@ class MeasureTests(unittest.TestCase):
 
 class HookTests(unittest.TestCase):
     def test_off_by_default(self):
+        # the function paints nothing unless asked; the CLI's default is each enemy's own (D108)
         self.assertEqual(asym.DEFAULT_SYMBOL, "none")
         ap = asym.add_symbol_arg(argparse.ArgumentParser())
-        self.assertEqual(ap.parse_args([]).symbol, "none")
+        self.assertEqual(ap.parse_args([]).symbol, "spec")
         self.assertEqual(ap.parse_args(["--symbol", "warp"]).symbol, "warp")
+        self.assertEqual(ap.parse_args(["--symbol", "none"]).symbol, "none")
         rgb, mask, _ = arm()
         self.assertIs(asym.apply_symbol(rgb, mask), rgb)
         self.assertFalse(np.array_equal(asym.apply_symbol(rgb, mask, "warp"), rgb))
@@ -181,6 +191,212 @@ class HookTests(unittest.TestCase):
     def test_comparison_never_written_under_assets(self):
         with self.assertRaises(SystemExit):
             asym._draw([], ROOT / "assets" / "x.png", "SDRR")
+
+
+# ------------------------------------------------------------- D108: the mix
+def band_with(field_rgb, ring_rgb=RED, size: int = 8, at: tuple = (40, 10), height: int = 80, width: int = 40,
+              wall: int = 1):
+    """An olive figure with a red band (rows at[0]-6 .. at[0]+size+6) and a
+    `size` square field of `field_rgb` on it (ring_rgb: its wall)."""
+    rgb = np.zeros((height, width, 3), np.uint8)
+    mask = np.ones((height, width), bool)
+    rgb[:] = OLIVE
+    y, x = at
+    rgb[y - 6:y + size + 6, :] = RED
+    rgb[y - wall:y + size + wall, x - wall:x + size + wall] = ring_rgb
+    rgb[y:y + size, x:x + size] = field_rgb
+    return rgb, mask
+
+
+class FieldModeTests(unittest.TestCase):
+    def test_white_finds_the_disc(self):
+        rgb, mask, disc = arm()
+        out, fields = asym.select_fields(rgb, mask, "white")
+        self.assertIs(out, rgb)
+        self.assertEqual(len(fields), 1)
+        self.assertTrue((fields[0] & disc).sum() >= 0.9 * disc.sum())
+
+    def test_plain_is_the_painted_colour_exactly(self):
+        rgb, mask = band_with(ge.PATCH_RGB)
+        self.assertEqual(len(asym.select_fields(rgb, mask, "plain")[1]), 1)
+        near = tuple(c - 3 for c in ge.PATCH_RGB)             # a cream coat, close but not painted
+        rgb2, mask2 = band_with(near)
+        self.assertEqual(asym.select_fields(rgb2, mask2, "plain")[1], [])
+
+    def test_ring_becomes_one_plain_field(self):
+        rgb, mask = band_with(RED, ring_rgb=WHITE, size=10, wall=3)   # a white wall round red: the General's
+        out, fields = asym.select_fields(rgb, mask, "ring", 40)
+        self.assertEqual(len(fields), 1)
+        inner = (slice(40, 50), slice(10, 20))
+        self.assertTrue(ge.white_mask(out[inner]).all())        # the enclosed red is white now
+        self.assertTrue(ge.red_mask(rgb[inner]).all())          # the input is not touched
+
+    def test_flag_spark_and_size_are_refused(self):
+        rgb, mask = band_with(WHITE)
+        self.assertEqual(len(asym.select_fields(rgb, mask, "white")[1]), 1)
+        flag = rgb.copy()
+        flag[28:36, 18:30] = (20, 30, 160)                      # a canton's blue beside it
+        self.assertEqual(asym.select_fields(flag, mask, "white")[1], [])
+        spark, smask = band_with(WHITE)
+        spark[34:56, :] = OLIVE                                 # the white is not ON the band
+        self.assertEqual(asym.select_fields(spark, smask, "box")[1], [])
+        big, bmask = band_with(WHITE, size=asym.FIELD_MAX + 4)
+        self.assertEqual(asym.select_fields(big, bmask, "white")[1], [])
+        with self.assertRaises(ValueError):
+            asym.select_fields(rgb, mask, "stamp")
+
+
+class PartTests(unittest.TestCase):
+    def grid(self, mirror=False):
+        c = (np.arange(5) + 0.5) / 5 * 2 - 1
+        x, y = np.meshgrid(c, -c)
+        return asym.symbol_parts(x, y, 0.0, math.sqrt(2.0), mirror)
+
+    def test_parts_are_the_symbol_cells(self):
+        g = self.grid()
+        black = np.array([[ch == "K" for ch in row] for row in ge.SYMBOL])
+        np.testing.assert_array_equal(g > 0, black)
+        self.assertEqual(int((g == 1).sum()), 1)
+        for a in asym.ARMS:
+            self.assertEqual(int((g == a).sum()), 4)
+
+    def test_mirror_is_the_other_handedness(self):
+        g, m = self.grid(), self.grid(mirror=True)
+        np.testing.assert_array_equal(m, g[:, ::-1])
+        self.assertFalse(np.array_equal(m > 0, g > 0))
+
+    def test_scaled_frame_draws_the_same_symbol_larger(self):
+        rgb, mask, disc = arm()
+        frame = asym.arm_frame(rgb, mask, disc)
+        small = asym.coverage(mask.shape, frame, disc)
+        k = 4
+        big_clip = np.kron(disc, np.ones((k, k), bool))
+        big = asym.coverage(big_clip.shape, asym.scale_frame(frame, k, (0, 0)), big_clip, ss=2)
+        self.assertAlmostEqual(big.sum() / k ** 2, small.sum(), delta=0.12 * small.sum())
+        ys, xs = np.nonzero(small > 0.5)
+        bys, bxs = np.nonzero(big > 0.5)
+        self.assertAlmostEqual((bys.mean() + 0.5) / k - 0.5, ys.mean(), delta=0.5)
+        self.assertAlmostEqual((bxs.mean() + 0.5) / k - 0.5, xs.mean(), delta=0.5)
+
+
+class RepaintScoreTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        rgb, mask, disc = arm(field_r=8)
+        cls.rgb, cls.mask, cls.disc = rgb, mask, disc
+        cls.prep = asym.prepare_field(rgb, mask, disc, up=256)
+
+    def test_the_start_passes(self):
+        s = asym.score_repaint(self.prep.init, self.prep, res=128)
+        self.assertTrue(s.passed, s)
+        self.assertGreater(s.iou - s.iou_mirror, asym.HAND_MARGIN)
+
+    def test_the_plain_field_fails(self):
+        self.assertFalse(asym.score_repaint(self.prep.base, self.prep, res=128).passed)
+
+    def test_wrong_handedness_fails(self):
+        p = self.prep
+        flipped = asym.Prepared(p.crop, p.base, p.init, p.inpaint, p.clip, p.parts_m, p.parts, p.denoise)
+        s = asym.score_repaint(p.init, flipped, res=128)     # the start judged against the mirror template
+        self.assertFalse(s.passed)
+        self.assertIn("mirror", s.why)
+
+    def test_a_missing_arm_fails(self):
+        img = self.prep.init.copy()
+        arm2 = np.asarray(Image.fromarray(ge._dilate(self.prep.parts == 2, 6).astype(np.uint8) * 255)) > 0
+        img[arm2 & (self.prep.parts != 1)] = (230, 226, 218)  # one arm painted out
+        s = asym.score_repaint(img, self.prep, res=128)
+        self.assertFalse(s.passed)
+        self.assertIn("arm", s.why)
+
+    def test_ink_outside_the_disc_fails(self):
+        img = self.prep.init.copy()
+        ring = self.prep.inpaint & ~self.prep.clip
+        img[ring] = (10, 10, 10)
+        s = asym.score_repaint(img, self.prep, res=128)
+        self.assertFalse(s.passed)
+        self.assertIn("outside", s.why)
+
+    def test_extra_ink_in_the_disc_fails(self):
+        img = self.prep.init.copy()
+        img[self.prep.clip & (self.prep.parts == 0)] = (10, 10, 10)
+        s = asym.score_repaint(img, self.prep, res=128)
+        self.assertFalse(s.passed)
+        self.assertIn("extra", s.why)
+
+    def test_pick_takes_the_best_passing_or_none(self):
+        worse = self.prep.init.copy()
+        bad = self.prep.base
+        best, scores = asym.pick_seed({"a": bad, "b": self.prep.init, "c": worse}, self.prep)
+        self.assertIn(best, ("b", "c"))
+        self.assertFalse(scores["a"].passed)
+        self.assertIsNone(asym.pick_seed({"a": bad}, self.prep)[0])
+
+    def test_denoise_by_disc_size(self):
+        small = np.zeros((40, 40), bool)
+        small[10:16, 10:18] = True
+        big = np.zeros((40, 40), bool)
+        big[5:20, 5:20] = True
+        self.assertEqual(asym.denoise_for(small), asym.DENOISE_BY_SIDE[-1][1])
+        self.assertEqual(asym.denoise_for(big), asym.DENOISE_BY_SIDE[0][1])
+        self.assertLess(asym.denoise_for(small), asym.denoise_for(big))
+
+
+class FooocusCacheTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp(prefix="sd_armband_cache_"))
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_key_reads_pixels_and_mask(self):
+        rgb, mask, _ = arm()
+        k = asym.picture_key(rgb, mask)
+        self.assertEqual(k, asym.picture_key(rgb.copy(), mask.copy()))
+        other = rgb.copy()
+        other[0, 0, 0] ^= 1
+        self.assertNotEqual(k, asym.picture_key(other, mask))
+        self.assertNotEqual(k, asym.picture_key(rgb[:, ::-1].copy(), mask[:, ::-1].copy()))
+
+    def test_round_trip_missing_and_fallback(self):
+        rgb, mask, disc = arm()
+        key = asym.picture_key(rgb, mask)
+        out, st = asym.apply_fooocus(rgb, mask, key, self.tmp)
+        self.assertEqual(st, "missing")
+        self.assertIs(out, rgb)
+        ty, tx, n = asym.crop_box(disc)
+        patch = np.zeros((n, n, 4), np.uint8)
+        patch[...] = (0, 255, 0, 255)
+        asym.write_cache(key, {"label": "t", "fields": [{"k": 0, "status": "fooocus", "crop": [ty, tx, n]}]},
+                         {0: patch}, self.tmp)
+        out, st = asym.apply_fooocus(rgb, mask, key, self.tmp)
+        self.assertEqual(st, "fooocus")
+        green = (out == (0, 255, 0)).all(axis=-1)
+        self.assertTrue(green[disc].all())
+        self.assertFalse(green[~mask].any())                  # inside the figure only
+        asym.write_cache(key, {"label": "t", "fields": [{"k": 0, "status": "fallback", "crop": [ty, tx, n]}]},
+                         {}, self.tmp)
+        out, st = asym.apply_fooocus(rgb, mask, key, self.tmp)
+        self.assertEqual(st, "fallback")
+        np.testing.assert_array_equal(out, rgb)
+
+    def test_patch_alpha_is_the_mask(self):
+        rgb, mask, disc = arm(field_r=8)
+        prep = asym.prepare_field(rgb, mask, disc, up=192)
+        patch = asym.patch_from(prep.init, prep)
+        self.assertEqual(patch.shape, (prep.crop[2], prep.crop[2], 4))
+        ty, tx, n = prep.crop
+        sub = np.zeros((n, n), bool)
+        H, W = disc.shape
+        sub[max(0, -ty):min(n, H - ty), max(0, -tx):min(n, W - tx)] = \
+            disc[max(0, ty):min(H, ty + n), max(0, tx):min(W, tx + n)]
+        self.assertTrue((patch[..., 3][sub] == 255).mean() > 0.9)
+        far = ~ge._dilate(sub, 4)
+        self.assertEqual(int(patch[..., 3][far].max()), 0)
+
+    def test_cache_never_written_under_assets(self):
+        with self.assertRaises(SystemExit):
+            asym.write_cache("x", {"fields": []}, {}, ROOT / "assets" / "cache")
 
 
 if __name__ == "__main__":

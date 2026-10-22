@@ -49,8 +49,16 @@ The steps (pure functions on arrays, tests/test_gemini_enemy.py):
                            sheet); `box` mode paints the field's whole box
                            white (a white cross on red becomes a plain white
                            patch); `none` leaves it (the Legion's US flag).
-                           The CEO's D12 symbol is NOT composed (CEO,
-                           2026-10-22, D105): see `armband` for the proposal
+  4b. the D12 symbol      - D108, "la mezcla": on the Reich (EnemySpec.symbol),
+                           AFTER the mirror (source_picture: never mirrored),
+                           armband_symbol's option 1 on every field it finds
+                           (select_fields), and on the close pictures (the
+                           profiles, rotations 3 and 7, and the corpse letters:
+                           close_sources) option 2, Fooocus' repaint, from
+                           work/art/armband_fooocus/cache/ (made by run_d108.py
+                           there; this tool never runs SDXL). `--symbol none`
+                           builds the empty fields of D105; `control` draws the
+                           control sheet
   5. normalise_facing    - a side view that faces right is mirrored, so views
                            2-4 face left (Doom's rotations 2-4); `auto` reads
                            the facing from where the art reaches further from
@@ -236,13 +244,16 @@ class EnemySpec:
     ref_view: int = 0                # the ref sheet's view whose height is target_height
     shade: float = 1.0               # every colour but red and white x this (the Schwer's black plate)
     field_max: int | None = None     # source px: a white field bigger than this is not an armband (blank/fill)
+    symbol: str = "none"             # the D12 symbol on the armband (D108): none, or warp (armband_symbol, option 1)
+    symbol_fields: str = "white"     # how its fields are found (armband_symbol.select_fields)
+    corpse: tuple[str, ...] = ()     # death letters seen close (the corpse, the frame before): option 2 on them
 
 
 STAND = ("front", "left", "left", "left", "back")
 SIDES_AUTO = ("front", "auto", "auto", "auto", "back")
 
 RIFLEMAN = EnemySpec(
-    name="rifleman", sprite="SDRR", folder="rifleman",
+    name="rifleman", sprite="SDRR", folder="rifleman", symbol="warp", corpse=("K", "L"),
     sheets={
         "turn": Sheet("gem_rifleman_turn.png", 5, STAND),
         "walkL": Sheet("gem_rifleman_walkL.png", 5, STAND),
@@ -331,7 +342,7 @@ LEGION = EnemySpec(
 
 STORM = EnemySpec(
     name="storm", sprite="SDHS", folder="storm", target_height=STORM_HEIGHT, armband="box",
-    armband_side="right",
+    armband_side="right", symbol="warp", symbol_fields="box", corpse=("L", "M"),
     sheets={   # one canvas size and scale (193 px): no helmet normalisation (scale_ref None)
         "turn": Sheet("gem_storm_turn.png", 5, SIDES_AUTO, None, STORM_SOLE),
         "walkL": Sheet("gem_storm_walkL.png", 5, SIDES_AUTO, None, STORM_SOLE),
@@ -558,7 +569,7 @@ PANZER_REASK = (
 
 PANZER = EnemySpec(
     name="panzer", sprite="SDPM", folder="panzermensch", target_height=PANZER_HEIGHT, armband="patch",
-    field_max=PANZER_FIELD_MAX,
+    field_max=PANZER_FIELD_MAX, symbol="warp", symbol_fields="plain", corpse=("N", "O"),
     sheets=PANZER_SHEETS, rotated=PANZER_ROTATED, single=PANZER_SINGLE,
     derived=PANZER_DERIVED,
     anims=(
@@ -573,6 +584,7 @@ PANZER = EnemySpec(
 PANZER_HEAVY = EnemySpec(
     name="panzer_heavy", sprite="SDPS", folder="panzermensch", target_height=PANZER_HEAVY_HEIGHT,
     armband="patch", field_max=PANZER_FIELD_MAX, shade=PLATE_SHADE,
+    symbol="warp", symbol_fields="plain", corpse=("N", "O"),
     sheets=PANZER_SHEETS, rotated=PANZER_ROTATED, single=PANZER_SINGLE,
     derived=PANZER_DERIVED[:-1] + (
         "el Schwer comparte el arte del Panzermensch (la clase es la base con SDPS por SDPM): las mismas "
@@ -590,7 +602,7 @@ PANZER_HEAVY = EnemySpec(
 
 GENERAL = EnemySpec(
     name="general", sprite="SDGN", folder="general", target_height=GENERAL_HEIGHT, armband="none",
-    field_max=GENERAL_FIELD_MAX,
+    field_max=GENERAL_FIELD_MAX, symbol="warp", symbol_fields="ring", corpse=("M", "O", "P"),
     sheets={
         "turn": Sheet("gem_general_turn.png", 5, STAND_RIGHT, None),
         "walkL": Sheet("gem_general_walkL.png", 5, STAND_RIGHT, None),
@@ -1458,14 +1470,65 @@ def plan(spec: EnemySpec, ref_dir: Path = REF_DIR) -> dict[str, SheetCut]:
     return cuts
 
 
-def render(cut: Cut, scale: float, pal: np.ndarray, tilt_deg: float = 0.0, mirror: bool = False,
-           blood: int = 0, seed: int = 0, core: bool = False, shade: float = 1.0) -> np.ndarray:
+CLOSE_ROTS = (3, 7)      # the profiles: seen closest, with the corpses (D108: option 2 there)
+
+
+@dataclass
+class SymbolPass:
+    """The D12 symbol for one enemy's pictures (D108): option 1 (armband_symbol,
+    painted at Gemini's resolution) on every picture with a field; with
+    `fooocus`, option 2's cached repaint over it."""
+    mode: str = "warp"
+    fields: str = "white"
+    field_max: int | None = None
+    fooocus: bool = False
+    cache_dir: Path | None = None
+
+
+def symbol_pass(spec: EnemySpec, mode: str = "spec", fooocus: bool = False,
+                cache_dir: Path | None = None) -> SymbolPass | None:
+    """The spec's own symbol (`spec`), or forced off (`none`) / on (`warp`)."""
+    m = spec.symbol if mode == "spec" else mode
+    if m == "none":
+        return None
+    return SymbolPass(m, spec.symbol_fields, spec.field_max, fooocus, cache_dir)
+
+
+def symbolise(rgb: np.ndarray, mask: np.ndarray, sp: SymbolPass) -> tuple[np.ndarray, str]:
+    """(picture, status): `nofield`, `option1`, or option 2's status
+    (`fooocus`, `partial`, `fallback`, `missing`: armband_symbol.apply_fooocus)."""
+    import armband_symbol as asym     # it imports this module: imported here, when first needed
+    key = asym.picture_key(rgb, mask)
+    prepped, fields = asym.select_fields(rgb, mask, sp.fields, sp.field_max)
+    if not fields:
+        return rgb, "nofield"
+    out = asym.apply_symbol(prepped, mask, sp.mode, seed=asym.picture_seed(key), fields=fields)
+    if not sp.fooocus:
+        return out, "option1"
+    return asym.apply_fooocus(out, mask, key, sp.cache_dir or asym.FOOOCUS_CACHE)
+
+
+def source_picture(cut: Cut, mirror: bool = False, core: bool = False, shade: float = 1.0,
+                   symbol: SymbolPass | None = None) -> tuple[np.ndarray, np.ndarray, str | None]:
+    """(rgb, mask, symbol status) at Gemini's resolution, before the tilt:
+    the biggest piece (core), the mirror, THEN the symbol (never mirrored,
+    D105/D108), then the black plate (the symbol is drawn on the shared art,
+    so the Schwer reuses the Panzermensch's repaints)."""
     rgb, mask = cut.rgb, cut.mask
     if core:
         rgb, mask = crop(rgb, largest(mask))
-    rgb = darken(rgb, mask, shade)
     if mirror:
         rgb, mask = rgb[:, ::-1], mask[:, ::-1]
+    status = None
+    if symbol is not None:
+        rgb, status = symbolise(np.ascontiguousarray(rgb), np.ascontiguousarray(mask), symbol)
+    return darken(rgb, mask, shade), mask, status
+
+
+def render(cut: Cut, scale: float, pal: np.ndarray, tilt_deg: float = 0.0, mirror: bool = False,
+           blood: int = 0, seed: int = 0, core: bool = False, shade: float = 1.0,
+           symbol: SymbolPass | None = None, picture: tuple | None = None) -> np.ndarray:
+    rgb, mask, _ = picture if picture is not None else source_picture(cut, mirror, core, shade, symbol)
     if tilt_deg:
         # lean back: away from the facing (views facing left lean right); front/back lean right a little
         rgb, mask = tilt(rgb, mask, tilt_deg if not mirror else -tilt_deg)
@@ -1474,35 +1537,59 @@ def render(cut: Cut, scale: float, pal: np.ndarray, tilt_deg: float = 0.0, mirro
     return add_blood(idx, blood, pal, seed)
 
 
-def build(spec: EnemySpec, out_dir: Path | None = None, ref_dir: Path = REF_DIR) -> dict:
+def lump_sources(spec: EnemySpec) -> dict[str, tuple]:
+    """lump -> (sheet, view, mirror, core, tilt, blood, seed): the picture each lump is drawn from."""
+    out = {}
+    for letter, rot in spec.rotated.items():
+        over = dict(rot.override)
+        for r in rots_of(spec):
+            src = over.get(r)
+            if src is not None:
+                out[rot_lump(spec, letter, r)] = (src.sheet, src.view, src.mirror, src.core, src.tilt, src.blood, 0)
+            else:
+                out[rot_lump(spec, letter, r)] = (rot.sheet, VIEW_OF_ROT[r], r in MIRRORED_ROTS, False, rot.tilt, 0, 0)
+    for n, (letter, src) in enumerate(sorted(spec.single.items())):
+        out[f"{spec.sprite}{letter}0"] = (src.sheet, src.view, src.mirror, src.core, src.tilt, src.blood, 7000 + n)
+    return out
+
+
+def close_sources(spec: EnemySpec) -> set[tuple]:
+    """(sheet, view, mirror, core) of the pictures seen close (D108): the
+    profiles (rotations CLOSE_ROTS of every rotated letter) and the corpse
+    letters. Every lump drawn from one of them gets option 2 (the gib's last
+    frame is the corpse's picture with blood: the same repaint)."""
+    src = lump_sources(spec)
+    lumps = [rot_lump(spec, f, r) for f in spec.rotated for r in CLOSE_ROTS if r in rots_of(spec)]
+    lumps += [f"{spec.sprite}{f}0" for f in spec.corpse if f in spec.single]
+    return {src[lu][:4] for lu in lumps if lu in src}
+
+
+def build(spec: EnemySpec, out_dir: Path | None = None, ref_dir: Path = REF_DIR,
+          symbol: str = "spec", cache_dir: Path | None = None) -> dict:
     pal = palette_rgb()
     out_dir = out_dir or OUT_ROOT / spec.name
     guard_out(out_dir)
     cuts = plan(spec, ref_dir)
     base = spec.target_height / cuts[spec.ref_sheet].figs[spec.ref_view].mask.shape[0]
-    frames: dict[str, dict[str, np.ndarray]] = {}
     for letter, rot in spec.rotated.items():
         over = dict(rot.override)
         if spec.pairs and set(over) - set(PAIR_ROTS):
             raise ValueError(f"{spec.name} {letter}: a mirror-pair set draws no rotation "
                              f"{sorted(set(over) - set(PAIR_ROTS))}")
-        pics = {}
-        for r in rots_of(spec):
-            src = over.get(r)
-            if src is not None:
-                sc = cuts[src.sheet]
-                pics[rot_lump(spec, letter, r)] = render(sc.figs[src.view], base * sc.scale, pal, src.tilt,
-                                                         src.mirror, src.blood, core=src.core, shade=spec.shade)
-                continue
-            sc = cuts[rot.sheet]
-            pics[rot_lump(spec, letter, r)] = render(sc.figs[VIEW_OF_ROT[r]], base * sc.scale, pal,
-                                                     rot.tilt, r in MIRRORED_ROTS, shade=spec.shade)
-        frames[letter] = pics
-    for n, (letter, src) in enumerate(sorted(spec.single.items())):
-        sc = cuts[src.sheet]
-        frames[letter] = {f"{spec.sprite}{letter}0": render(sc.figs[src.view], base * sc.scale, pal,
-                                                            src.tilt, src.mirror, src.blood, seed=7000 + n,
-                                                            core=src.core, shade=spec.shade)}
+    close = close_sources(spec)
+    pictures: dict[tuple, tuple] = {}
+    status: dict[str, str] = {}
+    frames: dict[str, dict[str, np.ndarray]] = {}
+    for lump, (sheet, view, mirror, core, tilt_deg, blood, seed) in lump_sources(spec).items():
+        key = (sheet, view, mirror, core)
+        if key not in pictures:     # one picture (and one symbol) per source, shared by its lumps
+            sp = symbol_pass(spec, symbol, fooocus=key in close, cache_dir=cache_dir)
+            pictures[key] = source_picture(cuts[sheet].figs[view], mirror, core, spec.shade, sp)
+        if pictures[key][2] is not None:
+            status[lump] = pictures[key][2]
+        frames.setdefault(lump[len(spec.sprite)], {})[lump] = render(
+            cuts[sheet].figs[view], base * cuts[sheet].scale, pal, tilt_deg, mirror, blood, seed,
+            picture=pictures[key])
     written, grabs = [], {}
     for letter in sorted(frames):
         canv, grab = place_frame(frames[letter], spec.feet_sink)
@@ -1523,6 +1610,8 @@ def build(spec: EnemySpec, out_dir: Path | None = None, ref_dir: Path = REF_DIR)
         "derived": list(spec.derived), "frames": grabs,
         "gate": quality_gate(spec, cuts, written),
         "reask": [list(r) for r in spec.reask],
+        "symbol": {lu: status[lu] for lu in sorted(status)},
+        "symbol_close": sorted(lu for lu, s in lump_sources(spec).items() if s[:4] in close),
     }
     (out_dir / "metrics.json").write_text(json.dumps(metrics, indent=1), encoding="utf-8")
     return metrics
@@ -1627,6 +1716,7 @@ def review_sheet(specs=None, out: Path = SHEET_HTML, out_root: Path = OUT_ROOT,
             "new": _frames_json(new_dir, spec.sprite),
             "derived": list(spec.derived), "notes": spec.notes,
             "gate": metrics.get("gate", []), "reask": metrics.get("reask", []),
+            "symbol": symbol_summary(metrics) if metrics.get("symbol") else "",
             "sheets": {k: [f["facing"] + (" (espejo)" if f["mirrored"] else "") for f in v["figures"]]
                        for k, v in metrics["sheets"].items()},
         })
@@ -1694,8 +1784,10 @@ sobre su línea de suelo (la raya clara) con los offsets reales. Enemigos: fusil
 Panzermensch <code>SDPM</code> y Panzermensch Schwer <code>SDPS</code> (el mismo arte, más grande y con la placa negra),
 El General <code>SDGN</code>. Mismos nombres de lump (el sabueso, en pares espejo como hoy: «(espejo)» es la rotación que
 el motor voltea): el overlay <code>work/overlays/sd-draft-enemies.pk3</code> los sustituye al cargarlo después del mod. En todo
-lo del Reich el brazalete y el emblema van con el campo blanco <b>vacío</b>, ninguna esvástica (decisión del CEO, 2026-10-22, D105); la propuesta del símbolo está aparte en
-<code>docs/art/previews/2026-10-22_P4_rifleman-armband-proposal.png</code>. Marca OK / NO / ? por fila y pulsa <b>Copiar resultado</b>.</p>
+lo del Reich el brazalete (y el emblema del Panzermensch) lleva el símbolo D12 según <b>«la mezcla»</b> (decisión del CEO, D108):
+la opción 1 (pintado a la resolución de Gemini, doblado con el brazo, nunca en espejo) en todos los frames, y la opción 2 (Fooocus, SDXL
+local) encima en los perfiles (rotaciones 3 y 7) y los cadáveres, elegida por una métrica objetiva; la bandera de EEUU del General no se
+toca. Hoja de control: <code>docs/art/previews/2026-10-22_P4_armbands-applied.png</code>. Marca OK / NO / ? por fila y pulsa <b>Copiar resultado</b>.</p>
 <div id="enemies"></div>
 <h2>Nota general</h2>
 <textarea id="general" placeholder="Algo en general"></textarea>
@@ -1756,6 +1848,7 @@ function build(){
   for (const it of ITEMS) {
     html += `<h2>${esc(it.id)} <code>${it.sprite}</code></h2><p class="meta">Derivado (no dibujado por Gemini):</p><ul class="meta">` +
       it.derived.map(d => `<li>${esc(d)}</li>`).join("") + `</ul>` +
+      (it.symbol ? `<p class="meta">Brazalete D12 (D108), lumps por vía: ${esc(it.symbol.replace(/option1/g, "opción 1").replace(/fooocus/g, "Fooocus").replace(/fallback/g, "opción 1 (no pasó el umbral)").replace(/missing/g, "opción 1 (sin generar)"))}</p>` : "") +
       ((it.gate || []).length ? `<p class="meta">Gate de calidad (medido):</p><ul class="meta">` + it.gate.map(d => `<li>${esc(d)}</li>`).join("") + `</ul>` : "") +
       ((it.reask || []).length ? `<p class="meta">Pedir otra vez a Gemini:</p><ul class="meta">` + it.reask.map(([f, p]) => `<li><code>${esc(f)}</code>: ${esc(p)}</li>`).join("") + `</ul>` : "") +
       `<p class="meta">Orientación leída por hoja: ` + Object.entries(it.sheets).map(([k, v]) => `<b>${k}</b> ${v.join(", ")}`).join(" · ") + `</p>`;
@@ -1845,6 +1938,124 @@ build(); summary();
 </html>
 """
 
+
+
+# ------------------------------------------------- the armbands' control sheet
+# D108: per Reich enemy, every picture that carries the symbol, cut round
+# the armband at x4, the ones repainted by Fooocus (option 2) framed green.
+CONTROL_PNG = ROOT / "docs" / "art" / "previews" / "2026-10-22_P4_armbands-applied.png"
+CONTROL_ZOOM = 4
+CONTROL_WIN = 22         # sprite px round the symbol shown per tile
+CONTROL_COLS = 12
+CONTROL_STATUS = {       # status -> (frame colour, short label)
+    "fooocus": ((70, 200, 110), "F"), "partial": ((200, 200, 70), "F/1"),
+    "fallback": ((230, 140, 40), "1 (umbral)"), "missing": ((150, 150, 150), "1 (sin generar)"),
+    "option1": ((90, 92, 100), "1"),
+}
+
+
+def symbol_summary(metrics: dict) -> str:
+    """'n option1, n fooocus, ...' over a build's lumps (nofield left out)."""
+    counts: dict[str, int] = {}
+    for st in metrics.get("symbol", {}).values():
+        if st != "nofield":
+            counts[st] = counts.get(st, 0) + 1
+    return ", ".join(f"{v} {k}" for k, v in sorted(counts.items())) or "off"
+
+
+def _symbol_window(idx: np.ndarray, bare: np.ndarray, win: int = CONTROL_WIN) -> tuple[int, int]:
+    """(y0, x0) of the win x win window centred on what the symbol changed."""
+    diff = (idx != bare)
+    if diff.any():
+        ys, xs = np.nonzero(diff)
+        cy, cx = int(round(ys.mean())), int(round(xs.mean()))
+    else:
+        cy, cx = idx.shape[0] // 2, idx.shape[1] // 2
+    return max(0, min(idx.shape[0] - win, cy - win // 2)), max(0, min(idx.shape[1] - win, cx - win // 2))
+
+
+def control_tiles(spec: EnemySpec, ref_dir: Path = REF_DIR, cache_dir: Path | None = None) -> list[dict]:
+    """One tile per picture with a symbol (a source shared by several lumps is one tile)."""
+    pal = palette_rgb()
+    cuts = plan(spec, ref_dir)
+    base = spec.target_height / cuts[spec.ref_sheet].figs[spec.ref_view].mask.shape[0]
+    close = close_sources(spec)
+    by_key: dict[tuple, list[str]] = {}
+    for lump, src in sorted(lump_sources(spec).items()):
+        by_key.setdefault(src[:4], []).append(lump)
+    tiles = []
+    for key, lumps in sorted(by_key.items(), key=lambda kv: kv[1][0]):
+        sheet, view, mirror, core = key
+        cut, sc = cuts[sheet].figs[view], base * cuts[sheet].scale
+        sp = symbol_pass(spec, "spec", fooocus=key in close, cache_dir=cache_dir)
+        if sp is None:
+            return []
+        pic = source_picture(cut, mirror, core, spec.shade, sp)
+        if pic[2] in (None, "nofield"):
+            continue
+        idx = render(cut, sc, pal, picture=pic)
+        bare = render(cut, sc, pal, picture=source_picture(cut, mirror, core, spec.shade, None))
+        if bare.shape != idx.shape:
+            bare = idx
+        y0, x0 = _symbol_window(idx, bare)
+        win = idx[y0:y0 + CONTROL_WIN, x0:x0 + CONTROL_WIN]
+        tiles.append({"lumps": lumps, "status": pic[2], "close": key in close, "rgba": to_rgba(win, pal)})
+    return tiles
+
+
+def control_sheet(specs=None, out: Path = CONTROL_PNG, ref_dir: Path = REF_DIR,
+                  cache_dir: Path | None = None) -> Path:
+    """The PNG: per Reich enemy, its symbol tiles at x CONTROL_ZOOM, framed by
+    status (green: Fooocus), with counts of lumps per option."""
+    guard_out(out)
+    rows = []
+    for spec in (ENEMIES.values() if specs is None else specs):
+        if spec.symbol == "none":
+            continue
+        tiles = control_tiles(spec, ref_dir, cache_dir)
+        n_f = sum(len(t["lumps"]) for t in tiles if t["status"] in ("fooocus", "partial"))
+        n_all = sum(len(t["lumps"]) for t in tiles)
+        fall = [t["lumps"][0] for t in tiles if t["status"] in ("fallback", "missing")]
+        rows.append((spec, tiles, n_f, n_all, fall))
+    z, w = CONTROL_ZOOM, CONTROL_WIN * CONTROL_ZOOM
+    cell_w, cell_h = w + 10, w + 34
+    try:
+        font = ImageFont.truetype(artlib.FONT_SMALL, 15)
+        small = ImageFont.truetype(artlib.FONT_SMALL, 11)
+    except OSError:  # pragma: no cover - no system font
+        font = small = ImageFont.load_default()
+    heights = [56 + ((len(t) + CONTROL_COLS - 1) // CONTROL_COLS) * cell_h for _, t, *_ in rows]
+    W, H = 16 + CONTROL_COLS * cell_w, 70 + sum(heights) + 60
+    img = Image.new("RGB", (W, H), (58, 60, 66))
+    dr = ImageDraw.Draw(img)
+    dr.text((10, 8), "Brazaletes aplicados (D108, «la mezcla»): opción 1 en todos los frames del Reich; "
+                     "Fooocus (opción 2) encima en perfiles (rot. 3 y 7) y cadáveres.", fill=(240, 236, 228), font=font)
+    dr.text((10, 32), f"x{z}, ventana de {CONTROL_WIN} px del sprite alrededor del símbolo; un recuadro por "
+                      "imagen de origen (los lumps que la comparten debajo). Verde = Fooocus; naranja = no pasó "
+                      "el umbral (queda la opción 1); gris = sin generar.", fill=(214, 208, 196), font=small)
+    y = 62
+    for (spec, tiles, n_f, n_all, fall), hh in zip(rows, heights):
+        msg = f"{spec.sprite} ({spec.name}): {n_all} lumps con símbolo, {n_f} con Fooocus, {n_all - n_f} opción 1"
+        dr.text((10, y + 10), msg, fill=(240, 236, 228), font=font)
+        if fall:
+            dr.text((10, y + 30), "cerca pero con la opción 1 (no pasó el umbral o sin generar): " + ", ".join(fall),
+                    fill=(230, 140, 40), font=small)
+        for i, t in enumerate(tiles):
+            cx, cy = 10 + (i % CONTROL_COLS) * cell_w, y + 52 + (i // CONTROL_COLS) * cell_h
+            colour, short = CONTROL_STATUS.get(t["status"], ((90, 92, 100), t["status"]))
+            dr.rectangle([cx - 3, cy - 3, cx + w + 2, cy + w + 2], outline=colour, width=3)
+            dr.rectangle([cx, cy, cx + w - 1, cy + w - 1], fill=(92, 92, 92))
+            sp = Image.fromarray(t["rgba"], "RGBA")
+            big = sp.resize((sp.width * z, sp.height * z), Image.NEAREST)
+            img.paste(big, (cx, cy), big)
+            names = " ".join(lu[len(spec.sprite):] for lu in t["lumps"][:4]) + (" …" if len(t["lumps"]) > 4 else "")
+            dr.text((cx, cy + w + 4), names, fill=(214, 208, 196), font=small)
+            dr.text((cx, cy + w + 17), short, fill=colour, font=small)
+        y += hh
+    guard_out(out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    img.crop((0, 0, W, y + 10)).save(out, optimize=True)
+    return out
 
 
 # --------------------------------------------------- the armband proposal
@@ -2046,15 +2257,24 @@ ARMBAND_NOTES = (
 # ------------------------------------------------------------------ CLI
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("what", help="an enemy (" + ", ".join(ENEMIES) + "), 'all', 'overlay', 'sheet' or 'armband'")
+    ap.add_argument("what", help="an enemy (" + ", ".join(ENEMIES) + "), 'all', 'overlay', 'sheet', "
+                                 "'control' (the D108 armbands' control sheet) or 'armband'")
     ap.add_argument("--check", action="store_true", help="print the plan only, write nothing")
+    import armband_symbol as asym     # imports this module: here, not at the top
+    asym.add_symbol_arg(ap)
     args = ap.parse_args(argv)
     if args.what == "all" and not args.check:
         for spec in ENEMIES.values():
-            m = build(spec)
-            print(f"gemini_enemy: {spec.name}: {m['lumps']} lumps, {len(m['gate'])} gate notes")
+            m = build(spec, symbol=args.symbol)
+            print(f"gemini_enemy: {spec.name}: {m['lumps']} lumps, {len(m['gate'])} gate notes, "
+                  f"symbol {symbol_summary(m)}")
         print(f"gemini_enemy: wrote {review_sheet().relative_to(ROOT).as_posix()}")
+        if args.symbol != "none":
+            print(f"gemini_enemy: wrote {control_sheet().relative_to(ROOT).as_posix()}")
         args.what = "overlay"
+    if args.what == "control":
+        print(f"gemini_enemy: wrote {control_sheet().relative_to(ROOT).as_posix()}")
+        return 0
     if args.what == "overlay":
         out = write_overlay(overlay_plan())
         print(f"gemini_enemy: wrote {out.relative_to(ROOT).as_posix()} (+ .txt)")
@@ -2074,8 +2294,9 @@ def main(argv=None) -> int:
                   [(f.mask.shape[1], f.mask.shape[0], f.facing, f.mirrored, f.painted, f.edges, f.marker)
                    for f in c.figs])
         return 0
-    m = build(spec)
-    print(f"gemini_enemy: {m['lumps']} lumps -> work/art/enemies_gemini/{spec.name}/ (base scale {m['base_scale']})")
+    m = build(spec, symbol=args.symbol)
+    print(f"gemini_enemy: {m['lumps']} lumps -> work/art/enemies_gemini/{spec.name}/ (base scale {m['base_scale']}), "
+          f"symbol {symbol_summary(m)}")
     return 0
 
 
