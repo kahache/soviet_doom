@@ -9,10 +9,7 @@ blocks anything.
 
 | Since | Idea | Where it came from | What it would take |
 |---|---|---|---|
-| 2026-10-14 | **Weapon reloads (nice to have):** magazines for the TT-33 (8), the PPSh-41 (71-round drum) and the ROKS-3 (fuel tank), with a reload key, so the drafted reload sounds `SDTTRLD`, `SDPPRLD`, `SDRKRLD` can play | D47; the CEO: "apárcalas pero que quede registrado como nice to have"; numbers in `docs/sound/WEAPON-SOUNDS.md` §6 | reopens D39: the TT-33 would drop from 26 to about 19 DPS, the PPSh about 20 %; `mod-engineer` (magazine state, reload key, weapon switch), a new balance pass and MAP01's ammo budget re-measured; the sounds already exist |
-| 2026-10-13 | Skill 5 named "Pyatiletka in one night" / «Пятилетку за одну ночь» instead of "Hero of the Soviet Union, posthumously" | `docs/product/DIFFICULTY-NAMES.md`; the CEO liked both, D20 chose the latter | one line in `LANGUAGE`, both languages |
-| 2026-10-12 | Humour in posters once the serious tone is established | D11 | a poster batch with the CEO's wording |
-| 2026-10-13 | Menu items as painted poster-style graphics (treatment C), one set per language, if the text menu of D31 ever looks too plain | D31; the CEO: "anota como pendiente en el futuro hacer C si fuera necesario" | `art-director`: a painted set in EN and RU plus `MENUDEF` back to `PatchItem`; roughly the cost of the shell screens (D18) |
+| 2026-10-14 | **Weapon reloads (V3 nice to have, D121: only if Gemini's quota allows the reload frames; not an obligation):** magazines for the TT-33 (8), the PPSh-41 (71-round drum) and the ROKS-3 (fuel tank), with a reload key, so the drafted reload sounds `SDTTRLD`, `SDPPRLD`, `SDRKRLD` can play | D47; the CEO: "apárcalas pero que quede registrado como nice to have"; numbers in `docs/sound/WEAPON-SOUNDS.md` §6 | reopens D39: the TT-33 would drop from 26 to about 19 DPS, the PPSh about 20 %; `mod-engineer` (magazine state, reload key, weapon switch), a new balance pass and MAP01's ammo budget re-measured; the sounds already exist |
 
 ## Enemies v2 with Gemini (CEO, 2026-10-20) - DONE (D105-D109, D114)
 
@@ -47,17 +44,21 @@ proposals (`docs/product/2026-10-23_P4_propuestas-siguientes-versiones.md`, cost
 - **B5 - Propaganda radio ambience:** loudspeakers that play as the player comes near.
 - **D3 - A 60 s trailer** from engine captures and the composed music.
 
+## Dropped (CEO, 2026-10-23, D121)
+
+- Skill 5 renamed "Pyatiletka in one night", humour in posters (D11), painted poster-style menu items (D31): the CEO took them out.
+
 ## Proposals pending (CEO, 2026-10-23, D120: not scheduled)
 
 - **A1 - Episode 4** (MAP10-12): through the portal to the invaders' world, or a new invasion elsewhere in the USSR (also PENDING-CEO-DECISIONS §6).
-- **A5 - The hand Katyusha** in a secret (MAP07 question, PENDING-CEO-DECISIONS §4).
+- **A5 - The hand Katyusha** (no such weapon yet; MAP07 keeps its route without it, D121).
 - **C1 - A second CEO play-through** at skill 3 after the D119 rebalance.
 - **C2 - Secondary attacks:** bayonet on the Mosin, rifle butt on the AKM.
 - **C3 - Shield or cover-taking enemies** (a new assault trooper).
 - **D1 - Spanish** as a fourth language.
 - **D2 - itch.io and ModDB pages** (needs the CEO's account and his OK to publish).
 
-## Orchestrated music (D99, V2)
+## Orchestrated music (D99; nice to have, stays in the Icebox, D121)
 
 Render our MIDI pieces with real orchestral sound: the CEO's own Pro Tools rig (synths, orchestral plugins) as the baseline; evaluate first a licence-clean orchestral soundfont for GZDoom's MIDI player, then MusicGen-Melody (local, NC weights) as an AI shortcut. Avoid Suno/Udio.
 
