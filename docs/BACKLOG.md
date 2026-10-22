@@ -18,24 +18,44 @@ get better.
 
 ## Doing (agents at work)
 
-Checked against the repo on 2026-10-20 ~16:40 (Product, stage 6, after the
-v1.0 sign-off 4a17a61). **Nothing in flight.** Every MVP task closed; see
-Done.
+Checked against git on 2026-10-22 (Product, stage 6, after Episode 3's routes
+PASS, 9133be1). Committed through 9133be1; **uncommitted in the work tree**
+(other agents are still editing it, nothing here is "done" until the PM
+commits it):
 
-## Next (approved order, D63)
+| What | Where |
+|---|---|
+| Episode 2 texture round 2 and Episode 3's three sets applied to the maps (MAP04, MAP07, MAP08, MAP09) and their tests | `src/maps/*/map.py`, `tests/test_map0*.py`, `docs/levels/` |
+| The new textures' rows, licences and contract (flats, `ANIMDEFS`, sizes) | `docs/art/LICENSES.md`, `TEXTURE-INDEX.md`, `ART-BIBLE.md`, `docs/engine/MOD-SPEC.md`, `tools/check_pk3.py`, `tools/release.py` |
+| The seven Gemini enemies installed in `assets/sprites/` with their armbands (D109, D114): ~540 modified lumps | `assets/sprites/*`, `tools/art/gen_*.py`, tests |
+| Dog-sound candidates (untracked) | `work/audio/candidates/dog/` |
 
-**Empty for v1: the MVP shipped** (tag `v1.0` at d530faa, G6 PASS). The one
-v1 step left is the PM's, not an agent's:
+## Next (proposed order; the CEO approves what moves in, D63)
+
+D104 and D113 leave the PM free to push P4 on its own; the order below is the
+PM's proposal. **Estimates are the D69 rules of thumb, not measurements**
+(no agent usage report reached the repo for any of today's work).
 
 | # | Milestone | Task | Role | Est. k tok | Needs |
 |---|---|---|---|---|---|
-
-What the CEO chooses next comes from "Parked" below, phase by phase.
+| 1 | P4 | Commit and pmo the work tree above (verify fast, one engine pass on MAP04-MAP09, evidence) | PM, `pmo`, `qa-engineer` | 100 | nothing |
+| 2 | P4 | **The TT-33 redone with Gemini** (D111): ready + fire, bare hands, `tools/art/gemini_frames.py`, install | `art-director` | 250 | Gemini's limit (reset 2026-10-22 17:33, per HANDOFF); the CEO's look |
+| 3 | P4 | **Liberty Legion heavy gunner** `SD_LegionGunner` (21110): Gemini frames walkL/walkR/aim/fire/death, sprites from the draft overlay to `assets/`, place it in Episode 2/3 | `art-director`, `level-designer`, `mod-engineer` | 350 | Gemini; the CEO's look (a sprite) |
+| 4 | P4 | **Episode boss** `SD_LibertyColossus` (21111): sprites from scratch, replaces the General stand-in at `MAP06_BOSS_SPOT` | same | 400 | Gemini; the CEO's look |
+| 5 | P4 | **A final boss for MAP09** in place of the General stand-in (`MAP09_BOSS_SPOT`); not designed yet | `level-designer`, `art-director`, `mod-engineer` | 500 (NOT measured; no design) | the CEO's call on what it is |
+| 6 | P4 | The **Marx and Engels pair** installed (`SDPOSTR4`/`5`) and hung in the two slots each of the nine maps holds; rows in `TEXTURE-INDEX.md` and `LICENSES.md` | `art-director`, `level-designer` | 100 | the CEO's verdict on the sweep (PENDING §2) |
+| 7 | P2 | The General's death voice: install the winning take of the new round (`work/audio/preview/voices_p2b_listening.html`) | `sound-designer` | 40 | the CEO's ear |
+| 8 | P4 | Gemini re-asks listed in the enemy review sheet | `art-director` | 100 | Gemini |
+| 9 | P4 | **AKM** and further weapons (the PM's brief lists the AKM; **no D-number or doc yet**) | `art-director`, `mod-engineer` | 300 per weapon set | the CEO's OK to add it |
+| 10 | P2 | World sounds still Freedoom's: doors, switches, item pickups (**no D-number yet**) | `sound-designer` | 200 (NOT measured) | nothing; the CEO's ear before install |
+| 11 | P4 | After the CEO walks Episodes 2 and 3: fixes from his notes, and the open points in MAP07 §14, MAP08 §14, MAP09 §17, MAP05 §14 | `level-designer` | 150 per map | his walk |
+| 12 | M4/P4 | **v1.1 or v1.2** (PENDING §1): if v1.2, a G6-style sign-off on the clean-clone zip (every route, now including MAP04-MAP09) and the release notes | `qa-engineer`, PM | 250 (the N16 figure) | the CEO's choice |
 
 ## Waiting for the CEO
 
-See `docs/PENDING-CEO-DECISIONS.md`: his own
-play-through of the release, and the order of the V2 phases.
+See `docs/PENDING-CEO-DECISIONS.md`: publish v1.1 or wait for v1.2, the Marx
+and Engels pair, the General's death voice, MAP07's questions, the end of
+Episode 3, and his walk of Episodes 2 and 3.
 
 ## Parked (after the MVP, D60): V2 phases P1-P6
 
@@ -51,24 +71,48 @@ installs (see Done), so plan for the higher number.
 | G15: a GAMEINFO `IWAD` hint so drag-and-drop picks Phase 2 (two-IWAD behaviour NOT VERIFIED) | P1 | 25 |
 | G17: jump/crouch allowed or not (a gameplay call for the CEO) | P1 | 20 |
 | The CEO's three sound questions of D74 (TT-33/PPSh shot strength, the axe hit on laptops, the reloads), answered by playing | P1 | 0-80 |
-| Voices: the 4 enemy voices still Freedoom's (rifleman pain, trooper death, General pain and death; D91/D96 need a shouted reference) | P2 | 150 |
+| Voices: the General's death is the one enemy voice still Freedoom's (the other three of the four were installed in D110; a new round is drafted, Next #7) | P2 | 40 |
 | The 8 packed beds mixed under their voices (`sd/bed/`, MOD-SPEC §6.2), or dropped | P2 | 80 |
 | Polish found at the sign-off: the face's full damage ladder by eye, the credits screen at 16:9, the IZh pickup sound (Freedoom's, D94) | P2 | 60 |
 | Practice-range extras | P2 | 100 |
 | The Russian docs mirror (`docs/ru/`, D34, D75) | P3 | 400 |
-| **The full game: 15-20 levels** (D69), a roadmap of its own | P4 | ~400 per map |
+| **The full game: 15-20 levels** (D69). Nine maps built (Episodes 1-3); the remaining 6-11 maps would be Episode 4 and beyond, each | P4 | ~400 per map |
 | Mine Freedoom's 68 maps (BSD) to calibrate our map constants (`docs/product/2026-10-13_0944_F3_ml-level-generation.md` §6) | P4 | 500 |
-| More weapons and more enemies (Gemini frames, D79); the seven enemies v2 from Gemini (`docs/ICEBOX.md`) | P4 | 300 per weapon set; enemies v2 to be measured on one enemy first |
+| More weapons (Gemini frames, D79). The seven enemies v2 from Gemini are **done** (D105, D109, D114; Done below) | P4 | 300 per weapon set |
 | N15: evaluate Ultimate Doom Builder (D69, needs the CEO's OK to download) | P4 | 150 |
 | N7b / N7c: metro v2, Tankograd v2 (optional) | P4 | 350 / 400 |
-| Portable downloads per OS, GZDoom + Freedoom + our PK3 (D93) | P5 | 300 (NOT measured; no study yet) |
-| Catalan as the third game language (D97), reviewed once like N11 | P6 | 350 (NOT measured) |
+| Portable downloads per OS, GZDoom + Freedoom + our PK3 (D93) | P5 | done for v1.0 (D101, D102): Windows, macOS and Linux packages and the sources; real costs in Done below |
+| Catalan as the third game language (D97): **built and accepted by the CEO (D110)**; ships with the next release | P6 | done (real ~480k for the build, Done below) |
 | Orchestrated music (D99): a licence-clean orchestral soundfont, then MusicGen-Melody; the CEO's Pro Tools as baseline | V2, not phased | 150 for the evaluation |
 
 N14 (weapons from Fooocus references) and N4 (the ice axe round 2) were
 superseded by D79. N8 (further music swaps) has no request open.
 
 ## Done (recent, newest first)
+
+**2026-10-21 night to 2026-10-22: P4 opens (D104-D114).** Real token costs
+were **NOT measured** for any of this (no agent usage report reached the
+repo), so no estimate-against-real can be made. What closed, committed:
+
+| What | Commit | Est. k tok | Real |
+|---|---|---|---|
+| Episode 2 «The Road to Moscow»: MAP04, MAP05, MAP06 (UDMF by script, design docs, tests, routes PASS on skills 2-4 at 00:18-00:28), New Game entry, EN/RU/CA text | 8b98687 | not estimated | NOT measured |
+| Episode 2 draft overlay enemies `SD_LegionGunner`, `SD_LibertyColossus` (behaviour, provisional sprites, not in the mod) | 7c162ae | not estimated | NOT measured |
+| Gemini enemy pipeline and the seven enemies redrawn as draft overlay sprites (D105) | cd82da7, 48ef251, 2fb7263 | not estimated | NOT measured |
+| Armband swastika: option 1 (warp) and option 2 (Fooocus inpaint), mix applied, CEO approved (D108, D114) | c726f62, 10bc833, 55a88ee, 0abbb31, 4e187f3 | not estimated | NOT measured |
+| The seven Gemini enemies approved (D109) | 4f32bb2 | not estimated | NOT measured |
+| Episode 2 music: 10 pieces composed, approved 10/10, installed with `SD_MusicVariant` (D106) | 8b98687, 4266e80, 0c21f76 | not estimated | NOT measured |
+| Episode 2 textures: 25 pieces approved (D107), installed on MAP04-06 | 0c21f76, 43fded6, 7102118, 0bf4de7 | not estimated | NOT measured |
+| Reich hound: 15 barks approved, installed as `$random` groups (D107) | d63fd28, 0c21f76 | not estimated | NOT measured |
+| P2 voices judged (D110): rifleman pain, trooper death, General pain installed; General death redrawn round drafted; Catalan accepted | 3d24e3a, 0c21f76 | not estimated | NOT measured |
+| Posters in every map (Lenin, Stalin, mural in MAP01-06 and the range; Marx-Engels slots); the Marx and Engels pair sourced and swept (D106) | e44985b, b99fa3f | not estimated | NOT measured |
+| TT-33 added to the Gemini queue (D111) | 5830eef | (task open, Next #2) | |
+| Episode 3 «The Portal»: MAP07, MAP08, MAP09 (routes PASS on skills 2-4 at 12:33-12:39), EN/RU/CA text, the ending «THE END / For now» (D112) | 1f2855e, b42491e, 9133be1 | not estimated | NOT measured |
+| Episode 3 music: 10 composed pieces, installed under the standing approval (D112, D113) | a6b90d4, 835f283 | not estimated | NOT measured |
+| Episode 3 textures (30 pieces, 36 lumps) and Episode 2 round 2 (23 lumps): drafted and committed as generators; **installing them is in "Doing"** | 91588fe, b0e46cf | not estimated | NOT measured |
+| Standing approval for composed music and procedural textures (D113) | da6d921 | not estimated | NOT measured |
+
+Just before (2026-10-21 night, before P4): v1.1 draft release (cursor, death prompt, Catalan) and the P5 macOS and Linux packages, costs below; the Linux package was then run on Ubuntu 24.04 under WSL (add90e3), which supersedes the "not run" note in the line below.
 
 Night shift 2026-10-21 (D102, D103), real token costs: P5 macOS + Linux packages on v1.0 and the four GPL/LGPL source archives attached (1375a96; ~175k, estimate was ~125k; not run on a real Mac or Linux, no WSL here). v1.1 cursor + death prompt (0f89be2; ~290k). P6 Catalan, 165 ids + bar + option + README (0f89be2; ~350k, estimate 350k) and the accented capitals in the three fonts (~130k). Drafts waiting for the CEO's ear, nothing installed: Reich-hound dog sounds, 15 candidates (~250k); the 4 remaining voices, 28 takes (~200k). P1 balance analysis dropped (D103).
 
