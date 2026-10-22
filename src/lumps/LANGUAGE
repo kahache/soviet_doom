@@ -293,8 +293,8 @@ SD_CRED_AI_1      = "Claude (Anthropic), in Claude Code:";
 SD_CRED_AI_2      = "design, maps, code, textures, sprites,";
 SD_CRED_AI_3      = "sound, music and the Russian text.";
 SD_CRED_AI_4      = "Google Gemini: source images for the";
-SD_CRED_AI_5      = "weapons in hand and the sergeant's face.";
-SD_CRED_AI_6      = "Fooocus / SDXL (local): hand references.";
+SD_CRED_AI_5      = "weapons, enemies and sergeant's face.";
+SD_CRED_AI_6      = "Fooocus / SDXL (local): hands, armbands.";
 SD_CRED_AI_7      = "Chatterbox (Resemble AI, local):";
 SD_CRED_AI_8      = "most enemy voices.";
 
@@ -595,8 +595,8 @@ SD_CRED_AI_1      = "Claude (Anthropic) в Claude Code:";
 SD_CRED_AI_2      = "проект, карты, код, текстуры, спрайты,";
 SD_CRED_AI_3      = "звук, музыка и русский текст.";
 SD_CRED_AI_4      = "Google Gemini: исходные изображения";
-SD_CRED_AI_5      = "оружия в руках и лица сержанта.";
-SD_CRED_AI_6      = "Fooocus / SDXL (локально): образцы рук.";
+SD_CRED_AI_5      = "оружия, врагов и лица сержанта.";
+SD_CRED_AI_6      = "Fooocus / SDXL (локально): руки, символ.";
 SD_CRED_AI_7      = "Chatterbox (Resemble AI, локально):";
 SD_CRED_AI_8      = "большинство голосов врагов.";
 
@@ -857,8 +857,8 @@ SD_CRED_AI_1      = "Claude (Anthropic), a Claude Code:";
 SD_CRED_AI_2      = "disseny, mapes, codi, textures, sprites,";
 SD_CRED_AI_3      = "so, música i els textos en rus i català.";
 SD_CRED_AI_4      = "Google Gemini: imatges d'origen per a";
-SD_CRED_AI_5      = "les armes a la mà i la cara del sergent.";
-SD_CRED_AI_6      = "Fooocus / SDXL (local): models de mans.";
+SD_CRED_AI_5      = "les armes, els enemics i el sergent.";
+SD_CRED_AI_6      = "Fooocus / SDXL (local): mans, braçals.";
 SD_CRED_AI_7      = "Chatterbox (Resemble AI, local):";
 SD_CRED_AI_8      = "la majoria de veus dels enemics.";
 

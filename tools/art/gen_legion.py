@@ -1,5 +1,10 @@
 """F5 — Liberty Legion trooper on the 3D rig: the D35 design sweep, and cell C's full frame set (D48).
 
+HISTORICAL since D109 (2026-10-22) for the Legion trooper's rig set (`SDLT`,
+D48, D54). The trooper that ships is redrawn from Google Gemini images by
+tools/art/gemini_enemy.py (legion); this generator is kept so the approved F5
+renders stay reproducible, but its output no longer matches assets/.
+
 Run with the project venv:
     .venv/Scripts/python.exe tools/art/gen_legion.py               (Windows)
     .venv/bin/python tools/art/gen_legion.py                       (macOS)

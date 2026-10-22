@@ -1,5 +1,10 @@
 """F5 — the Reich hound redrawn as a German shepherd (D48), on rig_core's quadruped skeleton.
 
+HISTORICAL since D109 (2026-10-22) for the hound's rig set (`SDHN`, D50, D55).
+The hound that ships is redrawn from Google Gemini images by
+tools/art/gemini_enemy.py (hound); this generator is kept so the approved F5
+renders stay reproducible, but its output no longer matches assets/.
+
 Why. The CEO's art gate of 2026-10-14 (D48, docs/PRD.md) rejected every cell
 of the first hound sweep (gen_storm.py, "muy feo en todas") and asked for a
 German shepherd, brown, drawn from a real one's anatomy. D48 supersedes

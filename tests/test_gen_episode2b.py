@@ -1,7 +1,12 @@
 """Contract of Episode 2's second texture round (D112, P4): tools/art/gen_episode2b.py.
 
-DRAFTS (D113: the CEO approves procedural textures in advance; installing
-is another step). What is held:
+APPROVED under D113's standing approval (the CEO approves procedural
+textures in advance; PM gate 2026-10-22) and installed in
+assets/textures/<sky|railway|dam|moscow>/ and assets/flats/<set>/. What is held:
+
+  installed  assets/ holds the generator's bytes; one approved row per lump
+             in TEXTURE-INDEX.md, one in LICENSES.md; the skies are MAPINFO's
+             sky1 of MAP04-06
 
   names      every lump is an SD name of <= 8 upper-case characters, unique,
              not already used in assets/, work/ (this round's own drafts
@@ -246,6 +251,63 @@ class RenderTests(unittest.TestCase):
                 if not w.is_file():
                     self.skipTest("work/art/episode2b not rendered on this machine")
                 self.assertEqual(w.read_bytes(), (self.root / p.set_name / f"{lump}.png").read_bytes(), lump)
+
+    def test_installed_lumps_are_what_the_generator_builds(self):
+        """D113: assets/ holds exactly the generator's bytes (walls and skies
+        under textures/<set>/, flats under flats/<set>/). Runs without work/."""
+        for p in g.PIECES:
+            kind = "flats" if p.kind == "flat" else "textures"
+            for lump in p.lumps:
+                installed = PROJECT_ROOT / "assets" / kind / p.set_name / f"{lump}.png"
+                self.assertTrue(installed.is_file(), installed)
+                self.assertEqual(installed.read_bytes(), (self.root / p.set_name / f"{lump}.png").read_bytes(), lump)
+                self.assertEqual(len(list((PROJECT_ROOT / "assets").rglob(f"{lump}.png"))), 1,
+                                 f"{lump} installed twice")
+
+
+@needs_imaging
+class PaperTests(unittest.TestCase):
+    """D113: every installed lump has one approved row in TEXTURE-INDEX.md and
+    one row in LICENSES.md; MAPINFO's sky1 of MAP04-06 names the new skies."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.index = (PROJECT_ROOT / "docs" / "art" / "TEXTURE-INDEX.md").read_text(encoding="utf-8")
+        cls.licenses = (PROJECT_ROOT / "docs" / "art" / "LICENSES.md").read_text(encoding="utf-8")
+        cls.mapinfo = (PROJECT_ROOT / "src" / "lumps" / "MAPINFO").read_text(encoding="utf-8")
+
+    def rows(self, text: str, lump: str) -> list[str]:
+        return [line for line in text.splitlines() if line.startswith(f"| `{lump}` |")]
+
+    def test_one_approved_index_row_each(self):
+        for lump in g.all_lumps():
+            rows = self.rows(self.index, lump)
+            self.assertEqual(len(rows), 1, f"{lump}: expected one row in TEXTURE-INDEX.md")
+            self.assertIn("approved 2026-10-22 (D113", rows[0], lump)
+
+    def test_a_licence_row_each(self):
+        for lump in g.all_lumps():
+            rows = self.rows(self.licenses, lump)
+            self.assertEqual(len(rows), 1, f"{lump}: expected one row in LICENSES.md")
+            self.assertRegex(rows[0], r"\(a\) .*gen_episode2b\.py.*seed \d{4}", lump)
+            self.assertIn("CC BY-NC-SA 4.0", rows[0], lump)
+
+    def test_mapinfo_skies(self):
+        """MAP04 and MAP05 under the Urals night, MAP06 under Moscow's; the
+        other maps keep Freedoom's SKY1 for now."""
+        skies = {}
+        current = None
+        for line in self.mapinfo.splitlines():
+            m = re.match(r'^map\s+(\S+)', line)
+            if m:
+                current = m.group(1)
+            s = re.match(r'^\s*sky1\s*=\s*"([^"]*)"', line)
+            if s and current:
+                skies[current] = s.group(1)
+        self.assertEqual({"MAP04": "SDSKY1", "MAP05": "SDSKY1", "MAP06": "SDSKY2"},
+                         {k: v for k, v in skies.items() if v.startswith("SDSKY")})
+        for name in ("MAP07", "MAP08", "MAP09"):
+            self.assertEqual("SKY1", skies.get(name), name)
 
 
 if __name__ == "__main__":

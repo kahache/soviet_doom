@@ -41,6 +41,7 @@ grids, hard pixels, mid-grey walls, light that drops towards black.
 | Colour | indexed PNG, **≤ 256 colours**, from `docs/art/palette.json` only | Doom look, one coherent palette across sets, software renderer safe |
 | Wall textures | 64×64, 64×128, 128×64, 128×128 or **128×256** (multiples of 8) | Doom's grid; the level designer aligns on 64. 128×256 was added 2026-10-12 for the Lenin poster: at 128×128 the portrait had no room (CEO) |
 | Flats (floor/ceiling) | 64×64 | engine flat size |
+| Skies | **1024×128** (since D113) | one 360° turn for MAPINFO's `sky1`, where Freedoom's 256×128 `SKY1` repeats four times; declared in `SKY_TEXTURES` (`tools/check_pk3.py`) |
 | Sprites | PNG with `grAb` offsets, name `XXXXA1` (4 letters + frame + rotation) | engine sprite naming (F4/F5) |
 | Lump names | ≤ 8 chars, UPPERCASE, prefix `SD` + family code + number | contract with `level-designer` (`TEXTURE-INDEX.md`) |
 | Quantisation | no dithering; fine grain added *before* quantising | flat deliberate pixels, no JPEG-like noise at 4× |
@@ -129,6 +130,63 @@ D107; sets `railway`, `dam`, `moscow`, rows in `TEXTURE-INDEX.md`).**
   `SDKREM1`, `SDKREM2`, `SDBANR1`, `SDSPAS1`), the rule of §3 for the
   factory brick; listed in `APPROVED_IN_V2` (`tests/test_palette_v2.py`) and
   in `PALETTE_V2_LUMPS` / `PALETTE_V2_MASKED` (`tools/check_pk3.py`).
+
+**Added 2026-10-22 with Episode 2's round 2 (D112 drafts, installed under
+D113's standing approval, PM gate 2026-10-22; sets `sky` (new), `railway`,
+`dam`, `moscow`, rows in `TEXTURE-INDEX.md`).**
+
+- **A sky size, 1024×128:** `SDSKY1` (the Urals at night, MAPINFO `sky1` of
+  MAP04 and MAP05) and `SDSKY2` (Moscow at night, MAP06), one full turn that
+  wraps in x. Dark at the zenith, lighter towards the horizon, the skyline
+  in near-black silhouette with red obstruction lights. Listed in
+  `SKY_TEXTURES` / `SKY_SIZES` (`tools/check_pk3.py`); how GZDoom stretches
+  a 1024-wide sky and where its horizon falls is NOT VERIFIED until the PM's
+  engine pass (D26).
+- **Family codes:** `SKY` sky; railway (MAP04) `WROF` wagon roof (flat),
+  `GOND` gondola floor (flat), `CAB` locomotive cab, `SBOX` signal-box
+  glazing, `LEVR` lever frame (`1` the flat from above, `2` the wall from
+  the front), `RHDR` roundhouse road doors, `STAN` station board; dam
+  (MAP05) `GRIL` window bars (masked), `HVLT` high-voltage fence (masked);
+  Moscow (MAP06) `CLOK` the Spasskaya clock, `RUBY` the ruby star (masked),
+  `GUMS` the GUM's shopfronts (three variants that differ only in the sign,
+  not animation frames), `GUMR` the GUM's glass roof (flat), `MUSE` the
+  Historical Museum's brick. `SDDOORB` is `DOOR` with the key colour last
+  (B blue, as `DOORY` / `DOORR`); `SDFLAG3` / `SDFLAG4` are new numbers in
+  `FLAG`, the approved banners hung on `SDKREM1`.
+- **Three more masked wall textures:** `SDGRIL1`, `SDHVLT1` and `SDRUBY1`,
+  in `MASKED_TEXTURES`, palette v1.
+- **Palette:** v1, plus `marble_red` for `SDCLOK1`, `SDMUSE1`, `SDFLAG3` and
+  `SDFLAG4` (brick) and `mosaic_cobalt` for `SDDOORB` (v1's `steel_blue`
+  reads grey, not as a blue key) and `SDFLAG4`'s canton (as `SDFLAG2`);
+  listed in `APPROVED_IN_V2` and `PALETTE_V2_LUMPS`.
+
+**Added 2026-10-22 with Episode 3 «The Portal» (D112 drafts, installed under
+D113's standing approval, PM gate 2026-10-22; sets `arctic`, `naval`,
+`taiga`, rows in `TEXTURE-INDEX.md`).**
+
+- **Family codes:** arctic (MAP07) `SNOW` snow (flat), `ICE` ice (flat and
+  wall), `RADM` radome panels, `HUT` frosted corrugated hut, `RADR` radar
+  console (animated 1-4), `HERM` hermetic blast door, `RWY` runway slabs
+  (flat); naval (MAP08) `HULL` submarine hull, `RUBR` anechoic rubber deck
+  (flat), `ROCK` excavated living rock (wall and ceiling), `BULK`
+  watertight bulkhead door, `NAVC` naval control panel, `CONT` shipping
+  container, `CRAN` crane lattice (masked), `PIER` concrete quay (flat);
+  taiga/alien (MAP09) `BARK` tree bark, `LOGW` log-cabin wall, `PEAT` peat
+  (flat), `BURN` burnt earth (flat), `MOSS` moss and lichen (flat), `ALNM`
+  alien organic metal, `ACID` acid (flat, animated 1-4), `GLYP` invader glyph
+  plate, `PRTE` portal rim.
+- **Twins:** `SDRWY2`, `SDHULL2` and `SDRUBR2` replay their pair's seed and
+  equal it outside the painted part (a line, a numeral, a hatch), so a twin
+  sits beside its pair without a seam.
+- **Animation rates:** `SDACID1-4` at 8 tics like `SDWATR1-4`; `SDRADR1-4`
+  at 12 tics, because its beam turns 90° a frame and a faster sweep reads as
+  a blink (`ANIMDEFS`, MOD-SPEC §4.3). The acid hurts through the map's
+  sector special, never through the texture.
+- **One more masked wall texture:** `SDCRAN1`, in `MASKED_TEXTURES`,
+  palette v1; it tiles in y by alpha (its two 64 px bays are equal).
+- **Palette:** v1, plus `mosaic_cobalt` for the portal rim `SDPRTE1` (the
+  look of `SDPORT1-4`, D66); listed in `APPROVED_IN_V2` and
+  `PALETTE_V2_LUMPS`.
 
 ## 3. Palette (`docs/art/palette.json`, generated by `tools/art/palette.py`)
 

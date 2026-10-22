@@ -78,8 +78,12 @@ STEEL = "SDSTEL1"        # green riveted plate: catwalk, transformers, pylons, d
 TILE_DADO = "SDTILE2"    # tile over a green dado: the control room, the gatehouse
 TUNNEL = "SDTUNL1"       # board-cast concrete with cable runs: the inspection and cable galleries
 BRICK = "SDBRCK1"        # works brick: the station's buildings
-RUST = "SDRUST1"         # corrugated sheet: the substation's fence, the crane huts
-DOOR = "SDDOOR1"         # D1, D2 and the blue gate (no blue trim was drawn: SDDOORB, DAM_SET)
+RUST = "SDRUST1"         # corrugated sheet: the substation's east and west walls, the crane huts
+DOOR = "SDDOOR1"         # D1 and D2
+# Round 2 of the Dam set (D113, approved 2026-10-22; design section 7.2).
+DOOR_BLUE = "SDDOORB"    # 128x128 the blue lock's leaf: the blue gate onto the crest
+GRILL = "SDGRIL1"        # 64x128 MASKED: window bars, the control room's two windows over the hall
+FENCE = "SDHVLT1"        # 64x128 MASKED: the substation's high-voltage fence, its north and south sides
 DOOR_YELLOW = "SDDOORY"  # the yellow lock's trim
 ROAD_GATE = "SDGATE1"    # corrugated gate: S3's shut hut
 WINDOW = "SDWIND1"       # industrial glazing at night: the turbine hall's clerestory
@@ -123,7 +127,7 @@ SWITCH_FACES = (SW_A_FACE, SW_B_FACE, EXIT_FACE)
 SWITCH_WIDTH = 64
 SWITCH_HEIGHT = 128
 TILE = 128               # door leaves, gates, flags, panes: one whole tile
-DOOR_LEAVES = (DOOR, DOOR_YELLOW)
+DOOR_LEAVES = (DOOR, DOOR_YELLOW, DOOR_BLUE)
 
 # --- Specials and keys -------------------------------------------------------
 # Door_LockedRaise (tag, speed, delay, lock, lighttag): 13, VERIFIED in engine
@@ -168,6 +172,7 @@ PARAPET_SKY = CREST + PARAPET + 16  # 432: the open-air trick over the parapets
 CLERESTORY_SILL = HALL_CEIL - TILE  # 320
 WINDOW_SILL = CATWALK + 48          # the control room's windows onto the hall
 WINDOW_TOP = CATWALK + 128   # an 80-high slot: never the 64..72 gap only the base Panzermensch fits (D67)
+WINDOW_BARS_ROW = 2     # SDGRIL1 in the 80-high window: rows 2-81, both riveted flats inside it
 NICHE_DEPTH = 16
 CLOSET_HEIGHT = 128
 POSTER_HEIGHT = 256     # SDPOSTR1 and SDPOSTR3: a recess exactly this high
@@ -280,6 +285,19 @@ PYLONS = ((3632, 1376, 3664, 1408), (3632, 1536, 3664, 1568))   # solid, 32 squa
 # The gantry: a beam from pylon to pylon at GANTRY, SDINSL1 hung on both its
 # long faces (two strings each), against the sky. Walked under, never on.
 GANTRY_RECT = (PYLONS[0][0], PYLONS[0][3], PYLONS[1][2], PYLONS[1][1])
+# The high-voltage fence (SDHVLT1, D113): the substation's south and north
+# sides are a two-sided line, the fence its middle texture, the night behind
+# it. Behind each side a strip FENCE_STRIP deep, open to a sky exactly as
+# high as the fence (so the fence, hung from that sky, stands whole on the
+# ground), and behind that a closed sky block (floor = ceiling): two sky
+# ceilings side by side draw no wall between them, so through the wire the
+# sky comes down to the dam's edge. The line is impassable. The east and
+# west sides stay corrugated sheet: the cable gallery and the passage to the
+# station come in through them.
+FENCE_SIDES_Y = (SUBSTATION[1], SUBSTATION[3])      # 896 south, 1664 north
+FENCE_STRIP = 16
+FENCE_HEIGHT = 128      # SDHVLT1 is 64x128: one panel high
+FENCE_WIDTH = 64        # one panel, its post on the tile's edge (posts on the world's 64 grid)
 BLUE_PAD = (3904, 1216, 4032, 1344)
 SWB_NICHE = (4176, 1600, 4240, 1616)   # in the passage's north wall, beside the shutter
 STATION_PASSAGE = (4160, 1472, 4256, 1600)
@@ -693,6 +711,31 @@ def hang(tm: TextMap, segment: tuple[int, int, int, int], room: int, texture: st
     raise ValueError(f"no two-sided line {segment} facing sector {room}")
 
 
+def bar_the_windows(tm: TextMap, plan: dict[str, int]) -> None:
+    """SDGRIL1 in the control room's two windows, on the hall's face of each:
+    the middle texture of the line between the window and the catwalk, on
+    both its sides (the bars are seen from the hall and from the room).
+    Doom hangs it from the window's head (the lower ceiling); `offsety_mid`
+    (UDMF zdoom, added to the side's offsety) puts row 2 there, so the 80
+    rows of the window show both riveted flats. Seen through; the sill (48
+    over the catwalk) is what keeps anyone from climbing in."""
+    catwalk = plan["z5_catwalk"]
+    windows = {plan[name] for name in CONTROL_WINDOWS}
+    barred = 0
+    for ld in tm.linedefs:
+        if ld.sideback is None:
+            continue
+        pair = {tm.sidedefs[ld.sidefront].sector, tm.sidedefs[ld.sideback].sector}
+        if catwalk not in pair or not pair & windows:
+            continue
+        for side in (ld.sidefront, ld.sideback):
+            tm.sidedefs[side].texturemiddle = GRILL
+            tm.sidedefs[side].extra["offsety_mid"] = WINDOW_BARS_ROW
+        barred += 1
+    if barred != len(windows):
+        raise ValueError(f"{barred} window lines barred, {len(windows)} windows")
+
+
 def drawn_parts(tm: TextMap, ld, side: int, other: int | None) -> list[tuple[str, int]]:
     """The parts of sidedef `side` the engine draws, each with the height
     Doom pegs its texture to: a one-sided wall to its floor (lower-unpegged)
@@ -956,6 +999,13 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # The substation: transformers, the blue key, SW-B
     # ======================================================================
     zone("z9_substation", CREST, SKY_CEIL, [SUBSTATION], light=LIGHT_OUTDOORS, ceiling=SKY, wall=RUST)
+    sx1, _sy1, sx2, _sy2 = SUBSTATION
+    for side, fy, out in (("s", FENCE_SIDES_Y[0], -1), ("n", FENCE_SIDES_Y[1], 1)):
+        strip, verge = sorted((fy, fy + out * FENCE_STRIP)), sorted((fy + out * FENCE_STRIP, fy + out * 2 * FENCE_STRIP))
+        zone(f"{PROP_PREFIX}z9_fence_{side}", CREST, CREST + FENCE_HEIGHT, [(sx1, strip[0], sx2, strip[1])],
+             light=LIGHT_OUTDOORS, ceiling=SKY, wall=RUST)
+        zone(f"{PROP_PREFIX}z9_verge_{side}", CREST, CREST, [(sx1, verge[0], sx2, verge[1])],
+             light=LIGHT_OUTDOORS, ceiling=SKY, wall=RUST)
     for n, rect in enumerate(TRANSFORMERS, start=1):
         zone(f"{PROP_PREFIX}z9_transformer_{n}", CREST + TRANSFORMER, SKY_CEIL, [rect],
              light=LIGHT_OUTDOORS, flat=FLOOR_PLATE, ceiling=SKY, wall=STEEL)
@@ -1061,10 +1111,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for yy in (YELLOW_DOOR[1], YELLOW_DOOR[3]):
         g.style_h(yy, YELLOW_DOOR[0], YELLOW_DOOR[2],
                   locked_door_style(TAG_YELLOW_DOOR, yellow_door, LOCK_YELLOW_CARD, texture=DOOR_YELLOW))
-    # The blue gate, both faces (SDDOOR1 until SDDOORB exists).
+    # The blue gate, both faces: the blue lock's leaf.
     for xx in (BLUE_GATE[0], BLUE_GATE[2]):
         g.style_v(xx, BLUE_GATE[1], BLUE_GATE[3],
-                  locked_door_style(TAG_BLUE_GATE, blue_gate, LOCK_BLUE_CARD, texture=DOOR))
+                  locked_door_style(TAG_BLUE_GATE, blue_gate, LOCK_BLUE_CARD, texture=DOOR_BLUE))
     # The cable gallery's shutter: steel both sides, SW-A beside it.
     for xx in (CABLE_SHUTTER[0], CABLE_SHUTTER[2]):
         g.style_v(xx, CABLE_SHUTTER[1], CABLE_SHUTTER[3], remote_door_style(cable_shutter, texture=STEEL))
@@ -1106,6 +1156,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
             g.style_v(xx, y1, y2, BOARD_EDGE)
         for yy in (y1, y2):
             g.style_h(yy, x1, x2, BOARD_EDGE)
+    # The substation's fence: nobody crosses it.
+    for fy in FENCE_SIDES_Y:
+        g.style_h(fy, SUBSTATION[0], SUBSTATION[2], BLOCKING)
     # The armoured train's stars, and the signal at the end of its track.
     for axis, coord, lo, hi in TRAIN_STARS:
         (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=ARMOUR_STAR))
@@ -1152,6 +1205,14 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     gx1, gy1, gx2, gy2 = GANTRY_RECT
     for xx in (gx1, gx2):
         hang(tm, (xx, gy1, xx, gy2), plan["z9_substation"], INSULATOR)
+    # Round 2 (D113): the high-voltage fence and the window bars.
+    for fy in FENCE_SIDES_Y:
+        hang(tm, (SUBSTATION[0], fy, SUBSTATION[2], fy), plan["z9_substation"], FENCE)
+    bar_the_windows(tm, plan)
+    for ld in tm.linedefs:
+        for side in (ld.sidefront, ld.sideback):
+            if side is not None and tm.sidedefs[side].texturemiddle in (FENCE, GRILL):
+                tm.sidedefs[side].offsetx = world_column(tm, ld, side) % FENCE_WIDTH
 
     tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START, angle=PLAYER_ANGLE))
     tm.add_thing(Thing(x=YELLOW_KEY_SPOT[0], y=YELLOW_KEY_SPOT[1], type=ED_YELLOW_CARD))
@@ -1179,14 +1240,15 @@ def lumps() -> list[tuple[str, bytes]]:
 # Every lump name this map may put in a sidedef or a sector.
 WALL_TEXTURES = ((DAM, DAM_WET, TURBINE, CONTROL_PANEL, SPILLWAY, INSULATOR, CONCRETE, STEEL, TILE_DADO,
                   TUNNEL, BRICK, RUST, ROAD_GATE, WINDOW, FLAG_REICH, FLAG_LEGION, CRATE, LENIN, STALIN,
-                  MURAL, ARMOUR, ARMOUR_STAR, SIGNAL)
+                  MURAL, ARMOUR, ARMOUR_STAR, SIGNAL, GRILL, FENCE)
                  + DOOR_LEAVES + SWITCH_FACES + ((MARX_ENGELS,) if MARX_ENGELS else ()))
 FLAT_TEXTURES = (FLOOR_LANE, FLOOR_CONCRETE, FLOOR_TILE, CEIL_PANEL, CEIL_CONCRETE, CRATE_TOP,
                  RAILS, FLOOR_PLATE, GRATING, WATER)
 BUILTIN_FLATS = (SKY,)
-# Middle textures on two-sided lines, drawn once: the masked insulators and
-# the control boards. Nothing else hangs in mid-air.
-MIDDLE_TEXTURES = (INSULATOR, CONTROL_PANEL)
+# Middle textures on two-sided lines, drawn once: the masked insulators, the
+# control boards, the window bars and the substation's fence. Nothing else
+# hangs in mid-air.
+MIDDLE_TEXTURES = (INSULATOR, CONTROL_PANEL, GRILL, FENCE)
 # Design section 7.2, settled: {lump the design proposed: the approved lump
 # the map wears for it}. Proposed names the art-director drew are worn as
 # themselves; the ones never drawn (no such lump in assets/) take the nearest
@@ -1198,10 +1260,10 @@ DAM_SET = {
     "SDPANL1": CONTROL_PANEL,   # never drawn: four SDCTRL1 boards on the control room's walls
     "SDPANL2": CONTROL_PANEL,   # never drawn: SDCTRL1's desk on the two consoles
     "SDSLUC1": SPILLWAY,        # never drawn: the trash rack on the dam's face over the channel
-    "SDHVLT1": RUST,            # never drawn: the fence stays SDRUST1; the gantry's SDINSL1 says high voltage
-    "SDDOORB": DOOR,            # never drawn: the blue gate stays SDDOOR1 in blue light
+    "SDHVLT1": FENCE,           # drawn (D113): the substation's fence, north and south, a two-sided line
+    "SDDOORB": DOOR_BLUE,       # drawn (D113): the blue gate's leaf
+    "SDGRIL1": GRILL,           # drawn (D113): bars in the control room's two windows over the hall
 }
 # Still waiting, with nothing standing in: {proposed lump: what and where}.
-PENDING_TEXTURES = {
-    "SDGRIL1": "steel bars, masked: the control room's two windows onto the hall (v2); open meanwhile",
-}
+# Round 2 (D113) drew the last three; nothing of section 7.2 waits.
+PENDING_TEXTURES: dict[str, str] = {}

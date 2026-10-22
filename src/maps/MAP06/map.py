@@ -14,8 +14,11 @@ approved sets only, populated and stocked. v1.1 (2026-10-22) dresses it in
 episode 2's Moscow set (D107): the square's setts with granite lines, the
 Kremlin wall's brick with its swallowtail merlons against the sky, the GUM's
 facade, the tribunes' and the mausoleum's granite, the Spasskaya's stone,
-the parade banners on the wall, armour plate on the parade's vehicles. What
-is still a stand-in is listed under "Pending textures" in the design document.
+the parade banners on the wall, armour plate on the parade's vehicles.
+Round 2 (D113) adds the GUM's shopfronts and glass vault, the Spasskaya's
+clock and ruby star, the museum's brick, the crown's flags on the Kremlin's
+brick and the blue leaf, under Moscow's night sky. What is still a stand-in
+is listed under "Pending textures" in the design document.
 
 The route, in one line: the station's hall (statues in its arches) ->
 escalator -> the street pavilion -> Nikolskaya street -> the GUM's north
@@ -38,9 +41,10 @@ GZDoom):
   ceiling) with a walk 32 deep in front of it, open to the sky from
   WALL_WALK to MERLON_TOP, and the line between the walk and the square wears
   the masked SDKREM2 as its middle texture, so the swallowtail merlons stand
-  against the sky; the Spasskaya tower rises in three closed sky
-  blocks inside an apron whose sky is higher (Doom's sky hack: no upper
-  texture is drawn between two sky ceilings). NOT VERIFIED in engine;
+  against the sky; the Spasskaya tower rises in two closed sky blocks and
+  its tent, open to the sky with the ruby star on it, inside an apron whose
+  sky is higher (Doom's sky hack: no upper texture is drawn between two sky
+  ceilings). NOT VERIFIED in engine;
 * the exit depends on a death: the boss's thing carries Door_Open on
   TAG_BOSS_EXIT (MAP03 v1.1's thing special, D68), and NO line carries that
   tag. The boss stands at MAP06_BOSS_SPOT; until episode 2's own boss exists
@@ -81,9 +85,7 @@ MAP_NAME = "MAP06"
 # --- The approved sets (docs/art/TEXTURE-INDEX.md) ---------------------------
 # Soviet base (batch 1-3)
 CONCRETE = "SDCONC1"    # 64x128 pale prefab panels: Nikolskaya's other houses, the gatehouse, the park
-STAR = "SDSTAR1"        # 128x128 star plaque: the Spasskaya tower's clock stage (stand-in: the clock, the ruby star)
 STEEL = "SDSTEL1"       # military-green riveted plate: door jambs, the street's truck, the tower's tent
-DOOR = "SDDOOR1"        # 128x128 door leaf: the blue door (framed by the metro's cobalt mosaics)
 CRATE = "SDCRAT1"       # 64x64 crate face: looted stock in the shops, S2's wall of crates
 LONG_CRATE = "SDCRAT2"  # 128x64 long crate: the street's barricades
 CRATE_TOP = "SDCRTOP1"
@@ -105,14 +107,13 @@ RAILS = "SDRAIL1"       # track bed, rails along the image's y (turned a quarter
 CEIL_COFFER = "SDMCEIL1"    # whitewashed coffer: the GUM's halls and shops
 CEIL_LAMP = "SDMCEIL2"      # coffer with a brass ring lamp: the station hall
 # Tankograd (batch 4, D66): the Kremlin is red brick
-BRICK = "SDBRCK1"       # 64x128 red brick: the Historical Museum, the courtyard's palaces (the flags' ground)
+BRICK = "SDBRCK1"       # 64x128 red brick: the courtyard's palaces (the flags' ground), S3's yard
 BRICK_DADO = "SDBRCK2"  # the same brick whitewashed to 64: the parapet over the slope
 DOOR_YELLOW = "SDDOORY"     # the yellow gatehouse's leaf
 DOOR_RED = "SDDOORR"        # the Spasskaya gate's leaf
 GATE = "SDGATE1"        # 128x128 shut sliding gate: courtyard gates, the exit gate, the GUM's south gate
-WINDOW = "SDWIND1"      # 64x128 glazing at night (one pane broken, one boarded): the GUM's shopfronts
-FLAG_REICH = "SDFLAG1"  # the Fourth Reich's banner on brick (D12)
-FLAG_LEGION = "SDFLAG2"     # the Liberty Legion's banner on brick (D12)
+FLAG_REICH = "SDFLAG1"  # the Fourth Reich's banner on SDBRCK1 (D12): the courtyard's pair
+FLAG_LEGION = "SDFLAG2"     # the Liberty Legion's banner on SDBRCK1 (D12): the courtyard's pair
 PLATE = "SDFLR4"        # 64x64 chequer plate: the parade vehicles' decks
 # Episode 2, Moscow (D107): Red Square and the Kremlin
 COBBLES = "SDCOBL1"     # flat: the square's dark setts, the Kremlin courtyard
@@ -126,8 +127,21 @@ SPASSKAYA = "SDSPAS1"   # 64x128 the tower's brick and white stone, its frieze o
 # Episode 2, railway (D107): the armoured train's plate dresses the parade
 ARMOUR_STAR = "SDARMR1"     # 128x128 armour plate with a red star: the missile carriers' flanks
 ARMOUR = "SDARMR2"      # 64x128 the same plate without the star: every other vehicle face
+# Episode 2, Moscow, round 2 (D113, approved 2026-10-22; design section 8)
+DOOR_BLUE = "SDDOORB"   # 128x128 the blue lock's leaf (between the metro's cobalt mosaics)
+CLOCK = "SDCLOK1"       # 128x128 the Spasskaya's clock face: one on each face of the clock stage
+RUBY_STAR = "SDRUBY1"   # 128x128 MASKED: the ruby star on its spire, against the sky
+# The GUM's shopfronts (64x128): the same front with three signs, «ТКАНИ»,
+# «ОБУВЬ», «ЧАСЫ», one shop to each 64 of wall, in turn along the line.
+SHOPFRONTS = ("SDGUMS1", "SDGUMS2", "SDGUMS3")
+SHOPFRONT = SHOPFRONTS[0]   # what the line's walls are built in; dress_shopfronts deals the signs
+SHOPFRONT_WIDTH = 64
+GLASS_ROOF = "SDGUMR1"  # flat: the GUM's glass vault from below, over the line, the atrium, the gallery
+MUSEUM = "SDMUSE1"      # 64x128 the Historical Museum's brick and white dressings: its wall, the Resurrection gate
+FLAG_REICH_KREMLIN = "SDFLAG3"   # SDFLAG1's banner on the Kremlin's SDKREM1: the wall's crown
+FLAG_LEGION_KREMLIN = "SDFLAG4"  # SDFLAG2's banner on SDKREM1: the wall's crown
 # The engine's sky marker (check_pk3 BUILTIN_TEXTURE_NAMES); MAPINFO's sky1
-# says which picture (mod-engineer's; a Moscow night sky is pending).
+# says which picture: SDSKY2, Moscow at night (D113).
 SKY = "F_SKY1"
 
 # The approved posters (CEO 2026-10-22: Â«que esos posters puedan aparecer en
@@ -141,7 +155,7 @@ POSTER_HEIGHT = 256
 # slots are built and wear a stand-in; approving it is this one line:
 MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
 
-DOOR_LEAVES = (DOOR, DOOR_YELLOW, DOOR_RED, GATE)
+DOOR_LEAVES = (DOOR_BLUE, DOOR_YELLOW, DOOR_RED, GATE)
 SWITCH_FACES = (EXIT_FACE,)
 SWITCH_HEIGHT = 128     # SDSW1D is 64x128
 TILE_SIZE = 128         # every leaf, mosaic, gate and star plaque is 128 square
@@ -187,7 +201,7 @@ WINDOW_HEAD = 160
 # sector it bounds; two sky ceilings side by side draw no wall between them.
 SQUARE_SKY = 384        # the GUM's facade and the museum: three storeys, three bays of SDGUM1
 STREET_SKY = SQUARE_SKY     # the GUM's north facade on Nikolskaya: the same three bays
-PASSAGE_SKY = 448       # the GUM's glass roof over its line (the night through it)
+PASSAGE_SKY = 448       # the GUM's glass roof (SDGUMR1) over its line, the atrium and the gallery
 # The Kremlin wall: a body (closed sky block) at WALL_WALK and, on its open
 # side, a walk WALL_WALK_DEPTH deep open to the sky up to MERLON_TOP. The
 # line between the walk and the square wears MERLON as its middle texture:
@@ -200,8 +214,16 @@ WALL_WALK_DEPTH = 32
 GATE_APRON_SKY = MERLON_TOP     # in front of the Spasskaya gate: the wall's own height over its arch
 TOWER_APRON_SKY = 768   # round the tower: high enough to show its three stages
 TOWER_BASE = 448
-TOWER_STAGE = TOWER_BASE + TILE_SIZE    # 576: the star plaque's tier
+TOWER_STAGE = TOWER_BASE + TILE_SIZE    # 576: the clock stage (SDCLOK1 on each face)
 TOWER_SPIRE = TOWER_STAGE + TILE_SIZE   # 704: the green tent
+# The ruby star (SDRUBY1, masked) stands on the tent: the middle texture of
+# the line that halves the tent's top (x RUBY_STAR_X), the tent open to the
+# apron's sky so the star has the room between its top and that sky. The
+# tent is 64 wide and the star 128: drawn at half scale (UDMF scalex_mid /
+# scaley_mid 2: NOT VERIFIED in the engine), it is 64 x 64, its stem on the
+# tent and its tips at the apron's sky.
+RUBY_STAR_X = 1728
+RUBY_STAR_SCALE = 2.0
 PARAPET = 128           # the stone parapet over the slope: seen over, not climbed
 FLAG_SILL = MERLON_TOP - TILE_SIZE      # 128: an occupier's flag hung in the crown, one tile
 ARENA_SKY = 512
@@ -333,7 +355,7 @@ TRIBUNE_N_Y = (2560, 3008)
 TRIBUNE_S_Y = (1856, 2112)
 TRIBUNE_X = (1664, 1984)        # a top row 96 deep, then 7 steps of 32 down to the square
 TRIBUNE_TOP_DEPTH = 96
-FLAGS_ON_THE_WALL = ((3136, FLAG_REICH), (3264, FLAG_LEGION))
+FLAGS_ON_THE_WALL = ((3136, FLAG_REICH_KREMLIN), (3264, FLAG_LEGION_KREMLIN))
 FLAG_WIDTH = 64
 # The square's floor: dark setts, crossed by three lines of pale granite slabs
 # (SDCOBL2, one line per 64 tile), each a strip of its own sector one tile
@@ -349,7 +371,8 @@ BANNER_WIDTH = 64
 # columns run with the world's x or y and their rows from that height, so the
 # brick, the bays and the frieze run on unbroken from one line to the next.
 ALIGN_PERIOD = 128      # every aligned lump is 128 high and 64 or 128 wide
-ALIGNED = {KREMLIN: 0, MERLON: 0, BANNER: 0, GUM_FACADE: 0, SPASSKAYA: TOWER_BASE}
+ALIGNED = {KREMLIN: 0, MERLON: 0, BANNER: 0, GUM_FACADE: 0, SPASSKAYA: TOWER_BASE,
+           FLAG_REICH_KREMLIN: 0, FLAG_LEGION_KREMLIN: 0, MUSEUM: 0}
 # The missile carriers' flanks: SDARMR1 with its star (rows 29-88, measured on
 # the approved lump) whole on a 64-high hull, one star per 128.
 STAR_ROWS = (29, 88)
@@ -820,6 +843,79 @@ def dress_carriers(tm: TextMap, carriers: dict[int, tuple[int, int, int, int]]) 
             side.extra["offsety_bottom"] = STAR_OFFSET
 
 
+def hang_the_ruby_star(tm: TextMap, plan: dict[str, int]) -> None:
+    """SDRUBY1 on the line that halves the tent's top, on both its sides (the
+    star faces the square and the courtyard), at half scale: Doom hangs a
+    two-sided middle texture from the lower ceiling, here the apron's sky,
+    so the 64 x 64 star stands from the tent (TOWER_SPIRE) to that sky. The
+    line is impassable (nobody is up there; it keeps the gap between the
+    halves out of any route's reckoning)."""
+    halves = {plan["prop_z6_tower_top"], plan["prop_z6_tower_top_e"]}
+    hung = 0
+    for ld in tm.linedefs:
+        if ld.sideback is None:
+            continue
+        if {tm.sidedefs[ld.sidefront].sector, tm.sidedefs[ld.sideback].sector} != halves:
+            continue
+        for side in (ld.sidefront, ld.sideback):
+            sd = tm.sidedefs[side]
+            sd.texturemiddle = RUBY_STAR
+            sd.extra["scalex_mid"] = RUBY_STAR_SCALE
+            sd.extra["scaley_mid"] = RUBY_STAR_SCALE
+        hung += 1
+    if hung != 1:
+        raise ValueError(f"the ruby star's line: {hung} lines between the tent's halves")
+
+
+def dress_shopfronts(tm: TextMap) -> None:
+    """Deal the GUM's three shopfronts along the line's walls: every line
+    that wears SHOPFRONT on a drawn part is cut at the world's 64 grid (the
+    corners of the cut are new vertices on the same line: nothing moves),
+    and each 64 of wall gets the sign of its column, SHOPFRONTS[(c // 64) %
+    3], so the shops follow one another «ТКАНИ», «ОБУВЬ», «ЧАСЫ» along the
+    walls and up the tiers. Each piece is world-aligned along the wall (a
+    piece cut short by a corner shows the part of the front the grid gives
+    it). Lines with a special are left alone (none of them wears it)."""
+    width = SHOPFRONT_WIDTH
+    for index in range(len(tm.linedefs)):
+        ld = tm.linedefs[index]
+        sides = [s for s in (ld.sidefront, ld.sideback) if s is not None]
+        parts = ("texturetop", "texturemiddle", "texturebottom")
+        if ld.special or not any(getattr(tm.sidedefs[s], p) == SHOPFRONT for s in sides for p in parts):
+            continue
+        a, b = tm.vertices[ld.v1], tm.vertices[ld.v2]
+        vertical = a.x == b.x
+        lo, hi = (a.y, b.y) if vertical else (a.x, b.x)
+        step = 1 if hi > lo else -1
+        cuts = sorted(c for c in range(int(min(lo, hi)) // width * width + width, int(max(lo, hi)), width)
+                      if min(lo, hi) < c < max(lo, hi))
+        if step < 0:
+            cuts.reverse()
+        points = [lo] + cuts + [hi]
+        originals = {s: replace(tm.sidedefs[s], extra=dict(tm.sidedefs[s].extra)) for s in sides}
+        for n, (p, q) in enumerate(zip(points, points[1:])):
+            sign = SHOPFRONTS[(int(min(p, q)) // width) % len(SHOPFRONTS)]
+            if n == 0:
+                piece, own = ld, {s: s for s in sides}
+            else:
+                own = {s: tm.add_sidedef(replace(originals[s], extra=dict(originals[s].extra)))
+                       for s in sides}
+                piece = replace(ld, sidefront=own[ld.sidefront],
+                                sideback=own[ld.sideback] if ld.sideback is not None else None,
+                                extra=dict(ld.extra))
+                tm.add_linedef(piece)
+            piece.v1 = tm.vertex(a.x, p) if vertical else tm.vertex(p, a.y)
+            piece.v2 = tm.vertex(a.x, q) if vertical else tm.vertex(q, a.y)
+            for s in sides:
+                sd = tm.sidedefs[own[s]]
+                for part in parts:
+                    if getattr(originals[s], part) == SHOPFRONT:
+                        setattr(sd, part, sign)
+                # Doom runs a front side from v1 to v2, a back side from v2 to v1.
+                start, run = (p, step) if s == ld.sidefront else (q, -step)
+                sd.offsetx = int(start * run) % width
+
+
 def align_to_world(tm: TextMap) -> None:
     """Give every side that wears an ALIGNED lump the offsets that lay it on
     the world: its columns follow x or y (so the brick runs on across lines),
@@ -1001,12 +1097,12 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # square is seen from the street, and not reached.
     for n, ax in enumerate(RESURRECTION_ARCHES_X, start=1):
         zone(f"z3_gate_arch_{n}", GROUND, 192, [(ax, 3584, ax + TILE_SIZE, 3648)],
-             light=LIGHT_STREET, flat=GRANITE, ceiling=CEIL_CONCRETE, wall=BRICK)
+             light=LIGHT_STREET, flat=GRANITE, ceiling=CEIL_CONCRETE, wall=MUSEUM)
         zone(f"{PROP_PREFIX}z3_gate_barricade_{n}", BARRICADE, 192,
              [(ax, 3520, ax + TILE_SIZE, 3584)], light=LIGHT_STREET, flat=CRATE_TOP,
              ceiling=CEIL_CONCRETE, wall=LONG_CRATE)
         zone(f"z6_gate_arch_{n}", GROUND, 192, [(ax, 3456, ax + TILE_SIZE, 3520)],
-             light=LIGHT_SQUARE, flat=GRANITE, ceiling=CEIL_CONCRETE, wall=BRICK)
+             light=LIGHT_SQUARE, flat=GRANITE, ceiling=CEIL_CONCRETE, wall=MUSEUM)
 
     # ======================================================================
     # Z4 The GUM, ground floor
@@ -1053,35 +1149,37 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
 
     # ======================================================================
     # Z5 The line under the glass roof, the atrium, the gallery and the bridge
+    # (the vault SDGUMR1 over all of it; the shopfronts SDGUMS1-3 dealt along
+    # its walls by dress_shopfronts after the build)
     # ======================================================================
     zone("z5_passage_s", GROUND, PASSAGE_SKY, [PASSAGE_S], light=LIGHT_PASSAGE,
-         flat=GRANITE_CHECK, ceiling=SKY, wall=WINDOW)
+         flat=GRANITE_CHECK, ceiling=GLASS_ROOF, wall=SHOPFRONT)
     zone("z5_passage_n", GROUND, PASSAGE_SKY, [PASSAGE_N], light=LIGHT_PASSAGE,
-         flat=GRANITE_CHECK, ceiling=SKY, wall=WINDOW)
+         flat=GRANITE_CHECK, ceiling=GLASS_ROOF, wall=SHOPFRONT)
     zone("z5_atrium", GROUND, PASSAGE_SKY, [ATRIUM], light=LIGHT_ATRIUM, flat=GRANITE_CHECK,
-         ceiling=SKY, wall=WINDOW)
+         ceiling=GLASS_ROOF, wall=SHOPFRONT)
     prop("z5_atrium", "z5_fountain", (4032, 2272, 4160, 2400), FOUNTAIN_RIM, wall=MARBLE,
          flat=GRANITE)
     prop("z5_atrium", "z5_spout", (4064, 2304, 4128, 2368), FOUNTAIN_SPOUT, wall=BRASS,
          flat=GRANITE)
     zone("z5_bridge", GALLERY, PASSAGE_SKY, [BRIDGE], light=LIGHT_GALLERY, flat=GRANITE,
-         ceiling=SKY, wall=STEEL)
+         ceiling=GLASS_ROOF, wall=STEEL)
     zone("z5_bridge_key", GALLERY, PASSAGE_SKY, [BRIDGE_KEY], light=LIGHT_BEACON, flat=GRANITE,
-         ceiling=SKY, wall=STEEL, extra=BLUE_LIGHT)
+         ceiling=GLASS_ROOF, wall=STEEL, extra=BLUE_LIGHT)
     zone("z5_upper_w", GALLERY, PASSAGE_SKY, [UPPER_WEST], light=LIGHT_GALLERY, flat=GRANITE,
-         ceiling=SKY, wall=WINDOW)
+         ceiling=GLASS_ROOF, wall=SHOPFRONT)
     zone("z5_gallery_n", GALLERY, PASSAGE_SKY, [GALLERY_N], light=LIGHT_GALLERY, flat=GRANITE,
-         ceiling=SKY, wall=WINDOW)
+         ceiling=GLASS_ROOF, wall=SHOPFRONT)
     zone("z5_gallery_s", GALLERY, PASSAGE_SKY, [GALLERY_S], light=LIGHT_GALLERY, flat=GRANITE,
-         ceiling=SKY, wall=WINDOW)
+         ceiling=GLASS_ROOF, wall=SHOPFRONT)
     for k in range(1, 9):
         floor = STEP * k
         zone(f"z5_gstair_n_{k}", floor, PASSAGE_SKY,
              [(4224, 2496 + STEP_DEPTH * (k - 1), 4352, 2496 + STEP_DEPTH * k)],
-             light=LIGHT_GALLERY, flat=GRANITE, ceiling=SKY, wall=STATION_WALL)
+             light=LIGHT_GALLERY, flat=GRANITE, ceiling=GLASS_ROOF, wall=STATION_WALL)
         zone(f"z5_gstair_s_{k}", floor, PASSAGE_SKY,
              [(4224, 2176 - STEP_DEPTH * k, 4352, 2176 - STEP_DEPTH * (k - 1))],
-             light=LIGHT_GALLERY, flat=GRANITE, ceiling=SKY, wall=STATION_WALL)
+             light=LIGHT_GALLERY, flat=GRANITE, ceiling=GLASS_ROOF, wall=STATION_WALL)
     upper = {"u1": ((4384, 2816, 4608, 3008), (4352, 2880, 4384, 2944)),
              "u2": ((4384, 3072, 4608, 3264), (4352, 3136, 4384, 3200)),
              "u3": ((4384, 1600, 4608, 1856), (4352, 1696, 4384, 1760))}
@@ -1143,11 +1241,16 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # The parade's banners on the wall's face, below the walk.
     for by in BANNERS_Y:
         g.style_v(kx2, by, by + BANNER_WIDTH, LineStyle(texture=BANNER))
-    # The Spasskaya tower: its stone base, the clock stage (the star plaque
-    # stands in), the green tent.
+    # The Spasskaya tower: its stone base, the clock stage (a clock on each
+    # face), the green tent and the ruby star on it. The tent is open to the
+    # apron's sky in two halves; the line between them carries the star.
     block("prop_z6_tower", TOWER_BASE, [TOWER], wall=SPASSKAYA, light=LIGHT_SQUARE)
-    block("prop_z6_tower_mid", TOWER_STAGE, [TOWER_MID], wall=STAR, light=LIGHT_SQUARE)
-    block("prop_z6_tower_top", TOWER_SPIRE, [TOWER_TOP], wall=STEEL, light=LIGHT_SQUARE)
+    block("prop_z6_tower_mid", TOWER_STAGE, [TOWER_MID], wall=CLOCK, light=LIGHT_SQUARE)
+    rx1, ry1, rx2, ry2 = TOWER_TOP
+    for name, rect in (("prop_z6_tower_top", (rx1, ry1, RUBY_STAR_X, ry2)),
+                       ("prop_z6_tower_top_e", (RUBY_STAR_X, ry1, rx2, ry2))):
+        zone(name, TOWER_SPIRE, TOWER_APRON_SKY, [rect], light=LIGHT_SQUARE, ceiling=SKY, wall=STEEL)
+    g.style_v(RUBY_STAR_X, ry1, ry2, LineStyle(flags=("blocking",)))
     # The red lock: the Spasskaya gate, in the wall beside the tower.
     zone("z6_red_portal", GROUND, DOOR_HEIGHT, [(kx1, GATE_Y[0], kx2, GATE_Y[1])],
          light=LIGHT_BEACON, flat=GRANITE, ceiling=CEIL_CONCRETE, wall=KREMLIN, extra=RED_LIGHT)
@@ -1190,11 +1293,12 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         like("z6_square", f"{PROP_PREFIX}z6_portrait_{who}", [(sq_x2, py1, sq_x2 + NICHE_DEPTH, py2)],
              floor=GROUND + PORTRAIT_SILL, ceil=GROUND + PORTRAIT_SILL + POSTER_HEIGHT,
              ceiling=CEIL_CONCRETE, flat=GRANITE)
-    # The Historical Museum's red brick, and its two closets.
-    g.style_h(sq_y2, MUSEUM_X[0], MUSEUM_X[1], LineStyle(texture=BRICK))
+    # The Historical Museum's red brick with its white dressings, and its two
+    # closets: their shut leaves are the museum's own wall (the ambush).
+    g.style_h(sq_y2, MUSEUM_X[0], MUSEUM_X[1], LineStyle(texture=MUSEUM))
     for name, (cx1, cx2) in CLOSETS.items():
         zone(f"{name}_door", GROUND, GROUND, [(cx1, sq_y2, cx2, sq_y2 + NICHE_DEPTH)], TAG_AMBUSH,
-             light=LIGHT_CLOSET, wall=BRICK)
+             light=LIGHT_CLOSET, wall=MUSEUM)
         zone(name, GROUND, GROUND + CLOSET_HEIGHT, [(cx1, sq_y2 + NICHE_DEPTH, cx2, 3584)],
              light=LIGHT_CLOSET, wall=BRICK)
     # The yellow lock: the gatehouse at the square's south end (its face is
@@ -1277,7 +1381,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     for x in (3488, 3520):
         g.style_v(x, 2304, 2432, locked_door_style(TAG_BLUE_DOOR, blue_door, LOCK_BLUE_CARD,
-                                                   texture=DOOR))
+                                                   texture=DOOR_BLUE))
     g.style_v(3520, 2176, 2304, LineStyle(texture=MOSAIC))
     g.style_v(3520, 2432, 2560, LineStyle(texture=MOSAIC))
     for y in (1088, 1120):
@@ -1298,6 +1402,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     hang_merlons(tm, {plan["prop_z6_wall_walk"], plan["prop_z9_wall_walk"]},
                  (KREMLIN_STRIP_X[1], ARENA_STRIP_X[0]))
     dress_carriers(tm, carriers)
+    hang_the_ruby_star(tm, plan)
+    dress_shopfronts(tm)
     align_to_world(tm)
 
     # Things.
@@ -1334,10 +1440,11 @@ def lumps() -> list[tuple[str, bytes]]:
 
 
 # Every lump name this map may put in a sidedef or a sector.
-WALL_TEXTURES = ((CONCRETE, STAR, STEEL, CRATE, LONG_CRATE, TILE, MARBLE, STATION_WALL, MOSAIC,
-                 BRASS, TUBBING, PLATFORM_FACE, BRICK, BRICK_DADO, WINDOW, FLAG_REICH,
+WALL_TEXTURES = ((CONCRETE, STEEL, CRATE, LONG_CRATE, TILE, MARBLE, STATION_WALL, MOSAIC,
+                 BRASS, TUBBING, PLATFORM_FACE, BRICK, BRICK_DADO, FLAG_REICH,
                  FLAG_LEGION, LENIN, STALIN, KREMLIN, MERLON, GUM_FACADE, TRIBUNE, BANNER,
-                 SPASSKAYA, ARMOUR_STAR, ARMOUR) + DOOR_LEAVES + SWITCH_FACES
+                 SPASSKAYA, ARMOUR_STAR, ARMOUR, CLOCK, RUBY_STAR, MUSEUM, FLAG_REICH_KREMLIN,
+                 FLAG_LEGION_KREMLIN) + SHOPFRONTS + DOOR_LEAVES + SWITCH_FACES
                  + ((MARX_ENGELS,) if MARX_ENGELS else ()))
 FLAT_TEXTURES = (FLOOR_ASPHALT, CEIL_CONCRETE, CRATE_TOP, GRANITE, GRANITE_CHECK, PLATFORM_EDGE,
-                 RAILS, CEIL_COFFER, CEIL_LAMP, PLATE, COBBLES, COBBLES_LINE, SKY)
+                 RAILS, CEIL_COFFER, CEIL_LAMP, PLATE, COBBLES, COBBLES_LINE, GLASS_ROOF, SKY)

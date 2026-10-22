@@ -1,5 +1,14 @@
 """D55 (2026-10-14): the Reich hound wears its own sprites.
 
+REDRAWN by D109 and D114 (2026-10-22): the set that ships now is the
+Google Gemini redraw built by `tools/art/gemini_enemy.py hound` into
+`work/art/enemies_gemini/hound/` (MOD-SPEC 6.3, "The seven enemies redrawn
+from Google Gemini"), same lump names, frame letters and rotations, so the
+state machine below is untouched. The `files` checks read that build; the
+rig render named below is history (the generator is kept), and a lump of
+it shipping again is a failure. tests/test_gemini_enemy_install.py holds
+the install itself.
+
 The CEO chose the German shepherd of cell A (D50, "Perro A") and approved
 its full set (D55, "OK perro"): the 46 `SDHN` lumps rendered by
 `tools/art/gen_hound.py --full` into `work/art/enemies/hound_gsd/full_A/`
@@ -56,7 +65,8 @@ TOOLS_DIR = PROJECT_ROOT / "tools"
 SRC_DIR = PROJECT_ROOT / "src"
 HOUND_ZS = SRC_DIR / "zscript" / "monsters" / "reich_hound.zs"
 HOUND_SPRITES = PROJECT_ROOT / "assets" / "sprites" / "hound"
-WORK_FULL_A = PROJECT_ROOT / "work" / "art" / "enemies" / "hound_gsd" / "full_A"
+WORK_FULL_A = PROJECT_ROOT / "work" / "art" / "enemies" / "hound_gsd" / "full_A"   # the rig set, history since D109
+WORK_GEMINI = PROJECT_ROOT / "work" / "art" / "enemies_gemini" / "hound"           # what ships since D109
 PALETTE_JSON = PROJECT_ROOT / "docs" / "art" / "palette.json"
 sys.path.insert(0, str(TOOLS_DIR))
 
@@ -84,6 +94,8 @@ ROTATION_LUMPS = ("1", "2{f}8", "3{f}7", "4{f}6", "5")
 EXPECTED_LUMPS = ({f"{NEW}{f}" + r.format(f=f) for f in ROTATED_FRAMES for r in ROTATION_LUMPS}
                   | {f"{NEW}{f}0" for f in FLAT_FRAMES})
 BLOOD_MAX_INDEX = 5                   # D49: the drawn blood is flag_red 0-5 (gen_hound.py)
+CORPSE_MAX_ASPECT = 0.4               # N0, the dog on its side: opaque height / width (measured 0.29)
+CORPSE_MAX_RISE_SHARE = 0.6           # its rise / the lowest standing rise (measured 0.52)
 
 # The States block as it stood before D55, with Freedoom's SARG, read from
 # src/zscript/monsters/reich_hound.zs at HEAD 8b4ef67 on 2026-10-14 before
@@ -268,28 +280,44 @@ class FileTests(unittest.TestCase):
                 seen.add((struct.unpack(">II", data[16:24]), read_grab(data)))
             self.assertEqual(len(seen), 1, f"{NEW}{f}: {seen}")
 
-    @unittest.skipUnless(WORK_FULL_A.is_dir(), "work/ not present (CI has no work/)")
+    @unittest.skipUnless(WORK_GEMINI.is_dir(), "work/ not present (CI has no work/)")
     def test_byte_identical_to_the_approved_render(self):
         for p in installed():
-            source = WORK_FULL_A / p.name
+            source = WORK_GEMINI / p.name
             self.assertTrue(source.is_file(), source)
             self.assertEqual(p.read_bytes(), source.read_bytes(), p)
 
     @unittest.skipUnless(HAVE_PIL, "Pillow not available in this interpreter")
-    def test_the_death_bleeds_dark_red(self):
-        """D49/D50: the death I-N is drawn with flag_red 0-5 blood (measured
-        38 to 447 pixels a frame), and the standing frames carry none."""
-        red = blood_colours()
-
-        def count(name: str) -> int:
+    def test_the_death_ends_lying_down(self):
+        """The rig set's death was drawn with D49's flag_red blood; Gemini's
+        death sheet, approved as drawn (D109), has almost none (0-3 px a
+        frame), so the engine's BloodColor spray is the dog's blood now. What
+        holds: the last frame, N, is the dog lying on its side, much wider
+        than tall and rising barely half what the standing dog does
+        (measured: 73 x 21 px, rising 16; standing 31-34)."""
+        def box(name: str) -> tuple[int, int, int, int, int]:
+            data = (HOUND_SPRITES / f"{name}.png").read_bytes()
             with Image.open(HOUND_SPRITES / f"{name}.png") as img:
-                raw = img.convert("RGBA").tobytes()
-            return sum(1 for i in range(0, len(raw), 4) if raw[i + 3] and tuple(raw[i:i + 3]) in red)
+                left, top, right, bottom = img.getchannel("A").getbbox()
+            return left, top, right, bottom, read_grab(data)[1]
 
-        for f in FLAT_FRAMES:
-            self.assertGreater(count(f"{NEW}{f}0"), 0, f"{NEW}{f}0 has no flag_red 0-{BLOOD_MAX_INDEX} blood")
-        for f in "ABCD":
-            self.assertEqual(count(f"{NEW}{f}1"), 0, f"{NEW}{f}1: blood on a running dog")
+        left, top, right, bottom, floor = box(f"{NEW}N0")
+        self.assertLessEqual((bottom - top) / (right - left), CORPSE_MAX_ASPECT)
+        standing = min(box(f"{NEW}{f}" + r.format(f=f))[4] - box(f"{NEW}{f}" + r.format(f=f))[1]
+                       for f in "ABCD" for r in ROTATION_LUMPS)
+        self.assertLessEqual(floor - top, CORPSE_MAX_RISE_SHARE * standing)
+
+
+    @unittest.skipUnless(WORK_FULL_A.is_dir(), "work/ not present (CI has no work/)")
+    def test_the_rig_set_no_longer_ships(self):
+        """D109: every lump of the set is the Gemini redraw, none the rig
+        render it replaced (that set stays in work/, history)."""
+        for p in installed():
+            if not p.stem.startswith(NEW):
+                continue
+            old = WORK_FULL_A / p.name
+            if old.is_file():
+                self.assertNotEqual(p.read_bytes(), old.read_bytes(), p.name)
 
 
 class PackageTests(unittest.TestCase):

@@ -339,7 +339,9 @@ class FullSetContractTests(unittest.TestCase):
 
     def test_sprite_names_are_free(self):
         """SDGN and SDGL are the General's in the docs and nobody else's; in
-        assets/ a lump of that name can only be this set's own render."""
+        assets/ a lump of that name can only be this set's own render, or,
+        since D109, for SDGN the Gemini redraw (gemini_enemy.py general;
+        tests/test_gemini_enemy_install.py holds the install)."""
         g = self.g
         for name in (g.SPRITE, g.SHELL_SPRITE):
             self.assertTrue(re.fullmatch(r"SD[A-Z]{2}", name))
@@ -351,8 +353,14 @@ class FullSetContractTests(unittest.TestCase):
             self.assertNotIn(name, reserved)
             if not (g.FULL_DIR / name).is_dir():
                 continue    # a clean checkout has no gitignored work/: the identity half needs it
-            for png in (PROJECT_ROOT / "assets").rglob(f"{name}*.png"):
-                ours = g.FULL_DIR / name / png.name
+            # Sprite lumps only: a wall texture may share the four letters
+            # (D113's SDGLYP1, textures/taiga/) without being a sprite frame.
+            source = (PROJECT_ROOT / "work" / "art" / "enemies_gemini" / "general"
+                      if name == g.SPRITE else g.FULL_DIR / name)
+            if not source.is_dir():
+                continue
+            for png in (PROJECT_ROOT / "assets" / "sprites").rglob(f"{name}*.png"):
+                ours = source / png.name
                 self.assertTrue(ours.is_file(), png)
                 self.assertEqual(png.read_bytes(), ours.read_bytes(), png)
 

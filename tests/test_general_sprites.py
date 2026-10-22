@@ -1,5 +1,14 @@
 """D73 (2026-10-14): the General and his shell wear their own sprites.
 
+REDRAWN by D109 and D114 (2026-10-22): the set that ships now is the
+Google Gemini redraw built by `tools/art/gemini_enemy.py general` into
+`work/art/enemies_gemini/general/` (MOD-SPEC 6.3, "The seven enemies redrawn
+from Google Gemini"), same lump names, frame letters and rotations, so the
+state machine below is untouched. The `files` checks read that build; the
+rig render named below is history (the generator is kept), and a lump of
+it shipping again is a failure. tests/test_gemini_enemy_install.py holds
+the install itself.
+
 The CEO combined cells C and D of the General's sweep, C from the front and
 D's two-flag cloak on his back (D71), approved the CD turnaround (D72, "OK
 al general") and then the full set (D73, "Ok general"): the 81 `SDGN` and
@@ -68,7 +77,8 @@ SRC_DIR = PROJECT_ROOT / "src"
 GENERAL_ZS = SRC_DIR / "zscript" / "monsters" / "general.zs"
 SHELL_ZS = SRC_DIR / "zscript" / "monsters" / "general_shell.zs"
 GENERAL_SPRITES = PROJECT_ROOT / "assets" / "sprites" / "general"
-WORK_FULL = PROJECT_ROOT / "work" / "art" / "general" / "full"
+WORK_FULL = PROJECT_ROOT / "work" / "art" / "general" / "full"   # the rig set (and the shell SDGL)
+WORK_GEMINI = PROJECT_ROOT / "work" / "art" / "enemies_gemini" / "general"   # SDGN since D109
 PALETTE_JSON = PROJECT_ROOT / "docs" / "art" / "palette.json"
 sys.path.insert(0, str(TOOLS_DIR))
 sys.path.insert(0, str(TOOLS_DIR / "art"))
@@ -106,12 +116,18 @@ ROTATIONS_8 = "12345678"
 EXPECTED_LUMPS = {f"{NEW}{f}{r}" for f in ROTATED_FRAMES for r in ROTATIONS_8} \
     | {f"{NEW}{f}0" for f in FLAT_FRAMES} | {f"{SHELL_NEW}{f}0" for f in SHELL_FRAMES}
 
-# (canvas width, height, grAb left, top) per frame, as gen_general.py drew
-# them (CV for the living frames, the boots sinking 3-6 px under z;
-# DEATH_CV for H-P, he falls back across the screen; SHELL_CV centred, as
-# the storm bolt): measured on the approved files 2026-10-14.
-LIVING_CANVAS = (136, 124, 68, 114)
-DEATH_CANVAS = (300, 168, 150, 136)
+# (canvas width, height, grAb left, top) per frame, as gemini_enemy.py
+# placed the Gemini redraw (D109): one canvas a frame for its rotations,
+# `left` the axis, `top` the floor line 4 px over the boots' last row;
+# measured on the installed files 2026-10-22. (The rig set had 136 x 124
+# for every living frame and 300 x 168 for the death.) The shell, not
+# redrawn, keeps gen_general.py's SHELL_CV, centred as the storm bolt.
+CANVASES = {"A": (72, 104, 36, 93), "B": (72, 104, 36, 93), "C": (72, 104, 36, 93),
+            "D": (72, 104, 36, 93), "E": (72, 104, 36, 93), "F": (112, 104, 56, 93),
+            "G": (88, 104, 44, 93), "H": (80, 96, 40, 88), "I": (88, 104, 44, 98),
+            "J": (64, 96, 32, 86), "K": (72, 96, 36, 85), "L": (88, 88, 44, 80),
+            "M": (88, 88, 44, 80), "N": (152, 40, 76, 34), "O": (152, 40, 76, 34),
+            "P": (152, 40, 76, 34), "Q": (72, 104, 36, 93), "R": (72, 104, 36, 93)}
 SHELL_CANVAS = (40, 40, 20, 20)
 
 # The body: Cyberdemon radius, 10 units shorter, unchanged by D73.
@@ -231,7 +247,7 @@ def installed() -> list[Path]:
 def canvas_of(stem: str) -> tuple[int, int, int, int]:
     if stem.startswith(SHELL_NEW):
         return SHELL_CANVAS
-    return LIVING_CANVAS if stem[4] in ROTATED_FRAMES else DEATH_CANVAS
+    return CANVASES[stem[4]]
 
 
 def opaque_box(name: str) -> tuple[int, int, int, int]:
@@ -300,10 +316,13 @@ class BodyTests(unittest.TestCase):
                 self.assertLessEqual(rise(name), LOW_CEILING if f == SUMMON_FRAME else CYBR_RISE, name)
 
     @unittest.skipUnless(HAVE_PIL, "Pillow not available in this interpreter")
-    def test_only_q_goes_over_his_height(self):
+    def test_no_frame_goes_over_his_height(self):
+        """The rig set's Q raised his fist over the 100-unit body (103-109
+        px); Gemini drew no order, so Q is the standing view since D109
+        (gemini_enemy's `derived`) and every living frame rises 86-91 px."""
         over = sorted({f"{NEW}{f}" for f in ROTATED_FRAMES for r in ROTATIONS_8
                        if rise(f"{NEW}{f}{r}") > HEIGHT})
-        self.assertEqual(over, [f"{NEW}{SUMMON_FRAME}"])
+        self.assertEqual(over, [])
 
 
 class SpriteTests(unittest.TestCase):
@@ -372,10 +391,12 @@ class FileTests(unittest.TestCase):
             self.assertTrue(0 < left < width and 0 < top <= height, p.name)
             self.assertEqual(left, width // 2, p.name)
 
-    @unittest.skipUnless(WORK_FULL.is_dir(), "work/ not present (CI has no work/)")
+    @unittest.skipUnless(WORK_GEMINI.is_dir() and WORK_FULL.is_dir(), "work/ not present (CI has no work/)")
     def test_byte_identical_to_the_approved_render(self):
+        """SDGN from the Gemini build (D109); the shell SDGL, not redrawn,
+        from the rig render."""
         for p in installed():
-            source = WORK_FULL / p.stem[:4] / p.name
+            source = WORK_GEMINI / p.name if p.stem.startswith(NEW) else WORK_FULL / p.stem[:4] / p.name
             self.assertTrue(source.is_file(), source)
             self.assertEqual(p.read_bytes(), source.read_bytes(), p)
 
@@ -394,9 +415,11 @@ class FileTests(unittest.TestCase):
 
     @unittest.skipUnless(HAVE_PIL, "Pillow not available in this interpreter")
     def test_the_deaths_bleed_dark_red(self):
-        """D49: every death frame H-P carries more of the pool's flag_red 0-3
-        than any living frame, and the pool grows frame by frame onto the
-        flags (H 23 px, P 619)."""
+        """D49: every death frame H-P carries the pool's flag_red 0-3. The rig
+        set had more of it in each death frame than in any living one, the
+        pool growing onto the flags; Gemini's death sheet, approved as drawn
+        (D109), shows 92 to 274 px a frame, the living coat's shadows up to
+        ~200, so what holds is that each death frame shows some."""
         data = json.loads(PALETTE_JSON.read_text(encoding="utf-8"))
         ramp = next(r for r in data["ramps"] if r["name"] == "flag_red")
         red = {tuple(c) for c in ramp["colours"][:BLOOD_MAX_INDEX + 1]}
@@ -406,11 +429,8 @@ class FileTests(unittest.TestCase):
                 raw = img.convert("RGBA").tobytes()
             return sum(1 for i in range(0, len(raw), 4) if raw[i + 3] and tuple(raw[i:i + 3]) in red)
 
-        living = max(count(f"{NEW}{f}{r}") for f in ROTATED_FRAMES for r in ROTATIONS_8)
-        deaths = [count(f"{NEW}{f}0") for f in FLAT_FRAMES]
-        for f, n in zip(FLAT_FRAMES, deaths):
-            self.assertGreater(n, living, f"{NEW}{f}0")
-        self.assertEqual(deaths, sorted(deaths), "the pool spreads frame by frame")
+        for f in FLAT_FRAMES:
+            self.assertGreater(count(f"{NEW}{f}0"), 0, f"{NEW}{f}0")
 
     @unittest.skipUnless(HAVE_PIL, "Pillow not available in this interpreter")
     def test_the_corpse_lies_flat(self):
@@ -419,6 +439,18 @@ class FileTests(unittest.TestCase):
         self.assertLessEqual((bottom - top) / (right - left), CORPSE_MAX_ASPECT, name)
         lowest_living = min(rise(f"{NEW}{f}{r}") for f in ROTATED_FRAMES for r in ROTATIONS_8)
         self.assertLessEqual(rise(name), CORPSE_MAX_RISE_SHARE * lowest_living, name)
+
+
+    @unittest.skipUnless(WORK_FULL.is_dir(), "work/ not present (CI has no work/)")
+    def test_the_rig_set_no_longer_ships(self):
+        """D109: every lump of the set is the Gemini redraw, none the rig
+        render it replaced (that set stays in work/, history)."""
+        for p in installed():
+            if not p.stem.startswith(NEW):
+                continue
+            old = WORK_FULL / NEW / p.name
+            if old.is_file():
+                self.assertNotEqual(p.read_bytes(), old.read_bytes(), p.name)
 
 
 class PackageTests(unittest.TestCase):

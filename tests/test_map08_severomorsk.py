@@ -6,9 +6,11 @@ of tests/test_map05_dam.py, whose model of play it repeats:
 * structure: every sector closed and clockwise, no duplicate vertex, no step
   up over 16; every level of the base walked (water, quays, deck, galleries,
   the reactor hall down in the rock);
-* only approved, packed textures (F_SKY1 is the engine's sky marker); every
-  naval piece nobody has drawn yet wears a packed stand-in, and no pending
-  name is packed under the map's nose;
+* only approved, packed textures (F_SKY1 is the engine's sky marker); the
+  "Naval" set (D113) worn: each piece the art-director drew as itself, each
+  never drawn on the nearest installed lump; the living rock on the walls
+  and overhead, the waterline on the quays, the hull aligned to the water
+  and the deck, the kerbs to the water, the crane lattice on both faces;
 * everything is reachable and the exit is reached playing the map's own
   doors, switches and its THREE keys (blue, yellow, red) in order; no trap
   at any stage; the shortcut (SW-B) and the three secrets are never needed;
@@ -405,17 +407,232 @@ class Map08Test(unittest.TestCase):
             self.assertTrue(_packed(name), f"{name} is not in assets/")
         self.assertLessEqual(used, set(m.WALL_TEXTURES) | set(m.FLAT_TEXTURES))
 
-    def test_the_naval_stand_ins_are_packed_and_the_proposals_are_not(self):
-        """Every naval piece the design wants wears a packed, approved lump
-        meanwhile; the proposed names are not lumps yet (when the art-
-        director's set lands, this test says which line of NAVAL_SET to
-        change)."""
+    def test_the_naval_set_is_worn(self):
+        """D113: every naval piece the design asked for is worn as itself
+        where the art-director drew it, on the nearest installed lump where
+        not; and every lump NAVAL_SET names is on the map. A pending name
+        that turns up packed says so (wear it)."""
         m = self.m
+        worn_on_map = self.textures_used()
         for proposed, worn in m.NAVAL_SET.items():
             self.assertTrue(_packed(worn), worn)
-            self.assertFalse(_packed(proposed), f"{proposed} exists now: wear it (NAVAL_SET)")
+            if _packed(proposed):
+                self.assertEqual(proposed, worn, f"{proposed} exists: wear it (NAVAL_SET)")
+            else:
+                self.assertNotEqual(proposed, worn, proposed)
+            self.assertIn(worn, worn_on_map, proposed)
         for proposed in m.PENDING_TEXTURES:
-            self.assertFalse(_packed(proposed), f"{proposed} exists now")
+            self.assertFalse(_packed(proposed), f"{proposed} exists now: wear it")
+        # The rest of the set and its neighbours, each somewhere on the map.
+        for lump in (m.ROCK_CEIL, m.DECK_RUBBER, m.DECK_HATCH, m.PIER_EDGE, m.NAVAL_PANEL, m.CRANE_LATTICE,
+                     m.CAB_FRONT, m.CAB_SIDE, m.DAM_WET, m.WATER):
+            self.assertIn(lump, worn_on_map, lump)
+        self.assertNotIn("SDDAM1", worn_on_map, "the stand-in for the rock is gone")
+        self.assertNotIn("SDARMR1", worn_on_map, "the fin wears its number, not the star")
+
+    def textures_used(self):
+        used = set()
+        for sd in self.sides:
+            for key in ("texturetop", "texturemiddle", "texturebottom"):
+                if sd.get(key) and sd[key] != "-":
+                    used.add(sd[key])
+        for s in self.sectors:
+            used |= {s["texturefloor"], s["textureceiling"]}
+        return used
+
+    def drawn(self, side_key, ld):
+        """[(part, the height the engine pegs it to)] of one side of a line,
+        as the map's own drawn_parts reads it."""
+        side = ld[side_key]
+        other = ld.get("sideback" if side_key == "sidefront" else "sidefront")
+        s = self.sectors[self.sides[side]["sector"]]
+        if other is None:
+            return [("texturemiddle", s["heightfloor"] if ld.get("dontpegbottom") else s["heightceiling"])]
+        o = self.sectors[self.sides[other]["sector"]]
+        parts = []
+        if o["heightfloor"] > s["heightfloor"]:
+            parts.append(("texturebottom", s["heightceiling"] if ld.get("dontpegbottom") else o["heightfloor"]))
+        if o["heightceiling"] < s["heightceiling"] and not (
+                s["textureceiling"] == self.m.SKY and o["textureceiling"] == self.m.SKY):
+            parts.append(("texturetop", s["heightceiling"] if ld.get("dontpegtop") else o["heightceiling"]))
+        return parts
+
+    def column(self, ld, side_key):
+        a, b = self.verts[ld["v1"]], self.verts[ld["v2"]]
+        if side_key == "sideback":
+            a, b = b, a
+        if a["y"] == b["y"]:
+            return int(a["x"]) if b["x"] > a["x"] else -int(a["x"])
+        return int(a["y"]) if b["y"] > a["y"] else -int(a["y"])
+
+    def faces_of(self, texture, sectors=None):
+        """(line, side key, part, peg height) of every drawn face wearing `texture`."""
+        out = []
+        for ld in self.lines:
+            for key in ("sidefront", "sideback"):
+                if key not in ld or (sectors is not None and self.sides[ld[key]]["sector"] not in sectors):
+                    continue
+                for part, ref in self.drawn(key, ld):
+                    if self.sides[ld[key]].get(part) == texture:
+                        out.append((ld, key, part, ref))
+        return out
+
+    def test_the_base_is_cut_into_living_rock(self):
+        """SDROCK1 on the cliffs, the dock, the tunnels and the reactor hall,
+        SDROCK2 overhead wherever the base is roofed by the rock; aligned to
+        one grid from the ground, so a wall split by a corner shows no seam."""
+        m = self.m
+        for zone in ("z2_yard", "z3_south_quay", "z3_north_quay", "z3_basin", "z7_tunnel_w", "z7_tunnel_e",
+                     "z8_hall", "z9_tunnel", "z11_passage_w", "z11_passage_e"):
+            walls = self.one_sided_textures(self.plan[zone])
+            self.assertEqual(m.ROCK, walls.most_common(1)[0][0], zone)
+        for zone in ("z3_south_quay", "z3_basin", "z3_gallery", "z4_deck", "prop_z4_fin", "z7_tunnel_e",
+                     "z8_hall", "z8_lid", "z9_tunnel", "z11_passage_w", "closet_z7_a"):
+            self.assertEqual(m.ROCK_CEIL, self.sectors[self.plan[zone]]["textureceiling"], zone)
+        for name, index in self.plan.items():
+            if name.startswith(m.ROCK_ROOFED):
+                self.assertNotEqual(m.CEIL_CONCRETE, self.sectors[index]["textureceiling"], name)
+        faces = self.faces_of(m.ROCK)
+        self.assertGreater(len(faces), 100)
+        for ld, key, _part, ref in faces:
+            side = self.sides[ld[key]]
+            self.assertEqual((m.GROUND - ref) % m.WALL_TILE, side.get("offsety", 0))
+            self.assertEqual(self.column(ld, key) % m.LUMP_WIDTH[m.ROCK], side.get("offsetx", 0))
+
+    def test_the_quays_wear_the_waterline(self):
+        """Every face rising out of the dock's water or the fjord onto a quay,
+        the pier or a step is SDDAM2, its foot on the water; the hull and the
+        boom keep their own."""
+        m = self.m
+        water = {self.plan["z3_basin"], self.plan["prop_z1_fjord"]}
+        faces = self.faces_of(m.DAM_WET)
+        self.assertTrue(faces)
+        seen = set()
+        for ld, key, part, ref in faces:
+            self.assertEqual("texturebottom", part)
+            self.assertEqual((m.BASIN - ref) % m.WALL_TILE, self.sides[ld[key]].get("offsety", 0))
+            other = self.sides[ld["sideback" if key == "sidefront" else "sidefront"]]["sector"]
+            seen.add(self.zone_of[other])
+        for bank in ("z3_south_quay", "z3_north_quay", "z1_pier", "z1_kerb_w", "z3_kerb_s", "z3_kerb_n",
+                     "z3_steps_s1_1", "z3_steps_n2_1"):
+            self.assertIn(bank, seen)
+        for ld, key, part, _ref in self.faces_of(m.HULL, water):
+            self.assertEqual("texturebottom", part)
+
+    def test_the_hull_is_aligned_to_the_water_and_the_deck(self):
+        """SDHULL1 world-aligned along the boat; from the water its foot on
+        the water (the flooding holes just above it), from the deck, the
+        gangways and the stern its top on the deck: the fin one whole tile."""
+        m = self.m
+        basin = {self.plan["z3_basin"]}
+        topside = {self.plan[n] for n in ("z4_deck", "z4_stern", "z4_escape_hatch", *m.GANGWAYS)}
+        low = self.faces_of(m.HULL, basin)
+        high = self.faces_of(m.HULL, topside)
+        self.assertTrue(low and high)
+        for faces, base in ((low, m.BASIN), (high, m.DECK)):
+            for ld, key, _part, ref in faces:
+                side = self.sides[ld[key]]
+                self.assertEqual((base - ref) % m.WALL_TILE, side.get("offsety", 0))
+                self.assertEqual(self.column(ld, key) % m.LUMP_WIDTH[m.HULL], side.get("offsetx", 0))
+        fin = self.sectors[self.plan["prop_z4_fin"]]
+        self.assertEqual(m.DECK_RUBBER, self.sectors[self.plan["z4_deck"]]["texturefloor"])
+        self.assertEqual(m.DECK_RUBBER, fin["texturefloor"])
+        hatch = self.sectors[self.plan["z4_escape_hatch"]]
+        self.assertEqual(m.DECK_HATCH, hatch["texturefloor"])
+        self.assertEqual(m.HATCH_PANNING, hatch.get("ypanningfloor"))
+        x1, y1, x2, y2 = m.ESCAPE_HATCH
+        self.assertEqual((m.HULL_Y[0] + m.HULL_Y[1]) / 2, (y1 + y2) / 2, "on the hull's axis")
+        self.assertEqual(0, x1 % m.FLAT_TILE)
+        self.assertEqual(m.FLAT_TILE, x2 - x1)
+        self.assertEqual(m.FLAT_TILE, y2 - y1)
+        self.assertEqual(m.FLAT_TILE // 2, y1 % m.FLAT_TILE, "half a tile of panning centres it")
+        # The covered berth's face either side of D3 is rock, not hull to the roof.
+        deck = self.plan["z4_deck"]
+        self.assertNotIn(m.HULL, self.one_sided_textures(deck))
+
+    def test_the_kerbs_face_the_water(self):
+        """SDPIER1 on the pier's and the quays' edges, one tile deep and on the
+        flat grid, flush with the ground, each touching the water on the side
+        its rotation turns the kerb to; the steps and the gangways break them."""
+        m = self.m
+        kerbs = {name: (rect, water) for name, (rect, water) in m.PIER_KERBS.items()}
+        for name, ((ky1, ky2), water) in m.QUAY_KERBS.items():
+            kerbs[name] = ((m.KERB_X[0][0], ky1, m.KERB_X[-1][1], ky2), water)
+        wet = {self.plan["z3_basin"], self.plan["prop_z1_fjord"]}
+        for name, ((x1, y1, x2, y2), water) in kerbs.items():
+            s = self.sectors[self.plan[name]]
+            self.assertEqual(m.PIER_EDGE, s["texturefloor"], name)
+            self.assertEqual(m.GROUND, s["heightfloor"], name)
+            self.assertEqual(m.KERB_ROTATION[water], s.get("rotationfloor", 0.0), name)
+            deep = (x2 - x1) if water == "west" else (y2 - y1)
+            self.assertEqual(m.FLAT_TILE, deep, name)
+            edge = {"west": ("v", x1), "south": ("h", y1), "north": ("h", y2)}[water]
+            far = {"west": ("v", x2), "south": ("h", y2), "north": ("h", y1)}[water]
+            for (axis, c) in (edge, far):
+                self.assertEqual(0, c % m.FLAT_TILE, name)
+            touching = [ld for ld in self.lines if "sideback" in ld and self.plan[name] in self._pair(ld)
+                        and set(self._pair(ld)) & wet]
+            self.assertTrue(touching, name)
+            on_edge = off_edge = 0
+            for ld in touching:
+                (ax, ay), (bx, by) = self.line_points(ld)
+                if (edge[0] == "v" and ax == bx == edge[1]) or (edge[0] == "h" and ay == by == edge[1]):
+                    on_edge += self.length(ld)
+                else:
+                    off_edge += self.length(ld)    # the pier's corner tile only
+            self.assertGreater(on_edge, off_edge, name)
+            self.assertLessEqual(off_edge, m.FLAT_TILE, name)
+        for (sx1, sx2) in m.BASIN_STEPS_X + (m.GANGWAYS["z4_gangway_s"][::2],):
+            for kx1, kx2 in m.KERB_X:
+                self.assertTrue(kx2 <= sx1 or sx2 <= kx1, "a step or a gangway lands on a kerb")
+
+    def test_the_cranes_lattice_hangs_on_both_faces(self):
+        """SDCRAN1, masked: on both faces of the outer crane's deck edges and
+        of the dock's crane gallery, standing one tile tall on the high floor
+        (lower-unpegged), world-aligned, a railing nobody walks through; and
+        no other line hangs anything in mid-air."""
+        m = self.m
+        hung = [ld for ld in self.lines if "sideback" in ld and m.CRANE_LATTICE in
+                (self.sides[ld["sidefront"]].get("texturemiddle"), self.sides[ld["sideback"]].get("texturemiddle"))]
+        self.assertGreaterEqual(sum(self.length(ld) for ld in hung),
+                                sum(hi - lo for _a, _c, lo, hi in m.LATTICES))
+        highs = set()
+        for ld in hung:
+            self.assertTrue(ld.get("blocking"))
+            self.assertTrue(ld.get("dontpegbottom"))
+            for key in ("sidefront", "sideback"):
+                side = self.sides[ld[key]]
+                self.assertEqual(m.CRANE_LATTICE, side.get("texturemiddle"))
+                self.assertEqual(self.column(ld, key) % m.LUMP_WIDTH[m.CRANE_LATTICE], side.get("offsetx", 0))
+                self.assertEqual(0, side.get("offsety", 0))
+            a, b = self._pair(ld)
+            high = max(self.sectors[a]["heightfloor"], self.sectors[b]["heightfloor"])
+            highs.add(high)
+            room = min(self.sectors[a]["heightceiling"], self.sectors[b]["heightceiling"]) - high
+            self.assertGreaterEqual(room, m.TILE, "the lattice stands whole")
+        self.assertEqual({m.CRANE}, highs)
+        for ld in self.lines:
+            for key in ("sidefront", "sideback"):
+                if key in ld and "sideback" in ld:
+                    self.assertIn(self.sides[ld[key]].get("texturemiddle", "-"), ("-",) + m.MIDDLE_TEXTURES)
+        tower = [ld for ld in self.lines if "sideback" not in ld and self.front(ld) == self.plan["z1_pier"]
+                 and self.sides[ld["sidefront"]].get("texturemiddle") == m.RUST]
+        self.assertEqual(2, len(tower), "the crane's tower from the pier is sheet, not rock")
+
+    def test_the_containers_are_whole(self):
+        """SDCONT1 on every container's flank: one tile high, every face a
+        whole number of containers, from the tile's start."""
+        m = self.m
+        for n in range(1, len(m.CONTAINERS) + 1):
+            box = self.plan[f"prop_z2_container_{n}"]
+            self.assertEqual(m.TILE, self.sectors[box]["heightfloor"] - m.GROUND)
+            faces = [ld for ld in self.lines if "sideback" in ld and box in self._pair(ld)]
+            self.assertEqual(4, len(faces), n)
+            for ld in faces:
+                key = "sidefront" if self.front(ld) != box else "sideback"
+                self.assertEqual(m.CONTAINER_SIDE, self.sides[ld[key]]["texturebottom"])
+                self.assertEqual(0, self.length(ld) % m.TILE)
+                self.assertEqual(0, self.sides[ld[key]].get("offsetx", 0))
 
     def test_the_sky_is_over_the_outdoors_only(self):
         m = self.m
@@ -440,8 +657,8 @@ class Map08Test(unittest.TestCase):
             s = self.sectors[n]
             opening = min(f["heightceiling"], s["heightceiling"]) - max(f["heightfloor"], s["heightfloor"])
             self.assertLess(opening, SMALLEST_BODY, self.zone_of[n])
-            if n == self.start:
-                self.assertGreater(opening, 0, "the pier must see the water")
+            if n == self.start or self.zone_of[n].startswith("z1_kerb"):
+                self.assertGreater(opening, 0, "the pier and its kerbs must see the water")
         self.assertNotIn(fjord, self.rounds[-1][1])
 
     def test_the_boom_closes_the_pens_mouth(self):
@@ -453,18 +670,23 @@ class Map08Test(unittest.TestCase):
             self.assertTrue(ld.get("blocking"), self.zone_of[next(iter(set(self._pair(ld)) - {boom}))])
         self.assertNotIn(self.plan["prop_z3_mouth"], self.rounds[-1][1])
 
-    def test_the_fins_star_is_whole_once_on_each_face(self):
-        """SDARMR1 once on each long face of the fin, exactly one tile high
-        over the deck (D107's rule for the star: never stacked)."""
+    def test_the_fins_number_is_whole_once_on_each_face(self):
+        """SDHULL2's «471» once on each long face of the fin, exactly one tile
+        high over the deck and one tile long, from the tile's start (never
+        stacked, never cut)."""
         m = self.m
         fin = self.sectors[self.plan["prop_z4_fin"]]
         self.assertEqual(m.TILE, fin["heightfloor"] - m.DECK)
-        stars = [ld for ld in self.lines if "sideback" in ld
-                 and any(self.sides[s].get("texturebottom") == m.ARMOUR_STAR
-                         for s in (ld["sidefront"], ld["sideback"]))]
-        self.assertEqual(2, len(stars))
-        for ld in stars:
+        numbers = [ld for ld in self.lines if "sideback" in ld
+                   and any(self.sides[s].get("texturebottom") == m.HULL_NUMBER
+                           for s in (ld["sidefront"], ld["sideback"]))]
+        self.assertEqual(2, len(numbers))
+        for ld in numbers:
             self.assertEqual(m.TILE, self.length(ld))
+            key = "sidefront" if self.front(ld) == self.plan["z4_deck"] else "sideback"
+            self.assertEqual(self.plan["z4_deck"], self.sides[ld[key]]["sector"])
+            self.assertEqual(0, self.sides[ld[key]].get("offsetx", 0))
+            self.assertEqual(0, self.sides[ld[key]].get("offsety", 0))
 
     def test_the_boat_is_entered_by_its_hatch_only(self):
         """The inside of the boat (z4_trunk ... z4_torpedo) touches the dock
@@ -481,10 +703,11 @@ class Map08Test(unittest.TestCase):
             if a in inside or b in inside:
                 self.assertTrue({a, b} <= allowed, f"{self.zone_of[a]} | {self.zone_of[b]}")
 
-    def test_the_control_room_wears_its_boards_and_the_bow_its_tubes(self):
+    def test_the_control_room_wears_its_panels_and_the_bow_its_tubes(self):
         m = self.m
         control = self.one_sided_textures(self.plan["z4_control"])
-        self.assertGreaterEqual(control[m.CONTROL_PANEL], 2 * (m.CONTROL[2] - m.CONTROL[0]))
+        self.assertGreaterEqual(control[m.NAVAL_PANEL], 2 * (m.CONTROL[2] - m.CONTROL[0]))
+        self.assertEqual(0, (m.CONTROL[2] - m.CONTROL[0]) % m.TILE, "whole panels")
         torpedo = self.one_sided_textures(self.plan["z4_torpedo"])
         self.assertEqual(m.TORPEDO[3] - m.TORPEDO[1], torpedo[m.TUBBING])
         room = self.sectors[self.plan["z4_control"]]
@@ -508,8 +731,12 @@ class Map08Test(unittest.TestCase):
             for ld in faces:
                 self.assertEqual(m.TILE, self.length(ld), tag)
                 self.assertIn(self.sides[ld["sidefront"]]["texturetop"], m.DOOR_LEAVES)
+        self.assertEqual(m.DOOR_BLUE, self._leaf(m.TAG_BLUE_DOOR))
         self.assertEqual(m.DOOR_YELLOW, self._leaf(m.TAG_YELLOW_DOOR))
         self.assertEqual(m.DOOR_RED, self._leaf(m.TAG_RED_GATE))
+        hatch = [ld for ld in self.lines if ld.get("arg0") == m.TAG_D3_HATCH and ld.get("special") == SPECIAL_DOOR_RAISE]
+        for ld in hatch:
+            self.assertEqual(m.BULKHEAD_DOOR, self.sides[ld["sidefront"]]["texturetop"], "D3 is the round door")
 
     def _leaf(self, tag):
         ld = next(ld for ld in self.lines if ld.get("arg0") == tag
@@ -865,8 +1092,10 @@ class Map08Test(unittest.TestCase):
 
     def test_the_exit_is_in_the_locomotives_cab(self):
         """The regulator in the cab: the cab is the locomotive's inside,
-        boarded by its step from the bay, one tile high, the desk on its
-        north wall; the exit is seen from the cab's door."""
+        boarded by its step from the bay, one tile high, the backhead
+        (SDCAB1, its middle) on its south wall facing the door and the cab's
+        sides (SDCAB2, a whole window on the back wall) on the rest; the exit
+        is seen from the cab's door."""
         m = self.m
         cab = self.plan["z10_cab"]
         self.assertEqual(cab, self.sector_at(*((m.CAB_DOOR[0] + m.CAB_DOOR[2]) / 2, m.CAB_DOOR[1] + 8)))
@@ -877,8 +1106,27 @@ class Map08Test(unittest.TestCase):
                 and self.line_points(ld)[0][1] == self.line_points(ld)[1][1] == m.CAB[1]]
         self.assertTrue(desk)
         for ld in desk:
-            side = ld["sidefront"] if self.front(ld) == cab else ld["sideback"]
-            self.assertEqual(m.CONTROL_PANEL, self.sides[side]["texturebottom"])
+            key = "sidefront" if self.front(ld) == cab else "sideback"
+            self.assertEqual(m.CAB_FRONT, self.sides[ld[key]]["texturebottom"])
+            margin = (m.TILE - (m.CAB[2] - m.CAB[0])) // 2
+            self.assertEqual(margin, self.sides[ld[key]].get("offsetx", 0), "the backhead's middle")
+        walls = Counter()
+        for ld in self.lines:
+            if "sideback" not in ld or self.plan["prop_z10_loco"] not in self._pair(ld):
+                continue
+            for key in ("sidefront", "sideback"):
+                if self.sides[ld[key]]["sector"] in (cab, self.plan["z10_exit_niche"]):
+                    walls[self.sides[ld[key]]["texturebottom"]] += self.length(ld)
+        self.assertEqual({m.CAB_FRONT, m.CAB_SIDE}, set(walls))
+        back = [ld for ld in self.lines if "sideback" in ld and cab in self._pair(ld)
+                and self.line_points(ld)[0][0] == self.line_points(ld)[1][0] == m.CAB[0]]
+        self.assertEqual(1, len(back))
+        key = "sidefront" if self.front(back[0]) == cab else "sideback"
+        side = self.sides[back[0][key]]
+        self.assertEqual(m.CAB_SIDE, side["texturebottom"])
+        window = m.LUMP_WIDTH[m.CAB_SIDE]
+        margin = (m.CAB[3] - m.CAB[1] - window) // 2
+        self.assertEqual(window - margin, side.get("offsetx", 0), "one whole window in the middle")
         loco = self.sectors[self.plan["prop_z10_loco"]]
         self.assertEqual(loco["heightfloor"], self.sectors[cab]["heightceiling"], "the cab is closed")
         niche = self.sectors[self.plan["z10_exit_niche"]]

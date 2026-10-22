@@ -1,5 +1,10 @@
 """F5 — Fourth Reich rifleman, design sweep (front view, idle and fire).
 
+HISTORICAL since D109 (2026-10-22) for the rifleman's first sweep. The rifleman
+that ships is redrawn from Google Gemini images by tools/art/gemini_enemy.py
+(rifleman); this generator is kept so the approved F5 renders stay
+reproducible, but its output no longer matches assets/.
+
 Run with the project venv:
     .venv/Scripts/python.exe tools/art/gen_enemy.py              (Windows)
     .venv/bin/python tools/art/gen_enemy.py                      (macOS)

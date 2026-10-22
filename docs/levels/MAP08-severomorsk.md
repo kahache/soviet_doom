@@ -1,9 +1,10 @@
 # MAP08 — «Североморск» (Severomorsk), the Northern Fleet's submarine base
 
 Design document. Owner: `level-designer`. Status: **v1 BUILT 2026-10-22
-(§13): the whole map, walkable from start to exit, textured with approved
-lumps only (the naval pieces nobody has drawn wear the nearest approved lump,
-§7.2), populated, three secrets; not yet walked, no engine pass yet (D26).**
+(§13): the whole map, walkable from start to exit, populated, three secrets;
+v1.1 the same day (§15): it wears the "Naval" set (D113), with the nearest
+installed lump for each naval piece never drawn (§7.2); not yet walked, no
+engine pass yet (D26).**
 Episode 3, «The Portal» (D112), second map. Built MVP first (D60). Source:
 `src/maps/MAP08/map.py`; tests: `tests/test_map08_severomorsk.py` (the map),
 `tests/test_map08_route.py` (its automatic route) and the `Map08Posters`
@@ -49,8 +50,8 @@ the cargo.
 
 | Job | How the layout does it |
 |---|---|
-| Be a submarine base | an outer pier on the fjord with a crane, a container yard in front of the cliff, a **covered dock cut into the rock** (a basin 384 wide between two quays, a boom across its mouth, a crane gallery on its south wall), the **submarine** moored in it (hull, deck, fin with the red star, its bow run into a covered berth in the rock), workshops and a torpedo store, the fleet's barracks, a reactor hall deep in the rock, a rail tunnel to a loading bay with a goods train. |
-| Board the boat | gangways from both quays onto the deck (+32); the deck is the dry crossing between the quays; D3, the bulkhead hatch at the deck's east end, opens into the boat: a trunk, a narrow passage, the control room (the periscope's well in the middle, SDCTRL1 boards on both long walls), the watertight door (SW-A), the forward passage, the torpedo room (racks, the tubes on the bow wall). The boat's inside touches the dock only through D3 (tested): nothing of it shows outside. |
+| Be a submarine base | an outer pier on the fjord with a crane, a container yard in front of the cliff, a **covered dock cut into the rock** (a basin 384 wide between two quays, a boom across its mouth, a crane gallery on its south wall), the **submarine** moored in it (black rubber-tiled hull, deck with an escape hatch, fin with its tactical number «471», its bow run into a covered berth in the rock), workshops and a torpedo store, the fleet's barracks, a reactor hall deep in the rock, a rail tunnel to a loading bay with a goods train. |
+| Board the boat | gangways from both quays onto the deck (+32); the deck is the dry crossing between the quays; D3, the bulkhead hatch at the deck's east end, opens into the boat: a trunk, a narrow passage, the control room (the periscope's well in the middle, `SDNAVC1` panels on both long walls), the watertight door (SW-A), the forward passage, the torpedo room (racks, the tubes on the bow wall). The boat's inside touches the dock only through D3 (tested): nothing of it shows outside. |
 | Use the height | the crane's stair to its deck (+192), the dock's crane gallery (+192), the workshop's gantry (+128), the rock tunnel and the passage down to the reactor hall (−128), the stair up to the reactor's lid (+64): stairs only, no lift (MAP01 §4). |
 | Teach three keys | **all three locks are seen in round 0**: the red gate across the yard from the start (lit red at the end of the track), the blue and yellow doors across the basin from where D1 brings the player onto the south quay (tested). The keys come one per round: blue (the boat), yellow (behind blue), red (behind yellow). |
 | Answer D58 again | each key alone on a lit place (192, its lock's colour) on the route, seen from where its place is entered; the reactor's red lid glows from both ways into the hall (tested). |
@@ -163,7 +164,7 @@ this scale.
 | E | Locomotive's cab, the exit on its east wall | 4368…4480 | 304…416 | 32 | 160 | 128; niche **192** |
 
 Extent 4992 × 2816 units (MAP05: 4576 × 2304; tested within 1.5 × its
-area). 186 sectors, 736 lines. Every height is a multiple of 16; no step up
+area). 191 sectors, 765 lines. Every height is a multiple of 16; no step up
 is over 16 (tested).
 
 ## 5. Progression, keys, switches and the exit
@@ -216,8 +217,8 @@ five rounds:
 **Signposting** (D58): each key alone on a lit place (192) in its lock's
 colour (`lightcolor` blue `0x90A8FF`, yellow `0xFFD860`, red `0xFF6048`) and
 nothing else in the map wears those colours (tested). The yellow door wears
-`SDDOORY`, the red gate `SDDOORR`; the blue door `SDDOOR1` in blue light
-(no blue trim drawn, §7.2). Every switch is a real switch face, one-shot,
+`SDDOORY`, the red gate `SDDOORR`, the blue door `SDDOORB` (and blue
+light). Every switch is a real switch face, one-shot,
 in sight of the door it opens (tested). Every door and lock that faces the
 sky or the dock's 448 has a roofed porch or portal one tile high in front of
 it, so its leaf is one door high (tested).
@@ -262,38 +263,45 @@ Measured (hit points met, by beat; `test_the_intensity_rises`):
 
 | Zone | Walls | Floor | Ceiling |
 |---|---|---|---|
-| Fjord, cliffs, the dock's rock, the reactor hall | `SDDAM1` (stand-in for granite) | `SDWATR1` (animated) on the water | sky; the dock `SDCEIL2` |
-| Pier, yard | the cliff `SDDAM1`, fence and containers `SDRUST1`, crates `SDCRAT1`/`SDCRTOP1` | `SDFLR2`, track `SDTRAK1` | sky |
-| Crane | stair and deck `SDSTEL1`, tower and cab `SDRUST1`, S3's gate `SDGATE1` | `SDGRAT2` | sky; cab `SDCEIL1` |
-| Submarine | hull and fin `SDARMR2`, the fin's star `SDARMR1` (once on each face, exactly one tile over the deck) | deck `SDFLR4`, gangways `SDGRAT2` | |
-| Inside the boat | `SDSTEL1`; the control room's long walls `SDCTRL1` (the room is one tile high); the bow `SDTUBB1` (the tubes) | `SDFLR4` | `SDCEIL1` |
+| Fjord, cliffs, the dock, the reactor hall | `SDROCK1` (living rock), world-aligned; the quays' and the pier's faces in the water `SDDAM2` (tide mark, foot on the water) | `SDWATR1` (animated) on the water | sky; under the rock `SDROCK2` |
+| Pier, yard | the cliff `SDROCK1`; fence `SDRUST1`; containers `SDCONT1` (one container per tile, one tile high, whole); crates `SDCRAT1`/`SDCRTOP1` | `SDFLR2`, track `SDTRAK1`; the pier's west and south edges `SDPIER1` (kerb to the water) | sky |
+| Crane | stair and deck `SDSTEL1`; tower (all round) and cab `SDRUST1`, S3's gate `SDGATE1`; **`SDCRAN1`**, masked, on both faces of the deck's three open edges (a lattice railing one tile tall on the deck, blocking) | `SDGRAT2` | sky; cab `SDCEIL1` |
+| The dock | `SDROCK1`; the crane gallery's edge **`SDCRAN1`** on both faces (as the crane's); its stair and flank `SDSTEL1` | `SDFLR2`; the quays' edges over the basin `SDPIER1` (kerb to the water, broken at the steps and the gangways); gallery `SDGRAT2` | `SDROCK2` |
+| Submarine | hull, stern and fin `SDHULL1` (from the water its foot on the water, the flooding holes just above it; from the deck its top edge on the deck; along the boat on one grid); `SDHULL2`'s «471» once on each long face of the fin (one tile over the deck, whole); the berth's face either side of D3 `SDROCK1` | deck, stern, fin top `SDRUBR1`; one `SDRUBR2` escape hatch aft of the fin, on the hull's axis; gangways `SDGRAT2` | `SDROCK2` |
+| Inside the boat | `SDSTEL1`; the control room's long walls `SDNAVC1` (the room is one tile high, two whole panels each); the bow `SDTUBB1` (the tubes) | `SDFLR4` | `SDCEIL1` |
 | Barracks | hall and mess `SDCONC2`, corridor `SDCONC1`, the dormitory's north wall `SDLOCK1` (one locker high) | `SDFLR3` | `SDCEIL1` |
 | Workshops, torpedo store | `SDBRCK1`, `SDCONC1`; lathes and racks `SDSTEL1` | `SDFLR2`, gantry `SDGRAT2` | `SDCEIL1` |
-| Tunnels, passage | `SDTUNL1` | `SDFLR2`; the rail tunnel `SDBLST1` + `SDTRAK1` | `SDCEIL2` |
-| Loading bay | `SDBRCK3`; wagons `SDWAGN1`, `SDTANK1`; locomotive `SDARMR2`; banners `SDFLAG1`/`SDFLAG2` side by side; the cab's desk `SDCTRL1` | `SDBLST1`, track `SDTRAK1` | `SDCEIL2` |
-| Doors, switches | `SDDOOR1` (D1-D3, blue door), `SDDOORY`, `SDDOORR`; `SDSW1A`, `SDSW1B`, `SDSW1D` | | |
+| Tunnels, passage | `SDROCK1` (the rock tunnel, the passage, the rail tunnel, their closets and refuges) | `SDFLR2`; the rail tunnel `SDBLST1` + `SDTRAK1` | `SDROCK2` |
+| Loading bay | `SDBRCK3`; wagons `SDWAGN1`, `SDTANK1`; locomotive's body `SDARMR2`; banners `SDFLAG1`/`SDFLAG2` side by side | `SDBLST1`, track `SDTRAK1` | `SDCEIL2` |
+| The locomotive's cab | the backhead `SDCAB1` on the south wall, facing the door (its middle 96 columns: the cab is the tile's middle); `SDCAB2` on the rest (the back wall shows one whole window) | `SDFLR4` | `SDCEIL1` |
+| Doors, switches | `SDDOOR1` (D1, D2), **`SDBULK1`** (D3, the round watertight door), **`SDDOORB`** (blue door), `SDDOORY`, `SDDOORR`; `SDSW1A`, `SDSW1B`, `SDSW1D` | | |
 
-### 7.2 Pending: the "Naval" set (D112, the art-director's draft)
+### 7.2 The "Naval" set (D113), worn
 
-Nothing naval is drawn yet. `NAVAL_SET` in `map.py` maps each piece the
-design wants to the approved lump it wears meanwhile (tested: the stand-in
-is packed, the proposed name is not; the day it is, the test names the line
-to change):
+`NAVAL_SET` in `map.py` maps each piece the design asked for (D112) to the
+lump the map wears for it: itself where the art-director drew it, the
+nearest installed lump where nobody did (tested both ways, and that every
+lump it names is on the map; a pending name that turns up packed fails the
+test until it is worn).
 
-| Proposed | What | Worn meanwhile |
+| Proposed | What | Worn |
 |---|---|---|
-| `SDROCK1` | living Kola granite: the cliffs, the dock, the tunnels, the reactor hall | `SDDAM1` |
-| `SDHULL1` | the submarine's black rubber-tiled hull and fin | `SDARMR2` |
-| `SDHULL2` | the fin with the red star (a tactical number would be text: D27) | `SDARMR1` |
-| `SDBULK1` | the boat's inside: bulkheads, pipes, valves, gauges | `SDSTEL1` |
-| `SDHTCH1` | the oval watertight hatch (D3) | `SDDOOR1` |
-| `SDTORP1` | the torpedo tubes' doors on the bow wall | `SDTUBB1` |
-| `SDCONT1` | a shipping container's side | `SDRUST1` |
-| `SDLOCO1` | the diesel locomotive's body | `SDARMR2` |
-| `SDREAC1` | the reactor vessel's jacket | `SDSTEL1` |
-| `SDDOORB` | a blue-trimmed leaf for the blue door | `SDDOOR1` in blue light |
+| `SDROCK1` | the living rock | **itself**, with `SDROCK2` overhead |
+| `SDHULL1` | the black rubber-tiled hull and fin | **itself** |
+| `SDHULL2` | the fin's marking | **itself**: «471», the tactical number (the red star `SDARMR1` retired from the fin) |
+| `SDBULK1` | proposed as the boat's inside walls; drawn as a round watertight door | **itself on D3**; the inside keeps `SDSTEL1` (a door picture on every wall would read as doors) |
+| `SDHTCH1` | the watertight hatch (D3), never drawn | `SDBULK1` on D3; `SDRUBR2`'s flush hatch on the deck |
+| `SDTORP1` | the torpedo tubes' doors, never drawn | `SDTUBB1` kept: `SDBULK1` there would be two round doors that never open, next to D3, which does |
+| `SDCONT1` | a container's side | **itself** |
+| `SDLOCO1` | the locomotive's body, never drawn | `SDARMR2` kept outside; inside, the cab wears `SDCAB1` and `SDCAB2` (episode 2's steam cab, D113) |
+| `SDREAC1` | the reactor vessel's jacket, never drawn | `SDSTEL1` kept (`SDTURB1`, the dam's generator housing, was weighed: its flanges and plinth would land mid-wall on a 192 flank) |
+| `SDDOORB` | a blue leaf for the blue door | **itself** (episode 2's, D113) |
 
-Also pending with nothing standing in (`PENDING_TEXTURES`): `SDPERI1` (the
+Also worn from the set: `SDNAVC1` (the control room), `SDCRAN1` (the
+crane and the gallery), `SDPIER1` (the kerbs), `SDRUBR1`/`SDRUBR2` (the
+deck); and `SDDAM2` from MAP05 on the quays' faces in the water.
+
+Still pending with nothing standing in (`PENDING_TEXTURES`): `SDPERI1` (the
 periscope's tube, masked; the well is a solid steel column meanwhile) and
 the polar night sky with the aurora (MAPINFO's sky, the scaffolding's call).
 
@@ -379,6 +387,9 @@ yard's closets and the bay), 6 plates. Consumables scale down with skill.
 | Turned flats | `rotationfloor` 90 on every track | as MAP04 |
 | Secret | sector `special` 1024; panels flagged `secret` | as MAP01-MAP05 |
 | Animated water | floor `SDWATR1` (ANIMDEFS, 4 frames) | as MAP05 |
+| Masked lattice on two-sided lines | `texturemiddle` `SDCRAN1` on both sides, `dontpegbottom` (its foot on the higher floor), `blocking` | as MAP05's insulators (`SDINSL1`); this lump NOT VERIFIED in the engine: V12 |
+| Kerbs turned to the water | `rotationfloor` 180 (the south quay's edge) and 270 (the pier's west edge) | 180 is the same whichever way the engine turns; **270's direction NOT VERIFIED**: V11 |
+| The escape hatch centred | `ypanningfloor` 32 on its 64 tile | the same either sign; first use of the field in the project, NOT VERIFIED: V11 |
 
 Tag plan: **1** D1 · **2** D2 · **3** D3 · **4** the blue door · **5** the
 yellow door and the tunnel's two closets · **6** the red gate and the yard's
@@ -396,7 +407,8 @@ estimate: 390 seconds.
 | Version | Content | Done when |
 |---|---|---|
 | **v1 — whole, textured, populated** ✅ **BUILT 2026-10-22** (§13) | §4-§10 | the CEO walks it on skill 3 and reaches MAP09 |
-| v2 — light and detail | the "Naval" set swapped in (`NAVAL_SET`, one line each); light: floodlights over the yard, the dock's lamps, the reactor's glow, a flicker in the tunnel; the periscope's tube; the aurora sky; a crane jib | a first-time player finds the three keys and the exit without being told |
+| v1.1 — the "Naval" set ✅ **2026-10-22** (§15) | the set worn (`NAVAL_SET`), the crane lattice, the kerbs, the deck's hatch | V11 and V12 pass in the engine |
+| v2 — light and detail | light: floodlights over the yard, the dock's lamps, the reactor's glow, a flicker in the tunnel; the periscope's tube (`SDPERI1`); the aurora sky | a first-time player finds the three keys and the exit without being told |
 | v3 — balance | after the playtests (D60) | the map is played through on skill 3 |
 
 ## 13. v1 build record (2026-10-22)
@@ -427,12 +439,14 @@ episode-3 agents).
 | V2 | The fjord reads as water to a far shore under the night sky (its sky ceiling is 48, the pier's 768): no hall of mirrors, no wall where the water should be; the dock's mouth shows the rock face above it from the pier | stand on the pier, look west and north |
 | V3 | The yellow door opens the tunnel's two closets; the red gate the yard's two | open each lock, look back |
 | V4 | The basin's water does not hurt; the steps lead out; the boom stops the player | jump in, swim west |
-| V5 | The boat's inside shows nothing of the dock and vice versa; the cab is closed by the locomotive's body; the fin's star is whole on both faces | board the boat; look at the fin from the deck and the quays |
+| V5 | The boat's inside shows nothing of the dock and vice versa; the cab is closed by the locomotive's body; the fin's «471» is whole on both faces | board the boat; look at the fin from the deck and the quays |
 | V6 | The locks' leaves are one door high from both sides (porches, portals), the closets in the yard's cliff are cliff until they open | walk the yard and the dock |
 | V7 | `lightcolor` blue, yellow, red on the locks and the keys' places | as MAP02's L4 |
 | V8 | The three secrets count (3 of 3) | push each panel, walk in |
 | V9 | The posters (7.3) whole and readable | the barracks, the dock, the mess |
 | V10 | The Doughboys float in the yard, over the deck and in the bay without sticking | watch them |
+| V11 | Every `SDPIER1` kerb lies on the water's side (the pier's west edge by the launch, its south edge, both quays' edges over the basin); the deck's `SDRUBR2` hatch is whole, on the hull's axis | walk the pier and the quays; if the pier's west kerb lies on the land side, `KERB_ROTATION["west"]` is 90 (one line) |
+| V12 | The `SDCRAN1` lattice stands one tile tall on the crane's deck and on the gallery, see-through, from both sides, and stops the player; the hull reads as a hull from the water (flooding holes over the waterline) and from the deck; the rock reads as rock with no seams; the tide mark on the quays | stand on the quays and the pier; climb the crane and the gallery |
 
 ### 13.4 For the CEO's walk
 
@@ -445,7 +459,9 @@ episode-3 agents).
 
 ### 13.5 What other roles hold
 
-- `art-director`: the "Naval" set (§7.2), first the hull and the rock.
+- `art-director`: the "Naval" set is in (D113, §7.2, §15); still wanted:
+  `SDPERI1` (the periscope) and, if the CEO wants them, the never-drawn
+  `SDTORP1`, `SDLOCO1`, `SDREAC1`.
 - Scaffolding (D112): MAPINFO and LANGUAGE for MAP08 (§11).
 - Shared tests not this role's: `tests/test_doughboy_sprites.py` pins the
   set of maps that place a Doughboy; MAP08 places them (§9).
@@ -454,5 +470,50 @@ episode-3 agents).
 ## 14. Open points for the CEO
 
 1. **Walk v1** (§13.4).
-2. **The blue door's look**: `SDDOOR1` in blue light until a blue trim exists.
+2. **The blue door's look**: settled, `SDDOORB` (v1.1).
 3. **The Hand Katyusha in S3** (the crane's cab), as MAP05 kept it in a secret.
+
+## 15. v1.1 record: the "Naval" set worn (2026-10-22, D113)
+
+Textures only: no geometry the route, the keys, the doors, the secrets or
+the posters depend on moved. What changed, all in `map.py` and tested in
+`tests/test_map08_severomorsk.py`:
+
+- **The rock** (`SDROCK1`, `SDROCK2` overhead) on everything cut into the
+  granite: the cliffs and the fjord's far shore, the dock, the three tunnels
+  and the passage, their closets and refuges, the reactor hall. World-aligned
+  (`align_to_world`, MAP05's helper): every face on one 64 × 128 grid from
+  the ground, so the seams of split walls and the S1 panel vanish into it.
+- **The waterline** (`SDDAM2`) on every face that rises out of the basin or
+  the fjord onto a quay, the pier or a step (`wet_the_banks`, MAP05's), its
+  foot on the water.
+- **The boat**: `SDHULL1` aligned to the water from the basin (the flooding
+  holes just above it) and to the deck from the deck, the gangways and the
+  stern; `SDHULL2` «471» once on each face of the fin; `SDRUBR1` on the
+  deck, stern, fin top and the hatch's porch; one `SDRUBR2` escape hatch
+  (a flush 64 × 64 sector, `z4_escape_hatch`) aft of the fin; the berth's
+  face either side of D3 is rock, no longer a wall of plate to the roof;
+  `SDBULK1` on D3; `SDNAVC1` on the control room's long walls.
+- **The quays**: `SDPIER1` kerb strips, flush, one tile deep, on the pier's
+  west and south edges (`z1_kerb_w`, `z1_kerb_s`) and on both quays' edges
+  over the basin (`z3_kerb_s`, `z3_kerb_n`), broken where the steps go down
+  and the gangways land so the quays still touch both. One trooper on the
+  south quay's edge now stands in `z3_kerb_s` (the same place, the same
+  beat and faction: the zone's prefix is unchanged).
+- **The yard**: `SDCONT1` on the five containers.
+- **The cranes**: `SDCRAN1`, masked, on both faces of the crane's deck edges
+  and the dock's crane gallery, blocking (a railing; the stairs remain the
+  way down, tested); the crane's tower wears `SDRUST1` all round (it wore
+  the pier's wall before).
+- **The cab**: `SDCAB1` (its middle) on the south wall, `SDCAB2` on the rest;
+  the old `SDCTRL1` desk retired. The cab's lintel and step face wear the
+  body's `SDARMR2`.
+- **Doors**: the blue door `SDDOORB`.
+
+Retired from MAP08: `SDDAM1`, `SDTUNL1`, `SDARMR1`, `SDCTRL1`.
+191 sectors (+5: four kerb strips and the hatch), 765 lines.
+
+Verification actually run: `python -m unittest tests.test_map08_severomorsk
+tests.test_map08_route tests.test_posters` OK; `python tools/verify.py fast`
+(see the PM's report). **No engine run** (D26): V11 and V12 (§13.3) are the
+new checks.

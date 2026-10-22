@@ -11,9 +11,10 @@ by the goods train standing in the rail tunnel to the east (MAP09).
 Built MVP first (D60): complete and walkable from start to exit, three keys
 on the route in plain sight on lit places in their lock's colour (MAP02's
 lesson, D58), the population and the ammunition of G3-8's budget, three
-secrets. Balance and light are later passes. Approved lumps only; the naval
-pieces nobody has drawn yet wear the nearest approved lump (`NAVAL_SET`,
-`PENDING_TEXTURES`).
+secrets. Balance and light are later passes. Approved lumps only: since
+D113 the "Naval" set itself (the living rock, the hull, the containers, the
+crane lattice, the quays' kerbs), and the nearest installed lump for each
+naval piece never drawn (`NAVAL_SET`, `PENDING_TEXTURES`).
 
 The route, in one line: the outer pier (the RED GATE of the rail tunnel seen
 across the container yard, shut) -> the yard -> D1 into the covered dock cut
@@ -67,25 +68,34 @@ from sdbuild.udmf import (
 MAP_NAME = "MAP08"
 
 # --- The approved lumps (docs/art/TEXTURE-INDEX.md) ---------------------------
-# No "Naval" set exists yet (the art-director is drafting one, D112): every
-# lump below is approved and packed; NAVAL_SET says which stands in for which
-# naval piece, PENDING_TEXTURES what the map still waits for.
-ROCK = "SDDAM1"          # mass concrete: stands in for the living Kola granite (SDROCK1, pending)
-CONCRETE = "SDCONC1"     # prefab panels: the barracks' corridor, the torpedo store, the tunnel's closets
+# The "Naval" set (D113, gen_naval.py) is installed and worn: NAVAL_SET says
+# which lump the map wears for each naval piece the design asked for (itself
+# where it was drawn, the nearest installed lump where it never was),
+# PENDING_TEXTURES what the map still waits for.
+ROCK = "SDROCK1"         # 64x128 the living Kola gneiss: the cliffs, the dock, the tunnels, the reactor hall
+ROCK_CEIL = "SDROCK2"    # the same rock as a ceiling: over the dock, the tunnels, the reactor hall
+DAM_WET = "SDDAM2"       # 64x128 concrete at the waterline: the quays' faces in the water
+CONCRETE = "SDCONC1"     # prefab panels: the barracks' corridor, the torpedo store, the shelter S1
 CONCRETE_STRIPE = "SDCONC2"  # the red-striped prefab: the barracks' hall and mess
 STEEL = "SDSTEL1"        # green riveted plate: the boat's inside, racks, lathes, the reactor's jacket
-TUNNEL = "SDTUNL1"       # board-cast concrete with cable runs: the rock tunnels
 BRICK = "SDBRCK1"        # works brick: the workshops
 BRICK_RAIL = "SDBRCK3"   # roundhouse brick: the loading bay
-RUST = "SDRUST1"         # corrugated sheet: the containers, the yard's fence, the crane
-ARMOUR = "SDARMR2"       # 64x128 armour plate: the submarine's hull and fin, the launch, the locomotive
-ARMOUR_STAR = "SDARMR1"  # 128x128 the plate with the red star: once on each face of the fin
+RUST = "SDRUST1"         # corrugated sheet: the yard's fence, the crane's tower and cab
+CONTAINER_SIDE = "SDCONT1"  # 128x128 a container's side («ММФ»): one container per tile, one tile high
+HULL = "SDHULL1"         # 128x128 the submarine's black anechoic tiles: hull, stern and fin
+HULL_NUMBER = "SDHULL2"  # 128x128 the same hull with «471»: once on each long face of the fin
+ARMOUR = "SDARMR2"       # 64x128 armour plate: the patrol launch, the locomotive's body
 WAGON = "SDWAGN1"        # 128x128 covered goods wagon side
 TANK = "SDTANK1"         # 128x128 tank wagon side
 LOCKER = "SDLOCK1"       # 64x128 barracks lockers: the dormitory's north wall (and S2's panel)
-CONTROL_PANEL = "SDCTRL1"  # 128x128 control board: the boat's control room, the locomotive's desk
-TUBBING = "SDTUBB1"      # 128x128 cast-iron rings: the bow's torpedo tubes (SDTORP1, pending)
-DOOR = "SDDOOR1"         # D1, D2, D3 and the blue door (no blue trim drawn: SDDOORB, pending)
+NAVAL_PANEL = "SDNAVC1"  # 128x128 the boat's control-room panel: its two long walls
+CAB_FRONT = "SDCAB1"     # 128x128 the locomotive's cab, the backhead and gauges: the cab's south wall
+CAB_SIDE = "SDCAB2"      # 64x128 the cab's side from inside, a window per tile: its other walls
+TUBBING = "SDTUBB1"      # 128x128 cast-iron segments: the bow's torpedo tubes (SDTORP1 never drawn)
+CRANE_LATTICE = "SDCRAN1"  # 64x128 MASKED (RGBA, hard alpha): a crane's lattice, two-sided lines
+DOOR = "SDDOOR1"         # D1 and D2
+DOOR_BLUE = "SDDOORB"    # the blue door
+BULKHEAD_DOOR = "SDBULK1"  # 128x128 the round watertight door: D3, the bulkhead hatch into the boat
 DOOR_YELLOW = "SDDOORY"
 DOOR_RED = "SDDOORR"
 ROAD_GATE = "SDGATE1"    # corrugated gate: S3, the crane's cab
@@ -101,7 +111,10 @@ MARX_ENGELS: str | None = None   # -> "SDPOSTR4"
 FLOOR_LANE = "SDFLR1"
 FLOOR_CONCRETE = "SDFLR2"
 FLOOR_TILE = "SDFLR3"
-FLOOR_PLATE = "SDFLR4"   # chequer plate: the boat's deck and inside, pads, the lid
+FLOOR_PLATE = "SDFLR4"   # chequer plate: the boat's inside, pads, the lid
+DECK_RUBBER = "SDRUBR1"  # the submarine's deck from above: anechoic rubber tiles
+DECK_HATCH = "SDRUBR2"   # the same deck with a flush round escape hatch: one tile, aft of the fin
+PIER_EDGE = "SDPIER1"    # concrete quay edge: a bollard, the kerb and the steel angle at the tile's bottom
 CEIL_PANEL = "SDCEIL1"
 CEIL_CONCRETE = "SDCEIL2"
 CRATE_TOP = "SDCRTOP1"
@@ -119,7 +132,23 @@ SWITCH_FACES = (SW_A_FACE, SW_B_FACE, EXIT_FACE)
 SWITCH_WIDTH = 64
 SWITCH_HEIGHT = 128
 TILE = 128
-DOOR_LEAVES = (DOOR, DOOR_YELLOW, DOOR_RED)
+WALL_TILE = 128          # the height every wall lump here repeats at
+DOOR_LEAVES = (DOOR, DOOR_BLUE, DOOR_YELLOW, DOOR_RED, BULKHEAD_DOOR)
+# The widths `align_to_world` lines up along a wall: a wall split by its
+# neighbours' corners shows no seam. HULL_NUMBER, the doors and the posters
+# are single pieces on lines exactly their width and keep offset 0.
+LUMP_WIDTH = {ROCK: 64, DAM_WET: 64, HULL: 128, CAB_FRONT: 128, CAB_SIDE: 64, CRANE_LATTICE: 64}
+FLAT_TILE = 64
+# SDPIER1's kerb is at the bottom of the image, i.e. the SOUTH edge of each
+# tile (Doom draws a flat with the image's top to the north). Each kerb strip
+# turns it to the water: {which side the water is on: rotationfloor}. 0 and
+# 180 hold whatever way the engine turns; 270 for the west edge assumes
+# GZDoom turns a flat counter-clockwise (NOT VERIFIED: engine check V11; if
+# the kerb lies on the land side it is 90).
+KERB_ROTATION = {"south": 0.0, "north": 180.0, "west": 270.0}
+# The escape hatch's tile centred on the hull's axis (y 1984, a tile edge):
+# half a tile of panning, the same whichever way the engine pans.
+HATCH_PANNING = FLAT_TILE // 2
 
 # --- Specials and keys -------------------------------------------------------
 # Door_LockedRaise (tag, speed, delay, lock, lighttag): 13, VERIFIED in engine
@@ -246,6 +275,15 @@ CRANE_DECK = (544, 1440, 832, 1568)
 CRANE_TOWER = (688, 1456, 832, 1568)            # solid: the crane's tower, up to the sky
 S3_PANEL = (688, 1472, 704, 1552)
 S3_CAB = (704, 1472, 816, 1552)
+# The crane's tower, seen from the pier and the deck: corrugated sheet, not
+# the pier's rock (S3's panel on its west face keeps its gate).
+CRANE_TOWER_FACES = (("v", 832, 1456, 1568), ("h", 1568, 688, 832), ("h", 1456, 688, 832),
+                     ("v", 688, 1456, 1472), ("v", 688, 1552, 1568))
+# The pier's kerbs over the fjord, flush with the pier: SDPIER1 with its kerb
+# to the water ({zone: (rect, where the water is)}). The west one is where the
+# launch is moored; the corner tile is the west strip's.
+PIER_KERBS = {"z1_kerb_w": ((512, 256, 576, 1088), "west"),
+              "z1_kerb_s": ((576, 256, 1024, 320), "south")}
 # The container yard.
 YARD = (1024, 256, 2624, 1472)
 YARD_FENCE = (1024, 224, 2624, 256)
@@ -282,6 +320,11 @@ SOUTH_QUAY = (1280, 1600, 3200, 1792)
 BASIN_RECT = (1248, 1792, 3200, 2176)
 NORTH_QUAY = (1280, 2176, 3200, 2368)
 BASIN_STEPS_X = ((1344, 1472), (2944, 3072))
+# The quays' edges over the basin, one tile deep, flush: SDPIER1 with its
+# kerb to the water, broken where the steps go down and the gangways land
+# (and short of the yellow door's corner), so the quays keep touching both.
+KERB_X = ((1280, 1344), (1472, 1760), (1856, 2944))
+QUAY_KERBS = {"z3_kerb_s": ((1728, 1792), "north"), "z3_kerb_n": ((2176, 2240), "south")}
 GALLERY_STAIR_X0 = 2208
 GALLERY_STAIR_STEPS = CRANE // STEP - 1          # 11
 GALLERY_Y = (1600, 1696)
@@ -298,8 +341,12 @@ HULL_Y = (1888, 2080)
 DECK_RECT = (1536, 1888, 3200, 2080)
 STERN_RECT = (1408, 1952, 1536, 2016)
 FIN_RECT = (2304, 1936, 2496, 2032)
-FIN_STARS = (("h", 1936, 2336, 2464), ("h", 2032, 2336, 2464))
+FIN_NUMBERS = (("h", 1936, 2336, 2464), ("h", 2032, 2336, 2464))   # «471», once on each long face
 GANGWAYS = {"z4_gangway_s": (1760, 1792, 1856, 1888), "z4_gangway_n": (1760, 2080, 1856, 2176)}
+ESCAPE_HATCH = (2176, 1952, 2240, 2016)          # SDRUBR2 on the hull's axis, aft of the fin
+# Where the deck meets the rock of the covered berth either side of D3: the
+# berth's rock face, not a wall of hull up to the roof.
+BERTH_FACES = (("v", 3200, 1888, 1920), ("v", 3200, 2048, 2080))
 HATCH_PORCH = (3168, 1920, 3200, 2048)
 D3_DOOR = (3200, 1920, 3232, 2048)
 TRUNK = (3232, 1920, 3328, 2048)
@@ -349,6 +396,16 @@ CAB = (4368, 304, 4464, 400)
 CAB_DOOR = (4384, 400, 4448, 416)
 CAB_STEP = (4384, 416, 4448, 448)
 EXIT_NICHE = (4464, 320, 4480, 384)
+# The cab's walls against the locomotive's body, all but the south one
+# (CAB_FRONT): its back, the stubs beside its door and the exit's niche.
+CAB_SIDES = (("v", 4368, 304, 400), ("h", 400, 4368, 4384), ("h", 400, 4448, 4464),
+             ("v", 4384, 400, 416), ("v", 4448, 400, 416), ("v", 4464, 304, 320), ("v", 4464, 384, 400),
+             ("h", 320, 4464, 4480), ("h", 384, 4464, 4480))
+# The crane lattice (SDCRAN1), masked, on both faces of two-sided lines, its
+# foot on the high side's floor, one tile tall; blocking, a railing: the
+# outer crane's deck on the pier and the dock's crane gallery (design 7.1).
+LATTICES = (("h", 1440, 640, 832), ("v", 544, 1440, 1568), ("h", 1568, 544, 688),
+            ("h", 1696, 2560, 3200))
 CARGO_BAY = ((3840, 512, 3968, 576), (4096, 576, 4224, 640), (4032, 128, 4160, 192), (3776, 160, 3840, 224))
 BAY_FLAGS = {FLAG_REICH: (3968, 768, 4096, 784), FLAG_LEGION: (4096, 768, 4224, 784)}
 # The posters (design section 7.3).
@@ -385,6 +442,12 @@ LOCK_PORTALS = {LOCK_BLUE_CARD: "z3_blue_portal", LOCK_YELLOW_CARD: "z3_yellow_p
                 LOCK_RED_CARD: "z2_red_portal"}
 
 PROP_PREFIX = "prop_"
+# Cut into the rock (D112's brief): every sector of these, roofed in concrete
+# by default, wears the living rock overhead (SDROCK2). Portals, door
+# sectors and the boat's inside keep their own ceilings.
+ROCK_ROOFED = ("z2_d1_porch", "z2_d2_porch", "closet_z2", "s1_niche", "s1_panel", "z3_", "z4_deck",
+               "z4_stern", "z4_escape_hatch", "z4_gangway", "z4_hatch_porch", "prop_z4_fin", "prop_z3_boom", "z7_", "closet_z7",
+               "z8_", "z9_", "z11_")
 SECRET_ZONES = ("s1_store", "s2_store", "s3_cab")
 CLOSET_PREFIX = "closet_"
 
@@ -465,7 +528,7 @@ MONSTERS = (
     ("z6_dorm", "stormtrooper", 3136, 1280, 270, 3),
     ("z6_corridor", "trooper", 3520, 960, 180, 4),
     # The covered dock: the Legion guards its prize, the boat.
-    ("z3_south_quay", "trooper", 2432, 1728, 90, 2),
+    ("z3_kerb_s", "trooper", 2432, 1728, 90, 2),
     ("z3_south_quay", "trooper", 2944, 1760, 180, 2),
     ("z3_north_quay", "trooper", 2048, 2272, 270, 2),
     ("z3_north_quay", "stormtrooper", 2816, 2240, 270, 2),
@@ -677,11 +740,106 @@ def secret_panel_style(tag: int, panel_sector: int, texture: str) -> LineStyle:
 
 
 BLOCKING = LineStyle(flags=("blocking",))
+# A lattice railing: impassable, lower-unpegged so the masked middle texture
+# stands on the higher floor (MAP05's BOARD_EDGE).
+LATTICE_EDGE = LineStyle(flags=("blocking",), peg_bottom=True)
+
+
+def drawn_parts(tm: TextMap, ld, side: int, other: int | None) -> list[tuple[str, int]]:
+    """The parts of sidedef `side` the engine draws, each with the height
+    Doom pegs its texture to (MAP05's and MAP07's helper, repeated so each
+    map stays one file): a one-sided wall to its floor (lower-unpegged) or
+    ceiling; a lower texture to the higher floor (or, lower-unpegged, to its
+    own ceiling); an upper texture to the lower ceiling (or, upper-unpegged,
+    to its own). Between two skies, nothing."""
+    flags = set(ld.flags)
+    s = tm.sectors[tm.sidedefs[side].sector]
+    if other is None:
+        return [("texturemiddle", s.heightfloor if "dontpegbottom" in flags else s.heightceiling)]
+    o = tm.sectors[tm.sidedefs[other].sector]
+    parts = []
+    if o.heightfloor > s.heightfloor:
+        parts.append(("texturebottom", s.heightceiling if "dontpegbottom" in flags else o.heightfloor))
+    both_sky = s.textureceiling == SKY and o.textureceiling == SKY
+    if o.heightceiling < s.heightceiling and not both_sky:
+        parts.append(("texturetop", s.heightceiling if "dontpegtop" in flags else o.heightceiling))
+    return parts
+
+
+def world_column(tm: TextMap, ld, side: int) -> int:
+    """The offset that starts this side's texture where the map's grid would
+    have it. Doom runs a front side from v1 to v2, a back side from v2 to v1."""
+    a, b = tm.vertices[ld.v1], tm.vertices[ld.v2]
+    if side == ld.sideback:
+        a, b = b, a
+    if a.y == b.y:
+        return int(a.x) if b.x > a.x else -int(a.x)
+    return int(a.y) if b.y > a.y else -int(a.y)
+
+
+def align_to_world(tm: TextMap, bases: dict[str, int], sectors: set[int] | None = None) -> None:
+    """Peg every drawn face of the lumps in `bases` to one grid (MAP05's
+    helper): the texture's foot on the height `bases` names and every
+    WALL_TILE above and below it (`offsety`, positive raises the texture),
+    and along the wall each column where the map's origin would put it
+    (`offsetx`, for the lumps in LUMP_WIDTH). `sectors` limits it to the
+    faces seen from those sectors."""
+    for ld in tm.linedefs:
+        for side, other in ((ld.sidefront, ld.sideback), (ld.sideback, ld.sidefront)):
+            if side is None or (sectors is not None and tm.sidedefs[side].sector not in sectors):
+                continue
+            sd = tm.sidedefs[side]
+            for key, ref in drawn_parts(tm, ld, side, other):
+                texture = getattr(sd, key)
+                base = bases.get(texture)
+                if base is not None:
+                    sd.offsety = (base - ref) % WALL_TILE
+                    if texture in LUMP_WIDTH:
+                        sd.offsetx = world_column(tm, ld, side) % LUMP_WIDTH[texture]
+                    break
+
+
+def wet_the_banks(tm: TextMap, water: set[int], banks: set[int]) -> None:
+    """SDDAM2 on every face that rises out of the water onto a quay, the
+    pier or a step: the lower texture of the side standing in the water
+    (MAP05's and MAP07's helper)."""
+    for ld in tm.linedefs:
+        if ld.sideback is None:
+            continue
+        for low, high in ((ld.sidefront, ld.sideback), (ld.sideback, ld.sidefront)):
+            ls, hs = tm.sidedefs[low].sector, tm.sidedefs[high].sector
+            if ls in water and hs in banks and tm.sectors[hs].heightfloor > tm.sectors[ls].heightfloor:
+                tm.sidedefs[low].texturebottom = DAM_WET
+
+
+def hang_both(tm: TextMap, axis: str, coord: int, lo: int, hi: int, texture: str) -> int:
+    """Hang a masked middle texture on BOTH faces of every two-sided line
+    lying on the segment, each column where the map's grid puts it. GridMap
+    dresses only the upper and lower parts of a two-sided line, so this is
+    done on the built map. Returns how many lines it dressed."""
+    dressed = 0
+    for ld in tm.linedefs:
+        if ld.sideback is None:
+            continue
+        a, b = tm.vertices[ld.v1], tm.vertices[ld.v2]
+        if axis == "h":
+            on = a.y == b.y == coord and lo <= min(a.x, b.x) and max(a.x, b.x) <= hi
+        else:
+            on = a.x == b.x == coord and lo <= min(a.y, b.y) and max(a.y, b.y) <= hi
+        if not on:
+            continue
+        for side in (ld.sidefront, ld.sideback):
+            tm.sidedefs[side].texturemiddle = texture
+            tm.sidedefs[side].offsetx = world_column(tm, ld, side) % LUMP_WIDTH[texture]
+        dressed += 1
+    if not dressed:
+        raise ValueError(f"no two-sided line on {axis} {coord} {lo}..{hi}")
+    return dressed
 
 
 def build_plan() -> tuple[TextMap, dict[str, int]]:
     """Build the map; return it with {zone name: sector index}."""
-    tm = TextMap(comment=f"{MAP_NAME} v1 generated by src/maps/{MAP_NAME}/map.py - do not edit by hand")
+    tm = TextMap(comment=f"{MAP_NAME} v1.1 generated by src/maps/{MAP_NAME}/map.py - do not edit by hand")
     g = GridMap(tm, wall=ROCK)
     plan: dict[str, int] = {}
 
@@ -749,6 +907,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # The outer pier and its crane
     # ======================================================================
     zone("z1_pier", GROUND, SKY_CEIL, [PIER], light=LIGHT_OUTDOORS, ceiling=SKY, wall=ROCK)
+    for name, (rect, water) in PIER_KERBS.items():
+        like("z1_pier", name, [rect], flat=PIER_EDGE, extra={"rotationfloor": KERB_ROTATION[water]})
     sx1, sx2 = CRANE_STAIR_X
     stair("z1_crane_stair",
           [((sx1, CRANE_STAIR_Y0 + STEP_RUN * (n - 1), sx2, CRANE_STAIR_Y0 + STEP_RUN * n), STEP * n)
@@ -768,7 +928,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     rails("z2_yard", "z2_rails", YARD_TRACK)
     prop("z2_fence", FENCE, FENCE_SKY, YARD_FENCE, light=LIGHT_OUTDOORS, wall=RUST)
     for n, rect in enumerate(CONTAINERS, start=1):
-        prop(f"z2_container_{n}", CONTAINER, SKY_CEIL, rect, light=LIGHT_OUTDOORS, wall=RUST)
+        prop(f"z2_container_{n}", CONTAINER, SKY_CEIL, rect, light=LIGHT_OUTDOORS, wall=CONTAINER_SIDE)
     for n, rect in enumerate(CARGO_YARD, start=1):
         prop(f"z2_cargo_{n}", CARGO, SKY_CEIL, rect, light=LIGHT_OUTDOORS, wall=CRATE, flat=CRATE_TOP)
     zone("z2_d1_porch", GROUND, PORCH, [D1_PORCH_YARD], light=LIGHT_OUTDOORS, wall=ROCK)
@@ -820,13 +980,13 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     py1, py2 = PASSAGE_Y
     zone("z11_passage_w", GROUND, GROUND + TUNNEL_HEIGHT, [(PASSAGE_W[0], py1, PASSAGE_W[1], py2)],
-         light=LIGHT_TUNNEL, wall=TUNNEL)
+         light=LIGHT_TUNNEL, wall=ROCK)
     stair("z11_passage_step",
           [((PASSAGE_W[1] + STEP_RUN * (n - 1), py1, PASSAGE_W[1] + STEP_RUN * n, py2), GROUND - STEP * n)
            for n in range(1, PASSAGE_STEPS + 1)],
-          ceil_above=TUNNEL_HEIGHT, light=LIGHT_TUNNEL, flat=FLOOR_CONCRETE, wall=TUNNEL)
+          ceil_above=TUNNEL_HEIGHT, light=LIGHT_TUNNEL, flat=FLOOR_CONCRETE, wall=ROCK)
     zone("z11_passage_e", REACTOR, REACTOR + TUNNEL_HEIGHT, [(PASSAGE_E[0], py1, PASSAGE_E[1], py2)],
-         light=LIGHT_TUNNEL, wall=TUNNEL)
+         light=LIGHT_TUNNEL, wall=ROCK)
     zone("z11_swb_niche", GROUND, GROUND + SWITCH_HEIGHT, [SWB_NICHE], light=LIGHT_TUNNEL, wall=STEEL)
 
     # ======================================================================
@@ -836,6 +996,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     zone("z3_south_quay", GROUND, PEN_ROOF, [SOUTH_QUAY], light=LIGHT_PEN, ceiling=CEIL_CONCRETE, wall=ROCK)
     zone("z3_basin", BASIN, PEN_ROOF, [BASIN_RECT], light=LIGHT_PEN, flat=WATER, wall=ROCK)
     zone("z3_north_quay", GROUND, PEN_ROOF, [NORTH_QUAY], light=LIGHT_PEN, ceiling=CEIL_CONCRETE, wall=ROCK)
+    for name, ((ky1, ky2), water) in QUAY_KERBS.items():
+        quay = "z3_south_quay" if water == "north" else "z3_north_quay"
+        like(quay, name, [(kx1, ky1, kx2, ky2) for kx1, kx2 in KERB_X], flat=PIER_EDGE,
+             extra={"rotationfloor": KERB_ROTATION[water]})
     for k, (bx1, bx2) in enumerate(BASIN_STEPS_X, start=1):
         for n in range(1, 4):      # three steps up out of the water on each quay
             f = BASIN + STEP * n
@@ -866,10 +1030,12 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     for name, rect in GANGWAYS.items():
         zone(name, GANGWAY, PEN_ROOF, [rect], light=LIGHT_PEN, flat=GRATING, wall=STEEL)
-    zone("z4_deck", DECK, PEN_ROOF, [DECK_RECT], light=LIGHT_PEN, flat=FLOOR_PLATE, wall=ARMOUR)
-    zone("z4_stern", STERN, PEN_ROOF, [STERN_RECT], light=LIGHT_PEN, flat=FLOOR_PLATE, wall=ARMOUR)
-    prop("z4_fin", FIN, PEN_ROOF, FIN_RECT, light=LIGHT_PEN, wall=ARMOUR, ceiling=CEIL_CONCRETE)
-    zone("z4_hatch_porch", DECK, INTERIOR, [HATCH_PORCH], light=LIGHT_PEN, flat=FLOOR_PLATE, wall=STEEL)
+    zone("z4_deck", DECK, PEN_ROOF, [DECK_RECT], light=LIGHT_PEN, flat=DECK_RUBBER, wall=HULL)
+    like("z4_deck", "z4_escape_hatch", [ESCAPE_HATCH], flat=DECK_HATCH,
+         extra={"ypanningfloor": float(HATCH_PANNING)})
+    zone("z4_stern", STERN, PEN_ROOF, [STERN_RECT], light=LIGHT_PEN, flat=DECK_RUBBER, wall=HULL)
+    prop("z4_fin", FIN, PEN_ROOF, FIN_RECT, light=LIGHT_PEN, wall=HULL, flat=DECK_RUBBER, ceiling=CEIL_CONCRETE)
+    zone("z4_hatch_porch", DECK, INTERIOR, [HATCH_PORCH], light=LIGHT_PEN, flat=DECK_RUBBER, wall=STEEL)
     d3 = door("d3_hatch", DECK, TAG_D3_HATCH, D3_DOOR, light=LIGHT_SUB)
     inside = dict(light=LIGHT_SUB, flat=FLOOR_PLATE, ceiling=CEIL_PANEL, wall=STEEL)
     zone("z4_trunk", DECK, INTERIOR, [TRUNK], **inside)
@@ -914,15 +1080,15 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     ty1, ty2 = TUNNEL_Y
     zone("z7_tunnel_w", GROUND, GROUND + TUNNEL_HEIGHT, [(TUNNEL_W[0], ty1, TUNNEL_W[1], ty2)],
-         light=LIGHT_TUNNEL, wall=TUNNEL)
+         light=LIGHT_TUNNEL, wall=ROCK)
     stair("z7_step",
           [((TUNNEL_W[1] + STEP_RUN * (n - 1), ty1, TUNNEL_W[1] + STEP_RUN * n, ty2), GROUND - STEP * n)
            for n in range(1, TUNNEL_STEPS + 1)],
-          ceil_above=TUNNEL_HEIGHT, light=LIGHT_TUNNEL, flat=FLOOR_CONCRETE, wall=TUNNEL)
+          ceil_above=TUNNEL_HEIGHT, light=LIGHT_TUNNEL, flat=FLOOR_CONCRETE, wall=ROCK)
     zone("z7_tunnel_e", REACTOR, REACTOR + TUNNEL_HEIGHT, [(TUNNEL_E[0], ty1, TUNNEL_E[1], ty2)],
-         light=LIGHT_TUNNEL, wall=TUNNEL)
+         light=LIGHT_TUNNEL, wall=ROCK)
     for name, (door_rect, room_rect) in TUNNEL_CLOSETS.items():
-        closet(name, door_rect, room_rect, TAG_TUNNEL_AMBUSH, REACTOR, leaf=TUNNEL)
+        closet(name, door_rect, room_rect, TAG_TUNNEL_AMBUSH, REACTOR, leaf=ROCK)
 
     # ======================================================================
     # The reactor hall: the lid, the red key
@@ -940,7 +1106,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     # The rail tunnel and the loading bay: the goods train, the exit
     # ======================================================================
-    zone("z9_tunnel", GROUND, RAIL_TUNNEL_CEIL, [RAIL_TUNNEL], light=LIGHT_TUNNEL, flat=BALLAST, wall=TUNNEL)
+    zone("z9_tunnel", GROUND, RAIL_TUNNEL_CEIL, [RAIL_TUNNEL], light=LIGHT_TUNNEL, flat=BALLAST, wall=ROCK)
     rails("z9_tunnel", "z9_rails", RAIL_TRACK)
     for n, rect in enumerate(REFUGES, start=1):
         like("z9_tunnel", f"z9_refuge_{n}", [rect], ceil=GROUND + TUNNEL_HEIGHT)
@@ -957,7 +1123,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         like("z10_bay", f"z10_flag_{texture.lower()}", [rect], ceil=GROUND + TILE, flat=FLOOR_CONCRETE)
     zone("z10_cab_step", GROUND + STEP, BAY_CEIL, [CAB_STEP], light=LIGHT_BAY, flat=GRATING, wall=STEEL)
     zone("z10_cab", DECK, INTERIOR, [CAB, CAB_DOOR], light=LIGHT_BAY, flat=FLOOR_PLATE,
-         ceiling=CEIL_PANEL, wall=STEEL)
+         ceiling=CEIL_PANEL, wall=ARMOUR)
     zone("z10_exit_niche", DECK, DECK + SWITCH_HEIGHT, [EXIT_NICHE], light=LIGHT_BEACON, wall=STEEL)
 
     # ======================================================================
@@ -968,19 +1134,19 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for texture, (x1, _y1, x2, y2) in BAY_FLAGS.items():
         g.style_h(y2, x1, x2, LineStyle(texture=texture))
     # Manual doors, both faces.
-    for sector, (x1, y1, x2, y2), horizontal in ((d1, D1_DOOR, True), (d2, D2_DOOR, False),
-                                                 (d3, D3_DOOR, False)):
+    for sector, (x1, y1, x2, y2), horizontal, leaf in ((d1, D1_DOOR, True, DOOR), (d2, D2_DOOR, False, DOOR),
+                                                       (d3, D3_DOOR, False, BULKHEAD_DOOR)):
         tag = tm.sectors[sector].identifier
         if horizontal:
             for yy in (y1, y2):
-                g.style_h(yy, x1, x2, door_raise_style(tag, sector, texture=DOOR))
+                g.style_h(yy, x1, x2, door_raise_style(tag, sector, texture=leaf))
         else:
             for xx in (x1, x2):
-                g.style_v(xx, y1, y2, door_raise_style(tag, sector, texture=DOOR))
+                g.style_v(xx, y1, y2, door_raise_style(tag, sector, texture=leaf))
     # The three locks, both faces.
     for yy in (BLUE_DOOR[1], BLUE_DOOR[3]):
         g.style_h(yy, BLUE_DOOR[0], BLUE_DOOR[2],
-                  locked_door_style(TAG_BLUE_DOOR, blue_door, LOCK_BLUE_CARD, texture=DOOR))
+                  locked_door_style(TAG_BLUE_DOOR, blue_door, LOCK_BLUE_CARD, texture=DOOR_BLUE))
     for xx in (YELLOW_DOOR[0], YELLOW_DOOR[2]):
         g.style_v(xx, YELLOW_DOOR[1], YELLOW_DOOR[3],
                   locked_door_style(TAG_YELLOW_DOOR, yellow_door, LOCK_YELLOW_CARD, texture=DOOR_YELLOW))
@@ -1007,18 +1173,30 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         g.style_h(yy, S2_PANEL[0], S2_PANEL[2], secret_panel_style(TAG_S2_PANEL, s2_panel, LOCKER))
     for xx in (S3_PANEL[0], S3_PANEL[2]):
         g.style_v(xx, S3_PANEL[1], S3_PANEL[3], secret_panel_style(TAG_S3_PANEL, s3_panel, ROAD_GATE))
-    # The fin's red stars, once on each long face.
-    for axis, coord, lo, hi in FIN_STARS:
-        (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=ARMOUR_STAR))
-    # The boat's control room: its long walls are the boards, one tile high.
-    g.style_h(CONTROL[1], CONTROL[0], CONTROL[2], LineStyle(texture=CONTROL_PANEL))
-    g.style_h(CONTROL[3], CONTROL[0], CONTROL[2], LineStyle(texture=CONTROL_PANEL))
+    # The fin's tactical number «471», once on each long face.
+    for axis, coord, lo, hi in FIN_NUMBERS:
+        (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=HULL_NUMBER))
+    # The covered berth's rock either side of D3, over the deck's bow.
+    for axis, coord, lo, hi in BERTH_FACES:
+        (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=ROCK))
+    # The crane's tower: corrugated sheet all round (S3's gate registered above).
+    for axis, coord, lo, hi in CRANE_TOWER_FACES:
+        (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=RUST))
+    # The lattice railings: impassable, their lattice hung after the build.
+    for axis, coord, lo, hi in LATTICES:
+        (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LATTICE_EDGE)
+    # The boat's control room: its long walls are the naval panels, one tile high.
+    g.style_h(CONTROL[1], CONTROL[0], CONTROL[2], LineStyle(texture=NAVAL_PANEL))
+    g.style_h(CONTROL[3], CONTROL[0], CONTROL[2], LineStyle(texture=NAVAL_PANEL))
     # The bow's torpedo tubes.
     g.style_v(TORPEDO[2], TORPEDO[1], TORPEDO[3], LineStyle(texture=TUBBING))
     # The dormitory's lockers, its north wall.
     g.style_h(DORM[3], DORM[0], DORM[2], LineStyle(texture=LOCKER))
-    # The locomotive's desk, the cab's south wall (its door is on the north, to the platform).
-    g.style_h(CAB[1], CAB[0], CAB[2], LineStyle(texture=CONTROL_PANEL))
+    # The locomotive's cab: the backhead and its gauges on the south wall,
+    # facing the door (on the north, to the platform); a window per tile on the rest.
+    g.style_h(CAB[1], CAB[0], CAB[2], LineStyle(texture=CAB_FRONT))
+    for axis, coord, lo, hi in CAB_SIDES:
+        (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=CAB_SIDE))
     # The boom across the pen's mouth: nothing crosses it, not even swimming.
     for xx in (BOOM[0], BOOM[2]):
         g.style_v(xx, BOOM[1], BOOM[3], BLOCKING)
@@ -1026,6 +1204,33 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     g.style_v(EXIT_NICHE[2], EXIT_NICHE[1], EXIT_NICHE[3], exit_switch_style(texture=EXIT_FACE))
 
     g.build()
+
+    # ======================================================================
+    # Dressing the built map: the rock overhead, the waterline, alignment,
+    # the lattices
+    # ======================================================================
+    for name, index in plan.items():
+        sector = tm.sectors[index]
+        if name.startswith(ROCK_ROOFED) and sector.textureceiling == CEIL_CONCRETE:
+            sector.textureceiling = ROCK_CEIL
+    water = {plan["z3_basin"], plan[f"{PROP_PREFIX}z1_fjord"], plan[f"{PROP_PREFIX}z3_mouth"]} | {
+        i for n, i in plan.items() if n.startswith("z3_steps_")}
+    banks = {i for n, i in plan.items() if n.startswith(("z3_steps_", "z3_kerb", "z1_kerb"))} | {
+        plan["z3_south_quay"], plan["z3_north_quay"], plan["z1_pier"]}
+    wet_the_banks(tm, water, banks)
+    align_to_world(tm, {ROCK: GROUND, DAM_WET: BASIN})
+    # The hull: from the water its flooding holes just over the waterline;
+    # from the deck, the gangways and the stern its top edge on the deck, and
+    # the fin one whole tile over the deck (the number too).
+    align_to_world(tm, {HULL: BASIN}, sectors={plan["z3_basin"]})
+    align_to_world(tm, {HULL: DECK, HULL_NUMBER: DECK},
+                   sectors={plan["z4_deck"], plan["z4_escape_hatch"], plan["z4_stern"]}
+                   | {plan[n] for n in GANGWAYS})
+    # The cab: one tile high; on the 64/128 grid its back wall shows one
+    # whole window and the backhead its middle (the cab is the tile's middle).
+    align_to_world(tm, {CAB_FRONT: DECK, CAB_SIDE: DECK}, sectors={plan["z10_cab"], plan["z10_exit_niche"]})
+    for axis, coord, lo, hi in LATTICES:
+        hang_both(tm, axis, coord, lo, hi, CRANE_LATTICE)
 
     tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START, angle=PLAYER_ANGLE))
     for ednum, spot in ((ED_BLUE_CARD, BLUE_KEY_SPOT), (ED_YELLOW_CARD, YELLOW_KEY_SPOT),
@@ -1052,28 +1257,33 @@ def lumps() -> list[tuple[str, bytes]]:
 
 
 # Every lump name this map may put in a sidedef or a sector.
-WALL_TEXTURES = ((ROCK, CONCRETE, CONCRETE_STRIPE, STEEL, TUNNEL, BRICK, BRICK_RAIL, RUST, ARMOUR,
-                  ARMOUR_STAR, WAGON, TANK, LOCKER, CONTROL_PANEL, TUBBING, ROAD_GATE, CRATE,
-                  FLAG_REICH, FLAG_LEGION, LENIN, STALIN, MURAL)
+WALL_TEXTURES = ((ROCK, DAM_WET, CONCRETE, CONCRETE_STRIPE, STEEL, BRICK, BRICK_RAIL, RUST, CONTAINER_SIDE,
+                  HULL, HULL_NUMBER, ARMOUR, WAGON, TANK, LOCKER, NAVAL_PANEL, CAB_FRONT, CAB_SIDE, TUBBING,
+                  CRANE_LATTICE, ROAD_GATE, CRATE, FLAG_REICH, FLAG_LEGION, LENIN, STALIN, MURAL)
                  + DOOR_LEAVES + SWITCH_FACES + ((MARX_ENGELS,) if MARX_ENGELS else ()))
-FLAT_TEXTURES = (FLOOR_LANE, FLOOR_CONCRETE, FLOOR_TILE, FLOOR_PLATE, CEIL_PANEL, CEIL_CONCRETE,
-                 CRATE_TOP, GRATING, WATER, TRACK, BALLAST)
+FLAT_TEXTURES = (FLOOR_LANE, FLOOR_CONCRETE, FLOOR_TILE, FLOOR_PLATE, DECK_RUBBER, DECK_HATCH, PIER_EDGE,
+                 CEIL_PANEL, CEIL_CONCRETE, ROCK_CEIL, CRATE_TOP, GRATING, WATER, TRACK, BALLAST)
+# Middle textures on two-sided lines, drawn once: the masked crane lattice.
+# Nothing else hangs in mid-air.
+MIDDLE_TEXTURES = (CRANE_LATTICE,)
 BUILTIN_FLATS = (SKY,)
-# The naval pieces the design wants and nobody has drawn: {proposed lump:
-# the approved lump the map wears for it meanwhile}. The art-director's
-# "Naval" set (D112, in draft) replaces them one line each.
+# Design section 7.2, settled (D113): {lump the design proposed: the lump
+# the map wears for it}. Proposed names the art-director drew are worn as
+# themselves; the ones never drawn (no such lump in assets/) wear the nearest
+# installed piece.
 NAVAL_SET = {
-    "SDROCK1": ROCK,           # living Kola granite: the dock, the cliffs, the reactor hall
-    "SDHULL1": ARMOUR,         # the submarine's black rubber-tiled hull and fin
-    "SDHULL2": ARMOUR_STAR,    # the fin with the star (a tactical number would be text: D27)
-    "SDBULK1": STEEL,          # the boat's inside: bulkheads, pipes, valves
-    "SDHTCH1": DOOR,           # the oval watertight hatch (D3)
-    "SDTORP1": TUBBING,        # the bow's torpedo-tube doors
-    "SDCONT1": RUST,           # a shipping container's side
-    "SDLOCO1": ARMOUR,         # the diesel locomotive's body
-    "SDREAC1": STEEL,          # the reactor vessel's jacket
-    "SDDOORB": DOOR,           # the blue door's trim (the blue door wears SDDOOR1 in blue light)
+    "SDROCK1": ROCK,            # drawn: the cliffs, the dock, the tunnels, the reactor hall (SDROCK2 overhead)
+    "SDHULL1": HULL,            # drawn: the hull's flanks, the stern, the fin
+    "SDHULL2": HULL_NUMBER,     # drawn: «471» once on each face of the fin (the red star SDARMR1 retired)
+    "SDBULK1": BULKHEAD_DOOR,   # drawn as a round watertight door, not a wall: D3, the bulkhead hatch
+    "SDHTCH1": BULKHEAD_DOOR,   # never drawn: D3 wears SDBULK1; SDRUBR2's flush hatch lies on the deck
+    "SDTORP1": TUBBING,         # never drawn: the bow keeps SDTUBB1 (a round door there would never open)
+    "SDCONT1": CONTAINER_SIDE,  # drawn: the yard's five containers
+    "SDLOCO1": ARMOUR,          # never drawn: the body stays SDARMR2; inside, the cab wears SDCAB1/SDCAB2
+    "SDREAC1": STEEL,           # never drawn: the vessel's jacket stays SDSTEL1
+    "SDDOORB": DOOR_BLUE,       # drawn (episode 2): the blue door
 }
+# Still waiting, with nothing standing in: {proposed lump: what and where}.
 PENDING_TEXTURES = {
     "SDPERI1": "the periscope's tube, masked: the control room's well is a solid steel column meanwhile",
     "SDNSKY1": "the polar night sky with the aurora (MAPINFO's sky, the scaffolding's call)",

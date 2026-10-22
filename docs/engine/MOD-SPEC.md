@@ -361,7 +361,12 @@ and a map outside the campaign takes a lump name that is not MAPxx (`RANGE`);
 map titles by `lookup`, episode title by `name = "$ID"` (**`lookup` is not accepted inside an
 episode block**, verified B1); every map and cluster names its music, and
 `music = ""` where there is none (verified: silence, no warning; §4.5);
-`sky1 = "SKY1"`.
+`sky1 = "SKY1"` (Freedoom's), except MAP04 and MAP05 `sky1 = "SDSKY1"` and
+MAP06 `sky1 = "SDSKY2"` since D113 (2026-10-22): our own night skies,
+1024×128 (one 360° turn), packed under `textures/` and declared in
+`check_pk3`'s `SKY_TEXTURES`. How the engine maps a 1024-wide sky (its
+stretch and where the horizon row falls) is NOT VERIFIED until the PM's
+engine pass (D26).
 
 ### 4.4 The practice range (D41, 2026-10-13)
 
@@ -781,6 +786,8 @@ forever, wherever a map uses the first one. A map names only frame 1.
 | `SDMOLT1` | `flat` (a floor or ceiling) | `SDMOLT1` → `SDMOLT2` → `SDMOLT3` → `SDMOLT4` → `SDMOLT1` | 8 tics each (8/35 s ≈ 0.23 s, a 0.9 s loop) | `flats/factory/` |
 | `SDPORT1` | `texture` (a wall) | `SDPORT1` → `SDPORT2` → `SDPORT3` → `SDPORT4` → `SDPORT1` | 8 tics each | `textures/factory/` |
 | `SDWATR1` | `flat` (MAP05's Volga, D107) | `SDWATR1` → `SDWATR2` → `SDWATR3` → `SDWATR4` → `SDWATR1` | 8 tics each, Doom's own water rate (FWATER1-4) | `flats/dam/` |
+| `SDRADR1` | `texture` (MAP07's radar console, D113) | `SDRADR1` → `SDRADR2` → `SDRADR3` → `SDRADR4` → `SDRADR1` | **12 tics** each (the beam turns 90° a frame: a 48-tic, 1.4 s sweep) | `textures/arctic/` |
+| `SDACID1` | `flat` (MAP09's acid, D113) | `SDACID1` → `SDACID2` → `SDACID3` → `SDACID4` → `SDACID1` | 8 tics each, as `SDWATR1` | `flats/taiga/` |
 
 ```
 flat SDMOLT1
@@ -820,6 +827,8 @@ texture SDPORT1
   in order at 8 tics, every frame installed and packed in its own folder)
   and by `tools/check_pk3.py`, whose `textures` check holds every animation
   frame to the same rule as a map texture (`animdefs_anim_textures`).
+  Since D113 the test pins five animations, each at its own rate (the radar
+  12 tics, the rest 8).
 
 #### Masked textures (N6b, D66, 2026-10-14)
 
@@ -834,6 +843,10 @@ chain). In this mod it is an **RGBA PNG with hard alpha** (every pixel 0 or
 | `SDCHAN1` | 64×128 | Tankograd's hanging chain and crane hook (D66); `texturemiddle` of a two-sided line, not tiling vertically |
 | `SDKREM2` | 64×128 | MAP06's Kremlin merlon (D107), `SDKREM1`'s brick cut out, palette v2 (`PALETTE_V2_MASKED`); `texturemiddle` of a two-sided line on the wall top, tiles along x |
 | `SDINSL1` | 64×128 | MAP05's high-voltage insulator string (D107); `texturemiddle` of a two-sided line, tiles along x |
+| `SDCRAN1` | 64×128 | MAP08's quay crane jib lattice (D113); `texturemiddle` of a two-sided line, tiles in both axes |
+| `SDGRIL1` | 64×128 | MAP05's control-room window bars (D113); `texturemiddle` of a two-sided line, tiles along x |
+| `SDHVLT1` | 64×128 | MAP05's substation high-voltage fence with its «СТОЙ!» plate (D113); `texturemiddle`, tiles along x |
+| `SDRUBY1` | 128×128 | MAP06's Kremlin ruby star (D113); `texturemiddle` of a two-sided line against the sky, does not tile |
 
 - **The engine accepts it: VERIFIED in the source** (read 2026-10-14):
   GZDoom's PNG loader, `src/common/textures/formats/pngtexture.cpp` (tag
@@ -869,7 +882,7 @@ here and in the `art-director`'s texture index flagged "IWAD".
 | `STARTAN2` | wall texture 64×128 | MAP01, 4 walls | verified on freedoom2.wad 0.13.0 (G0 screenshot) |
 | `FLOOR4_8` | flat (floor) | MAP01 | verified |
 | `CEIL3_5` | flat (ceiling) | MAP01 | verified |
-| `SKY1` | sky texture | MAPINFO `sky1` | loads without error |
+| `SKY1` | sky texture | MAPINFO `sky1` (every map but MAP04-06, which wear `SDSKY1`/`SDSKY2` since D113) | loads without error |
 
 IWAD elements used implicitly: the status bar's layout and code
 (`DoomStatusBar`; since M2e-i its pictures are ours, §6.5, but for the
@@ -1704,7 +1717,62 @@ marked. Images per class and the drawing briefs: `BESTIARY.md` §3–§9, §12.
 | `SD_General` | `SDGN` | A–G (8), H–P (0), Q–R (8) | none: **installed, D73** (was `CYBR`; the `Summon` lines borrowed `CYBR E F` and became `SDGN Q R`) |
 | `SD_GeneralShell` | `SDGL` | A–E (0) | none: **installed, D73** (was `MANF` A–B in flight, `MISL` B–D burst; the burst became `SDGL C D E`) |
 
-**The Legion trooper, installed by D54 (2026-10-14).** The CEO chose cell C
+**The seven enemies redrawn from Google Gemini, installed by D109 and D114
+(2026-10-22).** The CEO had the seven enemy classes redone with Google
+Gemini (D105), approved the result ("Ok enemigos gemini", D109,
+`docs/art/previews/2026-10-22_P4_enemies-gemini.html`) and then the
+armband symbol applied to the Reich ones (D108's mix, "Ok a lo de las
+esvásticas!", D114). Every lump below keeps the **name, frame letter and
+rotation** of the rig-drawn set it replaces, so no state, class or map
+changed: 540 PNGs overwritten in place, none added, none removed, no
+orphan and no duplicate frame (`check_pk3`). The files are byte-identical
+to `work/art/enemies_gemini/<set>/`, built by `python
+tools/art/gemini_enemy.py all` from the CEO's Gemini sheets
+(`work/art/reference/enemies/gemini/`, gitignored, never shipped, D77);
+the rig generators (`gen_rig.py`, `gen_legion.py`, `gen_storm.py`,
+`gen_hound.py`, `gen_heavy.py`, `gen_general.py`) are kept as history and
+no longer match `assets/`.
+The projectiles (the bolt `SDBL`, the shells `SDGL`, `SDDL` and `SDPL`)
+were not redrawn. The paragraphs after this one keep the state
+tables and the body and map checks of 2026-10-14; **their sources,
+canvases and offsets are the rig sets' and are superseded by this
+table.** The `Translation` / `BloodColor` notes stand.
+
+Every lump is RGBA with hard alpha in palette v2 and carries its `grAb`:
+`left` = half the canvas width (the body's axis), `top` = the floor line,
+the feet's last row 4 px under it (`FEET_SINK`; the Doughboy's head hangs
+14 px under its origin, as before), the same for every rotation of a
+frame. Rotations 6-8 are rotations 4-2 mirrored and written as their own
+lumps (eight separate rotations), except the hound, which keeps Doom's
+mirrored pairs (`SDHNA2A8` …). On the Reich sets the D12 symbol is drawn
+after the mirror, so it is never reversed.
+
+| Set | Folder | Lumps | Canvas (`left`, `top`) per frame group |
+|---|---|---|---|
+| `SDRR` | `rifleman/` | 70 | A 96×64 (48, 57); B D 96×64 (48, 56); C 96×64 (48, 55); E 120×64 (60, 56); F 120×64 (60, 57); G 80×64 (40, 56); H M N 80×64 (40, 54); I O 48×56 (24, 51); J Q 96×56 (48, 48); K R 104×48 (52, 37); L S T U 104×32 (52, 21); P 48×56 (24, 44) |
+| `SDLT` | `legion/` | 70 | A–D 72×64 (36, 54); E 88×64 (44, 55); F 112×64 (56, 55); G H M 72×64 (36, 55); I N O 64×64 (32, 55); J P Q 72×56 (36, 50); K R 72×40 (36, 35); L S 88×32 (44, 20); T U 80×32 (40, 20) |
+| `SDHS` | `storm/` | 77 | A C 72×56 (36, 47); B D H 80×56 (40, 47); E F 96×56 (48, 47); G 112×56 (56, 47); I N 64×56 (32, 47); J O P 64×56 (32, 45); K Q R 64×48 (32, 40); L S 64×32 (32, 26); M T U 80×32 (40, 23) |
+| `SDHN` | `hound/` | 46 (pairs) | A C F 112×48 (56, 36); B D E 104×48 (52, 36); G 88×40 (44, 35); H J 88×48 (44, 36); I 88×40 (44, 32); K 80×40 (40, 28); L 64×40 (32, 32); M 64×40 (32, 31); N 88×24 (44, 18) |
+| `SDDB` | `doughboy/` | 54 | A B F 72×80 (36, 64); C D 72×80 (36, 63); E 80×80 (40, 64); G 80×80 (40, 58); H 72×80 (36, 61); I 96×80 (48, 61); J 72×64 (36, 47); K 72×40 (36, 22); L 96×40 (48, 23) |
+| `SDPM` | `panzermensch/` | 71 | A 136×72 (68, 65); B D 112×72 (56, 65); C 104×72 (52, 66); E F 128×72 (64, 67); G 128×72 (64, 66); H 120×72 (60, 66); I 96×72 (48, 66); J 88×72 (44, 67); K 72×72 (36, 60); L 88×72 (44, 61); M 80×72 (40, 63); N O 96×56 (48, 46) |
+| `SDPS` | `panzermensch/` | 71 | A 144×80 (72, 73); B D 120×80 (60, 73); C 120×80 (60, 74); E F 136×80 (68, 75); G 144×80 (72, 74); H 128×80 (64, 74); I 112×80 (56, 74); J 96×80 (48, 75); K 80×80 (40, 68); L 104×80 (52, 68); M 88×80 (44, 71); N O 112×64 (56, 52) |
+| `SDGN` | `general/` | 81 | A–E Q R 72×104 (36, 93); F 112×104 (56, 93); G 88×104 (44, 93); H 80×96 (40, 88); I 88×104 (44, 98); J 64×96 (32, 86); K 72×96 (36, 85); L M 88×88 (44, 80); N O P 152×40 (76, 34) |
+
+The figures are as tall in game as the sets they replace (the tool sizes
+each set by the old one's standing frame: `SDRR` 59 rows, `SDLT` 56,
+`SDHS` 50, the hound's profile 36, `SDDB` 77, `SDPM` 68, the Schwer × 1.12
+= 76, `SDGN` 96). Frames Gemini did not draw are derived by the tool and
+listed in each set's `metrics.json` (`derived`): the pain in rotations
+2-8 (the standing view tilted back), the gib of the rifleman, the Legion
+trooper and the stormtrooper (the death frames with procedural blood), the
+General's `Summon` Q R (the standing and the aim views). **NOT VERIFIED in
+the engine** (D26): how the new sets read in play, the mirrored rotations
+6-8 (an armband or a flag patch changes arm there), and the corpses'
+`top` against the floor. Held by `tests/test_<enemy>_sprites.py` and
+`tests/test_gemini_enemy_install.py`. Licence rows: `docs/art/LICENSES.md`,
+the seven "Enemy sprites" sections.
+
+**The Legion trooper, installed by D54 (2026-10-14). Redrawn from Google Gemini by D109 (above): the files, canvases and offsets this paragraph gives are the rig set's.** The CEO chose cell C
 of the Legion sweep (D48) and approved its redone death, the corpse lying
 flat (D54). The whole set ships, 70 lumps in `assets/sprites/legion/`,
 byte-identical to `work/art/enemies/legion/full_C/` (`tools/art/gen_legion.py
@@ -1735,7 +1803,7 @@ before D54. Blood stays the engine's sprite recoloured by `BloodColor
 Licence rows: `docs/art/LICENSES.md`, "Enemy sprites: the Liberty Legion
 trooper". The draft overlay carries nothing of the Legion (§6.9).
 
-**The Reich rifleman and the Reich hound, installed by D55 (2026-10-14).**
+**The Reich rifleman and the Reich hound, installed by D55 (2026-10-14). Redrawn from Google Gemini by D109 (above): the files, canvases and offsets this paragraph gives are the rig set's.**
 The CEO approved the rifleman drawn on the rig (cell E, D38) with the much
 bloodier death he asked for in D48, the corpse lying flat ("OK", D55), and
 the German shepherd of cell A (D50) whole ("OK perro", D55). Both sets ship
@@ -1792,7 +1860,7 @@ drawn deaths carry their own dark-red blood. Licence rows:
 sprites: the Reich hound". The draft overlay carries nothing of either
 (§6.9).
 
-**The Hybrid Stormtrooper and his bolt, installed by D56 (2026-10-14).** The
+**The Hybrid Stormtrooper and his bolt, installed by D56 (2026-10-14). Redrawn from Google Gemini by D109 (above): the files, canvases and offsets this paragraph gives are the rig set's.** The
 CEO chose cell E of the Stormtrooper sweep (D48), approved its full set but
 for the death (D53) and then the redone death, the corpse lying flat on his
 back (D56, "Muerte OK"). The whole set ships, 82 lumps in
@@ -1829,7 +1897,7 @@ their own dark-red blood. Licence rows: `docs/art/LICENSES.md`, "Enemy
 sprites: the Hybrid Stormtrooper and his bolt". The draft overlay never
 carried either (§6.9).
 
-**The Panzermensch and the Schwer, installed by D67 (2026-10-14).** The CEO
+**The Panzermensch and the Schwer, installed by D67 (2026-10-14). Redrawn from Google Gemini by D109 (above): the files, canvases and offsets this paragraph gives are the rig set's.** The CEO
 chose cell D of the heavies sweep, the bare skull in a riveted iron mask
 (D65), and approved its full set with the Schwer alongside ("OK al
 Panzermensch", D67). The Schwer is cell D with the sweep's S2 treatment,
@@ -1894,7 +1962,7 @@ Panzermensch and the Schwer". The draft overlay never carried either
 (§6.9). The shell, `SD_PanzerShell`, wore Freedoom's `BAL7` until D81
 (below).
 
-**The Doughboy, installed by D70 (2026-10-14).** The CEO chose cell C of
+**The Doughboy, installed by D70 (2026-10-14). Redrawn from Google Gemini by D109 (above): the files, canvases and offsets this paragraph gives are the rig set's.** The CEO chose cell C of
 the heavies sweep, the head in its M1 helmet, severed, with a neck stump
 and a dangling spine (D65), asked for a bigger flag on the helmet ("ponle
 la bandera más grande en la cabeza", D67: the decal grew from 5 × 4 to
@@ -1948,7 +2016,7 @@ never carried it and records it as installed whole (`HEAD` → `SDDB`,
 §6.9). The shell, `SD_DoughboyShell`, wore Freedoom's `BAL2` until D81
 (below).
 
-**The General and his shell, installed by D73 (2026-10-14).** The CEO
+**The General and his shell, installed by D73 (2026-10-14). Redrawn from Google Gemini by D109 (above): the files, canvases and offsets this paragraph gives are the rig set's.** The CEO
 combined cells C and D of the General's sweep, C from the front (the field
 gun on his right shoulder, the swagger stick, the two shoulder pennants)
 and D's two-flag cloak on his back (D71), approved the CD turnaround ("OK
@@ -2566,7 +2634,7 @@ The in-game credits, reasoned in `docs/engine/adr/009-in-game-credits.md`.
 | Where | `OptionMenu "SD_CreditsMenu"` in `MENUDEF`, reached by `Submenu "$SD_CRED_TITLE", "SD_CreditsMenu"` at the foot of our own `SD_OptionsMenu`: Options → Soviet Doom → Credits. **Not** on the main, skill or episode screens, the CEO's approved text menu (D31/D32); a main-menu row is his call (ADR 009, option C) |
 | Rows | `Title "$SD_CRED_TITLE"`; one `StaticText "$SD_CRED_…"` per screen line, centred, in the engine's `NewSmallFont`; block headers `StaticText "$SD_CRED_H_…", 1` (header colour); a blank `StaticText " "` between blocks |
 | Text | `LANGUAGE` ids `SD_CRED_*`, the same ids in `[enu default]` and `[ru]`, **at most 40 characters each**, no `
-` (a row does not wrap). Blocks in order: team, music, engine, game data, sources (with the CC0 sound packs, `SD_CRED_SFX_1`-`_2`, D93), and "Made with AI" (`SD_CRED_H_AI`, `SD_CRED_AI_1`-`_8`, D93: Claude in Claude Code; Google Gemini for the weapons in hand and the sergeant's face; Fooocus / SDXL for the hand references; Chatterbox for a few enemy voices; the long form is `CREDITS.txt`'s, `tools/release.py`) |
+` (a row does not wrap). Blocks in order: team, music, engine, game data, sources (with the CC0 sound packs, `SD_CRED_SFX_1`-`_2`, D93), and "Made with AI" (`SD_CRED_H_AI`, `SD_CRED_AI_1`-`_8`, D93: Claude in Claude Code; Google Gemini for the weapons in hand, the sergeant's face and, since D109, the seven enemies; Fooocus / SDXL for the hand references and, since D108, the armband symbol's repaint in the enemies' close-up frames; Chatterbox for a few enemy voices; the long form is `CREDITS.txt`'s, `tools/release.py`) |
 | Disclaimer (D46) | "A fan project, not affiliated / with id Software." / «Фанатский проект, не связанный / с компанией id Software.», `SD_CRED_FAN_1` and `_FAN_2`, the two rows right under `SD_CRED_TEAM_1` (the project's name), so it is the first thing the screen says after who made the game. The CEO's wording (D46; ADR 009 had left it to him). `tests/test_credits.py` pins the sentence in both languages inside the team block |
 | Obligations | every name a licence register obliges us to credit is in the credits of both languages: `docs/art/LICENSES.md` rows whose licence says credit / `{{Attribution}}` / CC BY / BSD / MIT / OFL / CC0 and are not ours (D15), and the Obligation column of `docs/sound/MUSIC-RIGHTS.md` §4.5. Jerry Engelbach's line is MUSIC-RIGHTS §4.5's word for word in English. Enforced by `tests/test_credits.py`, which reads the registers, so a new attributed asset turns the suite red until its credit lines exist |
 | Adding a credit | register row first (the name in bold, or as `credit "X"`), then `SD_CRED_*` lines in both languages, then the `StaticText` rows |

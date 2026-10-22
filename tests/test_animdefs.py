@@ -7,7 +7,7 @@ engine is proved here: the lump ships at the PK3 root, every approved OFF
 face (SDSW1x) has exactly one `switch` line, every line pairs SDSW1x with its
 own SDSW2x, and every name is an approved asset; the molten-metal flat and
 the portal texture each have one animation that names its four installed
-frames in order at 8 tics, a flat as `flat` and a wall as `texture`.
+frames in order at their rate (8 tics; the radar 12, D113), a flat as `flat` and a wall as `texture`.
 
 Run:  python3 -m unittest discover -s tests -v
 """
@@ -30,6 +30,8 @@ SWITCH_ASSETS = ASSETS_DIR / "textures" / "soviet_base"
 FACTORY_WALLS = ASSETS_DIR / "textures" / "factory"
 FACTORY_FLATS = ASSETS_DIR / "flats" / "factory"
 DAM_FLATS = ASSETS_DIR / "flats" / "dam"          # Episode 2, MAP05 (D107)
+ARCTIC_WALLS = ASSETS_DIR / "textures" / "arctic"  # Episode 3, MAP07 (D113)
+TAIGA_FLATS = ASSETS_DIR / "flats" / "taiga"       # Episode 3, MAP09 (D113)
 sys.path.insert(0, str(TOOLS_DIR))
 
 from check_pk3 import animdefs_anim_textures, animdefs_switch_textures  # noqa: E402
@@ -47,12 +49,15 @@ RE_SWITCH_LINE = re.compile(r"^switch\s+doom\s+1\s+(\S+)\s+on\s+pic\s+(\S+)\s+ti
 RE_ANIM_HEAD = re.compile(r"^(flat|texture)\s+(\S+)$")
 RE_ANIM_PIC = re.compile(r"^pic\s+(\S+)\s+tics\s+(\d+)$")
 ANIM_TICS = 8                      # art-director's rate, 8/35 s a frame (D66)
+RADAR_TICS = 12                    # D113: the radar sweep, 90 degrees a frame, a 1.4 s turn
 ANIM_FRAMES = 4
-# First frame -> (keyword, folder): the molten metal is a floor, the portal a wall.
+# First frame -> (keyword, folder, tics): the molten metal is a floor, the portal a wall.
 ANIMATIONS = {
-    "SDMOLT1": ("flat", FACTORY_FLATS),
-    "SDPORT1": ("texture", FACTORY_WALLS),
-    "SDWATR1": ("flat", DAM_FLATS),      # the Volga's water, like Doom's FWATER (D107)
+    "SDMOLT1": ("flat", FACTORY_FLATS, ANIM_TICS),
+    "SDPORT1": ("texture", FACTORY_WALLS, ANIM_TICS),
+    "SDWATR1": ("flat", DAM_FLATS, ANIM_TICS),      # the Volga's water, like Doom's FWATER (D107)
+    "SDRADR1": ("texture", ARCTIC_WALLS, RADAR_TICS),  # the radar console, MAP07 (D113)
+    "SDACID1": ("flat", TAIGA_FLATS, ANIM_TICS),    # the invaders' acid, as the water (D113)
 }
 
 
@@ -133,29 +138,30 @@ class AnimdefsSourceTest(unittest.TestCase):
 
 
 class AnimdefsAnimationTest(unittest.TestCase):
-    """N6c: SDMOLT1-4 (flat) and SDPORT1-4 (texture); D107: SDWATR1-4 (flat).
-    Four frames at 8 tics each."""
+    """N6c: SDMOLT1-4 (flat) and SDPORT1-4 (texture); D107: SDWATR1-4 (flat);
+    D113: SDRADR1-4 (texture, 12 tics) and SDACID1-4 (flat). Four frames
+    each, at 8 tics but for the radar."""
 
-    def test_exactly_the_three_animations(self):
+    def test_exactly_the_five_animations(self):
         self.assertEqual(set(ANIMATIONS), set(animations()))
 
     def test_keyword_matches_the_kind_of_surface(self):
         # `flat` looks its names up as flats and `texture` as walls
         # (ParseAnim); whether the wrong keyword falls back is NOT VERIFIED,
         # so it is held as an error here.
-        for first, (keyword, folder) in ANIMATIONS.items():
+        for first, (keyword, folder, _tics) in ANIMATIONS.items():
             self.assertEqual(keyword, animations()[first][0], first)
             self.assertTrue((folder / f"{first}.png").is_file(), f"{first} is not in {folder}")
 
-    def test_frames_in_order_at_eight_tics(self):
+    def test_frames_in_order_at_their_rate(self):
         for first, (_keyword, frames) in animations().items():
             stem = first[:-1]
             self.assertEqual([f"{stem}{i}" for i in range(1, ANIM_FRAMES + 1)],
                              [name for name, _tics in frames], first)
-            self.assertEqual({ANIM_TICS}, {tics for _name, tics in frames}, first)
+            self.assertEqual({ANIMATIONS[first][2]}, {tics for _name, tics in frames}, first)
 
     def test_every_frame_is_an_installed_asset(self):
-        for first, (_keyword, folder) in ANIMATIONS.items():
+        for first, (_keyword, folder, _tics) in ANIMATIONS.items():
             for name, _tics in animations()[first][1]:
                 self.assertTrue((folder / f"{name}.png").is_file(), f"{name} is not in {folder}")
 

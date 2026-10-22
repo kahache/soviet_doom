@@ -39,6 +39,16 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+# The rig-drawn sets the Gemini ones replaced (D109): history, gitignored renders.
+RIG_RENDERS = {
+    "rifleman": ROOT / "work" / "art" / "enemies" / "rig",
+    "legion": ROOT / "work" / "art" / "enemies" / "legion" / "full_C",
+    "storm": ROOT / "work" / "art" / "enemies" / "storm" / "full_E",
+    "hound": ROOT / "work" / "art" / "enemies" / "hound_gsd" / "full_A",
+    "doughboy": ROOT / "work" / "art" / "enemies" / "heavy" / "full" / "SDDB",
+    "panzer": ROOT / "work" / "art" / "enemies" / "heavy" / "full" / "SDPM",
+    "general": ROOT / "work" / "art" / "general" / "full" / "SDGN",
+}
 sys.path.insert(0, str(ROOT / "tools" / "art"))
 
 try:
@@ -209,10 +219,13 @@ class ArmbandTests(unittest.TestCase):
         rgb, m = person(band=False)
         self.assertEqual(ge.armband_fields(rgb, m), [])
 
-    def test_badge_is_the_shipped_symbol(self):
-        p = ROOT / "assets" / "sprites" / "rifleman" / "SDRRA1.png"
+    def test_badge_is_the_rig_symbol(self):
+        """The badge is the 5x5 symbol the rig rifleman wore (gen_rig.py's
+        stamp). Since D109 that set is history (its renders stay in
+        work/art/enemies/rig/); the shipped one wears D108's warped symbol."""
+        p = ROOT / "work" / "art" / "enemies" / "rig" / "SDRRA1.png"
         if not p.is_file():
-            self.skipTest("shipped rifleman not present")
+            self.skipTest("the rig rifleman's render is not here (work/ is gitignored)")
         a = _png(p).astype(int)
         white = (a[..., 3] > 0) & (a[..., :3].min(axis=-1) > 170)
         red = (a[..., 3] > 0) & (a[..., 0] > 120) & (a[..., 1] < 90) & _near(white, 4)
@@ -496,13 +509,21 @@ class D105SpecTests(unittest.TestCase):
                                            "panzer_heavy", "general"})
 
     def test_shipped_heights_are_the_targets(self):
+        """The targets are the rig sets' frame A1 heights (D105: as tall in
+        game as the set replaced); since D109 the shipped set is the Gemini
+        one, whose standing view (frame B, rotation 1) is that tall."""
         for spec in (ge.RIFLEMAN, ge.LEGION, ge.STORM):
-            p = ROOT / "assets" / "sprites" / spec.folder / f"{spec.sprite}A1.png"
+            p = ROOT / "assets" / "sprites" / spec.folder / f"{spec.sprite}B1.png"
             if not p.is_file():
                 self.skipTest("shipped sprites not present")
             a = _png(p)[..., 3] > 0
             ys = np.flatnonzero(a.any(axis=1))
             self.assertEqual(ys[-1] - ys[0] + 1, spec.target_height, spec.name)
+            old = RIG_RENDERS[spec.name] / f"{spec.sprite}A1.png"
+            if old.is_file():
+                a = _png(old)[..., 3] > 0
+                ys = np.flatnonzero(a.any(axis=1))
+                self.assertEqual(ys[-1] - ys[0] + 1, spec.target_height, f"{spec.name} (rig)")
 
 
 PINKF = (210, 120, 118)    # the doughboy's flesh
@@ -768,14 +789,21 @@ class Batch2SpecTests(unittest.TestCase):
                 self.assertTrue(f.startswith("gem_") and prompt, f)
 
     def test_shipped_heights_are_the_targets(self):
+        """As above: the rig sets' frame A at the reference view set the
+        targets; the shipped Gemini set's standing view B is that tall."""
         for attr in ("HOUND", "DOUGHBOY", "PANZER", "GENERAL"):
             spec = getattr(ge, attr)
-            p = ROOT / "assets" / "sprites" / spec.folder / f"{ge.rot_lump(spec, 'A', spec.ref_view + 1)}.png"
+            p = ROOT / "assets" / "sprites" / spec.folder / f"{ge.rot_lump(spec, 'B', spec.ref_view + 1)}.png"
             if not p.is_file():
                 self.skipTest("shipped sprites not present")
             a = _png(p)[..., 3] > 0
             ys = np.flatnonzero(a.any(axis=1))
             self.assertEqual(ys[-1] - ys[0] + 1, spec.target_height, attr)
+            old = RIG_RENDERS[spec.name] / f"{ge.rot_lump(spec, 'A', spec.ref_view + 1)}.png"
+            if old.is_file():
+                a = _png(old)[..., 3] > 0
+                ys = np.flatnonzero(a.any(axis=1))
+                self.assertEqual(ys[-1] - ys[0] + 1, spec.target_height, f"{attr} (rig)")
 
 
 @unittest.skipIf(ge is None, "art venv (numpy, Pillow) missing")

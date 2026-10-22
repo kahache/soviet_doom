@@ -15,10 +15,14 @@ eating it, their refinery, and goes down into the crater to the portal, the
 campaign's last boss, and the breaker that shuts the portal.
 
 Built v1 straight away, MVP first (D60): the whole plan, with approved and
-packed lumps only, populated and stocked. Wood, bark, moss, burnt earth and
-alien metal have no approved lump yet: each wears the closest approved one
-and is listed under "Pending textures" in the design document (the
-art-director is drawing a "Taiga/Alien" set as a draft).
+packed lumps only, populated and stocked. v1.1 (D113) dresses it in the
+episode's own "Taiga/Alien" set: burnt earth, peat and moss underfoot, charred
+larch and the odd birch for the trunks and the treeline, log walls for the
+huts and the palisade, the invaders' organic metal and glyph plates for their
+works and the crater, green acid in their pits (the refinery keeps its molten
+metal), the portal framed, the blue door's own leaf and a cab on the
+locomotive. What the set does not draw is still listed under "Pending
+textures" in the design document.
 
 The route, in one line: the railhead (the train he came on, the halt) ->
 west along the forest road through the fallen taiga -> the station's gate
@@ -26,7 +30,7 @@ west along the forest road through the fallen taiga -> the station's gate
 BLUE KEY on its bench -> the blue gate -> the standing dead forest -> the
 invaders' works (the RED gate of the crater's containment wall, the YELLOW
 door of the refinery and the YELLOW KEY on the derrick all seen from the
-forest's edge) -> up the derrick's stair over the molten pit, the yellow key
+forest's edge) -> up the derrick's stair over the acid pit, the yellow key
 -> the yellow door -> the refinery, across its molten channel, the RED KEY
 on its dais (taking it opens two closets in the works, behind the player)
 -> back through the works to the red gate -> the crater's rim, down its
@@ -79,10 +83,9 @@ MAP_NAME = "MAP09"
 # --- The approved sets (docs/art/TEXTURE-INDEX.md) ---------------------------
 # Soviet base
 CONCRETE = "SDCONC1"    # the laboratory's outer walls and vestibule
-STEEL = "SDSTEL1"       # the invaders' fence, the buffer stop, the terraces' faces, the bunker
-DOOR = "SDDOOR1"        # the blue gate's leaf (SDDOORB pending, as MAP06's)
+STEEL = "SDSTEL1"       # the buffer stop, the signal post, the mast, the derrick, the bunker's hall
 CRATE = "SDCRAT1"       # stores in the station
-CRATE_TOP = "SDCRTOP1"  # planks: the halt's and the izbas' floors and ceilings, the logs' tops
+CRATE_TOP = "SDCRTOP1"  # planks: the halt's and the izbas' floors and ceilings, the platform
 LOCKER = "SDLOCK1"      # the halt's row of lockers (S1)
 LAB_FLOOR = "SDFLR3"    # grey two-tone tiles: the laboratory
 CEIL_LAMP = "SDCEIL1"   # the laboratory's fluorescent panels
@@ -91,10 +94,9 @@ EXIT_FACE = "SDSW1D"    # the hazard panel every map's exit wears: the portal's 
 # Metro
 TILE = "SDTILE1"        # the laboratory's hall
 TILE_DADO = "SDTILE2"   # the instrument room (128 high: one tile, its dado whole)
-TUBBING = "SDTUBB1"     # cast-iron rings: the crater's containment wall, the works' towers (alien metal, stand-in)
 # Tankograd
 BRICK = "SDBRCK1"       # the refinery (the invaders build with what they take)
-RUST = "SDRUST1"        # stripped trunks of the standing forest (bark, stand-in); the vats
+RUST = "SDRUST1"        # the refinery's vats
 DOOR_YELLOW = "SDDOORY"
 DOOR_RED = "SDDOORR"
 PORTAL = "SDPORT1"      # the portal's field, animated SDPORT1-4 (ANIMDEFS); the towers' cores
@@ -103,15 +105,30 @@ FLAG_REICH = "SDFLAG1"
 FLAG_LEGION = "SDFLAG2"
 PLATE = "SDFLR4"        # the works' and the refinery's floors, the crater's floor
 GRATING = "SDGRAT1"     # the refinery's bridge
-MOLTEN = "SDMOLT1"      # the molten pits and channel, animated SDMOLT1-4 (ANIMDEFS)
+MOLTEN = "SDMOLT1"      # the refinery's channel and vats, animated SDMOLT1-4 (ANIMDEFS)
 # Railway (episode 2)
 TRACK = "SDTRAK1"       # the railhead's track, rails along the flat's y: turned a quarter
-BALLAST = "SDBLST1"     # the ground: ballast at the railhead, burnt earth everywhere outdoors (stand-in)
-WAGON = "SDWAGN1"       # weathered planking: the goods wagon, the halt, the izbas, the palisade,
-                        # the treeline and the fallen trunks (wood and bark, stand-in)
+BALLAST = "SDBLST1"     # the railhead's ballast, under and beside the track
+WAGON = "SDWAGN1"       # the goods wagon; the platform's planked edge
 ARMOUR_STAR = "SDARMR1"     # the armoured wagon's flanks, a star per 128
-ARMOUR = "SDARMR2"
+ARMOUR = "SDARMR2"      # the armoured wagon's ends; the locomotive's boiler and cab outside
 SIGNAL = "SDSIGL1"      # the railhead's signal: single use only (D107), one 64 face
+CAB_FRONT = "SDCAB1"    # the locomotive's cab, inside, looking forward: one 128 face, never tiled
+CAB_SIDE = "SDCAB2"     # the cab's sides and back from inside, 64 a window
+# Episode 2, round 2
+DOOR = "SDDOORB"        # the blue gate's leaf: the blue key door (D113)
+# Taiga/Alien (episode 3, D113; docs/art/TEXTURE-INDEX.md "Taiga/Alien")
+BURNT = "SDBURN1"       # the 1908 blast's burnt ground, charred trunks lying one way: the fallen
+                        # taiga (turned, BURNT_TURN), the works' edge, the crater's rim and terraces
+PEAT = "SDPEAT1"        # the Southern Swamp's peat under the standing forest
+MOSS = "SDMOSS1"        # moss and lichen: the railhead's yard, the station's clearing, birch logs' tops
+BARK = "SDBARK2"        # charred larch: the treeline, the fallen and the standing trunks
+BIRCH = "SDBARK1"       # birch, the one tree that came back: the odd trunk among the larch
+LOG_WALL = "SDLOGW1"    # round logs and moss: the halt, the izbas, the station's palisade
+ALIEN = "SDALNM1"       # the invaders' organic metal: the works, the fence, the containment, the crater
+GLYPH = "SDGLYP1"       # their glyph plates, 64 wide: the towers, the pylons, either side of two gates
+PORTAL_RIM = "SDPRTE1"  # the portal's frame: the four posts at the field's corners
+ACID = "SDACID1"        # their acid, animated SDACID1-4 (ANIMDEFS); the damage is the sector's
 # Dam (episode 2)
 TURBINE = "SDTURB1"     # the refinery's machines
 CONTROL = "SDCTRL1"     # the laboratory's instrument boards, the refinery's console
@@ -148,11 +165,22 @@ KEY_LOCKS = {ED_BLUE_CARD: LOCK_BLUE_CARD, ED_YELLOW_CARD: LOCK_YELLOW_CARD,
              ED_RED_CARD: LOCK_RED_CARD}
 ED_PLAYER1_START = 1
 
-# Molten metal hurts: MAP03's UDMF sector fields, 10 every 32 tics (Doom's
-# hellslime). Every pit is one step deep: walked out of, never a trap.
+# Molten metal and acid hurt alike: MAP03's UDMF sector fields, 10 every 32
+# tics (Doom's hellslime). The flat only looks the part; the damage is the
+# sector's. Every pit is one step deep: walked out of, never a trap.
 LAVA_DAMAGE = 10
 LAVA_DAMAGE_INTERVAL = 32
 LAVA_HURTS = {"damageamount": LAVA_DAMAGE, "damageinterval": LAVA_DAMAGE_INTERVAL}
+# Which pits hold what: green acid where the invaders work (the works, the
+# crater round the portal), molten metal where they smelt (the refinery).
+WORKS_PIT_FLAT = ACID
+CRATER_PIT_FLAT = ACID
+CHANNEL_FLAT = MOLTEN
+# The burnt ground's charred trunks run about 20 degrees off the flat's x;
+# a quarter turn lays them about 70 degrees off the map's x whichever way the
+# engine turns (NOT VERIFIED in engine): roughly radial from the crater across
+# the fallen taiga, like the props.
+BURNT_TURN = 90.0
 
 # --- Heights ----------------------------------------------------------------
 GROUND = 0
@@ -173,10 +201,10 @@ BUFFER_TOP = 48
 SIGNAL_TOP = 128
 MAST_TOP = 224
 PIPE = 96               # the works' conduits: cover, not climbable
-TOWER = 256             # a tower's cast-iron body
+TOWER = 256             # a tower's body of the invaders' metal
 TOWER_CORE = TOWER + TILE_SIZE      # its glowing core, one tile of the portal's field
 DERRICK = 128           # the yellow key's platform: 8 steps up
-LAVA = GROUND - STEP    # a molten pit: one step down
+LAVA = GROUND - STEP    # a pit (acid or molten): one step down
 VAT = 96
 TURBINE_TOP = TILE_SIZE
 CONSOLE = TILE_SIZE
@@ -281,7 +309,14 @@ BUFFER = (5888, 432, 5952, 528)
 SIGNAL_POST = (5920, 608, 5984, 672)    # its east face, towards the platform, wears SDSIGL1
 TRAIN = (("wagon", (6080, 432, 6464, 528), WAGON),
          ("armour", (6528, 432, 7040, 528), ARMOUR),
-         ("loco", (7104, 432, 7488, 528), ARMOUR))
+         ("loco", (7104, 432, 7344, 528), ARMOUR))     # the boiler; the cab behind it
+# The locomotive's cab at its east end, wider and taller than the boiler like
+# a real one, a room the player can step into from the platform's side: one
+# 128 face of SDCAB1 forward (the backhead), SDCAB2 on the sides and back.
+CAB_SHELL = (7344, 416, 7488, 560)
+CAB_WALL = 8
+CAB = (7352, 424, 7480, 552)            # 128 x 128 inside
+CAB_DOOR = (7416, 552, 7480, 560)       # in the north side, at the back, towards the platform
 LOCKERS_X = 7232
 LOCKERS_Y = (768, 832, 896, 960)        # three lockers; the middle one is S1's panel
 S1_Y = (832, 896)
@@ -295,6 +330,14 @@ LOGS = ((2560, 1216, 256), (2944, 1152, 256), (3392, 1216, 256), (3840, 1152, 25
 LOG_WIDTH = 32
 LOG_BLOCK = 48          # a diagonal trunk: a staircase of blocks, one per 32 along it
 LOG_STAIR = 32
+BIRCH_LOGS = (3, 8, 13)     # of the fifteen (numbered from 1), birch, moss on top; the rest larch
+# The treeline is charred larch; here and there a birch, one 64 face to the
+# sky: (axis, line, start). Every one on a wall with the void behind it.
+TREELINE_BIRCHES = (("h", 384, 2560), ("h", 384, 3456), ("h", 384, 4352), ("h", 384, 5248),
+                    ("h", 384, 6272), ("h", 384, 7104),
+                    ("h", 1408, 2816), ("h", 1408, 3712), ("h", 1408, 4608), ("h", 1408, 5504),
+                    ("v", 1024, 2560), ("v", 1024, 3584), ("h", 4608, 1536), ("h", 4608, 2304))
+BIRCH_WIDTH = 64
 # Z3 The research station: a palisaded clearing, three izbas, the laboratory.
 STATION_YARD = (512, 448, 2240, 1856)
 STATION_GATE = (2240, 768, 2304, 1088)
@@ -320,6 +363,7 @@ TRUNK = 32
 TRUNK_GRID = (1152, 2112, 256)  # first x, first y, spacing
 TRUNK_COUNT = (7, 10)
 TRUNK_JITTER = 32
+BIRCH_EVERY = 7             # of the standing trunks, every seventh (from the fourth) is a birch
 CLEARING = (1664, 2944, 2304, 3456)
 FOREST_PATHS = ((1792, 1952, 2304, 2304),)  # kept clear behind the blue gate
 # Z5 The invaders' works, eating the forest.
@@ -329,9 +373,10 @@ DERRICK_RECT = (4000, 4992, 4256, 5184)
 DERRICK_STAIR_X = (4064, 4192)
 DERRICK_STAIR_Y = 4768          # 7 steps of 32 north from here up to the platform at 4992
 KEY_TOP = (4064, 4992, 4192, 5056)
-WORKS_LAVA = ((3712, 4480, 4544, 4704), (4736, 4352, 4928, 4672))
+WORKS_PITS = ((3712, 4480, 4544, 4704), (4736, 4352, 4928, 4672))
 TOWERS = ((3328, 4992, 3520, 5184), (4608, 5248, 4800, 5440), (4992, 4096, 5184, 4288))
 TOWER_INSET = 32
+GLYPH_WIDTH = 64        # one SDGLYP1 plate: a strip up the middle third of each tower face
 PIPES = ((3264, 4000, 3520, 4064), (4736, 4864, 5248, 4928), (4608, 4992, 4672, 5184),
          (4864, 5440, 5376, 5504))
 RED_GATE_X = (3904, 4032)
@@ -359,12 +404,23 @@ TERRACE = 64
 PORTAL_BASE = (3840, 2688, 4096, 2944)
 PORTAL_FIELD = (3872, 2720, 4064, 2912)
 PYLONS = ((3584, 2432), (4288, 2432), (3584, 3136), (4288, 3136))
-PYLON_SIZE = 64
-CRATER_LAVA = ((3680, 2528, 3808, 2656), (4128, 2528, 4256, 2656), (3680, 2976, 3808, 3104),
+PYLON_SIZE = 64         # one glyph plate a face
+# The portal's frame: four posts of SDPRTE1 at the field's corners, standing
+# proud of it, so the field shows one tile wide between them.
+FRAME_POST = 32
+FRAME_TOP = PORTAL_TOP + 2 * STEP      # 192: 32 over the field
+FRAME_OFFSET = 16       # a 32 face shows the middle of the 64 lump: the cobalt channel
+CRATER_PITS = ((3680, 2528, 3808, 2656), (4128, 2528, 4256, 2656), (3680, 2976, 3808, 3104),
                (4128, 2976, 4256, 3104))
 EXIT_X = (3904, 4032)
 BUNKER = (3840, 1536, 4096, 1728)
 EXIT_NICHE = (3936, 1520, 4000, 1536)
+# Glyph plates either side of the two gates the invaders guard: the red gate on
+# the works' side of the containment, the bunker's gate on the crater's.
+GATE_GLYPHS = (("h", CONTAINMENT_Y[1], RED_GATE_X[0] - GLYPH_WIDTH),
+               ("h", CONTAINMENT_Y[1], RED_GATE_X[1]),
+               ("h", CRATER[1], EXIT_X[0] - GLYPH_WIDTH),
+               ("h", CRATER[1], EXIT_X[1]))
 
 # Every picture on the map: (name, texture, axis, coord, lo, hi). All in the
 # research station: the laboratory's hall is exactly a poster high.
@@ -435,6 +491,19 @@ def trunk_spots() -> list[tuple[int, int]]:
                 continue
             out.append((x, y))
     return out
+
+
+def birch_trunks() -> list[tuple[int, int]]:
+    """The standing trunks that are birch: every BIRCH_EVERY-th, from the fourth."""
+    return [spot for n, spot in enumerate(trunk_spots()) if n % BIRCH_EVERY == 3]
+
+
+def frame_posts() -> tuple[tuple[int, int, int, int], ...]:
+    """The portal frame's four posts, in the field's corners."""
+    x1, y1, x2, y2 = PORTAL_FIELD
+    p = FRAME_POST
+    return ((x1, y1, x1 + p, y1 + p), (x2 - p, y1, x2, y1 + p),
+            (x1, y2 - p, x1 + p, y2), (x2 - p, y2 - p, x2, y2))
 
 
 # --- Editor numbers (src/lumps/MAPINFO, DoomEdNums) ---------------------------
@@ -813,6 +882,94 @@ def secret_panel_style(tag: int, panel: int, texture: str) -> LineStyle:
     return replace(style, flags=style.flags + ("secret",))
 
 
+# --- Alignment (MAP05's method, repeated so each map stays one file) ----------
+# Every lump below is 128 high. ROW_BASES: the height each lump's foot sits on,
+# with every 128 above and below it, whatever floor or ceiling a face hangs
+# from, so the logs' joints meet every floor, the glyph plates and the alien
+# membrane run on through the terraces, the cab's pictures stand whole on its
+# floor. COLUMN_WIDTHS: the lumps whose columns fall where they would on a
+# wall from the map's origin, so a wall split by its neighbours' corners shows
+# no seam (and a glyph plate on a 64 line starts on its edge).
+LUMP_HEIGHT = 128
+ROW_BASES = {LOG_WALL: GROUND, ALIEN: GROUND, GLYPH: GROUND, BARK: GROUND, BIRCH: GROUND,
+             ARMOUR: GROUND, PORTAL_RIM: PORTAL_PLINTH, CAB_FRONT: HUT_FLOOR, CAB_SIDE: HUT_FLOOR}
+COLUMN_WIDTHS = {LOG_WALL: 128, ALIEN: 128, GLYPH: 64, BARK: 64, BIRCH: 64, ARMOUR: 64}
+
+
+def drawn_parts(tm: TextMap, ld, side: int, other: int | None) -> list[tuple[str, int]]:
+    """The parts of sidedef `side` the engine draws, each with the height
+    Doom pegs its texture to: a one-sided wall to its floor (lower-unpegged)
+    or ceiling; a lower texture to the higher floor (or, lower-unpegged, to
+    its own ceiling); an upper texture to the lower ceiling (or, upper-
+    unpegged, to its own). Where two sky ceilings meet nothing is drawn."""
+    flags = set(ld.flags)
+    s = tm.sectors[tm.sidedefs[side].sector]
+    if other is None:
+        return [("texturemiddle", s.heightfloor if "dontpegbottom" in flags else s.heightceiling)]
+    o = tm.sectors[tm.sidedefs[other].sector]
+    parts = []
+    if o.heightfloor > s.heightfloor:
+        parts.append(("texturebottom", s.heightceiling if "dontpegbottom" in flags else o.heightfloor))
+    both_sky = s.textureceiling == SKY and o.textureceiling == SKY
+    if o.heightceiling < s.heightceiling and not both_sky:
+        parts.append(("texturetop", s.heightceiling if "dontpegtop" in flags else o.heightceiling))
+    return parts
+
+
+def world_column(tm: TextMap, ld, side: int) -> int:
+    """The offset that starts this side's texture where the map's grid would
+    have it. Doom runs a front side's texture from v1 to v2 and a back side's
+    from v2 to v1; every line here is axis-aligned."""
+    a, b = tm.vertices[ld.v1], tm.vertices[ld.v2]
+    if side == ld.sideback:
+        a, b = b, a
+    if a.y == b.y:
+        return int(a.x) if b.x > a.x else -int(a.x)
+    return int(a.y) if b.y > a.y else -int(a.y)
+
+
+def align_to_world(tm: TextMap) -> None:
+    """Peg every drawn face of the lumps in ROW_BASES to the world's rows, and
+    those in COLUMN_WIDTHS to its columns (a sidedef's `offsety`, positive
+    raises the texture; `offsetx` along the line)."""
+    for ld in tm.linedefs:
+        for side, other in ((ld.sidefront, ld.sideback), (ld.sideback, ld.sidefront)):
+            if side is None:
+                continue
+            sd = tm.sidedefs[side]
+            for key, ref in drawn_parts(tm, ld, side, other):
+                texture = getattr(sd, key)
+                if texture in ROW_BASES:
+                    sd.offsety = (ROW_BASES[texture] - ref) % LUMP_HEIGHT
+                    if texture in COLUMN_WIDTHS:
+                        sd.offsetx = world_column(tm, ld, side) % COLUMN_WIDTHS[texture]
+                    break
+
+
+def align_run(tm: TextMap, vertical: bool, coord: int, lo: int, hi: int, *, width: int,
+              base: int = 0) -> None:
+    """MAP04's: one texture continuous along the segment [lo, hi] of a grid
+    line, however the painter split it: on every sidedef there the x offset
+    is `base` plus the distance from the segment's end on the viewer's left
+    (each side sees its own left), modulo `width`."""
+    for ld in tm.linedefs:
+        a, b = tm.vertices[ld.v1], tm.vertices[ld.v2]
+        if vertical:
+            if not a.x == b.x == coord:
+                continue
+            p, q = a.y, b.y
+        else:
+            if not a.y == b.y == coord:
+                continue
+            p, q = a.x, b.x
+        if min(p, q) < lo or max(p, q) > hi:
+            continue
+        for side, start, end in ((ld.sidefront, p, q), (ld.sideback, q, p)):
+            if side is None:
+                continue
+            tm.sidedefs[side].offsetx = int(base + (start - lo if end > start else hi - start)) % width
+
+
 def _outline(g: GridMap, rect, texture: str) -> None:
     """Style the four sides of a rectangle with one texture."""
     x1, y1, x2, y2 = rect
@@ -826,7 +983,7 @@ def _outline(g: GridMap, rect, texture: str) -> None:
 def build_plan() -> tuple[TextMap, dict[str, int]]:
     """Build the map; return it with {zone name: sector index}."""
     tm = TextMap(comment=f"{MAP_NAME} v1 generated by src/maps/{MAP_NAME}/map.py - do not edit by hand")
-    g = GridMap(tm, wall=WAGON)
+    g = GridMap(tm, wall=BARK)
     plan: dict[str, int] = {}
 
     def zone(name: str, floor: int, ceil: int, rects, tag: int | None = None, *,
@@ -854,8 +1011,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
                     light=s.lightlevel if light is None else light, **kw)
 
     def door(name: str, floor: int, tag: int, rect, *, light: int, wall: str = STEEL) -> int:
-        """A closed door sector; its own walls are the jambs."""
-        return zone(name, floor, floor, [rect], tag, light=light, wall=wall)
+        """A closed door sector; its own walls are the jambs, its floor a
+        threshold of plate."""
+        return zone(name, floor, floor, [rect], tag, light=light, wall=wall, flat=PLATE)
 
     def block(name: str, top: int, rects, *, wall: str, light: int, flat: str = CRATE_TOP) -> int:
         """A closed open-air block (floor = ceiling, sky): a roof, seen as a
@@ -869,38 +1027,50 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         return like(room, f"{PROP_PREFIX}{name}", rects, floor=top, wall=wall, light=light,
                     **({"flat": flat} if flat else {}))
 
-    def lava(room: str, name: str, rect) -> int:
-        """A molten pit one step deep: it hurts, and it is walked out of."""
+    def pit(room: str, name: str, rect, flat: str) -> int:
+        """A pit of molten metal or acid one step deep: it hurts, and it is
+        walked out of."""
         extra = {**tm.sectors[plan[room]].extra, **LAVA_HURTS}
         return like(room, name, [rect], floor=tm.sectors[plan[room]].heightfloor - STEP,
-                    light=LIGHT_LAVA, flat=MOLTEN, wall=STEEL, extra=extra)
+                    light=LIGHT_LAVA, flat=flat, wall=STEEL, extra=extra)
 
     def hut(room: str, name: str, roof, door_rect) -> None:
         """A wooden hut: a roof block, its room one step up inside, and a
         doorway whose sky sits on the roof's line (no slab above it)."""
         x1, y1, x2, y2 = roof
-        block(f"{PROP_PREFIX}{name}_roof", ROOF, [roof], wall=WAGON,
+        block(f"{PROP_PREFIX}{name}_roof", ROOF, [roof], wall=LOG_WALL,
               light=tm.sectors[plan[room]].lightlevel)
         zone(name, HUT_FLOOR, HUT_CEIL, [(x1 + IZBA_WALL, y1 + IZBA_WALL, x2 - IZBA_WALL, y2 - IZBA_WALL)],
-             light=LIGHT_IZBA, flat=CRATE_TOP, ceiling=CRATE_TOP, wall=WAGON)
+             light=LIGHT_IZBA, flat=CRATE_TOP, ceiling=CRATE_TOP, wall=LOG_WALL)
         zone(f"{name}_door", HUT_FLOOR, ROOF, [door_rect], light=LIGHT_IZBA, flat=CRATE_TOP,
-             ceiling=SKY, wall=WAGON)
+             ceiling=SKY, wall=LOG_WALL)
 
     # The posters first: GridMap keeps the first style registered on a
     # segment, so nothing broader can paint over them.
     for _name, texture, axis, coord, lo, hi in poster_faces():
         (g.style_h if axis == "h" else g.style_v)(coord, lo, hi, LineStyle(texture=texture))
+    # Then the odd birch in the treeline and the glyph plates by the gates,
+    # before the broader runs they stand in.
+    for axis, coord, lo in TREELINE_BIRCHES:
+        (g.style_h if axis == "h" else g.style_v)(coord, lo, lo + BIRCH_WIDTH, LineStyle(texture=BIRCH))
+    for axis, coord, lo in GATE_GLYPHS:
+        (g.style_h if axis == "h" else g.style_v)(coord, lo, lo + GLYPH_WIDTH, LineStyle(texture=GLYPH))
 
     # ======================================================================
     # Z1 The railhead (start)
     # ======================================================================
     zone("z1_ballast", GROUND, RAIL_SKY, [RAIL_BALLAST], light=LIGHT_RAIL, flat=BALLAST,
-         ceiling=SKY, wall=WAGON)
-    zone("z1_yard", GROUND, RAIL_SKY, [RAIL_YARD], light=LIGHT_RAIL, flat=BALLAST,
-         ceiling=SKY, wall=WAGON)
+         ceiling=SKY, wall=BARK)
+    zone("z1_yard", GROUND, RAIL_SKY, [RAIL_YARD], light=LIGHT_RAIL, flat=MOSS,
+         ceiling=SKY, wall=BARK)
     like("z1_ballast", "z1_track", [RAIL_TRACK], flat=TRACK, extra={"rotationfloor": 90.0})
     zone("z1_platform", PLATFORM, RAIL_SKY, [RAIL_PLATFORM], light=LIGHT_RAIL, flat=CRATE_TOP,
          ceiling=SKY, wall=WAGON)
+    # The platform's two walls onto the void: the halt's store behind it (logs)
+    # and the treeline at its east end.
+    px1, py1, px2, py2 = RAIL_PLATFORM
+    g.style_h(py2, HALT_ROOF[2], px2, LineStyle(texture=LOG_WALL))
+    g.style_v(px2, py1, py2, LineStyle(texture=BARK))
     prop("z1_ballast", "z1_buffer", [BUFFER], BUFFER_TOP, wall=STEEL, flat=PLATE)
     for name, rect, wall in TRAIN:
         prop("z1_ballast", f"z1_{name}", [rect], WAGON_TOP, wall=wall, flat=PLATE)
@@ -908,15 +1078,28 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     _, (ax1, ay1, ax2, ay2), _ = TRAIN[1]
     for y in (ay1, ay2):
         g.style_h(y, ax1, ax2, LineStyle(texture=ARMOUR_STAR))
+    # The locomotive's cab: a shell of armour plate, the room inside one step up
+    # under a roof of plate, its doorway's sky on the shell's line (the huts'
+    # way: no slab over it), and the cab's own pictures on its four walls.
+    block(f"{PROP_PREFIX}z1_cab_shell", ROOF, [CAB_SHELL], wall=ARMOUR, light=LIGHT_RAIL, flat=PLATE)
+    zone("z1_cab", HUT_FLOOR, HUT_CEIL, [CAB], light=LIGHT_HALT, flat=PLATE, ceiling=PLATE,
+         wall=CAB_SIDE)
+    zone("z1_cab_door", HUT_FLOOR, ROOF, [CAB_DOOR], light=LIGHT_HALT, flat=PLATE, ceiling=SKY,
+         wall=ARMOUR)
+    kx1, ky1, kx2, ky2 = CAB
+    g.style_v(kx1, ky1, ky2, LineStyle(texture=CAB_FRONT))
+    g.style_v(kx2, ky1, ky2, LineStyle(texture=CAB_SIDE))
+    g.style_h(ky1, kx1, kx2, LineStyle(texture=CAB_SIDE))
+    g.style_h(ky2, kx1, CAB_DOOR[0], LineStyle(texture=CAB_SIDE))
     sx1, sy1, sx2, sy2 = SIGNAL_POST
     prop("z1_yard", "z1_signal", [SIGNAL_POST], SIGNAL_TOP, wall=STEEL, flat=PLATE)
     g.style_v(sx2, sy1, sy2, LineStyle(texture=SIGNAL))
     # The halt: a wooden hut on the platform, the IZh on its bench.
-    block(f"{PROP_PREFIX}z1_halt_roof", ROOF, [HALT_ROOF], wall=WAGON, light=LIGHT_RAIL)
+    block(f"{PROP_PREFIX}z1_halt_roof", ROOF, [HALT_ROOF], wall=LOG_WALL, light=LIGHT_RAIL)
     zone("z1_halt", HUT_FLOOR, HUT_CEIL, [HALT], light=LIGHT_HALT, flat=CRATE_TOP,
-         ceiling=CRATE_TOP, wall=WAGON)
+         ceiling=CRATE_TOP, wall=LOG_WALL)
     zone("z1_halt_door", HUT_FLOOR, ROOF, [HALT_DOOR], light=LIGHT_HALT, flat=CRATE_TOP,
-         ceiling=SKY, wall=WAGON)
+         ceiling=SKY, wall=LOG_WALL)
     # S1: of the three lockers on the halt's east wall the middle one stands
     # back in shadow; it is a panel onto the stationmaster's store.
     lx = LOCKERS_X
@@ -924,32 +1107,36 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         if (y1, y2) != S1_Y:
             g.style_v(lx, y1, y2, LineStyle(texture=LOCKER))
     zone("s1_niche", HUT_FLOOR, HUT_CEIL, [(lx, S1_Y[0], lx + NICHE_DEPTH, S1_Y[1])],
-         light=LIGHT_CLUE, flat=CRATE_TOP, ceiling=CRATE_TOP, wall=WAGON)
+         light=LIGHT_CLUE, flat=CRATE_TOP, ceiling=CRATE_TOP, wall=LOG_WALL)
     s1_panel = zone("s1_panel", HUT_FLOOR, HUT_FLOOR,
                     [(lx + NICHE_DEPTH, S1_Y[0], lx + 2 * NICHE_DEPTH, S1_Y[1])], TAG_S1_PANEL,
-                    light=LIGHT_CLUE, flat=CRATE_TOP, wall=WAGON)
+                    light=LIGHT_CLUE, flat=CRATE_TOP, wall=LOG_WALL)
     zone("s1_passage", HUT_FLOOR, HUT_CEIL, [(lx + 2 * NICHE_DEPTH, S1_Y[0], HALT_ROOF[2], S1_Y[1])],
-         light=LIGHT_SECRET, flat=CRATE_TOP, ceiling=CRATE_TOP, wall=WAGON)
+         light=LIGHT_SECRET, flat=CRATE_TOP, ceiling=CRATE_TOP, wall=LOG_WALL)
     zone("s1_store", HUT_FLOOR, HUT_CEIL, [(HALT_ROOF[2], 768, 7488, 1024)], light=LIGHT_SECRET,
-         flat=CRATE_TOP, ceiling=CRATE_TOP, wall=WAGON, special=SECTOR_SPECIAL_SECRET)
+         flat=CRATE_TOP, ceiling=CRATE_TOP, wall=LOG_WALL, special=SECTOR_SPECIAL_SECRET)
     for x in (lx + NICHE_DEPTH, lx + 2 * NICHE_DEPTH):
         g.style_v(x, S1_Y[0], S1_Y[1], secret_panel_style(TAG_S1_PANEL, s1_panel, LOCKER))
 
     # ======================================================================
     # Z2 The fallen taiga
     # ======================================================================
-    zone("z2_taiga", GROUND, TAIGA_SKY, [TAIGA], light=LIGHT_TAIGA, flat=BALLAST,
-         ceiling=SKY, wall=WAGON)
+    zone("z2_taiga", GROUND, TAIGA_SKY, [TAIGA], light=LIGHT_TAIGA, flat=BURNT,
+         ceiling=SKY, wall=BARK, extra={"rotationfloor": BURNT_TURN})
     for n, (cx, cy, length) in enumerate(LOGS, start=1):
-        prop("z2_taiga", f"z2_log_{n}", log_rects(cx, cy, length), LOG, wall=WAGON, flat=CRATE_TOP)
+        birch = n in BIRCH_LOGS
+        prop("z2_taiga", f"z2_log_{n}", log_rects(cx, cy, length), LOG,
+             wall=BIRCH if birch else BARK, flat=MOSS if birch else BURNT)
+    # The taiga's west wall is the station's palisade, seen from outside.
+    g.style_v(TAIGA[0], TAIGA[1], TAIGA[3], LineStyle(texture=LOG_WALL))
 
     # ======================================================================
     # Z3 The research station
     # ======================================================================
-    zone("z3_yard", GROUND, STATION_SKY, [STATION_YARD], light=LIGHT_STATION, flat=BALLAST,
-         ceiling=SKY, wall=WAGON)
-    zone("z3_gate", GROUND, STATION_SKY, [STATION_GATE], light=LIGHT_STATION, flat=BALLAST,
-         ceiling=SKY, wall=WAGON)
+    zone("z3_yard", GROUND, STATION_SKY, [STATION_YARD], light=LIGHT_STATION, flat=MOSS,
+         ceiling=SKY, wall=LOG_WALL)
+    zone("z3_gate", GROUND, STATION_SKY, [STATION_GATE], light=LIGHT_STATION, flat=MOSS,
+         ceiling=SKY, wall=LOG_WALL)
     prop("z3_yard", "z3_mast", [MAST], MAST_TOP, wall=STEEL, flat=PLATE)
     for key, (x1, y1, x2, y2) in IZBAS.items():
         cy = (y1 + y2) // 2
@@ -989,43 +1176,53 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     bx1, bx2 = BLUE_GATE_X
     fy1, fy2 = FENCE_Y
     zone("z3_blue_portal", GROUND, DOOR_HEIGHT, [(bx1, fy1, bx2, fy1 + 32)], light=LIGHT_BEACON,
-         flat=BALLAST, ceiling=CEIL_CONCRETE, wall=STEEL, extra=BLUE_LIGHT)
+         flat=MOSS, ceiling=CEIL_CONCRETE, wall=ALIEN, extra=BLUE_LIGHT)
     blue_door = door("z4_blue_door", GROUND, TAG_BLUE_DOOR, (bx1, fy1 + 32, bx2, fy1 + 64),
-                     light=LIGHT_STATION)
+                     light=LIGHT_STATION, wall=ALIEN)
     zone("z4_blue_porch", GROUND, DOOR_HEIGHT, [(bx1, fy1 + 64, bx2, fy2)], light=LIGHT_FOREST,
-         flat=BALLAST, ceiling=CEIL_CONCRETE, wall=STEEL)
-    g.style_h(fy1, STATION_YARD[0], bx1, LineStyle(texture=STEEL))
-    g.style_h(fy1, bx2, STATION_YARD[2], LineStyle(texture=STEEL))
+         flat=PEAT, ceiling=CEIL_CONCRETE, wall=ALIEN)
+    g.style_h(fy1, STATION_YARD[0], bx1, LineStyle(texture=ALIEN))
+    g.style_h(fy1, bx2, STATION_YARD[2], LineStyle(texture=ALIEN))
 
     # ======================================================================
     # Z4 The standing forest at the epicentre
     # ======================================================================
-    zone("z4_forest", GROUND, FOREST_SKY, [FOREST], light=LIGHT_FOREST, flat=BALLAST,
-         ceiling=SKY, wall=RUST)
+    zone("z4_forest", GROUND, FOREST_SKY, [FOREST], light=LIGHT_FOREST, flat=PEAT,
+         ceiling=SKY, wall=BARK)
     for x, y in trunk_spots():
         g.carve(x - TRUNK // 2, y - TRUNK // 2, x + TRUNK // 2, y + TRUNK // 2)
+    for x, y in birch_trunks():
+        _outline(g, (x - TRUNK // 2, y - TRUNK // 2, x + TRUNK // 2, y + TRUNK // 2), BIRCH)
     fx1, fy1_, fx2, fy2_ = FOREST
-    g.style_h(fy1_, fx1, bx1, LineStyle(texture=STEEL))
-    g.style_h(fy1_, bx2, fx2, LineStyle(texture=STEEL))
-    g.style_v(fx1, fy1_, fy2_, LineStyle(texture=WAGON))
-    g.style_h(fy2_, fx1, fx2, LineStyle(texture=WAGON))
-    g.style_v(fx2, fy1_, CONTAINMENT_Y[1], LineStyle(texture=TUBBING))
+    g.style_h(fy1_, fx1, bx1, LineStyle(texture=ALIEN))
+    g.style_h(fy1_, bx2, fx2, LineStyle(texture=ALIEN))
+    g.style_v(fx1, fy1_, fy2_, LineStyle(texture=BARK))
+    g.style_h(fy2_, fx1, fx2, LineStyle(texture=BARK))
+    g.style_v(fx2, fy1_, CONTAINMENT_Y[1], LineStyle(texture=ALIEN))
 
     # ======================================================================
     # Z5 The invaders' works
     # ======================================================================
     zone("z5_works", GROUND, WORKS_SKY, [WORKS], light=LIGHT_WORKS, flat=PLATE,
-         ceiling=SKY, wall=TUBBING)
-    like("z5_works", "z5_edge", [WORKS_EDGE], flat=BALLAST, light=LIGHT_EDGE)
-    for n, rect in enumerate(WORKS_LAVA, start=1):
-        lava("z5_works", f"z5_lava_{n}", rect)
+         ceiling=SKY, wall=ALIEN)
+    like("z5_works", "z5_edge", [WORKS_EDGE], flat=BURNT, light=LIGHT_EDGE)
+    # The edge's west wall stands where the forest goes on: the treeline.
+    g.style_v(WORKS_EDGE[0], FOREST[3], WORKS_EDGE[3], LineStyle(texture=BARK))
+    for n, rect in enumerate(WORKS_PITS, start=1):
+        pit("z5_works", f"z5_acid_{n}", rect, WORKS_PIT_FLAT)
     for n, (x1, y1, x2, y2) in enumerate(TOWERS, start=1):
-        prop("z5_works", f"z5_tower_{n}", [(x1, y1, x2, y2)], TOWER, wall=TUBBING, flat=PLATE)
+        prop("z5_works", f"z5_tower_{n}", [(x1, y1, x2, y2)], TOWER, wall=ALIEN, flat=PLATE)
+        # A strip of glyph plates up the middle of each face.
+        gx, gy = (x1 + x2 - GLYPH_WIDTH) // 2, (y1 + y2 - GLYPH_WIDTH) // 2
+        for y in (y1, y2):
+            g.style_h(y, gx, gx + GLYPH_WIDTH, LineStyle(texture=GLYPH))
+        for x in (x1, x2):
+            g.style_v(x, gy, gy + GLYPH_WIDTH, LineStyle(texture=GLYPH))
         i = TOWER_INSET
         prop("z5_works", f"z5_tower_{n}_core", [(x1 + i, y1 + i, x2 - i, y2 - i)], TOWER_CORE,
              wall=PORTAL, flat=PLATE, light=LIGHT_GLOW)
     for n, rect in enumerate(PIPES, start=1):
-        prop("z5_works", f"z5_pipe_{n}", [rect], PIPE, wall=STEEL, flat=PLATE)
+        prop("z5_works", f"z5_pipe_{n}", [rect], PIPE, wall=ALIEN, flat=PLATE)
     # The derrick: a stair of seven steps north out of the avenue to a platform
     # at 128; the yellow key at the stair's head.
     zone("z5_derrick", DERRICK, WORKS_SKY, [DERRICK_RECT], light=LIGHT_WORKS, flat=GRATING,
@@ -1037,42 +1234,42 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
              light=LIGHT_WORKS, flat=GRATING, ceiling=SKY, wall=STEEL)
     zone("z5_key_top", DERRICK, WORKS_SKY, [KEY_TOP], light=LIGHT_BEACON, flat=GRATING,
          ceiling=SKY, wall=STEEL, extra=YELLOW_LIGHT)
-    # S3: four recesses in the north wall, one tile of cast iron each; the
+    # S3: four recesses in the north wall, one tile of the invaders' metal each; the
     # third is set twice as deep, in shadow, and is a panel.
     for x in PIPE_RECESSES_X:
         if (x, x + TILE_SIZE) == S3_X:
             continue
         zone(f"z5_recess_{x}", GROUND, GROUND + TILE_SIZE,
              [(x, WORKS_NORTH, x + TILE_SIZE, WORKS_NORTH + NICHE_DEPTH)], light=LIGHT_WORKS,
-             flat=PLATE, ceiling=CEIL_CONCRETE, wall=TUBBING)
+             flat=PLATE, ceiling=CEIL_CONCRETE, wall=ALIEN)
     zone("s3_niche", GROUND, GROUND + TILE_SIZE,
          [(S3_X[0], WORKS_NORTH, S3_X[1], WORKS_NORTH + 2 * NICHE_DEPTH)], light=LIGHT_CLUE,
-         flat=PLATE, ceiling=CEIL_CONCRETE, wall=TUBBING)
+         flat=PLATE, ceiling=CEIL_CONCRETE, wall=ALIEN)
     s3_panel = zone("s3_panel", GROUND, GROUND,
                     [(S3_X[0], WORKS_NORTH + 2 * NICHE_DEPTH, S3_X[1], WORKS_NORTH + 3 * NICHE_DEPTH)],
-                    TAG_S3_PANEL, light=LIGHT_CLUE, flat=PLATE, wall=TUBBING)
+                    TAG_S3_PANEL, light=LIGHT_CLUE, flat=PLATE, wall=ALIEN)
     zone("s3_passage", GROUND, GROUND + TILE_SIZE,
          [(S3_X[0], WORKS_NORTH + 3 * NICHE_DEPTH, S3_X[1], 5712)], light=LIGHT_SECRET,
-         flat=PLATE, ceiling=CEIL_CONCRETE, wall=TUBBING)
+         flat=PLATE, ceiling=CEIL_CONCRETE, wall=ALIEN)
     zone("s3_store", GROUND, GROUND + TILE_SIZE, [(3968, 5712, 4352, 5888)], light=LIGHT_SECRET,
-         flat=PLATE, ceiling=CEIL_CONCRETE, wall=TUBBING, special=SECTOR_SPECIAL_SECRET)
+         flat=PLATE, ceiling=CEIL_CONCRETE, wall=ALIEN, special=SECTOR_SPECIAL_SECRET)
     for y in (WORKS_NORTH + 2 * NICHE_DEPTH, WORKS_NORTH + 3 * NICHE_DEPTH):
-        g.style_h(y, S3_X[0], S3_X[1], secret_panel_style(TAG_S3_PANEL, s3_panel, TUBBING))
+        g.style_h(y, S3_X[0], S3_X[1], secret_panel_style(TAG_S3_PANEL, s3_panel, ALIEN))
     # The red gate in the crater's containment wall, south of the works.
     rx1, rx2 = RED_GATE_X
     cy1, cy2 = CONTAINMENT_Y
     zone("z5_red_portal", GROUND, DOOR_HEIGHT, [(rx1, cy2 - 32, rx2, cy2)], light=LIGHT_BEACON,
-         flat=PLATE, ceiling=CEIL_CONCRETE, wall=TUBBING, extra=RED_LIGHT)
+         flat=PLATE, ceiling=CEIL_CONCRETE, wall=ALIEN, extra=RED_LIGHT)
     red_door = door("z7_red_door", GROUND, TAG_RED_DOOR, (rx1, cy2 - 64, rx2, cy2 - 32),
-                    light=LIGHT_PORCH)
+                    light=LIGHT_PORCH, wall=ALIEN)
     zone("z7_red_porch", GROUND, DOOR_HEIGHT, [(rx1, cy1, rx2, cy2 - 64)], light=LIGHT_PORCH,
-         flat=PLATE, ceiling=CEIL_CONCRETE, wall=TUBBING)
+         flat=PLATE, ceiling=CEIL_CONCRETE, wall=ALIEN)
     # The works' two closets in the containment wall, either side of the gate.
     for name, (cx1, cx2) in CLOSETS.items():
         zone(f"{name}_door", GROUND, GROUND, [(cx1, cy2 - NICHE_DEPTH, cx2, cy2)], TAG_AMBUSH,
-             light=LIGHT_CLOSET, wall=TUBBING)
+             light=LIGHT_CLOSET, flat=PLATE, wall=ALIEN)
         zone(name, GROUND, GROUND + CLOSET_HEIGHT, [(cx1, cy1 + 32, cx2, cy2 - NICHE_DEPTH)],
-             light=LIGHT_CLOSET, flat=PLATE, wall=TUBBING)
+             light=LIGHT_CLOSET, flat=PLATE, wall=ALIEN)
     # The yellow door: the refinery's, in the works' east wall.
     wx1, wx2 = REFINERY_WALL_X
     yy1, yy2 = YELLOW_DOOR_Y
@@ -1088,7 +1285,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     zone("z6_refinery", GROUND, REFINERY_CEIL, [REFINERY], light=LIGHT_REFINERY, flat=PLATE,
          ceiling=CEIL_CONCRETE, wall=BRICK)
-    lava("z6_refinery", "z6_channel", CHANNEL)
+    pit("z6_refinery", "z6_channel", CHANNEL, CHANNEL_FLAT)
     zone("z6_bridge", GROUND, REFINERY_CEIL, [BRIDGE], light=LIGHT_REFINERY, flat=GRATING,
          ceiling=CEIL_CONCRETE, wall=STEEL)
     for n, rect in enumerate(VATS, start=1):
@@ -1110,28 +1307,31 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # ======================================================================
     # Z7 The crater's rim, Z8 its terraces and floor, Z9 the control bunker
     # ======================================================================
-    zone("z7_rim", GROUND, CRATER_SKY, [CRATER], light=LIGHT_CRATER, flat=BALLAST,
-         ceiling=SKY, wall=TUBBING)
+    zone("z7_rim", GROUND, CRATER_SKY, [CRATER], light=LIGHT_CRATER, flat=BURNT,
+         ceiling=SKY, wall=ALIEN)
     x1, y1, x2, y2 = CRATER
     for k in range(1, TERRACES + 1):
         i = RIM + TERRACE * (k - 1)
         zone(f"z8_tier_{k}", GROUND - STEP * k, CRATER_SKY, [(x1 + i, y1 + i, x2 - i, y2 - i)],
-             light=LIGHT_CRATER, flat=BALLAST, ceiling=SKY, wall=STEEL)
+             light=LIGHT_CRATER, flat=BURNT, ceiling=SKY, wall=ALIEN)
     i = RIM + TERRACE * TERRACES
     zone("z8_floor", CRATER_FLOOR, CRATER_SKY, [(x1 + i, y1 + i, x2 - i, y2 - i)],
-         light=LIGHT_CRATER, flat=PLATE, ceiling=SKY, wall=STEEL)
-    for n, rect in enumerate(CRATER_LAVA, start=1):
-        lava("z8_floor", f"z8_lava_{n}", rect)
+         light=LIGHT_CRATER, flat=PLATE, ceiling=SKY, wall=ALIEN)
+    for n, rect in enumerate(CRATER_PITS, start=1):
+        pit("z8_floor", f"z8_acid_{n}", rect, CRATER_PIT_FLAT)
     for n, (px, py) in enumerate(PYLONS, start=1):
         prop("z8_floor", f"z8_pylon_{n}", [(px, py, px + PYLON_SIZE, py + PYLON_SIZE)], PYLON,
-             wall=TUBBING, flat=PLATE)
-    prop("z8_floor", "z8_portal_base", [PORTAL_BASE], PORTAL_PLINTH, wall=STEEL, flat=PLATE)
+             wall=GLYPH, flat=PLATE)
+    prop("z8_floor", "z8_portal_base", [PORTAL_BASE], PORTAL_PLINTH, wall=ALIEN, flat=PLATE)
     prop("z8_floor", "z8_portal", [PORTAL_FIELD], PORTAL_TOP, wall=PORTAL, flat=PLATE,
          light=LIGHT_GLOW)
+    for n, rect in enumerate(frame_posts(), start=1):
+        prop("z8_floor", f"z8_frame_{n}", [rect], FRAME_TOP, wall=PORTAL_RIM, flat=PLATE,
+             light=LIGHT_GLOW)
     # The control bunker under the south rim: the gate only the boss's death opens.
     ex1, ex2 = EXIT_X
     zone("z9_exit_porch", GROUND, DOOR_HEIGHT, [(ex1, y1 - 32, ex2, y1)], light=LIGHT_PORCH,
-         flat=PLATE, ceiling=CEIL_CONCRETE, wall=TUBBING)
+         flat=PLATE, ceiling=CEIL_CONCRETE, wall=ALIEN)
     exit_gate = door("z9_gate", GROUND, TAG_BOSS_EXIT, (ex1, y1 - 64, ex2, y1 - 32),
                      light=LIGHT_EXIT_HALL)
     zone("z9_hall", GROUND, DOOR_HEIGHT, [BUNKER], light=LIGHT_EXIT_HALL, flat=PLATE,
@@ -1158,6 +1358,17 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     g.style_h(EXIT_NICHE[1], EXIT_NICHE[0], EXIT_NICHE[2], exit_switch_style(texture=EXIT_FACE))
 
     g.build()
+    align_to_world(tm)
+    # The cab's pictures start on each wall's left end (SDCAB1 is one 128
+    # face), and each frame post shows the middle of its lump.
+    align_run(tm, True, kx1, ky1, ky2, width=128)
+    for args in ((True, kx2, ky1, ky2), (False, ky1, kx1, kx2), (False, ky2, kx1, CAB_DOOR[0])):
+        align_run(tm, *args, width=64)
+    for x1, y1, x2, y2 in frame_posts():
+        for x in (x1, x2):
+            align_run(tm, True, x, y1, y2, width=64, base=FRAME_OFFSET)
+        for y in (y1, y2):
+            align_run(tm, False, y, x1, x2, width=64, base=FRAME_OFFSET)
 
     # Things.
     tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START,
@@ -1193,9 +1404,10 @@ def lumps() -> list[tuple[str, bytes]]:
 
 
 # Every lump name this map may put in a sidedef or a sector.
-WALL_TEXTURES = ((CONCRETE, STEEL, CRATE, LOCKER, TILE, TILE_DADO, TUBBING, BRICK, RUST, PORTAL,
+WALL_TEXTURES = ((CONCRETE, STEEL, CRATE, LOCKER, TILE, TILE_DADO, BRICK, RUST, PORTAL,
                   FLAG_REICH, FLAG_LEGION, WAGON, ARMOUR_STAR, ARMOUR, SIGNAL, TURBINE, CONTROL,
+                  CAB_FRONT, CAB_SIDE, BARK, BIRCH, LOG_WALL, ALIEN, GLYPH, PORTAL_RIM,
                   LENIN, STALIN, MURAL) + DOOR_LEAVES + SWITCH_FACES
                  + ((MARX_ENGELS,) if MARX_ENGELS else ()))
 FLAT_TEXTURES = (CRATE_TOP, LAB_FLOOR, CEIL_LAMP, CEIL_CONCRETE, PLATE, GRATING, MOLTEN, TRACK,
-                 BALLAST, SKY)
+                 BALLAST, BURNT, PEAT, MOSS, ACID, SKY)

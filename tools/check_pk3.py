@@ -39,7 +39,8 @@ Checks (one block of output per category):
              same rule (MOD-SPEC 4.3, debt T16; animations since N6c)
   images     PNGs under textures/ and flats/ are colour type 3 (indexed),
              every colour they use is in docs/art/palette.json, and their
-             dimensions follow the contract. The one exception is the
+             dimensions follow the contract (the declared skies,
+             SKY_TEXTURES, at a sky size, D113). The one exception is the
              masked wall textures (MASKED_TEXTURES, D66): RGBA, alpha hard
              0/255, every opaque pixel in the palette
   sprites    sprite lumps are NAMEFR[FR]: 4-char name, frame letter,
@@ -138,7 +139,11 @@ PNG_RGBA_CHANNELS = 4
 # every opaque pixel inside the palette. Flats can never be masked.
 MASKED_TEXTURES = frozenset({"SDCHAN1",            # the Tankograd chain and hook (D66)
                              "SDKREM2",            # the Kremlin merlon, MAP06 (D107)
-                             "SDINSL1"})           # the dam's HV insulator string, MAP05 (D107)
+                             "SDINSL1",            # the dam's HV insulator string, MAP05 (D107)
+                             # D113 (installed 2026-10-22): Episode 3's crane
+                             # jib, MAP08; Episode 2 round 2's window bars and
+                             # HV fence, MAP05, and the Kremlin's ruby star, MAP06.
+                             "SDCRAN1", "SDGRIL1", "SDHVLT1", "SDRUBY1"})
 MASKED_ALPHA = frozenset({0, 255})
 DIMENSION_MULTIPLE = 8                  # Doom tiles on powers of two
 FLAT_SIZE = (64, 64)                    # a Doom flat is 64x64 by definition
@@ -147,6 +152,15 @@ FLAT_SIZE = (64, 64)                    # a Doom flat is 64x64 by definition
 # 256x64 since D66: the Tankograd works banner SDSLOG1, one slogan in two lines.
 ALLOWED_WALL_SIZES = ((64, 64), (64, 128), (128, 64), (128, 128), (128, 256),  # crates since D29
                       (256, 64))
+# Sky textures (D113): MAPINFO's sky1 of MAP04-06 names our own skies, one
+# 360-degree turn at 1024x128 (Freedoom's SKY1 is 256x128 and repeats four
+# times round the view; how GZDoom maps the wider picture is NOT VERIFIED
+# until the PM's engine pass, D26). Declared, like the masked textures: a
+# lump in SKY_TEXTURES may be a sky size, any other wall at 1024x128 is
+# still an unagreed size.
+SKY_SIZES = ((1024, 128),)
+SKY_TEXTURES = frozenset({"SDSKY1",                # the Urals at night, MAP04 and MAP05
+                          "SDSKY2"})               # Moscow at night, MAP06
 
 # Sprite naming (Doom convention): NAMEFR or NAMEFRFR.
 SPRITE_NAME_LEN = 4
@@ -712,7 +726,13 @@ PALETTE_V2_LUMPS = frozenset({"SDMOSA1"}  # D56
                              # D107: Episode 2's bricks in marble_red, as SDBRCK1
                              # (D66): the roundhouse, the Kremlin wall, the banner
                              # hung on it and the Spasskaya stone.
-                             | {"SDBRCK3", "SDKREM1", "SDBANR1", "SDSPAS1"})
+                             | {"SDBRCK3", "SDKREM1", "SDBANR1", "SDSPAS1"}
+                             # D113: Episode 3's portal rim (mosaic_cobalt);
+                             # Episode 2 round 2's blue key door (mosaic_cobalt),
+                             # the Spasskaya clock and the Historical Museum
+                             # (marble_red) and the two banners on SDKREM1
+                             # (marble_red; SDFLAG4's canton mosaic_cobalt).
+                             | {"SDPRTE1", "SDDOORB", "SDCLOK1", "SDMUSE1", "SDFLAG3", "SDFLAG4"})
 # The masked lumps (RGBA, so not in PALETTE_V2_LUMPS, which is indexed lumps
 # only) approved in v2: D107's merlon SDKREM2 is SDKREM1's brick cut out.
 PALETTE_V2_MASKED = frozenset({"SDKREM2"})
@@ -1186,6 +1206,11 @@ def check_images(pkg: Package, palette: set[tuple[int, int, int]] | None, report
             if (png.width, png.height) != FLAT_SIZE:
                 report.error("images", path,
                              f"{png.width}x{png.height}: a flat must be {FLAT_SIZE[0]}x{FLAT_SIZE[1]}")
+        elif Path(path).stem.upper() in SKY_TEXTURES:
+            if (png.width, png.height) not in SKY_SIZES:
+                report.warn("images", path,
+                            f"{png.width}x{png.height} is not one of the agreed sky sizes "
+                            + " / ".join(f"{w}x{h}" for w, h in SKY_SIZES))
         elif (png.width, png.height) not in ALLOWED_WALL_SIZES:
             report.warn("images", path,
                         f"{png.width}x{png.height} is not one of the agreed wall sizes "

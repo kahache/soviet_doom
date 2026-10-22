@@ -1,5 +1,14 @@
 """D67 (2026-10-14): the Panzermensch and the Schwer wear their own sprites.
 
+REDRAWN by D109 and D114 (2026-10-22): the set that ships now is the
+Google Gemini redraw built by `tools/art/gemini_enemy.py panzer` and `panzer_heavy` into
+`work/art/enemies_gemini/panzer` and `panzer_heavy/` (MOD-SPEC 6.3, "The seven enemies redrawn
+from Google Gemini"), same lump names, frame letters and rotations, so the
+state machine below is untouched. The `files` checks read that build; the
+rig render named below is history (the generator is kept), and a lump of
+it shipping again is a failure. tests/test_gemini_enemy_install.py holds
+the install itself.
+
 The CEO chose cell D of the heavies sweep, the bare skull in a riveted iron
 mask (D65, "Panzermensch D"), and approved its full set with the Schwer, its
 black variant, alongside (D67, "OK al Panzermensch"): the 71 `SDPM` and 71
@@ -67,7 +76,9 @@ SRC_DIR = PROJECT_ROOT / "src"
 PANZER_ZS = SRC_DIR / "zscript" / "monsters" / "panzermensch.zs"
 SCHWER_ZS = SRC_DIR / "zscript" / "monsters" / "panzermensch_schwer.zs"
 PANZER_SPRITES = PROJECT_ROOT / "assets" / "sprites" / "panzermensch"
-WORK_FULL = PROJECT_ROOT / "work" / "art" / "enemies" / "heavy" / "full"
+WORK_FULL = PROJECT_ROOT / "work" / "art" / "enemies" / "heavy" / "full"   # the rig sets, history since D109
+WORK_GEMINI = {"SDPM": PROJECT_ROOT / "work" / "art" / "enemies_gemini" / "panzer",   # what ships since D109
+               "SDPS": PROJECT_ROOT / "work" / "art" / "enemies_gemini" / "panzer_heavy"}
 PALETTE_JSON = PROJECT_ROOT / "docs" / "art" / "palette.json"
 sys.path.insert(0, str(TOOLS_DIR))
 
@@ -93,14 +104,23 @@ EXPECTED_LUMPS = {f"{s}{f}{r}" for s in (BASE, HEAVY) for f in ROTATED_FRAMES fo
     | {f"{s}{f}0" for s in (BASE, HEAVY) for f in FLAT_FRAMES}
 BLOOD_MAX_INDEX = 5                   # D49: the drawn blood is flag_red 0-5 (gen_heavy.py PM_BLOOD)
 
-# (canvas width, height, grAb left, top) per sprite and frame group, as
-# gen_heavy.py drew them (PM_CV / PS_CV and PM_DEATH_CV / PS_DEATH_CV, grAb
-# from rig_core.grab_offsets): measured on the approved files 2026-10-14.
+# (canvas width, height, grAb left, top) per sprite and frame, as
+# gemini_enemy.py placed the Gemini redraw (D109): one canvas a frame for
+# its rotations, `left` the axis, `top` the floor line 4 px over the feet's
+# last row: measured on the installed files 2026-10-22. (The rig sets had
+# one living and one death canvas a sprite: SDPM 112 x 96 and 176 x 120,
+# SDPS 128 x 104 and 192 x 140.)
 CANVASES = {
-    (BASE, "living"): (112, 96, 56, 86),
-    (BASE, "death"): (176, 120, 64, 92),
-    (HEAVY, "living"): (128, 104, 64, 94),
-    (HEAVY, "death"): (192, 140, 68, 100),
+    BASE: {"A": (136, 72, 68, 65), "B": (112, 72, 56, 65), "C": (104, 72, 52, 66),
+           "D": (112, 72, 56, 65), "E": (128, 72, 64, 67), "F": (128, 72, 64, 67),
+           "G": (128, 72, 64, 66), "H": (120, 72, 60, 66), "I": (96, 72, 48, 66),
+           "J": (88, 72, 44, 67), "K": (72, 72, 36, 60), "L": (88, 72, 44, 61),
+           "M": (80, 72, 40, 63), "N": (96, 56, 48, 46), "O": (96, 56, 48, 46)},
+    HEAVY: {"A": (144, 80, 72, 73), "B": (120, 80, 60, 73), "C": (120, 80, 60, 74),
+            "D": (120, 80, 60, 73), "E": (136, 80, 68, 75), "F": (136, 80, 68, 75),
+            "G": (144, 80, 72, 74), "H": (128, 80, 64, 74), "I": (112, 80, 56, 74),
+            "J": (96, 80, 48, 75), "K": (80, 80, 40, 68), "L": (104, 80, 52, 68),
+            "M": (88, 80, 44, 71), "N": (112, 64, 56, 52), "O": (112, 64, 56, 52)},
 }
 
 # The body (D65: the Schwer is modelled x 1.12; D67: its Height and Radius
@@ -325,37 +345,51 @@ class FileTests(unittest.TestCase):
             grab = read_grab(data)
             self.assertIsNotNone(grab, f"{p}: no grAb before IDAT, GZDoom would draw it at 0,0")
             width, height = struct.unpack(">II", data[16:24])
-            group = "living" if p.stem[4] in ROTATED_FRAMES else "death"
-            self.assertEqual((width, height) + tuple(grab), CANVASES[(p.stem[:4], group)], p.name)
+            self.assertEqual((width, height) + tuple(grab), CANVASES[p.stem[:4]][p.stem[4]], p.name)
             left, top = grab
             self.assertTrue(0 < left < width and 0 < top <= height, p.name)
-            if group == "living":
-                self.assertEqual(left, width // 2, p.name)
+            self.assertEqual(left, width // 2, p.name)
 
-    @unittest.skipUnless(WORK_FULL.is_dir(), "work/ not present (CI has no work/)")
+    @unittest.skipUnless(all(d.is_dir() for d in WORK_GEMINI.values()), "work/ not present (CI has no work/)")
     def test_byte_identical_to_the_approved_render(self):
         for p in installed():
-            source = WORK_FULL / p.stem[:4] / p.name
+            source = WORK_GEMINI[p.stem[:4]] / p.name
             self.assertTrue(source.is_file(), source)
             self.assertEqual(p.read_bytes(), source.read_bytes(), p)
 
     @unittest.skipUnless(HAVE_PIL, "Pillow not available in this interpreter")
-    def test_the_deaths_bleed_dark_red(self):
-        """D49: every death frame I-O carries flag_red 0-5 blood, more of it
-        than any living frame of its set (the living frames hold a few such
-        pixels in the plate's shadows and the seeping bolts: at most 38 in
-        SDPM, 27 in SDPS; the deaths 44 to 752)."""
-        red = blood_colours()
-
-        def count(name: str) -> int:
+    def test_the_corpse_lies_lowest(self):
+        """The rig sets bled D49's flag_red in every death frame; Gemini's
+        death sheet, approved as drawn (D109), barely bleeds (0-24 px a
+        frame), so the engine's BloodColor spray carries the blood now. What
+        holds: the corpse O, held for ever, is the lowest frame of its set,
+        no higher over z than any death frame before it and lower than every
+        living frame (measured: SDPMO0 rises 44 px, the living 63-65; SDPSO0
+        50, the living 71-73)."""
+        def rise(name: str) -> int:
+            data = (PANZER_SPRITES / f"{name}.png").read_bytes()
             with Image.open(PANZER_SPRITES / f"{name}.png") as img:
-                raw = img.convert("RGBA").tobytes()
-            return sum(1 for i in range(0, len(raw), 4) if raw[i + 3] and tuple(raw[i:i + 3]) in red)
+                top = img.getchannel("A").getbbox()[1]
+            return read_grab(data)[1] - top
 
         for sprite in (BASE, HEAVY):
-            living = max(count(f"{sprite}{f}{r}") for f in ROTATED_FRAMES for r in ROTATIONS_8)
-            for f in FLAT_FRAMES:
-                self.assertGreater(count(f"{sprite}{f}0"), living, f"{sprite}{f}0")
+            corpse = rise(f"{sprite}{FLAT_FRAMES[-1]}0")
+            living = min(rise(f"{sprite}{f}{r}") for f in ROTATED_FRAMES for r in ROTATIONS_8)
+            self.assertLess(corpse, living, sprite)
+            for f in FLAT_FRAMES[:-1]:
+                self.assertLessEqual(corpse, rise(f"{sprite}{f}0"), f"{sprite}{f}0")
+
+
+    @unittest.skipUnless(WORK_FULL.is_dir(), "work/ not present (CI has no work/)")
+    def test_the_rig_set_no_longer_ships(self):
+        """D109: every lump of the set is the Gemini redraw, none the rig
+        render it replaced (that set stays in work/, history)."""
+        for p in installed():
+            if not p.stem.startswith((BASE, HEAVY)):
+                continue
+            old = WORK_FULL / p.stem[:4] / p.name
+            if old.is_file():
+                self.assertNotEqual(p.read_bytes(), old.read_bytes(), p.name)
 
 
 class PackageTests(unittest.TestCase):

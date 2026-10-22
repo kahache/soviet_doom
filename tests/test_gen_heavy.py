@@ -239,9 +239,12 @@ class FullSetContractTests(unittest.TestCase):
                 if "Schwer" not in line and name not in line:
                     reserved |= set(re.findall(r"\bSD[A-Z]{2}\b", line))
         self.assertNotIn(name, reserved)
-        # in assets/, a lump of that name is the Schwer's own (D67): the render, byte for byte
+        # in assets/, a lump of that name is the Schwer's own: this render
+        # until D109, the Gemini redraw since (gemini_enemy.py panzer_heavy),
+        # byte for byte (tests/test_gemini_enemy_install.py holds the install)
+        gemini = PROJECT_ROOT / "work" / "art" / "enemies_gemini" / "panzer_heavy"
         for png in (PROJECT_ROOT / "assets").rglob(f"{name}*.png"):
-            ours = h.set_dir("ps") / png.name
+            ours = gemini / png.name
             if ours.is_file():
                 self.assertEqual(png.read_bytes(), ours.read_bytes(), png)
 

@@ -23,6 +23,8 @@ sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 # the indexed rule under textures/. One set, owned by the package validator,
 # so the two checks cannot disagree about which lumps are masked.
 from check_pk3 import MASKED_TEXTURES  # noqa: E402
+# The declared skies (D113) and their size, the same way: one owner.
+from check_pk3 import SKY_SIZES, SKY_TEXTURES  # noqa: E402
 
 # The status bar lumps (M2e-i): Freedoom's names and sizes, one table.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -307,6 +309,9 @@ class ApprovedAssetsTests(unittest.TestCase):
                     self.assertEqual(img.mode, "P", p)
                 if kind == "flats":
                     self.assertEqual(img.size, FLAT_SIZE, p)
+                elif p.stem in SKY_TEXTURES:
+                    # D113: MAPINFO's sky1 of MAP04-06, one 360-degree turn.
+                    self.assertIn(img.size, SKY_SIZES, p)
                 else:
                     self.assertIn(img.size, WALL_SIZES, p)
 
@@ -424,13 +429,35 @@ EP2_INSTALLED = {
     "SDGUM1": ("textures/moscow", (128, 128), False), "SDTRIB1": ("textures/moscow", (64, 128), False),
     "SDBANR1": ("textures/moscow", (64, 128), False), "SDSPAS1": ("textures/moscow", (64, 128), False),
 }
-EP2_FOLDERS = ("textures/railway", "textures/dam", "textures/moscow",
+# Episode 2, round 2 (D112 drafts, installed 2026-10-22 under D113's standing
+# approval, PM gate 2026-10-22): the same three set folders plus textures/sky.
+EP2B_INSTALLED = {
+    # the two night skies, MAPINFO sky1 (1024x128, SKY_SIZES)
+    "SDSKY1": ("textures/sky", (1024, 128), False), "SDSKY2": ("textures/sky", (1024, 128), False),
+    # MAP04 railway
+    "SDWROF1": ("flats/railway", (64, 64), False), "SDGOND1": ("flats/railway", (64, 64), False),
+    "SDLEVR1": ("flats/railway", (64, 64), False),
+    "SDCAB1": ("textures/railway", (128, 128), False), "SDCAB2": ("textures/railway", (64, 128), False),
+    "SDSBOX1": ("textures/railway", (64, 64), False), "SDLEVR2": ("textures/railway", (64, 64), False),
+    "SDRHDR1": ("textures/railway", (128, 128), False), "SDSTAN1": ("textures/railway", (256, 64), False),
+    # MAP05 dam
+    "SDGRIL1": ("textures/dam", (64, 128), True), "SDDOORB": ("textures/dam", (128, 128), False),
+    "SDHVLT1": ("textures/dam", (64, 128), True),
+    # MAP06 moscow
+    "SDCLOK1": ("textures/moscow", (128, 128), False), "SDRUBY1": ("textures/moscow", (128, 128), True),
+    "SDGUMS1": ("textures/moscow", (64, 128), False), "SDGUMS2": ("textures/moscow", (64, 128), False),
+    "SDGUMS3": ("textures/moscow", (64, 128), False), "SDGUMR1": ("flats/moscow", (64, 64), False),
+    "SDMUSE1": ("textures/moscow", (64, 128), False), "SDFLAG3": ("textures/moscow", (64, 128), False),
+    "SDFLAG4": ("textures/moscow", (64, 128), False),
+}
+EP2_FOLDERS = ("textures/railway", "textures/dam", "textures/moscow", "textures/sky",
                "flats/railway", "flats/dam", "flats/moscow")
 
 
 @unittest.skipUnless(HAVE_IMAGING, "Pillow/numpy not available in this interpreter")
 class Episode2InstallTests(unittest.TestCase):
-    """D107: the 25 approved pieces, 28 lumps, in their set folders."""
+    """D107: the 25 approved pieces, 28 lumps, in their set folders; D113:
+    round 2's 21 pieces, 23 lumps, in the same folders and textures/sky/."""
 
     def installed(self) -> dict[str, Path]:
         out = {}
@@ -440,14 +467,19 @@ class Episode2InstallTests(unittest.TestCase):
                 out[p.stem] = p
         return out
 
+    def table(self) -> dict:
+        return {**EP2_INSTALLED, **EP2B_INSTALLED}
+
     def test_exactly_the_approved_lumps(self):
         self.assertEqual(28, len(EP2_INSTALLED))
-        self.assertEqual(set(EP2_INSTALLED), set(self.installed()))
+        self.assertEqual(23, len(EP2B_INSTALLED))
+        self.assertFalse(set(EP2_INSTALLED) & set(EP2B_INSTALLED))
+        self.assertEqual(set(self.table()), set(self.installed()))
 
     def test_folder_size_mode_and_name(self):
         from PIL import Image
         for lump, p in self.installed().items():
-            folder, size, masked = EP2_INSTALLED[lump]
+            folder, size, masked = self.table()[lump]
             self.assertEqual(folder, p.parent.relative_to(ASSETS_DIR).as_posix(), lump)
             self.assertRegex(lump, LUMP_RE)
             self.assertLessEqual(len(lump), 8)
@@ -461,11 +493,86 @@ class Episode2InstallTests(unittest.TestCase):
         self.assertLessEqual(ep2_masked, set(MASKED_TEXTURES))
         self.assertFalse({lump for lump, (folder, _s, _m) in EP2_INSTALLED.items()
                           if folder.startswith("flats/")} & set(MASKED_TEXTURES))
+        ep2b_masked = {lump for lump, (_f, _s, masked) in EP2B_INSTALLED.items() if masked}
+        self.assertEqual({"SDGRIL1", "SDHVLT1", "SDRUBY1"}, ep2b_masked)
+        self.assertLessEqual(ep2b_masked, set(MASKED_TEXTURES))
+
+    def test_skies_agree_with_check_pk3(self):
+        skies = {lump for lump, (folder, _s, _m) in EP2B_INSTALLED.items() if folder == "textures/sky"}
+        self.assertEqual({"SDSKY1", "SDSKY2"}, skies)
+        self.assertEqual(skies, set(SKY_TEXTURES))
 
     def test_no_name_clash_with_any_other_installed_lump(self):
         ours = {p.resolve() for p in self.installed().values()}
         others = {p.stem.upper() for p in ASSETS_DIR.rglob("*.png") if p.resolve() not in ours}
-        self.assertFalse(set(EP2_INSTALLED) & others)
+        self.assertFalse(set(self.table()) & others)
+
+
+# Episode 3 «The Portal» (D112 drafts, installed 2026-10-22 under D113's
+# standing approval, PM gate 2026-10-22): lump -> (folder, size, masked).
+EP3_INSTALLED = {
+    # MAP07 arctic (gen_arctic.py)
+    "SDSNOW1": ("flats/arctic", (64, 64), False), "SDICE1": ("flats/arctic", (64, 64), False),
+    "SDICE2": ("textures/arctic", (64, 128), False), "SDRADM1": ("textures/arctic", (128, 128), False),
+    "SDHUT1": ("textures/arctic", (64, 128), False),
+    **{f"SDRADR{i}": ("textures/arctic", (128, 128), False) for i in range(1, 5)},
+    "SDHERM1": ("textures/arctic", (128, 128), False),
+    "SDRWY1": ("flats/arctic", (64, 64), False), "SDRWY2": ("flats/arctic", (64, 64), False),
+    # MAP08 naval (gen_naval.py)
+    "SDHULL1": ("textures/naval", (128, 128), False), "SDHULL2": ("textures/naval", (128, 128), False),
+    "SDRUBR1": ("flats/naval", (64, 64), False), "SDRUBR2": ("flats/naval", (64, 64), False),
+    "SDROCK1": ("textures/naval", (64, 128), False), "SDROCK2": ("flats/naval", (64, 64), False),
+    "SDBULK1": ("textures/naval", (128, 128), False), "SDNAVC1": ("textures/naval", (128, 128), False),
+    "SDCONT1": ("textures/naval", (128, 128), False), "SDCRAN1": ("textures/naval", (64, 128), True),
+    "SDPIER1": ("flats/naval", (64, 64), False),
+    # MAP09 taiga (gen_taiga.py)
+    "SDBARK1": ("textures/taiga", (64, 128), False), "SDBARK2": ("textures/taiga", (64, 128), False),
+    "SDLOGW1": ("textures/taiga", (128, 128), False), "SDPEAT1": ("flats/taiga", (64, 64), False),
+    "SDBURN1": ("flats/taiga", (64, 64), False), "SDMOSS1": ("flats/taiga", (64, 64), False),
+    "SDALNM1": ("textures/taiga", (128, 128), False),
+    **{f"SDACID{i}": ("flats/taiga", (64, 64), False) for i in range(1, 5)},
+    "SDGLYP1": ("textures/taiga", (64, 128), False), "SDPRTE1": ("textures/taiga", (64, 128), False),
+}
+EP3_FOLDERS = ("textures/arctic", "textures/naval", "textures/taiga",
+               "flats/arctic", "flats/naval", "flats/taiga")
+
+
+@unittest.skipUnless(HAVE_IMAGING, "Pillow/numpy not available in this interpreter")
+class Episode3InstallTests(unittest.TestCase):
+    """D113: Episode 3's 30 pieces, 36 lumps, in their set folders."""
+
+    def installed(self) -> dict[str, Path]:
+        out = {}
+        for folder in EP3_FOLDERS:
+            for p in sorted((ASSETS_DIR / folder).glob("*.png")):
+                self.assertNotIn(p.stem, out, f"{p.stem} installed twice")
+                out[p.stem] = p
+        return out
+
+    def test_exactly_the_approved_lumps(self):
+        self.assertEqual(36, len(EP3_INSTALLED))
+        self.assertEqual(set(EP3_INSTALLED), set(self.installed()))
+
+    def test_folder_size_mode_and_name(self):
+        from PIL import Image
+        for lump, p in self.installed().items():
+            folder, size, masked = EP3_INSTALLED[lump]
+            self.assertEqual(folder, p.parent.relative_to(ASSETS_DIR).as_posix(), lump)
+            self.assertRegex(lump, LUMP_RE)
+            self.assertLessEqual(len(lump), 8)
+            with Image.open(p) as img:
+                self.assertEqual(size, img.size, lump)
+                self.assertEqual("RGBA" if masked else "P", img.mode, lump)
+
+    def test_masked_set_agrees_with_check_pk3(self):
+        masked = {lump for lump, (_f, _s, m) in EP3_INSTALLED.items() if m}
+        self.assertEqual({"SDCRAN1"}, masked)
+        self.assertLessEqual(masked, set(MASKED_TEXTURES))
+
+    def test_no_name_clash_with_any_other_installed_lump(self):
+        ours = {p.resolve() for p in self.installed().values()}
+        others = {p.stem.upper() for p in ASSETS_DIR.rglob("*.png") if p.resolve() not in ours}
+        self.assertFalse(set(EP3_INSTALLED) & others)
 
 
 class SpriteNameTests(unittest.TestCase):

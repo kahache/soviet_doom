@@ -98,14 +98,14 @@ The authoritative plan is the top-down render generated from the source:
 | Z4 | Arcade (west line), 4 columns; facade windows (sill 112) onto the square | 3520…3776 | 1408…3328 | 0 | 192 | 128 |
 | Z4 | Blue lock band (one tile) · blue door · square-side portal | 3520…3584 · 3488…3520 · 3456…3488 | 2176…2560 · 2304…2432 | 0 | 128 | **192**, blue |
 | Z4 | Four looted shops (two pass through to the arcade); doorways 128 high | 3808…3936 | 1472…3264 | 0 | 160 | 112 |
-| Z5 | The line under the glass roof (south, north of the bridge) | 3968…4224 | 1408…2944, 3008…3328 | 0 | sky 448 | 144 |
-| Z5 | Atrium, fountain (prop) | 3808…4352 | 2176…2496 | 0 | sky 448 | 160 |
-| Z5 | Gallery, south and north parts; 8-step stairs from the atrium | 4224…4352 | 1536…1920, 2752…3264 | +128 | sky 448 | 144 |
-| Z5 | **Bridge** across the line; the **blue key** on its lit middle | 3968…4224 | 2944…3008 | +128 | sky 448 | 144 / **192**, blue |
+| Z5 | The line under the glass roof (south, north of the bridge) | 3968…4224 | 1408…2944, 3008…3328 | 0 | glass roof 448 | 144 |
+| Z5 | Atrium, fountain (prop) | 3808…4352 | 2176…2496 | 0 | glass roof 448 | 160 |
+| Z5 | Gallery, south and north parts; 8-step stairs from the atrium | 4224…4352 | 1536…1920, 2752…3264 | +128 | glass roof 448 | 144 |
+| Z5 | **Bridge** across the line; the **blue key** on its lit middle | 3968…4224 | 2944…3008 | +128 | glass roof 448 | 144 / **192**, blue |
 | Z5 | West upper room (green armour) · three upper shops | 3808…3968 · 4384…4608 | 2880…3072 · 1600…3264 | +128 | 448 / 256 | 144 / 112 |
 | Z6 | **Red Square** (sky); three granite lines across it, 64 deep, at y 1728, 2240, 2816 | 1664…3456 | 1152…3456 | 0 | sky 384 | 144 |
 | Z6 | Kremlin wall: body (closed sky block) · walk 32 deep, its face the swallowtails (`SDKREM2`, middle texture, impassable line) · piers at the parapet and the flags | 1600…1632 · 1632…1664 | 448…3456 | 128 · 128 / 256 · 256 | = floor · sky 256 · = floor | 144 |
-| Z6 | Spasskaya tower: base, star tier, green tent (closed sky blocks) in an apron of sky 768 | 1600…1856 | 1216…1408 | 448 / 576 / 704 | = floor | 144 |
+| Z6 | Spasskaya tower: base and clock stage (closed sky blocks), green tent open to the apron's sky with the ruby star on it, in an apron of sky 768 | 1600…1856 | 1216…1408 | 448 / 576 / 704 | = floor / = floor / 768 | 144 |
 | Z6 | **Red lock** portal (the Spasskaya gate) in front of an apron of sky 256 | 1600…1664 | 1472…1600 | 0 | 128 | **192**, red |
 | Z6 | Mausoleum, three tiers (prop) | 1664…1856 | 2176…2432 | 64 / 112 / 144 | sky | 144 |
 | Z6 | Reviewing stands N and S: 7 steps of 16 up to a top row 96 deep | 1664…1984 | 2560…3008, 1856…2112 | 16…128 | sky | 144; N top **192**, yellow (the **yellow key**) |
@@ -147,9 +147,14 @@ GZDoom). The map uses that to give each building its height:
   same wall from inside, two piers flanking the gate's passage;
 - the Spasskaya tower: three closed sky blocks at 448, 576 and 704, the
   base in `SDSPAS1` (the tower's brick and white stone, its arcaded frieze
-  at the top), the middle tier's 128-high faces the star plaque `SDSTAR1`
-  (stand-in for the clock and the ruby star, §8), the top's `SDSTEL1` (the
-  green tent); round it an apron of sky 768 so the stages show; in front of
+  at the top), the middle tier's four 128-high faces the clock `SDCLOK1`
+  (one whole face each, since D113), the top's `SDSTEL1` (the green tent).
+  The tent is no longer a closed block: its top is open to the apron's sky
+  (768) in two halves, and the line between them (x 1728) carries the ruby
+  star `SDRUBY1` (masked) on both sides, at half scale (`scalex_mid` /
+  `scaley_mid` 2, UDMF zdoom), so the 64 × 64 star stands from the tent
+  (704) to the sky (768); the line is impassable. Round the tower an apron
+  of sky 768 so the stages show; in front of
   the gate an apron of sky 256, so the wall above the gate's portal is the
   wall's own height (one tile of `SDKREM1` over the portal);
 - the parapet over the slope: a closed sky block 128 high, seen as a low
@@ -192,7 +197,7 @@ graph LR
 
 | Id | Where | Type | Special | Can it lock the player out? |
 |---|---|---|---|---|
-| **BD** | GUM facade, arcade → square, 128 wide, `SDDOOR1` between two cobalt mosaics (MAP02's blue door) | locked, opens for good | `Door_LockedRaise (4, 16, 0, 2, 0)`, both faces | no |
+| **BD** | GUM facade, arcade → square, 128 wide, `SDDOORB` (since D113) between two cobalt mosaics (MAP02's blue door) | locked, opens for good | `Door_LockedRaise (4, 16, 0, 2, 0)`, both faces | no |
 | **YD** | The gatehouse, square → vehicle park, `SDDOORY` | locked, opens for good | `Door_LockedRaise (5, 16, 0, 3, 0)` | no |
 | **RD** | The Spasskaya gate, square → passage, `SDDOORR` | locked, opens for good | `Door_LockedRaise (6, 16, 0, 1, 0)` | no |
 | S1, S2, S3 | push panels (§9) | open for good | `Door_Open (1/2/3, 16)`, both faces, `secret` | no |
@@ -244,15 +249,15 @@ stage there is a way back to the start, with and without the boss's death
 | Platforms, tracks | `SDMARB2`; edge `SDMEDG1`; track walls `SDTUBB1` | `SDMFLR1`, `SDMFLR3`, `SDRAIL1` (turned) | `SDMCEIL1` |
 | Escalator | `SDTILE1` | `SDFLR4` | `SDMCEIL1` |
 | Pavilion, street | `SDCONC1`; the GUM's north facade `SDGUM1` (x 3520…4352); courtyard gates `SDGATE1`; barricades `SDCRAT2`, a truck `SDSTEL1` | `SDMFLR1` / `SDFLR2` | `SDMCEIL1` / sky |
-| Resurrection gate, museum | `SDBRCK1` | `SDMFLR1` | — / sky |
+| Resurrection gate, museum | `SDMUSE1` (the museum's brick with its white dressings: the museum's wall on the square, the closets' leaves, the gate's two arches) | `SDMFLR1` | — / sky |
 | GUM halls, arcade | `SDMARB2`; the facade's window slits cut through `SDGUM1` | `SDMFLR2` / `SDMFLR1` | `SDMCEIL1` |
-| GUM line, gallery | `SDWIND1` (shopfronts below and above the gallery) | `SDMFLR2` / `SDMFLR1` | sky (the glass roof) |
+| GUM line, gallery | the shopfronts `SDGUMS1` / `SDGUMS2` / `SDGUMS3` («ТКАНИ», «ОБУВЬ», «ЧАСЫ»), one shop to each 64 of wall, below and above the gallery (§7.2) | `SDMFLR2` / `SDMFLR1` | the glass vault `SDGUMR1` |
 | Shops | `SDTILE1`; loot `SDCRAT1` / `SDCRTOP1` | `SDMFLR1` | `SDMCEIL1` |
-| Square | the GUM's facade `SDGUM1` (three bays high, the blue door's portal one bay), museum `SDBRCK1`; the Kremlin wall `SDKREM1` with the swallowtails `SDKREM2` (§4.1) and six parade banners `SDBANR1`; the occupiers' flags `SDFLAG1`/`SDFLAG2` side by side in the crown; tower `SDSPAS1` / `SDSTAR1` / `SDSTEL1`; mausoleum, stands and Minin's plinth `SDTRIB1`, Minin `SDBRAS1`; gatehouse `SDCONC1`; parapet `SDBRCK2` | `SDCOBL1`; three lines `SDCOBL2`; stands, thresholds and monuments' tops `SDMFLR1` | sky |
+| Square | the GUM's facade `SDGUM1` (three bays high, the blue door's portal one bay), museum `SDMUSE1`; the Kremlin wall `SDKREM1` with the swallowtails `SDKREM2` (§4.1) and six parade banners `SDBANR1`; the occupiers' flags `SDFLAG3`/`SDFLAG4` (on the Kremlin's brick) side by side in the crown; tower `SDSPAS1` / `SDCLOK1` / `SDSTEL1` and the ruby star `SDRUBY1`; mausoleum, stands and Minin's plinth `SDTRIB1`, Minin `SDBRAS1`; gatehouse `SDCONC1`; parapet `SDBRCK2` | `SDCOBL1`; three lines `SDCOBL2`; stands, thresholds and monuments' tops `SDMFLR1` | sky |
 | Vehicles | `SDARMR2`; the missile carriers' long flanks `SDARMR1` | `SDFLR4` | sky |
 | Park | `SDCONC1`; the Kremlin wall's outer face as on the square | `SDFLR2` | sky |
-| Courtyard | `SDBRCK1` (the palaces), flags; east wall the Kremlin's, `SDKREM1` + `SDKREM2`; the gate's passage `SDKREM1`; Tsar Bell and Cannon `SDBRAS1`; dais `SDMARB1` | `SDCOBL1` / `SDMFLR2` | sky |
-| Doors, switch | `SDDOOR1` (blue, between `SDMOSA1`), `SDDOORY`, `SDDOORR`, `SDGATE1` (exit gate); exit `SDSW1D` | | |
+| Courtyard | `SDBRCK1` (the palaces), flags `SDFLAG1`/`SDFLAG2` (on that brick); east wall the Kremlin's, `SDKREM1` + `SDKREM2`; the gate's passage `SDKREM1`; Tsar Bell and Cannon `SDBRAS1`; dais `SDMARB1` | `SDCOBL1` / `SDMFLR2` | sky |
+| Doors, switch | `SDDOORB` (blue, between `SDMOSA1`), `SDDOORY`, `SDDOORR`, `SDGATE1` (exit gate); exit `SDSW1D` | | |
 | Posters | `SDPOSTR1` Lenin, `SDPOSTR3` Stalin (section 7.1) | | |
 
 ### 7.1 The posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
@@ -318,6 +323,18 @@ posters: they carry no portrait and no text (D12).
 - **Granite**: `SDTRIB1` on the stands' faces (each riser and each tier
   shows its black labradorite band at the top, as the lump is pegged to
   each flank's top), the mausoleum's three tiers and Minin's plinth.
+- **Round 2 (D113)**: `SDMUSE1`, `SDFLAG3` and `SDFLAG4` join `ALIGNED`
+  (rows from 0, columns on the world): the museum's white band runs level
+  from the museum's wall across the closets' leaves to the Resurrection
+  gate, and the crown's flags meet the `SDKREM1` round them course for
+  course (their brick replays `SDKREM1`'s seed). The GUM's line is built in
+  `SDGUMS1`; `dress_shopfronts` then cuts each of its walls at the world's
+  64 grid (new vertices on the same line: nothing moves) and gives each 64
+  the sign of its column, `SHOPFRONTS[(x or y // 64) % 3]`, world-aligned,
+  so the shops run «ТКАНИ», «ОБУВЬ», «ЧАСЫ» along each wall (the three tiers
+  above one another show the same shop). `SDGUMR1` is the ceiling flat of
+  every sector under the vault, world-aligned (its iron arches across the
+  line, east-west).
 - **The parade**: `SDARMR2` (the armoured train's plate, railway set) on
   every vehicle face; `dress_carriers` puts `SDARMR1` on the missile
   carriers' long flanks, one red star per 128 counted from the flank's end,
@@ -330,20 +347,19 @@ constant in `map.py` (the name in brackets), nothing moves. **Done in v1.1
 (D107)**: the setts and their granite lines (old #1), the GUM's facade
 (#3), the Kremlin wall and its swallowtails (#6), the mausoleum's granite
 (#8), the parade vehicles' sides (#11, from the railway set's armour).
+**Done in round 2 (D113, 2026-10-22, §16c)**: the GUM's shopfronts (#4,
+`SDGUMS1`-`3`), its glass roof (#5, `SDGUMR1`), the Spasskaya's clock and
+ruby star (#7, `SDCLOK1`, `SDRUBY1`), the museum's brick (#9, `SDMUSE1`),
+the blue leaf (#10, `SDDOORB`), the night sky (#14, `SDSKY2` in MAPINFO's
+`sky1`, the PM's) and the crown's flags on the Kremlin's brick (#16,
+`SDFLAG3`/`SDFLAG4`).
 
 | # | Wanted | Stand-in now | Where |
 |---|---|---|---|
 | 2 | Asphalt with tram rails / kerb, flat | `SDFLR2` (`FLOOR_ASPHALT`) | Nikolskaya, the park |
-| 4 | GUM shopfront: arched glazing with a gilt sign, looted, 64×128 | `SDWIND1` (`WINDOW`) | the line, the gallery |
-| 5 | GUM glass roof (iron-framed vault), flat | the sky | the line, the atrium |
-| 7 | **Spasskaya: clock face 128×128 and the ruby star** (the stone is done, `SDSPAS1`) | `SDSTAR1` plaque on the clock stage (`STAR`), `SDSTEL1` tent (`STEEL`) | the tower |
-| 9 | Historical Museum's red brick with white trim | `SDBRCK1` | the museum wall |
-| 10 | Blue-trimmed door leaf `SDDOORB` (twin of `SDDOORY`/`SDDOORR`) | `SDDOOR1` between `SDMOSA1` | the blue door |
 | 12 | **Bronze statues**, texture or sprites (Ploshchad Revolyutsii's figures, Minin and Pozharsky, the Tsar Bell and Cannon) | `SDBRAS1` blocks (`BRASS`) | the station, the square, the courtyard |
 | 13 | Water flat for the fountain (MAP05's `SDWATR1-4` is the Volga's grey-blue; a basin may want its own) | `SDMFLR1` | the atrium |
-| 14 | **A Moscow night sky** (MAPINFO `sky1`, mod-engineer's) | Freedoom's `SKY1` | everywhere outdoors |
-| 15 | **Saint Basil's** as a skyline sprite or sky band | — (not built) | beyond the slope |
-| 16 | The occupiers' flags on the Kremlin's brick: `SDFLAG1`/`SDFLAG2` are painted on `SDBRCK1`, so their brick border differs from `SDKREM1` round them (a `SDKREM1`-ground pair, as `SDBANR1` is) | `SDFLAG1`/`SDFLAG2` | the wall's crown (the courtyard's pair sits on `SDBRCK1` and is right) |
+| 15 | **Saint Basil's** as a skyline sprite or sky band (`SDSKY2` has Moscow's skyline, not the cathedral) | — (not built) | beyond the slope |
 | 17 | Parade vehicles' turrets and missiles as sprites or their own sides | `SDARMR2` blocks | the square, the park |
 
 ## 9. Secrets
@@ -442,6 +458,7 @@ on the courtyard's dais, facing the gate (`BOSS_ANGLE = 0`), on every skill.
 | **Skies at several heights, closed sky blocks** | §4.1 | **NOT VERIFIED** |
 | **Masked middle texture between two sky ceilings** (the swallowtails) | `SDKREM2` on a two-sided line, square sky 384 / walk sky 256 | masked mid VERIFIED in kind (MAP03's chain `SDCHAN1`); **under sky, NOT VERIFIED** |
 | Per-part texture offsets | sidedef `offsety_top` / `offsety_mid` / `offsety_bottom` (UDMF zdoom) | first use in the campaign; **NOT VERIFIED** |
+| **Scaled masked middle texture** (the ruby star, round 2) | sidedef `scalex_mid` / `scaley_mid` 2.0 (UDMF zdoom): `SDRUBY1` drawn 64 × 64 | **NOT VERIFIED**: which way GZDoom reads the scale (2.0 should halve the picture); if it doubles it, the value is 0.5 |
 
 Engine checklist for the PM (one pass, skill 3, then the route on 2, 3, 4):
 
@@ -470,6 +487,20 @@ Engine checklist for the PM (one pass, skill 3, then the route on 2, 3, 4):
   the gallery stairs climb; the bridge crosses the line.
 - **E5** the window slits on the GUM's facade: seen through, never passed.
 - **E6** the parade's vehicles and statues: nobody gets stuck on a corner.
+- **E9** round 2 (D113), **MAP06 is now a night map** (`SDSKY2`): the
+  square stays at light 144 (the art-director's 128-160 for the night; it
+  was already there), so check it reads as night under the new sky and not
+  as day, and lower `LIGHT_SQUARE` to 128 if not. The Spasskaya: a whole
+  clock on each face of the stage (none cut, the gold hands at five to
+  twelve), the **ruby star** standing on the tent against the sky, whole,
+  64 wide, its stem on the tent (if it shows 256 wide or cut, the scale's
+  sense is the other way: §12). The GUM's line under its glass vault (no
+  sky in it now), the shopfronts one sign per 64 in turn and whole in
+  height (three tiers to the vault, the top one half), the arches of the
+  vault across the line. The museum's white band level from the wall over
+  the closets' leaves to the Resurrection gate; the closets still look like
+  wall until the red key; the crown's flags with no seam against the
+  wall's brick. The blue leaf `SDDOORB` on both faces.
 - **E7** the posters (section 7.1): each whole, not cut or tiled; the two
   facade portraits hang at 64-320 under the square's sky with the facade's
   stone above them (no sky slab, no HOM in the 16-deep niche) and read
@@ -483,7 +514,7 @@ Not this role's files. What the map needs:
 - `map MAP06 lookup "SD_MAP06_NAME"`: «Красная площадь» / "Red Square"
   (and `[ca]` «Plaça Roja»), episode 2's ending cluster (7);
 - `par = 420` (level-designer's estimate for a player who knows the route);
-- `sky1`: a Moscow night sky when one exists (§8 #14);
+- `sky1 = "SDSKY2"`, Moscow at night (in MAPINFO since 2026-10-22, D113);
 - recommended: `SpecialAction = "SD_General", "Door_Open", 12, 16` as the
   fallback for the boss's death special (§11), changed to the new boss's
   class when it replaces him;
@@ -557,6 +588,47 @@ is the PM's.
    pass 2048 a side.)
 2. The GUM: is the bridge-and-gallery enough height, or should the upper
    floor run the whole length (one more stair)?
-3. The tower's stand-in look (star plaque tier, green tent) until §8 #7.
+3. The tower (since round 2): the clock stage and the ruby star on the
+   tent, the star at half scale (64 wide on a 64 tent): big enough?
 4. The red key's ambush from the museum: keep, or also wake the square's
    survivors?
+
+## 16c. Round 2 (2026-10-22, D113): the Moscow set's second batch, the night
+
+The second round of episode 2's textures (`docs/art/TEXTURE-INDEX.md`
+"Episode 2, round 2") applied where §8 asked for them; MAPINFO's `sky1` is
+`SDSKY2` (the PM's). Piece by piece:
+
+| Piece | Where | How |
+|---|---|---|
+| `SDCLOK1` clock | the Spasskaya's clock stage, all four faces | the stage's wall (`CLOCK`); each face one line 128 long, 128 high, whole |
+| `SDRUBY1` ruby star (masked) | on the tent: the line halving its top (x 1728) | the tent opened to the apron's sky (768) in two halves; the star on both sides of the line, `scalex_mid` / `scaley_mid` 2 (64 × 64), hung from the sky down to the tent; the line impassable |
+| `SDGUMS1`-`3` shopfronts | every wall of the GUM's line, atrium, gallery and upper west room, and the gallery's front over the line (where `SDWIND1` was) | `dress_shopfronts` (§7.2): one sign per 64 of wall, in turn by the world's column, world-aligned |
+| `SDGUMR1` glass vault | the ceiling of the line, the atrium (and the fountain), the gallery, its stairs, the bridge and the upper west room (where the sky was) | world-aligned flat, same height (448) |
+| `SDMUSE1` museum brick | the museum's wall on the square, its two closets' leaves and jambs, the Resurrection gate's two arches (square and street sides) | `ALIGNED` from 0: the white band level throughout |
+| `SDFLAG3` / `SDFLAG4` | the occupiers' two flags in the Kremlin wall's crown (in place of `SDFLAG1`/`SDFLAG2` there) | `ALIGNED` from 0, as `SDKREM1`; the courtyard's pair stays `SDFLAG1`/`SDFLAG2` (it hangs on `SDBRCK1`) |
+| `SDDOORB` blue leaf | the blue door, both faces | replaces `SDDOOR1`, which this map no longer wears |
+
+**Light.** The art-director recommends 128-160 for the open air at night;
+the square is 144, the park 128, the courtyard 144, Nikolskaya 112: all
+already in (or under) that range, so **nothing was lowered** (tested:
+`test_the_square_is_lit_for_a_night`). Whether 144 reads as night under
+`SDSKY2` is E9.
+
+**Geometry.** Only the tent's top changed: one closed block at 704 became
+two halves open to the apron's sky at 768 (decoration, out of reach) so the
+star has room. The shopfront cuts add vertices on existing lines (823
+vertices, 1040 linedefs, 207 sectors, 215 things). No door, key, lock, tag,
+secret, sight line, poster, monster, item or the boss moved; the route and
+the reachability rounds are unchanged (tested). `SDSTAR1`, `SDWIND1` and
+`SDDOOR1` are off this map.
+
+**Verification actually run** (no engine, D26):
+`tests/test_map06_red_square.py` 64 tests OK (new: the glass roof, the
+shopfronts dealt and aligned, the clocks and the ruby star, the museum's
+brick, the night's light; updated: the blue leaf, the flags on their own
+brick, the open air); `tests/test_map06_route.py` 12 OK;
+`tests/test_posters.py` 54 OK; `tools/verify.py fast`: build and
+`check_pk3` PASS (0 errors, 0 warnings); the test stage's only failures are
+outside this map (the redrawn enemy sprites' byte-identity and blood tests,
+`test_gen_shells`' docs). The engine pass is the PM's: §12 E9.

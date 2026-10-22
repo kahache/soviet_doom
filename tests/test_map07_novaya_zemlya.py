@@ -5,9 +5,11 @@ of tests/test_map05_dam.py, whose model of play it repeats:
 
 * structure: every sector closed and clockwise, no duplicate vertex, no step
   up over 16;
-* only approved, packed textures (F_SKY1 is the engine's sky marker); every
-  stand-in for the Arctic set (snow, ice, the radome, the plane, the
-  submarine) listed, worn and packed, none of the proposed lumps drawn yet;
+* only approved, packed textures (F_SKY1 is the engine's sky marker); the
+  Arctic set and the Naval set's submarine worn where the design puts them
+  (D113), each on its grid (the runway's centre line turned down the
+  runway, the radome's panels, the hull's deck edge, the ice); the three
+  proposed lumps nobody drew listed with their stand-ins;
 * everything is reachable and the exit is reached playing the map's own
   doors, switches and its TWO keys (yellow and red) in order; no trap at any
   stage; the shortcut (SW-B) and the three secrets are never needed;
@@ -443,9 +445,10 @@ class Map07Test(unittest.TestCase):
             self.assertTrue(_packed(name), f"{name} is not in assets/")
 
     def test_only_the_approved_sets_are_used(self):
-        """Soviet base, Metro, Factory and episode 2's (D107): nothing from
-        another folder of assets/ (the posters and switches are base)."""
-        allowed = {"soviet_base", "metro", "factory", "railway", "dam", "moscow"}
+        """Soviet base, Metro, Factory, episode 2's (D107) and episode 3's
+        Arctic and Naval (D113): nothing from another folder of assets/ (the
+        posters and switches are base; no taiga here)."""
+        allowed = {"soviet_base", "metro", "factory", "railway", "dam", "moscow", "arctic", "naval"}
         for name in self.used_textures() - {self.m.SKY}:
             folders = {p.parent.name for p in ASSETS.glob(f"*/*/{name}.png")}
             self.assertTrue(folders and folders <= allowed, f"{name}: {folders}")
@@ -464,35 +467,127 @@ class Map07Test(unittest.TestCase):
                      "z8_gate_porch", "z9_shed", "s1_hold", "s3_shed"):
             self.assertNotIn(zone, sky)
 
-    def test_the_arctic_set_waits_and_its_stand_ins_are_worn(self):
-        """Design section 7.2: snow, ice, the radome's skin, the plane, the
-        submarine, the map table and the radar console are not drawn yet.
-        Each proposed lump has an approved stand-in the map wears; the day
-        the art-director's Arctic lump is in assets/, this turns red until
-        the map wears it instead."""
+    def test_the_arctic_set_is_worn_and_its_gaps_stand_in(self):
+        """Design section 7.2: each lump the design proposed is worn where it
+        was drawn (D113); where it was not, an installed lump stands in. The
+        day a proposed lump appears in assets/, this turns red until the map
+        wears it instead of its stand-in."""
         m = self.m
         used = self.used_textures()
         self.assertGreaterEqual(len(m.ARCTIC_SET), 5)
         for proposed, worn in m.ARCTIC_SET.items():
-            self.assertFalse(_packed(proposed), f"{proposed} is in assets/: put it on the map")
-            self.assertNotIn(proposed, used)
             self.assertTrue(_packed(worn), worn)
-            self.assertIn(worn, used, f"{proposed}'s stand-in {worn} is not on the map")
+            self.assertIn(worn, used, f"{proposed}: {worn} is not on the map")
+            if _packed(proposed):
+                self.assertEqual(proposed, worn, f"{proposed} is in assets/: put it on the map")
+            else:
+                self.assertNotIn(proposed, used)
+        drawn = [p for p in m.ARCTIC_SET if _packed(p)]
+        self.assertGreaterEqual(len(drawn), 5, "D113: the Arctic set is installed")
         for proposed, what in m.PENDING_TEXTURES.items():
             self.assertFalse(_packed(proposed), f"{proposed} exists: put it on the map")
             self.assertTrue(what)
 
-    def test_the_stand_ins_stand_where_the_design_says(self):
+    def test_episode_3s_lumps_are_on_the_map(self):
+        """D113: every Arctic lump MAP07 has a place for, and the Naval set's
+        submarine, are worn (SDRADR2-4 are ANIMDEFS frames, not map lumps)."""
+        used = self.used_textures()
+        for name in ("SDSNOW1", "SDICE1", "SDICE2", "SDRADM1", "SDHUT1", "SDRADR1", "SDHERM1",
+                     "SDRWY1", "SDRWY2", "SDHULL1", "SDHULL2", "SDRUBR1", "SDBULK1", "SDNAVC1"):
+            self.assertTrue(_packed(name), name)
+            self.assertIn(name, used, name)
+        self.assertNotIn("SDMFLR1", used, "the granite stand-in is gone from the ice")
+        self.assertNotIn("SDARMR2", used, "the armour stand-in is gone from the hull")
+
+    def test_the_arctic_set_stands_where_the_design_says(self):
         m = self.m
         floor = {zone: self.sectors[self.plan[zone]]["texturefloor"] for zone in self.plan}
-        for zone in ("z1_runway", "z8_road", "z9_quay"):
-            self.assertEqual(m.ARCTIC_SET["SDSNOW1"], floor[zone], zone)
-        for zone in ("z10_floe_1", "z10_floe_2", f"{m.PROP_PREFIX}z10_ice_w"):
-            self.assertEqual(m.ARCTIC_SET["SDICE1"], floor[zone], zone)
-        self.assertIn(m.ARCTIC_SET["SDRADM1"], self.one_sided_textures(self.plan["z5_radome"]))
-        self.assertEqual(m.ARCTIC_SET["SDMAPT1"], floor[f"{m.PROP_PREFIX}z6_map_table"])
+        for zone in ("z8_road", "z9_quay", "z1_d1_porch", "z8_gate_porch", "z9_shed_porch", "z9_s3_porch"):
+            self.assertEqual(m.SNOW, floor[zone], zone)
+        kerbs = [z for z in self.plan if z.startswith((f"{m.PROP_PREFIX}z1_kerb_", f"{m.PROP_PREFIX}z9_kerb_"))]
+        self.assertEqual(6, len(kerbs))
+        for zone in kerbs:
+            self.assertEqual(m.SNOW, floor[zone], zone)
+            self.assertEqual({m.ICE_WALL}, set(self.one_sided_textures(self.plan[zone])), zone)
+        for zone in ("z10_floe_1", "z10_floe_2", f"{m.PROP_PREFIX}z10_ice_w", f"{m.PROP_PREFIX}z10_ice_n",
+                     f"{m.PROP_PREFIX}z10_ice_s"):
+            self.assertEqual(m.SEA_ICE, floor[zone], zone)
+        self.assertEqual({m.RADOME_SKIN}, set(self.one_sided_textures(self.plan["z5_radome"])))
+        self.assertEqual({m.HUT}, set(self.one_sided_textures(self.plan["z9_shed"])))
+        self.assertEqual({m.HUT}, set(self.one_sided_textures(self.plan["s3_shed"])))
+        self.assertEqual(m.PLATE, floor[f"{m.PROP_PREFIX}z6_map_table"], "no map flat drawn: SDMAPT1 waits")
+        for zone in ("z11_deck", "z11_hatch_porch"):
+            self.assertEqual(m.DECK_RUBBER, floor[zone], zone)
         self.assertEqual(m.WATER, floor["z10_sea"])
         self.assertEqual("SDWATR1", m.WATER)
+
+    def test_the_runway_is_slabs_with_its_centre_line_down_it(self):
+        """SDRWY1 on the runway and SDRWY2 on the centre strip, both turned 90
+        degrees: the tiles' y (the dash, the tyre marks) runs down the runway,
+        east-west, and the twins meet without a seam. The dash is painted at
+        columns 27-36 of the tile; turned, it lands on world y = 27-36 (mod
+        64) either way the engine turns, inside the strip 256-320."""
+        m = self.m
+        runway, line = (self.sectors[self.plan[z]] for z in ("z1_runway", "z1_centreline"))
+        self.assertEqual(m.RUNWAY_SLABS, runway["texturefloor"])
+        self.assertEqual(m.RUNWAY_LINE, line["texturefloor"])
+        for s in (runway, line, self.sectors[self.plan["z1_ramp_porch"]]):
+            self.assertEqual(90.0, float(s.get("rotationfloor", 0)))
+        x1, y1, x2, y2 = m.CENTRELINE
+        self.assertGreater(x2 - x1, 4 * (y2 - y1), "the strip runs east-west")
+        self.assertEqual(64, y2 - y1)
+        self.assertEqual(0, y1 % 64, "one tile wide, on the flat grid")
+        dash = range(27, 37)
+        for column in dash:
+            for y in (y1 + column, y2 - column):
+                self.assertTrue(y1 <= y < y2)
+        self.assertNotIn(m.RUNWAY_LINE, {self.sectors[i]["texturefloor"] for z, i in self.plan.items()
+                                          if z != "z1_centreline"})
+
+    def test_episode_3s_walls_sit_on_their_grids(self):
+        """Careful alignment (D113): every drawn face of SDRADM1 has its tile
+        on the radome's floor (whole panels to the rim and the crown), every
+        SDHULL1 face its deck edge on the deck, the snowbanks' ice on the
+        ground and the sea ice's on the water; the walls 64 or 128 wide run
+        on the world's x/y grid, so a split line shows no seam."""
+        m = self.m
+        ice = {i for n, i in self.plan.items() if n.startswith((f"{m.PROP_PREFIX}z10_", "z10_"))}
+        for texture, base in ((m.RADOME_SKIN, m.GROUND), (m.HULL_SIDE, m.DECK), (m.ICE_WALL, None)):
+            faces = self.faces(texture)
+            self.assertTrue(faces, texture)
+            for ld, key, part, ref in faces:
+                sector = self.sides[ld[key]]["sector"]
+                want = base if base is not None else (m.SEA if sector in ice else m.GROUND)
+                self.assertEqual((want - ref) % m.WALL_TILE, self.sides[ld[key]].get("offsety", 0),
+                                 f"{texture} {part} in {self.zone_of[sector]}")
+        radome = self.faces(m.RADOME_SKIN)
+        self.assertTrue(any(part == "texturetop" for _ld, _k, part, _r in radome), "the crown")
+        hull = self.faces(m.HULL_SIDE)
+        self.assertTrue(any(self.sides[ld[k]]["sector"] == self.plan["z10_sea"] for ld, k, _p, _r in hull),
+                        "the hull out of the water")
+
+    def test_the_hermetic_door_and_the_bulkhead(self):
+        """SDHERM1 on the bunker's shutter (both faces) and on the escape
+        shutter's stair face (from the runway it stays wall); SDBULK1 on D3,
+        the conning tower's hatch, both faces."""
+        m = self.m
+        herm = self.faces(m.BLAST_DOOR, "texturetop")
+        rooms = Counter(self.zone_of[self.sides[ld[k]]["sector"]] for ld, k, _p, _r in herm)
+        self.assertEqual({"z6_shutter_porch": 1, "z7_stair_top": 1, "z7_escape_top": 1}, dict(rooms))
+        bulk = self.faces(m.BULKHEAD, "texturetop")
+        rooms = Counter(self.zone_of[self.sides[ld[k]]["sector"]] for ld, k, _p, _r in bulk)
+        self.assertEqual({"z12_sail": 1, "z11_hatch_porch": 1}, dict(rooms))
+
+    def test_the_conning_tower_is_a_control_room_inside(self):
+        """Inside the tower, round the exit, the walls are SDNAVC1, never the
+        hull: the tower's own flank seen from inside."""
+        m = self.m
+        room = self.plan["z12_sail"]
+        inside = [(ld, k, part) for ld in self.lines for k in ("sidefront", "sideback")
+                  if k in ld and self.sides[ld[k]]["sector"] == room for part, _ref in self.drawn(ld, k)]
+        walls = Counter(self.sides[ld[k]].get(part) for ld, k, part in inside)
+        self.assertIn(m.NAV_PANEL, walls)
+        self.assertNotIn(m.HULL_SIDE, walls)
 
     def test_the_quay_wall_is_wet_at_the_waterline(self):
         """Every face rising out of the sea (onto the quay or a step) wears
@@ -516,21 +611,28 @@ class Map07Test(unittest.TestCase):
                     self.assertEqual(m.WALL_TILE - (m.GROUND - m.SEA), self.sides[ld[key]]["offsety"])
 
     def test_the_command_room_has_its_boards_and_consoles(self):
-        """SDCTRL1 three times on the command room's walls, each a middle
-        texture on an impassable line, standing on the floor, whole 64 px
-        sections; the two consoles show its desk (rows 64-95)."""
+        """Three boards on the command room's walls, each a middle texture
+        on an impassable line, standing on the floor, whole 128 px panels:
+        the two flanking Stalin are SDRADR1's radar consoles (two scopes
+        each), the east one SDCTRL1; the two consoles show SDCTRL1's desk
+        (rows 64-95)."""
         m = self.m
         command = self.plan["z6_command"]
-        boards = [ld for ld in self.lines if "sideback" in ld and m.CONTROL_PANEL in
-                  (self.sides[ld["sidefront"]].get("texturemiddle"), self.sides[ld["sideback"]].get("texturemiddle"))]
+        boards = [ld for ld in self.lines if "sideback" in ld and set(m.MIDDLE_TEXTURES) &
+                  {self.sides[ld["sidefront"]].get("texturemiddle"), self.sides[ld["sideback"]].get("texturemiddle")}]
         self.assertEqual(len(m.CONTROL_BOARDS), len(boards))
+        found = Counter()
         for ld in boards:
             self.assertTrue(ld.get("blocking") and ld.get("dontpegbottom"))
             self.assertFalse(ld.get("wrapmidtex"))
-            self.assertEqual(0, self.length(ld) % 64)
-            sides = [k for k in ("sidefront", "sideback") if self.sides[ld[k]].get("texturemiddle") == m.CONTROL_PANEL]
+            self.assertEqual(0, self.length(ld) % m.WALL_TILE)
+            sides = [k for k in ("sidefront", "sideback")
+                     if self.sides[ld[k]].get("texturemiddle") in m.MIDDLE_TEXTURES]
             self.assertEqual(1, len(sides))
             self.assertEqual(command, self.sides[ld[sides[0]]]["sector"])
+            self.assertEqual(0, self.sides[ld[sides[0]]].get("offsetx", 0))
+            found[self.sides[ld[sides[0]]]["texturemiddle"]] += 1
+        self.assertEqual({m.RADAR: 2, m.CONTROL_PANEL: 1}, dict(found))
         for name in m.CONTROL_BOARDS:
             self.assertNotIn(self.plan[name], self.rounds[-1][1], f"{name}: nobody walks into a board")
         consoles = self.faces(m.CONTROL_PANEL, "texturebottom")
@@ -554,12 +656,14 @@ class Map07Test(unittest.TestCase):
         tile in a 128-high slot; SDGATE1 only on S1's ramp, SDGATE2 only on
         S3's shed."""
         m = self.m
-        stars = self.faces(m.ARMOUR_STAR)
-        self.assertEqual(1, len(stars))
-        ld, key, part, ref = stars[0]
         sail = self.sectors[self.plan[f"{m.PROP_PREFIX}z11_sail"]]
-        self.assertEqual(("texturebottom", sail["heightfloor"]), (part, ref))
-        self.assertEqual(m.WALL_TILE, self.length(ld))
+        for piece in (m.ARMOUR_STAR, m.HULL_NUMBER):
+            stars = self.faces(piece)
+            self.assertEqual(1, len(stars), piece)
+            ld, key, part, ref = stars[0]
+            self.assertEqual(("texturebottom", sail["heightfloor"]), (part, ref), piece)
+            self.assertEqual(m.WALL_TILE, self.length(ld), piece)
+            self.assertEqual((0, 0), (self.sides[ld[key]].get("offsetx", 0), self.sides[ld[key]].get("offsety", 0)))
         self.assertEqual(m.WALL_TILE, sail["heightfloor"] - m.DECK)
         tanker = self.sectors[self.plan[f"{m.PROP_PREFIX}z1_tanker"]]
         self.assertEqual(m.WALL_TILE, tanker["heightfloor"] - m.GROUND)
@@ -593,8 +697,10 @@ class Map07Test(unittest.TestCase):
                 self.assertEqual(DOOR_TILE, self.length(ld), f"linedef {i}")
                 drop = self.sectors[room]["heightceiling"] - self.sectors[door]["heightfloor"]
                 self.assertEqual(DOOR_TILE, drop, f"linedef {i}: leaf of {self.zone_of[door]}")
-        self.assertEqual({self.m.DOOR: 6, self.m.DOOR_YELLOW: 2, self.m.DOOR_RED: 2}, dict(faces),
-                         "D1, D2 and D3 in SDDOOR1, the yellow door and the red gate in their trims")
+        self.assertEqual({self.m.DOOR: 4, self.m.DOOR_YELLOW: 2, self.m.DOOR_RED: 2, self.m.BULKHEAD: 2,
+                          self.m.BLAST_DOOR: 3}, dict(faces),
+                         "D1 and D2 in SDDOOR1, D3 the bulkhead, the locks in their trims, the bunker's "
+                         "shutters hermetic on the bunker's side")
 
     def test_each_lock_wears_its_trim(self):
         m = self.m

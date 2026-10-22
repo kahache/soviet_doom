@@ -388,7 +388,8 @@ class Map06Test(unittest.TestCase):
                 s = self.sectors[i]
                 lowest = min(self.sectors[n]["heightceiling"] for n in self.neighbours[i])
                 self.assertEqual(self.m.DOOR_HEIGHT, lowest - s["heightfloor"], self.zone_of[i])
-        for texture in (self.m.MOSAIC, self.m.GATE, self.m.FLAG_REICH, self.m.FLAG_LEGION, self.m.BANNER):
+        for texture in (self.m.MOSAIC, self.m.GATE, self.m.FLAG_REICH, self.m.FLAG_LEGION, self.m.BANNER,
+                        self.m.FLAG_REICH_KREMLIN, self.m.FLAG_LEGION_KREMLIN):
             faces = 0
             for ld in self.lines:
                 sides = [ld["sidefront"]] + ([ld["sideback"]] if "sideback" in ld else [])
@@ -411,10 +412,10 @@ class Map06Test(unittest.TestCase):
             self.assertTrue(faces, texture)
 
     def test_each_lock_wears_its_keys_look(self):
-        """The yellow and red leaves wear their trim; the blue leaf is MAP02's
-        door between two cobalt mosaics."""
+        """Each leaf wears its key's trim (the blue one SDDOORB since D113),
+        the blue between two cobalt mosaics (MAP02's door)."""
         m = self.m
-        leaf = {m.TAG_BLUE_DOOR: m.DOOR, m.TAG_YELLOW_DOOR: m.DOOR_YELLOW, m.TAG_RED_DOOR: m.DOOR_RED}
+        leaf = {m.TAG_BLUE_DOOR: m.DOOR_BLUE, m.TAG_YELLOW_DOOR: m.DOOR_YELLOW, m.TAG_RED_DOOR: m.DOOR_RED}
         for ld in self.lines:
             if ld.get("special") == m.SPECIAL_DOOR_LOCKED_RAISE:
                 self.assertEqual(leaf[ld["arg0"]], self.sides[ld["sidefront"]]["texturetop"])
@@ -642,21 +643,143 @@ class Map06Test(unittest.TestCase):
         self.assertIn(self.plan["z6_tower_apron"], self.neighbours[self.plan["prop_z6_tower"]])
 
     def test_the_flags_hang_side_by_side_on_the_wall_and_in_the_courtyard(self):
+        """The occupiers' banners in the wall's crown on the Kremlin's own
+        brick (SDFLAG3/SDFLAG4, D113), in the courtyard on the palaces'
+        (SDFLAG1/SDFLAG2): each pair only where its brick is."""
         m = self.m
-        for texture in (m.FLAG_REICH, m.FLAG_LEGION):
+        for texture, where in ((m.FLAG_REICH_KREMLIN, "prop_"), (m.FLAG_LEGION_KREMLIN, "prop_"),
+                               (m.FLAG_REICH, "z9_fl"), (m.FLAG_LEGION, "z9_fl")):
             zones = {self.zone_of[self.sides[side]["sector"]][:5] for ld in self.lines
                      for side in [ld["sidefront"]] + ([ld["sideback"]] if "sideback" in ld else [])
                      if texture in (self.sides[side].get("texturemiddle"), self.sides[side].get("texturebottom"))}
-            self.assertTrue({"prop_", "z9_fl"} <= zones, f"{texture}: {zones}")
+            self.assertEqual({where}, zones, texture)
+        self.assertEqual((m.FLAG_REICH_KREMLIN, m.FLAG_LEGION_KREMLIN), tuple(t for _y, t in m.FLAGS_ON_THE_WALL))
 
     # --- the open air ----------------------------------------------------------
     def test_the_outdoors_has_the_sky_and_every_sky_block_is_a_wall_top(self):
-        for name in ("z3_street", "z5_passage_s", "z5_atrium", "z6_square", "z7_park", "z9_arena", "s3_yard"):
+        for name in ("z3_street", "z6_square", "z7_park", "z9_arena", "s3_yard"):
             self.assertEqual(SKY_FLAT, self.sectors[self.plan[name]]["textureceiling"], name)
         for i, s in enumerate(self.sectors):
             if s["textureceiling"] == SKY_FLAT and s["heightceiling"] == s["heightfloor"]:
                 self.assertIn(i, self.props, self.zone_of[i])
                 self.assertFalse(s.get("id"), self.zone_of[i])
+
+    # --- round 2 (D113): the GUM, the Spasskaya, the museum ----------------------
+    def test_the_gums_line_is_under_its_glass_roof(self):
+        """SDGUMR1, the glass vault, over every sector of the line, the
+        atrium, the gallery, its stairs and the bridge (and the fountain in
+        the atrium); no sky inside the GUM, and the vault nowhere else."""
+        m = self.m
+        roofed = {self.zone_of[i] for i, s in enumerate(self.sectors) if s["textureceiling"] == m.GLASS_ROOF}
+        for name in ("z5_passage_s", "z5_passage_n", "z5_atrium", "z5_bridge", "z5_bridge_key", "z5_upper_w",
+                     "z5_gallery_n", "z5_gallery_s", "z5_gstair_n_1", "z5_gstair_s_8", "prop_z5_fountain"):
+            self.assertIn(name, roofed)
+        for name in roofed:
+            self.assertTrue(name.startswith(("z5_", "prop_z5_")), name)
+            self.assertEqual(m.PASSAGE_SKY, self.sectors[self.plan[name]]["heightceiling"], name)
+        for name, i in self.plan.items():
+            if name.startswith("z5_"):
+                self.assertNotEqual(SKY_FLAT, self.sectors[i]["textureceiling"], name)
+
+    def test_the_shopfronts_are_dealt_along_the_line(self):
+        """Every drawn shopfront is one 64 of wall at most, inside one column
+        of the world's 64 grid, wearing that column's sign (SDGUMS1-3 in
+        turn), its columns world-aligned; all three signs are on the line,
+        and SDWIND1 (the stand-in) is gone."""
+        m = self.m
+        signs = Counter()
+        for ld in self.lines:
+            for sd, sector, other, start, end in self.sides_of(ld):
+                for part, (texture, _anchor) in self.visible_parts(sd, sector, other, ld).items():
+                    if texture not in m.SHOPFRONTS:
+                        continue
+                    where = f"{texture} {part} on {self.zone_of[sector]}"
+                    axis = "x" if start["y"] == end["y"] else "y"
+                    lo, hi = sorted((int(start[axis]), int(end[axis])))
+                    self.assertLessEqual(hi - lo, m.SHOPFRONT_WIDTH, where)
+                    self.assertEqual(lo // 64, (hi - 1) // 64, f"{where}: across a column")
+                    self.assertEqual(m.SHOPFRONTS[(lo // 64) % 3], texture, where)
+                    dx = (end["x"] > start["x"]) - (end["x"] < start["x"])
+                    dy = (end["y"] > start["y"]) - (end["y"] < start["y"])
+                    self.assertEqual((start["x"] * dx + start["y"] * dy) % 64, sd.get("offsetx", 0) % 64, where)
+                    self.assertTrue(self.zone_of[sector].startswith("z5_"), where)
+                    signs[texture] += 1
+        self.assertEqual(set(m.SHOPFRONTS), set(signs))
+        self.assertGreater(sum(signs.values()), 60)
+        used = {sd.get(k) for sd in self.sides for k in ("texturetop", "texturemiddle", "texturebottom")}
+        self.assertNotIn("SDWIND1", used)
+
+    def test_the_spasskaya_has_its_clocks_and_its_ruby_star(self):
+        """SDCLOK1 on each of the clock stage's four faces, each one whole
+        tile (128 long, 128 high); SDRUBY1 on the one impassable line that
+        halves the tent's top, on both its sides, at half scale, so the
+        64 x 64 star stands exactly from the tent to the apron's sky."""
+        m = self.m
+        mid, base = self.plan["prop_z6_tower_mid"], self.plan["prop_z6_tower"]
+        clocks = 0
+        for ld in self.lines:
+            for sd, sector, other, _s, _e in self.sides_of(ld):
+                if other == mid and sector == base:
+                    self.assertEqual(m.CLOCK, sd.get("texturebottom"))
+                    (ax, ay), (bx, by) = (self.verts[ld["v1"]]["x"], self.verts[ld["v1"]]["y"]), \
+                                         (self.verts[ld["v2"]]["x"], self.verts[ld["v2"]]["y"])
+                    self.assertEqual(m.TILE_SIZE, abs(bx - ax) + abs(by - ay))
+                    self.assertEqual(m.TILE_SIZE, m.TOWER_STAGE - self.sectors[sector]["heightfloor"])
+                    self.assertEqual(0, sd.get("offsetx", 0))
+                    clocks += 1
+        self.assertEqual(4, clocks)
+        stars = [ld for ld in self.lines if "sideback" in ld
+                 and self.sides[ld["sidefront"]].get("texturemiddle") == m.RUBY_STAR]
+        self.assertEqual(1, len(stars))
+        ld = stars[0]
+        self.assertTrue(ld.get("blocking"))
+        self.assertEqual(self.named("prop_z6_tower_top", "prop_z6_tower_top_e"), set(self._pair(ld)))
+        for key in ("sidefront", "sideback"):
+            sd = self.sides[ld[key]]
+            self.assertEqual(m.RUBY_STAR, sd.get("texturemiddle"))
+            self.assertEqual((m.RUBY_STAR_SCALE, m.RUBY_STAR_SCALE), (sd.get("scalex_mid"), sd.get("scaley_mid")))
+        a, b = self.verts[ld["v1"]], self.verts[ld["v2"]]
+        self.assertEqual(m.TILE_SIZE / m.RUBY_STAR_SCALE, abs(b["y"] - a["y"]) + abs(b["x"] - a["x"]))
+        for name in ("prop_z6_tower_top", "prop_z6_tower_top_e"):
+            s = self.sectors[self.plan[name]]
+            self.assertEqual((m.TOWER_SPIRE, m.TOWER_APRON_SKY, SKY_FLAT),
+                             (s["heightfloor"], s["heightceiling"], s["textureceiling"]), name)
+        self.assertEqual(m.TILE_SIZE / m.RUBY_STAR_SCALE, m.TOWER_APRON_SKY - m.TOWER_SPIRE)
+        worn = sum(1 for sd in self.sides if sd.get("texturemiddle") == m.RUBY_STAR)
+        self.assertEqual(2, worn, "one star, seen from both sides")
+
+    def test_the_museum_wears_its_own_brick(self):
+        """SDMUSE1 on the Historical Museum's wall on the square, on its two
+        closets' shut leaves (the ambush is the wall itself) and on the
+        Resurrection gate's arches; world-aligned like the Kremlin's brick."""
+        m = self.m
+        museum = 0
+        y = m.SQUARE[3]
+        for ld in self.lines:
+            a, b = self.verts[ld["v1"]], self.verts[ld["v2"]]
+            if not (a["y"] == b["y"] == y and m.MUSEUM_X[0] <= min(a["x"], b["x"])
+                    and max(a["x"], b["x"]) <= m.MUSEUM_X[1]):
+                continue
+            for sd, sector, other, _s, _e in self.sides_of(ld):
+                if sector != self.plan["z6_square"]:
+                    continue
+                for part, (texture, _anchor) in self.visible_parts(sd, sector, other, ld).items():
+                    self.assertEqual(m.MUSEUM, texture, f"{part} at x {a['x']}")
+                    museum += abs(b["x"] - a["x"])
+        self.assertEqual(m.MUSEUM_X[1] - m.MUSEUM_X[0], museum)
+        for name in ("z6_gate_arch_1", "z6_gate_arch_2", "z3_gate_arch_1", "z3_gate_arch_2"):
+            self.assertIn(m.MUSEUM, {self.sides[ld["sidefront"]].get("texturemiddle") for ld in self.lines
+                                     if "sideback" not in ld and self.front(ld) == self.plan[name]}, name)
+        self.assertIn(m.MUSEUM, m.ALIGNED)
+
+    def test_the_square_is_lit_for_a_night(self):
+        """MAP06 is a night map since D113 (MAPINFO sky1 SDSKY2): the open
+        air at 128-160 (the art-director's range; the square was already
+        144), the beacons apart."""
+        m = self.m
+        for light in (m.LIGHT_SQUARE, m.LIGHT_PARK, m.LIGHT_ARENA):
+            self.assertTrue(128 <= light <= 160, light)
+        self.assertLessEqual(m.LIGHT_STREET, 160)
 
     # --- light -----------------------------------------------------------------
     def test_every_light_is_in_range(self):
