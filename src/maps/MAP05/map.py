@@ -456,10 +456,14 @@ ENEMY_TOTALS = {2: 31, 3: 46, 4: 60}
 # Every monster: (zone, kind, x, y, facing, lowest skill tier). Facing: 0
 # east, 90 north, 180 west, 270 south.
 MONSTERS = (
-    # The station: the Legion's picket at the train, facing the platform.
-    ("z1_station", "trooper", 4352, 1520, 0, 2),
-    ("z1_station", "trooper", 4400, 2000, 270, 2),
-    ("z1_station", "stormtrooper", 4400, 1456, 0, 4),
+    # The station: the Legion's picket at the train, in the lee of it
+    # between the train and the parapet, facing the train: hidden from the
+    # start (tests/test_safe_starts.py), met as the player rounds the
+    # train's west end. On the open platform they saw the start from 370
+    # and 450, the whole station being within 768 of it.
+    ("z1_station", "trooper", 4592, 2016, 270, 2),
+    ("z1_station", "trooper", 4784, 2016, 270, 2),
+    ("z1_station", "stormtrooper", 4688, 2016, 270, 4),
     # The gatehouse.
     ("z2_gatehouse", "trooper", 4480, 1216, 90, 2),
     ("z2_gatehouse", "stormtrooper", 4608, 1312, 270, 4),

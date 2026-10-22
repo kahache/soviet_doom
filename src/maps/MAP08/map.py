@@ -515,7 +515,10 @@ ENEMY_TOTALS = {2: 33, 3: 50, 4: 64}
 # east, 90 north, 180 west, 270 south.
 MONSTERS = (
     # The pier and the yard: the Legion unloading the cargo; a Doughboy over it.
-    ("z1_pier", "trooper", 928, 1344, 270, 2),
+    # The pier's trooper at its far north-east corner, 820 off: seen from
+    # the start but past the safe distance (tests/test_safe_starts.py; at
+    # 928 1344 he was 604 off).
+    ("z1_pier", "trooper", 976, 1568, 270, 2),
     ("z2_yard", "trooper", 1600, 448, 180, 2),
     ("z2_yard", "trooper", 1920, 1024, 180, 2),
     ("z2_yard", "stormtrooper", 2432, 640, 180, 2),

@@ -501,9 +501,14 @@ ENEMY_TOTALS = {2: 34, 3: 51, 4: 67}
 # Every monster: (zone, kind, x, y, facing, lowest skill tier). Facing: 0
 # east, 90 north, 180 west, 270 south.
 MONSTERS = (
-    # The runway: the Legion's picket round the plane and along the runway.
-    ("z1_runway", "trooper", 3456, 384, 0, 2),
-    ("z1_runway", "trooper", 3136, 192, 0, 2),
+    # The runway: the Legion's picket along the runway. The start is safe
+    # (tests/test_safe_starts.py: nobody sees it within 768): the first
+    # trooper crouches behind the crates west of the plane, out of sight
+    # until the player walks round them; the second stands on the runway
+    # 840 off, seen, the first shot the player's (PM, 2026-10-22 14:13: at
+    # 300 and 580 the two of them took a skill-3 player to 3 % in 1.3 s).
+    ("z1_runway", "trooper", 3296, 128, 0, 2),
+    ("z1_runway", "trooper", 2880, 352, 0, 2),
     ("z1_runway", "trooper", 2688, 448, 0, 3),
     ("z1_runway", "doughboy", 2176, 448, 0, 3),
     ("z1_runway", "stormtrooper", 2560, 160, 0, 4),

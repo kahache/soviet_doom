@@ -349,6 +349,8 @@ pairs. Every class but the General.
 | Heavy Panzermenschen (reactor, bay) | 0 | 2 | 2 |
 | **Total** | **33** | **50** | **64** |
 
+**Safe start** (`tests/test_safe_starts.py`, 2026-10-22): on skills 2, 3 and 4 no monster sees the start zone (the start and a step round it) within 768 units; Doom's own sight test, run on the built map. The pier's trooper moved from 928, 1344 (604 off) to the pier's far north-east corner, 976, 1568 (820 off): seen across the pier, past the safe distance. Same count, same zone.
+
 Against MAP05's 31 / 46 / 60: one key more, one map further.
 
 **Weapons** (pistol start), on every skill, on the route, each before the

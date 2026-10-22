@@ -423,6 +423,8 @@ pairs (`skill_tier`). Every class but the General.
 | Station's closets (blue tag), crest, west hall | Panzermensch + Doughboy + 3 troopers + 2 riflemen + 1 stormtrooper | Panzermensch + **heavy** + 2 Doughboys + 4 troopers + 2 riflemen + 3 stormtroopers | Panzermensch + heavy + 3 Doughboys + 5 troopers + 3 riflemen + 4 stormtroopers + 1 hound |
 | **Total** | **31** | **46** | **60** |
 
+**Safe start** (`tests/test_safe_starts.py`, 2026-10-22): on skills 2, 3 and 4 no monster sees the start zone (the start and a step round it) within 768 units; Doom's own sight test, run on the built map. The whole station lies within 768 of the start, so the Legion's picket (2 troopers, and the stormtrooper on skill 4) no longer stands on the open platform (it saw the start from 370 and 450): it waits in the lee of the armoured train, between the train and the parapet (4592, 4688, 4784 at y 2016, facing the train), met as the player rounds the train's west end towards the blue gate. Same count, same round.
+
 Against MAP03's 25 / 38 / 52: a larger map with no boss, so more bodies and
 three Panzermenschen on every skill (hall, substation, crest), the heavy
 from skill 3. Doughboys only under the sky (spillway, crest), where they

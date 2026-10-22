@@ -396,6 +396,8 @@ skill. Skill pairs nested (`skill_tier`), as MAP01–MAP03.
 | Courtyard | **the boss**, 2 stormtroopers, 1 Doughboy | +2 hounds | +1 Panzermensch, 1 heavy, 1 Doughboy |
 | **Total** | **42** | **68** | **96** |
 
+**Safe start** (`tests/test_safe_starts.py`, 2026-10-22): on skills 2, 3 and 4 no monster sees the start zone (the start and a step round it) within 768 units; Doom's own sight test, run on the built map. The station hall's first rifleman moved from 4600, 4864 (616 off) to 4384, 4896, 830 down the hall: seen, but the first shot the player's. Same count, same zone.
+
 By class on skill 4: 29 riflemen, 17 troopers, 25 stormtroopers, 10 hounds,
 7 Doughboys, 4 Panzermenschen, 3 heavy Panzermenschen, the boss.
 

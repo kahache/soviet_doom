@@ -406,6 +406,8 @@ an easier skill also fights on a harder one.
 | Z8/Z10 Exit | 1 trooper | 1 trooper + 1 Panzermensch | 2 troopers + 1 Panzermensch |
 | **Total** | **21** | **33** | **46** |
 
+**Safe start** (`tests/test_safe_starts.py`, 2026-10-22: no monster sees the start within 768 on skills 2-4) has **one listed exception, this dorm**: its riflemen (2 / 3 / 4) see the bed from 311-366. That is the approved design (the alarm, §5 round 1), played and shipped in v1.0; riflemen are the weakest hitscan and the TT-33 drops each in a shot or two, so it is not clearly unfair and was left as built. The test lists the four by place and class, so any other monster seeing the start fails.
+
 The totals are v2's plan, kept: v3's density added *places* to fight, not
 monsters, and the CEO's measure is minutes, not kills. Recomputed against
 the new rooms, the plan changed in four ways: the Legion moved out of the

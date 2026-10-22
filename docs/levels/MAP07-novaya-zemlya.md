@@ -330,6 +330,8 @@ pairs. Every class but the General.
 | Runway closets (red tag), road, harbour, submarine | Panzermensch + Doughboy + 3 troopers + 3 riflemen + 2 stormtroopers | + **heavy** + Doughboy + 1 trooper + 1 rifleman + 2 stormtroopers | + Doughboy + 3 troopers + 1 hound + 2 stormtroopers |
 | **Total** | **34** | **51** | **67** |
 
+**Safe start** (`tests/test_safe_starts.py`, 2026-10-22): on skills 2, 3 and 4 no monster sees the start zone (the start and a step round it) within 768 units; Doom's own sight test, run on the built map. The PM's engine pass (2026-10-22 14:13, skill 3, no god mode) found the runway's two nearest troopers (3456, 384 and 3136, 192: 300 and 580 off) taking the player from 100 % to 3 % in about 1.3 s. The first now crouches behind the crates west of the plane (3296, 128), out of sight until the player walks round them; the second stands on the runway 840 off (2880, 352), seen, the first shot the player's. Same count, same zone, same round.
+
 Against MAP05's 31 / 46 / 60: episode 3 opens a notch above (tested). Three
 Panzermenschen on every skill (radome, bunker, quay), the heavy from skill 3
 (quay) and on skill 4 also before the core. Doughboys only under the sky
