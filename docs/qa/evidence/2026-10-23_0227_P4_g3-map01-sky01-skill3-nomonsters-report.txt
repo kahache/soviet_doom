@@ -1,0 +1,20 @@
+=== route sky01 / MAP01 / skill 3 ===
+helper         : route-4
+god mode       : on
+monsters       : engine ?, map data 0
+steps:
+  [ok ] S1   expect -            got Z6   z6_hangar @ (2600, 1000, -32) hp 100
+  [ok ] S2   expect -            got Z6   z6_hangar @ (1320, 820, -32) hp 100
+  [ok ] S3   expect -            got Z6   lane_a_cross @ (2300, 700, -32) hp 100
+zones reached  : Z6
+doors:
+  [ok ] none checked: 
+inventory (by slot):
+  [ok ] none asked: 
+secrets        : ? of 3
+exit           : NOT REACHED (exit switch pressed: NO; level unloaded towards: NOT SEEN; after it: NOT SEEN (the helper cannot ask once the level is gone; judge the END shot))
+blockers       : none killed by the route's sdclear
+kills          : ? (level never unloaded), 0 by the route's sdclear
+screenshots    : 4
+log failures   : none
+VERDICT        : PASS
