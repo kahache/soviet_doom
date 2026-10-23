@@ -6,6 +6,15 @@ and D114). Before that: 2026-10-21 ~23:30 (night shift closed, D102/D103) and
 `docs/PRD.md`; open CEO items in `docs/PENDING-CEO-DECISIONS.md`; tasks and
 estimates in `docs/BACKLOG.md`; the phase view in `docs/ROADMAP.md` ("P4 today").
 
+## Gemini progress 2026-10-23 (cap hit at 10:38; next window 23 Oct 17:33)
+
+20 images today. Done: TT-33 A/B (but Gemini drew a generic modern pistol: re-ask with the TT-33 block in
+the art-director's note, `gemini_tt33_A2/B2`), gunner 5/5 (aim_v3 and death_v2 are the keepers; frontal fire OK, D119),
+colossus 7/7 (aim and fire: profile touches view 4, crop by hand), Consortium 2/7 (rooted, turn). **Next at 17:33:**
+Consortium fire, death, aim (2 rows), walk (2 rows), breach; then the AKM 2; TT-33 re-ask 2; re-asks 4.
+Processing agents (art-director) run per character; previews go to the CEO before anything enters `assets/`.
+V3 agents run in isolated worktrees (pickup events E1/E2/E3, ops map + medals, RGD-5, propaganda radio).
+
 ## RESUME HERE FIRST (2026-10-23 ~02:45, PC shut down at the CEO's request)
 
 The CEO played Episodes 2 and 3 and liked it (D119). **V2 = the finished game; V3 = improvements** (D120 scope,
