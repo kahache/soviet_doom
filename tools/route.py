@@ -1083,9 +1083,15 @@ def tankograd_critical(md: "MapData | None" = None) -> Route:
 # door; SW-A; the blue key (the gate still shut, and the station's shutter);
 # SW-B, the shortcut; the blue gate with its key, onto the crest; D2; the
 # switch. MAPINFO's `next` for the dam is MAP06.
+# V3 (A2, A3): two pickups do things. The yellow key brings the old sluice's
+# wall down (Floor_LowerToLowest on TAG_SLUICE_BREACH: the dam bursts): YD0
+# reads it shut, YKEY waits and reads it open. The blue key opens the
+# substation's tool store (Door_Open on TAG_SUBSTATION_STORE): SWA reads it
+# shut, BKEY waits and reads it open. The burst's riders (the quake, the
+# water) have no tag the route can judge; the PM looks at them.
 DAM_CONSTANTS = ("TAG_BLUE_GATE", "TAG_YELLOW_DOOR", "TAG_CABLE_SHUTTER", "TAG_STATION_SHUTTER",
                  "TAG_D2_WEST", "SPECIAL_DOOR_LOCKED_RAISE", "LOCK_BLUE_CARD", "LOCK_YELLOW_CARD",
-                 "ED_BLUE_CARD", "ED_YELLOW_CARD")
+                 "ED_BLUE_CARD", "ED_YELLOW_CARD", "TAG_SLUICE_BREACH", "TAG_SUBSTATION_STORE")
 DAM_YELLOW_FAMILY = "Z5"   # the yellow door is pressed from its portal on the hall's catwalk
 DAM_BLUE_FAMILY = "Z1"     # the blue gate from its portal in the station
 DAM_CREST_FAMILY = "Z10"   # D2 from the crest's west porch
@@ -1095,8 +1101,8 @@ DAM_SPECIAL_DOOR_RAISE = 12   # Door_Raise, udmf.SPECIAL_DOOR_RAISE: D2 is a man
 def dam_critical(md: "MapData | None" = None) -> Route:
     """MAP05's critical path, read off the built map (see the block above)."""
     md = md or load_map_data(map_defining(*DAM_CONSTANTS))
-    (tag_bg, tag_yd, tag_sha, tag_shb, tag_d2, locked, lock_b, lock_y, ed_b, ed_y) = (
-        _map_const(md, n) for n in DAM_CONSTANTS)
+    (tag_bg, tag_yd, tag_sha, tag_shb, tag_d2, locked, lock_b, lock_y, ed_b, ed_y,
+     tag_sluice, tag_store) = (_map_const(md, n) for n in DAM_CONSTANTS)
     tm = md.textmap
 
     a0_family = start_family(md)
@@ -1133,27 +1139,35 @@ def dam_critical(md: "MapData | None" = None) -> Route:
         Step("BG0", bg.point, bg.angle, press + (f"tag {tag_bg}", "inv", "capture"),
              expect=(bg_family,), tags=((tag_bg, False),), keys=0, presses=((locked, tag_bg),),
              note=f"the blue gate (lock {lock_b}) pressed with no key: pressed, and still shut"),
-        Step("YD0", yd.point, yd.angle, press + (f"tag {tag_yd}", "inv", "capture"),
-             expect=(yd_family,), tags=((tag_yd, False),), keys=0, presses=((locked, tag_yd),),
-             note=f"the yellow door (lock {lock_y}) on the catwalk pressed with no key: still shut"),
+        Step("YD0", yd.point, yd.angle, press + (f"tag {tag_yd}", f"tag {tag_sluice}", "inv", "capture"),
+             expect=(yd_family,), tags=((tag_yd, False), (tag_sluice, False)), keys=0,
+             presses=((locked, tag_yd),),
+             note=f"the yellow door (lock {lock_y}) on the catwalk pressed with no key: still shut; "
+                  "the sluice's wall still standing"),
         Step("YKEY", y_start, y_angle,
-             (f"forward {y_tics}", "inv", f"tag {tag_yd}", f"tag {tag_bg}", "capture"),
-             expect=(y_family,), tags=((tag_yd, False), (tag_bg, False)), keys=1,
+             (f"forward {y_tics}", f"wait {DOOR_WAIT}", "inv", f"tag {tag_yd}", f"tag {tag_bg}",
+              f"tag {tag_sluice}", "capture"),
+             expect=(y_family,), tags=((tag_yd, False), (tag_bg, False), (tag_sluice, True)), keys=1,
              note=f"walk onto the yellow key (DoomEdNum {ed_y} at {y_spot}) on the spillway's "
-                  "winch house, no give: one key; both locks still shut"),
+                  "winch house, no give: one key; both locks still shut; its pickup has brought "
+                  "the sluice's wall down (V3, A3: the dam bursts)"),
         Step("YD1", yd.point, yd.angle, press + (f"tag {tag_yd}", f"forward {yd.tics}", "capture"),
              expect=(yd.inside,), tags=((tag_yd, True),), presses=((locked, tag_yd),),
              note="the yellow door with its key: open (and the catwalk's closets); into the control room"),
         Step("SWA", swa_point, swa_angle,
-             ("use", f"wait {SWITCH_WAIT}", f"tag {tag_sha}", f"tag {tag_shb}", "capture"),
-             expect=(family_at(md, swa_point),), tags=((tag_sha, True), (tag_shb, False)),
+             ("use", f"wait {SWITCH_WAIT}", f"tag {tag_sha}", f"tag {tag_shb}", f"tag {tag_store}",
+              "capture"),
+             expect=(family_at(md, swa_point),), tags=((tag_sha, True), (tag_shb, False), (tag_store, False)),
              presses=((swa.special, swa.arg0),),
-             note="SW-A: the cable gallery's shutter opens; the station's shutter still shut"),
+             note="SW-A: the cable gallery's shutter opens; the station's shutter and the "
+                  "substation's tool store still shut"),
         Step("BKEY", b_start, b_angle,
-             (f"forward {b_tics}", "inv", f"tag {tag_bg}", f"tag {tag_shb}", "capture"),
-             expect=(b_family,), tags=((tag_bg, False), (tag_shb, False)), keys=2,
+             (f"forward {b_tics}", f"wait {DOOR_WAIT}", "inv", f"tag {tag_bg}", f"tag {tag_shb}",
+              f"tag {tag_store}", "capture"),
+             expect=(b_family,), tags=((tag_bg, False), (tag_shb, False), (tag_store, True)), keys=2,
              note=f"walk onto the blue key (DoomEdNum {ed_b} at {b_spot}) on the substation's "
-                  "pad, no give: two keys; the blue gate and the station's shutter still shut"),
+                  "pad, no give: two keys; the blue gate and the station's shutter still shut; "
+                  "its pickup has opened the tool store (V3, A2)"),
         Step("SWB", swb_point, swb_angle,
              ("use", f"wait {SWITCH_WAIT}", f"tag {tag_shb}", "capture"),
              expect=(family_at(md, swb_point),), tags=((tag_shb, True),),
@@ -1190,11 +1204,14 @@ def dam_critical(md: "MapData | None" = None) -> Route:
 # the box, as tankograd-critical warps to the director's desk. The red key's
 # pickup drops two gondolas' sides in the yard (Floor_LowerToLowest on a tag no
 # line carries); their troops may stand in a later walk, and sdclear names
-# them as blockers. Where the exit leads is MAPINFO's `next`, as for every
+# them as blockers. V3 (A2): the yellow key's pickup opens the platelayers'
+# hut (Door_Open on TAG_YARD_HUT, no line carries it): RD0 reads it shut,
+# YKEY waits a door's rise and reads it open, so the engine pass proves the
+# pickup's door. Where the exit leads is MAPINFO's `next`, as for every
 # route.
 TRANSSIB_CONSTANTS = ("TAG_YELLOW_DOOR", "TAG_RED_DOOR", "TAG_SHUTTER", "TAG_HATCH",
                       "SPECIAL_DOOR_LOCKED_RAISE", "LOCK_YELLOW_CARD", "LOCK_RED_CARD",
-                      "ED_YELLOW_CARD", "ED_RED_CARD", "TURNTABLE")
+                      "ED_YELLOW_CARD", "ED_RED_CARD", "TURNTABLE", "TAG_YARD_HUT")
 TRANSSIB_YARD_FAMILY = "Z2"     # both locks are pressed from the yard's portal bands
 TRANSSIB_KEY_APPROACH = 96      # the lever frame and the king post are 64 square, 16 up
 
@@ -1202,7 +1219,7 @@ TRANSSIB_KEY_APPROACH = 96      # the lever frame and the king post are 64 squar
 def transsib_critical(md: "MapData | None" = None) -> Route:
     """The Sverdlovsk yard's critical path, read off the built map (see the block above)."""
     md = md or load_map_data(map_defining(*TRANSSIB_CONSTANTS))
-    (tag_yd, tag_rd, tag_sh, tag_hatch, locked, lock_y, lock_r, ed_y, ed_r, _turntable) = (
+    (tag_yd, tag_rd, tag_sh, tag_hatch, locked, lock_y, lock_r, ed_y, ed_r, _turntable, tag_hut) = (
         _map_const(md, n) for n in TRANSSIB_CONSTANTS)
 
     a0_family = start_family(md)
@@ -1229,14 +1246,18 @@ def transsib_critical(md: "MapData | None" = None) -> Route:
         Step("YD0", yd.point, yd.angle, press + (f"tag {tag_yd}", "inv", "capture"),
              expect=(yd_family,), tags=((tag_yd, False),), keys=0, presses=((locked, tag_yd),),
              note=f"the yellow door (lock {lock_y}) pressed with no key: pressed, and still shut"),
-        Step("RD0", rd.point, rd.angle, press + (f"tag {tag_rd}", "inv", "capture"),
-             expect=(rd_family,), tags=((tag_rd, False),), keys=0, presses=((locked, tag_rd),),
-             note=f"the red door (lock {lock_r}) pressed with no key: pressed, and still shut"),
+        Step("RD0", rd.point, rd.angle, press + (f"tag {tag_rd}", f"tag {tag_hut}", "inv", "capture"),
+             expect=(rd_family,), tags=((tag_rd, False), (tag_hut, False)), keys=0,
+             presses=((locked, tag_rd),),
+             note=f"the red door (lock {lock_r}) pressed with no key: pressed, and still shut; "
+                  "the platelayers' hut shut"),
         Step("YKEY", y_start, y_angle,
-             (f"forward {y_tics}", "inv", f"tag {tag_yd}", f"tag {tag_rd}", "capture"),
-             expect=(y_family,), tags=((tag_yd, False), (tag_rd, False)), keys=1,
+             (f"forward {y_tics}", f"wait {DOOR_WAIT}", "inv", f"tag {tag_yd}", f"tag {tag_rd}",
+              f"tag {tag_hut}", "capture"),
+             expect=(y_family,), tags=((tag_yd, False), (tag_rd, False), (tag_hut, True)), keys=1,
              note=f"walk onto the yellow key on the signal box's lever frame (DoomEdNum {ed_y} "
-                  f"at {y_spot}), no give: one key; both doors still shut"),
+                  f"at {y_spot}), no give: one key; both doors still shut, and its pickup has "
+                  "opened the platelayers' hut (V3, A2: the item special's Door_Open)"),
         Step("YD1", yd.point, yd.angle, press + (f"tag {tag_yd}", f"forward {yd.tics}", "capture"),
              expect=(yd.inside,), tags=((tag_yd, True),), presses=((locked, tag_yd),),
              note="the yellow door with its key: open; walk through it to the goods warehouse"),
@@ -1299,10 +1320,15 @@ def transsib_critical(md: "MapData | None" = None) -> Route:
 # red doors refused on the blue key; the yellow key on the north stand, the
 # yellow gatehouse; the red door refused on two keys; the red key in the
 # vehicle park (the closets open); the Spasskaya gate; the boss; the exit.
+# V3 (A3): the yellow key's pickup brings the barriers down
+# (Floor_LowerToLowest on TAG_RESURRECTION: the Resurrection gate's two
+# barricades and the reserve's courtyard gate): YD0 reads the tag shut (the
+# courtyard gate is floor = ceiling), YKEY waits and reads it open, so the
+# engine pass proves a pickup's Floor_LowerToLowest.
 REDSQUARE_CONSTANTS = ("TAG_BLUE_DOOR", "TAG_YELLOW_DOOR", "TAG_RED_DOOR", "TAG_AMBUSH",
                        "TAG_BOSS_EXIT", "SPECIAL_DOOR_LOCKED_RAISE", "LOCK_BLUE_CARD",
                        "LOCK_YELLOW_CARD", "LOCK_RED_CARD", "ED_BLUE_CARD", "ED_YELLOW_CARD",
-                       "ED_RED_CARD", "MAP06_BOSS_SPOT", "BOSS_KIND")
+                       "ED_RED_CARD", "MAP06_BOSS_SPOT", "BOSS_KIND", "TAG_RESURRECTION")
 REDSQUARE_GUM_FAMILY = "Z4"       # the blue door is pressed from the GUM's arcade
 REDSQUARE_SQUARE_FAMILY = "Z6"    # the yellow and red doors from Red Square
 REDSQUARE_ARENA_FAMILY = "Z9"     # the Kremlin courtyard, where the boss stands
@@ -1314,7 +1340,7 @@ def redsquare_critical(md: "MapData | None" = None) -> Route:
     """MAP06's critical path, read off the built map (see the block above)."""
     md = md or load_map_data(map_defining(*REDSQUARE_CONSTANTS))
     (tag_bd, tag_yd, tag_rd, tag_amb, tag_exit, locked, lock_b, lock_y, lock_r,
-     ed_b, ed_y, ed_r, boss_spot, boss_kind) = (_map_const(md, n) for n in REDSQUARE_CONSTANTS)
+     ed_b, ed_y, ed_r, boss_spot, boss_kind, tag_res) = (_map_const(md, n) for n in REDSQUARE_CONSTANTS)
     kinds, classes = _map_const(md, "MONSTER_KINDS"), _map_const(md, "MONSTER_CLASSES")
     boss_class = classes[kinds[boss_kind]]
     if boss_class not in COUNT_CLASSES:
@@ -1360,17 +1386,20 @@ def redsquare_critical(md: "MapData | None" = None) -> Route:
         Step("BD1", bd.point, bd.angle, press + (f"tag {tag_bd}", f"forward {bd.tics}", "capture"),
              expect=(bd.inside,), tags=((tag_bd, True),), presses=((locked, tag_bd),),
              note="the blue door with its key: open; walk through it onto Red Square"),
-        Step("YD0", yd.point, yd.angle, press + (f"tag {tag_yd}", "inv", "capture"),
-             expect=(family_at(md, yd.point),), tags=((tag_yd, False),), keys=1,
+        Step("YD0", yd.point, yd.angle, press + (f"tag {tag_yd}", f"tag {tag_res}", "inv", "capture"),
+             expect=(family_at(md, yd.point),), tags=((tag_yd, False), (tag_res, False)), keys=1,
              presses=((locked, tag_yd),),
-             note=f"the yellow gatehouse (lock {lock_y}) pressed with the blue key: still shut"),
+             note=f"the yellow gatehouse (lock {lock_y}) pressed with the blue key: still shut; "
+                  "the barriers still up"),
         Step("RD0", rd.point, rd.angle, press + (f"tag {tag_rd}", "inv", "capture"),
              expect=(family_at(md, rd.point),), tags=((tag_rd, False),), keys=1,
              presses=((locked, tag_rd),),
              note=f"the Spasskaya gate (lock {lock_r}) pressed with the blue key: still shut"),
-        Step("YKEY", y_start, y_angle, (f"forward {y_tics}", "inv", f"tag {tag_yd}", "capture"),
-             expect=(y_family,), tags=((tag_yd, False),), keys=2,
-             note=f"up the north stand onto the yellow key (DoomEdNum {ed_y} at {y_spot}): two keys"),
+        Step("YKEY", y_start, y_angle,
+             (f"forward {y_tics}", f"wait {DOOR_WAIT}", "inv", f"tag {tag_yd}", f"tag {tag_res}", "capture"),
+             expect=(y_family,), tags=((tag_yd, False), (tag_res, True)), keys=2,
+             note=f"up the north stand onto the yellow key (DoomEdNum {ed_y} at {y_spot}): two keys; "
+                  "its pickup has brought the barriers down (V3, A3: Floor_LowerToLowest)"),
         Step("YD1", yd.point, yd.angle, press + (f"tag {tag_yd}", f"forward {yd.tics}", "capture"),
              expect=(yd.inside,), tags=((tag_yd, True),), presses=((locked, tag_yd),),
              note="the yellow gatehouse with its key: open; walk through to the vehicle park"),

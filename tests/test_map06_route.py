@@ -61,8 +61,10 @@ class RedSquareRouteTest(tr.BuiltMapRoute, unittest.TestCase):
         m, s = self.m, self.steps
         bd, yd, rd, amb, ex, lk = (m.TAG_BLUE_DOOR, m.TAG_YELLOW_DOOR, m.TAG_RED_DOOR, m.TAG_AMBUSH,
                                    m.TAG_BOSS_EXIT, m.SPECIAL_DOOR_LOCKED_RAISE)
+        res = m.TAG_RESURRECTION   # V3: the barriers, shut before the yellow key, open after it
         self.assertEqual({"BD0": ((bd, False),), "BKEY": ((bd, False),), "BD1": ((bd, True),),
-                          "YD0": ((yd, False),), "RD0": ((rd, False),), "YKEY": ((yd, False),),
+                          "YD0": ((yd, False), (res, False)), "RD0": ((rd, False),),
+                          "YKEY": ((yd, False), (res, True)),
                           "YD1": ((yd, True),), "RDY": ((rd, False),),
                           "RKEY": ((rd, False), (amb, True)), "RD1": ((rd, True),),
                           "BOSS0": ((ex, False),), "BOSS1": ((ex, True),)},

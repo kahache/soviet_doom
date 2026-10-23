@@ -64,7 +64,9 @@ Run it (the PM or the CEO; agents never start GZDoom, D26):
 
 from __future__ import annotations
 
+import importlib.util
 from dataclasses import replace
+from pathlib import Path
 
 from sdbuild.udmf import (
     DOOR_SPEED_SLOW,
@@ -82,6 +84,20 @@ from sdbuild.udmf import (
 )
 
 MAP_NAME = "MAP06"
+
+
+def _load_pickup_events():
+    """Episode 2's pickup events (src/maps/common/pickup_events_e2.py): the
+    verified specials and the helpers MAP04, MAP05 and MAP06 share. Loaded by
+    path, as the build loads this file."""
+    path = Path(__file__).resolve().parents[1] / "common" / "pickup_events_e2.py"
+    spec = importlib.util.spec_from_file_location("sd_pickup_events_e2", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+EVENTS = _load_pickup_events()
 
 # --- The approved sets (docs/art/TEXTURE-INDEX.md) ---------------------------
 # Soviet base (batch 1-3)
@@ -287,6 +303,12 @@ TAG_YELLOW_DOOR = 5     # the gatehouse to the vehicle park: lock 3
 TAG_RED_DOOR = 6        # the Spasskaya gate: lock 1
 TAG_AMBUSH = 10         # the museum's two closets; ONLY the red key's pickup opens it
 TAG_BOSS_EXIT = 12      # the exit gate; ONLY the boss's death opens it (no line carries it)
+TAG_RESURRECTION = 13   # V3 (A3): the Resurrection gate's barricades and the reserve's gate; ONLY the yellow key
+# The tags only a pickup opens (no line carries any of them).
+PICKUP_TAGS = (TAG_AMBUSH, TAG_RESURRECTION)
+# Sectors whose FLOOR a pickup lowers for good (MAP04's LIFT_TAGS): the tests
+# open them by laying the floor on the lowest neighbour's.
+LIFT_TAGS = (TAG_RESURRECTION,)
 SECRET_PANEL_TAGS = (TAG_S1_PANEL, TAG_S2_PANEL, TAG_S3_PANEL)
 
 # --- The boss --------------------------------------------------------------------
@@ -300,6 +322,21 @@ BOSS_ANGLE = 0
 BOSS_KIND = "colossus"
 BOSS_DEATH_SPECIAL = (SPECIAL_DOOR_OPEN, (TAG_BOSS_EXIT, DOOR_SPEED_SLOW, 0, 0, 0))
 RED_KEY_SPECIAL = (SPECIAL_DOOR_OPEN, (TAG_AMBUSH, DOOR_SPEED_SLOW, 0, 0, 0))
+# V3 (A3, D119/D120), the map's set piece: the barriers come down. Taking the
+# yellow key on the north stand, the crates barricading the Resurrection
+# gate's two arches sink into the setts and, across Nikolskaya, the reserve
+# courtyard's gate sinks with them (one Floor_LowerToLowest on one tag, no
+# rider): the Reich's reserve marches out of its courtyard, straight down
+# through the first arch and onto the square, behind the player as he goes
+# south to the yellow gatehouse. Warned: both barricades are in sight of the
+# key's spot and grind as they sink (tested); the wave has 450 units of
+# street and the square's width to cross. Never in the way: the arches open
+# a loop back onto Nikolskaya (already taken), the courtyard is a dead end,
+# and nothing the route needs is behind either (tested).
+SPECIAL_FLOOR_LOWER_TO_LOWEST = EVENTS.FLOOR_LOWER_TO_LOWEST
+BARRIER_SPEED = EVENTS.FLOOR_SPEED_FAST   # 4 units a tic: the crates in 16 tics, the gate in 32
+YELLOW_KEY_SPECIAL = (SPECIAL_FLOOR_LOWER_TO_LOWEST, (TAG_RESURRECTION, BARRIER_SPEED, 0, 0, 0))
+PICKUP_SPECIALS = {ED_YELLOW_CARD: YELLOW_KEY_SPECIAL, ED_RED_CARD: RED_KEY_SPECIAL}
 
 # --- Things --------------------------------------------------------------------
 PLAYER_START = (5216, 4864)
@@ -331,8 +368,16 @@ PAVILION = (3520, 4160, 3840, 4992)
 PAVILION_DOOR = (3584, 4096, 3776, 4160)
 STREET = (2816, 3648, 4352, 4096)
 STREET_GATES_X = (3008, 3264, 4032)     # three courtyard gates; the middle one is S3
-# The Resurrection gate's two arches, barricaded: the square seen, not reached.
+# The Resurrection gate's two arches, barricaded: the square seen, not reached
+# (until V3's yellow key brings the barricades down).
 RESURRECTION_ARCHES_X = (2816, 3008)
+# V3 (A3): the Reich's reserve, in a courtyard behind a gate in Nikolskaya's
+# north wall, straight up the street from the first arch: a recess one tile
+# high like the street's other gates, the gate (a sector the yellow key's
+# special lowers) at its back, the courtyard behind, open to the sky.
+RESERVE_RECESS = (2816, 4096, 2944, 4112)
+RESERVE_GATE = (2816, 4112, 2944, 4128)
+RESERVE = (2752, 4128, 2976, 4336)
 # The GUM: the facade (x 3456-3520), the arcade, a row of shops, the line
 # under its glass roof, the east gallery upstairs, the upper shops.
 GUM_NORTH = (3520, 3328, 4352, 3584)
@@ -566,11 +611,19 @@ MONSTERS = (
     ("z5_atrium", "doughboy", 4280, 2350, 180, 4),
     ("z5_shop_u1", "trooper", 4500, 2900, 180, 4),
     ("z5_shop_u3", "stormtrooper", 4500, 1700, 180, 4),
+    # V3 (A3): the reserve, behind the courtyard gate the yellow key brings
+    # down: five of the square's guard moved out (from 2700 3200, 3150 3300,
+    # 2600 3000, 2800 3350, 3300 3100), so the square they come back to is
+    # the one the player has half cleared. The Reich's, as Nikolskaya.
+    ("z3_reserve", "rifleman", 2816, 4192, 270, 2),
+    ("z3_reserve", "rifleman", 2912, 4192, 270, 3),
+    ("z3_reserve", "hound", 2864, 4272, 270, 3),
+    ("z3_reserve", "rifleman", 2800, 4288, 270, 4),
+    ("z3_reserve", "stormtrooper", 2928, 4288, 270, 4),
     # Red Square: the parade's guard, the episode's open battle, facing the
     # GUM's doors.
     ("z6_square", "rifleman", 3100, 2900, 0, 2),
     ("z6_square", "rifleman", 3100, 1800, 0, 2),
-    ("z6_square", "rifleman", 2700, 3200, 0, 2),
     ("z6_square", "rifleman", 2600, 1700, 0, 2),
     ("z6_square", "rifleman", 2060, 2620, 0, 2),
     ("z6_square", "rifleman", 2100, 1500, 0, 2),
@@ -581,21 +634,17 @@ MONSTERS = (
     ("z6_square", "hound", 2450, 2750, 0, 2),
     ("z6_square", "panzermensch", 2450, 2000, 0, 2),
     ("z6_square", "doughboy", 2700, 2800, 0, 2),
-    ("z6_square", "rifleman", 3150, 3300, 0, 3),
     ("z6_square", "rifleman", 2040, 2000, 0, 3),
     ("z6_square", "rifleman", 3000, 1300, 0, 3),
     ("z6_square", "stormtrooper", 2100, 3100, 0, 3),
     ("z6_square", "stormtrooper", 3200, 2550, 0, 3),
-    ("z6_square", "hound", 2600, 3000, 0, 3),
     ("z6_square", "doughboy", 2100, 2400, 0, 3),
     # The Legion's gunners (D116) behind the halted parade's vehicles, the
     # square's width to fire across at the GUM's doors.
     ("z6_square", "gunner", 2176, 2450, 0, 3),
     ("z6_square", "rifleman", 3300, 1700, 0, 4),
-    ("z6_square", "rifleman", 2800, 3350, 0, 4),
     ("z6_square", "rifleman", 1950, 1700, 0, 4),
     ("z6_square", "stormtrooper", 2450, 1250, 0, 4),
-    ("z6_square", "stormtrooper", 3300, 3100, 0, 4),
     ("z6_square", "heavy", 2750, 1700, 0, 4),
     ("z6_square", "panzermensch", 2450, 3300, 0, 4),
     ("z6_square", "hound", 3000, 2350, 0, 4),
@@ -1097,6 +1146,16 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
          light=LIGHT_SECRET, flat=GRANITE, ceiling=SKY, wall=BRICK, special=SECTOR_SPECIAL_SECRET)
     for y in (sy2 + 2 * NICHE_DEPTH, sy2 + 3 * NICHE_DEPTH):
         g.style_h(y, s3x, s3x + TILE_SIZE, secret_panel_style(TAG_S3_PANEL, s3_panel, GATE))
+    # V3 (A3): the reserve's courtyard gate, in a recess like the street's
+    # other gates; the gate is a sector as high as the recess (floor =
+    # ceiling, its face SDGATE1 from the street, as theirs), which the yellow
+    # key's special sinks to the ground.
+    recess("z3_street", "z3_reserve_recess", RESERVE_RECESS, ceil=GROUND + TILE_SIZE,
+           back=("h", RESERVE_GATE[1], RESERVE_GATE[0], RESERVE_GATE[2]), texture=GATE)
+    zone("z3_reserve_gate", GROUND + TILE_SIZE, GROUND + TILE_SIZE, [RESERVE_GATE], TAG_RESURRECTION,
+         light=LIGHT_STREET, flat=FLOOR_ASPHALT, ceiling=CEIL_CONCRETE, wall=BRICK)
+    zone("z3_reserve", GROUND, YARD_SKY, [RESERVE], light=LIGHT_STREET, flat=FLOOR_ASPHALT,
+         ceiling=SKY, wall=BRICK)
     prop("z3_street", "z3_barricade_1", (3328, 3776, 3456, 3840), BARRICADE, wall=LONG_CRATE,
          flat=CRATE_TOP)
     prop("z3_street", "z3_barricade_2", (3904, 3840, 4032, 3904), BARRICADE, wall=LONG_CRATE,
@@ -1107,8 +1166,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for n, ax in enumerate(RESURRECTION_ARCHES_X, start=1):
         zone(f"z3_gate_arch_{n}", GROUND, 192, [(ax, 3584, ax + TILE_SIZE, 3648)],
              light=LIGHT_STREET, flat=GRANITE, ceiling=CEIL_CONCRETE, wall=MUSEUM)
-        zone(f"{PROP_PREFIX}z3_gate_barricade_{n}", BARRICADE, 192,
-             [(ax, 3520, ax + TILE_SIZE, 3584)], light=LIGHT_STREET, flat=CRATE_TOP,
+        # V3 (A3): the barricade is no prop any more: the yellow key's
+        # special sinks it to the arches' floor (TAG_RESURRECTION).
+        zone(f"z3_gate_barricade_{n}", BARRICADE, 192,
+             [(ax, 3520, ax + TILE_SIZE, 3584)], TAG_RESURRECTION, light=LIGHT_STREET, flat=CRATE_TOP,
              ceiling=CEIL_CONCRETE, wall=LONG_CRATE)
         zone(f"z6_gate_arch_{n}", GROUND, 192, [(ax, 3456, ax + TILE_SIZE, 3520)],
              light=LIGHT_SQUARE, flat=GRANITE, ceiling=CEIL_CONCRETE, wall=MUSEUM)
@@ -1420,10 +1481,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START,
                        angle=PLAYER_ANGLE))
     tm.add_thing(Thing(x=BLUE_KEY_SPOT[0], y=BLUE_KEY_SPOT[1], type=ED_BLUE_CARD))
-    tm.add_thing(Thing(x=YELLOW_KEY_SPOT[0], y=YELLOW_KEY_SPOT[1], type=ED_YELLOW_CARD))
-    special, args = RED_KEY_SPECIAL
-    tm.add_thing(Thing(x=RED_KEY_SPOT[0], y=RED_KEY_SPOT[1], type=ED_RED_CARD,
-                       extra={"special": special, **{f"arg{i}": a for i, a in enumerate(args)}}))
+    for ednum, (x, y) in ((ED_YELLOW_CARD, YELLOW_KEY_SPOT), (ED_RED_CARD, RED_KEY_SPOT)):
+        tm.add_thing(Thing(x=x, y=y, type=ednum, extra=EVENTS.special_fields(*PICKUP_SPECIALS[ednum])))
     for _zone, kind, x, y, angle, tier in MONSTERS:
         extra = {}
         if (x, y) == MAP06_BOSS_SPOT and kind == BOSS_KIND:

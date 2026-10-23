@@ -56,6 +56,7 @@ SPECIAL_DOOR_RAISE = 12
 SPECIAL_EXIT_NORMAL = 243
 DOOR_OPENS_BELOW_CEILING = 4
 DOOR_TILE = 128
+DOOR_SPEED_SLOW = 16    # D_SLOW (xlat/defines.i): every door of the campaign, and the hut
 SIGHT_STEP = 4
 KEY_NUMBERS = {5, 6, 13, 38, 39, 40}
 KEY_SPRITE_MID = 8
@@ -940,8 +941,9 @@ class Map04Test(unittest.TestCase):
 
     def test_the_route_is_the_designed_one(self):
         """Four rounds: the roofs and the yellow key; the yellow door (the
-        warehouse, the roundhouse, the red key and SW-A); the red door, the
-        road gate and the gondolas; SW-B and the train."""
+        warehouse, the roundhouse, the red key and SW-A) and the hut the
+        yellow key opened; the red door, the road gate and the gondolas;
+        SW-B and the train."""
         m = self.m
         rounds = self.progression()
         self.assertEqual(4, len(rounds))
@@ -952,7 +954,8 @@ class Map04Test(unittest.TestCase):
         behind_yellow = self.named("z4_hall", "z4_passage", "z5_hall", "z5_hub", "z5_bridge")
         self.assertFalse(behind_yellow & r0)
         self.assertEqual({m.TAG_YELLOW_DOOR, m.TAG_D1_ROUNDHOUSE, m.TAG_D2_OFFICE,
-                          m.TAG_S2_PANEL, m.TAG_S3_PANEL}, set(o1 - o0))
+                          m.TAG_S2_PANEL, m.TAG_S3_PANEL, m.TAG_YARD_HUT}, set(o1 - o0),
+                         "the yellow door, and the hut the yellow key sprang (V3)")
         self.assertTrue(behind_yellow <= r1)
         self.assertEqual({m.LOCK_YELLOW_CARD, m.LOCK_RED_CARD}, set(h1))
         platform = self.named("z6_vestibule", "z6_platform", "z6_office", "z6_balcony")
@@ -972,7 +975,7 @@ class Map04Test(unittest.TestCase):
         m = self.m
         every = set().union(*(r[0] for r in self.progression()))
         critical = every - {m.TAG_S1_PANEL, m.TAG_S2_PANEL, m.TAG_S3_PANEL, m.TAG_GONDOLAS,
-                            m.TAG_SHUTTER}
+                            m.TAG_YARD_HUT, m.TAG_SHUTTER}
         self.assertIn(self.plan["z7_exit_niche"], self.reachable(critical))
 
     # --- the keys ------------------------------------------------------------
@@ -1179,6 +1182,81 @@ class Map04Test(unittest.TestCase):
                 inside = [t for t in self.on(skill, self.monsters())
                           if self.sector_at(t["x"], t["y"]) == self.plan[name]]
                 self.assertTrue(inside, f"{name} is empty on skill {skill}")
+
+    # --- V3 (A2): the yellow key's pickup opens the platelayers' hut ----------------
+    def test_the_yellow_key_opens_the_yard_hut(self):
+        """The yellow key carries Door_Open on TAG_YARD_HUT, a tag no line
+        carries; the tag is the hut's door alone, in the yard's north wall,
+        the yard's brick until it moves; behind it a dead end one tile high
+        (its only neighbour is its door): nobody is shut in, nothing the
+        route needs is inside."""
+        m = self.m
+        key = self.things_of({m.ED_YELLOW_CARD})[0]
+        self.assertEqual((SPECIAL_DOOR_OPEN, m.TAG_YARD_HUT, DOOR_SPEED_SLOW),
+                         (key["special"], key["arg0"], key["arg1"]))
+        self.assertEqual(SPECIAL_DOOR_OPEN, m.EVENTS.DOOR_OPEN)
+        door, hut = self.plan["z2_hut_door"], self.plan["z2_hut"]
+        self.assertEqual({door}, self.doors[m.TAG_YARD_HUT])
+        self.assertEqual({self.plan["z2_yard"], hut}, self.neighbours[door])
+        self.assertEqual({door}, self.neighbours[hut], "a dead end")
+        face = [ld for ld in self.lines if "sideback" in ld
+                and set(self._pair(ld)) == {door, self.plan["z2_yard"]}]
+        self.assertEqual(1, len(face))
+        side = face[0]["sidefront"] if self.front(face[0]) == self.plan["z2_yard"] else face[0]["sideback"]
+        self.assertEqual(m.BRICK, self.sides[side]["texturetop"], "wall until it opens")
+        self.assertFalse(face[0].get("special"))
+        self.assertEqual(m.HUT_HEIGHT, self.sectors[hut]["heightceiling"] - self.sectors[hut]["heightfloor"])
+        self.assertFalse([t for t in self.things if t["type"] not in self.monster_numbers
+                          and self.sector_at(t["x"], t["y"]) == hut], "nothing to pick up in it")
+
+    def test_no_line_carries_a_pickups_tag(self):
+        m = self.m
+        for tag in m.PICKUP_TAGS:
+            self.assertFalse([ld for ld in self.lines if ld.get("special") and ld.get("arg0") == tag], tag)
+        carried = {t["arg0"] for t in self.things if t.get("special") and t["type"] in KEY_NUMBERS}
+        self.assertEqual(set(m.PICKUP_TAGS), carried, "each pickup tag on its key, each key one event")
+
+    def test_the_hut_opens_only_after_the_yellow_key(self):
+        m = self.m
+        rounds = self.progression()
+        hut = self.plan["z2_hut"]
+        first = next(k for k, (o, _r, _h) in enumerate(rounds) if m.TAG_YARD_HUT in o)
+        self.assertIn(self.plan["z3_frame"], rounds[first - 1][1], "the key is reached first")
+        self.assertNotIn(hut, rounds[first - 1][1], "the hut open early")
+        self.assertIn(hut, rounds[first][1])
+
+    def test_the_hut_holds_a_fight_on_every_skill(self):
+        m = self.m
+        for skill in SKILLS:
+            inside = [t for t in self.on(skill, self.monsters())
+                      if self.sector_at(t["x"], t["y"]) == self.plan["z2_hut"]]
+            self.assertTrue(inside, f"the hut is empty on skill {skill}")
+            self.assertTrue(all(self.faction[t["type"]] == "REICH" for t in inside), "the yard's Reich")
+
+    def test_the_route_reads_the_hut(self):
+        """transsib-critical reads the hut shut at RD0 (no key) and open at
+        YKEY, after a door's rise: the engine pass proves the pickup's door."""
+        sys.path.insert(0, str(PROJECT_ROOT / "tools"))
+        import route   # noqa: E402  (tools/, as the other route tests)
+        m = self.m
+        steps = {st.id: st for st in route.transsib_critical().steps}
+        self.assertFalse(dict(steps["RD0"].tags)[m.TAG_YARD_HUT])
+        self.assertTrue(dict(steps["YKEY"].tags)[m.TAG_YARD_HUT])
+        self.assertTrue(any(a.startswith("wait") for a in steps["YKEY"].actions))
+
+    def test_the_hut_is_seen_from_the_ramp_and_the_east_roofs(self):
+        """Warned (the brief: avisadas): the open door faces the goods ramp and
+        the rake's east end, the way back from the signal box, and is seen
+        from both; and it never faces the player's start."""
+        m = self.m
+        opened = {m.TAG_YARD_HUT}
+        x1, _y1, x2, _y2 = m.YARD_HUT_DOOR
+        for eye in (self.eye(3664, 1600, "z2_ramp_3"), self.eye(3400, 1600, "z2_roof_4"),
+                    self.eye(3584, 1700, "z2_yard")):
+            for x in (x1 + 16, (x1 + x2) // 2, x2 - 16):
+                self.assertIsNone(self.blocked(eye, (x, 1960, 48), opened), f"{eye} -> hut x {x}")
+        self.assertIsNotNone(self.blocked(self.eye(*m.PLAYER_START, "z1_tunnel"), ((x1 + x2) // 2, 1960, 48),
+                                          opened), "the hut is out of the start's sight")
 
     # --- population --------------------------------------------------------
     def test_every_thing_stands_in_the_zone_its_table_names(self):
