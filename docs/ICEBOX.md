@@ -40,7 +40,7 @@ proposals (`docs/product/2026-10-23_P4_propuestas-siguientes-versiones.md`, cost
 - **B1 - Operations map between levels:** a USSR map with advancing red arrows (intermission).
 - **B2 - End-of-episode illustrations** with Gemini (3 images) besides the text.
 - **B3 - Medals at the end of an episode** (Hero of the Soviet Union, Order of Lenin...) from kills, secrets and time.
-- **B4 - The HUD face redrawn with Gemini** (42 faces) to the level of the new enemies.
+- ~~**B4 - The HUD face redrawn with Gemini**~~ dropped 2026-10-23: the 42 sergeant faces are already Gemini's (D89-D92); the PM's proposal was a mistake.
 - **B5 - Propaganda radio ambience:** loudspeakers that play as the player comes near.
 - **D3 - A 60 s trailer** from engine captures and the composed music.
 
