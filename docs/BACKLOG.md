@@ -30,15 +30,17 @@ commits it):
 | The seven Gemini enemies installed in `assets/sprites/` with their armbands (D109, D114): ~540 modified lumps | `assets/sprites/*`, `tools/art/gen_*.py`, tests |
 | Dog-sound candidates (untracked) | `work/audio/candidates/dog/` |
 
-**D119 (CEO playtest of Episodes 2 and 3, 2026-10-23), agents at work now.** Estimates in k tokens (D69), ±50 %:
+**D119 (CEO playtest of Episodes 2 and 3, 2026-10-23): DONE 2026-10-23, commits 62dbe9e (flags) and df2ecdd (the rest + D121 skies).** Estimates in k tokens (D69), ±50 %; real cost in the last column:
 
-| What | Role | Est. k tok | Status |
+| What | Role | Est. k tok | Status (real k tok) |
 |---|---|---|---|
-| Soviet flags: every Nazi and American standard/flag texture in the maps redrawn as USSR flags and Soviet banners, same lump names, with our generators (D113; **not** in the Gemini queue) | `art-director` | 80 | Doing |
-| Ammunition rebalance: less ammo in the maps and a weapon mix that does not leave the player on the shotgun (re-measure the ammo budgets) | `level-designer`, `mod-engineer` | 120 | Doing |
-| ROKS-3 flamethrower toned down (too strong) | `mod-engineer` | 40 | Doing |
-| Bosses at classic Doom's level: the Consortium and the Colossus brought down to Cyberdemon/Spider Mastermind hit points | `mod-engineer` | 60 | Doing |
-| Catalan for the engine's missing lines ("A secret is revealed" and any other) with `[ca]` | `mod-engineer` | 40 | Doing |
+| Soviet flags: every Nazi and American standard/flag texture in the maps redrawn as USSR flags and Soviet banners, same lump names, with our generators (D113; **not** in the Gemini queue) | `art-director` | 80 | Done (255) |
+| Ammunition rebalance: less ammo in the maps and a weapon mix that does not leave the player on the shotgun (re-measure the ammo budgets) | `level-designer`, `mod-engineer` | 120 | Done (~1,100: three map agents 350/400/340, one mid-task rule amendment by the PM; plus the E1 skies of D121) |
+| ROKS-3 flamethrower toned down (too strong) | `mod-engineer` | 40 | Done |
+| Bosses at classic Doom's level: the Consortium and the Colossus brought down to Cyberdemon/Spider Mastermind hit points | `mod-engineer` | 60 | Done |
+| Catalan for the engine's missing lines ("A secret is revealed" and any other) with `[ca]` | `mod-engineer` | 40 | Done (the four mod-engineer rows together 254) |
+
+**Follow-ups of D119** (not started): (a) an **AKM magazine box** pickup (several magazines in one object): the AKM now leads the ammo mix, so skill 4 of MAP07-09 has slightly more pickups than before although less ammo; needs a sprite (Gemini or the CEO) | `mod-engineer`, `art-director` | 60; (b) ~~AKM doc §6's old 4/3/2 magazines~~ done: a superseded note points to BALANCE §8; (c) MAP03-05 still name the flag constants `FLAG_REICH`/`FLAG_LEGION` (cosmetic) | `level-designer` | 5.
 
 ## Next (proposed order; the CEO approves what moves in, D63)
 
