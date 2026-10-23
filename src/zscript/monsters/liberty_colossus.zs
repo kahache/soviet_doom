@@ -3,9 +3,10 @@
 // is a rocket and flame projector, a tablet worn as a shield). Waits on the
 // dais of MAP06's Kremlin courtyard; his death opens the exit gate.
 // Design: docs/engine/2026-10-22_P4_ep2-enemies.md section 3; numbers in
-// BESTIARY section 12 (row 10). In the mod since D116 (2026-10-22), on a
-// provisional sprite; placed in no map yet (MAP06's boss swap is
-// level-designer's).
+// BESTIARY section 12 (row 10). In the mod since D116 (2026-10-22), MAP06's
+// boss; on his own sprite since D123 (2026-10-23, the CEO's "la estatua de
+// la libertad"). His chrome-tinted stand-in look stayed in the game as its
+// own enemy, SD_ChromeGeneral (chrome_general.zs, D123): MAP08's mini-boss.
 //
 // Three verbs, chosen by distance each time he attacks:
 //   far    a salvo of three rockets from the torch (SD_ColossusRocket);
@@ -21,15 +22,11 @@
 // final A_BossDeath are the General's, so a MAPINFO SpecialAction on this
 // class works as the belt-and-braces fix MAP06's design names (section 11).
 //
-// PROVISIONAL LOOK (D116): no art of his own yet (Gemini, a little at a
-// time). He wears the General's SDGN, frame for frame where the verbs match
-// (E/F the salvo, Q/R the stomp, G pain, H-P death), drawn 1.3 times larger
-// and tinted chrome by the two lines marked PROVISIONAL-D116. The final set
-// is SDLC (81 lumps, the General's letters: design doc section 4). When it
-// is installed in assets/sprites/colossus/, the swap is the sprite name and
-// those two lines:
-//   sed -i -e 's/^\(\s*\)SDGN /\1SDLC /' -e '/^\s*[^/[:space:]].*PROVISIONAL-D116/d' src/zscript/monsters/liberty_colossus.zs
-// (MOD-SPEC 6.12; tests/test_ep2_enemies.py pins both halves).
+// LOOK (D119, approved D123): SDLC, his own 81 lumps drawn from the CEO's
+// Gemini sheets by tools/art/colossus_gemini.py (gemini_enemy.py's
+// COLOSSUS), in assets/sprites/colossus/ (the General's frame letters:
+// design doc section 4), drawn at full size: no Scale, no tint. Rotation 1 aims and fires the
+// torch at the player (E1, F1).
 
 class SD_LibertyColossus : SD_Monster replaces SpiderMastermind
 {
@@ -41,7 +38,6 @@ class SD_LibertyColossus : SD_Monster replaces SpiderMastermind
 	const SD_COLOSSUS_SPEED      = 10;    // (H) slower than the General's 12: a statue walking
 	const SD_COLOSSUS_MASS       = 1000;  // unmovable
 	const SD_COLOSSUS_PAINCHANCE = 20;    // the General's: effectively unstunnable, a boss
-	const SD_COLOSSUS_SCALE      = 1.3;   // SDGN drawn larger until SDLC exists (PROVISIONAL-D116)
 	// Missile behaviour copied from the General (and so the Cyberdemon): he
 	// attacks readily at any range, which is what makes an arena a fight.
 	const SD_COLOSSUS_MIN_MISSILE_CHANCE  = 160;
@@ -80,7 +76,6 @@ class SD_LibertyColossus : SD_Monster replaces SpiderMastermind
 		PainChance SD_COLOSSUS_PAINCHANCE;
 		MinMissileChance SD_COLOSSUS_MIN_MISSILE_CHANCE;
 		MissileChanceMult SD_COLOSSUS_MISSILE_CHANCE_MULT;
-		Scale SD_COLOSSUS_SCALE;   // PROVISIONAL-D116
 		// The General's boss flags, one for one.
 		+BOSS
 		+NORADIUSDMG        // the player's own RPG-7 splash must not do the work
@@ -89,9 +84,6 @@ class SD_LibertyColossus : SD_Monster replaces SpiderMastermind
 		Species "SD_LibertyColossus";
 		SD_Monster.Faction SD_FACTION_LEGION;
 		BloodColor "AD 27 21";     // D49: dark red for every faction
-		// Chrome: the whole palette mapped by luminance onto a cold silver
-		// gradient. NOT VERIFIED in the engine on truecolour PNGs.
-		Translation "0:255=%[0.05,0.05,0.10]:[1.60,1.60,1.80]";   // PROVISIONAL-D116
 		// His own logical names (SNDINFO), over the General's lumps until
 		// sound-designer records his (MOD-SPEC 6.2).
 		SeeSound "sd/mon/colossus/sight";
@@ -106,48 +98,48 @@ class SD_LibertyColossus : SD_Monster replaces SpiderMastermind
 	States
 	{
 	Spawn:
-		SDGN AB 10 A_Look;
+		SDLC AB 10 A_Look;
 		Loop;
 	See:
-		SDGN A 3 A_SD_ColossusStep;  // one footfall per cycle, as the Cyberdemon's A_Hoof
-		SDGN ABBCCDD 3 A_Chase;
+		SDLC A 3 A_SD_ColossusStep;  // one footfall per cycle, as the Cyberdemon's A_Hoof
+		SDLC ABBCCDD 3 A_Chase;
 		Loop;
 	Missile:
-		SDGN E 0 A_SD_ColossusChoose;   // jumps to Flame or Stomp when close; else the salvo
+		SDLC E 0 A_SD_ColossusChoose;   // jumps to Flame or Stomp when close; else the salvo
 	Rockets:
-		SDGN E 10 A_FaceTarget;         // the torch comes up: the tell
-		SDGN F 8 Bright A_SD_ColossusRocket;
-		SDGN E 6 A_FaceTarget;
-		SDGN F 8 Bright A_SD_ColossusRocket;
-		SDGN E 6 A_FaceTarget;
-		SDGN F 8 Bright A_SD_ColossusRocket;
-		SDGN E 16 A_FaceTarget;         // recovery: the window to close in or get out
+		SDLC E 10 A_FaceTarget;         // the torch comes up: the tell
+		SDLC F 8 Bright A_SD_ColossusRocket;
+		SDLC E 6 A_FaceTarget;
+		SDLC F 8 Bright A_SD_ColossusRocket;
+		SDLC E 6 A_FaceTarget;
+		SDLC F 8 Bright A_SD_ColossusRocket;
+		SDLC E 16 A_FaceTarget;         // recovery: the window to close in or get out
 		Goto See;
 	Flame:
-		SDGN E 10 A_FaceTarget;         // the torch levels at you
-		SDGN F 3 Bright A_SD_ColossusFlame;
-		SDGN F 3 Bright A_SD_ColossusFlame;
-		SDGN F 3 Bright A_SD_ColossusFlame;
-		SDGN F 3 Bright A_SD_ColossusFlame;
-		SDGN F 3 Bright A_SD_ColossusFlame;
-		SDGN E 12;
+		SDLC E 10 A_FaceTarget;         // the torch levels at you
+		SDLC F 3 Bright A_SD_ColossusFlame;
+		SDLC F 3 Bright A_SD_ColossusFlame;
+		SDLC F 3 Bright A_SD_ColossusFlame;
+		SDLC F 3 Bright A_SD_ColossusFlame;
+		SDLC F 3 Bright A_SD_ColossusFlame;
+		SDLC E 12;
 		Goto See;
 	Stomp:
-		SDGN Q 14 A_FaceTarget;         // the foot goes up (placeholder: the General's raised fist)
-		SDGN R 6 A_SD_ColossusStomp;    // ... and comes down
-		SDGN R 14;
+		SDLC Q 14 A_FaceTarget;         // the foot goes up
+		SDLC R 6 A_SD_ColossusStomp;    // ... and comes down
+		SDLC R 14;
 		Goto See;
 	Pain:
-		SDGN G 10 A_Pain;
+		SDLC G 10 A_Pain;
 		Goto See;
 	Death:
-		SDGN H 10;
-		SDGN I 10 A_Scream;
-		SDGN JKL 10;
-		SDGN M 10 A_NoBlocking;
-		SDGN NO 10;
-		SDGN P 30;
-		SDGN P -1 A_BossDeath;
+		SDLC H 10;
+		SDLC I 10 A_Scream;
+		SDLC JKL 10;
+		SDLC M 10 A_NoBlocking;
+		SDLC NO 10;
+		SDLC P 30;
+		SDLC P -1 A_BossDeath;
 		Stop;
 	}
 

@@ -1,7 +1,7 @@
 // SD_LegionGunner - Liberty Legion heavy machine-gunner (D104, Episode 2).
 // Design: docs/engine/2026-10-22_P4_ep2-enemies.md section 2; numbers in
-// BESTIARY section 12 (row 9). In the mod since D116 (2026-10-22), on
-// provisional sprites; placed in no map yet (level-designer's).
+// BESTIARY section 12 (row 9). In the mod since D116 (2026-10-22), placed
+// in MAP04-MAP09; on his own sprites since D123 (2026-10-23, "Ok gunner").
 //
 // Doom's chaingunner role with a rhythm of his own: an M1919 belt-fed gun
 // at the hip, BURSTS of 4-6 hitscan rounds and then a pause to breathe,
@@ -9,14 +9,11 @@
 // window the player is meant to use. Replaces Doom's ChaingunGuy (65), the
 // one Doom infantryman the bestiary had left alone (MOD-SPEC 6.1).
 //
-// PROVISIONAL LOOK (D116): no art of his own yet (Gemini, a little at a
-// time). He wears the Legion trooper's SDLT, every frame and tic shape of
-// legion_trooper.zs, tinted brass by the one line marked PROVISIONAL-D116,
-// so he does not read as a trooper. The final sprite is SDLG (70 lumps, the
-// trooper's letters: design doc section 4). When it is installed in
-// assets/sprites/legion_gunner/, the swap is the sprite name and that line:
-//   sed -i -e 's/^\(\s*\)SDLT /\1SDLG /' -e '/^\s*[^/[:space:]].*PROVISIONAL-D116/d' src/zscript/monsters/legion_gunner.zs
-// (MOD-SPEC 6.12; tests/test_ep2_enemies.py pins both halves).
+// LOOK (D119, approved D123): SDLG, his own 70 lumps drawn from the CEO's
+// Gemini sheets by tools/art/gemini_enemy.py gunner, in
+// assets/sprites/legion_gunner/ (the trooper's frame letters: design doc
+// section 4). Rotation 1 fires at the
+// player (F1: the flash in front of the chest).
 
 class SD_LegionGunner : SD_Monster replaces ChaingunGuy
 {
@@ -52,10 +49,6 @@ class SD_LegionGunner : SD_Monster replaces ChaingunGuy
 		Species "SD_LegionGunner";       // own species: vanilla infighting holds (BESTIARY 2.2)
 		SD_Monster.Faction SD_FACTION_LEGION;
 		BloodColor "AD 27 21";           // D49: dark red for every faction
-		// The whole palette mapped by luminance onto a brass gradient, so the
-		// trooper's sprites read as another man. NOT VERIFIED in the engine
-		// on truecolour PNG sprites (GZDoom palettises a translated graphic).
-		Translation "0:255=%[0.00,0.00,0.00]:[1.25,0.95,0.50]";   // PROVISIONAL-D116
 		// His own logical names (SNDINFO), over the trooper's voice and the
 		// PPSh-41's report until sound-designer records his (MOD-SPEC 6.2).
 		SeeSound "sd/mon/legiongunner/sight";
@@ -76,41 +69,41 @@ class SD_LegionGunner : SD_Monster replaces ChaingunGuy
 	States
 	{
 	Spawn:
-		SDLT AB 10 A_Look;
+		SDLG AB 10 A_Look;
 		Loop;
 	See:
-		SDLT AABBCCDD 3 A_Chase;    // infantry parity
+		SDLG AABBCCDD 3 A_Chase;    // infantry parity
 		Loop;
 	Missile:
-		SDLT E 10 A_SD_GunnerAim;   // the gun comes up: the tell
+		SDLG E 10 A_SD_GunnerAim;   // the gun comes up: the tell
 	Burst:
-		SDLT F 3 Bright A_SD_GunnerShot;
-		SDLT E 2 A_SD_GunnerNext;   // leaves for Cooldown when the burst is spent
+		SDLG F 3 Bright A_SD_GunnerShot;
+		SDLG E 2 A_SD_GunnerNext;   // leaves for Cooldown when the burst is spent
 		Loop;
 	Cooldown:
-		SDLT E 20 A_FaceTarget;     // the pause between bursts: the player's window
+		SDLG E 20 A_FaceTarget;     // the pause between bursts: the player's window
 		Goto See;
 	Pain:
-		SDLT G 3;
-		SDLT G 3 A_Pain;
+		SDLG G 3;
+		SDLG G 3 A_Pain;
 		Goto See;
 	Death:
-		SDLT H 5;
-		SDLT I 5 A_Scream;
-		SDLT J 5 A_NoBlocking;
-		SDLT K 5;
-		SDLT L -1;
+		SDLG H 5;
+		SDLG I 5 A_Scream;
+		SDLG J 5 A_NoBlocking;
+		SDLG K 5;
+		SDLG L -1;
 		Stop;
 	XDeath:
-		SDLT M 5;
-		SDLT N 5 A_StartSound("sd/mon/legiongunner/xdeath", CHAN_VOICE);
-		SDLT O 5 A_NoBlocking;
-		SDLT PQRST 5;
-		SDLT U -1;
+		SDLG M 5;
+		SDLG N 5 A_StartSound("sd/mon/legiongunner/xdeath", CHAN_VOICE);
+		SDLG O 5 A_NoBlocking;
+		SDLG PQRST 5;
+		SDLG U -1;
 		Stop;
 	Raise:
-		SDLT L 5;
-		SDLT KJIH 5;
+		SDLG L 5;
+		SDLG KJIH 5;
 		Goto See;
 	}
 

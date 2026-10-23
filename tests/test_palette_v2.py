@@ -21,7 +21,7 @@ What is enforced here, and why:
               APPROVED_IN_V2 (the Legion trooper's SDLT set since D54, the
               metro mosaic SDMOSA1 since D56, the Doughboy's SDDB set
               since D70, the General's SDGN set since D73, the TT-33's
-              held SDTT A-C since N17, the PPSh-41's SDPP A-B and
+              held SDTT A-C since N17 and its flash SDTF A since D111, the PPSh-41's SDPP A-B and
               SDPF A since D79, the blue pass's status bar icon STKEYS0
               since D80, the IZh-58's, RPG-7's, ROKS-3's and hand
               Katyusha's held and flash frames since D84, the ice axe's
@@ -90,10 +90,10 @@ MAX_COLOURS = 256
 # CD design), drawn on the Legion's table with v2's flesh_pink. RGBA, so
 # check_pk3's PALETTE_V2_LUMPS does not list them. His shell's 5 SDGL lumps
 # (same folder) stay inside v1 and are not listed.
-# N17 (2026-10-15): the TT-33's held frames SDTT A-C (hand_study.py
-# build_tt33_fd, D61/D63), Freedoom's hands recoloured to v2's flesh_pink.
-# RGBA, so check_pk3's PALETTE_V2_LUMPS does not list them. Its flash SDTFA0
-# (same folder) stays inside v1 and is not listed.
+# N17 (2026-10-15), redone in D111 (2026-10-23): the TT-33's held frames
+# SDTT A-C and its flash SDTFA0, gemini_frames.py like the PPSh-41's (all of
+# palette v2; the D61 set they replace kept the flash inside v1). RGBA, so
+# check_pk3's PALETTE_V2_LUMPS does not list them.
 # D79 (2026-10-20): the PPSh-41's SDPP A-B and its flash SDPF A
 # (gemini_frames.py snaps the CEO's Gemini pair to all of palette v2: the
 # skin and the flash's warm tones are v2). RGBA, not in PALETTE_V2_LUMPS.
@@ -150,6 +150,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_gemini_enemy_install import SETS as GEMINI_ENEMY_SETS  # noqa: E402
 GEMINI_ENEMIES = {f"sprites/{folder}/{name}.png"
                   for folder, _, names, _ in GEMINI_ENEMY_SETS.values() for name in names}
+# D123 (installed 2026-10-23): the Legion gunner's SDLG (70) and the Liberty
+# Colossus's SDLC (81), drawn from Gemini by gemini_enemy.py (the colossus via
+# colossus_gemini.py), snapped to all of palette v2 like the seven; RGBA, not
+# in PALETTE_V2_LUMPS.
+D123_ENEMIES = ({f"sprites/legion_gunner/SDLG{f}{r}.png" for f in "ABCDEFG" for r in "12345678"}
+                | {f"sprites/legion_gunner/SDLG{f}0.png" for f in "HIJKLMNOPQRSTU"}
+                | {f"sprites/colossus/SDLC{f}{r}.png" for f in "ABCDEFGQR" for r in "12345678"}
+                | {f"sprites/colossus/SDLC{f}0.png" for f in "HIJKLMNOP"})
 D84_FRAMES = {"izh": ("SDIZ", "ABCD", "SDIF", "AB"), "rpg7": ("SDRL", "AB", "SDRF", "ABCD"),
               "roks3": ("SDRK", "AB", "SDKF", "A"), "katyusha": ("SDHK", "AB", "SDHF", "AB"),
               "ice_axe": ("SDAX", "ABCD", "SDAX", "")}
@@ -164,7 +172,7 @@ APPROVED_IN_V2: set[str] = (
     | {f"sprites/doughboy/SDDB{f}0.png" for f in "GHIJKL"}
     | {f"sprites/general/SDGN{f}{r}.png" for f in "ABCDEFGQR" for r in "12345678"}
     | {f"sprites/general/SDGN{f}0.png" for f in "HIJKLMNOP"}
-    | {f"sprites/tt33/SDTT{f}0.png" for f in "ABC"}
+    | {f"sprites/tt33/SDTT{f}0.png" for f in "ABC"} | {"sprites/tt33/SDTFA0.png"}
     | {"sprites/ppsh/SDPPA0.png", "sprites/ppsh/SDPPB0.png", "sprites/ppsh/SDPFA0.png"}
     | {"graphics/hud/STKEYS0.png"}
     | {f"sprites/{folder}/{name}{f}0.png" for folder, (held, hf, flash, ff) in D84_FRAMES.items()
@@ -172,7 +180,8 @@ APPROVED_IN_V2: set[str] = (
     | {f"graphics/statusbar/{name}.png" for name in HUD_FACES}
     | {f"textures/{folder}/{lump}.png" for folder, lump in EP2_BRICKS}
     | {f"textures/{folder}/{lump}.png" for folder, lump in D113_V2}
-    | GEMINI_ENEMIES)
+    | GEMINI_ENEMIES
+    | D123_ENEMIES)
 
 
 def _digest(colours) -> str:

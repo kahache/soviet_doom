@@ -6,10 +6,12 @@
 //
 // Sprites, all ours (assets/sprites/tt33/). The world pickup SDTP A since
 // D48 (2026-10-14). The held frames SDTT A-C and the muzzle flash SDTF A
-// since N17 (2026-10-15): our TT-33 seen from behind in Freedoom's pistol
-// hands, recoloured (R3-A1, D61; approved in hand by the CEO, D63). They
-// replaced Freedoom's pistol placeholders letter for letter: only the
-// sprite name changed, never a tic, an action or the flow. MOD-SPEC 6.3.
+// since N17 (2026-10-15), redone with Gemini in D111 (2026-10-23): the
+// project lead's Gemini pair processed by tools/art/gemini_frames.py like
+// the other six weapons (bare hand, the arsenal's scale), in place of the
+// D61 set (our TT-33 in Freedoom's recoloured pistol hands). Both sets
+// replaced their predecessors letter for letter: never a tic, an action or
+// the flow. MOD-SPEC 6.3.
 // Balance rationale: docs/engine/BALANCE.md.
 
 class SD_Tokarev : Pistol replaces Pistol

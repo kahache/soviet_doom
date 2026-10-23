@@ -57,11 +57,14 @@ ENEMIES = {
     "SD_LibertyColossus": ("liberty_colossus.zs", "SD_Monster", "SpiderMastermind", 21111, "SD_COLOSSUS",
                            "colossus"),
     "SD_Consortium": ("consortium.zs", "SD_Monster", None, 21112, "SD_CONSORTIUM", "consortium"),
+    # D123: the colossus variant (the General's SDGN tinted chrome), MAP08's
+    # mini-boss; the colossus's species and sounds, its own number only.
+    "SD_ChromeGeneral": ("chrome_general.zs", "SD_LibertyColossus", None, 21113, "SD_CHROME", None),
 }
 # The P4 classes: placed in no map yet (level-designer's), so not on RANGE's
 # gallery; their sounds are their own names over existing lumps, outside the
 # F5 bestiary's 47 (SNDINFO "P4 enemies").
-P4_ENEMIES = frozenset({"SD_LegionGunner", "SD_LibertyColossus", "SD_Consortium"})
+P4_ENEMIES = frozenset({"SD_LegionGunner", "SD_LibertyColossus", "SD_Consortium", "SD_ChromeGeneral"})
 P4_SOUND_PREFIXES = ("sd/mon/legiongunner/", "sd/mon/colossus/", "sd/mon/consortium/")
 # Their projectiles subclass the arsenal's (tests/test_ep2_enemies.py and
 # test_ep3_boss.py check them), and the Consortium's half-health test fixture.
