@@ -180,7 +180,8 @@ else wears either colour (tested). The yellow door wears `SDDOORY`, the red
 gate `SDDOORR`. Every switch is a real face, one-shot, in sight of what it
 opens (tested).
 
-No softlock, all tested: no door closes behind the player; no lift; no drop
+No softlock, all tested: no door closes behind the player; no lift the
+player rides (V3's radar lift only brings monsters down, §17); no drop
 without a climb back (the gallery's stair, the platform's stair, three
 steps up the quay wall at three places, the floes a step out of the water);
 the kerbs and the pack ice are **impassable lines** (`blocking`); no secret
@@ -409,10 +410,13 @@ closets and the harbour), 6 plates. Health and armour scale down with skill
 | Animated textures | `SDWATR1` (flat), `SDPORT1` (wall), `SDRADR1` (wall, a middle texture, 12 tics) through ANIMDEFS | all in ANIMDEFS already; NOT VERIFIED here: V11, V15 |
 | Texture offsets | `SDDAM2` on the quay wall, `SDCTRL1` on the consoles, `SDRADM1`, `SDHULL1`, `SDICE2` on their grids | MAP05's helper; V12, V16 |
 | Flat rotation | `rotationfloor` 90 on the runway (`SDRWY1`) and its centre strip (`SDRWY2`) | GZDoom UDMF; NOT VERIFIED here: V17 |
+| Event on pickup (V3, §17) | thing `special` 21 `Floor_LowerToLowest` (tag, speed) on the yellow key, the red key and the road's medikit | the field as MAP04's red key; the number NOT VERIFIED in our engine (MAP04's K3): V19-V21 |
 
 Tag plan: **1** D1 · **2** D2 · **3** D3 · **4** yellow door + hangar
 closets · **5** red gate + runway closets · **6** S1 · **7** S2 · **8** S3 ·
-**10** SH-A · **11** SH-B. Free: 9, 12 and up.
+**10** SH-A · **11** SH-B · **12** the radar's lift (yellow key) · **13**
+the bunker's cells (red key) · **14** the snowbank (medikit). Free: 9, 15
+and up.
 
 ## 11. MAPINFO and LANGUAGE (not this role's)
 
@@ -563,3 +567,62 @@ secret, monster or poster moved; the secrets' rewards are unchanged.
 - BALANCE §8.4.3's second half (every monster but the boss on shells and
   rounds alone) was dropped by the PM; the ROKS-3 exception is the PM's
   amendment. The engine pass is the PM's (D26).
+
+## 17. V3: events on pickup and the set pieces (2026-10-23, D120's A2 and A3)
+
+V3 work, not in v1.2. Three events, each fired by **picking a thing up**:
+the thing carries a UDMF `special` and `arg0..`, which GZDoom runs when the
+item is picked up (MAP04's red key and the gondolas are the model; the
+`Door_Open` form is VERIFIED in the engine by `tunguska-critical`'s RKEY,
+2026-10-23). Each tag is carried by **no line**: only the pickup moves those
+sectors. The table is `PICKUP_EVENTS` in `map.py`; `tests/_pickup_events_e3.py`
+holds the checks MAP07-MAP09 share (the PM unifies the pattern with
+`docs/levels/PICKUP-EVENTS.md`).
+
+| Event | Thing (where) | Special | Tag | What moves | Who waits | Warning |
+|---|---|---|---|---|---|---|
+| **A3 the radar's cargo lift** | the yellow key (antenna's platform) | `Floor_LowerToLowest (12, 8)` | 12 | the car `z5_lift_car` (2064-2144 x 2096-2256), up at 128 behind a gate a door high in the radome's west wall, comes down to the floor (~3.7 s) | 1 / 2 / 3 Reich (rifleman; + hound; + rifleman) | the gate `z5_lift_gate` flickers (65, 160 against the car's 112); the winch (the floor's move sound) |
+| **A2 the bunker's cells** | the red key (the plinth before the core) | `Floor_LowerToLowest (13, 32)` | 13 | two wall panels `z7_cell_s_wall`, `z7_cell_n_wall` in the test chamber's west wall, floor at the chamber's ceiling (-32), sink to its floor (~1.6 s) | 2 / 3 / 4 Reich (two riflemen; + hound; + hound) in `z7_cell_s`, `z7_cell_n` | the chamber's strip before each panel flickers (65, 160 against the chamber's 96) |
+| **A3 the snowbank that sinks** | the medikit on the harbour road (1344, 432), under a broken floodlight | `Floor_LowerToLowest (14, 16)` | 14 | the bank `z8_snowbank` (1280-1408 x 448-480), 128 high against a warehouse's front, sinks into the road (~1.8 s) | 1 / 2 / 3 (rifleman; + rifleman; + trooper) in the warehouse's ground floor `z8_snowbank_pocket` | the floodlight's patch `z8_snowbank_lamp` flickers (65, 160 against the road's 128); the medikit lies in it |
+
+**Why these, and how they hide.** The brief asked for the ice or the
+ground sinking when a key is taken; both keys lie indoors (the antenna's
+platform, the test chamber), so the sinking ice is the road's medikit, an
+"object" (A2's "llaves y objetos"), and the keys get the lift and the cells.
+Before the pickup no line from where the monsters wait has an opening (the
+car's floor is the gate's ceiling; a panel is shut floor-to-ceiling; the
+bank's top meets the warehouse's lintel): nothing sees them or hears the
+player through it (Doom's sound stops at a closed line), so they wait;
+they wake when it opens, on sight or the first shot (tested).
+
+**The monsters moved, not added**: the totals (37 / 55 / 72), every beat's
+hit points, the ammunition and its bands are unchanged (all tested again).
+The lift holds the radome's west rifleman (skill 2), the dish's hound (3)
+and the south-west rifleman (4); the cells the hall's two riflemen (2), its
+west hound (3) and its east hound (4); the warehouse the quay's riflemen at
+(864, 320) (2) and (832, 1600) (3) and its trooper at (1088, 448) (4). The
+medikit moved from (1408, 384) on the road onto the floodlight's patch.
+
+**Rules held (tested):** never on the critical path (the exit with every
+event tag left shut); never a trap (from every event's room a way back to
+the start, at every round); the thing's place reached without its event,
+the event's rooms never reached without it; the safe start (every released
+monster farther than 768 from the start; `tests/test_safe_starts.py` runs on
+the built map); the four rounds of §5 unchanged (each pickup fires in the
+round its thing is reached: the lift in round 0, the cells in round 2, the
+snowbank in round 3). The lift is not a player's lift: the car comes down
+and stays down, a dead end walked out of.
+
+**Route** (`tools/route.py`, `zemlya-critical`): RKEY now waits a door's
+time and expects tag 13 open (a sunk panel is a player's height open), the
+first engine proof of `Floor_LowerToLowest` on an item. The lift is not
+asked (its car is always a body high, so "open" proves nothing); the
+medikit is never taken by the route.
+
+**Engine checklist additions (the PM's, D26):**
+
+| # | Check | How |
+|---|---|---|
+| V19 | Taking the yellow key brings the radar's lift down to the radome's floor with its Reich; the gate's lamp flickers before; the car's steel face reads as a lift gate under the gate's lintel | walk YKEY, look west from the platform; `netevent sdtag 12` prints floor 0 |
+| V20 | Taking the red key sinks both cell panels in the chamber's west wall; the hounds and riflemen come out; the strips before them flicker | route step RKEY (tag 13 open) and look west |
+| V21 | Taking the road's medikit sinks the snowbank; the warehouse's ground floor opens under its brick lintel; the floodlight's patch flickers; the bank's face reads as packed ice (`SDICE2`) | walk onto the medikit on the road; `netevent sdtag 14` prints floor 0 |

@@ -137,7 +137,8 @@ class ZemlyaRouteTest(unittest.TestCase):
         self.assertFalse(shut["YD0"][m.TAG_YELLOW_DOOR])
         self.assertEqual({m.TAG_YELLOW_DOOR: False, m.TAG_RED_GATE: False}, shut["YKEY"])
         self.assertEqual({m.TAG_BUNKER_SHUTTER: True, m.TAG_RUNWAY_SHUTTER: False}, shut["SWA"])
-        self.assertEqual({m.TAG_RED_GATE: False, m.TAG_RUNWAY_SHUTTER: False}, shut["RKEY"])
+        self.assertEqual({m.TAG_RED_GATE: False, m.TAG_RUNWAY_SHUTTER: False, m.TAG_BUNKER_CELLS: True},
+                         shut["RKEY"], "V3: the red key's pickup sinks the cells' walls")
         for sid, tag in (("YD1", m.TAG_YELLOW_DOOR), ("SWB", m.TAG_RUNWAY_SHUTTER), ("RG1", m.TAG_RED_GATE)):
             self.assertEqual({tag: True}, dict(self.steps[sid].tags), sid)
 

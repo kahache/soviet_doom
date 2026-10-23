@@ -61,7 +61,8 @@ class TunguskaRouteTest(tr.BuiltMapRoute, unittest.TestCase):
         m, s = self.m, self.steps
         bd, yd, rd, amb, ex, lk = (m.TAG_BLUE_DOOR, m.TAG_YELLOW_DOOR, m.TAG_RED_DOOR, m.TAG_AMBUSH,
                                    m.TAG_BOSS_EXIT, m.SPECIAL_DOOR_LOCKED_RAISE)
-        self.assertEqual({"BD0": ((bd, False),), "BKEY": ((bd, False),), "BD1": ((bd, True),),
+        self.assertEqual({"BD0": ((bd, False),), "BKEY": ((bd, False), (m.TAG_QUARANTINE, True)),
+                          "BD1": ((bd, True),),
                           "YD0": ((yd, False),), "RD0": ((rd, False),), "YKEY": ((yd, False),),
                           "YD1": ((yd, True),), "RDY": ((rd, False),),
                           "RKEY": ((rd, False), (amb, True)), "RD1": ((rd, True),),
