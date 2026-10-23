@@ -174,8 +174,10 @@ def sndinfo_weapon_targets() -> dict[str, str]:
             targets[logical] = lump
     # D116: the AKM's names play the PPSh-41's lumps until sound-designer
     # records its own (SNDINFO "-> SDAK..."); gen_weapon_sfx.py has no AKM
-    # recipe yet, so they are not its targets.
-    return {k: v for k, v in targets.items() if not k.startswith("sd/weapon/akm/")}
+    # recipe yet, so they are not its targets. The same for the RGD-5's (V3,
+    # ADR 012; SNDINFO "-> SDRG...").
+    reused = ("sd/weapon/akm/", "sd/weapon/rgd5/")
+    return {k: v for k, v in targets.items() if not k.startswith(reused)}
 
 
 def zscript_sounds() -> set[str]:

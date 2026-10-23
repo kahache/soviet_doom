@@ -4,7 +4,9 @@ Owner: `mod-engineer`. **D119 (2026-10-23), after the CEO's playtest of
 Episodes 2 and 3:** the ROKS-3 cut to 157.5 damage/s (§3, slot 6), a
 trooper's dropped IZh carries 2 shells (§3, slot 3), the Liberty Colossus
 and the Consortium at classic Doom's hit points (§7) and **the maps'
-ammunition rules (§8)**, which the level designers apply.
+ammunition rules (§8)**, which the level designers apply. **V3 (2026-10-23,
+ADR 012): the RGD-5 hand grenade, slot 8** (§2, §3, §4, §8.1), built and
+not yet seen in the engine.
 Status before D119: **F4, first pass, verified in GZDoom 4.14.2**
 (every weapon fires, consumes ammo and kills in `MAP02`, the practice range,
 the lump `RANGE` since D62; see §6).
@@ -62,6 +64,7 @@ sustained killer and slot 7 is the panic button.
 | 5 | RPG-7 | 1 RocketAmmo | 135 direct + 100 blast / 104 u | 26 | 1.35 | 181.7 direct | unlimited |
 | 6 | ROKS-3 flamethrower | 1 Cell | 13.5 (3–24) | 3 | 11.67 | 157.5 | **528 hard limit** |
 | 7 | Hand Katyusha | 40 Cell | 6 x (112.5 direct + 70 blast / 96 u) | 60 | 0.58 | ~394 if all six land | unlimited, fan ±12.5° |
+| 8 | RGD-5 hand grenade (V3, ADR 012) | 1 `SD_Rgd5Ammo` | no impact; 100 blast / 128 u on each target, 1.71 s after the throw | 33 | 1.06 | — (an area weapon; ≤ 100 on one target, 43 % of a PG-7V) | ~310 thrown level, ~600 aimed up; bounces |
 
 The ladder (19 → 26 → 74 → 93 / 105 → 182 → 157.5 → 394) keeps Doom's
 shape where it matters: slot 3 is the first real weapon, slot 4 the
@@ -73,7 +76,9 @@ risk of the sergeant's own life). Each wins somewhere and neither wins
 everywhere, which is what the CEO asked for (§3, slot 6). The
 AKM (slot 4's second weapon since D116) slots in at **105**, above the
 PPSh-41 and well under the RPG-7, as Doom II's super shotgun is slot 3's
-better gun; it pays with a scarcer pool of its own (§4).
+better gun; it pays with a scarcer pool of its own (§4). The RGD-5 (slot 8,
+V3) is off the ladder: no DPS to speak of, a tool for groups and for what
+the RPG-7 cannot see (§3, slot 8).
 
 ## 3. Why each number
 
@@ -239,11 +244,42 @@ The salvo does **not** hurt the sergeant (`A_Explode` flags = 0) — six
 self-damaging rockets leaving the rails at once would make the weapon
 unusable, and Doom's BFG shot does not hurt its owner either.
 
+### Slot 8 — RGD-5 hand grenade (`SD_Rgd5`, replaces nothing; V3, ADR 012)
+
+A fused fragmentation grenade thrown in an arc: **no impact damage, 100
+blast at the centre over 128 units** (linear falloff, no core), **1.71 s
+fuse** (60 tics) from the throw, a short bounce (×0.35 floors, ×0.4 walls),
+one throw every **33 tics**, and it **hurts the thrower**. Constants in
+`zscript/weapons/rgd5_grenade.zs` and `rgd5.zs`; the long why, the throw
+distances and the kill radii in `docs/engine/2026-10-23_V3_rgd5.md` §2.
+
+Why these numbers, against the PG-7V (slot 5):
+
+- **Under the RPG-7 by unit.** A PG-7V gives the one it hits ~235 (135
+  direct + 100 blast); a grenade at most **100**, 43 %. On a tight group of
+  four troopers the PG-7V still does more (~350 against 200).
+- **Better where the RPG-7 is not.** The blast is 23 % wider (128 against
+  the shaped charge's 104: Doom's own rocket radius), so a spread group
+  still bleeds (25 at 96 units, against the PG-7V's 8), and the arc and
+  the bounce reach round a corner, over a barricade and down a stairwell.
+- **The infantry's weapon.** One grenade kills a rifleman inside ~102
+  units, a trooper inside ~90, a Stormtrooper inside ~51; the hound and
+  up are not its job, and **the three bosses take nothing**
+  (`+NORADIUSDMG`), so it never shortens a boss fight.
+- **1.71 s.** The real UZRGM burns 3.2-4.2 s; the brief asked for 1.5-2 so
+  a throw is not a wait and a monster does not walk out of the blast.
+- **Scarce.** Six at most (twelve with the backpack, which gives none);
+  the maps hand out 2-4 a map (§8, the design doc §6). Selection order
+  4000, after the ice axe: an empty gun never puts a grenade in the hand.
+
+**NOT YET MEASURED** (T5); not seen in the engine (D26).
+
 ## 4. Ammunition
 
 The seven weapons of D13 reuse Doom's four pools unchanged, so every
 Freedoom ammo pickup and the whole status bar keep working; the AKM (D116)
-has a pool of its own (last row; ADR 011):
+has a pool of its own (ADR 011), and so does the RGD-5 (V3, ADR 012; the
+last two rows):
 
 | Pool | Reads as | Used by | Pickup gives |
 |---|---|---|---|
@@ -252,6 +288,7 @@ has a pool of its own (last row; ADR 011):
 | `RocketAmmo` | PG-7V grenades | RPG-7 | 2 |
 | `Cell` | fuel canisters | ROKS-3, hand Katyusha | 40 |
 | `SD_AkmAmmo` (ours, D116) | 7.62x39 rounds | AKM | 30 a magazine (the weapon too); 15 from a Legion gunner's drop; maximum 150, 300 with the backpack, which also gives 30 |
+| `SD_Rgd5Ammo` (ours, V3) | RGD-5 grenades | RGD-5 | 1 a loose grenade (which also gives the weapon), 2 the pouch (the weapon), 4 a crate; maximum 6, 12 with the backpack, which gives none |
 
 Since 2026-10-13 the "reads as" column is no longer only a figure of speech:
 the player sees those names. The pools are still Doom's — nothing in the
@@ -493,8 +530,10 @@ each map's numbers: its design doc in `docs/levels/`.
 | a 7.62x39 round (`SD_AkmAmmo`) | 0.15 (12 / 80) | the AKM's 12 | magazine 30, AKM 30 |
 | a PG-7V (`RocketAmmo`) | 2 | 135 direct plus the blast | 1, box 5, RPG-7 2 |
 | a unit of fuel (`Cell`) | **0.16875 (13.5 / 80; D119, was 0.25)** | the ROKS-3's jet, 13.5 since D119 | 20, pack 100, ROKS-3 40, Katyusha 40 |
+| an RGD-5 (`SD_Rgd5Ammo`; V3) | 1.25 (100 / 80) | the blast at the centre on one target, as a shell counts one barrel on one | loose 1, pouch (the weapon) 2, crate 4 |
 
-The backpack counts as what it gives (§4). **Not counted** in the ratio:
+**Grenades never count towards a boss's stage** (8.4, rule 3): the three
+bosses take no splash. The backpack counts as what it gives (§4). **Not counted** in the ratio:
 secrets, drops, skills 1 and 5's double ammunition, and the inventory
 carried from the map before.
 
