@@ -6,7 +6,26 @@ and D114). Before that: 2026-10-21 ~23:30 (night shift closed, D102/D103) and
 `docs/PRD.md`; open CEO items in `docs/PENDING-CEO-DECISIONS.md`; tasks and
 estimates in `docs/BACKLOG.md`; the phase view in `docs/ROADMAP.md` ("P4 today").
 
-## RESUME HERE FIRST (2026-10-22 ~21:00, PC suspended at the CEO's request)
+## RESUME HERE FIRST (2026-10-23 ~02:45, PC shut down at the CEO's request)
+
+The CEO played Episodes 2 and 3 and liked it (D119). **V2 = the finished game; V3 = improvements** (D120 scope,
+D121 Icebox cleanup). Done tonight, all committed and pushed (HEAD after 0c20524):
+- D119 fixes: Soviet flags SDFLAG1-4 (62dbe9e); ROKS-3 nerf, dropped IZh 2 shells, Consortium 4000 / colossus 3000 HP,
+  ammo of MAP01-09 per BALANCE §8 + the PM's amendment (rockets ≤ 30 % outside bosses, fuel ≤ 15 %), 42 Catalan
+  engine strings, Episode 1 skies (D121) (df2ecdd). verify fast PASS; **33/33 routes PASS** on df2ecdd (0c20524 evidence).
+- Play build **v1.2-rc3** (not published): `C:\Users\littl\Desktop\SovietDoom-prueba\rc3\SovietDoom` (rc2 left as it was).
+- PM proposals doc `docs/product/2026-10-23_P4_propuestas-siguientes-versiones.md`; V3 list in `docs/ICEBOX.md`.
+
+**Next, when the CEO switches the PC on:**
+1. **Gemini** (window from 23 Oct 08:19) with `docs/product/2026-10-23_P4_gemini-prompt-pack.md` (gunner fire frame
+   **frontal**, D119): TT-33, gunner, colossus, Consortium, AKM, re-asks; then swap the `PROVISIONAL-D116` sprites
+   (the "black-and-white General" the CEO saw is the colossus's stand-in).
+2. Then **v1.2 public release = V2 close**: G6-style sign-off on a clean clone, release.py + portable packages; ask
+   the CEO for the final yes before publishing (D121). v1.1 and v1.2-rc1 drafts get superseded.
+3. Follow-ups in BACKLOG (D119): AKM magazine box (needs a sprite), flag constant names in MAP03-05.
+4. CEO still owes: the rest of the world-sounds sheet (39/56), whether to play rc3 (C1 is pending, not scheduled).
+
+## Earlier resume note (2026-10-22 ~21:00, PC suspended at the CEO's request)
 
 Since 15:00: Gemini hit its daily cap (next window 23 Oct 08:19; D116: art only from Gemini, no Fooocus).
 Done: gunner, colossus (MAP06 boss, MAP08 mini-boss s3-4), the Consortium (MAP09 final boss) and the AKM integrated
