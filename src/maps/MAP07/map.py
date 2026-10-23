@@ -88,8 +88,8 @@ HAZARD = "SDMEDG1"       # 64x64 chevron band: the test chamber's passage
 # Tankograd (D66).
 BRICK = "SDBRCK1"        # 64x128 soot brick: the port's gatehouse at the runway's west end
 RUST = "SDRUST1"         # 64x128 corrugated sheet: the hangar
-FLAG_REICH = "SDFLAG1"   # both banners side by side by the red gate (D35)
-FLAG_LEGION = "SDFLAG2"
+FLAG_USSR_1 = "SDFLAG1"   # two Soviet flags side by side by the red gate (D119: SDFLAG1-4 are Soviet)
+FLAG_USSR_2 = "SDFLAG2"
 DOOR_YELLOW = "SDDOORY"  # the yellow lock's leaf
 DOOR_RED = "SDDOORR"     # the red lock's leaf
 RAMP = "SDGATE1"         # 128x128 corrugated gate: the Il-14's cargo ramp (S1's panel)
@@ -294,11 +294,11 @@ S1_PANEL = (4336, 256, 4352, 352)
 RAMP_PORCH = (4352, 256, 4384, 352)    # under the tail fin
 TANKER_RECT = (2816, 96, 3072, 160)
 RUNWAY_CRATES = ((2304, 384, 2432, 448), (3328, 64, 3392, 192))
-# The west end: the port's gatehouse, the red gate in it, the banners.
+# The west end: the port's gatehouse, the red gate in it, the Soviet flags.
 RED_PORTAL = (1600, 224, 1664, 352)
 RED_GATE = (1568, 224, 1600, 352)
 GATE_PORCH = (1536, 224, 1568, 352)
-FLAG_RECESSES = {FLAG_REICH: (1648, 384, 1664, 448), FLAG_LEGION: (1648, 448, 1664, 512)}
+FLAG_RECESSES = {FLAG_USSR_1: (1648, 384, 1664, 448), FLAG_USSR_2: (1648, 448, 1664, 512)}
 # The north side's west part: the bunker's block; the escape stair's shutter
 # and the red gate's two closets are cut into its front.
 BUNKER_FRONT_X = (1664, 2432)
@@ -625,62 +625,6 @@ ITEMS = (
     ("z2_hangar", ED_AKM, 4032, 768, 4),
     ("z4_barracks", ED_RPG7, 3648, 2144, 4),
     ("z6_command", ED_ROKS3, 3008, 1072, 4),
-    # Shell boxes (20).
-    ("z2_hangar", ED_SHELL_BOX, 3520, 864, 4),
-    ("z4_barracks", ED_SHELL_BOX, 4288, 2144, 4),
-    ("z5_balcony", ED_SHELL_BOX, 3136, 1984, 4),
-    ("z6_command", ED_SHELL_BOX, 2752, 1280, 4),
-    ("z7_hall", ED_SHELL_BOX, 2016, 1216, 4),
-    ("z8_road", ED_SHELL_BOX, 1472, 384, 4),
-    ("z9_quay", ED_SHELL_BOX, 1088, 1600, 4),
-    ("z9_quay", ED_SHELL_BOX, 832, -192, 3),
-    # Shells (4).
-    ("z1_runway", ED_SHELLS, 3584, 448, 4),
-    ("z1_runway", ED_SHELLS, 2368, 352, 4),
-    ("z2_hangar", ED_SHELLS, 4288, 768, 4),
-    ("z3_tunnel_n", ED_SHELLS, 3872, 1408, 4),
-    ("z4_barracks", ED_SHELLS, 3520, 1792, 4),
-    ("z5_radome", ED_SHELLS, 2240, 1792, 4),
-    ("z7_flight2_4", ED_SHELLS, 2192, 1216, 4),
-    ("z9_quay", ED_SHELLS, 1088, 256, 4),
-    ("z9_quay", ED_SHELLS, 832, 1088, 4),
-    ("z1_runway", ED_SHELLS, 3648, 448, 3),
-    ("z2_hangar", ED_SHELLS, 3904, 832, 3),
-    ("z5_dome", ED_SHELLS, 2368, 2304, 3),
-    ("z7_hall", ED_SHELLS, 1600, 1536, 3),
-    ("z9_quay", ED_SHELLS, 1088, 1152, 3),
-    ("z1_runway", ED_SHELLS, 3456, 512, 2),
-    ("z4_barracks", ED_SHELLS, 3520, 2112, 2),
-    ("z9_quay", ED_SHELLS, 1088, 1024, 2),
-    # Boxes of rounds (50).
-    ("z2_hangar", ED_CLIP_BOX, 4288, 1088, 4),
-    ("z6_command", ED_CLIP_BOX, 3264, 1280, 4),
-    ("z9_quay", ED_CLIP_BOX, 832, 512, 4),
-    # Clips (10).
-    ("z1_runway", ED_CLIP, 3584, 96, 4),
-    ("z3_tunnel_n", ED_CLIP, 3936, 1440, 4),
-    ("z5_radome", ED_CLIP, 2944, 1632, 4),
-    ("z7_flight1_3", ED_CLIP, 2512, 1216, 4),
-    ("z1_runway", ED_CLIP, 3648, 96, 3),
-    ("z4_barracks", ED_CLIP, 3584, 1952, 3),
-    ("z1_runway", ED_CLIP, 3712, 96, 2),
-    # PG-7V: a box with the RPG-7, rounds for the bunker and the harbour.
-    ("z4_barracks", ED_ROCKET_BOX, 3712, 2144, 4),
-    ("z7_hall", ED_ROCKET_BOX, 1600, 1216, 4),
-    ("z8_road", ED_ROCKET, 1472, 192, 4),
-    ("z9_quay", ED_ROCKET, 1088, 704, 4),
-    ("z9_quay", ED_ROCKET, 832, 1408, 4),
-    ("z5_dome", ED_ROCKET, 3040, 2400, 3),
-    ("z7_escape_top", ED_ROCKET, 1824, 640, 3),
-    # AKM magazines (D116): 2 / 3 / 4 on skills 4 / 3 / 2.
-    ("z4_barracks", ED_AKM_MAG, 3584, 2016, 4),
-    ("z9_quay", ED_AKM_MAG, 1024, 1408, 4),
-    ("z6_command", ED_AKM_MAG, 3200, 1184, 3),
-    ("z7_hall", ED_AKM_MAG, 1856, 1216, 2),
-    # Fuel for the ROKS-3.
-    ("z6_command", ED_CELL, 3072, 1072, 4),
-    ("z7_hall", ED_CELL, 2016, 1600, 4),
-    ("z9_quay", ED_CELL, 1088, 832, 4),
     # Stimpacks.
     ("z1_runway", ED_STIMPACK, 3776, 96, 4),
     ("z2_hangar", ED_STIMPACK, 3520, 1088, 4),
@@ -723,6 +667,66 @@ ITEMS = (
     ("z9_shed", ED_HEALTH_BONUS, 1248, 1216, 4),
     ("z11_gangway", ED_HEALTH_BONUS, 640, 992, 4),
     ("z12_sail", ED_HEALTH_BONUS, 352, 800, 4),
+)
+
+# D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la
+# escopeta"): the route's ammunition, kept apart from ITEMS because it no
+# longer scales DOWN with skill. It scales with the monsters it pays for,
+# like them: (zone, editor number, x, y, LOWEST skill tier it appears on -
+# 2 = every skill, 3 = medium and harder, 4 = hard only). So each skill's
+# stock sits in its own G3-8 band (docs/engine/BALANCE.md, D119: 1.5-2.0 /
+# 1.3-1.6 / 1.2-1.45 on skills 2 / 3 / 4), shells are at most ~35 % of the
+# damage, and the rest follows the weapons the player holds at each stage,
+# the newest first: the AKM's magazines lead, then PG-7V, the PPSh's rounds,
+# and fuel sparingly (the ROKS-3 is being toned down).
+AMMO = (
+    # The runway, the hangar, the tunnel, the barracks and the radome (the
+    # IZh, the PPSh, the AKM and the RPG-7 all found here): the AKM's
+    # magazines lead, PG-7V the strong second (at most 30 % of a stage's
+    # damage outside a boss's, BALANCE 8.4.2).
+    ("z1_runway", ED_SHELLS, 3584, 448, 2),
+    ("z2_hangar", ED_CLIP_BOX, 4288, 1088, 2),
+    ("z2_hangar", ED_AKM_MAG, 3904, 832, 2),
+    ("z4_barracks", ED_AKM_MAG, 3584, 2016, 2),
+    ("z4_barracks", ED_ROCKET, 3712, 2144, 2),
+    ("z5_radome", ED_AKM_MAG, 2944, 1632, 2),
+    ("z4_barracks", ED_SHELLS, 3520, 1792, 3),
+    ("z5_dome", ED_ROCKET_BOX, 3040, 2400, 3),
+    ("z3_tunnel_n", ED_AKM_MAG, 3872, 1408, 3),
+    ("z5_radome", ED_AKM_MAG, 3008, 1600, 4),
+    ("z1_runway", ED_SHELLS, 3648, 448, 4),
+    # The command room (the ROKS-3 and its own 40): two magazines, so the
+    # AKM still leads its fuel.
+    ("z6_command", ED_AKM_MAG, 3200, 1184, 2),
+    ("z6_command", ED_AKM_MAG, 3072, 1072, 2),
+    ("z6_command", ED_SHELLS, 2752, 1280, 3),
+    # The bunker.
+    ("z7_hall", ED_AKM_MAG, 1856, 1216, 2),
+    ("z7_hall", ED_AKM_MAG, 1600, 1216, 2),
+    ("z7_flight2_4", ED_SHELLS, 2192, 1216, 2),
+    ("z7_hall", ED_CLIP_BOX, 2016, 1216, 2),
+    ("z7_escape_top", ED_ROCKET, 1824, 640, 2),
+    ("z7_hall", ED_CELL, 2016, 1600, 3),
+    ("z7_hall", ED_AKM_MAG, 1600, 1536, 4),
+    ("z7_flight1_3", ED_AKM_MAG, 2512, 1216, 4),
+    ("z7_hall", ED_ROCKET_BOX, 2016, 1408, 4),
+    # The road and the harbour, the last fight.
+    ("z8_road", ED_ROCKET, 1472, 192, 2),
+    ("z8_road", ED_AKM_MAG, 1472, 384, 2),
+    ("z9_quay", ED_AKM_MAG, 1024, 1408, 2),
+    ("z9_quay", ED_AKM_MAG, 1088, 256, 2),
+    ("z9_quay", ED_AKM_MAG, 832, 1088, 2),
+    ("z9_quay", ED_CELL, 1088, 832, 2),
+    ("z9_quay", ED_SHELLS, 1088, 1024, 2),
+    ("z9_quay", ED_CLIP_BOX, 832, 512, 2),
+    ("z9_quay", ED_ROCKET_BOX, 1088, 1152, 2),
+    ("z9_quay", ED_AKM_MAG, 832, 1408, 3),
+    ("z9_quay", ED_AKM_MAG, 1088, 704, 3),
+    ("z9_quay", ED_SHELL_BOX, 960, 64, 3),
+    ("z9_quay", ED_ROCKET_BOX, 960, 1216, 3),
+    ("z9_quay", ED_AKM_MAG, 1088, 1600, 4),
+    ("z9_quay", ED_AKM_MAG, 832, -192, 4),
+    ("z9_quay", ED_CLIP_BOX, 960, 1408, 4),
 )
 
 # The secrets' rewards, on every skill (MAP01's rule); kept out of ITEMS,
@@ -965,7 +969,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     prop("z1_runway", "z1_tanker", TANKER_RECT, TANKER_TOP, TANKER)
     for n, rect in enumerate(RUNWAY_CRATES, start=1):
         prop("z1_runway", f"z1_crates_{n}", rect, CRATES, CRATE, flat=CRATE_TOP)
-    # The gatehouse's red gate and the banners beside it.
+    # The gatehouse's red gate and the Soviet flags beside it.
     zone("z1_red_portal", GROUND, ROOF, [RED_PORTAL], light=LIGHT_BEACON, ceiling=CEIL_PANEL,
          wall=BRICK, extra=RED_LIGHT)
     red_gate = door("z13_red_gate", GROUND, TAG_RED_GATE, RED_GATE, light=LIGHT_OUTDOORS)
@@ -1214,7 +1218,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for (axis, coord, lo, hi), texture in ((SAIL_STAR, ARMOUR_STAR), (SAIL_NUMBER, HULL_NUMBER)):
         g.style_h(coord, lo, hi, LineStyle(texture=texture))
     # The facades on the runway: the hangar's corrugated front, the
-    # gatehouse's brick at the west end (the banners hang on its pixels).
+    # gatehouse's brick at the west end (the Soviet flags hang on its pixels).
     g.style_h(RUNWAY[3], *HANGAR_FRONT_X, LineStyle(texture=RUST))
     g.style_v(RUNWAY[0], RUNWAY[1], RUNWAY[3], LineStyle(texture=BRICK))
     # The kerbs' and the pack ice's edges: nobody crosses them, not even
@@ -1261,6 +1265,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle))
     for _zone, ednum, x, y, top in ITEMS + SECRET_ITEMS:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
+    for _zone, ednum, x, y, lowest in AMMO:
+        tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
     return tm, plan
 
 
@@ -1295,7 +1301,7 @@ def lumps() -> list[tuple[str, bytes]]:
 
 # Every lump name this map may put in a sidedef or a sector.
 WALL_TEXTURES = ((CONCRETE, CONCRETE_STRIPE, STEEL, CRATE, LOCKER, TILE, TUNNEL, TUBBING, HAZARD, BRICK,
-                  RUST, FLAG_REICH, FLAG_LEGION, RAMP, CORE, DAM, DAM_WET, CONTROL_PANEL, TANKER,
+                  RUST, FLAG_USSR_1, FLAG_USSR_2, RAMP, CORE, DAM, DAM_WET, CONTROL_PANEL, TANKER,
                   ARMOUR_STAR, WAREHOUSE, STORE_GATE, LENIN, STALIN, MURAL,
                   ICE_WALL, RADOME_SKIN, HUT, RADAR, HULL_SIDE, HULL_NUMBER, NAV_PANEL)
                  + DOOR_LEAVES + SWITCH_FACES + MARX_ENGELS)

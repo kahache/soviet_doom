@@ -428,43 +428,6 @@ ITEMS = (
     ("s2_cab", ED_SHELL_BOX, 1312, 350, 4),
     ("s2_cab", ED_ARMOR_BONUS, 1296, 404, 4),
     ("s2_cab", ED_ARMOR_BONUS, 1328, 404, 4),
-    # Shells (4): 10 on every skill, +2 medium, +3 easy.
-    ("z2_kassa", ED_SHELLS, 3420, 1300, 4),
-    ("z3_hall", ED_SHELLS, 1400, 760, 4),
-    ("z3_hall", ED_SHELLS, 2750, 1040, 4),
-    ("z4_platform_n", ED_SHELLS, 2780, 1200, 4),
-    ("z4_platform_s", ED_SHELLS, 2000, 500, 4),
-    ("z6_train", ED_SHELLS, 2300, 340, 4),
-    ("z7_tunnel_e", ED_SHELLS, 3150, 1376, 4),
-    ("b1_vestibule", ED_SHELLS, 1200, 940, 4),
-    ("b2_spine", ED_SHELLS, 700, 850, 4),
-    ("b4_cp", ED_SHELLS, 800, 1080, 4),
-    ("z3_hall", ED_SHELLS, 2700, 760, 3),
-    ("b3_dorm", ED_SHELLS, 1000, 540, 3),
-    ("z4_platform_n", ED_SHELLS, 1350, 1200, 2),
-    ("z2_concourse", ED_SHELLS, 3550, 1100, 2),
-    ("b2_spine", ED_SHELLS, 900, 850, 2),
-    # Shell boxes (20): the substation, the armoury, the east cab.
-    ("z8_substation", ED_SHELL_BOX, 3050, 1120, 4),
-    ("b5_armoury", ED_SHELL_BOX, 500, 1000, 4),
-    ("z6_cab_e", ED_SHELL_BOX, 2784, 380, 4),
-    # Boxes of rounds (50): the PPSh's appetite, from the train on.
-    ("z6_train", ED_CLIP_BOX, 1840, 400, 4),
-    ("z8_substation", ED_CLIP_BOX, 3050, 1040, 4),
-    ("b3_dorm", ED_CLIP_BOX, 620, 740, 4),
-    ("b4_cp", ED_CLIP_BOX, 1130, 1290, 4),
-    # Clips (10): 6 on every skill, +2 medium, +3 easy.
-    ("z2_concourse", ED_CLIP, 3520, 680, 4),
-    ("z4_platform_s", ED_CLIP, 1400, 600, 4),
-    ("z5_track", ED_CLIP, 1312, 1376, 4),
-    ("b2_spine", ED_CLIP, 620, 940, 4),
-    ("z9_exit_tunnel", ED_CLIP, 700, 1360, 4),
-    ("z3_hall", ED_CLIP, 1450, 1060, 4),
-    ("z4_platform_n", ED_CLIP, 2200, 1200, 3),
-    ("z6_train", ED_CLIP, 2600, 340, 3),
-    ("z2_concourse", ED_CLIP, 3550, 720, 2),
-    ("z3_hall", ED_CLIP, 2600, 760, 2),
-    ("b3_dorm", ED_CLIP, 900, 540, 2),
     # Stimpacks: 4 on every skill, +2 medium, +2 easy.
     ("z2_kassa", ED_STIMPACK, 3290, 1240, 4),
     ("z6_cab_e", ED_STIMPACK, 2784, 340, 4),
@@ -503,6 +466,46 @@ ITEMS = (
     ("b3_doorway", ED_HEALTH_BONUS, 832, 800, 4),
     ("z6_cab_e", ED_HEALTH_BONUS, 2800, 420, 4),
     ("z2_kassa", ED_HEALTH_BONUS, 3440, 1330, 4),
+)
+
+# D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la
+# escopeta"), applied as docs/engine/BALANCE.md section 8 rules it: the
+# ammunition scales UP with the monsters, the other way from the consumables
+# above, so every skill sits in its band of what killing everything takes
+# (skill 2 1.5-2.0, skill 3 1.3-1.6, skill 4 1.2-1.45); shells, the Legion's
+# dropped IZhs counted, are no more than 35 % of it; and at every stage of the
+# route the newest weapon's pool leads the rest. Each spot is one an earlier
+# version already used for ammunition, so every pickup still stands where it
+# was checked to be walkable and reachable. (zone, editor number, x, y,
+# LOWEST skill tier it appears on - 2 = every skill, 3 = medium and up, 4 =
+# hard only, as a monster scales.)
+AMMO = (
+    # The station, the TT-33, then the IZh in the kassa, then the PPSh on
+    # the train: rounds lead; four shells by the IZh, more from skill 3.
+    ("z2_concourse", ED_CLIP, 3520, 680, 2),
+    ("z2_kassa", ED_SHELLS, 3420, 1300, 2),
+    ("z3_hall", ED_CLIP_BOX, 1450, 1060, 2),
+    ("z6_train", ED_CLIP_BOX, 1840, 400, 2),
+    ("z8_substation", ED_CLIP_BOX, 3050, 1040, 2),
+    ("z5_track", ED_CLIP_BOX, 1312, 1376, 2),
+    ("z3_hall", ED_SHELLS, 1400, 760, 3),
+    ("z7_tunnel_e", ED_CLIP_BOX, 3150, 1376, 3),
+    ("z6_train", ED_CLIP_BOX, 2600, 340, 3),
+    ("z4_platform_s", ED_CLIP_BOX, 1400, 600, 3),
+    ("z3_hall", ED_SHELLS, 2750, 1040, 4),
+    ("z8_substation", ED_CLIP_BOX, 3050, 1120, 4),
+    # The bunker, the RPG-7 the newest (its box is in ITEMS, beside it): a
+    # second box of PG-7V from skill 3, rounds under them.
+    ("b3_dorm", ED_CLIP_BOX, 620, 740, 2),
+    ("b4_cp", ED_CLIP_BOX, 1130, 1290, 2),
+    ("b5_armoury", ED_ROCKET_BOX, 500, 1000, 3),
+    ("b1_vestibule", ED_SHELLS, 1200, 940, 4),
+    ("b2_spine", ED_CLIP_BOX, 620, 940, 4),
+    ("b2_spine", ED_CLIP_BOX, 700, 850, 4),
+    # SW-B's tunnel and the exit: rounds for skill 4's stragglers (the PG-7V
+    # stay the bunker's, the command post's Panzermensch being the map's
+    # heavy set piece: BALANCE 8.4 keeps rockets to 30 % elsewhere).
+    ("z9_exit_tunnel", ED_CLIP_BOX, 700, 1360, 4),
 )
 
 # Train: four cars between two cabs, partitions with gangways, two doors a
@@ -858,6 +861,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle))
     for _zone, ednum, x, y, top in ITEMS:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
+    for _zone, ednum, x, y, lowest in AMMO:
+        tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
     return tm, plan
 
 

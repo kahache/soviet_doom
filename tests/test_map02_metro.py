@@ -27,7 +27,10 @@ v1 (design section 16), after the CEO's v0 walk (D58: the pass not found):
 * the population of section 9: monsters per skill and nested, the
   bestiary's own MAPINFO numbers, the Legion in the station and the Reich in
   the depths, the closets on the switches' tags, the weapons on the route,
-  consumables scaled down, and G3-8's ammunition margin on every skill.
+  consumables scaled down, and G3-8's ammunition margin on every skill;
+* D119: ammunition scaled up with the monsters and fewer pickups of it,
+  every skill inside its G3-8 band, shells no more than 35 % of the damage
+  placed, and every weapon stretch paid for.
 
 Run:  python3 -m unittest tests.test_map02_metro -v
 """
@@ -83,16 +86,50 @@ CLASS_FILES = {
     "SD_Panzermensch": "panzermensch.zs",
 }
 # Criterion G3-8 as MAP01 measures it (tests/test_map01.py, design section 11
-# there): what each kill costs in IZh shells, the margin, and what placed
+# there): what each kill costs in IZh shells and what placed
 # ammunition is worth in shell-equivalents (10 rounds of 7.62 = 1 shell).
 SHELLS_TO_KILL = {"SD_ReichRifleman": 1, "SD_LegionTrooper": 1, "SD_Stormtrooper": 2,
                   "SD_ReichHound": 3, "SD_Doughboy": 6, "SD_Panzermensch": 8}
-G3_8_MARGIN = 1.35
 ROUNDS_PER_SHELL = 10
 SHELLS_GIVEN = {2008: 4, 2049: 20, 21003: 8}
 ROUNDS_GIVEN = {2007: 10, 2048: 50, 21004: 35}
 IZH_AVERAGE = 80       # docs/engine/BALANCE.md 2: one barrel
 PPSH_AVERAGE = 8       # one round
+# D119 (docs/engine/BALANCE.md): a G3-8 band per skill, shells no more than
+# SHELL_SHARE_MAX of the damage placed, and fewer ammunition pickups than v1
+# placed outside the secrets. The PG-7V count now, as on MAP03 (a direct hit
+# averages 135, about two shells): D119's share is of all the damage placed.
+G3_8_BAND = {2: (1.5, 2.0), 3: (1.3, 1.6), 4: (1.2, 1.45)}
+SHELL_SHARE_MAX = 0.35
+# The command post, where the Panzermensch at the console stands on every
+# skill: the map's mini-boss stage for BALANCE 8.4.
+MINI_BOSS_ZONE = "b4_cp"
+NEWEST_SHARE_MIN = 0.4    # BALANCE 8.4
+ROCKET_SHARE_MAX = 0.3    # BALANCE 8.4, the PM's amendment: outside a boss's stage
+FUEL_SHARE_MAX = 0.15     # ...and fuel at most 15 % of the map's ammunition
+# D119's shell share (BALANCE 8.3): (placed shells + what the Legion's
+# dropped IZhs carry) over (placed shell-equivalents + every drop), drops in
+# shell-equivalents: a trooper's IZh 2 shells, a rifleman's clip 5 rounds.
+DROP_SHELLS = 2
+DROP_ROUNDS = 5
+V1_AMMO_PICKUPS = {2: 34, 3: 28, 4: 24}
+ROCKETS_GIVEN = {2010: 1, 2046: 5, 21005: 2}
+SHELLS_PER_ROCKET = 2
+RPG_AVERAGE = 135      # one PG-7V, direct hit only
+# D119's stretches along the weapons, by the zones of the tables (design
+# section 5): the TT-33 alone on the concourse, the IZh the newest from the
+# kassa to the platforms, the PPSh-41 from the train to the bunker's
+# dormitory, the RPG-7 from the armoury to the exit.
+MAP02_STRETCHES = (
+    ("the TT-33", {"z1_lift", "z2_concourse"}),
+    ("the IZh", {"z2_kassa", "esc_6", "z3_hall", "z3_portal", "z4_platform_n",
+                 "z4_platform_s"}),
+    ("the PPSh-41", {"z6_train", "z6_cab_e", "rails_z7_tunnel_e", "z7_tunnel_e",
+                     "rails_z5_track", "z5_track", "z8_substation", "sub_stair_1",
+                     "closet_pw", "closet_pe", "b1_vestibule", "b2_spine", "b3_dorm"}),
+    ("the RPG-7", {"b5_armoury", "b4_cp", "closet_t1", "closet_t2", "z9_exit_tunnel",
+                   "rails_z9_exit_tunnel"}),
+)
 
 
 def _load_map02():
@@ -731,7 +768,7 @@ class Map02Test(unittest.TestCase):
 
     def test_every_thing_stands_in_the_zone_its_table_names(self):
         rows = ([(z, k, x, y) for z, k, x, y, *_ in self.m.MONSTERS]
-                + [(z, e, x, y) for z, e, x, y, _ in self.m.ITEMS])
+                + [(z, e, x, y) for z, e, x, y, _ in self.m.ITEMS + self.m.AMMO])
         for zone, what, x, y in rows:
             self.assertEqual(self.plan[zone], self.sector_at(x, y),
                              f"{what} at ({x}, {y}) is in {self.zone_of.get(self.sector_at(x, y))}")
@@ -899,10 +936,27 @@ class Map02Test(unittest.TestCase):
         """Monsters up, consumables down, weapons flat (MAP01 section 8)."""
         m = self.m
         fixed = self.monster_numbers | set(m.ROUTE_WEAPONS) | {m.ED_PLAYER1_START, m.ED_BLUE_CARD}
-        for kind in {t["type"] for t in self.things} - fixed:
+        for kind in {t["type"] for t in self.things} - fixed - self.ammo_kinds():
             n = {s: len(self.on(s, self.things_of({kind}))) for s in SKILLS}
             self.assertGreaterEqual(n[2], n[3], kind)
             self.assertGreaterEqual(n[3], n[4], kind)
+
+    def ammo_kinds(self):
+        """The ammunition pickups (not the weapons that also give some)."""
+        return (set(SHELLS_GIVEN) | set(ROUNDS_GIVEN) | set(ROCKETS_GIVEN)) - set(self.m.ROUTE_WEAPONS)
+
+    def test_ammunition_scales_up_and_there_is_less_of_it(self):
+        """D119: on the route, for every kind of ammunition, skill 2 has at
+        most what skill 3 has and skill 3 at most what skill 4 has; and every
+        skill has fewer ammunition pickups than v1 placed."""
+        route = self.outside_secrets(self.things)
+        for kind in self.ammo_kinds():
+            n = {s: len(self.on(s, [t for t in route if t["type"] == kind])) for s in SKILLS}
+            self.assertLessEqual(n[2], n[3], kind)
+            self.assertLessEqual(n[3], n[4], kind)
+        for skill in SKILLS:
+            n = len([t for t in self.on(skill, route) if t["type"] in self.ammo_kinds()])
+            self.assertLess(n, V1_AMMO_PICKUPS[skill], f"skill {skill}")
 
     def ammo_needed(self, skill):
         return sum(SHELLS_TO_KILL[self.m.MONSTER_CLASSES[t["type"]]]
@@ -912,17 +966,100 @@ class Map02Test(unittest.TestCase):
         placed = self.outside_secrets(self.on(skill, self.things))
         shells = sum(SHELLS_GIVEN.get(t["type"], 0) for t in placed)
         rounds = sum(ROUNDS_GIVEN.get(t["type"], 0) for t in placed)
-        return shells + rounds / ROUNDS_PER_SHELL
+        rockets = sum(ROCKETS_GIVEN.get(t["type"], 0) for t in placed)
+        return shells + rounds / ROUNDS_PER_SHELL + rockets * SHELLS_PER_ROCKET
 
     def test_g3_8_the_ammo_budget(self):
-        """G3-8 as on MAP01: on every skill, ammunition placed outside the
-        secrets is at least 1.35 times what killing every monster with the
-        intended weapon takes, and under three times on skill 4. No drop
-        counted, no rocket counted."""
+        """G3-8 as D119 reads it: on every skill, ammunition placed outside
+        the secrets is inside that skill's band of what killing every
+        monster with the intended weapon takes, and shells are no more than
+        35 % of it, the troopers' dropped IZhs counted there (BALANCE 8.3)
+        and nowhere else."""
         for skill in SKILLS:
             need, have = self.ammo_needed(skill), self.ammo_placed(skill)
-            self.assertGreaterEqual(have, G3_8_MARGIN * need, f"skill {skill}: {have} for {need}")
-        self.assertLess(self.ammo_placed(4), 3 * self.ammo_needed(4))
+            low, high = G3_8_BAND[skill]
+            self.assertGreaterEqual(have, low * need, f"skill {skill}: {have} for {need}")
+            self.assertLessEqual(have, high * need, f"skill {skill}: {have} for {need}")
+            placed = self.outside_secrets(self.on(skill, self.things))
+            shells = sum(SHELLS_GIVEN.get(t["type"], 0) for t in placed)
+            kinds = Counter(self.m.MONSTER_CLASSES[t["type"]] for t in self.on(skill, self.monsters()))
+            troopers, riflemen = kinds["SD_LegionTrooper"], kinds["SD_ReichRifleman"]
+            dropped = troopers * DROP_SHELLS + riflemen * DROP_ROUNDS / ROUNDS_PER_SHELL
+            self.assertLessEqual(shells + troopers * DROP_SHELLS, SHELL_SHARE_MAX * (have + dropped),
+                                 f"skill {skill}: {shells} shells placed")
+
+    def test_the_newest_weapons_pool_leads_every_stage(self):
+        """BALANCE 8.4 (D119, with the PM's amendment), stage by stage of the
+        readiness check: a pool lies only from the stage where its weapon is
+        (the TT-33's rounds from the start); of each stage's ammunition other
+        than shells the leading pool is the largest share and at least 40 %
+        of it. The leader is the newest weapon's pool, the IZh excepted
+        (shells have 8.3) and the ROKS-3 excepted (fuel stays moderate, at
+        most 15 % of the map's ammunition: the weapon before it leads); and
+        outside the command post's stage (its Panzermensch,
+        on every skill, is the map's heavy set piece: a mini-boss) the PG-7V are at most 30 % of the stage
+        and the newest bullet weapon's rounds lead."""
+        m = self.m
+        pool_of = {m.ED_IZH: "shells", m.ED_PPSH: "rounds", m.ED_RPG7: "rockets"}
+        pools = {"shells": SHELLS_GIVEN, "rounds": ROUNDS_GIVEN, "rockets": ROCKETS_GIVEN, "fuel": {}}
+        weight = {"shells": 1, "rounds": 1 / ROUNDS_PER_SHELL, "rockets": SHELLS_PER_ROCKET, "fuel": 0}
+        for skill in SKILLS:
+            route = self.outside_secrets(self.on(skill, self.things))
+            total_map = sum(pools[p].get(t["type"], 0) * weight[p] for t in route for p in pools)
+            fuel_map = sum(pools[p].get(t["type"], 0) * weight[p] for t in route for p in pools
+                           if p == "fuel")
+            self.assertLessEqual(fuel_map, FUEL_SHARE_MAX * total_map, f"skill {skill}: fuel")
+            seen, newest, met = set(), "rounds", {"rounds"}
+            for stage, row in enumerate(self.progression()):
+                reach = row[1]
+                here = [t for t in route if self.sector_at(t["x"], t["y"]) in reach - seen]
+                for ednum, pool in pool_of.items():
+                    if any(t["type"] == ednum for t in here):
+                        met.add(pool)
+                        if pool not in ("shells", "fuel"):
+                            newest = pool
+                share = {p: sum(pools[p].get(t["type"], 0) for t in here) * weight[p] for p in pools}
+                for pool, amount in share.items():
+                    if amount:
+                        self.assertIn(pool, met, f"skill {skill}, stage {stage}: {pool} before its weapon")
+                boss = self.plan[MINI_BOSS_ZONE] in reach - seen
+                leader = newest
+                if leader == "rockets" and not boss:
+                    leader = "rounds"
+                    self.assertLessEqual(share["rockets"], ROCKET_SHARE_MAX * sum(share.values()),
+                                         f"skill {skill}, stage {stage}: {share}")
+                rest = {p: v for p, v in share.items() if p != "shells"}
+                if sum(rest.values()):
+                    self.assertEqual(max(rest.values()), rest[leader], f"skill {skill}, stage {stage}: {rest}")
+                    self.assertGreaterEqual(rest[leader], NEWEST_SHARE_MIN * sum(rest.values()),
+                                            f"skill {skill}, stage {stage}: {rest}")
+                seen = reach
+
+    def test_every_weapon_stretch_is_paid_for(self):
+        """D119, stretch by stretch along the weapons: the damage placed so
+        far outside the secrets plus the starting rounds is at least the
+        skill's band floor times the hit points met so far, and the TT-33's
+        stretch holds no shells. Counted from the tables, which the zone
+        test pins to the TEXTMAP."""
+        m = self.m
+        rows = [(z, e, lo) for z, e, _x, _y, lo in m.AMMO]
+        rows += [(z, e, 2) for z, e, _x, _y, _top in m.ITEMS
+                 if e in m.ROUTE_WEAPONS or e == m.ED_ROCKET_BOX]
+        for skill in SKILLS:
+            hp, damage = 0, self.start_rounds() * PPSH_AVERAGE
+            for name, zones in MAP02_STRETCHES:
+                hp += sum(self.hit_points[m.MONSTER_KINDS[k]]
+                          for z, k, _x, _y, _a, lo in m.MONSTERS if z in zones and lo <= skill)
+                here = [e for z, e, lo in rows if z in zones and lo <= skill]
+                damage += sum(SHELLS_GIVEN.get(e, 0) * IZH_AVERAGE
+                              + ROUNDS_GIVEN.get(e, 0) * PPSH_AVERAGE
+                              + ROCKETS_GIVEN.get(e, 0) * RPG_AVERAGE for e in here)
+                self.assertGreaterEqual(damage, G3_8_BAND[skill][0] * hp, f"skill {skill}, {name}")
+                if name == "the TT-33":
+                    self.assertFalse([e for e in here if e in SHELLS_GIVEN], name)
+        every = set().union(*(zones for _n, zones in MAP02_STRETCHES))
+        self.assertFalse({z for z, *_ in m.MONSTERS} - every)
+        self.assertFalse({z for z, *_ in m.AMMO} - every)
 
     def start_rounds(self):
         found = re.search(r"SD_START_CLIP\s*=\s*(\d+)", PLAYER_ZS.read_text(encoding="utf-8"))
@@ -932,7 +1069,8 @@ class Map02Test(unittest.TestCase):
     def test_ammo_against_hit_points_by_skill_and_by_stage(self):
         """MAP01's G3 readiness check: at every stage of the route the damage
         placed so far outside the secrets, plus the starting rounds, is at
-        least G3-8's margin times the hit points met so far."""
+        least the floor of the skill's G3-8 band (D119) times the hit points
+        met so far, the PG-7V counted."""
         secret = self.secret_sectors()
         rounds = self.progression()
         for skill in SKILLS:
@@ -944,8 +1082,10 @@ class Map02Test(unittest.TestCase):
                 hp_so_far += sum(self.hit_points.get(t["type"], 0) for t in here)
                 damage += sum(SHELLS_GIVEN.get(t["type"], 0) * IZH_AVERAGE
                               + ROUNDS_GIVEN.get(t["type"], 0) * PPSH_AVERAGE
+                              + ROCKETS_GIVEN.get(t["type"], 0) * RPG_AVERAGE
                               for t in here if self.sector_at(t["x"], t["y"]) not in secret)
-                self.assertGreaterEqual(damage, G3_8_MARGIN * hp_so_far, f"skill {skill}, stage {stage}")
+                self.assertGreaterEqual(damage, G3_8_BAND[skill][0] * hp_so_far,
+                                        f"skill {skill}, stage {stage}")
                 seen = reach
 
     def test_health_and_armour_outside_the_secrets_on_skill_4(self):

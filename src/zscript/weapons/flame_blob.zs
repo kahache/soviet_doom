@@ -12,7 +12,13 @@ class SD_FlameBlob : Actor
 {
 	// Reference: Doom's PlasmaBall is damage 5 (x random(1,8), avg 22.5) at
 	// speed 25 with unlimited range.
-	const SD_FLAME_DAMAGE      = 4;    // x random(1,8) -> 4..32, avg 18
+	// D119 (2026-10-23, the CEO's playtest of Episodes 2-3: "kills every
+	// enemy too easily"): 4 -> 3. One jet averages 13.5 (was 18), so the
+	// ROKS-3 drops from 210 to 157.5 damage/s (Doom's rocket launcher) and
+	// from 18 to 13.5 per unit of fuel, under the hand Katyusha's ~16.9
+	// direct per cell. BALANCE.md slot 6. The bosses' flames keep 4 (their
+	// own SD_BOSS_FLAME_DAMAGE): D119 retunes the weapon, not the bosses.
+	const SD_FLAME_DAMAGE      = 3;    // x random(1,8) -> 3..24, avg 13.5
 	const SD_FLAME_SPEED       = 22;   // map units per tic
 	const SD_FLAME_LIFE_TICS   = 2;    // per frame; 12 frames below = 24 tics
 	// 22 units/tic x 24 tics = 528 map units of reach (~16 m), the point of

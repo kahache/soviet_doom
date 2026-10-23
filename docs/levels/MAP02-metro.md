@@ -778,10 +778,11 @@ Counts outside the secrets, as placed:
 | Item | Skill 2 | Skill 3 | Skill 4 | Where |
 |---|---|---|---|---|
 | IZh / PPSh / RPG-7 + rocket box | 1 / 1 / 1+1 | same | same | kassa / train / armoury |
-| Shells (4) | 15 | 12 | 10 | kassa, hall ×2, both platforms, train, east tunnel, vestibule, spine, command post |
-| Box of shells (20) | 3 | 3 | 3 | substation, armoury, east cab |
-| Clips (10) | 11 | 8 | 6 | concourse, platform S, track, spine, exit tunnel, hall |
-| Box of rounds (50) | 4 | 4 | 4 | train, substation, dorm, command post |
+| Shells (4) (D119, §17) | 1 | 2 | 4 | kassa, hall ×2, gas lock |
+| Box of shells (20) | — | — | — | none on the route since D119 |
+| Clips (10) | 1 | 1 | 1 | concourse |
+| Box of rounds (50) (D119) | 6 | 9 | 13 | hall, train, substation, track, east tunnel, platform S, dorm, command post, spine, exit tunnel |
+| Rocket box (5), besides the armoury's (D119) | — | 1 | 1 | armoury |
 | Stimpack | 8 | 6 | 4 | kassa, east cab, substation, spine |
 | Medikit | 5 | 4 | 3 | substation, armoury, command post |
 | Health bonus | 10 | 10 | 10 | one in each nook: lift, both staff stairs, the portal's corners, the substation stair and passage, the dorm doorway, the east cab, the kassa |
@@ -799,6 +800,7 @@ and trooper 1 shell, stormtrooper 2, hound 3, Doughboy 6, Panzermensch 8;
 | needed | 37 | 64 | 96 |
 | × 1.35 (G3-8) | 50.0 | 86.4 | 129.6 |
 | placed | 162.5 | 147.5 | **137.5 (1.43×)** |
+| **placed since D119** (§17, PG-7V counted; band 1.5–2.0 / 1.3–1.6 / 1.2–1.45) | **60.5 (1.64×)** | **89.5 (1.40×)** | **117.5 (1.22×)** |
 
 MAP01's skill 4 is 1.41×. And stage by stage (MAP01's G3-readiness test,
 ported): before any switch, after SW-A and the blue door, after SW-B, the
@@ -899,3 +901,72 @@ test. What to judge:
 - v2: the alignment §12 moved there, the gate's signal, the poster's light;
   v3: S3 and density.
 - Russian mirror: synced in a batch at the phase close (D34).
+
+## 17. D119 (2026-10-23): less ammunition, a mix by weapon
+
+The CEO, after Episodes 2 and 3: ammunition "siempre sale de sobras" and
+"siempre acabas con la escopeta". MAP02 was approved and played; this pass
+takes ammunition away and changes its kind, nothing else.
+
+The rule is `docs/engine/BALANCE.md` §8 (owner `mod-engineer`): placed
+ammunition on the route over what killing every monster takes (G3-8's
+ruler, in shells) inside a band per skill — **skill 2 1.5–2.0, skill 3
+1.3–1.6, skill 4 1.2–1.45**; shells, counting what the Legion troopers'
+dropped IZhs carry (2 shells each since D119), **no more than 35 %** of the
+ammunition placed plus every drop; at every stage of the readiness check the
+**newest weapon's pool leads** the ammunition other than shells (largest
+share, at least 40 %) and no pool lies before its weapon — with the PM's
+amendment: fuel never leads (at most 15 % of the map's ammunition; the
+weapon before the ROKS-3 leads), and outside a boss's (or mini-boss's)
+stage the PG-7V are at most 30 % of the stage and the newest bullet
+weapon's rounds lead; in the boss's stage the PG-7V and fuel together cover
+at least the boss's shells. Ammunition now
+scales **up** with skill, with the monsters (the other consumables still
+scale down): a pickup's last field in the `AMMO` table is the lowest tier it
+appears on. Every spot is one an earlier version already used for
+ammunition, so every pickup still stands where it was checked to be
+walkable and reachable; no monster, weapon, door or room moved.
+The PG-7V now count (2 shells each, BALANCE §8.1), as on MAP03.
+
+| Ammunition on the route | Skill 2 | Skill 3 | Skill 4 | Where |
+|---|---|---|---|---|
+| Shells (4) | 1 | 2 | 4 | kassa (by the IZh), hall ×2, gas lock |
+| Box of shells (20) | — | — | — | (v1: 3) |
+| Clips (10) | 1 | 1 | 1 | concourse (the TT-33 alone) |
+| Box of rounds (50) | 6 | 9 | 13 | hall, train ×2, substation ×2, track, east tunnel, platform S; dorm, command post, spine ×2; exit tunnel |
+| Rocket box (5) | 1 | 2 | 2 | armoury (with the RPG-7; a second from skill 3) |
+| **pickups** | **9** (v1: 34) | **14** (v1: 28) | **20** (v1: 24) | |
+
+S1 and S2 keep what they had (not counted).
+
+| | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| needed (shells) | 37 | 64 | 96 |
+| placed before D119 (no PG-7V counted) | 162.5 (4.39×) | 147.5 (2.30×) | 137.5 (1.43×) |
+| **placed now** (PG-7V counted) | **60.5 (1.64×)** | **89.5 (1.40×)** | **117.5 (1.22×)** |
+| band | 1.5–2.0 | 1.3–1.6 | 1.2–1.45 |
+| shell share, drops counted (≤ 0.35) | 0.35 | 0.32 | 0.34 |
+| shell share of what is placed, before → now | 73 % → 20 % | 73 % → 18 % | 72 % → 20 % |
+
+**By stage.** Before the blue door (the station: TT-33, IZh, PPSh-41) the
+non-shell ammunition is rounds only. In the bunker the RPG-7 is the newest
+and the stage is the **command post's Panzermensch's**, on every skill the
+map's heavy set piece, so it counts as a mini-boss's stage and its PG-7V
+lead: skill 2 14 against 10 of rounds, skill 4 24 against 20. After SW-B
+(the west tunnel, the exit) the PG-7V would be capped at 30 %, so skill 4's
+extra there is a box of rounds. Stage floors (damage so far plus the
+starting rounds over the hit points met so far) on skill 4: 3.3, 3.0, 2.4;
+by weapon stretch 4.0 / 3.2 / 2.8 / 2.4. (Treating the command post as a
+mini-boss is this map's reading of the amendment, `MINI_BOSS_ZONE` in the
+test; if the rule's owner disagrees, the fix is the armoury's second box
+of PG-7V turned into rounds.)
+
+**Tests** (`tests/test_map02_metro.py`): `test_g3_8_the_ammo_budget`,
+`test_ammunition_scales_up_and_there_is_less_of_it`,
+`test_the_newest_weapons_pool_leads_every_stage`,
+`test_every_weapon_stretch_is_paid_for`, and
+`test_ammo_against_hit_points_by_skill_and_by_stage` at each skill's floor.
+
+**Engine checklist for the PM** (D26): `metro-critical` still PASSes on
+skills 2–4 (no pickup the route walks onto moved; the weapons stand where
+they stood).

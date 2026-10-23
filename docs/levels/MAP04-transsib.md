@@ -280,11 +280,11 @@ Episode 2's Railway set (D107, approved 2026-10-22, `docs/art/TEXTURE-INDEX.md`
 |---|---|---|---|
 | Service tunnel | `SDTUBB1` (one tile, as MAP02 and MAP03's tunnels); niches `SDTUNL1` | `SDFLR2` + `SDRAIL1` strip (turned: the metro's bed, Tankograd's line) | `SDCEIL2` |
 | Stair, goods ramp, pit walls | `SDCONC1` | `SDFLR2` | — |
-| Yard | `SDBRCK1`; the two signals `SDSIGL1` (one face each) on `SDCONC1` pillars; the Reich's flag `SDFLAG1` either side of the mouth; the warehouse's two shut gates `SDGATE2` | **`SDBLST1`** ballast, tracks **`SDTRAK1`** (turned) | sky (`F_SKY1`; MAPINFO `sky1` = `SDSKY1`); its recesses `SDCEIL2` |
+| Yard | `SDBRCK1`; the two signals `SDSIGL1` (one face each) on `SDCONC1` pillars; the USSR flag `SDFLAG1` either side of the mouth (D119: Soviet flags since 2026-10-23; the Reich's before); the warehouse's two shut gates `SDGATE2` | **`SDBLST1`** ballast, tracks **`SDTRAK1`** (turned) | sky (`F_SKY1`; MAPINFO `sky1` = `SDSKY1`); its recesses `SDCEIL2` |
 | Wagons | boxcars, the rake and both gondolas **`SDWAGN1`**; the tank wagon **`SDTANK1`**; flatcars `SDCRAT1` (one crate high) | roofs, the tank's top and the gondolas' rims **`SDWROF1`** (turned); flatcars `SDCRTOP1`; gondola beds **`SDGOND1`** (turned, panned) | sky |
 | Lock portals | yellow: `SDSTAR1` plaques either side of `SDDOORY`; red: `SDBRCK2` either side of `SDDOORR` (MAP03 v1's rule) | `SDFLR2` | `SDCEIL1` |
 | Signal box | `SDTILE2` inside, `SDBRCK1` tower outside, the windows glazed **`SDSBOX1`** from the yard; lever frame's front **`SDLEVR2`** | `SDFLR3`; frame **`SDLEVR1`**; step `SDGRAT1` | `SDCEIL1`; window band and porch sky |
-| Warehouse | `SDBRCK1`; passages `SDBRCK2`; crate stacks and S3's row `SDCRAT1`; the Legion's flag `SDFLAG2` | `SDFLR2`; stacks `SDCRTOP1` | `SDCEIL1` |
+| Warehouse | `SDBRCK1`; passages `SDBRCK2`; crate stacks and S3's row `SDCRAT1`; the Red Army standard `SDFLAG2` (D119; the Legion's flag before) | `SDFLR2`; stacks `SDCRTOP1` | `SDCEIL1` |
 | Warehouse office | `SDTILE2` | `SDFLR3` | `SDCEIL1` |
 | Roundhouse | **`SDBRCK3`** (hall, road, stalls, SW-A's niche, S2's store); clerestory `SDWIND1`; stalls' doors **`SDRHDR1`** (stall 2 and S2's panel); the loco `SDSTEL1`; the bridge's flanks `SDSTEL1` | `SDFLR2`; tracks **`SDTRAK1`** (turned); bridge deck **`SDGRAT2`** with its track `SDTRAK1`; stalls **`SDBLST1`**; king post `SDFLR4` | `SDCEIL2` |
 | Platform | `SDMARB2` (the station's tile over red marble); the train's flank **`SDARMR2`**; both flags; the station board **`SDSTAN1`** over the coping | `SDMFLR2`; coping `SDMFLR3` (turned 180, MAP02's K7) | `SDCEIL1` |
@@ -309,7 +309,7 @@ and no route, key, lock or secret moves.
 |---|---|---|---|
 | `yard_red_door_lenin` | Lenin | yard, north wall, niche x 2432-2560 (back at y 1936), west of the red door's portal | the station building's front on the yard: the rake's roofs look down on it with the red lock (§5) |
 | `yard_red_door_stalin` | Stalin | yard, north wall, niche x 2944-3072 (back at y 1936), east of the red door's portal | Lenin's twin on the other side of the lock |
-| `warehouse_legion_stalin` | Stalin | warehouse, east wall x 3328, y 320-448 (the room is 256: no niche) | **taken**: the Legion hung its banner (`SDFLAG2`, y 192-256) beside the Stalin that was already there |
+| `warehouse_legion_stalin` | Stalin | warehouse, east wall x 3328, y 320-448 (the room is 256: no niche) | a Red Army standard (`SDFLAG2`, y 192-256; D119, the Legion's banner until then) beside the Stalin that was already there |
 | `platform_mural` | mural | platform, the building's wall, niche x 1024-1152 (back at y 2032), 128 high | the station's mural, facing the armoured train, west of the two factions' banners |
 | `roundhouse_south` | **Engels** (`SDPOSTR5`) | roundhouse, south wall, niche x 960-1088 (back at y 368), on the turntable stairs' axis | **Marx-Engels slot**: the depot's own poster, «СОЕДИНЯЙТЕСЬ!» over the turntable |
 | `warehouse_west` | **Marx** (`SDPOSTR4`) | warehouse, west wall x 1920, y 320-448, beside the passage to the roundhouse | **Marx-Engels slot**: met first (warehouse, then the passage, then the roundhouse), so his half of the line comes first |
@@ -443,20 +443,57 @@ the PPSh in the warehouse office; the RPG-7 at the roundhouse's door, nearer
 it than the roundhouse's Panzermensch (tested); the ROKS-3 in S2 only. No
 Hand Katyusha.
 
-**Ammunition** (G3-8's ruler, MAP03's: shells to kill; placed on the route,
-secrets not counted; tested ≥ 1.35 × on every skill, < 3 × on skill 4, and
-at every stage of the route against the hit points met so far):
+**Ammunition, D119 (2026-10-23).** The CEO's playtest of Episodes 2 and 3:
+"hay muchos objetos de munición, siempre sale de sobras" and "siempre acabas
+con la escopeta". The ammunition now follows the monsters: it **grows with
+skill** as they do (the table `AMMO` in `map.py`, rows with a lowest and a
+highest tier), not the consumables' rule, so easy has fewer pickups than
+hard. G3-8's ruler is MAP03's (kills in IZh shells, a gunner 2; PG-7V at 2
+shells, fuel at the ROKS-3's 13.5 a unit over the IZh's 80, D119), placed on
+the route, no drop and no secret counted; D119's bands (`docs/engine/BALANCE.md`
+§8): **1.5-2.0 × on skill 2, 1.3-1.6 on 3, 1.2-1.45 on 4**, shells no more
+than 35 % of it, and every stage of the route at least its skill's floor in
+damage against the hit points met so far (all tested).
 
 | | Skill 2 | Skill 3 | Skill 4 |
 |---|---|---|---|
-| Needed (shells; a gunner 2, D116) | 57 | 92 | 138 |
-| Placed (shell-equivalents) | 250 | 242 | 199 (1.44 ×) |
-| Shells / boxes of 20 | 10 / 7 | 8 / 7 | 5 / 6 |
-| Clips / boxes of 50 | 4 / 3 | 3 / 3 | 2 / 3 |
-| PG-7V / boxes of 5 | 3 / 3 | 3 / 3 | 3 / 2 |
+| Needed (shells) | 57 | 92 | 138 |
+| Placed (shell-equivalents), v1 → D119 | 250 → **94.5** | 242 → **132.5** | 199 → **169.5** |
+| Ratio, v1 → D119 | 4.39 → **1.66** | 2.63 → **1.44** | 1.44 → **1.23** |
+| Ammunition pickups on the route, v1 → D119 | 30 → **16** | 27 → **18** | 21 → **21** |
+| Shells (the IZh's 8 included) | 20 | 40 | 52 |
+| 7.62×25 rounds (the PPSh's 35 included) | 505 | 585 | 735 |
+| PG-7V (the RPG-7's 2 included) | 12 | 17 | 22 |
+| Share of the damage placed: shells / rounds / PG-7V | 22 / 56 / 22 % | 31 / 46 / 23 % | 32 / 45 / 23 % |
 
-Skills 2 and 3 are generous by design (the ruler counts rockets at two
-shells each); the playtests decide (D60).
+In v1 shells were about three quarters of the damage placed on every
+skill. By stretch, the weapons each one has: the tunnel, the yard and the
+roofs (the TT-33 and the IZh) two loose shells on skills 2-3 and two
+clips on skill 2, one shell box and one box of rounds on skill 4; the warehouse and the
+roundhouse (the PPSh and the RPG-7) five to eight boxes of rounds, a loose
+shell pickup, one PG-7V box (two on skill 4); the platform (the heavies)
+four or five boxes of rounds, one or two PG-7V boxes, a shell box from
+skill 3. The riflemen's clips and the gunners' 15 AKM rounds (no AKM on
+MAP04) still come on top.
+
+**BALANCE §8.3-§8.4, with the PM's amendment of 2026-10-23** (all tested):
+shells plus the troopers' dropped IZhs (2 shells each since D119) against
+everything placed and dropped, 27 / 34 / 34 % (≤ 35 %); each pool only from
+its weapon's stage (PG-7V from the roundhouse's RPG-7 on; no fuel on the
+route, the ROKS-3 being S2's); in every stage the PPSh's and the TT-33's
+rounds are the largest non-shell pool and at least 40 % of it, and PG-7V at
+most 30 % of the stage's damage (the warehouse and roundhouse 27 / 24 /
+30 %, the platform 30 / 27 / 27 %): the RPG-7 is the strong second, not the
+new shotgun. **Skill 4 keeps v1's 21 pickups**: the band's floor (1.2), the
+shells' 35 % and the rockets' 30 % leave the PPSh's boxes, a tenth of a
+shell a round, to carry it; skills 2 and 3 lose 14 and 9 (the test asks no
+skill above v1 and fewer in all). Pinned by `test_g3_8_the_ammo_budget`,
+`test_ammunition_scales_up_and_there_is_less_of_it`,
+`test_ammo_against_hit_points_by_skill_and_by_stage`,
+`test_shells_with_the_drops_are_no_more_than_35_percent`,
+`test_each_pool_from_the_stage_of_its_weapon` and
+`test_the_newest_bullet_weapon_leads_every_stage_but_the_bosss`
+(`tests/test_map04_transsib.py`, 82 tests OK on 2026-10-23).
 
 **Health and armour on the route:** stimpacks 9 / 8 / 5, medikits 6 / 6 /
 4, health bonuses 9, armour bonuses 7 / 7 / 6, one flak vest (the
@@ -555,7 +592,7 @@ The Railway set (§7.2, §13.6) adds six decoration sectors: 114 sectors,
 | K11 | **The two signals** (`SDSIGL1`): one whole head each, not cut or doubled; the main track's seen from the tunnel's mouth, its red lens reading as a light | screenshots from the mouth and from the box's step |
 | K12 | The star panels (`SDARMR1`) whole in the gun wagon and on the balcony's back as the platform sees it; the flank's 27 plates in `SDARMR2` with no seam floating at mid-height; `SDTRAK1` running along x on the yard's tracks and the turntable bridge (turned 90) with its rails continuing the yard's; ballast and track the same colour; the roundhouse's `SDBRCK3` frieze at 128 and 256 | screenshots on the platform, in the train, at the mouth and on the bridge |
 | K13 | **Round 2** (§7.2): the roofs' walkways along the cars; the gondolas' flaps meeting their beds' edges (no half flap at a rim) after the red key drops their sides; the cab's backhead whole either side of the exit (round windows), its sides whole; the box's glazing whole in every window, rows 8-55, lit, and the troopers inside not shooting through it; the lever frame one whole frame, its boards towards the porch (if west, `LEVER_ROTATION` 270), its front showing the brass plates; stall 2's doors and S2's panel the same face; the station board whole, readable from the platform, not tiled | screenshots in the cab, the box, on the roofs, in the roundhouse, on the platform |
-| K9 | The posters (§7.3) are whole and read: the two at the red door from the rake's roofs (light 144 in a 128 yard), the warehouse's Stalin beside the Legion banner, the platform's mural, the roundhouse's slot over the turntable; none is cut at the top or tiled, and the 16-deep niches do not snag a strafe along the walls | screenshots from the roofs, the warehouse's vestibule, the platform and the bridge |
+| K9 | The posters (§7.3) are whole and read: the two at the red door from the rake's roofs (light 144 in a 128 yard), the warehouse's Stalin beside the Red Army standard, the platform's mural, the roundhouse's slot over the turntable; none is cut at the top or tiled, and the 16-deep niches do not snag a strafe along the walls | screenshots from the roofs, the warehouse's vestibule, the platform and the bridge |
 
 ### 13.6 The Railway set pass (2026-10-22)
 

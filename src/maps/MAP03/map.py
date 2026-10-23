@@ -98,6 +98,9 @@ FLOOR_CONCRETE = "SDFLR2"
 FLOOR_TILE = "SDFLR3"
 CEIL_PANEL = "SDCEIL1"  # lit panel
 CEIL_CONCRETE = "SDCEIL2"
+# D121: the engine's sky marker, not a lump of ours (check_pk3 knows it);
+# MAPINFO's sky1 for MAP03 is SDSKY7, Tankograd's (D113).
+SKY = "F_SKY1"
 DESK_TOP = "SDCRTOP1"   # crate lid, planks: the desk's top
 RAILS = "SDRAIL1"       # metro track bed, rails along the image's y
 LOCKER = "SDLOCK1"      # 64x128 barracks locker (D29), one per 64 of wall: the archive's row (v1.1, S1)
@@ -387,6 +390,7 @@ ED_SHELL_BOX = 2049       # 20
 ED_ROCKET = 2010          # 1 PG-7V
 ED_ROCKET_BOX = 2046      # 5 PG-7V
 ED_CELL = 2047            # 20 fuel
+ED_CELL_PACK = 17         # 100 fuel (SD_CellPack, D119)
 ED_STIMPACK = 2011
 ED_MEDIKIT = 2012
 ED_HEALTH_BONUS = 2014
@@ -481,49 +485,6 @@ ITEMS = (
     ("o_corridor", ED_PPSH, 2700, 1860, 4),
     ("t_line", ED_RPG7, 2304, 400, 4),
     ("f_gallery", ED_ROKS3, 1700, 300, 4),
-    # Shell boxes (20): seven on every skill, the last before the General.
-    ("z3_hall", ED_SHELL_BOX, 1700, 1250, 4),
-    ("z3_hall", ED_SHELL_BOX, 2950, 1300, 4),
-    ("o_planning", ED_SHELL_BOX, 2000, 2150, 4),
-    ("f_gallery", ED_SHELL_BOX, 1500, 350, 4),
-    ("p_booth", ED_SHELL_BOX, 1150, 1730, 4),
-    ("p_hall", ED_SHELL_BOX, 1300, 800, 4),
-    ("p_ante", ED_SHELL_BOX, 1530, 1220, 4),
-    # Shells (4): 5 on every skill, +4 medium, +2 easy.
-    ("z2_dock", ED_SHELLS, 3200, 950, 4),
-    ("z3_hall", ED_SHELLS, 2150, 800, 4),
-    ("t_line", ED_SHELLS, 1950, 400, 4),
-    ("f_floor", ED_SHELLS, 1000, 560, 4),
-    ("p_hall", ED_SHELLS, 450, 800, 4),
-    ("z2_dock", ED_SHELLS, 3500, 950, 3),
-    ("z3_hall", ED_SHELLS, 2600, 1600, 3),
-    ("t_line", ED_SHELLS, 3000, 400, 3),
-    ("f_floor", ED_SHELLS, 500, 150, 3),
-    ("z3_hall", ED_SHELLS, 1800, 1600, 2),
-    ("t_vestibule", ED_SHELLS, 2304, 560, 2),
-    # Boxes of rounds (50): the PPSh's appetite.
-    ("z3_hall", ED_CLIP_BOX, 2500, 1350, 4),
-    ("o_archive", ED_CLIP_BOX, 2600, 2150, 4),
-    ("t_line", ED_CLIP_BOX, 3200, 400, 4),
-    ("p_hall", ED_CLIP_BOX, 1100, 1600, 4),
-    # Clips (10): 3 on every skill, +1 medium, +1 easy.
-    ("z2_dock", ED_CLIP, 3550, 1400, 4),
-    ("z3_hall", ED_CLIP, 2000, 1250, 4),
-    ("f_floor", ED_CLIP, 900, 250, 4),
-    ("z3_hall", ED_CLIP, 2700, 1250, 3),
-    ("z2_dock", ED_CLIP, 3250, 1400, 2),
-    # PG-7V: a box with the RPG-7, a box in the antechamber and one in the
-    # booth, four loose rounds round the drum for the General.
-    ("t_line", ED_ROCKET_BOX, 2200, 400, 4),
-    ("p_ante", ED_ROCKET_BOX, 1440, 1150, 4),
-    ("p_booth", ED_ROCKET_BOX, 1300, 1730, 4),
-    ("p_hall", ED_ROCKET, 1350, 1600, 4),
-    ("p_hall", ED_ROCKET, 1350, 800, 4),
-    ("p_hall", ED_ROCKET, 450, 1600, 4),
-    ("p_hall", ED_ROCKET, 600, 1640, 4),
-    # Fuel for the ROKS-3: a canister beside it, one before the General.
-    ("f_gallery", ED_CELL, 1500, 150, 4),
-    ("p_ante", ED_CELL, 1530, 1150, 4),
     # Stimpacks: 5 on every skill, +3 medium, +1 easy.
     ("z2_dock", ED_STIMPACK, 3600, 1000, 4),
     ("z3_hall", ED_STIMPACK, 2950, 760, 4),
@@ -565,6 +526,55 @@ ITEMS = (
     ("f_passage", ED_HEALTH_BONUS, 1728, 656, 4),
     ("p_porch", ED_HEALTH_BONUS, 1056, 1216, 4),
     ("p_dais_3", ED_HEALTH_BONUS, 736, 1120, 4),
+)
+
+# D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la
+# escopeta"), applied as docs/engine/BALANCE.md section 8 rules it: the
+# ammunition scales UP with the monsters, the other way from the consumables
+# above, so every skill sits in its band of what killing everything takes
+# (skill 2 1.5-2.0, skill 3 1.3-1.6, skill 4 1.2-1.45); shells, the Legion's
+# dropped IZhs counted, are no more than 35 % of it; and at every stage of the
+# route the newest weapon's pool leads the rest. Each spot is one an earlier
+# version already used for ammunition, so every pickup still stands where it
+# was checked to be walkable and reachable. (zone, editor number, x, y,
+# LOWEST skill tier it appears on - 2 = every skill, 3 = medium and up, 4 =
+# hard only, as a monster scales.)
+AMMO = (
+    # The dock, the hall and the offices (before any lock), the IZh and then
+    # the PPSh: a box of shells in the hall, rounds lead.
+    ("z3_hall", ED_SHELL_BOX, 1700, 1250, 2),
+    ("z2_dock", ED_SHELLS, 3200, 950, 2),
+    ("z3_hall", ED_CLIP_BOX, 2500, 1350, 2),
+    ("o_archive", ED_CLIP_BOX, 2600, 2150, 2),
+    ("z2_dock", ED_CLIP_BOX, 3550, 1400, 2),
+    ("o_planning", ED_CLIP_BOX, 2000, 2150, 2),
+    ("z3_hall", ED_CLIP_BOX, 2000, 1250, 3),
+    ("z2_dock", ED_CLIP_BOX, 3250, 1400, 4),
+    ("z3_hall", ED_CLIP_BOX, 2150, 800, 4),
+    # The tank line and the foundry (the yellow door), the RPG-7 and then
+    # the ROKS-3, each with only its own load: the PPSh's rounds lead, the
+    # PG-7V a strong second kept for the General (BALANCE 8.4, as amended).
+    ("f_floor", ED_SHELLS, 1000, 560, 2),
+    ("t_line", ED_CLIP_BOX, 3200, 400, 2),
+    ("f_floor", ED_CLIP_BOX, 900, 250, 2),
+    ("t_line", ED_CLIP_BOX, 3000, 400, 3),
+    ("t_vestibule", ED_CLIP_BOX, 2304, 560, 4),
+    ("t_line", ED_CLIP_BOX, 2200, 400, 4),
+    # The portal hall, the General's (the red door and SW-A): the heavy
+    # weapons' job - PG-7V and fuel at least his 48 shells - the PG-7V
+    # leading, fuel moderate; a box of shells and a pack of fuel on skill 4.
+    ("p_ante", ED_ROCKET_BOX, 1440, 1150, 2),
+    ("p_booth", ED_ROCKET_BOX, 1300, 1730, 2),
+    ("p_hall", ED_ROCKET_BOX, 1350, 1600, 2),
+    ("p_hall", ED_ROCKET_BOX, 1350, 800, 2),
+    ("p_hall", ED_ROCKET_BOX, 450, 1600, 2),
+    ("p_ante", ED_CELL, 1530, 1150, 2),
+    ("p_booth", ED_CELL, 1150, 1730, 2),
+    ("p_hall", ED_CLIP_BOX, 1100, 1600, 2),
+    ("p_ante", ED_CLIP_BOX, 1530, 1220, 2),
+    ("p_hall", ED_SHELL_BOX, 1300, 800, 4),
+    ("p_hall", ED_ROCKET_BOX, 600, 1640, 4),
+    ("p_hall", ED_CELL_PACK, 450, 800, 4),
 )
 
 # v1.1 (D68). Kept out of ITEMS on purpose: ITEMS is the route's, and these
@@ -680,11 +690,15 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         for n, (x, floor) in enumerate(zip(xs, floors), start=1):
             like(room, f"{prefix}_{n}", [(x, y1, x + 32, y2)], floor=floor, wall=CONCRETE)
 
-    def recess(room: str, name: str, rect, *, ceil: int, back, texture: str) -> int:
+    def recess(room: str, name: str, rect, *, ceil: int, back, texture: str,
+               ceiling: str | None = None) -> int:
         """A shallow recess one tile high in `room`'s wall, its back wall one
         whole tile of `texture` (a shut gate, a flag). `back` is the back
-        wall's segment, ("v", x, y1, y2) or ("h", y, x1, x2)."""
-        index = like(room, name, [rect], ceil=ceil, wall=BRICK)
+        wall's segment, ("v", x, y1, y2) or ("h", y, x1, x2). `ceiling` is
+        its own flat when the room's is the sky: a recess under the sky
+        would lose the wall above it (D121)."""
+        kw = {} if ceiling is None else {"ceiling": ceiling}
+        index = like(room, name, [rect], ceil=ceil, wall=BRICK, **kw)
         kind, coord, lo, hi = back
         style = LineStyle(texture=texture)
         if kind == "v":
@@ -710,12 +724,17 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     zone("z1_spur", GROUND, SPUR_CEIL, [(3648, 1120, 4160, 1248)],
          light=LIGHT_SPUR, wall=TUBBING)
     rails("z1_spur", 3648, 4160, 1152, 1216)
+    # D121: the loading dock is the works' yard, open to Tankograd's sky. Its
+    # walls stand to the sky; the spur's tunnel (128), the arch (192) and the
+    # road gate's recess (128) keep their own ceilings below it, so the
+    # brick above each is drawn.
     zone("z2_dock", GROUND, DOCK_CEIL, [(3136, 896, 3648, 1472)],
-         light=LIGHT_DOCK, wall=BRICK)
+         light=LIGHT_DOCK, wall=BRICK, ceiling=SKY)
     rails("z2_dock", 3328, 3648, 1152, 1216)     # the buffer stop is v2's
     # The yard's road gate, shut, in the dock's north wall.
     recess("z2_dock", "z2_road_gate", (3328, 1472, 3456, 1472 + NICHE_DEPTH),
-           ceil=GROUND + TILE, back=("h", 1472 + NICHE_DEPTH, 3328, 3456), texture=ROAD_GATE)
+           ceil=GROUND + TILE, back=("h", 1472 + NICHE_DEPTH, 3328, 3456), texture=ROAD_GATE,
+           ceiling=CEIL_CONCRETE)
     zone("z2_arch", GROUND, 192, [(3072, 1120, 3136, 1248)],
          light=LIGHT_HALL, wall=BRICK)
 
@@ -989,6 +1008,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
                                      extra=extra))
     for _zone, ednum, x, y, top in ITEMS + SECRET_ITEMS + STORES_ITEMS:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
+    for _zone, ednum, x, y, lowest in AMMO:
+        tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
     return tm, plan
 
 
@@ -1012,6 +1033,8 @@ WALL_TEXTURES = ((CONCRETE, STAR, STEEL, TILE_DADO, CRATE, TUBBING, BRICK, BRICK
                  + (LENIN, STALIN, MURAL) + MARX_ENGELS)
 FLAT_TEXTURES = (FLOOR_LANE, FLOOR_CONCRETE, FLOOR_TILE, CEIL_PANEL, CEIL_CONCRETE,
                  DESK_TOP, RAILS, FLOOR_PLATE, GRATING, MOLTEN)
+# The engine's own flats, not lumps of ours (check_pk3 knows them).
+BUILTIN_FLATS = (SKY,)
 # The Tankograd lumps (D66) this map places, frame 1 standing for each animation.
 TANKOGRAD = (BRICK, BRICK_DADO, RUST, DOOR_YELLOW, DOOR_RED, PORTAL, ROAD_GATE, WINDOW,
              FLAG_REICH, FLAG_LEGION, FLOOR_PLATE, GRATING, MOLTEN) + tuple(t for t in (CHAIN, SLOGAN) if t)

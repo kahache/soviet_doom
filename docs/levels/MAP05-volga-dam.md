@@ -247,7 +247,7 @@ Measured (hit points met, by beat; `test_the_intensity_rises`):
 
 | Zone | Walls | Floor | Ceiling |
 |---|---|---|---|
-| Station | `SDBRCK1` (the station's buildings), the two flags `SDFLAG1`/`SDFLAG2` in recesses either side of the blue gate's wall, Stalin `SDPOSTR3` in a recess beside them (7.3); the parapet `SDDAM1`; the signal post `SDSIGL1` (once, D107) | `SDFLR2`, rails `SDRAIL1` | sky |
+| Station | `SDBRCK1` (the station's buildings), the two Soviet flags `SDFLAG1`/`SDFLAG2` (the USSR flag and a Red Army standard since D119) in recesses either side of the blue gate's wall, Stalin `SDPOSTR3` in a recess beside them (7.3); the parapet `SDDAM1`; the signal post `SDSIGL1` (once, D107) | `SDFLR2`, rails `SDRAIL1` | sky |
 | The armoured train | `SDARMR2` (MAP04's train), one `SDARMR1` star in the middle of its south side | `SDFLR4` | sky |
 | Gatehouse, west hall | `SDTILE2` | `SDFLR3` | `SDCEIL1` |
 | Control room | `SDTILE2`, four `SDCTRL1` boards standing on the floor (two flanking the mural, one on each side wall); the consoles `SDCTRL1`'s desk; the bars `SDGRIL1` (masked) in its two windows over the hall | `SDFLR3`; consoles `SDFLR4` | `SDCEIL1` |
@@ -376,7 +376,7 @@ pegged to the floor, offset 0 (`tests/test_posters.py`). They are listed in
 | Name | Lump | Where | Why |
 |---|---|---|---|
 | `z5_lenin` | `SDPOSTR1` Lenin | turbine hall, west wall, x 1648, y 576…704: a recess 16 deep, 256 high (`z5_lenin_niche`) in the 448-high hall | the end of the hall the player looks down on entering from the lower gallery, clear of the generators' shafts: Lenin over the turbines («Communism is Soviet power plus the electrification of the whole country») |
-| `z1_stalin` | `SDPOSTR3` Stalin | station, west wall, x 4272, y 1600…1728: a recess 16 deep, 256 high (`z1_stalin_niche`, its own concrete ceiling so the brick shows above it under the sky) | the first wall the player sees on arrival, between the shutter and the occupiers' two banners: the station's portrait, the invaders' flags hung beside it |
+| `z1_stalin` | `SDPOSTR3` Stalin | station, west wall, x 4272, y 1600…1728: a recess 16 deep, 256 high (`z1_stalin_niche`, its own concrete ceiling so the brick shows above it under the sky) | the first wall the player sees on arrival, between the shutter and the two Soviet flags (D119; the occupiers' banners until then): the station's portrait with its flags |
 | `z6_mural` | `SDPOSTR2` cosmonautics mural | control room, north wall, x 2560…2688, y 1328: a recess 16 deep on a 32 sill (`prop_z6_mural_niche`, floor 224, ceiling 352) | straight ahead through the yellow door; the room is 160 high, the mural 128 |
 | `z5_catwalk_w` | `SDPOSTR4` **Marx** (Marx-Engels slot) | catwalk's back wall, y 896, x 2240…2368 (256 high: catwalk 192 to roof 448) | flanks the yellow door with Engels, 320 from its axis; the left one seen from the hall (facing north) |
 | `z5_catwalk_e` | `SDPOSTR5` **Engels** (Marx-Engels slot) | catwalk's back wall, y 896, x 2880…3008 | the mirror of the west one, on the right |
@@ -451,23 +451,58 @@ the control room; the **Hand Katyusha** in S3. Since D116 the **AKM**
 512): past the PPSh (the gallery is walked east to west) and before the
 hall's door and its RPG-7, the episode's new rifle for the dam's long
 sightlines (`docs/engine/2026-10-22_P4_akm.md` §6). **AKM magazines**
-(`SD_AkmAmmo`, 21020, 30 rounds) 4 / 3 / 2 on skills 2 / 3 / 4: beside the
-rifle and on the crest on every skill, in the control room up to skill 3,
-on the spillway's west walkway on skill 2 (`test_the_akm_between_the_ppsh_and_the_rpg`).
+(`SD_AkmAmmo`, 21020, 30 rounds) **11 / 14 / 17 on skills 2 / 3 / 4 since D119**
+(4 / 3 / 2 before): from the gallery on, the AKM's pool leads every stage
+(below), so most of the dam's boxes of rounds became magazines (`test_the_akm_between_the_ppsh_and_the_rpg`).
 
-**Ammunition** (G3-8's ruler, MAP03's test: kills in IZh shells, PG-7V at 2
-shells, fuel at ¼, AKM rounds at 80 / 12 a shell (avg 12 a round, BALANCE
-§2); a gunner costs 2 shells, as a Stormtrooper; route only, no drop, no
-secret). Recounted 2026-10-22 with the gunners and the AKM (D116):
+**Ammunition, D119 (2026-10-23).** The CEO's playtest of Episodes 2 and 3:
+"hay muchos objetos de munición, siempre sale de sobras" and "siempre acabas
+con la escopeta". The ammunition now follows the monsters: it **grows with
+skill** as they do (the table `AMMO` in `map.py`, rows with a lowest and a
+highest tier), not the consumables' rule. G3-8's ruler is MAP03's (kills in
+IZh shells, a gunner 2; PG-7V at 2 shells, AKM rounds at 80 / 12 a shell,
+fuel at the ROKS-3's 13.5 a unit over 80 since D119), route only, no drop,
+no secret; D119's bands (`docs/engine/BALANCE.md` §8): **1.5-2.0 × on skill
+2, 1.3-1.6 on 3, 1.2-1.45 on 4**, shells no more than 35 % of it:
 
 | | Skill 2 | Skill 3 | Skill 4 |
 |---|---|---|---|
 | Needed | 71 | 119 | 169 |
-| Placed | 297.0 | 279.5 | 251.0 |
-| Ratio (≥ 1.35, and < 3 on skill 4) | 4.18 | 2.35 | 1.49 |
+| Placed, v1 (D116) → D119 | 297.0 → **112.2** | 279.5 → **160.1** | 251.0 → **209.6** |
+| Ratio, v1 → D119 | 4.18 → **1.58** | 2.35 → **1.35** | 1.49 → **1.24** |
+| Ammunition pickups on the route, v1 → D119 | 45 → **18** | 40 → **24** | 31 → **30** |
+| Shells (the IZh's 8 included) | 24 | 40 | 56 |
+| 7.62×25 rounds (the PPSh's 35 included) | 135 | 185 | 285 |
+| 7.62×39 rounds (the AKM's 30 included) | 360 | 450 | 540 |
+| PG-7V (the RPG-7's 2 included) | 7 | 12 | 17 |
+| Fuel (the ROKS-3's 40 included) | 40 | 60 | 60 |
+| Share of the damage: shells / 7.62×25 / AKM / PG-7V / fuel | 22 / 12 / 49 / 11 / 6 % | 26 / 12 / 43 / 13 / 6 % | 27 / 14 / 40 / 14 / 5 % |
+
+In v1 shells were two thirds of the damage placed. **The AKM leads**
+(BALANCE §8.4.2 with the PM's amendment of 2026-10-23: the newest bullet
+weapon leads, the RPG-7 and the ROKS-3 never; and the brief's "el AKM tras
+recogerlo; PPSh; cohetes y combustible con moderación"): in every stage
+from the gallery on its magazines are the largest non-shell pool and at
+least 40 % of it. By stretch: the station and the gatehouse (the IZh)
+loose shells only; the lower gallery, the turbine hall and the spillway's
+walks (the PPSh, then the AKM, the RPG-7 at the hall's door) four to five
+magazines, two to four boxes of rounds, the PG-7V box with the launcher, a
+shell box on skill 4 only; the control room (the ROKS-3 and its 40 fuel, no
+other fuel) two magazines; the cable gallery and the substation three to
+four magazines and from skill 3 the map's one fuel canister, no PG-7V
+since the amendment; the crest two to six magazines, a box of rounds from
+skill 3, a shell box and a PG-7V box from skill 3, a second PG-7V box on
+skill 4. The S3 hut's two canisters and the secrets' shell boxes are
+unchanged and not counted; the gunners' 15 AKM rounds come on top. Also
+tested: the shells with the troopers' dropped IZhs under 35 % of
+everything placed and dropped (§8.3: 28 / 29 / 30 %), each pool only from
+its weapon's stage (§8.4.1), PG-7V at most 30 % of any stage's damage
+(the most: the crest on skill 4, 25 %), fuel at most 15 % of the map's
+(6 / 6 / 5 %).
 
 Also checked at every round of the route (damage placed so far against hit
-points met so far). **Health** on skill 4: 6 stimpacks + 5 medikits, 9
+points met so far, at the skill's band floor since D119; `tests/test_map05_dam.py`,
+88 tests OK on 2026-10-23). **Health** on skill 4: 6 stimpacks + 5 medikits, 9
 health bonuses; **armour**: the flak vest up on the catwalk (for climbing
 it), the heavy vest in SW-B's passage (round 2, before the station's closets
 and the crest), 6 plates. Consumables scale down with skill (tested).

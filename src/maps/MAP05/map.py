@@ -559,59 +559,6 @@ ITEMS = (
     # episode's new rifle, at the gallery's west end, after the PPSh and
     # before the hall's door and its RPG-7, for the dam's long sightlines.
     ("z4_gallery", ED_AKM, 3648, 512, 4),
-    # Shell boxes (20).
-    ("z5_hall", ED_SHELL_BOX, 1760, 192, 4),
-    ("z7_east_walk", ED_SHELL_BOX, 1280, 1664, 4),
-    ("z6_control", ED_SHELL_BOX, 2880, 1280, 4),
-    ("z9_substation", ED_SHELL_BOX, 3648, 960, 4),
-    ("z10_crest", ED_SHELL_BOX, 3968, 1840, 4),
-    ("z10_crest", ED_SHELL_BOX, 1984, 2000, 4),
-    # Shells (4).
-    ("z1_station", ED_SHELLS, 4544, 1504, 4),
-    ("z2_gatehouse", ED_SHELLS, 4608, 1216, 4),
-    ("z4_gallery", ED_SHELLS, 3520, 480, 4),
-    ("z5_hall", ED_SHELLS, 3008, 704, 4),
-    ("z7_gallery", ED_SHELLS, 1536, 320, 4),
-    ("z8_cable_gallery", ED_SHELLS, 3024, 1120, 4),
-    ("z10_crest", ED_SHELLS, 2816, 2000, 4),
-    ("z10_crest", ED_SHELLS, 1280, 1840, 4),
-    ("z1_station", ED_SHELLS, 4608, 1504, 3),
-    ("z5_hall", ED_SHELLS, 2368, 224, 3),
-    ("z7_west_walk", ED_SHELLS, 576, 1088, 3),
-    ("z9_substation", ED_SHELLS, 4096, 1376, 3),
-    ("z10_crest", ED_SHELLS, 3456, 1840, 3),
-    ("z4_gallery", ED_SHELLS, 3584, 544, 2),
-    ("z5_hall", ED_SHELLS, 2752, 704, 2),
-    ("z10_crest", ED_SHELLS, 2304, 2000, 2),
-    # Boxes of rounds (50).
-    ("z5_hall", ED_CLIP_BOX, 2752, 192, 4),
-    ("z6_control", ED_CLIP_BOX, 2368, 1264, 4),
-    ("z10_crest", ED_CLIP_BOX, 3840, 2000, 4),
-    # Clips (10).
-    ("z1_station", ED_CLIP, 4352, 1472, 4),
-    ("z3_landing_1", ED_CLIP, 4448, 832, 4),
-    ("z4_gallery", ED_CLIP, 4032, 512, 4),
-    ("z7_east_walk", ED_CLIP, 1216, 320, 4),
-    ("z1_station", ED_CLIP, 4416, 1472, 3),
-    ("z5_hall", ED_CLIP, 1984, 224, 3),
-    ("z1_station", ED_CLIP, 4480, 1472, 2),
-    # AKM magazines (30): 4 / 3 / 2 on skills 2 / 3 / 4, plus the gunners'
-    # drops (15 each, not counted).
-    ("z4_gallery", ED_AKM_AMMO, 3616, 512, 4),
-    ("z10_crest", ED_AKM_AMMO, 3040, 1872, 4),
-    ("z6_control", ED_AKM_AMMO, 2496, 1056, 3),
-    ("z7_west_walk", ED_AKM_AMMO, 576, 1408, 2),
-    # PG-7V: a box with the RPG-7, rounds for the substation and the crest.
-    ("z5_hall", ED_ROCKET_BOX, 3392, 640, 4),
-    ("z9_substation", ED_ROCKET_BOX, 3648, 1600, 4),
-    ("z10_crest", ED_ROCKET, 3904, 2000, 4),
-    ("z10_crest", ED_ROCKET, 2560, 1840, 4),
-    ("z10_crest", ED_ROCKET, 1600, 2000, 4),
-    ("z9_passage", ED_ROCKET, 4192, 1536, 3),
-    # Fuel for the ROKS-3.
-    ("z6_control", ED_CELL, 2688, 1056, 4),
-    ("z9_substation", ED_CELL, 4096, 1632, 4),
-    ("z10_crest", ED_CELL, 3136, 2000, 4),
     # Stimpacks.
     ("z1_station", ED_STIMPACK, 4800, 1472, 4),
     ("z4_gallery", ED_STIMPACK, 3520, 544, 4),
@@ -654,6 +601,56 @@ ITEMS = (
     ("z10_hut_w", ED_HEALTH_BONUS, 2528, 1664, 4),
     ("z10_gate_porch", ED_HEALTH_BONUS, 4160, 1920, 4),
     ("z11_west_hall", ED_HEALTH_BONUS, 528, 2000, 4),
+)
+
+# D119 (the CEO's playtest: "siempre sale de sobras", and always on the
+# shotgun): AMMUNITION FOLLOWS THE MONSTERS, not the consumables' rule, so it
+# grows with skill as they do. Rows: (zone, editor number, x, y, lowest tier,
+# highest tier), udmf.skill_tier's range (2 easy, 3 medium, 4 hard).
+# G3-8's D119 bands (docs/engine/BALANCE.md): 1.5-2.0 x the ruler on skill 2,
+# 1.3-1.6 on 3, 1.2-1.45 on 4; shells at most ~35 % of the damage placed; the
+# rest for the weapons of each stretch, the newest first: past the lower
+# gallery the AKM's magazines lead, the PPSh's boxes second, rockets and fuel
+# in moderation (the ROKS-3 is being toned down, D119).
+AMMO = (
+    # Stage 0: the station (the IZh), the gatehouse, the landings, the lower
+    # gallery (the PPSh, then the AKM), the turbine hall (the RPG-7), the
+    # spillway's walks.
+    ("z1_station", ED_SHELLS, 4544, 1504, 2, 4),
+    ("z2_gatehouse", ED_SHELLS, 4608, 1216, 2, 4),
+    ("z1_station", ED_SHELLS, 4608, 1504, 2, 3),
+    ("z5_hall", ED_SHELLS, 3008, 704, 2, 2),
+    ("z3_landing_1", ED_CLIP_BOX, 4448, 832, 4, 4),
+    ("z4_gallery", ED_CLIP_BOX, 4032, 512, 4, 4),
+    ("z4_gallery", ED_AKM_AMMO, 3616, 512, 2, 4),
+    ("z5_hall", ED_ROCKET_BOX, 3392, 640, 2, 4),
+    ("z5_hall", ED_CLIP_BOX, 2752, 192, 2, 4),
+    ("z5_hall", ED_AKM_AMMO, 1984, 224, 2, 4),
+    ("z5_hall", ED_SHELL_BOX, 1760, 192, 4, 4),
+    ("z7_east_walk", ED_CLIP_BOX, 1216, 320, 2, 4),
+    ("z7_west_walk", ED_AKM_AMMO, 576, 1408, 2, 4),
+    ("z7_east_walk", ED_AKM_AMMO, 1280, 1664, 2, 4),
+    ("z7_gallery", ED_AKM_AMMO, 1536, 320, 3, 4),
+    # Stage 1: the control room (the ROKS-3 and its 40 fuel).
+    ("z6_control", ED_AKM_AMMO, 2496, 1056, 2, 4),
+    ("z6_control", ED_AKM_AMMO, 2368, 1264, 2, 4),
+    # Stage 2: the cable gallery and the substation.
+    ("z9_substation", ED_AKM_AMMO, 3648, 1600, 3, 4),
+    ("z8_cable_gallery", ED_AKM_AMMO, 3024, 1120, 2, 4),
+    ("z9_substation", ED_AKM_AMMO, 3648, 960, 2, 4),
+    ("z9_substation", ED_AKM_AMMO, 4096, 1376, 2, 4),
+    ("z9_substation", ED_CELL, 4096, 1632, 3, 4),
+    # Stage 3: the crest, the last fight.
+    ("z10_crest", ED_AKM_AMMO, 3040, 1872, 2, 4),
+    ("z10_crest", ED_CLIP_BOX, 3840, 2000, 3, 4),
+    ("z10_crest", ED_SHELL_BOX, 3968, 1840, 3, 4),
+    ("z10_crest", ED_ROCKET_BOX, 3904, 2000, 3, 4),
+    ("z10_crest", ED_AKM_AMMO, 2816, 2000, 2, 4),
+    ("z10_crest", ED_AKM_AMMO, 3456, 1840, 3, 4),
+    ("z10_crest", ED_AKM_AMMO, 2560, 1840, 4, 4),
+    ("z10_crest", ED_AKM_AMMO, 1984, 2000, 4, 4),
+    ("z10_crest", ED_AKM_AMMO, 1280, 1840, 4, 4),
+    ("z10_crest", ED_ROCKET_BOX, 1600, 2000, 4, 4),
 )
 
 # The secrets' rewards, on every skill (MAP01's rule); kept out of ITEMS,
@@ -1245,6 +1242,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle))
     for _zone, ednum, x, y, top in ITEMS + SECRET_ITEMS:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
+    for _zone, ednum, x, y, low, high in AMMO:
+        tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(low, high)))
     return tm, plan
 
 

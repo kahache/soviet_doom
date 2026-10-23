@@ -9,8 +9,10 @@ secrets, the boss and the exit; v1.1 swaps the stand-ins for the
 puts episode 3's own final boss, the Consortium, in the General's place,
 the Legion's machine-gunners in the forest, the works, the refinery and the
 crater, the AKM beside the PPSh, and recounts the crater's stock for a
-9000 HP boss** (§10, §11, §16.2). Source: `src/maps/MAP09/map.py`;
-tests: `tests/test_map09_tunguska.py` (the map, 63 tests) and
+9000 HP boss** (§10, §11, §16.2); **v1.3 (D119, 2026-10-23) cuts the
+ammunition to BALANCE §8's bands and recounts the crater for the
+Consortium's 4000** (§10, §11, §16.3). Source: `src/maps/MAP09/map.py`;
+tests: `tests/test_map09_tunguska.py` (the map, 66 tests) and
 `tests/test_map09_route.py` (the route, 13); posters:
 `tests/test_posters.py` (`Map09Posters`); top-down view:
 `docs/levels/shots/MAP09-overview.png`. Russian mirror: owed at the phase
@@ -107,7 +109,7 @@ The authoritative plan is the top-down render generated from the source:
 | Z5 | Four pipe recesses in the north wall (S3 the third) | 3584…4480 | 5632…5648 | 0 | 128 | 144 / 96 |
 | Z5/Z7 | **Red gate** in the containment wall: portal · door · porch; the two **closets** either side | 3456…4480 | 3840…3968 | 0 | 128 | portal **192**, red |
 | Z5/Z6 | **Yellow door**: portal · door · porch | 5440…5536 | 4672…4800 | 0 | 128 | portal **192**, yellow |
-| Z6 | Refinery: four vats (96, molten tops), two turbines (`SDTURB1`, 128), a console (`SDCTRL1`), the molten channel (−16, damage) and its bridge; the banners | 5536…7296 | 3968…5376 | 0 | 320 | 128 |
+| Z6 | Refinery: four vats (96, molten tops), two turbines (`SDTURB1`, 128), a console (`SDCTRL1`), the molten channel (−16, damage) and its bridge; the Soviet flags | 5536…7296 | 3968…5376 | 0 | 320 | 128 |
 | Z6 | Dais: the **red key** | 7104…7232 | 4672…4800 | 16 | 320 | **192**, red |
 | Z7 | Crater rim, 128 wide, inside the containment wall | 2944…4992 | 1792…3840 | 0 | sky 512 | 160 |
 | Z8 | Seven terraces (64 wide, 16 down each) and the floor; four acid pits, four pylons; the portal (plinth −96, field to 160, framed by four posts 32 square to 192 in its corners) | 3520…4416 | 2368…3264 | −16…−128 | sky 512 | 160; field and frame 176 |
@@ -202,7 +204,7 @@ v1.1 (D113): the episode's "Taiga/Alien" set (`docs/art/TEXTURE-INDEX.md`),
 | Laboratory | hall `SDTILE1`, instrument room `SDTILE2`, boards `SDCTRL1`, vestibule `SDCONC1`, bench `SDSTEL1` | `SDFLR3` | `SDCEIL1` |
 | Forest | trunks `SDBARK2`, every seventh `SDBARK1` (`birch_trunks`); treeline `SDBARK2`; fence and containment `SDALNM1` | `SDPEAT1` (the Southern Swamp) | sky |
 | Works | `SDALNM1` (walls, towers, conduits, recesses, closets), a strip of `SDGLYP1` up the middle of each tower face and a plate either side of the red gate, cores `SDPORT1`, derrick `SDSTEL1`, the edge's west wall `SDBARK2`; acid pits `SDACID1` | `SDFLR4`, edge `SDBURN1`, derrick `SDGRAT1` | sky |
-| Refinery | `SDBRCK1`; vats `SDRUST1`; turbines `SDTURB1`; console `SDCTRL1`; banners `SDFLAG1`/`SDFLAG2` side by side | `SDFLR4`, bridge `SDGRAT1`, channel and vats `SDMOLT1` | `SDCEIL2` |
+| Refinery | `SDBRCK1`; vats `SDRUST1`; turbines `SDTURB1`; console `SDCTRL1`; Soviet flags `SDFLAG1`/`SDFLAG2` side by side (D119: redrawn as Soviet flags) | `SDFLR4`, bridge `SDGRAT1`, channel and vats `SDMOLT1` | `SDCEIL2` |
 | Crater | containment and terraces `SDALNM1`; pylons `SDGLYP1` (one plate a face); plinth `SDALNM1`; the portal `SDPORT1` (two tiles, one wide between the posts) in a frame of `SDPRTE1`; a glyph plate either side of the bunker's gate | rim and terraces `SDBURN1`, floor `SDFLR4`, pits `SDACID1` | sky |
 | Bunker | `SDSTEL1`; porch `SDALNM1`; gate `SDGATE1`; exit `SDSW1D` | `SDFLR4` | `SDCEIL1` |
 | Doors | `SDDOORB` (blue, jambs `SDALNM1`), `SDDOORY`, `SDDOORR` (jambs `SDALNM1`); thresholds `SDFLR4` | | |
@@ -300,45 +302,57 @@ The boss's servants (§11) are not in the totals: they arrive in the fight.
 the **AKM** (D116, `SD_Akm` 21008) in the first izba, the RPG-7 at the
 standing forest's far edge, the ROKS-3 on the works' scorched edge, all on
 the route on every skill; the Hand Katyusha in S2. AKM magazines
-(`SD_AkmAmmo` 21020, 30 rounds) on the route before the crater **4 / 3 / 2**
-on skills 2 / 3 / 4 (the laboratory's hall, the forest, the works, the
-refinery), plus the arena's (below). G3-8 (MAP03's ruler, in IZh shells at
-~62.5 HP a shell, the AKM's 30 rounds 4.5 shells; secrets not counted;
-**the Consortium is 144 shells, and its servants 39 more**, see §11):
+(`SD_AkmAmmo` 21020, 30 rounds) on the route **18 / 24 / 32** on skills
+2 / 3 / 4 since D119 (§16.3; D116's 4 / 3 / 2 went with the scaling down).
 
-| Skill | Needed | Placed | Ratio | Shells and rounds alone |
-|---|---|---|---|---|
-| 2 | 310 | 978.5 | 3.16 | 717.5 |
-| 3 | 409 | 916.0 | 2.24 | 659.0 |
-| 4 | 550 | 759.0 | 1.38 (≥ 1.35, < 3) | 572.0 (≥ 1.35 × all but the boss: 548.1) |
+**Ammunition, D119** (`docs/engine/BALANCE.md` §8: G3-8's ruler, in IZh
+shells at ~62.5 HP a shell, the AKM's 30 rounds 4.5 shells, a PG-7V 2, fuel
+13.5 / 80; route only, no drop, no secret; **the Consortium is 64 shells
+since D119 (was 144), and its servants 23 more** (was 39), see §11). The
+route's ammunition is `AMMO` in `map.py`, apart from `ITEMS`: it appears
+from its lowest skill tier up, like the monsters it pays for (§16.3).
 
-Also tested at every stage of the route, the boss's servants' hit points
-counted with its own. **The arena's own stock (the rim, the red gate's
-porch and the crater's first terrace, the ring the fight circles on)**,
-tested to cover the Consortium's 9000 HP and its servants' 1700 on every
-skill by itself, with rockets and fuel a third of that:
+| | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| Needed | 214 | 313 | 454 |
+| Placed | 344.6 | 421.6 | 562.6 |
+| Ratio (band 1.5-2.0 / 1.3-1.6 / 1.2-1.45) | 1.61 | 1.35 | 1.24 |
+| Before D119 (needed, placed, ratio) | 310, 978.5, 3.16 | 409, 916.0, 2.24 | 550, 759.0, 1.38 |
+| Ammunition pickups on the route (before D119) | 48 (97) | 59 (88) | 78 (72) |
+| Shell share, troopers' drops counted (≤ 35 %) | 34.7 % | 34.9 % | 33.8 % |
+| Damage by pool: shells / PPSh / AKM / PG-7V / fuel | 32 / 10 / 26 / 25 / 7 % | 31 / 11 / 28 / 25 / 6 % | 30 / 13 / 28 / 25 / 4 % |
 
-| Skill | PG-7V | ROKS-3 fuel | AKM magazines | Shells | Stimpacks + medikits | Damage, all of it (avg) |
-|---|---|---|---|---|---|---|
-| 2 | 48 | 360 | 3 | 160 | 7 + 6 | 28 040 |
-| 3 | 46 | 360 | 3 | 160 | 6 + 6 | 27 770 |
-| 4 | 31 | 240 | 2 | 160 | 4 + 4 | 23 225 |
+Also tested at every stage of the route against the skill's floor, the
+boss's servants' hit points counted with its own; each pool only after its
+weapon; the AKM's magazines leading every stage before the crater, PG-7V
+at most 30 % of each of them; in the crater, the boss's stage, PG-7V lead
+(§16.3).
+**The arena's own stock (the rim, the red gate's porch and the crater's
+first terrace, the ring the fight circles on)**, tested to cover the
+Consortium's 4000 HP and its servants' 1060 on every skill by itself, with
+rockets and fuel a third of that, and since D119 inside the skill's band of
+the boss, its servants and the crater's own monsters (it was filled for
+9000; BALANCE §8.4.3: its PG-7V and fuel are more than the boss's 64
+shells):
 
-v1.2 added to the first terrace: 2 rocket boxes and 2 rockets on every
-skill (+2 boxes skill 3 and easier, +2 rockets skill 2), a fuel pack and a
-canister (+a pack skill 3 and easier), 2 AKM magazines (+1 skill 3 and
-easier), 3 shell boxes and a box of rounds, 2 stimpacks and 2 medikits (+1
-of each skill 3 and easier, +1 stimpack skill 2).
+| Skill | PG-7V | ROKS-3 fuel | AKM magazines | Shells | Rounds | Stimpacks + medikits | Damage (avg) | Bill (HP) | Ratio |
+|---|---|---|---|---|---|---|---|---|---|
+| 2 | 37 | 60 | 4 | 40 | 150 | 7 + 6 | 11 645 | 6 380 | 1.83 |
+| 3 | 37 | 60 | 4 | 40 | 150 | 6 + 6 | 11 645 | 7 590 | 1.53 |
+| 4 | 47 | 60 | 4 | 40 | 150 | 4 + 4 | 12 995 | 9 190 | 1.41 |
+
+Before D119 the arena held 48 / 46 / 31 PG-7V, 360 / 360 / 240 fuel and 160
+shells, 28 040 / 27 770 / 23 225 average damage. Health is unchanged.
 
 Health on skill 4: 9 stimpacks, 9 medikits, 7 health bonuses; 6 armour
 bonuses (two at each lock), the flak vest in the third izba, the heavy vest
-at the red gate's porch, before the crater. Skills 3 and 2 add stimpacks,
-medikits and ammunition.
+at the red gate's porch, before the crater. Skills 3 and 2 add stimpacks
+and medikits; ammunition follows the monsters instead (D119).
 
 ## 11. The boss: the Consortium (D112, placed D116)
 
-Episode 3's final boss, **the Consortium** (`SD_Consortium`, 21112, 9000
-HP, radius 56, height 128; its design and behaviour:
+Episode 3's final boss, **the Consortium** (`SD_Consortium`, 21112, 4000
+HP since D119 (9000 before), radius 56, height 128; its design and behaviour:
 `docs/engine/2026-10-22_P4_ep3-final-boss.md`), stands at the named
 constant **`MAP09_BOSS_SPOT = (3968, 3136)`** on the crater's floor before
 the portal, facing the red gate (`BOSS_ANGLE = 90`), on every skill
@@ -358,12 +372,15 @@ and the General is no longer placed here.
 - **Room:** the crater is 2048 square under a sky of 512 (640 over its
   floor, five times its 128); terraces of 16, so once free (phase 2) it
   walks anywhere in it. Its 112-wide body fits the floor at its spot.
-- **The bill.** 9000 HP (`+NORADIUSDMG`: 67 RPG-7 impacts, or 13-14 full
-  hand-Katyusha salvoes) and its servants, counted as a long fight's worth
-  (H): four rooted pairs (rifleman and trooper, 50 HP a pair), the Breach's
-  wave of four (600) and five free pairs (hound and trooper, 180 a pair),
-  1700 HP, 39 shells on G3-8's ruler. The arena's stock (§10) is tested to
-  pay for both on its own.
+- **The bill.** 4000 HP since D119, the Cyberdemon's (`+NORADIUSDMG`: 30
+  RPG-7 impacts, or 6 full hand-Katyusha salvoes; BALANCE §7) and its
+  servants. At 9000 they were counted as a long fight's worth: four rooted
+  pairs, the Breach's wave and five free pairs, 1700 HP. With 2000 a phase
+  (the Breach still at half) the portal calls about half as often (H): two
+  rooted pairs (rifleman and trooper, 50 HP a pair), the Breach's wave of
+  four (600, unchanged) and two free pairs (hound and trooper, 180 a pair),
+  1060 HP, 23 shells on G3-8's ruler. The arena's stock (§10) is tested to
+  pay for both on its own, and no longer much more.
 - **The risk, said plainly:** if the death special did not fire, the exit
   would be unreachable. The belt-and-braces fix is the mod-engineer's: a
   MAPINFO `SpecialAction = "SD_Consortium", "Door_Open", 12, 16` in MAP09's
@@ -432,7 +449,7 @@ BOSS1 the boss hurt past its health, the gate open → E0 through the gate to
 the breaker → E1 pressed. Geometry tested in `tests/test_map09_route.py`.
 
 **The Consortium in BOSS1 (D116).** The helper's `hurt` is 100 000, past
-ten times its 9000. At full health one hurt kills it: its Breach (phase 2,
+twenty times its 4000 (D119; nine thousand before, the route unchanged). At full health one hurt kills it: its Breach (phase 2,
 65 tics invulnerable) is checked in its chase, never in its damage, and
 nothing else on the route hurts it (monsters cannot; the route does not
 shoot). Should it ever be mid-Breach when BOSS1 runs, the first hurt does
@@ -445,7 +462,8 @@ health ≤ 0). NOT VERIFIED in engine until the PM runs the route.
 The site of a real natural event, treated as landscape: no victims (the 1908
 event killed none that history records), no joke. The Soviet station is
 honoured, not mocked; Lenin and Stalin appear as posters only; the
-occupiers' two banners hang side by side on the refinery's brick.
+two Soviet flags hang side by side on the refinery's brick (D119: the
+occupiers' banners were redrawn as Soviet flags, same lumps).
 
 ## 16. v1 build record (2026-10-22)
 
@@ -500,13 +518,70 @@ pass (§12, E1-E10) is the PM's.
   the Consortium, and its E1-E10 in `2026-10-22_P4_ep3-final-boss.md`) is
   the PM's.
 
+### 16.3 v1.3, D119's ammunition and the crater for 4000 (2026-10-23)
+
+The CEO's playtest of Episodes 2 and 3: ammunition "siempre sale de sobras",
+"siempre acabas con la escopeta", and the boss at classic Doom's level (the
+Consortium 4000, the Cyberdemon's, `mod-engineer`). Pickups only: no
+geometry, door, key, secret, monster or poster moved; the secrets' rewards
+and the health are unchanged.
+
+- **The route's ammunition moved out of `ITEMS` into `AMMO`**, read as
+  (zone, editor number, x, y, *lowest* skill tier): every skill gets the
+  every-skill stock, skills 3-5 add what the medium monsters cost, skills
+  4-5 what the hard ones cost. Nested the other way (Doom's consumables,
+  more on easy) no skill-2 band could hold.
+- **Removed, not only shrunk** on skills 2 and 3: 49 / 29 pickups fewer.
+  Skill 4 was already the leanest: its stock fell from 759 to 562.6
+  shell-equivalents, but it holds 78 pickups against 72, because the AKM,
+  which now leads every stage before the crater, comes 30 rounds a
+  magazine (a box of magazines would need an actor: `mod-engineer`). By
+  kind, skill 2 / 3 / 4, before -> after: shell boxes 28 / 26 / 23 -> 4 / 5
+  / 7; shells 12 / 10 / 7 -> 4; clips 7 / 6 / 5 -> 0; boxes of rounds 11 /
+  10 / 9 -> 6 / 8 / 13; loose PG-7V 11 / 9 / 9 -> 2; PG-7V boxes 12 / 12 / 8
+  -> 9 / 11 / 15; fuel packs 3 / 3 / 2 -> 0; canisters 6 / 6 / 5 -> 5; AKM
+  magazines 7 / 6 / 4 -> 18 / 24 / 32.
+- **The crater recounted for 4000** (§10, §11): off the rim, the porch and
+  the first terrace on skills 2 / 3 / 4, six shell boxes, 3 / 3 / 2 fuel
+  packs, 6 / 4 / 4 loose PG-7V and (skills 2-3) a PG-7V box; on, one AKM
+  magazine (skill 4: two, a canister and four PG-7V boxes, its old stock
+  having been the thinnest). The stock sits inside the band (1.83 / 1.53 /
+  1.41), PG-7V first: the crater is the boss's stage, the one where they
+  may lead. The servants recounted for the
+  shorter fight (H): 1060 HP, 23 shells.
+- **The mix** (BALANCE §8.3-8.4 with the PM's amendment of
+  2026-10-23): shells at most 35 % with the troopers' dropped IZhs counted;
+  each pool only once its weapon is met; outside a boss's or a mini-boss's
+  stage the newest bullet weapon leads (the AKM, else the PPSh: the largest
+  share of the stage's non-shell ammunition, at least 40 %) and PG-7V are
+  the strong second, at most 30 % of the stage's damage, so the shotgun is
+  not swapped for the rocket launcher; fuel never needs to lead and stays
+  at most 15 % of the map's damage (the ROKS-3 is toned down). The forest, the works and
+  the refinery lost their extra PG-7V boxes to magazines and boxes of
+  rounds.
+- Tests (`tests/test_map09_tunguska.py`, 66): the band per skill, every
+  stage at the skill's floor, the shell share with drops, each pool after
+  its weapon, the bullets leading and PG-7V ≤ 30 % of each stage but the
+  crater, fuel ≤ 15 % and the AKM ahead of the PPSh, the ammunition
+  following the monsters (fewer pickups on skills 2-3, less stock on skill
+  4),
+  the crater inside the band and its PG-7V and fuel over the boss's 64
+  shells; `ROKS_AVERAGE` 13.5, the Consortium 64 shells, the servants 1060
+  HP. Gone: the magazines' 4 / 3 / 2, and the budget without the heavy
+  weapons (D119's mix expects the PG-7V fired).
+- BALANCE §8.4.3's second half (every monster but the boss on shells and
+  rounds alone) was dropped by the PM; the ROKS-3 exception is the PM's
+  amendment. `tunguska-critical` is unchanged and still reads the boss's
+  health from its file (the route tests pass); its engine pass is the PM's
+  (D26).
+
 ## 17. Open points
 
 1. Done: `test_doughboy_sprites` lists MAP07-MAP09.
-4. D116: is the Consortium fight the right length? 9000 HP is the brief's
-   number; the arena's stock is counted for it plus ~1700 HP of servants
-   (H). The PM's play measures it; the first lever is the boss's health
-   (mod-engineer), the second the arena's rockets here.
+4. D116, answered by D119: the Consortium fight was too long at 9000; the
+   CEO set it at classic Doom's level, 4000, and the arena is counted for
+   it plus ~1060 HP of servants (H). The PM's play measures it; the lever
+   here is the arena's PG-7V.
 2. For the CEO, by walking it: is the taiga calm enough (or too empty)? Is
    the crater's descent the right finale, or should the portal itself be
    reachable (a platform round it)?

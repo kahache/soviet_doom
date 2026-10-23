@@ -125,7 +125,8 @@ CONSTANTS = {
                        "SD_PG7_BLAST_RADIUS": 104, "SD_PG7_SPEED": 28},
     "katyusha_rocket.zs": {"SD_KAT_IMPACT_DAMAGE": 25, "SD_KAT_BLAST_DAMAGE": 70, "SD_KAT_BLAST_RADIUS": 96,
                            "SD_KAT_SPEED": 32, "SD_KAT_NO_SELF_HARM": 0},
-    "flame_blob.zs": {"SD_FLAME_DAMAGE": 4, "SD_FLAME_SPEED": 22, "SD_FLAME_LIFE_TICS": 2},
+    # D119: the ROKS-3 jet 4 -> 3 x random(1,8) (BALANCE slot 6).
+    "flame_blob.zs": {"SD_FLAME_DAMAGE": 3, "SD_FLAME_SPEED": 22, "SD_FLAME_LIFE_TICS": 2},
 }
 
 

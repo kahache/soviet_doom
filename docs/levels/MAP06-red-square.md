@@ -253,10 +253,10 @@ stage there is a way back to the start, with and without the boss's death
 | GUM halls, arcade | `SDMARB2`; the facade's window slits cut through `SDGUM1` | `SDMFLR2` / `SDMFLR1` | `SDMCEIL1` |
 | GUM line, gallery | the shopfronts `SDGUMS1` / `SDGUMS2` / `SDGUMS3` («ТКАНИ», «ОБУВЬ», «ЧАСЫ»), one shop to each 64 of wall, below and above the gallery (§7.2) | `SDMFLR2` / `SDMFLR1` | the glass vault `SDGUMR1` |
 | Shops | `SDTILE1`; loot `SDCRAT1` / `SDCRTOP1` | `SDMFLR1` | `SDMCEIL1` |
-| Square | the GUM's facade `SDGUM1` (three bays high, the blue door's portal one bay), museum `SDMUSE1`; the Kremlin wall `SDKREM1` with the swallowtails `SDKREM2` (§4.1) and six parade banners `SDBANR1`; the occupiers' flags `SDFLAG3`/`SDFLAG4` (on the Kremlin's brick) side by side in the crown; tower `SDSPAS1` / `SDCLOK1` / `SDSTEL1` and the ruby star `SDRUBY1`; mausoleum, stands and Minin's plinth `SDTRIB1`, Minin `SDBRAS1`; gatehouse `SDCONC1`; parapet `SDBRCK2` | `SDCOBL1`; three lines `SDCOBL2`; stands, thresholds and monuments' tops `SDMFLR1` | sky |
+| Square | the GUM's facade `SDGUM1` (three bays high, the blue door's portal one bay), museum `SDMUSE1`; the Kremlin wall `SDKREM1` with the swallowtails `SDKREM2` (§4.1) and six parade banners `SDBANR1`; the Soviet flags `SDFLAG3`/`SDFLAG4` (a parade gonfalon and the battle-torn USSR flag on the Kremlin's brick, D119; the occupiers' until then) side by side in the crown; tower `SDSPAS1` / `SDCLOK1` / `SDSTEL1` and the ruby star `SDRUBY1`; mausoleum, stands and Minin's plinth `SDTRIB1`, Minin `SDBRAS1`; gatehouse `SDCONC1`; parapet `SDBRCK2` | `SDCOBL1`; three lines `SDCOBL2`; stands, thresholds and monuments' tops `SDMFLR1` | sky |
 | Vehicles | `SDARMR2`; the missile carriers' long flanks `SDARMR1` | `SDFLR4` | sky |
 | Park | `SDCONC1`; the Kremlin wall's outer face as on the square | `SDFLR2` | sky |
-| Courtyard | `SDBRCK1` (the palaces), flags `SDFLAG1`/`SDFLAG2` (on that brick); east wall the Kremlin's, `SDKREM1` + `SDKREM2`; the gate's passage `SDKREM1`; Tsar Bell and Cannon `SDBRAS1`; dais `SDMARB1` | `SDCOBL1` / `SDMFLR2` | sky |
+| Courtyard | `SDBRCK1` (the palaces), the Soviet flags `SDFLAG1`/`SDFLAG2` (the USSR flag and a Red Army standard on that brick, D119); east wall the Kremlin's, `SDKREM1` + `SDKREM2`; the gate's passage `SDKREM1`; Tsar Bell and Cannon `SDBRAS1`; dais `SDMARB1` | `SDCOBL1` / `SDMFLR2` | sky |
 | Doors, switch | `SDDOORB` (blue, between `SDMOSA1`), `SDDOORY`, `SDDOORR`, `SDGATE1` (exit gate); exit `SDSW1D` | | |
 | Posters | `SDPOSTR1` Lenin, `SDPOSTR3` Stalin (section 7.1) | | |
 
@@ -273,8 +273,8 @@ four shallow niches; no route, key, door or sight line moves.
 | `gum_north_slot` | **Marx** `SDPOSTR4` (slot) | GUM north hall, east wall, x 4352, y 3392-3520 | the first of the pair on the route, «ПРОЛЕТАРИИ / ВСЕХ СТРАН,» |
 | `square_facade_lenin` | Lenin | the GUM's facade on the square, north of the blue door: niche `prop_z6_portrait_lenin` (x 3456-3472, y 2496-2624), floor 64, ceiling 320 | the parade portraits: hung high on the facade, either side of the doors, as on 7 November; the floodlights (144) are on them |
 | `square_facade_stalin` | Stalin | the same, south of the blue door: `prop_z6_portrait_stalin` (y 2112-2240) | the pair, symmetric about the blue door; seen from the stands and on every crossing |
-| `courtyard_stalin` | Stalin | the Kremlin courtyard's north wall, recess `z9_portrait_stalin` (x 1024-1152, y 2048-2064), 256 high | **taken**: the occupiers' two banners (D12) hang beside him in the boss's room |
-| `courtyard_slot` | **Engels** `SDPOSTR5` (slot) | the same wall, recess `z9_portrait_slot` (x 576-704), the banners between the two | the last: «СОЕДИНЯЙТЕСЬ!» in the boss's room, the occupiers' banners between him and Stalin |
+| `courtyard_stalin` | Stalin | the Kremlin courtyard's north wall, recess `z9_portrait_stalin` (x 1024-1152, y 2048-2064), 256 high | two Soviet flags (D119; the occupiers' banners until then) hang beside him in the boss's room |
+| `courtyard_slot` | **Engels** `SDPOSTR5` (slot) | the same wall, recess `z9_portrait_slot` (x 576-704), the banners between the two | the last: «СОЕДИНЯЙТЕСЬ!» in the boss's room, the two Soviet flags between him and Stalin |
 
 The facade niches are props (floor 64, above any step: never walked, never
 reached; `prop_` in the reachability tests); their mouth shows the facade's
@@ -419,34 +419,72 @@ PPSh in the GUM's north hall, the RPG-7 on the north gallery (before the
 square's Panzermensch), the ROKS-3 on the south stand's top row (before the
 slope's heavies), all on the route on every skill; the Hand Katyusha in S2.
 No AKM: the rifle is MAP05's (`docs/engine/2026-10-22_P4_akm.md` §6); **AKM
-magazines** (`SD_AkmAmmo`, 21020, 30 rounds) 4 / 3 / 2 on skills 2 / 3 / 4,
-none in the courtyard (the boss is the RPG-7's): by the PPSh in the GUM's
-north hall and on the square on every skill, in the vehicle park up to
-skill 3, on the north gallery on skill 2.
+magazines** (`SD_AkmAmmo`, 21020, 30 rounds) **2 on every skill since D119**
+(4 / 3 / 2 before; a pistol start never owns the rifle), none in the
+courtyard (the boss is the RPG-7's): by the PPSh in the GUM's north hall
+and on the square.
 
-G3-8 (MAP03's ruler, in IZh shells; secrets not counted), **recounted for the
-colossus (D116)**: he costs 72 shells (4500 HP at the General's rate, 3000 for
-48), a gunner 2; AKM rounds at 80 / 12 a shell (avg 12 a round):
+**Ammunition, D119 (2026-10-23).** The CEO's playtest of Episodes 2 and 3:
+"hay muchos objetos de munición, siempre sale de sobras" and "siempre acabas
+con la escopeta"; and the colossus down to **3000 HP** (the Spider
+Mastermind's, §11). The ammunition now follows the monsters: it **grows with
+skill** as they do (the table `AMMO` in `map.py`, rows with a lowest and a
+highest tier), not the consumables' rule. G3-8's ruler is MAP03's (kills in
+IZh shells; the colossus 48 at the General's rate, 72 before; a gunner 2;
+PG-7V at 2 shells, AKM rounds at 80 / 12, fuel at the ROKS-3's 13.5 a unit
+over 80 since D119), route only, no secret; D119's bands
+(`docs/engine/BALANCE.md` §8): **1.5-2.0 × on skill 2, 1.3-1.6 on 3,
+1.2-1.45 on 4**, shells no more than 35 % of it:
 
-| Skill | Needed | Placed | Ratio | Shells, rounds and AKM alone |
-|---|---|---|---|---|
-| 2 | 160 | 647.5 | 4.05 | 477.5 |
-| 3 | 207 | 605.0 | 2.92 | 435.0 |
-| 4 | 326 | 523.5 | 1.61 (≥ 1.35, < 3) | 368.5 (≥ 1.35 × all but the boss: 342.9) |
+| | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| Needed (D116 → D119, the colossus 72 → 48) | 160 → 136 | 207 → 183 | 326 → 302 |
+| Placed, v1 (D116) → D119 | 647.5 → **209.5** | 605.0 → **253.9** | 523.5 → **386.6** |
+| Ratio, v1 → D119 | 4.05 → **1.54** | 2.92 → **1.39** | 1.61 → **1.28** |
+| Ammunition pickups on the route, v1 → D119 | 73 → **25** | 66 → **30** | 55 → **47** |
+| Shells (the IZh's 8 included) | 56 | 72 | 108 |
+| 7.62×25 rounds (the PPSh's 35 included) | 635 | 785 | 1285 |
+| PG-7V (the RPG-7's 2 included) | 27 | 32 | 52 |
+| Fuel (the ROKS-3's 40 included) | 160 | 180 | 220 |
+| Share of the damage: shells / 7.62×25 / AKM / PG-7V / fuel | 28 / 32 / 4 / 23 / 13 % | 30 / 32 / 4 / 22 / 12 % | 29 / 35 / 2 / 24 / 10 % |
 
-**The last stretch alone** (the gate's passage and the courtyard, z8 and z9,
-in damage against the hit points met there, the boss included): with the
-General it was 9220 against 5780 on skill 4 (1.60); the colossus's 4500 made
-it 9220 against 7280 (**1.27, under G3-8's 1.35**), so **two more PG-7V boxes**
-went into the courtyard on every skill, one by the gate where he is met
-(1250, 1300) and one behind his dais for the player who circles him (640,
-1536): 10 rockets, 1350 at the RPG-7's average impact (`+NORADIUSDMG`: the
-impact only). Now 10930 / 5020 (2.18), 10930 / 5380 (2.03) and 10570 / 7280
-(**1.45**) on skills 2 / 3 / 4; in the passage and the courtyard, 30 PG-7V on
-every skill (34 direct hits kill him, BALANCE §7), the ROKS-3's 140-160 fuel
-and 40 shells besides (`test_the_final_stretch_pays_for_the_colossus`).
+In v1 shells were about 63 % of the damage placed. By stretch: the station,
+the pavilion and the street (the IZh) a shell box and loose shells, a box
+of rounds; the GUM (the PPSh, the RPG-7) boxes of rounds, the magazine and
+the PG-7V box with the launcher; the square and the south stand (the ROKS-3
+and a canister) boxes of rounds, a shell box from skill 3, a PG-7V box from
+skill 3 (three on skill 4); the vehicle park two to four boxes of rounds,
+its PG-7V box, shell box and canister on skill 4 only; the gate's passage
+and the courtyard the colossus's share. **BALANCE §8.4.2 with the PM's
+amendment of 2026-10-23:** outside the boss's stage the PPSh's rounds lead
+every stage with at least 40 % of the non-shell ammunition (the ROKS-3, the
+newest from the square on, does not), PG-7V at most 30 % of a stage's
+damage (the most: the square on skill 4, 25 %), fuel at most 15 % of the
+map's (13 / 12 / 10 %); in the colossus's courtyard the rockets lead.
 
-Also tested at every stage of the route. Health on skill 4: 6 stimpacks, 6
+**The last stretch** (the gate's passage and the courtyard, z8 and z9, in
+damage against the hit points met there, the boss included, at least the
+skill's band floor; `test_the_final_stretch_pays_for_the_colossus`): with
+the colossus at 3000, one of the two PG-7V boxes D116 added (640, 1536) is
+skill 4's only; the other (1250, 1300) stays on every skill for §8.4.3 (in
+the boss's stage PG-7V and fuel cover at least his 48 shells; skill 2 has
+20 PG-7V and the passage's pack, 56.9; `test_the_boss_is_the_heavy_weapons_job`).
+The courtyard's five loose PG-7V and one canister are gone on every skill,
+and its second shell box is a box of rounds from skill 3. Placed there:
+20 / 20 / 25 PG-7V on skills 2 / 3 / 4 (23 direct hits kill him, BALANCE
+§7), the passage's fuel pack and a box of rounds, a shell box, and
+canisters from skill 3: 6450 / 3520 (1.83), 7120 / 3880 (1.84) and 8065 /
+5780 (**1.40**).
+
+MAP03's check that shells and rounds alone cover every monster but the
+boss (BALANCE §8.4.3's second half) is **dropped by the PM's amendment**: it
+cannot hold with §8.3 and the skill-4 ceiling, and its test is gone. Also
+tested: the shells with the troopers' dropped IZhs under 35 % of
+everything placed and dropped (§8.3: 30 / 32 / 31 %), each pool only from
+its weapon's stage (§8.4.1).
+
+Also tested at every stage of the route, at the skill's band floor
+(`tests/test_map06_red_square.py`, 71 tests OK on 2026-10-23). Health on skill 4: 6 stimpacks, 6
 medikits, 9 health bonuses; 6 armour bonuses (two at each lock), the flak
 vest in the GUM's west upper room, the heavy vest in the gate's passage,
 before the boss. Skills 3 and 2 add stimpacks, medikits and ammunition.
@@ -454,7 +492,7 @@ before the boss. Skills 3 and 2 add stimpacks, medikits and ammunition.
 ## 11. The boss: the Liberty Colossus (D116)
 
 Episode 2's boss is **the Liberty Colossus** (`SD_LibertyColossus`, 21111,
-4500 HP, radius 44, height 110, `+BOSS +NORADIUSDMG`;
+3000 HP since D119, the Spider Mastermind's (4500 before), radius 44, height 110, `+BOSS +NORADIUSDMG`;
 `docs/engine/2026-10-22_P4_ep2-enemies.md` §3), at the named constant
 **`MAP06_BOSS_SPOT = (960, 1536)`** on the courtyard's dais, facing the gate
 (`BOSS_ANGLE = 0`), on every skill. **The General** (MAP03's boss,
@@ -581,8 +619,9 @@ Its geometry is tested in `tests/test_map06_route.py` (no engine).
 The map shows real places of the capital as the setting of an invasion, and
 treats them as architecture. The mausoleum is a closed block: nothing
 stands, lies or fights on it (tested), no key or reward is there; the
-occupiers' banners hang on the Kremlin wall and in its courtyard (LORE: both
-flags side by side over taken Soviet buildings); no poster, text or joke
+flags on the Kremlin wall and in its courtyard are Soviet (D119: the CEO
+found the occupiers' banners read as part of the setting, not the enemy's,
+so they became USSR flags and Red Army standards, same lumps); no poster, text or joke
 touches real victims.
 
 ## 16. v1 build record (2026-10-22)
@@ -649,7 +688,7 @@ The second round of episode 2's textures (`docs/art/TEXTURE-INDEX.md`
 | `SDGUMS1`-`3` shopfronts | every wall of the GUM's line, atrium, gallery and upper west room, and the gallery's front over the line (where `SDWIND1` was) | `dress_shopfronts` (§7.2): one sign per 64 of wall, in turn by the world's column, world-aligned |
 | `SDGUMR1` glass vault | the ceiling of the line, the atrium (and the fountain), the gallery, its stairs, the bridge and the upper west room (where the sky was) | world-aligned flat, same height (448) |
 | `SDMUSE1` museum brick | the museum's wall on the square, its two closets' leaves and jambs, the Resurrection gate's two arches (square and street sides) | `ALIGNED` from 0: the white band level throughout |
-| `SDFLAG3` / `SDFLAG4` | the occupiers' two flags in the Kremlin wall's crown (in place of `SDFLAG1`/`SDFLAG2` there) | `ALIGNED` from 0, as `SDKREM1`; the courtyard's pair stays `SDFLAG1`/`SDFLAG2` (it hangs on `SDBRCK1`) |
+| `SDFLAG3` / `SDFLAG4` | the two flags in the Kremlin wall's crown (Soviet since D119; in place of `SDFLAG1`/`SDFLAG2` there) | `ALIGNED` from 0, as `SDKREM1`; the courtyard's pair stays `SDFLAG1`/`SDFLAG2` (it hangs on `SDBRCK1`) |
 | `SDDOORB` blue leaf | the blue door, both faces | replaces `SDDOOR1`, which this map no longer wears |
 
 **Light.** The art-director recommends 128-160 for the open air at night;

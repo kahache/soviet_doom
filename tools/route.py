@@ -1392,9 +1392,9 @@ def redsquare_critical(md: "MapData | None" = None) -> Route:
 #     can hurt (COUNT_CLASSES); BOSS0 stands on the crater's first terrace
 #     (Z8) with the bunker's gate (TAG_BOSS_EXIT) shut, BOSS1 hurts him past
 #     his health and expects the gate open (no line carries the tag). Since
-#     D116 the boss is the Consortium (9000 HP): one hurt at full health
-#     kills it outright (its Breach is checked in its chase, never in the
-#     damage). Should it be mid-Breach (65 tics invulnerable), the first hurt
+#     D116 the boss is the Consortium (4000 HP since D119; 9000 before): one
+#     hurt at full health kills it outright (its Breach is checked in its
+#     chase, never in the damage). Should it be mid-Breach (65 tics invulnerable), the first hurt
 #     does nothing, so BOSS1 hurts it again after TUNGUSKA_BREACH_WAIT; a
 #     dead boss is not hurt twice (the helper skips health <= 0);
 #   * the exit: E0 on the ray out of the exit's niche, past the bunker's gate.

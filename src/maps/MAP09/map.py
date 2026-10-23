@@ -102,8 +102,8 @@ DOOR_YELLOW = "SDDOORY"
 DOOR_RED = "SDDOORR"
 PORTAL = "SDPORT1"      # the portal's field, animated SDPORT1-4 (ANIMDEFS); the towers' cores
 GATE = "SDGATE1"        # the control bunker's gate (the boss's death opens it)
-FLAG_REICH = "SDFLAG1"
-FLAG_LEGION = "SDFLAG2"
+FLAG_USSR_1 = "SDFLAG1"
+FLAG_USSR_2 = "SDFLAG2"
 PLATE = "SDFLR4"        # the works' and the refinery's floors, the crater's floor
 GRATING = "SDGRAT1"     # the refinery's bridge
 MOLTEN = "SDMOLT1"      # the refinery's channel and vats, animated SDMOLT1-4 (ANIMDEFS)
@@ -403,7 +403,7 @@ VATS = ((5760, 4160, 5952, 4352), (5760, 4992, 5952, 5184), (6656, 4160, 6848, 4
 TURBINES = ((6976, 4096, 7232, 4224), (6976, 5120, 7232, 5248))
 REF_CONSOLE = (6528, 5248, 6784, 5312)
 KEY_DAIS = (7104, 4672, 7232, 4800)
-FLAGS_RECESS = (5520, 4864, 5536, 4992)     # the two banners side by side (D12)
+FLAGS_RECESS = (5520, 4864, 5536, 4992)     # the two Soviet flags side by side (D119)
 # Z7 The crater's rim, Z8 its terraces and floor, Z9 the control bunker.
 CRATER = (2944, 1792, 4992, 3840)
 RIM = 128
@@ -744,116 +744,6 @@ ITEMS = (
     ("z3_izba_a", ED_AKM, 736, 640, 4),     # the station's rifle, beside the PPSh (D116)
     ("z4_forest", ED_RPG7, 2560, 4288, 4),
     ("z5_edge", ED_ROKS3, 3008, 4800, 4),
-    # Shell boxes (20).
-    ("z1_halt", ED_SHELL_BOX, 6912, 800, 4),
-    ("z2_taiga", ED_SHELL_BOX, 4224, 960, 4),
-    ("z3_yard", ED_SHELL_BOX, 2176, 960, 4),
-    ("z3_izba_b", ED_SHELL_BOX, 736, 1312, 4),
-    ("z3_lab_vest", ED_SHELL_BOX, 2016, 1376, 4),
-    ("z4_forest", ED_SHELL_BOX, 1792, 3008, 4),
-    ("z4_forest", ED_SHELL_BOX, 2560, 4032, 4),
-    ("z5_edge", ED_SHELL_BOX, 2880, 4160, 4),
-    ("z5_edge", ED_SHELL_BOX, 2880, 5376, 4),
-    ("z5_works", ED_SHELL_BOX, 4992, 4416, 4),
-    ("z6_yellow_porch", ED_SHELL_BOX, 5520, 4736, 4),
-    ("z6_refinery", ED_SHELL_BOX, 5632, 4096, 4),
-    ("z6_refinery", ED_SHELL_BOX, 7232, 4608, 4),
-    ("z7_rim", ED_SHELL_BOX, 3008, 3776, 4),
-    ("z7_rim", ED_SHELL_BOX, 4928, 3776, 4),
-    ("z7_rim", ED_SHELL_BOX, 3008, 1856, 4),
-    ("z7_rim", ED_SHELL_BOX, 4928, 1856, 4),
-    ("z7_rim", ED_SHELL_BOX, 4928, 3200, 4),
-    ("z5_works", ED_SHELL_BOX, 4416, 5568, 4),
-    ("z6_refinery", ED_SHELL_BOX, 6176, 5056, 4),
-    ("z2_taiga", ED_SHELL_BOX, 2496, 960, 3),
-    ("z5_edge", ED_SHELL_BOX, 3072, 4416, 3),
-    ("z6_refinery", ED_SHELL_BOX, 5632, 5312, 3),
-    ("z3_yard", ED_SHELL_BOX, 576, 1472, 2),
-    ("z5_edge", ED_SHELL_BOX, 2880, 4672, 2),
-    # Shells (4).
-    ("z1_yard", ED_SHELLS, 6656, 1056, 4),
-    ("z2_taiga", ED_SHELLS, 5632, 960, 4),
-    ("z2_taiga", ED_SHELLS, 3008, 480, 4),
-    ("z3_izba_c", ED_SHELLS, 832, 1664, 4),
-    ("z4_forest", ED_SHELLS, 1152, 2240, 4),
-    ("z5_works", ED_SHELLS, 3840, 4864, 4),
-    ("z6_refinery", ED_SHELLS, 6176, 4736, 4),
-    ("z2_taiga", ED_SHELLS, 4800, 960, 3),
-    ("z4_forest", ED_SHELLS, 2048, 3712, 3),
-    ("z6_refinery", ED_SHELLS, 6176, 4480, 3),
-    ("z1_yard", ED_SHELLS, 6560, 800, 2),
-    ("z3_yard", ED_SHELLS, 1856, 512, 2),
-    # Boxes of rounds (50).
-    ("z3_izba_a", ED_CLIP_BOX, 928, 800, 4),
-    ("z3_lab_hall", ED_CLIP_BOX, 1376, 1312, 4),
-    ("z4_forest", ED_CLIP_BOX, 2048, 2304, 4),
-    ("z5_edge", ED_CLIP_BOX, 3136, 5056, 4),
-    ("z5_works", ED_CLIP_BOX, 5376, 4736, 4),
-    ("z6_refinery", ED_CLIP_BOX, 7232, 4864, 4),
-    ("z7_red_porch", ED_CLIP_BOX, 3936, 3872, 4),
-    ("z7_rim", ED_CLIP_BOX, 3968, 3776, 4),
-    ("z5_works", ED_CLIP_BOX, 4992, 5568, 3),
-    ("z3_yard", ED_CLIP_BOX, 2176, 1504, 2),
-    # Clips (10).
-    ("z1_platform", ED_CLIP, 6720, 640, 4),
-    ("z2_taiga", ED_CLIP, 5824, 1280, 4),
-    ("z3_yard", ED_CLIP, 576, 960, 4),
-    ("z4_forest", ED_CLIP, 2560, 2240, 4),
-    ("z5_works", ED_CLIP, 4416, 4096, 4),
-    ("z2_taiga", ED_CLIP, 3648, 1376, 3),
-    ("z1_yard", ED_CLIP, 5952, 832, 2),
-    # PG-7V: a box with the RPG-7, boxes in the works, the refinery and on
-    # the rim, loose rounds round the crater.
-    ("z4_forest", ED_ROCKET_BOX, 2496, 4352, 4),
-    ("z5_works", ED_ROCKET_BOX, 5312, 4608, 4),
-    ("z6_refinery", ED_ROCKET_BOX, 5632, 4736, 4),
-    ("z7_rim", ED_ROCKET_BOX, 3968, 3712, 4),
-    ("z7_rim", ED_ROCKET_BOX, 3008, 2816, 4),
-    ("z7_rim", ED_ROCKET_BOX, 4928, 2816, 4),
-    ("z7_rim", ED_ROCKET, 3008, 3328, 4),
-    ("z7_rim", ED_ROCKET, 4928, 3328, 4),
-    ("z7_rim", ED_ROCKET, 3008, 2304, 4),
-    ("z7_rim", ED_ROCKET, 4928, 2304, 4),
-    ("z5_works", ED_ROCKET, 4416, 5056, 4),
-    ("z6_refinery", ED_ROCKET, 6176, 5248, 4),
-    ("z6_refinery", ED_ROCKET, 6176, 4224, 4),
-    ("z6_refinery", ED_ROCKET_BOX, 7232, 4992, 3),
-    ("z7_rim", ED_ROCKET_BOX, 4480, 3776, 3),
-    # Fuel for the ROKS-3: a canister beside it, more in the works, the
-    # refinery and on the rim, a pack in the red gate's porch.
-    ("z5_edge", ED_CELL, 3072, 4800, 4),
-    ("z5_works", ED_CELL, 5312, 5248, 4),
-    ("z6_refinery", ED_CELL, 5632, 4480, 4),
-    ("z7_rim", ED_CELL, 3328, 3776, 4),
-    ("z7_red_porch", ED_CELL_PACK, 4000, 3872, 4),
-    ("z7_rim", ED_CELL, 4608, 3776, 3),
-    # AKM magazines on the route, 2 / 3 / 4 on skills 4 / 3 / 2 (D116).
-    ("z4_forest", ED_AKM_MAG, 2112, 3456, 4),
-    ("z6_refinery", ED_AKM_MAG, 5632, 4608, 4),
-    ("z5_works", ED_AKM_MAG, 5376, 4864, 3),
-    ("z3_lab_hall", ED_AKM_MAG, 1376, 1376, 2),
-    # The Consortium's arena (D116): 9000 HP and its servants. The crater's
-    # first terrace, the ring the player circles on, carries a second stock
-    # on top of the rim's: rockets (it takes no blast, so impacts only),
-    # fuel, magazines, shells, and health for a long fight.
-    ("z8_tier_1", ED_ROCKET_BOX, 3104, 2560, 4),
-    ("z8_tier_1", ED_ROCKET_BOX, 4832, 2560, 4),
-    ("z8_tier_1", ED_ROCKET, 3456, 1952, 4),
-    ("z8_tier_1", ED_ROCKET, 4480, 1952, 4),
-    ("z8_tier_1", ED_ROCKET_BOX, 3104, 3072, 3),
-    ("z8_tier_1", ED_ROCKET_BOX, 4832, 3072, 3),
-    ("z8_tier_1", ED_ROCKET, 3456, 3680, 2),
-    ("z8_tier_1", ED_ROCKET, 4480, 3680, 2),
-    ("z8_tier_1", ED_CELL_PACK, 3104, 2304, 4),
-    ("z8_tier_1", ED_CELL, 3968, 1952, 4),
-    ("z8_tier_1", ED_CELL_PACK, 4832, 2304, 3),
-    ("z8_tier_1", ED_AKM_MAG, 3104, 2816, 4),
-    ("z8_tier_1", ED_AKM_MAG, 4832, 2816, 4),
-    ("z8_tier_1", ED_AKM_MAG, 3968, 3680, 3),
-    ("z8_tier_1", ED_SHELL_BOX, 3104, 3328, 4),
-    ("z8_tier_1", ED_SHELL_BOX, 4832, 3328, 4),
-    ("z8_tier_1", ED_SHELL_BOX, 4736, 1952, 4),
-    ("z8_tier_1", ED_CLIP_BOX, 3712, 3680, 4),
     # Stimpacks: 9 on every skill, +4 medium, +3 easy.
     ("z1_halt", ED_STIMPACK, 7168, 800, 4),
     ("z3_izba_c", ED_STIMPACK, 736, 1728, 4),
@@ -902,6 +792,104 @@ ITEMS = (
     ("z4_blue_porch", ED_HEALTH_BONUS, 1984, 1936, 4),
     ("z6_flags", ED_HEALTH_BONUS, 5528, 4928, 4),
     ("z9_exit_porch", ED_HEALTH_BONUS, 3968, 1776, 4),
+)
+
+# D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la
+# escopeta"): the route's ammunition, kept apart from ITEMS because it no
+# longer scales DOWN with skill. It scales with the monsters it pays for,
+# like them: (zone, editor number, x, y, LOWEST skill tier it appears on -
+# 2 = every skill, 3 = medium and harder, 4 = hard only). So each skill's
+# stock sits in its own G3-8 band (docs/engine/BALANCE.md, D119: 1.5-2.0 /
+# 1.3-1.6 / 1.2-1.45 on skills 2 / 3 / 4), shells are at most ~35 % of the
+# damage, and the rest follows the weapons the player holds at each stage,
+# the newest first; fuel sparingly (the ROKS-3 is being toned down).
+AMMO = (
+    # The railhead, the taiga and the station (the IZh, then the PPSh and
+    # the AKM in the first izba).
+    ("z1_halt", ED_SHELLS, 6912, 800, 2),
+    ("z2_taiga", ED_SHELLS, 4224, 960, 2),
+    ("z3_yard", ED_AKM_MAG, 2176, 960, 2),
+    ("z3_yard", ED_AKM_MAG, 2176, 1504, 2),
+    ("z3_izba_a", ED_CLIP_BOX, 928, 800, 2),
+    ("z3_lab_hall", ED_AKM_MAG, 1376, 1376, 2),
+    ("z2_taiga", ED_SHELL_BOX, 5632, 960, 3),
+    ("z3_lab_vest", ED_AKM_MAG, 2016, 1376, 3),
+    ("z3_lab_hall", ED_CLIP_BOX, 1376, 1312, 3),
+    ("z1_yard", ED_SHELL_BOX, 6656, 1056, 4),
+    # The standing forest and the works (the RPG-7, then the ROKS-3).
+    ("z4_forest", ED_ROCKET_BOX, 2496, 4352, 2),
+    ("z4_forest", ED_AKM_MAG, 2112, 3456, 2),
+    ("z4_forest", ED_SHELL_BOX, 1792, 3008, 2),
+    ("z4_forest", ED_CLIP_BOX, 2048, 2304, 2),
+    ("z5_edge", ED_CELL, 3072, 4800, 2),
+    ("z5_edge", ED_SHELLS, 2880, 4160, 2),
+    ("z5_edge", ED_AKM_MAG, 3072, 4416, 2),
+    ("z5_edge", ED_AKM_MAG, 2880, 4672, 2),
+    ("z5_works", ED_AKM_MAG, 5312, 4608, 2),
+    ("z5_works", ED_AKM_MAG, 5376, 4864, 2),
+    ("z5_works", ED_AKM_MAG, 5376, 4736, 2),
+    ("z5_works", ED_SHELLS, 3840, 4864, 2),
+    ("z5_works", ED_AKM_MAG, 4416, 5568, 2),
+    ("z4_forest", ED_AKM_MAG, 2560, 2240, 3),
+    ("z5_edge", ED_ROCKET_BOX, 2880, 5376, 3),
+    ("z5_works", ED_AKM_MAG, 4416, 4096, 3),
+    ("z5_edge", ED_AKM_MAG, 2944, 5440, 3),
+    ("z4_forest", ED_ROCKET_BOX, 2560, 4032, 4),
+    ("z4_forest", ED_AKM_MAG, 2048, 3712, 4),
+    ("z5_works", ED_AKM_MAG, 4416, 5056, 4),
+    ("z5_works", ED_AKM_MAG, 4992, 5568, 4),
+    ("z5_works", ED_SHELL_BOX, 4992, 4416, 4),
+    ("z5_works", ED_AKM_MAG, 5312, 5248, 4),
+    ("z5_edge", ED_CLIP_BOX, 3136, 5056, 4),
+    ("z5_edge", ED_AKM_MAG, 2944, 4288, 4),
+    ("z5_edge", ED_CLIP_BOX, 3008, 5248, 4),
+    ("z5_works", ED_CLIP_BOX, 5376, 5056, 4),
+    # The refinery.
+    ("z6_yellow_porch", ED_AKM_MAG, 5520, 4736, 2),
+    ("z6_refinery", ED_ROCKET_BOX, 5632, 4736, 2),
+    ("z6_refinery", ED_AKM_MAG, 5632, 4608, 2),
+    ("z6_refinery", ED_SHELL_BOX, 5632, 4096, 2),
+    ("z6_refinery", ED_CLIP_BOX, 7232, 4864, 2),
+    ("z6_refinery", ED_AKM_MAG, 6176, 4736, 2),
+    ("z6_refinery", ED_CELL, 5632, 4480, 2),
+    ("z6_refinery", ED_AKM_MAG, 5632, 5312, 2),
+    ("z6_refinery", ED_ROCKET_BOX, 7232, 4992, 3),
+    ("z6_refinery", ED_AKM_MAG, 7232, 4608, 3),
+    ("z6_refinery", ED_AKM_MAG, 6176, 4480, 3),
+    ("z6_refinery", ED_CLIP_BOX, 5632, 4992, 3),
+    ("z6_refinery", ED_AKM_MAG, 6176, 5056, 4),
+    ("z6_refinery", ED_ROCKET_BOX, 6176, 5248, 4),
+    ("z6_refinery", ED_AKM_MAG, 6176, 4608, 4),
+    ("z6_refinery", ED_CLIP_BOX, 6176, 4224, 4),
+    ("z6_refinery", ED_AKM_MAG, 6560, 4608, 4),
+    ("z6_refinery", ED_CLIP_BOX, 6560, 4736, 4),
+    # The crater: the Consortium's arena (4000 HP since D119, and its
+    # servants). The rim and the red gate's porch, then the first terrace,
+    # the ring the player circles on: PG-7V first (it takes no blast, so
+    # impacts only), magazines, shells, a little fuel.
+    ("z7_red_porch", ED_CLIP_BOX, 3936, 3872, 2),
+    ("z7_red_porch", ED_CELL, 4000, 3872, 2),
+    ("z7_rim", ED_ROCKET_BOX, 3968, 3712, 2),
+    ("z7_rim", ED_ROCKET_BOX, 3008, 2816, 2),
+    ("z7_rim", ED_ROCKET_BOX, 4928, 2816, 2),
+    ("z7_rim", ED_SHELL_BOX, 3008, 3776, 2),
+    ("z7_rim", ED_SHELL_BOX, 4928, 3776, 2),
+    ("z7_rim", ED_ROCKET_BOX, 4928, 3200, 2),
+    ("z7_rim", ED_CLIP_BOX, 3968, 3776, 2),
+    ("z7_rim", ED_CELL, 3328, 3776, 2),
+    ("z8_tier_1", ED_ROCKET_BOX, 3104, 2560, 2),
+    ("z8_tier_1", ED_ROCKET_BOX, 4832, 2560, 2),
+    ("z8_tier_1", ED_ROCKET, 3456, 1952, 2),
+    ("z8_tier_1", ED_ROCKET, 4480, 1952, 2),
+    ("z8_tier_1", ED_AKM_MAG, 3104, 2816, 2),
+    ("z8_tier_1", ED_AKM_MAG, 4832, 2816, 2),
+    ("z8_tier_1", ED_AKM_MAG, 3968, 3680, 2),
+    ("z8_tier_1", ED_ROCKET_BOX, 3104, 3328, 2),
+    ("z8_tier_1", ED_CELL, 3968, 1952, 2),
+    ("z8_tier_1", ED_CLIP_BOX, 3712, 3680, 2),
+    ("z8_tier_1", ED_AKM_MAG, 4832, 3328, 2),
+    ("z7_rim", ED_ROCKET_BOX, 3008, 1856, 4),
+    ("z8_tier_1", ED_ROCKET_BOX, 4832, 3072, 4),
 )
 
 # Kept out of ITEMS on purpose: ITEMS is the route's. Every secret's reward is
@@ -1359,13 +1347,13 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     g.style_h(REF_CONSOLE[1], REF_CONSOLE[0], REF_CONSOLE[2], LineStyle(texture=CONTROL))
     zone("z6_key_dais", DAIS_TOP, REFINERY_CEIL, [KEY_DAIS], light=LIGHT_BEACON, flat=PLATE,
          ceiling=CEIL_CONCRETE, wall=STEEL, extra=RED_LIGHT)
-    # The occupiers' two banners side by side on the refinery's brick (D12).
+    # Two Soviet flags side by side on the refinery's brick (D119: SDFLAG1-4 are Soviet).
     fx1_, fy1f, fx2_, fy2f = FLAGS_RECESS
     zone("z6_flags", GROUND, GROUND + TILE_SIZE, [FLAGS_RECESS], light=LIGHT_REFINERY, flat=PLATE,
          ceiling=CEIL_CONCRETE, wall=BRICK)
     half = (fy1f + fy2f) // 2
-    g.style_v(fx1_, fy1f, half, LineStyle(texture=FLAG_REICH))
-    g.style_v(fx1_, half, fy2f, LineStyle(texture=FLAG_LEGION))
+    g.style_v(fx1_, fy1f, half, LineStyle(texture=FLAG_USSR_1))
+    g.style_v(fx1_, half, fy2f, LineStyle(texture=FLAG_USSR_2))
 
     # ======================================================================
     # Z7 The crater's rim, Z8 its terraces and floor, Z9 the control bunker
@@ -1450,6 +1438,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
                                      extra=extra))
     for _zone, ednum, x, y, top in ITEMS + SECRET_ITEMS:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
+    for _zone, ednum, x, y, lowest in AMMO:
+        tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
     return tm, plan
 
 
@@ -1468,7 +1458,7 @@ def lumps() -> list[tuple[str, bytes]]:
 
 # Every lump name this map may put in a sidedef or a sector.
 WALL_TEXTURES = ((CONCRETE, STEEL, CRATE, LOCKER, TILE, TILE_DADO, BRICK, RUST, PORTAL,
-                  FLAG_REICH, FLAG_LEGION, WAGON, ARMOUR_STAR, ARMOUR, SIGNAL, TURBINE, CONTROL,
+                  FLAG_USSR_1, FLAG_USSR_2, WAGON, ARMOUR_STAR, ARMOUR, SIGNAL, TURBINE, CONTROL,
                   CAB_FRONT, CAB_SIDE, BARK, BIRCH, LOG_WALL, ALIEN, GLYPH, PORTAL_RIM,
                   LENIN, STALIN, MURAL) + DOOR_LEAVES + SWITCH_FACES
                  + MARX_ENGELS)

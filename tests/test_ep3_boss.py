@@ -59,7 +59,8 @@ EXPECTED_EDNUMS = {21112: BOSS}
 # MOD-SPEC 6.1 / BESTIARY 2.5: 21100-21109 the first nine; 21110 and 21111
 # the ep2-enemies overlay (docs/engine/2026-10-22_P4_ep2-enemies.md).
 RESERVED_EDNUMS = set(range(21100, 21112))
-COLOSSUS_HEALTH = 4500     # docs/engine/2026-10-22_P4_ep2-enemies.md section 3
+COLOSSUS_HEALTH = 3000     # D119: the Spider Mastermind's (was 4500, ep2-enemies design section 3)
+CYBERDEMON_HEALTH = 4000   # D119: the Consortium at classic Doom's level (was 9000)
 PROJECTILE_PARENTS = {"SD_ConsortiumRocket": "SD_Pg7Grenade",
                       "SD_ConsortiumOrb": "SD_GeneralShell",
                       "SD_ConsortiumFlame": "SD_FlameBlob"}
@@ -390,10 +391,15 @@ class ModTests(unittest.TestCase):
         for sid in IDS:
             self.assertTrue(sections["enu default"][sid].isascii(), sid)
 
-    def test_health_is_twice_the_colossus(self):
+    def test_health_is_the_cyberdemons(self):
+        """D119: the bosses at classic Doom's level. The Consortium has the
+        Cyberdemon's 4000 (was 9000, the colossus's old 4500 x 2), the
+        colossus the Spider Mastermind's 3000; the final boss stays the
+        toughest thing in the game."""
         colossus = const_value(self.blocks["SD_LibertyColossus"][1], "SD_COLOSSUS_HEALTH")
         self.assertEqual(colossus, COLOSSUS_HEALTH)
-        self.assertEqual(const_value(self.boss, "SD_CONSORTIUM_HEALTH"), 2 * colossus)
+        self.assertEqual(const_value(self.boss, "SD_CONSORTIUM_HEALTH"), CYBERDEMON_HEALTH)
+        self.assertGreater(CYBERDEMON_HEALTH, colossus)
 
     def test_boss_flags_are_the_generals(self):
         gbody = self.blocks["SD_General"][1]

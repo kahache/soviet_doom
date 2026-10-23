@@ -100,8 +100,8 @@ DOOR_YELLOW = "SDDOORY"
 DOOR_RED = "SDDOORR"
 ROAD_GATE = "SDGATE1"    # corrugated gate: S3, the crane's cab
 CRATE = "SDCRAT1"        # the cargo bound for Tunguska
-FLAG_REICH = "SDFLAG1"   # both banners side by side by the train (D35)
-FLAG_LEGION = "SDFLAG2"
+FLAG_USSR_1 = "SDFLAG1"   # two Soviet flags side by side by the train (D119: SDFLAG1-4 are Soviet)
+FLAG_USSR_2 = "SDFLAG2"
 LENIN = "SDPOSTR1"       # 128x256: the barracks' hall
 STALIN = "SDPOSTR3"      # 128x256: the dock's south wall, facing the boat
 MURAL = "SDPOSTR2"       # 128x128 cosmonautics mural: the mess, on a sill
@@ -410,7 +410,7 @@ CAB_SIDES = (("v", 4368, 304, 400), ("h", 400, 4368, 4384), ("h", 400, 4448, 446
 LATTICES = (("h", 1440, 640, 832), ("v", 544, 1440, 1568), ("h", 1568, 544, 688),
             ("h", 1696, 2560, 3200))
 CARGO_BAY = ((3840, 512, 3968, 576), (4096, 576, 4224, 640), (4032, 128, 4160, 192), (3776, 160, 3840, 224))
-BAY_FLAGS = {FLAG_REICH: (3968, 768, 4096, 784), FLAG_LEGION: (4096, 768, 4224, 784)}
+BAY_FLAGS = {FLAG_USSR_1: (3968, 768, 4096, 784), FLAG_USSR_2: (4096, 768, 4224, 784)}
 # The posters (design section 7.3).
 LENIN_NICHE = (2752, 1088, 2880, 1104)           # the barracks' hall, north wall
 STALIN_NICHE = (1536, 1584, 1664, 1600)          # the dock's south wall, facing the boat
@@ -629,64 +629,6 @@ ITEMS = (
     ("z3_gallery", ED_RPG7, 3136, 1648, 4),
     ("z3_gallery", ED_AKM, 2752, 1648, 4),     # the AKM (D116), at the head of the gallery's stair
     ("z5_store", ED_ROKS3, 2752, 2640, 4),
-    # Shell boxes (20).
-    ("z2_yard", ED_SHELL_BOX, 1152, 1408, 4),
-    ("z6_mess", ED_SHELL_BOX, 3328, 640, 4),
-    ("z3_north_quay", ED_SHELL_BOX, 1344, 2304, 4),
-    ("z5_gantry", ED_SHELL_BOX, 2496, 2768, 4),
-    ("z8_hall", ED_SHELL_BOX, 4416, 1472, 4),
-    ("z10_bay", ED_SHELL_BOX, 3776, 704, 4),
-    # Shells (4).
-    ("z1_pier", ED_SHELLS, 800, 896, 4),
-    ("z2_yard", ED_SHELLS, 1536, 832, 4),
-    ("z3_south_quay", ED_SHELLS, 2048, 1696, 4),
-    ("z4_control", ED_SHELLS, 3520, 1920, 4),
-    ("z5_workshop", ED_SHELLS, 1792, 2496, 4),
-    ("z7_tunnel_w", ED_SHELLS, 3456, 2272, 4),
-    ("z9_rails", ED_SHELLS, 3264, 352, 4),
-    ("z1_pier", ED_SHELLS, 864, 896, 3),
-    ("z6_dorm", ED_SHELLS, 3296, 1088, 3),
-    ("z3_north_quay", ED_SHELLS, 2560, 2304, 3),
-    ("z8_hall", ED_SHELLS, 4416, 1600, 3),
-    ("z10_bay", ED_SHELLS, 3776, 576, 3),
-    ("z2_yard", ED_SHELLS, 1600, 832, 2),
-    ("z5_workshop", ED_SHELLS, 1856, 2496, 2),
-    ("z10_bay", ED_SHELLS, 3840, 704, 2),
-    # Boxes of rounds (50).
-    ("z6_corridor", ED_CLIP_BOX, 3456, 960, 4),
-    ("z3_south_quay", ED_CLIP_BOX, 1984, 1696, 4),
-    ("z8_hall", ED_CLIP_BOX, 4416, 1344, 4),
-    # Clips (10).
-    ("z1_pier", ED_CLIP, 672, 704, 4),
-    ("z2_yard", ED_CLIP, 1408, 448, 4),
-    ("z4_trunk", ED_CLIP, 3264, 1984, 4),
-    ("z9_rails", ED_CLIP, 2976, 352, 4),
-    ("z1_pier", ED_CLIP, 736, 704, 3),
-    ("z6_hall", ED_CLIP, 2752, 1024, 3),
-    ("z2_yard", ED_CLIP, 1472, 448, 2),
-    # PG-7V: a box with the RPG-7, rounds for the heavies.
-    ("z3_gallery", ED_ROCKET_BOX, 3072, 1648, 4),
-    ("z8_landing", ED_ROCKET_BOX, 4560, 1664, 4),
-    ("z10_bay", ED_ROCKET, 3776, 640, 4),
-    ("z9_refuge_1", ED_ROCKET, 3104, 464, 4),
-    ("z5_workshop", ED_ROCKET, 1536, 2752 - 64, 4),
-    ("z10_bay", ED_ROCKET, 3776, 448, 3),
-    # The colossus's (D116): rockets in the tunnel, fuel and a medikit in the bay.
-    ("z9_rails", ED_ROCKET_BOX, 3456, 352, 4),
-    ("z9_rails", ED_SHELL_BOX, 2880, 352, 4),
-    ("z9_rails", ED_SHELL_BOX, 3040, 352, 4),
-    ("z10_bay", ED_SHELL_BOX, 3968, 96, 4),
-    ("z10_bay", ED_CELL_PACK, 4032, 704, 4),
-    ("z10_bay", ED_MEDIKIT, 4032, 448, 4),
-    # AKM magazines (D116): 2 / 3 / 4 on skills 4 / 3 / 2.
-    ("z6_mess", ED_AKM_MAG, 3328, 736, 4),
-    ("z8_hall", ED_AKM_MAG, 4416, 1792, 4),
-    ("z5_store", ED_AKM_MAG, 2688, 2640, 3),
-    ("z2_yard", ED_AKM_MAG, 1408, 1120, 2),
-    # Fuel for the ROKS-3.
-    ("z5_store", ED_CELL, 2816, 2640, 4),
-    ("z8_hall", ED_CELL, 4416, 1920, 4),
-    ("z9_rails", ED_CELL, 3328, 352, 4),
     # Stimpacks.
     ("z1_pier", ED_STIMPACK, 576, 1024, 4),
     ("z6_mess", ED_STIMPACK, 3328, 832, 4),
@@ -729,6 +671,72 @@ ITEMS = (
     ("z2_d1_porch", ED_HEALTH_BONUS, 1920, 1488, 4),
     ("z5_gantry", ED_HEALTH_BONUS, 2432, 2768, 4),
     ("z1_crane_deck", ED_HEALTH_BONUS, 608, 1536, 4),
+)
+
+# D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la
+# escopeta"): the route's ammunition, kept apart from ITEMS because it no
+# longer scales DOWN with skill. It scales with the monsters it pays for,
+# like them: (zone, editor number, x, y, LOWEST skill tier it appears on -
+# 2 = every skill, 3 = medium and harder, 4 = hard only). So each skill's
+# stock sits in its own G3-8 band (docs/engine/BALANCE.md, D119: 1.5-2.0 /
+# 1.3-1.6 / 1.2-1.45 on skills 2 / 3 / 4), shells are at most ~35 % of the
+# damage, and the rest follows the weapons the player holds at each stage,
+# the newest first; fuel sparingly (the ROKS-3 is being toned down). The
+# colossus (skills 3 and 4, 3000 HP since D119) is paid in the tunnel and
+# the bay in PG-7V first.
+AMMO = (
+    # The pier, the yard, the basin's quays, the boat, the barracks (the IZh,
+    # the PPSh, the RPG-7 and the AKM all found here): the AKM's magazines
+    # lead, PG-7V the strong second (at most 30 % of a stage's damage outside
+    # a boss's, BALANCE 8.4.2).
+    ("z1_pier", ED_SHELLS, 800, 896, 2),
+    ("z2_yard", ED_AKM_MAG, 1408, 1120, 2),
+    ("z6_corridor", ED_CLIP_BOX, 3456, 960, 2),
+    ("z6_mess", ED_AKM_MAG, 3328, 736, 2),
+    ("z3_gallery", ED_ROCKET, 3072, 1648, 2),
+    ("z3_south_quay", ED_AKM_MAG, 2048, 1696, 3),
+    ("z4_control", ED_ROCKET, 3520, 1920, 3),
+    ("z2_yard", ED_SHELLS, 1536, 832, 3),
+    ("z6_dorm", ED_CLIP_BOX, 3296, 1088, 3),
+    ("z3_north_quay", ED_AKM_MAG, 1344, 2304, 4),
+    # The workshop and the store (the ROKS-3 and its own 40): two magazines,
+    # so the AKM still leads its fuel.
+    ("z5_store", ED_AKM_MAG, 2688, 2640, 2),
+    ("z5_store", ED_AKM_MAG, 2816, 2640, 2),
+    ("z5_workshop", ED_SHELLS, 1792, 2496, 2),
+    ("z5_gantry", ED_CLIP_BOX, 2496, 2768, 3),
+    # The reactor tunnel and the hall.
+    ("z8_landing", ED_ROCKET, 4560, 1664, 2),
+    ("z8_hall", ED_AKM_MAG, 4416, 1792, 2),
+    ("z8_hall", ED_AKM_MAG, 4416, 1216, 2),
+    ("z8_hall", ED_AKM_MAG, 4416, 1920, 2),
+    ("z7_tunnel_w", ED_SHELLS, 3456, 2272, 2),
+    ("z8_hall", ED_CLIP_BOX, 4416, 1344, 2),
+    ("z8_hall", ED_CELL, 4416, 1472, 2),
+    ("z8_hall", ED_ROCKET_BOX, 4416, 1600, 3),
+    ("z7_tunnel_e", ED_AKM_MAG, 4224, 2272, 3),
+    ("z8_hall", ED_SHELL_BOX, 4416, 2048, 3),
+    ("z8_hall", ED_AKM_MAG, 4480, 2240, 3),
+    ("z8_hall", ED_ROCKET_BOX, 4672, 2240, 4),
+    ("z8_hall", ED_AKM_MAG, 4416, 1088, 4),
+    # The rail tunnel and the bay: on skill 2 a stage like the others; on
+    # skills 3 and 4 the colossus's (3000 HP since D119), PG-7V first.
+    ("z9_rails", ED_AKM_MAG, 3264, 352, 2),
+    ("z10_bay", ED_AKM_MAG, 3776, 704, 2),
+    ("z10_bay", ED_AKM_MAG, 4352, 192, 2),
+    ("z9_rails", ED_SHELLS, 2976, 352, 2),
+    ("z9_rails", ED_CLIP_BOX, 3328, 352, 2),
+    ("z9_rails", ED_ROCKET_BOX, 3456, 352, 2),
+    ("z9_rails", ED_CELL, 3040, 352, 2),
+    ("z9_refuge_1", ED_ROCKET_BOX, 3104, 464, 3),
+    ("z10_bay", ED_ROCKET_BOX, 3776, 640, 3),
+    ("z10_bay", ED_ROCKET_BOX, 4032, 704, 3),
+    ("z10_bay", ED_ROCKET_BOX, 4160, 192, 3),
+    ("z10_bay", ED_SHELL_BOX, 3968, 96, 3),
+    ("z10_bay", ED_AKM_MAG, 3776, 576, 3),
+    ("z9_rails", ED_AKM_MAG, 3200, 352, 3),
+    ("z10_bay", ED_CELL, 3840, 704, 3),
+    ("z10_bay", ED_CLIP_BOX, 3776, 448, 3),
 )
 
 # The secrets' rewards, on every skill (MAP01's rule).
@@ -1283,6 +1291,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle))
     for _zone, ednum, x, y, top in ITEMS + SECRET_ITEMS:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
+    for _zone, ednum, x, y, lowest in AMMO:
+        tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
     return tm, plan
 
 
@@ -1302,7 +1312,7 @@ def lumps() -> list[tuple[str, bytes]]:
 # Every lump name this map may put in a sidedef or a sector.
 WALL_TEXTURES = ((ROCK, DAM_WET, CONCRETE, CONCRETE_STRIPE, STEEL, BRICK, BRICK_RAIL, RUST, CONTAINER_SIDE,
                   HULL, HULL_NUMBER, ARMOUR, WAGON, TANK, LOCKER, NAVAL_PANEL, CAB_FRONT, CAB_SIDE, TUBBING,
-                  CRANE_LATTICE, ROAD_GATE, CRATE, FLAG_REICH, FLAG_LEGION, LENIN, STALIN, MURAL)
+                  CRANE_LATTICE, ROAD_GATE, CRATE, FLAG_USSR_1, FLAG_USSR_2, LENIN, STALIN, MURAL)
                  + DOOR_LEAVES + SWITCH_FACES + MARX_ENGELS)
 FLAT_TEXTURES = (FLOOR_LANE, FLOOR_CONCRETE, FLOOR_TILE, FLOOR_PLATE, DECK_RUBBER, DECK_HATCH, PIER_EDGE,
                  CEIL_PANEL, CEIL_CONCRETE, ROCK_CEIL, CRATE_TOP, GRATING, WATER, TRACK, BALLAST)

@@ -545,40 +545,6 @@ ITEMS = (
     ("z1_tunnel", ED_IZH, 4100, 1136, 4),
     ("z4_office", ED_PPSH, 3250, 520, 4),
     ("z5_hall", ED_RPG7, 1500, 520, 4),
-    # Shell boxes (20).
-    ("z1_tunnel", ED_SHELL_BOX, 4200, 1232, 4),
-    ("z2_yard", ED_SHELL_BOX, 3700, 1800, 4),
-    ("z4_hall", ED_SHELL_BOX, 2560, 560, 4),
-    ("z5_hall", ED_SHELL_BOX, 500, 600, 4),
-    ("z6_vestibule", ED_SHELL_BOX, 2752, 1984, 4),
-    ("z6_platform", ED_SHELL_BOX, 900, 2340, 4),
-    ("z2_yard", ED_SHELL_BOX, 2600, 1830, 3),
-    # Shells (4).
-    ("z2_yard", ED_SHELLS, 3600, 900, 4),
-    ("z2_roof_3", ED_SHELLS, 3000, 1600, 4),
-    ("z4_hall", ED_SHELLS, 2000, 200, 4),
-    ("z5_hall", ED_SHELLS, 1300, 600, 4),
-    ("z6_platform", ED_SHELLS, 2200, 2340, 4),
-    ("z2_yard", ED_SHELLS, 2300, 1800, 3),
-    ("z4_hall", ED_SHELLS, 3200, 200, 3),
-    ("z5_hall", ED_SHELLS, 600, 700, 3),
-    ("z2_yard", ED_SHELLS, 3500, 1800, 2),
-    ("z6_platform", ED_SHELLS, 2700, 2150, 2),
-    # Boxes of rounds (50) and clips (10).
-    ("z4_office", ED_CLIP_BOX, 3150, 600, 4),
-    ("z5_hall", ED_CLIP_BOX, 1500, 1600, 4),
-    ("z6_platform", ED_CLIP_BOX, 2500, 2150, 4),
-    ("z1_mouth", ED_CLIP, 3900, 1184, 4),
-    ("z3_cabin", ED_CLIP, 2160, 1520, 4),
-    ("z2_yard", ED_CLIP, 3700, 1450, 3),
-    ("z4_hall", ED_CLIP, 2700, 560, 2),
-    # PG-7V: a box with the launcher, a box and loose rounds for the platform.
-    ("z5_hall", ED_ROCKET_BOX, 1550, 600, 4),
-    ("z6_vestibule", ED_ROCKET_BOX, 2720, 1984, 4),
-    ("z6_platform", ED_ROCKET, 2900, 2150, 4),
-    ("z6_platform", ED_ROCKET, 2900, 2400, 4),
-    ("z6_office", ED_ROCKET, 3000, 2000, 4),
-    ("z6_office", ED_ROCKET_BOX, 3150, 2000, 3),
     # Stimpacks.
     ("z2_yard", ED_STIMPACK, 3700, 900, 4),
     ("z4_hall", ED_STIMPACK, 2900, 600, 4),
@@ -616,6 +582,47 @@ ITEMS = (
     ("z5_porch", ED_HEALTH_BONUS, 1632, 512, 4),
     ("z6_balcony", ED_HEALTH_BONUS, 2400, 2560, 4),
     ("z7_engine", ED_HEALTH_BONUS, 1000, 2500, 4),
+)
+
+# D119 (the CEO's playtest: "siempre sale de sobras", and always on the
+# shotgun): AMMUNITION FOLLOWS THE MONSTERS, not the consumables' rule, so it
+# grows with skill as they do. Rows: (zone, editor number, x, y, lowest tier,
+# highest tier), udmf.skill_tier's range (2 easy, 3 medium, 4 hard).
+# G3-8's D119 bands (docs/engine/BALANCE.md): 1.5-2.0 x the ruler on skill 2,
+# 1.3-1.6 on 3, 1.2-1.45 on 4; shells at most ~35 % of the damage placed; the
+# rest for the weapons of each stretch, the newest first. Stage 0 has the
+# TT-33 and the IZh; from the warehouse on, the PPSh's boxes carry the map
+# and the RPG-7's rockets the roundhouse's and the platform's heavies.
+AMMO = (
+    # Stage 0: the tunnel, the yard, the roofs, the signal box.
+    ("z1_mouth", ED_CLIP, 3900, 1184, 2, 2),
+    ("z3_cabin", ED_CLIP, 2160, 1520, 2, 2),
+    ("z2_yard", ED_SHELLS, 3600, 900, 2, 3),
+    ("z2_roof_3", ED_SHELLS, 3000, 1600, 2, 3),
+    ("z2_yard", ED_SHELL_BOX, 3700, 1800, 4, 4),
+    ("z2_yard", ED_CLIP_BOX, 3700, 1450, 4, 4),
+    # Stage 1: the warehouse and its office (the PPSh), the roundhouse (the RPG-7).
+    ("z4_hall", ED_SHELLS, 2000, 200, 2, 4),
+    ("z4_hall", ED_CLIP_BOX, 2100, 300, 4, 4),
+    ("z4_office", ED_CLIP_BOX, 3150, 600, 2, 4),
+    ("z4_hall", ED_CLIP_BOX, 2700, 560, 2, 4),
+    ("z4_hall", ED_CLIP_BOX, 2560, 560, 2, 4),
+    ("z4_hall", ED_CLIP_BOX, 3200, 200, 4, 4),
+    ("z5_hall", ED_ROCKET_BOX, 1550, 600, 2, 4),
+    ("z5_hall", ED_CLIP_BOX, 1500, 1600, 2, 4),
+    ("z5_hall", ED_CLIP_BOX, 500, 600, 2, 4),
+    ("z5_hall", ED_CLIP_BOX, 600, 700, 3, 4),
+    ("z5_hall", ED_ROCKET_BOX, 1300, 600, 4, 4),
+    # Stage 2: the platform, the heavies' fight.
+    ("z6_vestibule", ED_ROCKET_BOX, 2720, 1984, 2, 4),
+    ("z6_vestibule", ED_SHELL_BOX, 2752, 1984, 3, 4),
+    ("z6_platform", ED_CLIP_BOX, 2500, 2150, 2, 4),
+    ("z6_platform", ED_CLIP_BOX, 2200, 2340, 2, 4),
+    ("z6_platform", ED_CLIP_BOX, 900, 2340, 2, 4),
+    ("z6_platform", ED_CLIP_BOX, 2700, 2150, 4, 4),
+    ("z6_office", ED_CLIP_BOX, 3000, 2000, 2, 4),
+    ("z6_office", ED_ROCKET_BOX, 3150, 2000, 3, 4),
+    ("z6_platform", ED_CLIP_BOX, 2900, 2150, 3, 3),
 )
 
 # The secrets' rewards, kept out of ITEMS (the route's) on purpose; on every
@@ -1171,6 +1178,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle))
     for _zone, ednum, x, y, top in ITEMS + SECRET_ITEMS:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
+    for _zone, ednum, x, y, low, high in AMMO:
+        tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(low, high)))
     return tm, plan
 
 
