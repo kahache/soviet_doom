@@ -449,6 +449,26 @@ SD_QUIT_13 = "Your shift ends\nwhen the invaders do.\n\n(Press Y to quit.)";
 SD_QUIT_14 = "Hand your rifle in at the armoury\nand sign for it twice.\n\n(Press Y to quit.)";
 SD_QUIT_15 = "The tea is still hot, Sergeant.\nStay a little longer.\n\n(Press Y to quit.)";
 
+// V3 B3 (ADR 013): the awards page after the last map of an episode, drawn
+// by SD_StatusScreen in SmallFont (the title in BigFont). The summary
+// columns are the episode's figures; each award has a name and a rule (the
+// rule may wrap onto a second line). Thresholds: docs/engine/BALANCE.md 9.
+SD_AWARDS_TITLE   = "Awards";
+SD_AWARDS_KILLS   = "Kills";
+SD_AWARDS_SECRETS = "Secrets";
+SD_AWARDS_TIME    = "Time";
+SD_AWARDS_PAR     = "Par";
+SD_MEDAL_COURAGE_NAME   = "Medal for Courage";
+SD_MEDAL_COURAGE_RULE   = "Complete the episode";
+SD_MEDAL_REDSTAR_NAME   = "Order of the Red Star";
+SD_MEDAL_REDSTAR_RULE   = "Destroy 75% of the enemy";
+SD_MEDAL_REDBANNER_NAME = "Order of the Red Banner";
+SD_MEDAL_REDBANNER_RULE = "Find every secret";
+SD_MEDAL_PATRIOTIC_NAME = "Order of the Patriotic War";
+SD_MEDAL_PATRIOTIC_RULE = "Finish within the par time";
+SD_MEDAL_HERO_NAME      = "Hero of the Soviet Union";
+SD_MEDAL_HERO_RULE      = "90% kills, every secret and par, on skill 3 or harder";
+
 [ru]
 
 SD_EP01_NAME  = "Советский Doom";
@@ -715,6 +735,23 @@ SD_QUIT_12 = "Ленин смотрит со стены.\nИ не одобряе
 SD_QUIT_13 = "Ваша смена кончится,\nкогда кончатся захватчики.\n\n(Нажмите Y, чтобы выйти.)";
 SD_QUIT_14 = "Сдайте винтовку в оружейку\nи распишитесь дважды.\n\n(Нажмите Y, чтобы выйти.)";
 SD_QUIT_15 = "Чай ещё горячий, сержант.\nПосидите немного.\n\n(Нажмите Y, чтобы выйти.)";
+
+// V3 B3: страница наград после последней карты эпизода.
+SD_AWARDS_TITLE   = "Награды";
+SD_AWARDS_KILLS   = "Убито";
+SD_AWARDS_SECRETS = "Тайники";
+SD_AWARDS_TIME    = "Время";
+SD_AWARDS_PAR     = "Норматив";
+SD_MEDAL_COURAGE_NAME   = "Медаль «За отвагу»";
+SD_MEDAL_COURAGE_RULE   = "Пройти эпизод";
+SD_MEDAL_REDSTAR_NAME   = "Орден Красной Звезды";
+SD_MEDAL_REDSTAR_RULE   = "Уничтожить 75 % противника";
+SD_MEDAL_REDBANNER_NAME = "Орден Красного Знамени";
+SD_MEDAL_REDBANNER_RULE = "Найти все тайники";
+SD_MEDAL_PATRIOTIC_NAME = "Орден Отечественной войны";
+SD_MEDAL_PATRIOTIC_RULE = "Уложиться в норматив";
+SD_MEDAL_HERO_NAME      = "Герой Советского Союза";
+SD_MEDAL_HERO_RULE      = "90 % противника, все тайники и норматив, на уровне 3 и выше";
 
 [ca]
 
@@ -991,6 +1028,23 @@ SD_QUIT_12 = "Lenin et mira des de la paret.\nI no fa cara de content.\n\n(Prem 
 SD_QUIT_13 = "El teu torn s'acaba\nquan s'acabin els invasors.\n\n(Prem Y per sortir.)";
 SD_QUIT_14 = "Torna el fusell a l'armeria\ni signa el rebut dues vegades.\n\n(Prem Y per sortir.)";
 SD_QUIT_15 = "El te encara és calent, sergent.\nQueda't una estona més.\n\n(Prem Y per sortir.)";
+
+// V3 B3: la pàgina de condecoracions després de l'últim mapa d'un episodi.
+SD_AWARDS_TITLE   = "Condecoracions";
+SD_AWARDS_KILLS   = "Baixes";
+SD_AWARDS_SECRETS = "Secrets";
+SD_AWARDS_TIME    = "Temps";
+SD_AWARDS_PAR     = "Rècord";
+SD_MEDAL_COURAGE_NAME   = "Medalla al Valor";
+SD_MEDAL_COURAGE_RULE   = "Acaba l'episodi";
+SD_MEDAL_REDSTAR_NAME   = "Orde de l'Estrella Roja";
+SD_MEDAL_REDSTAR_RULE   = "Abat el 75 % de l'enemic";
+SD_MEDAL_REDBANNER_NAME = "Orde de la Bandera Roja";
+SD_MEDAL_REDBANNER_RULE = "Troba tots els secrets";
+SD_MEDAL_PATRIOTIC_NAME = "Orde de la Guerra Patriòtica";
+SD_MEDAL_PATRIOTIC_RULE = "Acaba dins del temps rècord";
+SD_MEDAL_HERO_NAME      = "Heroi de la Unió Soviètica";
+SD_MEDAL_HERO_RULE      = "90 % de baixes, tots els secrets i el rècord, del nivell 3 amunt";
 
 // Textos del propi motor (D119, 2026-10-23; el CEO: «'A secret is revealed'
 // no està traduït en català»). GZDoom no porta català: amb `language ca` el
