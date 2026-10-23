@@ -100,6 +100,21 @@ sd/weapon/katyusha/reload  SDHKRLD     // take A  rockets onto the rails, 20 tic
 sd/weapon/katyusha/pickup  SDHKPKP     // take A  the rail frame lifted
 sd/weapon/katyusha/dry     SDHKDRY     // take A  firing switch on empty rails
 
+// --- Slot 8: RGD-5 hand grenade (V3, ADR 012; docs/engine/2026-10-23_V3_rgd5.md 4)
+// Its own logical names over lumps the mod already ships until
+// sound-designer records the RGD-5's (the final lump after "->"; MOD-SPEC
+// 6.2, "V3 sounds"). Replacing one changes the right-hand column only, and
+// the $pitchset line goes with the burst.
+sd/weapon/rgd5/pin         SDTTDRY     // REUSED (the TT-33's hammer click) -> SDRGPIN
+sd/weapon/rgd5/throw       SDAXSWG     // REUSED (the ice axe cutting the air) -> SDRGTHR
+sd/weapon/rgd5/bounce      SDAXWAL     // REUSED (the pick on stone) -> SDRGBNC
+sd/weapon/rgd5/explode     SDRPEXP     // REUSED (the PG-7V's burst) -> SDRGEXP
+sd/weapon/rgd5/pickup      SDTTPKP2    // REUSED (the TT-33 out of its leather holster) -> SDRGPKP
+// The PG-7V's burst a little higher, so the fragmentation grenade's crack
+// reads smaller than the shaped charge: same directive as the AKM's shot.
+// NOT VERIFIED in the engine.
+$pitchset sd/weapon/rgd5/explode 1.2
+
 // === Bestiary (F5) =========================================================
 // Logical names sd/mon/<actor>/<event>; 47 sounds, docs/engine/BESTIARY.md 12.
 // Since N9e (D83, D86, D91, D96, D110, D118; the hound's five D107) all 47

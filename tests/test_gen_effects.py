@@ -193,9 +193,11 @@ class ContractTests(unittest.TestCase):
                     self.assertNotRegex(text, rf"['\"]{p}['\"]|\b{p}[A-Z][0-9]")
         # D116: the P4 bosses' projectiles subclass the PG-7V and the flame
         # blob and restate their burst or flight on the same sprites, on
-        # purpose (MOD-SPEC 6.12): reusers, not collisions.
+        # purpose (MOD-SPEC 6.12): reusers, not collisions. V3 (ADR 012): the
+        # RGD-5's burst is the PG-7V's SDPX A-C, and stays so.
         allowed = set(fx.LETTER_MAP) | {"colossus_rocket.zs", "colossus_flame.zs",
-                                        "consortium_rocket.zs", "consortium_flame.zs"}
+                                        "consortium_rocket.zs", "consortium_flame.zs",
+                                        "rgd5_grenade.zs"}
         for zs in sorted(fx.ZS_DIR.rglob("*.zs")):
             if zs.name in allowed:
                 continue

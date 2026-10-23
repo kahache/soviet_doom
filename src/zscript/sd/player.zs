@@ -48,5 +48,8 @@ class SD_Player : DoomPlayer
 		Player.WeaponSlot 5, "SD_Rpg7";
 		Player.WeaponSlot 6, "SD_Roks3";
 		Player.WeaponSlot 7, "SD_HandKatyusha";
+		// V3 (ADR 012): the RGD-5 hand grenade on a key of its own; GZDoom
+		// binds 8 to "slot 8" by default (gzdoom.pk3 engine/commonbinds.txt).
+		Player.WeaponSlot 8, "SD_Rgd5";
 	}
 }

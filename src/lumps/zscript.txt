@@ -21,13 +21,15 @@ version "4.12"
 #include "zscript/sd/music_variant.zs" // episode 2's A/B music and MAP06's boss loop (D106)
 
 // --- Arsenal (F4): one class per file, one weapon per Doom slot -----------
-// (but slot 4, which holds two since D116: the PPSh-41 and the AKM)
+// (but slot 4, which holds two since D116: the PPSh-41 and the AKM; and
+// slot 8, the RGD-5 hand grenade, V3, ADR 012)
 // Projectiles come before the weapons that fire them for readability only;
 // ZScript resolves class names regardless of include order.
 #include "zscript/weapons/pg7_grenade.zs"
 #include "zscript/weapons/flame_blob.zs"
 #include "zscript/weapons/katyusha_rocket.zs"
 #include "zscript/weapons/ice_axe_puff.zs"    // the ice axe's wall sound (N9)
+#include "zscript/weapons/rgd5_grenade.zs"    // the thrown RGD-5, fused (V3, ADR 012)
 #include "zscript/weapons/weapon_sounds.zs"   // the guns' empty click (N9)
 
 #include "zscript/weapons/ice_axe.zs"         // slot 1
@@ -38,6 +40,8 @@ version "4.12"
 #include "zscript/weapons/rpg7.zs"            // slot 5
 #include "zscript/weapons/roks3.zs"           // slot 6
 #include "zscript/weapons/katyusha.zs"        // slot 7
+#include "zscript/weapons/rgd5_ammo.zs"       // slot 8's grenades, its own pool (V3, ADR 012), 21021-21022
+#include "zscript/weapons/rgd5.zs"            // slot 8, the RGD-5 hand grenade (V3, ADR 012), 21009
 
 // --- Bestiary (F5): one class per file; contract docs/engine/BESTIARY.md ---
 // The base first (it also declares the SD_FACTION_* constants), then the
