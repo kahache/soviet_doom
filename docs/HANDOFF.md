@@ -11,7 +11,9 @@ estimates in `docs/BACKLOG.md`; the phase view in `docs/ROADMAP.md` ("P4 today")
 20 images today. Done: TT-33 A/B (but Gemini drew a generic modern pistol: re-ask with the TT-33 block in
 the art-director's note, `gemini_tt33_A2/B2`), gunner 5/5 (aim_v3 and death_v2 are the keepers; frontal fire OK, D119),
 colossus 7/7 (aim and fire: profile touches view 4, crop by hand), Consortium 2/7 (rooted, turn). **Next at 17:33:**
-Consortium fire, death, aim (2 rows), walk (2 rows), breach; then the AKM 2; TT-33 re-ask 2; re-asks 4.
+gunner walkL/walkR re-ask (all five views mid-stride, left leg forward in L, right in R: the two sheets came
+out almost identical), then Consortium fire, death, aim (2 rows), walk (2 rows), breach; then the AKM 2; TT-33 re-ask 2;
+re-asks 4 (optional: gunner fire 3/4-back views with the flash at the hip).
 Processing agents (art-director) run per character; previews go to the CEO before anything enters `assets/`.
 V3 agents run in isolated worktrees (pickup events E1/E2/E3, ops map + medals, RGD-5, propaganda radio).
 

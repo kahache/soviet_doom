@@ -26,6 +26,10 @@ sets and their classes. D108 (the mix): which enemies carry the symbol (the
 General's flag left alone), the close pictures (profiles and corpses), the
 symbol drawn after the mirror and before the black plate, the cache read
 (missing, then a repaint), the per-lump report of a build and the control sheet.
+D119 (the Legion gunner, pending the CEO): a merged pair cut along a path, the
+guided split of a sheet painted over another (the flash to its owner, the
+neighbour healed from the guide, the registration), the spec against the
+actor, the install patch as the documented swap, and the frontal shot in F1.
 """
 from __future__ import annotations
 
@@ -1167,6 +1171,159 @@ class D108SymbolTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             ge.control_sheet([], out=ROOT / "assets" / "x.png")
         ge.guard_out(ge.CONTROL_PNG)
+
+
+def two_overlapping(flash: bool):
+    """(rgb, fg, guide rgb, guide masks): figure 0 top-left, figure 1 lower-right, their
+    columns overlapping (30..40) so no column cuts them; with `flash`, figure 0's flash
+    bridges them and lies over figure 1's body (rows 32..36, columns 38..50)."""
+    img = np.empty((64, 90, 3), np.uint8)
+    img[:] = MAGENTA
+    img[0:30, 5:40] = OLIVE
+    img[32:62, 30:75] = OLIVE
+    guide = img.copy()
+    if flash:
+        img[26:36, 38:50] = YELLOW
+    gm = ge.figures(ge.key_background(guide), 2)
+    return img, ge.key_background(img), guide, gm
+
+
+@unittest.skipIf(ge is None, "art venv (numpy, Pillow) missing")
+class D119GunnerPixelTests(unittest.TestCase):
+    """D119: the gunner's fire sheet (turn plus flashes) and death_v2 (boots on the corpse)."""
+    def test_path_below_is_inside_its_columns(self):
+        b = ge.path_below((20, 30), ((5, 10), (20, 12)))
+        self.assertTrue(b[10, 5] and b[19, 20] and not b[9, 5] and not b[11, 20])
+        self.assertFalse(b[:, :5].any() or b[:, 21:].any())
+
+    def test_merged_pair_cut_along_the_path(self):
+        fg = np.zeros((60, 100), bool)
+        fg[0:42, 10:40] = True                  # the falling man, his boots down to row 41
+        fg[40:50, 20:95] = True                 # the corpse under them
+        ms = ge.figures(fg, 2, path=((15, 40), (98, 40)))
+        self.assertEqual(len(ms), 2)
+        lower = max(ms, key=lambda m: int(np.flatnonzero(m.any(axis=1))[0]))
+        self.assertTrue(lower[40:50, 20:95].all())
+        self.assertFalse(lower[:40].any())
+        with self.assertRaises(ValueError):
+            ge.figures(fg, 2, path=((15, 55), (98, 55)))      # crosses nothing merged
+
+    def test_guided_split_gives_the_flash_to_its_owner_and_heals_the_neighbour(self):
+        img, fg, guide, gm = two_overlapping(flash=True)
+        self.assertEqual(ge.label(fg)[1], 1)    # one piece: the flash bridges them
+        masks, heals, g_rgb = ge.guided_figures(fg, img, guide, gm, ((30, 60, 0),))
+        self.assertTrue(masks[0][26:36, 38:50].all())           # the flash, whole, to figure 0
+        self.assertFalse(masks[1][26:32, 38:50].any())
+        self.assertTrue(heals[1][32:36, 38:50].all())            # figure 1's body under it, from the guide
+        self.assertTrue((g_rgb[32:36, 38:50] == OLIVE).all())
+        self.assertTrue((masks[1] | heals[1])[32:62, 30:75].all())
+
+    def test_guided_split_without_a_flash_entry_keeps_the_growth(self):
+        img, fg, guide, gm = two_overlapping(flash=True)
+        masks, heals, _ = ge.guided_figures(fg, img, guide, gm, ())
+        self.assertTrue(masks[1][32:36, 38:50].all())
+        self.assertFalse(heals[1].any())
+
+    def test_guide_registered_a_pixel_off(self):
+        img, _, guide, _ = two_overlapping(flash=False)
+        moved = ge.shifted(img, 1, 0, 0)
+        moved[0] = MAGENTA
+        fg = ge.key_background(moved)
+        self.assertEqual(ge.align_guide(moved, guide, fg), (1, 0))
+        self.assertFalse(ge.new_paint(moved, ge.shifted(guide, 1, 0), fg).any())
+
+    def test_plan_uses_the_guide(self):
+        tmp = Path(tempfile.mkdtemp(prefix="sd_gemini_gunner_"))
+        try:
+            img, _, guide, _ = two_overlapping(flash=True)
+            Image.fromarray(guide).save(tmp / "gem_x_turn.png")
+            Image.fromarray(img).save(tmp / "gem_x_fire.png")
+            spec = ge.EnemySpec(name="x", sprite="SDXX", folder="x", armband="none", sheets={
+                "turn": ge.Sheet("gem_x_turn.png", 2, ("front", "back"), None),
+                "fire": ge.Sheet("gem_x_fire.png", 2, ("front", "back"), None, guide="turn",
+                                 flash=((30, 60, 0),))},
+                rotated={}, single={})
+            f0, f1 = ge.plan(spec, tmp)["fire"].figs
+            self.assertEqual(f0.mask.shape, (36, 45))              # figure 0 and its flash (columns 5..49)
+            self.assertEqual(f1.mask.shape, (30, 45))              # figure 1 whole, healed
+            self.assertTrue(f1.mask.all())
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_guide_must_be_a_plain_sheet(self):
+        spec = ge.EnemySpec(name="x", sprite="SDXX", folder="x", sheets={
+            "turn": ge.Sheet("t.png", 8, (), None, rows=2), "fire": ge.Sheet("f.png", 5, guide="turn")},
+            rotated={}, single={})
+        with self.assertRaises(ValueError):
+            ge.guide_of(spec, "fire", {"turn": None, "fire": None})
+
+
+@unittest.skipIf(ge is None, "art venv (numpy, Pillow) missing")
+class D119GunnerSpecTests(unittest.TestCase):
+    ZS = ROOT / "src" / "zscript" / "monsters" / "legion_gunner.zs"
+
+    def test_names_letters_and_rules(self):
+        spec = ge.GUNNER
+        names = ge.lump_names(spec)
+        self.assertEqual(len(names), 70)                         # design doc section 4
+        for n in names:
+            self.assertRegex(n, r"^SDLG[A-U][0-8]$")
+            self.assertEqual(n[5] == "0", n[4] > "G", n)
+        self.assertEqual(spec.target_height, ge.LEGION_HEIGHT)   # the trooper's height
+        self.assertEqual((spec.armband, spec.symbol), ("none", "none"))   # the US flag only, no swastika
+        self.assertEqual(spec.sheets["aim"].file, "gem_gunner_aim_v3.png")
+        self.assertEqual(spec.sheets["death"].file, "gem_gunner_death_v2.png")
+        self.assertEqual(spec.sheets["fire"].guide, "turn")
+        self.assertEqual(sorted(spec.sheets["death"].pick), list(range(5)))
+        self.assertTrue(all(v < spec.sheets["fire"].count for *_, v in spec.sheets["fire"].flash))
+        self.assertNotIn("gunner", ge.ENEMIES)                   # not installed: the CEO sees it first
+        self.assertIs(ge.PENDING["gunner"], spec)
+        self.assertTrue(spec.reask and spec.derived)
+
+    def test_every_state_letter_is_drawn(self):
+        if not self.ZS.is_file():
+            self.skipTest("legion_gunner.zs not present")
+        text = self.ZS.read_text(encoding="utf-8")
+        sprite = "SDLG" if re.search(r"^\s*SDLG ", text, re.M) else "SDLT"   # provisional today (D116)
+        self.assertEqual(_state_letters(self.ZS, sprite), set(ge.GUNNER.rotated) | set(ge.GUNNER.single))
+
+    def test_installed_actor_is_the_documented_swap(self):
+        if not self.ZS.is_file():
+            self.skipTest("legion_gunner.zs not present")
+        text = self.ZS.read_text(encoding="utf-8")
+        if "PROVISIONAL-D116" not in text:
+            self.skipTest("already installed")
+        sys.path.insert(0, str(ROOT / "tests"))
+        import _p4_mod as p4
+        swapped, _ = p4.apply_documented_swap(text)
+        done = ge.installed_actor(text)
+
+        def code(t):
+            return [l.rstrip() for l in p4.strip_comments(t).splitlines() if l.strip()]
+        self.assertEqual(code(done), code(swapped))
+        self.assertNotIn("PROVISIONAL", done)
+        self.assertNotIn("SDLT", p4.strip_comments(done))
+        self.assertIn("SDLG", done)
+
+    def test_built_set(self):
+        """The real build (work/, gitignored): the set, the height, and D119's
+        complaint answered: in F1 (the front) the flash is on the body's axis,
+        firing at the player; in F3 (the profile) it is off to the side."""
+        folder = ge.OUT_ROOT / "gunner"
+        if not (folder / "SDLGF1.png").is_file():
+            self.skipTest("work/art/enemies_gemini/gunner/ not built")
+        self.assertEqual(sorted(p.stem for p in folder.glob("SDLG*.png")), ge.lump_names(ge.GUNNER))
+        a = _png(folder / "SDLGB1.png")[..., 3] > 0
+        ys = np.flatnonzero(a.any(axis=1))
+        self.assertLessEqual(abs((ys[-1] - ys[0] + 1) - ge.GUNNER.target_height), 1)
+
+        def flash_offset(lump):
+            px = _png(folder / f"{lump}.png").astype(int)
+            fire = (px[..., 3] > 0) & (px[..., 0] > 200) & (px[..., 1] > 150) & (px[..., 2] < px[..., 1])
+            self.assertGreater(int(fire.sum()), 3, lump)
+            return abs(float(np.nonzero(fire)[1].mean()) - ge.read_grab(folder / f"{lump}.png")[0])
+        self.assertLess(flash_offset("SDLGF1"), 4)
+        self.assertGreater(flash_offset("SDLGF3"), 8)
 
 
 @unittest.skipIf(ge is None or os.environ.get("SD_SKIP_SLOW_ART") == "1", "art tier only")

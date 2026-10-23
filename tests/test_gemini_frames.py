@@ -4,7 +4,8 @@ Needs no Gemini reference (they are gitignored, work/art/reference/): every
 image here is built in the test. Covers the magenta key (no magenta-ish pixel
 survives, JPEG-like noise included), the letterbox crop, the art-pixel grid
 detection, the mode downsample, palette-only output, the flash split and the
-grAb placement; the D79 helpers for the five remaining weapons (flash
+grAb placement; the D79 helpers for the five remaining weapons and the
+TT-33 redo (D111) (flash
 halo, shrink and taper, bottom fill, stray-piece drop, banded sleeve) and
 the WEAPONS table against the draft overlay's reserved names and the
 states. Only GeneratedFramesTests reads work/ (skips without it), and
@@ -367,8 +368,28 @@ class TestGeminiFrames(unittest.TestCase):
             for _, mock in w.mock_list():
                 self.assertTrue(set(mock) <= set(lumps), key)
 
+    def test_tt33_draws_tokarev_zs_letter_for_letter(self):
+        # D111: the Gemini TT-33 replaces the D61 lumps under the same names
+        # (installed, so no overlay swap names them): SDTT A-C and SDTF A,
+        # exactly the letters tokarev.zs's states use; B is the kicked shot,
+        # C half the kick, the flash rides on B with it.
+        sys.path.insert(0, str(ROOT / "tools"))
+        import make_draft_overlay as mdo
+        w = gf.WEAPONS["tt33"]
+        text = (mdo.ZS_ROOT / "weapons" / "tokarev.zs").read_text(encoding="utf-8")
+        for name in (w.gun, w.flash):
+            have = "".join(sorted(f.lump[4] for f in w.frame_list() if f.lump[:4] == name))
+            self.assertEqual(have, mdo.state_letters(text, name), name)
+        frames = {f.lump: f for f in w.frame_list()}
+        self.assertEqual(frames["SDTTB0"].kick, gf.KICK)
+        self.assertEqual(frames["SDTTC0"].kick, gf.HALF_KICK)
+        self.assertEqual((frames["SDTFA0"].src, frames["SDTFA0"].kick), ("B", gf.KICK))
+        self.assertTrue(frames["SDTFA0"].flash)
+        self.assertEqual(w.height_mult, gf.HEIGHT_MULT)                   # the arsenal's scale
+        self.assertEqual(w.files(), {"A": "gemini_tt33_A.png", "B": "gemini_tt33_B.png"})
 
-NEW_WEAPONS = ("izh", "rpg7", "roks3", "katyusha", "ice_axe")
+
+NEW_WEAPONS = ("izh", "rpg7", "roks3", "katyusha", "ice_axe", "tt33")
 
 
 def _sources_present(key: str) -> bool:
@@ -425,6 +446,27 @@ class FreshBuildTests(unittest.TestCase):
                 self.assertEqual(fr["cuts"], 0, f"{key} {lump}")
         if not ran:
             self.skipTest("Gemini sources not present (work/art/reference/ is gitignored)")
+
+    def test_tt33_is_held_at_the_centre_like_the_other_weapons_are_sized(self):
+        # D111: the same 56 px above the bar as every weapon, the muzzle
+        # flash centred on the crosshair (TT33_X_SHIFT), the hand right of
+        # it; the kick moves B up and right of A, C between them.
+        if not _sources_present("tt33"):
+            self.skipTest("Gemini sources not present (work/art/reference/ is gitignored)")
+        import tempfile
+        import hand_study as hs
+        with tempfile.TemporaryDirectory() as tmp:
+            res = gf.build(gf.WEAPONS["tt33"], out_dir=Path(tmp))
+        m = {k: hs.measure(v["rgba"], v["grab"]) for k, v in res["frames"].items()}
+        self.assertEqual(m["SDTTA0"]["height"], round(gf.chgg_height() * gf.HEIGHT_MULT))
+        fx0, _, fx1, _ = m["SDTFA0"]["bbox"]
+        self.assertLessEqual(abs((fx0 + fx1) / 2 - gf.SCREEN_W / 2), 4)
+        ax0, _, ax1, _ = m["SDTTA0"]["bbox"]
+        self.assertTrue(gf.SCREEN_W / 2 < (ax0 + ax1) / 2 < gf.SCREEN_W / 2 + 30)
+        a, b, c = (m[k]["height"] for k in ("SDTTA0", "SDTTB0", "SDTTC0"))
+        self.assertEqual(b - a, -gf.KICK[1])
+        self.assertTrue(a < c < b)
+        self.assertTrue(all(fr["cuts"] == 0 for fr in res["frames"].values()))
 
     def test_ice_axe_swing_is_the_ready_frame_turned(self):
         # D86: B, C and D are A turned as one rigid piece: the hand keeps

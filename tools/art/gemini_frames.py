@@ -115,6 +115,7 @@ RUN_ON_FIT = 16                 # last art rows a piece leaving the bottom is fo
 SWING_WINDUP, SWING_STRIKE, SWING_FOLLOW = -11, 38, 48   # the ice axe's swing, degrees CCW (D86)
 SWING_LIFT = 34                 # screen px C is raised after its turn (D the same, 6 px lower): the hand stays in view
 SWING_PAD = 0.5                 # x the art's width added each side before a turn (nothing is cut)
+TT33_X_SHIFT = -50              # screen px: the TT-33's muzzle (its slide's far end) on x 160, the crosshair (D111)
 
 
 @dataclass(frozen=True)
@@ -225,6 +226,19 @@ WEAPONS = {
         arm_band=True, arm_curve=False,
         mocks=(("ready (A)", ("SDAXA0",)), ("wind-up (B)", ("SDAXB0",)), ("strike (C)", ("SDAXC0",)),
                ("follow-through (D)", ("SDAXD0",)))),
+    # TT-33 redone with Gemini (D111; tokarev.zs, the D61 lumps letter for
+    # letter): fire A, B + flash, C, B. B is the shot's recoil, C half of it
+    # (the gun settling), as the IZh's B and C; the flash SDTF A plays over B,
+    # kicked with it. One hand, no side cut: the arm leaves by the bottom.
+    # The pistol is the one weapon held at the centre (the old TT-33, Doom's
+    # own pistol): TT33_X_SHIFT puts its muzzle flash on the crosshair.
+    "tt33": WeaponPair(
+        "tt33", "SDTT", "SDTF", flash_halo=6, x_shift=TT33_X_SHIFT,
+        sources=(("A", GEM.format("tt33", "A")), ("B", GEM.format("tt33", "B"))),
+        frames=(Frame("SDTTA0"), Frame("SDTTB0", "B", kick=KICK), Frame("SDTTC0", "B", kick=HALF_KICK),
+                Frame("SDTFA0", "B", flash=True, kick=KICK)),
+        mocks=(("ready (A)", ("SDTTA0",)), ("firing (B + SDTF A)", ("SDTTB0", "SDTFA0")),
+               ("settling (C)", ("SDTTC0",)))),
 }
 
 
