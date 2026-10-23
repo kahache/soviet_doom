@@ -1,6 +1,6 @@
 // SD_ConsortiumWounded - a TEST FIXTURE for the PM's engine pass (D26),
 // not an enemy: the Consortium (consortium.zs) spawned at half its health
-// plus a margin, so the first hits trigger the Breach and phase 2 can be
+// plus a margin (2000 + 100 = 2100 HP since D119), so the first hits trigger the Breach and phase 2 can be
 // played without emptying an arsenal first. `summon SD_ConsortiumWounded`.
 // No editor number, no LANGUAGE id of its own (it inherits the boss's);
 // placed by no map. Kept in the mod (D116) while the boss is tuned; delete

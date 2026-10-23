@@ -575,7 +575,8 @@ class Map01Test(unittest.TestCase):
         m = self.map01
         for i, s in enumerate(self.sectors):
             self.assertIn(s["texturefloor"], m.FLAT_TEXTURES, f"sector {i} floor")
-            self.assertIn(s["textureceiling"], m.FLAT_TEXTURES, f"sector {i} ceiling")
+            # The sky marker (D121) is the engine's, not a lump: ceilings only.
+            self.assertIn(s["textureceiling"], m.FLAT_TEXTURES + m.BUILTIN_FLATS, f"sector {i} ceiling")
         for i, side in enumerate(self.sides):
             for key in ("texturetop", "texturemiddle", "texturebottom"):
                 self.assertIn(side[key], m.WALL_TEXTURES + ("-",), f"sidedef {i} {key}")

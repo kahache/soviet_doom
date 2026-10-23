@@ -234,7 +234,7 @@ Episode 3's lumps (D113, `docs/art/TEXTURE-INDEX.md`, "Arctic" and
 
 | Zone | Walls | Floor | Ceiling |
 |---|---|---|---|
-| Runway | the bunker block's front `SDCONC1`; the hangar's front `SDRUST1`; the gatehouse `SDBRCK1` with the banners `SDFLAG1`/`SDFLAG2`; snowbanks (kerbs) **`SDICE2`** | **`SDRWY1`**, the centre strip **`SDRWY2`**, both turned 90° (`rotationfloor`); the snowbanks' tops **`SDSNOW1`** | sky |
+| Runway | the bunker block's front `SDCONC1`; the hangar's front `SDRUST1`; the gatehouse `SDBRCK1` with two Soviet flags `SDFLAG1`/`SDFLAG2` (D119: redrawn as Soviet flags); snowbanks (kerbs) **`SDICE2`** | **`SDRWY1`**, the centre strip **`SDRWY2`**, both turned 90° (`rotationfloor`); the snowbanks' tops **`SDSNOW1`** | sky |
 | The Il-14 | `SDSTEL1` (fuselage, wings, nacelles, tailplane, the tail over the ramp; no `SDPLAN1` drawn, §7.2); the cargo ramp `SDGATE1` (S1) | `SDFLR4`; the porch under the tail **`SDRWY1`** turned | sky |
 | Fuel bowser | `SDTANK1` («НЕФТЬ»), one tile high | `SDFLR4` | sky |
 | Hangar | `SDRUST1`; crates `SDCRAT1`/`SDCRTOP1`; Lenin `SDPOSTR1` in a recess | `SDFLR2`; D1's porch outside **`SDSNOW1`** | `SDCEIL1` |
@@ -363,25 +363,33 @@ fight: the **IZh** by the plane, the **PPSh-41** in the hangar, the **AKM**
 with the pistol, so it is on the route even for whoever took one at the dam),
 the **RPG-7** in the barracks (the only way into the radome crosses them,
 tested), the **ROKS-3** in the command room (for the bunker); the **Hand
-Katyusha** in S3. **AKM magazines** (`SD_AkmAmmo` 21020, 30 rounds) 4 / 3 / 2
-on skills 2 / 3 / 4: the barracks and the quay on every skill, the command
-room from skill 3, the bunker's hall on skill 2 (tested).
+Katyusha** in S3. **AKM magazines** (`SD_AkmAmmo` 21020, 30 rounds) 11 / 14 / 19
+on skills 2 / 3 / 4 since D119 (§16; D116's 4 / 3 / 2 went with the scaling
+down).
 
-**Ammunition** (G3-8's ruler, MAP05's test: kills in IZh shells, a gunner
-2, PG-7V at 2 shells, fuel at ¼, an AKM magazine 4.5; route only, no drop,
-no secret; v1.2, D116):
+**Ammunition, D119** (`docs/engine/BALANCE.md` §8: G3-8's ruler, kills in
+IZh shells, a gunner 2, PG-7V at 2 shells, fuel at 13.5 / 80, an AKM
+magazine 4.5; route only, no drop, no secret). The route's ammunition is
+`AMMO` in `map.py`, apart from `ITEMS`: it appears from its lowest skill tier
+up, like the monsters it pays for (§16).
 
 | | Skill 2 | Skill 3 | Skill 4 |
 |---|---|---|---|
 | Needed | 74 | 128 | 177 |
-| Placed | 343.0 | 325.5 | 275.0 |
-| Ratio (≥ 1.35, and < 3 on skill 4) | 4.64 | 2.54 | 1.55 |
+| Placed | 122.6 | 187.5 | 229.0 |
+| Ratio (band 1.5-2.0 / 1.3-1.6 / 1.2-1.45) | 1.66 | 1.46 | 1.29 |
+| Before D119 (placed, ratio) | 343.0, 4.64 | 325.5, 2.54 | 275.0, 1.55 |
+| Ammunition pickups on the route (before D119) | 22 (49) | 31 (44) | 39 (33) |
+| Shell share, troopers' drops counted (≤ 35 %) | 28.6 % | 34.5 % | 32.9 % |
+| Damage by pool: shells / PPSh / AKM / PG-7V / fuel | 17 / 15 / 45 / 14 / 8 % | 26 / 10 / 37 / 19 / 7 % | 24 / 11 / 41 / 19 / 6 % |
 
-Also checked at every round of the route. **Health** on skill 4: 6
-stimpacks + 5 medikits, 9 health bonuses; **armour**: the flak vest in the
-hangar (for the radome), the heavy vest at the escape stair's head (round 2,
-before the runway's closets and the harbour), 6 plates. Consumables scale
-down with skill (tested).
+Also checked at every round of the route against the skill's floor, each
+pool only after its weapon, the AKM's magazines leading every stage and
+PG-7V at most 30 % of any (the map has no boss; §16). **Health** on skill 4: 6 stimpacks + 5 medikits,
+9 health bonuses; **armour**: the flak vest in the hangar (for the radome),
+the heavy vest at the escape stair's head (round 2, before the runway's
+closets and the harbour), 6 plates. Health and armour scale down with skill
+(tested).
 
 ## 10. Engine elements used
 
@@ -515,3 +523,43 @@ Population and pickups only: no geometry, door, key, secret or poster moved.
 - Engine checks for the PM: **V19** the gunners' bursts from cover at range
   (runway, hangar, quay); **V20** the AKM in the hangar picks up and fires
   (MOD-SPEC §6.12: it still wears the PPSh's frames until Gemini's are drawn).
+
+## 16. v1.3 record: D119's ammunition (2026-10-23)
+
+The CEO's playtest of Episodes 2 and 3: ammunition "siempre sale de sobras",
+"siempre acabas con la escopeta". Pickups only: no geometry, door, key,
+secret, monster or poster moved; the secrets' rewards are unchanged.
+
+- **The route's ammunition moved out of `ITEMS` into `AMMO`**, read as
+  (zone, editor number, x, y, *lowest* skill tier): every skill gets the
+  every-skill stock, skills 3-5 add what the medium monsters cost and skills
+  4-5 what the hard ones cost. Nested the other way (Doom's consumables,
+  more on easy) no skill-2 band could hold: skill 4 needs 2.4 times skill
+  2's kills, so skill 2 got 4.6 times its need.
+- **Removed, not only shrunk** on skills 2 and 3: 27 / 13 pickups fewer
+  (§9). Skill 4 was already the leanest: its stock fell from 275 to 229
+  shell-equivalents, but it holds 39 pickups against 33, because the AKM,
+  which now leads every stage, comes 30 rounds a magazine (a box of
+  magazines would need an actor: `mod-engineer`). By kind, skill 2 / 3 / 4,
+  before -> after: shell boxes 8 / 8 / 7 -> 0 / 1 / 1; shells 17 / 14 / 9 ->
+  3 / 5 / 6; clips 7 / 6 / 4 -> 0; boxes of rounds 3 -> 3 / 3 / 4; loose
+  PG-7V 5 / 5 / 3 -> 3; PG-7V boxes 2 -> 1 / 3 / 4; canisters 3 -> 1 / 2 / 2;
+  AKM magazines 4 / 3 / 2 -> 11 / 14 / 19.
+- **The mix** (BALANCE §8.3-8.4 with the PM's amendment of
+  2026-10-23): shells at most 35 % with the troopers' dropped IZhs counted;
+  each pool only once its weapon is met; outside a boss's or a mini-boss's
+  stage the newest bullet weapon leads (the AKM, else the PPSh: the largest
+  share of the stage's non-shell ammunition, at least 40 %) and PG-7V are
+  the strong second, at most 30 % of the stage's damage, so the shotgun is
+  not swapped for the rocket launcher; fuel never needs to lead and stays
+  at most 15 % of the map's damage (the ROKS-3 is toned down). Two magazines lie in the command
+  room beside the ROKS-3's own 40, so the AKM still leads there.
+- Tests (`tests/test_map07_novaya_zemlya.py`): the band per skill, every
+  stage at the skill's floor, the shell share with drops, each pool after
+  its weapon, the bullets leading and PG-7V ≤ 30 % of each stage, fuel ≤
+  15 % and the AKM ahead of the PPSh, the ammunition following the monsters
+  (fewer pickups on skills 2-3, less stock on skill 4);
+  `ROKS_AVERAGE` 13.5. The magazines' 4 / 3 / 2 test is gone.
+- BALANCE §8.4.3's second half (every monster but the boss on shells and
+  rounds alone) was dropped by the PM; the ROKS-3 exception is the PM's
+  amendment. The engine pass is the PM's (D26).

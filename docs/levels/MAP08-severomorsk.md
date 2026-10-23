@@ -160,7 +160,7 @@ this scale.
 | Z8 | Reactor hall; stair of 11 to the lid | 4352…4992 | 896…2368 | −128 | 384 | 112 |
 | Z8k | Reactor's lid, the red key | 4608…4864 | 1472…1728 | 64 | 384 | **192**, red |
 | Z9 | Rail tunnel, two refuges | 2720…3712 | 288…416 | 0 | 128 | 112 |
-| Z10 | Loading bay: goods wagon, tank wagon, locomotive (props), crates, banners | 3712…4480 | 64…768 | 0 | 320 | 128 |
+| Z10 | Loading bay: goods wagon, tank wagon, locomotive (props), crates, Soviet flags | 3712…4480 | 64…768 | 0 | 320 | 128 |
 | E | Locomotive's cab, the exit on its east wall | 4368…4480 | 304…416 | 32 | 160 | 128; niche **192** |
 
 Extent 4992 × 2816 units (MAP05: 4576 × 2304; tested within 1.5 × its
@@ -272,7 +272,7 @@ Measured (hit points met, by beat; `test_the_intensity_rises`):
 | Barracks | hall and mess `SDCONC2`, corridor `SDCONC1`, the dormitory's north wall `SDLOCK1` (one locker high) | `SDFLR3` | `SDCEIL1` |
 | Workshops, torpedo store | `SDBRCK1`, `SDCONC1`; lathes and racks `SDSTEL1` | `SDFLR2`, gantry `SDGRAT2` | `SDCEIL1` |
 | Tunnels, passage | `SDROCK1` (the rock tunnel, the passage, the rail tunnel, their closets and refuges) | `SDFLR2`; the rail tunnel `SDBLST1` + `SDTRAK1` | `SDROCK2` |
-| Loading bay | `SDBRCK3`; wagons `SDWAGN1`, `SDTANK1`; locomotive's body `SDARMR2`; banners `SDFLAG1`/`SDFLAG2` side by side | `SDBLST1`, track `SDTRAK1` | `SDCEIL2` |
+| Loading bay | `SDBRCK3`; wagons `SDWAGN1`, `SDTANK1`; locomotive's body `SDARMR2`; Soviet flags `SDFLAG1`/`SDFLAG2` side by side (D119: redrawn as Soviet flags) | `SDBLST1`, track `SDTRAK1` | `SDCEIL2` |
 | The locomotive's cab | the backhead `SDCAB1` on the south wall, facing the door (its middle 96 columns: the cab is the tile's middle); `SDCAB2` on the rest (the back wall shows one whole window) | `SDFLR4` | `SDCEIL1` |
 | Doors, switches | `SDDOOR1` (D1, D2), **`SDBULK1`** (D3, the round watertight door), **`SDDOORB`** (blue door), `SDDOORY`, `SDDOORR`; `SDSW1A`, `SDSW1B`, `SDSW1D` | | |
 
@@ -368,7 +368,7 @@ holds):
 | 3 | the submarine's deck, (2592, 1984), facing west | the deck aft to the gangway | the fin |
 | 4 | the yard, (1920, 880), facing west | the yard to the pier (1310 from the start) | the middle crates |
 
-**The Liberty Colossus** (D116, `SD_LibertyColossus`, 21111, 4500 HP, 88
+**The Liberty Colossus** (D116, `SD_LibertyColossus`, 21111, 3000 HP since D119, 88
 wide and 110 high, `+NORADIUSDMG`; episode 2's boss) stands in the loading
 bay on **skills 3 and 4** as the map's mini-boss, by the locomotive at
 (4352, 512), facing west where the player comes out of the rail tunnel.
@@ -376,10 +376,16 @@ The bay is 768 by 704 under a roof at 320, so he has room and the train is
 cover. He opens nothing: his death special is none, and MAP08's MAPINFO
 block has no boss-death flag (his `A_BossDeath` does nothing here; NOT
 VERIFIED in engine). The exit is not behind him: the player may run past
-him to the cab. **For him**: a PG-7V box in the rail tunnel, a fuel pack
-and a medikit in the bay, on every skill (tested: rockets and fuel in the
-tunnel and the bay at least a third of his 4500 on skills 3 and 4), plus
-three shell boxes along the tunnel and the bay for G3-8.
+him to the cab. **For him** (recounted for 3000 in D119, §17): on skills 3
+and 4 the rail tunnel and the bay hold 25 PG-7V (a box in the tunnel on
+every skill, one in the first refuge and three in the bay from skill 3), a
+shell box and four shells' worth more, five AKM magazines, two boxes of
+rounds and two canisters; a medikit in the bay on every skill. His stage
+is the only one of the map where PG-7V may lead (§17). Tested: rockets and fuel there at least a third of his hit
+points, and the two's whole stock inside the skill's G3-8 band of the
+colossus and the monsters round him (skill 3: 8435 average damage for 5370
+HP, 1.57; skill 4: 8435 for 5910, 1.43; the band 1.3-1.6 / 1.2-1.45). BALANCE
+§8.4.3: the bay's stage carries PG-7V and fuel for more than his 48 shells.
 
 **Safe start** (`tests/test_safe_starts.py`, 2026-10-22): on skills 2, 3 and 4 no monster sees the start zone (the start and a step round it) within 768 units; Doom's own sight test, run on the built map. The pier's trooper moved from 928, 1344 (604 off) to the pier's far north-east corner, 976, 1568 (820 off): seen across the pier, past the safe distance. Same count, same zone.
 
@@ -391,24 +397,32 @@ in the barracks hall, the **RPG-7** on the dock's crane gallery (round 0,
 before the first Panzermensch, round 2, tested), the **ROKS-3** in the
 torpedo store (for the reactor and the bay); the **Hand Katyusha** in S3.
 The **AKM** (D116, `SD_Akm` 21008) at the head of the gallery's stair, by
-the RPG-7; **AKM magazines** (`SD_AkmAmmo` 21020) 4 / 3 / 2 on skills
-2 / 3 / 4: the mess and the reactor hall on every skill, the torpedo store
-from skill 3, the yard on skill 2 (tested).
+the RPG-7; **AKM magazines** (`SD_AkmAmmo` 21020) 10 / 15 / 17 on skills
+2 / 3 / 4 since D119 (§17; D116's 4 / 3 / 2 went with the scaling down).
 
-**Ammunition** (G3-8's ruler, MAP05's test: kills in IZh shells, a gunner
-2, the colossus 72, PG-7V at 2 shells, fuel at ¼, an AKM magazine 4.5;
-route only, no drop, no secret; v1.2, D116):
+**Ammunition, D119** (`docs/engine/BALANCE.md` §8: G3-8's ruler, kills in
+IZh shells, a gunner 2, the colossus 48 since D119 (was 72), PG-7V at 2
+shells, fuel at 13.5 / 80, an AKM magazine 4.5; route only, no drop, no
+secret). The route's ammunition is `AMMO` in `map.py`, apart from `ITEMS`:
+it appears from its lowest skill tier up, like the monsters it pays for.
 
 | | Skill 2 | Skill 3 | Skill 4 |
 |---|---|---|---|
-| Needed | 78 | 214 | 242 |
-| Placed | 388.0 | 370.5 | 342.0 |
-| Ratio (≥ 1.35, and < 3 on skill 4) | 4.97 | 1.73 | 1.41 |
+| Needed | 78 | 190 | 218 |
+| Placed | 123.5 | 260.4 | 279.4 |
+| Ratio (band 1.5-2.0 / 1.3-1.6 / 1.2-1.45) | 1.58 | 1.37 | 1.28 |
+| Before D119 (needed, placed, ratio; the colossus at 72) | 78, 388.0, 4.97 | 214, 370.5, 1.73 | 242, 342.0, 1.41 |
+| Ammunition pickups on the route (before D119) | 22 (49) | 40 (44) | 43 (35) |
+| Shell share, troopers' drops counted (≤ 35 %) | 32 % | 33 % | 33 % |
+| Damage by pool: shells / PPSh / AKM / PG-7V / fuel | 20 / 15 / 41 / 13 / 11 % | 27 / 13 / 29 / 24 / 7 % | 25 / 13 / 30 / 25 / 6 % |
 
-Also checked at every round of the route. **Health** on skill 4: 7
-stimpacks + 6 medikits, 8 health bonuses; **armour**: the flak vest in the
-dormitory (round 0), the heavy vest in the passage (round 3, before the
-yard's closets and the bay), 6 plates. Consumables scale down with skill.
+Also checked at every round of the route against the skill's floor, each
+pool only after its weapon, the AKM's magazines leading every stage and
+PG-7V at most 30 % of it but in the colossus's (the bay on skills 3 and 4,
+where they lead; §17). **Health** on skill 4: 7 stimpacks + 6 medikits, 8
+health bonuses; **armour**: the flak vest in the dormitory (round 0), the
+heavy vest in the passage (round 3, before the yard's closets and the bay),
+6 plates. Health and armour scale down with skill.
 
 ## 10. Engine elements used
 
@@ -581,3 +595,51 @@ Population and pickups only: no geometry, door, key, secret or poster moved.
   room to walk round the train, his flame and stomp, nothing on his death
   (no exit, no door, no log line); **V14** the tunnel-mouth gunner's burst
   down the rail tunnel.
+
+## 17. v1.3 record: D119's ammunition and the colossus at 3000 (2026-10-23)
+
+The CEO's playtest of Episodes 2 and 3: ammunition "siempre sale de sobras",
+"siempre acabas con la escopeta", and the bosses at classic Doom's level
+(the colossus 3000, the Spider Mastermind's, `mod-engineer`). Pickups only:
+no geometry, door, key, secret, monster or poster moved; the secrets'
+rewards are unchanged.
+
+- **The route's ammunition moved out of `ITEMS` into `AMMO`**, read as
+  (zone, editor number, x, y, *lowest* skill tier): every skill gets the
+  every-skill stock, skills 3-5 add what the medium monsters and the
+  colossus cost, skills 4-5 what the hard ones cost. Nested the other way
+  (Doom's consumables, more on easy) no skill-2 band could hold: skill 2
+  had 4.97 times its need.
+- **Removed, not only shrunk** on skills 2 and 3: 27 / 4 pickups fewer.
+  Skill 4 was already the leanest: its stock fell from 342 to 279.4
+  shell-equivalents, but it holds 43 pickups against 35, because the AKM,
+  which now leads every stage, comes 30 rounds a magazine (a box of
+  magazines would need an actor: `mod-engineer`). By kind, skill 2 / 3 / 4,
+  before -> after: shell boxes 9 -> 0 / 2 / 2; shells 15 / 12 / 7 -> 4 / 5 /
+  5; clips 7 / 6 / 4 -> 0; boxes of rounds 3 -> 3 / 6 / 6; loose PG-7V 4 / 4
+  / 3 -> 2 / 3 / 3; PG-7V boxes 3 -> 1 / 6 / 7; canisters 3 -> 2 / 3 / 3;
+  the fuel pack 1 -> 0; AKM magazines 4 / 3 / 2 -> 10 / 15 / 17.
+- **The colossus's stock recounted for 3000** (§9): inside the band on
+  skills 3 and 4 (1.57 / 1.43), PG-7V first.
+- **The mix** (BALANCE §8.3-8.4 with the PM's amendment of
+  2026-10-23): shells at most 35 % with the troopers' dropped IZhs counted;
+  each pool only once its weapon is met; outside a boss's or a mini-boss's
+  stage the newest bullet weapon leads (the AKM, else the PPSh: the largest
+  share of the stage's non-shell ammunition, at least 40 %) and PG-7V are
+  the strong second, at most 30 % of the stage's damage, so the shotgun is
+  not swapped for the rocket launcher; fuel never needs to lead and stays
+  at most 15 % of the map's damage (the ROKS-3 is toned down). The bay on skills 3 and 4 is
+  the colossus's stage: there PG-7V lead. Two magazines lie in the torpedo
+  store beside the ROKS-3's own 40.
+- Tests (`tests/test_map08_severomorsk.py`): the band per skill, every stage
+  at the skill's floor, the shell share with drops, each pool after its
+  weapon, the bullets leading and PG-7V ≤ 30 % of each stage but the
+  colossus's, fuel ≤ 15 % and the AKM ahead of the PPSh, the ammunition
+  following the monsters (fewer pickups on skills 2-3, less stock on skill
+  4), the
+  colossus's bay inside the band and his stage's PG-7V and fuel over his 48
+  shells; `ROKS_AVERAGE` 13.5, the colossus 48 shells. The magazines' 4 / 3
+  / 2 test is gone.
+- BALANCE §8.4.3's second half (every monster but the boss on shells and
+  rounds alone) was dropped by the PM; the ROKS-3 exception is the PM's
+  amendment. The engine pass is the PM's (D26).

@@ -991,3 +991,62 @@ SD_QUIT_12 = "Lenin et mira des de la paret.\nI no fa cara de content.\n\n(Prem 
 SD_QUIT_13 = "El teu torn s'acaba\nquan s'acabin els invasors.\n\n(Prem Y per sortir.)";
 SD_QUIT_14 = "Torna el fusell a l'armeria\ni signa el rebut dues vegades.\n\n(Prem Y per sortir.)";
 SD_QUIT_15 = "El te encara és calent, sergent.\nQueda't una estona més.\n\n(Prem Y per sortir.)";
+
+// Textos del propi motor (D119, 2026-10-23; el CEO: «'A secret is revealed'
+// no està traduït en català»). GZDoom no porta català: amb `language ca` el
+// motor queia a l'anglès per a les cadenes seves. Aquí només hi ha ids del
+// motor (gzdoom.pk3 g4.14.2, language.csv) que el jugador veu en partida i
+// que el DEHACKED de Freedoom no reescriu. Van NOMÉS a [ca]: l'anglès i el
+// rus ja els porta el motor, i definir-los a [default] esborraria les
+// traduccions del motor a la resta d'idiomes. Prova:
+// tests/test_engine_text_ca.py. Les tecles Y i N es queden com al motor
+// (la confirmació només accepta Y/N, com el rus «Нажмите Y или N»).
+// Secrets.
+SECRETMESSAGE    = "Has descobert un secret!";
+// Desar i carregar.
+GGSAVED          = "Partida desada.";
+TXT_SAVEFAILED   = "No s'ha pogut desar la partida";
+QSPROMPT         = "Vols sobreescriure la desada ràpida\n\n«%s»?\n\nPrem Y o N.";
+QLPROMPT         = "Vols carregar la desada ràpida\n\n«%s»?\n\nPrem Y o N.";
+QSAVESPOT        = "Encara no has triat cap espai de desada ràpida!\n\nPrem una tecla.";
+SAVEDEAD         = "No pots desar si no estàs jugant!\n\nPrem una tecla.";
+NEWSAVE          = "<Nova partida desada>";
+MNU_LOADGAME     = "Carrega partida";
+MNU_SAVEGAME     = "Desa partida";
+MNU_NOFILES      = "No hi ha cap partida";
+MNU_NOPICTURE    = "Sense imatge";
+MNU_DIFFVERSION  = "Una altra versió";
+MNU_DELETESG     = "Segur que vols esborrar la partida desada?\n";
+// Confirmacions.
+ENDGAME          = "Segur que vols acabar la partida?\n\nPrem Y o N.";
+PRESSYN          = "Prem Y o N.";
+PRESSKEY         = "Prem una tecla.";
+TXT_YES          = "Sí";
+TXT_NO           = "No";
+MSGON            = "Missatges: ACTIVATS";
+MSGOFF           = "Missatges: DESACTIVATS";
+// Pantalla d'estadístiques entre mapes (amb aquestes línies el motor hi
+// escriu text en lloc dels gràfics en anglès de Freedoom, com ja fa en rus).
+WI_FINISHED      = "Completat";
+WI_ENTERING      = "Ara entres a";
+TXT_IMKILLS      = "Baixes";
+TXT_IMITEMS      = "Objectes";
+TXT_IMSECRETS    = "Secrets";
+TXT_IMTIME       = "Temps";
+TXT_IMPAR        = "Rècord";
+// Estadístiques de l'automapa.
+AM_MONSTERS      = "Enemics:";
+AM_ITEMS         = "Objectes:";
+AM_SECRETS       = "Secrets:";
+// Morts sense enemic (l'RPG-7 propi, l'àcid, la caiguda...).
+OB_DEFAULT       = "%o ha mort.";
+OB_KILLEDSELF    = "%o s'ha matat.";
+OB_SUICIDE       = "%o s'ha suïcidat.";
+OB_FALLING       = "%o ha caigut de massa amunt.";
+OB_CRUSH         = "%o ha quedat esclafat.";
+OB_SLIME         = "%o ha mutat.";
+OB_LAVA          = "%o s'ha fos.";
+OB_WATER         = "%o no sabia nedar.";
+OB_EXIT          = "%o ha intentat marxar.";
+OB_BARREL        = "%o ha volat pels aires.";
+OB_MONTELEFRAG   = "%o ha quedat fet miques en un teletransport.";

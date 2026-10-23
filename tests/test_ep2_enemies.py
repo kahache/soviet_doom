@@ -384,8 +384,11 @@ class ModTests(unittest.TestCase):
 
     def test_colossus_is_a_boss(self):
         gbody = self.blocks["SD_General"][1]
+        # D119: classic Doom's level, the Spider Mastermind's 3000 (was the
+        # General's 3000 x 1.5 = 4500, D104 brief).
+        self.assertEqual(const_value(self.colossus, "SD_COLOSSUS_HEALTH"), 3000)
         self.assertEqual(const_value(self.colossus, "SD_COLOSSUS_HEALTH"),
-                         const_value(gbody, "SD_GENERAL_HEALTH") * 1.5)
+                         const_value(gbody, "SD_GENERAL_HEALTH"))
         for flag in ("+BOSS", "+NORADIUSDMG", "+DONTMORPH", "+BOSSDEATH"):
             self.assertIn(flag, gbody)
             self.assertIn(flag, self.colossus)

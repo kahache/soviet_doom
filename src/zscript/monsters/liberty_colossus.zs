@@ -33,7 +33,9 @@
 
 class SD_LibertyColossus : SD_Monster replaces SpiderMastermind
 {
-	const SD_COLOSSUS_HEALTH     = 4500;  // (H) the General's 3000 x 1.5 (D104 brief)
+	// D119 (2026-10-23): classic Doom's level. 4500 (the General's 3000 x
+	// 1.5) -> 3000, the Spider Mastermind's, the class this one replaces.
+	const SD_COLOSSUS_HEALTH     = 3000;  // Spider Mastermind parity (D119; was 4500, D104 brief)
 	const SD_COLOSSUS_RADIUS     = 44;    // 88 wide: still passes MAP06's 128 gate passage
 	const SD_COLOSSUS_HEIGHT     = 110;   // under the passage's 128; the courtyard is open sky
 	const SD_COLOSSUS_SPEED      = 10;    // (H) slower than the General's 12: a statue walking

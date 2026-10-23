@@ -74,6 +74,9 @@ CONCRETE_FLOOR = "SDFLR2"
 TILE = "SDFLR3"       # grey Soviet floor tiles: the inhabited half of the base
 CEIL_LAMP = "SDCEIL1"
 CEIL = "SDCEIL2"
+# D121: the engine's sky marker, not a lump of ours (check_pk3 knows it);
+# MAPINFO's sky1 for MAP01 is SDSKY6, the Zarya-7 sky (D113).
+SKY = "F_SKY1"
 
 # Batch 3 props (approved 2026-10-13, D29).
 CRATE_FACE = "SDCRAT1"   # 64x64: one crate; also the ends of a long crate
@@ -426,35 +429,6 @@ ITEMS = (
     ("s3_sump", ED_SHELL_BOX, 930, 1700, 4),
     ("s3_sump", ED_MEDIKIT, 930, 1820, 4),
     ("s3_sump", ED_MEDIKIT, 990, 1820, 4),
-    # Shells (4 each): 8 on every skill, +1 medium, +2 easy.
-    ("z5b_guard", ED_SHELLS, 1000, 1272, 4),     # was 980 1262: under the radio
-    ("z5b_guard", ED_SHELLS, 912, 1240, 4),
-    ("step_down_3", ED_SHELLS, 1312, 1150, 4),
-    ("z6_hangar", ED_SHELLS, 1320, 1050, 4),
-    ("z7_fuel_bay", ED_SHELLS, 1200, 1700, 4),
-    ("z6b_catwalk", ED_SHELLS, 2480, 1480, 4),
-    ("z9_booth", ED_SHELLS, 2480, 1800, 4),
-    ("z8_airlock", ED_SHELLS, 2780, 600, 4),
-    ("z5_service", ED_SHELLS, 900, 1150, 3),
-    ("z6_hangar", ED_SHELLS, 2600, 1376, 2),
-    ("z6_hangar", ED_SHELLS, 1700, 760, 2),
-    # Shell boxes (20): one in the hangar's south band, one in the bay.
-    ("z6_hangar", ED_SHELL_BOX, 1340, 470, 4),
-    ("z7_fuel_bay", ED_SHELL_BOX, 1560, 1700, 4),
-    # Clips (10): 5 on every skill, +1 medium, +2 easy.
-    ("z1_dorm", ED_CLIP, 600, 60, 4),
-    ("z3_alcove", ED_CLIP, 176, 672, 4),
-    ("z4_komnata", ED_CLIP, 32, 980, 4),
-    ("z5_service", ED_CLIP, 740, 1190, 4),
-    ("z6_hangar", ED_CLIP, 2560, 1250, 4),
-    ("z4_komnata", ED_CLIP, 608, 1380, 3),
-    ("z1_dorm", ED_CLIP, 40, 40, 2),
-    ("bulkhead_2", ED_CLIP, 300, 936, 2),
-    # Boxes of rounds (50): the PPSh's appetite, from the catwalk on.
-    ("z6b_catwalk", ED_CLIP_BOX, 2048, 1560, 4),
-    ("gantry", ED_CLIP_BOX, 2200, 352, 4),
-    ("z7_fuel_bay", ED_CLIP_BOX, 1560, 1950, 4),
-    ("z6_hangar", ED_CLIP_BOX, 2600, 1560, 4),
     # Stimpacks: 3 on every skill, +1 medium, +2 easy.
     ("z3_alcove", ED_STIMPACK, 176, 696, 4),
     ("z3_alcove_e", ED_HEALTH_BONUS, 336, 832, 4),
@@ -495,6 +469,42 @@ ITEMS = (
     ("tribune", ED_HEALTH_BONUS, 432, 1400, 4),   # clear of the lectern (D38)
     ("z10_lift", ED_HEALTH_BONUS, 3090, 600, 4),
     ("plinth_tank_2", ED_HEALTH_BONUS, 1240, 1824, 4),
+)
+
+# D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la
+# escopeta"), applied as docs/engine/BALANCE.md section 8 rules it: the
+# ammunition scales UP with the monsters, the other way from the consumables
+# above, so every skill sits in its band of what killing everything takes
+# (skill 2 1.5-2.0, skill 3 1.3-1.6, skill 4 1.2-1.45); shells, the Legion's
+# dropped IZhs counted, are no more than 35 % of it; and at every stage of the
+# route the newest weapon's pool leads the rest. Each spot is one an earlier
+# version already used for ammunition, so every pickup still stands where it
+# was checked to be walkable and reachable. (zone, editor number, x, y,
+# LOWEST skill tier it appears on - 2 = every skill, 3 = medium and up, 4 =
+# hard only, as a monster scales.)
+AMMO = (
+    # Z1-Z4, the TT-33 alone (and the ice axe): its rounds.
+    ("z4_komnata", ED_CLIP_BOX, 32, 980, 2),
+    ("z4_komnata", ED_CLIP_BOX, 608, 1380, 3),
+    ("z3_alcove", ED_CLIP_BOX, 176, 672, 4),
+    # Z5 to the fuel bay, the IZh met: its own 8 shells, four more by its
+    # rack and four in the bay from skill 3; the Legion's dropped IZhs bring
+    # the rest. Rounds for the TT-33 and, from the catwalk, the PPSh.
+    ("z5b_guard", ED_SHELLS, 1000, 1272, 3),     # was 980 1262: under the radio
+    ("z7_fuel_bay", ED_SHELLS, 1200, 1700, 3),
+    ("z5_service", ED_CLIP_BOX, 740, 1190, 2),
+    ("z6_hangar", ED_CLIP_BOX, 1320, 1050, 2),
+    ("z7_fuel_bay", ED_CLIP_BOX, 1560, 1950, 3),
+    ("z6_hangar", ED_CLIP_BOX, 1340, 470, 4),
+    # The catwalk on, the PPSh the newest: its boxes of rounds.
+    ("z6b_catwalk", ED_CLIP_BOX, 2048, 1560, 2),
+    ("z6_hangar", ED_CLIP_BOX, 2600, 1560, 2),
+    ("gantry", ED_CLIP_BOX, 2200, 352, 2),
+    ("z6_hangar", ED_CLIP_BOX, 2560, 1250, 3),
+    ("z6b_catwalk", ED_CLIP_BOX, 2480, 1480, 3),
+    ("z9_booth", ED_CLIP_BOX, 2480, 1800, 3),
+    ("z8_airlock", ED_CLIP_BOX, 2780, 600, 3),
+    ("z6_hangar", ED_CLIP_BOX, 2600, 1376, 4),
 )
 
 # Fuel drums (Freedoom's barrel) and floor lamps: part of the room, on
@@ -817,8 +827,13 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for n, (floor, x) in enumerate(((-16, 1504), (0, 1536), (16, 1568)), start=1):
         zone(f"cradle_step_{n}", floor, HANGAR_CEIL, [(x, 960, x + 32, 1088)],
              wall=STEEL, light=LIGHT_HANGAR)
+    # D121: the roof over the cradle is the launch slot, slid open - the
+    # cosmodrome's night over the transporter. Same height as the hangar's
+    # roof, so no wall is lost at its edge; the kerb, the spine and its steps
+    # are the cradle's (`like`) and open with it. Nothing else is: no door,
+    # no recess, no room under a lower ceiling touches the slot.
     zone("z6a_cradle", 32, HANGAR_CEIL, [(1600, 832, 2240, 1216)], wall=STEEL,
-         light=LIGHT_HANGAR)
+         light=LIGHT_HANGAR, ceiling=SKY)
     # One kerb, on the SOUTH edge only. A north kerb was built and the
     # sight-line test refused it: the line from SW-A to the foot of D4
     # crosses the cradle's north edge 4 units above the cradle floor.
@@ -1130,10 +1145,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     g.style_h(544, 2624, 2688, LineStyle(texture=STRIPE))
     g.style_h(800, 2624, 2688, LineStyle(texture=STRIPE))
 
-    # NOT BUILT (design section 13, point 5, open with the CEO): a strip of
-    # night sky over the hangar is one more rectangle painted over the
-    # hangar with ceiling flat F_SKY1, the IWAD's sky marker (MAPINFO already
-    # names SKY1, MOD-SPEC 5). Nothing above would have to move for it.
+    # Design section 13, point 5, decided by D121: the night sky is the
+    # cradle's open launch slot (above, Z6a).
     g.build()
 
     tm.add_thing(
@@ -1143,6 +1156,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle))
     for _zone, ednum, x, y, top in ITEMS:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
+    for _zone, ednum, x, y, lowest in AMMO:
+        tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
     for _zone, ednum, x, y in FIXTURES:
         tm.add_thing(Thing(x=x, y=y, type=ednum))
     for _zone, piece, reach, x, y, angle in RADIOS:
@@ -1170,3 +1185,5 @@ def lumps() -> list[tuple[str, bytes]]:
 WALL_TEXTURES = (CONC, STRIPE, STEEL, DOOR, PLAQUE, LENIN, MURAL, STALIN,
                  CRATE_FACE, CRATE_LONG, LOCKER) + SWITCH_FACES + MARX_ENGELS
 FLAT_TEXTURES = (LANE, CONCRETE_FLOOR, TILE, CEIL_LAMP, CEIL, CRATE_TOP)
+# The engine's own flats, not lumps of ours (check_pk3 knows them).
+BUILTIN_FLATS = (SKY,)

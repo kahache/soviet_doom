@@ -1364,8 +1364,8 @@ count actually packed under `assets/sprites/`.
 | 7 | The General | `SD_General` | Legion | 21106 | `Cyberdemon` | **3000 (H)** | 12 | 20 | 3× shell 8–64; summons 2 riflemen once below 50 % | `SDGN` `SDGL`, **installed** (D73) | **81 + 5** packed | 7 |
 | 8 | Heavy Panzermensch | `SD_PanzermenschSchwer` | Reich | 21107 | `BaronOfHell` | 1000 | 8 | 50 | as #6 | `SDPS`, **installed** (D67) | **71** packed | 0 |
 | 9 | Legion gunner | `SD_LegionGunner` | Legion | 21110 | `ChaingunGuy` | 80 (H) | 8 | 150 | bursts of 4–6× hitscan 3–15, then a 20-tic pause; drops `SD_AkmAmmo` | `SDLT` tinted brass, **provisional** (D116); final `SDLG` | 0 (70 to draw) | 6 |
-| 10 | Liberty Colossus | `SD_LibertyColossus` | Legion | 21111 | `SpiderMastermind` | 4500 (H) | 10 | 20 | 3× rocket 10–80 + blast 64 / fire jet 4–32 a blob / stomp 5–40, jumpable | `SDGN` ×1.3 tinted chrome, **provisional** (D116); final `SDLC` | 0 (81 to draw) | 7 |
-| 11 | The Consortium | `SD_Consortium` | both | 21112 | nothing | 9000 (H) | 8 (free; rooted it does not walk) | 10 | rockets 10–80, orb fans 6–48, fire 4–32; servants of both factions; a second phase at half health | `SDPS` ×1.75 tinted cobalt, **provisional** (D116); final `SDCN` | 0 (95 to draw) | 8 |
+| 10 | Liberty Colossus | `SD_LibertyColossus` | Legion | 21111 | `SpiderMastermind` | 3000 (D119; was 4500) | 10 | 20 | 3× rocket 10–80 + blast 64 / fire jet 4–32 a blob (its own, unchanged by D119's ROKS-3 cut) / stomp 5–40, jumpable | `SDGN` ×1.3 tinted chrome, **provisional** (D116); final `SDLC` | 0 (81 to draw) | 7 |
+| 11 | The Consortium | `SD_Consortium` | both | 21112 | nothing | 4000 (D119; was 9000) | 8 (free; rooted it does not walk) | 10 | rockets 10–80, orb fans 6–48, fire 4–32; servants of both factions; a second phase at half health | `SDPS` ×1.75 tinted cobalt, **provisional** (D116); final `SDCN` | 0 (95 to draw) | 8 |
 | — | *cloaked hound* | *reserved, not implemented* | Reich | *21108 reserved* | `Spectre` | 150 | 12 | 180 | as #4 | `SDHN` `+SHADOW` | 0 | 0 |
 
 Totals for F5: **8 classes + 4 projectile actors, ≈ 560 sprite images,

@@ -426,10 +426,10 @@ skill.
 |---|---|---|---|---|
 | Ice axe / IZh / PPSh | 1 / 1 / 1 | 1 / 1 / 1 | 1 / 1 / 1 | Z1 rack / Z5b rack / Z6b catwalk |
 | RPG-7 + rocket box + base schematic | secret | secret | secret | S2 |
-| Shells ×4 | 11 | 9 | 8 | guard post → airlock |
-| Box of shells (20) | 2 (+1 in S3) | 2 (+1) | 2 (+1) | hangar south band, fuel bay; S3 |
-| Clips (10) | 8 | 6 | 5 | dorm, corridor alcove, komnata, service corridor, hangar |
-| Box of rounds (50) | 4 | 4 | 4 | catwalk, gantry, fuel bay, hangar north-east |
+| Shells ×4 (D119, §19.1) | — | 2 | 2 | guard post, fuel bay |
+| Box of shells (20) | (S3) | (S3) | (S3) | S3 only since D119 |
+| Clips (10) | — | — | — | none since D119 |
+| Box of rounds (50) (D119) | 6 | 12 | 15 | komnata, alcove, service corridor, hangar, fuel bay, catwalk, gantry, booth, airlock |
 | Stimpack | 6 (+2 in S1) | 4 (+2) | 3 (+2) | |
 | Medikit | 4 (+2 in S3) | 3 (+2) | 2 (+2) | |
 | Health bonus | 17 | 17 | 17 | one in every nook v3 made |
@@ -450,6 +450,7 @@ secrets: an IZh barrel averages 80 damage and a PPSh round 8
 | needed | 26 | 58 | 77 |
 | × 1.35 (G3-8) | 35.1 | 78.3 | 104.0 |
 | placed | 123.5 | 113.5 | **108.5** (1.41×) |
+| **placed since D119** (§19.1, the band 1.5–2.0 / 1.3–1.6 / 1.2–1.45) | **41.5 (1.60×)** | **79.5 (1.37×)** | **94.5 (1.23×)** |
 | what the stand-ins drop, on top | +29.5 | +39.0 | +60.5 |
 
 **What enemies drop (D35), and how much the balance leans on it.** D35:
@@ -465,8 +466,9 @@ ends near 2.2× and skill 2 is lavish. Skill 2 is meant to be lavish; for 3
 and 4 the F5 playtest decides, and the first cut, if one is needed, is
 placed shells on skills 3–4.
 
-Principle (unchanged): **monsters scale up with skill, consumables scale
-down, weapon availability never changes.** A skill-4 player who finds no
+Principle: **monsters scale up with skill, consumables scale down, weapon
+availability never changes** — except ammunition, which since D119 scales
+up with the monsters (§19.1). A skill-4 player who finds no
 secret must still be able to finish — G3-5 for the run, G3-8 for the ammo.
 
 ## 9. Engine elements used
@@ -612,7 +614,8 @@ is retired; the v1 walk showed what it cost (the section after §15).
   MAP01 v1 is entirely interior and the hangar's launch-pad gate stays shut.
   If the CEO wants a strip of night sky over the hangar, `SKY1` is already
   declared in MOD-SPEC §5 and the roof slit is one rectangle with ceiling
-  `F_SKY1` (`map.py` marks the spot) — still open, §13 point 5.
+  `F_SKY1` (`map.py` marks the spot) — decided by D121: the cradle's open
+  launch slot, §19.2.
 
 ### Not requested on purpose
 
@@ -684,8 +687,9 @@ of how to grow the map (D33). What is **decided** says where; what is
    found v2 "muy corto/pequeño" and chose to densify the same plan to a
    first map's density and 5–8 minutes; v3 keeps 21/33/46 monsters (§8).
    Whether v3 *plays* 5–8 minutes is for the walk of v3 (point 6).
-5. **A strip of night sky** over the hangar (A6) — **OPEN, not built in
-   v3 on purpose** (the PM's brief: "sigue abierto con el CEO"). Yes or no;
+5. **A strip of night sky** over the hangar (A6) — **DECIDED, D121
+   (2026-10-23): the cradle's launch slot, §19.2.** Before: open, not built in
+   v3 on purpose (the PM's brief: "sigue abierto con el CEO"). Yes or no;
    "yes" is one rectangle over the hangar with ceiling `F_SKY1` (the spot
    is marked in `map.py`; `F_SKY1` would then be listed in MOD-SPEC §5),
    no new asset.
@@ -1961,10 +1965,10 @@ document is what that run meets. Tested
 | R5 | No softlock: every sector reachable, a way back from every one, every door tall enough, no switch press can consume a gate, the secrets entered and left | ✓ | ✓ | ✓ | `test_nothing_is_a_one_way_trap`, `test_every_sector_is_reachable_except_the_window`, `test_no_press_can_consume_a_gate`, `test_every_secret_is_reachable_and_left_again` |
 | R6 | No drum or floor lamp (on every skill, immovable) leaves a doorway or its approach narrower than a body | ✓ | ✓ | ✓ | `test_no_solid_fixture_narrows_a_doorway` |
 | R7 | Every monster's body fits where it stands; every pickup is on walkable, reachable floor | ✓ | ✓ | ✓ | `test_every_monster_has_room_for_its_body`, `test_every_pickup_can_be_picked_up` |
-| R8 | Monsters 21 / 33 / 46, nested upwards; consumables nested downwards | 21 | 33 | 46 | `test_monsters_per_skill`, `test_monsters_scale_up`, `test_consumables_scale_down` |
-| R9 | G3-8: placed ammo outside the secrets ≥ 1.35 × the shells to kill everything | 123.5 for 26 (4.75×) | 113.5 for 58 (1.96×) | 108.5 for 77 (1.41×) | `test_g3_8_the_ammo_budget` |
+| R8 | Monsters 21 / 33 / 46, nested upwards; consumables nested downwards, ammunition upwards (D119) | 21 | 33 | 46 | `test_monsters_per_skill`, `test_monsters_scale_up`, `test_consumables_scale_down`, `test_ammunition_scales_up_and_there_is_less_of_it` |
+| R9 | G3-8 as D119 reads it (§19.1): placed ammo outside the secrets inside the skill's band of the shells to kill everything; shells ≤ 35 % with the drops | 41.5 for 26 (1.60×) | 79.5 for 58 (1.37×) | 94.5 for 77 (1.23×) | `test_g3_8_the_ammo_budget` |
 | R10 | BALANCE §7: G3-8's per-kill shells are never kinder than the ruler's barrels-to-kill (rifleman, trooper, stormtrooper 1; hound 2; Doughboy 5; Panzermensch 7) | ✓ | ✓ | ✓ | `test_ammo_against_hit_points_by_skill_and_by_stage` |
-| R11 | Damage placed against hit points, **cumulative by stage**: placed ammo outside the secrets, at the average damage of BALANCE §2 (a shell 80, a round 8), plus the 50 starting rounds, against the HP of BALANCE §7 met so far; ≥ 1.35 at every stage | before the switches 9,960 / 350 (28.5×); all 10,280 / 730 (14.1×) | 9,160 / 860 (10.7×); 9,480 / 2,320 (4.1×) | 8,760 / 1,280 (6.8×); 9,080 / 2,920 (**3.1×**) | `test_ammo_against_hit_points_by_skill_and_by_stage` |
+| R11 | Damage placed against hit points, **cumulative by stage**: placed ammo outside the secrets, at the average damage of BALANCE §2 (a shell 80, a round 8), plus the 50 starting rounds, against the HP of BALANCE §7 met so far; ≥ 1.35 at every stage (v3's figures; since D119 ≥ the skill's band floor, §19.1) | before the switches 9,960 / 350 (28.5×); all 10,280 / 730 (14.1×) | 9,160 / 860 (10.7×); 9,480 / 2,320 (4.1×) | 8,760 / 1,280 (6.8×); 9,080 / 2,920 (**3.1×**) | `test_ammo_against_hit_points_by_skill_and_by_stage` |
 | R12 | Healing and armour outside the secrets on skill 4 (G3-5's other half) | — | — | ≥ 5 heals, ≥ 6 armour bonuses | `test_health_and_armour_exist_outside_the_secrets_on_skill_4` |
 | R13 | G3-F1: every pickup in the komnata is reached through a lane at least 40 wide (a body and 4 each side), the tribune's east bonus included (§17.15) | ✓ | ✓ | ✓ | `test_every_komnata_pickup_is_reached_with_room_to_spare` |
 | R14 | D43: the radio is in the guard post on every skill; its zone (reach + 64) holds no floor but the post's and the corridor's; every lane past it is at least 40; no step of any MAP01 route touches it (§17.16) | ✓ | ✓ | ✓ | the six `test_*radio*` tests |
@@ -2001,3 +2005,87 @@ one QA should watch.
   done (63dac93), carried over to the ice axe (D40), and the rack pickup
   seen in engine (Q6).
 - The CEO's G3-9.
+
+## 19. D119 and D121 (2026-10-23): less ammunition, a mix by weapon, and the night sky
+
+### 19.1 Ammunition (D119)
+
+The CEO, after Episodes 2 and 3: ammunition "siempre sale de sobras" and
+"siempre acabas con la escopeta". MAP01 was approved and played; this pass
+takes ammunition away and changes its kind, nothing else.
+
+The rule is `docs/engine/BALANCE.md` §8 (owner `mod-engineer`): placed
+ammunition on the route over what killing every monster takes (G3-8's
+ruler, in shells) inside a band per skill — **skill 2 1.5–2.0, skill 3
+1.3–1.6, skill 4 1.2–1.45**; shells, counting what the Legion troopers'
+dropped IZhs carry (2 shells each since D119), **no more than 35 %** of the
+ammunition placed plus every drop; at every stage of the readiness check the
+**newest weapon's pool leads** the ammunition other than shells (largest
+share, at least 40 %) and no pool lies before its weapon — with the PM's
+amendment: fuel never leads (at most 15 % of the map's ammunition; the
+weapon before the ROKS-3 leads), and outside a boss's (or mini-boss's)
+stage the PG-7V are at most 30 % of the stage and the newest bullet
+weapon's rounds lead; in the boss's stage the PG-7V and fuel together cover
+at least the boss's shells. Ammunition now
+scales **up** with skill, with the monsters (the other consumables still
+scale down): a pickup's last field in the `AMMO` table is the lowest tier it
+appears on. Every spot is one an earlier version already used for
+ammunition, so every pickup still stands where it was checked to be
+walkable and reachable; no monster, weapon, door or room moved.
+
+| Ammunition on the route | Skill 2 | Skill 3 | Skill 4 | Where |
+|---|---|---|---|---|
+| Shells ×4 | — | 2 | 2 | guard post (by the IZh's rack), fuel bay |
+| Box of shells (20) | — | — | — | (v3: 2 on the route) |
+| Clips (10) | — | — | — | (v3: 8 / 6 / 5) |
+| Box of rounds (50) | 6 | 12 | 15 | komnata ×2 and the corridor alcove (the TT-33's stretch); service corridor, hangar ×4, fuel bay; catwalk ×2, gantry, booth, airlock |
+| **pickups** | **6** (v3: 25) | **14** (v3: 21) | **17** (v3: 19) | |
+
+The secrets keep what they had (S2's RPG-7 and rockets, S3's backpack and
+box of shells): the ratio does not count them.
+
+| | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| needed (shells) | 26 | 58 | 77 |
+| placed before D119 | 123.5 (4.75×) | 113.5 (1.96×) | 108.5 (1.41×) |
+| **placed now** | **41.5 (1.60×)** | **79.5 (1.37×)** | **94.5 (1.23×)** |
+| band | 1.5–2.0 | 1.3–1.6 | 1.2–1.45 |
+| shells: placed (the IZh's 8 included) | 8 | 16 | 16 |
+| shell share, drops counted (≤ 0.35) | 0.34 | 0.31 | 0.33 |
+| shell share of what is placed, before → now | 74 % → 19 % | 74 % → 20 % | 74 % → 17 % |
+
+**By weapon.** Up to the guard post the TT-33 is alone: its rounds only, no
+shell (tested). From the guard post the IZh is met, but the IZh is BALANCE
+§8.4's exception (shells have their own rule): its own 8 shells, four by its
+rack and four in the fuel bay from skill 3, and the troopers' dropped IZhs
+(6 / 8 / 13 troopers). From the catwalk the PPSh-41 is the newest and the
+boxes of rounds are its: catwalk ×2, the booth, the airlock. Every stretch
+holds its floor (damage placed so far plus the 50 starting rounds over the
+hit points met so far, ≥ 1.5 / 1.3 / 1.2): skill 4 2.19 up to the guard
+post, 3.51 to the catwalk, 2.73 to the exit; the readiness stages (before
+and after the switches) 5.9 and 2.7 on skill 4.
+
+**Tests** (`tests/test_map01.py`): `test_g3_8_the_ammo_budget` (the band and
+the share), `test_ammunition_scales_up_and_there_is_less_of_it` (nested
+upwards, fewer pickups than v3 on every skill),
+`test_the_newest_weapons_pool_leads_every_stage`,
+`test_every_weapon_stretch_is_paid_for`, and
+`test_ammo_against_hit_points_by_skill_and_by_stage` at each skill's floor.
+`test_consumables_scale_down` now leaves the ammunition out.
+
+### 19.2 The night sky (D121; §13 point 5 decided)
+
+MAPINFO gives MAP01 `sky1 = "SDSKY6"` (D113) and no ceiling showed it. The
+sky is now the **transporter cradle's launch slot, slid open**: the ceiling
+of Z6a (`z6a_cradle`, 640 × 384, and what is painted on it — the south
+kerb, the erector spine and its three steps) is `F_SKY1`, the engine's sky
+marker (`SKY` in `map.py`, `BUILTIN_FLATS`, not a lump of ours). The slot is
+at the hangar roof's own height (288), so no wall is lost at its edge; no
+door, recess or room under a lower ceiling touches it (tested,
+`test_the_night_sky_is_the_cradles_open_launch_slot`); light unchanged
+(176). Nothing moved; no monster, pickup or sight line changed.
+
+**Engine checklist for the PM** (D26: this role does not start GZDoom): the
+sky over the cradle shows `SDSKY6`, with no hall of mirrors at the slot's
+edge from the hangar floor, the catwalk and the gantry; `g3-auto`
+still PASSes on skills 2–4; the ammunition reads less in a skill-3 run.

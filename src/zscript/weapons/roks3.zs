@@ -17,7 +17,10 @@ class SD_Roks3 : PlasmaRifle replaces PlasmaRifle
 {
 	// Reference: Doom's PlasmaRifle fires one PlasmaBall (avg 22.5) every 3
 	// tics = ~262 damage/s at unlimited range. The ROKS-3 fires at the same
-	// rate for roughly 60% of that, and only reaches 528 map units.
+	// rate for 60% of that since D119 (157.5/s, the jet's damage is
+	// SD_FLAME_DAMAGE in flame_blob.zs; 80% before), and only reaches 528
+	// map units. The cadence stays 3 tics: the fire sound's jet loop is cut
+	// to exactly 3 tics (tools/audio/gen_weapon_alts.py).
 	const SD_ROKS3_SPREAD    = 4.0;   // degrees of random cone per jet
 	const SD_ROKS3_AMMO_USE  = 1;     // one fuel unit per jet
 	const SD_ROKS3_AMMO_GIVE = 40;    // same as Doom's plasma rifle pickup

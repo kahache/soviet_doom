@@ -113,8 +113,8 @@ BRICK_DADO = "SDBRCK2"  # the same brick whitewashed to 64: the parapet over the
 DOOR_YELLOW = "SDDOORY"     # the yellow gatehouse's leaf
 DOOR_RED = "SDDOORR"        # the Spasskaya gate's leaf
 GATE = "SDGATE1"        # 128x128 shut sliding gate: courtyard gates, the exit gate, the GUM's south gate
-FLAG_REICH = "SDFLAG1"  # the Fourth Reich's banner on SDBRCK1 (D12): the courtyard's pair
-FLAG_LEGION = "SDFLAG2"     # the Liberty Legion's banner on SDBRCK1 (D12): the courtyard's pair
+FLAG_USSR = "SDFLAG1"      # the USSR state flag on SDBRCK1 (D119; the Reich's banner before): the courtyard's pair
+FLAG_STANDARD = "SDFLAG2"  # a Red Army standard on SDBRCK1 (D119; the Legion's banner before): the courtyard's pair
 PLATE = "SDFLR4"        # 64x64 chequer plate: the parade vehicles' decks
 # Episode 2, Moscow (D107): Red Square and the Kremlin
 COBBLES = "SDCOBL1"     # flat: the square's dark setts, the Kremlin courtyard
@@ -139,8 +139,8 @@ SHOPFRONT = SHOPFRONTS[0]   # what the line's walls are built in; dress_shopfron
 SHOPFRONT_WIDTH = 64
 GLASS_ROOF = "SDGUMR1"  # flat: the GUM's glass vault from below, over the line, the atrium, the gallery
 MUSEUM = "SDMUSE1"      # 64x128 the Historical Museum's brick and white dressings: its wall, the Resurrection gate
-FLAG_REICH_KREMLIN = "SDFLAG3"   # SDFLAG1's banner on the Kremlin's SDKREM1: the wall's crown
-FLAG_LEGION_KREMLIN = "SDFLAG4"  # SDFLAG2's banner on SDKREM1: the wall's crown
+FLAG_GONFALON_KREMLIN = "SDFLAG3"  # a parade gonfalon on the Kremlin's SDKREM1 (D119): the wall's crown
+FLAG_TORN_KREMLIN = "SDFLAG4"      # the USSR flag after the battle, torn, on SDKREM1 (D119): the wall's crown
 # The engine's sky marker (check_pk3 BUILTIN_TEXTURE_NAMES); MAPINFO's sky1
 # says which picture: SDSKY2, Moscow at night (D113).
 SKY = "F_SKY1"
@@ -229,7 +229,7 @@ TOWER_SPIRE = TOWER_STAGE + TILE_SIZE   # 704: the green tent
 RUBY_STAR_X = 1728
 RUBY_STAR_SCALE = 2.0
 PARAPET = 128           # the stone parapet over the slope: seen over, not climbed
-FLAG_SILL = MERLON_TOP - TILE_SIZE      # 128: an occupier's flag hung in the crown, one tile
+FLAG_SILL = MERLON_TOP - TILE_SIZE      # 128: a flag hung in the crown, one tile
 ARENA_SKY = 512
 YARD_SKY = 256
 MAUSOLEUM = (64, 112, 144)  # its three granite tiers (a prop: never walked, never fought on)
@@ -360,7 +360,7 @@ TRIBUNE_N_Y = (2560, 3008)
 TRIBUNE_S_Y = (1856, 2112)
 TRIBUNE_X = (1664, 1984)        # a top row 96 deep, then 7 steps of 32 down to the square
 TRIBUNE_TOP_DEPTH = 96
-FLAGS_ON_THE_WALL = ((3136, FLAG_REICH_KREMLIN), (3264, FLAG_LEGION_KREMLIN))
+FLAGS_ON_THE_WALL = ((3136, FLAG_GONFALON_KREMLIN), (3264, FLAG_TORN_KREMLIN))
 FLAG_WIDTH = 64
 # The square's floor: dark setts, crossed by three lines of pale granite slabs
 # (SDCOBL2, one line per 64 tile), each a strip of its own sector one tile
@@ -369,7 +369,7 @@ SQUARE_LINES_Y = (1728, 2240, 2816)
 SQUARE_LINE_DEPTH = 64
 # The parade banners (SDBANR1) on the Kremlin wall's face, each one 64 span of
 # it, whole: two by the Spasskaya gate, one either side of the mausoleum, two
-# at the north end. None under the occupiers' flags.
+# at the north end. None under the crown's flags.
 BANNERS_Y = (1664, 1792, 2112, 2432, 3008, 3392)
 BANNER_WIDTH = 64
 # World-aligned textures: {lump: the height their tile rows count from}. Their
@@ -377,7 +377,7 @@ BANNER_WIDTH = 64
 # brick, the bays and the frieze run on unbroken from one line to the next.
 ALIGN_PERIOD = 128      # every aligned lump is 128 high and 64 or 128 wide
 ALIGNED = {KREMLIN: 0, MERLON: 0, BANNER: 0, GUM_FACADE: 0, SPASSKAYA: TOWER_BASE,
-           FLAG_REICH_KREMLIN: 0, FLAG_LEGION_KREMLIN: 0, MUSEUM: 0}
+           FLAG_GONFALON_KREMLIN: 0, FLAG_TORN_KREMLIN: 0, MUSEUM: 0}
 # The missile carriers' flanks: SDARMR1 with its star (rows 29-88, measured on
 # the approved lump) whole on a 64-high hull, one star per 128.
 STAR_ROWS = (29, 88)
@@ -405,9 +405,9 @@ VEHICLES = (
 # is whole and the facade shows above and below it. Floor 64: not a step.
 PORTRAIT_SILL = 64
 PORTRAIT_NICHES = {"lenin": (2496, 2624), "stalin": (2112, 2240)}     # y spans, facade x 3456
-# The Kremlin courtyard's north wall: the occupiers' two banners (D12) hang
-# between Stalin and the Marx-Engels slot, each picture in a recess a
-# poster high (the Kremlin taken: their flags among our portraits).
+# The Kremlin courtyard's north wall: two Soviet flags (D119; the occupiers'
+# banners until then) hang between Stalin and the Marx-Engels slot, each
+# picture in a recess a poster high, among the portraits.
 COURTYARD_PORTRAITS = {"stalin": (1024, 1152), "slot": (576, 704)}    # x spans, arena y 2048
 # Every picture on the map: (name, texture, axis, coord, lo, hi), the segment
 # one GridMap style paints. The slots wear Marx (the GUM) and Engels (the Kremlin).
@@ -645,93 +645,6 @@ ITEMS = (
     ("z4_north", ED_PPSH, 3800, 3500, 4),
     ("z5_gallery_n", ED_RPG7, 4288, 2880, 4),
     ("z6_tribune_s_top", ED_ROKS3, 1712, 1984, 4),
-    # Shell boxes (20).
-    ("z1_hall", ED_SHELL_BOX, 4400, 4906, 4),
-    ("z3_street", ED_SHELL_BOX, 3700, 4000, 4),
-    ("z4_north", ED_SHELL_BOX, 4200, 3500, 4),
-    ("z4_shop_a", ED_SHELL_BOX, 3872, 1700, 4),
-    ("z5_atrium", ED_SHELL_BOX, 3880, 2450, 4),
-    ("z5_shop_u1", ED_SHELL_BOX, 4550, 2950, 4),
-    ("z6_square", ED_SHELL_BOX, 3300, 2200, 4),
-    ("z6_square", ED_SHELL_BOX, 2500, 3350, 4),
-    ("z6_square", ED_SHELL_BOX, 1920, 2500, 4),
-    ("z6_tribune_s_top", ED_SHELL_BOX, 1712, 2080, 4),
-    ("z7_park", ED_SHELL_BOX, 1750, 1000, 4),
-    ("z7_park", ED_SHELL_BOX, 2850, 800, 4),
-    ("z9_arena", ED_SHELL_BOX, 600, 900, 4),
-    ("z9_arena", ED_SHELL_BOX, 1300, 1980, 4),
-    ("z6_square", ED_SHELL_BOX, 3350, 2700, 3),
-    ("z4_south", ED_SHELL_BOX, 4250, 1250, 3),
-    ("z3_street", ED_SHELL_BOX, 2900, 3900, 2),
-    # Shells (4).
-    ("z1_plat_s", ED_SHELLS, 4800, 4556, 4),
-    ("z2_pavilion", ED_SHELLS, 3600, 4700, 4),
-    ("z3_street", ED_SHELLS, 3500, 4050, 4),
-    ("z4_arcade", ED_SHELLS, 3560, 2000, 4),
-    ("z6_square", ED_SHELLS, 3350, 1300, 4),
-    ("z7_park", ED_SHELLS, 2000, 520, 4),
-    ("z1_hall", ED_SHELLS, 4500, 4776, 3),
-    ("z3_street", ED_SHELLS, 4300, 3700, 3),
-    ("z4_south", ED_SHELLS, 4300, 1300, 3),
-    ("z6_square", ED_SHELLS, 2200, 3400, 3),
-    ("z1_hall", ED_SHELLS, 4700, 4956, 2),
-    ("z4_north", ED_SHELLS, 3560, 3360, 2),
-    ("z6_square", ED_SHELLS, 3400, 3400, 2),
-    # Boxes of rounds (50): the PPSh's appetite.
-    ("z4_north", ED_CLIP_BOX, 4000, 3540, 4),
-    ("z4_shop_d", ED_CLIP_BOX, 3872, 3200, 4),
-    ("z5_gallery_s", ED_CLIP_BOX, 4288, 1600, 4),
-    ("z6_square", ED_CLIP_BOX, 3350, 1900, 4),
-    ("z6_square", ED_CLIP_BOX, 2650, 3400, 4),
-    ("z7_park", ED_CLIP_BOX, 2400, 1000, 4),
-    ("z8_passage", ED_CLIP_BOX, 1440, 1500, 4),
-    ("z9_arena", ED_CLIP_BOX, 1300, 800, 4),
-    ("z6_square", ED_CLIP_BOX, 3300, 3400, 3),
-    ("z5_passage_s", ED_CLIP_BOX, 4180, 1450, 2),
-    # Clips (10).
-    ("z1_plat_n", ED_CLIP, 4600, 5156, 4),
-    ("z3_street", ED_CLIP, 3000, 4050, 4),
-    ("z4_arcade", ED_CLIP, 3560, 3200, 4),
-    ("z7_park", ED_CLIP, 1700, 700, 4),
-    ("z2_pavilion", ED_CLIP, 3780, 4700, 3),
-    ("z1_plat_s", ED_CLIP, 4200, 4556, 2),
-    # PG-7V: a box with the RPG-7, boxes on the square, the slope and the
-    # gate's passage, loose rounds round the boss's courtyard.
-    ("z5_gallery_n", ED_ROCKET_BOX, 4288, 2800, 4),
-    ("z6_square", ED_ROCKET_BOX, 3350, 2500, 4),
-    ("z7_park", ED_ROCKET_BOX, 2100, 1000, 4),
-    ("z8_passage", ED_ROCKET_BOX, 1440, 1580, 4),
-    ("z9_arena", ED_ROCKET_BOX, 560, 820, 4),
-    ("z9_arena", ED_ROCKET_BOX, 560, 2000, 4),
-    # D116, the colossus's 4500 HP (the General had 3000): two more boxes,
-    # one by the gate as he is met, one behind his dais for the player who
-    # circles him (docs/levels/MAP06-red-square.md section 10).
-    ("z9_arena", ED_ROCKET_BOX, 1250, 1300, 4),
-    ("z9_arena", ED_ROCKET_BOX, 640, 1536, 4),
-    ("z9_arena", ED_ROCKET, 1300, 900, 4),
-    ("z9_arena", ED_ROCKET, 1300, 1300, 4),
-    ("z9_arena", ED_ROCKET, 1300, 1750, 4),
-    ("z9_arena", ED_ROCKET, 560, 1200, 4),
-    ("z9_arena", ED_ROCKET, 560, 1850, 4),
-    ("z6_square", ED_ROCKET, 3400, 2100, 4),
-    ("z6_square", ED_ROCKET, 3400, 2650, 4),
-    ("z7_park", ED_ROCKET, 2900, 700, 4),
-    ("z6_square", ED_ROCKET_BOX, 2000, 3400, 3),
-    # AKM magazines (30), D116: 4 / 3 / 2 on skills 2 / 3 / 4, none in the
-    # boss's courtyard (the boss is the RPG-7's); the rifle itself is
-    # MAP05's, and the gunners drop 15 rounds each (not counted).
-    ("z4_north", ED_AKM_AMMO, 3720, 3500, 4),
-    ("z6_square", ED_AKM_AMMO, 3350, 2050, 4),
-    ("z7_park", ED_AKM_AMMO, 2700, 950, 3),
-    ("z5_gallery_n", ED_AKM_AMMO, 4288, 2960, 2),
-    # Fuel for the ROKS-3: a canister beside it, more on the slope and before
-    # the boss, a pack in the gate's passage.
-    ("z6_tribune_s_top", ED_CELL, 1712, 1900, 4),
-    ("z7_park", ED_CELL, 1700, 900, 4),
-    ("z9_arena", ED_CELL, 600, 1000, 4),
-    ("z9_arena", ED_CELL, 640, 2000, 4),
-    ("z8_passage", ED_CELL_PACK, 1520, 1580, 4),
-    ("z9_arena", ED_CELL, 1300, 1450, 3),
     # Stimpacks: 6 on every skill, +3 medium, +2 easy.
     ("z1_plat_s", ED_STIMPACK, 5000, 4556, 4),
     ("z3_street", ED_STIMPACK, 4300, 4050, 4),
@@ -773,6 +686,74 @@ ITEMS = (
     ("z3_gate_arch_1", ED_HEALTH_BONUS, 2880, 3616, 4),
     ("z7_porch", ED_HEALTH_BONUS, 2752, 1056, 4),
     ("z9_exit_porch", ED_HEALTH_BONUS, 480, 1536, 4),
+)
+
+# D119 (the CEO's playtest: "siempre sale de sobras", and always on the
+# shotgun): AMMUNITION FOLLOWS THE MONSTERS, not the consumables' rule, so it
+# grows with skill as they do. Rows: (zone, editor number, x, y, lowest tier,
+# highest tier), udmf.skill_tier's range (2 easy, 3 medium, 4 hard).
+# G3-8's D119 bands (docs/engine/BALANCE.md): 1.5-2.0 x the ruler on skill 2,
+# 1.3-1.6 on 3, 1.2-1.45 on 4; shells at most ~35 % of the damage placed; the
+# rest for the weapons of each stretch, the newest first: the PPSh's boxes
+# through the GUM and the square, rockets and fuel in moderation (the ROKS-3
+# is being toned down, D119) and most of them for the colossus (3000 HP
+# since D119, the Spider Mastermind's). Two AKM magazines on every skill:
+# the rifle is MAP05's, and a pistol start never owns it.
+AMMO = (
+    # Stage 0: the station (the IZh), the pavilion, the street, the GUM
+    # (the PPSh in the north hall, the RPG-7 on the north gallery).
+    ("z1_hall", ED_SHELL_BOX, 4400, 4906, 2, 4),
+    ("z1_plat_s", ED_SHELLS, 4800, 4556, 2, 3),
+    ("z3_street", ED_SHELLS, 3500, 4050, 2, 2),
+    ("z3_street", ED_SHELL_BOX, 3700, 4000, 4, 4),
+    ("z2_pavilion", ED_CLIP_BOX, 3780, 4700, 2, 4),
+    ("z1_hall", ED_CLIP_BOX, 4500, 4776, 4, 4),
+    ("z4_north", ED_CLIP_BOX, 4000, 3540, 2, 4),
+    ("z4_north", ED_AKM_AMMO, 3720, 3500, 2, 4),
+    ("z4_shop_d", ED_CLIP_BOX, 3872, 3200, 2, 4),
+    ("z4_arcade", ED_CLIP_BOX, 3560, 3200, 3, 4),
+    ("z4_arcade", ED_CLIP_BOX, 3560, 2000, 2, 4),
+    ("z5_gallery_n", ED_ROCKET_BOX, 4288, 2800, 2, 4),
+    ("z5_gallery_s", ED_CLIP_BOX, 4288, 1600, 2, 4),
+    ("z5_passage_s", ED_CLIP_BOX, 4180, 1450, 4, 4),
+    ("z1_plat_n", ED_CLIP_BOX, 4600, 5156, 4, 4),
+    ("z3_street", ED_CLIP_BOX, 2900, 3900, 4, 4),
+    # Stage 1: the square and the south stand (the ROKS-3).
+    ("z6_square", ED_SHELL_BOX, 3300, 2200, 3, 4),
+    ("z6_square", ED_AKM_AMMO, 3350, 2050, 2, 4),
+    ("z6_square", ED_CLIP_BOX, 3350, 1900, 2, 4),
+    ("z6_square", ED_CLIP_BOX, 2650, 3400, 2, 4),
+    ("z6_square", ED_ROCKET_BOX, 3350, 2500, 4, 4),
+    ("z6_square", ED_CLIP_BOX, 3350, 2700, 2, 4),
+    ("z6_tribune_s_top", ED_CELL, 1712, 1900, 2, 4),
+    ("z6_square", ED_CLIP_BOX, 3300, 3400, 3, 4),
+    ("z6_square", ED_CLIP_BOX, 3350, 1300, 4, 4),
+    ("z6_square", ED_ROCKET_BOX, 2000, 3400, 3, 4),
+    ("z6_square", ED_CLIP_BOX, 2200, 3400, 4, 4),
+    ("z6_square", ED_CLIP_BOX, 2500, 3350, 4, 4),
+    ("z6_square", ED_ROCKET_BOX, 3400, 2100, 4, 4),
+    ("z6_tribune_s_top", ED_CLIP_BOX, 1712, 2080, 4, 4),
+    # Stage 2: the vehicle park.
+    ("z7_park", ED_CLIP_BOX, 2400, 1000, 2, 4),
+    ("z7_park", ED_CLIP_BOX, 1750, 1000, 2, 4),
+    ("z7_park", ED_ROCKET_BOX, 2100, 1000, 4, 4),
+    ("z7_park", ED_CLIP_BOX, 1700, 700, 4, 4),
+    ("z7_park", ED_SHELL_BOX, 2850, 800, 4, 4),
+    ("z7_park", ED_CLIP_BOX, 2000, 520, 4, 4),
+    ("z7_park", ED_CELL, 1700, 900, 4, 4),
+    # Stage 3: the gate's passage and the courtyard, the colossus.
+    ("z8_passage", ED_CLIP_BOX, 1440, 1500, 2, 4),
+    ("z8_passage", ED_ROCKET_BOX, 1440, 1580, 2, 4),
+    ("z8_passage", ED_CELL_PACK, 1520, 1580, 2, 4),
+    ("z9_arena", ED_SHELL_BOX, 600, 900, 2, 4),
+    ("z9_arena", ED_CLIP_BOX, 1300, 800, 2, 4),
+    ("z9_arena", ED_ROCKET_BOX, 560, 820, 2, 4),
+    ("z9_arena", ED_ROCKET_BOX, 560, 2000, 2, 4),
+    ("z9_arena", ED_ROCKET_BOX, 1250, 1300, 2, 4),
+    ("z9_arena", ED_CELL, 600, 1000, 3, 4),
+    ("z9_arena", ED_CLIP_BOX, 1300, 1980, 3, 4),
+    ("z9_arena", ED_ROCKET_BOX, 640, 1536, 4, 4),
+    ("z9_arena", ED_CELL, 640, 2000, 4, 4),
 )
 
 # Kept out of ITEMS on purpose: ITEMS is the route's. Same row shape; every
@@ -1259,8 +1240,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
          light=LIGHT_SQUARE, ceiling=SKY, wall=KREMLIN)
     piers = block("prop_z6_wall_piers", MERLON_TOP, [(kx1, PARK[3], kx2, sq_y1)], wall=KREMLIN,
                   light=LIGHT_SQUARE)
-    # The occupiers' two flags side by side in the crown, where the merlons
-    # give way (D12, LORE): each on a pier's face, one tile, behind the walk.
+    # Two Soviet flags side by side in the crown, where the merlons give
+    # way (D119; the occupiers' until then): each on a pier's face, one
+    # tile, behind the walk.
     for n, (fy, texture) in enumerate(FLAGS_ON_THE_WALL, start=1):
         zone(f"{PROP_PREFIX}z6_flag_{n}", FLAG_SILL, MERLON_TOP, [(walk_x, fy, kx2, fy + FLAG_WIDTH)],
              light=LIGHT_SQUARE, ceiling=SKY, wall=KREMLIN)
@@ -1389,7 +1371,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     prop("z9_arena", "z9_tsar_cannon", (1024, 960, 1280, 1024), CANNON, wall=BRASS)
     for cx, cy in ARENA_COLUMNS:
         g.carve(cx, cy, cx + 64, cy + 64)
-    for n, (fx, texture) in enumerate(((768, FLAG_REICH), (896, FLAG_LEGION)), start=1):
+    for n, (fx, texture) in enumerate(((768, FLAG_USSR), (896, FLAG_STANDARD)), start=1):
         recess("z9_arena", f"z9_flag_{n}", (fx, ay2, fx + 64, ay2 + NICHE_DEPTH),
                ceil=GROUND + TILE_SIZE, back=("h", ay2 + NICHE_DEPTH, fx, fx + 64), texture=texture)
     for who, (px1, px2) in COURTYARD_PORTRAITS.items():
@@ -1451,6 +1433,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
                                      extra=extra))
     for _zone, ednum, x, y, top in ITEMS + SECRET_ITEMS:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
+    for _zone, ednum, x, y, low, high in AMMO:
+        tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(low, high)))
     return tm, plan
 
 
@@ -1469,10 +1453,10 @@ def lumps() -> list[tuple[str, bytes]]:
 
 # Every lump name this map may put in a sidedef or a sector.
 WALL_TEXTURES = ((CONCRETE, STEEL, CRATE, LONG_CRATE, TILE, MARBLE, STATION_WALL, MOSAIC,
-                 BRASS, TUBBING, PLATFORM_FACE, BRICK, BRICK_DADO, FLAG_REICH,
-                 FLAG_LEGION, LENIN, STALIN, KREMLIN, MERLON, GUM_FACADE, TRIBUNE, BANNER,
-                 SPASSKAYA, ARMOUR_STAR, ARMOUR, CLOCK, RUBY_STAR, MUSEUM, FLAG_REICH_KREMLIN,
-                 FLAG_LEGION_KREMLIN) + SHOPFRONTS + DOOR_LEAVES + SWITCH_FACES
+                 BRASS, TUBBING, PLATFORM_FACE, BRICK, BRICK_DADO, FLAG_USSR,
+                 FLAG_STANDARD, LENIN, STALIN, KREMLIN, MERLON, GUM_FACADE, TRIBUNE, BANNER,
+                 SPASSKAYA, ARMOUR_STAR, ARMOUR, CLOCK, RUBY_STAR, MUSEUM, FLAG_GONFALON_KREMLIN,
+                 FLAG_TORN_KREMLIN) + SHOPFRONTS + DOOR_LEAVES + SWITCH_FACES
                  + MARX_ENGELS)
 FLAT_TEXTURES = (FLOOR_ASPHALT, CEIL_CONCRETE, CRATE_TOP, GRANITE, GRANITE_CHECK, PLATFORM_EDGE,
                  RAILS, CEIL_COFFER, CEIL_LAMP, PLATE, COBBLES, COBBLES_LINE, GLASS_ROOF, SKY)

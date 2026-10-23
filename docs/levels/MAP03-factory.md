@@ -755,7 +755,7 @@ a secret (tested), each before the fight it is for:
 |---|---|---|
 | IZh-58 | the dock, beside the first picket | 1 (no key) |
 | PPSh-41 | the office corridor's east end | 1 |
-| RPG-7 + a rocket box | the tank line, at the yellow door's foot, nearer the door than either heavy (tested) | 2 (yellow door) |
+| RPG-7 (+ a rocket box until D119, which moved it to the portal hall, §18.1) | the tank line, at the yellow door's foot, nearer the door than either heavy (tested) | 2 (yellow door) |
 | **ROKS-3** | the foundry gallery (MAP02 §9 kept it for the factory) | 2 |
 | Hand Katyusha | not placed: §8's S1, v3 (open point 7) | — |
 
@@ -763,13 +763,14 @@ Counts, as placed (no secret in v1):
 
 | Item | Skill 2 | Skill 3 | Skill 4 | Where |
 |---|---|---|---|---|
-| Shell box (20) | 7 | 7 | 7 | hall ×2, planning office, gallery, booth, portal hall, antechamber |
-| Shells (4) | 11 | 9 | 5 | dock, hall, tank line, casting floor, portal hall; more, and the vestibule, on easier skills |
-| Box of rounds (50) | 4 | 4 | 4 | hall, archive, tank line, portal hall |
-| Clip (10) | 5 | 4 | 3 | dock, hall, casting floor |
-| Rocket box (5) | 3 | 3 | 3 | tank line, antechamber, booth |
-| Rocket (1) | 4 | 4 | 4 | round the drum |
-| Fuel canister (20) | 2 | 2 | 2 | gallery, antechamber |
+| Shell box (20) (D119, §18.1) | 1 | 1 | 2 | hall; portal hall |
+| Shells (4) | 2 | 2 | 2 | dock, casting floor |
+| Box of rounds (50) | 8 | 10 | 14 | hall, archive, dock, planning office, tank line, casting floor, vestibule, portal hall, antechamber |
+| Clip (10) | — | — | — | none since D119 |
+| Rocket box (5) | 5 | 5 | 6 | antechamber, booth, portal hall |
+| Rocket (1) | — | — | — | none since D119 |
+| Fuel canister (20) (D119) | 2 | 2 | 2 | antechamber, booth |
+| Fuel pack (100) (D119) | — | — | 1 | portal hall |
 | Stimpack | 9 | 8 | 5 | dock, hall, tank line, gallery, portal hall |
 | Medikit | 6 | 6 | 5 | hall, archive, tank line, casting platform, booth |
 | Health bonus | 10 | 10 | 10 | one in each nook: spur, arch, office stair, vestibule, both pits, pouring arch, SW-A's passage, the porch, the dais |
@@ -791,6 +792,7 @@ takes no blast) and **a unit of fuel = 0.25 shell** (a ROKS-3 jet averages
 | needed | 94 | 115 | 181 |
 | × 1.35 (G3-8) | 126.9 | 155.3 | 244.4 |
 | placed | 282.5 | 273.5 | **256.5 (1.42×)** |
+| **placed since D119** (§18.1, fuel at 13.5 / 80; band 1.5–2.0 / 1.3–1.6 / 1.2–1.45) | **147.0 (1.56×)** | **157.0 (1.37×)** | **223.9 (1.24×)** |
 
 MAP01's skill 4 is 1.41×, MAP02's 1.43×. Two more checks: **without the
 heavy weapons** (shells and rounds only) the placed ammunition still covers
@@ -1139,3 +1141,70 @@ cut at the top by the hall's ceiling (their niche ceiling is 256, under the
 hall's 320); the dock pair reads from the spur's mouth; the mural is whole
 behind the desk and does not hide the yellow key's beacon; `tankograd-critical`
 still PASSes on skills 2-4.
+
+## 18. D119 and D121 (2026-10-23): less ammunition, a mix by weapon, and the sky
+
+### 18.1 Ammunition (D119)
+
+The CEO, after Episodes 2 and 3: ammunition "siempre sale de sobras" and
+"siempre acabas con la escopeta". MAP03 was approved and played; this pass
+takes ammunition away and changes its kind, nothing else.
+
+The rule is `docs/engine/BALANCE.md` §8 (owner `mod-engineer`): placed
+ammunition on the route over what killing every monster takes (G3-8's
+ruler, in shells) inside a band per skill — **skill 2 1.5–2.0, skill 3
+1.3–1.6, skill 4 1.2–1.45**; shells, counting what the Legion troopers'
+dropped IZhs carry (2 shells each since D119), **no more than 35 %** of the
+ammunition placed plus every drop; at every stage of the readiness check the
+**newest weapon's pool leads** the ammunition other than shells (largest
+share, at least 40 %) and no pool lies before its weapon — with the PM's
+amendment: fuel never leads (at most 15 % of the map's ammunition; the
+weapon before the ROKS-3 leads), and outside a boss's (or mini-boss's)
+stage the PG-7V are at most 30 % of the stage and the newest bullet
+weapon's rounds lead; in the boss's stage the PG-7V and fuel together cover
+at least the boss's shells. Ammunition now
+scales **up** with skill, with the monsters (the other consumables still
+scale down): a pickup's last field in the `AMMO` table is the lowest tier it
+appears on. Every spot is one an earlier version already used for
+ammunition, so every pickup still stands where it was checked to be
+walkable and reachable; no monster, weapon, door or room moved.
+Fuel counts at 13.5 / 80 of a shell a unit since D119 cut the ROKS-3's jet
+(BALANCE §8.1; `SHELLS_PER_CELL`, `ROKS_AVERAGE = 13.5`).
+
+| Ammunition on the route | Skill 2 | Skill 3 | Skill 4 | Where |
+|---|---|---|---|---|
+| Box of shells (20) | 1 | 1 | 2 | hall; portal hall on skill 4 |
+| Shells (4) | 2 | 2 | 2 | dock, casting floor |
+| Clips (10) | — | — | — | (v1: 5 / 4 / 3) |
+| Box of rounds (50) | 8 | 10 | 14 | hall ×3, archive, dock ×2, planning office; tank line ×3, casting floor, vestibule; portal hall, antechamber |
+| Rocket box (5) | 5 | 5 | 6 | antechamber, booth, portal hall ×3 (×4 on skill 4) |
+| Rocket (1) | — | — | — | (v1: 4) |
+| Fuel canister (20) | 2 | 2 | 2 | antechamber, booth |
+| Fuel pack (100) (`SD_CellPack`) | — | — | 1 | portal hall |
+| **pickups** | **18** (v1: 36) | **20** (v1: 33) | **27** (v1: 28) | |
+
+The secret (the Hand Katyusha and its canister) and the General's stores
+keep what they had, on every skill (not counted).
+
+| | Skill 2 | Skill 3 | Skill 4 |
+|---|---|---|---|
+| needed (shells, the General's 48 included) | 94 | 115 | 181 |
+| placed before D119 (fuel at 0.25) | 282.5 (3.01×) | 273.5 (2.38×) | 256.5 (1.42×) |
+| **placed now** (fuel at 0.16875) | **147.0 (1.56×)** | **157.0 (1.37×)** | **223.9 (1.24×)** |
+| band | 1.5–2.0 | 1.3–1.6 | 1.2–1.45 |
+| shell share, drops counted (≤ 0.35) | 0.34 | 0.34 | 0.34 |
+| shell share of what is placed, before → now | 70 % → 24 % | 69 % → 23 % | 68 % → 25 % |
+| fuel share (≤ 15 %) | 9 % | 9 % | 14 % |
+
+**By stage.** Before any lock (dock, hall, offices: the IZh, then the
+PPSh-41) the ammunition other than shells is rounds only. Behind the yellow
+door the RPG-7 and then the ROKS-3 are met, each with only its own load (2
+PG-7V, 40 fuel): the PPSh's rounds lead (10 to 25 shell-equivalents), the
+PG-7V are 10–16 % of the stage. The General's stage is the heavy weapons':
+five boxes of PG-7V (six on skill 4) lead, two canisters of fuel (and a
+pack on skill 4), and **PG-7V and fuel together are 56.8–83.6 against his
+48**. The rocket box that stood beside the RPG-7 on the tank line is now in
+the portal hall: outside the boss's stage the amendment caps the PG-7V at
+30 %. The dais (after SW-B) holds no ammunition. Stage floors on skill 4:
+8.2, 2.4, 2.0, 1.9; by weapon stretch 8.9 / 6.4 / 2.8 / 2.3 / 1.9.
+

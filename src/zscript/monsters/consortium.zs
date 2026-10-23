@@ -12,7 +12,7 @@
 // sprite; placed in no map yet (MAP09's boss swap is level-designer's).
 //
 // Two phases, split at half health:
-//   ROOTED (9000-4501)  plugged into the portal: it does not walk, it turns
+//   ROOTED (4000-2001)  plugged into the portal: it does not walk, it turns
 //       slowly to follow you. The Reich arm fires rocket salvoes, the Legion
 //       arm fans of energy balls, the core a gout of fire when you are
 //       close; every fourth attack the portal behind it lets through a pair
@@ -20,7 +20,7 @@
 //   BREACH              at half health, once: invulnerable for 65 tics, the
 //       ground shakes, a line on every screen, a wave of four reinforcements,
 //       and it tears the cables out.
-//   FREE (4500-0)       it walks (slowly) and fights harder: rockets and
+//   FREE (2000-0)       it walks (slowly) and fights harder: rockets and
 //       orbs in one volley, wider fans of orbs, a sweeping jet of fire, a
 //       pair of reinforcements every third attack.
 // Its reinforcements never infight, and nothing a monster fires hurts it:
@@ -59,7 +59,10 @@
 
 class SD_Consortium : SD_Monster
 {
-	const SD_CONSORTIUM_HEALTH     = 9000;  // (H) the Liberty Colossus's 4500 x 2 (D112 brief)
+	// D119 (2026-10-23): the CEO wants the bosses at classic Doom's level.
+	// 9000 (the colossus's old 4500 x 2) -> 4000, the Cyberdemon's. The
+	// two phases and the Breach at half health are unchanged (2000 each).
+	const SD_CONSORTIUM_HEALTH     = 4000;  // Cyberdemon parity (D119; was 9000, D112 brief)
 	const SD_CONSORTIUM_RADIUS     = 56;    // 112 wide: the crater is 2048 square, the terraces 64 deep
 	const SD_CONSORTIUM_HEIGHT     = 128;   // the crater's sky is 640 over its floor
 	const SD_CONSORTIUM_SPEED      = 8;     // (H) once free; slower than the colossus's 10

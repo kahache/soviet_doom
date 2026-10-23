@@ -28,6 +28,12 @@ class SD_Izh : Shotgun replaces Shotgun
 	const SD_IZH_BARRELS    = 2;     // shots before the break-open reload
 	const SD_IZH_AMMO_USE   = 1;     // one shell per barrel
 	const SD_IZH_AMMO_GIVE  = 8;     // same as Doom's shotgun pickup
+	// D119 (the CEO: "you always end up with the shotgun"). A Legion
+	// trooper drops a captured IZh (D35), and the engine halves a dropped
+	// weapon's ammo (Weapon.ModifyDropAmount, gzdoom.pk3 g4.14.2): 4 shells
+	// for a 30-HP man one shell kills, +3 shells a kill, so the gun fed
+	// itself. Dropped, it now carries 2: +1 a kill. Placed IZhs still give 8.
+	const SD_IZH_DROPPED_SHELLS = 2;
 
 	// Shots left in the barrels. Reset by the Reload state.
 	int barrels;
@@ -36,6 +42,16 @@ class SD_Izh : Shotgun replaces Shotgun
 	{
 		Super.BeginPlay();
 		barrels = SD_IZH_BARRELS;   // the gun is picked up loaded
+	}
+
+	// Called by the engine on an item a monster drops (DropItem). Weapon's
+	// own version halves AmmoGive and lets the skill's AmmoFactor apply
+	// (skills 1 and 5 still double it); this caps the result at
+	// SD_IZH_DROPPED_SHELLS. NOT VERIFIED in the engine (D26).
+	override void ModifyDropAmount(int dropamount)
+	{
+		Super.ModifyDropAmount(dropamount);
+		AmmoGive1 = min(AmmoGive1, SD_IZH_DROPPED_SHELLS);
 	}
 
 	Default

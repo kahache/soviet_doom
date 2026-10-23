@@ -1145,7 +1145,7 @@ in the IWAD.
 | `SD_Player` | `DoomPlayer` | The sergeant. Starts with `SD_Tokarev` and 50 `Clip`, nothing else: no ice axe and no `Fist`, so slot 1 is empty until the ice axe is picked up (since 2026-10-13, `BALANCE.md` §4.1). Declares slots 1–7; slot 4 holds two since D116, `"SD_Ppsh", "SD_Akm"` in that order. |
 | `SD_IceAxe` | `Fist` *replaces Fist* | Slot 1, melee: the ice axe (D40; was `SD_Shovel`). Found, never issued: MAP01 places it on the dorm's rack (every skill, reachable with every door shut), `RANGE` on the range. |
 | `SD_Tokarev` | `Pistol` *replaces Pistol* | Slot 2, `Clip`. |
-| `SD_Izh` | `Shotgun` *replaces Shotgun* | Slot 3, `Shell`. Two barrels then a break-open reload (`int barrels`). |
+| `SD_Izh` | `Shotgun` *replaces Shotgun* | Slot 3, `Shell`. Two barrels then a break-open reload (`int barrels`). Dropped by a trooper it carries 2 shells (`ModifyDropAmount`, D119). |
 | `SD_Ppsh` | `Chaingun` *replaces Chaingun* | Slot 4, `Clip`. |
 | `SD_Akm` | `DoomWeapon` (replaces nothing) | Slot 4's second weapon (D112, in the mod since D116): the AKM, `SD_AkmAmmo`, 21008. Provisional look §6.12. Design `docs/engine/2026-10-22_P4_akm.md`. |
 | `SD_AkmAmmo` | `Ammo` (a pool of its own) | The AKM's 7.62×39 pool and its 30-round magazine, 21020, in `zscript/sd/ammo.zs`; dropped by the Legion gunner. ADR 011, §6.4. |
@@ -1153,7 +1153,7 @@ in the IWAD.
 | `SD_Roks3` | `PlasmaRifle` *replaces PlasmaRifle* | Slot 6, `Cell`. Fires `SD_FlameBlob`. |
 | `SD_HandKatyusha` | `BFG9000` *replaces BFG9000* | Slot 7, `Cell`, 40 per salvo. Fires six `SD_KatyushaRocket`. |
 | `SD_Pg7Grenade` | `Rocket` | Shaped-charge projectile. Not placeable. |
-| `SD_FlameBlob` | `Actor` | Fire projectile, 528-unit reach. Not placeable. |
+| `SD_FlameBlob` | `Actor` | Fire projectile, 528-unit reach, 3 x random(1,8) since D119 (the bosses' subclasses keep 4). Not placeable. |
 | `SD_KatyushaRocket` | `Rocket` | Salvo rocket, does not hurt the shooter. Not placeable. |
 | `SD_IceAxePuff` | `BulletPuff` | The ice axe's puff: `BulletPuff` plus `AttackSound` `sd/weapon/iceaxe/wall`, the pick on stone (N9, §6.2). Not placeable. |
 | `SD_WeaponSounds` | `Object` (`play`) | Static helper, never instantiated: `DryClick`, the guns' empty click from `Ready` (N9, §6.2). |
@@ -1167,8 +1167,8 @@ in the IWAD.
 | `SD_PanzermenschSchwer` | `SD_Panzermensch` *replaces BaronOfHell* | The 1000 HP variant for MAP03 (D35); since D67 its own `States` on `SDPS` (the base's, line for line) and a 27 × 72 body. |
 | `SD_General` | `SD_Monster` *replaces Cyberdemon* | Boss, 3000 HP (H), three-shell salvo; once below half health, summons two `SD_ReichRifleman` and prints `SD_GENERAL_ORDER` (D35). |
 | `SD_LegionGunner` | `SD_Monster` *replaces ChaingunGuy* | P4 (D104, in the mod since D116): Legion heavy machine-gunner, 80 HP, bursts of 4–6 hitscan rounds then a pause. Drops `SD_AkmAmmo`. Provisional look §6.12. |
-| `SD_LibertyColossus` | `SD_Monster` *replaces SpiderMastermind* | P4: Episode 2's boss, 4500 HP (H), torch rockets far, a fire jet near, a stomp close. Fires `SD_ColossusRocket` (`SD_Pg7Grenade`) and `SD_ColossusFlame` (`SD_FlameBlob`). |
-| `SD_Consortium` | `SD_Monster` (replaces nothing) | P4: Episode 3's final boss, 9000 HP (H), rooted then free at half health, calls servants of both factions. Fires `SD_ConsortiumRocket`, `SD_ConsortiumOrb` (`SD_GeneralShell`), `SD_ConsortiumFlame`. Design `docs/engine/2026-10-22_P4_ep3-final-boss.md`. |
+| `SD_LibertyColossus` | `SD_Monster` *replaces SpiderMastermind* | P4: Episode 2's boss, 3000 HP (D119, the Spider Mastermind's; was 4500), torch rockets far, a fire jet near, a stomp close. Fires `SD_ColossusRocket` (`SD_Pg7Grenade`) and `SD_ColossusFlame` (`SD_FlameBlob`). |
+| `SD_Consortium` | `SD_Monster` (replaces nothing) | P4: Episode 3's final boss, 4000 HP (D119, the Cyberdemon's; was 9000), rooted then free at half health, calls servants of both factions. Fires `SD_ConsortiumRocket`, `SD_ConsortiumOrb` (`SD_GeneralShell`), `SD_ConsortiumFlame`. Design `docs/engine/2026-10-22_P4_ep3-final-boss.md`. |
 | `SD_ConsortiumWounded` | `SD_Consortium` | Test fixture for the engine pass, not an enemy: the boss at half health + 100, `summon` only; no number, no string. Delete when the pass no longer needs it. |
 | `SD_ColossusRocket`, `SD_ColossusFlame`, `SD_ConsortiumRocket`, `SD_ConsortiumOrb`, `SD_ConsortiumFlame` | the arsenal's / the General's projectile | The P4 bosses' projectiles, on their parents' sprites; the Consortium's fly through monsters (`CanCollideWith`). Not placeable. |
 | `SD_StormBolt`, `SD_DoughboyShell`, `SD_PanzerShell`, `SD_GeneralShell` | `Actor` | The four enemy projectiles. Not placeable. |
