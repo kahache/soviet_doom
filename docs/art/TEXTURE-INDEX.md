@@ -664,6 +664,34 @@ not do yet (MOD-SPEC §10, T12).
 | `M_SKULL2` | menu patch (cursor, phase 2) | 20×20 | no | the same emblem in its second blink phase, pale cream: the blink is the gold lighting up | (a) `tools/art/gen_cursor.py`, `cursor_image("B", 2)`; file `cursor_B_2.png` | approved 2026-10-14 (D48) | 2026-10-14 |
 | `M_PAUSE` | pause sign | 77×20 | no | option P2, English: «PAUSE» in `SDMENU` (D22 letterforms, it reads PДUSЭ) on a flag-red plaque with a cream border; the canvas also fits the Russian «ПАУЗА», so a localised variant can match its size | (a) `tools/art/gen_cursor.py`, `pause_image("P2", "en")`; file `pause_P2_en.png` | approved 2026-10-14 (D48); the Russian plaque ships as `localized/textures/M_PAUSE.ru.png` (T24) and the Catalan «PAUSA» as `M_PAUSE.ca.png` (P6, 2026-10-21, seen in the engine), both 77×20 and chosen by `SD_PAUSE_SIGN` | 2026-10-14 |
 
+## Intermission pictures — the operations map and the awards (V3 B1/B3, ADR 013)
+
+Not textures: graphics the intermission draws by name (`graphics/`, MiscPatch),
+listed so the index carries every shipped picture. **Proposal, waiting for the
+CEO** (political symbols: D113's standing approval does not cover the awards);
+installed on the V3 branch only. Preview at 2×, the nine positions of the map,
+the stats page over it, the awards page in English and Russian, the awards at
+4×: `docs/art/previews/2026-10-23_V3_ops-map-medals.png`. Generators
+`tools/art/gen_ops_map.py` (seed 1977; it also writes the intermission script
+`src/lumps/SDOPSCR`) and `tools/art/gen_medals.py`; palette v2 (`mosaic_gold`,
+`marble_red`, `mosaic_cobalt`); RGBA with hard alpha except the background
+(indexed), as the shell's overlays. Positions in the 320×200 space are the
+script's, offsets in each PNG's grAb (`tests/test_ops_map.py`). Not yet seen in
+the engine (D26).
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDOPMAP` | intermission background (indexed) | 320×200 | no | the USSR in olive on a cobalt sea (lighter on the shelf), a dotted 10° graticule, the Volga, Ob, Yenisei, Podkamennaya Tunguska and Lena, the Trans-Siberian dashed in dark red, the coast a dark line, the nine sites as cream rings, the gold hammer and sickle under a red star top left, a cream frame; the top 30 px stay sea for the engine's map name and "Entering" | (a) gen_ops_map, seed 1977, palette v2 | proposal (V3, ADR 013) | 2026-10-23 |
+| `SDOPR02`…`SDOPR09` | intermission overlays (RGBA) | per segment | no | the red arrow into MAPnn from the map before, a bowed line with its head 5 px short of the site, dark contour; grAb 0,0, placed at its box's corner by the script | (a) gen_ops_map | proposal (V3, ADR 013) | 2026-10-23 |
+| `SDOPSTAR` | intermission overlay (RGBA) | 9×9 | no | a taken site: red star, gold rim, dark contour; grAb at the centre; also the script's `Splat` | (a) gen_ops_map | proposal (V3, ADR 013) | 2026-10-23 |
+| `SDOPCUR0`, `SDOPCUR1` | intermission overlays (RGBA) | 17×17 | no | the gold pulse on the site just finished (two radii, 12 tics each); grAb at the centre | (a) gen_ops_map | proposal (V3, ADR 013) | 2026-10-23 |
+| `SDOPYAH0` | intermission overlay (RGBA) | 17×17 | no | "you are here": the gold ring the engine blinks on the next site (the script's `Pointer`); grAb at the centre | (a) gen_ops_map | proposal (V3, ADR 013) | 2026-10-23 |
+| `SDAWCOU` | award (RGBA) | 24×30 | no | Medal "For Courage": silver disc, three aircraft, the red band of the inscription left blank, a tank; grey pentagonal ribbon with blue edges | (a) gen_medals | proposal (V3, ADR 013; CEO) | 2026-10-23 |
+| `SDAWRST` | award (RGBA) | 24×30 | no | Order of the Red Star: faceted red star, silver centre with a red point (no soldier); claret ribbon, grey centre stripe | (a) gen_medals | proposal (V3, ADR 013; CEO) | 2026-10-23 |
+| `SDAWRBN` | award (RGBA) | 24×30 | no | Order of the Red Banner: gold wreath, white field, red star, a red banner over the top; red ribbon with white stripes | (a) gen_medals | proposal (V3, ADR 013; CEO) | 2026-10-23 |
+| `SDAWPTW` | award (RGBA) | 24×30 | no | Order of the Patriotic War: gold sunburst, red star, crossed rifle and sabre, a red-and-gold centre; claret ribbon, red centre stripe | (a) gen_medals | proposal (V3, ADR 013; CEO) | 2026-10-23 |
+| `SDAWHER` | award (RGBA) | 24×30 | no | Gold Star of the Hero of the Soviet Union: faceted gold star on a red ribbon bar framed in gold | (a) gen_medals | proposal (V3, ADR 013; CEO) | 2026-10-23 |
+
 ## The alphabet (D24) — glyph fix and German letters
 
 Not textures, listed here so the index carries every shipped art change.
