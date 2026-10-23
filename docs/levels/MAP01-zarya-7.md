@@ -169,6 +169,8 @@ opens it, and the switch's effect is visible from where it is thrown.
 | D6 | Catwalk → booth | manual door, both sides | `Door_Raise`, repeatable | no |
 | SW-A | Fuel bay, lit alcove off its south wall with a window onto the hangar (v2, §16) | wall switch, **one-shot: stays on** | `Door_Open` (10, 16, light tag 30) | no: `Door_Open` cannot be undone |
 | SW-B | Control booth | wall switch, **one-shot: stays on** | `Door_Open` 11 | no |
+| IZH (V3 A2, §20) | The IZh on the guard post's rack | **pickup event** | thing `Door_Open` (12, 16): the hound's closet off the service corridor | no: opens only, the route never needs it |
+| PPSH (V3 A2, §20) | The PPSh-41 on the catwalk | **pickup event** | thing `Door_Open` (13, 16): the squad's closet in the hangar's south wall | no |
 | EXIT | Lift room, east wall | wall switch | `Exit_Normal` | — |
 
 **Monster closets (v3, §17.3).** Six panels with no use-special of their
@@ -2089,3 +2091,47 @@ door, recess or room under a lower ceiling touches it (tested,
 sky over the cradle shows `SDSKY6`, with no hall of mirrors at the slot's
 edge from the hangar floor, the catwalk and the gantry; `g3-auto`
 still PASSes on skills 2–4; the ammunition reads less in a skill-3 run.
+
+## 20. V3 A2 (2026-10-23): the weapons spring two closets
+
+Built in a V3 worktree (not in v1.2). The pattern, the specials and the
+safety rules are `docs/levels/PICKUP-EVENTS.md`; this section is MAP01's
+use of it. **NOT WALKED**: the PM's engine pass is pending (D26).
+
+MAP01 has no key, so its two events ride on tutorial weapons the player
+cannot own yet (PICKUP-EVENTS R7): nothing drops a PPSh-41, and no Legion
+trooper (who drops an IZh) stands before the guard post. A player who runs
+past the rack, takes a trooper's IZh in the hangar and comes back still
+takes the rack's (it gives shells) and fires the event then; only with 50
+shells would the hound wait in its closet.
+
+| Event | Rides on | Thing special | Tag: what it moves | What the player meets |
+|---|---|---|---|---|
+| `izh_hound` | the IZh on the guard post's rack (1040, 1256) | `Door_Open (12, 16, 0)` | 12: `closet_izh_door`, a concrete panel in the service corridor's south wall behind the pipe run (x 832…960, y 1072…1088); the closet x 800…992, y 960…1072, floor 0 | the panel grinds open behind him as he takes the gun; a hound comes out: the IZh's first shot, at close range (the guard post's lesson) |
+| `ppsh_squad` | the PPSh-41 on the catwalk (2000, 1520) | `Door_Open (13, 16, 0)` | 13: `closet_ppsh_door`, a concrete panel in the hangar's south wall east of the gantry (x 2240…2368, y 304…320); the closet x 2224…2384, y 160…304, floor −32 | across the hangar, in full view of the gun (tested), a trooper and a rifleman come out and cross the floor under the catwalk |
+
+Each tag is carried by its panel and by no line. Neither event is needed:
+the route is lines only, as before (`test_every_skill_reaches_the_exit`),
+and with both fired nothing reachable is lost (`Map01PickupEventsTest`).
+Both closets are more than 768 from the start (R5).
+
+**Monsters**: the same three on every skill (a set piece; BALANCE §8.2
+leaves no room for more on skill 4 under D119's pickup ceiling): **24 / 36
+/ 49** on skills 2 / 3 / 4 (was 21 / 33 / 46). **Ammunition**: one box of
+50 rounds in the squad's closet, every skill: placed against needed **1.50
+/ 1.34 / 1.21** (bands 1.5–2.0, 1.3–1.6, 1.2–1.45); shells 33 / 31 / 32 %
+with the troopers' dropped IZhs; ammunition pickups on the route 7 / 15 / 18
+(ceilings 25 / 21 / 19). The rifleman stands where a second trooper would
+have pushed skill 2's shells over 35 %. The box in the closet pays the band,
+not a stage (PICKUP-EVENTS §4.5).
+
+**Route** (`tools/route.py`, g3-auto): tags 12 and 13 shut at A0; 12 open at
+A6 (the IZh was taken at A4), 13 open at A9 (the PPSh at A7).
+
+**Engine checklist for the PM** (D26):
+
+| # | Check | How |
+|---|---|---|
+| V3-1 | Taking the IZh opens the hound's closet (a thing's `Door_Open`, never seen in our engine) and the hound comes out | `g3-auto` on skill 3: A6 reports tag 12 open; by hand: take the IZh, turn round |
+| V3-2 | Taking the PPSh-41 opens the squad's closet and both come out across the hangar | A9 reports tag 13 open; by hand from the catwalk |
+| V3-3 | The panels are wall until they move (the concrete's seam only), and nothing in either closet sees or wakes before | screenshots of the corridor's and the hangar's south walls before the pickups |

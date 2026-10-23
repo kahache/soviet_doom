@@ -869,7 +869,8 @@ class ParseTest(unittest.TestCase):
         text = route.render_report(rep)
         self.assertIn("blockers       : 1 killed by the route's sdclear", text)
         self.assertIn("[ok ] A1: SD_Stormtrooper at (256, 610), 60 hp, dead", text)
-        self.assertIn("kills          : 1 of 33, of which 1 by the route's sdclear", text)
+        # 33 on skill 3 until V3 A2 put three in the weapons' closets (MAP01 ENEMY_TOTALS).
+        self.assertIn("kills          : 1 of 36, of which 1 by the route's sdclear", text)
         self.assertIn("VERDICT        : PASS (1 blocker(s) killed by the route", text)
 
     def test_a_clean_run_says_no_blocker(self):
@@ -1384,9 +1385,10 @@ class MetroRouteTest(BuiltMapRoute, unittest.TestCase):
 
     def test_tags_and_specials_are_map_py_constants(self):
         m, s = self.m, self.steps
-        bd, sh, gate = m.TAG_BLAST_DOOR, m.TAG_SHUTTER, m.TAG_GATE
-        self.assertEqual(((bd, False),), s["BD0"].tags)
-        self.assertEqual(((bd, True),), s["BD1"].tags)
+        bd, sh, gate, win = m.TAG_BLAST_DOOR, m.TAG_SHUTTER, m.TAG_GATE, m.TAG_EVENT_PASS
+        # V3 A2: the pass's event, the duty window, shut before it and open after.
+        self.assertEqual(((bd, False), (win, False)), s["BD0"].tags)
+        self.assertEqual(((bd, True), (win, True)), s["BD1"].tags)
         self.assertEqual(((m.SPECIAL_DOOR_LOCKED_RAISE, bd),), s["BD0"].presses)
         self.assertEqual(s["BD0"].presses, s["BD1"].presses)
         self.assertEqual(((sh, False),), s["PASS"].tags)
@@ -1595,8 +1597,11 @@ class TankogradRouteTest(BuiltMapRoute, unittest.TestCase):
         m, s = self.m, self.steps
         yd, rd, sh, gate, lk = (m.TAG_YELLOW_DOOR, m.TAG_RED_DOOR, m.TAG_SHUTTER, m.TAG_GATE,
                                 m.SPECIAL_DOOR_LOCKED_RAISE)
-        want_tags = {"YD0": ((yd, False),), "RD0": ((rd, False),), "YKEY": ((yd, False), (rd, False)),
-                     "YD1": ((yd, True),), "RDY": ((rd, False),), "RKEY": ((rd, False), (sh, False)),
+        ye = m.TAG_EVENT_YELLOW   # V3 A2: the yellow key's closets, shut before it, open after
+        want_tags = {"YD0": ((yd, False), (ye, False)), "RD0": ((rd, False),),
+                     "YKEY": ((yd, False), (rd, False)),
+                     "YD1": ((yd, True), (ye, True)), "RDY": ((rd, False),),
+                     "RKEY": ((rd, False), (sh, False)),
                      "RD1": ((rd, True),), "SWA": ((sh, True), (gate, False)), "SWB": ((gate, True),)}
         self.assertEqual(want_tags, {k: v.tags for k, v in s.items() if v.tags})
         want_presses = {"YD0": ((lk, yd),), "YD1": ((lk, yd),), "RD0": ((lk, rd),), "RDY": ((lk, rd),),

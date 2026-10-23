@@ -39,6 +39,7 @@ Run it:
 
 from __future__ import annotations
 
+from sdbuild.events import door_open, event_thing
 from sdbuild.udmf import (
     SECTOR_SPECIAL_LIGHT_FLICKER,
     SECTOR_SPECIAL_SECRET,
@@ -241,6 +242,10 @@ TAG_S3_SUMP_PANEL = 103
 # the control booth brighten to their brightest neighbour as D4 rises
 # (VERIFIED in engine 2026-10-13, MOD-SPEC 4.2).
 TAG_LIGHT_GATE_POWER = 30
+# V3 A2, pickup events (docs/levels/PICKUP-EVENTS.md): each tag is carried by
+# one closet's panel and by NO line; the weapon's own pickup opens it.
+TAG_EVENT_IZH = 12       # the IZh off its rack: the hound's closet in the service corridor
+TAG_EVENT_PPSH = 13      # the PPSh-41 on the catwalk: the squad's closet in the hangar's south wall
 
 # --- Heights --------------------------------------------------------------
 HANGAR_FLOOR = -32
@@ -288,6 +293,27 @@ ED_IZH = 21003
 ED_PPSH = 21004
 ED_RPG7 = 21005
 TUTORIAL_WEAPONS = (ED_ICE_AXE, ED_IZH, ED_PPSH)
+
+# --- Pickup events (V3 A2: docs/levels/PICKUP-EVENTS.md; design section 20) ---
+# MAP01 has no key, so its two events ride on tutorial weapons the player
+# cannot own yet (rule R7): nothing drops a PPSh-41, and no Legion trooper
+# (who drops an IZh) stands before the rack. A player who skips the rack,
+# takes a dropped IZh in the hangar and comes back still picks the rack's up
+# (it gives shells) and fires the event then; only with 50 shells would it
+# wait. Each opens one closet, by Door_Open on a tag no line carries.
+IZH_EVENT = door_open("izh_hound", TAG_EVENT_IZH)
+PPSH_EVENT = door_open("ppsh_squad", TAG_EVENT_PPSH)
+PICKUP_EVENTS = {ED_IZH: IZH_EVENT, ED_PPSH: PPSH_EVENT}
+# The closets the events open: (panel, room). The IZh's lies south of the
+# service corridor's pipe run, behind the player at the rack: the shotgun's
+# first shot is at a hound (the guard post's lesson, "the IZh at close
+# range"). The PPSh's is in the hangar's south wall east of the gantry, in
+# full view of the catwalk where the gun lies: the squad crosses the floor
+# under the player's new gun.
+CLOSET_IZH = ((832, 1072, 960, 1088), (800, 960, 992, 1072))
+CLOSET_PPSH = ((2240, 304, 2368, 320), (2224, 160, 2384, 304))
+EVENT_CLOSETS = {"closet_izh": (IZH_EVENT, CLOSET_IZH, 0),
+                 "closet_ppsh": (PPSH_EVENT, CLOSET_PPSH, -32)}
 
 # Doom editor numbers our classes replace or Freedoom implements (MOD-SPEC
 # 6.4: maps keep using Doom's numbers for ammo, and `replaces` does the
@@ -342,7 +368,8 @@ REICH = ("rifleman", "hound", "panzermensch")
 LEGION = ("trooper", "doughboy")
 
 # Design section 8: monsters per skill. Strictly increasing (G3-8).
-ENEMY_TOTALS = {2: 21, 3: 33, 4: 46}
+# V3 A2 adds three on every skill: the IZh's hound, the PPSh-41's two.
+ENEMY_TOTALS = {2: 24, 3: 36, 4: 49}
 
 # Every monster: (zone, kind, x, y, facing, lowest skill tier). Tier 2 is
 # on every skill, 3 from medium up, 4 on hard only (udmf.skill_tier).
@@ -402,6 +429,12 @@ MONSTERS = (
     ("closet_w1", "trooper", 1080, 680, 0, 3),
     ("closet_e1", "doughboy", 2760, 1300, 180, 3),
     ("closet_w2", "stormtrooper", 1080, 860, 0, 4),
+    # V3 A2 (design section 20): the IZh's hound, the PPSh-41's squad.
+    # The same on every skill: a set piece, and BALANCE 8's band leaves no
+    # room for more on skill 4 without breaking D119's pickup ceiling.
+    ("closet_izh", "hound", 896, 1016, 90, 2),
+    ("closet_ppsh", "trooper", 2264, 232, 90, 2),
+    ("closet_ppsh", "rifleman", 2344, 232, 90, 2),
     # Z8 / Z10 exit: stragglers, and the Panzermensch that gates the lift.
     ("z8_airlock", "trooper", 2830, 760, 180, 2),
     ("z10_lift", "panzermensch", 3136, 660, 180, 3),
@@ -505,6 +538,10 @@ AMMO = (
     ("z9_booth", ED_CLIP_BOX, 2480, 1800, 3),
     ("z8_airlock", ED_CLIP_BOX, 2780, 600, 3),
     ("z6_hangar", ED_CLIP_BOX, 2600, 1376, 4),
+    # V3 A2: the PPSh squad's own box, left in its closet - what its three
+    # extra kills cost on every skill (BALANCE 8.2's floors), and rounds,
+    # not shells, so the troopers' dropped IZhs keep shells under 35 %.
+    ("closet_ppsh", ED_CLIP_BOX, 2304, 184, 2),
 )
 
 # Fuel drums (Freedoom's barrel) and floor lamps: part of the room, on
@@ -962,6 +999,11 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     closet("closet_e1", (2688, 1216, 2704, 1344), (2704, 1200, 2816, 1360),
            TAG_HANGAR_WAVE_2, leaf=CONC)
 
+    # --- V3 A2: the closets the weapons open (design section 20) -----------
+    # Concrete panels in concrete walls, as wave 2's: wall until they move.
+    for name, (event, (panel, room), floor) in EVENT_CLOSETS.items():
+        closet(name, panel, room, event.tag, leaf=CONC, floor=floor)
+
     # --- the hangar's two portraits (design section 6.1) ------------------
     # 16-deep niches, 256 over the hangar floor: the poster whole, the
     # hangar's concrete above it. Too shallow to stand in; the floor is the
@@ -1155,7 +1197,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for _zone, kind, x, y, angle, tier in MONSTERS:
         tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle))
     for _zone, ednum, x, y, top in ITEMS:
-        tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
+        if ednum in PICKUP_EVENTS:
+            tm.add_thing(event_thing(x, y, ednum, PICKUP_EVENTS[ednum]))
+        else:
+            tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     for _zone, ednum, x, y, lowest in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
     for _zone, ednum, x, y in FIXTURES:

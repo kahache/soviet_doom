@@ -49,6 +49,7 @@ Run it (the PM or the CEO; agents never start GZDoom, D26):
 
 from __future__ import annotations
 
+from sdbuild.events import door_open, event_thing
 from sdbuild.udmf import (
     DOOR_SPEED_SLOW,
     SECTOR_SPECIAL_SECRET,
@@ -221,6 +222,8 @@ LIGHT_BUNKER = 128
 LIGHT_DORM = 112
 LIGHT_CP = 128
 LIGHT_CLOSET = 112       # inside a monster closet: unlit storage (MAP01's value)
+LIGHT_ARMOURY_DARK = LIGHT_MIN               # V3 A2: the armoury before the RPG-7 is taken...
+LIGHT_ARMOURY_LAMP = LIGHT_DORM + 2 * LAMP_STEP   # ...its one lamp, 144, the level it comes up to
 LIGHT_EXIT = 144         # the exit niche: the one lit spot past the gate
 
 # The pass's colour, in light (v1). Sector field `lightcolor` of the UDMF
@@ -249,6 +252,11 @@ TAG_S2_CAB = 102
 # closets, SW-B the gate, the command post's door and the tunnel's closets.
 TAG_PLATFORM_AMBUSH = TAG_SHUTTER
 TAG_TUNNEL_WAVE = TAG_GATE
+# V3 A2, pickup events (docs/levels/PICKUP-EVENTS.md; design section 18).
+# Each tag is carried by the sectors its event moves and by NO line.
+TAG_EVENT_PASS = 12      # the blue pass: the duty window opens up, a way back into the hall
+TAG_EVENT_RPG = 13       # the RPG-7: the armoury's store opens...
+TAG_EVENT_RPG_LIGHTS = 14  # ...and, as it rises, the armoury's lights come up (Door_Open's lighttag)
 
 # --- The duty officer's booth (v1): the pass's lit niche ----------------------
 # A raised booth in the substation's south-west corner, two steps up, with a
@@ -278,6 +286,25 @@ PLAYER_START = (3776, 896)
 PLAYER_ANGLE = 180       # facing west, at D1
 KEY_SPOT = (2896, 1056)  # alone in the duty officer's booth (v1; v0 2976 1088)
 KEY_ZONE = "z8_booth"
+
+# --- Pickup events (V3 A2; design section 18) ----------------------------------
+# The pass: the station wall over the duty window (its head, 80) slides up
+# like a door, to the booth's ceiling less 4 (124). The 48-high slot becomes
+# a doorway one way: down from the booth (32) into the hall (0), on the blue
+# door's axis, the pass in hand; from the hall the booth is still 32 up, more
+# than a step, so the way IN is still the track and D3. Sinking the sill
+# instead would leave a 48 gap at the booth's floor, under a body (tested).
+# The route never needs it (rule R3): the way back by D3 and the track, or by
+# SW-A's shutter, is still there.
+PASS_EVENT = door_open("pass_window", TAG_EVENT_PASS)
+# The RPG-7: the armoury is dark but for the lamp over the launcher's rack;
+# taking it opens the store in the north wall (the Reich's guards) and, as the
+# panel rises, the armoury comes up to the lamp's light (Door_Open's light
+# tag: each tagged sector goes to its brightest neighbour's level, MAP01's
+# SW-A, VERIFIED there).
+RPG_EVENT = door_open("rpg_alarm", TAG_EVENT_RPG, lighttag=TAG_EVENT_RPG_LIGHTS)
+CLOSET_ARMOURY = ((400, 1024, 528, 1040), (384, 1040, 544, 1152))   # panel, store
+ARMOURY_LAMP = (384, 768, 448, 832)      # the pool of light the RPG-7 lies in
 
 # Zone-name families the tests use.
 PROP_PREFIX = "prop_"            # unwalkable by design (turnstiles)
@@ -320,6 +347,10 @@ ED_IZH = 21003
 ED_PPSH = 21004
 ED_RPG7 = 21005
 ROUTE_WEAPONS = (ED_IZH, ED_PPSH, ED_RPG7)
+# V3 A2: what each event rides on. The pass is a key (always taken); nothing
+# drops an RPG-7, so the armoury's is always taken too (rule R7).
+PICKUP_EVENTS = {ED_BLUE_CARD: PASS_EVENT, ED_RPG7: RPG_EVENT}
+EVENT_CLOSETS = {"closet_armoury": (RPG_EVENT, CLOSET_ARMOURY)}
 # Ammo, health and armour: Doom's numbers, which our classes replace
 # (src/zscript/sd/ammo.zs; MOD-SPEC 6.4), as on MAP01.
 ED_CLIP = 2007            # 10 rounds of 7.62x25
@@ -336,7 +367,8 @@ ED_BLUE_ARMOR = 2019
 ED_BACKPACK = 8
 
 # Design section 9: monsters per skill, Doom's skill pairs (udmf.skill_tier).
-ENEMY_TOTALS = {2: 23, 3: 36, 4: 51}
+# V3 A2 adds the armoury's two guards on every skill.
+ENEMY_TOTALS = {2: 25, 3: 38, 4: 53}
 
 # Every monster: (zone, kind, x, y, facing, lowest skill tier). Tier 2 is on
 # every skill, 3 from medium up, 4 on hard only. Section 9's table, placed
@@ -393,6 +425,9 @@ MONSTERS = (
     ("b3_dorm", "rifleman", 950, 650, 90, 3),
     ("b2_spine", "stormtrooper", 1000, 880, 0, 3),
     ("b5_armoury", "rifleman", 460, 980, 270, 4),
+    # V3 A2: the armoury's guards, in the store the RPG-7's pickup opens.
+    ("closet_armoury", "rifleman", 424, 1096, 270, 2),
+    ("closet_armoury", "stormtrooper", 504, 1096, 270, 2),
     ("b3_dorm", "hound", 850, 650, 90, 4),
     # The command post: the Panzermensch at the console, on every skill.
     ("b4_cp", "panzermensch", 960, 1220, 270, 2),
@@ -416,7 +451,7 @@ ITEMS = (
     # The weapons, on every skill, on the route, before the heavies.
     ("z2_kassa", ED_IZH, 3300, 1300, 4),
     ("z6_train", ED_PPSH, 1760, 340, 4),
-    ("b5_armoury", ED_RPG7, 420, 800, 4),
+    ("b5_lamp", ED_RPG7, 420, 800, 4),
     ("b5_armoury", ED_ROCKET_BOX, 420, 1000, 4),
     # S1, the 1941 shelter's stores.
     ("s1_shelter", ED_BLUE_ARMOR, 3072, 1700, 4),
@@ -499,6 +534,9 @@ AMMO = (
     ("b3_dorm", ED_CLIP_BOX, 620, 740, 2),
     ("b4_cp", ED_CLIP_BOX, 1130, 1290, 2),
     ("b5_armoury", ED_ROCKET_BOX, 500, 1000, 3),
+    # V3 A2: the guards' rounds, in the store the RPG-7 opens: what their two
+    # kills cost on skills 3 and 4 inside BALANCE 8.2's floors.
+    ("closet_armoury", ED_CLIP_BOX, 464, 1128, 3),
     ("b1_vestibule", ED_SHELLS, 1200, 940, 4),
     ("b2_spine", ED_CLIP_BOX, 620, 940, 4),
     ("b2_spine", ED_CLIP_BOX, 700, 850, 4),
@@ -729,7 +767,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     like("z8_substation", "z8_booth_step", [BOOTH_STEP], floor=STEP)
     zone("z8_booth", BOOTH_FLOOR, STATION_FLOOR + DOOR_HEIGHT, [BOOTH],
          light=LIGHT_BOOTH, flat=FLOOR_TILE, ceiling=CEIL_PANEL, wall=TILE, extra=PASS_LIGHT)
-    zone("duty_window", BOOTH_FLOOR, WINDOW_TOP, [DUTY_WINDOW],
+    zone("duty_window", BOOTH_FLOOR, WINDOW_TOP, [DUTY_WINDOW], PASS_EVENT.tag,
          light=LIGHT_BOOTH, flat=FLOOR_TILE, ceiling=CEIL_PANEL, wall=STATION, extra=PASS_LIGHT)
     shutter = door("shutter", STATION_FLOOR, TAG_SHUTTER, (2816, 1152, 2848, 1216),
                    light=LIGHT_PLATFORM)
@@ -751,8 +789,11 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     zone("b2_spine", STATION_FLOOR, STATION_FLOOR + DOOR_HEIGHT, [(576, 832, 1056, 960)],
          light=LIGHT_BUNKER, wall=TILE_DADO)
     d5 = door("d5", STATION_FLOOR, TAG_D5_ARMOURY, (544, 832, 576, 960), light=LIGHT_DORM)
+    # V3 A2: dark until the RPG-7 is taken (the light tag of its event), but
+    # for the lamp over the launcher's rack in the south-west corner.
     zone("b5_armoury", STATION_FLOOR, STATION_FLOOR + DOOR_HEIGHT, [(384, 768, 544, 1024)],
-         light=LIGHT_DORM, wall=STEEL)
+         TAG_EVENT_RPG_LIGHTS, light=LIGHT_ARMOURY_DARK, wall=STEEL)
+    like("b5_armoury", "b5_lamp", [ARMOURY_LAMP], light=LIGHT_ARMOURY_LAMP, ceiling=CEIL_PANEL)
     like("b2_spine", "b3_doorway", [(768, 768, 896, 832)])
     zone("b3_dorm", STATION_FLOOR, STATION_FLOOR + DOOR_HEIGHT, [(576, 512, 1056, 768)],
          light=LIGHT_DORM, wall=TILE_DADO)
@@ -791,6 +832,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
            TAG_TUNNEL_WAVE, floor=TRACK, leaf=TUBBING)
     closet("closet_t2", (1088, 1472, 1216, 1488), (1072, 1488, 1232, 1600),
            TAG_TUNNEL_WAVE, floor=TRACK, leaf=TUBBING)
+    # V3 A2: the armoury's store, opened by the RPG-7's pickup (design
+    # section 18): a steel panel in the armoury's steel north wall.
+    for name, (event, (panel, store)) in EVENT_CLOSETS.items():
+        closet(name, panel, store, event.tag, floor=STATION_FLOOR, leaf=STEEL)
 
     # ======================================================================
     # Line styles: doors, switches, the key, the exit, signs
@@ -856,11 +901,14 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
 
     tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START,
                        angle=PLAYER_ANGLE))
-    tm.add_thing(Thing(x=KEY_SPOT[0], y=KEY_SPOT[1], type=ED_BLUE_CARD))
+    tm.add_thing(event_thing(KEY_SPOT[0], KEY_SPOT[1], ED_BLUE_CARD, PASS_EVENT))
     for _zone, kind, x, y, angle, tier in MONSTERS:
         tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle))
     for _zone, ednum, x, y, top in ITEMS:
-        tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
+        if ednum in PICKUP_EVENTS:
+            tm.add_thing(event_thing(x, y, ednum, PICKUP_EVENTS[ednum]))
+        else:
+            tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     for _zone, ednum, x, y, lowest in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
     return tm, plan
