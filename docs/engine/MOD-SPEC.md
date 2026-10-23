@@ -1389,8 +1389,11 @@ in `docs/art/LICENSES.md` § "Weapon sounds"), and since N9e (2026-10-20)
 the IZh-58's shot `SDIZFIR` in take B (D83) and the D94 alternatives of
 `tools/audio/gen_weapon_alts.py` (`master_weapon_sfx.py --alts`;
 `WEAPON-SOUNDS.md` §10.6): the TT-33's and the ice axe's pickups, the
-IZh-58's reload and the ROKS-3's jet. Only the IZh-58's pickup is not ours
-(D94: NO); it keeps Doom's generic one.
+IZh-58's reload and the ROKS-3's jet. The IZh-58's pickup kept Doom's
+generic one (D94: NO) until D125 (2026-10-23) installed two takes of the
+world-sounds round (`tools/audio/master_world_sfx.py`, `docs/sound/WORLD-SOUNDS.md`,
+which also lists the player, door, switch, pickup, lift and teleporter
+sounds D125 put on the engine's own names).
 
 | Logical name | Lump | Played by |
 |---|---|---|
@@ -1405,6 +1408,7 @@ IZh-58's reload and the ROKS-3's jet. Only the IZh-58's pickup is not ours
 | `sd/weapon/izh/fire` | `SDIZFIR` (take B, D83; `DSSHOTGN` until N9e) | `SD_Izh` `AttackSound` |
 | `sd/weapon/izh/reload` | `SDIZRLD` (D94 alt3; `DSSGCOCK` until N9e) | `SD_Izh` Reload, first frame |
 | `sd/weapon/izh/dry` | `SDIZDRY` | `A_SD_WeaponReady` |
+| `sd/weapon/izh/pickup` | `$random`: `SDIZPKP1`, `SDIZPKP2` (D125; Doom's `misc/w_pkup` until then) | `Inventory.PickupSound` (since D125) |
 | `sd/weapon/ppsh/fire` | `SDPPFIR` | `SD_Ppsh` `AttackSound` |
 | `sd/weapon/ppsh/pickup` | `SDPPPKP` | `Inventory.PickupSound` |
 | `sd/weapon/ppsh/dry` | `SDPPDRY` | `A_SD_WeaponReady` |
@@ -1425,9 +1429,8 @@ IZh-58's reload and the ROKS-3's jet. Only the IZh-58's pickup is not ours
 | `sd/weapon/katyusha/pickup` | `SDHKPKP` | `Inventory.PickupSound` |
 | `sd/weapon/katyusha/dry` | `SDHKDRY` | `A_SD_WeaponReady` |
 
-No `PickupSound` on the IZh-58: its pickup (D94: every alternative NO)
-keeps Doom's `misc/w_pkup`. The ice axe and the TT-33 got theirs with N9e
-(D94). **No hook changes a tic** (D39): the RPG-7's
+Every weapon has its own `PickupSound`: the ice axe and the TT-33 since
+N9e (D94), the IZh-58 since D125 (it played Doom's `misc/w_pkup` until then). **No hook changes a tic** (D39): the RPG-7's
 14-tic launch frame became 4 + 10 on the same sprite, and the Katyusha's
 reload is a 0-tic frame. **The empty click** (`SD_WeaponSounds.DryClick`,
 called by each gun's `A_SD_WeaponReady` before `A_WeaponReady` on the same

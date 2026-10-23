@@ -617,7 +617,7 @@ _MADE_WITH = {
         "armbands": ", and the symbol repainted on the enemies' armbands in close-ups",
         "voices_no": ("Chatterbox (Resemble AI), run locally: trial voice takes; in this "
                       "release the enemies speak with Freedoom's voices."),
-        "voices_yes": "Chatterbox (Resemble AI), run locally: some enemy voice lines.",
+        "voices_yes": "Chatterbox (Resemble AI), run locally: some enemy voice lines and some of the sergeant's own sounds.",
         "rest": ("Sound clips from CC0 packs by Kenney, rubberduck and Darsycho "
                  "(OpenGameArt); public-domain music, some in MIDI sequences by Jerry "
                  "Engelbach and Peter Gerloff. Built with Python, Pillow, NumPy and "

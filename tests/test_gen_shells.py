@@ -146,7 +146,9 @@ class PrefixTests(unittest.TestCase):
             for doc in ("docs/engine/BESTIARY.md", "docs/engine/MOD-SPEC.md", "docs/art/LICENSES.md",
                         "docs/art/TEXTURE-INDEX.md"):
                 for line in (PROJECT_ROOT / doc).read_text(encoding="utf-8").splitlines():
-                    if re.search(rf"\b{sh.sprite}", line):
+                    # D125's world-sound candidates (SDPLPAIN_w1...) are listening-page
+                    # card names, not lumps: the sergeant's lumps ship as SDSG...
+                    if re.search(rf"\b{sh.sprite}(?![A-Z]*_w\d)", line):
                         registry = len(re.findall(REGISTRY_NAME, line)) >= REGISTRY_MIN
                         self.assertTrue(registry or any(w in line for w in OWNER_WORDS[sh.sprite]),
                                         f"{doc}: {line[:120]}")

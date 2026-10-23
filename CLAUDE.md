@@ -80,8 +80,9 @@ engine's own automap and cheat lines are not.
 **Sound and music.** 25 weapon sounds (D74) plus the approved alternatives
 (D94); enemy sounds with `$random` groups; 11 of the 12 enemy voices ours (24
 Chatterbox takes in D91/D96, three more in D110; the General's death is still
-Freedoom's, a new round is drafted); the Reich hound's barks (D107). Still
-Freedoom's: the IZh pickup (D94), player, door, switch and item sounds; the 8
+Freedoom's, a new round is drafted); the Reich hound's barks (D107). The
+player, door, switch, pickup (the IZh's too), lift and teleporter sounds are
+ours since D125 (`$random` groups); still Freedoom's: the jump; the 8
 beds are packed, unused (P2). Music: title `D_SDINTL`, MAP01 `D_SDM1N2`
 (composed, D92/D95), MAP02 `D_SDFUNR`, MAP03 `D_SDGATE`, MAP04-MAP09
 `D_SDM04A`...`D_SDM09B` plus boss loops and intermissions (composed MIDI, D106,

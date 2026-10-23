@@ -1,0 +1,35 @@
+{
+ "file": "RAD15_SDRAD15_ai_chatterbox_20261023_t01.wav",
+ "date": "2026-10-23",
+ "server": "offline: chatterbox library in the server's Python, cuda, separate process",
+ "endpoint": "ChatterboxMultilingualTTS.generate",
+ "model": "ChatterboxMultilingualTTS (chatterbox-multilingual, 24 kHz, cuda, speech tokens capped at 400, special tokens >= 6561 dropped before S3Gen)",
+ "request": {
+  "text": "Танкогра́д вы́полнил ме́сячный план за одну́ ночь. Но́вые маши́ны уже́ на фро́нте.",
+  "voice_mode": "clone",
+  "reference_audio_filename": "sd_ref_radio_m_thorsten_neutral_eb012d63.wav",
+  "output_format": "wav",
+  "language": "ru",
+  "exaggeration": 0.5,
+  "cfg_weight": 0.5,
+  "temperature": 0.7,
+  "seed": 77151,
+  "speed_factor": 1.0,
+  "split_text": false
+ },
+ "shown_text": "Танкоград выполнил месячный план за одну ночь. Новые машины уже на фронте.",
+ "reference": {
+  "key": "radio_m_thorsten_neutral",
+  "file": "sd_ref_radio_m_thorsten_neutral_eb012d63.wav",
+  "sha256": "eb012d637ecb595756b1d1c0fc3bd10212034ae2b08dc6370586013dbc316343",
+  "sources": [
+   {
+    "title": "Thorsten-Voice Dataset 2021.06 emotional v02, style neutral",
+    "author": "Thorsten Müller (voice), Dominik Kreutz (audio)",
+    "licence": "CC0 1.0",
+    "url": "https://zenodo.org/records/5525023",
+    "credit": ""
+   }
+  ]
+ }
+}
