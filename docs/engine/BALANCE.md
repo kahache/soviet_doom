@@ -577,3 +577,51 @@ For each stage of the route (the stages of the readiness check):
 
 `tests/test_d119_balance.py` pins this section's weapon and boss numbers
 against the code.
+
+## 9. Medals (V3 B3, ADR 013; proposal, 2026-10-23)
+
+At the end of each episode (after the stats of MAP03, MAP06 and MAP09, before
+the ending text) the awards page shows five Soviet decorations; each is
+earned or not by the **whole episode's** figures: the three maps' kills,
+secrets and times **summed**, against the summed par times. A map of the
+episode not played in this game (a New Game is started on its first map;
+a death that restarts a map from scratch starts a new record, MOD-SPEC 6.13)
+counts as not played. The page lists all five every time, the earned ones
+lit, the others dark with the rule still readable, so the player learns what
+to aim for. Code: `SD_Awards` in `zscript/sd/awards.zs`; the table below is
+read by `tests/test_awards.py`.
+
+| Award | Rule | Constant | Value |
+|---|---|---|---|
+| Medal "For Courage" | the episode completed (always: one award for everyone who gets there) | — | — |
+| Order of the Red Star | kills, % of the episode's enemies, at least | `SD_REDSTAR_KILLS_PCT` | 75 |
+| Order of the Red Banner | secrets, % of the episode's secrets, at least (an episode with none counts 100) | `SD_REDBANNER_SECRETS_PCT` | 100 |
+| Order of the Patriotic War | the episode's time no more than the sum of its maps' `par` (whole seconds) | — | — |
+| Gold Star, Hero of the Soviet Union | all three maps played in this game, kills at least the Hero's %, every secret, within par, and on skill 3 or harder | `SD_HERO_KILLS_PCT` | 90 |
+| (the Hero's skill) | the episode's easiest skill, as the skill's SpawnFilter bit: 4 = Normal = «Not one step back» (MAPINFO) | `SD_HERO_MIN_SPAWNFILTER` | 4 |
+| (an episode) | maps per episode | `SD_MAPS_PER_EPISODE` | 3 |
+
+Why these numbers:
+
+- **75 % for the Red Star.** Doom's 100 % kills is a completionist's figure
+  (monsters behind closed areas, on ledges, teleported in late); three
+  quarters of an episode means fighting through each map rather than running
+  it, and leaves room for a missed room per map. Kills above 100 % (Nightmare
+  respawns, skill 5) still count, as the stats screen counts them.
+- **100 % for the Red Banner**, as the brief asks: the secrets are hand-placed,
+  with clues (each map's design doc, "Secrets"), so all of them is fair.
+- **Par for the Patriotic War.** `par` is what the stats screen prints as
+  PAR. **Debt:** every par is still the mod-engineer's or the
+  level-designer's placeholder (MAPINFO comments; MAP01 210 s, MAP02 300,
+  MAP03 360 -> episode 1 14:30; MAP04-06 300/330/420 -> 17:30; MAP07-09
+  330/360/480 -> 19:30), not a timed human run. Until QA times them this
+  award may be easy or impossible; the rule does not change when the pars do.
+- **The Gold Star needs all of it, at 90 %, on skill 3 or harder**: the
+  rung the menu starts on (`DefaultSkill`), so the Hero is earned at the
+  game's intended difficulty or above, never on the two easy rungs; 90 %
+  rather than 75 % because it is the one award that should feel rare. It
+  echoes skill 5's name, «Hero of the Soviet Union, posthumously».
+
+**NOT VERIFIED in the engine** (D26): the PM's pass ends each episode with
+known figures (the console's `kill monsters` gives 100 % kills) and checks the
+page against this table.

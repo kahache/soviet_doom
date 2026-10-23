@@ -10,7 +10,18 @@ GameInfo
 	// player's screen (zscript/sd/death_prompt.zs; MOD-SPEC 6.10).
 	// SD_MusicVariant (D106): episode 2's A/B music and MAP06's boss loop
 	// (zscript/sd/music_variant.zs; MOD-SPEC 6.11).
-	AddEventHandlers = "SD_LoadReporter", "SD_DeathPrompt", "SD_MusicVariant"
+	// SD_AwardsRecorder (V3 B3, ADR 013): copies each campaign map's kills,
+	// secrets and time into the player's ledger for the end-of-episode awards
+	// (zscript/sd/awards.zs; MOD-SPEC 6.13).
+	AddEventHandlers = "SD_LoadReporter", "SD_DeathPrompt", "SD_MusicVariant", "SD_AwardsRecorder"
+
+	// V3 B3 (ADR 013): the single-player stats screen is ours. SD_StatusScreen
+	// derives from DoomStatusScreen, the class gzdoom.pk3's
+	// mapinfo/doomcommon.txt names here, keeps its stats page as it is and
+	// adds the awards page after the last map of an episode
+	// (zscript/sd/status_screen.zs; MOD-SPEC 6.13). Coop and deathmatch keep
+	// the engine's screens.
+	statscreen_single = "SD_StatusScreen"
 
 	// D102 (v1.1): the mouse pointer over the menus is our hammer and sickle,
 	// graphics/SDCURSOR.png (tools/art/gen_mouse_cursor.py), instead of
@@ -198,6 +209,18 @@ skill sd_posthumous
 // ending is cluster 10 (MAP09).
 // No cluster has an `entertext`: one crossing, one text. That is what keeps
 // the ending from being printed anywhere but after the last map.
+//
+// --- The operations map (V3 B1, ADR 013) ------------------------------------
+// Every campaign map, MAP01-MAP09, says
+//     exitpic = "$SDOPSCR"    enterpic = "$SDOPSCR"
+// so the stats screen after it, and the "Entering" page before the next
+// one, are drawn over our map of the USSR instead of INTERPIC. A name that
+// starts with "$" is an INTERMISSION SCRIPT, the lump SDOPSCR (the language
+// of gzdoom.pk3's in_epi1.txt..in_epi3.txt, Doom 1's episode maps): the
+// background SDOPMAP, the red arrow into each map, a red star on every site
+// already taken, a gold pulse where the player is and the engine's blinking
+// pointer on the next site. Generated with its pictures by
+// tools/art/gen_ops_map.py. The range (RANGE) has no intermission.
 
 // The campaign's ending, shown when MAP03 is left (MOD-SPEC 4.6).
 cluster 1
@@ -422,6 +445,10 @@ map MAP01 lookup "SD_MAP01_NAME"
 	// Reading the settled number needs a human holding the key down; it is
 	// on QA's list and it is cosmetic either way.
 	par = 210
+	// V3 B1 (ADR 013): the operations map behind this map's stats screen
+	// and behind the next map's "Entering" page (the script above).
+	exitpic = "$SDOPSCR"
+	enterpic = "$SDOPSCR"
 }
 
 // --- Editor numbers (F4) --------------------------------------------------
@@ -446,6 +473,10 @@ map MAP02 lookup "SD_MAP02_NAME"
 	// which nothing in it shows (MAP01, MAP03 and the range wear our own).
 	sky1 = "SKY1"
 	par = 300
+	// V3 B1 (ADR 013): the operations map behind this map's stats screen
+	// and behind the next map's "Entering" page (the script above).
+	exitpic = "$SDOPSCR"
+	enterpic = "$SDOPSCR"
 }
 
 map MAP03 lookup "SD_MAP03_NAME"
@@ -465,6 +496,10 @@ map MAP03 lookup "SD_MAP03_NAME"
 	// level-designer's estimate for a player who knows the route
 	// (docs/levels/MAP03-factory.md 3 and 11). Display only.
 	par = 360
+	// V3 B1 (ADR 013): the operations map behind this map's stats screen
+	// and behind the next map's "Entering" page (the script above).
+	exitpic = "$SDOPSCR"
+	enterpic = "$SDOPSCR"
 }
 
 // --- Episode 2 maps (D104, P4) ----------------------------------------------
@@ -498,6 +533,10 @@ map MAP04 lookup "SD_MAP04_NAME"
 	// 360-degree turn; textures/sky/, docs/art/TEXTURE-INDEX.md).
 	sky1 = "SDSKY1"
 	par = 300
+	// V3 B1 (ADR 013): the operations map behind this map's stats screen
+	// and behind the next map's "Entering" page (the script above).
+	exitpic = "$SDOPSCR"
+	enterpic = "$SDOPSCR"
 }
 
 map MAP05 lookup "SD_MAP05_NAME"
@@ -513,6 +552,10 @@ map MAP05 lookup "SD_MAP05_NAME"
 	// fits the Zhiguli hills over the dam better than Moscow's skyline.
 	sky1 = "SDSKY1"
 	par = 330
+	// V3 B1 (ADR 013): the operations map behind this map's stats screen
+	// and behind the next map's "Entering" page (the script above).
+	exitpic = "$SDOPSCR"
+	enterpic = "$SDOPSCR"
 }
 
 map MAP06 lookup "SD_MAP06_NAME"
@@ -530,6 +573,10 @@ map MAP06 lookup "SD_MAP06_NAME"
 	// high-rises and Ostankino on the skyline (textures/sky/).
 	sky1 = "SDSKY2"
 	par = 420
+	// V3 B1 (ADR 013): the operations map behind this map's stats screen
+	// and behind the next map's "Entering" page (the script above).
+	exitpic = "$SDOPSCR"
+	enterpic = "$SDOPSCR"
 }
 
 // --- Episode 3 maps (D112, P4) ----------------------------------------------
@@ -561,6 +608,10 @@ map MAP07 lookup "SD_MAP07_NAME"
 	intermusic = "D_SDE3IA"
 	sky1 = "SDSKY3"
 	par = 330
+	// V3 B1 (ADR 013): the operations map behind this map's stats screen
+	// and behind the next map's "Entering" page (the script above).
+	exitpic = "$SDOPSCR"
+	enterpic = "$SDOPSCR"
 }
 
 map MAP08 lookup "SD_MAP08_NAME"
@@ -574,6 +625,10 @@ map MAP08 lookup "SD_MAP08_NAME"
 	intermusic = "D_SDE3IA"	// D113: as after MAP07
 	sky1 = "SDSKY4"
 	par = 360
+	// V3 B1 (ADR 013): the operations map behind this map's stats screen
+	// and behind the next map's "Entering" page (the script above).
+	exitpic = "$SDOPSCR"
+	enterpic = "$SDOPSCR"
 }
 
 map MAP09 lookup "SD_MAP09_NAME"
@@ -589,6 +644,10 @@ map MAP09 lookup "SD_MAP09_NAME"
 	music = "D_SDM09A"
 	sky1 = "SDSKY5"
 	par = 480
+	// V3 B1 (ADR 013): the operations map behind this map's stats screen
+	// and behind the next map's "Entering" page (the script above).
+	exitpic = "$SDOPSCR"
+	enterpic = "$SDOPSCR"
 }
 
 DoomEdNums

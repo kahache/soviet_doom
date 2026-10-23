@@ -19,6 +19,8 @@ version "4.12"
 #include "zscript/sd/help_menu.zs"   // F1 opens our credits, not Freedoom's HELP (M4 shell)
 #include "zscript/sd/death_prompt.zs" // "Press <use> to continue" after death (D100, v1.1)
 #include "zscript/sd/music_variant.zs" // episode 2's A/B music and MAP06's boss loop (D106)
+#include "zscript/sd/awards.zs"        // the end-of-episode awards: ledger, recorder, rules (V3 B3, ADR 013)
+#include "zscript/sd/status_screen.zs" // the stats screen + the awards page (V3 B1/B3, ADR 013)
 
 // --- Arsenal (F4): one class per file, one weapon per Doom slot -----------
 // (but slot 4, which holds two since D116: the PPSh-41 and the AKM)
