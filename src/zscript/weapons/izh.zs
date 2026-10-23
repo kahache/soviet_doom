@@ -65,6 +65,7 @@ class SD_Izh : Shotgun replaces Shotgun
 		Obituary "$SD_OB_IZH";
 		Tag "$SD_TAG_IZH";
 		Inventory.PickupMessage "$SD_PICKUP_IZH";
+		Inventory.PickupSound "sd/weapon/izh/pickup";  // SDIZPKP1/2 $random (D125; Doom's generic one until then, D94)
 	}
 
 	States

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Contract of tools/audio/gen_world_sfx.py (v1.1 world-sound drafts, NOT installed).
+"""Contract of tools/audio/gen_world_sfx.py (the world-sound candidates; D125 installed 50 of
+them and a layered oof through tools/audio/master_world_sfx.py, tests/test_world_sfx_install.py).
 
 Cheap tier (no rendering, no work/ files):
 

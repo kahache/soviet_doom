@@ -1,0 +1,34 @@
+{
+ "file": "PLD_SDPLDETH_ai_chatterbox_20261022_t02.wav",
+ "date": "2026-10-22",
+ "server": "offline: chatterbox library in the server's Python, cpu, separate process",
+ "endpoint": "ChatterboxMultilingualTTS.generate",
+ "model": "ChatterboxMultilingualTTS (chatterbox-multilingual, 24 kHz, cpu, speech tokens capped at 300, special tokens >= 6561 dropped before S3Gen)",
+ "request": {
+  "text": "Аааа... кх.",
+  "voice_mode": "clone",
+  "reference_audio_filename": "sd_ref_player_haeldb_2e7903ac.wav",
+  "output_format": "wav",
+  "language": "ru",
+  "exaggeration": 0.7,
+  "cfg_weight": 0.3,
+  "temperature": 0.8,
+  "seed": 62052,
+  "speed_factor": 1.0,
+  "split_text": false
+ },
+ "reference": {
+  "key": "player_haeldb",
+  "file": "sd_ref_player_haeldb_2e7903ac.wav",
+  "sha256": "2e7903acc610791cee87a423bf514d592ecdf566853c760cbe09c37aa305739f",
+  "sources": [
+   {
+    "title": "Male Grunt/Yelling sounds, the unnumbered vocalist (yell*.wav)",
+    "author": "HaelDB",
+    "licence": "CC0 1.0 (dual-listed with OGA-BY 3.0; CC0 picked)",
+    "url": "https://opengameart.org/content/male-gruntyelling-sounds",
+    "credit": ""
+   }
+  ]
+ }
+}

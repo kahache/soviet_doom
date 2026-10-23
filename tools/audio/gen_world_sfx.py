@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""World sounds (v1.1): drafts for the sounds that are still Freedoom's. NOT INSTALLED.
+"""World sounds (v1.1): drafts for the sounds that were still Freedoom's.
+
+D125 (2026-10-23): the CEO approved 50 of the 56 and asked for SDPLOOF w1
+over w3's impact; tools/audio/master_world_sfx.py installs them byte for
+byte (and renders that layer from this file's recipes). This file still
+writes candidates only.
 
 CLAUDE.md lists what the player still hears from the IWAD: the player's own
 voice (pain, death, the "oof" of a landing, the use that does nothing, the

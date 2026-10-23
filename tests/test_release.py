@@ -445,7 +445,7 @@ class ReadmeTest(unittest.TestCase):
         en, ru = face_voices.split(README_RULE)
         self.assertIn("the sergeant's face", release.normalise(en))
         self.assertIn("лицо сержанта", release.normalise(ru))
-        self.assertIn("some enemy voice lines", en)
+        self.assertIn("some enemy voice lines and some of the sergeant's own sounds", " ".join(en.split()))
         self.assertNotIn("Freedoom's voices", release.normalise(en))
         self.assertNotIn("голосами Freedoom", release.normalise(ru))
         self.assertNotIn("sergeant's face", self.readme)

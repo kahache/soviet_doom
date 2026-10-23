@@ -298,3 +298,133 @@ sd/bed/legiontrooper/death/2  SDLTRDB2    // D86 alt2  end-of-transmission beep
 sd/bed/legiontrooper/death/3  SDLTRDB3    // D86 alt3  a drowned carrier
 sd/bed/general/pain           SDGENPB1    // D83  chrome struck, a servo jerks
 sd/bed/general/death          SDGENDB1    // D83  servos down, relays, the chrome falls
+
+// === The player and the world (D125, 2026-10-23) ===========================
+// The sounds that were Freedoom's until D125: the sergeant's voice, the
+// doors, the switches, the pickups (item, key, power-up, the IZh-58's), the
+// lifts and moving floors, the teleporter. The CEO's verdict on
+// work/audio/preview/world_sounds_listening.html (gen_world_sfx.py's 56
+// candidates): 50 OK, installed byte for byte, and SDPLOOF_w1 laid over
+// SDPLOOF_w3's impact as he asked; tools/audio/master_world_sfx.py
+// (--sndinfo prints these lines), docs/sound/WORLD-SOUNDS.md. Files in
+// assets/sounds/world/. The comment names the page's candidate.
+//
+// How the engine reaches them (gzdoom.pk3 g4.14.2: sndinfo.txt and
+// filter/game-doomchex/sndinfo.txt, read 2026-10-23):
+//   * the world's: a $random group on the engine's OWN logical name
+//     (doors/dr1_open, switches/normbutn, misc/i_pkup...), which redefines
+//     the IWAD lump line; redefining a name keeps gzdoom.pk3's $limit 1 and
+//     $pitchshift 0 on the pickups. Members <that name>/<take>, as above.
+//     misc/k_pkup (keys) is its own group, its members on the item's lumps,
+//     as Doom plays DSITEMUP for both (a take is in one group only).
+//   * the player's: a $random group sd/player/<event>, and $playeralias
+//     points the player sounds at it, for all three genders (the sergeant is
+//     one man). Doom makes *pain75/50/25 and *land duplicates of *pain100
+//     and *grunt, so each is aliased again, or it would keep DSPLPAIN/DSOOF
+//     (and a hard landing would play both oofs).
+//   * the IZh-58's: sd/weapon/izh/pickup, SD_Izh's Inventory.PickupSound.
+// Still Freedoom's: the jump (*jump, DSJUMP: both takes NO), *gibbed
+// (DSSLOP) and *fist. NOT VERIFIED in the engine (D26): a $playeralias to a
+// $random group and a $random on an engine name are the ZDoom wiki's
+// SNDINFO syntax; a refused line shows in the log and that sound plays
+// Freedoom's lump.
+$random sd/player/pain { sd/player/pain/1 sd/player/pain/2 sd/player/pain/3 }
+sd/player/pain/1               SDSGPAI1    // D125 SDPLPAIN_w1
+sd/player/pain/2               SDSGPAI2    // D125 SDPLPAIN_w2
+sd/player/pain/3               SDSGPAI3    // D125 SDPLPAIN_w3
+$random sd/player/death { sd/player/death/1 sd/player/death/3 }
+sd/player/death/1              SDSGDET1    // D125 SDPLDETH_w1
+sd/player/death/3              SDSGDET3    // D125 SDPLDETH_w3
+$random sd/player/xdeath { sd/player/xdeath/1 sd/player/xdeath/2 sd/player/xdeath/3 }
+sd/player/xdeath/1             SDSGXDT1    // D125 SDPLXDTH_w1
+sd/player/xdeath/2             SDSGXDT2    // D125 SDPLXDTH_w2
+sd/player/xdeath/3             SDSGXDT3    // D125 SDPLXDTH_w3
+$random sd/player/oof { sd/player/oof/1 sd/player/oof/2 sd/player/oof/3 }
+sd/player/oof/1                SDSGOOF1    // D125 SDPLOOF_w1's voice over SDPLOOF_w3's impact
+sd/player/oof/2                SDSGOOF2    // D125 SDPLOOF_w2
+sd/player/oof/3                SDSGOOF3    // D125 SDPLOOF_w3
+$random sd/player/usefail { sd/player/usefail/1 sd/player/usefail/2 sd/player/usefail/3 }
+sd/player/usefail/1            SDSGNOW1    // D125 SDPLNOWY_w1
+sd/player/usefail/2            SDSGNOW2    // D125 SDPLNOWY_w2
+sd/player/usefail/3            SDSGNOW3    // D125 SDPLNOWY_w3
+$random doors/dr1_open { doors/dr1_open/1 doors/dr1_open/2 doors/dr1_open/3 }
+doors/dr1_open/1               SDDOROP1    // D125 SDDOROPN_w1
+doors/dr1_open/2               SDDOROP2    // D125 SDDOROPN_w2
+doors/dr1_open/3               SDDOROP3    // D125 SDDOROPN_w3
+$random doors/dr1_clos { doors/dr1_clos/1 doors/dr1_clos/2 doors/dr1_clos/3 }
+doors/dr1_clos/1               SDDORCL1    // D125 SDDORCLS_w1
+doors/dr1_clos/2               SDDORCL2    // D125 SDDORCLS_w2
+doors/dr1_clos/3               SDDORCL3    // D125 SDDORCLS_w3
+$random doors/dr2_open { doors/dr2_open/1 doors/dr2_open/2 doors/dr2_open/3 }
+doors/dr2_open/1               SDBDOPN1    // D125 SDBDOPN_w1
+doors/dr2_open/2               SDBDOPN2    // D125 SDBDOPN_w2
+doors/dr2_open/3               SDBDOPN3    // D125 SDBDOPN_w3
+$random doors/dr2_clos { doors/dr2_clos/1 doors/dr2_clos/2 doors/dr2_clos/3 }
+doors/dr2_clos/1               SDBDCLS1    // D125 SDBDCLS_w1
+doors/dr2_clos/2               SDBDCLS2    // D125 SDBDCLS_w2
+doors/dr2_clos/3               SDBDCLS3    // D125 SDBDCLS_w3
+$random switches/normbutn { switches/normbutn/1 switches/normbutn/2 switches/normbutn/3 }
+switches/normbutn/1            SDSWTCN1    // D125 SDSWTCHN_w1
+switches/normbutn/2            SDSWTCN2    // D125 SDSWTCHN_w2
+switches/normbutn/3            SDSWTCN3    // D125 SDSWTCHN_w3
+$random switches/exitbutn { switches/exitbutn/1 switches/exitbutn/2 switches/exitbutn/3 }
+switches/exitbutn/1            SDSWTCX1    // D125 SDSWTCHX_w1
+switches/exitbutn/2            SDSWTCX2    // D125 SDSWTCHX_w2
+switches/exitbutn/3            SDSWTCX3    // D125 SDSWTCHX_w3
+$random misc/i_pkup { misc/i_pkup/1 misc/i_pkup/2 misc/i_pkup/3 }
+misc/i_pkup/1                  SDITEMU1    // D125 SDITEMUP_w1
+misc/i_pkup/2                  SDITEMU2    // D125 SDITEMUP_w2
+misc/i_pkup/3                  SDITEMU3    // D125 SDITEMUP_w3
+$random misc/k_pkup { misc/k_pkup/1 misc/k_pkup/2 misc/k_pkup/3 }
+misc/k_pkup/1                  SDITEMU1    // D125 SDITEMUP_w1, as misc/i_pkup
+misc/k_pkup/2                  SDITEMU2    // D125 SDITEMUP_w2, as misc/i_pkup
+misc/k_pkup/3                  SDITEMU3    // D125 SDITEMUP_w3, as misc/i_pkup
+$random misc/p_pkup { misc/p_pkup/1 misc/p_pkup/2 misc/p_pkup/3 }
+misc/p_pkup/1                  SDGETPO1    // D125 SDGETPOW_w1
+misc/p_pkup/2                  SDGETPO2    // D125 SDGETPOW_w2
+misc/p_pkup/3                  SDGETPO3    // D125 SDGETPOW_w3
+$random sd/weapon/izh/pickup { sd/weapon/izh/pickup/1 sd/weapon/izh/pickup/2 }
+sd/weapon/izh/pickup/1         SDIZPKP1    // D125 SDIZPKP_w1
+sd/weapon/izh/pickup/2         SDIZPKP2    // D125 SDIZPKP_w2
+$random plats/pt1_strt { plats/pt1_strt/1 plats/pt1_strt/2 plats/pt1_strt/3 }
+plats/pt1_strt/1               SDPSTAR1    // D125 SDPSTART_w1
+plats/pt1_strt/2               SDPSTAR2    // D125 SDPSTART_w2
+plats/pt1_strt/3               SDPSTAR3    // D125 SDPSTART_w3
+$random plats/pt1_stop { plats/pt1_stop/1 plats/pt1_stop/2 plats/pt1_stop/3 }
+plats/pt1_stop/1               SDPSTOP1    // D125 SDPSTOP_w1
+plats/pt1_stop/2               SDPSTOP2    // D125 SDPSTOP_w2
+plats/pt1_stop/3               SDPSTOP3    // D125 SDPSTOP_w3
+$random plats/pt1_mid { plats/pt1_mid/1 plats/pt1_mid/2 plats/pt1_mid/3 }
+plats/pt1_mid/1                SDPMOVE1    // D125 SDPMOVE_w1
+plats/pt1_mid/2                SDPMOVE2    // D125 SDPMOVE_w2
+plats/pt1_mid/3                SDPMOVE3    // D125 SDPMOVE_w3
+$random misc/teleport { misc/teleport/1 misc/teleport/2 }
+misc/teleport/1                SDTELEP1    // D125 SDTELEPT_w1
+misc/teleport/2                SDTELEP2    // D125 SDTELEPT_w2
+$playeralias player male   *pain100  sd/player/pain
+$playeralias player male   *pain75   sd/player/pain
+$playeralias player male   *pain50   sd/player/pain
+$playeralias player male   *pain25   sd/player/pain
+$playeralias player male   *death    sd/player/death
+$playeralias player male   *xdeath   sd/player/xdeath
+$playeralias player male   *grunt    sd/player/oof
+$playeralias player male   *land     sd/player/oof
+$playeralias player male   *usefail  sd/player/usefail
+$playeralias player female *pain100  sd/player/pain
+$playeralias player female *pain75   sd/player/pain
+$playeralias player female *pain50   sd/player/pain
+$playeralias player female *pain25   sd/player/pain
+$playeralias player female *death    sd/player/death
+$playeralias player female *xdeath   sd/player/xdeath
+$playeralias player female *grunt    sd/player/oof
+$playeralias player female *land     sd/player/oof
+$playeralias player female *usefail  sd/player/usefail
+$playeralias player other  *pain100  sd/player/pain
+$playeralias player other  *pain75   sd/player/pain
+$playeralias player other  *pain50   sd/player/pain
+$playeralias player other  *pain25   sd/player/pain
+$playeralias player other  *death    sd/player/death
+$playeralias player other  *xdeath   sd/player/xdeath
+$playeralias player other  *grunt    sd/player/oof
+$playeralias player other  *land     sd/player/oof
+$playeralias player other  *usefail  sd/player/usefail

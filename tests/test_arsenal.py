@@ -403,6 +403,12 @@ class ArsenalPk3Test(unittest.TestCase):
                 self.assertNotIn(name, out, f"{name} defined twice in SNDINFO")
                 out[name] = "$random"
                 continue
+            if line.startswith("$playeralias"):
+                # D125: the sergeant's voice, `$playeralias <class> <gender>
+                # <player sound> <our $random group>`; the group is
+                # checked by test_every_defined_sound_is_used.
+                self.assertEqual(len(line.split()), 5, raw)
+                continue
             if line.startswith("$"):
                 # D116: the AKM's report pitched down. Only this directive,
                 # and only on a name defined on a line of its own.
@@ -438,6 +444,20 @@ class ArsenalPk3Test(unittest.TestCase):
     # they are mixed under the approved voice takes (D87).
     PARKED_PREFIX = "sd/bed/"
 
+    # D125: the world sounds are $random groups on the engine's own names,
+    # played by gzdoom.pk3's SNDSEQ (doors, lifts, floors) and its items'
+    # default PickupSound, switches and teleporter; nothing in our ZScript
+    # names them. tests/test_world_sfx_install.py holds the list.
+    ENGINE_PLAYED = frozenset({
+        "doors/dr1_open", "doors/dr1_clos", "doors/dr2_open", "doors/dr2_clos",
+        "switches/normbutn", "switches/exitbutn", "misc/i_pkup", "misc/k_pkup", "misc/p_pkup",
+        "plats/pt1_strt", "plats/pt1_stop", "plats/pt1_mid", "misc/teleport"})
+
+    def _player_aliased(self) -> set[str]:
+        """The groups `$playeralias` points player sounds at (D125)."""
+        return {line.split("//")[0].split()[4] for line in self.sndinfo.splitlines()
+                if line.strip().startswith("$playeralias")}
+
     def test_random_groups_are_well_formed(self):
         names = self._sndinfo_names()
         groups = self._random_groups()
@@ -456,6 +476,8 @@ class ArsenalPk3Test(unittest.TestCase):
         members = {m for ms in self._random_groups().values() for m in ms}
         for name in self._sndinfo_names():
             if name in members:        # played through its $random group
+                continue
+            if name in self.ENGINE_PLAYED or name in self._player_aliased():   # D125
                 continue
             if name.startswith(self.PARKED_PREFIX):
                 self.assertNotIn(name, used, f"{name} is played now: the beds are parked (N9e)")
