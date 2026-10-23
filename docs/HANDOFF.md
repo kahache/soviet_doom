@@ -13,7 +13,7 @@ the art-director's note, `gemini_tt33_A2/B2`), gunner 5/5 (aim_v3 and death_v2 a
 colossus 7/7 (aim and fire: profile touches view 4, crop by hand), Consortium 2/7 (rooted, turn). **Next at 17:33:**
 gunner walkL/walkR re-ask (all five views mid-stride, left leg forward in L, right in R: the two sheets came
 out almost identical), then Consortium fire, death, aim (2 rows), walk (2 rows), breach; then the AKM 2; TT-33 re-ask 2;
-re-asks 4 (optional: gunner fire 3/4-back views with the flash at the hip).
+re-asks 4 (optional: gunner fire 3/4-back views with the flash at the hip). **LAST, before publishing v1.2: the epic title screen (TITLEPIC, D126, prompt in §11 of the pack).**
 Processing agents (art-director) run per character; previews go to the CEO before anything enters `assets/`.
 V3 agents run in isolated worktrees (pickup events E1/E2/E3, ops map + medals, RGD-5, propaganda radio).
 
