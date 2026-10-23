@@ -202,6 +202,8 @@ blue pass"); the map does not change when that lands.
 | SW-A | Foundry gallery, a 64-wide niche in its north wall, beside the passage to SH | `SDSW1B` (push button), one-shot | `Door_Open (10, 16, 0)` | no |
 | GATE | Drum's east face, 128 wide, a leaf on both faces | remote, opens for good | tag 11 | no |
 | SW-B | Control booth, back wall | `SDSW1A` (knife switch), one-shot | `Door_Open (11, 16, 0)` | no |
+| YKEY (V3 A2, §19) | the yellow key on the director's desk | **pickup event** | thing `Door_Open (13, 16, 0)`: the two office closets at the stair head | no: opens only |
+| LIFT (V3 A3, §19) | the red key on the ingot pedestal | **pickup event, the set piece** | thing `FloorAndCeiling_RaiseByValue (14, 16, 192)`: the foundry's goods lift comes up with its crew | no: a dead-end car that ends level with the casting floor |
 | EXIT | Back of a 64 × 128 niche at the top of the dais, inside the drum | `SDSW1D`, the hazard panel every map's exit wears | `Exit_Normal (0)` | — |
 
 **The order, as the tests play it** (`test_the_route_is_the_designed_one`),
@@ -1207,4 +1209,59 @@ pack on skill 4), and **PG-7V and fuel together are 56.8–83.6 against his
 the portal hall: outside the boss's stage the amendment caps the PG-7V at
 30 %. The dais (after SW-B) holds no ammunition. Stage floors on skill 4:
 8.2, 2.4, 2.0, 1.9; by weapon stretch 8.9 / 6.4 / 2.8 / 2.3 / 1.9.
+
+## 19. V3 A2 and A3 (2026-10-23): the keys' events, and the goods lift
+
+Built in a V3 worktree (not in v1.2). The pattern, the specials and the
+safety rules are `docs/levels/PICKUP-EVENTS.md`; this section is MAP03's
+use of it. **NOT WALKED**: the PM's engine pass is pending (D26).
+
+**Why a lift and not the train (A3).** The brief's first idea was the MAP03
+train that starts. A train that moves needs geometry moving sideways:
+PolyObjects (never tried in this project) or ACS (the mod has none, and no
+compiler in the repo). A scrolling wall behind a still train reads as a
+treadmill, not a departure. The brief's own alternative, a goods lift with
+an ambush, is made of what GZDoom moves best, sectors, with one special on
+the key: it is built instead. The train stays a candidate for when ACS or
+PolyObjects are proven.
+
+| Event | Rides on | Thing special | Tag: what it moves | What the player meets |
+|---|---|---|---|---|
+| `office_closets` | the yellow key on the director's desk (2304, 2048) | `Door_Open (13, 16, 0)` | 13: `closet_ow_door` and `closet_oe_door`, tiled panels in the office corridor's south wall either side of the stair head (x 1984…2112 and 2496…2624, y 1776…1792; closets y 1696…1776, floor 64) | as he leaves the director's office with the key, both panels open across the corridor in front of him (in sight of the doorway, tested): a Legion clerk out of each |
+| `goods_lift` (**A3**) | the red key on the ingot pedestal (512, 352) | `FloorAndCeiling_RaiseByValue (14, 16, 192)` | 14: `f_lift`, a shaft in the casting floor's north wall (x 896…1088, y 640…752), its car's floor at −256 and its ceiling flush with the casting floor (−64) | the shaft's steel front, wall from floor to roof, lifts like a gate; behind it the car comes up the shaft with the ingot crew standing on it and stops level with the casting floor, a lintel over it, ~2.7 s at 2 units a tic. Seen from the pedestal (tested) |
+
+How the lift works without ACS (PICKUP-EVENTS §4.4): a sector whose ceiling
+is flush with the room's floor has no opening, so the room sees its front
+as wall and nothing inside sees or hears out; raising floor and ceiling
+together by the shaft's depth opens it from the bottom up while its load
+rides up. It touches the casting floor only, so it shuts nothing (R1), and
+the car is a dead end the crew and the player walk out of (R6).
+
+Neither event is needed: the critical route (nobody killed, no event) is
+unchanged; the full play (`progression(kills=True)`) now runs the keys'
+events too, and every "no trap" and "exit from everywhere" check holds with
+them. Both are far from the start (R5). The General's death special is
+unchanged and still names tag 12 alone.
+
+**Monsters**: two troopers (the clerks) and two riflemen (the crew), every
+skill: **29 / 42 / 56** (was 25 / 38 / 52). The crew are riflemen, not a
+stormtrooper, to keep skill 2 in its band. **Ammunition**: the 4 shells at
+the lift's mouth (1000, 560) are a box of 50 rounds now: placed against
+needed **1.51 / 1.33 / 1.22**; shells 33 / 33 / 34 % with the clerks'
+dropped IZhs; pickups on the route 18 / 20 / 27 (ceilings 36 / 33 / 28).
+
+**Route** (`tools/route.py`, tankograd-critical): `TAG_EVENT_YELLOW` and
+`TAG_EVENT_RED` join `TANKOGRAD_CONSTANTS`; the office closets are shut at
+YD0 and open at YD1. The car is a body high before and after, so the door
+rule cannot judge it: RKEY and RD1 print its floor and ceiling (before −256
+/ −64, after −64 / 128) for the PM to read.
+
+**Engine checklist for the PM** (D26):
+
+| # | Check | How |
+|---|---|---|
+| V3-1 | Taking the yellow key opens both office closets; the clerks come out | `tankograd-critical`: YD1 reports tag 13 open |
+| V3-2 | **The goods lift**: taking the red key, the steel front lifts from the floor up, the car rises with both riflemen on it (no one stuck, no crush, no stop half way), and stops level with the casting floor | RD1 prints tag 14 at floor −64, ceiling 128; by hand from the pedestal, skill 3; screenshots during and after |
+| V3-3 | Before the key, the front is plain steel to the roof and the crew neither sees nor wakes; the mover's sound is heard | by hand, skill 3 |
+| V3-4 | The lintel over the car (128…256) and the car's inside read as a lift shaft, no hall of mirrors | screenshot from the casting floor |
 

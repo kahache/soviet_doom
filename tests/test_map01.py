@@ -44,8 +44,12 @@ sys.path.insert(0, str(PROJECT_ROOT / "tests"))
 
 # Imported as a module, not by name: a TestCase class bound in this module's
 # namespace would be collected and run a second time from here.
+import _pickup_events as pe  # noqa: E402  (V3 A2's shared checks)
 import route  # noqa: E402  (QA's tools/route.py: its steps, read not run)
 import test_udmf as udmf_tests  # noqa: E402
+
+# docs/levels/PICKUP-EVENTS.md R5 uses tests/test_safe_starts.py's distance.
+SAFE_START_DISTANCE = 768
 
 MAX_STEP_UP = udmf_tests.MAX_STEP_UP
 _load_map01 = udmf_tests._load_map01
@@ -89,9 +93,9 @@ MAP01_STRETCHES = (
                    "tribune"}),
     ("the IZh", {"z5_service", "z5b_guard", "z5_flicker", "z6_hangar", "z6a_cradle",
                  "lane_a_cross", "cradle_spine", "gantry", "z7_fuel_bay", "weapon_rack",
-                 "closet_a1", "closet_a2", "closet_a3"}),
+                 "closet_a1", "closet_a2", "closet_a3", "closet_izh"}),
     ("the PPSh-41", {"z6b_catwalk", "z9_booth", "closet_w1", "closet_w2", "closet_e1",
-                     "z8_airlock", "z10_lift", "z10_exit"}),
+                     "closet_ppsh", "z8_airlock", "z10_lift", "z10_exit"}),
 )
 # Ammo is counted in shell-equivalents: an IZh barrel averages 80 damage, a
 # PPSh round 8 (docs/engine/BALANCE.md section 2), so ten rounds of 7.62 do
@@ -314,10 +318,15 @@ class Map01V3Test(unittest.TestCase):
         every closet on every skill."""
         m = self.m
         closets = [n for n in self.plan if n.startswith("closet_") and not n.endswith("_door")]
-        self.assertEqual(6, len(closets))
+        self.assertEqual(6 + len(m.EVENT_CLOSETS), len(closets))
         for name in closets:
             tag = self.sectors[self.plan[f"{name}_door"]]["id"]
-            wanted = m.TAG_FUEL_BAY_AMBUSH if name.startswith("closet_a") else m.TAG_HANGAR_WAVE_2
+            if name in m.EVENT_CLOSETS:       # V3 A2: its weapon's pickup opens it
+                wanted = m.EVENT_CLOSETS[name][0].tag
+            elif name.startswith("closet_a"):
+                wanted = m.TAG_FUEL_BAY_AMBUSH
+            else:
+                wanted = m.TAG_HANGAR_WAVE_2
             self.assertEqual(wanted, tag, name)
             inside = [t for t in self.on(2, self.things_of(MONSTER_NUMBERS))
                       if self.sector_at(t["x"], t["y"]) == self.plan[name]]
@@ -787,14 +796,18 @@ class Map01V3Test(unittest.TestCase):
 
     def test_nothing_the_route_needs_is_locked_scripted_or_on_a_thing(self):
         """Progress is lines only: no key, no locked or scripted special, no
-        thing with a tid or a special (a monster whose death opens a door
-        would make the route depend on the skill)."""
+        thing with a tid, and no monster with a special (a monster whose
+        death opens a door would make the route depend on the skill). The
+        only things with a special are V3 A2's two weapons, whose events
+        open closets the route never needs (Map01PickupEventsTest)."""
         self.assertFalse(self.things_of(KEY_NUMBERS))
         for i, ld in enumerate(self.lines):
             if ld.get("special"):
                 self.assertIn(ld["special"], ALLOWED_SPECIALS, f"linedef {i}")
         for t in self.things:
-            self.assertFalse(t.get("special") or t.get("id"), t)
+            self.assertFalse(t.get("id"), t)
+            if t.get("special"):
+                self.assertIn(t["type"], self.m.PICKUP_EVENTS, t)
 
     def test_every_skill_reaches_the_exit(self):
         """G3-4's static half, per skill: from the start, opening only what
@@ -1271,6 +1284,113 @@ def _distance_to_segment(p, a, b):
     dx, dy = bx - ax, by - ay
     t = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)))
     return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
+
+
+class Map01PickupEventsTest(unittest.TestCase):
+    """V3 A2, the weapons that spring closets (design section 20), against
+    the rules of docs/levels/PICKUP-EVENTS.md section 6: each event's thing,
+    special and tag (R7, R8), never closing (R1), the route finished with
+    the events unfired and with them fired (R2, R3), the closets shut until
+    then and left afterwards (R6), far from the start (R5), and announced
+    (R4: the PPSh's squad in sight of the gun, the IZh's hound out of the
+    room the rack stands in)."""
+
+    @classmethod
+    def setUpClass(cls):
+        Map01V3Test.setUpClass()
+        cls.v3 = Map01V3Test()
+        cls.m, cls.plan, cls.model = cls.v3.m, cls.v3.plan, cls.v3.model
+        cls.sectors, cls.lines, cls.things = cls.v3.sectors, cls.v3.lines, cls.v3.things
+        cls.event_tags = {event.tag for event, _rects, _floor in cls.m.EVENT_CLOSETS.values()}
+
+    def closet_of(self, event):
+        return [name for name, (e, _r, _f) in self.m.EVENT_CLOSETS.items() if e == event]
+
+    def test_each_weapon_carries_its_event_and_nothing_else_does(self):
+        m = self.m
+        for ednum, event in m.PICKUP_EVENTS.items():
+            self.assertIn(ednum, m.TUTORIAL_WEAPONS, event.name)
+            closets = self.closet_of(event)
+            self.assertEqual(1, len(closets), event.name)
+            pe.assert_event(self, self.things, self.sectors, self.lines, ednum, event,
+                            {self.plan[f"{closets[0]}_door"]})
+            self.assertEqual(pe.events.SPECIAL_DOOR_OPEN, event.special, event.name)
+        self.assertEqual(len(m.PICKUP_EVENTS), len(pe.event_things(self.things)))
+
+    def test_each_closet_is_shut_until_its_event_and_left_after_it(self):
+        """R6: before its event no door the map opens reaches the closet, and
+        its panel is wall (ceiling on floor); once the event has run, the
+        closet joins the hangar or the corridor with a body's headroom."""
+        doors = set(self.model.doors) - self.event_tags
+        before, _ = self.model._reachable(doors)
+        after, _ = self.model._reachable(doors | self.event_tags)
+        for name in self.m.EVENT_CLOSETS:
+            panel = self.sectors[self.plan[f"{name}_door"]]
+            self.assertEqual(panel["heightfloor"], panel["heightceiling"], name)
+            self.assertNotIn(self.plan[name], before, name)
+            self.assertIn(self.plan[name], after, name)
+            opened = pe.heights_after([self.m.EVENT_CLOSETS[name][0]], self.sectors,
+                                      self.lines, self.v3.sides)[self.plan[f"{name}_door"]]
+            self.assertGreaterEqual(opened[1] - opened[0], max(h for _r, h in BODY.values()), name)
+
+    def test_the_route_needs_no_event_and_no_event_cuts_it(self):
+        """R2, R3: every skill reaches the exit with no event fired (the
+        route test plays lines only), and with both fired nothing reachable
+        before is lost and the exit is still reached (R1)."""
+        exits = [ld for ld in self.lines if ld.get("special") == udmf_tests.SPECIAL_EXIT_NORMAL]
+        exit_sector = self.v3.sides[exits[0]["sidefront"]]["sector"]
+        doors = set(self.model.doors) - self.event_tags
+        before, _ = self.model._reachable(doors)
+        after, _ = self.model._reachable(doors | self.event_tags)
+        self.assertIn(exit_sector, before)
+        self.assertLessEqual(before, after)
+        rounds = self.v3._progression()
+        self.assertFalse(self.event_tags & rounds[-1][0], "a line opens an event's tag")
+        self.assertIn(exit_sector, rounds[-1][1])
+
+    def test_events_keep_away_from_the_start(self):
+        """R5: no event's thing and no closet within SAFE_START_DISTANCE."""
+        sx, sy = self.m.PLAYER_START
+        for t in pe.event_things(self.things):
+            self.assertGreater(math.hypot(t["x"] - sx, t["y"] - sy), SAFE_START_DISTANCE, t)
+        for name, (_e, (panel, room), _f) in self.m.EVENT_CLOSETS.items():
+            for x1, y1, x2, y2 in (panel, room):
+                nx, ny = min(max(sx, x1), x2), min(max(sy, y1), y2)
+                self.assertGreater(math.hypot(nx - sx, ny - sy), SAFE_START_DISTANCE, name)
+
+    def test_the_ppsh_squad_comes_out_in_sight_of_the_gun(self):
+        """R4: from the PPSh-41's place on the catwalk the floor in front of
+        its closet's panel is in view: the squad is seen as it comes out."""
+        m = self.m
+        gun = [t for t in self.things if t["type"] == m.ED_PPSH][0]
+        (x1, _y1, x2, y2), _room = m.CLOSET_PPSH
+        eye_z = self.sectors[self.plan["z6b_catwalk"]]["heightfloor"] + VIEW_HEIGHT
+        target = ((x1 + x2) / 2, y2 + 24)
+        self.assertEqual([], self.model._blockers((gun["x"], gun["y"]), eye_z, target,
+                                                  m.HANGAR_FLOOR + VIEW_HEIGHT))
+
+    def test_the_route_checks_the_events_by_the_maps_own_tags(self):
+        """tools/route.py's g3-auto writes MAP01's tags as literals: the two
+        events' must be the map's, shut at A0, open at A6 and A9."""
+        m = self.m
+        self.assertEqual((m.TAG_EVENT_IZH, m.TAG_EVENT_PPSH),
+                         (route.MAP01_TAG_EVENT_IZH, route.MAP01_TAG_EVENT_PPSH))
+        steps = {s.id: s for s in route.ROUTES["g3-auto"].steps}
+        self.assertIn((m.TAG_EVENT_IZH, False), steps["A0"].tags)
+        self.assertIn((m.TAG_EVENT_PPSH, False), steps["A0"].tags)
+        self.assertIn((m.TAG_EVENT_IZH, True), steps["A6"].tags)
+        self.assertIn((m.TAG_EVENT_PPSH, True), steps["A9"].tags)
+
+    def test_the_izh_hound_comes_out_into_the_racks_corridor(self):
+        """R4 for the one behind the player: the hound's panel opens onto the
+        corridor in front of the guard post, where the rack's IZh lies, so
+        the panel's grinding is heard where the gun is taken."""
+        panel = self.plan["closet_izh_door"]
+        corridor = {self.plan[z] for z in RADIO_CORRIDOR}
+        self.assertTrue(self.model.neighbours[panel] & corridor)
+        rack = [t for t in self.things if t["type"] == self.m.ED_IZH][0]
+        (x1, y1, x2, y2), _room = self.m.CLOSET_IZH
+        self.assertLess(math.hypot(rack["x"] - (x1 + x2) / 2, rack["y"] - y2), SAFE_START_DISTANCE / 2)
 
 
 if __name__ == "__main__":

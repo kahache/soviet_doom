@@ -186,6 +186,8 @@ keycard.
 | SW-B | Command post north wall, **corner to corner with CPD** | wall switch `SDSW1B`, one-shot | `Door_Open (11, 16, 0)`: the door beside it and the gate | no |
 | EXIT | Back of a 64 × 128 niche at the end of the exit tunnel | `SDSW1D` | `Exit_Normal (0)` | — |
 | S1, S2 | secret panels | push, opens for good | `Door_Open` (101, 102) | no |
+| PASS (V3 A2, §18) | the blue pass in the duty booth | **pickup event** | thing `Door_Open (12, 16, 0)`: the duty window's head rises, a way down into the hall | no: opens one way out, never a way in |
+| RPG (V3 A2, §18) | the RPG-7 in the armoury | **pickup event** | thing `Door_Open (13, 16, 14)`: the armoury's store opens, the armoury (light tag 14) comes up to its lamp | no |
 
 **The order, as the tests play it** (`test_the_route_is_the_designed_one`):
 with only the manual doors and panels the player reaches everything but the
@@ -970,3 +972,42 @@ of PG-7V turned into rounds.)
 **Engine checklist for the PM** (D26): `metro-critical` still PASSes on
 skills 2–4 (no pickup the route walks onto moved; the weapons stand where
 they stood).
+
+## 18. V3 A2 (2026-10-23): the pass opens a way back, the RPG-7 the armoury
+
+Built in a V3 worktree (not in v1.2). The pattern, the specials and the
+safety rules are `docs/levels/PICKUP-EVENTS.md`; this section is MAP02's
+use of it. **NOT WALKED**: the PM's engine pass is pending (D26).
+
+| Event | Rides on | Thing special | Tag: what it moves | What the player meets |
+|---|---|---|---|---|
+| `pass_window` | the blue pass in the duty booth (2896, 1056) | `Door_Open (12, 16, 0)` | 12: `duty_window`, whose head (80) rises like a door to the booth's ceiling less 4 (124) | the station wall over the window slides up: the booth drops 32 into the hall on the blue door's axis, the way back with the pass in hand. From the hall the booth is still 32 up: the way **in** stays the track and D3 (tested) |
+| `rpg_alarm` | the RPG-7 in the armoury (420, 800) | `Door_Open (13, 16, 14)` | 13: `closet_armoury_door`, a steel panel in the armoury's north wall (x 400…528, y 1024…1040; the store x 384…544, y 1040…1152); light tag 14: `b5_armoury` | the armoury is dark (96) but for a lamp panel (`b5_lamp`, 144) over the launcher; taking it opens the store, the Reich's two guards come out in view (tested), and as the panel rises the armoury comes up to the lamp's 144 |
+
+The light tag brings each tagged sector to its **brightest neighbour**, so
+the dark room is tagged and the lamp is its neighbour (PICKUP-EVENTS §4.3).
+Sinking the window's sill instead of raising its head was tried first and
+makes no passage: the gap at the booth's floor stays 48 (§4.5 there).
+
+Neither event is needed: the route is the same without them
+(`progression()` plays none; `Map02PickupEventsTest` plays both: nothing
+reachable is lost, the store is reached). Both are more than 768 from the
+start (R5). Nothing drops an RPG-7, so the armoury's is always taken (R7).
+
+**Monsters**: the store's rifleman and stormtrooper, every skill: **25 / 38
+/ 53** (was 23 / 36 / 51). **Ammunition**: one box of 50 rounds in the store
+from skill 3: placed against needed **1.51 / 1.41 / 1.24**; shells 34 / 31 /
+33 %; pickups on the route 9 / 15 / 21 (ceilings 34 / 28 / 24). The RPG-7's
+row is now in zone `b5_lamp` (same spot).
+
+**Route** (`tools/route.py`, metro-critical): `TAG_EVENT_PASS` joins
+`METRO_CONSTANTS`; the window is shut (48) at BD0 and open (a body high) at
+BD1, the blue door's wait after the pass.
+
+**Engine checklist for the PM** (D26):
+
+| # | Check | How |
+|---|---|---|
+| V3-1 | Taking the pass raises the duty window's head; the player drops through into the hall and cannot climb back in | `metro-critical`: BD1 reports tag 12 open; by hand from the booth |
+| V3-2 | Taking the RPG-7 opens the store and the armoury's light comes up from 96 to the lamp's 144 as it opens (the light tag on a thing's special) | by hand, skill 3; screenshots before and after |
+| V3-3 | The window's marble moves up with its head, no hall of mirrors | screenshot from the hall after the pass |

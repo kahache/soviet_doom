@@ -62,6 +62,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 sys.path.insert(0, str(PROJECT_ROOT / "tests"))
 
 # Imported as a module, not by name, so its TestCases are not collected twice.
+import _pickup_events as pe  # noqa: E402  (V3 A2's shared checks)
 import test_udmf as udmf_tests  # noqa: E402
 
 parse_textmap = udmf_tests.parse_textmap
@@ -141,9 +142,9 @@ ROKS_AVERAGE = 13.5    # one jet, one unit of fuel (D119; was 18)
 MAP03_STRETCHES = (
     ("the IZh", {"z1_spur", "z2_dock", "z2_arch", "z3_hall"}),
     ("the PPSh-41", {"o_corridor", "o_director", "o_planning", "o_archive",
-                     "closet_hs", "closet_hn"}),
+                     "closet_hs", "closet_hn", "closet_ow", "closet_oe"}),
     ("the RPG-7", {"t_vestibule", "t_line"}),
-    ("the ROKS-3", {"f_gallery", "f_floor", "f_platform"}),
+    ("the ROKS-3", {"f_gallery", "f_floor", "f_platform", "f_lift"}),
     ("the General", {"p_ante", "p_booth", "p_hall", "p_dais_1", "p_dais_2"}),
 )
 
@@ -209,6 +210,9 @@ class Map03Test(unittest.TestCase):
         cls.props = {i for name, i in cls.plan.items()
                      if name.startswith(cls.m.PROP_PREFIX) or name in cls.m.WINDOWS}
         cls.unwalkable = cls.props | cls.door_sectors
+        # V3 A2/A3: what each key's event does to the sectors it moves.
+        cls.events = tuple(cls.m.PICKUP_EVENTS.values())
+        cls.event_heights = pe.heights_after(cls.events, cls.sectors, cls.lines, cls.sides)
         cls.monster_numbers = set(cls.m.MONSTER_CLASSES)
         cls.body, cls.hit_points, cls.faction = {}, {}, {}
         for ednum, name in cls.m.MONSTER_CLASSES.items():
@@ -246,11 +250,13 @@ class Map03Test(unittest.TestCase):
     def heights(self, open_tags):
         out = []
         for i, s in enumerate(self.sectors):
-            ceiling = s["heightceiling"]
+            floor, ceiling = s["heightfloor"], s["heightceiling"]
             if i in self.door_sectors and s["id"] in open_tags:
                 ceiling = (min(self.sectors[n]["heightceiling"] for n in self.neighbours[i])
                            - DOOR_OPENS_BELOW_CEILING)
-            out.append((s["heightfloor"], ceiling))
+            if i in self.event_heights and s["id"] in open_tags:
+                floor, ceiling = self.event_heights[i]     # V3 A2/A3: the event has run
+            out.append((floor, ceiling))
         return out
 
     def adjacency(self, open_tags):
@@ -306,24 +312,34 @@ class Map03Test(unittest.TestCase):
         return [(t["arg0"], self.sector_at(t["x"], t["y"])) for t in self.things
                 if t["type"] in self.monster_numbers and t.get("special") == SPECIAL_DOOR_OPEN]
 
-    def progression(self, kills=False):
+    def event_spots(self):
+        """[(tag, sector)] for every pickup event: where its key lies."""
+        by_type = {t["type"]: t for t in self.things if t.get("special")}
+        return [(event.tag, self.sector_at(by_type[ednum]["x"], by_type[ednum]["y"]))
+                for ednum, event in self.m.PICKUP_EVENTS.items()]
+
+    def progression(self, kills=False, events=None):
         """Play the map as a player can. Manual doors open whenever the
         player can stand at their line; then, one round at a time, every
         switch and locked door he can now reach and work (a locked door only
         once the sector of ITS key is reachable). With `kills`, a monster's
         death special counts as a switch the player works once he can reach
         the monster; without it (the default) nobody has to die: the
-        critical route. Returns one (open tags, reachable sectors, locks
-        held) per round."""
+        critical route. `events` (V3 A2/A3; by default as `kills`: the
+        full play) runs each key's pickup event as soon as the key's sector
+        is reachable, as a manual door opens; without it no event runs, and
+        the route must still be finished (PICKUP-EVENTS R3). Returns one
+        (open tags, reachable sectors, locks held) per round."""
         uses = [ld for ld in self.lines if ld.get("playeruse") and ld.get("special") in
                 (SPECIAL_DOOR_OPEN, SPECIAL_DOOR_RAISE, self.m.SPECIAL_DOOR_LOCKED_RAISE)]
         keys = self.key_sectors()
         deaths = self.death_specials() if kills else []
+        spots = self.event_spots() if (kills if events is None else events) else []
         opened, rounds = set(), []
         while True:
             reach = self.reachable(opened)
             held = {lock for lock, sector in keys.items() if sector in reach}
-            free, gated = set(), set()
+            free, gated = {tag for tag, sector in spots if sector in reach}, set()
             gated |= {tag for tag, sector in deaths if sector in reach}
             for ld in uses:
                 stand = {self.front(ld)}
@@ -664,9 +680,13 @@ class Map03Test(unittest.TestCase):
 
     # --- reachability and no softlock --------------------------------------
     def test_everything_is_reachable_at_the_end(self):
-        """With the General killed, every sector but the props; without him,
-        every sector but the props and his stores."""
-        shut = self.named(*self.m.REWARD_ZONES, "p_stores_door")
+        """With the General killed (and the keys' events run: the full play),
+        every sector but the props; without him and with no event, every
+        sector but the props, his stores, the yellow key's closets and the
+        red key's goods lift (V3 A2/A3)."""
+        events_only = self.named(*self.m.OFFICE_CLOSETS, *self.m.EVENT_ZONES["office_closets"],
+                                 *self.m.EVENT_ZONES["goods_lift"])
+        shut = self.named(*self.m.REWARD_ZONES, "p_stores_door") | events_only
         for kills, closed in ((True, set()), (False, shut)):
             reach = self.progression(kills)[-1][1]
             unreachable = set(range(len(self.sectors))) - reach
@@ -1096,7 +1116,8 @@ class Map03Test(unittest.TestCase):
         """SW-A's closets in the hall: each panel on SW-A's tag, each closet
         occupied on skill 2, shut until SW-A's round and open after it."""
         m = self.m
-        closets = [n for n in self.plan if n.startswith(m.CLOSET_PREFIX) and not n.endswith("_door")]
+        closets = [n for n in self.plan if n.startswith(m.CLOSET_PREFIX) and not n.endswith("_door")
+                   and n not in m.OFFICE_CLOSETS]     # V3 A2's: Map03PickupEventsTest
         self.assertEqual(2, len(closets))
         rounds = self.progression()
         for name in closets:
@@ -1461,7 +1482,8 @@ class Map03Test(unittest.TestCase):
         g = self.things_of({m.ED_GENERAL})[0]
         self.assertEqual(SPECIAL_DOOR_OPEN, g.get("special"))
         self.assertEqual((m.TAG_GENERAL_STORES, 16, 0), (g["arg0"], g["arg1"], g["arg2"]))
-        others = [t for t in self.things if t.get("special") and t is not g]
+        others = [t for t in self.things if t.get("special") and t is not g
+                  and t["type"] not in m.PICKUP_EVENTS]     # V3 A2/A3: the keys' events
         self.assertFalse(others)
         self.assertFalse([ld for ld in self.lines if ld.get("special") and ld.get("arg0") == m.TAG_GENERAL_STORES])
         self.assertEqual(self.named("p_stores_door"), self.doors[m.TAG_GENERAL_STORES])
@@ -1524,6 +1546,119 @@ class Map03Test(unittest.TestCase):
             self.assertTrue(kinds & {m.ED_GREEN_ARMOR, m.ED_BLUE_ARMOR, m.ED_ARMOR_BONUS},
                             f"skill {skill}: armour")
         self.assertFalse([t for t in self.monsters() if self.sector_at(t["x"], t["y"]) == stores])
+
+
+class Map03PickupEventsTest(unittest.TestCase):
+    """V3 A2 and A3 (design section 19) against docs/levels/PICKUP-EVENTS.md
+    section 6: the yellow key opens the two office closets at the stair head,
+    the red key brings the foundry's goods lift up with its crew (the map's
+    set piece). Each event's thing, special and tag (R7, R8), never closing
+    (R1), the route finished without them and not cut by them (R2, R3), far
+    from the start (R5), in sight of where the key is taken (R4), and left
+    by what it releases (R6)."""
+
+    SAFE_START_DISTANCE = 768   # tests/test_safe_starts.py's
+
+    @classmethod
+    def setUpClass(cls):
+        Map03Test.setUpClass()
+        cls.t = Map03Test()
+        cls.m, cls.plan, cls.sectors = cls.t.m, cls.t.plan, cls.t.sectors
+        cls.lines, cls.things = cls.t.lines, cls.t.things
+
+    def test_each_key_carries_its_event(self):
+        m, t = self.m, self.t
+        pe.assert_event(self, self.things, self.sectors, self.lines, m.ED_YELLOW_CARD,
+                        m.YELLOW_EVENT, t.named(*m.EVENT_ZONES["office_closets"]))
+        pe.assert_event(self, self.things, self.sectors, self.lines, m.ED_RED_CARD,
+                        m.LIFT_EVENT, t.named(*m.EVENT_ZONES["goods_lift"]))
+        self.assertEqual(pe.events.SPECIAL_DOOR_OPEN, m.YELLOW_EVENT.special)
+        self.assertEqual((pe.events.SPECIAL_FLOOR_CEILING_RAISE_BY_VALUE, m.TAG_EVENT_RED,
+                          pe.events.MOVER_SPEED_NORMAL, m.LIFT_TRAVEL),
+                         (m.LIFT_EVENT.special, *m.LIFT_EVENT.args))
+        # The keys' events and the General's death: every thing special there is.
+        self.assertEqual(len(m.PICKUP_EVENTS) + 1, len(pe.event_things(self.things)))
+
+    def test_the_route_needs_no_event_and_no_event_cuts_it(self):
+        """R2, R3: the exit with no event run and nobody killed (the
+        critical route), and with the events run nothing reached is lost."""
+        t = self.t
+        without, with_events = t.progression(), t.progression(events=True)
+        exit_sector = t.front(t.exit_line())
+        self.assertIn(exit_sector, without[-1][1])
+        self.assertIn(exit_sector, with_events[-1][1])
+        self.assertLessEqual(without[-1][1], with_events[-1][1])
+        for tag, _sector in t.event_spots():
+            self.assertNotIn(tag, without[-1][0], "a line opens an event's tag")
+
+    def test_the_office_closets_open_at_the_stair_head_in_front_of_the_key(self):
+        """R4, R6: both panels are wall until the yellow key is taken, open
+        onto the corridor with a body's headroom after it, hold a clerk each
+        on skill 2, and the corridor in front of each is seen from the
+        director's doorway, the way out with the key."""
+        t, m = self.t, self.m
+        without, with_events = t.progression()[-1][1], t.progression(events=True)[-1][1]
+        doorway = t.plan["o_director_doorway"]
+        eye_z = self.sectors[doorway]["heightfloor"] + VIEW_HEIGHT
+        for name, ((x1, y1, x2, _y2), _room) in m.OFFICE_CLOSETS.items():
+            panel = self.sectors[t.plan[f"{name}_door"]]
+            self.assertEqual(panel["heightfloor"], panel["heightceiling"], name)
+            self.assertIn(t.plan["o_corridor"], t.neighbours[t.plan[f"{name}_door"]], name)
+            self.assertNotIn(t.plan[name], without, name)
+            self.assertIn(t.plan[name], with_events, name)
+            floor, ceiling = t.event_heights[t.plan[f"{name}_door"]]
+            self.assertGreaterEqual(ceiling - floor, max(h for _r, h in t.body.values()), name)
+            inside = [x for x in t.on(2, t.monsters()) if t.sector_at(x["x"], x["y"]) == t.plan[name]]
+            self.assertTrue(inside, f"{name} is empty on skill 2")
+            self.assertIsNone(t.blocked((2304, 1936, eye_z), ((x1 + x2) / 2, y1 + 40, eye_z)), name)
+
+    def test_the_goods_lift_is_a_wall_until_the_red_key(self):
+        """A3, before: the car's ceiling flush with the casting floor (no
+        opening: the shaft's front is wall, no sight, no sound) and its floor
+        LIFT_TRAVEL under it; it touches the casting floor only."""
+        t, m = self.t, self.m
+        car = self.sectors[t.plan["f_lift"]]
+        foundry = self.sectors[t.plan["f_floor"]]
+        self.assertEqual(foundry["heightfloor"], car["heightceiling"])
+        self.assertEqual(foundry["heightfloor"] - m.LIFT_TRAVEL, car["heightfloor"])
+        self.assertEqual({t.plan["f_floor"]}, t.neighbours[t.plan["f_lift"]])
+        self.assertNotIn(t.plan["f_lift"], t.progression()[-1][1])
+        crew = [x for x in t.monsters() if t.sector_at(x["x"], x["y"]) == t.plan["f_lift"]]
+        self.assertTrue(crew)
+        for x in crew:
+            self.assertTrue(all(x[f"skill{s}"] for s in SKILLS), "the crew is the set piece's, on every skill")
+            self.assertLessEqual(t.body[x["type"]][1], car["heightceiling"] - car["heightfloor"])
+
+    def test_the_goods_lift_comes_up_level_with_the_casting_floor(self):
+        """A3, after: floor and ceiling up LIFT_TRAVEL together, the car's
+        floor level with the casting floor and a body's headroom over it, so
+        the crew walks out and the player can walk in (R6); a dead end with
+        no other way, so nothing is shut (R1)."""
+        t = self.t
+        floor, ceiling = t.event_heights[t.plan["f_lift"]]
+        self.assertEqual(self.sectors[t.plan["f_floor"]]["heightfloor"], floor)
+        self.assertGreaterEqual(ceiling - floor, max(h for _r, h in t.body.values()))
+        self.assertIn(t.plan["f_lift"], t.progression(events=True)[-1][1])
+
+    def test_the_goods_lift_is_seen_from_the_red_keys_pedestal(self):
+        """R4: from the pedestal, where the red key is taken, the casting
+        floor in front of the lift is in view (the lifting front with it)."""
+        t, m = self.t, self.m
+        pedestal = self.sectors[t.plan["f_pedestal"]]
+        x1, y1, x2, _y2 = m.LIFT_CAR
+        floor = self.sectors[t.plan["f_floor"]]["heightfloor"]
+        self.assertIsNone(t.blocked((*m.RED_KEY_SPOT, pedestal["heightfloor"] + VIEW_HEIGHT),
+                                    ((x1 + x2) / 2, y1 - 24, floor + VIEW_HEIGHT)))
+
+    def test_events_keep_away_from_the_start(self):
+        """R5: no event thing and no sector an event moves near the start."""
+        sx, sy = self.m.PLAYER_START
+        for x in pe.event_things(self.things):
+            self.assertGreater(math.hypot(x["x"] - sx, x["y"] - sy), self.SAFE_START_DISTANCE, x)
+        rects = [r for pair in self.m.OFFICE_CLOSETS.values() for r in pair] + [self.m.LIFT_CAR]
+        for x1, y1, x2, y2 in rects:
+            nx, ny = min(max(sx, x1), x2), min(max(sy, y1), y2)
+            self.assertGreater(math.hypot(nx - sx, ny - sy), self.SAFE_START_DISTANCE)
 
 
 if __name__ == "__main__":
