@@ -220,6 +220,12 @@ sovietdoom.pk3
 ├── graphics/SDSBRU.png, SDARRU.png  bar A's Russian pictures, drawn by SD_StatusBar (§6.5.1)
 ├── graphics/SDSBCA.png, SDARCA.png  bar A's Catalan pictures (P6), idem
 ├── graphics/SDCURSOR.png   the mouse pointer, hammer and sickle, 28×25, grAb 12,1 (D102; §6.6.1)
+├── SDOPSCR                 V3: the intermission script of the operations map (§6.13, ADR 013),
+│                           generated into src/lumps/ by tools/art/gen_ops_map.py
+├── graphics/SDOPMAP.png, SDOPR02-09, SDOPSTAR, SDOPCUR0-1, SDOPYAH0 (.png)  V3: the operations
+│                           map, its arrows and markers (from assets/graphics/opsmap/; §6.13)
+├── graphics/SDAWCOU, SDAWRST, SDAWRBN, SDAWPTW, SDAWHER (.png)  V3: the five awards, 24×30
+│                           (from assets/graphics/medals/; §6.13; proposal for the CEO)
 ├── localized/textures/     language variants of graphics, path kept whole:
 │                           M_PAUSE.ru.png, plaque P2 in Russian, 77×20 (D48; see the rules)
 │                           M_PAUSE.ca.png, plaque P2 in Catalan «PAUSA», 77×20 (P6)
@@ -2948,6 +2954,73 @@ is not done.
 
 **Sounds** follow the same idea through `SNDINFO` (§6.2, "P4 sounds"): own
 logical names now, own lumps later, one line each.
+
+## 6.13 Between levels: the operations map and the end-of-episode awards (V3 B1/B3, ADR 013, 2026-10-23)
+
+**Proposal on the V3 branch** (the awards wait for the CEO: political
+symbols; preview `docs/art/previews/2026-10-23_V3_ops-map-medals.png`).
+Why this way and not another: ADR 013.
+
+**The operations map (B1).** Every campaign map, MAP01–MAP09, names
+`exitpic = "$SDOPSCR"` and `enterpic = "$SDOPSCR"` in MAPINFO: the stats page
+after it and the "Entering" page before the next one are drawn over the
+intermission script `SDOPSCR` (root lump; the language of gzdoom.pk3's
+`in_epi1.txt`…`in_epi3.txt`). The range has `nointermission` and no map.
+
+| On the… | the engine draws (in this order) | script lines |
+|---|---|---|
+| stats page of MAPn | `SDOPMAP`; the arrows `SDOPR02`…`SDOPR0n`; a star `SDOPSTAR` on MAP01…MAPn; the gold pulse `SDOPCUR0/1` (12 tics a frame) on MAPn; then Doom's figures over it | `IfLeaving MAPm Pic …` for every m ≥ the arrow's or star's map; `IfLeaving MAPn Animation …` |
+| "Entering" page of MAPn+1 | `SDOPMAP`; arrows up to `SDOPR0(n+1)`; stars on MAP01…MAPn; the splat (`SDOPSTAR` again) on every visited site; the blinking ring `SDOPYAH0` on MAPn+1 (the `Pointer`, drawn only if it fits the screen); then "Entering" and the name | `IfEntering MAPm Pic …`; `Splat`; `Pointer`; `Spots` |
+
+Progress never uses `IfVisited`, so starting episode 2 or 3 from New Game
+still shows the road from Zarya-7 travelled. Sites (the script's `Spots`,
+320×200): MAP01 (119,146), MAP02 (110,135), MAP03 (100,120), MAP04 (105,106),
+MAP05 (68,106), MAP06 (70,88), MAP07 (134,65), MAP08 (106,56), MAP09 (182,125);
+nothing above y = 45, where the engine prints the map name. Pictures: RGBA,
+hard alpha, palette v2; the markers' grAb at their centre, the arrows' at
+0,0 (the script places them by their box's corner). **`SDOPSCR` is
+generated**: edit `tools/art/gen_ops_map.py` and run it with `--install`
+(`tests/test_ops_map.py` compares the file with the generator).
+
+**The awards (B3).** GameInfo `statscreen_single = "SD_StatusScreen"`
+(`zscript/sd/status_screen.zs`), a `DoomStatusScreen` whose stats page is
+untouched. After the stats of the last map of an episode (`wbs.next == ""`,
+level number 3, 6 or 9: MAP03, MAP06, MAP09) it shows the **awards page**
+instead of finishing: the map dimmed (`Screen.Dim`, 0.72), the title
+(`SD_AWARDS_TITLE`, BigFont, gold), the episode's New Game name, four
+columns (`SD_AWARDS_KILLS` %, `SD_AWARDS_SECRETS` n/m, `SD_AWARDS_TIME`,
+`SD_AWARDS_PAR`, SmallFont), then five rows, one every 18 tics with
+`intermission/nextstage` for each earned: the picture (darkened by a
+black `DTA_ColorOverlay` of alpha 170 when not earned), the name
+(`SD_MEDAL_*_NAME`, gold or dark grey) and the rule (`SD_MEDAL_*_RULE`, up to
+two lines, `Font.BreakLines`). A key reveals every row
+(`intermission/paststats`), the next one leaves; `wi_autoadvance` is
+honoured. Then the cluster's ending text and the title screen (§4.6).
+
+| Award | Lump | Earned when (the episode's three maps summed; `BALANCE.md` §9) |
+|---|---|---|
+| Medal "For Courage" | `SDAWCOU` | the episode completed |
+| Order of the Red Star | `SDAWRST` | kills ≥ 75 % |
+| Order of the Red Banner | `SDAWRBN` | secrets = 100 % (none in the episode counts 100) |
+| Order of the Patriotic War | `SDAWPTW` | time ≤ the sum of the maps' `par` |
+| Gold Star, Hero of the Soviet Union | `SDAWHER` | all three maps played in this game, kills ≥ 90 %, every secret, within par, skill 3 («Not one step back», SpawnFilter Normal) or harder |
+
+**The figures.** `SD_AwardsRecorder` (`zscript/sd/awards.zs`, an
+`EventHandler` after `SD_MusicVariant` in `AddEventHandlers`) writes, every
+tic of a MAPxx level, the level's `killed_monsters`, `total_monsters`,
+`found_secrets`, `total_secrets`, `time` (tics), `partime` (s) and the skill's
+`SpawnFilter` into slot `levelnum` of each player's **`SD_CampaignLedger`**,
+an `Inventory` given on the first tic (`MaxAmount 1`, `InterHubAmount 1` so a
+map change keeps it, `UNDROPPABLE`, `UNTOSSABLE`, `UNCLEARABLE`, not in the
+inventory bar). It travels with the player and is saved with the player;
+New Game, or a death that restarts a map from scratch (§6.10), starts a new
+one. The awards page reads the episode's first maps from it and the last map
+from its own `wbs`. The rules are `SD_Awards` (data scope, integer maths
+only). `tests/test_awards.py` pins the wiring, the ledger, the thresholds
+against `BALANCE.md` §9, worked cases, the five pictures, the LANGUAGE ids in
+the three languages (every glyph drawn, every line fitted) and the layout
+against the preview's. **NOT VERIFIED in the engine** (D26): the pass ADR 013
+lists.
 
 ## 7. Commands
 

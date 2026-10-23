@@ -236,6 +236,16 @@ class ApprovedAssetsTests(unittest.TestCase):
     # (tests/test_hud_install.py holds the set and the offsets).
     SHELL_SIZES.update({name: (w, h) for name, (w, h, _, _) in HUD_FREEDOOM.items()})
     SHELL_SIZES.update({local: HUD_FREEDOOM[base][:2] for local, base in HUD_LOCALIZED.items()})
+    # V3 B1/B3 (ADR 013, proposal): the operations map, its arrows and
+    # markers (tools/art/gen_ops_map.py; an arrow's box is its segment's) and
+    # the five awards (tools/art/gen_medals.py). tests/test_ops_map.py and
+    # tests/test_awards.py hold them to their generators.
+    SHELL_SIZES.update({"SDOPMAP": (320, 200), "SDOPSTAR": (9, 9), "SDOPCUR0": (17, 17),
+                        "SDOPCUR1": (17, 17), "SDOPYAH0": (17, 17),
+                        "SDOPR02": (13, 13), "SDOPR03": (14, 17), "SDOPR04": (13, 15),
+                        "SDOPR05": (38, 14), "SDOPR06": (14, 19), "SDOPR07": (64, 28),
+                        "SDOPR08": (29, 17), "SDOPR09": (77, 71)})
+    SHELL_SIZES.update({lump: (24, 30) for lump in ("SDAWCOU", "SDAWRST", "SDAWRBN", "SDAWPTW", "SDAWHER")})
 
     def test_layout_names_and_sizes(self):
         from PIL import Image

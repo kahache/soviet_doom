@@ -50,6 +50,9 @@ CATALAN_SAME_AS_ENGLISH = frozenset({
     "SD_MAP08_NAME", "SD_MAP09_NAME",
     # D116: the rifle's name is its designation in every Latin-script language.
     "SD_TAG_AKM",
+    # V3 B3 (ADR 013): "Secrets" is Catalan too, as the engine's own
+    # TXT_IMSECRETS in [ca] already says.
+    "SD_AWARDS_SECRETS",
 })
 
 # Letters Catalan needs that the mod's fonts (assets/fonts/, D24) do not draw
