@@ -126,7 +126,8 @@ class SeveromorskRouteTest(unittest.TestCase):
         shut = {sid: dict(self.steps[sid].tags) for sid in ("RG0", "BD0", "YD0", "BKEY", "YKEY", "RKEY")}
         self.assertEqual({m.TAG_RED_GATE: False}, shut["RG0"])
         self.assertEqual({m.TAG_BLUE_DOOR: False, m.TAG_YELLOW_DOOR: False, m.TAG_RED_GATE: False}, shut["BKEY"])
-        self.assertEqual({m.TAG_YELLOW_DOOR: False, m.TAG_RED_GATE: False}, shut["YKEY"])
+        self.assertEqual({m.TAG_YELLOW_DOOR: False, m.TAG_RED_GATE: False, m.TAG_MAGAZINE: True}, shut["YKEY"],
+                         "V3: the yellow key's pickup sinks the magazine's wall")
         self.assertEqual({m.TAG_RED_GATE: False, m.TAG_BARRACKS_SHUTTER: False}, shut["RKEY"])
         self.assertEqual({m.TAG_WT_SHUTTER: True, m.TAG_BARRACKS_SHUTTER: False}, dict(self.steps["SWA"].tags))
         for sid, tag in (("BD1", m.TAG_BLUE_DOOR), ("YD1", m.TAG_YELLOW_DOOR), ("SWB", m.TAG_BARRACKS_SHUTTER),

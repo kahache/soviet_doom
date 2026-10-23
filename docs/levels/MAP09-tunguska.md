@@ -395,7 +395,7 @@ and the General is no longer placed here.
 | Exit | `Exit_Normal` 243 | VERIFIED |
 | Coloured light, turned flat | `lightcolor`, `rotationfloor` 90 | as MAP02/MAP06 |
 | Damaging floor | `damageamount` 10, `damageinterval` 32 | fields VERIFIED (MAP03 §16.2); in play NOT VERIFIED |
-| Thing special on death / on pickup | the boss (tag 12), the red key (tag 10) | NOT VERIFIED in play (MAP06 E2, E3) |
+| Thing special on death / on pickup | the boss (tag 12), the red key (tag 10); V3: the blue key (tag 13, `Door_Open`), the yellow key (tag 14, `Floor_LowerToLowest` 21) | the red key's VERIFIED by `tunguska-critical` RKEY (2026-10-23); the blue key's checked by BKEY; 21 NOT VERIFIED in our engine (MAP04's K3): E12 |
 | Skies at five heights, closed sky blocks as roofs, sky doorways | §4.1 | **NOT VERIFIED** |
 | Animated walls and flats | `SDPORT1`, `SDMOLT1` (ANIMDEFS) | VERIFIED (MAP03) |
 | Animated acid | `SDACID1-4` (ANIMDEFS, 8 tics) | NOT VERIFIED (never on a map before) |
@@ -421,6 +421,8 @@ Engine checklist (one pass on skill 3, then the route on 2, 3, 4):
 - **E10** the logs' joints meet the floor in the huts and on the palisade;
   the glyph strips and plates whole; the portal's posts show their cobalt
   channel; the taiga's charred trunks lie roughly towards the crater.
+
+- **E11-E13** V3's pickup events: §18.
 
 ## 13. MAPINFO and LANGUAGE (for the scaffolding agent / `mod-engineer`)
 
@@ -587,3 +589,91 @@ and the health are unchanged.
    reachable (a platform round it)?
 3. The portal could visibly close when the breaker is thrown (a script: the
    mod-engineer's), before the end text.
+
+## 18. V3: events on pickup and the set pieces (2026-10-23, D120's A2 and A3)
+
+V3 work, not in v1.2. Three events fired by **picking up a key** (the red
+key's closets are v1's; V3 adds the blue and the yellow key's and gives all
+three a warning lamp), and one set piece **described for `mod-engineer`**,
+not built (§18.3). A key carries a UDMF `special` and `arg0..`, which GZDoom
+runs on pickup (the red key's `Door_Open (10, 16)` VERIFIED by
+`tunguska-critical`'s RKEY, 2026-10-23 02:23). Each tag is carried by **no
+line**. The table is `PICKUP_EVENTS` in `map.py`; the checks are
+`tests/_pickup_events_e3.py`, shared with MAP07 and MAP08 (MAP07 §17 says
+the form; the PM unifies it with `docs/levels/PICKUP-EVENTS.md`).
+
+### 18.1 The events
+
+| Event | Key (where) | Special | Tag | What moves | Who waits | Warning |
+|---|---|---|---|---|---|---|
+| **A2 the quarantine room** | the blue key (the laboratory's bench) | `Door_Open (13, 16)` | 13 | a door `z3_lab_quarantine_door` in the hall's east wall, north of the vestibule, the hall's tile until it moves | 1 / 2 / 3 Legion troopers in `z3_lab_quarantine` (1808-1952 x 1488-1584) | the strip of hall before it `z3_lab_lamp` flickers (65, 160 against the hall's 144) |
+| **A3 the works' cargo lift** | the yellow key (the derrick) | `Floor_LowerToLowest (14, 8)` | 14 | the car `z5_lift_car` (4992-5120 x 5664-5792), up at 128 behind a gate a door high in the works' north wall, east of the recesses; it comes down to the works' floor (~3.7 s) | 1 / 2 / 3 (rifleman; + stormtrooper; + trooper) | the gate `z5_lift_gate` flickers (65, 160 against the car's 112); the winch |
+| A2 the works' closets (v1) | the red key (the refinery's dais) | `Door_Open (10, 16)` | 10 | the two closets' doors in the containment wall | v1's, unchanged | V3: a strip of the works before each closet, `z5_closet_w_lamp` and `z5_closet_e_lamp`, flickers (65, 160 against the works' 144) |
+
+The quarantine door stops 16 short of the hall's north wall, so Marx's
+slot there stays whole (tested by `tests/test_posters.py`). The lift's gate
+is not a fifth recess: the north wall's four (S3's clue) are untouched, and
+the gate wears a lamp and a steel car behind it.
+
+**The monsters moved, not added**: the totals (60 / 92 / 127), every beat's
+hit points, the ammunition and its bands, the crater's stock are unchanged
+(tested again). The quarantine room holds the hall's trooper at (1728,
+1504) (skill 2), its trooper at (1408, 1520) (3) and the instrument room's
+at (1600, 1184) (4); the lift the works' rifleman at (4992, 5568) (2),
+stormtrooper at (4480, 5568) (3) and trooper at (4864, 5248) (4).
+
+**Rules held (tested):** never on the critical path (the exit with every
+event tag left shut, the boss's death still needed); never a trap; hidden
+until they fire; there on every skill and far from the start; §5's five
+rounds unchanged (MAP09's model opens a pickup like a lock, the round after
+its key is reached: the quarantine with the blue gate, the lift with the
+yellow door, the closets with the red gate, as v1).
+
+**Route** (`tunguska-critical`): BKEY now waits a door's time and expects
+tag 13 open; RKEY's tag 10 as v1. The lift is not asked (its car is always
+a body high); the critical route is otherwise the same.
+
+### 18.2 Engine checklist additions (the PM's, D26)
+
+- **E11** Taking the blue key opens the quarantine room; its troopers come
+  into the hall; the strip before the door flickers; the door reads as the
+  hall's tile until it moves (route step BKEY: tag 13 open).
+- **E12** Taking the yellow key brings the works' lift down with its three;
+  the gate's lamp flickers before; `netevent sdtag 14` prints floor 0.
+- **E13** The works' closets' lamps flicker on the way in; the closets still
+  open with the red key (route step RKEY).
+
+### 18.3 The crater's ground that opens with the Consortium's second phase: for `mod-engineer`
+
+The brief: "the crater's earth opens when the Consortium enters its second
+phase", **if it can be hooked without new ZScript**. It cannot, so it is
+described here and not built:
+
+* **Why not without ZScript.** The boss's thing special runs only on its
+  death (it already carries `Door_Open (12, 16)`, the exit). Nothing in the
+  map fires at half health: no line is crossed, no item is taken, MAPINFO
+  has no health hook, and an ACS script would need a compiled `BEHAVIOR`
+  lump and a compiler the tools do not have (ACS is not used in `src/`).
+  The second phase starts in `SD_Consortium`'s Breach state
+  (`src/zscript/monsters/consortium.zs`), so the hook belongs there.
+* **The contract asked of `mod-engineer`.** At Breach's first tic, once
+  (Breach already runs once), the boss calls
+  `Floor_LowerToLowest(SD_CONSORTIUM_BREACH_TAG, 16)` with
+  `SD_CONSORTIUM_BREACH_TAG = 15` (an action special called as a function,
+  as gzdoom.pk3's `zscript/actors/doom/keen.zs` calls `Door_Open (doortag,
+  16)`). On a map with no sector tagged 15 it does nothing, so the class
+  stays map-agnostic. **MAP09 keeps tag 15 for it** (`map.py`'s tag block).
+* **What level-designer builds once the hook exists** (about 15k tokens with
+  its tests): four "scab" slabs of the crater's floor, tag 15, between the
+  pylons and the acid pits, none under `MAP09_BOSS_SPOT` or on BOSS0's
+  point; each sits on the floor (-128) over a fissure sector of acid
+  (`SDACID1`, `LAVA_HURTS`) one step lower (-144), so at Breach the slabs
+  sink one step into acid: the arena breaks into islands under the
+  quake the Breach already shakes. Not a trap: 16 deep, walked out of like
+  the pits (tested as they are); the route's BOSS0 / BOSS1 unchanged.
+  Optional: the four reinforcements the Breach already spawns come from
+  there (the spawn points are `mod-engineer`'s).
+* **Tests then:** the slabs tagged 15 and nothing else, no line carrying
+  15, the fissures one step and hurting, every slab walked out of, the
+  boss's spot and BOSS0's point off them; and `tests/test_ep3_boss.py`
+  pinning the call in Breach (`mod-engineer`'s).

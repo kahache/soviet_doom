@@ -47,6 +47,7 @@ Run it (the PM or the CEO; agents never start GZDoom, D26):
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import NamedTuple
 
 from sdbuild.udmf import (
     DOOR_SPEED_SLOW,
@@ -175,6 +176,11 @@ SPECIAL_DOOR_LOCKED_RAISE = 13
 # engine on MAP03.
 LOCK_RED_CARD = 1
 LOCK_YELLOW_CARD = 3
+# Floor_LowerToLowest (tag, speed): 21 in ZDoom's (Hexen's) special table, the
+# special MAP04's red key gives its gondolas. NOT VERIFIED in our engine runs
+# (MAP04's K3; here V19-V21): if it failed, the radar's lift, the bunker's
+# cells and the snowbank would stay shut, and nothing the route needs is in them.
+SPECIAL_FLOOR_LOWER_TO_LOWEST = 21
 # Doom's editor numbers; SD_RedPass and SD_YellowPass replace the cards.
 ED_RED_CARD = 13
 ED_YELLOW_CARD = 6
@@ -276,6 +282,13 @@ TAG_RUNWAY_SHUTTER = 11  # SW-B: the escape stair's shutter onto the runway
 # yellow door opens the hangar's two, the red gate the runway's two.
 TAG_HANGAR_AMBUSH = TAG_YELLOW_DOOR
 TAG_RUNWAY_AMBUSH = TAG_RED_GATE
+# V3 (D120, A2 and A3): tags only a pickup moves (no line carries them).
+TAG_RADAR_LIFT = 12      # the yellow key: the radar's cargo lift comes down with the Reich
+TAG_BUNKER_CELLS = 13    # the red key: the containment cells' walls sink into the floor
+TAG_SNOWBANK = 14        # the road's medikit: the snowbank sinks off the warehouse's front
+LIFT_SPEED = 8           # 1 unit a tic: the car's 128 take ~3.7 s, the winch heard all the way
+WALL_SPEED = 32          # 4 units a tic: the cells' 224 are down in ~1.6 s
+BANK_SPEED = 16          # 2 units a tic: the bank's 128 in ~1.8 s
 
 # --- The plan (x east, y north; design document section 4) ---------------------
 # The runway, the start at its east end beside the Il-14.
@@ -440,6 +453,51 @@ WINDOWS: tuple[str, ...] = ()    # nothing seen through and never walked
 SECRET_ZONES = ("s1_hold", "s2_store", "s3_shed")
 CLOSET_PREFIX = "closet_"
 
+# --- V3: events on pickup and the set pieces (D120's A2 and A3) -----------------
+# A thing whose UDMF `special` GZDoom runs when it is picked up (MAP04's red
+# key, MAP09's red key; the Door_Open form VERIFIED in the engine by
+# tunguska-critical's RKEY, 2026-10-23). Each event's tag is carried by no
+# line; its monsters wait where no line has an opening (nothing sees or
+# hears them) until it fires; a flickering lamp (sector special 65, the
+# bunker's lamp) stands in front of it, seen before it fires, and the
+# moving floor sounds. None is on the critical path, none shuts the player
+# in. Design document section 17; tests/_pickup_events_e3.py checks them.
+class PickupEvent(NamedTuple):
+    name: str
+    trigger: int                      # editor number of the thing that carries the special
+    spot: tuple[int, int]             # where that thing lies
+    special: int
+    args: tuple[int, ...]             # the tag first
+    zones: tuple[str, ...]            # the sectors the tag moves
+    waiting: tuple[str, ...]          # where the released monsters wait
+    lamp: str                         # the warning lamp, in front of the event
+
+
+# A3, the radar's cargo lift: its car waits up at the gallery's height (128)
+# behind a gate a door high in the radome's west wall, so from the radome it
+# is the car's steel face under the gate's lintel; the yellow key brings it
+# down to the floor with three of the Reich's.
+RADAR_LIFT_GATE = (2144, 2128, 2176, 2224)
+RADAR_LIFT_CAR = (2064, 2096, 2144, 2256)
+# A2, the bunker's containment cells: two cells behind the test chamber's west
+# wall; each wall panel is a sector whose floor stands at the chamber's
+# ceiling and sinks to its floor when the red key is taken. Its lamp is the
+# strip of chamber in front of it.
+BUNKER_CELLS = {"z7_cell_s": ((1520, 1984, 1536, 2112), (1424, 1968, 1520, 2128), (1536, 1984, 1552, 2112)),
+                "z7_cell_n": ((1520, 2176, 1536, 2304), (1424, 2160, 1520, 2320), (1536, 2176, 1552, 2304))}
+CELL_HEIGHT = 128
+# A3, the snowbank that sinks: a bank of snow a door high against a
+# warehouse's front on the harbour road, under a broken floodlight; the
+# medikit lies in its light. Taken, the bank sinks into the road and the
+# warehouse's ground floor behind it is open, the Legion inside.
+SNOWBANK = (1280, 448, 1408, 480)
+SNOWBANK_POCKET = (1264, 480, 1424, 608)
+SNOWBANK_LAMP = (1280, 416, 1408, 448)
+SNOWBANK_TOP = GROUND + DOOR_HEIGHT
+MEDIKIT_SPOT = (1344, 432)
+LIGHT_EVENT_LAMP = 160   # each event's lamp, flickering down to its darkest neighbour
+
+
 # --- Editor numbers (src/lumps/MAPINFO, DoomEdNums) ---------------------------
 ED_RIFLEMAN = 21100       # SD_ReichRifleman, Reich
 ED_TROOPER = 21101        # SD_LegionTrooper, Legion
@@ -504,6 +562,17 @@ ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
 ED_AKM_MAG = 21020        # SD_AkmAmmo: one 30-round 7.62x39 magazine (ADR 011)
 
+# The events, in the order the route meets them (design section 17).
+PICKUP_EVENTS = (
+    PickupEvent("radar_lift", ED_YELLOW_CARD, YELLOW_KEY_SPOT, SPECIAL_FLOOR_LOWER_TO_LOWEST,
+                (TAG_RADAR_LIFT, LIFT_SPEED), ("z5_lift_car",), ("z5_lift_car",), "z5_lift_gate"),
+    PickupEvent("bunker_cells", ED_RED_CARD, RED_KEY_SPOT, SPECIAL_FLOOR_LOWER_TO_LOWEST,
+                (TAG_BUNKER_CELLS, WALL_SPEED), tuple(f"{n}_wall" for n in BUNKER_CELLS),
+                tuple(BUNKER_CELLS), "z7_cell_s_lamp"),
+    PickupEvent("snowbank", ED_MEDIKIT, MEDIKIT_SPOT, SPECIAL_FLOOR_LOWER_TO_LOWEST,
+                (TAG_SNOWBANK, BANK_SPEED), ("z8_snowbank",), ("z8_snowbank_pocket",), "z8_snowbank_lamp"),
+)
+
 # Design section 9: monsters per skill, Doom's skill pairs (udmf.skill_tier).
 ENEMY_TOTALS = {2: 37, 3: 55, 4: 72}
 
@@ -549,12 +618,14 @@ MONSTERS = (
     # on every skill, the RPG-7 met before, in the barracks.
     ("z5_dome", "panzermensch", 2560, 2368, 270, 2),
     ("z5_platform", "rifleman", 2608, 2144, 0, 2),
-    ("z5_radome", "rifleman", 2240, 1984, 0, 2),
     ("z5_dome", "hound", 2368, 1984, 0, 2),
     ("z5_radome", "rifleman", 2880, 1600, 90, 2),
-    ("z5_dish", "hound", 2496, 2048, 0, 3),
     ("z5_dish", "stormtrooper", 2880, 1856, 180, 3),
-    ("z5_radome", "rifleman", 2256, 2304, 0, 4),
+    # V3 (A3): the radar's cargo lift, down with the yellow key, the Reich's
+    # three that stood by the radome's west wall and under the dish.
+    ("z5_lift_car", "rifleman", 2104, 2120, 0, 2),
+    ("z5_lift_car", "hound", 2104, 2180, 0, 3),
+    ("z5_lift_car", "rifleman", 2104, 2232, 0, 4),
     ("z5_radome", "hound", 2688, 1600, 90, 4),
     # The command room: both factions at the plotting table.
     ("z6_command", "trooper", 2784, 1248, 270, 2),
@@ -570,13 +641,15 @@ MONSTERS = (
     # The bunker: the Reich's, the hounds in the dark.
     ("z7_landing", "rifleman", 2336, 1216, 180, 2),
     ("z7_hall", "hound", 1792, 1344, 90, 2),
-    ("z7_hall", "rifleman", 1600, 1728, 0, 2),
-    ("z7_hall", "rifleman", 2016, 1728, 180, 2),
     ("z7_hall", "panzermensch", 1792, 1728, 270, 2),
-    ("z7_hall", "hound", 1600, 1280, 0, 3),
     ("z7_chamber", "rifleman", 1984, 2304, 180, 3),
-    ("z7_hall", "hound", 1984, 1472, 180, 4),
     ("z7_chamber", "heavy", 1600, 2304, 0, 4),
+    # V3 (A2): the containment cells, open when the red key is taken: the
+    # hall's two riflemen and two hounds wait in them now.
+    ("z7_cell_s", "rifleman", 1472, 2016, 0, 2),
+    ("z7_cell_n", "rifleman", 1472, 2208, 0, 2),
+    ("z7_cell_n", "hound", 1472, 2280, 0, 3),
+    ("z7_cell_s", "hound", 1472, 2088, 0, 4),
     # The red gate's closets in the bunker's front: behind the player.
     ("closet_z1_a", "trooper", 2080, 656, 270, 2),
     ("closet_z1_a", "stormtrooper", 2144, 656, 270, 3),
@@ -588,18 +661,15 @@ MONSTERS = (
     ("z9_quay", "stormtrooper", 896, 0, 0, 2),
     ("z9_quay", "stormtrooper", 1024, 640, 0, 2),
     ("z9_quay", "trooper", 960, -128, 90, 2),
-    ("z9_quay", "rifleman", 864, 320, 0, 2),
     ("z9_quay", "rifleman", 864, 1216, 0, 2),
     ("z10_sea", "doughboy", 128, 768, 0, 2),
     ("z11_deck", "rifleman", 384, 1152, 270, 2),
     ("z9_quay", "heavy", 960, 896, 270, 3),
-    ("z9_quay", "rifleman", 832, 1600, 270, 3),
     ("z9_quay", "stormtrooper", 1088, 1344, 180, 3),
     ("z10_sea", "doughboy", 608, 1600, 270, 3),
     ("z11_deck", "trooper", 384, 448, 90, 3),
     ("z8_road", "trooper", 1344, 224, 0, 4),
     ("z9_quay", "hound", 960, 320, 0, 4),
-    ("z9_quay", "trooper", 1088, 448, 180, 4),
     ("z9_quay", "stormtrooper", 1024, 1600, 270, 4),
     ("z10_sea", "doughboy", 128, 128, 0, 4),
     ("z11_deck", "stormtrooper", 448, 1024, 270, 4),
@@ -607,6 +677,11 @@ MONSTERS = (
     # sights; on the deck by the hull's edge from skill 3, down the boat.
     ("z9_quay", "gunner", 1056, -192, 90, 2),
     ("z11_deck", "gunner", 320, 1216, 270, 3),
+    # V3 (A3): the warehouse behind the road's snowbank, open when the
+    # medikit under the broken floodlight is taken: from the quay.
+    ("z8_snowbank_pocket", "rifleman", 1312, 544, 270, 2),
+    ("z8_snowbank_pocket", "rifleman", 1376, 544, 270, 3),
+    ("z8_snowbank_pocket", "trooper", 1344, 584, 270, 4),
 )
 
 # Consumables scale DOWN with skill: (zone, editor number, x, y, highest
@@ -641,7 +716,7 @@ ITEMS = (
     ("z4_barracks", ED_MEDIKIT, 4032, 2144, 4),
     ("z6_command", ED_MEDIKIT, 2752, 1184, 4),
     ("z7_escape_top", ED_MEDIKIT, 1856, 640, 4),
-    ("z8_road", ED_MEDIKIT, 1408, 384, 4),
+    ("z8_snowbank_lamp", ED_MEDIKIT, *MEDIKIT_SPOT, 4),   # V3: the snowbank's bait, under the floodlight
     ("z9_quay", ED_MEDIKIT, 1088, 1536, 4),
     ("z5_dome", ED_MEDIKIT, 2368, 1728, 3),
     ("z9_quay", ED_MEDIKIT, 832, 0, 3),
@@ -746,6 +821,15 @@ SECRET_ITEMS = (
     ("s3_shed", ED_CELL, 1216, 1440, 4),
     ("s3_shed", ED_CELL, 1216, 1568, 4),
 )
+
+
+def pickup_special(ednum: int, spot: tuple[int, int]) -> dict:
+    """The UDMF `special` and `arg0..` of the thing `ednum` at `spot`, if
+    an event of PICKUP_EVENTS rides it (MAP04's form); else nothing."""
+    for event in PICKUP_EVENTS:
+        if (event.trigger, tuple(event.spot)) == (ednum, tuple(spot)):
+            return {"special": event.special, **{f"arg{i}": a for i, a in enumerate(event.args)}}
+    return {}
 
 
 def poster_faces() -> tuple[tuple[str, str, str, int, int, int], ...]:
@@ -1051,6 +1135,13 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for rect in corner_chamfers(RADOME):
         g.carve(*rect)
     g.carve(*PEDESTAL)
+    # V3 (A3): the radar's cargo lift. The gate is a door high in the
+    # radome's wall, its lamp flickering; the car waits up at the gallery's
+    # height, its steel face under the gate's lintel, until the yellow key.
+    zone("z5_lift_gate", GROUND, ROOF, [RADAR_LIFT_GATE], light=LIGHT_EVENT_LAMP, ceiling=CEIL_PANEL,
+         wall=RADOME_SKIN, special=SECTOR_SPECIAL_LIGHT_FLICKER)
+    zone("z5_lift_car", GALLERY, GALLERY + DOOR_HEIGHT, [RADAR_LIFT_CAR], TAG_RADAR_LIFT, light=LIGHT_CLOSET,
+         flat=PLATE, ceiling=PLATE, wall=STEEL)
 
     # ======================================================================
     # The command room, behind the yellow door
@@ -1104,6 +1195,14 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
          wall=STEEL, extra=RED_LIGHT)
     zone(f"{PROP_PREFIX}z7_core", CORE_SILL, CORE_SILL + DOOR_TILE, [CORE_SLOT], light=LIGHT_CORE,
          flat=PLATE, wall=STEEL)
+    # V3 (A2): the containment cells behind the chamber's west wall; each
+    # wall panel's floor stands at the chamber's ceiling until the red key.
+    for name, (wall_rect, cell_rect, lamp_rect) in BUNKER_CELLS.items():
+        like("z7_chamber", f"{name}_lamp", [lamp_rect], light=LIGHT_EVENT_LAMP,
+             special=SECTOR_SPECIAL_LIGHT_FLICKER)
+        zone(f"{name}_wall", BUNKER_CEIL, BUNKER_CEIL, [wall_rect], TAG_BUNKER_CELLS, light=LIGHT_CLOSET,
+             flat=PLATE, wall=TUBBING)
+        zone(name, BUNKER, BUNKER + CELL_HEIGHT, [cell_rect], light=LIGHT_CLOSET, flat=PLATE, wall=TUBBING)
     ex1, ex2 = ESCAPE_X
     y = ESCAPE_TOP[3]
     for n in range(1, ESCAPE_STEPS + 1):
@@ -1121,6 +1220,14 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     zone("z8_gate_porch", GROUND, ROOF, [GATE_PORCH], light=LIGHT_OUTDOORS, flat=SNOW, ceiling=CEIL_PANEL,
          wall=BRICK)
     zone("z8_road", GROUND, SKY_CEIL, [ROAD], light=LIGHT_OUTDOORS, flat=SNOW, ceiling=SKY, wall=WAREHOUSE)
+    # V3 (A3): the snowbank against a warehouse's front, the broken
+    # floodlight's patch before it; the medikit taken, the bank sinks.
+    like("z8_road", "z8_snowbank_lamp", [SNOWBANK_LAMP], light=LIGHT_EVENT_LAMP,
+         special=SECTOR_SPECIAL_LIGHT_FLICKER)
+    zone("z8_snowbank", SNOWBANK_TOP, SKY_CEIL, [SNOWBANK], TAG_SNOWBANK, light=LIGHT_OUTDOORS, flat=SNOW,
+         ceiling=SKY, wall=WAREHOUSE)
+    zone("z8_snowbank_pocket", GROUND, ROOF, [SNOWBANK_POCKET], light=LIGHT_SHED, ceiling=CEIL_CONCRETE,
+         wall=WAREHOUSE)
     zone("z9_quay", GROUND, SKY_CEIL, [QUAY], light=LIGHT_OUTDOORS, flat=SNOW, ceiling=SKY, wall=WAREHOUSE)
     for key, rect in QUAY_KERBS.items():
         rim(f"z9_kerb_{key}", rect, GROUND + KERB, GROUND + KERB_SKY, ICE_WALL, SNOW)
@@ -1231,6 +1338,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         _block_edges(g, rect, SEA_RECT)
     # The exit: the switch at the back of its niche, in the conning tower.
     g.style_v(EXIT_NICHE[0], EXIT_NICHE[1], EXIT_NICHE[3], exit_switch_style(texture=EXIT_FACE))
+    # V3: the snowbank's face towards the road is packed ice; its flanks in
+    # the notch are the warehouse's brick, like the front either side.
+    g.style_h(SNOWBANK[1], SNOWBANK[0], SNOWBANK[2], LineStyle(texture=ICE_WALL))
 
     g.build()
 
@@ -1259,12 +1369,14 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     dress_lower(tm, plan["z12_sail"], {plan[f"{PROP_PREFIX}z11_sail"]}, NAV_PANEL)
 
     tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START, angle=PLAYER_ANGLE))
-    tm.add_thing(Thing(x=YELLOW_KEY_SPOT[0], y=YELLOW_KEY_SPOT[1], type=ED_YELLOW_CARD))
-    tm.add_thing(Thing(x=RED_KEY_SPOT[0], y=RED_KEY_SPOT[1], type=ED_RED_CARD))
+    tm.add_thing(Thing(x=YELLOW_KEY_SPOT[0], y=YELLOW_KEY_SPOT[1], type=ED_YELLOW_CARD,
+                       extra=pickup_special(ED_YELLOW_CARD, YELLOW_KEY_SPOT)))
+    tm.add_thing(Thing(x=RED_KEY_SPOT[0], y=RED_KEY_SPOT[1], type=ED_RED_CARD,
+                       extra=pickup_special(ED_RED_CARD, RED_KEY_SPOT)))
     for _zone, kind, x, y, angle, tier in MONSTERS:
         tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle))
     for _zone, ednum, x, y, top in ITEMS + SECRET_ITEMS:
-        tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
+        tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top), extra=pickup_special(ednum, (x, y))))
     for _zone, ednum, x, y, lowest in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
     return tm, plan
