@@ -71,7 +71,7 @@ M1-M4 all PASSED (`docs/ROADMAP.md`); F0-F2 closed (G0-G2).
 
 **Art.** Every asset group the M2 gate names is ours: the seven enemy classes
 (redrawn with Gemini, see above) and their four projectiles, the seven weapons
-in first person (the TT-33 on Freedoom-based hands, D61, to be redone; the
+in first person (the TT-33 redone from Gemini frames, D111, installed by D123; the
 other six from the CEO's Gemini frames, D79-D88), every pickup (D80), the
 player's effects (D82), status bar A with the sergeant's 42 Gemini faces and
 digits N2 (D89-D92), EN, RU and CA. Campaign textures are all ours. The

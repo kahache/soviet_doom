@@ -14,12 +14,14 @@ Third-party material keeps its own licence and is listed with origin in
 `docs/art/LICENSES.md`:
 
 - **Freedoom** (freedoom.github.io), © the Contributors to the Freedoom
-  project, modified BSD licence (BSD 3-clause). Art derived from Freedoom's
-  pixels (today the TT-33's first-person hands, Freedoom's pistol hands
-  recoloured; more weapons may follow) ships under Freedoom's licence, whose
-  notice is in `LICENSE-FREEDOOM-BSD-3.txt`; our own changes to it are under
-  CC BY-NC-SA 4.0. The rest of Freedoom is read from the player's IWAD and
-  not redistributed.
+  project, modified BSD licence (BSD 3-clause). Material derived from
+  Freedoom's (today three enemy gib sounds that edit and layer Freedoom's
+  `DSSLOP`; no art: until D123 the TT-33's first-person hands were
+  Freedoom's pistol hands recoloured, and since then they are our own)
+  ships under Freedoom's licence, whose notice is in
+  `LICENSE-FREEDOOM-BSD-3.txt`; our own changes to it are under CC BY-NC-SA
+  4.0. The rest of Freedoom is read from the player's IWAD and not
+  redistributed.
 - The title music `assets/music/D_SDINTL.mid`, *The Internationale* by
   Pierre De Geyter, public domain, MIDI sequence by **Jerry Engelbach**,
   used under his attribution licence — credit required, see
@@ -44,7 +46,7 @@ them, and ship in the release package with it (`tools/release.py`):
   Source: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt
 - [`LICENSE-FREEDOOM-BSD-3.txt`](LICENSE-FREEDOOM-BSD-3.txt): Freedoom's
   copyright notice, conditions and disclaimer (BSD 3-clause), which cover
-  the **Freedoom-derived art** above. Source (Freedoom v0.13.0):
+  the **Freedoom-derived material** above. Source (Freedoom v0.13.0):
   https://raw.githubusercontent.com/freedoom/freedoom/v0.13.0/COPYING.adoc
 
 Third-party material keeps its own licence, as recorded in
@@ -68,12 +70,14 @@ Soviet Doom выпускается под двумя лицензиями, в з
 `docs/art/LICENSES.md`:
 
 - **Freedoom** (freedoom.github.io), © участники проекта Freedoom,
-  модифицированная лицензия BSD (BSD 3-clause). Графика, созданная на основе
-  пикселей Freedoom (сейчас — руки с ТТ-33 от первого лица: перекрашенные
-  руки с пистолетом из Freedoom; позже могут добавиться другие виды оружия),
-  распространяется по лицензии Freedoom, текст уведомления которой — в
-  `LICENSE-FREEDOOM-BSD-3.txt`; наши изменения к ней — по CC BY-NC-SA 4.0.
-  Остальное из Freedoom читается из IWAD игрока и не распространяется.
+  модифицированная лицензия BSD (BSD 3-clause). Материалы, созданные на
+  основе Freedoom (сейчас — три звука разрыва врагов, в которых обработан и
+  наложен звук Freedoom `DSSLOP`; графики нет: до D123 руки с ТТ-33 от
+  первого лица были перекрашенными руками с пистолетом из Freedoom, теперь
+  они наши), распространяются по лицензии Freedoom, текст уведомления
+  которой — в `LICENSE-FREEDOOM-BSD-3.txt`; наши изменения к ним — по
+  CC BY-NC-SA 4.0. Остальное из Freedoom читается из IWAD игрока и не
+  распространяется.
 - Титульная музыка `assets/music/D_SDINTL.mid`, «Интернационал» Пьера
   Дегейтера, — общественное достояние; MIDI-секвенция **Джерри Энгельбаха**
   (Jerry Engelbach) используется по его лицензии с обязательным указанием
@@ -99,7 +103,7 @@ Soviet Doom выпускается под двумя лицензиями, в з
   Источник: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.txt
 - [`LICENSE-FREEDOOM-BSD-3.txt`](LICENSE-FREEDOOM-BSD-3.txt): уведомление
   об авторском праве, условия и отказ от гарантий Freedoom (BSD 3-clause);
-  относится к **графике на основе Freedoom**. Источник (Freedoom v0.13.0):
+  относится к **материалам на основе Freedoom**. Источник (Freedoom v0.13.0):
   https://raw.githubusercontent.com/freedoom/freedoom/v0.13.0/COPYING.adoc
 
 Сторонние материалы сохраняют свои лицензии, как записано в

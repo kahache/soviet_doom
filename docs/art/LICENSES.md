@@ -63,11 +63,26 @@ textures would then have to be re-approved.
 Freedoom 0.13.0 (`freedoom2.wad`, BSD 3-clause) is the base game data (D2).
 The mod references four of its lumps **by name** (`STARTAN2`, `FLOOR4_8`,
 `CEIL3_5`, `SKY1`, see `TEXTURE-INDEX.md`) and redistributes none of them.
-**One exception since N17 (2026-10-15):** the TT-33's first-person frames
-(`SDTTA0`, `SDTTB0`, `SDTTC0`) carry the hand pixels of Freedoom's `PISGA0`,
-`PISGB0` and `PISGC0`, recoloured (D61): a derivative of Freedoom's art,
-shipped inside our PK3 under Freedoom's licence, with its credit. Rows and
-the licence's obligations: "Weapon frames: the TT-33 in hand" below.
+**The exception: three enemy gib sounds.** `SDRRIXDT`, `SDLTRXDT` and
+`SDSTOXDT` edit and layer Freedoom's `DSSLOP` (D83; rows under "Enemy
+sounds"): a derivative of Freedoom's data, shipped inside our PK3 under
+Freedoom's licence, with its credit. **No art pixel of Freedoom's ships
+since D123 (2026-10-23):** from N17 (2026-10-15) to D123 the TT-33's
+first-person frames (`SDTTA0`-`SDTTC0`) carried the hand pixels of
+Freedoom's `PISGA0`-`PISGC0`, recoloured (D61); the Gemini TT-33 replaced
+them ("Weapon frames: the TT-33 in hand" below).
+
+**What Freedoom's licence asks of us.** Freedoom's data is under a modified
+BSD licence (BSD 3-clause). Shipping a derivative of it inside the PK3 is a
+redistribution in binary form, so: (1) the copyright notice, the list of
+conditions and the disclaimer travel in the documentation of the release:
+`LICENSE-FREEDOOM-BSD-3.txt`, Freedoom v0.13.0's `COPYING.adoc` verbatim
+(D75), in the repository root and in every release package
+(`tools/release.py`); (2) neither the Freedoom project's name nor its
+contributors' may be used to endorse or promote the mod without their
+permission. The credit is on screen (`SD_CRED_IWAD_*`, Options → Soviet
+Doom → Credits) and in the release's credits (the rows' `credit
+"Freedoom"`, read by `tools/licences.py`). NOT VERIFIED by a lawyer.
 **Not an exception (D82, 2026-10-20):** seven sprites ship under the IWAD's
 own names, `PUFF`, `BLUD`, `TFOG`, `IFOG`, `BAR1`, `BEXP` and `COLU`, so
 they replace Freedoom's pictures of the engine's puff, blood, fogs, barrel
@@ -692,8 +707,8 @@ source file: `docs/sound/ENEMY-SOUNDS.md` §2.1 and §5.9 (the drafts) and
 `tools/audio/gen_enemy_alts.py` `SOURCES` (the alternatives). **Three gibs
 also edit Freedoom's `DSSLOP`** (`SDRRIXDT`, `SDLTRXDT`, `SDSTOXDT`): a
 derivative of a Freedoom sound, shipped under Freedoom's licence with its
-credit, as the TT-33's hands are ("Base IWAD" above; the obligations are
-the ones written under "Weapon frames: the TT-33 in hand").
+credit, the PK3's only Freedoom-derived material since D123 ("Base IWAD"
+above, which also writes the licence's obligations).
 
 The beds (`SD...B<n>`) are packed and named but played by nothing until
 they are mixed under the voice takes (D87). Not installed (D83 NO, D86 NO):
@@ -908,40 +923,28 @@ docstring). No photograph, no typeface. Freedoom's own weapon sprites appear
 only beside ours on the review sheets, for comparison, and never enter a
 sprite (`freedoom_sprite()` in the generator).
 
-## Weapon frames: the TT-33 in hand (F4, approved by the CEO 2026-10-14, D61 and D63)
+## Weapon frames: the TT-33 in hand (F4 D61/D63; redone with Gemini, D111, 2026-10-23)
 
-CEO verdicts: Freedoom's pistol hands recoloured to our skin and sleeve,
-"R3A1 ok!" (D61), and our TT-33 held in them, "está bien" (D63; more colour
-and grey detail logged as a nice to have for the gameplay phase). Files in
-`assets/sprites/tt33/`, beside the pickup `SDTPA0`, copied byte for byte
-from `work/art/weapons_fd/tt33/` (`tools/art/hand_study.py`,
-`build_tt33_fd`, the code of commit 33f47e8 that rendered the frames shown
-in engine through the draft overlay, `docs/qa/evidence/2026-10-14_1950_F4_tt33-freedoom-hands-in-engine.png`;
-rendered again from that commit into a scratch folder for the install, all
-four identical), so each PNG keeps its `grAb` offsets. RGBA with hard
-alpha; `SDTT` A-C in palette v2 (`flesh_pink`, D45), `SDTFA0` inside v1.
-Not installed: `metrics.json`, and hand E's drafts of the same names in
-`work/art/weapons/tt33/` (rejected, D48). Engine names: MOD-SPEC §6.3.
+CEO verdict on the redo: "Ok T33" (D123, 2026-10-23, on
+`docs/art/previews/2026-10-23_P4_tt33-gemini.html`).
+D111 ("rehaz los sprites de la pistola también porque ahora no queda en
+tanta consonancia con el resto de armas") retires the D61/D63 set (our
+TT-33 model in Freedoom's recoloured pistol hands): no Freedoom pixel is
+left in the TT-33. The new frames come from the project lead's Gemini pair
+(ready, firing; bare hand on magenta), processed by
+`tools/art/gemini_frames.py tt33` with the arsenal's constants (palette v2,
+x1.6 CHGGA0 above the bar, the D79 kick), the muzzle on the crosshair.
+Files in `assets/sprites/tt33/`, beside the pickup `SDTPA0`, copied byte
+for byte from `work/art/weapons/hand_G/tt33/`, so each PNG keeps its `grAb`
+offsets. RGBA with hard alpha, all four in palette v2. The source images
+stay in `work/art/reference/` (gitignored, D77). Engine names: MOD-SPEC §6.3.
 
 | Lump | What it is | Origin | Licence |
 |---|---|---|---|
-| `SDTTA0` | TT-33 held, frame A (ready; also raise and lower) | (a) `tools/art/hand_study.py` `build_tt33_fd`: the hands are Freedoom 0.13.0's `PISGA0` (`iwads/freedoom2.wad`), its pistol cut out and every hand pixel recoloured by luminance to our `flesh_pink` skin and `military_green` sleeve (`fd_hands_for_gun`, R3-A1); the gun is our own TT-33 model rendered from behind (`tools/art/gen_weapon.py` `render_tt33_rear`), set into the grip and re-toned to dark steel; the gap the old pistol left between the hands filled in our steel | Freedoom's pixels: modified BSD licence (BSD 3-clause), © the Contributors to the Freedoom project, credit "Freedoom"; the recolouring and the gun: Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
-| `SDTTB0` | TT-33 held, frame B (fire: the kick up) | (a) idem, on Freedoom's `PISGB0` | idem |
-| `SDTTC0` | TT-33 held, frame C (coming down) | (a) idem, on Freedoom's `PISGC0` | idem |
-| `SDTFA0` | TT-33 muzzle flash, frame A (over B) | (a) `tools/art/gen_weapon.py` `render_tt33_flash`, placed at the muzzle of `SDTTB0`; no Freedoom pixel | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
-
-**What Freedoom's licence asks of us.** Freedoom's art is under a modified
-BSD licence (BSD 3-clause). Shipping `SDTT` A-C inside the PK3 is a
-redistribution in binary form of a derivative, so: (1) the copyright
-notice, the list of conditions and the disclaimer must travel in the
-documentation of the release, and (2) neither the Freedoom project's name
-nor its contributors' may be used to endorse or promote the mod without
-their permission. The credit is on screen (`SD_CRED_IWAD_*`, Options →
-Soviet Doom → Credits) and in the release's credits (this row's
-`credit "Freedoom"`, read by `tools/licences.py`). **The notice text itself
-does not ship yet:** Freedoom's `COPYING` is not in the repo; fetching it
-waits on the CEO (G6 readiness review 2026-10-14, §2.3.1). NOT VERIFIED by a
-lawyer.
+| `SDTTA0` | TT-33 held, frame A (ready; also raise and lower) | (a) derived from images generated by the project lead with Google Gemini (the ready image), processed into pixel art by `tools/art/gemini_frames.py`; the source images are not distributed | Soviet Doom project, CC BY-NC-SA 4.0 (D15); the AI use is disclosed in the game's and the release's credits (D79) |
+| `SDTTB0` | TT-33 held, frame B (the shot, kicked up and right) | (a) derived from images generated by the project lead with Google Gemini (the firing image, its flash cut out), processed into pixel art by `tools/art/gemini_frames.py`; the source images are not distributed | idem |
+| `SDTTC0` | TT-33 held, frame C (settling, half the kick) | (a) derived from images generated by the project lead with Google Gemini (the firing image, its flash cut out, half kicked), processed into pixel art by `tools/art/gemini_frames.py`; the source images are not distributed | idem |
+| `SDTFA0` | TT-33 muzzle flash, frame A (over the muzzle of B) | (a) derived from images generated by the project lead with Google Gemini (the firing image's flash), processed into pixel art by `tools/art/gemini_frames.py`; the source images are not distributed | idem |
 
 ## Weapon frames: the PPSh-41 in hand (F4, D79, 2026-10-20)
 
@@ -1390,6 +1393,86 @@ not draw are derived by the tool and listed in `derived` of its
 
 The shell (`SDGL`) is still drawn from code on the 3D rig (D38). No
 photograph, no typeface. Freedoom's sprites never enter one.
+
+## Enemy sprites: the Legion gunner (P4, drawn from Google Gemini, approved by the CEO 2026-10-23, D119 and D123)
+
+CEO verdict: "Ok gunner" (D123, 2026-10-23, on
+`docs/art/previews/2026-10-23_P4_gunner-gemini.html`). The gunner's first
+sprites of his own: from D116 to D123 he wore the Legion trooper's `SDLT`
+tinted brass in code (MOD-SPEC §6.12), which no longer ships for him. Files
+in `assets/sprites/legion_gunner/`, copied byte for byte from
+`work/art/enemies_gemini/gunner/` (`work/art/enemies_gemini/gunner/install.sh`),
+so each PNG keeps its `grAb` offsets. 70 lumps: `SDLG` frames A-G in eight
+separate rotations, H-U in rotation 0; rotations 6-8 are 4-2 mirrored and
+written as separate lumps (Gemini drew the 3/4, profile and 3/4 back views
+facing right; the flag patch changes shoulder, as the trooper's does). RGBA
+with hard alpha, palette v2. The source sheets
+(`work/art/reference/enemies/gemini/gem_gunner_*.png`: `turn`, `walkL`,
+`walkR`, `aim_v3`, `fire`, `death_v2`) were generated on the CEO's own
+Google Gemini account; they are gitignored and never distributed (D77).
+Frames Gemini did not draw are derived by the tool and listed in `derived`
+of its `metrics.json`; its `reask` (a walk with a real stride) is still
+queued for Gemini (D123). Not installed: `metrics.json`. Engine names:
+MOD-SPEC §6.3.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDLGA1`, `SDLGA2`, `SDLGA3`, `SDLGA4`, `SDLGA5`, `SDLGA6`, `SDLGA7`, `SDLGA8` | walk, frame A (Gemini's `walkL` sheet), rotations 1-8, `SD_LegionGunner` | (a) derived from Google Gemini images generated on the CEO's account (`work/art/reference/enemies/gemini/gem_gunner_*.png`), processed by `tools/art/gemini_enemy.py gunner`; the source images are not distributed | Soviet Doom project, CC BY-NC-SA 4.0 (D15); the AI use is disclosed in the game's and the release's credits (D79, D109, D123) |
+| `SDLGB1`, `SDLGB2`, `SDLGB3`, `SDLGB4`, `SDLGB5`, `SDLGB6`, `SDLGB7`, `SDLGB8` | walk, frame B (the standing view, the `turn` sheet) | (a) idem | idem |
+| `SDLGC1`, `SDLGC2`, `SDLGC3`, `SDLGC4`, `SDLGC5`, `SDLGC6`, `SDLGC7`, `SDLGC8` | walk, frame C (Gemini's `walkR` sheet) | (a) idem | idem |
+| `SDLGD1`, `SDLGD2`, `SDLGD3`, `SDLGD4`, `SDLGD5`, `SDLGD6`, `SDLGD7`, `SDLGD8` | walk, frame D (the standing view) | (a) idem | idem |
+| `SDLGE1`, `SDLGE2`, `SDLGE3`, `SDLGE4`, `SDLGE5`, `SDLGE6`, `SDLGE7`, `SDLGE8` | aim, frame E (`gem_gunner_aim_v3`: the front view aims at the camera; the others carry the gun at the hip) | (a) idem | idem |
+| `SDLGF1`, `SDLGF2`, `SDLGF3`, `SDLGF4`, `SDLGF5`, `SDLGF6`, `SDLGF7`, `SDLGF8` | fire, frame F (the front view's flash in front of the chest, D119; the 3/4 back views have none, Gemini drew none) | (a) idem | idem |
+| `SDLGG1`, `SDLGG2`, `SDLGG3`, `SDLGG4`, `SDLGG5`, `SDLGG6`, `SDLGG7`, `SDLGG8` | pain, frame G (G1 Gemini's pain figure; G2-G8 the standing view tilted 9°, derived) | (a) idem | idem |
+| `SDLGH0`, `SDLGI0`, `SDLGJ0`, `SDLGK0`, `SDLGL0` | death H-L, the five figures of Gemini's `death_v2` sheet; `SDLGL0` the corpse lying flat | (a) idem | idem |
+| `SDLGM0`, `SDLGN0`, `SDLGO0`, `SDLGP0`, `SDLGQ0`, `SDLGR0`, `SDLGS0`, `SDLGT0`, `SDLGU0` | gib M-U: no Gemini sheet, the death frames with procedural blood (derived); `SDLGU0` the remains on the floor | (a) idem | idem |
+
+No armband and no swastika: the Legion wears none (the US flag patch is
+left as Gemini drew it). No photograph, no typeface. Freedoom's sprites
+never enter one.
+
+## Enemy sprites: the Liberty Colossus (P4, drawn from Google Gemini, approved by the CEO 2026-10-23, D119 and D123)
+
+CEO verdict: "Coloso me gustan las 2: colorear general y la estatua de la
+libertad. Quiero los 2 en el juego" (D123, 2026-10-23, on
+`docs/art/previews/2026-10-23_P4_colossus-gemini.html`): the statue is
+installed for `SD_LibertyColossus`, MAP06's boss; the other option, the
+General's `SDGN` drawn x1.3 and tinted chrome in code, stays in the game as
+`SD_ChromeGeneral` (no new image: it wears the General's rows above). Files
+in `assets/sprites/colossus/`, copied byte for byte from
+`work/art/enemies_gemini/colossus/` (`work/art/enemies_gemini/colossus/install.sh`),
+so each PNG keeps its `grAb` offsets. 81 lumps: `SDLC` frames A-G and Q-R
+in eight separate rotations, H-P in rotation 0, the General's letters;
+rotations 6-8 are 4-2 mirrored and written as separate lumps. Drawn at full
+size (no `Scale`, no tint). RGBA with hard alpha, palette v2. The source
+sheets (`work/art/reference/enemies/gemini/gem_colossus_*.png`: `turn`,
+`walkL`, `walkR`, `aim`, `fire`, `stomp`, `death`; the `*_sep.png` the
+split writes) were generated on the CEO's own Google Gemini account; they
+are gitignored and never distributed (D77). Frames Gemini did not draw are
+derived and listed in `derived` of `metrics.json`; its quality gate names
+two figures touched by the sheet's edge (the fire sheet's front view, the
+death sheet's fifth), accepted with the set; its `reask` (a walk with a
+real stride) is still queued for Gemini (D123). Not installed:
+`metrics.json`. Engine names: MOD-SPEC §6.3.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDLCA1`, `SDLCA2`, `SDLCA3`, `SDLCA4`, `SDLCA5`, `SDLCA6`, `SDLCA7`, `SDLCA8` | walk, frame A (Gemini's `walkL` sheet tilted 3°), rotations 1-8, `SD_LibertyColossus` | (a) derived from Google Gemini images generated on the CEO's account (`work/art/reference/enemies/gemini/gem_colossus_*.png`), processed by `tools/art/colossus_gemini.py` (the aim and fire sheets' views parted by mask, the two rockets in flight dropped) and `tools/art/gemini_enemy.py`'s `COLOSSUS`; the source images are not distributed | Soviet Doom project, CC BY-NC-SA 4.0 (D15); the AI use is disclosed in the game's and the release's credits (D79, D109, D123) |
+| `SDLCB1`, `SDLCB2`, `SDLCB3`, `SDLCB4`, `SDLCB5`, `SDLCB6`, `SDLCB7`, `SDLCB8` | walk, frame B (the standing view, the `turn` sheet) | (a) idem | idem |
+| `SDLCC1`, `SDLCC2`, `SDLCC3`, `SDLCC4`, `SDLCC5`, `SDLCC6`, `SDLCC7`, `SDLCC8` | walk, frame C (Gemini's `walkR` sheet tilted -3°) | (a) idem | idem |
+| `SDLCD1`, `SDLCD2`, `SDLCD3`, `SDLCD4`, `SDLCD5`, `SDLCD6`, `SDLCD7`, `SDLCD8` | walk, frame D (the standing view) | (a) idem | idem |
+| `SDLCE1`, `SDLCE2`, `SDLCE3`, `SDLCE4`, `SDLCE5`, `SDLCE6`, `SDLCE7`, `SDLCE8` | salvo and jet, frame E (the torch aimed: E1 at the camera) | (a) idem | idem |
+| `SDLCF1`, `SDLCF2`, `SDLCF3`, `SDLCF4`, `SDLCF5`, `SDLCF6`, `SDLCF7`, `SDLCF8` | salvo and jet, frame F (the torch firing: F1 the burst in front of it; the rockets in flight removed, the jet kept) | (a) idem | idem |
+| `SDLCG1`, `SDLCG2`, `SDLCG3`, `SDLCG4`, `SDLCG5`, `SDLCG6`, `SDLCG7`, `SDLCG8` | pain, frame G (G1 the first death figure, cracking; G2-G8 the standing view tilted 6°, derived) | (a) idem | idem |
+| `SDLCQ1`, `SDLCQ2`, `SDLCQ3`, `SDLCQ4`, `SDLCQ5`, `SDLCQ6`, `SDLCQ7`, `SDLCQ8` | stomp, frame Q (the foot raised, the `stomp` sheet's top row, drawn at half size and scaled x2) | (a) idem | idem |
+| `SDLCR1`, `SDLCR2`, `SDLCR3`, `SDLCR4`, `SDLCR5`, `SDLCR6`, `SDLCR7`, `SDLCR8` | stomp, frame R (the foot down, the dust ring and cracks: the `stomp` sheet's bottom row) | (a) idem | idem |
+| `SDLCH0`, `SDLCI0`, `SDLCJ0`, `SDLCK0`, `SDLCL0`, `SDLCM0`, `SDLCN0`, `SDLCO0`, `SDLCP0` | death H-P from Gemini's five death figures (K the J figure tilted 8°, M the L figure 20° further down); `SDLCP0` the wreck on the ground with the torch and the tablet | (a) idem | idem |
+
+The tablet is blank (Gemini put no text on it); the US flag on the shoulder
+as Gemini drew it; no swastika. No photograph, no typeface. Freedoom's
+sprites never enter one. His projectiles (`SD_ColossusRocket`,
+`SD_ColossusFlame`) wear the RPG-7's and the ROKS-3's sprites, whose rows
+are their own.
 
 ## Enemy sprites: the Doughboy's and the Panzermensch's shells (F5, approved by the CEO 2026-10-20, D81)
 

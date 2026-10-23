@@ -1276,7 +1276,7 @@ class D119GunnerSpecTests(unittest.TestCase):
         self.assertEqual(spec.sheets["fire"].guide, "turn")
         self.assertEqual(sorted(spec.sheets["death"].pick), list(range(5)))
         self.assertTrue(all(v < spec.sheets["fire"].count for *_, v in spec.sheets["fire"].flash))
-        self.assertNotIn("gunner", ge.ENEMIES)                   # not installed: the CEO sees it first
+        self.assertNotIn("gunner", ge.ENEMIES)                   # built by its own command, not by `all` (installed by D123)
         self.assertIs(ge.PENDING["gunner"], spec)
         self.assertTrue(spec.reask and spec.derived)
 

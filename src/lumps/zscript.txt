@@ -65,6 +65,7 @@ version "4.12"
 #include "zscript/monsters/liberty_colossus.zs"    // 21111, Episode 2's boss
 #include "zscript/monsters/colossus_rocket.zs"     // his torch's rockets
 #include "zscript/monsters/colossus_flame.zs"      // his torch's fire jet
+#include "zscript/monsters/chrome_general.zs"      // 21113, the colossus variant (D123), MAP08
 #include "zscript/monsters/consortium.zs"          // 21112, Episode 3's final boss
 #include "zscript/monsters/consortium_rocket.zs"   // its Reich arm's rockets
 #include "zscript/monsters/consortium_orb.zs"      // its Legion arm's energy balls

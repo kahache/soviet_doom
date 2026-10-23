@@ -162,10 +162,13 @@ class RealReleaseTest(unittest.TestCase):
             self.assertIn(name, self.readme)
             self.assertIn(name, self.credits)
 
-    def test_the_freedoom_notice_ships_because_freedoom_pixels_do(self):
-        """BSD-3 clause 2 (D75): the TT-33 frames carry Freedoom's hands, so
-        the notice travels with them, verbatim."""
-        self.assertTrue(any(n.startswith("sprites/") and "/SDTT" in n for n in self.pk3_names))
+    def test_the_freedoom_notice_ships_because_freedoom_material_does(self):
+        """BSD-3 clause 2 (D75): what the PK3 derives from Freedoom carries
+        the notice with it, verbatim. Until D123 that was the TT-33's hands;
+        since D123 (the Gemini TT-33) it is the three enemy gib sounds that
+        edit Freedoom's DSSLOP (docs/art/LICENSES.md, "Base IWAD")."""
+        for gib in ("SDRRIXDT", "SDLTRXDT", "SDSTOXDT"):
+            self.assertTrue(any(n.startswith("sounds/") and f"/{gib}." in n for n in self.pk3_names), gib)
         self.assertIn(b"Contributors to the Freedoom project", self.files[FREEDOOM_TEXT])
 
     def test_credits_name_no_repo_path_outside_the_quoted_registers(self):
@@ -549,7 +552,7 @@ class LicenceTextTest(unittest.TestCase):
                             for b in bullets), bullets)
         self.assertTrue(any(CC_TEXT in b and "**assets and documentation**" in b
                             and GPL_TEXT not in b for b in bullets), bullets)
-        self.assertTrue(any(FREEDOOM_TEXT in b and "**Freedoom-derived art**" in b
+        self.assertTrue(any(FREEDOOM_TEXT in b and "**Freedoom-derived material**" in b
                             and GPL_TEXT not in b and CC_TEXT not in b for b in bullets), bullets)
         russian = text.split("\n---\n", 1)[1]
         for name in FULL_TEXTS:
@@ -565,9 +568,13 @@ class LicenceTextTest(unittest.TestCase):
         self.assertRegex(release.normalise(english), r"release package.*CREDITS\.txt`? reproduces")
         self.assertIn("CREDITS.txt", russian)
         self.assertNotIn("OTEX", text)
-        for half, tt33 in ((english, "TT-33"), (russian, "ТТ-33")):
-            for name in ("Freedoom", "BSD", "Jerry Engelbach", FREEDOOM_TEXT, tt33):
+        # D123: the Freedoom-derived material is the DSSLOP gibs; the TT-33
+        # is named only as history (its hands are ours since D123).
+        for half in (english, russian):
+            for name in ("Freedoom", "BSD", "Jerry Engelbach", FREEDOOM_TEXT, "DSSLOP", "D123"):
                 self.assertIn(name, half)
+        self.assertNotIn("today the TT-33", english)
+        self.assertNotIn("сейчас — руки с ТТ-33", russian)
 
     def test_no_otex_texture_is_packed(self):
         """Why LICENSE.md may drop OTEX: no source lump or asset names it."""
