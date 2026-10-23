@@ -601,12 +601,16 @@ DoomEdNums
 	21006 = SD_Roks3
 	21007 = SD_HandKatyusha
 	21008 = SD_Akm            // slot 4's second weapon (D116); replaces nothing
+	21009 = SD_Rgd5           // slot 8, the RGD-5 hand grenade (V3, ADR 012): a pouch of two; replaces nothing
 
 	// Ammo and items (21020-21039). The AKM's own pool (D116, ADR 011): the
 	// mod's other ammo keeps Doom's numbers through `replaces`.
 	21020 = SD_AkmAmmo        // one 30-round 7.62x39 magazine
+	21021 = SD_Rgd5Ammo       // one loose RGD-5 (V3, ADR 012); gives the weapon too if the sergeant has none
+	21022 = SD_Rgd5Box        // a crate of four RGD-5s (V3, ADR 012)
 
-	// The arsenal was seven weapons (D13), eight with the AKM (D116). Doom's
+	// The arsenal was seven weapons (D13), eight with the AKM (D116), nine
+	// with the RGD-5 (V3, ADR 012). Doom's
 	// chainsaw and super shotgun have no Soviet counterpart, so their editor numbers spawn
 	// nothing: a stray Freedoom pickup can never reintroduce them.
 	82 = None     // SuperShotgun

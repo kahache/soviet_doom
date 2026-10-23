@@ -1142,7 +1142,7 @@ in the IWAD.
 |---|---|---|
 | `SD_LoadReporter` | `EventHandler` | `WorldLoaded` → `Console.PrintfEx(PRINT_HIGH \| PRINT_NONOTIFY, "SOVIETDOOM loaded: …")`: console and log only, never the HUD (QA-G6-2). Pipeline smoke test. No gameplay effect. |
 | `OptionMenuItemSDLanguageOption` | `OptionMenuItemOption` | The Language row: overrides `GetSelection` only, so any `language` value shows Automatic, English, Russian or Catalan (any `ca*` code shows Català; QA-G6-1, ADR 004 D-004-7, P6). Writes nothing. |
-| `SD_Player` | `DoomPlayer` | The sergeant. Starts with `SD_Tokarev` and 50 `Clip`, nothing else: no ice axe and no `Fist`, so slot 1 is empty until the ice axe is picked up (since 2026-10-13, `BALANCE.md` §4.1). Declares slots 1–7; slot 4 holds two since D116, `"SD_Ppsh", "SD_Akm"` in that order. |
+| `SD_Player` | `DoomPlayer` | The sergeant. Starts with `SD_Tokarev` and 50 `Clip`, nothing else: no ice axe and no `Fist`, so slot 1 is empty until the ice axe is picked up (since 2026-10-13, `BALANCE.md` §4.1). Declares slots 1–7; slot 4 holds two since D116, `"SD_Ppsh", "SD_Akm"` in that order; slot 8 is the RGD-5's (V3, ADR 012). |
 | `SD_IceAxe` | `Fist` *replaces Fist* | Slot 1, melee: the ice axe (D40; was `SD_Shovel`). Found, never issued: MAP01 places it on the dorm's rack (every skill, reachable with every door shut), `RANGE` on the range. |
 | `SD_Tokarev` | `Pistol` *replaces Pistol* | Slot 2, `Clip`. |
 | `SD_Izh` | `Shotgun` *replaces Shotgun* | Slot 3, `Shell`. Two barrels then a break-open reload (`int barrels`). Dropped by a trooper it carries 2 shells (`ModifyDropAmount`, D119). |
@@ -1152,9 +1152,13 @@ in the IWAD.
 | `SD_Rpg7` | `RocketLauncher` *replaces RocketLauncher* | Slot 5, `RocketAmmo`. Fires `SD_Pg7Grenade`. |
 | `SD_Roks3` | `PlasmaRifle` *replaces PlasmaRifle* | Slot 6, `Cell`. Fires `SD_FlameBlob`. |
 | `SD_HandKatyusha` | `BFG9000` *replaces BFG9000* | Slot 7, `Cell`, 40 per salvo. Fires six `SD_KatyushaRocket`. |
+| `SD_Rgd5` | `DoomWeapon` (replaces nothing) | Slot 8, a key of its own (V3, A4; ADR 012): the RGD-5 hand grenade, `SD_Rgd5Ammo`; on the floor the pouch of two, 21009. Throws `SD_Rgd5Grenade`; never raised by itself. Provisional look §6.12. Design `docs/engine/2026-10-23_V3_rgd5.md`. |
+| `SD_Rgd5Ammo` | `Ammo` (a pool of its own) | The RGD-5's pool and one loose grenade, 21021, in `zscript/weapons/rgd5_ammo.zs`; taken by a player with no `SD_Rgd5`, it gives the weapon too (ADR 012, §6.4). |
+| `SD_Rgd5Box` | `SD_Rgd5Ammo` | A crate of four RGD-5s, 21022. |
 | `SD_Pg7Grenade` | `Rocket` | Shaped-charge projectile. Not placeable. |
 | `SD_FlameBlob` | `Actor` | Fire projectile, 528-unit reach, 3 x random(1,8) since D119 (the bosses' subclasses keep 4). Not placeable. |
 | `SD_KatyushaRocket` | `Rocket` | Salvo rocket, does not hurt the shooter. Not placeable. |
+| `SD_Rgd5Grenade` | `Actor` | The thrown RGD-5: an arc, short bounces, a 1.71 s fuse counted from the throw (`Death` is "stopped", the burst is `Detonate`), 100 blast over 128 units, hurts the thrower. Not placeable. |
 | `SD_IceAxePuff` | `BulletPuff` | The ice axe's puff: `BulletPuff` plus `AttackSound` `sd/weapon/iceaxe/wall`, the pick on stone (N9, §6.2). Not placeable. |
 | `SD_WeaponSounds` | `Object` (`play`) | Static helper, never instantiated: `DryClick`, the guns' empty click from `Ready` (N9, §6.2). |
 | `SD_Monster` | `Actor` | Bestiary base (F5): `Monster`, `+FLOORCLIP`, the `Faction` property and the three attack helpers. Not placeable. Why enemies do not derive from Doom's monsters, why each sets its own `Species`: ADR 006 (`BESTIARY.md` §2.4 is the earlier draft). |
@@ -1326,7 +1330,10 @@ the full check are in `docs/engine/adr/002-arsenal-and-editor-numbers.md`.
 | 21006 | `SD_Roks3` |
 | 21007 | `SD_HandKatyusha` |
 | 21008 | `SD_Akm` (D116; slot 4's second weapon, replaces nothing) |
+| 21009 | `SD_Rgd5` (V3, ADR 012; slot 8, the RGD-5 hand grenade: the pouch of two) |
 | 21020 | `SD_AkmAmmo` (D116; the AKM's magazine, the first number of the ammo block: ADR 011) |
+| 21021 | `SD_Rgd5Ammo` (V3, ADR 012; one loose RGD-5, which also gives the weapon) |
+| 21022 | `SD_Rgd5Box` (V3, ADR 012; a crate of four RGD-5s) |
 | 21100 | `SD_ReichRifleman` (also spawned by Doom's 3004) |
 | 21101 | `SD_LegionTrooper` (also 9) |
 | 21102 | `SD_Stormtrooper` (also 3001) |
@@ -1352,7 +1359,8 @@ on the built maps, 2026-10-22), so the campaign does not change.
 
 Removed from the game (mapped to `None` in `DoomEdNums`): **82** super
 shotgun and **2005** chainsaw. The arsenal was seven weapons (D13); the AKM
-(D116) is the eighth, beside the PPSh-41 in slot 4.
+(D116) is the eighth, beside the PPSh-41 in slot 4; the RGD-5 (V3, ADR 012)
+the ninth, alone in slot 8.
 
 Numbers are assigned only in MAPINFO's `DoomEdNums` block — the only method
 available to a ZScript class.
@@ -1530,6 +1538,19 @@ are not part of the bestiary's 47 (`gen_sfx.py`'s cards): `BESTIARY.md`
 | `sd/mon/colossus/step`, `…/stomp`, `…/flame` | `SDPZRSTP`, `SDRPEXP`, `SDRKFIR1` | `SDCOLSTP`, `SDCOLSTM`, `SDCOLFLM` |
 | `sd/mon/consortium/sight`, `…/active`, `…/pain`, `…/death` | the Panzermensch's `SDPZRSIT`, `SDPZRACT`, `SDPZRPA3`, IWAD `DSCYBDTH` | `SDCNSSIT`, `SDCNSACT`, `SDCNSPAI`, `SDCNSDTH` |
 | `sd/mon/consortium/call`, `…/breach`, `…/step`, `…/flame` | `SDGENSU1`, `SDPZRDTH`, `SDPZRSTP`, `SDRKFIR2` | `SDCNSCAL`, `SDCNSBRC`, `SDCNSSTP`, `SDCNSFLM` |
+
+**V3 sounds (2026-10-23): the RGD-5** (ADR 012), the same scheme: its own
+logical names over lumps the mod ships, the final lump after `->` in
+`SNDINFO`; `tests/test_rgd5.py` holds them to the code. Why each, and what
+`sound-designer` should record: `docs/engine/2026-10-23_V3_rgd5.md` §4.
+
+| Logical name | Plays today | Final lump |
+|---|---|---|
+| `sd/weapon/rgd5/pin` | `SDTTDRY` (the TT-33's hammer click) | `SDRGPIN` |
+| `sd/weapon/rgd5/throw` | `SDAXSWG` (the ice axe's swing) | `SDRGTHR` |
+| `sd/weapon/rgd5/bounce` | `SDAXWAL` (the pick on stone), `SD_Rgd5Grenade`'s `BounceSound` | `SDRGBNC` |
+| `sd/weapon/rgd5/explode` | `SDRPEXP` (the PG-7V's burst) with `$pitchset sd/weapon/rgd5/explode 1.2` (**NOT VERIFIED**) | `SDRGEXP` (the `$pitchset` line goes with it) |
+| `sd/weapon/rgd5/pickup` | `SDTTPKP2` (the TT-33 out of its holster) | `SDRGPKP` |
 
 The bosses' projectiles inherit their parents' sounds (the RPG-7's, the
 General's shell's, none for the flame). The design docs proposed
@@ -2379,6 +2400,9 @@ lump starts with `SD`).
 | `SD_Consortium` | `SDCN` | 95 | Q R rooted, A–D walk, E–H, S the Breach, I–O death | `SDPS`, ×1.75, tinted cobalt |
 | `SD_Akm` | `SDAK` A–B held, `SDAF` A flash, `SDAQ` A pickup | 4 | the PPSh-41's | `SDPP`, `SDPF`, `SDPQ` (the pickup tinted) |
 | `SD_AkmAmmo` | `SDAM` A | 1 | one curved magazine | `SDCL`, tinted |
+| `SD_Rgd5` (V3) | `SDRG` A–D held, `SDRQ` A the pouch | 5 | A ready, B the pin out and the arm back, C the release, D the follow-through | the ice axe's `SDAX` A–D; `SDHB` (borrowed from `SD_HealthBonus`) A tinted, ×1.4 |
+| `SD_Rgd5Ammo`, `SD_Rgd5Box` (V3) | `SDRJ` A one grenade (and the icon), `SDRZ` A the crate | 2 | | `SDHB` (borrowed from `SD_HealthBonus`) A, `SDRB` A, tinted gunmetal |
+| `SD_Rgd5Grenade` (V3) | `SDRN` A in flight and at rest | 1 | the burst stays `SDPX` A–C | `SDHB` (borrowed from `SD_HealthBonus`) A, tinted |
 
 ### 6.4 Ammunition (contract with `art-director` and `level-designer`)
 
@@ -2386,7 +2410,10 @@ The seven weapons of D13 use the **four Doom pools**, exactly the four they
 need. **One pool is ours since D116: `SD_AkmAmmo`, the AKM's 7.62×39**
 (`docs/engine/adr/011-akm-ammo-pool.md`): a new weapon gets a pool of its
 own only when it fires another cartridge and sharing would retire a
-weapon, and the reason goes in an ADR. What else the mod owns is the nine
+weapon, and the reason goes in an ADR. **A second since V3: `SD_Rgd5Ammo`,
+the RGD-5's grenades** (`docs/engine/adr/012-rgd5-hand-grenade.md`): ADR
+012 widens the rule to a weapon that fires no cartridge at all (a thrown
+weapon is its own ammunition). What else the mod owns is the nine
 pickup actors, declared in
 `zscript/sd/ammo.zs`, so that the player reads 1977 Soviet nomenclature
 instead of "bullets" and "shells" (CEO decision, 2026-10-13).
@@ -2399,13 +2426,15 @@ instead of "bullets" and "shells" (CEO decision, 2026-10-13).
 | `Cell` | `SD_Cell`, `SD_CellPack` | `Cell`, `CellPack` | ROKS-3, hand Katyusha | `AMMO_CELLS` — fuel / «Горючее» |
 | — | `SD_Backpack` | `Backpack` | — | pickup line `SD_GOT_BACKPACK`; the RD-54's sprite since D80 (§6.3) |
 | `SD_AkmAmmo` (ours, D116) | `SD_AkmAmmo`, both pool and magazine | nothing | AKM | `SD_AMMO_AKM` — 7.62x39 rounds / «Патроны 7,62×39»; pickup `SD_GOT_AKMMAG`; editor number **21020**; 30 a magazine, 150 maximum, the backpack's 30 / 300 |
+| `SD_Rgd5Ammo` (ours, V3) | `SD_Rgd5Ammo` (one grenade, 21021), `SD_Rgd5Box` (four, 21022), in `zscript/weapons/rgd5_ammo.zs` | nothing | RGD-5 | `SD_AMMO_RGD5` — RGD-5 grenades / «Гранаты РГД-5»; pickups `SD_GOT_RGD5`, `SD_GOT_RGD5BOX`; the weapon (21009) gives 2; 6 maximum, the backpack 0 / 12; a loose grenade gives the weapon too |
 
 Rules that matter to the other roles:
 
 - **Maps keep using the Doom editor numbers** (2007/2048 clip, 2008/2049
   shell, 2010/2046 rocket, 2047/17 cell, 8 backpack). `replaces` does the
   rest; those classes get no editor number of their own. The AKM's
-  magazine has no Doom counterpart, so it is placed by **21020**.
+  magazine has no Doom counterpart, so it is placed by **21020**; the RGD-5's
+grenades by **21021** and **21022**.
 - Each class subclasses the Doom pickup it replaces. That is what keeps the
   pool Doom's: `GetParentAmmo()` walks up to the first child of `Ammo`.
   **Never** re-parent one of these to `Ammo` directly — it would silently
@@ -2886,6 +2915,9 @@ only; **no new PNG enters `assets/`** for them.
 | `SD_Consortium` (and the `SD_ConsortiumWounded` fixture) | `zscript/monsters/consortium.zs` | the heavy Panzermensch's `SDPS` | `Scale 1.75`, `Translation` to the portal's cobalt | `SDCN` |
 | `SD_Akm` | `zscript/weapons/akm.zs` | the PPSh-41's `SDPP` A–B, `SDPF` A, `SDPQ` A | the floor pickup's `Translation` (plum-orange); **in hand it is the PPSh-41's picture** (a first-person sprite has its own `PSprite.Translation`, so the actor's is not expected to reach it: NOT VERIFIED). The ammunition count and the rhythm tell them apart | `SDAK`, `SDAF`, `SDAQ` |
 | `SD_AkmAmmo` | `zscript/sd/ammo.zs` | the 7.62×25 magazine's `SDCL` A; icon `SDCLA0` | `Translation` (plum-orange) on the floor | `SDAM` |
+| `SD_Rgd5` (V3) | `zscript/weapons/rgd5.zs` | the ice axe's `SDAX` A–D in hand, the health bonus's `SDHB` (borrowed from `SD_HealthBonus`) A on the floor | the floor pouch's `Translation` (gunmetal) and `Scale 1.4`; **in hand it is the ice axe's picture**; the key 8 and the AMMO count tell them apart | `SDRG`, `SDRQ` |
+| `SD_Rgd5Ammo`, `SD_Rgd5Box` (V3) | `zscript/weapons/rgd5_ammo.zs` | `SDHB` (borrowed from `SD_HealthBonus`) A, the PG-7V crate's `SDRB` A; icon `SDHBA0` | `Translation` (gunmetal), inherited by the crate | `SDRJ`, `SDRZ` (the icon by hand) |
+| `SD_Rgd5Grenade` (V3) | `zscript/weapons/rgd5_grenade.zs` | `SDHB` (borrowed from `SD_HealthBonus`) A; the burst `SDPX` | `Translation` (gunmetal) | `SDRN` |
 
 **The rule.** Every line of code that exists only because the art is not
 drawn carries the comment mark `PROVISIONAL-D116`: the `Translation`, the
@@ -2984,7 +3016,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | ~~T19~~ | ~~Nothing has been seen in the engine: the eight classes compile only in theory until the PM's batch run (D26).~~ **Paid 2026-10-13** by the PM's engine pass (GZDoom 4.14.2, Freedoom 0.13.0): the classes load with no error, the gallery shows all eight, the drops and the General's single summon were counted, and MAP01 v3's 33 enemies spawn through Doom's numbers. Evidence `docs/qa/evidence/2026-10-13_1705_F5_map02-bestiary.log` and `…-gallery.png` (commit `2b1aba5`), `docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass.log` (commit `bcbf35f`); the table is in ADR 006. What that pass did **not** settle is debt T22. |  |
 | ~~T20~~ | ~~ADR 006 is owed.~~ **Paid 2026-10-13**: `docs/engine/adr/006-bestiary-actors.md` (seven decisions, what the engine showed, what it did not). Written in the working tree; the commit is the PM's (D6). |  |
 | T21 | Doom monsters with no Soviet replacement (58 spectre, the rest of Doom II's roster) still spawn Freedoom's actors. **Partly paid by D116 (2026-10-22):** the chaingunner (65) is `SD_LegionGunner` and the Spider Mastermind (7) `SD_LibertyColossus`; MAP01 §8's "Legion heavy gunner" exists now, and no map places it yet. | `level-designer`, where a map wants a gunner |
-| T26 | **The P4 actors wear provisional looks (D116, §6.12)**: the gunner, the colossus, the Consortium and the AKM on existing sprites, tinted and scaled in code, and on existing sounds under their own names (§6.2, "P4 sounds"); the AKM in hand is the PPSh-41's picture; status bar A has no row for the AKM's pool (ADR 011). None of it is seen in the engine (D26): the design docs' checks E1–E11 and A1–A9 are owed. | the PM's engine pass now; the art and sound swaps as Gemini's frames and `sound-designer`'s takes are approved |
+| T26 | **The P4 actors wear provisional looks (D116, §6.12)**: the gunner, the colossus, the Consortium and the AKM on existing sprites, tinted and scaled in code, and on existing sounds under their own names (§6.2, "P4 sounds"); the AKM in hand is the PPSh-41's picture; status bar A has no row for the AKM's pool (ADR 011). **V3 adds the RGD-5** (ADR 012): in hand the ice axe's picture, on the floor tinted `SDHB` (borrowed from `SD_HealthBonus`)/`SDRB`, reused sounds, no bar A row for its pool either. None of it is seen in the engine (D26): the design docs' checks E1–E11, A1–A9 and R1–R12 are owed. | the PM's engine pass now; the art and sound swaps as Gemini's frames and `sound-designer`'s takes are approved |
 | T17 | **The English `LANGUAGE` section still carries Latin transliterations** (`PG-7V`, `7.62x25`) although the glyphs for the Cyrillic forms D17 asks for exist since D24 (§6.4). Two ASCII tests pin the current state (`tests/test_language.py`, `tests/test_arsenal.py`). | `mod-engineer`, one text change plus an engine screenshot of the HUD |
 | T22 | **Bestiary behaviours the engine pass did not show** (ADR 006, "NOT VERIFIED"): infighting between our classes and the native `GetSpecies` rule behind the explicit `Species`; the colour of `BloodColor`; the General's order line on screen (the console log carries it); the recruits entering the chase and the blocked-spot fallback; the attack helpers' damage (both runs were god mode, deaf or `notarget`); how far a dead Doughboy falls; the sounds. | the PM's next engine pass, with enemies awake and one fighting another; `qa-engineer` for the sounds, with a human |
 | T23 | **The radio (§6.7) is unseen.** `SD_Radio` has not run in the engine (D26). ~~its editor number 21200 is not yet in `MAPINFO`~~ (`MAPINFO` gives 21200 to `SD_Radio` since; read 2026-10-14). ~~its placeholder `PMAP` A is the computer area map's pickup, which MAP01 also places (2026): a player may walk at the radio expecting a pickup.~~ **The sprite part is paid 2026-10-14 (D63):** `SDRD` A, an Okean-209 on a tabouret (§6.3, "The pickups, installed by D63"); `PMAP` is retired from §5.1. | the PM's engine pass (ADR 008 checklist), which now also sees `SDRD` A draw |
