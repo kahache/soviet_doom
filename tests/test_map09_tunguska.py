@@ -32,7 +32,12 @@ map's tests stay one file). The contract:
   skill's floor at every stage (the boss's servants in the bill), shells at
   most 35 % with the drops, each pool after its weapon and the newest
   leading, fuel sparing; the crater's own stock for the boss and inside the
-  band; health on skill 4.
+  band; health on skill 4;
+* V3's pickup events (D120's A2 and A3; tests/_pickup_events_e3.py): the
+  blue key opens the laboratory's quarantine room, the yellow key brings the
+  works' cargo lift down, the red key opens the works' closets (v1's, now
+  with lamps); each hidden until it fires, warned by a flickering lamp,
+  never needed, never a trap.
 
 Run:  python3 -m unittest tests.test_map09_tunguska -v
 """
@@ -53,6 +58,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "tests"))
 
 # Imported as a module, not by name, so its TestCases are not collected twice.
 import test_udmf as udmf_tests  # noqa: E402
+import _pickup_events_e3 as pickup_events  # noqa: E402
 
 parse_textmap = udmf_tests.parse_textmap
 MAX_STEP_UP = udmf_tests.MAX_STEP_UP       # 24
@@ -188,7 +194,7 @@ def _class_facts(name: str) -> dict:
     return facts
 
 
-class Map09Test(unittest.TestCase):
+class Map09Test(pickup_events.PickupEventChecks, unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -203,8 +209,9 @@ class Map09Test(unittest.TestCase):
         cls.zone_of = {i: name for name, i in cls.plan.items()}
         cls.start = cls.plan["z1_platform"]
         cls.doors = defaultdict(set)
+        movers = pickup_events.floor_movers(cls.m)   # a sinking wall is shut like a door, but sinks
         for i, s in enumerate(cls.sectors):
-            if s.get("id") and s["heightceiling"] == s["heightfloor"]:
+            if s.get("id") and s["heightceiling"] == s["heightfloor"] and s["id"] not in movers:
                 cls.doors[s["id"]].add(i)
         cls.door_sectors = set().union(*cls.doors.values())
         cls.neighbours = defaultdict(set)
@@ -228,6 +235,7 @@ class Map09Test(unittest.TestCase):
             cls.hit_points[ednum] = facts["HEALTH"]
             cls.faction[ednum] = facts["FACTION"]
         cls.rounds = cls().progression_of(kills=True)   # a bare instance: the model asserts nothing
+        cls.every_tag = set().union(*(r[0] for r in cls.rounds))
 
     # --- helpers ----------------------------------------------------------
     @classmethod
@@ -260,7 +268,7 @@ class Map09Test(unittest.TestCase):
                 ceiling = (min(self.sectors[n]["heightceiling"] for n in self.neighbours[i])
                            - DOOR_OPENS_BELOW_CEILING)
             out.append((s["heightfloor"], ceiling))
-        return out
+        return pickup_events.apply_moves(out, self.sectors, self.neighbours, self.plan, self.m, open_tags)
 
     def adjacency(self, open_tags):
         h = self.heights(open_tags)
@@ -306,9 +314,11 @@ class Map09Test(unittest.TestCase):
         return {self.m.KEY_LOCKS[t["type"]]: self.sector_at(t["x"], t["y"]) for t in self.key_things()}
 
     def thing_specials(self, numbers):
-        """[(tag, sector)] for every thing of `numbers` carrying Door_Open."""
+        """[(tag, sector)] for every thing of `numbers` carrying a special on a
+        tag (Door_Open; since V3 also Floor_LowerToLowest, the works' lift)."""
         return [(t["arg0"], self.sector_at(t["x"], t["y"])) for t in self.things
-                if t["type"] in numbers and t.get("special") == SPECIAL_DOOR_OPEN]
+                if t["type"] in numbers and t.get("special") in (SPECIAL_DOOR_OPEN,
+                                                                 pickup_events.SPECIAL_FLOOR_LOWER_TO_LOWEST)]
 
     def progression_of(self, kills=True):
         """Play the map as a player can (MAP03's model): free doors open
@@ -356,6 +366,9 @@ class Map09Test(unittest.TestCase):
         exits = [ld for ld in self.lines if ld.get("special") == SPECIAL_EXIT_NORMAL]
         self.assertEqual(1, len(exits))
         return exits[0]
+
+    def exit_sector(self):
+        return self.front(self.exit_line())
 
     def line_points(self, ld):
         a, b = self.verts[ld["v1"]], self.verts[ld["v2"]]
@@ -781,11 +794,12 @@ class Map09Test(unittest.TestCase):
         self.assertEqual({m.TAG_S1_PANEL, m.TAG_S2_PANEL}, set(o0), "the panels open whether found or not")
         self.assertEqual({m.LOCK_BLUE_CARD}, set(h0))
         self.assertFalse(self.named("z4_forest") & r0, "the forest is behind the blue gate")
-        self.assertEqual({m.TAG_BLUE_DOOR, m.TAG_S3_PANEL}, set(o1 - o0))
+        self.assertEqual({m.TAG_BLUE_DOOR, m.TAG_S3_PANEL, m.TAG_QUARANTINE}, set(o1 - o0),
+                         "V3: the blue key's quarantine room")
         self.assertEqual({m.LOCK_BLUE_CARD, m.LOCK_YELLOW_CARD}, set(h1))
         self.assertTrue(self.named("z4_forest", "z5_works", "z5_key_top") <= r1)
         self.assertFalse(self.named("z6_refinery") & r1)
-        self.assertEqual({m.TAG_YELLOW_DOOR}, set(o2 - o1))
+        self.assertEqual({m.TAG_YELLOW_DOOR, m.TAG_WORKS_LIFT}, set(o2 - o1), "V3: the yellow key's lift")
         self.assertEqual({m.LOCK_BLUE_CARD, m.LOCK_YELLOW_CARD, m.LOCK_RED_CARD}, set(h2))
         self.assertFalse(self.named("z7_rim", "closet_z5_w", "closet_z5_e") & r2)
         self.assertEqual({m.TAG_RED_DOOR, m.TAG_AMBUSH}, set(o3 - o2))
@@ -988,7 +1002,8 @@ class Map09Test(unittest.TestCase):
         for name in closets:
             door = self.plan[f"{name}_door"]
             self.assertEqual(m.TAG_AMBUSH, self.sectors[door]["id"])
-            self.assertIn(self.plan["z5_works"], self.neighbours[door])
+            # V3: the closet's lamp, a strip of the works, lies before it.
+            self.assertTrue(self.named("z5_works", f"z5_closet_{name[-1]}_lamp") & self.neighbours[door], name)
             self.assertTrue([t for t in self.on(2, self.monsters())
                              if self.sector_at(t["x"], t["y"]) == self.plan[name]], f"{name} empty on 2")
             self.assertEqual(3, self.round_of(self.plan[name]))
@@ -997,10 +1012,12 @@ class Map09Test(unittest.TestCase):
     def test_three_secrets_each_behind_a_push_panel_with_a_way_back(self):
         m = self.m
         special = {self.zone_of[i] for i, s in enumerate(self.sectors) if s.get("special")}
-        self.assertEqual(set(m.SECRET_ZONES), special)
+        lamps = {e.lamp for e in m.PICKUP_EVENTS} | {"z5_closet_e_lamp"}   # V3: the events' lamps
+        self.assertEqual(set(m.SECRET_ZONES) | lamps, special)
         for i, s in enumerate(self.sectors):
             if s.get("special"):
-                self.assertEqual(m.SECTOR_SPECIAL_SECRET, s["special"])
+                want = m.SECTOR_SPECIAL_LIGHT_FLICKER if self.zone_of[i] in lamps else m.SECTOR_SPECIAL_SECRET
+                self.assertEqual(want, s["special"], self.zone_of[i])
         panels = [ld for ld in self.lines if ld.get("special") == SPECIAL_DOOR_OPEN and "sideback" in ld]
         self.assertEqual(6, len(panels), "three panels, both faces")
         for ld in panels:
