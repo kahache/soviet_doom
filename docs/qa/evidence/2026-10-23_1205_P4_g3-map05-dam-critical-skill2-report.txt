@@ -1,0 +1,61 @@
+=== route dam-critical / MAP05 / skill 2 ===
+helper         : route-4
+god mode       : on
+monsters       : engine 31, map data 31
+bestiary (start): SD_ReichRifleman 12/12, SD_LegionTrooper 7/7, SD_Stormtrooper 3/3, SD_ReichHound 2/2, SD_Doughboy 2/2, SD_Panzermensch 3/3, SD_Izh 1/1, SD_LegionGunner 2/2, SD_AkmAmmo 11/11
+steps:
+  [ok ] A0   expect Z1           got Z1   z1_station @ (4704, 1664, 384) hp 100
+  [ok ] BG0  expect Z1           got Z1   z1_blue_portal @ (4256, 1920, 384) hp 100
+  [ok ] YD0  expect Z5           got Z5   z5_yellow_portal @ (2624, 864, 192) hp 100
+  [ok ] YKEY expect Z7           got Z7   z7_west_walk @ (786, 928, 16) hp 100
+  [ok ] YD1  expect Z6           got Z6   z6_control @ (2624, 1041, 192) hp 100
+  [ok ] SWA  expect Z6           got Z6   z6_control @ (2928, 1248, 192) hp 100
+  [ok ] BKEY expect Z9           got Z9   z9_substation @ (4098, 1280, 384) hp 100
+  [ok ] SWB  expect Z9           got Z9   z9_passage @ (4208, 1584, 384) hp 100
+  [ok ] BG1  expect Z10          got Z10  rails_z10_crest @ (4070, 1920, 384) hp 101
+  [ok ] E0   expect Z11          got Z11  z11_west_hall @ (448, 1920, 384) hp 101
+  [ok ] E1   expect -            got -  -- no position reported
+zones reached  : Z1 -> Z5 -> Z7 -> Z6 -> Z9 -> Z10 -> Z11
+doors:
+  [ok ] tag 3 at BG0: want shut: shut (3 sector(s): Z12:z12_blue_gate, Z1:closet_z1_e_door, Z1:closet_z1_s_door)
+  [ok ] tag 4 at YD0: want shut: shut (3 sector(s): YD:yellow_door, Z5:closet_z5_e_door, Z5:closet_z5_w_door)
+  [ok ] tag 4 at YKEY: want shut: shut (3 sector(s): YD:yellow_door, Z5:closet_z5_e_door, Z5:closet_z5_w_door)
+  [ok ] tag 3 at YKEY: want shut: shut (3 sector(s): Z12:z12_blue_gate, Z1:closet_z1_e_door, Z1:closet_z1_s_door)
+  [ok ] tag 4 at YD1: want open: open (3 sector(s): YD:yellow_door, Z5:closet_z5_e_door, Z5:closet_z5_w_door)
+  [ok ] tag 10 at SWA: want open: open (1 sector(s): SH:shutter_cable)
+  [ok ] tag 11 at SWA: want shut: shut (1 sector(s): SH:shutter_station)
+  [ok ] tag 3 at BKEY: want shut: shut (3 sector(s): Z12:z12_blue_gate, Z1:closet_z1_e_door, Z1:closet_z1_s_door)
+  [ok ] tag 11 at BKEY: want shut: shut (1 sector(s): SH:shutter_station)
+  [ok ] tag 11 at SWB: want open: open (1 sector(s): SH:shutter_station)
+  [ok ] tag 3 at BG1: want open: open (3 sector(s): Z12:z12_blue_gate, Z1:closet_z1_e_door, Z1:closet_z1_s_door)
+  [ok ] tag 2 at E0: want open: open (1 sector(s): D2:d2_west)
+  [ok ] press of special 13 arg0 3 at BG0: the player's press is in the log
+  [ok ] press of special 13 arg0 4 at YD0: the player's press is in the log
+  [ok ] press of special 13 arg0 4 at YD1: the player's press is in the log
+  [ok ] press of special 11 arg0 10 at SWA: the player's press is in the log
+  [ok ] press of special 11 arg0 11 at SWB: the player's press is in the log
+  [ok ] press of special 13 arg0 3 at BG1: the player's press is in the log
+  [ok ] press of special 12 arg0 2 at E0: the player's press is in the log
+  [ok ] walk-through at YD1: ended in Z6 (z6_control)
+  [ok ] walk-through at BG1: ended in Z10 (rails_z10_crest)
+  [ok ] walk-through at E0: ended in Z11 (z11_west_hall)
+inventory (by slot):
+  [ok ] A0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [none]
+  [ok ] BG0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [none]
+  [ok ] YD0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [none]
+  [ok ] YKEY: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [SD_YellowPass]
+  [ok ] BKEY: raised slot 6 (SD_Roks3), 40 rounds; owned [2:SD_Tokarev, 6:SD_Roks3]; keys [SD_BluePass, SD_YellowPass]
+secrets        : 0 of 3
+key messages   :
+  BG0: You need a blue pass to activate this object
+  YD0: You need a yellow pass to activate this object
+  YKEY: Yellow pass.
+  BKEY: Blue pass.
+exit           : REACHED (exit switch pressed: yes; level unloaded towards: MAP06; after it: NOT SEEN (the helper cannot ask once the level is gone; judge the END shot))
+blockers       : 2 killed by the route's sdclear (sdclear answered 5 time(s))
+  [ok ] YD1: SD_Stormtrooper at (2624, 1064), 60 hp, dead
+  [ok ] BKEY: SD_ReichRifleman at (4096, 1216), 20 hp, dead
+kills          : 2 of 31, of which 2 by the route's sdclear
+screenshots    : 12
+log failures   : none
+VERDICT        : PASS (2 blocker(s) killed by the route, listed above)
