@@ -75,7 +75,7 @@ class SD_StatusScreen : DoomStatusScreen
 	const SD_AWARD_SLOTS = 5;
 	bool sdEarned[SD_AWARD_SLOTS];
 
-	protected override void initShowNextLoc()
+	override void initShowNextLoc()
 	{
 		if (wbs.next == "" && SD_Awards.IsEpisodeEnd(Level.levelnum))
 		{
@@ -85,7 +85,7 @@ class SD_StatusScreen : DoomStatusScreen
 		Super.initShowNextLoc();
 	}
 
-	protected override void updateShowNextLoc()
+	override void updateShowNextLoc()
 	{
 		if (!sdAwardsPage)
 		{
@@ -120,7 +120,7 @@ class SD_StatusScreen : DoomStatusScreen
 		}
 	}
 
-	protected override void drawShowNextLoc()
+	override void drawShowNextLoc()
 	{
 		if (!sdAwardsPage)
 		{
