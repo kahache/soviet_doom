@@ -6,6 +6,22 @@ and D114). Before that: 2026-10-21 ~23:30 (night shift closed, D102/D103) and
 `docs/PRD.md`; open CEO items in `docs/PENDING-CEO-DECISIONS.md`; tasks and
 estimates in `docs/BACKLOG.md`; the phase view in `docs/ROADMAP.md` ("P4 today").
 
+## RESUME HERE FIRST (2026-10-23 ~12:45, PC shut down at the CEO's request)
+
+**main (V2), all pushed, 33/33 routes PASS on f1c350b** (fb4f3bd evidence) + D125 sounds smoke-clean on HEAD:
+D123 installed (Gemini gunner SDLG, TT-33, Liberty statue SDLC = MAP06 boss, `SD_ChromeGeneral` 21113 = MAP08
+mini-boss); D125 world/player sounds (51 takes; jump stays Freedoom's). D124 radio approved (V3). D126: epic title
+screen with Gemini before v1.2 (prompt in the pack §11). The CEO has nothing left to review.
+**v3 branch** (origin/v3, worktree `scratchpad/wt_v3`, 5a3e1d7): six V3 jobs merged (pickup events E1/E2/E3,
+ops map + medals D122, RGD-5 ADR 012, radio proposal) + the status-screen fix. Engine: 27/33; **2 routes fail on
+skills 2-4, both Episode 1**: g3-auto (MAP01: tags 12/13 of the weapon-pickup cupboards stay shut at A6/A9 — probably
+the route already holds the IZh/PPSh, so the pickup never fires; check the helper's `give` and rule R8) and
+metro-critical (MAP02: step PASS ends in z3_hall instead of Z8 after the window event). Hand to a level-designer with
+the reports in `wt_v3/docs/qa/evidence/2026-10-23_12*`. Then: integrate the radio (SD_Loudspeaker 21201) and place
+the RGD-5 in the maps on v3; MAP09 crater hook (ZScript) and MAP03 train stay candidates.
+**Next when the PC is on:** Gemini queue below (≈20 images), install the Consortium/AKM/walk re-asks, the title
+screen last, then the v1.2 sign-off and the CEO's final yes to publish.
+
 ## Gemini progress 2026-10-23 (cap hit at 10:38; next window 23 Oct 17:33)
 
 20 images today. Done: TT-33 A/B (but Gemini drew a generic modern pistol: re-ask with the TT-33 block in
