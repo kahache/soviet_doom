@@ -135,9 +135,14 @@ class DamRouteTest(unittest.TestCase):
         shut = {sid: dict(self.steps[sid].tags) for sid in ("BG0", "YD0", "YKEY", "SWA", "BKEY")}
         self.assertFalse(shut["BG0"][m.TAG_BLUE_GATE])
         self.assertFalse(shut["YD0"][m.TAG_YELLOW_DOOR])
-        self.assertEqual({m.TAG_YELLOW_DOOR: False, m.TAG_BLUE_GATE: False}, shut["YKEY"])
-        self.assertEqual({m.TAG_CABLE_SHUTTER: True, m.TAG_STATION_SHUTTER: False}, shut["SWA"])
-        self.assertEqual({m.TAG_BLUE_GATE: False, m.TAG_STATION_SHUTTER: False}, shut["BKEY"])
+        # V3: the pickups' tags, shut before their key and open after it.
+        self.assertFalse(shut["YD0"][m.TAG_SLUICE_BREACH])
+        self.assertEqual({m.TAG_YELLOW_DOOR: False, m.TAG_BLUE_GATE: False, m.TAG_SLUICE_BREACH: True},
+                         shut["YKEY"])
+        self.assertEqual({m.TAG_CABLE_SHUTTER: True, m.TAG_STATION_SHUTTER: False,
+                          m.TAG_SUBSTATION_STORE: False}, shut["SWA"])
+        self.assertEqual({m.TAG_BLUE_GATE: False, m.TAG_STATION_SHUTTER: False, m.TAG_SUBSTATION_STORE: True},
+                         shut["BKEY"])
         for sid, tag in (("YD1", m.TAG_YELLOW_DOOR), ("SWB", m.TAG_STATION_SHUTTER), ("BG1", m.TAG_BLUE_GATE)):
             self.assertEqual({tag: True}, dict(self.steps[sid].tags), sid)
 
