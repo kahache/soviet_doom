@@ -89,6 +89,7 @@ import base64
 import io
 import json
 import math
+import re
 import struct
 import sys
 import zipfile
@@ -183,6 +184,10 @@ PATCH_RGB = (226, 220, 206)   # the plain field painted over it (the proposal's 
 PANZER_FIELD_MAX = 20   # source px: the «E» (~13) and the back emblem's field (~17); a glow is bigger
 SHADE_KEEP = 190        # a pixel this bright in some channel is a glow: the plate's shade spares it
 PLATE_SHADE = 0.55      # the Schwer's black plate (D65): every colour but red and white x this
+NEW_TOL = 80            # `guide`: a pixel this far (max channel) from every guide pixel within 1 px is new paint
+FLASH_MIN = 40          # `guide`: new paint with fewer flash-coloured px than this is not a muzzle flash
+ALIGN_R = 3             # `guide`: px searched each way to register the guide sheet on this one
+FLASH_GLOW = 8          # `guide`: px round a flash where a neighbour's body is repainted from the guide (the glow Gemini cast on it)
 
 
 # ------------------------------------------------------------------ specs
@@ -202,6 +207,9 @@ class Sheet:
     split_x: tuple = ()              # (sheet column, "fire"|"smoke"|""): where figures bridged by a flash or smoke are cut
     rel_scale: float = 1.0           # with scale_ref None: the sheet drawn this much smaller than turn
     patch: tuple = ()                # (view, (x0, y0, x1, y1) source px of the figure's crop): painted a plain field
+    guide: str = ""                  # D119: the sheet Gemini painted this one over (the gunner's fire over turn): split by its figures
+    flash: tuple = ()                # with `guide`: (x0, x1, view): a muzzle flash centred in sheet columns x0..x1 goes to that figure
+    path: tuple = ()                 # ((x, y), ...) left to right: a merged pair is cut along it, the lower figure under it
 
 
 @dataclass(frozen=True)
@@ -671,6 +679,177 @@ GENERAL = EnemySpec(
 ENEMIES = {"rifleman": RIFLEMAN, "legion": LEGION, "storm": STORM, "hound": HOUND, "doughboy": DOUGHBOY,
            "panzer": PANZER, "panzer_heavy": PANZER_HEAVY, "general": GENERAL}
 
+# ------------------------------------------- D119: the Legion gunner (SDLG)
+# A new set, not a redraw: SD_LegionGunner wears the trooper's SDLT tinted
+# brass today (PROVISIONAL-D116); SDLG is the final sprite (design doc
+# 2026-10-22_P4_ep2-enemies.md section 4: the trooper's 70 lumps and letters).
+# Kept out of ENEMIES (the installed seven, `all`) until the CEO approves it.
+GUNNER_HEIGHT = LEGION_HEIGHT   # "the trooper's, ~56 units tall": the two Legion infantrymen stand as tall
+SIDES_RIGHT = ("front", "right", "right", "right", "back")   # Gemini's turntable: 3/4, profile, 3/4 back all face right
+# fire is turn plus flashes (registered 1 px off): the 3/4 front's flash lies over the profile's thigh,
+# the profile's touches the 3/4 back, the back view's (its muzzle on his right, image left) the 3/4 back
+GUNNER_FLASH = ((440, 580, 1), (580, 720, 2), (720, 840, 4))
+# death_v2: the falling man's boots (frame 3) stand on the corpse's (frame 5); under this line is the corpse
+GUNNER_DEATH_PATH = ((540, 507), (628, 507), (634, 499), (722, 497), (726, 440), (1023, 440))
+GUNNER_DEATH_PICK = (0, 1, 2, 4, 3)   # left to right by mean column the corpse comes before the sitting man
+
+GUNNER = EnemySpec(
+    name="gunner", sprite="SDLG", folder="legion_gunner", target_height=GUNNER_HEIGHT, armband="none",
+    sheets={   # one 1024 x 572 canvas and scale for all six: no helmet normalisation
+        "turn": Sheet("gem_gunner_turn.png", 5, SIDES_RIGHT, None),
+        "walkL": Sheet("gem_gunner_walkL.png", 5, SIDES_RIGHT, None),
+        "walkR": Sheet("gem_gunner_walkR.png", 5, SIDES_RIGHT, None),
+        "aim": Sheet("gem_gunner_aim_v3.png", 5, SIDES_RIGHT, None),        # v3: the front aims at the camera (D119)
+        "fire": Sheet("gem_gunner_fire.png", 5, SIDES_RIGHT, None, guide="turn", flash=GUNNER_FLASH),
+        "death": Sheet("gem_gunner_death_v2.png", 5, (), None, pick=GUNNER_DEATH_PICK, path=GUNNER_DEATH_PATH),
+    },
+    rotated={
+        "A": Rotated("walkL"), "B": Rotated("turn"), "C": Rotated("walkR"), "D": Rotated("turn"),
+        "E": Rotated("aim"), "F": Rotated("fire"),
+        "G": Rotated("turn", tilt=PAIN_TILT, override=((1, Src("death", 0)),)),
+    },
+    single={
+        "H": Src("death", 0), "I": Src("death", 1), "J": Src("death", 2), "K": Src("death", 3),
+        "L": Src("death", 4),
+        "M": Src("death", 0, blood=1), "N": Src("death", 1, blood=1), "O": Src("death", 1, blood=2),
+        "P": Src("death", 2, blood=2), "Q": Src("death", 2, blood=3), "R": Src("death", 3, blood=3),
+        "S": Src("death", 4, blood=4), "T": Src("death", 4, blood=5), "U": Src("death", 4, blood=6),
+    },
+    derived=(
+        "B y D: la vista de pie (turn); A = walkL, C = walkR. OJO: walkL y walkR son casi la misma imagen "
+        "(difieren en un 0,5 % de los píxeles) y solo la vista de frente levanta un pie; 3/4, perfil y espalda "
+        "son la vista de pie: el ciclo de andar apenas se mueve (ver la lista)",
+        "E (apuntar): gem_gunner_aim_v3, de frente apunta a la cámara (D119); en las otras vistas lleva la "
+        "ametralladora a la cadera, como en turn",
+        "F (disparar): de frente el fogonazo sale hacia la cámara, delante del pecho (D119: frontal, no lateral). "
+        "La hoja fire es turn con los fogonazos pintados encima y cuatro figuras se tocan por ellos; se separan "
+        "con turn como guía (cada píxel a la figura de turn de la que crece) y cada fogonazo va entero a la figura "
+        "que dispara; donde el fogonazo de una tapa el cuerpo de la vecina, esta se repinta con turn. "
+        "La 3/4 de espalda (F4, F6) no tiene fogonazo: Gemini no lo dibujó (el cañón queda tapado)",
+        "G2-G8 (dolor): la vista de pie inclinada 9 grados; G1 = el dolor de Gemini (death, figura 1)",
+        "H-L (muerte): las 5 figuras de death_v2 (golpe con el arma, brazos abiertos, cae de espaldas con el arma "
+        "volando, sentado con el arma en el suelo, tumbado). Las botas de la 3 pisan las del tumbado: se cortan "
+        "por una línea a mano (Sheet.path), las botas horizontales para el tumbado",
+        "M-U (reventón, XDeath): sin hoja de Gemini; los frames de muerte con sangre procedural (chorro y charco)",
+        "rotaciones 6-8: las 4-2 en espejo; la bandera pasa al otro hombro en 2-4 (Gemini dibujó 3/4, perfil y 3/4 "
+        "de espalda mirando a la derecha), como en el soldado de la Legión",
+        "insignias: solo la bandera de EEUU del hombro (armband='none': no se toca); ninguna esvástica",
+    ),
+    anims=(
+        ("andar (See: A A B B C C D D, 3 tics)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
+        ("ráfaga (Missile: E 10, F 3 E 2 x5, pausa E 20)",
+         (("E", 10),) + (("F", 3), ("E", 2)) * 5 + (("E", 20), ("B", 12)), True),
+        ("dolor (Pain: G 3, G 3)", (("B", 20), ("G", 6), ("B", 14)), True),
+        ("morir (Death: H I J K 5, L)", (("H", 5), ("I", 5), ("J", 5), ("K", 5), ("L", 45)), True),
+        ("reventar (XDeath: M-T 5, U)", tuple((c, 5) for c in "MNOPQRST") + (("U", 45),), True),
+    ),
+    reask=(
+        ("gem_gunner_walkL.png, gem_gunner_walkR.png", "Same Liberty Legion gunner, same style, scale and "
+         "magenta background, 5 views (front, 3/4 front, profile, 3/4 back, back) mid-stride: in walkL the LEFT "
+         "leg forward, in walkR the RIGHT leg forward, in EVERY view (the side views must show the stride, "
+         "not the standing pose); M1919 at the hip, belt over the shoulder"),
+        ("gem_gunner_fire.png (view 4)", "Optional: the 3/4 back view with the muzzle flash visible past his "
+         "right hip; and 40 px of background between figures so the flashes do not touch the next figure"),
+    ),
+)
+
+# Built and previewed, not installed: the CEO sees them first (D119).
+PENDING = {"gunner": GUNNER}
+
+# ------------------------------------- D119: the Liberty Colossus (SDLC)
+# A new set, not a redraw: SD_LibertyColossus wears the General's SDGN x1.3
+# tinted chrome today (PROVISIONAL-D116); SDLC is the final sprite (design doc
+# 2026-10-22_P4_ep2-enemies.md section 4: the General's 81 lumps and letters).
+# Gemini drew him from a prompt, no reference. aim and fire are read from
+# the *_sep sheets tools/art/colossus_gemini.py writes (views 3-4-5 parted by
+# hand masks); build him with `python tools/art/colossus_gemini.py all`.
+COLOSSUS_HEIGHT = 128   # boss scale: ~120-130 px (design doc 4), torch raised included; the General is 96
+COLOSSUS_BIG = 540 / 403    # walk, aim, fire, death are drawn larger than turn (front view 540 rows vs 403)
+COLOSSUS_STOMP_SCALE = 0.5 * COLOSSUS_BIG   # the 2-row stomp sheet: half the walk sheet's size (crown-to-foot 263 vs 516)
+COLOSSUS_SWAY = 3.0     # degrees: the walk's derived rock from foot to foot (Gemini's two strides are one pose)
+COLOSSUS_PAIN_TILT = 6.0     # a statue flinches less than a man (PAIN_TILT 9)
+COLOSSUS_TOPPLE = 20.0  # degrees: M, the toppling frame pushed further over
+COLOSSUS_STAGGER = 8.0  # degrees: K, the crumbling frame leaning
+COLOSSUS_DEATH_PICK = (0, 1, 2, 4, 3)   # by mean column the corpse (under) comes before the falling body
+
+
+def _stomp(pick: tuple[int, ...]) -> Sheet:
+    return Sheet("gem_colossus_stomp.png", 10, SIDES_RIGHT, None, rows=2, pick=pick,
+                 rel_scale=COLOSSUS_STOMP_SCALE)
+
+
+COLOSSUS = EnemySpec(
+    name="colossus", sprite="SDLC", folder="colossus", target_height=COLOSSUS_HEIGHT, armband="none",
+    sheets={   # turn (1024 x 434) sets the scale; the 1024 x 572 sheets x 403/540, the stomp's at half that
+        "turn": Sheet("gem_colossus_turn.png", 5, SIDES_RIGHT, None),
+        "walkL": Sheet("gem_colossus_walkL.png", 5, SIDES_RIGHT, None, rel_scale=COLOSSUS_BIG),
+        "walkR": Sheet("gem_colossus_walkR.png", 5, SIDES_RIGHT, None, rel_scale=COLOSSUS_BIG),
+        "aim": Sheet("gem_colossus_aim_sep.png", 5, SIDES_RIGHT, None, rel_scale=COLOSSUS_BIG),   # = aim_v2
+        "fire": Sheet("gem_colossus_fire_sep.png", 5, SIDES_RIGHT, None, rel_scale=COLOSSUS_BIG),
+        "stompQ": _stomp((0, 1, 2, 3, 4)),          # top row: the foot raised
+        "stompR": _stomp((5, 6, 7, 8, 9)),          # bottom row: the foot down, the dust ring
+        "death": Sheet("gem_colossus_death.png", 5, (), None, pick=COLOSSUS_DEATH_PICK, rel_scale=COLOSSUS_BIG),
+    },
+    rotated={
+        "A": Rotated("walkL", tilt=COLOSSUS_SWAY), "B": Rotated("turn"),
+        "C": Rotated("walkR", tilt=-COLOSSUS_SWAY), "D": Rotated("turn"),
+        "E": Rotated("aim"), "F": Rotated("fire"),
+        "G": Rotated("turn", tilt=COLOSSUS_PAIN_TILT, override=((1, Src("death", 0)),)),
+        "Q": Rotated("stompQ"), "R": Rotated("stompR"),
+    },
+    single={
+        "H": Src("death", 0), "I": Src("death", 1), "J": Src("death", 2),
+        "K": Src("death", 2, tilt=COLOSSUS_STAGGER), "L": Src("death", 3),
+        "M": Src("death", 3, tilt=COLOSSUS_TOPPLE), "N": Src("death", 4), "O": Src("death", 4),
+        "P": Src("death", 4),
+    },
+    derived=(
+        "B y D: la vista de pie (turn, rescatada del chat; dibujada más pequeña que las demás hojas: estas se escalan x403/540). OJO: walkL y walkR son casi la misma imagen (difieren en un 0,3 % de los píxeles): Gemini no dio zancadas. A = walkL inclinada 3 grados, C = walkR inclinada -3 grados: se balancea de un pie a otro, pesado, como una estatua (ver la lista)",
+        "E (apuntar) y F (disparar): en aim y fire la vista 3 (perfil) tapa con el brazo, la antorcha y la llama "
+        "los hombros de la 4 (3/4 de espalda), y la antorcha de la 4 toca la tabla de la 5. Se separan a mano "
+        "(tools/art/colossus_gemini.py: cada píxel a la figura de walkL de la que crece, y polígonos medidos a x4 "
+        "donde la guía no llega); lo que el brazo tapaba de la 4 se repinta con walkL (aim) o con el aim ya "
+        "separado (fire)",
+        "E1/F1, de frente: la antorcha apunta a la cámara (D119); F1 = el estallido delante de la antorcha",
+        "F: los dos cohetes en vuelo de la hoja fire (3/4 de frente y perfil) se quitan: el cohete es su propio "
+        "actor (SD_ColossusRocket, el PG-7 del RPG-7), como el proyectil del Panzermensch. En el perfil queda el "
+        "chorro de llama, cerrado en punta donde estaba la cola del cohete; así F sirve para los dos verbos "
+        "(cohetes y chorro)",
+        "G (dolor): G1 = el primer fotograma de muerte (se agrieta, saltan esquirlas); G2-G8 la vista de pie (turn) "
+        "inclinada 6 grados (una estatua se dobla menos que un hombre)",
+        "Q y R (pisotón): la hoja stomp de 2 filas, arriba Q (el pie arriba), abajo R (el pie en el suelo con el "
+        "anillo de polvo y grietas); está dibujada a la mitad de tamaño: se escala x2",
+        "H-P (muerte, 9 fotogramas de la clase, 5 de Gemini): H = se agrieta (esquirlas), I = suelta la antorcha, "
+        "J = se desmorona (la tabla se parte), K = el mismo inclinado 8 grados, L = cae (en el aire, apoyado en "
+        "los pies), M = el mismo 20 grados más tumbado, N O P = el cuerpo en el suelo humeando, con la antorcha "
+        "y la tabla",
+        "rotaciones 6-8: las 4-2 en espejo; la bandera pasa al otro hombro en 2-4 (Gemini dibujó 3/4, perfil y "
+        "3/4 de espalda mirando a la derecha), como en el soldado de la Legión",
+        "insignias: solo la bandera de EEUU del hombro (armband='none': no se toca); la tabla, en blanco "
+        "(Gemini no le puso texto en ninguna hoja)",
+    ),
+    anims=(
+        ("andar (See: A 3, A B B C C D D 3)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
+        ("cohetes (Rockets: E 10, F 8 E 6 x3, E 16)",
+         (("E", 10), ("F", 8), ("E", 6), ("F", 8), ("E", 6), ("F", 8), ("E", 16), ("B", 12)), True),
+        ("chorro de fuego (Flame: E 10, F 3 x5, E 12)", (("E", 10),) + (("F", 3),) * 5 + (("E", 12), ("B", 12)), True),
+        ("pisotón (Stomp: Q 14, R 6, R 14)", (("Q", 14), ("R", 20), ("B", 14)), True),
+        ("dolor (Pain: G 10)", (("B", 20), ("G", 10), ("B", 14)), True),
+        ("morir (Death: H-O 10, P)", tuple((c, 10) for c in "HIJKLMNO") + (("P", 45),), True),
+    ),
+    reask=(
+        ("gem_colossus_walkL.png, gem_colossus_walkR.png", "Same colossus, same style, scale and background, 5 "
+         "views mid-stride: in walkL the LEFT leg forward, in walkR the RIGHT leg forward, in EVERY view (the "
+         "side and back views must show the stride, the robe swinging), torch raised"),
+        ("gem_colossus_aim.png, gem_colossus_fire.png", "Optional: the same 5 views with 80 px of background "
+         "between figures (the profile's levelled torch and flame must not reach the next figure), and the "
+         "front view's torch held a little closer to the body so the burst is not cut by the left edge"),
+        ("gem_colossus_jet.png", "Optional (frame S of the design doc): the 5 views spraying a long jet of "
+         "flame from the torch instead of a rocket, so the fire jet and the rocket salvo look different"),
+    ),
+)
+PENDING["colossus"] = COLOSSUS
+
 
 # ------------------------------------------------------------- palette
 def palette_rgb() -> np.ndarray:
@@ -838,8 +1017,24 @@ def _drop_crumbs(mask: np.ndarray) -> np.ndarray:
     return np.isin(lab, keep[keep > 0])
 
 
-def figures(fg: np.ndarray, count: int, split_x: tuple = (), rgb: np.ndarray | None = None) -> list[np.ndarray]:
-    """The `count` figures of a sheet, left to right, each a bool mask with its satellites."""
+def path_below(shape: tuple[int, int], path: tuple) -> np.ndarray:
+    """The pixels on or under a polyline ((x, y), ...) drawn left to right,
+    within its first and last columns (nothing outside them is under it)."""
+    h, w = shape
+    xs = np.array([p[0] for p in path], np.float64)
+    ys = np.array([p[1] for p in path], np.float64)
+    cols = np.arange(w)
+    cut = np.interp(cols, xs, ys)
+    inside = (cols >= xs[0]) & (cols <= xs[-1])
+    return (np.arange(h)[:, None] >= cut[None, :]) & inside[None, :]
+
+
+def figures(fg: np.ndarray, count: int, split_x: tuple = (), rgb: np.ndarray | None = None,
+            path: tuple = ()) -> list[np.ndarray]:
+    """The `count` figures of a sheet, left to right, each a bool mask with its satellites.
+    With a `path` (Sheet.path), a merged pair is cut along it instead of at a
+    column: what lies under the path is the lower figure (the gunner's corpse
+    under the falling man's boots)."""
     lab, n = label(fg)
     areas = np.bincount(lab.ravel(), minlength=n + 1)
     areas[0] = 0
@@ -849,7 +1044,15 @@ def figures(fg: np.ndarray, count: int, split_x: tuple = (), rgb: np.ndarray | N
         raise ValueError("no figure on the sheet")
     big = [c for c in comps if c.sum() >= FIGURE_FRAC * comps[0].sum()]
     rest = [c for c in comps if c.sum() < FIGURE_FRAC * comps[0].sum()]
+    below = path_below(fg.shape, path) if path else None
     while len(big) < count:            # two figures merged (touching flashes)
+        if below is not None:          # the piece the path crosses: the most on its lesser side
+            k = max(range(len(big)), key=lambda i: min(int((big[i] & below).sum()), int((big[i] & ~below).sum())))
+            m = big.pop(k)
+            if not (m & below).any() or not (m & ~below).any():
+                raise ValueError("the split path crosses no merged figure")
+            big += [m & ~below, m & below]
+            continue
         spans = [np.flatnonzero(c.any(axis=0)) for c in big]
         # a piece a fixed cut applies to goes first (its emptiest column may be a flash), then the widest
         widest = max(range(len(big)), key=lambda i: (_fixed_cut(spans[i], split_x) is not None, np.ptp(spans[i])))
@@ -875,6 +1078,99 @@ def figures(fg: np.ndarray, count: int, split_x: tuple = (), rgb: np.ndarray | N
         pending = left
     big.sort(key=lambda c: float(np.flatnonzero(c.any(axis=0)).mean()))
     return big
+
+
+def shifted(a: np.ndarray, dy: int, dx: int, fill=0) -> np.ndarray:
+    """`a` moved dy rows down and dx columns right, `fill` where nothing comes in."""
+    out = np.full_like(a, fill)
+    h, w = a.shape[:2]
+    src_y, dst_y = (slice(0, h - dy), slice(dy, h)) if dy >= 0 else (slice(-dy, h), slice(0, h + dy))
+    src_x, dst_x = (slice(0, w - dx), slice(dx, w)) if dx >= 0 else (slice(-dx, w), slice(0, w + dx))
+    out[dst_y, dst_x] = a[src_y, src_x]
+    return out
+
+
+def align_guide(rgb: np.ndarray, guide_rgb: np.ndarray, mask: np.ndarray, r: int = ALIGN_R) -> tuple[int, int]:
+    """(dy, dx) that moves the guide sheet onto this one: the least mean
+    colour difference over `mask` (Gemini redraws a sheet a pixel off)."""
+    a = rgb.astype(np.int32)
+    best = None
+    for dy in range(-r, r + 1):
+        for dx in range(-r, r + 1):
+            d = float(np.abs(a - shifted(guide_rgb, dy, dx).astype(np.int32))[mask].mean())
+            if best is None or d < best[0]:
+                best = (d, dy, dx)
+    return best[1], best[2]
+
+
+def new_paint(rgb: np.ndarray, guide_rgb: np.ndarray, fg: np.ndarray, tol: float = NEW_TOL) -> np.ndarray:
+    """Foreground pixels whose colour no guide pixel within 1 px has: what
+    Gemini added (a flash), not a contour a sub-pixel off."""
+    a = rgb.astype(np.int32)
+    best = np.full(fg.shape, 10 ** 6, np.int32)
+    for dy in (-1, 0, 1):
+        for dx in (-1, 0, 1):
+            g = shifted(guide_rgb, dy, dx).astype(np.int32)
+            best = np.minimum(best, np.abs(a - g).max(axis=-1))
+    return fg & (best > tol)
+
+
+def guided_figures(fg: np.ndarray, rgb: np.ndarray, guide_rgb: np.ndarray, guide_masks: list[np.ndarray],
+                   flash: tuple = ()) -> tuple[list[np.ndarray], list[np.ndarray], np.ndarray]:
+    """The figures of a sheet Gemini painted over another of the same set
+    (D119: the gunner's fire sheet is his turn sheet plus muzzle flashes,
+    which bridge four figures whose extents overlap, so no column cuts
+    them). Every pixel goes to the guide figure it grows from (8-connected,
+    through the foreground); a flash (new paint holding FLASH_MIN flash
+    pixels) centred in the columns of a `flash` entry goes whole to its
+    figure. Returns (masks, heals, guide_rgb registered): `heals[k]` are the
+    pixels of guide figure k that a neighbour's flash covers, repainted
+    from the guide so the body has no hole."""
+    union = np.zeros_like(fg)
+    for g in guide_masks:
+        union |= g
+    dy, dx = align_guide(rgb, guide_rgb, union & fg)
+    g_rgb = shifted(guide_rgb, dy, dx)
+    gm = [shifted(g, dy, dx, False) for g in guide_masks]
+    own = np.full(fg.shape, -1, np.int32)
+    for k, g in enumerate(gm):
+        own[g & fg & (own < 0)] = k
+    free = fg & (own < 0)
+    while free.any():
+        grew = False
+        for k in range(len(gm)):
+            add = neighbours8(own == k) & free
+            if add.any():
+                own[add] = k
+                free &= ~add
+                grew = True
+        if not grew:
+            break
+    lab, n = label(new_paint(rgb, g_rgb, fg))
+    fire = bridge_mask(rgb, "fire")
+    lit = [np.zeros_like(fg) for _ in gm]      # round each figure's flash: its glow on a neighbour
+    for i in range(1, n + 1):
+        piece = lab == i
+        if int((piece & fire).sum()) < FLASH_MIN:
+            continue
+        cx = float(np.nonzero(piece)[1].mean())
+        for x0, x1, view in flash:
+            if x0 <= cx < x1:
+                own[piece] = view
+                lit[view] |= _dilate(piece, FLASH_GLOW)
+    masks = [own == k for k in range(len(gm))]
+    glow = [np.zeros_like(fg) if not any(l.any() for j, l in enumerate(lit) if j != k) else
+            np.logical_or.reduce([l for j, l in enumerate(lit) if j != k]) for k in range(len(gm))]
+    heals = [g & fg & (~m | gl) for g, m, gl in zip(gm, masks, glow)]
+    rl, rn = label(fg & (own < 0))       # what no guide figure reaches (a flying case): a satellite
+    for i in range(1, rn + 1):
+        piece = rl == i
+        if piece.sum() < MIN_PIECE:
+            continue
+        hits = [k for k, m in enumerate(masks) if (_dilate(m, ATTACH_PX) & piece).any()]
+        if hits:
+            masks[hits[0]] |= piece
+    return masks, heals, g_rgb
 
 
 def shadow_mask(rgb: np.ndarray) -> np.ndarray:
@@ -1411,13 +1707,19 @@ def touched_edges(mask: np.ndarray) -> tuple[str, ...]:
 
 
 def cut_sheet(rgb: np.ndarray, sheet: Sheet, armband: str = "blank",
-              armband_side: str | None = None, field_max: int | None = None) -> SheetCut:
+              armband_side: str | None = None, field_max: int | None = None,
+              guide: tuple | None = None) -> SheetCut:
+    """`guide`: (rgb, full-sheet figure masks) of the sheet named by Sheet.guide."""
     bg = estimate_background(rgb)
     fg = key_background(rgb, bg)
     if sheet.shadow:
         fg &= ~shadow_mask(rgb)
     sc = SheetCut(tuple(round(float(v)) for v in bg))
-    masks = figures(fg, sheet.count, sheet.split_x, rgb)
+    heals, g_rgb = None, None
+    if guide is not None:
+        masks, heals, g_rgb = guided_figures(fg, rgb, guide[0], guide[1], sheet.flash)
+    else:
+        masks = figures(fg, sheet.count, sheet.split_x, rgb, sheet.path)
     if sheet.rows > 1:
         masks = grid_order(masks, sheet.rows, rgb.shape[0])
     if sheet.pick:
@@ -1429,7 +1731,12 @@ def cut_sheet(rgb: np.ndarray, sheet: Sheet, armband: str = "blank",
         if sheet.core:
             m = largest(m)
         edges = touched_edges(m)
-        c_rgb, c_mask = crop(rgb, m)
+        src = rgb
+        if heals is not None and heals[i].any():   # a neighbour's flash over this body: the guide's pixels
+            src = rgb.copy()
+            src[heals[i]] = g_rgb[heals[i]]
+            m = m | heals[i]
+        c_rgb, c_mask = crop(src, m)
         for box, kind in erase.get(i, ()):
             c_mask = erase_glow(c_rgb, c_mask, box, kind)
         if i in erase:
@@ -1455,8 +1762,21 @@ def cut_sheet(rgb: np.ndarray, sheet: Sheet, armband: str = "blank",
     return sc
 
 
+def guide_of(spec: EnemySpec, key: str, rgbs: dict) -> tuple | None:
+    """(rgb, full-sheet figure masks) of the sheet `key` is painted over, or None."""
+    s = spec.sheets[key]
+    if not s.guide:
+        return None
+    g = spec.sheets[s.guide]
+    if g.guide or g.rows > 1 or g.pick:
+        raise ValueError(f"{s.file}: its guide {g.file} must be a plain one-row sheet")
+    grgb = rgbs[s.guide]
+    return grgb, figures(key_background(grgb, estimate_background(grgb)), g.count, g.split_x, grgb, g.path)
+
+
 def plan(spec: EnemySpec, ref_dir: Path = REF_DIR) -> dict[str, SheetCut]:
-    cuts = {k: cut_sheet(load_rgb(ref_dir / s.file), s, spec.armband, spec.armband_side, spec.field_max)
+    rgbs = {k: load_rgb(ref_dir / s.file) for k, s in spec.sheets.items()}
+    cuts = {k: cut_sheet(rgbs[k], s, spec.armband, spec.armband_side, spec.field_max, guide_of(spec, k, rgbs))
             for k, s in spec.sheets.items()}
     ref = cuts[spec.ref_sheet]
     ref_h = ref.figs[spec.ref_view].mask.shape[0]
@@ -2254,11 +2574,188 @@ ARMBAND_NOTES = (
 )
 
 
+# ------------------------------------------- D119: the gunner's preview and install
+GUNNER_SHEET_HTML = ROOT / "docs" / "art" / "previews" / "2026-10-23_P4_gunner-gemini.html"
+GUNNER_ACTOR = ROOT / "src" / "zscript" / "monsters" / "legion_gunner.zs"
+GUNNER_PROVISIONAL = ("legion", "SDLT")       # what SD_LegionGunner wears today (PROVISIONAL-D116)
+# legion_gunner.zs: Translation "0:255=%[0.00,0.00,0.00]:[1.25,0.95,0.50]", the palette by luminance
+# onto that ramp. Imitated here for the comparison only (NOT VERIFIED against the engine's palettised tint).
+GUNNER_TINT = (1.25, 0.95, 0.50)
+LINEUP_ZOOM = 3
+GUNNER_LINEUP = (   # (label, lump, set): provisional / Gemini / the Legion trooper, then the frontal shot
+    ("provisional hoy B1", "SDLTB1", "prov"), ("nuevo SDLG B1", "SDLGB1", "new"),
+    ("soldado Legion SDLT B1", "SDLTB1", "legion"),
+    ("provisional F1 (lateral)", "SDLTF1", "prov"), ("nuevo SDLG F1 (frontal)", "SDLGF1", "new"),
+    ("nuevo SDLG E1 (apunta)", "SDLGE1", "new"),
+)
+PROVISIONAL_HEADER_START = "// PROVISIONAL LOOK (D116):"
+PROVISIONAL_HEADER_END = "// (MOD-SPEC 6.12; tests/test_ep2_enemies.py pins both halves).\n"
+INSTALLED_HEADER = (
+    "// LOOK (D119): SDLG, his own 70 lumps drawn from the CEO's Gemini sheets by\n"
+    "// tools/art/gemini_enemy.py gunner, in assets/sprites/legion_gunner/ (the\n"
+    "// trooper's frame letters: design doc section 4). Rotation 1 fires at the\n"
+    "// player (F1: the flash in front of the chest).\n")
+
+
+def tint_provisional(rgba: np.ndarray, tint=GUNNER_TINT) -> np.ndarray:
+    """The provisional look: luminance times the tint ramp (an imitation of the Translation)."""
+    out = rgba.copy()
+    lum = (0.299 * rgba[..., 0] + 0.587 * rgba[..., 1] + 0.114 * rgba[..., 2]) / 255.0
+    for c in range(3):
+        out[..., c] = np.clip(lum * tint[c] * 255.0, 0, 255).astype(np.uint8)
+    return out
+
+
+def provisional_frames(spec: EnemySpec, sprites_dir: Path = SPRITES_DIR) -> dict:
+    """The lumps the actor wears today, tinted, under the new names (SDLTB1 -> SDLGB1)."""
+    folder, sprite = GUNNER_PROVISIONAL
+    out = {}
+    for p in sorted((sprites_dir / folder).glob(f"{sprite}*.png")):
+        g = read_grab(p) or (0, 0)
+        with Image.open(p) as im:
+            img = Image.fromarray(tint_provisional(np.asarray(im.convert("RGBA"))), "RGBA")
+        out[spec.sprite + p.stem.upper()[len(sprite):]] = {"src": _b64(img), "w": img.width, "h": img.height,
+                                                           "left": g[0], "top": g[1]}
+    return out
+
+
+def gunner_lineup(new_dir: Path, sprites_dir: Path = SPRITES_DIR, z: int = LINEUP_ZOOM) -> Image.Image:
+    """The scale check: provisional, new and the Legion trooper on one floor line, at x z."""
+    pics = []
+    for label_txt, lump, kind in GUNNER_LINEUP:
+        p = (new_dir if kind == "new" else sprites_dir / GUNNER_PROVISIONAL[0]) / f"{lump}.png"
+        with Image.open(p) as im:
+            rgba = np.asarray(im.convert("RGBA"))
+        if kind == "prov":
+            rgba = tint_provisional(rgba)
+        pics.append((label_txt, rgba, read_grab(p) or (0, 0)))
+    above = max(g[1] for _, _, g in pics)
+    below = max(a.shape[0] - g[1] for _, a, g in pics)
+    cell = max(max(g[0], a.shape[1] - g[0]) for _, a, g in pics) * 2 * z + 24
+    head, foot = 10, 30
+    img = Image.new("RGB", (cell * len(pics), head + (above + below) * z + foot), (59, 61, 66))
+    dr = ImageDraw.Draw(img)
+    try:
+        font = ImageFont.truetype(artlib.FONT_SMALL, 13)
+    except OSError:  # pragma: no cover - no system font
+        font = ImageFont.load_default()
+    floor = head + above * z
+    dr.line([(0, floor), (img.width, floor)], fill=(110, 112, 118))
+    for i, (label_txt, rgba, (left, top)) in enumerate(pics):
+        big = Image.fromarray(rgba, "RGBA").resize((rgba.shape[1] * z, rgba.shape[0] * z), Image.NEAREST)
+        img.paste(big, (i * cell + cell // 2 - left * z, floor - top * z), big)
+        dr.text((i * cell + 8, floor + below * z + 8), label_txt, fill=(230, 226, 218), font=font)
+    return img
+
+
+def gunner_sheet(spec: EnemySpec, out: Path = GUNNER_SHEET_HTML, out_root: Path = OUT_ROOT,
+                 sprites_dir: Path = SPRITES_DIR) -> Path:
+    """The CEO's sheet for the gunner (D119): the review sheet's layout with `actual`
+    the provisional tinted trooper, plus the scale line-up and the frontal-shot check."""
+    new_dir = out_root / spec.name
+    metrics = json.loads((new_dir / "metrics.json").read_text(encoding="utf-8"))
+    item = {
+        "id": spec.name, "sprite": spec.sprite, "letters": sorted(spec.rotated),
+        "anims": [{"label": a[0], "seq": [list(s) for s in a[1]]} for a in spec.anims],
+        "cur": provisional_frames(spec, sprites_dir), "new": _frames_json(new_dir, spec.sprite),
+        "derived": list(spec.derived), "notes": spec.notes,
+        "gate": metrics.get("gate", []), "reask": metrics.get("reask", []), "symbol": "",
+        "sheets": {k: [f["facing"] + (" (espejo)" if f["mirrored"] else "") for f in v["figures"]]
+                   for k, v in metrics["sheets"].items()},
+    }
+    intro = (
+        "<p>El <b>ametrallador de la Legión</b> (<code>SD_LegionGunner</code>, sprite final <code>SDLG</code>, 70 lumps "
+        "con las letras del soldado: diseño <code>docs/engine/2026-10-22_P4_ep2-enemies.md</code> §4), sacado de las hojas "
+        "de Gemini de hoy: <code>turn</code>, <code>walkL</code>, <code>walkR</code>, <code>aim_v3</code>, <code>fire</code> "
+        "y <code>death_v2</code>. <b>Actual</b> = lo que lleva hoy en el juego: el soldado <code>SDLT</code> teñido de latón "
+        "(D116; aquí el tinte es una imitación del <code>Translation</code>, NO VERIFICADO). <b>Nuevo</b> = SDLG. Todo ×3 sin "
+        "suavizado, sobre su línea de suelo (la raya clara) con los offsets reales. Lo que pediste en la partida (D119): "
+        "<b>de frente dispara hacia ti</b>: en F1 el fogonazo sale delante del pecho (el provisional dispara de lado). "
+        "Altura: la del soldado de la Legión (56 px). Única insignia: la bandera de EEUU del hombro. Nada instalado: los "
+        "lumps están en <code>work/art/enemies_gemini/gunner/</code> con el parche del actor. Marca OK / NO / ? por fila "
+        "y pulsa <b>Copiar resultado</b>.</p>"
+        f'<h3>Escala y disparo frontal (×{LINEUP_ZOOM})</h3><p><img alt="Línea de escala" style="max-width:100%;'
+        f'image-rendering:pixelated" src="{_b64(gunner_lineup(new_dir, sprites_dir))}"></p>')
+    html = SHEET_TEMPLATE
+    for old, new in (
+            ("<title>Enemigos Gemini</title>", "<title>Ametrallador Gemini</title>"),
+            ("Soviet Doom · Enemigos rehechos con Gemini (borrador)",
+             "Soviet Doom · El ametrallador de la Legión con Gemini (borrador, D119)"),
+            ('const KEY = "sd-2026-10-22_P4_enemies-gemini";', 'const KEY = "sd-2026-10-23_P4_gunner-gemini";'),
+            ("Enemigos Gemini (2026-10-22_P4, D104/D105)", "Ametrallador Gemini (2026-10-23_P4, D119)")):
+        if html.count(old) != 1:
+            raise ValueError(f"gunner_sheet: the review template changed ({old!r})")
+        html = html.replace(old, new)
+    i0 = html.index("<p>Cada enemigo")
+    i1 = html.index("</p>", i0) + len("</p>")
+    html = html[:i0] + intro + html[i1:]
+    html = html.replace("/*ITEMS*/[]", json.dumps([item]))
+    guard_out(out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(html, encoding="utf-8")
+    return out
+
+
+def installed_actor(text: str, old: str = "SDLT", new: str = "SDLG") -> str:
+    """legion_gunner.zs once SDLG is installed: the header's documented swap
+    (MOD-SPEC 6.12: the sprite renamed at the start of each state line, every
+    PROVISIONAL-D116 code line deleted), plus the comment lines right above a
+    deleted line (the tint's explanation) and the provisional header paragraph
+    replaced by what he wears."""
+    i0 = text.index(PROVISIONAL_HEADER_START)
+    i1 = text.index(PROVISIONAL_HEADER_END, i0) + len(PROVISIONAL_HEADER_END)
+    text = text[:i0] + INSTALLED_HEADER + text[i1:]
+    out: list[str] = []
+    for line in text.splitlines():
+        st = line.strip()
+        if "PROVISIONAL-D116" in line and st and not st.startswith("/"):
+            while out and out[-1].strip().startswith("//") and out[-1].startswith("\t"):
+                out.pop()
+            continue
+        out.append(re.sub(rf"^(\s*){old} ", rf"\g<1>{new} ", line))
+    return "\n".join(out) + "\n"
+
+
+def install_patch(spec: EnemySpec, actor: Path = GUNNER_ACTOR, out_root: Path = OUT_ROOT) -> list[Path]:
+    """In work/art/enemies_gemini/<name>/: legion_gunner.zs.patch (a unified
+    diff of installed_actor, for `git apply`) and install.sh (copies the lumps
+    and applies it). Writes nothing outside work/; the PM runs it on the CEO's OK."""
+    import difflib
+    d = out_root / spec.name
+    guard_out(d)
+    have = sorted(p.stem.upper() for p in d.glob(f"{spec.sprite}*.png"))
+    if have != lump_names(spec):
+        raise SystemExit(f"gemini_enemy: build {spec.name} first (its lumps differ from the spec)")
+    text = actor.read_text(encoding="utf-8")
+    rel = actor.relative_to(ROOT).as_posix() if actor.is_relative_to(ROOT) else actor.name
+    diff = difflib.unified_diff(text.splitlines(keepends=True), installed_actor(text).splitlines(keepends=True),
+                                f"a/{rel}", f"b/{rel}")
+    patch = d / "legion_gunner.zs.patch"
+    patch.write_text("".join(diff), encoding="utf-8", newline="\n")
+    sh = d / "install.sh"
+    sh.write_text(
+        "#!/usr/bin/env bash\n"
+        "# D119: install the Legion gunner's SDLG set ONLY after the CEO's OK on\n"
+        f"# {GUNNER_SHEET_HTML.relative_to(ROOT).as_posix()}. Run from the repo root.\n"
+        "# Also at install, by hand: the licence rows in docs/art/LICENSES.md (as the\n"
+        "# Legion trooper's section, sources gem_gunner_*.png), drop SD_LegionGunner\n"
+        "# from SWAPS in tests/test_ep2_enemies.py (its provisional test is red once\n"
+        "# SDLG exists, by design), and MOD-SPEC 6.12's table row.\n"
+        "set -euo pipefail\n"
+        f"mkdir -p assets/sprites/{spec.folder}\n"
+        f"cp work/art/enemies_gemini/{spec.name}/{spec.sprite}*.png assets/sprites/{spec.folder}/\n"
+        f"git apply work/art/enemies_gemini/{spec.name}/legion_gunner.zs.patch\n"
+        f"echo \"installed {len(have)} lumps in assets/sprites/{spec.folder}/ and patched {rel}\"\n",
+        encoding="utf-8", newline="\n")
+    return [patch, sh]
+
+
 # ------------------------------------------------------------------ CLI
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("what", help="an enemy (" + ", ".join(ENEMIES) + "), 'all', 'overlay', 'sheet', "
-                                 "'control' (the D108 armbands' control sheet) or 'armband'")
+    ap.add_argument("what", help="an enemy (" + ", ".join(ENEMIES) + "), a pending one (" + ", ".join(PENDING)
+                                 + "), 'all', 'overlay', 'sheet', 'control' (the D108 armbands' control sheet), "
+                                 "'armband' or 'gunner-sheet' (D119: the gunner's preview and install patch)")
     ap.add_argument("--check", action="store_true", help="print the plan only, write nothing")
     import armband_symbol as asym     # imports this module: here, not at the top
     asym.add_symbol_arg(ap)
@@ -2282,10 +2779,15 @@ def main(argv=None) -> int:
     if args.what == "sheet":
         print(f"gemini_enemy: wrote {review_sheet().relative_to(ROOT).as_posix()}")
         return 0
+    if args.what == "gunner-sheet":
+        print(f"gemini_enemy: wrote {gunner_sheet(GUNNER).relative_to(ROOT).as_posix()}")
+        for f in install_patch(GUNNER):
+            print(f"gemini_enemy: wrote {f.relative_to(ROOT).as_posix()}")
+        return 0
     if args.what == "armband":
         print(f"gemini_enemy: wrote {armband_proposal().relative_to(ROOT).as_posix()}")
         return 0
-    spec = ENEMIES.get(args.what)
+    spec = ENEMIES.get(args.what) or PENDING.get(args.what)
     if spec is None:
         ap.error(f"unknown enemy {args.what!r}")
     if args.check:
