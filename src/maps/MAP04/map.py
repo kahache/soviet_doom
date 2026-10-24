@@ -490,6 +490,16 @@ ED_HEALTH_BONUS = 2014
 ED_ARMOR_BONUS = 2015
 ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
+# V3 A4, the RGD-5 hand grenade (ADR 012; docs/engine/2026-10-23_V3_rgd5.md
+# section 6): its own pool, counted 1.25 shell-equivalents a grenade
+# (BALANCE 8.1). A grenade is a consumable here, so it rides in ITEMS and
+# scales DOWN with skill: 4 / 3 / 2 grenades on skills 2 / 3 / 4.
+ED_RGD5 = 21009           # the pouch: the weapon and two grenades
+ED_RGD5_AMMO = 21021      # one loose grenade (it gives the weapon too)
+ED_RGD5_BOX = 21022       # a crate of four: a secret's reward only (none here)
+# V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
+# 5.4): SD_Loudspeaker, a positional voice over the music (MOD-SPEC 6.14).
+ED_LOUDSPEAKER = 21201
 
 # Monsters per skill (Doom's skill pairs, udmf.skill_tier).
 ENEMY_TOTALS = {2: 29, 3: 42, 4: 56}
@@ -625,6 +635,23 @@ ITEMS = (
     ("z5_porch", ED_HEALTH_BONUS, 1632, 512, 4),
     ("z6_balcony", ED_HEALTH_BONUS, 2400, 2560, 4),
     ("z7_engine", ED_HEALTH_BONUS, 1000, 2500, 4),
+    # The RGD-5 (V3 A4): the pouch in the tunnel, before the yard, so the
+    # Legion's debut by the dozen meets the grenade's lesson; loose ones in
+    # the yard (troopers behind the wagons) and the warehouse.
+    ("z1_tunnel", ED_RGD5, 4300, 1136, 4),
+    ("z2_yard", ED_RGD5_AMMO, 3550, 1100, 3),
+    ("z4_hall", ED_RGD5_AMMO, 2400, 450, 2),
+)
+
+# The station's loudspeaker (V3 B5): (zone, x, y, lines, reach, flags,
+# jingle). Lines are the radio's 1-16 (SDRAD01-16), the thing's arg0 their
+# bit mask; reach 0 = the actor's 384; flags arg3 (4 = the valve bed);
+# jingle arg4 (0 = a random one of three). A station loudspeaker: the front
+# reports, the time signal, the parade, the weather, the helmet notice and
+# Tankograd's plan (the city the sergeant has just left). Reach 512: the
+# platform is 2944 long.
+LOUDSPEAKERS = (
+    ("z6_platform", 2048, 2280, (1, 16, 9, 10, 12, 15), 512, 0, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", and always on the
@@ -1226,6 +1253,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     for _zone, ednum, x, y, low, high in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(low, high)))
+    for _zone, x, y, lines, reach, flags, jingle in LOUDSPEAKERS:
+        mask = sum(1 << (line - 1) for line in lines)
+        tm.add_thing(Thing(x=x, y=y, type=ED_LOUDSPEAKER,
+                           extra={"arg0": mask, "arg1": reach, "arg3": flags, "arg4": jingle}))
     return tm, plan
 
 

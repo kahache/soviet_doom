@@ -560,6 +560,16 @@ ED_HEALTH_BONUS = 2014
 ED_ARMOR_BONUS = 2015
 ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
+# V3 A4, the RGD-5 hand grenade (ADR 012; docs/engine/2026-10-23_V3_rgd5.md
+# section 6): its own pool, counted 1.25 shell-equivalents a grenade
+# (BALANCE 8.1). A grenade is a consumable here, so it rides in ITEMS and
+# scales DOWN with skill: 4 / 3 / 2 grenades on skills 2 / 3 / 4.
+ED_RGD5 = 21009           # the pouch: the weapon and two grenades
+ED_RGD5_AMMO = 21021      # one loose grenade (it gives the weapon too)
+ED_RGD5_BOX = 21022       # a crate of four: a secret's reward only (none here)
+# V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
+# 5.4): SD_Loudspeaker, a positional voice over the music (MOD-SPEC 6.14).
+ED_LOUDSPEAKER = 21201
 ED_AKM_MAG = 21020        # SD_AkmAmmo: one 30-round 7.62x39 magazine (ADR 011)
 
 # The events, in the order the route meets them (design section 17).
@@ -742,6 +752,19 @@ ITEMS = (
     ("z9_shed", ED_HEALTH_BONUS, 1248, 1216, 4),
     ("z11_gangway", ED_HEALTH_BONUS, 640, 992, 4),
     ("z12_sail", ED_HEALTH_BONUS, 352, 800, 4),
+    # The RGD-5 (V3 A4): Episode 3 is a pistol start, so the pouch again,
+    # in the hangar; loose ones in the barracks, among the bunks.
+    ("z2_hangar", ED_RGD5, 3900, 1000, 4),
+    ("z4_barracks", ED_RGD5_AMMO, 3800, 1950, 3),
+    ("z4_barracks", ED_RGD5_AMMO, 4150, 1950, 2),
+)
+
+# The barracks' radio (V3 B5): (zone, x, y, lines, reach, flags, jingle),
+# as MAP04's. Far from Moscow: the dam's victory, the lore's line, the
+# factory-fortress and the time signal. The actor's reach (384) in a hall
+# 896 x 448.
+LOUDSPEAKERS = (
+    ("z4_barracks", 3904, 1952, (2, 7, 13, 16), 0, 0, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la
@@ -1379,6 +1402,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top), extra=pickup_special(ednum, (x, y))))
     for _zone, ednum, x, y, lowest in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
+    for _zone, x, y, lines, reach, flags, jingle in LOUDSPEAKERS:
+        mask = sum(1 << (line - 1) for line in lines)
+        tm.add_thing(Thing(x=x, y=y, type=ED_LOUDSPEAKER,
+                           extra={"arg0": mask, "arg1": reach, "arg3": flags, "arg4": jingle}))
     return tm, plan
 
 

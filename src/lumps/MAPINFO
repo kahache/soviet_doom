@@ -692,6 +692,7 @@ DoomEdNums
 	21111 = SD_LibertyColossus      // replaces SpiderMastermind (7); Episode 2's boss
 	21112 = SD_Consortium           // replaces nothing; Episode 3's final boss
 	21200 = SD_Radio                // diegetic radio (MOD-SPEC 6.7, ADR 008)
+	21201 = SD_Loudspeaker          // the propaganda radio's loudspeaker (V3 B5, D124; MOD-SPEC 6.14)
 }
 
 map RANGE lookup "SD_RANGE_NAME"

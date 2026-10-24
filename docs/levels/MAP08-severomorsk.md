@@ -687,3 +687,34 @@ expects tag 13 open (the magazine's panel sunk). The cradle is not asked
 |---|---|---|
 | V13 | Taking the blue key brings the torpedo-loading cradle down to the room's floor with its three; the strip before it flickers; the car's face reads as the steel of a loading trunk, not the hull | walk BKEY, turn north; `netevent sdtag 12` prints floor 32 |
 | V14 | Taking the yellow key sinks the store's east panel at the end of the aisle; the dogs come down the aisle | route step YKEY (tag 13 open), look east |
+
+## 19. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+**The RGD-5** (ADR 012; placement advice `docs/engine/2026-10-23_V3_rgd5.md`
+§6). Grenades are consumables in `ITEMS`, so they scale **down** with skill:
+**3 / 2 / 2** grenades on skills 2 / 3 / 4 (skills 1 and 5 double them, as
+every pickup). Why here: by the rails and among the containers of the yard; none near the bay's mini-boss. No crate (21022: a secret's reward only).
+
+| Where | What | Skills |
+|---|---|---|
+| `z2_yard` (1400, 450) | a loose grenade (21021) | every skill |
+| `z2_yard` (2000, 450) | a loose grenade | every skill |
+| `z2_yard` (1800, 1000) | a loose grenade | skills 1-2 |
+
+**The budget** (BALANCE §8, a grenade 1.25 shell-equivalents, counted in
+the band and the shell share's whole only): the ratio placed / needed on
+skills 2 / 3 / 4 goes 1.583 → 1.631 / 1.370 → 1.384 / 1.282 → 1.293, inside
+1.5-2.0 / 1.3-1.6 / 1.2-1.45. No other pickup moved. The stage readiness,
+the newest weapon's lead and the boss's stage do not count grenades.
+
+**The loudspeaker** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124): `z6_mess` (3184, 640), the actor's 384: lines 2, 9, 14, 6 (the fleet's mess: the dam, the parade, the blood donors, the plan).
+Table `LOUDSPEAKERS` in `map.py`; no geometry changed (it has no body until
+its horn is drawn). Tests: the map's own (`test_every_pickup_can_be_picked_up`,
+the G3-8 band with the grenades), `tests/test_rgd5_maps.py`,
+`tests/test_loudspeaker.py`.
+
+**Engine checklist (the PM, D26):** the grenades lie where the table says
+and are picked up (`printinv`: `SD_Rgd5` and `SD_Rgd5Ammo`); the loudspeaker
+rings its jingle on approach, reads its lines over the level's music, falls
+silent walking away (the line in progress finishes) and is not heard from
+the next room; a clean log.

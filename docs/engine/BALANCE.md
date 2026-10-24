@@ -617,6 +617,33 @@ For each stage of the route (the stages of the readiness check):
 `tests/test_d119_balance.py` pins this section's weapon and boss numbers
 against the code.
 
+### 8.6 The RGD-5 in the maps (V3 A4, 2026-10-24)
+
+Placed in MAP04-MAP09 and the range (`docs/engine/2026-10-23_V3_rgd5.md`
+§6; the maps' docs, "V3 (2026-10-24)"). A grenade is a **consumable** in
+each map's `ITEMS`, so it scales **down** with skill, unlike the D119
+ammunition; none in a boss's arena, no crate in the campaign. Recount,
+1.25 shell-equivalents a grenade (8.1), in the band (8.2) and in the shell
+share's whole (8.3) only; the stage readiness, the lead (8.4.2) and the
+boss's stage (8.4.3) leave grenades out. No other pickup moved: every map
+stays in its band.
+
+| Map | grenades, skills 2 / 3 / 4 | ratio skill 2 | skill 3 | skill 4 |
+|---|---|---|---|---|
+| MAP04 | 4 / 3 / 2 (the pouch, 2 loose) | 1.658 → 1.746 | 1.440 → 1.481 | 1.228 → 1.246 |
+| MAP05 | 3 / 3 / 2 (3 loose) | 1.559 → 1.611 | 1.334 → 1.366 | 1.233 → 1.248 |
+| MAP06 | 4 / 3 / 2 (the pouch, 2 loose) | 1.540 → 1.577 | 1.387 → 1.408 | 1.280 → 1.288 |
+| MAP07 | 4 / 3 / 2 (the pouch, 2 loose) | 1.657 → 1.725 | 1.465 → 1.494 | 1.294 → 1.308 |
+| MAP08 | 3 / 2 / 2 (3 loose) | 1.583 → 1.631 | 1.370 → 1.384 | 1.282 → 1.293 |
+| MAP09 | 3 / 2 / 2 (3 loose) | 1.610 → 1.628 | 1.347 → 1.355 | 1.239 → 1.245 |
+| RANGE | 6 on every skill (the pouch, a crate) | — | — | — |
+
+The band: 1.5-2.0 / 1.3-1.6 / 1.2-1.45. Each map test counts grenades in
+its `ammo_placed` (`GRENADES_GIVEN`, `SHELLS_PER_GRENADE`);
+`tests/test_rgd5_maps.py` pins the counts, the zones, the arenas and the
+range. Drops (a trooper's grenade) are still only a recommendation (the
+design doc §6).
+
 ## 9. Medals (V3 B3, ADR 013; proposal, 2026-10-23)
 
 At the end of each episode (after the stats of MAP03, MAP06 and MAP09, before
