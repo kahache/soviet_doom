@@ -97,8 +97,8 @@ class TrailerError(ValueError):
 
 ACTION_ARITY = {
     "wait": 1, "forward": 1, "back": 1, "left": 1, "right": 1, "fire": 1, "altfire": 1,
-    "pan": 2, "tilt": 2, "weapon": 1, "spawn": (2, 3), "hurt": 2, "use": 0, "exit": 0,
-    "run": 1,
+    "pan": 2, "tilt": 2, "weapon": 1, "spawn": (2, 3, 4), "hurt": 2, "use": 0, "exit": 0,
+    "run": 1, "calm": 1,
 }
 _MOVE_KEYS = {"forward": "forward", "back": "back", "left": "moveleft", "right": "moveright",
               "fire": "attack", "altfire": "altattack"}
@@ -122,8 +122,12 @@ def parse_action(text: str) -> tuple[str, list[str]]:
             raise TrailerError(f"{word} needs a positive tic count: {text!r}")
     if word == "spawn":
         _int(args[1], text)
-        if len(args) == 3:
+        if len(args) >= 3:
             _int(args[2], text)
+        if len(args) == 4 and args[3] != "hold":
+            raise TrailerError(f"spawn's fourth word can only be 'hold': {text!r}")
+    if word == "calm" and (not args[0].isdigit() or int(args[0]) <= 0):
+        raise TrailerError(f"calm needs a positive radius: {text!r}")
     if word == "hurt":
         _int(args[1], text)
     if word == "run" and args[0] not in ("on", "off"):
@@ -163,8 +167,11 @@ def action_commands(text: str, names: list[str]) -> list[str]:
     if word == "weapon":
         return [f"use {args[0]}", f"wait {SETTLE_TICS}"]
     if word == "spawn":
-        side = int(args[2]) if len(args) == 3 else 0
-        return [f"netevent sdspawn {names.index(args[0])} {int(args[1])} {side}", f"wait {SETTLE_TICS}"]
+        side = int(args[2]) if len(args) >= 3 else 0
+        hold = 1 if len(args) == 4 else 0
+        return [f"netevent sdspawn {names.index(args[0])} {int(args[1])} {side} {hold}", f"wait {SETTLE_TICS}"]
+    if word == "calm":
+        return [f"netevent sdcalm {int(args[0])}", f"wait {SETTLE_TICS}"]
     if word == "hurt":
         return [f"netevent sdthurt {names.index(args[0])} {int(args[1])}", f"wait {SETTLE_TICS}"]
     if word == "use":
@@ -512,6 +519,9 @@ def trailer_zscript(names: list[str]) -> str:
 //   netevent sdspawn <i> <dist> <side>  spawn NAMES[i] <dist> ahead, <side> degrees off the view,
 //                                   facing and hunting the player
 //   netevent sdthurt <i> <amount>   damage every live NAMES[i]
+//   netevent sdcalm <radius>        remove (no corpse) every live monster but the bosses within
+//                                   <radius> of the player: nothing of the map's in the lens
+//   sdspawn's 4th arg 1: the actor holds its ground (STANDSTILL) and fights from there
 class {TRAILER_CLASS} : EventHandler
 {{
     static const string NAMES[] = {{ {quoted} }};
@@ -569,8 +579,24 @@ class {TRAILER_CLASS} : EventHandler
             }}
             a.angle = a.AngleTo(pmo);
             a.target = pmo;
+            if (e.Args[3]) a.bSTANDSTILL = true;
             if (a.SeeState) a.SetState(a.SeeState);
             Console.Printf("SDTRAILER spawn class=%s ok=1 x=%d y=%d", NAMES[e.Args[0]], int(p.x), int(p.y));
+            return;
+        }}
+        if (e.Name == "sdcalm")
+        {{
+            let it = ThinkerIterator.Create("Actor");
+            Actor a; int n = 0;
+            while ((a = Actor(it.Next())) != null)
+            {{
+                if (!a.bIsMonster || a.health <= 0 || a.player) continue;
+                if (a is "SD_General" || a is "SD_LibertyColossus" || a is "SD_Consortium") continue;
+                if (a.Distance2D(pmo) > e.Args[0]) continue;
+                a.Destroy();
+                n++;
+            }}
+            Console.Printf("SDTRAILER calm radius=%d removed=%d", e.Args[0], n);
             return;
         }}
         if (e.Name == "sdthurt")
@@ -757,6 +783,66 @@ def angle_off(view: float, a, b) -> float:
 H_FOV = 90.0             # GZDoom's default fov (horizontal, 4:3); wider at 16:9
 
 
+MIN_CLEAR = 192          # nothing of the map's, and no spawn, nearer the lens than this (PM, 2026-10-25)
+CONE_CLEAR = 384         # nor inside the view this near
+CONE_HALF = 50.0         # degrees either side of the view's centre (16:9 at fov 90)
+WALK_UNITS_PER_TIC = 8   # route.WALK_UNITS_PER_TIC: +forward with cl_run 0
+BOSS_EDNUMS = frozenset({21106, 21111, 21112, 21113, 16, 7})
+MONSTER_RANGE = range(21100, 21200)
+
+
+def _is_monster(ednum: int) -> bool:
+    return ednum in route.MONSTER_EDNUMS or ednum in MONSTER_RANGE
+
+
+def camera_path(v: dict) -> list[tuple[float, float]]:
+    """Where the lens stands during the shot: the warp, and the end of each
+    walk (straight along the start's facing: an upper bound for a pan)."""
+    pts = [tuple(v["warp"])]
+    x, y = v["warp"]
+    for text in v.get("actions", ()):
+        word, args = parse_action(text)
+        step = {"forward": 1, "back": -1}.get(word)
+        if step:
+            d = step * int(args[0]) * WALK_UNITS_PER_TIC
+            x += d * math.cos(math.radians(v["angle"]))
+            y += d * math.sin(math.radians(v["angle"]))
+            pts.append((x, y))
+    return pts
+
+
+def clearance(v: dict, geo: "MapGeometry", sid: str) -> list[str]:
+    """The PM's first cut (2026-10-25): a Panzermensch 32 units from the Red
+    Square camera and a doughboy 86 units in front of Severomorsk's filled
+    half the frame. No monster of the map, on the shot's skill, may stand
+    within MIN_CLEAR of the lens, or within CONE_CLEAR inside the view,
+    unless the shot's `calm R` removes it (bosses are never removed)."""
+    calm = 0
+    for text in v.get("setup", ()):
+        word, args = parse_action(text)
+        if word == "calm":
+            calm = max(calm, int(args[0]))
+    skill = int(v.get("skill", 3))
+    errs = []
+    path = camera_path(v)
+    for t in geo.md.textmap.things:
+        if not _is_monster(t.type) or not getattr(t, f"skill{skill}", True):
+            continue
+        boss = t.type in BOSS_EDNUMS
+        if not boss and math.hypot(t.x - path[0][0], t.y - path[0][1]) <= calm:
+            continue
+        if v.get("nomonsters") and not boss:
+            continue
+        for p in path:
+            d = math.hypot(t.x - p[0], t.y - p[1])
+            in_cone = d < CONE_CLEAR and angle_off(v["angle"], p, (t.x, t.y)) < CONE_HALF
+            if d < MIN_CLEAR or (in_cone and not boss):     # a boss is the subject: in view, not on the lens
+                errs.append(f"{sid}: thing {t.type} at ({t.x:.0f}, {t.y:.0f}) is {d:.0f} units from the lens"
+                            + ("" if boss else f" (calm {calm} does not reach it)"))
+                break
+    return errs
+
+
 def check_geometry(data: dict) -> list[str]:
     """Each engine shot (and its fallback) against its built map: the camera
     fits; every spawn lands where its body fits and in sight of the camera;
@@ -779,7 +865,9 @@ def check_geometry(data: dict) -> list[str]:
                 word, args = parse_action(text)
                 if word != "spawn":
                     continue
-                side = int(args[2]) if len(args) == 3 else 0
+                side = int(args[2]) if len(args) >= 3 else 0
+                if int(args[1]) < MIN_CLEAR:
+                    errs.append(f"{sid}: {text!r} is closer than {MIN_CLEAR} units")
                 p = spawn_point(warp, v["angle"], int(args[1]), side)
                 r, h = ACTOR_SIZE[args[0]]
                 why = geo.fits(*p, radius=r, height=h)
@@ -796,6 +884,7 @@ def check_geometry(data: dict) -> list[str]:
                     errs.append(f"{sid}: look_at {look} out of sight: {why}")
                 if angle_off(v["angle"], warp, look) > H_FOV / 2:
                     errs.append(f"{sid}: look_at {look} is outside the {H_FOV:.0f} degree view")
+            errs += clearance(v, geo, sid)
             things = v.get("subject_thing")
             if things:
                 ed, x, y = things

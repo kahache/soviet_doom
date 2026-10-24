@@ -14,9 +14,13 @@ Per shot (tools/trailer/shots.json, see trailer_lib.py):
      logs/gzdoom-tooling.ini the first time, so the trailer's cvars
      (screenblocks 12, no crosshair, no messages, music off) never reach the
      QA runs' screenshots; window 1280x720;
-  3. finds the game window by the process id, gives it an exact 1280x720
-     client area (AdjustWindowRectEx + SetWindowPos, topmost, centred on the
-     primary monitor), and starts FFmpeg on that screen rectangle
+  3. finds the game window by the process id. GZDoom's win_w/win_h are the
+     OUTER size (the PM's S01 run, 2026-10-24: +win_w 1280 +win_h 720 gave a
+     1264x681 client area), so the tool asks for 1280x720 plus this
+     desktop's frame (AdjustWindowRectEx: 1296x759 at 100 %); if the client
+     area still differs it tries SetWindowPos, and failing that films the
+     real client area (edit.py scales any size to 1080p). It starts FFmpeg
+     on that screen rectangle and keeps the window on it while GZDoom runs
      (gdigrab "desktop" with an offset: it reads the composited desktop, so
      an OpenGL or Vulkan window is not black);
   4. waits for GZDoom to quit (the shot's console sequence ends in `quit`),
@@ -74,8 +78,10 @@ LOOPBACK_HINTS = ("what u hear", "stereo mix", "mezcla est", "loopback", "wave o
 WINDOW_WAIT_S = 45.0        # GZDoom start-up until its window shows
 STABLE_S = 1.0              # the window's client rect unchanged this long before we size it
 MIN_SHOWN_S = 2.0           # and shown at least this long (the start-up log window comes first)
-RESIZE_TRIES = 6
+RESIZE_TRIES = 3
 RESIZE_SETTLE_S = 0.6
+MIN_CLIENT = (640, 360)     # below this a shot is not worth cutting
+MAX_WINDOW_FIXES = 20
 FFMPEG_STOP_S = 15.0
 TIMEOUT_MARGIN_S = 60.0
 CAPTURE_CRF = "14"          # near-lossless intermediate; edit.py re-encodes
@@ -86,7 +92,16 @@ CAPTURE_PRESET = "ultrafast"
 # Windows: the game window
 # ============================================================================
 
+_WIN32 = None
+
+
 def _win32():
+    """user32 with typed prototypes (HWND is a pointer: an untyped call would
+    pass a 64-bit handle as a C int), the process made DPI-aware once, so
+    every rectangle is in physical pixels, as gdigrab's offsets are."""
+    global _WIN32
+    if _WIN32 is not None:
+        return _WIN32
     import ctypes
     from ctypes import wintypes
     user32 = ctypes.WinDLL("user32", use_last_error=True)
@@ -97,8 +112,51 @@ def _win32():
             user32.SetProcessDPIAware()
         except AttributeError:
             pass
-    user32.GetWindowLongW.restype = ctypes.c_long
-    return ctypes, wintypes, user32
+    H, B, I, U = wintypes.HWND, wintypes.BOOL, ctypes.c_int, wintypes.UINT
+    proto = {
+        "GetWindowLongW": (ctypes.c_long, [H, I]),
+        "GetClientRect": (B, [H, ctypes.POINTER(wintypes.RECT)]),
+        "GetWindowRect": (B, [H, ctypes.POINTER(wintypes.RECT)]),
+        "ClientToScreen": (B, [H, ctypes.POINTER(wintypes.POINT)]),
+        "AdjustWindowRectEx": (B, [ctypes.POINTER(wintypes.RECT), wintypes.DWORD, B, wintypes.DWORD]),
+        "SetWindowPos": (B, [H, H, I, I, I, I, U]),
+        "SetForegroundWindow": (B, [H]),
+        "IsWindowVisible": (B, [H]),
+        "GetWindowTextW": (I, [H, wintypes.LPWSTR, I]),
+        "GetWindowThreadProcessId": (wintypes.DWORD, [H, ctypes.POINTER(wintypes.DWORD)]),
+        "GetSystemMetrics": (I, [I]),
+    }
+    for name, (res, args) in proto.items():
+        fn = getattr(user32, name)
+        fn.restype, fn.argtypes = res, args
+    _WIN32 = (ctypes, wintypes, user32)
+    return _WIN32
+
+
+def window_dpi(hwnd: int) -> int | None:
+    ctypes, wintypes, user32 = _win32()
+    try:
+        fn = user32.GetDpiForWindow
+    except AttributeError:
+        return None
+    fn.restype, fn.argtypes = wintypes.UINT, [wintypes.HWND]
+    return int(fn(hwnd))
+
+
+WS_OVERLAPPEDWINDOW = 0x00CF0000
+DEFAULT_BORDER = (16, 39)   # measured: +win_w 1280 +win_h 720 gave a 1264x681 client (S01, 2026-10-24)
+
+
+def frame_border() -> tuple[int, int]:
+    """Outer minus client size of a normal window on this desktop: GZDoom's
+    win_w/win_h are the OUTER size (the PM's S01 run, 2026-10-24)."""
+    if os.name != "nt":
+        return DEFAULT_BORDER
+    ctypes, wintypes, user32 = _win32()
+    rc = wintypes.RECT(0, 0, 100, 100)
+    if not user32.AdjustWindowRectEx(ctypes.byref(rc), WS_OVERLAPPEDWINDOW, False, 0):
+        return DEFAULT_BORDER
+    return (rc.right - rc.left) - 100, (rc.bottom - rc.top) - 100
 
 
 def windows_of(pid: int) -> list[tuple[int, str, tuple[int, int, int, int]]]:
@@ -130,21 +188,21 @@ def client_rect(hwnd: int) -> tuple[int, int, int, int]:
     return pt.x, pt.y, rc.right - rc.left, rc.bottom - rc.top
 
 
-def place_window(hwnd: int, width: int, height: int) -> None:
-    """Give the window a client area of exactly width x height, topmost,
-    centred on the primary monitor."""
+def place_window(hwnd: int, width: int, height: int, origin: tuple[int, int] | None = None) -> None:
+    """Give the window a client area of width x height, topmost: centred on
+    the primary monitor, or with its client area's top-left at `origin`."""
     ctypes, wintypes, user32 = _win32()
     gwl_style, gwl_exstyle = -16, -20
     style = user32.GetWindowLongW(hwnd, gwl_style) & 0xFFFFFFFF
     exstyle = user32.GetWindowLongW(hwnd, gwl_exstyle) & 0xFFFFFFFF
-    rc = wintypes.RECT(0, 0, width, height)
+    if origin is None:
+        screen_w, screen_h = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+        origin = ((screen_w - width) // 2, (screen_h - height) // 2)
+    rc = wintypes.RECT(origin[0], origin[1], origin[0] + width, origin[1] + height)
     user32.AdjustWindowRectEx(ctypes.byref(rc), style, False, exstyle)
-    outer_w, outer_h = rc.right - rc.left, rc.bottom - rc.top
-    screen_w, screen_h = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
-    x = max(0, (screen_w - outer_w) // 2)
-    y = max(0, (screen_h - outer_h) // 2)
+    x, y = max(0, rc.left), max(0, rc.top)
     hwnd_topmost, swp_showwindow = -1, 0x0040
-    user32.SetWindowPos(hwnd, hwnd_topmost, x, y, outer_w, outer_h, swp_showwindow)
+    user32.SetWindowPos(hwnd, hwnd_topmost, x, y, rc.right - rc.left, rc.bottom - rc.top, swp_showwindow)
     user32.SetForegroundWindow(hwnd)
 
 
@@ -165,14 +223,20 @@ def wait_for_window(proc: subprocess.Popen, size: tuple[int, int]) -> tuple[int,
             if rect != last_rect:
                 last_rect, stable_since = rect, now
             elif now - stable_since >= STABLE_S and now - first_seen >= MIN_SHOWN_S:
+                if rect[2:] == tuple(size):
+                    return hwnd, rect, time.monotonic() - started
                 for _ in range(RESIZE_TRIES):
                     place_window(hwnd, *size)
                     time.sleep(RESIZE_SETTLE_S)
                     rect = client_rect(hwnd)
                     if rect[2:] == tuple(size):
                         return hwnd, rect, time.monotonic() - started
-                raise RuntimeError(f"the window would not take a {size[0]}x{size[1]} client area "
-                                   f"(it is {rect[2]}x{rect[3]})")
+                # Not forced: film what there is; edit.py scales and crops any
+                # client area to 16:9 1080p. Only a useless window fails.
+                if rect[2] >= MIN_CLIENT[0] and rect[3] >= MIN_CLIENT[1]:
+                    return hwnd, rect, time.monotonic() - started
+                raise RuntimeError(f"the window's client area is {rect[2]}x{rect[3]}, "
+                                   f"under {MIN_CLIENT[0]}x{MIN_CLIENT[1]}")
         time.sleep(0.1)
     raise RuntimeError(f"no settled GZDoom window after {WINDOW_WAIT_S:.0f} s")
 
@@ -187,8 +251,8 @@ def watch_window(proc: subprocess.Popen, rect: tuple, size: tuple[int, int], tim
         wins = windows_of(proc.pid)
         if wins:
             hwnd, _title, now = max(wins, key=lambda w: w[2][2] * w[2][3])
-            if tuple(now) != tuple(rect):
-                place_window(hwnd, *size)
+            if tuple(now) != tuple(rect) and fixes < MAX_WINDOW_FIXES:
+                place_window(hwnd, rect[2], rect[3], origin=(rect[0], rect[1]))
                 fixes += 1
         time.sleep(0.2)
     return fixes
@@ -279,7 +343,9 @@ def capture_shot(shot: dict, names: list[str], gzdoom: Path, iwad: Path, pk3s: l
     sid = shot["id"]
     video = tl.SHOTS_DIR / f"{sid}.mkv"
     log = tl.SHOTS_DIR / f"{sid}.log"
-    argv = tl.engine_argv(gzdoom, iwad, pk3s, helper, seed_config(), log, shot, names, window,
+    bw, bh = frame_border()
+    outer = (window[0] + bw, window[1] + bh)    # win_w/win_h are the outer size
+    argv = tl.engine_argv(gzdoom, iwad, pk3s, helper, seed_config(), log, shot, names, outer,
                           sound=audio_device is not None)
     manifest = {"id": sid, "when": datetime.now().isoformat(timespec="seconds"), "argv": argv,
                 "fps": fps, "audio_device": audio_device, "window": list(window), "notes": notes,
@@ -290,7 +356,11 @@ def capture_shot(shot: dict, names: list[str], gzdoom: Path, iwad: Path, pk3s: l
     rec = None
     try:
         hwnd, rect, shown_s = wait_for_window(game, window)
-        manifest.update(rect=list(rect), window_after_s=round(shown_s, 2))
+        manifest.update(rect=list(rect), window_after_s=round(shown_s, 2), outer_asked=list(outer),
+                        dpi=window_dpi(hwnd))
+        if tuple(rect[2:]) != tuple(window):
+            notes.append(f"client area {rect[2]}x{rect[3]}, not {window[0]}x{window[1]}: "
+                         "edit.py scales it to the trailer's frame")
         cmd = ffmpeg_command(ffmpeg, rect, fps, video, audio_device)
         manifest["ffmpeg"] = cmd
         rec = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL,
@@ -369,8 +439,10 @@ def main(argv: list[str] | None = None) -> int:
             shot = shots[sid].data
             if shot.get("kind", "engine") != "engine":
                 continue
+            bw, bh = frame_border()
             argv_ = tl.engine_argv(Path("gzdoom.exe"), Path("freedoom2.wad"), pk3s, tl.HELPER_PK3,
-                                   TRAILER_CONFIG, tl.SHOTS_DIR / f"{sid}.log", shot, names, window,
+                                   TRAILER_CONFIG, tl.SHOTS_DIR / f"{sid}.log", shot, names,
+                                   (window[0] + bw, window[1] + bh),
                                    sound=not args.no_audio)
             print(f"--- {sid} ({tl.sequence_seconds(shot, names):.1f} s of console sequence)")
             print(subprocess.list2cmdline(argv_))

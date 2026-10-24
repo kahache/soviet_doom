@@ -122,11 +122,25 @@ class ShotListTests(unittest.TestCase):
                 seen[ed] = s.map
         self.assertEqual(seen, BOSS_THINGS)
 
-    def test_ops_map_and_medal_shots(self):
+    def test_ops_map_and_medal_are_composed_stills(self):
+        """Filmed on 2026-10-25 the stats text covered the map for the whole
+        shot (the console's +use cannot leave GZDoom 4.14's stats page), so
+        both are composed from V3's own pictures and intermission script."""
+        self.assertEqual(self.shots["S15"].data.get("opsmap"), "MAP08")
+        self.assertEqual(self.shots["S16"].data.get("opsmap"), "MAP09")
+        self.assertIn("SDAWCOU", self.shots["S16"].data["layers"][0]["image"])
         for sid in ("S15", "S16"):
-            s = self.shots[sid].data
-            self.assertIn("exit", s["actions"])
-            self.assertEqual(s["fallback"]["kind"], "still")
+            self.assertEqual(self.shots[sid].kind, "still")
+
+    def test_calm_and_hold(self):
+        cmds = tl.action_commands("spawn SD_Stormtrooper 224 0 hold", ["SD_Stormtrooper"])
+        self.assertEqual(cmds[0], "netevent sdspawn 0 224 0 1")
+        self.assertEqual(tl.action_commands("calm 500", [])[0], "netevent sdcalm 500")
+        for bad in ("spawn SD_Stormtrooper 224 0 run", "calm 0", "calm x"):
+            with self.assertRaises(tl.TrailerError):
+                tl.parse_action(bad)
+        for sid in ("S07", "S10", "S12", "S13", "S14"):
+            self.assertTrue(any(a.startswith("calm ") for a in self.shots[sid].data["setup"]), sid)
 
     def test_sequences(self):
         for s in self.shots.values():
@@ -227,6 +241,12 @@ class CardTests(unittest.TestCase):
         end = [w for w in tl.card_windows(self.data) if w[0] == "E_END"][0]
         self.assertAlmostEqual(end[2], tl.total_seconds(self.data), places=6)
 
+    @unittest.skipUnless(HAVE_ART, "needs the venv (numpy, Pillow)")
+    def test_every_card_reads_for_a_second(self):
+        for cid, a, b in tl.card_windows(self.data):
+            fade = min(edit.CARD_FADE_S, (b - a) / 4)
+            self.assertGreaterEqual(b - a - 2 * fade, 1.0, cid)
+
     def test_spanned_card(self):
         win = [w for w in tl.card_windows(self.data) if w[0] == "C_FEATURES"][0]
         bar = tl.bar_seconds(self.data["music"]["main"])
@@ -307,6 +327,14 @@ class EditTests(unittest.TestCase):
 class GeometryTests(unittest.TestCase):
     def test_every_shot_against_its_map(self):
         self.assertEqual(tl.check_geometry(tl.load_json(tl.SHOTS_JSON)), [])
+
+    def test_the_check_catches_a_monster_on_the_lens(self):
+        """The first cut's Red Square: a Panzermensch 32 units from the camera."""
+        data = tl.load_json(tl.SHOTS_JSON)
+        s07 = [s for s in data["shots"] if s["id"] == "S07"][0]
+        data["shots"] = [dict(s07, setup=[])]
+        errs = " | ".join(tl.check_geometry(data))
+        self.assertIn("thing 21105 at (2450, 2000) is 32 units", errs)
 
     def test_the_check_catches_a_camera_in_a_wall(self):
         data = tl.load_json(tl.SHOTS_JSON)

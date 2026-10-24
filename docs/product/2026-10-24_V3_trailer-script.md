@@ -68,8 +68,8 @@ Bars of `D_SDBS9A` unless marked; times from the first frame.
 | 43.05-46.48 | 2 | S12 MAP09 the crater's rim: the portal, the Consortium below | Tunguska | cut |
 | 46.48-49.90 | 2 | S13 MAP06 **the Liberty Colossus** (the statue, boss 2) on its dais | | flash |
 | 49.90-53.33 | 2 | S14 MAP09 **the Consortium** (final boss), from the third terrace | | flash |
-| 53.33-55.05 | 1 | S15 leaving MAP08: **the operations map** under the stats (V3 B1) | C_FEATURES (2 segments) | flash |
-| 55.05-56.76 | 1 | S16 the end of Episode 3: **the awards page**, a medal (V3 B3) | | cut |
+| 53.33-55.05 | 1 | S15 **the operations map** leaving MAP08 (V3 B1), composed from its own pictures | C_FEATURES (2 segments) | flash |
+| 55.05-56.76 | 1 | S16 **the Medal For Courage** over the darkened map (V3 B3), composed | | cut |
 | 56.76-61.69 | 2 + 1.5 s | black: the logo `M_DOOM`, the download, the version, Engelbach's credit | E_END | flash, fade out |
 
 ## 4. The cards
@@ -152,25 +152,54 @@ H.264 + AAC, ~2.5 min to render one locale).
 SD_ALLOW_ENGINE=1 python tools/trailer/capture.py --shots S01
 # 2. then all of them (~16 runs, ~6 min; hands off the mouse and keyboard):
 SD_ALLOW_ENGINE=1 python tools/trailer/capture.py [--pk3 <v3 worktree>/dist/sovietdoom.pk3]
-# 3. pick the intermission offsets on the contact sheets (S15, S16: NOT VERIFIED):
-.venv/Scripts/python.exe tools/trailer/edit.py --contact S15
+# 3. (optional) look at one shot frame by frame after its roll:
+.venv/Scripts/python.exe tools/trailer/edit.py --contact S13
 # 4. cut the three versions:
 .venv/Scripts/python.exe tools/trailer/edit.py --version v1.3
 ```
 
-## 8. Not verified (radical honesty)
+## 8. The first cut (PM, 2026-10-25) and what changed
 
-- **Nothing has run in the engine yet.** The helper's ZScript (the camera,
-  the slate's `Screen.Clear`, `Actor.Spawn` by name) was written against
-  g4.14.2's own `gzdoom.pk3` declarations but never compiled; a script error
-  shows in `<ID>.log` and marks the shot failed.
+All 16 shots were filmed on the v3 PK3 (264a27f): the helper compiled, the
+slate and the roll worked on every shot, `pitch > 0` looks down. Fixed after
+the PM's review:
+
+- **Monsters on the lens.** Red Square's camera stood 32 units from a map
+  Panzermensch (the blurred brown mass), Severomorsk's 86 units behind a
+  doughboy, Tunguska's had a Legion trooper walk into it. New helper command
+  `calm R` (setup): removes, without a corpse, every live non-boss monster
+  within R of the camera before the spawns; `spawn … hold` makes a spawned
+  enemy fight from where it stands (STANDSTILL). `tests/test_trailer.py` now
+  fails any shot with a map monster (on its skill) within 192 units of the
+  lens, or within 384 inside the view, that its `calm` does not reach, and
+  any spawn nearer than 192.
+- **Bosses:** the Liberty Colossus from 224 units, looking up 10°, acting
+  for 2 s before the rockets; the Consortium from 256 units with the AKM (the
+  Katyusha's blasts filled the lens); the Chrome Marshal from 256 units.
+- **Stats over the map (S15, S16):** the console's `+use` never left the
+  stats page (GZDoom 4.14's stats screen is a ScreenJob that reads key
+  events, not the player's buttons: VERIFIED by those captures), so the
+  operations map and the medal are composed stills from V3's own pictures
+  and `SDOPSCR`.
+- **Lower thirds** fade in over 0.12 s; every card is fully readable for at
+  least 1 s (tested). Tankograd's was readable for 2.3 s; the contact sheet
+  had caught its fade.
+
+To film again: S07, S08, S10, S12, S13, S14 (and S11 once the RGD-5's
+sprites are installed, D133). S01-S06 and S09 stay as filmed: their new
+`calm` lines only make a future take safer.
+
+## 9. Not verified (radical honesty)
+
 - Console names marked (?) in `trailer_lib.VIEW_CVARS` (`con_notifytime`,
-  `use_mouse`); `use <weapon>` to select a weapon; positive pitch looking
-  down; `+use` advancing the stats screen; the exact seconds at which the
-  operations map and the awards page show (S15, S16 `from`).
-- That `win_w`/`win_h` are resized by `SetWindowPos` without GZDoom snapping
-  back (the tool retries and fails the shot if the client area is not
-  1280x720), and gdigrab's offsets at this PC's 100 % scaling.
+  `use_mouse`); `sdcalm` and `bSTANDSTILL` (written against g4.14.2, not yet
+  compiled).
+- The PM's first S01 run (2026-10-24) showed that `win_w`/`win_h` are the
+  window's OUTER size (1280x720 gave a 1264x681 client area) and that the
+  helper compiles (`SDTRAILER helper map=MAP01` in the log). capture.py now
+  asks for the outer size that leaves a 1280x720 client area and, if that
+  still fails, films the real client area (edit.py scales it). Still to see:
+  that the window keeps its place, and gdigrab's offsets at 100 % scaling.
 - The A/V offset between gdigrab and dshow (`edit.py --audio-offset-ms`).
 - The licence of `gzdoom.sf2` for a published render (`sound-designer` to
   confirm in `docs/sound/`; the game itself plays through it on every
