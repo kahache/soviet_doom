@@ -6,7 +6,20 @@ and D114). Before that: 2026-10-21 ~23:30 (night shift closed, D102/D103) and
 `docs/PRD.md`; open CEO items in `docs/PENDING-CEO-DECISIONS.md`; tasks and
 estimates in `docs/BACKLOG.md`; the phase view in `docs/ROADMAP.md` ("P4 today").
 
-## RESUME HERE FIRST (2026-10-23 ~12:45, PC shut down at the CEO's request)
+## RESUME HERE FIRST (2026-10-24 ~13:10, PC shut down at the CEO's request)
+
+**v1.2 is PUBLIC and Latest (D130); V2 is closed.** https://github.com/kahache/soviet_doom/releases/tag/v1.2 —
+tag at 1640328, sign-off `docs/qa/evidence/2026-10-24_1245_P4_v12-signoff.md` (clean clone 3521 tests, 33/33 routes,
+Windows and Linux packages tested; macOS NOT VERIFIED). Drafts v1.1 and v1.2-rc1 deleted. Decisions up to D130.
+Today: Consortium, AKM, title screen (D126), walks (D127 Fooocus tried, hand-cut strides used), palette v3 grey-green
+ramp (D128), no Spanish anywhere public (D129, `tests/test_no_spanish.py`). Gemini today: 15 of ~20 used.
+**Next: V3** on branch `v3` (origin/v3, worktree `scratchpad/wt_v3`, f282b2b + route fix 13aea5c): pickup events
+E1-E3, ops map + medals (D122), RGD-5 placed in MAP04-09 and RANGE (Gemini refs `work/art/reference/gemini_rgd5_*.jfif`
+not processed yet; frame D derives from C), propaganda loudspeakers (D124; no `SDLS` sprite yet). 33/33 routes on v3
+(one intermittent MAP04 skill 3). To do: merge main (D123-D130) into v3, process the RGD-5 sprites, a loudspeaker
+sprite, MAP01-03 grenades/loudspeakers, the MAP09 crater hook, the trailer (D3), reloads (nice to have).
+
+## Earlier: RESUME HERE FIRST (2026-10-23 ~12:45, PC shut down at the CEO's request)
 
 **main (V2), all pushed, 33/33 routes PASS on f1c350b** (fb4f3bd evidence) + D125 sounds smoke-clean on HEAD:
 D123 installed (Gemini gunner SDLG, TT-33, Liberty statue SDLC = MAP06 boss, `SD_ChromeGeneral` 21113 = MAP08
