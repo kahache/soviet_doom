@@ -3,15 +3,15 @@
 A thrown weapon whose grenade is its own ammunition: SD_Rgd5 (the hand and
 the pouch of two, 21009), SD_Rgd5Ammo (the pool and one loose grenade,
 21021; it hands over the weapon too), SD_Rgd5Box (a crate, 21022) and the
-fused, bouncing SD_Rgd5Grenade. On provisional sprites (D116, MOD-SPEC
-6.12) until Gemini's are drawn. Design and balance:
+fused, bouncing SD_Rgd5Grenade. On its own sprites since 2026-10-24 (they
+replaced D116's provisional ones, MOD-SPEC 6.12; tests/test_rgd5_sprites.py). Design and balance:
 docs/engine/2026-10-23_V3_rgd5.md. Checked, without the engine (D26):
 
   mod      the four classes, their files and includes; the three editor
            numbers, free and in their sub-ranges; slot 8 in SD_Player and on
            the class; never raised by itself; one press, one throw; every
-           frame names an installed sprite; the documented swaps give the
-           final names and drop every tint and scale; five sounds of its own
+           frame names an installed sprite; the swaps done: the final names
+           only, no tint, no scale, no provisional line; five sounds of its own
            over shipped lumps, final lumps reserved; six ids in three
            languages; the loose grenade gives the weapon
   fuse     the burst only from the fuse (Death is "stopped", not the
@@ -54,7 +54,8 @@ SLOT = 8
 IDS = {"SD_TAG_RGD5", "SD_PICKUP_RGD5", "SD_OB_RGD5", "SD_AMMO_RGD5", "SD_GOT_RGD5", "SD_GOT_RGD5BOX"}
 SOUND_NAMES = {"sd/weapon/rgd5/pin", "sd/weapon/rgd5/throw", "sd/weapon/rgd5/bounce",
                "sd/weapon/rgd5/explode", "sd/weapon/rgd5/pickup"}
-# MOD-SPEC 6.12: provisional sprite -> final, per file, as each header's sed says.
+# MOD-SPEC 6.12: provisional sprite -> final, per file, as each header's sed said
+# (the swaps were done on 2026-10-24).
 SWAPS = {WEAPON_FILE: [("SDAX", "SDRG"), ("SDHB", "SDRQ")],
          AMMO_FILE: [("SDHB", "SDRJ"), ("SDRB", "SDRZ")],
          GRENADE_FILE: [("SDHB", "SDRN")]}
@@ -223,24 +224,24 @@ class ModTests(unittest.TestCase):
         icon = p4.default_value(self.ammo, "Inventory.Icon")
         self.assertTrue(list(p4.SPRITES.rglob(f"{icon}.png")), icon)
 
-    def test_provisional_look_and_its_documented_swaps(self):
+    def test_its_own_look_the_swaps_done(self):
         for rel, pairs in SWAPS.items():
             with self.subTest(rel=rel):
                 text = self.texts[rel]
-                marked = p4.provisional_code_lines(text)
-                self.assertTrue(marked)
-                self.assertTrue(all(l.startswith(("Translation ", "Scale ", "const ")) for l in marked), marked)
-                swapped, found = p4.apply_documented_swap(text)
-                self.assertEqual(found, pairs)
-                code = p4.strip_comments(swapped)
+                self.assertFalse(p4.provisional_code_lines(text))
+                self.assertNotIn("PROVISIONAL-D116", text)
+                self.assertNotIn("//   sed -i", text)
+                code = p4.strip_comments(text)
                 self.assertNotIn("Translation", code)
                 self.assertNotRegex(code, r"\bScale\b")
-                sprites = {s for c in p4.class_blocks(swapped).values() for s, _ in p4.state_frames(c[1])}
-                finals = {new for _, new in pairs}
+                for old, _ in pairs:
+                    self.assertNotRegex(code, rf"\b{old}\b")
+                sprites = {s for c in p4.class_blocks(text).values() for s, _ in p4.state_frames(c[1])}
                 # the PG-7V's burst SDPX stays: it is ours already
-                self.assertEqual(sprites - {"SDPX"}, finals)
+                self.assertEqual(sprites - {"SDPX"}, {new for _, new in pairs})
         for name in FINAL_SPRITES:
-            self.assertFalse(p4.sprite_rotations(name), f"{name} is drawn: do the swap")
+            self.assertTrue(p4.sprite_rotations(name), f"{name} is not in assets/sprites/")
+        self.assertEqual(p4.default_value(self.ammo, "Inventory.Icon"), "SDRJA0")
         # the final names are free: no other class of the mod names them
         others = "\n".join(p.read_text(encoding="utf-8") for p in (SRC / "zscript").rglob("*.zs")
                            if p.relative_to(SRC).as_posix() not in FILES)

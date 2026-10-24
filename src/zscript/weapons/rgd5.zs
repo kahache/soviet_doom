@@ -25,18 +25,18 @@
 // lofted SD_RGD5_LOFT degrees up, with no autoaim (an arc, not a homing
 // shot): its own speed, gravity, bounce and 1.71 s fuse are rgd5_grenade.zs.
 //
-// PROVISIONAL LOOK (D116): no art of its own yet (Gemini, a little at a
-// time). In hand it shows the ice axe's installed frames, SDAX A-D, whose
-// wind-up, strike and follow-through read as an overhand throw: it looks
-// like the ice axe until Gemini's frames land (a first-person sprite takes
-// no actor Translation, MOD-SPEC 6.12). The pouch on the floor is the health
-// bonus's flask SDHB A, tinted gunmetal and scaled up by the two lines
-// marked PROVISIONAL-D116. The final names are SDRG A-D (held: A ready, B
-// the pin out and the arm back, C the release, D the follow-through) and
-// SDRQ A (the pouch); when they are installed in assets/sprites/rgd5/, the swap is:
-//   sed -i -e 's/^\(\s*\)SDAX /\1SDRG /' -e 's/^\(\s*\)SDHB /\1SDRQ /' -e '/^\s*[^/[:space:]].*PROVISIONAL-D116/d' src/zscript/weapons/rgd5.zs
-// (MOD-SPEC 6.12; tests/test_rgd5.py pins both halves). Every tic, action
-// and jump stays.
+// ITS OWN LOOK since 2026-10-25 (D133, the CEO: "Ok granada";
+// D116 had it on the ice axe's SDAX A-D and the health bonus's SDHB A,
+// tinted): assets/sprites/rgd5/, held SDRG A ready, B the pin out (the left
+// hand with the ring) and the arm back, C the release, D the follow-through
+// (the hand empty), and the pouch of two SDRQ A on the floor. The held
+// frames come from the project lead's three Gemini images (A, B, C) by
+// tools/art/gemini_frames.py rgd5: B's third hand cut away, D derived from
+// C without the grenade; the pouch is drawn on the weapon pickups' rig with
+// Gemini's grenade in it, tools/art/gen_rgd5_pickups.py. They replaced the
+// borrowed names letter for letter (MOD-SPEC 6.12): only the sprite names
+// changed and the tint and scale lines went; every tic, action and jump
+// stayed (tests/test_rgd5_sprites.py pins the states).
 
 class SD_Rgd5 : DoomWeapon
 {
@@ -50,7 +50,6 @@ class SD_Rgd5 : DoomWeapon
 	// so a throw straight at the ceiling never tips past the vertical and
 	// flies backwards.
 	const SD_RGD5_MAX_UP    = -80.0;
-	const SD_RGD5_PROVISIONAL_SCALE = 1.4;   // PROVISIONAL-D116: the pouch reads bigger than one loose grenade
 
 	Default
 	{
@@ -65,8 +64,6 @@ class SD_Rgd5 : DoomWeapon
 		+WEAPON.NO_AUTO_SWITCH   // picking it up does not raise it
 		+WEAPON.NOAUTOSWITCHTO   // nor does picking up a grenade with an empty gun in hand
 		+WEAPON.EXPLOSIVE        // the engine's hint that it is a splash weapon
-		Scale SD_RGD5_PROVISIONAL_SCALE;   // PROVISIONAL-D116
-		Translation "0:255=%[0.03,0.04,0.05]:[0.80,0.88,0.95]";   // PROVISIONAL-D116: the pouch on the floor, gunmetal
 		Obituary "$SD_OB_RGD5";
 		Tag "$SD_TAG_RGD5";
 		Inventory.PickupMessage "$SD_PICKUP_RGD5";
@@ -76,24 +73,24 @@ class SD_Rgd5 : DoomWeapon
 	States
 	{
 	Ready:
-		SDAX A 1 A_WeaponReady;
+		SDRG A 1 A_WeaponReady;
 		Loop;
 	Deselect:
-		SDAX A 1 A_Lower;
+		SDRG A 1 A_Lower;
 		Loop;
 	Select:
-		SDAX A 1 A_Raise;
+		SDRG A 1 A_Raise;
 		Loop;
 	Fire:
 		// 8 + 3 + 2 + 8 + 12 = 33 tics a throw (the RPG-7: 26 a round).
-		SDAX B 8 A_StartSound("sd/weapon/rgd5/pin", CHAN_WEAPON);
-		SDAX C 3 A_StartSound("sd/weapon/rgd5/throw", CHAN_WEAPON);
-		SDAX C 2 A_SD_ThrowRgd5;
-		SDAX D 8;
-		SDAX A 12 A_CheckReload;
+		SDRG B 8 A_StartSound("sd/weapon/rgd5/pin", CHAN_WEAPON);
+		SDRG C 3 A_StartSound("sd/weapon/rgd5/throw", CHAN_WEAPON);
+		SDRG C 2 A_SD_ThrowRgd5;
+		SDRG D 8;
+		SDRG A 12 A_CheckReload;
 		Goto Ready;
 	Spawn:
-		SDHB A -1;
+		SDRQ A -1;
 		Stop;
 	}
 

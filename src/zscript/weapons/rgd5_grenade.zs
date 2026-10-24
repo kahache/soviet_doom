@@ -25,15 +25,13 @@
 // the colossus, the Consortium) have +NORADIUSDMG and take nothing from it,
 // on purpose (BALANCE.md section 3, slot 8).
 //
-// PROVISIONAL LOOK (D116): no art of its own yet (Gemini, a little at a
-// time). In flight and at rest it shows the health bonus's olive flask, SDHB
-// A, the nearest shape the mod ships to an RGD-5's egg, tinted gunmetal by
-// the line marked PROVISIONAL-D116 so it is not taken for a bonus. The
-// burst is the PG-7V's SDPX A-C, which stays. The final name is SDRN A (the
-// V3 doc section 5); when it is installed in assets/sprites/rgd5/, the swap is:
-//   sed -i -e 's/^\(\s*\)SDHB /\1SDRN /' -e '/^\s*[^/[:space:]].*PROVISIONAL-D116/d' src/zscript/weapons/rgd5_grenade.zs
-// (MOD-SPEC 6.12; tests/test_rgd5.py pins both halves). Every tic, action
-// and jump stays.
+// ITS OWN LOOK since 2026-10-25 (D133, "Ok granada"; D116 had it on
+// the health bonus's SDHB A, tinted gunmetal): SDRN A in flight and at
+// rest, assets/sprites/rgd5/, the project lead's Gemini grenade turned 35
+// degrees and a little smaller (tools/art/gen_rgd5_pickups.py). The burst
+// is the PG-7V's SDPX A-C, which stays. Only the sprite name changed and
+// the tint line went; every tic, action and jump stayed (MOD-SPEC 6.12;
+// tests/test_rgd5_sprites.py).
 
 class SD_Rgd5Grenade : Actor
 {
@@ -71,19 +69,18 @@ class SD_Rgd5Grenade : Actor
 		BounceSound "sd/weapon/rgd5/bounce";
 		MaxStepHeight 4;                 // Strife's HEGrenade's: it does not climb steps as it slides
 		Obituary "$SD_OB_RGD5";
-		Translation "0:255=%[0.03,0.04,0.05]:[0.80,0.88,0.95]";   // PROVISIONAL-D116: gunmetal, not the bonus's olive
 	}
 
 	States
 	{
 	Spawn:
 		// In flight: one frame, the fuse burning.
-		SDHB A 1 A_SD_BurnFuse;
+		SDRN A 1 A_SD_BurnFuse;
 		Loop;
 	Death:
 		// Stopped (it hit something it does not bounce off, or came to rest):
 		// it lies there and the fuse keeps burning. NOT the burst.
-		SDHB A 1 A_SD_BurnFuse;
+		SDRN A 1 A_SD_BurnFuse;
 		Loop;
 	Detonate:
 		// Reached only by A_SD_BurnFuse. The PG-7V's burst, 8 + 6 + 4 tics.

@@ -177,6 +177,12 @@ D123_ENEMIES = ({f"sprites/legion_gunner/SDLG{f}{r}.png" for f in "ABCDEFG" for 
 # A by gen_akm_pickup.py (the laminate in v2's marble_red). RGBA, not in
 # PALETTE_V2_LUMPS.
 AKM_LUMPS = ("SDAKA0", "SDAKB0", "SDAFA0", "SDAQA0")
+# 2026-10-25 (D133, the CEO: "Ok granada"): the RGD-5's own set in
+# assets/sprites/rgd5/. SDRG A-D by gemini_frames.py rgd5 (all of palette
+# v2), SDRJ A and SDRN A from the Gemini pickup image and the pouch SDRQ A
+# and crate SDRZ A on the pickup rig with that grenade in them, by
+# gen_rgd5_pickups.py. RGBA, not in PALETTE_V2_LUMPS.
+RGD5_LUMPS = ("SDRGA0", "SDRGB0", "SDRGC0", "SDRGD0", "SDRJA0", "SDRNA0", "SDRQA0", "SDRZA0")
 D84_FRAMES = {"izh": ("SDIZ", "ABCD", "SDIF", "AB"), "rpg7": ("SDRL", "AB", "SDRF", "ABCD"),
               "roks3": ("SDRK", "AB", "SDKF", "A"), "katyusha": ("SDHK", "AB", "SDHF", "AB"),
               "ice_axe": ("SDAX", "ABCD", "SDAX", "")}
@@ -216,6 +222,7 @@ APPROVED_IN_V2: set[str] = (
     | GEMINI_ENEMIES
     | D123_ENEMIES
     | {f"sprites/akm/{name}.png" for name in AKM_LUMPS}
+    | {f"sprites/rgd5/{name}.png" for name in RGD5_LUMPS}
     # D126: the Gemini title screen, indexed in palette v2.
     | {"graphics/shell/TITLEPIC.png"}
     | D122_SHELL)

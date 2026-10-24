@@ -1188,7 +1188,7 @@ in the IWAD.
 | `SD_Rpg7` | `RocketLauncher` *replaces RocketLauncher* | Slot 5, `RocketAmmo`. Fires `SD_Pg7Grenade`. |
 | `SD_Roks3` | `PlasmaRifle` *replaces PlasmaRifle* | Slot 6, `Cell`. Fires `SD_FlameBlob`. |
 | `SD_HandKatyusha` | `BFG9000` *replaces BFG9000* | Slot 7, `Cell`, 40 per salvo. Fires six `SD_KatyushaRocket`. |
-| `SD_Rgd5` | `DoomWeapon` (replaces nothing) | Slot 8, a key of its own (V3, A4; ADR 012): the RGD-5 hand grenade, `SD_Rgd5Ammo`; on the floor the pouch of two, 21009. Throws `SD_Rgd5Grenade`; never raised by itself. Provisional look §6.12. Design `docs/engine/2026-10-23_V3_rgd5.md`. |
+| `SD_Rgd5` | `DoomWeapon` (replaces nothing) | Slot 8, a key of its own (V3, A4; ADR 012): the RGD-5 hand grenade, `SD_Rgd5Ammo`; on the floor the pouch of two, 21009. Throws `SD_Rgd5Grenade`; never raised by itself. Own sprites `SDRG`, `SDRQ`, `SDRJ`, `SDRN`, `SDRZ` since D133 (§6.12). Design `docs/engine/2026-10-23_V3_rgd5.md`. |
 | `SD_Rgd5Ammo` | `Ammo` (a pool of its own) | The RGD-5's pool and one loose grenade, 21021, in `zscript/weapons/rgd5_ammo.zs`; taken by a player with no `SD_Rgd5`, it gives the weapon too (ADR 012, §6.4). |
 | `SD_Rgd5Box` | `SD_Rgd5Ammo` | A crate of four RGD-5s, 21022. |
 | `SD_Pg7Grenade` | `Rocket` | Shaped-charge projectile. Not placeable. |
@@ -2461,9 +2461,9 @@ Chrome Marshal's own (`SD_ChromeGeneral`, `SDGN` ×1.3 tinted chrome, D123).
 | `SD_Consortium` | `SDCN` | 95 | Q R rooted, A–D walk, E–H, S the Breach, I–O death | **`SDCN`**, installed (D128), `assets/sprites/consortium/`; palette v3 |
 | `SD_Akm` | `SDAK` A–B held, `SDAF` A flash, `SDAQ` A pickup | 4 | the PPSh-41's | **`SDAK`, `SDAF`, `SDAQ`**, installed (D128), `assets/sprites/akm/` |
 | `SD_AkmAmmo` | `SDAM` A | 1 | one curved magazine | `SDCL`, tinted |
-| `SD_Rgd5` (V3) | `SDRG` A–D held, `SDRQ` A the pouch | 5 | A ready, B the pin out and the arm back, C the release, D the follow-through | the ice axe's `SDAX` A–D; `SDHB` (borrowed from `SD_HealthBonus`) A tinted, ×1.4 |
-| `SD_Rgd5Ammo`, `SD_Rgd5Box` (V3) | `SDRJ` A one grenade (and the icon), `SDRZ` A the crate | 2 | | `SDHB` (borrowed from `SD_HealthBonus`) A, `SDRB` A, tinted gunmetal |
-| `SD_Rgd5Grenade` (V3) | `SDRN` A in flight and at rest | 1 | the burst stays `SDPX` A–C | `SDHB` (borrowed from `SD_HealthBonus`) A, tinted |
+| `SD_Rgd5` (V3) | `SDRG` A–D held, `SDRQ` A the pouch | 5 | A ready, B the pin out and the arm back, C the release, D the follow-through | **`SDRG`, `SDRQ`**, installed (D133), `assets/sprites/rgd5/` |
+| `SD_Rgd5Ammo`, `SD_Rgd5Box` (V3) | `SDRJ` A one grenade (and the icon), `SDRZ` A the crate | 2 | | **`SDRJ`, `SDRZ`**, installed (D133), `assets/sprites/rgd5/`; icon `SDRJA0` |
+| `SD_Rgd5Grenade` (V3) | `SDRN` A in flight and at rest | 1 | the burst stays `SDPX` A–C | **`SDRN`**, installed (D133), `assets/sprites/rgd5/` |
 
 ### 6.4 Ammunition (contract with `art-director` and `level-designer`)
 
@@ -2976,9 +2976,9 @@ only; **no new PNG enters `assets/`** for them.
 | `SD_Consortium` (and the `SD_ConsortiumWounded` fixture) | `zscript/monsters/consortium.zs` | **its own `SDCN` since D128** (from D116 the heavy Panzermensch's `SDPS`) | nothing left to tell: `Scale 1.75` and the cobalt `Translation` are gone; Spawn and the rooted `See` show Q R, the Breach's first two frames S (`tests/test_ep3_boss.py`) | `SDCN`, installed |
 | `SD_Akm` | `zscript/weapons/akm.zs` | **its own `SDAK` A–B, `SDAF` A, `SDAQ` A since D128** (from D116 the PPSh-41's `SDPP`, `SDPF` and the tinted `SDPQ`, letter for letter) | nothing left to tell: the pickup's `Translation` is gone; `tests/test_akm_sprites.py` pins the states | `SDAK`, `SDAF`, `SDAQ`, installed |
 | `SD_AkmAmmo` | `zscript/sd/ammo.zs` | the 7.62×25 magazine's `SDCL` A; icon `SDCLA0` | `Translation` (plum-orange) on the floor | `SDAM` |
-| `SD_Rgd5` (V3) | `zscript/weapons/rgd5.zs` | the ice axe's `SDAX` A–D in hand, the health bonus's `SDHB` (borrowed from `SD_HealthBonus`) A on the floor | the floor pouch's `Translation` (gunmetal) and `Scale 1.4`; **in hand it is the ice axe's picture**; the key 8 and the AMMO count tell them apart | `SDRG`, `SDRQ` |
-| `SD_Rgd5Ammo`, `SD_Rgd5Box` (V3) | `zscript/weapons/rgd5_ammo.zs` | `SDHB` (borrowed from `SD_HealthBonus`) A, the PG-7V crate's `SDRB` A; icon `SDHBA0` | `Translation` (gunmetal), inherited by the crate | `SDRJ`, `SDRZ` (the icon by hand) |
-| `SD_Rgd5Grenade` (V3) | `zscript/weapons/rgd5_grenade.zs` | `SDHB` (borrowed from `SD_HealthBonus`) A; the burst `SDPX` | `Translation` (gunmetal) | `SDRN` |
+| `SD_Rgd5` (V3) | `zscript/weapons/rgd5.zs` | **its own `SDRG` A–D in hand and `SDRQ` A on the floor since D133** (from D116 the ice axe's `SDAX` A–D and the health bonus's `SDHB` (borrowed from `SD_HealthBonus`) A, letter for letter) | nothing left to tell: the pouch's `Translation` and `Scale 1.4` are gone; `tests/test_rgd5_sprites.py` pins the states | `SDRG`, `SDRQ`, installed |
+| `SD_Rgd5Ammo`, `SD_Rgd5Box` (V3) | `zscript/weapons/rgd5_ammo.zs` | **their own `SDRJ` A and `SDRZ` A since D133**; icon `SDRJA0` (from D116 `SDHB` (borrowed from `SD_HealthBonus`) A, the PG-7V crate's `SDRB` A, icon `SDHBA0`) | nothing left to tell: the `Translation` is gone | `SDRJ`, `SDRZ`, installed |
+| `SD_Rgd5Grenade` (V3) | `zscript/weapons/rgd5_grenade.zs` | **its own `SDRN` A since D133** (from D116 `SDHB` (borrowed from `SD_HealthBonus`) A); the burst the PG-7V's `SDPX`, which stays | nothing left to tell: the `Translation` is gone | `SDRN`, installed |
 
 **Swapped by D123 (2026-10-23).** The gunner's and the colossus's swaps
 were done by the art-director's install patches
@@ -2999,8 +2999,19 @@ state edits the drawing adds, and
 `work/art/weapons/hand_G/akm/install/akm-install.patch`): no
 `PROVISIONAL-D116` line is left in `consortium.zs` or `akm.zs`;
 `tests/test_ep3_boss.py` (`test_its_own_look_is_installed`) and
-`tests/test_akm_sprites.py` hold that. The only marked line left in the
-mod is `SD_AkmAmmo`'s (`SDAM`, below).
+`tests/test_akm_sprites.py` hold that.
+
+**Swapped by D133 (2026-10-25, the CEO: "Ok granada").** The RGD-5's
+swaps (V3, on the `v3` branch) were done from
+`work/art/weapons/hand_G/rgd5/install/` (the patch made against an older
+`v3`, applied by hand where `v3` had moved): `SDAX` → `SDRG`, `SDRB` →
+`SDRZ`, and the health bonus's sprite borrowed from `SD_HealthBonus` →
+`SDRQ` / `SDRJ` / `SDRN`, with the icon;
+no `PROVISIONAL-D116` line is left in `rgd5.zs`, `rgd5_ammo.zs` or
+`rgd5_grenade.zs`, and `tests/test_rgd5.py`
+(`test_its_own_look_the_swaps_done`) and `tests/test_rgd5_sprites.py` hold
+that. The only marked line left in the mod is `SD_AkmAmmo`'s (`SDAM`,
+below).
 
 **The rule.** Every line of code that exists only because the art is not
 drawn carries the comment mark `PROVISIONAL-D116`: the `Translation`, the
@@ -3219,7 +3230,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | ~~T19~~ | ~~Nothing has been seen in the engine: the eight classes compile only in theory until the PM's batch run (D26).~~ **Paid 2026-10-13** by the PM's engine pass (GZDoom 4.14.2, Freedoom 0.13.0): the classes load with no error, the gallery shows all eight, the drops and the General's single summon were counted, and MAP01 v3's 33 enemies spawn through Doom's numbers. Evidence `docs/qa/evidence/2026-10-13_1705_F5_map02-bestiary.log` and `…-gallery.png` (commit `2b1aba5`), `docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass.log` (commit `bcbf35f`); the table is in ADR 006. What that pass did **not** settle is debt T22. |  |
 | ~~T20~~ | ~~ADR 006 is owed.~~ **Paid 2026-10-13**: `docs/engine/adr/006-bestiary-actors.md` (seven decisions, what the engine showed, what it did not). Written in the working tree; the commit is the PM's (D6). |  |
 | T21 | Doom monsters with no Soviet replacement (58 spectre, the rest of Doom II's roster) still spawn Freedoom's actors. **Partly paid by D116 (2026-10-22):** the chaingunner (65) is `SD_LegionGunner` and the Spider Mastermind (7) `SD_LibertyColossus`; MAP01 §8's "Legion heavy gunner" exists now; the P4 maps place the gunner (21110), the colossus (21111, MAP06) and since D123 the Chrome Marshal (21113, MAP08). | `level-designer`, where a map wants a gunner |
-| T26 | **The P4 actors wore provisional looks (D116, §6.12)**: existing sprites, tinted and scaled in code (**paid**: the gunner and the colossus by D123, their own `SDLG` and `SDLC`; the Consortium and the AKM by D128, their own `SDCN` and `SDAK`/`SDAF`/`SDAQ`; the Chrome Marshal's tint is a design, not debt). **Still open:** the AKM's magazine `SDAM` (`SDCL` tinted), and existing sounds under their own names (§6.2, "P4 sounds"); status bar A has no row for the AKM's pool (ADR 011). **V3 adds the RGD-5** (ADR 012): in hand the ice axe's picture, on the floor tinted `SDHB` (borrowed from `SD_HealthBonus`)/`SDRB`, reused sounds, no bar A row for its pool either. **V3 B5's loudspeaker** (§6.14) wears its own `SDLS` since 2026-10-24 (no longer provisional). None of it is seen in the engine (D26): the design docs' checks E1–E11, A1–A9 and R1–R12 are owed. | the PM's engine pass now; the art and sound swaps as Gemini's frames and `sound-designer`'s takes are approved |
+| T26 | **The P4 actors wore provisional looks (D116, §6.12)**: existing sprites, tinted and scaled in code (**paid**: the gunner and the colossus by D123, their own `SDLG` and `SDLC`; the Consortium and the AKM by D128, their own `SDCN` and `SDAK`/`SDAF`/`SDAQ`; the Chrome Marshal's tint is a design, not debt). **Still open:** the AKM's magazine `SDAM` (`SDCL` tinted), and existing sounds under their own names (§6.2, "P4 sounds"); status bar A has no row for the AKM's pool (ADR 011). **V3 adds the RGD-5** (ADR 012): its art **paid by D133** (its own `SDRG`, `SDRQ`, `SDRJ`, `SDRN`, `SDRZ`; it wore the ice axe's picture and tinted `SDHB` (borrowed from `SD_HealthBonus`)/`SDRB` from D116); still reused sounds, no bar A row for its pool either. **V3 B5's loudspeaker** (§6.14) wears its own `SDLS` since 2026-10-24 (no longer provisional). None of it is seen in the engine (D26): the design docs' checks E1–E11, A1–A9 and R1–R12 are owed. | the PM's engine pass now; the art and sound swaps as Gemini's frames and `sound-designer`'s takes are approved |
 | T17 | **The English `LANGUAGE` section still carries Latin transliterations** (`PG-7V`, `7.62x25`) although the glyphs for the Cyrillic forms D17 asks for exist since D24 (§6.4). Two ASCII tests pin the current state (`tests/test_language.py`, `tests/test_arsenal.py`). | `mod-engineer`, one text change plus an engine screenshot of the HUD |
 | T22 | **Bestiary behaviours the engine pass did not show** (ADR 006, "NOT VERIFIED"): infighting between our classes and the native `GetSpecies` rule behind the explicit `Species`; the colour of `BloodColor`; the General's order line on screen (the console log carries it); the recruits entering the chase and the blocked-spot fallback; the attack helpers' damage (both runs were god mode, deaf or `notarget`); how far a dead Doughboy falls; the sounds. | the PM's next engine pass, with enemies awake and one fighting another; `qa-engineer` for the sounds, with a human |
 | T23 | **The radio (§6.7) is unseen.** `SD_Radio` has not run in the engine (D26). ~~its editor number 21200 is not yet in `MAPINFO`~~ (`MAPINFO` gives 21200 to `SD_Radio` since; read 2026-10-14). ~~its placeholder `PMAP` A is the computer area map's pickup, which MAP01 also places (2026): a player may walk at the radio expecting a pickup.~~ **The sprite part is paid 2026-10-14 (D63):** `SDRD` A, an Okean-209 on a tabouret (§6.3, "The pickups, installed by D63"); `PMAP` is retired from §5.1. | the PM's engine pass (ADR 008 checklist), which now also sees `SDRD` A draw |

@@ -25,14 +25,14 @@
 // g4.14.2 ammo.zs), and a grenade the sergeant cannot throw, because only a
 // grenade PICKUP gives the weapon, would read as a bug.
 //
-// PROVISIONAL LOOK (D116): the loose grenade shows the health bonus's olive
-// flask SDHB A, the crate the PG-7V crate SDRB A, both tinted gunmetal by
-// the one line marked PROVISIONAL-D116 (the crate inherits it), until
-// Gemini's SDRJ A and SDRZ A are drawn. The HUD icon is SDHBA0 untinted (an
-// icon takes no Translation). The swap when they land in assets/sprites/rgd5/:
-//   sed -i -e 's/^\(\s*\)SDHB /\1SDRJ /' -e 's/^\(\s*\)SDRB /\1SDRZ /' -e '/^\s*[^/[:space:]].*PROVISIONAL-D116/d' src/zscript/weapons/rgd5_ammo.zs
-// and SDHBA0 -> SDRJA0 in Inventory.Icon by hand (MOD-SPEC 6.12;
-// tests/test_rgd5.py pins both halves).
+// ITS OWN LOOK since 2026-10-25 (D133, "Ok granada"; D116 had them on
+// the health bonus's SDHB A and the PG-7V crate SDRB A, tinted gunmetal):
+// assets/sprites/rgd5/. The loose grenade SDRJ A (also the HUD icon SDRJA0)
+// is the project lead's Gemini image of the grenade lying, through
+// tools/art/gen_rgd5_pickups.py; the crate SDRZ A is a small open wooden
+// crate drawn on the weapon pickups' rig with four of those grenades in it.
+// Only the sprite names and the icon changed and the tint line went
+// (MOD-SPEC 6.12; tests/test_rgd5_sprites.py).
 
 class SD_Rgd5Ammo : Ammo
 {
@@ -49,15 +49,14 @@ class SD_Rgd5Ammo : Ammo
 		Inventory.MaxAmount SD_RGD5_MAX;
 		Ammo.BackpackAmount SD_RGD5_BACKPACK;
 		Ammo.BackpackMaxAmount SD_RGD5_BACKPACK_MAX;
-		Inventory.Icon "SDHBA0";
+		Inventory.Icon "SDRJA0";
 		Tag "$SD_AMMO_RGD5";
-		Translation "0:255=%[0.03,0.04,0.05]:[0.80,0.88,0.95]";   // PROVISIONAL-D116: gunmetal, not the bonus's olive
 	}
 
 	States
 	{
 	Spawn:
-		SDHB A -1;
+		SDRJ A -1;
 		Stop;
 	}
 
@@ -95,7 +94,7 @@ class SD_Rgd5Box : SD_Rgd5Ammo
 	States
 	{
 	Spawn:
-		SDRB A -1;
+		SDRZ A -1;
 		Stop;
 	}
 }
