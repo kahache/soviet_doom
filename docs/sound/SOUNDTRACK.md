@@ -8,11 +8,11 @@ Revised 2026-10-14, **D62 / backlog N8**: one piece per map. The three drafts ar
 Rights frame: `docs/sound/MUSIC-RIGHTS.md` — that document owns every licence
 fact and this one owns every sound fact.
 
-Decision **D16** (CEO, 2026-10-13): *"el camino correcto es instrumental en MIDI"*.
+Decision **D16** (CEO, 2026-10-13): *"el camino correcto es instrumental en MIDI"* ("the right way is instrumental, in MIDI").
 No Soviet recording of anything enters this mod.
 Same day, two further CEO instructions: *"no construyas tú los MIDIs, mejor
-descargarlos"* and *"Sí a LA INTERNACIONAL"* for the title screen, plus the
-verdict that our own two pieces are *"un poco simples"*. Those instructions
+descargarlos"* ("do not build the MIDIs yourself, better to download them") and *"Sí a LA INTERNACIONAL"* ("yes to THE INTERNATIONALE") for the title screen, plus the
+verdict that our own two pieces are *"un poco simples"* ("a little simple"). Those instructions
 are recorded as **D23** (CEO, 2026-10-13, `docs/PRD.md` §5), which amends
 D16: *"Free MIDI sequences with a verified licence come first, our own
 sequencing is the fallback for works that exist only as free scores. La
@@ -20,7 +20,7 @@ Internacional is the title theme. The three-rights rule of D16 stands in
 full."* So a downloaded, attribution-licensed title sequence is now the
 decided route, not a departure from it.
 
-**D43** (CEO, 2026-10-13): *"Acepto las recomendaciones de música"* — every
+**D43** (CEO, 2026-10-13): *"Acepto las recomendaciones de música"* ("I accept the music recommendations") — every
 open recommendation of §8 accepted. What that changed, in one place:
 
 > **Two lumps are installed and packed: `assets/music/D_SDINTL.mid` (title)
@@ -159,7 +159,7 @@ Composed for episode 3 under the D112 brief by `tools/audio/compose_episode3.py`
 (original, no quotation: the generator's self-check, which since D113 leaves
 the episode's own installed lumps out of its scan; rights `MUSIC-RIGHTS.md`
 §4.5). The CEO approved all ten **without hearing them**, "las doy por
-buenas" (D113), so the first time anyone hears them in the engine is the PM's
+buenas" ("I take them as good") (D113), so the first time anyone hears them in the engine is the PM's
 pass. Installed byte for byte from `work/audio/episode3/`;
 `tests/test_music.py` regenerates each at its calibrated CC7 scale and
 compares.
@@ -549,7 +549,7 @@ is §8.2.
 
 ## 6. Our own sequences (plan B, kept)
 
-The CEO's verdict on these was *"están bien las piezas pero un poco simples"*,
+The CEO's verdict on these was *"están bien las piezas pero un poco simples"* ("the pieces are fine but a bit simple"),
 and the measurements partly agree and partly do not:
 
 | | `D_SDTITL` | `D_SDM01` | `D_SDINTL` for comparison |
@@ -921,7 +921,7 @@ can report a timeout on work it already finished.
 ## 8. Decisions — all settled by D43
 
 On 2026-10-13 the CEO accepted every open recommendation of this section:
-*"Acepto las recomendaciones de música"* (**D43**, `docs/PRD.md` §5). The
+*"Acepto las recomendaciones de música"* ("I accept the music recommendations") (**D43**, `docs/PRD.md` §5). The
 items as they stood, and what each became:
 
 0. **Engelbach attribution — ACCEPTED.** Jerry Engelbach is credited

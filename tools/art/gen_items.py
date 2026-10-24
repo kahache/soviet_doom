@@ -959,7 +959,7 @@ def key_options(slug: str):
 
 
 # ============================================================ Katyusha
-HK_VARIANT = "B"                # D51: "de katiushka me flipa la B"
+HK_VARIANT = "B"                # D51: "de katiushka me flipa la B" ("for the Katyusha I love B")
 HK_SMALL = 0.82                 # option B: the D51 pose at Freedoom's footprint
 HK_SIDE = (1.05, (1.0, 0.10), -12.0, 3.0)   # option C: px/cm, turn, roll, tilt
 
@@ -1131,7 +1131,8 @@ ITEM = {i.slug: i for i in ITEMS}
 ITEM_LUMPS = tuple(row[1] for row in NAMES)
 
 # D80 (2026-10-20): the CEO's choice, "todos los que tú recomiendas por
-# defecto, salvo SDAG C, SDAH C, SDBP B"; the Katyusha at its drafted size
+# defecto, salvo SDAG C, SDAH C, SDBP B" ("all the ones you recommend by
+# default, except SDAG C, SDAH C, SDBP B"); the Katyusha at its drafted size
 # (A). These are the options installed in assets/sprites/pickups/.
 CHOSEN = {"stim": "A", "medikit": "A", "hbonus": "B", "abonus": "A", "garmor": "C", "barmor": "C",
           "allmap": "A", "backpack": "B", "ykey": "A", "rkey": "A", "katyusha": "A"}

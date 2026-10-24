@@ -491,24 +491,24 @@ def tex_sky7() -> np.ndarray:
 Piece = e2b.Piece2
 PIECES = [
     Piece("SDSKY6", tex_sky6, "sky", SKY_SIZE, ["SDSKY6"], 1, "x",
-          "Cosmódromo Zarya-7 al alba (cielo MAP01 y polígono)",
-          "El cosmódromo en la estepa antes del alba de noviembre de 1977: cielo frío y despejado con estrellas, "
-          "una franja de amanecer baja al este bajo vetas de nubes, la estepa plana con nieve; a lo lejos la "
-          "rampa con la torre de servicio y un cohete tipo Soyuz iluminado por los focos, venteando oxígeno, "
-          "los bloques de la base, el hangar de montaje, un depósito de agua, un mástil con luces rojas, una "
-          "antena de seguimiento, una segunda rampa vacía y la carretera de farolas hasta la rampa.",
+          "Zarya-7 cosmodrome at dawn (MAP01 and range sky)",
+          "The cosmodrome on the steppe before a November 1977 dawn: a cold, clear sky with stars, a low "
+          "band of daybreak in the east under streaks of cloud, the flat snowy steppe; in the distance the "
+          "pad with its service tower and a Soyuz-type rocket lit by floodlights, venting oxygen, the base's "
+          "blocks, the assembly hangar, a water tower, a mast with red lights, a tracking antenna, a second "
+          "empty pad and the lamp-lit road up to the pad.",
           set_name=SET_NAME,
-          rec_why="El cohete y el alba orientan sin decir nada; el polígono es una sala de la misma base."),
+          rec_why="The rocket and the dawn orient the player without a word; the range is a room of the same base."),
     Piece("SDSKY7", tex_sky7, "sky", SKY_SIZE, ["SDSKY7"], 2, "x",
-          "Tankogrado de noche (cielo MAP03)",
-          "La fábrica de tractores-tanques de noche en los Urales: nubes bajas teñidas de naranja por los "
-          "altos hornos, sus antorchas de gas y sus estufas, la escoria fundida cayendo por la escombrera, "
-          "chimeneas con humo y luces rojas, la fila de chimeneas de la acería, naves en diente de sierra con "
-          "las cristaleras encendidas, una torre de refrigeración con su vapor, grúas pórtico, la estrella "
-          "roja de la torre de la puerta; abajo el patio con nieve sucia y raíles que recogen el resplandor.",
+          "Tankograd at night (MAP03 sky)",
+          "The tractor-and-tank works in the Urals at night: low clouds stained orange by the blast "
+          "furnaces, their gas flares and stoves, molten slag pouring down the tip, smoking chimneys with "
+          "red lights, the steelworks' row of stacks, saw-tooth halls with lit glazing, a cooling tower "
+          "and its steam, gantry cranes, the red star on the gate tower; below, the yard with dirty snow "
+          "and rails catching the glow.",
           set_name=SET_NAME,
-          rec_why="Sin el resplandor del portal: en MAP03 está dentro del tambor de la nave cerrada, y el "
-                  "cobalto obligaría a la paleta v2."),
+          rec_why="No portal glow: in MAP03 it is inside the drum of the closed hall, and the cobalt would "
+                  "force palette v2."),
 ]
 
 

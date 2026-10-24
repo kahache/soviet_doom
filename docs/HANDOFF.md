@@ -6,6 +6,35 @@ and D114). Before that: 2026-10-21 ~23:30 (night shift closed, D102/D103) and
 `docs/PRD.md`; open CEO items in `docs/PENDING-CEO-DECISIONS.md`; tasks and
 estimates in `docs/BACKLOG.md`; the phase view in `docs/ROADMAP.md` ("P4 today").
 
+## RESUME HERE FIRST (2026-10-24 ~13:10, PC shut down at the CEO's request)
+
+**v1.2 is PUBLIC and Latest (D130); V2 is closed.** https://github.com/kahache/soviet_doom/releases/tag/v1.2 —
+tag at 1640328, sign-off `docs/qa/evidence/2026-10-24_1245_P4_v12-signoff.md` (clean clone 3521 tests, 33/33 routes,
+Windows and Linux packages tested; macOS NOT VERIFIED). Drafts v1.1 and v1.2-rc1 deleted. Decisions up to D130.
+Today: Consortium, AKM, title screen (D126), walks (D127 Fooocus tried, hand-cut strides used), palette v3 grey-green
+ramp (D128), no Spanish anywhere public (D129, `tests/test_no_spanish.py`). Gemini today: 15 of ~20 used.
+**Next: V3** on branch `v3` (origin/v3, worktree `scratchpad/wt_v3`, f282b2b + route fix 13aea5c): pickup events
+E1-E3, ops map + medals (D122), RGD-5 placed in MAP04-09 and RANGE (Gemini refs `work/art/reference/gemini_rgd5_*.jfif`
+not processed yet; frame D derives from C), propaganda loudspeakers (D124; no `SDLS` sprite yet). 33/33 routes on v3
+(one intermittent MAP04 skill 3). To do: merge main (D123-D130) into v3, process the RGD-5 sprites, a loudspeaker
+sprite, MAP01-03 grenades/loudspeakers, the MAP09 crater hook, the trailer (D3), reloads (nice to have).
+
+## Earlier: RESUME HERE FIRST (2026-10-23 ~12:45, PC shut down at the CEO's request)
+
+**main (V2), all pushed, 33/33 routes PASS on f1c350b** (fb4f3bd evidence) + D125 sounds smoke-clean on HEAD:
+D123 installed (Gemini gunner SDLG, TT-33, Liberty statue SDLC = MAP06 boss, `SD_ChromeGeneral` 21113 = MAP08
+mini-boss); D125 world/player sounds (51 takes; jump stays Freedoom's). D124 radio approved (V3). D126: epic title
+screen with Gemini before v1.2 (prompt in the pack §11). The CEO has nothing left to review.
+**v3 branch** (origin/v3, worktree `scratchpad/wt_v3`, 5a3e1d7): six V3 jobs merged (pickup events E1/E2/E3,
+ops map + medals D122, RGD-5 ADR 012, radio proposal) + the status-screen fix. Engine: 27/33; **2 routes fail on
+skills 2-4, both Episode 1**: g3-auto (MAP01: tags 12/13 of the weapon-pickup cupboards stay shut at A6/A9 — probably
+the route already holds the IZh/PPSh, so the pickup never fires; check the helper's `give` and rule R8) and
+metro-critical (MAP02: step PASS ends in z3_hall instead of Z8 after the window event). Hand to a level-designer with
+the reports in `wt_v3/docs/qa/evidence/2026-10-23_12*`. Then: integrate the radio (SD_Loudspeaker 21201) and place
+the RGD-5 in the maps on v3; MAP09 crater hook (ZScript) and MAP03 train stay candidates.
+**Next when the PC is on:** Gemini queue below (≈20 images), install the Consortium/AKM/walk re-asks, the title
+screen last, then the v1.2 sign-off and the CEO's final yes to publish.
+
 ## Gemini progress 2026-10-23 (cap hit at 10:38; next window 23 Oct 17:33)
 
 20 images today. Done: TT-33 A/B (but Gemini drew a generic modern pistol: re-ask with the TT-33 block in
@@ -13,7 +42,7 @@ the art-director's note, `gemini_tt33_A2/B2`), gunner 5/5 (aim_v3 and death_v2 a
 colossus 7/7 (aim and fire: profile touches view 4, crop by hand), Consortium 2/7 (rooted, turn). **Next at 17:33:**
 gunner walkL/walkR re-ask (all five views mid-stride, left leg forward in L, right in R: the two sheets came
 out almost identical), then Consortium fire, death, aim (2 rows), walk (2 rows), breach; then the AKM 2; TT-33 re-ask 2;
-re-asks 4 (optional: gunner fire 3/4-back views with the flash at the hip).
+re-asks 4 (optional: gunner fire 3/4-back views with the flash at the hip). **LAST, before publishing v1.2: the epic title screen (TITLEPIC, D126, prompt in §11 of the pack).**
 Processing agents (art-director) run per character; previews go to the CEO before anything enters `assets/`.
 V3 agents run in isolated worktrees (pickup events E1/E2/E3, ops map + medals, RGD-5, propaganda radio).
 
@@ -25,7 +54,7 @@ D121 Icebox cleanup). Done tonight, all committed and pushed (HEAD after 0c20524
   ammo of MAP01-09 per BALANCE §8 + the PM's amendment (rockets ≤ 30 % outside bosses, fuel ≤ 15 %), 42 Catalan
   engine strings, Episode 1 skies (D121) (df2ecdd). verify fast PASS; **33/33 routes PASS** on df2ecdd (0c20524 evidence).
 - Play build **v1.2-rc3** (not published): `C:\Users\littl\Desktop\SovietDoom-prueba\rc3\SovietDoom` (rc2 left as it was).
-- PM proposals doc `docs/product/2026-10-23_P4_propuestas-siguientes-versiones.md`; V3 list in `docs/ICEBOX.md`.
+- PM proposals doc `docs/product/2026-10-23_P4_next-version-proposals.md`; V3 list in `docs/ICEBOX.md`.
 
 **Next, when the CEO switches the PC on:**
 1. **Gemini** (window from 23 Oct 08:19) with `docs/product/2026-10-23_P4_gemini-prompt-pack.md` (gunner fire frame
@@ -59,7 +88,7 @@ Draft releases (not public): v1.1 and **v1.2-rc1** (everything of today).
 **Next, in order:**
 1. **Gemini** (daily image limit reset 22 Oct 17:33; drive the CEO's Chrome per the `reference-gemini-chrome-workflow` memory;
    upload: open the "+" menu, `find` the hidden file inputs, `file_upload` to the middle ref):
-   a. **TT-33** (D111): ready + fire, bare hands; weapon prompt in `docs/product/2026-10-20_0030_M2_gemini-armas.md`; then `tools/art/gemini_frames.py`.
+   a. **TT-33** (D111): ready + fire, bare hands; weapon prompt in `docs/product/2026-10-20_0030_M2_gemini-weapons.md`; then `tools/art/gemini_frames.py`.
    b. **SD_LegionGunner** (SDLG): only `gem_gunner_turn.png` exists; walkL/walkR/aim/fire/death; frame list in `docs/engine/2026-10-22_P4_ep2-enemies.md`.
    c. **SD_LibertyColossus** (SDLC) from scratch (same doc).
    d. **The Consortium** (SDCN, `docs/engine/2026-10-22_P4_ep3-final-boss.md`) and the **AKM** (`docs/engine/2026-10-22_P4_akm.md`, prompt block ready).
@@ -97,7 +126,7 @@ Draft releases (not public): v1.1 and **v1.2-rc1** (everything of today).
 2. Gemini's daily image limit resets 2026-10-22 17:33: then the TT-33 (D111),
    the Legion gunner's frames (walkL/walkR/aim/fire/death) and the Colossus
    from scratch, and the enemy re-asks listed in the review sheet. Method and
-   prompts: `tools/art/gemini_enemy.py`, `docs/product/2026-10-20_0030_M2_gemini-armas.md`.
+   prompts: `tools/art/gemini_enemy.py`, `docs/product/2026-10-20_0030_M2_gemini-weapons.md`.
    Sheets are local only (D77): `work/art/reference/enemies/gemini/`.
 3. The CEO owes: v1.1 or v1.2; the Marx-Engels pair (cells, mirror, slogan
    split, alignment); the General's death voice (new round in
@@ -121,7 +150,7 @@ prompts: upload `work/art/reference/enemies/clean_<enemy>.png` (swastikas blanke
 through the hidden image input, then turn / walkL / walkR / aim / fire / death
 (cartoonish, no blood words).
 
-## NIGHT SHIFT 2026-10-21 (D102) — DONE 23:30; the morning report is `docs/product/2026-10-21_2330_P0_informe-noche.md`
+## NIGHT SHIFT 2026-10-21 (D102) — DONE 23:30; the morning report is `docs/product/2026-10-21_2330_P0_night-report.md`
 
 The CEO is asleep and wants everything advanced; ask him nothing until morning.
 Work items, in this order (tick them here as they land):

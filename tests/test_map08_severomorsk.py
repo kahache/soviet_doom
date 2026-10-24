@@ -86,16 +86,18 @@ CLASS_FILES = {
     "SD_PanzermenschSchwer": "panzermensch_schwer.zs",
     "SD_LegionGunner": "legion_gunner.zs",
     "SD_LibertyColossus": "liberty_colossus.zs",
+    "SD_ChromeGeneral": "chrome_general.zs",
 }
-CLASS_PARENT = {"SD_PanzermenschSchwer": "SD_Panzermensch"}
+CLASS_PARENT = {"SD_PanzermenschSchwer": "SD_Panzermensch", "SD_ChromeGeneral": "SD_LibertyColossus"}
 # G3-8 as MAP01-MAP05 measure it: each kill in IZh shells, heavy weapons
 # converted at the ruler's ~62.5 HP a shell (MAP03's test, unchanged).
 SHELLS_TO_KILL = {"SD_ReichRifleman": 1, "SD_LegionTrooper": 1, "SD_Stormtrooper": 2,
                   "SD_ReichHound": 3, "SD_Doughboy": 6, "SD_Panzermensch": 8,
                   "SD_PanzermenschSchwer": 16, "SD_LegionGunner": 2,
-                  "SD_LibertyColossus": 48}
+                  "SD_LibertyColossus": 48, "SD_ChromeGeneral": 48}
 # D116: the gunner's 80 HP is two shells (one barrel kills him half the
-# time); the Liberty Colossus's 3000 is 48 (D119; his 4500 was 72).
+# time); the Liberty Colossus's 3000 is 48 (D119; his 4500 was 72), and so
+# is the Chrome Marshal's, the colossus variant in his place since D123.
 # D119 (docs/engine/BALANCE.md section 8, the CEO's playtest: "siempre sale
 # de sobras"): G3-8 is a band per skill, not a floor - the route's ammunition
 # over what killing every monster takes; shells at most 35 % of the route's
@@ -111,7 +113,7 @@ DROPPED_SHELLS = {"SD_LegionTrooper": 2}
 DROPS = {"SD_LegionTrooper": 2, "SD_ReichRifleman": 0.5, "SD_LegionGunner": 15 / (80 / 12)}
 NEWEST_SHARE_MIN = 0.40     # BALANCE 8.4.2
 ROCKET_SHARE_MAX = 0.30     # BALANCE 8.4.2, the PM's amendment: PG-7V a strong second outside a boss's stage
-BOSS_CLASSES = ("SD_LibertyColossus", "SD_Consortium")
+BOSS_CLASSES = ("SD_LibertyColossus", "SD_ChromeGeneral", "SD_Consortium")
 PRE_D119_STOCK_SKILL_4 = 342.0   # the route's shell-equivalents on skill 4 before D119
 PRE_D119_AMMO_PICKUPS = {2: 49, 3: 44, 4: 35}   # the route's, before D119 (skills 2 / 3 / 4)
 SHELLS_GIVEN = {2008: 4, 2049: 20, 21003: 8}
@@ -1608,12 +1610,12 @@ class Map08Test(pickup_events.PickupEventChecks, unittest.TestCase):
 
     def test_the_boss_is_the_heavy_weapons_job(self):
         """BALANCE 8.4.3 (D119): in the boss's stage, PG-7V and fuel placed
-        there cover at least its shells (the colossus's 48). (8.4.3's second half, every
+        there cover at least its shells (the Chrome Marshal's 48). (8.4.3's second half, every
         monster but the boss on shells and rounds alone at the skill's floor,
         is not tested: with 8.3's 35 % and 8.4.2's rockets leading it cannot
         hold under the band's ceiling; flagged to the PM.)"""
         m = self.m
-        boss_number = m.ED_COLOSSUS
+        boss_number = m.ED_CHROME_GENERAL
         boss = SHELLS_TO_KILL[m.MONSTER_CLASSES[boss_number]]
         for skill in (3, 4):
             spot = [t for t in self.on(skill, self.monsters()) if t["type"] == boss_number][0]
@@ -1621,20 +1623,27 @@ class Map08Test(pickup_events.PickupEventChecks, unittest.TestCase):
             stage = next(k for k, r in enumerate(self.rounds) if where in r[1])
             own = self.stage_pools(skill)[stage][3]
             self.assertGreaterEqual(own["rockets"] + own["fuel"], boss, f"skill {skill}: {own}")
-    def test_the_colossus_holds_the_bay_on_skills_3_and_4(self):
-        """D116: the Liberty Colossus as the bay's mini-boss, skills 3 and 4
-        only, under the bay's roof with room for his 110, and the bay and the
+    def test_the_chrome_marshal_holds_the_bay_on_skills_3_and_4(self):
+        """D116: the Liberty Colossus as the bay's mini-boss, since D123 the
+        Chrome Marshal in his place (the colossus's body, behaviour and 3000
+        HP in the General's chrome; the statue went to MAP06 alone): skills 3
+        and 4 only, at the colossus's spot, (4352, 512) facing west, under
+        the bay's roof with room for his 110, and the bay and the
         rail tunnel carry rockets and fuel for him: a third of his hit points
         (3000 since D119) in the two alone on skills 3 and 4 (he takes no
         blast). D119: and no more than the fight there takes - the two's
-        stock inside the skill's G3-8 band of the colossus and the monsters
+        stock inside the skill's G3-8 band of the Marshal and the monsters
         around him."""
         m = self.m
-        colossi = self.things_of({m.ED_COLOSSUS})
+        colossi = self.things_of({m.ED_CHROME_GENERAL})
         self.assertEqual({2: 0, 3: 1, 4: 1}, {s: len(self.on(s, colossi)) for s in SKILLS})
+        self.assertEqual({(t["x"], t["y"], t["angle"]) for t in colossi}, {(4352, 512, 180)})
+        self.assertNotIn(21111, {t["type"] for t in self.things}, "D123: the statue is MAP06's alone")
+        self.assertEqual(m.MONSTER_CLASSES[m.ED_CHROME_GENERAL], "SD_ChromeGeneral")
         bay = self.named("z10_bay", "z9_tunnel", "z9_rails", "z9_refuge_1", "z9_refuge_2", "z10_rails")
         self.assertEqual({self.plan["z10_bay"]}, {self.sector_at(t["x"], t["y"]) for t in colossi})
-        hp = self.hit_points[m.ED_COLOSSUS]
+        hp = self.hit_points[m.ED_CHROME_GENERAL]
+        self.assertEqual(hp, 3000)
         for skill in (3, 4):
             here = [t for t in self.on(skill, self.things) if self.sector_at(t["x"], t["y"]) in bay]
             heavy = sum(ROCKETS_GIVEN.get(t["type"], 0) * RPG_AVERAGE

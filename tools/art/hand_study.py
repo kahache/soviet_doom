@@ -327,7 +327,7 @@ def build_scale_sheet(study: dict, stamp: str) -> Path:
     sheet = Image.new("RGB", (W, H), SHEET_BG)
     d = ImageDraw.Draw(sheet)
     f_t, f_b, f_s = font(30), font(17), font(15)
-    d.text((pad, 20), "Weapon scale on screen: ours vs Doom/Freedoom (D55, \"se ven gigantes\")", font=f_t, fill=INK)
+    d.text((pad, 20), "Weapon scale on screen: ours vs Doom/Freedoom (D55, \"se ven gigantes\", they look gigantic)", font=f_t, fill=INK)
     y = wrap(d, (pad, 66), (
         "Each sprite is placed as the engine places a psprite at rest on the 320x200 virtual screen WITH the "
         "status bar on, as in every capture so far (the view is 320x168 and the weapon is centred on it, so "
@@ -969,10 +969,11 @@ def build_hand_sheet(stamp: str) -> Path:
 
 # ============================================================ round 2 (H2)
 # CEO on H2 (2026-10-14): base approved, two faults. (1) "el brazo como un
-# puto palo": the forearm must taper from below the elbow to the wrist, with
-# a slight curve, muscle mass and a visible wrist joint, the cuff following
-# it. (2) "la mano sin dedos es pequeña": the hand body was too small. Cause,
-# found on re-checking: round 1 took the palm as the metacarpal alone (65
+# puto palo" ("the arm like a fucking stick"): the forearm must taper from
+# below the elbow to the wrist, with a slight curve, muscle mass and a
+# visible wrist joint, the cuff following it. (2) "la mano sin dedos es
+# pequeña" ("the hand without fingers is small"): the hand body was too
+# small. Cause, found on re-checking: round 1 took the palm as the metacarpal alone (65
 # mm) and forgot the carpus. Hand body = wrist joint to knuckles = metacarpal
 # + carpus ~ 65 + 23 = 88 mm, about the middle finger's 93 mm (NOT VERIFIED
 # figures, as above; the CEO's rule "body ~ longest finger" agrees).
@@ -1214,7 +1215,8 @@ def build_round2_sheet(stamp: str) -> Path:
 
 
 # ============================================================ round 3 (A)
-# CEO, 2026-10-14: "Vamos con las manos de Freedoom". Freedoom's first-person
+# CEO, 2026-10-14: "Vamos con las manos de Freedoom" ("Let's go with
+# Freedoom's hands"). Freedoom's first-person
 # sprites are BSD-3 (copyright notice kept, credited in LICENSES and the
 # in-game credits): its pistol hands are the base, recoloured to our skin
 # and sleeve, the pistol replaced by our neutral grip, nothing else moved.
@@ -1831,7 +1833,8 @@ def freedoom_fist_bare(lumps: dict, pal: np.ndarray) -> tuple[np.ndarray, tuple[
 
 
 # The CEO on the first sheet: "el piolet tiene sentido, pero el puño que no
-# lo coge no": a punching fist with the shaft poked through it does not
+# lo coge no" ("the ice axe makes sense, but the fist that doesn't hold it
+# doesn't"): a punching fist with the shaft poked through it does not
 # hold anything. Freedoom's chainsaw (SAWG) shows no hand at all; the hand
 # that GRIPS something in Freedoom 0.13 is the shotgun's pump hand, SHTG
 # B-D. SHTGD0's (the clearest: thumb and index closed over the top, the

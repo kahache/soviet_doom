@@ -1,7 +1,7 @@
 """The ice axe's held frame derived from the CEO's reference photos (N14 / N4
 round 3): a sweep for review, no asset. Round 3b (after the CEO's "cámbialo
-a diestro" and the PM's polish notes): reference 1 mirrored to a right hand,
-the haft toned as wood, the head given weight.
+a diestro" ("make it right-handed") and the PM's polish notes): reference 1
+mirrored to a right hand, the haft toned as wood, the head given weight.
 
     python tools/art/hand_ref.py            # cells -> work/art/hand_ref/, sheet + HTML -> docs/art/previews/
     python tools/art/hand_ref.py silhouettes   # D75: 3x3 axe sizes on C3's hand, flat silhouettes
@@ -10,10 +10,11 @@ the haft toned as wood, the head given weight.
     python tools/art/hand_ref.py ppsh-clean # D77b: the PPSh-41 redrawn as clean shapes, x1.6, 4x
 
 Why: drawn hands failed the CEO again and again ("dedos como salchichas",
-"el antebrazo un palo larguísimo"); what worked for likeness was deriving
-from a source image (the Lenin and Stalin posters). The CEO made reference
-images with Fooocus (SDXL) in work/art/reference/ ("orientativas"). Here
-the hand, wrist and sleeve are taken from one of them, not redrawn:
+"fingers like sausages"; "el antebrazo un palo larguísimo", "the forearm a
+very long stick"); what worked for likeness was deriving from a source
+image (the Lenin and Stalin posters). The CEO made reference images with
+Fooocus (SDXL) in work/art/reference/ ("orientativas", "for guidance").
+Here the hand, wrist and sleeve are taken from one of them, not redrawn:
 
 0. orient: the files are named "mirrored" because Fooocus drew them
    flipped; a spec with mirror=True flips the photo left-right first
@@ -150,8 +151,8 @@ REFS = {
         mirror=True,
         note="first person, a hand round a wooden haft, knuckles and thumb over the fingers, olive sleeve. "
              "Fooocus drew it flipped (a left arm from the left): it is mirrored back, so the right arm comes "
-             "in from the bottom right as Doom's fist, chainsaw and our TT-33 hands do (CEO: 'cámbialo a "
-             "diestro'). Numbers below are in the file's own pixels."),
+             "in from the bottom right as Doom's fist, chainsaw and our TT-33 hands do (CEO: \"cámbialo a "
+             "diestro\", make it right-handed). Numbers below are in the file's own pixels."),
     "R2": RefSpec(
         "R2", "both hands grabbing something.png", "fist from behind, forearm from the bottom",
         lasso=((700, 330), (830, 290), (905, 300), (960, 380), (975, 520), (990, 700), (870, 690),
@@ -633,8 +634,8 @@ class Cell:
     straight: bool = False    # D76b: the shaft drawn as one straight bar of constant width (straight_axe)
 
 
-# Round 3b (CEO on 2026-10-14_2252: "cámbialo a diestro"; PM: the shaft reads
-# as a ruler, the head as a sickle): only the three cells that passed round
+# Round 3b (CEO on 2026-10-14_2252: "cámbialo a diestro", "make it
+# right-handed"; PM: the shaft reads as a ruler, the head as a sickle): only the three cells that passed round
 # 3a, R1 mirrored to a right hand, the axe polished. Round 3a's six cells
 # (R1 left-handed, R2 and R3 dropped) are in its dated preview; R2 and R3
 # stay in REFS as data, unused.
@@ -1054,7 +1055,8 @@ def shaft_width_above_fist(c: dict) -> float:
 NO_TAPER = HEAD_Z / GRIP_Z / HEAD_SHAFT_K
 D76_WIDE = {"shaft_k": 1.7, "head_k": 1.8, "shaft_w": NO_TAPER}
 # D76b, the CEO on the widened one: "Longitud OK, pero te ha salido torcido.
-# Haz el arma recta": the 3D shaft's two capsules drift apart on screen, so
+# Haz el arma recta" ("Length OK, but it came out crooked. Make the weapon
+# straight"): the 3D shaft's two capsules drift apart on screen, so
 # the final shaft is a straight bar (straight_axe), 10 px, the head square on it.
 D76_PICK = {"shaft_k": 1.7, "head_k": 1.8, "straight": True}
 
@@ -1242,8 +1244,8 @@ def build_ppsh_silhouettes(stamp: str, out_dir: Path = OUT_DIR / "ppsh") -> Path
 
 # ------------------------------------------------ PPSh-41, clean (D77b)
 # The traced silhouette failed (CEO + PM: the drum and the left hand one blob,
-# ragged edges, stray holes "en la mano izquierda"). Redrawn like
-# straight_axe(): clean shapes, the render only a guide for pose, angle and
+# ragged edges, stray holes "en la mano izquierda", "in the left hand").
+# Redrawn like straight_axe(): clean shapes, the render only a guide for pose, angle and
 # proportions (no pixel taken from it). Gun parts in bore coordinates (u
 # along the bore from the muzzle, v across it, downwards), hands and sleeves
 # as clean polygons, lobes and capsules; all in the render's pixels, then
@@ -1273,7 +1275,9 @@ def _capsule(draw, p0, p1, r, fill):
 
 
 # D77c (CEO on the clean one: "no se ve la mano izquierda, debería
-# superponerse sobre el arma"; "el palo del cañón está desviado"): every
+# superponerse sobre el arma" ("the left hand cannot be seen, it should
+# overlap the weapon"); "el palo del cañón está desviado" ("the barrel's
+# stick is off line")): every
 # body of the gun is a band centred on ONE axis (the bore, v = 0), and the
 # left hand is drawn in front of the gun, its fingers curling over the
 # jacket's top edge, cut from the gun by a 1 px transparent contour.

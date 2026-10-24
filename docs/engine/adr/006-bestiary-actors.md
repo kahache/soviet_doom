@@ -215,7 +215,7 @@ beside the mod (counts and a `hurt` command); it is not in the repo.
 | The drops | 7 riflemen killed: `SD_Clip` 0 to 7. Legion trooper killed: `SD_Izh` 1 to 2 |
 | The General summons once | 1600 damage (3000 to 1400, under half): the log prints `The General: Recruits - advance!` once and riflemen go 7 to 9 (2 alive). 500 more damage: still 9 riflemen, no second line |
 | The localized order reaches the string table and the console | the line above is the `$SD_GENERAL_ORDER` text, printed by `A_PrintBold` from a monster |
-| A human played it | the CEO played MAP01 v3 on skill 3, "ha sido MUY divertido!!" (D38, commit `b26a210`) |
+| A human played it | the CEO played MAP01 v3 on skill 3, "ha sido MUY divertido!!" ("it was VERY fun!!") (D38, commit `b26a210`) |
 
 ## NOT VERIFIED
 

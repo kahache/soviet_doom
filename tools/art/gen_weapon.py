@@ -12,7 +12,7 @@ Run with the project venv:
     ... --stamp 2026-10-13_1900          fixes the sheet's timestamp
 
 What this is. D39 (CEO, 2026-10-13): the first-person hands are Freedoom's
-placeholder ("mismo color de piel y manos"), so we design our own hand: the
+placeholder ("mismo color de piel y manos", "the same skin colour and hands"), so we design our own hand: the
 sergeant's, gloved or bare, with the cuff of his sleeve, in palette v1.
 D40: slot 1 becomes an ice axe (piolet, ледоруб) instead of the sapper's
 shovel. Three deliveries, each its own sheet for the CEO's gate:
@@ -2052,7 +2052,7 @@ def render_katyusha_rails_frame(style: HandStyle, pose: ArmsPose) -> tuple[Frame
 
 
 # ------------------------------------------------- hand Katyusha, pass 2
-# PASS 2 (sheet 2026-10-13_2243; D48: "algo pobre y deforme", redone as pass
+# PASS 2 (sheet 2026-10-13_2243; D48: "algo pobre y deforme", "rather poor and misshapen", redone as pass
 # 3 below). Kept only so the pass-3 sheet can show it, as GZDoom showed it
 # and composited; nothing is written from it. Its renderers carry _box_ /
 # HKB_ names; the public names (HK_POSES, render_katyusha_frame, ...) are
@@ -2273,7 +2273,7 @@ def render_katyusha_box_frame(style: HandStyle, pose: ArmsPose, variant: str = R
 
 
 # ------------------------------------------------- hand Katyusha, pass 3
-# PASS 3 (D48: the CEO found pass 2 "algo pobre y deforme": in the engine
+# PASS 3 (D48: the CEO found pass 2 "algo pobre y deforme", "rather poor and misshapen": in the engine
 # the box was a flat olive board with six circles and a hand beside it).
 # Pass 3 turns the weapon side-on, as Blood holds its heavy weapons: carried
 # low at the right hip, the bore running in to the left so the eye sees its
@@ -3067,7 +3067,7 @@ WEAPON_TEXT = {
     "katyusha": {
         "recommend": "VARIANT A (OPEN RAILS) AS DRAWN, ITS PICKUP; C AND D IF THE MOD-ENGINEER TAKES THE FIRE EDIT. "
                      "THE HANDS FOLLOW D49.",
-        "intro": "THIRD PASS (D48: the CEO found pass 2 \"algo pobre y deforme\"; in GZDoom the launch box was a "
+        "intro": "THIRD PASS (D48: the CEO found pass 2 \"algo pobre y deforme\", rather poor and misshapen; in GZDoom the launch box was a "
                  "flat olive board with six circles and a hand beside it). Pass 3 turns the weapon SIDE-ON and "
                  "carries it as Blood carries its heavy weapons (D49): low at the right hip, both hands on it, the "
                  "bore running in to the left and the top rolled towards the eye, so the eye gets its length, its "

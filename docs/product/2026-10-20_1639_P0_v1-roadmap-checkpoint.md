@@ -1,7 +1,7 @@
 # v1.0 roadmap checkpoint, 2026-10-20 16:39 (Product + pmo, stages 6 and 7)
 
 Dated snapshot, immutable. Asked by the CEO with D97 ("asegúrate de que está
-cumplido el pipeline y hazme un checkpoint del roadmap"). Measured against the
+cumplido el pipeline y hazme un checkpoint del roadmap", "make sure the pipeline has been complied with and give me a roadmap checkpoint"). Measured against the
 repo at **4a17a61** (`main` = `origin/main`, CI green), the tag `v1.0`
 (d530faa) and the GitHub release, not against the documents' own claims.
 Owners of the living facts: `docs/ROADMAP.md` (phases), `docs/BACKLOG.md`

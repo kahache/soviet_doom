@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Stalin propaganda poster, 128x256 - the twin of SDPOSTR1 (Lenin).
 
-CEO, 2026-10-14: "exactamente como el que hicimos con Lenin, pero con Stalin".
+CEO, 2026-10-14: "exactamente como el que hicimos con Lenin, pero con Stalin"
+("exactly like the one we did with Lenin, but with Stalin").
 So this is gen_lenin.py v4 pointed at another photograph, nothing more:
 
   same format   128x256, cream printed border, gold rule, 46 px slogan band

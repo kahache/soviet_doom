@@ -114,13 +114,14 @@ D74_OK: dict[str, tuple[str, str]] = {
 }
 # D74's drafts of these five were NO or "?": master_weapon_sfx.py refuses
 # them (UNDECIDED there). D94 (N9e) approved alternatives for four, below;
-# the IZh-58's pickup (all three alternatives NO) keeps Doom's generic one.
+# the IZh-58's pickup (all three D94 alternatives NO) kept Doom's generic one
+# until D125 installed two takes of the world round (SDIZPKP1, SDIZPKP2:
+# tools/audio/master_world_sfx.py, tests/test_world_sfx_install.py).
 D74_REFUSED = ("SDTTPKP", "SDIZRLD", "SDRKFIR", "SDAXPKP", "SDIZPKP")
 # Still not ours: logical name -> what plays (None: Doom's generic weapon
-# pickup, i.e. no SNDINFO line and no Inventory.PickupSound).
-UNDECIDED: dict[str, tuple[str, str | None]] = {
-    "SDIZPKP": ("sd/weapon/izh/pickup", None),
-}
+# pickup, i.e. no SNDINFO line and no Inventory.PickupSound). Empty since
+# D125; the card SDIZPKP itself never ships (its takes do, numbered).
+UNDECIDED: dict[str, tuple[str, str | None]] = {}
 # D94 (N9e): the approved alternatives of gen_weapon_alts.py. group -> {member: lump}
 D94: dict[str, dict[str, str]] = {
     "sd/weapon/tokarev/pickup": {"sd/weapon/tokarev/pickup/1": "SDTTPKP1", "sd/weapon/tokarev/pickup/2": "SDTTPKP2"},
@@ -138,8 +139,9 @@ PARKED = {"SDTTRLD", "SDPPRLD", "SDRKRLD"}       # D47: no reload state
 GUNS = {"tokarev.zs": "tokarev", "izh.zs": "izh", "ppsh.zs": "ppsh", "rpg7.zs": "rpg7",
         "roks3.zs": "roks3", "katyusha.zs": "katyusha"}
 PICKUPS = {"ppsh.zs": "ppsh", "rpg7.zs": "rpg7", "roks3.zs": "roks3", "katyusha.zs": "katyusha",
-           "tokarev.zs": "tokarev", "ice_axe.zs": "iceaxe"}      # the last two since D94 (N9e)
-NO_PICKUP_SOUND = ("izh.zs",)
+           "tokarev.zs": "tokarev", "ice_axe.zs": "iceaxe",      # these two since D94 (N9e)
+           "izh.zs": "izh"}                                     # since D125
+NO_PICKUP_SOUND: tuple[str, ...] = ()
 
 # The States' tic totals per label as BALANCE.md pins them (unchanged by N9).
 TIC_TOTALS = {

@@ -2,8 +2,9 @@
 """Marx and Engels: a PAIR of propaganda posters, 128x256 each (SDPOSTR4, SDPOSTR5).
 
 CEO, 2026-10-22: "quiero más cuadros comunistas; siguiendo los de Lenin y
-Stalin que quedaron muy bien, haz uno con Marx y Engels". Format approved the
-same day (phase 2 of the commission): two posters the size and style of
+Stalin que quedaron muy bien, haz uno con Marx y Engels" ("I want more
+communist pictures; following the Lenin and Stalin ones, which came out very
+well, make one with Marx and Engels"). Format approved the same day (phase 2 of the commission): two posters the size and style of
 SDPOSTR1/3, heads at their scale (~85-95 px wide), Marx on the left carrying
 «ПРОЛЕТАРИИ / ВСЕХ СТРАН,», Engels on the right carrying «СОЕДИНЯЙТЕСЬ!», so
 that hung together they read the closing line of the Communist Manifesto and

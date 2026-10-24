@@ -32,7 +32,7 @@ P4 starts.
 ## V3 scope (CEO, 2026-10-23, D119/D120)
 
 V2 closes with the D119 playtest fixes. The CEO chose these for V3 from the PM's
-proposals (`docs/product/2026-10-23_P4_propuestas-siguientes-versiones.md`, costs there):
+proposals (`docs/product/2026-10-23_P4_next-version-proposals.md`, costs there):
 
 - **A2 - Keys and objects that trigger events when picked up** (thing specials on pickup: open doors, lower walls, release ambushes). The CEO wants it available for level design (D119); it is already used in MAP04 (red key -> gondolas). To do: document the pattern in the level-design guide, offer it in the map generators, retrofit the nine maps.
 - **A3 - Map set pieces:** the MAP03 train that starts, the MAP05 dam that bursts, lifts and sinking floors carrying monsters.
@@ -40,7 +40,7 @@ proposals (`docs/product/2026-10-23_P4_propuestas-siguientes-versiones.md`, cost
 - **B1 - Operations map between levels:** a USSR map with advancing red arrows (intermission).
 - **B2 - End-of-episode illustrations** with Gemini (3 images) besides the text.
 - **B3 - Medals at the end of an episode** (Hero of the Soviet Union, Order of Lenin...) from kills, secrets and time.
-- **B4 - The HUD face redrawn with Gemini** (42 faces) to the level of the new enemies.
+- ~~**B4 - The HUD face redrawn with Gemini**~~ dropped 2026-10-23: the 42 sergeant faces are already Gemini's (D89-D92); the PM's proposal was a mistake.
 - **B5 - Propaganda radio ambience:** loudspeakers that play as the player comes near.
 - **D3 - A 60 s trailer** from engine captures and the composed music.
 
@@ -55,7 +55,8 @@ proposals (`docs/product/2026-10-23_P4_propuestas-siguientes-versiones.md`, cost
 - **C1 - A second CEO play-through** at skill 3 after the D119 rebalance.
 - **C2 - Secondary attacks:** bayonet on the Mosin, rifle butt on the AKM.
 - **C3 - Shield or cover-taking enemies** (a new assault trooper).
-- **D1 - Spanish** as a fourth language.
+- **D1 - Spanish** as a fourth language. (D129, 2026-10-24: Spanish is not a project
+  language today; nothing ships in it. Only the CEO can reopen this.)
 - **D2 - itch.io and ModDB pages** (needs the CEO's account and his OK to publish).
 
 ## Orchestrated music (D99; nice to have, stays in the Icebox, D121)

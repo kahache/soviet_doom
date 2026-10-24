@@ -24,7 +24,7 @@ signed release CHECKSUM).
   pistol, HUD. No HOM: linedef orientation is correct.
 - Suite `tests/`: **build 11/11** OK.
 - CEO saw the window open with the empty map (literal verdict, Spanish: "se
-  abría y se veía el mapa vacío").
+  abría y se veía el mapa vacío", "it opened and the empty map could be seen").
 
 **Findings during the gate:**
 - **B1 (closed):** `lookup = "..."` is not accepted inside an `episode` block
@@ -291,7 +291,7 @@ G3-6 and G3-8, and the static halves of G3-4 and G3-5. They are tests in
 `tools/verify.py full` run, never on `fast` (`docs/PIPELINE.md` §5).
 
 **Already on file from the engine:**
-- The CEO played skill 3 to the end (D38: "ha sido MUY divertido!!").
+- The CEO played skill 3 to the end (D38: "ha sido MUY divertido!!", "it was VERY fun!!").
   **No log of that run is filed**, so G3-2 on skill 3 is unmeasured. C2
   below provides one, though it is a scripted run, not a played one.
 - The PM's pass at 20:14 on `bc906f5`

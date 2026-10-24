@@ -477,61 +477,61 @@ def tex_prte1() -> np.ndarray:
 # ================================================================ pieces
 PIECES = [
     Piece("SDBARK1", tex_bark1, "wall", (64, 128), ["SDBARK1"], 1, "xy",
-          "Corteza de abedul",
-          "Tronco de abedul: corteza blanca de tiza, lenticelas horizontales, placas negras agrietadas y las "
-          "cicatrices en chevrón de las ramas caídas, una tira de corteza pelándose con su envés anaranjado.",
-          rec_why="Los troncos como sectores octogonales con esta textura; con SDBARK2 alrededor, el abedul "
-                  "superviviente destaca."),
+          "Birch bark",
+          "Birch trunk: chalk-white bark, horizontal lenticels, black cracked patches and the chevron "
+          "scars of fallen branches, a strip of bark peeling back to its orange underside.",
+          rec_why="Trunks as octagonal sectors with this texture; with SDBARK2 all around, the surviving "
+                  "birch stands out."),
     Piece("SDBARK2", tex_bark2, "wall", (64, 128), ["SDBARK2"], 2, "xy",
-          "Corteza de alerce quemado",
-          "Tronco de alerce después del fuego: grietas verticales profundas, placas carbonizadas con el "
-          "cuarteado de piel de cocodrilo del carbón, corteza rojiza superviviente en las grietas, ceniza gris.",
-          rec_why="El bosque de Tunguska son postes quemados: la textura más repetida del mapa."),
+          "Burnt larch bark",
+          "Larch trunk after the fire: deep vertical fissures, plates charred to charcoal with an "
+          "alligator crackle, reddish bark surviving in the fissures, grey ash.",
+          rec_why="The Tunguska forest is burnt poles: the most repeated texture on the map."),
     Piece("SDLOGW1", tex_logw1, "wall", (128, 128), ["SDLOGW1"], 3, "xy",
-          "Cabaña de troncos",
-          "Pared de cabaña: troncos redondos de 16 px, envejecidos a gris plata con el marrón asomando en las "
-          "fendas, musgo de calafateo entre ellos y dos nudos. Tila en los dos ejes.",
-          rec_why="La cabaña de la expedición de Kulik; con SDMOSS1 al pie."),
+          "Log cabin",
+          "Cabin wall: round logs 16 px high, weathered to silver-grey with brown showing in the "
+          "checks, moss chinking between them and two knots. Tiles in both axes.",
+          rec_why="The Kulik expedition's cabin; with SDMOSS1 at its foot."),
     Piece("SDPEAT1", tex_peat1, "flat", (64, 64), ["SDPEAT1"], 4, "xy",
-          "Turba",
-          "Turbera: turba fibrosa marrón oscura, matas de esfagno y charcos negros que guardan un poco de cielo.",
-          rec_why="El suelo de la ciénaga del epicentro (Tunguska es pantano)."),
+          "Peat",
+          "Peat bog: dark brown fibrous peat, tufts of sphagnum and black pools holding a little sky.",
+          rec_why="The floor of the epicentre's bog (Tunguska is swamp)."),
     Piece("SDBURN1", tex_burn1, "flat", (64, 64), ["SDBURN1"], 5, "xy",
-          "Tierra quemada",
-          "Tierra quemada: ceniza gris sobre carbón negro, manchas de tierra roja requemada y troncos "
-          "carbonizados tumbados todos en la misma dirección, como los dejó la explosión.",
-          rec_why="Los troncos paralelos son el detalle de Tunguska; alinear la loseta para que apunten al portal."),
+          "Scorched earth",
+          "Scorched earth: grey ash over black char, patches of burnt red soil and charred trunks "
+          "all lying the same way, as the blast left them.",
+          rec_why="The parallel trunks are the Tunguska detail; align the flat so they point at the portal."),
     Piece("SDMOSS1", tex_moss1, "flat", (64, 64), ["SDMOSS1"], 6, "xy",
-          "Musgo y liquen",
-          "Suelo de taiga: cojines de musgo, liquen de reno pálido y unos pocos arándanos rojos.",
-          rec_why="Para la taiga que la explosión no alcanzó; el contraste con SDBURN1 marca el radio."),
+          "Moss and lichen",
+          "Taiga floor: cushions of moss, pale reindeer lichen and a few red lingonberries.",
+          rec_why="For the taiga the blast did not reach; the contrast with SDBURN1 marks the radius."),
     Piece("SDALNM1", tex_alnm1, "wall", (128, 128), ["SDALNM1"], 7, "xy",
-          "Metal alienígena orgánico",
-          "Metal orgánico de los invasores: membrana oscura con venas encendidas de verde ácido, costillas "
-          "vertebradas cada 32 px que se mecen y dos tubos carnosos que las cruzan con juntas brillantes.",
-          rec_why="Paleta v1 (steel_blue oscuro, óxido, verde); ni el cobalto del portal ni el rosa de la Legión."),
+          "Organic alien metal",
+          "The invaders' organic metal: a dark membrane with veins lit acid green, swaying vertebral ribs "
+          "every 32 px and two fleshy tubes crossing them with glowing joints.",
+          rec_why="Palette v1 (dark steel_blue, rust, green); neither the portal's cobalt nor the Legion's pink."),
     Piece("SDACID", acid_frames, "flat", (64, 64), [f"SDACID{i}" for i in range(1, FRAMES + 1)], 8, "xy",
-          "Ácido verde (animado, 4 fotogramas)",
-          "Ácido de los invasores en cuatro fotogramas para ANIMDEFS, como SDWATR: cuerpo verde espeso, crestas "
-          "que viran a amarillo, burbujas que crecen a lo largo del bucle y revientan, deriva de una loseta por "
-          "bucle (el 4 enlaza con el 1).",
-          rec_why="8 tics por fotograma como SDMOLT. v1 no tiene verde saturado: ver la pregunta 1.",
+          "Green acid (animated, 4 frames)",
+          "The invaders' acid in four frames for ANIMDEFS, like SDWATR: a thick green body, crests "
+          "turning yellow, bubbles that swell over the loop and burst, a drift of one flat per "
+          "loop (frame 4 leads into frame 1).",
+          rec_why="8 tics per frame like SDMOLT. v1 has no saturated green: see question 1.",
           scene={"left": "SDALNM1", "right": "SDALNM1", "back": "SDPORT1"}),
     Piece("SDGLYP1", tex_glyp1, "wall", (64, 128), ["SDGLYP1"], 9, "xy",
-          "Placa con glifos invasores",
-          "Placa de tecnología invasora: metal oscuro moteado en paneles biselados, dos columnas de glifos "
-          "grabados que brillan en verde ácido (con su sombra de grabado) y canales encendidos a los lados. Los "
-          "glifos son una gramática inventada de anillos y trazos: no son letras.",
-          rec_why="Paneles de 64 px: tila en los dos ejes como un muro de placas."),
+          "Plate with invader glyphs",
+          "A plate of invader technology: dark mottled metal in bevelled panels, two columns of engraved "
+          "glyphs glowing acid green (each with its engraved shadow) and lit channels down the sides. The "
+          "glyphs are a made-up grammar of rings and ticks: they are not letters.",
+          rec_why="64 px panels: tiles in both axes like a wall of plates."),
     Piece("SDPRTE1", tex_prte1, "wall", (64, 128), ["SDPRTE1"], 10, "y",
-          "Borde del portal",
-          "El marco del portal: una columna del metal invasor en segmentos de 16 px partida por un canal del "
-          "cobalto del portal con filamentos blancos (el aspecto de SDPORT1-4), el brillo derramándose sobre el "
-          "metal y filamentos que lo agrietan. Simétrica, sirve a los dos lados; tila en y.",
+          "Portal rim",
+          "The portal's frame: a pillar of invader metal in 16 px segments split by a channel of the "
+          "portal's cobalt with white filaments (SDPORT1-4's look), the glow spilling onto the "
+          "metal and filaments cracking it. Symmetric, so it serves either side; tiles in y.",
           palette=2, v2_ramps=("mosaic_cobalt",),
-          why_v2="mosaic_cobalt de la v2, con el precedente de D66 (el portal SDPORT1-4 es cobalto y nada en el "
-                 "mundo puede compartir su color): el borde es parte del portal.",
-          rec_why="Para el dintel, SDALNM1. Pegada a SDPORT1-4 (aprobado) lo enmarca sin competir.",
+          why_v2="v2's mosaic_cobalt, on the D66 precedent (the portal SDPORT1-4 is cobalt and nothing in the "
+                 "world may share its colour): the rim is part of the portal.",
+          rec_why="For the lintel, SDALNM1. Set against SDPORT1-4 (approved) it frames it without competing.",
           scene={"left": "SDPRTE1", "right": "SDPRTE1", "back": "SDPORT1", "floor": "SDBURN1", "ceil": None}),
 ]
 SHARED_SEED: dict = {}
@@ -539,10 +539,10 @@ PAINT_BOX: dict = {}
 
 ROOM = {"wall": "SDLOGW1", "floor": "SDBURN1", "ceil": None, "light": 0.90, "sky": "night"}
 OVERVIEWS = [
-    ("El bosque quemado", {"left": "SDBARK2", "right": "SDBARK2", "back": "SDBARK1", "floor": "SDBURN1", "ceil": None}),
-    ("La cabaña en la ciénaga", {"left": "SDLOGW1", "right": "SDLOGW1", "back": "SDLOGW1", "floor": "SDPEAT1",
+    ("The burnt forest", {"left": "SDBARK2", "right": "SDBARK2", "back": "SDBARK1", "floor": "SDBURN1", "ceil": None}),
+    ("The cabin in the bog", {"left": "SDLOGW1", "right": "SDLOGW1", "back": "SDLOGW1", "floor": "SDPEAT1",
                                   "ceil": None}),
-    ("Ante el portal", {"left": "SDALNM1", "right": "SDGLYP1", "back": "SDPORT1", "floor": "SDACID1", "ceil": None}),
+    ("Before the portal", {"left": "SDALNM1", "right": "SDGLYP1", "back": "SDPORT1", "floor": "SDACID1", "ceil": None}),
 ]
 
 

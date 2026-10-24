@@ -8,8 +8,9 @@
 Why this exists
 ---------------
 D59 stopped all composing. D92 makes ONE explicit exception: the CEO rejected
-Borodin for MAP01 ("muy tranqui, muy chill; no pega") and asked for a new
-piece in the style of our own D_SDM01T -- the horn-led lament of D_SDM01E
+Borodin for MAP01 ("muy tranqui, muy chill; no pega" ("very mellow, very
+chill; it does not fit")) and asked for a new piece in the style of our own
+D_SDM01T -- the horn-led lament of D_SDM01E
 (gen_music.py section 4b, cut at bar 49 by gen_enemy_alts.py) -- but with the
 drive of a combat level. So: the same General MIDI band as D_SDM01T (synth
 bass 39, cellos 42, tremolo strings 44, trombones 57, horns 60, halo pad 94,
@@ -23,14 +24,14 @@ other work: nothing is quoted, folk or otherwise, so there is no rights
 question beyond our own (CC BY-NC-SA 4.0 with the rest of the assets, D15).
 
 Form (48 bars of 4/4, D minor):
-  A  "Tema"    1-16  horns state the theme on the downbeat of bar 1, over a
+  A  "Theme"   1-16  horns state the theme on the downbeat of bar 1, over a
                      galloping synth bass, cellos chugging eighths, timpani
                      on 1 and 3 and a march snare. a a' b a'' (4+4+4+4).
-  B  "Avance" 17-32  F major and back: trombones call, horns answer, then
+  B  "Advance" 17-32 F major and back: trombones call, horns answer, then
                      both together in octaves; tremolo strings; snare
                      eighths; the Neapolitan Eb turns it back to A.
-  C  "Lamento 33-48  the horn sings a slower line over a lighter but
-     y vuelta"       unbroken bed (bass eighths, timpani, kick) for 12 bars;
+  C  "Lament  33-48  the horn sings a slower line over a lighter but
+     and return"     unbroken bed (bass eighths, timpani, kick) for 12 bars;
                      bars 45-48 climb on the dominant A with a snare and
                      timpani roll, and the loop crashes back into bar 1.
 
@@ -104,8 +105,8 @@ SECTION_B = range(16, 32)
 SECTION_C_LAMENT = range(32, 44)
 SECTION_C_BUILD = range(44, 48)
 TOTAL_BARS = 48
-SECTIONS = (("A", "Tema", SECTION_A.start), ("B", "Avance", SECTION_B.start),
-            ("C", "Lamento y vuelta", SECTION_C_LAMENT.start))
+SECTIONS = (("A", "Theme", SECTION_A.start), ("B", "Advance", SECTION_B.start),
+            ("C", "Lament and return", SECTION_C_LAMENT.start))
 
 # -- Harmony: one or two chords per bar --------------------------------------------------
 # name -> (bass pitch class, chord tones as pitch classes)
@@ -218,8 +219,8 @@ class Variant:
 
 
 VARIANTS = (
-    Variant("D_SDM01N", 116.0, "116 BPM, las trompas solas en el tema", False, False, False),
-    Variant("D_SDM01N2", 128.0, "128 BPM, más pesada: trombones doblan el tema, más caja y bombo",
+    Variant("D_SDM01N", 116.0, "116 BPM, horns alone on the theme", False, False, False),
+    Variant("D_SDM01N2", 128.0, "128 BPM, heavier: trombones double the theme, more snare and kick",
             True, True, True),
 )
 VARIANT_BY_LUMP = {v.lump: v for v in VARIANTS}
@@ -492,8 +493,8 @@ def render_all(lumps: list[str], out_dir: Path = RENDER_DIR) -> list[str]:
         lv = measure(x[: int(secs * rate)], rate)
         bar_s = secs / TOTAL_BARS
         lv["arc"] = {sec: measure(x[int(b0 * bar_s * rate): int(b1 * bar_s * rate)], rate)["rms"]
-                     for sec, b0, b1 in (("A", 0, 16), ("B", 16, 32), ("C-lamento", 32, 44),
-                                         ("C-subida", 44, 48))}
+                     for sec, b0, b1 in (("A", 0, 16), ("B", 16, 32), ("C-lament", 32, 44),
+                                         ("C-build", 44, 48))}
         ogg = gws.ogg_bytes(ea.stereo_wav(x, rate))
         if ogg is None:
             raise RuntimeError("ffmpeg is not on the PATH: no OGG")

@@ -5,7 +5,7 @@ Russian mirror: `docs/ru/product/2026-10-13_0944_F3_ml-level-generation.md` (D7)
 
 CEO question, literally: *«Existe posibilidad de que te descargues miles de
 niveles, entrenar un modelo de IA, y generar así los mapas? o es una idea muy
-loca?»*
+loca?»* ("Is it possible to download thousands of levels, train an AI model, and generate the maps that way? or is it a very crazy idea?")
 
 **Short answer: it is not a crazy idea — it is a real research area with
 published results, and it has been tried on Doom specifically, twice, by the

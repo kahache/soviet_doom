@@ -1,10 +1,15 @@
-"""D104 (P4), integrated by D116: the Legion gunner and the Liberty Colossus.
+"""D104 (P4), integrated by D116, drawn by D123: the Legion gunner, the Liberty
+Colossus and the colossus variant, the Chrome Marshal.
 
 Until D116 (2026-10-22) the two Episode 2 enemies lived in a DRAFT overlay,
 `work/overlays/ep2-enemies/`, packed by `tools/make_ep2_enemy_overlay.py`.
 D116 moved them into the mod on provisional sprites (MOD-SPEC 6.12); the
 overlay and its tool are SUPERSEDED, kept, not deleted. Design:
-docs/engine/2026-10-22_P4_ep2-enemies.md. What is checked, and why:
+docs/engine/2026-10-22_P4_ep2-enemies.md. D123 (2026-10-23) installed the
+gunner's SDLG and the colossus's SDLC (Gemini) and kept the colossus's
+stand-in look, the General's SDGN x1.3 tinted chrome, as its own enemy:
+SD_ChromeGeneral (21113), the colossus's behaviour on that look, MAP08's
+mini-boss. What is checked, and why:
 
   tool       (the superseded tool, still on a synthetic source; CI has no
              work/): it builds, holds exactly the source's files, two builds
@@ -13,18 +18,23 @@ docs/engine/2026-10-22_P4_ep2-enemies.md. What is checked, and why:
              would shadow a mod file, a .zs no #include names, an #include
              of a missing file, a stray file, and an --out under src/,
              dist/ or assets/; and now the real overlay itself
-  mod        the four classes in src/zscript/monsters/, one per file, each
+  mod        the five classes in src/zscript/monsters/, one per file, each
              #included; the gunner replaces ChaingunGuy and the colossus
-             SpiderMastermind; 21110 and 21111 in MAPINFO; every frame a
-             state shows has its lumps in assets/sprites/; the provisional
-             tint is on marked lines only and the header's documented swap
-             leaves the final sprite and no tint; every sound is the class's
+             SpiderMastermind, the Chrome Marshal derives from the colossus
+             and replaces nothing; 21110, 21111 and 21113 in MAPINFO; every
+             frame a state shows has its lumps in assets/sprites/; the
+             gunner and the colossus wear their own sprites (D123) with no
+             provisional mark, tint or scale left; the Chrome Marshal is the
+             colossus's state machine line for line on SDGN, scaled and
+             tinted, 3000 HP, a boss, own name in three languages, no
+             PROVISIONAL mark (an approved design); every sound is the class's
              own SNDINFO name over a lump the mod ships (or a DS placeholder)
              with its final lump named; five ids in three languages; the
              brief's numbers (gunner 80 HP, bursts of 4-6, pain under the
              trooper's, drops SD_AkmAmmo; colossus the General's health x 1.5
              and his boss flags); placed where the design says (the gunner
-             in MAP04-MAP06, the colossus MAP06's boss)
+             in MAP04-MAP06, the colossus MAP06's boss, the Chrome Marshal
+             MAP08's mini-boss and nowhere else)
   doc        the design document and the contracts name them
 
 Stdlib only.
@@ -55,8 +65,9 @@ SPRITES = PROJECT_ROOT / "assets" / "sprites"
 REAL_SRC = ov.SRC_DIR
 DOC = PROJECT_ROOT / "docs" / "engine" / "2026-10-22_P4_ep2-enemies.md"
 NEW_CLASSES = ("SD_LegionGunner", "SD_LibertyColossus")
+CHROME = "SD_ChromeGeneral"      # D123: the colossus variant
 EXPECTED_CLASSES = {"SD_LegionGunner", "SD_LibertyColossus", "SD_ColossusRocket", "SD_ColossusFlame"}
-EXPECTED_EDNUMS = {21110: "SD_LegionGunner", 21111: "SD_LibertyColossus"}
+EXPECTED_EDNUMS = {21110: "SD_LegionGunner", 21111: "SD_LibertyColossus", 21113: CHROME}
 # MOD-SPEC 6.1: 21108 reserved (cloaked hound); BESTIARY 2.5 keeps
 # 21100-21109 for the first seven classes and two variants.
 RESERVED_EDNUMS = set(range(21100, 21110))
@@ -258,14 +269,23 @@ FILES = {
     "SD_LibertyColossus": "zscript/monsters/liberty_colossus.zs",
     "SD_ColossusRocket": "zscript/monsters/colossus_rocket.zs",
     "SD_ColossusFlame": "zscript/monsters/colossus_flame.zs",
+    CHROME: "zscript/monsters/chrome_general.zs",
 }
 REPLACES = {"SD_LegionGunner": "ChaingunGuy", "SD_LibertyColossus": "SpiderMastermind"}
 PROJECTILE_PARENTS = {"SD_ColossusRocket": "SD_Pg7Grenade", "SD_ColossusFlame": "SD_FlameBlob"}
-# Provisional sprite -> final sprite (MOD-SPEC 6.12).
-SWAPS = {"SD_LegionGunner": (("SDLT", "SDLG"),), "SD_LibertyColossus": (("SDGN", "SDLC"),)}
+# Provisional sprite -> final sprite (MOD-SPEC 6.12). Empty since D123: the
+# gunner's SDLG and the colossus's SDLC are installed (FINAL_SPRITES).
+SWAPS: dict[str, tuple[tuple[str, str], ...]] = {}
+FINAL_SPRITES = {"SD_LegionGunner": ("SDLG", "legion_gunner", 70), "SD_LibertyColossus": ("SDLC", "colossus", 81)}
 SOUND_KEYS = {"SD_LegionGunner": "legiongunner", "SD_LibertyColossus": "colossus"}
-SOUND_COUNT = 13   # gunner 6, colossus 7 (BESTIARY 12)
-IDS = {"SD_TAG_GUNNER", "SD_TAG_COLOSSUS", "SD_OB_GUNNER", "SD_OB_COLOSSUS", "SD_OBHIT_COLOSSUS"}
+SOUND_COUNT = 13   # gunner 6, colossus 7 (BESTIARY 12); the Chrome Marshal plays the colossus's
+IDS = {"SD_TAG_GUNNER", "SD_TAG_COLOSSUS", "SD_OB_GUNNER", "SD_OB_COLOSSUS", "SD_OBHIT_COLOSSUS",
+       "SD_TAG_CHROME", "SD_OB_CHROME", "SD_OBHIT_CHROME"}
+# D123: the Chrome Marshal's look, the colossus's stand-in from D116 kept.
+CHROME_SPRITE = "SDGN"
+CHROME_SCALE = 1.3
+CHROME_TRANSLATION = "0:255=%[0.05,0.05,0.10]:[1.60,1.60,1.80]"   # default_value strips the quotes
+CHROME_NAMES = {"enu default": "The Chrome Marshal", "ru": "Хромированный маршал", "ca": "El Mariscal de Crom"}
 
 
 class ModTests(unittest.TestCase):
@@ -279,6 +299,7 @@ class ModTests(unittest.TestCase):
             cls.blocks.update(p4.class_blocks(p.read_text(encoding="utf-8")))
         cls.gunner = cls.blocks["SD_LegionGunner"][1]
         cls.colossus = cls.blocks["SD_LibertyColossus"][1]
+        cls.chrome = cls.blocks[CHROME][1]
 
     def test_one_class_per_file_and_included(self):
         inc = p4.includes()
@@ -290,6 +311,7 @@ class ModTests(unittest.TestCase):
     def test_parents_and_replacements(self):
         for cls, doom in REPLACES.items():
             self.assertEqual(p4.class_head(self.text[cls], cls), f"class {cls} : SD_Monster replaces {doom}")
+        self.assertEqual(p4.class_head(self.text[CHROME], CHROME), f"class {CHROME} : SD_LibertyColossus")
         for cls, parent in PROJECTILE_PARENTS.items():
             self.assertEqual(p4.class_head(self.text[cls], cls), f"class {cls} : {parent}")
 
@@ -298,6 +320,7 @@ class ModTests(unittest.TestCase):
         for num, cls in EXPECTED_EDNUMS.items():
             self.assertEqual(ednums.get(num), cls)
             self.assertNotIn(num, RESERVED_EDNUMS)
+        self.assertEqual([n for n, c in ednums.items() if c == CHROME], [21113], "one number, no collision")
         for cls in PROJECTILE_PARENTS:
             self.assertNotIn(cls, ednums.values(), "a projectile is not placeable")
 
@@ -312,7 +335,8 @@ class ModTests(unittest.TestCase):
                                     f"{sprite}{frame}: rotations {sorted(rots)}")
 
     def test_provisional_look_and_its_documented_swap(self):
-        """MOD-SPEC 6.12: today an existing sprite, tinted; the header's sed
+        """MOD-SPEC 6.12: a class still on a provisional look (none of this
+        file's since D123) has its tint on marked lines and the header's sed
         renames it to the final name and deletes only the marked lines."""
         for cls, swaps in SWAPS.items():
             with self.subTest(cls=cls):
@@ -330,6 +354,65 @@ class ModTests(unittest.TestCase):
                 self.assertNotIn("Translation", code)
                 self.assertNotRegex(code, r"\bScale\b")
                 self.assertFalse(p4.sprite_rotations(swaps[0][1]), f"{swaps[0][1]} is drawn: do the swap")
+
+    def test_the_final_looks_are_installed(self):
+        """D123: the gunner wears SDLG and the colossus SDLC, every lump of
+        the set in its own folder, and nothing provisional is left in their
+        files: no mark, no tint, no scale, no borrowed sprite."""
+        for cls, (sprite, folder, count) in FINAL_SPRITES.items():
+            with self.subTest(cls=cls):
+                text = self.text[cls]
+                self.assertNotIn("PROVISIONAL", text)
+                self.assertEqual(p4.provisional_code_lines(text), [])
+                self.assertEqual({s for s, _ in p4.state_frames(self.blocks[cls][1])}, {sprite})
+                code = p4.strip_comments(self.blocks[cls][1])
+                self.assertNotIn("Translation", code)
+                self.assertNotRegex(code, r"\bScale\b")
+                lumps = sorted((SPRITES / folder).glob(f"{sprite}*.png"))
+                self.assertEqual(len(lumps), count)
+                self.assertEqual({p.parent for p in SPRITES.rglob(f"{sprite}*.png")}, {SPRITES / folder})
+
+    def test_the_chrome_marshal_is_the_colossus_in_the_generals_chrome(self):
+        """D123: the colossus's stand-in look kept as its own enemy. His
+        states are the colossus's, label for label and tic for tic, on the
+        General's SDGN; Scale 1.3 and the chrome Translation are his design,
+        not a placeholder (no PROVISIONAL mark); 3000 HP, the colossus's;
+        every behaviour (flags, sounds, actions, species) inherited."""
+        chrome = self.chrome
+        self.assertNotIn("PROVISIONAL", self.text[CHROME])
+        self.assertEqual(p4.provisional_code_lines(self.text[CHROME]), [])
+        self.assertEqual(const_value(chrome, "SD_CHROME_HEALTH"), 3000)
+        self.assertEqual(const_value(chrome, "SD_CHROME_HEALTH"), const_value(self.colossus, "SD_COLOSSUS_HEALTH"))
+        self.assertEqual(p4.default_value(chrome, "Health"), "SD_CHROME_HEALTH")
+        self.assertEqual(const_value(chrome, "SD_CHROME_SCALE"), CHROME_SCALE)
+        self.assertEqual(p4.default_value(chrome, "Scale"), "SD_CHROME_SCALE")
+        self.assertEqual(p4.default_value(chrome, "Translation"), CHROME_TRANSLATION)
+
+        def lines(body):
+            states = p4.strip_comments(p4.states_block(body))
+            return [re.sub(r"\s+", " ", l.strip()) for l in states.splitlines() if l.strip()]
+        mine = lines(chrome)
+        theirs = [l.replace("SDLC ", f"{CHROME_SPRITE} ", 1) for l in lines(self.colossus)]
+        self.assertEqual(mine, theirs)
+        self.assertEqual(p4.state_labels(chrome), p4.state_labels(self.colossus))
+        self.assertEqual({s for s, _ in p4.state_frames(chrome)}, {CHROME_SPRITE})
+        code = p4.strip_comments(chrome)
+        for inherited in ("+BOSS", "Species", "SeeSound", "Speed", "Radius", "Height", "void "):
+            self.assertNotIn(inherited, code, f"{inherited}: the colossus's, inherited")
+        self.assertIn("+BOSS", self.colossus)
+        self.assertIn("A_BossDeath", chrome)
+
+    def test_the_chrome_marshal_is_named_in_three_languages(self):
+        sections = p4.language_sections()
+        for lang, name in CHROME_NAMES.items():
+            with self.subTest(lang=lang):
+                self.assertEqual(sections[lang]["SD_TAG_CHROME"], name)
+                for sid in ("SD_OB_CHROME", "SD_OBHIT_CHROME"):
+                    self.assertIn("%o", sections[lang][sid])
+                    self.assertNotIn("Colos", sections[lang][sid])
+                    self.assertNotIn("Колосс", sections[lang][sid])
+        for prop, sid in (("Tag", "SD_TAG_CHROME"), ("Obituary", "SD_OB_CHROME"), ("HitObituary", "SD_OBHIT_CHROME")):
+            self.assertEqual(p4.default_value(self.chrome, prop), f"${sid}")
 
     def test_sounds_are_their_own_names_over_existing_lumps(self):
         lines = p4.sndinfo_lines()
@@ -404,19 +487,22 @@ class ModTests(unittest.TestCase):
     # D116, placed (level-designer, 2026-10-22): both only in the P4 maps
     # (episodes 2 and 3); the gunner must be in MAP04-MAP06 and the colossus
     # is MAP06's boss (episode 3's maps may reuse him, e.g. MAP08's bay).
+    # D123: the Chrome Marshal took the colossus's place in MAP08's bay, so
+    # the colossus is MAP06's alone and the Marshal MAP08's alone.
     P4_MAPS = {"MAP04", "MAP05", "MAP06", "MAP07", "MAP08", "MAP09"}
-    PLACED_IN = {"SD_LegionGunner": P4_MAPS, "SD_LibertyColossus": P4_MAPS}
-    MUST_PLACE = {"SD_LegionGunner": {"MAP04", "MAP05", "MAP06"}, "SD_LibertyColossus": {"MAP06"}}
+    PLACED_IN = {"SD_LegionGunner": P4_MAPS, "SD_LibertyColossus": P4_MAPS, CHROME: {"MAP08"}}
+    MUST_PLACE = {"SD_LegionGunner": {"MAP04", "MAP05", "MAP06"}, "SD_LibertyColossus": {"MAP06"},
+                  CHROME: {"MAP08"}}
 
     def test_placed_where_the_design_says(self):
         """Episode 1's maps and the range stay as v1.0 shipped them; each new
         class is named only by the maps that place it, by its class and its
         editor number together (the map's MONSTER_CLASSES)."""
         number = {cls: num for num, cls in EXPECTED_EDNUMS.items()}
-        found = {cls: set() for cls in REPLACES}
+        found = {cls: set() for cls in self.PLACED_IN}
         for p in (SRC / "maps").rglob("*.py"):
             text = p.read_text(encoding="utf-8")
-            for cls in REPLACES:
+            for cls in self.PLACED_IN:
                 named = cls in text or re.search(rf"\b{number[cls]}\b", text)
                 if named:
                     self.assertIn(p.parent.name, self.PLACED_IN[cls], f"{p} names {cls}")
@@ -425,12 +511,15 @@ class ModTests(unittest.TestCase):
                     found[cls].add(p.parent.name)
         for cls, maps in self.MUST_PLACE.items():
             self.assertLessEqual(maps, found[cls], cls)
+        self.assertEqual(found[CHROME], {"MAP08"})
+        self.assertNotIn("MAP08", found["SD_LibertyColossus"], "D123: the Marshal stands where he stood")
 
 
 class DocTests(unittest.TestCase):
     def test_doc_names_both_and_says_integrated(self):
         text = DOC.read_text(encoding="utf-8")
-        for needle in (*NEW_CLASSES, "21110", "21111", "make_ep2_enemy_overlay.py", "D116", "SDLG", "SDLC"):
+        for needle in (*NEW_CLASSES, CHROME, "21110", "21111", "21113", "make_ep2_enemy_overlay.py", "D116",
+                       "D123", "SDLG", "SDLC"):
             self.assertIn(needle, text)
 
     def test_contracts_name_them(self):
@@ -440,7 +529,7 @@ class DocTests(unittest.TestCase):
         for num, cls in EXPECTED_EDNUMS.items():
             self.assertIsNotNone(re.search(rf"\|\s*{num}\s*\|\s*`{cls}`", spec), f"MOD-SPEC 6.1 lacks {num}")
             self.assertTrue(f"`{cls}`" in bestiary, f"BESTIARY lacks {cls}")
-        for name in ("Legion gunner", "Liberty Colossus"):
+        for name in ("Legion gunner", "Liberty Colossus", "Chrome Marshal"):
             self.assertTrue(name in balance, f"BALANCE lacks {name}")
 
 

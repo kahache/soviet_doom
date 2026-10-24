@@ -1,0 +1,61 @@
+=== route zemlya-critical / MAP07 / skill 2 ===
+helper         : route-4
+god mode       : on
+monsters       : engine 37, map data 37
+bestiary (start): SD_ReichRifleman 11/11, SD_LegionTrooper 13/13, SD_Stormtrooper 4/4, SD_ReichHound 2/2, SD_Doughboy 1/1, SD_Panzermensch 3/3, SD_Izh 1/1, SD_LegionGunner 3/3, SD_AkmAmmo 11/11
+steps:
+  [ok ] A0   expect Z1           got Z1   z1_runway @ (3712, 224, 0) hp 100
+  [ok ] RG0  expect Z1           got Z1   z1_red_portal @ (1632, 288, 0) hp 100
+  [ok ] YD0  expect Z2           got Z2   z2_yellow_portal @ (3424, 1024, 0) hp 100
+  [ok ] YKEY expect Z5           got Z5   z5_dish @ (2784, 2185, 128) hp 100
+  [ok ] YD1  expect Z6           got Z6   z6_command @ (3238, 1024, 0) hp 100
+  [ok ] SWA  expect Z6           got Z6   z6_command @ (2704, 1056, 0) hp 100
+  [ok ] RKEY expect Z7           got Z7   z7_chamber @ (1929, 2144, -256) hp 100
+  [ok ] SWB  expect Z7           got Z7   z7_escape_top @ (1904, 640, 0) hp 100
+  [ok ] RG1  expect Z8           got Z8   z8_road @ (1446, 288, 0) hp 100
+  [ok ] E0   expect Z12          got Z12  z12_sail @ (304, 800, 32) hp 101
+  [ok ] E1   expect -            got -  -- no position reported
+zones reached  : Z1 -> Z2 -> Z5 -> Z6 -> Z7 -> Z8 -> Z12
+doors:
+  [ok ] tag 5 at RG0: want shut: shut (3 sector(s): Z13:z13_red_gate, Z1:closet_z1_a_door, Z1:closet_z1_b_door)
+  [ok ] tag 4 at YD0: want shut: shut (3 sector(s): YD:yellow_door, Z2:closet_z2_n_door, Z2:closet_z2_s_door)
+  [ok ] tag 4 at YKEY: want shut: shut (3 sector(s): YD:yellow_door, Z2:closet_z2_n_door, Z2:closet_z2_s_door)
+  [ok ] tag 5 at YKEY: want shut: shut (3 sector(s): Z13:z13_red_gate, Z1:closet_z1_a_door, Z1:closet_z1_b_door)
+  [ok ] tag 4 at YD1: want open: open (3 sector(s): YD:yellow_door, Z2:closet_z2_n_door, Z2:closet_z2_s_door)
+  [ok ] tag 10 at SWA: want open: open (1 sector(s): SH:shutter_bunker)
+  [ok ] tag 11 at SWA: want shut: shut (1 sector(s): SH:shutter_runway)
+  [ok ] tag 5 at RKEY: want shut: shut (3 sector(s): Z13:z13_red_gate, Z1:closet_z1_a_door, Z1:closet_z1_b_door)
+  [ok ] tag 11 at RKEY: want shut: shut (1 sector(s): SH:shutter_runway)
+  [ok ] tag 11 at SWB: want open: open (1 sector(s): SH:shutter_runway)
+  [ok ] tag 5 at RG1: want open: open (3 sector(s): Z13:z13_red_gate, Z1:closet_z1_a_door, Z1:closet_z1_b_door)
+  [ok ] tag 3 at E0: want open: open (1 sector(s): D3:d3_hatch)
+  [ok ] press of special 13 arg0 5 at RG0: the player's press is in the log
+  [ok ] press of special 13 arg0 4 at YD0: the player's press is in the log
+  [ok ] press of special 13 arg0 4 at YD1: the player's press is in the log
+  [ok ] press of special 11 arg0 10 at SWA: the player's press is in the log
+  [ok ] press of special 11 arg0 11 at SWB: the player's press is in the log
+  [ok ] press of special 13 arg0 5 at RG1: the player's press is in the log
+  [ok ] press of special 12 arg0 3 at E0: the player's press is in the log
+  [ok ] walk-through at YD1: ended in Z6 (z6_command)
+  [ok ] walk-through at RG1: ended in Z8 (z8_road)
+  [ok ] walk-through at E0: ended in Z12 (z12_sail)
+inventory (by slot):
+  [ok ] A0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [none]
+  [ok ] RG0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [none]
+  [ok ] YD0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [none]
+  [ok ] YKEY: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [SD_YellowPass]
+  [ok ] RKEY: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [SD_RedPass, SD_YellowPass]
+secrets        : 0 of 3
+key messages   :
+  RG0: You need a red pass to activate this object
+  YD0: You need a yellow pass to activate this object
+  YKEY: Yellow pass.
+  RKEY: Red pass.
+exit           : REACHED (exit switch pressed: yes; level unloaded towards: MAP08; after it: NOT SEEN (the helper cannot ask once the level is gone; judge the END shot))
+blockers       : 2 killed by the route's sdclear (sdclear answered 5 time(s))
+  [ok ] YD1: SD_ReichRifleman at (3237, 1118), 14 hp, dead
+  [ok ] E0: SD_Doughboy at (128, 768), 400 hp, dead
+kills          : 4 of 37, of which 2 by the route's sdclear
+screenshots    : 12
+log failures   : none
+VERDICT        : PASS (2 blocker(s) killed by the route, listed above)

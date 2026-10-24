@@ -27,7 +27,8 @@ Rules kept (docs/sound/ENEMY-SOUNDS.md §2, §5.9):
 - Laptop speakers: at least `MIN_SHARE_ABOVE_300HZ` of every sound's energy
   sits above 300 Hz (the sheet flagged `SDPZRPAI` at 96 % below).
 
-The music (D83, "intro demasiado larga, la parte melódica mucho mejor"):
+The music (D83, "intro demasiado larga, la parte melódica mucho mejor",
+"intro too long, the melodic part much better"):
 `D_SDM01E.mid` is cut so it starts where the horns take the melody, and is
 written as `work/audio/D_SDM01T.mid`. Editing our own sequence, not
 composing (D59): every note of the cut exists, at the same pitch, velocity
@@ -532,8 +533,8 @@ class Alt:
     recipe: Callable
     sources: tuple[str, ...]          # file names, all in SOURCES
     length_s: tuple[float, float]
-    label: str                        # Spanish, for the page
-    what: str                         # Spanish, for the page
+    label: str                        # for the page
+    what: str                         # for the page
 
     @property
     def name(self) -> str:
@@ -544,92 +545,92 @@ class Alt:
         return TARGETS[self.lump][0]
 
 
-# lump -> (kind, Freedoom lump beside it on the sheet, rejected file, Spanish group, event, what was rejected)
+# lump -> (kind, Freedoom lump beside it on the sheet, rejected file, group, event, what was rejected)
 TARGETS: dict[str, tuple[str, str, str, str, str, str]] = {
-    "SDRRIATK": ("fire", "DSPISTOL", "SDRRIATK.ogg", "Fusilero del Reich", "ataque (disparo)",
-                 "chasquido filtrado y cerrojo a 0,3 s"),
-    "SDLTRATK": ("fire", "DSDSHTGN", "SDLTRATK.ogg", "Soldado de la Legión", "ataque (escopeta)",
-                 "estampido de ruido, golpe grave de 70 Hz y anillo de peine"),
-    "SDSTOPAI": ("voice", "DSDMPAIN", "SDSTOPAI.ogg", "Stormtrooper híbrido", "dolor",
-                 "quejido rasposo (hurt_02), servo y tartamudeo digital"),
-    "SDSTODTH": ("voice", "DSBGDTH1", "SDSTODTH.ogg", "Stormtrooper híbrido", "muerte",
-                 "raspado que se derrumba y servo que se apaga"),
-    "SDPZRPAI": ("voice", "DSDMPAIN", "SDPZRPAI.ogg", "Panzermensch", "dolor",
-                 "gruñido grave: 96 % por debajo de 300 Hz, no se oía en portátil"),
-    "SDRRIPAI": ("bed", "DSPOPAIN", "beds/SDRRIPAI-bed.ogg", "Fusilero del Reich", "capa bajo el dolor",
-                 "correaje sintético que se sacude"),
-    "SDLTRPAI": ("bed", "DSPOPAIN", "beds/SDLTRPAI-bed.ogg", "Soldado de la Legión", "capa bajo el dolor",
-                 "ráfaga de estática y sacudida del equipo"),
-    "SDLTRDTH": ("bed", "DSPODTH2", "beds/SDLTRDTH-bed.ogg", "Soldado de la Legión", "capa bajo la muerte",
-                 "portadora que cae, squelch y cuerpo al suelo"),
+    "SDRRIATK": ("fire", "DSPISTOL", "SDRRIATK.ogg", "Reich Rifleman", "attack (shot)",
+                 "filtered crack and bolt at 0.3 s"),
+    "SDLTRATK": ("fire", "DSDSHTGN", "SDLTRATK.ogg", "Legion Soldier", "attack (shotgun)",
+                 "noise blast, 70 Hz low thump and comb ring"),
+    "SDSTOPAI": ("voice", "DSDMPAIN", "SDSTOPAI.ogg", "Hybrid Stormtrooper", "pain",
+                 "raspy yelp (hurt_02), servo and digital stutter"),
+    "SDSTODTH": ("voice", "DSBGDTH1", "SDSTODTH.ogg", "Hybrid Stormtrooper", "death",
+                 "collapsing rasp and a servo winding down"),
+    "SDPZRPAI": ("voice", "DSDMPAIN", "SDPZRPAI.ogg", "Panzermensch", "pain",
+                 "low grunt: 96 % below 300 Hz, inaudible on a laptop"),
+    "SDRRIPAI": ("bed", "DSPOPAIN", "beds/SDRRIPAI-bed.ogg", "Reich Rifleman", "layer under the pain",
+                 "synthetic webbing being shaken"),
+    "SDLTRPAI": ("bed", "DSPOPAIN", "beds/SDLTRPAI-bed.ogg", "Legion Soldier", "layer under the pain",
+                 "burst of static and the kit jolting"),
+    "SDLTRDTH": ("bed", "DSPODTH2", "beds/SDLTRDTH-bed.ogg", "Legion Soldier", "layer under the death",
+                 "falling carrier, squelch and the body on the floor"),
 }
 
 ALTS: tuple[Alt, ...] = (
-    Alt("SDRRIATK", 1, r_rri_hangar, (), (0.35, 0.75), "Eco de hangar",
-        "Un chasquido seco y el hangar responde con dos o tres ecos cortos. Sin cerrojo."),
+    Alt("SDRRIATK", 1, r_rri_hangar, (), (0.35, 0.75), "Hangar echo",
+        "A dry crack and the hangar answers with two or three short echoes. No bolt."),
     Alt("SDRRIATK", 2, r_rri_receiver, ("impactMetal_light_001.ogg", "impactPunch_medium_000.ogg",
                                         "switch_02.ogg", "impactMetal_light_004.ogg"),
-        (0.3, 0.7), "Cerrojo y acero",
-        "Disparo seco con el acero del cajón sonando; después se acciona el cerrojo, clic-clac."),
-    Alt("SDRRIATK", 3, r_rri_whip, (), (0.4, 0.9), "Latigazo de la bala",
-        "La bala llega antes que el disparo: un latigazo supersónico y, detrás, el estampido lejano."),
+        (0.3, 0.7), "Bolt and steel",
+        "A dry shot with the steel of the receiver ringing; then the bolt is worked, click-clack."),
+    Alt("SDRRIATK", 3, r_rri_whip, (), (0.4, 0.9), "Bullet whip",
+        "The bullet arrives before the shot: a supersonic whip-crack and, behind it, the distant report."),
     Alt("SDLTRATK", 1, r_ltr_pump, ("metal_02.ogg", "switch_02.ogg", "impactMetal_light_003.ogg",
                                     "spring_03.ogg", "impactMetal_heavy_000.ogg"),
-        (0.6, 1.1), "Escopeta de corredera",
-        "Escopeta americana: el estampido y luego la corredera, chik-chak. La IZh no hace esto."),
-    Alt("SDLTRATK", 2, r_ltr_volley, ("impactPlate_heavy_003.ogg",), (0.4, 0.9), "Trueno corto",
-        "Tres cartuchos como uno solo: chasquidos escalonados sobre un cuerpo grave y una placa metálica."),
-    Alt("SDLTRATK", 3, r_ltr_barrel, ("impactBell_heavy_001.ogg",), (0.4, 1.4), "Cañón cromado",
-        "El estampido y el cañón cromado vibrando como una campana: un «boing» metálico."),
-    Alt("SDSTOPAI", 1, r_sto_ringmod, ("hurt_04.ogg",), (0.2, 0.55), "Grito metálico",
-        "Un grito convertido en metal (modulación en anillo); la cola se rompe a 6 bits."),
-    Alt("SDSTOPAI", 2, r_sto_spark, ("grunt_07.ogg",), (0.25, 0.5), "Gruñido y chispazo",
-        "Un gruñido y la mitad máquina en cortocircuito: chispas y el chasquido de un relé."),
-    Alt("SDSTOPAI", 3, r_sto_chopped, ("monster_02.ogg",), (0.3, 0.55), "Chillido entrecortado",
-        "Un chillido que se corta en pedazos, 28 veces por segundo, como una señal que se pierde."),
+        (0.6, 1.1), "Pump shotgun",
+        "An American shotgun: the blast and then the slide, chk-chak. The IZh does not do this."),
+    Alt("SDLTRATK", 2, r_ltr_volley, ("impactPlate_heavy_003.ogg",), (0.4, 0.9), "Short thunderclap",
+        "Three loads as one: staggered cracks over a low body and a metal plate."),
+    Alt("SDLTRATK", 3, r_ltr_barrel, ("impactBell_heavy_001.ogg",), (0.4, 1.4), "Chromed barrel",
+        "The blast and the chromed barrel ringing like a bell: a metallic «boing»."),
+    Alt("SDSTOPAI", 1, r_sto_ringmod, ("hurt_04.ogg",), (0.2, 0.55), "Metallic shout",
+        "A shout turned to metal (ring modulation); the tail breaks up at 6 bits."),
+    Alt("SDSTOPAI", 2, r_sto_spark, ("grunt_07.ogg",), (0.25, 0.5), "Grunt and spark",
+        "A grunt and the machine half shorting out: sparks and the snap of a relay."),
+    Alt("SDSTOPAI", 3, r_sto_chopped, ("monster_02.ogg",), (0.3, 0.55), "Broken-up shriek",
+        "A shriek cut to pieces, 28 times a second, like a signal being lost."),
     Alt("SDSTODTH", 1, r_sto_short, ("die_01.ogg", "impactMetal_heavy_002.ogg"), (0.9, 1.6),
-        "Cortocircuito y caída",
-        "Grito de muerte, un cortocircuito que se apaga y el acero del cuerpo contra el suelo."),
-    Alt("SDSTODTH", 2, r_sto_tape, ("roar_03.ogg",), (0.4, 1.4), "Cinta que se para",
-        "La voz se ralentiza como una cinta sin corriente, se rompe al hundirse y se corta."),
+        "Short circuit and fall",
+        "A death cry, a short circuit dying down and the steel of the body against the floor."),
+    Alt("SDSTODTH", 2, r_sto_tape, ("roar_03.ogg",), (0.4, 1.4), "Tape grinding to a halt",
+        "The voice slows like a tape losing power, breaks up as it sinks and cuts out."),
     Alt("SDSTODTH", 3, r_sto_hydraulic, ("monster_12.ogg", "impactPlate_medium_001.ogg",
                                          "impactPlate_light_004.ogg"),
-        (0.9, 1.5), "Hidráulica y placas",
-        "Estertor; la hidráulica cede con un siseo y las placas de la armadura caen al suelo."),
+        (0.9, 1.5), "Hydraulics and plates",
+        "A death rattle; the hydraulics give way with a hiss and the armour plates fall to the floor."),
     Alt("SDPZRPAI", 1, r_pzr_plates, ("grunt_06.ogg", "impactPlate_heavy_003.ogg"), (0.3, 0.6),
-        "Gruñido y placas",
-        "Gruñido pesado con el golpe de las placas, en la zona que sí suena en un portátil."),
-    Alt("SDPZRPAI", 2, r_pzr_helmet, ("troll_02.ogg",), (0.3, 0.6), "Dentro del casco",
-        "Un bufido dentro del casco de acero: la voz resuena en la cúpula y escapa vapor."),
+        "Grunt and plates",
+        "A heavy grunt with the clank of the plates, in the range a laptop does play."),
+    Alt("SDPZRPAI", 2, r_pzr_helmet, ("troll_02.ogg",), (0.3, 0.6), "Inside the helmet",
+        "A snort inside the steel helmet: the voice resonates in the bowl and steam escapes."),
     Alt("SDPZRPAI", 3, r_pzr_roar, ("roar_06.ogg", "impactMetal_heavy_000.ogg"), (0.3, 0.6),
-        "Rugido corto",
-        "Un rugido breve con filo brillante y el golpe metálico de la placa del pecho."),
+        "Short roar",
+        "A brief roar with a bright edge and the metallic clang of the chest plate."),
     Alt("SDRRIPAI", 1, r_rripai_helmet, ("impactWood_light_001.ogg", "impactTin_medium_003.ogg"),
-        (0.1, 0.5), "Culata contra el casco",
-        "La culata golpea el casco: madera y un timbre de hojalata, una sola vez."),
+        (0.1, 0.5), "Stock against the helmet",
+        "The stock knocks the helmet: wood and a tin ring, just once."),
     Alt("SDRRIPAI", 2, r_rripai_buckles, ("footstep_carpet_002.ogg", "impactMetal_light_003.ogg"),
-        (0.15, 0.5), "Hebillas de verdad",
-        "Hebillas y anillas reales esta vez: pequeños golpes de acero y la tela del abrigo."),
+        (0.15, 0.5), "Real buckles",
+        "Real buckles and rings this time: small steel pings and the cloth of the coat."),
     Alt("SDRRIPAI", 3, r_rripai_stagger, ("footstep_concrete_001.ogg", "impactGeneric_light_003.ogg",
                                           "impactMetal_light_004.ogg"),
-        (0.15, 0.5), "Paso atrás",
-        "El impacto le hace retroceder un paso: bota en el hormigón y el fusil que tintinea."),
-    Alt("SDLTRPAI", 1, r_ltrpai_mic, ("impactPunch_medium_003.ogg",), (0.15, 0.5), "Golpe al micrófono",
-        "El golpe sacude el micrófono: un porrazo por la radio y un pitido de acople."),
-    Alt("SDLTRPAI", 2, r_ltrpai_dropout, (), (0.2, 0.5), "Enlace que se corta",
-        "La señal se entrecorta: estática troceada 22 veces por segundo y dos clics de relé."),
-    Alt("SDLTRPAI", 3, r_ltrpai_jam, ("impactPlate_light_000.ogg",), (0.2, 0.5), "Interferencia",
-        "Un silbido de interferencia que baja por la banda y el equipo que se sacude."),
+        (0.15, 0.5), "Step back",
+        "The hit knocks him back a step: a boot on concrete and the rifle rattling."),
+    Alt("SDLTRPAI", 1, r_ltrpai_mic, ("impactPunch_medium_003.ogg",), (0.15, 0.5), "Knock on the microphone",
+        "The hit jolts the microphone: a thump through the radio and a stab of feedback."),
+    Alt("SDLTRPAI", 2, r_ltrpai_dropout, (), (0.2, 0.5), "Link breaking up",
+        "The signal breaks up: static chopped 22 times a second and two relay clicks."),
+    Alt("SDLTRPAI", 3, r_ltrpai_jam, ("impactPlate_light_000.ogg",), (0.2, 0.5), "Interference",
+        "An interference whistle sweeping down through the band and the kit jolting."),
     Alt("SDLTRDTH", 1, r_ltrdth_dropped, ("impactPlate_medium_003.ogg", "impactGeneric_light_004.ogg",
                                           "impactSoft_heavy_002.ogg"),
-        (0.7, 1.4), "Radio al suelo",
-        "La radio cae antes que él: sigue la estática y se corta de golpe con un clic; el cuerpo cae."),
+        (0.7, 1.4), "Radio on the floor",
+        "The radio falls before he does: the static runs on and cuts out with a click; the body falls."),
     Alt("SDLTRDTH", 2, r_ltrdth_roger, ("impactSoft_heavy_002.ogg", "footstep_concrete_001.ogg"),
-        (0.6, 1.3), "Pitido de fin",
-        "El pitido de fin de transmisión, que se arrastra al morir el aparato; luego el cuerpo."),
+        (0.6, 1.3), "End-of-transmission beep",
+        "The end-of-transmission beep, slurring as the set dies; then the body."),
     Alt("SDLTRDTH", 3, r_ltrdth_drown, ("impactMetal_light_004.ogg", "impactMetal_light_001.ogg"),
-        (0.7, 1.4), "Portadora ahogada",
-        "La estática se cierra hasta un retumbo, crepitando, mientras el equipo cae al suelo."),
+        (0.7, 1.4), "Drowned carrier",
+        "The static closes down to a rumble, crackling, while the kit falls to the floor."),
 )
 ALTS_BY_NAME = {a.name: a for a in ALTS}
 LUMPS = tuple(TARGETS)
@@ -699,17 +700,17 @@ MUSIC_DIR = PROJECT_ROOT / "work" / "audio"
 MUSIC_RENDER_DIR = PROJECT_ROOT / "work" / "audio" / "music_trim"
 BEATS_PER_BAR = 4                       # D_SDM01E is 4/4 throughout (midi_inspect)
 SOURCE_BARS = 72                        # Card 2b: A 1-16, B 17-32, C 33-48, D 49-64, E 65-72
-# lump -> (first bar kept, Spanish label, Spanish note). The loop is the cut piece
+# lump -> (first bar kept, label, note). The loop is the cut piece
 # itself: GZDoom restarts a MIDI from its first tick when it ends.
 TRIMS: dict[str, tuple[int, str, str]] = {
-    "D_SDM01T": (49, "Desde el lamento (compás 49)",
-                 "Empieza donde las trompas llevan la melodía (sección D, «lamento») y sigue con el cierre "
-                 "(E). Al acabar vuelve al lamento: el cierre termina en el pad solo, así que el bucle entra "
-                 "desde casi silencio. Se quitan A, B y C (1:46 de introducción)."),
-    "D_SDM01U": (33, "Desde las trompas que suben (compás 33)",
-                 "Variante más larga por si el lamento solo se queda corto: empieza en C, donde las trompas "
-                 "suben por encima de los acordes de metal, y sigue con el lamento y el cierre. Se quitan A y "
-                 "B (1:11 de introducción)."),
+    "D_SDM01T": (49, "From the lament (bar 49)",
+                 "Starts where the horns take the melody (section D, the «lament») and goes on into the close "
+                 "(E). At the end it returns to the lament: the close ends on the pad alone, so the loop comes "
+                 "in from near silence. A, B and C are removed (1:46 of introduction)."),
+    "D_SDM01U": (33, "From the rising horns (bar 33)",
+                 "A longer variant in case the lament alone falls short: it starts at C, where the horns "
+                 "rise above the brass chords, and goes on into the lament and the close. A and B are "
+                 "removed (1:11 of introduction)."),
 }
 RECOMMENDED_TRIM = "D_SDM01T"
 SEAM_PREVIEW_S = 12.0                   # rendered past the loop point, so the seam is heard
@@ -902,48 +903,48 @@ def build_music(out_midi_dir: Path = MUSIC_DIR, render_dir: Path | None = MUSIC_
 # was checked against work/audio/candidates/ and work/audio/scores/ on 2026-10-20.
 MAP01_CANDIDATES: tuple[dict, ...] = (
     {"id": "MAP01-c1", "work": "«Красная армия всех сильней» (Belaya armiya, chorny baron)",
-     "who": "Samuil Pokrass (1897-1939); letra Pável Grigóriev (1895-1961)",
-     "fit": "Marcha del Ejército Rojo de 1920: la guarnición del cosmódromo responde al primer ataque.",
-     "rights": "Música: RU libre desde 1-1-2010 (m. 1939 +70); EE. UU. libre (publicada 1920, antes de 1931). "
-               "Letra: protegida en Rusia hasta 1-1-2032 → solo instrumental. MUSIC-RIGHTS §2.2.",
-     "disk": "NO está en disco. Hace falta un MIDI con licencia limpia (CC0/CC BY/PD por archivo): "
-             "no conozco ninguno (§3.2 de SOUNDTRACK: lo que hay en la red no tiene licencia). Descarga a autorizar; "
-             "si no existe, se descarta (D59: no secuenciamos).",
-     "verdict": "recomendada si aparece un MIDI limpio"},
-    {"id": "MAP01-c2", "work": "Ippolitov-Ivánov, «Шествие сардаря» (Procesión del Sardar), Bocetos caucásicos op. 10",
-     "who": "Mijaíl Ippolitov-Ivánov (1859-1935)",
-     "fit": "Marcha corta de metales, amenazante: la columna enemiga avanzando por la pista.",
-     "rights": "RU libre desde 1-1-2006 (m. 1935 +70; murió antes de la guerra, sin +4); EE. UU. libre "
-               "(publicada 1894-95). Instrumental, sin letra. MUSIC-RIGHTS §2.3.",
-     "disk": "NO está en disco. Descarga a autorizar: una partitura orquestal PD está en IMSLP (bloqueada por "
-             "CAPTCHA para un agente, §4.6.5); un MIDI orquestal con licencia limpia NO VERIFICADO que exista.",
-     "verdict": "la mejor por tono; depende de encontrar el MIDI"},
-    {"id": "MAP01-c3", "work": "Borodin, «В Средней Азии» (En las estepas del Asia Central)",
+     "who": "Samuil Pokrass (1897-1939); lyrics Pavel Grigoryev (1895-1961)",
+     "fit": "The 1920 Red Army march: the cosmodrome's garrison answers the first attack.",
+     "rights": "Music: free in RU since 1-1-2010 (d. 1939 +70); free in the US (published 1920, before 1931). "
+               "Lyrics: protected in Russia until 1-1-2032 → instrumental only. MUSIC-RIGHTS §2.2.",
+     "disk": "NOT on disk. It needs a MIDI with a clean licence (CC0/CC BY/PD per file): "
+             "I know of none (SOUNDTRACK §3.2: what is online has no licence). Download to be authorised; "
+             "if none exists, it is dropped (D59: we do not sequence).",
+     "verdict": "recommended if a clean MIDI turns up"},
+    {"id": "MAP01-c2", "work": "Ippolitov-Ivanov, «Шествие сардаря» (Procession of the Sardar), Caucasian Sketches op. 10",
+     "who": "Mikhail Ippolitov-Ivanov (1859-1935)",
+     "fit": "A short, menacing brass march: the enemy column advancing down the runway.",
+     "rights": "Free in RU since 1-1-2006 (d. 1935 +70; died before the war, no +4); free in the US "
+               "(published 1894-95). Instrumental, no lyrics. MUSIC-RIGHTS §2.3.",
+     "disk": "NOT on disk. Download to be authorised: a PD orchestral score is on IMSLP (blocked by "
+             "CAPTCHA for an agent, §4.6.5); an orchestral MIDI with a clean licence: NOT VERIFIED that one exists.",
+     "verdict": "the best for tone; depends on finding the MIDI"},
+    {"id": "MAP01-c3", "work": "Borodin, «В Средней Азии» (In the Steppes of Central Asia)",
      "who": "Aleksandr Borodin (1833-1887)",
-     "fit": "Un cosmódromo en la estepa (como Baikonur): amplio y quieto, la calma justo antes de que todo se rompa.",
-     "rights": "RU y EE. UU. libres (m. 1887; compuesta 1880 y publicada en vida del autor, año exacto NO VERIFICADO, "
-               "en todo caso antes de 1931). Instrumental. MUSIC-RIGHTS §2.3.",
-     "disk": "NO está en disco. Descarga a autorizar; MIDI orquestal limpio NO VERIFICADO.",
-     "verdict": "tema perfecto, pero quizá demasiado tranquilo para combate"},
-    {"id": "MAP01-c4", "work": "Músorgski, «Ночь на лысой горе» (Una noche en el Monte Pelado), transcr. Chernov",
-     "who": "Modest Músorgski (1839-1881); transcripción Konstantin Chernov (m. 1944); MIDI Robert Clausecker / Mutopia 2013",
-     "fit": "La invasión demoníaca por excelencia; amenaza continua, 10 minutos.",
-     "rights": "Composición libre en RU y EE. UU.; transcripción de Chernov libre en RU desde 2015 o 2019 (las dos ya "
-               "pasadas). El MIDI es CC BY 3.0: hay que acreditar a Clausecker y Mutopia. MUSIC-RIGHTS §4.4.",
-     "disk": "SÍ está en disco: work/audio/candidates/MU_Mussorgsky_BaldMountain.mid (D_CND01). Sin descarga. "
-             "Pero es piano solo (sin cambios de programa) y su momento más fuerte es el compás 1.",
-     "verdict": "la única lista hoy; piano solo, la textura que ya llamaste simple"},
-    {"id": "MAP01-c5", "work": "«Смело, товарищи, в ногу» (Valientes, camaradas, al paso)",
-     "who": "Leonid Radin (1860-1900), música y letra",
-     "fit": "La canción revolucionaria más soviética que es libre del todo; primer mapa, primer combate.",
-     "rights": "Música y letra libres en RU (m. 1900) y EE. UU. (publicada 1901-02). MUSIC-RIGHTS §2.2.",
-     "disk": "NO está en disco y ya se buscó: no se encontró ni partitura PD fiable (solo un arreglo soviético de "
-             "1969, protegido) ni MIDI limpio. MUSIC-RIGHTS §4.6.5.",
-     "verdict": "derechos perfectos, fuente inexistente: hoy no es viable"},
+     "fit": "A cosmodrome on the steppe (like Baikonur): wide and still, the calm just before everything breaks.",
+     "rights": "Free in RU and the US (d. 1887; composed 1880 and published in the author's lifetime, exact year NOT VERIFIED, "
+               "in any case before 1931). Instrumental. MUSIC-RIGHTS §2.3.",
+     "disk": "NOT on disk. Download to be authorised; a clean orchestral MIDI NOT VERIFIED.",
+     "verdict": "perfect theme, but perhaps too calm for combat"},
+    {"id": "MAP01-c4", "work": "Mussorgsky, «Ночь на лысой горе» (Night on Bald Mountain), transcr. Chernov",
+     "who": "Modest Mussorgsky (1839-1881); transcription Konstantin Chernov (d. 1944); MIDI Robert Clausecker / Mutopia 2013",
+     "fit": "The demonic invasion par excellence; continuous menace, 10 minutes.",
+     "rights": "The composition is free in RU and the US; Chernov's transcription free in RU since 2015 or 2019 (both already "
+               "past). The MIDI is CC BY 3.0: Clausecker and Mutopia must be credited. MUSIC-RIGHTS §4.4.",
+     "disk": "ON disk: work/audio/candidates/MU_Mussorgsky_BaldMountain.mid (D_CND01). No download. "
+             "But it is solo piano (no program changes) and its loudest moment is bar 1.",
+     "verdict": "the only one ready today; solo piano, the texture you already called plain"},
+    {"id": "MAP01-c5", "work": "«Смело, товарищи, в ногу» (Bravely, comrades, keep in step)",
+     "who": "Leonid Radin (1860-1900), music and lyrics",
+     "fit": "The most Soviet revolutionary song that is wholly free; first map, first fight.",
+     "rights": "Music and lyrics free in RU (d. 1900) and the US (published 1901-02). MUSIC-RIGHTS §2.2.",
+     "disk": "NOT on disk, and already searched for: neither a reliable PD score (only a protected Soviet "
+             "arrangement of 1969) nor a clean MIDI was found. MUSIC-RIGHTS §4.6.5.",
+     "verdict": "perfect rights, no source: not viable today"},
 )
-MAP01_REJECTED = ("Rechazadas por derechos o tema: «Прощание славянки» (Agapkin m. 1964, protegida en Rusia hasta "
-                  "2039), «Священная война» y el himno de Aleksándrov (restaurados en EE. UU. hasta 2037-2040), "
-                  "Prokófiev y Shostakóvich (protegidos), Marche slave y 1812 de Chaikovski (citan el himno zarista).")
+MAP01_REJECTED = ("Rejected for rights or theme: «Прощание славянки» (Agapkin d. 1964, protected in Russia until "
+                  "2039), «Священная война» and Aleksandrov's anthem (restored in the US until 2037-2040), "
+                  "Prokofiev and Shostakovich (protected), Tchaikovsky's Marche slave and 1812 (they quote the tsarist anthem).")
 
 
 # --- Manifest, provenance ----------------------------------------------------------------
@@ -1019,9 +1020,9 @@ def page_items(done: list[Rendered], page: Path, out_dir: Path, music: list[dict
             "rej": _rel(REJECTED_DIR / rej, page),
             "rep": f"Freedoom {ref}", "repSrc": _rel(FREEDOOM_PREVIEW_DIR / f"{ref}.wav", page),
             "dur": round(lv["length"], 2),
-            "lvl": (f"pico {lv['peak']:.1f} dBFS · fuerza {lv['loud_a']:.1f} dB "
+            "lvl": (f"peak {lv['peak']:.1f} dBFS · loudness {lv['loud_a']:.1f} dB "
                     f"(Freedoom {ref}: {FREEDOOM_LEVELS[ref][1]:.1f}) · "
-                    f"{100 * lv['above300']:.0f} % por encima de 300 Hz"),
+                    f"{100 * lv['above300']:.0f} % above 300 Hz"),
         })
     by = {m["lump"]: m for m in music}
     full = by.get("D_SDM01E")
@@ -1034,8 +1035,8 @@ def page_items(done: list[Rendered], page: Path, out_dir: Path, music: list[dict
             "rec": lump == RECOMMENDED_TRIM,
             "src": _rel(m["ogg"], page), "rej": _rel(full["ogg"], page),
             "dur": round(m["seconds"], 1),
-            "lvl": (f"bucle de {_mmss(m['seconds'])} (antes {_mmss(full['seconds'])}) · corta en el compás {bar} · "
-                    f"el audio sigue {SEAM_PREVIEW_S:.0f} s tras el final para que oigas la vuelta al principio"),
+            "lvl": (f"loop of {_mmss(m['seconds'])} (was {_mmss(full['seconds'])}) · cut at bar {bar} · "
+                    f"the audio runs {SEAM_PREVIEW_S:.0f} s past the end so you hear it come back to the start"),
         })
     for cnd in MAP01_CANDIDATES:
         items.append({"sec": "c", "lump": "MAP01", **cnd})
@@ -1060,23 +1061,23 @@ try { S = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { S =
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 function st(id){ return S[id] || (S[id] = {v:"", n:""}); }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const fmt = s => s.toFixed(2).replace(".", ",") + " s";
+const fmt = s => s.toFixed(2) + " s";
 const audio = src => `<audio controls preload="none" src="${esc(src)}"></audio>`;
-const vote = it => `<div class="vote"><div class="btns"><button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div><textarea class="note" placeholder="Nota (opcional)">${esc(st(it.id).n || "")}</textarea></div>`;
+const vote = it => `<div class="vote"><div class="btns"><button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div><textarea class="note" placeholder="Note (optional)">${esc(st(it.id).n || "")}</textarea></div>`;
 function rowE(it){
-  let p = `<div class="pl main"><span>Alternativa ${esc(it.id.slice(-1))} · ${fmt(it.dur)}</span>${audio(it.src)}</div>`;
-  p += `<div class="pl"><span>El rechazado (${esc(it.lump)}${it.bed ? " capa" : ""}, dijiste NO)</span>${audio(it.rej)}</div>`;
-  p += `<div class="pl"><span>${it.bed ? "La voz de Freedoom que suena hoy (la capa irá debajo de tu toma)" : "Hoy en el juego: " + esc(it.rep)}</span>${audio(it.repSrc)}</div>`;
+  let p = `<div class="pl main"><span>Alternative ${esc(it.id.slice(-1))} · ${fmt(it.dur)}</span>${audio(it.src)}</div>`;
+  p += `<div class="pl"><span>The rejected one (${esc(it.lump)}${it.bed ? " layer" : ""}, you said NO)</span>${audio(it.rej)}</div>`;
+  p += `<div class="pl"><span>${it.bed ? "The Freedoom voice that plays today (the layer will go under your take)" : "In the game today: " + esc(it.rep)}</span>${audio(it.repSrc)}</div>`;
   return `<div class="row" id="r-${it.id}" data-id="${it.id}">
     <div><div class="name"><code>${esc(it.id)}</code><span class="ev">${esc(it.ev)}</span></div>
       <div class="what"><b>${esc(it.label)}.</b> ${esc(it.what)}</div>
-      <div class="meta"><b>Nivel:</b> ${esc(it.lvl)}</div></div>
+      <div class="meta"><b>Level:</b> ${esc(it.lvl)}</div></div>
     <div class="players">${p}</div>${vote(it)}</div>`;
 }
 function rowM(it){
-  const p = `<div class="pl main"><span>${esc(it.lump)} recortada · bucle ${it.dur.toFixed(1).replace(".", ",")} s</span>${audio(it.src)}</div><div class="pl"><span>Sin recortar: D_SDM01E entera</span>${audio(it.rej)}</div>`;
+  const p = `<div class="pl main"><span>${esc(it.lump)} trimmed · loop ${it.dur.toFixed(1)} s</span>${audio(it.src)}</div><div class="pl"><span>Untrimmed: the whole D_SDM01E</span>${audio(it.rej)}</div>`;
   return `<div class="row" id="r-${it.id}" data-id="${it.id}">
-    <div><div class="name"><code>${esc(it.id)}</code><span class="ev">${esc(it.label)}</span>${it.rec ? '<span class="rec">recomendada</span>' : ""}</div>
+    <div><div class="name"><code>${esc(it.id)}</code><span class="ev">${esc(it.label)}</span>${it.rec ? '<span class="rec">recommended</span>' : ""}</div>
       <div class="what">${esc(it.what)}</div><div class="meta">${esc(it.lvl)}</div></div>
     <div class="players">${p}</div>${vote(it)}</div>`;
 }
@@ -1089,13 +1090,13 @@ function build(){
   const E = ITEMS.filter(i => i.sec === "e"), M = ITEMS.filter(i => i.sec === "m"), Cn = ITEMS.filter(i => i.sec === "c");
   for (const L of [...new Set(E.map(i => i.lump))]) {
     const its = E.filter(i => i.lump === L), a = its[0];
-    h += `<details class="grp" open><summary><code>${esc(L)}${a.bed ? "-bed" : ""}</code> ${esc(a.group)} · ${esc(a.ev)} <span class="tag no">dijiste NO</span><span class="rejnote">rechazado: ${esc(a.rejWhat)}</span><span class="gcount" data-l="${esc(L)}"></span></summary>`;
+    h += `<details class="grp" open><summary><code>${esc(L)}${a.bed ? "-bed" : ""}</code> ${esc(a.group)} · ${esc(a.ev)} <span class="tag no">you said NO</span><span class="rejnote">rejected: ${esc(a.rejWhat)}</span><span class="gcount" data-l="${esc(L)}"></span></summary>`;
     for (const it of its) h += rowE(it);
     h += `</details>`;
   }
   document.getElementById("groups").innerHTML = h;
-  document.getElementById("music").innerHTML = M.length ? `<details class="grp" open><summary>Música de MAP01 recortada (D_SDM01E desde la parte melódica) <span class="gcount" data-l="m"></span></summary>${M.map(rowM).join("")}</details>` : `<p class="meta">La música no se pudo renderizar en esta máquina.</p>`;
-  document.getElementById("cands").innerHTML = `<details class="grp" open><summary>Candidatas de dominio público para MAP01 <span class="gcount" data-l="c"></span></summary><div style="overflow-x:auto"><table class="cand"><thead><tr><th>Obra y por qué encaja</th><th>Derechos</th><th>¿En disco?</th><th>Tu voto</th></tr></thead><tbody>${Cn.map(rowC).join("")}</tbody></table></div><p class="meta" style="padding:0 12px 10px">${esc(REJECTED)}</p></details>`;
+  document.getElementById("music").innerHTML = M.length ? `<details class="grp" open><summary>MAP01 music trimmed (D_SDM01E from the melodic part) <span class="gcount" data-l="m"></span></summary>${M.map(rowM).join("")}</details>` : `<p class="meta">The music could not be rendered on this machine.</p>`;
+  document.getElementById("cands").innerHTML = `<details class="grp" open><summary>Public-domain candidates for MAP01 <span class="gcount" data-l="c"></span></summary><div style="overflow-x:auto"><table class="cand"><thead><tr><th>Work and why it fits</th><th>Rights</th><th>On disk?</th><th>Your vote</th></tr></thead><tbody>${Cn.map(rowC).join("")}</tbody></table></div><p class="meta" style="padding:0 12px 10px">${esc(REJECTED)}</p></details>`;
   for (const it of ITEMS) paint(it.id);
 }
 function paint(id){
@@ -1117,19 +1118,19 @@ function summary(){
   }
   const notes = ITEMS.filter(i => (st(i.id).n || "").trim()).map(i => `${i.id}: «${st(i.id).n.trim().replace(/\s+/g, " ")}»`);
   const open = ITEMS.filter(i => !st(i.id).v).map(i => i.id);
-  const L = [`Alternativas de enemigos y música M3 (__STAMP__): ${done}/${ITEMS.length} juzgadas`,
+  const L = [`M3 enemy alternatives and music (__STAMP__): ${done}/${ITEMS.length} judged`,
     `OK (${by("ok").length}): ${by("ok").join(", ") || "—"}`,
     `NO (${by("no").length}): ${by("no").join(", ") || "—"}`,
     `? (${by("q").length}): ${by("q").join(", ") || "—"}`,
-    `notas: ${notes.join(" / ") || "—"}`];
-  if (open.length) L.push(`sin juzgar (${open.length}): ${open.join(", ")}`);
+    `notes: ${notes.join(" / ") || "—"}`];
+  if (open.length) L.push(`not judged (${open.length}): ${open.join(", ")}`);
   document.getElementById("result").value = L.join("\n");
 }
 function copy(){
   const t = document.getElementById("result"), msg = document.getElementById("copied");
   summary();
-  const done = () => { msg.textContent = "copiado"; setTimeout(() => msg.textContent = "", 2500); };
-  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? done() : (msg.textContent = "selecciona y Ctrl+C abajo"); } catch (e) { msg.textContent = "selecciona y Ctrl+C abajo"; } t.scrollIntoView({block:"center"}); };
+  const done = () => { msg.textContent = "copied"; setTimeout(() => msg.textContent = "", 2500); };
+  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? done() : (msg.textContent = "select and Ctrl+C below"); } catch (e) { msg.textContent = "select and Ctrl+C below"; } t.scrollIntoView({block:"center"}); };
   try { if (navigator.clipboard && window.isSecureContext !== false) navigator.clipboard.writeText(t.value).then(done, fallback); else fallback(); } catch (e) { fallback(); }
 }
 document.addEventListener("click", e => {
@@ -1145,7 +1146,7 @@ document.addEventListener("play", e => { document.querySelectorAll("audio").forE
 document.getElementById("onlyOpen").addEventListener("change", () => ITEMS.forEach(i => paint(i.id)));
 document.getElementById("copyTop").addEventListener("click", copy);
 document.getElementById("copyBottom").addEventListener("click", copy);
-document.getElementById("reset").addEventListener("click", () => { if (confirm("¿Borrar todas las respuestas y notas de esta hoja?")) { S = {}; save(); build(); summary(); } });
+document.getElementById("reset").addEventListener("click", () => { if (confirm("Clear all the answers and notes on this sheet?")) { S = {}; save(); build(); summary(); } });
 build(); summary();
 """
 
@@ -1157,42 +1158,42 @@ def page_html(done: list[Rendered], page: Path, out_dir: Path, music: list[dict]
     rejected = json.dumps(MAP01_REJECTED, ensure_ascii=False)
     js = PAGE_JS.replace("__KEY__", PAGE_KEY_PREFIX + stamp).replace("__STAMP__", stamp)
     return f"""<!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Enemigos y música M3</title>
+<title>M3 enemies and music</title>
 <style>{PAGE_CSS}</style>
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <h1>Enemigos y música M3</h1>
-  <span class="prog">Juzgadas <b id="pDone">0</b> de <b>{n}</b></span>
+  <h1>M3 enemies and music</h1>
+  <span class="prog">Judged <b id="pDone">0</b> of <b>{n}</b></span>
   <span class="bar"><i id="pBar"></i></span>
-  <label class="chk"><input type="checkbox" id="onlyOpen"> solo sin juzgar</label>
-  <button class="primary" id="copyTop">Copiar resultado</button><span id="copied" class="copied"></span>
+  <label class="chk"><input type="checkbox" id="onlyOpen"> only not judged</label>
+  <button class="primary" id="copyTop">Copy result</button><span id="copied" class="copied"></span>
 </div></header>
 <div class="wrap">
 <section class="intro">
-  <p>Lo que marcaste <b>NO</b> en la hoja de escucha (D83), con tres alternativas <b>distintas</b> para cada uno (otro gesto u otro material, no retoques); la música de MAP01 recortada para que empiece en la parte melódica; y las obras candidatas para el nuevo MAP01. Pulsa <b>OK</b>, <b>NO</b> o <b>?</b> en cada fila y escribe una nota si quieres. Se guarda solo en este navegador. Al terminar, <b>Copiar resultado</b> y pégalo en el chat.</p>
+  <p>What you marked <b>NO</b> on the listening sheet (D83), with three <b>different</b> alternatives for each (another gesture or another material, not retouches); the MAP01 music trimmed so it starts at the melodic part; and the candidate works for the new MAP01. Press <b>OK</b>, <b>NO</b> or <b>?</b> on each row and write a note if you like. It is saved only in this browser. When you are done, <b>Copy result</b> and paste it in the chat.</p>
   <ul>
-    <li><b>Volumen: ya están subidas</b> a la fuerza del sonido de Freedoom de al lado (disparos y voces al mismo nivel; las capas {ALLOWANCE_DB["bed"]:g} dB por debajo, porque irán bajo tu voz). Los rechazados siguen al volumen antiguo, más bajo: compara el carácter, no el volumen.</li>
-    <li><b>Portátil:</b> al menos la mitad de la energía de cada alternativa está por encima de 300 Hz.</li>
-    <li><b>Capas (beds):</b> no son voces. Van debajo de tu toma de voz cuando llegue; hoy en el juego suena la voz de Freedoom sola.</li>
-    <li><b>Música:</b> renderizada con la misma librería (<code>zmusic.dll</code>) y la misma soundfont (<code>gzdoom.sf2</code>) de tu GZDoom, sin arrancar el juego. Cada recorte sigue {SEAM_PREVIEW_S:.0f} s tras el final para que oigas cómo vuelve a empezar. Propuesta: el recorte pasa al <b>campo de tiro</b> (RANGE), donde rechazaste D_SDAMUR, y MAP01 recibe otra obra.</li>
-    <li>Fuentes: nuestra síntesis y los paquetes CC0 que ya están en disco (rubberduck en OpenGameArt y Kenney). Nada descargado.</li>
+    <li><b>Volume: already raised</b> to the loudness of the Freedoom sound beside them (shots and voices at the same level; the layers {ALLOWANCE_DB["bed"]:g} dB under, because they will go under your voice). The rejected ones stay at the old, lower volume: compare the character, not the volume.</li>
+    <li><b>Laptop:</b> at least half of each alternative's energy is above 300 Hz.</li>
+    <li><b>Layers (beds):</b> they are not voices. They go under your voice take when it arrives; in the game today the Freedoom voice plays alone.</li>
+    <li><b>Music:</b> rendered with the same library (<code>zmusic.dll</code>) and the same soundfont (<code>gzdoom.sf2</code>) as your GZDoom, without starting the game. Each trim runs {SEAM_PREVIEW_S:.0f} s past the end so you hear how it starts again. Proposal: the trim goes to the <b>practice range</b> (RANGE), where you rejected D_SDAMUR, and MAP01 gets another work.</li>
+    <li>Sources: our synthesis and the CC0 packs already on disk (rubberduck on OpenGameArt and Kenney). Nothing downloaded.</li>
   </ul>
 </section>
 <main id="groups"></main>
 <section id="music"></section>
 <section id="cands"></section>
 <section>
-  <h2 style="font-size:16px;margin:24px 0 6px">Resultado para pegar en el chat</h2>
-  <p class="meta">Se actualiza solo. Si el botón no copia (algunos navegadores lo bloquean en archivos locales), selecciona el texto y Ctrl+C.</p>
+  <h2 style="font-size:16px;margin:24px 0 6px">Result to paste in the chat</h2>
+  <p class="meta">It updates itself. If the button does not copy (some browsers block it on local files), select the text and press Ctrl+C.</p>
   <textarea id="result" readonly></textarea>
-  <p><button class="primary" id="copyBottom">Copiar resultado</button> <button id="reset">Borrar todas mis respuestas</button></p>
+  <p><button class="primary" id="copyBottom">Copy result</button> <button id="reset">Clear all my answers</button></p>
 </section>
-<footer>Generado {html.escape(stamp)} por sound-designer con <code>tools/audio/gen_enemy_alts.py</code>. Audio: <code>work/audio/enemy_alt/</code> (alternativas), <code>work/audio/sfx/enemies/</code> (rechazados), <code>work/audio/preview/freedoom/</code> (Freedoom de hoy), <code>work/audio/music_trim/</code> (música). La página lee los archivos del repo por ruta relativa: no la muevas de <code>docs/art/previews/</code>.</footer>
+<footer>Generated {html.escape(stamp)} by sound-designer with <code>tools/audio/gen_enemy_alts.py</code>. Audio: <code>work/audio/enemy_alt/</code> (alternatives), <code>work/audio/sfx/enemies/</code> (rejected), <code>work/audio/preview/freedoom/</code> (today's Freedoom), <code>work/audio/music_trim/</code> (music). The page reads the repo's files by relative path: do not move it out of <code>docs/art/previews/</code>.</footer>
 </div>
 <script>
 const ITEMS = {data};

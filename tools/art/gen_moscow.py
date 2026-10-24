@@ -377,64 +377,64 @@ def tex_spas1() -> np.ndarray:
 
 
 # ================================================================ pieces
-V2_BRICK = "v2 solo por marble_red, como SDBRCK1 aprobado (D66): v1 no tiene rojo de ladrillo cocido."
+V2_BRICK = "v2 only for marble_red, like the approved SDBRCK1 (D66): v1 has no fired-brick red."
 PIECES = [
     Piece("SDCOBL1", tex_cobl1, "flat", (64, 64), ["SDCOBL1"], 1, "xy",
-          "Adoquín de la Plaza Roja",
-          "Adoquines de diabasa oscura en hiladas, cada hilada desplazada, redondeados y pulidos por los desfiles.",
-          rec_why="El suelo del mapa; oscuro a propósito para que la muralla roja mande."),
+          "Red Square cobbles",
+          "Dark diabase setts in courses, each course offset, rounded and polished by the parades.",
+          rec_why="The map's floor; dark on purpose so the red wall leads."),
     Piece("SDCOBL2", tex_cobl2, "flat", (64, 64), ["SDCOBL2"], 2, "x",
-          "Adoquín con franja de granito",
-          "Los mismos adoquines con una línea de losas de granito claro: las líneas que dividen la plaza en campos.",
-          rec_why="Para trazar la plaza; la franja va a lo largo de x (girar en UDMF para la otra dirección)."),
+          "Cobbles with a granite strip",
+          "The same setts with a line of light granite slabs: the lines that divide the square into fields.",
+          rec_why="To lay out the square; the strip runs along x (rotate in UDMF for the other direction)."),
     Piece("SDKREM1", tex_krem1, "wall", (64, 128), ["SDKREM1"], 3, "xy",
-          "Muro del Kremlin",
-          "Ladrillo rojo del Kremlin en aparejo a soga, juntas de cal claras, algunos ladrillos restaurados, "
-          "lavados de lluvia. Más limpio y más rojo que SDBRCK1.",
+          "Kremlin wall",
+          "The Kremlin's red brick in stretcher bond, light lime joints, a few restored bricks, rain washes. "
+          "Cleaner and redder than SDBRCK1.",
           palette=2, why_v2=V2_BRICK,
-          rec_why="Se distingue del ladrillo industrial (sin hollín, juntas claras): es el mismo material, otro rango."),
+          rec_why="Tells from the industrial brick (no soot, light joints): the same material, another rank."),
     Piece("SDKREM2", tex_krem2, "wall", (64, 128), ["SDKREM2"], 3, "x",
-          "Almena «cola de golondrina» (enmascarada)",
-          "Remate de la muralla, ENMASCARADA: el mismo ladrillo que SDKREM1 píxel a píxel, recortado en merlón en "
-          "M con aspillera; entre merlones y en la muesca se ve el cielo.",
+          "«Swallowtail» merlon (masked)",
+          "The wall's crenellation, MASKED: the same brick as SDKREM1 pixel for pixel, cut into an M-shaped merlon "
+          "with a loophole; the sky shows between merlons and in the notch.",
           palette=2, masked=True, why_v2=V2_BRICK,
-          rec_why="Misma excepción RGBA que SDCHAN1. Mitad superior merlón, mitad inferior parapeto: colocar con la "
-                  "parte de abajo enrasada con SDKREM1. Comparte semilla con SDKREM1 para que el aparejo siga.",
+          rec_why="Same RGBA exception as SDCHAN1. Top half merlon, bottom half parapet: place it with the bottom "
+                  "flush with SDKREM1. It shares SDKREM1's seed so the bond carries on.",
           scene={"left": "SDKREM2", "right": "SDKREM2", "back": "SDKREM2"}),
     Piece("SDGUM1", tex_gum1, "wall", (128, 128), ["SDGUM1"], 4, "x",
-          "Fachada de los GUM",
-          "Fachada de los almacenes GUM, una crujía: piedra clara en hiladas, ventana de medio punto (vidrio oscuro, "
-          "carpintería blanca, abanico), dovelas y clave, media pilastra almohadillada en cada borde, cornisa con "
-          "dentículos, alféizar.",
-          rec_why="La piedra clara es la pared donde mejor se leerán los enemigos en el mapa (ART-BIBLE §6)."),
+          "GUM facade",
+          "The GUM store's facade, one bay: light stone in courses, a round-arched window (dark glass, white "
+          "frames, fanlight), voussoirs and keystone, a rusticated half pilaster on each edge, a dentil cornice, "
+          "a sill.",
+          rec_why="The light stone is the wall on which enemies will read best in the map (ART-BIBLE §6)."),
     Piece("SDTRIB1", tex_trib1, "wall", (64, 128), ["SDTRIB1"], 5, "xy",
-          "Granito de la tribuna",
-          "Granito rojo oscuro pulido en bloques de 64x32, moteado negro, rosa y gris, un reflejo suave y una banda "
-          "de labradorita negra con destellos azules arriba.",
-          rec_why="Solo material (D12): sin inscripción ni referencia al mausoleo. Rojo de flag_red bajo, v1."),
+          "Tribune granite",
+          "Polished dark red granite in 64x32 blocks, flecked black, pink and grey, a soft sheen and a band of "
+          "black labradorite with blue glints at the top.",
+          rec_why="Material only (D12): no inscription and no reference to the mausoleum. Low flag_red, v1."),
     Piece("SDBANR1", tex_banr1, "wall", (64, 128), ["SDBANR1"], 6, "x",
-          "Pancarta del desfile",
-          "Pancarta del desfile colgada en el muro del Kremlin (los píxeles de SDKREM1): rojo kumach con pliegues, "
-          "estrella dorada y la hoz y el martillo aprobados, flecos dorados, barra y soportes. Sin texto.",
-          palette=2, why_v2="v2 solo porque cuelga sobre los píxeles de SDKREM1; la tela es v1.",
-          rec_why="Colgar alta, como SDFLAG1/2 (ART-BIBLE §6): delante del pecho de un enemigo rompe la lectura.",
+          "Parade banner",
+          "A parade banner hung on the Kremlin wall (SDKREM1's pixels): kumach red with folds, a gold star and "
+          "the approved hammer and sickle, gold fringe, a bar and brackets. No text.",
+          palette=2, why_v2="v2 only because it hangs over SDKREM1's pixels; the cloth is v1.",
+          rec_why="Hang it high, like SDFLAG1/2 (ART-BIBLE §6): in front of an enemy's chest it breaks the read.",
           scene={"left": "SDKREM1", "right": "SDKREM1"}),
     Piece("SDSPAS1", tex_spas1, "wall", (64, 128), ["SDSPAS1"], 7, "xy",
-          "Piedra de la torre Spásskaya",
-          "Torre Spásskaya: ladrillo rojo con aderezos de piedra caliza blanca, friso de arquillos apuntados con "
-          "pinjantes, pilastras blancas en los bordes y una imposta con dentículos.",
+          "Spasskaya Tower stone",
+          "The Spasskaya Tower: red brick with white limestone dressings, a frieze of pointed arches with "
+          "pendants, white pilasters on the edges and a dentil string course.",
           palette=2, why_v2=V2_BRICK,
-          rec_why="El blanco sobre rojo es lo que hace «Kremlin» a un golpe de vista; tila en los dos ejes."),
+          rec_why="White on red is what says «Kremlin» at a glance; tiles on both axes."),
 ]
 
 # The metro's approved red marble serves MAP06's Ploshchad Revolyutsii.
-REUSED = [("SDMARB1", "Mármol rojo de Plóshchad Revolyutsii: ya existe en el set Metro, aprobado (D42). Se reutiliza; "
-                      "no se dibuja otro.")]
+REUSED = [("SDMARB1", "Ploshchad Revolyutsii's red marble: it already exists in the Metro set, approved (D42). "
+                      "Reused; no other is drawn.")]
 
 ROOM = {"wall": "SDKREM1", "floor": "SDCOBL1", "ceil": None, "light": 1.0}
 OVERVIEWS = [
-    ("La Plaza Roja", {"left": "SDGUM1", "right": "SDBANR1", "back": "SDSPAS1", "floor": "SDCOBL2"}),
-    ("La muralla y la tribuna", {"left": "SDTRIB1", "right": "SDTRIB1", "back": "SDKREM2", "floor": "SDCOBL1"}),
+    ("Red Square", {"left": "SDGUM1", "right": "SDBANR1", "back": "SDSPAS1", "floor": "SDCOBL2"}),
+    ("The wall and the tribune", {"left": "SDTRIB1", "right": "SDTRIB1", "back": "SDKREM2", "floor": "SDCOBL1"}),
 ]
 
 

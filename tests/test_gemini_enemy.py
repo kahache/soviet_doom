@@ -448,9 +448,9 @@ class D105SideAndSoleTests(unittest.TestCase):
                             sheets={"a": ge.Sheet("a.png", 2, ()), "b": ge.Sheet("b.png", 2, (), sole=3)},
                             rotated={}, single={"A": ge.Src("a", 0)})
         gate = ge.quality_gate(spec, cuts, ["SDGGA0"])
-        self.assertEqual(sum("a.png" in g and "cortado" in g for g in gate), 2)
-        self.assertEqual(sum("b.png" in g and "suela derivada (3 px)" in g for g in gate), 2)
-        self.assertIn("los lumps escritos no son el conjunto de la spec", ge.quality_gate(spec, cuts, ["SDGGB0"]))
+        self.assertEqual(sum("a.png" in g and "): cut" in g for g in gate), 2)
+        self.assertEqual(sum("b.png" in g and "derived sole (3 px)" in g for g in gate), 2)
+        self.assertIn("the lumps written are not the spec's set", ge.quality_gate(spec, cuts, ["SDGGB0"]))
 
 
 def _state_letters(zs: Path, sprite: str) -> set:
@@ -1006,7 +1006,7 @@ class BuildTests(unittest.TestCase):
         html = ge.review_sheet([spec], out=self.tmp / "sheet.html", out_root=self.tmp, sprites_dir=self.tmp / "none")
         text = html.read_text(encoding="utf-8")
         self.assertIn("SDTYA1", text)
-        self.assertIn("Copiar resultado", text)
+        self.assertIn("Copy result", text)
         self.assertIn("image-rendering:pixelated", text)
         self.assertNotIn("/*ITEMS*/", text)
         self.assertNotIn("gem_t_", text.split("const ITEMS")[1].split("SDTY")[0])
@@ -1020,14 +1020,14 @@ class BuildTests(unittest.TestCase):
             import json
             m = json.loads(metrics)
             m["reask"] = [list(r) for r in spec.reask]
-            m["gate"] = ["gem_t_turn.png figura 1: botas cortadas"]
+            m["gate"] = ["gem_t_turn.png figure 1: boots cut"]
             (folder / "metrics.json").write_text(json.dumps(m), encoding="utf-8")
             html = ge.review_sheet([spec], out=self.tmp / "sheet2.html", out_root=self.tmp,
                                    sprites_dir=self.tmp / "none")
             text = html.read_text(encoding="utf-8")
             self.assertIn("redraw with room under the boots", text)
-            self.assertIn("botas cortadas", text)
-            self.assertIn("Pedir otra vez a Gemini", text)
+            self.assertIn("boots cut", text)
+            self.assertIn("Ask Gemini again", text)
         finally:
             (folder / "metrics.json").write_text(metrics, encoding="utf-8")
 
@@ -1047,7 +1047,7 @@ def armed(width: int = 30, height: int = 100, field_r: int = 7):
 
 @unittest.skipIf(ge is None, "art venv (numpy, Pillow) missing")
 class D108SymbolTests(unittest.TestCase):
-    """D108, "la mezcla": option 1 on the Reich, option 2 from the cache on the close pictures."""
+    """D108, "la mezcla" ("the mix"): option 1 on the Reich, option 2 from the cache on the close pictures."""
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(prefix="sd_d108_"))
 
@@ -1276,7 +1276,7 @@ class D119GunnerSpecTests(unittest.TestCase):
         self.assertEqual(spec.sheets["fire"].guide, "turn")
         self.assertEqual(sorted(spec.sheets["death"].pick), list(range(5)))
         self.assertTrue(all(v < spec.sheets["fire"].count for *_, v in spec.sheets["fire"].flash))
-        self.assertNotIn("gunner", ge.ENEMIES)                   # not installed: the CEO sees it first
+        self.assertNotIn("gunner", ge.ENEMIES)                   # built by its own command, not by `all` (installed by D123)
         self.assertIs(ge.PENDING["gunner"], spec)
         self.assertTrue(spec.reask and spec.derived)
 

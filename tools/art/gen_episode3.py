@@ -8,7 +8,7 @@ work/art/episode3/<set>/, the sheet views into work/art/episode3/<set>/views/,
 a manifest per set, and the review sheet
 docs/art/previews/2026-10-22_P4_episode3-textures.html: every texture on its
 own (1x and zoomed), as a 3x3 mosaic and in a sample room (a small Doom-like
-view, NOT the engine), with OK / NO / ? and «Copiar resultado» like the
+view, NOT the engine), with OK / NO / ? and «Copy result» like the
 Episode 2 sheet, and the table of proposed lump names.
 
 The sheet's CSS and vote script are Episode 2's (gen_episode2, read only),
@@ -42,17 +42,17 @@ SCRIPT_REL = "tools/art/gen_episode3.py"
 GIF_MS = ep2sheet.GIF_MS
 SHEET_KEY = "sd-2026-10-22_P4_episode3-textures"
 
-# set module, map, Spanish heading, recommended light (art director's proposal; level-designer decides)
+# set module, map, heading, recommended light (art director's proposal; level-designer decides)
 SETS = [
-    (gen_arctic, "MAP07", "Arctic — la estación de radar de Nueva Zembla",
-     "Luz recomendada: exterior nevado 128-160 (la nieve ya es clara; más alto quema), barracones y sala del "
-     "radar 112-144, la pantalla del radar como luz propia."),
-    (gen_naval, "MAP08", "Naval — la base de submarinos de Severomorsk",
-     "Luz recomendada: refugio excavado 96-128, muelle exterior 144-160 de día polar, interior del submarino "
+    (gen_arctic, "MAP07", "Arctic — the Novaya Zemlya radar station",
+     "Recommended light: snowy exterior 128-160 (the snow is already light; higher burns out), barracks and "
+     "radar room 112-144, the radar screen as its own light."),
+    (gen_naval, "MAP08", "Naval — the Severomorsk submarine base",
+     "Recommended light: excavated pen 96-128, outer quay 144-160 in polar daylight, submarine interior "
      "112-144."),
-    (gen_taiga, "MAP09", "Taiga/Alien — el portal de Tunguska",
-     "Luz recomendada: taiga quemada 96-128 de noche, cabaña 112-144, el portal y el ácido 176-208 como en la "
-     "fundición (MAP03)."),
+    (gen_taiga, "MAP09", "Taiga/Alien — the Tunguska portal",
+     "Recommended light: burnt taiga 96-128 at night, cabin 112-144, the portal and the acid 176-208 as in the "
+     "foundry (MAP03)."),
 ]
 NEW_FAMILIES = {
     "SNOW": "snow (flat)", "ICE": "ice (flat and wall)", "RADM": "radome panels", "HUT": "frosted corrugated hut",
@@ -202,9 +202,10 @@ def make_views(mod, A: dict) -> dict:
 
 
 # ================================================================ sheet
-JS = ep2sheet.JS.replace("sd-2026-10-22_P4_episode2-textures", SHEET_KEY).replace(
-    "Texturas Episodio 2 (2026-10-22_P4, D104)", "Texturas Episodio 3 (2026-10-22_P4, D112)")
-assert SHEET_KEY in JS and "Episodio 3" in JS
+# The copied result's first line: Episode 2's label, whatever its wording, becomes this sheet's.
+JS = re.sub(r"(const L = \[`)[^`$]*\(2026-10-22_P4, D104\)", r"\1Episode 3 textures (2026-10-22_P4, D112)",
+            ep2sheet.JS.replace("sd-2026-10-22_P4_episode2-textures", SHEET_KEY))
+assert SHEET_KEY in JS and "Episode 3 textures" in JS
 TILES_TXT = ep2sheet.TILES_TXT
 
 
@@ -215,7 +216,7 @@ def items_json(sets_data) -> list[dict]:
         for p in mod.PIECES:
             e = by_key[p.key]
             items.append({
-                "id": p.key, "set": mod.SET_NAME, "lumps": p.lumps, "kind": "pared" if p.kind == "wall" else "suelo/techo",
+                "id": p.key, "set": mod.SET_NAME, "lumps": p.lumps, "kind": "wall" if p.kind == "wall" else "floor/ceiling",
                 "w": p.size[0], "h": p.size[1], "tilesTxt": TILES_TXT[p.tiles], "pal": p.palette, "masked": p.masked,
                 "title": p.title, "desc": p.desc, "rec": p.rec, "recWhy": p.rec_why, "whyV2": p.why_v2,
                 "script": mod.SCRIPT_REL, "seed": e["seed"], "colours": e["colours_used"], "luma": e["mean_luma"],
@@ -241,17 +242,17 @@ def lump_table(sets_data) -> str:
             seed = f"{e['seed']}" + (f" (= {twin})" if twin else "")
             rows.append(
                 f"<tr><td><code>{html.escape(', '.join(p.lumps))}</code></td><td>{mod.SET_NAME}</td>"
-                f"<td>{html.escape(p.title)}</td><td>{'pared' if p.kind == 'wall' else 'flat'}</td>"
+                f"<td>{html.escape(p.title)}</td><td>{'wall' if p.kind == 'wall' else 'flat'}</td>"
                 f"<td>{p.size[0]}×{p.size[1]}</td><td>{TILES_TXT[p.tiles]}</td>"
                 f"<td>v{p.palette}{' + ' + ', '.join(p.v2_ramps) if p.v2_ramps else ''}{' RGBA' if p.masked else ''}</td>"
-                f"<td>{html.escape(fam)} (nueva) — {html.escape(NEW_FAMILIES[fam])}</td>"
-                f"<td>{seed}</td><td>propuesta</td></tr>")
+                f"<td>{html.escape(fam)} (new) — {html.escape(NEW_FAMILIES[fam])}</td>"
+                f"<td>{seed}</td><td>proposed</td></tr>")
         for lump, why in getattr(mod, "REUSED", []):
             rows.append(f"<tr><td><code>{lump}</code></td><td>{mod.SET_NAME}</td><td>{html.escape(why)}</td>"
-                        f"<td>—</td><td>—</td><td>—</td><td>v1</td><td>existente</td><td>—</td>"
-                        f"<td>aprobada (D107), reutilizada</td></tr>")
-    head = ("<tr><th>Lump</th><th>Set</th><th>Qué es</th><th>Tipo</th><th>Tamaño</th><th>Tila</th><th>Paleta</th>"
-            "<th>Familia</th><th>Semilla</th><th>Estado</th></tr>")
+                        f"<td>—</td><td>—</td><td>—</td><td>v1</td><td>existing</td><td>—</td>"
+                        f"<td>approved (D107), reused</td></tr>")
+    head = ("<tr><th>Lump</th><th>Set</th><th>What it is</th><th>Type</th><th>Size</th><th>Tiles</th><th>Palette</th>"
+            "<th>Family</th><th>Seed</th><th>Status</th></tr>")
     return f'<div class="tablewrap"><table class="t">{head}{"".join(rows)}</table></div>'
 
 
@@ -265,88 +266,88 @@ def build_sheet(sets_data, problems: list[str], out: Path = SHEET) -> Path:
             f'width="640" height="400" alt=""></div>' for i, (label, _) in enumerate(mod.OVERVIEWS))
         sections.append(
             f'<h2>{mapname} · {html.escape(heading)}</h2><p class="lead">{html.escape(light)} '
-            f'Generador <code>{mod.SCRIPT_REL}</code>, semilla base {mod.BATCH_SEED}.</p>'
-            f'<h3>El set montado</h3><div class="ov">{ovs}</div>'
-            f'<h3>Las piezas</h3><div id="cards-{mod.SET_NAME}"></div>')
-    prob_html = ("<p><b>Comprobación de nombres:</b> los " + str(n_lumps) + " lumps propuestos son SD, de ≤ 8 "
-                 "caracteres, y ninguno choca con un nombre existente en <code>assets/</code>, <code>work/</code> ni "
-                 "<code>TEXTURE-INDEX.md</code>, ni se lee como fotograma de un sprite (por eso la consola es "
-                 "<code>SDRADR</code> y no <code>SDRDR</code>: <code>SDRD</code> es un sprite).</p>") if not problems else (
-        "<p><b>Problemas de nombres:</b></p><ul>" + "".join(f"<li>{html.escape(p)}</li>" for p in problems) + "</ul>")
+            f'Generator <code>{mod.SCRIPT_REL}</code>, base seed {mod.BATCH_SEED}.</p>'
+            f'<h3>The set assembled</h3><div class="ov">{ovs}</div>'
+            f'<h3>The pieces</h3><div id="cards-{mod.SET_NAME}"></div>')
+    prob_html = ("<p><b>Name check:</b> the " + str(n_lumps) + " proposed lumps are SD, ≤ 8 characters, "
+                 "and none clashes with an existing name in <code>assets/</code>, <code>work/</code> or "
+                 "<code>TEXTURE-INDEX.md</code>, nor reads as a sprite frame (that is why the console is "
+                 "<code>SDRADR</code> and not <code>SDRDR</code>: <code>SDRD</code> is a sprite).</p>") if not problems else (
+        "<p><b>Name problems:</b></p><ul>" + "".join(f"<li>{html.escape(p)}</li>" for p in problems) + "</ul>")
     intro = f"""
 <div class="intro">
-<p><b>Qué es (D112, P4).</b> Los tres conjuntos de texturas del Episodio 3, «The Portal», en <b>borrador</b>:
-{len(items)} piezas, {n_lumps} lumps, todas procedurales con nuestros generadores, por el mismo método que el Episodio 2
-que aprobaste (semilla fija, paleta v1, estilo Doom 1993-96, 64/128 px). Nada está en <code>assets/</code> ni en el
-índice: si dices OK, el PM las instala tal cual.</p>
+<p><b>What this is (D112, P4).</b> Episode 3's three texture sets, «The Portal», as a <b>draft</b>:
+{len(items)} pieces, {n_lumps} lumps, all procedural from our generators, by the same method as the Episode 2 you
+approved (fixed seed, palette v1, Doom 1993-96 style, 64/128 px). Nothing is in <code>assets/</code> or the
+index: if you say OK, the PM installs them as they are.</p>
 <ul>
-<li>Cada pieza se ve <b>sola</b> (1× y ampliada), en <b>mosaico 3×3</b> (para ver si tila) y en una <b>sala de muestra</b>:
-una vista mínima tipo Doom (320×200, 90°, ojo a 41 unidades, luz que cae con la distancia). <b>No es GZDoom</b>: sirve
-para ver escala y repetición; la prueba real es en el motor, con el level-designer.</li>
-<li><b>Paleta:</b> v1 en todo. Una sola excepción con el precedente de D66: el <b>borde del portal</b>
-(<code>SDPRTE1</code>) usa el <code>mosaic_cobalt</code> de la v2, el del portal <code>SDPORT1-4</code>, porque es parte
-del portal. Nada más lleva cobalto, ni oro, ni el rosa de la Legión.</li>
-<li><b>Texto:</b> ninguna fuente del sistema. El número del submarino «471», «ММФ» del contenedor y el «3» del
-compartimento salen de nuestro alfabeto (bigfont, D24); el número del contenedor, de dígitos de 3×5 píxeles; las placas
-de las consolas parecen texto y no dicen nada; los <b>glifos invasores</b> son una gramática inventada de anillos y
-trazos (no son letras de ningún alfabeto).</li>
-<li><b>Tres piezas repiten la semilla de su gemela a propósito</b> (la pista con línea central, el casco con número,
-la cubierta con escotilla): son la misma superficie con algo pintado o encastrado encima.</li>
-<li><b>Reutilizadas, ya aprobadas:</b> el agua <code>SDWATR1-4</code> para la dársena y <code>SDDAM2</code> para el
-paramento del muelle; el portal <code>SDPORT1-4</code> en la sala de muestra del borde.</li>
+<li>Each piece is shown <b>on its own</b> (1× and zoomed), as a <b>3×3 mosaic</b> (to see whether it tiles) and in a
+<b>sample room</b>: a minimal Doom-like view (320×200, 90°, eye at 41 units, light falling off with distance).
+<b>It is not GZDoom</b>: it shows scale and repetition; the real test is in the engine, with the level-designer.</li>
+<li><b>Palette:</b> v1 throughout. One exception, with D66 as the precedent: the <b>portal rim</b>
+(<code>SDPRTE1</code>) uses v2's <code>mosaic_cobalt</code>, the portal's own (<code>SDPORT1-4</code>), because it is part
+of the portal. Nothing else carries cobalt, gold or the Legion's pink.</li>
+<li><b>Text:</b> no system font. The submarine's number «471», the container's «ММФ» and the compartment's «3» come
+from our alphabet (bigfont, D24); the container's number from the 3×5-pixel digits; the console plates look like text
+and say nothing; the <b>invader glyphs</b> are an invented grammar of rings and strokes (not letters of any
+alphabet).</li>
+<li><b>Three pieces repeat their twin's seed on purpose</b> (the runway with a centre line, the hull with a number,
+the deck with a hatch): they are the same surface with something painted on or set into it.</li>
+<li><b>Reused, already approved:</b> the water <code>SDWATR1-4</code> for the basin and <code>SDDAM2</code> for the
+quay face; the portal <code>SDPORT1-4</code> in the rim's sample room.</li>
 </ul>
-<p>Marca <b>OK / NO / ?</b> en cada una, escribe notas si quieres y pulsa <b>Copiar resultado</b> para pegármelo.</p>
+<p>Mark <b>OK / NO / ?</b> on each one, add notes if you like and press <b>Copy result</b> to paste it to me.</p>
 </div>"""
     ask = """
-<div class="ask"><p><b>Además del OK/NO, cuatro preguntas:</b></p><ol>
-<li><b>Verde del ácido.</b> La paleta v1 no tiene un verde saturado: el ácido (<code>SDACID1-4</code>), las venas del
-metal invasor y los glifos están pintados con el <code>military_green</code> y crestas amarillas, un verde «tóxico» oliva.
-Un verde ácido de verdad es una rampa nueva en los 30 huecos libres (paleta v3). Mi recomendación: verlo antes en el
-motor; si en GZDoom parece barro, abrimos la rampa <code>acid_green</code>.</li>
-<li><b>Nieve y radomo muy claros.</b> La nieve, el radomo y las pistas quedan por encima de la banda 0.45-0.70 de las
-paredes (ART-BIBLE §6.1): es un exterior ártico. Los soldados del Reich (oscuros) se leen de sobra; la Legión (rosa y
-cromo) se lee algo peor sobre blanco. Propongo luz 128-160 en el exterior nevado, no más. ¿Vale?</li>
-<li><b>Hielo gris-azul.</b> Sin cobalto (es del portal), el hielo es el gris-azul de <code>steel_blue</code>, como el agua
-del Volga. ¿Vale, o lo quieres más azul (sería otra rampa v3)?</li>
-<li><b>Animadas y enmascarada.</b> La consola de radar (<code>SDRADR1-4</code>) y el ácido necesitan ANIMDEFS
-(mod-engineer; propongo 12 tics por fotograma para el radar y 8 para el ácido). La celosía <code>SDCRAN1</code> es RGBA
-como <code>SDCHAN1</code> y <code>SDINSL1</code>. Pendiente de verlas en el motor (D26: lo hace el PM).</li>
+<div class="ask"><p><b>Besides the OK/NO, four questions:</b></p><ol>
+<li><b>The acid's green.</b> Palette v1 has no saturated green: the acid (<code>SDACID1-4</code>), the invader metal's
+veins and the glyphs are painted in <code>military_green</code> with yellow crests, an olive «toxic» green.
+A true acid green is a new ramp in the 30 free slots (palette v3). My recommendation: see it in the engine first;
+if it looks like mud in GZDoom, we open the <code>acid_green</code> ramp.</li>
+<li><b>Very light snow and radome.</b> The snow, the radome and the runways sit above the walls' 0.45-0.70 band
+(ART-BIBLE §6.1): it is an Arctic exterior. The Reich soldiers (dark) read easily; the Legion (pink and chrome)
+reads a little worse on white. I propose light 128-160 on the snowy exterior, no more. All right?</li>
+<li><b>Blue-grey ice.</b> Without cobalt (that is the portal's), the ice is <code>steel_blue</code>'s blue-grey, like the
+Volga's water. All right, or do you want it bluer (that would be another v3 ramp)?</li>
+<li><b>Animated and masked.</b> The radar console (<code>SDRADR1-4</code>) and the acid need ANIMDEFS
+(mod-engineer; I propose 12 tics per frame for the radar and 8 for the acid). The lattice <code>SDCRAN1</code> is RGBA
+like <code>SDCHAN1</code> and <code>SDINSL1</code>. Still to be seen in the engine (D26: the PM does it).</li>
 </ol></div>"""
     data = json.dumps(items, ensure_ascii=False)
     sets_js = json.dumps([m.SET_NAME for m, *_ in sets_data])
     doc = f"""<!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Texturas Episodio 3</title>
+<title>Episode 3 textures</title>
 <style>{ep2sheet.CSS}</style>
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <h1>Soviet Doom · Texturas del Episodio 3 (borrador)</h1>
-  <span class="prog"><b id="pDone">0</b> / {len(items)} juzgadas</span>
-  <button class="primary" id="copyTop">Copiar resultado</button><span class="copied" id="copiedTop"></span>
+  <h1>Soviet Doom · Episode 3 textures (draft)</h1>
+  <span class="prog"><b id="pDone">0</b> / {len(items)} judged</span>
+  <button class="primary" id="copyTop">Copy result</button><span class="copied" id="copiedTop"></span>
 </div></header>
 <div class="wrap">
 {intro}
 {"".join(sections)}
-<h2>Nombres de lump propuestos</h2>
+<h2>Proposed lump names</h2>
 {prob_html}
 {lump_table(sets_data)}
-<h2>Preguntas</h2>
+<h2>Questions</h2>
 {ask}
-<h2>Resultado</h2>
-<p class="meta">Comentario general (opcional):</p>
-<textarea class="note" id="general" placeholder="Algo sobre los tres sets en conjunto"></textarea>
+<h2>Result</h2>
+<p class="meta">General comment (optional):</p>
+<textarea class="note" id="general" placeholder="Anything about the three sets as a whole"></textarea>
 <textarea id="result" readonly></textarea>
-<p><button class="primary" id="copyBottom">Copiar resultado</button><span class="copied" id="copiedBottom"></span> <button id="reset">Borrar respuestas</button></p>
-<footer>Origen (a): procedural, <code>tools/art/gen_arctic.py</code> (semilla 5700+n), <code>gen_naval.py</code> (5800+n),
-<code>gen_taiga.py</code> (5900+n), máquinas comunes en <code>ep3lib.py</code> sobre <code>ep2lib.py</code>, hoja
-<code>{SCRIPT_REL}</code>; PNG en <code>work/art/episode3/&lt;set&gt;/</code>; tests <code>tests/test_gen_episode3.py</code>.
-Paleta <code>docs/art/palette.json</code> sin modificar. Licencia: obra propia, CC BY-NC-SA 4.0 (D15). La sala de muestra NO
-es el colormap ni los mipmaps del motor (NO VERIFICADO en GZDoom). El radar y el ácido necesitan ANIMDEFS
-(mod-engineer). Nada instalado: si una vale, la instala el PM con tu OK.</footer>
+<p><button class="primary" id="copyBottom">Copy result</button><span class="copied" id="copiedBottom"></span> <button id="reset">Clear answers</button></p>
+<footer>Origin (a): procedural, <code>tools/art/gen_arctic.py</code> (seed 5700+n), <code>gen_naval.py</code> (5800+n),
+<code>gen_taiga.py</code> (5900+n), shared machinery in <code>ep3lib.py</code> on top of <code>ep2lib.py</code>, sheet
+<code>{SCRIPT_REL}</code>; PNGs in <code>work/art/episode3/&lt;set&gt;/</code>; tests <code>tests/test_gen_episode3.py</code>.
+Palette <code>docs/art/palette.json</code> unmodified. Licence: our own work, CC BY-NC-SA 4.0 (D15). The sample room is NOT
+the engine's colormap or mipmaps (NOT VERIFIED in GZDoom). The radar and the acid need ANIMDEFS
+(mod-engineer). Nothing installed: if one is good, the PM installs it with your OK.</footer>
 </div>
 <script>
 const SETS = {sets_js};

@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""World sounds (v1.1): drafts for the sounds that are still Freedoom's. NOT INSTALLED.
+"""World sounds (v1.1): drafts for the sounds that were still Freedoom's.
+
+D125 (2026-10-23): the CEO approved 50 of the 56 and asked for SDPLOOF w1
+over w3's impact; tools/audio/master_world_sfx.py installs them byte for
+byte (and renders that layer from this file's recipes). This file still
+writes candidates only.
 
 CLAUDE.md lists what the player still hears from the IWAD: the player's own
 voice (pain, death, the "oof" of a landing, the use that does nothing, the
@@ -102,7 +107,7 @@ FREEDOOM_LENGTH_S: dict[str, float] = {
 @dataclass(frozen=True)
 class Source:
     path: str            # under work/audio/ (sfx_sources/..., voice_refs/...) or the repo (assets/...)
-    who: str             # author and collection, Spanish, for the page
+    who: str             # author and collection, for the page
     licence: str         # "CC0 1.0", "CC BY 3.0", or "ours"
     url: str = ""
 
@@ -124,52 +129,52 @@ HAEL_URL = "https://opengameart.org/content/male-gruntyelling-sounds"
 
 SOURCES: dict[str, Source] = {
     # BigSoundBank, downloaded 2026-10-22 (work/audio/sfx_sources/world/SOURCES.md)
-    "bar_open1": _bsb("2355", "barrera metálica grande, abriendo", "grinding-metal-barrier-opening-1-s2355.html"),
-    "bar_open3": _bsb("2357", "barrera metálica grande, abriendo", "grinding-metal-barrier-opening-3-s2357.html"),
-    "bar_close1": _bsb("2358", "barrera metálica grande, portazo", "grinding-metal-barrier-closure-1-s2358.html"),
-    "bar_close2": _bsb("2359", "barrera metálica grande, portazo", "grinding-metal-barrier-closure-2-s2359.html"),
-    "bar_close3": _bsb("2360", "barrera metálica grande, portazo", "grinding-metal-barrier-closure-3-s2360.html"),
-    "groan": _bsb("0616", "puerta metálica que chirría", "creaking-metallic-door-s0616.html"),
-    "pneu": _bsb("1490", "freno neumático soltado", "pneumatic-brake-released-s1490.html"),
-    "strike": _bsb("3442", "cerradero eléctrico", "electric-strike-1-s3442.html"),
-    "isw1": _bsb("3061", "interruptor industrial grande", "industrial-switch-1-s3061.html"),
-    "isw2": _bsb("3062", "interruptor industrial grande", "industrial-switch-2-s3062.html"),
-    "isw3": _bsb("3063", "interruptor industrial grande", "industrial-switch-3-s3063.html"),
-    "breaker": _bsb("1092", "disyuntor eléctrico", "electric-circuit-breaker-s1092.html"),
-    "hoist": _bsb("1133", "polipasto de cadena", "manual-chain-hoist-mounted-s1133.html"),
-    "chain": _bsb("0359", "cadena pesada", "heavy-chain-s0359.html", "DenisChardonnet, BigSoundBank"),
-    "winch": _bsb("0708", "cabrestante eléctrico", "little-electric-winch-s0708.html"),
-    "lift": _bsb("1711", "ascensor, 3 pisos", "elevator-3-floors-s1711.html"),
-    "case1": _bsb("1367", "casquillo 7,62 en hormigón", "bullet-case-7-62mm-on-concrete-1-s1367.html"),
-    "load": _bsb("1988", "cargando un cargador", "gun-loading-1-s1988.html"),
-    "cock": _bsb("1984", "montando una pistola", "pistol-cocking-1-s1984.html"),
-    "shock": _bsb("0134", "chispazo eléctrico", "electric-shock-s0134.html"),
-    "weld": _bsb("0952", "soldadura corta", "short-welds-s0952.html"),
-    "barnlock": _bsb("1540", "cerrojo de granero cerrando", "barn-lock-locking-s1540.html"),
-    "barnunlock": _bsb("1539", "cerrojo de granero abriendo", "barn-lock-unlocking-s1539.html"),
-    "anvil": _bsb("3590", "yunque", "anvil-2-s3590.html", "Pablo Bergel, BigSoundBank"),
+    "bar_open1": _bsb("2355", "large metal barrier, opening", "grinding-metal-barrier-opening-1-s2355.html"),
+    "bar_open3": _bsb("2357", "large metal barrier, opening", "grinding-metal-barrier-opening-3-s2357.html"),
+    "bar_close1": _bsb("2358", "large metal barrier, slamming", "grinding-metal-barrier-closure-1-s2358.html"),
+    "bar_close2": _bsb("2359", "large metal barrier, slamming", "grinding-metal-barrier-closure-2-s2359.html"),
+    "bar_close3": _bsb("2360", "large metal barrier, slamming", "grinding-metal-barrier-closure-3-s2360.html"),
+    "groan": _bsb("0616", "creaking metal door", "creaking-metallic-door-s0616.html"),
+    "pneu": _bsb("1490", "pneumatic brake released", "pneumatic-brake-released-s1490.html"),
+    "strike": _bsb("3442", "electric strike", "electric-strike-1-s3442.html"),
+    "isw1": _bsb("3061", "large industrial switch", "industrial-switch-1-s3061.html"),
+    "isw2": _bsb("3062", "large industrial switch", "industrial-switch-2-s3062.html"),
+    "isw3": _bsb("3063", "large industrial switch", "industrial-switch-3-s3063.html"),
+    "breaker": _bsb("1092", "electric circuit breaker", "electric-circuit-breaker-s1092.html"),
+    "hoist": _bsb("1133", "chain hoist", "manual-chain-hoist-mounted-s1133.html"),
+    "chain": _bsb("0359", "heavy chain", "heavy-chain-s0359.html", "DenisChardonnet, BigSoundBank"),
+    "winch": _bsb("0708", "electric winch", "little-electric-winch-s0708.html"),
+    "lift": _bsb("1711", "elevator, 3 floors", "elevator-3-floors-s1711.html"),
+    "case1": _bsb("1367", "7.62 case on concrete", "bullet-case-7-62mm-on-concrete-1-s1367.html"),
+    "load": _bsb("1988", "loading a magazine", "gun-loading-1-s1988.html"),
+    "cock": _bsb("1984", "cocking a pistol", "pistol-cocking-1-s1984.html"),
+    "shock": _bsb("0134", "electric spark", "electric-shock-s0134.html"),
+    "weld": _bsb("0952", "short welds", "short-welds-s0952.html"),
+    "barnlock": _bsb("1540", "barn lock locking", "barn-lock-locking-s1540.html"),
+    "barnunlock": _bsb("1539", "barn lock unlocking", "barn-lock-unlocking-s1539.html"),
+    "anvil": _bsb("3590", "anvil", "anvil-2-s3590.html", "Pablo Bergel, BigSoundBank"),
     # On disk since D36 (docs/sound/ENEMY-SOUNDS.md section 5.9)
     "steps": Source("sfx_sources/ken-imp/extracted/Audio/footstep_concrete_000.ogg",
-                    "Kenney, Impact Sounds (paso en hormigón)", "CC0 1.0", "https://kenney.nl/assets/impact-sounds"),
+                    "Kenney, Impact Sounds (footstep on concrete)", "CC0 1.0", "https://kenney.nl/assets/impact-sounds"),
     "steps2": Source("sfx_sources/ken-imp/extracted/Audio/footstep_concrete_003.ogg",
-                     "Kenney, Impact Sounds (paso en hormigón)", "CC0 1.0", "https://kenney.nl/assets/impact-sounds"),
+                     "Kenney, Impact Sounds (footstep on concrete)", "CC0 1.0", "https://kenney.nl/assets/impact-sounds"),
     "metal_light": Source("sfx_sources/ken-imp/extracted/Audio/impactMetal_light_002.ogg",
-                          "Kenney, Impact Sounds (golpe metálico ligero)", "CC0 1.0", "https://kenney.nl/assets/impact-sounds"),
+                          "Kenney, Impact Sounds (light metal impact)", "CC0 1.0", "https://kenney.nl/assets/impact-sounds"),
     # The sergeant: HaelDB's recordings, the vocalists the enemies do not clone (CC0)
-    "hael_y12": Source(HAEL + "yell12.wav", "HaelDB, vocalista sin número, yell12", "CC0 1.0", HAEL_URL),
-    "hael_y2": Source(HAEL + "yell2.wav", "HaelDB, vocalista sin número, yell2", "CC0 1.0", HAEL_URL),
-    "hael_y4": Source(HAEL + "yell4.wav", "HaelDB, vocalista sin número, yell4", "CC0 1.0", HAEL_URL),
-    "hael_2y9": Source(HAEL + "2yell9.wav", "HaelDB, vocalista 2, 2yell9", "CC0 1.0", HAEL_URL),
-    "hael_g3": Source(HAEL + "3grunt3.wav", "HaelDB, vocalista 3, gruñido 3grunt3", "CC0 1.0", HAEL_URL),
-    "hael_g4": Source(HAEL + "3grunt4.wav", "HaelDB, vocalista 3, gruñido 3grunt4", "CC0 1.0", HAEL_URL),
-    "hael_g5": Source(HAEL + "3grunt5.wav", "HaelDB, vocalista 3, gruñido 3grunt5", "CC0 1.0", HAEL_URL),
+    "hael_y12": Source(HAEL + "yell12.wav", "HaelDB, unnumbered vocalist, yell12", "CC0 1.0", HAEL_URL),
+    "hael_y2": Source(HAEL + "yell2.wav", "HaelDB, unnumbered vocalist, yell2", "CC0 1.0", HAEL_URL),
+    "hael_y4": Source(HAEL + "yell4.wav", "HaelDB, unnumbered vocalist, yell4", "CC0 1.0", HAEL_URL),
+    "hael_2y9": Source(HAEL + "2yell9.wav", "HaelDB, vocalist 2, 2yell9", "CC0 1.0", HAEL_URL),
+    "hael_g3": Source(HAEL + "3grunt3.wav", "HaelDB, vocalist 3, grunt 3grunt3", "CC0 1.0", HAEL_URL),
+    "hael_g4": Source(HAEL + "3grunt4.wav", "HaelDB, vocalist 3, grunt 3grunt4", "CC0 1.0", HAEL_URL),
+    "hael_g5": Source(HAEL + "3grunt5.wav", "HaelDB, vocalist 3, grunt 3grunt5", "CC0 1.0", HAEL_URL),
     # Ours, installed: the rifleman's gib (D83; a layer of Freedoom's DSSLOP, BSD-3)
-    "gib": Source("assets/sounds/enemies/SDRRIXDT.ogg", "nuestro SDRRIXDT (D83; con capa de Freedoom DSSLOP, BSD-3)",
+    "gib": Source("assets/sounds/enemies/SDRRIXDT.ogg", "our SDRRIXDT (D83; with a layer of Freedoom's DSSLOP, BSD-3)",
                   "ours"),
 }
 
 # A Chatterbox take is named "ai:<take>" in a candidate's sources; its file is in VOICE_RAW.
-AI_WHO = "Chatterbox (MIT) clonando a HaelDB, vocalista sin número (CC0)"
+AI_WHO = "Chatterbox (MIT) cloning HaelDB, unnumbered vocalist (CC0)"
 
 _cache: dict[str, np.ndarray] = {}
 
@@ -830,10 +835,10 @@ class Event:
     lump: str          # what it would ship as
     ref: str           # the Freedoom lump it replaces (target loudness)
     engine: str        # the engine names that play it today
-    group: str         # Spanish, the page's section
-    ev: str            # Spanish
-    note: str          # Spanish
-    why: str           # Spanish: why the recommended one
+    group: str         # the page's section
+    ev: str            # the event, in words
+    note: str          # when the player hears it
+    why: str           # why the recommended one
     offset_db: float = 0.0
     loop: bool = False
 
@@ -847,7 +852,7 @@ class Cand:
     lump: str
     n: int
     make: Callable
-    kind: str                       # "síntesis", "grabación", "mezcla", "voz grabada", "voz IA"
+    kind: str                       # "synthesis", "recording", "mix", "recorded voice", "AI voice"
     sources: tuple[str, ...]
     label: str
     what: str
@@ -859,7 +864,7 @@ class Cand:
 
     @property
     def voice(self) -> bool:
-        return self.kind.startswith("voz")
+        return self.kind.endswith("voice")
 
 
 def ai(key: str) -> str:
@@ -867,182 +872,182 @@ def ai(key: str) -> str:
 
 
 EVENTS: tuple[Event, ...] = (
-    Event("SDPLPAIN", "DSPLPAIN", "*pain100 (y *pain75/50/25)", "Jugador (el sargento)", "dolor",
-          "Suena cada vez que te dan: corto, y sin palabras (el sargento no habla).",
-          "w1: una grabación real, corta (0,5 s) y grave, de una persona que no es ninguno de los enemigos."),
-    Event("SDPLDETH", "DSPLDETH", "*death", "Jugador (el sargento)", "muerte",
-          "Una vez por partida perdida; justo antes del «Pulsa E para continuar».",
-          "w3: el grito y, al final, el cuerpo y el equipo contra el hormigón; se entiende sin ver la pantalla."),
-    Event("SDPLXDTH", "DSPDIEHI", "*xdeath", "Jugador (el sargento)", "muerte violenta (explosión)",
-          "Cuando mueres reventado: un grito más brusco con el «gib» nuestro de los enemigos debajo.",
-          "w1: grito real y corto con el gib de D83 debajo; el mismo cuerpo que oyes en los enemigos."),
-    Event("SDPLOOF", "DSOOF", "*grunt y *land", "Jugador (el sargento)", "«oof» al caer de alto",
-          "Al aterrizar de una caída. El de Freedoom es muy flojo (−22 dB): lo igualamos, así que es discreto.",
-          "w3: las botas y el equipo contra el suelo con un gruñido corto encima; el gruñido solo (w1) se confunde con el dolor."),
-    Event("SDPLNOWY", "DSNOWAY", "*usefail", "Jugador (el sargento)", "usar algo que no se abre",
-          "Al pulsar E contra una pared o una puerta cerrada con llave.",
-          "w1: un cerrojo que no cede, sacudido contra su cerradero: dice «está cerrado» sin voz."),
-    Event("SDPLJUMP", "DSJUMP", "*jump", "Jugador (el sargento)", "salto",
-          "Solo si el salto está permitido (en GZDoom lo está por defecto; NO VERIFICADO en nuestros mapas).",
-          "w1: el equipo que se sacude, sin voz: un gruñido en cada salto cansa enseguida."),
-    Event("SDDOROPN", "DSDOROPN", "doors/dr1_open", "Puertas", "puerta normal, abre",
-          "La puerta blindada del búnker: cerrojos, aire del pistón y la hoja rodando (dura lo que el movimiento, ~1,6 s).",
-          "w1: grabaciones reales (cerrojo, freno neumático, barrera de acero) 4-5 semitonos más graves para que pese como un mamparo."),
-    Event("SDDORCLS", "DSDORCLS", "doors/dr1_clos", "Puertas", "puerta normal, cierra",
-          "La hoja rueda y golpea el marco; los cerrojos entran después.",
-          "w1: el portazo real de la barrera de acero, más grave, con los cerrojos después: el cierre de un mamparo."),
-    Event("SDBDOPN", "DSBDOPN", "doors/dr2_open", "Puertas", "puerta rápida, abre",
-          "Las puertas «blazing» (rápidas): todo en menos de un segundo.",
-          "w1: el zumbido del cerradero eléctrico y el golpe de aire antes del deslizamiento: suena a mecanismo, no a bisagra."),
-    Event("SDBDCLS", "DSBDCLS", "doors/dr2_clos", "Puertas", "puerta rápida, cierra",
-          "Aire y portazo, rápido.",
-          "w2: síntesis, el portazo más grave y seco; las grabaciones (w1, w3) son más agudas."),
-    Event("SDSWTCHN", "DSSWTCHN", "switches/normbutn", "Interruptores", "interruptor normal",
-          "Todos los interruptores del mapa (los SDSW1A-D de D25).",
-          "w2: un disyuntor de cuadro eléctrico y el transformador que arranca (50 Hz de la red soviética): pesado, de fábrica."),
-    Event("SDSWTCHX", "DSSWTCHX", "switches/exitbutn", "Interruptores", "interruptor de salida",
-          "El de fin de mapa: el más fuerte de todos (Freedoom −5 dB).",
-          "w1: un рубильник (interruptor de cuchilla) con su chispa: el final del mapa con un arco eléctrico."),
-    Event("SDITEMUP", "DSITEMUP", "misc/i_pkup y misc/k_pkup", "Recogidas", "objeto (munición, botiquín, armadura, llave)",
-          "Muy corto y flojo (Freedoom 0,2 s, −20 dB): suena cientos de veces.",
-          "w2: síntesis neutra (lona y hebilla) que vale para munición, botiquín y llave; los casquillos (w1) solo encajan con la munición."),
-    Event("SDGETPOW", "DSGETPOW", "misc/p_pkup", "Recogidas", "power-up",
-          "Las recogidas especiales (esfera, berserk, invulnerabilidad…).",
-          "w1: el «bip-bip» del Sputnik en una radio de válvulas: lo más soviético que se puede oír en medio segundo."),
-    Event("SDIZPKP", "DSWPNUP", "misc/w_pkup (la IZh-58 no tiene sonido propio)", "Recogidas", "recoger la IZh-58",
-          "En D94 dijiste NO a las tres alternativas y te quedaste con el de Freedoom: estas imitan su forma (dos golpes de acero secos) con material nuestro. Nivel: el de las demás armas (DSWPNUP −3 dB).",
-          "w3: síntesis con la forma exacta del de Freedoom (dos chasquidos y un deslizamiento) y el timbre de los cañones de la IZh.",
+    Event("SDPLPAIN", "DSPLPAIN", "*pain100 (and *pain75/50/25)", "Player (the sergeant)", "pain",
+          "Plays every time you are hit: short, and wordless (the sergeant does not speak).",
+          "w1: a real recording, short (0.5 s) and low, of a person who is none of the enemies."),
+    Event("SDPLDETH", "DSPLDETH", "*death", "Player (the sergeant)", "death",
+          "Once per lost game; just before the «Press E to continue».",
+          "w3: the cry and, at the end, the body and the kit on the concrete; it reads without seeing the screen."),
+    Event("SDPLXDTH", "DSPDIEHI", "*xdeath", "Player (the sergeant)", "violent death (explosion)",
+          "When you die blown apart: a harsher cry with our enemies' «gib» under it.",
+          "w1: a short real cry with D83's gib under it; the same body you hear in the enemies."),
+    Event("SDPLOOF", "DSOOF", "*grunt and *land", "Player (the sergeant)", "«oof» on a long fall",
+          "On landing from a fall. Freedoom's is very quiet (−22 dB): we match it, so it is discreet.",
+          "w3: the boots and the kit on the floor with a short grunt on top; the grunt alone (w1) is mistaken for pain."),
+    Event("SDPLNOWY", "DSNOWAY", "*usefail", "Player (the sergeant)", "using something that does not open",
+          "On pressing E against a wall or a locked door.",
+          "w1: a bolt that will not give, rattled against its keeper: it says «it is locked» without a voice."),
+    Event("SDPLJUMP", "DSJUMP", "*jump", "Player (the sergeant)", "jump",
+          "Only if jumping is allowed (in GZDoom it is by default; NOT VERIFIED in our maps).",
+          "w1: the kit jolting, no voice: a grunt on every jump gets tiring at once."),
+    Event("SDDOROPN", "DSDOROPN", "doors/dr1_open", "Doors", "normal door, opens",
+          "The bunker's armoured door: bolts, the ram's air and the slab rolling (it lasts as long as the movement, ~1.6 s).",
+          "w1: real recordings (bolt, pneumatic brake, steel barrier) 4-5 semitones lower so it weighs like a bulkhead."),
+    Event("SDDORCLS", "DSDORCLS", "doors/dr1_clos", "Doors", "normal door, closes",
+          "The slab rolls and hits the frame; the bolts go in after.",
+          "w1: the steel barrier's real slam, lower, with the bolts after: a bulkhead closing."),
+    Event("SDBDOPN", "DSBDOPN", "doors/dr2_open", "Doors", "fast door, opens",
+          "The «blazing» (fast) doors: all in under a second.",
+          "w1: the electric strike's buzz and the blast of air before the slide: it sounds like a mechanism, not a hinge."),
+    Event("SDBDCLS", "DSBDCLS", "doors/dr2_clos", "Doors", "fast door, closes",
+          "Air and a slam, fast.",
+          "w2: synthesis, the lowest and driest slam; the recordings (w1, w3) are higher."),
+    Event("SDSWTCHN", "DSSWTCHN", "switches/normbutn", "Switches", "normal switch",
+          "Every switch in the map (D25's SDSW1A-D).",
+          "w2: a switchboard circuit breaker and the transformer coming up (the Soviet grid's 50 Hz): heavy, industrial."),
+    Event("SDSWTCHX", "DSSWTCHX", "switches/exitbutn", "Switches", "exit switch",
+          "The end-of-map one: the loudest of all (Freedoom −5 dB).",
+          "w1: a рубильник (knife switch) with its spark: the end of the map with an electric arc."),
+    Event("SDITEMUP", "DSITEMUP", "misc/i_pkup and misc/k_pkup", "Pickups", "item (ammo, medkit, armour, key)",
+          "Very short and quiet (Freedoom 0.2 s, −20 dB): it plays hundreds of times.",
+          "w2: neutral synthesis (canvas and buckle) that suits ammo, medkit and key; the cases (w1) only fit the ammo."),
+    Event("SDGETPOW", "DSGETPOW", "misc/p_pkup", "Pickups", "power-up",
+          "The special pickups (sphere, berserk, invulnerability…).",
+          "w1: Sputnik's «beep-beep» on a valve radio: the most Soviet thing you can hear in half a second."),
+    Event("SDIZPKP", "DSWPNUP", "misc/w_pkup (the IZh-58 has no sound of its own)", "Pickups", "picking up the IZh-58",
+          "In D94 you said NO to the three alternatives and kept Freedoom's: these imitate its shape (two dry steel knocks) with our own material. Level: the other weapons' (DSWPNUP −3 dB).",
+          "w3: synthesis with the exact shape of Freedoom's (two clacks and a slide) and the timbre of the IZh's barrels.",
           offset_db=-PICKUP_ALLOWANCE_DB),
-    Event("SDPSTART", "DSPSTART", "plats/pt1_strt", "Ascensor y plataformas", "plataforma arranca",
-          "Un montacargas: contactor, motor que coge vueltas, cadena.",
-          "w1: síntesis; el contactor y el motor eléctrico que acelera se oyen claros; la grabación del ascensor (w2) no la he podido comprobar de oído."),
-    Event("SDPSTOP", "DSPSTOP", "plats/pt1_stop", "Ascensor y plataformas", "plataforma para",
-          "También suena al terminar un suelo móvil o un techo (el «stopsound»).",
-          "w3: un golpe de yunque 9 semitonos más grave: una plataforma de chapa contra su tope."),
-    Event("SDPMOVE", "DSSTNMOV", "plats/pt1_mid (bucle)", "Ascensor y plataformas", "suelo o techo moviéndose (bucle)",
-          "Se repite sin parar mientras se mueve un suelo o un techo («playrepeat»): la hoja lo toca 6 veces seguidas como el motor.",
-          "w1: síntesis; su zumbido cabe entero en 0,48 s, así que la costura casi no existe (las tres llevan además un fundido de 60 ms en ella); las grabaciones (w2, w3) repiten un trozo real y pueden notarse más.",
+    Event("SDPSTART", "DSPSTART", "plats/pt1_strt", "Lift and platforms", "platform starts",
+          "A freight lift: contactor, motor spinning up, chain.",
+          "w1: synthesis; the contactor and the accelerating electric motor come through clearly; the lift recording (w2) I could not check by ear."),
+    Event("SDPSTOP", "DSPSTOP", "plats/pt1_stop", "Lift and platforms", "platform stops",
+          "Also plays when a moving floor or ceiling finishes (the «stopsound»).",
+          "w3: an anvil blow 9 semitones lower: a plate platform hitting its stop."),
+    Event("SDPMOVE", "DSSTNMOV", "plats/pt1_mid (loop)", "Lift and platforms", "floor or ceiling moving (loop)",
+          "Repeats non-stop while a floor or a ceiling moves («playrepeat»): the sheet plays it 6 times in a row, as the engine does.",
+          "w1: synthesis; its hum fits whole in 0.48 s, so the seam barely exists (all three also carry a 60 ms crossfade on it); the recordings (w2, w3) repeat a real chunk and may show more.",
           loop=True),
-    Event("SDTELEPT", "DSTELEPT", "misc/teleport", "Teletransporte", "teletransporte",
-          "Al entrar en un teletransportador (y al aparecer los enemigos del General).",
-          "w1: síntesis al estilo del sintetizador ANS (la ciencia ficción soviética de los 70) sobre el zumbido de la red y una chispa."),
+    Event("SDTELEPT", "DSTELEPT", "misc/teleport", "Teleport", "teleport",
+          "On entering a teleporter (and when the General's enemies appear).",
+          "w1: synthesis in the style of the ANS synthesiser (1970s Soviet science fiction) over the mains hum and a spark."),
 )
 EVENT = {e.lump: e for e in EVENTS}
 
 C = Cand
 CANDS: tuple[Cand, ...] = (
-    C("SDPLPAIN", 1, plpain1, "voz grabada", ("hael_y12",), "Gruñido real",
-      "Grito corto de dolor de HaelDB (vocalista sin número), 1 semitono más grave y con más pecho.", True),
-    C("SDPLPAIN", 2, plpain2, "voz IA", (ai("pain"),), "Gruñido clonado",
-      "Chatterbox (CPU) clonando la misma voz, «Agh!», 1 semitono más grave."),
-    C("SDPLPAIN", 3, plpain3, "voz grabada", ("hael_2y9",), "Gruñido real, otra voz",
-      "Grito corto de HaelDB, vocalista 2: el más grave de su serie."),
-    C("SDPLDETH", 1, pldeth1, "voz grabada", ("hael_y2",), "Grito de muerte",
-      "Grito largo de HaelDB (vocalista sin número), 1,5 semitonos más grave."),
-    C("SDPLDETH", 2, pldeth2, "voz IA", (ai("death"),), "Grito clonado",
-      "Chatterbox clonando la misma voz, «Aaaaah!»: un grito de 1 s que cae (−1 semitono)."),
-    C("SDPLDETH", 3, pldeth3, "mezcla", ("hael_y2", "steps"), "Grito y caída",
-      "El grito de w1 algo más corto y, al final, el cuerpo y el equipo contra el hormigón.", True),
-    C("SDPLXDTH", 1, plxdth1, "mezcla", ("hael_y4", "gib"), "Grito y gib",
-      "Grito brusco de HaelDB con nuestro gib de D83 debajo.", True),
-    C("SDPLXDTH", 2, plxdth2, "voz IA", (ai("xdeath"), "gib"), "Grito clonado y gib",
-      "Chatterbox, «AAAAH!», con el mismo gib debajo."),
-    C("SDPLXDTH", 3, plxdth3, "voz grabada", ("hael_y4",), "Grito brusco",
-      "El grito de w1, 2,5 semitonos más grave, sin gib."),
-    C("SDPLOOF", 1, ploof1, "voz IA", (ai("oof"),), "«Ух» clonado",
-      "Chatterbox, un «Ух.» (ruso) corto y bajo (−2 semitonos)."),
-    C("SDPLOOF", 2, ploof2, "mezcla", ("steps", "steps2"), "Botas y equipo",
-      "Sin voz: dos tacones en hormigón (Kenney), el cuerpo y el equipo que tintinea."),
-    C("SDPLOOF", 3, ploof3, "mezcla", ("hael_g4", "steps", "steps2"), "Botas y gruñido",
-      "Las botas de w2 con un gruñido corto real (HaelDB 3grunt4, −3 semitonos).", True),
-    C("SDPLNOWY", 1, plnowy1, "grabación", ("barnlock",), "Cerrojo que no cede",
-      "Un cerrojo de hierro sacudido contra su cerradero, 2 semitonos más grave.", True),
-    C("SDPLNOWY", 2, plnowy2, "síntesis", (), "Tirón contra el acero",
-      "Síntesis: un golpe sordo de la manija y el cerrojo que vibra sin moverse."),
-    C("SDPLNOWY", 3, plnowy3, "mezcla", ("hael_g5", "barnlock"), "Gruñido de esfuerzo",
-      "Un gruñido de esfuerzo real (HaelDB 3grunt5) con el cerrojo sacudido debajo."),
-    C("SDPLJUMP", 1, pljump1, "síntesis", (), "El equipo se sacude",
-      "Síntesis: correaje, una hebilla y la cantimplora al despegar.", True),
-    C("SDPLJUMP", 2, pljump2, "mezcla", ("hael_g3",), "Resoplido",
-      "Un resoplido corto real (HaelDB 3grunt3, −3 semitonos) y la lona."),
-    C("SDDOROPN", 1, doropn1, "mezcla", ("barnunlock", "pneu", "bar_open1"), "Puerta hermética",
-      "Cerrojos que se retiran, el aire del pistón y la hoja de acero rodando (barrera real, −5 semitonos), en un pasillo de hormigón.", True),
-    C("SDDOROPN", 2, doropn2, "síntesis", (), "Mamparo sintético",
-      "Síntesis: tres cerrojos, siseo neumático, rodillos y el tope al final."),
-    C("SDDOROPN", 3, doropn3, "mezcla", ("barnlock", "groan"), "Bisagra que gime",
-      "La palanca y el gemido largo de una puerta metálica pesada (−4 semitonos)."),
-    C("SDDORCLS", 1, dorcls1, "mezcla", ("bar_open3", "bar_close1", "barnlock"), "Portazo de mamparo",
-      "La hoja que rueda, el portazo real de una barrera de acero (−4 semitonos) y los cerrojos.", True),
-    C("SDDORCLS", 2, dorcls2, "síntesis", (), "Portazo sintético",
-      "Síntesis: rodillos, golpe de plancha gruesa con su resonancia, y tres cerrojos."),
-    C("SDDORCLS", 3, dorcls3, "mezcla", ("groan", "bar_close3"), "Bisagra y golpe",
-      "El gemido de la bisagra que se cierra y el golpe contra el marco."),
-    C("SDBDOPN", 1, bdopn1, "mezcla", ("strike", "pneu", "bar_open3"), "Cerradero y aire",
-      "El zumbido de un cerradero eléctrico, el aire y un deslizamiento rápido.", True),
-    C("SDBDOPN", 2, bdopn2, "síntesis", (), "Neumática sintética",
-      "Síntesis: relé, golpe de aire, rodillos rápidos y un tope suave."),
-    C("SDBDOPN", 3, bdopn3, "grabación", ("pneu", "bar_open1"), "Aire y barrera",
-      "Solo grabaciones: el freno neumático y la barrera abriéndose (−3 semitonos)."),
-    C("SDBDCLS", 1, bdcls1, "grabación", ("pneu", "bar_close2"), "Aire y portazo",
-      "El aire y el portazo de la barrera (−3 semitonos)."),
-    C("SDBDCLS", 2, bdcls2, "síntesis", (), "Portazo rápido sintético",
-      "Síntesis: siseo corto y la plancha gruesa contra el marco, más grave que las grabaciones.", True),
-    C("SDBDCLS", 3, bdcls3, "grabación", ("pneu", "bar_close3"), "Portazo seco",
-      "Otro portazo de la barrera, apenas con aire."),
-    C("SDSWTCHN", 1, swtchn1, "grabación", ("isw2",), "Interruptor industrial",
-      "Un interruptor industrial grande con eco de nave (BigSoundBank lo hizo con un interruptor, una barra de hierro y reverberación), −2 semitonos."),
-    C("SDSWTCHN", 2, swtchn2, "mezcla", ("breaker",), "Disyuntor y transformador",
-      "Un disyuntor de cuadro real (−3 semitonos), un relé y el zumbido de 50 Hz que arranca.", True),
-    C("SDSWTCHN", 3, swtchn3, "síntesis", (), "Palanca de baquelita",
-      "Síntesis: el «toc» hueco de la baquelita, el resorte y un relé en la pared."),
-    C("SDSWTCHX", 1, swtchx1, "síntesis", (), "Рубильник con chispa",
-      "Síntesis: las cuchillas entrando en las mordazas, el contacto, un arco eléctrico y la carga que entra.", True),
-    C("SDSWTCHX", 2, swtchx2, "mezcla", ("isw1", "shock"), "Interruptor y chispazo",
-      "El interruptor industrial con un chispazo real encima."),
-    C("SDSWTCHX", 3, swtchx3, "grabación", ("isw3", "breaker"), "Interruptor y disyuntor",
-      "Dos grabaciones juntas: el interruptor industrial y el disyuntor."),
-    C("SDITEMUP", 1, itemup1, "grabación", ("case1",), "Casquillo",
-      "Un casquillo de 7,62 contra el hormigón (−2 semitonos)."),
-    C("SDITEMUP", 2, itemup2, "síntesis", (), "Lona y hebilla",
-      "Síntesis: una bolsa de lona y su hebilla de metal.", True),
-    C("SDITEMUP", 3, itemup3, "mezcla", ("load",), "Bala al cargador",
-      "Un cartucho que entra en el cargador, y la lona."),
-    C("SDGETPOW", 1, getpow1, "síntesis", (), "Bip-bip del Sputnik",
-      "Síntesis: dos pitidos como los del Sputnik (1957) en una radio de válvulas, con algo de estática.", True),
-    C("SDGETPOW", 2, getpow2, "síntesis", (), "Acorde ANS",
-      "Síntesis: un acorde que sube, con vibrato, al estilo del sintetizador ANS (Solaris, 1972)."),
-    C("SDGETPOW", 3, getpow3, "síntesis", (), "Condensador que carga",
-      "Síntesis: un relé y el silbido de un condensador cargándose sobre el zumbido de la red."),
-    C("SDIZPKP", 1, izpkp1, "grabación", ("cock",), "Dos golpes de acero",
-      "Los dos tiempos de montar una pistola, juntos y 3 semitonos más graves (más escopeta)."),
-    C("SDIZPKP", 2, izpkp2, "mezcla", ("load", "cock", "metal_light"), "Carga y cierre",
-      "Un cartucho que entra y el cierre del mecanismo con un golpe metálico ligero."),
-    C("SDIZPKP", 3, izpkp3, "síntesis", (), "Forma Freedoom, timbre IZh",
-      "Síntesis: dos chasquidos secos con la resonancia de los cañones de la IZh y un deslizamiento entre ambos.", True),
-    C("SDPSTART", 1, pstart1, "síntesis", (), "Contactor y motor",
-      "Síntesis: el contactor que entra, el motor eléctrico que acelera, la cadena y el zumbido.", True),
-    C("SDPSTART", 2, pstart2, "grabación", ("lift",), "Ascensor real",
-      "El arranque de un ascensor antiguo de París (1,3 s; no comprobado de oído qué parte del viaje es)."),
-    C("SDPSTART", 3, pstart3, "mezcla", ("winch", "chain"), "Cabrestante y cadena",
-      "Un cabrestante eléctrico arrancando (−5 semitonos) y una cadena pesada que se tensa."),
-    C("SDPSTOP", 1, pstop1, "síntesis", (), "Freno y tope",
-      "Síntesis: el motor que se para, el freno que muerde, el golpe de la plataforma y dos cerrojos."),
-    C("SDPSTOP", 2, pstop2, "grabación", ("lift",), "Ascensor real, llegada",
-      "El segundo golpe fuerte del mismo ascensor (llegada o puertas: NO comprobado de oído)."),
-    C("SDPSTOP", 3, pstop3, "mezcla", ("anvil", "chain"), "Golpe de yunque",
-      "Un martillazo en un yunque, 9 semitonos más grave, con la cadena que se asienta.", True),
-    C("SDPMOVE", 1, pmove1, "síntesis", (), "Motor y rodillos",
-      "Síntesis: zumbido del motor (parciales que caben enteros en el bucle), rodillos y dos trinquetes por vuelta; 0,48 s.", True),
-    C("SDPMOVE", 2, pmove2, "grabación", ("winch",), "Cabrestante",
-      "El cabrestante eléctrico en marcha, 6 semitonos más grave, en bucle de 0,48 s."),
-    C("SDPMOVE", 3, pmove3, "grabación", ("hoist",), "Polipasto de cadena",
-      "El trinquete de un polipasto de cadena, 5 semitonos más grave, en bucle de 0,48 s."),
-    C("SDTELEPT", 1, telept1, "síntesis", (), "Acorde ANS y chispa",
-      "Síntesis: un racimo de parciales que sube desde el zumbido de la red, una chispa arriba y un golpe sordo al llegar.", True),
-    C("SDTELEPT", 2, telept2, "mezcla", ("shock", "weld"), "Arcos eléctricos",
-      "Chispazos y soldadura reales sobre un tono que sube."),
-    C("SDTELEPT", 3, telept3, "síntesis", (), "Succión y campana",
-      "Síntesis: un aire invertido que aspira y un golpe de acero que resuena."),
+    C("SDPLPAIN", 1, plpain1, "recorded voice", ("hael_y12",), "Real grunt",
+      "A short pain cry by HaelDB (unnumbered vocalist), 1 semitone lower and with more chest.", True),
+    C("SDPLPAIN", 2, plpain2, "AI voice", (ai("pain"),), "Cloned grunt",
+      "Chatterbox (CPU) cloning the same voice, «Agh!», 1 semitone lower."),
+    C("SDPLPAIN", 3, plpain3, "recorded voice", ("hael_2y9",), "Real grunt, another voice",
+      "A short cry by HaelDB, vocalist 2: the lowest of his series."),
+    C("SDPLDETH", 1, pldeth1, "recorded voice", ("hael_y2",), "Death cry",
+      "A long cry by HaelDB (unnumbered vocalist), 1.5 semitones lower."),
+    C("SDPLDETH", 2, pldeth2, "AI voice", (ai("death"),), "Cloned cry",
+      "Chatterbox cloning the same voice, «Aaaaah!»: a 1 s cry that falls (−1 semitone)."),
+    C("SDPLDETH", 3, pldeth3, "mix", ("hael_y2", "steps"), "Cry and fall",
+      "w1's cry a little shorter and, at the end, the body and the kit on the concrete.", True),
+    C("SDPLXDTH", 1, plxdth1, "mix", ("hael_y4", "gib"), "Cry and gib",
+      "A harsh cry by HaelDB with our D83 gib under it.", True),
+    C("SDPLXDTH", 2, plxdth2, "AI voice", (ai("xdeath"), "gib"), "Cloned cry and gib",
+      "Chatterbox, «AAAAH!», with the same gib under it."),
+    C("SDPLXDTH", 3, plxdth3, "recorded voice", ("hael_y4",), "Harsh cry",
+      "w1's cry, 2.5 semitones lower, without the gib."),
+    C("SDPLOOF", 1, ploof1, "AI voice", (ai("oof"),), "Cloned «Ух»",
+      "Chatterbox, a short, low «Ух.» (Russian) (−2 semitones)."),
+    C("SDPLOOF", 2, ploof2, "mix", ("steps", "steps2"), "Boots and kit",
+      "No voice: two heels on concrete (Kenney), the body and the kit jingling."),
+    C("SDPLOOF", 3, ploof3, "mix", ("hael_g4", "steps", "steps2"), "Boots and grunt",
+      "w2's boots with a short real grunt (HaelDB 3grunt4, −3 semitones).", True),
+    C("SDPLNOWY", 1, plnowy1, "recording", ("barnlock",), "Bolt that will not give",
+      "An iron bolt rattled against its keeper, 2 semitones lower.", True),
+    C("SDPLNOWY", 2, plnowy2, "synthesis", (), "Tug against the steel",
+      "Synthesis: a dull knock of the handle and the bolt shaking without moving."),
+    C("SDPLNOWY", 3, plnowy3, "mix", ("hael_g5", "barnlock"), "Grunt of effort",
+      "A real grunt of effort (HaelDB 3grunt5) with the rattled bolt under it."),
+    C("SDPLJUMP", 1, pljump1, "synthesis", (), "The kit jolts",
+      "Synthesis: webbing, a buckle and the canteen at take-off.", True),
+    C("SDPLJUMP", 2, pljump2, "mix", ("hael_g3",), "Huff",
+      "A short real huff (HaelDB 3grunt3, −3 semitones) and the canvas."),
+    C("SDDOROPN", 1, doropn1, "mix", ("barnunlock", "pneu", "bar_open1"), "Hermetic door",
+      "Bolts drawing back, the ram's air and the steel slab rolling (a real barrier, −5 semitones), in a concrete corridor.", True),
+    C("SDDOROPN", 2, doropn2, "synthesis", (), "Synthetic bulkhead",
+      "Synthesis: three bolts, a pneumatic hiss, rollers and the stop at the end."),
+    C("SDDOROPN", 3, doropn3, "mix", ("barnlock", "groan"), "Groaning hinge",
+      "The lever and the long groan of a heavy metal door (−4 semitones)."),
+    C("SDDORCLS", 1, dorcls1, "mix", ("bar_open3", "bar_close1", "barnlock"), "Bulkhead slam",
+      "The rolling slab, a steel barrier's real slam (−4 semitones) and the bolts.", True),
+    C("SDDORCLS", 2, dorcls2, "synthesis", (), "Synthetic slam",
+      "Synthesis: rollers, a thick plate hit with its ring, and three bolts."),
+    C("SDDORCLS", 3, dorcls3, "mix", ("groan", "bar_close3"), "Hinge and slam",
+      "The groan of the hinge closing and the hit against the frame."),
+    C("SDBDOPN", 1, bdopn1, "mix", ("strike", "pneu", "bar_open3"), "Strike and air",
+      "An electric strike's buzz, the air and a fast slide.", True),
+    C("SDBDOPN", 2, bdopn2, "synthesis", (), "Synthetic pneumatics",
+      "Synthesis: relay, a blast of air, fast rollers and a soft stop."),
+    C("SDBDOPN", 3, bdopn3, "recording", ("pneu", "bar_open1"), "Air and barrier",
+      "Recordings only: the pneumatic brake and the barrier opening (−3 semitones)."),
+    C("SDBDCLS", 1, bdcls1, "recording", ("pneu", "bar_close2"), "Air and slam",
+      "The air and the barrier's slam (−3 semitones)."),
+    C("SDBDCLS", 2, bdcls2, "synthesis", (), "Fast synthetic slam",
+      "Synthesis: a short hiss and the thick plate against the frame, lower than the recordings.", True),
+    C("SDBDCLS", 3, bdcls3, "recording", ("pneu", "bar_close3"), "Dry slam",
+      "Another slam of the barrier, with barely any air."),
+    C("SDSWTCHN", 1, swtchn1, "recording", ("isw2",), "Industrial switch",
+      "A large industrial switch with a hall echo (BigSoundBank made it with a switch, an iron bar and reverb), −2 semitones."),
+    C("SDSWTCHN", 2, swtchn2, "mix", ("breaker",), "Breaker and transformer",
+      "A real switchboard breaker (−3 semitones), a relay and the 50 Hz hum coming up.", True),
+    C("SDSWTCHN", 3, swtchn3, "synthesis", (), "Bakelite toggle",
+      "Synthesis: the hollow «tock» of bakelite, the spring and a relay in the wall."),
+    C("SDSWTCHX", 1, swtchx1, "synthesis", (), "Рубильник with a spark",
+      "Synthesis: the blades entering the jaws, the contact, an electric arc and the load coming on.", True),
+    C("SDSWTCHX", 2, swtchx2, "mix", ("isw1", "shock"), "Switch and spark",
+      "The industrial switch with a real spark on top."),
+    C("SDSWTCHX", 3, swtchx3, "recording", ("isw3", "breaker"), "Switch and breaker",
+      "Two recordings together: the industrial switch and the breaker."),
+    C("SDITEMUP", 1, itemup1, "recording", ("case1",), "Cartridge case",
+      "A 7.62 case on concrete (−2 semitones)."),
+    C("SDITEMUP", 2, itemup2, "synthesis", (), "Canvas and buckle",
+      "Synthesis: a canvas pouch and its metal buckle.", True),
+    C("SDITEMUP", 3, itemup3, "mix", ("load",), "Round into the magazine",
+      "A cartridge going into the magazine, and the canvas."),
+    C("SDGETPOW", 1, getpow1, "synthesis", (), "Sputnik's beep-beep",
+      "Synthesis: two beeps like Sputnik's (1957) on a valve radio, with some static.", True),
+    C("SDGETPOW", 2, getpow2, "synthesis", (), "ANS chord",
+      "Synthesis: a rising chord, with vibrato, in the style of the ANS synthesiser (Solaris, 1972)."),
+    C("SDGETPOW", 3, getpow3, "synthesis", (), "Capacitor charging",
+      "Synthesis: a relay and the whine of a capacitor charging over the mains hum."),
+    C("SDIZPKP", 1, izpkp1, "recording", ("cock",), "Two steel knocks",
+      "The two strokes of cocking a pistol, together and 3 semitones lower (more shotgun)."),
+    C("SDIZPKP", 2, izpkp2, "mix", ("load", "cock", "metal_light"), "Load and lock",
+      "A cartridge going in and the action closing with a light metal knock."),
+    C("SDIZPKP", 3, izpkp3, "synthesis", (), "Freedoom's shape, IZh timbre",
+      "Synthesis: two dry clacks with the ring of the IZh's barrels and a slide between them.", True),
+    C("SDPSTART", 1, pstart1, "synthesis", (), "Contactor and motor",
+      "Synthesis: the contactor pulling in, the electric motor spinning up, the chain and the hum.", True),
+    C("SDPSTART", 2, pstart2, "recording", ("lift",), "Real lift",
+      "An old Paris lift starting (1.3 s; which part of the run it is was not checked by ear)."),
+    C("SDPSTART", 3, pstart3, "mix", ("winch", "chain"), "Winch and chain",
+      "An electric winch starting (−5 semitones) and a heavy chain pulling taut."),
+    C("SDPSTOP", 1, pstop1, "synthesis", (), "Brake and stop",
+      "Synthesis: the motor stopping, the brake biting, the platform's knock and two bolts."),
+    C("SDPSTOP", 2, pstop2, "recording", ("lift",), "Real lift, arrival",
+      "The same lift's second loud event (arrival or doors: NOT checked by ear)."),
+    C("SDPSTOP", 3, pstop3, "mix", ("anvil", "chain"), "Anvil blow",
+      "A hammer blow on an anvil, 9 semitones lower, with the chain settling.", True),
+    C("SDPMOVE", 1, pmove1, "synthesis", (), "Motor and rollers",
+      "Synthesis: the motor's hum (partials that fit whole in the loop), rollers and two pawl clicks per turn; 0.48 s.", True),
+    C("SDPMOVE", 2, pmove2, "recording", ("winch",), "Winch",
+      "The electric winch running, 6 semitones lower, in a 0.48 s loop."),
+    C("SDPMOVE", 3, pmove3, "recording", ("hoist",), "Chain hoist",
+      "A chain hoist's ratchet, 5 semitones lower, in a 0.48 s loop."),
+    C("SDTELEPT", 1, telept1, "synthesis", (), "ANS chord and spark",
+      "Synthesis: a cluster of partials rising out of the mains hum, a spark at the top and a dull knock on arrival.", True),
+    C("SDTELEPT", 2, telept2, "mix", ("shock", "weld"), "Electric arcs",
+      "Real sparks and welding over a rising tone."),
+    C("SDTELEPT", 3, telept3, "synthesis", (), "Suction and bell",
+      "Synthesis: a reversed air sucking in and a struck steel ring."),
 )
 
 
@@ -1156,17 +1161,17 @@ def licence_chips(c: Cand) -> list[dict]:
     out = []
     for k in c.sources:
         if k.startswith("ai:"):
-            out.append({"a": AI_WHO, "l": "voz IA"})
+            out.append({"a": AI_WHO, "l": "AI voice"})
         else:
             s = SOURCES[k]
-            out.append({"a": s.who, "l": "nuestro" if s.licence == "ours" else s.licence})
-    if c.kind in ("síntesis", "mezcla") and not any(k.startswith("ai:") for k in c.sources):
-        out.append({"a": "síntesis propia (tools/audio/gen_world_sfx.py)", "l": "nuestro"})
+            out.append({"a": s.who, "l": "ours" if s.licence == "ours" else s.licence})
+    if c.kind in ("synthesis", "mix") and not any(k.startswith("ai:") for k in c.sources):
+        out.append({"a": "our own synthesis (tools/audio/gen_world_sfx.py)", "l": "ours"})
     return out
 
 
 def fmt_db(v: float) -> str:
-    return f"{v:.1f}".replace(".", ",")
+    return f"{v:.1f}"
 
 
 def page_html(done: list[Done]) -> str:
@@ -1175,10 +1180,10 @@ def page_html(done: list[Done]) -> str:
     for d in done:
         c, e, lv = d.cand, EVENT[d.cand.lump], d.levels
         shortfall = e.target_db - lv["loud_a"]
-        lvl = (f"pico {fmt_db(lv['peak'])} dBFS · fuerza {fmt_db(lv['loud_a'])} dB "
+        lvl = (f"peak {fmt_db(lv['peak'])} dBFS · loudness {fmt_db(lv['loud_a'])} dB "
                f"(Freedoom {e.ref}{' −3' if e.offset_db else ''}: {fmt_db(e.target_db)})"
-               + (f" · <b>se queda {fmt_db(shortfall)} dB corto</b>" if shortfall > alts.LOUDNESS_TOLERANCE_DB else "")
-               + f" · {100 * lv['above300']:.0f} % por encima de 300 Hz")
+               + (f" · <b>falls {fmt_db(shortfall)} dB short</b>" if shortfall > alts.LOUDNESS_TOLERANCE_DB else "")
+               + f" · {100 * lv['above300']:.0f} % above 300 Hz")
         items.append({"id": c.name, "lump": c.lump, "n": c.n, "label": c.label, "what": c.what, "kind": c.kind,
                       "rec": c.rec, "src": rel_c + (f"{c.name}_loop.ogg" if e.loop else f"{c.name}.ogg"),
                       "single": rel_c + f"{c.name}.ogg" if e.loop else "",
@@ -1245,11 +1250,11 @@ def main(argv: list[str]) -> int:
 
 
 PAGE_TEMPLATE = r"""<!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sonidos del mundo</title>
+<title>World sounds</title>
 <style>
 :root{--bg:#f6f4ef;--card:#fff;--ink:#1d1d1b;--mute:#6b6862;--line:#dcd8cf;--accent:#a3201c;--ok:#1f7a3a;--no:#b3261e;--q:#9a6a00;--chip:#efece4;--warn:#7a4b00;--warnbg:#fff4dc;--ai:#2b4f8a;--aibg:#e6eefb}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--card:#202020;--ink:#ebe8e2;--mute:#a19d95;--line:#3a3834;--accent:#e0574f;--ok:#4cc074;--no:#f0726a;--q:#e3b341;--chip:#2c2b29;--warn:#f0c674;--warnbg:#2f2814;--ai:#9dbcf0;--aibg:#1d2638}}
@@ -1315,30 +1320,30 @@ footer{color:var(--mute);font-size:12.5px;margin-top:24px}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <h1>Sonidos del mundo</h1>
-  <span class="prog">Juzgadas <b id="pDone">0</b> de <b id="pAll">__COUNT__</b></span>
+  <h1>World sounds</h1>
+  <span class="prog">Judged <b id="pDone">0</b> of <b id="pAll">__COUNT__</b></span>
   <span class="bar"><i id="pBar"></i></span>
-  <label class="chk"><input type="checkbox" id="onlyOpen"> solo sin juzgar</label>
-  <button class="primary" id="copyTop">Copiar resultado</button><span id="copied" class="copied"></span>
+  <label class="chk"><input type="checkbox" id="onlyOpen"> unjudged only</label>
+  <button class="primary" id="copyTop">Copy result</button><span id="copied" class="copied"></span>
 </div></header>
 <div class="wrap">
 <section class="intro">
-  <p>Borradores para <b>sustituir lo último que sigue siendo de Freedoom</b>: la voz del sargento, las puertas, los interruptores, las recogidas, el ascensor, el teletransporte y la recogida de la IZh (D94). Dos o tres candidatas por sonido. Pulsa <b>OK</b>, <b>NO</b> o <b>?</b> en cada una (puedes dar OK a varias: irían en <code>$random</code>, como los perros) y escribe una nota si quieres; se guarda solo en este navegador. Al terminar, <b>Copiar resultado</b> y pégalo en el chat. <b>Nada está instalado.</b></p>
+  <p>Drafts to <b>replace the last sounds that are still Freedoom's</b>: the sergeant's voice, the doors, the switches, the pickups, the lift, the teleporter and the IZh pickup (D94). Two or three candidates per sound. Press <b>OK</b>, <b>NO</b> or <b>?</b> on each one (you can OK several: they would go in a <code>$random</code>, like the dogs) and write a note if you like; it is saved only in this browser. When you finish, <b>Copy result</b> and paste it in the chat. <b>Nothing is installed.</b></p>
   <ul>
-    <li><b>Arriba de cada sonido</b>: lo que suena <b>hoy en el juego</b> (el de Freedoom).</li>
-    <li><b>Volumen igualado</b> a ese sonido de Freedoom (la misma regla que los enemigos y los perros), pico como máximo −1 dBFS; la IZh, 3 dB por debajo, como las demás armas. Compara el carácter, no el volumen.</li>
-    <li><b>Tipo</b>: <i>síntesis</i> (hecha aquí con las herramientas del repo), <i>grabación</i> (BigSoundBank, CC0, descargada sin cuenta), <i>mezcla</i> de las dos, <i>voz grabada</i> (HaelDB, CC0: una persona real que no es ninguno de los enemigos) o <i>voz IA</i> (Chatterbox clonando esa misma voz). Todo es <b>CC0 o nuestro</b>; no hay nada CC BY en esta hoja. Fuentes, URLs y SHA-256 en <code>work/audio/sfx_sources/world/SOURCES.md</code>.</li>
-    <li><b>Recomendada</b>: elegida por medidas y espectro, <b>no por oído</b> (no puedo escuchar). Tu oído manda.</li>
+    <li><b>At the top of each sound</b>: what plays <b>in the game today</b> (Freedoom's).</li>
+    <li><b>Volume matched</b> to that Freedoom sound (the same rule as the enemies and the dogs), peak at most −1 dBFS; the IZh 3 dB under, like the other weapons. Compare the character, not the volume.</li>
+    <li><b>Kind</b>: <i>synthesis</i> (made here with the repo's tools), <i>recording</i> (BigSoundBank, CC0, downloaded without an account), a <i>mix</i> of the two, <i>recorded voice</i> (HaelDB, CC0: a real person who is none of the enemies) or <i>AI voice</i> (Chatterbox cloning that same voice). Everything is <b>CC0 or ours</b>; nothing on this sheet is CC BY. Sources, URLs and SHA-256 in <code>work/audio/sfx_sources/world/SOURCES.md</code>.</li>
+    <li><b>Recommended</b>: chosen by measurements and spectrum, <b>not by ear</b> (I cannot listen). Your ear decides.</li>
   </ul>
 </section>
 <main id="groups"></main>
 <section>
-  <h2 style="font-size:16px;margin:24px 0 6px">Resultado para pegar en el chat</h2>
-  <p class="meta">Se actualiza solo. Si el botón no copia (algunos navegadores lo bloquean en archivos locales), selecciona el texto y Ctrl+C.</p>
+  <h2 style="font-size:16px;margin:24px 0 6px">Result to paste in the chat</h2>
+  <p class="meta">It updates itself. If the button does not copy (some browsers block it on local files), select the text and press Ctrl+C.</p>
   <textarea id="result" readonly></textarea>
-  <p><button class="primary" id="copyBottom">Copiar resultado</button> <button id="reset">Borrar todas mis respuestas</button></p>
+  <p><button class="primary" id="copyBottom">Copy result</button> <button id="reset">Clear all my answers</button></p>
 </section>
-<footer>Generado __STAMP__ por sound-designer con <code>tools/audio/gen_world_sfx.py</code> (síntesis, cortes, varispeed, filtros, reverberación de búnker y nivel con las herramientas de <code>tools/audio/</code>; medidas en <code>work/audio/candidates/world/MANIFEST.tsv</code>). Voces IA: <code>work/audio/candidates/world/voice/</code> (AI-LOG.csv). Audio: <code>work/audio/candidates/world/</code> (candidatas), <code>work/audio/preview/world_freedoom/</code> (Freedoom). La página lee los archivos por ruta relativa: no la muevas de <code>work/audio/preview/</code>.</footer>
+<footer>Generated __STAMP__ by sound-designer with <code>tools/audio/gen_world_sfx.py</code> (synthesis, cuts, varispeed, filters, bunker reverb and levelling with the tools in <code>tools/audio/</code>; measurements in <code>work/audio/candidates/world/MANIFEST.tsv</code>). AI voices: <code>work/audio/candidates/world/voice/</code> (AI-LOG.csv). Audio: <code>work/audio/candidates/world/</code> (candidates), <code>work/audio/preview/world_freedoom/</code> (Freedoom). The page reads the files by relative path: do not move it out of <code>work/audio/preview/</code>.</footer>
 </div>
 <script>
 const ITEMS = __ITEMS__;
@@ -1349,19 +1354,19 @@ try { S = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { S =
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 function st(id){ return S[id] || (S[id] = {v:"", n:""}); }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const fmt = s => s.toFixed(2).replace(".", ",") + " s";
+const fmt = s => s.toFixed(2) + " s";
 const audio = src => `<audio controls preload="none" src="${esc(src)}"></audio>`;
-const vote = it => `<div class="vote"><div class="btns"><button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div><textarea class="note" placeholder="Nota (opcional)">${esc(st(it.id).n || "")}</textarea></div>`;
-const chipCls = l => l === "voz IA" ? " ai" : (l === "nuestro" ? " ours" : "");
+const vote = it => `<div class="vote"><div class="btns"><button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div><textarea class="note" placeholder="Note (optional)">${esc(st(it.id).n || "")}</textarea></div>`;
+const chipCls = l => l === "AI voice" ? " ai" : (l === "ours" ? " ours" : "");
 const chips = it => it.who.map(w => `<span class="chip${chipCls(w.l)}">${esc(w.l)} · ${esc(w.a)}</span>`).join("");
 function row(it){
-  const loop = it.single ? `<a href="${esc(it.single)}">el bucle suelto (${fmt(it.dur)})</a>` : "";
+  const loop = it.single ? `<a href="${esc(it.single)}">the loop on its own (${fmt(it.dur)})</a>` : "";
   return `<div class="row" id="r-${it.id}" data-id="${it.id}">
-    <div><div class="name"><code>${esc(it.id)}</code><span class="ev">${esc(it.kind)}</span>${it.rec ? '<span class="rec">recomendada</span>' : ""}</div>
+    <div><div class="name"><code>${esc(it.id)}</code><span class="ev">${esc(it.kind)}</span>${it.rec ? '<span class="rec">recommended</span>' : ""}</div>
       <div class="what"><b>${esc(it.label)}.</b> ${esc(it.what)}</div>
       <div class="meta">${chips(it)}</div>
-      <div class="meta"><b>Nivel:</b> ${it.lvl}</div></div>
-    <div class="players"><div class="pl main"><span>Candidata ${it.n}${it.single ? " · tocada 6 veces seguidas" : " · " + fmt(it.dur)}</span>${audio(it.src)}${loop}</div></div>${vote(it)}</div>`;
+      <div class="meta"><b>Level:</b> ${it.lvl}</div></div>
+    <div class="players"><div class="pl main"><span>Candidate ${it.n}${it.single ? " · played 6 times in a row" : " · " + fmt(it.dur)}</span>${audio(it.src)}${loop}</div></div>${vote(it)}</div>`;
 }
 function build(){
   let h = "", grp = "";
@@ -1369,9 +1374,9 @@ function build(){
     if (e.group !== grp) { grp = e.group; h += `<h2 class="sec">${esc(grp)}</h2>`; }
     const its = ITEMS.filter(i => i.lump === e.lump);
     h += `<details class="grp" open><summary><code>${esc(e.lump)}</code> ${esc(e.ev)} <span class="eng">${esc(e.engine)}</span><span class="rejnote">${esc(e.note)}</span><span class="gcount" data-l="${esc(e.lump)}"></span></summary>
-      <div class="refs"><div class="pl"><span>Hoy en el juego: Freedoom ${esc(e.ref)} (${fmt(e.fdlen)})</span>${audio(e.fd)}</div></div>`;
+      <div class="refs"><div class="pl"><span>In the game today: Freedoom ${esc(e.ref)} (${fmt(e.fdlen)})</span>${audio(e.fd)}</div></div>`;
     for (const it of its) h += row(it);
-    h += `<div class="why"><b>Por qué la recomendada:</b> ${esc(e.why)}</div></details>`;
+    h += `<div class="why"><b>Why the recommended one:</b> ${esc(e.why)}</div></details>`;
   }
   document.getElementById("groups").innerHTML = h;
   document.getElementById("pAll").textContent = ITEMS.length;
@@ -1395,19 +1400,19 @@ function summary(){
   }
   const notes = ITEMS.filter(i => (st(i.id).n || "").trim()).map(i => `${i.id}: «${st(i.id).n.trim().replace(/\s+/g, " ")}»`);
   const open = ITEMS.filter(i => !st(i.id).v).map(i => i.id);
-  const L = [`Sonidos del mundo (__STAMP__): ${done}/${ITEMS.length} juzgadas`,
+  const L = [`World sounds (__STAMP__): ${done}/${ITEMS.length} judged`,
     `OK (${by("ok").length}): ${by("ok").join(", ") || "—"}`,
     `NO (${by("no").length}): ${by("no").join(", ") || "—"}`,
     `? (${by("q").length}): ${by("q").join(", ") || "—"}`,
-    `notas: ${notes.join(" / ") || "—"}`];
-  if (open.length) L.push(`sin juzgar (${open.length}): ${open.join(", ")}`);
+    `notes: ${notes.join(" / ") || "—"}`];
+  if (open.length) L.push(`unjudged (${open.length}): ${open.join(", ")}`);
   document.getElementById("result").value = L.join("\n");
 }
 function copy(){
   const t = document.getElementById("result"), msg = document.getElementById("copied");
   summary();
-  const done = () => { msg.textContent = "copiado"; setTimeout(() => msg.textContent = "", 2500); };
-  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? done() : (msg.textContent = "selecciona y Ctrl+C abajo"); } catch (e) { msg.textContent = "selecciona y Ctrl+C abajo"; } t.scrollIntoView({block:"center"}); };
+  const done = () => { msg.textContent = "copied"; setTimeout(() => msg.textContent = "", 2500); };
+  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? done() : (msg.textContent = "select and Ctrl+C below"); } catch (e) { msg.textContent = "select and Ctrl+C below"; } t.scrollIntoView({block:"center"}); };
   try { if (navigator.clipboard && window.isSecureContext !== false) navigator.clipboard.writeText(t.value).then(done, fallback); else fallback(); } catch (e) { fallback(); }
 }
 document.addEventListener("click", e => {
@@ -1423,7 +1428,7 @@ document.addEventListener("play", e => { document.querySelectorAll("audio").forE
 document.getElementById("onlyOpen").addEventListener("change", () => ITEMS.forEach(i => paint(i.id)));
 document.getElementById("copyTop").addEventListener("click", copy);
 document.getElementById("copyBottom").addEventListener("click", copy);
-document.getElementById("reset").addEventListener("click", () => { if (confirm("¿Borrar todas las respuestas y notas de esta hoja?")) { S = {}; save(); build(); summary(); } });
+document.getElementById("reset").addEventListener("click", () => { if (confirm("Clear all the answers and notes on this sheet?")) { S = {}; save(); build(); summary(); } });
 build(); summary();
 </script>
 </body>

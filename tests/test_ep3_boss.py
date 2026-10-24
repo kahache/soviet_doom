@@ -2,8 +2,9 @@
 
 Until D116 (2026-10-22) the boss lived in a DRAFT overlay,
 `work/overlays/ep3-boss/`, packed by `tools/make_ep3_boss_overlay.py`. D116
-moved it into the mod on a provisional sprite (MOD-SPEC 6.12); the overlay
-and its tool are SUPERSEDED, kept, not deleted. Design:
+moved it into the mod on a provisional sprite (MOD-SPEC 6.12), and D128
+(2026-10-24) gave it its own SDCN; the overlay and its tool are
+SUPERSEDED, kept, not deleted. Design:
 docs/engine/2026-10-22_P4_ep3-final-boss.md. What is checked, and why:
 
   tool       (the superseded tool, on a synthetic source; CI has no work/):
@@ -15,8 +16,9 @@ docs/engine/2026-10-22_P4_ep3-final-boss.md. What is checked, and why:
   mod        the boss, its three projectiles and the half-health test
              fixture SD_ConsortiumWounded in src/zscript/monsters/, one per
              file, each #included; the boss replaces nothing and is 21112;
-             every frame has its sprites; the provisional tint is on marked
-             lines only and the documented swap leaves SDCN and no tint; its
+             every frame has its sprites; its own SDCN is installed (D128:
+             95 lumps, no mark, no tint, no scale, Q R rooted, S the
+             Breach); its
              eight sounds are its own SNDINFO names over shipped lumps (or a
              DS placeholder) with final lumps named; three ids in three
              languages; the brief (health twice the colossus's, the
@@ -341,22 +343,34 @@ class ModTests(unittest.TestCase):
                     self.assertTrue("0" in rots or set("12345678") <= rots,
                                     f"{sprite}{frame}: rotations {sorted(rots)}")
 
-    def test_provisional_look_and_its_documented_swap(self):
+    def test_its_own_look_is_installed(self):
+        """D128 (the CEO: "Ok consorcio"): the Consortium wears its own SDCN,
+        the 95 lumps in assets/sprites/consortium/ and nowhere else, at full
+        size and untinted: no PROVISIONAL-D116 mark, no Translation, no
+        Scale, no borrowed SDPS. Until D128 this test held the provisional
+        look (SDPS x1.75, cobalt) and the documented swap; the swap is done,
+        with the two state edits the drawing adds (design doc 7, step 2):
+        rooted (Spawn and See) it shows Q R, and the Breach opens on S."""
         text = self.text[BOSS]
-        marked = p4.provisional_code_lines(text)
-        self.assertTrue(any(l.startswith("Translation ") for l in marked), marked)
-        for line in marked:
-            self.assertRegex(line, r"^(Translation |Scale |const SD_\w+_SCALE )", line)
-        swapped, pairs = p4.apply_documented_swap(text)
-        self.assertEqual(pairs, [("SDPS", "SDCN")])
-        frames = p4.state_frames(p4.class_blocks(swapped)[BOSS][1])
-        self.assertEqual({s for s, _ in frames}, {"SDCN"})
-        code = p4.strip_comments(swapped)
+        self.assertNotIn("PROVISIONAL", text)
+        self.assertEqual(p4.provisional_code_lines(text), [])
+        self.assertEqual({s for s, _ in p4.state_frames(self.boss)}, {"SDCN"})
+        code = p4.strip_comments(self.boss)
         self.assertNotIn("Translation", code)
         self.assertNotRegex(code, r"\bScale\b")
-        self.assertFalse(p4.sprite_rotations("SDCN"), "SDCN is drawn: do the swap")
-        # the two state edits the drawing adds are named in the header
-        self.assertIn("rooted See shows SDCN Q R", text)
+        self.assertNotIn("SDPS", code)
+        lumps = sorted((SPRITES / "consortium").glob("SDCN*.png"))
+        self.assertEqual(len(lumps), 95)
+        self.assertEqual({p.parent for p in SPRITES.rglob("SDCN*.png")}, {SPRITES / "consortium"})
+        rots = p4.sprite_rotations("SDCN")
+        for frame in "ABCDEFGHQRS":
+            self.assertEqual(rots.get(frame), set("12345678"), frame)
+        for frame in "IJKLMNO":
+            self.assertEqual(rots.get(frame), {"0"}, frame)
+        states = p4.strip_comments(p4.states_block(self.boss))
+        self.assertRegex(states, r"Spawn:\s*SDCN QR 10 A_Look;")
+        self.assertRegex(states, r"SDCN Q 6 A_SD_ConsortiumChase;\s*SDCN R 6 A_SD_ConsortiumChase;")
+        self.assertRegex(states, r"Breach:\s*SDCN S 10 A_SD_ConsortiumBreach;\s*SDCN S 10;")
 
     def test_sounds_are_its_own_names_over_existing_lumps(self):
         lines = p4.sndinfo_lines()

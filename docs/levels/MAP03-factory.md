@@ -504,7 +504,7 @@ Each version loads in GZDoom and is walkable from start to exit.
 3. **The two keys as passes**, yellow to the closed shop and red to the
    portal shop (§5), and their look (art-director, as for the blue pass).
 4. ~~**The General's death and the gate** (§9): SW-B only, or SW-B or his
-   death.~~ **Decided (D68): "que abra algo"**: his death opens his stores
+   death.~~ **Decided (D68): "que abra algo" ("that it opens something")**: his death opens his stores
    (§16.3); the gate stays SW-B's alone.
 5. **The ending.** The exit is the portal's breaker; the episode's ending
    text has to be rewritten for it (§11, step 2).
@@ -517,7 +517,7 @@ Each version loads in GZDoom and is walkable from start to exit.
 8. ~~**The molten channel** (new, v1). It wears molten metal but does not
    hurt. A damaging floor (sector special) is a one-line change and a
    trap-free one (the channel is 16 deep, a step): wanted, and how much?~~
-   **Decided (D68): "que haga daño"**; 10 every 32 tics (§16.2).
+   **Decided (D68): "que haga daño" ("that it does damage")**; 10 every 32 tics (§16.2).
 
 ## 14. v0 build record (2026-10-14)
 
@@ -907,8 +907,8 @@ route**: that is the test. What to judge:
 ## 16. v1.1 build record (2026-10-14): D68
 
 The CEO on open points 7, 8 and 4 (D68): the Hand Katyusha stays in a secret
-("ok secreto"); the molten channel hurts ("que haga daño"); the General's
-death opens something ("que abra algo"), a reward the player earns by the
+("ok secreto", "OK, secret"); the molten channel hurts ("que haga daño", "that it does damage"); the General's
+death opens something ("que abra algo", "that it opens something"), a reward the player earns by the
 kill, while the exit still depends on SW-B so nobody is locked out.
 
 Source `src/maps/MAP03/map.py`; tests `tests/test_map03_factory.py`.
@@ -1107,7 +1107,7 @@ engine has not yet been seen to read them) and tell this role.
 
 The CEO, 2026-10-22: «reutiliza cuadros, mételos en niveles anteriores y en
 los nuevos el de Lenin y Stalin, que esos posters puedan aparecer en
-cualquier nivel». Textures only, plus two niches 16 deep; no route, key,
+cualquier nivel» ("reuse pictures, put them in earlier levels and in the new ones the Lenin and Stalin one, so that those posters can appear in any level"). Textures only, plus two niches 16 deep; no route, key,
 secret or door moved. The contract every map shares (`POSTERS`,
 `POSTER_SLOTS_MARX_ENGELS`, `MARX_ENGELS`, `poster_faces()`) is tested in
 `tests/test_posters.py`: each picture is one line exactly its width, in a
@@ -1148,8 +1148,8 @@ still PASSes on skills 2-4.
 
 ### 18.1 Ammunition (D119)
 
-The CEO, after Episodes 2 and 3: ammunition "siempre sale de sobras" and
-"siempre acabas con la escopeta". MAP03 was approved and played; this pass
+The CEO, after Episodes 2 and 3: ammunition "siempre sale de sobras" ("there is always plenty left over") and
+"siempre acabas con la escopeta" ("you always end up with the shotgun"). MAP03 was approved and played; this pass
 takes ammunition away and changes its kind, nothing else.
 
 The rule is `docs/engine/BALANCE.md` §8 (owner `mod-engineer`): placed

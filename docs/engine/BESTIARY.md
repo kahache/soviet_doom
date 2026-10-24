@@ -15,10 +15,11 @@ numbers unseen (`docs/engine/adr/006-bestiary-actors.md`, debt T22).
 `SD_LegionGunner` (21110) and the Liberty Colossus `SD_LibertyColossus`
 (21111) of Episode 2 (D104), and Episode 3's final boss, the Consortium
 `SD_Consortium` (21112, D112), left their draft overlays for
-`src/zscript/monsters/`. They wear existing sprites tinted in code and
-existing sounds under their own names until Gemini's frames and their own
-takes arrive (`MOD-SPEC.md` §6.12, §6.2 "P4 sounds"), and **no map places
-them yet**. Their behaviour and the reasons for every number are their
+`src/zscript/monsters/`. They wore existing sprites tinted in code until
+Gemini's frames arrived (the gunner's and the colossus's since D123, the
+Consortium's since D128: all three draw their own now) and play existing
+sounds under their own names until their own takes arrive (`MOD-SPEC.md`
+§6.12, §6.2 "P4 sounds"), and **no map places them yet**. Their behaviour and the reasons for every number are their
 design documents, `docs/engine/2026-10-22_P4_ep2-enemies.md` and
 `docs/engine/2026-10-22_P4_ep3-final-boss.md`; §12 below carries their row,
 held to the code by `tests/test_bestiary.py`. **NOT YET SEEN IN THE
@@ -290,8 +291,9 @@ language switch, menu text). Where the two differ, the ADR is later.
 The bestiary spends the **21100–21199** sub-range already reserved for
 enemies by ADR 002 and MOD-SPEC §6.1. Assignments: 21100–21109 the seven
 classes plus two reserved variants (§12); since D116 21110 the Legion
-gunner, 21111 the Liberty Colossus and 21112 the Consortium; 21113–21199
-free for later enemies; invader-side corpses and decorations belong to the decoration
+gunner, 21111 the Liberty Colossus and 21112 the Consortium; since D123
+21113 the Chrome Marshal (the colossus variant); 21114–21199 free for later
+enemies; invader-side corpses and decorations belong to the decoration
 sub-range **21200–21299**, not here.
 
 **Editor numbers are assigned only in MAPINFO's `DoomEdNums` block**, which
@@ -1363,9 +1365,10 @@ count actually packed under `assets/sprites/`.
 | 6 | Panzermensch | `SD_Panzermensch` | Reich | 21105 | `HellKnight` | **500** | 8 | 50 | melee 10–80 / shell 8–64 | `SDPM` `SDPL`, **installed** (D67; the shell D81) | **71 + 5** packed | 8 |
 | 7 | The General | `SD_General` | Legion | 21106 | `Cyberdemon` | **3000 (H)** | 12 | 20 | 3× shell 8–64; summons 2 riflemen once below 50 % | `SDGN` `SDGL`, **installed** (D73) | **81 + 5** packed | 7 |
 | 8 | Heavy Panzermensch | `SD_PanzermenschSchwer` | Reich | 21107 | `BaronOfHell` | 1000 | 8 | 50 | as #6 | `SDPS`, **installed** (D67) | **71** packed | 0 |
-| 9 | Legion gunner | `SD_LegionGunner` | Legion | 21110 | `ChaingunGuy` | 80 (H) | 8 | 150 | bursts of 4–6× hitscan 3–15, then a 20-tic pause; drops `SD_AkmAmmo` | `SDLT` tinted brass, **provisional** (D116); final `SDLG` | 0 (70 to draw) | 6 |
-| 10 | Liberty Colossus | `SD_LibertyColossus` | Legion | 21111 | `SpiderMastermind` | 3000 (D119; was 4500) | 10 | 20 | 3× rocket 10–80 + blast 64 / fire jet 4–32 a blob (its own, unchanged by D119's ROKS-3 cut) / stomp 5–40, jumpable | `SDGN` ×1.3 tinted chrome, **provisional** (D116); final `SDLC` | 0 (81 to draw) | 7 |
-| 11 | The Consortium | `SD_Consortium` | both | 21112 | nothing | 4000 (D119; was 9000) | 8 (free; rooted it does not walk) | 10 | rockets 10–80, orb fans 6–48, fire 4–32; servants of both factions; a second phase at half health | `SDPS` ×1.75 tinted cobalt, **provisional** (D116); final `SDCN` | 0 (95 to draw) | 8 |
+| 9 | Legion gunner | `SD_LegionGunner` | Legion | 21110 | `ChaingunGuy` | 80 (H) | 8 | 150 | bursts of 4–6× hitscan 3–15, then a 20-tic pause; drops `SD_AkmAmmo` | `SDLG`, **installed** (D123; `SDLT` tinted brass from D116) | **70** packed | 6 |
+| 10 | Liberty Colossus | `SD_LibertyColossus` | Legion | 21111 | `SpiderMastermind` | 3000 (D119; was 4500) | 10 | 20 | 3× rocket 10–80 + blast 64 / fire jet 4–32 a blob (its own, unchanged by D119's ROKS-3 cut) / stomp 5–40, jumpable | `SDLC`, **installed** (D123; `SDGN` ×1.3 tinted chrome from D116, now row 12's look) | **81** packed | 7 |
+| 11 | The Consortium | `SD_Consortium` | both | 21112 | nothing | 4000 (D119; was 9000) | 8 (free; rooted it does not walk) | 10 | rockets 10–80, orb fans 6–48, fire 4–32; servants of both factions; a second phase at half health | `SDCN`, **installed** (D128; `SDPS` ×1.75 tinted cobalt from D116); palette v3's `reich_greygreen` on the Reich half | **95** packed | 8 |
+| 12 | The Chrome Marshal | `SD_ChromeGeneral` | Legion | 21113 | nothing | 3000 (D123; the colossus's) | 10 | 20 | as #10: 3× rocket 10–80 + blast 64 / fire jet 4–32 a blob / stomp 5–40, jumpable | `SDGN` ×1.3 tinted chrome, **approved design** (D123): the General's set under a palette swap, the colossus's look from D116 to D123 | 0 (reuses row 7's 81) | 0 (the colossus's 7) |
 | — | *cloaked hound* | *reserved, not implemented* | Reich | *21108 reserved* | `Spectre` | 150 | 12 | 180 | as #4 | `SDHN` `+SHADOW` | 0 | 0 |
 
 Totals for F5: **8 classes + 4 projectile actors, ≈ 560 sprite images,
@@ -1385,22 +1388,48 @@ their own tables list (7/6, 6/5, 8/7, 9/8, 8/7), and the tables were right.
 list `SNDINFO` now defines (`sd/mon/*`, 47 logical names) and the list
 `tests/test_bestiary.py` holds the two to.
 
-Rows 9–11 (P4, D116) are not in the F5 totals above: their sprites are
-the installed sets of rows 2, 7 and 8 reused (0 new images; 246 to draw
-when Gemini's frames come), their 21 sounds are their own logical names
+Rows 9–12 (P4, D116, D123) are not in the F5 totals above. Their sprites:
+the gunner's `SDLG` (70) and the colossus's `SDLC` (81) are drawn from the
+CEO's Gemini sheets and installed since D123 (their walk strides A and C
+derived by `tools/art/walk_stride.py`, D127, installed by D128); the
+Consortium's `SDCN` (95) likewise since D128, the Reich half's skin in
+palette v3's `reich_greygreen`; the Chrome Marshal (row 12) wears row 7's
+`SDGN` by design. Their 21 sounds are their own logical names
 over shipped lumps (MOD-SPEC §6.2, "P4 sounds"), outside the 47, and their
 projectiles (`SD_ColossusRocket`, `SD_ColossusFlame`, `SD_ConsortiumRocket`,
 `SD_ConsortiumOrb`, `SD_ConsortiumFlame`) subclass the RPG-7's grenade, the
 ROKS-3's flame and the General's shell, on their sprites.
+
+**Row 12, the Chrome Marshal (D123).** From D116 to D123 the colossus wore
+the General's `SDGN`, drawn ×1.3 and tinted chrome, while Gemini drew his
+own. The CEO wanted both in the game ("Coloso me gustan las 2: colorear
+general y la estatua de la libertad. Quiero los 2 en el juego"; "Colossus: I
+like both, the coloured General and the Statue of Liberty. I want both in
+the game"): the statue
+(`SDLC`) is MAP06's boss, and the tinted General became his own enemy,
+`SD_ChromeGeneral` (`zscript/monsters/chrome_general.zs`), Doom's palette
+swap way of making a monster out of another (the Hell Knight is the Baron in
+other colours). He **is the colossus** in everything but the look and the
+name: he derives from `SD_LibertyColossus` and inherits its body (88 × 110),
+speed, pain chance, flags (`+BOSS`, `+NORADIUSDMG`, `+DONTMORPH`,
+`+BOSSDEATH`), species (the two never infight), sounds and the three verbs;
+his own are `Health` 3000 (the colossus's), `Scale` 1.3, the chrome
+`Translation`, the States on `SDGN` (the colossus's line for line) and his
+name and obituaries (`SD_TAG_CHROME`, `SD_OB_CHROME`, `SD_OBHIT_CHROME`;
+"The Chrome Marshal", «Хромированный маршал», «El Mariscal de Crom»). He
+replaces nothing: placed by 21113 only, in MAP08's loading bay on skills 3
+and 4 where the colossus stood (the PM's placement, D123). The tint on a
+truecolour PNG is **NOT VERIFIED** in the engine.
 
 Classes the bestiary does **not** replace, so a map placing them still gets
 Freedoom's actor: `Spectre` (58, reserved above), `LostSoul`,
 `PainElemental`, `Revenant`, `Fatso`, `Arachnotron`, `Archvile`,
 `WolfensteinSS`, `CommanderKeen` and the boss-brain set (the Consortium
 takes none of them: its design doc §2.1). Since D116 `ChaingunGuy` (65) is
-the Legion gunner and `SpiderMastermind` (7) the Liberty Colossus; no map
-of ours places either. MAP01 §8's "Legion heavy gunner" on thing 65 exists
-now, should `level-designer` want it.
+the Legion gunner and `SpiderMastermind` (7) the Liberty Colossus; the maps
+place them by our numbers (21110 in MAP04-MAP09, 21111 in MAP06), never by
+Doom's. MAP01 §8's "Legion heavy gunner" on thing 65 exists now, should
+`level-designer` want it.
 
 ---
 

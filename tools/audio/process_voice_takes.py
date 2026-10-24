@@ -14,7 +14,7 @@ Three steps, each its own sub-command:
     generate   POST /tts to the Chatterbox-TTS-Server already running at
                http://127.0.0.1:8004 (never started or stopped here), one
                request per take, the WAV kept as the server returned it
-               (VOICE-SCRIPT §0.7: "tal como sale") with a JSON sidecar of
+               (VOICE-SCRIPT §0.7: "exactly as it comes out") with a JSON sidecar of
                the request. Takes already on disk are not regenerated.
     process    each raw take -> trim the silence (and anything after a long
                gap, where these models leave junk), high-pass 90 Hz, a gentle
@@ -23,7 +23,7 @@ Three steps, each its own sub-command:
                then levelled to the Freedoom sound the line replaces with
                the ruler of gen_weapon_alts.py (loudest 50 ms, A-weighted;
                peak at -1 dBFS; a look-ahead limiter, never a clip). OGG out.
-    page       the listening page (OK/NO/?, "Copiar resultado").
+    page       the listening page (OK/NO/?, "Copy result").
 
 Outputs (gitignored `work/`, VOICE-SCRIPT §0.5 names + `_tNN`):
 
@@ -76,7 +76,7 @@ FREEDOOM_PREVIEW_DIR = PROJECT_ROOT / "work" / "audio" / "preview" / "freedoom"
 ASR_PATH = OUT_DIR / "ASR.json"          # optional Whisper transcripts, shown on the page
 
 SERVER = "http://127.0.0.1:8004"
-TOOL_TAG = "chatterbox"                  # the <herramienta> of VOICE-SCRIPT §0.5
+TOOL_TAG = "chatterbox"                  # the <tool> part of the VOICE-SCRIPT §0.5 name
 TOOL_NAME = ("Chatterbox-TTS-Server 2.0.2 (github.com/devnen/Chatterbox-TTS-Server) "
              "+ Chatterbox Multilingual (Resemble AI)")
 MODEL_NAME = "ChatterboxMultilingualTTS (chatterbox-multilingual, 24 kHz, cuda)"
@@ -113,21 +113,21 @@ class Voice:
     name: str               # predefined voice id without .wav
     f0_hz: float            # median F0 of the reference clip
     centroid_hz: int        # spectral centroid of the reference clip
-    why: str                # Spanish, for the page
+    why: str                # English, for the page
 
 
 CAST: dict[str, Voice] = {
     "rifleman": Voice("Austin", 122.5, 393,
-                      "grave y oscura (el centroide más bajo de las 18): seca, para el Reich"),
+                      "low and dark (the lowest centroid of the 18): dry, for the Reich"),
     "trooper": Voice("Jordan", 147.0, 818,
-                     "la más aguda de las elegidas y brillante: las consonantes sobreviven a la radio"),
+                     "the highest of the picks, and bright: the consonants survive the radio"),
     "general": Voice("Thomas", 110.0, 1034,
-                     "la más grave de las 18 y de timbre áspero; luego se baja 4 semitonos (GENERAL-SLOT)"),
+                     "the lowest of the 18, with a rough timbre; later lowered 4 semitones (GENERAL-SLOT)"),
 }
-CLASS_LABEL = {   # Spanish, for the page
-    "rifleman": "Fusilero del Cuarto Reich (SD_ReichRifleman) · alemán",
-    "trooper": "Soldado de la Legión de la Libertad (SD_LegionTrooper) · inglés, por radio",
-    "general": "El General (SD_General) · inglés y una orden en alemán",
+CLASS_LABEL = {   # English, for the page
+    "rifleman": "Fourth Reich rifleman (SD_ReichRifleman) · German",
+    "trooper": "Liberty Legion trooper (SD_LegionTrooper) · English, over the radio",
+    "general": "The General (SD_General) · English and one order in German",
 }
 
 
@@ -141,11 +141,11 @@ class Delivery:
 
 # P2 study §4.2 and §4.4; the task's "shouts high exaggeration, low cfg".
 DELIVERY: dict[str, Delivery] = {
-    "idle": Delivery(0.4, 0.5, 0.8, "murmullo"),
-    "shout": Delivery(1.3, 0.3, 0.9, "ladrido"),
-    "pain": Delivery(1.0, 0.3, 0.9, "dolor, tenso"),
-    "death": Delivery(0.6, 0.3, 1.0, "muerte, apagándose"),
-    "calm": Delivery(0.3, 0.6, 0.6, "el General: calma"),
+    "idle": Delivery(0.4, 0.5, 0.8, "murmur"),
+    "shout": Delivery(1.3, 0.3, 0.9, "bark"),
+    "pain": Delivery(1.0, 0.3, 0.9, "pain, strained"),
+    "death": Delivery(0.6, 0.3, 1.0, "death, fading"),
+    "calm": Delivery(0.3, 0.6, 0.6, "the General: calm"),
 }
 
 
@@ -159,7 +159,7 @@ class Line:
     lang: str
     delivery: str
     freedoom: str       # the Freedoom lump the line replaces today (src/lumps/SNDINFO)
-    translation: str    # Spanish
+    translation: str    # English (VOICE-SCRIPT §1 "Translation")
     dur: tuple[float, float]   # VOICE-SCRIPT's target length of the finished sound
 
     @property
@@ -171,40 +171,40 @@ class Line:
 # Wordless rows skipped: R07, R08, L07, L09, G03, G04.
 LINES: tuple[Line, ...] = (
     Line("R01", "SDRRIACT", "rifleman", "idle", "Stellung halten.", "de", "idle", "DSPOSACT",
-         "Mantened la posición.", (1.0, 1.5)),
+         "Hold the position.", (1.0, 1.5)),
     Line("R02", "SDRRIACT", "rifleman", "idle", "Augen auf.", "de", "idle", "DSPOSACT",
-         "Ojos abiertos.", (0.8, 1.2)),
+         "Eyes open.", (0.8, 1.2)),
     Line("R03", "SDRRIACT", "rifleman", "idle", "Ruhe da hinten.", "de", "idle", "DSPOSACT",
-         "Silencio ahí detrás.", (1.0, 1.5)),
+         "Quiet back there.", (1.0, 1.5)),
     Line("R04", "SDRRISIT", "rifleman", "alert", "Feind!", "de", "shout", "DSPOSIT1",
-         "¡Enemigo!", (0.0, 0.5)),
+         "Enemy!", (0.0, 0.5)),
     Line("R05", "SDRRISIT", "rifleman", "alert", "Da!", "de", "shout", "DSPOSIT1",
-         "¡Ahí!", (0.0, 0.4)),
+         "There!", (0.0, 0.4)),
     Line("R06", "SDRRISIT", "rifleman", "alert", "Kontakt!", "de", "shout", "DSPOSIT1",
-         "¡Contacto!", (0.0, 0.6)),
+         "Contact!", (0.0, 0.6)),
     Line("R09", "SDRRIDTH", "rifleman", "death", "Sani…", "de", "death", "DSPODTH1",
-         "Sanitario… (apenas dicho, apagándose)", (0.0, 1.2)),
+         "Medic… (barely said, fading)", (0.0, 1.2)),
     Line("L01", "SDLTRACT", "trooper", "idle", "Sector four, clear.", "en", "idle", "DSPOSACT",
-         "Sector cuatro, despejado.", (1.2, 1.6)),
+         "Sector four, clear.", (1.2, 1.6)),
     Line("L02", "SDLTRACT", "trooper", "idle", "Copy. Holding position.", "en", "idle", "DSPOSACT",
-         "Recibido. Mantenemos posición.", (1.2, 1.8)),
+         "Received. We are holding position.", (1.2, 1.8)),
     Line("L03", "SDLTRACT", "trooper", "idle", "Command, say again?", "en", "idle", "DSPOSACT",
-         "Mando, repita.", (1.0, 1.4)),
+         "Command, say again.", (1.0, 1.4)),
     Line("L04", "SDLTRSIT", "trooper", "alert", "Contact!", "en", "shout", "DSPOSIT2",
-         "¡Contacto!", (0.0, 0.6)),
+         "Contact!", (0.0, 0.6)),
     Line("L05", "SDLTRSIT", "trooper", "alert", "Hostile, front!", "en", "shout", "DSPOSIT2",
-         "¡Hostil, al frente!", (0.0, 0.7)),
+         "Hostile, front!", (0.0, 0.7)),
     Line("L06", "SDLTRSIT", "trooper", "alert", "Got movement!", "en", "shout", "DSPOSIT2",
-         "¡Movimiento!", (0.0, 0.7)),
+         "Movement!", (0.0, 0.7)),
     Line("L08", "SDLTRPAI", "trooper", "pain", "I'm hit!", "en", "pain", "DSPOPAIN",
-         "¡Me han dado!", (0.4, 0.5)),
+         "I'm hit!", (0.4, 0.5)),
     Line("G01", "SDGENSIT", "general", "alert", "Engage.", "en", "calm", "DSCYBSIT",
-         "Atacad.", (1.0, 1.5)),
+         "Attack.", (1.0, 1.5)),
     Line("G02", "SDGENSUM", "general", "summon", "Vorwärts.", "de", "calm", "DSVILSIT",
-         "Adelante.", (0.0, 1.2)),
+         "Forward.", (0.0, 1.2)),
 )
 WORDLESS_ROWS = ("R07", "R08", "L07", "L09", "G03", "G04")
-LANG_LABEL = {"de": "alemán", "en": "inglés"}
+LANG_LABEL = {"de": "German", "en": "English"}
 
 # The Freedoom lumps these replace, measured from iwads/freedoom2.wad 0.13.0
 # with gen_weapon_alts' rulers; a test re-measures them.
@@ -425,6 +425,9 @@ def process(day: str, raw_dir: Path = RAW_DIR, out_dir: Path = OUT_DIR,
 
 # --- AI-LOG.csv (VOICE-SCRIPT §0.7) ---------------------------------------------------------
 
+# Column names kept as they are: the AI-LOG.csv schema of the P2 study (docs/product/
+# 2026-10-14_2156_P2_local-voice-generation.md) shared by every AI-LOG.csv already on disk
+# (file, tool, version_or_model, date, plan, licence_of_use, voice, text, settings).
 LOG_FIELDS = ("fichero", "herramienta", "version_o_modelo", "fecha", "plan", "licencia_de_uso",
               "voz", "texto", "ajustes")
 
@@ -447,7 +450,7 @@ def log_rows(raw_dir: Path = RAW_DIR) -> list[dict]:
 
 
 def voice_note(meta: dict) -> str:
-    """The AI-LOG "voz": the predefined voice, or the cloned reference with its sources and licences."""
+    """The AI-LOG "voz" (voice) column: the predefined voice, or the cloned reference with its sources and licences."""
     rq = meta["request"]
     if rq.get("voice_mode") != "clone":
         return f"{rq['predefined_voice_id']} ({VOICE_ORIGIN_NOTE})"
@@ -523,18 +526,18 @@ def page_items(done: list[Processed], page: Path, out_dir: Path = OUT_DIR,
             "id": p.name, "row": l.row, "lump": l.lump, "cls": l.cls, "take": int(p.name[-2:]),
             "text": l.text, "tr": l.translation, "lang": LANG_LABEL[l.lang], "moment": l.moment,
             "voice": CAST[l.cls].name, "seed": seed_of(l, int(p.name[-2:])),
-            "set": f"exaggeration {d.exaggeration:g} · cfg {d.cfg_weight:g} · temperatura {d.temperature:g} ({d.note})",
+            "set": f"exaggeration {d.exaggeration:g} · cfg {d.cfg_weight:g} · temperature {d.temperature:g} ({d.note})",
             "src": _rel(out_dir / f"{p.name}.ogg", page),
             "raw": _rel(raw_dir / f"{p.name}.wav", page),
             "rep": l.freedoom, "repSrc": _rel(FREEDOOM_PREVIEW_DIR / f"{l.freedoom}.wav", page),
             "dur": round(lv["length"], 2),
-            "target": (f"≤ {hi:g} s" if lo == 0 else f"{lo:g}-{hi:g} s").replace(".", ","),
+            "target": (f"≤ {hi:g} s" if lo == 0 else f"{lo:g}-{hi:g} s"),
             "over": over, "radio": l.radio,
-            "lvl": (f"pico {lv['peak']:.1f} dBFS · fuerza {lv['loud_a']:.1f} dB "
+            "lvl": (f"peak {lv['peak']:.1f} dBFS · loudness {lv['loud_a']:.1f} dB "
                     f"(Freedoom {l.freedoom}: {FREEDOOM_LEVELS[l.freedoom][1]:.1f})"
-                    + (f" · saturación suave {p.drive:.1f}" if p.drive > 0 else "")
-                    + (f" · se queda {short:.1f} dB por debajo (sin forzar)" if short else "")
-                    + (f" · cortados {p.cut_s:.2f} s tras una pausa larga" if p.cut_s > 0 else "")),
+                    + (f" · soft saturation {p.drive:.1f}" if p.drive > 0 else "")
+                    + (f" · stays {short:.1f} dB below (not forced)" if short else "")
+                    + (f" · {p.cut_s:.2f} s cut after a long pause" if p.cut_s > 0 else "")),
         })
     return items
 
@@ -555,30 +558,30 @@ try { S = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { S =
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 function st(id){ return S[id] || (S[id] = {v:"", n:""}); }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const fmt = s => s.toFixed(2).replace(".", ",") + " s";
+const fmt = s => s.toFixed(2) + " s";
 const audio = src => `<audio controls preload="none" src="${esc(src)}"></audio>`;
-const vote = it => `<div class="vote"><div class="btns"><button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div><textarea class="note" placeholder="Nota (opcional)">${esc(st(it.id).n || "")}</textarea></div>`;
+const vote = it => `<div class="vote"><div class="btns"><button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div><textarea class="note" placeholder="Note (optional)">${esc(st(it.id).n || "")}</textarea></div>`;
 function row(it){
-  let p = `<div class="pl main"><span>Toma ${it.take} · ${fmt(it.dur)}${it.runaway ? '<span class="warn">se desbocó: siguió hablando</span>' : (it.over ? '<span class="warn">más larga que el guion</span>' : "")}</span>${audio(it.src)}</div>`;
-  p += `<div class="pl"><span>Tal como salió de Chatterbox (sin procesar)</span>${audio(it.raw)}</div>`;
+  let p = `<div class="pl main"><span>Take ${it.take} · ${fmt(it.dur)}${it.runaway ? '<span class="warn">ran away: kept talking</span>' : (it.over ? '<span class="warn">longer than the script</span>' : "")}</span>${audio(it.src)}</div>`;
+  p += `<div class="pl"><span>As it came out of Chatterbox (unprocessed)</span>${audio(it.raw)}</div>`;
   return `<div class="row" id="r-${it.id}" data-id="${it.id}">
     <div><div class="name"><code>${esc(it.id)}</code></div>
-      <div class="meta"><b>Semilla</b> ${it.seed} · ${esc(it.set)}</div>
-      <div class="meta"><b>Nivel:</b> ${esc(it.lvl)}</div>
-      ${it.ref ? `<div class="meta"><b>Referencia:</b> ${esc(it.ref)}</div>` : ""}
-      ${it.asr != null ? `<div class="meta"><b>Whisper entendió:</b> «${esc(it.asr)}»${it.asrWarn ? `<span class="warn">${esc(it.asrWarn)}</span>` : ""}</div>` : ""}</div>
+      <div class="meta"><b>Seed</b> ${it.seed} · ${esc(it.set)}</div>
+      <div class="meta"><b>Level:</b> ${esc(it.lvl)}</div>
+      ${it.ref ? `<div class="meta"><b>Reference:</b> ${esc(it.ref)}</div>` : ""}
+      ${it.asr != null ? `<div class="meta"><b>Whisper heard:</b> «${esc(it.asr)}»${it.asrWarn ? `<span class="warn">${esc(it.asrWarn)}</span>` : ""}</div>` : ""}</div>
     <div class="players">${p}</div>${vote(it)}</div>`;
 }
 function build(){
   let h = "";
   for (const C of [...new Set(ITEMS.map(i => i.cls))]) {
     const its = ITEMS.filter(i => i.cls === C);
-    h += `<details class="grp" open><summary>${esc(CLASSES[C])} · voz <b>${esc(its[0].voice)}</b><span class="gcount" data-l="${esc(C)}"></span></summary>`;
+    h += `<details class="grp" open><summary>${esc(CLASSES[C])} · voice <b>${esc(its[0].voice)}</b><span class="gcount" data-l="${esc(C)}"></span></summary>`;
     for (const R of [...new Set(its.map(i => i.row))]) {
       const rs = its.filter(i => i.row === R), a = rs[0];
       h += `<div class="line"><div class="say"><code>${esc(R)}</code> «${esc(a.text)}» <i>${esc(a.tr)}</i></div>
-        <div class="meta">${esc(a.lang)} · momento <b>${esc(a.moment)}</b> · lump <code>${esc(a.lump)}</code> · duración del guion ${esc(a.target)}${a.radio ? " · con color de radio suave" : ""}</div>
-        <div class="pl"><span>Lo que sustituiría: Freedoom <code>${esc(a.rep)}</code> (suena hoy)</span>${audio(a.repSrc)}</div></div>`;
+        <div class="meta">${esc(a.lang)} · moment <b>${esc(a.moment)}</b> · lump <code>${esc(a.lump)}</code> · script length ${esc(a.target)}${a.radio ? " · with a gentle radio colour" : ""}</div>
+        <div class="pl"><span>What it would replace: Freedoom <code>${esc(a.rep)}</code> (plays today)</span>${audio(a.repSrc)}</div></div>`;
       for (const it of rs) h += row(it);
     }
     h += `</details>`;
@@ -604,19 +607,19 @@ function summary(){
   }
   const notes = ITEMS.filter(i => (st(i.id).n || "").trim()).map(i => `${i.id}: «${st(i.id).n.trim().replace(/\s+/g, " ")}»`);
   const open = ITEMS.filter(i => !st(i.id).v).map(i => i.id);
-  const L = [`Voces de enemigos con Chatterbox (__STAMP__): ${done}/${ITEMS.length} juzgadas`,
+  const L = [`Enemy voices with Chatterbox (__STAMP__): ${done}/${ITEMS.length} judged`,
     `OK (${by("ok").length}): ${by("ok").join(", ") || "—"}`,
     `NO (${by("no").length}): ${by("no").join(", ") || "—"}`,
     `? (${by("q").length}): ${by("q").join(", ") || "—"}`,
-    `notas: ${notes.join(" / ") || "—"}`];
-  if (open.length) L.push(`sin juzgar (${open.length}): ${open.join(", ")}`);
+    `notes: ${notes.join(" / ") || "—"}`];
+  if (open.length) L.push(`not judged (${open.length}): ${open.join(", ")}`);
   document.getElementById("result").value = L.join("\n");
 }
 function copy(){
   const t = document.getElementById("result"), msg = document.getElementById("copied");
   summary();
-  const done = () => { msg.textContent = "copiado"; setTimeout(() => msg.textContent = "", 2500); };
-  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? done() : (msg.textContent = "selecciona y Ctrl+C abajo"); } catch (e) { msg.textContent = "selecciona y Ctrl+C abajo"; } t.scrollIntoView({block:"center"}); };
+  const done = () => { msg.textContent = "copied"; setTimeout(() => msg.textContent = "", 2500); };
+  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? done() : (msg.textContent = "select and Ctrl+C below"); } catch (e) { msg.textContent = "select and Ctrl+C below"; } t.scrollIntoView({block:"center"}); };
   try { if (navigator.clipboard && window.isSecureContext !== false) navigator.clipboard.writeText(t.value).then(done, fallback); else fallback(); } catch (e) { fallback(); }
 }
 document.addEventListener("click", e => {
@@ -632,7 +635,7 @@ document.addEventListener("play", e => { document.querySelectorAll("audio").forE
 document.getElementById("onlyOpen").addEventListener("change", () => ITEMS.forEach(i => paint(i.id)));
 document.getElementById("copyTop").addEventListener("click", copy);
 document.getElementById("copyBottom").addEventListener("click", copy);
-document.getElementById("reset").addEventListener("click", () => { if (confirm("¿Borrar todas las respuestas y notas de esta hoja?")) { S = {}; save(); build(); summary(); } });
+document.getElementById("reset").addEventListener("click", () => { if (confirm("Clear every answer and note on this sheet?")) { S = {}; save(); build(); summary(); } });
 build(); summary();
 """
 
@@ -642,8 +645,8 @@ def cast_table_html() -> str:
         f"<tr><td>{html.escape(CLASS_LABEL[c])}</td><td><b>{html.escape(v.name)}</b></td>"
         f"<td>{v.f0_hz:.0f} Hz</td><td>{v.centroid_hz} Hz</td><td>{html.escape(v.why)}</td></tr>"
         for c, v in CAST.items())
-    return ("<table class=\"castt\"><thead><tr><th>Enemigo</th><th>Voz</th><th>Tono medio (F0)</th>"
-            "<th>Brillo (centroide)</th><th>Por qué</th></tr></thead><tbody>" + rows + "</tbody></table>")
+    return ("<table class=\"castt\"><thead><tr><th>Enemy</th><th>Voice</th><th>Median pitch (F0)</th>"
+            "<th>Brightness (centroid)</th><th>Why</th></tr></thead><tbody>" + rows + "</tbody></table>")
 
 
 def page_html(done: list[Processed], page: Path, stamp: str, out_dir: Path = OUT_DIR,
@@ -657,43 +660,43 @@ def page_html(done: list[Processed], page: Path, stamp: str, out_dir: Path = OUT
     skipped = ", ".join(WORDLESS_ROWS)
     dropped = ", ".join(DROPPED_VOICES)
     return f"""<!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Voces de enemigos</title>
+<title>Enemy voices</title>
 <style>{wa.PAGE_CSS}{PAGE_CSS_EXTRA}</style>
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <h1>Voces de enemigos (Chatterbox)</h1>
-  <span class="prog">Juzgadas <b id="pDone">0</b> de <b>{n}</b></span>
+  <h1>Enemy voices (Chatterbox)</h1>
+  <span class="prog">Judged <b id="pDone">0</b> of <b>{n}</b></span>
   <span class="bar"><i id="pBar"></i></span>
-  <label class="chk"><input type="checkbox" id="onlyOpen"> solo sin juzgar</label>
-  <button class="primary" id="copyTop">Copiar resultado</button><span id="copied" class="copied"></span>
+  <label class="chk"><input type="checkbox" id="onlyOpen"> only not judged</label>
+  <button class="primary" id="copyTop">Copy result</button><span id="copied" class="copied"></span>
 </div></header>
 <div class="wrap">
 <section class="intro">
-  <p>Borradores de las <b>{len(LINES)} frases habladas</b> del guion de voces (<code>docs/sound/VOICE-SCRIPT.md</code> §1), {TAKES} tomas de cada una con semillas distintas (más en {", ".join(EXTRA_TAKES)}, donde las primeras fallaron), generadas con <b>Chatterbox Multilingual</b> en tu PC y sus voces predefinidas de nombre masculino (D87). El Reich habla alemán y la Legión inglés (D36). Pulsa <b>OK</b>, <b>NO</b> o <b>?</b> en cada toma y escribe una nota si quieres. Se guarda solo en este navegador. Al terminar, <b>Copiar resultado</b> y pégalo en el chat. Nada entra en el juego hasta que lo apruebes.</p>
+  <p>Drafts of the <b>{len(LINES)} spoken lines</b> of the voice script (<code>docs/sound/VOICE-SCRIPT.md</code> §1), {TAKES} takes of each with different seeds (more on {", ".join(EXTRA_TAKES)}, where the first ones failed), generated with <b>Chatterbox Multilingual</b> on your PC and its predefined male-named voices (D87). The Reich speaks German and the Legion English (D36). Press <b>OK</b>, <b>NO</b> or <b>?</b> on each take and write a note if you like. It is saved only in this browser. When done, <b>Copy result</b> and paste it in the chat. Nothing goes into the game until you approve it.</p>
   {cast_table_html()}
   <ul>
-    <li><b>Reparto:</b> una voz por enemigo, elegida por el nombre y medida (tono y brillo de su clip de referencia), sin escucharla. Descartadas por tono dudoso (zona de solape hombre/mujer): {html.escape(dropped)}. Las voces predefinidas vienen con el servidor y su origen no está documentado (D87).</li>
-    <li><b>Procesado:</b> silencio recortado, filtro de graves a {HIGH_PASS_HZ:.0f} Hz, y la Legión con un <b>color de radio suave</b> (la cadena de radio completa, con crujido y squelch, va después). Cada toma está <b>al volumen del sonido de Freedoom que sustituiría</b> (la misma regla que las armas: los 50 ms más fuertes, ponderación A); el reproductor de Freedoom está encima de cada frase.</li>
-    <li><b>Aún sin cadena de facción:</b> el fusilero no tiene todavía la bajada de tono ni la saturación (REICH-DRY), ni el General sus −4 semitonos y la ranura (GENERAL-SLOT). Juzga la <b>interpretación y el alemán/inglés</b>, no el timbre final.</li>
-    <li><b>Más larga que el guion:</b> el aviso marca tomas que pasan de la duración prevista; se puede acelerar o recortar al elegir.</li>
-    <li><b>Sin palabras ({html.escape(skipped)}):</b> gruñidos y últimos alientos no se generan; siguen con los efectos de respaldo.</li>
-    {f'<li><b>Whisper entendió:</b> transcripción automática de cada toma procesada con <code>{html.escape(asr_model)}</code>, en el idioma de la frase, para ver de un vistazo si se entiende. Es una máquina, no un oyente: tu oído manda.</li>' if asr_model else ''}
-    <li>El registro de cada toma (herramienta, modelo, voz, semilla, ajustes) está en <code>work/audio/voice_takes/AI-LOG.csv</code>.</li>
+    <li><b>Cast:</b> one voice per enemy, chosen by its name and by measurement (pitch and brightness of its reference clip), without listening to it. Dropped for a doubtful pitch (the male/female overlap): {html.escape(dropped)}. The predefined voices ship with the server and their origin is not documented (D87).</li>
+    <li><b>Processing:</b> silence trimmed, a high-pass at {HIGH_PASS_HZ:.0f} Hz, and the Legion with a <b>gentle radio colour</b> (the full radio chain, with crackle and squelch, comes later). Each take is <b>at the level of the Freedoom sound it would replace</b> (the same rule as the weapons: the loudest 50 ms, A-weighted); the Freedoom player is above each line.</li>
+    <li><b>No faction chain yet:</b> the rifleman does not have the pitch drop or the saturation yet (REICH-DRY), nor the General his −4 semitones and the slot (GENERAL-SLOT). Judge the <b>delivery and the German/English</b>, not the final timbre.</li>
+    <li><b>Longer than the script:</b> the warning marks takes past the planned length; they can be sped up or trimmed when picked.</li>
+    <li><b>Wordless ({html.escape(skipped)}):</b> grunts and last breaths are not generated; they keep the fallback effects.</li>
+    {f'<li><b>Whisper heard:</b> an automatic transcript of each processed take with <code>{html.escape(asr_model)}</code>, in the language of the line, to see at a glance whether it is understood. It is a machine, not a listener: your ear decides.</li>' if asr_model else ''}
+    <li>The log of each take (tool, model, voice, seed, settings) is in <code>work/audio/voice_takes/AI-LOG.csv</code>.</li>
   </ul>
 </section>
 <main id="groups"></main>
 <section>
-  <h2 style="font-size:16px;margin:24px 0 6px">Resultado para pegar en el chat</h2>
-  <p class="meta">Se actualiza solo. Si el botón no copia (algunos navegadores lo bloquean en archivos locales), selecciona el texto y Ctrl+C.</p>
+  <h2 style="font-size:16px;margin:24px 0 6px">Result to paste in the chat</h2>
+  <p class="meta">It updates by itself. If the button does not copy (some browsers block it on local files), select the text and Ctrl+C.</p>
   <textarea id="result" readonly></textarea>
-  <p><button class="primary" id="copyBottom">Copiar resultado</button> <button id="reset">Borrar todas mis respuestas</button></p>
+  <p><button class="primary" id="copyBottom">Copy result</button> <button id="reset">Clear all my answers</button></p>
 </section>
-<footer>Generado {html.escape(stamp)} por sound-designer con <code>tools/audio/process_voice_takes.py</code>. Audio: <code>work/audio/voice_takes/</code> (procesadas), <code>work/audio/voice_takes/raw/</code> (tal como salieron), <code>work/audio/preview/freedoom/</code> (Freedoom de hoy). La página lee los archivos del repo por ruta relativa: no la muevas de <code>docs/art/previews/</code>.</footer>
+<footer>Generated {html.escape(stamp)} by sound-designer with <code>tools/audio/process_voice_takes.py</code>. Audio: <code>work/audio/voice_takes/</code> (processed), <code>work/audio/voice_takes/raw/</code> (as they came out), <code>work/audio/preview/freedoom/</code> (today's Freedoom). The page reads the repo's files by relative path: do not move it out of <code>docs/art/previews/</code>.</footer>
 </div>
 <script>
 const ITEMS = {data};
@@ -785,8 +788,8 @@ class Ref:
     sources: tuple[str, ...]  # SOURCES keys: always one person
     lang: str               # "de", "en" or "-" (wordless)
     parts: tuple[tuple[str, float, float], ...]   # (file under REFS_DIR, start s, end s; 0 = to the end)
-    label: str              # Spanish, for the page
-    why: str                # Spanish, for the page
+    label: str              # English, for the page
+    why: str                # English, for the page
 
 
 # Picked by measurement and transcript, not by ear (nobody here can listen): Thorsten's angry
@@ -803,8 +806,8 @@ REFS: dict[str, Ref] = {
         (THORSTEN_ANGRY + "17a5a8163ef7fdc9272d621282b636b8.wav", 0, 0),   # Einheit Bravo an Zentrale! ...
         (THORSTEN_ANGRY + "03f5eea4317f51989cf09c5e9414dad1.wav", 0, 0),   # Beginnen Sie ... noch heute!
         (THORSTEN_ANGRY + "2e549180a9d7591a11d08112bf67f422.wav", 0, 0),   # Das ist ja alles verklebt!
-    ), "Thorsten Müller, «angry» (alemán, CC0)",
-        "frases leídas con enfado, no gritos de batalla: las órdenes y exclamaciones más agudas del conjunto "
+    ), "Thorsten Müller, «angry» (German, CC0)",
+        "lines read in anger, not battle cries: the highest-pitched orders and exclamations of the set "
         "(«Nennen Sie Ihren Zielort!», «Reiß das Ding doch gleich ab!», «Einheit Bravo an Zentrale!»…)"),
     "en_orders": Ref("en_orders", ("kurt_battle",), "en", (
         ("kurt/battlecries.ogg", 11.08, 13.14), ("kurt/battlecries.ogg", 14.0, 15.5),
@@ -813,18 +816,18 @@ REFS: dict[str, Ref] = {
         ("kurt/battlecries.ogg", 0.92, 1.2), ("kurt/battlecries.ogg", 2.74, 2.96),
         ("kurt/battlecries.ogg", 3.33, 3.57), ("kurt/battlecries.ogg", 3.94, 4.19),
         ("kurt/battlecries.ogg", 5.32, 5.56), ("kurt/battlecries.ogg", 5.93, 6.18),
-    ), "kurt, gritos de batalla (inglés, CC-BY 3.0)",
-        "«For honor and glory… Forward we go… Defend yourselves!» y seis ladridos cortos"),
+    ), "kurt, battle cries (English, CC-BY 3.0)",
+        "«For honor and glory… Forward we go… Defend yourselves!» and six short barks"),
     "pain_haeldb": Ref("pain_haeldb", ("haeldb",), "-", tuple(
         (HAELDB_DIR + f"3yell{i}.wav", 0, 0) for i in (14, 1, 9, 2, 12, 15, 11, 10, 5, 13)),
-        "HaelDB, vocalista 3: gritos de dolor sin palabras (CC0)",
-        "gritos y quejidos sin palabras: sirven en cualquier idioma"),
+        "HaelDB, vocalist 3: wordless cries of pain (CC0)",
+        "wordless cries and groans: they work in any language"),
     "pain_kurt": Ref("pain_kurt", ("kurt_wounded", "kurt_battle"), "en", (
         ("kurt/wounded.ogg", 0, 0), ("kurt/wounded.ogg", 0, 0),
         ("kurt/battlecries.ogg", 11.08, 13.14), ("kurt/battlecries.ogg", 16.7, 19.15),
         ("kurt/battlecries.ogg", 8.2, 10.12),
-    ), "kurt, herido (inglés, CC-BY 3.0)",
-        "sus 4 s de «¡Aaah!» dos veces delante (lo que más pesa) y tres gritos suyos detrás para llegar a 12 s: el mismo hombre"),
+    ), "kurt, wounded (English, CC-BY 3.0)",
+        "his 4 s of «Aaah!» twice at the front (what weighs most) and three of his cries after it to reach 12 s: the same man"),
 }
 
 
@@ -843,11 +846,11 @@ class Take2:
 # Round-2 settings per delivery: one exaggeration per take (three seeds, a ladder, so one of
 # them lands); cfg 0.3 for pace; shouts high, pain and death left to the reference.
 DELIVERY2: dict[str, tuple[tuple[float, ...], float, float, str]] = {
-    "idle": ((0.9, 1.1, 1.3), 0.3, 0.8, "orden seca y enfadada"),
-    "shout": ((1.1, 1.3, 1.5), 0.3, 0.8, "grito"),
-    "pain": ((0.6, 0.8, 1.0), 0.3, 0.8, "dolor: lo pone la referencia"),
-    "death": ((0.5, 0.7, 0.9), 0.3, 0.8, "muerte: lo pone la referencia"),
-    "calm": ((1.0, 1.2, 1.4), 0.3, 0.8, "el General: orden de mando"),
+    "idle": ((0.9, 1.1, 1.3), 0.3, 0.8, "curt, angry order"),
+    "shout": ((1.1, 1.3, 1.5), 0.3, 0.8, "shout"),
+    "pain": ((0.6, 0.8, 1.0), 0.3, 0.8, "pain: the reference carries it"),
+    "death": ((0.5, 0.7, 0.9), 0.3, 0.8, "death: the reference carries it"),
+    "calm": ((1.0, 1.2, 1.4), 0.3, 0.8, "the General: a command"),
 }
 # Script text -> what round 2 sends (the same words: an order is read as one with "!").
 TEXT2 = {"Stellung halten.": "Stellung halten!", "Augen auf.": "Augen auf!",
@@ -1196,7 +1199,7 @@ JOINED_MATCH = 0.8              # Whisper glues ("dahinten") or splits ("Come in
 
 
 def asr_check(heard: str | None, text: str, cries_ok: bool = False) -> tuple[str, str]:
-    """-> ("ok" | "warn" | "reject", reason in Spanish). Words only; punctuation is not judged.
+    """-> ("ok" | "warn" | "reject", reason in English). Words only; punctuation is not judged.
 
     Rejected: nothing heard, extra words (the model kept talking or mixed lines in) or fewer
     words (the line was cut). Same count but a different word is only a warning: Whisper
@@ -1212,13 +1215,13 @@ def asr_check(heard: str | None, text: str, cries_ok: bool = False) -> tuple[str
     if got and len(g) <= len(w) + 1 and SequenceMatcher(None, g, w).ratio() >= JOINED_MATCH:
         return "ok", ""             # glued or split words ("dahinten", "Come in" for "Command")
     if not got:
-        return ("warn", "Whisper solo oyó un grito") if cries_ok and words_of(heard) else             ("reject", "Whisper no oyó ninguna palabra")
+        return ("warn", "Whisper only heard a cry") if cries_ok and words_of(heard) else             ("reject", "Whisper heard no word")
     if len(got) > len(want):
-        return "reject", f"palabras de más ({len(got)} en vez de {len(want)})"
+        return "reject", f"extra words ({len(got)} instead of {len(want)})"
     if len(got) < len(want):
-        return "reject", f"frase cortada ({len(got)} de {len(want)} palabras)"
+        return "reject", f"line cut ({len(got)} of {len(want)} words)"
     off = [g for g, w in zip(got, want) if SequenceMatcher(None, g, w).ratio() < 0.5]
-    return ("warn", "Whisper oyó otra palabra") if off else ("ok", "")
+    return ("warn", "Whisper heard another word") if off else ("ok", "")
 
 
 def process2(day: str, raw_dir: Path = AGGR_RAW_DIR, out_dir: Path = AGGR_DIR, log=print) -> list[Processed]:
@@ -1250,9 +1253,9 @@ def page2_items(done: list[Processed], page: Path, day: str, asr: dict | None = 
         d = DELIVERY2[t.line.delivery]
         it["ref"] = REFS[t.ref].label
         it["refKey"] = t.ref
-        it["voice"] = "clon de referencia agresiva"
-        it["set"] = (f"exaggeration {t.exaggeration:g} · cfg {t.cfg_weight:g} · temperatura {t.temperature:g}"
-                     f" ({d[3]}) · texto «{t.text}»")
+        it["voice"] = "clone of an aggressive reference"
+        it["set"] = (f"exaggeration {t.exaggeration:g} · cfg {t.cfg_weight:g} · temperature {t.temperature:g}"
+                     f" ({d[3]}) · text «{t.text}»")
         verdict, why = asr_check(it["asr"], t.text, cries_ok=t.line.delivery in ("pain", "death"))
         it["verdict"], it["why"] = verdict, why
         it["asrWarn"] = why if verdict == "warn" else ""
@@ -1279,8 +1282,8 @@ def refs_table_html(page: Path, refs: dict[str, Path]) -> str:
         lic = " · ".join(dict.fromkeys(f"{SOURCES[s].licence} — {SOURCES[s].author}" for s in r.sources))
         rows.append(f"<tr><td><b>{html.escape(r.label)}</b><br><span class=\"meta\">{html.escape(r.why)}</span></td>"
                     f"<td>{secs}</td><td>{html.escape(lic)}</td><td>{html.escape(used)}</td><td>{player}</td></tr>")
-    return ("<table class=\"castt\"><thead><tr><th>Referencia</th><th>Duración</th><th>Licencia</th>"
-            "<th>Frases</th><th>Escuchar</th></tr></thead><tbody>" + "".join(rows) + "</tbody></table>")
+    return ("<table class=\"castt\"><thead><tr><th>Reference</th><th>Length</th><th>Licence</th>"
+            "<th>Lines</th><th>Listen</th></tr></thead><tbody>" + "".join(rows) + "</tbody></table>")
 
 
 def static_rows_html(items: list[dict], title: str, note: str, key: str) -> str:
@@ -1308,53 +1311,53 @@ def page2_html(done: list[Processed], page: Path, stamp: str, day: str, asr: dic
     lines = round2_lines()
     data = json.dumps(keep, ensure_ascii=False).replace("</", "<\\/")
     classes = json.dumps(CLASS_LABEL, ensure_ascii=False)
-    js = PAGE_JS.replace("__KEY__", PAGE_KEY_PREFIX + "aggr-" + stamp).replace("__STAMP__", stamp + ", referencias agresivas")
+    js = PAGE_JS.replace("__KEY__", PAGE_KEY_PREFIX + "aggr-" + stamp).replace("__STAMP__", stamp + ", aggressive references")
     credits = sorted({SOURCES[s].credit for r in REFS.values() for s in r.sources if SOURCES[s].credit})
-    approved = static_rows_html(approved_items(page), "Ya aprobadas (D91), sin tocar: para comparar",
-                                "Las 7 tomas que dijiste OK en la ronda anterior (voces predefinidas). No se votan aquí.", "")
-    rej = static_rows_html(rejected, "Rechazadas automáticamente",
-                           "Whisper oyó palabras de más, la frase cortada o nada. "
-                           "No se votan; están por si quieres oírlas.", "why")
+    approved = static_rows_html(approved_items(page), "Already approved (D91), untouched: for comparison",
+                                "The 7 takes you said OK to in the previous round (predefined voices). They are not voted on here.", "")
+    rej = static_rows_html(rejected, "Rejected automatically",
+                           "Whisper heard extra words, a cut line or nothing. "
+                           "They are not voted on; they are here in case you want to hear them.", "why")
     return f"""<!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Voces agresivas</title>
+<title>Aggressive voices</title>
 <style>{wa.PAGE_CSS}{PAGE_CSS_EXTRA}</style>
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <h1>Voces de enemigos: referencias agresivas</h1>
-  <span class="prog">Juzgadas <b id="pDone">0</b> de <b>{len(keep)}</b></span>
+  <h1>Enemy voices: aggressive references</h1>
+  <span class="prog">Judged <b id="pDone">0</b> of <b>{len(keep)}</b></span>
   <span class="bar"><i id="pBar"></i></span>
-  <label class="chk"><input type="checkbox" id="onlyOpen"> solo sin juzgar</label>
-  <button class="primary" id="copyTop">Copiar resultado</button><span id="copied" class="copied"></span>
+  <label class="chk"><input type="checkbox" id="onlyOpen"> only not judged</label>
+  <button class="primary" id="copyTop">Copy result</button><span id="copied" class="copied"></span>
 </div></header>
 <div class="wrap">
 <section class="intro">
-  <p>Segunda ronda tras D91. Chatterbox copia la emoción del clip de referencia, así que esta vez cada voz se <b>clona de grabaciones gritadas</b> con licencia libre, en vez de las voces predefinidas (que son narración tranquila). Son las <b>{len(lines)} frases sin ninguna toma aprobada</b> ({html.escape(", ".join(l.row for l in lines))}), <b>una petición por toma y por frase</b> (nunca varias frases juntas), tomas <b>11 en adelante</b> para no confundirlas con la ronda anterior. Pulsa <b>OK</b>, <b>NO</b> o <b>?</b> y luego <b>Copiar resultado</b>. Nada entra en el juego hasta que lo apruebes.</p>
+  <p>Second round after D91. Chatterbox copies the emotion of the reference clip, so this time each voice is <b>cloned from shouted recordings</b> under a free licence, instead of the predefined voices (which are calm narration). These are the <b>{len(lines)} lines with no approved take</b> ({html.escape(", ".join(l.row for l in lines))}), <b>one request per take and per line</b> (never several lines together), takes <b>11 onwards</b> so they are not confused with the previous round. Press <b>OK</b>, <b>NO</b> or <b>?</b> and then <b>Copy result</b>. Nothing goes into the game until you approve it.</p>
   {refs_table_html(page, refs)}
   <ul>
-    <li><b>Qué referencia lleva cada frase:</b> el Fusilero del Reich, la de Thorsten (alemán); la Legión y el General, la de kurt (inglés; en «Vorwärts» el inglés lee alemán con cfg 0 para que no se pegue el acento, y dos tomas más con Thorsten); dolor y muerte, la de dolor (HaelDB sin palabras para «Sani…», kurt herido para «I'm hit!», y dos tomas de cada una con la otra).</li>
-    <li><b>Ajustes:</b> tres semillas por frase con la exageración en escalera (los gritos 1,1 / 1,3 / 1,5; las órdenes 0,9-1,4; el dolor y la muerte más bajos, porque lo pone la referencia). Las órdenes se envían con «!» (mismas palabras del guion).</li>
-    <li><b>Dónde se generó:</b> las primeras tomas en el servidor de Chatterbox (GPU); una toma de «Sani…» se desbocó, desbordó el modelo y dejó el servidor sin poder sintetizar, así que el resto salió del <b>mismo modelo</b> con la librería de Chatterbox en el procesador (CPU), con un tope de 12 s por toma. Cada toma dice cuál en <code>AI-LOG.csv</code>. Puede haber diferencias mínimas de timbre entre ambas.</li>
-    <li><b>Procesado:</b> igual que la ronda anterior: silencio recortado, graves a {HIGH_PASS_HZ:.0f} Hz, color de radio suave en la Legión y el volumen del sonido de Freedoom que sustituiría.</li>
-    <li><b>Nadie ha escuchado las referencias aquí:</b> las elegí midiendo (tono, brillo, picos sin saturar) y con lo que transcribió Whisper. Thorsten es enfado leído, no gritos de batalla: si el alemán sigue sonando educado, el arreglo real sigue siendo D85 (tus gritos).</li>
-    {f'<li><b>Whisper entendió:</b> transcripción automática con <code>{html.escape(asr_model)}</code>. Una toma con palabras de más o con la frase cortada se rechaza sola (abajo); si oyó otra palabra solo se avisa: tu oído manda.</li>' if asr_model else ''}
-    <li><b>Créditos que exigen las referencias:</b> {html.escape(" / ".join(credits) or "—")}. Registro por toma en <code>work/audio/voice_takes/AI-LOG.csv</code>; huellas SHA-256 y licencias en <code>work/audio/voice_refs/SOURCES.tsv</code>.</li>
+    <li><b>Which reference each line uses:</b> the Reich rifleman, Thorsten's (German); the Legion and the General, kurt's (English; on «Vorwärts» the English voice reads German with cfg 0 so the accent does not stick, plus two takes with Thorsten); pain and death, the pain one (wordless HaelDB for «Sani…», wounded kurt for «I'm hit!», and two takes of each with the other).</li>
+    <li><b>Settings:</b> three seeds per line with the exaggeration on a ladder (shouts 1.1 / 1.3 / 1.5; orders 0.9-1.4; pain and death lower, because the reference carries it). Orders are sent with «!» (the same words as the script).</li>
+    <li><b>Where it was generated:</b> the first takes on the Chatterbox server (GPU); one take of «Sani…» ran away, overflowed the model and left the server unable to synthesise, so the rest came from the <b>same model</b> through the Chatterbox library on the processor (CPU), capped at 12 s per take. Each take says which in <code>AI-LOG.csv</code>. There may be tiny timbre differences between the two.</li>
+    <li><b>Processing:</b> the same as the previous round: silence trimmed, a high-pass at {HIGH_PASS_HZ:.0f} Hz, a gentle radio colour on the Legion and the level of the Freedoom sound it would replace.</li>
+    <li><b>Nobody here has listened to the references:</b> I picked them by measuring (pitch, brightness, peaks without clipping) and by what Whisper transcribed. Thorsten is read anger, not battle cries: if the German still sounds polite, the real fix is still D85 (your shouts).</li>
+    {f'<li><b>Whisper heard:</b> an automatic transcript with <code>{html.escape(asr_model)}</code>. A take with extra words or a cut line is rejected by itself (below); if it heard another word there is only a warning: your ear decides.</li>' if asr_model else ''}
+    <li><b>Credits the references require:</b> {html.escape(" / ".join(credits) or "—")}. Per-take log in <code>work/audio/voice_takes/AI-LOG.csv</code>; SHA-256 fingerprints and licences in <code>work/audio/voice_refs/SOURCES.tsv</code>.</li>
   </ul>
 </section>
 {approved}
 <main id="groups"></main>
 {rej}
 <section>
-  <h2 style="font-size:16px;margin:24px 0 6px">Resultado para pegar en el chat</h2>
-  <p class="meta">Se actualiza solo. Si el botón no copia (algunos navegadores lo bloquean en archivos locales), selecciona el texto y Ctrl+C.</p>
+  <h2 style="font-size:16px;margin:24px 0 6px">Result to paste in the chat</h2>
+  <p class="meta">It updates by itself. If the button does not copy (some browsers block it on local files), select the text and Ctrl+C.</p>
   <textarea id="result" readonly></textarea>
-  <p><button class="primary" id="copyBottom">Copiar resultado</button> <button id="reset">Borrar todas mis respuestas</button></p>
+  <p><button class="primary" id="copyBottom">Copy result</button> <button id="reset">Clear all my answers</button></p>
 </section>
-<footer>Generado {html.escape(stamp)} por sound-designer con <code>tools/audio/process_voice_takes.py</code> (refs, generate2, process2). Audio: <code>work/audio/voice_takes/aggressive/</code> (procesadas), <code>…/aggressive/raw/</code> (tal como salieron), <code>work/audio/voice_refs/</code> (referencias, no van a git). La página lee los archivos del repo por ruta relativa: no la muevas de <code>docs/art/previews/</code>.</footer>
+<footer>Generated {html.escape(stamp)} by sound-designer with <code>tools/audio/process_voice_takes.py</code> (refs, generate2, process2). Audio: <code>work/audio/voice_takes/aggressive/</code> (processed), <code>…/aggressive/raw/</code> (as they came out), <code>work/audio/voice_refs/</code> (references, not in git). The page reads the repo's files by relative path: do not move it out of <code>docs/art/previews/</code>.</footer>
 </div>
 <script>
 const ITEMS = {data};

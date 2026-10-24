@@ -39,11 +39,10 @@ repo. The zip holds one folder, SovietDoom/, with:
                    the release's own files (tools/release.py), byte for byte
   README.txt       the release's readme with a short note on top saying that
                    in this package GZDoom and Freedoom are already present
-  Jugar Soviet Doom.bat, Play Soviet Doom.bat
-                   the launchers (Spanish and English messages, same command)
-  LEEME.txt, README-FIRST.txt
-                   how to unzip, start, get past SmartScreen, switch to
-                   Russian or Catalan, the keys; Spanish and English
+  Play Soviet Doom.bat
+                   the launcher (English messages)
+  README-FIRST.txt how to unzip, start, get past SmartScreen, switch to
+                   Russian or Catalan, the keys (English)
   GZDOOM-SOURCE.txt
                    GPL: where the exact source of the bundled engine and its
                    libraries is, plus a written offer; the SHA-256 of every
@@ -56,15 +55,15 @@ holds GZDoom.app, every entry copied from the official g4.14.2 macOS zip
 executables stay 755, symlinks stay symlinks, the AppleDouble ._* files that
 carry the code signatures of the bundle's data files stay beside them); the
 zip's Licenses/ as gzdoom-licenses/; freedoom2.wad and the release files;
-"Jugar Soviet Doom.command" and "Play Soviet Doom.command" (sh, mode 755);
-LEEME.txt and README-FIRST.txt (Gatekeeper); GZDOOM-SOURCE.txt; SHA256SUMS.
+"Play Soviet Doom.command" (sh, mode 755); README-FIRST.txt (Gatekeeper);
+GZDOOM-SOURCE.txt; SHA256SUMS.
 
 Linux (--platform linux) writes sovietdoom-<version>-linux.tar.gz: SovietDoom/
 holds gzdoom/ (the /opt/gzdoom tree of the official g4.14.2 .deb, read in
 pure Python: the ar archive and its data.tar, no dpkg), gzdoom-licenses/
 (docs/licenses/ of the g4.14.2 source archive, --gzdoom-source: the .deb
-ships no licence texts), freedoom2.wad, the release files, play.sh and
-jugar.sh (mode 755), LEEME.txt and README-FIRST.txt (the system libraries
+ships no licence texts), freedoom2.wad, the release files, play.sh
+(mode 755), README-FIRST.txt (the system libraries
 the .deb's control file declares, and the apt command), GZDOOM-SOURCE.txt,
 SHA256SUMS. Directories 755, executables 755, other files 644, owner root,
 every mtime the release zip's, gzip header without name or time.
@@ -83,6 +82,12 @@ zip is malformed, two inputs claim the same name, or --out is inside the repo;
 for macOS and Linux also when the engine archive holds an unsafe path, a
 symlink that leaves the engine folder, or a member that is neither a file, a
 folder nor a symlink. The engine archives are read as data, never run.
+
+Languages (D129): what ships speaks English, Russian and Catalan only (the
+game, README.txt and CREDITS.txt carry all three; the launchers and
+README-FIRST.txt are English). No Spanish text or file name ships;
+tests/test_no_spanish.py guards it. Packages built before D129 also carried a
+Spanish launcher and LEEME.txt; D129 removed them.
 
 Docs: docs/engine/RELEASE.md, "Portable packages (P5)".
 """
@@ -155,9 +160,7 @@ FREEDOOM2_SHA256 = "a8772e088847032510d97ba2312406a6998f21cbab44d4ff10696faa9c0e
 
 # --- The texts we write ----------------------------------------------------------------
 
-BAT_ES = "Jugar Soviet Doom.bat"
 BAT_EN = "Play Soviet Doom.bat"
-LEEME_NAME = "LEEME.txt"
 README_FIRST_NAME = "README-FIRST.txt"
 SOURCE_NAME = "GZDOOM-SOURCE.txt"
 UTF8_BOM = b"\xef\xbb\xbf"   # Notepad on older Windows 10 needs it to read UTF-8
@@ -191,8 +194,6 @@ exit /b 1
 start "" "%~dp0{exe}" -iwad "%~dp0{iwad}" -file "%~dp0{pk3}"
 """
 BAT_MISSING = {
-    BAT_ES: ("No encuentro {exe} junto a este archivo. Primero descomprime el zip: "
-             "clic derecho sobre el zip, Extraer todo, y abre la carpeta {folder}."),
     BAT_EN: ("{exe} is not next to this file. Unzip the package first: right-click "
              "the zip, Extract All, then open the folder {folder}."),
 }
@@ -216,70 +217,10 @@ playing the mod in a GZDoom of your own.
 
 # The menu path to the language switch, from LANGUAGE (release.README_IDS
 # names the ids) so the texts and the game agree. The game starts in English
-# on a Spanish or English Windows, so both texts quote the English labels.
+# on any Windows that is not Russian or Catalan, so the guide quotes the
+# English labels.
 MENU_IDS = ("newgame", "ep01", "ep02", "options", "optmnu", "language", "langru",
             "langca", "langen", "langauto")
-
-LEEME_TEMPLATE = """\
-SOVIET DOOM {version} PARA WINDOWS - LISTO PARA JUGAR
-{rule}
-
-Todo lo necesario está en esta carpeta: el juego, el motor GZDoom {engine} y
-Freedoom. No hay que instalar nada.
-
-CÓMO JUGAR
-  1. Descomprime el zip: clic derecho sobre {zipname}
-     > "Extraer todo..." y elige dónde (el Escritorio o Documentos valen).
-     No lo abras desde dentro del zip sin extraerlo, y no pongas la carpeta
-     en "Archivos de programa" (C:\\Program Files): ahí GZDoom no puede
-     guardar las partidas dentro de la carpeta.
-  2. Abre la carpeta {folder} y haz doble clic en "Jugar Soviet Doom"
-     (o en "Play Soviet Doom": es lo mismo).
-  3. En el juego: {newgame} > {ep01}, y elige la dificultad.
-     {ep02} es el campo de tiro, con todas las armas.
-
-SI WINDOWS AVISA
-  GZDoom es gratuito y no lleva una firma digital de pago, así que Windows
-  puede avisar la primera vez:
-  - "Windows protegió su PC": pulsa "Más información" y luego
-    "Ejecutar de todas formas".
-  - "Advertencia de seguridad - ¿Desea ejecutar este archivo?": "Ejecutar".
-  Para que no avise, ANTES de descomprimir: clic derecho sobre el zip >
-  Propiedades > marca "Desbloquear" > Aceptar.
-
-RUSO O CATALÁN (O INGLÉS)
-  El juego empieza en inglés. Para jugar en ruso o en catalán:
-  {options} > {optmnu} > {language} > {langru} o {langca}.
-  Cambia al momento y se recuerda. Las otras opciones: {langen}, y
-  {langauto}, que sigue el idioma de Windows.
-
-CONTROLES
-  Moverse ............ W A S D
-  Girar y apuntar .... ratón
-  Disparar ........... botón izquierdo del ratón
-  Usar ............... E: abrir puertas, pulsar interruptores
-  Saltar ............. Espacio
-  Correr ............. mantén Mayúsculas; Bloq Mayús corre siempre
-  Armas .............. 1 a 7, o la rueda del ratón
-  Mapa ............... Tab
-  Guardar / cargar ... F2 / F3; rápido: F6 / F9
-  Menú ............... Esc
-  Se cambian en Options > Customize Controls.
-
-TUS PARTIDAS
-  Todo se queda en esta carpeta: las partidas en Save, las capturas en
-  Screenshots y la configuración en {ini}.
-  No se escribe nada en Documentos. Para desinstalar, borra la carpeta.
-  Para conservar las partidas en una versión nueva, copia Save y
-  {ini} a la carpeta nueva.
-
-LICENCIAS
-  Soviet Doom: código GPL 3.0, arte, sonido, mapas y textos CC BY-NC-SA 4.0
-  (LICENSE.md); créditos en CREDITS.txt. GZDoom: GPL 3.0 y otras licencias
-  libres (licenses.zip); su código fuente exacto: {source}. Freedoom:
-  licencia BSD (LICENSE-FREEDOOM-BSD-3.txt). Proyecto de aficionados, sin
-  relación con id Software.
-"""
 
 README_FIRST_TEMPLATE = """\
 SOVIET DOOM {version} FOR WINDOWS - READY TO PLAY
@@ -294,8 +235,7 @@ HOW TO PLAY
      Do not run it from inside the zip without extracting, and do not put
      the folder in C:\\Program Files: there GZDoom cannot keep your saves
      in the folder.
-  2. Open the folder {folder} and double-click "Play Soviet Doom"
-     (or "Jugar Soviet Doom": the same thing).
+  2. Open the folder {folder} and double-click "Play Soviet Doom".
   3. In the game: {newgame} > {ep01}, then pick a difficulty.
      {ep02} is the shooting range, with every weapon.
 
@@ -369,7 +309,7 @@ LIBRARIES_MACOS = (
      "https://github.com/KhronosGroup/MoltenVK"),
 )
 # The Linux .deb ships one library beside the executable; the others come
-# from the system (LEEME.txt lists them), so this package does not carry them.
+# from the system (README-FIRST.txt lists them), so this package does not carry them.
 LIBRARIES_LINUX = (
     ("libzmusic.so.1", "ZMusic, the ZDoom team's music library (GPL 3.0; parts LGPL)",
      "the release GZDoom g4.14.2 ships with (the file records no version):\n"
@@ -474,9 +414,7 @@ ENGINE_LICENCE_DIR = "gzdoom-licenses"
 
 UNIX_INI = "gzdoom.ini"
 SAVE_DIR = "saves"
-COMMAND_ES = "Jugar Soviet Doom.command"
 COMMAND_EN = "Play Soviet Doom.command"
-SH_ES = "jugar.sh"
 SH_EN = "play.sh"
 
 # libzmusic.so.1 names libsndfile.so.1 (it decodes the mod's OGG sounds);
@@ -504,16 +442,11 @@ exec "$ENGINE" -iwad "$HERE/{iwad}" -file "$HERE/{pk3}" -config "$HERE/{ini}" -s
 """
 # A .command runs in a Terminal window that closes its process at once:
 # wait for Enter so the message can be read.
-SH_WAIT = {COMMAND_ES: '  echo "Pulsa Intro para cerrar."\n  read -r _\n',
-           COMMAND_EN: '  echo "Press Enter to close."\n  read -r _\n',
-           SH_ES: "", SH_EN: ""}
+SH_WAIT = {COMMAND_EN: '  echo "Press Enter to close."\n  read -r _\n',
+           SH_EN: ""}
 SH_MISSING = {
-    COMMAND_ES: ("No encuentro GZDoom.app junto a este archivo. Descomprime primero el zip "
-                 "(doble clic) y abre la carpeta {folder}."),
     COMMAND_EN: ("GZDoom.app is not next to this file. Unzip the package first "
                  "(double-click it), then open the folder {folder}."),
-    SH_ES: ("No encuentro gzdoom/gzdoom (ejecutable) junto a este archivo. Extrae "
-            "el paquete con: tar xzf {archive}"),
     SH_EN: ("gzdoom/gzdoom (executable) is not next to this file. Extract the "
             "package with: tar xzf {archive}"),
 }
@@ -541,21 +474,7 @@ below are for playing the mod in a GZDoom of your own.
 
 """
 
-# The parts the macOS and Linux guides share with each other.
-CONTROLS_ES = """\
-CONTROLES
-  Moverse ............ W A S D
-  Girar y apuntar .... ratón
-  Disparar ........... botón izquierdo del ratón
-  Usar ............... E: abrir puertas, pulsar interruptores
-  Saltar ............. Espacio
-  Correr ............. mantén Mayúsculas; Bloq Mayús corre siempre
-  Armas .............. 1 a 7, o la rueda del ratón
-  Mapa ............... Tab
-  Guardar / cargar ... F2 / F3; rápido: F6 / F9
-  Menú ............... Esc
-  Se cambian en Options > Customize Controls.
-"""
+# The part the macOS and Linux guides share.
 CONTROLS_EN = """\
 CONTROLS
   Move ............ W A S D
@@ -569,57 +488,6 @@ CONTROLS
   Save / load ..... F2 / F3; quick: F6 / F9
   Menu ............ Esc
   Change them in Options > Customize Controls.
-"""
-
-LEEME_MACOS_TEMPLATE = """\
-SOVIET DOOM {version} PARA MACOS - LISTO PARA JUGAR
-{rule}
-
-Todo lo necesario está en esta carpeta: el juego, el motor GZDoom {engine}
-(GZDoom.app, para Mac Intel y Apple silicon, macOS {macos_min} o posterior)
-y Freedoom. No hay que instalar nada.
-
-CÓMO JUGAR
-  1. Doble clic sobre {zipname} (Safari puede haberlo
-     descomprimido ya): aparece la carpeta {folder}. Muévela donde
-     quieras, por ejemplo a Documentos.
-  2. La primera vez, macOS bloquea lo descargado de internet que no viene
-     de la App Store ni de un desarrollador identificado (Gatekeeper).
-     GZDoom es gratuito y no está firmado por Apple. Lo más sencillo:
-     abre Terminal (Aplicaciones > Utilidades > Terminal), escribe
-         xattr -dr com.apple.quarantine
-     con un espacio al final, arrastra la carpeta {folder} a la ventana
-     de Terminal y pulsa Intro. Solo hace falta una vez.
-     Sin Terminal: clic derecho (o Control-clic) sobre
-     "Jugar Soviet Doom.command" > Abrir > Abrir. En macOS 15 (Sequoia) o
-     posterior ya no sale esa opción: tras el aviso, ve a Ajustes del
-     Sistema > Privacidad y seguridad y pulsa "Abrir igualmente"; si
-     luego avisa por "gzdoom", repite lo mismo.
-  3. Doble clic en "Jugar Soviet Doom.command" (o en
-     "Play Soviet Doom.command": es lo mismo). Se abre una ventana de
-     Terminal y después el juego. No cierres la ventana mientras juegas.
-  4. En el juego: {newgame} > {ep01}, y elige la dificultad.
-     {ep02} es el campo de tiro, con todas las armas.
-
-RUSO O CATALÁN (O INGLÉS)
-  El juego empieza en inglés. Para jugar en ruso o en catalán:
-  {options} > {optmnu} > {language} > {langru} o {langca}.
-  Cambia al momento y se recuerda. Las otras opciones: {langen}, y
-  {langauto}, que sigue el idioma del sistema.
-
-{controls_es}
-TUS PARTIDAS
-  Las partidas se guardan en la carpeta {saves} y la configuración en
-  {ini}, dentro de esta carpeta. Para desinstalar, borra la carpeta.
-  Para conservar las partidas en una versión nueva, copia {saves} y
-  {ini} a la carpeta nueva.
-
-LICENCIAS
-  Soviet Doom: código GPL 3.0, arte, sonido, mapas y textos CC BY-NC-SA 4.0
-  (LICENSE.md); créditos en CREDITS.txt. GZDoom: GPL 3.0 y otras licencias
-  libres (carpeta {licdir}); su código fuente exacto:
-  {source}. Freedoom: licencia BSD (LICENSE-FREEDOOM-BSD-3.txt).
-  Proyecto de aficionados, sin relación con id Software.
 """
 
 README_FIRST_MACOS_TEMPLATE = """\
@@ -646,9 +514,8 @@ HOW TO PLAY
      later that choice is gone: after the warning, go to System Settings >
      Privacy & Security and click "Open Anyway"; if it then warns about
      "gzdoom", do the same again.
-  3. Double-click "Play Soviet Doom.command" (or
-     "Jugar Soviet Doom.command": the same thing). A Terminal window
-     opens, then the game. Keep that window open while you play.
+  3. Double-click "Play Soviet Doom.command". A Terminal window opens,
+     then the game. Keep that window open while you play.
   4. In the game: {newgame} > {ep01}, then pick a difficulty.
      {ep02} is the shooting range, with every weapon.
 
@@ -670,58 +537,6 @@ LICENCES
   licences (the folder {licdir}); its exact source code:
   {source}. Freedoom: BSD licence (LICENSE-FREEDOOM-BSD-3.txt).
   A fan project, not affiliated with id Software.
-"""
-
-LEEME_LINUX_TEMPLATE = """\
-SOVIET DOOM {version} PARA LINUX - LISTO PARA JUGAR
-{rule}
-
-En esta carpeta están el juego, el motor GZDoom {engine} (Linux de 64 bits,
-{arch}; los archivos del .deb oficial) y Freedoom. GZDoom usa algunas
-bibliotecas del sistema que hay que tener instaladas.
-
-LO QUE HACE FALTA
-  El .deb oficial de GZDoom {engine} declara estas dependencias (Depends):
-{depends}
-  y recomienda {recommends} (sin OpenAL no hay sonido). Además,
-  {extra}: el juego la usa para los sonidos OGG y el .deb no la
-  declara.
-  En Debian, Ubuntu, Mint y derivadas, todo de una vez:
-{apt}
-  (En Ubuntu 24.04 o posterior, si apt dice que libasound2 no tiene
-  candidato, cámbialo por libasound2t64.) En otras distribuciones,
-  instala los paquetes equivalentes (SDL2, OpenAL, libsndfile...).
-
-CÓMO JUGAR
-  1. Extrae el paquete donde quieras (tu carpeta personal vale):
-         tar xzf {zipname}
-     o con el gestor de archivos de tu escritorio (conserva los permisos).
-  2. En una terminal:
-         cd {folder}
-         ./jugar.sh
-     (o ./play.sh: es lo mismo).
-  3. En el juego: {newgame} > {ep01}, y elige la dificultad.
-     {ep02} es el campo de tiro, con todas las armas.
-
-RUSO O CATALÁN (O INGLÉS)
-  El juego empieza en inglés. Para jugar en ruso o en catalán:
-  {options} > {optmnu} > {language} > {langru} o {langca}.
-  Cambia al momento y se recuerda. Las otras opciones: {langen}, y
-  {langauto}, que sigue el idioma del sistema.
-
-{controls_es}
-TUS PARTIDAS
-  Las partidas se guardan en la carpeta {saves} y la configuración en
-  {ini}, dentro de esta carpeta. Para desinstalar, borra la carpeta.
-  Para conservar las partidas en una versión nueva, copia {saves} y
-  {ini} a la carpeta nueva.
-
-LICENCIAS
-  Soviet Doom: código GPL 3.0, arte, sonido, mapas y textos CC BY-NC-SA 4.0
-  (LICENSE.md); créditos en CREDITS.txt. GZDoom: GPL 3.0 y otras licencias
-  libres (carpeta {licdir}); su código fuente exacto:
-  {source}. Freedoom: licencia BSD (LICENSE-FREEDOOM-BSD-3.txt).
-  Proyecto de aficionados, sin relación con id Software.
 """
 
 README_FIRST_LINUX_TEMPLATE = """\
@@ -750,7 +565,6 @@ HOW TO PLAY
   2. In a terminal:
          cd {folder}
          ./play.sh
-     (or ./jugar.sh: the same thing).
   3. In the game: {newgame} > {ep01}, then pick a difficulty.
      {ep02} is the shooting range, with every weapon.
 
@@ -1249,8 +1063,8 @@ def render_unix_guide(template: str, version: str, platform: str, names: dict[st
     return template.format(
         version=version, rule="=" * len(title), engine=ENGINE_TAG,
         zipname=zip_name(version, platform), folder=FOLDER, ini=UNIX_INI, saves=SAVE_DIR,
-        source=SOURCE_NAME, licdir=ENGINE_LICENCE_DIR, controls_es=CONTROLS_ES,
-        controls_en=CONTROLS_EN, **names, **extra)
+        source=SOURCE_NAME, licdir=ENGINE_LICENCE_DIR, controls_en=CONTROLS_EN,
+        **names, **extra)
 
 
 def is_appledouble(path: str) -> bool:
@@ -1265,16 +1079,13 @@ def unix_package(platform: str, version: str, release_files: dict[str, bytes],
     note = (README_NOTE_MACOS if mac else README_NOTE_LINUX).format(engine=ENGINE_TAG)
     # TextEdit and Quick Look read UTF-8 surely with the BOM; Linux tools prefer none.
     bom = UTF8_BOM if mac else b""
-    leeme, first = ((LEEME_MACOS_TEMPLATE, README_FIRST_MACOS_TEMPLATE) if mac else
-                    (LEEME_LINUX_TEMPLATE, README_FIRST_LINUX_TEMPLATE))
-    launchers = (COMMAND_ES, COMMAND_EN) if mac else (SH_ES, SH_EN)
+    first = README_FIRST_MACOS_TEMPLATE if mac else README_FIRST_LINUX_TEMPLATE
+    launchers = (COMMAND_EN,) if mac else (SH_EN,)
     engine_files_by_path = {e.path: e.data for e in engine.entries if e.is_file}
     ours: dict[str, bytes] = {
         **{name: data for name, data in release_files.items() if name != release.README_NAME},
         release.README_NAME: note.encode("utf-8") + release_files[release.README_NAME],
         IWAD_NAME: iwad,
-        LEEME_NAME: bom + render_unix_guide(leeme, version, platform, names,
-                                            engine.facts).encode("utf-8"),
         README_FIRST_NAME: bom + render_unix_guide(first, version, platform, names,
                                                    engine.facts).encode("utf-8"),
         SOURCE_NAME: render_source(engine_files_by_path, platform).encode("utf-8"),
@@ -1373,9 +1184,7 @@ def package_files(version: str, release_files: dict[str, bytes], engine: dict[st
         release.README_NAME: readme,
         IWAD_NAME: iwad,
         PORTABLE_INI: crlf(PORTABLE_INI_TEXT).encode("ascii"),
-        BAT_ES: render_bat(BAT_ES, version).encode("ascii"),
         BAT_EN: render_bat(BAT_EN, version).encode("ascii"),
-        LEEME_NAME: UTF8_BOM + render_guide(LEEME_TEMPLATE, version, names).encode("utf-8"),
         README_FIRST_NAME: UTF8_BOM + render_guide(README_FIRST_TEMPLATE, version,
                                                    names).encode("utf-8"),
         SOURCE_NAME: render_source(engine).encode("utf-8"),

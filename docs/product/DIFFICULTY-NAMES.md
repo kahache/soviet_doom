@@ -13,9 +13,9 @@ game's tone stays serious (D11); this is the one joke the form invites.
 
 | Skill | English | Russian | Where it comes from |
 |---|---|---|---|
-| 1 | I am still a Pioneer | Я ещё пионер | CEO: "algo con las juventudes Lenin, eso de los pioneros". The Pioneers took children from nine to fourteen, so this is literally "I'm too young to die" said by a Soviet child, and it needs no joke added |
+| 1 | I am still a Pioneer | Я ещё пионер | CEO: "algo con las juventudes Lenin, eso de los pioneros" ("something with the Lenin youth, that Pioneers thing"). The Pioneers took children from nine to fourteen, so this is literally "I'm too young to die" said by a Soviet child, and it needs no joke added |
 | 2 | I have seen worse winters | Бывали зимы и похуже | Set C, the sergeant's own voice. Understatement, which is the right register for skill 2 |
-| 3 | Not one step back | Ни шагу назад | CEO: "alguna referencia a la batalla de Stalingrado". Order No. 227, July 1942. The most recognisable sentence of that battle, and at the middle skill it reads as resolve rather than tragedy |
+| 3 | Not one step back | Ни шагу назад | CEO: "alguna referencia a la batalla de Stalingrado" ("some reference to the Battle of Stalingrad"). Order No. 227, July 1942. The most recognisable sentence of that battle, and at the middle skill it reads as resolve rather than tragedy |
 | 4 | No pasarán, comrades | Но пасаран, товарищи | Set C. The Spanish Republican slogan the real children of the war carried into Soviet exile; it ties D10 to the hard setting |
 | 5 | Hero of the Soviet Union, posthumously | Герой Советского Союза, посмертно | Set B. Doom's Nightmare respawns monsters, so the joke is that you are signing up to die and the paperwork already knows |
 

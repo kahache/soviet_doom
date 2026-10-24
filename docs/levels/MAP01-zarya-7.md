@@ -294,7 +294,7 @@ Texture conventions for the builder (settled by the v1 build, §15):
 ### 6.1 The posters (CEO, 2026-10-22)
 
 «reutiliza cuadros, mételos en niveles anteriores [...] que esos posters
-puedan aparecer en cualquier nivel». MAP01 hangs three pictures and, in its
+puedan aparecer en cualquier nivel» ("reuse pictures, put them in earlier levels [...] so that those posters can appear in any level"). MAP01 hangs three pictures and, in its
 two slots, the Marx-Engels pair `SDPOSTR4`/`SDPOSTR5` (D117). All of them are the `POSTERS` table in `src/maps/MAP01/map.py`;
 `tests/test_posters.py` checks each one is whole (one 128-long one-sided
 line, a sector exactly the poster's height, pegged to the floor, offset 0).
@@ -338,7 +338,7 @@ two-way exit.
 | S3 | Fuel sump below the bay's west wall (Z7) | **v3:** a plain-concrete drain one step below the bay runs from the fuel tank's plinth to the wall and stops: spilt fuel runs somewhere. The yellow lane that pointed there in v1–v2 is gone | backpack, 1 box of shells, 2 medikits | push |
 
 How v2 gave them away, and the rule v3 follows (the CEO, walking v2: «he
-encontrado la sala secreta (aunque era muy evidente)»): v2's S1 was a plate
+encontrado la sala secreta (aunque era muy evidente)» ("I found the secret room (although it was very obvious)")): v2's S1 was a plate
 on a bare concrete wall in a darker sector, and v2's S3 was pointed at by
 the yellow lane, the sign the rest of the map uses for *go here*. A clue in
 v3 is **a comparison or a question, never a sign**: three stalls of which
@@ -586,14 +586,14 @@ is retired; the v1 walk showed what it cost (the section after §15).
 
 - **A1 — CLOSED 2026-10-13 (D30).** The CEO approved `SDCONC2` as built,
   three bands in the hangar included, while walking v1: «no queda perfecto
-  pero yo lo dejaría así, le da color y relleno las 3 bandas». The hangar
+  pero yo lo dejaría así, le da color y relleno las 3 bandas» ("it isn't perfect but I'd leave it like this, it adds colour and fills the 3 bands"). The hangar
   wainscot that was its alternative is discarded (§15, deviation 1).
 - **A2 — CLOSED 2026-10-13 (D30).** `SDSTAR1` v5 approved where v1 put it
-  (the dorm, beside D2): «la apruebo, preciosa».
+  (the dorm, beside D2): «la apruebo, preciosa» ("I approve it, gorgeous").
 - **A3 — CLOSED in v2 (§16.2): the three switches wear real faces.**
   History: the switch textures exist: `SDSW1A-D` (off) and `SDSW2A-D` (on),
   64×128, all four variants approved by the CEO on 2026-10-13 ("así tenemos
-  diversidad"), in `assets/textures/soviet_base/`, licence row in
+  diversidad", "so we have diversity"), in `assets/textures/soviet_base/`, licence row in
   `docs/art/LICENSES.md`. The lump that makes the engine swap off for on is
   `src/lumps/ANIMDEFS` (`mod-engineer`, debt T16 paid): four `switch` pairs
   `SDSW1x → SDSW2x`, and `SDSW1A` was seen to flip to `SDSW2A` in engine the
@@ -686,12 +686,12 @@ of how to grow the map (D33). What is **decided** says where; what is
 3. **Switch texture** (A3) — **DECIDED 2026-10-13**: all four variants
    approved and installed; v2 put them on the wall. Nothing open.
 4. **Length and difficulty** — **DECIDED 2026-10-13 (D32, D33)**: the CEO
-   found v2 "muy corto/pequeño" and chose to densify the same plan to a
+   found v2 "muy corto/pequeño" ("very short/small") and chose to densify the same plan to a
    first map's density and 5–8 minutes; v3 keeps 21/33/46 monsters (§8).
    Whether v3 *plays* 5–8 minutes is for the walk of v3 (point 6).
 5. **A strip of night sky** over the hangar (A6) — **DECIDED, D121
    (2026-10-23): the cradle's launch slot, §19.2.** Before: open, not built in
-   v3 on purpose (the PM's brief: "sigue abierto con el CEO"). Yes or no;
+   v3 on purpose (the PM's brief: "sigue abierto con el CEO", "still open with the CEO"). Yes or no;
    "yes" is one rectangle over the hangar with ceiling `F_SKY1` (the spot
    is marked in `map.py`; `F_SKY1` would then be listed in MOD-SPEC §5),
    no new asset.
@@ -810,8 +810,8 @@ switch tag pointing at a sector that exists.
 
 ## v0 playtest finding, CEO 2026-10-13: the gate reads as a dead end
 
-**Veredicto literal:** "no pude probar el nivel porque las paredes no se
-abrían. Utilicé IDCLIP. Pero tenía buena pinta."
+**Literal verdict:** "no pude probar el nivel porque las paredes no se
+abrían. Utilicé IDCLIP. Pero tenía buena pinta." ("I could not test the level because the walls would not open. I used IDCLIP. But it looked good.")
 
 The doors are not broken. Verified in the engine and analytically:
 - All 12 door use-lines carry `Door_Raise` (12) with speed 16, `playeruse`,
@@ -910,7 +910,7 @@ gate criterion. **Deviation from §3: Z6b is x 1472…2560, not 1280…2560.**
 
 | # | §6 said | Built | Why |
 |---|---|---|---|
-| 1 | hangar walls: `SDSTEL1` dado below 128, `SDCONC1` above | `SDCONC1` throughout; plate only where the geometry already provides a band — the catwalk's 128-high front face and the cradle's 64-high flank | a two-material wall needs either a composite texture (art-director) or a wainscot sector all round the hangar. **Dado and wainscot DISCARDED 2026-10-13 by the CEO's verdict on `SDCONC2` (D30)**: he approved the hangar as built, three bands of stripe included — «no queda perfecto pero yo lo dejaría así, le da color y relleno las 3 bandas». |
+| 1 | hangar walls: `SDSTEL1` dado below 128, `SDCONC1` above | `SDCONC1` throughout; plate only where the geometry already provides a band — the catwalk's 128-high front face and the cradle's 64-high flank | a two-material wall needs either a composite texture (art-director) or a wainscot sector all round the hangar. **Dado and wainscot DISCARDED 2026-10-13 by the CEO's verdict on `SDCONC2` (D30)**: he approved the hangar as built, three bands of stripe included — «no queda perfecto pero yo lo dejaría así, le da color y relleno las 3 bandas» ("it isn't perfect but I'd leave it like this, it adds colour and fills the 3 bands"). |
 | 2 | `SDSTAR1` plaque on the komnata's east pier | dorm north wall, beside D2 | the komnata is 192 high and the plaque is 128: on its wall it would tile. The dorm is exactly 128, so the plaque is one clean tile — and it is the first thing the player sees on waking, next to the door he is about to use. |
 | 3 | `SDPOSTR2` mural "on the komnata's north wall, once" | in a 128×128 niche cut into that wall | same arithmetic, same fix: 128 of mural in a 192 room tiles one and a half times. The niche makes it one tile and turns a decoration into a shrine. |
 | 4 | — (`SDPOSTR1` was discarded when §6 was written) | Lenin on the lift room's north wall | `SDPOSTR1` was approved on 2026-10-12 at 128×**256**, and Z10 is the only room in the map exactly 256 units from floor to ceiling. It also lands well: the last Soviet face before the metro. |
@@ -1039,13 +1039,14 @@ of a dark red wall is an argument no player misses.
 The CEO walked v1 on the Windows PC on 2026-10-13, around 15:35. The CEO's words,
 verbatim, in the order they were said:
 
-- «ostia la puta IA jajaja ahora sí que funciona!»
-- «he llegado a un sitio grande, creo que he recorrido el mapa»
-- asked how far the CEO got: «Me quedé en el hangar; la puerta doble no se abre»
+- «ostia la puta IA jajaja ahora sí que funciona!» ("holy crap, the damn AI, haha, now it really works!")
+- «he llegado a un sitio grande, creo que he recorrido el mapa» ("I have reached a big place, I think I have covered the map")
+- asked how far the CEO got: «Me quedé en el hangar; la puerta doble no se abre» ("I stayed in the hangar; the double door does not open")
 - and a little later, once the CEO had worked it out: «Vale ya lo he descubierto:
   la compuerta no es como tal, es una puerta q no hace ningún ruido si le
   das a "E". De ahí que no se abra. Pero luego se ha abierto y he podido ver
   el texto de la pantalla y todo.»
+  ("OK, now I have worked it out: the gate is not really a gate, it is a door that makes no noise at all if you press "E". That is why it does not open. But then it did open and I could see the text on the screen and everything.")
 
 **The gate criterion of v1 was NOT met.** The criterion (§14, end; §15) was
 that a player who has never seen the map reaches the fuel bay **and opens
@@ -1071,8 +1072,8 @@ The PM's three hypotheses, checked against the CEO's second message:
 
 | # | Hypothesis | Verdict |
 |---|---|---|
-| 1 | SW-A still wore `SDDOOR1`, so it looked like a door | **Confirmed.** «es una puerta». |
-| 2 | Pressing it showed nothing: D4 opens 1600 units away, out of sight | **Confirmed**, and worse than that: a line special on a texture with no `ANIMDEFS` pair makes **no sound and no change at all** («no hace ningún ruido»). Nothing on screen or in the CEO's ears said that anything had happened. |
+| 1 | SW-A still wore `SDDOOR1`, so it looked like a door | **Confirmed.** «es una puerta» ("it is a door"). |
+| 2 | Pressing it showed nothing: D4 opens 1600 units away, out of sight | **Confirmed**, and worse than that: a line special on a texture with no `ANIMDEFS` pair makes **no sound and no change at all** («no hace ningún ruido» ("it makes no noise at all")). Nothing on screen or in the CEO's ears said that anything had happened. |
 | 3 | The CEO may never have entered the bay | **Refuted.** The CEO found SW-A and pressed it. The v1 signposting (red wall, yellow lane, the mouth) did its job. |
 
 The single cause: **the player received no evidence of cause and effect.**
@@ -1362,24 +1363,27 @@ pass. The CEO's words, verbatim, in the order they were said:
 
 - «he pasado el hangar sin ayuda, menú aprobado, incluso he encontrado la
   sala secreta (aunque era muy evidente).»
+  ("I got through the hangar without help, menu approved, I even found the secret room (although it was very obvious).")
 - «Como nivel de prueba está bien; a nivel de juego sería un nivel muy
   corto/pequeño. un nivel de doom normal puede ser de 5 a 6 veces ésto si no
   me equivoco»
+  ("As a test level it is fine; as a game level it would be a very short/small level. A normal Doom level can be 5 to 6 times this, if I am not mistaken")
 - and, a little later, a detail for v3: «ah! y un pequeño detalle, que haya
   iluminación en el poster de Lenin que no se veía bien»
+  ("oh! and one small detail, that there be lighting on the Lenin poster, which could not be seen well")
 
 **The gate criterion of v1/v2 is MET.** The criterion (§12, v2 row; the
 section after §15) was that a first-time player opens D4 *and knows he
-did*. «He pasado el hangar sin ayuda»: the CEO crossed the hangar, found SW-A,
+did*. «He pasado el hangar sin ayuda» ("I got through the hangar without help"): the CEO crossed the hangar, found SW-A,
 opened the gate and went through it with no help. Recorded as D32.
 
 Three findings, each answered by v3 (§17):
 
 | # | Finding | v3's answer |
 |---|---|---|
-| 1 | "muy corto/pequeño": as a game level it is too small | D33, the CEO's choice among three options measured by the PM: **densify** the same plan to a first map's density, 5–8 minutes with enemies. §17.1–17.4 |
-| 2 | the secret "era muy evidente" | all three secrets re-hidden with clues that ask a question instead of pointing (§7, §17.5) |
-| 3 | Lenin's poster "no se veía bien" | a light of its own (§17.6) |
+| 1 | "muy corto/pequeño" ("very short/small"): as a game level it is too small | D33, the CEO's choice among three options measured by the PM: **densify** the same plan to a first map's density, 5–8 minutes with enemies. §17.1–17.4 |
+| 2 | the secret "era muy evidente" ("it was very obvious") | all three secrets re-hidden with clues that ask a question instead of pointing (§7, §17.5) |
+| 3 | Lenin's poster "no se veía bien" ("it could not be seen well") | a light of its own (§17.6) |
 
 The PM's measurements, which framed D33, taken from `iwads/freedoom2.wad`:
 
@@ -1495,7 +1499,7 @@ paid a little everywhere.
 
 ### 17.5 The secrets, re-hidden
 
-The rule, from the CEO's «aunque era muy evidente»: **a clue is a
+The rule, from the CEO's «aunque era muy evidente» ("although it was very obvious"): **a clue is a
 comparison or a question, never a sign.**
 
 - **S1.** The washroom's east wall is now three shower stalls with steel
@@ -1521,7 +1525,7 @@ All three remain reachable on every skill and each has its way back
 
 ### 17.6 Lenin's light
 
-«que haya iluminación en el poster de Lenin que no se veía bien». In v2 the
+«que haya iluminación en el poster de Lenin que no se veía bien» ("that there be lighting on the Lenin poster, which could not be seen well"). In v2 the
 poster hung in the darkest room of the map at light 96, which is the room's
 point (MAP02 starts here) and the poster's problem. In Doom a wall is drawn
 at the light of the sector it belongs to, so the poster got **a sector of
@@ -1560,7 +1564,7 @@ over the room; below 192.
 | 3 | §8 v2: troopers in the dorm, komnata and service corridor | none before the hangar | D35: Reich first, the Legion holds the hangar |
 | 4 | §8 v2: no heavies | one Doughboy (wave 2) and one Panzermensch (Z10), skills 3–4 | D35 and BESTIARY §11 ("the Panzermensch gates the exit"); the Panzermensch's stand-in is the Hell Knight (500 HP), not the Baron |
 | 5 | §7: S2's clue "under the catwalk" | a slit in the wall **above** the catwalk | the catwalk is solid to the floor; there is no "under" to light. Same idea, the one place it can be |
-| 6 | §6/§7: a yellow lane pointing at S3 | removed; a drain instead | the CEO found a secret "muy evidente"; yellow means *go here* everywhere else |
+| 6 | §6/§7: a yellow lane pointing at S3 | removed; a drain instead | the CEO found a secret "muy evidente" ("very obvious"); yellow means *go here* everywhere else |
 | 7 | v2 §16.5: catwalk parapet "a balance decision for v3" | **no parapet**; two columns on the front edge | a parapet is either a cut texture (32) or a wall over the eye (64); columns are cover without hiding the hangar |
 | 8 | the cradle: kerbs on both long edges | south edge only | the sight-line test refused the north kerb: the line from SW-A to the foot of D4 clears the cradle's north edge by 4 units |
 | 9 | v2: the dorm plaque at x 320…448 | x 352…480 | D2's steel frame needs the 16 beside the door |
@@ -1684,11 +1688,12 @@ plugs a doorway for good.
 
 ### 17.13 After the CEO's v3 run: the mural cleared (D38)
 
-The CEO played v3 through on skill 3 («ha sido MUY divertido!!», D38) and
+The CEO played v3 through on skill 3 («ha sido MUY divertido!!» ("it was VERY fun!!"), D38) and
 asked for one fix:
 
 > «Hay un pequeño trozo cuadrado justo enfrente del poster de cosmonáutica,
 > yo lo quitaría para que se vea bien el poster.»
+> ("There is a small square piece right in front of the cosmonautics poster, I would remove it so the poster can be seen properly.")
 
 **What it was.** Cast from the komnata's doorway and from its centre with
 the sight-line method of the v2 D4 tests, two v3 pieces cut `SDPOSTR2`:
@@ -1749,6 +1754,7 @@ The CEO, same run:
 
 > «una especie de sierra mecánica al lado donde se empieza que no se podía
 > coger, solo iban los puños.»
+> ("a kind of chainsaw next to where you start that could not be picked up, only the fists worked.")
 
 The "chainsaw" is the shovel on the dorm's rack: `SD_Shovel` still wears
 Freedoom's chainsaw sprite as a placeholder (F4). It could not be taken
@@ -2012,8 +2018,8 @@ one QA should watch.
 
 ### 19.1 Ammunition (D119)
 
-The CEO, after Episodes 2 and 3: ammunition "siempre sale de sobras" and
-"siempre acabas con la escopeta". MAP01 was approved and played; this pass
+The CEO, after Episodes 2 and 3: ammunition "siempre sale de sobras" ("there is always plenty left over") and
+"siempre acabas con la escopeta" ("you always end up with the shotgun"). MAP01 was approved and played; this pass
 takes ammunition away and changes its kind, nothing else.
 
 The rule is `docs/engine/BALANCE.md` §8 (owner `mod-engineer`): placed

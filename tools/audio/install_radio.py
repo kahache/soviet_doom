@@ -2,7 +2,8 @@
 """V3 B5: install the propaganda radio (D124) into assets/sounds/radio/.
 
 The CEO approved every take of SDRAD01-SDRAD16 and the three station jingles
-(D124: "me fío para dar OK a TODO de radio"). One take per line ships, the
+(D124: "me fío para dar OK a TODO de radio", "I trust it enough to OK ALL of
+the radio"). One take per line ships, the
 best by the round's own measurements (work/audio/candidates/radio/METRICS.json,
 rank 1: voice length against an announcer's pace, longest inner pause,
 silence share; docs/sound/2026-10-23_V3_propaganda-radio.md section 8). Never
