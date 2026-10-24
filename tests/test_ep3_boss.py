@@ -440,6 +440,36 @@ class ModTests(unittest.TestCase):
         for label in ("Orbs", "Rockets", "Flame", "Summon", "Volley", "Barrage", "Sweep"):
             self.assertIn(f'SetStateLabel("{label}")', self.boss)
 
+    def test_the_breach_opens_the_ground_once_where_the_map_asks(self):
+        """V3 A3 (MAP09 design section 18.3): the Breach's first tic calls the
+        ground's opening, which reads the tag off the placed thing's arg4
+        (Door_Open, its death special, reads arg0-arg2 only), does nothing on
+        tag 0 (summoned, or another map), and sinks and flickers the tagged
+        sectors: Floor_LowerToLowestTxTy, an action special called by name as
+        gzdoom.pk3 calls Floor_LowerToLowest. Nothing else calls it, and the
+        Breach is entered once (unbound set at its top)."""
+        body = self.boss
+        code = p4.strip_comments(body)
+        self.assertEqual(const_value(body, "SD_CONSORTIUM_BREACH_TAG_ARG"), 4)
+        self.assertEqual(const_value(body, "SD_CONSORTIUM_BREACH_SINK_SPEED"), 16)
+        self.assertGreater(const_value(body, "SD_CONSORTIUM_BREACH_GLOW_UPPER"),
+                           const_value(body, "SD_CONSORTIUM_BREACH_GLOW_LOWER"))
+        breach = re.search(r"void A_SD_ConsortiumBreach\(\)\s*\{(.*?)\n\t\}", code, re.S).group(1)
+        self.assertLess(breach.index("unbound = true"), breach.index("A_SD_ConsortiumOpenGround();"))
+        self.assertEqual(1, code.count("A_SD_ConsortiumOpenGround();"), "called from the Breach only")
+        ground = re.search(r"void A_SD_ConsortiumOpenGround\(\)\s*\{(.*?)\n\t\}", code, re.S).group(1)
+        self.assertIn("args[SD_CONSORTIUM_BREACH_TAG_ARG]", ground)
+        self.assertRegex(ground, r"if \(tag <= 0\)\s*return;")
+        self.assertIn("Floor_LowerToLowestTxTy(tag, SD_CONSORTIUM_BREACH_SINK_SPEED);", ground)
+        self.assertIn("Light_Flicker(tag, SD_CONSORTIUM_BREACH_GLOW_UPPER, "
+                      "SD_CONSORTIUM_BREACH_GLOW_LOWER);", ground)
+        self.assertLess(ground.index("return;"), ground.index("Floor_LowerToLowestTxTy"))
+        # The Breach's first frame is the one that calls it.
+        states = p4.strip_comments(p4.states_block(body))
+        self.assertRegex(states, r"Breach:\s*SDCN S 10 A_SD_ConsortiumBreach;")
+        # The fixture inherits it and is placed by no map: its arg4 is 0.
+        self.assertNotIn("OpenGround", self.blocks["SD_ConsortiumWounded"][1])
+
     def test_attacks_reuse_the_mods_projectiles(self):
         for cls in PROJECTILE_PARENTS:
             self.assertIn(f'"{cls}"', self.boss)

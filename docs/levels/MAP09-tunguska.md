@@ -11,7 +11,9 @@ the Legion's machine-gunners in the forest, the works, the refinery and the
 crater, the AKM beside the PPSh, and recounts the crater's stock for a
 9000 HP boss** (§10, §11, §16.2); **v1.3 (D119, 2026-10-23) cuts the
 ammunition to BALANCE §8's bands and recounts the crater for the
-Consortium's 4000** (§10, §11, §16.3). Source: `src/maps/MAP09/map.py`;
+Consortium's 4000** (§10, §11, §16.3); **V3 (2026-10-23/24) adds the
+key pickups' events and the crater's ground that opens at the Consortium's
+Breach** (§18, §18.3). Source: `src/maps/MAP09/map.py`;
 tests: `tests/test_map09_tunguska.py` (the map, 66 tests) and
 `tests/test_map09_route.py` (the route, 13); posters:
 `tests/test_posters.py` (`Map09Posters`); top-down view:
@@ -396,6 +398,7 @@ and the General is no longer placed here.
 | Coloured light, turned flat | `lightcolor`, `rotationfloor` 90 | as MAP02/MAP06 |
 | Damaging floor | `damageamount` 10, `damageinterval` 32 | fields VERIFIED (MAP03 §16.2); in play NOT VERIFIED |
 | Thing special on death / on pickup | the boss (tag 12), the red key (tag 10); V3: the blue key (tag 13, `Door_Open`), the yellow key (tag 14, `Floor_LowerToLowest` 21) | the red key's VERIFIED by `tunguska-critical` RKEY (2026-10-23); the blue key's checked by BKEY; 21 NOT VERIFIED in our engine (MAP04's K3): E12 |
+| A boss that moves the map (V3 A3) | the Consortium's Breach: `Floor_LowerToLowestTxTy (15, 16)` and `Light_Flicker (15, 176, 112)` from ZScript, the tag in the boss thing's arg4 (§18.3) | NOT VERIFIED (first ZScript-called sector specials in the mod; TxTy's damage transfer): E14 |
 | Skies at five heights, closed sky blocks as roofs, sky doorways | §4.1 | **NOT VERIFIED** |
 | Animated walls and flats | `SDPORT1`, `SDMOLT1` (ANIMDEFS) | VERIFIED (MAP03) |
 | Animated acid | `SDACID1-4` (ANIMDEFS, 8 tics) | NOT VERIFIED (never on a map before) |
@@ -422,7 +425,7 @@ Engine checklist (one pass on skill 3, then the route on 2, 3, 4):
   the glyph strips and plates whole; the portal's posts show their cobalt
   channel; the taiga's charred trunks lie roughly towards the crater.
 
-- **E11-E13** V3's pickup events: §18.
+- **E11-E14** V3's pickup events and the Breach's ground: §18.
 
 ## 13. MAPINFO and LANGUAGE (for the scaffolding agent / `mod-engineer`)
 
@@ -458,6 +461,11 @@ shoot). Should it ever be mid-Breach when BOSS1 runs, the first hurt does
 nothing, so BOSS1 waits `TUNGUSKA_BREACH_WAIT` (70 tics) and hurts it again
 before it reads the gate (a dead boss is not hurt twice: the helper skips
 health ≤ 0). NOT VERIFIED in engine until the PM runs the route.
+
+**The ground that opens (V3 A3, §18.3).** The Breach also sinks the
+crater's four scabs (tag 15). The route does not see it and need not: one
+hurt at full health kills the boss without a Breach, and no step stands on
+a scab (tested in `tests/test_map09_route.py`); the route is unchanged.
 
 ## 15. Rules of respect (D12)
 
@@ -594,8 +602,8 @@ and the health are unchanged.
 
 V3 work, not in v1.2. Three events fired by **picking up a key** (the red
 key's closets are v1's; V3 adds the blue and the yellow key's and gives all
-three a warning lamp), and one set piece **described for `mod-engineer`**,
-not built (§18.3). A key carries a UDMF `special` and `arg0..`, which GZDoom
+three a warning lamp), and one set piece fired by **the boss's second
+phase**, built on 2026-10-24 (§18.3). A key carries a UDMF `special` and `arg0..`, which GZDoom
 runs on pickup (the red key's `Door_Open (10, 16)` VERIFIED by
 `tunguska-critical`'s RKEY, 2026-10-23 02:23). Each tag is carried by **no
 line**. The table is `PICKUP_EVENTS` in `map.py`; the checks are
@@ -642,41 +650,69 @@ a body high); the critical route is otherwise the same.
   the gate's lamp flickers before; `netevent sdtag 14` prints floor 0.
 - **E13** The works' closets' lamps flicker on the way in; the closets still
   open with the red key (route step RKEY).
+- **E14** (§18.3) The Consortium's Breach opens the crater's ground: bring
+  it under 2000 (play, or `netevent sdhurt 12 2100` with the route helper
+  loaded); at the line "tears itself free" the four scabs beside the acid
+  pits sink 16 under the quake, show acid, hurt like the pits and flicker;
+  `netevent sdtag 15` prints floor -144 for each; each is walked out of;
+  no `Script error` about `Floor_LowerToLowestTxTy` or `Light_Flicker`.
+  The boss's design doc's E12 is the same check.
 
-### 18.3 The crater's ground that opens with the Consortium's second phase: for `mod-engineer`
+### 18.3 The crater's ground that opens with the Consortium's second phase (BUILT 2026-10-24)
 
 The brief: "the crater's earth opens when the Consortium enters its second
-phase", **if it can be hooked without new ZScript**. It cannot, so it is
-described here and not built:
+phase". It could not be hooked without new ZScript (nothing in the map
+fires at half health: no line is crossed, no item taken, MAPINFO has no
+health hook, ACS is not used in `src/`), so on 2026-10-23 it was described
+here for `mod-engineer`; on 2026-10-24 the hook and the geometry were built
+together (V3 A3).
 
-* **Why not without ZScript.** The boss's thing special runs only on its
-  death (it already carries `Door_Open (12, 16)`, the exit). Nothing in the
-  map fires at half health: no line is crossed, no item is taken, MAPINFO
-  has no health hook, and an ACS script would need a compiled `BEHAVIOR`
-  lump and a compiler the tools do not have (ACS is not used in `src/`).
-  The second phase starts in `SD_Consortium`'s Breach state
-  (`src/zscript/monsters/consortium.zs`), so the hook belongs there.
-* **The contract asked of `mod-engineer`.** At Breach's first tic, once
-  (Breach already runs once), the boss calls
-  `Floor_LowerToLowest(SD_CONSORTIUM_BREACH_TAG, 16)` with
-  `SD_CONSORTIUM_BREACH_TAG = 15` (an action special called as a function,
-  as gzdoom.pk3's `zscript/actors/doom/keen.zs` calls `Door_Open (doortag,
-  16)`). On a map with no sector tagged 15 it does nothing, so the class
-  stays map-agnostic. **MAP09 keeps tag 15 for it** (`map.py`'s tag block).
-* **What level-designer builds once the hook exists** (about 15k tokens with
-  its tests): four "scab" slabs of the crater's floor, tag 15, between the
-  pylons and the acid pits, none under `MAP09_BOSS_SPOT` or on BOSS0's
-  point; each sits on the floor (-128) over a fissure sector of acid
-  (`SDACID1`, `LAVA_HURTS`) one step lower (-144), so at Breach the slabs
-  sink one step into acid: the arena breaks into islands under the
-  quake the Breach already shakes. Not a trap: 16 deep, walked out of like
-  the pits (tested as they are); the route's BOSS0 / BOSS1 unchanged.
-  Optional: the four reinforcements the Breach already spawns come from
-  there (the spawn points are `mod-engineer`'s).
-* **Tests then:** the slabs tagged 15 and nothing else, no line carrying
-  15, the fissures one step and hurting, every slab walked out of, the
-  boss's spot and BOSS0's point off them; and `tests/test_ep3_boss.py`
-  pinning the call in Breach (`mod-engineer`'s).
+* **The hook** (`src/zscript/monsters/consortium.zs`, its design doc's
+  update of 2026-10-24). At the Breach's first tic, once (the Breach runs
+  once), `A_SD_ConsortiumOpenGround` reads the tag off **the boss thing's
+  arg4** and calls `Floor_LowerToLowestTxTy (tag, 16)` and `Light_Flicker
+  (tag, 176, 112)`. The tag rides arg4, not a constant in the class: the
+  thing's `special` is its death's `Door_Open (12, 16)`, which reads
+  arg0-arg2 only, and a boss summoned (or placed on another map) has 0 there
+  and opens nothing. The contract's plain `Floor_LowerToLowest` became its
+  **TxTy** variant, which also gives the sunk floor the flat and damage of
+  the neighbour it sinks to, so the scabs need no damage of their own
+  (they would hurt before the Breach) and still become acid.
+* **The map** (`map.py`): `TAG_CRATER_BREACH = 15`, carried by the boss
+  thing's `arg4` (`BOSS_BREACH_TAG_ARG`, tested equal to the class's
+  `SD_CONSORTIUM_BREACH_TAG_ARG`) and by **no line and no pickup**. Four
+  scabs `z8_scab_1..4` (`CRATER_SCABS`), each a fissure 64 wide on the
+  middle of an acid pit, running from the pit out to the floor's edge (the
+  seventh terrace): west of the two west pits (x 3520-3680, y 2560-2624 and
+  3008-3072) and east of the two east pits (x 4256-4416, same y). Until the
+  Breach each is the crater floor's own plate, height (-128), light (160) and
+  sky: nothing shows. At the Breach they sink one step to the pit beside
+  them (-144, 8 tics, under the quake the Breach already shakes), take its
+  acid and its damage (10 every 32 tics), and flicker 176/112: the floor's
+  ring round the portal breaks into four islands (the boss's to the north,
+  the south, the west and the east), joined by the terraces and crossed
+  through 64 of acid.
+* **Not a trap, nothing moved.** 16 deep, walked out of onto the floor
+  on either long side (only its short end, against the seventh terrace, is
+  32 high); the exit reached from every scab after the Breach. No scab under the boss's body, its servants' spots before the
+  portal, a monster's body or a pickup; no monster, item or ammunition
+  moved or added (the arena's stock, §10, and BALANCE §8's bands are
+  unchanged); safe starts untouched (the crater is the map's far end). No
+  monsters wait below: the Breach's four reinforcements already come
+  through the portal behind the boss, and a 16-deep fissure has no below to
+  hide them in.
+* **The route** (`tunguska-critical`): unchanged. BOSS1's 100 000 hurt kills
+  the boss at full health, so the route never enters the Breach and the
+  ground never opens on it; no step stands on a scab (tested).
+* **Tests:** `tests/test_map09_tunguska.py` (the scabs tagged 15 and
+  nothing else, the boss alone naming it on every skill, the arg agreeing
+  with the class, hidden until the Breach, each from a pit to the floor's
+  edge and sinking one step into that pit's acid, walked out of with the
+  exit still reached, clear of the boss, its servants, every monster and
+  pickup); `tests/test_ep3_boss.py`
+  (`test_the_breach_opens_the_ground_once_where_the_map_asks`);
+  `tests/test_map09_route.py` (the route off the scabs).
+* **Engine check E14** (§18.2).
 
 ## 19. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
 
