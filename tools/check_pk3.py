@@ -741,7 +741,9 @@ PALETTE_V2_LUMPS = frozenset({"SDMOSA1"}  # D56
                              | {"SDPRTE1", "SDDOORB", "SDCLOK1", "SDMUSE1", "SDFLAG3", "SDFLAG4"}
                              # D113: MAP09's sky, the portal's glow in mosaic_cobalt
                              # (only where the portal lights it; gen_episode3_skies).
-                             | {"SDSKY5"})
+                             | {"SDSKY5"}
+                             # D126: the Gemini title screen (palette v2).
+                             | {"TITLEPIC"})
 # The masked lumps (RGBA, so not in PALETTE_V2_LUMPS, which is indexed lumps
 # only) approved in v2: D107's merlon SDKREM2 is SDKREM1's brick cut out.
 PALETTE_V2_MASKED = frozenset({"SDKREM2"})

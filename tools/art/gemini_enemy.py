@@ -26,7 +26,7 @@ are covered by hand (`Sheet.patch`).
 
 Output: the SAME lumps the enemy ships today in assets/sprites/<folder>/
 (same frame letters, same rotations, same names), RGBA with hard alpha, in
-palette v2, each with its grAb offsets: `left` = the canvas' half width on
+palette v2 (the Consortium in v3, D128: EnemySpec.palette_version), each with its grAb offsets: `left` = the canvas' half width on
 the body's axis, `top` = the floor line, FEET_SINK px above the feet's last
 row, the same for every rotation of a frame (MOD-SPEC 6.3). Written to
 work/art/enemies_gemini/<enemy>/, never to assets/ (`guard_out`).
@@ -71,7 +71,7 @@ The steps (pure functions on arrays, tests/test_gemini_enemy.py):
                            width (death2 is drawn larger); one global scale puts
                            the turn sheet's front view at TARGET_HEIGHT rows,
                            with Doom's 1.2 pixel aspect
-  7. downscale           - premultiplied box filter, alpha >= 1/2, palette v2
+  7. downscale           - premultiplied box filter, alpha >= 1/2, palette v2 (v3: CONSORTIUM)
   8. outline             - edge pixels not already dark are shaded (sel-out)
   9. place               - per frame letter, one canvas for all rotations,
                            feet on the floor line, the legs' axis at `left`;
@@ -255,6 +255,7 @@ class EnemySpec:
     symbol: str = "none"             # the D12 symbol on the armband (D108): none, or warp (armband_symbol, option 1)
     symbol_fields: str = "white"     # how its fields are found (armband_symbol.select_fields)
     corpse: tuple[str, ...] = ()     # death letters seen close (the corpse, the frame before): option 2 on them
+    palette_version: int = 2         # the palette the lumps snap to (docs/art/palette.json); 3 = v2 + reich_greygreen (D128)
 
 
 STAND = ("front", "left", "left", "left", "back")
@@ -697,14 +698,14 @@ GUNNER = EnemySpec(
     name="gunner", sprite="SDLG", folder="legion_gunner", target_height=GUNNER_HEIGHT, armband="none",
     sheets={   # one 1024 x 572 canvas and scale for all six: no helmet normalisation
         "turn": Sheet("gem_gunner_turn.png", 5, SIDES_RIGHT, None),
-        "walkL": Sheet("gem_gunner_walkL.png", 5, SIDES_RIGHT, None),
-        "walkR": Sheet("gem_gunner_walkR.png", 5, SIDES_RIGHT, None),
+        "strideA": Sheet("gem_gunner_strideA.png", 5, SIDES_RIGHT, None),   # D127: tools/art/walk_stride.py
+        "strideC": Sheet("gem_gunner_strideC.png", 5, SIDES_RIGHT, None),
         "aim": Sheet("gem_gunner_aim_v3.png", 5, SIDES_RIGHT, None),        # v3: the front aims at the camera (D119)
         "fire": Sheet("gem_gunner_fire.png", 5, SIDES_RIGHT, None, guide="turn", flash=GUNNER_FLASH),
         "death": Sheet("gem_gunner_death_v2.png", 5, (), None, pick=GUNNER_DEATH_PICK, path=GUNNER_DEATH_PATH),
     },
     rotated={
-        "A": Rotated("walkL"), "B": Rotated("turn"), "C": Rotated("walkR"), "D": Rotated("turn"),
+        "A": Rotated("strideA"), "B": Rotated("turn"), "C": Rotated("strideC"), "D": Rotated("turn"),
         "E": Rotated("aim"), "F": Rotated("fire"),
         "G": Rotated("turn", tilt=PAIN_TILT, override=((1, Src("death", 0)),)),
     },
@@ -716,9 +717,11 @@ GUNNER = EnemySpec(
         "S": Src("death", 4, blood=4), "T": Src("death", 4, blood=5), "U": Src("death", 4, blood=6),
     },
     derived=(
-        "B y D: la vista de pie (turn); A = walkL, C = walkR. OJO: walkL y walkR son casi la misma imagen "
-        "(difieren en un 0,5 % de los píxeles) y solo la vista de frente levanta un pie; 3/4, perfil y espalda "
-        "son la vista de pie: el ciclo de andar apenas se mueve (ver la lista)",
+        "B y D: la vista de pie (turn). A y C (D127): Gemini no dio zancadas (walkL = walkR = turn), así que "
+        "salen de turn con las piernas recortadas y movidas (tools/art/walk_stride.py): A pierna izquierda "
+        "adelante, C la derecha; de frente y de espaldas una bota sube, de perfil las piernas abren (A) y la "
+        "cercana pasa delante (C). walk_stride.py build pone el torso de A y C sobre el de B (la pierna "
+        "levantada mueve el eje de las piernas): constrúyelos con él, no con este comando",
         "E (apuntar): gem_gunner_aim_v3, de frente apunta a la cámara (D119); en las otras vistas lleva la "
         "ametralladora a la cadera, como en turn",
         "F (disparar): de frente el fogonazo sale hacia la cámara, delante del pecho (D119: frontal, no lateral). "
@@ -744,10 +747,6 @@ GUNNER = EnemySpec(
         ("reventar (XDeath: M-T 5, U)", tuple((c, 5) for c in "MNOPQRST") + (("U", 45),), True),
     ),
     reask=(
-        ("gem_gunner_walkL.png, gem_gunner_walkR.png", "Same Liberty Legion gunner, same style, scale and "
-         "magenta background, 5 views (front, 3/4 front, profile, 3/4 back, back) mid-stride: in walkL the LEFT "
-         "leg forward, in walkR the RIGHT leg forward, in EVERY view (the side views must show the stride, "
-         "not the standing pose); M1919 at the hip, belt over the shoulder"),
         ("gem_gunner_fire.png (view 4)", "Optional: the 3/4 back view with the muzzle flash visible past his "
          "right hip; and 40 px of background between figures so the flashes do not touch the next figure"),
     ),
@@ -766,7 +765,6 @@ PENDING = {"gunner": GUNNER}
 COLOSSUS_HEIGHT = 128   # boss scale: ~120-130 px (design doc 4), torch raised included; the General is 96
 COLOSSUS_BIG = 540 / 403    # walk, aim, fire, death are drawn larger than turn (front view 540 rows vs 403)
 COLOSSUS_STOMP_SCALE = 0.5 * COLOSSUS_BIG   # the 2-row stomp sheet: half the walk sheet's size (crown-to-foot 263 vs 516)
-COLOSSUS_SWAY = 3.0     # degrees: the walk's derived rock from foot to foot (Gemini's two strides are one pose)
 COLOSSUS_PAIN_TILT = 6.0     # a statue flinches less than a man (PAIN_TILT 9)
 COLOSSUS_TOPPLE = 20.0  # degrees: M, the toppling frame pushed further over
 COLOSSUS_STAGGER = 8.0  # degrees: K, the crumbling frame leaning
@@ -782,8 +780,8 @@ COLOSSUS = EnemySpec(
     name="colossus", sprite="SDLC", folder="colossus", target_height=COLOSSUS_HEIGHT, armband="none",
     sheets={   # turn (1024 x 434) sets the scale; the 1024 x 572 sheets x 403/540, the stomp's at half that
         "turn": Sheet("gem_colossus_turn.png", 5, SIDES_RIGHT, None),
-        "walkL": Sheet("gem_colossus_walkL.png", 5, SIDES_RIGHT, None, rel_scale=COLOSSUS_BIG),
-        "walkR": Sheet("gem_colossus_walkR.png", 5, SIDES_RIGHT, None, rel_scale=COLOSSUS_BIG),
+        "strideA": Sheet("gem_colossus_strideA.png", 5, SIDES_RIGHT, None, rel_scale=COLOSSUS_BIG),   # D127
+        "strideC": Sheet("gem_colossus_strideC.png", 5, SIDES_RIGHT, None, rel_scale=COLOSSUS_BIG),
         "aim": Sheet("gem_colossus_aim_sep.png", 5, SIDES_RIGHT, None, rel_scale=COLOSSUS_BIG),   # = aim_v2
         "fire": Sheet("gem_colossus_fire_sep.png", 5, SIDES_RIGHT, None, rel_scale=COLOSSUS_BIG),
         "stompQ": _stomp((0, 1, 2, 3, 4)),          # top row: the foot raised
@@ -791,8 +789,8 @@ COLOSSUS = EnemySpec(
         "death": Sheet("gem_colossus_death.png", 5, (), None, pick=COLOSSUS_DEATH_PICK, rel_scale=COLOSSUS_BIG),
     },
     rotated={
-        "A": Rotated("walkL", tilt=COLOSSUS_SWAY), "B": Rotated("turn"),
-        "C": Rotated("walkR", tilt=-COLOSSUS_SWAY), "D": Rotated("turn"),
+        "A": Rotated("strideA"), "B": Rotated("turn"),
+        "C": Rotated("strideC"), "D": Rotated("turn"),
         "E": Rotated("aim"), "F": Rotated("fire"),
         "G": Rotated("turn", tilt=COLOSSUS_PAIN_TILT, override=((1, Src("death", 0)),)),
         "Q": Rotated("stompQ"), "R": Rotated("stompR"),
@@ -804,7 +802,7 @@ COLOSSUS = EnemySpec(
         "P": Src("death", 4),
     },
     derived=(
-        "B y D: la vista de pie (turn, rescatada del chat; dibujada más pequeña que las demás hojas: estas se escalan x403/540). OJO: walkL y walkR son casi la misma imagen (difieren en un 0,3 % de los píxeles): Gemini no dio zancadas. A = walkL inclinada 3 grados, C = walkR inclinada -3 grados: se balancea de un pie a otro, pesado, como una estatua (ver la lista)",
+        "B y D: la vista de pie (turn, rescatada del chat; dibujada más pequeña que las demás hojas: estas se escalan x403/540). A y C (D127): Gemini no dio zancadas (walkL = walkR), así que salen de walkL con las botas recortadas y movidas (tools/art/walk_stride.py): una bota sube bajo la túnica (o la pierna metálica de la abertura por delante) y la túnica se balancea; de perfil la bota de delante avanza (A) y la de detrás pasa (C). walk_stride.py build pone el torso de A y C sobre el de B: constrúyelos con él, no con este comando",
         "E (apuntar) y F (disparar): en aim y fire la vista 3 (perfil) tapa con el brazo, la antorcha y la llama "
         "los hombros de la 4 (3/4 de espalda), y la antorcha de la 4 toca la tabla de la 5. Se separan a mano "
         "(tools/art/colossus_gemini.py: cada píxel a la figura de walkL de la que crece, y polígonos medidos a x4 "
@@ -838,9 +836,6 @@ COLOSSUS = EnemySpec(
         ("morir (Death: H-O 10, P)", tuple((c, 10) for c in "HIJKLMNO") + (("P", 45),), True),
     ),
     reask=(
-        ("gem_colossus_walkL.png, gem_colossus_walkR.png", "Same colossus, same style, scale and background, 5 "
-         "views mid-stride: in walkL the LEFT leg forward, in walkR the RIGHT leg forward, in EVERY view (the "
-         "side and back views must show the stride, the robe swinging), torch raised"),
         ("gem_colossus_aim.png, gem_colossus_fire.png", "Optional: the same 5 views with 80 px of background "
          "between figures (the profile's levelled torch and flame must not reach the next figure), and the "
          "front view's torch held a little closer to the body so the burst is not cut by the left edge"),
@@ -881,6 +876,7 @@ def _cn_eight(key: str, tilt: float = 0.0) -> Rotated:
 CONSORTIUM = EnemySpec(
     name="consortium", sprite="SDCN", folder="consortium", target_height=CONSORTIUM_HEIGHT, armband="none",
     ref_sheet="Q", symbol="warp", symbol_fields="white", field_max=CONSORTIUM_FIELD_MAX,
+    palette_version=3,   # D128: palette v3's reich_greygreen for the Reich half's skin (v2 made it concrete grey)
     sheets={k: _cn_sheet(k) for k in "QRABCEFGHS"} | {"death": _cn_sheet("death", 5)},
     rotated={
         "Q": _cn_eight("Q"), "R": _cn_eight("R"),
@@ -947,8 +943,10 @@ PENDING["consortium"] = CONSORTIUM
 
 
 # ------------------------------------------------------------- palette
-def palette_rgb() -> np.ndarray:
-    return np.array(palette.colours(2), dtype=np.int32)
+def palette_rgb(version: int = 2) -> np.ndarray:
+    """Palette `version` as an (n, 3) array. Every set is v2 but the
+    Consortium's (v3 since D128: its Reich half's grey-green skin)."""
+    return np.array(palette.colours(version), dtype=np.int32)
 
 
 def snap(rgb: np.ndarray, pal: np.ndarray) -> np.ndarray:
@@ -1981,7 +1979,7 @@ def close_sources(spec: EnemySpec) -> set[tuple]:
 
 def build(spec: EnemySpec, out_dir: Path | None = None, ref_dir: Path = REF_DIR,
           symbol: str = "spec", cache_dir: Path | None = None) -> dict:
-    pal = palette_rgb()
+    pal = palette_rgb(spec.palette_version)
     out_dir = out_dir or OUT_ROOT / spec.name
     guard_out(out_dir)
     cuts = plan(spec, ref_dir)
@@ -2391,7 +2389,7 @@ def _symbol_window(idx: np.ndarray, bare: np.ndarray, win: int = CONTROL_WIN) ->
 
 def control_tiles(spec: EnemySpec, ref_dir: Path = REF_DIR, cache_dir: Path | None = None) -> list[dict]:
     """One tile per picture with a symbol (a source shared by several lumps is one tile)."""
-    pal = palette_rgb()
+    pal = palette_rgb(spec.palette_version)
     cuts = plan(spec, ref_dir)
     base = spec.target_height / cuts[spec.ref_sheet].figs[spec.ref_view].mask.shape[0]
     close = close_sources(spec)

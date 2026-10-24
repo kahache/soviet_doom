@@ -11,148 +11,154 @@ at the phase close; re-sync after any edit here).
 Where the lumps, the processing chains and the rights live:
 `docs/sound/ENEMY-SOUNDS.md` (§4 voice rules and chains, §5 the cards).
 This document only says **what to say and how to record it**. The
-recording instructions come first and are in Spanish because they are for
-the CEO (D7: the CEO is addressed in Spanish).
+recording instructions come first (§0) and are addressed to the CEO; like
+every doc they are in English (D7, D129), while the chat with him stays in
+Spanish.
 
 ---
 
-## 0. Instrucciones para el CEO (español)
+## 0. Instructions for the CEO
 
-### 0.1 Qué hay que hacer, en cinco líneas
+### 0.1 What needs doing, in five lines
 
-1. Grabar (o generar con IA) las **22 filas obligatorias** de las tablas del
-   §1 (frases y gritos): **89 tomas** en total. Hay 4 filas opcionales de
-   criaturas, 12 tomas más (§1.4).
-2. Tiempo estimado: **40-55 minutos** en total con el móvil, en una sola
-   sesión (unos 20-25 de grabación, el resto preparación, prueba de volumen
-   y escucha), más 10 minutos para dejar los ficheros. Es una estimación
-   mía, no medida; el cálculo está en el §1.5.
-3. Dejar los ficheros en `work/audio/voice_takes/` (está en gitignore; no
-   entra en git ni en el PK3) con los nombres del §0.5.
-4. Escribir en el chat una línea: «Las tomas de voz son mías y las publico
-   bajo CC BY-NC-SA 4.0 (D15)». Tu voz reconocible es un dato personal: sin
-   esa línea no se usa.
-5. Si usas IA para alguna toma: rellenar el registro del §0.7. Sin registro
-   no se usa.
+1. Record (or generate with AI) the **22 mandatory rows** of the tables in
+   §1 (lines and cries): **89 takes** in total. There are 4 optional creature
+   rows, 12 more takes (§1.4).
+2. Estimated time: **40-55 minutes** in total with a phone, in a single
+   session (about 20-25 of recording, the rest set-up, volume test and
+   listening back), plus 10 minutes to drop the files. This is my
+   estimate, not measured; the calculation is in §1.5.
+3. Drop the files in `work/audio/voice_takes/` (it is gitignored; it does
+   not go into git or the PK3) with the names from §0.5.
+4. Write one line in the chat: «Las tomas de voz son mías y las publico
+   bajo CC BY-NC-SA 4.0 (D15)» (The voice takes are mine and I publish them
+   under CC BY-NC-SA 4.0 (D15)). Your recognisable voice is personal data:
+   without that line it is not used.
+5. If you use AI for any take: fill in the log in §0.7. Without a log it
+   is not used.
 
-Después yo corto, elijo la mejor toma de cada fila, la proceso (§2) y te la
-traigo para escucharla antes de que nada entre en `src/sounds/`.
+Afterwards I cut, pick the best take of each row, process it (§2) and bring
+it back for you to listen to before anything enters `src/sounds/`.
 
-### 0.2 El móvil
+### 0.2 The phone
 
-- **Formato:** el de mayor calidad que dé la app. En iPhone, *Ajustes →
-  Notas de voz → Calidad de audio → Sin pérdida*. En Android, la grabadora
-  del sistema en calidad alta, o cualquier app que grabe **WAV**.
-- WAV a 44,1 o 48 kHz es lo ideal; si el móvil sólo da M4A/AAC, vale, en su
-  calidad máxima. **No conviertas tú el formato**: mándame el original.
-- **Nada de efectos:** sin filtro de ruido, sin «mejora de voz», sin
-  normalizar, sin recortar. Todo eso lo hago yo; si llega procesado no se
-  puede deshacer.
-- Modo avión durante la sesión (una notificación arruina una toma).
+- **Format:** the highest quality the app offers. On iPhone, *Settings →
+  Voice Memos → Audio Quality → Lossless*. On Android, the system recorder
+  at high quality, or any app that records **WAV**.
+- WAV at 44.1 or 48 kHz is ideal; if the phone only gives M4A/AAC, that is
+  fine, at its maximum quality. **Do not convert the format yourself**: send
+  me the original.
+- **No effects:** no noise filter, no "voice enhancement", no normalising,
+  no trimming. I do all of that; if it arrives processed it cannot be
+  undone.
+- Airplane mode during the session (a notification ruins a take).
 
-### 0.3 La habitación
+### 0.3 The room
 
-- Una habitación **pequeña y con cosas blandas**: dormitorio con armario
-  abierto lleno de ropa, cortinas, cama. **Nunca** baño, cocina, pasillo o
-  salón vacío: el eco se queda pegado a la voz y el Reich tiene que sonar
-  **seco**.
-- Apaga ventilador, aire acondicionado, ordenador ruidoso; aléjate de la
-  nevera y de la ventana a la calle.
-- Al empezar cada sesión, graba **5 segundos de silencio** de la habitación
-  sin moverte (lo uso para limpiar el ruido de fondo).
+- A **small room with soft things in it**: a bedroom with an open wardrobe
+  full of clothes, curtains, a bed. **Never** a bathroom, kitchen, hallway
+  or empty living room: the echo sticks to the voice and the Reich has to
+  sound **dry**.
+- Turn off the fan, the air conditioning, any noisy computer; move away from
+  the fridge and from the window onto the street.
+- At the start of each session, record **5 seconds of silence** of the room
+  without moving (I use it to clean up the background noise).
 
-### 0.4 Distancia y voz
+### 0.4 Distance and voice
 
-- El móvil apoyado en algo estable (una pila de libros), con el micrófono
-  (abajo del todo en casi todos los móviles) **a un palmo y medio, 20-30 cm**,
-  y un poco de lado, a unos 45°, para que las «p» y las «t» no peguen golpes.
-- **Gritos** (las filas marcadas «fuerte»): échate atrás a **40-50 cm**. Antes
-  de la sesión haz una prueba con el grito más fuerte («Feind!») y escúchala:
-  si suena rota o rascada, aléjate más. Una toma saturada no se arregla.
-- **El General**: cerca, 20 cm, y **bajito**. No pongas voz grave a la fuerza:
-  ya bajo yo el tono después (−4 semitonos). Voz natural, lenta, tranquila.
-- Entre toma y toma, **un segundo de silencio**. Varía un poco cada toma
-  (más corta, más cansada, más seca): las tomas distintas valen más que
-  las repetidas.
-- Interpretación: son **soldados, no villanos de película**. Nada de acento
-  exagerado, ni alemán de caricatura ni tejano: el tono del juego es serio
-  (D11).
+- The phone resting on something stable (a pile of books), with the
+  microphone (at the very bottom on almost all phones) **about a hand and a
+  half away, 20-30 cm**, and a little to the side, at about 45°, so that
+  "p" and "t" do not pop.
+- **Shouts** (the rows marked "loud"): lean back to **40-50 cm**. Before the
+  session do a test with the loudest shout ("Feind!") and listen to it: if
+  it sounds broken or scratchy, move further away. A clipped take cannot be
+  fixed.
+- **The General**: close, 20 cm, and **quiet**. Do not force a deep voice:
+  I lower the pitch afterwards (−4 semitones). Natural voice, slow, calm.
+- Between takes, **one second of silence**. Vary each take a little
+  (shorter, more tired, drier): different takes are worth more than
+  repeated ones.
+- Performance: they are **soldiers, not movie villains**. No exaggerated
+  accent, neither a caricature German nor a Texan: the tone of the game is
+  serious (D11).
 
-### 0.5 Ficheros y nombres
+### 0.5 Files and names
 
-- **Un fichero por fila** de las tablas, con todas sus tomas seguidas
-  (separadas por ese segundo de silencio). Yo las corto.
-- Nombre: `<fila>_<lump>_<fecha>.<ext>`, por ejemplo
-  `R04_SDRRISIT_20261014.wav` o `G02_SDGENSUM_20261014.m4a`.
-- Si una fila sale de IA: `<fila>_<lump>_ai_<herramienta>_<fecha>.<ext>`, por
-  ejemplo `L04_SDLTRSIT_ai_herramientaX_20261014.wav`.
-- El silencio de la habitación: `ROOMTONE_<fecha>.<ext>`.
-- Todo en **`work/audio/voice_takes/`** (créala si no existe). Si grabas en
-  varias sesiones o habitaciones, una subcarpeta por sesión
-  (`work/audio/voice_takes/2026-10-14/`), cada una con su `ROOMTONE`.
-- Opcional, un `work/audio/voice_takes/NOTES.txt` con: fecha, móvil, app y
-  habitación. Me sirve para igualar sesiones.
+- **One file per row** of the tables, with all its takes one after another
+  (separated by that second of silence). I cut them.
+- Name: `<row>_<lump>_<date>.<ext>`, for example
+  `R04_SDRRISIT_20261014.wav` or `G02_SDGENSUM_20261014.m4a`.
+- If a row comes from AI: `<row>_<lump>_ai_<tool>_<date>.<ext>`, for
+  example `L04_SDLTRSIT_ai_toolX_20261014.wav`.
+- The room's silence: `ROOMTONE_<date>.<ext>`.
+- Everything in **`work/audio/voice_takes/`** (create it if it does not
+  exist). If you record in several sessions or rooms, one subfolder per
+  session (`work/audio/voice_takes/2026-10-14/`), each with its `ROOMTONE`.
+- Optional, a `work/audio/voice_takes/NOTES.txt` with: date, phone, app and
+  room. It helps me match sessions.
 
-### 0.6 Pronunciación del alemán (aproximada, para un hispanohablante)
+### 0.6 German pronunciation (approximate, for a Spanish speaker)
 
-| Frase | Se dice más o menos | Ojo |
+| Phrase | Roughly pronounced | Watch out |
 |---|---|---|
-| **Vorwärts.** | «FÓR-verts» | La «w» suena «v»; la «ä» es una «e» abierta; la «r» final de «vor» casi no suena; termina en «ts» seco. |
-| Feind! | «FAINT» | Una sola sílaba, la «d» final suena «t». |
+| **Vorwärts.** | «FÓR-verts» | The "w" sounds like "v"; the "ä" is an open "e"; the final "r" of "vor" is almost silent; it ends in a dry "ts". |
+| Feind! | «FAINT» | A single syllable, the final "d" sounds like "t". |
 | Da! | «DAA» | |
 | Kontakt! | «kon-TAKT» | |
-| Stellung halten. | «SHTÉ-lung JÁL-ten» | «St» inicial = «sht»; la «h» es aspirada, suave, no una jota española fuerte. |
+| Stellung halten. | «SHTÉ-lung JÁL-ten» | Initial "St" = "sht"; the "h" is aspirated, soft, not a strong Spanish "j". |
 | Augen auf. | «ÁU-guen AUF» | |
-| Ruhe da hinten. | «RÚ-e da JÍN-ten» | Misma «h» suave. |
-| Sani… | «SÁ-ni» | Abreviatura de soldado de *Sanitäter*, «sanitario». |
+| Ruhe da hinten. | «RÚ-e da JÍN-ten» | Same soft "h". |
+| Sani… | «SÁ-ni» | Soldiers' short form of *Sanitäter*, "medic". |
 
-Si dudas con la pronunciación, una voz de IA en alemán leyendo la frase es
-una buena referencia de oído, aunque luego grabes tú.
+If you are unsure about the pronunciation, an AI voice in German reading the
+phrase is a good reference by ear, even if you then record it yourself.
 
-### 0.7 Si usas IA
+### 0.7 If you use AI
 
-Cualquier voz generada entra en el registro de licencias como cualquier otro
-recurso (D36). **Por cada fichero generado** anota, en
-`work/audio/voice_takes/AI-LOG.csv` (o en el chat), una línea con:
+Any generated voice goes into the licence register like any other asset
+(D36). **For every generated file** note, in
+`work/audio/voice_takes/AI-LOG.csv` (or in the chat), one line with:
 
-| Campo | Ejemplo de lo que hay que poner |
+| Field | Example of what to put |
 |---|---|
-| fichero | `L04_SDLTRSIT_ai_herramientaX_20261014.wav` |
-| herramienta | nombre del producto y web |
-| versión o modelo | el nombre exacto del modelo/versión que muestre la herramienta |
-| fecha | el día en que se generó |
-| plan de la cuenta | gratuito o de pago (en muchas herramientas cambia los derechos) |
-| licencia de uso | URL de los términos, fecha en que los leíste y **la frase literal** que dice qué puedes hacer con el audio generado |
-| voz | qué voz: de catálogo (su nombre/ID) o clonada **de tu propia voz** |
-| texto o prompt | el texto exacto y cualquier instrucción de estilo |
-| ajustes | idioma, estabilidad, estilo, semilla, si existen |
+| file | `L04_SDLTRSIT_ai_toolX_20261014.wav` |
+| tool | product name and website |
+| version or model | the exact model/version name the tool shows |
+| date | the day it was generated |
+| account plan | free or paid (in many tools it changes the rights) |
+| licence of use | URL of the terms, the date you read them and **the literal sentence** that says what you may do with the generated audio |
+| voice | which voice: from the catalogue (its name/ID) or cloned **from your own voice** |
+| text or prompt | the exact text and any style instruction |
+| settings | language, stability, style, seed, if they exist |
 
-Reglas, para que la toma sea usable:
+Rules, so that the take is usable:
 
-- Los términos tienen que permitir **usar y redistribuir** el audio dentro de
-  un mod que se publica bajo **CC BY-NC-SA 4.0** (D15). Si los términos sólo
-  permiten uso personal, piden atribución incompatible, o prohíben
-  redistribuirlo en un paquete, **esa toma no sirve**: dímelo y buscamos
-  otra vía.
-- **Nunca clonar la voz de otra persona** (actores, personajes históricos,
-  conocidos). Sólo voces de catálogo o tu propia voz.
-- Guarda el fichero **tal como sale** de la herramienta, sin editar.
-- No te recomiendo ninguna herramienta concreta: no he leído los términos de
-  ninguna. Los compruebo yo con lo que anotes.
+- The terms must allow you to **use and redistribute** the audio inside a
+  mod published under **CC BY-NC-SA 4.0** (D15). If the terms only allow
+  personal use, ask for an incompatible attribution, or forbid
+  redistributing it in a package, **that take is no good**: tell me and we
+  will look for another route.
+- **Never clone another person's voice** (actors, historical figures,
+  acquaintances). Only catalogue voices or your own voice.
+- Keep the file **exactly as it comes out** of the tool, unedited.
+- I do not recommend any specific tool: I have not read the terms of any
+  of them. I check them myself from what you note down.
 
-### 0.8 Lo que no se graba (D11, D12, D36)
+### 0.8 What is not recorded (D11, D12, D36)
 
-- **Nada del régimen**: ni saludos, ni cargos ni títulos del partido, ni
-  eslóganes, ni canciones, ni consignas. Sólo órdenes militares y gritos de
-  combate como los de cualquier ejército.
-- **Nada que remita a víctimas reales**: ni palabras asociadas a redadas,
-  deportaciones o campos (por ejemplo «Raus!» o «Schnell!» gritados a gente).
-  Por eso no están en el guion aunque sean tópicos de película.
-- Del lado de la Legión, simétrico: nada de eslóganes patrióticos; sólo
-  procedimiento de radio y avisos de combate.
-- Si se te ocurre una frase mejor que las mías, adelante, con la misma
-  regla: corta, militar, sin régimen. Anótala en `NOTES.txt` con su
-  traducción.
+- **Nothing from the regime**: no salutes, no party offices or titles, no
+  slogans, no songs, no catchphrases. Only military orders and combat cries
+  like those of any army.
+- **Nothing that refers to real victims**: no words associated with roundups,
+  deportations or camps (for example "Raus!" or "Schnell!" shouted at
+  people). That is why they are not in the script even though they are movie
+  clichés.
+- On the Legion's side, symmetrically: no patriotic slogans; only radio
+  procedure and combat warnings.
+- If you think of a better phrase than mine, go ahead, with the same
+  rule: short, military, no regime. Note it in `NOTES.txt` with its
+  translation.
 
 ---
 
@@ -194,17 +200,17 @@ Delivery: radio procedure, neutral General American, professional and
 flat. Speak as if into a handset: a hand cupped near the mouth helps. Crisp
 consonants, because the radio will cut the lows and the highs.
 
-| Row | Lump | Moment | Line (English) | Translation (ES) | Intent | Dur. | Takes |
+| Row | Lump | Moment | Line (English) | Translation | Intent | Dur. | Takes |
 |---|---|---|---|---|---|---|---|
-| L01 | `SDLTRACT` | idle | Sector four, clear. | Sector cuatro, despejado. | Routine report, bored | 1.2-1.6 s | 3 |
-| L02 | `SDLTRACT` | idle | Copy. Holding position. | Recibido. Mantenemos posición. | Routine, a bit tired | 1.2-1.8 s | 3 |
-| L03 | `SDLTRACT` | idle | Command, say again? | Mando, repita. | Didn't catch it | 1.0-1.4 s | 3 |
-| L04 | `SDLTRSIT` | alert | Contact! | ¡Contacto! | One clipped word, loud | ≤ 0.6 s | 5 |
-| L05 | `SDLTRSIT` | alert | Hostile, front! | ¡Hostil, al frente! | Fast, loud | ≤ 0.7 s | 3 |
-| L06 | `SDLTRSIT` | alert | Got movement! | ¡Movimiento! | Fast, loud | ≤ 0.7 s | 3 |
+| L01 | `SDLTRACT` | idle | Sector four, clear. | Sector four, clear. | Routine report, bored | 1.2-1.6 s | 3 |
+| L02 | `SDLTRACT` | idle | Copy. Holding position. | Received. We are holding position. | Routine, a bit tired | 1.2-1.8 s | 3 |
+| L03 | `SDLTRACT` | idle | Command, say again? | Command, say again. | Didn't catch it | 1.0-1.4 s | 3 |
+| L04 | `SDLTRSIT` | alert | Contact! | Contact! | One clipped word, loud | ≤ 0.6 s | 5 |
+| L05 | `SDLTRSIT` | alert | Hostile, front! | Hostile, front! | Fast, loud | ≤ 0.7 s | 3 |
+| L06 | `SDLTRSIT` | alert | Got movement! | Movement! | Fast, loud | ≤ 0.7 s | 3 |
 | — | `SDLTRATK` | attack | *(no voice)* | — | The shotgun; our synthesis (§5.2 of `ENEMY-SOUNDS.md`) | — | 0 |
 | L07 | `SDLTRPAI` | pain | *Grunt ("agh—")* | — | Hit; no word | ~0.3 s | 5 |
-| L08 | `SDLTRPAI` | pain | I'm hit! | ¡Me han dado! | Alternative to L07, strained | 0.4-0.5 s | 3 |
+| L08 | `SDLTRPAI` | pain | I'm hit! | I'm hit! | Alternative to L07, strained | 0.4-0.5 s | 3 |
 | L09 | `SDLTRDTH` | death | *A choked exhale, falling* | — | The voice drops; I add the signal dying | ~1 s | 5 |
 
 ### 1.3 The General (`SD_General`) — English, and one German order; chain `GENERAL-SLOT`
@@ -214,10 +220,10 @@ He is the Legion's officer commanding both factions (`docs/engine/BESTIARY.md`
 own language. **He never shouts.** Low, slow, calm, close to the phone
 (20 cm). Natural pitch: I lower it later.
 
-| Row | Lump | Moment | Line | Translation (ES) | Intent | Dur. | Takes |
+| Row | Lump | Moment | Line | Translation | Intent | Dur. | Takes |
 |---|---|---|---|---|---|---|---|
-| G01 | `SDGENSIT` | alert | Engage. | Atacad. | Calm, unhurried; an order, not a cry | 1.0-1.5 s | 5 |
-| G02 | `SDGENSUM` | the order (summon) | **Vorwärts.** | Adelante. | **The one line the player must understand.** Calm, final, as if it were obvious. A full stop, not an exclamation mark | ≤ 1.2 s | 8 |
+| G01 | `SDGENSIT` | alert | Engage. | Attack. | Calm, unhurried; an order, not a cry | 1.0-1.5 s | 5 |
+| G02 | `SDGENSUM` | the order (summon) | **Vorwärts.** | Forward. | **The one line the player must understand.** Calm, final, as if it were obvious. A full stop, not an exclamation mark | ≤ 1.2 s | 8 |
 | — | `SDGENMIS` / `SDGENEXP` / `SDGENACT` | attack / impact / idle | *(no voice)* | — | Mechanism and salvo; our synthesis | — | 0 |
 | G03 | `SDGENPAI` | pain | *Clipped grunt ("hm.")* | — | Annoyed more than hurt; not a cry | 0.2-0.4 s | 5 |
 | G04 | `SDGENDTH` | death | *Long exhale winding down into a low hum that stops* | — | The voice runs down like a machine; I add the mechanism failing. May ring long | 2.5-4 s | 5 |

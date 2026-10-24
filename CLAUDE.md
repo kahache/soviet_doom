@@ -28,7 +28,7 @@ synced in batches at each phase close (D7, D34).
 > | Product notes and dated studies (difficulty names, language switch, research) | `docs/product/` |
 > | Russian mirror of all of the above | `docs/ru/` |
 
-## Status (2026-10-22)
+## Status (2026-10-22; art and bosses updated 2026-10-24, D128)
 
 **P4, the full game, is under way (D104-D114): nine maps in three episodes
 plus the practice range.** Episode 1 (v1.0): MAP01 Zarya-7, MAP02 the
@@ -38,9 +38,9 @@ Portal» (MAP07 Novaya Zemlya, MAP08 Severomorsk, MAP09 Tunguska) are built,
 and every route PASSes in the engine on skills 2, 3 and 4 (18 of 18 reports,
 `docs/qa/evidence/2026-10-22_*_report.txt`; last 9133be1). The three episodes
 are in the New Game menu; the range is the lump `RANGE`, outside the MAPxx
-slots (MOD-SPEC §4.6). Episode 3 ends on «For now… TO BE CONTINUED» (D117). MAP06 and MAP09
-use the General as a stand-in boss until the Legion's own bosses exist.
-**Decisions up to D114** (`docs/PRD.md`). Per-map design: `docs/levels/`.
+slots (MOD-SPEC §4.6). Episode 3 ends on «For now… TO BE CONTINUED» (D117). MAP06's boss is the
+Liberty Colossus and MAP09's the Consortium, each on its own Gemini sprites
+(D123, D128). **Decisions up to D129** (`docs/PRD.md`). Per-map design: `docs/levels/`.
 The phase view and what is missing: `docs/ROADMAP.md` ("P4 today").
 
 **Installed today (2026-10-22).** Episode 2 and 3 music (20 pieces, composed,
@@ -53,10 +53,11 @@ D108, D109, D114): installed in `assets/sprites/`, **not yet committed**.
 The Reich hound's 15 barks and three more voices (D107, D110). Posters
 (Lenin, Stalin, the mural) in every map; two slots per map wait for the
 Marx and Engels pair, which the CEO has not chosen (`SDPOSTR4/5`).
-**Not done:** the Legion gunner and the Colossus exist only as a draft overlay
-with provisional sprites (7c162ae), placed in no map; the TT-33 redo with
-Gemini (D111); the General's death voice; AKM and world sounds.
-Nothing of P4 is in a release yet.
+**Since then (D123-D128):** the Legion gunner, the Liberty Colossus, the
+Consortium, the TT-33 and the AKM on their own Gemini sprites; the world
+sounds (D125); the new title screen. **Not done:** the General's death
+voice; the AKM's magazine `SDAM` (still a tinted stand-in); the engine pass
+of D128's install (D26). Nothing of P4 is in a release yet.
 
 **Releases.** **v1.0 shipped for the CEO's friends (D97):** G6 PASS (4a17a61,
 `docs/qa/GATE-REVIEWS.md`, evidence `docs/qa/evidence/2026-10-20_1635_M4_v1-signoff.md`),
@@ -75,7 +76,16 @@ in first person (the TT-33 redone from Gemini frames, D111, installed by D123; t
 other six from the CEO's Gemini frames, D79-D88), every pickup (D80), the
 player's effects (D82), status bar A with the sergeant's 42 Gemini faces and
 digits N2 (D89-D92), EN, RU and CA. Campaign textures are all ours. The
-engine's own automap and cheat lines are not.
+engine's own automap and cheat lines are not. **P4's art, all from the
+CEO's Gemini sheets:** the Legion gunner `SDLG` and the Liberty Colossus
+`SDLC` (D123; their walk strides A/C derived by `tools/art/walk_stride.py`,
+D127, installed by D128), the Consortium `SDCN` (D128) and the AKM in hand
+and on the floor (`SDAK`, `SDAF`, `SDAQ`, D128); the Chrome Marshal wears
+the General's set by design (D123). The title screen `TITLEPIC` is the
+Gemini painting with the armband symbol, and `M_DOOM` lost its black plate
+(D126, D128). **Palette v3** (D128): one ramp, `reich_greygreen`, appended
+in reserved slots for the Consortium's Reich half; no approved asset
+changed (ART-BIBLE §3).
 
 **Sound and music.** 25 weapon sounds (D74) plus the approved alternatives
 (D94); enemy sounds with `$random` groups; 11 of the 12 enemy voices ours (24

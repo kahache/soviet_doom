@@ -39,6 +39,7 @@ On `work/audio/preview/world_sounds_listening.html` (56 candidates of
 `tools/audio/gen_world_sfx.py`, 19 sounds), 56/56 judged, quoted as given:
 
 > "OK (50): SDPLPAIN_w1, SDPLPAIN_w2, SDPLPAIN_w3, SDPLDETH_w1, SDPLDETH_w3, SDPLXDTH_w1, SDPLXDTH_w2, SDPLXDTH_w3, SDPLOOF_w2, SDPLOOF_w3, SDPLNOWY_w1, SDPLNOWY_w2, SDPLNOWY_w3, SDDOROPN_w1, SDDOROPN_w2, SDDOROPN_w3, SDDORCLS_w1, SDDORCLS_w2, SDDORCLS_w3, SDBDOPN_w1, SDBDOPN_w2, SDBDOPN_w3, SDBDCLS_w1, SDBDCLS_w2, SDBDCLS_w3, SDSWTCHN_w1, SDSWTCHN_w2, SDSWTCHN_w3, SDSWTCHX_w1, SDSWTCHX_w2, SDSWTCHX_w3, SDITEMUP_w1, SDITEMUP_w2, SDITEMUP_w3, SDGETPOW_w1, SDGETPOW_w2, SDGETPOW_w3, SDIZPKP_w1, SDIZPKP_w2, SDPSTART_w1, SDPSTART_w2, SDPSTART_w3, SDPSTOP_w1, SDPSTOP_w2, SDPSTOP_w3, SDPMOVE_w1, SDPMOVE_w2, SDPMOVE_w3, SDTELEPT_w1, SDTELEPT_w2 · NO (5): SDPLDETH_w2, SDPLJUMP_w1, SDPLJUMP_w2, SDIZPKP_w3, SDTELEPT_w3 · ? (1): SDPLOOF_w1 «El audio está bien pero no tiene el ruido, yo dejaría los 2 audios a la vez»"
+> (CEO, on `SDPLOOF_w1`: "The audio is fine but it lacks the noise, I would leave both audios playing at once")
 
 What the PM made of it: every OK is a take of a `$random` group, as the
 enemy voices are; SDPLOOF_w1's voice is laid over SDPLOOF_w3's impact (both

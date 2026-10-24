@@ -97,8 +97,9 @@ class SourceTests(unittest.TestCase):
     def test_sheet_exists_with_every_lump_and_the_vote(self):
         self.assertTrue(SHEET.is_file(), SHEET)
         text = SHEET.read_text(encoding="utf-8")
-        for needle in ("Copiar resultado", 'data-v="ok"', 'data-v="no"', 'data-v="q"', "mosaico 3×3",
-                       "sala de muestra", "panorámica"):
+        # The committed sheet, in English since D129 (its generator still writes Spanish).
+        for needle in ("Copy result", 'data-v="ok"', 'data-v="no"', 'data-v="q"', "3×3 mosaic",
+                       "sample room", "full panorama"):
             self.assertIn(needle, text)
         self.assertNotRegex(text, r"(src|href)=\"https?://", "the sheet must be self-contained")
         if HAVE_IMAGING:

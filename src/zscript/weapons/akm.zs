@@ -18,20 +18,17 @@
 // is a worse PPSh with better ammo. It eats its own pool, SD_AkmAmmo
 // (7.62x39), not the PPSh's Clip (7.62x25): see ammo.zs, ADR 011 and the doc.
 //
-// PROVISIONAL LOOK (D116): no art of its own yet (Gemini, a little at a
-// time). It shows the PPSh-41's installed frames as they are: held SDPP A
-// (ready) and B (the kick), flash SDPF A, world pickup SDPQ A. The pickup
-// on the floor is tinted plum-orange by the line marked PROVISIONAL-D116
-// (an actor Translation); the held frames are not expected to be (a
-// first-person sprite has its own PSprite.Translation, gzdoom.pk3 g4.14.2
-// player.zs; NOT VERIFIED in the engine), so in hand
-// it reads as a PPSh-41 until Gemini's frames land: the HUD's ammunition
-// count (its own pool) and the slower, harder rhythm tell them apart. The
-// final names are SDAK A-B, SDAF A and SDAQ A (doc section 5); when they
-// are installed in assets/sprites/akm/, the swap is:
-//   sed -i -e 's/^\(\s*\)SDPP /\1SDAK /' -e 's/^\(\s*\)SDPF /\1SDAF /' -e 's/^\(\s*\)SDPQ /\1SDAQ /' -e '/^\s*[^/[:space:]].*PROVISIONAL-D116/d' src/zscript/weapons/akm.zs
-// (MOD-SPEC 6.12; tests/test_akm.py pins both halves). Every tic, action
-// and jump stays.
+// ITS OWN LOOK since 2026-10-24 (D128, the CEO: "OK AKM";
+// D116 had it on the PPSh-41's frames): assets/sprites/akm/, held SDAK A
+// (ready) and B (the kick), flash SDAF A, world pickup SDAQ A. The held and
+// flash frames come from the project lead's one Gemini image (the ready
+// one) by tools/art/gemini_frames.py akm: B is A kicked like every weapon's
+// B and the flash is the PPSh-41's grafted at the AKM's muzzle brake (the
+// firing image was not asked again); the pickup is drawn on the weapon
+// pickups' rig, tools/art/gen_akm_pickup.py. They replaced the PPSh-41's
+// SDPP, SDPF and the tinted SDPQ letter for letter (MOD-SPEC 6.12): only the
+// sprite names changed and the tint line went; every tic, action and jump
+// stayed (tests/test_akm_sprites.py pins the states).
 
 class SD_Akm : DoomWeapon
 {
@@ -61,7 +58,6 @@ class SD_Akm : DoomWeapon
 		Weapon.SlotNumber 4;
 		// Its own logical names (SNDINFO) over the PPSh-41's lumps, the shot
 		// pitched down ($pitchset); final lumps in the doc section 4.
-		Translation "0:255=%[0.10,0.03,0.05]:[1.45,0.85,0.55]";   // PROVISIONAL-D116: the floor pickup, plum-orange
 		AttackSound "sd/weapon/akm/fire";
 		Obituary "$SD_OB_AKM";
 		Tag "$SD_TAG_AKM";
@@ -72,27 +68,27 @@ class SD_Akm : DoomWeapon
 	States
 	{
 	Ready:
-		SDPP A 1 A_SD_WeaponReady;
+		SDAK A 1 A_SD_WeaponReady;
 		Loop;
 	Deselect:
-		SDPP A 1 A_Lower;
+		SDAK A 1 A_Lower;
 		Loop;
 	Select:
-		SDPP A 1 A_Raise;
+		SDAK A 1 A_Raise;
 		Loop;
 	Fire:
 		// 2 + 2 = 4 tics per round = 8.75 rounds/s = 525 rpm (the real AKM
 		// ~600; 3 tics would be the PPSh's 700). B is the kick frame.
-		SDPP B 0 A_GunFlash;
-		SDPP B 2 A_SD_FireAkm;
-		SDPP A 2;
-		SDPP A 0 A_ReFire;
+		SDAK B 0 A_GunFlash;
+		SDAK B 2 A_SD_FireAkm;
+		SDAK A 2;
+		SDAK A 0 A_ReFire;
 		Goto Ready;
 	Flash:
-		SDPF A 2 Bright A_Light1;
+		SDAF A 2 Bright A_Light1;
 		Goto LightDone;
 	Spawn:
-		SDPQ A -1;
+		SDAQ A -1;
 		Stop;
 	}
 

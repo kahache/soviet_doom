@@ -35,7 +35,7 @@ holds the order they happen in.
   decision amends it.
 - Open items live in `docs/PENDING-CEO-DECISIONS.md`, shown by the session
   hook at every start. First action of a session: ask the CEO the open items,
-  in Spanish, by priority.
+  in Spanish (the chat is the one place Spanish is used, D129), by priority.
 - Good ideas for later go to `docs/ICEBOX.md`.
 
 ## 3. Phases and gates
@@ -55,7 +55,21 @@ holds the order they happen in.
   at its gate and in full before any release (D34); each mirror states the
   date it was last synced. Code, lump names and comments in English.
   **In-game text in English and Russian, always and in the same task**
-  (D21).
+  (D21), and in Catalan since P6.
+- **The project's languages (D129).** Spanish is **not** a project language.
+  - **Repo documentation** (every `docs/**` file, dated snapshots, reports,
+    proposals and the HTML review sheets written for the CEO included):
+    **English**, plus the Russian mirror under `docs/ru/` (D34).
+  - **What the player sees** (in-game text, `README.md`, and everything a
+    release or portable package carries: readmes, guides, launchers, credits,
+    release notes): **English, Russian and Catalan only**. File names in
+    English.
+  - **Spanish only in the chat with the CEO.**
+  - The CEO's literal words (verdicts and orders quoted as the record of a
+    decision) stay literal, in Spanish, with a short English gloss in
+    parentheses when the text around them does not already restate them.
+  - `tests/test_no_spanish.py` guards `LANGUAGE`, `README.md`, `LICENSE.md`
+    and every file the release tools ship.
 - `CLAUDE.md` always carries a current "Status" block, updated at the end of
   every work session.
 

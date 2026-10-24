@@ -51,7 +51,7 @@ variants across a parameter, labelled, so the reviewer points at a cell.
 Rules that follow from it:
 - Draw the thing alone before putting it in a texture, a map or a screen.
 - Derive from the source material; a hand-traced approximation loses what
-  made the source right (Lenin v3: "no se parece a él EN NADA").
+  made the source right (Lenin v3: "no se parece a él EN NADA" (CEO: "it looks nothing like him")).
 - The agent looks at its own output **once**. Iterating on your own images in
   a growing context is what makes a task expensive.
 
@@ -81,7 +81,7 @@ consequence of something the CEO already approved; a fix to our own bug; a
 reversible choice with an obvious default. In those cases act, then report.
 
 > Why: the CEO's words, 2026-10-12 — "entonces no está pendiente de mí. Tira
-> millas." Three items had been parked as CEO decisions when none of them
+> millas." ("then it is not waiting on me. Keep going.") Three items had been parked as CEO decisions when none of them
 > needed one.
 
 When asking, the PM sends: the artefact or the command to run it, a
@@ -122,6 +122,9 @@ gate sits in every tool that can start the engine: `tools/run.sh`,
 > possibly see. The CEO, 2026-10-13: *"no paran de abrírseme pantallas [...]
 > igual para pequeños cambios habría que poder hacer que QA tenga criterio de
 > cuándo lanzar tests y cuándo no; o bien hacer una pasada fast y otra full."*
+> ("screens keep popping up on me [...] maybe for small changes QA should be able
+> to judge when to run tests and when not; or else do one fast pass and one full
+> pass")
 
 #### The ladder
 
@@ -223,7 +226,7 @@ on its own process group, since Windows has no `killpg`. The gate
 > were not: GZDoom uses 14001-14165 for ambient sound and music changers.
 > The label is what made someone check.
 
-### 6. Product update — what is done and what is not (D64, "súper importante")
+### 6. Product update — what is done and what is not (D64, "súper importante" (CEO: "super important"))
 
 When a delivery closes (a batch of tasks, a milestone step, a session's
 work), and **before** the `pmo` stage, Product (the PM) updates the

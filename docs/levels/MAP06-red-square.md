@@ -260,7 +260,7 @@ stage there is a way back to the start, with and without the boss's death
 | Doors, switch | `SDDOORB` (blue, between `SDMOSA1`), `SDDOORY`, `SDDOORR`, `SDGATE1` (exit gate); exit `SDSW1D` | | |
 | Posters | `SDPOSTR1` Lenin, `SDPOSTR3` Stalin (section 7.1) | | |
 
-### 7.1 The posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
+### 7.1 The posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel» ("that those posters can appear in any level"))
 
 Four pictures and the Marx-Engels pair, each a whole 128×256 poster: one one-sided
 line 128 long in a sector exactly 256 high, pegged to the floor, offset 0
@@ -425,8 +425,8 @@ courtyard (the boss is the RPG-7's): by the PPSh in the GUM's north hall
 and on the square.
 
 **Ammunition, D119 (2026-10-23).** The CEO's playtest of Episodes 2 and 3:
-"hay muchos objetos de munición, siempre sale de sobras" and "siempre acabas
-con la escopeta"; and the colossus down to **3000 HP** (the Spider
+"hay muchos objetos de munición, siempre sale de sobras" ("there are lots of ammo pickups, there is always plenty left over") and "siempre acabas
+con la escopeta" ("you always end up with the shotgun"); and the colossus down to **3000 HP** (the Spider
 Mastermind's, §11). The ammunition now follows the monsters: it **grows with
 skill** as they do (the table `AMMO` in `map.py`, rows with a lowest and a
 highest tier), not the consumables' rule. G3-8's ruler is MAP03's (kills in

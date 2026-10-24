@@ -11,7 +11,7 @@
 Design document. Owner: `level-designer`. Status: **v1 BUILT 2026-10-14
 (§16): the blue pass signposted and the map populated; not yet walked.**
 v0 (§14) was walked by the CEO the same day (§15, D58): "me gusta de
-momento", but the pass was not found. A working brief for the PM; the CEO's
+momento" ("I like it for now"), but the pass was not found. A working brief for the PM; the CEO's
 verdict comes from walking the map, not from reading this (D28). Source:
 `src/maps/MAP02/map.py`; tests: `tests/test_map02_metro.py`. Russian mirror: owed
 at the phase close (D34).
@@ -279,7 +279,7 @@ approved and packed from `assets/` (tested).
 | Doors | `SDDOOR1`, every leaf one tile, 128 × 128 (tested) | | | |
 | Switches | `SDSW1C` (SW-A), `SDSW1B` (SW-B), `SDSW1D` (exit), each drawn once | | | |
 
-### 7.1 Posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
+### 7.1 Posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel» ("that those posters can appear in any level"))
 
 The approved pictures, declared in `POSTERS` in `src/maps/MAP02/map.py` and
 checked by `tests/test_posters.py` (each whole: one one-sided line exactly
@@ -483,7 +483,7 @@ Each version loads in GZDoom and is walkable from start to exit (MAP01 §12).
 
 | Version | Content | Done when |
 |---|---|---|
-| **v0 — grey box** ✅ **BUILT and WALKED 2026-10-14** (§14, §15) | the whole plan of §4, every door, switch, the key, the gate, the exit, both secrets, heights and stairs; the approved metro set where it was free (§7); light by zone; **no monsters, no items** but the start and the pass | the CEO walks it and judges the shape: "me gusta de momento"; the pass not found (D58) |
+| **v0 — grey box** ✅ **BUILT and WALKED 2026-10-14** (§14, §15) | the whole plan of §4, every door, switch, the key, the gate, the exit, both secrets, heights and stairs; the approved metro set where it was free (§7); light by zone; **no monsters, no items** but the start and the pass | the CEO walks it and judges the shape: "me gusta de momento" ("I like it for now"); the pass not found (D58) |
 | **v1 — the pass signposted, populated** ✅ **BUILT 2026-10-14** (§16) | redefined by D58 and the PM's brief: the duty booth and its window, the blue light, the yellow lane, the lit stair and D3; §9 placed with the four closets, the weapons, the ammo and health budget | **a first-time player finds the pass without being told** (MAP01 v1's criterion, failed there twice before v2 met it); `tests/test_map03.py` green |
 | v2 — textured, light and detail | what v1 was going to be (the hall's 224 walls, pylon pilasters `SDBRAS1`, the station name, the concourse, the train's look) plus lamps, the gate signal, flicker in the tunnels, the poster's light, props | the CEO can judge the station as a station |
 | v3 — density | S3, the density of a median map (D33: ~240 sectors, ~1860 lines), balance from the playtests (D60: after the MVP) | G3-style criteria for this map, written at v3 |
@@ -623,7 +623,7 @@ with it (special 13 confirmed), S1 with the Stalin poster, the exit and the
 intermission; nothing in the log. K7/K8 (the coping's and the rails'
 orientation) were too dark to judge.
 
-Then the CEO walked it. **Verdict, D58: "me gusta de momento"; but the
+Then the CEO walked it. **Verdict, D58: "me gusta de momento" ("I like it for now"); but the
 blue pass was not found, and the CEO crossed the blue door with `idclip`.**
 
 It is MAP01's v0/v1 failure again (MAP01 §14 end, §15 end): the map shows
@@ -823,7 +823,7 @@ the MVP.
 | 1 | §12: v1 = texture alignment, v2 = light and beacons ("a first-time player finds the pass"), v3 = §9 placed | v1 = the pass signposted and §9 placed; alignment moves to v2 | D58 and the PM's brief |
 | 2 | §5: the pass on the substation floor | in the booth | §16.1 |
 | 3 | §7: rails down the middle | rails on the outer half, lane on the platform half | §16.2 row 3 |
-| 4 | §9: the Doom stand-ins (3004, 9, …), "as MAP01 does" | the bestiary's numbers 21100–21105 | the PM's brief ("los números de editor de MAPINFO"); the classes exist now, MAP01 predates them |
+| 4 | §9: the Doom stand-ins (3004, 9, …), "as MAP01 does" | the bestiary's numbers 21100–21105 | the PM's brief ("los números de editor de MAPINFO", "the editor numbers from MAPINFO"); the classes exist now, MAP01 predates them |
 | 5 | §9: a trooper behind D1 on skill 4; 1 rifleman + 1 Panzermensch in the exit tunnel on skill 4 | none behind D1; 2 riflemen + 1 Panzermensch | §16.4 † |
 | 6 | §10: "v2 will want a light tag for the portal" | no light tag; the portal is 192 and blue from the start | the lock is shown from the first frame; nothing switches it |
 
@@ -904,8 +904,8 @@ test. What to judge:
 
 ## 17. D119 (2026-10-23): less ammunition, a mix by weapon
 
-The CEO, after Episodes 2 and 3: ammunition "siempre sale de sobras" and
-"siempre acabas con la escopeta". MAP02 was approved and played; this pass
+The CEO, after Episodes 2 and 3: ammunition "siempre sale de sobras" ("there is always plenty left over") and
+"siempre acabas con la escopeta" ("you always end up with the shotgun"). MAP02 was approved and played; this pass
 takes ammunition away and changes its kind, nothing else.
 
 The rule is `docs/engine/BALANCE.md` §8 (owner `mod-engineer`): placed
