@@ -4,7 +4,7 @@
     .venv/Scripts/python.exe tools/art/gen_titlepic.py            # both variants + preview
     .venv/Scripts/python.exe tools/art/gen_titlepic.py --no-preview
 
-The CEO asked for a title screen "epica como la del Doom" (D126). The
+The CEO asked for a title screen "epica como la del Doom" ("epic, like Doom's", D126). The
 painting is the project lead's Gemini image `work/art/reference/
 gemini_titlepic_A.jfif` (1376x768, about 16:9; D77: it stays local, never
 committed or shipped). This module turns it into the engine's TITLEPIC:

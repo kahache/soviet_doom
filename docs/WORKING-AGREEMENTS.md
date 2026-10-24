@@ -68,8 +68,12 @@ holds the order they happen in.
   - The CEO's literal words (verdicts and orders quoted as the record of a
     decision) stay literal, in Spanish, with a short English gloss in
     parentheses when the text around them does not already restate them.
-  - `tests/test_no_spanish.py` guards `LANGUAGE`, `README.md`, `LICENSE.md`
-    and every file the release tools ship.
+  - `tests/test_no_spanish.py` guards `LANGUAGE`, `README.md`, `LICENSE.md`,
+    every file the release tools ship, every doc under `docs/` but
+    `docs/ru/` (the review sheets included) and the sheet generators in
+    `tools/`, `tools/art/` and `tools/audio/`. In docs and generators it
+    reads only what lies outside quotation marks; whether a quote carries
+    its gloss is checked by the PMO, not by the test.
 - `CLAUDE.md` always carries a current "Status" block, updated at the end of
   every work session.
 

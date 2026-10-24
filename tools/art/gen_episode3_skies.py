@@ -454,33 +454,33 @@ def tex_sky5() -> np.ndarray:
 Piece = e2b.Piece2
 PIECES = [
     Piece("SDSKY3", tex_sky3, "sky", SKY_SIZE, ["SDSKY3"], 1, "x",
-          "Noche polar con aurora (cielo MAP07)",
-          "Noche polar sobre Nueva Zembla: cielo negro y despejado lleno de estrellas, tres cortinas de aurora "
-          "boreal (verdes en el borde bajo, gris azulado arriba, con rayos verticales), la cordillera glaciar de "
-          "la isla iluminada por ellas y la banquisa hasta el horizonte con sus crestas de presión.",
+          "Polar night with aurora (MAP07 sky)",
+          "Polar night over Novaya Zemlya: a black, clear sky full of stars, three curtains of the northern "
+          "lights (green on the lower edge, blue-grey above, with vertical rays), the island's glacier range lit "
+          "by them and the pack ice out to the horizon with its pressure ridges.",
           set_name=SET_NAME,
-          rec_why="La paleta no tiene verde azulado: la aurora sale en military_green (oliva) fundiéndose en "
-                  "steel_blue. Una rampa verde aurora sería nueva; no la abro."),
+          rec_why="The palette has no blue-green: the aurora comes out in military_green (olive) melting into "
+                  "steel_blue. An aurora-green ramp would be new; I do not open one."),
     Piece("SDSKY4", tex_sky4, "sky", SKY_SIZE, ["SDSKY4"], 2, "x",
-          "Fiordo de Kola de noche (cielo MAP08)",
-          "El fiordo de Kola en Severomorsk de noche: nubes bajas iluminadas desde abajo por el sodio de la "
-          "base, acantilados negros de gneis con nieve en las cornisas, la otra orilla con las luces de los "
-          "muelles y grúas con luces rojas, la boca del fiordo abierta al mar de Barents y un faro en el cabo con "
-          "su haz cruzando la niebla; el agua negra lo refleja todo.",
+          "Kola fjord at night (MAP08 sky)",
+          "The Kola fjord at Severomorsk at night: low clouds lit from below by the base's sodium lamps, black "
+          "gneiss cliffs with snow on the ledges, the far shore with the lights of the piers and cranes with red "
+          "lights, the fjord's mouth open to the Barents Sea and a lighthouse on the cape with its beam crossing "
+          "the fog; the black water reflects it all.",
           set_name=SET_NAME,
-          rec_why="Los acantilados cierran casi toda la vuelta: MAP08 es una base en un fiordo, el horizonte "
-                  "abierto solo está en la boca, hacia el mar, donde apunta el faro."),
+          rec_why="The cliffs close almost the whole turn: MAP08 is a base in a fjord, and the open horizon is "
+                  "only at the mouth, towards the sea, where the lighthouse points."),
     Piece("SDSKY5", tex_sky5, "sky", SKY_SIZE, ["SDSKY5"], 3, "x",
-          "Taiga de Tunguska con el portal (cielo MAP09)",
-          "La taiga de Tunguska de noche: nubes rotas iluminadas en cobalto desde abajo por el portal en el "
-          "horizonte, una columna de su luz hasta las nubes con filamentos blancos al pie, la línea lejana de la "
-          "taiga viva y, delante, el bosque muerto de 1908: troncos pelados en pie, copas partidas y troncos "
-          "derribados, negros contra el resplandor y perfilados por él.",
+          "Tunguska taiga with the portal (MAP09 sky)",
+          "The Tunguska taiga at night: broken clouds lit cobalt from below by the portal on the horizon, a "
+          "column of its light up to the clouds with white filaments at its foot, the far line of the living "
+          "taiga and, in front, the dead forest of 1908: bare standing trunks, snapped crowns and felled trunks, "
+          "black against the glow and outlined by it.",
           set_name=SET_NAME, ramps=("mosaic_cobalt",),
-          why_v2="mosaic_cobalt de la v2, con el precedente de D66: el cobalto es el del portal (SDPORT1-4, "
-                 "SDPRTE1) y aquí solo lo toman los píxeles que ilumina el portal; el resto del cielo es v1.",
-          rec_why="El portal es lo que se busca en MAP09: su resplandor en el horizonte orienta (aunque el cielo "
-                  "gira 360° y no promete el rumbo real del portal en el mapa)."),
+          why_v2="mosaic_cobalt from v2, with D66 as the precedent: the cobalt is the portal's (SDPORT1-4, "
+                 "SDPRTE1) and here only the pixels the portal lights take it; the rest of the sky is v1.",
+          rec_why="The portal is what MAP09 is about finding: its glow on the horizon orients the player (though "
+                  "the sky turns 360° and does not promise the portal's real bearing on the map)."),
 ]
 
 

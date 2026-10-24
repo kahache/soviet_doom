@@ -105,12 +105,12 @@ class TestSheet(unittest.TestCase):
         rows = [{"lump": v.lump, "key": k, "bpm": v.bpm, "label": v.label, "seconds": s.seconds(),
                  "sections": [(label, 0.0) for label, _ in s.sections]} for k, v, s in SONGS]
         html = e3.sheet_html(rows)
-        self.assertIn("Episodio 3", html)
+        self.assertIn("Episode 3", html)
         self.assertIn("../episode3/render/D_SDM07A.ogg", html)
         self.assertIn("D_SDM1N2", html)
         self.assertIn("../episode2/render/D_SDM06A.ogg", html)
-        self.assertNotIn("Episodio 2 ·", html)
-        self.assertIn("Copiar resultado", html)
+        self.assertNotIn("Episode 2 ·", html)
+        self.assertIn("Copy result", html)
 
 
 if __name__ == "__main__":

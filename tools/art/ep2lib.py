@@ -70,12 +70,12 @@ class Piece:
     lumps: list[str]
     offset: int               # seed = set BATCH_SEED + offset
     tiles: str                # "xy" | "x" | "y" | "no"
-    title: str                # short Spanish name for the CEO's sheet
-    desc: str                 # Spanish description
+    title: str                # short name for the CEO's sheet
+    desc: str                 # description for the sheet
     palette: int = 1
     masked: bool = False
     why_v2: str = ""
-    rec: str = "sí"
+    rec: str = "yes"
     rec_why: str = ""
     scene: dict | None = None  # overrides of the sample room (back/left/right/floor/ceil)
 

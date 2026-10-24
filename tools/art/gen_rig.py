@@ -59,7 +59,7 @@ the symbol reversed. Eight lumps cost nothing with a rig.
 
 Blood and gore. D38 drew them in BESTIARY §2.1's dark olive. D48 (CEO,
 2026-10-14) asked for "much more blood in the deaths" and then chose the
-colour, "rojo oscuro, nada de oliva": the death H-L and the gib M-U now
+colour, "rojo oscuro, nada de oliva" ("dark red, no olive"): the death H-L and the gib M-U now
 bleed dark red (flag_red 0-5 and black, palette v1), section "blood" below.
 Walk, aim, fire and pain (A-G) are untouched by it, byte for byte. The
 D38 olive death is still one argument away (render(..., blood=False)), for
@@ -712,7 +712,9 @@ def gib_blood(frame: str, t: float, prims: list[Prim], seed: int = SEED) -> list
 
 # ================================================================ the fall
 # D48 follow-up (CEO, on the Legion's corpse from the same rig: "parece que
-# se apoye en el hombro; debería quedar un tumbado más natural y real").
+# se apoye en el hombro; debería quedar un tumbado más natural y real", "it
+# looks as if it leans on its shoulder; it should lie down in a more natural,
+# real way").
 # D38's corpse lay on his left side, propped on his left shoulder and arm
 # with the crested helmet under his head. The D48 fall keeps H and I (the
 # hit, the knees), and from J he falls to his left AND turns onto his back:
@@ -1008,7 +1010,7 @@ def build_sheet(sprites: dict, stamp: str, out_dir: Path = PREVIEW_DIR, seed: in
               "Death: hit, knees go, he falls to his left, rolls onto his back and lies flat (D48). Gib: the chest gives way, the "
               "upper body goes up in chunks, the crested helmet and the rifle fly whole and land, the legs "
               "stand a moment and fall. Blood and gore are dark red since D48 (\"rojo oscuro, nada de "
-              "oliva\"), flag_red 0-5 and black, darker than the armband (flag_red 4-11).", body))
+              "oliva\", dark red, no olive), flag_red 0-5 and black, darker than the armband (flag_red 4-11).", body))
 
     # 6. in the game, next to Freedoom
     poss = freedoom_sprite("POSSA1")
@@ -1128,7 +1130,7 @@ def _swatch(cols, label: str) -> str:
 
 BLOOD_VERDICT = [
     "THE FALL. D38's corpse lay on his left side, propped on his left shoulder and arm with the helmet "
-    "under his head (the complaint the Legion's corpse got: \"parece que se apoye en el hombro\"). Now "
+    "under his head (the complaint the Legion's corpse got: \"parece que se apoye en el hombro\", it looks as if it leans on its shoulder). Now "
     "H and I are as approved, and from J he falls to his left while turning onto his back; at K he is "
     "down with the right leg still coming over and the Stahlhelm off; at L he lies flat on his back: "
     "shoulders, hips, both legs and the bare head on the floor (each within FLAT_TOL = 1.2 units, "
@@ -1260,7 +1262,7 @@ def build_blood_sheet(sprites: dict, stamp: str, out_dir: Path = PREVIEW_DIR, se
     S.append(("5 · Honest verdict and what you decide", "", body))
 
     intro = ("D48: the rig's rifleman is approved \"with much more blood in the deaths\", and the colour is "
-             "\"rojo oscuro, nada de oliva\"; and a corpse must lie flat, not propped on a shoulder (the "
+             "\"rojo oscuro, nada de oliva\" (dark red, no olive); and a corpse must lie flat, not propped on a shoulder (the "
              "CEO on the Legion's corpse, same rig). This redoes the death H-L and the gib M-U only; walk, aim, fire "
              "and pain (A-G, 56 lumps) are byte-identical to the approved rig. Built by "
              "<code>tools/art/gen_rig.py</code>, section \"blood\", seed " + str(seed) +

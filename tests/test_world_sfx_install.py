@@ -88,7 +88,7 @@ ENGINE_NAMES = {"doors/dr1_open", "doors/dr1_clos", "doors/dr2_open", "doors/dr2
 PLAYER_REFS = {"*pain100", "*pain75", "*pain50", "*pain25", "*death", "*xdeath", "*grunt", "*land", "*usefail"}
 KEPT_FREEDOOM_REFS = {"*jump", "*gibbed", "*fist"}
 GENDERS = {"male", "female", "other"}
-AI_TAKES = {"SDSGPAI2", "SDSGXDT2", "SDSGOOF1"}     # Chatterbox in them (MANIFEST "voz IA")
+AI_TAKES = {"SDSGPAI2", "SDSGXDT2", "SDSGOOF1"}     # Chatterbox in them (MANIFEST "AI voice")
 GIB_TAKES = {"SDSGXDT1", "SDSGXDT2"}               # our SDRRIXDT, i.e. Freedoom's DSSLOP, under them
 
 RANDOM_RE = re.compile(r"^\$random\s+(\S+)\s*\{\s*([^}]*?)\s*\}\s*$")

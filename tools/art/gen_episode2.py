@@ -8,7 +8,7 @@ work/art/episode2/<set>/, the sheet views into work/art/episode2/<set>/views/,
 a manifest per set, and the review sheet
 docs/art/previews/2026-10-22_P4_episode2-textures.html: every texture on its
 own (1x and zoomed), as a 3x3 mosaic and in a sample room (a small Doom-like
-view, NOT the engine), with OK / NO / ? and «Copiar resultado» like the
+view, NOT the engine), with OK / NO / ? and «Copy result» like the
 listening sheets, and the table of proposed lump names.
 
 Nothing goes to assets/, TEXTURE-INDEX.md or LICENSES.md from here: that
@@ -45,14 +45,14 @@ TEXTURE_INDEX = PROJECT_ROOT / "docs" / "art" / "TEXTURE-INDEX.md"
 SCRIPT_REL = "tools/art/gen_episode2.py"
 GIF_MS = 229                  # 8 tics at 35 Hz, like SDMOLT
 
-# set module, map, Spanish heading, recommended light (art director's proposal; level-designer decides)
+# set module, map, heading, recommended light (art director's proposal; level-designer decides)
 SETS = [
-    (gen_railway, "MAP04", "Railway — la estación de clasificación de Sverdlovsk, 1977",
-     "Luz recomendada: exteriores 144-176 de día nublado, naves y rotonda 112-144."),
-    (gen_dam, "MAP05", "Dam — la presa del Volga en Zhiguli",
-     "Luz recomendada: coronación y aliviadero 160-192, sala de turbinas 128-160, galerías 96-128."),
-    (gen_moscow, "MAP06", "Moscow — la Plaza Roja y el Kremlin",
-     "Luz recomendada: plaza 160-192 (es el final, a plena luz), interiores del GUM 128-144."),
+    (gen_railway, "MAP04", "Railway — the Sverdlovsk marshalling yard, 1977",
+     "Recommended light: exteriors 144-176 on an overcast day, sheds and roundhouse 112-144."),
+    (gen_dam, "MAP05", "Dam — the Volga dam at Zhiguli",
+     "Recommended light: crest and spillway 160-192, turbine hall 128-160, galleries 96-128."),
+    (gen_moscow, "MAP06", "Moscow — Red Square and the Kremlin",
+     "Recommended light: square 160-192 (it is the finale, in full light), GUM interiors 128-144."),
 ]
 NEW_FAMILIES = {
     "TRAK": "track on ballast (flat)", "BLST": "ballast (flat)", "WAGN": "goods wagon side",
@@ -257,23 +257,23 @@ function zoomFor(w){ return w <= 64 ? 4 : 3; }
 function card(it){
   const z = zoomFor(it.w), mz = it.w <= 64 ? 2 : 1;
   const mk = it.masked ? " masked" : "";
-  const anim = it.anim ? `<div class="v"><b>animada, ${it.gifms} ms/fotograma (4×)</b><img class="px${mk}" src="${it.anim}" width="${it.w*4}" height="${it.h*4}" alt=""></div>` : "";
-  const tex = it.anim ? "" : `<div class="v"><b>sola ${z}×</b><img class="px${mk}" src="${it.img}" width="${it.w*z}" height="${it.h*z}" alt=""></div>`;
+  const anim = it.anim ? `<div class="v"><b>animated, ${it.gifms} ms/frame (4×)</b><img class="px${mk}" src="${it.anim}" width="${it.w*4}" height="${it.h*4}" alt=""></div>` : "";
+  const tex = it.anim ? "" : `<div class="v"><b>single ${z}×</b><img class="px${mk}" src="${it.img}" width="${it.w*z}" height="${it.h*z}" alt=""></div>`;
   return `<div class="card"><div class="row" id="r-${it.id}" data-id="${it.id}"><div>
-    <div class="name"><code>${esc(it.lumps.join(", "))}</code><span class="ev">${it.kind} · ${it.w}×${it.h} · tila: ${esc(it.tilesTxt)} · paleta v${it.pal}${it.masked ? " · enmascarada (RGBA)" : ""}</span></div>
+    <div class="name"><code>${esc(it.lumps.join(", "))}</code><span class="ev">${it.kind} · ${it.w}×${it.h} · tiles: ${esc(it.tilesTxt)} · palette v${it.pal}${it.masked ? " · masked (RGBA)" : ""}</span></div>
     <p class="meta"><b>${esc(it.title)}.</b> ${esc(it.desc)}</p>
     <div class="views">
-      <div class="v"><b>sola 1×</b><img class="px${mk}" src="${it.img}" width="${it.w}" height="${it.h}" alt=""></div>
+      <div class="v"><b>single 1×</b><img class="px${mk}" src="${it.img}" width="${it.w}" height="${it.h}" alt=""></div>
       ${tex}${anim}
-      <div class="v"><b>mosaico 3×3 (${mz}×)</b><div class="mosaic${mk}" style="width:${it.w*3*mz}px;height:${it.h*3*mz}px;background-image:url(${it.img});background-size:${it.w*mz}px ${it.h*mz}px"></div></div>
+      <div class="v"><b>3×3 mosaic (${mz}×)</b><div class="mosaic${mk}" style="width:${it.w*3*mz}px;height:${it.h*3*mz}px;background-image:url(${it.img});background-size:${it.w*mz}px ${it.h*mz}px"></div></div>
     </div>
-    <div class="views"><div class="v"><b>sala de muestra (2×; no es el motor)</b><img class="px" src="${it.room}" width="640" height="400" alt=""></div></div>
-    <p class="rec"><b>Recomiendo: ${esc(it.rec)}.</b> ${esc(it.recWhy)}${it.whyV2 ? ` <i>Paleta: ${esc(it.whyV2)}</i>` : ""}</p>
-    <p class="meta">Origen (a) ${esc(it.script)}, semilla ${it.seed} · colores ${it.colours} · luma media ${it.luma} · costura ${it.seam === null ? "n/a" : it.seam}</p>
+    <div class="views"><div class="v"><b>sample room (2×; not the engine)</b><img class="px" src="${it.room}" width="640" height="400" alt=""></div></div>
+    <p class="rec"><b>I recommend: ${esc(it.rec)}.</b> ${esc(it.recWhy)}${it.whyV2 ? ` <i>Palette: ${esc(it.whyV2)}</i>` : ""}</p>
+    <p class="meta">Source (a) ${esc(it.script)}, seed ${it.seed} · colours ${it.colours} · mean luma ${it.luma} · seam ${it.seam === null ? "n/a" : it.seam}</p>
   </div>
   <div class="vote">
     <div class="btns"><button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div>
-    <textarea class="note" placeholder="Notas (qué cambiar, más claro, otro color…)">${esc(st(it.id).n)}</textarea>
+    <textarea class="note" placeholder="Notes (what to change, lighter, another colour…)">${esc(st(it.id).n)}</textarea>
   </div></div></div>`;
 }
 function build(){
@@ -292,12 +292,12 @@ function summary(){
   const label = {ok:"OK", no:"NO", q:"?"};
   const done = ITEMS.filter(i => st(i.id).v).length;
   document.getElementById("pDone").textContent = done;
-  const L = [`Texturas Episodio 2 (2026-10-22_P4, D104): ${done}/${ITEMS.length} juzgadas`];
+  const L = [`Episode 2 textures (2026-10-22_P4, D104): ${done}/${ITEMS.length} judged`];
   let cur = "";
   for (const i of ITEMS) {
     if (i.set !== cur) { cur = i.set; L.push(`[${i.set}]`); }
     const s = st(i.id), n = (s.n || "").trim().replace(/\s+/g, " ");
-    L.push(`${i.lumps.join("/")}: ${label[s.v] || "sin juzgar"}${n ? ` — «${n}»` : ""}`);
+    L.push(`${i.lumps.join("/")}: ${label[s.v] || "not judged"}${n ? ` — «${n}»` : ""}`);
   }
   const g = (document.getElementById("general").value || "").trim().replace(/\s+/g, " ");
   if (g) L.push(`General: «${g}»`);
@@ -306,8 +306,8 @@ function summary(){
 function copy(which){
   const t = document.getElementById("result"), msg = document.getElementById(which);
   summary();
-  const ok = () => { msg.textContent = "copiado"; setTimeout(() => msg.textContent = "", 2500); };
-  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? ok() : (msg.textContent = "selecciona y Ctrl+C abajo"); } catch (e) { msg.textContent = "selecciona y Ctrl+C abajo"; } };
+  const ok = () => { msg.textContent = "copied"; setTimeout(() => msg.textContent = "", 2500); };
+  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? ok() : (msg.textContent = "select and press Ctrl+C below"); } catch (e) { msg.textContent = "select and press Ctrl+C below"; } };
   try { if (navigator.clipboard && window.isSecureContext !== false) navigator.clipboard.writeText(t.value).then(ok, fallback); else fallback(); } catch (e) { fallback(); }
 }
 document.addEventListener("click", e => {
@@ -322,12 +322,12 @@ document.addEventListener("input", e => {
 });
 document.getElementById("copyTop").addEventListener("click", () => copy("copiedTop"));
 document.getElementById("copyBottom").addEventListener("click", () => copy("copiedBottom"));
-document.getElementById("reset").addEventListener("click", () => { if (confirm("¿Borrar las respuestas y notas de esta hoja?")) { S = {}; save(); document.getElementById("general").value = ""; build(); summary(); } });
+document.getElementById("reset").addEventListener("click", () => { if (confirm("Clear the answers and notes on this sheet?")) { S = {}; save(); document.getElementById("general").value = ""; build(); summary(); } });
 document.getElementById("general").value = S._general || "";
 build(); summary();
 """
 
-TILES_TXT = {"xy": "x e y", "x": "solo x", "y": "solo y", "no": "no (pieza única)"}
+TILES_TXT = {"xy": "x and y", "x": "x only", "y": "y only", "no": "no (single piece)"}
 
 
 def items_json(sets_data) -> list[dict]:
@@ -337,7 +337,7 @@ def items_json(sets_data) -> list[dict]:
         for p in mod.PIECES:
             e = by_key[p.key]
             items.append({
-                "id": p.key, "set": mod.SET_NAME, "lumps": p.lumps, "kind": "pared" if p.kind == "wall" else "suelo/techo",
+                "id": p.key, "set": mod.SET_NAME, "lumps": p.lumps, "kind": "wall" if p.kind == "wall" else "floor/ceiling",
                 "w": p.size[0], "h": p.size[1], "tilesTxt": TILES_TXT[p.tiles], "pal": p.palette, "masked": p.masked,
                 "title": p.title, "desc": p.desc, "rec": p.rec, "recWhy": p.rec_why, "whyV2": p.why_v2,
                 "script": mod.SCRIPT_REL, "seed": e["seed"], "colours": e["colours_used"], "luma": e["mean_luma"],
@@ -355,19 +355,19 @@ def lump_table(sets_data) -> str:
         for p in mod.PIECES:
             e = by_key[p.key]
             fam = next((f for f in sorted(NEW_FAMILIES, key=len, reverse=True) if p.lumps[0][2:].startswith(f)), "")
-            fam_txt = f"{fam} (nueva)" if fam else p.lumps[0][2:-1] + " (existente)"
+            fam_txt = f"{fam} (new)" if fam else p.lumps[0][2:-1] + " (existing)"
             rows.append(
                 f"<tr><td><code>{html.escape(', '.join(p.lumps))}</code></td><td>{mod.SET_NAME}</td>"
-                f"<td>{html.escape(p.title)}</td><td>{'pared' if p.kind == 'wall' else 'flat'}</td>"
+                f"<td>{html.escape(p.title)}</td><td>{'wall' if p.kind == 'wall' else 'flat'}</td>"
                 f"<td>{p.size[0]}×{p.size[1]}</td><td>{TILES_TXT[p.tiles]}</td>"
                 f"<td>v{p.palette}{' RGBA' if p.masked else ''}</td><td>{html.escape(fam_txt)}</td>"
-                f"<td>{e['seed']}</td><td>propuesta</td></tr>")
+                f"<td>{e['seed']}</td><td>proposed</td></tr>")
     for lump, why in gen_moscow.REUSED:
-        rows.append(f"<tr><td><code>{lump}</code></td><td>moscow</td><td>{html.escape(why)}</td><td>pared</td>"
-                    f"<td>64×128</td><td>x e y</td><td>v1</td><td>MARB (existente)</td><td>1938</td>"
-                    f"<td>aprobada (D42), reutilizada</td></tr>")
-    head = ("<tr><th>Lump</th><th>Set</th><th>Qué es</th><th>Tipo</th><th>Tamaño</th><th>Tila</th><th>Paleta</th>"
-            "<th>Familia</th><th>Semilla</th><th>Estado</th></tr>")
+        rows.append(f"<tr><td><code>{lump}</code></td><td>moscow</td><td>{html.escape(why)}</td><td>wall</td>"
+                    f"<td>64×128</td><td>x and y</td><td>v1</td><td>MARB (existing)</td><td>1938</td>"
+                    f"<td>approved (D42), reused</td></tr>")
+    head = ("<tr><th>Lump</th><th>Set</th><th>What it is</th><th>Type</th><th>Size</th><th>Tiles</th><th>Palette</th>"
+            "<th>Family</th><th>Seed</th><th>Status</th></tr>")
     return f'<div class="tablewrap"><table class="t">{head}{"".join(rows)}</table></div>'
 
 
@@ -382,82 +382,82 @@ def build_sheet(sets_data, problems: list[str], out: Path = SHEET) -> Path:
         reuse = ""
         if mod is gen_moscow:
             marb = ep2lib.load_approved("SDMARB1")
-            reuse = ('<h3>Reutilizada, ya aprobada</h3><div class="card"><div class="row" style="grid-template-columns:1fr">'
-                     f'<div><div class="name"><code>SDMARB1</code><span class="ev">aprobada D42 · no se vota</span></div>'
+            reuse = ('<h3>Reused, already approved</h3><div class="card"><div class="row" style="grid-template-columns:1fr">'
+                     f'<div><div class="name"><code>SDMARB1</code><span class="ev">approved D42 · not voted on</span></div>'
                      f'<p class="meta">{html.escape(gen_moscow.REUSED[0][1])}</p><div class="views">'
                      f'<div class="v"><b>4×</b><img class="px" src="{png_uri(marb)}" width="256" height="512" alt=""></div>'
                      '</div></div></div></div>')
         sections.append(
             f'<h2>{mapname} · {html.escape(heading)}</h2><p class="lead">{html.escape(light)} '
-            f'Generador <code>{mod.SCRIPT_REL}</code>, semilla base {mod.BATCH_SEED}.</p>'
-            f'<h3>El set montado</h3><div class="ov">{ovs}</div>'
-            f'<h3>Las piezas</h3><div id="cards-{mod.SET_NAME}"></div>{reuse}')
-    prob_html = ("<p><b>Comprobación de nombres:</b> los " + str(n_lumps) + " lumps propuestos son SD, de ≤ 8 "
-                 "caracteres, y ninguno choca con un nombre existente en <code>assets/</code>, <code>work/</code> ni "
-                 "<code>TEXTURE-INDEX.md</code>, ni se lee como fotograma de un sprite.</p>") if not problems else (
-        "<p><b>Problemas de nombres:</b></p><ul>" + "".join(f"<li>{html.escape(p)}</li>" for p in problems) + "</ul>")
+            f'Generator <code>{mod.SCRIPT_REL}</code>, base seed {mod.BATCH_SEED}.</p>'
+            f'<h3>The assembled set</h3><div class="ov">{ovs}</div>'
+            f'<h3>The pieces</h3><div id="cards-{mod.SET_NAME}"></div>{reuse}')
+    prob_html = ("<p><b>Name check:</b> the " + str(n_lumps) + " proposed lumps are SD, ≤ 8 characters "
+                 "long, and none clashes with an existing name in <code>assets/</code>, <code>work/</code> or "
+                 "<code>TEXTURE-INDEX.md</code>, nor reads as a sprite frame.</p>") if not problems else (
+        "<p><b>Name problems:</b></p><ul>" + "".join(f"<li>{html.escape(p)}</li>" for p in problems) + "</ul>")
     intro = f"""
 <div class="intro">
-<p><b>Qué es (D104, P4).</b> Los tres conjuntos de texturas del Episodio 2, «The Road to Moscow», en <b>borrador</b>:
-{len(items)} piezas, {n_lumps} lumps, todas procedurales con nuestros generadores (semilla fija, paleta v1, estilo Doom 1993-96,
-64/128 px). Nada está en <code>assets/</code> ni en el índice: si dices OK, el PM las instala tal cual.</p>
+<p><b>What this is (D104, P4).</b> The three texture sets of Episode 2, “The Road to Moscow”, as a <b>draft</b>:
+{len(items)} pieces, {n_lumps} lumps, all procedural with our generators (fixed seed, palette v1, Doom 1993-96 style,
+64/128 px). Nothing is in <code>assets/</code> or in the index: if you say OK, the PM installs them as they are.</p>
 <ul>
-<li>Cada pieza se ve <b>sola</b> (1× y ampliada), en <b>mosaico 3×3</b> (para ver si tila) y en una <b>sala de muestra</b>:
-una vista mínima tipo Doom (320×200, 90°, ojo a 41 unidades, luz que cae con la distancia). <b>No es GZDoom</b>: sirve
-para ver escala y repetición; la prueba real es en el motor, con el level-designer.</li>
-<li><b>Paleta:</b> v1. Los ladrillos (rotonda, muralla del Kremlin, almena, pancarta sobre el muro, Spásskaya) usan
-<code>marble_red</code> de la v2, igual que el ladrillo de Tankogrado que aprobaste (D66): v1 no tiene rojo de ladrillo cocido.
-Ningún cobalto ni oro de mosaico (son del portal y del metro).</li>
-<li><b>Texto:</b> ninguna fuente del sistema. «НЕФТЬ», «СКЛАД» y «М2» salen de nuestro alfabeto (bigfont, D24); el número del
-vagón y el año de la placa, de dígitos de 3×5 píxeles dibujados aquí; las placas del panel de control parecen texto y no dicen nada.</li>
-<li><b>D12:</b> Kremlin y Plaza Roja como lugares y piedra; la pancarta lleva estrella y hoz y martillo, sin texto ni retratos.</li>
-<li><b>Mármol de Plóshchad Revolyutsii:</b> ya existe (<code>SDMARB1</code>, aprobado en el Metro), se reutiliza.</li>
+<li>Each piece is shown <b>on its own</b> (1× and enlarged), in a <b>3×3 mosaic</b> (to see whether it tiles) and in a <b>sample room</b>:
+a minimal Doom-style view (320×200, 90°, eye at 41 units, light that falls off with distance). <b>It is not GZDoom</b>: it serves
+to check scale and repetition; the real test is in the engine, with the level-designer.</li>
+<li><b>Palette:</b> v1. The bricks (roundhouse, Kremlin wall, battlement, banner over the wall, Spasskaya) use
+<code>marble_red</code> from v2, like the Tankograd brick you approved (D66): v1 has no fired-brick red.
+No cobalt or mosaic gold (those belong to the portal and the metro).</li>
+<li><b>Text:</b> no system font. “НЕФТЬ”, “СКЛАД” and “М2” come from our alphabet (bigfont, D24); the wagon
+number and the plaque year are drawn here with 3×5-pixel digits; the control-panel plaques look like text and say nothing.</li>
+<li><b>D12:</b> the Kremlin and Red Square as places and stone; the banner carries a star and a hammer and sickle, with no text or portraits.</li>
+<li><b>Marble of Ploshchad Revolyutsii:</b> it already exists (<code>SDMARB1</code>, approved in the Metro), it is reused.</li>
 </ul>
-<p>Marca <b>OK / NO / ?</b> en cada una, escribe notas si quieres y pulsa <b>Copiar resultado</b> para pegármelo.</p>
+<p>Mark <b>OK / NO / ?</b> on each one, write notes if you like and press <b>Copy result</b> to paste it to me.</p>
 </div>"""
     ask = """
-<div class="ask"><p><b>Además del OK/NO, tres preguntas:</b></p><ol>
-<li><b>Verde de la turbina.</b> La paleta v1 no tiene el «gris-verde» de la maquinaria soviética; lo he pintado con el verde
-4BO de las puertas (ata con la base). Si lo quieres de verdad gris-verde, es una rampa nueva en los 30 huecos libres
-(paleta v3). Mi recomendación: no, el 4BO vale.</li>
-<li><b>Agua.</b> Gris-azul (steel_blue), no azul Doom saturado, para no parecerse al portal. ¿Vale, o la quieres más azul?</li>
-<li><b>Enmascaradas.</b> La almena <code>SDKREM2</code> y el aislador <code>SDINSL1</code> son RGBA como la cadena
-<code>SDCHAN1</code>: funcionan como textura media de una línea de dos caras. Pendiente de verlas en el motor (D26: lo hace el PM).</li>
+<div class="ask"><p><b>Besides OK/NO, three questions:</b></p><ol>
+<li><b>Turbine green.</b> Palette v1 has no “grey-green” of Soviet machinery; I painted it with the 4BO green of the doors
+(it ties in with the base). If you want a true grey-green, it is a new ramp in the 30 free slots
+(palette v3). My recommendation: no, the 4BO works.</li>
+<li><b>Water.</b> Grey-blue (steel_blue), not saturated Doom blue, so that it does not resemble the portal. Fine, or do you want it bluer?</li>
+<li><b>Masked pieces.</b> The battlement <code>SDKREM2</code> and the insulator <code>SDINSL1</code> are RGBA like the chain
+<code>SDCHAN1</code>: they work as the middle texture of a two-sided line. Pending a look in the engine (D26: the PM does it).</li>
 </ol></div>"""
     data = json.dumps(items, ensure_ascii=False)
     sets_js = json.dumps([m.SET_NAME for m, *_ in sets_data])
     doc = f"""<!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Texturas Episodio 2</title>
+<title>Episode 2 Textures</title>
 <style>{CSS}</style>
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <h1>Soviet Doom · Texturas del Episodio 2 (borrador)</h1>
-  <span class="prog"><b id="pDone">0</b> / {len(items)} juzgadas</span>
-  <button class="primary" id="copyTop">Copiar resultado</button><span class="copied" id="copiedTop"></span>
+  <h1>Soviet Doom · Episode 2 Textures (draft)</h1>
+  <span class="prog"><b id="pDone">0</b> / {len(items)} judged</span>
+  <button class="primary" id="copyTop">Copy result</button><span class="copied" id="copiedTop"></span>
 </div></header>
 <div class="wrap">
 {intro}
 {"".join(sections)}
-<h2>Nombres de lump propuestos</h2>
+<h2>Proposed lump names</h2>
 {prob_html}
 {lump_table(sets_data)}
-<h2>Preguntas</h2>
+<h2>Questions</h2>
 {ask}
-<h2>Resultado</h2>
-<p class="meta">Comentario general (opcional):</p>
-<textarea class="note" id="general" placeholder="Algo sobre los tres sets en conjunto"></textarea>
+<h2>Result</h2>
+<p class="meta">General comment (optional):</p>
+<textarea class="note" id="general" placeholder="Anything about the three sets as a whole"></textarea>
 <textarea id="result" readonly></textarea>
-<p><button class="primary" id="copyBottom">Copiar resultado</button><span class="copied" id="copiedBottom"></span> <button id="reset">Borrar respuestas</button></p>
-<footer>Origen (a): procedural, <code>tools/art/gen_railway.py</code> (semilla 5400+n), <code>gen_dam.py</code> (5500+n),
-<code>gen_moscow.py</code> (5600+n), máquinas comunes en <code>ep2lib.py</code>, hoja <code>{SCRIPT_REL}</code>; PNG en
-<code>work/art/episode2/&lt;set&gt;/</code>; tests <code>tests/test_gen_episode2.py</code>. Paleta <code>docs/art/palette.json</code>
-sin modificar. Licencia: obra propia, CC BY-NC-SA 4.0 (D15). La sala de muestra NO es el colormap ni los mipmaps del motor
-(NO VERIFICADO en GZDoom). El agua necesita ANIMDEFS (mod-engineer). Nada instalado: si una vale, la instala el PM con tu OK.</footer>
+<p><button class="primary" id="copyBottom">Copy result</button><span class="copied" id="copiedBottom"></span> <button id="reset">Clear answers</button></p>
+<footer>Source (a): procedural, <code>tools/art/gen_railway.py</code> (seed 5400+n), <code>gen_dam.py</code> (5500+n),
+<code>gen_moscow.py</code> (5600+n), common machinery in <code>ep2lib.py</code>, sheet <code>{SCRIPT_REL}</code>; PNG in
+<code>work/art/episode2/&lt;set&gt;/</code>; tests <code>tests/test_gen_episode2.py</code>. Palette <code>docs/art/palette.json</code>
+unmodified. Licence: own work, CC BY-NC-SA 4.0 (D15). The sample room is NOT the engine's colormap or mipmaps
+(NOT VERIFIED in GZDoom). The water needs ANIMDEFS (mod-engineer). Nothing installed: if one is good, the PM installs it with your OK.</footer>
 </div>
 <script>
 const SETS = {sets_js};

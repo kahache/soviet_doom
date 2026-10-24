@@ -1112,7 +1112,8 @@ from dataclasses import replace as _replace  # noqa: E402  (German letters below
 # OFF, exactly like MIRROR_TERMINALS before its approval: with GERMAN_UMLAUTS
 # False the output of this script is the 214 glyphs that shipped before,
 # untouched by a single byte.  The CEO approved all five for an in-game
-# trial on 2026-10-13 (D37: "Las pruebo, incluso la B se queda", the sharp s
+# trial on 2026-10-13 (D37: "Las pruebo, incluso la B se queda", "I'll try them, even B
+# stays": the sharp s
 # included), and the ten files were installed in assets/fonts/ the same day,
 # copied byte for byte from work/art/font_umlaut/C/; SDMENU was regenerated
 # with gen_menu.py --install.  The default set is now 224 glyphs (112 x 2).

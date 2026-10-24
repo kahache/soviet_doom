@@ -531,6 +531,8 @@ def build(enemy: str, fooocus: bool = False) -> Path:
 # ------------------------------------------------------------ the patch
 GE_PATH = Path(ge.__file__)
 SPEC_EDITS = {   # gemini_enemy.py once the CEO approves: A/C read the stride sheets (exact text, once each)
+    # The left side of each pair is gemini_enemy.py's text before the patch, matched byte for byte, so its
+    # Spanish notes (written before D129) stay as they were; D128 applied the patch, so this is now history.
     "gunner": (
         ('        "walkL": Sheet("gem_gunner_walkL.png", 5, SIDES_RIGHT, None),\n'
          '        "walkR": Sheet("gem_gunner_walkR.png", 5, SIDES_RIGHT, None),\n',
@@ -543,11 +545,11 @@ SPEC_EDITS = {   # gemini_enemy.py once the CEO approves: A/C read the stride sh
         ('"B y D: la vista de pie (turn); A = walkL, C = walkR. OJO: walkL y walkR son casi la misma imagen "\n'
          '        "(difieren en un 0,5 % de los píxeles) y solo la vista de frente levanta un pie; 3/4, perfil y espalda "\n'
          '        "son la vista de pie: el ciclo de andar apenas se mueve (ver la lista)",',
-         '"B y D: la vista de pie (turn). A y C (D127): Gemini no dio zancadas (walkL = walkR = turn), así que "\n'
-         '        "salen de turn con las piernas recortadas y movidas (tools/art/walk_stride.py): A pierna izquierda "\n'
-         '        "adelante, C la derecha; de frente y de espaldas una bota sube, de perfil las piernas abren (A) y la "\n'
-         '        "cercana pasa delante (C). walk_stride.py build pone el torso de A y C sobre el de B (la pierna "\n'
-         '        "levantada mueve el eje de las piernas): constrúyelos con él, no con este comando",'),
+         '"B and D: the standing view (turn). A and C (D127): Gemini gave no strides (walkL = walkR = turn), so "\n'
+         '        "they come from turn with the legs cut out and moved (tools/art/walk_stride.py): A the left leg "\n'
+         '        "forward, C the right; from the front and the back one boot goes up, in profile the legs open (A) and "\n'
+         '        "the near one passes in front (C). walk_stride.py build puts the torso of A and C over B\'s (the "\n'
+         '        "raised leg moves the legs\' axis): build them with it, not with this command",'),
         ('        ("gem_gunner_walkL.png, gem_gunner_walkR.png", "Same Liberty Legion gunner, same style, scale and "\n'
          '         "magenta background, 5 views (front, 3/4 front, profile, 3/4 back, back) mid-stride: in walkL the LEFT "\n'
          '         "leg forward, in walkR the RIGHT leg forward, in EVERY view (the side views must show the stride, "\n'
@@ -567,10 +569,10 @@ SPEC_EDITS = {   # gemini_enemy.py once the CEO approves: A/C read the stride sh
         ("OJO: walkL y walkR son casi la misma imagen (difieren en un 0,3 % de los píxeles): Gemini no dio zancadas. "
          "A = walkL inclinada 3 grados, C = walkR inclinada -3 grados: se balancea de un pie a otro, pesado, como una "
          "estatua (ver la lista)",
-         "A y C (D127): Gemini no dio zancadas (walkL = walkR), así que salen de walkL con las botas recortadas y "
-         "movidas (tools/art/walk_stride.py): una bota sube bajo la túnica (o la pierna metálica de la abertura por "
-         "delante) y la túnica se balancea; de perfil la bota de delante avanza (A) y la de detrás pasa (C). "
-         "walk_stride.py build pone el torso de A y C sobre el de B: constrúyelos con él, no con este comando"),
+         "A and C (D127): Gemini gave no strides (walkL = walkR), so they come from walkL with the boots cut out and "
+         "moved (tools/art/walk_stride.py): one boot goes up under the robe (or the metal leg in the slit, in "
+         "front) and the robe swings; in profile the front boot steps forward (A) and the back one passes (C). "
+         "walk_stride.py build puts the torso of A and C over B's: build them with it, not with this command"),
         ('        ("gem_colossus_walkL.png, gem_colossus_walkR.png", "Same colossus, same style, scale and background, 5 "\n'
          '         "views mid-stride: in walkL the LEFT leg forward, in walkR the RIGHT leg forward, in EVERY view (the "\n'
          '         "side and back views must show the stride, the robe swinging), torch raised"),\n', ''),

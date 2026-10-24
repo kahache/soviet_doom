@@ -5,7 +5,8 @@ The candidates are `gen_world_sfx.py`'s, heard by the CEO on
 `work/audio/preview/world_sounds_listening.html` (56 candidates, 19 sounds).
 His verdict, 56/56 (docs/PRD.md D125): OK 50, NO 5 (SDPLDETH w2, SDPLJUMP w1
 and w2, SDIZPKP w3, SDTELEPT w3), ? 1: SDPLOOF w1, "El audio está bien pero
-no tiene el ruido, yo dejaría los 2 audios a la vez".
+no tiene el ruido, yo dejaría los 2 audios a la vez" ("The audio is fine but
+it lacks the noise, I would keep both sounds at once").
 
 What this does, and nothing else, the D107 dogs' way (`master_enemy_sfx.py
 --dogs`):

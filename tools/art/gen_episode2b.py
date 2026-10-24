@@ -93,6 +93,7 @@ def rng_for(offset: int) -> np.random.Generator:
 @dataclasses.dataclass
 class Piece2(ep2lib.Piece):
     set_name: str = ""
+    rec: str = "yes"             # the sheet's recommendation
     ramps: tuple = ()            # the v2 ramps this piece adds to v1, each with its reason in why_v2
     replays: str = ""            # the approved seeds it replays on purpose, if any
     variants: bool = False       # several lumps that are variants, not animation frames
@@ -1455,183 +1456,183 @@ def tex_muse1() -> np.ndarray:
 
 
 # ================================================================ pieces
-WHY_BRICK = "v2 solo por marble_red, como SDBRCK1 y SDKREM1 aprobados (D66, D107): v1 no tiene rojo de ladrillo cocido."
+WHY_BRICK = "v2 only for marble_red, like the approved SDBRCK1 and SDKREM1 (D66, D107): v1 has no fired-brick red."
 PIECES = [
     # ---- skies
     Piece2("SDSKY1", tex_sky1, "sky", SKY_SIZE, ["SDSKY1"], 1, "x",
-           "Noche de los Urales (cielo MAP04)",
-           "Cielo nocturno sobre Sverdlovsk: nubes rotas con la luna detrás y bordes plateados cerca de ella, "
-           "alguna estrella en los claros, el resplandor cálido de la ciudad y de Uralmash bajo las nubes, las "
-           "lomas de taiga en negro, chimeneas con su humo y luces rojas, un mástil de radio y, al este, las dos "
-           "torres de focos de la propia playa de vías.",
+           "Night over the Urals (MAP04 sky)",
+           "Night sky over Sverdlovsk: broken clouds with the moon behind them and silver edges near it, "
+           "a few stars in the gaps, the warm glow of the city and of Uralmash under the clouds, the "
+           "taiga hills in black, chimneys with their smoke and red lights, a radio mast and, to the east, the two "
+           "floodlight towers of the yard itself.",
            set_name="sky",
-           rec_why="Es lo que más pantalla ocupa en MAP04 (todo el patio es exterior). Oscuro arriba para que los "
-                   "enemigos se recorten; las luces lejanas están en la franja del horizonte."),
+           rec_why="It takes up more of the screen than anything else in MAP04 (the whole yard is outdoors). Dark at the "
+                   "top so the enemies stand out; the distant lights sit in the horizon band."),
     Piece2("SDSKY2", tex_sky2, "sky", SKY_SIZE, ["SDSKY2"], 2, "x",
-           "Noche de Moscú (cielo MAP06)",
-           "Cielo nocturno de Moscú: techo de nubes bajo, iluminado en naranja pardo por el sodio de la ciudad, "
-           "más frío y oscuro en el cénit; el perfil de bloques con ventanas encendidas, tres rascacielos de "
-           "Stalin con su estrella y la aguja de la torre de Ostankino (1967) con sus luces rojas.",
+           "Night over Moscow (MAP06 sky)",
+           "Moscow's night sky: a low cloud ceiling lit brownish orange by the city's sodium lamps, "
+           "colder and darker at the zenith; the skyline of blocks with lit windows, three of "
+           "Stalin's high-rises with their stars and the spire of the Ostankino tower (1967) with its red lights.",
            set_name="sky",
-           rec_why="El resplandor naranja dice «gran ciudad» al instante y contrasta con el Kremlin rojo. Sin San "
-                   "Basilio a propósito: el cielo gira 360° y no puedo garantizar en qué dirección caería."),
+           rec_why="The orange glow says \"big city\" at once and contrasts with the red Kremlin. No St Basil's "
+                   "on purpose: the sky turns 360° and I cannot guarantee which direction it would land in."),
     # ---- MAP04
     Piece2("SDWROF1", tex_wrof1, "flat", (64, 64), ["SDWROF1"], 3, "xy",
-           "Techo de vagón (con pasarela)",
-           "Techo de vagón de mercancías visto desde arriba: chapa en minio rojo-óxido con nervios transversales "
-           "cada 16 px, hollín de las locomotoras, óxido en los nervios y la pasarela de tablas a lo largo de y "
-           "sobre sus soportes.",
+           "Wagon roof (with walkway)",
+           "A goods wagon's roof seen from above: rust-red primer sheet with transverse ribs "
+           "every 16 px, soot from the locomotives, rust on the ribs and the plank walkway running along y "
+           "on its supports.",
            set_name="railway",
-           rec_why="Mismo rojo-óxido que SDWAGN1, así techo y lateral son el mismo vagón. La pasarela va en y: girar "
-                   "en UDMF para que siga al tren."),
+           rec_why="Same rust red as SDWAGN1, so roof and side are the same wagon. The walkway runs in y: rotate "
+                   "it in UDMF to follow the train."),
     Piece2("SDGOND1", tex_gond1, "flat", (64, 64), ["SDGOND1"], 4, "xy",
-           "Suelo de góndola",
-           "Fondo de un vagón abierto soviético: las trampillas de descarga (juntas, dos nervios estampados cada "
-           "una, bisagras a los lados), óxido, polvo de carbón y terrones de carbón en los rincones.",
+           "Gondola wagon floor",
+           "The bed of a Soviet open wagon: the unloading hatches (seams, two pressed ribs on each, "
+           "hinges at the sides), rust, coal dust and lumps of coal in the corners.",
            set_name="railway",
-           rec_why="Las trampillas son lo que distingue un полувагон soviético. Oscuro para que el suelo no compita."),
+           rec_why="The hatches are what sets a Soviet полувагон apart. Dark so the floor does not compete."),
     Piece2("SDCAB1", tex_cab1, "wall", (128, 128), ["SDCAB1"], 5, "no",
-           "Cabina de locomotora: frontal (caldera)",
-           "Mirando hacia delante dentro de la cabina de vapor: el frontal negro de la caldera con remaches, la "
-           "puerta del hogar con el fuego asomando por la rendija y los agujeros de aire, manómetros de caldera y de "
-           "freno en latón, dos niveles de agua, la palanca del regulador, volantes rojos en los tubos de vapor y "
-           "las ventanas redondas de la cabina a la noche (con una señal roja a lo lejos).",
+           "Locomotive cab: backhead (boiler)",
+           "Looking forward inside the steam cab: the boiler's black backhead with rivets, the "
+           "firebox door with the fire showing through the slot and the air holes, brass boiler and brake "
+           "gauges, two water glasses, the regulator lever, red handwheels on the steam pipes and "
+           "the cab's round windows onto the night (with a red signal in the distance).",
            set_name="railway",
-           rec_why="Pieza única para la pared delantera de la cabina. El brillo del hogar marca el sitio del "
-                   "interruptor de salida (que sigue siendo SDSW1D; un par de interruptores a juego sería otra tarea)."),
+           rec_why="A single piece for the cab's front wall. The firebox glow marks the spot of the "
+                   "exit switch (still SDSW1D; a matching pair of switches would be another task)."),
     Piece2("SDCAB2", tex_cab2, "wall", (64, 128), ["SDCAB2"], 6, "x",
-           "Cabina de locomotora: lateral",
-           "El costado de la cabina por dentro: chapa pintada de verde sobre juntas remachadas, la ventana "
-           "corredera a la playa de noche (una señal y luces lejanas, un reflejo), el reposabrazos de madera, un "
-           "volante de válvula y una placa esmaltada, el zócalo más oscuro rozado por las botas.",
+           "Locomotive cab: side",
+           "The cab's side from inside: green-painted sheet over riveted seams, the sliding "
+           "window onto the yard at night (a signal and distant lights, a reflection), the wooden armrest, a "
+           "valve handwheel and an enamel plate, the darker skirting scuffed by boots.",
            set_name="railway",
-           rec_why="Casa con SDCAB1 (mismo verde y latón). Tila en x por si la cabina es más larga que 64."),
+           rec_why="Matches SDCAB1 (same green and brass). Tiles in x in case the cab is longer than 64."),
     Piece2("SDSBOX1", tex_sbox1, "wall", (64, 64), ["SDSBOX1"], 7, "x",
-           "Cristal de la cabina de señales",
-           "La ventana del puesto de señales vista desde la playa, de noche y encendida por dentro: junquillos "
-           "pintados de blanco, luz cálida más fuerte bajo la lámpara colgante, las siluetas de las palancas abajo, "
-           "un cristal rajado; dintel de hormigón arriba y alféizar abajo. Las filas 8-55 son el hueco de 48.",
+           "Signal box glazing",
+           "The signal box window seen from the yard, at night and lit from inside: white-painted "
+           "glazing bars, warmer light under the hanging lamp, the silhouettes of the levers below, "
+           "one cracked pane; a concrete lintel above and a sill below. Rows 8-55 are the 48-high opening.",
            set_name="railway",
-           rec_why="Con offsety 8 el cristal llena exactamente los huecos de 48 (umbrales 160-208). Para que brille "
-                   "de noche conviene luz alta en ese sector o un brightmap (mod-engineer)."),
+           rec_why="With offsety 8 the glass fills the 48-high openings exactly (sills 160-208). To make it glow "
+                   "at night that sector wants high light or a brightmap (mod-engineer)."),
     Piece2("SDLEVR1", tex_levr1, "flat", (64, 64), ["SDLEVR1"], 8, "x",
-           "Palanquero (visto desde arriba)",
-           "El palanquero mecánico desde arriba: la bancada de hierro con sus ranuras sobre el entarimado, ocho "
-           "palancas pintadas por función (rojo señales, negro agujas, azul cerrojo, amarillo avanzada, blanco "
-           "reserva) con empuñaduras pulidas, tres echadas, placas de latón 1-8, la madera gastada donde se pone el "
-           "guardavías.",
+           "Lever frame (from above)",
+           "The mechanical lever frame from above: the iron bed with its slots over the floorboards, eight "
+           "levers painted by function (red signals, black points, blue lock, yellow distant, white "
+           "spare) with polished handles, three pulled over, brass plates 1-8, the worn wood where the "
+           "signalman stands.",
            set_name="railway",
-           rec_why="El pedestal de la llave amarilla. Ocho palancas por 64: tila en x para un palanquero más largo."),
+           rec_why="The yellow key's pedestal. Eight levers per 64: tiles in x for a longer lever frame."),
     Piece2("SDLEVR2", tex_levr2, "wall", (64, 64), ["SDLEVR2"], 9, "x",
-           "Palanquero (frente)",
-           "El palanquero de frente: ocho palancas saliendo de la bancada de hierro fundido con arquillos, "
-           "pintadas por función, empuñadura y gatillo pulidos, tres echadas hacia nosotros, placas de latón "
-           "numeradas, la pared verde de la cabina detrás.",
+           "Lever frame (front)",
+           "The lever frame from the front: eight levers rising from the cast-iron bed with its small arches, "
+           "painted by function, polished handle and catch, three pulled towards us, numbered brass "
+           "plates, the cab's green wall behind.",
            set_name="railway",
-           rec_why="64x64 (el mapa pedía 64x16: no es tamaño de pared acordado). Mismas palancas y colores que "
-                   "SDLEVR1, para que suelo y frente digan lo mismo."),
+           rec_why="64x64 (the map asked for 64x16: not an agreed wall size). Same levers and colours as "
+                   "SDLEVR1, so floor and front say the same thing."),
     Piece2("SDRHDR1", tex_rhdr1, "wall", (128, 128), ["SDRHDR1"], 10, "x",
-           "Puertas del cocherón",
-           "Las puertas de una vía del cocherón, un par por tesela: dos hojas de tablas verticales en verde de "
-           "depósito desvaído hasta la madera, cristales arriba (dos rotos, uno tapado con una tabla), peinazos y "
-           "riostras, pernios de hierro negro, una tranca, hollín de las locomotoras sobre la parte alta. Sin "
-           "número: las vías 2 y 3 y el panel de S2 tienen que llevar la misma cara.",
+           "Roundhouse doors",
+           "The doors of one roundhouse stall, one pair per tile: two leaves of vertical planks in depot "
+           "green faded down to the wood, panes at the top (two broken, one boarded up), rails and "
+           "braces, black iron strap hinges, a drop bar, locomotive soot over the upper part. No "
+           "number: stalls 2 and 3 and the S2 panel have to wear the same face.",
            set_name="railway",
-           rec_why="Distinta de SDGATE1 (chapa de fábrica) y de SDGATE2 (corredera roja del almacén); el hollín "
-                   "arriba cuenta que dentro hay vapor."),
+           rec_why="Different from SDGATE1 (factory sheet) and SDGATE2 (the warehouse's red sliding door); the soot "
+                   "at the top tells you there is steam inside."),
     Piece2("SDSTAN1", tex_stan1, "wall", (256, 64), ["SDSTAN1"], 11, "no",
-           "Cartel de la estación «СВЕРДЛОВСК»",
-           "El letrero de la estación: esmalte blanco en marco de acero, «СВЕРДЛОВСК» grande y «СОРТИРОВОЧНЫЙ» "
-           "debajo, en negro con nuestro alfabeto (sin fuentes del sistema, sale igual en el Mac y en Windows), "
-           "un filete rojo, el esmalte saltado hasta el óxido, chorreones de los cuatro tornillos, hollín arriba.",
+           "Station board «СВЕРДЛОВСК»",
+           "The station sign: white enamel in a steel frame, «СВЕРДЛОВСК» large and «СОРТИРОВОЧНЫЙ» "
+           "under it, in black from our alphabet (no system fonts, so it comes out the same on the Mac and on Windows), "
+           "a red rule, the enamel chipped down to rust, streaks from the four bolts, soot at the top.",
            set_name="railway",
-           rec_why="Textura media sobre el andén, una sola vez (256x64, el tamaño de SDSLOG1). Se lee a 1x desde el "
-                   "andén; el nombre completo es el de la estación real de clasificación."),
+           rec_why="Mid texture over the platform, used once (256x64, the size of SDSLOG1). It reads at 1x from the "
+                   "platform; the full name is the real marshalling station's."),
     # ---- MAP05
     Piece2("SDGRIL1", tex_gril1, "wall", (64, 128), ["SDGRIL1"], 12, "x",
-           "Barrotes de ventana (enmascarada)",
-           "Rejas, ENMASCARADA: cuatro barrotes redondos por tesela que atraviesan dos pletinas remachadas, "
-           "pintura oscura saltada hasta el óxido. RGBA con alfa dura, para las dos ventanas de la sala de control "
-           "sobre la nave (textura media).",
+           "Window bars (masked)",
+           "Bars, MASKED: four round bars per tile running through two riveted flat straps, "
+           "dark paint chipped down to rust. RGBA with hard alpha, for the control room's two windows "
+           "over the hall (mid texture).",
            set_name="dam", masked=True,
-           rec_why="Las dos pletinas caen dentro del hueco de 80 de alto. Misma excepción RGBA que SDCHAN1 y SDINSL1.",
+           rec_why="Both straps fall inside the 80-high opening. Same RGBA exception as SDCHAN1 and SDINSL1.",
            ),
     Piece2("SDDOORB", tex_doorb, "wall", (128, 128), ["SDDOORB"], DOORB_OFFSET, "no",
-           "Puerta de la llave azul",
-           "La puerta de la llave azul: la receta de SDDOORY y SDDOORR (la hoja verde de SDDOOR1, su volante y sus "
-           "remaches) con el marco, los nervios, la placa y la banda de peligro en cobalto y «ПРОПУСК» en crema.",
+           "Blue key door",
+           "The blue key door: the recipe of SDDOORY and SDDOORR (SDDOOR1's green leaf, its handwheel and its "
+           "rivets) with the frame, the ribs, the plate and the hazard band in cobalt and «ПРОПУСК» in cream.",
            set_name="dam", ramps=("mosaic_cobalt",),
-           why_v2="v2 solo por mosaic_cobalt: el azul de v1 (steel_blue) es gris y no se lee como llave azul. Es el "
-                  "cobalto del mosaico SDMOSA1, que enmarca esta misma puerta en MAP06.",
-           replays="hoja: semilla 1982 (SDDOOR1), como SDDOORY/SDDOORR",
-           rec_why="Gemela de las puertas amarilla y roja aprobadas: el jugador ya sabe leerla. La usan MAP05 (la "
-                   "puerta azul) y MAP06 (la puerta azul entre mosaicos)."),
+           why_v2="v2 only for mosaic_cobalt: v1's blue (steel_blue) is grey and does not read as a blue key. It is the "
+                  "cobalt of the SDMOSA1 mosaic, which frames this same door in MAP06.",
+           replays="leaf: seed 1982 (SDDOOR1), like SDDOORY/SDDOORR",
+           rec_why="Twin of the approved yellow and red doors: the player already knows how to read it. Used in MAP05 (the "
+                   "blue door) and MAP06 (the blue door between mosaics)."),
     Piece2("SDHVLT1", tex_hvlt1, "wall", (64, 128), ["SDHVLT1"], 14, "x",
-           "Valla de alta tensión con placa (enmascarada)",
-           "La valla de la subestación, ENMASCARADA: tela metálica galvanizada entre postes de angular (el poste "
-           "cae en el borde de la tesela), pasamanos, dos hilos de espino y la placa soviética de peligro «СТОЙ!» "
-           "con la flecha-rayo roja, atada a la malla.",
+           "High-voltage fence with plate (masked)",
+           "The substation fence, MASKED: galvanised wire mesh between angle-iron posts (the post "
+           "falls on the tile's edge), a top rail, two strands of barbed wire and the Soviet danger plate «СТОЙ!» "
+           "with the red lightning arrow, tied to the mesh.",
            set_name="dam", masked=True,
-           rec_why="Al ser enmascarada se ven los transformadores a través: pide que la valla sea una línea de dos "
-                   "caras (level-designer). «НАПРЯЖЕНИЕ» no cabe en 64 px con nuestra letra pequeña; la flecha lo dice."),
+           rec_why="Being masked, the transformers show through: it needs the fence to be a two-sided "
+                   "line (level-designer). «НАПРЯЖЕНИЕ» does not fit in 64 px with our small lettering; the arrow says it."),
     # ---- MAP06
     Piece2("SDCLOK1", tex_clok1, "wall", (128, 128), ["SDCLOK1"], 15, "no",
-           "Reloj de la Spásskaya",
-           "La esfera de la torre Spásskaya: negra en un aro dorado, marcas horarias y puntos de minuto en oro, "
-           "anillo interior y sol dorados en el centro, agujas doradas a las doce menos cinco; la esfera en un "
-           "cuadrado de caliza blanca con rosetas de oro en las enjutas, sobre el ladrillo rojo de la torre.",
+           "Spasskaya clock",
+           "The Spasskaya tower's clock face: black in a gold ring, hour marks and minute dots in gold, "
+           "gold inner ring and sun at the centre, gold hands at five to twelve; the face in a "
+           "square of white limestone with gold rosettes in the spandrels, on the tower's red brick.",
            set_name="moscow", ramps=("marble_red",), why_v2=WHY_BRICK,
-           rec_why="Sustituye a la placa SDSTAR1 en el piso del reloj. Marcas en vez de números: a 128 px los "
-                   "números de la esfera real no se leerían."),
+           rec_why="Replaces the SDSTAR1 plate on the clock storey. Marks instead of numerals: at 128 px the "
+                   "real face's numerals would not read."),
     Piece2("SDRUBY1", tex_ruby1, "wall", (128, 128), ["SDRUBY1"], 16, "no",
-           "Estrella de rubí (enmascarada)",
-           "La estrella de rubí del Kremlin, ENMASCARADA: cinco brazos de cristal rubí, cada uno con una faceta "
-           "clara y otra en sombra, iluminada desde dentro, marco y nervios dorados, estrella interior de oro; "
-           "debajo la bola dorada y el vástago de la aguja.",
+           "Ruby star (masked)",
+           "The Kremlin's ruby star, MASKED: five arms of ruby glass, each with one light facet "
+           "and one in shadow, lit from inside, gold frame and ribs, a gold inner star; "
+           "below it the gold ball and the spire's stem.",
            set_name="moscow", masked=True,
-           rec_why="Textura media sobre la torre, contra el cielo: con SDSKY2 detrás es la silueta del final."),
+           rec_why="Mid texture over the tower, against the sky: with SDSKY2 behind it, it is the finale's silhouette."),
     Piece2("SDGUMS", tex_gums, "wall", (64, 128), [f"SDGUMS{i}" for i in (1, 2, 3)], 17, "x",
-           "Escaparates del GUM (3 variantes)",
-           "Las tiendas de las galerías del GUM: rótulo de cristal negro con letras doradas de nuestro alfabeto "
-           "(«ТКАНИ» telas, «ОБУВЬ» calzado, «ЧАСЫ» relojes), escaparate de medio punto sobre la tienda vacía y "
-           "oscura, un cristal reventado (saqueo), zócalo de madera pulida sobre una barra de latón, pilastras de "
-           "piedra en los bordes.",
+           "GUM shopfronts (3 variants)",
+           "The shops of the GUM arcades: a black glass sign with gold letters from our alphabet "
+           "(«ТКАНИ» fabrics, «ОБУВЬ» shoes, «ЧАСЫ» watches), a round-arched window over the empty, "
+           "dark shop, one smashed pane (looting), a polished wood plinth over a brass rail, stone "
+           "pilasters at the edges.",
            set_name="moscow", variants=True,
-           rec_why="Tres variantes con la misma fachada y otra palabra, para alternarlas a lo largo de la galería; "
-                   "una sola repetida diría «ТКАНИ ТКАНИ ТКАНИ»."),
+           rec_why="Three variants with the same front and a different word, to alternate along the arcade; "
+                   "a single one repeated would say «ТКАНИ ТКАНИ ТКАНИ»."),
     Piece2("SDGUMR1", tex_gumr1, "flat", (64, 64), ["SDGUMR1"], 18, "xy",
-           "Techo de cristal del GUM",
-           "La bóveda de cristal del GUM desde abajo: costilla de hierro del arco en el borde, correa en el centro, "
-           "junquillos, cristales sucios oscuros de noche y templados por el resplandor de la ciudad, mugre contra "
-           "los hierros, dos cristales que faltan y uno rajado.",
+           "GUM glass roof",
+           "The GUM's glass vault from below: the arch's iron rib on the edge, a purlin in the centre, "
+           "glazing bars, dirty panes dark at night and warmed by the city's glow, grime against "
+           "the ironwork, two missing panes and one cracked.",
            set_name="moscow",
-           rec_why="Hace de techo de la galería y del atrio (hoy es cielo). La costilla va en x: girar en UDMF para "
-                   "seguir la bóveda."),
+           rec_why="Serves as the ceiling of the arcade and the atrium (today it is sky). The rib runs in x: rotate it "
+                   "in UDMF to follow the vault."),
     Piece2("SDMUSE1", tex_muse1, "wall", (64, 128), ["SDMUSE1"], 19, "xy",
-           "Ladrillo del Museo Histórico",
-           "El ladrillo rojo del Museo Histórico con sus remates blancos: un rojo más hondo y más pardo que el "
-           "del Kremlin con juntas finas claras, una banda blanca de casetones cuadrados («ширинки») con un rombo "
-           "de ladrillo cada uno, una fila de pinjantes blancos debajo y una imposta blanca con dentículos.",
+           "Historical Museum brick",
+           "The Historical Museum's red brick with its white trim: a deeper, browner red than the "
+           "Kremlin's with fine light joints, a white band of square recessed panels («ширинки») each with a "
+           "brick lozenge, a row of white drops under it and a white string course with dentils.",
            set_name="moscow", ramps=("marble_red",), why_v2=WHY_BRICK,
-           rec_why="Distinto de SDKREM1 (más pardo) y de SDSPAS1 (sin pilastras, con casetones): tres rojos de "
-                   "ladrillo que se distinguen en la misma plaza."),
+           rec_why="Different from SDKREM1 (browner) and SDSPAS1 (no pilasters, with panels): three brick "
+                   "reds you can tell apart on the same square."),
 ]
 
-SETS = (("sky", "Cielos", "MAP04 y MAP06"),
-        ("railway", "MAP04 · Railway — la playa de Sverdlovsk (segunda ronda)", "MAP04"),
-        ("dam", "MAP05 · Dam — la presa del Volga (segunda ronda)", "MAP05"),
-        ("moscow", "MAP06 · Moscow — la Plaza Roja (segunda ronda)", "MAP06"))
+SETS = (("sky", "Skies", "MAP04 and MAP06"),
+        ("railway", "MAP04 · Railway — the Sverdlovsk yard (second round)", "MAP04"),
+        ("dam", "MAP05 · Dam — the Volga dam (second round)", "MAP05"),
+        ("moscow", "MAP06 · Moscow — Red Square (second round)", "MAP06"))
 SET_LEADS = {
-    "sky": "Formato: 1024×128, una vuelta completa de 360° sin repetirse (el SKY1 de Freedoom es 256×128 y se repite "
-           "cuatro veces). La fila 100 queda a la altura de los ojos: las siluetas lejanas suben por encima de ella "
-           "para que se vean por encima de los muros. Se registran como textura y se nombran en MAPINFO (`sky1 = "
-           "\"SDSKY1\"` en MAP04, `\"SDSKY2\"` en MAP06): eso y añadir 1024×128 a los tamaños de check_pk3 es del "
-           "mod-engineer. NO VERIFICADO en GZDoom (posición vertical y estiramiento con freelook; si hace falta, "
-           "`skyoffset` en TEXTURES).",
-    "railway": "Luz recomendada de noche: patio 112-144 bajo SDSKY1, cabina 128-160 (el hogar), puesto de señales 144-176.",
-    "dam": "Las dos enmascaradas son RGBA como SDCHAN1/SDINSL1: van en `MASKED_TEXTURES` de check_pk3 al instalarse.",
-    "moscow": "Con SDSKY2 la plaza pasa a ser de noche: la luz recomendada en el índice (160-192, «a plena luz») "
-              "habría que bajarla a 128-160 (decisión del level-designer).",
+    "sky": "Format: 1024×128, one full 360° turn with no repeat (Freedoom's SKY1 is 256×128 and repeats "
+           "four times). Row 100 sits at eye level: the distant silhouettes rise above it "
+           "so they show over the walls. They are registered as textures and named in MAPINFO (`sky1 = "
+           "\"SDSKY1\"` in MAP04, `\"SDSKY2\"` in MAP06): that, and adding 1024×128 to check_pk3's sizes, is the "
+           "mod-engineer's. NOT VERIFIED in GZDoom (vertical position and stretching with freelook; if needed, "
+           "`skyoffset` in TEXTURES).",
+    "railway": "Recommended night light: yard 112-144 under SDSKY1, cab 128-160 (the firebox), signal box 144-176.",
+    "dam": "The two masked pieces are RGBA like SDCHAN1/SDINSL1: they go into check_pk3's `MASKED_TEXTURES` when installed.",
+    "moscow": "With SDSKY2 the square turns to night: the light the index recommends (160-192, \"in full daylight\") "
+              "would have to come down to 128-160 (the level-designer's call).",
 }
 
 # The sample rooms: approved lumps (read from assets/) and this round's. ceil None shows the sky.
@@ -1661,14 +1662,14 @@ SCENES = {
 }
 SCENE_SKY = {"railway": "SDSKY1", "moscow": "SDSKY2", "sky": None, "dam": None}
 OVERVIEWS = {
-    "railway": [("La cabina y el cocherón", {"back": "SDCAB1", "left": "SDCAB2", "right": "SDRHDR1", "floor": "SDFLR4"}),
-                ("El andén de noche", {"back": ("stack", "SDSTAN1", "SDBRCK1"), "left": "SDWAGN1",
+    "railway": [("The cab and the roundhouse", {"back": "SDCAB1", "left": "SDCAB2", "right": "SDRHDR1", "floor": "SDFLR4"}),
+                ("The platform at night", {"back": ("stack", "SDSTAN1", "SDBRCK1"), "left": "SDWAGN1",
                                        "right": ("stack", "SDSBOX1", "SDBRCK1"), "floor": "SDBLST1"})],
-    "dam": [("La subestación", {"back": "SDHVLT1", "left": "SDDOORB", "right": "SDHVLT1", "floor": "SDBLST1"})],
-    "moscow": [("La torre", {"back": "SDCLOK1", "left": "SDFLAG3", "right": "SDFLAG4", "floor": "SDCOBL1"}),
-               ("La galería del GUM", {"back": "SDGUMS1", "left": "SDGUMS2", "right": "SDGUMS3", "floor": "SDMARB1f",
+    "dam": [("The substation", {"back": "SDHVLT1", "left": "SDDOORB", "right": "SDHVLT1", "floor": "SDBLST1"})],
+    "moscow": [("The tower", {"back": "SDCLOK1", "left": "SDFLAG3", "right": "SDFLAG4", "floor": "SDCOBL1"}),
+               ("The GUM arcade", {"back": "SDGUMS1", "left": "SDGUMS2", "right": "SDGUMS3", "floor": "SDMARB1f",
                                       "ceil": "SDGUMR1"}),
-               ("El museo", {"back": "SDMUSE1", "left": "SDMUSE1", "right": "SDRUBY1", "floor": "SDCOBL2"})],
+               ("The museum", {"back": "SDMUSE1", "left": "SDMUSE1", "right": "SDRUBY1", "floor": "SDCOBL2"})],
 }
 # v2 ramps of the approved lumps the scenes borrow (so the room keeps their colours).
 APPROVED_RAMPS = {"SDMOSA1": ("mosaic_cobalt",), "SDKREM1": ("marble_red",), "SDKREM2": ("marble_red",),
@@ -1832,8 +1833,8 @@ def file_uri(path: Path) -> str:
     return "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode("ascii")
 
 
-TILES_TXT = {"xy": "x e y", "x": "solo x", "y": "solo y", "no": "no (pieza única)"}
-KIND_TXT = {"wall": "pared", "flat": "suelo/techo", "sky": "cielo"}
+TILES_TXT = {"xy": "x and y", "x": "x only", "y": "y only", "no": "no (one-off piece)"}
+KIND_TXT = {"wall": "wall", "flat": "floor/ceiling", "sky": "sky"}
 
 CSS_EXTRA = """
 .pano{overflow-x:auto;max-width:100%;border:1px solid var(--line);background:var(--well)}
@@ -1854,36 +1855,36 @@ function zoomFor(w){ return w <= 64 ? 4 : (w <= 128 ? 3 : 2); }
 function vote(it){
   return `<div class="vote">
     <div class="btns"><button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div>
-    <textarea class="note" placeholder="Notas (qué cambiar, más claro, otro color…)">${esc(st(it.id).n)}</textarea>
+    <textarea class="note" placeholder="Notes (what to change, lighter, another colour…)">${esc(st(it.id).n)}</textarea>
   </div>`;
 }
 function meta(it){
-  return `<div class="name"><code>${esc(it.lumps.join(", "))}</code><span class="ev">${it.kind} · ${it.w}×${it.h} · tila: ${esc(it.tilesTxt)} · paleta ${it.palTxt}${it.masked ? " · enmascarada (RGBA)" : ""}</span></div>
+  return `<div class="name"><code>${esc(it.lumps.join(", "))}</code><span class="ev">${it.kind} · ${it.w}×${it.h} · tiles: ${esc(it.tilesTxt)} · palette ${it.palTxt}${it.masked ? " · masked (RGBA)" : ""}</span></div>
     <p class="meta"><b>${esc(it.title)}.</b> ${esc(it.desc)}</p>`;
 }
 function foot(it){
-  return `<p class="rec"><b>Recomiendo: ${esc(it.rec)}.</b> ${esc(it.recWhy)}${it.whyV2 ? ` <i>Paleta: ${esc(it.whyV2)}</i>` : ""}</p>
-    <p class="meta">Origen (a) ${esc(it.script)}, semilla ${it.seed}${it.replays ? ` (repite a propósito: ${esc(it.replays)})` : ""} · colores ${it.colours} · luma media ${it.luma} · costura ${it.seam === null ? "n/a" : it.seam}</p>`;
+  return `<p class="rec"><b>I recommend: ${esc(it.rec)}.</b> ${esc(it.recWhy)}${it.whyV2 ? ` <i>Palette: ${esc(it.whyV2)}</i>` : ""}</p>
+    <p class="meta">Source (a) ${esc(it.script)}, seed ${it.seed}${it.replays ? ` (repeats on purpose: ${esc(it.replays)})` : ""} · colours ${it.colours} · mean luma ${it.luma} · seam ${it.seam === null ? "n/a" : it.seam}</p>`;
 }
 function skyCard(it){
-  const yaws = it.yaws.map((src, i) => `<div class="v"><b>mirando a ${[0,90,180,270][i]}°</b><img class="px" src="${src}" alt=""></div>`).join("");
+  const yaws = it.yaws.map((src, i) => `<div class="v"><b>looking at ${[0,90,180,270][i]}°</b><img class="px" src="${src}" alt=""></div>`).join("");
   return `<div class="card"><div class="row" id="r-${it.id}" data-id="${it.id}"><div>${meta(it)}
-    <div class="v"><b>panorámica completa, 360° (2×; desliza a los lados)</b><div class="pano"><img class="px" src="${it.imgs[0]}" width="${it.w*2}" height="${it.h*2}" alt=""></div></div>
-    <div class="v"><b>la costura: el final y el principio juntos (2×)</b><div class="pano"><img class="px" src="${it.seamImg}" width="512" height="256" alt=""></div></div>
-    <h3>En el juego, cuatro direcciones (vista mínima tipo Doom con muros bajos; no es el motor)</h3>
+    <div class="v"><b>full panorama, 360° (2×; scroll sideways)</b><div class="pano"><img class="px" src="${it.imgs[0]}" width="${it.w*2}" height="${it.h*2}" alt=""></div></div>
+    <div class="v"><b>the seam: the end and the start together (2×)</b><div class="pano"><img class="px" src="${it.seamImg}" width="512" height="256" alt=""></div></div>
+    <h3>In the game, four directions (minimal Doom-style view with low walls; not the engine)</h3>
     <div class="yaws">${yaws}</div>${foot(it)}</div>${vote(it)}</div></div>`;
 }
 function card(it){
   if (it.sky) return skyCard(it);
   const z = zoomFor(it.w), mz = it.w <= 64 ? 2 : 1;
   const mk = it.masked ? " masked" : "";
-  const solo = it.imgs.map((src, i) => `<div class="v"><b>${it.imgs.length > 1 ? esc(it.lumps[i]) + " " : ""}sola 1×</b><img class="px${mk}" src="${src}" width="${it.w}" height="${it.h}" alt=""></div>`).join("");
+  const solo = it.imgs.map((src, i) => `<div class="v"><b>${it.imgs.length > 1 ? esc(it.lumps[i]) + " " : ""}single 1×</b><img class="px${mk}" src="${src}" width="${it.w}" height="${it.h}" alt=""></div>`).join("");
   const zoom = it.imgs.map((src, i) => `<div class="v"><b>${it.imgs.length > 1 ? esc(it.lumps[i]) + " " : ""}${z}×</b><img class="px${mk}" src="${src}" width="${it.w*z}" height="${it.h*z}" alt=""></div>`).join("");
-  const mosaic = it.tilesTxt.startsWith("no") ? "" : `<div class="v"><b>mosaico 3×3 (${mz}×)</b><div class="mosaic${mk}" style="width:${it.w*3*mz}px;height:${it.h*3*mz}px;background-image:url(${it.imgs[0]});background-size:${it.w*mz}px ${it.h*mz}px"></div></div>`;
+  const mosaic = it.tilesTxt.startsWith("no") ? "" : `<div class="v"><b>3×3 mosaic (${mz}×)</b><div class="mosaic${mk}" style="width:${it.w*3*mz}px;height:${it.h*3*mz}px;background-image:url(${it.imgs[0]});background-size:${it.w*mz}px ${it.h*mz}px"></div></div>`;
   const extra = it.extra ? `<div class="views"><div class="v"><b>${esc(it.extra.label)}</b><img class="px" src="${it.extra.img}" width="${it.extra.w}" height="${it.extra.h}" alt=""></div></div>` : "";
   return `<div class="card"><div class="row" id="r-${it.id}" data-id="${it.id}"><div>${meta(it)}
     <div class="views">${solo}</div><div class="views">${zoom}${mosaic}</div>${extra}
-    <div class="views"><div class="v"><b>sala de muestra (2×; no es el motor)</b><img class="px" src="${it.room}" width="640" height="400" alt=""></div></div>
+    <div class="views"><div class="v"><b>sample room (2×; not the engine)</b><img class="px" src="${it.room}" width="640" height="400" alt=""></div></div>
     ${foot(it)}</div>${vote(it)}</div></div>`;
 }
 function build(){
@@ -1900,12 +1901,12 @@ function summary(){
   const label = {ok:"OK", no:"NO", q:"?"};
   const done = ITEMS.filter(i => st(i.id).v).length;
   document.getElementById("pDone").textContent = done;
-  const L = [`Texturas Episodio 2, segunda ronda (2026-10-22_P4, D112): ${done}/${ITEMS.length} juzgadas`];
+  const L = [`Episode 2 textures, second round (2026-10-22_P4, D112): ${done}/${ITEMS.length} judged`];
   let cur = "";
   for (const i of ITEMS) {
     if (i.set !== cur) { cur = i.set; L.push(`[${i.set}]`); }
     const s = st(i.id), n = (s.n || "").trim().replace(/\s+/g, " ");
-    L.push(`${i.lumps.join("/")}: ${label[s.v] || "sin juzgar"}${n ? ` — «${n}»` : ""}`);
+    L.push(`${i.lumps.join("/")}: ${label[s.v] || "not judged"}${n ? ` — «${n}»` : ""}`);
   }
   const g = (document.getElementById("general").value || "").trim().replace(/\s+/g, " ");
   if (g) L.push(`General: «${g}»`);
@@ -1914,8 +1915,8 @@ function summary(){
 function copy(which){
   const t = document.getElementById("result"), msg = document.getElementById(which);
   summary();
-  const ok = () => { msg.textContent = "copiado"; setTimeout(() => msg.textContent = "", 2500); };
-  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? ok() : (msg.textContent = "selecciona y Ctrl+C abajo"); } catch (e) { msg.textContent = "selecciona y Ctrl+C abajo"; } };
+  const ok = () => { msg.textContent = "copied"; setTimeout(() => msg.textContent = "", 2500); };
+  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? ok() : (msg.textContent = "select and press Ctrl+C below"); } catch (e) { msg.textContent = "select and press Ctrl+C below"; } };
   try { if (navigator.clipboard && window.isSecureContext !== false) navigator.clipboard.writeText(t.value).then(ok, fallback); else fallback(); } catch (e) { fallback(); }
 }
 document.addEventListener("click", e => {
@@ -1930,12 +1931,12 @@ document.addEventListener("input", e => {
 });
 document.getElementById("copyTop").addEventListener("click", () => copy("copiedTop"));
 document.getElementById("copyBottom").addEventListener("click", () => copy("copiedBottom"));
-document.getElementById("reset").addEventListener("click", () => { if (confirm("¿Borrar las respuestas y notas de esta hoja?")) { S = {}; save(); document.getElementById("general").value = ""; build(); summary(); } });
+document.getElementById("reset").addEventListener("click", () => { if (confirm("Clear the answers and notes on this sheet?")) { S = {}; save(); document.getElementById("general").value = ""; build(); summary(); } });
 document.getElementById("general").value = S._general || "";
 build(); summary();
 """
 
-EXTRAS = {"SDDOORB": ("Las tres puertas de llave juntas: SDDOORY, SDDOORR (aprobadas) y SDDOORB, 2×", "SDDOORB_compare")}
+EXTRAS = {"SDDOORB": ("The three key doors together: SDDOORY, SDDOORR (approved) and SDDOORB, 2×", "SDDOORB_compare")}
 
 
 def items_json(entries: dict, A: dict, V: dict) -> list[dict]:
@@ -1976,9 +1977,9 @@ def lump_table(entries: dict) -> str:
                 f"<tr><td><code>{html.escape(', '.join(p.lumps))}</code></td><td>{set_name}</td>"
                 f"<td>{html.escape(p.title)}</td><td>{KIND_TXT[p.kind]}</td><td>{p.size[0]}×{p.size[1]}</td>"
                 f"<td>{TILES_TXT[p.tiles]}</td><td>{'v1' if not p.ramps else 'v2: ' + ', '.join(p.ramps)}"
-                f"{' RGBA' if p.masked else ''}</td><td>{e['seed']}</td><td>propuesta</td></tr>")
-    head = ("<tr><th>Lump</th><th>Set</th><th>Qué es</th><th>Tipo</th><th>Tamaño</th><th>Tila</th><th>Paleta</th>"
-            "<th>Semilla</th><th>Estado</th></tr>")
+                f"{' RGBA' if p.masked else ''}</td><td>{e['seed']}</td><td>proposed</td></tr>")
+    head = ("<tr><th>Lump</th><th>Set</th><th>What it is</th><th>Type</th><th>Size</th><th>Tiles</th><th>Palette</th>"
+            "<th>Seed</th><th>Status</th></tr>")
     return f'<div class="tablewrap"><table class="t">{head}{"".join(rows)}</table></div>'
 
 
@@ -1992,75 +1993,75 @@ def build_sheet(entries: dict, A: dict, V: dict, problems: list[str], out: Path 
             f'width="640" height="400" alt=""></div>' for i, (label, _) in enumerate(OVERVIEWS.get(set_name, ())))
         sections.append(
             f'<h2>{html.escape(heading)}</h2><p class="lead">{html.escape(SET_LEADS[set_name])}</p>'
-            + (f'<h3>El set montado</h3><div class="ov">{ovs}</div>' if ovs else "")
-            + f'<h3>Las piezas</h3><div id="cards-{set_name}"></div>')
-    prob_html = ("<p><b>Comprobación de nombres:</b> los " + str(n_lumps) + " lumps propuestos son SD, de ≤ 8 "
-                 "caracteres, y ninguno choca con un nombre existente en <code>assets/</code>, <code>work/</code> ni "
-                 "<code>TEXTURE-INDEX.md</code>, ni se lee como fotograma de un sprite.</p>") if not problems else (
-        "<p><b>Problemas de nombres:</b></p><ul>" + "".join(f"<li>{html.escape(p)}</li>" for p in problems) + "</ul>")
+            + (f'<h3>The assembled set</h3><div class="ov">{ovs}</div>' if ovs else "")
+            + f'<h3>The pieces</h3><div id="cards-{set_name}"></div>')
+    prob_html = ("<p><b>Name check:</b> the " + str(n_lumps) + " proposed lumps are SD, ≤ 8 "
+                 "characters long, and none clashes with an existing name in <code>assets/</code>, <code>work/</code> or "
+                 "<code>TEXTURE-INDEX.md</code>, nor reads as a sprite frame.</p>") if not problems else (
+        "<p><b>Name problems:</b></p><ul>" + "".join(f"<li>{html.escape(p)}</li>" for p in problems) + "</ul>")
     intro = f"""
 <div class="intro">
-<p><b>Qué es (D112, P4).</b> La segunda ronda de texturas del Episodio 2: lo que los tres mapas todavía cubren con
-sustitutos. {len(items)} piezas, {n_lumps} lumps, en <b>borrador</b>, con el mismo método que la primera ronda (D107):
-procedurales, semilla fija, paleta v1 (v2 solo donde la pieza dice por qué), estilo Doom, 64/128 px. Nada está en
-<code>assets/</code> ni en el índice: si dices OK, el PM las instala tal cual.</p>
+<p><b>What this is (D112, P4).</b> The second round of Episode 2 textures: what the three maps still cover with
+stand-ins. {len(items)} pieces, {n_lumps} lumps, as a <b>draft</b>, with the same method as the first round (D107):
+procedural, fixed seed, palette v1 (v2 only where the piece says why), Doom style, 64/128 px. Nothing is in
+<code>assets/</code> or in the index: if you say OK, the PM installs them as they are.</p>
 <ul>
-<li><b>Primero los cielos</b>: es lo que más se ve. Panorámica completa y cuatro direcciones como se verían en el juego.</li>
-<li>Cada textura se ve <b>sola</b>, ampliada, en <b>mosaico 3×3</b> si tila, y en una <b>sala de muestra</b> (vista
-mínima tipo Doom; no es GZDoom, sirve para escala y repetición). Las salas de MAP04 y MAP06 ya llevan los cielos nuevos.</li>
-<li><b>Texto:</b> ninguna fuente del sistema. «СВЕРДЛОВСК / СОРТИРОВОЧНЫЙ», «СТОЙ!», «ПРОПУСК», «ТКАНИ», «ОБУВЬ» y
-«ЧАСЫ» salen de nuestro alfabeto (bigfont, D24), así que se generan igual en el Mac y en Windows; los números de las
-palancas son los dígitos de 3×5 píxeles.</li>
-<li><b>Pieza derivada:</b> <code>SDDOORB</code> repite la receta de las puertas amarilla y roja. Es un lump nuevo: las
-aprobadas (<code>SDDOORY/R</code>) no se tocan ni se regeneran.</li>
-<li><b>D12:</b> lugares y piedra.</li>
+<li><b>Skies first</b>: they are what is seen the most. Full panorama and four directions as they would look in the game.</li>
+<li>Each texture is shown <b>on its own</b>, enlarged, in a <b>3×3 mosaic</b> if it tiles, and in a <b>sample room</b> (minimal
+Doom-style view; it is not GZDoom, it serves for scale and repetition). The MAP04 and MAP06 rooms already carry the new skies.</li>
+<li><b>Text:</b> no system font. «СВЕРДЛОВСК / СОРТИРОВОЧНЫЙ», «СТОЙ!», «ПРОПУСК», «ТКАНИ», «ОБУВЬ» and
+«ЧАСЫ» come from our alphabet (bigfont, D24), so they are generated the same on the Mac and on Windows; the numbers on the
+levers are the 3×5-pixel digits.</li>
+<li><b>Derived piece:</b> <code>SDDOORB</code> repeats the recipe of the yellow and red doors. It is a new lump: the
+approved ones (<code>SDDOORY/R</code>) are not touched or regenerated.</li>
+<li><b>D12:</b> places and stone.</li>
 </ul>
-<p>Marca <b>OK / NO / ?</b> en cada una, escribe notas si quieres y pulsa <b>Copiar resultado</b> para pegármelo.</p>
+<p>Mark <b>OK / NO / ?</b> on each one, write notes if you like and press <b>Copy result</b> to paste it to me.</p>
 </div>"""
     ask = """
-<div class="ask"><p><b>Además del OK/NO, cuatro preguntas:</b></p><ol>
-<li><b>Formato del cielo.</b> 1024×128, una vuelta entera sin repetirse (mi recomendación), o 256×128 repetido cuatro
-veces como el SKY1 de Freedoom (más pequeño, pero las chimeneas y los rascacielos se verían cuatro veces).</li>
-<li><b>La puerta azul en cobalto</b> (v2), como el mosaico que la enmarca en MAP06. La alternativa
-en v1 es gris azulado y no se lee como «azul». Recomiendo cobalto.</li>
-<li><b>La valla de alta tensión enmascarada</b> (se ve a través): el level-designer tendría que convertir la valla de la
-subestación en una línea de dos caras. Si prefieres una valla opaca (chapa con la placa), es una variante rápida.</li>
-<li><b>El reloj a las doce menos cinco.</b> ¿Te vale, o prefieres otra hora (o las agujas en las doce)?</li>
+<div class="ask"><p><b>Besides OK/NO, four questions:</b></p><ol>
+<li><b>Sky format.</b> 1024×128, one whole turn without repeating (my recommendation), or 256×128 repeated four
+times like Freedoom's SKY1 (smaller, but the chimneys and the skyscrapers would be seen four times).</li>
+<li><b>The blue door in cobalt</b> (v2), like the mosaic that frames it in MAP06. The alternative
+in v1 is bluish grey and does not read as «blue». I recommend cobalt.</li>
+<li><b>The masked high-voltage fence</b> (see-through): the level-designer would have to turn the substation fence
+into a two-sided line. If you prefer an opaque fence (sheet metal with the plate), it is a quick variant.</li>
+<li><b>The clock at five to twelve.</b> Does it work for you, or do you prefer another time (or the hands at twelve)?</li>
 </ol></div>"""
     data = json.dumps(items, ensure_ascii=False)
     sets_js = json.dumps([s for s, *_ in SETS])
     doc = f"""<!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Texturas Episodio 2, ronda 2</title>
+<title>Episode 2 Textures, Round 2</title>
 <style>{gen_episode2.CSS}{CSS_EXTRA}</style>
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <h1>Soviet Doom · Texturas del Episodio 2, segunda ronda (borrador)</h1>
-  <span class="prog"><b id="pDone">0</b> / {len(items)} juzgadas</span>
-  <button class="primary" id="copyTop">Copiar resultado</button><span class="copied" id="copiedTop"></span>
+  <h1>Soviet Doom · Episode 2 Textures, second round (draft)</h1>
+  <span class="prog"><b id="pDone">0</b> / {len(items)} judged</span>
+  <button class="primary" id="copyTop">Copy result</button><span class="copied" id="copiedTop"></span>
 </div></header>
 <div class="wrap">
 {intro}
 {"".join(sections)}
-<h2>Nombres de lump propuestos</h2>
+<h2>Proposed lump names</h2>
 {prob_html}
 {lump_table(entries)}
-<h2>Preguntas</h2>
+<h2>Questions</h2>
 {ask}
-<h2>Resultado</h2>
-<p class="meta">Comentario general (opcional):</p>
-<textarea class="note" id="general" placeholder="Algo sobre la ronda en conjunto"></textarea>
+<h2>Result</h2>
+<p class="meta">General comment (optional):</p>
+<textarea class="note" id="general" placeholder="Anything about the round as a whole"></textarea>
 <textarea id="result" readonly></textarea>
-<p><button class="primary" id="copyBottom">Copiar resultado</button><span class="copied" id="copiedBottom"></span> <button id="reset">Borrar respuestas</button></p>
-<footer>Origen (a): procedural, <code>{SCRIPT_REL}</code> (semilla {BATCH_SEED}+n), máquinas comunes en
-<code>tools/art/ep2lib.py</code> (sin modificar); PNG en <code>work/art/episode2b/&lt;set&gt;/</code>; tests
-<code>tests/test_gen_episode2b.py</code>. Paleta <code>docs/art/palette.json</code> sin modificar. Licencia: obra propia,
-CC BY-NC-SA 4.0 (D15). La sala de muestra NO es el colormap ni el cielo del motor (NO VERIFICADO en GZDoom). Nada
-instalado: si una vale, la instala el PM con tu OK.</footer>
+<p><button class="primary" id="copyBottom">Copy result</button><span class="copied" id="copiedBottom"></span> <button id="reset">Clear answers</button></p>
+<footer>Source (a): procedural, <code>{SCRIPT_REL}</code> (seed {BATCH_SEED}+n), common machinery in
+<code>tools/art/ep2lib.py</code> (unmodified); PNG in <code>work/art/episode2b/&lt;set&gt;/</code>; tests
+<code>tests/test_gen_episode2b.py</code>. Palette <code>docs/art/palette.json</code> unmodified. Licence: own work,
+CC BY-NC-SA 4.0 (D15). The sample room is NOT the engine's colormap or sky (NOT VERIFIED in GZDoom). Nothing
+installed: if one is good, the PM installs it with your OK.</footer>
 </div>
 <script>
 const SETS = {sets_js};

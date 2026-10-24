@@ -24,7 +24,7 @@ Versions (ART-BIBLE §3):
   reserved slots, built with the same gamma rule. v1 is the first 162
   entries of v2, index for index, so a v1 PNG is a valid v2 PNG.
 - **v3**, 242 colours, D128 (CEO, 2026-10-24: "añade paleta si es
-  necesario"): v2 followed by one more ramp, `reich_greygreen` (the Reich's
+  necesario", "add a palette if needed"): v2 followed by one more ramp, `reich_greygreen` (the Reich's
   grey-green skin), in slots 226-241 of the 30 that v2 left reserved. v2 is
   the first 226 entries of v3, so no approved asset changes: a PNG only
   ever holds colours of its own version (tests/test_palette_v2.py), and no

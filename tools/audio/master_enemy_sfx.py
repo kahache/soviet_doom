@@ -659,7 +659,8 @@ VOICE_INSTALLS: tuple[VoiceInstall, ...] = (
 VOICES_BY_LUMP = {v.lump: v for v in VOICE_INSTALLS}
 # dB the codec pass took off a voice take's master peak (codec_safe's loop and margin).
 VOICE_CODEC_TRIMMED: dict[str, float] = {"SDGENSU1": 0.6}
-# D110: "has cortado mal el audio, se cuela algo al final" (L09 t04). The raw take
+# D110: "has cortado mal el audio, se cuela algo al final" ("you cut the audio
+# badly, something slips in at the end") (L09 t04). The raw take
 # has the cry, 0.22 s of digital silence (1.17-1.39 s) and then a 0.08 s blip at
 # -11 dB; process_voice_takes.trim only ends a line after a gap of MAX_GAP_S
 # (0.45 s), so the blip stayed. The raw take is cut here, in seconds, before the

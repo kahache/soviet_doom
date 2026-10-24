@@ -182,10 +182,10 @@ PROV_FOLDER, PROV_SPRITE, PROV_SCALE = "general", "SDGN", 1.3   # what he wears 
 PROV_RAMP = ((0.05, 0.05, 0.10), (1.60, 1.60, 1.80))
 LINEUP_ZOOM = 2
 LINEUP = (   # (label, lump, kind): the provisional, the new set, the General as he is, then the attacks
-    ("provisional hoy B1 (SDGN x1,3 cromado)", "SDGNB1", "prov"), ("nuevo SDLC B1", "SDLCB1", "new"),
-    ("El General SDGN B1", "SDGNB1", "general"),
-    ("nuevo E1 (apunta)", "SDLCE1", "new"), ("nuevo F1 (dispara)", "SDLCF1", "new"),
-    ("nuevo Q1 (pie arriba)", "SDLCQ1", "new"), ("nuevo R1 (pisoton)", "SDLCR1", "new"),
+    ("provisional today B1 (SDGN x1.3 chrome)", "SDGNB1", "prov"), ("new SDLC B1", "SDLCB1", "new"),
+    ("The General SDGN B1", "SDGNB1", "general"),
+    ("new E1 (aims)", "SDLCE1", "new"), ("new F1 (fires)", "SDLCF1", "new"),
+    ("new Q1 (foot up)", "SDLCQ1", "new"), ("new R1 (stomp)", "SDLCR1", "new"),
 )
 
 
@@ -256,17 +256,17 @@ def lineup(new_dir: Path, sprites_dir: Path = ge.SPRITES_DIR, z: int = LINEUP_ZO
 
 
 INTRO = (
-    "<p>El <b>Coloso de la Libertad</b> (<code>SD_LibertyColossus</code>, jefe del episodio 2, sprite final "
-    "<code>SDLC</code>, 81 lumps con las letras del General: diseño <code>docs/engine/2026-10-22_P4_ep2-enemies.md</code> "
-    "§4), sacado de las hojas de Gemini de hoy: <code>turn</code> (de pie), <code>walkL</code>, <code>walkR</code>, <code>aim</code>, <code>fire</code>, "
-    "<code>stomp</code> (2 filas) y <code>death</code>. <b>Actual</b> = lo que lleva hoy en el juego: el General "
-    "<code>SDGN</code> ×1,3 teñido de cromo (D116, lo que viste «en blanco y negro»; aquí el tinte es una imitación del "
-    "<code>Translation</code>, NO VERIFICADO). <b>Nuevo</b> = SDLC, a tamaño de jefe: 128 px de alto con la antorcha "
-    "(el cuerpo mide 110 unidades), sin <code>Scale</code> ni tinte. Todo ×3 sin suavizado sobre su línea de suelo (la raya "
-    "clara) con los offsets reales. Lo que pediste (D119): <b>de frente dispara hacia ti</b>: en E1/F1 la antorcha apunta "
-    "a la cámara. Única insignia: la bandera de EEUU del hombro; la tabla, en blanco. Nada instalado: los lumps están en "
-    "<code>work/art/enemies_gemini/colossus/</code> con el parche del actor (quita el tinte y la escala provisionales). "
-    "Marca OK / NO / ? por fila y pulsa <b>Copiar resultado</b>.</p>")
+    "<p>The <b>Liberty Colossus</b> (<code>SD_LibertyColossus</code>, Episode 2's boss, final sprite "
+    "<code>SDLC</code>, 81 lumps with the General's letters: design <code>docs/engine/2026-10-22_P4_ep2-enemies.md</code> "
+    "§4), taken from today's Gemini sheets: <code>turn</code> (standing), <code>walkL</code>, <code>walkR</code>, <code>aim</code>, <code>fire</code>, "
+    "<code>stomp</code> (2 rows) and <code>death</code>. <b>Current</b> = what he wears in the game today: the General "
+    "<code>SDGN</code> ×1.3 tinted chrome (D116, what you saw «en blanco y negro» (\"in black and white\"); the tint here is an imitation of the "
+    "<code>Translation</code>, NOT VERIFIED). <b>New</b> = SDLC, at boss size: 128 px tall with the torch "
+    "(the body is 110 units), no <code>Scale</code> and no tint. Everything ×3 without smoothing on its floor line (the light "
+    "line) with the real offsets. What you asked for (D119): <b>from the front he fires at you</b>: in E1/F1 the torch aims "
+    "at the camera. Only insignia: the US flag on the shoulder; the tablet, blank. Nothing installed: the lumps are in "
+    "<code>work/art/enemies_gemini/colossus/</code> with the actor patch (removes the provisional tint and scale). "
+    "Mark OK / NO / ? per row and press <b>Copy result</b>.</p>")
 
 
 def colossus_sheet(spec, out: Path = SHEET_HTML, out_root: Path = ge.OUT_ROOT,
@@ -279,22 +279,22 @@ def colossus_sheet(spec, out: Path = SHEET_HTML, out_root: Path = ge.OUT_ROOT,
         "cur": provisional_frames(spec, sprites_dir), "new": ge._frames_json(new_dir, spec.sprite),
         "derived": list(spec.derived), "notes": spec.notes,
         "gate": metrics.get("gate", []), "reask": metrics.get("reask", []), "symbol": "",
-        "sheets": {k: [f["facing"] + (" (espejo)" if f["mirrored"] else "") for f in v["figures"]]
+        "sheets": {k: [f["facing"] + (" (mirrored)" if f["mirrored"] else "") for f in v["figures"]]
                    for k, v in metrics["sheets"].items()},
     }
-    intro = INTRO + (f'<h3>Escala: provisional, nuevo y el General (×{LINEUP_ZOOM})</h3><p><img alt="Línea de escala" '
+    intro = INTRO + (f'<h3>Scale: provisional, new and the General (×{LINEUP_ZOOM})</h3><p><img alt="Scale line-up" '
                      f'style="max-width:100%;image-rendering:pixelated" src="{ge._b64(lineup(new_dir, sprites_dir))}"></p>')
     html = ge.SHEET_TEMPLATE
     for old, new in (
-            ("<title>Enemigos Gemini</title>", "<title>Coloso Gemini</title>"),
-            ("Soviet Doom · Enemigos rehechos con Gemini (borrador)",
-             "Soviet Doom · El Coloso de la Libertad con Gemini (borrador, D119)"),
+            ("<title>Gemini Enemies</title>", "<title>Gemini Colossus</title>"),
+            ("Soviet Doom · Enemies redrawn with Gemini (draft)",
+             "Soviet Doom · The Liberty Colossus with Gemini (draft, D119)"),
             ('const KEY = "sd-2026-10-22_P4_enemies-gemini";', 'const KEY = "sd-2026-10-23_P4_colossus-gemini";'),
-            ("Enemigos Gemini (2026-10-22_P4, D104/D105)", "Coloso Gemini (2026-10-23_P4, D119)")):
+            ("Gemini enemies (2026-10-22_P4, D104/D105)", "Gemini Colossus (2026-10-23_P4, D119)")):
         if html.count(old) != 1:
             raise ValueError(f"colossus_sheet: the review template changed ({old!r})")
         html = html.replace(old, new)
-    i0 = html.index("<p>Cada enemigo")
+    i0 = html.index("<p>Each enemy")
     i1 = html.index("</p>", i0) + len("</p>")
     html = html[:i0] + intro + html[i1:]
     html = html.replace("/*ITEMS*/[]", json.dumps([item]))

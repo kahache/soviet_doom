@@ -578,85 +578,85 @@ def tex_pier1() -> np.ndarray:
 # ================================================================ pieces
 PIECES = [
     Piece("SDHULL1", tex_hull1, "wall", (128, 128), ["SDHULL1"], 1, "x",
-          "Casco del submarino",
-          "Costado del casco: losetas negras de goma antiacústica al tresbolillo (falta alguna y asoma la "
-          "imprimación rojiza), el borde de la cubierta contra el cielo, la fila de imbornales de inundación de "
-          "un submarino soviético y chorretes de sal.",
-          rec_why="Negro de concrete_cold, nunca negro plano (ART-BIBLE §5). Tila en x para cascos largos."),
+          "Submarine hull",
+          "The side of the hull: staggered black anechoic rubber tiles (a few missing, showing the "
+          "reddish primer), the deck edge against the sky, the row of flood ports of "
+          "a Soviet submarine and streaks of salt.",
+          rec_why="concrete_cold's black, never flat black (ART-BIBLE §5). Tiles in x for long hulls."),
     Piece("SDHULL2", tex_hull2, "wall", (128, 128), ["SDHULL2"], 1, "no",
-          "Casco con numeral",
-          "El mismo casco (misma semilla) con el número táctico «471» pintado en blanco sobre las losetas, "
-          "gastado donde las losetas se han movido. Dígitos de nuestro alfabeto (bigfont, D24).",
-          rec_why="Una vez por submarino, entre tramos de SDHULL1."),
+          "Hull with number",
+          "The same hull (same seed) with the tactical number «471» painted in white over the tiles, "
+          "worn where the tiles have shifted. Digits from our own alphabet (bigfont, D24).",
+          rec_why="Once per submarine, between runs of SDHULL1."),
     Piece("SDRUBR1", tex_rubr1, "flat", (64, 64), ["SDRUBR1"], 2, "xy",
-          "Cubierta de goma antiacústica",
-          "Cubierta del submarino vista desde arriba: losetas negras de goma antiacústica al tresbolillo, un paso "
-          "desgastado a lo largo de y, alguna loseta perdida (acero oxidado), eflorescencia de sal.",
-          rec_why="El suelo de la cubierta; tila en los dos ejes."),
+          "Anechoic rubber deck",
+          "The submarine's deck seen from above: staggered black anechoic rubber tiles, a path "
+          "worn along y, a few tiles gone (rusty steel), salt bloom.",
+          rec_why="The deck floor; tiles in both axes."),
     Piece("SDRUBR2", tex_rubr2, "flat", (64, 64), ["SDRUBR2"], 2, "no",
-          "Cubierta con escotilla",
-          "La misma cubierta (misma semilla) con una escotilla redonda de escape enrasada: brazola de acero, tapa "
-          "forrada de goma, bisagra y un volante pequeño. Pieza única.",
-          rec_why="Una por escotilla; enlaza con la compuerta SDBULK1 del interior."),
+          "Deck with hatch",
+          "The same deck (same seed) with a flush round escape hatch: a steel coaming, a rubber-clad "
+          "lid, a hinge and a small handwheel. A single piece.",
+          rec_why="One per hatch; it links to the SDBULK1 hatch inside."),
     Piece("SDROCK1", tex_rock1, "wall", (64, 128), ["SDROCK1"], 3, "xy",
-          "Roca viva excavada (pared)",
-          "Roca viva de los refugios excavados: gneis oscuro en facetas de voladura con luz desde arriba a la "
-          "izquierda, motas de feldespato rosado, vetas de cuarzo, regueros de filtración, las medias cañas de los "
-          "barrenos de recorte y un bulón de anclaje.",
-          rec_why="Las medias cañas verticales dicen «excavado a voladura», no «cueva»."),
+          "Excavated bedrock (wall)",
+          "The bedrock of the excavated shelters: dark gneiss in blasted facets lit from the top "
+          "left, flecks of pink feldspar, quartz veins, seepage streaks, the half-barrels of the "
+          "perimeter blast holes and a rock bolt.",
+          rec_why="The vertical half-barrels say «blasted out», not «cave»."),
     Piece("SDROCK2", tex_rock2, "flat", (64, 64), ["SDROCK2"], 4, "xy",
-          "Roca viva excavada (techo)",
-          "La misma roca en el techo: facetas, goteos, dos placas de bulón en la retícula de 32 px y "
-          "eflorescencia de calcita.",
-          rec_why="Techo de los refugios y galerías; tila en los dos ejes."),
+          "Excavated bedrock (ceiling)",
+          "The same rock on the ceiling: facets, drips, two bolt plates on the 32 px grid and "
+          "calcite bloom.",
+          rec_why="Ceiling of the shelters and tunnels; tiles in both axes."),
     Piece("SDBULK1", tex_bulk1, "wall", (128, 128), ["SDBULK1"], 5, "no",
-          "Compuerta estanca circular",
-          "Puerta estanca redonda en un mamparo gris «шаровый»: brazola de acero desnudo, hoja con anillo de "
-          "refuerzo, seis cierres con palanca, dos bisagras, volante rojo, el número del compartimento «3» en "
-          "rojo (bigfont), aceite y roces abajo.",
-          rec_why="El icono del interior del submarino. Pieza única: no tila.",
+          "Round watertight hatch",
+          "A round watertight door in a «шаровый» grey bulkhead: a bare steel coaming, a leaf with a "
+          "stiffening ring, six lever dogs, two hinges, a red handwheel, the compartment number «3» in "
+          "red (bigfont), oil and scuffs at the bottom.",
+          rec_why="The icon of the submarine's interior. A single piece: it does not tile.",
           scene={"left": "SDNAVC1", "right": "SDNAVC1", "floor": "SDRUBR1", "ceil": "SDCEIL2"}),
     Piece("SDNAVC1", tex_navc1, "wall", (128, 128), ["SDNAVC1"], 6, "x",
-          "Panel de la sala de control",
-          "Panel de la sala de control: acero gris-verde, cuatro manómetros de esfera negra (profundidad y "
-          "presión), el sinóptico de los compartimentos del submarino con sus pilotos, dos filas de avisadores "
-          "luminosos (unos encendidos, sus rótulos son rayitas) y una fila de conmutadores.",
-          rec_why="Distinto del SDCTRL1 de la presa a un vistazo (esferas negras, verde, el sinóptico del barco).",
+          "Control room panel",
+          "A control room panel: grey-green steel, four black-faced gauges (depth and "
+          "pressure), the mimic diagram of the submarine's compartments with its pilot lamps, two rows of "
+          "annunciator lights (some lit, their labels are dashes) and a row of switches.",
+          rec_why="Distinct from the dam's SDCTRL1 at a glance (black dials, green, the boat's mimic diagram).",
           scene={"floor": "SDRUBR1", "ceil": "SDCEIL2"}),
     Piece("SDCONT1", tex_cont1, "wall", (128, 128), ["SDCONT1"], 7, "x",
-          "Contenedor de mercancías",
-          "Costado de un contenedor: ondulado trapezoidal en rojo desvaído, largueros arriba y abajo, postes de "
-          "esquina con sus cantoneras, óxido saliendo de los largueros, «ММФ» (Flota Mercante) en blanco con "
-          "nuestro alfabeto, el número de la caja en dígitos de 3×5 y una placa.",
-          rec_why="Contenedores en fila tilan en x; para pilas, una línea por contenedor."),
+          "Shipping container",
+          "The side of a container: trapezoidal corrugation in faded red, rails top and bottom, corner "
+          "posts with their castings, rust bleeding from the rails, «ММФ» (Merchant Fleet) in white in "
+          "our own alphabet, the box number in 3×5 digits and a plate.",
+          rec_why="Containers in a row tile in x; for stacks, one line per container."),
     Piece("SDCRAN1", tex_cran1, "wall", (64, 128), ["SDCRAN1"], 8, "xy",
-          "Celosía de grúa (enmascarada)",
-          "Celosía de la pluma de una grúa de muelle, ENMASCARADA (fondo transparente, textura media de una línea "
-          "de dos caras): dos cordones de angular, presillas cada 64 px, diagonales en zigzag con cartelas y "
-          "remaches, pintura amarilla desvaída y óxido.",
+          "Crane lattice (masked)",
+          "The lattice of a dock crane's jib, MASKED (transparent background, a mid texture on a two-sided "
+          "line): two angle-iron chords, batten plates every 64 px, zigzag diagonals with gussets and "
+          "rivets, faded yellow paint and rust.",
           masked=True,
-          rec_why="Misma excepción RGBA que SDCHAN1 y SDINSL1. Contra el cielo es la grúa; tila en los dos ejes "
-                  "como una pluma sin fin.",
+          rec_why="The same RGBA exception as SDCHAN1 and SDINSL1. Against the sky it is the crane; tiles in both axes "
+                  "as an endless jib.",
           scene={"left": "SDCRAN1", "right": "SDCRAN1", "back": "SDCRAN1", "floor": "SDPIER1", "ceil": None}),
     Piece("SDPIER1", tex_pier1, "flat", (64, 64), ["SDPIER1"], 9, "x",
-          "Muelle de hormigón con bolardo",
-          "Muelle de hormigón visto desde arriba: losas con manchas de aceite, un bolardo de fundición sobre su "
-          "placa con una estacha hacia el borde, el cantil en amarillo y negro y el angular de acero sobre el agua "
-          "(abajo en la loseta). Tila en x a lo largo del muelle.",
-          rec_why="El borde del agua va abajo en la loseta: alinear en UDMF. Con el agua aprobada SDWATR1-4."),
+          "Concrete pier with bollard",
+          "A concrete pier seen from above: oil-stained slabs, a cast-iron bollard on its "
+          "plate with a mooring line to the edge, the quay edge in yellow and black and the steel angle over the water "
+          "(at the bottom of the flat). Tiles in x along the pier.",
+          rec_why="The water's edge is at the bottom of the flat: align it in UDMF. With the approved water SDWATR1-4."),
 ]
 SHARED_SEED = {"SDHULL2": "SDHULL1", "SDRUBR2": "SDRUBR1"}
 PAINT_BOX = {"SDHULL2": NUMBER_BOX, "SDRUBR2": HATCH_BOX}
-REUSED = [("SDWATR1", "Agua del Volga animada (aprobada D107): sirve para la dársena, no se redibuja."),
-          ("SDDAM2", "Hormigón en la línea de agua (aprobado D107): el paramento del muelle visto desde el agua.")]
+REUSED = [("SDWATR1", "The Volga's animated water (approved, D107): it serves the harbour basin, not redrawn."),
+          ("SDDAM2", "Concrete at the waterline (approved, D107): the pier's face seen from the water.")]
 
 ROOM = {"wall": "SDROCK1", "floor": "SDPIER1", "ceil": "SDROCK2", "light": 0.92, "sky": "day"}
 OVERVIEWS = [
-    ("El refugio excavado", {"left": "SDHULL2", "right": "SDROCK1", "back": "SDHULL1", "floor": "SDPIER1",
+    ("The excavated shelter", {"left": "SDHULL2", "right": "SDROCK1", "back": "SDHULL1", "floor": "SDPIER1",
                              "ceil": "SDROCK2"}),
-    ("Dentro del submarino", {"left": "SDNAVC1", "right": "SDNAVC1", "back": "SDBULK1", "floor": "SDRUBR1",
+    ("Inside the submarine", {"left": "SDNAVC1", "right": "SDNAVC1", "back": "SDBULK1", "floor": "SDRUBR1",
                               "ceil": "SDCEIL2"}),
-    ("La dársena", {"left": "SDCONT1", "right": "SDDAM2", "back": "SDCRAN1", "floor": "SDWATR1", "ceil": None}),
+    ("The harbour basin", {"left": "SDCONT1", "right": "SDDAM2", "back": "SDCRAN1", "floor": "SDWATR1", "ceil": None}),
 ]
 
 

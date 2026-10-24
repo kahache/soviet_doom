@@ -167,7 +167,9 @@ their own logical names (§6.12); **no map places them yet**
 **D123, 2026-10-23: the gunner, the colossus and the TT-33 drawn; the
 colossus's stand-in kept as an enemy.** The CEO approved the Gemini sets
 ("Ok gunner. Coloso me gustan las 2: colorear general y la estatua de la
-libertad. Quiero los 2 en el juego. Ok T33"): `SD_LegionGunner` wears its
+libertad. Quiero los 2 en el juego. Ok T33"; "OK, gunner. Colossus: I like
+both, the coloured General and the Statue of Liberty. I want both in the
+game. OK, T33"): `SD_LegionGunner` wears its
 own `SDLG` (70 lumps, `assets/sprites/legion_gunner/`) and
 `SD_LibertyColossus` its own `SDLC` (81, `assets/sprites/colossus/`), with
 no tint or scale left (§6.12); the TT-33's held and flash frames are the
@@ -179,7 +181,9 @@ MAP08's mini-boss on skills 3-4 where the colossus stood; MAP06 keeps the
 statue. **NOT YET SEEN IN THE ENGINE** (D26).
 **D128, 2026-10-24: the Consortium, the AKM, the walks and the title
 drawn.** The CEO ("Pantalla de inicio CON brazaletes. Logo sin recuadro.
-OK AKM y andares. Ok consorcio, añade paleta si es necesario"):
+OK AKM y andares. Ok consorcio, añade paleta si es necesario"; "Title
+screen WITH armbands. Logo without a frame. OK to the AKM and the walks.
+OK, Consortium; add a palette if needed"):
 `SD_Consortium` wears its own `SDCN` (95 lumps,
 `assets/sprites/consortium/`, no tint or scale left, §6.12), its Reich half
 in palette v3's `reich_greygreen` (ART-BIBLE §3: one ramp appended in
@@ -408,7 +412,7 @@ engine pass (D26).
 > Order note: §4.4, §4.5 and §4.6 come before §4.1 because they were added later;
 > the sections are not renumbered, since other documents cite them by number.
 
-The CEO: "Se puede publicar como práctica". The range (MAP02 then, the lump
+The CEO: "Se puede publicar como práctica" ("it can be released as practice"). The range (MAP02 then, the lump
 **`RANGE`** since D62) ships in v1 **outside the campaign**, and the player
 reaches it from the New Game screen. The choice
 between the ways of reaching it is ADR 007
@@ -536,7 +540,7 @@ approved unheard, so that pass is also the first listening.
 ### 4.6 The campaign's flow: MAP01 → MAP02 → MAP03, MAP04 → MAP05 → MAP06, MAP07 → MAP08 → MAP09 (D60, D62, D104, D112)
 
 D60 amended D5: the campaign grew past MAP01. **D62 renumbered the slots to
-follow it** ("para no confundir con los nombres"): MAP01 Zarya-7, **MAP02 the
+follow it** ("para no confundir con los nombres", "so as not to mix up the names"): MAP01 Zarya-7, **MAP02 the
 metro-bunker** (built as MAP03), **MAP03 the factory, «Танкоград» /
 Tankograd** (built as MAP04, named by D63), and the practice range left the
 MAPxx sequence for the lump `RANGE` (§4.4). The source folders, tests and
@@ -1617,7 +1621,8 @@ projectiles. Licence rows: `docs/art/LICENSES.md`, "Weapon pickups".
 **The TT-33 in hand, redone with Gemini (D111, installed by D123, 2026-10-23).**
 The CEO asked for the pistol to match the other six weapons ("rehaz los
 sprites de la pistola también porque ahora no queda en tanta consonancia
-con el resto de armas", D111) and approved the result ("Ok T33", D123,
+con el resto de armas", "redo the pistol sprites too, because now it does
+not match the other weapons so well", D111) and approved the result ("Ok T33", D123,
 `docs/art/previews/2026-10-23_P4_tt33-gemini.html`). Four lumps ship in
 `assets/sprites/tt33/`, beside the pickup `SDTPA0`, byte-identical to
 `work/art/weapons/hand_G/tt33/`: the project lead's Gemini pair (ready,
@@ -1807,7 +1812,7 @@ marked. Images per class and the drawing briefs: `BESTIARY.md` §3–§9, §12.
 Gemini (D105), approved the result ("Ok enemigos gemini", D109,
 `docs/art/previews/2026-10-22_P4_enemies-gemini.html`) and then the
 armband symbol applied to the Reich ones (D108's mix, "Ok a lo de las
-esvásticas!", D114). Every lump below keeps the **name, frame letter and
+esvásticas!", "OK to the swastikas!", D114). Every lump below keeps the **name, frame letter and
 rotation** of the rig-drawn set it replaces, so no state, class or map
 changed: 540 PNGs overwritten in place, none added, none removed, no
 orphan and no duplicate frame (`check_pk3`). The files are byte-identical
@@ -2050,7 +2055,7 @@ Panzermensch and the Schwer". The draft overlay never carried either
 **The Doughboy, installed by D70 (2026-10-14). Redrawn from Google Gemini by D109 (above): the files, canvases and offsets this paragraph gives are the rig set's.** The CEO chose cell C of
 the heavies sweep, the head in its M1 helmet, severed, with a neck stump
 and a dangling spine (D65), asked for a bigger flag on the helmet ("ponle
-la bandera más grande en la cabeza", D67: the decal grew from 5 × 4 to
+la bandera más grande en la cabeza", "make the flag on the head bigger", D67: the decal grew from 5 × 4 to
 11 × 7 px across the set) and approved the set with it ("OK", D70). It
 ships, 54 lumps in `assets/sprites/doughboy/`, byte-identical to
 `work/art/enemies/heavy/full/SDDB/` (`tools/art/gen_heavy.py --full db`,
@@ -2166,7 +2171,7 @@ draft overlay never carried either and records them as installed whole
 because the PG-7V grenade and the Katyusha rocket still wear it.
 
 **The two enemy shells, installed by D81 (2026-10-20).** The CEO took the
-recommended option for both ("los que tú recomiendas", D81;
+recommended option for both ("los que tú recomiendas", "the ones you recommend", D81;
 `docs/art/previews/2026-10-19_2200_F5_enemy-shells.html`): option A of each
 sweep of `tools/art/gen_shells.py`, the Doughboy's "comet" (a white-hot
 core in a `flag_red` corona, the shell its attack frames kindle in the
@@ -2333,7 +2338,7 @@ new names, and none collides with a name reserved above
 locks and the campaign maps' things. **NOT YET SEEN IN THE ENGINE** (D26).
 
 **The player effects, installed by D82 (2026-10-20).** The CEO took
-option A of every item ("también las recomendadas", D82;
+option A of every item ("también las recomendadas", "the recommended ones too", D82;
 `docs/art/previews/2026-10-19_2208_F4_player-effects.html`). Fifty lumps
 of `tools/art/gen_effects.py` (seed 75, palette v1) ship in
 `assets/sprites/effects/`, byte-identical to `work/art/effects/<SPRITE>/`

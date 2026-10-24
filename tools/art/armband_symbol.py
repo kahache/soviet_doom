@@ -4,9 +4,10 @@
 
 The CEO saw the first proposal (gemini_enemy.py `armband`) and judged a
 symbol stamped at sprite size unnatural: "lo suyo seria editar bien con
-Photoshop". This module is that edit, done by code, on the Gemini figure
-BEFORE the pipeline reduces it, so the reduction integrates the symbol like
-every other detail Gemini drew:
+Photoshop" ("the proper way would be to edit it well in Photoshop"). This
+module is that edit, done by code, on the Gemini figure BEFORE the pipeline
+reduces it, so the reduction integrates the symbol like every other detail
+Gemini drew:
 
   1. find_fields     - the armband's white field (gemini_enemy.armband_fields;
                        a field seen edge-on, too grey for it, by a looser
@@ -30,7 +31,7 @@ every other detail Gemini drew:
                        (grain_sigma), seeded
 
 Then the pipeline reduces the figure as usual (gemini_enemy.render).
-Wired since D108 ("la mezcla"): gemini_enemy.source_picture calls
+Wired since D108 ("la mezcla", "the mix"): gemini_enemy.source_picture calls
 `apply_symbol` AFTER the mirror and before the black plate, the tilt and
 the downscale, so a mirrored rotation (6-8) gets the symbol the right way
 round; `select_fields` finds each enemy's fields (white, box, plain, ring);
@@ -784,10 +785,10 @@ def apply_fooocus(rgb: np.ndarray, mask: np.ndarray, key: str,
 
 # ----------------------------------------------------------- comparison
 COMPARE_VIEWS = (   # (label, sheet, view, arm-axis hint in screen degrees or None)
-    ("frente (B1)", "turn", 0, None),
+    ("front (B1)", "turn", 0, None),
     ("3/4 (B2)", "turn", 1, None),
-    ("perfil (B3)", "turn", 2, None),
-    ("cadáver (L)", "death2", 2, 0.0),     # lying, the shoulder to the right
+    ("profile (B3)", "turn", 2, None),
+    ("corpse (L)", "death2", 2, 0.0),     # lying, the shoulder to the right
 )
 CROP_PAD = 16          # source px round the field in column (a)
 CROP_ZOOM = 3
@@ -855,15 +856,15 @@ def compare(spec=ge.RIFLEMAN, out: Path = COMPARE_PNG, ref_dir: Path = ge.REF_DI
 
 
 NOTES = (
-    "Como un editor en Photoshop, por código, en la hoja de Gemini ANTES de reducir: se localiza el campo blanco del brazalete; el brazo",
-    "se modela como un cilindro (eje = eje largo de la figura, radio = ancho del brazalete, inclinación y curva = el borde del brazalete);",
-    "la esvástica vectorial (la del sprite aprobado, mismo sentido de giro, inclinada 45 grados como la histórica) se dobla sobre él",
-    "(arcoseno: escorzo hacia el borde del brazo), se recorta por el campo, se suaviza como el borde del propio campo de Gemini, se",
-    "multiplica por la luz del campo (pliegues y sombra siguen) y lleva el grano de los negros de Gemini. Luego el pipeline normal reduce",
-    "la figura entera. NO instalado: ni overlay ni hoja de revisión. Columna (a): izquierda antes, derecha después, píxeles de Gemini x3.",
-    "Frente: el campo está de canto (a ~88 grados, en la silueta del brazo); el símbolo queda detrás: no se ve, como en una foto.",
-    "En la hoja de Gemini el campo mide 6-17 px (no 20-40); en el sprite, 3-4 px: se lee como una marca negra en el disco blanco.",
-    "La insignia 7x7 del set actual es la misma cruz (mismo sentido de giro) pero recta: a 5x5 px no cabe inclinada.",
+    "Like an editor in Photoshop, by code, on the Gemini sheet BEFORE reducing: the armband's white field is located; the arm",
+    "is modelled as a cylinder (axis = the figure's long axis, radius = the armband's width, tilt and curve = the armband's edge);",
+    "the vector swastika (the approved sprite's, same turning sense, tilted 45 degrees like the historical one) is bent over it",
+    "(arcsine: foreshortened towards the arm's edge), clipped by the field, softened like the edge of Gemini's own field,",
+    "multiplied by the field's light (folds and shadow follow) and given the grain of Gemini's blacks. Then the normal pipeline reduces",
+    "the whole figure. NOT installed: no overlay, no review sheet. Column (a): left before, right after, Gemini pixels x3.",
+    "Front: the field is edge-on (at ~88 degrees, on the arm's silhouette); the symbol is behind: not visible, as in a photo.",
+    "On the Gemini sheet the field is 6-17 px (not 20-40); in the sprite, 3-4 px: it reads as a black mark on the white disc.",
+    "The current set's 7x7 badge is the same cross (same turning sense) but upright: at 5x5 px it does not fit tilted.",
 )
 
 
@@ -880,13 +881,13 @@ def _draw(rows, out: Path, sprite: str) -> Path:
     H = head_h + sum(row_h) + 21 * len(NOTES) + 26
     img = Image.new("RGB", (W, H), BG)
     dr = ImageDraw.Draw(img)
-    dr.text((10, 8), f"{sprite}: brazalete, opción 1 (editado a la resolución de Gemini, luego reducido). "
-                     "NO instalado: el CEO decide.", fill=INK, font=font)
+    dr.text((10, 8), f"{sprite}: armband, option 1 (edited at Gemini's resolution, then reduced). "
+                     "NOT installed: the CEO decides.", fill=INK, font=font)
     xa, xb = label_w, label_w + a_w + col_gap
     xc = xb + b_w + col_gap
-    dr.text((xa, 40), f"(a) Gemini, brazo x{cz}: antes | después", fill=(220, 214, 200), font=small)
-    dr.text((xb, 40), f"(b) sprite final x{z}", fill=(220, 214, 200), font=small)
-    dr.text((xc, 40), "(c) x1 y x2 sobre gris, aspecto 1.2", fill=(220, 214, 200), font=small)
+    dr.text((xa, 40), f"(a) Gemini, arm x{cz}: before | after", fill=(220, 214, 200), font=small)
+    dr.text((xb, 40), f"(b) final sprite x{z}", fill=(220, 214, 200), font=small)
+    dr.text((xc, 40), "(c) x1 and x2 on grey, aspect 1.2", fill=(220, 214, 200), font=small)
     y = head_h
     for (label_txt, crops, rgba), rh in zip(rows, row_h):
         dr.text((10, y + 8), label_txt, fill=INK, font=font)

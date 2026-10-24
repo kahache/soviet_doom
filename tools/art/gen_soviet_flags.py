@@ -4,7 +4,8 @@ Run with the project venv:  .venv/Scripts/python.exe tools/art/gen_soviet_flags.
                             (macOS: .venv/bin/python tools/art/gen_soviet_flags.py)
 
 The CEO's playtest (D119, 2026-10-23): the Reich's and the Legion's banners
-"no pegan: no parece que sean del enemigo sino del entorno". Every one of
+"no pegan: no parece que sean del enemigo sino del entorno" ("they do not
+fit: they look like part of the setting, not the enemy's"). Every one of
 them becomes a Soviet flag. The lump names and sizes do not change (64x128
 walls), so the nine maps change without being edited. The enemies keep
 their own armbands and flags on their sprites (D108, D114): this script
@@ -483,7 +484,7 @@ def preview(after: dict[str, np.ndarray], before_dir: Path = BEFORE_DIR, path: P
     wall as the maps hang it, every pixel x4 (nearest neighbour)."""
     walls = {name: ground(name) for name in set(GROUND.values())}
     rows = []
-    for title, source in (("ANTES", "before"), ("DESPUÉS", "after")):
+    for title, source in (("BEFORE", "before"), ("AFTER", "after")):
         tiles = []
         for lump in LUMPS:
             if source == "after":

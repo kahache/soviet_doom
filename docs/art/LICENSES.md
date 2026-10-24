@@ -196,7 +196,7 @@ unchanged. Before/after sheet:
 `docs/art/previews/2026-10-13_1443_F2_font-C-serif-fix.png`.
 
 **German letters, 2026-10-13 (approved by the CEO the same day for an
-in-game trial, D37: «Las pruebo, incluso la B se queda»).** Ä, Ö, Ü and the
+in-game trial, D37: «Las pruebo, incluso la B se queda», "I'll try them; even the B stays").** Ä, Ö, Ü and the
 sharp s, so the Reich's real German (D36) prints as written: ten new files,
 `00C4.png`, `00D6.png`, `00DC.png`, `1E9E.png` and `00DF.png` in both
 `defsmallfont/` and `bigfont/`, taking the alphabet from 214 to 224 glyphs.
@@ -289,7 +289,7 @@ B confirms the switches' lesson once more, a mid green vanishes on
 
 ## Batch 2 — metro, first pieces (F2, approved by the CEO 2026-10-13, D42)
 
-CEO verdict, verbatim: «OK a las 6 piezas de metro» — shipped as drawn in
+CEO verdict, verbatim: «OK a las 6 piezas de metro» ("OK to the 6 metro pieces") — shipped as drawn in
 palette v1. Files in `assets/textures/metro/` and `assets/flats/metro/`,
 copied byte for byte from the Mac's renders in `work/art/batch2/metro/`
 (SHA-256 checked against `work/MANIFEST-from-mac.txt`); the same six
@@ -614,16 +614,16 @@ phonogram and sequencing, each with its source — is owned by
 | `D_SDBS6B` | MAP06's boss loop with variant B: bars 29-52 of `D_SDM06B`, 0:51 | original composition, `tools/audio/compose_episode2.py` (sound-designer, 2026-10-21; D104 brief, approved by the CEO with its pair in D106, "10/10 OK"); installed 2026-10-22 byte-identical to `work/audio/episode2/D_SDBS6B.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
 | `D_SDE2IA` | episode 2's intermission (the stats screen after MAP04 and MAP05, MAPINFO `intermusic`, D106): the three maps' motifs in one 16-bar loop, 92 BPM, 0:42 | original composition, `tools/audio/compose_episode2.py` (sound-designer, 2026-10-21; D104 brief, approved by the CEO with its pair in D106, "10/10 OK"); installed 2026-10-22 byte-identical to `work/audio/episode2/D_SDE2IA.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
 | `D_SDE2IB` | episode 2's intermission, variant B (approved, packed, not wired: the engine picks the stats screen's music itself), 104 BPM, 0:37 | original composition, `tools/audio/compose_episode2.py` (sound-designer, 2026-10-21; D104 brief, approved by the CEO with its pair in D106, "10/10 OK"); installed 2026-10-22 byte-identical to `work/audio/episode2/D_SDE2IB.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
-| `D_SDM07A` | MAP07 (Novaya Zemlya) music since D113, variant A (MAPINFO's `music`): radar pings on celesta, horns, tremolo strings, 116 BPM, a 2:21 loop | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, "las doy por buenas"); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDM07A.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
-| `D_SDM07B` | MAP07 variant B, drawn at random by `SD_MusicVariant` (MOD-SPEC §6.11): same motif, vibraphone and glockenspiel, another B section, 122 BPM, 2:14 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, "las doy por buenas"); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDM07B.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
-| `D_SDM08A` | MAP08 (Severomorsk) music since D113, variant A: low brass, shipyard metal, sonar, 124 BPM, 2:12 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, "las doy por buenas"); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDM08A.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
-| `D_SDM08B` | MAP08 variant B (`SD_MusicVariant`): 120 BPM, 2:16 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, "las doy por buenas"); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDM08B.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
-| `D_SDM09A` | MAP09 (Tunguska) music since D113, variant A: brass choir and church organ over a semiquaver ostinato, 132 BPM, 2:04 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, "las doy por buenas"); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDM09A.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
-| `D_SDM09B` | MAP09 variant B (`SD_MusicVariant`): 138 BPM, 1:58 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, "las doy por buenas"); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDM09B.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
-| `D_SDBS9A` | MAP09's final boss loop with variant A (`SD_MusicVariant`, when a BOSS monster engages): a piece of its own, not a cut, 140 BPM, 1:09 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, "las doy por buenas"); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDBS9A.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
-| `D_SDBS9B` | MAP09's final boss loop with variant B: 146 BPM, 1:06 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, "las doy por buenas"); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDBS9B.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
-| `D_SDE3IA` | episode 3's intermission (the stats screen after MAP07 and MAP08, MAPINFO `intermusic`, D113): the three maps' motifs in one 16-bar loop, 96 BPM, 0:40 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, "las doy por buenas"); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDE3IA.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
-| `D_SDE3IB` | episode 3's intermission, variant B (approved, packed, not wired: the engine picks the stats screen's music itself), 108 BPM, 0:36 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, "las doy por buenas"); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDE3IB.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `D_SDM07A` | MAP07 (Novaya Zemlya) music since D113, variant A (MAPINFO's `music`): radar pings on celesta, horns, tremolo strings, 116 BPM, a 2:21 loop | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, who accepted them as they are, his words verbatim in the PRD's D113); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDM07A.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `D_SDM07B` | MAP07 variant B, drawn at random by `SD_MusicVariant` (MOD-SPEC §6.11): same motif, vibraphone and glockenspiel, another B section, 122 BPM, 2:14 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, who accepted them as they are, his words verbatim in the PRD's D113); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDM07B.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `D_SDM08A` | MAP08 (Severomorsk) music since D113, variant A: low brass, shipyard metal, sonar, 124 BPM, 2:12 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, who accepted them as they are, his words verbatim in the PRD's D113); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDM08A.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `D_SDM08B` | MAP08 variant B (`SD_MusicVariant`): 120 BPM, 2:16 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, who accepted them as they are, his words verbatim in the PRD's D113); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDM08B.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `D_SDM09A` | MAP09 (Tunguska) music since D113, variant A: brass choir and church organ over a semiquaver ostinato, 132 BPM, 2:04 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, who accepted them as they are, his words verbatim in the PRD's D113); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDM09A.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `D_SDM09B` | MAP09 variant B (`SD_MusicVariant`): 138 BPM, 1:58 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, who accepted them as they are, his words verbatim in the PRD's D113); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDM09B.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `D_SDBS9A` | MAP09's final boss loop with variant A (`SD_MusicVariant`, when a BOSS monster engages): a piece of its own, not a cut, 140 BPM, 1:09 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, who accepted them as they are, his words verbatim in the PRD's D113); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDBS9A.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `D_SDBS9B` | MAP09's final boss loop with variant B: 146 BPM, 1:06 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, who accepted them as they are, his words verbatim in the PRD's D113); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDBS9B.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `D_SDE3IA` | episode 3's intermission (the stats screen after MAP07 and MAP08, MAPINFO `intermusic`, D113): the three maps' motifs in one 16-bar loop, 96 BPM, 0:40 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, who accepted them as they are, his words verbatim in the PRD's D113); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDE3IA.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
+| `D_SDE3IB` | episode 3's intermission, variant B (approved, packed, not wired: the engine picks the stats screen's music itself), 108 BPM, 0:36 | original composition, `tools/audio/compose_episode3.py` (sound-designer, 2026-10-22; D112 brief, approved unheard by the CEO with its pair in D113, who accepted them as they are, his words verbatim in the PRD's D113); installed 2026-10-22 byte-identical to `work/audio/episode3/D_SDE3IB.mid`; quotes no other work (the generator's self-check) | Soviet Doom project, CC BY-NC-SA 4.0 (D15) |
 
 ## Weapon sounds (F4, approved by the CEO 2026-10-15, D74; installed by N9)
 
@@ -907,6 +907,8 @@ quoted as given:
 
 > "OK (50): SDPLPAIN_w1, SDPLPAIN_w2, SDPLPAIN_w3, SDPLDETH_w1, SDPLDETH_w3, SDPLXDTH_w1, SDPLXDTH_w2, SDPLXDTH_w3, SDPLOOF_w2, SDPLOOF_w3, SDPLNOWY_w1, SDPLNOWY_w2, SDPLNOWY_w3, SDDOROPN_w1, SDDOROPN_w2, SDDOROPN_w3, SDDORCLS_w1, SDDORCLS_w2, SDDORCLS_w3, SDBDOPN_w1, SDBDOPN_w2, SDBDOPN_w3, SDBDCLS_w1, SDBDCLS_w2, SDBDCLS_w3, SDSWTCHN_w1, SDSWTCHN_w2, SDSWTCHN_w3, SDSWTCHX_w1, SDSWTCHX_w2, SDSWTCHX_w3, SDITEMUP_w1, SDITEMUP_w2, SDITEMUP_w3, SDGETPOW_w1, SDGETPOW_w2, SDGETPOW_w3, SDIZPKP_w1, SDIZPKP_w2, SDPSTART_w1, SDPSTART_w2, SDPSTART_w3, SDPSTOP_w1, SDPSTOP_w2, SDPSTOP_w3, SDPMOVE_w1, SDPMOVE_w2, SDPMOVE_w3, SDTELEPT_w1, SDTELEPT_w2 · NO (5): SDPLDETH_w2, SDPLJUMP_w1, SDPLJUMP_w2, SDIZPKP_w3, SDTELEPT_w3 · ? (1): SDPLOOF_w1 «El audio está bien pero no tiene el ruido, yo dejaría los 2 audios a la vez»"
 
+(The last remark: "the audio is fine but it lacks the noise; I would keep both sounds at once.")
+
 Installed by `tools/audio/master_world_sfx.py --install`: the 50 OKs byte
 for byte as the page's OGGs, and SDPLOOF_w1's voice laid over SDPLOOF_w3's
 impact as `SDSGOOF1`; files in `assets/sounds/world/<LUMP>.ogg`, packed as
@@ -1017,7 +1019,8 @@ sprite (`freedoom_sprite()` in the generator).
 CEO verdict on the redo: "Ok T33" (D123, 2026-10-23, on
 `docs/art/previews/2026-10-23_P4_tt33-gemini.html`).
 D111 ("rehaz los sprites de la pistola también porque ahora no queda en
-tanta consonancia con el resto de armas") retires the D61/D63 set (our
+tanta consonancia con el resto de armas", "redo the pistol sprites too,
+because now it does not match the other weapons so well") retires the D61/D63 set (our
 TT-33 model in Freedoom's recoloured pistol hands): no Freedoom pixel is
 left in the TT-33. The new frames come from the project lead's Gemini pair
 (ready, firing; bare hand on magenta), processed by
@@ -1242,7 +1245,7 @@ it). No photograph, no typeface. Freedoom's sprites never enter one.
 CEO verdict: the seven enemies redrawn with Google Gemini (D105) approved
 ("Ok enemigos gemini", D109,
 `docs/art/previews/2026-10-22_P4_enemies-gemini.html`), with D108's armband
-mix applied ("Ok a lo de las esvásticas! Ha quedado bien!", D114,
+mix applied ("Ok a lo de las esvásticas! Ha quedado bien!", "OK to the swastikas! It turned out well!", D114,
 `docs/art/previews/2026-10-22_P4_armbands-applied.png`): option 1, the D12
 symbol warped onto each armband field by `tools/art/armband_symbol.py` after
 the mirror (so it is never reversed), on every frame that shows a field;
@@ -1324,7 +1327,7 @@ never enter one.
 CEO verdict: the seven enemies redrawn with Google Gemini (D105) approved
 ("Ok enemigos gemini", D109,
 `docs/art/previews/2026-10-22_P4_enemies-gemini.html`), with D108's armband
-mix applied ("Ok a lo de las esvásticas! Ha quedado bien!", D114,
+mix applied ("Ok a lo de las esvásticas! Ha quedado bien!", "OK to the swastikas! It turned out well!", D114,
 `docs/art/previews/2026-10-22_P4_armbands-applied.png`): option 1, the D12
 symbol warped onto each armband field by `tools/art/armband_symbol.py` after
 the mirror (so it is never reversed), on every frame that shows a field;
@@ -1373,7 +1376,7 @@ Freedoom's sprites never enter one.
 CEO verdict: the seven enemies redrawn with Google Gemini (D105) approved
 ("Ok enemigos gemini", D109,
 `docs/art/previews/2026-10-22_P4_enemies-gemini.html`), with D108's armband
-mix applied ("Ok a lo de las esvásticas! Ha quedado bien!", D114,
+mix applied ("Ok a lo de las esvásticas! Ha quedado bien!", "OK to the swastikas! It turned out well!", D114,
 `docs/art/previews/2026-10-22_P4_armbands-applied.png`): option 1, the D12
 symbol warped onto each armband field by `tools/art/armband_symbol.py` after
 the mirror (so it is never reversed), on every frame that shows a field;
@@ -1466,7 +1469,7 @@ never enter one.
 CEO verdict: the seven enemies redrawn with Google Gemini (D105) approved
 ("Ok enemigos gemini", D109,
 `docs/art/previews/2026-10-22_P4_enemies-gemini.html`), with D108's armband
-mix applied ("Ok a lo de las esvásticas! Ha quedado bien!", D114,
+mix applied ("Ok a lo de las esvásticas! Ha quedado bien!", "OK to the swastikas! It turned out well!", D114,
 `docs/art/previews/2026-10-22_P4_armbands-applied.png`): option 1, the D12
 symbol warped onto each armband field by `tools/art/armband_symbol.py` after
 the mirror (so it is never reversed), on every frame that shows a field;
@@ -1550,7 +1553,8 @@ never enter one.
 ## Enemy sprites: the Liberty Colossus (P4, drawn from Google Gemini, approved by the CEO 2026-10-23, D119 and D123)
 
 CEO verdict: "Coloso me gustan las 2: colorear general y la estatua de la
-libertad. Quiero los 2 en el juego" (D123, 2026-10-23, on
+libertad. Quiero los 2 en el juego" ("Colossus: I like both, the coloured
+General and the Statue of Liberty. I want both in the game"; D123, 2026-10-23, on
 `docs/art/previews/2026-10-23_P4_colossus-gemini.html`): the statue is
 installed for `SD_LibertyColossus`, MAP06's boss; the other option, the
 General's `SDGN` drawn x1.3 and tinted chrome in code, stays in the game as
@@ -1593,7 +1597,8 @@ are their own.
 
 ## Enemy sprites: the Consortium (P4, Episode 3's final boss, drawn from Google Gemini, approved by the CEO 2026-10-24, D128)
 
-CEO verdict: "Ok consorcio, añade paleta si es necesario" (D128, 2026-10-24,
+CEO verdict: "Ok consorcio, añade paleta si es necesario" ("OK, Consortium; add a
+palette if needed"; D128, 2026-10-24,
 on `docs/art/previews/2026-10-24_P4_consortium-gemini.html`). The
 Consortium's first sprites of its own: from D116 to D128 it wore the heavy
 Panzermensch's `SDPS` drawn x1.75 and tinted the portal's cobalt in code
@@ -1649,7 +1654,7 @@ their own.
 
 ## Enemy sprites: the Doughboy's and the Panzermensch's shells (F5, approved by the CEO 2026-10-20, D81)
 
-CEO verdict (D81, "los que tú recomiendas"): option A of both sweeps
+CEO verdict (D81, "los que tú recomiendas", "the ones you recommend"): option A of both sweeps
 (`docs/art/previews/2026-10-19_2200_F5_enemy-shells.html`), the Doughboy's
 shell "comet" and the Panzermensch's and Schwer's shell "ember". Files in
 `assets/sprites/doughboy/` and `assets/sprites/panzermensch/`, beside their
@@ -1674,7 +1679,7 @@ comparison, and never enter a sprite.
 
 ## Player effects and world sprites (M2c, approved by the CEO 2026-10-20, D82)
 
-CEO verdict (D82, "también las recomendadas"): option A of each item of
+CEO verdict (D82, "también las recomendadas", "the recommended ones too"): option A of each item of
 the sweep (`docs/art/previews/2026-10-19_2208_F4_player-effects.html`).
 Files in `assets/sprites/effects/`, copied byte for byte from
 `work/art/effects/<SPRITE>/` (rendered on the Windows PC on 2026-10-19 by

@@ -49,7 +49,7 @@ The steps (pure functions on arrays, tests/test_gemini_enemy.py):
                            sheet); `box` mode paints the field's whole box
                            white (a white cross on red becomes a plain white
                            patch); `none` leaves it (the Legion's US flag).
-  4b. the D12 symbol      - D108, "la mezcla": on the Reich (EnemySpec.symbol),
+  4b. the D12 symbol      - D108, "la mezcla" ("the mix"): on the Reich (EnemySpec.symbol),
                            AFTER the mirror (source_picture: never mirrored),
                            armband_symbol's option 1 on every field it finds
                            (select_fields), and on the close pictures (the
@@ -284,18 +284,18 @@ RIFLEMAN = EnemySpec(
         "P": Src("death", 3, blood=3), "Q": Src("death2", 0, blood=3), "R": Src("death2", 1, blood=3),
         "S": Src("death2", 2, blood=4), "T": Src("death2", 2, blood=5), "U": Src("death2", 2, blood=6),
     },
-    derived=(   # shown to the CEO (Spanish)
-        "B y D: la misma vista de pie (turn); Gemini da dos zancadas (A = walkL, C = walkR) y la vista quieta",
-        "G2-G8 (dolor): la vista de pie inclinada 9 grados hacia atrás; G1 es el dolor de Gemini (death, figura 1)",
-        "M-U (reventón, XDeath): Gemini no tiene hoja; son los frames de muerte con sangre procedural (chorro y luego charco)",
-        "rotaciones 6-8: las 4-2 en espejo (fusil y brazalete cambian de brazo, como los pares espejo de Doom)",
+    derived=(   # shown to the CEO on the review sheet (English, D129)
+        "B and D: the same standing view (turn); Gemini gives two strides (A = walkL, C = walkR) and the still view",
+        "G2-G8 (pain): the standing view tilted 9 degrees backwards; G1 is Gemini's pain (death, figure 1)",
+        "M-U (gib, XDeath): Gemini has no sheet; they are the death frames with procedural blood (spurt, then pool)",
+        "rotations 6-8: 4-2 mirrored (rifle and armband change arm, like Doom's mirror pairs)",
     ),
     anims=(
-        ("andar (See: A A B B C C D D, 4 tics)", (("A", 8), ("B", 8), ("C", 8), ("D", 8)), True),
-        ("disparar (Missile: E 10, F 8, E 8)", (("E", 10), ("F", 8), ("E", 8), ("B", 12)), True),
-        ("dolor (Pain: G 6)", (("B", 20), ("G", 6), ("B", 14)), True),
-        ("morir (Death: H I J K 5, L)", (("H", 5), ("I", 5), ("J", 5), ("K", 5), ("L", 45)), True),
-        ("reventar (XDeath: M-T 5, U)", tuple((c, 5) for c in "MNOPQRST") + (("U", 45),), True),
+        ("walk (See: A A B B C C D D, 4 tics)", (("A", 8), ("B", 8), ("C", 8), ("D", 8)), True),
+        ("fire (Missile: E 10, F 8, E 8)", (("E", 10), ("F", 8), ("E", 8), ("B", 12)), True),
+        ("pain (Pain: G 6)", (("B", 20), ("G", 6), ("B", 14)), True),
+        ("die (Death: H I J K 5, L)", (("H", 5), ("I", 5), ("J", 5), ("K", 5), ("L", 45)), True),
+        ("gib (XDeath: M-T 5, U)", tuple((c, 5) for c in "MNOPQRST") + (("U", 45),), True),
     ),
 )
 
@@ -322,23 +322,23 @@ LEGION = EnemySpec(
         "S": Src("death", 4, blood=4), "T": Src("death", 4, blood=5), "U": Src("death", 4, blood=6),
     },
     derived=(
-        "B y D: la vista de pie (turn); A = walkL, C = walkR",
-        "G2-G8 (dolor): la vista de pie inclinada 9 grados; G1 = el dolor de Gemini (death, figura 1)",
-        "H-L (muerte): las 5 figuras de la hoja death tal cual (dolor, impacto, cayendo, casi en el suelo, tumbado)",
-        "M-U (reventón, XDeath): sin hoja de Gemini; los frames de muerte con sangre procedural (chorro y charco)",
-        "rotaciones 6-8: las 4-2 en espejo. La bandera: Gemini la pintó en el hombro DERECHO del soldado "
-        "(izquierda de la imagen de frente), coherente en las 5 vistas; con el espejo pasa al otro hombro en "
-        "2-3 (Gemini dibujó la 3/4 y el perfil mirando a la derecha) y queda en su hombro en 7-8. "
-        "A escala de juego mide ~3x2 px: se acepta, como la escopeta que cambia de mano. Para que sea exacto "
-        "basta pedir a Gemini las 3 vistas del otro lado (ver la lista) y ponerlas como override de 2-4",
-        "brazalete: ninguno (la Legión no lleva; la bandera no se toca: armband='none')",
+        "B and D: the standing view (turn); A = walkL, C = walkR",
+        "G2-G8 (pain): the standing view tilted 9 degrees; G1 = Gemini's pain (death, figure 1)",
+        "H-L (death): the death sheet's 5 figures as drawn (pain, impact, falling, nearly down, lying)",
+        "M-U (gib, XDeath): no Gemini sheet; the death frames with procedural blood (spurt and pool)",
+        "rotations 6-8: 4-2 mirrored. The flag: Gemini painted it on the trooper's RIGHT shoulder "
+        "(image left when facing us), consistent in the 5 views; the mirror moves it to the other shoulder in "
+        "2-3 (Gemini drew the 3/4 and the profile facing right) and it stays on his shoulder in 7-8. "
+        "At game scale it is ~3x2 px: accepted, like the shotgun changing hands. To make it exact, "
+        "ask Gemini for the 3 views of the other side (see the list) and set them as overrides of 2-4",
+        "armband: none (the Legion wears none; the flag is left alone: armband='none')",
     ),
     anims=(
-        ("andar (See: A A B B C C D D, 3 tics)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
-        ("disparar (Missile: E 10, F 10, E 10)", (("E", 10), ("F", 10), ("E", 10), ("B", 12)), True),
-        ("dolor (Pain: G 3, G 3)", (("B", 20), ("G", 6), ("B", 14)), True),
-        ("morir (Death: H I J K 5, L)", (("H", 5), ("I", 5), ("J", 5), ("K", 5), ("L", 45)), True),
-        ("reventar (XDeath: M-T 5, U)", tuple((c, 5) for c in "MNOPQRST") + (("U", 45),), True),
+        ("walk (See: A A B B C C D D, 3 tics)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
+        ("fire (Missile: E 10, F 10, E 10)", (("E", 10), ("F", 10), ("E", 10), ("B", 12)), True),
+        ("pain (Pain: G 3, G 3)", (("B", 20), ("G", 6), ("B", 14)), True),
+        ("die (Death: H I J K 5, L)", (("H", 5), ("I", 5), ("J", 5), ("K", 5), ("L", 45)), True),
+        ("gib (XDeath: M-T 5, U)", tuple((c, 5) for c in "MNOPQRST") + (("U", 45),), True),
     ),
     reask=(
         ("gem_legion_turnB.png", "Same Liberty Legion trooper, same style and scale, magenta background: "
@@ -373,30 +373,30 @@ STORM = EnemySpec(
         "T": Src("death", 4, blood=5), "U": Src("death", 4, blood=6),
     },
     derived=(
-        "B y D: la vista de pie (turn); A = walkL, C = walkR",
-        "E y F: la misma carga (aim) dos veces (la clase pide E F 8 tics antes de G); G = fire (el rayo). "
-        "El cuerpo a cuerpo (Melee) usa los mismos E F G",
-        "H2-H8 (dolor): la vista de pie inclinada 9 grados; H1 = el dolor de Gemini (death, figura 1)",
-        "I-M (muerte): las 5 figuras de la hoja death tal cual (la 2 con las chispas, la 5 con el humo)",
-        "N-U (reventón, XDeath): sin hoja de Gemini; los frames de muerte con sangre procedural",
-        "botas: las seis hojas (193 px) cortan las suelas en la última fila; se añade una suela oscura "
-        "de 5 px de origen (~1 px en juego) bajo cada figura que toca el borde",
-        "brazo mecánico: medido por el brazalete (brazo izquierdo) en las vistas de frente y espalda de las "
-        "6 hojas, el cuerpo NO está invertido en ninguna (el brazo mecánico grande es siempre el derecho, a la "
-        "izquierda de la imagen de frente). Lo que cambia es el ARMA: en turn/walk el cañón-taladro sale del "
-        "brazo mecánico; en aim/fire el cañón de energía sale del brazo izquierdo (el del brazalete) y el "
-        "mecánico cuelga. Espejar aim/fire invertiría el cuerpo y la bola saltaría de lado al pasar de andar "
-        "a disparar, así que la regla (armband_side) no espeja ninguna vista; si el CEO quiere el rayo en el "
-        "brazo mecánico, se pide de nuevo a Gemini (ver la lista)",
-        "rotaciones 6-8: las 4-2 en espejo (brazo mecánico y brazalete cambian de lado, como en el fusilero)",
-        "brazalete: rojo con el campo blanco VACÍO (D105); la cruz blanca de Gemini se pinta a blanco liso (modo box)",
+        "B and D: the standing view (turn); A = walkL, C = walkR",
+        "E and F: the same charge (aim) twice (the class asks for E F 8 tics before G); G = fire (the bolt). "
+        "Melee uses the same E F G",
+        "H2-H8 (pain): the standing view tilted 9 degrees; H1 = Gemini's pain (death, figure 1)",
+        "I-M (death): the death sheet's 5 figures as drawn (the 2nd with the sparks, the 5th with the smoke)",
+        "N-U (gib, XDeath): no Gemini sheet; the death frames with procedural blood",
+        "boots: the six sheets (193 px) cut the soles at the last row; a dark sole "
+        "5 source px tall (~1 px in game) is added under every figure touching the edge",
+        "mechanical arm: measured by the armband (left arm) in the front and back views of the "
+        "6 sheets, the body is NOT flipped in any of them (the big mechanical arm is always the right one, "
+        "image left when facing us). What changes is the WEAPON: in turn/walk the drill-cannon comes out of the "
+        "mechanical arm; in aim/fire the energy cannon comes out of the left arm (the armband's) and the "
+        "mechanical one hangs. Mirroring aim/fire would flip the body and the ball would jump sides going from "
+        "walking to firing, so the rule (armband_side) mirrors no view; if the CEO wants the bolt from the "
+        "mechanical arm, Gemini is asked again (see the list)",
+        "rotations 6-8: 4-2 mirrored (mechanical arm and armband change sides, as on the rifleman)",
+        "armband: red with an EMPTY white field (D105); Gemini's white cross is painted plain white (box mode)",
     ),
     anims=(
-        ("andar (See: A A B B C C D D, 3 tics)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
-        ("atacar (Missile: E F 8, G 6)", (("E", 8), ("F", 8), ("G", 6), ("B", 14)), True),
-        ("dolor (Pain: H 2, H 2)", (("B", 20), ("H", 4), ("B", 14)), True),
-        ("morir (Death: I 8 J 8 K 6 L 6, M)", (("I", 8), ("J", 8), ("K", 6), ("L", 6), ("M", 45)), True),
-        ("reventar (XDeath: N-T 5, U)", tuple((c, 5) for c in "NOPQRST") + (("U", 45),), True),
+        ("walk (See: A A B B C C D D, 3 tics)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
+        ("attack (Missile: E F 8, G 6)", (("E", 8), ("F", 8), ("G", 6), ("B", 14)), True),
+        ("pain (Pain: H 2, H 2)", (("B", 20), ("H", 4), ("B", 14)), True),
+        ("die (Death: I 8 J 8 K 6 L 6, M)", (("I", 8), ("J", 8), ("K", 6), ("L", 6), ("M", 45)), True),
+        ("gib (XDeath: N-T 5, U)", tuple((c, 5) for c in "NOPQRST") + (("U", 45),), True),
     ),
     reask=(
         ("gem_storm_turn.png, _walkL, _walkR, _aim, _fire, _death", "Same sheets on a 1024x238 canvas "
@@ -451,27 +451,27 @@ HOUND = EnemySpec(
         "M": Src("death", 4), "N": Src("death", 5),
     },
     derived=(
-        "hojas en rejilla 2 x 4 (no 1 x 5): de cada hoja se usan frente (fila 1, figura 1), 3/4 delante "
-        "(fila 1, 2), perfil (fila 1, 3), 3/4 detrás (fila 2, 3) y espalda (fila 1, 4); las otras tres "
-        "(frente y espalda repetidos, el perfil grande de la fila 2) sobran. Las sombras pintadas en el "
-        "suelo (walkR, bite, death) se quitan con la clave (el magenta oscuro del fondo)",
-        "tamaño: el perfil (A3A7 hoy, 36 filas) fija la altura; el frente queda en ~37 filas (hoy 31, "
-        "pero el frente de hoy mide 14 px de ancho: el de Gemini es un perro de frente de verdad)",
-        "rotaciones en pares espejo (SDHNA2A8...), como el set de hoy: el motor espeja 6-8",
-        "B y D: la vista quieta (turn); A = walkL, C = walkR",
-        "ataque (Melee E F G): E = turn (gruñe), F = bite, G = bite inclinado 8 grados hacia delante "
-        "(la dentellada). La hoja bite apenas cambia de pose (boca más abierta y babas): NO sirve como "
-        "ataque por sí sola; ver la lista",
-        "H (dolor): la vista quieta inclinada 9 grados; H3H7 = el dolor de Gemini (death, figura 1, de perfil)",
-        "I-N (muerte, 6 frames): las 6 figuras de death tal cual: dolor, encabritado, cayendo, hundiéndose "
-        "(dibujado mirando al otro lado: espejado), desplomándose, tumbado; todas miran a la izquierda",
-        "brazalete: ninguno (armband='none')",
+        "sheets in a 2 x 4 grid (not 1 x 5): from each sheet we use front (row 1, figure 1), 3/4 front "
+        "(row 1, 2), profile (row 1, 3), 3/4 back (row 2, 3) and back (row 1, 4); the other three "
+        "(front and back repeated, row 2's big profile) are spare. The shadows painted on the "
+        "ground (walkR, bite, death) are removed with the key (the background's dark magenta)",
+        "size: the profile (A3A7 today, 36 rows) sets the height; the front ends up ~37 rows (31 today, "
+        "but today's front is 14 px wide: Gemini's is a real front-on dog)",
+        "rotations in mirror pairs (SDHNA2A8...), like today's set: the engine mirrors 6-8",
+        "B and D: the still view (turn); A = walkL, C = walkR",
+        "attack (Melee E F G): E = turn (growls), F = bite, G = bite tilted 8 degrees forward "
+        "(the snap). The bite sheet barely changes pose (mouth wider and drool): it does NOT work as an "
+        "attack on its own; see the list",
+        "H (pain): the still view tilted 9 degrees; H3H7 = Gemini's pain (death, figure 1, in profile)",
+        "I-N (death, 6 frames): death's 6 figures as drawn: pain, rearing, falling, sinking "
+        "(drawn facing the other way: mirrored), collapsing, lying; all face left",
+        "armband: none (armband='none')",
     ),
     anims=(
-        ("correr (See: A A B B C C D D, 2 tics)", (("A", 4), ("B", 4), ("C", 4), ("D", 4)), True),
-        ("morder (Melee: E F 8, G 8)", (("E", 8), ("F", 8), ("G", 8), ("B", 12)), True),
-        ("dolor (Pain: H 2, H 2)", (("B", 20), ("H", 4), ("B", 14)), True),
-        ("morir (Death: I 8 J 8 K L M 4, N)", (("I", 8), ("J", 8), ("K", 4), ("L", 4), ("M", 4), ("N", 45)), True),
+        ("run (See: A A B B C C D D, 2 tics)", (("A", 4), ("B", 4), ("C", 4), ("D", 4)), True),
+        ("bite (Melee: E F 8, G 8)", (("E", 8), ("F", 8), ("G", 8), ("B", 12)), True),
+        ("pain (Pain: H 2, H 2)", (("B", 20), ("H", 4), ("B", 14)), True),
+        ("die (Death: I 8 J 8 K L M 4, N)", (("I", 8), ("J", 8), ("K", 4), ("L", 4), ("M", 4), ("N", 45)), True),
     ),
     reask=(
         ("gem_hound_lunge.png", "Same Reich hound, same style, scale and 2x4 grid, magenta background, NO "
@@ -504,24 +504,24 @@ DOUGHBOY = EnemySpec(
         "K": Src("death", 4), "L": Src("death", 5),
     },
     derived=(
-        "A y B: la vista quieta (turn); C y D: la boca abierta con la bola (attack). La clase pide B C D "
-        "de 5 tics: no hay un frame de 'abre la boca' intermedio, así que B es la cabeza quieta",
-        "attack, vista 3 (perfil): el brillo duplicado en la nuca se borra; vista 4 (3/4 detrás): el "
-        "brillo pintado sobre la nuca se borra (la boca no se ve desde ahí). Se quitan sus píxeles azules "
-        "y blancos; queda la cabeza",
-        "E (dolor): E1 = el dolor de Gemini (death, figura 1, con chispas); E2-E8 la vista quieta "
-        "inclinada 9 grados. F (sigue el dolor): F1 = el golpe (death, figura 2); F2-F8 inclinada 4,5 grados",
-        "G-L (muerte, 6 frames): las 6 figuras de death tal cual (dolor, golpe, se raja, cae, montón, "
-        "restos con el casco)",
-        "cuelga 14 px bajo su origen como hoy (cabeza flotante); la bandera del casco (D12) no se toca: "
+        "A and B: the still view (turn); C and D: the open mouth with the ball (attack). The class asks for B C D "
+        "at 5 tics: there is no in-between 'opens the mouth' frame, so B is the still head",
+        "attack, view 3 (profile): the duplicated glow on the back of the head is erased; view 4 (3/4 back): the "
+        "glow painted over the back of the head is erased (the mouth cannot be seen from there). Its blue "
+        "and white pixels are removed; the head stays",
+        "E (pain): E1 = Gemini's pain (death, figure 1, with sparks); E2-E8 the still view "
+        "tilted 9 degrees. F (pain continues): F1 = the hit (death, figure 2); F2-F8 tilted 4.5 degrees",
+        "G-L (death, 6 frames): death's 6 figures as drawn (pain, hit, cracks, falls, heap, "
+        "remains with the helmet)",
+        "hangs 14 px below its origin as today (floating head); the helmet's flag (D12) is left alone: "
         "armband='none'",
-        "rotaciones 6-8: las 4-2 en espejo (la bandera del casco se ve en el otro lado, como en la Legión)",
+        "rotations 6-8: 4-2 mirrored (the helmet's flag shows on the other side, as on the Legion)",
     ),
     anims=(
-        ("flotar (See: A 3)", (("A", 3),), True),
-        ("atacar (Missile: B C D 5)", (("B", 5), ("C", 5), ("D", 5), ("A", 15)), True),
-        ("dolor (Pain: E 3 E 3 F 6)", (("A", 20), ("E", 6), ("F", 6), ("A", 14)), True),
-        ("morir (Death: G-K 8, L)", (("G", 8), ("H", 8), ("I", 8), ("J", 8), ("K", 8), ("L", 45)), True),
+        ("float (See: A 3)", (("A", 3),), True),
+        ("attack (Missile: B C D 5)", (("B", 5), ("C", 5), ("D", 5), ("A", 15)), True),
+        ("pain (Pain: E 3 E 3 F 6)", (("A", 20), ("E", 6), ("F", 6), ("A", 14)), True),
+        ("die (Death: G-K 8, L)", (("G", 8), ("H", 8), ("I", 8), ("J", 8), ("K", 8), ("L", 45)), True),
     ),
     reask=(
         ("gem_doughboy_attack.png (views 3-4)", "Same 5 views: the profile with ONE energy ball, in the "
@@ -555,16 +555,16 @@ PANZER_SINGLE = {
     "M": Src("death", 4), "N": Src("death", 5), "O": Src("death", 5, core=True),
 }
 PANZER_DERIVED = (
-    "B y D: la vista quieta (turn); A = walkL, C = walkR",
-    "E y F: el brazo atrás con el proyectil (aim) dos veces (la clase pide E F 8 tics); G = fire (el "
-    "lanzamiento). El proyectil en vuelo de la hoja fire se quita (es su propio actor, SDPL)",
-    "H (dolor): H1 = el dolor de Gemini (death, figura 1); H2-H8 la vista quieta inclinada 9 grados",
-    "I-N (muerte): las 6 figuras de death; O (el cadáver, -1) = la figura 6 sin el humo (se ha ido)",
-    "botas: las seis hojas (182 px) cortan la suela en la última fila; se añade una suela oscura de "
-    "3 px de origen bajo cada figura que toca el borde",
-    "brazaletes (los dos brazos en fire) y el emblema de la espalda: campo blanco VACÍO (D105); la «E» "
-    "de Gemini se pinta a blanco (modo fill: también lo rojo encerrado en el campo)",
-    "rotaciones 6-8: las 4-2 en espejo",
+    "B and D: the still view (turn); A = walkL, C = walkR",
+    "E and F: the arm back with the projectile (aim) twice (the class asks for E F 8 tics); G = fire (the "
+    "throw). The projectile in flight on the fire sheet is removed (it is its own actor, SDPL)",
+    "H (pain): H1 = Gemini's pain (death, figure 1); H2-H8 the still view tilted 9 degrees",
+    "I-N (death): death's 6 figures; O (the corpse, -1) = figure 6 without the smoke (it has gone out)",
+    "boots: the six sheets (182 px) cut the sole at the last row; a dark sole "
+    "3 source px tall is added under every figure touching the edge",
+    "armbands (both arms in fire) and the back emblem: EMPTY white field (D105); Gemini's «E» "
+    "is painted white (fill mode: the red enclosed in the field too)",
+    "rotations 6-8: 4-2 mirrored",
 )
 PANZER_REASK = (
     ("gem_panzer_turn.png, _walkL, _walkR, _aim, _fire, _death", "Same sheets on a taller canvas "
@@ -582,10 +582,10 @@ PANZER = EnemySpec(
     sheets=PANZER_SHEETS, rotated=PANZER_ROTATED, single=PANZER_SINGLE,
     derived=PANZER_DERIVED,
     anims=(
-        ("andar (See: A 3, A B B C C D D 3)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
-        ("lanzar (Missile: E F 8, G 8)", (("E", 8), ("F", 8), ("G", 8), ("B", 14)), True),
-        ("dolor (Pain: H 2, H 2)", (("B", 20), ("H", 4), ("B", 14)), True),
-        ("morir (Death: I-N 8, O)", tuple((c, 8) for c in "IJKLMN") + (("O", 45),), True),
+        ("walk (See: A 3, A B B C C D D 3)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
+        ("throw (Missile: E F 8, G 8)", (("E", 8), ("F", 8), ("G", 8), ("B", 14)), True),
+        ("pain (Pain: H 2, H 2)", (("B", 20), ("H", 4), ("B", 14)), True),
+        ("die (Death: I-N 8, O)", tuple((c, 8) for c in "IJKLMN") + (("O", 45),), True),
     ),
     reask=PANZER_REASK,
 )
@@ -596,11 +596,11 @@ PANZER_HEAVY = EnemySpec(
     symbol="warp", symbol_fields="plain", corpse=("N", "O"),
     sheets=PANZER_SHEETS, rotated=PANZER_ROTATED, single=PANZER_SINGLE,
     derived=PANZER_DERIVED[:-1] + (
-        "el Schwer comparte el arte del Panzermensch (la clase es la base con SDPS por SDPM): las mismas "
-        "hojas de Gemini, 12 % más grande (76 filas, D65/D67) y con la placa ennegrecida (x0,55 todo "
-        "menos rojos y blancos), como la «placa negra» de D65. Sin chimeneas ni pinchos extra; muere "
-        "boca arriba (el de hoy, boca abajo)",
-        "rotaciones 6-8: las 4-2 en espejo",
+        "the Schwer shares the Panzermensch's art (the class is the base one with SDPS for SDPM): the same "
+        "Gemini sheets, 12 % bigger (76 rows, D65/D67) and with the plate blackened (x0.55 everything "
+        "but reds and whites), like D65's «black plate». No extra stacks or spikes; it dies "
+        "face up (today's, face down)",
+        "rotations 6-8: 4-2 mirrored",
     ),
     anims=PANZER.anims,
     reask=PANZER_REASK + (
@@ -633,35 +633,35 @@ GENERAL = EnemySpec(
         "P": Src("death", 4),
     },
     derived=(
-        "B y D: la vista quieta (turn); A = walkL, C = walkR; E = aim (bazuca apuntando), F = fire "
-        "(fogonazo y humo trasero). En fire cuatro figuras se tocan (fogonazo con humo, fogonazo con "
-        "cara, humo con hombrera): se cortan en columnas fijas y el fogonazo o el humo que cruza va "
-        "entero a la figura que lo dispara (split_x por color)",
-        "G (dolor): G1 = el dolor de Gemini (death, figura 1, el monóculo saltando); G2-G8 la vista "
-        "quieta inclinada 9 grados",
-        "Q (la orden, 'Vorwärts!') y R (los señala): Gemini no los dibujó. Q = la vista quieta, R = aim "
-        "(señala con la bazuca). Ver la lista",
-        "H-P (muerte, 9 frames de la clase, 5 de Gemini): H = dolor con el monóculo, I = golpe (suelta la "
-        "bazuca, la gorra vuela), J = se agarra el pecho, K = el mismo inclinado 9 grados (se tambalea), "
-        "L y M = de rodillas, N O P = tumbado con la capa",
-        "la hoja death está dibujada más pequeña (la bazuca mide 152 px; en aim 210): se escala x1,39",
-        "perfil: Gemini lo dibujó mirando a la DERECHA en las seis hojas: se espeja (Doom 2-4 miran a la "
-        "izquierda). La bandera pasa al brazo de fuera en 3 y queda en su brazo en 7, como en la Legión",
-        "brazalete (brazo izquierdo): en turn/walk/aim/fire Gemini lo dibujó rojo con un cuadro blanco "
-        "vacío: se deja tal cual. En la muerte (H-L) pintó una «C» dentro: se tapa con un campo blanco "
-        "liso, a mano (4 cajas, Sheet.patch): la banda está en sombra y el símbolo toca el guante y el "
-        "abrigo, la detección automática no lo aísla. Bandera de EEUU y capa de barras: intactas",
-        "OJO, coherencia de Gemini: en las vistas de frente y de espalda la bandera está en el brazo "
-        "IZQUIERDO (donde va el brazalete en 3/4). No se corrige (espejar el frente pasaría la bazuca "
-        "al otro hombro): ver la lista",
-        "rotaciones 6-8: las 4-2 en espejo",
+        "B and D: the still view (turn); A = walkL, C = walkR; E = aim (bazooka aiming), F = fire "
+        "(muzzle flash and back-blast smoke). In fire four figures touch (flash with smoke, flash with "
+        "face, smoke with epaulette): they are cut at fixed columns and the flash or smoke that crosses goes "
+        "whole to the figure that fires it (split_x by colour)",
+        "G (pain): G1 = Gemini's pain (death, figure 1, the monocle popping out); G2-G8 the still view "
+        "tilted 9 degrees",
+        "Q (the order, 'Vorwärts!') and R (pointing at them): Gemini did not draw them. Q = the still view, R = aim "
+        "(points with the bazooka). See the list",
+        "H-P (death, 9 frames in the class, 5 from Gemini): H = pain with the monocle, I = hit (drops the "
+        "bazooka, the cap flies off), J = clutches his chest, K = the same tilted 9 degrees (staggers), "
+        "L and M = kneeling, N O P = lying with the cape",
+        "the death sheet is drawn smaller (the bazooka is 152 px; 210 in aim): scaled x1.39",
+        "profile: Gemini drew it facing RIGHT on all six sheets: it is mirrored (Doom's 2-4 face "
+        "left). The flag moves to the outer arm in 3 and stays on his arm in 7, as on the Legion",
+        "armband (left arm): in turn/walk/aim/fire Gemini drew it red with an empty white "
+        "square: left as is. In the death (H-L) it painted a «C» inside: covered with a plain white "
+        "field, by hand (4 boxes, Sheet.patch): the band is in shadow and the symbol touches the glove and the "
+        "coat, so automatic detection cannot isolate it. US flag and striped cape: untouched",
+        "NOTE, Gemini's consistency: in the front and back views the flag is on the "
+        "LEFT arm (where the armband goes in 3/4). Not corrected (mirroring the front would move the bazooka "
+        "to the other shoulder): see the list",
+        "rotations 6-8: 4-2 mirrored",
     ),
     anims=(
-        ("andar (See: A A B B C C D D, 3 tics)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
-        ("disparar (Missile: E 6 F 12 E 12 F 12)", (("E", 6), ("F", 12), ("E", 12), ("F", 12), ("B", 14)), True),
-        ("dolor (Pain: G 10)", (("B", 20), ("G", 10), ("B", 14)), True),
-        ("la orden (Summon: Q 15, R 15)", (("Q", 15), ("R", 15), ("B", 14)), True),
-        ("morir (Death: H-O 10, P)", tuple((c, 10) for c in "HIJKLMNO") + (("P", 45),), True),
+        ("walk (See: A A B B C C D D, 3 tics)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
+        ("fire (Missile: E 6 F 12 E 12 F 12)", (("E", 6), ("F", 12), ("E", 12), ("F", 12), ("B", 14)), True),
+        ("pain (Pain: G 10)", (("B", 20), ("G", 10), ("B", 14)), True),
+        ("the order (Summon: Q 15, R 15)", (("Q", 15), ("R", 15), ("B", 14)), True),
+        ("die (Death: H-O 10, P)", tuple((c, 10) for c in "HIJKLMNO") + (("P", 45),), True),
     ),
     reask=(
         ("gem_general_summon.png", "Same General, same style and scale, magenta background, 5 views "
@@ -717,34 +717,34 @@ GUNNER = EnemySpec(
         "S": Src("death", 4, blood=4), "T": Src("death", 4, blood=5), "U": Src("death", 4, blood=6),
     },
     derived=(
-        "B y D: la vista de pie (turn). A y C (D127): Gemini no dio zancadas (walkL = walkR = turn), así que "
-        "salen de turn con las piernas recortadas y movidas (tools/art/walk_stride.py): A pierna izquierda "
-        "adelante, C la derecha; de frente y de espaldas una bota sube, de perfil las piernas abren (A) y la "
-        "cercana pasa delante (C). walk_stride.py build pone el torso de A y C sobre el de B (la pierna "
-        "levantada mueve el eje de las piernas): constrúyelos con él, no con este comando",
-        "E (apuntar): gem_gunner_aim_v3, de frente apunta a la cámara (D119); en las otras vistas lleva la "
-        "ametralladora a la cadera, como en turn",
-        "F (disparar): de frente el fogonazo sale hacia la cámara, delante del pecho (D119: frontal, no lateral). "
-        "La hoja fire es turn con los fogonazos pintados encima y cuatro figuras se tocan por ellos; se separan "
-        "con turn como guía (cada píxel a la figura de turn de la que crece) y cada fogonazo va entero a la figura "
-        "que dispara; donde el fogonazo de una tapa el cuerpo de la vecina, esta se repinta con turn. "
-        "La 3/4 de espalda (F4, F6) no tiene fogonazo: Gemini no lo dibujó (el cañón queda tapado)",
-        "G2-G8 (dolor): la vista de pie inclinada 9 grados; G1 = el dolor de Gemini (death, figura 1)",
-        "H-L (muerte): las 5 figuras de death_v2 (golpe con el arma, brazos abiertos, cae de espaldas con el arma "
-        "volando, sentado con el arma en el suelo, tumbado). Las botas de la 3 pisan las del tumbado: se cortan "
-        "por una línea a mano (Sheet.path), las botas horizontales para el tumbado",
-        "M-U (reventón, XDeath): sin hoja de Gemini; los frames de muerte con sangre procedural (chorro y charco)",
-        "rotaciones 6-8: las 4-2 en espejo; la bandera pasa al otro hombro en 2-4 (Gemini dibujó 3/4, perfil y 3/4 "
-        "de espalda mirando a la derecha), como en el soldado de la Legión",
-        "insignias: solo la bandera de EEUU del hombro (armband='none': no se toca); ninguna esvástica",
+        "B and D: the standing view (turn). A and C (D127): Gemini gave no strides (walkL = walkR = turn), so "
+        "they come from turn with the legs cut out and moved (tools/art/walk_stride.py): A left leg "
+        "forward, C the right; front and back one boot lifts, in profile the legs open (A) and the "
+        "near one passes in front (C). walk_stride.py build sets A's and C's torso on B's (the raised "
+        "leg moves the legs' axis): build them with it, not with this command",
+        "E (aim): gem_gunner_aim_v3, from the front it aims at the camera (D119); in the other views he carries the "
+        "machine gun at the hip, as in turn",
+        "F (fire): from the front the muzzle flash comes towards the camera, in front of the chest (D119: frontal, not sideways). "
+        "The fire sheet is turn with the flashes painted on top and four figures touch through them; they are parted "
+        "with turn as the guide (each pixel to the turn figure it grows from) and each flash goes whole to the figure "
+        "that fires; where one figure's flash covers its neighbour's body, the neighbour is repainted from turn. "
+        "The 3/4 back (F4, F6) has no flash: Gemini did not draw it (the muzzle is hidden)",
+        "G2-G8 (pain): the standing view tilted 9 degrees; G1 = Gemini's pain (death, figure 1)",
+        "H-L (death): death_v2's 5 figures (hit with the weapon, arms flung open, falls backwards with the weapon "
+        "flying, sitting with the weapon on the ground, lying). Figure 3's boots step on the lying man's: they are cut "
+        "along a hand-drawn line (Sheet.path), the horizontal boots going to the lying man",
+        "M-U (gib, XDeath): no Gemini sheet; the death frames with procedural blood (spurt and pool)",
+        "rotations 6-8: 4-2 mirrored; the flag moves to the other shoulder in 2-4 (Gemini drew 3/4, profile and 3/4 "
+        "back facing right), as on the Legion trooper",
+        "insignia: only the US flag on the shoulder (armband='none': left alone); no swastika",
     ),
     anims=(
-        ("andar (See: A A B B C C D D, 3 tics)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
-        ("ráfaga (Missile: E 10, F 3 E 2 x5, pausa E 20)",
+        ("walk (See: A A B B C C D D, 3 tics)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
+        ("burst (Missile: E 10, F 3 E 2 x5, pause E 20)",
          (("E", 10),) + (("F", 3), ("E", 2)) * 5 + (("E", 20), ("B", 12)), True),
-        ("dolor (Pain: G 3, G 3)", (("B", 20), ("G", 6), ("B", 14)), True),
-        ("morir (Death: H I J K 5, L)", (("H", 5), ("I", 5), ("J", 5), ("K", 5), ("L", 45)), True),
-        ("reventar (XDeath: M-T 5, U)", tuple((c, 5) for c in "MNOPQRST") + (("U", 45),), True),
+        ("pain (Pain: G 3, G 3)", (("B", 20), ("G", 6), ("B", 14)), True),
+        ("die (Death: H I J K 5, L)", (("H", 5), ("I", 5), ("J", 5), ("K", 5), ("L", 45)), True),
+        ("gib (XDeath: M-T 5, U)", tuple((c, 5) for c in "MNOPQRST") + (("U", 45),), True),
     ),
     reask=(
         ("gem_gunner_fire.png (view 4)", "Optional: the 3/4 back view with the muzzle flash visible past his "
@@ -802,38 +802,38 @@ COLOSSUS = EnemySpec(
         "P": Src("death", 4),
     },
     derived=(
-        "B y D: la vista de pie (turn, rescatada del chat; dibujada más pequeña que las demás hojas: estas se escalan x403/540). A y C (D127): Gemini no dio zancadas (walkL = walkR), así que salen de walkL con las botas recortadas y movidas (tools/art/walk_stride.py): una bota sube bajo la túnica (o la pierna metálica de la abertura por delante) y la túnica se balancea; de perfil la bota de delante avanza (A) y la de detrás pasa (C). walk_stride.py build pone el torso de A y C sobre el de B: constrúyelos con él, no con este comando",
-        "E (apuntar) y F (disparar): en aim y fire la vista 3 (perfil) tapa con el brazo, la antorcha y la llama "
-        "los hombros de la 4 (3/4 de espalda), y la antorcha de la 4 toca la tabla de la 5. Se separan a mano "
-        "(tools/art/colossus_gemini.py: cada píxel a la figura de walkL de la que crece, y polígonos medidos a x4 "
-        "donde la guía no llega); lo que el brazo tapaba de la 4 se repinta con walkL (aim) o con el aim ya "
-        "separado (fire)",
-        "E1/F1, de frente: la antorcha apunta a la cámara (D119); F1 = el estallido delante de la antorcha",
-        "F: los dos cohetes en vuelo de la hoja fire (3/4 de frente y perfil) se quitan: el cohete es su propio "
-        "actor (SD_ColossusRocket, el PG-7 del RPG-7), como el proyectil del Panzermensch. En el perfil queda el "
-        "chorro de llama, cerrado en punta donde estaba la cola del cohete; así F sirve para los dos verbos "
-        "(cohetes y chorro)",
-        "G (dolor): G1 = el primer fotograma de muerte (se agrieta, saltan esquirlas); G2-G8 la vista de pie (turn) "
-        "inclinada 6 grados (una estatua se dobla menos que un hombre)",
-        "Q y R (pisotón): la hoja stomp de 2 filas, arriba Q (el pie arriba), abajo R (el pie en el suelo con el "
-        "anillo de polvo y grietas); está dibujada a la mitad de tamaño: se escala x2",
-        "H-P (muerte, 9 fotogramas de la clase, 5 de Gemini): H = se agrieta (esquirlas), I = suelta la antorcha, "
-        "J = se desmorona (la tabla se parte), K = el mismo inclinado 8 grados, L = cae (en el aire, apoyado en "
-        "los pies), M = el mismo 20 grados más tumbado, N O P = el cuerpo en el suelo humeando, con la antorcha "
-        "y la tabla",
-        "rotaciones 6-8: las 4-2 en espejo; la bandera pasa al otro hombro en 2-4 (Gemini dibujó 3/4, perfil y "
-        "3/4 de espalda mirando a la derecha), como en el soldado de la Legión",
-        "insignias: solo la bandera de EEUU del hombro (armband='none': no se toca); la tabla, en blanco "
-        "(Gemini no le puso texto en ninguna hoja)",
+        "B and D: the standing view (turn, rescued from the chat; drawn smaller than the other sheets: those are scaled x403/540). A and C (D127): Gemini gave no strides (walkL = walkR), so they come from walkL with the boots cut out and moved (tools/art/walk_stride.py): one boot lifts under the robe (or the metal leg through the slit in front) and the robe sways; in profile the front boot steps forward (A) and the back one passes (C). walk_stride.py build sets A's and C's torso on B's: build them with it, not with this command",
+        "E (aim) and F (fire): in aim and fire view 3 (profile) covers view 4's shoulders (3/4 back) with the arm, the torch "
+        "and the flame, and view 4's torch touches view 5's tablet. They are parted by hand "
+        "(tools/art/colossus_gemini.py: each pixel to the walkL figure it grows from, and polygons measured at x4 "
+        "where the guide does not reach); what the arm covered of view 4 is repainted from walkL (aim) or from the already "
+        "parted aim (fire)",
+        "E1/F1, front: the torch aims at the camera (D119); F1 = the burst in front of the torch",
+        "F: the fire sheet's two rockets in flight (3/4 front and profile) are removed: the rocket is its own "
+        "actor (SD_ColossusRocket, the RPG-7's PG-7), like the Panzermensch's projectile. In the profile the "
+        "jet of flame stays, closed to a point where the rocket's tail was; so F serves both verbs "
+        "(rockets and jet)",
+        "G (pain): G1 = the first death frame (it cracks, shards fly); G2-G8 the standing view (turn) "
+        "tilted 6 degrees (a statue bends less than a man)",
+        "Q and R (stomp): the 2-row stomp sheet, top Q (the foot up), bottom R (the foot down with the "
+        "ring of dust and cracks); it is drawn at half size: scaled x2",
+        "H-P (death, 9 frames in the class, 5 from Gemini): H = cracks (shards), I = drops the torch, "
+        "J = crumbles (the tablet breaks), K = the same tilted 8 degrees, L = falls (in the air, resting on "
+        "the feet), M = the same 20 degrees further over, N O P = the body on the ground smoking, with the torch "
+        "and the tablet",
+        "rotations 6-8: 4-2 mirrored; the flag moves to the other shoulder in 2-4 (Gemini drew 3/4, profile and "
+        "3/4 back facing right), as on the Legion trooper",
+        "insignia: only the US flag on the shoulder (armband='none': left alone); the tablet, blank "
+        "(Gemini put no text on it in any sheet)",
     ),
     anims=(
-        ("andar (See: A 3, A B B C C D D 3)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
-        ("cohetes (Rockets: E 10, F 8 E 6 x3, E 16)",
+        ("walk (See: A 3, A B B C C D D 3)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
+        ("rockets (Rockets: E 10, F 8 E 6 x3, E 16)",
          (("E", 10), ("F", 8), ("E", 6), ("F", 8), ("E", 6), ("F", 8), ("E", 16), ("B", 12)), True),
-        ("chorro de fuego (Flame: E 10, F 3 x5, E 12)", (("E", 10),) + (("F", 3),) * 5 + (("E", 12), ("B", 12)), True),
-        ("pisotón (Stomp: Q 14, R 6, R 14)", (("Q", 14), ("R", 20), ("B", 14)), True),
-        ("dolor (Pain: G 10)", (("B", 20), ("G", 10), ("B", 14)), True),
-        ("morir (Death: H-O 10, P)", tuple((c, 10) for c in "HIJKLMNO") + (("P", 45),), True),
+        ("fire jet (Flame: E 10, F 3 x5, E 12)", (("E", 10),) + (("F", 3),) * 5 + (("E", 12), ("B", 12)), True),
+        ("stomp (Stomp: Q 14, R 6, R 14)", (("Q", 14), ("R", 20), ("B", 14)), True),
+        ("pain (Pain: G 10)", (("B", 20), ("G", 10), ("B", 14)), True),
+        ("die (Death: H-O 10, P)", tuple((c, 10) for c in "HIJKLMNO") + (("P", 45),), True),
     ),
     reask=(
         ("gem_colossus_aim.png, gem_colossus_fire.png", "Optional: the same 5 views with 80 px of background "
@@ -890,53 +890,53 @@ CONSORTIUM = EnemySpec(
         "M": Src("death", 3, tilt=CONSORTIUM_COLLAPSE), "N": Src("death", 4), "O": Src("death", 4, core=True),
     },
     derived=(
-        "Lados (D112, doc §2): la mitad del Reich a SU izquierda, a la DERECHA del espectador de frente. Gemini dibujó "
-        "todas las hojas al revés: cada vista se espeja (los cohetes salen 32 unidades a su izquierda, las bolas a su "
-        "derecha, como en el actor)",
-        "Rotaciones 6-8 (su lado derecho, el de la Legión): Gemini no dibujó ese lado. Son el 3/4 de espalda, el perfil "
-        "y el 3/4 de frente SIN espejar, con los materiales de las dos mitades intercambiados a mano por código "
-        "(piel gris verdosa <-> rosa por luminancia, casco de las SS <-> M1 en la fila de los cascos, el lanzacohetes "
-        "en cromo, el brazalete en un brazal cromado). Nunca un espejo: el brazalete no cambia de brazo",
-        "Q y R (fase 1, enraizado): la hoja rooted; R = Q con el núcleo encendido (respira). B y D (fase 2, de pie): turn",
-        "A y C (andar, fase 2): walk arriba (A) y abajo (C). Arreglado a mano: en A de frente, 3/4 de espalda y espalda "
-        "Gemini puso la falda de cables donde va una pierna: piernas de C (misma hoja) bajo el cinturón. Las de 3/4 de "
-        "frente y perfil arrastran cables arrancados (el doc: \"stumps dragging\"). Se balancea ±2 grados",
-        "E (aviso de bolas): aim arriba. Arreglado: 3/4 de frente, el brazo del Reich llevaba un proyector cromado "
-        "brillando -> el lanzacohetes (oliva, boca oscura); 3/4 de espalda, un tercer brazo colgando y, de espaldas, el "
-        "brazo levantado también colgando: fuera",
-        "F (aviso de cohetes): aim abajo. Arreglado: de frente, el lanzacohetes en boca (visto de punta) lo levantaba el "
-        "brazo de la Legión y otro colgaba del Reich: el cuerpo se espeja y el lanzacohetes se queda, oliva, en el brazo "
-        "del Reich; el de la Legión cuelga con su proyector (trasplantado de rooted, a escala). Perfil: un proyector "
-        "apuntando hacia atrás (fuera), el puño rosa en el lanzacohetes (gris verdoso), el lanzacohetes colgando "
-        "(fuera; la cadera que tapaba, rellenada con el propio nudo de cables: Fooocus, D127, no sirvió). 3/4 de espalda y espalda: el "
-        "brazo de la Legión levantado hacia atrás -> colgando (de E), el lanzacohetes repetido colgando: fuera",
-        "G (disparo, las dos fases): fire_v2 con las piernas cambiadas por el nudo de cables y humo de fire (misma "
-        "escala; sus brazos colgando, fuera, y el hueco rellenado con el propio nudo). Arreglado: de frente cada arma "
-        "estaba en el brazo de la otra mitad (bola en el puño del Reich, cohete del de la Legión): el cuerpo se espeja y "
-        "los brazos no, con la piel repintada; 3/4 de frente, la bola salía de la boca del lanzacohetes y el cohete de "
-        "la mano de la Legión: fogonazo naranja en el lanzacohetes, descarga azul en un cañón cromado; 3/4 de espalda, "
-        "bola en el brazo del Reich (fogonazo) y un cohete disparado hacia atrás (fuera). Los cohetes en vuelo se quitan "
-        "(son su propio actor)",
-        "H (dolor): la hoja fire descartada (las dos bocas gritando, brazos abajo) sin los cohetes ni los fogonazos, "
-        "inclinada 5 grados",
-        "S (ruptura): breach; la columna de cables comprimida a la altura de la falda de rooted (si no, el jefe crecía "
-        "un 25 % en el primer fotograma de la ruptura)",
-        "I-O (muerte): las 5 de death, espejadas. I = el núcleo se agrieta, J = las dos cabezas gritan, K = las mitades "
-        "se rompen, L = se desploma ardiendo, M = el mismo hundido 10 grados, N y O = los dos cascos entre las cenizas",
-        "Brazalete: el campo blanco de Gemini con el símbolo de armband_symbol (opción 1, D108/D114), después del "
-        "espejo; en las rotaciones 6-8 no hay brazalete (es el lado de la Legión). La bandera de EEUU queda invertida "
-        "por el espejo (en el hombro derecho, como la lleva el ejército de EEUU)",
+        "Sides (D112, doc §2): the Reich half on ITS left, on the viewer's RIGHT when facing us. Gemini drew "
+        "every sheet the wrong way round: each view is mirrored (the rockets leave 32 units to its left, the orbs to its "
+        "right, as in the actor)",
+        "Rotations 6-8 (its right side, the Legion's): Gemini did not draw that side. They are the 3/4 back, the profile "
+        "and the 3/4 front NOT mirrored, with the two halves' materials swapped by hand in code "
+        "(grey-green <-> pink skin by luminance, SS helmet <-> M1 on the helmets' row, the rocket launcher "
+        "in chrome, the armband as a chrome bracer). Never a mirror: the armband does not change arm",
+        "Q and R (phase 1, rooted): the rooted sheet; R = Q with the core lit (breathing). B and D (phase 2, standing): turn",
+        "A and C (walk, phase 2): walk top (A) and bottom (C). Fixed by hand: in A front, 3/4 back and back "
+        "Gemini put the cable skirt where a leg goes: C's legs (same sheet) under the belt. The 3/4 "
+        "front and profile ones drag torn-out cables (the doc: \"stumps dragging\"). It sways ±2 degrees",
+        "E (orb warning): aim top. Fixed: 3/4 front, the Reich arm held a glowing chrome projector "
+        "-> the rocket launcher (olive, dark muzzle); 3/4 back, a third arm hanging and, from the back, the "
+        "raised arm also hanging: removed",
+        "F (rocket warning): aim bottom. Fixed: front, the rocket launcher seen muzzle-on was raised by the "
+        "Legion arm and another hung from the Reich one: the body is mirrored and the launcher stays, olive, on the Reich "
+        "arm; the Legion arm hangs with its projector (transplanted from rooted, to scale). Profile: a projector "
+        "pointing backwards (removed), the pink fist on the launcher (grey-green), the launcher hanging "
+        "(removed; the hip it covered, filled with the cable knot itself: Fooocus, D127, did not work). 3/4 back and back: the "
+        "Legion arm raised backwards -> hanging (from E), the repeated launcher hanging: removed",
+        "G (shot, both phases): fire_v2 with the legs swapped for the cable knot and fire's smoke (same "
+        "scale; its hanging arms removed, and the gap filled with the knot itself). Fixed: front, each weapon "
+        "was on the other half's arm (orb in the Reich fist, rocket from the Legion one): the body is mirrored and "
+        "the arms are not, with the skin repainted; 3/4 front, the orb came out of the launcher's muzzle and the rocket out of "
+        "the Legion hand: orange flash on the launcher, blue discharge from a chrome cannon; 3/4 back, "
+        "orb on the Reich arm (flash) and a rocket fired backwards (removed). The rockets in flight are removed "
+        "(they are their own actor)",
+        "H (pain): the discarded fire sheet (both mouths screaming, arms down) without the rockets or the flashes, "
+        "tilted 5 degrees",
+        "S (breach): breach; the cable column squashed to the height of rooted's skirt (otherwise the boss grew "
+        "25 % in the breach's first frame)",
+        "I-O (death): death's 5, mirrored. I = the core cracks, J = both heads scream, K = the halves "
+        "break apart, L = collapses burning, M = the same sunk 10 degrees, N and O = the two helmets among the ashes",
+        "Armband: Gemini's white field with armband_symbol's symbol (option 1, D108/D114), after the "
+        "mirror; rotations 6-8 have no armband (it is the Legion side). The US flag is flipped "
+        "by the mirror (on the right shoulder, as the US Army wears it)",
     ),
     anims=(
-        ("enraizado (Spawn/See fase 1: Q R 6)", (("Q", 6), ("R", 6)), True),
-        ("andar, fase 2 (Walk: A B B C C D D 3)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
-        ("bolas (Orbs: E 12, G 6, E 10, G 6, E 16)", (("E", 12), ("G", 6), ("E", 10), ("G", 6), ("E", 16), ("Q", 12)), True),
-        ("cohetes (Rockets: F 12, G 8 F 6 x3, F 16)",
+        ("rooted (Spawn/See phase 1: Q R 6)", (("Q", 6), ("R", 6)), True),
+        ("walk, phase 2 (Walk: A B B C C D D 3)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
+        ("orbs (Orbs: E 12, G 6, E 10, G 6, E 16)", (("E", 12), ("G", 6), ("E", 10), ("G", 6), ("E", 16), ("Q", 12)), True),
+        ("rockets (Rockets: F 12, G 8 F 6 x3, F 16)",
          (("F", 12), ("G", 8), ("F", 6), ("G", 8), ("F", 6), ("G", 8), ("F", 16), ("Q", 12)), True),
-        ("fuego (Flame: E 10, G 3 x5, E 12)", (("E", 10),) + (("G", 3),) * 5 + (("E", 12), ("Q", 12)), True),
-        ("ruptura (Breach: S 10 S 10, E 20, F 15, G 10)", (("Q", 12), ("S", 20), ("E", 20), ("F", 15), ("G", 10), ("B", 20)), True),
-        ("dolor (Pain: H 3 H 3)", (("Q", 20), ("H", 6), ("Q", 14)), True),
-        ("morir (Death: I J K L M N 10, O 30)", tuple((c, 10) for c in "IJKLMN") + (("O", 45),), True),
+        ("flame (Flame: E 10, G 3 x5, E 12)", (("E", 10),) + (("G", 3),) * 5 + (("E", 12), ("Q", 12)), True),
+        ("breach (Breach: S 10 S 10, E 20, F 15, G 10)", (("Q", 12), ("S", 20), ("E", 20), ("F", 15), ("G", 10), ("B", 20)), True),
+        ("pain (Pain: H 3 H 3)", (("Q", 20), ("H", 6), ("Q", 14)), True),
+        ("die (Death: I J K L M N 10, O 30)", tuple((c, 10) for c in "IJKLMN") + (("O", 45),), True),
     ),
 )
 PENDING["consortium"] = CONSORTIUM
@@ -2032,26 +2032,26 @@ def build(spec: EnemySpec, out_dir: Path | None = None, ref_dir: Path = REF_DIR,
 
 # ------------------------------------------------------------------ gate
 def quality_gate(spec: EnemySpec, cuts: dict, written=None) -> list[str]:
-    """What the build could not do cleanly, in Spanish for the CEO: art cut
+    """What the build could not do cleanly, for the CEO's sheet: art cut
     by a sheet edge (with or without a derived sole), a front/back view
     whose armband side could not be read or had to be mirrored, a lump set
     that is not the spec's."""
     out = []
     for k, c in cuts.items():
         for i, f in enumerate(c.figs):
-            where = f"{spec.sheets[k].file} figura {i + 1}"
+            where = f"{spec.sheets[k].file} figure {i + 1}"
             cut = [e for e in f.edges if not (e == "bottom" and f.sole)]
             if cut:
-                out.append(f"{where}: el dibujo toca el borde ({', '.join(cut)}): cortado")
+                out.append(f"{where}: the drawing touches the edge ({', '.join(cut)}): cut")
             if f.sole:
-                out.append(f"{where}: botas cortadas por el borde inferior, suela derivada ({f.sole} px)")
+                out.append(f"{where}: boots cut by the bottom edge, derived sole ({f.sole} px)")
             if spec.armband_side and spec.sheets[k].facing and f.facing in ("front", "back"):
                 if f.marker is None:
-                    out.append(f"{where}: no se lee el lado del brazalete (sin comprobar)")
+                    out.append(f"{where}: the armband side cannot be read (unchecked)")
                 elif f.mirrored:
-                    out.append(f"{where}: cuerpo invertido respecto a turn: espejado")
+                    out.append(f"{where}: body flipped relative to turn: mirrored")
     if written is not None and sorted(written) != lump_names(spec):
-        out.append("los lumps escritos no son el conjunto de la spec")
+        out.append("the lumps written are not the spec's set")
     return out
 
 
@@ -2130,7 +2130,7 @@ def review_sheet(specs=None, out: Path = SHEET_HTML, out_root: Path = OUT_ROOT,
             "derived": list(spec.derived), "notes": spec.notes,
             "gate": metrics.get("gate", []), "reask": metrics.get("reask", []),
             "symbol": symbol_summary(metrics) if metrics.get("symbol") else "",
-            "sheets": {k: [f["facing"] + (" (espejo)" if f["mirrored"] else "") for f in v["figures"]]
+            "sheets": {k: [f["facing"] + (" (mirrored)" if f["mirrored"] else "") for f in v["figures"]]
                        for k, v in metrics["sheets"].items()},
         })
     html = SHEET_TEMPLATE.replace("/*ITEMS*/[]", json.dumps(items))
@@ -2141,11 +2141,11 @@ def review_sheet(specs=None, out: Path = SHEET_HTML, out_root: Path = OUT_ROOT,
 
 
 SHEET_TEMPLATE = r"""<!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Enemigos Gemini</title>
+<title>Gemini Enemies</title>
 <style>
 :root{--bg:#f6f4ef;--card:#fff;--ink:#1d1d1b;--mute:#6b6862;--line:#dcd8cf;--accent:#a3201c;--ok:#1f7a3a;--no:#b3261e;--q:#9a6a00;--chip:#efece4;--well:#3b3d42}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--card:#202020;--ink:#ebe8e2;--mute:#a19d95;--line:#3a3834;--accent:#e0574f;--ok:#4cc074;--no:#f0726a;--q:#e3b341;--chip:#2c2b29;--well:#2a2b2f}}
@@ -2186,30 +2186,30 @@ ul{margin:6px 0;padding-left:20px}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <h1>Soviet Doom · Enemigos rehechos con Gemini (borrador)</h1>
-  <span class="prog"><b id="pDone">0</b> / <span id="pAll">0</span> juzgados</span>
-  <button class="primary" id="copyTop">Copiar resultado</button><span class="copied" id="copiedTop"></span>
+  <h1>Soviet Doom · Enemies redrawn with Gemini (draft)</h1>
+  <span class="prog"><b id="pDone">0</b> / <span id="pAll">0</span> judged</span>
+  <button class="primary" id="copyTop">Copy result</button><span class="copied" id="copiedTop"></span>
 </div></header>
 <div class="wrap">
-<p>Cada enemigo: el <b>actual</b> (instalado) frente al <b>nuevo</b> (de las hojas de Gemini, D104/D105), ampliados ×3 sin suavizado,
-sobre su línea de suelo (la raya clara) con los offsets reales. Enemigos: fusilero <code>SDRR</code>, soldado de la Legión
-<code>SDLT</code>, stormtrooper híbrido <code>SDHS</code>, sabueso del Reich <code>SDHN</code>, doughboy <code>SDDB</code>,
-Panzermensch <code>SDPM</code> y Panzermensch Schwer <code>SDPS</code> (el mismo arte, más grande y con la placa negra),
-El General <code>SDGN</code>. Mismos nombres de lump (el sabueso, en pares espejo como hoy: «(espejo)» es la rotación que
-el motor voltea): el overlay <code>work/overlays/sd-draft-enemies.pk3</code> los sustituye al cargarlo después del mod. En todo
-lo del Reich el brazalete (y el emblema del Panzermensch) lleva el símbolo D12 según <b>«la mezcla»</b> (decisión del CEO, D108):
-la opción 1 (pintado a la resolución de Gemini, doblado con el brazo, nunca en espejo) en todos los frames, y la opción 2 (Fooocus, SDXL
-local) encima en los perfiles (rotaciones 3 y 7) y los cadáveres, elegida por una métrica objetiva; la bandera de EEUU del General no se
-toca. Hoja de control: <code>docs/art/previews/2026-10-22_P4_armbands-applied.png</code>. Marca OK / NO / ? por fila y pulsa <b>Copiar resultado</b>.</p>
+<p>Each enemy: the <b>current</b> one (installed) against the <b>new</b> one (from the Gemini sheets, D104/D105), enlarged ×3 without smoothing,
+on its floor line (the light line) with the real offsets. Enemies: rifleman <code>SDRR</code>, Legion trooper
+<code>SDLT</code>, hybrid stormtrooper <code>SDHS</code>, Reich hound <code>SDHN</code>, doughboy <code>SDDB</code>,
+Panzermensch <code>SDPM</code> and Panzermensch Schwer <code>SDPS</code> (the same art, bigger and with the black plate),
+The General <code>SDGN</code>. Same lump names (the hound in mirror pairs as today: «(mirrored)» is the rotation the
+engine flips): the overlay <code>work/overlays/sd-draft-enemies.pk3</code> replaces them when loaded after the mod. On everything
+of the Reich the armband (and the Panzermensch's emblem) carries the D12 symbol per <b>«la mezcla»</b> ("the mix", the CEO's decision, D108):
+option 1 (painted at Gemini's resolution, bent with the arm, never mirrored) on every frame, and option 2 (Fooocus, local SDXL)
+on top in the profiles (rotations 3 and 7) and the corpses, chosen by an objective metric; the General's US flag is left
+alone. Control sheet: <code>docs/art/previews/2026-10-22_P4_armbands-applied.png</code>. Mark OK / NO / ? per row and press <b>Copy result</b>.</p>
 <div id="enemies"></div>
-<h2>Nota general</h2>
-<textarea id="general" placeholder="Algo en general"></textarea>
-<h3>Resultado</h3>
+<h2>General note</h2>
+<textarea id="general" placeholder="Anything general"></textarea>
+<h3>Result</h3>
 <textarea id="result" readonly></textarea>
-<p><button class="primary" id="copyBottom">Copiar resultado</button><span class="copied" id="copiedBottom"></span> <button id="reset">Borrar respuestas</button></p>
-<p class="meta">Herramienta: <code>tools/art/gemini_enemy.py</code> (clave del fondo por imagen, figuras por componentes, orientación y escala
-normalizadas, filtro de caja premultiplicado, paleta v2, contorno, offsets con los pies en el suelo). Las hojas de Gemini no salen de
-<code>work/</code> (D77); esta hoja solo lleva los sprites derivados. Nada instalado: lo instala el PM con tu OK. NO VERIFICADO en GZDoom (D26).</p>
+<p><button class="primary" id="copyBottom">Copy result</button><span class="copied" id="copiedBottom"></span> <button id="reset">Clear answers</button></p>
+<p class="meta">Tool: <code>tools/art/gemini_enemy.py</code> (background key per image, figures by components, orientation and scale
+normalised, premultiplied box filter, palette v2, outline, offsets with the feet on the floor). The Gemini sheets do not leave
+<code>work/</code> (D77); this sheet carries only the derived sprites. Nothing installed: the PM installs it on your OK. NOT VERIFIED in GZDoom (D26).</p>
 </div>
 <script>
 const ITEMS = /*ITEMS*/[];
@@ -2250,34 +2250,34 @@ function row(id, title, body){
   ROWS.push({id, title});
   return `<div class="card"><div class="row" id="r-${id}" data-id="${id}"><div><b>${esc(title)}</b>${body}</div>
     <div class="vote"><div class="btns"><button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div>
-    <textarea class="note" placeholder="Notas (qué pedir otra vez a Gemini, qué cambiar…)">${esc(st(id).n)}</textarea></div></div></div>`;
+    <textarea class="note" placeholder="Notes (what to ask Gemini again, what to change…)">${esc(st(id).n)}</textarea></div></div></div>`;
 }
 function rotStrip(set, sp, L){
   const fr = [1,2,3,4,5,6,7,8].map(r => frame(set, sp, L, r)), b = box(fr);
-  return `<div class="strip">` + fr.map((f, k) => `<div class="cell">${stage(f, b)}${L}${k + 1}${f && f.flip ? " (espejo)" : ""}</div>`).join("") + `</div>`;
+  return `<div class="strip">` + fr.map((f, k) => `<div class="cell">${stage(f, b)}${L}${k + 1}${f && f.flip ? " (mirrored)" : ""}</div>`).join("") + `</div>`;
 }
 function build(){
   let html = "";
   for (const it of ITEMS) {
-    html += `<h2>${esc(it.id)} <code>${it.sprite}</code></h2><p class="meta">Derivado (no dibujado por Gemini):</p><ul class="meta">` +
+    html += `<h2>${esc(it.id)} <code>${it.sprite}</code></h2><p class="meta">Derived (not drawn by Gemini):</p><ul class="meta">` +
       it.derived.map(d => `<li>${esc(d)}</li>`).join("") + `</ul>` +
-      (it.symbol ? `<p class="meta">Brazalete D12 (D108), lumps por vía: ${esc(it.symbol.replace(/option1/g, "opción 1").replace(/fooocus/g, "Fooocus").replace(/fallback/g, "opción 1 (no pasó el umbral)").replace(/missing/g, "opción 1 (sin generar)"))}</p>` : "") +
-      ((it.gate || []).length ? `<p class="meta">Gate de calidad (medido):</p><ul class="meta">` + it.gate.map(d => `<li>${esc(d)}</li>`).join("") + `</ul>` : "") +
-      ((it.reask || []).length ? `<p class="meta">Pedir otra vez a Gemini:</p><ul class="meta">` + it.reask.map(([f, p]) => `<li><code>${esc(f)}</code>: ${esc(p)}</li>`).join("") + `</ul>` : "") +
-      `<p class="meta">Orientación leída por hoja: ` + Object.entries(it.sheets).map(([k, v]) => `<b>${k}</b> ${v.join(", ")}`).join(" · ") + `</p>`;
+      (it.symbol ? `<p class="meta">Armband D12 (D108), lumps per route: ${esc(it.symbol.replace(/option1/g, "option 1").replace(/fooocus/g, "Fooocus").replace(/fallback/g, "option 1 (below the threshold)").replace(/missing/g, "option 1 (not generated)"))}</p>` : "") +
+      ((it.gate || []).length ? `<p class="meta">Quality gate (measured):</p><ul class="meta">` + it.gate.map(d => `<li>${esc(d)}</li>`).join("") + `</ul>` : "") +
+      ((it.reask || []).length ? `<p class="meta">Ask Gemini again:</p><ul class="meta">` + it.reask.map(([f, p]) => `<li><code>${esc(f)}</code>: ${esc(p)}</li>`).join("") + `</ul>` : "") +
+      `<p class="meta">Orientation read per sheet: ` + Object.entries(it.sheets).map(([k, v]) => `<b>${k}</b> ${v.join(", ")}`).join(" · ") + `</p>`;
     for (const L of it.letters) {
-      html += row(`${it.id}-${L}`, `Fotograma ${L}: las 8 rotaciones (arriba actual, abajo nuevo)`,
-        `<h3>actual</h3>${rotStrip(it.cur, it.sprite, L)}<h3>nuevo</h3>${rotStrip(it.new, it.sprite, L)}`);
+      html += row(`${it.id}-${L}`, `Frame ${L}: the 8 rotations (top current, bottom new)`,
+        `<h3>current</h3>${rotStrip(it.cur, it.sprite, L)}<h3>new</h3>${rotStrip(it.new, it.sprite, L)}`);
     }
     const singles = Object.keys(it.new).filter(n => n.length === 6 && n.endsWith("0")).sort();
     const bs = box(singles.map(n => it.new[n])), bc = box(singles.map(n => it.cur[n]));
-    html += row(`${it.id}-death`, `Muerte${singles.length > 7 ? " y reventón" : ""} (rotación 0): ${singles.map(n => n[4]).join(" ")}`,
-      `<h3>actual</h3><div class="strip">` + singles.map(n => `<div class="cell">${stage(it.cur[n], bc)}${n[4]}</div>`).join("") +
-      `</div><h3>nuevo</h3><div class="strip">` + singles.map(n => `<div class="cell">${stage(it.new[n], bs)}${n[4]}</div>`).join("") + `</div>`);
+    html += row(`${it.id}-death`, `Death${singles.length > 7 ? " and gib" : ""} (rotation 0): ${singles.map(n => n[4]).join(" ")}`,
+      `<h3>current</h3><div class="strip">` + singles.map(n => `<div class="cell">${stage(it.cur[n], bc)}${n[4]}</div>`).join("") +
+      `</div><h3>new</h3><div class="strip">` + singles.map(n => `<div class="cell">${stage(it.new[n], bs)}${n[4]}</div>`).join("") + `</div>`);
     it.anims.forEach((a, k) => {
       const id = `${it.id}-anim${k}`;
-      html += row(id, `Animación en bucle: ${a.label}`,
-        `<div class="rots" data-anim="${id}">rotación: ` + [1,2,3,4,5,6,7,8].map(r => `<button data-r="${r}" class="${r===1?"on":""}">${r}</button>`).join("") +
+      html += row(id, `Looping animation: ${a.label}`,
+        `<div class="rots" data-anim="${id}">rotation: ` + [1,2,3,4,5,6,7,8].map(r => `<button data-r="${r}" class="${r===1?"on":""}">${r}</button>`).join("") +
         `</div><div class="pair"><div class="cell" id="${id}-cur"></div><div class="cell" id="${id}-new"></div></div>`);
     });
   }
@@ -2292,7 +2292,7 @@ function startAnim(it, a, id, rot){
   for (const [which, set] of [["cur", it.cur], ["new", it.new]]) {
     const fr = a.seq.map(([L]) => frame(set, it.sprite, L, rot)), b = box(fr);
     const el = document.getElementById(`${id}-${which}`);
-    el.innerHTML = stage(fr.find(Boolean), b, `${id}-${which}-img`) + (which === "cur" ? "actual" : "nuevo");
+    el.innerHTML = stage(fr.find(Boolean), b, `${id}-${which}-img`) + (which === "cur" ? "current" : "new");
     let i = 0;
     const step = () => {
       const [, tics] = a.seq[i], f = fr[i], img = document.getElementById(`${id}-${which}-img`);
@@ -2313,9 +2313,9 @@ function summary(){
   const label = {ok: "OK", no: "NO", q: "?"};
   const done = ROWS.filter(r => st(r.id).v).length;
   document.getElementById("pDone").textContent = done;
-  const L = [`Enemigos Gemini (2026-10-22_P4, D104/D105): ${done}/${ROWS.length} juzgados`];
+  const L = [`Gemini enemies (2026-10-22_P4, D104/D105): ${done}/${ROWS.length} judged`];
   for (const r of ROWS) { const s = st(r.id), n = (s.n || "").trim().replace(/\s+/g, " ");
-    L.push(`${r.id}: ${label[s.v] || "sin juzgar"}${n ? ` — «${n}»` : ""}`); }
+    L.push(`${r.id}: ${label[s.v] || "not judged"}${n ? ` — «${n}»` : ""}`); }
   const g = (document.getElementById("general").value || "").trim().replace(/\s+/g, " ");
   if (g) L.push(`General: «${g}»`);
   document.getElementById("result").value = L.join("\n");
@@ -2323,8 +2323,8 @@ function summary(){
 function copy(which){
   const t = document.getElementById("result"), msg = document.getElementById(which);
   summary();
-  const ok = () => { msg.textContent = "copiado"; setTimeout(() => msg.textContent = "", 2500); };
-  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? ok() : (msg.textContent = "selecciona y Ctrl+C abajo"); } catch (e) { msg.textContent = "selecciona y Ctrl+C abajo"; } };
+  const ok = () => { msg.textContent = "copied"; setTimeout(() => msg.textContent = "", 2500); };
+  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? ok() : (msg.textContent = "select and Ctrl+C below"); } catch (e) { msg.textContent = "select and Ctrl+C below"; } };
   try { if (navigator.clipboard && window.isSecureContext !== false) navigator.clipboard.writeText(t.value).then(ok, fallback); else fallback(); } catch (e) { fallback(); }
 }
 document.addEventListener("click", e => {
@@ -2343,7 +2343,7 @@ document.addEventListener("input", e => {
 });
 document.getElementById("copyTop").addEventListener("click", () => copy("copiedTop"));
 document.getElementById("copyBottom").addEventListener("click", () => copy("copiedBottom"));
-document.getElementById("reset").addEventListener("click", () => { if (confirm("¿Borrar las respuestas y notas de esta hoja?")) { S = {}; save(); document.getElementById("general").value = ""; build(); summary(); } });
+document.getElementById("reset").addEventListener("click", () => { if (confirm("Clear this sheet's answers and notes?")) { S = {}; save(); document.getElementById("general").value = ""; build(); summary(); } });
 document.getElementById("general").value = S._general || "";
 build(); summary();
 </script>
@@ -2362,7 +2362,7 @@ CONTROL_WIN = 22         # sprite px round the symbol shown per tile
 CONTROL_COLS = 12
 CONTROL_STATUS = {       # status -> (frame colour, short label)
     "fooocus": ((70, 200, 110), "F"), "partial": ((200, 200, 70), "F/1"),
-    "fallback": ((230, 140, 40), "1 (umbral)"), "missing": ((150, 150, 150), "1 (sin generar)"),
+    "fallback": ((230, 140, 40), "1 (threshold)"), "missing": ((150, 150, 150), "1 (not generated)"),
     "option1": ((90, 92, 100), "1"),
 }
 
@@ -2441,17 +2441,17 @@ def control_sheet(specs=None, out: Path = CONTROL_PNG, ref_dir: Path = REF_DIR,
     W, H = 16 + CONTROL_COLS * cell_w, 70 + sum(heights) + 60
     img = Image.new("RGB", (W, H), (58, 60, 66))
     dr = ImageDraw.Draw(img)
-    dr.text((10, 8), "Brazaletes aplicados (D108, «la mezcla»): opción 1 en todos los frames del Reich; "
-                     "Fooocus (opción 2) encima en perfiles (rot. 3 y 7) y cadáveres.", fill=(240, 236, 228), font=font)
-    dr.text((10, 32), f"x{z}, ventana de {CONTROL_WIN} px del sprite alrededor del símbolo; un recuadro por "
-                      "imagen de origen (los lumps que la comparten debajo). Verde = Fooocus; naranja = no pasó "
-                      "el umbral (queda la opción 1); gris = sin generar.", fill=(214, 208, 196), font=small)
+    dr.text((10, 8), "Armbands applied (D108, «la mezcla», \"the mix\"): option 1 on every Reich frame; "
+                     "Fooocus (option 2) on top in profiles (rot. 3 and 7) and corpses.", fill=(240, 236, 228), font=font)
+    dr.text((10, 32), f"x{z}, a {CONTROL_WIN} px sprite window round the symbol; one tile per "
+                      "source picture (the lumps sharing it below). Green = Fooocus; orange = below "
+                      "the threshold (option 1 stays); grey = not generated.", fill=(214, 208, 196), font=small)
     y = 62
     for (spec, tiles, n_f, n_all, fall), hh in zip(rows, heights):
-        msg = f"{spec.sprite} ({spec.name}): {n_all} lumps con símbolo, {n_f} con Fooocus, {n_all - n_f} opción 1"
+        msg = f"{spec.sprite} ({spec.name}): {n_all} lumps with the symbol, {n_f} with Fooocus, {n_all - n_f} option 1"
         dr.text((10, y + 10), msg, fill=(240, 236, 228), font=font)
         if fall:
-            dr.text((10, y + 30), "cerca pero con la opción 1 (no pasó el umbral o sin generar): " + ", ".join(fall),
+            dr.text((10, y + 30), "close but on option 1 (below the threshold or not generated): " + ", ".join(fall),
                     fill=(230, 140, 40), font=small)
         for i, t in enumerate(tiles):
             cx, cy = 10 + (i % CONTROL_COLS) * cell_w, y + 52 + (i // CONTROL_COLS) * cell_h
@@ -2489,10 +2489,10 @@ EDGE_FIELD = 0.6        # x the band's extent: the field painted on a band that 
 BAND_WRAP = 60.0        # degrees of the band's half-turn seen (cylinder); its edges are foreshortened
 PROPOSAL_ZOOM = 6
 PROPOSAL_VIEWS = (      # (label, sheet, view, foreshortened width of the flat badge, quarter turns)
-    ("frente (B1)", "turn", 0, 5, 0),
+    ("front (B1)", "turn", 0, 5, 0),
     ("3/4 (B2)", "turn", 1, 6, 0),
-    ("perfil (B3)", "turn", 2, 7, 0),
-    ("muerte, cadaver (L)", "death2", 2, 7, 1),
+    ("profile (B3)", "turn", 2, 7, 0),
+    ("death, corpse (L)", "death2", 2, 7, 1),
 )
 
 
@@ -2619,8 +2619,8 @@ def armband_proposal(spec: EnemySpec = RIFLEMAN, out: Path = ARMBAND_PNG, ref_di
         flat = stamp_badge(blank, pal, width, quarter)
         rows.append((label_txt, [to_rgba(i, pal) for i in (blank, bent, flat)]))
     z = PROPOSAL_ZOOM
-    heads = ("nuevo, campo vacio (va al overlay)", "A: simbolo curvado con el brazalete, escala real",
-             "B: insignia aprobada 7x7 escorzada (legible)")
+    heads = ("new, empty field (goes to the overlay)", "A: symbol bent with the armband, real scale",
+             "B: approved 7x7 badge foreshortened (legible)")
     col_w = [max(r[1][k].shape[1] for r in rows) * z + 24 for k in range(3)]
     label_w, head_h, gap = 190, 64, 18
     row_h = [max(i.shape[0] for i in r[1]) * z + gap for r in rows]
@@ -2633,7 +2633,7 @@ def armband_proposal(spec: EnemySpec = RIFLEMAN, out: Path = ARMBAND_PNG, ref_di
         small = ImageFont.truetype(artlib.FONT_SMALL, 13)
     except OSError:  # pragma: no cover - no system font
         font = small = ImageFont.load_default()
-    dr.text((10, 8), f"{spec.sprite}: propuesta del brazalete (D12), x{z}. NO instalada: el CEO decide antes.",
+    dr.text((10, 8), f"{spec.sprite}: armband proposal (D12), x{z}. NOT installed: the CEO decides first.",
             fill=(240, 236, 228), font=font)
     x = label_w
     for k, hd in enumerate(heads):
@@ -2657,13 +2657,13 @@ def armband_proposal(spec: EnemySpec = RIFLEMAN, out: Path = ARMBAND_PNG, ref_di
 
 
 ARMBAND_NOTES = (
-    "Como se haria en todos los frames (automatico, gemini_enemy.py): en cada frame se busca el campo blanco del brazalete",
-    "(armband_fields); el ACP del rojo da el eje del brazo y el sentido alrededor. A dibuja el simbolo a la resolucion de Gemini",
-    "doblado como un cilindro (las columnas lejanas se juntan, sen(theta), +-60 grados) y lo reduce con la figura. B estampa la insignia",
-    "aprobada a escala de sprite, recortando el marco rojo segun el angulo (7/6/5 columnas, el simbolo 5x5 siempre entero),",
-    "girada 90 grados si el brazo esta tumbado. Las rotaciones espejo (6-8) se estampan DESPUES del espejo: nunca se invierte.",
-    "Donde el brazalete no se ve no se pone nada. A escala real el campo mide 3-5 px: la curvatura apenas se distingue y el",
-    "simbolo se emborrona (A); B se lee, pero es una pegatina plana mas grande que el brazalete (como el set actual).",
+    "How it would be done on every frame (automatic, gemini_enemy.py): each frame's armband white field is found",
+    "(armband_fields); the PCA of the red gives the arm's axis and the direction round it. A draws the symbol at Gemini's resolution",
+    "bent like a cylinder (the far columns crowd together, sin(theta), +-60 degrees) and reduces it with the figure. B stamps the approved",
+    "badge at sprite scale, trimming the red frame by the angle (7/6/5 columns, the 5x5 symbol always whole),",
+    "turned 90 degrees if the arm is lying. The mirror rotations (6-8) are stamped AFTER the mirror: never flipped.",
+    "Where the armband is not visible nothing is put. At real scale the field is 3-5 px: the curvature barely shows and the",
+    "symbol blurs (A); B reads, but it is a flat sticker bigger than the armband (like the current set).",
 )
 
 
@@ -2676,10 +2676,10 @@ GUNNER_PROVISIONAL = ("legion", "SDLT")       # what SD_LegionGunner wears today
 GUNNER_TINT = (1.25, 0.95, 0.50)
 LINEUP_ZOOM = 3
 GUNNER_LINEUP = (   # (label, lump, set): provisional / Gemini / the Legion trooper, then the frontal shot
-    ("provisional hoy B1", "SDLTB1", "prov"), ("nuevo SDLG B1", "SDLGB1", "new"),
-    ("soldado Legion SDLT B1", "SDLTB1", "legion"),
-    ("provisional F1 (lateral)", "SDLTF1", "prov"), ("nuevo SDLG F1 (frontal)", "SDLGF1", "new"),
-    ("nuevo SDLG E1 (apunta)", "SDLGE1", "new"),
+    ("provisional today B1", "SDLTB1", "prov"), ("new SDLG B1", "SDLGB1", "new"),
+    ("Legion trooper SDLT B1", "SDLTB1", "legion"),
+    ("provisional F1 (sideways)", "SDLTF1", "prov"), ("new SDLG F1 (frontal)", "SDLGF1", "new"),
+    ("new SDLG E1 (aims)", "SDLGE1", "new"),
 )
 PROVISIONAL_HEADER_START = "// PROVISIONAL LOOK (D116):"
 PROVISIONAL_HEADER_END = "// (MOD-SPEC 6.12; tests/test_ep2_enemies.py pins both halves).\n"
@@ -2743,7 +2743,7 @@ def gunner_lineup(new_dir: Path, sprites_dir: Path = SPRITES_DIR, z: int = LINEU
 
 def gunner_sheet(spec: EnemySpec, out: Path = GUNNER_SHEET_HTML, out_root: Path = OUT_ROOT,
                  sprites_dir: Path = SPRITES_DIR) -> Path:
-    """The CEO's sheet for the gunner (D119): the review sheet's layout with `actual`
+    """The CEO's sheet for the gunner (D119): the review sheet's layout with `current`
     the provisional tinted trooper, plus the scale line-up and the frontal-shot check."""
     new_dir = out_root / spec.name
     metrics = json.loads((new_dir / "metrics.json").read_text(encoding="utf-8"))
@@ -2753,33 +2753,33 @@ def gunner_sheet(spec: EnemySpec, out: Path = GUNNER_SHEET_HTML, out_root: Path 
         "cur": provisional_frames(spec, sprites_dir), "new": _frames_json(new_dir, spec.sprite),
         "derived": list(spec.derived), "notes": spec.notes,
         "gate": metrics.get("gate", []), "reask": metrics.get("reask", []), "symbol": "",
-        "sheets": {k: [f["facing"] + (" (espejo)" if f["mirrored"] else "") for f in v["figures"]]
+        "sheets": {k: [f["facing"] + (" (mirrored)" if f["mirrored"] else "") for f in v["figures"]]
                    for k, v in metrics["sheets"].items()},
     }
     intro = (
-        "<p>El <b>ametrallador de la Legión</b> (<code>SD_LegionGunner</code>, sprite final <code>SDLG</code>, 70 lumps "
-        "con las letras del soldado: diseño <code>docs/engine/2026-10-22_P4_ep2-enemies.md</code> §4), sacado de las hojas "
-        "de Gemini de hoy: <code>turn</code>, <code>walkL</code>, <code>walkR</code>, <code>aim_v3</code>, <code>fire</code> "
-        "y <code>death_v2</code>. <b>Actual</b> = lo que lleva hoy en el juego: el soldado <code>SDLT</code> teñido de latón "
-        "(D116; aquí el tinte es una imitación del <code>Translation</code>, NO VERIFICADO). <b>Nuevo</b> = SDLG. Todo ×3 sin "
-        "suavizado, sobre su línea de suelo (la raya clara) con los offsets reales. Lo que pediste en la partida (D119): "
-        "<b>de frente dispara hacia ti</b>: en F1 el fogonazo sale delante del pecho (el provisional dispara de lado). "
-        "Altura: la del soldado de la Legión (56 px). Única insignia: la bandera de EEUU del hombro. Nada instalado: los "
-        "lumps están en <code>work/art/enemies_gemini/gunner/</code> con el parche del actor. Marca OK / NO / ? por fila "
-        "y pulsa <b>Copiar resultado</b>.</p>"
-        f'<h3>Escala y disparo frontal (×{LINEUP_ZOOM})</h3><p><img alt="Línea de escala" style="max-width:100%;'
+        "<p>The <b>Legion gunner</b> (<code>SD_LegionGunner</code>, final sprite <code>SDLG</code>, 70 lumps "
+        "with the trooper's letters: design <code>docs/engine/2026-10-22_P4_ep2-enemies.md</code> §4), taken from today's "
+        "Gemini sheets: <code>turn</code>, <code>walkL</code>, <code>walkR</code>, <code>aim_v3</code>, <code>fire</code> "
+        "and <code>death_v2</code>. <b>Current</b> = what he wears in the game today: the trooper <code>SDLT</code> tinted brass "
+        "(D116; the tint here is an imitation of the <code>Translation</code>, NOT VERIFIED). <b>New</b> = SDLG. Everything ×3 without "
+        "smoothing, on its floor line (the light line) with the real offsets. What you asked for in the playthrough (D119): "
+        "<b>from the front he fires at you</b>: in F1 the muzzle flash comes out in front of the chest (the provisional one fires sideways). "
+        "Height: the Legion trooper's (56 px). Only insignia: the US flag on the shoulder. Nothing installed: the "
+        "lumps are in <code>work/art/enemies_gemini/gunner/</code> with the actor patch. Mark OK / NO / ? per row "
+        "and press <b>Copy result</b>.</p>"
+        f'<h3>Scale and frontal shot (×{LINEUP_ZOOM})</h3><p><img alt="Scale line-up" style="max-width:100%;'
         f'image-rendering:pixelated" src="{_b64(gunner_lineup(new_dir, sprites_dir))}"></p>')
     html = SHEET_TEMPLATE
     for old, new in (
-            ("<title>Enemigos Gemini</title>", "<title>Ametrallador Gemini</title>"),
-            ("Soviet Doom · Enemigos rehechos con Gemini (borrador)",
-             "Soviet Doom · El ametrallador de la Legión con Gemini (borrador, D119)"),
+            ("<title>Gemini Enemies</title>", "<title>Gemini Gunner</title>"),
+            ("Soviet Doom · Enemies redrawn with Gemini (draft)",
+             "Soviet Doom · The Legion gunner with Gemini (draft, D119)"),
             ('const KEY = "sd-2026-10-22_P4_enemies-gemini";', 'const KEY = "sd-2026-10-23_P4_gunner-gemini";'),
-            ("Enemigos Gemini (2026-10-22_P4, D104/D105)", "Ametrallador Gemini (2026-10-23_P4, D119)")):
+            ("Gemini enemies (2026-10-22_P4, D104/D105)", "Gemini gunner (2026-10-23_P4, D119)")):
         if html.count(old) != 1:
             raise ValueError(f"gunner_sheet: the review template changed ({old!r})")
         html = html.replace(old, new)
-    i0 = html.index("<p>Cada enemigo")
+    i0 = html.index("<p>Each enemy")
     i1 = html.index("</p>", i0) + len("</p>")
     html = html[:i0] + intro + html[i1:]
     html = html.replace("/*ITEMS*/[]", json.dumps([item]))

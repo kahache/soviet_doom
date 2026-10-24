@@ -348,7 +348,8 @@ CELLS = (
          "As A in dress uniform: no cuirass, medals, aiguillette, buttons"),
 )
 # D71 (CEO, 2026-10-14): "la C de frente (para que se vean las banderas) y
-# la D de espaldas (con esa capa)". C as drawn, pennants and all, with D's
+# la D de espaldas (con esa capa)" ("C from the front, so the flags show,
+# and D from the back, with that cloak"). C as drawn, pennants and all, with D's
 # cloak hung down his back and FITTED (see _cloak) so that nothing of it
 # shows from the front: from rotation 1 he is C, from rotation 5 he is D.
 CD = Cell("CD", "plate", "shoulder", "both", "cuirass",
@@ -1174,7 +1175,8 @@ def build_sheet(data: dict, lines: dict, stamp: str, out_dir: Path = PREVIEW_DIR
 
 # ======================================================= the turnaround (D71)
 # The CEO's choice: "la C de frente (para que se vean las banderas) y la D
-# de espaldas (con esa capa)". Before the full set (~81 images), one cell,
+# de espaldas (con esa capa)" ("C from the front, so the flags show, and D
+# from the back, with that cloak"). Before the full set (~81 images), one cell,
 # CD, turned all the way round: the walk/idle frame A at the eight rotations
 # and the firing frame F at 1, 3 and 5, then at 1x in the portal hall. Its
 # front is checked against C's, pixel for pixel, and the cloak's visible
@@ -1374,7 +1376,7 @@ def turnaround_contact(t: dict) -> np.ndarray:
 # are the turnaround's SDGN_CD_*, byte for byte (full_identity()).
 #
 # The death (the CEO's rule since the Legion's first L0, "parece que se
-# apoye en el hombro"; SDHSM0 was redone for the same reason): the corpse
+# apoye en el hombro", "it looks as if it leans on its shoulder"; SDHSM0 was redone for the same reason): the corpse
 # lies with its weight on the floor and is MEASURED, not judged by eye. Hit
 # in the chest (H), his knees go and the cap flies off (I), he falls back
 # over his heels twisting (J, K) while the field gun is torn off its cradle,

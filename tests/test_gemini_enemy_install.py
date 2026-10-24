@@ -4,7 +4,7 @@ The CEO had the seven enemy classes redone with Google Gemini (D105),
 approved them ("Ok enemigos gemini", D109,
 docs/art/previews/2026-10-22_P4_enemies-gemini.html) and then the D12
 symbol D108's mix put on the Reich armbands ("Ok a lo de las esvásticas!",
-D114, docs/art/previews/2026-10-22_P4_armbands-applied.png). The lumps
+"OK to the swastikas!", D114, docs/art/previews/2026-10-22_P4_armbands-applied.png). The lumps
 `tools/art/gemini_enemy.py all` builds into work/art/enemies_gemini/<set>/
 overwrite, name for name, the rig-drawn sets in assets/sprites/ (MOD-SPEC
 6.3, "The seven enemies redrawn from Google Gemini"). The per-enemy files

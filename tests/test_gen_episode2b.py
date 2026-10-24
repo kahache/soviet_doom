@@ -97,7 +97,7 @@ class SourceTests(unittest.TestCase):
     def test_sheet_exists_with_every_lump_and_the_vote(self):
         self.assertTrue(SHEET.is_file(), SHEET)
         text = SHEET.read_text(encoding="utf-8")
-        # The committed sheet, in English since D129 (its generator still writes Spanish).
+        # The committed sheet, in English since D129, as its generator now writes it.
         for needle in ("Copy result", 'data-v="ok"', 'data-v="no"', 'data-v="q"', "3×3 mosaic",
                        "sample room", "full panorama"):
             self.assertIn(needle, text)

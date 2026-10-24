@@ -267,7 +267,7 @@ def stencil(ov: Overlay, cy: float, text: str = STENCIL) -> None:
 # elements share a 64 px column, and the first pass overlapped two of them:
 # the stencil spanned y 90-104 and the lamp y 99-113, so the lamp sat on the
 # word, and the board's bottom edge at y 90 touched the top of the same word.
-# The CEO saw it immediately ("se pisan unas cosas a otras"). The fix is not
+# The CEO saw it immediately ("se pisan unas cosas a otras", "things step on one another"). The fix is not
 # nudging pixels until it looks right: the three boxes are laid out from the
 # bottom up with declared gaps, and _check_var_a_layout() below refuses to
 # import if they ever touch again.

@@ -1248,7 +1248,8 @@ BLOODY_FRAMES = "HIJKL" + GIB_FRAMES   # the frames that bleed; A-G are the swee
 
 # A corpse lies with its weight on the floor: every part below within this
 # many units (1 unit = 1 px at 1:1) of it. The CEO on the first L0
-# (2026-10-14): "queda fake estirado porque parece que se apoye en el hombro".
+# (2026-10-14): "queda fake estirado porque parece que se apoye en el hombro"
+# ("stretched out it looks fake, because it seems to lean on its shoulder").
 LYING_MAX = 2.0
 LYING_SUPPORT = 1.0             # a part this close to the floor is a support
 LYING_SPAN = 30.0               # supports must spread at least this far along the body
@@ -1447,7 +1448,7 @@ FULL_VERDICT = [
     "legs stand, throws 30 chunks of meat and chrome shards, the M1 and the shotgun fly whole, and the floor "
     "fills. On the Legion the red reads better than on the rifleman: dark red on chrome and pale khaki is "
     "the strongest contrast he has. The flag stays the brightest red on him (flag_red 11).",
-    "THE FALL (redone after your note on the first L0, 'fake estirado, parece que se apoye en el hombro'). "
+    "THE FALL (redone after your note on the first L0, 'fake estirado, parece que se apoye en el hombro', stretched out it looks fake, as if it leant on its shoulder). "
     "He no longer falls onto his side, where the football pad held his chest up: hit at H, his knees go at I, "
     "he falls back over his heels twisting as he goes (J), hits the floor at K and lies on his back across the "
     "screen at L, torso, hips, legs and head on the floor, head turned, arms and knees a little bent, the "
@@ -1633,7 +1634,9 @@ def build_full_sheet(sprites: dict, stamp: str, out_dir: Path = PREVIEW_DIR, gif
 # ============================================================ death sheet
 # The CEO on the first full set (2026-10-14): "SDLT L0 queda fake estirado
 # porque parece que se apoye en el hombro. Deberia quedar un tumbado mas
-# natural y real." The frames he saw are kept in full_C/old_death/ for this
+# natural y real." ("SDLT L0 looks fake stretched out, because it seems to
+# lean on its shoulder. It should lie down in a more natural, real way.")
+# The frames he saw are kept in full_C/old_death/ for this
 # before/after sheet; the death H-L and the gib's legs were redone.
 OLD_DEATH_DIR = FULL_DIR / "old_death"
 
@@ -1746,7 +1749,8 @@ def build_death_sheet(sprites: dict, stamp: str, out_dir: Path = PREVIEW_DIR, gi
     S.append(("6 · Honest verdict and what you decide", "", body))
 
     intro = ("Your note on the Legion trooper's full set: \"SDLT L0 queda fake estirado porque parece que se apoye "
-             "en el hombro. Debería quedar un tumbado más natural y real.\" Redone: the death H-L and the gib's "
+             "en el hombro. Debería quedar un tumbado más natural y real.\" (\"SDLT L0 looks fake stretched out, because "
+             "it seems to lean on its shoulder. It should lie down in a more natural, real way.\") Redone: the death H-L and the gib's "
              "fallen legs (O-U). Walk, aim, fire and pain (A-G, 56 lumps) are byte-identical to the set you saw. "
              f"Built by <code>tools/art/gen_legion.py --full</code>, seed {SEED}. Draft: nothing in "
              "<code>assets/</code>.")
