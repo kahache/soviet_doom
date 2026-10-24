@@ -3,6 +3,7 @@
     python tools/art/gemini_frames.py ppsh            # the PPSh-41 pair, draft frames + preview
     python tools/art/gemini_frames.py ppsh --no-preview
     python tools/art/gemini_frames.py izh             # also rpg7, roks3, katyusha, ice_axe (drafts)
+    python tools/art/gemini_frames.py akm             # ONE image: the shot is built from it (below)
 
 The CEO's Gemini images (bare hands, flat magenta background, JPEG with black
 letterbox bars) live in work/art/reference/gemini_<weapon>_A.jpg (ready) and
@@ -18,6 +19,11 @@ states' letters each get a frame. Per weapon, where Gemini's art needs it:
 side: A's pixels there), `flash_halo` (sparks and fringe round the flash),
 `taper` (a flame cut by the side ends in a point), `arm_band` (an arm leaving
 through the side at mid-height runs on as a tube, not a wedge).
+A weapon with only its ready image (the AKM, 2026-10-24: Gemini's firing
+image failed and was not asked again) names a `flash_from`: the firing
+frame is the ready art kicked by KICK, as every weapon's, and its flash is
+another weapon's (the PPSh-41's, same composition) cut from that weapon's
+pair and grafted at this one's muzzle (borrowed_flash, graft_flash).
 
 D79 (2026-10-20): the method is adopted (D78 superseded) and Google Gemini
 is credited. The frames are installed by copying them, grAb included, into
@@ -51,6 +57,7 @@ The pipeline, every step a pure function on arrays (tests/test_gemini_frames.py)
 from __future__ import annotations
 
 import argparse
+import json
 import struct
 import sys
 from dataclasses import dataclass
@@ -116,6 +123,8 @@ SWING_WINDUP, SWING_STRIKE, SWING_FOLLOW = -11, 38, 48   # the ice axe's swing, 
 SWING_LIFT = 34                 # screen px C is raised after its turn (D the same, 6 px lower): the hand stays in view
 SWING_PAD = 0.5                 # x the art's width added each side before a turn (nothing is cut)
 TT33_X_SHIFT = -50              # screen px: the TT-33's muzzle (its slide's far end) on x 160, the crosshair (D111)
+MUZZLE_PROBE = 2                # art columns from the gun's left end whose rows make the muzzle (muzzle_point)
+FLASH_RIM = 3                   # art px round a borrowed flash's barrel notch whose dark pixels go (fill_flash)
 
 
 @dataclass(frozen=True)
@@ -153,6 +162,8 @@ class WeaponPair:
     rigid_tube: bool = False  # the soft rows at the side are a launcher tube, not a sleeve: it runs on
                               # straight, its own cross-section (extend_edges `tube`; the RPG-7, 2026-10-20)
     taper: bool = False # a flash cut by the image's side ends in a point (taper_cut; the PPSh's is as built)
+    flash_from: str = ""  # no firing image: the flash is this other WEAPONS entry's, grafted at the muzzle
+    no_ramps: tuple[str, ...] = ()   # palette ramps the art never snaps to (the next nearest colour instead)
     mocks: tuple[tuple[str, tuple[str, ...]], ...] = ()   # preview: (label, lumps drawn in order)
 
     def files(self) -> dict[str, str]:
@@ -239,6 +250,22 @@ WEAPONS = {
                 Frame("SDTFA0", "B", flash=True, kick=KICK)),
         mocks=(("ready (A)", ("SDTTA0",)), ("firing (B + SDTF A)", ("SDTTB0", "SDTFA0")),
                ("settling (C)", ("SDTTC0",)))),
+    # AKM (akm.zs; D112, art D116): its own names for the letters the states
+    # use today (MOD-SPEC 6.12): held SDAK A (ready) and B (the kick), flash
+    # SDAF A over B. ONE Gemini image, the ready one (asked with the PPSh's
+    # as the composition reference); the firing image failed and is not
+    # asked again (the CEO saves the quota, 2026-10-24). So B is A kicked by
+    # KICK, as every weapon's B, and the flash is the PPSh-41's (the mod's
+    # Gemini flash) grafted at the AKM's slanted muzzle brake. Gemini drew
+    # the laminate and the bakelite magazine a saturated red that snaps to
+    # flag_red (the flags' and banners' red) over half the gun: without that
+    # ramp they snap to marble_red and rust_brown, the reddish-brown of a
+    # real AKM's wood and the PPSh's brown.
+    "akm": WeaponPair(
+        "akm", "SDAK", "SDAF", flash_from="ppsh", no_ramps=("flag_red",),
+        sources=(("A", "gemini_akm_A.jfif"),),
+        frames=(Frame("SDAKA0"), Frame("SDAKB0", kick=KICK), Frame("SDAFA0", flash=True, kick=KICK)),
+        mocks=(("ready (A)", ("SDAKA0",)), ("firing (B + SDAF A)", ("SDAKB0", "SDAFA0")))),
 }
 
 
@@ -290,8 +317,21 @@ def key_magenta(rgb: np.ndarray, threshold: int = 60, rim: int = 20) -> np.ndarr
 
 
 # ---------------------------------------------------------- 3. palette
-def snap_palette(rgb: np.ndarray, alpha: np.ndarray, pal: np.ndarray, chunk: int = 65536) -> np.ndarray:
-    """Index array: nearest palette colour (weighted RGB) per opaque pixel, -1 elsewhere."""
+def ramp_mask(names: tuple[str, ...], n: int) -> np.ndarray:
+    """(n,) bool: True on the palette indices of the named ramps (v1 or v2)."""
+    pj = json.loads(palette.PALETTE_JSON.read_text(encoding="utf-8"))
+    index = {**pj["index"], **pj["added_index"]}
+    mask = np.zeros(n, bool)
+    for name in names:
+        a, b = index[name]
+        mask[a:b + 1] = True
+    return mask
+
+
+def snap_palette(rgb: np.ndarray, alpha: np.ndarray, pal: np.ndarray, chunk: int = 65536,
+                 banned: np.ndarray | None = None) -> np.ndarray:
+    """Index array: nearest palette colour (weighted RGB) per opaque pixel, -1
+    elsewhere; never an index `banned` (bool per palette entry) marks."""
     flat = rgb.reshape(-1, 3).astype(np.int32)
     out = np.full(flat.shape[0], TRANSPARENT, np.int32)
     w = np.array([3, 4, 2], np.int32)        # rough perceptual weights
@@ -299,6 +339,8 @@ def snap_palette(rgb: np.ndarray, alpha: np.ndarray, pal: np.ndarray, chunk: int
     for s in range(0, idx.size, chunk):
         sel = idx[s:s + chunk]
         d = (((flat[sel, None, :] - pal[None, :, :]) ** 2) * w).sum(axis=2)
+        if banned is not None:
+            d[:, banned] = np.iinfo(np.int32).max
         out[sel] = d.argmin(axis=1)
     out = out.reshape(alpha.shape)
     # a palette colour that is itself magenta-ish never survives (no pink fringe)
@@ -519,6 +561,112 @@ def taper_cut(flash: np.ndarray, length: int = TAPER_LEN, gap: int = TAPER_GAP) 
             keep = half * max(0.0, (c - gap) / max(1, n - gap)) if c >= gap else -1.0
             v[np.abs(np.arange(v.shape[0]) - mid) > keep, c] = TRANSPARENT
     return out
+
+
+def muzzle_point(idx: np.ndarray, probe: int = MUZZLE_PROBE) -> tuple[float, float]:
+    """(row, column) of a gun's muzzle, the gun pointing left: on the art's
+    largest piece (a spark the flash split left behind is not the gun), its
+    leftmost pixels in the upper half of its rows (the arms come in from
+    the bottom), the mean row of its first `probe` columns."""
+    if not (idx >= 0).any():
+        raise ValueError("muzzle_point: no art")
+    op = max(components(idx >= 0), key=lambda c: int(c.sum()))
+    rows = np.flatnonzero(op.any(axis=1))
+    upper = op.copy()
+    upper[int((rows[0] + rows[-1]) // 2):] = False
+    c0 = int(np.flatnonzero(upper.any(axis=0))[0])
+    ys = np.nonzero(upper[:, c0:c0 + probe])[0]
+    return float(ys.mean()), float(c0)
+
+
+def borrowed_flash(donor: WeaponPair, pal: np.ndarray, period: float) -> tuple[np.ndarray, tuple[float, float]]:
+    """A weapon with no firing image borrows `donor`'s flash: cut from the
+    donor's pair by split_flash (its own grow and halo), its side cut
+    tapered to a point (it will hang in the open), cropped, and rescaled
+    from the donor's art pixel to `period` (both Gemini images are the same
+    size and composition, so a source pixel is the common unit). Returns
+    (the flash, cropped; the donor's muzzle in its rows and columns)."""
+    arts, periods = {}, {}
+    for key in ("A", "B"):
+        art, periods[key] = load_art(REF_DIR / donor.files()[key], pal, donor.no_ramps)
+        arts[key] = fill_bottom(art)
+    hh = min(v.shape[0] for v in arts.values())
+    ww = min(v.shape[1] for v in arts.values())
+    clean, flash, _ = split_flash(arts["A"][:hh, :ww], arts["B"][:hh, :ww], pal, donor.flash_grow, donor.flash_halo)
+    return crop_flash(fill_flash(taper_cut(flash), clean >= 0, pal), muzzle_point(clean), periods["B"] / period, pal)
+
+
+def fill_flash(flash: np.ndarray, behind: np.ndarray, pal: np.ndarray, reach: int = 64,
+               rim: int = FLASH_RIM) -> np.ndarray:
+    """The flash made solid: a split flash has a notch where the donor's
+    barrel covered it (`behind`, bool: the donor's gun), and its grown
+    outline keeps the dark rim Gemini drew round that barrel's end. The
+    dark pixels (outline-dark, DARK_VALUE) within `rim` px of the notch go;
+    then every pixel of the notch or of those, with flash above and below
+    it in its column (the barrel enters the burst from the side, so the
+    notch is open there; between two spikes the gun is not), is filled,
+    each from an opaque 4-neighbour, ring by ring (at most `reach` rings).
+    The graft then puts this weapon's own barrel back in front (build)."""
+    flash = flash.copy()
+    near = behind.copy()
+    for _ in range(rim):
+        near = near | neighbours_any(near)
+    dark = (flash >= 0) & near & (pal[np.clip(flash, 0, None)].max(axis=-1) < DARK_VALUE)
+    flash[dark] = TRANSPARENT
+    behind = behind | dark
+    op = flash >= 0
+    if not op.any():
+        return flash
+    jdx = np.arange(op.shape[0])[:, None]
+    lo_c = np.where(op, jdx, op.shape[0]).min(axis=0)
+    hi_c = np.where(op, jdx, -1).max(axis=0)
+    inside = (jdx >= lo_c[None, :]) & (jdx <= hi_c[None, :])
+    out = flash.copy()
+    todo = inside & ~op & behind
+    for _ in range(reach):
+        if not todo.any():
+            break
+        grown = out.copy()
+        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            src = shift(out, dx, dy)
+            take = todo & (grown < 0) & (src >= 0)
+            grown[take] = src[take]
+        todo &= grown < 0
+        out = grown
+    return out
+
+
+def crop_flash(flash: np.ndarray, muzzle: tuple[float, float], f: float,
+               pal: np.ndarray) -> tuple[np.ndarray, tuple[float, float]]:
+    """(the flash cropped to its pixels and scaled by `f`, `muzzle` in the
+    rows and columns of the result)."""
+    op = flash >= 0
+    if not op.any():
+        raise ValueError("crop_flash: the donor has no flash")
+    rows, cols = np.flatnonzero(op.any(axis=1)), np.flatnonzero(op.any(axis=0))
+    sub = flash[rows[0]:rows[-1] + 1, cols[0]:cols[-1] + 1]
+    if f != 1.0:
+        sub = mode_resize(sub, max(1, round(sub.shape[1] * f)), max(1, round(sub.shape[0] * f)), pal)
+    return sub, ((muzzle[0] - rows[0]) * f, (muzzle[1] - cols[0]) * f)
+
+
+def graft_flash(arts: dict[str, np.ndarray], flash: np.ndarray, at: tuple[float, float],
+                muzzle: tuple[float, float]) -> tuple[dict[str, np.ndarray], np.ndarray]:
+    """(every art padded left and up as far as the flash needs, the flash on
+    a canvas of their size): the flash's point `at` (its row and column)
+    on `muzzle` (the arts' row and column). Padding the left keeps the gun
+    where it is on screen: build() lays the canvas's right edge on the
+    screen's, and its top row stays A's top for the scale."""
+    ty, tx = round(muzzle[0] - at[0]), round(muzzle[1] - at[1])
+    pl, pt = max(0, -tx), max(0, -ty)
+    out = {k: np.pad(v, ((pt, 0), (pl, 0)), constant_values=TRANSPARENT) for k, v in arts.items()}
+    h, w = next(iter(out.values())).shape
+    canvas = np.full((h, w), TRANSPARENT, np.int32)
+    fh, fw = flash.shape
+    y0, x0 = ty + pt, tx + pl
+    ys, xs = slice(y0, min(h, y0 + fh)), slice(x0, min(w, x0 + fw))
+    canvas[ys, xs] = flash[:ys.stop - y0, :xs.stop - x0]
+    return out, canvas
 
 
 def fill_bottom(idx: np.ndarray, reach: int = BOTTOM_GAP) -> np.ndarray:
@@ -999,11 +1147,12 @@ def check_prefixes(*names: str, own: str = "") -> None:
 
 
 # ---------------------------------------------------------------- build
-def load_art(path: Path, pal: np.ndarray) -> tuple[np.ndarray, float]:
+def load_art(path: Path, pal: np.ndarray, no_ramps: tuple[str, ...] = ()) -> tuple[np.ndarray, float]:
     rgb = crop_letterbox(np.asarray(Image.open(path).convert("RGB")))
     alpha = key_magenta(rgb)
     period, phx, phy = detect_grid(rgb, alpha)
-    return grid_downsample(snap_palette(rgb, alpha, pal), period, phx, phy, pal), period
+    banned = ramp_mask(no_ramps, len(pal)) if no_ramps else None
+    return grid_downsample(snap_palette(rgb, alpha, pal, banned=banned), period, phx, phy, pal), period
 
 
 def build(w: WeaponPair, out_dir: Path | None = None) -> dict:
@@ -1014,7 +1163,7 @@ def build(w: WeaponPair, out_dir: Path | None = None) -> dict:
     check_prefixes(w.gun, w.flash, own=w.folder or w.name)
     arts, periods = {}, {}
     for key, fname in w.files().items():
-        art, periods[key] = load_art(REF_DIR / fname, pal)
+        art, periods[key] = load_art(REF_DIR / fname, pal, w.no_ramps)
         for k, x, y in w.drop:
             if k == key:
                 art = drop_piece(art, x, y)
@@ -1026,8 +1175,16 @@ def build(w: WeaponPair, out_dir: Path | None = None) -> dict:
         dx, dy = estimate_recoil(a, arts[k])
         arts[k] = arts[k].copy()
         arts[k][by0:by1, bx0:bx1] = shift(a, dx, dy)[by0:by1, bx0:bx1]
-    # the images whose flash is cut out: (art without it, the flash, recoil from A)
-    split = {f.src: split_flash(a, arts[f.src], pal, w.flash_grow, w.flash_halo) for f in w.frame_list() if f.flash}
+    if w.flash_from:   # no firing image: the donor's flash at A's muzzle, on A's own canvas
+        flash, at = borrowed_flash(WEAPONS[w.flash_from], pal, periods["A"])
+        arts, grafted = graft_flash(arts, flash, at, muzzle_point(a))
+        hh, ww = arts["A"].shape
+        a = arts["A"]
+        grafted[a >= 0] = TRANSPARENT   # the gun in front, as the donor's flash sits behind its muzzle
+        split = {f.src: (arts[f.src], grafted, (0, 0)) for f in w.frame_list() if f.flash}
+    else:   # the images whose flash is cut out: (art without it, the flash, recoil from A)
+        split = {f.src: split_flash(a, arts[f.src], pal, w.flash_grow, w.flash_halo)
+                 for f in w.frame_list() if f.flash}
     recoils = {k: v[2] for k, v in split.items()}
     for f in w.frame_list():
         if f.pose == "A" and f.src not in recoils:
