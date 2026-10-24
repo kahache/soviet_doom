@@ -257,6 +257,7 @@ three walls, left to right.
 | P9 | M2d: the west wall either side of the exit alcove, and the north-west corner | half panels against the alcove's steel jambs, whole panels meeting in the corners |
 | P10 | M2d: the passage, then the gallery from its mouth | the passage is green steel plate with the door's track continuing into it; the gallery's concrete runs 2 panels high (256 since the posters), the steel lintel over the mouth one plate high, the tiled floor; nothing missing (no HOM, no `Unknown texture` in the log) |
 | P11 | the posters (§5.1): from the passage's mouth look north, then west and east; at the start turn 180 | Lenin and Stalin whole behind the row, the slogan bands at the foot not cut, no vertical repeat; the two slots whole on the end walls; the mural whole beside the exit alcove, concrete half panel between it and the alcove's jamb; no HOM |
+| P12 | V3 (§10): walk the weapon row to its east end (1072, 624), then the ammunition row's (1072, 144); press 8 and throw at the barrels | "You got a pouch of RGD-5 grenades!", not raised; the crate tops the pool to 6; the grenade arcs, bounces short, bursts ~1.7 s after the throw and sets the barrels off; the design doc's R1-R12 (`docs/engine/2026-10-23_V3_rgd5.md` §9) |
 
 ## 8. For the CEO: a player-facing name
 
@@ -277,3 +278,16 @@ each language (D21).
 - The gallery's waking rules are F5's: shooting one wakes it; whether its
   neighbours, which hear the shot and see the shooter, wake too is the
   same NOT VERIFIED engine behaviour as in §4.2, and it is the practice.
+
+## 10. V3 (2026-10-24): the RGD-5 on the range
+
+The range holds the whole arsenal, so the RGD-5 (ADR 012, slot 8) joins it
+on every skill: **the pouch** (21009, the weapon and 2 grenades) at the
+east end of the weapon row (x 1072, the eighth slot of `PICKUP_SPACING`),
+**a crate** (21022, 4) at the east end of the ammunition row: the pool's
+maximum, 6. The barrels at x 1248-1632 are the grenade's targets (its 128
+of blast against their 192 spacing: one grenade, one or two barrels), the
+riflemen at the far wall the aimed-up throw's (~550-600 units). Nothing
+else moved; the routes' R1 (the ice axe at x 288) and the exit are
+untouched. Tests: `tests/test_rgd5_maps.py` (`RangeTest`), the range's own.
+Engine: P12 above.

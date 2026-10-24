@@ -520,6 +520,16 @@ ED_HEALTH_BONUS = 2014
 ED_ARMOR_BONUS = 2015
 ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
+# V3 A4, the RGD-5 hand grenade (ADR 012; docs/engine/2026-10-23_V3_rgd5.md
+# section 6): its own pool, counted 1.25 shell-equivalents a grenade
+# (BALANCE 8.1). A grenade is a consumable here, so it rides in ITEMS and
+# scales DOWN with skill: 3 / 3 / 2 grenades on skills 2 / 3 / 4.
+ED_RGD5 = 21009           # the pouch: the weapon and two grenades (none here)
+ED_RGD5_AMMO = 21021      # one loose grenade (it gives the weapon too)
+ED_RGD5_BOX = 21022       # a crate of four: a secret's reward only (none here)
+# V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
+# 5.4): SD_Loudspeaker, a positional voice over the music (MOD-SPEC 6.14).
+ED_LOUDSPEAKER = 21201
 
 # Design section 9: monsters per skill, Doom's skill pairs (udmf.skill_tier).
 ENEMY_TOTALS = {2: 32, 3: 47, 4: 61}   # V3: one more trooper in the sluice, on every skill
@@ -672,6 +682,20 @@ ITEMS = (
     ("z10_hut_w", ED_HEALTH_BONUS, 2528, 1664, 4),
     ("z10_gate_porch", ED_HEALTH_BONUS, 4160, 1920, 4),
     ("z11_west_hall", ED_HEALTH_BONUS, 528, 2000, 4),
+    # The RGD-5 (V3 A4): loose grenades where the dam is thrown down onto a
+    # lower level, the gallery over the hall's door and the catwalk over
+    # the turbine hall.
+    ("z4_gallery", ED_RGD5_AMMO, 3900, 480, 4),
+    ("z5_catwalk", ED_RGD5_AMMO, 2900, 800, 4),
+    ("z5_catwalk", ED_RGD5_AMMO, 3200, 800, 3),
+)
+
+# The turbine hall's loudspeaker (V3 B5): (zone, x, y, lines, reach, flags,
+# jingle), as MAP04's. The front report, the plan, the factory-fortress and
+# the blood donors; RAD02 is about this very dam, so it waits for MAP06.
+# Reach 512: the hall is 1792 long and 448 high.
+LOUDSPEAKERS = (
+    ("z5_hall", 2560, 448, (1, 6, 13, 14), 512, 0, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", and always on the
@@ -1341,6 +1365,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     for _zone, ednum, x, y, low, high in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(low, high)))
+    for _zone, x, y, lines, reach, flags, jingle in LOUDSPEAKERS:
+        mask = sum(1 << (line - 1) for line in lines)
+        tm.add_thing(Thing(x=x, y=y, type=ED_LOUDSPEAKER,
+                           extra={"arg0": mask, "arg1": reach, "arg3": flags, "arg4": jingle}))
     return tm, plan
 
 

@@ -732,3 +732,34 @@ riders. Tests: `tests/test_map05_dam.py` 98 OK (new: the burst, the
 riders, the water, the store, the sight lines, the rounds, the route's
 reading); `tests/test_map05_route.py` OK with the new tags. **Not run:
 GZDoom** (D26): V16-V18 are the PM's.
+
+## 16. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+**The RGD-5** (ADR 012; placement advice `docs/engine/2026-10-23_V3_rgd5.md`
+§6). Grenades are consumables in `ITEMS`, so they scale **down** with skill:
+**3 / 3 / 2** grenades on skills 2 / 3 / 4 (skills 1 and 5 double them, as
+every pickup). Why here: thrown down onto a lower level: from the gallery and from the catwalk over the turbine hall (a loose grenade gives the weapon too, ADR 012). No crate (21022: a secret's reward only).
+
+| Where | What | Skills |
+|---|---|---|
+| `z4_gallery` (3900, 480) | a loose grenade (21021) | every skill |
+| `z5_catwalk` (2900, 800) | a loose grenade | every skill |
+| `z5_catwalk` (3200, 800) | a loose grenade | skills 1-3 |
+
+**The budget** (BALANCE §8, a grenade 1.25 shell-equivalents, counted in
+the band and the shell share's whole only): the ratio placed / needed on
+skills 2 / 3 / 4 goes 1.559 → 1.611 / 1.334 → 1.366 / 1.233 → 1.248, inside
+1.5-2.0 / 1.3-1.6 / 1.2-1.45. No other pickup moved. The stage readiness,
+the newest weapon's lead and the boss's stage do not count grenades.
+
+**The loudspeaker** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124): `z5_hall` (2560, 448), reach 512 (the hall is 1792 long, 448 high): lines 1, 6, 13, 14; RAD02 is about this very dam, so it waits for MAP06.
+Table `LOUDSPEAKERS` in `map.py`; no geometry changed (it has no body until
+its horn is drawn). Tests: the map's own (`test_every_pickup_can_be_picked_up`,
+the G3-8 band with the grenades), `tests/test_rgd5_maps.py`,
+`tests/test_loudspeaker.py`.
+
+**Engine checklist (the PM, D26):** the grenades lie where the table says
+and are picked up (`printinv`: `SD_Rgd5` and `SD_Rgd5Ammo`); the loudspeaker
+rings its jingle on approach, reads its lines over the level's music, falls
+silent walking away (the line in progress finishes) and is not heard from
+the next room; a clean log.

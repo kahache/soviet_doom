@@ -405,9 +405,15 @@ class ArsenalPk3Test(unittest.TestCase):
                 continue
             if line.startswith("$"):
                 # D116: the AKM's report pitched down. Only this directive,
-                # and only on a name defined on a line of its own.
+                # and only on a name defined on a line of its own; and V3
+                # B5's $rolloff for the propaganda radio's names
+                # (tests/test_loudspeaker.py pins those).
                 parts = line.split()
-                self.assertEqual(parts[0], "$pitchset", f"unexpected SNDINFO directive: {raw!r}")
+                self.assertIn(parts[0], ("$pitchset", "$rolloff"), f"unexpected SNDINFO directive: {raw!r}")
+                if parts[0] == "$rolloff":
+                    self.assertTrue(parts[1].startswith("sd/radio/"), raw)
+                    self.assertIn(len(parts), (4, 5), raw)
+                    continue
                 self.assertEqual(len(parts), 3, raw)
                 self.assertGreater(float(parts[2]), 0, raw)
                 continue
@@ -453,9 +459,15 @@ class ArsenalPk3Test(unittest.TestCase):
     def test_every_defined_sound_is_used(self):
         """A dead SNDINFO entry means the sound-designer gets a wrong brief."""
         used = set(re.findall(r'"(sd/[a-z0-9/_]+)"', self.zs_all))
+        # V3 B5: SD_Loudspeaker asks for its lines by a format string,
+        # "sd/radio/line/%02d": a name under such a prefix, ending in the
+        # digits the format writes, is played.
+        formatted = re.findall(r'"(sd/[a-z0-9/_]+/)%0?\d?d"', self.zs_all)
         members = {m for ms in self._random_groups().values() for m in ms}
         for name in self._sndinfo_names():
             if name in members:        # played through its $random group
+                continue
+            if any(name.startswith(p) and name[len(p):].isdigit() for p in formatted):
                 continue
             if name.startswith(self.PARKED_PREFIX):
                 self.assertNotIn(name, used, f"{name} is played now: the beds are parked (N9e)")

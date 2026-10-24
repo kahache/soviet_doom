@@ -435,7 +435,8 @@ class SndinfoTests(unittest.TestCase):
                         self.assertEqual(self.lines.get(name), lump, name)
 
     def test_random_groups_are_exactly_the_multi_take_sounds(self):
-        enemy = {g: m for g, m in self.groups.items() if not g.startswith("sd/weapon/")}   # D94's are the weapons'
+        # D94's are the weapons'; V3 B5's jingle is the radio's (tests/test_loudspeaker.py)
+        enemy = {g: m for g, m in self.groups.items() if not g.startswith(("sd/weapon/", "sd/radio/"))}
         self.assertEqual(set(enemy), {g for g, m in EXPECTED.items() if len(m) > 1})
         for group, members in enemy.items():
             for m in members:

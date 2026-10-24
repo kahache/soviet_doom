@@ -798,3 +798,34 @@ the barriers' special, tag and sectors, the rounds, the gate's look, the
 reserve on every skill, the wave's straight way, the sight lines, the
 route's reading, no pickup event needed); `tests/test_map06_route.py` OK
 with tag 13. **Not run: GZDoom** (D26): E10 is the PM's.
+
+## 18. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+**The RGD-5** (ADR 012; placement advice `docs/engine/2026-10-23_V3_rgd5.md`
+§6). Grenades are consumables in `ITEMS`, so they scale **down** with skill:
+**4 / 3 / 2** grenades on skills 2 / 3 / 4 (skills 1 and 5 double them, as
+every pickup). Why here: on Nikolskaya at the pavilion's mouth, before the barricades: the checkpoint is taken over the crates without showing a head. **None in the Kremlin courtyard** (the colossus takes no splash, `+NORADIUSDMG`), and none counted for its stage (BALANCE 8.4.3). No crate (21022: a secret's reward only).
+
+| Where | What | Skills |
+|---|---|---|
+| `z3_street` (3620, 3950) | the pouch (21009): the weapon and 2 | every skill |
+| `z3_street` (3560, 3760) | a loose grenade (21021) | skills 1-3 |
+| `z3_street` (3150, 3950) | a loose grenade | skills 1-2 |
+
+**The budget** (BALANCE §8, a grenade 1.25 shell-equivalents, counted in
+the band and the shell share's whole only): the ratio placed / needed on
+skills 2 / 3 / 4 goes 1.540 → 1.577 / 1.387 → 1.408 / 1.280 → 1.288, inside
+1.5-2.0 / 1.3-1.6 / 1.2-1.45. No other pickup moved. The stage readiness,
+the newest weapon's lead and the boss's stage do not count grenades.
+
+**The loudspeaker** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124): two. `z6_square` (2400, 2000), reach 512: lines 2, 9, 7, 5 («the parade is not cancelled» on Red Square itself; the dam's victory after MAP05). `z5_atrium` (3900, 2250), the actor's 384: lines 8, 12, 14, 10, 3, 4 (the GUM's civil notices; the air-raid alert and the fallen objects are heard nowhere else in Episodes 2-3). Their zones (reach + 128) are 1520 apart, more than 640 + 512.
+Table `LOUDSPEAKERS` in `map.py`; no geometry changed (it has no body until
+its horn is drawn). Tests: the map's own (`test_every_pickup_can_be_picked_up`,
+the G3-8 band with the grenades), `tests/test_rgd5_maps.py`,
+`tests/test_loudspeaker.py`.
+
+**Engine checklist (the PM, D26):** the grenades lie where the table says
+and are picked up (`printinv`: `SD_Rgd5` and `SD_Rgd5Ammo`); the loudspeaker
+rings its jingle on approach, reads its lines over the level's music, falls
+silent walking away (the line in progress finishes) and is not heard from
+the next room; a clean log.
