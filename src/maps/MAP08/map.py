@@ -576,6 +576,16 @@ ED_HEALTH_BONUS = 2014
 ED_ARMOR_BONUS = 2015
 ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
+# V3 A4, the RGD-5 hand grenade (ADR 012; docs/engine/2026-10-23_V3_rgd5.md
+# section 6): its own pool, counted 1.25 shell-equivalents a grenade
+# (BALANCE 8.1). A grenade is a consumable here, so it rides in ITEMS and
+# scales DOWN with skill: 3 / 2 / 2 grenades on skills 2 / 3 / 4.
+ED_RGD5 = 21009           # the pouch: the weapon and two grenades (none here)
+ED_RGD5_AMMO = 21021      # one loose grenade (it gives the weapon too)
+ED_RGD5_BOX = 21022       # a crate of four: a secret's reward only (none here)
+# V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
+# 5.4): SD_Loudspeaker, a positional voice over the music (MOD-SPEC 6.14).
+ED_LOUDSPEAKER = 21201
 
 # Design section 9: monsters per skill (MAP05's size, a step above it).
 ENEMY_TOTALS = {2: 36, 3: 55, 4: 70}
@@ -732,6 +742,18 @@ ITEMS = (
     ("z2_d1_porch", ED_HEALTH_BONUS, 1920, 1488, 4),
     ("z5_gantry", ED_HEALTH_BONUS, 2432, 2768, 4),
     ("z1_crane_deck", ED_HEALTH_BONUS, 608, 1536, 4),
+    # The RGD-5 (V3 A4): loose grenades in the yard, by the rails and among
+    # the containers.
+    ("z2_yard", ED_RGD5_AMMO, 1400, 450, 4),
+    ("z2_yard", ED_RGD5_AMMO, 2000, 450, 4),
+    ("z2_yard", ED_RGD5_AMMO, 1800, 1000, 2),
+)
+
+# The mess hall's radio (V3 B5): (zone, x, y, lines, reach, flags, jingle),
+# as MAP04's. The fleet's mess: the dam's victory, the parade, the blood
+# donors and the plan. The actor's reach (384) in a hall 416 x 320.
+LOUDSPEAKERS = (
+    ("z6_mess", 3184, 640, (2, 9, 14, 6), 0, 0, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la
@@ -1375,6 +1397,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     for _zone, ednum, x, y, lowest in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
+    for _zone, x, y, lines, reach, flags, jingle in LOUDSPEAKERS:
+        mask = sum(1 << (line - 1) for line in lines)
+        tm.add_thing(Thing(x=x, y=y, type=ED_LOUDSPEAKER,
+                           extra={"arg0": mask, "arg1": reach, "arg3": flags, "arg4": jingle}))
     return tm, plan
 
 

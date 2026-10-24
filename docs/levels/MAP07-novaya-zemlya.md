@@ -626,3 +626,34 @@ medikit is never taken by the route.
 | V19 | Taking the yellow key brings the radar's lift down to the radome's floor with its Reich; the gate's lamp flickers before; the car's steel face reads as a lift gate under the gate's lintel | walk YKEY, look west from the platform; `netevent sdtag 12` prints floor 0 |
 | V20 | Taking the red key sinks both cell panels in the chamber's west wall; the hounds and riflemen come out; the strips before them flicker | route step RKEY (tag 13 open) and look west |
 | V21 | Taking the road's medikit sinks the snowbank; the warehouse's ground floor opens under its brick lintel; the floodlight's patch flickers; the bank's face reads as packed ice (`SDICE2`) | walk onto the medikit on the road; `netevent sdtag 14` prints floor 0 |
+
+## 18. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+**The RGD-5** (ADR 012; placement advice `docs/engine/2026-10-23_V3_rgd5.md`
+§6). Grenades are consumables in `ITEMS`, so they scale **down** with skill:
+**4 / 3 / 2** grenades on skills 2 / 3 / 4 (skills 1 and 5 double them, as
+every pickup). Why here: Episode 3 is a pistol start: the pouch again, in the hangar; loose ones among the bunks. No crate (21022: a secret's reward only).
+
+| Where | What | Skills |
+|---|---|---|
+| `z2_hangar` (3900, 1000) | the pouch (21009): the weapon and 2 | every skill |
+| `z4_barracks` (3800, 1950) | a loose grenade (21021) | skills 1-3 |
+| `z4_barracks` (4150, 1950) | a loose grenade | skills 1-2 |
+
+**The budget** (BALANCE §8, a grenade 1.25 shell-equivalents, counted in
+the band and the shell share's whole only): the ratio placed / needed on
+skills 2 / 3 / 4 goes 1.657 → 1.725 / 1.465 → 1.494 / 1.294 → 1.308, inside
+1.5-2.0 / 1.3-1.6 / 1.2-1.45. No other pickup moved. The stage readiness,
+the newest weapon's lead and the boss's stage do not count grenades.
+
+**The loudspeaker** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124): `z4_barracks` (3904, 1952), the actor's 384: lines 2, 7, 13, 16 (a barracks radio far from Moscow: the dam, the lore's line, the factory-fortress, the time signal).
+Table `LOUDSPEAKERS` in `map.py`; no geometry changed (it has no body until
+its horn is drawn). Tests: the map's own (`test_every_pickup_can_be_picked_up`,
+the G3-8 band with the grenades), `tests/test_rgd5_maps.py`,
+`tests/test_loudspeaker.py`.
+
+**Engine checklist (the PM, D26):** the grenades lie where the table says
+and are picked up (`printinv`: `SD_Rgd5` and `SD_Rgd5Ammo`); the loudspeaker
+rings its jingle on approach, reads its lines over the level's music, falls
+silent walking away (the line in progress finishes) and is not heard from
+the next room; a clean log.

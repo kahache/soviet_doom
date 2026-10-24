@@ -554,6 +554,17 @@ ED_HEALTH_BONUS = 2014
 ED_ARMOR_BONUS = 2015
 ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
+# V3 A4, the RGD-5 hand grenade (ADR 012; docs/engine/2026-10-23_V3_rgd5.md
+# section 6): its own pool, counted 1.25 shell-equivalents a grenade
+# (BALANCE 8.1). A grenade is a consumable here, so it rides in ITEMS and
+# scales DOWN with skill: 4 / 3 / 2 grenades on skills 2 / 3 / 4, all on
+# Nikolskaya, none in the boss's courtyard (the colossus takes no splash).
+ED_RGD5 = 21009           # the pouch: the weapon and two grenades
+ED_RGD5_AMMO = 21021      # one loose grenade (it gives the weapon too)
+ED_RGD5_BOX = 21022       # a crate of four: a secret's reward only (none here)
+# V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
+# 5.4): SD_Loudspeaker, a positional voice over the music (MOD-SPEC 6.14).
+ED_LOUDSPEAKER = 21201
 
 # Design section 9: monsters per skill, Doom's skill pairs (udmf.skill_tier).
 ENEMY_TOTALS = {2: 42, 3: 69, 4: 98}
@@ -735,6 +746,24 @@ ITEMS = (
     ("z3_gate_arch_1", ED_HEALTH_BONUS, 2880, 3616, 4),
     ("z7_porch", ED_HEALTH_BONUS, 2752, 1056, 4),
     ("z9_exit_porch", ED_HEALTH_BONUS, 480, 1536, 4),
+    # The RGD-5 (V3 A4): on Nikolskaya before the barricades, at the
+    # pavilion's mouth, so the Reich's checkpoint is taken over the crates
+    # without showing a head.
+    ("z3_street", ED_RGD5, 3620, 3950, 4),
+    ("z3_street", ED_RGD5_AMMO, 3560, 3760, 3),
+    ("z3_street", ED_RGD5_AMMO, 3150, 3950, 2),
+)
+
+# The loudspeakers (V3 B5): (zone, x, y, lines, reach, flags, jingle), as
+# MAP04's. Red Square's own: the dam's victory (RAD02, after MAP05), "the
+# parade is not cancelled" on the square itself, the lore's line and the
+# Motherland, reach 512 over the square. The GUM's atrium: the civil
+# notices of a shopping gallery (the air-raid alert and the fallen objects
+# too, heard nowhere else in Episodes 2-3), the actor's 384. Their reach +
+# 128 zones are 1520 apart, more than 640 + 512.
+LOUDSPEAKERS = (
+    ("z6_square", 2400, 2000, (2, 9, 7, 5), 512, 0, 0),
+    ("z5_atrium", 3900, 2250, (8, 12, 14, 10, 3, 4), 0, 0, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", and always on the
@@ -1494,6 +1523,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     for _zone, ednum, x, y, low, high in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(low, high)))
+    for _zone, x, y, lines, reach, flags, jingle in LOUDSPEAKERS:
+        mask = sum(1 << (line - 1) for line in lines)
+        tm.add_thing(Thing(x=x, y=y, type=ED_LOUDSPEAKER,
+                           extra={"arg0": mask, "arg1": reach, "arg3": flags, "arg4": jingle}))
     return tm, plan
 
 

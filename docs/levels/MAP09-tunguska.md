@@ -677,3 +677,34 @@ described here and not built:
   15, the fissures one step and hurting, every slab walked out of, the
   boss's spot and BOSS0's point off them; and `tests/test_ep3_boss.py`
   pinning the call in Breach (`mod-engineer`'s).
+
+## 19. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+**The RGD-5** (ADR 012; placement advice `docs/engine/2026-10-23_V3_rgd5.md`
+§6). Grenades are consumables in `ITEMS`, so they scale **down** with skill:
+**3 / 2 / 2** grenades on skills 2 / 3 / 4 (skills 1 and 5 double them, as
+every pickup). Why here: at the research station's izbas; **none in the crater** (the Consortium takes no splash), none counted for its stage. No crate (21022: a secret's reward only).
+
+| Where | What | Skills |
+|---|---|---|
+| `z3_izba_a` (750, 700) | a loose grenade (21021) | every skill |
+| `z3_izba_b` (750, 1300) | a loose grenade | every skill |
+| `z3_yard` (1160, 1000) | a loose grenade | skills 1-2 |
+
+**The budget** (BALANCE §8, a grenade 1.25 shell-equivalents, counted in
+the band and the shell share's whole only): the ratio placed / needed on
+skills 2 / 3 / 4 goes 1.610 → 1.628 / 1.347 → 1.355 / 1.239 → 1.245, inside
+1.5-2.0 / 1.3-1.6 / 1.2-1.45. No other pickup moved. The stage readiness,
+the newest weapon's lead and the boss's stage do not count grenades.
+
+**The loudspeaker** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124): `z3_yard` (1632, 736), at the foot of the yard's mast, the actor's 384, **with the valve bed** (`arg3` 4): lines 7 and 5 only, the last Soviet outpost before the alien works heard as a far, noisy station.
+Table `LOUDSPEAKERS` in `map.py`; no geometry changed (it has no body until
+its horn is drawn). Tests: the map's own (`test_every_pickup_can_be_picked_up`,
+the G3-8 band with the grenades), `tests/test_rgd5_maps.py`,
+`tests/test_loudspeaker.py`.
+
+**Engine checklist (the PM, D26):** the grenades lie where the table says
+and are picked up (`printinv`: `SD_Rgd5` and `SD_Rgd5Ammo`); the loudspeaker
+rings its jingle on approach, reads its lines over the level's music, falls
+silent walking away (the line in progress finishes) and is not heard from
+the next room; a clean log.
