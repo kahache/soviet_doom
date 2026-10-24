@@ -665,6 +665,7 @@ ED_RGD5_BOX = 21022       # a crate of four: a secret's reward only (none here)
 # 5.4): SD_Loudspeaker, a positional voice over the music (MOD-SPEC 6.14).
 ED_LOUDSPEAKER = 21201
 LOUDSPEAKER_FLAG_BED = 4  # SD_LS_FLAG_BED: the valve set's hum and crackle in a loop
+LOUDSPEAKER_FLAG_OLIVE = 8  # SD_LS_FLAG_OLIVE: the army's olive SDLO, not the grey street SDLS (D132)
 
 # Design section 10: monsters per skill, Doom's skill pairs (udmf.skill_tier).
 # The boss's servants are not here: it calls them in the fight (section 11).
@@ -905,8 +906,9 @@ ITEMS = (
 # MAP04's. The last Soviet outpost before the alien works: one speaker at
 # the foot of the yard's mast, two lines only (the lore's line and the
 # Motherland), and the valve set's bed under them: a far, noisy station.
+# Olive (D132): the army's last outpost, a field set.
 LOUDSPEAKERS = (
-    ("z3_yard", 1632, 736, (7, 5), 0, LOUDSPEAKER_FLAG_BED, 0),
+    ("z3_yard", 1632, 736, (7, 5), 0, LOUDSPEAKER_FLAG_BED | LOUDSPEAKER_FLAG_OLIVE, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la

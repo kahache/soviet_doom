@@ -587,7 +587,8 @@ ITEMS = (
 # flags arg3 (4 = the valve bed); jingle arg4 (0 = a random one of three).
 # The assembly hall, reach 512 (the hall is 1472 long): the plan, the
 # factory-fortress, Tankograd's own line (RAD15: the player stands in
-# Tankograd now) and the people stronger than the enemy.
+# Tankograd now) and the people stronger than the enemy. Grey (flags 0,
+# D132): the works' red-brick hall, a city factory's horn.
 LOUDSPEAKERS = (
     ("z3_hall", 2600, 1184, (6, 13, 15, 5), 512, 0, 0),
 )

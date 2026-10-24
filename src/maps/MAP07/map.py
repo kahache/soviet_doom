@@ -570,6 +570,7 @@ ED_RGD5_BOX = 21022       # a crate of four: a secret's reward only (none here)
 # V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
 # 5.4): SD_Loudspeaker, a positional voice over the music (MOD-SPEC 6.14).
 ED_LOUDSPEAKER = 21201
+LOUDSPEAKER_FLAG_OLIVE = 8  # SD_LS_FLAG_OLIVE: the army's olive SDLO, not the grey street SDLS (D132)
 ED_AKM_MAG = 21020        # SD_AkmAmmo: one 30-round 7.62x39 magazine (ADR 011)
 
 # The events, in the order the route meets them (design section 17).
@@ -762,9 +763,9 @@ ITEMS = (
 # The barracks' radio (V3 B5): (zone, x, y, lines, reach, flags, jingle),
 # as MAP04's. Far from Moscow: the dam's victory, the lore's line, the
 # factory-fortress and the time signal. The actor's reach (384) in a hall
-# 896 x 448.
+# 896 x 448. Olive (D132): the test site's army barracks.
 LOUDSPEAKERS = (
-    ("z4_barracks", 3904, 1952, (2, 7, 13, 16), 0, 0, 0),
+    ("z4_barracks", 3904, 1952, (2, 7, 13, 16), 0, LOUDSPEAKER_FLAG_OLIVE, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la

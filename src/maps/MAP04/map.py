@@ -649,7 +649,7 @@ ITEMS = (
 # jingle arg4 (0 = a random one of three). A station loudspeaker: the front
 # reports, the time signal, the parade, the weather, the helmet notice and
 # Tankograd's plan (the city the sergeant has just left). Reach 512: the
-# platform is 2944 long.
+# platform is 2944 long. Grey (flags 0, D132): a railway station's horn.
 LOUDSPEAKERS = (
     ("z6_platform", 2048, 2280, (1, 16, 9, 10, 12, 15), 512, 0, 0),
 )

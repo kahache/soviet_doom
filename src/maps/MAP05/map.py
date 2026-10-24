@@ -693,7 +693,8 @@ ITEMS = (
 # The turbine hall's loudspeaker (V3 B5): (zone, x, y, lines, reach, flags,
 # jingle), as MAP04's. The front report, the plan, the factory-fortress and
 # the blood donors; RAD02 is about this very dam, so it waits for MAP06.
-# Reach 512: the hall is 1792 long and 448 high.
+# Reach 512: the hall is 1792 long and 448 high. Grey (flags 0, D132): a
+# civil power station's horn.
 LOUDSPEAKERS = (
     ("z5_hall", 2560, 448, (1, 6, 13, 14), 512, 0, 0),
 )

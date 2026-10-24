@@ -1064,6 +1064,28 @@ and the bed are our own synthesis.
 | `SDRADBED` | propaganda radio, the valve set's bed: hum, hiss, crackle, a 6 s seamless loop | procedural, rendered by `tools/audio/install_radio.py` (seed 21201; the set `gen_radio.py` lays under every take, heard alone); no source | idem |
 
 
+## The propaganda loudspeaker (V3 B5, sprite; approved by the CEO 2026-10-24)
+
+Sheet `docs/art/previews/2026-10-24_V3_loudspeaker.png`, both options (D132,
+"Ambos! A y B", both A and B): A (grey) as `SDLS`, B (olive) as `SDLO`.
+Files in `assets/sprites/loudspeaker/`, copied byte for byte from
+`work/art/loudspeaker/A/` and, renamed `SDLS` to `SDLO`, from
+`work/art/loudspeaker/B/` (rendered on the Windows PC on 2026-10-24 by
+`tools/art/gen_loudspeaker.py`, seed 21201), so each PNG keeps its `grAb`.
+RGBA with hard alpha, inside palette v1.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDLSA0` | `SD_Loudspeaker` (21201), silent: a street loudspeaker pole with two horns and a junction box with a red star | (a) `tools/art/gen_loudspeaker.py`, option A, frame A | Soviet Doom project (art-director), own work, CC BY-NC-SA 4.0 (D15) |
+| `SDLSB0` | the same, speaking: the pilot lamp lit, the horns shaken | (a) `tools/art/gen_loudspeaker.py`, option A, frame B | idem |
+| `SDLOA0` | `SD_Loudspeaker` with arg3 flag 8, silent: the same loudspeaker in the army's olive | (a) `tools/art/gen_loudspeaker.py`, option B, frame A (`B/SDLSA0.png`, renamed) | idem |
+| `SDLOB0` | the same, speaking | (a) `tools/art/gen_loudspeaker.py`, option B, frame B (`B/SDLSB0.png`, renamed) | idem |
+
+Drawn from code (rig_core's solids, as the floor lamp `COLU` and the drum
+`BAR1`): no photograph, no typeface, no pack, no AI image. The mod's own
+sprites and textures appear on the review sheet beside it, for scale, and
+never enter these lumps.
+
 ## Weapon pickups (F4, approved by the CEO 2026-10-14, D48)
 
 CEO verdict (D48): the ice axe with pickup **C**, the PPSh-41, and "Resto del

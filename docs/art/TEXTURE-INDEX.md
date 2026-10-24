@@ -716,6 +716,29 @@ main menu and the skill-screen headers. Owned by `LICENSES.md` ("The menu
 font SDMENU"). Status: **approved for in-engine trial 2026-10-13 (D31)**.
 Reference sheet `docs/art/previews/2026-10-13_1554_F2_menu-sweep.png`.
 
+## The propaganda loudspeakers SDLS and SDLO (V3 B5, D124, D132)
+
+A sprite, not a texture, listed so the index carries every shipped picture.
+`SD_Loudspeaker` (21201, MOD-SPEC §6.14) stands where `level-designer` puts
+it, often in the middle of a room or a square, so it is a pole that reads
+from every side: rotation 0. Generator `tools/art/gen_loudspeaker.py`
+(rig_core solids, seed 21201, palette v1, RGBA with hard alpha, grAb 28,74:
+the foot sinks 3 px as `COLU`), from the sheet
+`docs/art/previews/2026-10-24_V3_loudspeaker.png`. The CEO took both
+options (D132, "Ambos! A y B", both A and B): option A (grey) is `SDLS`,
+option B (olive) is installed as `SDLO` (the generator names both options
+`SDLS`; the olive pair is renamed on the way in, byte for byte). The map
+picks one per loudspeaker (MOD-SPEC §6.14, arg3 flag 8): grey in the city,
+the red-brick works and the Kremlin, olive in the army's installations.
+Sprites go to the CEO (D113 covers textures and MIDI only).
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDLSA0` | sprite (RGBA), rotation 0 | 56×80 | no | the street loudspeaker, silent: a grey steel pole on a cast-iron foot, a cross-arm with two aluminium horns aimed out and a little down, their driver cans behind, an olive junction box with a red star and a dark pilot lamp; 69 units from the floor to the top of the horns | (a) gen_loudspeaker, option A, seed 21201 | approved (CEO, 2026-10-24) | 2026-10-24 |
+| `SDLSB0` | sprite (RGBA), rotation 0 | 56×80 | no | the same, speaking: the pilot lamp lit and the horns 0.6 units forward on their axis; alternates with A while a line plays | (a) gen_loudspeaker, option A, seed 21201 | approved (CEO, 2026-10-24) | 2026-10-24 |
+| `SDLOA0` | sprite (RGBA), rotation 0 | 56×80 | no | the army's loudspeaker, silent: the same drawing in 4BO olive, the pole, the cross-arm and the two horns olive, the junction box with the red star and a dark pilot lamp | (a) gen_loudspeaker, option B (`B/SDLSA0.png`, renamed), seed 21201 | approved (CEO, 2026-10-24, D132) | 2026-10-24 |
+| `SDLOB0` | sprite (RGBA), rotation 0 | 56×80 | no | the same, speaking: the pilot lamp lit and the horns shaken | (a) gen_loudspeaker, option B (`B/SDLSB0.png`, renamed), seed 21201 | approved (CEO, 2026-10-24, D132) | 2026-10-24 |
+
 ## IWAD references in use (from `docs/engine/MOD-SPEC.md` §5)
 
 | Name | Kind | Used in | Status |

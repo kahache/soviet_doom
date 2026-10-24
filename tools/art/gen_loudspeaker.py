@@ -38,6 +38,8 @@ rifleman, and the Red Square wall (SDKREM1 over the cobbles SDCOBL1) with
 the loudspeaker standing against it, at x1 and x4. Sheet labels in our own
 alphabet (assets/fonts/, D24). Installing is work/art/loudspeaker/install.sh
 on the v3 branch, after the CEO's verdict (sprites go to the CEO, D113).
+The CEO took both (D132): A ships as SDLS, B renamed to SDLO (INSTALLED),
+and the map picks one per loudspeaker (MOD-SPEC 6.14, arg3 flag 8).
 """
 
 from __future__ import annotations
@@ -64,6 +66,9 @@ ASSETS = PROJECT_ROOT / "assets"
 PREVIEW = PROJECT_ROOT / "docs" / "art" / "previews" / "2026-10-24_V3_loudspeaker.png"
 
 SPRITE = "SDLS"
+# D132 ("Ambos! A y B", both): the name each option ships under in
+# assets/sprites/loudspeaker/; B's lumps are renamed on the way in.
+INSTALLED = {"A": "SDLS", "B": "SDLO"}
 FRAMES = ("A", "B")
 OPTIONS = ("A", "B")
 RECOMMENDED = "A"

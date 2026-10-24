@@ -526,6 +526,7 @@ ITEMS = (
 # flags arg3 (4 = the valve bed); jingle arg4 (0 = a random one of three).
 # The central hall, reach 512 (the hall is 1472 long): the metro is the
 # shelter the air-raid notice sends people to, then the civil notices.
+# Grey (flags 0, D132): a city station's public-address horn.
 LOUDSPEAKERS = (
     ("z3_hall", 2080, 1070, (3, 4, 12, 14, 8), 512, 0, 0),
 )

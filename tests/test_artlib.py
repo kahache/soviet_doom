@@ -155,13 +155,23 @@ class PaletteStructureTests(unittest.TestCase):
     def test_main_rewrites_the_committed_file_byte_for_byte(self):
         """test_art compares only the colour list; the whole file is the
         contract (ramp rationales, gamma, index, formatting), and this also
-        exercises main()'s own serialisation path."""
+        exercises main()'s own serialisation path. main() writes to a
+        temporary file only: the committed palette.json is never rewritten
+        (checked by its bytes and its mtime). Line endings are compared as
+        git stores them (LF): a Windows checkout with core.autocrlf holds
+        CRLF on disk, and main() writes LF on every machine."""
+        before = PALETTE_JSON.read_bytes()
+        mtime = PALETTE_JSON.stat().st_mtime_ns
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "nested" / "palette.json"
             with mock.patch.object(palette_mod, "PALETTE_JSON", out), \
                     contextlib.redirect_stdout(io.StringIO()):
                 palette_mod.main()
-            self.assertEqual(out.read_bytes(), PALETTE_JSON.read_bytes())
+            written = out.read_bytes()
+        self.assertNotIn(b"\r\n", written)
+        self.assertEqual(written, before.replace(b"\r\n", b"\n"))
+        self.assertEqual(PALETTE_JSON.read_bytes(), before, "main() rewrote the committed palette.json")
+        self.assertEqual(PALETTE_JSON.stat().st_mtime_ns, mtime, "main() touched the committed palette.json")
 
 
 # ===========================================================================

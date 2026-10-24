@@ -760,7 +760,8 @@ ITEMS = (
 # Motherland, reach 512 over the square. The GUM's atrium: the civil
 # notices of a shopping gallery (the air-raid alert and the fallen objects
 # too, heard nowhere else in Episodes 2-3), the actor's 384. Their reach +
-# 128 zones are 1520 apart, more than 640 + 512.
+# 128 zones are 1520 apart, more than 640 + 512. Both grey (flags 0,
+# D132): the Kremlin's square and Moscow's streets.
 LOUDSPEAKERS = (
     ("z6_square", 2400, 2000, (2, 9, 7, 5), 512, 0, 0),
     ("z5_atrium", 3900, 2250, (8, 12, 14, 10, 3, 4), 0, 0, 0),

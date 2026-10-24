@@ -16,6 +16,9 @@ ever starting GZDoom (D26):
     in assets/sounds/radio/ (pinned by SHA-256; equal to its candidate when
     the main checkout's work/ is here), carries a $rolloff, is packed, and
     has a row in docs/art/LICENSES.md;
+  * the body: the grey SDLS and the olive SDLO (D132), the colour chosen by
+    arg3's flag 8, installed byte for byte from the generator's options A
+    and B (when the main checkout's work/ is here);
   * the placements: one or two a map in the whole campaign (Episode 1 since
     2026-10-24), in the rooms the design names, the playlists' story filter
     (RAD11 Episode 1's only, RAD15 from Tankograd on, RAD02 from MAP06 on), no
@@ -55,6 +58,11 @@ ZSCRIPT_TXT = SRC / "lumps" / "zscript.txt"
 SNDINFO = SRC / "lumps" / "SNDINFO"
 INCLUDE = "zscript/sd/loudspeaker.zs"
 ASSETS = PROJECT_ROOT / "assets" / "sounds" / "radio"
+SPRITES = PROJECT_ROOT / "assets" / "sprites" / "loudspeaker"
+RENDERS = PROJECT_ROOT / "work" / "art" / "loudspeaker"
+# D132 ("Ambos! A y B", both): installed sprite -> the generator's option
+# (whose lumps are all named SDLS under work/art/loudspeaker/<option>/).
+BODIES = {"SDLS": "A", "SDLO": "B"}
 CANDIDATES = PROJECT_ROOT / "work" / "audio" / "candidates" / "radio"
 LICENSES = PROJECT_ROOT / "docs" / "art" / "LICENSES.md"
 MOD_SPEC = PROJECT_ROOT / "docs" / "engine" / "MOD-SPEC.md"
@@ -119,6 +127,9 @@ LINE_TANKOGRAD = 15        # Tankograd's plan: once the player has reached it (M
 TANKOGRAD_FROM = "MAP03"
 ZARYA_ROOM = ("MAP01", "z4_komnata")   # the garrison report, in the base it is about
 RED_SQUARE_PARADE = 9      # «the parade is not cancelled» on Red Square itself
+# D132: the colour follows the place. Olive (arg3 flag 8) in the army's
+# installations, grey in the city, the red-brick works and the Kremlin.
+OLIVE_MAPS = {"MAP01", "MAP07", "MAP08", "MAP09"}
 
 
 def code() -> str:
@@ -212,12 +223,50 @@ class ClassTest(unittest.TestCase):
         self.assertRegex(self.code, r"(?m)^\s*Array<int>\s+bag\s*;")
         self.assertRegex(self.code, r"(?m)^\s*transient\s+bool\s+synced\s*;")
 
-    def test_provisional_body(self):
-        """No horn drawn yet (MOD-SPEC 6.12): invisible and intangible, marked."""
+    def test_the_horn_body(self):
+        """The street loudspeaker SDLS (art-director, 2026-10-24): one picture
+        for every angle, frame B while it speaks, seen but never touched."""
         raw = ZS.read_text(encoding="utf-8")
-        self.assertIn("TNT1 A -1", self.code)
+        self.assertIn("SDLS A -1", self.code)
+        self.assertNotIn("TNT1", self.code)
+        self.assertNotIn("PROVISIONAL-D116", raw)
         self.assertIn("+NOINTERACTION", self.code)
-        self.assertGreaterEqual(raw.count("PROVISIONAL-D116"), 2)
+        self.assertIn("frame = (talking && frame == SD_LS_FRAME_SILENT) ? SD_LS_FRAME_SPEAKING : SD_LS_FRAME_SILENT",
+                      self.code)
+        self.assertEqual((self.consts["SD_LS_FRAME_SILENT"], self.consts["SD_LS_FRAME_SPEAKING"]), (0, 1))
+        licences = LICENSES.read_text(encoding="utf-8")
+        for sprite in BODIES:
+            for frame in "AB":
+                lump = f"{sprite}{frame}0"
+                png = SPRITES / f"{lump}.png"
+                self.assertTrue(png.is_file(), png)
+                self.assertIn(f"`{lump}`", licences, lump)
+        self.assertEqual({p.stem for p in SPRITES.glob("*.png")},
+                         {f"{s}{f}0" for s in BODIES for f in "AB"})
+
+    def test_two_colours_chosen_by_a_flag(self):
+        """D132: grey SDLS by default, olive SDLO with arg3's flag 8, entered
+        once the map's args are on the actor; arg0's playlist mask untouched."""
+        flag = int(self.consts["SD_LS_FLAG_OLIVE"])
+        self.assertEqual(flag, 8)
+        others = [int(self.consts[k]) for k in ("SD_LS_FLAG_NO_JINGLE", "SD_LS_FLAG_HIDDEN", "SD_LS_FLAG_BED")]
+        self.assertTrue(all(flag & o == 0 for o in others))
+        self.assertRegex(self.code, r"(?s)Olive:\s*SDLO A -1;\s*Stop;")
+        self.assertRegex(self.code, r"(?s)override void PostBeginPlay\(\)\s*\{\s*Super\.PostBeginPlay\(\);"
+                                    r"\s*if \(IsOlive\(\)\)\s*\{\s*SetStateLabel\(\"Olive\"\);")
+        self.assertIn("return (args[3] & SD_LS_FLAG_OLIVE) != 0;", self.code)
+
+    def test_the_bodies_are_the_generators_options(self):
+        for sprite, option in BODIES.items():
+            for frame in "AB":
+                data = (SPRITES / f"{sprite}{frame}0.png").read_bytes()
+                self.assertIn(b"grAb", data, sprite)
+                if RENDERS.is_dir():
+                    self.assertEqual(data, (RENDERS / option / f"SDLS{frame}0.png").read_bytes(),
+                                     f"{sprite}{frame}0 is not option {option}")
+        for frame in "AB":
+            self.assertNotEqual((SPRITES / f"SDLS{frame}0.png").read_bytes(),
+                                (SPRITES / f"SDLO{frame}0.png").read_bytes())
 
     def test_mod_spec_prints_the_codes_numbers(self):
         spec = MOD_SPEC.read_text(encoding="utf-8")
@@ -227,6 +276,8 @@ class ClassTest(unittest.TestCase):
                      f"`0` = **{c['SD_LS_DEFAULT_REACH']}** (`SD_LS_DEFAULT_REACH`)",
                      f"`0` = **{c['SD_LS_DEFAULT_PAUSE']}** (`SD_LS_DEFAULT_PAUSE`), plus a random 0-**{c['SD_LS_PAUSE_JITTER']}**",
                      f"**{c['SD_LS_FLAG_NO_JINGLE']}** = no jingle", f"**{c['SD_LS_FLAG_BED']}** = the valve bed",
+                     f"**{c['SD_LS_FLAG_OLIVE']}** = olive (`SD_LS_FLAG_OLIVE`",
+                     "grey `SDLS`", "olive `SDLO`",
                      f"every **{c['SD_LS_POLL_TICS']}** tics", f"**{c['SD_LS_JINGLE_GAP']}** s after the jingle",
                      f"reach + {c['SD_LS_HYSTERESIS']}** (`SD_LS_HYSTERESIS`)",
                      f"after **{c['SD_LS_JINGLE_COOLDOWN']}** s away",
@@ -380,6 +431,18 @@ class PlacementTest(unittest.TestCase):
         flag = int(self.consts["SD_LS_FLAG_BED"])
         with_bed = {name for name in ROOMS for t in self.speakers(name) if t.extra.get("arg3", 0) & flag}
         self.assertEqual({"MAP09"}, with_bed)
+
+    def test_the_colour_follows_the_place(self):
+        """D132: every loudspeaker of an army installation olive, every other
+        grey; both colours in the campaign; no unknown bit in arg3."""
+        flag = int(self.consts["SD_LS_FLAG_OLIVE"])
+        known = flag | int(self.consts["SD_LS_FLAG_NO_JINGLE"]) | int(self.consts["SD_LS_FLAG_BED"])
+        for name in ROOMS:
+            for t in self.speakers(name):
+                flags = t.extra.get("arg3", 0)
+                self.assertEqual(0, flags & ~known, name)
+                self.assertEqual(name in OLIVE_MAPS, bool(flags & flag), name)
+        self.assertTrue(OLIVE_MAPS < set(ROOMS))
 
 
 if __name__ == "__main__":

@@ -586,6 +586,7 @@ ED_RGD5_BOX = 21022       # a crate of four: a secret's reward only (none here)
 # V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
 # 5.4): SD_Loudspeaker, a positional voice over the music (MOD-SPEC 6.14).
 ED_LOUDSPEAKER = 21201
+LOUDSPEAKER_FLAG_OLIVE = 8  # SD_LS_FLAG_OLIVE: the army's olive SDLO, not the grey street SDLS (D132)
 
 # Design section 9: monsters per skill (MAP05's size, a step above it).
 ENEMY_TOTALS = {2: 36, 3: 55, 4: 70}
@@ -753,9 +754,10 @@ ITEMS = (
 
 # The mess hall's radio (V3 B5): (zone, x, y, lines, reach, flags, jingle),
 # as MAP04's. The fleet's mess: the dam's victory, the parade, the blood
-# donors and the plan. The actor's reach (384) in a hall 416 x 320.
+# donors and the plan. The actor's reach (384) in a hall 416 x 320. Olive
+# (D132): the Northern Fleet's base.
 LOUDSPEAKERS = (
-    ("z6_mess", 3184, 640, (2, 9, 14, 6), 0, 0, 0),
+    ("z6_mess", 3184, 640, (2, 9, 14, 6), 0, LOUDSPEAKER_FLAG_OLIVE, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la

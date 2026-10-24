@@ -1214,7 +1214,7 @@ in the IWAD.
 | `SD_ColossusRocket`, `SD_ColossusFlame`, `SD_ConsortiumRocket`, `SD_ConsortiumOrb`, `SD_ConsortiumFlame` | the arsenal's / the General's projectile | The P4 bosses' projectiles, on their parents' sprites; the Consortium's fly through monsters (`CanCollideWith`). Not placeable. |
 | `SD_StormBolt`, `SD_DoughboyShell`, `SD_PanzerShell`, `SD_GeneralShell` | `Actor` | The four enemy projectiles. Not placeable. |
 | `SD_Radio` | `Actor` | The diegetic radio (D43): a solid decoration that plays one of two CC0 pieces in place of the level's music while the player is near it, and gives the level's music back when the player walks away. Contract §6.7, reasons ADR 008. |
-| `SD_Loudspeaker` | `Actor` | The propaganda radio's loudspeaker (V3 B5, D124), 21201: a positional voice OVER the level's music, a jingle and then shuffled Radio Moscow lines while the player is near it. Invisible until its horn is drawn. Contract §6.14. |
+| `SD_Loudspeaker` | `Actor` | The propaganda radio's loudspeaker (V3 B5, D124), 21201: a positional voice OVER the level's music, a jingle and then shuffled Radio Moscow lines while the player is near it. A street loudspeaker on a pole, grey `SDLS` or olive `SDLO` (arg3 flag 8, D132), frame B while it speaks. Contract §6.14. |
 | `SD_MusicVariant` | `EventHandler` | Episodes 2 and 3's music (D106, D113): on a fresh MAP04-MAP09 draws the A (MAPINFO's) or the B piece at random and swaps to the B; on MAP06 and MAP09 swaps to the boss loop when a BOSS monster engages. A load keeps what was playing. Contract §6.11. |
 | `SD_BluePass` | `BlueCard` *replaces BlueCard* | The metro's blue pass (MAP02 since D62; propusk): Doom's blue keycard under a Soviet name. `Species "BlueCard"` so lock 2 opens for it; own pickup line `SD_PICKUP_BLUEPASS`; our own sprite since D63 and the `STKEYS0` icon, inherited (the mod ships its own `STKEYS0` since D80). Placed by Doom's editor number 5. Below, "The blue pass". |
 | `SD_YellowPass`, `SD_RedPass` | `YellowCard`, `RedCard` *replace YellowCard, RedCard* | Tankograd's yellow and red passes (MAP03, D80): `SD_BluePass`'s pattern, `Species "YellowCard"` / `"RedCard"` so locks 3 and 1 open for them; lines `SD_PICKUP_YELLOWPASS` / `SD_PICKUP_REDPASS`; our own sprites (§6.3). Placed by Doom's editor numbers 6 and 13. |
@@ -3114,14 +3114,14 @@ does **not** touch the music: it is a positional sound over it.
 | `arg0`, the playlist | a **bit mask** of the sixteen lines, bit n-1 = line n (`sd/radio/line/nn`); `0` = all sixteen. (The design proposed an index into a ZScript table; a mask keeps each map's choice in the map's own file.) |
 | `arg1`, the reach | map units, 3D, to the local player; `0` = **384** (`SD_LS_DEFAULT_REACH`) |
 | `arg2`, the pause | seconds of silence between lines; `0` = **6** (`SD_LS_DEFAULT_PAUSE`), plus a random 0-**4** (`SD_LS_PAUSE_JITTER`) |
-| `arg3`, flags | **1** = no jingle (`SD_LS_FLAG_NO_JINGLE`); **4** = the valve bed in a loop while on (`SD_LS_FLAG_BED`); 2 is kept for a visible horn |
+| `arg3`, flags | **1** = no jingle (`SD_LS_FLAG_NO_JINGLE`); **4** = the valve bed in a loop while on (`SD_LS_FLAG_BED`); **8** = olive (`SD_LS_FLAG_OLIVE`, the army's `SDLO`; unset, the grey `SDLS`; D132); 2 is kept for a visible horn |
 | `arg4`, the jingle | `1`-`3` one of `SDRADJ1`-`3`; `0` = a random one each time |
 | Turns on | the first poll (every **8** tics, `SD_LS_POLL_TICS`) the player is within the reach: the jingle (unless flagged off, or a line is still playing), the bed if flagged; the first line **1** s after the jingle (`SD_LS_JINGLE_GAP`) |
 | Plays | when nothing plays on `CHAN_VOICE` and the pause has passed, the next line from a **shuffle bag**: every line of the playlist once before any repeats, never the same line twice in a row |
 | Turns off | farther than **reach + 128** (`SD_LS_HYSTERESIS`): no new line starts; the line in progress finishes, then the bed stops |
 | Coming back | the jingle again only after **60** s away (`SD_LS_JINGLE_COOLDOWN`) |
 | Volume | `SD_LS_VOLUME` **0.7**, the bed `SD_LS_BED_VOLUME` **0.3**, `ATTN_NORM`; the falloff is `SNDINFO`'s `$rolloff` (§6.2), full within 128, silent at 768 |
-| Body | none to see: `TNT1`, `+NOINTERACTION` (**PROVISIONAL-D116**, §6.12, until `art-director` draws the horn `SDLS` A); not shootable |
+| Body | the street loudspeaker (`assets/sprites/loudspeaker/`, `tools/art/gen_loudspeaker.py`) in two colours (D132, "Ambos! A y B", both A and B): grey `SDLS` (the sheet's option A) by default, olive `SDLO` (option B, the same drawing) with flag **8**, entered from `PostBeginPlay` as the state `Olive` (**NOT VERIFIED**); a pole with two horns, one picture for every angle (`A0`), 69 units tall; frame B (the pilot lamp lit, the horns shaken) alternates with A on every poll while something plays (`frame` written from `Tick`, **NOT VERIFIED**); `+NOINTERACTION`, seen but never touched; not shootable |
 | Saved games | the on flag, the bag, the last line and the timers are saved; a `transient` field restarts the bed after a load |
 
 Rules for whoever places one:
@@ -3137,6 +3137,11 @@ Rules for whoever places one:
   from MAP06 on.
 - **Where it stands is what it covers.** The reach is a sphere through
   walls, as the radio's.
+- **The colour follows the place (D132):** grey (`SDLS`, flags without 8)
+  in the city, the red-brick works and the Kremlin; olive (`SDLO`, flag 8)
+  in the army's installations. Today: olive in MAP01 (Zarya-7), MAP07
+  (Novaya Zemlya's barracks), MAP08 (Severomorsk) and MAP09 (the Tunguska
+  outpost); grey in MAP02-MAP06.
 
 Placed today (2026-10-24): MAP01 the komnata and the hangar; MAP02 the
 central hall; MAP03 the assembly hall; MAP04 the platform; MAP05 the turbine hall;
@@ -3145,7 +3150,7 @@ MAP09 the station yard, with the bed. `tests/test_loudspeaker.py` pins the
 class, the numbers above, the sounds, the licences and the placements.
 **NOT VERIFIED in the engine** (D26): that the class compiles, the shuffle,
 the turn-off and the jingle's cooldown, the `$rolloff`, the bed's loop
-(seam and restart after a load).
+(seam and restart after a load), the speaking frame and the olive state.
 
 ## 7. Commands
 
@@ -3214,7 +3219,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | ~~T19~~ | ~~Nothing has been seen in the engine: the eight classes compile only in theory until the PM's batch run (D26).~~ **Paid 2026-10-13** by the PM's engine pass (GZDoom 4.14.2, Freedoom 0.13.0): the classes load with no error, the gallery shows all eight, the drops and the General's single summon were counted, and MAP01 v3's 33 enemies spawn through Doom's numbers. Evidence `docs/qa/evidence/2026-10-13_1705_F5_map02-bestiary.log` and `…-gallery.png` (commit `2b1aba5`), `docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass.log` (commit `bcbf35f`); the table is in ADR 006. What that pass did **not** settle is debt T22. |  |
 | ~~T20~~ | ~~ADR 006 is owed.~~ **Paid 2026-10-13**: `docs/engine/adr/006-bestiary-actors.md` (seven decisions, what the engine showed, what it did not). Written in the working tree; the commit is the PM's (D6). |  |
 | T21 | Doom monsters with no Soviet replacement (58 spectre, the rest of Doom II's roster) still spawn Freedoom's actors. **Partly paid by D116 (2026-10-22):** the chaingunner (65) is `SD_LegionGunner` and the Spider Mastermind (7) `SD_LibertyColossus`; MAP01 §8's "Legion heavy gunner" exists now; the P4 maps place the gunner (21110), the colossus (21111, MAP06) and since D123 the Chrome Marshal (21113, MAP08). | `level-designer`, where a map wants a gunner |
-| T26 | **The P4 actors wore provisional looks (D116, §6.12)**: existing sprites, tinted and scaled in code (**paid**: the gunner and the colossus by D123, their own `SDLG` and `SDLC`; the Consortium and the AKM by D128, their own `SDCN` and `SDAK`/`SDAF`/`SDAQ`; the Chrome Marshal's tint is a design, not debt). **Still open:** the AKM's magazine `SDAM` (`SDCL` tinted), and existing sounds under their own names (§6.2, "P4 sounds"); status bar A has no row for the AKM's pool (ADR 011). **V3 adds the RGD-5** (ADR 012): in hand the ice axe's picture, on the floor tinted `SDHB` (borrowed from `SD_HealthBonus`)/`SDRB`, reused sounds, no bar A row for its pool either. **V3 B5's loudspeaker** (§6.14) has no body to see (`TNT1`) until `art-director` draws its horn `SDLS`. None of it is seen in the engine (D26): the design docs' checks E1–E11, A1–A9 and R1–R12 are owed. | the PM's engine pass now; the art and sound swaps as Gemini's frames and `sound-designer`'s takes are approved |
+| T26 | **The P4 actors wore provisional looks (D116, §6.12)**: existing sprites, tinted and scaled in code (**paid**: the gunner and the colossus by D123, their own `SDLG` and `SDLC`; the Consortium and the AKM by D128, their own `SDCN` and `SDAK`/`SDAF`/`SDAQ`; the Chrome Marshal's tint is a design, not debt). **Still open:** the AKM's magazine `SDAM` (`SDCL` tinted), and existing sounds under their own names (§6.2, "P4 sounds"); status bar A has no row for the AKM's pool (ADR 011). **V3 adds the RGD-5** (ADR 012): in hand the ice axe's picture, on the floor tinted `SDHB` (borrowed from `SD_HealthBonus`)/`SDRB`, reused sounds, no bar A row for its pool either. **V3 B5's loudspeaker** (§6.14) wears its own `SDLS` since 2026-10-24 (no longer provisional). None of it is seen in the engine (D26): the design docs' checks E1–E11, A1–A9 and R1–R12 are owed. | the PM's engine pass now; the art and sound swaps as Gemini's frames and `sound-designer`'s takes are approved |
 | T17 | **The English `LANGUAGE` section still carries Latin transliterations** (`PG-7V`, `7.62x25`) although the glyphs for the Cyrillic forms D17 asks for exist since D24 (§6.4). Two ASCII tests pin the current state (`tests/test_language.py`, `tests/test_arsenal.py`). | `mod-engineer`, one text change plus an engine screenshot of the HUD |
 | T22 | **Bestiary behaviours the engine pass did not show** (ADR 006, "NOT VERIFIED"): infighting between our classes and the native `GetSpecies` rule behind the explicit `Species`; the colour of `BloodColor`; the General's order line on screen (the console log carries it); the recruits entering the chase and the blocked-spot fallback; the attack helpers' damage (both runs were god mode, deaf or `notarget`); how far a dead Doughboy falls; the sounds. | the PM's next engine pass, with enemies awake and one fighting another; `qa-engineer` for the sounds, with a human |
 | T23 | **The radio (§6.7) is unseen.** `SD_Radio` has not run in the engine (D26). ~~its editor number 21200 is not yet in `MAPINFO`~~ (`MAPINFO` gives 21200 to `SD_Radio` since; read 2026-10-14). ~~its placeholder `PMAP` A is the computer area map's pickup, which MAP01 also places (2026): a player may walk at the radio expecting a pickup.~~ **The sprite part is paid 2026-10-14 (D63):** `SDRD` A, an Okean-209 on a tabouret (§6.3, "The pickups, installed by D63"); `PMAP` is retired from §5.1. | the PM's engine pass (ADR 008 checklist), which now also sees `SDRD` A draw |
