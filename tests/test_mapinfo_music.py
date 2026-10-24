@@ -161,7 +161,9 @@ class MapinfoMusicTest(unittest.TestCase):
 
     def campaign(self, start: str = CAMPAIGN_START) -> list[str]:
         chain, name = [], start
-        while name.lower() != END_OF_CHAIN:
+        # V3 B2: an episode now ends on its own end sequence, `EndSequence,
+        # "SD_EndingN"` (RE_NEXT reads its first word), as `endtitle` did.
+        while name.lower() not in (END_OF_CHAIN, "endsequence"):
             self.assertIn(name, self.maps, f"the campaign leads to {name}, which has no block")
             self.assertNotIn(name, chain, f"the campaign loops back to {name}")
             chain.append(name)

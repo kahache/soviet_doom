@@ -692,6 +692,24 @@ the engine (D26).
 | `SDAWPTW` | award (RGBA) | 24×30 | no | Order of the Patriotic War: gold sunburst, red star, crossed rifle and sabre, a red-and-gold centre; claret ribbon, red centre stripe | (a) gen_medals | proposal (V3, ADR 013; CEO) | 2026-10-23 |
 | `SDAWHER` | award (RGBA) | 24×30 | no | Gold Star of the Hero of the Soviet Union: faceted gold star on a red ribbon bar framed in gold | (a) gen_medals | proposal (V3, ADR 013; CEO) | 2026-10-23 |
 
+## Ending pictures — the episode endings' illustrations (V3 B2, D132)
+
+Not textures, listed so the index carries every shipped picture. **Proposal,
+waiting for the CEO** (installed on the `v3-endings` branch only); preview
+with the three at 3×, the armbands at 6× and the order of the screens:
+`docs/art/previews/2026-10-25_V3_episode-endings.html`. Generator
+`tools/art/gen_endings.py` from the Gemini paintings (local, D77); indexed,
+palette v3 (D128: `reich_greygreen` for the Reich skin). Drawn by the end
+sequences `SD_Ending1-3` (MAPINFO, MOD-SPEC §6.15). Provenance:
+`LICENSES.md` ("The episode endings' illustrations"). Not yet seen in the
+engine (D26).
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDEND1` | end-sequence picture (indexed) | 320×200 | no | Tankograd: the sergeant at the breaker, the dying portal, the column marching on Moscow, the Legion and Reich dead; the armband symbol | (a) gen_endings from `gemini_ending_ep1.jfif`, palette v3 | proposal (V3 B2) | 2026-10-25 |
+| `SDEND2` | end-sequence picture (indexed) | 320×200 | no | Red Square: the fallen Liberty Colossus, the sergeant and the banner, the crowd, the Kremlin, St Basil's, the portal; 42 rows of sky added above | (a) gen_endings from `gemini_ending_ep2_v2.jfif`, palette v3 | proposal (V3 B2) | 2026-10-25 |
+| `SDEND3` | end-sequence picture (indexed) | 320×200 | no | Tunguska: the sergeant and the banner before the imploding portal, the Consortium's two halves and helmets; the armband symbol; 140 rows of night sky above, 88 of ground below | (a) gen_endings from `gemini_ending_ep3_v2.jfif`, palette v3 | proposal (V3 B2) | 2026-10-25 |
+
 ## The alphabet (D24) — glyph fix and German letters
 
 Not textures, listed here so the index carries every shipped art change.
