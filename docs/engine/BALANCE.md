@@ -508,7 +508,8 @@ the map before. These rules replace G3-8's number with a band per skill,
 cap the shells, and spread the rest over the weapons the player actually
 has. **The level designers apply them to MAP04–MAP09 now** (D119); MAP01–
 MAP03 shipped in v1.0, are not part of the complaint, and are re-measured
-only when the PM schedules it. Owner of the rule: this section; owner of
+only when the PM schedules it (their tests already hold them in the band;
+V3 recounts them with the RGD-5, §8.6). Owner of the rule: this section; owner of
 each map's numbers: its design doc in `docs/levels/`.
 
 ### 8.1 The ruler (G3-8's, with three D119 changes)
@@ -625,7 +626,8 @@ against the code.
 ### 8.6 The RGD-5 in the maps (V3 A4, 2026-10-24)
 
 Placed in MAP04-MAP09 and the range (`docs/engine/2026-10-23_V3_rgd5.md`
-§6; the maps' docs, "V3 (2026-10-24)"). A grenade is a **consumable** in
+§6; the maps' docs, "V3 (2026-10-24)"), and in Episode 1 the same day once
+the PM scheduled it. A grenade is a **consumable** in
 each map's `ITEMS`, so it scales **down** with skill, unlike the D119
 ammunition; none in a boss's arena, no crate in the campaign. Recount,
 1.25 shell-equivalents a grenade (8.1), in the band (8.2) and in the shell
@@ -635,6 +637,9 @@ stays in its band.
 
 | Map | grenades, skills 2 / 3 / 4 | ratio skill 2 | skill 3 | skill 4 |
 |---|---|---|---|---|
+| MAP01 | 4 / 3 / 2 (the pouch, 2 loose) | 1.500 → 1.661 | 1.341 → 1.401 | 1.213 → 1.244 |
+| MAP02 | 3 / 3 / 2 (the pouch, 1 loose) | 1.512 → 1.606 | 1.410 → 1.466 | 1.237 → 1.263 |
+| MAP03 | 4 / 3 / 2 (the pouch, 2 loose) | 1.510 → 1.561 | 1.328 → 1.359 | 1.216 → 1.229 |
 | MAP04 | 4 / 3 / 2 (the pouch, 2 loose) | 1.658 → 1.746 | 1.440 → 1.481 | 1.228 → 1.246 |
 | MAP05 | 3 / 3 / 2 (3 loose) | 1.559 → 1.611 | 1.334 → 1.366 | 1.233 → 1.248 |
 | MAP06 | 4 / 3 / 2 (the pouch, 2 loose) | 1.540 → 1.577 | 1.387 → 1.408 | 1.280 → 1.288 |

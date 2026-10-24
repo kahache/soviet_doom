@@ -116,6 +116,14 @@ DROP_ROUNDS = 5
 V1_AMMO_PICKUPS = {2: 34, 3: 28, 4: 24}
 ROCKETS_GIVEN = {2010: 1, 2046: 5, 21005: 2}
 SHELLS_PER_ROCKET = 2
+# V3 A4, the RGD-5 (BALANCE 8.1, 8.6; placed in Episode 1 on 2026-10-24): a
+# grenade counts 1.25 shell-equivalents (its 100 blast at the centre over the
+# IZh's 80), the pouch (the weapon) 2, a loose one 1, the crate 4. Counted in
+# the band (8.2) and in the shell share's whole (8.3) only: the stage
+# readiness, the newest weapon's lead (8.4.2) and the boss's stage (8.4.3)
+# leave grenades out (the bosses take no splash).
+GRENADES_GIVEN = {21009: 2, 21021: 1, 21022: 4}
+SHELLS_PER_GRENADE = 1.25
 RPG_AVERAGE = 135      # one PG-7V, direct hit only
 # D119's stretches along the weapons, by the zones of the tables (design
 # section 5): the TT-33 alone on the concourse, the IZh the newest from the
@@ -989,7 +997,9 @@ class Map02Test(unittest.TestCase):
         shells = sum(SHELLS_GIVEN.get(t["type"], 0) for t in placed)
         rounds = sum(ROUNDS_GIVEN.get(t["type"], 0) for t in placed)
         rockets = sum(ROCKETS_GIVEN.get(t["type"], 0) for t in placed)
-        return shells + rounds / ROUNDS_PER_SHELL + rockets * SHELLS_PER_ROCKET
+        grenades = sum(GRENADES_GIVEN.get(t["type"], 0) for t in placed)
+        return (shells + rounds / ROUNDS_PER_SHELL + rockets * SHELLS_PER_ROCKET
+                + grenades * SHELLS_PER_GRENADE)
 
     def test_g3_8_the_ammo_budget(self):
         """G3-8 as D119 reads it: on every skill, ammunition placed outside

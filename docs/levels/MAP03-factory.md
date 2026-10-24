@@ -1265,3 +1265,54 @@ rule cannot judge it: RKEY and RD1 print its floor and ceiling (before −256
 | V3-3 | Before the key, the front is plain steel to the roof and the crew neither sees nor wakes; the mover's sound is heard | by hand, skill 3 |
 | V3-4 | The lintel over the car (128…256) and the car's inside read as a lift shaft, no hall of mirrors | screenshot from the casting floor |
 
+## 20. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+The PM scheduled Episode 1 for both on 2026-10-24 (V3), as MAP04-MAP09 got
+them the same day: `BALANCE.md` §8.6, `docs/engine/2026-10-23_V3_rgd5.md`
+§6, `docs/sound/2026-10-23_V3_propaganda-radio.md` §5.4. No geometry
+changed, no other thing moved.
+
+**The RGD-5** (ADR 012). Grenades are consumables in `ITEMS`, so they scale
+**down** with skill: **4 / 3 / 2** grenades on skills 2 / 3 / 4 (skills 1
+and 5 double them). The pouch lies in the dock, past the picket and before
+the arch: the assembly hall's Legion stands between the waist-high
+assembly lines, cover a grenade goes over. **None in the General's portal
+hall** (`p_*`: the antechamber, the booth, the drum, the stores; the bosses
+take no splash), no crate (21022).
+
+| Where | What | Skills | For |
+|---|---|---|---|
+| `z2_dock` (3180, 1300), before the arch | the pouch (21009): the weapon and 2 | every skill | the hall's Legion behind the assembly lines |
+| `t_line` (2500, 150), by inspection pit A | a loose grenade (21021) | skills 1-2 | the tank line's riflemen and hounds |
+| `f_gallery` (1500, 250), the foundry gallery | a loose grenade (21021) | skills 1-3 | thrown down onto the casting floor's Doughboys |
+
+**The budget** (BALANCE §8, 1.25 shell-equivalents a grenade, in the band
+and the shell share's whole only): the ratio placed / needed on skills
+2 / 3 / 4 goes **1.510 → 1.561 / 1.328 → 1.359 / 1.216 → 1.229**, inside
+1.5-2.0 / 1.3-1.6 / 1.2-1.45. The General's stage (PG-7V and fuel at least
+his 48 shells), the stage readiness and the newest weapon's lead leave
+grenades out.
+
+**The loudspeaker** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124), table
+`LOUDSPEAKERS` in `map.py`, on every skill: `z3_hall` (2600, 1184), the
+hall's east half, reach 512 (the hall is 1472 long): lines **6, 13, 15, 5**,
+the five-year plan, «every factory a fortress», **RAD15**, Tankograd's plan
+fulfilled in one night (the player now stands in Tankograd, so the story
+filter lets it play), and the people stronger than the enemy. One speaker,
+no `SD_Radio`: nothing to overlap.
+
+**Routes:** `tankograd-critical` is unchanged; the nearest grenade to any of
+its walks is the tank line's, 391 from YD1's walk south. Tests: this map's
+(`test_g3_8_the_ammo_budget` counts the grenades), `tests/test_rgd5_maps.py`
+(`test_never_in_the_generals_portal_hall`), `tests/test_rgd5.py`,
+`tests/test_loudspeaker.py`.
+
+**Engine checklist (the PM, D26; not run):** the grenades lie where the table says and are picked up (`printinv`:
+`SD_Rgd5` and `SD_Rgd5Ammo`; the pouch does not raise itself, NO_AUTO_SWITCH,
+and slot 8 throws); a thrown grenade arcs over the cover named above and its
+blast kills what the table says it is for (from the arch
+over the assembly lines; from the gallery's rail down onto the casting
+floor); the loudspeaker rings its jingle on approach, reads its lines over the
+level's music, falls silent walking away (the line in progress finishes)
+and is not heard from the next room; a clean log; `tankograd-critical` on skills 2-4 still
+PASS into the episode's end.

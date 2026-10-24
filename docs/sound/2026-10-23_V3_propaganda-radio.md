@@ -9,7 +9,10 @@ of §8), the three jingles and a procedural bed in `assets/sounds/radio/`
 (`tools/audio/install_radio.py`), `SD_Loudspeaker` 21201 (MOD-SPEC §6.14;
 `arg0` is a bit mask of lines, not a table index) and one or two speakers in
 each of MAP04-MAP09 (§5.4's rooms; each map's doc, "V3 (2026-10-24)"). The
-status below is the round's, as written.
+same day the PM scheduled Episode 1: MAP01's komnata (5, 7, 13, 11: RAD11
+plays here and nowhere else) and hangar (3, 4, 10, 16; reach 512), MAP02's
+central hall (3, 4, 12, 14, 8; reach 512), MAP03's assembly hall (6, 13,
+15, 5; reach 512). The status below is the round's, as written.
 
 **Status: drafts only. Nothing is installed, nothing in `src/` or `assets/`
 is touched.** The lines are AI voices, so they go to the CEO's ear first:

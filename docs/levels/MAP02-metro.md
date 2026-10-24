@@ -1039,3 +1039,50 @@ in Z3 with tag 12 open and a key owned; BD1 as before.
 | V3-1 | Taking the pass raises the duty window's head; the player drops through into the hall and cannot climb back in | `metro-critical`: PASS ends in the hall through the window with tag 12 open (the head rising and the drop: SEEN in the PM's pass of 2026-10-23, the walk ended in z3_hall); BD1 reports tag 12 open; by hand from the hall: the booth is 32 up, no way back in |
 | V3-2 | Taking the RPG-7 opens the store and the armoury's light comes up from 96 to the lamp's 144 as it opens (the light tag on a thing's special) | by hand, skill 3; screenshots before and after |
 | V3-3 | The window's marble moves up with its head, no hall of mirrors | screenshot from the hall after the pass |
+
+## 19. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+The PM scheduled Episode 1 for both on 2026-10-24 (V3), as MAP04-MAP09 got
+them the same day: `BALANCE.md` §8.6, `docs/engine/2026-10-23_V3_rgd5.md`
+§6, `docs/sound/2026-10-23_V3_propaganda-radio.md` §5.4. No geometry
+changed, no other thing moved.
+
+**The RGD-5** (ADR 012). Grenades are consumables in `ITEMS`, so they scale
+**down** with skill: **3 / 3 / 2** grenades on skills 2 / 3 / 4 (skills 1
+and 5 double them). A pistol start needs the pouch before the hall, the
+map's first big fight: the Legion between the marble pylons, facing the
+escalator. It lies in the kassa beside the IZh, the side room off the
+picket's line. No crate (21022).
+
+| Where | What | Skills | For |
+|---|---|---|---|
+| `z2_kassa` (3350, 1240), beside the IZh | the pouch (21009): the weapon and 2 | every skill | the hall's Legion behind the pylons |
+| `b2_spine` (880, 940), the bunker spine | a loose grenade (21021) | skills 1-3 | the refuge dormitory's doorway, the command post's stair |
+
+**The budget** (BALANCE §8, 1.25 shell-equivalents a grenade, in the band
+and the shell share's whole only): the ratio placed / needed on skills
+2 / 3 / 4 goes **1.512 → 1.606 / 1.410 → 1.466 / 1.237 → 1.263**, inside
+1.5-2.0 / 1.3-1.6 / 1.2-1.45. The stage readiness, the newest weapon's
+lead and the command post's Panzermensch (the mini-boss stage) leave
+grenades out.
+
+**The loudspeaker** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124), table
+`LOUDSPEAKERS` in `map.py`, on every skill: `z3_hall` (2080, 1070), by the
+north arches, reach 512 (the hall is 1472 long): lines **3, 4, 12, 14, 8**,
+the air-raid alert (the metro is the shelter it sends people to), the
+fallen-objects notice, the helmet notice, the blood appeal and the tap
+water. One speaker: nothing to overlap, and the map has no `SD_Radio`.
+
+**Routes:** `metro-critical` is unchanged; the nearest grenade to any of
+its walks is the spine's, 189 from BD1's walk west. Tests: this map's
+(`test_g3_8_the_ammo_budget` counts the grenades), `tests/test_rgd5_maps.py`,
+`tests/test_rgd5.py`, `tests/test_loudspeaker.py`.
+
+**Engine checklist (the PM, D26; not run):** the grenades lie where the table says and are picked up (`printinv`:
+`SD_Rgd5` and `SD_Rgd5Ammo`; the pouch does not raise itself, NO_AUTO_SWITCH,
+and slot 8 throws); a thrown grenade arcs over the cover named above and its
+blast kills what the table says it is for (from the
+escalator's foot over the pylons); the loudspeaker rings its jingle on approach, reads its lines over the
+level's music, falls silent walking away (the line in progress finishes)
+and is not heard from the next room; a clean log;
+`metro-critical` on skills 2-4 still PASS.

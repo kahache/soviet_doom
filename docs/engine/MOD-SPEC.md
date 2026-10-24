@@ -3126,18 +3126,20 @@ does **not** touch the music: it is a positional sound over it.
 
 Rules for whoever places one:
 
-- **One or two a map, Episodes 2 and 3 only** (V3: MAP04-MAP09; Episode 1
-  shipped in v1.0 and gets none until the PM schedules it), in a big room
-  the player crosses and lingers in. Each map's table `LOUDSPEAKERS` in its
+- **One or two a map** (V3: MAP04-MAP09, and Episode 1 since the PM
+  scheduled it on 2026-10-24), in a big room the player crosses and
+  lingers in. Each map's table `LOUDSPEAKERS` in its
   `map.py`: `(zone, x, y, lines, reach, flags, jingle)`.
 - **Two zones (reach + 128) must not overlap**, nor an `SD_Radio`'s
   (reach + 64): two broadcasts at once is noise.
-- **The story filter:** RAD11 (Zarya-7 holds) is Episode 1's only; RAD02
-  (the Volga dam) plays from MAP06 on.
+- **The story filter:** RAD11 (Zarya-7 holds) is Episode 1's only (MAP01's
+  komnata); RAD15 (Tankograd's plan) from MAP03 on; RAD02 (the Volga dam)
+  from MAP06 on.
 - **Where it stands is what it covers.** The reach is a sphere through
   walls, as the radio's.
 
-Placed today (2026-10-24): MAP04 the platform; MAP05 the turbine hall;
+Placed today (2026-10-24): MAP01 the komnata and the hangar; MAP02 the
+central hall; MAP03 the assembly hall; MAP04 the platform; MAP05 the turbine hall;
 MAP06 Red Square and the GUM's atrium; MAP07 the barracks; MAP08 the mess;
 MAP09 the station yard, with the bed. `tests/test_loudspeaker.py` pins the
 class, the numbers above, the sounds, the licences and the placements.

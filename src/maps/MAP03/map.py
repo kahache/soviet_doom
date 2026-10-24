@@ -424,6 +424,17 @@ ED_HEALTH_BONUS = 2014
 ED_ARMOR_BONUS = 2015
 ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
+# V3 A4, the RGD-5 hand grenade (ADR 012; docs/engine/2026-10-23_V3_rgd5.md
+# section 6), placed in Episode 1 on 2026-10-24: its own pool, counted 1.25
+# shell-equivalents a grenade (BALANCE 8.1, 8.6). A grenade is a consumable
+# here, so it rides in ITEMS and scales DOWN with skill: 4 / 3 / 2 grenades on
+# skills 2 / 3 / 4. None in the General's portal hall
+# (the bosses take no splash); no crate (21022) in the campaign.
+ED_RGD5 = 21009           # the pouch: the weapon and two grenades
+ED_RGD5_AMMO = 21021      # one loose grenade (it gives the weapon too)
+# V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
+# 5.4): SD_Loudspeaker, a positional voice OVER the music (MOD-SPEC 6.14).
+ED_LOUDSPEAKER = 21201
 
 # Design section 9: monsters per skill, Doom's skill pairs (udmf.skill_tier).
 # V3 A2/A3 add four on every skill: two clerks, the goods lift's crew of two.
@@ -560,6 +571,25 @@ ITEMS = (
     ("f_passage", ED_HEALTH_BONUS, 1728, 656, 4),
     ("p_porch", ED_HEALTH_BONUS, 1056, 1216, 4),
     ("p_dais_3", ED_HEALTH_BONUS, 736, 1120, 4),
+    # The RGD-5 (V3 A4, design section 20): the pouch in the dock, past the
+    # picket and before the arch: the hall's Legion stands between the
+    # waist-high assembly lines, cover a grenade goes over. Loose ones on the
+    # tank line (skill 2) and on the foundry gallery, thrown down onto the
+    # casting floor's Doughboys. None in the portal hall (p_*).
+    ("z2_dock", ED_RGD5, 3180, 1300, 4),
+    ("t_line", ED_RGD5_AMMO, 2500, 150, 2),
+    ("f_gallery", ED_RGD5_AMMO, 1500, 250, 3),
+)
+
+# The factory's loudspeaker (V3 B5, design section 20), on every skill:
+# (zone, x, y, lines, reach, flags, jingle). Lines are the radio's 1-16
+# (SDRAD01-16), the thing's arg0 their bit mask; reach 0 = the actor's 384;
+# flags arg3 (4 = the valve bed); jingle arg4 (0 = a random one of three).
+# The assembly hall, reach 512 (the hall is 1472 long): the plan, the
+# factory-fortress, Tankograd's own line (RAD15: the player stands in
+# Tankograd now) and the people stronger than the enemy.
+LOUDSPEAKERS = (
+    ("z3_hall", 2600, 1184, (6, 13, 15, 5), 512, 0, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la
@@ -1058,6 +1088,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     for _zone, ednum, x, y, lowest in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
+    for _zone, x, y, lines, reach, flags, jingle in LOUDSPEAKERS:
+        mask = sum(1 << (line - 1) for line in lines)
+        tm.add_thing(Thing(x=x, y=y, type=ED_LOUDSPEAKER,
+                           extra={"arg0": mask, "arg1": reach, "arg3": flags, "arg4": jingle}))
     return tm, plan
 
 
