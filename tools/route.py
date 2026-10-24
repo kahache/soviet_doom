@@ -494,6 +494,30 @@ SWITCH_WAIT = 105
 MAP01_RACK_APPROACH = (40, 384)
 MAP01_RACK_FACING = 180
 RACK_WALK = 35   # ~8 units a tic walking: far more than the 56 to the wall
+# The two tutorial weapons are WALKED onto as the rack is, never warped onto
+# (V3 A2, 2026-10-23). The PM's v3 pass at 12:18 warped onto them (A4 and A7
+# warped to the things' own spots): a warp collects nothing, so both steps
+# reported "owned [1, 2]" (no IZh, no PPSh), neither pickup ran its special,
+# and tags 12 and 13 were still shut at A6 and A9. The map was right; the
+# route never took the guns. Now:
+# * the IZh (21003 at 1040 1256) lies in a 32-deep steel niche (x 1024..1056,
+#   y 1232..1280, floor 8) in the guard post's east wall. A4 warps onto the
+#   post's floor on the gun's row (floor 8; 40 east of the radio at 960 1264,
+#   whose box and his are 32 wide each; 8 clear of the crates from y 1280),
+#   faces east and walks: the niche's back wall stops him on
+#   the gun, as the dorm's alcove does at R1.
+# * the PPSh-41 (21004 at 2000 1520) lies on the catwalk (x 1792..2560,
+#   y 1440..1600, floor 96). A7 warps 60 west of it on the catwalk, faces
+#   east and walks along the catwalk's middle: nothing stops him, but the
+#   walk and its glide (~290 units) end on the catwalk short of its east
+#   end (x 2560), and the D6 recess and the S2 panel are off the lane.
+# Both start further from the thing than touch (16 + 20) and the walks are
+# checked against the built map by tests/test_route.py.
+MAP01_IZH_APPROACH = (1000, 1256)
+MAP01_IZH_FACING = 0
+MAP01_PPSH_APPROACH = (1940, 1520)
+MAP01_PPSH_FACING = 0
+WEAPON_WALK = 35  # as RACK_WALK; the PPSh's lane is open, the IZh's ends at a wall
 
 _A_STEPS = (
     Step("A0", actions=("level", "count", "inv", f"tag {MAP01_TAG_EVENT_IZH}",
@@ -511,8 +535,10 @@ _A_STEPS = (
          note="the komnata ahead"),
     Step("A3", (600, 1152), 0, ("use", f"wait {DOOR_WAIT}", f"forward {WALK}", "capture"),
          expect=("Z5",), note="D3 opens; walk into the service corridor"),
-    Step("A4", (1040, 1256), 0, ("inv", "capture"), expect=("Z5", "Z5B"),
-         note="the guard post: the IZh-58 is picked up here"),
+    Step("A4", MAP01_IZH_APPROACH, MAP01_IZH_FACING, (f"forward {WEAPON_WALK}", "inv", "capture"),
+         expect=("Z5B",),
+         note="the guard post: walk into the rack's niche onto the IZh-58 (a warp would not "
+              "take it, and its pickup opens tag 12)"),
     Step("A5", (1336, 1152), 0, (f"tag {MAP01_TAG_D4}", "capture"), expect=("Z6",),
          tags=((MAP01_TAG_D4, False),), note="the hangar, first contact; D4 still shut"),
     Step("A6", (1416, 1624), 0, ("use", f"wait {SWITCH_WAIT}", f"tag {MAP01_TAG_D4}",
@@ -520,8 +546,10 @@ _A_STEPS = (
          expect=("Z7",), tags=((MAP01_TAG_D4, True), (MAP01_TAG_EVENT_IZH, True)),
          note="SW-A: D4 and the three fuel-bay ambush panels open; the IZh's closet "
               "(its pickup at A4) is open"),
-    Step("A7", (2000, 1520), 0, ("inv", "capture"), expect=("Z6B",),
-         note="the catwalk: the PPSh-41 is picked up here"),
+    Step("A7", MAP01_PPSH_APPROACH, MAP01_PPSH_FACING, (f"forward {WEAPON_WALK}", "inv", "capture"),
+         expect=("Z6B",),
+         note="the catwalk: walk east onto the PPSh-41 (a warp would not take it, and its "
+              "pickup opens tag 13)"),
     Step("A8", (2496, 1560), 90, (f"tag {MAP01_TAG_D5}", "use", f"wait {DOOR_WAIT}",
                                   f"forward {WALK}", "capture"),
          expect=("D6", "Z9"), tags=((MAP01_TAG_D5, False),),
@@ -669,6 +697,15 @@ METRO_CONSTANTS = ("TAG_BLAST_DOOR", "TAG_SHUTTER", "TAG_GATE", "SPECIAL_DOOR_LO
 # pickup opens the duty window (TAG_EVENT_PASS) into a way back to the hall.
 # Shut (48 high) when the blue door is first pressed (BD0), open (a body high)
 # when it is pressed with the pass (BD1), the door's 70 tics after the walk.
+# The pass's walk itself goes through it (metro_critical, PASS): the booth
+# is entered only from its step on the east, so the walk faces west, and
+# the window's 48-high slot was the wall that stopped the walk's overshoot.
+# Once the pass is taken the window's head rises (8 units, 4 tics, make it a
+# body high) and the body walks on through it and drops into the hall: the
+# PM's v3 pass of 2026-10-23 12:20 ended PASS at (2789, 1056) in z3_hall,
+# falling (z 27), on all three skills. That is the event working, not a
+# broken map; PASS now expects the room past the window whenever the walk's
+# lane crosses a sector the pass's own event opens (pass_event_exit).
 METRO_HALL_FAMILY = "Z3"        # the blast door is pressed from the hall's portal band
 METRO_PASS_SKILLS = (2, 3, 4)   # G3's skills: the pass must lie at one spot on each
 USE_DISTANCE = 32               # line to the body's centre: Doom's use range is 64
@@ -830,6 +867,25 @@ def pass_walk(md: "MapData", spot, run_up: int = PASS_APPROACH) -> tuple[tuple[i
     raise RouteError(f"no clear lane of {run_up} units in {family} onto the pickup at {spot}")
 
 
+def pass_event_exit(md: "MapData", start, angle: int, reach: int, tag: int) -> str | None:
+    """The zone family a walk from `start` along `angle` ends in once the
+    pickup's event has opened the sectors tagged `tag`, if the walk crosses
+    one within `reach` (a door the event raises: the body walks through it
+    and on into the room beyond); None if the lane meets a wall first or
+    never crosses one."""
+    dx, dy = COMPASS[angle]
+    inside = False
+    for t in range(SAMPLE_UNITS, reach + 1, SAMPLE_UNITS):
+        s = md.sector_at(start[0] + dx * t, start[1] + dy * t)
+        if s is None:
+            return None
+        if md.textmap.sectors[s].identifier == tag:
+            inside = True
+        elif inside:
+            return zone_family(md.name_of(s))
+    return None
+
+
 def start_family(md: "MapData") -> str:
     """The zone family of the map's one player start."""
     starts = [t for t in md.textmap.things if t.type == ED_PLAYER1_START]
@@ -893,6 +949,13 @@ def metro_critical(md: "MapData | None" = None) -> Route:
 
     spot = pass_spot(md, ed_pass)
     pass_start, pass_angle, pass_family, pass_tics = pass_walk(md, spot)
+    # V3 A2: the pass opens the duty window; a walk that runs into it ends
+    # past it (METRO_CONSTANTS' comment). Read from the map, so a pass moved
+    # off the window's lane (test_a_moved_pass_is_followed) ends at home.
+    through = pass_event_exit(md, pass_start, pass_angle, pass_tics * WALK_UNITS_PER_TIC, tag_win)
+    pass_end = through or pass_family
+    pass_tags = ((tag_sh, False),) + (((tag_win, True),) if through else ())
+    pass_actions = (f"forward {pass_tics}", "inv", f"tag {tag_sh}")         + ((f"tag {tag_win}",) if through else ()) + ("capture",)
 
     swa = switch_line(md, tag_sh, "SW-A")
     swa_point, swa_angle = approach(md, swa)
@@ -910,11 +973,12 @@ def metro_critical(md: "MapData | None" = None) -> Route:
              presses=((locked, tag_bd),),
              note="the blue door pressed WITHOUT the pass: pressed, and still shut (K2's first half); "
                   "the duty window a slot"),
-        Step("PASS", pass_start, pass_angle,
-             (f"forward {pass_tics}", "inv", f"tag {tag_sh}", "capture"),
-             expect=(pass_family,), tags=((tag_sh, False),), key=True,
+        Step("PASS", pass_start, pass_angle, pass_actions,
+             expect=(pass_end,), tags=pass_tags, key=True,
              note=f"walk onto the pass (DoomEdNum {ed_pass} at {spot}), no give: a key is owned; "
-                  "the shutter still shut"),
+                  "the shutter still shut" + ("; the pass opened the duty window and the walk "
+                                              "carries on through it, down into the hall (V3 A2)"
+                                              if through else "")),
         Step("BD1", bd_point, bd_angle,
              ("use", f"wait {DOOR_WAIT}", f"tag {tag_bd}", f"tag {tag_win}", f"forward {bd_tics}",
               "capture"),

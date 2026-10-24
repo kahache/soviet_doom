@@ -1623,10 +1623,10 @@ skill (`-skill 3`, then `-skill 4`):
 | A1 | 256 420 | 90 | `+use`, `wait 70`, `+forward` 35 tics | the corridor (D2) |
 | A2 | 256 940 | 90 | — | the komnata |
 | A3 | 600 1152 | 0 | `+use`, `wait 70`, `+forward` 35 tics | the service corridor (D3) |
-| A4 | 1040 1256 | 0 | — | "You got the IZh-58 double barrel!" |
+| A4 | 1000 1256 | 0 | `+forward` 35 tics (into the rack's niche; V3, §20) | "You got the IZh-58 double barrel!" |
 | A5 | 1336 1152 | 0 | — | the hangar, first contact |
 | A6 | 1416 1624 | 0 | `+use`, `wait 105` | `SDSW2A`; the ambush panels open (turn 90) |
-| A7 | 2000 1520 | 0 | — | "You got the PPSh-41!" |
+| A7 | 1940 1520 | 0 | `+forward` 35 tics (east along the catwalk; V3, §20) | "You got the PPSh-41!" |
 | A8 | 2496 1560 | 90 | `+use`, `wait 70`, `+forward` 35 tics | the booth (D6) |
 | A9 | 2560 1810 | 90 | `+use`, `wait 105` | `SDSW2B` |
 | A10 | 2660 672 | 0 | `+forward` 70 tics | the airlock (D4 open) |
@@ -1925,7 +1925,7 @@ are on the floor, so the distances below are exact.
 | RD0 | the map starts | `D_SDM01` | |
 | RD1 | `warp 960 1152`, face 90 (the corridor's middle, in front of the post; 112 from the radio) | `D_SDM01`: passing by does not turn it on | screenshot: the radio (`PMAP` A) standing on the post's floor against the crates, centred in the mouth |
 | RD2 | `warp 960 1220` (inside the post's mouth; 44 from the radio) | **`D_SDRAD2`**: entering the post turns it on | |
-| RD3 | `warp 1040 1256`, face 0 (A4's spot, the rack; 82 away) | `D_SDRAD2` still | the IZh picked up as in A4 |
+| RD3 | `warp 1040 1256`, face 0 (the rack; 82 away) | `D_SDRAD2` still | a warp does not take the IZh (V3, §20): walk onto it to see the pickup |
 | RD4 | `warp 960 1152` (112 away: past the reach, inside reach + 64) | `D_SDRAD2` still: no flicker | ADR 008 R4 |
 | RD5 | `warp 1120 1152` (195 away, the corridor's east end) | **`D_SDM01`**: leaving gives the level's music back | |
 | RD6 | `warp 960 1220`, then `warp 320 1192` (the komnata) | `D_SDRAD2`, then `D_SDM01` | |
@@ -2127,6 +2127,34 @@ not a stage (PICKUP-EVENTS §4.5).
 
 **Route** (`tools/route.py`, g3-auto): tags 12 and 13 shut at A0; 12 open at
 A6 (the IZh was taken at A4), 13 open at A9 (the PPSh at A7).
+
+**The PM's engine pass of 2026-10-23 12:18 (`logs/route/20261023-121839-g3-auto-*`)
+failed both checks on skills 2-4**: `tag 12 at A6: want open: shut` and
+`tag 13 at A9: want open: shut`. Cause: **the route, not the map**. A4 and
+A7 were warped onto the guns' own spots, and the console `warp` moves the
+body without touching what it lands on (a teleport move, no pickup): A4's
+and A7's `inv` both read `owned [1:SD_IceAxe, 2:SD_Tokarev]`, so neither
+gun was taken, neither special ran and both panels stayed shut. Nothing
+else in the run was wrong. In real play the player WALKS onto the gun, and
+on MAP01 he owns neither when he reaches it (a new game starts with the
+TT-33 alone; no map comes before MAP01; nothing drops a PPSh; the only
+IZhs dropped are the hangar troopers', past the guard post), so both events
+fire: the trigger stays where it is.
+
+Fix (2026-10-24): A4 and A7 now walk onto the guns as R1 walks onto the ice
+axe. A4 warps to (1000, 1256) on the guard post's floor, on the gun's row,
+faces east and walks 35 tics: the niche's back wall (x 1056) stops him on
+the IZh (1040). A7 warps to (1940, 1520) on the catwalk, 60 west of the
+PPSh, faces east and walks 35 tics; the walk and its glide (~290 on the
+model) end on the catwalk, short of its east end. A4 now expects Z5B only
+(it ends in the niche). `tests/test_route.py`,
+`test_the_event_weapons_are_walked_onto_never_warped_onto_in_map01`, holds
+the lanes (the gun's own zone, no step up, start outside touch, the walk
+long enough on the model, the niche's wall behind the IZh, the catwalk to
+400 east of A7's start); the radio test still walks every MAP01 step.
+**To repeat in the engine**: `g3-auto` on skills 2-4. A4's and A7's `inv`
+must list slot 3 (`SD_Izh`) and slot 4 (`SD_Ppsh`), A6 tag 12 open, A9
+tag 13 open.
 
 **Engine checklist for the PM** (D26):
 
