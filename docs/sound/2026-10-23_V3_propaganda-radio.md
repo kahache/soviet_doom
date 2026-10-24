@@ -4,6 +4,13 @@ Date: 2026-10-23. Author: `sound-designer`. Dated snapshot, not a living
 document. Scope: V3 item **B5** (D120, `docs/ICEBOX.md` "V3 scope"):
 loudspeakers in some rooms that play as the player comes near.
 
+**Installed 2026-10-24 (D124 approved it all):** one take per line (rank 1
+of §8), the three jingles and a procedural bed in `assets/sounds/radio/`
+(`tools/audio/install_radio.py`), `SD_Loudspeaker` 21201 (MOD-SPEC §6.14;
+`arg0` is a bit mask of lines, not a table index) and one or two speakers in
+each of MAP04-MAP09 (§5.4's rooms; each map's doc, "V3 (2026-10-24)"). The
+status below is the round's, as written.
+
 **Status: drafts only. Nothing is installed, nothing in `src/` or `assets/`
 is touched.** The lines are AI voices, so they go to the CEO's ear first:
 D113's standing approval covers composed MIDI and procedural textures, not

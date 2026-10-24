@@ -713,3 +713,34 @@ door. Tests: `tests/test_map04_transsib.py`, 88 OK (new:
 `test_the_hut_is_seen_from_the_ramp_and_the_east_roofs`). Route
 `transsib-critical`: RD0 reads tag 13 shut, YKEY waits 70 tics and reads it
 open. **Not run: GZDoom** (D26): K14 is the PM's.
+
+## 15. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+**The RGD-5** (ADR 012; placement advice `docs/engine/2026-10-23_V3_rgd5.md`
+§6). Grenades are consumables in `ITEMS`, so they scale **down** with skill:
+**4 / 3 / 2** grenades on skills 2 / 3 / 4 (skills 1 and 5 double them, as
+every pickup). Why here: the pouch before the yard: the Legion's debut by the dozen is the grenade's lesson (troopers behind the wagons, then the warehouse). No crate (21022: a secret's reward only).
+
+| Where | What | Skills |
+|---|---|---|
+| `z1_tunnel` (4300, 1136) | the pouch (21009): the weapon and 2 | every skill |
+| `z2_yard` (3550, 1100) | a loose grenade (21021) | skills 1-3 |
+| `z4_hall` (2400, 450) | a loose grenade (21021) | skills 1-2 |
+
+**The budget** (BALANCE §8, a grenade 1.25 shell-equivalents, counted in
+the band and the shell share's whole only): the ratio placed / needed on
+skills 2 / 3 / 4 goes 1.658 → 1.746 / 1.440 → 1.481 / 1.228 → 1.246, inside
+1.5-2.0 / 1.3-1.6 / 1.2-1.45. No other pickup moved. The stage readiness,
+the newest weapon's lead and the boss's stage do not count grenades.
+
+**The loudspeaker** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124): `z6_platform` (2048, 2280), reach 512 (the platform is 2944 long): lines 1, 16, 9, 10, 12, 15 (the front, the time signal, the parade, the weather, the helmet notice, Tankograd's plan: the city the sergeant has just left).
+Table `LOUDSPEAKERS` in `map.py`; no geometry changed (it has no body until
+its horn is drawn). Tests: the map's own (`test_every_pickup_can_be_picked_up`,
+the G3-8 band with the grenades), `tests/test_rgd5_maps.py`,
+`tests/test_loudspeaker.py`.
+
+**Engine checklist (the PM, D26):** the grenades lie where the table says
+and are picked up (`printinv`: `SD_Rgd5` and `SD_Rgd5Ammo`); the loudspeaker
+rings its jingle on approach, reads its lines over the level's music, falls
+silent walking away (the line in progress finishes) and is not heard from
+the next room; a clean log.
