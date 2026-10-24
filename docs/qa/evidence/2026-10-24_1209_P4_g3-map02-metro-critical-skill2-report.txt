@@ -1,0 +1,45 @@
+=== route metro-critical / MAP02 / skill 2 ===
+helper         : route-4
+god mode       : on
+monsters       : engine 23, map data 23
+bestiary (start): SD_ReichRifleman 9/9, SD_LegionTrooper 8/8, SD_Stormtrooper 3/3, SD_ReichHound 2/2, SD_Panzermensch 1/1, SD_Clip 1/1, SD_Izh 1/1
+steps:
+  [ok ] A0   expect Z1           got Z1   z1_lift @ (3776, 896, 160) hp 100
+  [ok ] BD0  expect Z3           got Z3   z3_portal @ (1312, 896, 0) hp 100
+  [ok ] PASS expect Z8           got Z8   z8_booth @ (2864, 1056, 32) hp 100
+  [ok ] BD1  expect B1           got B1   b1_vestibule @ (1126, 896, 0) hp 100
+  [ok ] SWA  expect Z8           got Z8   z8_substation @ (2912, 1120, 0) hp 100
+  [ok ] SWB  expect B4           got B4   b4_cp @ (1120, 1280, -64) hp 100
+  [ok ] E0   expect Z9           got Z9   z9_exit_niche @ (368, 1408, -64) hp 100
+  [ok ] E1   expect -            got -  -- no position reported
+zones reached  : Z1 -> Z3 -> Z8 -> B1 -> B4 -> Z9
+doors:
+  [ok ] tag 4 at BD0: want shut: shut (1 sector(s): BD:blast_door)
+  [ok ] tag 10 at PASS: want shut: shut (3 sector(s): ?:closet_pe_door, ?:closet_pw_door, SH:shutter)
+  [ok ] tag 4 at BD1: want open: open (1 sector(s): BD:blast_door)
+  [ok ] tag 10 at SWA: want open: open (3 sector(s): ?:closet_pe_door, ?:closet_pw_door, SH:shutter)
+  [ok ] tag 11 at SWA: want shut: shut (4 sector(s): ?:closet_t1_door, ?:closet_t2_door, CPD:cp_door, GATE:gate)
+  [ok ] tag 11 at SWB: want open: open (4 sector(s): ?:closet_t1_door, ?:closet_t2_door, CPD:cp_door, GATE:gate)
+  [ok ] press of special 13 arg0 4 at BD0: the player's press is in the log
+  [ok ] press of special 13 arg0 4 at BD1: the player's press is in the log
+  [ok ] press of special 11 arg0 10 at SWA: the player's press is in the log
+  [ok ] press of special 11 arg0 11 at SWB: the player's press is in the log
+  [ok ] walk-through at BD1: ended in B1 (b1_vestibule)
+inventory (by slot):
+  [ok ] A0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [none]
+  [ok ] BD0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [none]
+  [ok ] PASS: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [SD_BluePass]
+secrets        : 0 of 2
+key messages   :
+  BD0: You need a blue pass to activate this object
+  PASS: Blue pass.
+exit           : REACHED (exit switch pressed: yes; level unloaded towards: MAP03; after it: NOT SEEN (the helper cannot ask once the level is gone; judge the END shot))
+blockers       : 4 killed by the route's sdclear (sdclear answered 3 time(s))
+  [ok ] PASS: SD_ReichRifleman at (3048, 1048), 20 hp, dead
+  [ok ] PASS: SD_ReichRifleman at (2920, 1120), 20 hp, dead
+  [ok ] E0: SD_ReichRifleman at (920, 1496), 20 hp, dead
+  [ok ] E0: SD_ReichRifleman at (505, 1381), 20 hp, dead
+kills          : 7 of 23, of which 4 by the route's sdclear
+screenshots    : 9
+log failures   : none
+VERDICT        : PASS (4 blocker(s) killed by the route, listed above)
