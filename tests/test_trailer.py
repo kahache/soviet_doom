@@ -134,7 +134,7 @@ class ShotListTests(unittest.TestCase):
 
     def test_calm_and_hold(self):
         cmds = tl.action_commands("spawn SD_Stormtrooper 224 0 hold", ["SD_Stormtrooper"])
-        self.assertEqual(cmds[0], "netevent sdspawn 0 224 0 1")
+        self.assertEqual(cmds[0], "netevent sdspawnhold 0 224 0")
         self.assertEqual(tl.action_commands("calm 500", [])[0], "netevent sdcalm 500")
         for bad in ("spawn SD_Stormtrooper 224 0 run", "calm 0", "calm x"):
             with self.assertRaises(tl.TrailerError):
@@ -274,6 +274,36 @@ class HelperTests(unittest.TestCase):
             self.assertIn(f'"{n}"', z)
         for event in ("sdroll", "sdview", "sdpan", "sdtilt", "sdspawn", "sdthurt"):
             self.assertIn(f'"{event}"', z)
+
+
+class NetEventArgsTests(unittest.TestCase):
+    """The recapture of 2026-10-25 died at compile time: `e.Args[3]` in the
+    helper, "Array index out of bounds" (ConsoleEvent.Args is int[3]). Both
+    sides of the console interface are checked here, with no engine."""
+
+    def setUp(self):
+        self.data = tl.load_json(tl.SHOTS_JSON)
+        self.names = tl.classes_used(self.data)
+
+    def test_helper_never_indexes_past_three_args(self):
+        import re
+        import route
+        text = route.helper_zscript() + tl.trailer_zscript(self.names)
+        for m in re.finditer(r"Args\[(\d+)\]", text):
+            self.assertLess(int(m.group(1)), tl.NETEVENT_ARGS, text[max(0, m.start() - 80):m.end()])
+
+    def test_every_netevent_sent_fits(self):
+        for s in self.data["shots"]:
+            if s.get("kind", "engine") != "engine":
+                continue
+            for c in tl.shot_commands(s, self.names):
+                if c.startswith("netevent "):
+                    self.assertLessEqual(len(c.split()) - 2, tl.NETEVENT_ARGS, f"{s['id']}: {c}")
+
+    def test_hold_is_its_own_event(self):
+        cmds = tl.action_commands("spawn SD_Stormtrooper 224 0 hold", ["SD_Stormtrooper"])
+        self.assertEqual(cmds[0], "netevent sdspawnhold 0 224 0")
+        self.assertIn('"sdspawnhold"', tl.trailer_zscript(["SD_Stormtrooper"]))
 
 
 class CaptureTests(unittest.TestCase):

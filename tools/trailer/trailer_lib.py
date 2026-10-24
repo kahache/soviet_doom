@@ -168,8 +168,10 @@ def action_commands(text: str, names: list[str]) -> list[str]:
         return [f"use {args[0]}", f"wait {SETTLE_TICS}"]
     if word == "spawn":
         side = int(args[2]) if len(args) >= 3 else 0
-        hold = 1 if len(args) == 4 else 0
-        return [f"netevent sdspawn {names.index(args[0])} {int(args[1])} {side} {hold}", f"wait {SETTLE_TICS}"]
+        # ConsoleEvent.Args holds THREE ints (g4.14.2 zscript/events.zs): the
+        # "hold" flag is a second event name, never a fourth argument.
+        event = "sdspawnhold" if len(args) == 4 else "sdspawn"
+        return [f"netevent {event} {names.index(args[0])} {int(args[1])} {side}", f"wait {SETTLE_TICS}"]
     if word == "calm":
         return [f"netevent sdcalm {int(args[0])}", f"wait {SETTLE_TICS}"]
     if word == "hurt":
@@ -504,6 +506,7 @@ def engine_argv(gzdoom: Path, iwad: Path, pk3s: list[Path], helper: Path, config
 # ============================================================================
 
 TRAILER_CLASS = "SDTrailerHelper"
+NETEVENT_ARGS = 3        # ConsoleEvent.Args is `int Args[3]` in g4.14.2 (zscript/events.zs)
 SLATE_RGB = (255, 0, 255)
 
 
@@ -521,7 +524,7 @@ def trailer_zscript(names: list[str]) -> str:
 //   netevent sdthurt <i> <amount>   damage every live NAMES[i]
 //   netevent sdcalm <radius>        remove (no corpse) every live monster but the bosses within
 //                                   <radius> of the player: nothing of the map's in the lens
-//   sdspawn's 4th arg 1: the actor holds its ground (STANDSTILL) and fights from there
+//   netevent sdspawnhold ...        as sdspawn, and the actor holds its ground (STANDSTILL)
 class {TRAILER_CLASS} : EventHandler
 {{
     static const string NAMES[] = {{ {quoted} }};
@@ -563,7 +566,7 @@ class {TRAILER_CLASS} : EventHandler
         }}
         if (e.Name == "sdpan") {{ panRate = double(e.Args[0]) / e.Args[1]; panLeft = e.Args[1]; return; }}
         if (e.Name == "sdtilt") {{ tiltRate = double(e.Args[0]) / e.Args[1]; tiltLeft = e.Args[1]; return; }}
-        if (e.Name == "sdspawn")
+        if (e.Name == "sdspawn" || e.Name == "sdspawnhold")
         {{
             // The class by name, as route.py's sdhurt hands NAMES[i] to
             // ThinkerIterator.Create (proven in engine): no class<> variable.
@@ -579,7 +582,7 @@ class {TRAILER_CLASS} : EventHandler
             }}
             a.angle = a.AngleTo(pmo);
             a.target = pmo;
-            if (e.Args[3]) a.bSTANDSTILL = true;
+            if (e.Name == "sdspawnhold") a.bSTANDSTILL = true;
             if (a.SeeState) a.SetState(a.SeeState);
             Console.Printf("SDTRAILER spawn class=%s ok=1 x=%d y=%d", NAMES[e.Args[0]], int(p.x), int(p.y));
             return;
