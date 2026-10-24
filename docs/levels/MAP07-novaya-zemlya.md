@@ -285,7 +285,7 @@ Still for the `art-director`, if the CEO wants them: `SDPLAN1`, `SDMAPT1`,
 deck hatch; MAP07's hatch is a door in the tower) and the rest of the
 Naval set (MAP08's).
 
-### 7.3 Posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
+### 7.3 Posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel» ("that those posters can appear in any level"))
 
 Each whole: one one-sided line exactly the poster's width, in a sector
 exactly its height, pegged to the floor, offset 0 (`tests/test_posters.py`,
@@ -526,8 +526,8 @@ Population and pickups only: no geometry, door, key, secret or poster moved.
 
 ## 16. v1.3 record: D119's ammunition (2026-10-23)
 
-The CEO's playtest of Episodes 2 and 3: ammunition "siempre sale de sobras",
-"siempre acabas con la escopeta". Pickups only: no geometry, door, key,
+The CEO's playtest of Episodes 2 and 3: ammunition "siempre sale de sobras" ("there is always plenty left over"),
+"siempre acabas con la escopeta" ("you always end up with the shotgun"). Pickups only: no geometry, door, key,
 secret, monster or poster moved; the secrets' rewards are unchanged.
 
 - **The route's ammunition moved out of `ITEMS` into `AMMO`**, read as

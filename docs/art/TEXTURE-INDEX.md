@@ -36,28 +36,28 @@ SDCONC1 OK · SDCONC2 duda (habrá que ver como queda) · SDSTAR1 NOT OK ·
 SDSTEL1 OK · SDDOOR1 OK · SDPOSTR1 NOT OK -> habrá que ver como hacer bien el
 Lenin, luego lo trabajamos aparte · SDPOSTR2 -> me gusta, pendiente de
 confirmar la traducción del texto · SDFLR1 OK · SDFLR2 OK · SDFLR3 OK ·
-SDCEIL1 OK · SDCEIL2 OK». Gate G2 (≥ 8 approved): **12 of 12 approved**
+SDCEIL1 OK · SDCEIL2 OK» (CEO: "SDCONC2 doubtful (we'll have to see how it turns out) ... SDPOSTR1 NOT OK -> we'll have to see how to do Lenin properly, then we'll work on it separately ... SDPOSTR2 -> I like it, translation of the text still to be confirmed"). Gate G2 (≥ 8 approved): **12 of 12 approved**
 (count as of 2026-10-13). Ten on the sheet: the 8 unconditional ones,
 `SDPOSTR2` (its only condition, the Russian wording, confirmed by the CEO on
 2026-10-12) and `SDPOSTR1` v4 (approved 2026-10-12 at 128×256 from the
 15-cell sweep). Two in the map: `SDCONC2` and `SDSTAR1` v5 sat in `assets/`
 and the PK3 so the CEO could judge them inside MAP01 v1, and the CEO approved
 both while walking it in GZDoom on 2026-10-13 (~15:40). CEO, verbatim, on
-`SDCONC2`: «no queda perfecto pero yo lo dejaría así, le da color y relleno las 3 bandas»; on
-`SDSTAR1`: «la apruebo, preciosa». G2 was signed PASS on the 8
+`SDCONC2`: «no queda perfecto pero yo lo dejaría así, le da color y relleno las 3 bandas» ("it isn't perfect but I'd leave it like this, it adds colour and fills the 3 bands"); on
+`SDSTAR1`: «la apruebo, preciosa» ("I approve it, gorgeous"). G2 was signed PASS on the 8
 unconditional ones; see `docs/qa/GATE-REVIEWS.md`.
 
 | Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
 |---|---|---|---|---|---|---|---|
 | `SDCONC1` | wall | 64×128 | yes | prefab concrete panels, running bond, grime under joints | (a) seed 1978 | approved | 2026-10-12 |
-| `SDCONC2` | wall | 64×128 | yes | concrete with worn red stripe at mid height | (a) seed 1979 | approved 2026-10-13 (in-map review): as built, with the hangar's three bands; CEO on the 2026-10-12 sheet: "we'll see how it looks", then walking MAP01 v1: «no queda perfecto pero yo lo dejaría así, le da color y relleno las 3 bandas» | 2026-10-13 |
-| `SDSTAR1` | wall | **128×128** | yes (plaque centred) | concrete with a painted plaque 84×108: gold star above hammer and sickle on red, 1 px dark outline. v2 mirrored the emblem; v3 rebuilt it from the CEO's reference; v4 took the hammer butt to the bottom-right corner; **v5 (variant D1, CEO 2026-10-12)**: hammer head lowered to mid-height (`HAMMER_HEAD_C` y 0.26 → 0.46) and the sickle tip moved onto the outer arc's own end, removing the loose spike the CEO reported ("un palo raro hacia arriba"). Widened to 128 in the same pass because at 64 the lower half of the emblem closed into a blob. Check sheet `tools/art/emblem_check.py`; orientation, handle slope and butt position guarded by `tests/test_art.py` | (a) seed 1980 | approved 2026-10-13 (in-map review, v5): CEO walking MAP01 v1, «la apruebo, preciosa» | 2026-10-13 |
+| `SDCONC2` | wall | 64×128 | yes | concrete with worn red stripe at mid height | (a) seed 1979 | approved 2026-10-13 (in-map review): as built, with the hangar's three bands; CEO on the 2026-10-12 sheet: "we'll see how it looks", then walking MAP01 v1: «no queda perfecto pero yo lo dejaría así, le da color y relleno las 3 bandas» ("it isn't perfect but I'd leave it like this, it adds colour and fills the 3 bands") | 2026-10-13 |
+| `SDSTAR1` | wall | **128×128** | yes (plaque centred) | concrete with a painted plaque 84×108: gold star above hammer and sickle on red, 1 px dark outline. v2 mirrored the emblem; v3 rebuilt it from the CEO's reference; v4 took the hammer butt to the bottom-right corner; **v5 (variant D1, CEO 2026-10-12)**: hammer head lowered to mid-height (`HAMMER_HEAD_C` y 0.26 → 0.46) and the sickle tip moved onto the outer arc's own end, removing the loose spike the CEO reported ("un palo raro hacia arriba"). Widened to 128 in the same pass because at 64 the lower half of the emblem closed into a blob. Check sheet `tools/art/emblem_check.py`; orientation, handle slope and butt position guarded by `tests/test_art.py` | (a) seed 1980 | approved 2026-10-13 (in-map review, v5): CEO walking MAP01 v1, «la apruebo, preciosa» ("I approve it, gorgeous") | 2026-10-13 |
 | `SDSTEL1` | wall | 64×128 | yes | military-green riveted steel plates, chipped paint, rust under rivets | (a) seed 1981 | approved | 2026-10-12 |
 | `SDDOOR1` | wall (door) | 128×128 | no | bunker steel door: riveted frame, green leaf, locking wheel, star and "7" stencils, hazard stripe | (a) seed 1982; text Impact.ttf | approved | 2026-10-12 |
-| `SDPOSTR1` | wall | 128×256 | no (single poster) | Lenin poster: the 1920 Zhukov photograph posterised to four flat palette inks, cream printed border, gold rule and a 46 px band carrying «ЛЕНИН ЖИВ». Four rounds: v1 constructivist silhouette (CEO rejected), v2 naive threshold (PM rejected, no face), v3 hand-drawn silhouette and features (CEO: "no se parece a el EN NADA" — the likeness lives in the photograph, not in a traced outline), **v4 = sweep cell 4C, chosen by the CEO 2026-10-12** from a 15-cell parameter sheet. Slogan rendered through a hard-cut mask: Pillow's antialiasing had invented 95 off-palette colours and `check_pk3` rejected the first build | (a) `tools/art/gen_lenin.py` + (b) `work/art/reference/lenin_1920_zhukov.jpg`, public domain | **approved 2026-10-12** | 2026-10-12 |
-| `SDPOSTR2` | wall (mural) | 128×128 | no | cosmonautics mural: rocket, rays, stars, «СЛАВА СОВЕТСКОЙ КОСМОНАВТИКЕ» | (a) seed 1984; text Impact.ttf | approved (CEO: "me gusta"; the Russian wording, its only condition, confirmed by the CEO the same day) | 2026-10-12 |
-| `SDPOSTR3` | wall | 128×256 | no (single poster) | Stalin poster, the twin of `SDPOSTR1` by commission (CEO: "exactamente como el que hicimos con Lenin, pero con Stalin"): the 1930 frontispiece photograph posterised to four flat palette inks, cream printed border, gold rule and the 46 px band carrying «СЛАВА / СТАЛИНУ!» on two lines at Lenin's 19 px, through the same hard-cut mask. **Sweep cell 4C (four inks, cut +0) and the `slava_short` slogan, chosen by the CEO 2026-10-14 (D55)** from `docs/art/previews/2026-10-14_1601_F2_stalin-sweep.png`. Text-bearing and rendered on Windows: regenerated only there (D27). **Placement (2026-10-22, CEO: «que esos posters puedan aparecer en cualquier nivel»):** every map, always one 128-long line in a room or niche exactly 256 high: MAP01 the hangar's east wall (a 16-deep niche); MAP02 the sealed 1941 shelter (secret S1, its niche since 3d24d39); MAP03 the assembly hall's west wall (niche); MAP04 the yard's station front beside the red door (niche) and the warehouse beside the Legion's banner; MAP05 the station's arrival wall beside the invaders' banners (niche); MAP06 the GUM facade over the square (niche, hung at 64) and the Kremlin courtyard beside the banners; RANGE the gallery's far wall. It stood in for the Marx-Engels pair in some of the slots each map keeps (`POSTER_SLOTS_MARX_ENGELS`) until `SDPOSTR4`/`SDPOSTR5` were approved and hung there (D117). Each map's design document lists its pictures; `tests/test_posters.py` checks them | (a) `tools/art/gen_stalin.py` + (b) `work/art/reference/stalin_1930.jpg`, public domain | **approved 2026-10-14 (D55)** | 2026-10-14 |
-| `SDPOSTR4` | wall | 128×256 | no (single poster; the left of a pair) | Marx poster, the left half of the Marx-Engels pair the CEO commissioned (2026-10-22: «haz uno con Marx y Engels», following Lenin and Stalin): J. J. E. Mayall's 1875 photograph posterised to four flat palette inks, cream printed border, gold rule and the 46 px band carrying «ПРОЛЕТАРИИ / ВСЕХ СТРАН,» at 17 px, the first half of the Communist Manifesto's closing line, through Lenin's hard-cut mask. **Sweep cell 4D (four inks, cut +9) and the `short` split, chosen by the CEO 2026-10-22 (D117)** from `docs/art/previews/2026-10-22_P4_marx-engels-sweep.png`. Text-bearing, rendered on Windows: regenerated only there (D27). **Placement (D117):** every map and the range, one slot each of `POSTER_SLOTS_MARX_ENGELS`, Engels in the other; where the two share a wall Marx hangs on the left as seen from the room. MAP01 Marx in the hangar's north niche, Engels on the lift room's east wall by the exit; MAP02 the 1941 shelter (secret S1), Marx on the east wall, Engels round the corner on the south wall; MAP03 Marx on the dock beside the arch, Engels in the assembly hall south of the red door; MAP04 Marx on the warehouse's west wall, Engels in the roundhouse over the turntable stairs; MAP05 the catwalk's back wall either side of the yellow door, Marx west (left); MAP06 Marx in the GUM's north hall, Engels in the Kremlin courtyard; MAP07 the command room's south wall either side of its axis, Marx east (left, seen from the room); MAP08 the north quay's north wall either side of the blue door, Marx west (left); MAP09 the laboratory hall, Marx on the north wall beside Lenin, Engels facing him on the south wall; RANGE the gallery's end walls, Marx west, Engels east. `tests/test_posters.py` holds them | (a) `tools/art/gen_marx_engels.py` + (b) `work/art/reference/marx_1875.jpg`, public domain | **approved 2026-10-22 (D117)** | 2026-10-22 |
+| `SDPOSTR1` | wall | 128×256 | no (single poster) | Lenin poster: the 1920 Zhukov photograph posterised to four flat palette inks, cream printed border, gold rule and a 46 px band carrying «ЛЕНИН ЖИВ». Four rounds: v1 constructivist silhouette (CEO rejected), v2 naive threshold (PM rejected, no face), v3 hand-drawn silhouette and features (CEO: "no se parece a el EN NADA" ("it does not look like him AT ALL") — the likeness lives in the photograph, not in a traced outline), **v4 = sweep cell 4C, chosen by the CEO 2026-10-12** from a 15-cell parameter sheet. Slogan rendered through a hard-cut mask: Pillow's antialiasing had invented 95 off-palette colours and `check_pk3` rejected the first build | (a) `tools/art/gen_lenin.py` + (b) `work/art/reference/lenin_1920_zhukov.jpg`, public domain | **approved 2026-10-12** | 2026-10-12 |
+| `SDPOSTR2` | wall (mural) | 128×128 | no | cosmonautics mural: rocket, rays, stars, «СЛАВА СОВЕТСКОЙ КОСМОНАВТИКЕ» | (a) seed 1984; text Impact.ttf | approved (CEO: "me gusta" ("I like it"); the Russian wording, its only condition, confirmed by the CEO the same day) | 2026-10-12 |
+| `SDPOSTR3` | wall | 128×256 | no (single poster) | Stalin poster, the twin of `SDPOSTR1` by commission (CEO: "exactamente como el que hicimos con Lenin, pero con Stalin" ("exactly like the one we did with Lenin, but with Stalin")): the 1930 frontispiece photograph posterised to four flat palette inks, cream printed border, gold rule and the 46 px band carrying «СЛАВА / СТАЛИНУ!» on two lines at Lenin's 19 px, through the same hard-cut mask. **Sweep cell 4C (four inks, cut +0) and the `slava_short` slogan, chosen by the CEO 2026-10-14 (D55)** from `docs/art/previews/2026-10-14_1601_F2_stalin-sweep.png`. Text-bearing and rendered on Windows: regenerated only there (D27). **Placement (2026-10-22, CEO: «que esos posters puedan aparecer en cualquier nivel» ("that those posters can appear in any level")):** every map, always one 128-long line in a room or niche exactly 256 high: MAP01 the hangar's east wall (a 16-deep niche); MAP02 the sealed 1941 shelter (secret S1, its niche since 3d24d39); MAP03 the assembly hall's west wall (niche); MAP04 the yard's station front beside the red door (niche) and the warehouse beside the Legion's banner; MAP05 the station's arrival wall beside the invaders' banners (niche); MAP06 the GUM facade over the square (niche, hung at 64) and the Kremlin courtyard beside the banners; RANGE the gallery's far wall. It stood in for the Marx-Engels pair in some of the slots each map keeps (`POSTER_SLOTS_MARX_ENGELS`) until `SDPOSTR4`/`SDPOSTR5` were approved and hung there (D117). Each map's design document lists its pictures; `tests/test_posters.py` checks them | (a) `tools/art/gen_stalin.py` + (b) `work/art/reference/stalin_1930.jpg`, public domain | **approved 2026-10-14 (D55)** | 2026-10-14 |
+| `SDPOSTR4` | wall | 128×256 | no (single poster; the left of a pair) | Marx poster, the left half of the Marx-Engels pair the CEO commissioned (2026-10-22: «haz uno con Marx y Engels» ("make one with Marx and Engels"), following Lenin and Stalin): J. J. E. Mayall's 1875 photograph posterised to four flat palette inks, cream printed border, gold rule and the 46 px band carrying «ПРОЛЕТАРИИ / ВСЕХ СТРАН,» at 17 px, the first half of the Communist Manifesto's closing line, through Lenin's hard-cut mask. **Sweep cell 4D (four inks, cut +9) and the `short` split, chosen by the CEO 2026-10-22 (D117)** from `docs/art/previews/2026-10-22_P4_marx-engels-sweep.png`. Text-bearing, rendered on Windows: regenerated only there (D27). **Placement (D117):** every map and the range, one slot each of `POSTER_SLOTS_MARX_ENGELS`, Engels in the other; where the two share a wall Marx hangs on the left as seen from the room. MAP01 Marx in the hangar's north niche, Engels on the lift room's east wall by the exit; MAP02 the 1941 shelter (secret S1), Marx on the east wall, Engels round the corner on the south wall; MAP03 Marx on the dock beside the arch, Engels in the assembly hall south of the red door; MAP04 Marx on the warehouse's west wall, Engels in the roundhouse over the turntable stairs; MAP05 the catwalk's back wall either side of the yellow door, Marx west (left); MAP06 Marx in the GUM's north hall, Engels in the Kremlin courtyard; MAP07 the command room's south wall either side of its axis, Marx east (left, seen from the room); MAP08 the north quay's north wall either side of the blue door, Marx west (left); MAP09 the laboratory hall, Marx on the north wall beside Lenin, Engels facing him on the south wall; RANGE the gallery's end walls, Marx west, Engels east. `tests/test_posters.py` holds them | (a) `tools/art/gen_marx_engels.py` + (b) `work/art/reference/marx_1875.jpg`, public domain | **approved 2026-10-22 (D117)** | 2026-10-22 |
 | `SDPOSTR5` | wall | 128×256 | no (single poster; the right of a pair) | Engels poster, the right half of the pair: William Hall's 1877 photograph posterised the same way, **mirrored** so that he looks towards Marx (as photographed he looks to the right, away from him; the flip changes the likeness, the CEO approved it), with «СОЕДИНЯЙТЕСЬ!» at the pair's 17 px on the row of Marx's second line, so hung side by side the bands read «ПРОЛЕТАРИИ / ВСЕХ СТРАН, СОЕДИНЯЙТЕСЬ!»; alone it still reads. **Sweep cell 4C (four inks, cut +0), mirrored, `pair` alignment, chosen by the CEO 2026-10-22 (D117).** Text-bearing, rendered on Windows (D27). Placement: the other Marx-Engels slot of every map, see `SDPOSTR4` | (a) `tools/art/gen_marx_engels.py` + (b) `work/art/reference/engels_1877.jpg`, public domain | **approved 2026-10-22 (D117)** | 2026-10-22 |
 | `SDFLR1` | flat | 64×64 | yes (line continuous on x=2..8) | hangar concrete floor with worn yellow lane line | (a) seed 1985 | approved; 44 px seam repair 2026-10-13 (note below) | 2026-10-12 |
 | `SDFLR2` | flat | 64×64 | yes | plain hangar concrete floor, cracks, oil wear | (a) seed 1986 | approved | 2026-10-12 |
@@ -96,9 +96,9 @@ install to the engine's role names, Doom's own convention: **1 = off,
 2 = on, variant letter last**.
 
 CEO verdict 2026-10-13 on the sweep, verbatim: «yo por mí mete todos, así
-tenemos diversidad» — all four variants approved rather than one (commit
+tenemos diversidad» ("as far as I am concerned, put them all in, so we have diversity") — all four variants approved rather than one (commit
 4083883). Variant A was relaid first: the CEO saw its board, painted word and
-lamp overlapping ("se pisan unas cosas a otras"); the three are now stacked
+lamp overlapping ("se pisan unas cosas a otras" ("things overlap one another")); the three are now stacked
 bottom-up with declared gaps and `gen_switch.py` refuses to import if they
 touch (`tests/test_generators.py`, `SwitchLayoutTests`). Every switch
 carries the «ПУСК» ("start") stencil in Impact, so all eight are
@@ -148,7 +148,7 @@ three crate pieces and **D** for the locker; column B disappears on
 `SDSTEL1`.
 
 CEO verdict 2026-10-13, verbatim: «apruebo el arreglo de la fuente y cajas C
-y D» — column **C** for the three crate pieces, **D** for the locker, as
+y D» ("I approve the font fix and crates C and D") — column **C** for the three crate pieces, **D** for the locker, as
 drawn. That also closes the open question of the sweep: C **keeps its
 `khaki_olive`** (no repaint in `rust_brown` wood) and keeps its stencilled
 numbers. Khaki is otherwise reserved for the Reich's flesh, so the crates
@@ -160,10 +160,10 @@ content). 64×64 and 128×64 are new wall sizes in `assets/` with this batch.
 
 | Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
 |---|---|---|---|---|---|---|---|
-| `SDCRAT1` | wall | 64×64 | yes (one crate per tile) | crate face, khaki planks with a diagonal brace and stencilled number; also the ends of `SDCRAT2`. Cell R1-C | (a) gen_props R1, variant C, seed 3090 | approved 2026-10-13 (CEO: «apruebo el arreglo de la fuente y cajas C y D») | 2026-10-13 |
-| `SDCRAT2` | wall | 128×64 | yes | long crate in three bays, the hangar's low cover. Cell R2-C | (a) gen_props R2, variant C, seed 3100 | approved 2026-10-13 (CEO: «apruebo el arreglo de la fuente y cajas C y D») | 2026-10-13 |
-| `SDCRTOP1` | flat | 64×64 | yes | crate lid with cross batten, seen from the catwalk. Cell R3-C | (a) gen_props R3, variant C, seed 3110 | approved 2026-10-13 (CEO: «apruebo el arreglo de la fuente y cajas C y D») | 2026-10-13 |
-| `SDLOCK1` | wall | 64×128 | yes (a row) | two-door barracks locker, pale pine with black straps. Cell R4-D | (a) gen_props R4, variant D, seed 3121 | approved 2026-10-13 (CEO: «apruebo el arreglo de la fuente y cajas C y D») | 2026-10-13 |
+| `SDCRAT1` | wall | 64×64 | yes (one crate per tile) | crate face, khaki planks with a diagonal brace and stencilled number; also the ends of `SDCRAT2`. Cell R1-C | (a) gen_props R1, variant C, seed 3090 | approved 2026-10-13 (CEO: «apruebo el arreglo de la fuente y cajas C y D» ("I approve the font fix and crates C and D")) | 2026-10-13 |
+| `SDCRAT2` | wall | 128×64 | yes | long crate in three bays, the hangar's low cover. Cell R2-C | (a) gen_props R2, variant C, seed 3100 | approved 2026-10-13 (CEO: «apruebo el arreglo de la fuente y cajas C y D» ("I approve the font fix and crates C and D")) | 2026-10-13 |
+| `SDCRTOP1` | flat | 64×64 | yes | crate lid with cross batten, seen from the catwalk. Cell R3-C | (a) gen_props R3, variant C, seed 3110 | approved 2026-10-13 (CEO: «apruebo el arreglo de la fuente y cajas C y D» ("I approve the font fix and crates C and D")) | 2026-10-13 |
+| `SDLOCK1` | wall | 64×128 | yes (a row) | two-door barracks locker, pale pine with black straps. Cell R4-D | (a) gen_props R4, variant D, seed 3121 | approved 2026-10-13 (CEO: «apruebo el arreglo de la fuente y cajas C y D» ("I approve the font fix and crates C and D")) | 2026-10-13 |
 
 Not installed (the other twelve cells of the sweep, A, B and D of the crates
 and A-C of the locker): not chosen, not discarded; they stay in `work/` and
@@ -186,16 +186,16 @@ Approved files live in `assets/textures/metro/` (walls) and
 `assets/flats/metro/` (the flat), copied byte for byte from the Mac's
 renders; `tests/test_gen_metro.py` holds the installed set to the generator.
 
-CEO verdict 2026-10-13, verbatim: «OK a las 6 piezas de metro» — the
+CEO verdict 2026-10-13, verbatim: «OK a las 6 piezas de metro» ("OK to the 6 metro pieces") — the
 direction and all six pieces, **as drawn in palette v1** (D42). The two
 questions that verdict left open are decided since: **palette v2** is in
 (D45: a marble red, a cobalt and gold mosaic ramp and the Legion's pink
 flesh ramp in the reserved slots; approved textures keep their colours), and
 **the mosaic is the star with rays**, as drawn in `SDMOSA1` (D47: «Ok a la
-imagen que has puesto del mosaico»), so no figure panel is planned. A v2
+imagen que has puesto del mosaico» ("OK to the image you put up of the mosaic")), so no figure panel is planned. A v2
 version of an approved piece is a new proposal for the CEO (the two `_v2`
 rows), never a silent requantisation (ART-BIBLE §3). The CEO chose between
-them on 2026-10-14 (D56: «mosaico V2»): **`SDMOSA1` is now its palette v2
+them on 2026-10-14 (D56: «mosaico V2» ("mosaic V2")): **`SDMOSA1` is now its palette v2
 rendering** (cobalt and gold), installed under the same lump name, and
 `gen_metro.py` builds it so by default; the D42 v1 panel stays reachable as
 history with `gen_metro.py --mosaic-v1`. **The marble `SDMARB1` stays in
@@ -203,14 +203,14 @@ v1.** The other five pieces are palette v1, as drawn.
 
 | Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
 |---|---|---|---|---|---|---|---|
-| `SDTILE1` | wall | 64×128 | yes | glazed cream tile wall, 8 px tiles, warm grout, a few chipped tiles, grime low down | (a) gen_metro, seed 1936 | approved 2026-10-13 (D42: «OK a las 6 piezas de metro») | 2026-10-13 |
+| `SDTILE1` | wall | 64×128 | yes | glazed cream tile wall, 8 px tiles, warm grout, a few chipped tiles, grime low down | (a) gen_metro, seed 1936 | approved 2026-10-13 (D42: «OK a las 6 piezas de metro» ("OK to the 6 metro pieces")) | 2026-10-13 |
 | `SDTILE2` | wall | 64×128 | yes | the same tile above an oil-painted military-green dado (rows 86-127) under a dark rule | (a) gen_metro, seed 1937 | approved 2026-10-13 (D42) | 2026-10-13 |
 | `SDMARB1` | wall | 64×128 | yes (veins cross the seam) | polished red marble cladding, pale and dark veins, slab joint at mid height; ox-blood rather than warm marble, a palette v1 limit | (a) gen_metro, seed 1938 | approved 2026-10-13 (D42), as drawn in palette v1 | 2026-10-13 |
-| `SDMOSA1` | wall (panel) | 128×128 | as a row (one panel per tile; the ground meets at the side edges) | mosaic panel: smalt-gold five-pointed star, ten rays and a cream ring on a cobalt ground (`mosaic_cobalt`, `mosaic_gold`), resolved on a 4 px tessera grid | (a) gen_metro, seed 1939; palette v2 | approved in palette v2 2026-10-14 (D56: «mosaico V2»), the `SDMOSA1_v2` proposal installed under this name; the star with rays is the mosaic's motif (D47); first approved in palette v1 2026-10-13 (D42), that v1 now history (`gen_metro.py --mosaic-v1`) | 2026-10-14 |
+| `SDMOSA1` | wall (panel) | 128×128 | as a row (one panel per tile; the ground meets at the side edges) | mosaic panel: smalt-gold five-pointed star, ten rays and a cream ring on a cobalt ground (`mosaic_cobalt`, `mosaic_gold`), resolved on a 4 px tessera grid | (a) gen_metro, seed 1939; palette v2 | approved in palette v2 2026-10-14 (D56: «mosaico V2» ("mosaic V2")), the `SDMOSA1_v2` proposal installed under this name; the star with rays is the mosaic's motif (D47); first approved in palette v1 2026-10-13 (D42), that v1 now history (`gen_metro.py --mosaic-v1`) | 2026-10-14 |
 | `SDBRAS1` | wall (pilaster) | 64×128 | yes (caps on the wrap edges) | fluted brass pilaster, tarnished in the flutes, dark ventilation grille in the middle | (a) gen_metro, seed 1940 | approved 2026-10-13 (D42) | 2026-10-13 |
 | `SDMFLR1` | flat | 64×64 | yes | polished grey granite floor, 32 px slabs, feldspar speckle, darker than the base-set floors | (a) gen_metro, seed 1941 | approved 2026-10-13 (D42) | 2026-10-13 |
 | `SDMARB1_v2` | wall (proposal, replaces `SDMARB1` under that lump name if chosen) | 64×128 | yes (veins cross the seam) | the approved marble, same seed and veins, in palette v2's `marble_red`: warm red stone instead of flag_red's ox-blood | (a) gen_metro --v2, seed 1938; palette v2 (D45) | proposed (sheet `docs/art/previews/2026-10-14_1036_F3_metro-palette-v2.html`, file `work/art/batch2/metro_v2/SDMARB1_v2.png`); the approved v1 stays in `assets/` until the CEO chooses | 2026-10-14 |
-| `SDMOSA1_v2` | wall (panel; proposal, replaces `SDMOSA1` under that lump name if chosen) | 128×128 | as a row | the approved star with rays (motif confirmed by the CEO 2026-10-14), same tesserae, on a `mosaic_cobalt` ground with `mosaic_gold` instead of slate and paint yellow | (a) gen_metro --v2, seed 1939; palette v2 (D45) | chosen 2026-10-14 (D56: «mosaico V2»; same sheet, file `work/art/batch2/metro_v2/SDMOSA1_v2.png`): installed byte for byte as `SDMOSA1`, see that row | 2026-10-14 |
+| `SDMOSA1_v2` | wall (panel; proposal, replaces `SDMOSA1` under that lump name if chosen) | 128×128 | as a row | the approved star with rays (motif confirmed by the CEO 2026-10-14), same tesserae, on a `mosaic_cobalt` ground with `mosaic_gold` instead of slate and paint yellow | (a) gen_metro --v2, seed 1939; palette v2 (D45) | chosen 2026-10-14 (D56: «mosaico V2» ("mosaic V2"); same sheet, file `work/art/batch2/metro_v2/SDMOSA1_v2.png`): installed byte for byte as `SDMOSA1`, see that row | 2026-10-14 |
 
 Recommended light (ART-BIBLE §4): 96-128 in corridors, bright islands of
 160 at the station; the `level-designer` owns the final values.
@@ -233,7 +233,7 @@ ceiling. Known weak points put on record before the CEO looked: the
 tubbing's rust bleed reads olive more than brown, and the plain coffer
 `SDMCEIL1` is very flat (7 colours).
 
-CEO verdict 2026-10-14, verbatim: «PERFECTO» — all ten **as drawn**, both
+CEO verdict 2026-10-14, verbatim: «PERFECTO» ("perfect") — all ten **as drawn**, both
 tunnels (`SDTUNL1` and `SDTUBB1`) and the chevrons of `SDMEDG1` included
 (D48); the two weak points above stand as accepted. The PM copied the ten
 byte for byte from `work/art/batch2/metro_fill/` into
@@ -244,16 +244,16 @@ metro set in `assets/` is sixteen lumps.
 
 | Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
 |---|---|---|---|---|---|---|---|
-| `SDMFLR2` | flat | 64×64 | yes | station hall floor, pale and dark granite in a 32 px checker | (a) gen_metro --fill, seed 1942 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
-| `SDMFLR3` | flat | 64×64 | along x only (row 63 is the lip; rotate in UDMF) | platform edge from above: dark granite, worn painted yellow warning line, pale coping slabs, dark lip | (a) gen_metro --fill, seed 1943 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
-| `SDMEDG1` | wall | 64×64 | along x only | platform face towards the track: coping edge, black-and-yellow chevron band, dark damp concrete | (a) gen_metro --fill, seed 1944 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
-| `SDTUNL1` | wall | 64×128 | yes | running-tunnel concrete cast in boards, damp streaks, two cable bundles on brackets | (a) gen_metro --fill, seed 1945 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
-| `SDTUBB1` | wall | 128×128 | yes | cast-iron tubbing, two rings by two segments: flanges, ribs, bolts, rust from the joints | (a) gen_metro --fill, seed 1946 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
-| `SDRAIL1` | flat | 64×64 | along y (one track per 64 px tile) | track bed: oily concrete, creosoted sleepers every 16 px, tie plates, two rails with a polished running edge; no contact rail | (a) gen_metro --fill, seed 1947 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
-| `SDMCEIL1` | flat | 64×64 | yes | coffered ceiling, whitewashed plaster, two stepped reveals | (a) gen_metro --fill, seed 1948 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
-| `SDMCEIL2` | flat | 64×64 | yes | the same coffer with a brass ring lamp and an opal glass disc: the station's light source | (a) gen_metro --fill, seed 1949 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
-| `SDMARB2` | wall | 64×128 | yes | station wall: glazed tile above, red marble below (the `SDMARB1` stone), brass rail on the marble | (a) gen_metro --fill, seed 1950 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
-| `SDTILE3` | wall | 64×128 | yes | tile wall with a ceramic frieze: cream lozenges on green between two dark rules | (a) gen_metro --fill, seed 1951 | approved 2026-10-14 (D48: «PERFECTO») | 2026-10-14 |
+| `SDMFLR2` | flat | 64×64 | yes | station hall floor, pale and dark granite in a 32 px checker | (a) gen_metro --fill, seed 1942 | approved 2026-10-14 (D48: «PERFECTO» ("perfect")) | 2026-10-14 |
+| `SDMFLR3` | flat | 64×64 | along x only (row 63 is the lip; rotate in UDMF) | platform edge from above: dark granite, worn painted yellow warning line, pale coping slabs, dark lip | (a) gen_metro --fill, seed 1943 | approved 2026-10-14 (D48: «PERFECTO» ("perfect")) | 2026-10-14 |
+| `SDMEDG1` | wall | 64×64 | along x only | platform face towards the track: coping edge, black-and-yellow chevron band, dark damp concrete | (a) gen_metro --fill, seed 1944 | approved 2026-10-14 (D48: «PERFECTO» ("perfect")) | 2026-10-14 |
+| `SDTUNL1` | wall | 64×128 | yes | running-tunnel concrete cast in boards, damp streaks, two cable bundles on brackets | (a) gen_metro --fill, seed 1945 | approved 2026-10-14 (D48: «PERFECTO» ("perfect")) | 2026-10-14 |
+| `SDTUBB1` | wall | 128×128 | yes | cast-iron tubbing, two rings by two segments: flanges, ribs, bolts, rust from the joints | (a) gen_metro --fill, seed 1946 | approved 2026-10-14 (D48: «PERFECTO» ("perfect")) | 2026-10-14 |
+| `SDRAIL1` | flat | 64×64 | along y (one track per 64 px tile) | track bed: oily concrete, creosoted sleepers every 16 px, tie plates, two rails with a polished running edge; no contact rail | (a) gen_metro --fill, seed 1947 | approved 2026-10-14 (D48: «PERFECTO» ("perfect")) | 2026-10-14 |
+| `SDMCEIL1` | flat | 64×64 | yes | coffered ceiling, whitewashed plaster, two stepped reveals | (a) gen_metro --fill, seed 1948 | approved 2026-10-14 (D48: «PERFECTO» ("perfect")) | 2026-10-14 |
+| `SDMCEIL2` | flat | 64×64 | yes | the same coffer with a brass ring lamp and an opal glass disc: the station's light source | (a) gen_metro --fill, seed 1949 | approved 2026-10-14 (D48: «PERFECTO» ("perfect")) | 2026-10-14 |
+| `SDMARB2` | wall | 64×128 | yes | station wall: glazed tile above, red marble below (the `SDMARB1` stone), brass rail on the marble | (a) gen_metro --fill, seed 1950 | approved 2026-10-14 (D48: «PERFECTO» ("perfect")) | 2026-10-14 |
+| `SDTILE3` | wall | 64×128 | yes | tile wall with a ceramic frieze: cream lozenges on green between two dark rules | (a) gen_metro --fill, seed 1951 | approved 2026-10-14 (D48: «PERFECTO» ("perfect")) | 2026-10-14 |
 
 ## Set "Factory" «Танкоград» — batch 4 (F3, D66)
 
@@ -269,7 +269,7 @@ font:** the banner and the pass plates are set from our own alphabet
 both machines. Palette v1 except where the row says v2 (the generator's
 `PALETTE_WHY` carries the reason per piece).
 
-CEO verdict 2026-10-14, verbatim: «Me gustan TODAS» — every piece as drawn,
+CEO verdict 2026-10-14, verbatim: «Me gustan TODAS» ("I like ALL of them") — every piece as drawn,
 including **palette v2** for the brick, the Legion flag's canton and the
 portal, and the portal in cobalt with white filaments (D66). **D119
 (2026-10-23):** the two occupiers' banners `SDFLAG1` / `SDFLAG2` are Soviet
@@ -295,7 +295,7 @@ until then each shows its first frame. Not yet seen in the engine (D26).
 
 | Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
 |---|---|---|---|---|---|---|---|
-| `SDBRCK1` | wall | 64×128 | yes | soot-stained red factory brick, 16×8 running bond, lime mortar, browner and overfired bricks, soot | (a) gen_factory, seed 4101, palette v2 (`marble_red`) | approved 2026-10-14 (D66: «Me gustan TODAS») | 2026-10-14 |
+| `SDBRCK1` | wall | 64×128 | yes | soot-stained red factory brick, 16×8 running bond, lime mortar, browner and overfired bricks, soot | (a) gen_factory, seed 4101, palette v2 (`marble_red`) | approved 2026-10-14 (D66: «Me gustan TODAS» ("I like ALL of them")) | 2026-10-14 |
 | `SDBRCK2` | wall | 64×128 | yes | the same brick whitewashed to 64 (the works' dado), dark rule on top, flaked lime | (a) gen_factory, seed 4102, palette v2 | approved 2026-10-14 (D66) | 2026-10-14 |
 | `SDRUST1` | wall | 64×128 | yes | rusted corrugated sheet, surviving galvanising, bolted lap seam, two rust-through holes | (a) gen_factory, seed 4103 | approved 2026-10-14 (D66) | 2026-10-14 |
 | `SDCHAN1` | wall (masked mid-texture) | 64×128 | no | hanging chain and crane hook on a transparent ground, for a two-sided line; RGBA with hard alpha (ART-BIBLE §2 exception) | (a) gen_factory, seed 4104 | approved 2026-10-14 (D66); installed 2026-10-14 (N6b, masked RGBA accepted by check_pk3 and test_art) | 2026-10-14 |
@@ -671,7 +671,7 @@ The alphabet (style C "Mashina", 224 glyphs in `assets/fonts/`) is owned by
 `LICENSES.md` ("The alphabet"). **2026-10-13: M, Cyrillic М and W
 corrected** at both sizes (six PNGs: `004D`, `041C`, `0057` in
 `defsmallfont/` and `bigfont/`) with the CEO's approval, same verdict as
-above («apruebo el arreglo de la fuente»). Their slab serifs had been placed
+above («apruebo el arreglo de la fuente» ("I approve the font fix")). Their slab serifs had been placed
 on one side only (QA finding H1); before/after sheet
 `docs/art/previews/2026-10-13_1443_F2_font-C-serif-fix.png`.
 **2026-10-13: Ä, Ö, Ü and the sharp s (ẞ U+1E9E, ß U+00DF) added** at both
@@ -702,4 +702,4 @@ Reference sheet `docs/art/previews/2026-10-13_1554_F2_menu-sweep.png`.
 | Lump | Date | Reason | What happens instead |
 |---|---|---|---|
 | `SDPOSTR1` (Lenin poster, v1 silhouette) | 2026-10-12 | CEO: NOT OK, "we'll have to see how to do Lenin right" | the Lenin portrait became a separate commission (ART-BIBLE §8) and the lump name `SDPOSTR1` went to its result: v4, posterised from the public-domain 1920 photograph, approved 2026-10-12 at 128×256 (row above) |
-| hangar dado, 128 high (composite steel-below / concrete-above wall, never drawn; the alternative to `SDCONC2` in the hangar, `docs/levels/MAP01-zarya-7.md` deviation 1) | 2026-10-13 | not needed: the CEO approved `SDCONC2` as built in the hangar's three bands, «no queda perfecto pero yo lo dejaría así, le da color y relleno las 3 bandas» | `SDCONC2` stays in the hangar |
+| hangar dado, 128 high (composite steel-below / concrete-above wall, never drawn; the alternative to `SDCONC2` in the hangar, `docs/levels/MAP01-zarya-7.md` deviation 1) | 2026-10-13 | not needed: the CEO approved `SDCONC2` as built in the hangar's three bands, «no queda perfecto pero yo lo dejaría así, le da color y relleno las 3 bandas» ("it isn't perfect but I'd leave it like this, it adds colour and fills the 3 bands") | `SDCONC2` stays in the hangar |

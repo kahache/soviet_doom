@@ -305,7 +305,7 @@ Still pending with nothing standing in (`PENDING_TEXTURES`): `SDPERI1` (the
 periscope's tube, masked; the well is a solid steel column meanwhile) and
 the polar night sky with the aurora (MAPINFO's sky, the scaffolding's call).
 
-### 7.3 Posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
+### 7.3 Posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel» ("that those posters can appear in any level"))
 
 Three pictures and the Marx-Engels pair, each whole: one one-sided line
 exactly the poster's width, in a recess exactly its height, pegged to the
@@ -605,8 +605,8 @@ Population and pickups only: no geometry, door, key, secret or poster moved.
 
 ## 17. v1.3 record: D119's ammunition and the colossus at 3000 (2026-10-23)
 
-The CEO's playtest of Episodes 2 and 3: ammunition "siempre sale de sobras",
-"siempre acabas con la escopeta", and the bosses at classic Doom's level
+The CEO's playtest of Episodes 2 and 3: ammunition "siempre sale de sobras" ("there is always plenty left over"),
+"siempre acabas con la escopeta" ("you always end up with the shotgun"), and the bosses at classic Doom's level
 (the colossus 3000, the Spider Mastermind's, `mod-engineer`). Pickups only:
 no geometry, door, key, secret, monster or poster moved; the secrets'
 rewards are unchanged.
@@ -654,7 +654,7 @@ rewards are unchanged.
 ## 18. v1.4 record: the Chrome Marshal in the colossus's place (2026-10-23, D123)
 
 The CEO kept both looks of the colossus ("Coloso me gustan las 2: colorear
-general y la estatua de la libertad. Quiero los 2 en el juego", D123): the
+general y la estatua de la libertad. Quiero los 2 en el juego", D123; "Colossus: I like both: colour the general, and the Statue of Liberty. I want both in the game"): the
 statue (`SDLC`) is MAP06's boss, and the chrome-tinted General it wore
 until then is a new enemy, **`SD_ChromeGeneral`, "The Chrome Marshal"**
 (21113; `mod-engineer`, `docs/engine/BESTIARY.md` §12 row 12), placed here

@@ -7,7 +7,7 @@ ones, which exposes a right the first version treated as a footnote — the
 **sequencing** (§1.2). Twelve candidate files have now been licence-audited and
 fetched to `work/audio/candidates/`; the audit is §4.4.
 Revised again 2026-10-13, **D43** (CEO: *"Acepto las recomendaciones de
-música"*): the Engelbach attribution is accepted and **`D_SDINTL` and
+música"* ("I accept the music recommendations")): the Engelbach attribution is accepted and **`D_SDINTL` and
 `D_SDM01` are installed in `assets/music/`**; the credits are §4.5; the
 candidates are **tracked in git** with their SHA-256 (§4.4) and three were
 discarded; works restored in the United States are excluded (§7.2) and the
@@ -15,7 +15,7 @@ anthem slot goes to Glinka (§7.1).
 Revised 2026-10-13 by `mod-engineer` (D43, the radio): the two CC0 radio
 pieces are installed unedited as **`D_SDRAD1`** and **`D_SDRAD2`** (§4.4,
 §4.5), for the radio actor of `docs/engine/MOD-SPEC.md` §6.7.
-Revised 2026-10-14, **D44** (CEO: *"sí"* to one public-domain score per
+Revised 2026-10-14, **D44** (CEO: *"sí"* ("yes") to one public-domain score per
 self-sequenced piece): two scores downloaded and recorded in **§4.6**, for
 «Вы жертвою пали» (`D_SDFUNR`) and «Амурские волны» (`D_SDAMUR`); **no
 reliable public-domain score of Glinka's *Patriotic Song* was found, so
@@ -463,16 +463,16 @@ orchestration, that is the route; it is a size decision, not a rights one.
 | `D_SDBS6B` | MAP06's boss loop with B (bars 29-52 of `D_SDM06B`) | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
 | `D_SDE2IA` | episode 2's intermission, after MAP04 and MAP05 (`intermusic`) | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
 | `D_SDE2IB` | episode 2's intermission, variant B (packed, not wired) | original, `sound-designer` 2026-10-21 (`tools/audio/compose_episode2.py`), approved by the CEO in D106; quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
-| `D_SDM07A` | MAP07, the radar station on Novaya Zemlya (D113), variant A | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
-| `D_SDM07B` | MAP07, variant B (`SD_MusicVariant`) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
-| `D_SDM08A` | MAP08, the submarine base at Severomorsk (D113), variant A | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
-| `D_SDM08B` | MAP08, variant B (`SD_MusicVariant`) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
-| `D_SDM09A` | MAP09, the portal at Tunguska (D113), variant A | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
-| `D_SDM09B` | MAP09, variant B (`SD_MusicVariant`) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
-| `D_SDBS9A` | MAP09's final boss loop with A (a piece of its own, not a cut) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
-| `D_SDBS9B` | MAP09's final boss loop with B (a piece of its own) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
-| `D_SDE3IA` | episode 3's intermission, after MAP07 and MAP08 (`intermusic`) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
-| `D_SDE3IB` | episode 3's intermission, variant B (packed, not wired) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM07A` | MAP07, the radar station on Novaya Zemlya (D113), variant A | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas", "I take them as good"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM07B` | MAP07, variant B (`SD_MusicVariant`) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas", "I take them as good"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM08A` | MAP08, the submarine base at Severomorsk (D113), variant A | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas", "I take them as good"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM08B` | MAP08, variant B (`SD_MusicVariant`) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas", "I take them as good"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM09A` | MAP09, the portal at Tunguska (D113), variant A | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas", "I take them as good"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDM09B` | MAP09, variant B (`SD_MusicVariant`) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas", "I take them as good"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDBS9A` | MAP09's final boss loop with A (a piece of its own, not a cut) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas", "I take them as good"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDBS9B` | MAP09's final boss loop with B (a piece of its own) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas", "I take them as good"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDE3IA` | episode 3's intermission, after MAP07 and MAP08 (`intermusic`) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas", "I take them as good"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
+| `D_SDE3IB` | episode 3's intermission, variant B (packed, not wired) | original, `sound-designer` 2026-10-22 (`tools/audio/compose_episode3.py`), approved unheard by the CEO in D113 ("las doy por buenas", "I take them as good"); quotes no Soviet song, folk tune, classical theme or phrase of our own earlier pieces (the generator's self-check) | ours | none — MIDI | none; ours under CC BY-NC-SA 4.0 (D15) |
 
 **N9e (2026-10-20, D83 and D86).** `D_SDTITL` is the intermission and
 `D_SDM01T` the range's piece; `D_SDAMUR`, the range's D62 draft, was
@@ -489,7 +489,7 @@ our own compositions, written under the D104 brief: no rights question beyond
 our own licence, no credit obligation.
 
 **D113 (2026-10-22).** The CEO approved, without hearing them, all ten
-episode 3 pieces ("las doy por buenas"): the A and B of MAP07, MAP08 and
+episode 3 pieces ("las doy por buenas", "I take them as good"): the A and B of MAP07, MAP08 and
 MAP09, the final boss's two loops (pieces of their own, not cuts) and the
 episode's two intermission pieces, installed byte for byte from
 `work/audio/episode3/` (`tests/test_music.py` regenerates each). All ten are
@@ -620,7 +620,7 @@ the Soviet period at all. D54 chose to change the piece instead.
 
 #### 4.6.4 «Богатырские ворота» → `D_SDGATE` (D54)
 
-D54 (CEO, 2026-10-14): *"busca alternativa, cambiamos pieza musical y ya"* —
+D54 (CEO, 2026-10-14): *"busca alternativa, cambiamos pieza musical y ya"* ("look for an alternative, we change the piece of music and that is it") —
 a public-domain replacement for the anthem slot, on the terms of D44 (one
 score downloaded, provenance recorded). The same conditions as §4.6 were
 applied: notation only; composer **and** edition public domain in Russia and
@@ -757,7 +757,7 @@ packed by the build as `music/<LUMP>.mid` (`tools/sdbuild/pk3.py`,
 > **The live list of music decisions is `docs/sound/SOUNDTRACK.md` §8**, which
 > owns "what plays where". What follows is only the part that is a *rights*
 > question. On 2026-10-13 the CEO accepted every open recommendation of
-> SOUNDTRACK §8 (*"Acepto las recomendaciones de música"*, **D43**,
+> SOUNDTRACK §8 (*"Acepto las recomendaciones de música"* ("I accept the music recommendations"), **D43**,
 > `docs/PRD.md` §5). Points 0-3 are settled; point 4 was never in SOUNDTRACK
 > §8 and stays open, blocking nothing.
 

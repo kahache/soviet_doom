@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Música nueva MAP01</title>
+<title>New MAP01 music</title>
 <style>
 :root{--bg:#f6f4ef;--card:#fff;--ink:#1d1d1b;--mute:#6b6862;--line:#dcd8cf;--accent:#a3201c;--ok:#1f7a3a;--no:#b3261e;--q:#9a6a00;--chip:#efece4}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--card:#202020;--ink:#ebe8e2;--mute:#a19d95;--line:#3a3834;--accent:#e0574f;--ok:#4cc074;--no:#f0726a;--q:#e3b341;--chip:#2c2b29}}
@@ -39,7 +39,7 @@ audio{width:100%;height:34px;margin:6px 0}
 .btns button.on.q{background:var(--q);border-color:var(--q);color:#111}
 textarea.note{width:100%;min-height:52px;resize:vertical;font:inherit;font-size:13px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);padding:5px 7px}
 .ref{padding:12px}
-.ref .name::after{content:"referencia";margin-left:8px;font-size:11px;border:1px solid var(--line);border-radius:10px;padding:0 7px;color:var(--mute)}
+.ref .name::after{content:"reference";margin-left:8px;font-size:11px;border:1px solid var(--line);border-radius:10px;padding:0 7px;color:var(--mute)}
 table.form{width:100%;border-collapse:collapse;font-size:13px}
 table.form th,table.form td{border-top:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
 table.form th{color:var(--mute);font-weight:600;font-size:12px}
@@ -51,46 +51,46 @@ footer{color:var(--mute);font-size:12.5px;margin-top:24px}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <h1>Música nueva para MAP01 (Zarya-7)</h1>
-  <span class="prog"><b id="pDone">0</b> / 2 juzgadas</span>
-  <button class="primary" id="copyTop">Copiar resultado</button><span class="copied" id="copiedTop"></span>
+  <h1>New music for MAP01 (Zarya-7)</h1>
+  <span class="prog"><b id="pDone">0</b> / 2 judged</span>
+  <button class="primary" id="copyTop">Copy result</button><span class="copied" id="copiedTop"></span>
 </div></header>
 <div class="wrap">
 <div class="intro">
-  <p><b>Qué es (D92).</b> Una pieza <b>nueva y original</b> compuesta para el primer mapa, al estilo de <code>D_SDM01T</code> (la parte melódica que te gustó): las mismas trompas llevando la melodía, la misma orquesta General MIDI que suena en GZDoom (bajo sintético, chelos, cuerdas en trémolo, trombones, trompas, pad frío, cristal) más timbales. Pero con <b>empuje de combate</b>: la melodía entra en el primer compás, debajo nunca para un ritmo (bajo galopando, chelos en corcheas, timbales y caja de marcha) y vuelve al principio sin corte.</p>
-  <p><b>Forma</b> (48 compases, re menor, dos versiones con las mismas notas):</p>
+  <p><b>What it is (D92).</b> A <b>new, original</b> piece composed for the first map, in the style of <code>D_SDM01T</code> (the melodic part you liked): the same horns carrying the melody, the same General MIDI orchestra that plays in GZDoom (synth bass, cellos, tremolo strings, trombones, horns, cold pad, glass) plus timpani. But with <b>combat drive</b>: the melody enters in the first bar, underneath a rhythm never stops (galloping bass, cellos in eighth notes, timpani and a marching snare) and it returns to the start without a cut.</p>
+  <p><b>Form</b> (48 bars, D minor, two versions with the same notes):</p>
   <table class="form">
-    <tr><th>Sección</th><th>Compases</th><th>Qué pasa</th></tr>
-    <tr><td><b>A · Tema</b></td><td>1-16</td><td>Las trompas cantan el tema desde el primer golpe; debajo, galope del bajo, chelos en corcheas, timbales en 1 y 3, caja de marcha. Platillo al entrar.</td></tr>
-    <tr><td><b>B · Avance</b></td><td>17-32</td><td>Pasa a fa mayor: los trombones llaman y las trompas responden; luego todos juntos en octavas, con cuerdas en trémolo y caja más densa. Un acorde de mi bemol lo devuelve a la tensión.</td></tr>
-    <tr><td><b>C · Lamento y vuelta</b></td><td>33-48</td><td>12 compases de trompa sola, más lírica, sobre un pulso más ligero pero que no se detiene (con el «cristal» lejano de D_SDM01T); los 4 últimos suben sobre la dominante con redoble de caja y timbales, y el bucle cae de golpe en el tema.</td></tr>
+    <tr><th>Section</th><th>Bars</th><th>What happens</th></tr>
+    <tr><td><b>A · Theme</b></td><td>1-16</td><td>The horns sing the theme from the first beat; underneath, galloping bass, cellos in eighth notes, timpani on 1 and 3, marching snare. Cymbal on entry.</td></tr>
+    <tr><td><b>B · Advance</b></td><td>17-32</td><td>Moves to F major: the trombones call and the horns answer; then all together in octaves, with tremolo strings and a denser snare. An E flat chord brings it back to tension.</td></tr>
+    <tr><td><b>C · Lament and return</b></td><td>33-48</td><td>12 bars of solo horn, more lyrical, over a lighter pulse that still does not stop (with the distant “glass” of D_SDM01T); the last 4 rise over the dominant with a snare and timpani roll, and the loop drops straight into the theme.</td></tr>
   </table>
-  <p class="meta">Renders con el propio sintetizador de GZDoom (zmusic + gzdoom.sf2), sin arrancar el juego. Cada audio <b>sigue 10 s después del punto de bucle</b>: lo que suena tras el redoble es el principio otra vez, así se oye la costura. Volumen igualado con D_SDGATE (Tankograd), la pieza de combate aprobada más fuerte. Usa los botones para saltar a cada sección.</p>
+  <p class="meta">Rendered with GZDoom's own synthesizer (zmusic + gzdoom.sf2), without starting the game. Each audio <b>keeps going for 10 s after the loop point</b>: what plays after the roll is the beginning again, so you can hear the seam. Volume matched to D_SDGATE (Tankograd), the loudest approved combat piece. Use the buttons to jump to each section.</p>
 </div>
 
-<h2>Para juzgar</h2>
+<h2>To judge</h2>
 <div id="items"></div>
 
-<h2>Referencia: la que te gustó</h2>
+<h2>Reference: the one you liked</h2>
 <div class="card ref">
   <div class="name"><code>D_SDM01T</code><span class="ev">0:53 · 108 BPM</span></div>
-  <p class="meta">La pieza de MAP01 recortada desde el lamento (D86: aprobada, para el campo de tiro). Está aquí solo para comparar estilo e instrumentos.</p>
+  <p class="meta">The MAP01 piece trimmed from the lament (D86: approved, for the shooting range). It is here only to compare style and instruments.</p>
   <audio controls preload="none" src="../../../work/audio/music_trim/D_SDM01T.ogg"></audio>
 </div>
 
-<h2>Resultado</h2>
+<h2>Result</h2>
 <textarea id="result" readonly></textarea>
-<p><button class="primary" id="copyBottom">Copiar resultado</button><span class="copied" id="copiedBottom"></span> <button id="reset">Borrar respuestas</button></p>
-<footer>Generador: <code>tools/audio/compose_map01.py</code> · MIDIs: <code>work/audio/D_SDM01N.mid</code>, <code>D_SDM01N2.mid</code> · niveles: <code>work/audio/map01_new/LEVELS.txt</code> · tests: <code>tests/test_compose_map01.py</code>. Nada instalado: si una vale, la instala el PM con tu OK.</footer>
+<p><button class="primary" id="copyBottom">Copy result</button><span class="copied" id="copiedBottom"></span> <button id="reset">Delete answers</button></p>
+<footer>Generator: <code>tools/audio/compose_map01.py</code> · MIDIs: <code>work/audio/D_SDM01N.mid</code>, <code>D_SDM01N2.mid</code> · levels: <code>work/audio/map01_new/LEVELS.txt</code> · tests: <code>tests/test_compose_map01.py</code>. Nothing installed: if one is good enough, the PM installs it with your OK.</footer>
 </div>
 <script>
 const ITEMS = [
   {id:"D_SDM01N", src:"../../../work/audio/map01_new/D_SDM01N.ogg", len:"1:39", bpm:116,
-   what:"La versión principal: 116 BPM, las trompas solas en el tema (lo más parecido al color de D_SDM01T).",
-   jumps:[["A · Tema",0],["B · Avance",33.1],["C · Lamento",66.2],["Subida",91.0],["Costura (−5 s)",94.3]]},
+   what:"The main version: 116 BPM, solo horns on the theme (the closest to the colour of D_SDM01T).",
+   jumps:[["A · Theme",0],["B · Advance",33.1],["C · Lament",66.2],["Rise",91.0],["Seam (−5 s)",94.3]]},
   {id:"D_SDM01N2", src:"../../../work/audio/map01_new/D_SDM01N2.ogg", len:"1:30", bpm:128,
-   what:"Más rápida y pesada: 128 BPM, los trombones doblan el tema desde el compás 9, caja en corcheas también en A, bombo doble en B. Mismas notas.",
-   jumps:[["A · Tema",0],["B · Avance",30.0],["C · Lamento",60.0],["Subida",82.5],["Costura (−5 s)",85.0]]},
+   what:"Faster and heavier: 128 BPM, trombones double the theme from bar 9, snare in eighth notes in A as well, double bass drum in B. Same notes.",
+   jumps:[["A · Theme",0],["B · Advance",30.0],["C · Lament",60.0],["Rise",82.5],["Seam (−5 s)",85.0]]},
 ];
 const KEY = "sd-2026-10-20_1236_M3_map01-new-music";
 let S = {};
@@ -102,14 +102,14 @@ function build(){
   document.getElementById("items").innerHTML = ITEMS.map(it => `
   <div class="card"><div class="row" id="r-${it.id}" data-id="${it.id}">
     <div>
-      <div class="name"><code>${it.id}</code><span class="ev">${it.len} · ${it.bpm} BPM · bucle + 10 s</span></div>
+      <div class="name"><code>${it.id}</code><span class="ev">${it.len} · ${it.bpm} BPM · loop + 10 s</span></div>
       <p class="meta">${esc(it.what)}</p>
       <audio controls preload="none" src="${esc(it.src)}"></audio>
       <div class="jumps">${it.jumps.map(([l, t]) => `<button data-t="${t}">${esc(l)}</button>`).join("")}</div>
     </div>
     <div class="vote">
       <div class="btns"><button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div>
-      <textarea class="note" placeholder="Notas (qué sobra, qué falta, en qué segundo)">${esc(st(it.id).n)}</textarea>
+      <textarea class="note" placeholder="Notes (what is too much, what is missing, at which second)">${esc(st(it.id).n)}</textarea>
     </div>
   </div></div>`).join("");
   ITEMS.forEach(i => paint(i.id));
@@ -124,18 +124,18 @@ function summary(){
   const label = {ok:"OK", no:"NO", q:"?"};
   const done = ITEMS.filter(i => st(i.id).v).length;
   document.getElementById("pDone").textContent = done;
-  const L = [`Música nueva MAP01 (2026-10-20_1236_M3, D92): ${done}/${ITEMS.length} juzgadas`];
+  const L = [`New MAP01 music (2026-10-20_1236_M3, D92): ${done}/${ITEMS.length} judged`];
   for (const i of ITEMS) {
     const s = st(i.id), n = (s.n || "").trim().replace(/\s+/g, " ");
-    L.push(`${i.id}: ${label[s.v] || "sin juzgar"}${n ? ` — «${n}»` : ""}`);
+    L.push(`${i.id}: ${label[s.v] || "unjudged"}${n ? ` — «${n}»` : ""}`);
   }
   document.getElementById("result").value = L.join("\n");
 }
 function copy(which){
   const t = document.getElementById("result"), msg = document.getElementById(which);
   summary();
-  const ok = () => { msg.textContent = "copiado"; setTimeout(() => msg.textContent = "", 2500); };
-  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? ok() : (msg.textContent = "selecciona y Ctrl+C abajo"); } catch (e) { msg.textContent = "selecciona y Ctrl+C abajo"; } };
+  const ok = () => { msg.textContent = "copied"; setTimeout(() => msg.textContent = "", 2500); };
+  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? ok() : (msg.textContent = "select the text below and press Ctrl+C"); } catch (e) { msg.textContent = "select the text below and press Ctrl+C"; } };
   try { if (navigator.clipboard && window.isSecureContext !== false) navigator.clipboard.writeText(t.value).then(ok, fallback); else fallback(); } catch (e) { fallback(); }
 }
 document.addEventListener("click", e => {
@@ -152,7 +152,7 @@ document.addEventListener("input", e => {
 document.addEventListener("play", e => { document.querySelectorAll("audio").forEach(a => { if (a !== e.target) a.pause(); }); }, true);
 document.getElementById("copyTop").addEventListener("click", () => copy("copiedTop"));
 document.getElementById("copyBottom").addEventListener("click", () => copy("copiedBottom"));
-document.getElementById("reset").addEventListener("click", () => { if (confirm("¿Borrar las respuestas y notas de esta hoja?")) { S = {}; save(); build(); summary(); } });
+document.getElementById("reset").addEventListener("click", () => { if (confirm("Delete the answers and notes on this sheet?")) { S = {}; save(); build(); summary(); } });
 build(); summary();
 </script>
 </body>

@@ -1,9 +1,12 @@
-"""Palette v2 (D45, CEO 2026-10-14) and the version contract of the art.
+"""Palette v2 (D45, CEO 2026-10-14), v3 (D128, 2026-10-24) and the version
+contract of the art.
 
 What is enforced here, and why:
 
-  version     palette.json says v2, dated 2026-10-14, decision D45, and keeps
-              its version history (v1 162 colours, v2 226)
+  version     palette.json says v3, dated 2026-10-24, decision D128, and keeps
+              its version history (v1 162 colours, v2 226 of D45, v3 242);
+              v3 adds one ramp, reich_greygreen, in slots 226-241, and
+              colours_v2 is still exactly v2 (its readers mean v2)
   subset      v1 is the EXACT prefix of v2, index for index: no v1 colour
               moved, was edited or was reordered (ART-BIBLE §3: "later sets
               only add ramps in the reserved slots"), so every v1 PNG is a
@@ -27,7 +30,11 @@ What is enforced here, and why:
               Katyusha's held and flash frames since D84, the ice axe's
               SDAX A-D since D88, the sergeant's 42 Gemini faces STF* since
               D90, Episode 2's bricks since D107, the portal rim and Episode
-              2 round 2's six v2 walls since D113)
+              2 round 2's six v2 walls since D113, the AKM's SDAK A-B, SDAF A
+              and SDAQ A since 2026-10-24). APPROVED_IN_V3 lists the v3
+              assets: the Consortium's 95 SDCN lumps (D128), the only users
+              of reich_greygreen; every other asset stays in v1 or v2, so
+              adding v3 changed no approved pixel
 
 Run:  .venv/Scripts/python.exe -m unittest tests.test_palette_v2 -v
 """
@@ -63,6 +70,11 @@ V2_DATE = "2026-10-14"
 V2_DECISION = "D45"
 V2_RAMPS = ["marble_red", "mosaic_cobalt", "mosaic_gold", "flesh_pink"]
 V2_STEPS = 16
+V3_COUNT = 242
+V3_DATE = "2026-10-24"
+V3_DECISION = "D128"
+V3_RAMPS = ["reich_greygreen"]
+V3_SLOTS = (226, 241)
 FLESH_DARK, FLESH_LIGHT = (24, 10, 10), (242, 190, 180)   # tools/art/gen_legion.py candidate
 MAX_COLOURS = 256
 
@@ -158,6 +170,12 @@ D123_ENEMIES = ({f"sprites/legion_gunner/SDLG{f}{r}.png" for f in "ABCDEFG" for 
                 | {f"sprites/legion_gunner/SDLG{f}0.png" for f in "HIJKLMNOPQRSTU"}
                 | {f"sprites/colossus/SDLC{f}{r}.png" for f in "ABCDEFGQR" for r in "12345678"}
                 | {f"sprites/colossus/SDLC{f}0.png" for f in "HIJKLMNOP"})
+# 2026-10-24 (D128, the CEO: "OK AKM"): the AKM's own set in
+# assets/sprites/akm/. SDAK A-B and SDAF A by gemini_frames.py akm (all of
+# palette v2 but flag_red, which the AKM's snap leaves out), the pickup SDAQ
+# A by gen_akm_pickup.py (the laminate in v2's marble_red). RGBA, not in
+# PALETTE_V2_LUMPS.
+AKM_LUMPS = ("SDAKA0", "SDAKB0", "SDAFA0", "SDAQA0")
 D84_FRAMES = {"izh": ("SDIZ", "ABCD", "SDIF", "AB"), "rpg7": ("SDRL", "AB", "SDRF", "ABCD"),
               "roks3": ("SDRK", "AB", "SDKF", "A"), "katyusha": ("SDHK", "AB", "SDHF", "AB"),
               "ice_axe": ("SDAX", "ABCD", "SDAX", "")}
@@ -181,7 +199,18 @@ APPROVED_IN_V2: set[str] = (
     | {f"textures/{folder}/{lump}.png" for folder, lump in EP2_BRICKS}
     | {f"textures/{folder}/{lump}.png" for folder, lump in D113_V2}
     | GEMINI_ENEMIES
-    | D123_ENEMIES)
+    | D123_ENEMIES
+    | {f"sprites/akm/{name}.png" for name in AKM_LUMPS}
+    # D126: the Gemini title screen, indexed in palette v2.
+    | {"graphics/shell/TITLEPIC.png"})
+# D128 (2026-10-24, the CEO: "Ok consorcio, añade paleta si es necesario"):
+# the Consortium's 95 SDCN lumps (consortium_gemini.py + gemini_enemy.py's
+# CONSORTIUM, palette_version=3), the only v3 assets: palette v3's
+# reich_greygreen gives the Reich half the grey-green skin of the Gemini
+# sheets (v2 snapped it to concrete grey). RGBA, so in no check_pk3 list.
+APPROVED_IN_V3: set[str] = (
+    {f"sprites/consortium/SDCN{f}{r}.png" for f in "ABCDEFGHQRS" for r in "12345678"}
+    | {f"sprites/consortium/SDCN{f}0.png" for f in "IJKLMNO"})
 
 
 def _digest(colours) -> str:
@@ -196,17 +225,34 @@ class PaletteVersionTests(unittest.TestCase):
         cls.disk = json.loads(PALETTE_JSON.read_text(encoding="utf-8"))
         cls.built = palette_mod.build_palette()
 
-    def test_file_is_v2_dated_with_its_decision(self):
-        self.assertEqual(self.disk["version"], 2)
-        self.assertEqual(self.disk["date"], V2_DATE)
-        self.assertEqual(self.disk["decision"], V2_DECISION)
+    def test_file_is_v3_dated_with_its_decision(self):
+        self.assertEqual(self.disk["version"], 3)
+        self.assertEqual(self.disk["date"], V3_DATE)
+        self.assertEqual(self.disk["decision"], V3_DECISION)
         history = {v["version"]: v for v in self.disk["versions"]}
-        self.assertEqual(sorted(history), [1, 2])
+        self.assertEqual(sorted(history), [1, 2, 3])
         self.assertEqual(history[1]["count"], V1_COUNT)
         self.assertEqual(history[2]["count"], V2_COUNT)
         self.assertEqual(history[2]["date"], V2_DATE)
         self.assertIn(V2_DECISION, history[2]["decision"])
         self.assertEqual(history[2]["adds"], V2_RAMPS)
+        self.assertEqual(history[3]["count"], V3_COUNT)
+        self.assertEqual(history[3]["date"], V3_DATE)
+        self.assertIn(V3_DECISION, history[3]["decision"])
+        self.assertEqual(history[3]["adds"], V3_RAMPS)
+
+    def test_v2_is_the_exact_prefix_of_v3(self):
+        """D128: v3 only appends, so no v1 or v2 index changed colour, and
+        colours_v2 still holds exactly v2 for the readers that mean v2."""
+        v2, v3 = self.disk["colours_v2"], self.disk["colours_v3"]
+        self.assertEqual(len(v3), V3_COUNT)
+        self.assertEqual(v3[:V2_COUNT], v2)
+        self.assertEqual(self.disk["added_index"]["reich_greygreen"], list(V3_SLOTS))
+        v3t = [tuple(c) for c in v3]
+        self.assertLessEqual(len(v3t), MAX_COLOURS)
+        self.assertEqual(len(v3t), len(set(v3t)))
+        self.assertEqual(palette_mod.colours(3), v3t)
+        self.assertEqual(palette_mod.colours(2), v3t[:V2_COUNT])
 
     def test_file_is_what_the_generator_writes(self):
         self.assertEqual(self.built, self.disk)
@@ -233,12 +279,12 @@ class PaletteVersionTests(unittest.TestCase):
         """artlib.quantize, check_pk3 and every generator read these keys."""
         self.assertEqual(self.disk["count"], V1_COUNT)
         self.assertEqual([r["name"] for r in self.disk["ramps"]], [r[0] for r in palette_mod.RAMPS])
-        self.assertFalse(set(V2_RAMPS) & set(self.disk["index"]))
-        self.assertEqual(palette_mod.LATEST_VERSION, 2)
+        self.assertFalse(set(V2_RAMPS + V3_RAMPS) & set(self.disk["index"]))
+        self.assertEqual(palette_mod.LATEST_VERSION, 3)
 
     def test_unknown_version_raises(self):
         with self.assertRaises(KeyError):
-            palette_mod.colours(3)
+            palette_mod.colours(4)
 
 
 class AddedRampTests(unittest.TestCase):
@@ -248,13 +294,26 @@ class AddedRampTests(unittest.TestCase):
         cls.added = {r["name"]: r for r in cls.disk["added_ramps"]}
 
     def test_the_three_d45_additions_in_slot_order(self):
-        self.assertEqual([r["name"] for r in self.disk["added_ramps"]], V2_RAMPS)
+        self.assertEqual([r["name"] for r in self.disk["added_ramps"]], V2_RAMPS + V3_RAMPS)
         start = V1_COUNT
-        for name in V2_RAMPS:
+        for name in V2_RAMPS + V3_RAMPS:
             self.assertEqual(self.disk["added_index"][name], [start, start + V2_STEPS - 1], name)
-            self.assertEqual(self.disk["colours_v2"][start:start + V2_STEPS], self.added[name]["colours"], name)
-            self.assertEqual(self.added[name]["version"], 2, name)
+            self.assertEqual(self.disk["colours_v3"][start:start + V2_STEPS], self.added[name]["colours"], name)
+            self.assertEqual(self.added[name]["version"], 3 if name in V3_RAMPS else 2, name)
             start += V2_STEPS
+
+    def test_reich_greygreen_is_grey_green(self):
+        """D128: green over red and over blue at every step past the darkest
+        (the Gemini skin), and less saturated than military_green, so a Reich
+        face never reads as a painted door."""
+        def sat(c):
+            return (max(c) - min(c)) / max(c)
+        ramp = self.added["reich_greygreen"]["colours"]
+        for r, g, b in ramp[1:]:
+            self.assertGreater(g, r)
+            self.assertGreater(g, b)
+        mil = palette_mod.ramp_colours("military_green")
+        self.assertLess(sat(ramp[8]), sat(mil[8]))
 
     def test_each_ramp_follows_the_palette_rule(self):
         declared = {r[0]: r for r in palette_mod.ADDED_RAMPS}
@@ -301,6 +360,8 @@ class AddedRampTests(unittest.TestCase):
         self.assertEqual(palette_mod.ramp_version("flag_red"), 1)
         for name in V2_RAMPS:
             self.assertEqual(palette_mod.ramp_version(name), 2)
+        for name in V3_RAMPS:
+            self.assertEqual(palette_mod.ramp_version(name), 3)
         with self.assertRaises(KeyError):
             palette_mod.ramp_version("no_such_ramp")
 
@@ -313,7 +374,7 @@ class ApprovedAssetsStayInTheirVersionTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.versions = {1: set(palette_mod.colours(1)), 2: set(palette_mod.colours(2))}
+        cls.versions = {v: set(palette_mod.colours(v)) for v in (1, 2, 3)}
         cls.pngs = sorted(ASSETS.rglob("*.png"))
 
     @staticmethod
@@ -330,15 +391,25 @@ class ApprovedAssetsStayInTheirVersionTests(unittest.TestCase):
         self.assertGreater(len(self.pngs), 30)
 
     def test_listed_v2_assets_exist(self):
-        for rel in APPROVED_IN_V2:
+        for rel in APPROVED_IN_V2 | APPROVED_IN_V3:
             self.assertTrue((ASSETS / rel).is_file(), rel)
+        self.assertFalse(APPROVED_IN_V2 & APPROVED_IN_V3)
 
     def test_every_asset_stays_inside_its_version(self):
         for path in self.pngs:
             rel = path.relative_to(ASSETS).as_posix()
-            version = 2 if rel in APPROVED_IN_V2 else 1
+            version = 3 if rel in APPROVED_IN_V3 else 2 if rel in APPROVED_IN_V2 else 1
             outside = self.used_colours(path) - self.versions[version]
             self.assertFalse(outside, f"{rel} (palette v{version}): {sorted(outside)[:5]}")
+
+    def test_the_v3_set_uses_the_v3_ramp(self):
+        """D128: the Consortium is listed in v3 because its Reich half wears
+        reich_greygreen; a v3 listing that no longer needs v3 is stale."""
+        ramp = set(palette_mod.ramp_colours("reich_greygreen"))
+        used = set()
+        for rel in APPROVED_IN_V3:
+            used |= self.used_colours(ASSETS / rel)
+        self.assertGreaterEqual(len(used & ramp), 12)
 
 
 if __name__ == "__main__":

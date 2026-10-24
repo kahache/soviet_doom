@@ -23,6 +23,12 @@ Versions (ART-BIBLE §3):
   `ADDED_RAMPS` (marble red, mosaic cobalt, mosaic gold, flesh pink) in the
   reserved slots, built with the same gamma rule. v1 is the first 162
   entries of v2, index for index, so a v1 PNG is a valid v2 PNG.
+- **v3**, 242 colours, D128 (CEO, 2026-10-24: "añade paleta si es
+  necesario"): v2 followed by one more ramp, `reich_greygreen` (the Reich's
+  grey-green skin), in slots 226-241 of the 30 that v2 left reserved. v2 is
+  the first 226 entries of v3, so no approved asset changes: a PNG only
+  ever holds colours of its own version (tests/test_palette_v2.py), and no
+  version before v3 has a colour in those slots.
 
 Layout of palette.json since v2. The top-level `colours` / `ramps` /
 `index` / `count` are still **v1**, deliberately: they are what
@@ -33,6 +39,12 @@ no approved v1 texture can pick up a v2 colour when it is regenerated (the
 generator opts in explicitly with `colours(2)` / `ramp_colours(name)`
 below. The top-level view moves to v2 only when the first v2 texture is
 approved, together with artlib, check_pk3 and their tests.
+
+Since v3 (D128) `colours_v2` stays exactly v2 (226 colours: every reader
+that means "palette v2" by that key, check_pk3 and the generators' tests
+among them, keeps meaning it) and `colours_v3` is the full v3 list; a
+generator opts into v3 with `colours(3)`. Only the Consortium (SDCN,
+gemini_enemy.CONSORTIUM) is drawn in v3 today.
 """
 
 from __future__ import annotations
@@ -138,6 +150,8 @@ EXTRAS = [
 # (~0.57), never confused with steel_blue's grey-blue (~0.12).
 PALETTE_V2_DATE = "2026-10-14"
 PALETTE_V2_DECISION = "D45"
+PALETTE_V3_DATE = "2026-10-24"
+PALETTE_V3_DECISION = "D128"
 ADDED_RAMPS = [
     # (name, darkest RGB, lightest RGB, steps, version, why)
     (
@@ -168,6 +182,21 @@ ADDED_RAMPS = [
         "Pink flesh of the Liberty Legion (LORE, BESTIARY 2.1): low "
         "saturation so it reads as skin; steel_blue gives its chrome.",
     ),
+    # ------------------------------------------------------- palette v3
+    # D128 (CEO, 2026-10-24): one ramp in the reserved slots 226-241 (14
+    # stay free). Endpoints fitted to the grey-green flesh of the Reich half
+    # in the CEO's Gemini sheets of the Consortium (consortium_gemini.ramps()
+    # "gflesh": G over R by ~15, over B by ~12 at mid tone); v2 had no such
+    # colour and snapped that skin to concrete grey. Bluer and greyer than
+    # military_green (HSV saturation ~0.12 against ~0.35), so a Reich face
+    # never reads as a steel door or a crate.
+    (
+        "reich_greygreen",
+        (8, 14, 11), (166, 188, 170), RAMP_STEPS, 3,
+        "Grey-green skin of the Reich's undead (LORE, BESTIARY): the "
+        "German half of the Consortium; greyer and bluer than "
+        "military_green so flesh never reads as painted steel.",
+    ),
 ]
 
 # Version history: (version, date, decision, what it added).
@@ -177,6 +206,9 @@ VERSIONS = [
     (2, PALETTE_V2_DATE, f"{PALETTE_V2_DECISION}: marble red, mosaic cobalt and gold, flesh pink "
      "in the reserved slots; approved textures keep their colours",
      [r[0] for r in ADDED_RAMPS if r[4] == 2]),
+    (3, PALETTE_V3_DATE, f"{PALETTE_V3_DECISION}: the Reich's grey-green skin in the reserved slots "
+     "(the Consortium's German half); approved assets keep their colours",
+     [r[0] for r in ADDED_RAMPS if r[4] == 3]),
 ]
 LATEST_VERSION = VERSIONS[-1][0]
 
@@ -246,14 +278,16 @@ def build_palette() -> dict:
     return {
         "name": "Soviet Doom palette",
         "version": LATEST_VERSION,
-        "date": PALETTE_V2_DATE,
-        "decision": PALETTE_V2_DECISION,
+        "date": PALETTE_V3_DATE,
+        "decision": PALETTE_V3_DECISION,
         "generator": "tools/art/palette.py",
         "layout": (
             "colours, ramps, extras, index and count are palette v1 (the frozen 162 colours every "
             "approved texture is drawn in, and what artlib.quantize and check_pk3 read by default). "
-            "colours_v2 is the full v2 list: v1 as its exact prefix, then added_ramps at the slots "
-            "given by added_index. A generator opts into v2 explicitly (palette.colours(2))."),
+            "colours_v2 is the full v2 list: v1 as its exact prefix, then the v2 added_ramps at the "
+            "slots given by added_index. colours_v3 is the full v3 list (D128): v2 as its exact "
+            "prefix, then the v3 added_ramps. A generator opts into a version explicitly "
+            "(palette.colours(2), palette.colours(3))."),
         "max_colours": MAX_COLOURS,
         "count": len(flat),
         "ramp_gamma": RAMP_GAMMA,
@@ -264,7 +298,8 @@ def build_palette() -> dict:
         "versions": versions,
         "added_ramps": added,
         "added_index": added_index,
-        "colours_v2": full,
+        "colours_v2": full[:counts[2]],
+        "colours_v3": full,
     }
 
 
@@ -286,7 +321,8 @@ def colours(version: int = 1) -> list[tuple[int, int, int]]:
     count = {v["version"]: v["count"] for v in pal["versions"]}
     if version not in count:
         raise KeyError(f"palette version {version} does not exist")
-    return [tuple(c) for c in pal["colours_v2"][:count[version]]]
+    full = pal.get(f"colours_v{max(count)}", pal["colours_v2"])
+    return [tuple(c) for c in full[:count[version]]]
 
 
 def ramp_colours(name: str) -> list[tuple[int, int, int]]:
@@ -311,7 +347,7 @@ def main() -> None:
     pal = build_palette()
     PALETTE_JSON.parent.mkdir(parents=True, exist_ok=True)
     PALETTE_JSON.write_text(json.dumps(pal, indent=1), encoding="utf-8")
-    print(f"wrote {PALETTE_JSON} (v{pal['version']}: {len(pal['colours_v2'])} colours; "
+    print(f"wrote {PALETTE_JSON} (v{pal['version']}: {len(pal['colours_v3'])} colours; "
           f"v1 {pal['count']} colours in {len(pal['ramps'])} ramps, "
           f"+{len(pal['added_ramps'])} added ramps)")
 

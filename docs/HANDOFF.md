@@ -41,7 +41,7 @@ D121 Icebox cleanup). Done tonight, all committed and pushed (HEAD after 0c20524
   ammo of MAP01-09 per BALANCE §8 + the PM's amendment (rockets ≤ 30 % outside bosses, fuel ≤ 15 %), 42 Catalan
   engine strings, Episode 1 skies (D121) (df2ecdd). verify fast PASS; **33/33 routes PASS** on df2ecdd (0c20524 evidence).
 - Play build **v1.2-rc3** (not published): `C:\Users\littl\Desktop\SovietDoom-prueba\rc3\SovietDoom` (rc2 left as it was).
-- PM proposals doc `docs/product/2026-10-23_P4_propuestas-siguientes-versiones.md`; V3 list in `docs/ICEBOX.md`.
+- PM proposals doc `docs/product/2026-10-23_P4_next-version-proposals.md`; V3 list in `docs/ICEBOX.md`.
 
 **Next, when the CEO switches the PC on:**
 1. **Gemini** (window from 23 Oct 08:19) with `docs/product/2026-10-23_P4_gemini-prompt-pack.md` (gunner fire frame
@@ -75,7 +75,7 @@ Draft releases (not public): v1.1 and **v1.2-rc1** (everything of today).
 **Next, in order:**
 1. **Gemini** (daily image limit reset 22 Oct 17:33; drive the CEO's Chrome per the `reference-gemini-chrome-workflow` memory;
    upload: open the "+" menu, `find` the hidden file inputs, `file_upload` to the middle ref):
-   a. **TT-33** (D111): ready + fire, bare hands; weapon prompt in `docs/product/2026-10-20_0030_M2_gemini-armas.md`; then `tools/art/gemini_frames.py`.
+   a. **TT-33** (D111): ready + fire, bare hands; weapon prompt in `docs/product/2026-10-20_0030_M2_gemini-weapons.md`; then `tools/art/gemini_frames.py`.
    b. **SD_LegionGunner** (SDLG): only `gem_gunner_turn.png` exists; walkL/walkR/aim/fire/death; frame list in `docs/engine/2026-10-22_P4_ep2-enemies.md`.
    c. **SD_LibertyColossus** (SDLC) from scratch (same doc).
    d. **The Consortium** (SDCN, `docs/engine/2026-10-22_P4_ep3-final-boss.md`) and the **AKM** (`docs/engine/2026-10-22_P4_akm.md`, prompt block ready).
@@ -113,7 +113,7 @@ Draft releases (not public): v1.1 and **v1.2-rc1** (everything of today).
 2. Gemini's daily image limit resets 2026-10-22 17:33: then the TT-33 (D111),
    the Legion gunner's frames (walkL/walkR/aim/fire/death) and the Colossus
    from scratch, and the enemy re-asks listed in the review sheet. Method and
-   prompts: `tools/art/gemini_enemy.py`, `docs/product/2026-10-20_0030_M2_gemini-armas.md`.
+   prompts: `tools/art/gemini_enemy.py`, `docs/product/2026-10-20_0030_M2_gemini-weapons.md`.
    Sheets are local only (D77): `work/art/reference/enemies/gemini/`.
 3. The CEO owes: v1.1 or v1.2; the Marx-Engels pair (cells, mirror, slogan
    split, alignment); the General's death voice (new round in
@@ -137,7 +137,7 @@ prompts: upload `work/art/reference/enemies/clean_<enemy>.png` (swastikas blanke
 through the hidden image input, then turn / walkL / walkR / aim / fire / death
 (cartoonish, no blood words).
 
-## NIGHT SHIFT 2026-10-21 (D102) — DONE 23:30; the morning report is `docs/product/2026-10-21_2330_P0_informe-noche.md`
+## NIGHT SHIFT 2026-10-21 (D102) — DONE 23:30; the morning report is `docs/product/2026-10-21_2330_P0_night-report.md`
 
 The CEO is asleep and wants everything advanced; ask him nothing until morning.
 Work items, in this order (tick them here as they land):

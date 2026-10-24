@@ -3,9 +3,10 @@
 Owner: PM. Status: **requested by the CEO 2026-10-13**, commissioned.
 Russian mirror: `docs/ru/product/LANGUAGE-SWITCH.md`.
 
-**Veredicto literal:** "Molaría que el juego permita elegir si lanzar todo en
+**Literal verdict:** "Molaría que el juego permita elegir si lanzar todo en
 ruso. Y si se lanza en inglés, que algunas letras parezcan (o se tomen) del
 cirílico."
+("It would be cool if the game let me choose to launch everything in Russian. And if it is launched in English, some letters should look like (or be taken from) Cyrillic.")
 
 Two separate things, with one shared blocker.
 

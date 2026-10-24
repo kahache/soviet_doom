@@ -177,6 +177,17 @@ tinted chrome) stays as its own enemy, **`SD_ChromeGeneral`, "The Chrome
 Marshal"** (21113): the colossus's behaviour and 3000 HP on that look,
 MAP08's mini-boss on skills 3-4 where the colossus stood; MAP06 keeps the
 statue. **NOT YET SEEN IN THE ENGINE** (D26).
+**D128, 2026-10-24: the Consortium, the AKM, the walks and the title
+drawn.** The CEO ("Pantalla de inicio CON brazaletes. Logo sin recuadro.
+OK AKM y andares. Ok consorcio, añade paleta si es necesario"):
+`SD_Consortium` wears its own `SDCN` (95 lumps,
+`assets/sprites/consortium/`, no tint or scale left, §6.12), its Reich half
+in palette v3's `reich_greygreen` (ART-BIBLE §3: one ramp appended in
+reserved slots, no approved asset changed); `SD_Akm` its own `SDAK`,
+`SDAF`, `SDAQ` (§6.12; its magazine `SDAM` is still `SDCL` tinted); the
+gunner's and the colossus's walk letters A and C are new strides (D127);
+`TITLEPIC` is the Gemini painting and `M_DOOM` lost its black plate
+(§6.6). **NOT YET SEEN IN THE ENGINE** (D26).
 Russian mirror: `docs/ru/engine/MOD-SPEC.md`.
 
 Minimal glossary (for anyone new to Doom modding):
@@ -222,9 +233,9 @@ sovietdoom.pk3
 ├── textures/SD*.png        approved wall textures: SDCONC1-2, SDDOOR1, SDPOSTR1-2, SDSTAR1,
 │                           SDSTEL1 and the eight switch faces SDSW1A-D / SDSW2A-D (§4.3)
 ├── flats/SD*.png           approved flats: SDFLR1-3, SDCEIL1-2
-├── graphics/TITLEPIC.png   title screen, 320×200 (D18)
+├── graphics/TITLEPIC.png   title screen, 320×200: the Gemini painting, palette v2, armband variant A (D126, D128; D18's "Plakat" retired)
 ├── graphics/INTERPIC.png   intermission background, 320×200 (D18)
-├── graphics/M_DOOM.png     main-menu logo, 200×64, placed by MENUDEF (§6.6)
+├── graphics/M_DOOM.png     main-menu logo, 200×64, placed by MENUDEF (§6.6); since D128 the lockup without its black plate
 ├── graphics/M_PAUSE.png    pause sign, plaque P2 in English, 77×20 (D48)
 ├── graphics/STKEYS0-2.png  the key icons, 7×5 (D80)
 ├── graphics/STBAR.png, STARMS.png, STF*.png (42), STTNUM0-9, STTMINUS, STTPRCNT,
@@ -1160,7 +1171,7 @@ in the IWAD.
 | `SD_Tokarev` | `Pistol` *replaces Pistol* | Slot 2, `Clip`. |
 | `SD_Izh` | `Shotgun` *replaces Shotgun* | Slot 3, `Shell`. Two barrels then a break-open reload (`int barrels`). Dropped by a trooper it carries 2 shells (`ModifyDropAmount`, D119). |
 | `SD_Ppsh` | `Chaingun` *replaces Chaingun* | Slot 4, `Clip`. |
-| `SD_Akm` | `DoomWeapon` (replaces nothing) | Slot 4's second weapon (D112, in the mod since D116): the AKM, `SD_AkmAmmo`, 21008. Provisional look §6.12. Design `docs/engine/2026-10-22_P4_akm.md`. |
+| `SD_Akm` | `DoomWeapon` (replaces nothing) | Slot 4's second weapon (D112, in the mod since D116): the AKM, `SD_AkmAmmo`, 21008. Its own look since D128 (`SDAK`, `SDAF`, `SDAQ`; §6.3, §6.12); its magazine `SDAM` is still provisional. Design `docs/engine/2026-10-22_P4_akm.md`. |
 | `SD_AkmAmmo` | `Ammo` (a pool of its own) | The AKM's 7.62×39 pool and its 30-round magazine, 21020, in `zscript/sd/ammo.zs`; dropped by the Legion gunner. ADR 011, §6.4. |
 | `SD_Rpg7` | `RocketLauncher` *replaces RocketLauncher* | Slot 5, `RocketAmmo`. Fires `SD_Pg7Grenade`. |
 | `SD_Roks3` | `PlasmaRifle` *replaces PlasmaRifle* | Slot 6, `Cell`. Fires `SD_FlameBlob`. |
@@ -1182,7 +1193,7 @@ in the IWAD.
 | `SD_LegionGunner` | `SD_Monster` *replaces ChaingunGuy* | P4 (D104, in the mod since D116): Legion heavy machine-gunner, 80 HP, bursts of 4–6 hitscan rounds then a pause. Drops `SD_AkmAmmo`. Own sprite `SDLG` since D123 (§6.3, §6.12). |
 | `SD_LibertyColossus` | `SD_Monster` *replaces SpiderMastermind* | P4: Episode 2's boss, 3000 HP (D119, the Spider Mastermind's; was 4500), torch rockets far, a fire jet near, a stomp close. Fires `SD_ColossusRocket` (`SD_Pg7Grenade`) and `SD_ColossusFlame` (`SD_FlameBlob`). MAP06's boss; own sprite `SDLC` since D123. |
 | `SD_ChromeGeneral` | `SD_LibertyColossus` (replaces nothing) | P4 (D123): "The Chrome Marshal", the colossus variant: the colossus's body, flags, species, sounds and three verbs, 3000 HP, on the General's `SDGN` at `Scale` 1.3 with the chrome `Translation` the colossus wore from D116 (an approved design, a palette swap, not a placeholder). Own `Tag` and obituaries (`SD_TAG_CHROME`, `SD_OB_CHROME`, `SD_OBHIT_CHROME`). MAP08's mini-boss on skills 3-4. `BESTIARY.md` §12 row 12. |
-| `SD_Consortium` | `SD_Monster` (replaces nothing) | P4: Episode 3's final boss, 4000 HP (D119, the Cyberdemon's; was 9000), rooted then free at half health, calls servants of both factions. Fires `SD_ConsortiumRocket`, `SD_ConsortiumOrb` (`SD_GeneralShell`), `SD_ConsortiumFlame`. Design `docs/engine/2026-10-22_P4_ep3-final-boss.md`. |
+| `SD_Consortium` | `SD_Monster` (replaces nothing) | P4: Episode 3's final boss, 4000 HP (D119, the Cyberdemon's; was 9000), rooted then free at half health, calls servants of both factions. Fires `SD_ConsortiumRocket`, `SD_ConsortiumOrb` (`SD_GeneralShell`), `SD_ConsortiumFlame`. Own sprite `SDCN` since D128 (§6.3, §6.12). Design `docs/engine/2026-10-22_P4_ep3-final-boss.md`. |
 | `SD_ConsortiumWounded` | `SD_Consortium` | Test fixture for the engine pass, not an enemy: the boss at half health + 100, `summon` only; no number, no string. Delete when the pass no longer needs it. |
 | `SD_ColossusRocket`, `SD_ColossusFlame`, `SD_ConsortiumRocket`, `SD_ConsortiumOrb`, `SD_ConsortiumFlame` | the arsenal's / the General's projectile | The P4 bosses' projectiles, on their parents' sprites; the Consortium's fly through monsters (`CanCollideWith`). Not placeable. |
 | `SD_StormBolt`, `SD_DoughboyShell`, `SD_PanzerShell`, `SD_GeneralShell` | `Actor` | The four enemy projectiles. Not placeable. |
@@ -2400,8 +2411,8 @@ Chrome Marshal's own (`SD_ChromeGeneral`, `SDGN` ×1.3 tinted chrome, D123).
 |---|---|---|---|---|
 | `SD_LegionGunner` | `SDLG` | 70 | the trooper's letters A–U | **`SDLG`**, installed (D123), `assets/sprites/legion_gunner/` |
 | `SD_LibertyColossus` | `SDLC` | 81 | the General's letters A–G, Q–R, H–P | **`SDLC`**, installed (D123), `assets/sprites/colossus/` |
-| `SD_Consortium` | `SDCN` | 95 | Q R rooted, A–D walk, E–H, S the Breach, I–O death | `SDPS`, ×1.75, tinted cobalt |
-| `SD_Akm` | `SDAK` A–B held, `SDAF` A flash, `SDAQ` A pickup | 4 | the PPSh-41's | `SDPP`, `SDPF`, `SDPQ` (the pickup tinted) |
+| `SD_Consortium` | `SDCN` | 95 | Q R rooted, A–D walk, E–H, S the Breach, I–O death | **`SDCN`**, installed (D128), `assets/sprites/consortium/`; palette v3 |
+| `SD_Akm` | `SDAK` A–B held, `SDAF` A flash, `SDAQ` A pickup | 4 | the PPSh-41's | **`SDAK`, `SDAF`, `SDAQ`**, installed (D128), `assets/sprites/akm/` |
 | `SD_AkmAmmo` | `SDAM` A | 1 | one curved magazine | `SDCL`, tinted |
 
 ### 6.4 Ammunition (contract with `art-director` and `level-designer`)
@@ -2561,7 +2572,7 @@ are quoted in `src/lumps/MENUDEF` itself.
 |---|---|---|
 | Language switch | `OptionString "SD_LanguageValues"` with `auto` / `default` / `ru` / `ca` (P6), driving GZDoom's own archived `language` CVar | `OptionValue` parses its left column as a NUMBER and **the game will not start**; the mod declares no CVar of its own and no `CVARINFO` |
 | Where the switch lives | `AddOptionMenu` on **both** `OptionsMenu` and `OptionsMenuSimple`, `BEFORE "os_Menu"` | `m_simpleoptions` defaults to true, so "Options" opens the SHORT screen; appending at the end puts the row below the fold |
-| Main-menu logo | `LISTMENU "MainMenu"` redeclared with `StaticPatch 60, 0, "M_DOOM"` | the engine's own value is `94, 2`, which does not sit on the lockup painted into `TITLEPIC`. **This row is the contract: `M_DOOM` (200×64) goes at x=60, y=0 of the 320×200 screen.** Measured 2026-10-13: overlaying `assets/graphics/shell/M_DOOM.png` on `TITLEPIC.png` at (60,0) gives a mean per-channel difference of 6, against 22 or more at every neighbouring offset. The generator's manifest under gitignored `work/art/shell/` is evidence, not contract — it is not in every clone. Moving the lockup means changing this row, `MENUDEF` and `tests/test_language.py::MainMenuLogoTest` together. Since D31 the skill screen draws the same logo at the same place |
+| Main-menu logo | `LISTMENU "MainMenu"` redeclared with `StaticPatch 60, 0, "M_DOOM"` | the engine's own value is `94, 2`, which does not sit on the lockup painted into `TITLEPIC`. **This row is the contract: `M_DOOM` (200×64) goes at x=60, y=0 of the 320×200 screen.** Measured 2026-10-13: overlaying `assets/graphics/shell/M_DOOM.png` on `TITLEPIC.png` at (60,0) gives a mean per-channel difference of 6, against 22 or more at every neighbouring offset; re-measured 2026-10-24 on D128's Gemini `TITLEPIC` and the plate-less `M_DOOM`: 0 on the logo's opaque pixels at (60,0), against 31 or more one pixel off. The generator's manifest under gitignored `work/art/shell/` is evidence, not contract — it is not in every clone. Moving the lockup means changing this row, `MENUDEF` and `tests/test_language.py::MainMenuLogoTest` together. Since D31 the skill screen draws the same logo at the same place |
 | Main-menu items (D31) | `TextItem "$SD_MNU_*"` in `Font "SDMENU", "Cream", "Gold"` (normal, selected). Same hotkeys (`n o l s r q`), same `IfOption(SwapMenu)` / `IfOption(ReadThis)` branches and same target menus as the engine's `PatchItem` lines they replace; `LineSpacing 16` and `Position 97, 72` (`97, 64` with ReadThis) unchanged | Freedoom's `M_NGAME`, `M_OPTION`, `M_LOADG`, `M_SAVEG`, `M_RDTHIS`, `M_QUITG` are pictures of English words: they cannot be translated and they are not our type. `Cream` / `Gold` because the glyphs are drawn red: untranslated they would be red on `TITLEPIC`'s red. Cream echoes the logo's lettering and gold its rule and star (`art-director`'s proposal); the skull selector still marks the current row |
 | Skill screen (D31) | `LISTMENU "SkillMenu"`: `StaticPatch 60, 0, "M_DOOM"`; `Font "SDMENU", "Cream"` and **one** header, `StaticText 32, 70, "$SD_MNU_CHOOSESKILL"`; then `Font "SmallFont", "Red", "Gold"`, `LineSpacing 12`, `Position 32, 90`. **Order matters:** a static item takes the descriptor's font at the moment it is parsed, while the five rungs are built at run time from MAPINFO in the font the descriptor ends with — so `SmallFont` must be the LAST `Font` line | Freedoom's `M_NEWG` / `M_SKILL` at (96,14) / (54,38) sit on the name painted into `TITLEPIC` (visible in `docs/qa/evidence/2026-10-13_0955_F2_skill-ladder-en.png`). `art-director`'s layout (`docs/art/previews/2026-10-13_1554_F2_menu-sweep.png`) keeps the logo where the title screen has it and puts one header under it; "New Game" is dropped as a header because the player has just chosen it |
 | Episode screen (D41) | `LISTMENU "EpisodeMenu"`: `NetgameMessage "$NEWGAME"`; `StaticPatch 60, 0, "M_DOOM"`; `Font "SDMENU", "Cream"`, `StaticText 32, 70, "$SD_MNU_CHOOSEEPISODE"`; then `Font "SmallFont", "Red", "Gold"`, `LineSpacing 12`, `Position 32, 90`. The skill screen's pattern exactly, and for the same reason: the items are built at run time in the font the descriptor ends with | The engine's body draws Freedoom's `M_EPISOD` ("Which episode?") at (54,38), a picture of English words on the name painted into `TITLEPIC` (T12). The episode names are proper nouns (D22's exception list), so they stay in `SmallFont`; only the header is `SDMENU` (§4.4, ADR 007) |
@@ -2907,8 +2918,8 @@ only; **no new PNG enters `assets/`** for them.
 |---|---|---|---|---|
 | `SD_LegionGunner` | `zscript/monsters/legion_gunner.zs` | **its own `SDLG` since D123** (from D116 the trooper's `SDLT`, frame for frame) | nothing left to tell: the `Translation` to brass is gone | `SDLG`, installed |
 | `SD_LibertyColossus` | `zscript/monsters/liberty_colossus.zs` | **its own `SDLC` since D123** (from D116 the General's `SDGN`, Q/R the stomp) | nothing left: `Scale 1.3` and the chrome `Translation` are gone from his file and live on as the Chrome Marshal's design (`SD_ChromeGeneral`, below) | `SDLC`, installed |
-| `SD_Consortium` (and the `SD_ConsortiumWounded` fixture) | `zscript/monsters/consortium.zs` | the heavy Panzermensch's `SDPS` | `Scale 1.75`, `Translation` to the portal's cobalt | `SDCN` |
-| `SD_Akm` | `zscript/weapons/akm.zs` | the PPSh-41's `SDPP` A–B, `SDPF` A, `SDPQ` A | the floor pickup's `Translation` (plum-orange); **in hand it is the PPSh-41's picture** (a first-person sprite has its own `PSprite.Translation`, so the actor's is not expected to reach it: NOT VERIFIED). The ammunition count and the rhythm tell them apart | `SDAK`, `SDAF`, `SDAQ` |
+| `SD_Consortium` (and the `SD_ConsortiumWounded` fixture) | `zscript/monsters/consortium.zs` | **its own `SDCN` since D128** (from D116 the heavy Panzermensch's `SDPS`) | nothing left to tell: `Scale 1.75` and the cobalt `Translation` are gone; Spawn and the rooted `See` show Q R, the Breach's first two frames S (`tests/test_ep3_boss.py`) | `SDCN`, installed |
+| `SD_Akm` | `zscript/weapons/akm.zs` | **its own `SDAK` A–B, `SDAF` A, `SDAQ` A since D128** (from D116 the PPSh-41's `SDPP`, `SDPF` and the tinted `SDPQ`, letter for letter) | nothing left to tell: the pickup's `Translation` is gone; `tests/test_akm_sprites.py` pins the states | `SDAK`, `SDAF`, `SDAQ`, installed |
 | `SD_AkmAmmo` | `zscript/sd/ammo.zs` | the 7.62×25 magazine's `SDCL` A; icon `SDCLA0` | `Translation` (plum-orange) on the floor | `SDAM` |
 
 **Swapped by D123 (2026-10-23).** The gunner's and the colossus's swaps
@@ -2922,6 +2933,16 @@ marked:** `SD_ChromeGeneral` (`zscript/monsters/chrome_general.zs`, D123)
 wears the General's `SDGN` at `Scale 1.3` with the colossus's old chrome
 `Translation` as its approved design, the colossus's state machine line
 for line; its tint carries no mark because no art will replace it.
+
+**Swapped by D128 (2026-10-24).** The Consortium's and the AKM's swaps
+were done by their install patches
+(`work/art/enemies_gemini/consortium/consortium.zs.patch`, with the two
+state edits the drawing adds, and
+`work/art/weapons/hand_G/akm/install/akm-install.patch`): no
+`PROVISIONAL-D116` line is left in `consortium.zs` or `akm.zs`;
+`tests/test_ep3_boss.py` (`test_its_own_look_is_installed`) and
+`tests/test_akm_sprites.py` hold that. The only marked line left in the
+mod is `SD_AkmAmmo`'s (`SDAM`, below).
 
 **The rule.** Every line of code that exists only because the art is not
 drawn carries the comment mark `PROVISIONAL-D116`: the `Translation`, the
@@ -3020,7 +3041,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | ~~T19~~ | ~~Nothing has been seen in the engine: the eight classes compile only in theory until the PM's batch run (D26).~~ **Paid 2026-10-13** by the PM's engine pass (GZDoom 4.14.2, Freedoom 0.13.0): the classes load with no error, the gallery shows all eight, the drops and the General's single summon were counted, and MAP01 v3's 33 enemies spawn through Doom's numbers. Evidence `docs/qa/evidence/2026-10-13_1705_F5_map02-bestiary.log` and `…-gallery.png` (commit `2b1aba5`), `docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass.log` (commit `bcbf35f`); the table is in ADR 006. What that pass did **not** settle is debt T22. |  |
 | ~~T20~~ | ~~ADR 006 is owed.~~ **Paid 2026-10-13**: `docs/engine/adr/006-bestiary-actors.md` (seven decisions, what the engine showed, what it did not). Written in the working tree; the commit is the PM's (D6). |  |
 | T21 | Doom monsters with no Soviet replacement (58 spectre, the rest of Doom II's roster) still spawn Freedoom's actors. **Partly paid by D116 (2026-10-22):** the chaingunner (65) is `SD_LegionGunner` and the Spider Mastermind (7) `SD_LibertyColossus`; MAP01 §8's "Legion heavy gunner" exists now; the P4 maps place the gunner (21110), the colossus (21111, MAP06) and since D123 the Chrome Marshal (21113, MAP08). | `level-designer`, where a map wants a gunner |
-| T26 | **The P4 actors wear provisional looks (D116, §6.12)**: the Consortium and the AKM on existing sprites, tinted and scaled in code (**the gunner and the colossus paid by D123**: their own `SDLG` and `SDLC`; the Chrome Marshal's tint is a design, not debt), and on existing sounds under their own names (§6.2, "P4 sounds"); the AKM in hand is the PPSh-41's picture; status bar A has no row for the AKM's pool (ADR 011). None of it is seen in the engine (D26): the design docs' checks E1–E11 and A1–A9 are owed. | the PM's engine pass now; the art and sound swaps as Gemini's frames and `sound-designer`'s takes are approved |
+| T26 | **The P4 actors wore provisional looks (D116, §6.12)**: existing sprites, tinted and scaled in code (**paid**: the gunner and the colossus by D123, their own `SDLG` and `SDLC`; the Consortium and the AKM by D128, their own `SDCN` and `SDAK`/`SDAF`/`SDAQ`; the Chrome Marshal's tint is a design, not debt). **Still open:** the AKM's magazine `SDAM` (`SDCL` tinted), and existing sounds under their own names (§6.2, "P4 sounds"); status bar A has no row for the AKM's pool (ADR 011). None of it is seen in the engine (D26): the design docs' checks E1–E11 and A1–A9 are owed. | the PM's engine pass now; the art and sound swaps as Gemini's frames and `sound-designer`'s takes are approved |
 | T17 | **The English `LANGUAGE` section still carries Latin transliterations** (`PG-7V`, `7.62x25`) although the glyphs for the Cyrillic forms D17 asks for exist since D24 (§6.4). Two ASCII tests pin the current state (`tests/test_language.py`, `tests/test_arsenal.py`). | `mod-engineer`, one text change plus an engine screenshot of the HUD |
 | T22 | **Bestiary behaviours the engine pass did not show** (ADR 006, "NOT VERIFIED"): infighting between our classes and the native `GetSpecies` rule behind the explicit `Species`; the colour of `BloodColor`; the General's order line on screen (the console log carries it); the recruits entering the chase and the blocked-spot fallback; the attack helpers' damage (both runs were god mode, deaf or `notarget`); how far a dead Doughboy falls; the sounds. | the PM's next engine pass, with enemies awake and one fighting another; `qa-engineer` for the sounds, with a human |
 | T23 | **The radio (§6.7) is unseen.** `SD_Radio` has not run in the engine (D26). ~~its editor number 21200 is not yet in `MAPINFO`~~ (`MAPINFO` gives 21200 to `SD_Radio` since; read 2026-10-14). ~~its placeholder `PMAP` A is the computer area map's pickup, which MAP01 also places (2026): a player may walk at the radio expecting a pickup.~~ **The sprite part is paid 2026-10-14 (D63):** `SDRD` A, an Okean-209 on a tabouret (§6.3, "The pickups, installed by D63"); `PMAP` is retired from §5.1. | the PM's engine pass (ADR 008 checklist), which now also sees `SDRD` A draw |
