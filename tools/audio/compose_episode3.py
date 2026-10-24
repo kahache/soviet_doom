@@ -149,12 +149,12 @@ M7_CODA_H = "Bm | C | F#7 | F#7"
 M7_CODA = mel("B3:4 G4:8 F#4:4 | E4:4 C5:8 B4:4 | A#4:16 | r:16")
 
 M7_VARIANTS = (
-    Variant("D_SDM07A", "A", 116.0, 0, "Si menor, 116 BPM: pings de radar en celesta con eco, triángulo "
-            "en corcheas, trémolo grave y contrabajos, el tema en trompas; sección B «la aurora boreal» "
-            "en re mayor (cuerdas lentas + celesta)"),
-    Variant("D_SDM07B", "B", 122.0, 2, "Do sostenido menor, 122 BPM, en medio tiempo: radar en vibráfono "
-            "y glockenspiel, pizzicato 3-3-2, tema en trompas + coro «oohs»; sección B «la ventisca» "
-            "(el motivo en disminución, trombones contra trompas, cuerdas en semicorcheas, taiko)"),
+    Variant("D_SDM07A", "A", 116.0, 0, "B minor, 116 BPM: radar pings on celesta with echo, triangle "
+            "in eighths, low tremolo and double basses, the theme on horns; B section «the aurora borealis» "
+            "in D major (slow strings + celesta)"),
+    Variant("D_SDM07B", "B", 122.0, 2, "C-sharp minor, 122 BPM, half-time: radar on vibraphone "
+            "and glockenspiel, 3-3-2 pizzicato, theme on horns + «oohs» choir; B section «the blizzard» "
+            "(the motif in diminution, trombones against horns, strings in sixteenths, taiko)"),
 )
 
 
@@ -252,7 +252,7 @@ def build_map07(v: Variant) -> Song:
     fs = (6 + t) % 12                                         # the dominant's pitch class
 
     # -- Intro: the polar night, the radar alone, then the call -------------------------------
-    i0 = s.section("Intro · la noche polar", "Bm | Bm | Bm | F#sus4,F#7")
+    i0 = s.section("Intro · the polar night", "Bm | Bm | Bm | F#sus4,F#7")
     for b in range(i0, i0 + 4):
         m7_radar(s, b, fl, 0 if b < i0 + 2 else 1)
         m7_ice(s, b, 0 if b < i0 + 2 else 1, fl)
@@ -262,7 +262,7 @@ def build_map07(v: Variant) -> Song:
     s.roll("timp", (i0 + 3) * 4 + 2.0, 2.0, 30, 80, 0.25, p=in_range(fs, pitch("E2")))
 
     # -- A: the theme ---------------------------------------------------------------------------
-    a1 = s.section("A · el tema", M7_THEME_H)
+    a1 = s.section("A · the theme", M7_THEME_H)
     s.line("horns", M7_THEME, a1, 98, LEGATO, accent=5)
     if not A:
         s.line("oohs", M7_THEME, a1, 70, LEGATO)
@@ -274,7 +274,7 @@ def build_map07(v: Variant) -> Song:
     s.hit(CRASH, a1 * 4, 76)
 
     # -- A': the counter-line ------------------------------------------------------------------
-    a2 = s.section("A' · contracanto", M7_THEME_H)
+    a2 = s.section("A' · countermelody", M7_THEME_H)
     s.line("horns", M7_THEME, a2, 100, LEGATO, accent=5)
     s.line("tbn", M7_COUNTER, a2, 86, LEGATO)
     if not A:
@@ -288,7 +288,7 @@ def build_map07(v: Variant) -> Song:
 
     # -- B ----------------------------------------------------------------------------------------
     if A:
-        b0 = s.section("B · la aurora boreal", M7_AURORA_H)
+        b0 = s.section("B · the aurora borealis", M7_AURORA_H)
         s.line("strings", M7_AURORA, b0, 94, LEGATO, accent=3)
         s.line("horns", M7_AURORA[8:], b0 + 8, 80, LEGATO, octave=-1)
         for b in range(b0, b0 + 16):
@@ -304,7 +304,7 @@ def build_map07(v: Variant) -> Song:
                 s.drums(b, {MUTE_TRIANGLE: "X.x.x.x.x.x.x.x."}, 40)
         s.hit(CRASH, (b0 + 8) * 4, 84)
     else:
-        b0 = s.section("B · la ventisca", M7_STORM_H)
+        b0 = s.section("B · the blizzard", M7_STORM_H)
         for rep in range(4):
             b1 = b0 + 4 * rep
             bars = M7_STORM if rep % 2 == 0 else M7_STORM[:2] + M7_STORM_ALT
@@ -322,7 +322,7 @@ def build_map07(v: Variant) -> Song:
             s.hit(CRASH, b1 * 4, 84 + 6 * rep)
 
     # -- C: the radar ----------------------------------------------------------------------------
-    c0 = s.section("C · el radar", M7_RADAR_H)
+    c0 = s.section("C · the radar", M7_RADAR_H)
     s.line("tbn", M7_DEEP, c0, 90, LEGATO)
     s.line("tuba", M7_DEEP, c0, 70, LEGATO, octave=-1)
     if not A:
@@ -336,7 +336,7 @@ def build_map07(v: Variant) -> Song:
     s.roll("timp", (c0 + 7) * 4, 4.0, 36, 96, 0.25, p=in_range(fs, pitch("E2")))
 
     # -- Build -----------------------------------------------------------------------------------
-    k0 = s.section("Subida", M7_BUILD_H)
+    k0 = s.section("Build", M7_BUILD_H)
     s.line("horns", M7_BUILD, k0, 92, MARCATO, swell=4)
     s.line("tbn", M7_BUILD, k0, 84, MARCATO, octave=-1, swell=4)
     if A:
@@ -376,7 +376,7 @@ def build_map07(v: Variant) -> Song:
         s.hit(CRASH, b1 * 4, 100)
 
     # -- Coda: the call fades back into the night --------------------------------------------------
-    d0 = s.section("Vuelta", M7_CODA_H)
+    d0 = s.section("Return", M7_CODA_H)
     s.line("horns", M7_CODA, d0, 96, LEGATO)
     s.line("tbn", M7_CODA, d0, 78, LEGATO, octave=-1)
     for b in range(d0, d0 + 4):
@@ -417,11 +417,11 @@ M8_CODA_H = "Gm,Dm | Eb,Bb | A7 | A7"
 M8_CODA = mel("D4:4 G4:4 F4:3 E4:1 D4:4 | Bb3:4 Eb4:4 D4:3 C4:1 Bb3:4 | A3:4 E4:4 G4:2 F4:2 E4:4 | A3:4 r:4 A3:4 r:4")
 
 M8_VARIANTS = (
-    Variant("D_SDM08A", "A", 124.0, 0, "Re menor, 124 BPM: el tema en trombones + tuba, astillero de "
-            "campana de ride y agogó, caja de marcha, sónar en eco, campana de barco; sección B "
-            "«el muelle» con trompetas"),
-    Variant("D_SDM08B", "B", 120.0, -2, "Do menor, 120 BPM, en medio tiempo y más pesada: taiko, metales "
-            "en bloque, coro de hombres doblando el tema; «el muelle» en trompas + coro, ligado"),
+    Variant("D_SDM08A", "A", 124.0, 0, "D minor, 124 BPM: the theme on trombones + tuba, a shipyard of "
+            "ride bell and agogo, marching snare, echoing sonar, ship's bell; B section "
+            "«the dock» with trumpets"),
+    Variant("D_SDM08B", "B", 120.0, -2, "C minor, 120 BPM, half-time and heavier: taiko, block "
+            "brass, men's choir doubling the theme; «the dock» on horns + choir, legato"),
 )
 
 
@@ -510,7 +510,7 @@ def build_map08(v: Variant) -> Song:
     a_pc = (9 + v.transpose) % 12
 
     # -- Intro: the fjord, the sonar, the engines start ------------------------------------------
-    i0 = s.section("Intro · el fiordo", "Dm | Dm | Gm,Dm | A7")
+    i0 = s.section("Intro · the fjord", "Dm | Dm | Gm,Dm | A7")
     for b in range(i0, i0 + 4):
         m8_sonar(s, b, every=2, vel=84)
         bass_roots(s, "low", b, "D2", 52)
@@ -524,7 +524,7 @@ def build_map08(v: Variant) -> Song:
     s.roll("timp", (i0 + 3) * 4 + 2.0, 2.0, 50, 100, 0.25, p=in_range(a_pc, pitch("E2")))
 
     # -- A: the hull-call in the trombones -----------------------------------------------------
-    a1 = s.section("A · el tema", M8_THEME_H)
+    a1 = s.section("A · the theme", M8_THEME_H)
     s.line("tbn", M8_THEME, a1, 100, MARCATO, accent=8)
     s.line("tuba", M8_THEME, a1, 82, MARCATO, octave=-1)
     if not A:
@@ -541,7 +541,7 @@ def build_map08(v: Variant) -> Song:
     s.hit(CRASH, a1 * 4, 100)
 
     # -- A': horns on top, the strings' counter-line ---------------------------------------------
-    a2 = s.section("A' · los metales", M8_THEME_H)
+    a2 = s.section("A' · the brass", M8_THEME_H)
     s.line("horns", M8_THEME, a2, 100, MARCATO, octave=1, accent=6)
     s.line("tbn", M8_THEME, a2, 92, MARCATO)
     s.line("strings", M8_COUNTER, a2, 76, LEGATO)
@@ -557,7 +557,7 @@ def build_map08(v: Variant) -> Song:
     s.hit(CHINA, (a2 + 4) * 4, 80)
 
     # -- B: the docks ---------------------------------------------------------------------------
-    b0 = s.section("B · el muelle", M8_DOCK_H)
+    b0 = s.section("B · the dock", M8_DOCK_H)
     if A:
         s.line("tpt", M8_DOCK, b0, 98, MARCATO)
         s.harmonize("horns", M8_DOCK[8:], b0 + 8, 76, MARCATO)
@@ -580,7 +580,7 @@ def build_map08(v: Variant) -> Song:
     s.hit(CRASH, (b0 + 8) * 4, 100)
 
     # -- C: the dive ----------------------------------------------------------------------------
-    c0 = s.section("C · inmersión", M8_DEEP_H)
+    c0 = s.section("C · dive", M8_DEEP_H)
     if A:
         s.line("horns", M8_DEEP, c0, 86, LEGATO)
         s.harmonize("tbn", M8_DEEP, c0, 66, LEGATO, voices=2)
@@ -599,7 +599,7 @@ def build_map08(v: Variant) -> Song:
     s.roll("timp", (c0 + 7) * 4, 4.0, 40, 104, 0.25, p=in_range(a_pc, pitch("E2")))
 
     # -- Build -----------------------------------------------------------------------------------
-    k0 = s.section("Subida", M8_BUILD_H)
+    k0 = s.section("Build", M8_BUILD_H)
     s.line("horns", M8_BUILD, k0, 94, MARCATO, swell=4)
     s.line("tbn", M8_BUILD, k0, 90, MARCATO, octave=-1, swell=4)
     for b in range(k0, k0 + 4):
@@ -634,7 +634,7 @@ def build_map08(v: Variant) -> Song:
         ship_bell(s, b1, 84)
 
     # -- Coda: the hull-call once more, the dominant hangs ---------------------------------------
-    d0 = s.section("Vuelta", M8_CODA_H)
+    d0 = s.section("Return", M8_CODA_H)
     s.line("horns", M8_CODA, d0, 94, MARCATO)
     s.line("tbn", M8_CODA, d0, 98, MARCATO, octave=-1)
     s.line("tuba", M8_CODA, d0, 82, MARCATO, octave=-2)
@@ -670,11 +670,11 @@ M9_CODA_H = "Cm | Db | G7 | G7"
 M9_CODA = mel("C4:3 F4:1 Eb4:4 Bb4:8 | Db5:3 C5:1 Ab4:4 F4:8 | G4:4 B4:4 D5:4 F5:4 | G5:4 r:4 G4:4 r:4")
 
 M9_VARIANTS = (
-    Variant("D_SDM09A", "A", 132.0, 0, "Do menor, 132 BPM: metales al frente (trompas + trombones, luego "
-            "trompetas con coro de metales), órgano de iglesia debajo, timbales y caja; la arena "
-            "con golpes de metal en hemiolia"),
-    Variant("D_SDM09B", "B", 138.0, -1, "Si menor, 138 BPM, más mecánica: órgano y coro llevan el tema, "
-            "ostinato 3-3-2, taiko y golpes de orquesta, metales en bloque; trompetas solo en el tutti"),
+    Variant("D_SDM09A", "A", 132.0, 0, "C minor, 132 BPM: brass up front (horns + trombones, then "
+            "trumpets with brass choir), church organ underneath, timpani and snare; the arena "
+            "with brass hits in hemiola"),
+    Variant("D_SDM09B", "B", 138.0, -1, "B minor, 138 BPM, more mechanical: organ and choir carry the theme, "
+            "3-3-2 ostinato, taiko and orchestra hits, block brass; trumpets only in the tutti"),
 )
 
 
@@ -754,7 +754,7 @@ def build_map09(v: Variant) -> Song:
     g_pc = (7 + v.transpose) % 12
 
     # -- Intro: the dead forest, the hum of the portal --------------------------------------------
-    i0 = s.section("Intro · el bosque muerto", "Db/C | Cm | Cm | G7")
+    i0 = s.section("Intro · the dead forest", "Db/C | Cm | Cm | G7")
     for b in range(i0, i0 + 4):
         m9_engine(s, b, fl, 0 if b < i0 + 2 else 1)
         s.chords("choir", b, "G3", 48 + 6 * (b - i0))
@@ -767,7 +767,7 @@ def build_map09(v: Variant) -> Song:
     s.roll("timp", (i0 + 3) * 4, 4.0, 40, 108, 0.25, p=in_range(g_pc, pitch("E2")))
 
     # -- A ------------------------------------------------------------------------------------
-    a1 = s.section("A · el tema", M9_THEME_H)
+    a1 = s.section("A · the theme", M9_THEME_H)
     if A:
         s.line("horns", M9_THEME, a1, 100, MARCATO, accent=6)
         s.line("tbn", M9_THEME, a1, 90, MARCATO, octave=-1)
@@ -786,7 +786,7 @@ def build_map09(v: Variant) -> Song:
         s.chords("hit", a1, "C4", 96, hits=(0.0,), length=0.5)
 
     # -- A': trumpets and the brass choir -------------------------------------------------------
-    a2 = s.section("A' · coro de metales", M9_THEME_H)
+    a2 = s.section("A' · brass choir", M9_THEME_H)
     if A:
         s.line("tpt", M9_THEME, a2, 100, MARCATO, accent=6)
         s.harmonize("horns", M9_THEME, a2, 82, MARCATO, voices=2)
@@ -805,7 +805,7 @@ def build_map09(v: Variant) -> Song:
     s.hit(CRASH2, (a2 + 4) * 4, 90)
 
     # -- B: the arena -----------------------------------------------------------------------------
-    b0 = s.section("B · la arena", M9_ARENA_H + " | " + M9_ARENA_H)
+    b0 = s.section("B · the arena", M9_ARENA_H + " | " + M9_ARENA_H)
     for rep in range(2):
         b1 = b0 + 8 * rep
         s.line("horns", M9_ARENA, b1, 100, MARCATO, accent=6)
@@ -828,7 +828,7 @@ def build_map09(v: Variant) -> Song:
         s.hit(CRASH, b1 * 4, 110)
 
     # -- C: the heart of the portal ----------------------------------------------------------------
-    c0 = s.section("C · el corazón del portal", M9_CHORALE_H)
+    c0 = s.section("C · the heart of the portal", M9_CHORALE_H)
     s.line("choir", M9_CHORALE, c0, 90, LEGATO, accent=4)
     s.harmonize("organ", M9_CHORALE, c0, 70, LEGATO, voices=2)
     s.line("horns", M9_CHORALE, c0, 72 if A else 64, LEGATO, octave=-1)
@@ -840,7 +840,7 @@ def build_map09(v: Variant) -> Song:
     s.roll("timp", (c0 + 7) * 4, 4.0, 40, 108, 0.25, p=in_range(g_pc, pitch("E2")))
 
     # -- Build -------------------------------------------------------------------------------------
-    k0 = s.section("Subida", M9_BUILD_H)
+    k0 = s.section("Build", M9_BUILD_H)
     s.line("tpt", M9_BUILD, k0, 94, MARCATO, swell=4)
     s.line("horns", M9_BUILD, k0, 90, MARCATO, octave=-1, swell=4)
     s.line("tbn", M9_BUILD, k0, 86, MARCATO, octave=-1, swell=4)
@@ -875,7 +875,7 @@ def build_map09(v: Variant) -> Song:
             s.chords("hit", b1, "C4", 98, hits=(0.0,), length=0.5)
 
     # -- Coda ----------------------------------------------------------------------------------------
-    d0 = s.section("Vuelta", M9_CODA_H)
+    d0 = s.section("Return", M9_CODA_H)
     s.line("tpt", M9_CODA, d0, 98, MARCATO)
     s.line("horns", M9_CODA, d0, 94, MARCATO, octave=-1)
     s.line("tbn", M9_CODA[:3], d0, 88, MARCATO, octave=-1)
@@ -905,11 +905,11 @@ BS9_RISE = mel("""Eb5:4 C5:4 Ab4:8 | Eb5:16 | F5:4 Db5:4 Bb4:8 | F5:16 | F5:4 D5
 G5:16 | G5:4 G5:4 G5:4 G5:4""")
 
 BS9_VARIANTS = (
-    Variant("D_SDBS9A", "A", 140.0, 0, "Do menor, 140 BPM (pareja de D_SDM09A): riff 3-3-3-3-2-2 en "
-            "chelos y contrabajos, la célula del guardián en trompas, trompetas en la llamada, el tema "
-            "de Tunguska en el centro, órgano y coro"),
-    Variant("D_SDBS9B", "B", 146.0, -1, "Si menor, 146 BPM (pareja de D_SDM09B): el mismo guardián con "
-            "órgano al frente, taiko y golpes de orquesta, metales en bloque en contratiempo"),
+    Variant("D_SDBS9A", "A", 140.0, 0, "C minor, 140 BPM (paired with D_SDM09A): 3-3-3-3-2-2 riff on "
+            "cellos and double basses, the guardian cell on horns, trumpets on the call, the Tunguska "
+            "theme in the middle, organ and choir"),
+    Variant("D_SDBS9B", "B", 146.0, -1, "B minor, 146 BPM (paired with D_SDM09B): the same guardian with "
+            "organ up front, taiko and orchestra hits, block brass on the offbeat"),
 )
 
 
@@ -957,7 +957,7 @@ def build_boss(v: Variant) -> Song:
             if b % 2 == 0:
                 s.chords("hit", b, "C4", 94, hits=(0.0,), length=0.5)
 
-    g0 = s.section("I · el guardián", BS9_H)
+    g0 = s.section("I · the guardian", BS9_H)
     s.line("horns", BS9_THEME, g0, 100, MARCATO, accent=6)
     s.line("tbn", BS9_THEME, g0, 92, MARCATO, octave=-1)
     if not A:
@@ -969,7 +969,7 @@ def build_boss(v: Variant) -> Song:
         s.chords("trem", b, "G3", 56)
     s.hit(CRASH, g0 * 4, 106)
 
-    l0 = s.section("II · la llamada", BS9_H)
+    l0 = s.section("II · the call", BS9_H)
     s.line("tpt", BS9_THEME, l0, 102, MARCATO, accent=6)
     s.harmonize("horns", BS9_THEME, l0, 82, MARCATO, voices=2)
     s.line("tbn", BS9_THEME, l0, 90, MARCATO, octave=-1)
@@ -981,7 +981,7 @@ def build_boss(v: Variant) -> Song:
         s.chords("trem", b, "G3", 62)
     s.hit(CRASH, l0 * 4, 110)
 
-    p0 = s.section("III · el portal (tema de MAP09)", M9_THEME_H)
+    p0 = s.section("III · the portal (MAP09's theme)", M9_THEME_H)
     s.line("horns", M9_THEME, p0, 100, MARCATO, accent=6)
     s.line("tbn", M9_THEME, p0, 90, MARCATO, octave=-1)
     s.line("choir", M9_THEME, p0, 78, LEGATO)
@@ -991,7 +991,7 @@ def build_boss(v: Variant) -> Song:
         s.chords("strings", b, "G3", 56)
     s.hit(CRASH, p0 * 4, 104)
 
-    r0 = s.section("IV · subida", BS9_RISE_H)
+    r0 = s.section("IV · build", BS9_RISE_H)
     s.line("tpt", BS9_RISE, r0, 92, MARCATO, swell=1.5)
     s.line("horns", BS9_RISE, r0, 86, MARCATO, octave=-1, swell=1.5)
     for b in range(r0, r0 + 8):
@@ -1031,10 +1031,10 @@ Ab3:4 Db4:4 C4:3 Bb3:1 Ab3:4 | G3:4 D4:4 F4:2 Eb4:2 D4:4""")
 INT3_H = "Cm | Fm,G | Cm,Db | G7 | Fm,Cm | Eb,G | Db,Ab | G7 | " + M9_THEME_H
 
 INT3_VARIANTS = (
-    Variant("D_SDE3IA", "A", 96.0, 0, "Do menor, 96 BPM, recogida: el radar en trompa sola con celesta, "
-            "la base naval en trombones con sónar, Tunguska en trompas + coro y órgano suave"),
-    Variant("D_SDE3IB", "B", 108.0, 0, "Do menor, 108 BPM, en marcha: trompas, trombones y trompetas con "
-            "caja, campana de barco y órgano; los tres motivos sin pausa"),
+    Variant("D_SDE3IA", "A", 96.0, 0, "C minor, 96 BPM, intimate: the radar on solo horn with celesta, "
+            "the naval base on trombones with sonar, Tunguska on horns + choir and soft organ"),
+    Variant("D_SDE3IB", "B", 108.0, 0, "C minor, 108 BPM, marching: horns, trombones and trumpets with "
+            "snare, ship's bell and organ; the three motifs without a pause"),
 )
 
 
@@ -1314,34 +1314,34 @@ def levels_txt(rows: list[dict]) -> str:
 # -- The listening sheet (Episode 2's page, re-labelled) -------------------------------------------
 
 GROUP_TEXT = {
-    "MAP07": ("MAP07 · Novaya Zemlya (estación de radar ártica, noche polar)",
-              "Frío y tenso: un ping de radar con eco cada dos compases (celesta en A, vibráfono y "
-              "glockenspiel en B), un triángulo que hace tic, cuerdas graves en trémolo y contrabajos. "
-              "El motivo de 4 compases es una llamada de trompa que salta una sexta menor (si→sol) y cae "
-              "a la quinta, y vuelve a saltar hasta el do napolitano: el haz del radar en la noche. "
-              "Forma: noche polar · tema · contracanto · sección B · «el radar» (el motivo aumentado en "
-              "trombones, solo los pings encima) · subida · tutti · vuelta a la noche."),
-    "MAP08": ("MAP08 · Severomorsk (base de submarinos de la Flota del Norte)",
-              "Pesado y naval: el tema en trombones y tuba, un motivo que sube una cuarta y baja por "
-              "grados, tres veces, cada vez un tono más abajo (el casco que se sumerge). Percusión de "
-              "astillero (campana de ride, agogó grave, la campana del barco que suena a pares), sónar "
-              "con eco, motores en el bajo. Forma: el fiordo · tema · metales con contracanto · «el "
-              "muelle» (marcha de la flota en si bemol mayor) · «inmersión» (coral bajo el sónar) · "
-              "subida · tutti · vuelta."),
-    "MAP09": ("MAP09 · Tunguska (el portal, clímax de la campaña)",
-              "Épico y oscuro: órgano de iglesia debajo de todo, coro de metales y coro, un ostinato de "
-              "semicorcheas que no para. El motivo sube por cuartas y su salto crece cada vez que vuelve "
-              "(a la séptima, a la octava, a la oncena): el portal abriéndose. Sección B «la arena», "
-              "metales en 3-3-2 sobre el ostinato. Forma: el bosque muerto · tema · coro de metales · "
-              "arena · «el corazón del portal» (coral de órgano y coro) · subida · tutti · vuelta."),
-    "BOSS9": ("Jefe final · la arena del portal (bucle aparte)",
-              "Una pieza propia, no un recorte: riff 3-3-3-3-2-2 en chelos, contrabajos y tuba, la "
-              "«célula del guardián» (nota larga, tritono abajo, semitono arriba) en trompas y luego en "
-              "trompetas, el tema de Tunguska en el centro, una subida cromática y tutti, y vuelve a "
-              "empezar sin respiro. Cada versión hace pareja con la de MAP09 de la misma letra."),
-    "E3INT": ("Intermedio / tema del Episodio 3",
-              "16 compases que recorren el episodio: la llamada del radar, el casco de Severomorsk y "
-              "el tema de Tunguska, los tres en do menor. Para la pantalla de estadísticas."),
+    "MAP07": ("MAP07 · Novaya Zemlya (Arctic radar station, polar night)",
+              "Cold and tense: an echoing radar ping every two bars (celesta in A, vibraphone and "
+              "glockenspiel in B), a triangle that ticks, low strings in tremolo and double basses. "
+              "The 4-bar motif is a horn call that leaps a minor sixth (B→G) and falls "
+              "to the fifth, then leaps again up to the Neapolitan C: the radar beam in the night. "
+              "Form: polar night · theme · countermelody · B section · «the radar» (the motif augmented on "
+              "trombones, only the pings above) · build · tutti · back to the night."),
+    "MAP08": ("MAP08 · Severomorsk (Northern Fleet submarine base)",
+              "Heavy and naval: the theme on trombones and tuba, a motif that climbs a fourth and descends by "
+              "step, three times, each time a tone lower (the hull diving). Shipyard "
+              "percussion (ride bell, low agogo, the ship's bell ringing in pairs), echoing "
+              "sonar, engines in the bass. Form: the fjord · theme · brass with countermelody · «the "
+              "dock» (the fleet's march in B-flat major) · «dive» (a chorale under the sonar) · "
+              "build · tutti · return."),
+    "MAP09": ("MAP09 · Tunguska (the portal, the campaign's climax)",
+              "Epic and dark: church organ under everything, brass choir and choir, a sixteenth-note "
+              "ostinato that never stops. The motif climbs by fourths and its leap grows each time it returns "
+              "(to the seventh, the octave, the eleventh): the portal opening. B section «the arena», "
+              "brass in 3-3-2 over the ostinato. Form: the dead forest · theme · brass choir · "
+              "arena · «the heart of the portal» (organ and choir chorale) · build · tutti · return."),
+    "BOSS9": ("Final boss · the portal arena (separate loop)",
+              "A piece of its own, not a cut: 3-3-3-3-2-2 riff on cellos, double basses and tuba, the "
+              "«guardian cell» (long note, tritone down, semitone up) on horns and then on "
+              "trumpets, the Tunguska theme in the middle, a chromatic build and tutti, and it starts "
+              "again without a breath. Each version pairs with MAP09's of the same letter."),
+    "E3INT": ("Intermission / Episode 3 theme",
+              "16 bars that travel the episode: the radar call, the Severomorsk hull and "
+              "the Tunguska theme, all three in C minor. For the statistics screen."),
 }
 
 
@@ -1357,21 +1357,21 @@ def _swap_block(text: str, start: str, stop: str, new: str) -> str:
 
 
 INTRO_HTML = """<div class="intro">
-  <p><b>Qué es (D112).</b> Borradores <b>originales</b> para el Episodio 3, «The Portal»: los tres mapas, un bucle propio para el jefe final y el intermedio. Mismo método y misma orquesta General MIDI que el Episodio 2 que aprobaste 10/10 (trompas, trombones, trompetas, tuba, cuerdas, timbales, batería GM), más lo que pide cada sitio: <b>celesta, vibráfono y glockenspiel</b> para el radar ártico, <b>campanas de barco, metal de astillero y sónar</b> para la base de submarinos, <b>órgano de iglesia y coro</b> para el portal. No citan ninguna canción soviética ni popular, ni frases de los Episodios 1-2 (lo comprueba el generador): no hay derechos de terceros.</p>
-  <p><b>Dos versiones de cada pieza que suenan distintas de verdad</b>: cambian tonalidad, tempo, ritmo de fondo e instrumentos (en MAP07, toda la sección B). El motivo de 4 compases es el mismo en las dos. La marcada <span class="badge">recomendada</span> es la que yo instalaría.</p>
-  <p class="meta">Renders con el propio sintetizador de GZDoom (zmusic + gzdoom.sf2), sin arrancar el juego. Cada audio <b>sigue 10 s después del punto de bucle</b> para oír la costura. Volumen igualado con <code>D_SDM1N2</code> (MAP01). Los botones saltan a cada sección. Nada instalado.</p>
+  <p><b>What this is (D112).</b> <b>Original</b> drafts for Episode 3, «The Portal»: the three maps, a loop of its own for the final boss, and the intermission. Same method and same General MIDI orchestra as the Episode 2 you approved 10/10 (horns, trombones, trumpets, tuba, strings, timpani, GM drums), plus what each place asks for: <b>celesta, vibraphone and glockenspiel</b> for the Arctic radar, <b>ship's bells, shipyard metal and sonar</b> for the submarine base, <b>church organ and choir</b> for the portal. They quote no Soviet or folk song, nor phrases of Episodes 1-2 (the generator checks it): there are no third-party rights.</p>
+  <p><b>Two versions of each piece that really sound different</b>: key, tempo, background rhythm and instruments change (in MAP07, the whole B section). The 4-bar motif is the same in both. The one marked <span class="badge">recommended</span> is the one I would install.</p>
+  <p class="meta">Rendered with GZDoom's own synthesiser (zmusic + gzdoom.sf2), without starting the game. Each audio <b>runs 10 s past the loop point</b> so you can hear the seam. Volume matched to <code>D_SDM1N2</code> (MAP01). The buttons jump to each section. Nothing installed.</p>
 </div>
 """
 
-REFS_HTML = """<h2>Referencias</h2>
+REFS_HTML = """<h2>References</h2>
 <div class="card ref">
   <div class="name"><code>D_SDM1N2</code><span class="ev">1:30 · 128 BPM</span></div>
-  <p class="meta">La que suena en MAP01 (D95). Para comparar estilo y volumen.</p>
+  <p class="meta">The one that plays in MAP01 (D95). To compare style and volume.</p>
   <audio controls preload="none" src="../map01_new/D_SDM01N2.ogg"></audio>
 </div>
 <div class="card ref">
   <div class="name"><code>D_SDM06A</code><span class="ev">2:24 · 120 BPM</span></div>
-  <p class="meta">MAP06 Plaza Roja, del Episodio 2 aprobado (D106). La vara de medir de este episodio.</p>
+  <p class="meta">MAP06 Red Square, from the approved Episode 2 (D106). The yardstick for this episode.</p>
   <audio controls preload="none" src="../episode2/render/D_SDM06A.ogg"></audio>
 </div>
 
@@ -1380,22 +1380,22 @@ REFS_HTML = """<h2>Referencias</h2>
 
 def sheet_template() -> str:
     t = e2.SHEET_TEMPLATE
-    t = _swap(t, "<title>Música Episodio 2</title>", "<title>Música Episodio 3</title>")
-    t = _swap(t, "Música del Episodio 2 · «The Road to Moscow»", "Música del Episodio 3 · «The Portal»")
+    t = _swap(t, "<title>Episode 2 Music</title>", "<title>Episode 3 Music</title>")
+    t = _swap(t, "Episode 2 Music · «The Road to Moscow»", "Episode 3 Music · «The Portal»")
     t = _swap_block(t, '<div class="intro">', '<div id="items">', INTRO_HTML)
-    t = _swap_block(t, "<h2>Referencia: MAP01 instalada</h2>", "<h2>Resultado</h2>", REFS_HTML)
+    t = _swap_block(t, "<h2>Reference: MAP01 as installed</h2>", "<h2>Result</h2>", REFS_HTML)
     t = _swap(t, "tools/audio/compose_episode2.py", "tools/audio/compose_episode3.py")
     t = _swap(t, "work/audio/episode2/*.mid", "work/audio/episode3/*.mid")
     t = _swap(t, "work/audio/episode2/render/</code>", "work/audio/episode3/render/</code>")
     t = _swap(t, "sd-2026-10-21_episode2-music", "sd-2026-10-22_episode3-music")
-    t = _swap(t, "Música Episodio 2 (D104, borradores originales)", "Música Episodio 3 (D112, borradores originales)")
+    t = _swap(t, "Episode 2 music (D104, original drafts)", "Episode 3 music (D112, original drafts)")
     return t
 
 
 def sheet_html(rows: list[dict]) -> str:
     items = []
     for r in rows:
-        jumps = [[label, t] for label, t in r["sections"]] + [["Costura (−5 s)", round(r["seconds"] - 5, 1)]]
+        jumps = [[label, t] for label, t in r["sections"]] + [["Seam (−5 s)", round(r["seconds"] - 5, 1)]]
         items.append({"id": r["lump"], "group": r["key"], "src": f"../episode3/render/{r['lump']}.ogg",
                       "len": f"{int(r['seconds'] // 60)}:{int(round(r['seconds'] % 60)):02d}", "bpm": round(r["bpm"]),
                       "what": r["label"], "jumps": jumps, "rec": r["lump"] in RECOMMENDED})

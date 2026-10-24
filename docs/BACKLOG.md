@@ -51,17 +51,26 @@ PM's proposal. **Estimates are the D69 rules of thumb, not measurements**
 | # | Milestone | Task | Role | Est. k tok | Needs |
 |---|---|---|---|---|---|
 | 1 | P4 | Commit and pmo the work tree above (verify fast, one engine pass on MAP04-MAP09, evidence) | PM, `pmo`, `qa-engineer` | 100 | nothing |
-| 2 | P4 | **The TT-33 redone with Gemini** (D111): ready + fire, bare hands, `tools/art/gemini_frames.py`, install | `art-director` | 250 | Gemini's limit (reset 2026-10-22 17:33, per HANDOFF); the CEO's look |
-| 3 | P4 | **Liberty Legion heavy gunner** `SD_LegionGunner` (21110): Gemini frames walkL/walkR/aim/fire/death, sprites from the draft overlay to `assets/`, place it in Episode 2/3 | `art-director`, `level-designer`, `mod-engineer` | 350 | Gemini; the CEO's look (a sprite) |
-| 4 | P4 | **Episode boss** `SD_LibertyColossus` (21111): sprites from scratch, replaces the General stand-in at `MAP06_BOSS_SPOT` | same | 400 | Gemini; the CEO's look |
-| 5 | P4 | **A final boss for MAP09** in place of the General stand-in (`MAP09_BOSS_SPOT`); not designed yet | `level-designer`, `art-director`, `mod-engineer` | 500 (NOT measured; no design) | the CEO's call on what it is |
+| 2 | P4 | **Done (D123).** ~~**The TT-33 redone with Gemini** (D111)~~: ready + fire, bare hands, `tools/art/gemini_frames.py`, install | `art-director` | 250 | Gemini's limit (reset 2026-10-22 17:33, per HANDOFF); the CEO's look |
+| 3 | P4 | **Done (D123; walk strides D128).** ~~**Liberty Legion heavy gunner** `SD_LegionGunner` (21110)~~: Gemini frames walkL/walkR/aim/fire/death, sprites from the draft overlay to `assets/`, place it in Episode 2/3 | `art-director`, `level-designer`, `mod-engineer` | 350 | Gemini; the CEO's look (a sprite) |
+| 4 | P4 | **Done (D123; walk strides D128).** ~~**Episode boss** `SD_LibertyColossus` (21111)~~: sprites from scratch, replaces the General stand-in at `MAP06_BOSS_SPOT` | same | 400 | Gemini; the CEO's look |
+| 5 | P4 | **Done (D112, D116; its own `SDCN` D128).** ~~**A final boss for MAP09** in place of the General stand-in~~ (`MAP09_BOSS_SPOT`); not designed yet | `level-designer`, `art-director`, `mod-engineer` | 500 (NOT measured; no design) | the CEO's call on what it is |
 | 6 | P4 | The **Marx and Engels pair** installed (`SDPOSTR4`/`5`) and hung in the two slots each of the nine maps holds; rows in `TEXTURE-INDEX.md` and `LICENSES.md` | `art-director`, `level-designer` | 100 | the CEO's verdict on the sweep (PENDING §2) |
 | 7 | P2 | The General's death voice: install the winning take of the new round (`work/audio/preview/voices_p2b_listening.html`) | `sound-designer` | 40 | the CEO's ear |
 | 8 | P4 | Gemini re-asks listed in the enemy review sheet | `art-director` | 100 | Gemini |
-| 9 | P4 | **AKM** and further weapons (the PM's brief lists the AKM; **no D-number or doc yet**) | `art-director`, `mod-engineer` | 300 per weapon set | the CEO's OK to add it |
-| 10 | P2 | World sounds still Freedoom's: doors, switches, item pickups (**no D-number yet**) | `sound-designer` | 200 (NOT measured) | nothing; the CEO's ear before install |
+| 9 | P4 | **AKM done (D112, D116; its own sprites D128; the magazine `SDAM` still provisional).** ~~**AKM**~~ and further weapons (the PM's brief lists the AKM; **no D-number or doc yet**) | `art-director`, `mod-engineer` | 300 per weapon set | the CEO's OK to add it |
+| 10 | P2 | **Done (D125)** except the jump. ~~World sounds still Freedoom's~~: doors, switches, item pickups (**no D-number yet**) | `sound-designer` | 200 (NOT measured) | nothing; the CEO's ear before install |
 | 11 | P4 | After the CEO walks Episodes 2 and 3: fixes from his notes, and the open points in MAP07 §14, MAP08 §14, MAP09 §17, MAP05 §14 | `level-designer` | 150 per map | his walk |
 | 12 | M4/P4 | **v1.1 or v1.2** (PENDING §1): if v1.2, a G6-style sign-off on the clean-clone zip (every route, now including MAP04-MAP09) and the release notes | `qa-engineer`, PM | 250 (the N16 figure) | the CEO's choice |
+
+**D128 follow-ups (2026-10-24, from the install).** Estimates in k tokens (D69), ±50 %:
+
+| What | Role | Est. k tok | Status |
+|---|---|---|---|
+| Commit D128's install (title, AKM, walks, Consortium, palette v3) after `pmo`; the work tree also holds another agent's `tools/release_portable.py` change, not part of D128 | PM, `pmo` | 30 | todo |
+| Engine pass of D128 (D26): the title and the main, skill and episode menus over the new `TITLEPIC` (EN, RU, CA); the AKM in hand and on the floor; the gunner's and the colossus's walk; the Consortium in MAP09 (both phases, the Breach on S, the grey-green half) | PM, `qa-engineer` | 80 | todo |
+| The AKM's magazine `SDAM` (still `SDCL` tinted, the last `PROVISIONAL-D116` line) and the magazine box of D119 (a) | `art-director`, `mod-engineer` | 60 | todo (needs a sprite) |
+| Optional: the other Reich enemies (rifleman, stormtrooper, Panzermensch, Schwer) re-snapped to palette v3's grey-green skin, as a new proposal to the CEO (their approved v2 look is untouched today) | `art-director` | 120 | idea, needs the CEO |
 
 ## Waiting for the CEO
 
@@ -101,6 +110,16 @@ N14 (weapons from Fooocus references) and N4 (the ice axe round 2) were
 superseded by D79. N8 (further music swaps) has no request open.
 
 ## Done (recent, newest first)
+
+**2026-10-24: D128 installed (not yet committed).** `mod-engineer`, one
+session: the Gemini title screen (variant A, the armband symbol painted)
+and the plate-less `M_DOOM`; the AKM's own `SDAK`/`SDAF`/`SDAQ`; the walk
+strides A and C of the gunner and the colossus (D127); the Consortium's own
+`SDCN` (95), its Reich half in the new **palette v3** ramp
+`reich_greygreen` (16 colours in reserved slots 226-241; no approved asset
+changed); tests, licences, MOD-SPEC, BESTIARY, ART-BIBLE and the design
+docs updated. Real cost: see the agent's report (≈ 0.33 M tokens). Engine
+pass pending (D26).
 
 **2026-10-21 night to 2026-10-22: P4 opens (D104-D114).** Real token costs
 were **NOT measured** for any of this (no agent usage report reached the
@@ -156,7 +175,7 @@ measured here.
 
 G9: player LICENSE.md and CREDITS.txt without repo paths, Freedoom's BSD-3 notice in the zip (hash pinned), the AI line in the credits, in-game credits corrected (465a83e); real cost not logged (est. 40k).
 
-**2026-10-20 night:** D79, the Gemini-frames method: the PPSh-41 installed (b5bd434, sleeve fix 362df5a), **2 of 7 weapons ours**; test ~48k, install ~150k, sleeve ~40k. QA-G6-1/2 fixed (1bcf2e0), ~66k. Engine evidence `docs/qa/evidence/2026-10-20_0317_*`. Guide for the next weapons `docs/product/2026-10-20_0030_M2_gemini-armas.md`.
+**2026-10-20 night:** D79, the Gemini-frames method: the PPSh-41 installed (b5bd434, sleeve fix 362df5a), **2 of 7 weapons ours**; test ~48k, install ~150k, sleeve ~40k. QA-G6-1/2 fixed (1bcf2e0), ~66k. Engine evidence `docs/qa/evidence/2026-10-20_0317_*`. Guide for the next weapons `docs/product/2026-10-20_0030_M2_gemini-weapons.md`.
 
 M2a: campaign pickups sweep + sets for 11 items (gen_items.py); **real 320k** (est. 480k incl. install).
 
@@ -172,7 +191,7 @@ G2: README EN/RU rewritten (666b85d), 12 tests. **Real 156k** (est. 50k).
 
 A1: M2 Freedoom audit `docs/qa/2026-10-14_2357_M2-freedoom-audit.md`: campaign textures 100 % ours; blocks M2: TT-33 install, 6 weapons, Katyusha pickup, two enemy shells, 113 health/armour/key pickups; all sounds still Freedoom's. **Real 255k** (est. 80k).
 
-A2: Fooocus prompt sheet for the 5 weapons `docs/product/2026-10-14_2356_M2_fooocus-prompts-armas.md` (Spanish, prompts in English; Method B = our/Freedoom frames as input; 6 required images); inputs in `work/art/reference/doom_inputs/`. **Real 213k** (est. 20k: the Method B inputs were added mid-task).
+A2: Fooocus prompt sheet for the 5 weapons `docs/product/2026-10-14_2356_M2_fooocus-prompts-weapons.md` (English since D129, prompts in English; Method B = our/Freedoom frames as input; 6 required images); inputs in `work/art/reference/doom_inputs/`. **Real 213k** (est. 20k: the Method B inputs were added mid-task).
 
 A3: listening sheet `docs/art/previews/2026-10-14_2355_M3_listening-sheet.html` (80 rows + 3 optional; music rendered with GZDoom's own zmusic, the first audible renders of four pieces). **Real 232k** (est. 60k).
 
@@ -186,7 +205,7 @@ N13: the Doughboy installed (bcb7de2), engine pass `docs/qa/evidence/2026-10-14_
 
 N10: the full GPL-3.0 and CC BY-NC-SA 4.0 texts ship in the v1 zip byte for byte, hashes pinned and tested; G6 row 2 PASS. **Real cost 128k** (est. 80k).
 
-R1: local voice generation study, `docs/product/2026-10-14_2156_P2_local-voice-generation.md` (Spanish, for the CEO): Chatterbox Multilingual (MIT) via Chatterbox-TTS-Server on `Z:`, the CEO's own voice as reference only. **Real cost 147k** (est. 120k).
+R1: local voice generation study, `docs/product/2026-10-14_2156_P2_local-voice-generation.md` (for the CEO; English since D129): Chatterbox Multilingual (MIT) via Chatterbox-TTS-Server on `Z:`, the CEO's own voice as reference only. **Real cost 147k** (est. 120k).
 
 N2 + v1.1: tankograd-critical route; Tankograd v1.1 (D68). **All three campaign routes PASS in engine on 16427a7** (MAP01 -> MAP02 -> MAP03 -> end). D67: Panzermensch and Schwer installed.
 

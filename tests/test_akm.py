@@ -3,9 +3,11 @@
 Until D116 (2026-10-22) the AKM lived in a DRAFT overlay,
 `work/overlays/akm/`, packed by `tools/make_akm_overlay.py` with tinted
 copies of the PPSh-41's frames. D116 moved it into the mod with NO new
-picture: it shows the PPSh-41's installed frames (MOD-SPEC 6.12) until
-Gemini's are drawn. The overlay and its tool are SUPERSEDED, kept, not
-deleted. Design and balance: docs/engine/2026-10-22_P4_akm.md. Checked:
+picture: it showed the PPSh-41's installed frames (MOD-SPEC 6.12) until
+its own were drawn (2026-10-24: SDAK, SDAF and SDAQ, from Gemini and the
+pickup rig; tests/test_akm_sprites.py checks them). The overlay and its
+tool are SUPERSEDED, kept, not deleted. Design and balance:
+docs/engine/2026-10-22_P4_akm.md. Checked:
 
   tool       (the superseded tool, on a synthetic source; CI has no work/):
              it builds reproducibly, round-trips grAb, tints keeping alpha,
@@ -13,11 +15,14 @@ deleted. Design and balance: docs/engine/2026-10-22_P4_akm.md. Checked:
              a class the mod declares, an orphan .zs, a missing #include, a
              stray file, a sprite that is not the AKM's or one the mod uses,
              an --out under src/, dist/ or assets/; and now the real overlay
+             (the fixtures check against an empty sprites folder: the mod
+             itself now ships SDAK, SDAF and SDAQ)
   mod        SD_Akm in zscript/weapons/akm.zs (replaces nothing) and
              SD_AkmAmmo, the one pool of our own, in zscript/sd/ammo.zs;
              21008 and 21020; slot 4 lists the PPSh-41 then the AKM; every
-             frame names an installed sprite; the documented swap gives SDAK,
-             SDAF, SDAQ and drops the one tint line; three sounds of its own
+             frame names an installed sprite; the AKM wears its own SDAK,
+             SDAF and SDAQ with no provisional line left, the magazine still
+             the tinted SDCL until SDAM is drawn; three sounds of its own
              over the PPSh-41's lumps, the shot pitched by $pitchset; five
              ids in three languages; the balance (4 tics, avg 12, 105 DPS
              between the PPSh-41 and the RPG-7, tighter spread); placed in
@@ -195,16 +200,19 @@ class ToolTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
+        self.no_sprites = self.root / "no_sprites"   # the mod's own SDAK* would refuse the fixture
+        self.no_sprites.mkdir()
 
     def tearDown(self):
         self.tmp.cleanup()
 
     def build(self, src: Path, out: Path) -> int:
-        return run_tool(["--src", str(src), "--out", str(out), "--mod-src", str(SRC)])
+        return run_tool(["--src", str(src), "--out", str(out), "--mod-src", str(SRC),
+                         "--mod-sprites", str(self.no_sprites)])
 
-    def refused(self, src: Path, mod_src: Path = SRC, mod_sprites: Path = ov.MOD_SPRITES) -> None:
+    def refused(self, src: Path, mod_src: Path = SRC, mod_sprites: Path | None = None) -> None:
         with self.assertRaises(ov.OverlayError):
-            ov.plan_overlay(src, mod_src, mod_sprites)
+            ov.plan_overlay(src, mod_src, self.no_sprites if mod_sprites is None else mod_sprites)
 
     def test_builds_and_is_reproducible(self):
         src = write_fixture(self.root / "src")
@@ -343,21 +351,22 @@ class ModTests(unittest.TestCase):
         icon = default_value(self.ammo, "Inventory.Icon")
         self.assertTrue(list(p4.SPRITES.rglob(f"{icon}.png")), icon)
 
-    def test_provisional_look_and_its_documented_swap(self):
-        """MOD-SPEC 6.12: the PPSh-41's frames today, the pickup tinted; the
-        header's sed gives the final names and drops the marked line."""
-        marked = p4.provisional_code_lines(self.akm_text)
-        self.assertEqual(len(marked), 1)
-        self.assertTrue(marked[0].startswith("Translation "))
-        swapped, pairs = p4.apply_documented_swap(self.akm_text)
-        self.assertEqual(pairs, SWAP)
-        frames = state_frames(p4.class_blocks(swapped)["SD_Akm"][1])
-        self.assertEqual({s for s, _ in frames}, {"SDAK", "SDAF", "SDAQ"})
-        self.assertEqual({(new, f) for (old, new) in SWAP for (s, f) in state_frames(self.akm) if s == old},
-                         frames)
-        self.assertNotIn("Translation", p4.strip_comments(swapped))
-        for _, new in SWAP:
-            self.assertFalse(p4.sprite_rotations(new), f"{new} is drawn: do the swap")
+    def test_own_look_installed_and_the_magazine_still_provisional(self):
+        """MOD-SPEC 6.12: the swap the header documented until 2026-10-24
+        is done: SDAK A-B, SDAF A and SDAQ A, exactly the letters the
+        PPSh-41's SDPP, SDPF and SDPQ had here, all drawn (rotation 0); no
+        provisional line and no Translation left in akm.zs, and no
+        documented swap either. The magazine (ammo.zs) still is provisional."""
+        self.assertEqual(p4.provisional_code_lines(self.akm_text), [])
+        self.assertNotIn("Translation", p4.strip_comments(self.akm_text))
+        self.assertEqual(p4.apply_documented_swap(self.akm_text)[1], [])
+        frames = state_frames(self.akm)
+        self.assertEqual(frames, {("SDAK", "A"), ("SDAK", "B"), ("SDAF", "A"), ("SDAQ", "A")})
+        for old, new in SWAP:
+            self.assertNotIn(old, p4.strip_comments(self.akm_text))
+            for s, f in frames:
+                if s == new:
+                    self.assertIn("0", p4.sprite_rotations(new).get(f, set()), f"{new}{f}0")
         ammo_marked = [l for l in p4.provisional_code_lines(self.ammo_text)]
         self.assertEqual(len(ammo_marked), 1)
         self.assertTrue(ammo_marked[0].startswith("Translation "))

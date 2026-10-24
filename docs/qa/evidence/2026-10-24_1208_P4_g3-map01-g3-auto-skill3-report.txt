@@ -1,0 +1,49 @@
+=== route g3-auto / MAP01 / skill 3 ===
+helper         : route-4
+god mode       : on
+monsters       : engine 33, map data 33
+bestiary (start): SD_ReichRifleman 14/14, SD_LegionTrooper 8/8, SD_Stormtrooper 5/5, SD_ReichHound 4/4, SD_Doughboy 1/1, SD_Panzermensch 1/1, SD_Izh 1/1
+steps:
+  [ok ] A0   expect Z1           got Z1   z1_dorm @ (233, 60, 0) hp 64
+  [ok ] R1   expect Z1           got Z1   z1_ice_axe_rack @ (-15, 384, 0) hp 64
+  [ok ] A1   expect Z3           got Z3   z3_corridor @ (256, 653, 0) hp 64
+  [ok ] A2   expect Z3/Z4        got Z3   bulkhead_2 @ (256, 940, 0) hp 64
+  [ok ] A3   expect Z5           got Z5   z5_service @ (833, 1152, 0) hp 64
+  [ok ] A4   expect Z5/Z5B       got Z5B  weapon_rack @ (1040, 1256, 8) hp 64
+  [ok ] A5   expect Z6           got Z6   step_down_3 @ (1336, 1152, -24) hp 64
+  [ok ] A6   expect Z7           got Z7   z7_switch_alcove @ (1416, 1624, -8) hp 64
+  [ok ] A7   expect Z6B          got Z6B  z6b_catwalk @ (2000, 1520, 96) hp 64
+  [ok ] A8   expect D6/Z9        got Z9   z9_booth @ (2496, 1793, 96) hp 64
+  [ok ] A9   expect Z9           got Z9   z9_booth @ (2560, 1810, 96) hp 64
+  [ok ] A10  expect Z8/D5/Z10    got Z10  z10_lift @ (3183, 672, -24) hp 64
+  [ok ] A11  expect Z10          got Z10  z10_exit @ (3247, 672, -32) hp 64
+  [ok ] A12  expect -            got -  -- no position reported
+zones reached  : Z1 -> Z3 -> Z5 -> Z5B -> Z6 -> Z7 -> Z6B -> Z9 -> Z10
+doors:
+  [ok ] tag 10 at A5: want shut: shut (4 sector(s): D4:d4, Z7:closet_a1_door, Z7:closet_a2_door, Z7:closet_a3_door)
+  [ok ] tag 10 at A6: want open: open (4 sector(s): D4:d4, Z7:closet_a1_door, Z7:closet_a2_door, Z7:closet_a3_door)
+  [ok ] tag 11 at A8: want shut: shut (4 sector(s): D5:d5, Z6:closet_e1_door, Z6:closet_w1_door, Z6:closet_w2_door)
+  [ok ] tag 11 at A9: want open: open (4 sector(s): D5:d5, Z6:closet_e1_door, Z6:closet_w1_door, Z6:closet_w2_door)
+  [ok ] walk-through at A1: ended in Z3 (z3_corridor)
+  [ok ] walk-through at A3: ended in Z5 (z5_service)
+  [ok ] walk-through at A8: ended in Z9 (z9_booth)
+inventory (by slot):
+  [ok ] A0: raised slot 2 (SD_Tokarev), 50 rounds; owned [2:SD_Tokarev]; keys [none]
+  [ok ] R1: raised slot 1 (SD_IceAxe), -1 rounds; owned [1:SD_IceAxe, 2:SD_Tokarev]; keys [none]
+  [ok ] A4: raised slot 1 (SD_IceAxe), -1 rounds; owned [1:SD_IceAxe, 2:SD_Tokarev]; keys [none]
+  [ok ] A7: raised slot 1 (SD_IceAxe), -1 rounds; owned [1:SD_IceAxe, 2:SD_Tokarev]; keys [none]
+secrets        : 0 of 3
+exit           : REACHED (exit switch pressed: yes; level unloaded towards: MAP02; after it: NOT SEEN (the helper cannot ask once the level is gone; judge the END shot))
+blockers       : 8 killed by the route's sdclear (sdclear answered 6 time(s))
+  [ok ] A1: SD_ReichRifleman at (268, 344), 20 hp, dead
+  [ok ] A1: SD_ReichRifleman at (225, 322), 20 hp, dead
+  [ok ] A1: SD_ReichRifleman at (291, 700), 20 hp, dead
+  [ok ] A1: SD_ReichHound at (239, 490), 135 hp, dead
+  [ok ] A3: SD_ReichRifleman at (1008, 1160), 20 hp, dead
+  [ok ] A3: SD_ReichRifleman at (920, 1200), 20 hp, dead
+  [ok ] A10: SD_LegionTrooper at (2824, 754), 30 hp, dead
+  [ok ] A10: SD_Panzermensch at (3130, 665), 500 hp, dead
+kills          : 14 of 33, of which 8 by the route's sdclear
+screenshots    : 15
+log failures   : none
+VERDICT        : PASS (8 blocker(s) killed by the route, listed above)

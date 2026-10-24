@@ -8,8 +8,10 @@ grAb placement; the D79 helpers for the five remaining weapons and the
 TT-33 redo (D111) (flash
 halo, shrink and taper, bottom fill, stray-piece drop, banded sleeve) and
 the WEAPONS table against the draft overlay's reserved names and the
-states. Only GeneratedFramesTests reads work/ (skips without it), and
-FreshBuildTests the Gemini sources (gitignored; skips without them, slow).
+states; the AKM's one-image build (2026-10-24: muzzle, borrowed flash made
+solid, grafted on a padded canvas, flag_red kept out of the snap). Only
+GeneratedFramesTests reads work/ (skips without it), and FreshBuildTests
+the Gemini sources (gitignored; skips without them, slow).
 """
 from __future__ import annotations
 
@@ -389,7 +391,103 @@ class TestGeminiFrames(unittest.TestCase):
         self.assertEqual(w.files(), {"A": "gemini_tt33_A.png", "B": "gemini_tt33_B.png"})
 
 
-NEW_WEAPONS = ("izh", "rpg7", "roks3", "katyusha", "ice_axe", "tt33")
+    # ------------------------------------- the AKM: one image (2026-10-24)
+    def test_muzzle_point_is_the_guns_left_end_not_a_spark_or_an_arm(self):
+        idx = np.full((40, 60), gf.TRANSPARENT, np.int32)
+        idx[8:11, 12:58] = 1                                              # the barrel, upper half
+        idx[11:30, 40:58] = 1                                             # the body and an arm down
+        idx[30:40, 3:58] = 1                                              # a sleeve further left, low
+        idx[4, 1] = 2                                                     # a stray spark
+        self.assertEqual(gf.muzzle_point(idx), (9.0, 12.0))
+        with self.assertRaises(ValueError):
+            gf.muzzle_point(np.full((4, 4), gf.TRANSPARENT, np.int32))
+
+    def test_fill_flash_closes_the_barrels_notch_not_the_gaps_between_spikes(self):
+        f = np.full((20, 20), gf.TRANSPARENT, np.int32)
+        f[4:16, 2:14] = 7                                                 # the burst
+        f[0:4, 7:9] = 7                                                   # a spike up
+        f[8:11, 9:14] = gf.TRANSPARENT                                    # the notch the barrel left
+        behind = np.zeros(f.shape, bool)
+        behind[8:11, 9:20] = True                                         # where the donor's gun was
+        out = gf.fill_flash(f, behind, self.pal)
+        self.assertTrue((out[8:11, 9:14] == 7).all())                     # closed
+        self.assertFalse((out[8:11, 14:] >= 0).any())                     # never past the flash
+        self.assertFalse((out[0:4, 2:7] >= 0).any())                      # beside the spike: open
+        self.assertTrue((gf.fill_flash(f, np.zeros_like(behind), self.pal) == f).all())
+        black = int(np.argmin(self.pal.max(axis=1)))
+        ringed = f.copy()
+        ringed[7, 9:14] = black                                           # the donor barrel's dark rim
+        ringed[15, 2] = black                                             # an outline far from it
+        out = gf.fill_flash(ringed, behind, self.pal)
+        self.assertTrue((out[7:11, 9:14] == 7).all())                     # the rim went with the notch
+        self.assertEqual(out[15, 2], black)
+
+    def test_crop_flash_keeps_the_muzzle_and_scales(self):
+        f = np.full((30, 30), gf.TRANSPARENT, np.int32)
+        f[10:20, 4:14] = 5
+        sub, at = gf.crop_flash(f, (15.0, 14.0), 1.0, self.pal)
+        self.assertEqual(sub.shape, (10, 10))
+        self.assertEqual(at, (5.0, 10.0))
+        big, at2 = gf.crop_flash(f, (15.0, 14.0), 1.5, self.pal)
+        self.assertEqual(big.shape, (15, 15))
+        self.assertEqual(at2, (7.5, 15.0))
+        with self.assertRaises(ValueError):
+            gf.crop_flash(np.full((4, 4), gf.TRANSPARENT, np.int32), (0.0, 0.0), 1.0, self.pal)
+
+    def test_graft_flash_pads_left_and_up_and_lands_on_the_muzzle(self):
+        a = np.full((20, 30), gf.TRANSPARENT, np.int32)
+        a[5:8, 2:30] = 1
+        flash = np.full((10, 12), 9, np.int32)
+        arts, canvas = gf.graft_flash({"A": a}, flash, (6.0, 11.0), (6.0, 2.0))
+        self.assertEqual(arts["A"].shape, (20, 39))                       # 9 columns more on the left
+        self.assertTrue((arts["A"][:, 9:] == a).all())                    # the gun itself unmoved
+        self.assertEqual(canvas.shape, arts["A"].shape)
+        self.assertEqual(int(np.flatnonzero((canvas >= 0).any(axis=0))[-1]), 9 + 2)   # its point on the muzzle
+        arts, canvas = gf.graft_flash({"A": a}, flash, (8.0, 0.0), (2.0, 5.0))
+        self.assertEqual(arts["A"].shape, (26, 30))                       # 6 rows on top
+        self.assertEqual(int(np.flatnonzero((canvas >= 0).any(axis=1))[0]), 0)
+
+    def test_no_ramps_keeps_a_ramp_out_of_the_snap(self):
+        red = gf.ramp_mask(("flag_red",), len(self.pal))
+        self.assertEqual(int(red.sum()), 16)
+        rgb = np.array([[[139, 31, 10], [127, 25, 7], [200, 200, 200]]], np.uint8)
+        alpha = np.ones(rgb.shape[:2], bool)
+        free = gf.snap_palette(rgb, alpha, self.pal)
+        self.assertTrue(red[free[0, :2]].all())                           # Gemini's AKM wood: flag red
+        kept = gf.snap_palette(rgb, alpha, self.pal, banned=red)
+        self.assertFalse(red[kept[0]].any())
+        self.assertEqual(kept[0, 2], free[0, 2])                          # the rest unchanged
+        self.assertEqual(gf.WEAPONS["akm"].no_ramps, ("flag_red",))
+        self.assertEqual([k for k, w in gf.WEAPONS.items() if w.no_ramps], ["akm"])
+
+    def test_akm_draws_akm_zs_letter_for_letter(self):
+        # The AKM's own names (MOD-SPEC 6.12) for exactly the letters
+        # akm.zs's states use: before the install through the header's
+        # swap, after it as they stand. One image (A): B is A kicked, the
+        # flash rides on B with it and is the PPSh-41's.
+        sys.path.insert(0, str(ROOT / "tools"))
+        sys.path.insert(0, str(ROOT / "tests"))
+        import make_draft_overlay as mdo
+        import _p4_mod as p4
+        w = gf.WEAPONS["akm"]
+        text = (mdo.ZS_ROOT / "weapons" / "akm.zs").read_text(encoding="utf-8")
+        if "//   sed -i" in text:
+            text, _ = p4.apply_documented_swap(text)
+        for name in (w.gun, w.flash):
+            have = "".join(sorted(f.lump[4] for f in w.frame_list() if f.lump[:4] == name))
+            self.assertEqual(have, mdo.state_letters(text, name), name)
+        frames = {f.lump: f for f in w.frame_list()}
+        self.assertEqual(w.files(), {"A": "gemini_akm_A.jfif"})
+        self.assertTrue(all(f.src == "A" for f in frames.values()))
+        self.assertEqual(frames["SDAKA0"].kick, (0, 0))
+        self.assertEqual(frames["SDAKB0"].kick, gf.KICK)
+        self.assertEqual((frames["SDAFA0"].flash, frames["SDAFA0"].kick), (True, gf.KICK))
+        self.assertEqual(w.flash_from, "ppsh")
+        self.assertEqual(w.height_mult, gf.WEAPONS["ppsh"].height_mult)    # the PPSh's scale
+        self.assertEqual([k for k, v in gf.WEAPONS.items() if v.flash_from], ["akm"])
+
+
+NEW_WEAPONS = ("izh", "rpg7", "roks3", "katyusha", "ice_axe", "tt33", "akm")
 
 
 def _sources_present(key: str) -> bool:
@@ -467,6 +565,42 @@ class FreshBuildTests(unittest.TestCase):
         self.assertEqual(b - a, -gf.KICK[1])
         self.assertTrue(a < c < b)
         self.assertTrue(all(fr["cuts"] == 0 for fr in res["frames"].values()))
+
+    def test_akm_is_the_ppshs_size_and_its_shot_is_built_from_a(self):
+        # 2026-10-24: one Gemini image. A stands as high as the PPSh-41's
+        # SDPPA0 (the arsenal's 56 px) and as wide within D57's 10 %; B is A's
+        # very pixels kicked by KICK; the flash is the PPSh's, at the
+        # muzzle (its right part behind the barrel's end) and left of the
+        # gun; no flag red anywhere.
+        if not (_sources_present("akm") and _sources_present("ppsh")):
+            self.skipTest("Gemini sources not present (work/art/reference/ is gitignored)")
+        import tempfile
+        import hand_study as hs
+        with tempfile.TemporaryDirectory() as tmp:
+            res = gf.build(gf.WEAPONS["akm"], out_dir=Path(tmp))
+        fr = res["frames"]
+        m = {k: hs.measure(v["rgba"], v["grab"]) for k, v in fr.items()}
+        target = round(gf.chgg_height() * gf.HEIGHT_MULT)
+        self.assertEqual(m["SDAKA0"]["height"], target)
+        ppsh, ppsh_grab = hs.read_png_sprite(ROOT / "assets" / "sprites" / "ppsh" / "SDPPA0.png")
+        pm = hs.measure(ppsh, ppsh_grab)
+        self.assertEqual(pm["height"], target)
+        width = lambda bb: bb[2] - bb[0]
+        self.assertLess(abs(width(m["SDAKA0"]["bbox"]) - width(pm["bbox"])) / width(pm["bbox"]), 0.10)
+        self.assertTrue((fr["SDAKA0"]["rgba"] == fr["SDAKB0"]["rgba"]).all())
+        self.assertEqual(np.subtract(fr["SDAKA0"]["grab"], fr["SDAKB0"]["grab"]).tolist(),
+                         list(gf.KICK))                                    # grAb = minus the place
+        fx0, fy0, fx1, fy1 = m["SDAFA0"]["bbox"]
+        gx0, gy0, _, _ = m["SDAKB0"]["bbox"]
+        self.assertTrue(fx0 < gx0 < fx1, (m["SDAFA0"]["bbox"], m["SDAKB0"]["bbox"]))   # round the muzzle
+        self.assertLess(fy0, gy0)                                         # bursts above the gun's top
+        red = gf.ramp_mask(("flag_red",), len(gf.palette_rgb()))
+        lut = {tuple(c): i for i, c in enumerate(gf.palette_rgb().tolist())}
+        for lump in ("SDAKA0", "SDAKB0"):
+            rgba = fr[lump]["rgba"]
+            ids = [lut[tuple(c)] for c in rgba[rgba[..., 3] > 0][:, :3].tolist()]
+            self.assertFalse(red[ids].any(), lump)
+        self.assertTrue(all(v["cuts"] == 0 for v in fr.values()))
 
     def test_ice_axe_swing_is_the_ready_frame_turned(self):
         # D86: B, C and D are A turned as one rigid piece: the hand keeps

@@ -8,8 +8,9 @@
 // is the partnership itself. It waits on MAP09's crater floor before the
 // portal (MAP09_BOSS_SPOT) and its death opens the control bunker.
 // Design: docs/engine/2026-10-22_P4_ep3-final-boss.md; numbers in BESTIARY
-// section 12 (row 11). In the mod since D116 (2026-10-22), on a provisional
-// sprite; placed in no map yet (MAP09's boss swap is level-designer's).
+// section 12 (row 11). In the mod since D116 (2026-10-22), on its own
+// sprite (SDCN) since D128 (2026-10-24; the CEO: "Ok consorcio"); MAP09
+// places it (src/maps/MAP09/map.py, BOSS_KIND "consortium").
 //
 // Two phases, split at half health:
 //   ROOTED (4000-2001)  plugged into the portal: it does not walk, it turns
@@ -38,16 +39,13 @@
 // final A_BossDeath are the General's, so a MAPINFO SpecialAction on this
 // class works as the belt-and-braces fix MAP09's design names (section 11).
 //
-// PROVISIONAL LOOK (D116): no art of its own yet (Gemini, a little at a
-// time). It wears the heavy Panzermensch's SDPS (A-D walk, E-G the attack,
-// H pain, I-O death), drawn 1.75 times larger and tinted with the portal's
-// cobalt by the lines marked PROVISIONAL-D116. The final set is SDCN (95
-// lumps: design doc section 5). When it is installed in
-// assets/sprites/consortium/, the swap is the sprite name and those lines:
-//   sed -i -e 's/^\(\s*\)SDPS /\1SDCN /' -e '/^\s*[^/[:space:]].*PROVISIONAL-D116/d' src/zscript/monsters/consortium.zs
-// and then two state edits the drawing adds (design doc 7, step 2): the
-// rooted See shows SDCN Q R instead of A B, and Breach's first two frames
-// show S instead of H (MOD-SPEC 6.12; tests/test_ep3_boss.py pins it).
+// LOOK: SDCN, its own 95 lumps drawn from the CEO's Gemini sheets by
+// tools/art/consortium_gemini.py (gemini_enemy.py's CONSORTIUM), in
+// assets/sprites/consortium/ (design doc section 5), at full size: no
+// Scale, no tint. Eight rotations of its own (the halves are not mirror
+// images). Rooted it shows Q R (Spawn, See), free A-D (Walk); E the
+// Legion arm's tell, F the Reich arm's, G firing, H pain, S the Breach's
+// first frames, I-O death.
 //
 // NOT VERIFIED in the engine (D26: no agent starts GZDoom). Used here for
 // the first time in this project: CHF_DONTMOVE and CHF_NODIRECTIONTURN
@@ -68,7 +66,6 @@ class SD_Consortium : SD_Monster
 	const SD_CONSORTIUM_SPEED      = 8;     // (H) once free; slower than the colossus's 10
 	const SD_CONSORTIUM_MASS       = 10000; // rooted in the portal: nothing moves it
 	const SD_CONSORTIUM_PAINCHANCE = 10;    // half the General's 20: a boss that barely flinches
-	const SD_CONSORTIUM_SCALE      = 1.75;  // SDPS is 72 units tall; 72 x 1.75 ~ 126 (PROVISIONAL-D116)
 	// Missile behaviour: the General's (the Cyberdemon's) while rooted;
 	// once free, a lower multiplier makes it attack more readily at range.
 	const SD_CONSORTIUM_MIN_MISSILE_CHANCE       = 160;
@@ -141,7 +138,6 @@ class SD_Consortium : SD_Monster
 		PainChance SD_CONSORTIUM_PAINCHANCE;
 		MinMissileChance SD_CONSORTIUM_MIN_MISSILE_CHANCE;
 		MissileChanceMult SD_CONSORTIUM_MISSILE_CHANCE_MULT;
-		Scale SD_CONSORTIUM_SCALE;   // PROVISIONAL-D116
 		// The General's boss flags, one for one.
 		+BOSS
 		+NORADIUSDMG        // the player's own RPG-7 splash must not do the work
@@ -151,10 +147,6 @@ class SD_Consortium : SD_Monster
 		Species "SD_Consortium";
 		SD_Monster.Faction SD_FACTION_BOTH;   // both factions in one body
 		BloodColor "AD 27 21";     // D49: dark red for every faction
-		// The portal's cobalt: the whole palette mapped by luminance onto a
-		// dark-violet-to-ice-blue gradient. NOT VERIFIED in the engine on
-		// truecolour PNGs (same caveat as the colossus).
-		Translation "0:255=%[0.04,0.02,0.12]:[1.10,1.40,2.00]";   // PROVISIONAL-D116
 		// Its own logical names (SNDINFO), over a brute's voice and the
 		// General's death cue until its own are recorded (design doc 6).
 		SeeSound "sd/mon/consortium/sight";
@@ -168,105 +160,105 @@ class SD_Consortium : SD_Monster
 	States
 	{
 	Spawn:
-		SDPS AB 10 A_Look;
+		SDCN QR 10 A_Look;
 		Loop;
 	See:
-		SDPS A 0 A_JumpIf(unbound, "Walk");
+		SDCN Q 0 A_JumpIf(unbound, "Walk");
 		// Rooted: it breathes and turns, it does not walk.
-		SDPS A 6 A_SD_ConsortiumChase;
-		SDPS B 6 A_SD_ConsortiumChase;
+		SDCN Q 6 A_SD_ConsortiumChase;
+		SDCN R 6 A_SD_ConsortiumChase;
 		Loop;
 	Walk:
-		SDPS A 3 A_SD_ConsortiumStep;   // one footfall per cycle
-		SDPS ABBCCDD 3 A_SD_ConsortiumChase;
+		SDCN A 3 A_SD_ConsortiumStep;   // one footfall per cycle
+		SDCN ABBCCDD 3 A_SD_ConsortiumChase;
 		Loop;
 	Missile:
-		SDPS E 0 A_SD_ConsortiumChoose;  // always jumps; falls into Orbs only without a target
+		SDCN E 0 A_SD_ConsortiumChoose;  // always jumps; falls into Orbs only without a target
 
 	// ---- phase 1, rooted --------------------------------------------------
 	Orbs:
-		SDPS E 12 A_FaceTarget;          // the Legion arm comes up: the tell
-		SDPS G 6 Bright A_SD_ConsortiumOrbFan(3, SD_CONSORTIUM_FAN, 0);
-		SDPS E 10 A_FaceTarget;
-		SDPS G 6 Bright A_SD_ConsortiumOrbFan(3, SD_CONSORTIUM_FAN, SD_CONSORTIUM_FAN_SHIFT);
-		SDPS E 16;                       // recovery: the window
+		SDCN E 12 A_FaceTarget;          // the Legion arm comes up: the tell
+		SDCN G 6 Bright A_SD_ConsortiumOrbFan(3, SD_CONSORTIUM_FAN, 0);
+		SDCN E 10 A_FaceTarget;
+		SDCN G 6 Bright A_SD_ConsortiumOrbFan(3, SD_CONSORTIUM_FAN, SD_CONSORTIUM_FAN_SHIFT);
+		SDCN E 16;                       // recovery: the window
 		Goto See;
 	Rockets:
-		SDPS F 12 A_FaceTarget;          // the Reich arm comes up
-		SDPS G 8 Bright A_SD_ConsortiumRocket;
-		SDPS F 6 A_FaceTarget;
-		SDPS G 8 Bright A_SD_ConsortiumRocket;
-		SDPS F 6 A_FaceTarget;
-		SDPS G 8 Bright A_SD_ConsortiumRocket;
-		SDPS F 16;
+		SDCN F 12 A_FaceTarget;          // the Reich arm comes up
+		SDCN G 8 Bright A_SD_ConsortiumRocket;
+		SDCN F 6 A_FaceTarget;
+		SDCN G 8 Bright A_SD_ConsortiumRocket;
+		SDCN F 6 A_FaceTarget;
+		SDCN G 8 Bright A_SD_ConsortiumRocket;
+		SDCN F 16;
 		Goto See;
 	Flame:
-		SDPS E 10 A_FaceTarget;          // the core opens
-		SDPS G 3 Bright A_SD_ConsortiumFlame;
-		SDPS G 3 Bright A_SD_ConsortiumFlame;
-		SDPS G 3 Bright A_SD_ConsortiumFlame;
-		SDPS G 3 Bright A_SD_ConsortiumFlame;
-		SDPS G 3 Bright A_SD_ConsortiumFlame;
-		SDPS E 12;
+		SDCN E 10 A_FaceTarget;          // the core opens
+		SDCN G 3 Bright A_SD_ConsortiumFlame;
+		SDCN G 3 Bright A_SD_ConsortiumFlame;
+		SDCN G 3 Bright A_SD_ConsortiumFlame;
+		SDCN G 3 Bright A_SD_ConsortiumFlame;
+		SDCN G 3 Bright A_SD_ConsortiumFlame;
+		SDCN E 12;
 		Goto See;
 	Summon:
-		SDPS E 15 Bright A_SD_ConsortiumCall;   // the portal behind it flares; two come through
-		SDPS F 10;
+		SDCN E 15 Bright A_SD_ConsortiumCall;   // the portal behind it flares; two come through
+		SDCN F 10;
 		Goto See;
 
 	// ---- the breach, once, at half health ---------------------------------
 	Breach:
-		SDPS H 10 A_SD_ConsortiumBreach;        // invulnerable; the ground shakes; the line
-		SDPS H 10;
-		SDPS E 20 Bright A_SD_ConsortiumWave;   // four come through at once
-		SDPS F 15 Bright;
-		SDPS G 10 Bright A_SD_ConsortiumUnbind; // the cables tear: it walks, and can be hurt
+		SDCN S 10 A_SD_ConsortiumBreach;        // invulnerable; the ground shakes; the line
+		SDCN S 10;
+		SDCN E 20 Bright A_SD_ConsortiumWave;   // four come through at once
+		SDCN F 15 Bright;
+		SDCN G 10 Bright A_SD_ConsortiumUnbind; // the cables tear: it walks, and can be hurt
 		Goto See;
 
 	// ---- phase 2, free ----------------------------------------------------
 	Volley:
-		SDPS F 8 A_FaceTarget;           // both arms come up
-		SDPS G 6 Bright A_SD_ConsortiumRocket;
-		SDPS G 6 Bright A_SD_ConsortiumOrbFan(3, SD_CONSORTIUM_FAN, 0);
-		SDPS G 6 Bright A_SD_ConsortiumRocket;
-		SDPS G 6 Bright A_SD_ConsortiumOrbFan(3, SD_CONSORTIUM_FAN, SD_CONSORTIUM_FAN_SHIFT);
-		SDPS F 12;
+		SDCN F 8 A_FaceTarget;           // both arms come up
+		SDCN G 6 Bright A_SD_ConsortiumRocket;
+		SDCN G 6 Bright A_SD_ConsortiumOrbFan(3, SD_CONSORTIUM_FAN, 0);
+		SDCN G 6 Bright A_SD_ConsortiumRocket;
+		SDCN G 6 Bright A_SD_ConsortiumOrbFan(3, SD_CONSORTIUM_FAN, SD_CONSORTIUM_FAN_SHIFT);
+		SDCN F 12;
 		Goto See;
 	Barrage:
-		SDPS E 8 A_FaceTarget;
-		SDPS G 4 Bright A_SD_ConsortiumOrbFan(5, SD_CONSORTIUM_FAN_WIDE, 0);
-		SDPS E 6 A_FaceTarget;
-		SDPS G 4 Bright A_SD_ConsortiumOrbFan(5, SD_CONSORTIUM_FAN_WIDE, SD_CONSORTIUM_FAN_WIDE / 2);
-		SDPS E 6 A_FaceTarget;
-		SDPS G 4 Bright A_SD_ConsortiumOrbFan(5, SD_CONSORTIUM_FAN_WIDE, 0);
-		SDPS E 12;
+		SDCN E 8 A_FaceTarget;
+		SDCN G 4 Bright A_SD_ConsortiumOrbFan(5, SD_CONSORTIUM_FAN_WIDE, 0);
+		SDCN E 6 A_FaceTarget;
+		SDCN G 4 Bright A_SD_ConsortiumOrbFan(5, SD_CONSORTIUM_FAN_WIDE, SD_CONSORTIUM_FAN_WIDE / 2);
+		SDCN E 6 A_FaceTarget;
+		SDCN G 4 Bright A_SD_ConsortiumOrbFan(5, SD_CONSORTIUM_FAN_WIDE, 0);
+		SDCN E 12;
 		Goto See;
 	Sweep:
-		SDPS E 8 A_SD_ConsortiumSweepStart;
-		SDPS G 2 Bright A_SD_ConsortiumSweep;
-		SDPS G 2 Bright A_SD_ConsortiumSweep;
-		SDPS G 2 Bright A_SD_ConsortiumSweep;
-		SDPS G 2 Bright A_SD_ConsortiumSweep;
-		SDPS G 2 Bright A_SD_ConsortiumSweep;
-		SDPS G 2 Bright A_SD_ConsortiumSweep;
-		SDPS G 2 Bright A_SD_ConsortiumSweep;
-		SDPS G 2 Bright A_SD_ConsortiumSweep;
-		SDPS G 2 Bright A_SD_ConsortiumSweep;
-		SDPS E 10;
+		SDCN E 8 A_SD_ConsortiumSweepStart;
+		SDCN G 2 Bright A_SD_ConsortiumSweep;
+		SDCN G 2 Bright A_SD_ConsortiumSweep;
+		SDCN G 2 Bright A_SD_ConsortiumSweep;
+		SDCN G 2 Bright A_SD_ConsortiumSweep;
+		SDCN G 2 Bright A_SD_ConsortiumSweep;
+		SDCN G 2 Bright A_SD_ConsortiumSweep;
+		SDCN G 2 Bright A_SD_ConsortiumSweep;
+		SDCN G 2 Bright A_SD_ConsortiumSweep;
+		SDCN G 2 Bright A_SD_ConsortiumSweep;
+		SDCN E 10;
 		Goto See;
 
 	Pain:
-		SDPS H 3;
-		SDPS H 3 A_Pain;
+		SDCN H 3;
+		SDCN H 3 A_Pain;
 		Goto See;
 	Death:
-		SDPS I 10 A_SD_ConsortiumFall;   // its servants fall with it
-		SDPS J 10 A_Scream;
-		SDPS K 10;
-		SDPS L 10 A_NoBlocking;
-		SDPS MN 10;
-		SDPS O 30;
-		SDPS O -1 A_BossDeath;
+		SDCN I 10 A_SD_ConsortiumFall;   // its servants fall with it
+		SDCN J 10 A_Scream;
+		SDCN K 10;
+		SDCN L 10 A_NoBlocking;
+		SDCN MN 10;
+		SDCN O 30;
+		SDCN O -1 A_BossDeath;
 		Stop;
 	}
 

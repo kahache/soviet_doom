@@ -421,61 +421,60 @@ def tex_grat2() -> np.ndarray:
 # ================================================================ pieces
 PIECES = [
     Piece("SDDAM1", tex_dam1, "wall", (64, 128), ["SDDAM1"], 1, "xy",
-          "Hormigón de presa",
-          "Hormigón en masa de la presa: marcas de tablas de encofrado, junta de tongada cada 64 px, agujeros de "
-          "los latiguillos con chorretes blancos de calcita.",
-          rec_why="El lienzo del mapa: claro, frío, enorme; los chorretes dan escala sin ensuciar."),
+          "Dam concrete",
+          "The dam's mass concrete: formwork board marks, a lift joint every 64 px, form-tie holes with white "
+          "calcite streaks.",
+          rec_why="The map's canvas: light, cold, huge; the streaks give scale without dirtying it."),
     Piece("SDDAM2", tex_dam2, "wall", (64, 128), ["SDDAM2"], 2, "x",
-          "Hormigón en la línea de agua",
-          "El mismo hormigón en la línea de agua: oscuro y mojado por debajo de una marca irregular, verdín abajo.",
-          rec_why="Para el canal del aliviadero y los muros del embalse; la marca va a 72 px del techo de la "
-                  "textura (alinear en UDMF)."),
+          "Concrete at the waterline",
+          "The same concrete at the waterline: dark and wet below an uneven mark, green algae at the bottom.",
+          rec_why="For the spillway channel and the reservoir walls; the mark sits 72 px below the texture's top "
+                  "(align in UDMF)."),
     Piece("SDTURB1", tex_turb1, "wall", (128, 128), ["SDTURB1"], 3, "x",
-          "Carcasa de turbina / generador",
-          "Carcasa del grupo turbina-generador: acero pintado en verde 4BO, nervios, dos bridas atornilladas, "
-          "placa de fabricante de latón (texto de píxel ilegible y el año 1957), registro atornillado, aceite "
-          "rezumando bajo la brida, zócalo de hormigón.",
-          rec_why="La paleta v1 no tiene «verde-gris» de maquinaria: uso el verde 4BO de las puertas, que además ata "
-                  "con la base. Si quieres el gris-verde de verdad hace falta paleta v3 (pregunta abajo)."),
+          "Turbine / generator casing",
+          "The turbine-generator set's casing: steel painted 4BO green, ribs, two bolted flanges, a brass maker's "
+          "plate (unreadable pixel text and the year 1957), a bolted inspection hatch, oil seeping under the "
+          "flange, a concrete plinth.",
+          rec_why="Palette v1 has no machinery «grey-green»: I use the doors' 4BO green, which also ties in with "
+                  "the base. A true grey-green needs palette v3 (question below)."),
     Piece("SDCTRL1", tex_ctrl1, "wall", (128, 128), ["SDCTRL1"], 4, "x",
-          "Panel de control",
-          "Cuadro de mando soviético: paneles gris claro, manómetros redondos con zona roja, una fila de pilotos "
-          "(algunos encendidos), placas que parecen texto y no dicen nada, esquema sinóptico de barras e "
-          "interruptores en el pupitre, conmutadores de palanca y zócalo oscuro. Secciones de 64 px: tila como "
-          "un cuadro largo.",
-          rec_why="La pieza más «Doom» del set (los paneles de ordenador de 1993) pero inconfundiblemente soviética."),
+          "Control panel",
+          "A Soviet control board: light grey panels, round gauges with a red zone, a row of pilot lamps (some "
+          "lit), plates that look like text and say nothing, a mimic diagram of busbars and switches on the "
+          "desk, lever switches and a dark plinth. 64 px sections: it tiles as one long board.",
+          rec_why="The most «Doom» piece of the set (the 1993 computer panels) yet unmistakably Soviet."),
     Piece("SDSPIL1", tex_spil1, "wall", (64, 128), ["SDSPIL1"], 5, "xy",
-          "Rejilla del aliviadero",
-          "Rejilla de desbaste del aliviadero: barrotes verticales oxidados y rigidizadores delante de agua que "
-          "corre, con espuma entre los barrotes.",
-          rec_why="Tila en los dos ejes; delante de un sector de agua animada vende la presa."),
+          "Spillway grille",
+          "The spillway's trash rack: rusty vertical bars and stiffeners in front of running water, with foam "
+          "between the bars.",
+          rec_why="Tiles on both axes; in front of an animated water sector it sells the dam."),
     Piece("SDWATR", water_frames, "flat", (64, 64), [f"SDWATR{i}" for i in range(1, FRAMES + 1)], 6, "xy",
-          "Agua del Volga (animada, 4 fotogramas)",
-          "Agua de río en cuatro fotogramas para ANIMDEFS, como el agua de Doom: cuerpo lento, crestas que giran "
-          "una fase completa y deriva de una loseta por bucle (el 4 enlaza con el 1). Gris-azul de steel_blue, "
-          "nunca el cobalto del portal.",
-          rec_why="8 tics por fotograma como SDMOLT (decisión de mod-engineer). Se lee como agua y no como portal."),
+          "Volga water (animated, 4 frames)",
+          "River water in four frames for ANIMDEFS, like Doom's water: a slow body, crests that turn one full "
+          "phase and a drift of one tile per loop (frame 4 links back to 1). steel_blue grey-blue, never the "
+          "portal's cobalt.",
+          rec_why="8 tics per frame like SDMOLT (mod-engineer's decision). It reads as water, not as a portal."),
     Piece("SDINSL1", tex_insl1, "wall", (64, 128), ["SDINSL1"], 7, "x",
-          "Aislador de alta tensión (enmascarada)",
-          "Cadena de aisladores de suspensión, ENMASCARADA (fondo transparente, para la textura media de una "
-          "línea de dos caras): cruceta, horquilla, ocho platos de porcelana marrón vidriada, grapa y conductor. "
-          "Cruceta y cable cruzan la loseta: una fila de cadenas tila en x.",
+          "High-voltage insulator (masked)",
+          "A suspension insulator string, MASKED (transparent background, for the middle texture of a two-sided "
+          "line): crossarm, clevis, eight glazed brown porcelain discs, clamp and conductor. Crossarm and cable "
+          "cross the tile: a row of strings tiles in x.",
           masked=True,
-          rec_why="Misma excepción RGBA que SDCHAN1 (aprobada e instalada). Sobre cielo o sobre el muro de la "
-                  "subestación.",
+          rec_why="Same RGBA exception as SDCHAN1 (approved and installed). Against the sky or the substation's "
+                  "wall.",
           scene={"left": "SDDAM1", "right": "SDDAM1", "ceil": None}),
     Piece("SDGRAT2", tex_grat2, "flat", (64, 64), ["SDGRAT2"], 8, "xy",
-          "Suelo de chapa desplegada",
-          "Chapa desplegada galvanizada sobre el vacío (destellos de agua al fondo), algún parche de óxido. Sin "
-          "marco: tila sin costura, a diferencia de los paneles SDGRAT1 de la fábrica.",
-          rec_why="Pasarelas sobre las turbinas y el aliviadero; distinto de SDGRAT1 a un vistazo (rombos, no barras)."),
+          "Expanded-metal floor",
+          "Galvanised expanded metal over a drop (glints of water below), a patch of rust here and there. No "
+          "frame: it tiles seamlessly, unlike the factory's SDGRAT1 panels.",
+          rec_why="Walkways over the turbines and the spillway; tells from SDGRAT1 at a glance (diamonds, not bars)."),
 ]
 
 ROOM = {"wall": "SDDAM1", "floor": "SDGRAT2", "ceil": "SDCEIL1", "light": 0.92}
 OVERVIEWS = [
-    ("Sala de turbinas", {"left": "SDTURB1", "right": "SDCTRL1", "back": "SDTURB1", "floor": "SDGRAT2",
+    ("Turbine hall", {"left": "SDTURB1", "right": "SDCTRL1", "back": "SDTURB1", "floor": "SDGRAT2",
                           "ceil": "SDCEIL1"}),
-    ("El aliviadero", {"left": "SDDAM2", "right": "SDDAM2", "back": "SDSPIL1", "floor": "SDWATR1", "ceil": None}),
+    ("The spillway", {"left": "SDDAM2", "right": "SDDAM2", "back": "SDSPIL1", "floor": "SDWATR1", "ceil": None}),
 ]
 
 

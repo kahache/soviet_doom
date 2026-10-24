@@ -12,12 +12,12 @@ See `CLAUDE.md` for the operational summary, `docs/PRD.md` for decisions and
 
 **Windows, one click:** download `sovietdoom-<version>-windows.zip` from the
 release page (where the release offers it), right-click it → Extract All, open the `SovietDoom` folder and
-double-click `Play Soviet Doom.bat` (`Jugar Soviet Doom.bat` in Spanish).
+double-click `Play Soviet Doom.bat`.
 GZDoom and Freedoom are inside; nothing is installed, and settings and saves
 stay in that folder. GZDoom is unsigned, so Windows may say "Windows
 protected your PC": click More info → Run anyway (or tick Unblock in the
-zip's Properties before extracting). `README-FIRST.txt` / `LEEME.txt` in the
-folder explain the rest, including the switch to Russian.
+zip's Properties before extracting). `README-FIRST.txt` in the folder
+explains the rest, including the switch to Russian or Catalan.
 
 **macOS, one click** (Intel and Apple silicon, macOS 10.15+; not yet tested
 on a real Mac): download `sovietdoom-<version>-macos.zip` and double-click it.

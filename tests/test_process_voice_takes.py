@@ -19,7 +19,7 @@ What is tested:
   cut, the end silent, the high-pass, the radio colour only on the Legion,
   the level on the ruler of gen_weapon_alts (peak -1 dBFS, loudest 50 ms
   A-weighted within 1 dB of the Freedoom sound) or the shortfall reported.
-- The page: Spanish, OK/NO/? and "Copiar resultado", relative paths only,
+- The page: English (D129), OK/NO/? and "Copy result", relative paths only,
   localStorage inside try/catch, every take, its text, language and
   Freedoom sound.
 
@@ -328,8 +328,8 @@ class PageTests(unittest.TestCase):
         page = PROJECT_ROOT / "docs" / "art" / "previews" / "2026-10-20_0000_P2_voice-takes.html"
         asr = {done[0].name: {"text": "Stellung halten.", "model": "openai-whisper medium"}}
         h = pv.page_html(done, page, "2026-10-20_0000", asr=asr)
-        self.assertIn('<html lang="es">', h)
-        self.assertIn("Copiar resultado", h)
+        self.assertIn('<html lang="en">', h)
+        self.assertIn("Copy result", h)
         for b in ('data-v="ok">OK', 'data-v="no">NO', 'data-v="q">?'):
             self.assertIn(b, h)
         for m in re.finditer(r"localStorage\.\w+", h):
@@ -343,7 +343,7 @@ class PageTests(unittest.TestCase):
                 self.assertTrue(it[key].startswith("../../../work/audio/"), it[key])
             self.assertEqual(it["text"], l.text)
             self.assertEqual(it["rep"], l.freedoom)
-            self.assertIn(it["lang"], ("alemán", "inglés"))
+            self.assertIn(it["lang"], ("German", "English"))
         self.assertEqual(items[0]["asr"], "Stellung halten.")
         self.assertIn("Whisper", h)
         for label in pv.CLASS_LABEL.values():
@@ -553,13 +553,13 @@ class Page2Tests(unittest.TestCase):
         asr = {bad: {"text": "Stellung halten, Stellung halten.", "model": "openai-whisper medium"},
                done[1].name: {"text": "Stellung halten.", "model": "openai-whisper medium"}}
         h = pv.page2_html(done, page, "2026-10-20_0000", "20261020", asr=asr, refs={})
-        self.assertIn('<html lang="es">', h)
-        self.assertIn("Copiar resultado", h)
+        self.assertIn('<html lang="en">', h)
+        self.assertIn("Copy result", h)
         items = json.loads(re.search(r"const ITEMS = (\[.*?\]);\n", h, re.S).group(1).replace("<\\/", "</"))
         self.assertEqual(len(items), len(takes) - 1)
         self.assertNotIn(bad, {i["id"] for i in items})
-        self.assertIn("Rechazadas automáticamente", h)
-        self.assertIn("palabras de más", h)
+        self.assertIn("Rejected automatically", h)
+        self.assertIn("extra words", h)
         for it in items:
             self.assertTrue(it["ref"])
             for key in ("src", "raw", "repSrc"):

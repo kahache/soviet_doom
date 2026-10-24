@@ -36,8 +36,8 @@ ships, built the way the Episode 2 gunner and colossus were
 | Where | MAP09's crater floor before the portal, `MAP09_BOSS_SPOT = (3968, 3136)`, facing the red gate |
 | Editor number | **21112** |
 | Replaces | nothing (§2.1) |
-| Provisional sprite | `SDPS` (the heavy Panzermensch), `Scale 1.75`, tinted the portal's cobalt |
-| Final sprite (to draw) | `SDCN` |
+| Provisional sprite | `SDPS` (the heavy Panzermensch), `Scale 1.75`, tinted the portal's cobalt, **from D116 to D128** |
+| Final sprite | `SDCN`, **installed (D128, 2026-10-24; the CEO: "Ok consorcio, añade paleta si es necesario" ("OK, Consortium, add a palette if needed"))**: 95 lumps in `assets/sprites/consortium/`, the Reich half in palette v3's `reich_greygreen` (§5) |
 | Draft-only twin | `SD_ConsortiumWounded`: the same boss spawned at half health + 100, so the PM can play phase 2 at once; no editor number, deleted at integration |
 
 **Editor number.** 21100–21109 are the bestiary's first nine (BESTIARY
@@ -265,7 +265,17 @@ Drawn at full size: **~135–145 px tall** (the body is 128 units), at most
 **~120 px wide** (112 units of body); `Scale` and `Translation` go when it
 lands.
 
-**`SDCN`, the Consortium** (95 lumps):
+**`SDCN`, the Consortium** (95 lumps). **Installed by D128** from the
+CEO's Gemini sheets by `tools/art/consortium_gemini.py` and
+`tools/art/gemini_enemy.py`'s `CONSORTIUM` (licence rows:
+`docs/art/LICENSES.md`, "Enemy sprites: the Consortium"). Palette v3
+(D128): v2 had no grey-green, so the Reich half's skin and helmet snapped
+to concrete grey; v3 appends the ramp `reich_greygreen` in reserved slots
+226-241 (ART-BIBLE §3) and only `SDCN` uses it, so no approved asset
+changed. The swap is done in `consortium.zs`: `SDPS` → `SDCN`,
+Spawn and the rooted See on Q R, the Breach's first two frames on S, the
+`Translation` and `Scale` lines gone (`tests/test_ep3_boss.py`,
+`test_its_own_look_is_installed`).
 
 | Frames | Pose | Rotations | Lumps |
 |---|---|---|---|
@@ -319,7 +329,8 @@ the 95 frames, ≈ 20k), one for sound-designer if the sounds of §6 are made
 
 1. **Art:** the approved PNGs into `assets/sprites/consortium/` (`SDCN`,
    95), with `grAb`, licence rows in `docs/art/LICENSES.md`, reserved in
-   MOD-SPEC §6.3.
+   MOD-SPEC §6.3. **Done by D128** (with step 2's sprite swap; the
+   `SD_ConsortiumWounded` fixture is still in the mod).
 2. **Code:** `work/overlays/ep3-boss/zscript/sd_ep3/*.zs` →
    `src/zscript/monsters/` (`consortium.zs`, `consortium_rocket.zs`,
    `consortium_orb.zs`, `consortium_flame.zs`), `#include`d from

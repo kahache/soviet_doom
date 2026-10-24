@@ -512,7 +512,7 @@ ED_DOUGHBOY = 21104
 ED_PANZERMENSCH = 21105
 ED_PANZER_HEAVY = 21107
 ED_GUNNER = 21110         # SD_LegionGunner, Legion (D116): the heavy machine-gunner
-ED_COLOSSUS = 21111       # SD_LibertyColossus, Legion (D116): episode 2's boss, the bay's mini-boss here
+ED_CHROME_GENERAL = 21113 # SD_ChromeGeneral, Legion (D123): the colossus variant, the bay's mini-boss
 MONSTER_KINDS = {
     "rifleman": ED_RIFLEMAN,
     "trooper": ED_TROOPER,
@@ -522,7 +522,7 @@ MONSTER_KINDS = {
     "panzermensch": ED_PANZERMENSCH,
     "heavy": ED_PANZER_HEAVY,
     "gunner": ED_GUNNER,
-    "colossus": ED_COLOSSUS,
+    "chrome_general": ED_CHROME_GENERAL,
 }
 MONSTER_CLASSES = {
     ED_RIFLEMAN: "SD_ReichRifleman",
@@ -533,10 +533,10 @@ MONSTER_CLASSES = {
     ED_PANZERMENSCH: "SD_Panzermensch",
     ED_PANZER_HEAVY: "SD_PanzermenschSchwer",
     ED_GUNNER: "SD_LegionGunner",
-    ED_COLOSSUS: "SD_LibertyColossus",
+    ED_CHROME_GENERAL: "SD_ChromeGeneral",
 }
 REICH = ("rifleman", "hound", "panzermensch", "heavy")
-LEGION = ("trooper", "doughboy", "gunner", "colossus")
+LEGION = ("trooper", "doughboy", "gunner", "chrome_general")
 # Where each faction stands (D35: both on the map). The Legion came by sea:
 # it holds the pier, the yard, the dock, the boat and the barracks it made
 # its quarters. The Reich came by rail: it holds the workshops, the rock
@@ -686,9 +686,11 @@ MONSTERS = (
     # On the track at the tunnel's mouth, the goods wagon at his back: the
     # rail tunnel's 1000 units down his sights.
     ("z10_rails", "gunner", 3776, 352, 180, 2),
-    # The bay's mini-boss on skills 3 and 4 (D116): the Liberty Colossus,
-    # episode 2's boss, guarding the cargo by the locomotive.
-    ("z10_bay", "colossus", 4352, 512, 180, 3),
+    # The bay's mini-boss on skills 3 and 4: from D116 the Liberty Colossus,
+    # since D123 the Chrome Marshal (SD_ChromeGeneral, the colossus's
+    # behaviour and 3000 HP in the General's chrome), on the same spot,
+    # guarding the cargo by the locomotive.
+    ("z10_bay", "chrome_general", 4352, 512, 180, 3),
 )
 
 # Consumables scale DOWN with skill: (zone, editor number, x, y, highest
@@ -765,7 +767,8 @@ LOUDSPEAKERS = (
 # 1.3-1.6 / 1.2-1.45 on skills 2 / 3 / 4), shells are at most ~35 % of the
 # damage, and the rest follows the weapons the player holds at each stage,
 # the newest first; fuel sparingly (the ROKS-3 is being toned down). The
-# colossus (skills 3 and 4, 3000 HP since D119) is paid in the tunnel and
+# mini-boss (skills 3 and 4, 3000 HP: the colossus's since D119, the Chrome
+# Marshal's since D123) is paid in the tunnel and
 # the bay in PG-7V first.
 AMMO = (
     # The pier, the yard, the basin's quays, the boat, the barracks (the IZh,
@@ -803,7 +806,7 @@ AMMO = (
     ("z8_hall", ED_ROCKET_BOX, 4672, 2240, 4),
     ("z8_hall", ED_AKM_MAG, 4416, 1088, 4),
     # The rail tunnel and the bay: on skill 2 a stage like the others; on
-    # skills 3 and 4 the colossus's (3000 HP since D119), PG-7V first.
+    # skills 3 and 4 the mini-boss's (3000 HP, the Chrome Marshal since D123), PG-7V first.
     ("z9_rails", ED_AKM_MAG, 3264, 352, 2),
     ("z10_bay", ED_AKM_MAG, 3776, 704, 2),
     ("z10_bay", ED_AKM_MAG, 4352, 192, 2),

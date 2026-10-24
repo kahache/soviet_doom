@@ -370,7 +370,7 @@ unwalkable). No floor the route uses moved; no door, key, switch, secret
 or poster changed. S1's panel now wears `SDDAM1`, the channel's wall it is
 cut into (the clue stays shadow and set-back, as before).
 
-### 7.3 Posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
+### 7.3 Posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel» ("that those posters can appear in any level"))
 
 The approved pictures, not pending ones: no row of 7.2 was a poster or a
 piece of propaganda, so none is replaced. Five pictures, each whole: one
@@ -462,8 +462,8 @@ sightlines (`docs/engine/2026-10-22_P4_akm.md` §6). **AKM magazines**
 (below), so most of the dam's boxes of rounds became magazines (`test_the_akm_between_the_ppsh_and_the_rpg`).
 
 **Ammunition, D119 (2026-10-23).** The CEO's playtest of Episodes 2 and 3:
-"hay muchos objetos de munición, siempre sale de sobras" and "siempre acabas
-con la escopeta". The ammunition now follows the monsters: it **grows with
+"hay muchos objetos de munición, siempre sale de sobras" ("there are lots of ammo pickups, there is always plenty left over") and "siempre acabas
+con la escopeta" ("you always end up with the shotgun"). The ammunition now follows the monsters: it **grows with
 skill** as they do (the table `AMMO` in `map.py`, rows with a lowest and a
 highest tier), not the consumables' rule. G3-8's ruler is MAP03's (kills in
 IZh shells, a gunner 2; PG-7V at 2 shells, AKM rounds at 80 / 12 a shell,
@@ -487,7 +487,7 @@ no secret; D119's bands (`docs/engine/BALANCE.md` §8): **1.5-2.0 × on skill
 In v1 shells were two thirds of the damage placed. **The AKM leads**
 (BALANCE §8.4.2 with the PM's amendment of 2026-10-23: the newest bullet
 weapon leads, the RPG-7 and the ROKS-3 never; and the brief's "el AKM tras
-recogerlo; PPSh; cohetes y combustible con moderación"): in every stage
+recogerlo; PPSh; cohetes y combustible con moderación", "the AKM after picking it up; PPSh; rockets and fuel in moderation"): in every stage
 from the gallery on its magazines are the largest non-shell pool and at
 least 40 % of it. By stretch: the station and the gatehouse (the IZh)
 loose shells only; the lower gallery, the turbine hall and the spillway's

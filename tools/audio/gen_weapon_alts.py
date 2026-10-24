@@ -756,87 +756,87 @@ class Alt:
     recipe: Callable
     sources: tuple[str, ...]
     length_s: tuple[float, float]
-    label: str                 # Spanish, for the page
-    what: str                  # Spanish, for the page
+    label: str                 # English, for the page
+    what: str                  # English, for the page
 
     @property
     def name(self) -> str:
         return f"{self.lump}_alt{self.index}"
 
 
-# lump -> (Freedoom lump it replaces, Spanish weapon group, Spanish event, verdict, what was rejected)
+# lump -> (Freedoom lump it replaces, weapon group, event, verdict, what was rejected)
 TARGETS: dict[str, tuple[str, str, str, str, str]] = {
-    "SDTTPKP": ("DSWPNUP", "TT-33 (ranura 2)", "recoger", "NO",
-                "agarrar la pistola y comprobar la recámara con suavidad"),
-    "SDAXPKP": ("DSWPNUP", "Piolet (ranura 1)", "recoger", "?",
-                "mango de madera, cabeza que tintinea, mano que agarra"),
-    "SDIZPKP": ("DSWPNUP", "IZh-58 (ranura 3)", "recoger", "?",
-                "la culata golpea; abrir y cerrar para ver que está vacía"),
-    "SDIZRLD": ("DSSGCOCK", "IZh-58 (ranura 3)", "recarga (abrir y cerrar)", "NO",
-                "abrir la báscula, sacar dos vainas, meter dos cartuchos, cerrar"),
-    "SDRKFIR": ("DSFLAME", "ROKS-3, lanzallamas (ranura 6)", "disparo", "NO",
-                "siseo de válvula y chorro rugiente"),
+    "SDTTPKP": ("DSWPNUP", "TT-33 (slot 2)", "pickup", "NO",
+                "grabbing the pistol and gently checking the chamber"),
+    "SDAXPKP": ("DSWPNUP", "Ice axe (slot 1)", "pickup", "?",
+                "wooden handle, jingling head, a gripping hand"),
+    "SDIZPKP": ("DSWPNUP", "IZh-58 (slot 3)", "pickup", "?",
+                "the stock knocks; open and close to check it is empty"),
+    "SDIZRLD": ("DSSGCOCK", "IZh-58 (slot 3)", "reload (open and close)", "NO",
+                "break the action, pull two hulls, load two shells, close"),
+    "SDRKFIR": ("DSFLAME", "ROKS-3, flamethrower (slot 6)", "fire", "NO",
+                "valve hiss and a roaring jet"),
 }
 
 ALTS: tuple[Alt, ...] = (
     Alt("SDTTPKP", 1, "pickup", r_tt_rack,
         ("metal_light_004", "switch_01", "metal_light_002", "metal_02", "metal_light_000", "switch_02"),
-        (0.25, 0.45), "Corredera a fondo",
-        "Acero puro: la corredera atrás hasta el tope y suelta de golpe; un clac metálico fuerte."),
+        (0.25, 0.45), "Full slide rack",
+        "Pure steel: the slide back to the stop and released at once; a loud metallic clack."),
     Alt("SDTTPKP", 2, "pickup", r_tt_holster,
         ("soft_medium_001", "soft_medium_003", "metal_light_004", "switch_01"),
-        (0.35, 0.55), "Funda de cuero",
-        "Sale de la funda: el broche salta, el cuero cruje y roza, el acero cae en la mano, martillo a medio montar."),
+        (0.35, 0.55), "Leather holster",
+        "Out of the holster: the snap pops, the leather creaks and rubs, the steel drops into the hand, hammer at half cock."),
     Alt("SDTTPKP", 3, "pickup", r_tt_magazine,
         ("metal_medium_003", "punch_medium_002", "switch_02", "switch_01", "metal_light_001"),
-        (0.3, 0.5), "Cargador de un golpe",
-        "Más pesado: el cargador entra y se encaja con la palma, luego se monta el martillo (dos clics)."),
+        (0.3, 0.5), "Magazine slapped in",
+        "Heavier: the magazine goes in and is seated with the palm, then the hammer is cocked (two clicks)."),
     Alt("SDAXPKP", 1, "pickup", r_axe_stone,
         ("concrete_002", "metal_light_003", "mining_001"),
-        (0.4, 0.7), "Acero sobre piedra",
-        "Se levanta del suelo de piedra: la cabeza raspa, el pico golpea y el acero queda sonando."),
+        (0.4, 0.7), "Steel on stone",
+        "Lifted off a stone floor: the head scrapes, the pick knocks and the steel keeps ringing."),
     Alt("SDAXPKP", 2, "pickup", r_axe_carabiner,
         ("key_open_02", "switch_02", "metal_light_001", "metal_light_004", "wood_light_003"),
-        (0.3, 0.5), "Mosquetón y dragonera",
-        "El mosquetón de la dragonera se cierra y tintinea; la mano coge el mango."),
+        (0.3, 0.5), "Carabiner and wrist loop",
+        "The wrist loop's carabiner snaps shut and jingles; the hand takes the handle."),
     Alt("SDAXPKP", 3, "pickup", r_axe_palm,
         ("punch_medium_002", "wood_medium_003", "metal_medium_001", "metal_light_004"),
-        (0.25, 0.45), "Golpe en la palma",
-        "Un solo golpe pesado: el mango cae en la palma con el peso de la cabeza de acero."),
+        (0.25, 0.45), "Slap into the palm",
+        "A single heavy thud: the handle lands in the palm with the weight of the steel head."),
     Alt("SDIZPKP", 1, "pickup", r_izh_barrels,
         ("wood_medium_004", "metal_medium_003"),
-        (0.4, 0.65), "Culata y cañones",
-        "La culata toca el suelo y los dos cañones suenan juntos, con un leve batido."),
+        (0.4, 0.65), "Stock and barrels",
+        "The stock touches the floor and the two barrels ring together, with a slight beat."),
     Alt("SDIZPKP", 2, "pickup", r_izh_sling,
         ("metal_light_003", "metal_light_001", "soft_medium_001", "wood_light_004"),
-        (0.35, 0.6), "Correa al hombro",
-        "Cuero y metal: la correa cruje, las anillas tintinean, la escopeta se asienta en el hombro."),
+        (0.35, 0.6), "Sling on the shoulder",
+        "Leather and metal: the sling creaks, the swivels jingle, the shotgun settles on the shoulder."),
     Alt("SDIZPKP", 3, "pickup", r_izh_shells,
         ("metal_medium_001", "wood_light_002", "generic_light_000", "generic_light_002"),
-        (0.25, 0.55), "Cartuchos sueltos",
-        "Se coge el arma y suenan los cartuchos sueltos en la caja."),
+        (0.25, 0.55), "Loose shells",
+        "The gun is picked up and the loose shells rattle in the box."),
     Alt("SDIZRLD", 1, "reload", r_izh_reload_crisp,
         ("switch_01", "metal_light_004", "metal_medium_001", "generic_light_002",
          "metal_light_001", "wood_light_002", "metal_medium_003", "metal_02", "switch_02"),
-        (0.8, 0.95), "Báscula nítida",
-        "Llave, cañones que caen, dos vainas fuera y al suelo, dos cartuchos dentro, cierre seco a 0,62 s."),
+        (0.8, 0.95), "Crisp break action",
+        "Lever, barrels dropping, two hulls out and onto the floor, two shells in, a dry close at 0.62 s."),
     Alt("SDIZRLD", 2, "reload", r_izh_reload_hulls,
         ("key_open_02", "tin_medium_002", "metal_light_002", "spring_08", "generic_light_000",
          "plate_light_003", "generic_light_002", "wood_light_002", "metal_heavy_002",
          "metal_11", "switch_01"),
-        (0.8, 0.95), "Vainas al suelo",
-        "Los expulsores lanzan las vainas, que rebotan en el hormigón; cartuchos dentro, cierre a 0,62 s."),
+        (0.8, 0.95), "Hulls on the floor",
+        "The ejectors throw the hulls, which bounce on the concrete; shells in, close at 0.62 s."),
     Alt("SDIZRLD", 3, "reload", r_izh_reload_heavy,
         ("metal_06", "switch_02", "metal_heavy_000", "plate_light_002", "generic_light_002",
          "wood_medium_003", "metal_light_004", "plate_heavy_000", "metal_medium_004", "spring_07"),
-        (0.8, 0.95), "Pesada y lenta",
-        "Más grave y deliberada: los cañones caen con peso, cartuchos firmes, portazo de acero a 0,62 s."),
-    Alt("SDRKFIR", 1, "fire", r_jet_roar, (), (0.4, 0.65), "Chorro rugiente",
-        "Rugido ancho del chorro con el siseo del ignitor encima; al soltar se apaga y se oscurece."),
-    Alt("SDRKFIR", 2, "fire", r_jet_torch, (), (0.4, 0.6), "Soplete con chispa",
-        "Chorro a presión, más agudo: silbido de boquilla y la chispa del ignitor crepitando; al soltar, chisporroteo."),
-    Alt("SDRKFIR", 3, "fire", r_jet_pulse, (), (0.5, 0.75), "Bomba a pulsos",
-        "Grave y pulsante: la bomba empuja el combustible a golpes (justo al ritmo de disparo); al soltar, una llamarada."),
+        (0.8, 0.95), "Heavy and slow",
+        "Lower and deliberate: the barrels drop with weight, firm shells, a steel slam at 0.62 s."),
+    Alt("SDRKFIR", 1, "fire", r_jet_roar, (), (0.4, 0.65), "Roaring jet",
+        "A wide roar of the jet with the igniter's hiss on top; on release it dies out and darkens."),
+    Alt("SDRKFIR", 2, "fire", r_jet_torch, (), (0.4, 0.6), "Torch with a spark",
+        "A pressurised jet, higher: the nozzle whistle and the igniter's crackling spark; on release, sputtering."),
+    Alt("SDRKFIR", 3, "fire", r_jet_pulse, (), (0.5, 0.75), "Pulsing pump",
+        "Low and pulsing: the pump pushes the fuel in beats (right at the fire rate); on release, a flare-up."),
 )
 ALTS_BY_NAME = {a.name: a for a in ALTS}
 LUMPS = tuple(TARGETS)
@@ -1009,18 +1009,18 @@ def page_items(done: list[Rendered], page: Path, out_dir: Path) -> list[dict]:
             "rep": f"Freedoom {ref}",
             "repSrc": _rel(FREEDOOM_PREVIEW_DIR / f"{ref}.wav", page),
             "dur": round(lv["length"], 2),
-            "lvl": (f"pico {lv['peak']:.1f} dBFS · fuerza {lv['loud_a']:.1f} dB "
+            "lvl": (f"peak {lv['peak']:.1f} dBFS · loudest part {lv['loud_a']:.1f} dB "
                     f"(Freedoom {ref}: {FREEDOOM_LEVELS[ref][1]:.1f}) · "
-                    f"{100 * lv['above300']:.0f} % por encima de 300 Hz"),
+                    f"{100 * lv['above300']:.0f}% above 300 Hz"),
             "extras": [],
         }
         if a.kind == "fire":
             it["extras"] = [
-                {"l": "Esta alternativa con el gatillo apretado 1,2 s y soltado",
+                {"l": "This alternative with the trigger held 1.2 s and released",
                  "src": _rel(out_dir / "preview" / f"{a.name}_held.ogg", page)},
-                {"l": "El rechazado, igual de apretado",
+                {"l": "The rejected one, held the same way",
                  "src": _rel(out_dir / "preview" / "SDRKFIR_rejected_held.ogg", page)},
-                {"l": "Freedoom DSFLAME (lo de hoy), igual de apretado",
+                {"l": "Freedoom DSFLAME (today's), held the same way",
                  "src": _rel(out_dir / "preview" / "DSFLAME_held.ogg", page)},
             ]
         items.append(it)
@@ -1090,30 +1090,30 @@ try { S = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { S =
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 function st(id){ return S[id] || (S[id] = {v:"", n:""}); }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const fmt = s => s.toFixed(2).replace(".", ",") + " s";
+const fmt = s => s.toFixed(2) + " s";
 const audio = src => `<audio controls preload="none" src="${esc(src)}"></audio>`;
 function rowHTML(it){
   const s = st(it.id);
-  let players = `<div class="pl main"><span>Alternativa ${esc(it.id.slice(-1))} · ${fmt(it.dur)}</span>${audio(it.src)}</div>`;
-  players += `<div class="pl"><span>El rechazado (${esc(it.lump)}, ${esc(it.verdict)})</span>${audio(it.rej)}</div>`;
-  players += `<div class="pl"><span>Hoy en el juego: ${esc(it.rep)}</span>${audio(it.repSrc)}</div>`;
-  if (it.extras.length) players += `<details class="extra" open><summary>Con el gatillo apretado (como en el juego)</summary>${it.extras.map(e => `<div class="pl"><span>${esc(e.l)}</span>${audio(e.src)}</div>`).join("")}</details>`;
+  let players = `<div class="pl main"><span>Alternative ${esc(it.id.slice(-1))} · ${fmt(it.dur)}</span>${audio(it.src)}</div>`;
+  players += `<div class="pl"><span>The rejected one (${esc(it.lump)}, ${esc(it.verdict)})</span>${audio(it.rej)}</div>`;
+  players += `<div class="pl"><span>In the game today: ${esc(it.rep)}</span>${audio(it.repSrc)}</div>`;
+  if (it.extras.length) players += `<details class="extra" open><summary>With the trigger held (as in the game)</summary>${it.extras.map(e => `<div class="pl"><span>${esc(e.l)}</span>${audio(e.src)}</div>`).join("")}</details>`;
   return `<div class="row" id="r-${it.id}" data-id="${it.id}">
     <div><div class="name"><code>${esc(it.id)}</code><span class="ev">${esc(it.ev)}</span></div>
       <div class="what"><b>${esc(it.label)}.</b> ${esc(it.what)}</div>
-      <div class="meta"><b>Nivel:</b> ${esc(it.lvl)}</div></div>
+      <div class="meta"><b>Level:</b> ${esc(it.lvl)}</div></div>
     <div class="players">${players}</div>
     <div class="vote"><div class="btns">
       <button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div>
-      <textarea class="note" placeholder="Nota (opcional)">${esc(s.n || "")}</textarea></div>
+      <textarea class="note" placeholder="Note (optional)">${esc(s.n || "")}</textarea></div>
   </div>`;
 }
 function build(){
   let h = "", lumps = [...new Set(ITEMS.map(i => i.lump))];
   for (const L of lumps) {
     const its = ITEMS.filter(i => i.lump === L), a = its[0];
-    const tag = a.verdict === "NO" ? `<span class="tag no">dijiste NO</span>` : `<span class="tag q">dijiste ?</span>`;
-    h += `<details class="grp" open><summary><code>${esc(L)}</code> ${esc(a.group)} · ${esc(a.ev)} ${tag}<span class="rejnote">rechazado: ${esc(a.rejWhat)}</span><span class="gcount" data-l="${esc(L)}"></span></summary>`;
+    const tag = a.verdict === "NO" ? `<span class="tag no">you said NO</span>` : `<span class="tag q">you said ?</span>`;
+    h += `<details class="grp" open><summary><code>${esc(L)}</code> ${esc(a.group)} · ${esc(a.ev)} ${tag}<span class="rejnote">rejected: ${esc(a.rejWhat)}</span><span class="gcount" data-l="${esc(L)}"></span></summary>`;
     for (const it of its) h += rowHTML(it);
     h += `</details>`;
   }
@@ -1138,19 +1138,19 @@ function summary(){
   }
   const notes = ITEMS.filter(i => (st(i.id).n || "").trim()).map(i => `${i.id}: «${st(i.id).n.trim().replace(/\s+/g, " ")}»`);
   const open = ITEMS.filter(i => !st(i.id).v).map(i => i.id);
-  const L = [`Alternativas M3 (__STAMP__): ${done}/${ITEMS.length} juzgadas`,
+  const L = [`M3 alternatives (__STAMP__): ${done}/${ITEMS.length} judged`,
     `OK (${by("ok").length}): ${by("ok").join(", ") || "—"}`,
     `NO (${by("no").length}): ${by("no").join(", ") || "—"}`,
     `? (${by("q").length}): ${by("q").join(", ") || "—"}`,
-    `notas: ${notes.join(" / ") || "—"}`];
-  if (open.length) L.push(`sin juzgar (${open.length}): ${open.join(", ")}`);
+    `notes: ${notes.join(" / ") || "—"}`];
+  if (open.length) L.push(`unjudged (${open.length}): ${open.join(", ")}`);
   document.getElementById("result").value = L.join("\n");
 }
 function copy(){
   const t = document.getElementById("result"), msg = document.getElementById("copied");
   summary();
-  const done = () => { msg.textContent = "copiado"; setTimeout(() => msg.textContent = "", 2500); };
-  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? done() : (msg.textContent = "selecciona y Ctrl+C abajo"); } catch (e) { msg.textContent = "selecciona y Ctrl+C abajo"; } t.scrollIntoView({block:"center"}); };
+  const done = () => { msg.textContent = "copied"; setTimeout(() => msg.textContent = "", 2500); };
+  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? done() : (msg.textContent = "select and press Ctrl+C below"); } catch (e) { msg.textContent = "select and press Ctrl+C below"; } t.scrollIntoView({block:"center"}); };
   try { if (navigator.clipboard && window.isSecureContext !== false) navigator.clipboard.writeText(t.value).then(done, fallback); else fallback(); } catch (e) { fallback(); }
 }
 document.addEventListener("click", e => {
@@ -1166,7 +1166,7 @@ document.addEventListener("play", e => { document.querySelectorAll("audio").forE
 document.getElementById("onlyOpen").addEventListener("change", () => ITEMS.forEach(i => paint(i.id)));
 document.getElementById("copyTop").addEventListener("click", copy);
 document.getElementById("copyBottom").addEventListener("click", copy);
-document.getElementById("reset").addEventListener("click", () => { if (confirm("¿Borrar todas las respuestas y notas de esta hoja?")) { S = {}; save(); build(); summary(); } });
+document.getElementById("reset").addEventListener("click", () => { if (confirm("Clear all the answers and notes on this sheet?")) { S = {}; save(); build(); summary(); } });
 build(); summary();
 """
 
@@ -1178,40 +1178,40 @@ def page_html(done: list[Rendered], page: Path, out_dir: Path, stamp: str) -> st
     js = PAGE_JS.replace("__KEY__", PAGE_KEY_PREFIX + stamp).replace("__STAMP__", stamp)
     allow = ", ".join(f"{k} {v:g} dB" for k, v in ALLOWANCE_DB.items())
     return f"""<!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Alternativas de sonido M3</title>
+<title>M3 sound alternatives</title>
 <style>{PAGE_CSS}</style>
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <h1>Alternativas de sonido M3</h1>
-  <span class="prog">Juzgadas <b id="pDone">0</b> de <b>{n}</b></span>
+  <h1>M3 sound alternatives</h1>
+  <span class="prog">Judged <b id="pDone">0</b> of <b>{n}</b></span>
   <span class="bar"><i id="pBar"></i></span>
-  <label class="chk"><input type="checkbox" id="onlyOpen"> solo sin juzgar</label>
-  <button class="primary" id="copyTop">Copiar resultado</button><span id="copied" class="copied"></span>
+  <label class="chk"><input type="checkbox" id="onlyOpen"> unjudged only</label>
+  <button class="primary" id="copyTop">Copy result</button><span id="copied" class="copied"></span>
 </div></header>
 <div class="wrap">
 <section class="intro">
-  <p>Tres alternativas <b>distintas</b> (otro gesto u otro material, no retoques) para cada sonido de arma que marcaste <b>NO</b> (<code>SDTTPKP</code>, <code>SDIZRLD</code>, <code>SDRKFIR</code>) o <b>?</b> (<code>SDAXPKP</code>, <code>SDIZPKP</code>) en la hoja de escucha (D74). En cada fila: la alternativa, debajo el borrador rechazado y lo que suena hoy en el juego (Freedoom). Pulsa <b>OK</b>, <b>NO</b> o <b>?</b> y escribe una nota si quieres. Se guarda solo en este navegador. Al terminar, <b>Copiar resultado</b> y pégalo en el chat.</p>
+  <p>Three <b>different</b> alternatives (another gesture or another material, not touch-ups) for each weapon sound you marked <b>NO</b> (<code>SDTTPKP</code>, <code>SDIZRLD</code>, <code>SDRKFIR</code>) or <b>?</b> (<code>SDAXPKP</code>, <code>SDIZPKP</code>) on the listening sheet (D74). In each row: the alternative, below it the rejected draft and what plays in the game today (Freedoom). Press <b>OK</b>, <b>NO</b> or <b>?</b> and write a note if you like. It is saved only in this browser. When you finish, <b>Copy result</b> and paste it into the chat.</p>
   <ul>
-    <li><b>Volumen: ya están subidas.</b> Pico a −1 dBFS y la parte más fuerte a pocos dB de la de Freedoom (margen: recoger y recarga {ALLOWANCE_DB["pickup"]:g} dB, lanzallamas {ALLOWANCE_DB["fire"]:g} dB). Los borradores rechazados siguen al volumen antiguo, más bajo: compara el carácter, no el volumen.</li>
-    <li><b>Ninguna depende solo de los graves:</b> al menos la mitad de la energía de cada una está por encima de 300 Hz, para que se oigan en altavoces de portátil.</li>
-    <li><b>Lanzallamas:</b> el juego lo reinicia cada 3 tics mientras aprietas. Por eso cada alternativa tiene una versión «con el gatillo apretado» 1,2 s y soltado; es lo que oirás de verdad. Los primeros 3 tics enlazan consigo mismos sin corte.</li>
-    <li><b>Recarga de la IZh:</b> el cierre cae a 0,62 s, en el fotograma donde el juego cuenta los cartuchos.</li>
-    <li>Fuentes: nuestra síntesis y los dos paquetes CC0 que ya usamos (Kenney Impact Sounds y 100 CC0 SFX). Nada descargado.</li>
+    <li><b>Volume: already raised.</b> Peak at −1 dBFS and the loudest part within a few dB of Freedoom's (allowance: pickup and reload {ALLOWANCE_DB["pickup"]:g} dB, flamethrower {ALLOWANCE_DB["fire"]:g} dB). The rejected drafts stay at the old, lower volume: compare the character, not the volume.</li>
+    <li><b>None relies on the bass alone:</b> at least half of each one's energy is above 300 Hz, so they can be heard on laptop speakers.</li>
+    <li><b>Flamethrower:</b> the game restarts it every 3 tics while you hold the trigger. That is why each alternative has a version «with the trigger held» 1.2 s and released; that is what you will really hear. The first 3 tics loop into themselves without a cut.</li>
+    <li><b>IZh reload:</b> the close lands at 0.62 s, on the frame where the game counts the shells.</li>
+    <li>Sources: our synthesis and the two CC0 packs we already use (Kenney Impact Sounds and 100 CC0 SFX). Nothing downloaded.</li>
   </ul>
 </section>
 <main id="groups"></main>
 <section>
-  <h2 style="font-size:16px;margin:24px 0 6px">Resultado para pegar en el chat</h2>
-  <p class="meta">Se actualiza solo. Si el botón no copia (algunos navegadores lo bloquean en archivos locales), selecciona el texto y Ctrl+C.</p>
+  <h2 style="font-size:16px;margin:24px 0 6px">Result to paste into the chat</h2>
+  <p class="meta">It updates by itself. If the button does not copy (some browsers block it on local files), select the text and press Ctrl+C.</p>
   <textarea id="result" readonly></textarea>
-  <p><button class="primary" id="copyBottom">Copiar resultado</button> <button id="reset">Borrar todas mis respuestas</button></p>
+  <p><button class="primary" id="copyBottom">Copy result</button> <button id="reset">Clear all my answers</button></p>
 </section>
-<footer>Generado {html.escape(stamp)} por sound-designer con <code>tools/audio/gen_weapon_alts.py</code>. Audio: <code>work/audio/alt/</code> (alternativas), <code>work/audio/sfx/weapons/ogg/</code> (rechazados), <code>work/audio/preview/freedoom/</code> (Freedoom de hoy). Margen de volumen: {html.escape(allow)}. La página lee los archivos del repo por ruta relativa: no la muevas de <code>docs/art/previews/</code>.</footer>
+<footer>Generated {html.escape(stamp)} by sound-designer with <code>tools/audio/gen_weapon_alts.py</code>. Audio: <code>work/audio/alt/</code> (alternatives), <code>work/audio/sfx/weapons/ogg/</code> (rejected), <code>work/audio/preview/freedoom/</code> (today's Freedoom). Volume allowance: {html.escape(allow)}. The page reads the repo's files by relative path: do not move it out of <code>docs/art/previews/</code>.</footer>
 </div>
 <script>
 const ITEMS = {data};
@@ -1240,7 +1240,7 @@ def main(argv=None) -> int:
     ap.add_argument("names", nargs="*", help="only these alternatives or lumps")
     args = ap.parse_args(argv)
     try:
-        sys.stdout.reconfigure(encoding="utf-8")    # Spanish labels on a Windows console
+        sys.stdout.reconfigure(encoding="utf-8")    # non-ASCII labels (·, −) on a Windows console
     except (AttributeError, ValueError):            # pragma: no cover - a replaced stream
         pass
     if args.list:

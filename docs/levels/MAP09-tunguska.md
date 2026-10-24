@@ -224,7 +224,7 @@ multiples of 64; tested). The cab's pictures sit on its floor and start at
 each wall's left end (`SDCAB1` whole, `SDCAB2` whole windows); each frame post
 shows the middle 32 of `SDPRTE1`, its cobalt channel (tested).
 
-### 7.1 The posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
+### 7.1 The posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel» ("that those posters can appear in any level"))
 
 All in the research station: one one-sided line 128 long, in a room exactly
 the picture's height, pegged to the floor (`POSTERS`; `tests/test_posters.py`).
@@ -522,8 +522,8 @@ pass (§12, E1-E10) is the PM's.
 
 ### 16.3 v1.3, D119's ammunition and the crater for 4000 (2026-10-23)
 
-The CEO's playtest of Episodes 2 and 3: ammunition "siempre sale de sobras",
-"siempre acabas con la escopeta", and the boss at classic Doom's level (the
+The CEO's playtest of Episodes 2 and 3: ammunition "siempre sale de sobras" ("there is always plenty left over"),
+"siempre acabas con la escopeta" ("you always end up with the shotgun"), and the boss at classic Doom's level (the
 Consortium 4000, the Cyberdemon's, `mod-engineer`). Pickups only: no
 geometry, door, key, secret, monster or poster moved; the secrets' rewards
 and the health are unchanged.

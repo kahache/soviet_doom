@@ -1,162 +1,165 @@
-# P6 — El catalán como tercer idioma: hoja de revisión para el CEO
+# P6 — Catalan as the third language: review sheet for the CEO
 
-Fecha: 2026-10-21 (turno de noche, D102). Autor: mod-engineer (traducción y
-motor). Decisión de origen: **D97** («V2: add Catalan»). Estado: **borrador
-para tu revisión**; nada de esto se ha visto todavía en el motor (D26).
+Date: 2026-10-21 (night shift, D102). Author: mod-engineer (translation and
+engine). Origin decision: **D97** («V2: add Catalan»). Status: **draft
+for your review**; none of this has been seen in the engine yet (D26).
 
-Qué hay hecho:
+What is done:
 
-- `src/lumps/LANGUAGE`: sección **`[ca]`** con los **165 ids** que tienen
-  `[enu default]` y `[ru]` (los 163 de v1.0 más los dos nuevos de esta
-  noche: `SD_LANGVAL_CA`, el nombre del idioma en la lista, y
-  `SD_DEATH_PROMPT`, el aviso al morir de D100, en los tres idiomas).
-- La opción de idioma (Options → Soviet Doom → Language) ofrece ahora
-  **Català**; escribe `language ca`, como «Русский» escribe `language ru`.
-- La barra de estado en catalán: **MUNICIÓ, SALUT, ARMES, ARMADURA**, en
-  `SDSBCA` / `SDARCA`. Vista previa (EN, RU, CA, ×3):
-  `docs/art/previews/2026-10-21_2236_P6_statusbar-ca.png`. Las barras inglesa
-  y rusa aprobadas no se han regenerado ni tocado.
-- `README.md`: sección en catalán (qué es, cómo jugar, cómo ponerlo en
-  catalán) y el catalán mencionado donde se listan los idiomas.
+- `src/lumps/LANGUAGE`: a **`[ca]`** section with the **165 ids** that have
+  `[enu default]` and `[ru]` (the 163 of v1.0 plus the two new ones of this
+  night: `SD_LANGVAL_CA`, the language name in the list, and
+  `SD_DEATH_PROMPT`, the death prompt of D100, in all three languages).
+- The language option (Options → Soviet Doom → Language) now offers
+  **Català**; it writes `language ca`, as «Русский» writes `language ru`.
+- The status bar in Catalan: **MUNICIÓ, SALUT, ARMES, ARMADURA**, in
+  `SDSBCA` / `SDARCA`. Preview (EN, RU, CA, ×3):
+  `docs/art/previews/2026-10-21_2236_P6_statusbar-ca.png`. The approved English
+  and Russian bars have not been regenerated or touched.
+- `README.md`: a section in Catalan (what it is, how to play, how to set it to
+  Catalan) and Catalan mentioned wherever the languages are listed.
 
-Criterios que he seguido: catalán central normativo (soc, te sin acento,
-l·l con punt volat), **tú** al jugador, frases cortas y secas como el
-original, nada de calcos del castellano, y los nombres propios y términos
-rusos como en inglés (Zarya-7, Tankograd, Vilanova, PPSh-41, IZh-58,
-Katyusha, Zelyonka, Panzermensch, Vorwärts). Los participios de las muertes
-evitan concordar con el género del jugador (voz activa o «ha caigut»).
+Criteria I followed: standard central Catalan (soc, te without an accent,
+l·l with a middle dot), **tu** (informal "you") to the player, short dry
+sentences like the original, no calques from Spanish, and proper names and
+Russian terms as in English (Zarya-7, Tankograd, Vilanova, PPSh-41, IZh-58,
+Katyusha, Zelyonka, Panzermensch, Vorwärts). The participles in the death
+messages avoid agreeing with the player's gender (active voice or «ha caigut»).
 
-Cómo revisar: lee las dudas (abajo, **Q1-Q23**, numeradas aparte de las
-decisiones D; en las tablas, el id marcado con **Qn**) y luego las tablas. Para cambiar un texto basta decirme «id → texto
-nuevo»; la tabla se genera del propio `LANGUAGE`, así que lo que lees es
-exactamente lo que hay en el lump.
+How to review: read the doubts (below, **Q1-Q23**, numbered separately from
+the D decisions; in the tables, the id is marked with **Qn**) and then the
+tables. To change a text just tell me «id → new text»; the table is generated
+from `LANGUAGE` itself, so what you read is exactly what is in the lump.
 
-## Lo que más importa decidir
+## What matters most to decide
 
-**Q3. RESUELTA por el PM (2026-10-21, noche): las tildes ya se dibujan.**
-art-director añadió **À È É Í Ï Ò Ó Ú Ç** (mayúsculas, como el resto de la
-fuente) a las tres fuentes con `tools/art/gen_font.py --catalan`
-(`CATALAN_ACCENTS`), igual que Ä Ö Ü (D37): 27 archivos nuevos, los 339
-existentes sin cambiar ni un byte. Acento: la letra en la caja corta de las
-diéresis bajo un trazo de dos filas (grave inclinado a la izquierda, agudo a
-la derecha); Ç: la C arriba y la cedilla debajo, dentro de la caja. Míralo
-en `docs/art/previews/2026-10-21_P6_font-ca.png` (una frase real de `[ca]`
-en cada fuente, ×4). La deuda `CATALAN_UNDRAWN_ACCENTS` de los tests queda
-vacía. **NO VERIFICADO en el motor** (D26): que GZDoom dibuje las minúsculas
-à è é í ò ó ú ç con estos archivos de mayúscula. Texto original de la duda:
+**Q3. RESOLVED by the PM (2026-10-21, night): the accents are now drawn.**
+art-director added **À È É Í Ï Ò Ó Ú Ç** (capitals, like the rest of the
+font) to the three fonts with `tools/art/gen_font.py --catalan`
+(`CATALAN_ACCENTS`), the same way as Ä Ö Ü (D37): 27 new files, the 339
+existing ones unchanged by even one byte. Accent: the letter in the short box
+of the umlauts under a two-row stroke (grave slanting left, acute slanting
+right); Ç: the C above and the cedilla below, inside the box. See it in
+`docs/art/previews/2026-10-21_P6_font-ca.png` (a real `[ca]` sentence in each
+font, ×4). The `CATALAN_UNDRAWN_ACCENTS` debt in the tests is now empty. **NOT
+VERIFIED in the engine** (D26): that GZDoom draws the lowercase à è é í ò ó ú
+ç with these capital-letter files. Original text of the doubt:
 
-Las tildes no se dibujaban todavía (lo más visible). Las tres fuentes
-del mod (`defsmallfont`, `bigfont`, `sdmenu`; alfabeto C «Mashina», D24)
-solo tienen ASCII, cirílico y las letras alemanas. Faltan **À È É Í Ï Ò Ó Ú
-Ç** (la · sí está). El texto está bien escrito en `LANGUAGE`; según el código
-de GZDoom, una letra acentuada que la fuente no tiene se dibuja con su letra
-base («MUNICIO», «CONTINUARA»), pero eso **no está verificado en pantalla**.
-Propuesta: que art-director añada esas 9 mayúsculas a las tres fuentes con
-`tools/art/gen_font.py`, igual que se hizo con Ä Ö Ü (D37). Estimación:
-~50k tokens, y tú lo apruebas mirando la hoja. Los tests llevan la lista de
-estas letras como deuda explícita (`CATALAN_UNDRAWN_ACCENTS`).
+The accents were not drawn yet (the most visible issue). The mod's three
+fonts (`defsmallfont`, `bigfont`, `sdmenu`; alphabet C "Mashina", D24) only
+have ASCII, Cyrillic and the German letters. **À È É Í Ï Ò Ó Ú Ç** are
+missing (the · is there). The text is correctly written in `LANGUAGE`;
+according to the GZDoom code, an accented letter that the font does not have
+is drawn with its base letter («MUNICIO», «CONTINUARA»), but that is **not
+verified on screen**. Proposal: art-director adds those 9 capitals to the
+three fonts with `tools/art/gen_font.py`, the same as was done with Ä Ö Ü
+(D37). Estimate: ~50k tokens, and you approve it by looking at the sheet. The
+tests carry the list of these letters as an explicit debt
+(`CATALAN_UNDRAWN_ACCENTS`).
 
-**Q2. Las letras «cirílicas» del menú (D22) también salen en catalán.** La
-fuente del menú dibuja R, N, E, W y A como Я, И, Э, Ш, Д para cualquier
-texto latino, así que «NOVA PARTIDA» se verá «ИOVД PДЯTIDД». D22 se decidió
-para el inglés; en catalán ocurre solo porque la fuente es una. Opciones:
-(a) dejarlo así, coherente con el «latín que recuerda al cirílico»;
-(b) catalán sin sustitución, que pide una segunda fuente de menú y que el
-menú elija fuente por idioma (no sé si MENUDEF lo permite: **NO VERIFICADO**).
-Recomiendo (a).
+**Q2. The "Cyrillic" menu letters (D22) also appear in Catalan.** The menu
+font draws R, N, E, W and A as Я, И, Э, Ш, Д for any Latin text, so «NOVA
+PARTIDA» will look like «ИOVД PДЯTIDД». D22 was decided for English; in
+Catalan it happens only because the font is a single one. Options: (a) leave
+it, consistent with the "Latin that recalls Cyrillic"; (b) Catalan without
+substitution, which requires a second menu font and the menu choosing a font
+per language (I do not know whether MENUDEF allows it: **NOT VERIFIED**). I
+recommend (a).
 
-**Q4. RESUELTA por el PM (2026-10-21, noche): «TRIA LA MISSIÓ».** Con la Ó
-ya en `sdmenu` (Q3), `SD_MNU_CHOOSEEPISODE` dice ahora «TRIA LA MISSIÓ».
-Texto original de la duda: «TRIA EL FRONT» en vez de «TRIA LA MISSIÓ». La cabecera de la
-pantalla de episodio va en la fuente del menú, que no tiene Ó (y el test
-exige que cada letra tenga glifo). «TRIA EL FRONT» encaja con el tono
-militar; si se hace Q3 (con la Ó en `sdmenu`), cambio a «TRIA LA MISSIÓ».
+**Q4. RESOLVED by the PM (2026-10-21, night): «TRIA LA MISSIÓ».** With the Ó
+already in `sdmenu` (Q3), `SD_MNU_CHOOSEEPISODE` now says «TRIA LA MISSIÓ».
+Original text of the doubt: «TRIA EL FRONT» instead of «TRIA LA MISSIÓ». The
+header of the episode screen uses the menu font, which has no Ó (and the test
+requires every letter to have a glyph). «TRIA EL FRONT» fits the military
+tone; if Q3 is done (with the Ó in `sdmenu`), I change it to «TRIA LA MISSIÓ».
 
-**Q12. RESUELTA (2026-10-21, noche): el letrero de pausa dice
-«PAUSA».** mod-engineer + art-director generó solo la variante catalana con
-`tools/art/gen_cursor.py --catalan --install` (la misma placa P2 de D48, en
-`SDMENU`, sin fuentes del sistema), 77×20 como las otras, instalada como
-`assets/localized/textures/M_PAUSE.ca.png`; `[ca]` `SD_PAUSE_SIGN` apunta a
-`localized/textures/m_pause.ca.png`, igual que hace `[ru]`. Las placas
-inglesa y rusa no han cambiado ni un byte (el lienzo lo siguen fijando
-ellas; «PAUSA» mide 3 px más que «PAUSE» y cabe dentro, con 5-6 px de rojo
-a cada lado). Como dice Q2 (a), la fuente del menú dibuja la A latina como
-Д: se lee **«PДUSД»**, coherente con «ИOVД PДЯTIDД» del menú. Míralo en
-`docs/art/previews/2026-10-21_P6_pause-ca.png` (EN, RU, CA sobre el MAP01,
-×4). **NO VERIFICADO en el motor** (D26): la pausa con `language ca`. Si
-eliges Q2 (b), este letrero se regenera con la otra fuente. Texto original
-de la duda:
+**Q12. RESOLVED (2026-10-21, night): the pause sign says
+«PAUSA».** mod-engineer + art-director generated only the Catalan variant with
+`tools/art/gen_cursor.py --catalan --install` (the same P2 plate of D48, in
+`SDMENU`, no system fonts), 77×20 like the others, installed as
+`assets/localized/textures/M_PAUSE.ca.png`; `[ca]` `SD_PAUSE_SIGN` points to
+`localized/textures/m_pause.ca.png`, just as `[ru]` does. The English and
+Russian plates have not changed by even one byte (they still fix the canvas;
+«PAUSA» is 3 px wider than «PAUSE» and fits inside, with 5-6 px of red on each
+side). As Q2 (a) says, the menu font draws the Latin A as Д: it reads
+**«PДUSД»**, consistent with the menu's «ИOVД PДЯTIDД». See it in
+`docs/art/previews/2026-10-21_P6_pause-ca.png` (EN, RU, CA over MAP01, ×4).
+**NOT VERIFIED in the engine** (D26): the pause with `language ca`. If you
+choose Q2 (b), this sign is regenerated with the other font. Original text of
+the doubt:
 
-**Q12. El letrero de pausa sigue en inglés («PAUSE»).** El ROADMAP pide un
-letrero catalán. Lo genera `tools/art/gen_cursor.py`, que esta noche está
-editando otro agente (cursor), así que no lo he tocado. Cuando haya un
-«PAUSA» catalán es una línea en `[ca]` (`SD_PAUSE_SIGN`) más
+**Q12. The pause sign is still in English («PAUSE»).** The ROADMAP asks for a
+Catalan sign. It is generated by `tools/art/gen_cursor.py`, which another
+agent (cursor) is editing tonight, so I have not touched it. Once there is a
+Catalan «PAUSA» it is one line in `[ca]` (`SD_PAUSE_SIGN`) plus
 `localized/textures/M_PAUSE.ca.png`.
 
-**Q13. Créditos de IA.** En catalán dice que Claude hizo «els textos en rus i
-català». El inglés y el ruso siguen diciendo solo «the Russian text»: no los
-he cambiado sin tu permiso. Propongo EN «sound, music, Russian and Catalan
-text.» (39 caracteres); el ruso no cabe en 40 sin partir la línea. Igual el
-`CREDITS.txt` de la release (`tools/release.py`, `AI_DISCLOSURE`) y el
-`README` (este ya lo dice).
+**Q13. AI credits.** In Catalan it says that Claude made «els textos en rus i
+català». English and Russian still say only «the Russian text»: I have not
+changed them without your permission. I propose EN «sound, music, Russian and
+Catalan text.» (39 characters); the Russian does not fit in 40 without
+splitting the line. Likewise the release's `CREDITS.txt`
+(`tools/release.py`, `AI_DISCLOSURE`) and the `README` (this one already says
+it).
 
-## Dudas de traducción
+## Translation doubts
 
-- **Q1. Tú o vostè.** Uso tú en todo («Has agafat», «Prem Y», «N'estàs
-  segur?»), como la mayoría de juegos en catalán; el ruso usa «Вы». El aviso
-  al morir que pediste, «Prem %s per continuar», ya iba en tú.
-- **Q5. El título.** «Soviet Doom» se queda así (el ruso lo traduce:
-  «Советский Doom»). Alternativa: «Doom Soviètic».
-- **Q6. Doughboy** se queda «Doughboy» (el ruso usa «Каска», casco). En
-  catalán «Casc» chocaría con «Un casc d'acer» del bonus de blindaje.
-- **Q7. Stormtrooper → «Soldat d'assalt híbrid».** Alternativa: dejar
-  «Stormtrooper» como nombre propio.
-- **Q8. Dificultad 5: «Heroi de la Unió Soviètica, pòstum».** Lo natural
-  sería «…, a títol pòstum», pero mide 310 px y la columna admite 288.
-  Alternativa que cabe: «Heroi de l'URSS, a títol pòstum».
-- **Q9. Dificultad 1: «Encara soc pioner»** (soc sin acento, norma de 2017).
-- **Q10. Dificultad 4: «No passaran, camarades»**, la forma catalana del
-  lema (el inglés usa la castellana «No pasaran»). Si prefieres la
-  castellana como cita, es un cambio de una línea.
-- **Q11. El campo de prácticas:** el mapa «Camp d'instrucció» (Training
-  Ground) y el episodio «Camp de tir» (Practice Range).
-- **Q14. Final: «L'interruptor cau.»** para «The breaker drops». Alternativa
-  más activa: «Abaixes l'interruptor.»
-- **Q15. Muertes:** en voz activa («Un fuseller del Reich ha abatut %o»)
-  para no concordar el participio con el género del jugador.
-- **Q16. Verbos del menú en imperativo** (CARREGA, DESA, SURT), como el
-  software en catalán (Softcatalà); «AJUDA» para READ THIS (el ruso usa
-  «СПРАВКА»).
-- **Q17. Recoger un arma: «Has agafat…»** Alternativa: «Has trobat…».
-- **Q18. Calibres con coma decimal y ×: «7,62×25»**, como el ruso; el
-  inglés usa «7.62x25».
-- **Q19. «l'RPG-7»** con apóstrofo (se lee «erra-pe-ge»), normativo.
-- **Q20. «Un embenat de campanya»** para «A field dressing».
-- **Q21. «Zarya-7 torna a ser a les nostres mans»**: el inglés dice «yours»,
-  el ruso «наша»; sigo al ruso (nuestra), igual en el final con Tankograd.
-- **Q22. Salir 2:** la cita de Klochkov (1941) en catalán: «Rússia és
+- **Q1. Tú or vostè.** I use tu throughout («Has agafat», «Prem Y», «N'estàs
+  segur?»), like most games in Catalan; Russian uses «Вы». The death prompt
+  you asked for, «Prem %s per continuar», was already in tu.
+- **Q5. The title.** «Soviet Doom» stays as it is (Russian translates it:
+  «Советский Doom»). Alternative: «Doom Soviètic».
+- **Q6. Doughboy** stays «Doughboy» (Russian uses «Каска», helmet). In
+  Catalan «Casc» would clash with «Un casc d'acer» of the armour bonus.
+- **Q7. Stormtrooper → «Soldat d'assalt híbrid».** Alternative: keep
+  «Stormtrooper» as a proper name.
+- **Q8. Difficulty 5: «Heroi de la Unió Soviètica, pòstum».** The natural
+  form would be «…, a títol pòstum», but it measures 310 px and the column
+  allows 288. Alternative that fits: «Heroi de l'URSS, a títol pòstum».
+- **Q9. Difficulty 1: «Encara soc pioner»** (soc without an accent, 2017
+  norm).
+- **Q10. Difficulty 4: «No passaran, camarades»**, the Catalan form of the
+  slogan (English uses the Spanish «No pasaran»). If you prefer the Spanish as
+  a quotation, it is a one-line change.
+- **Q11. The practice grounds:** the map «Camp d'instrucció» (Training
+  Ground) and the episode «Camp de tir» (Practice Range).
+- **Q14. Ending: «L'interruptor cau.»** for «The breaker drops». A more
+  active alternative: «Abaixes l'interruptor.»
+- **Q15. Deaths:** in active voice («Un fuseller del Reich ha abatut %o»)
+  so the participle does not agree with the player's gender.
+- **Q16. Menu verbs in the imperative** (CARREGA, DESA, SURT), like software
+  in Catalan (Softcatalà); «AJUDA» for READ THIS (Russian uses «СПРАВКА»).
+- **Q17. Picking up a weapon: «Has agafat…»** Alternative: «Has trobat…».
+- **Q18. Calibres with a decimal comma and ×: «7,62×25»**, like Russian;
+  English uses «7.62x25».
+- **Q19. «l'RPG-7»** with an apostrophe (read "erra-pe-ge"), standard.
+- **Q20. «Un embenat de campanya»** for «A field dressing».
+- **Q21. «Zarya-7 torna a ser a les nostres mans»**: English says «yours»,
+  Russian «наша» (ours); I follow Russian (ours), the same in the ending with
+  Tankograd.
+- **Q22. Quit 2:** Klochkov's quote (1941) in Catalan: «Rússia és
   immensa, però no hi ha on retrocedir: Moscou és al darrere.»
-- **Q23. Barra de estado: «MUNICIÓ»** con la tilde dibujada como un píxel
-  sobre la O (mírala en la vista previa). Alternativa sin tilde:
-  «MUNICIONS» (cabe, más justa).
+- **Q23. Status bar: «MUNICIÓ»** with the accent drawn as one pixel above
+  the O (see it in the preview). Alternative without the accent:
+  «MUNICIONS» (fits, tighter).
 
-## Qué debe probar el PM en el motor (D26)
+## What the PM must test in the engine (D26)
 
-1. Arranque con 0 errores; Options → Soviet Doom → Language muestra cuatro
-   filas; elegir Català cambia en caliente el menú principal, el título de
-   la pantalla de opciones y los créditos, y la fila muestra «Català».
-2. `language ca` en consola y `language cat`: la fila muestra Català.
-3. En partida con `language ca`: la barra de estado con MUNICIÓ / SALUT /
-   ARMES / ARMADURA (H2 de MOD-SPEC 6.5.1 en catalán), un mensaje de
-   recogida con tilde y con ç («Has agafat el llançaflames ROKS-3!»: que la
-   à/ç minúscula salga con el glifo nuevo y no con la letra base, Q3), la
-   transición MAP01→MAP02 («Cosmòdrom», «il·luminat»), la pantalla de
-   episodio con «TRIA LA MISSIÓ» (Q4) y el final con «CONTINUARÀ».
-4. Volver a English y a Русский: todo como antes.
+1. Start-up with 0 errors; Options → Soviet Doom → Language shows four
+   rows; choosing Català changes the main menu, the options screen title and
+   the credits on the fly, and the row shows «Català».
+2. `language ca` in the console and `language cat`: the row shows Català.
+3. In game with `language ca`: the status bar with MUNICIÓ / SALUT /
+   ARMES / ARMADURA (H2 of MOD-SPEC 6.5.1 in Catalan), a pickup message with
+   an accent and with ç («Has agafat el llançaflames ROKS-3!»: that the
+   lowercase à/ç comes out with the new glyph and not with the base letter,
+   Q3), the MAP01→MAP02 transition («Cosmòdrom», «il·luminat»), the episode
+   screen with «TRIA LA MISSIÓ» (Q4) and the ending with «CONTINUARÀ».
+4. Back to English and to Русский: everything as before.
 
-## Las tablas
+## The tables
 
-### Menú principal y pantallas de elección (fuente SDMENU; acentos desde Q3)
+### Main menu and choice screens (SDMENU font; accents since Q3)
 
 | id | EN | CA |
 |---|---|---|
@@ -169,7 +172,7 @@ text.» (39 caracteres); el ruso no cabe en 40 sin partir la línea. Igual el
 | `SD_MNU_CHOOSESKILL` | CHOOSE DIFFICULTY | TRIA LA DIFICULTAT |
 | `SD_MNU_CHOOSEEPISODE` **Q4** | CHOOSE MISSION | TRIA LA MISSIÓ |
 
-### Opciones del mod (Options → Soviet Doom)
+### Mod options (Options → Soviet Doom)
 
 | id | EN | CA |
 |---|---|---|
@@ -181,7 +184,7 @@ text.» (39 caracteres); el ruso no cabe en 40 sin partir la línea. Igual el
 | `SD_LANGVAL_RU` | Russian | Rus |
 | `SD_LANGVAL_CA` | Catalan | Català |
 
-### Dificultad
+### Difficulty
 
 | id | EN | CA |
 |---|---|---|
@@ -192,7 +195,7 @@ text.» (39 caracteres); el ruso no cabe en 40 sin partir la línea. Igual el
 | `SD_SKILL_5` **Q8** | Hero of the Soviet Union, posthumously | Heroi de la Unió Soviètica, pòstum |
 | `SD_SKILL_5_CONFIRM` | The award is posthumous and the enemy dead do not stay dead. // Are you sure? | La condecoració és pòstuma, i aquí els enemics morts no es queden morts. // N'estàs segur? |
 
-### Episodios y mapas
+### Episodes and maps
 
 | id | EN | CA |
 |---|---|---|
@@ -204,7 +207,7 @@ text.» (39 caracteres); el ruso no cabe en 40 sin partir la línea. Igual el
 | `SD_RANGE_NAME` **Q11** | Training Ground | Camp d'instrucció |
 | `SD_PLAYER_NAME` | Sergeant Vilanova | Sergent Vilanova |
 
-### Transiciones de mapa y final (pantalla de texto; «/» = salto de línea, «//» = línea en blanco)
+### Map transitions and ending (text screen; «/» = line break, «//» = blank line)
 
 | id | EN | CA |
 |---|---|---|
@@ -213,7 +216,7 @@ text.» (39 caracteres); el ruso no cabe en 40 sin partir la línea. Igual el
 | `SD_END01_TEXT` **Q14** | The breaker drops. Behind you the / portal shrinks to a point of light / and goes out. // Tankograd is yours again: the line / stands still, and nothing more / comes through. // Those already through are marching / west, to Moscow. // TO BE CONTINUED | L'interruptor cau. Darrere teu, el / portal s'encongeix fins a un punt de / llum i s'apaga. // Tankograd torna a ser a les nostres / mans: la cadena s'atura, i ja no hi / arriba ningú més. // Els que ja havien passat marxen cap a / l'oest, cap a Moscou. // CONTINUARÀ |
 | `SD_END02_TEXT` | The range is closed for the day. // The campaign begins from New Game. | El camp de tir tanca per avui. // La campanya comença a «Nova partida». |
 
-### Armas: nombre y mensaje de recogida
+### Weapons: name and pickup message
 
 | id | EN | CA |
 |---|---|---|
@@ -232,7 +235,7 @@ text.» (39 caracteres); el ruso no cabe en 40 sin partir la línea. Igual el
 | `SD_PICKUP_ROKS3` | You got the ROKS-3 flamethrower! | Has agafat el llançaflames ROKS-3! |
 | `SD_PICKUP_KATYUSHA` | You got the hand Katyusha. Prototype. Do not drop it. | Has agafat la Katyusha de mà. Prototip. No la deixis caure. |
 
-### Munición, salud, blindaje y mapa (mensajes de recogida)
+### Ammo, health, armour and map (pickup messages)
 
 | id | EN | CA |
 |---|---|---|
@@ -257,7 +260,7 @@ text.» (39 caracteres); el ruso no cabe en 40 sin partir la línea. Igual el
 | `SD_GOT_MEGAARMOR` | A steel breastplate and helmet! | Una cuirassa d'acer i un casc! |
 | `SD_GOT_MAP` | A commander's map case. The whole area is on it. | Un portamapes de comandant. Hi surt tota la zona. |
 
-### Pases y puertas
+### Passes and doors
 
 | id | EN | CA |
 |---|---|---|
@@ -268,7 +271,7 @@ text.» (39 caracteres); el ruso no cabe en 40 sin partir la línea. Igual el
 | `PD_YELLOWCO` | You need a yellow pass to activate this object | Necessites un passi groc per activar aquest objecte |
 | `PD_REDCO` | You need a red pass to activate this object | Necessites un passi vermell per activar aquest objecte |
 
-### Enemigos y el General
+### Enemies and the General
 
 | id | EN | CA |
 |---|---|---|
@@ -292,7 +295,7 @@ text.» (39 caracteres); el ruso no cabe en 40 sin partir la línea. Igual el
 | `SD_OBHIT_PANZER` | %o was crushed by a Panzermensch. | Un Panzermensch ha aixafat %o. |
 | `SD_OB_GENERAL` | %o fell to the General's salvo. | %o ha caigut sota la salva del General. |
 
-### Muertes en multijugador (%o víctima, %k quien mata)
+### Multiplayer deaths (%o victim, %k killer)
 
 | id | EN | CA |
 |---|---|---|
@@ -304,14 +307,14 @@ text.» (39 caracteres); el ruso no cabe en 40 sin partir la línea. Igual el
 | `SD_OB_ROKS3` | %o burned under %k's ROKS-3. | El ROKS-3 de %k ha rostit %o. |
 | `SD_OB_KATYUSHA` | %o caught %k's whole salvo. | %o s'ha empassat tota la salva de %k. |
 
-### Aviso al morir (nuevo, v1.1) y pausa
+### Death prompt (new, v1.1) and pause
 
 | id | EN | CA |
 |---|---|---|
 | `SD_DEATH_PROMPT` | Press %s to continue | Prem %s per continuar |
 | `SD_PAUSE_SIGN` **Q12** | M_PAUSE | localized/textures/m_pause.ca.png |
 
-### Mensajes al salir (cada uno termina con «(Prem Y per sortir.)», omitido aquí)
+### Quit messages (each ends with «(Prem Y per sortir.)», omitted here)
 
 | id | EN | CA |
 |---|---|---|
@@ -331,7 +334,7 @@ text.» (39 caracteres); el ruso no cabe en 40 sin partir la línea. Igual el
 | `SD_QUIT_14` | Hand your rifle in at the armoury / and sign for it twice. | Torna el fusell a l'armeria / i signa el rebut dues vegades. |
 | `SD_QUIT_15` | The tea is still hot, Sergeant. / Stay a little longer. | El te encara és calent, sergent. / Queda't una estona més. |
 
-### Créditos (una línea de pantalla por id, máx. 40 caracteres)
+### Credits (one screen line per id, max. 40 characters)
 
 | id | EN | CA |
 |---|---|---|
@@ -381,4 +384,4 @@ text.» (39 caracteres); el ruso no cabe en 40 sin partir la línea. Igual el
 | `SD_CRED_AI_7` | Chatterbox (Resemble AI, local): | Chatterbox (Resemble AI, local): |
 | `SD_CRED_AI_8` | most enemy voices. | la majoria de veus dels enemics. |
 
-Ids no listados (no se leen como texto o casi nunca se ven): `PD_BLUEC`, `PD_REDC`, `PD_YELLOWC`, `SD_SBAR_ARMS_IMAGE`, `SD_SBAR_IMAGE`.
+Ids not listed (not read as text or almost never seen): `PD_BLUEC`, `PD_REDC`, `PD_YELLOWC`, `SD_SBAR_ARMS_IMAGE`, `SD_SBAR_IMAGE`.

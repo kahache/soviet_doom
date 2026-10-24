@@ -168,12 +168,16 @@ and skips on CI).
 
 ### 4.2 What the zip holds
 
-One folder, `SovietDoom/`:
+One folder, `SovietDoom/`. Languages (D129): the game, `README.txt` and
+`CREDITS.txt` are English, Russian and Catalan; the launchers and
+`README-FIRST.txt` are English. No Spanish file or text ships (the packages
+built before D129, v1.0's among them, also carried `Jugar Soviet Doom.*`,
+`jugar.sh` and a Spanish `LEEME.txt`); `tests/test_no_spanish.py` guards it.
 
 | File | Why |
 |---|---|
-| `Jugar Soviet Doom.bat`, `Play Soviet Doom.bat` | the launchers, same command: `cd /d "%~dp0"`, then `start "" "%~dp0gzdoom.exe" -iwad "%~dp0freedoom2.wad" -file "%~dp0sovietdoom.pk3"`. If `gzdoom.exe` is not beside the .bat (opened from inside the zip without extracting) it says to extract first and waits. ASCII and CRLF |
-| `LEEME.txt`, `README-FIRST.txt` | Spanish and English: unzip anywhere but Program Files, double-click, SmartScreen ("Más información → Ejecutar de todas formas"; or tick "Desbloquear" on the zip before extracting), Russian or Catalan (the menu path read from `LANGUAGE`, English labels: Options > Soviet Doom > Language > Russian / Catalan), the keys, where saves live, the licences. UTF-8 with BOM, CRLF |
+| `Play Soviet Doom.bat` | the launcher: `cd /d "%~dp0"`, then `start "" "%~dp0gzdoom.exe" -iwad "%~dp0freedoom2.wad" -file "%~dp0sovietdoom.pk3"`. If `gzdoom.exe` is not beside the .bat (opened from inside the zip without extracting) it says to extract first and waits. ASCII and CRLF |
+| `README-FIRST.txt` | English: unzip anywhere but Program Files, double-click, SmartScreen ("More info → Run anyway"; or tick "Unblock" on the zip before extracting), Russian or Catalan (the menu path read from `LANGUAGE`, English labels: Options > Soviet Doom > Language > Russian / Catalan), the keys, where saves live, the licences. UTF-8 with BOM, CRLF |
 | `gzdoom.exe`, `gzdoom.pk3`, `zmusic.dll`, `openal32.dll`, `sndfile.dll`, `licenses.zip`, `soundfonts/`, `fm_banks/`, `lights.pk3`, `brightmaps.pk3`, `game_support.pk3`, `game_widescreen_gfx.pk3` | GZDoom g4.14.2 for Windows, unmodified. Only these names are copied (`ENGINE_FILES`, `ENGINE_DIRS`): a user's ini, `Save/`, screenshots or WADs in the install folder never ship |
 | `gzdoom_portable.ini` | GZDoom's portable switch (4.3); comment lines only, GZDoom fills it on the first run |
 | `freedoom2.wad`, `LICENSE-FREEDOOM-BSD-3.txt` | Freedoom: Phase 2 0.13.0 and its BSD notice |
@@ -248,8 +252,8 @@ and symlinks that leave the engine folder, and lists what it leaves out.
 |---|---|
 | `GZDoom.app/` | every entry of the official zip under `GZDoom.app/`, bytes and `external_attr` copied verbatim: `Contents/MacOS/gzdoom` stays 755 (a universal x86_64 + arm64 binary, macOS 10.15+ per `Info.plist`), symlinks stay symlinks (g4.14.2 has none), and the AppleDouble `._*` files beside the data files in `Contents/MacOS/` ship too: they hold the `com.apple.cs.*` code-signature attributes of those files, and macOS's unzip turns them back into attributes |
 | `gzdoom-licenses/` | the official zip's `Licenses/` (GPL, LGPL, BSD and the others) |
-| `Jugar Soviet Doom.command`, `Play Soviet Doom.command` | sh, mode 755, LF: `cd "$(dirname "$0")"`, then `exec GZDoom.app/Contents/MacOS/gzdoom -iwad freedoom2.wad -file sovietdoom.pk3 -config gzdoom.ini -savedir saves` with absolute paths built from the folder; if the engine is missing, a message and a wait for Enter |
-| `LEEME.txt`, `README-FIRST.txt` | Spanish and English, UTF-8 with BOM (TextEdit), LF: Gatekeeper (`xattr -dr com.apple.quarantine SovietDoom`, or right-click → Open; on macOS 15+ System Settings → Privacy & Security → Open Anyway), Russian or Catalan, keys, saves |
+| `Play Soviet Doom.command` | sh, mode 755, LF: `cd "$(dirname "$0")"`, then `exec GZDoom.app/Contents/MacOS/gzdoom -iwad freedoom2.wad -file sovietdoom.pk3 -config gzdoom.ini -savedir saves` with absolute paths built from the folder; if the engine is missing, a message and a wait for Enter |
+| `README-FIRST.txt` | English, UTF-8 with BOM (TextEdit), LF: Gatekeeper (`xattr -dr com.apple.quarantine SovietDoom`, or right-click → Open; on macOS 15+ System Settings → Privacy & Security → Open Anyway), Russian or Catalan, keys, saves |
 | the rest | as on Windows: `freedoom2.wad`, the release's files, `README.txt` with a macOS note, `GZDOOM-SOURCE.txt` (the libraries linked into the executable: ZMusic, OpenAL Soft, libsndfile 1.2.2, MoltenVK), `SHA256SUMS` (every regular file except the `._*` ones, which are gone after macOS unzips) |
 
 **Linux** (`sovietdoom-<v>-linux.tar.gz`, folder `SovietDoom/`): a tarball
@@ -259,8 +263,8 @@ because a zip loses the modes with many unzippers.
 |---|---|
 | `gzdoom/` | `/opt/gzdoom` of the `.deb` (ar archive → `data.tar.xz`, parsed in Python, no dpkg): `gzdoom` (RPATH `$ORIGIN`, so it finds `libzmusic.so.1` beside it), the engine pk3s, `soundfonts/`, `fm_banks/`. The `/usr/games` wrapper, the `.desktop` file and the icon are left out |
 | `gzdoom-licenses/` | `docs/licenses/` of `gzdoom-g4.14.2-source.tar.gz` (`--gzdoom-source`): the `.deb` ships no licence texts |
-| `play.sh`, `jugar.sh` | mode 755, same command as the `.command` files, no wait |
-| `LEEME.txt`, `README-FIRST.txt` | UTF-8, LF: the `.deb` control's `Depends` (read from the file, not copied by hand), its `Recommends` (`libopenal1`: no sound without it), plus `libsndfile1` (`libzmusic.so.1` names `libsndfile.so.1` and the mod's sounds are OGG; the `.deb` does not declare it), and one `sudo apt install` line for them; Ubuntu 24.04+ may need `libasound2t64` for `libasound2` (NOT VERIFIED) |
+| `play.sh` | mode 755, same command as the `.command` files, no wait |
+| `README-FIRST.txt` | English, UTF-8, LF: the `.deb` control's `Depends` (read from the file, not copied by hand), its `Recommends` (`libopenal1`: no sound without it), plus `libsndfile1` (`libzmusic.so.1` names `libsndfile.so.1` and the mod's sounds are OGG; the `.deb` does not declare it), and one `sudo apt install` line for them; Ubuntu 24.04+ may need `libasound2t64` for `libasound2` (NOT VERIFIED) |
 | the rest | `freedoom2.wad`, the release's files, `README.txt` with a Linux note, `GZDOOM-SOURCE.txt`, `SHA256SUMS` |
 
 Tar entries: sorted, every parent folder present, folders and executables

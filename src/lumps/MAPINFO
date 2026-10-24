@@ -686,11 +686,13 @@ DoomEdNums
 	21105 = SD_Panzermensch         // replaces HellKnight (69)
 	21106 = SD_General              // replaces Cyberdemon (16)
 	21107 = SD_PanzermenschSchwer   // replaces BaronOfHell (3003)
-	// P4 (D104, D112), in the mod since D116 on provisional sprites;
+	// P4 (D104, D112), in the mod since D116 (the gunner's and the colossus's
+	// own sprites since D123; the Consortium's still provisional);
 	// 21108-21109 stay reserved (BESTIARY 2.5), so they open at 21110.
 	21110 = SD_LegionGunner         // replaces ChaingunGuy (65); Episode 2
 	21111 = SD_LibertyColossus      // replaces SpiderMastermind (7); Episode 2's boss
 	21112 = SD_Consortium           // replaces nothing; Episode 3's final boss
+	21113 = SD_ChromeGeneral        // replaces nothing; the colossus variant, MAP08 (D123)
 	21200 = SD_Radio                // diegetic radio (MOD-SPEC 6.7, ADR 008)
 	21201 = SD_Loudspeaker          // the propaganda radio's loudspeaker (V3 B5, D124; MOD-SPEC 6.14)
 }

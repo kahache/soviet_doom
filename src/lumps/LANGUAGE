@@ -270,7 +270,7 @@ SD_CRED_H_IWAD    = "Game data";
 SD_CRED_IWAD_1    = "Freedoom (freedoom.github.io),";
 SD_CRED_IWAD_2    = "by the Contributors to the Freedoom";
 SD_CRED_IWAD_3    = "project, modified BSD licence.";
-SD_CRED_IWAD_4    = "TT-33 hands: Freedoom's, recoloured;";
+SD_CRED_IWAD_4    = "Gib sounds: Freedoom's DSSLOP, edited;";
 SD_CRED_IWAD_5    = "other placeholders read from the IWAD.";
 
 SD_CRED_H_SOURCES = "Sources";
@@ -364,6 +364,7 @@ SD_TAG_PANZER_HEAVY  = "Heavy Panzermensch";
 SD_TAG_GENERAL       = "The General";
 SD_TAG_GUNNER        = "Legion gunner";            // P4 (D104, D112), in the mod since D116
 SD_TAG_COLOSSUS      = "The Liberty Colossus";
+SD_TAG_CHROME        = "The Chrome Marshal";       // D123: the colossus variant, MAP08
 SD_TAG_CONSORTIUM    = "The Consortium";
 
 SD_OB_RIFLEMAN       = "%o was shot by a Reich rifleman.";
@@ -379,6 +380,8 @@ SD_OB_GENERAL        = "%o fell to the General's salvo.";
 SD_OB_GUNNER         = "%o was mowed down by a Legion gunner.";
 SD_OB_COLOSSUS       = "%o was burned and blasted by the Liberty Colossus.";
 SD_OBHIT_COLOSSUS    = "%o was trampled by the Liberty Colossus.";
+SD_OB_CHROME         = "%o was burned and blasted by the Chrome Marshal.";
+SD_OBHIT_CHROME      = "%o was trampled by the Chrome Marshal.";
 SD_OB_CONSORTIUM     = "%o was consumed by the Consortium.";
 
 // The General's order (BESTIARY 9): printed on screen when he summons his
@@ -628,7 +631,7 @@ SD_CRED_H_IWAD    = "Игровые данные";
 SD_CRED_IWAD_1    = "Freedoom (сайт freedoom.github.io),";
 SD_CRED_IWAD_2    = "авторы — участники проекта Freedoom,";
 SD_CRED_IWAD_3    = "модифицированная лицензия BSD.";
-SD_CRED_IWAD_4    = "Руки с ТТ-33 из Freedoom, перекрашены;";
+SD_CRED_IWAD_4    = "Звуки разрыва: DSSLOP из Freedoom;";
 SD_CRED_IWAD_5    = "прочие заглушки читаются из IWAD.";
 
 SD_CRED_H_SOURCES = "Источники";
@@ -693,6 +696,7 @@ SD_TAG_PANZER_HEAVY  = "Тяжёлый панцерменш";
 SD_TAG_GENERAL       = "Генерал";
 SD_TAG_GUNNER        = "Пулемётчик легиона";
 SD_TAG_COLOSSUS      = "Колосс Свободы";
+SD_TAG_CHROME        = "Хромированный маршал";
 SD_TAG_CONSORTIUM    = "Консорциум";
 
 SD_OB_RIFLEMAN       = "%o застрелен стрелком рейха.";
@@ -708,6 +712,8 @@ SD_OB_GENERAL        = "%o пал под залпом Генерала.";
 SD_OB_GUNNER         = "%o скошен пулемётчиком легиона.";
 SD_OB_COLOSSUS       = "%o сожжён Колоссом Свободы.";
 SD_OBHIT_COLOSSUS    = "%o растоптан Колоссом Свободы.";
+SD_OB_CHROME         = "%o сожжён Хромированным маршалом.";
+SD_OBHIT_CHROME      = "%o растоптан Хромированным маршалом.";
 SD_OB_CONSORTIUM     = "%o поглощён Консорциумом.";
 
 SD_GENERAL_ORDER     = "Генерал: Vorwärts!";
@@ -926,7 +932,7 @@ SD_CRED_H_IWAD    = "Dades del joc";
 SD_CRED_IWAD_1    = "Freedoom (freedoom.github.io),";
 SD_CRED_IWAD_2    = "dels col·laboradors del projecte";
 SD_CRED_IWAD_3    = "Freedoom, llicència BSD modificada.";
-SD_CRED_IWAD_4    = "Mans de la TT-33: Freedoom, repintades;";
+SD_CRED_IWAD_4    = "Sons de rebentada: DSSLOP de Freedoom;";
 SD_CRED_IWAD_5    = "altres elements provisionals: de l'IWAD.";
 
 SD_CRED_H_SOURCES = "Fonts";
@@ -995,6 +1001,7 @@ SD_TAG_PANZER_HEAVY  = "Panzermensch pesant";
 SD_TAG_GENERAL       = "El General";
 SD_TAG_GUNNER        = "Metrallador de la Legió";
 SD_TAG_COLOSSUS      = "El Colós de la Llibertat";
+SD_TAG_CHROME        = "El Mariscal de Crom";
 SD_TAG_CONSORTIUM    = "El Consorci";
 
 SD_OB_RIFLEMAN       = "Un fuseller del Reich ha abatut %o.";
@@ -1010,6 +1017,8 @@ SD_OB_GENERAL        = "%o ha caigut sota la salva del General.";
 SD_OB_GUNNER         = "Un metrallador de la Legió ha segat %o.";
 SD_OB_COLOSSUS       = "El Colós de la Llibertat ha cremat %o.";
 SD_OBHIT_COLOSSUS    = "El Colós de la Llibertat ha trepitjat %o.";
+SD_OB_CHROME         = "El Mariscal de Crom ha cremat %o.";
+SD_OBHIT_CHROME      = "El Mariscal de Crom ha trepitjat %o.";
 SD_OB_CONSORTIUM     = "El Consorci ha engolit %o.";
 
 SD_GENERAL_ORDER     = "El General: Vorwärts!";

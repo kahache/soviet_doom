@@ -297,7 +297,7 @@ Episode 2's Railway set (D107, approved 2026-10-22, `docs/art/TEXTURE-INDEX.md`
 ### 7.3 The posters (CEO 2026-10-22; `tests/test_posters.py`)
 
 «Reutiliza cuadros [...] y en los nuevos el de Lenin y Stalin, que esos
-posters puedan aparecer en cualquier nivel». Four pictures and the Marx-Engels pair,
+posters puedan aparecer en cualquier nivel» ("Reuse pictures [...] and in the new ones the Lenin and Stalin one, so that those posters can appear in any level"). Four pictures and the Marx-Engels pair,
 all in `POSTERS` in `map.py`; each is whole (one line exactly 128 long, in
 a sector exactly the picture's height, pegged to the floor, offset 0).
 Where the room is taller than the picture, the picture hangs at the back of
@@ -446,8 +446,8 @@ it than the roundhouse's Panzermensch (tested); the ROKS-3 in S2 only. No
 Hand Katyusha.
 
 **Ammunition, D119 (2026-10-23).** The CEO's playtest of Episodes 2 and 3:
-"hay muchos objetos de munición, siempre sale de sobras" and "siempre acabas
-con la escopeta". The ammunition now follows the monsters: it **grows with
+"hay muchos objetos de munición, siempre sale de sobras" ("there are lots of ammo pickups, there is always plenty left over") and "siempre acabas
+con la escopeta" ("you always end up with the shotgun"). The ammunition now follows the monsters: it **grows with
 skill** as they do (the table `AMMO` in `map.py`, rows with a lowest and a
 highest tier), not the consumables' rule, so easy has fewer pickups than
 hard. G3-8's ruler is MAP03's (kills in IZh shells, a gunner 2; PG-7V at 2

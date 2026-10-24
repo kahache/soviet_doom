@@ -479,67 +479,67 @@ def tex_rwy2() -> np.ndarray:
 # ================================================================ pieces
 PIECES = [
     Piece("SDSNOW1", tex_snow1, "flat", (64, 64), ["SDSNOW1"], 1, "xy",
-          "Nieve",
-          "Nieve compactada por el viento: crestas largas de sastrugi a lo ancho, iluminadas en la cara que mira "
-          "hacia arriba de la loseta, azuladas a sotavento, algún destello.",
-          rec_why="El suelo de todo el exterior. Es el suelo más claro del mod: ver la pregunta 2 sobre la luz."),
+          "Snow",
+          "Wind-packed snow: long sastrugi ridges running across, lit on the face turned towards the top "
+          "of the flat, bluish on the lee side, the odd glint.",
+          rec_why="The floor of the whole exterior. It is the brightest floor in the mod: see question 2 on light."),
     Piece("SDICE1", tex_ice1, "flat", (64, 64), ["SDICE1"], 2, "xy",
-          "Hielo (suelo)",
-          "Hielo marino: témpanos recongelados de azules distintos, grietas de presión blancas en sus bordes, "
-          "escarcha en velos, hileras de burbujas atrapadas.",
-          rec_why="Azul de steel_blue por debajo de 0.5 (el cromo de la Legión queda arriba, ART-BIBLE §6.2)."),
+          "Ice (floor)",
+          "Sea ice: refrozen floes in different blues, white pressure cracks along their edges, "
+          "veils of frost, rows of trapped bubbles.",
+          rec_why="steel_blue's blue below 0.5 (the Legion's chrome stays above it, ART-BIBLE §6.2)."),
     Piece("SDICE2", tex_ice2, "wall", (64, 128), ["SDICE2"], 3, "xy",
-          "Hielo de glaciar (pared)",
-          "Pared de hielo de glaciar: estratos anuales ondulados, capas blancas de burbujas, una veta fina de "
-          "grava de morrena, regueros verticales de deshielo y facetas de fractura.",
-          rec_why="Para los cortes del glaciar junto a la estación; tila en los dos ejes."),
+          "Glacier ice (wall)",
+          "A wall of glacier ice: wavy annual layers, white bands of bubbles, a thin seam of "
+          "moraine gravel, vertical meltwater streaks and fracture facets.",
+          rec_why="For the glacier cuts beside the station; tiles in both axes."),
     Piece("SDRADM1", tex_radm1, "wall", (128, 128), ["SDRADM1"], 4, "xy",
-          "Placas del radomo",
-          "Piel del radomo: paneles de fibra blanca de una cúpula geodésica (triángulos en filas al tresbolillo, "
-          "las dos familias de caras con luz distinta), juntas con pestaña y pernos, escarcha en las pestañas "
-          "horizontales, chorretes de suciedad.",
-          rec_why="La pieza que dice «radar de la Guerra Fría» desde lejos. En una pared curva (varias líneas en "
-                  "arco) los triángulos venden la cúpula."),
+          "Radome panels",
+          "The radome's skin: white fibreglass panels of a geodesic dome (triangles in staggered rows, "
+          "the two families of faces lit differently), flanged seams with bolts, frost on the horizontal "
+          "flanges, streaks of grime.",
+          rec_why="The piece that says \"Cold War radar\" from afar. On a curved wall (several lines in an "
+                  "arc) the triangles sell the dome."),
     Piece("SDHUT1", tex_hut1, "wall", (64, 128), ["SDHUT1"], 5, "x",
-          "Barracón de chapa con escarcha",
-          "Pared de barracón de chapa ondulada en verde 4BO desvaído: junta solapada remachada, óxido en la junta "
-          "y al pie, escarcha en plumas sobre las crestas (más abajo, más), ventisquero contra la base y "
-          "carámbanos bajo el alero.",
-          rec_why="Pariente del SDRUST1 de la fábrica pero helado y pintado. Alero arriba y nieve abajo: tila solo en x."),
+          "Frosted sheet-metal hut",
+          "A corrugated sheet-metal hut wall in faded 4BO green: a riveted lap seam, rust at the seam "
+          "and at the foot, feathers of frost on the ridges (more of it lower down), a snowdrift against the base and "
+          "icicles under the eave.",
+          rec_why="A relative of the factory's SDRUST1, but frozen and painted. Eave at the top, snow at the bottom: tiles in x only."),
     Piece("SDRADR", radar_frames, "wall", (128, 128), [f"SDRADR{i}" for i in range(1, FRAMES + 1)], 6, "x",
-          "Consola de radar (animada, 4 fotogramas)",
-          "Consola con la pantalla redonda (PPI) del radar: el haz gira 90° por fotograma dejando un rastro verde, "
-          "anillos de distancia, cruz de rumbo y cinco ecos que se encienden al pasar el haz y se apagan. Mueble "
-          "de esmalte martelé gris-azul, mandos, pilotos y placas que parecen texto y no dicen nada.",
-          rec_why="Necesita ANIMDEFS (mod-engineer); propongo 12 tics por fotograma para que el barrido no "
-                  "parezca un ventilador. Se tila en x como una fila de consolas.",
+          "Radar console (animated, 4 frames)",
+          "A console with the radar's round screen (PPI): the beam turns 90 degrees per frame leaving a green trail, "
+          "range rings, a bearing cross and five echoes that light up as the beam passes and fade. A cabinet "
+          "in blue-grey hammer-finish enamel, knobs, pilot lamps and plates that look like text and say nothing.",
+          rec_why="Needs ANIMDEFS (mod-engineer); I propose 12 tics per frame so the sweep does not "
+                  "look like a fan. Tiles in x as a row of consoles.",
           scene={"floor": "SDFLR1", "ceil": "SDCEIL1"}),
     Piece("SDHERM1", tex_herm1, "wall", (128, 128), ["SDHERM1"], 7, "no",
-          "Puerta blindada con escarcha",
-          "Puerta hermética («гермодверь»): marco de acero con franjas de peligro, hoja gruesa verde 4BO con junta "
-          "de goma, dos palancas de cierre, dos bisagras, una placa; escarcha que entra desde todos los bordes y "
-          "más gruesa abajo, carámbanos colgando del dintel.",
-          rec_why="El verde y las bisagras atan con SDDOOR1 de la base. Pieza única: no tila."),
+          "Frosted blast door",
+          "A hermetic door («гермодверь»): a steel frame with hazard stripes, a thick 4BO-green leaf with a rubber "
+          "seal, two locking levers, two hinges, a plate; frost creeping in from every edge and "
+          "thicker at the bottom, icicles hanging from the lintel.",
+          rec_why="The green and the hinges tie it to the base's SDDOOR1. A single piece: it does not tile."),
     Piece("SDRWY1", tex_rwy1, "flat", (64, 64), ["SDRWY1"], 8, "xy",
-          "Pista: losas de aeródromo",
-          "Losas de pista al tresbolillo con las filas de hoyuelos antideslizantes de las placas PAG soviéticas, "
-          "nieve prensada en las juntas, nieve en polvo cruzando y marcas oscuras de neumático a lo largo de y.",
-          rec_why="El dibujo de hoyuelos es el detalle que hace soviética la pista."),
+          "Runway: airfield slabs",
+          "Staggered runway slabs with the rows of anti-skid dimples of Soviet PAG plates, "
+          "packed snow in the joints, powder snow blowing across and dark tyre marks along y.",
+          rec_why="The dimple pattern is the detail that makes the runway Soviet."),
     Piece("SDRWY2", tex_rwy2, "flat", (64, 64), ["SDRWY2"], 8, "y",
-          "Pista: línea central",
-          "Las mismas losas (misma semilla) con el trazo blanco de la línea central, 40 px pintados y 24 sin "
-          "pintar, gastado de modo que los hoyuelos se ven a través.",
-          rec_why="Una fila de SDRWY2 entre filas de SDRWY1. Tila en y; en x no (es una sola línea)."),
+          "Runway: centre line",
+          "The same slabs (same seed) with the white dash of the centre line, 40 px painted and 24 "
+          "bare, worn so the dimples show through.",
+          rec_why="One row of SDRWY2 between rows of SDRWY1. Tiles in y, not in x (it is a single line)."),
 ]
 SHARED_SEED = {"SDRWY2": "SDRWY1"}
 PAINT_BOX = {"SDRWY2": (STRIPE_X[0], 0, STRIPE_X[1], STRIPE_ON)}   # x0, y0, x1, y1 of the paint over the twin
 
 ROOM = {"wall": "SDHUT1", "floor": "SDSNOW1", "ceil": None, "light": 0.95, "sky": "day"}
 OVERVIEWS = [
-    ("La estación, fuera", {"left": "SDRADM1", "right": "SDHUT1", "back": "SDHERM1", "floor": "SDSNOW1", "ceil": None}),
-    ("La sala del radar", {"left": "SDRADR1", "right": "SDCONC1", "back": "SDRADR1", "floor": "SDFLR1",
+    ("The station, outside", {"left": "SDRADM1", "right": "SDHUT1", "back": "SDHERM1", "floor": "SDSNOW1", "ceil": None}),
+    ("The radar room", {"left": "SDRADR1", "right": "SDCONC1", "back": "SDRADR1", "floor": "SDFLR1",
                            "ceil": "SDCEIL1"}),
-    ("La pista junto al glaciar", {"left": "SDICE2", "right": "SDICE2", "back": "SDRADM1", "floor": "SDRWY2",
+    ("The runway by the glacier", {"left": "SDICE2", "right": "SDICE2", "back": "SDRADM1", "floor": "SDRWY2",
                                    "ceil": None}),
 ]
 

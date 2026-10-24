@@ -23,3 +23,8 @@ work/audio/*
 # coverage.py output (tools/coverage.sh); already caught by logs/ above,
 # spelled out explicitly since it is its own deliverable (docs/qa/COVERAGE.md)
 logs/coverage/
+
+# voice and sound-effect candidates stay local (large; drafts and third-party reference voices)
+work/audio/candidates/radio/
+work/audio/candidates/world/
+work/audio/candidates/dog/

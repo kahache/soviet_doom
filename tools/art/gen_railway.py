@@ -523,64 +523,63 @@ def tex_gate2() -> np.ndarray:
 # ================================================================ pieces
 PIECES = [
     Piece("SDTRAK1", tex_trak1, "flat", (64, 64), ["SDTRAK1"], 2, "xy",
-          "Vía sobre balasto",
-          "Vía de la playa vista desde arriba: balasto de granito, traviesas de hormigón soviéticas cada 16 px, "
-          "placas de asiento y clips, dos carriles con la cabeza pulida y los lados oxidados. Los carriles van a lo "
-          "largo de y; en x las losetas forman vías paralelas.",
-          rec_why="La pieza que dice «estación de clasificación» desde el suelo. Traviesas de hormigón, no de madera "
-                  "como SDRAIL1 del metro: otra época, otro sitio, y se distinguen a simple vista."),
+          "Track on ballast",
+          "The yard's track seen from above: granite ballast, Soviet concrete sleepers every 16 px, base plates "
+          "and clips, two rails with polished heads and rusty sides. The rails run along y; in x the tiles make "
+          "parallel tracks.",
+          rec_why="The piece that says «marshalling yard» from the floor. Concrete sleepers, not wooden ones like "
+                  "the metro's SDRAIL1: another era, another place, and they tell apart at a glance."),
     Piece("SDBLST1", tex_blst1, "flat", (64, 64), ["SDBLST1"], 1, "xy",
-          "Balasto",
-          "Balasto suelto entre vías: piedra de granito machacada, polvo de óxido y aceite de los vagones.",
-          rec_why="El relleno de la playa entre vías y andenes; tila sin costura (Voronoi envuelto)."),
+          "Ballast",
+          "Loose ballast between tracks: crushed granite, rust dust and oil from the wagons.",
+          rec_why="The yard's filler between tracks and platforms; tiles seamlessly (wrapped Voronoi)."),
     Piece("SDWAGN1", tex_wagn1, "wall", (128, 128), ["SDWAGN1"], 3, "x",
-          "Vagón de mercancías (lateral)",
-          "Vagón cubierto soviético: tablazón en minio rojo-óxido gastado hasta la madera gris, postes y riostras "
-          "de acero, larguero, el bastidor oscuro debajo y un número de 8 cifras estarcido (dígitos de píxel "
-          "propios).",
-          rec_why="Un tren de vagones sale de repetirlo en x. A 1x se lee como vagón; el número es inventado."),
+          "Goods wagon (side)",
+          "A Soviet covered wagon: planking in red-oxide primer worn down to grey wood, steel posts and braces, "
+          "a solebar, the dark underframe below and a stencilled 8-digit number (our own pixel digits).",
+          rec_why="Repeating it in x makes a train of wagons. At 1x it reads as a wagon; the number is made up."),
     Piece("SDTANK1", tex_tank1, "wall", (128, 128), ["SDTANK1"], 4, "x",
-          "Vagón cisterna (lateral)",
-          "Cisterna negra de cuatro ejes: cilindro iluminado desde arriba, costuras de virolas remachadas, "
-          "cinchas, chorreones de aceite bajo la cúpula y «НЕФТЬ» (petróleo) en crema con nuestro alfabeto.",
-          rec_why="El negro brillante contrasta con el rojo-óxido del vagón: dos tipos de tren de un vistazo."),
+          "Tank wagon (side)",
+          "A black four-axle tank wagon: a cylinder lit from above, riveted shell seams, straps, oil runs under "
+          "the dome and «НЕФТЬ» (oil) in cream in our alphabet.",
+          rec_why="The glossy black contrasts with the wagon's red oxide: two kinds of train at a glance."),
     Piece("SDARMR1", tex_armr1, "wall", (128, 128), ["SDARMR1"], 5, "x",
-          "Tren blindado, con estrella",
-          "Chapa del tren blindado: verde oliva desvaído a caqui por el sol, placas de 64 px remachadas, "
-          "arañazos y impactos, óxido bajo los remaches, estrella roja con filete crema.",
-          rec_why="El panel de identidad del tren blindado; alternar con SDARMR2 para que la estrella no se repita "
-                  "cada 128 px."),
+          "Armoured train, with star",
+          "The armoured train's plating: olive green sun-faded to khaki, riveted 64 px plates, scratches and "
+          "hits, rust under the rivets, a red star with a cream outline.",
+          rec_why="The armoured train's identity panel; alternate with SDARMR2 so the star does not repeat every "
+                  "128 px."),
     Piece("SDARMR2", tex_armr2, "wall", (64, 128), ["SDARMR2"], 6, "xy",
-          "Tren blindado, liso",
-          "La misma chapa sin estrella, para rellenar entre paneles.",
-          rec_why="Relleno; tila en los dos ejes."),
+          "Armoured train, plain",
+          "The same plating without the star, to fill between panels.",
+          rec_why="Filler; tiles on both axes."),
     Piece("SDSIGL1", tex_sigl1, "wall", (64, 128), ["SDSIGL1"], 7, "no",
-          "Señal luminosa",
-          "Señal de colores sobre su mástil, contra un pilar de hormigón: pantalla negra, tres lentes con visera "
-          "(verde, amarillo, rojo encendido) y la placa «М2» (señal de maniobras) con nuestro alfabeto.",
-          rec_why="Pieza de decoración, no tila. Con el rojo encendido sirve de «pare» junto a una puerta cerrada.",
+          "Colour-light signal",
+          "A colour-light signal on its mast, against a concrete pillar: black backplate, three hooded lenses "
+          "(green, yellow, red lit) and the «М2» plate (shunting signal) in our alphabet.",
+          rec_why="A decoration piece, it does not tile. With the red lit it works as a «stop» next to a locked door.",
           scene={"left": "SDBRCK3", "right": "SDBRCK3"}),
     Piece("SDBRCK3", tex_brck3, "wall", (64, 128), ["SDBRCK3"], 8, "xy",
-          "Ladrillo de la rotonda",
-          "Ladrillo de la rotonda de locomotoras: la receta aprobada del ladrillo de la fábrica, algo más claro y "
-          "con menos hollín, con un friso arriba (hilada saliente, hilada en diente de sierra, hilada saliente).",
+          "Roundhouse brick",
+          "The locomotive roundhouse's brick: the factory brick's approved recipe, a little lighter and less "
+          "sooty, with a frieze at the top (projecting course, sawtooth course, projecting course).",
           palette=2,
-          why_v2="v2 solo por marble_red, igual que SDBRCK1 aprobado (D66): v1 no tiene rojo de ladrillo cocido.",
-          rec_why="Mismo ladrillo que Tankogrado (coherencia de juego) pero se distingue por el friso, típico de la "
-                  "arquitectura ferroviaria rusa."),
+          why_v2="v2 only for marble_red, like the approved SDBRCK1 (D66): v1 has no fired-brick red.",
+          rec_why="The same brick as Tankograd (consistency in play) but told apart by the frieze, typical of "
+                  "Russian railway architecture."),
     Piece("SDGATE2", tex_gate2, "wall", (128, 128), ["SDGATE2"], 9, "x",
-          "Puerta corredera de almacén",
-          "Puerta corredera del almacén de mercancías: tablas con pintura rojo-pardo levantada hasta la madera, "
-          "dos peinazos y una riostra, canto de acero, carril con dos roldanas, aldaba y candado, placa «СКЛАД» "
-          "(almacén) y un 3 grande pintado.",
-          rec_why="Distinta de SDGATE1 (chapa verde de fábrica): madera y rojo ferroviario."),
+          "Warehouse sliding door",
+          "The goods warehouse's sliding door: planks with red-brown paint peeling to the wood, two rails and a "
+          "brace, a steel edge, a track with two rollers, a hasp and padlock, a «СКЛАД» (warehouse) plate and a "
+          "big painted 3.",
+          rec_why="Distinct from SDGATE1 (green factory sheet): wood and railway red."),
 ]
 
 # Sample room defaults for this set: exterior, sky above.
 ROOM = {"wall": "SDBRCK3", "floor": "SDTRAK1", "ceil": None, "light": 1.0}
 OVERVIEWS = [
-    ("La playa de vías", {"left": "SDWAGN1", "right": "SDTANK1", "back": "SDARMR1", "floor": "SDTRAK1"}),
-    ("Rotonda y almacén", {"left": "SDBRCK3", "right": "SDBRCK3", "back": "SDGATE2", "floor": "SDBLST1"}),
+    ("The rail yard", {"left": "SDWAGN1", "right": "SDTANK1", "back": "SDARMR1", "floor": "SDTRAK1"}),
+    ("Roundhouse and warehouse", {"left": "SDBRCK3", "right": "SDBRCK3", "back": "SDGATE2", "floor": "SDBLST1"}),
 ]
 
 

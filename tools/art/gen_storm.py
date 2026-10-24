@@ -133,7 +133,7 @@ NEW_MATERIALS: dict[str, core.Mat] = {      # each keeps the value given here (s
     "belly": M("khaki_olive", 0, 2, black_floor=True, shift=False),   # black underbelly and muzzle (§10 rule 4)
     "bone": M("plaster_warm", 9, 14, shift=False),            # teeth, spines; the Stormtrooper's talons
     # The full set of cell E (D48). Appended after the sweep's: no id moves.
-    # D49: blood is dark red for every faction, "rojo oscuro, nada de oliva" (supersedes BESTIARY §2.1's
+    # D49: blood is dark red for every faction, "rojo oscuro, nada de oliva" ("dark red, no olive"; supersedes BESTIARY §2.1's
     # olive). The same two definitions as gen_rig.py's D48 rifleman (flag_red 1-5 / 0-3 over black, flat: no
     # rim, so a drop stays red), so the two Reich bodies bleed alike; copied, not imported, so this table
     # does not follow a figure module's edits.
@@ -1148,7 +1148,7 @@ def gallop_sheet(spr: dict, metrics: dict, gifs: dict, stamp: str, out_dir: Path
 
 # ================================================== the full set of cell E (D48)
 # D48 (CEO, 2026-10-14): the Stormtrooper is cell E of the sweep, "queda muy
-# macarra, me gusta" (bare skull with a chrome plate on his right half,
+# macarra, me gusta" ("he looks really badass, I like it": bare skull with a chrome plate on his right half,
 # greatcoat, forearm cannon), over BESTIARY §5's 25 % Legion share, accepted.
 # This renders his whole frame set on the rig, as gen_rig.py did for the
 # rifleman: the frames of src/zscript/monsters/stormtrooper.zs (TROO today,
@@ -1165,7 +1165,7 @@ def gallop_sheet(spr: dict, metrics: dict, gifs: dict, stamp: str, out_dir: Path
 # mod-engineer splits Melee from Missile (a ZScript change, not a rename).
 #
 # Blood. D48 asked for "much more blood" in the rifleman's deaths and D49
-# made it dark red for every faction ("rojo oscuro, nada de oliva"). The
+# made it dark red for every faction ("rojo oscuro, nada de oliva", "dark red, no olive"). The
 # Stormtrooper gets both from the start: a spray from the chest, a wet stain
 # spreading on the coat, splats where the drops land and a pool under him,
 # in the rifleman's and the Legion's own red materials (`blood`, `pool`:
@@ -1404,7 +1404,8 @@ def storm_full_model(sp: StormPose, seed: int = SEED,
         rig.transform(P, anchors, rig.UPPER, rig.rot_x(sp.lean), waist)
         rig.transform(P, anchors, {"skirt"}, rig.rot_x(sp.lean * 0.3), waist)
     if sp.fall or sp.yaw:
-        # D53 (CEO, 2026-10-14: "SDHSM0 ... cae de lado queda artificial"): he
+        # D53 (CEO, 2026-10-14: "SDHSM0 ... cae de lado queda artificial",
+        # "falls on his side, looks artificial"): he
         # no longer rolls onto his right side, where the chrome shoulder and
         # the cannon held his chest up; he falls BACK over his heels and twists
         # as he goes, so he lies on his back across the screen, his weight on
@@ -1814,7 +1815,7 @@ FULL_VERDICT = [
     "falling back over his heels and lies on his back, the cannon arm flat beside him (redone for D53; the "
     "first version rolled onto the cannon and looked propped).",
     "BLOOD. Much more of it than the rifleman's D38 deaths, as D48 asked, and dark red as D49 decided (\"rojo "
-    "oscuro, nada de oliva\"): a spray from the chest that lands as splats, a second jet from the entry wound "
+    "oscuro, nada de oliva\", dark red, no olive): a spray from the chest that lands as splats, a second jet from the entry wound "
     "towards the shooter, a wet patch that spreads down the coat and drips, the seam of the graft tearing, and a "
     "pool under the chest and the hip. The gib throws a fountain of 46 drops and 24 chunks, and the floor fills as "
     "they land. The red is the rifleman's own: flag_red 1-5 over black for drops and stains, 0-3 for pools, both "
@@ -2010,7 +2011,7 @@ def build_full_sheet(data: dict, stamp: str, out_dir: Path = PREVIEW_DIR, gif_di
             + "</ol></div>"
     S.append(("10 · Honest verdict and what you decide", "", body))
     intro = ("D48: the CEO chose cell E of the Stormtrooper sweep (bare skull with a chrome plate on his right half, "
-             "greatcoat, forearm cannon: \"queda muy macarra, me gusta\"). This is his whole frame set on the rig, as "
+             "greatcoat, forearm cannon: \"queda muy macarra, me gusta\", he looks really badass, I like it). This is his whole frame set on the rig, as "
              "the rifleman's was (D38): every frame stormtrooper.zs names, his bolt, a proposed claw, and much more "
              f"blood in the deaths. Palette v1 only, seed {SEED}, no system fonts. Lump names are MOD-SPEC §6.3's "
              "reserved SDHS and SDBL, the names §5.1's TROO and BAL1 placeholders stand in for. Built by "
@@ -2030,7 +2031,9 @@ def build_full_sheet(data: dict, stamp: str, out_dir: Path = PREVIEW_DIR, gif_di
 
 # ============================================================ death redo (D53)
 # The CEO on the full set (2026-10-14): "SDHSM0 mismo error que antes: cuando
-# este soldado muere y cae de lado queda artificial. El resto OK." The frames
+# este soldado muere y cae de lado queda artificial. El resto OK." ("SDHSM0,
+# the same mistake as before: when this soldier dies and falls on his side it
+# looks artificial. The rest OK.") The frames
 # he saw are kept in full_E/old_death/ for the before/after sheet; the death
 # I-M and the gib's fallen legs were redone (STORM_POSES I-M, gib_model).
 OLD_DEATH_DIR = FULL_DIR / "old_death"
@@ -2176,7 +2179,8 @@ def build_death_sheet(data: dict, stamp: str, out_dir: Path = PREVIEW_DIR, gif_d
             + "</ol></div>"
     S.append(("6 · Honest verdict and what you decide", "", body))
     intro = ("Your note on the Stormtrooper's full set (D53): \"SDHSM0 mismo error que antes: cuando este soldado "
-             "muere y cae de lado queda artificial. El resto OK.\" Redone: the death I-M and the gib's fallen legs "
+             "muere y cae de lado queda artificial. El resto OK.\" (\"SDHSM0, the same mistake as before: when this "
+             "soldier dies and falls on his side it looks artificial. The rest OK.\") Redone: the death I-M and the gib's fallen legs "
              "(O-U), as the Legion trooper's was. Walk, attack and pain (A-H, 64 lumps) and the bolt are "
              f"byte-identical to the set you approved. Built by <code>tools/art/gen_storm.py --death</code>, seed "
              f"{SEED}. Draft: nothing in <code>assets/</code>.")

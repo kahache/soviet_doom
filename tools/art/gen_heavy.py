@@ -202,7 +202,7 @@ DECAL_INSIGNIA = core.Insignia("decal", (len(DECAL[0]), len(DECAL)),
                                core.pattern_drawer(DECAL, legion.FLAG_COLOURS), outward=(0.0, 0.0, 1.0),
                                min_px=8, search=3, turned_away=0.35)
 # D67 (CEO, 2026-10-14, on the Doughboy's full set): "ponle la bandera más
-# grande en la cabeza". The full set's decal: 11 x 7 instead of 5 x 4, a
+# grande en la cabeza" ("make the flag on its head bigger"). The full set's decal: 11 x 7 instead of 5 x 4, a
 # canton with stars and seven stripes, so it reads at 1x. The sweep keeps
 # its own small DECAL (its PNGs do not change).
 DECAL_BIG = (
@@ -1261,7 +1261,7 @@ def build_sheet(data: dict, lines: dict, stamp: str, out_dir: Path = PREVIEW_DIR
 # SDDB_C_* and SDPM A1 A3 A5 G1 the sweep's SDPM_D_*, byte for byte.
 #
 # The dead (the CEO's rule since the Legion's first L0, "parece que se
-# apoye en el hombro"): the corpse lies with its weight on the floor and
+# apoye en el hombro", "it looks as if it leans on its shoulder"): the corpse lies with its weight on the floor and
 # is measured, not judged by eye. The Doughboy, a floater, drops when it
 # dies (GZDoom's Die() clears +FLOAT and +NOGRAVITY: NOT VERIFIED here, it
 # is what every dead cacodemon does) and lands as a deflated sack, the
@@ -2505,7 +2505,7 @@ def _flag_section(spr: dict, before: dict) -> tuple[str, str, str]:
              f"{len(DECAL_BIG[0])} x {len(DECAL_BIG)} now (a starred canton and seven stripes), stamped wherever "
              f"the helmet's front faces you: {len(changed)} of {len(spr)} lumps changed, every change inside a "
              f"{box[0]} x {box[1]} px box (the flag); the other lumps are byte for byte the set you saw.</p>")
-    lead = ("Your note: \"ponle la bandera más grande en la cabeza\". The US flag on the helmet, before (left) and "
+    lead = ("Your note: \"ponle la bandera más grande en la cabeza\" (\"make the flag on its head bigger\"). The US flag on the helmet, before (left) and "
             "now (right), 3x then 1x, then in the hangar beside the approved infantries.")
     return "0 · The flag on the helmet (D67): before and now", lead, body
 

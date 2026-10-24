@@ -6,7 +6,7 @@ tools/art/gemini_enemy.py (hound); this generator is kept so the approved F5
 renders stay reproducible, but its output no longer matches assets/.
 
 Why. The CEO's art gate of 2026-10-14 (D48, docs/PRD.md) rejected every cell
-of the first hound sweep (gen_storm.py, "muy feo en todas") and asked for a
+of the first hound sweep (gen_storm.py, "muy feo en todas", "very ugly in all of them") and asked for a
 German shepherd, brown, drawn from a real one's anatomy. D48 supersedes
 D45's darker khaki hide. This module is that redraw; gen_storm.py and
 rig_core.py are imported and NOT edited (another figure uses them).
@@ -730,7 +730,7 @@ def build_sheet(data: dict, scenes: dict, stamp: str, out_dir: Path = PREVIEW_DI
 # spreads under the neck and chest from L to N.
 #
 # The corpse (the CEO on the Legion's first L0: "parece que se apoye en el
-# hombro"): N lies flat on its right side, the whole body on the floor, the
+# hombro", "it looks as if it leans on its shoulder"): N lies flat on its right side, the whole body on the floor, the
 # legs relaxed, the head on the floor, in its pool. It is not posed by eye:
 # the body is rolled onto its side and put on the floor, then the neck and
 # head, the tail and the two upper legs are each let FALL about their root

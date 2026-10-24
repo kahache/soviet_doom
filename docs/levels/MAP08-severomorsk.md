@@ -305,7 +305,7 @@ Still pending with nothing standing in (`PENDING_TEXTURES`): `SDPERI1` (the
 periscope's tube, masked; the well is a solid steel column meanwhile) and
 the polar night sky with the aurora (MAPINFO's sky, the scaffolding's call).
 
-### 7.3 Posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel»)
+### 7.3 Posters (CEO, 2026-10-22: «que esos posters puedan aparecer en cualquier nivel» ("that those posters can appear in any level"))
 
 Three pictures and the Marx-Engels pair, each whole: one one-sided line
 exactly the poster's width, in a recess exactly its height, pegged to the
@@ -337,8 +337,9 @@ secret has a way back; none is needed (tested). All three open in round 0.
 
 ## 9. Enemies and resources by skill
 
-Bestiary numbers (MAPINFO DoomEdNums 21100-21107, and since D116 21110
-the gunner and 21111 the Liberty Colossus), nested by Doom's skill pairs.
+Bestiary numbers (MAPINFO DoomEdNums 21100-21107, since D116 21110 the
+gunner, and since D123 21113 the Chrome Marshal, who took the Liberty
+Colossus's 21111 out of this map), nested by Doom's skill pairs.
 Every class but the General and the Consortium.
 
 | | Skill 2 | Skill 3 | Skill 4 |
@@ -351,7 +352,7 @@ Every class but the General and the Consortium.
 | Panzermenschen (workshops, reactor, bay) | 3 | 3 | 3 |
 | Heavy Panzermenschen (reactor, bay) | 0 | 2 | 2 |
 | Legion gunners (D116) | 3 | 4 | 5 |
-| **The Liberty Colossus** (the bay's mini-boss, D116) | 0 | 1 | 1 |
+| **The Chrome Marshal** (the bay's mini-boss; D123, the Liberty Colossus's place since D116) | 0 | 1 | 1 |
 | **Total** | **36** | **55** | **70** |
 
 The Legion's machine-gunners (D116, `SD_LegionGunner`, 21110, 80 HP; they
@@ -368,14 +369,19 @@ holds):
 | 3 | the submarine's deck, (2592, 1984), facing west | the deck aft to the gangway | the fin |
 | 4 | the yard, (1920, 880), facing west | the yard to the pier (1310 from the start) | the middle crates |
 
-**The Liberty Colossus** (D116, `SD_LibertyColossus`, 21111, 3000 HP since D119, 88
-wide and 110 high, `+NORADIUSDMG`; episode 2's boss) stands in the loading
-bay on **skills 3 and 4** as the map's mini-boss, by the locomotive at
+**The Chrome Marshal** (D123, `SD_ChromeGeneral`, 21113: the colossus
+variant, the Liberty Colossus's behaviour, body and 3000 HP on the General's
+sprites ×1.3 tinted chrome; 88 wide and 110 high, `+NORADIUSDMG`, `+BOSS`)
+stands in the loading bay on **skills 3 and 4** as the map's mini-boss, on
+the spot the Liberty Colossus held from D116 to D123 (the statue is
+MAP06's boss alone since D123), by the locomotive at
 (4352, 512), facing west where the player comes out of the rail tunnel.
 The bay is 768 by 704 under a roof at 320, so he has room and the train is
 cover. He opens nothing: his death special is none, and MAP08's MAPINFO
 block has no boss-death flag (his `A_BossDeath` does nothing here; NOT
-VERIFIED in engine). The exit is not behind him: the player may run past
+VERIFIED in engine). His `+BOSS` does not change the music: `SD_MusicVariant`
+has no boss loop for MAP08 (only MAP06 and MAP09), so the map's A/B piece
+plays on. The exit is not behind him: the player may run past
 him to the cab. **For him** (recounted for 3000 in D119, §17): on skills 3
 and 4 the rail tunnel and the bay hold 25 PG-7V (a box in the tunnel on
 every skill, one in the first refuge and three in the bay from skill 3), a
@@ -383,7 +389,7 @@ shell box and four shells' worth more, five AKM magazines, two boxes of
 rounds and two canisters; a medikit in the bay on every skill. His stage
 is the only one of the map where PG-7V may lead (§17). Tested: rockets and fuel there at least a third of his hit
 points, and the two's whole stock inside the skill's G3-8 band of the
-colossus and the monsters round him (skill 3: 8435 average damage for 5370
+Marshal and the monsters round him (skill 3: 8435 average damage for 5370
 HP, 1.57; skill 4: 8435 for 5910, 1.43; the band 1.3-1.6 / 1.2-1.45). BALANCE
 §8.4.3: the bay's stage carries PG-7V and fuel for more than his 48 shells.
 
@@ -401,7 +407,8 @@ the RPG-7; **AKM magazines** (`SD_AkmAmmo` 21020) 10 / 15 / 17 on skills
 2 / 3 / 4 since D119 (§17; D116's 4 / 3 / 2 went with the scaling down).
 
 **Ammunition, D119** (`docs/engine/BALANCE.md` §8: G3-8's ruler, kills in
-IZh shells, a gunner 2, the colossus 48 since D119 (was 72), PG-7V at 2
+IZh shells, a gunner 2, the mini-boss 48 (the colossus's since D119, was
+72; the Chrome Marshal's since D123, the same 3000), PG-7V at 2
 shells, fuel at 13.5 / 80, an AKM magazine 4.5; route only, no drop, no
 secret). The route's ammunition is `AMMO` in `map.py`, apart from `ITEMS`:
 it appears from its lowest skill tier up, like the monsters it pays for.
@@ -418,7 +425,7 @@ it appears from its lowest skill tier up, like the monsters it pays for.
 
 Also checked at every round of the route against the skill's floor, each
 pool only after its weapon, the AKM's magazines leading every stage and
-PG-7V at most 30 % of it but in the colossus's (the bay on skills 3 and 4,
+PG-7V at most 30 % of it but in the mini-boss's (the bay on skills 3 and 4,
 where they lead; §17). **Health** on skill 4: 7 stimpacks + 6 medikits, 8
 health bonuses; **armour**: the flak vest in the dormitory (round 0), the
 heavy vest in the passage (round 3, before the yard's closets and the bay),
@@ -443,7 +450,7 @@ heavy vest in the passage (round 3, before the yard's closets and the bay),
 | Masked lattice on two-sided lines | `texturemiddle` `SDCRAN1` on both sides, `dontpegbottom` (its foot on the higher floor), `blocking` | as MAP05's insulators (`SDINSL1`); this lump NOT VERIFIED in the engine: V12 |
 | Kerbs turned to the water | `rotationfloor` 180 (the south quay's edge) and 270 (the pier's west edge) | 180 is the same whichever way the engine turns; **270's direction NOT VERIFIED**: V11 |
 | The escape hatch centred | `ypanningfloor` 32 on its 64 tile | the same either sign; first use of the field in the project, NOT VERIFIED: V11 |
-| Event on pickup (V3, §18) | thing `special` 21 `Floor_LowerToLowest` (tag, speed) on the blue and the yellow key | the field as MAP04's red key; the number NOT VERIFIED in our engine (MAP04's K3): V13-V14 |
+| Event on pickup (V3, §19) | thing `special` 21 `Floor_LowerToLowest` (tag, speed) on the blue and the yellow key | the field as MAP04's red key; the number NOT VERIFIED in our engine (MAP04's K3): V13-V14 |
 
 Tag plan: **1** D1 · **2** D2 · **3** D3 · **4** the blue door · **5** the
 yellow door and the tunnel's two closets · **6** the red gate and the yard's
@@ -527,7 +534,7 @@ episode-3 agents).
 1. **Walk v1** (§13.4).
 2. **The blue door's look**: settled, `SDDOORB` (v1.1).
 3. **The Hand Katyusha in S3** (the crane's cab), as MAP05 kept it in a secret.
-4. **The colossus in the bay** (D116, skills 3-4): the right mini-boss for the episode's middle map, or too much on top of the bay's heavies? He is one line to drop (`MONSTERS`) or to move to skill 4 only.
+4. **The mini-boss in the bay** (skills 3-4): settled by D123, the Chrome Marshal in the colossus's place (§18). Still one line to drop (`MONSTERS`) or to move to skill 4 only.
 
 ## 15. v1.1 record: the "Naval" set worn (2026-10-22, D113)
 
@@ -600,8 +607,8 @@ Population and pickups only: no geometry, door, key, secret or poster moved.
 
 ## 17. v1.3 record: D119's ammunition and the colossus at 3000 (2026-10-23)
 
-The CEO's playtest of Episodes 2 and 3: ammunition "siempre sale de sobras",
-"siempre acabas con la escopeta", and the bosses at classic Doom's level
+The CEO's playtest of Episodes 2 and 3: ammunition "siempre sale de sobras" ("there is always plenty left over"),
+"siempre acabas con la escopeta" ("you always end up with the shotgun"), and the bosses at classic Doom's level
 (the colossus 3000, the Spider Mastermind's, `mod-engineer`). Pickups only:
 no geometry, door, key, secret, monster or poster moved; the secrets'
 rewards are unchanged.
@@ -646,7 +653,34 @@ rewards are unchanged.
   rounds alone) was dropped by the PM; the ROKS-3 exception is the PM's
   amendment. The engine pass is the PM's (D26).
 
-## 18. V3: events on pickup and the set pieces (2026-10-23, D120's A2 and A3)
+## 18. v1.4 record: the Chrome Marshal in the colossus's place (2026-10-23, D123)
+
+The CEO kept both looks of the colossus ("Coloso me gustan las 2: colorear
+general y la estatua de la libertad. Quiero los 2 en el juego", D123; "Colossus: I like both: colour the general, and the Statue of Liberty. I want both in the game"): the
+statue (`SDLC`) is MAP06's boss, and the chrome-tinted General it wore
+until then is a new enemy, **`SD_ChromeGeneral`, "The Chrome Marshal"**
+(21113; `mod-engineer`, `docs/engine/BESTIARY.md` §12 row 12), placed here
+by the PM. One thing changed: the bay's mini-boss's class and editor
+number (`ED_COLOSSUS` 21111 → `ED_CHROME_GENERAL` 21113, the `MONSTERS`
+kind `colossus` → `chrome_general`). Nothing moved: the same spot
+(4352, 512), facing west, skills 3 and 4; the same 3000 HP, so the bay's
+stock (25 PG-7V, the magazines, the canisters) and every ratio of §9 and
+§17 stand as they were (his 48 shells). No geometry, door, key, secret,
+pickup or poster changed; totals 36 / 55 / 70.
+
+- Tests (`tests/test_map08_severomorsk.py`): the Marshal holds the bay on
+  skills 3 and 4 only, at the colossus's spot and facing, 3000 HP; no 21111
+  is left in the map; the boss stage's PG-7V and fuel over his 48 shells.
+  `tests/test_ep2_enemies.py`: the Marshal is placed in MAP08 and nowhere
+  else, the colossus no longer in MAP08. `tools/route.py` counts 21113 and
+  can hurt `SD_ChromeGeneral` (appended to `COUNT_CLASSES`).
+- Engine checks for the PM: **V15** the Marshal in the bay on skill 3: the
+  chrome tint on the General's sprites at ×1.3 (the `Translation` on a
+  truecolour PNG is NOT VERIFIED), his rockets, jet and stomp as the
+  colossus's, his own name in the obituary (EN, RU, CA), and the map's
+  music unchanged when he engages (no boss loop on MAP08).
+
+## 19. V3: events on pickup and the set pieces (2026-10-23, D120's A2 and A3)
 
 V3 work, not in v1.2. Two events, each fired by **picking up a key**: the
 key carries a UDMF `special` and `arg0..`, which GZDoom runs on pickup
@@ -688,7 +722,7 @@ expects tag 13 open (the magazine's panel sunk). The cradle is not asked
 | V13 | Taking the blue key brings the torpedo-loading cradle down to the room's floor with its three; the strip before it flickers; the car's face reads as the steel of a loading trunk, not the hull | walk BKEY, turn north; `netevent sdtag 12` prints floor 32 |
 | V14 | Taking the yellow key sinks the store's east panel at the end of the aisle; the dogs come down the aisle | route step YKEY (tag 13 open), look east |
 
-## 19. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+## 20. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
 
 **The RGD-5** (ADR 012; placement advice `docs/engine/2026-10-23_V3_rgd5.md`
 §6). Grenades are consumables in `ITEMS`, so they scale **down** with skill:

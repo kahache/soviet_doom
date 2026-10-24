@@ -432,16 +432,19 @@ stagger and blast are not in it.
 | The General | 3000 | 200 | 250 | 38 | 375 | 23 | 223 | 27 |
 | Legion gunner (P4, D116) | 80 | 6 | 7 | 1 | 10 | 1 | 6 | 1 |
 | Liberty Colossus (P4, D116; D119) | 3000 | 200 | 250 | 38 | 375 | 23 | 223 | 27 |
+| Chrome Marshal (P4, D123: the colossus variant, MAP08) | 3000 | 200 | 250 | 38 | 375 | 23 | 223 | 27 |
 | The Consortium (P4, D116; D119), whole | 4000 | 267 | 334 | 50 | 500 | 30 | 297 | 36 |
 
 **The AKM** (slot 4b, avg 12 a round, D116) against the same rows:
 rifleman 2, trooper 3, Stormtrooper 5, hound 13, Doughboy 34, Panzermensch
 42, heavy Panzermensch 84, the General 250, the Legion gunner 7, the
-Liberty Colossus 250, the Consortium 334 rounds (a 30-round magazine is
+Liberty Colossus and the Chrome Marshal 250 each, the Consortium 334 rounds (a 30-round magazine is
 ~360 at 100 %). An infantry gun: the bosses stay the RPG-7's and the
 Katyusha's. The three P4 rows' numbers and their reasons are their design
 documents (`2026-10-22_P4_ep2-enemies.md` §2–§3,
-`2026-10-22_P4_ep3-final-boss.md` §3); the colossus and the Consortium have
+`2026-10-22_P4_ep3-final-boss.md` §3; the Chrome Marshal, D123, is the
+colossus's numbers on the General's tinted sprites, `BESTIARY.md` §12 row
+12); the colossus, the Marshal and the Consortium have
 `+NORADIUSDMG`, so their RPG-7 column is the impact only, and the
 Consortium's servants add to its bill (50 HP a rooted pair, 600 at its
 Breach, 180 a free pair).
@@ -475,6 +478,7 @@ What it says, before anyone has played it:
   |---|---|---|---|---|---|---|
   | The General (MAP03) | 3000 | Spider Mastermind 3000 | 3000, unchanged | 23 | 4.4 | 223 |
   | Liberty Colossus (MAP06) | **3000** | Spider Mastermind 3000, the class it replaces | 4500 | 23 | 4.4 | 223 |
+  | Chrome Marshal (MAP08's mini-boss, D123) | 3000 | the colossus's (his variant) | the colossus stood there at 3000 | 23 | 4.4 | 223 |
   | The Consortium (MAP09) | **4000** | Cyberdemon 4000 | 9000 | 30 | 5.9 | 297 |
 
   The Consortium keeps both phases and the Breach at half health: rooted
@@ -519,6 +523,7 @@ each map's numbers: its design doc in `docs/levels/`.
 | Hybrid Stormtrooper | 2 | | heavy Panzermensch | 16 |
 | Legion gunner | 2 | | the General | 48 |
 | Reich hound | 3 | | **Liberty Colossus** | **48** (D119; was 72) |
+| | | | **Chrome Marshal** (D123) | **48**, the colossus's |
 | | | | **the Consortium** | **64** (D119; was 144) + its servants, as MAP09's test already counts them |
 
 **Placed**, in shell-equivalents, every pickup on the route of that skill:

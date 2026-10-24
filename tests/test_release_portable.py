@@ -4,15 +4,16 @@ package (P5, D93; docs/engine/RELEASE.md, "Portable packages (P5)").
 What is pinned:
 
   * the structure: one folder SovietDoom/ holding exactly the engine files,
-    freedoom2.wad, the release's files, the two launchers, the two guides,
-    GZDOOM-SOURCE.txt, gzdoom_portable.ini and SHA256SUMS;
-  * the launchers, line by line: ASCII, CRLF, `cd /d "%~dp0"`, the
+    freedoom2.wad, the release's files, the launcher, the guide,
+    GZDOOM-SOURCE.txt, gzdoom_portable.ini and SHA256SUMS; no Spanish file
+    (D129: the player languages are English, Russian and Catalan);
+  * the launcher, line by line: ASCII, CRLF, `cd /d "%~dp0"`, the
     "extract the zip first" guard, and one `start` with -iwad and -file;
   * the portable switch: gzdoom_portable.ini next to gzdoom.exe;
   * the licences: GPL, CC, Freedoom's BSD notice, LICENSE.md, GZDoom's
     licenses.zip, and GZDOOM-SOURCE.txt with the g4.14.2 tree, the source
     archives, the libraries, the written offer and every engine file's hash;
-  * the guides (Spanish and English): BOM, CRLF, SmartScreen, the language
+  * the guide (English): BOM, CRLF, SmartScreen, the language
     path read from LANGUAGE, the keys;
   * SHA256SUMS, the .sha256 beside the zip, and determinism (same inputs,
     same bytes, every timestamp the release zip's);
@@ -21,12 +22,12 @@ What is pinned:
     zip; and a user's ini, saves or WADs in the engine folder never ship;
   * macOS (D101/D102): every GZDoom.app entry of the official zip keeps its
     bytes and its external_attr (gzdoom 755, symlinks stay symlinks, the
-    AppleDouble signature files ship), the .command launchers are 755, sh,
+    AppleDouble signature files ship), the .command launcher is 755, sh,
     `cd "$(dirname "$0")"`, -iwad/-file/-config/-savedir inside the folder;
-    the guides explain Gatekeeper; SHA256SUMS skips only the ._* files;
+    the guide explains Gatekeeper; SHA256SUMS skips only the ._* files;
   * Linux: /opt/gzdoom of the .deb (ar + data.tar, no dpkg) as gzdoom/,
-    play.sh/jugar.sh 755, folders 755, files 644, owner root, the release's
-    mtime, a gzip header with no name or time; the guides list the .deb's
+    play.sh 755, folders 755, files 644, owner root, the release's
+    mtime, a gzip header with no name or time; the guide lists the .deb's
     Depends and the apt command; the licence texts from the source archive;
   * both: determinism, and refusals for unsafe paths, escaping symlinks,
     other engine versions, broken archives.
@@ -71,7 +72,7 @@ FAKE_IWAD = b"IWAD fake freedoom2"
 
 # What the package holds besides the engine's own files.
 OURS = sorted([
-    "CREDITS.txt", "GZDOOM-SOURCE.txt", "Jugar Soviet Doom.bat", "LEEME.txt",
+    "CREDITS.txt", "GZDOOM-SOURCE.txt",
     "LICENSE-CC-BY-NC-SA-4.0.txt", "LICENSE-FREEDOOM-BSD-3.txt", "LICENSE-GPL-3.0.txt",
     "LICENSE.md", "Play Soviet Doom.bat", "README-FIRST.txt", "README.txt", "SHA256SUMS",
     "freedoom2.wad", "gzdoom_portable.ini", "sovietdoom.pk3",
@@ -217,8 +218,8 @@ class LauncherTest(FakeInputs):
         self.assertNotIn(b"\n", data.replace(b"\r\n", b""), f"{name}: CRLF only")
         return data.decode("ascii").split("\r\n")
 
-    def test_both_launchers_run_the_same_commands(self):
-        for name in (rp.BAT_ES, rp.BAT_EN):
+    def test_the_launcher_runs_one_command(self):
+        for name in (rp.BAT_EN,):
             lines = self.lines(name)
             self.assertEqual(lines[0], "@echo off")
             self.assertIn('cd /d "%~dp0"', lines)
@@ -227,14 +228,15 @@ class LauncherTest(FakeInputs):
             self.assertEqual([ln for ln in lines if ln.startswith("start ")], [LAUNCH])
             self.assertEqual(lines[-2:], [LAUNCH, ""])
 
-    def test_the_guard_says_to_extract_the_zip_in_each_language(self):
-        es = "\r\n".join(self.lines(rp.BAT_ES))
+    def test_the_guard_says_to_extract_the_zip(self):
         en = "\r\n".join(self.lines(rp.BAT_EN))
-        self.assertIn("Extraer todo", es)
         self.assertIn("Extract All", en)
-        for text in (es, en):
-            self.assertIn("pause", text)
-            self.assertIn("exit /b 1", text)
+        self.assertIn("pause", en)
+        self.assertIn("exit /b 1", en)
+
+    def test_one_launcher_only_and_no_spanish_one(self):
+        # D129: no "Jugar Soviet Doom.bat" (Spanish is not a project language).
+        self.assertEqual(sorted(n for n in self.files if n.endswith(".bat")), [rp.BAT_EN])
 
     def test_no_iwad_picker_flag_is_needed_and_none_is_passed(self):
         # -iwad leaves one candidate, so g4.14.2 shows no picker (d_iwad.cpp).
@@ -295,15 +297,6 @@ class GuideTest(FakeInputs):
         self.assertTrue(data.startswith(rp.UTF8_BOM), f"{name}: Notepad needs the BOM")
         self.assertNotIn(b"\n", data.replace(b"\r\n", b""), f"{name}: CRLF only")
         return data[len(rp.UTF8_BOM):].decode("utf-8")
-
-    def test_spanish_guide(self):
-        text = self.text(rp.LEEME_NAME)
-        for phrase in ("Extraer todo", "Jugar Soviet Doom", "Windows protegió su PC",
-                       "Más información", "Ejecutar de todas formas", "Desbloquear",
-                       "Options > Soviet Doom > Language > Russian o Catalan",
-                       "New Game > Soviet Doom", "gzdoom_portable.ini", "Save",
-                       "W A S D", "Program Files", "GZDOOM-SOURCE.txt"):
-            self.assertIn(phrase, text)
 
     def test_english_guide(self):
         text = self.text(rp.README_FIRST_NAME)
@@ -462,8 +455,8 @@ FAKE_MAC = [
     ("Licenses/bsd.txt", S_FILE, b"BSD"),
     ("__MACOSX/._GZDoom.app", S_FILE, b"junk"),
 ]
-MAC_LAUNCHERS = ("Jugar Soviet Doom.command", "Play Soviet Doom.command")
-LINUX_LAUNCHERS = ("jugar.sh", "play.sh")
+MAC_LAUNCHERS = ("Play Soviet Doom.command",)
+LINUX_LAUNCHERS = ("play.sh",)
 EXEC_LINE = ('exec "$ENGINE" -iwad "$HERE/freedoom2.wad" -file "$HERE/sovietdoom.pk3" '
              '-config "$HERE/gzdoom.ini" -savedir "$HERE/saves" "$@"')
 FAKE_CONTROL = """\
@@ -601,7 +594,7 @@ class MacosPackageTest(UnixInputs):
     def test_name_and_folder(self):
         self.assertEqual(self.made.zip_path.name, f"sovietdoom-{VERSION}-macos.zip")
         self.assertTrue(all(name.startswith(FOLDER + "/") for name in self.infos))
-        for name in (*MAC_LAUNCHERS, "freedoom2.wad", "sovietdoom.pk3", "LEEME.txt",
+        for name in (*MAC_LAUNCHERS, "freedoom2.wad", "sovietdoom.pk3",
                      "README-FIRST.txt", "GZDOOM-SOURCE.txt", "SHA256SUMS", "LICENSE.md",
                      "LICENSE-GPL-3.0.txt", "gzdoom-licenses/gpl.txt",
                      "gzdoom-licenses/bsd.txt"):
@@ -636,30 +629,26 @@ class MacosPackageTest(UnixInputs):
             self.assertEqual(self.mode(name), S_EXEC, name)
             lines = self.assert_launcher(self.file(name), "GZDoom.app/Contents/MacOS/gzdoom")
             self.assertIn("  read -r _", lines)       # the Terminal window waits
-        self.assertIn(b"Descomprime", self.file(MAC_LAUNCHERS[0]))
-        self.assertIn(b"Unzip the package", self.file(MAC_LAUNCHERS[1]))
+        self.assertIn(b"Unzip the package", self.file(MAC_LAUNCHERS[0]))
+        self.assertEqual(sorted(n for n in self.infos if n.endswith(".command")),
+                         [f"{FOLDER}/{name}" for name in MAC_LAUNCHERS])
 
     def test_our_files_are_644(self):
-        for name in ("LEEME.txt", "freedoom2.wad", "sovietdoom.pk3", "SHA256SUMS",
+        for name in ("README-FIRST.txt", "freedoom2.wad", "sovietdoom.pk3", "SHA256SUMS",
                      "gzdoom-licenses/gpl.txt"):
             self.assertEqual(self.mode(name), S_FILE, name)
 
-    def test_the_guides_explain_gatekeeper(self):
-        es = self.file("LEEME.txt")
-        en = self.file("README-FIRST.txt")
-        for data in (es, en):
-            self.assertTrue(data.startswith(rp.UTF8_BOM))
-            self.assertNotIn(b"\r", data)
-        es, en = es.decode("utf-8-sig"), en.decode("utf-8-sig")
-        for text in (es, en):
-            self.assertIn("xattr -dr com.apple.quarantine", text)
-            self.assertIn("macOS 10.15", text)          # LSMinimumSystemVersion
-            self.assertIn("Options > Soviet Doom > Language > Russian", text)
-            self.assertRegex(text, r"Language > Russian (o|or) Catalan\.")
-            self.assertIn(f"sovietdoom-{VERSION}-macos.zip", text)
-            self.assertIn("gzdoom.ini", text)
-        self.assertIn("Abrir igualmente", es)
-        self.assertIn("Jugar Soviet Doom.command", es)
+    def test_the_guide_explains_gatekeeper(self):
+        self.assertNotIn(f"{FOLDER}/LEEME.txt", self.infos)      # D129: no Spanish guide
+        data = self.file("README-FIRST.txt")
+        self.assertTrue(data.startswith(rp.UTF8_BOM))
+        self.assertNotIn(b"\r", data)
+        en = data.decode("utf-8-sig")
+        self.assertIn("xattr -dr com.apple.quarantine", en)
+        self.assertIn("macOS 10.15", en)          # LSMinimumSystemVersion
+        self.assertIn("Options > Soviet Doom > Language > Russian or Catalan.", en)
+        self.assertIn(f"sovietdoom-{VERSION}-macos.zip", en)
+        self.assertIn("gzdoom.ini", en)
         self.assertIn("Open Anyway", en)
         self.assertIn("Play Soviet Doom.command", en)
 
@@ -755,7 +744,7 @@ class LinuxPackageTest(UnixInputs):
     def test_name_and_folder(self):
         self.assertEqual(self.made.zip_path.name, f"sovietdoom-{VERSION}-linux.tar.gz")
         self.assertTrue(all(n == FOLDER or n.startswith(FOLDER + "/") for n in self.members))
-        for name in (*LINUX_LAUNCHERS, "freedoom2.wad", "sovietdoom.pk3", "LEEME.txt",
+        for name in (*LINUX_LAUNCHERS, "freedoom2.wad", "sovietdoom.pk3",
                      "README-FIRST.txt", "GZDOOM-SOURCE.txt", "SHA256SUMS",
                      "gzdoom/gzdoom", "gzdoom/gzdoom.pk3", "gzdoom/libzmusic.so.1",
                      "gzdoom/soundfonts/gzdoom.sf2", "gzdoom-licenses/gpl.txt",
@@ -773,7 +762,7 @@ class LinuxPackageTest(UnixInputs):
                 self.assertEqual(member.mode, 0o755, name)
         for name in ("gzdoom/gzdoom", *LINUX_LAUNCHERS):
             self.assertEqual(self.member(name).mode, 0o755, name)
-        for name in ("gzdoom/gzdoom.pk3", "gzdoom/libzmusic.so.1", "LEEME.txt",
+        for name in ("gzdoom/gzdoom.pk3", "gzdoom/libzmusic.so.1", "README-FIRST.txt",
                      "freedoom2.wad", "gzdoom/soundfonts/gzdoom.sf2"):   # 664 in the .deb
             self.assertEqual(self.member(name).mode, 0o644, name)
 
@@ -811,8 +800,10 @@ class LinuxPackageTest(UnixInputs):
         self.assertIn(f"tar xzf sovietdoom-{VERSION}-linux.tar.gz".encode(),
                       self.file("play.sh"))
 
-    def test_the_guides_list_the_debs_dependencies_and_the_apt_command(self):
-        for name in ("LEEME.txt", "README-FIRST.txt"):
+    def test_the_guide_lists_the_debs_dependencies_and_the_apt_command(self):
+        self.assertNotIn(f"{FOLDER}/LEEME.txt", self.members)    # D129: no Spanish guide
+        self.assertNotIn(f"{FOLDER}/jugar.sh", self.members)
+        for name in ("README-FIRST.txt",):
             data = self.file(name)
             self.assertFalse(data.startswith(rp.UTF8_BOM), name)
             text = data.decode("utf-8")
@@ -827,9 +818,8 @@ class LinuxPackageTest(UnixInputs):
                                                "libsdl2-2.0-0", "libasound2", "libopus0",
                                                "libopenal1", "libsndfile1"])
             self.assertIn("libasound2t64", text)
-            self.assertIn("./play.sh" if name == "README-FIRST.txt" else "./jugar.sh", text)
-            self.assertIn("Options > Soviet Doom > Language > Russian", text)
-            self.assertRegex(text, r"Language > Russian (o|or) Catalan\.")
+            self.assertIn("./play.sh", text)
+            self.assertIn("Options > Soviet Doom > Language > Russian or Catalan.", text)
 
     def test_the_source_file_and_the_licences(self):
         source = self.file("GZDOOM-SOURCE.txt").decode("utf-8")

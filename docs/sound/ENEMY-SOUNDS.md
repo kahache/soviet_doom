@@ -200,7 +200,7 @@ written from what the generator recorded, citing the pack rows above.
 D11 asks for a serious tone; D12 allows the symbols and says the invaders do
 not trivialise real victims. Audio is where that line is easiest to cross by
 accident. **D36 (CEO, 2026-10-13) set the language rule**: "prefiero que sea
-alemán real e inglés real". My earlier proposal of invented German-sounding
+alemán real e inglés real" ("I prefer it to be real German and real English"). My earlier proposal of invented German-sounding
 syllables is **withdrawn**. The rules for voices are now:
 
 - **Who records.** The CEO, recording in person or generating with AI (D36).
@@ -862,7 +862,7 @@ keeps `DSCYBDTH`. Each sound is a `$random` group in the CEO's order
 (`SDRRIPA1`-`2`, `SDLTRDT1`-`3`, `SDGENPA1`-`2`: the card's seven letters
 and the member number; the beds are `...B<n>`, no name is shared). Six ship
 byte for byte as the page played them. **`SDLTRDT3`** (L09 t04): "se cuela
-algo al final". Measured on the raw take (10 ms frames): the cry fades to
+algo al final" ("something slips in at the end"). Measured on the raw take (10 ms frames): the cry fades to
 -66 dBFS at 1.16 s, then 0.22 s of digital silence, then a 0.08 s blip at
 -11 to -14 dBFS (1.39-1.47 s); `process_voice_takes.trim` ends a line only
 after a 0.45 s gap, so the blip stayed. `master_enemy_sfx.py --voices`
@@ -913,7 +913,7 @@ candidates on `work/audio/preview/dog_listening.html` (built by
 `work/audio/candidates/dog/make_dog_candidates.py` from recordings of real
 dogs; every download, its licence and SHA-256 and which candidate mixes it:
 `work/audio/sfx_sources/dog/SOURCES.md`) and approved all fifteen ("TODOS
-OK, elige los que tú creas conveniente"). The PM's call (D107, as D94): all
+OK, elige los que tú creas conveniente", "ALL OK, pick the ones you think best"). The PM's call (D107, as D94): all
 three takes of each sound ship and the sound is a `$random` group over them,
 the take the page recommended (by measurement, not by ear) among them. They
 replace D83's synthetic `SDHNDACT`-`SDHNDDTH` (rows above, retired: no longer
@@ -986,7 +986,7 @@ rifleman (NOT VERIFIED in the engine).
 
 Cost is in **agent sessions** (one sound-designer working session) and
 **CEO minutes**. All estimates are mine, not measured; the music experience
-(two pieces judged "un poco simples", one download set audited, one repair)
+(two pieces judged "un poco simples" ("a bit simple"), one download set audited, one repair)
 suggests assuming one extra iteration round on whatever is new.
 
 | Route | What it gives | What it cannot give | Cost | Rights risk |
@@ -1040,7 +1040,7 @@ gibs goes there too.
 | # | Question as asked | Decision (D36) |
 |---|---|---|
 | **A** | Approve the downloads | **Approved**: `OGA-CRE1`, `OGA-CRE2`, `OGA-SNARL`, `OGA-100`, `KEN-IMP`. `KEN-SCI`, which I had marked optional, was **not** asked and is **not** authorised. Done on 2026-10-13, §2.1 |
-| **B** | Does the CEO record the voices? | **Yes, or generates them with AI** ("me encargaré de las grabaciones y/o generar con IA lo que sea necesario"). Script: `docs/sound/VOICE-SCRIPT.md`. An AI take carries its tool and licence in the licence register |
+| **B** | Does the CEO record the voices? | **Yes, or generates them with AI** ("me encargaré de las grabaciones y/o generar con IA lo que sea necesario", "I will take care of the recordings and/or generating with AI whatever is necessary"). Script: `docs/sound/VOICE-SCRIPT.md`. An AI take carries its tool and licence in the licence register |
 | **C** | The General's order | **"Vorwärts."** |
 | **D** | Real-language rule for the Reich | **Overruled.** Real German for the Reich, real English for the Legion; still no slogans of the regime (D11, D12). §4 rewritten |
 
