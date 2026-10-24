@@ -1242,8 +1242,8 @@ class Map01V3Test(unittest.TestCase):
     def test_the_radio_blocks_no_step_of_any_map01_route(self):
         """tools/route.py (QA's) warps and walks; a solid radio on a warp
         spot or in a walk would stop the route, and its sdclear kills only
-        monsters. A3 walks east through D3 along y 1152 and A4 warps onto
-        the IZh's rack at (1040, 1256). For every MAP01 route, no warp spot
+        monsters. A3 walks east through D3 along y 1152 and A4 (V3) warps
+        40 east of it, at (1000, 1256), and walks onto the IZh's rack. For every MAP01 route, no warp spot
         and no point of any straight walk (at route.WALK_UNITS_PER_TIC, its
         own upper estimate) puts the player's box on the radio's."""
         r = self._radio()

@@ -1001,13 +1001,41 @@ from skill 3: placed against needed **1.51 / 1.41 / 1.24**; shells 34 / 31 /
 row is now in zone `b5_lamp` (same spot).
 
 **Route** (`tools/route.py`, metro-critical): `TAG_EVENT_PASS` joins
-`METRO_CONSTANTS`; the window is shut (48) at BD0 and open (a body high) at
-BD1, the blue door's wait after the pass.
+`METRO_CONSTANTS`; the window is shut (48) at BD0, open (a body high) at
+PASS, right after the pickup, and at BD1. PASS ends in the hall: the walk
+onto the pass goes on through the window it opens (see below).
+
+**The PM's engine pass of 2026-10-23 12:20 (`logs/route/20261023-1220*-metro-critical-*`)**
+failed one step on skills 2-4: `PASS expect Z8 got Z3 z3_hall @ (2789,
+1056, 27)`. Cause: **the event worked, the route did not expect it**. The
+booth is entered from its step only, so the pass's walk (`pass_walk`) starts
+on the step (2960, 1056) and faces west, straight at the duty window. Up to
+v1.2 the window's 48-high slot was the "wall" that stopped the walk's
+overshoot and glide in the booth. In V3 taking the pass raises the window's
+head (a body high 4 tics later), so the same walk carried the body on
+through it, off the booth's edge and down into the hall: z 27 is the body
+still falling the booth's 32 when its position was read. Neither the warp,
+nor the window's sector, nor the pass, nor the zone families changed; the
+log reads tag 12 at 32/124 at BD1 and the pass in the inventory at PASS.
+This is **the engine's first proof that a thing's special runs on pickup**
+(V3-1's first half: the head rises and the player goes through).
+
+Fix (2026-10-24, `tools/route.py` only; the map and the shortcut are
+untouched): `pass_event_exit` follows the walk's lane, and when it crosses
+a sector the pass's own event opens (tag 12) the PASS step expects the room
+past it (Z3, the hall) and reads tag 12 open right after the pickup. A pass
+moved off the window's lane still expects its own zone
+(`test_a_moved_pass_is_followed`). BD1 warps back to the blue door as before.
+`tests/test_route.py`, `test_the_pass_walk_runs_through_the_window_it_opens`:
+the window is a slot before, and the walk plus its glide on Doom's constants
+run booth, window, hall.
+**To repeat in the engine**: `metro-critical` on skills 2-4: PASS must end
+in Z3 with tag 12 open and a key owned; BD1 as before.
 
 **Engine checklist for the PM** (D26):
 
 | # | Check | How |
 |---|---|---|
-| V3-1 | Taking the pass raises the duty window's head; the player drops through into the hall and cannot climb back in | `metro-critical`: BD1 reports tag 12 open; by hand from the booth |
+| V3-1 | Taking the pass raises the duty window's head; the player drops through into the hall and cannot climb back in | `metro-critical`: PASS ends in the hall through the window with tag 12 open (the head rising and the drop: SEEN in the PM's pass of 2026-10-23, the walk ended in z3_hall); BD1 reports tag 12 open; by hand from the hall: the booth is 32 up, no way back in |
 | V3-2 | Taking the RPG-7 opens the store and the armoury's light comes up from 96 to the lamp's 144 as it opens (the light tag on a thing's special) | by hand, skill 3; screenshots before and after |
 | V3-3 | The window's marble moves up with its head, no hall of mirrors | screenshot from the hall after the pass |

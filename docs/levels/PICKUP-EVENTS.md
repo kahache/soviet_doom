@@ -23,8 +23,15 @@ as long as its numbers match the table in §3.
   picked up, with the player as activator**, then clears it
   (`Inventory.DoPickupSpecial`, `zscript/actors/inventory/inventory.zs` in
   gzdoom.pk3 g4.14.2: `toucher.A_CallSpecial(special, args[0..4]); special
-  = 0;`). VERIFIED in the source; in play, VERIFIED by nothing yet (MAP04's
-  checklist K3 and every map's events wait for the PM's engine pass).
+  = 0;`). VERIFIED in the source; in play, VERIFIED on 2026-10-23 by the
+  PM's v3 route pass: MAP02's pass opened the duty window (tag 12 read
+  32/124, no line carries the tag, and the walk off the pass dropped through
+  it into the hall). Every other map's events wait for their own lines.
+- **Only a real touch picks up.** The console `warp` (and any teleport
+  move) puts the body on an item without collecting it, so it never fires
+  the item's special. A route WALKS onto every item that carries an event
+  (§7); the PM's first V3 pass warped onto MAP01's two guns and both
+  closets stayed shut.
 - For a **monster** the same fields run when it **dies** (MAP03's General
   opens his stores, v1.1). Same helper, same rules.
 - Our replacement classes (`SD_BluePass replaces BlueCard`, the `SD_*`
@@ -82,7 +89,7 @@ unless the column says so.
 
 | Special | # | Args | Use | In play |
 |---|---|---|---|---|
-| `Door_Open` | 11 | tag, speed, lighttag | a closet door, a shutter, a hidden door: rises to its lowest neighbouring ceiling − 4 and stays. The **light tag** brings every sector carrying it to its brightest neighbour's level as the door rises | VERIFIED on lines (MAP01: D2, the panels; the light tag on SW-A, 2026-10-13); on a thing NOT VERIFIED |
+| `Door_Open` | 11 | tag, speed, lighttag | a closet door, a shutter, a hidden door: rises to its lowest neighbouring ceiling − 4 and stays. The **light tag** brings every sector carrying it to its brightest neighbour's level as the door rises | VERIFIED on lines (MAP01: D2, the panels; the light tag on SW-A, 2026-10-13); on a thing VERIFIED (MAP02's pass, 2026-10-23); its light tag on a thing NOT VERIFIED |
 | `Door_Raise` | 12 | tag, speed, delay, lighttag | a door that opens and shuts again: **not for closets** (it can shut monsters back in) | VERIFIED on lines |
 | `Floor_LowerByValue` | 20 | tag, speed, height | a floor that gives way by a set depth | NOT VERIFIED |
 | `Floor_LowerToLowest` | 21 | tag, speed | a wall (a sector raised to the ceiling) sinks to the lowest neighbouring floor: shortcuts, wagon sides | MAP04 K3, NOT VERIFIED |
@@ -178,7 +185,7 @@ car's floor comes up the shaft behind it with its load, and it stops level
 with the room, a lintel left over it. One special, no ACS, no PolyObject.
 The shaft touches the room only, so it shuts nothing (R1).
 
-### 4.5 Two traps found while building Episode 1
+### 4.5 Traps found while building Episode 1
 
 - **A window is not a door by sinking its sill.** MAP02's duty window (a
   48-high slot over a booth 32 up) does not become a passage when its floor
@@ -190,6 +197,17 @@ The shaft touches the room only, so it shuts nothing (R1).
   stage-by-stage ammunition checks play the route without events, so a box
   left in a closet pays only the band (§8.2), not a stage; the closet's own
   monsters are not met in a stage either. Count both in the whole-map band.
+
+- **An event can change where a walk ends.** A route's walk onto an item
+  overshoots it (the walk is sized past the item, and the body glides on
+  after `-forward`, ~70 units at a walk). If the event opens something in
+  that lane, the body goes on through it: MAP02's booth is entered from the
+  east only, the walk faces the duty window, and once the pass raises the
+  window's head the walk drops into the hall (the PM's pass, 2026-10-23,
+  PASS ended in z3_hall). A route step that walks onto an event item follows
+  its lane with the event fired (`route.pass_event_exit`) and expects the
+  room the lane ends in. For the player this is the design: the shortcut is
+  taken by walking on.
 
 ## 5. One pickup, one special: more than one effect
 
@@ -254,7 +272,10 @@ TEXTMAP (the same `parse_textmap` the map tests use):
 **In the engine** (the PM, D26): each map's checklist has one line per event:
 walk onto the item, watch the effect, and `netevent sdtag <tag>` (the route
 helper's, `tools/route.py`) prints the tagged sectors' floor and ceiling
-after it. The route tools walk onto keys already. A route step may check an
+after it. The route tools walk onto keys already, and **must walk onto every
+event item** (a warp collects nothing, §1): a weapon step warps beside the
+weapon, outside touch (16 + 20), and walks onto it (MAP01's A4 and A7 since
+2026-10-24, as R1 walks onto the ice axe). A route step may check an
 event's tag with `tags=((tag, False),)` before the pickup and `(tag, True)`
 a few steps after it (the door rule: every tagged sector a body high);
 a lift car is a body high before and after, so print it (`tag N` with no
