@@ -850,6 +850,101 @@ COLOSSUS = EnemySpec(
 )
 PENDING["colossus"] = COLOSSUS
 
+# ------------------------------- D112/D116/D127: the Consortium (SDCN)
+# Episode 3's final boss, a new set: SD_Consortium wears the heavy
+# Panzermensch's SDPS x1.75 tinted cobalt today (PROVISIONAL-D116); SDCN is
+# its own (design doc 2026-10-22_P4_ep3-final-boss.md section 5: 95 lumps).
+# Two halves in one body, so eight rotations of their own, none mirrored:
+# tools/art/consortium_gemini.py rewrites Gemini's sheets as eight pictures
+# per frame letter (gem_consortium_fix_<L>.png: the halves on the doc's side,
+# the arms Gemini swapped or doubled repaired, rotations 6-8 the other side
+# with the halves' materials exchanged) and this spec reads them as plain
+# one-row sheets. Build it with `python tools/art/consortium_gemini.py all`.
+CONSORTIUM_HEIGHT = 140   # boss scale: twice the Panzermensch (68 rows) and "~135-145 px" (design doc 5)
+CONSORTIUM_SWAY = 2.0     # degrees: the walk's rock from foot to foot (Gemini's strides barely differ)
+CONSORTIUM_PAIN_TILT = 5.0    # a boss barely flinches (PAIN_TILT 9)
+CONSORTIUM_COLLAPSE = 10.0    # degrees: M, the collapsing frame sunk further over
+CONSORTIUM_FIELD_MAX = 40     # source px: its armband field (~12 x 24 at the rooted sheet's scale)
+CONSORTIUM_FAR = (6, 7, 8)    # rotations drawn from the fixed sheet's views 5-7 (never a mirror)
+
+
+def _cn_sheet(name: str, count: int = 8) -> Sheet:
+    return Sheet(f"gem_consortium_fix_{name}.png", count, (), None)
+
+
+def _cn_eight(key: str, tilt: float = 0.0) -> Rotated:
+    """Eight rotations from a fixed sheet: views 0-4 rotations 1-5, views 5-7 rotations 6-8
+    (they face right: the tilt mirrored, as the engine's mirror would)."""
+    return Rotated(key, tilt=tilt, override=tuple((r, Src(key, r - 1, tilt=-tilt)) for r in CONSORTIUM_FAR))
+
+
+CONSORTIUM = EnemySpec(
+    name="consortium", sprite="SDCN", folder="consortium", target_height=CONSORTIUM_HEIGHT, armband="none",
+    ref_sheet="Q", symbol="warp", symbol_fields="white", field_max=CONSORTIUM_FIELD_MAX,
+    sheets={k: _cn_sheet(k) for k in "QRABCEFGHS"} | {"death": _cn_sheet("death", 5)},
+    rotated={
+        "Q": _cn_eight("Q"), "R": _cn_eight("R"),
+        "A": _cn_eight("A", CONSORTIUM_SWAY), "B": _cn_eight("B"), "C": _cn_eight("C", -CONSORTIUM_SWAY),
+        "D": _cn_eight("B"),
+        "E": _cn_eight("E"), "F": _cn_eight("F"), "G": _cn_eight("G"), "H": _cn_eight("H", CONSORTIUM_PAIN_TILT),
+        "S": _cn_eight("S"),
+    },
+    single={
+        "I": Src("death", 0), "J": Src("death", 1), "K": Src("death", 2), "L": Src("death", 3),
+        "M": Src("death", 3, tilt=CONSORTIUM_COLLAPSE), "N": Src("death", 4), "O": Src("death", 4, core=True),
+    },
+    derived=(
+        "Lados (D112, doc §2): la mitad del Reich a SU izquierda, a la DERECHA del espectador de frente. Gemini dibujó "
+        "todas las hojas al revés: cada vista se espeja (los cohetes salen 32 unidades a su izquierda, las bolas a su "
+        "derecha, como en el actor)",
+        "Rotaciones 6-8 (su lado derecho, el de la Legión): Gemini no dibujó ese lado. Son el 3/4 de espalda, el perfil "
+        "y el 3/4 de frente SIN espejar, con los materiales de las dos mitades intercambiados a mano por código "
+        "(piel gris verdosa <-> rosa por luminancia, casco de las SS <-> M1 en la fila de los cascos, el lanzacohetes "
+        "en cromo, el brazalete en un brazal cromado). Nunca un espejo: el brazalete no cambia de brazo",
+        "Q y R (fase 1, enraizado): la hoja rooted; R = Q con el núcleo encendido (respira). B y D (fase 2, de pie): turn",
+        "A y C (andar, fase 2): walk arriba (A) y abajo (C). Arreglado a mano: en A de frente, 3/4 de espalda y espalda "
+        "Gemini puso la falda de cables donde va una pierna: piernas de C (misma hoja) bajo el cinturón. Las de 3/4 de "
+        "frente y perfil arrastran cables arrancados (el doc: \"stumps dragging\"). Se balancea ±2 grados",
+        "E (aviso de bolas): aim arriba. Arreglado: 3/4 de frente, el brazo del Reich llevaba un proyector cromado "
+        "brillando -> el lanzacohetes (oliva, boca oscura); 3/4 de espalda, un tercer brazo colgando y, de espaldas, el "
+        "brazo levantado también colgando: fuera",
+        "F (aviso de cohetes): aim abajo. Arreglado: de frente, el lanzacohetes en boca (visto de punta) lo levantaba el "
+        "brazo de la Legión y otro colgaba del Reich: el cuerpo se espeja y el lanzacohetes se queda, oliva, en el brazo "
+        "del Reich; el de la Legión cuelga con su proyector (trasplantado de rooted, a escala). Perfil: un proyector "
+        "apuntando hacia atrás (fuera), el puño rosa en el lanzacohetes (gris verdoso), el lanzacohetes colgando "
+        "(fuera; la cadera que tapaba, rellenada con el propio nudo de cables: Fooocus, D127, no sirvió). 3/4 de espalda y espalda: el "
+        "brazo de la Legión levantado hacia atrás -> colgando (de E), el lanzacohetes repetido colgando: fuera",
+        "G (disparo, las dos fases): fire_v2 con las piernas cambiadas por el nudo de cables y humo de fire (misma "
+        "escala; sus brazos colgando, fuera, y el hueco rellenado con el propio nudo). Arreglado: de frente cada arma "
+        "estaba en el brazo de la otra mitad (bola en el puño del Reich, cohete del de la Legión): el cuerpo se espeja y "
+        "los brazos no, con la piel repintada; 3/4 de frente, la bola salía de la boca del lanzacohetes y el cohete de "
+        "la mano de la Legión: fogonazo naranja en el lanzacohetes, descarga azul en un cañón cromado; 3/4 de espalda, "
+        "bola en el brazo del Reich (fogonazo) y un cohete disparado hacia atrás (fuera). Los cohetes en vuelo se quitan "
+        "(son su propio actor)",
+        "H (dolor): la hoja fire descartada (las dos bocas gritando, brazos abajo) sin los cohetes ni los fogonazos, "
+        "inclinada 5 grados",
+        "S (ruptura): breach; la columna de cables comprimida a la altura de la falda de rooted (si no, el jefe crecía "
+        "un 25 % en el primer fotograma de la ruptura)",
+        "I-O (muerte): las 5 de death, espejadas. I = el núcleo se agrieta, J = las dos cabezas gritan, K = las mitades "
+        "se rompen, L = se desploma ardiendo, M = el mismo hundido 10 grados, N y O = los dos cascos entre las cenizas",
+        "Brazalete: el campo blanco de Gemini con el símbolo de armband_symbol (opción 1, D108/D114), después del "
+        "espejo; en las rotaciones 6-8 no hay brazalete (es el lado de la Legión). La bandera de EEUU queda invertida "
+        "por el espejo (en el hombro derecho, como la lleva el ejército de EEUU)",
+    ),
+    anims=(
+        ("enraizado (Spawn/See fase 1: Q R 6)", (("Q", 6), ("R", 6)), True),
+        ("andar, fase 2 (Walk: A B B C C D D 3)", (("A", 6), ("B", 6), ("C", 6), ("D", 6)), True),
+        ("bolas (Orbs: E 12, G 6, E 10, G 6, E 16)", (("E", 12), ("G", 6), ("E", 10), ("G", 6), ("E", 16), ("Q", 12)), True),
+        ("cohetes (Rockets: F 12, G 8 F 6 x3, F 16)",
+         (("F", 12), ("G", 8), ("F", 6), ("G", 8), ("F", 6), ("G", 8), ("F", 16), ("Q", 12)), True),
+        ("fuego (Flame: E 10, G 3 x5, E 12)", (("E", 10),) + (("G", 3),) * 5 + (("E", 12), ("Q", 12)), True),
+        ("ruptura (Breach: S 10 S 10, E 20, F 15, G 10)", (("Q", 12), ("S", 20), ("E", 20), ("F", 15), ("G", 10), ("B", 20)), True),
+        ("dolor (Pain: H 3 H 3)", (("Q", 20), ("H", 6), ("Q", 14)), True),
+        ("morir (Death: I J K L M N 10, O 30)", tuple((c, 10) for c in "IJKLMN") + (("O", 45),), True),
+    ),
+)
+PENDING["consortium"] = CONSORTIUM
+
 
 # ------------------------------------------------------------- palette
 def palette_rgb() -> np.ndarray:
