@@ -9,7 +9,9 @@ TT-33 redo (D111) (flash
 halo, shrink and taper, bottom fill, stray-piece drop, banded sleeve) and
 the WEAPONS table against the draft overlay's reserved names and the
 states; the AKM's one-image build (2026-10-24: muzzle, borrowed flash made
-solid, grafted on a padded canvas, flag_red kept out of the snap). Only
+solid, grafted on a padded canvas, flag_red kept out of the snap); the
+RGD-5's (2026-10-24: a third hand cut loose, its sleeve's strip rebuilt
+and the hidden edge outlined; D derived from C; the hand lowered). Only
 GeneratedFramesTests reads work/ (skips without it), and FreshBuildTests
 the Gemini sources (gitignored; skips without them, slow).
 """
@@ -487,7 +489,71 @@ class TestGeminiFrames(unittest.TestCase):
         self.assertEqual([k for k, v in gf.WEAPONS.items() if v.flash_from], ["akm"])
 
 
-NEW_WEAPONS = ("izh", "rpg7", "roks3", "katyusha", "ice_axe", "tt33", "akm")
+    # -------------------------- the RGD-5: repairs of one image (2026-10-24)
+    def test_polygon_mask_and_polyline(self):
+        m = gf.polygon_mask((10, 10), ((2, 2), (5, 2), (5, 6), (2, 6)))
+        self.assertTrue(m[2:7, 2:6].all())
+        self.assertEqual(int(m.sum()), 20)
+        line = gf.polygon_mask((10, 10), ((1, 0), (1, 9)), line=True)
+        self.assertEqual(np.flatnonzero(line.any(axis=0)).tolist(), [1])
+        self.assertTrue(line[:, 1].all())
+
+    def test_smear_down_runs_each_column_on_from_above(self):
+        idx = np.full((6, 3), gf.TRANSPARENT, np.int32)
+        idx[0] = [4, 5, 6]
+        idx[1:] = 9
+        mask = np.zeros_like(idx, bool)
+        mask[2:, 1] = True
+        out = gf.smear_down(idx, mask)
+        self.assertTrue((out[2:, 1] == 9).all())
+        mask[:, 2] = True                                   # from the very top: nothing above
+        self.assertTrue((gf.smear_down(idx, mask)[:, 2] == gf.TRANSPARENT).all())
+        self.assertTrue((out[:, 0] == idx[:, 0]).all())
+
+    def test_repair_cuts_a_piece_loose_rebuilds_and_outlines(self):
+        # Two "sleeves": the right one (5) partly hidden under the left (7),
+        # which reaches over it at the bottom.
+        idx = np.full((12, 12), gf.TRANSPARENT, np.int32)
+        idx[:, 6:] = 5
+        idx[8:, 2:10] = 7
+        idx[0, 0] = 1                                       # the image's darkest colour
+        pal = self.pal.copy()
+        pal[1] = (0, 0, 0)
+        pal[5], pal[7] = (120, 100, 40), (110, 90, 40)
+        w = gf.WeaponPair("x", "XXXX", "", cut=(("B", ((2, 8), (5, 8), (5, 11), (2, 11))),),
+                          smear=(("B", ((6, 8), (9, 8), (9, 11), (6, 11))),), seam=(("B", ((6, 0), (6, 11))),))
+        out = gf.repair(idx, "B", w, pal)
+        self.assertFalse((out[8:, 2:6] >= 0).any())         # cut
+        self.assertTrue((out[8:, 7:10] == 5).all())         # rebuilt from the sleeve above
+        self.assertTrue((out[:, 6] == 1).all())             # the hidden edge outlined
+        self.assertTrue((gf.repair(idx, "A", w, pal) == idx).all())   # another image: untouched
+        self.assertEqual(gf.darkest(idx, pal), 1)
+
+    def test_rgd5_frames_and_repairs(self):
+        # SDRG A-D, the letters rgd5.zs (v3) uses on SDAX today: no flash;
+        # B repaired (the third hand), D derived from C (the grenade and the
+        # ring dropped, the hand lower), C without the flying ring.
+        w = gf.WEAPONS["rgd5"]
+        frames = {f.lump: f for f in w.frame_list()}
+        self.assertEqual(sorted(frames), [f"SDRG{f}0" for f in "ABCD"])
+        self.assertEqual((w.gun, w.flash), ("SDRG", ""))
+        self.assertFalse(any(f.flash for f in frames.values()))
+        self.assertEqual({k: f.src for k, f in frames.items()},
+                         {"SDRGA0": "A", "SDRGB0": "B", "SDRGC0": "C", "SDRGD0": "D"})
+        self.assertEqual(w.files()["D"], w.files()["C"])     # D is C's image
+        self.assertGreater(frames["SDRGD0"].kick[1], 0)     # lowered
+        self.assertEqual(frames["SDRGD0"].kick[0], 0)
+        drops = {(k, x, y) for k, x, y in w.drop}
+        self.assertIn(("D",) + gf.RGD5_C_GRENADE, drops)
+        self.assertIn(("C",) + gf.RGD5_C_RING, drops)
+        self.assertNotIn(("C",) + gf.RGD5_C_GRENADE, drops)  # C keeps the grenade leaving
+        self.assertIn(("B",) + gf.RGD5_B_EXTRA_HAND, drops)
+        self.assertEqual([k for k, _ in w.cut + w.smear + w.seam], ["B", "B", "B"])
+        self.assertGreater(w.y_shift, 0)
+        self.assertEqual([k for k, v in gf.WEAPONS.items() if v.y_shift or v.cut], ["rgd5"])
+
+
+NEW_WEAPONS = ("izh", "rpg7", "roks3", "katyusha", "ice_axe", "tt33", "akm", "rgd5")
 
 
 def _sources_present(key: str) -> bool:
@@ -519,7 +585,7 @@ class GeneratedFramesTests(unittest.TestCase):
                     self.assertTrue(set(np.unique(rgba[..., 3]).tolist()) <= {0, 255})
                     self.assertTrue({tuple(c) for c in rgba[rgba[..., 3] > 0][:, :3].tolist()} <= lut)
             ready, grab = hs.read_png_sprite(folder / f"{w.frame_list()[0].lump}.png")
-            target = round(gf.chgg_height() * w.height_mult)
+            target = round(gf.chgg_height() * w.height_mult) - w.y_shift
             self.assertLessEqual(abs(hs.measure(ready, grab)["height"] - target), 2, key)
         if not seen:
             self.skipTest("work/art/weapons/hand_G drafts not present (CI has no work/)")
@@ -601,6 +667,23 @@ class FreshBuildTests(unittest.TestCase):
             ids = [lut[tuple(c)] for c in rgba[rgba[..., 3] > 0][:, :3].tolist()]
             self.assertFalse(red[ids].any(), lump)
         self.assertTrue(all(v["cuts"] == 0 for v in fr.values()))
+
+    def test_rgd5_ready_top_like_the_arsenal_and_b_has_two_hands(self):
+        # The ring's top 56 px above the bar like every weapon's (the bigger
+        # hand lowered by y_shift); B keeps two pieces of hand, not three
+        # (the third arm's sleeve cut loose, its hand and grenade dropped).
+        if not _sources_present("rgd5"):
+            self.skipTest("Gemini sources not present (work/art/reference/ is gitignored)")
+        import tempfile
+        import hand_study as hs
+        with tempfile.TemporaryDirectory() as tmp:
+            res = gf.build(gf.WEAPONS["rgd5"], out_dir=Path(tmp))
+        m = {k: hs.measure(v["rgba"], v["grab"]) for k, v in res["frames"].items()}
+        self.assertEqual(m["SDRGA0"]["height"], round(gf.chgg_height() * gf.HEIGHT_MULT))
+        self.assertGreater(m["SDRGB0"]["height"], m["SDRGA0"]["height"])      # the arm drawn back, high
+        self.assertLess(m["SDRGD0"]["height"], m["SDRGC0"]["height"])         # empty and lower
+        pieces = gf.components(res["frames"]["SDRGB0"]["rgba"][..., 3] > 0)
+        self.assertEqual(len([p for p in pieces if p.sum() > 200]), 2)
 
     def test_ice_axe_swing_is_the_ready_frame_turned(self):
         # D86: B, C and D are A turned as one rigid piece: the hand keeps

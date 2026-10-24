@@ -24,6 +24,12 @@ image failed and was not asked again) names a `flash_from`: the firing
 frame is the ready art kicked by KICK, as every weapon's, and its flash is
 another weapon's (the PPSh-41's, same composition) cut from that weapon's
 pair and grafted at this one's muzzle (borrowed_flash, graft_flash).
+The RGD-5 (2026-10-24, `python tools/art/gemini_frames.py rgd5`) has no
+flash and adds `cut`, `smear` and `seam` (repair: a third hand Gemini drew
+over the throwing arm cut loose, the sleeve it hid rebuilt and outlined,
+before `drop`), a source keyed twice (D is C's image with other drops) and
+`y_shift` (the hand lowered on screen: Gemini drew it high). Its world
+sprites are tools/art/gen_rgd5_pickups.py's.
 
 D79 (2026-10-20): the method is adopted (D78 superseded) and Google Gemini
 is credited. The frames are installed by copying them, grAb included, into
@@ -125,6 +131,17 @@ SWING_PAD = 0.5                 # x the art's width added each side before a tur
 TT33_X_SHIFT = -50              # screen px: the TT-33's muzzle (its slide's far end) on x 160, the crosshair (D111)
 MUZZLE_PROBE = 2                # art columns from the gun's left end whose rows make the muzzle (muzzle_point)
 FLASH_RIM = 3                   # art px round a borrowed flash's barrel notch whose dark pixels go (fill_flash)
+# The RGD-5 (WEAPONS["rgd5"]); polygons and pixels in its images' art grids
+# (320 x 240 art px of 3.75 source px each, measured 2026-10-24).
+RGD5_HEIGHT_MULT = 64 / CHGG_HEIGHT_FALLBACK   # the one-hand weapons' hand size (TT-33, ice axe: ~0.51-0.53 screen px an art px)
+RGD5_Y_SHIFT = 8                # screen px the whole hand is lowered: Gemini drew it high in A, so the ring's top lands 56 px above the bar like every weapon's
+RGD5_FOLLOW_DROP = 8            # screen px D's empty hand sits under C's: the arm carries on down
+RGD5_B_CUT = ((160, 176), (248, 176), (248, 213), (252, 240), (160, 240))   # B: the third arm's sleeve
+RGD5_B_SMEAR = ((250, 212), (292, 240), (250, 240))   # B: that sleeve's strip over the throwing arm's
+RGD5_B_SEAM = ((249, 213), (253, 240))                # B: the throwing sleeve's hidden left edge
+RGD5_B_EXTRA_HAND = (170, 130)  # B: a pixel of the third hand's grenade (the piece is dropped)
+RGD5_C_GRENADE = (157, 100)     # C: a pixel of the flying grenade's body (dropped for D)
+RGD5_C_RING = (190, 60)         # C: a pixel of the flying ring (dropped for C and D)
 
 
 @dataclass(frozen=True)
@@ -165,6 +182,14 @@ class WeaponPair:
     flash_from: str = ""  # no firing image: the flash is this other WEAPONS entry's, grafted at the muzzle
     no_ramps: tuple[str, ...] = ()   # palette ramps the art never snaps to (the next nearest colour instead)
     mocks: tuple[tuple[str, tuple[str, ...]], ...] = ()   # preview: (label, lumps drawn in order)
+    y_shift: int = 0    # screen px down from the default placement (a hand Gemini drew high in its image)
+    # Repairs of one image's art grid, before `drop` (repair(); the RGD-5's B,
+    # where Gemini drew a third hand whose sleeve lies over the throwing arm's):
+    cut: tuple[tuple[str, tuple[tuple[int, int], ...]], ...] = ()     # (key, polygon): emptied
+    smear: tuple[tuple[str, tuple[tuple[int, int], ...]], ...] = ()   # (key, polygon): each column
+                                                # refilled from the pixel just above the polygon
+    seam: tuple[tuple[str, tuple[tuple[int, int], ...]], ...] = ()    # (key, polyline): a 1 px outline
+                                                # in the image's darkest colour (an edge Gemini hid)
 
     def files(self) -> dict[str, str]:
         return dict(self.sources) or {"A": f"gemini_{self.name}_A.jpg", "B": f"gemini_{self.name}_B.jpg"}
@@ -266,6 +291,36 @@ WEAPONS = {
         sources=(("A", "gemini_akm_A.jfif"),),
         frames=(Frame("SDAKA0"), Frame("SDAKB0", kick=KICK), Frame("SDAFA0", flash=True, kick=KICK)),
         mocks=(("ready (A)", ("SDAKA0",)), ("firing (B + SDAF A)", ("SDAKB0", "SDAFA0")))),
+    # RGD-5 hand grenade (rgd5.zs on the v3 branch; D120, ADR 012; art
+    # D116/D127): held SDRG A ready, B the pin out and the arm back, C the
+    # release, D the follow-through, the letters the states use today on
+    # the ice axe's SDAX (MOD-SPEC 6.12). No flash. Three Gemini images
+    # (2026-10-24): A, B and C; D is not one of them.
+    # - B: Gemini drew a third hand, a second grenade held at the centre
+    #   (A's pose again) between the left hand pulling the ring and the right
+    #   hand drawn back high. It goes: its sleeve is cut loose along the
+    #   throwing arm's sleeve edge (RGD5_B_CUT, the edge carried straight on
+    #   where the extra sleeve hid it), the strip of that sleeve lying over
+    #   the throwing arm is rebuilt from the throwing sleeve above it
+    #   (RGD5_B_SMEAR), the hidden edge gets its outline (RGD5_B_SEAM), and
+    #   then the hand and grenade, now a piece of their own, are dropped.
+    # - D: image C with the grenade (and the ring Gemini set flying beside
+    #   it) dropped, the empty open hand lowered RGD5_FOLLOW_DROP px: the arm
+    #   carries on down after the release. C keeps its grenade but loses the
+    #   ring too: in B the ring stays in the left hand.
+    # The hand sits RGD5_Y_SHIFT lower than the arsenal's default placement
+    # (Gemini drew it high in A, with a long forearm under it), at the
+    # PPSh-41's scale; the ring's top is RGD5_ABOVE_BAR px above the bar.
+    "rgd5": WeaponPair(
+        "rgd5", "SDRG", "", height_mult=RGD5_HEIGHT_MULT, y_shift=RGD5_Y_SHIFT, arm_band=True, arm_curve=False,
+        sources=(("A", "gemini_rgd5_A.jfif"), ("B", "gemini_rgd5_B.jfif"), ("C", "gemini_rgd5_C.jfif"),
+                 ("D", "gemini_rgd5_C.jfif")),
+        frames=(Frame("SDRGA0"), Frame("SDRGB0", "B"), Frame("SDRGC0", "C"),
+                Frame("SDRGD0", "D", kick=(0, RGD5_FOLLOW_DROP))),
+        cut=(("B", RGD5_B_CUT),), smear=(("B", RGD5_B_SMEAR),), seam=(("B", RGD5_B_SEAM),),
+        drop=(("B",) + RGD5_B_EXTRA_HAND, ("C",) + RGD5_C_RING, ("D",) + RGD5_C_RING, ("D",) + RGD5_C_GRENADE),
+        mocks=(("ready (A)", ("SDRGA0",)), ("pin out, arm back (B)", ("SDRGB0",)), ("release (C)", ("SDRGC0",)),
+               ("follow-through (D)", ("SDRGD0",)))),
 }
 
 
@@ -680,6 +735,55 @@ def fill_bottom(idx: np.ndarray, reach: int = BOTTOM_GAP) -> np.ndarray:
         return idx
     out = idx.copy()
     out[rows[-1]:] = idx[rows[-1] - 1]
+    return out
+
+
+def polygon_mask(shape: tuple[int, int], poly, line: bool = False) -> np.ndarray:
+    """(h, w) bool: the pixels a polygon covers (its outline included), or
+    with `line` the 1 px polyline through its points."""
+    h, w = shape
+    im = Image.new("1", (w, h), 0)
+    d = ImageDraw.Draw(im)
+    pts = [tuple(p) for p in poly]
+    if line:
+        d.line(pts, fill=1, width=1)
+    else:
+        d.polygon(pts, fill=1, outline=1)
+    return np.array(im, bool)
+
+
+def smear_down(idx: np.ndarray, mask: np.ndarray) -> np.ndarray:
+    """idx with every `mask` pixel replaced, column by column, by the pixel
+    just above the column's first masked row (what was in front is gone and
+    what was behind it runs on down)."""
+    out = idx.copy()
+    for c in np.flatnonzero(mask.any(axis=0)):
+        rows = np.flatnonzero(mask[:, c])
+        src = out[rows[0] - 1, c] if rows[0] > 0 else TRANSPARENT
+        out[rows, c] = src
+    return out
+
+
+def darkest(idx: np.ndarray, pal: np.ndarray) -> int:
+    """The darkest palette index the art uses (its outline colour)."""
+    used = np.unique(idx[idx >= 0])
+    return int(used[np.argmin(pal[used].sum(axis=1))])
+
+
+def repair(idx: np.ndarray, key: str, w: "WeaponPair", pal: np.ndarray) -> np.ndarray:
+    """One image's art with w's cut, smear and seam for that image applied,
+    in that order (then build() drops w's stray pieces): cut a piece loose
+    from what it overlaps, rebuild what it hid, outline the edge it hid."""
+    out = idx.copy()
+    for k, poly in w.cut:
+        if k == key:
+            out[polygon_mask(out.shape, poly)] = TRANSPARENT
+    for k, poly in w.smear:
+        if k == key:
+            out = smear_down(out, polygon_mask(out.shape, poly) & (out >= 0))
+    for k, line in w.seam:
+        if k == key:
+            out[polygon_mask(out.shape, line, line=True) & (out >= 0)] = darkest(idx, pal)
     return out
 
 
@@ -1164,6 +1268,7 @@ def build(w: WeaponPair, out_dir: Path | None = None) -> dict:
     arts, periods = {}, {}
     for key, fname in w.files().items():
         art, periods[key] = load_art(REF_DIR / fname, pal, w.no_ramps)
+        art = repair(art, key, w, pal)
         for k, x, y in w.drop:
             if k == key:
                 art = drop_piece(art, x, y)
@@ -1195,7 +1300,7 @@ def build(w: WeaponPair, out_dir: Path | None = None) -> dict:
     sy = (target + BELOW_BAR) / (hh - top)
     sx = sy * PIXEL_ASPECT
     nw, nh = round(ww * sx), round(hh * sy)
-    y0 = VIEW_H - target - round(top * sy)       # screen row of the canvas top
+    y0 = VIEW_H - target - round(top * sy) + w.y_shift   # screen row of the canvas top
     x0 = SCREEN_W - nw + w.x_shift               # the canvas's right edge on the screen's (+ x_shift)
     frames = {}
     for f in w.frame_list():
