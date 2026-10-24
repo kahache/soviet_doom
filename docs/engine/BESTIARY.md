@@ -1403,7 +1403,9 @@ ROKS-3's flame and the General's shell, on their sprites.
 **Row 12, the Chrome Marshal (D123).** From D116 to D123 the colossus wore
 the General's `SDGN`, drawn ×1.3 and tinted chrome, while Gemini drew his
 own. The CEO wanted both in the game ("Coloso me gustan las 2: colorear
-general y la estatua de la libertad. Quiero los 2 en el juego"): the statue
+general y la estatua de la libertad. Quiero los 2 en el juego"; "Colossus: I
+like both, the coloured General and the Statue of Liberty. I want both in
+the game"): the statue
 (`SDLC`) is MAP06's boss, and the tinted General became his own enemy,
 `SD_ChromeGeneral` (`zscript/monsters/chrome_general.zs`), Doom's palette
 swap way of making a monster out of another (the Hell Knight is the Baron in

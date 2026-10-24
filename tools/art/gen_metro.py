@@ -1019,7 +1019,7 @@ LIGHT_128 = 0.5             # sheet view only: a flat multiply, NOT the engine's
 
 FILL_INTRO = (
     "<b>Metro set, the fill-out: ten drafts for the next gate.</b> You approved the direction and "
-    "the first six pieces as drawn in palette v1 (D42: «OK a las 6 piezas de metro»); they are in "
+    "the first six pieces as drawn in palette v1 (D42: «OK a las 6 piezas de metro», OK to the six metro pieces); they are in "
     "<code>assets/</code> now. These ten complete the set a level needs: a station hall floor, the "
     "platform edge (top and face) with its warning stripe, the running tunnel in concrete and in "
     "cast-iron tubbing, the track bed, a coffered ceiling with and without its brass lamp, and two "
@@ -1153,7 +1153,8 @@ def main_fill() -> None:
 
 # ============================================== palette v2 proposals (D45)
 # The CEO approved palette v2 (D45, 2026-10-14) and chose the mosaic motif:
-# the current star with rays ("Ok a la imagen que has puesto del mosaico").
+# the current star with rays ("Ok a la imagen que has puesto del mosaico",
+# "OK to the mosaic image you showed").
 # The two pieces v1 held back are redrawn in v2 as PROPOSALS, same seed,
 # same geometry, new inks only. The approved v1 files stay in assets/ as
 # they are (D42); a v2 piece replaces its v1 only after the CEO says so.

@@ -37,7 +37,7 @@ What is pinned, and why:
              of the CEO's page, but SDGENSU1, which the codec pass re-renders
              byte-identically from its raw take, and SDLTRDT3 (L09 t04), whose
              raw take is cut before the blip the CEO heard at its end ("se
-             cuela algo al final") and rendered by the page's own chain
+             cuela algo al final", "something slips in at the end") and rendered by the page's own chain
   loudness   (numpy + ffmpeg) every installed OGG, decoded, sits within its
              window: the target +-1 dB, or the pinned shortfall; the peak
              never reaches 0 dBFS; the Freedoom references re-measured

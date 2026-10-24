@@ -83,12 +83,12 @@ class TableTests(unittest.TestCase):
             self.assertTrue(e.engine and e.ev and e.why and e.group)
 
     def test_kinds(self):
-        kinds = {"síntesis", "grabación", "mezcla", "voz grabada", "voz IA"}
+        kinds = {"synthesis", "recording", "mix", "recorded voice", "AI voice"}
         for c in w.CANDS:
             self.assertIn(c.kind, kinds, c.name)
-            if c.kind == "síntesis":
+            if c.kind == "synthesis":
                 self.assertEqual(c.sources, (), c.name)
-            if c.kind == "voz IA":
+            if c.kind == "AI voice":
                 self.assertTrue(any(k.startswith("ai:") for k in c.sources), c.name)
 
 
@@ -114,7 +114,7 @@ class LicenceTests(unittest.TestCase):
         for c in w.CANDS:
             chips = w.licence_chips(c)
             self.assertGreaterEqual(len(chips), len(c.sources), c.name)
-            self.assertTrue(all(ch["l"] in ("CC0 1.0", "nuestro", "voz IA") for ch in chips), c.name)
+            self.assertTrue(all(ch["l"] in ("CC0 1.0", "ours", "AI voice") for ch in chips), c.name)
 
 
 @needs_numpy
@@ -188,7 +188,7 @@ class SynthesisTests(unittest.TestCase):
         items = json.loads(re.search(r"const ITEMS = (\[.*?\]);\n", page, re.S).group(1))
         self.assertEqual({i["id"] for i in items}, {d.cand.name for d in self.done})
         self.assertNotIn("__", page.replace("__proto__", ""))
-        self.assertIn("Copiar resultado", page)
+        self.assertIn("Copy result", page)
 
 
 if __name__ == "__main__":

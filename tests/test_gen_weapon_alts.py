@@ -20,7 +20,7 @@ What is tested:
 - The IZh break-open still snaps shut on frame A (22 tics) and fits 30 tics.
 - The limiter never passes its ceiling; the held-trigger preview restarts
   every 3 tics and lets the last one play out.
-- The listening page: Spanish, OK/NO/? and "Copiar resultado", relative
+- The listening page: English, OK/NO/? and "Copy result", relative
   paths only, localStorage inside try/catch, the rejected draft and the
   Freedoom sound on every row; the real page's files exist.
 - Determinism: two renders are byte-identical.
@@ -339,15 +339,15 @@ class PageTests(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def test_spanish_vote_buttons_and_copy(self):
+    def test_vote_buttons_and_copy(self):
         h = self.html
-        self.assertIn('<html lang="es">', h)
-        self.assertIn("Copiar resultado", h)
+        self.assertIn('<html lang="en">', h)
+        self.assertIn("Copy result", h)
         for b in ('data-v="ok">OK<', 'data-v="no">NO<', 'data-v="q">?<'):
             self.assertIn(b, h)
-        self.assertIn("El rechazado", h)
-        self.assertIn("Hoy en el juego", h)
-        self.assertIn("<title>Alternativas de sonido M3</title>", h)
+        self.assertIn("The rejected one", h)
+        self.assertIn("In the game today", h)
+        self.assertIn("<title>M3 sound alternatives</title>", h)
 
     def test_local_storage_only_inside_try(self):
         for line in self.html.splitlines():
@@ -404,7 +404,7 @@ class MainTests(unittest.TestCase):
                 self.assertIn(f"SDRKFIR_alt{i}_held.ogg", names)
             self.assertIn("MANIFEST.txt", names)
             self.assertIn("PROVENANCE.tsv", names)
-            self.assertIn("Copiar resultado", page.read_text(encoding="utf-8"))
+            self.assertIn("Copy result", page.read_text(encoding="utf-8"))
         after = sorted(p.stat().st_mtime_ns for p in REAL_OUT.rglob("*")) if REAL_OUT.is_dir() else []
         self.assertEqual(before, after, "work/audio/alt/ was touched")
 

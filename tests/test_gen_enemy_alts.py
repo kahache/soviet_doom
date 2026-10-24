@@ -20,7 +20,7 @@ What is tested:
   of D_SDM01E at the same pitch, velocity and length; it starts on its first
   tick, has no hanging note, is whole bars long, keeps every channel's setup
   at tick 0, and the draft on disk is what the function writes.
-- The page: Spanish, OK/NO/? and "Copiar resultado", relative paths only,
+- The page: English, OK/NO/? and "Copy result", relative paths only,
   localStorage inside try/catch, rejected and Freedoom on every enemy row,
   the music rows and the MAP01 candidates with rights notes.
 
@@ -328,14 +328,14 @@ class PageTests(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def test_spanish_vote_buttons_and_copy(self):
+    def test_vote_buttons_and_copy(self):
         h = self.html
-        self.assertIn('<html lang="es">', h)
-        self.assertIn("Copiar resultado", h)
+        self.assertIn('<html lang="en">', h)
+        self.assertIn("Copy result", h)
         for b in ('data-v="ok">OK<', 'data-v="no">NO<', 'data-v="q">?<'):
             self.assertIn(b, h)
-        self.assertIn("El rechazado", h)
-        self.assertIn("Hoy en el juego", h)
+        self.assertIn("The rejected one", h)
+        self.assertIn("In the game today", h)
 
     def test_local_storage_only_inside_try(self):
         for line in self.html.splitlines():
@@ -356,7 +356,7 @@ class PageTests(unittest.TestCase):
             self.assertIn("freedoom/DS", it["repSrc"])
         for it in c:
             self.assertTrue(it["rights"] and it["disk"] and it["who"], it["id"])
-            self.assertRegex(it["disk"], r"^(SÍ|NO) está en disco")
+            self.assertRegex(it["disk"], r"^(ON|NOT on) disk")
 
     def test_the_real_page_points_at_files_that_exist(self):
         pages = sorted(PREVIEWS.glob("*_M3_listening-enemy-alts-music.html"))
@@ -389,7 +389,7 @@ class MainTests(unittest.TestCase):
             self.assertEqual(code, 0)
             names = {p.name for p in Path(tmp).rglob("*") if p.is_file()}
             self.assertTrue({"SDLTRPAI_alt2.ogg", "MANIFEST.txt", "PROVENANCE.tsv"} <= names)
-            self.assertIn("Copiar resultado", page.read_text(encoding="utf-8"))
+            self.assertIn("Copy result", page.read_text(encoding="utf-8"))
         after = sorted(p.stat().st_mtime_ns for p in ea.OUT_DIR.rglob("*")) if ea.OUT_DIR.is_dir() else []
         self.assertEqual(before, after, "work/audio/enemy_alt/ was touched")
 

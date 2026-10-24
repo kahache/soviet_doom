@@ -2,7 +2,8 @@
 
 The CEO could not judge the 15 alternatives of
 docs/art/previews/2026-10-15_0033_M3_listening-alternatives.html without
-seeing the weapon ("no tengo el gif del movimiento del arma"). This writes a
+seeing the weapon: "no tengo el gif del movimiento del arma" ("I don't have
+the gif of the weapon moving"). This writes a
 new page where every row plays the installed first-person sprites at game
 speed (35 tics/s) on a small 320x200 mock, with the sound started on the
 tic the game starts it:
@@ -120,13 +121,13 @@ def izh_reload() -> dict:
         snd = action_sound(zs, st["action"])
         if snd == "sd/weapon/izh/reload":
             sounds.append([len(frames), None])
-            marks.append([len(frames), "empieza la recarga y su sonido (A_StartSound)"])
+            marks.append([len(frames), "the reload and its sound start (A_StartSound)"])
         if "ReloadIzh" in st["action"]:
-            marks.append([len(frames), "el juego mete los cartuchos (A_SD_ReloadIzh)"])
+            marks.append([len(frames), "the game loads the shells (A_SD_ReloadIzh)"])
         frames += [frame(st["spr"]) for _ in range(st["tics"])]
     if len(sounds) != 1:
         raise ValueError("izh.zs Reload: expected one sd/weapon/izh/reload hook")
-    marks.append([len(frames), "vuelve a Ready"])
+    marks.append([len(frames), "back to Ready"])
     frames += [frame(ready) for _ in range(POST)]
     return {"frames": frames, "sounds": sounds, "marks": marks}
 
@@ -136,7 +137,7 @@ def roks_fire(held: int = HELD) -> dict:
     ready = parse_state(zs, "Ready")[0]["spr"]
     fire, flash = parse_state(zs, "Fire"), parse_state(zs, "Flash")
     frames = [frame(ready) for _ in range(PRE)]
-    release, sounds, marks = PRE + held, [], [[PRE, "aprietas el gatillo"]]
+    release, sounds, marks = PRE + held, [], [[PRE, "you pull the trigger"]]
     flash_seq: list[dict] = []
     t, i, guard = PRE, 0, 0
     while i < len(fire):
@@ -159,8 +160,8 @@ def roks_fire(held: int = HELD) -> dict:
                                 light=bool(fl and "A_Light1" in fl["action"])))
             t += 1
         i += 1
-    marks.append([release, "sueltas el gatillo"])
-    marks.append([len(frames), "vuelve a Ready"])
+    marks.append([release, "you release the trigger"])
+    marks.append([len(frames), "back to Ready"])
     frames += [frame(ready) for _ in range(POST)]
     return {"frames": frames, "sounds": sounds, "marks": marks}
 
@@ -195,9 +196,9 @@ def pickup(lump: str) -> dict:
         frames.append(frame(new, sy, walk=STEP * WALK, b=max(0, BONUS - (len(frames) - touch)), msg=1))
     up = len(frames)
     frames += [frame(new, walk=STEP * WALK, msg=1) for _ in range(POST)]
-    marks = [[touch, "lo tocas: sonido, destello y mensaje"],
-             [lowered, "el arma de la mano ha bajado; sube la nueva"],
-             [up, "arriba, lista"]]
+    marks = [[touch, "you touch it: sound, flash and message"],
+             [lowered, "the weapon in hand is down; the new one raises"],
+             [up, "up, ready"]]
     return {"frames": frames, "sounds": [[touch, None]], "marks": marks, "world": world}
 
 
@@ -260,11 +261,11 @@ def main(argv=None) -> Path:
 
 
 TEMPLATE = r"""<!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Alternativas con el arma</title>
+<title>Alternatives with the weapon</title>
 <style>
 :root{--bg:#f6f4ef;--card:#fff;--ink:#1d1d1b;--mute:#6b6862;--line:#dcd8cf;--accent:#a3201c;--ok:#1f7a3a;--no:#b3261e;--q:#9a6a00;--chip:#efece4}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--card:#202020;--ink:#ebe8e2;--mute:#a19d95;--line:#3a3834;--accent:#e0574f;--ok:#4cc074;--no:#f0726a;--q:#e3b341;--chip:#2c2b29}}
@@ -324,31 +325,31 @@ footer{color:var(--mute);font-size:12.5px;margin-top:24px}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <h1>Alternativas de sonido M3, con el arma moviéndose</h1>
-  <span class="prog">Juzgadas <b id="pDone">0</b> de <b>15</b></span>
+  <h1>M3 sound alternatives, with the weapon moving</h1>
+  <span class="prog">Judged <b id="pDone">0</b> of <b>15</b></span>
   <span class="bar"><i id="pBar"></i></span>
-  <label class="chk"><input type="checkbox" id="onlyOpen"> solo sin juzgar</label>
-  <button class="primary" id="copyTop">Copiar resultado</button><span id="copied" class="copied"></span>
+  <label class="chk"><input type="checkbox" id="onlyOpen"> unjudged only</label>
+  <button class="primary" id="copyTop">Copy result</button><span id="copied" class="copied"></span>
 </div></header>
 <div class="wrap">
 <section class="intro">
-  <p>Las mismas 15 alternativas de la hoja del 15 de octubre (D74), ahora <b>con el arma moviéndose</b> (D92): en cada fila se ven los fotogramas que hay instalados en el juego, a la velocidad del juego (35 tics por segundo), y el sonido arranca en el mismo tic en que lo arranca el juego. Pulsa <b>▶ reproducir</b> (o la pantalla). Debajo de la pantalla puedes cambiar el sonido: la alternativa, el borrador rechazado y lo que suena hoy (Freedoom), con la misma animación.</p>
+  <p>The same 15 alternatives as the 15 October sheet (D74), now <b>with the weapon moving</b> (D92): each row shows the frames installed in the game, at game speed (35 tics per second), and the sound starts on the same tic the game starts it. Press <b>▶ play</b> (or the screen). Below the screen you can switch the sound: the alternative, the rejected draft and what plays today (Freedoom), with the same animation.</p>
   <ul>
-    <li><b>Recarga de la IZh:</b> los fotogramas D, C, B, A de <code>izh.zs</code> (6 + 8 + 8 + 8 tics); el sonido empieza con el fotograma D y el juego mete los cartuchos en el último.</li>
-    <li><b>Lanzallamas:</b> el gatillo apretado 1,5 s. Cada 3 tics sale un chorro y el juego <b>vuelve a empezar el sonido</b> cortando el anterior; aquí pasa lo mismo. Al soltar, el último suena entero.</li>
-    <li><b>Recoger:</b> caminas hasta el arma del suelo, la tocas (sonido, destello dorado y mensaje), el arma que llevas en la mano baja y sube la nueva (16 + 16 tics, como en el juego). En la TT-33 llevas el piolet en la mano para que se vea el cambio: en la partida normal ya empiezas con la TT-33.</li>
-    <li>Volumen: las alternativas ya están subidas; los rechazados siguen al volumen antiguo, más bajo. Compara el carácter, no el volumen.</li>
-    <li>La pantalla es una maqueta de 320×200 (pared y suelo grises tipo MAP01, barra de estado lisa) ampliada 2×. El arma se coloca con los desplazamientos de cada PNG, como en el Doom original con la barra de estado visible (16 píxeles más arriba que sin ella; en GZDoom <b>sin verificar</b> en el motor).</li>
+    <li><b>IZh reload:</b> frames D, C, B, A of <code>izh.zs</code> (6 + 8 + 8 + 8 tics); the sound starts with frame D and the game loads the shells on the last one.</li>
+    <li><b>Flamethrower:</b> the trigger held 1.5 s. Every 3 tics a jet comes out and the game <b>restarts the sound</b>, cutting the previous one; the same happens here. On release, the last one plays out in full.</li>
+    <li><b>Pickup:</b> you walk up to the weapon on the floor, touch it (sound, gold flash and message), the weapon in your hand lowers and the new one raises (16 + 16 tics, as in the game). For the TT-33 you hold the ice axe so the switch shows: in a normal game you already start with the TT-33.</li>
+    <li>Volume: the alternatives are already raised; the rejected ones stay at the old, lower volume. Compare the character, not the volume.</li>
+    <li>The screen is a 320×200 mock (grey MAP01-style wall and floor, a plain status bar) scaled 2×. The weapon is placed with each PNG's offsets, as in the original Doom with the status bar visible (16 pixels higher than without it; in GZDoom <b>not verified</b> in the engine).</li>
   </ul>
 </section>
 <main id="groups"></main>
 <section>
-  <h2 style="font-size:16px;margin:24px 0 6px">Resultado para pegar en el chat</h2>
-  <p class="meta">Se actualiza solo. Si el botón no copia (algunos navegadores lo bloquean en archivos locales), selecciona el texto y Ctrl+C.</p>
+  <h2 style="font-size:16px;margin:24px 0 6px">Result to paste into the chat</h2>
+  <p class="meta">It updates by itself. If the button does not copy (some browsers block it on local files), select the text and press Ctrl+C.</p>
   <textarea id="result" readonly></textarea>
-  <p><button class="primary" id="copyBottom">Copiar resultado</button> <button id="reset">Borrar todas mis respuestas</button></p>
+  <p><button class="primary" id="copyBottom">Copy result</button> <button id="reset">Clear all my answers</button></p>
 </section>
-<footer>Generado __STAMP__ por sound-designer con <code>tools/audio/gen_weapon_alts_animated.py</code>. Estados leídos de <code>src/zscript/weapons/izh.zs</code> y <code>roks3.zs</code>; sprites de <code>assets/sprites/</code> (ruta relativa: no muevas la página de <code>docs/art/previews/</code>). Audio: <code>work/audio/alt/</code>, <code>work/audio/sfx/weapons/ogg/</code>, <code>work/audio/preview/freedoom/</code>; va también incrustado en la página porque el navegador no deja leer archivos locales desde WebAudio.</footer>
+<footer>Generated __STAMP__ by sound-designer with <code>tools/audio/gen_weapon_alts_animated.py</code>. States read from <code>src/zscript/weapons/izh.zs</code> and <code>roks3.zs</code>; sprites from <code>assets/sprites/</code> (relative path: do not move the page out of <code>docs/art/previews/</code>). Audio: <code>work/audio/alt/</code>, <code>work/audio/sfx/weapons/ogg/</code>, <code>work/audio/preview/freedoom/</code>; it is also embedded in the page because the browser does not let WebAudio read local files.</footer>
 </div>
 <script>
 const D = __DATA__;
@@ -360,7 +361,7 @@ try { S = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { S =
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 function st(id){ return S[id] || (S[id] = {v:"", n:""}); }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const secs = t => (t / TIC).toFixed(2).replace(".", ",") + " s";
+const secs = t => (t / TIC).toFixed(2) + " s";
 
 /* sprites: relative paths to assets/ */
 const IMG = {};
@@ -440,7 +441,7 @@ async function play(id){
   if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); master.gain.value = 0.9; master.connect(AC.destination); }
   if (AC.state === "suspended") await AC.resume();
   const it = D.items.find(i => i.id === id), A = D.anims[it.lump], path = it[st(id).snd || "src"];
-  let b; try { b = await buffer(path); } catch (e) { document.getElementById("ck-" + id).textContent = "no se pudo leer el audio: " + path; return; }
+  let b; try { b = await buffer(path); } catch (e) { document.getElementById("ck-" + id).textContent = "could not read the audio: " + path; return; }
   const me = {id, srcs: [], raf: 0}; cur = me;
   const t0 = AC.currentTime + 0.06;
   for (const [a, z] of A.sounds) {
@@ -456,33 +457,33 @@ async function play(id){
   step();
 }
 
-const SND = it => [["src", `Alternativa ${it.id.slice(-1)} · ${it.label}`], ["rej", `El rechazado (${it.lump}, dijiste ${it.verdict})`], ["repSrc", `Hoy en el juego: ${it.rep}`]];
+const SND = it => [["src", `Alternative ${it.id.slice(-1)} · ${it.label}`], ["rej", `The rejected one (${it.lump}, you said ${it.verdict})`], ["repSrc", `In the game today: ${it.rep}`]];
 function rowHTML(it){
   const A = D.anims[it.lump], s = st(it.id), n = A.frames.length - 1;
   const snd = new Set(A.sounds.map(x => x[0]));
   const mk = A.marks.map(([t]) => `<i class="mk${snd.has(t) ? " snd" : ""}" style="left:${100 * t / n}%"></i>`).join("");
-  const restarts = A.sounds.length > 1 ? `<div class="meta">El sonido arranca ${A.sounds.length} veces (cada ${A.sounds[1][0] - A.sounds[0][0]} tics), cortando el anterior; el último suena entero.</div>` : "";
+  const restarts = A.sounds.length > 1 ? `<div class="meta">The sound starts ${A.sounds.length} times (every ${A.sounds[1][0] - A.sounds[0][0]} tics), cutting the previous one; the last one plays out in full.</div>` : "";
   return `<div class="row" id="r-${it.id}" data-id="${it.id}">
-    <div><canvas class="scr" id="c-${it.id}" width="320" height="200" title="reproducir"></canvas>
+    <div><canvas class="scr" id="c-${it.id}" width="320" height="200" title="play"></canvas>
       <div class="tl"><span>${mk}</span><i class="ph" id="ph-${it.id}"></i></div>
       <div class="clock" id="ck-${it.id}">tic 0 / ${n} · ${secs(0)}</div>
       <ol class="marks" id="mk-${it.id}">${A.marks.map(([t, l]) => `<li data-t="${t}">tic ${t} (${secs(t)}): ${esc(l)}</li>`).join("")}</ol>
       ${restarts}</div>
     <div><div class="name"><code>${esc(it.id)}</code><span class="ev">${esc(it.ev)}</span></div>
       <div class="what"><b>${esc(it.label)}.</b> ${esc(it.what)}</div>
-      <div class="meta"><b>Nivel:</b> ${esc(it.lvl)}</div>
+      <div class="meta"><b>Level:</b> ${esc(it.lvl)}</div>
       <div class="snds">${SND(it).map(([k, l]) => `<button data-snd="${k}" class="${(s.snd || "src") === k ? "sel" : ""}">${esc(l)}</button>`).join("")}</div>
-      <button class="primary play">▶ reproducir</button>
+      <button class="primary play">▶ play</button>
       <div class="btns"><button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div>
-      <textarea class="note" placeholder="Nota (opcional)">${esc(s.n || "")}</textarea></div>
+      <textarea class="note" placeholder="Note (optional)">${esc(s.n || "")}</textarea></div>
   </div>`;
 }
 function build(){
   let h = "";
   for (const L of [...new Set(D.items.map(i => i.lump))]) {
     const its = D.items.filter(i => i.lump === L), a = its[0];
-    const tag = a.verdict === "NO" ? `<span class="tag no">dijiste NO</span>` : `<span class="tag q">dijiste ?</span>`;
-    h += `<details class="grp" open><summary><code>${esc(L)}</code> ${esc(a.group)} · ${esc(a.ev)} ${tag}<span class="rejnote">rechazado: ${esc(a.rejWhat)}</span><span class="gcount" data-l="${esc(L)}"></span></summary>`;
+    const tag = a.verdict === "NO" ? `<span class="tag no">you said NO</span>` : `<span class="tag q">you said ?</span>`;
+    h += `<details class="grp" open><summary><code>${esc(L)}</code> ${esc(a.group)} · ${esc(a.ev)} ${tag}<span class="rejnote">rejected: ${esc(a.rejWhat)}</span><span class="gcount" data-l="${esc(L)}"></span></summary>`;
     for (const it of its) h += rowHTML(it);
     h += `</details>`;
   }
@@ -506,19 +507,19 @@ function summary(){
   }
   const notes = I.filter(i => (st(i.id).n || "").trim()).map(i => `${i.id}: «${st(i.id).n.trim().replace(/\s+/g, " ")}»`);
   const open = I.filter(i => !st(i.id).v).map(i => i.id);
-  const L = [`Alternativas M3 con el arma (__STAMP__): ${done}/${I.length} juzgadas`,
+  const L = [`M3 alternatives with the weapon (__STAMP__): ${done}/${I.length} judged`,
     `OK (${by("ok").length}): ${by("ok").join(", ") || "—"}`,
     `NO (${by("no").length}): ${by("no").join(", ") || "—"}`,
     `? (${by("q").length}): ${by("q").join(", ") || "—"}`,
-    `notas: ${notes.join(" / ") || "—"}`];
-  if (open.length) L.push(`sin juzgar (${open.length}): ${open.join(", ")}`);
+    `notes: ${notes.join(" / ") || "—"}`];
+  if (open.length) L.push(`unjudged (${open.length}): ${open.join(", ")}`);
   document.getElementById("result").value = L.join("\n");
 }
 function copy(){
   const t = document.getElementById("result"), msg = document.getElementById("copied");
   summary();
-  const done = () => { msg.textContent = "copiado"; setTimeout(() => msg.textContent = "", 2500); };
-  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? done() : (msg.textContent = "selecciona y Ctrl+C abajo"); } catch (e) { msg.textContent = "selecciona y Ctrl+C abajo"; } t.scrollIntoView({block:"center"}); };
+  const done = () => { msg.textContent = "copied"; setTimeout(() => msg.textContent = "", 2500); };
+  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? done() : (msg.textContent = "select and press Ctrl+C below"); } catch (e) { msg.textContent = "select and press Ctrl+C below"; } t.scrollIntoView({block:"center"}); };
   try { if (navigator.clipboard && window.isSecureContext !== false) navigator.clipboard.writeText(t.value).then(done, fallback); else fallback(); } catch (e) { fallback(); }
 }
 document.addEventListener("click", e => {
@@ -536,7 +537,7 @@ document.addEventListener("input", e => {
 document.getElementById("onlyOpen").addEventListener("change", () => D.items.forEach(i => paint(i.id)));
 document.getElementById("copyTop").addEventListener("click", copy);
 document.getElementById("copyBottom").addEventListener("click", copy);
-document.getElementById("reset").addEventListener("click", () => { if (confirm("¿Borrar todas las respuestas y notas de esta hoja?")) { stopAll(); S = {}; save(); build(); summary(); } });
+document.getElementById("reset").addEventListener("click", () => { if (confirm("Clear all the answers and notes on this sheet?")) { stopAll(); S = {}; save(); build(); summary(); } });
 build(); summary();
 </script>
 </body>

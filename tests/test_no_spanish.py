@@ -17,7 +17,28 @@ What is guarded:
     tools/release_portable.py assembles them (launchers, README-FIRST.txt,
     the readme note, gzdoom_portable.ini, GZDOOM-SOURCE.txt);
   * the source of both generators, so a Spanish template cannot come back;
-  * no file the release or a portable package ships has a Spanish name.
+  * no file the release or a portable package ships has a Spanish name;
+  * the repo documentation (WORKING-AGREEMENTS §4): every .md, .html and
+    .txt under docs/ except the Russian mirror docs/ru/, the HTML review
+    sheets of docs/art/previews/ included;
+  * the review-sheet generators: every .py of tools/, tools/art/ and
+    tools/audio/ (their strings and comments) and tools/art/*.html.
+
+The CEO's literal words stay literal (§4), so the docs and generator checks
+read only what lies OUTSIDE quotation marks: «…», “…” and "…" in prose; in a
+Python file, inside its comments and inside its string literals (a quotation
+in a string is \\"…\\"); in an HTML sheet, the visible text with tags and
+base64 removed, and in its scripts only «…», “…”, \\"…\\" and &quot;…&quot;
+count as quotations, so a Spanish JS label is caught. Whether each quotation
+carries its English gloss is NOT checked: §4 wants the gloss only "when the
+text around them does not already restate them", and a machine cannot tell
+a restatement (measured 2026-10-24: a "quote followed by an English
+parenthesis or quote" heuristic flagged 41 quotations, 37 of them PRD rows
+whose bold text restates the decision). Glosses stay a PMO review item.
+Two narrow exceptions: the slogan "No pasarán" (D20, a name), and
+SPEC_EDITS in tools/art/walk_stride.py, whose left sides are
+gemini_enemy.py's pre-D129 text matched byte for byte (history, written by
+nothing).
 
 How Spanish is told apart from English, Russian and Catalan (SPANISH_TEXT):
 
@@ -77,11 +98,9 @@ SPANISH_NAME = re.compile(
     r"jugar|juega|juego|l[eé]eme|instrucciones|espa[ñn]ol|lanzador|partidas", re.IGNORECASE)
 
 # Spanish that ships today from a file another role owns (D129 follow-up).
-PENDING = (
-    # docs/art/LICENSES.md, the Episode 3 music rows (D113): their Origin cell
-    # quotes the CEO, and CREDITS.txt quotes the Origin cell.
-    '"las doy por buenas"',
-)
+# Empty since the Episode 3 music rows of docs/art/LICENSES.md gave their
+# Origin cell (quoted by CREDITS.txt) in English.
+PENDING: tuple[str, ...] = ()
 
 
 def spanish_lines(text: str) -> list[str]:
@@ -209,6 +228,149 @@ class NoSpanishInTheGeneratorsTest(unittest.TestCase):
         for name in ("release.py", "release_portable.py"):
             text = (TOOLS_DIR / name).read_text(encoding="utf-8")
             self.assertEqual(spanish_lines(text), [], name)
+
+    def test_the_sheet_generators_write_no_spanish(self):
+        found = []
+        for path in generator_files():
+            text = path.read_text(encoding="utf-8")
+            rel = path.relative_to(PROJECT_ROOT).as_posix()
+            if path.suffix == ".py":
+                hits = python_spanish_lines(text, HISTORICAL_PY.get(rel))
+            else:
+                hits = spanish_lines(html_unquoted(text))
+            found += [f"{rel}:{hit}" for hit in hits]
+        self.assertEqual(found, [])
+
+
+class NoSpanishInTheDocsTest(unittest.TestCase):
+
+    def test_docs_outside_quotations(self):
+        found = []
+        for path in doc_files():
+            text = path.read_text(encoding="utf-8")
+            text = html_unquoted(text) if path.suffix == ".html" else prose_unquoted(text)
+            rel = path.relative_to(PROJECT_ROOT).as_posix()
+            found += [f"{rel}:{hit}" for hit in spanish_lines(text)]
+        self.assertEqual(found, [])
+
+    def test_the_quote_reader(self):
+        # Spanish outside quotation marks is caught, in prose, HTML and Python...
+        self.assertTrue(spanish_lines(prose_unquoted("Las texturas están listas.")))
+        self.assertTrue(spanish_lines(html_unquoted(
+            '<p class="x">Pulsa para votar</p>')))
+        self.assertTrue(spanish_lines(html_unquoted(
+            '<script>const L = {"copy": "Copiar el resultado de las votaciones"};</script>')))
+        self.assertTrue(python_spanish_lines('x = "Elige una opción"\n'))
+        self.assertTrue(python_spanish_lines('# los sprites de la pistola\n'))
+        # ...and the CEO's quoted words pass, glossed or restated.
+        for prose in ('The CEO: «las doy por buenas» ("I take them as good").',
+                      'CEO verdict: "Ok consorcio, añade paleta si es\nnecesario" (D128).',
+                      '“también las recomendadas”'):
+            self.assertEqual(spanish_lines(prose_unquoted(prose)), [], prose)
+        self.assertEqual(spanish_lines(html_unquoted(
+            '<p>Your note: "ponle la bandera más grande"</p>'
+            '<script>const N = "the CEO: \\"muy macarra\\"";</script>'
+            '<img src="data:image/png;base64,ZXN0w6EgbG9zIGxhcw==">')), [])
+        self.assertEqual(python_spanish_lines(
+            'NOTE = ("the CEO, \\"rehaz los sprites de la pistola "\n'
+            '        "también\\" (redo the pistol too)")\n'
+            '# D82 ("también las recomendadas")\n'), [])
+
+
+# --- the docs and the sheet generators: what lies outside quotation marks ---
+
+DOCS_DIR = PROJECT_ROOT / "docs"
+RU_MIRROR = DOCS_DIR / "ru"
+DOC_SUFFIXES = (".md", ".html", ".txt")
+GENERATOR_DIRS = (TOOLS_DIR, TOOLS_DIR / "art", TOOLS_DIR / "audio")
+# A name, not Spanish text: the hard skill (D20), the Republican slogan.
+NAMES = re.compile(r"no pasar[aá]n", re.IGNORECASE)
+# Python files whose named top-level assignment holds history, not output.
+HISTORICAL_PY = {"tools/art/walk_stride.py": "SPEC_EDITS"}
+
+QUOTATION = re.compile(r"«[^«»]{0,1500}»|“[^“”]{0,1500}”|\"[^\"]{0,1500}\"", re.S)
+SCRIPT_QUOTATION = re.compile(
+    r"«[^«»]{0,1500}»|“[^“”]{0,1500}”|\\\"(?:[^\"\\]|\\[^\"]){0,1500}\\\"|&quot;.{0,1500}?&quot;", re.S)
+DATA_URI = re.compile(r"data:[\w/+.-]+;base64,[A-Za-z0-9+/=]+")
+SEPARATOR = "\x00"
+
+
+def _blank(match: re.Match) -> str:
+    """The match as spaces, keeping its line breaks (and separators)."""
+    return re.sub(r"[^\n\x00]", " ", match.group(0))
+
+
+def prose_unquoted(text: str) -> str:
+    """Prose with every quotation blanked; line numbers kept."""
+    return QUOTATION.sub(_blank, NAMES.sub("", text))
+
+
+def html_unquoted(text: str) -> str:
+    """An HTML sheet's visible text and script text, quotations blanked."""
+    text = DATA_URI.sub("", NAMES.sub("", text))
+    text = re.sub(r"<style.*?</style>", _blank, text, flags=re.S | re.I)
+    out, pos = [], 0
+    for m in re.finditer(r"<script[^>]*>(.*?)</script>", text, re.S | re.I):
+        out.append(prose_unquoted(re.sub(r"<[^>]*>", _blank, text[pos:m.start(1)])))
+        out.append(SCRIPT_QUOTATION.sub(_blank, m.group(1)))
+        pos = m.end(1)
+    out.append(prose_unquoted(re.sub(r"<[^>]*>", _blank, text[pos:])))
+    return "".join(out)
+
+
+def _python_pieces(src: str, historical: str | None):
+    """(line, text) of a Python file's comments, and of its string literals."""
+    import ast
+    import tokenize
+    skip = range(0)
+    if historical:
+        for node in ast.parse(src).body:
+            if isinstance(node, ast.Assign) and any(
+                    isinstance(t, ast.Name) and t.id == historical for t in node.targets):
+                skip = range(node.lineno, node.end_lineno + 1)
+    comments, strings = [], []
+    middle = getattr(tokenize, "FSTRING_MIDDLE", None)
+    for tok in tokenize.generate_tokens(io.StringIO(src).readline):
+        if tok.start[0] in skip:
+            continue
+        if tok.type == tokenize.COMMENT:
+            comments.append((tok.start[0], tok.string[1:]))
+        elif tok.type == tokenize.STRING:
+            try:
+                value = ast.literal_eval(tok.string)
+            except (ValueError, SyntaxError):
+                value = tok.string
+            if isinstance(value, str):
+                strings.append((tok.start[0], value))
+        elif middle is not None and tok.type == middle:
+            strings.append((tok.start[0], tok.string))
+    return comments, strings
+
+
+def python_spanish_lines(src: str, historical: str | None = None) -> list[str]:
+    """Spanish in a Python file's comments and strings, outside quotations.
+    Quotations may run across adjacent literals or comment lines, so each
+    kind is read as one stream."""
+    found = []
+    for pieces in _python_pieces(src, historical):
+        joined = prose_unquoted(SEPARATOR.join(text for _, text in pieces))
+        for (line, _), text in zip(pieces, joined.split(SEPARATOR)):
+            for offset, part in enumerate(text.split("\n")):
+                hits = [m.group(0) for m in SPANISH_TEXT.finditer(part)]
+                if hits:
+                    found.append(f"{line + offset}: {hits} {part.strip()[:120]}")
+    return found
+
+
+def doc_files() -> list[Path]:
+    return sorted(p for p in DOCS_DIR.rglob("*")
+                  if p.is_file() and p.suffix in DOC_SUFFIXES and RU_MIRROR not in p.parents)
+
+
+def generator_files() -> list[Path]:
+    files = [p for d in GENERATOR_DIRS for p in d.glob("*.py")]
+    files += (TOOLS_DIR / "art").glob("*.html")
+    return sorted(files)
 
 
 if __name__ == "__main__":

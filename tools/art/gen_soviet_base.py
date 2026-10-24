@@ -78,7 +78,7 @@ STRIPE_WEAR = 0.30                # fbm threshold below which the paint chipped
 #   - sickle handle: short thick stub at the BOTTOM-LEFT, pointing down-left;
 #   - hammer (drawn on top): head at MID-LEFT inside the opening (the CEO
 #     rejected three higher placements: "la parte gorda del martillo va mucho
-#     mas abajo"), handle running DOWN TO THE RIGHT across the blade's
+#     mas abajo", "the thick part of the hammer goes much lower"), handle running DOWN TO THE RIGHT across the blade's
 #     lower-right part to the bottom-right corner.
 # SDSTAR1 is the one 128x128 wall of the set (CEO 2026-10-12): at 64 wide the
 # emblem had no room and its lower half closed up into a single blob. At 128
@@ -96,7 +96,7 @@ SICKLE_OUTER_C, SICKLE_OUTER_R = (0.56, 0.56), 0.42
 SICKLE_INNER_C, SICKLE_INNER_R = (0.50, 0.52), 0.30
 # Variant D1 (CEO 2026-10-12). Earlier versions put the tip at a loose point
 # ABOVE the outer circle, which drew a thin spike sticking out of the blade
-# ("un palo raro hacia arriba"). The tip now sits exactly where the outer arc
+# ("un palo raro hacia arriba", "an odd stick pointing up"). The tip now sits exactly where the outer arc
 # ends, so the blade closes with a clean chamfer instead of a spike.
 SICKLE_TIP = (0.403, 0.171)       # == the outer arc's own start point
 SICKLE_TIP_OUTER_DEG = -112.0     # outer edge leaves the circle here -> tip
@@ -112,7 +112,8 @@ HAMMER_HEAD_C = (0.33, 0.46)
 # The butt of the handle reaches the bottom-right corner, mirroring the
 # sickle handle end (0.07, 0.95) about x=0.5 (CEO, 2026-10-12: "el final
 # del mazo tiene que tocar la esquina inferior derecha simetricamente
-# con la hoz").
+# con la hoz", "the end of the mallet must touch the bottom-right corner,
+# symmetrically with the sickle").
 HAMMER_HANDLE = ((0.36, 0.47), (0.93, 0.96))
 HAMMER_HANDLE_W = 0.09
 HAMMER_HEAD_L, HAMMER_HEAD_W = 0.34, 0.19   # long axis perpendicular to handle

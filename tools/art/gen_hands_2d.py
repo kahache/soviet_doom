@@ -682,7 +682,7 @@ TT_POSES_2D = tuple(moved(p, np.add(TT_RAISE, TT_KICK[p.frame][0]), TT_KICK[p.fr
 PPSH_RAISE = (-5.0, -4.0, 8.0)
 PPSH_POSES_2D = tuple(moved(p, PPSH_RAISE, name=f"{p.name}, raised") for p in gw.PPSH_POSES)
 
-HK_VARIANT_2D = "B"             # D51: "de katiushka me flipa la B"
+HK_VARIANT_2D = "B"             # D51: "de katiushka me flipa la B" ("for the Katyusha I love B")
 
 
 # ================================================================ designs

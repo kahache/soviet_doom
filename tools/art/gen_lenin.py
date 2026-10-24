@@ -9,7 +9,7 @@ History, because it cost four rounds and the lesson is worth keeping:
 
   v1  constructivist silhouette               CEO: rejected, wanted something realistic
   v2  naive global threshold on the photo     PM: no readable face
-  v3  hand-drawn silhouette + hand-drawn      CEO: "no se parece a el EN NADA"
+  v3  hand-drawn silhouette + hand-drawn      CEO: "no se parece a el EN NADA" ("nothing like him")
       feature regions
   v4  back to the photograph, four flat inks  CEO: picked cell 4C from a 15-cell sweep
 

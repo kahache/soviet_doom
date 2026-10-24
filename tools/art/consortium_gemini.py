@@ -545,7 +545,7 @@ def op_gen(v: View, name: str, pts) -> None:
     v.mask |= reg
 
 
-# (key, view): the repairs, in order (REPAIR_NOTES says why, in Spanish, for the CEO's sheet)
+# (key, view): the repairs, in order (REPAIR_NOTES says why, for the CEO's sheet)
 REPAIRS: dict[tuple[str, int], tuple] = {}
 REPAIR_NOTES: dict[tuple[str, int], tuple[str, str]] = {}
 # (key, view): repairs after the mirror, in canonical sheet coordinates (the
@@ -967,42 +967,42 @@ PROV_FOLDER, PROV_SPRITE, PROV_SCALE = "panzermensch", "SDPS", 1.75   # what it 
 PROV_RAMP = ((0.04, 0.02, 0.12), (1.10, 1.40, 2.00))
 LINEUP_ZOOM = 2
 LINEUP = (   # (label, lump, folder or "new"/"prov")
-    ("provisional hoy (SDPS x1,75 cobalto)", "SDPSA1", "prov"), ("nuevo Q1 (fase 1)", "SDCNQ1", "new"),
-    ("nuevo B1 (fase 2)", "SDCNB1", "new"), ("Coloso SDLC B1", "SDLCB1", "colossus"),
-    ("El General SDGN B1", "SDGNB1", "general"), ("Panzermensch Schwer", "SDPSA1", "panzermensch"),
-    ("nuevo E1 (bolas)", "SDCNE1", "new"), ("nuevo F1 (cohetes)", "SDCNF1", "new"),
-    ("nuevo G1 (dispara)", "SDCNG1", "new"), ("nuevo S1 (ruptura)", "SDCNS1", "new"),
+    ("provisional today (SDPS x1.75 cobalt)", "SDPSA1", "prov"), ("new Q1 (phase 1)", "SDCNQ1", "new"),
+    ("new B1 (phase 2)", "SDCNB1", "new"), ("Colossus SDLC B1", "SDLCB1", "colossus"),
+    ("The General SDGN B1", "SDGNB1", "general"), ("Panzermensch Schwer", "SDPSA1", "panzermensch"),
+    ("new E1 (orbs)", "SDCNE1", "new"), ("new F1 (rockets)", "SDCNF1", "new"),
+    ("new G1 (fires)", "SDCNG1", "new"), ("new S1 (breach)", "SDCNS1", "new"),
 )
 # (key, view): (lump, what was wrong and what was done) - the before/after panel
 REPAIR_NOTES.update({
-    ("aim", 1): ("E2 (y E8)", "el brazo del Reich levantaba un proyector cromado brillando: repintado como el "
-                               "lanzacohetes, la boca oscura"),
-    ("aim", 3): ("E4 (y E6)", "un tercer brazo (el de la Legión, levantado y además colgando): fuera el que cuelga"),
-    ("aim", 4): ("E5", "de espaldas, el brazo levantado también colgaba: fuera"),
-    ("aim", 5): ("F1", "el lanzacohetes en boca lo levantaba el brazo de la Legión y otro colgaba del Reich: cuerpo "
-                       "espejado, el lanzacohetes se queda (oliva) en el brazo del Reich; el de la Legión cuelga con "
-                       "su proyector (de rooted)"),
-    ("aim", 7): ("F3 (y F7)", "un proyector apuntando hacia atrás (fuera), el puño rosa en el lanzacohetes (gris "
-                              "verdoso), el lanzacohetes colgando (fuera); la cadera que tapaba, con el propio nudo de cables"),
-    ("aim", 8): ("F4 (y F6)", "el brazo de la Legión levantado hacia atrás: colgando (de E4); el lanzacohetes "
-                              "repetido colgando: fuera"),
-    ("aim", 9): ("F5", "lo mismo de espaldas"),
-    ("walk", 0): ("A1", "la falda de cables en lugar de la pierna del Reich: piernas de C1"),
-    ("walk", 3): ("A4 (y A6)", "la falda de cables en lugar de una pierna: piernas de C4"),
-    ("walk", 4): ("A5", "la falda de cables en lugar de una pierna: piernas de C5"),
-    ("fire_v2", 0): ("G1", "bola en el puño del Reich y cohete en la mano de la Legión: cuerpo espejado, brazos en su "
-                           "sitio, piel repintada; piernas -> nudo de cables y humo"),
-    ("fire_v2", 1): ("G2 (y G8)", "la bola salía de la boca del lanzacohetes y el cohete de la Legión: fogonazo "
-                                  "naranja / descarga azul en cromo; piernas -> nudo"),
-    ("fire_v2", 2): ("G3 (y G7)", "el lanzacohetes cruzaba la figura vecina (separado a mano); piernas -> nudo"),
-    ("fire_v2", 3): ("G4 (y G6)", "bola del brazo del Reich (fogonazo) y un cohete disparado hacia atrás (fuera); "
-                                  "piernas -> nudo"),
-    ("fire_v2", 4): ("G5", "piernas -> nudo de cables y humo"),
-    ("fire", 0): ("H1", "la hoja descartada: fuera el cohete y el fogonazo"),
-    ("fire", 1): ("H2 (y H8)", "fuera el cohete y el fogonazo"),
-    ("fire", 2): ("H3 (y H7)", "fuera el cohete"),
-    ("fire", 3): ("H4 (y H6)", "fuera el cohete"),
-    ("fire", 4): ("H5", "fuera el fogonazo"),
+    ("aim", 1): ("E2 (and E8)", "the Reich arm raised a glowing chrome projector: repainted as the "
+                                 "rocket launcher, dark muzzle"),
+    ("aim", 3): ("E4 (and E6)", "a third arm (the Legion's, raised and also hanging): the hanging one removed"),
+    ("aim", 4): ("E5", "from the back, the raised arm also hung: removed"),
+    ("aim", 5): ("F1", "the muzzle-on launcher was raised by the Legion arm and another hung from the Reich one: body "
+                       "mirrored, the launcher stays (olive) on the Reich arm; the Legion arm hangs with "
+                       "its projector (from rooted)"),
+    ("aim", 7): ("F3 (and F7)", "a projector pointing backwards (removed), the pink fist on the launcher (grey-"
+                                "green), the launcher hanging (removed); the hip it covered, with the cable knot itself"),
+    ("aim", 8): ("F4 (and F6)", "the Legion arm raised backwards: hanging (from E4); the repeated "
+                                "launcher hanging: removed"),
+    ("aim", 9): ("F5", "the same from the back"),
+    ("walk", 0): ("A1", "the cable skirt instead of the Reich leg: legs from C1"),
+    ("walk", 3): ("A4 (and A6)", "the cable skirt instead of a leg: legs from C4"),
+    ("walk", 4): ("A5", "the cable skirt instead of a leg: legs from C5"),
+    ("fire_v2", 0): ("G1", "orb in the Reich fist and rocket in the Legion hand: body mirrored, arms in their "
+                           "place, skin repainted; legs -> cable knot and smoke"),
+    ("fire_v2", 1): ("G2 (and G8)", "the orb came out of the launcher's muzzle and the rocket from the Legion: orange "
+                                    "flash / blue discharge on chrome; legs -> knot"),
+    ("fire_v2", 2): ("G3 (and G7)", "the launcher crossed the neighbouring figure (parted by hand); legs -> knot"),
+    ("fire_v2", 3): ("G4 (and G6)", "orb from the Reich arm (flash) and a rocket fired backwards (removed); "
+                                    "legs -> knot"),
+    ("fire_v2", 4): ("G5", "legs -> cable knot and smoke"),
+    ("fire", 0): ("H1", "the discarded sheet: rocket and flash removed"),
+    ("fire", 1): ("H2 (and H8)", "rocket and flash removed"),
+    ("fire", 2): ("H3 (and H7)", "rocket removed"),
+    ("fire", 3): ("H4 (and H6)", "rocket removed"),
+    ("fire", 4): ("H5", "flash removed"),
 })
 PANEL_ZOOM = 2
 
@@ -1031,8 +1031,8 @@ def repair_panel(base: float, ref_dir: Path = ge.REF_DIR) -> Image.Image:
     prof = repaired(key, first + PROFILE, cuts)
     mirror = canonical(prof)
     mirror = View(mirror.rgb[:, ::-1].copy(), mirror.mask[:, ::-1].copy())
-    pairs.append(("Q7 (y todas las 6-8)", "el otro lado: un espejo pondría el brazalete en el brazo de la Legión; "
-                  "se intercambian los materiales de las dos mitades",
+    pairs.append(("Q7 (and all of 6-8)", "the other side: a mirror would put the armband on the Legion arm; "
+                  "the two halves' materials are swapped instead",
                   sprite_picture(mirror, 1.0, base, pal), sprite_picture(swap_halves(prof, HELMET_ROWS), 1.0, base, pal)))
     z = PANEL_ZOOM
     try:
@@ -1048,7 +1048,7 @@ def repair_panel(base: float, ref_dir: Path = ge.REF_DIR) -> Image.Image:
     for i, (lump, note, before, after) in enumerate(pairs):
         cx, cy = (i % cols) * cell_w, (i // cols) * cell_h
         x = cx + 8
-        for pic, tag in ((before, "Gemini"), (after, "arreglado")):
+        for pic, tag in ((before, "Gemini"), (after, "fixed")):
             im = Image.fromarray(pic, "RGBA")
             im = im.resize((im.width * z, im.height * z), Image.NEAREST)
             y = cy + cell_h - 58 - im.height
@@ -1069,7 +1069,7 @@ def repair_panel(base: float, ref_dir: Path = ge.REF_DIR) -> Image.Image:
 
 
 def provisional_frames(spec, sprites_dir: Path = ge.SPRITES_DIR) -> dict:
-    """What the actor wears today (SDPS, tinted, x1.75) under the new letters, for the 'actual' strips:
+    """What the actor wears today (SDPS, tinted, x1.75) under the new letters, for the 'current' strips:
     rooted Q/R and B/D show its A/B; E-H its E-H; S its H; death I-O its I-O; A/C its A/C."""
     import colossus_gemini as cgz
     src = {}
@@ -1128,23 +1128,23 @@ def lineup(new_dir: Path, sprites_dir: Path = ge.SPRITES_DIR, z: int = LINEUP_ZO
 
 
 INTRO = (
-    "<p>El <b>Consorcio</b> (<code>SD_Consortium</code>, jefe final del episodio 3, sprite <code>SDCN</code>, "
-    "95 lumps: diseño <code>docs/engine/2026-10-22_P4_ep3-final-boss.md</code> §5), sacado de las 8 hojas de Gemini "
-    "(<code>rooted</code>, <code>turn</code>, <code>walk</code>, <code>aim</code>, <code>fire</code> descartada, "
-    "<code>fire_v2</code>, <code>breach</code>, <code>death</code>). <b>Actual</b> = lo que lleva hoy: el Panzermensch "
-    "Schwer <code>SDPS</code> ×1,75 teñido de cobalto (D116; el tinte aquí es una imitación, NO VERIFICADO). "
-    "<b>Nuevo</b> = SDCN a escala de jefe final: 140 px de alto (2× el Panzermensch; el Coloso mide 128), sin "
-    "<code>Scale</code> ni tinte. Todo ×3 sin suavizado sobre su línea de suelo con los offsets reales.</p>"
-    "<p><b>Los lados</b> (doc §2): la mitad del Reich a <b>su izquierda</b>: de frente, a la <b>derecha</b> del "
-    "espectador (los cohetes salen 32 unidades a su izquierda y las bolas a su derecha, como en el actor). Gemini "
-    "dibujó todas las hojas al revés: se espejan. <b>Las rotaciones 6-8</b> (su lado derecho, el de la Legión) no "
-    "las dibujó Gemini: son el 3/4, el perfil y el 3/4 de espalda sin espejar, con los materiales de las dos mitades "
-    "intercambiados por código (el brazalete nunca cambia de brazo). <b>Los brazos</b>: lo que arreglé a mano, sin "
-    "Gemini, está en el panel «Gemini / arreglado» y en la lista de cada fotograma; la cadera del perfil de F, que "
-    "Gemini nunca dibujó (la tapaba el lanzacohetes), se rellena con el propio nudo de cables (probé Fooocus local sobre la propia hoja, D127: pintó piernas verdes y calaveras, descartado). "
-    "Brazalete: el símbolo de <code>armband_symbol.py</code> (opción 1, D108/D114). Nada instalado: lumps en "
-    "<code>work/art/enemies_gemini/consortium/</code> con <code>install.sh</code> y el parche del actor (quita el tinte "
-    "y la escala provisionales; enraizado Q R, ruptura S). Marca OK / NO / ? por fila y pulsa <b>Copiar resultado</b>.</p>")
+    "<p>The <b>Consortium</b> (<code>SD_Consortium</code>, Episode 3's final boss, sprite <code>SDCN</code>, "
+    "95 lumps: design <code>docs/engine/2026-10-22_P4_ep3-final-boss.md</code> §5), taken from Gemini's 8 sheets "
+    "(<code>rooted</code>, <code>turn</code>, <code>walk</code>, <code>aim</code>, the discarded <code>fire</code>, "
+    "<code>fire_v2</code>, <code>breach</code>, <code>death</code>). <b>Current</b> = what it wears today: the Panzermensch "
+    "Schwer <code>SDPS</code> ×1.75 tinted cobalt (D116; the tint here is an imitation, NOT VERIFIED). "
+    "<b>New</b> = SDCN at final-boss scale: 140 px tall (2× the Panzermensch; the Colossus is 128), no "
+    "<code>Scale</code> and no tint. Everything ×3 without smoothing on its floor line with the real offsets.</p>"
+    "<p><b>The sides</b> (doc §2): the Reich half on <b>its left</b>: from the front, on the viewer's <b>right</b> "
+    "(the rockets leave 32 units to its left and the orbs to its right, as in the actor). Gemini "
+    "drew every sheet the wrong way round: they are mirrored. <b>Rotations 6-8</b> (its right side, the Legion's) "
+    "were not drawn by Gemini: they are the 3/4, the profile and the 3/4 back not mirrored, with the two halves' materials "
+    "swapped in code (the armband never changes arm). <b>The arms</b>: what I fixed by hand, without "
+    "Gemini, is in the «Gemini / fixed» panel and in each frame's list; the hip of F's profile, which "
+    "Gemini never drew (the launcher covered it), is filled with the cable knot itself (I tried local Fooocus on the sheet itself, D127: it painted green legs and skulls, discarded). "
+    "Armband: <code>armband_symbol.py</code>'s symbol (option 1, D108/D114). Nothing installed: lumps in "
+    "<code>work/art/enemies_gemini/consortium/</code> with <code>install.sh</code> and the actor patch (removes the provisional tint "
+    "and scale; rooted Q R, breach S). Mark OK / NO / ? per row and press <b>Copy result</b>.</p>")
 
 
 def consortium_sheet(spec, out: Path = SHEET_HTML, out_root: Path = ge.OUT_ROOT,
@@ -1156,27 +1156,27 @@ def consortium_sheet(spec, out: Path = SHEET_HTML, out_root: Path = ge.OUT_ROOT,
         "anims": [{"label": a[0], "seq": [list(s) for s in a[1]]} for a in spec.anims],
         "cur": provisional_frames(spec, sprites_dir), "new": ge._frames_json(new_dir, spec.sprite),
         "derived": list(spec.derived), "notes": spec.notes,
-        "gate": metrics.get("gate", []) + [f"sin relleno de Fooocus todavía: {n}" for n in sorted(set(GEN_MISSING))],
+        "gate": metrics.get("gate", []) + [f"no Fooocus fill yet: {n}" for n in sorted(set(GEN_MISSING))],
         "reask": metrics.get("reask", []), "symbol": ge.symbol_summary(metrics),
         "sheets": {k: [f["facing"] for f in v["figures"]] for k, v in metrics["sheets"].items()},
     }
     panel = repair_panel(metrics["base_scale"], ref_dir)
     intro = INTRO + (
-        f'<h3>Escala: provisional, nuevo, el Coloso, el General y el Schwer (×{LINEUP_ZOOM})</h3><p><img alt="Línea de '
-        f'escala" style="max-width:100%;image-rendering:pixelated" src="{ge._b64(lineup(new_dir, sprites_dir))}"></p>'
-        f'<h3>Arreglado a mano, sin Gemini (×{PANEL_ZOOM}; «Gemini» = su vista solo espejada)</h3><p><img alt="Antes y '
-        f'después" style="max-width:100%;image-rendering:pixelated" src="{ge._b64(panel)}"></p>')
+        f'<h3>Scale: provisional, new, the Colossus, the General and the Schwer (×{LINEUP_ZOOM})</h3><p><img alt="Scale '
+        f'line-up" style="max-width:100%;image-rendering:pixelated" src="{ge._b64(lineup(new_dir, sprites_dir))}"></p>'
+        f'<h3>Fixed by hand, without Gemini (×{PANEL_ZOOM}; «Gemini» = its view only mirrored)</h3><p><img alt="Before and '
+        f'after" style="max-width:100%;image-rendering:pixelated" src="{ge._b64(panel)}"></p>')
     html = ge.SHEET_TEMPLATE
     for old, new in (
-            ("<title>Enemigos Gemini</title>", "<title>Consorcio Gemini</title>"),
-            ("Soviet Doom · Enemigos rehechos con Gemini (borrador)",
-             "Soviet Doom · El Consorcio, jefe final, con Gemini (borrador)"),
+            ("<title>Gemini Enemies</title>", "<title>Gemini Consortium</title>"),
+            ("Soviet Doom · Enemies redrawn with Gemini (draft)",
+             "Soviet Doom · The Consortium, final boss, with Gemini (draft)"),
             ('const KEY = "sd-2026-10-22_P4_enemies-gemini";', 'const KEY = "sd-2026-10-24_P4_consortium-gemini";'),
-            ("Enemigos Gemini (2026-10-22_P4, D104/D105)", "Consorcio Gemini (2026-10-24_P4, D112/D127)")):
+            ("Gemini enemies (2026-10-22_P4, D104/D105)", "Gemini Consortium (2026-10-24_P4, D112/D127)")):
         if html.count(old) != 1:
             raise ValueError(f"consortium_sheet: the review template changed ({old!r})")
         html = html.replace(old, new)
-    i0 = html.index("<p>Cada enemigo")
+    i0 = html.index("<p>Each enemy")
     i1 = html.index("</p>", i0) + len("</p>")
     html = html[:i0] + intro + html[i1:]
     html = html.replace("/*ITEMS*/[]", json.dumps([item]))

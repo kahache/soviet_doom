@@ -437,10 +437,10 @@ M4_CODA = mel("""E4:2 E4:1 E4:1 G4:2 E4:2 B4:6 A4:2 | E4:2 E4:1 E4:1 G4:2 E4:2 C
 B4:2 B4:1 B4:1 D#5:2 B4:2 F#5:8 | B4:2 r:2 B4:2 r:2 B4:2 B4:2 r:4""")
 
 M4_VARIANTS = (
-    Variant("D_SDM04A", "A", 138.0, 0, "Mi menor, 138 BPM: galope de semicorcheas, trompas y trompetas, "
-            "sección B «la estepa» en sol mayor (cuerdas)"),
-    Variant("D_SDM04B", "B", 132.0, 3, "Sol menor, 132 BPM: ostinato 3-3-2 de cuerdas staccato, trombones "
-            "en el tema, sección B «la persecución» (llamadas de trompeta), coral en coro"),
+    Variant("D_SDM04A", "A", 138.0, 0, "E minor, 138 BPM: sixteenth-note gallop, horns and trumpets, "
+            "B section «the steppe» in G major (strings)"),
+    Variant("D_SDM04B", "B", 132.0, 3, "G minor, 132 BPM: 3-3-2 ostinato of staccato strings, trombones "
+            "on the theme, B section «the pursuit» (trumpet calls), chorale in the choir"),
 )
 
 
@@ -494,7 +494,7 @@ def build_map04(v: Variant) -> Song:
     fl = v.flavour
 
     # -- Intro: the engine starts, the whistle -----------------------------------
-    i0 = s.section("Intro · el motor", "Em | Em | Em | Em,B7")
+    i0 = s.section("Intro · the engine", "Em | Em | Em | Em,B7")
     for b in range(i0, i0 + 4):
         m4_rail(s, b, 0 if b == i0 else 1, fl)
         m4_engine(s, b, 1 if b == i0 else 2, fl)
@@ -506,7 +506,7 @@ def build_map04(v: Variant) -> Song:
     s.roll("timp", (i0 + 3) * 4 + 2.0, 2.0, 50, 100, 0.25, p=in_range((4 + v.transpose + 7) % 12, pitch("E2")))
 
     # -- A1: the theme --------------------------------------------------------------
-    a1 = s.section("A · el tema", M4_THEME_H)
+    a1 = s.section("A · the theme", M4_THEME_H)
     if A:
         s.line("horns", M4_THEME, a1, 98, MARCATO)
     else:
@@ -520,7 +520,7 @@ def build_map04(v: Variant) -> Song:
     s.hit(CRASH, a1 * 4, 100)
 
     # -- A2: trumpets take it, a choir of horns under, the counter-line ---------
-    a2 = s.section("A' · trompetas", M4_THEME_H)
+    a2 = s.section("A' · trumpets", M4_THEME_H)
     s.line("tpt", M4_THEME, a2, 98, MARCATO)
     s.harmonize("horns" if A else "brass", M4_THEME, a2, 76, MARCATO)
     s.line("strings", M4_COUNTER, a2, 74, LEGATO)
@@ -531,7 +531,7 @@ def build_map04(v: Variant) -> Song:
 
     # -- B ------------------------------------------------------------------------
     if A:
-        b0 = s.section("B · la estepa", M4_STEPPE_H)
+        b0 = s.section("B · the steppe", M4_STEPPE_H)
         s.line("strings", M4_STEPPE, b0, 90, LEGATO, accent=4)
         s.line("horns", M4_STEPPE[8:], b0 + 8, 82, LEGATO, octave=-1)
         for b in range(b0, b0 + 16):
@@ -544,7 +544,7 @@ def build_map04(v: Variant) -> Song:
         s.hit(CRASH, b0 * 4, 92)
         s.hit(CRASH, (b0 + 8) * 4, 96)
     else:
-        b0 = s.section("B · la persecución", M4_PURSUIT_H)
+        b0 = s.section("B · the pursuit", M4_PURSUIT_H)
         for rep in range(2):
             for i, (who, bar) in enumerate(zip(M4_PURSUIT_WHO, M4_PURSUIT)):
                 b = b0 + 8 * rep + i
@@ -564,7 +564,7 @@ def build_map04(v: Variant) -> Song:
         s.hit(CRASH, (b0 + 8) * 4, 104)
 
     # -- C: the armoured train (chorale) + the build -------------------------------
-    c0 = s.section("C · el tren blindado", M4_CHORALE_H)
+    c0 = s.section("C · the armoured train", M4_CHORALE_H)
     if A:
         s.line("horns", M4_CHORALE, c0, 88, LEGATO, accent=4)
         s.harmonize("tbn", M4_CHORALE, c0, 78, LEGATO, voices=2)
@@ -580,7 +580,7 @@ def build_map04(v: Variant) -> Song:
         if (b - c0) % 4 == 3:
             s.roll("timp", b * 4 + 2.0, 2.0, 46, 84, 0.25,
                    p=in_range(s.chord(s.harmony[b][0][2])[0], pitch("E2")))
-    k0 = s.section("Subida", M4_BUILD_H)
+    k0 = s.section("Build", M4_BUILD_H)
     s.line("tpt", M4_BUILD, k0, 94, MARCATO, swell=4)
     s.line("horns", M4_BUILD, k0, 84, MARCATO, octave=-1, swell=4)
     s.line("tbn", M4_BUILD_ANS, k0, 92, MARCATO, swell=4)
@@ -611,7 +611,7 @@ def build_map04(v: Variant) -> Song:
         s.hit(CRASH, b1 * 4, 106)
 
     # -- Coda: the motif climbs, back to the engine ----------------------------------
-    d0 = s.section("Vuelta", M4_CODA_H)
+    d0 = s.section("Return", M4_CODA_H)
     s.line("tpt", M4_CODA, d0, 102, MARCATO)
     s.line("horns", M4_CODA, d0, 88, MARCATO, octave=-1)
     s.line("tbn", M4_CODA[:3], d0, 84, MARCATO, octave=-1)
@@ -652,10 +652,10 @@ M5_BUILD_H = "Ab | Ab | G | G7"
 M5_BUILD = mel("Eb4:4 Ab4:4 C5:8 | Eb5:16 | D5:4 D5:4 D5:4 D5:4 | B4:4 D5:4 F5:4 G5:4")
 
 M5_VARIANTS = (
-    Variant("D_SDM05A", "A", 116.0, 0, "Do menor, 116 BPM: zumbido de órgano en los graves, pulso de "
-            "turbina en corcheas, trompas en el tema, el río en las cuerdas"),
-    Variant("D_SDM05B", "B", 108.0, 2, "Re menor, 108 BPM, en medio tiempo: tema en cuerdas + coro, "
-            "taiko en vez de bombo, contrabajos; el río en la trompa sola"),
+    Variant("D_SDM05A", "A", 116.0, 0, "C minor, 116 BPM: organ hum in the bass, turbine pulse "
+            "in eighths, horns on the theme, the river in the strings"),
+    Variant("D_SDM05B", "B", 108.0, 2, "D minor, 108 BPM, half-time: theme in strings + choir, "
+            "taiko instead of kick, double basses; the river on the solo horn"),
 )
 
 
@@ -727,7 +727,7 @@ def build_map05(v: Variant) -> Song:
              lead_parts=("horns", "tpt", "strings") if not A else ("horns", "tpt", "tbn"))
     fl = v.flavour
 
-    i0 = s.section("Intro · la sala de turbinas", M5_INTRO_H)
+    i0 = s.section("Intro · the turbine hall", M5_INTRO_H)
     s.line("tbn", M5_INTRO_TBN, i0, 98, LEGATO)
     s.line("tuba", M5_INTRO_TBN, i0, 70, LEGATO, octave=-1)
     for b in range(i0, i0 + 4):
@@ -736,7 +736,7 @@ def build_map05(v: Variant) -> Song:
     s.roll("timp", (i0 + 3) * 4, 4.0, 40, 104, 0.25, p=in_range((7 + v.transpose) % 12, pitch("E2")))
 
     # -- A1 ----------------------------------------------------------------------------------
-    a1 = s.section("A · el tema", M5_THEME_H)
+    a1 = s.section("A · the theme", M5_THEME_H)
     if A:
         s.line("horns", M5_THEME, a1, 100, LEGATO)
     else:
@@ -751,7 +751,7 @@ def build_map05(v: Variant) -> Song:
     s.hit(CRASH, a1 * 4, 100)
 
     # -- A2: trumpets + horns, trombone counter-line ------------------------------------------
-    a2 = s.section("A' · metales", M5_THEME_H)
+    a2 = s.section("A' · brass", M5_THEME_H)
     s.line("tpt", M5_THEME, a2, 96, LEGATO)
     s.line("horns", M5_THEME, a2, 92, LEGATO, octave=0 if A else -1)
     s.line("tbn", M5_TBN_COUNTER, a2, 90, LEGATO)
@@ -764,7 +764,7 @@ def build_map05(v: Variant) -> Song:
     s.hit(CRASH, a2 * 4, 104)
 
     # -- B: the river, then the spillway -----------------------------------------------------
-    r0 = s.section("B · el río", M5_RIVER_H)
+    r0 = s.section("B · the river", M5_RIVER_H)
     if A:
         s.line("strings", M5_RIVER, r0, 92, LEGATO, accent=4)
         for b in range(r0, r0 + 8):
@@ -778,7 +778,7 @@ def build_map05(v: Variant) -> Song:
         m5_machine(s, b, 1, fl)
         m5_drums(s, b, 1, fl)
     s.hit(CRASH, r0 * 4, 84)
-    d0 = s.section("B' · el aliviadero", M5_DEV_H)
+    d0 = s.section("B' · the spillway", M5_DEV_H)
     for i, (who, bar) in enumerate(zip(M5_DEV_WHO, M5_DEV)):
         b = d0 + i
         if who in ("tbn", "tutti"):
@@ -795,7 +795,7 @@ def build_map05(v: Variant) -> Song:
     s.roll(SNARE, (d0 + 7) * 4, 4.0, 50, 104)
 
     # -- C: the turbine hall -------------------------------------------------------------------
-    h0 = s.section("C · las turbinas", M5_HALL_H)
+    h0 = s.section("C · the turbines", M5_HALL_H)
     s.line("tbn", M5_HALL, h0, 94, LEGATO)
     s.line("tuba", M5_HALL, h0, 80, LEGATO, octave=-1)
     if not A:
@@ -806,7 +806,7 @@ def build_map05(v: Variant) -> Song:
         s.pattern("low", b, "RrrrRrrrRrrrRrrr", "C2", 58, art=0.6, accent=16)
         m5_drums(s, b, 1, fl)
     s.hit(CRASH, h0 * 4, 90)
-    k0 = s.section("Subida", M5_BUILD_H)
+    k0 = s.section("Build", M5_BUILD_H)
     s.line("horns", M5_BUILD, k0, 94, LEGATO, swell=3)
     s.line("tpt", M5_BUILD[2:], k0 + 2, 96, MARCATO, swell=4)
     for b in range(k0, k0 + 4):
@@ -868,10 +868,10 @@ M6_CODA_H = "Db | Bbm | C | C7"
 M6_CODA = mel("Ab4:8 Db5:4 F5:4 | F5:8 Db5:4 Bb4:4 | C5:16 | C5:2 C5:1 C5:1 C5:4 r:8")
 
 M6_VARIANTS = (
-    Variant("D_SDM06A", "A", 120.0, 0, "Fa menor, 120 BPM: marcha con caja militar, trompetas en el tema "
-            "y coro de metales debajo, coral con campanas, arena del jefe en semicorcheas"),
-    Variant("D_SDM06B", "B", 112.0, -2, "Mi bemol menor, 112 BPM, más solemne y pesada: tema en trompas + "
-            "coro, caja con redobles, taiko; la arena con metales en bloque"),
+    Variant("D_SDM06A", "A", 120.0, 0, "F minor, 120 BPM: march with military snare, trumpets on the theme "
+            "and a brass choir under it, chorale with bells, boss arena in sixteenths"),
+    Variant("D_SDM06B", "B", 112.0, -2, "E-flat minor, 112 BPM, more solemn and heavier: theme in horns + "
+            "choir, snare with rolls, taiko; the arena with block brass"),
 )
 BOSS_BARS = (28, 52)                 # B + B' of MAP06, cut out as the boss-arena loop
 
@@ -924,7 +924,7 @@ def build_map06(v: Variant) -> Song:
     fl = v.flavour
 
     # -- Intro: the drums of the parade -------------------------------------------------------
-    i0 = s.section("Intro · el desfile", M6_INTRO_H)
+    i0 = s.section("Intro · the parade", M6_INTRO_H)
     for b in range(i0, i0 + 4):
         m6_march(s, b, fl, 2, b - i0)
         s.chords("trem", b, "F3", 50 + 4 * (b - i0))
@@ -957,16 +957,16 @@ def build_map06(v: Variant) -> Song:
         s.hit(CRASH, b1 * 4, 104)
         s.hit(CRASH2, (b1 + 4) * 4, 86)
 
-    a1 = s.section("A · el tema", M6_THEME_H)
+    a1 = s.section("A · the theme", M6_THEME_H)
     theme_block(a1, big=False)
-    a2 = s.section("A' · coro de metales", M6_THEME_H)
+    a2 = s.section("A' · brass choir", M6_THEME_H)
     theme_block(a2, big=True)
     if A:
         for b in range(a2, a2 + 8):
             s.chords("choir", b, "F3", 54)
 
     # -- The chorale: the Kremlin ---------------------------------------------------------------
-    c0 = s.section("Coral · el Kremlin", M6_CHORALE_H)
+    c0 = s.section("Chorale · the Kremlin", M6_CHORALE_H)
     top = "horns" if A else "choir"
     s.line(top, M6_CHORALE, c0, 90, LEGATO, accent=4)
     s.harmonize("tbn" if A else "strings", M6_CHORALE, c0, 80 if A else 72, LEGATO, voices=2)
@@ -981,7 +981,7 @@ def build_map06(v: Variant) -> Song:
     s.roll("timp", (c0 + 7) * 4, 4.0, 40, 108, 0.25, p=in_range((0 + v.transpose) % 12, pitch("E2")))
 
     # -- B: the boss arena ------------------------------------------------------------------------
-    b0 = s.section("B · la arena del jefe", M6_BOSS_H + " | " + M6_BOSS_H)
+    b0 = s.section("B · the boss arena", M6_BOSS_H + " | " + M6_BOSS_H)
     assert b0 == BOSS_BARS[0], b0
     for rep in range(2):
         b1 = b0 + 8 * rep
@@ -1002,7 +1002,7 @@ def build_map06(v: Variant) -> Song:
             m6_march(s, b, fl, 3, b - b1)
         s.hit(CRASH, b1 * 4, 108)
 
-    k0 = s.section("B' · subida", M6_BUILD_H)
+    k0 = s.section("B' · build", M6_BUILD_H)
     s.line("tpt", M6_BUILD, k0, 96, MARCATO, swell=1.5)
     s.line("horns", M6_BUILD, k0, 88, MARCATO, octave=-1, swell=1.5)
     for b in range(k0, k0 + 8):
@@ -1027,7 +1027,7 @@ def build_map06(v: Variant) -> Song:
         s.chords("choir", b, "F3", 60)
 
     # -- Coda: plagal turn, the drum leads back to the parade ------------------------------------
-    d0 = s.section("Vuelta", M6_CODA_H)
+    d0 = s.section("Return", M6_CODA_H)
     s.line("tpt", M6_CODA, d0, 98, MARCATO)
     s.line("horns", M6_CODA, d0, 90, MARCATO, octave=-1)
     for b in range(d0, d0 + 4):
@@ -1055,10 +1055,10 @@ F5:4 Eb5:2 Db5:2 Db5:3 C5:1 Bb4:4 | C5:6 Bb4:1 Ab4:1 G4:4 E4:4""")
 INT_DAM = mel("C4:6 F4:2 Ab4:8 | Ab4:6 F4:2 Db4:4 F4:4 | Bb4:6 Ab4:2 G4:4 E4:4 | F4:12 r:4")
 
 INT_VARIANTS = (
-    Variant("D_SDE2IA", "A", 92.0, 0, "Fa menor, 92 BPM, recogida: trompa sola con cuerdas, "
-            "el tren en trompeta con sordina y pizzicato, la presa en metales"),
-    Variant("D_SDE2IB", "B", 104.0, 0, "Fa menor, 104 BPM, en marcha: trompetas, caja militar y "
-            "coro de metales; los tres motivos sin pausa"),
+    Variant("D_SDE2IA", "A", 92.0, 0, "F minor, 92 BPM, intimate: solo horn with strings, "
+            "the train on muted trumpet and pizzicato, the dam in the brass"),
+    Variant("D_SDE2IB", "B", 104.0, 0, "F minor, 104 BPM, marching: trumpets, military snare and "
+            "brass choir; the three motifs without a pause"),
 )
 
 
@@ -1077,9 +1077,9 @@ def build_intermission(v: Variant) -> Song:
     }
     s = Song(v.lump, "Episode 2 intermission", v.bpm, v.transpose, 5, parts,
              lead_parts=("horns", "tpt", "tbn"))
-    i0 = s.section("Plaza Roja (tema)", M6_THEME_H)
-    t0 = s.section("Transiberiano", "Fm | Eb | Db,Bbm | C7")
-    d0 = s.section("La presa y cadencia", "Fm | Db | Bbm,C7 | Fm")
+    i0 = s.section("Red Square (theme)", M6_THEME_H)
+    t0 = s.section("Trans-Siberian", "Fm | Eb | Db,Bbm | C7")
+    d0 = s.section("The dam and cadence", "Fm | Db | Bbm,C7 | Fm")
     if A:
         s.line("horns", M6_THEME, i0, 92, LEGATO, accent=4)
         s.line("tpt", INT_TRAIN, t0, 84, MARCATO)
@@ -1238,8 +1238,8 @@ def calibrate_and_render(key: str, v: Variant, s: Song, stems: bool) -> dict:
         write_ogg(xb2, rate2, RENDER_DIR / f"{name}.ogg")
         lvb = cm.measure(xb2[: int(secs2 * rate2)], rate2)
         row["boss"] = {"lump": name, "seconds": secs2, "levels": lvb,
-                       "sections": [("B · arena", 0.0), ("B' · subida", round(16 * bar_s, 1)),
-                                    ("Costura (−5 s)", round(secs2 - 5, 1))]}
+                       "sections": [("B · arena", 0.0), ("B' · build", round(16 * bar_s, 1)),
+                                    ("Seam (−5 s)", round(secs2 - 5, 1))]}
     return row
 
 
@@ -1264,38 +1264,38 @@ def levels_txt(rows: list[dict]) -> str:
 # -- The listening sheet --------------------------------------------------------------------------
 
 GROUP_TEXT = {
-    "MAP04": ("MAP04 · Trans-Siberian (estación de clasificación, tren blindado)",
-              "Motor ferroviario: ostinato de bajo y cuerdas que no para, y una percusión de vías "
-              "(charles en semicorcheas, el «ta-DUM» de la baqueta en el aro, el doble golpe de tom de "
-              "los bogies). El motivo de 4 compases repite una nota como las ruedas en las juntas "
-              "(mi-mi-mi) y salta a la quinta como un silbato. Forma: intro del motor · tema · tema en "
-              "trompetas con contracanto · sección B · coral «el tren blindado» sobre las vías solas · "
-              "subida · tutti · vuelta."),
-    "MAP05": ("MAP05 · Volga Dam (sala de turbinas, presa enorme)",
-              "Más ancha y grave: un zumbido de órgano sigue el bajo todo el rato, un pulso de turbina "
-              "debajo y una campana mecánica que cae cada 3 corcheas (3 contra 4, maquinaria). El tema "
-              "sube un arpegio menor en notas largas y acaba una octava más arriba: el muro de la presa. "
-              "Forma: intro de turbinas · tema · tema en metales · el río (mi bemol mayor) · el "
-              "aliviadero (el motivo sube en secuencia) · sala de turbinas (trombones lentos) · subida · tutti."),
-    "MAP06": ("MAP06 · Red Square (el desfile, el Kremlin, el jefe)",
-              "Marcial y solemne: caja militar, bombo en 1 y 3, tuba en «um-pa», trompetas con el tema y "
-              "un coro de metales que armoniza cada nota. Un coral con campanas tubulares (el Kremlin) y "
-              "una sección B mucho más tensa para la arena del jefe: semicorcheas de chelos con la "
-              "semitonía fa-solb, golpes de metal sincopados, timbales en corcheas. Forma: desfile · "
-              "tema · coro de metales · coral · arena · subida cromática · tutti · vuelta."),
-    "BOSS": ("MAP06 · solo la arena del jefe (bucle aparte)",
-             "Las secciones B + B' de cada versión de MAP06 cortadas como bucle propio, por si la arena "
-             "del jefe cambia de música (24 compases). Mismas notas que dentro de la pieza."),
-    "E2INT": ("Intermedio / tema del Episodio 2 (opcional)",
-              "16 compases que recorren el camino: el tema de la Plaza Roja, el motivo del Transiberiano "
-              "y la cadencia de la presa. Para la pantalla entre mapas o el texto del episodio."),
+    "MAP04": ("MAP04 · Trans-Siberian (marshalling yard, armoured train)",
+              "Railway engine: a bass and string ostinato that never stops, and a rail percussion "
+              "(hi-hat in sixteenths, the «ta-DUM» of the rim shot, the double tom hit of "
+              "the bogies). The 4-bar motif repeats one note like the wheels on the rail joints "
+              "(E-E-E) and leaps to the fifth like a whistle. Form: engine intro · theme · theme on "
+              "trumpets with countermelody · B section · chorale «the armoured train» over the bare rails · "
+              "build · tutti · return."),
+    "MAP05": ("MAP05 · Volga Dam (turbine hall, huge dam)",
+              "Broader and lower: an organ hum follows the bass the whole time, a turbine pulse "
+              "underneath and a mechanical bell that falls every 3 eighths (3 against 4, machinery). The theme "
+              "climbs a minor arpeggio in long notes and ends an octave higher: the wall of the dam. "
+              "Form: turbine intro · theme · theme in the brass · the river (E-flat major) · the "
+              "spillway (the motif climbs in sequence) · turbine hall (slow trombones) · build · tutti."),
+    "MAP06": ("MAP06 · Red Square (the parade, the Kremlin, the boss)",
+              "Martial and solemn: military snare, kick on 1 and 3, tuba in «oom-pah», trumpets on the theme and "
+              "a brass choir that harmonises every note. A chorale with tubular bells (the Kremlin) and "
+              "a much tenser B section for the boss arena: cello sixteenths on the "
+              "F-Gb semitone, syncopated brass hits, timpani in eighths. Form: parade · "
+              "theme · brass choir · chorale · arena · chromatic build · tutti · return."),
+    "BOSS": ("MAP06 · the boss arena alone (separate loop)",
+             "The B + B' sections of each MAP06 version cut out as a loop of their own, in case the boss "
+             "arena changes music (24 bars). The same notes as inside the piece."),
+    "E2INT": ("Intermission / Episode 2 theme (optional)",
+              "16 bars that travel the road: the Red Square theme, the Trans-Siberian motif "
+              "and the dam's cadence. For the screen between maps or the episode text."),
 }
 
 
 def sheet_html(rows: list[dict]) -> str:
     items = []
     for r in rows:
-        jumps = [[label, t] for label, t in r["sections"]] + [["Costura (−5 s)", round(r["seconds"] - 5, 1)]]
+        jumps = [[label, t] for label, t in r["sections"]] + [["Seam (−5 s)", round(r["seconds"] - 5, 1)]]
         items.append({"id": r["lump"], "group": r["key"], "src": f"../episode2/render/{r['lump']}.ogg",
                       "len": f"{int(r['seconds'] // 60)}:{int(round(r['seconds'] % 60)):02d}", "bpm": round(r["bpm"]),
                       "what": r["label"], "jumps": jumps, "rec": r["lump"] in RECOMMENDED})
@@ -1303,7 +1303,7 @@ def sheet_html(rows: list[dict]) -> str:
             b = r["boss"]
             items.append({"id": b["lump"], "group": "BOSS", "src": f"../episode2/render/{b['lump']}.ogg",
                           "len": f"{int(b['seconds'] // 60)}:{int(round(b['seconds'] % 60)):02d}", "bpm": round(r["bpm"]),
-                          "what": f"La arena de {r['lump']} sola (compases {BOSS_BARS[0] + 1}-{BOSS_BARS[1]}), en bucle.",
+                          "what": f"The arena of {r['lump']} alone (bars {BOSS_BARS[0] + 1}-{BOSS_BARS[1]}), looped.",
                           "jumps": b["sections"], "rec": b["lump"] in RECOMMENDED})
     order = ["MAP04", "MAP05", "MAP06", "BOSS", "E2INT"]
     items.sort(key=lambda it: (order.index(it["group"]), it["id"]))
@@ -1313,11 +1313,11 @@ def sheet_html(rows: list[dict]) -> str:
 
 
 SHEET_TEMPLATE = r"""<!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Música Episodio 2</title>
+<title>Episode 2 Music</title>
 <style>
 :root{--bg:#f6f4ef;--card:#fff;--ink:#1d1d1b;--mute:#6b6862;--line:#dcd8cf;--accent:#a3201c;--ok:#1f7a3a;--no:#b3261e;--q:#9a6a00;--chip:#efece4;--rec:#a3201c}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--card:#202020;--ink:#ebe8e2;--mute:#a19d95;--line:#3a3834;--accent:#e0574f;--ok:#4cc074;--no:#f0726a;--q:#e3b341;--chip:#2c2b29;--rec:#e0574f}}
@@ -1355,7 +1355,7 @@ audio{width:100%;height:34px;margin:6px 0}
 .btns button.on.q{background:var(--q);border-color:var(--q);color:#111}
 textarea.note{width:100%;min-height:52px;resize:vertical;font:inherit;font-size:13px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);padding:5px 7px}
 .ref{padding:12px}
-.ref .name::after{content:"referencia";margin-left:8px;font-size:11px;border:1px solid var(--line);border-radius:10px;padding:0 7px;color:var(--mute)}
+.ref .name::after{content:"reference";margin-left:8px;font-size:11px;border:1px solid var(--line);border-radius:10px;padding:0 7px;color:var(--mute)}
 #result{width:100%;min-height:150px;font:12.5px ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);padding:10px}
 .copied{color:var(--ok);font-weight:600;margin-left:8px}
 footer{color:var(--mute);font-size:12.5px;margin-top:24px}
@@ -1364,29 +1364,29 @@ footer{color:var(--mute);font-size:12.5px;margin-top:24px}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <h1>Música del Episodio 2 · «The Road to Moscow»</h1>
-  <span class="prog"><b id="pDone">0</b> / __N__ juzgadas</span>
-  <button class="primary" id="copyTop">Copiar resultado</button><span class="copied" id="copiedTop"></span>
+  <h1>Episode 2 Music · «The Road to Moscow»</h1>
+  <span class="prog"><b id="pDone">0</b> / __N__ judged</span>
+  <button class="primary" id="copyTop">Copy result</button><span class="copied" id="copiedTop"></span>
 </div></header>
 <div class="wrap">
 <div class="intro">
-  <p><b>Qué es (D104).</b> Borradores <b>originales</b> para los tres mapas nuevos, compuestos como el <code>D_SDM1N2</code> de MAP01 (misma herramienta, misma orquesta General MIDI que suena en GZDoom: trompas, trombones, trompetas, tuba, bajo sintético, chelos, cuerdas, timbales, batería GM; más órgano, coro y campanas donde pegan). No citan ninguna canción soviética ni popular: no hay derechos de terceros.</p>
-  <p><b>Dos versiones por mapa que suenan distintas de verdad</b>: cambian tonalidad, tempo, ritmo de fondo e instrumentos del tema (y en MAP04, toda la sección B). El motivo de 4 compases es el mismo en las dos, para que el mapa tenga una identidad elijas la que elijas. La marcada <span class="badge">recomendada</span> es la que yo instalaría.</p>
-  <p class="meta">Renders con el propio sintetizador de GZDoom (zmusic + gzdoom.sf2), sin arrancar el juego. Cada audio <b>sigue 10 s después del punto de bucle</b> para oír la costura. Volumen igualado con <code>D_SDM1N2</code> (MAP01). Los botones saltan a cada sección. Nada instalado.</p>
+  <p><b>What this is (D104).</b> <b>Original</b> drafts for the three new maps, composed like MAP01's <code>D_SDM1N2</code> (same tool, same General MIDI orchestra that plays in GZDoom: horns, trombones, trumpets, tuba, synth bass, cellos, strings, timpani, GM drums; plus organ, choir and bells where they fit). They quote no Soviet or folk song: there are no third-party rights.</p>
+  <p><b>Two versions per map that really sound different</b>: key, tempo, background rhythm and the theme's instruments change (and in MAP04, the whole B section). The 4-bar motif is the same in both, so the map keeps one identity whichever you pick. The one marked <span class="badge">recommended</span> is the one I would install.</p>
+  <p class="meta">Rendered with GZDoom's own synthesiser (zmusic + gzdoom.sf2), without starting the game. Each audio <b>runs 10 s past the loop point</b> so you can hear the seam. Volume matched to <code>D_SDM1N2</code> (MAP01). The buttons jump to each section. Nothing installed.</p>
 </div>
 <div id="items"></div>
 
-<h2>Referencia: MAP01 instalada</h2>
+<h2>Reference: MAP01 as installed</h2>
 <div class="card ref">
   <div class="name"><code>D_SDM1N2</code><span class="ev">1:30 · 128 BPM</span></div>
-  <p class="meta">La que suena en MAP01 (D95). Para comparar estilo y volumen.</p>
+  <p class="meta">The one that plays in MAP01 (D95). To compare style and volume.</p>
   <audio controls preload="none" src="../map01_new/D_SDM01N2.ogg"></audio>
 </div>
 
-<h2>Resultado</h2>
+<h2>Result</h2>
 <textarea id="result" readonly></textarea>
-<p><button class="primary" id="copyBottom">Copiar resultado</button><span class="copied" id="copiedBottom"></span> <button id="reset">Borrar respuestas</button></p>
-<footer>Generador: <code>tools/audio/compose_episode2.py</code> · MIDIs: <code>work/audio/episode2/*.mid</code> · renders y niveles: <code>work/audio/episode2/render/</code> (<code>LEVELS.txt</code>). Nada instalado: si una vale, la instala el PM con tu OK.</footer>
+<p><button class="primary" id="copyBottom">Copy result</button><span class="copied" id="copiedBottom"></span> <button id="reset">Clear answers</button></p>
+<footer>Generator: <code>tools/audio/compose_episode2.py</code> · MIDIs: <code>work/audio/episode2/*.mid</code> · renders and levels: <code>work/audio/episode2/render/</code> (<code>LEVELS.txt</code>). Nothing installed: if one is good, the PM installs it with your OK.</footer>
 </div>
 <script>
 const ITEMS = __ITEMS__;
@@ -1401,14 +1401,14 @@ const fmt = t => `${Math.floor(t/60)}:${String(Math.round(t%60)).padStart(2,"0")
 function card(it){
   return `<div class="card${it.rec ? " rec" : ""}"><div class="row" id="r-${it.id}" data-id="${it.id}">
     <div>
-      <div class="name"><code>${it.id}</code><span class="ev">${it.len} · ${it.bpm} BPM · bucle + 10 s</span>${it.rec ? '<span class="badge">recomendada</span>' : ""}</div>
+      <div class="name"><code>${it.id}</code><span class="ev">${it.len} · ${it.bpm} BPM · loop + 10 s</span>${it.rec ? '<span class="badge">recommended</span>' : ""}</div>
       <p class="meta">${esc(it.what)}</p>
       <audio controls preload="none" src="${esc(it.src)}"></audio>
       <div class="jumps">${it.jumps.map(([l, t]) => `<button data-t="${t}" title="${fmt(t)}">${esc(l)}</button>`).join("")}</div>
     </div>
     <div class="vote">
       <div class="btns"><button class="ok" data-v="ok">OK</button><button class="no" data-v="no">NO</button><button class="q" data-v="q">?</button></div>
-      <textarea class="note" placeholder="Notas (qué sobra, qué falta, en qué segundo)">${esc(st(it.id).n)}</textarea>
+      <textarea class="note" placeholder="Notes (what is too much, what is missing, at which second)">${esc(st(it.id).n)}</textarea>
     </div>
   </div></div>`;
 }
@@ -1432,18 +1432,18 @@ function summary(){
   const label = {ok:"OK", no:"NO", q:"?"};
   const done = ITEMS.filter(i => st(i.id).v).length;
   document.getElementById("pDone").textContent = done;
-  const L = [`Música Episodio 2 (D104, borradores originales): ${done}/${ITEMS.length} juzgadas`];
+  const L = [`Episode 2 music (D104, original drafts): ${done}/${ITEMS.length} judged`];
   for (const i of ITEMS) {
     const s = st(i.id), n = (s.n || "").trim().replace(/\s+/g, " ");
-    L.push(`${i.id}${i.rec ? " (recomendada)" : ""}: ${label[s.v] || "sin juzgar"}${n ? ` — «${n}»` : ""}`);
+    L.push(`${i.id}${i.rec ? " (recommended)" : ""}: ${label[s.v] || "not judged"}${n ? ` — «${n}»` : ""}`);
   }
   document.getElementById("result").value = L.join("\n");
 }
 function copy(which){
   const t = document.getElementById("result"), msg = document.getElementById(which);
   summary();
-  const ok = () => { msg.textContent = "copiado"; setTimeout(() => msg.textContent = "", 2500); };
-  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? ok() : (msg.textContent = "selecciona y Ctrl+C abajo"); } catch (e) { msg.textContent = "selecciona y Ctrl+C abajo"; } };
+  const ok = () => { msg.textContent = "copied"; setTimeout(() => msg.textContent = "", 2500); };
+  const fallback = () => { t.focus(); t.select(); try { document.execCommand("copy") ? ok() : (msg.textContent = "select and Ctrl+C below"); } catch (e) { msg.textContent = "select and Ctrl+C below"; } };
   try { if (navigator.clipboard && window.isSecureContext !== false) navigator.clipboard.writeText(t.value).then(ok, fallback); else fallback(); } catch (e) { fallback(); }
 }
 document.addEventListener("click", e => {
@@ -1460,7 +1460,7 @@ document.addEventListener("input", e => {
 document.addEventListener("play", e => { document.querySelectorAll("audio").forEach(a => { if (a !== e.target) a.pause(); }); }, true);
 document.getElementById("copyTop").addEventListener("click", () => copy("copiedTop"));
 document.getElementById("copyBottom").addEventListener("click", () => copy("copiedBottom"));
-document.getElementById("reset").addEventListener("click", () => { if (confirm("¿Borrar las respuestas y notas de esta hoja?")) { S = {}; save(); build(); summary(); } });
+document.getElementById("reset").addEventListener("click", () => { if (confirm("Clear the answers and notes on this sheet?")) { S = {}; save(); build(); summary(); } });
 build(); summary();
 </script>
 </body>

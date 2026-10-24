@@ -72,7 +72,7 @@ EPISODE2 = {"D_SDM04A": 0.921, "D_SDM04B": 0.953,
             "D_SDM06A": 0.848, "D_SDM06B": 0.8352,
             "D_SDE2IA": 0.88, "D_SDE2IB": 0.825}
 EPISODE2_BOSS = {"D_SDBS6A": "D_SDM06A", "D_SDBS6B": "D_SDM06B"}
-# D113 (CEO, "las doy por buenas", approved unheard): episode 3's pieces, lump
+# D113 (CEO, "las doy por buenas" ("I take them as good"), approved unheard): episode 3's pieces, lump
 # -> the CC7 scale in work/audio/episode3/render/meta.json (3 places; each one
 # gives back the bytes compose_episode3.calibrate_and_render wrote). The boss
 # loops D_SDBS9A/B are songs of their own in compose_episode3.all_songs().

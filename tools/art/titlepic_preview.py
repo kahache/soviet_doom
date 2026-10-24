@@ -115,44 +115,44 @@ def write(out: Path = gt.PREVIEW, work: Path = gt.OUT_DIR) -> Path:
     logo_chk.alpha_composite(Image.open(logo_free).convert("RGBA"))
     logo_old = Image.open(gt.CUR_M_DOOM).convert("RGBA")
     crop = m["crop_padded"]
-    html = f"""<!doctype html><html lang="es"><head><meta charset="utf-8">
+    html = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Soviet Doom title screen</title><style>{CSS}</style></head><body><main>
-<h1>Pantalla de inicio épica (D126) — TITLEPIC</h1>
-<p>2026-10-24 · P4 · art-director. Fuente: <code>work/art/reference/gemini_titlepic_A.jfif</code>
+<h1>Epic title screen (D126) — TITLEPIC</h1>
+<p>2026-10-24 · P4 · art-director. Source: <code>work/art/reference/gemini_titlepic_A.jfif</code>
 (Gemini, {m['source_size'][0]}×{m['source_size'][1]}, local, D77) → <code>tools/art/gen_titlepic.py</code> →
-320×200 indexado a la paleta v2 ({m['dither']}). Todas las vistas a ×3 y en 4:3 (960×720), como el
-motor muestra una pantalla 320×200 (cada píxel 1,2 veces más alto que ancho).</p>
+320×200 indexed to palette v2 ({m['dither']}). Every view at ×3 and in 4:3 (960×720), the way the
+engine shows a 320×200 screen (each pixel 1.2 times taller than wide).</p>
 
-<div class="ask"><b>Dos preguntas para el CEO.</b><br>
-1. <b>Brazaletes (D105):</b> <span class="tag a">A</span> con el símbolo pintado como en los enemigos
-(D108/D114) o <span class="tag b">B</span> con el cuadro vacío de Gemini.<br>
-2. <b>Logo:</b> <span class="tag rec">recomendado</span> el mismo <code>M_DOOM</code> sin su placa negra (letras sobre
-el cielo, con contorno de 1 px), o el <code>M_DOOM</code> actual con su placa negra (abajo, «alternativa»).
-El logo libre también sustituye a <code>M_DOOM</code> en el menú (mismas letras, mismo sitio, 60,0).</div>
+<div class="ask"><b>Two questions for the CEO.</b><br>
+1. <b>Armbands (D105):</b> <span class="tag a">A</span> with the symbol painted as on the enemies
+(D108/D114) or <span class="tag b">B</span> with Gemini's empty square.<br>
+2. <b>Logo:</b> <span class="tag rec">recommended</span> the same <code>M_DOOM</code> without its black plate (letters on
+the sky, with a 1 px outline), or today's <code>M_DOOM</code> with its black plate (below, «alternative»).
+The free logo also replaces <code>M_DOOM</code> in the menu (same letters, same place, 60,0).</div>
 
-<h2>Hoy</h2>
-<figure><img class="shot" src="{img['cur']}" alt="current TITLEPIC"><figcaption>TITLEPIC actual (D18, «Plakat»).</figcaption></figure>
+<h2>Today</h2>
+<figure><img class="shot" src="{img['cur']}" alt="current TITLEPIC"><figcaption>Current TITLEPIC (D18, «Plakat»).</figcaption></figure>
 
-<h2><span class="tag a">A</span> Con el símbolo en los brazaletes</h2>
+<h2><span class="tag a">A</span> With the symbol on the armbands</h2>
 <figure><img class="shot" src="{img['A']}" alt="TITLEPIC variant A"><figcaption>TITLEPIC_A_free.png ·
-{m['files']['TITLEPIC_A_free.png']['colours']} colores · logo libre.</figcaption></figure>
+{m['files']['TITLEPIC_A_free.png']['colours']} colours · free logo.</figcaption></figure>
 
-<h2><span class="tag b">B</span> Con el cuadro vacío</h2>
+<h2><span class="tag b">B</span> With the empty square</h2>
 <figure><img class="shot" src="{img['B']}" alt="TITLEPIC variant B"><figcaption>TITLEPIC_B_free.png ·
-{m['files']['TITLEPIC_B_free.png']['colours']} colores · logo libre.</figcaption></figure>
+{m['files']['TITLEPIC_B_free.png']['colours']} colours · free logo.</figcaption></figure>
 
-<h2>Los brazaletes de cerca (×6)</h2>
-<p>El símbolo se pinta sobre el cuadro de Gemini a su resolución original (1376×768), curvado con el brazo,
-con <code>tools/art/armband_symbol.py</code> (el mismo warp que los enemigos), y después se reduce con el resto
-del cuadro. El cuadro blanco hueco se rellena de blanco (modo <code>ring</code>, como el brazalete del General);
-el de la izquierda, en sombra, con su propio blanco en sombra.</p>
+<h2>The armbands close up (×6)</h2>
+<p>The symbol is painted on Gemini's painting at its original resolution (1376×768), curved with the arm,
+by <code>tools/art/armband_symbol.py</code> (the same warp as the enemies), and is then scaled down with the rest
+of the painting. The hollow white square is filled with white (<code>ring</code> mode, like the General's armband);
+the left one, in shadow, with its own shadowed white.</p>
 <div class="arms">{arms_html}</div>
 
-<h2>El menú principal encima</h2>
-<p>Como lo dibuja el juego: el fondo atenuado (×{0.487}, medido en el motor, <code>gen_menu.py</code>), el logo y
-las opciones en <code>SDMENU</code> crema/oro sin atenuar, el cursor de Freedoom. Simulación, no captura del motor
-(NO VERIFICADO en GZDoom; la captura la hace el PM al instalar).</p>
+<h2>The main menu on top</h2>
+<p>As the game draws it: the background dimmed (×{0.487}, measured in the engine, <code>gen_menu.py</code>), the logo and
+the items in <code>SDMENU</code> cream/gold undimmed, Freedoom's cursor. A simulation, not an engine screenshot
+(NOT VERIFIED in GZDoom; the PM takes the screenshot at install).</p>
 <div class="tri">
 <figure><img class="shot" src="{menus[('A','en')]}" alt="menu EN A"><figcaption><span class="tag a">A</span>EN</figcaption></figure>
 <figure><img class="shot" src="{menus[('A','ru')]}" alt="menu RU A"><figcaption><span class="tag a">A</span>RU</figcaption></figure>
@@ -161,42 +161,42 @@ las opciones en <code>SDMENU</code> crema/oro sin atenuar, el cursor de Freedoom
 <figure><img class="shot" src="{menus[('B','ru')]}" alt="menu RU B"><figcaption><span class="tag b">B</span>RU</figcaption></figure>
 <figure><img class="shot" src="{menus[('B','ca')]}" alt="menu CA B"><figcaption><span class="tag b">B</span>CA</figcaption></figure>
 </div>
-<figure><img class="shot" style="max-width:480px" src="{menus[('cur','en')]}" alt="menu today"><figcaption>El menú hoy, para comparar.</figcaption></figure>
+<figure><img class="shot" style="max-width:480px" src="{menus[('cur','en')]}" alt="menu today"><figcaption>The menu today, for comparison.</figcaption></figure>
 
-<h2>Alternativa: el logo con su placa negra</h2>
+<h2>Alternative: the logo with its black plate</h2>
 <div class="half">
 <figure><img class="shot" src="{img['A_plate']}" alt="TITLEPIC A with the plate"><figcaption>TITLEPIC_A_plate.png: <code>M_DOOM</code>
-sin tocar; su placa negra de 200×58 tapa el cielo (la punta de la bandera y la antorcha quedan debajo).</figcaption></figure>
-<figure><img class="shot" src="{img['A']}" alt="TITLEPIC A free logo"><figcaption>TITLEPIC_A_free.png (recomendado).</figcaption></figure>
+untouched; its 200×58 black plate covers the sky (the tip of the flag and the torch end up under it).</figcaption></figure>
+<figure><img class="shot" src="{img['A']}" alt="TITLEPIC A free logo"><figcaption>TITLEPIC_A_free.png (recommended).</figcaption></figure>
 </div>
-<div class="arms"><figure><img src="{b64(logo_old.resize((600, 192), Image.NEAREST))}" alt="M_DOOM today"><figcaption>M_DOOM hoy</figcaption></figure>
-<figure><img src="{b64(logo_chk.resize((600, 192), Image.NEAREST))}" alt="M_DOOM free"><figcaption>M_DOOM_free (verde = transparente)</figcaption></figure></div>
+<div class="arms"><figure><img src="{b64(logo_old.resize((600, 192), Image.NEAREST))}" alt="M_DOOM today"><figcaption>M_DOOM today</figcaption></figure>
+<figure><img src="{b64(logo_chk.resize((600, 192), Image.NEAREST))}" alt="M_DOOM free"><figcaption>M_DOOM_free (green = transparent)</figcaption></figure></div>
 
-<h2>En pantalla panorámica (16:9)</h2>
+<h2>On a widescreen (16:9)</h2>
 <div class="wide"><img src="{img['A']}" alt="16:9 pillarbox"></div>
-<p>GZDoom muestra las pantallas 320×200 en 4:3 con bandas negras a los lados en 16:9 (NO VERIFICADO en este PC;
-es lo que hace con el TITLEPIC actual). Por eso el encuadre llena el 4:3 y no el 16:9.</p>
+<p>GZDoom shows 320×200 screens in 4:3 with black bars at the sides on 16:9 (NOT VERIFIED on this PC;
+it is what it does with the current TITLEPIC). That is why the framing fills the 4:3 and not the 16:9.</p>
 
-<h2>Decisiones de encuadre</h2>
+<h2>Framing decisions</h2>
 <table>
-<tr><th>Qué</th><th>Decisión</th></tr>
-<tr><td>Proporción</td><td>El cuadro de Gemini es 16:9 (1376×768); la pantalla es 4:3. Ventana 4:3 de
-{crop[2]-crop[0]}×{crop[3]} px desde x={crop[0]}: entran el fogonazo de la PPSh, el sargento, la bandera, la torre
-del Kremlin y la estatua-robot entera con la antorcha; se pierden los edificios de los extremos.</td></tr>
-<tr><td>Cielo para el logo</td><td>El tercio de arriba de Gemini no basta: el casco del héroe caía bajo el
-subtítulo del logo. Se añaden {m['sky_pad']} px de cielo encima (el humo del propio cuadro, reflejado y
-difuminado) y el casco empieza justo bajo el logo (fila ~61; el logo ocupa 0-57).</td></tr>
-<tr><td>Franja del logo</td><td>Filas 0-60 oscurecidas (×0,50 detrás del logo, ×0,78 en los lados) y suavizadas
-(desenfoque de 1 px): la antorcha y la punta de la bandera quedan como un resplandor detrás de «DOOM»; el héroe
-no se toca.</td></tr>
-<tr><td>Contrato</td><td><code>M_DOOM</code> 200×64 en (60,0) (MOD-SPEC 6.6, MainMenuLogoTest): el logo va pintado en
-el TITLEPIC en ese sitio, así que al abrir el menú el <code>M_DOOM</code> del motor cae exactamente encima.</td></tr>
-<tr><td>Paleta</td><td>Paleta v2 (226 colores), color más cercano en CIELAB con un tramado ordenado 4×4 suave
-(píxel limpio y repetible). El RGB ponderado de los enemigos ponía los ojos del sargento amarillos.</td></tr>
+<tr><th>What</th><th>Decision</th></tr>
+<tr><td>Aspect ratio</td><td>Gemini's painting is 16:9 (1376×768); the screen is 4:3. A 4:3 window of
+{crop[2]-crop[0]}×{crop[3]} px from x={crop[0]}: it takes in the PPSh's muzzle flash, the sergeant, the flag, the Kremlin
+tower and the whole robot statue with its torch; the buildings at the edges are lost.</td></tr>
+<tr><td>Sky for the logo</td><td>Gemini's top third is not enough: the hero's helmet fell under the
+logo's subtitle. {m['sky_pad']} px of sky are added on top (the painting's own smoke, mirrored and
+blurred) and the helmet starts just under the logo (row ~61; the logo takes 0-57).</td></tr>
+<tr><td>Logo band</td><td>Rows 0-60 darkened (×0.50 behind the logo, ×0.78 at the sides) and softened
+(1 px blur): the torch and the tip of the flag stay as a glow behind «DOOM»; the hero
+is not touched.</td></tr>
+<tr><td>Contract</td><td><code>M_DOOM</code> 200×64 at (60,0) (MOD-SPEC 6.6, MainMenuLogoTest): the logo is painted into
+the TITLEPIC at that place, so when the menu opens the engine's <code>M_DOOM</code> lands exactly on top.</td></tr>
+<tr><td>Palette</td><td>Palette v2 (226 colours), nearest colour in CIELAB with a soft 4×4 ordered dither
+(clean, repeatable pixels). The enemies' weighted RGB turned the sergeant's eyes yellow.</td></tr>
 </table>
-<p>Instalación tras la elección del CEO (PM): <code>work/art/titlepic_gemini/install.sh A</code> (o <code>B</code>;
-añade <code>plate</code> para conservar la placa negra). Copia el TITLEPIC (y el M_DOOM sin placa), añade TITLEPIC a
-la paleta v2 aprobada y reescribe sus filas en <code>docs/art/LICENSES.md</code> (obra derivada de Gemini, D126).</p>
+<p>Install after the CEO's choice (PM): <code>work/art/titlepic_gemini/install.sh A</code> (or <code>B</code>;
+add <code>plate</code> to keep the black plate). It copies the TITLEPIC (and the plate-free M_DOOM), adds TITLEPIC to
+the approved palette v2 and rewrites its rows in <code>docs/art/LICENSES.md</code> (a derivative work of Gemini, D126).</p>
 </main></body></html>
 """
     out.parent.mkdir(parents=True, exist_ok=True)
