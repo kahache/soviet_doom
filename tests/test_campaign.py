@@ -64,6 +64,16 @@ MAPINFO = SRC / "lumps" / "MAPINFO"
 LANGUAGE = SRC / "lumps" / "LANGUAGE"
 
 END_TO_TITLE = "endtitle"
+# V3 B2 (MOD-SPEC 6.15): an episode's last map ends on its own end sequence,
+# the ending text, then its illustration, then the title; the range keeps
+# the engine's `endtitle`. `prop` returns the value as MAPINFO spells it.
+EPISODE_END = {"MAP03": 'EndSequence, "SD_Ending1"', "MAP06": 'EndSequence, "SD_Ending2"',
+               "MAP09": 'EndSequence, "SD_Ending3"'}
+
+
+def is_end(nxt: str) -> bool:
+    """A `next` that ends the game (an end sequence), not a map."""
+    return nxt.lower() == END_TO_TITLE or nxt.lower().startswith("endsequence")
 REQUIRED_SECTIONS = ("default", "ru", "ca")   # Catalan since P6 (D97)
 
 
@@ -97,9 +107,9 @@ EPISODE_3 = Episode(("MAP07", "MAP08", "MAP09"), 10, "SD_END04_TEXT")
 CAMPAIGN_EPISODES = (EPISODE_1, EPISODE_2, EPISODE_3)
 ALL_CAMPAIGN_MAPS = tuple(m for ep in CAMPAIGN_EPISODES for m in ep.order)
 # MOD-SPEC 4.6: map -> (cluster, next).
-CAMPAIGN = {"MAP01": (3, "MAP02"), "MAP02": (4, "MAP03"), "MAP03": (1, END_TO_TITLE),
-            "MAP04": (5, "MAP05"), "MAP05": (6, "MAP06"), "MAP06": (7, END_TO_TITLE),
-            "MAP07": (8, "MAP08"), "MAP08": (9, "MAP09"), "MAP09": (10, END_TO_TITLE)}
+CAMPAIGN = {"MAP01": (3, "MAP02"), "MAP02": (4, "MAP03"), "MAP03": (1, EPISODE_END["MAP03"]),
+            "MAP04": (5, "MAP05"), "MAP05": (6, "MAP06"), "MAP06": (7, EPISODE_END["MAP06"]),
+            "MAP07": (8, "MAP08"), "MAP08": (9, "MAP09"), "MAP09": (10, EPISODE_END["MAP09"])}
 RANGE_MAP = "RANGE"          # D62: the practice range's lump, out of the MAPxx slots
 RANGE = {RANGE_MAP: (2, END_TO_TITLE)}
 RANGE_START = RANGE_MAP
@@ -233,7 +243,12 @@ def blocks(code: str, kind: str) -> dict[str, str]:
 
 def prop(body: str, key: str) -> str | None:
     match = re.search(rf'^\s*{key}\s*=\s*(.+?)\s*$', body, re.M | re.I)
-    return match.group(1).strip().strip('"') if match else None
+    if not match:
+        return None
+    value = match.group(1).strip()
+    if len(value) >= 2 and value[0] == value[-1] == '"':   # a quoted value; `EndSequence, "X"` stays whole
+        value = value[1:-1]
+    return value
 
 
 def lookup_id(body: str, key: str) -> str | None:
@@ -262,7 +277,7 @@ def walk(maps: dict[str, str], clusters: dict[str, str], start: str) -> tuple[li
         nxt = prop(body, "next")
         if nxt is None:
             raise AssertionError(f"{current} has no `next`")
-        if nxt.lower() == END_TO_TITLE:
+        if is_end(nxt):
             if lookup_id(here, "exittext"):
                 texts.append(lookup_id(here, "exittext"))
             return played, texts
@@ -326,7 +341,7 @@ class CampaignMapinfoTest(unittest.TestCase):
         for episode in CAMPAIGN_EPISODES:
             for here, there in zip(episode.order, episode.order[1:]):
                 self.assertEqual(prop(self.maps[here], "next"), there, f"{here} must lead to {there}")
-            self.assertEqual(prop(self.maps[episode.last], "next"), END_TO_TITLE, episode.last)
+            self.assertEqual(prop(self.maps[episode.last], "next"), EPISODE_END[episode.last], episode.last)
 
     def test_each_campaign_map_is_led_to_once(self):
         """Every campaign map but an episode's first is some map's `next`,
@@ -390,18 +405,18 @@ class CampaignMapinfoTest(unittest.TestCase):
         """D112 leaves episode 2 as it was: MAP06 in cluster 7, the ending
         SD_END03_TEXT, then the title screen; nothing leads on to MAP07."""
         self.assertEqual(EPISODE_2, Episode(("MAP04", "MAP05", "MAP06"), 7, "SD_END03_TEXT"))
-        self.assertEqual(prop(self.maps["MAP06"], "next"), END_TO_TITLE)
+        self.assertEqual(prop(self.maps["MAP06"], "next"), EPISODE_END["MAP06"])
 
     def test_episode_one_still_ends_at_tankograd(self):
         """D104 and D112 leave episode 1 as it was: MAP03 in cluster 1, the ending
         SD_END01_TEXT, then the title screen."""
         self.assertEqual(EPISODE_1, Episode(("MAP01", "MAP02", "MAP03"), 1, "SD_END01_TEXT"))
-        self.assertEqual(prop(self.maps["MAP03"], "next"), END_TO_TITLE)
+        self.assertEqual(prop(self.maps["MAP03"], "next"), EPISODE_END["MAP03"])
 
     def test_consecutive_campaign_maps_are_in_different_clusters(self):
         """Same cluster = no text between them (ZDoom wiki, MAPINFO/Cluster)."""
         for name, (_cluster, nxt) in CAMPAIGN.items():
-            if nxt == END_TO_TITLE:
+            if is_end(nxt):
                 continue
             self.assertNotEqual(prop(self.maps[name], "cluster"), prop(self.maps[nxt], "cluster"),
                                 f"{name} -> {nxt} would print no transition text")

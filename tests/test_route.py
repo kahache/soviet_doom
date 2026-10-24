@@ -1649,7 +1649,8 @@ class TankogradRouteTest(BuiltMapRoute, unittest.TestCase):
     def test_mapinfo_makes_the_factorys_exit_the_episodes_end(self):
         text = route.MAPINFO_PATH.read_text(encoding="utf-8")
         block = re.search(rf"^map {FACTORY}\b.*?^}}", text, re.M | re.S).group(0)
-        self.assertRegex(block, r"(?m)^\s*next\s*=\s*endtitle\b")
+        # V3 B2: its own end sequence, the illustration SDEND1 before the title (MOD-SPEC 6.15).
+        self.assertRegex(block, r'(?m)^\s*next\s*=\s*EndSequence\s*,\s*"SD_Ending1"')
         self.assertEqual({"end_sequence": True, "next_map": None}, route.exit_expectation(FACTORY))
         self.assertEqual((True, None), (self.r.end_sequence, self.r.next_map))
 

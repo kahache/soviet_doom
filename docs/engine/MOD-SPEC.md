@@ -392,13 +392,13 @@ assets/   (CEO-approved art only; `work/` is gitignored and never ships)
 |---|---|---|---|
 | `MAP01` | `SD_MAP01_NAME` = "Zarya-7 Cosmodrome" / «Космодром "Заря-7"» | `SD_EP01_NAME` = "Soviet Doom" / "Советский Doom" | Owned by `level-designer` since F3; design in `docs/levels/MAP01-zarya-7.md`. `cluster = 3`, `next = "MAP02"`, `par = 210` (§4.6; `next = "MAP03"` from D60 to D62, `cluster = 1`, `next = endtitle` before D60). Named in-engine 2026-10-13 (the log prints `MAP01 - Zarya-7 Cosmodrome`). |
 | `MAP02` (`MAP03` until D62) | `SD_MAP02_NAME` = "Metro-Bunker" / «Метро-бункер» (working title, `docs/levels/MAP02-metro.md` §13) | `SD_EP01_NAME`, the campaign's second map | Owned by `level-designer`; design in `docs/levels/MAP02-metro.md`. `cluster = 4`, `next = "MAP03"`, `music = ""`, `par = 300` (§4.6): its exit leads to the factory through cluster 4's transition text. |
-| `MAP03` (`MAP04` until D62) | `SD_MAP03_NAME` = "Tankograd" / «Танкоград» (D63) | `SD_EP01_NAME`, the campaign's third and last map | Owned by `level-designer`; design in `docs/levels/MAP03-factory.md` (v0, the grey box). `cluster = 1`, `next = endtitle`, `music = ""`, `par = 360` (`level-designer`'s figure, design §11): its exit, the breaker that feeds the portal, ends the episode (§4.6). |
+| `MAP03` (`MAP04` until D62) | `SD_MAP03_NAME` = "Tankograd" / «Танкоград» (D63) | `SD_EP01_NAME`, the campaign's third and last map | Owned by `level-designer`; design in `docs/levels/MAP03-factory.md` (v0, the grey box). `cluster = 1`, `next = EndSequence, "SD_Ending1"` (`endtitle` until V3 B2, §6.15), `music = ""`, `par = 360` (`level-designer`'s figure, design §11): its exit, the breaker that feeds the portal, ends the episode (§4.6). |
 | `MAP04` (D104, P4) | `SD_MAP04_NAME` = "Trans-Siberian" / «Транссиб» / «Transsiberià» | `SD_EP03_NAME` = "The Road to Moscow" / «Дорога на Москву» / «El camí de Moscou», episode 2's first map | Owned by `level-designer` (`src/maps/MAP04/`): the Trans-Siberian marshalling yard at Sverdlovsk, the armoured train, the signal box, the locomotive roundhouse; left west on the armoured train. `cluster = 5`, `next = "MAP05"`, `music = "D_SDM04A"` (D106, §4.5), `par = 300` (the mod-engineer's placeholder) (§4.6). |
 | `MAP05` (D104) | `SD_MAP05_NAME` = "Volga Dam" / «Волжская ГЭС» / «La presa del Volga» | `SD_EP03_NAME`, episode 2's second map | Owned by `level-designer` (`src/maps/MAP05/`): the hydroelectric dam at Zhiguli, the turbine hall, the spillway, the control room; left over the crest of the dam. `cluster = 6`, `next = "MAP06"`, `music = "D_SDM05A"` (D106), `par = 330` (placeholder). |
-| `MAP06` (D104) | `SD_MAP06_NAME` = "Red Square" / «Красная площадь» / «La plaça Roja» | `SD_EP03_NAME`, episode 2's third and last map | Owned by `level-designer` (`src/maps/MAP06/`): Moscow, out of the metro at Ploshchad Revolyutsii, the GUM galleries, Red Square, the gate in the Kremlin wall, the boss arena. `cluster = 7`, `next = endtitle`, `music = "D_SDM06A"` (D106), `par = 420` (placeholder): its exit ends episode 2 (§4.6). |
+| `MAP06` (D104) | `SD_MAP06_NAME` = "Red Square" / «Красная площадь» / «La plaça Roja» | `SD_EP03_NAME`, episode 2's third and last map | Owned by `level-designer` (`src/maps/MAP06/`): Moscow, out of the metro at Ploshchad Revolyutsii, the GUM galleries, Red Square, the gate in the Kremlin wall, the boss arena. `cluster = 7`, `next = EndSequence, "SD_Ending2"` (§6.15), `music = "D_SDM06A"` (D106), `par = 420` (placeholder): its exit ends episode 2 (§4.6). |
 | `MAP07` (D112, P4) | `SD_MAP07_NAME` = "Novaya Zemlya" / «Новая Земля» / «Nova Zembla» | `SD_EP04_NAME` = "The Portal" / «Портал» / «El portal», episode 3's first map | Owned by `level-designer` (`src/maps/MAP07/`): the Arctic radar station on Novaya Zemlya, the radomes, the barracks, the nuclear test site; the invaders use it to guide something in. `cluster = 8`, `next = "MAP08"`, `music = "D_SDM04B"`, `intermusic = "D_SDE2IB"` (both provisional, §4.5), `par = 330` (placeholder) (§4.6). |
 | `MAP08` (D112) | `SD_MAP08_NAME` = "Severomorsk" / «Североморск» / «Severomorsk» | `SD_EP04_NAME`, episode 3's second map | Owned by `level-designer` (`src/maps/MAP08/`): the Northern Fleet's submarine base at Severomorsk, the covered docks, a nuclear submarine, the cranes, the tunnels in the rock. `cluster = 9`, `next = "MAP09"`, `music = "D_SDM05B"`, `intermusic = "D_SDE2IB"` (provisional), `par = 360` (placeholder). |
-| `MAP09` (D112) | `SD_MAP09_NAME` = "Tunguska" / «Тунгуска» / «Tunguska» | `SD_EP04_NAME`, episode 3's third and last map | Owned by `level-designer` (`src/maps/MAP09/`): the invaders' main portal at Tunguska, the taiga flattened in 1908, an alien-industrial complex eating the forest, the portal, the final boss arena. `cluster = 10`, `next = endtitle`, `music = "D_SDM06B"` (provisional), `par = 480` (placeholder): its exit ends episode 3 and the first cycle (§4.6). |
+| `MAP09` (D112) | `SD_MAP09_NAME` = "Tunguska" / «Тунгуска» / «Tunguska» | `SD_EP04_NAME`, episode 3's third and last map | Owned by `level-designer` (`src/maps/MAP09/`): the invaders' main portal at Tunguska, the taiga flattened in 1908, an alien-industrial complex eating the forest, the portal, the final boss arena. `cluster = 10`, `next = EndSequence, "SD_Ending3"` (§6.15), `music = "D_SDM06B"` (provisional), `par = 480` (placeholder): its exit ends episode 3 and the first cycle (§4.6). |
 | `RANGE` (`MAP02` until D62) | `SD_RANGE_NAME` = "Training Ground" / «Учебный полигон» (D46, 2026-10-14; was "Engineering Test Range" / "Инженерный полигон"; the id was `SD_MAP02_NAME` until D62) | `SD_EP02_NAME` = "Practice Range" / «Полигон» (D41, §4.4) | `cluster = 2`, `next = endtitle`, `nointermission`. F4: 2048×768 hall, ceiling 128, light 192, player start at (160,384) facing +x. The seven weapons, the four ammo pools, barrels and six targets (thing 3004, Soviet riflemen since F5). **F5: the bestiary gallery**, a second room 2048×768 at y 1024–1792, ceiling 192, light 192: one of each of the eight enemy classes in a row at y = 1600, deaf (`ambush`) and facing north, away from the arrival spot. Since D41 the player reaches the map from New Game (§4.4); `MAP=RANGE tools/run.sh` starts it (D62). **Since commit `d1e891f` (2026-10-13), v1 for players:** an `Exit_Normal` switch (`SDSW1D`) in a lit alcove straight behind the start, and the gallery reached on foot through a manual door (tag 1) in the hall's north wall and a bent passage that comes out behind the row; the console's `warp 1024 1152` still lands there. Geometry and reasons are `level-designer`'s, `docs/levels/RANGE-practice-range.md`. Built as an engineering fixture; shipped as the practice range. |
 
 MAPINFO conventions: `clearepisodes` + one episode per campaign episode
@@ -560,14 +560,14 @@ design documents moved with `git mv`; dated evidence keeps its old names (a
 |---|---|---|---|
 | `MAP01` | 3 | `"MAP02"` | the stats screen, then cluster 3's `SD_MAP01_EXIT_TEXT` over `SDFLR1`, then MAP02 |
 | `MAP02` | 4 | `"MAP03"` | the stats screen, then cluster 4's `SD_MAP02_EXIT_TEXT` over `SDFLR1`, then MAP03 |
-| `MAP03` | 1 | `endtitle` | the stats screen, then cluster 1's `SD_END01_TEXT` over `SDFLR1`, then the title screen |
+| `MAP03` | 1 | `EndSequence, "SD_Ending1"` (V3 B2; `endtitle` until then) | the stats screen, the awards page (§6.13), then cluster 1's `SD_END01_TEXT` over `SDFLR1`, then the illustration `SDEND1` (§6.15), then the title screen |
 | `RANGE` | 2 | `endtitle` | unchanged (§4.4): no stats (`nointermission`), cluster 2's `SD_END02_TEXT`, the title screen |
 | `MAP04` (D104) | 5 | `"MAP05"` | the stats screen, then cluster 5's `SD_MAP04_EXIT_TEXT` over `SDFLR1`, then MAP05 |
 | `MAP05` (D104) | 6 | `"MAP06"` | the stats screen, then cluster 6's `SD_MAP05_EXIT_TEXT` over `SDFLR1`, then MAP06 |
-| `MAP06` (D104) | 7 | `endtitle` | the stats screen, then cluster 7's `SD_END03_TEXT` over `SDFLR1`, then the title screen |
+| `MAP06` (D104) | 7 | `EndSequence, "SD_Ending2"` (V3 B2) | the stats screen, the awards page, then cluster 7's `SD_END03_TEXT` over `SDFLR1`, then `SDEND2` (§6.15), then the title screen |
 | `MAP07` (D112) | 8 | `"MAP08"` | the stats screen, then cluster 8's `SD_MAP07_EXIT_TEXT` over `SDFLR1`, then MAP08 |
 | `MAP08` (D112) | 9 | `"MAP09"` | the stats screen, then cluster 9's `SD_MAP08_EXIT_TEXT` over `SDFLR1`, then MAP09 |
-| `MAP09` (D112) | 10 | `endtitle` | the stats screen, then cluster 10's `SD_END04_TEXT` over `SDFLR1`, then the title screen |
+| `MAP09` (D112) | 10 | `EndSequence, "SD_Ending3"` (V3 B2) | the stats screen, the awards page, then cluster 10's `SD_END04_TEXT` over `SDFLR1`, then `SDEND3` (§6.15), then the title screen |
 
 | Cluster | `exittext` | Holds | Role |
 |---|---|---|---|
@@ -695,7 +695,10 @@ that anyone touching this needs:
   answers `Unknown property 'Text' found in endgame definition`. The copy is
   `cluster 1 { exittext = lookup, "SD_END01_TEXT" flat = "SDFLR1" }`.
 - **`next = endtitle`** is the named end sequence for "roll the ending, then
-  go back to the title screen" (`CheckEndSequence`, same file).
+  go back to the title screen" (`CheckEndSequence`, same file). Since V3 B2
+  the three episode ends name their own sequences instead,
+  `next = EndSequence, "SD_EndingN"`: the same path with one picture before
+  the title (§6.15); the range keeps `endtitle`.
 - **`nointermission` is gone from MAP01.** Pressing the exit used to restart
   the map in silence; the stats screen is the first thing that says the
   level was finished. `par = 210` is `level-designer`'s figure. **NOT
@@ -3162,6 +3165,51 @@ class, the numbers above, the sounds, the licences and the placements.
 **NOT VERIFIED in the engine** (D26): that the class compiles, the shuffle,
 the turn-off and the jingle's cooldown, the `$rolloff`, the bed's loop
 (seam and restart after a load), the speaking frame and the olive state.
+
+## 6.15 The episode endings' illustrations (V3 B2, D132, 2026-10-25)
+
+**Proposal on the `v3-endings` branch** (the pictures and the armband
+symbol wait for the CEO: `docs/art/previews/2026-10-25_V3_episode-endings.html`).
+**NOT VERIFIED in the engine** (D26): everything below is read from the
+engine's own definitions (gzdoom.pk3 `mapinfo/common.txt`, `mapinfo/doom1.txt`)
+and parser names, not seen run.
+
+**The order of the screens** when MAP03, MAP06 or MAP09 is left:
+
+| # | Screen | Who draws it |
+|---|---|---|
+| 1 | the stats over the operations map | `SD_StatusScreen` (§6.13, ADR 013 B1) |
+| 2 | the awards page | `SD_StatusScreen`'s ShowNextLoc state (ADR 013 B3) |
+| 3 | the ending text (`SD_END01/03/04_TEXT` over `SDFLR1`, silent) | the episode's ending cluster (§4.6), unchanged |
+| 4 | **the illustration**, full screen, 4:3 (pillarboxed on a wide screen, like `TITLEPIC`), silent, until a key | `Intermission SD_EndingN`, `Image { Background = "SDENDn" }` |
+| 5 | the title screen and its music | the same sequence's `GotoTitle`, as the engine's own `Inter_Titlescreen` (`endtitle`) |
+
+**How.** The map says `next = EndSequence, "SD_EndingN"` (N = 1, 2, 3 for
+MAP03, MAP06, MAP09) instead of `endtitle`; `MAPINFO` defines the three
+`Intermission` blocks, each an `Image` with no `Time` (waits for a key, as
+Doom 1's `Inter_Pic1`) and a `GotoTitle`. The engine prints the cluster's
+`exittext` first and then links to the map's end sequence, which is Doom 1's
+own order (E1M8: `next = "EndGame1"`, the text, then the picture), so the
+text comes before the picture without new code. `wbs.next` is `""` for an
+end sequence of any name, so the awards page still starts (ADR 013).
+Rejected: the picture **before** the text (the three ending texts would have
+to move from the clusters into `TextScreen` actions, drawn by another path:
+font, colour and layout to be checked again in three languages) and the
+picture **behind** the text (eight to ten lines over a painting do not read
+without dimming it to half). The range keeps `endtitle`.
+
+| Lump | Size | Where | Generator |
+|---|---|---|---|
+| `SDEND1` | 320×200, indexed, palette v3 | `assets/graphics/endings/` → `graphics/` | `tools/art/gen_endings.py` (Gemini painting, local, D77; the armband symbol, D108) |
+| `SDEND2` | 320×200, indexed, palette v3 | same | same |
+| `SDEND3` | 320×200, indexed, palette v3 | same | same (the armband symbol) |
+
+`tests/test_endings.py` holds the contract: the three sequences, their
+pictures packed and 320×200, each episode's last map naming its own, the
+range still on `endtitle`, the generator's lumps the same as MAPINFO's.
+The engine pass (the PM): finish MAP03, MAP06 and MAP09 (`-warp`, kill the
+boss, exit) and see stats → awards → text → picture → title, at 4:3 and
+16:9, the log clean (no "Unknown intermission", no "Unknown texture").
 
 ## 7. Commands
 
