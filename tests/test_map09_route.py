@@ -178,6 +178,22 @@ class TunguskaRouteTest(tr.BuiltMapRoute, unittest.TestCase):
         self.assertGreater(route.TUNGUSKA_BREACH_WAIT, breach)
         self.assertLess(b1.index(hurt, 1), b1.index(f"tag {self.m.TAG_BOSS_EXIT}"))
 
+    def test_the_route_never_needs_or_stands_on_the_ground_that_opens(self):
+        """V3 A3: the Breach sinks the crater's scabs (TAG_CRATER_BREACH).
+        The route kills the boss at full health with one hurt, so on the
+        route the Breach never runs and the ground never opens; and no step
+        stands on a scab anyway, so if it did nothing it waits on would move."""
+        md, m = self.md, self.m
+        self.assertGreater(route.BOSS_HURT, self.hp("SD_Consortium"))
+        scabs = {i for i, s in enumerate(md.textmap.sectors) if s.identifier == m.TAG_CRATER_BREACH}
+        self.assertEqual(len(m.CRATER_SCABS), len(scabs))
+        for step in self.r.steps:
+            if step.warp is None:
+                continue
+            with self.subTest(step=step.id):
+                self.assertNotIn(md.sector_at(*step.warp), scabs)
+            self.assertNotIn(m.TAG_CRATER_BREACH, [tag for tag, _open in step.tags])
+
     @staticmethod
     def class_file(cls):
         """The ZScript file that declares `cls`."""

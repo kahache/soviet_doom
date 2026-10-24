@@ -50,6 +50,10 @@ GZDoom), each as MAP06 v1.1 left it:
   portal behind it;
 * a key that springs an ambush: the red key's thing carries Door_Open on
   TAG_AMBUSH (Hexen-style item special). NOT VERIFIED in engine.
+* V3 A3 (design section 18.3): the boss's Breach (its second phase) sinks
+  the crater's four scabs (TAG_CRATER_BREACH, named in the boss thing's
+  arg4) one step into the acid pits beside them: consortium.zs calls
+  Floor_LowerToLowestTxTy from ZScript. NOT VERIFIED in engine.
 
 Geometry is painted with `GridMap` (tools/sdbuild/udmf.py), MAP01's method;
 the fallen trunks lie radially from the crater's centre, the diagonal ones
@@ -277,8 +281,12 @@ TAG_BOSS_EXIT = 12      # the control bunker's gate; ONLY the boss's death opens
 # V3 (D120, A2 and A3): tags only a pickup moves (no line carries them).
 TAG_QUARANTINE = 13     # the blue key: the laboratory's quarantine room opens, the Legion inside
 TAG_WORKS_LIFT = 14     # the yellow key: the works' cargo lift comes down with three of theirs
-# Tag 15 is kept for the crater's Breach (design section 18.3): the boss's
-# second phase sinking the crater's ground needs ZScript, mod-engineer's.
+# V3 A3 (design section 18.3): the crater's ground opens at the Consortium's
+# Breach (its second phase). No line and no pickup carries the tag: the boss
+# reads it off its own thing's arg4 (BOSS_BREACH_TAG_ARG) at the Breach's
+# first tic and sinks the four scabs (CRATER_SCABS) one step into the acid
+# pits beside them (Floor_LowerToLowestTxTy in consortium.zs).
+TAG_CRATER_BREACH = 15
 LIFT_SPEED = 8          # 1 unit a tic: the car's 128 take ~3.7 s, its winch heard all the way
 # Floor_LowerToLowest (tag, speed): 21 in ZDoom's (Hexen's) special table, the
 # special MAP04's red key gives its gondolas. NOT VERIFIED in our engine runs
@@ -299,6 +307,10 @@ MAP09_BOSS_SPOT = (3968, 3136)  # on the crater's floor before the portal, facin
 BOSS_ANGLE = 90
 BOSS_KIND = "consortium"
 BOSS_DEATH_SPECIAL = (SPECIAL_DOOR_OPEN, (TAG_BOSS_EXIT, DOOR_SPEED_SLOW, 0, 0, 0))
+# Which of the boss thing's args carries TAG_CRATER_BREACH: the death special
+# (Door_Open: tag, speed, lighttag) reads arg0-arg2 only, so arg4 is free.
+# consortium.zs's SD_CONSORTIUM_BREACH_TAG_ARG (tested to agree).
+BOSS_BREACH_TAG_ARG = 4
 RED_KEY_SPECIAL = (SPECIAL_DOOR_OPEN, (TAG_AMBUSH, DOOR_SPEED_SLOW, 0, 0, 0))
 
 # --- Things --------------------------------------------------------------------
@@ -469,6 +481,17 @@ FRAME_TOP = PORTAL_TOP + 2 * STEP      # 192: 32 over the field
 FRAME_OFFSET = 16       # a 32 face shows the middle of the 64 lump: the cobalt channel
 CRATER_PITS = ((3680, 2528, 3808, 2656), (4128, 2528, 4256, 2656), (3680, 2976, 3808, 3104),
                (4128, 2976, 4256, 3104))
+# V3 A3, the ground that opens at the Breach (design section 18.3): four
+# scabs of the crater's floor, tag TAG_CRATER_BREACH, each a fissure 64 wide
+# running from an acid pit out to the floor's edge (the seventh terrace), on
+# the pit's middle. Plate at the floor's height and light until the Breach,
+# so nothing shows; then they sink one step to the pit beside them, take its
+# acid and its damage, and flicker: the floor's ring round the portal breaks
+# into four islands (the boss's to the north, the south, the west, the east),
+# joined by the terraces. 16 deep, walked out of onto the floor like the pits.
+# None under the boss's body or its servants' spots, none under a monster.
+CRATER_SCABS = ((3520, 2560, 3680, 2624), (3520, 3008, 3680, 3072),
+                (4256, 2560, 4416, 2624), (4256, 3008, 4416, 3072))
 EXIT_X = (3904, 4032)
 BUNKER = (3840, 1536, 4096, 1728)
 EXIT_NICHE = (3936, 1520, 4000, 1536)
@@ -1486,6 +1509,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
          light=LIGHT_CRATER, flat=PLATE, ceiling=SKY, wall=ALIEN)
     for n, rect in enumerate(CRATER_PITS, start=1):
         pit("z8_floor", f"z8_acid_{n}", rect, CRATER_PIT_FLAT)
+    # V3 A3: the scabs, the floor's own plate and light until the Breach.
+    for n, rect in enumerate(CRATER_SCABS, start=1):
+        like("z8_floor", f"z8_scab_{n}", [rect], tag=TAG_CRATER_BREACH)
     for n, (px, py) in enumerate(PYLONS, start=1):
         prop("z8_floor", f"z8_pylon_{n}", [(px, py, px + PYLON_SIZE, py + PYLON_SIZE)], PYLON,
              wall=GLYPH, flat=PLATE)
@@ -1552,6 +1578,7 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         if (x, y) == MAP09_BOSS_SPOT and kind == BOSS_KIND:
             special, args = BOSS_DEATH_SPECIAL
             extra = {"special": special, **{f"arg{i}": a for i, a in enumerate(args)}}
+            extra[f"arg{BOSS_BREACH_TAG_ARG}"] = TAG_CRATER_BREACH   # V3 A3: the ground at the Breach
         tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle,
                                      extra=extra))
     for _zone, ednum, x, y, top in ITEMS + SECRET_ITEMS:
