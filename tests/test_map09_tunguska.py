@@ -1001,6 +1001,138 @@ class Map09Test(pickup_events.PickupEventChecks, unittest.TestCase):
             under = {self.sector_at(x + dx, y + dy) for dx in (-radius, radius) for dy in (-radius, radius)}
             self.assertEqual({floor}, under, f"servant spot ({x}, {y})")
 
+    # --- V3 A3: the crater's ground opens at the Breach (design section 18.3) --
+    def scabs(self):
+        """The sectors the Breach sinks: every one tagged TAG_CRATER_BREACH."""
+        return [i for i, s in enumerate(self.sectors) if s.get("id") == self.m.TAG_CRATER_BREACH]
+
+    def breach_heights(self, open_tags):
+        """heights(open_tags) with the scabs sunk to their lowest neighbour,
+        as Floor_LowerToLowestTxTy leaves them."""
+        h = self.heights(open_tags)
+        for i in self.scabs():
+            h[i] = (pickup_events.lowest_floor(i, self.sectors, self.neighbours), h[i][1])
+        return h
+
+    def test_the_breach_scabs_carry_tag_15_and_nothing_else_does(self):
+        """Four scabs of the crater's floor and nothing else carry the tag;
+        no line and no pickup moves it: only the boss, whose thing names it
+        in arg4 (its death special, Door_Open, reads arg0-arg2 only)."""
+        m = self.m
+        self.assertEqual(15, m.TAG_CRATER_BREACH)
+        self.assertEqual(4, len(m.CRATER_SCABS))
+        self.assertEqual({f"z8_scab_{n}" for n in range(1, len(m.CRATER_SCABS) + 1)},
+                         {self.zone_of[i] for i in self.scabs()})
+        self.assertFalse([ld for ld in self.lines if ld.get("special")
+                          and m.TAG_CRATER_BREACH in (ld.get("arg0"), ld.get("arg1"))])
+        carriers = [t for t in self.things
+                    if m.TAG_CRATER_BREACH in [t.get(f"arg{k}") for k in range(5)]]
+        boss = m.MONSTER_KINDS[m.BOSS_KIND]
+        self.assertTrue(carriers)
+        for t in carriers:
+            self.assertEqual((boss, (t["x"], t["y"])), (t["type"], m.MAP09_BOSS_SPOT))
+            self.assertEqual(m.TAG_CRATER_BREACH, t[f"arg{m.BOSS_BREACH_TAG_ARG}"])
+            self.assertEqual((m.SPECIAL_DOOR_OPEN, m.TAG_BOSS_EXIT), (t["special"], t["arg0"]))
+        self.assertEqual(4, m.BOSS_BREACH_TAG_ARG)
+        self.assertEqual((0, 0), m.BOSS_DEATH_SPECIAL[1][3:], "Door_Open's arg3-arg4 stay free")
+        for skill in SKILLS:
+            self.assertEqual(1, len(self.on(skill, carriers)), f"the boss names it on skill {skill}")
+
+    def test_the_breach_tag_arg_is_the_bosss_own(self):
+        """map.py's BOSS_BREACH_TAG_ARG is consortium.zs's
+        SD_CONSORTIUM_BREACH_TAG_ARG: the arg the boss reads at its Breach."""
+        text = (MONSTER_ZS / "consortium.zs").read_text(encoding="utf-8")
+        arg = int(re.search(r"const\s+SD_CONSORTIUM_BREACH_TAG_ARG\s*=\s*(\d+)", text).group(1))
+        self.assertEqual(self.m.BOSS_BREACH_TAG_ARG, arg)
+
+    def test_the_scabs_hide_until_the_breach(self):
+        """Until the Breach each scab is the crater's floor: its height, flat,
+        light, sky, no damage and no special; nothing shows."""
+        floor = self.sectors[self.plan["z8_floor"]]
+        for i in self.scabs():
+            s = self.sectors[i]
+            with self.subTest(scab=self.zone_of[i]):
+                for key in ("heightfloor", "heightceiling", "texturefloor", "textureceiling",
+                            "lightlevel"):
+                    self.assertEqual(floor[key], s[key], key)
+                self.assertFalse(s.get("damageamount"))
+                self.assertFalse(s.get("special"))
+
+    def test_the_scabs_sink_one_step_into_acid(self):
+        """Each scab runs from an acid pit to the floor's edge, on the pit's
+        middle, and its lowest neighbour is that pit, one step down, so it
+        sinks one step and takes the pit's acid and damage (the TxTy model:
+        the neighbour at the floor it sinks to)."""
+        m = self.m
+        inset = m.RIM + m.TERRACE * m.TERRACES
+        fx1, fx2 = m.CRATER[0] + inset, m.CRATER[2] - inset
+        pits = {self.plan[f"z8_acid_{n}"] for n in range(1, len(m.CRATER_PITS) + 1)}
+        by_name = {self.zone_of[i]: i for i in self.scabs()}
+        for n, (x1, y1, x2, y2) in enumerate(m.CRATER_SCABS, start=1):
+            i = by_name[f"z8_scab_{n}"]
+            with self.subTest(scab=self.zone_of[i]):
+                self.assertTrue(x1 == fx1 or x2 == fx2, "it reaches the floor's edge")
+                touching = [p for p in m.CRATER_PITS if (p[0] == x2 or p[2] == x1)
+                            and p[1] < y1 < y2 < p[3]]
+                self.assertEqual(1, len(touching), "it runs out of one pit")
+                p = touching[0]
+                self.assertEqual((p[1] + p[3]) / 2, (y1 + y2) / 2, "on the pit's middle")
+                sunk = pickup_events.lowest_floor(i, self.sectors, self.neighbours)
+                self.assertEqual(self.sectors[i]["heightfloor"] - m.STEP, sunk)
+                models = [k for k in self.neighbours[i] if self.sectors[k]["heightfloor"] == sunk]
+                self.assertTrue(models and set(models) <= pits, [self.zone_of[k] for k in models])
+                for k in models:
+                    pit = self.sectors[k]
+                    self.assertEqual((m.ACID, m.LAVA_DAMAGE, m.LAVA_DAMAGE_INTERVAL),
+                                     (pit["texturefloor"], pit["damageamount"], pit["damageinterval"]))
+
+    def test_every_sunk_scab_is_walked_out_of_and_the_exit_still_reached(self):
+        """After the Breach (and every door the map opens) the start still
+        reaches each scab and the exit, and from each scab the exit can be
+        reached: one step up onto the floor, never a trap."""
+        h = self.breach_heights(set(self.every_tag))
+        adj = defaultdict(set)
+        for ld in self.lines:
+            if "sideback" not in ld or ld.get("blocking"):
+                continue
+            a, b = self._pair(ld)
+            for src, dst in ((a, b), (b, a)):
+                (fs, fc), (ts, tc) = h[src], h[dst]
+                if min(fc, tc) - max(fs, ts) >= PLAYER_HEIGHT and ts - fs <= MAX_STEP_UP:
+                    adj[src].add(dst)
+        reach = self.flood(adj, self.start)
+        self.assertIn(self.exit_sector(), reach)
+        floor = self.plan["z8_floor"]
+        for i in self.scabs():
+            with self.subTest(scab=self.zone_of[i]):
+                self.assertIn(i, reach)
+                self.assertIn(floor, adj[i], "one step up onto the floor")
+                self.assertIn(self.exit_sector(), self.flood(adj, i))
+
+    def test_the_scabs_keep_clear_of_the_boss_its_servants_the_monsters_and_the_pickups(self):
+        """No scab under the boss's body, its servants' spots before the
+        portal, any monster's body or any pickup: nothing stands on the
+        ground that opens."""
+        m = self.m
+
+        def overlaps(rect, x, y, r):
+            x1, y1, x2, y2 = rect
+            return x - r < x2 and x + r > x1 and y - r < y2 and y + r > y1
+
+        bx, by = m.MAP09_BOSS_SPOT
+        fx = round(math.cos(math.radians(m.BOSS_ANGLE)))
+        fy = round(math.sin(math.radians(m.BOSS_ANGLE)))
+        servants = [m.MONSTER_KINDS[k] for k in self.SERVANT_KINDS]
+        sradius = max(self.body[e][0] for e in servants)
+        spots = [(bx - fx * b + fy * r, by - fy * b - fx * r) for b, r in self.SERVANT_SPOTS]
+        for rect in m.CRATER_SCABS:
+            with self.subTest(scab=rect):
+                for x, y in spots:
+                    self.assertFalse(overlaps(rect, x, y, sradius), (x, y))
+                for t in self.things:
+                    r = self.body[t["type"]][0] if t["type"] in self.body else 0
+                    self.assertFalse(overlaps(rect, t["x"], t["y"], r), t)
+
     def test_the_red_key_springs_the_works_closets(self):
         m = self.m
         red = self.things_of({m.ED_RED_CARD})[0]

@@ -17,6 +17,29 @@
 > `BOSS_KIND`) is level-designer's. The engine checks E1–E10 stand, run on
 > the built mod without the overlay. Below is the snapshot as written.
 
+> **Update, 2026-10-24 (V3 A3, D120): the crater's ground opens at the
+> Breach.** `A_SD_ConsortiumBreach` (the Breach's first tic, run once:
+> `unbound` is set at its top) now calls `A_SD_ConsortiumOpenGround`, which
+> reads a sector tag off the placed thing's **arg4**
+> (`SD_CONSORTIUM_BREACH_TAG_ARG`; the thing's `special` is its death's
+> `Door_Open (tag, speed, lighttag)`, which reads arg0-arg2 only) and, if it
+> is not 0, calls `Floor_LowerToLowestTxTy (tag, 16)` (the tagged floors
+> sink to their lowest neighbour at 2 units a tic, taking that neighbour's
+> flat and damage when they arrive) and `Light_Flicker (tag, 176, 112)`. A
+> summoned boss (and `SD_ConsortiumWounded`) has arg4 0 and opens nothing,
+> so the class stays map-agnostic. MAP09 gives its boss arg4 = 15 and builds
+> four scabs of the crater's floor beside its acid pits
+> (`docs/levels/MAP09-tunguska.md` §18.3). The specials are called by name,
+> gzdoom.pk3's own way (`strife/alienspectres.zs` calls
+> `Floor_LowerToLowest(999, 8)`); both names are in gzdoom.exe g4.14.2.
+> **NOT VERIFIED in the engine:** that the TxTy variant copies the model's
+> damage fields along with its flat (GZDoom's transfer of a sector's
+> "special" is meant to carry them; read from memory of the engine's source,
+> not from a file on this PC). If it did not, the scabs would still sink 16
+> (harmless dips) and the arena would be as before. Engine check **E12**
+> below. `tunguska-critical` is unchanged: its 100 000 hurt kills the boss at
+> full health, so the route never enters the Breach.
+
 Dated design snapshot, 2026-10-22, mod-engineer. Status: **DRAFT, playable
 by summon, not in the mod.** Owner of the living numbers once integrated:
 `docs/engine/BESTIARY.md` (who it is) and `docs/engine/MOD-SPEC.md` §6
@@ -84,6 +107,7 @@ Engine checks for the PM (all **NOT VERIFIED**: no agent starts GZDoom):
 | E9 | MAP09 with `BOSS_KIND` swapped (§7), kill it | the bunker's gate (tag 12) opens: the thing special runs on death; the boss loop starts when it engages (`music_variant.zs`, any `+BOSS` on MAP09) |
 | E10 | `language ru`, `language ca`; die to it; reach the Breach | its tag, its obituary and the Breach line in each language |
 | E11 | load both overlays (§1) | E1 holds; 21110, 21111 and 21112 each spawn their own class |
+| E12 | MAP09 (V3 A3): bring the placed boss under 2000 (play, or with the route helper loaded `netevent sdhurt 12 2100`), then `netevent sdtag 15` | at the Breach's first tic the crater's four scabs (beside its acid pits) sink 16 in ~8 tics under the quake, turn to acid and hurt like the pits, and flicker; `sdtag 15` prints floor −144 for each; nothing opens on `summon SD_ConsortiumWounded` (arg4 0); no `Script error` naming `Floor_LowerToLowestTxTy` or `Light_Flicker` |
 
 ## 2. Concept: what holds the portal open
 
@@ -213,6 +237,10 @@ General checks his summon, so an attack is never cut in half):
    trooper, a Reich hound and a Doughboy.
 3. 65 tics in: the cables tear; invulnerability off, speed 8, the more
    aggressive missile chance. `Goto See`, which now jumps to `Walk`.
+
+V3 A3 (2026-10-24): at step 1, where the placed thing's arg4 names a tag
+(MAP09: 15), the ground opens too: the tagged sectors sink one step into
+the acid beside them and flicker (update block at the top).
 
 H 10 → H 10 → E 20 → F 15 → G 10 = 65 tics (1.9 s).
 
