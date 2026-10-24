@@ -16,8 +16,10 @@ ever starting GZDoom (D26):
     in assets/sounds/radio/ (pinned by SHA-256; equal to its candidate when
     the main checkout's work/ is here), carries a $rolloff, is packed, and
     has a row in docs/art/LICENSES.md;
-  * the placements: Episodes 2 and 3 only, one or two a map, in the rooms the
-    design names, the playlists' story filter, no two zones overlapping.
+  * the placements: one or two a map in the whole campaign (Episode 1 since
+    2026-10-24), in the rooms the design names, the playlists' story filter
+    (RAD11 Episode 1's only, RAD15 from Tankograd on, RAD02 from MAP06 on), no
+    two zones overlapping, nor MAP01's SD_Radio.
 
 What it cannot pin is what the engine does with any of it (MOD-SPEC 6.14,
 "NOT VERIFIED"): the PM's engine pass.
@@ -95,9 +97,13 @@ INSTALLED_SHA256 = {
     "SDRADJ3": "ca61d52540e55aee03cea39c84b74de35dda0421a4903e1a79964d636b225c6a",
 }
 
-# The design's room table (docs/sound/2026-10-23_V3_propaganda-radio.md 5.4)
-# for Episodes 2 and 3, as built: map -> the zones its loudspeakers stand in.
+# The design's room table (docs/sound/2026-10-23_V3_propaganda-radio.md 5.4),
+# as built: map -> the zones its loudspeakers stand in. Episode 1 since
+# 2026-10-24 (the PM's V3 schedule; each map's design document, "V3").
 ROOMS = {
+    "MAP01": {"z4_komnata", "z6_hangar"},
+    "MAP02": {"z3_hall"},
+    "MAP03": {"z3_hall"},
     "MAP04": {"z6_platform"},
     "MAP05": {"z5_hall"},
     "MAP06": {"z6_square", "z5_atrium"},
@@ -109,6 +115,9 @@ EPISODE_1 = ("MAP01", "MAP02", "MAP03")
 LINE_ZARYA = 11            # "Zarya-7 holds": Episode 1's only
 LINE_DAM = 2               # the Volga dam's victory: from MAP06 on
 DAM_FROM = "MAP06"
+LINE_TANKOGRAD = 15        # Tankograd's plan: once the player has reached it (MAP03 on)
+TANKOGRAD_FROM = "MAP03"
+ZARYA_ROOM = ("MAP01", "z4_komnata")   # the garrison report, in the base it is about
 RED_SQUARE_PARADE = 9      # «the parade is not cancelled» on Red Square itself
 
 
@@ -314,11 +323,12 @@ class PlacementTest(unittest.TestCase):
         mask = t.extra.get("arg0", 0) or (1 << len(LINES)) - 1
         return {n for n in LINES if mask & (1 << (n - 1))}
 
-    def test_none_in_episode_1(self):
-        for name in EPISODE_1:
+    def test_every_map_of_the_campaign_has_its_table(self):
+        for name in ROOMS:
             text = (SRC / "maps" / name / "map.py").read_text(encoding="utf-8")
-            self.assertNotIn(str(EDNUM), text, name)
-            self.assertNotIn("ED_LOUDSPEAKER", text, name)
+            self.assertIn("ED_LOUDSPEAKER = 21201", text, name)
+            self.assertIn("LOUDSPEAKERS = (", text, name)
+        self.assertTrue(set(EPISODE_1) <= set(ROOMS))
 
     def test_one_or_two_a_map_in_the_designs_rooms_on_every_skill(self):
         for name, rooms in ROOMS.items():
@@ -336,13 +346,21 @@ class PlacementTest(unittest.TestCase):
                 self.assertIn(t.extra.get("arg4", 0), (0, 1, 2, 3), name)
 
     def test_the_story_filter(self):
-        """RAD11 (Zarya-7 holds) is Episode 1's; RAD02 (the dam) waits for MAP06."""
+        """RAD11 (Zarya-7 holds) is Episode 1's, and plays in MAP01's komnata;
+        RAD15 (Tankograd's plan) waits for MAP03; RAD02 (the dam) for MAP06."""
         for name in ROOMS:
             for t in self.speakers(name):
                 lines = self.lines(t)
-                self.assertNotIn(LINE_ZARYA, lines, name)
+                if name not in EPISODE_1:
+                    self.assertNotIn(LINE_ZARYA, lines, name)
+                if name < TANKOGRAD_FROM:
+                    self.assertNotIn(LINE_TANKOGRAD, lines, name)
                 if name < DAM_FROM:
                     self.assertNotIn(LINE_DAM, lines, name)
+        name, room = ZARYA_ROOM
+        md = self.maps[name]
+        here = [t for t in self.speakers(name) if md.name_of(md.sector_at(t.x, t.y)) == room]
+        self.assertIn(LINE_ZARYA, self.lines(here[0]), "the garrison report, in the base itself")
         square = [t for t in self.speakers("MAP06")
                   if self.maps["MAP06"].name_of(self.maps["MAP06"].sector_at(t.x, t.y)) == "z6_square"]
         self.assertIn(RED_SQUARE_PARADE, self.lines(square[0]), "the parade is not cancelled, on Red Square")

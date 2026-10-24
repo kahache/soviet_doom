@@ -132,6 +132,14 @@ CELLS_GIVEN = {2047: 20, 17: 100, 21006: 40}
 ROUNDS_PER_SHELL = 10
 SHELLS_PER_ROCKET = 2
 SHELLS_PER_CELL = 13.5 / 80   # D119 (BALANCE 8.1): the ROKS-3's jet is 13.5 now
+# V3 A4, the RGD-5 (BALANCE 8.1, 8.6; placed in Episode 1 on 2026-10-24): a
+# grenade counts 1.25 shell-equivalents (its 100 blast at the centre over the
+# IZh's 80), the pouch (the weapon) 2, a loose one 1, the crate 4. Counted in
+# the band (8.2) and in the shell share's whole (8.3) only: the stage
+# readiness, the newest weapon's lead (8.4.2) and the boss's stage (8.4.3)
+# leave grenades out (the bosses take no splash).
+GRENADES_GIVEN = {21009: 2, 21021: 1, 21022: 4}
+SHELLS_PER_GRENADE = 1.25
 IZH_AVERAGE = 80       # docs/engine/BALANCE.md 2: one barrel
 PPSH_AVERAGE = 8       # one round
 RPG_AVERAGE = 135      # one PG-7V, direct hit only
@@ -1211,7 +1219,8 @@ class Map03Test(unittest.TestCase):
         return sum(SHELLS_GIVEN.get(t["type"], 0)
                    + ROUNDS_GIVEN.get(t["type"], 0) / ROUNDS_PER_SHELL
                    + ROCKETS_GIVEN.get(t["type"], 0) * SHELLS_PER_ROCKET
-                   + CELLS_GIVEN.get(t["type"], 0) * SHELLS_PER_CELL for t in placed)
+                   + CELLS_GIVEN.get(t["type"], 0) * SHELLS_PER_CELL
+                   + GRENADES_GIVEN.get(t["type"], 0) * SHELLS_PER_GRENADE for t in placed)
 
     def test_g3_8_the_ammo_budget(self):
         """G3-8 as D119 reads it, the General included: on every skill,

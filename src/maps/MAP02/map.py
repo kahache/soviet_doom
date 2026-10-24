@@ -365,6 +365,16 @@ ED_ARMOR_BONUS = 2015
 ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
 ED_BACKPACK = 8
+# V3 A4, the RGD-5 hand grenade (ADR 012; docs/engine/2026-10-23_V3_rgd5.md
+# section 6), placed in Episode 1 on 2026-10-24: its own pool, counted 1.25
+# shell-equivalents a grenade (BALANCE 8.1, 8.6). A grenade is a consumable
+# here, so it rides in ITEMS and scales DOWN with skill: 3 / 3 / 2 grenades on
+# skills 2 / 3 / 4. No crate (21022) in the campaign.
+ED_RGD5 = 21009           # the pouch: the weapon and two grenades
+ED_RGD5_AMMO = 21021      # one loose grenade (it gives the weapon too)
+# V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
+# 5.4): SD_Loudspeaker, a positional voice OVER the music (MOD-SPEC 6.14).
+ED_LOUDSPEAKER = 21201
 
 # Design section 9: monsters per skill, Doom's skill pairs (udmf.skill_tier).
 # V3 A2 adds the armoury's two guards on every skill.
@@ -501,6 +511,23 @@ ITEMS = (
     ("b3_doorway", ED_HEALTH_BONUS, 832, 800, 4),
     ("z6_cab_e", ED_HEALTH_BONUS, 2800, 420, 4),
     ("z2_kassa", ED_HEALTH_BONUS, 3440, 1330, 4),
+    # The RGD-5 (V3 A4, design section 19): the pouch in the kassa beside
+    # the IZh, the side room off the picket's line, so a pistol start has it
+    # before the hall, where the Legion waits between the pylons facing the
+    # escalator; a loose one in the bunker spine, for the refuge dormitory's
+    # doorway and the command post's stair.
+    ("z2_kassa", ED_RGD5, 3350, 1240, 4),
+    ("b2_spine", ED_RGD5_AMMO, 880, 940, 3),
+)
+
+# The station's loudspeaker (V3 B5, design section 19), on every skill:
+# (zone, x, y, lines, reach, flags, jingle). Lines are the radio's 1-16
+# (SDRAD01-16), the thing's arg0 their bit mask; reach 0 = the actor's 384;
+# flags arg3 (4 = the valve bed); jingle arg4 (0 = a random one of three).
+# The central hall, reach 512 (the hall is 1472 long): the metro is the
+# shelter the air-raid notice sends people to, then the civil notices.
+LOUDSPEAKERS = (
+    ("z3_hall", 2080, 1070, (3, 4, 12, 14, 8), 512, 0, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la
@@ -911,6 +938,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
             tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     for _zone, ednum, x, y, lowest in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
+    for _zone, x, y, lines, reach, flags, jingle in LOUDSPEAKERS:
+        mask = sum(1 << (line - 1) for line in lines)
+        tm.add_thing(Thing(x=x, y=y, type=ED_LOUDSPEAKER,
+                           extra={"arg0": mask, "arg1": reach, "arg3": flags, "arg4": jingle}))
     return tm, plan
 
 

@@ -2169,3 +2169,65 @@ tag 13 open.
 | V3-1 | Taking the IZh opens the hound's closet (a thing's `Door_Open`, never seen in our engine) and the hound comes out | `g3-auto` on skill 3: A6 reports tag 12 open; by hand: take the IZh, turn round |
 | V3-2 | Taking the PPSh-41 opens the squad's closet and both come out across the hangar | A9 reports tag 13 open; by hand from the catwalk |
 | V3-3 | The panels are wall until they move (the concrete's seam only), and nothing in either closet sees or wakes before | screenshots of the corridor's and the hangar's south walls before the pickups |
+
+## 21. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+The PM scheduled Episode 1 for both on 2026-10-24 (V3), as MAP04-MAP09 got
+them the same day: `BALANCE.md` §8.6, `docs/engine/2026-10-23_V3_rgd5.md`
+§6, `docs/sound/2026-10-23_V3_propaganda-radio.md` §5.4. No geometry
+changed, no other thing moved.
+
+**The RGD-5** (ADR 012). Grenades are consumables in `ITEMS`, so they scale
+**down** with skill: **4 / 3 / 2** grenades on skills 2 / 3 / 4 (skills 1
+and 5 double them, as every pickup). This is the campaign's first map, so
+the pouch is the grenade's lesson: it lies where picking it up is **safe**,
+in the komnata's south-east corner beside D3, found once the room is
+cleared and while D3 is still shut. Beyond the door wait the service
+corridor's riflemen in a straight run and then the hangar, where the Legion
+is massed round the transporter's cradle: the first group worth a throw.
+The two loose ones follow the fights they are for. No crate (21022: a
+secret's reward only).
+
+| Where | What | Skills | For |
+|---|---|---|---|
+| `z4_komnata` (600, 1040), by D3 | the pouch (21009): the weapon and 2 | every skill | the lesson: Z5's riflemen, then the cradle |
+| `z6_hangar` (1240, 980), at the foot of the step down | a loose grenade (21021) | skills 1-3 | the troopers on and behind the cradle |
+| `z6b_catwalk` (2300, 1572), past the PPSh-41 | a loose grenade (21021) | skills 1-2 | thrown down on wave 2's closets |
+
+**The budget** (BALANCE §8, a grenade 1.25 shell-equivalents, counted in
+the band and the shell share's whole only): the ratio placed / needed on
+skills 2 / 3 / 4 goes **1.500 → 1.661 / 1.341 → 1.401 / 1.213 → 1.244**,
+inside 1.5-2.0 / 1.3-1.6 / 1.2-1.45 (skill 2 sat on its floor: the
+grenades lift it off). The stage readiness, the newest weapon's lead and
+the shells' 35 % are unchanged (grenades only enlarge the share's whole).
+
+**The loudspeakers** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124), table
+`LOUDSPEAKERS` in `map.py`, on every skill, no body until its horn is drawn:
+
+| Where | Lines | Reach | Why |
+|---|---|---|---|
+| `z4_komnata` (64, 1200), the west wall | 5, 7, 13, 11 | 384 (the default) | the political room's slogans, and **RAD11**, «the Zarya-7 garrison is still holding», about this very base: Episode 1's line, heard here only |
+| `z6_hangar` (1920, 1300), under the catwalk | 3, 4, 10, 16 | 512 (the hangar is 1536 long) | the air-raid alert, the fallen-objects notice, the weather and the time signal, as the invasion lands |
+
+The zones (reach + 128) keep clear of each other (1859 apart for 1152) and
+of the guard post's `SD_Radio` (reach 96 + 64): the komnata's 898 from it
+for 672, the hangar's 961 for 800, so the music swap and the broadcasts
+never sound together.
+
+**Routes:** `g3-auto` is unchanged; no grenade lies within a body and a
+pickup (36) of any of its walks or warps: the nearest is the catwalk's,
+82 from A7's walk east (a warp collects nothing anyway). Tests: this map's
+(`test_g3_8_the_ammo_budget` counts the grenades, `test_consumables_scale_down`
+holds them), `tests/test_rgd5_maps.py`, `tests/test_rgd5.py`,
+`tests/test_loudspeaker.py`, `tests/test_safe_starts.py` (no monster moved).
+
+**Engine checklist (the PM, D26; not run):** the grenades lie where the table says and are picked up (`printinv`:
+`SD_Rgd5` and `SD_Rgd5Ammo`; the pouch does not raise itself, NO_AUTO_SWITCH,
+and slot 8 throws); a thrown grenade arcs over the cover named above and its
+blast kills what the table says it is for (the komnata's
+pouch at the D3 recess's south side, the cradle's troopers from the step
+down); the loudspeaker rings its jingle on approach, reads its lines over the
+level's music, falls silent walking away (the line in progress finishes)
+and is not heard from the next room; the komnata's speaker is silent at the guard post,
+where the radio swaps the music (the two never overlap); a clean log;
+`g3-auto` on skills 2-4 still PASS.

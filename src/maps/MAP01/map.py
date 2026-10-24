@@ -345,6 +345,17 @@ RADIO_KOLOKOLCHIK = 2         # arg0: D_SDRAD2, "Kolokolchik"
 # and never the corridor's walking line (design section 17.16).
 RADIO_REACH_BACK_WALL = 96
 
+# V3 A4, the RGD-5 hand grenade (ADR 012; docs/engine/2026-10-23_V3_rgd5.md
+# section 6), placed in Episode 1 on 2026-10-24: its own pool, counted 1.25
+# shell-equivalents a grenade (BALANCE 8.1, 8.6). A grenade is a consumable
+# here, so it rides in ITEMS and scales DOWN with skill: 4 / 3 / 2 grenades on
+# skills 2 / 3 / 4. No crate (21022) in the campaign.
+ED_RGD5 = 21009           # the pouch: the weapon and two grenades
+ED_RGD5_AMMO = 21021      # one loose grenade (it gives the weapon too)
+# V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
+# 5.4): SD_Loudspeaker, a positional voice OVER the music (MOD-SPEC 6.14).
+ED_LOUDSPEAKER = 21201
+
 # Monsters: Freedoom's implementations of the Doom II actors, each standing
 # in for the bestiary class that will `replaces` it (docs/engine/BESTIARY.md
 # section 12), so F5 changes nothing in this file. D35: the Fourth Reich is
@@ -502,6 +513,30 @@ ITEMS = (
     ("tribune", ED_HEALTH_BONUS, 432, 1400, 4),   # clear of the lectern (D38)
     ("z10_lift", ED_HEALTH_BONUS, 3090, 600, 4),
     ("plinth_tank_2", ED_HEALTH_BONUS, 1240, 1824, 4),
+    # The RGD-5 (V3 A4, design section 21). The first pouch where the lesson
+    # is safe: the komnata's south-east corner by D3, found once the room is
+    # cleared and while D3 is still shut; beyond the door wait the service
+    # corridor's riflemen and then the Legion massed round the cradle, the
+    # first group worth a throw. Loose ones at the hangar's foot (for the
+    # cradle) and on the catwalk (thrown down on wave 2's closets).
+    ("z4_komnata", ED_RGD5, 600, 1040, 4),
+    ("z6_hangar", ED_RGD5_AMMO, 1240, 980, 3),
+    ("z6b_catwalk", ED_RGD5_AMMO, 2300, 1572, 2),
+)
+
+# The propaganda loudspeakers (V3 B5, design section 21), on every skill:
+# (zone, x, y, lines, reach, flags, jingle). Lines are the radio's 1-16
+# (SDRAD01-16), the thing's arg0 their bit mask; reach 0 = the actor's 384;
+# flags arg3 (4 = the valve bed); jingle arg4 (0 = a random one of three).
+# The komnata's: the political room's slogans and RAD11, «the Zarya-7
+# garrison is still holding», about this very base (Episode 1's line only).
+# It stands at the west wall, so its reach + 128 stays clear of the guard
+# post's SD_Radio (reach + 64). The hangar's, reach 512 (the hangar is 1536
+# long): the air-raid alert, the fallen-objects notice, the weather and the
+# time signal, as the invasion lands.
+LOUDSPEAKERS = (
+    ("z4_komnata", 64, 1200, (5, 7, 13, 11), 0, 0, 0),
+    ("z6_hangar", 1920, 1300, (3, 4, 10, 16), 512, 0, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la
@@ -1208,6 +1243,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for _zone, piece, reach, x, y, angle in RADIOS:
         tm.add_thing(Thing(x=x, y=y, type=ED_RADIO, angle=angle,
                            extra={"arg0": piece, "arg1": reach}))
+    for _zone, x, y, lines, reach, flags, jingle in LOUDSPEAKERS:
+        mask = sum(1 << (line - 1) for line in lines)
+        tm.add_thing(Thing(x=x, y=y, type=ED_LOUDSPEAKER,
+                           extra={"arg0": mask, "arg1": reach, "arg3": flags, "arg4": jingle}))
 
     return tm, plan
 

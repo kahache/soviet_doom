@@ -101,6 +101,14 @@ MAP01_STRETCHES = (
 # PPSh round 8 (docs/engine/BALANCE.md section 2), so ten rounds of 7.62 do
 # the work of one shell.
 ROUNDS_PER_SHELL = 10
+# V3 A4, the RGD-5 (BALANCE 8.1, 8.6; placed in Episode 1 on 2026-10-24): a
+# grenade counts 1.25 shell-equivalents (its 100 blast at the centre over the
+# IZh's 80), the pouch (the weapon) 2, a loose one 1, the crate 4. Counted in
+# the band (8.2) and in the shell share's whole (8.3) only: the stage
+# readiness, the newest weapon's lead (8.4.2) and the boss's stage (8.4.3)
+# leave grenades out (the bosses take no splash).
+GRENADES_GIVEN = {21009: 2, 21021: 1, 21022: 4}
+SHELLS_PER_GRENADE = 1.25
 # What each pickup gives, Doom's amounts (our classes keep them, MOD-SPEC
 # 6.4) and the weapon AmmoGive constants in src/zscript/weapons/.
 SHELLS_GIVEN = {2008: 4, 2049: 20, 21003: 8}
@@ -403,7 +411,8 @@ class Map01V3Test(unittest.TestCase):
         placed = self._outside_secrets(self.on(skill, self.things))
         shells = sum(SHELLS_GIVEN.get(t["type"], 0) for t in placed)
         rounds = sum(ROUNDS_GIVEN.get(t["type"], 0) for t in placed)
-        return shells + rounds / ROUNDS_PER_SHELL
+        grenades = sum(GRENADES_GIVEN.get(t["type"], 0) for t in placed)
+        return shells + rounds / ROUNDS_PER_SHELL + grenades * SHELLS_PER_GRENADE
 
     def test_g3_8_the_ammo_budget(self):
         """Criterion G3-8 as D119 reads it: on every skill, placed ammo

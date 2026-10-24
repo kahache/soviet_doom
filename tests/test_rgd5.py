@@ -63,9 +63,11 @@ TICS_PER_SECOND = 35
 FUSE_SECONDS = (1.5, 2.0)          # the brief: ~1.5-2 s
 PROJECTILE_AVG = 4.5               # Doom projectile damage x random(1,8): avg x4.5 (BALANCE 0)
 ICE_AXE_SELECTION = 3700
-# Where a level designer may place it (the design doc section 6): Episodes 2
-# and 3 and the practice range; Episode 1 shipped in v1.0.
-ALLOWED_MAPS = {"MAP04", "MAP05", "MAP06", "MAP07", "MAP08", "MAP09", "RANGE"}
+# Where a level designer may place it (the design doc section 6): the whole
+# campaign and the practice range (Episode 1 since 2026-10-24, the PM's V3
+# schedule).
+ALLOWED_MAPS = {"MAP01", "MAP02", "MAP03", "MAP04", "MAP05", "MAP06", "MAP07", "MAP08", "MAP09",
+                "RANGE"}
 
 
 def body(rel: str, cls: str) -> str:
@@ -288,7 +290,7 @@ class ModTests(unittest.TestCase):
             self.assertEqual(re.findall(r"%[ok]", sections[lang]["SD_OB_RGD5"]).count("%o"), 1)
             self.assertEqual(re.findall(r"%[ok]", sections[lang]["SD_OB_RGD5"]).count("%k"), 1)
 
-    def test_placed_only_in_episodes_two_and_three_or_the_range(self):
+    def test_placed_only_in_the_campaign_or_the_range(self):
         for p in (SRC / "maps").rglob("*.py"):
             text = p.read_text(encoding="utf-8")
             if any(re.search(rf"\b{num}\b", text) for num in EDNUMS):
