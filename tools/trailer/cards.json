@@ -1,0 +1,65 @@
+{
+  "_comment": "On-screen texts of the 60 s trailer (docs/product/2026-10-24_V3_trailer-script.md), rendered by tools/trailer/edit.py in the game's own bitmap fonts (assets/fonts/*). Upper case only: the fonts have no lower case. A line is a string or {\"lang\": ID} (read from src/lumps/LANGUAGE, so map names stay the game's). {version} and {weapons} are filled in by edit.py. RU and CA are drafts for review (D129: the player sees EN, RU and CA).",
+  "styles": {
+    "center": {"font": "bigfont", "scale": 7, "line_gap": 28, "anchor": "center"},
+    "title": {"font": "bigfont", "scale": 5, "line_gap": 14, "anchor": "bottom", "band": true, "band_alpha": 205},
+    "lower": {"font": "bigfont", "scale": 4, "line_gap": 12, "anchor": "lower-left", "band": true},
+    "kicker": {"font": "sdmenu", "scale": 3, "line_gap": 10},
+    "end": {"font": "bigfont", "scale": 4, "line_gap": 18, "anchor": "end"},
+    "credit": {"font": "defsmallfont", "scale": 3}
+  },
+  "cards": {
+    "C_1977": {
+      "style": "title",
+      "en": ["1977.", "THE USSR IS INVADED."],
+      "ru": ["1977 ГОД.", "НА СССР НАПАЛИ."],
+      "ca": ["1977.", "L'URSS ÉS INVADIDA."]
+    },
+    "C_EMPIRES": {
+      "style": "center",
+      "en": ["TWO ALIEN EMPIRES.", "ONE ALLIANCE."],
+      "ru": ["ДВЕ ЧУЖИЕ ИМПЕРИИ.", "ОДИН СОЮЗ."],
+      "ca": ["DOS IMPERIS ALIENÍGENES.", "UNA ALIANÇA."]
+    },
+    "C_SERGEANT": {
+      "style": "center",
+      "en": ["ONE SERGEANT.", "NO STEP BACK."],
+      "ru": ["ОДИН СЕРЖАНТ.", "НИ ШАГУ НАЗАД."],
+      "ca": ["UN SERGENT.", "NI UN PAS ENRERE."]
+    },
+    "C_EDGE": {
+      "style": "center",
+      "en": ["FROM THE ARCTIC", "TO THE PORTAL."],
+      "ru": ["ОТ АРКТИКИ", "ДО ПОРТАЛА."],
+      "ca": ["DE L'ÀRTIC", "FINS AL PORTAL."]
+    },
+    "C_FEATURES": {
+      "style": "lower",
+      "en": ["9 MAPS · 3 EPISODES", "{weapons} WEAPONS · 4 BOSSES"],
+      "ru": ["9 КАРТ · 3 ЭПИЗОДА", "{weapons} ВИДОВ ОРУЖИЯ · 4 БОССА"],
+      "ca": ["9 MAPES · 3 EPISODIS", "{weapons} ARMES · 4 CAPS FINALS"]
+    },
+    "L_MAP01": {"style": "lower", "en": [{"lang": "SD_MAP01_NAME"}], "ru": [{"lang": "SD_MAP01_NAME"}], "ca": [{"lang": "SD_MAP01_NAME"}]},
+    "L_MAP02": {"style": "lower", "en": [{"lang": "SD_MAP02_NAME"}], "ru": [{"lang": "SD_MAP02_NAME"}], "ca": [{"lang": "SD_MAP02_NAME"}]},
+    "L_MAP03": {"style": "lower", "en": [{"lang": "SD_MAP03_NAME"}], "ru": [{"lang": "SD_MAP03_NAME"}], "ca": [{"lang": "SD_MAP03_NAME"}]},
+    "L_MAP04": {"style": "lower", "kicker": {"lang": "SD_EP03_NAME"}, "en": [{"lang": "SD_MAP04_NAME"}], "ru": [{"lang": "SD_MAP04_NAME"}], "ca": [{"lang": "SD_MAP04_NAME"}]},
+    "L_MAP05": {"style": "lower", "en": [{"lang": "SD_MAP05_NAME"}], "ru": [{"lang": "SD_MAP05_NAME"}], "ca": [{"lang": "SD_MAP05_NAME"}]},
+    "L_MAP06": {"style": "lower", "en": [{"lang": "SD_MAP06_NAME"}], "ru": [{"lang": "SD_MAP06_NAME"}], "ca": [{"lang": "SD_MAP06_NAME"}]},
+    "L_MAP07": {"style": "lower", "kicker": {"lang": "SD_EP04_NAME"}, "en": [{"lang": "SD_MAP07_NAME"}], "ru": [{"lang": "SD_MAP07_NAME"}], "ca": [{"lang": "SD_MAP07_NAME"}]},
+    "L_MAP08": {"style": "lower", "en": [{"lang": "SD_MAP08_NAME"}], "ru": [{"lang": "SD_MAP08_NAME"}], "ca": [{"lang": "SD_MAP08_NAME"}]},
+    "L_MAP09": {"style": "lower", "en": [{"lang": "SD_MAP09_NAME"}], "ru": [{"lang": "SD_MAP09_NAME"}], "ca": [{"lang": "SD_MAP09_NAME"}]},
+    "E_END": {
+      "style": "end",
+      "logo": {"image": "assets/graphics/shell/M_DOOM.png", "scale": 6},
+      "en": ["FREE DOWNLOAD", "GITHUB.COM/KAHACHE/SOVIET_DOOM", "{version}"],
+      "ru": ["СКАЧАТЬ БЕСПЛАТНО", "GITHUB.COM/KAHACHE/SOVIET_DOOM", "{version}"],
+      "ca": ["DESCÀRREGA GRATUÏTA", "GITHUB.COM/KAHACHE/SOVIET_DOOM", "{version}"],
+      "credit": {
+        "_why": "D_SDINTL is Jerry Engelbach's sequence (attribution required, docs/sound/MUSIC-RIGHTS.md 4.4)",
+        "en": "THE INTERNATIONALE: MIDI SEQUENCE BY JERRY ENGELBACH",
+        "ru": "«ИНТЕРНАЦИОНАЛ»: MIDI-АРАНЖИРОВКА JERRY ENGELBACH",
+        "ca": "LA INTERNACIONAL: SEQÜÈNCIA MIDI DE JERRY ENGELBACH"
+      }
+    }
+  }
+}
