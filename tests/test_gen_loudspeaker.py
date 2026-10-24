@@ -5,7 +5,8 @@ Fast (reads constants only):
 
   names      the lumps are SDLSA0 and SDLSB0 (one picture for every angle),
              two options A/B, the recommended one among them
-  prefix     SDLS collides with no other sprite in assets/
+  prefix     SDLS (and SDLO, option B's installed name, D132) collide with
+             no other sprite in assets/
   grab       the grAb sinks the foot 3 px, as the floor lamp COLU
 
 Slow (renders; skipped under SD_SKIP_SLOW_ART=1, as verify.py fast sets):
@@ -74,6 +75,11 @@ class FastTest(unittest.TestCase):
         others = {p.stem[:4] for p in (PROJECT_ROOT / "assets" / "sprites").rglob("*.png")
                   if p.parent.name != "loudspeaker"}
         self.assertNotIn(self.gl.SPRITE, others)
+        self.assertEqual(set(self.gl.INSTALLED), set(self.gl.OPTIONS))
+        self.assertEqual(self.gl.INSTALLED[self.gl.RECOMMENDED], self.gl.SPRITE)
+        self.assertEqual(len(set(self.gl.INSTALLED.values())), len(self.gl.OPTIONS))
+        for name in self.gl.INSTALLED.values():
+            self.assertNotIn(name, others)
 
     def test_grab_sinks_like_the_floor_lamp(self):
         cv = self.gl.CANVAS

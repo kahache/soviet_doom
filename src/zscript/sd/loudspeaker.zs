@@ -21,18 +21,28 @@
 //   arg2  the pause between lines in seconds; 0 = SD_LS_DEFAULT_PAUSE. A
 //         random 0..SD_LS_PAUSE_JITTER seconds is added each time.
 //   arg3  flags: SD_LS_FLAG_NO_JINGLE (1), SD_LS_FLAG_BED (4: the valve
-//         set's hum and crackle in a loop while it is on). Bit 2 is kept
-//         for a visible horn on a wall (the design's "hidden body").
+//         set's hum and crackle in a loop while it is on), SD_LS_FLAG_OLIVE
+//         (8: the army's olive loudspeaker SDLO instead of the grey street
+//         one SDLS, D132). Bit 2 is kept for a visible horn on a wall (the
+//         design's "hidden body").
 //   arg4  the jingle: 1-3 one of the three; 0 = a random one each time.
 //
-// Body: none to see yet. The horn (SDLS A) is art-director's, not drawn,
-// so the loudspeaker is invisible and intangible (TNT1, +NOINTERACTION):
-// a voice from the room's public-address system. PROVISIONAL-D116 until
-// the sprite exists (MOD-SPEC 6.12). Not shootable: it is ours.
+// Body: the street loudspeaker SDLS (art-director, tools/art/gen_loudspeaker.py,
+// docs/art/previews/2026-10-24_V3_loudspeaker.png): a steel pole with two
+// horns on a cross-arm and a junction box with a red star, one picture for
+// every angle (A0), 69 units tall. Two colours (D132, "Ambos! A y B"): the
+// grey SDLS (the sheet's option A, the city's) by default, the olive SDLO
+// (option B, the army's) with arg3's SD_LS_FLAG_OLIVE; the map chooses per
+// loudspeaker, the same drawing in either. Frame B (the box's pilot lamp
+// lit, the horns shaken) alternates with A on every poll while a jingle or
+// a line plays. Seen but never touched (+NOINTERACTION): a pole standing on a
+// route must not block it; making it solid is level-designer's call per
+// map. Not shootable: it is ours.
 //
 // Single-player: the listener is the local player, as SD_Radio's.
 // NOT VERIFIED in the engine (D26): the class compiling, the shuffle, the
-// turn-off, the rolloff, the bed's loop after a load.
+// turn-off, the rolloff, the bed's loop after a load, the frame written
+// from Tick on a -1 tic state, the olive state entered from PostBeginPlay.
 
 class SD_Loudspeaker : Actor
 {
@@ -60,10 +70,14 @@ class SD_Loudspeaker : Actor
 	const SD_LS_BED_VOLUME = 0.3;
 	// arg3 bits.
 	const SD_LS_FLAG_NO_JINGLE = 1;
-	const SD_LS_FLAG_HIDDEN = 2;      // reserved: every loudspeaker is hidden until SDLS is drawn
+	const SD_LS_FLAG_HIDDEN = 2;      // reserved: a horn painted on a wall texture (not implemented)
 	const SD_LS_FLAG_BED = 4;
+	const SD_LS_FLAG_OLIVE = 8;       // the olive SDLO (D132); unset, the grey SDLS
 	// arg4: the three station jingles (D124).
 	const SD_LS_JINGLES = 3;
+	// The sprite's frames: A silent, B speaking (the pilot lamp lit).
+	const SD_LS_FRAME_SILENT = 0;
+	const SD_LS_FRAME_SPEAKING = 1;
 
 	// Saved with the actor.
 	bool turnedOn;                // the player is inside reach (with the hysteresis)
@@ -82,7 +96,7 @@ class SD_Loudspeaker : Actor
 
 	Default
 	{
-		+NOINTERACTION       // PROVISIONAL-D116: no body until SDLS is drawn
+		+NOINTERACTION       // seen, never touched (see the header)
 		+NOBLOCKMAP
 		+NOGRAVITY
 		+DONTSPLASH
@@ -91,8 +105,27 @@ class SD_Loudspeaker : Actor
 	States
 	{
 	Spawn:
-		TNT1 A -1;           // PROVISIONAL-D116: SDLS A, the horn, when drawn
+		SDLS A -1;           // grey; B is set from Tick while it speaks
 		Stop;
+	Olive:
+		SDLO A -1;           // the olive one, entered from PostBeginPlay
+		Stop;
+	}
+
+	bool IsOlive()
+	{
+		return (args[3] & SD_LS_FLAG_OLIVE) != 0;
+	}
+
+	// PostBeginPlay runs on the first tic, after the map thing's args were
+	// copied to the actor. The colour is the state, so a saved game keeps it.
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+		if (IsOlive())
+		{
+			SetStateLabel("Olive");
+		}
 	}
 
 	double SpeakerReach()
@@ -251,6 +284,8 @@ class SD_Loudspeaker : Actor
 			nextLineAt = Level.maptime + (afterJingle ? SD_LS_JINGLE_GAP * TICRATE : PauseTics());
 			afterJingle = false;
 		}
+		// The horn shakes while it talks: B and A in turn, one poll each.
+		frame = (talking && frame == SD_LS_FRAME_SILENT) ? SD_LS_FRAME_SPEAKING : SD_LS_FRAME_SILENT;
 
 		if (turnedOn)
 		{

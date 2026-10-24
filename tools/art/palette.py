@@ -346,7 +346,9 @@ def ramp_version(name: str) -> int:
 def main() -> None:
     pal = build_palette()
     PALETTE_JSON.parent.mkdir(parents=True, exist_ok=True)
-    PALETTE_JSON.write_text(json.dumps(pal, indent=1), encoding="utf-8")
+    # LF on every machine, as git stores it: a Windows run must not turn the
+    # file's line endings over (newline=None would write CRLF there).
+    PALETTE_JSON.write_text(json.dumps(pal, indent=1), encoding="utf-8", newline="\n")
     print(f"wrote {PALETTE_JSON} (v{pal['version']}: {len(pal['colours_v3'])} colours; "
           f"v1 {pal['count']} colours in {len(pal['ramps'])} ramps, "
           f"+{len(pal['added_ramps'])} added ramps)")

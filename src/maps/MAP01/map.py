@@ -355,6 +355,7 @@ ED_RGD5_AMMO = 21021      # one loose grenade (it gives the weapon too)
 # V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
 # 5.4): SD_Loudspeaker, a positional voice OVER the music (MOD-SPEC 6.14).
 ED_LOUDSPEAKER = 21201
+LOUDSPEAKER_FLAG_OLIVE = 8  # SD_LS_FLAG_OLIVE: the army's olive SDLO, not the grey street SDLS (D132)
 
 # Monsters: Freedoom's implementations of the Doom II actors, each standing
 # in for the bestiary class that will `replaces` it (docs/engine/BESTIARY.md
@@ -533,10 +534,11 @@ ITEMS = (
 # It stands at the west wall, so its reach + 128 stays clear of the guard
 # post's SD_Radio (reach + 64). The hangar's, reach 512 (the hangar is 1536
 # long): the air-raid alert, the fallen-objects notice, the weather and the
-# time signal, as the invasion lands.
+# time signal, as the invasion lands. Both olive (D132): Zarya-7 is an
+# army base, its loudspeakers the garrison's, not the street's.
 LOUDSPEAKERS = (
-    ("z4_komnata", 64, 1200, (5, 7, 13, 11), 0, 0, 0),
-    ("z6_hangar", 1920, 1300, (3, 4, 10, 16), 512, 0, 0),
+    ("z4_komnata", 64, 1200, (5, 7, 13, 11), 0, LOUDSPEAKER_FLAG_OLIVE, 0),
+    ("z6_hangar", 1920, 1300, (3, 4, 10, 16), 512, LOUDSPEAKER_FLAG_OLIVE, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la

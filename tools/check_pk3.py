@@ -743,7 +743,11 @@ PALETTE_V2_LUMPS = frozenset({"SDMOSA1"}  # D56
                              # (only where the portal lights it; gen_episode3_skies).
                              | {"SDSKY5"}
                              # D126: the Gemini title screen (palette v2).
-                             | {"TITLEPIC"})
+                             | {"TITLEPIC"}
+                             # D122: V3's operations map background (mosaic_gold,
+                             # marble_red, mosaic_cobalt; gen_ops_map.py). Its
+                             # arrows, markers and the five awards are RGBA.
+                             | {"SDOPMAP"})
 # The masked lumps (RGBA, so not in PALETTE_V2_LUMPS, which is indexed lumps
 # only) approved in v2: D107's merlon SDKREM2 is SDKREM1's brick cut out.
 PALETTE_V2_MASKED = frozenset({"SDKREM2"})
