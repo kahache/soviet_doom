@@ -1,0 +1,191 @@
+Log started: 2026-10-25 01:55:53
+GZDoom version g4.14.2
+W_Init: Init WADfiles.
+adding C:/Users/littl/AppData/Local/Programs/GZDoom/gzdoom.pk3, 692 lumps
+adding C:/Users/littl/AppData/Local/Programs/GZDoom/game_support.pk3, 3308 lumps
+adding C:/Users/littl/AppData/Local/Temp/claude/C--Users-littl-Desktop-Claude/bf93b294-5d32-4820-bb78-8d68b86106b5/scratchpad/wt_v3/iwads/freedoom2.wad, 3610 lumps
+adding C:/Users/littl/AppData/Local/Programs/GZDoom/game_widescreen_gfx.pk3, 214 lumps
+adding C:/Users/littl/AppData/Local/Temp/claude/C--Users-littl-Desktop-Claude/bf93b294-5d32-4820-bb78-8d68b86106b5/scratchpad/wt_v3/dist/sovietdoom.pk3, 1884 lumps
+adding C:/Users/littl/AppData/Local/Temp/claude/C--Users-littl-Desktop-Claude/bf93b294-5d32-4820-bb78-8d68b86106b5/scratchpad/wt_v3/logs/route/sdroute-helper.pk3, 2 lumps
+S_Init: Setting up sound.
+I_InitInput
+I_StartupMouse
+I_StartupKeyboard
+I_StartupXInput
+I_StartupRawPS2
+I_StartupDirectInputJoystick
+Initialization of Vulkan failed: Could not create vulkan instance: incompatible driver
+GL_VENDOR: NVIDIA Corporation
+GL_RENDERER: NVIDIA GeForce RTX 3050/PCIe/SSE2
+GL_VERSION: 4.6.0 NVIDIA 560.94
+GL_SHADING_LANGUAGE_VERSION: 4.60 NVIDIA
+GL_EXTENSIONS:
+GL Version parsed = 4.600000
+GL_MAX_TEXTURE_SIZE: 32768
+GLES choosing mode: GLES_MODE_OGL3
+Resolution: 464 x 281
+I_Init: Setting up machine state.
+CPU speed: 3598 MHz
+CPU Vendor ID: GenuineIntel
+  Name: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
+  Family 6, Model 60, Stepping 3
+  Features: SSE2 SSE3 SSSE3 SSE4.1 SSE4.2 AVX AVX2 F16C FMA3 BMI1 BMI2 HyperThreading
+V_Init: allocate screen.
+ST_Init: Init startup screen.
+Checking cmd-line parameters...
+S_InitData: Load sound definitions.
+G_ParseMapInfo: Load map definitions.
+Texman.Init: Init texture manager.
+ParseTeamInfo: Load team definitions.
+LoadActors: Load actor definitions.
+script parsing took 657.44 ms
+R_Init: Init Doom refresh subsystem.
+DecalLibrary: Load decals.
+Adding dehacked patch freedoom2.wad:DEHACKED
+Patch installed
+M_Init: Init menus.
+P_Init: Init Playloop state.
+ParseSBarInfo: Loading custom status bar definition.
+===========================================================================
+This is Freedoom, the free content first person shooter.
+
+Freedoom is freely redistributable under the terms of the modified BSD
+license. Check out the Freedoom website for more information:
+
+    https://freedoom.github.io/
+============================================================================
+D_CheckNetGame: Checking network game status.
+player 1 of 1 (1 nodes)
+
+----------------------------------------
+
+MAP05 - Volga Dam
+
+SOVIETDOOM loaded: map MAP05 (Volga Dam)
+SDTEST helper route-4 map=MAP05
+God mode on.
+SDSTEP 0 A0
+SDTEST level map=MAP05 monsters=0/47 secrets=0/3 items=0/18 time=143
+SDTEST count SD_ReichRifleman total=15 alive=15
+SDTEST count SD_LegionTrooper total=9 alive=9
+SDTEST count SD_Stormtrooper total=7 alive=7
+SDTEST count SD_ReichHound total=6 alive=6
+SDTEST count SD_Doughboy total=3 alive=3
+SDTEST count SD_Panzermensch total=4 alive=4
+SDTEST count SD_PanzermenschSchwer total=1 alive=1
+SDTEST count SD_General total=0 alive=0
+SDTEST count SD_Clip total=0 alive=0
+SDTEST count SD_Izh total=1 alive=1
+SDTEST count SD_LegionGunner total=3 alive=3
+SDTEST count SD_LibertyColossus total=0 alive=0
+SDTEST count SD_Consortium total=0 alive=0
+SDTEST count SD_AkmAmmo total=14 alive=14
+SDTEST count SD_ChromeGeneral total=0 alive=0
+SDTEST weapon class=SD_Tokarev slot=2
+SDTEST inv weapons=1 ready=SD_Tokarev slot=2 ammo=50 keys=0
+Captured Screenshot_Doom_20261025_015600.png
+SDTEST pos step=0 x=4704 y=1664 z=384 sector=0 angle=180 health=100
+SDSTEP 1 BG0
+SDTEST line index=232 special=13 arg0=3 front=4 back=5 type=2 player=1
+----------------------------------------
+You need a blue pass to activate this object
+----------------------------------------
+SDTEST tag 3 sector=5 floor=384 ceil=384
+SDTEST tag 3 sector=154 floor=384 ceil=384
+SDTEST tag 3 sector=156 floor=384 ceil=384
+SDTEST weapon class=SD_Tokarev slot=2
+SDTEST inv weapons=1 ready=SD_Tokarev slot=2 ammo=50 keys=0
+Captured Screenshot_Doom_20261025_015603.png
+SDTEST pos step=1 x=4256 y=1920 z=384 sector=4 angle=180 health=100
+SDSTEP 2 YD0
+SDTEST line index=437 special=13 arg0=4 front=59 back=60 type=2 player=1
+----------------------------------------
+You need a yellow pass to activate this object
+----------------------------------------
+SDTEST tag 4 sector=60 floor=192 ceil=192
+SDTEST tag 4 sector=66 floor=192 ceil=192
+SDTEST tag 4 sector=68 floor=192 ceil=192
+SDTEST tag 12 sector=133 floor=128 ceil=128
+SDTEST weapon class=SD_Tokarev slot=2
+SDTEST inv weapons=1 ready=SD_Tokarev slot=2 ammo=50 keys=0
+Captured Screenshot_Doom_20261025_015605.png
+SDTEST pos step=2 x=2624 y=864 z=192 sector=59 angle=90 health=100
+SDSTEP 3 YKEY
+SDTEST clear step=3 killed=0
+A steel helmet.
+Zelyonka.
+Yellow pass.
+SDTEST key class=SD_YellowPass
+SDTEST weapon class=SD_Tokarev slot=2
+SDTEST inv weapons=1 ready=SD_Tokarev slot=2 ammo=50 keys=1
+SDTEST tag 4 sector=60 floor=192 ceil=192
+SDTEST tag 4 sector=66 floor=192 ceil=192
+SDTEST tag 4 sector=68 floor=192 ceil=192
+SDTEST tag 3 sector=5 floor=384 ceil=384
+SDTEST tag 3 sector=154 floor=384 ceil=384
+SDTEST tag 3 sector=156 floor=384 ceil=384
+SDTEST tag 12 sector=133 floor=-16 ceil=128
+Captured Screenshot_Doom_20261025_015609.png
+SDTEST pos step=3 x=823 y=928 z=0 sector=115 angle=0 health=101
+SDSTEP 4 YD1
+SDTEST line index=437 special=13 arg0=4 front=59 back=60 type=2 player=1
+SDTEST tag 4 sector=60 floor=192 ceil=316
+SDTEST tag 4 sector=66 floor=192 ceil=316
+SDTEST tag 4 sector=68 floor=192 ceil=316
+SDTEST cleared step=4 class=SD_Stormtrooper x=2591 y=743 hp=60 dead=1
+SDTEST cleared step=4 class=SD_LegionTrooper x=2529 y=1174 hp=30 dead=1
+SDTEST cleared step=4 class=SD_Stormtrooper x=2624 y=1120 hp=60 dead=1
+SDTEST cleared step=4 class=SD_LegionGunner x=2734 y=1174 hp=80 dead=1
+SDTEST clear step=4 killed=4
+You got the ROKS-3 flamethrower!
+Captured Screenshot_Doom_20261025_015613.png
+SDTEST pos step=4 x=2624 y=1041 z=192 sector=70 angle=90 health=101
+SDSTEP 5 SWA
+SDTEST line index=140 special=11 arg0=10 front=81 back=-1 type=2 player=1
+SDTEST tag 10 sector=83 floor=192 ceil=316
+SDTEST tag 11 sector=109 floor=384 ceil=384
+SDTEST tag 14 sector=110 floor=384 ceil=384
+Captured Screenshot_Doom_20261025_015616.png
+SDTEST pos step=5 x=2928 y=1248 z=192 sector=70 angle=0 health=101
+SDSTEP 6 BKEY
+SDTEST cleared step=6 class=SD_ReichRifleman x=4090 y=1221 hp=20 dead=1
+SDTEST clear step=6 killed=1
+Blue pass.
+SDTEST key class=SD_BluePass
+SDTEST weapon class=SD_Roks3 slot=6
+SDTEST key class=SD_YellowPass
+SDTEST weapon class=SD_Tokarev slot=2
+SDTEST inv weapons=2 ready=SD_Roks3 slot=6 ammo=40 keys=2
+SDTEST tag 3 sector=5 floor=384 ceil=384
+SDTEST tag 3 sector=154 floor=384 ceil=384
+SDTEST tag 3 sector=156 floor=384 ceil=384
+SDTEST tag 11 sector=109 floor=384 ceil=384
+SDTEST tag 14 sector=110 floor=384 ceil=508
+Captured Screenshot_Doom_20261025_015620.png
+SDTEST pos step=6 x=4139 y=1280 z=384 sector=97 angle=0 health=101
+SDSTEP 7 SWB
+SDTEST line index=569 special=11 arg0=11 front=108 back=-1 type=2 player=1
+SDTEST tag 11 sector=109 floor=384 ceil=508
+Captured Screenshot_Doom_20261025_015623.png
+SDTEST pos step=7 x=4208 y=1584 z=384 sector=107 angle=90 health=101
+SDSTEP 8 BG1
+SDTEST line index=232 special=13 arg0=3 front=4 back=5 type=2 player=1
+SDTEST tag 3 sector=5 floor=384 ceil=508
+SDTEST tag 3 sector=154 floor=384 ceil=508
+SDTEST tag 3 sector=156 floor=384 ceil=508
+SDTEST clear step=8 killed=0
+Zelyonka.
+Captured Screenshot_Doom_20261025_015627.png
+SDTEST pos step=8 x=4070 y=1920 z=384 sector=136 angle=180 health=102
+SDSTEP 9 E0
+SDTEST line index=17 special=12 arg0=2 front=140 back=151 type=2 player=1
+SDTEST tag 2 sector=151 floor=384 ceil=508
+Captured Screenshot_Doom_20261025_015630.png
+SDTEST clear step=9 killed=0
+Captured Screenshot_Doom_20261025_015631.png
+SDTEST pos step=9 x=448 y=1920 z=384 sector=152 angle=180 health=102
+SDSTEP 10 E1
+SDTEST line index=1 special=243 arg0=0 front=153 back=-1 type=2 player=1
+SDTEST unloaded map=MAP05 next=MAP06 kills=8/47 secrets=0/3 items=3/18 time=1238
+SDSTEP 11 END
+Captured Screenshot_Doom_20261025_015634.png
