@@ -76,6 +76,7 @@ import make_draft_overlay as mdo  # noqa: E402
 import palette as palette_mod  # noqa: E402  (stdlib only)
 import release  # noqa: E402
 from sdbuild.pk3 import build as build_pk3  # noqa: E402
+from _v3_reload_states import frame_count, with_reloads  # noqa: E402  (V3 reloads: guards + Reload states)
 from test_panzermensch_sprites import (  # noqa: E402  (one PNG/ZScript reader, not two)
     PNG_SIGNATURE, read_grab, states_block, strip_comments)
 
@@ -210,7 +211,7 @@ def credit_lines() -> tuple[list[str], ...]:
 class BehaviourTests(unittest.TestCase):
     def test_states_are_the_pre_d79_ones_but_for_the_names(self):
         expected = [(lb, RENAMED.get(sp, sp), fr, tics, rest) for lb, sp, fr, tics, rest in PPSH_BEFORE_D79]
-        self.assertEqual(states(), expected)
+        self.assertEqual(states(), with_reloads("ppsh.zs", expected))
 
     def test_tic_totals_per_label_unchanged(self):
         def totals(rows):
@@ -218,11 +219,11 @@ class BehaviourTests(unittest.TestCase):
             for lb, _, _, tics, _ in rows:
                 out[lb] = out.get(lb, 0) + tics
             return out
-        self.assertEqual(totals(states()), totals(PPSH_BEFORE_D79))
+        self.assertEqual(totals(states()), totals(with_reloads("ppsh.zs", PPSH_BEFORE_D79)))
         self.assertEqual(totals(states())["Fire"], 6, "3 tics a round, two rounds (BALANCE.md)")
 
     def test_the_parser_sees_every_line(self):
-        self.assertEqual(len(frame_rows(states())), 10)
+        self.assertEqual(len(frame_rows(states())), 10 + frame_count("ppsh.zs"))
 
 
 class SpriteTests(unittest.TestCase):

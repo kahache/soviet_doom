@@ -1,0 +1,15 @@
+// KEYCONF - key bindings the mod suggests. ZDoom wiki: https://zdoom.org/wiki/KEYCONF
+//
+// `defaultbind <key> <command>` binds the key ONLY if neither the key nor
+// the command is bound already, so a player's own setup is never changed.
+// GZDoom g4.14.2 binds nothing to `+reload` and nothing to R by default
+// (gzdoom.pk3 engine/commonbinds.txt, defbinds.txt, leftbinds.txt read on
+// 2026-10-25); its Customize Controls menu already lists "Reload"
+// (CNTRLMNU_RELOAD, menudef.txt), where a player can move it.
+//
+// V3 reloads (D132, ADR 014): `+reload` makes the weapon's Reload state
+// play when A_WeaponReady allowed it (WRF_ALLOWRELOAD,
+// zscript/weapons/magazine.zs). With sd_reloads 0 the key does nothing.
+// NOT VERIFIED in the engine (D26): that defaultbind runs from KEYCONF with
+// no line in the log.
+defaultbind r +reload

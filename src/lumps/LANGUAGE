@@ -222,6 +222,9 @@ SD_SKILL_5_CONFIRM = "The award is posthumous and the enemy dead do not stay dea
 SD_OPTMNU_TITLE    = "Soviet Doom";
 SD_OPTMNU_LANGUAGE = "Language";
 SD_OPTMNU_LANGHELP = "Applies immediately. Saved for the next session.";
+// V3 reloads (D132, ADR 014): the sd_reloads row and its note (one line).
+SD_OPTMNU_RELOADS    = "Weapon reloads";
+SD_OPTMNU_RELOADHELP = "Magazines; R reloads. Off: as in v1.2.";
 
 SD_LANGVAL_AUTO = "Automatic (system)";
 SD_LANGVAL_EN = "English";
@@ -588,6 +591,8 @@ SD_SKILL_5_CONFIRM = "Награда посмертная, а убитый вр�
 SD_OPTMNU_TITLE    = "Советский Doom";
 SD_OPTMNU_LANGUAGE = "Язык";
 SD_OPTMNU_LANGHELP = "Применяется сразу. Запоминается для следующих запусков.";
+SD_OPTMNU_RELOADS    = "Перезарядка оружия";
+SD_OPTMNU_RELOADHELP = "Магазины; R - перезарядка. Выкл.: как в v1.2.";
 
 SD_LANGVAL_AUTO = "Автоматически (по системе)";
 SD_LANGVAL_EN = "Английский";
@@ -890,6 +895,8 @@ SD_SKILL_5_CONFIRM = "La condecoració és pòstuma, i aquí els enemics morts n
 SD_OPTMNU_TITLE    = "Soviet Doom";
 SD_OPTMNU_LANGUAGE = "Idioma";
 SD_OPTMNU_LANGHELP = "S'aplica a l'acte. Es desa per a la propera sessió.";
+SD_OPTMNU_RELOADS    = "Recàrrega d'armes";
+SD_OPTMNU_RELOADHELP = "Carregadors; R recarrega. No: com a la v1.2.";
 
 SD_LANGVAL_AUTO = "Automàtic (sistema)";
 SD_LANGVAL_EN = "Anglès";

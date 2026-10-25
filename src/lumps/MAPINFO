@@ -13,7 +13,10 @@ GameInfo
 	// SD_AwardsRecorder (V3 B3, ADR 013): copies each campaign map's kills,
 	// secrets and time into the player's ledger for the end-of-episode awards
 	// (zscript/sd/awards.zs; MOD-SPEC 6.13).
-	AddEventHandlers = "SD_LoadReporter", "SD_DeathPrompt", "SD_MusicVariant", "SD_AwardsRecorder"
+	// SD_MagazineHud (V3 reloads, D132, ADR 014): the "rounds/capacity" line
+	// for the weapon in hand while sd_reloads is on
+	// (zscript/sd/magazine_hud.zs; MOD-SPEC 6.15).
+	AddEventHandlers = "SD_LoadReporter", "SD_DeathPrompt", "SD_MusicVariant", "SD_AwardsRecorder", "SD_MagazineHud"
 
 	// V3 B3 (ADR 013): the single-player stats screen is ours. SD_StatusScreen
 	// derives from DoomStatusScreen, the class gzdoom.pk3's

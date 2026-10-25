@@ -225,6 +225,8 @@ sovietdoom.pk3
 │                           StatusBarClass since T24)
 ├── LANGUAGE                localized text: [enu default] and [ru] (D7)
 ├── MENUDEF                 language switch, main menu and skill screen in our own type (§6.6)
+├── CVARINFO                V3 reloads: `sd_reloads`, the mod's first CVar (§6.15, ADR 014)
+├── KEYCONF                 V3 reloads: `defaultbind r +reload` (§6.15)
 ├── SNDINFO                 logical sound name -> lump (F4)
 ├── zscript.txt             ZScript entry: version + #include
 ├── zscript/sd/*.zs         systems (event handlers, player class, ammo, the radio §6.7,
@@ -1436,7 +1438,7 @@ sounds D125 put on the engine's own names).
 | `sd/weapon/iceaxe/pickup` | `$random`: `SDAXPKP1`, `SDAXPKP3` (D94) | `Inventory.PickupSound` (since N9e) |
 | `sd/weapon/tokarev/fire` | `SDTTFIR` | `SD_Tokarev` `AttackSound` |
 | `sd/weapon/tokarev/dry` | `SDTTDRY` | `A_SD_WeaponReady` → `SD_WeaponSounds.DryClick` |
-| `sd/weapon/tokarev/reload` | `SDTTRLD` | nothing: parked, no reload state (D47) |
+| `sd/weapon/tokarev/reload` | `SDTTRLD` | parked by D47; on the branch `v3-reload` the `Reload` state, with `sd_reloads` on (§6.15) |
 | `sd/weapon/tokarev/pickup` | `$random`: `SDTTPKP1`, `SDTTPKP2` (D94) | `Inventory.PickupSound` (since N9e) |
 | `sd/weapon/izh/fire` | `SDIZFIR` (take B, D83; `DSSHOTGN` until N9e) | `SD_Izh` `AttackSound` |
 | `sd/weapon/izh/reload` | `SDIZRLD` (D94 alt3; `DSSGCOCK` until N9e) | `SD_Izh` Reload, first frame |
@@ -1445,7 +1447,7 @@ sounds D125 put on the engine's own names).
 | `sd/weapon/ppsh/fire` | `SDPPFIR` | `SD_Ppsh` `AttackSound` |
 | `sd/weapon/ppsh/pickup` | `SDPPPKP` | `Inventory.PickupSound` |
 | `sd/weapon/ppsh/dry` | `SDPPDRY` | `A_SD_WeaponReady` |
-| `sd/weapon/ppsh/reload` | `SDPPRLD` | nothing: parked (D47) |
+| `sd/weapon/ppsh/reload` | `SDPPRLD` | parked by D47; on `v3-reload` the `Reload` state (§6.15) |
 | `sd/weapon/rpg7/fire` | `SDRPFIR` | `SD_Pg7Grenade` `SeeSound` |
 | `sd/weapon/rpg7/explode` | `SDRPEXP` | `SD_Pg7Grenade` `DeathSound` |
 | `sd/weapon/rpg7/reload` | `SDRPRLD` | `SD_Rpg7` Fire, `SDRL B 10` (the launch frame split 4 + 10), `CHAN_WEAPON` |
@@ -1454,7 +1456,7 @@ sounds D125 put on the engine's own names).
 | `sd/weapon/roks3/fire` | `$random`: `SDRKFIR1`-`SDRKFIR3` (D94; `DSFLAME` until N9e) | `A_SD_FireRoks3`, `CHAN_WEAPON`, restarted every 3 tics: a take per restart |
 | `sd/weapon/roks3/pickup` | `SDRKPKP` | `Inventory.PickupSound` |
 | `sd/weapon/roks3/dry` | `SDRKDRY` | `A_SD_WeaponReady` |
-| `sd/weapon/roks3/reload` | `SDRKRLD` | nothing: parked (D47) |
+| `sd/weapon/roks3/reload` | `SDRKRLD` | parked by D47; on `v3-reload` the `Reload` state (§6.15) |
 | `sd/weapon/katyusha/charge` | `SDHKCHG` | `SD_HandKatyusha` Fire, `SDHK A 20`, `CHAN_WEAPON` |
 | `sd/weapon/katyusha/fire` | `SDHKFIR` | `A_SD_FireKatyusha`, `CHAN_WEAPON` |
 | `sd/weapon/katyusha/burst` | `SDHKEXP` | `SD_KatyushaRocket` `DeathSound` |
@@ -1575,6 +1577,7 @@ are not part of the bestiary's 47 (`gen_sfx.py`'s cards): `BESTIARY.md`
 |---|---|---|
 | `sd/weapon/akm/fire` | `SDPPFIR` (the PPSh-41's round) with `$pitchset sd/weapon/akm/fire 0.85` (**NOT VERIFIED** in the engine; the keyword is in g4.14.2's `gzdoom.exe`) | `SDAKFIR` (the `$pitchset` line goes with it) |
 | `sd/weapon/akm/dry`, `…/pickup` | `SDPPDRY`, `SDPPPKP` | `SDAKDRY`, `SDAKPKP` |
+| `sd/weapon/akm/reload` (V3 reloads, §6.15) | `SDPPRLD` (the PPSh-41's drum change) | `SDAKRLD` |
 | `sd/mon/legiongunner/sight`, `…/active`, `…/pain`, `…/death` | the trooper's takes `SDLTRSI3`, `SDLTRAC3`, `SDLTRPA1`, `SDLTRDT1` | `SDLGNSIT`, `SDLGNACT`, `SDLGNPAI`, `SDLGNDTH` |
 | `sd/mon/legiongunner/attack`, `…/xdeath` | `SDPPFIR`, `SDLTRXDT` | `SDLGNATK` (a slower, heavier M1919), `SDLGNXDT` |
 | `sd/mon/colossus/sight`, `…/active`, `…/pain`, `…/death` | the General's `SDGENSIT`, `SDGENACT`, `SDGENPA1`, IWAD `DSCYBDTH` | `SDCOLSIT`, `SDCOLACT`, `SDCOLPAI`, `SDCOLDTH` (metal groaning, not a voice) |
@@ -3163,6 +3166,28 @@ class, the numbers above, the sounds, the licences and the placements.
 the turn-off and the jingle's cooldown, the `$rolloff`, the bed's loop
 (seam and restart after a load), the speaking frame and the olive state.
 
+## 6.15 Weapon reloads, the V3 experiment (D132, ADR 014, 2026-10-25)
+
+Branch `v3-reload` only: an option the CEO plays with and without (a nice
+to have, D121). Design and the engine checks R1-R14:
+`docs/engine/2026-10-25_V3_reloads.md`; the numbers: `BALANCE.md` §10.
+
+| What | Value |
+|---|---|
+| The switch | CVar **`sd_reloads`**, `server bool`, default **true** on this branch (`src/lumps/CVARINFO`); the row Options > Soviet Doom > "Weapon reloads" (`MENUDEF`, `Option ... "OnOff"`), strings `SD_OPTMNU_RELOADS`, `SD_OPTMNU_RELOADHELP` in `[enu default]`, `[ru]`, `[ca]`. Off = v1.2's tics exactly |
+| The key | `+reload` (the engine's `BT_RELOAD`); `KEYCONF` `defaultbind r +reload` (only if neither R nor `+reload` is bound); the engine's Customize Controls row "Reload" |
+| Code | `zscript/weapons/magazine.zs`: `SD_Reloads` (static: `On()`, `ReloadOffset()`, `Magazine()`) and `mixin class SD_MagazineWeapon` (fields `sdMagFired`, `sdReloadTic`; `override DepleteAmmo`; `A_SD_BeginReload`, `A_SD_ReloadTick`) |
+| Guns | `SD_Tokarev` 8 (`SD_TT_MAGAZINE`), `SD_Ppsh` 71 (`SD_PPSH_MAGAZINE`), `SD_Akm` 30 (`SD_AKM_MAGAZINE`), `SD_Roks3` 80 (`SD_ROKS3_TANK`); each with `SD_*_RELOAD_TICS`, `_RELOAD_DROP`, `_RELOAD_SOUND_TIC`. `SD_Izh`: its two barrels, plus `+reload` after one (`SD_CanReloadIzh`). None for the ice axe, RPG-7, hand Katyusha, RGD-5 |
+| States, per gun | a 0-tic guard `A_JumpIf(invoker.SD_MagazineDry(...), "Reload")` as the first `Fire` frame (and before the PPSh-41's B round); `A_SD_WeaponReady` returns `Reload` on a dry magazine (no pending switch) and passes `WRF_ALLOWRELOAD` when a reload would load; new labels `Reload` (a 0-tic `SD_CanReload` check, `A_SD_BeginReload`) and `ReloadLoop` (the ready frame, 1 tic, `A_SD_ReloadTick`, repeated `*_RELOAD_TICS` times), then `Goto Ready` |
+| Ammo | a counter over the pool (`Clip`, `SD_AkmAmmo`, `Cell`): no round created, lost or moved; the maps' ammunition is untouched |
+| Animation | no new sprite: the ready frame lowered 32 → 128 and raised (`A_WeaponOffset`, `WOF_INTERPOLATE`); the reload sound on its tic (§6.2), the refill as the gun rises |
+| Readout | `SD_MagazineHud` (`zscript/sd/magazine_hud.zs`), last in MAPINFO's `AddEventHandlers`: "rounds/capacity" in SmallFont (gold; red when empty) right-aligned at x 44, y 158 with the bar, x 290, y 170 over the fullscreen HUD, none at screenblocks 12 or on the automap |
+| Saved games | `sdMagFired` and `sdReloadTic` are ordinary fields, saved; 0 is a full magazine, so older saves load full |
+
+`tests/test_reloads.py` pins all of the above; `tests/_v3_reload_states.py`
+is the table of state edits the sprite suites apply to their pinned
+"before" states. **NOT VERIFIED in the engine** (D26).
+
 ## 7. Commands
 
 ```sh
@@ -3216,7 +3241,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | T4 | Freedoom's `Chainsaw` and `SuperShotgun` classes still exist; only their editor numbers were removed. | F6, if it ever matters |
 | T5 | The DPS figures in `BALANCE.md` are computed, not measured against real enemies. The enemies have hit points since F5 and `BALANCE.md` §7 computes shots-to-kill; nothing is measured yet. | F5 playtest of MAP01 v3 |
 | ~~T6~~ | ~~`MAP02` uses Freedoom monsters as targets.~~ **Paid 2026-10-13, F5** (commit `2b1aba5`): the 3004 targets spawn `SD_ReichRifleman`, and the bestiary gallery holds one of each class (§4); seen in the engine the same day (ADR 006). The barrels are ours since D82 (`BAR1`/`BEXP`, §5.1). |  |
-| T7 | No `CVARINFO` yet; nothing in the arsenal is player-tunable. | when a gameplay option needs it |
+| T7 | ~~No `CVARINFO` yet; nothing in the arsenal is player-tunable.~~ **Paid on the branch `v3-reload` (2026-10-25, ADR 014):** `CVARINFO` declares `sd_reloads` (§6.15). Open if the CEO drops the experiment. | — |
 | T8 | ~~Ammo and backpack pickups are Freedoom sprites: flat, not Soviet crates (§6.3).~~ **Paid for the ammunition 2026-10-14 (D63)**: the eight ammunition classes name our own sprites, `SDCL`, `SDCB`, `SDSL`, `SDSB`, `SDRA`, `SDRB`, `SDFU`, `SDFB` (§6.3, "The pickups, installed by D63"); not yet seen in the engine (D26). Open: the backpack's `BPAK`, which the sweep did not cover, and the status bar icons (`CLIPA0`, `SHELA0`, `ROCKA0`, `CELLA0`), still Freedoom's. | `art-director`, the backpack, when it is asked for; the PM's engine pass for the eight |
 | ~~T9~~ | ~~No Cyrillic in the game's font.~~ **Paid 2026-10-13 by D24** (font install `32b384e`, warning removed in `401a02e`): `fonts/defsmallfont/` and `fonts/bigfont/`, 214 glyphs (§2, §6.4). The player-facing warning it carried (`SD_OPTMNU_LANGWARN`, "Cyrillic is not drawn yet") is deleted from `LANGUAGE` and `MENUDEF`. |  |
 | T10 | The slot-1 swing is silent (§6.2). ~~The ice axe's pickup is Freedoom's chainsaw~~: **paid 2026-10-14**, `SDAP` A option C (D48, §6.3). | F4, when `sound-designer` delivers `SDAXSWG` |

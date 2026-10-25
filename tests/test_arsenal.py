@@ -438,12 +438,12 @@ class ArsenalPk3Test(unittest.TestCase):
         for name in sorted(used):
             self.assertIn(name, defined, f"{name} is played but not defined in SNDINFO")
 
-    # Defined on purpose with nothing playing them: the reloads of the three
-    # guns that have no reload state. The CEO approved the sounds (D74) and
-    # parked magazines (D47); they are packed so a magazine mechanic can be
-    # judged by ear (`playsound`). Wire one and it must leave this set.
-    PARKED_SOUNDS = frozenset({"sd/weapon/tokarev/reload", "sd/weapon/ppsh/reload",
-                               "sd/weapon/roks3/reload"})
+    # Defined on purpose with nothing playing them. Until V3 these were the
+    # reloads of the TT-33, the PPSh-41 and the ROKS-3 (D74 sounds, D47's
+    # parked magazines); the V3 reloads experiment (D132, ADR 014,
+    # tests/test_reloads.py) plays all three from the guns' Reload states,
+    # so they left the set. Park a sound here and nothing may play it.
+    PARKED_SOUNDS: frozenset[str] = frozenset()
 
     # N9e: the beds (D83, D86), the non-vocal layers that go under the
     # voices, are packed and named under sd/bed/ and played by nothing until
