@@ -6,7 +6,25 @@ and D114). Before that: 2026-10-21 ~23:30 (night shift closed, D102/D103) and
 `docs/PRD.md`; open CEO items in `docs/PENDING-CEO-DECISIONS.md`; tasks and
 estimates in `docs/BACKLOG.md`; the phase view in `docs/ROADMAP.md` ("P4 today").
 
-## RESUME HERE FIRST (2026-10-24 ~13:10, PC shut down at the CEO's request)
+## RESUME HERE FIRST (2026-10-25 night, PC shut down at the CEO's request)
+
+**V3 is content-complete on branch `v3`** (origin/v3, worktree `scratchpad/wt_v3`, 9bc9a9e): pickup events E1-E3 and
+set pieces, the MAP09 crater (opens at the Consortium's Breach, engine-checked), operations map + medals (D122),
+RGD-5 with Gemini sprites (D133) in MAP01-09 + RANGE, propaganda loudspeakers in both colours (D124, D132), episode
+ending illustrations SDEND1-3 (Gemini, armband symbol; after the ending text). **33/33 routes PASS** (evidence on v3).
+NOT VERIFIED in the engine: the ending illustration screens themselves (the route cannot page through the stats).
+**Trailer done** (D3): `work/trailer/sovietdoom-trailer-{en,ru,ca}.mp4` (62 s; tools `tools/trailer/`, on main).
+**Reload experiment** on branch `v3-reload` (e9206b0, ADR 014, `sd_reloads` CVAR in the Soviet Doom menu, R key):
+compiles clean in the engine; the CEO must try it and decide (slot 4 DPS drops below the IZh's, BALANCE §10).
+**Play builds (not published):** `Desktop/SovietDoom-prueba/v1.3-rc1` (V3) and `v1.3-rc2-with-reloads`.
+**Waiting for the CEO:** OK to the three ending illustrations and the screen order (preview
+`wt_v3c/docs/art/previews/2026-10-25_V3_episode-endings.html`, also sent); the trailer; the reloads (in or out).
+**Then:** merge `v3` (and `v3-reload` if approved) into main, D-rows for the endings/trailer/reloads, v1.3 sign-off
+and release on the CEO's yes; the game is then closed (D131) and the Android APK (ICEBOX, study route B2) can start.
+Gemini quota resets daily ~07:19; downloads must use Gemini's own download button (Chrome may block automatic
+downloads; if a reCAPTCHA appears, only the CEO solves it). Decisions up to D133.
+
+## Earlier: RESUME HERE FIRST (2026-10-24 ~13:10, PC shut down at the CEO's request)
 
 **v1.2 is PUBLIC and Latest (D130); V2 is closed.** https://github.com/kahache/soviet_doom/releases/tag/v1.2 —
 tag at 1640328, sign-off `docs/qa/evidence/2026-10-24_1245_P4_v12-signoff.md` (clean clone 3521 tests, 33/33 routes,
