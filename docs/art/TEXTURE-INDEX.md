@@ -708,7 +708,7 @@ engine (D26).
 |---|---|---|---|---|---|---|---|
 | `SDEND1` | end-sequence picture (indexed) | 320×200 | no | Tankograd: the sergeant at the breaker, the dying portal, the column marching on Moscow, the Legion and Reich dead; the armband symbol | (a) gen_endings from `gemini_ending_ep1.jfif`, palette v3 | proposal (V3 B2) | 2026-10-25 |
 | `SDEND2` | end-sequence picture (indexed) | 320×200 | no | Red Square: the fallen Liberty Colossus, the sergeant and the banner, the crowd, the Kremlin, St Basil's, the portal; 42 rows of sky added above | (a) gen_endings from `gemini_ending_ep2_v2.jfif`, palette v3 | proposal (V3 B2) | 2026-10-25 |
-| `SDEND3` | end-sequence picture (indexed) | 320×200 | no | Tunguska: the sergeant and the banner before the imploding portal, the Consortium's two halves (the chest piece once, D135) and helmets; the armband symbol; 60 rows of night sky above, 36 of ground below | (a) gen_endings from `gemini_ending_ep3_v3.jfif`, palette v3 | proposal (V3 B2; v3 painting, D135) | 2026-10-27 |
+| `SDEND3` | end-sequence picture (indexed) | 320×200 | no | Tunguska: the sergeant and the banner before the imploding portal, the Consortium's two halves (the Legion half redrawn as a half figure, D135) and helmets; the armband symbol; 90 rows of night sky above, 60 of ground below | (a) gen_endings from `gemini_ending_ep3_v6_composite.png` (Gemini v5 + Gemini's redrawn crop, PM's composite), palette v3 | approved (D135) | 2026-10-27 |
 
 ## The alphabet (D24) — glyph fix and German letters
 

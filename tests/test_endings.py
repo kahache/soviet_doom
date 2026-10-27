@@ -141,15 +141,17 @@ class GeneratorTests(unittest.TestCase):
         self.assertEqual([e.episode for e in self.g.ENDINGS], [1, 2, 3])
         self.assertEqual(self.g.INSTALL_DIR, ENDINGS_DIR)
 
-    # the Gemini paintings' heights (gemini_ending_ep1 1312x816, ep2_v2 1376x768, ep3_v3 1312x816)
+    # the Gemini paintings' heights (gemini_ending_ep1 1312x816, ep2_v2 1376x768, ep3_v6_composite 1312x816)
     PAINTING_HEIGHTS = {"SDEND1": 816, "SDEND2": 768, "SDEND3": 816}
 
-    def test_episode_3_is_the_v3_painting(self):
-        """D135: the CEO saw the same chest piece on both halves in ep3_v2;
-        the v3 painting draws it once, and only SDEND3 was redone from it."""
+    def test_episode_3_is_the_v6_composite(self):
+        """D135: the CEO saw the same chest piece on both halves in ep3_v2 and
+        a whole torso on the right in v3/v4; he approved the PM's composite v6
+        (Gemini's v5, its Legion half redrawn as a half figure), and only
+        SDEND3 was redone from it."""
         refs = {e.lump: e.ref for e in self.g.ENDINGS}
         self.assertEqual(refs, {"SDEND1": "gemini_ending_ep1.jfif", "SDEND2": "gemini_ending_ep2_v2.jfif",
-                                "SDEND3": "gemini_ending_ep3_v3.jfif"})
+                                "SDEND3": "gemini_ending_ep3_v6_composite.png"})
 
     def test_every_window_is_4_3(self):
         """A 320x200 screen is shown at 4:3: the window's width is 4/3 of the

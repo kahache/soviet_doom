@@ -630,9 +630,11 @@ palette v3 in CIELAB with a 4x4 ordered dither); the source images stay local
 in `work/art/reference/` and are not distributed (D77). Episodes 2 and 3 are
 Gemini's second round, asked with the mod's own enemy sheets attached
 (the Liberty Colossus, the Consortium; D123, D128), after the CEO turned
-down the first round's enemies; episode 3 was asked a third time (`_v3`,
-D135, 2026-10-27), the same composition with the chest piece the CEO saw on
-both halves drawn once. The D12 symbol on the Reich armbands
+down the first round's enemies; episode 3 was redone (D135, 2026-10-27)
+because the CEO saw the Reich half's chest piece again on the Legion half:
+Gemini's `_v3` and `_v4` still gave that half a whole torso, and the approved
+picture is the PM's composite `_v6_composite.png` (Gemini's `_v5`, its Legion
+half redrawn by Gemini as a half figure and pasted back by the PM). The D12 symbol on the Reich armbands
 (episode 1's fallen soldier, the Consortium's Reich half) is painted by
 `tools/art/armband_symbol.py` at the painting's resolution and drawn again at
 the screen's pixels (D105, D108, D114), as on the title screen. Gemini's
@@ -643,7 +645,7 @@ The AI use is disclosed in the game's and the release's credits (D79).
 |---|---|---|---|
 | `SDEND1` | Episode 1's ending (Tankograd): the sergeant at the breaker, the portal going dark, the invaders' column marching out toward Moscow, a Legion and a Reich soldier dead in front; the D12 symbol on the Reich armband | (a) derived from `work/art/reference/gemini_ending_ep1.jfif` (Gemini, the project lead) by `tools/art/gen_endings.py` | Soviet Doom project, CC BY-NC-SA 4.0 (D15); AI use disclosed (D79) |
 | `SDEND2` | Episode 2's ending (Red Square): the Liberty Colossus thrown down (chrome plates, US patch, the blank tablet, pink flesh at the joints), the sergeant raising the red banner on it, the crowd, the Spasskaya tower, St Basil's, the portal | (a) derived from `work/art/reference/gemini_ending_ep2_v2.jfif` (Gemini, the project lead, with the Colossus sheet attached) by `tools/art/gen_endings.py` | Soviet Doom project, CC BY-NC-SA 4.0 (D15); AI use disclosed (D79) |
-| `SDEND3` | Episode 3's ending (Tunguska): the sergeant raising the banner before the imploding portal between the Consortium's two halves (the Reich half with its armband and rocket tubes, the Legion half with its opened chest, projector and US patch) and their helmets; the D12 symbol on the armband | (a) derived from `work/art/reference/gemini_ending_ep3_v3.jfif` (Gemini, asked by the PM on 2026-10-27 from `gemini_ending_ep3_v2.jfif`, the project lead's painting with the Consortium sheet attached: same composition, the chest piece drawn once, D135) by `tools/art/gen_endings.py`; redone 2026-10-27, SDEND1 and SDEND2 unchanged | Soviet Doom project, CC BY-NC-SA 4.0 (D15); AI use disclosed (D79) |
+| `SDEND3` | Episode 3's ending (Tunguska): the sergeant raising the banner before the imploding portal between the Consortium's two halves (the Reich half with its armband and rocket tubes; the Legion half as a half figure with the cracked blue core, US-patch shoulder and projector arm) and their helmets; the D12 symbol on the armband | (a) derived from `work/art/reference/gemini_ending_ep3_v6_composite.png`, the PM's composite of 2026-10-27: Gemini's `gemini_ending_ep3_v5.jfif` (asked by the PM from `gemini_ending_ep3_v2.jfif`, the project lead's painting with the Consortium sheet attached) with its Legion half (x 747-1312, y 342-816) replaced by Gemini's redrawing of that crop as a half figure (`gemini_ending_ep3_yankee_crop_fix.jfif`), pasted back with a feathered edge; by `tools/art/gen_endings.py`. Approved by the CEO (D135); SDEND1 and SDEND2 unchanged | Soviet Doom project, CC BY-NC-SA 4.0 (D15); AI use disclosed (D79) |
 
 ## Music (D43, installed 2026-10-13)
 
