@@ -700,7 +700,7 @@ that anyone touching this needs:
   go back to the title screen" (`CheckEndSequence`, same file). Since V3 B2
   the three episode ends name their own sequences instead,
   `next = EndSequence, "SD_EndingN"`: the same path with one picture before
-  the title (§6.15); the range keeps `endtitle`.
+  the title (§6.16); the range keeps `endtitle`.
 - **`nointermission` is gone from MAP01.** Pressing the exit used to restart
   the map in silence; the stats screen is the first thing that says the
   level was finished. `par = 210` is `level-designer`'s figure. **NOT
