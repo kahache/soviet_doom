@@ -189,6 +189,7 @@ master's pass** on the turntable's king post.
 | HATCH | The armoured train's rear end, from its balcony | remote, opens for good, `SDDOOR1` both faces | tag 11 | no |
 | SW-B | Stationmaster's office, back wall | `SDSW1A` (knife switch), one-shot | `Door_Open (11, 16, 0)` | no |
 | GONDOLAS | The two open wagons' sides towards the main track | lift, lowers for good | tag 12, `Floor_LowerToLowest (12, 16)` carried by **the red key's thing** (picked up) | no (never needed) |
+| HUT (V3) | The yard's north wall, north of the goods ramp → the platelayers' hut | closet, opens for good; the yard's brick until it moves | tag 13, `Door_Open (13, 16)` carried by **the yellow key's thing** (picked up) | no (a dead end, never needed) |
 | EXIT | West wall of the cab, a 64 × 128 niche | `SDSW1D` | `Exit_Normal (0)` | — |
 
 **The order, as the tests play it** (`test_the_route_is_the_designed_one`),
@@ -411,7 +412,8 @@ Tankograd). Nested by Doom's skill pairs
 | Zone | Skill 2 | Skill 3 | Skill 4 |
 |---|---|---|---|
 | Tunnel mouth (in the yard either side of it) | 1 rifleman | 1 rifleman | 2 riflemen |
-| Yard (ground) | 3 riflemen + 1 hound | 4 riflemen + 1 hound + 1 stormtrooper | 5 riflemen + 1 hound + 2 stormtroopers |
+| Yard (ground) | 2 riflemen + 1 hound | 2 riflemen + 1 hound + 1 stormtrooper | 2 riflemen + 1 hound + 2 stormtroopers |
+| Platelayers' hut (the yellow key, V3: three of the yard's riflemen moved in) | 1 rifleman | 2 riflemen | 3 riflemen |
 | The rake's roofs | 2 riflemen | 3 riflemen | 3 riflemen + 1 stormtrooper |
 | Signal box | 1 trooper | 1 trooper | 1 trooper + **1 gunner** |
 | Warehouse + office | 3 troopers + **1 gunner** + 1 stormtrooper + 1 Doughboy | 4 troopers + 1 gunner + 2 stormtroopers + 1 Doughboy | 5 troopers + 1 gunner + 2 stormtroopers + 2 Doughboys |
@@ -508,8 +510,8 @@ warehouse). The heavy vest is S3's.
 | Locked door that stays open | `Door_LockedRaise` 13 (tag, 16, 0, lock, 0), locks 3 and 1 | VERIFIED on MAP02 / MAP03 (route G6) |
 | Exit | `Exit_Normal` 243 | VERIFIED on MAP01 |
 | Keys | things 6 (`YellowCard`), 13 (`RedCard`) | as MAP03 |
-| **A pickup's special** | thing `special` 21, `arg0` 12, `arg1` 16 on the red key | the field is UDMF base (as MAP03's General's death special); GZDoom runs an item's special on pickup (`Inventory`'s pickup path, read in g4.14.2's zscript). **NOT VERIFIED in play**: K3 |
-| **Floor_LowerToLowest** | special 21 (tag, speed) | number from ZDoom's (Hexen's) special table, the action `xlat/doom.txt` maps Doom's lower-floor lines to; **NOT VERIFIED** in our engine (the numbers are compiled in): K3 |
+| **A pickup's special** | thing `special` 21, `arg0` 12, `arg1` 16 on the red key; since V3 `special` 11, `arg0` 13, `arg1` 16 on the yellow key (§14) | the field is UDMF base (as MAP03's General's death special); GZDoom runs an item's special on pickup (`Inventory`'s pickup path, read in g4.14.2's zscript). The mechanism is **VERIFIED in engine on MAP06** (its red key's `Door_Open`, the route's RKEY, 2026-10-23); on this map: K3, K14 |
+| **Floor_LowerToLowest** | special 21 (tag, speed) | the number read from g4.14.2's own special table (2026-10-23, `src/maps/common/pickup_events_e2.py`); its effect **NOT VERIFIED** in our engine: K3 (MAP06's barricades, V3, are the route's proof of it) |
 | Coloured light | sector `lightcolor` yellow `0xFFD860`, red `0xFF6048` | as MAP03 |
 | Turned flats | `rotationfloor` 90 on tracks, 180 on the coping | as MAP02 (K7, K8) |
 | Texture offsets on wall faces | sidedef `offsetx` / `offsety` (UDMF base) on the wagons and the balcony (§7.2); a two-sided line's lower texture left unpegged, so its top row is the raised floor's edge and `offsety` lifts it | Doom's own behaviour; **NOT VERIFIED** on this map: K10 |
@@ -518,7 +520,8 @@ warehouse). The heavy vest is S3's.
 Tag plan: **1** D1 · **2** D2 · **4** yellow door · **5** red door · **6**
 S1's panel · **7** S2's panel · **8** S3's panel · **10** the road gate
 (SW-A) · **11** the train's hatch (SW-B) · **12** the gondolas' sides (the red
-key's pickup; no line carries it). Free: 3, 9, 13 and up.
+key's pickup; no line carries it) · **13** the platelayers' hut (the yellow
+key's pickup, V3; no line carries it). Free: 3, 9, 14 and up.
 
 ## 11. MAPINFO, LANGUAGE and the route
 
@@ -592,6 +595,7 @@ The Railway set (§7.2, §13.6) adds six decoration sectors: 114 sectors,
 | K11 | **The two signals** (`SDSIGL1`): one whole head each, not cut or doubled; the main track's seen from the tunnel's mouth, its red lens reading as a light | screenshots from the mouth and from the box's step |
 | K12 | The star panels (`SDARMR1`) whole in the gun wagon and on the balcony's back as the platform sees it; the flank's 27 plates in `SDARMR2` with no seam floating at mid-height; `SDTRAK1` running along x on the yard's tracks and the turntable bridge (turned 90) with its rails continuing the yard's; ballast and track the same colour; the roundhouse's `SDBRCK3` frieze at 128 and 256 | screenshots on the platform, in the train, at the mouth and on the bridge |
 | K13 | **Round 2** (§7.2): the roofs' walkways along the cars; the gondolas' flaps meeting their beds' edges (no half flap at a rim) after the red key drops their sides; the cab's backhead whole either side of the exit (round windows), its sides whole; the box's glazing whole in every window, rows 8-55, lit, and the troopers inside not shooting through it; the lever frame one whole frame, its boards towards the porch (if west, `LEVER_ROTATION` 270), its front showing the brass plates; stall 2's doors and S2's panel the same face; the station board whole, readable from the platform, not tiled | screenshots in the cab, the box, on the roofs, in the roundhouse, on the platform |
+| K14 | **V3: picking up the yellow key opens the platelayers' hut** (`Door_Open` 13 on the key's thing): its door, the yard's brick, rises in the north wall by the ramp and the three riflemen come out; RD0 reads tag 13 shut, YKEY reads it open | the route's YKEY line in the report; a look from the ramp after YKEY |
 | K9 | The posters (§7.3) are whole and read: the two at the red door from the rake's roofs (light 144 in a 128 yard), the warehouse's Stalin beside the Red Army standard, the platform's mural, the roundhouse's slot over the turntable; none is cut at the top or tiled, and the 16-deep niches do not snag a strafe along the walls | screenshots from the roofs, the warehouse's vestibule, the platform and the bridge |
 
 ### 13.6 The Railway set pass (2026-10-22)
@@ -657,3 +661,86 @@ tests pass unchanged. 115 sectors, 525 linedefs, 416 vertices.
   redrawn enemy sprites' byte-identity and blood tests, `test_gen_shells`'
   docs).
 - **Not run: GZDoom** (D26): K8 and K13 are the PM's.
+
+## 14. V3 (2026-10-23): pickup events (A2, D119/D120)
+
+The CEO's playtest asked for keys that make things happen (D119); D120 put
+it in V3. This map was the model (the red key and the gondolas, since v1);
+V3 gives the yellow key an event of its own, so both keys of the map do
+something. Episode 2's three maps share the verified specials and helpers in
+`src/maps/common/pickup_events_e2.py` (the common pattern for the whole game
+is being written in parallel as PICKUP-EVENTS.md, in this folder, by another
+level-designer; the PM unifies the two).
+
+**The form used here** (the episode's, MAP04 to MAP06):
+
+1. One special on the key's own thing (UDMF `special`, `arg0..arg4`), run by
+   GZDoom when the key is picked up, the player the activator. VERIFIED in
+   engine since 2026-10-23 on MAP06 (its red key opens tag 10; the route's
+   RKEY step).
+2. A tag that **no line carries**, so nothing but the pickup works it
+   (tested: `test_no_line_carries_a_pickups_tag`).
+3. What it opens is a **dead end** the player walks out of, opened for good,
+   holding nothing the route needs (tested: the exit is reached with every
+   pickup tag shut).
+4. **Warned**: what opens is in sight of where the player goes next, and it
+   moves with its own sound (a door's, a floor's).
+5. The monsters it releases are **moved**, not added, wherever the balance
+   allows (MAP04: three of the yard's riflemen), so G3-8's bands do not
+   move.
+6. The route reads the tag shut before the key and open after it, so the
+   PM's engine pass proves each event.
+
+| Key | Event | Special on the thing | Tag | What moves | Monsters |
+|---|---|---|---|---|---|
+| Red (king post) | the gondolas' counter-attack (v1) | `Floor_LowerToLowest (12, 16)` | 12 | both gondolas' sides drop 96 → 16 | 2 / 4 / 6 (§9) |
+| **Yellow (lever frame)** | **the platelayers' hut** (V3) | `Door_Open (13, 16)` | 13 | the hut's door in the yard's north wall (3520…3648, 1920…1936) rises; the hut (3456…3712, 1936…2064, one tile high) is a dead end | 1 / 2 / 3 riflemen, moved in from the yard (3550 1460, 2950 1250, 3200 1830) |
+
+**The rhythm.** Round 0 (tunnel, yard, roofs, box) was the map's lightest;
+the yard is now quieter on the way in (two to three riflemen fewer) and the
+signal box's pass springs the hut on the way out: as the player comes back
+east along the roofs or down the goods ramp, its door rises 260 units north
+of the ramp and the Reich's platelayers come out between him and the
+yellow door. The hut faces the ramp and the rake's east roofs and is out
+of the start's sight (tested). Hit points met still rise round on round on
+every skill (tested); the totals stay 29 / 42 / 56.
+
+**Counts.** 117 sectors, 535 lines (115 and 525 before): the hut and its
+door. Tests: `tests/test_map04_transsib.py`, 88 OK (new:
+`test_the_yellow_key_opens_the_yard_hut`, `test_no_line_carries_a_pickups_tag`,
+`test_the_hut_opens_only_after_the_yellow_key`,
+`test_the_hut_holds_a_fight_on_every_skill`, `test_the_route_reads_the_hut`,
+`test_the_hut_is_seen_from_the_ramp_and_the_east_roofs`). Route
+`transsib-critical`: RD0 reads tag 13 shut, YKEY waits 70 tics and reads it
+open. **Not run: GZDoom** (D26): K14 is the PM's.
+
+## 15. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+**The RGD-5** (ADR 012; placement advice `docs/engine/2026-10-23_V3_rgd5.md`
+§6). Grenades are consumables in `ITEMS`, so they scale **down** with skill:
+**4 / 3 / 2** grenades on skills 2 / 3 / 4 (skills 1 and 5 double them, as
+every pickup). Why here: the pouch before the yard: the Legion's debut by the dozen is the grenade's lesson (troopers behind the wagons, then the warehouse). No crate (21022: a secret's reward only).
+
+| Where | What | Skills |
+|---|---|---|
+| `z1_tunnel` (4300, 1136) | the pouch (21009): the weapon and 2 | every skill |
+| `z2_yard` (3550, 1100) | a loose grenade (21021) | skills 1-3 |
+| `z4_hall` (2400, 450) | a loose grenade (21021) | skills 1-2 |
+
+**The budget** (BALANCE §8, a grenade 1.25 shell-equivalents, counted in
+the band and the shell share's whole only): the ratio placed / needed on
+skills 2 / 3 / 4 goes 1.658 → 1.746 / 1.440 → 1.481 / 1.228 → 1.246, inside
+1.5-2.0 / 1.3-1.6 / 1.2-1.45. No other pickup moved. The stage readiness,
+the newest weapon's lead and the boss's stage do not count grenades.
+
+**The loudspeaker** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124): `z6_platform` (2048, 2280), reach 512 (the platform is 2944 long): lines 1, 16, 9, 10, 12, 15 (the front, the time signal, the parade, the weather, the helmet notice, Tankograd's plan: the city the sergeant has just left).
+Table `LOUDSPEAKERS` in `map.py`; no geometry changed (it has no body until
+its horn is drawn). Tests: the map's own (`test_every_pickup_can_be_picked_up`,
+the G3-8 band with the grenades), `tests/test_rgd5_maps.py`,
+`tests/test_loudspeaker.py`.
+
+**Engine checklist (the PM, D26):** the grenades lie where the table says
+and are picked up (`printinv`: `SD_Rgd5` and `SD_Rgd5Ammo`); the loudspeaker
+rings its jingle on approach, reads its lines over the level's music, falls
+silent walking away (the line in progress finishes) and is not heard from
+the next room; a clean log.

@@ -31,7 +31,8 @@ What is enforced here, and why:
               SDAX A-D since D88, the sergeant's 42 Gemini faces STF* since
               D90, Episode 2's bricks since D107, the portal rim and Episode
               2 round 2's six v2 walls since D113, the AKM's SDAK A-B, SDAF A
-              and SDAQ A since 2026-10-24). APPROVED_IN_V3 lists the v3
+              and SDAQ A since 2026-10-24, V3's operations map SDOP* and the
+              five awards SDAW* since D122). APPROVED_IN_V3 lists the v3
               assets: the Consortium's 95 SDCN lumps (D128), the only users
               of reich_greygreen; every other asset stays in v1 or v2, so
               adding v3 changed no approved pixel
@@ -176,9 +177,29 @@ D123_ENEMIES = ({f"sprites/legion_gunner/SDLG{f}{r}.png" for f in "ABCDEFG" for 
 # A by gen_akm_pickup.py (the laminate in v2's marble_red). RGBA, not in
 # PALETTE_V2_LUMPS.
 AKM_LUMPS = ("SDAKA0", "SDAKB0", "SDAFA0", "SDAQA0")
+# 2026-10-25 (D133, the CEO: "Ok granada"): the RGD-5's own set in
+# assets/sprites/rgd5/. SDRG A-D by gemini_frames.py rgd5 (all of palette
+# v2), SDRJ A and SDRN A from the Gemini pickup image and the pouch SDRQ A
+# and crate SDRZ A on the pickup rig with that grenade in them, by
+# gen_rgd5_pickups.py. RGBA, not in PALETTE_V2_LUMPS.
+RGD5_LUMPS = ("SDRGA0", "SDRGB0", "SDRGC0", "SDRGD0", "SDRJA0", "SDRNA0", "SDRQA0", "SDRZA0")
 D84_FRAMES = {"izh": ("SDIZ", "ABCD", "SDIF", "AB"), "rpg7": ("SDRL", "AB", "SDRF", "ABCD"),
               "roks3": ("SDRK", "AB", "SDKF", "A"), "katyusha": ("SDHK", "AB", "SDHF", "AB"),
               "ice_axe": ("SDAX", "ABCD", "SDAX", "")}
+# D122 (2026-10-23, the CEO: "los mapas y las medallas están fresquísimos",
+# the maps and the medals are very fresh): V3's operations map and the five
+# awards, drawn in palette v2 by design (tools/art/gen_ops_map.py and
+# gen_medals.py: mosaic_gold for the gold, marble_red for the claret and the
+# arrows, mosaic_cobalt for the enamel and the water; v1 has no gold), as on
+# the approved sheet docs/art/previews/2026-10-23_V3_ops-map-medals.png. Not
+# requantised: v1 would change what the CEO approved. None uses v3. SDOPMAP
+# is indexed, so check_pk3's PALETTE_V2_LUMPS lists it; the rest are RGBA.
+D122_SHELL = ({"graphics/opsmap/SDOPMAP.png", "graphics/opsmap/SDOPSTAR.png",
+               "graphics/opsmap/SDOPCUR0.png", "graphics/opsmap/SDOPCUR1.png",
+               "graphics/opsmap/SDOPYAH0.png"}
+              | {f"graphics/opsmap/SDOPR0{n}.png" for n in range(2, 10)}
+              | {f"graphics/medals/{lump}.png"
+                 for lump in ("SDAWCOU", "SDAWRST", "SDAWRBN", "SDAWPTW", "SDAWHER")})
 APPROVED_IN_V2: set[str] = (
     {f"sprites/legion/SDLT{f}{r}.png" for f in "ABCDEFG" for r in "12345678"}
     | {f"sprites/legion/SDLT{f}0.png" for f in "HIJKLMNOPQRSTU"}
@@ -201,8 +222,10 @@ APPROVED_IN_V2: set[str] = (
     | GEMINI_ENEMIES
     | D123_ENEMIES
     | {f"sprites/akm/{name}.png" for name in AKM_LUMPS}
+    | {f"sprites/rgd5/{name}.png" for name in RGD5_LUMPS}
     # D126: the Gemini title screen, indexed in palette v2.
-    | {"graphics/shell/TITLEPIC.png"})
+    | {"graphics/shell/TITLEPIC.png"}
+    | D122_SHELL)
 # D128 (2026-10-24, the CEO: "Ok consorcio, añade paleta si es necesario"):
 # the Consortium's 95 SDCN lumps (consortium_gemini.py + gemini_enemy.py's
 # CONSORTIUM, palette_version=3), the only v3 assets: palette v3's
@@ -210,7 +233,11 @@ APPROVED_IN_V2: set[str] = (
 # sheets (v2 snapped it to concrete grey). RGBA, so in no check_pk3 list.
 APPROVED_IN_V3: set[str] = (
     {f"sprites/consortium/SDCN{f}{r}.png" for f in "ABCDEFGHQRS" for r in "12345678"}
-    | {f"sprites/consortium/SDCN{f}0.png" for f in "IJKLMNO"})
+    | {f"sprites/consortium/SDCN{f}0.png" for f in "IJKLMNO"}
+    # V3 B2 (D132, proposal on the v3-endings branch): the episode endings'
+    # illustrations (tools/art/gen_endings.py), indexed in palette v3 so the
+    # Reich skin keeps reich_greygreen as on the Consortium's sprites.
+    | {f"graphics/endings/SDEND{n}.png" for n in (1, 2, 3)})
 
 
 def _digest(colours) -> str:

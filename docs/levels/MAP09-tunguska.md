@@ -11,7 +11,9 @@ the Legion's machine-gunners in the forest, the works, the refinery and the
 crater, the AKM beside the PPSh, and recounts the crater's stock for a
 9000 HP boss** (§10, §11, §16.2); **v1.3 (D119, 2026-10-23) cuts the
 ammunition to BALANCE §8's bands and recounts the crater for the
-Consortium's 4000** (§10, §11, §16.3). Source: `src/maps/MAP09/map.py`;
+Consortium's 4000** (§10, §11, §16.3); **V3 (2026-10-23/24) adds the
+key pickups' events and the crater's ground that opens at the Consortium's
+Breach** (§18, §18.3). Source: `src/maps/MAP09/map.py`;
 tests: `tests/test_map09_tunguska.py` (the map, 66 tests) and
 `tests/test_map09_route.py` (the route, 13); posters:
 `tests/test_posters.py` (`Map09Posters`); top-down view:
@@ -395,7 +397,8 @@ and the General is no longer placed here.
 | Exit | `Exit_Normal` 243 | VERIFIED |
 | Coloured light, turned flat | `lightcolor`, `rotationfloor` 90 | as MAP02/MAP06 |
 | Damaging floor | `damageamount` 10, `damageinterval` 32 | fields VERIFIED (MAP03 §16.2); in play NOT VERIFIED |
-| Thing special on death / on pickup | the boss (tag 12), the red key (tag 10) | NOT VERIFIED in play (MAP06 E2, E3) |
+| Thing special on death / on pickup | the boss (tag 12), the red key (tag 10); V3: the blue key (tag 13, `Door_Open`), the yellow key (tag 14, `Floor_LowerToLowest` 21) | the red key's VERIFIED by `tunguska-critical` RKEY (2026-10-23); the blue key's checked by BKEY; 21 NOT VERIFIED in our engine (MAP04's K3): E12 |
+| A boss that moves the map (V3 A3) | the Consortium's Breach: `Floor_LowerToLowestTxTy (15, 16)` and `Light_Flicker (15, 176, 112)` from ZScript, the tag in the boss thing's arg4 (§18.3) | NOT VERIFIED (first ZScript-called sector specials in the mod; TxTy's damage transfer): E14 |
 | Skies at five heights, closed sky blocks as roofs, sky doorways | §4.1 | **NOT VERIFIED** |
 | Animated walls and flats | `SDPORT1`, `SDMOLT1` (ANIMDEFS) | VERIFIED (MAP03) |
 | Animated acid | `SDACID1-4` (ANIMDEFS, 8 tics) | NOT VERIFIED (never on a map before) |
@@ -421,6 +424,8 @@ Engine checklist (one pass on skill 3, then the route on 2, 3, 4):
 - **E10** the logs' joints meet the floor in the huts and on the palisade;
   the glyph strips and plates whole; the portal's posts show their cobalt
   channel; the taiga's charred trunks lie roughly towards the crater.
+
+- **E11-E14** V3's pickup events and the Breach's ground: §18.
 
 ## 13. MAPINFO and LANGUAGE (for the scaffolding agent / `mod-engineer`)
 
@@ -456,6 +461,11 @@ shoot). Should it ever be mid-Breach when BOSS1 runs, the first hurt does
 nothing, so BOSS1 waits `TUNGUSKA_BREACH_WAIT` (70 tics) and hurts it again
 before it reads the gate (a dead boss is not hurt twice: the helper skips
 health ≤ 0). NOT VERIFIED in engine until the PM runs the route.
+
+**The ground that opens (V3 A3, §18.3).** The Breach also sinks the
+crater's four scabs (tag 15). The route does not see it and need not: one
+hurt at full health kills the boss without a Breach, and no step stands on
+a scab (tested in `tests/test_map09_route.py`); the route is unchanged.
 
 ## 15. Rules of respect (D12)
 
@@ -587,3 +597,150 @@ and the health are unchanged.
    reachable (a platform round it)?
 3. The portal could visibly close when the breaker is thrown (a script: the
    mod-engineer's), before the end text.
+
+## 18. V3: events on pickup and the set pieces (2026-10-23, D120's A2 and A3)
+
+V3 work, not in v1.2. Three events fired by **picking up a key** (the red
+key's closets are v1's; V3 adds the blue and the yellow key's and gives all
+three a warning lamp), and one set piece fired by **the boss's second
+phase**, built on 2026-10-24 (§18.3). A key carries a UDMF `special` and `arg0..`, which GZDoom
+runs on pickup (the red key's `Door_Open (10, 16)` VERIFIED by
+`tunguska-critical`'s RKEY, 2026-10-23 02:23). Each tag is carried by **no
+line**. The table is `PICKUP_EVENTS` in `map.py`; the checks are
+`tests/_pickup_events_e3.py`, shared with MAP07 and MAP08 (MAP07 §17 says
+the form; the PM unifies it with `docs/levels/PICKUP-EVENTS.md`).
+
+### 18.1 The events
+
+| Event | Key (where) | Special | Tag | What moves | Who waits | Warning |
+|---|---|---|---|---|---|---|
+| **A2 the quarantine room** | the blue key (the laboratory's bench) | `Door_Open (13, 16)` | 13 | a door `z3_lab_quarantine_door` in the hall's east wall, north of the vestibule, the hall's tile until it moves | 1 / 2 / 3 Legion troopers in `z3_lab_quarantine` (1808-1952 x 1488-1584) | the strip of hall before it `z3_lab_lamp` flickers (65, 160 against the hall's 144) |
+| **A3 the works' cargo lift** | the yellow key (the derrick) | `Floor_LowerToLowest (14, 8)` | 14 | the car `z5_lift_car` (4992-5120 x 5664-5792), up at 128 behind a gate a door high in the works' north wall, east of the recesses; it comes down to the works' floor (~3.7 s) | 1 / 2 / 3 (rifleman; + stormtrooper; + trooper) | the gate `z5_lift_gate` flickers (65, 160 against the car's 112); the winch |
+| A2 the works' closets (v1) | the red key (the refinery's dais) | `Door_Open (10, 16)` | 10 | the two closets' doors in the containment wall | v1's, unchanged | V3: a strip of the works before each closet, `z5_closet_w_lamp` and `z5_closet_e_lamp`, flickers (65, 160 against the works' 144) |
+
+The quarantine door stops 16 short of the hall's north wall, so Marx's
+slot there stays whole (tested by `tests/test_posters.py`). The lift's gate
+is not a fifth recess: the north wall's four (S3's clue) are untouched, and
+the gate wears a lamp and a steel car behind it.
+
+**The monsters moved, not added**: the totals (60 / 92 / 127), every beat's
+hit points, the ammunition and its bands, the crater's stock are unchanged
+(tested again). The quarantine room holds the hall's trooper at (1728,
+1504) (skill 2), its trooper at (1408, 1520) (3) and the instrument room's
+at (1600, 1184) (4); the lift the works' rifleman at (4992, 5568) (2),
+stormtrooper at (4480, 5568) (3) and trooper at (4864, 5248) (4).
+
+**Rules held (tested):** never on the critical path (the exit with every
+event tag left shut, the boss's death still needed); never a trap; hidden
+until they fire; there on every skill and far from the start; §5's five
+rounds unchanged (MAP09's model opens a pickup like a lock, the round after
+its key is reached: the quarantine with the blue gate, the lift with the
+yellow door, the closets with the red gate, as v1).
+
+**Route** (`tunguska-critical`): BKEY now waits a door's time and expects
+tag 13 open; RKEY's tag 10 as v1. The lift is not asked (its car is always
+a body high); the critical route is otherwise the same.
+
+### 18.2 Engine checklist additions (the PM's, D26)
+
+- **E11** Taking the blue key opens the quarantine room; its troopers come
+  into the hall; the strip before the door flickers; the door reads as the
+  hall's tile until it moves (route step BKEY: tag 13 open).
+- **E12** Taking the yellow key brings the works' lift down with its three;
+  the gate's lamp flickers before; `netevent sdtag 14` prints floor 0.
+- **E13** The works' closets' lamps flicker on the way in; the closets still
+  open with the red key (route step RKEY).
+- **E14** (§18.3) The Consortium's Breach opens the crater's ground: bring
+  it under 2000 (play, or `netevent sdhurt 12 2100` with the route helper
+  loaded); at the line "tears itself free" the four scabs beside the acid
+  pits sink 16 under the quake, show acid, hurt like the pits and flicker;
+  `netevent sdtag 15` prints floor -144 for each; each is walked out of;
+  no `Script error` about `Floor_LowerToLowestTxTy` or `Light_Flicker`.
+  The boss's design doc's E12 is the same check.
+
+### 18.3 The crater's ground that opens with the Consortium's second phase (BUILT 2026-10-24)
+
+The brief: "the crater's earth opens when the Consortium enters its second
+phase". It could not be hooked without new ZScript (nothing in the map
+fires at half health: no line is crossed, no item taken, MAPINFO has no
+health hook, ACS is not used in `src/`), so on 2026-10-23 it was described
+here for `mod-engineer`; on 2026-10-24 the hook and the geometry were built
+together (V3 A3).
+
+* **The hook** (`src/zscript/monsters/consortium.zs`, its design doc's
+  update of 2026-10-24). At the Breach's first tic, once (the Breach runs
+  once), `A_SD_ConsortiumOpenGround` reads the tag off **the boss thing's
+  arg4** and calls `Floor_LowerToLowestTxTy (tag, 16)` and `Light_Flicker
+  (tag, 176, 112)`. The tag rides arg4, not a constant in the class: the
+  thing's `special` is its death's `Door_Open (12, 16)`, which reads
+  arg0-arg2 only, and a boss summoned (or placed on another map) has 0 there
+  and opens nothing. The contract's plain `Floor_LowerToLowest` became its
+  **TxTy** variant, which also gives the sunk floor the flat and damage of
+  the neighbour it sinks to, so the scabs need no damage of their own
+  (they would hurt before the Breach) and still become acid.
+* **The map** (`map.py`): `TAG_CRATER_BREACH = 15`, carried by the boss
+  thing's `arg4` (`BOSS_BREACH_TAG_ARG`, tested equal to the class's
+  `SD_CONSORTIUM_BREACH_TAG_ARG`) and by **no line and no pickup**. Four
+  scabs `z8_scab_1..4` (`CRATER_SCABS`), each a fissure 64 wide on the
+  middle of an acid pit, running from the pit out to the floor's edge (the
+  seventh terrace): west of the two west pits (x 3520-3680, y 2560-2624 and
+  3008-3072) and east of the two east pits (x 4256-4416, same y). Until the
+  Breach each is the crater floor's own plate, height (-128), light (160) and
+  sky: nothing shows. At the Breach they sink one step to the pit beside
+  them (-144, 8 tics, under the quake the Breach already shakes), take its
+  acid and its damage (10 every 32 tics), and flicker 176/112: the floor's
+  ring round the portal breaks into four islands (the boss's to the north,
+  the south, the west and the east), joined by the terraces and crossed
+  through 64 of acid.
+* **Not a trap, nothing moved.** 16 deep, walked out of onto the floor
+  on either long side (only its short end, against the seventh terrace, is
+  32 high); the exit reached from every scab after the Breach. No scab under the boss's body, its servants' spots before the
+  portal, a monster's body or a pickup; no monster, item or ammunition
+  moved or added (the arena's stock, §10, and BALANCE §8's bands are
+  unchanged); safe starts untouched (the crater is the map's far end). No
+  monsters wait below: the Breach's four reinforcements already come
+  through the portal behind the boss, and a 16-deep fissure has no below to
+  hide them in.
+* **The route** (`tunguska-critical`): unchanged. BOSS1's 100 000 hurt kills
+  the boss at full health, so the route never enters the Breach and the
+  ground never opens on it; no step stands on a scab (tested).
+* **Tests:** `tests/test_map09_tunguska.py` (the scabs tagged 15 and
+  nothing else, the boss alone naming it on every skill, the arg agreeing
+  with the class, hidden until the Breach, each from a pit to the floor's
+  edge and sinking one step into that pit's acid, walked out of with the
+  exit still reached, clear of the boss, its servants, every monster and
+  pickup); `tests/test_ep3_boss.py`
+  (`test_the_breach_opens_the_ground_once_where_the_map_asks`);
+  `tests/test_map09_route.py` (the route off the scabs).
+* **Engine check E14** (§18.2).
+
+## 19. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+**The RGD-5** (ADR 012; placement advice `docs/engine/2026-10-23_V3_rgd5.md`
+§6). Grenades are consumables in `ITEMS`, so they scale **down** with skill:
+**3 / 2 / 2** grenades on skills 2 / 3 / 4 (skills 1 and 5 double them, as
+every pickup). Why here: at the research station's izbas; **none in the crater** (the Consortium takes no splash), none counted for its stage. No crate (21022: a secret's reward only).
+
+| Where | What | Skills |
+|---|---|---|
+| `z3_izba_a` (750, 700) | a loose grenade (21021) | every skill |
+| `z3_izba_b` (750, 1300) | a loose grenade | every skill |
+| `z3_yard` (1160, 1000) | a loose grenade | skills 1-2 |
+
+**The budget** (BALANCE §8, a grenade 1.25 shell-equivalents, counted in
+the band and the shell share's whole only): the ratio placed / needed on
+skills 2 / 3 / 4 goes 1.610 → 1.628 / 1.347 → 1.355 / 1.239 → 1.245, inside
+1.5-2.0 / 1.3-1.6 / 1.2-1.45. No other pickup moved. The stage readiness,
+the newest weapon's lead and the boss's stage do not count grenades.
+
+**The loudspeaker** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124): `z3_yard` (1632, 736), at the foot of the yard's mast, the actor's 384, **with the valve bed** (`arg3` 4): lines 7 and 5 only, the last Soviet outpost before the alien works heard as a far, noisy station.
+Table `LOUDSPEAKERS` in `map.py`; no geometry changed (it has no body until
+its horn is drawn). Tests: the map's own (`test_every_pickup_can_be_picked_up`,
+the G3-8 band with the grenades), `tests/test_rgd5_maps.py`,
+`tests/test_loudspeaker.py`.
+
+**Engine checklist (the PM, D26):** the grenades lie where the table says
+and are picked up (`printinv`: `SD_Rgd5` and `SD_Rgd5Ammo`); the loudspeaker
+rings its jingle on approach, reads its lines over the level's music, falls
+silent walking away (the line in progress finishes) and is not heard from
+the next room; a clean log.

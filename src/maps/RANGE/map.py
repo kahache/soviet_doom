@@ -150,6 +150,13 @@ ED_SD_PPSH = 21004
 ED_SD_RPG7 = 21005
 ED_SD_ROKS3 = 21006
 ED_SD_KATYUSHA = 21007
+# V3 A4, the RGD-5 hand grenade (ADR 012): slot 8, a pool of its own. The
+# pouch (the weapon and two grenades) ends the weapon row; a crate of four
+# ends the ammunition row, so the range holds the pool's maximum (six) on
+# every skill: throw at the barrels (128 of blast against their 64-unit
+# spacing) and at the far targets aimed up.
+ED_SD_RGD5 = 21009
+ED_SD_RGD5_BOX = 21022
 
 # Standard Doom/Freedoom items (unchanged by the mod: the arsenal reuses the
 # four vanilla ammo pools - Clip, Shell, RocketAmmo, Cell).
@@ -194,6 +201,7 @@ WEAPON_ROW = [
     ED_SD_RPG7,
     ED_SD_ROKS3,
     ED_SD_KATYUSHA,
+    ED_SD_RGD5,
 ]
 
 AMMO_ROW = [
@@ -204,6 +212,7 @@ AMMO_ROW = [
     ED_ROCKET_BOX,
     ED_CELL_PACK,
     ED_CELL_PACK,
+    ED_SD_RGD5_BOX,
 ]
 
 SUPPORT_ITEMS = [

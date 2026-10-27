@@ -128,17 +128,20 @@ clerestory panes are 32 and 16 deep and do not show at this scale.
 | Z7w | Spillway: east and west walkways | 512…1408 | 128…1760 | 0 | sky | 112 |
 | Z7c | The channel (water, hurts 5/32 tics), steps out at y 448–576 and 1280–1408 | 896…1152 | 128…1760 | −64 | sky | 112 |
 | Z7k | Winch house, the yellow key | 576…768 | 832…1024 | 16 | 144 | **192**, yellow |
+| Z7s (V3) | The old sluice's wall (falls with the yellow key) · the flooded sluice chamber behind it, a dead end | 480…512 · 224…480 | 1152…1280 · 1088…1344 | 128 = ceiling (shut), falls to −16 · −16 (water, no sting) | 128 | 112 · 144, flickering (special 65) |
 | Z8 | Cable gallery: flat, 11 steps, top corridor | 2976…3584 | 1056…1184 | 192→384 | +128 | 112 |
 | Z9 | Substation (3 transformers +96, 2 pylons solid); the high-voltage fence on its south and north sides, a strip 16 deep behind each (sky at 512) and a closed sky block 16 deep behind that (props, out of reach) | 3584…4160 | 896…1664 (strips 864…896, 1664…1696) | 384 | sky | 128 |
 | Z9p | Transformer pad, the blue key | 3904…4032 | 1216…1344 | 400 | sky | **192**, blue |
 | Z9s | Passage to the station's shutter, SW-B | 4160…4256 | 1472…1600 | 384 | 512 | 128 |
+| Z9t (V3) | The tool store, in the substation's west wall (its door opens with the blue key), a dead end | 3440…3584 | 1216…1344 | 384 | 512 | 112 |
 | Z10 | The crest, road (`SDFLR1`) and rails, 4 barricades, 2 crane huts | 640…4192 | 1792…2048 | 384 | sky | 128 |
 | — | Parapets (+32, impassable edge) | 640…4192, 4288…4864 | 1760…1792, 2048…2080 | 416 | sky 432 | 128 |
 | Z11 | West bank's hall, behind D2 | 448…608 | 1792…2048 | 384 | 512 | 144 |
 | E | Exit niche | 432…448 | 1888…1952 | 384 | 512 | **192** |
 
-Extent 4576 × 2304 units (MAP03: 3776 × 2144). 150 sectors, 609 lines
-(141 and 575 before the Dam set's dressing, §13.6).
+Extent 4576 × 2304 units (MAP03: 3776 × 2144). 158 sectors, 639 lines
+since V3 (§15; 154 and 621 before it, 141 and 575 before the Dam set's
+dressing, §13.6).
 Every height is a multiple of 16; no step up is over 16 (tested).
 
 ## 5. Progression, keys, switches and the exit
@@ -171,6 +174,8 @@ Doom's numbers.
 | SW-B | The passage's north wall, beside SH-B | `SDSW1B` (push button), one-shot | `Door_Open (11, 16, 0)` | no |
 | **BG** | Station → the crest, 128 wide | **locked, opens for good**; also opens the station's two closets (tag 3) | `Door_LockedRaise (3, 16, 0, 2, 0)`, both faces, repeatable | no |
 | D2 | The crest → the west bank's hall | manual door | `Door_Raise (2)`, both faces | no |
+| **SLUICE** (V3) | The west walk's west wall → the sluice chamber | a wall that **falls** for good (its floor lowers to the chamber's, one step under the walk) | tag 12, `Floor_LowerToLowest (12, 64)` carried by **the yellow key's thing** (picked up); its riders shake the dam and raise the water (§15) | no (a dead end, never needed) |
+| STORE (V3) | The substation's west wall → the tool store | closet, opens for good; the substation's sheet until it moves | tag 14, `Door_Open (14, 16)` carried by **the blue key's thing** (picked up) | no (a dead end, never needed) |
 | EXIT | Back of a 64 × 128 niche in the west hall's west wall, on D2's line | `SDSW1D`, the hazard panel | `Exit_Normal (0)` | — |
 
 **The order, as the tests play it** (`test_the_route_is_the_designed_one`),
@@ -419,11 +424,12 @@ but the General.
 | Station, gatehouse | 3 troopers | 3 troopers | 3 troopers + 2 stormtroopers |
 | Inspection and lower galleries | 3 riflemen | 4 riflemen + 2 hounds | 4 riflemen + 2 hounds |
 | Turbine hall (catwalk included) | Panzermensch + 3 riflemen + 1 stormtrooper | Panzermensch + 4 riflemen + 2 stormtroopers + 1 hound | Panzermensch + 4 riflemen + 3 stormtroopers + 2 hounds |
-| Spillway | Doughboy + 1 trooper + **1 gunner** | Doughboy + 1 trooper + 1 gunner + 1 stormtrooper | 2 Doughboys + 1 trooper + **2 gunners** + 1 stormtrooper |
+| Spillway (walks and water) | Doughboy + **1 gunner** | Doughboy + 1 gunner | 2 Doughboys + **2 gunners** |
+| The sluice (V3: the yellow key's burst; the walk's trooper and stormtrooper moved in, one trooper more) | 2 troopers | 2 troopers + 1 stormtrooper | 2 troopers + 1 stormtrooper |
 | Control room + the catwalk's closets (yellow tag) | 1 trooper + 2 riflemen + 1 stormtrooper + 1 hound | 1 trooper + **1 gunner** + 3 riflemen + 1 stormtrooper + 1 hound | 1 trooper + 1 gunner + 3 riflemen + 3 stormtroopers + 1 hound |
-| Substation | Panzermensch + 2 riflemen + 1 hound | Panzermensch + 2 riflemen + 2 hounds | Panzermensch + heavy + 2 riflemen + 2 hounds |
+| Substation, and since V3 its tool store (the blue key: the two hounds kennelled in it) | Panzermensch + 2 riflemen + 1 hound | Panzermensch + 2 riflemen + 2 hounds | Panzermensch + heavy + 2 riflemen + 2 hounds |
 | Station's closets (blue tag), crest, west hall | Panzermensch + Doughboy + 2 troopers + **1 gunner** + 2 riflemen + 1 stormtrooper | Panzermensch + **heavy** + 2 Doughboys + 3 troopers + 1 gunner + 2 riflemen + 3 stormtroopers | Panzermensch + heavy + 3 Doughboys + 4 troopers + 1 gunner + 3 riflemen + 4 stormtroopers + 1 hound |
-| **Total** | **31** | **46** | **60** |
+| **Total** | **32** (31 before V3) | **47** (46) | **61** (60) |
 
 **The Legion gunners** (`SD_LegionGunner`, 80 HP, bursts of hitscan, D116;
 `docs/engine/2026-10-22_P4_ep2-enemies.md` §2): 2 / 3 / 4 on skills 2 / 3 /
@@ -467,9 +473,9 @@ no secret; D119's bands (`docs/engine/BALANCE.md` §8): **1.5-2.0 × on skill
 
 | | Skill 2 | Skill 3 | Skill 4 |
 |---|---|---|---|
-| Needed | 71 | 119 | 169 |
-| Placed, v1 (D116) → D119 | 297.0 → **112.2** | 279.5 → **160.1** | 251.0 → **209.6** |
-| Ratio, v1 → D119 | 4.18 → **1.58** | 2.35 → **1.35** | 1.49 → **1.24** |
+| Needed (V3: one trooper more, the sluice's) | 71 → **72** | 119 → **120** | 169 → **170** |
+| Placed, v1 (D116) → D119 (V3 adds none) | 297.0 → **112.2** | 279.5 → **160.1** | 251.0 → **209.6** |
+| Ratio, v1 → D119 → V3 | 4.18 → 1.58 → **1.56** | 2.35 → 1.35 → **1.33** | 1.49 → 1.24 → **1.23** |
 | Ammunition pickups on the route, v1 → D119 | 45 → **18** | 40 → **24** | 31 → **30** |
 | Shells (the IZh's 8 included) | 24 | 40 | 56 |
 | 7.62×25 rounds (the PPSh's 35 included) | 135 | 185 | 285 |
@@ -495,7 +501,8 @@ skill 3, a shell box and a PG-7V box from skill 3, a second PG-7V box on
 skill 4. The S3 hut's two canisters and the secrets' shell boxes are
 unchanged and not counted; the gunners' 15 AKM rounds come on top. Also
 tested: the shells with the troopers' dropped IZhs under 35 % of
-everything placed and dropped (§8.3: 28 / 29 / 30 %), each pool only from
+everything placed and dropped (§8.3: 28 / 29 / 30 %; 29 / 30 / 31 % with
+V3's trooper), each pool only from
 its weapon's stage (§8.4.1), PG-7V at most 30 % of any stage's damage
 (the most: the crest on skill 4, 25 %), fuel at most 15 % of the map's
 (6 / 6 / 5 %).
@@ -522,6 +529,9 @@ and the crest), 6 plates. Consumables scale down with skill (tested).
 | Impassable parapets | two-sided lines flagged `blocking` | Doom's impassable flag; blocks players and monsters, not projectiles |
 | Turned flats | `rotationfloor` 90 on the rails and the crest's road | as MAP02, MAP03 |
 | Secret | sector `special` 1024; panel lines flag `secret` | as MAP01-MAP03 |
+| **A pickup's special** (V3) | thing `special` + `arg0..arg4` on both keys and on two riders beside the yellow key (§15) | the mechanism VERIFIED in engine on MAP06 (the red key's `Door_Open`, route RKEY, 2026-10-23); here V16-V18 |
+| Floor_LowerToLowest, Floor_RaiseByValue, Radius_Quake (V3) | specials 21, 23, 120 | the numbers read from g4.14.2's own special table (2026-10-23, `src/maps/common/pickup_events_e2.py`); their effects NOT VERIFIED: V16, V17 |
+| Flickering light (V3) | sector `special` 65 (`dLight_Flicker`, gzdoom.pk3 `xlat/defines.i`) on the sluice chamber | as MAP01's Z5 and MAP07; NOT VERIFIED here: V16 |
 | Animated water | floor `SDWATR1`, ANIMDEFS `flat SDWATR1` (4 frames, 8 tics) | ANIMDEFS tested (`tests/test_animdefs.py`); in play NOT VERIFIED: V11 |
 | Texture offsets | sidedef `offsetx`/`offsety` on every Dam-set face (§7.2) | Doom's row offset, positive raises the texture; the sign NOT VERIFIED in the engine: V12 |
 | Middle textures | `SDINSL1` (masked) under the gantry, top at the lower ceiling; `SDCTRL1` boards on `blocking` + `dontpegbottom` lines, foot on the floor; neither `wrapmidtex` | a two-sided middle texture is drawn once (ZDoom); MAP03's `SDCHAN1` is the masked precedent; NOT VERIFIED here: V13 |
@@ -529,7 +539,9 @@ and the crest), 6 plates. Consumables scale down with skill (tested).
 Tag plan: **1** D1 · **2** D2 · **3** the blue gate and the station's two
 closets · **4** the yellow door and the catwalk's two closets · **5** S1's
 panel · **6** S2's panel · **7** S3's panel · **10** SH-A (SW-A) · **11**
-SH-B (SW-B). Free: 8, 9, 12 and up.
+SH-B (SW-B) · since V3 (§15), no line carrying any of them: **12** the
+sluice's wall (the yellow key) · **13** the channel's water (the yellow
+key's rider) · **14** the tool store (the blue key). Free: 8, 9, 15 and up.
 
 ## 11. MAPINFO and LANGUAGE (not this role's)
 
@@ -596,6 +608,9 @@ P4 agents).
 | V13 | The middle textures: four `SDCTRL1` boards stand on the control room's floor, drawn once (the tile wall above, not a second board), and stop the player; the `SDINSL1` strings hang from the gantry with sky between them (no garbage in the transparent pixels), the player walks under | the control room; the substation |
 | V14 | `SDSIGL1` once on the station's post, `SDARMR1`'s star whole on the train's south side | arrive |
 | V15 | Round 2 (D113): the bars `SDGRIL1` in both windows, both flats inside the opening, seen from the hall and from the room, no garbage in their transparent pixels; the **fence** `SDHVLT1` on the substation's south and north sides, whole from the ground to its top rail, a post at each corner, the night sky through the wire right down to the ground (not a wall, not HOM: the closed sky block behind the strip), nobody (player or Doughboy) crosses it; `SDDOORB` on the blue gate, both faces; the sky `SDSKY1` round the whole turn | the substation from the cable gallery's mouth and from its middle; the control room; the station |
+| V16 | **V3, the dam bursts** (§15): walking onto the yellow key, the sluice's wall in the west walk's west wall falls (grinding) in 18 tics to the chamber's water, the chamber's lamp flickers, the Legion's sluice guard comes out; the route's YKEY reads tag 12 open (YD0 shut) | the report's YKEY line; a look from the winch |
+| V17 | **V3, the riders**: the screen shakes about 3 s (Radius_Quake, intensity 3), nobody hurt; the channel's water rises 16 (`netevent sdtag 13` prints floor −48), level with the first step; both bonuses are taken with the key (the pickup messages); the quake is probably **silent** (`world/quake` is only defined for Hexen in gzdoom.pk3: no error expected, look for one in the log) | walk onto the key; the log |
+| V18 | **V3, the tool store**: walking onto the blue key, the store's door in the substation's west wall rises and the hounds come out; the route's BKEY reads tag 14 open (SWA shut) | the report's BKEY line |
 | V10 | The posters (7.3) are whole and readable: Stalin's recess shows brick above it, not sky (its ceiling is concrete under a sky room); Lenin reads from the hall's east door at 160; the mural sits on its sill through the yellow door; the catwalk portraits from the floor and from the catwalk | arrive; walk the hall and the catwalk |
 
 ### 13.4 For the CEO's walk
@@ -661,3 +676,90 @@ worn); `tests/test_map05_route.py` 10 OK; `tools/verify.py fast`: build and
 `check_pk3` PASS; the test stage's only failures are outside this map (the
 redrawn enemy sprites' byte-identity and blood tests, `test_gen_shells`'
 docs). The engine pass is V15 (§13.3).
+
+## 15. V3 (2026-10-23): the dam bursts (A3), and the keys' events (A2)
+
+D119 (the CEO's playtest) asked for keys that make things happen; D120 put
+pickup events (A2) and map set pieces (A3) in V3, this map's being **the dam
+that bursts**. The episode's form is MAP04's (§14 there): one special on
+the key's own thing, on a tag no line carries, opening a dead end that
+holds nothing the route needs, warned, with the monsters moved rather than
+added where the balance allows; the route reads each tag shut before its
+key and open after it. What MAP05 adds to the form: **riders**, for an
+event that needs more than one special (`src/maps/common/pickup_events_e2.py`).
+
+**The set piece.** The yellow key lies on the sluice winch, across the
+spillway's water. Taking it:
+
+| What happens | How | Where it comes from |
+|---|---|---|
+| The old sluice's wall in the west walk's west wall **falls**, grinding, in 18 tics | `Floor_LowerToLowest (12, 64)` on the **key's own thing**; the wall is a sector 128 high (floor = ceiling, the dam's `SDDAM1` from the walk, world-aligned: wall until it falls), at 480…512 × 1152…1280 | the route reads it (YD0 shut, YKEY open) |
+| The **dam shakes** for 3 s, nobody hurt | `Radius_Quake (3, 105, 0, 24, 0)` on a **rider**: a health bonus 8 south of the key (tid 0: centred on the player) | the PM looks (V17) |
+| The spillway's **water rises** one step (−64 → −48, level with the first step out), in 16 tics | `Floor_RaiseByValue (13, 8, 16)` on a **rider**: an armour bonus 8 north of the key; tag 13 is the channel alone | `netevent sdtag 13` (V17) |
+| Behind the fallen wall, the **flooded sluice chamber** (224…480 × 1088…1344, water 16 deep, roof 128), its failing lamp **flickering** | sector special 65 (own 144 ↔ the wall's 112), unseen until the wall falls | V16 |
+| The **Legion's sluice guard** comes out across the walk | 2 troopers / + 1 stormtrooper: the west walk's trooper and stormtrooper moved in, one trooper added | §9 |
+
+A rider is a bonus (Doom's ALWAYSPICKUP: taken even at full health and
+armour) lying 8 units from the key, inside the 36 at which both are
+touched, so the walk that takes the key takes it (tested: within reach,
+never on the key's spot, on every skill, never the route's event). The
+quake hurts nobody (damrad 0). Nothing closes: the wall falls to the
+chamber's floor, one step under the walk (both steps walked both ways,
+tested), the chamber is a dead end the player walks out of, and the water
+only rises, so every way out of it stays (tested: risen, it lies level with
+the first step, still under the walkways). Warned: the wall faces the winch
+and the west walk (in sight of the key's spot, tested), grinds as it falls,
+and the screen shakes.
+
+**The blue key's event (A2).** Taking it on the transformer pad opens the
+substation's tool store: `Door_Open (14, 16)` on the key's thing; the store
+(3440…3568 × 1216…1344, its door in the west wall at 3568…3584, the
+substation's corrugated sheet until it rises) is in plain sight of the pad
+(tested) and holds the substation's two hounds, moved in (from 3640 1280
+and 4064 1600): 1 / 2 / 2 on skills 2 / 3 / 4, let out as the key is taken.
+
+**The rhythm.** The walk across the spillway to the key is quieter (the west
+walk keeps its gunners and the Doughboys over the water) and the key sets
+the dam off: the fight comes back out of the dam itself. In the substation
+the hounds are no longer waiting by the cable gallery's mouth; they come
+when the key is taken. The thirds of the route still rise on every skill
+and the crest is still the heaviest beat (tested); G3-8: 1.56 / 1.33 / 1.23
+(§9), shells 29 / 30 / 31 % with the drops.
+
+**Counts.** 158 sectors, 639 lines (154 and 621 before): the wall, the
+chamber, the store and its door. Things 148 (145): the trooper and the two
+riders. Tests: `tests/test_map05_dam.py` 98 OK (new: the burst, the
+riders, the water, the store, the sight lines, the rounds, the route's
+reading); `tests/test_map05_route.py` OK with the new tags. **Not run:
+GZDoom** (D26): V16-V18 are the PM's.
+
+## 16. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+**The RGD-5** (ADR 012; placement advice `docs/engine/2026-10-23_V3_rgd5.md`
+§6). Grenades are consumables in `ITEMS`, so they scale **down** with skill:
+**3 / 3 / 2** grenades on skills 2 / 3 / 4 (skills 1 and 5 double them, as
+every pickup). Why here: thrown down onto a lower level: from the gallery and from the catwalk over the turbine hall (a loose grenade gives the weapon too, ADR 012). No crate (21022: a secret's reward only).
+
+| Where | What | Skills |
+|---|---|---|
+| `z4_gallery` (3900, 480) | a loose grenade (21021) | every skill |
+| `z5_catwalk` (2900, 800) | a loose grenade | every skill |
+| `z5_catwalk` (3200, 800) | a loose grenade | skills 1-3 |
+
+**The budget** (BALANCE §8, a grenade 1.25 shell-equivalents, counted in
+the band and the shell share's whole only): the ratio placed / needed on
+skills 2 / 3 / 4 goes 1.559 → 1.611 / 1.334 → 1.366 / 1.233 → 1.248, inside
+1.5-2.0 / 1.3-1.6 / 1.2-1.45. No other pickup moved. The stage readiness,
+the newest weapon's lead and the boss's stage do not count grenades.
+
+**The loudspeaker** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124): `z5_hall` (2560, 448), reach 512 (the hall is 1792 long, 448 high): lines 1, 6, 13, 14; RAD02 is about this very dam, so it waits for MAP06.
+Table `LOUDSPEAKERS` in `map.py`; no geometry changed (it has no body until
+its horn is drawn). Tests: the map's own (`test_every_pickup_can_be_picked_up`,
+the G3-8 band with the grenades), `tests/test_rgd5_maps.py`,
+`tests/test_loudspeaker.py`.
+
+**Engine checklist (the PM, D26):** the grenades lie where the table says
+and are picked up (`printinv`: `SD_Rgd5` and `SD_Rgd5Ammo`); the loudspeaker
+rings its jingle on approach, reads its lines over the level's music, falls
+silent walking away (the line in progress finishes) and is not heard from
+the next room; a clean log.

@@ -12,9 +12,16 @@
 // MOD-SPEC 6.3; tests/test_gemini_weapons_install.py. The flame is ours
 // too since D82: SDFJ in flight, SDFX on impact (flame_blob.zs).
 // Balance rationale: docs/engine/BALANCE.md.
+//
+// V3 reloads (D132, the CVar sd_reloads; magazine.zs): the backpack's fuel
+// tank, emptied jet by jet and swapped for a fresh canister. Off, every
+// frame below runs exactly as in v1.2: the guards only jump when reloads
+// are on.
 
 class SD_Roks3 : PlasmaRifle replaces PlasmaRifle
 {
+	mixin SD_MagazineWeapon;   // the tank counter and the reload (magazine.zs)
+
 	// Reference: Doom's PlasmaRifle fires one PlasmaBall (avg 22.5) every 3
 	// tics = ~262 damage/s at unlimited range. The ROKS-3 fires at the same
 	// rate for 60% of that since D119 (157.5/s, the jet's damage is
@@ -26,6 +33,17 @@ class SD_Roks3 : PlasmaRifle replaces PlasmaRifle
 	const SD_ROKS3_AMMO_GIVE = 40;    // same as Doom's plasma rifle pickup
 	const SD_ROKS3_NOZZLE_X  = 6.0;   // the nozzle sits right of centre
 	const SD_ROKS3_NOZZLE_Z  = 0.0;   // at the standard attack height
+
+	// --- Reload (V3 experiment, docs/engine/2026-10-25_V3_reloads.md) -----
+	// The real ROKS-3 carried some 6-8 s of fire; 80 jets is 6.9 s at 11.67
+	// a second, enough for the heaviest Panzermensch (75 jets, BALANCE.md
+	// section 3) on one tank.
+	const SD_ROKS3_TANK             = 80;
+	const SD_ROKS3_RELOAD_TICS      = 88;  // 2.5 s: canister knocked in, coupling turned, igniter armed
+	const SD_ROKS3_RELOAD_DROP      = 16;  // tics down, and up again
+	// SDRKRLD (1.05 s) arms the igniter at 0.88 s = 31 tics; started on tic
+	// 41 it does so as the nozzle comes back up (tic 72).
+	const SD_ROKS3_RELOAD_SOUND_TIC = 41;
 
 	Default
 	{
@@ -55,9 +73,20 @@ class SD_Roks3 : PlasmaRifle replaces PlasmaRifle
 		// 3 tics per jet while the trigger is held (same as Doom's plasma);
 		// A_ReFire fires on entry to the next state, so the 20-tic frame is
 		// only paid when the player lets go.
+		// V3: an empty tank reloads instead (0 tics; never with reloads off).
+		SDRK A 0 A_JumpIf(invoker.SD_MagazineDry(SD_ROKS3_TANK), "Reload");
 		SDRK A 0 A_GunFlash;
 		SDRK A 3 Bright A_SD_FireRoks3;
 		SDRK B 20 A_ReFire;
+		Goto Ready;
+	Reload:
+		// V3 (magazine.zs): the gun goes down off screen and comes back up,
+		// 88 tics, the tank full again as it rises.
+		SDRK A 0 A_JumpIf(!invoker.SD_CanReload(SD_ROKS3_TANK), "Ready");
+		SDRK A 0 A_SD_BeginReload;
+	ReloadLoop:
+		SDRK A 1 A_SD_ReloadTick(SD_ROKS3_TANK, SD_ROKS3_RELOAD_TICS, SD_ROKS3_RELOAD_DROP, SD_ROKS3_RELOAD_SOUND_TIC, "sd/weapon/roks3/reload");
+		SDRK A 0 A_JumpIf(invoker.sdReloadTic < SD_ROKS3_RELOAD_TICS, "ReloadLoop");
 		Goto Ready;
 	Flash:
 		SDKF A 3 Bright A_Light1;
@@ -81,9 +110,18 @@ class SD_Roks3 : PlasmaRifle replaces PlasmaRifle
 	// Ready with the empty click (N9, D74): A_WeaponReady exactly as before,
 	// plus SDRKDRY on the tic the trigger goes down with too little ammo to
 	// fire (SD_WeaponSounds.DryClick, weapon_sounds.zs). Same frame, same tic.
-	action void A_SD_WeaponReady()
+	// V3 reloads, both no-ops with sd_reloads off: an empty tank is swapped at
+	// once (unless a weapon switch is pending), and the +reload key is
+	// allowed when a reload would load.
+	action state A_SD_WeaponReady()
 	{
+		if (player != null && player.PendingWeapon == WP_NOCHANGE
+			&& invoker.SD_MagazineDry(SD_ROKS3_TANK))
+		{
+			return ResolveState("Reload");
+		}
 		SD_WeaponSounds.DryClick(invoker, "sd/weapon/roks3/dry");
-		A_WeaponReady();
+		A_WeaponReady(invoker.SD_ReadyFlags(SD_ROKS3_TANK));
+		return null;
 	}
 }

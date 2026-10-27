@@ -313,6 +313,48 @@ class RouteDefinitionTest(unittest.TestCase):
         # The start of the walk is reached with no door: the dorm, as A0.
         self.assertEqual("Z1", route.zone_family(md.name_of(md.sector_at(*start))))
 
+    def test_the_event_weapons_are_walked_onto_never_warped_onto_in_map01(self):
+        """V3 A2: the IZh's and the PPSh-41's pickups open tags 12 and 13. A
+        warp collects nothing (the PM's v3 pass, 2026-10-23 12:18: A4 and A7
+        warped onto the guns, owned neither, and both closets stayed shut),
+        so A4 and A7 warp beside each gun, outside touch, and walk onto it
+        along a lane of the gun's own zone with no step up; the IZh's walk
+        ends against its niche's back wall, the PPSh's on the catwalk."""
+        md = self.map01
+        mod = md.module
+        steps = {s.id: s for s in route.ROUTES["g3-auto"].steps}
+        for sid, ed, home in (("A4", mod.ED_IZH, "Z5B"), ("A7", mod.ED_PPSH, "Z6B")):
+            step = steps[sid]
+            for skill in (2, 3, 4):
+                self.assertEqual(1, len(md.things_on(ed, skill)), f"{sid} skill {skill}")
+            thing = md.things_on(ed, 3)[0]
+            self.assertIn(ed, mod.PICKUP_EVENTS, f"{sid}: the gun carries no event")
+            self.assertTrue(any(a.startswith("forward") for a in step.actions), f"{sid} does not walk")
+            self.assertEqual((home,), step.expect, sid)
+            start = step.warp
+            self._clear_of_walls(md, start)
+            gap = abs(thing.x - start[0]) + abs(thing.y - start[1])
+            self.assertGreater(gap, PLAYER_RADIUS + PICKUP_RADIUS, f"{sid}: the warp lands on the gun")
+            floor = md.textmap.sectors[md.sector_at(*start)].heightfloor
+            for s in self._walk(md, start, step.angle, (thing.x, thing.y)):
+                self.assertIsNotNone(s, sid)
+                self.assertEqual(home, route.zone_family(md.name_of(s)), (sid, md.name_of(s)))
+                self.assertLessEqual(md.textmap.sectors[s].heightfloor - floor, MAX_STEP_UP, sid)
+            self.assertGreaterEqual(model_walk(route.WEAPON_WALK), gap, f"{sid}: the walk stops short")
+            # The shut-before and open-after checks stay on the steps around it.
+            tag = mod.PICKUP_EVENTS[ed].tag
+            self.assertIn((tag, False), steps["A0"].tags)
+        izh = md.things_on(mod.ED_IZH, 3)[0]
+        self.assertIsNone(md.sector_at(izh.x + PLAYER_RADIUS + 1, izh.y),
+                          "the IZh's walk does not end against the niche's back wall")
+        # The PPSh's walk and its glide (~290 on the model, say 400) stay on the catwalk.
+        a7 = steps["A7"]
+        for d in range(0, 400, SAMPLE):
+            s = md.sector_at(a7.warp[0] + d, a7.warp[1])
+            self.assertEqual("Z6B", route.zone_family(md.name_of(s)), (d, md.name_of(s)))
+        self.assertIn((mod.TAG_EVENT_IZH, True), steps["A6"].tags)
+        self.assertIn((mod.TAG_EVENT_PPSH, True), steps["A9"].tags)
+
     def test_the_range_walk_takes_the_21001_thing_and_no_other(self):
         md = self.range
         thing = md.things_on(route.ED_MELEE, 3)[0]
@@ -869,7 +911,8 @@ class ParseTest(unittest.TestCase):
         text = route.render_report(rep)
         self.assertIn("blockers       : 1 killed by the route's sdclear", text)
         self.assertIn("[ok ] A1: SD_Stormtrooper at (256, 610), 60 hp, dead", text)
-        self.assertIn("kills          : 1 of 33, of which 1 by the route's sdclear", text)
+        # 33 on skill 3 until V3 A2 put three in the weapons' closets (MAP01 ENEMY_TOTALS).
+        self.assertIn("kills          : 1 of 36, of which 1 by the route's sdclear", text)
         self.assertIn("VERDICT        : PASS (1 blocker(s) killed by the route", text)
 
     def test_a_clean_run_says_no_blocker(self):
@@ -1384,12 +1427,15 @@ class MetroRouteTest(BuiltMapRoute, unittest.TestCase):
 
     def test_tags_and_specials_are_map_py_constants(self):
         m, s = self.m, self.steps
-        bd, sh, gate = m.TAG_BLAST_DOOR, m.TAG_SHUTTER, m.TAG_GATE
-        self.assertEqual(((bd, False),), s["BD0"].tags)
-        self.assertEqual(((bd, True),), s["BD1"].tags)
+        bd, sh, gate, win = m.TAG_BLAST_DOOR, m.TAG_SHUTTER, m.TAG_GATE, m.TAG_EVENT_PASS
+        # V3 A2: the pass's event, the duty window, shut before it and open after.
+        self.assertEqual(((bd, False), (win, False)), s["BD0"].tags)
+        self.assertEqual(((bd, True), (win, True)), s["BD1"].tags)
         self.assertEqual(((m.SPECIAL_DOOR_LOCKED_RAISE, bd),), s["BD0"].presses)
         self.assertEqual(s["BD0"].presses, s["BD1"].presses)
-        self.assertEqual(((sh, False),), s["PASS"].tags)
+        # The pass's walk runs on through the window it opens (route.py,
+        # pass_event_exit): read open straight after the pickup.
+        self.assertEqual(((sh, False), (win, True)), s["PASS"].tags)
         self.assertEqual(((sh, True), (gate, False)), s["SWA"].tags)
         self.assertEqual(((gate, True),), s["SWB"].tags)
         self.assertEqual(((udmf.SPECIAL_DOOR_OPEN, sh),), s["SWA"].presses)
@@ -1414,11 +1460,40 @@ class MetroRouteTest(BuiltMapRoute, unittest.TestCase):
         from the hall's portal, the pass in the substation (its booth since
         v1), the gas lock behind the door, SW-A in the substation, SW-B in the
         command post, the exit in Z9."""
-        want = {"A0": ("Z1",), "BD0": ("Z3",), "PASS": ("Z8",), "BD1": ("B1",), "SWA": ("Z8",),
+        # V3 A2: PASS ends in the hall, not the booth: the pass opens the duty
+        # window and the walk west off it carries the body through it (the
+        # PM's v3 pass, 2026-10-23 12:20: (2789, 1056) in z3_hall on skills
+        # 2-4). test_the_pass_walk_runs_through_the_window_it_opens.
+        want = {"A0": ("Z1",), "BD0": ("Z3",), "PASS": ("Z3",), "BD1": ("B1",), "SWA": ("Z8",),
                 "SWB": ("B4",), "E0": ("Z9",)}
         self.assertEqual(want, {k: v.expect for k, v in self.steps.items() if v.expect})
-        if hasattr(self.m, "KEY_ZONE"):
-            self.assertEqual(self.steps["PASS"].expect, (route.zone_family(self.m.KEY_ZONE),))
+        self.assertEqual("Z8", route.zone_family(self.m.KEY_ZONE))
+
+    def test_the_pass_walk_runs_through_the_window_it_opens(self):
+        """The booth is entered from its step only, so the walk faces west at
+        the duty window. Before the pickup the window is 48 high (it stops a
+        body); the pass's event raises its head a body high, and the walk's
+        reach on the model carries the body past it into the hall."""
+        md, m, step = self.md, self.m, self.steps["PASS"]
+        win = [i for i, sec in enumerate(md.textmap.sectors) if sec.identifier == m.TAG_EVENT_PASS]
+        self.assertEqual(["duty_window"], [md.name_of(i) for i in win])
+        sec = md.textmap.sectors[win[0]]
+        self.assertLess(sec.heightceiling - sec.heightfloor, route.PLAYER_HEIGHT, "a slot before")
+        self.assertEqual((m.TAG_EVENT_PASS, True), step.tags[-1])
+        self.assertIn(f"tag {m.TAG_EVENT_PASS}", step.actions)
+        dx, dy = route.COMPASS[step.angle]
+        # The walk on the model (~125 units) ends in the window's 32; the
+        # glide after -forward (the speed it has then, times f / (1 - f):
+        # ~70 more) carries it into the hall. The engine did (2789, 1056).
+        tics, f = self.tics(step), 0.90625
+        speed = 25 * 2048 / 65536 * (1 - f ** tics) / (1 - f)
+        reach = model_walk(tics) + speed * f / (1 - f)
+        crossed = [md.sector_at(step.warp[0] + dx * d, step.warp[1] + dy * d)
+                   for d in range(0, int(reach) + 1, SAMPLE)]
+        families = list(dict.fromkeys(route.zone_family(md.name_of(s)) for s in crossed))
+        self.assertEqual(["Z8", "?", "Z3"], families[:3], "booth, window, hall")
+        self.assertIsNone(route.pass_event_exit(md, step.warp, step.angle,
+                                                self.tics(step) * WALK_UNITS_PER_TIC, m.TAG_EVENT_PASS + 100))
 
     def test_the_blue_door_is_pressed_from_the_hall_within_reach(self):
         md, tm, m = self.md, self.md.textmap, self.m
@@ -1574,7 +1649,8 @@ class TankogradRouteTest(BuiltMapRoute, unittest.TestCase):
     def test_mapinfo_makes_the_factorys_exit_the_episodes_end(self):
         text = route.MAPINFO_PATH.read_text(encoding="utf-8")
         block = re.search(rf"^map {FACTORY}\b.*?^}}", text, re.M | re.S).group(0)
-        self.assertRegex(block, r"(?m)^\s*next\s*=\s*endtitle\b")
+        # V3 B2: its own end sequence, the illustration SDEND1 before the title (MOD-SPEC 6.15).
+        self.assertRegex(block, r'(?m)^\s*next\s*=\s*EndSequence\s*,\s*"SD_Ending1"')
         self.assertEqual({"end_sequence": True, "next_map": None}, route.exit_expectation(FACTORY))
         self.assertEqual((True, None), (self.r.end_sequence, self.r.next_map))
 
@@ -1595,8 +1671,11 @@ class TankogradRouteTest(BuiltMapRoute, unittest.TestCase):
         m, s = self.m, self.steps
         yd, rd, sh, gate, lk = (m.TAG_YELLOW_DOOR, m.TAG_RED_DOOR, m.TAG_SHUTTER, m.TAG_GATE,
                                 m.SPECIAL_DOOR_LOCKED_RAISE)
-        want_tags = {"YD0": ((yd, False),), "RD0": ((rd, False),), "YKEY": ((yd, False), (rd, False)),
-                     "YD1": ((yd, True),), "RDY": ((rd, False),), "RKEY": ((rd, False), (sh, False)),
+        ye = m.TAG_EVENT_YELLOW   # V3 A2: the yellow key's closets, shut before it, open after
+        want_tags = {"YD0": ((yd, False), (ye, False)), "RD0": ((rd, False),),
+                     "YKEY": ((yd, False), (rd, False)),
+                     "YD1": ((yd, True), (ye, True)), "RDY": ((rd, False),),
+                     "RKEY": ((rd, False), (sh, False)),
                      "RD1": ((rd, True),), "SWA": ((sh, True), (gate, False)), "SWB": ((gate, True),)}
         self.assertEqual(want_tags, {k: v.tags for k, v in s.items() if v.tags})
         want_presses = {"YD0": ((lk, yd),), "YD1": ((lk, yd),), "RD0": ((lk, rd),), "RDY": ((lk, rd),),

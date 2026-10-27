@@ -39,6 +39,7 @@ Run it:
 
 from __future__ import annotations
 
+from sdbuild.events import door_open, event_thing
 from sdbuild.udmf import (
     SECTOR_SPECIAL_LIGHT_FLICKER,
     SECTOR_SPECIAL_SECRET,
@@ -241,6 +242,10 @@ TAG_S3_SUMP_PANEL = 103
 # the control booth brighten to their brightest neighbour as D4 rises
 # (VERIFIED in engine 2026-10-13, MOD-SPEC 4.2).
 TAG_LIGHT_GATE_POWER = 30
+# V3 A2, pickup events (docs/levels/PICKUP-EVENTS.md): each tag is carried by
+# one closet's panel and by NO line; the weapon's own pickup opens it.
+TAG_EVENT_IZH = 12       # the IZh off its rack: the hound's closet in the service corridor
+TAG_EVENT_PPSH = 13      # the PPSh-41 on the catwalk: the squad's closet in the hangar's south wall
 
 # --- Heights --------------------------------------------------------------
 HANGAR_FLOOR = -32
@@ -289,6 +294,27 @@ ED_PPSH = 21004
 ED_RPG7 = 21005
 TUTORIAL_WEAPONS = (ED_ICE_AXE, ED_IZH, ED_PPSH)
 
+# --- Pickup events (V3 A2: docs/levels/PICKUP-EVENTS.md; design section 20) ---
+# MAP01 has no key, so its two events ride on tutorial weapons the player
+# cannot own yet (rule R7): nothing drops a PPSh-41, and no Legion trooper
+# (who drops an IZh) stands before the rack. A player who skips the rack,
+# takes a dropped IZh in the hangar and comes back still picks the rack's up
+# (it gives shells) and fires the event then; only with 50 shells would it
+# wait. Each opens one closet, by Door_Open on a tag no line carries.
+IZH_EVENT = door_open("izh_hound", TAG_EVENT_IZH)
+PPSH_EVENT = door_open("ppsh_squad", TAG_EVENT_PPSH)
+PICKUP_EVENTS = {ED_IZH: IZH_EVENT, ED_PPSH: PPSH_EVENT}
+# The closets the events open: (panel, room). The IZh's lies south of the
+# service corridor's pipe run, behind the player at the rack: the shotgun's
+# first shot is at a hound (the guard post's lesson, "the IZh at close
+# range"). The PPSh's is in the hangar's south wall east of the gantry, in
+# full view of the catwalk where the gun lies: the squad crosses the floor
+# under the player's new gun.
+CLOSET_IZH = ((832, 1072, 960, 1088), (800, 960, 992, 1072))
+CLOSET_PPSH = ((2240, 304, 2368, 320), (2224, 160, 2384, 304))
+EVENT_CLOSETS = {"closet_izh": (IZH_EVENT, CLOSET_IZH, 0),
+                 "closet_ppsh": (PPSH_EVENT, CLOSET_PPSH, -32)}
+
 # Doom editor numbers our classes replace or Freedoom implements (MOD-SPEC
 # 6.4: maps keep using Doom's numbers for ammo, and `replaces` does the
 # rest). The pickup amounts are Doom's, which our subclasses keep.
@@ -319,6 +345,18 @@ RADIO_KOLOKOLCHIK = 2         # arg0: D_SDRAD2, "Kolokolchik"
 # and never the corridor's walking line (design section 17.16).
 RADIO_REACH_BACK_WALL = 96
 
+# V3 A4, the RGD-5 hand grenade (ADR 012; docs/engine/2026-10-23_V3_rgd5.md
+# section 6), placed in Episode 1 on 2026-10-24: its own pool, counted 1.25
+# shell-equivalents a grenade (BALANCE 8.1, 8.6). A grenade is a consumable
+# here, so it rides in ITEMS and scales DOWN with skill: 4 / 3 / 2 grenades on
+# skills 2 / 3 / 4. No crate (21022) in the campaign.
+ED_RGD5 = 21009           # the pouch: the weapon and two grenades
+ED_RGD5_AMMO = 21021      # one loose grenade (it gives the weapon too)
+# V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
+# 5.4): SD_Loudspeaker, a positional voice OVER the music (MOD-SPEC 6.14).
+ED_LOUDSPEAKER = 21201
+LOUDSPEAKER_FLAG_OLIVE = 8  # SD_LS_FLAG_OLIVE: the army's olive SDLO, not the grey street SDLS (D132)
+
 # Monsters: Freedoom's implementations of the Doom II actors, each standing
 # in for the bestiary class that will `replaces` it (docs/engine/BESTIARY.md
 # section 12), so F5 changes nothing in this file. D35: the Fourth Reich is
@@ -342,7 +380,8 @@ REICH = ("rifleman", "hound", "panzermensch")
 LEGION = ("trooper", "doughboy")
 
 # Design section 8: monsters per skill. Strictly increasing (G3-8).
-ENEMY_TOTALS = {2: 21, 3: 33, 4: 46}
+# V3 A2 adds three on every skill: the IZh's hound, the PPSh-41's two.
+ENEMY_TOTALS = {2: 24, 3: 36, 4: 49}
 
 # Every monster: (zone, kind, x, y, facing, lowest skill tier). Tier 2 is
 # on every skill, 3 from medium up, 4 on hard only (udmf.skill_tier).
@@ -402,6 +441,12 @@ MONSTERS = (
     ("closet_w1", "trooper", 1080, 680, 0, 3),
     ("closet_e1", "doughboy", 2760, 1300, 180, 3),
     ("closet_w2", "stormtrooper", 1080, 860, 0, 4),
+    # V3 A2 (design section 20): the IZh's hound, the PPSh-41's squad.
+    # The same on every skill: a set piece, and BALANCE 8's band leaves no
+    # room for more on skill 4 without breaking D119's pickup ceiling.
+    ("closet_izh", "hound", 896, 1016, 90, 2),
+    ("closet_ppsh", "trooper", 2264, 232, 90, 2),
+    ("closet_ppsh", "rifleman", 2344, 232, 90, 2),
     # Z8 / Z10 exit: stragglers, and the Panzermensch that gates the lift.
     ("z8_airlock", "trooper", 2830, 760, 180, 2),
     ("z10_lift", "panzermensch", 3136, 660, 180, 3),
@@ -469,6 +514,31 @@ ITEMS = (
     ("tribune", ED_HEALTH_BONUS, 432, 1400, 4),   # clear of the lectern (D38)
     ("z10_lift", ED_HEALTH_BONUS, 3090, 600, 4),
     ("plinth_tank_2", ED_HEALTH_BONUS, 1240, 1824, 4),
+    # The RGD-5 (V3 A4, design section 21). The first pouch where the lesson
+    # is safe: the komnata's south-east corner by D3, found once the room is
+    # cleared and while D3 is still shut; beyond the door wait the service
+    # corridor's riflemen and then the Legion massed round the cradle, the
+    # first group worth a throw. Loose ones at the hangar's foot (for the
+    # cradle) and on the catwalk (thrown down on wave 2's closets).
+    ("z4_komnata", ED_RGD5, 600, 1040, 4),
+    ("z6_hangar", ED_RGD5_AMMO, 1240, 980, 3),
+    ("z6b_catwalk", ED_RGD5_AMMO, 2300, 1572, 2),
+)
+
+# The propaganda loudspeakers (V3 B5, design section 21), on every skill:
+# (zone, x, y, lines, reach, flags, jingle). Lines are the radio's 1-16
+# (SDRAD01-16), the thing's arg0 their bit mask; reach 0 = the actor's 384;
+# flags arg3 (4 = the valve bed); jingle arg4 (0 = a random one of three).
+# The komnata's: the political room's slogans and RAD11, «the Zarya-7
+# garrison is still holding», about this very base (Episode 1's line only).
+# It stands at the west wall, so its reach + 128 stays clear of the guard
+# post's SD_Radio (reach + 64). The hangar's, reach 512 (the hangar is 1536
+# long): the air-raid alert, the fallen-objects notice, the weather and the
+# time signal, as the invasion lands. Both olive (D132): Zarya-7 is an
+# army base, its loudspeakers the garrison's, not the street's.
+LOUDSPEAKERS = (
+    ("z4_komnata", 64, 1200, (5, 7, 13, 11), 0, LOUDSPEAKER_FLAG_OLIVE, 0),
+    ("z6_hangar", 1920, 1300, (3, 4, 10, 16), 512, LOUDSPEAKER_FLAG_OLIVE, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la
@@ -505,6 +575,10 @@ AMMO = (
     ("z9_booth", ED_CLIP_BOX, 2480, 1800, 3),
     ("z8_airlock", ED_CLIP_BOX, 2780, 600, 3),
     ("z6_hangar", ED_CLIP_BOX, 2600, 1376, 4),
+    # V3 A2: the PPSh squad's own box, left in its closet - what its three
+    # extra kills cost on every skill (BALANCE 8.2's floors), and rounds,
+    # not shells, so the troopers' dropped IZhs keep shells under 35 %.
+    ("closet_ppsh", ED_CLIP_BOX, 2304, 184, 2),
 )
 
 # Fuel drums (Freedoom's barrel) and floor lamps: part of the room, on
@@ -962,6 +1036,11 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     closet("closet_e1", (2688, 1216, 2704, 1344), (2704, 1200, 2816, 1360),
            TAG_HANGAR_WAVE_2, leaf=CONC)
 
+    # --- V3 A2: the closets the weapons open (design section 20) -----------
+    # Concrete panels in concrete walls, as wave 2's: wall until they move.
+    for name, (event, (panel, room), floor) in EVENT_CLOSETS.items():
+        closet(name, panel, room, event.tag, leaf=CONC, floor=floor)
+
     # --- the hangar's two portraits (design section 6.1) ------------------
     # 16-deep niches, 256 over the hangar floor: the poster whole, the
     # hangar's concrete above it. Too shallow to stand in; the floor is the
@@ -1155,7 +1234,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for _zone, kind, x, y, angle, tier in MONSTERS:
         tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle))
     for _zone, ednum, x, y, top in ITEMS:
-        tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
+        if ednum in PICKUP_EVENTS:
+            tm.add_thing(event_thing(x, y, ednum, PICKUP_EVENTS[ednum]))
+        else:
+            tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     for _zone, ednum, x, y, lowest in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
     for _zone, ednum, x, y in FIXTURES:
@@ -1163,6 +1245,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     for _zone, piece, reach, x, y, angle in RADIOS:
         tm.add_thing(Thing(x=x, y=y, type=ED_RADIO, angle=angle,
                            extra={"arg0": piece, "arg1": reach}))
+    for _zone, x, y, lines, reach, flags, jingle in LOUDSPEAKERS:
+        mask = sum(1 << (line - 1) for line in lines)
+        tm.add_thing(Thing(x=x, y=y, type=ED_LOUDSPEAKER,
+                           extra={"arg0": mask, "arg1": reach, "arg3": flags, "arg4": jingle}))
 
     return tm, plan
 

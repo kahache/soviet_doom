@@ -13,22 +13,29 @@ version "4.12"
 #include "zscript/sd/player.zs"
 #include "zscript/sd/ammo.zs"        // Soviet names for the four Doom ammo pools, and the AKM's own (D116)
 #include "zscript/sd/radio.zs"       // the diegetic radio (D43), editor number 21200
+#include "zscript/sd/loudspeaker.zs" // the propaganda loudspeaker (V3 B5, D124), editor number 21201
 #include "zscript/sd/status_bar.zs"  // Doom's bar + the pause sign per language (T24)
 #include "zscript/sd/keys.zs"        // the three passes: blue (MAP02), yellow and red (MAP03)
 #include "zscript/sd/pickups.zs"     // health, armour and the area map (D80)
 #include "zscript/sd/help_menu.zs"   // F1 opens our credits, not Freedoom's HELP (M4 shell)
 #include "zscript/sd/death_prompt.zs" // "Press <use> to continue" after death (D100, v1.1)
 #include "zscript/sd/music_variant.zs" // episode 2's A/B music and MAP06's boss loop (D106)
+#include "zscript/sd/awards.zs"        // the end-of-episode awards: ledger, recorder, rules (V3 B3, ADR 013)
+#include "zscript/sd/magazine_hud.zs"  // the V3 reloads' "rounds/capacity" line (D132, ADR 014)
+#include "zscript/sd/status_screen.zs" // the stats screen + the awards page (V3 B1/B3, ADR 013)
 
 // --- Arsenal (F4): one class per file, one weapon per Doom slot -----------
-// (but slot 4, which holds two since D116: the PPSh-41 and the AKM)
+// (but slot 4, which holds two since D116: the PPSh-41 and the AKM; and
+// slot 8, the RGD-5 hand grenade, V3, ADR 012)
 // Projectiles come before the weapons that fire them for readability only;
 // ZScript resolves class names regardless of include order.
 #include "zscript/weapons/pg7_grenade.zs"
 #include "zscript/weapons/flame_blob.zs"
 #include "zscript/weapons/katyusha_rocket.zs"
 #include "zscript/weapons/ice_axe_puff.zs"    // the ice axe's wall sound (N9)
+#include "zscript/weapons/rgd5_grenade.zs"    // the thrown RGD-5, fused (V3, ADR 012)
 #include "zscript/weapons/weapon_sounds.zs"   // the guns' empty click (N9)
+#include "zscript/weapons/magazine.zs"        // V3 reloads: the sd_reloads switch and the magazine mixin (D132, ADR 014)
 
 #include "zscript/weapons/ice_axe.zs"         // slot 1
 #include "zscript/weapons/tokarev.zs"         // slot 2
@@ -38,6 +45,8 @@ version "4.12"
 #include "zscript/weapons/rpg7.zs"            // slot 5
 #include "zscript/weapons/roks3.zs"           // slot 6
 #include "zscript/weapons/katyusha.zs"        // slot 7
+#include "zscript/weapons/rgd5_ammo.zs"       // slot 8's grenades, its own pool (V3, ADR 012), 21021-21022
+#include "zscript/weapons/rgd5.zs"            // slot 8, the RGD-5 hand grenade (V3, ADR 012), 21009
 
 // --- Bestiary (F5): one class per file; contract docs/engine/BESTIARY.md ---
 // The base first (it also declares the SD_FACTION_* constants), then the

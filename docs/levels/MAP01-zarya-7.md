@@ -169,6 +169,8 @@ opens it, and the switch's effect is visible from where it is thrown.
 | D6 | Catwalk → booth | manual door, both sides | `Door_Raise`, repeatable | no |
 | SW-A | Fuel bay, lit alcove off its south wall with a window onto the hangar (v2, §16) | wall switch, **one-shot: stays on** | `Door_Open` (10, 16, light tag 30) | no: `Door_Open` cannot be undone |
 | SW-B | Control booth | wall switch, **one-shot: stays on** | `Door_Open` 11 | no |
+| IZH (V3 A2, §20) | The IZh on the guard post's rack | **pickup event** | thing `Door_Open` (12, 16): the hound's closet off the service corridor | no: opens only, the route never needs it |
+| PPSH (V3 A2, §20) | The PPSh-41 on the catwalk | **pickup event** | thing `Door_Open` (13, 16): the squad's closet in the hangar's south wall | no |
 | EXIT | Lift room, east wall | wall switch | `Exit_Normal` | — |
 
 **Monster closets (v3, §17.3).** Six panels with no use-special of their
@@ -1625,10 +1627,10 @@ skill (`-skill 3`, then `-skill 4`):
 | A1 | 256 420 | 90 | `+use`, `wait 70`, `+forward` 35 tics | the corridor (D2) |
 | A2 | 256 940 | 90 | — | the komnata |
 | A3 | 600 1152 | 0 | `+use`, `wait 70`, `+forward` 35 tics | the service corridor (D3) |
-| A4 | 1040 1256 | 0 | — | "You got the IZh-58 double barrel!" |
+| A4 | 1000 1256 | 0 | `+forward` 35 tics (into the rack's niche; V3, §20) | "You got the IZh-58 double barrel!" |
 | A5 | 1336 1152 | 0 | — | the hangar, first contact |
 | A6 | 1416 1624 | 0 | `+use`, `wait 105` | `SDSW2A`; the ambush panels open (turn 90) |
-| A7 | 2000 1520 | 0 | — | "You got the PPSh-41!" |
+| A7 | 1940 1520 | 0 | `+forward` 35 tics (east along the catwalk; V3, §20) | "You got the PPSh-41!" |
 | A8 | 2496 1560 | 90 | `+use`, `wait 70`, `+forward` 35 tics | the booth (D6) |
 | A9 | 2560 1810 | 90 | `+use`, `wait 105` | `SDSW2B` |
 | A10 | 2660 672 | 0 | `+forward` 70 tics | the airlock (D4 open) |
@@ -1929,7 +1931,7 @@ are on the floor, so the distances below are exact.
 | RD0 | the map starts | `D_SDM01` | |
 | RD1 | `warp 960 1152`, face 90 (the corridor's middle, in front of the post; 112 from the radio) | `D_SDM01`: passing by does not turn it on | screenshot: the radio (`PMAP` A) standing on the post's floor against the crates, centred in the mouth |
 | RD2 | `warp 960 1220` (inside the post's mouth; 44 from the radio) | **`D_SDRAD2`**: entering the post turns it on | |
-| RD3 | `warp 1040 1256`, face 0 (A4's spot, the rack; 82 away) | `D_SDRAD2` still | the IZh picked up as in A4 |
+| RD3 | `warp 1040 1256`, face 0 (the rack; 82 away) | `D_SDRAD2` still | a warp does not take the IZh (V3, §20): walk onto it to see the pickup |
 | RD4 | `warp 960 1152` (112 away: past the reach, inside reach + 64) | `D_SDRAD2` still: no flicker | ADR 008 R4 |
 | RD5 | `warp 1120 1152` (195 away, the corridor's east end) | **`D_SDM01`**: leaving gives the level's music back | |
 | RD6 | `warp 960 1220`, then `warp 320 1192` (the komnata) | `D_SDRAD2`, then `D_SDM01` | |
@@ -2095,3 +2097,137 @@ door, recess or room under a lower ceiling touches it (tested,
 sky over the cradle shows `SDSKY6`, with no hall of mirrors at the slot's
 edge from the hangar floor, the catwalk and the gantry; `g3-auto`
 still PASSes on skills 2–4; the ammunition reads less in a skill-3 run.
+
+## 20. V3 A2 (2026-10-23): the weapons spring two closets
+
+Built in a V3 worktree (not in v1.2). The pattern, the specials and the
+safety rules are `docs/levels/PICKUP-EVENTS.md`; this section is MAP01's
+use of it. **NOT WALKED**: the PM's engine pass is pending (D26).
+
+MAP01 has no key, so its two events ride on tutorial weapons the player
+cannot own yet (PICKUP-EVENTS R7): nothing drops a PPSh-41, and no Legion
+trooper (who drops an IZh) stands before the guard post. A player who runs
+past the rack, takes a trooper's IZh in the hangar and comes back still
+takes the rack's (it gives shells) and fires the event then; only with 50
+shells would the hound wait in its closet.
+
+| Event | Rides on | Thing special | Tag: what it moves | What the player meets |
+|---|---|---|---|---|
+| `izh_hound` | the IZh on the guard post's rack (1040, 1256) | `Door_Open (12, 16, 0)` | 12: `closet_izh_door`, a concrete panel in the service corridor's south wall behind the pipe run (x 832…960, y 1072…1088); the closet x 800…992, y 960…1072, floor 0 | the panel grinds open behind him as he takes the gun; a hound comes out: the IZh's first shot, at close range (the guard post's lesson) |
+| `ppsh_squad` | the PPSh-41 on the catwalk (2000, 1520) | `Door_Open (13, 16, 0)` | 13: `closet_ppsh_door`, a concrete panel in the hangar's south wall east of the gantry (x 2240…2368, y 304…320); the closet x 2224…2384, y 160…304, floor −32 | across the hangar, in full view of the gun (tested), a trooper and a rifleman come out and cross the floor under the catwalk |
+
+Each tag is carried by its panel and by no line. Neither event is needed:
+the route is lines only, as before (`test_every_skill_reaches_the_exit`),
+and with both fired nothing reachable is lost (`Map01PickupEventsTest`).
+Both closets are more than 768 from the start (R5).
+
+**Monsters**: the same three on every skill (a set piece; BALANCE §8.2
+leaves no room for more on skill 4 under D119's pickup ceiling): **24 / 36
+/ 49** on skills 2 / 3 / 4 (was 21 / 33 / 46). **Ammunition**: one box of
+50 rounds in the squad's closet, every skill: placed against needed **1.50
+/ 1.34 / 1.21** (bands 1.5–2.0, 1.3–1.6, 1.2–1.45); shells 33 / 31 / 32 %
+with the troopers' dropped IZhs; ammunition pickups on the route 7 / 15 / 18
+(ceilings 25 / 21 / 19). The rifleman stands where a second trooper would
+have pushed skill 2's shells over 35 %. The box in the closet pays the band,
+not a stage (PICKUP-EVENTS §4.5).
+
+**Route** (`tools/route.py`, g3-auto): tags 12 and 13 shut at A0; 12 open at
+A6 (the IZh was taken at A4), 13 open at A9 (the PPSh at A7).
+
+**The PM's engine pass of 2026-10-23 12:18 (`logs/route/20261023-121839-g3-auto-*`)
+failed both checks on skills 2-4**: `tag 12 at A6: want open: shut` and
+`tag 13 at A9: want open: shut`. Cause: **the route, not the map**. A4 and
+A7 were warped onto the guns' own spots, and the console `warp` moves the
+body without touching what it lands on (a teleport move, no pickup): A4's
+and A7's `inv` both read `owned [1:SD_IceAxe, 2:SD_Tokarev]`, so neither
+gun was taken, neither special ran and both panels stayed shut. Nothing
+else in the run was wrong. In real play the player WALKS onto the gun, and
+on MAP01 he owns neither when he reaches it (a new game starts with the
+TT-33 alone; no map comes before MAP01; nothing drops a PPSh; the only
+IZhs dropped are the hangar troopers', past the guard post), so both events
+fire: the trigger stays where it is.
+
+Fix (2026-10-24): A4 and A7 now walk onto the guns as R1 walks onto the ice
+axe. A4 warps to (1000, 1256) on the guard post's floor, on the gun's row,
+faces east and walks 35 tics: the niche's back wall (x 1056) stops him on
+the IZh (1040). A7 warps to (1940, 1520) on the catwalk, 60 west of the
+PPSh, faces east and walks 35 tics; the walk and its glide (~290 on the
+model) end on the catwalk, short of its east end. A4 now expects Z5B only
+(it ends in the niche). `tests/test_route.py`,
+`test_the_event_weapons_are_walked_onto_never_warped_onto_in_map01`, holds
+the lanes (the gun's own zone, no step up, start outside touch, the walk
+long enough on the model, the niche's wall behind the IZh, the catwalk to
+400 east of A7's start); the radio test still walks every MAP01 step.
+**To repeat in the engine**: `g3-auto` on skills 2-4. A4's and A7's `inv`
+must list slot 3 (`SD_Izh`) and slot 4 (`SD_Ppsh`), A6 tag 12 open, A9
+tag 13 open.
+
+**Engine checklist for the PM** (D26):
+
+| # | Check | How |
+|---|---|---|
+| V3-1 | Taking the IZh opens the hound's closet (a thing's `Door_Open`, never seen in our engine) and the hound comes out | `g3-auto` on skill 3: A6 reports tag 12 open; by hand: take the IZh, turn round |
+| V3-2 | Taking the PPSh-41 opens the squad's closet and both come out across the hangar | A9 reports tag 13 open; by hand from the catwalk |
+| V3-3 | The panels are wall until they move (the concrete's seam only), and nothing in either closet sees or wakes before | screenshots of the corridor's and the hangar's south walls before the pickups |
+
+## 21. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+The PM scheduled Episode 1 for both on 2026-10-24 (V3), as MAP04-MAP09 got
+them the same day: `BALANCE.md` §8.6, `docs/engine/2026-10-23_V3_rgd5.md`
+§6, `docs/sound/2026-10-23_V3_propaganda-radio.md` §5.4. No geometry
+changed, no other thing moved.
+
+**The RGD-5** (ADR 012). Grenades are consumables in `ITEMS`, so they scale
+**down** with skill: **4 / 3 / 2** grenades on skills 2 / 3 / 4 (skills 1
+and 5 double them, as every pickup). This is the campaign's first map, so
+the pouch is the grenade's lesson: it lies where picking it up is **safe**,
+in the komnata's south-east corner beside D3, found once the room is
+cleared and while D3 is still shut. Beyond the door wait the service
+corridor's riflemen in a straight run and then the hangar, where the Legion
+is massed round the transporter's cradle: the first group worth a throw.
+The two loose ones follow the fights they are for. No crate (21022: a
+secret's reward only).
+
+| Where | What | Skills | For |
+|---|---|---|---|
+| `z4_komnata` (600, 1040), by D3 | the pouch (21009): the weapon and 2 | every skill | the lesson: Z5's riflemen, then the cradle |
+| `z6_hangar` (1240, 980), at the foot of the step down | a loose grenade (21021) | skills 1-3 | the troopers on and behind the cradle |
+| `z6b_catwalk` (2300, 1572), past the PPSh-41 | a loose grenade (21021) | skills 1-2 | thrown down on wave 2's closets |
+
+**The budget** (BALANCE §8, a grenade 1.25 shell-equivalents, counted in
+the band and the shell share's whole only): the ratio placed / needed on
+skills 2 / 3 / 4 goes **1.500 → 1.661 / 1.341 → 1.401 / 1.213 → 1.244**,
+inside 1.5-2.0 / 1.3-1.6 / 1.2-1.45 (skill 2 sat on its floor: the
+grenades lift it off). The stage readiness, the newest weapon's lead and
+the shells' 35 % are unchanged (grenades only enlarge the share's whole).
+
+**The loudspeakers** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124), table
+`LOUDSPEAKERS` in `map.py`, on every skill, no body until its horn is drawn:
+
+| Where | Lines | Reach | Why |
+|---|---|---|---|
+| `z4_komnata` (64, 1200), the west wall | 5, 7, 13, 11 | 384 (the default) | the political room's slogans, and **RAD11**, «the Zarya-7 garrison is still holding», about this very base: Episode 1's line, heard here only |
+| `z6_hangar` (1920, 1300), under the catwalk | 3, 4, 10, 16 | 512 (the hangar is 1536 long) | the air-raid alert, the fallen-objects notice, the weather and the time signal, as the invasion lands |
+
+The zones (reach + 128) keep clear of each other (1859 apart for 1152) and
+of the guard post's `SD_Radio` (reach 96 + 64): the komnata's 898 from it
+for 672, the hangar's 961 for 800, so the music swap and the broadcasts
+never sound together.
+
+**Routes:** `g3-auto` is unchanged; no grenade lies within a body and a
+pickup (36) of any of its walks or warps: the nearest is the catwalk's,
+82 from A7's walk east (a warp collects nothing anyway). Tests: this map's
+(`test_g3_8_the_ammo_budget` counts the grenades, `test_consumables_scale_down`
+holds them), `tests/test_rgd5_maps.py`, `tests/test_rgd5.py`,
+`tests/test_loudspeaker.py`, `tests/test_safe_starts.py` (no monster moved).
+
+**Engine checklist (the PM, D26; not run):** the grenades lie where the table says and are picked up (`printinv`:
+`SD_Rgd5` and `SD_Rgd5Ammo`; the pouch does not raise itself, NO_AUTO_SWITCH,
+and slot 8 throws); a thrown grenade arcs over the cover named above and its
+blast kills what the table says it is for (the komnata's
+pouch at the D3 recess's south side, the cradle's troopers from the step
+down); the loudspeaker rings its jingle on approach, reads its lines over the
+level's music, falls silent walking away (the line in progress finishes)
+and is not heard from the next room; the komnata's speaker is silent at the guard post,
+where the radio swaps the music (the two never overlap); a clean log;
+`g3-auto` on skills 2-4 still PASS.

@@ -93,7 +93,8 @@ The authoritative plan is the top-down render generated from the source:
 | — | Escalator, 8 steps of 16, rising west | 3840…4096 | 4800…4928 | −112…0 | +128 | 128 |
 | Z2 | Street pavilion | 3520…3840 | 4160…4992 | 0 | 192 | 128 |
 | Z3 | Nikolskaya street (sky; 384 since v1.1, three whole bays of the GUM's facade) | 2816…4352 | 3648…4096 | 0 | sky 384 | 112 |
-| — | Resurrection gate: 2 arches, barricades 64 high across them | 2816…3136 | 3456…3648 | 0 / 64 | 192 | 112 / 144 |
+| — | Resurrection gate: 2 arches, barricades 64 high across them (since V3 they sink with the yellow key, §17) | 2816…3136 | 3456…3648 | 0 / 64 | 192 | 112 / 144 |
+| Z3r (V3) | The reserve: a recess and a gate in Nikolskaya's north wall straight up the street from the first arch (the gate sinks with the yellow key) · the courtyard behind, a dead end | 2816…2944 · 2752…2976 | 4096…4128 · 4128…4336 | 0, gate 128 = ceiling (shut) · 0 | 128 · sky 256 | 112 |
 | Z4 | GUM north hall · south hall | 3520…4352 | 3328…3584 · 1152…1408 | 0 | 256 | 128 |
 | Z4 | Arcade (west line), 4 columns; facade windows (sill 112) onto the square | 3520…3776 | 1408…3328 | 0 | 192 | 128 |
 | Z4 | Blue lock band (one tile) · blue door · square-side portal | 3520…3584 · 3488…3520 · 3456…3488 | 2176…2560 · 2304…2432 | 0 | 128 | **192**, blue |
@@ -202,6 +203,7 @@ graph LR
 | **RD** | The Spasskaya gate, square → passage, `SDDOORR` | locked, opens for good | `Door_LockedRaise (6, 16, 0, 1, 0)` | no |
 | S1, S2, S3 | push panels (§9) | open for good | `Door_Open (1/2/3, 16)`, both faces, `secret` | no |
 | CL | the museum's two closets | open for good | tag 10, **no line**: the red key's thing special `Door_Open (10, 16)` | no |
+| **BARRIERS** (V3) | the Resurrection gate's two barricades, and the reserve's courtyard gate on Nikolskaya | **sink** for good to the floor either side | tag 13, **no line**: the yellow key's thing special `Floor_LowerToLowest (13, 32)` | no (the arches open a loop onto the street already taken; the courtyard is a dead end; never needed) |
 | GATE | courtyard → exit hall, `SDGATE1` both faces, no special | opens for good | tag 12, **no line**: the boss's thing special `Door_Open (12, 16)` | only if the boss could not die: §11 |
 | EXIT | back of a 16-deep niche, `SDSW1D` | | `Exit_Normal (0)` | — |
 
@@ -391,7 +393,8 @@ Skill pairs nested (`skill_tier`), as MAP01–MAP03.
 | Nikolskaya | 3 riflemen, 1 stormtrooper, 1 hound | +2 riflemen, 1 stormtrooper | +1 rifleman, 1 stormtrooper, 1 hound |
 | GUM ground floor | 3 troopers, **1 gunner**, 1 stormtrooper | +2 troopers, 1 stormtrooper | +2 troopers, 1 Doughboy |
 | GUM line and upstairs | 1 trooper, **1 gunner**, 1 stormtrooper, 1 Doughboy | +1 trooper, 1 stormtrooper | +1 trooper, 1 stormtrooper, 1 Doughboy |
-| Red Square | 6 riflemen, 3 stormtroopers, 2 hounds, 1 Panzermensch, 1 Doughboy | +3 riflemen, 2 stormtroopers, 1 hound, 1 Doughboy, **1 gunner** | +3 riflemen, 2 stormtroopers, 1 hound, 1 Panzermensch, 1 heavy, **1 gunner** |
+| Red Square | 5 riflemen, 3 stormtroopers, 2 hounds, 1 Panzermensch, 1 Doughboy | +2 riflemen, 2 stormtroopers, 1 Doughboy, **1 gunner** | +2 riflemen, 1 stormtrooper, 1 hound, 1 Panzermensch, 1 heavy, **1 gunner** |
+| The reserve (V3: the yellow key's wave, five of the square's guard moved out) | 1 rifleman | +1 rifleman, 1 hound | +1 rifleman, 1 stormtrooper |
 | Museum closets (red key) | 2 troopers | +1 trooper, 1 stormtrooper | +2 stormtroopers |
 | Vehicle park | 3 riflemen, 1 hound, 1 Panzermensch | +2 riflemen, 1 stormtrooper | +1 stormtrooper, 1 hound, 1 heavy |
 | Gate passage | — | 1 stormtrooper | — |
@@ -535,7 +538,7 @@ Episode 2's boss is **the Liberty Colossus** (`SD_LibertyColossus`, 21111,
 | Coloured light | sector `lightcolor` | as MAP02/MAP03 (their K4) |
 | Turned flats | `rotationfloor` 90 / 180 | as MAP02 |
 | **Thing special on death** | the boss: `special` 11, `arg0` 12 | spec VERIFIED; **in play NOT VERIFIED** |
-| **Thing special on pickup** | the red key: `special` 11, `arg0` 10 | Hexen-style item special; **NOT VERIFIED** |
+| **Thing special on pickup** | the red key: `special` 11, `arg0` 10; since V3 the yellow key: `special` 21, `arg0` 13, `arg1` 32 (§17) | Hexen-style item special; the red key's **VERIFIED in engine** (route RKEY, tag 10 open, 2026-10-23 reports); the yellow key's Floor_LowerToLowest (number from g4.14.2's own table, `src/maps/common/pickup_events_e2.py`) **NOT VERIFIED**: E10 |
 | **Skies at several heights, closed sky blocks** | §4.1 | **NOT VERIFIED** |
 | **Masked middle texture between two sky ceilings** (the swallowtails) | `SDKREM2` on a two-sided line, square sky 384 / walk sky 256 | masked mid VERIFIED in kind (MAP03's chain `SDCHAN1`); **under sky, NOT VERIFIED** |
 | Per-part texture offsets | sidedef `offsety_top` / `offsety_mid` / `offsety_bottom` (UDMF zdoom) | first use in the campaign; **NOT VERIFIED** |
@@ -562,6 +565,15 @@ Engine checklist for the PM (one pass, skill 3, then the route on 2, 3, 4):
   stars whole on their flanks.
 - **E2** the red key: picking it up opens the museum's closets (the route's
   RKEY step checks tag 10 open).
+- **E10** (V3, §17) the yellow key: walking onto it, the two barricades
+  in the Resurrection gate's arches sink into the setts (grinding; the
+  first one seen from the key's spot, both from the stand's steps) and the
+  reserve's gate on Nikolskaya sinks with them; the reserve (1 / 3 / 5)
+  comes down the street, through the first arch, onto the square behind the
+  player. The route's YD0 reads tag 13 shut, YKEY open. Look too that the
+  wave does find the arch (Doom's chase has no pathfinding: the gate stands
+  straight up the street from it, so the walk is one line) and that the
+  sunk barricades leave no misaligned crate face in the arches.
 - **E3** the boss: killing him opens the exit gate (the route's BOSS1 step
   checks tag 12 open after the helper's damage); and by hand once.
 - **E4** the GUM: the blue key is visible on the bridge from the north hall;
@@ -737,3 +749,83 @@ outside this map (the redrawn enemy sprites' byte-identity and blood tests,
   hurt index his), `tests/test_safe_starts.py` green.
 - **Engine pass owed (D26, the PM):** E3 with the colossus (his death opens
   tag 12); `redsquare-critical` on skills 2-4.
+
+## 17. V3 (2026-10-23): the barriers come down (A3), and the keys' events (A2)
+
+D119 asked for keys that make things happen; D120 put pickup events (A2)
+and map set pieces (A3) in V3. MAP06 already had one: the red key opens the
+museum's closets behind the player, VERIFIED in engine (the route's RKEY,
+2026-10-23). V3 adds the map's small set piece on the yellow key, in the
+episode's form (MAP04 §14, MAP05 §15; shared specials and helpers in
+`src/maps/common/pickup_events_e2.py`): one special on the key's own thing,
+a tag no line carries, dead ends, nothing the route needs, monsters moved
+not added, the route reading the tag shut before the key and open after.
+
+**The scene.** On the north reviewing stand, the yellow key. Taking it:
+
+| What happens | How |
+|---|---|
+| The crates barricading the **Resurrection gate's two arches sink** into the setts (16 tics) | `Floor_LowerToLowest (13, 32)` on the key's thing; the barricades (no longer props) carry tag 13 and fall to the arches' floor, 192 clear |
+| Across Nikolskaya, the **reserve's courtyard gate sinks** with them (32 tics) | the same special, the same tag: one special, no rider. The gate is a sector 128 high (floor = ceiling) at the back of a recess like the street's other two gates, `SDGATE1` from the street, its face riding down with its floor (not lower-unpegged): no tell before it moves (tested) |
+| The **Reich's reserve** marches out: down the street, through the first arch, onto the square, behind the player as he goes south to the yellow gatehouse | 1 / 3 / 5 (riflemen, a hound, a stormtrooper), five of the square's guard moved out (§10). The gate stands straight up the street from the first arch (the same x span), so their walk is one line with nothing in it (tested): Doom's chase has no pathfinding |
+
+**Never a trap, never in the way.** The arches join the square to
+Nikolskaya, which the player took in round 0: a loop, no lock bypassed (the
+square is behind the blue door either way, tested). The courtyard is a dead
+end the player walks out of. The exit is reached with the barriers up and
+the closets shut (tested).
+
+**Warned, as far as the arches let it be.** The barricades stand 64 deep in
+their arches, so from the key's spot only the first one shows (its east
+end) and from the stand's steps on the way down both do (tested); they
+grind as they sink, 1100 units off (whether that is heard there is NOT
+VERIFIED: E10); and the wave has the street and the square, over 1000
+units, to cross before it reaches the player. If the PM finds it
+unannounced in the engine, the cheap fix is a rider beside the key
+(MAP05's form) lighting the arches (`Light_Fade`, special 113, on a tag of
+the square-side arches): a line of code and a test, not done untested.
+
+**The rhythm.** The square the player fights across first is a little
+lighter (five fewer of its guard); the yellow key, the open battle's one
+exposed climb, sends the reserve in behind him on the way to the gatehouse,
+the red key's closets behind him on the way back: the square fights back
+twice. Totals unchanged, 42 / 69 / 98; G3-8 unchanged (the same monsters,
+the same ammunition; the readiness check by stage still passes).
+
+**Counts.** 210 sectors, 1052 lines (207 and 1040 before): the recess, the
+gate, the courtyard. Tests: `tests/test_map06_red_square.py` 91 OK (new:
+the barriers' special, tag and sectors, the rounds, the gate's look, the
+reserve on every skill, the wave's straight way, the sight lines, the
+route's reading, no pickup event needed); `tests/test_map06_route.py` OK
+with tag 13. **Not run: GZDoom** (D26): E10 is the PM's.
+
+## 18. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+**The RGD-5** (ADR 012; placement advice `docs/engine/2026-10-23_V3_rgd5.md`
+§6). Grenades are consumables in `ITEMS`, so they scale **down** with skill:
+**4 / 3 / 2** grenades on skills 2 / 3 / 4 (skills 1 and 5 double them, as
+every pickup). Why here: on Nikolskaya at the pavilion's mouth, before the barricades: the checkpoint is taken over the crates without showing a head. **None in the Kremlin courtyard** (the colossus takes no splash, `+NORADIUSDMG`), and none counted for its stage (BALANCE 8.4.3). No crate (21022: a secret's reward only).
+
+| Where | What | Skills |
+|---|---|---|
+| `z3_street` (3620, 3950) | the pouch (21009): the weapon and 2 | every skill |
+| `z3_street` (3560, 3760) | a loose grenade (21021) | skills 1-3 |
+| `z3_street` (3150, 3950) | a loose grenade | skills 1-2 |
+
+**The budget** (BALANCE §8, a grenade 1.25 shell-equivalents, counted in
+the band and the shell share's whole only): the ratio placed / needed on
+skills 2 / 3 / 4 goes 1.540 → 1.577 / 1.387 → 1.408 / 1.280 → 1.288, inside
+1.5-2.0 / 1.3-1.6 / 1.2-1.45. No other pickup moved. The stage readiness,
+the newest weapon's lead and the boss's stage do not count grenades.
+
+**The loudspeaker** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124): two. `z6_square` (2400, 2000), reach 512: lines 2, 9, 7, 5 («the parade is not cancelled» on Red Square itself; the dam's victory after MAP05). `z5_atrium` (3900, 2250), the actor's 384: lines 8, 12, 14, 10, 3, 4 (the GUM's civil notices; the air-raid alert and the fallen objects are heard nowhere else in Episodes 2-3). Their zones (reach + 128) are 1520 apart, more than 640 + 512.
+Table `LOUDSPEAKERS` in `map.py`; no geometry changed (it has no body until
+its horn is drawn). Tests: the map's own (`test_every_pickup_can_be_picked_up`,
+the G3-8 band with the grenades), `tests/test_rgd5_maps.py`,
+`tests/test_loudspeaker.py`.
+
+**Engine checklist (the PM, D26):** the grenades lie where the table says
+and are picked up (`printinv`: `SD_Rgd5` and `SD_Rgd5Ammo`); the loudspeaker
+rings its jingle on approach, reads its lines over the level's music, falls
+silent walking away (the line in progress finishes) and is not heard from
+the next room; a clean log.

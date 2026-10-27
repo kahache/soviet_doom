@@ -915,8 +915,11 @@ class Map01Test(unittest.TestCase):
         # Every room, stair, door and switch of the design's section 3 table.
         # The v3 sector count, and the density target it answers, are
         # tests/test_map01.py's. Here: the doors and the specials.
-        self.assertEqual(9, len(self.doors), "6 door tags + 3 secret panels")
-        self.assertEqual(9 + 6, len(self.door_sectors), "+ 6 monster-closet panels")
+        # V3 A2 (docs/levels/PICKUP-EVENTS.md): + the two closets the IZh and
+        # the PPSh-41 open when picked up, each on a tag of its own no line
+        # carries (tests/test_map01.py, Map01PickupEventsTest).
+        self.assertEqual(9 + 2, len(self.doors), "6 door tags + 3 secret panels + 2 pickup events")
+        self.assertEqual(11 + 6, len(self.door_sectors), "+ 6 monster-closet panels")
         specials = defaultdict(int)
         for ld in self.lines:
             if ld.get("special"):

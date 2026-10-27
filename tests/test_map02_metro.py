@@ -50,6 +50,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "tools"))
 sys.path.insert(0, str(PROJECT_ROOT / "tests"))
 
 # Imported as a module, not by name, so its TestCases are not collected twice.
+import _pickup_events as pe  # noqa: E402  (V3 A2's shared checks)
 import test_udmf as udmf_tests  # noqa: E402
 
 parse_textmap = udmf_tests.parse_textmap
@@ -115,6 +116,14 @@ DROP_ROUNDS = 5
 V1_AMMO_PICKUPS = {2: 34, 3: 28, 4: 24}
 ROCKETS_GIVEN = {2010: 1, 2046: 5, 21005: 2}
 SHELLS_PER_ROCKET = 2
+# V3 A4, the RGD-5 (BALANCE 8.1, 8.6; placed in Episode 1 on 2026-10-24): a
+# grenade counts 1.25 shell-equivalents (its 100 blast at the centre over the
+# IZh's 80), the pouch (the weapon) 2, a loose one 1, the crate 4. Counted in
+# the band (8.2) and in the shell share's whole (8.3) only: the stage
+# readiness, the newest weapon's lead (8.4.2) and the boss's stage (8.4.3)
+# leave grenades out (the bosses take no splash).
+GRENADES_GIVEN = {21009: 2, 21021: 1, 21022: 4}
+SHELLS_PER_GRENADE = 1.25
 RPG_AVERAGE = 135      # one PG-7V, direct hit only
 # D119's stretches along the weapons, by the zones of the tables (design
 # section 5): the TT-33 alone on the concourse, the IZh the newest from the
@@ -127,8 +136,8 @@ MAP02_STRETCHES = (
     ("the PPSh-41", {"z6_train", "z6_cab_e", "rails_z7_tunnel_e", "z7_tunnel_e",
                      "rails_z5_track", "z5_track", "z8_substation", "sub_stair_1",
                      "closet_pw", "closet_pe", "b1_vestibule", "b2_spine", "b3_dorm"}),
-    ("the RPG-7", {"b5_armoury", "b4_cp", "closet_t1", "closet_t2", "z9_exit_tunnel",
-                   "rails_z9_exit_tunnel"}),
+    ("the RPG-7", {"b5_armoury", "b5_lamp", "closet_armoury", "b4_cp", "closet_t1",
+                   "closet_t2", "z9_exit_tunnel", "rails_z9_exit_tunnel"}),
 )
 
 
@@ -177,6 +186,10 @@ class Map02Test(unittest.TestCase):
         cls.props = {i for name, i in cls.plan.items()
                      if name.startswith(cls.m.PROP_PREFIX) or name in cls.m.WINDOWS}
         cls.unwalkable = cls.props | cls.door_sectors
+        # V3 A2: what each pickup event does to the sectors it moves, and the
+        # sector each event's thing lies in (the model fires it there).
+        cls.events = tuple(cls.m.PICKUP_EVENTS.values())
+        cls.event_heights = pe.heights_after(cls.events, cls.sectors, cls.lines, cls.sides)
         cls.monster_numbers = set(cls.m.MONSTER_CLASSES)
         cls.body, cls.hit_points = {}, {}
         for ednum, name in cls.m.MONSTER_CLASSES.items():
@@ -216,11 +229,20 @@ class Map02Test(unittest.TestCase):
         out = []
         for i, s in enumerate(self.sectors):
             ceiling = s["heightceiling"]
+            floor = s["heightfloor"]
             if i in self.door_sectors and s["id"] in open_tags:
                 ceiling = (min(self.sectors[n]["heightceiling"] for n in self.neighbours[i])
                            - DOOR_OPENS_BELOW_CEILING)
-            out.append((s["heightfloor"], ceiling))
+            if i in self.event_heights and s["id"] in open_tags:
+                floor, ceiling = self.event_heights[i]     # V3 A2: the event has run
+            out.append((floor, ceiling))
         return out
+
+    def event_spots(self):
+        """[(tag, sector)] for every pickup event: where its thing lies."""
+        by_type = {t["type"]: t for t in pe.event_things(self.things)}
+        return [(event.tag, self.sector_at(by_type[ednum]["x"], by_type[ednum]["y"]))
+                for ednum, event in self.m.PICKUP_EVENTS.items()]
 
     def adjacency(self, open_tags):
         h = self.heights(open_tags)
@@ -256,20 +278,24 @@ class Map02Test(unittest.TestCase):
         self.assertEqual(1, len(keys), "one key in the map")
         return self.sector_at(keys[0]["x"], keys[0]["y"])
 
-    def progression(self):
+    def progression(self, events=False):
         """Play the map as a player can. Manual doors and push panels open
         whenever the player can stand at their line; then, one round at a
         time, every switch and locked door he can now reach and work (a
-        locked door only once the key's sector is reachable). Returns one
-        (open tags, reachable sectors, key held) per round."""
+        locked door only once the key's sector is reachable). With `events`
+        (V3 A2), a pickup event runs as soon as its thing's sector is
+        reachable, as a manual door does; without it (the default) none
+        runs: the critical route never relies on one (PICKUP-EVENTS R3).
+        Returns one (open tags, reachable sectors, key held) per round."""
         uses = [ld for ld in self.lines if ld.get("playeruse") and ld.get("special") in
                 (SPECIAL_DOOR_OPEN, SPECIAL_DOOR_RAISE, self.m.SPECIAL_DOOR_LOCKED_RAISE)]
         key = self.key_sector()
+        spots = self.event_spots() if events else []
         opened, rounds = set(), []
         while True:
             reach = self.reachable(opened)
             held = key in reach
-            free, gated = set(), set()
+            free, gated = {tag for tag, sector in spots if sector in reach}, set()
             for ld in uses:
                 stand = {self.front(ld)}
                 if "sideback" in ld:
@@ -434,10 +460,13 @@ class Map02Test(unittest.TestCase):
 
     # --- reachability and no softlock --------------------------------------
     def test_everything_is_reachable_at_the_end(self):
-        reach = self.progression()[-1][1]
+        """Every sector but the props, the pickup events run (the armoury's
+        store opens only with its RPG-7's)."""
+        reach = self.progression(events=True)[-1][1]
         unreachable = set(range(len(self.sectors))) - reach
-        self.assertEqual(self.props, unreachable,
-                         f"unexpected: {sorted(self.zone_of[i] for i in unreachable ^ self.props)}")
+        props = self.props - set(self.event_heights)   # the pass's window: a way once it sinks
+        self.assertEqual(props, unreachable,
+                         f"unexpected: {sorted(self.zone_of[i] for i in unreachable ^ props)}")
 
     def test_the_exit_is_reached_and_not_before_sw_b(self):
         rounds = self.progression()
@@ -818,7 +847,7 @@ class Map02Test(unittest.TestCase):
                                        f"{b['type']} at ({b['x']}, {b['y']})")
 
     def test_every_pickup_can_be_picked_up(self):
-        reach = self.progression()[-1][1]
+        reach = self.progression(events=True)[-1][1]   # the store's box: the RPG-7's event
         for t in self.things:
             if t["type"] in self.monster_numbers or t["type"] == self.m.ED_PLAYER1_START:
                 continue
@@ -888,7 +917,8 @@ class Map02Test(unittest.TestCase):
         on its switch's tag, each closet occupied on skill 2, shut until its
         switch's round and open after it."""
         m = self.m
-        closets = [n for n in self.plan if n.startswith(m.CLOSET_PREFIX) and not n.endswith("_door")]
+        closets = [n for n in self.plan if n.startswith(m.CLOSET_PREFIX) and not n.endswith("_door")
+                   and n not in m.EVENT_CLOSETS]      # V3 A2's: Map02PickupEventsTest
         self.assertEqual(4, len(closets))
         rounds = self.progression()
         for name in closets:
@@ -913,7 +943,7 @@ class Map02Test(unittest.TestCase):
         rounds = self.progression()
         secret = {i for i, s in enumerate(self.sectors) if s.get("special", 0) & 1024}
         for ednum, zone, stage in ((m.ED_IZH, "z2_kassa", 0), (m.ED_PPSH, "z6_train", 0),
-                                   (m.ED_RPG7, "b5_armoury", 1)):
+                                   (m.ED_RPG7, "b5_lamp", 1)):
             found = self.things_of({ednum})
             self.assertEqual(1, len(found), ednum)
             t = found[0]
@@ -967,7 +997,9 @@ class Map02Test(unittest.TestCase):
         shells = sum(SHELLS_GIVEN.get(t["type"], 0) for t in placed)
         rounds = sum(ROUNDS_GIVEN.get(t["type"], 0) for t in placed)
         rockets = sum(ROCKETS_GIVEN.get(t["type"], 0) for t in placed)
-        return shells + rounds / ROUNDS_PER_SHELL + rockets * SHELLS_PER_ROCKET
+        grenades = sum(GRENADES_GIVEN.get(t["type"], 0) for t in placed)
+        return (shells + rounds / ROUNDS_PER_SHELL + rockets * SHELLS_PER_ROCKET
+                + grenades * SHELLS_PER_GRENADE)
 
     def test_g3_8_the_ammo_budget(self):
         """G3-8 as D119 reads it: on every skill, ammunition placed outside
@@ -1094,6 +1126,116 @@ class Map02Test(unittest.TestCase):
         self.assertGreaterEqual(found[m.ED_STIMPACK] + found[m.ED_MEDIKIT], 6)
         self.assertGreaterEqual(found[m.ED_ARMOR_BONUS], 6)
         self.assertEqual(1, found[m.ED_GREEN_ARMOR])
+
+
+class Map02PickupEventsTest(unittest.TestCase):
+    """V3 A2 (design section 18) against docs/levels/PICKUP-EVENTS.md section
+    6: the pass sinks the duty window's sill, a way back into the hall; the
+    RPG-7 opens the armoury's store and brings its lights up. Each event's
+    thing, special and tag (R7, R8), never closing (R1), the route finished
+    without them and not cut by them (R2, R3), far from the start (R5),
+    announced (R4) and left by what it releases (R6)."""
+
+    SAFE_START_DISTANCE = 768   # tests/test_safe_starts.py's
+
+    @classmethod
+    def setUpClass(cls):
+        Map02Test.setUpClass()
+        cls.t = Map02Test()
+        cls.m, cls.plan, cls.sectors = cls.t.m, cls.t.plan, cls.t.sectors
+        cls.lines, cls.things = cls.t.lines, cls.t.things
+
+    def test_each_event_rides_its_item(self):
+        m = self.m
+        pe.assert_event(self, self.things, self.sectors, self.lines, m.ED_BLUE_CARD, m.PASS_EVENT,
+                        {self.plan["duty_window"]})
+        pe.assert_event(self, self.things, self.sectors, self.lines, m.ED_RPG7, m.RPG_EVENT,
+                        {self.plan["closet_armoury_door"]})
+        self.assertEqual(len(m.PICKUP_EVENTS), len(pe.event_things(self.things)))
+        self.assertEqual(pe.events.SPECIAL_DOOR_OPEN, m.PASS_EVENT.special)
+        self.assertEqual(pe.events.SPECIAL_DOOR_OPEN, m.RPG_EVENT.special)
+
+    def test_the_pass_opens_the_window_a_way_out_not_in(self):
+        """After the pass: the window's head has risen to a doorway's (the
+        booth's ceiling less 4) over the booth's own floor, so the booth
+        drops into the hall; from the hall the booth is still more than a
+        step up, so the way in stays the track and D3."""
+        t, m = self.t, self.m
+        floor, ceiling = t.event_heights[self.plan["duty_window"]]
+        booth = self.sectors[self.plan["z8_booth"]]
+        self.assertEqual(booth["heightfloor"], floor)
+        self.assertEqual(booth["heightceiling"] - pe.DOOR_OPENS_BELOW_CEILING, ceiling)
+        self.assertGreaterEqual(ceiling - floor, PLAYER_HEIGHT)
+        hall = self.sectors[self.plan["z3_hall"]]["heightfloor"]
+        self.assertGreater(floor - hall, MAX_STEP_UP)
+        adj = t.adjacency({m.TAG_EVENT_PASS})
+        window, hall, booth_s = self.plan["duty_window"], self.plan["z3_hall"], self.plan["z8_booth"]
+        self.assertIn(window, adj[booth_s])
+        self.assertIn(hall, adj[window])
+        self.assertNotIn(window, adj[hall], "a way into the booth from the hall")
+        doors = {m.TAG_D1_LIFT, m.TAG_D2_KASSA, m.TAG_S1_SHELTER, m.TAG_S2_CAB, m.TAG_EVENT_PASS}
+        self.assertNotIn(booth_s, t.reachable(doors), "the window lets the player in")
+
+    def test_the_route_needs_no_event_and_no_event_cuts_it(self):
+        """R2, R3: the exit with no event run (every other test of the map
+        plays it so), and with both run nothing reached before is lost."""
+        without, with_events = self.t.progression(), self.t.progression(events=True)
+        exit_sector = self.t.front(self.t.exit_line())
+        self.assertIn(exit_sector, without[-1][1])
+        self.assertIn(exit_sector, with_events[-1][1])
+        self.assertLessEqual(without[-1][1], with_events[-1][1])
+        for tag, _sector in self.t.event_spots():
+            self.assertNotIn(tag, without[-1][0], "a line opens an event's tag")
+
+    def test_the_store_is_shut_until_the_rpg_and_left_after_it(self):
+        """R6: the store's panel is wall until the RPG-7 is taken; then it
+        joins the armoury with a body's headroom, guards in it on skill 2."""
+        t, m = self.t, self.m
+        panel = self.sectors[self.plan["closet_armoury_door"]]
+        self.assertEqual(panel["heightfloor"], panel["heightceiling"])
+        store = self.plan["closet_armoury"]
+        self.assertNotIn(store, t.progression()[-1][1])
+        self.assertIn(store, t.progression(events=True)[-1][1])
+        floor, ceiling = t.event_heights[self.plan["closet_armoury_door"]]
+        self.assertGreaterEqual(ceiling - floor, max(h for _r, h in t.body.values()))
+        guards = [x for x in t.on(2, t.monsters()) if t.sector_at(x["x"], x["y"]) == store]
+        self.assertTrue(guards)
+
+    def test_the_armoury_comes_up_to_its_lamp_as_the_store_opens(self):
+        """Door_Open's light tag: each tagged sector goes to its brightest
+        neighbour. Tagged is the armoury alone, dark, and its brightest
+        neighbour is the lamp the RPG-7 lies under."""
+        t, m = self.t, self.m
+        lit = pe.tagged(self.sectors, m.TAG_EVENT_RPG_LIGHTS)
+        self.assertEqual({self.plan["b5_armoury"]}, lit)
+        armoury = self.sectors[self.plan["b5_armoury"]]
+        brightest = max(self.sectors[n]["lightlevel"] for n in t.neighbours[self.plan["b5_armoury"]])
+        self.assertEqual(m.LIGHT_ARMOURY_LAMP, brightest)
+        self.assertEqual(m.LIGHT_ARMOURY_LAMP, self.sectors[self.plan["b5_lamp"]]["lightlevel"])
+        self.assertLess(armoury["lightlevel"], brightest)
+        rpg = t.things_of({m.ED_RPG7})[0]
+        self.assertEqual(self.plan["b5_lamp"], t.sector_at(rpg["x"], rpg["y"]))
+        self.assertEqual(m.TAG_EVENT_RPG_LIGHTS, m.RPG_EVENT.args[2])
+
+    def test_the_store_opens_in_sight_of_the_launcher(self):
+        """R4: from the RPG-7's place, the floor in front of the store's
+        panel is in view (the guards are seen as they come out)."""
+        t, m = self.t, self.m
+        rpg = t.things_of({m.ED_RPG7})[0]
+        (x1, y1, x2, _y2), _store = m.CLOSET_ARMOURY
+        floor = self.sectors[self.plan["b5_armoury"]]["heightfloor"]
+        self.assertIsNone(t.blocked((rpg["x"], rpg["y"], floor + VIEW_HEIGHT),
+                                    ((x1 + x2) / 2, y1 - 24, floor + VIEW_HEIGHT)))
+
+    def test_events_keep_away_from_the_start(self):
+        """R5: no event thing and no sector an event moves near the start."""
+        sx, sy = self.m.PLAYER_START
+        for x in pe.event_things(self.things):
+            self.assertGreater(math.hypot(x["x"] - sx, x["y"] - sy), self.SAFE_START_DISTANCE, x)
+        for rect in (self.m.DUTY_WINDOW, *self.m.CLOSET_ARMOURY):
+            x1, y1, x2, y2 = rect
+            nx, ny = min(max(sx, x1), x2), min(max(sy, y1), y2)
+            self.assertGreater(math.hypot(nx - sx, ny - sy), self.SAFE_START_DISTANCE, rect)
 
 
 if __name__ == "__main__":

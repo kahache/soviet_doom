@@ -450,11 +450,13 @@ heavy vest in the passage (round 3, before the yard's closets and the bay),
 | Masked lattice on two-sided lines | `texturemiddle` `SDCRAN1` on both sides, `dontpegbottom` (its foot on the higher floor), `blocking` | as MAP05's insulators (`SDINSL1`); this lump NOT VERIFIED in the engine: V12 |
 | Kerbs turned to the water | `rotationfloor` 180 (the south quay's edge) and 270 (the pier's west edge) | 180 is the same whichever way the engine turns; **270's direction NOT VERIFIED**: V11 |
 | The escape hatch centred | `ypanningfloor` 32 on its 64 tile | the same either sign; first use of the field in the project, NOT VERIFIED: V11 |
+| Event on pickup (V3, §19) | thing `special` 21 `Floor_LowerToLowest` (tag, speed) on the blue and the yellow key | the field as MAP04's red key; the number NOT VERIFIED in our engine (MAP04's K3): V13-V14 |
 
 Tag plan: **1** D1 · **2** D2 · **3** D3 · **4** the blue door · **5** the
 yellow door and the tunnel's two closets · **6** the red gate and the yard's
 two closets · **7**-**9** S1-S3's panels · **10** SH-A (SW-A) · **11** SH-B
-(SW-B). Free: 12 and up.
+(SW-B) · **12** the torpedo-loading cradle (blue key) · **13** the torpedo
+magazine (yellow key). Free: 14 and up.
 
 ## 11. MAPINFO and LANGUAGE (not this role's)
 
@@ -677,3 +679,76 @@ pickup or poster changed; totals 36 / 55 / 70.
   truecolour PNG is NOT VERIFIED), his rockets, jet and stomp as the
   colossus's, his own name in the obituary (EN, RU, CA), and the map's
   music unchanged when he engages (no boss loop on MAP08).
+
+## 19. V3: events on pickup and the set pieces (2026-10-23, D120's A2 and A3)
+
+V3 work, not in v1.2. Two events, each fired by **picking up a key**: the
+key carries a UDMF `special` and `arg0..`, which GZDoom runs on pickup
+(MAP04's red key is the model; the `Door_Open` form VERIFIED in the engine
+by `tunguska-critical`'s RKEY, 2026-10-23). Each tag is carried by **no
+line**. The table is `PICKUP_EVENTS` in `map.py`; the checks are
+`tests/_pickup_events_e3.py`, shared with MAP07 and MAP09 (MAP07 §17 says
+the form; the PM unifies it with `docs/levels/PICKUP-EVENTS.md`).
+
+| Event | Key (where) | Special | Tag | What moves | Who waits | Warning |
+|---|---|---|---|---|---|---|
+| **A3 the torpedo-loading cradle** (the PM's example: a lift of the submarine coming down with an ambush) | the blue key (the torpedo room's tray) | `Floor_LowerToLowest (12, 8)` | 12 | the cradle `z4_torpedo_lift` (4080-4208 x 2112-2192) in the torpedo room's north wall past the racks; its floor IS the room's deckhead (160), so from the room it is a steel face; it comes down to the room's floor (32) in ~3.7 s | 1 / 2 / 3 Legion (trooper; + stormtrooper; + trooper) | the strip before it `z4_torpedo_lamp` flickers (65, 160 against the room's 128); the winch |
+| **A2 the torpedo magazine** | the yellow key (the torpedo cart) | `Floor_LowerToLowest (13, 32)` | 13 | a panel of the store's east wall `z5_magazine_wall` (3200-3216 x 2576-2704), at the end of the cart's aisle, floor at the store's ceiling (256), sinks to its floor (~2 s) | 1 / 2 / 3 Reich (rifleman; + hound; + hound) in `z5_magazine` | the strip before it `z5_magazine_lamp` flickers (65, 160 against the store's 144) |
+
+**The cradle stays out of the bow**: the bow's 256 of torpedo tubes
+(`SDTUBB1`) stay whole (tested); the cradle is 16 short of them.
+
+**The monsters moved, not added**: the totals (36 / 55 / 70), every beat's
+hit points, the ammunition and its bands are unchanged (tested again). The
+cradle holds the torpedo room's trooper (skill 2) and stormtrooper (3) and
+the control room's third trooper (4); the magazine the store's rifleman (2)
+and hound (3) and the workshop's second hound (4). On skill 2 the torpedo
+room is empty until the cradle comes down.
+
+**Rules held (tested):** never on the critical path; never a trap; hidden
+until they fire (no line with an opening from where the monsters wait, so
+they neither see nor hear the player); there on every skill and far from
+the start; each fires in the round its key is reached, so §5's five rounds
+are unchanged (the cradle in round 1, the magazine in round 2).
+
+**Route** (`severomorsk-critical`): YKEY now waits a door's time and
+expects tag 13 open (the magazine's panel sunk). The cradle is not asked
+(its car is always a body high).
+
+**Engine checklist additions (the PM's, D26):**
+
+| # | Check | How |
+|---|---|---|
+| V13 | Taking the blue key brings the torpedo-loading cradle down to the room's floor with its three; the strip before it flickers; the car's face reads as the steel of a loading trunk, not the hull | walk BKEY, turn north; `netevent sdtag 12` prints floor 32 |
+| V14 | Taking the yellow key sinks the store's east panel at the end of the aisle; the dogs come down the aisle | route step YKEY (tag 13 open), look east |
+
+## 20. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+**The RGD-5** (ADR 012; placement advice `docs/engine/2026-10-23_V3_rgd5.md`
+§6). Grenades are consumables in `ITEMS`, so they scale **down** with skill:
+**3 / 2 / 2** grenades on skills 2 / 3 / 4 (skills 1 and 5 double them, as
+every pickup). Why here: by the rails and among the containers of the yard; none near the bay's mini-boss. No crate (21022: a secret's reward only).
+
+| Where | What | Skills |
+|---|---|---|
+| `z2_yard` (1400, 450) | a loose grenade (21021) | every skill |
+| `z2_yard` (2000, 450) | a loose grenade | every skill |
+| `z2_yard` (1800, 1000) | a loose grenade | skills 1-2 |
+
+**The budget** (BALANCE §8, a grenade 1.25 shell-equivalents, counted in
+the band and the shell share's whole only): the ratio placed / needed on
+skills 2 / 3 / 4 goes 1.583 → 1.631 / 1.370 → 1.384 / 1.282 → 1.293, inside
+1.5-2.0 / 1.3-1.6 / 1.2-1.45. No other pickup moved. The stage readiness,
+the newest weapon's lead and the boss's stage do not count grenades.
+
+**The loudspeaker** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124): `z6_mess` (3184, 640), the actor's 384: lines 2, 9, 14, 6 (the fleet's mess: the dam, the parade, the blood donors, the plan).
+Table `LOUDSPEAKERS` in `map.py`; no geometry changed (it has no body until
+its horn is drawn). Tests: the map's own (`test_every_pickup_can_be_picked_up`,
+the G3-8 band with the grenades), `tests/test_rgd5_maps.py`,
+`tests/test_loudspeaker.py`.
+
+**Engine checklist (the PM, D26):** the grenades lie where the table says
+and are picked up (`printinv`: `SD_Rgd5` and `SD_Rgd5Ammo`); the loudspeaker
+rings its jingle on approach, reads its lines over the level's music, falls
+silent walking away (the line in progress finishes) and is not heard from
+the next room; a clean log.

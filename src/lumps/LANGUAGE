@@ -103,6 +103,7 @@ SD_TAG_RPG7        = "RPG-7";
 SD_TAG_ROKS3       = "ROKS-3 flamethrower";
 SD_TAG_KATYUSHA    = "Hand Katyusha";
 SD_TAG_AKM         = "AKM";                  // slot 4, the second (D116)
+SD_TAG_RGD5        = "RGD-5 grenade";        // slot 8 (V3, ADR 012)
 
 SD_PICKUP_ICEAXE   = "An ice axe.";
 SD_PICKUP_TOKAREV  = "You got the TT-33 Tokarev!";
@@ -112,6 +113,7 @@ SD_PICKUP_RPG7     = "You got the RPG-7!";
 SD_PICKUP_ROKS3    = "You got the ROKS-3 flamethrower!";
 SD_PICKUP_KATYUSHA = "You got the hand Katyusha. Prototype. Do not drop it.";
 SD_PICKUP_AKM      = "You got the AKM!";
+SD_PICKUP_RGD5     = "You got a pouch of RGD-5 grenades!";
 
 SD_OB_ICEAXE       = "%o met %k's ice axe.";
 SD_OB_TOKAREV      = "%o was shot by %k's Tokarev.";
@@ -121,6 +123,7 @@ SD_OB_RPG7         = "%o was blown apart by %k's RPG-7.";
 SD_OB_ROKS3        = "%o burned under %k's ROKS-3.";
 SD_OB_KATYUSHA     = "%o caught %k's whole salvo.";
 SD_OB_AKM          = "%o was cut down by a burst from %k's AKM.";
+SD_OB_RGD5         = "%o did not see %k's RGD-5 rolling in.";
 
 // --- Ammunition (CEO decision 2026-10-13) ---------------------------------
 // The four ammo pools are the IWAD's own classes (Clip, Shell, RocketAmmo,
@@ -160,6 +163,7 @@ AMMO_SHELLS  = "12 gauge shells";      // IZh-58
 AMMO_ROCKETS = "PG-7V rounds";         // an RPG-7 round is a "vystrel", not a rocket
 AMMO_CELLS   = "Fuel";                 // ROKS-3 fuel; the hand Katyusha shares the pool
 SD_AMMO_AKM  = "7.62x39 rounds";       // the AKM's own pool, SD_AkmAmmo (D116, ADR 011): an SD_ id, its class is ours
+SD_AMMO_RGD5 = "RGD-5 grenades";       // the RGD-5's own pool, SD_Rgd5Ammo (V3, ADR 012)
 
 SD_GOT_CLIP      = "A magazine. 7.62x25.";
 SD_GOT_CLIPBOX   = "A box of 7.62x25.";
@@ -171,6 +175,8 @@ SD_GOT_CELL      = "A canister of fuel.";
 SD_GOT_CELLPACK  = "A full fuel tank.";
 SD_GOT_BACKPACK  = "A paratrooper's pack. Everything you can carry!";  // the RD-54 since D80
 SD_GOT_AKMMAG    = "An AKM magazine. 7.62x39.";
+SD_GOT_RGD5      = "An RGD-5 grenade.";
+SD_GOT_RGD5BOX   = "A crate of RGD-5 grenades.";
 
 // --- Health, armour and the area map (D80, 2026-10-20) ---------------------
 // zscript/sd/pickups.zs: each class replaces its Doom pickup and prints its
@@ -216,6 +222,9 @@ SD_SKILL_5_CONFIRM = "The award is posthumous and the enemy dead do not stay dea
 SD_OPTMNU_TITLE    = "Soviet Doom";
 SD_OPTMNU_LANGUAGE = "Language";
 SD_OPTMNU_LANGHELP = "Applies immediately. Saved for the next session.";
+// V3 reloads (D132, ADR 014): the sd_reloads row and its note (one line).
+SD_OPTMNU_RELOADS    = "Weapon reloads";
+SD_OPTMNU_RELOADHELP = "Magazines; R reloads. Off: as in v1.2.";
 
 SD_LANGVAL_AUTO = "Automatic (system)";
 SD_LANGVAL_EN = "English";
@@ -452,6 +461,26 @@ SD_QUIT_13 = "Your shift ends\nwhen the invaders do.\n\n(Press Y to quit.)";
 SD_QUIT_14 = "Hand your rifle in at the armoury\nand sign for it twice.\n\n(Press Y to quit.)";
 SD_QUIT_15 = "The tea is still hot, Sergeant.\nStay a little longer.\n\n(Press Y to quit.)";
 
+// V3 B3 (ADR 013): the awards page after the last map of an episode, drawn
+// by SD_StatusScreen in SmallFont (the title in BigFont). The summary
+// columns are the episode's figures; each award has a name and a rule (the
+// rule may wrap onto a second line). Thresholds: docs/engine/BALANCE.md 9.
+SD_AWARDS_TITLE   = "Awards";
+SD_AWARDS_KILLS   = "Kills";
+SD_AWARDS_SECRETS = "Secrets";
+SD_AWARDS_TIME    = "Time";
+SD_AWARDS_PAR     = "Par";
+SD_MEDAL_COURAGE_NAME   = "Medal for Courage";
+SD_MEDAL_COURAGE_RULE   = "Complete the episode";
+SD_MEDAL_REDSTAR_NAME   = "Order of the Red Star";
+SD_MEDAL_REDSTAR_RULE   = "Destroy 75% of the enemy";
+SD_MEDAL_REDBANNER_NAME = "Order of the Red Banner";
+SD_MEDAL_REDBANNER_RULE = "Find every secret";
+SD_MEDAL_PATRIOTIC_NAME = "Order of the Patriotic War";
+SD_MEDAL_PATRIOTIC_RULE = "Finish within the par time";
+SD_MEDAL_HERO_NAME      = "Hero of the Soviet Union";
+SD_MEDAL_HERO_RULE      = "90% kills, every secret and par, on skill 3 or harder";
+
 [ru]
 
 SD_EP01_NAME  = "Советский Doom";
@@ -490,6 +519,7 @@ SD_TAG_RPG7        = "РПГ-7";
 SD_TAG_ROKS3       = "Огнемёт РОКС-3";
 SD_TAG_KATYUSHA    = "Ручная «Катюша»";
 SD_TAG_AKM         = "АКМ";
+SD_TAG_RGD5        = "Граната РГД-5";
 
 SD_PICKUP_ICEAXE   = "Ледоруб.";
 SD_PICKUP_TOKAREV  = "Вы подобрали ТТ-33 Токарева!";
@@ -499,6 +529,7 @@ SD_PICKUP_RPG7     = "Вы подобрали РПГ-7!";
 SD_PICKUP_ROKS3    = "Вы подобрали огнемёт РОКС-3!";
 SD_PICKUP_KATYUSHA = "Вы подобрали ручную «Катюшу». Опытный образец. Не ронять.";
 SD_PICKUP_AKM      = "Вы подобрали АКМ!";
+SD_PICKUP_RGD5     = "Вы подобрали подсумок с гранатами РГД-5!";
 
 SD_OB_ICEAXE       = "%o встретил ледоруб %k.";
 SD_OB_TOKAREV      = "%o застрелен из ТТ %k.";
@@ -508,6 +539,7 @@ SD_OB_RPG7         = "%o разорван выстрелом РПГ-7 %k.";
 SD_OB_ROKS3        = "%o сгорел в пламени РОКС-3 %k.";
 SD_OB_KATYUSHA     = "%o попал под залп %k.";
 SD_OB_AKM          = "%o сражён очередью из АКМ %k.";
+SD_OB_RGD5         = "%o не заметил гранату РГД-5 %k.";
 
 // --- Боеприпасы (решение CEO 2026-10-13) ----------------------------------
 
@@ -516,6 +548,7 @@ AMMO_SHELLS  = "Патроны 12 кал.";
 AMMO_ROCKETS = "Выстрелы ПГ-7В";
 AMMO_CELLS   = "Горючее";
 SD_AMMO_AKM  = "Патроны 7,62×39";
+SD_AMMO_RGD5 = "Гранаты РГД-5";
 
 SD_GOT_CLIP      = "Магазин. 7,62×25.";
 SD_GOT_CLIPBOX   = "Коробка патронов 7,62×25.";
@@ -527,6 +560,8 @@ SD_GOT_CELL      = "Бачок с горючим.";
 SD_GOT_CELLPACK  = "Полный баллон горючего.";
 SD_GOT_BACKPACK  = "Рюкзак десантника. Всё, что можно унести!";  // РД-54 с D80
 SD_GOT_AKMMAG    = "Магазин АКМ. 7,62×39.";
+SD_GOT_RGD5      = "Граната РГД-5.";
+SD_GOT_RGD5BOX   = "Ящик гранат РГД-5.";
 
 // --- Аптечки, броня и карта местности (D80, 2026-10-20) ---------------------
 SD_GOT_STIMPACK    = "Перевязочный пакет.";
@@ -556,6 +591,8 @@ SD_SKILL_5_CONFIRM = "Награда посмертная, а убитый вр�
 SD_OPTMNU_TITLE    = "Советский Doom";
 SD_OPTMNU_LANGUAGE = "Язык";
 SD_OPTMNU_LANGHELP = "Применяется сразу. Запоминается для следующих запусков.";
+SD_OPTMNU_RELOADS    = "Перезарядка оружия";
+SD_OPTMNU_RELOADHELP = "Магазины; R - перезарядка. Выкл.: как в v1.2.";
 
 SD_LANGVAL_AUTO = "Автоматически (по системе)";
 SD_LANGVAL_EN = "Английский";
@@ -722,6 +759,23 @@ SD_QUIT_13 = "Ваша смена кончится,\nкогда кончатся
 SD_QUIT_14 = "Сдайте винтовку в оружейку\nи распишитесь дважды.\n\n(Нажмите Y, чтобы выйти.)";
 SD_QUIT_15 = "Чай ещё горячий, сержант.\nПосидите немного.\n\n(Нажмите Y, чтобы выйти.)";
 
+// V3 B3: страница наград после последней карты эпизода.
+SD_AWARDS_TITLE   = "Награды";
+SD_AWARDS_KILLS   = "Убито";
+SD_AWARDS_SECRETS = "Тайники";
+SD_AWARDS_TIME    = "Время";
+SD_AWARDS_PAR     = "Норматив";
+SD_MEDAL_COURAGE_NAME   = "Медаль «За отвагу»";
+SD_MEDAL_COURAGE_RULE   = "Пройти эпизод";
+SD_MEDAL_REDSTAR_NAME   = "Орден Красной Звезды";
+SD_MEDAL_REDSTAR_RULE   = "Уничтожить 75 % противника";
+SD_MEDAL_REDBANNER_NAME = "Орден Красного Знамени";
+SD_MEDAL_REDBANNER_RULE = "Найти все тайники";
+SD_MEDAL_PATRIOTIC_NAME = "Орден Отечественной войны";
+SD_MEDAL_PATRIOTIC_RULE = "Уложиться в норматив";
+SD_MEDAL_HERO_NAME      = "Герой Советского Союза";
+SD_MEDAL_HERO_RULE      = "90 % противника, все тайники и норматив, на уровне 3 и выше";
+
 [ca]
 
 // Català central normatiu (D97, P6; 2026-10-21). El jugador es tracta de tu,
@@ -770,6 +824,7 @@ SD_TAG_RPG7        = "RPG-7";
 SD_TAG_ROKS3       = "Llançaflames ROKS-3";
 SD_TAG_KATYUSHA    = "Katyusha de mà";
 SD_TAG_AKM         = "AKM";
+SD_TAG_RGD5        = "Granada RGD-5";
 
 SD_PICKUP_ICEAXE   = "Un piolet.";
 SD_PICKUP_TOKAREV  = "Has agafat la Tokarev TT-33!";
@@ -779,6 +834,7 @@ SD_PICKUP_RPG7     = "Has agafat l'RPG-7!";
 SD_PICKUP_ROKS3    = "Has agafat el llançaflames ROKS-3!";
 SD_PICKUP_KATYUSHA = "Has agafat la Katyusha de mà. Prototip. No la deixis caure.";
 SD_PICKUP_AKM      = "Has agafat l'AKM!";
+SD_PICKUP_RGD5     = "Has agafat una bossa de granades RGD-5!";
 
 SD_OB_ICEAXE       = "%o ha topat amb el piolet de %k.";
 SD_OB_TOKAREV      = "%k ha abatut %o amb la Tokarev.";
@@ -788,6 +844,7 @@ SD_OB_RPG7         = "L'RPG-7 de %k ha fet miques %o.";
 SD_OB_ROKS3        = "El ROKS-3 de %k ha rostit %o.";
 SD_OB_KATYUSHA     = "%o s'ha empassat tota la salva de %k.";
 SD_OB_AKM          = "Una ràfega de l'AKM de %k ha abatut %o.";
+SD_OB_RGD5         = "%o no ha vist arribar la RGD-5 de %k.";
 
 // --- Munició (decisió del CEO 2026-10-13) ----------------------------------
 // Coma decimal i signe de multiplicar, com en rus: 7,62×25.
@@ -797,6 +854,7 @@ AMMO_SHELLS  = "Cartutxos del calibre 12";
 AMMO_ROCKETS = "Projectils PG-7V";
 AMMO_CELLS   = "Combustible";
 SD_AMMO_AKM  = "Cartutxos de 7,62×39";
+SD_AMMO_RGD5 = "Granades RGD-5";
 
 SD_GOT_CLIP      = "Un carregador. 7,62×25.";
 SD_GOT_CLIPBOX   = "Una caixa de 7,62×25.";
@@ -808,6 +866,8 @@ SD_GOT_CELL      = "Un bidó de combustible.";
 SD_GOT_CELLPACK  = "Un dipòsit ple de combustible.";
 SD_GOT_BACKPACK  = "Una motxilla de paracaigudista. Tot el que puguis carregar!";
 SD_GOT_AKMMAG    = "Un carregador d'AKM. 7,62×39.";
+SD_GOT_RGD5      = "Una granada RGD-5.";
+SD_GOT_RGD5BOX   = "Un caixó de granades RGD-5.";
 
 // --- Salut, blindatge i mapa de la zona (D80) --------------------------------
 SD_GOT_STIMPACK    = "Un embenat de campanya.";
@@ -835,6 +895,8 @@ SD_SKILL_5_CONFIRM = "La condecoració és pòstuma, i aquí els enemics morts n
 SD_OPTMNU_TITLE    = "Soviet Doom";
 SD_OPTMNU_LANGUAGE = "Idioma";
 SD_OPTMNU_LANGHELP = "S'aplica a l'acte. Es desa per a la propera sessió.";
+SD_OPTMNU_RELOADS    = "Recàrrega d'armes";
+SD_OPTMNU_RELOADHELP = "Carregadors; R recarrega. No: com a la v1.2.";
 
 SD_LANGVAL_AUTO = "Automàtic (sistema)";
 SD_LANGVAL_EN = "Anglès";
@@ -1000,6 +1062,23 @@ SD_QUIT_12 = "Lenin et mira des de la paret.\nI no fa cara de content.\n\n(Prem 
 SD_QUIT_13 = "El teu torn s'acaba\nquan s'acabin els invasors.\n\n(Prem Y per sortir.)";
 SD_QUIT_14 = "Torna el fusell a l'armeria\ni signa el rebut dues vegades.\n\n(Prem Y per sortir.)";
 SD_QUIT_15 = "El te encara és calent, sergent.\nQueda't una estona més.\n\n(Prem Y per sortir.)";
+
+// V3 B3: la pàgina de condecoracions després de l'últim mapa d'un episodi.
+SD_AWARDS_TITLE   = "Condecoracions";
+SD_AWARDS_KILLS   = "Baixes";
+SD_AWARDS_SECRETS = "Secrets";
+SD_AWARDS_TIME    = "Temps";
+SD_AWARDS_PAR     = "Rècord";
+SD_MEDAL_COURAGE_NAME   = "Medalla al Valor";
+SD_MEDAL_COURAGE_RULE   = "Acaba l'episodi";
+SD_MEDAL_REDSTAR_NAME   = "Orde de l'Estrella Roja";
+SD_MEDAL_REDSTAR_RULE   = "Abat el 75 % de l'enemic";
+SD_MEDAL_REDBANNER_NAME = "Orde de la Bandera Roja";
+SD_MEDAL_REDBANNER_RULE = "Troba tots els secrets";
+SD_MEDAL_PATRIOTIC_NAME = "Orde de la Guerra Patriòtica";
+SD_MEDAL_PATRIOTIC_RULE = "Acaba dins del temps rècord";
+SD_MEDAL_HERO_NAME      = "Heroi de la Unió Soviètica";
+SD_MEDAL_HERO_RULE      = "90 % de baixes, tots els secrets i el rècord, del nivell 3 amunt";
 
 // Textos del propi motor (D119, 2026-10-23; el CEO: «'A secret is revealed'
 // no està traduït en català»). GZDoom no porta català: amb `language ca` el

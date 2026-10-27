@@ -48,9 +48,11 @@ Run it (the PM or the CEO; agents never start GZDoom, D26):
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import NamedTuple
 
 from sdbuild.udmf import (
     DOOR_SPEED_SLOW,
+    SECTOR_SPECIAL_LIGHT_FLICKER,
     SECTOR_SPECIAL_SECRET,
     GridMap,
     LineStyle,
@@ -157,6 +159,11 @@ HATCH_PANNING = FLAT_TILE // 2
 # Door_LockedRaise (tag, speed, delay, lock, lighttag): 13, VERIFIED in engine
 # on MAP02 and MAP03. Delay 0: opens and stays open.
 SPECIAL_DOOR_LOCKED_RAISE = 13
+# Floor_LowerToLowest (tag, speed): 21 in ZDoom's (Hexen's) special table, the
+# special MAP04's red key gives its gondolas. NOT VERIFIED in our engine runs
+# (MAP04's K3; here V13-V14): if it failed, the torpedo lift and the magazine
+# would stay shut, and nothing the route needs is in them.
+SPECIAL_FLOOR_LOWER_TO_LOWEST = 21
 # gzdoom.pk3 g4.14.2 lockdefs.txt: Lock 1 RedCard, Lock 2 BlueCard, Lock 3
 # YellowCard; all three opened in the engine before (MAP02, MAP03, MAP04).
 LOCK_RED_CARD = 1
@@ -261,6 +268,11 @@ TAG_WT_SHUTTER = 10      # SW-A: the boat's watertight door
 TAG_BARRACKS_SHUTTER = 11  # SW-B: the shortcut from the reactor's passage into the barracks
 TAG_TUNNEL_AMBUSH = TAG_YELLOW_DOOR
 TAG_YARD_AMBUSH = TAG_RED_GATE
+# V3 (D120, A2 and A3): tags only a pickup moves (no line carries them).
+TAG_TORPEDO_LIFT = 12    # the blue key: the torpedo-loading cradle comes down from the deck with the Legion
+TAG_MAGAZINE = 13        # the yellow key: the torpedo magazine's wall sinks, the Reich's dogs inside
+LIFT_SPEED = 8           # 1 unit a tic: the cradle's 128 take ~3.7 s, its winch heard all the way
+WALL_SPEED = 32          # 4 units a tic: the magazine's 256 are down in ~2 s
 
 # --- The plan (x east, y north; design document section 4) ---------------------
 # The fjord (a prop: water under a low sky), the pen's mouth and its boom.
@@ -454,6 +466,43 @@ ROCK_ROOFED = ("z2_d1_porch", "z2_d2_porch", "closet_z2", "s1_niche", "s1_panel"
 SECRET_ZONES = ("s1_store", "s2_store", "s3_cab")
 CLOSET_PREFIX = "closet_"
 
+# --- V3: events on pickup and the set pieces (D120's A2 and A3) -----------------
+# A thing whose UDMF `special` GZDoom runs when it is picked up (MAP04's red
+# key, MAP09's red key; the Door_Open form VERIFIED in the engine by
+# tunguska-critical's RKEY, 2026-10-23). Each event's tag is carried by no
+# line; its monsters wait where no line has an opening (nothing sees or
+# hears them) until it fires; a flickering lamp (sector special 65) stands in
+# front of it, seen before it fires, and the moving floor sounds. None is on
+# the critical path, none shuts the player in. Design document section 18;
+# tests/_pickup_events_e3.py checks them.
+class PickupEvent(NamedTuple):
+    name: str
+    trigger: int                      # editor number of the thing that carries the special
+    spot: tuple[int, int]             # where that thing lies
+    special: int
+    args: tuple[int, ...]             # the tag first
+    zones: tuple[str, ...]            # the sectors the tag moves
+    waiting: tuple[str, ...]          # where the released monsters wait
+    lamp: str                         # the warning lamp, in front of the event
+
+
+# A3, the torpedo-loading cradle: beside the tray, in the room's north wall
+# past the racks (the bow keeps its tubes), the cradle waits up in the
+# loading hatch's trunk at the room's ceiling (its floor IS the ceiling, so
+# from the room it is a steel face under the deckhead); the blue key brings
+# it down to the room's floor with the Legion's three.
+TORPEDO_LIFT_CAR = (4080, 2112, 4208, 2192)    # short of the bow, whose tubes stay whole
+TORPEDO_LIFT_LAMP = (4080, 2096, 4208, 2112)
+LIFT_CAR_HEIGHT = 128
+# A2, the torpedo magazine: down the store's aisle from the cart, a panel of
+# the store's east wall is a sector whose floor stands at the store's
+# ceiling; the yellow key sinks it into the floor.
+MAGAZINE_WALL = (3200, 2576, 3216, 2704)
+MAGAZINE = (3216, 2560, 3344, 2720)
+MAGAZINE_LAMP = (3184, 2576, 3200, 2704)
+MAGAZINE_HEIGHT = 128
+LIGHT_EVENT_LAMP = 160   # each event's lamp, flickering down to its darkest neighbour
+
 # --- Editor numbers (src/lumps/MAPINFO, DoomEdNums) ---------------------------
 ED_RIFLEMAN = 21100
 ED_TROOPER = 21101
@@ -513,12 +562,31 @@ ED_ROCKET_BOX = 2046
 ED_CELL = 2047
 ED_CELL_PACK = 17
 ED_AKM_MAG = 21020        # SD_AkmAmmo: one 30-round 7.62x39 magazine (ADR 011)
+
+# The events, in the order the route meets them (design section 18).
+PICKUP_EVENTS = (
+    PickupEvent("torpedo_lift", ED_BLUE_CARD, BLUE_KEY_SPOT, SPECIAL_FLOOR_LOWER_TO_LOWEST,
+                (TAG_TORPEDO_LIFT, LIFT_SPEED), ("z4_torpedo_lift",), ("z4_torpedo_lift",), "z4_torpedo_lamp"),
+    PickupEvent("magazine", ED_YELLOW_CARD, YELLOW_KEY_SPOT, SPECIAL_FLOOR_LOWER_TO_LOWEST,
+                (TAG_MAGAZINE, WALL_SPEED), ("z5_magazine_wall",), ("z5_magazine",), "z5_magazine_lamp"),
+)
 ED_STIMPACK = 2011
 ED_MEDIKIT = 2012
 ED_HEALTH_BONUS = 2014
 ED_ARMOR_BONUS = 2015
 ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
+# V3 A4, the RGD-5 hand grenade (ADR 012; docs/engine/2026-10-23_V3_rgd5.md
+# section 6): its own pool, counted 1.25 shell-equivalents a grenade
+# (BALANCE 8.1). A grenade is a consumable here, so it rides in ITEMS and
+# scales DOWN with skill: 3 / 2 / 2 grenades on skills 2 / 3 / 4.
+ED_RGD5 = 21009           # the pouch: the weapon and two grenades (none here)
+ED_RGD5_AMMO = 21021      # one loose grenade (it gives the weapon too)
+ED_RGD5_BOX = 21022       # a crate of four: a secret's reward only (none here)
+# V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
+# 5.4): SD_Loudspeaker, a positional voice over the music (MOD-SPEC 6.14).
+ED_LOUDSPEAKER = 21201
+LOUDSPEAKER_FLAG_OLIVE = 8  # SD_LS_FLAG_OLIVE: the army's olive SDLO, not the grey street SDLS (D132)
 
 # Design section 9: monsters per skill (MAP05's size, a step above it).
 ENEMY_TOTALS = {2: 36, 3: 55, 4: 70}
@@ -562,18 +630,22 @@ MONSTERS = (
     # Inside the boat: close quarters.
     ("z4_control", "trooper", 3648, 1920, 180, 2),
     ("z4_control", "stormtrooper", 3520, 2064, 0, 2),
-    ("z4_torpedo", "trooper", 3936, 1888, 90, 2),
-    ("z4_torpedo", "stormtrooper", 4192, 2080, 180, 3),
-    ("z4_control", "trooper", 3648, 2064, 180, 4),
+    # V3 (A3): the torpedo-loading cradle, down with the blue key: the
+    # torpedo room's trooper and stormtrooper and the control room's third.
+    ("z4_torpedo_lift", "trooper", 4104, 2152, 270, 2),
+    ("z4_torpedo_lift", "stormtrooper", 4144, 2152, 270, 3),
+    ("z4_torpedo_lift", "trooper", 4184, 2152, 270, 4),
     # The workshops and the torpedo store: the Reich, its heavy at the lathes.
     ("z5_workshop", "panzermensch", 2368, 2528, 180, 2),
     ("z5_workshop", "rifleman", 1600, 2688, 270, 2),
     ("z5_gantry", "rifleman", 2048, 2768, 270, 2),
-    ("z5_store", "rifleman", 2688, 2784, 0, 2),
-    ("z5_store", "hound", 3136, 2640, 180, 3),
     ("z5_gantry", "rifleman", 1664, 2768, 270, 3),
     ("z5_store", "stormtrooper", 3136, 2784, 180, 3),
-    ("z5_workshop", "hound", 2432, 2752 - 64, 180, 4),
+    # V3 (A2): the torpedo magazine, open when the yellow key is taken: the
+    # store's rifleman and hound and the workshop's second hound.
+    ("z5_magazine", "rifleman", 3248, 2640, 180, 2),
+    ("z5_magazine", "hound", 3304, 2600, 180, 3),
+    ("z5_magazine", "hound", 3304, 2680, 180, 4),
     # The yellow door's closets in the rock tunnel: the Reich comes up.
     ("closet_z7_a", "rifleman", 4000, 2416, 270, 2),
     ("closet_z7_a", "stormtrooper", 4064, 2448, 270, 4),
@@ -673,6 +745,19 @@ ITEMS = (
     ("z2_d1_porch", ED_HEALTH_BONUS, 1920, 1488, 4),
     ("z5_gantry", ED_HEALTH_BONUS, 2432, 2768, 4),
     ("z1_crane_deck", ED_HEALTH_BONUS, 608, 1536, 4),
+    # The RGD-5 (V3 A4): loose grenades in the yard, by the rails and among
+    # the containers.
+    ("z2_yard", ED_RGD5_AMMO, 1400, 450, 4),
+    ("z2_yard", ED_RGD5_AMMO, 2000, 450, 4),
+    ("z2_yard", ED_RGD5_AMMO, 1800, 1000, 2),
+)
+
+# The mess hall's radio (V3 B5): (zone, x, y, lines, reach, flags, jingle),
+# as MAP04's. The fleet's mess: the dam's victory, the parade, the blood
+# donors and the plan. The actor's reach (384) in a hall 416 x 320. Olive
+# (D132): the Northern Fleet's base.
+LOUDSPEAKERS = (
+    ("z6_mess", 3184, 640, (2, 9, 14, 6), 0, LOUDSPEAKER_FLAG_OLIVE, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la
@@ -757,6 +842,15 @@ SECRET_ITEMS = (
     ("s3_cab", ED_CELL, 736, 1488, 4),
     ("s3_cab", ED_CELL, 800, 1536, 4),
 )
+
+
+def pickup_special(ednum: int, spot: tuple[int, int]) -> dict:
+    """The UDMF `special` and `arg0..` of the thing `ednum` at `spot`, if
+    an event of PICKUP_EVENTS rides it (MAP04's form); else nothing."""
+    for event in PICKUP_EVENTS:
+        if (event.trigger, tuple(event.spot)) == (ednum, tuple(spot)):
+            return {"special": event.special, **{f"arg{i}": a for i, a in enumerate(event.args)}}
+    return {}
 
 
 def poster_faces() -> tuple[tuple[str, str, str, int, int, int], ...]:
@@ -1104,6 +1198,11 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         like("z4_torpedo", f"{PROP_PREFIX}z4_rack_{n}", [rect], floor=BOAT_RACK)
     zone("z4_tray", DECK + PAD, INTERIOR, [TRAY], light=LIGHT_BEACON, flat=FLOOR_PLATE, ceiling=CEIL_PANEL,
          wall=STEEL, extra=BLUE_LIGHT)
+    # V3 (A3): the torpedo-loading cradle in the bow, its lamp before it.
+    like("z4_torpedo", "z4_torpedo_lamp", [TORPEDO_LIFT_LAMP], light=LIGHT_EVENT_LAMP,
+         special=SECTOR_SPECIAL_LIGHT_FLICKER)
+    zone("z4_torpedo_lift", INTERIOR, INTERIOR + LIFT_CAR_HEIGHT, [TORPEDO_LIFT_CAR], TAG_TORPEDO_LIFT,
+         light=LIGHT_CLOSET, flat=FLOOR_PLATE, ceiling=CEIL_PANEL, wall=STEEL)
 
     # ======================================================================
     # The workshops and the torpedo store, behind the blue door
@@ -1128,6 +1227,13 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         like("z5_store", f"{PROP_PREFIX}z5_rack_{n}", [rect], floor=GROUND + RACK, flat=FLOOR_PLATE, wall=STEEL)
     zone("z5_cart", GROUND + PAD, STORE_CEIL, [CART], light=LIGHT_BEACON, flat=FLOOR_PLATE,
          ceiling=CEIL_PANEL, wall=STEEL, extra=YELLOW_LIGHT)
+    # V3 (A2): the torpedo magazine behind the store's east wall, down the aisle.
+    like("z5_store", "z5_magazine_lamp", [MAGAZINE_LAMP], light=LIGHT_EVENT_LAMP,
+         special=SECTOR_SPECIAL_LIGHT_FLICKER)
+    zone("z5_magazine_wall", STORE_CEIL, STORE_CEIL, [MAGAZINE_WALL], TAG_MAGAZINE, light=LIGHT_CLOSET,
+         ceiling=CEIL_PANEL, wall=CONCRETE)
+    zone("z5_magazine", GROUND, GROUND + MAGAZINE_HEIGHT, [MAGAZINE], light=LIGHT_CLOSET, ceiling=CEIL_PANEL,
+         wall=CONCRETE)
 
     # ======================================================================
     # The rock tunnel down to the reactor, its two closets
@@ -1289,13 +1395,17 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START, angle=PLAYER_ANGLE))
     for ednum, spot in ((ED_BLUE_CARD, BLUE_KEY_SPOT), (ED_YELLOW_CARD, YELLOW_KEY_SPOT),
                         (ED_RED_CARD, RED_KEY_SPOT)):
-        tm.add_thing(Thing(x=spot[0], y=spot[1], type=ednum))
+        tm.add_thing(Thing(x=spot[0], y=spot[1], type=ednum, extra=pickup_special(ednum, spot)))
     for _zone, kind, x, y, angle, tier in MONSTERS:
         tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle))
     for _zone, ednum, x, y, top in ITEMS + SECRET_ITEMS:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     for _zone, ednum, x, y, lowest in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
+    for _zone, x, y, lines, reach, flags, jingle in LOUDSPEAKERS:
+        mask = sum(1 << (line - 1) for line in lines)
+        tm.add_thing(Thing(x=x, y=y, type=ED_LOUDSPEAKER,
+                           extra={"arg0": mask, "arg1": reach, "arg3": flags, "arg4": jingle}))
     return tm, plan
 
 

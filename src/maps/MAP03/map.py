@@ -65,6 +65,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 
+from sdbuild.events import MOVER_SPEED_NORMAL, door_open, event_thing, lift_raise_by_value
 from sdbuild.udmf import (
     DOOR_SPEED_SLOW,
     SECTOR_SPECIAL_SECRET,
@@ -276,6 +277,10 @@ TAG_GATE = 11            # SW-B: the containment drum's gate
 TAG_HALL_AMBUSH = TAG_SHUTTER
 TAG_S1_PANEL = 6         # v1.1: S1's locker panel (Door_Open, pushed, opens for good)
 TAG_GENERAL_STORES = 12  # v1.1: the General's stores; ONLY his death opens it (no line carries it)
+# V3 A2 and A3, pickup events (docs/levels/PICKUP-EVENTS.md; design section
+# 17): each tag is carried by the sectors its key's event moves, by no line.
+TAG_EVENT_YELLOW = 13    # the yellow key: the two office closets at the stair head
+TAG_EVENT_RED = 14       # the red key: the foundry's goods lift comes up (A3, the set piece)
 
 # --- Things --------------------------------------------------------------------
 PLAYER_START = (4096, 1184)
@@ -283,6 +288,28 @@ PLAYER_ANGLE = 180       # facing west, down the spur, into the factory
 YELLOW_KEY_SPOT = (2304, 2048)   # on the director's desk
 RED_KEY_SPOT = (512, 352)        # on the ingot pedestal, casting platform
 KEY_ZONES = {ED_YELLOW_CARD: "o_desk", ED_RED_CARD: "f_pedestal"}
+
+# --- Pickup events (V3 A2) and the set piece (V3 A3); design section 19 -------
+# The yellow key: as the player leaves the director's office with it, the
+# two closets cut into the corridor's south wall either side of the stair
+# head open in front of him (the Legion's clerks, the offices' faction).
+OFFICE_CLOSETS = {"closet_ow": ((1984, 1776, 2112, 1792), (1968, 1696, 2128, 1776)),
+                  "closet_oe": ((2496, 1776, 2624, 1792), (2480, 1696, 2640, 1776))}
+YELLOW_EVENT = door_open("office_closets", TAG_EVENT_YELLOW)
+# The red key: the goods lift. A shaft in the foundry's north wall, its car
+# LIFT_TRAVEL below the casting floor with the ingot crew in it, its ceiling
+# flush with the floor, so from the foundry the shaft's front is steel wall
+# from floor to roof. Taking the key raises the car's floor and ceiling
+# together (FloorAndCeiling_RaiseByValue): the front lifts like a gate from
+# the floor up, the car comes up the shaft behind it with its crew standing
+# on it, and stops level with the casting floor, a lintel left over it. No
+# line, no ACS: one special on the key. Seen from the pedestal (tested).
+LIFT_CAR = (896, 640, 1088, 752)      # in the casting floor's north wall
+LIFT_TRAVEL = 192                     # the shaft's depth under the casting floor
+LIFT_EVENT = lift_raise_by_value("goods_lift", TAG_EVENT_RED, LIFT_TRAVEL, MOVER_SPEED_NORMAL)
+PICKUP_EVENTS = {ED_YELLOW_CARD: YELLOW_EVENT, ED_RED_CARD: LIFT_EVENT}
+EVENT_ZONES = {"office_closets": tuple(f"{n}_door" for n in OFFICE_CLOSETS),
+               "goods_lift": ("f_lift",)}
 LOCK_PORTALS = {LOCK_YELLOW_CARD: "z3_yellow_portal", LOCK_RED_CARD: "z3_red_portal"}
 
 # Zone-name families the tests use.
@@ -397,9 +424,21 @@ ED_HEALTH_BONUS = 2014
 ED_ARMOR_BONUS = 2015
 ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
+# V3 A4, the RGD-5 hand grenade (ADR 012; docs/engine/2026-10-23_V3_rgd5.md
+# section 6), placed in Episode 1 on 2026-10-24: its own pool, counted 1.25
+# shell-equivalents a grenade (BALANCE 8.1, 8.6). A grenade is a consumable
+# here, so it rides in ITEMS and scales DOWN with skill: 4 / 3 / 2 grenades on
+# skills 2 / 3 / 4. None in the General's portal hall
+# (the bosses take no splash); no crate (21022) in the campaign.
+ED_RGD5 = 21009           # the pouch: the weapon and two grenades
+ED_RGD5_AMMO = 21021      # one loose grenade (it gives the weapon too)
+# V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
+# 5.4): SD_Loudspeaker, a positional voice OVER the music (MOD-SPEC 6.14).
+ED_LOUDSPEAKER = 21201
 
 # Design section 9: monsters per skill, Doom's skill pairs (udmf.skill_tier).
-ENEMY_TOTALS = {2: 25, 3: 38, 4: 52}
+# V3 A2/A3 add four on every skill: two clerks, the goods lift's crew of two.
+ENEMY_TOTALS = {2: 29, 3: 42, 4: 56}
 
 # Every monster: (zone, kind, x, y, facing, lowest skill tier). Tier 2 is on
 # every skill, 3 from medium up, 4 on hard only. Section 9's table, placed
@@ -432,6 +471,9 @@ MONSTERS = (
     ("o_director", "trooper", 2300, 2150, 270, 2),
     ("o_planning", "trooper", 1984, 2080, 270, 3),
     ("o_archive", "stormtrooper", 2624, 2080, 270, 4),
+    # V3 A2: the clerks the yellow key lets out, either side of the stair head.
+    ("closet_ow", "trooper", 2048, 1736, 90, 2),
+    ("closet_oe", "trooper", 2560, 1736, 90, 2),
     # The tank line, the closed shop: the Reich at work; the Panzermensch at
     # the pouring arch on every skill, the heavy at the export gate on 4.
     ("t_line", "panzermensch", 2000, 256, 0, 2),
@@ -451,6 +493,9 @@ MONSTERS = (
     ("f_floor", "stormtrooper", 800, 300, 0, 3),
     ("f_floor", "doughboy", 1150, 520, 0, 4),
     ("f_floor", "hound", 1250, 560, 0, 4),
+    # V3 A3: the ingot crew the goods lift brings up when the red key is taken.
+    ("f_lift", "rifleman", 944, 696, 270, 2),
+    ("f_lift", "rifleman", 1040, 696, 270, 2),
     # SW-A's closets in the hall (tag 10): the counter-attack on ground
     # already cleared, as the player comes back through the shutter.
     ("closet_hs", "trooper", 1952, 632, 90, 2),
@@ -526,6 +571,26 @@ ITEMS = (
     ("f_passage", ED_HEALTH_BONUS, 1728, 656, 4),
     ("p_porch", ED_HEALTH_BONUS, 1056, 1216, 4),
     ("p_dais_3", ED_HEALTH_BONUS, 736, 1120, 4),
+    # The RGD-5 (V3 A4, design section 20): the pouch in the dock, past the
+    # picket and before the arch: the hall's Legion stands between the
+    # waist-high assembly lines, cover a grenade goes over. Loose ones on the
+    # tank line (skill 2) and on the foundry gallery, thrown down onto the
+    # casting floor's Doughboys. None in the portal hall (p_*).
+    ("z2_dock", ED_RGD5, 3180, 1300, 4),
+    ("t_line", ED_RGD5_AMMO, 2500, 150, 2),
+    ("f_gallery", ED_RGD5_AMMO, 1500, 250, 3),
+)
+
+# The factory's loudspeaker (V3 B5, design section 20), on every skill:
+# (zone, x, y, lines, reach, flags, jingle). Lines are the radio's 1-16
+# (SDRAD01-16), the thing's arg0 their bit mask; reach 0 = the actor's 384;
+# flags arg3 (4 = the valve bed); jingle arg4 (0 = a random one of three).
+# The assembly hall, reach 512 (the hall is 1472 long): the plan, the
+# factory-fortress, Tankograd's own line (RAD15: the player stands in
+# Tankograd now) and the people stronger than the enemy. Grey (flags 0,
+# D132): the works' red-brick hall, a city factory's horn.
+LOUDSPEAKERS = (
+    ("z3_hall", 2600, 1184, (6, 13, 15, 5), 512, 0, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la
@@ -554,7 +619,10 @@ AMMO = (
     # The tank line and the foundry (the yellow door), the RPG-7 and then
     # the ROKS-3, each with only its own load: the PPSh's rounds lead, the
     # PG-7V a strong second kept for the General (BALANCE 8.4, as amended).
-    ("f_floor", ED_SHELLS, 1000, 560, 2),
+    # V3 A2/A3: was 4 shells. A box of rounds at the goods lift's mouth
+    # instead pays for its crew and the office clerks inside BALANCE 8.2's
+    # floors, and keeps shells under 35 % with the clerks' dropped IZhs.
+    ("f_floor", ED_CLIP_BOX, 1000, 560, 2),
     ("t_line", ED_CLIP_BOX, 3200, 400, 2),
     ("f_floor", ED_CLIP_BOX, 900, 250, 2),
     ("t_line", ED_CLIP_BOX, 3000, 400, 3),
@@ -707,15 +775,16 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
             g.style_h(coord, lo, hi, style)
         return index
 
-    def closet(name: str, door_rect, room_rect, tag: int, *, leaf: str) -> int:
+    def closet(name: str, door_rect, room_rect, tag: int, *, leaf: str,
+               floor: int = GROUND) -> int:
         """A monster closet (MAP01 v3's, MAP02 v1's): a panel in a wall that
-        opens for good with the switch that owns `tag`, together with that
-        switch's gate. The panel and the closet wear the wall they are cut
-        into, so it is wall until it moves; nothing closes it again, and the
-        closet is a dead end the player walks out of."""
-        door_index = zone(f"{name}_door", GROUND, GROUND, [door_rect], tag,
+        opens for good with the switch (or, V3 A2, the pickup) that owns
+        `tag`. The panel and the closet wear the wall they are cut into, so
+        it is wall until it moves; nothing closes it again, and the closet is
+        a dead end the player walks out of."""
+        door_index = zone(f"{name}_door", floor, floor, [door_rect], tag,
                           light=LIGHT_CLOSET, wall=leaf)
-        zone(name, GROUND, GROUND + CLOSET_HEIGHT, [room_rect], light=LIGHT_CLOSET, wall=leaf)
+        zone(name, floor, floor + CLOSET_HEIGHT, [room_rect], light=LIGHT_CLOSET, wall=leaf)
         return door_index
 
     # ======================================================================
@@ -979,6 +1048,16 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     closet("closet_hn", (1664, 1664, 1856, 1664 + NICHE_DEPTH), (1664, 1664 + NICHE_DEPTH, 1856, 1792),
            TAG_HALL_AMBUSH, leaf=HALL_WALL)
 
+    # ======================================================================
+    # V3 A2: the yellow key's closets; V3 A3: the red key's goods lift
+    # ======================================================================
+    for name, (panel, room) in OFFICE_CLOSETS.items():
+        closet(name, panel, room, YELLOW_EVENT.tag, leaf=TILE_DADO, floor=OFFICES)
+    # The car: its ceiling flush with the casting floor until the red key is
+    # taken (the shaft's steel front is then wall), its floor LIFT_TRAVEL down.
+    zone("f_lift", FOUNDRY_PIT - LIFT_TRAVEL, FOUNDRY_PIT, [LIFT_CAR], LIFT_EVENT.tag,
+         light=LIGHT_CLOSET, flat=FLOOR_PLATE, ceiling=CEIL_CONCRETE, wall=STEEL)
+
     g.build()
 
     # Middle textures, on the built lines.
@@ -996,8 +1075,8 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
 
     tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START,
                        angle=PLAYER_ANGLE))
-    tm.add_thing(Thing(x=YELLOW_KEY_SPOT[0], y=YELLOW_KEY_SPOT[1], type=ED_YELLOW_CARD))
-    tm.add_thing(Thing(x=RED_KEY_SPOT[0], y=RED_KEY_SPOT[1], type=ED_RED_CARD))
+    tm.add_thing(event_thing(YELLOW_KEY_SPOT[0], YELLOW_KEY_SPOT[1], ED_YELLOW_CARD, YELLOW_EVENT))
+    tm.add_thing(event_thing(RED_KEY_SPOT[0], RED_KEY_SPOT[1], ED_RED_CARD, LIFT_EVENT))
     for _zone, kind, x, y, angle, tier in MONSTERS:
         extra = {}
         if kind == "general":
@@ -1010,6 +1089,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     for _zone, ednum, x, y, lowest in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
+    for _zone, x, y, lines, reach, flags, jingle in LOUDSPEAKERS:
+        mask = sum(1 << (line - 1) for line in lines)
+        tm.add_thing(Thing(x=x, y=y, type=ED_LOUDSPEAKER,
+                           extra={"arg0": mask, "arg1": reach, "arg3": flags, "arg4": jingle}))
     return tm, plan
 
 

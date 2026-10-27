@@ -45,7 +45,7 @@ sd/weapon/tokarev/pickup/1 SDTTPKP1    // D94 alt1  the slide racked to the stop
 sd/weapon/tokarev/pickup/2 SDTTPKP2    // D94 alt2  out of the leather holster
 sd/weapon/tokarev/fire     SDTTFIR     // take B  dry, high-velocity crack
 sd/weapon/tokarev/dry      SDTTDRY     // take A  hammer on an empty chamber
-sd/weapon/tokarev/reload   SDTTRLD     // take A  PARKED: no reload state (D47)
+sd/weapon/tokarev/reload   SDTTRLD     // take A  V3 reloads (D132): the Reload state, with sd_reloads on
 
 // --- Slot 3: IZh-58 double barrel ----------------------------------------
 // The pickup keeps Doom's generic one (D94: all three alternatives NO). The
@@ -58,7 +58,7 @@ sd/weapon/izh/dry          SDIZDRY     // take A  the hammerless lock on nothing
 sd/weapon/ppsh/fire        SDPPFIR     // take C  one round: crack, jacket, bolt
 sd/weapon/ppsh/pickup      SDPPPKP     // take A  stock, jacket, drum, swivel
 sd/weapon/ppsh/dry         SDPPDRY     // take A  an empty drum's hollow clack
-sd/weapon/ppsh/reload      SDPPRLD     // take A  PARKED: no reload state (D47)
+sd/weapon/ppsh/reload      SDPPRLD     // take A  V3 reloads (D132): the Reload state, with sd_reloads on
 
 // --- Slot 4, second: AKM (D116; docs/engine/2026-10-22_P4_akm.md 4) ------
 // Its own logical names over the PPSh-41's lumps until sound-designer
@@ -68,6 +68,7 @@ sd/weapon/ppsh/reload      SDPPRLD     // take A  PARKED: no reload state (D47)
 sd/weapon/akm/fire         SDPPFIR     // REUSED (the PPSh-41's round) -> SDAKFIR
 sd/weapon/akm/dry          SDPPDRY     // REUSED -> SDAKDRY
 sd/weapon/akm/pickup       SDPPPKP     // REUSED -> SDAKPKP
+sd/weapon/akm/reload       SDPPRLD     // REUSED (V3 reloads, D132: the drum's change, bolt at 0.86 s) -> SDAKRLD
 // The same report a little lower, so the 7.62x39 reads heavier than the
 // 7.62x25: (logical name, pitch), ZDoom wiki SNDINFO; the keyword is in
 // g4.14.2's gzdoom.exe. NOT VERIFIED in the engine: a refused line shows in
@@ -90,7 +91,7 @@ sd/weapon/roks3/fire/2     SDRKFIR2    // D94 alt2  a torch: nozzle whistle and 
 sd/weapon/roks3/fire/3     SDRKFIR3    // D94 alt3  a pump pushing fuel in pulses
 sd/weapon/roks3/pickup     SDRKPKP     // take A  the tank pack, fuel sloshing
 sd/weapon/roks3/dry        SDRKDRY     // take A  igniter snap, last breath of gas
-sd/weapon/roks3/reload     SDRKRLD     // take A  PARKED: no reload state (D47)
+sd/weapon/roks3/reload     SDRKRLD     // take A  V3 reloads (D132): the Reload state, with sd_reloads on
 
 // --- Slot 7: hand Katyusha ------------------------------------------------
 sd/weapon/katyusha/charge  SDHKCHG     // take A  rails cranked up, 20 tics
@@ -99,6 +100,21 @@ sd/weapon/katyusha/burst   SDHKEXP     // take A  one rocket detonating (six at 
 sd/weapon/katyusha/reload  SDHKRLD     // take A  rockets onto the rails, 20 tics
 sd/weapon/katyusha/pickup  SDHKPKP     // take A  the rail frame lifted
 sd/weapon/katyusha/dry     SDHKDRY     // take A  firing switch on empty rails
+
+// --- Slot 8: RGD-5 hand grenade (V3, ADR 012; docs/engine/2026-10-23_V3_rgd5.md 4)
+// Its own logical names over lumps the mod already ships until
+// sound-designer records the RGD-5's (the final lump after "->"; MOD-SPEC
+// 6.2, "V3 sounds"). Replacing one changes the right-hand column only, and
+// the $pitchset line goes with the burst.
+sd/weapon/rgd5/pin         SDTTDRY     // REUSED (the TT-33's hammer click) -> SDRGPIN
+sd/weapon/rgd5/throw       SDAXSWG     // REUSED (the ice axe cutting the air) -> SDRGTHR
+sd/weapon/rgd5/bounce      SDAXWAL     // REUSED (the pick on stone) -> SDRGBNC
+sd/weapon/rgd5/explode     SDRPEXP     // REUSED (the PG-7V's burst) -> SDRGEXP
+sd/weapon/rgd5/pickup      SDTTPKP2    // REUSED (the TT-33 out of its leather holster) -> SDRGPKP
+// The PG-7V's burst a little higher, so the fragmentation grenade's crack
+// reads smaller than the shaped charge: same directive as the AKM's shot.
+// NOT VERIFIED in the engine.
+$pitchset sd/weapon/rgd5/explode 1.2
 
 // === Bestiary (F5) =========================================================
 // Logical names sd/mon/<actor>/<event>; 47 sounds, docs/engine/BESTIARY.md 12.
@@ -278,7 +294,7 @@ sd/mon/consortium/flame       SDRKFIR2    // REUSED the ROKS-3's jet -> SDCNSFLM
 // === Beds (D83, D86): the non-vocal layers under the voices =================
 // docs/sound/ENEMY-SOUNDS.md 5.10. Packed and named, played by NOTHING yet:
 // each is mixed under its voice take when the CEO approves the takes (D87),
-// as the D47 reloads wait, packed, for a magazine. Audition with the
+// as the D47 reloads waited for a magazine (until V3, D132). Audition with the
 // console's `playsound sd/bed/<actor>/<event>`. Lump: SD + actor + the
 // event's initial + B + take (the voice lump keeps the card's name).
 sd/bed/reichrifleman/death    SDRRIDB1    // D83  gear, body, rifle, helmet
@@ -428,3 +444,64 @@ $playeralias player other  *xdeath   sd/player/xdeath
 $playeralias player other  *grunt    sd/player/oof
 $playeralias player other  *land     sd/player/oof
 $playeralias player other  *usefail  sd/player/usefail
+
+// === The propaganda radio (V3 B5, D124) ====================================
+// Radio Moscow in 1977, from SD_Loudspeaker (21201, zscript/sd/loudspeaker.zs;
+// MOD-SPEC 6.14): a positional voice OVER the level's music. Sixteen lines,
+// one take each (D124 approved every take; the take is METRICS.json's rank 1,
+// tools/audio/install_radio.py), the three station jingles and the valve set's
+// bed, all in assets/sounds/radio/. M = the male announcer (cloned from
+// Thorsten Mueller's neutral read speech, CC0), F = the female (Chatterbox's
+// predefined voice Elena, D124). The loudspeaker asks for sd/radio/line/<nn>
+// from its shuffled playlist (arg0, a bit mask), so each line is a name of its own.
+sd/radio/line/01     SDRAD01     // M t01  war report
+sd/radio/line/02     SDRAD02     // M t02  war report (the Zhiguli dam)
+sd/radio/line/03     SDRAD03     // F t02  civil defence (air-raid alert)
+sd/radio/line/04     SDRAD04     // F t03  civil defence (fallen objects)
+sd/radio/line/05     SDRAD05     // M t01  slogan
+sd/radio/line/06     SDRAD06     // F t03  slogan (the five-year plan)
+sd/radio/line/07     SDRAD07     // M t01  slogan (the lore's line)
+sd/radio/line/08     SDRAD08     // F t02  civil defence, ironic (tap water)
+sd/radio/line/09     SDRAD09     // M t02  news, ironic (the parade)
+sd/radio/line/10     SDRAD10     // F t03  weather, ironic
+sd/radio/line/11     SDRAD11     // M t02  war report (Zarya-7 holds)
+sd/radio/line/12     SDRAD12     // F t01  civil defence, ironic (the helmet)
+sd/radio/line/13     SDRAD13     // M t02  slogan (factory-fortress)
+sd/radio/line/14     SDRAD14     // F t03  appeal (blood donors)
+sd/radio/line/15     SDRAD15     // M t01  news (Tankograd's plan)
+sd/radio/line/16     SDRAD16     // M t02  time signal: six pips, then the news
+// The jingle: a random one of three on each turn-on (arg4 0), or the one
+// arg4 names. Our synthesis, original bell motifs (not Radio Moscow's real
+// interval signal, a protected song).
+$random sd/radio/jingle { sd/radio/jingle/1 sd/radio/jingle/2 sd/radio/jingle/3 }
+sd/radio/jingle/1    SDRADJ1     // J1, five notes in D major, rising
+sd/radio/jingle/2    SDRADJ2     // J2, four notes in D minor, solemn
+sd/radio/jingle/3    SDRADJ3     // J3, three notes in fifths and an octave (short)
+// The set itself, a 6 s seamless loop (procedural, install_radio.py), for a
+// loudspeaker with SD_LS_FLAG_BED: hum, hiss, crackle.
+sd/radio/bed         SDRADBED
+// Full volume within 128 units, silent at 768: a room's loudspeaker, not the
+// whole map's. One line per name (a $rolloff names one sound, ZDoom wiki
+// SNDINFO); the $random alias and its members both carry it. NOT VERIFIED in
+// the engine (D26).
+$rolloff sd/radio/line/01 linear 128 768
+$rolloff sd/radio/line/02 linear 128 768
+$rolloff sd/radio/line/03 linear 128 768
+$rolloff sd/radio/line/04 linear 128 768
+$rolloff sd/radio/line/05 linear 128 768
+$rolloff sd/radio/line/06 linear 128 768
+$rolloff sd/radio/line/07 linear 128 768
+$rolloff sd/radio/line/08 linear 128 768
+$rolloff sd/radio/line/09 linear 128 768
+$rolloff sd/radio/line/10 linear 128 768
+$rolloff sd/radio/line/11 linear 128 768
+$rolloff sd/radio/line/12 linear 128 768
+$rolloff sd/radio/line/13 linear 128 768
+$rolloff sd/radio/line/14 linear 128 768
+$rolloff sd/radio/line/15 linear 128 768
+$rolloff sd/radio/line/16 linear 128 768
+$rolloff sd/radio/jingle linear 128 768
+$rolloff sd/radio/jingle/1 linear 128 768
+$rolloff sd/radio/jingle/2 linear 128 768
+$rolloff sd/radio/jingle/3 linear 128 768
+$rolloff sd/radio/bed linear 128 768

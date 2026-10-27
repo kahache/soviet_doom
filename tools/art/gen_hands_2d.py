@@ -1014,6 +1014,11 @@ def fire_timeline(arm: Arm, shots: int | None = None) -> list[tuple[str, str | N
             label, i = st[1], 0
             continue
         sprite, letters, tics, action = st
+        if "SD_MagazineDry" in action:
+            # The V3 reloads' 0-tic guard (D132, ADR 014): it only jumps on
+            # an empty magazine, which a few drawn shots never reach.
+            i += 1
+            continue
         jump = re.search(r'A_JumpIf\([^,]*,\s*"(\w+)"\)', action)
         if jump and shot == shots and jump.group(1) in states:
             label, i = jump.group(1), 0

@@ -266,6 +266,13 @@ OptionMenu "SD_OptionsMenu"
 	StaticText " "
 	StaticText "$SD_OPTMNU_LANGHELP"
 	StaticText " "
+	// V3 reloads (D132, ADR 014): the mod's first CVar of its own,
+	// sd_reloads (CVARINFO). The engine's own Option row and its "OnOff"
+	// list (gzdoom.pk3:menudef.txt), so the write happens during menu input
+	// like the language's. The note below the row names the key.
+	Option "$SD_OPTMNU_RELOADS", "sd_reloads", "OnOff"
+	StaticText "$SD_OPTMNU_RELOADHELP"
+	StaticText " "
 	Submenu "$SD_CRED_TITLE", "SD_CreditsMenu"
 }
 

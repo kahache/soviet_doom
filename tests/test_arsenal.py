@@ -411,9 +411,15 @@ class ArsenalPk3Test(unittest.TestCase):
                 continue
             if line.startswith("$"):
                 # D116: the AKM's report pitched down. Only this directive,
-                # and only on a name defined on a line of its own.
+                # and only on a name defined on a line of its own; and V3
+                # B5's $rolloff for the propaganda radio's names
+                # (tests/test_loudspeaker.py pins those).
                 parts = line.split()
-                self.assertEqual(parts[0], "$pitchset", f"unexpected SNDINFO directive: {raw!r}")
+                self.assertIn(parts[0], ("$pitchset", "$rolloff"), f"unexpected SNDINFO directive: {raw!r}")
+                if parts[0] == "$rolloff":
+                    self.assertTrue(parts[1].startswith("sd/radio/"), raw)
+                    self.assertIn(len(parts), (4, 5), raw)
+                    continue
                 self.assertEqual(len(parts), 3, raw)
                 self.assertGreater(float(parts[2]), 0, raw)
                 continue
@@ -432,12 +438,12 @@ class ArsenalPk3Test(unittest.TestCase):
         for name in sorted(used):
             self.assertIn(name, defined, f"{name} is played but not defined in SNDINFO")
 
-    # Defined on purpose with nothing playing them: the reloads of the three
-    # guns that have no reload state. The CEO approved the sounds (D74) and
-    # parked magazines (D47); they are packed so a magazine mechanic can be
-    # judged by ear (`playsound`). Wire one and it must leave this set.
-    PARKED_SOUNDS = frozenset({"sd/weapon/tokarev/reload", "sd/weapon/ppsh/reload",
-                               "sd/weapon/roks3/reload"})
+    # Defined on purpose with nothing playing them. Until V3 these were the
+    # reloads of the TT-33, the PPSh-41 and the ROKS-3 (D74 sounds, D47's
+    # parked magazines); the V3 reloads experiment (D132, ADR 014,
+    # tests/test_reloads.py) plays all three from the guns' Reload states,
+    # so they left the set. Park a sound here and nothing may play it.
+    PARKED_SOUNDS: frozenset[str] = frozenset()
 
     # N9e: the beds (D83, D86), the non-vocal layers that go under the
     # voices, are packed and named under sd/bed/ and played by nothing until
@@ -473,9 +479,15 @@ class ArsenalPk3Test(unittest.TestCase):
     def test_every_defined_sound_is_used(self):
         """A dead SNDINFO entry means the sound-designer gets a wrong brief."""
         used = set(re.findall(r'"(sd/[a-z0-9/_]+)"', self.zs_all))
+        # V3 B5: SD_Loudspeaker asks for its lines by a format string,
+        # "sd/radio/line/%02d": a name under such a prefix, ending in the
+        # digits the format writes, is played.
+        formatted = re.findall(r'"(sd/[a-z0-9/_]+/)%0?\d?d"', self.zs_all)
         members = {m for ms in self._random_groups().values() for m in ms}
         for name in self._sndinfo_names():
             if name in members:        # played through its $random group
+                continue
+            if any(name.startswith(p) and name[len(p):].isdigit() for p in formatted):
                 continue
             if name in self.ENGINE_PLAYED or name in self._player_aliased():   # D125
                 continue

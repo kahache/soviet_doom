@@ -27,7 +27,11 @@ of tests/test_map05_dam.py, whose model of play it repeats:
   skill's floor at every stage, shells at most 35 % with the drops, each
   pool after its weapon and the newest leading, fuel sparing;
 * the three secrets: a push panel each, a clue that is a comparison, a way
-  back; the Hand Katyusha in S3.
+  back; the Hand Katyusha in S3;
+* V3's pickup events (D120's A2 and A3; tests/_pickup_events_e3.py): the
+  blue key brings the torpedo-loading cradle down, the yellow key sinks the
+  torpedo magazine's wall; each hidden until it fires, warned by a
+  flickering lamp, never needed, never a trap.
 
 Run:  python3 -m unittest tests.test_map08_severomorsk -v
 """
@@ -48,6 +52,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "tests"))
 
 # Imported as a module, not by name, so its TestCases are not collected twice.
 import test_udmf as udmf_tests  # noqa: E402
+import _pickup_events_e3 as pickup_events  # noqa: E402
 
 parse_textmap = udmf_tests.parse_textmap
 MAX_STEP_UP = udmf_tests.MAX_STEP_UP       # 24
@@ -115,6 +120,14 @@ SHELLS_GIVEN = {2008: 4, 2049: 20, 21003: 8}
 ROUNDS_GIVEN = {2007: 10, 2048: 50, 21004: 35}
 ROCKETS_GIVEN = {2010: 1, 2046: 5, 21005: 2}
 CELLS_GIVEN = {2047: 20, 17: 100, 21006: 40}
+# V3 A4, the RGD-5 (BALANCE 8.1): a grenade counts 1.25 shell-equivalents
+# (its 100 blast at the centre over the IZh's 80), the pouch (the weapon)
+# 2, a loose one 1, the crate 4. Counted in the band (8.2) and in the shell
+# share's whole (8.3) only: the stage readiness, the newest weapon's lead
+# (8.4.2) and the boss's stage (8.4.3) leave grenades out, as BALANCE says
+# (the bosses take no splash).
+GRENADES_GIVEN = {21009: 2, 21021: 1, 21022: 4}
+SHELLS_PER_GRENADE = 1.25
 AKM_ROUNDS_GIVEN = {21020: 30, 21008: 30}   # a magazine; the rifle comes with one (D116)
 AKM_AVERAGE = 12                             # 6 x random(1,3) a round (BALANCE slot 4b)
 AKM_ROUNDS_PER_SHELL = 80 / AKM_AVERAGE      # an IZh barrel's 80
@@ -172,7 +185,7 @@ def _doomednums() -> dict[int, str]:
     return {int(n): c for n, c in re.findall(r"(\d+)\s*=\s*(\w+)", block)}
 
 
-class Map08Test(unittest.TestCase):
+class Map08Test(pickup_events.PickupEventChecks, unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -187,8 +200,9 @@ class Map08Test(unittest.TestCase):
         cls.zone_of = {i: name for name, i in cls.plan.items()}
         cls.start = cls.plan["z1_pier"]
         cls.doors = defaultdict(set)
+        movers = pickup_events.floor_movers(cls.m)   # a sinking wall is shut like a door, but sinks
         for i, s in enumerate(cls.sectors):
-            if s.get("id") and s["heightceiling"] == s["heightfloor"]:
+            if s.get("id") and s["heightceiling"] == s["heightfloor"] and s["id"] not in movers:
                 cls.doors[s["id"]].add(i)
         cls.door_sectors = set().union(*cls.doors.values())
         cls.neighbours = defaultdict(set)
@@ -248,7 +262,7 @@ class Map08Test(unittest.TestCase):
                 ceiling = (min(self.sectors[n]["heightceiling"] for n in self.neighbours[i])
                            - DOOR_OPENS_BELOW_CEILING)
             out.append((s["heightfloor"], ceiling))
-        return out
+        return pickup_events.apply_moves(out, self.sectors, self.neighbours, self.plan, self.m, open_tags)
 
     def adjacency(self, open_tags):
         h = self.heights(open_tags)
@@ -297,15 +311,20 @@ class Map08Test(unittest.TestCase):
         """Play the map as a player can (MAP03's model): manual doors and push
         panels open whenever he can stand at their line; then, one round at a
         time, every switch and locked door he can now reach and work (a
-        locked door only once the sector of ITS key is reachable)."""
+        locked door only once the sector of ITS key is reachable). V3: a
+        pickup's special fires as soon as its thing is reachable, in the same
+        round (he is standing on it)."""
         uses = [ld for ld in self.lines if ld.get("playeruse") and ld.get("special") in
                 (SPECIAL_DOOR_OPEN, SPECIAL_DOOR_RAISE, self.m.SPECIAL_DOOR_LOCKED_RAISE)]
         keys = self.key_sectors()
+        pickups = [(tag, self.sector_at(*spot))
+                   for tag, spot in pickup_events.pickup_tags(self.things, self.monster_numbers)]
         opened, rounds = set(), []
         while True:
             reach = self.reachable(opened)
             held = {lock for lock, sector in keys.items() if sector in reach}
             free, gated = set(), set()
+            free |= {tag for tag, sector in pickups if sector in reach}
             for ld in uses:
                 stand = {self.front(ld)}
                 if "sideback" in ld:
@@ -335,6 +354,9 @@ class Map08Test(unittest.TestCase):
         exits = [ld for ld in self.lines if ld.get("special") == SPECIAL_EXIT_NORMAL]
         self.assertEqual(1, len(exits))
         return exits[0]
+
+    def exit_sector(self):
+        return self.front(self.exit_line())
 
     def line_points(self, ld):
         a, b = self.verts[ld["v1"]], self.verts[ld["v2"]]
@@ -849,7 +871,10 @@ class Map08Test(unittest.TestCase):
         still dock, and the player wades out by the steps."""
         m = self.m
         special = {self.zone_of[i]: s["special"] for i, s in enumerate(self.sectors) if s.get("special")}
-        self.assertEqual({zone: m.SECTOR_SPECIAL_SECRET for zone in m.SECRET_ZONES}, special)
+        want = {zone: m.SECTOR_SPECIAL_SECRET for zone in m.SECRET_ZONES}
+        # V3: the events' warning lamps.
+        want.update({e.lamp: m.SECTOR_SPECIAL_LIGHT_FLICKER for e in m.PICKUP_EVENTS})
+        self.assertEqual(want, special)
         self.assertFalse([i for i, s in enumerate(self.sectors) if s.get("damageamount")])
 
     # --- reachability and no softlock --------------------------------------
@@ -895,10 +920,10 @@ class Map08Test(unittest.TestCase):
         self.assertTrue(self.named("z2_yard", "z6_mess", "z3_north_quay", "z4_deck", "z4_control",
                                    "z1_crane_deck") <= r0)
         self.assertNotIn(self.plan["z4_torpedo"], r0, "the torpedo room is behind the watertight door")
-        self.assertEqual({m.TAG_WT_SHUTTER}, set(o1 - o0))
+        self.assertEqual({m.TAG_WT_SHUTTER, m.TAG_TORPEDO_LIFT}, set(o1 - o0), "V3: the blue key's cradle")
         self.assertEqual({m.LOCK_BLUE_CARD}, set(h1))
         self.assertNotIn(self.plan["z5_workshop"], r1)
-        self.assertEqual({m.TAG_BLUE_DOOR}, set(o2 - o1))
+        self.assertEqual({m.TAG_BLUE_DOOR, m.TAG_MAGAZINE}, set(o2 - o1), "V3: the yellow key's magazine")
         self.assertEqual({m.LOCK_BLUE_CARD, m.LOCK_YELLOW_CARD}, set(h2))
         self.assertNotIn(self.plan["z8_hall"], r2)
         self.assertEqual({m.TAG_YELLOW_DOOR}, set(o3 - o2))
@@ -1422,7 +1447,8 @@ class Map08Test(unittest.TestCase):
                    + ROUNDS_GIVEN.get(t["type"], 0) / ROUNDS_PER_SHELL
                    + AKM_ROUNDS_GIVEN.get(t["type"], 0) / AKM_ROUNDS_PER_SHELL
                    + ROCKETS_GIVEN.get(t["type"], 0) * SHELLS_PER_ROCKET
-                   + CELLS_GIVEN.get(t["type"], 0) * SHELLS_PER_CELL for t in placed)
+                   + CELLS_GIVEN.get(t["type"], 0) * SHELLS_PER_CELL
+                   + GRENADES_GIVEN.get(t["type"], 0) * SHELLS_PER_GRENADE for t in placed)
 
     def test_g3_8_the_ammo_budget(self):
         """D119: on every skill, ammunition on the route is inside that

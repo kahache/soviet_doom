@@ -41,10 +41,13 @@ Run it (the PM or the CEO; agents never start GZDoom, D26):
 
 from __future__ import annotations
 
+import importlib.util
 from dataclasses import replace
+from pathlib import Path
 
 from sdbuild.udmf import (
     DOOR_SPEED_SLOW,
+    SECTOR_SPECIAL_LIGHT_FLICKER,
     SECTOR_SPECIAL_SECRET,
     GridMap,
     LineStyle,
@@ -60,6 +63,20 @@ from sdbuild.udmf import (
 )
 
 MAP_NAME = "MAP05"
+
+
+def _load_pickup_events():
+    """Episode 2's pickup events (src/maps/common/pickup_events_e2.py): the
+    verified specials and the helpers MAP04, MAP05 and MAP06 share. Loaded by
+    path, as the build loads this file."""
+    path = Path(__file__).resolve().parents[1] / "common" / "pickup_events_e2.py"
+    spec = importlib.util.spec_from_file_location("sd_pickup_events_e2", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+EVENTS = _load_pickup_events()
 
 # --- The approved sets (docs/art/TEXTURE-INDEX.md) ---------------------------
 # The "Dam" set (tools/art/gen_dam.py) is approved and installed with the rest
@@ -199,6 +216,10 @@ LIGHT_CLOSET = 112
 LIGHT_HUT = 112
 LIGHT_SHADOW = LIGHT_MIN    # a secret's set-back panel: the one in shadow
 LIGHT_SECRET = 112
+# V3 (A3): the sluice chamber behind the burst wall. Its lamp is failing:
+# Doom's flicker (sector special 65, own light <-> darkest neighbour, the
+# breach at the spillway's 112), unseen until the wall falls.
+LIGHT_SLUICE = 144
 BEACON_ZONES = ("z1_blue_portal", "z5_yellow_portal", "z7_winch", "z9_pad", "z11_exit_niche")
 
 # The keys' colours, in light (sector `lightcolor`, UDMF zdoom, as MAP02 and
@@ -232,6 +253,39 @@ TAG_STATION_SHUTTER = 11  # SW-B: the shortcut from the substation into the stat
 # the yellow door opens the catwalk's two, the blue gate the station's two.
 TAG_CATWALK_AMBUSH = TAG_YELLOW_DOOR
 TAG_STATION_AMBUSH = TAG_BLUE_GATE
+# V3 (A2, A3; D119/D120): the tags only a pickup works. No line carries any.
+TAG_SLUICE_BREACH = 12     # the yellow key: the old sluice's wall falls (Floor_LowerToLowest)
+TAG_SPILL_WATER = 13       # a rider beside the yellow key: the channel's water rises one step
+TAG_SUBSTATION_STORE = 14  # the blue key: the substation's tool store opens (Door_Open)
+PICKUP_TAGS = (TAG_SLUICE_BREACH, TAG_SPILL_WATER, TAG_SUBSTATION_STORE)
+# Sectors whose FLOOR a pickup lowers for good (MAP04's LIFT_TAGS): the tests
+# open them by laying the floor on the lowest neighbour's.
+LIFT_TAGS = (TAG_SLUICE_BREACH,)
+
+# --- V3: the dam bursts (A3), and the blue key's tool store (A2) ----------------
+# The set piece (docs/levels/MAP05-volga-dam.md section 15). The yellow key
+# lies on the sluice winch. Taking it, the dam gives way: the old sluice's
+# wall in the spillway's west wall falls (the key's own special, the one the
+# route checks), the dam shakes (a rider: Radius_Quake on the player, hurting
+# nobody) and the channel's water rises one step (a rider: Floor_RaiseByValue).
+# Behind the fallen wall, the flooded sluice chamber: a failing lamp, and the
+# Legion's sluice guard, who come out across the walk. Warned: the falling
+# wall grinds (the floor's own sound), the screen shakes, and the breach
+# faces the winch (tested). Never a trap: the chamber floor is one step under
+# the walk, the wall falls to it, and the chamber is a dead end the player
+# walks out of; the water only rises, so every way out of it stays.
+SLUICE_BREACH = (480, 1152, 512, 1280)    # in the west walk's west wall, NW of the winch
+SLUICE = (224, 1088, 480, 1344)           # the chamber, inside the dam's west wing
+SLUICE_FLOOR = GROUND - STEP              # shallow water: one step down from the walk
+SLUICE_CEIL = GROUND + GALLERY_HEIGHT     # 128: the wall's top, and the chamber's roof
+BREACH_SPEED = EVENTS.FLOOR_SPEED_TURBO   # 8 units a tic: the wall is down in 18 tics
+WATER_SURGE = STEP                        # the channel: -64 -> -48, level with the first step
+WATER_SURGE_SPEED = 8                     # F_SLOW: one unit a tic, the surge takes 16 tics
+QUAKE = EVENTS.quake(3, 105, 24)          # intensity 3, 3 s, felt 1536 units round the player
+# The blue key's tool store: a closet in the substation's west wall, in
+# plain sight of the pad (tested), the Reich's hounds kennelled in it.
+SUB_STORE_DOOR = (3568, 1216, 3584, 1344)
+SUB_STORE = (3440, 1216, 3568, 1344)
 
 # --- The plan (x east, y north; design document section 4) ---------------------
 # The station, on the east bank, level with the crest.
@@ -385,6 +439,15 @@ PLAYER_START = (4704, 1664)
 PLAYER_ANGLE = 180       # facing west, along the platform, towards the blue gate
 YELLOW_KEY_SPOT = (672, 928)     # on the winch house, across the spillway's water
 BLUE_KEY_SPOT = (3968, 1280)     # on the transformer pad, in the substation
+# What each key does when it is picked up (V3): (special, args).
+SPECIAL_FLOOR_LOWER_TO_LOWEST = EVENTS.FLOOR_LOWER_TO_LOWEST
+SPECIAL_FLOOR_RAISE_BY_VALUE = EVENTS.FLOOR_RAISE_BY_VALUE
+SPECIAL_DOOR_OPEN = EVENTS.DOOR_OPEN
+SPECIAL_RADIUS_QUAKE = EVENTS.RADIUS_QUAKE
+PICKUP_SPECIALS = {
+    ED_YELLOW_CARD: (SPECIAL_FLOOR_LOWER_TO_LOWEST, (TAG_SLUICE_BREACH, BREACH_SPEED)),
+    ED_BLUE_CARD: (SPECIAL_DOOR_OPEN, (TAG_SUBSTATION_STORE, DOOR_SPEED_SLOW)),
+}
 KEY_ZONES = {ED_YELLOW_CARD: "z7_winch", ED_BLUE_CARD: "z9_pad"}
 LOCK_PORTALS = {LOCK_YELLOW_CARD: "z5_yellow_portal", LOCK_BLUE_CARD: "z1_blue_portal"}
 
@@ -457,9 +520,19 @@ ED_HEALTH_BONUS = 2014
 ED_ARMOR_BONUS = 2015
 ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
+# V3 A4, the RGD-5 hand grenade (ADR 012; docs/engine/2026-10-23_V3_rgd5.md
+# section 6): its own pool, counted 1.25 shell-equivalents a grenade
+# (BALANCE 8.1). A grenade is a consumable here, so it rides in ITEMS and
+# scales DOWN with skill: 3 / 3 / 2 grenades on skills 2 / 3 / 4.
+ED_RGD5 = 21009           # the pouch: the weapon and two grenades (none here)
+ED_RGD5_AMMO = 21021      # one loose grenade (it gives the weapon too)
+ED_RGD5_BOX = 21022       # a crate of four: a secret's reward only (none here)
+# V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
+# 5.4): SD_Loudspeaker, a positional voice over the music (MOD-SPEC 6.14).
+ED_LOUDSPEAKER = 21201
 
 # Design section 9: monsters per skill, Doom's skill pairs (udmf.skill_tier).
-ENEMY_TOTALS = {2: 31, 3: 46, 4: 60}
+ENEMY_TOTALS = {2: 32, 3: 47, 4: 61}   # V3: one more trooper in the sluice, on every skill
 
 # Every monster: (zone, kind, x, y, facing, lowest skill tier). Facing: 0
 # east, 90 north, 180 west, 270 south.
@@ -499,10 +572,15 @@ MONSTERS = (
     # The Legion gunners (D116) on the west walkway: the channel's whole
     # width to fire across, the parapet for cover; the second on hard.
     ("z7_west_walk", "gunner", 640, 576, 0, 2),
-    ("z7_west_walk", "trooper", 704, 1344, 0, 2),
-    ("z7_west_walk", "stormtrooper", 800, 1152, 0, 3),
     ("z7_channel", "doughboy", 1024, 1536, 270, 4),
     ("z7_west_walk", "gunner", 640, 1600, 270, 4),
+    # V3 (A3): the sluice guard, behind the wall the yellow key brings down:
+    # the west walk's trooper and stormtrooper moved in (from 704 1344 and
+    # 800 1152), and one more trooper, so the burst brings a fight on every
+    # skill and the walk to the key is quieter. The Legion's, as the spillway.
+    ("z7_sluice", "trooper", 288, 1152, 0, 2),
+    ("z7_sluice", "trooper", 288, 1280, 0, 2),
+    ("z7_sluice", "stormtrooper", 400, 1216, 0, 3),
     # The control room: both factions at the consoles.
     ("z6_control", "trooper", 2400, 1248, 270, 2),
     ("z6_control", "rifleman", 2848, 1024, 180, 2),
@@ -515,12 +593,15 @@ MONSTERS = (
     ("closet_z5_e", "hound", 3288, 952, 270, 2),
     ("closet_z5_e", "rifleman", 3224, 1016, 270, 3),
     # The substation: the Reich's heavies among the transformers.
-    ("z9_substation", "hound", 3640, 1280, 0, 2),
     ("z9_substation", "rifleman", 4096, 1216, 180, 2),
     ("z9_substation", "rifleman", 3904, 1568, 180, 2),
     ("z9_substation", "panzermensch", 3904, 1024, 270, 2),
-    ("z9_substation", "hound", 4064, 1600, 180, 3),
     ("z9_substation", "heavy", 4064, 1456, 180, 4),
+    # V3 (A2): the blue key's tool store, the substation's two hounds
+    # kennelled in it (from 3640 1280 and 4064 1600): let out as the key is
+    # taken, across the substation from the pad.
+    ("z9_store", "hound", 3480, 1250, 0, 2),
+    ("z9_store", "hound", 3530, 1312, 0, 3),
     # The blue gate's closets in the station: the Legion behind the player.
     ("closet_z1_s", "trooper", 4736, 1312, 90, 2),
     ("closet_z1_s", "stormtrooper", 4800, 1360, 90, 3),
@@ -601,6 +682,21 @@ ITEMS = (
     ("z10_hut_w", ED_HEALTH_BONUS, 2528, 1664, 4),
     ("z10_gate_porch", ED_HEALTH_BONUS, 4160, 1920, 4),
     ("z11_west_hall", ED_HEALTH_BONUS, 528, 2000, 4),
+    # The RGD-5 (V3 A4): loose grenades where the dam is thrown down onto a
+    # lower level, the gallery over the hall's door and the catwalk over
+    # the turbine hall.
+    ("z4_gallery", ED_RGD5_AMMO, 3900, 480, 4),
+    ("z5_catwalk", ED_RGD5_AMMO, 2900, 800, 4),
+    ("z5_catwalk", ED_RGD5_AMMO, 3200, 800, 3),
+)
+
+# The turbine hall's loudspeaker (V3 B5): (zone, x, y, lines, reach, flags,
+# jingle), as MAP04's. The front report, the plan, the factory-fortress and
+# the blood donors; RAD02 is about this very dam, so it waits for MAP06.
+# Reach 512: the hall is 1792 long and 448 high. Grey (flags 0, D132): a
+# civil power station's horn.
+LOUDSPEAKERS = (
+    ("z5_hall", 2560, 448, (1, 6, 13, 14), 512, 0, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", and always on the
@@ -669,6 +765,16 @@ SECRET_ITEMS = (
     ("s3_hut", ED_HAND_KATYUSHA, 3328, 1696, 4),
     ("s3_hut", ED_CELL, 3264, 1664, 4),
     ("s3_hut", ED_CELL, 3392, 1664, 4),
+)
+
+
+# V3 riders (src/maps/common/pickup_events_e2.py): two bonuses beside the
+# yellow key, each carrying one more of the burst's specials, taken with the
+# key: (zone, editor number, x, y, special, args). On every skill, as the key.
+EVENT_RIDERS = (
+    ("z7_winch", ED_HEALTH_BONUS, *EVENTS.rider_spot(YELLOW_KEY_SPOT, 0, -EVENTS.RIDER_OFFSET), *QUAKE),
+    ("z7_winch", ED_ARMOR_BONUS, *EVENTS.rider_spot(YELLOW_KEY_SPOT, 0, EVENTS.RIDER_OFFSET),
+     SPECIAL_FLOOR_RAISE_BY_VALUE, (TAG_SPILL_WATER, WATER_SURGE_SPEED, WATER_SURGE)),
 )
 
 
@@ -1039,13 +1145,18 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     zone("z9_swb_niche", CREST, CREST + SWITCH_HEIGHT, [SWB_NICHE], light=LIGHT_OUTDOORS, wall=STEEL)
     station_shutter = door("shutter_station", CREST, TAG_STATION_SHUTTER, STATION_SHUTTER,
                            light=LIGHT_OUTDOORS)
+    # V3 (A2): the tool store, the blue key's: a closet in the west wall,
+    # its leaf the substation's corrugated sheet, on a tag no line carries.
+    zone("z9_store_door", CREST, CREST, [SUB_STORE_DOOR], TAG_SUBSTATION_STORE, light=LIGHT_CLOSET,
+         wall=RUST)
+    zone("z9_store", CREST, CREST + CLOSET_HEIGHT, [SUB_STORE], light=LIGHT_CLOSET, wall=RUST)
 
     # ======================================================================
     # The spillway: the gallery out, the walkways, the water, the winch
     # ======================================================================
     zone("z7_gallery", GROUND, GALLERY_HEIGHT, [SPILL_GALLERY], light=LIGHT_GALLERY, wall=TUNNEL)
     zone("z7_east_walk", GROUND, SKY_CEIL, [EAST_WALK], light=LIGHT_SPILLWAY, ceiling=SKY, wall=DAM)
-    zone("z7_channel", CHANNEL, SKY_CEIL, [CHANNEL_RECT], light=LIGHT_SPILLWAY, flat=WATER,
+    zone("z7_channel", CHANNEL, SKY_CEIL, [CHANNEL_RECT], TAG_SPILL_WATER, light=LIGHT_SPILLWAY, flat=WATER,
          ceiling=SKY, wall=DAM, extra=WATER_HURTS)
     zone("z7_west_walk", GROUND, SKY_CEIL, [WEST_WALK], light=LIGHT_SPILLWAY, ceiling=SKY, wall=DAM)
     wx1, _wy1, wx2, _wy2 = CHANNEL_RECT
@@ -1067,6 +1178,15 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     zone("s1_culvert", CHANNEL, CHANNEL + GALLERY_HEIGHT, [S1_CULVERT], light=LIGHT_SECRET, wall=TUNNEL)
     zone("s1_store", CHANNEL, CHANNEL + GALLERY_HEIGHT, [S1_STORE], light=LIGHT_SECRET, wall=TUNNEL,
          special=SECTOR_SPECIAL_SECRET)
+    # V3 (A3): the old sluice. Its wall is a sector as high as the chamber's
+    # roof (floor = ceiling: the dam's own face from the walk, wall until it
+    # falls), tagged for the yellow key's Floor_LowerToLowest; it falls to the
+    # chamber's flooded floor, one step under the walk. The chamber's lamp
+    # flickers (Doom's sector special 65).
+    zone("z7_sluice_breach", SLUICE_CEIL, SLUICE_CEIL, [SLUICE_BREACH], TAG_SLUICE_BREACH,
+         light=LIGHT_SPILLWAY, flat=WATER, wall=DAM)
+    zone("z7_sluice", SLUICE_FLOOR, SLUICE_CEIL, [SLUICE], light=LIGHT_SLUICE, flat=WATER, wall=DAM,
+         special=SECTOR_SPECIAL_LIGHT_FLICKER)
 
     # ======================================================================
     # The crest: the road west along the top of the dam
@@ -1236,14 +1356,20 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
                 tm.sidedefs[side].offsetx = world_column(tm, ld, side) % FENCE_WIDTH
 
     tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START, angle=PLAYER_ANGLE))
-    tm.add_thing(Thing(x=YELLOW_KEY_SPOT[0], y=YELLOW_KEY_SPOT[1], type=ED_YELLOW_CARD))
-    tm.add_thing(Thing(x=BLUE_KEY_SPOT[0], y=BLUE_KEY_SPOT[1], type=ED_BLUE_CARD))
+    for ednum, (x, y) in ((ED_YELLOW_CARD, YELLOW_KEY_SPOT), (ED_BLUE_CARD, BLUE_KEY_SPOT)):
+        tm.add_thing(Thing(x=x, y=y, type=ednum, extra=EVENTS.special_fields(*PICKUP_SPECIALS[ednum])))
+    for _zone, ednum, x, y, special, args in EVENT_RIDERS:
+        tm.add_thing(Thing(x=x, y=y, type=ednum, extra=EVENTS.special_fields(special, args)))
     for _zone, kind, x, y, angle, tier in MONSTERS:
         tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle))
     for _zone, ednum, x, y, top in ITEMS + SECRET_ITEMS:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     for _zone, ednum, x, y, low, high in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(low, high)))
+    for _zone, x, y, lines, reach, flags, jingle in LOUDSPEAKERS:
+        mask = sum(1 << (line - 1) for line in lines)
+        tm.add_thing(Thing(x=x, y=y, type=ED_LOUDSPEAKER,
+                           extra={"arg0": mask, "arg1": reach, "arg3": flags, "arg4": jingle}))
     return tm, plan
 
 

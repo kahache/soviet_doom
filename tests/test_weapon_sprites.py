@@ -53,6 +53,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import check_pk3  # noqa: E402
 from sdbuild.pk3 import build as build_pk3  # noqa: E402
 from _n9_sound_hooks import with_sound_hooks  # noqa: E402  (N9's sound hooks, the only other edit)
+from _v3_reload_states import with_reloads  # noqa: E402  (V3 reloads: guards + Reload states)
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
@@ -272,12 +273,12 @@ class BehaviourTests(unittest.TestCase):
         for zs_file, before in BEFORE_D48.items():
             renamed = {**RENAMED, **HELD_RENAMED.get(zs_file, {})}
             expected = [(lb, renamed.get(sp, sp), fr, tics, rest) for lb, sp, fr, tics, rest in before]
-            self.assertEqual(states(zs_file), with_sound_hooks(zs_file, expected), zs_file)
+            self.assertEqual(states(zs_file), with_reloads(zs_file, with_sound_hooks(zs_file, expected)), zs_file)
 
     def test_tic_totals_per_label_unchanged(self):
         for zs_file, before in BEFORE_D48.items():
             totals: dict[str, int] = {}
-            for lb, _, _, tics, _ in before:
+            for lb, _, _, tics, _ in with_reloads(zs_file, before):
                 totals[lb] = totals.get(lb, 0) + tics
             now: dict[str, int] = {}
             for lb, _, _, tics, _ in states(zs_file):

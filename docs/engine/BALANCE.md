@@ -4,7 +4,12 @@ Owner: `mod-engineer`. **D119 (2026-10-23), after the CEO's playtest of
 Episodes 2 and 3:** the ROKS-3 cut to 157.5 damage/s (§3, slot 6), a
 trooper's dropped IZh carries 2 shells (§3, slot 3), the Liberty Colossus
 and the Consortium at classic Doom's hit points (§7) and **the maps'
-ammunition rules (§8)**, which the level designers apply.
+ammunition rules (§8)**, which the level designers apply. **V3 (2026-10-23,
+ADR 012): the RGD-5 hand grenade, slot 8** (§2, §3, §4, §8.1), built and
+not yet seen in the engine.
+**V3 reloads (2026-10-25, branch `v3-reload`, ADR 014): magazines behind the
+CVar `sd_reloads`** (§10), an experiment for the CEO; the maps' ammunition
+is untouched.
 Status before D119: **F4, first pass, verified in GZDoom 4.14.2**
 (every weapon fires, consumes ammo and kills in `MAP02`, the practice range,
 the lump `RANGE` since D62; see §6).
@@ -62,6 +67,7 @@ sustained killer and slot 7 is the panic button.
 | 5 | RPG-7 | 1 RocketAmmo | 135 direct + 100 blast / 104 u | 26 | 1.35 | 181.7 direct | unlimited |
 | 6 | ROKS-3 flamethrower | 1 Cell | 13.5 (3–24) | 3 | 11.67 | 157.5 | **528 hard limit** |
 | 7 | Hand Katyusha | 40 Cell | 6 x (112.5 direct + 70 blast / 96 u) | 60 | 0.58 | ~394 if all six land | unlimited, fan ±12.5° |
+| 8 | RGD-5 hand grenade (V3, ADR 012) | 1 `SD_Rgd5Ammo` | no impact; 100 blast / 128 u on each target, 1.71 s after the throw | 33 | 1.06 | — (an area weapon; ≤ 100 on one target, 43 % of a PG-7V) | ~310 thrown level, ~600 aimed up; bounces |
 
 The ladder (19 → 26 → 74 → 93 / 105 → 182 → 157.5 → 394) keeps Doom's
 shape where it matters: slot 3 is the first real weapon, slot 4 the
@@ -73,7 +79,9 @@ risk of the sergeant's own life). Each wins somewhere and neither wins
 everywhere, which is what the CEO asked for (§3, slot 6). The
 AKM (slot 4's second weapon since D116) slots in at **105**, above the
 PPSh-41 and well under the RPG-7, as Doom II's super shotgun is slot 3's
-better gun; it pays with a scarcer pool of its own (§4).
+better gun; it pays with a scarcer pool of its own (§4). The RGD-5 (slot 8,
+V3) is off the ladder: no DPS to speak of, a tool for groups and for what
+the RPG-7 cannot see (§3, slot 8).
 
 ## 3. Why each number
 
@@ -239,11 +247,42 @@ The salvo does **not** hurt the sergeant (`A_Explode` flags = 0) — six
 self-damaging rockets leaving the rails at once would make the weapon
 unusable, and Doom's BFG shot does not hurt its owner either.
 
+### Slot 8 — RGD-5 hand grenade (`SD_Rgd5`, replaces nothing; V3, ADR 012)
+
+A fused fragmentation grenade thrown in an arc: **no impact damage, 100
+blast at the centre over 128 units** (linear falloff, no core), **1.71 s
+fuse** (60 tics) from the throw, a short bounce (×0.35 floors, ×0.4 walls),
+one throw every **33 tics**, and it **hurts the thrower**. Constants in
+`zscript/weapons/rgd5_grenade.zs` and `rgd5.zs`; the long why, the throw
+distances and the kill radii in `docs/engine/2026-10-23_V3_rgd5.md` §2.
+
+Why these numbers, against the PG-7V (slot 5):
+
+- **Under the RPG-7 by unit.** A PG-7V gives the one it hits ~235 (135
+  direct + 100 blast); a grenade at most **100**, 43 %. On a tight group of
+  four troopers the PG-7V still does more (~350 against 200).
+- **Better where the RPG-7 is not.** The blast is 23 % wider (128 against
+  the shaped charge's 104: Doom's own rocket radius), so a spread group
+  still bleeds (25 at 96 units, against the PG-7V's 8), and the arc and
+  the bounce reach round a corner, over a barricade and down a stairwell.
+- **The infantry's weapon.** One grenade kills a rifleman inside ~102
+  units, a trooper inside ~90, a Stormtrooper inside ~51; the hound and
+  up are not its job, and **the three bosses take nothing**
+  (`+NORADIUSDMG`), so it never shortens a boss fight.
+- **1.71 s.** The real UZRGM burns 3.2-4.2 s; the brief asked for 1.5-2 so
+  a throw is not a wait and a monster does not walk out of the blast.
+- **Scarce.** Six at most (twelve with the backpack, which gives none);
+  the maps hand out 2-4 a map (§8, the design doc §6). Selection order
+  4000, after the ice axe: an empty gun never puts a grenade in the hand.
+
+**NOT YET MEASURED** (T5); not seen in the engine (D26).
+
 ## 4. Ammunition
 
 The seven weapons of D13 reuse Doom's four pools unchanged, so every
 Freedoom ammo pickup and the whole status bar keep working; the AKM (D116)
-has a pool of its own (last row; ADR 011):
+has a pool of its own (ADR 011), and so does the RGD-5 (V3, ADR 012; the
+last two rows):
 
 | Pool | Reads as | Used by | Pickup gives |
 |---|---|---|---|
@@ -252,6 +291,7 @@ has a pool of its own (last row; ADR 011):
 | `RocketAmmo` | PG-7V grenades | RPG-7 | 2 |
 | `Cell` | fuel canisters | ROKS-3, hand Katyusha | 40 |
 | `SD_AkmAmmo` (ours, D116) | 7.62x39 rounds | AKM | 30 a magazine (the weapon too); 15 from a Legion gunner's drop; maximum 150, 300 with the backpack, which also gives 30 |
+| `SD_Rgd5Ammo` (ours, V3) | RGD-5 grenades | RGD-5 | 1 a loose grenade (which also gives the weapon), 2 the pouch (the weapon), 4 a crate; maximum 6, 12 with the backpack, which gives none |
 
 Since 2026-10-13 the "reads as" column is no longer only a figure of speech:
 the player sees those names. The pools are still Doom's — nothing in the
@@ -471,7 +511,8 @@ the map before. These rules replace G3-8's number with a band per skill,
 cap the shells, and spread the rest over the weapons the player actually
 has. **The level designers apply them to MAP04–MAP09 now** (D119); MAP01–
 MAP03 shipped in v1.0, are not part of the complaint, and are re-measured
-only when the PM schedules it. Owner of the rule: this section; owner of
+only when the PM schedules it (their tests already hold them in the band;
+V3 recounts them with the RGD-5, §8.6). Owner of the rule: this section; owner of
 each map's numbers: its design doc in `docs/levels/`.
 
 ### 8.1 The ruler (G3-8's, with three D119 changes)
@@ -498,8 +539,10 @@ each map's numbers: its design doc in `docs/levels/`.
 | a 7.62x39 round (`SD_AkmAmmo`) | 0.15 (12 / 80) | the AKM's 12 | magazine 30, AKM 30 |
 | a PG-7V (`RocketAmmo`) | 2 | 135 direct plus the blast | 1, box 5, RPG-7 2 |
 | a unit of fuel (`Cell`) | **0.16875 (13.5 / 80; D119, was 0.25)** | the ROKS-3's jet, 13.5 since D119 | 20, pack 100, ROKS-3 40, Katyusha 40 |
+| an RGD-5 (`SD_Rgd5Ammo`; V3) | 1.25 (100 / 80) | the blast at the centre on one target, as a shell counts one barrel on one | loose 1, pouch (the weapon) 2, crate 4 |
 
-The backpack counts as what it gives (§4). **Not counted** in the ratio:
+**Grenades never count towards a boss's stage** (8.4, rule 3): the three
+bosses take no splash. The backpack counts as what it gives (§4). **Not counted** in the ratio:
 secrets, drops, skills 1 and 5's double ammunition, and the inventory
 carried from the map before.
 
@@ -582,3 +625,152 @@ For each stage of the route (the stages of the readiness check):
 
 `tests/test_d119_balance.py` pins this section's weapon and boss numbers
 against the code.
+
+### 8.6 The RGD-5 in the maps (V3 A4, 2026-10-24)
+
+Placed in MAP04-MAP09 and the range (`docs/engine/2026-10-23_V3_rgd5.md`
+§6; the maps' docs, "V3 (2026-10-24)"), and in Episode 1 the same day once
+the PM scheduled it. A grenade is a **consumable** in
+each map's `ITEMS`, so it scales **down** with skill, unlike the D119
+ammunition; none in a boss's arena, no crate in the campaign. Recount,
+1.25 shell-equivalents a grenade (8.1), in the band (8.2) and in the shell
+share's whole (8.3) only; the stage readiness, the lead (8.4.2) and the
+boss's stage (8.4.3) leave grenades out. No other pickup moved: every map
+stays in its band.
+
+| Map | grenades, skills 2 / 3 / 4 | ratio skill 2 | skill 3 | skill 4 |
+|---|---|---|---|---|
+| MAP01 | 4 / 3 / 2 (the pouch, 2 loose) | 1.500 → 1.661 | 1.341 → 1.401 | 1.213 → 1.244 |
+| MAP02 | 3 / 3 / 2 (the pouch, 1 loose) | 1.512 → 1.606 | 1.410 → 1.466 | 1.237 → 1.263 |
+| MAP03 | 4 / 3 / 2 (the pouch, 2 loose) | 1.510 → 1.561 | 1.328 → 1.359 | 1.216 → 1.229 |
+| MAP04 | 4 / 3 / 2 (the pouch, 2 loose) | 1.658 → 1.746 | 1.440 → 1.481 | 1.228 → 1.246 |
+| MAP05 | 3 / 3 / 2 (3 loose) | 1.559 → 1.611 | 1.334 → 1.366 | 1.233 → 1.248 |
+| MAP06 | 4 / 3 / 2 (the pouch, 2 loose) | 1.540 → 1.577 | 1.387 → 1.408 | 1.280 → 1.288 |
+| MAP07 | 4 / 3 / 2 (the pouch, 2 loose) | 1.657 → 1.725 | 1.465 → 1.494 | 1.294 → 1.308 |
+| MAP08 | 3 / 2 / 2 (3 loose) | 1.583 → 1.631 | 1.370 → 1.384 | 1.282 → 1.293 |
+| MAP09 | 3 / 2 / 2 (3 loose) | 1.610 → 1.628 | 1.347 → 1.355 | 1.239 → 1.245 |
+| RANGE | 6 on every skill (the pouch, a crate) | — | — | — |
+
+The band: 1.5-2.0 / 1.3-1.6 / 1.2-1.45. Each map test counts grenades in
+its `ammo_placed` (`GRENADES_GIVEN`, `SHELLS_PER_GRENADE`);
+`tests/test_rgd5_maps.py` pins the counts, the zones, the arenas and the
+range. Drops (a trooper's grenade) are still only a recommendation (the
+design doc §6).
+
+## 9. Medals (V3 B3, ADR 013; proposal, 2026-10-23)
+
+At the end of each episode (after the stats of MAP03, MAP06 and MAP09, before
+the ending text) the awards page shows five Soviet decorations; each is
+earned or not by the **whole episode's** figures: the three maps' kills,
+secrets and times **summed**, against the summed par times. A map of the
+episode not played in this game (a New Game is started on its first map;
+a death that restarts a map from scratch starts a new record, MOD-SPEC 6.13)
+counts as not played. The page lists all five every time, the earned ones
+lit, the others dark with the rule still readable, so the player learns what
+to aim for. Code: `SD_Awards` in `zscript/sd/awards.zs`; the table below is
+read by `tests/test_awards.py`.
+
+| Award | Rule | Constant | Value |
+|---|---|---|---|
+| Medal "For Courage" | the episode completed (always: one award for everyone who gets there) | — | — |
+| Order of the Red Star | kills, % of the episode's enemies, at least | `SD_REDSTAR_KILLS_PCT` | 75 |
+| Order of the Red Banner | secrets, % of the episode's secrets, at least (an episode with none counts 100) | `SD_REDBANNER_SECRETS_PCT` | 100 |
+| Order of the Patriotic War | the episode's time no more than the sum of its maps' `par` (whole seconds) | — | — |
+| Gold Star, Hero of the Soviet Union | all three maps played in this game, kills at least the Hero's %, every secret, within par, and on skill 3 or harder | `SD_HERO_KILLS_PCT` | 90 |
+| (the Hero's skill) | the episode's easiest skill, as the skill's SpawnFilter bit: 4 = Normal = «Not one step back» (MAPINFO) | `SD_HERO_MIN_SPAWNFILTER` | 4 |
+| (an episode) | maps per episode | `SD_MAPS_PER_EPISODE` | 3 |
+
+Why these numbers:
+
+- **75 % for the Red Star.** Doom's 100 % kills is a completionist's figure
+  (monsters behind closed areas, on ledges, teleported in late); three
+  quarters of an episode means fighting through each map rather than running
+  it, and leaves room for a missed room per map. Kills above 100 % (Nightmare
+  respawns, skill 5) still count, as the stats screen counts them.
+- **100 % for the Red Banner**, as the brief asks: the secrets are hand-placed,
+  with clues (each map's design doc, "Secrets"), so all of them is fair.
+- **Par for the Patriotic War.** `par` is what the stats screen prints as
+  PAR. **Debt:** every par is still the mod-engineer's or the
+  level-designer's placeholder (MAPINFO comments; MAP01 210 s, MAP02 300,
+  MAP03 360 -> episode 1 14:30; MAP04-06 300/330/420 -> 17:30; MAP07-09
+  330/360/480 -> 19:30), not a timed human run. Until QA times them this
+  award may be easy or impossible; the rule does not change when the pars do.
+- **The Gold Star needs all of it, at 90 %, on skill 3 or harder**: the
+  rung the menu starts on (`DefaultSkill`), so the Hero is earned at the
+  game's intended difficulty or above, never on the two easy rungs; 90 %
+  rather than 75 % because it is the one award that should feel rare. It
+  echoes skill 5's name, «Hero of the Soviet Union, posthumously».
+
+**NOT VERIFIED in the engine** (D26): the PM's pass ends each episode with
+known figures (the console's `kill monsters` gives 100 % kills) and checks the
+page against this table.
+
+## 10. Reloads (V3 experiment)
+
+**Branch `v3-reload` only, 2026-10-25 (D132; a nice to have, D121; ADR
+014).** The CVar `sd_reloads` (Options > Soviet Doom > Weapon reloads,
+on by default on this branch) gives four guns a magazine; off, every
+number above stands exactly as built (D39). Design and the engine checks:
+`docs/engine/2026-10-25_V3_reloads.md`. Not seen in the engine (D26).
+
+**A magazine is a counter over the pool, not a second pool.** Each shot
+still takes its round from `Clip`, `SD_AkmAmmo` or `Cell`; the magazine
+only says how many may go before the gun is lowered and reloaded. No
+ammunition is created, lost or moved, so **the maps' ammunition (§8) is
+untouched** and damage per unit of ammo is unchanged. What changes is
+time: the sustained figures below pay one reload per magazine.
+
+| Gun | Magazine | Constant | Reload | to empty it | damage a magazine | DPS before (§2) | DPS sustained, reloads on | change |
+|---|---|---|---|---|---|---|---|---|
+| TT-33 | 8 | `SD_TT_MAGAZINE` | 42 tics, 1.2 s | 128 tics, 3.7 s | 96 | 26.3 | **19.8** | -25 % |
+| PPSh-41 | 71 (the drum) | `SD_PPSH_MAGAZINE` | 88 tics, 2.5 s | 213 tics, 6.1 s | 568 | 93.3 | **66.0** | -29 % |
+| AKM | 30 | `SD_AKM_MAGAZINE` | 70 tics, 2.0 s | 120 tics, 3.4 s | 360 | 105.0 | **66.3** | -37 % |
+| ROKS-3 | 80 jets (the tank) | `SD_ROKS3_TANK` | 88 tics, 2.5 s | 240 tics, 6.9 s | 1 080 | 157.5 | **115.2** | -27 % |
+| IZh-58 | 2 barrels (as before) | `SD_IZH_BARRELS` | 30 tics, as before | 46 tics | 160 | 73.7 sustained | **73.7** | none |
+
+How the column is computed: DPS sustained = damage a magazine / (time to
+empty it + the reload), every round hitting, the trigger held. The time to
+empty is the magazine times the cadence of §2 (the PPSh-41's 71st round is
+an A frame, so the drum empties at 71 x 3 = 213 tics, not on a whole
+6-tic cycle). The tic in `Ready` between the reload and the next shot is
+left out (one tic in 170 to 328). The reload durations are the brief's
+(TT-33 ~1.2 s, PPSh-41 ~2.5 s, AKM ~2 s, ROKS-3 ~2.5 s), constants
+`SD_*_RELOAD_TICS`.
+
+Why 80 jets for the ROKS-3: the brief gave no tank size. The real ROKS-3
+carried some 6-8 s of fire; 80 jets is 6.9 s at 11.67 a second, and one
+tank still burns the heaviest Panzermensch (75 jets, §3, slot 6) without a
+reload. The IZh-58 is unchanged: its two barrels and its 30-tic break-open
+were always its reload. With reloads on, the +reload key (R) also breaks it
+open after one barrel; that is slower per shell (30 tics for one), so it
+only ever lowers the gun's DPS, by the player's choice.
+
+**What it does to the ladder (the finding for the CEO).** Sustained, with
+reloads on:
+
+    ice axe 19.4 · TT-33 19.8 · PPSh-41 66.0 · AKM 66.3 · IZh-58 73.7 · ROKS-3 115.2 · RPG-7 181.7
+
+**Slot 4 falls under slot 3.** The PPSh-41 and the AKM, 93 and 105 today,
+both end up near 66, under the IZh-58's 73.7, which already pays its own
+reload. That is the gun D119 found "you always end up with". It is the
+sustained figure, the trigger held through a whole magazine and a reload;
+in a short fight a full magazine is the burst figure of §2, unchanged
+(568 damage in a PPSh-41 drum kills a Panzermensch, 500 HP, §7, without a
+reload; 360 in an AKM magazine does not kill a Doughboy, 400 HP). The
+TT-33 lands on the ice axe's figure, which D47 already expected ("about
+19").
+
+If the CEO wants slot 4 back over slot 3, the cheapest knobs, each one
+constant (NOT applied, the CEO's call):
+
+| Knob | PPSh-41 | AKM |
+|---|---|---|
+| reload 1.5 s (52 tics) | 75.0 | 73.3 |
+| reload 1.2 s (42 tics) | 78.0 | 77.8 |
+| AKM magazine 40 (an RPK's) at 2.0 s | — | 73.0 |
+
+Shorter reloads are less realistic; the brief asked for the realistic ones,
+so they stand until the CEO has played them.
+
+**NOT VERIFIED in the engine** (D26): every figure here is computed. The
+PM's pass times one magazine and one reload per gun (the doc's checks).

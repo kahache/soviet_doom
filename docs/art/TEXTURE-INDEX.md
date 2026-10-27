@@ -664,6 +664,52 @@ not do yet (MOD-SPEC §10, T12).
 | `M_SKULL2` | menu patch (cursor, phase 2) | 20×20 | no | the same emblem in its second blink phase, pale cream: the blink is the gold lighting up | (a) `tools/art/gen_cursor.py`, `cursor_image("B", 2)`; file `cursor_B_2.png` | approved 2026-10-14 (D48) | 2026-10-14 |
 | `M_PAUSE` | pause sign | 77×20 | no | option P2, English: «PAUSE» in `SDMENU` (D22 letterforms, it reads PДUSЭ) on a flag-red plaque with a cream border; the canvas also fits the Russian «ПАУЗА», so a localised variant can match its size | (a) `tools/art/gen_cursor.py`, `pause_image("P2", "en")`; file `pause_P2_en.png` | approved 2026-10-14 (D48); the Russian plaque ships as `localized/textures/M_PAUSE.ru.png` (T24) and the Catalan «PAUSA» as `M_PAUSE.ca.png` (P6, 2026-10-21, seen in the engine), both 77×20 and chosen by `SD_PAUSE_SIGN` | 2026-10-14 |
 
+## Intermission pictures — the operations map and the awards (V3 B1/B3, ADR 013)
+
+Not textures: graphics the intermission draws by name (`graphics/`, MiscPatch),
+listed so the index carries every shipped picture. **Proposal, waiting for the
+CEO** (political symbols: D113's standing approval does not cover the awards);
+installed on the V3 branch only. Preview at 2×, the nine positions of the map,
+the stats page over it, the awards page in English and Russian, the awards at
+4×: `docs/art/previews/2026-10-23_V3_ops-map-medals.png`. Generators
+`tools/art/gen_ops_map.py` (seed 1977; it also writes the intermission script
+`src/lumps/SDOPSCR`) and `tools/art/gen_medals.py`; palette v2 (`mosaic_gold`,
+`marble_red`, `mosaic_cobalt`); RGBA with hard alpha except the background
+(indexed), as the shell's overlays. Positions in the 320×200 space are the
+script's, offsets in each PNG's grAb (`tests/test_ops_map.py`). Not yet seen in
+the engine (D26).
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDOPMAP` | intermission background (indexed) | 320×200 | no | the USSR in olive on a cobalt sea (lighter on the shelf), a dotted 10° graticule, the Volga, Ob, Yenisei, Podkamennaya Tunguska and Lena, the Trans-Siberian dashed in dark red, the coast a dark line, the nine sites as cream rings, the gold hammer and sickle under a red star top left, a cream frame; the top 30 px stay sea for the engine's map name and "Entering" | (a) gen_ops_map, seed 1977, palette v2 | proposal (V3, ADR 013) | 2026-10-23 |
+| `SDOPR02`…`SDOPR09` | intermission overlays (RGBA) | per segment | no | the red arrow into MAPnn from the map before, a bowed line with its head 5 px short of the site, dark contour; grAb 0,0, placed at its box's corner by the script | (a) gen_ops_map | proposal (V3, ADR 013) | 2026-10-23 |
+| `SDOPSTAR` | intermission overlay (RGBA) | 9×9 | no | a taken site: red star, gold rim, dark contour; grAb at the centre; also the script's `Splat` | (a) gen_ops_map | proposal (V3, ADR 013) | 2026-10-23 |
+| `SDOPCUR0`, `SDOPCUR1` | intermission overlays (RGBA) | 17×17 | no | the gold pulse on the site just finished (two radii, 12 tics each); grAb at the centre | (a) gen_ops_map | proposal (V3, ADR 013) | 2026-10-23 |
+| `SDOPYAH0` | intermission overlay (RGBA) | 17×17 | no | "you are here": the gold ring the engine blinks on the next site (the script's `Pointer`); grAb at the centre | (a) gen_ops_map | proposal (V3, ADR 013) | 2026-10-23 |
+| `SDAWCOU` | award (RGBA) | 24×30 | no | Medal "For Courage": silver disc, three aircraft, the red band of the inscription left blank, a tank; grey pentagonal ribbon with blue edges | (a) gen_medals | proposal (V3, ADR 013; CEO) | 2026-10-23 |
+| `SDAWRST` | award (RGBA) | 24×30 | no | Order of the Red Star: faceted red star, silver centre with a red point (no soldier); claret ribbon, grey centre stripe | (a) gen_medals | proposal (V3, ADR 013; CEO) | 2026-10-23 |
+| `SDAWRBN` | award (RGBA) | 24×30 | no | Order of the Red Banner: gold wreath, white field, red star, a red banner over the top; red ribbon with white stripes | (a) gen_medals | proposal (V3, ADR 013; CEO) | 2026-10-23 |
+| `SDAWPTW` | award (RGBA) | 24×30 | no | Order of the Patriotic War: gold sunburst, red star, crossed rifle and sabre, a red-and-gold centre; claret ribbon, red centre stripe | (a) gen_medals | proposal (V3, ADR 013; CEO) | 2026-10-23 |
+| `SDAWHER` | award (RGBA) | 24×30 | no | Gold Star of the Hero of the Soviet Union: faceted gold star on a red ribbon bar framed in gold | (a) gen_medals | proposal (V3, ADR 013; CEO) | 2026-10-23 |
+
+## Ending pictures — the episode endings' illustrations (V3 B2, D132)
+
+Not textures, listed so the index carries every shipped picture. **Proposal,
+waiting for the CEO** (installed on the `v3-endings` branch only); preview
+with the three at 3×, the armbands at 6× and the order of the screens:
+`docs/art/previews/2026-10-25_V3_episode-endings.html`. Generator
+`tools/art/gen_endings.py` from the Gemini paintings (local, D77); indexed,
+palette v3 (D128: `reich_greygreen` for the Reich skin). Drawn by the end
+sequences `SD_Ending1-3` (MAPINFO, MOD-SPEC §6.16). Provenance:
+`LICENSES.md` ("The episode endings' illustrations"). Not yet seen in the
+engine (D26).
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDEND1` | end-sequence picture (indexed) | 320×200 | no | Tankograd: the sergeant at the breaker, the dying portal, the column marching on Moscow, the Legion and Reich dead; the armband symbol | (a) gen_endings from `gemini_ending_ep1.jfif`, palette v3 | proposal (V3 B2) | 2026-10-25 |
+| `SDEND2` | end-sequence picture (indexed) | 320×200 | no | Red Square: the fallen Liberty Colossus, the sergeant and the banner, the crowd, the Kremlin, St Basil's, the portal; 42 rows of sky added above | (a) gen_endings from `gemini_ending_ep2_v2.jfif`, palette v3 | proposal (V3 B2) | 2026-10-25 |
+| `SDEND3` | end-sequence picture (indexed) | 320×200 | no | Tunguska: the sergeant and the banner before the imploding portal, the Consortium's two halves (the Legion half redrawn as a half figure, D135) and helmets; the armband symbol; 90 rows of night sky above, 60 of ground below | (a) gen_endings from `gemini_ending_ep3_v6_composite.png` (Gemini v5 + Gemini's redrawn crop, PM's composite), palette v3 | approved (D135) | 2026-10-27 |
+
 ## The alphabet (D24) — glyph fix and German letters
 
 Not textures, listed here so the index carries every shipped art change.
@@ -687,6 +733,29 @@ Not textures either. `assets/fonts/sdmenu/` (112 glyphs + `font.inf`) is
 main menu and the skill-screen headers. Owned by `LICENSES.md` ("The menu
 font SDMENU"). Status: **approved for in-engine trial 2026-10-13 (D31)**.
 Reference sheet `docs/art/previews/2026-10-13_1554_F2_menu-sweep.png`.
+
+## The propaganda loudspeakers SDLS and SDLO (V3 B5, D124, D132)
+
+A sprite, not a texture, listed so the index carries every shipped picture.
+`SD_Loudspeaker` (21201, MOD-SPEC §6.14) stands where `level-designer` puts
+it, often in the middle of a room or a square, so it is a pole that reads
+from every side: rotation 0. Generator `tools/art/gen_loudspeaker.py`
+(rig_core solids, seed 21201, palette v1, RGBA with hard alpha, grAb 28,74:
+the foot sinks 3 px as `COLU`), from the sheet
+`docs/art/previews/2026-10-24_V3_loudspeaker.png`. The CEO took both
+options (D132, "Ambos! A y B", both A and B): option A (grey) is `SDLS`,
+option B (olive) is installed as `SDLO` (the generator names both options
+`SDLS`; the olive pair is renamed on the way in, byte for byte). The map
+picks one per loudspeaker (MOD-SPEC §6.14, arg3 flag 8): grey in the city,
+the red-brick works and the Kremlin, olive in the army's installations.
+Sprites go to the CEO (D113 covers textures and MIDI only).
+
+| Lump | Kind | Size | Tiles | Description | Origin | Status | Date |
+|---|---|---|---|---|---|---|---|
+| `SDLSA0` | sprite (RGBA), rotation 0 | 56×80 | no | the street loudspeaker, silent: a grey steel pole on a cast-iron foot, a cross-arm with two aluminium horns aimed out and a little down, their driver cans behind, an olive junction box with a red star and a dark pilot lamp; 69 units from the floor to the top of the horns | (a) gen_loudspeaker, option A, seed 21201 | approved (CEO, 2026-10-24) | 2026-10-24 |
+| `SDLSB0` | sprite (RGBA), rotation 0 | 56×80 | no | the same, speaking: the pilot lamp lit and the horns 0.6 units forward on their axis; alternates with A while a line plays | (a) gen_loudspeaker, option A, seed 21201 | approved (CEO, 2026-10-24) | 2026-10-24 |
+| `SDLOA0` | sprite (RGBA), rotation 0 | 56×80 | no | the army's loudspeaker, silent: the same drawing in 4BO olive, the pole, the cross-arm and the two horns olive, the junction box with the red star and a dark pilot lamp | (a) gen_loudspeaker, option B (`B/SDLSA0.png`, renamed), seed 21201 | approved (CEO, 2026-10-24, D132) | 2026-10-24 |
+| `SDLOB0` | sprite (RGBA), rotation 0 | 56×80 | no | the same, speaking: the pilot lamp lit and the horns shaken | (a) gen_loudspeaker, option B (`B/SDLSB0.png`, renamed), seed 21201 | approved (CEO, 2026-10-24, D132) | 2026-10-24 |
 
 ## IWAD references in use (from `docs/engine/MOD-SPEC.md` §5)
 

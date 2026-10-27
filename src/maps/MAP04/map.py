@@ -38,7 +38,9 @@ Run it (the PM or the CEO; agents never start GZDoom, D26):
 
 from __future__ import annotations
 
+import importlib.util
 from dataclasses import replace
+from pathlib import Path
 
 from sdbuild.udmf import (
     DOOR_SPEED_SLOW,
@@ -57,6 +59,20 @@ from sdbuild.udmf import (
 )
 
 MAP_NAME = "MAP04"
+
+
+def _load_pickup_events():
+    """Episode 2's pickup events (src/maps/common/pickup_events_e2.py): the
+    verified specials and the helpers MAP04, MAP05 and MAP06 share. Loaded by
+    path, as the build loads this file."""
+    path = Path(__file__).resolve().parents[1] / "common" / "pickup_events_e2.py"
+    spec = importlib.util.spec_from_file_location("sd_pickup_events_e2", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+EVENTS = _load_pickup_events()
 
 # --- The approved sets (docs/art/TEXTURE-INDEX.md) ---------------------------
 # Soviet base.
@@ -127,11 +143,16 @@ DOOR_LEAVES = (DOOR, DOOR_YELLOW, DOOR_RED)
 # and MAP03. Delay 0: opens and stays open.
 SPECIAL_DOOR_LOCKED_RAISE = 13
 # Floor_LowerToLowest (tag, speed): 21 in ZDoom's (Hexen's) special table,
-# the action xlat/doom.txt gives Doom's "lower floor to lowest" lines. NOT
-# VERIFIED in our engine runs (design document, engine checklist K3); if it
-# failed, the gondolas would stay shut, and nothing the route needs is in them.
-SPECIAL_FLOOR_LOWER_TO_LOWEST = 21
-FLOOR_SPEED = 16        # 2 units a tic: a 96 side is down in ~1.4 s
+# the action xlat/doom.txt gives Doom's "lower floor to lowest" lines; the
+# number read from g4.14.2's own table on 2026-10-23 (pickup_events_e2.py).
+# Its effect is NOT VERIFIED in our engine runs (design document, engine
+# checklist K3); if it failed, the gondolas would stay shut, and nothing the
+# route needs is in them.
+SPECIAL_FLOOR_LOWER_TO_LOWEST = EVENTS.FLOOR_LOWER_TO_LOWEST
+FLOOR_SPEED = EVENTS.FLOOR_SPEED_NORMAL   # 2 units a tic: a 96 side is down in ~1.4 s
+# Door_Open (tag, speed, lighttag): 11, VERIFIED in engine (every switch);
+# V3 (A2) puts it on the yellow key: the yard's hut opens behind the player.
+SPECIAL_DOOR_OPEN = EVENTS.DOOR_OPEN
 LOCK_RED_CARD = 1       # gzdoom.pk3 lockdefs.txt, as MAP03
 LOCK_YELLOW_CARD = 3
 ED_YELLOW_CARD = 6      # Doom's cards, drawn by Freedoom until we have our own
@@ -277,6 +298,7 @@ LIGHT_CAB = 144
 LIGHT_NICHE = LIGHT_MIN         # S1's and S3's clue: the niche in shadow
 LIGHT_SECRET = 112
 LIGHT_GONDOLA = 112
+LIGHT_HUT = 112                 # the platelayers' hut (V3): unlit, a lamp room
 LIGHT_POSTER_STEP = 16          # a poster's niche: one lamp step over its room
 BEACON_ZONES = ("z2_yellow_portal", "z2_red_portal", "z3_frame", "z5_hub", "z7_exit_niche")
 
@@ -297,6 +319,9 @@ TAG_SHUTTER = 10        # SW-A: the roundhouse's road gate onto the yard
 TAG_HATCH = 11          # SW-B: the armoured train's rear hatch
 TAG_GONDOLAS = 12       # the red key's pickup: the gondolas' sides drop (no line carries it)
 LIFT_TAGS = (TAG_GONDOLAS,)
+TAG_YARD_HUT = 13       # V3 (A2): the yellow key's pickup opens the platelayers' hut (no line carries it)
+# The tags only a pickup opens (no line carries any of them): {tag: the key}.
+PICKUP_TAGS = {TAG_GONDOLAS: "red", TAG_YARD_HUT: "yellow"}
 
 # --- Things --------------------------------------------------------------------
 PLAYER_START = (4480, 1184)
@@ -309,6 +334,20 @@ LOCK_PORTALS = {LOCK_YELLOW_CARD: "z2_yellow_portal", LOCK_RED_CARD: "z2_red_por
 # an inventory item's special when it is picked up (Inventory.DoPickupSpecial,
 # read in g4.14.2's zscript; NOT VERIFIED in our engine runs, checklist K4).
 RED_KEY_PICKUP_SPECIAL = (SPECIAL_FLOOR_LOWER_TO_LOWEST, (TAG_GONDOLAS, FLOOR_SPEED, 0, 0, 0))
+# V3 (A2, D119/D120): the yellow key's pickup. The signalman's pass lifted off
+# the lever frame, the Reich's platelayers' hut in the yard's north wall
+# opens: its riflemen come out between the rake and the red door as the
+# player goes back along the roofs or down the ramp. Warned: the door's own
+# sound, and the hut's door faces the ramp and the rake's east roofs (tested).
+# Never in the way: the hut is a dead end the player walks out of, opened
+# for good, and nothing the route needs is in it (tested).
+YELLOW_KEY_PICKUP_SPECIAL = (SPECIAL_DOOR_OPEN, (TAG_YARD_HUT, DOOR_SPEED_SLOW, 0, 0, 0))
+PICKUP_SPECIALS = {ED_YELLOW_CARD: YELLOW_KEY_PICKUP_SPECIAL, ED_RED_CARD: RED_KEY_PICKUP_SPECIAL}
+# The hut: a 128 door in the yard's north wall, east of the platform's end,
+# north of the ramp; the room behind it one tile high, a dead end.
+YARD_HUT_DOOR = (3520, 1920, 3648, 1936)
+YARD_HUT = (3456, 1936, 3712, 2064)
+HUT_HEIGHT = 128
 
 # Zone-name families the tests use.
 PROP_PREFIX = "prop_"           # unwalkable by design (wagons, crate stacks, sills, the loco)
@@ -451,6 +490,16 @@ ED_HEALTH_BONUS = 2014
 ED_ARMOR_BONUS = 2015
 ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
+# V3 A4, the RGD-5 hand grenade (ADR 012; docs/engine/2026-10-23_V3_rgd5.md
+# section 6): its own pool, counted 1.25 shell-equivalents a grenade
+# (BALANCE 8.1). A grenade is a consumable here, so it rides in ITEMS and
+# scales DOWN with skill: 4 / 3 / 2 grenades on skills 2 / 3 / 4.
+ED_RGD5 = 21009           # the pouch: the weapon and two grenades
+ED_RGD5_AMMO = 21021      # one loose grenade (it gives the weapon too)
+ED_RGD5_BOX = 21022       # a crate of four: a secret's reward only (none here)
+# V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
+# 5.4): SD_Loudspeaker, a positional voice over the music (MOD-SPEC 6.14).
+ED_LOUDSPEAKER = 21201
 
 # Monsters per skill (Doom's skill pairs, udmf.skill_tier).
 ENEMY_TOTALS = {2: 29, 3: 42, 4: 56}
@@ -467,12 +516,9 @@ MONSTERS = (
     ("z2_yard", "rifleman", 3776, 1312, 270, 4),
     # The yard, the Reich among the wagons.
     ("z2_yard", "rifleman", 3450, 900, 0, 2),
-    ("z2_yard", "rifleman", 3550, 1460, 0, 2),
     ("z2_yard", "rifleman", 2400, 880, 0, 2),
     ("z2_yard", "hound", 2700, 1125, 0, 2),
-    ("z2_yard", "rifleman", 2950, 1250, 0, 3),
     ("z2_yard", "stormtrooper", 2200, 1440, 0, 3),
-    ("z2_yard", "rifleman", 3200, 1830, 0, 4),
     ("z2_yard", "stormtrooper", 2000, 880, 0, 4),
     # Snipers on the rake's roofs.
     ("z2_roof_2", "rifleman", 2780, 1600, 0, 2),
@@ -506,6 +552,13 @@ MONSTERS = (
     ("z5_rails_stall", "panzermensch", 560, 1184, 0, 3),
     ("z5_hall", "hound", 1450, 900, 180, 3),
     ("z5_stall_2", "rifleman", 300, 1184, 0, 4),
+    # The platelayers' hut (V3, A2: the yellow key's counter-attack): three of
+    # the yard's riflemen, moved in from the yard (3550 1460, 2950 1250, 3200
+    # 1830), so the yard is quieter on the way in and fights back on the way
+    # out. The Reich's, as the yard is.
+    ("z2_hut", "rifleman", 3520, 2000, 270, 2),
+    ("z2_hut", "rifleman", 3584, 2016, 270, 3),
+    ("z2_hut", "rifleman", 3648, 2000, 270, 4),
     # The gondolas (the red key's counter-attack), mixed.
     ("z2_gondola_1", "trooper", 2960, 1344, 270, 2),
     ("z2_gondola_2", "rifleman", 2580, 1024, 90, 2),
@@ -582,6 +635,23 @@ ITEMS = (
     ("z5_porch", ED_HEALTH_BONUS, 1632, 512, 4),
     ("z6_balcony", ED_HEALTH_BONUS, 2400, 2560, 4),
     ("z7_engine", ED_HEALTH_BONUS, 1000, 2500, 4),
+    # The RGD-5 (V3 A4): the pouch in the tunnel, before the yard, so the
+    # Legion's debut by the dozen meets the grenade's lesson; loose ones in
+    # the yard (troopers behind the wagons) and the warehouse.
+    ("z1_tunnel", ED_RGD5, 4300, 1136, 4),
+    ("z2_yard", ED_RGD5_AMMO, 3550, 1100, 3),
+    ("z4_hall", ED_RGD5_AMMO, 2400, 450, 2),
+)
+
+# The station's loudspeaker (V3 B5): (zone, x, y, lines, reach, flags,
+# jingle). Lines are the radio's 1-16 (SDRAD01-16), the thing's arg0 their
+# bit mask; reach 0 = the actor's 384; flags arg3 (4 = the valve bed);
+# jingle arg4 (0 = a random one of three). A station loudspeaker: the front
+# reports, the time signal, the parade, the weather, the helmet notice and
+# Tankograd's plan (the city the sergeant has just left). Reach 512: the
+# platform is 2944 long. Grey (flags 0, D132): a railway station's horn.
+LOUDSPEAKERS = (
+    ("z6_platform", 2048, 2280, (1, 16, 9, 10, 12, 15), 512, 0, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", and always on the
@@ -908,6 +978,11 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
          light=LIGHT_BEACON, ceiling=CEIL_PANEL, wall=BRICK, extra=RED_LIGHT)
     red_door = door("red_door", GROUND, TAG_RED_DOOR, (2688, 1920, 2816, 1952),
                     light=LIGHT_PLATFORM)
+    # V3 (A2): the platelayers' hut, the yellow key's counter-attack. Its
+    # door is the yard's own brick until it opens (a closet, MAP05's), on a
+    # tag no line carries; the room behind is one tile high, a dead end.
+    zone("z2_hut_door", GROUND, GROUND, [YARD_HUT_DOOR], TAG_YARD_HUT, light=LIGHT_HUT, wall=BRICK)
+    zone("z2_hut", GROUND, GROUND + HUT_HEIGHT, [YARD_HUT], light=LIGHT_HUT, wall=BRICK)
 
     # ======================================================================
     # Z3: the signal box, a brick tower at the rake's west end
@@ -1170,16 +1245,18 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
 
     tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START,
                        angle=PLAYER_ANGLE))
-    tm.add_thing(Thing(x=YELLOW_KEY_SPOT[0], y=YELLOW_KEY_SPOT[1], type=ED_YELLOW_CARD))
-    special, args = RED_KEY_PICKUP_SPECIAL
-    tm.add_thing(Thing(x=RED_KEY_SPOT[0], y=RED_KEY_SPOT[1], type=ED_RED_CARD,
-                       extra={"special": special, **{f"arg{i}": a for i, a in enumerate(args)}}))
+    for ednum, (x, y) in ((ED_YELLOW_CARD, YELLOW_KEY_SPOT), (ED_RED_CARD, RED_KEY_SPOT)):
+        tm.add_thing(Thing(x=x, y=y, type=ednum, extra=EVENTS.special_fields(*PICKUP_SPECIALS[ednum])))
     for _zone, kind, x, y, angle, tier in MONSTERS:
         tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle))
     for _zone, ednum, x, y, top in ITEMS + SECRET_ITEMS:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     for _zone, ednum, x, y, low, high in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(low, high)))
+    for _zone, x, y, lines, reach, flags, jingle in LOUDSPEAKERS:
+        mask = sum(1 << (line - 1) for line in lines)
+        tm.add_thing(Thing(x=x, y=y, type=ED_LOUDSPEAKER,
+                           extra={"arg0": mask, "arg1": reach, "arg3": flags, "arg4": jingle}))
     return tm, plan
 
 

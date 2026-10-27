@@ -32,7 +32,12 @@ map's tests stay one file). The contract:
   skill's floor at every stage (the boss's servants in the bill), shells at
   most 35 % with the drops, each pool after its weapon and the newest
   leading, fuel sparing; the crater's own stock for the boss and inside the
-  band; health on skill 4.
+  band; health on skill 4;
+* V3's pickup events (D120's A2 and A3; tests/_pickup_events_e3.py): the
+  blue key opens the laboratory's quarantine room, the yellow key brings the
+  works' cargo lift down, the red key opens the works' closets (v1's, now
+  with lamps); each hidden until it fires, warned by a flickering lamp,
+  never needed, never a trap.
 
 Run:  python3 -m unittest tests.test_map09_tunguska -v
 """
@@ -53,6 +58,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "tests"))
 
 # Imported as a module, not by name, so its TestCases are not collected twice.
 import test_udmf as udmf_tests  # noqa: E402
+import _pickup_events_e3 as pickup_events  # noqa: E402
 
 parse_textmap = udmf_tests.parse_textmap
 MAX_STEP_UP = udmf_tests.MAX_STEP_UP       # 24
@@ -125,6 +131,14 @@ SHELLS_GIVEN = {2008: 4, 2049: 20, 21003: 8}
 ROUNDS_GIVEN = {2007: 10, 2048: 50, 21004: 35}
 ROCKETS_GIVEN = {2010: 1, 2046: 5, 21005: 2}
 CELLS_GIVEN = {2047: 20, 17: 100, 21006: 40}
+# V3 A4, the RGD-5 (BALANCE 8.1): a grenade counts 1.25 shell-equivalents
+# (its 100 blast at the centre over the IZh's 80), the pouch (the weapon)
+# 2, a loose one 1, the crate 4. Counted in the band (8.2) and in the shell
+# share's whole (8.3) only: the stage readiness, the newest weapon's lead
+# (8.4.2) and the boss's stage (8.4.3) leave grenades out, as BALANCE says
+# (the bosses take no splash).
+GRENADES_GIVEN = {21009: 2, 21021: 1, 21022: 4}
+SHELLS_PER_GRENADE = 1.25
 AKM_ROUNDS_GIVEN = {21020: 30, 21008: 30}   # a magazine; the rifle comes with one
 AKM_AVERAGE = 12                             # 6 x random(1,3) a round (BALANCE slot 4b)
 AKM_ROUNDS_PER_SHELL = 80 / AKM_AVERAGE      # an IZh barrel's 80
@@ -188,7 +202,7 @@ def _class_facts(name: str) -> dict:
     return facts
 
 
-class Map09Test(unittest.TestCase):
+class Map09Test(pickup_events.PickupEventChecks, unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -203,8 +217,9 @@ class Map09Test(unittest.TestCase):
         cls.zone_of = {i: name for name, i in cls.plan.items()}
         cls.start = cls.plan["z1_platform"]
         cls.doors = defaultdict(set)
+        movers = pickup_events.floor_movers(cls.m)   # a sinking wall is shut like a door, but sinks
         for i, s in enumerate(cls.sectors):
-            if s.get("id") and s["heightceiling"] == s["heightfloor"]:
+            if s.get("id") and s["heightceiling"] == s["heightfloor"] and s["id"] not in movers:
                 cls.doors[s["id"]].add(i)
         cls.door_sectors = set().union(*cls.doors.values())
         cls.neighbours = defaultdict(set)
@@ -228,6 +243,7 @@ class Map09Test(unittest.TestCase):
             cls.hit_points[ednum] = facts["HEALTH"]
             cls.faction[ednum] = facts["FACTION"]
         cls.rounds = cls().progression_of(kills=True)   # a bare instance: the model asserts nothing
+        cls.every_tag = set().union(*(r[0] for r in cls.rounds))
 
     # --- helpers ----------------------------------------------------------
     @classmethod
@@ -260,7 +276,7 @@ class Map09Test(unittest.TestCase):
                 ceiling = (min(self.sectors[n]["heightceiling"] for n in self.neighbours[i])
                            - DOOR_OPENS_BELOW_CEILING)
             out.append((s["heightfloor"], ceiling))
-        return out
+        return pickup_events.apply_moves(out, self.sectors, self.neighbours, self.plan, self.m, open_tags)
 
     def adjacency(self, open_tags):
         h = self.heights(open_tags)
@@ -306,9 +322,11 @@ class Map09Test(unittest.TestCase):
         return {self.m.KEY_LOCKS[t["type"]]: self.sector_at(t["x"], t["y"]) for t in self.key_things()}
 
     def thing_specials(self, numbers):
-        """[(tag, sector)] for every thing of `numbers` carrying Door_Open."""
+        """[(tag, sector)] for every thing of `numbers` carrying a special on a
+        tag (Door_Open; since V3 also Floor_LowerToLowest, the works' lift)."""
         return [(t["arg0"], self.sector_at(t["x"], t["y"])) for t in self.things
-                if t["type"] in numbers and t.get("special") == SPECIAL_DOOR_OPEN]
+                if t["type"] in numbers and t.get("special") in (SPECIAL_DOOR_OPEN,
+                                                                 pickup_events.SPECIAL_FLOOR_LOWER_TO_LOWEST)]
 
     def progression_of(self, kills=True):
         """Play the map as a player can (MAP03's model): free doors open
@@ -356,6 +374,9 @@ class Map09Test(unittest.TestCase):
         exits = [ld for ld in self.lines if ld.get("special") == SPECIAL_EXIT_NORMAL]
         self.assertEqual(1, len(exits))
         return exits[0]
+
+    def exit_sector(self):
+        return self.front(self.exit_line())
 
     def line_points(self, ld):
         a, b = self.verts[ld["v1"]], self.verts[ld["v2"]]
@@ -781,11 +802,12 @@ class Map09Test(unittest.TestCase):
         self.assertEqual({m.TAG_S1_PANEL, m.TAG_S2_PANEL}, set(o0), "the panels open whether found or not")
         self.assertEqual({m.LOCK_BLUE_CARD}, set(h0))
         self.assertFalse(self.named("z4_forest") & r0, "the forest is behind the blue gate")
-        self.assertEqual({m.TAG_BLUE_DOOR, m.TAG_S3_PANEL}, set(o1 - o0))
+        self.assertEqual({m.TAG_BLUE_DOOR, m.TAG_S3_PANEL, m.TAG_QUARANTINE}, set(o1 - o0),
+                         "V3: the blue key's quarantine room")
         self.assertEqual({m.LOCK_BLUE_CARD, m.LOCK_YELLOW_CARD}, set(h1))
         self.assertTrue(self.named("z4_forest", "z5_works", "z5_key_top") <= r1)
         self.assertFalse(self.named("z6_refinery") & r1)
-        self.assertEqual({m.TAG_YELLOW_DOOR}, set(o2 - o1))
+        self.assertEqual({m.TAG_YELLOW_DOOR, m.TAG_WORKS_LIFT}, set(o2 - o1), "V3: the yellow key's lift")
         self.assertEqual({m.LOCK_BLUE_CARD, m.LOCK_YELLOW_CARD, m.LOCK_RED_CARD}, set(h2))
         self.assertFalse(self.named("z7_rim", "closet_z5_w", "closet_z5_e") & r2)
         self.assertEqual({m.TAG_RED_DOOR, m.TAG_AMBUSH}, set(o3 - o2))
@@ -979,6 +1001,138 @@ class Map09Test(unittest.TestCase):
             under = {self.sector_at(x + dx, y + dy) for dx in (-radius, radius) for dy in (-radius, radius)}
             self.assertEqual({floor}, under, f"servant spot ({x}, {y})")
 
+    # --- V3 A3: the crater's ground opens at the Breach (design section 18.3) --
+    def scabs(self):
+        """The sectors the Breach sinks: every one tagged TAG_CRATER_BREACH."""
+        return [i for i, s in enumerate(self.sectors) if s.get("id") == self.m.TAG_CRATER_BREACH]
+
+    def breach_heights(self, open_tags):
+        """heights(open_tags) with the scabs sunk to their lowest neighbour,
+        as Floor_LowerToLowestTxTy leaves them."""
+        h = self.heights(open_tags)
+        for i in self.scabs():
+            h[i] = (pickup_events.lowest_floor(i, self.sectors, self.neighbours), h[i][1])
+        return h
+
+    def test_the_breach_scabs_carry_tag_15_and_nothing_else_does(self):
+        """Four scabs of the crater's floor and nothing else carry the tag;
+        no line and no pickup moves it: only the boss, whose thing names it
+        in arg4 (its death special, Door_Open, reads arg0-arg2 only)."""
+        m = self.m
+        self.assertEqual(15, m.TAG_CRATER_BREACH)
+        self.assertEqual(4, len(m.CRATER_SCABS))
+        self.assertEqual({f"z8_scab_{n}" for n in range(1, len(m.CRATER_SCABS) + 1)},
+                         {self.zone_of[i] for i in self.scabs()})
+        self.assertFalse([ld for ld in self.lines if ld.get("special")
+                          and m.TAG_CRATER_BREACH in (ld.get("arg0"), ld.get("arg1"))])
+        carriers = [t for t in self.things
+                    if m.TAG_CRATER_BREACH in [t.get(f"arg{k}") for k in range(5)]]
+        boss = m.MONSTER_KINDS[m.BOSS_KIND]
+        self.assertTrue(carriers)
+        for t in carriers:
+            self.assertEqual((boss, (t["x"], t["y"])), (t["type"], m.MAP09_BOSS_SPOT))
+            self.assertEqual(m.TAG_CRATER_BREACH, t[f"arg{m.BOSS_BREACH_TAG_ARG}"])
+            self.assertEqual((m.SPECIAL_DOOR_OPEN, m.TAG_BOSS_EXIT), (t["special"], t["arg0"]))
+        self.assertEqual(4, m.BOSS_BREACH_TAG_ARG)
+        self.assertEqual((0, 0), m.BOSS_DEATH_SPECIAL[1][3:], "Door_Open's arg3-arg4 stay free")
+        for skill in SKILLS:
+            self.assertEqual(1, len(self.on(skill, carriers)), f"the boss names it on skill {skill}")
+
+    def test_the_breach_tag_arg_is_the_bosss_own(self):
+        """map.py's BOSS_BREACH_TAG_ARG is consortium.zs's
+        SD_CONSORTIUM_BREACH_TAG_ARG: the arg the boss reads at its Breach."""
+        text = (MONSTER_ZS / "consortium.zs").read_text(encoding="utf-8")
+        arg = int(re.search(r"const\s+SD_CONSORTIUM_BREACH_TAG_ARG\s*=\s*(\d+)", text).group(1))
+        self.assertEqual(self.m.BOSS_BREACH_TAG_ARG, arg)
+
+    def test_the_scabs_hide_until_the_breach(self):
+        """Until the Breach each scab is the crater's floor: its height, flat,
+        light, sky, no damage and no special; nothing shows."""
+        floor = self.sectors[self.plan["z8_floor"]]
+        for i in self.scabs():
+            s = self.sectors[i]
+            with self.subTest(scab=self.zone_of[i]):
+                for key in ("heightfloor", "heightceiling", "texturefloor", "textureceiling",
+                            "lightlevel"):
+                    self.assertEqual(floor[key], s[key], key)
+                self.assertFalse(s.get("damageamount"))
+                self.assertFalse(s.get("special"))
+
+    def test_the_scabs_sink_one_step_into_acid(self):
+        """Each scab runs from an acid pit to the floor's edge, on the pit's
+        middle, and its lowest neighbour is that pit, one step down, so it
+        sinks one step and takes the pit's acid and damage (the TxTy model:
+        the neighbour at the floor it sinks to)."""
+        m = self.m
+        inset = m.RIM + m.TERRACE * m.TERRACES
+        fx1, fx2 = m.CRATER[0] + inset, m.CRATER[2] - inset
+        pits = {self.plan[f"z8_acid_{n}"] for n in range(1, len(m.CRATER_PITS) + 1)}
+        by_name = {self.zone_of[i]: i for i in self.scabs()}
+        for n, (x1, y1, x2, y2) in enumerate(m.CRATER_SCABS, start=1):
+            i = by_name[f"z8_scab_{n}"]
+            with self.subTest(scab=self.zone_of[i]):
+                self.assertTrue(x1 == fx1 or x2 == fx2, "it reaches the floor's edge")
+                touching = [p for p in m.CRATER_PITS if (p[0] == x2 or p[2] == x1)
+                            and p[1] < y1 < y2 < p[3]]
+                self.assertEqual(1, len(touching), "it runs out of one pit")
+                p = touching[0]
+                self.assertEqual((p[1] + p[3]) / 2, (y1 + y2) / 2, "on the pit's middle")
+                sunk = pickup_events.lowest_floor(i, self.sectors, self.neighbours)
+                self.assertEqual(self.sectors[i]["heightfloor"] - m.STEP, sunk)
+                models = [k for k in self.neighbours[i] if self.sectors[k]["heightfloor"] == sunk]
+                self.assertTrue(models and set(models) <= pits, [self.zone_of[k] for k in models])
+                for k in models:
+                    pit = self.sectors[k]
+                    self.assertEqual((m.ACID, m.LAVA_DAMAGE, m.LAVA_DAMAGE_INTERVAL),
+                                     (pit["texturefloor"], pit["damageamount"], pit["damageinterval"]))
+
+    def test_every_sunk_scab_is_walked_out_of_and_the_exit_still_reached(self):
+        """After the Breach (and every door the map opens) the start still
+        reaches each scab and the exit, and from each scab the exit can be
+        reached: one step up onto the floor, never a trap."""
+        h = self.breach_heights(set(self.every_tag))
+        adj = defaultdict(set)
+        for ld in self.lines:
+            if "sideback" not in ld or ld.get("blocking"):
+                continue
+            a, b = self._pair(ld)
+            for src, dst in ((a, b), (b, a)):
+                (fs, fc), (ts, tc) = h[src], h[dst]
+                if min(fc, tc) - max(fs, ts) >= PLAYER_HEIGHT and ts - fs <= MAX_STEP_UP:
+                    adj[src].add(dst)
+        reach = self.flood(adj, self.start)
+        self.assertIn(self.exit_sector(), reach)
+        floor = self.plan["z8_floor"]
+        for i in self.scabs():
+            with self.subTest(scab=self.zone_of[i]):
+                self.assertIn(i, reach)
+                self.assertIn(floor, adj[i], "one step up onto the floor")
+                self.assertIn(self.exit_sector(), self.flood(adj, i))
+
+    def test_the_scabs_keep_clear_of_the_boss_its_servants_the_monsters_and_the_pickups(self):
+        """No scab under the boss's body, its servants' spots before the
+        portal, any monster's body or any pickup: nothing stands on the
+        ground that opens."""
+        m = self.m
+
+        def overlaps(rect, x, y, r):
+            x1, y1, x2, y2 = rect
+            return x - r < x2 and x + r > x1 and y - r < y2 and y + r > y1
+
+        bx, by = m.MAP09_BOSS_SPOT
+        fx = round(math.cos(math.radians(m.BOSS_ANGLE)))
+        fy = round(math.sin(math.radians(m.BOSS_ANGLE)))
+        servants = [m.MONSTER_KINDS[k] for k in self.SERVANT_KINDS]
+        sradius = max(self.body[e][0] for e in servants)
+        spots = [(bx - fx * b + fy * r, by - fy * b - fx * r) for b, r in self.SERVANT_SPOTS]
+        for rect in m.CRATER_SCABS:
+            with self.subTest(scab=rect):
+                for x, y in spots:
+                    self.assertFalse(overlaps(rect, x, y, sradius), (x, y))
+                for t in self.things:
+                    r = self.body[t["type"]][0] if t["type"] in self.body else 0
+                    self.assertFalse(overlaps(rect, t["x"], t["y"], r), t)
+
     def test_the_red_key_springs_the_works_closets(self):
         m = self.m
         red = self.things_of({m.ED_RED_CARD})[0]
@@ -988,7 +1142,8 @@ class Map09Test(unittest.TestCase):
         for name in closets:
             door = self.plan[f"{name}_door"]
             self.assertEqual(m.TAG_AMBUSH, self.sectors[door]["id"])
-            self.assertIn(self.plan["z5_works"], self.neighbours[door])
+            # V3: the closet's lamp, a strip of the works, lies before it.
+            self.assertTrue(self.named("z5_works", f"z5_closet_{name[-1]}_lamp") & self.neighbours[door], name)
             self.assertTrue([t for t in self.on(2, self.monsters())
                              if self.sector_at(t["x"], t["y"]) == self.plan[name]], f"{name} empty on 2")
             self.assertEqual(3, self.round_of(self.plan[name]))
@@ -997,10 +1152,12 @@ class Map09Test(unittest.TestCase):
     def test_three_secrets_each_behind_a_push_panel_with_a_way_back(self):
         m = self.m
         special = {self.zone_of[i] for i, s in enumerate(self.sectors) if s.get("special")}
-        self.assertEqual(set(m.SECRET_ZONES), special)
+        lamps = {e.lamp for e in m.PICKUP_EVENTS} | {"z5_closet_e_lamp"}   # V3: the events' lamps
+        self.assertEqual(set(m.SECRET_ZONES) | lamps, special)
         for i, s in enumerate(self.sectors):
             if s.get("special"):
-                self.assertEqual(m.SECTOR_SPECIAL_SECRET, s["special"])
+                want = m.SECTOR_SPECIAL_LIGHT_FLICKER if self.zone_of[i] in lamps else m.SECTOR_SPECIAL_SECRET
+                self.assertEqual(want, s["special"], self.zone_of[i])
         panels = [ld for ld in self.lines if ld.get("special") == SPECIAL_DOOR_OPEN and "sideback" in ld]
         self.assertEqual(6, len(panels), "three panels, both faces")
         for ld in panels:
@@ -1203,7 +1360,8 @@ class Map09Test(unittest.TestCase):
         return sum(SHELLS_GIVEN.get(t["type"], 0) + ROUNDS_GIVEN.get(t["type"], 0) / ROUNDS_PER_SHELL
                    + AKM_ROUNDS_GIVEN.get(t["type"], 0) / AKM_ROUNDS_PER_SHELL
                    + heavy * (ROCKETS_GIVEN.get(t["type"], 0) * SHELLS_PER_ROCKET
-                              + CELLS_GIVEN.get(t["type"], 0) * SHELLS_PER_CELL) for t in placed)
+                              + CELLS_GIVEN.get(t["type"], 0) * SHELLS_PER_CELL)
+                   + GRENADES_GIVEN.get(t["type"], 0) * SHELLS_PER_GRENADE for t in placed)
 
     def test_g3_8_the_ammo_budget(self):
         """D119: on every skill, ammunition on the route is inside that

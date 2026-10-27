@@ -119,6 +119,14 @@ SHELLS_GIVEN = {2008: 4, 2049: 20, 21003: 8}
 ROUNDS_GIVEN = {2007: 10, 2048: 50, 21004: 35}
 ROCKETS_GIVEN = {2010: 1, 2046: 5, 21005: 2}
 CELLS_GIVEN = {2047: 20, 17: 100, 21006: 40}
+# V3 A4, the RGD-5 (BALANCE 8.1): a grenade counts 1.25 shell-equivalents
+# (its 100 blast at the centre over the IZh's 80), the pouch (the weapon)
+# 2, a loose one 1, the crate 4. Counted in the band (8.2) and in the shell
+# share's whole (8.3) only: the stage readiness, the newest weapon's lead
+# (8.4.2) and the boss's stage (8.4.3) leave grenades out, as BALANCE says
+# (the bosses take no splash).
+GRENADES_GIVEN = {21009: 2, 21021: 1, 21022: 4}
+SHELLS_PER_GRENADE = 1.25
 ROUNDS_PER_SHELL = 10
 SHELLS_PER_ROCKET = 2
 IZH_AVERAGE = 80
@@ -179,10 +187,14 @@ class Map06Test(unittest.TestCase):
         cls.zone_of = {i: name for name, i in cls.plan.items()}
         cls.start = cls.plan["z1_hall"]
         cls.doors = defaultdict(set)
+        cls.lifts = defaultdict(set)     # V3: barriers a pickup lowers (LIFT_TAGS)
         for i, s in enumerate(cls.sectors):
-            if s.get("id") and s["heightceiling"] == s["heightfloor"]:
+            if s.get("id") in cls.m.LIFT_TAGS:
+                cls.lifts[s["id"]].add(i)
+            elif s.get("id") and s["heightceiling"] == s["heightfloor"]:
                 cls.doors[s["id"]].add(i)
         cls.door_sectors = set().union(*cls.doors.values())
+        cls.lift_sectors = set().union(*cls.lifts.values())
         cls.neighbours = defaultdict(set)
         for ld in cls.lines:
             if "sideback" in ld:
@@ -195,7 +207,7 @@ class Map06Test(unittest.TestCase):
             if a["x"] == b["x"]:
                 cls.vertical.append((a["x"], a["y"], b["y"], ld))
         cls.props = {i for name, i in cls.plan.items() if name.startswith(cls.m.PROP_PREFIX)}
-        cls.unwalkable = cls.props | cls.door_sectors
+        cls.unwalkable = cls.props | cls.door_sectors | cls.lift_sectors
         cls.monster_numbers = set(cls.m.MONSTER_CLASSES)
         cls.body, cls.hit_points, cls.faction = {}, {}, {}
         for ednum, name in cls.m.MONSTER_CLASSES.items():
@@ -229,13 +241,19 @@ class Map06Test(unittest.TestCase):
         return self.sides[ld["sideback"]]["sector"] if "sideback" in ld else None
 
     def heights(self, open_tags):
+        """(floor, ceiling) per sector with `open_tags` worked: a door's
+        ceiling rises to its lowest neighbour's less 4; a lift's floor (V3:
+        the Resurrection gate's barricades, the reserve's gate) drops to the
+        lowest of its own and its neighbours' (Floor_LowerToLowest)."""
         out = []
         for i, s in enumerate(self.sectors):
-            ceiling = s["heightceiling"]
+            floor, ceiling = s["heightfloor"], s["heightceiling"]
             if i in self.door_sectors and s["id"] in open_tags:
                 ceiling = (min(self.sectors[n]["heightceiling"] for n in self.neighbours[i])
                            - DOOR_OPENS_BELOW_CEILING)
-            out.append((s["heightfloor"], ceiling))
+            if i in self.lift_sectors and s["id"] in open_tags:
+                floor = min([floor] + [self.sectors[n]["heightfloor"] for n in self.neighbours[i]])
+            out.append((floor, ceiling))
         return out
 
     def adjacency(self, open_tags):
@@ -282,9 +300,10 @@ class Map06Test(unittest.TestCase):
         return {self.m.KEY_LOCKS[t["type"]]: self.sector_at(t["x"], t["y"]) for t in self.key_things()}
 
     def thing_specials(self, numbers):
-        """[(tag, sector)] for every thing of `numbers` carrying Door_Open."""
+        """[(tag, sector)] for every thing of `numbers` carrying a special that
+        acts on a tag (Door_Open; since V3 Floor_LowerToLowest too)."""
         return [(t["arg0"], self.sector_at(t["x"], t["y"])) for t in self.things
-                if t["type"] in numbers and t.get("special") == SPECIAL_DOOR_OPEN]
+                if t["type"] in numbers and t.get("special") in self.m.EVENTS.TAG_SPECIALS]
 
     def progression_of(self, kills=True):
         """Play the map as a player can (MAP03's model): free doors open
@@ -851,8 +870,9 @@ class Map06Test(unittest.TestCase):
     def test_the_route_is_the_designed_one(self):
         """Five rounds: the station, the street and the GUM (the blue key);
         the blue door (the square, the yellow key); the yellow gatehouse (the
-        vehicle park, the red key); the Spasskaya gate with the closets the
-        red key sprang; the boss's death and his gate."""
+        vehicle park, the red key) and the barriers the yellow key brought
+        down (V3); the Spasskaya gate with the closets the red key sprang;
+        the boss's death and his gate."""
         m = self.m
         r = self.rounds
         self.assertEqual(5, len(r))
@@ -863,7 +883,8 @@ class Map06Test(unittest.TestCase):
         self.assertEqual({m.TAG_BLUE_DOOR}, set(o1 - o0))
         self.assertEqual({m.LOCK_BLUE_CARD, m.LOCK_YELLOW_CARD}, set(h1))
         self.assertFalse(self.named("z7_park") & r1)
-        self.assertEqual({m.TAG_YELLOW_DOOR}, set(o2 - o1))
+        self.assertEqual({m.TAG_YELLOW_DOOR, m.TAG_RESURRECTION}, set(o2 - o1),
+                         "the yellow gatehouse, and the barriers the yellow key brought down (V3)")
         self.assertEqual({m.LOCK_BLUE_CARD, m.LOCK_YELLOW_CARD, m.LOCK_RED_CARD}, set(h2))
         self.assertFalse(self.named("z9_arena", "closet_z6_w", "closet_z6_e") & r2)
         self.assertEqual({m.TAG_RED_DOOR, m.TAG_AMBUSH}, set(o3 - o2))
@@ -913,6 +934,13 @@ class Map06Test(unittest.TestCase):
         every = set().union(*(r[0] for r in self.rounds))
         critical = every - set(m.SECRET_PANEL_TAGS)
         self.assertIn(self.plan["z10_exit_niche"], self.reachable(critical))
+
+    def test_no_pickup_event_is_needed(self):
+        """The closets and (V3) the barriers open things; the route needs
+        neither: the exit is reached with both shut, the boss dead."""
+        m = self.m
+        every = set().union(*(r[0] for r in self.rounds))
+        self.assertIn(self.plan["z10_exit_niche"], self.reachable(every - set(m.PICKUP_TAGS)))
 
     # --- the keys ------------------------------------------------------------
     def test_three_keys_on_the_route_outside_any_secret_each_alone(self):
@@ -1072,6 +1100,114 @@ class Map06Test(unittest.TestCase):
             self.assertTrue([t for t in self.on(2, self.monsters())
                              if self.sector_at(t["x"], t["y"]) == self.plan[name]], f"{name} empty on 2")
             self.assertEqual(3, self.round_of(self.plan[name]))
+
+    # --- V3 (A3): the barriers come down ------------------------------------------
+    def test_the_yellow_key_brings_the_barriers_down(self):
+        """The yellow key carries Floor_LowerToLowest on TAG_RESURRECTION, a
+        tag no line carries; the tag is the Resurrection gate's two barricades
+        and the reserve's courtyard gate, nothing else. Each sinks to the
+        floor either side of it: the arches join the square to Nikolskaya,
+        the courtyard opens on the street; the courtyard is a dead end."""
+        m = self.m
+        key = self.things_of({m.ED_YELLOW_CARD})[0]
+        self.assertEqual((21, m.TAG_RESURRECTION, m.BARRIER_SPEED),
+                         (key["special"], key["arg0"], key["arg1"]))
+        self.assertEqual(21, m.SPECIAL_FLOOR_LOWER_TO_LOWEST)
+        for tag in m.PICKUP_TAGS:
+            self.assertFalse([ld for ld in self.lines if ld.get("special") and ld.get("arg0") == tag], tag)
+        sinking = self.named("z3_gate_barricade_1", "z3_gate_barricade_2", "z3_reserve_gate")
+        self.assertEqual(sinking, self.lifts[m.TAG_RESURRECTION])
+        opened = self.heights({m.TAG_RESURRECTION})
+        for i in sinking:
+            self.assertEqual(m.GROUND, opened[i][0], self.zone_of[i])
+            self.assertGreaterEqual(opened[i][1] - opened[i][0], m.TILE_SIZE, self.zone_of[i])
+        gate = self.sectors[self.plan["z3_reserve_gate"]]
+        self.assertEqual(gate["heightfloor"], gate["heightceiling"], "shut: a gate, not a gap")
+        shut, open_ = self.adjacency(set()), self.adjacency({m.TAG_RESURRECTION})
+        street, square, reserve = self.plan["z3_street"], self.plan["z6_square"], self.plan["z3_reserve"]
+        self.assertNotIn(street, self.flood(shut, square))
+        self.assertIn(street, self.flood(open_, square), "the arches join the square to the street")
+        self.assertIn(reserve, self.flood(open_, street))
+        self.assertEqual({self.plan["z3_reserve_gate"]}, self.neighbours[reserve], "a dead end")
+
+    def test_the_barriers_fall_only_after_the_yellow_key(self):
+        m = self.m
+        first = next(k for k, (o, _r, _h) in enumerate(self.rounds) if m.TAG_RESURRECTION in o)
+        self.assertIn(self.plan["z6_tribune_n_top"], self.rounds[first - 1][1], "the key is reached first")
+        self.assertNotIn(self.plan["z3_reserve"], self.rounds[first - 1][1], "the reserve out early")
+        self.assertIn(self.plan["z3_reserve"], self.rounds[first][1])
+
+    def test_the_reserve_gate_looks_like_the_streets_other_gates(self):
+        """From Nikolskaya the reserve's gate is one tile of SDGATE1 at the
+        back of a recess one tile high, as gates 1 and 3: no tell before it
+        sinks, and its face rides down with its floor (not lower-unpegged)."""
+        m = self.m
+        recess, gate = self.plan["z3_reserve_recess"], self.plan["z3_reserve_gate"]
+        faces = [ld for ld in self.lines if "sideback" in ld and set(self._pair(ld)) == {recess, gate}]
+        self.assertEqual(1, len(faces))
+        ld = faces[0]
+        side = ld["sidefront"] if self.front(ld) == recess else ld["sideback"]
+        self.assertEqual(m.GATE, self.sides[side]["texturebottom"])
+        self.assertFalse(ld.get("dontpegbottom"))
+        self.assertFalse(ld.get("special"))
+        r = self.sectors[recess]
+        self.assertEqual(m.TILE_SIZE, r["heightceiling"] - r["heightfloor"])
+        self.assertEqual(m.TILE_SIZE, self.sectors[gate]["heightfloor"] - r["heightfloor"])
+
+    def test_the_reserve_marches_on_every_skill(self):
+        m = self.m
+        reserve = self.plan["z3_reserve"]
+        for skill in SKILLS:
+            inside = [t for t in self.on(skill, self.monsters()) if self.sector_at(t["x"], t["y"]) == reserve]
+            self.assertTrue(inside, f"the reserve is empty on skill {skill}")
+            self.assertTrue(all(self.faction[t["type"]] != "LEGION" for t in inside), "the Reich's, as Nikolskaya")
+        self.assertFalse([t for t in self.things if t["type"] not in self.monster_numbers
+                          and self.sector_at(t["x"], t["y"]) == reserve])
+
+    def test_the_way_out_runs_straight_down_to_the_first_arch(self):
+        """The reserve's gate stands straight up the street from the first
+        arch (the same x span), so the wave walks one line down Nikolskaya,
+        through the arch onto the square, with nothing in its way."""
+        m = self.m
+        x1, _y1, x2, _y2 = m.RESERVE_GATE
+        self.assertEqual((m.RESURRECTION_ARCHES_X[0], m.RESURRECTION_ARCHES_X[0] + m.TILE_SIZE), (x1, x2))
+        opened = self.heights({m.TAG_RESURRECTION})
+        for x in (x1 + 32, (x1 + x2) // 2, x2 - 32):
+            for y in range(m.RESERVE[1] + 16, m.SQUARE[3] - 16, -8):
+                s = self.sector_at(x, y)
+                self.assertIsNotNone(s, (x, y))
+                self.assertNotIn(s, self.props, (x, y, self.zone_of[s]))
+                self.assertEqual(m.GROUND, opened[s][0], (x, y, self.zone_of[s]))
+
+    def test_the_barriers_are_seen_falling_from_the_stand(self):
+        """Warned (the brief's avisadas), as far as the arches let it be: the
+        barricades stand 64 deep in their arches, so from the key's spot only
+        the first arch's barricade shows (its east end), and from the stand's
+        steps on the way down both do; and the wave has the street and the
+        square to cross before it reaches the player (over 1000 units)."""
+        m = self.m
+        top = self.sectors[self.plan["z6_tribune_n_top"]]["heightfloor"]
+        key_eye = (*m.YELLOW_KEY_SPOT, top + VIEW_HEIGHT)
+        first = m.RESURRECTION_ARCHES_X[0]
+        self.assertIsNone(self.blocked(key_eye, (first + m.TILE_SIZE - 8, 3521, 32)), "the first barricade")
+        step = self.eye(1900, 2700, "z6_tribune_n_3")
+        for ax in m.RESURRECTION_ARCHES_X:
+            for x in (ax + m.TILE_SIZE - 32, ax + m.TILE_SIZE - 8):
+                self.assertIsNone(self.blocked(step, (x, 3521, 32)), f"barricade at x {x}")
+        arch_mouth = (m.RESURRECTION_ARCHES_X[0] + m.TILE_SIZE // 2, m.SQUARE[3])
+        self.assertGreater(math.dist(m.YELLOW_KEY_SPOT, arch_mouth), 1000)
+
+    def test_the_route_reads_the_barriers(self):
+        """redsquare-critical reads TAG_RESURRECTION shut before the yellow
+        key and open after it: the engine pass proves Floor_LowerToLowest on
+        a pickup (MAP04's gondolas never could: their sides are open sky)."""
+        sys.path.insert(0, str(PROJECT_ROOT / "tools"))
+        import route   # noqa: E402
+        m = self.m
+        steps = {st.id: st for st in route.redsquare_critical().steps}
+        self.assertFalse(dict(steps["YD0"].tags)[m.TAG_RESURRECTION])
+        self.assertTrue(dict(steps["YKEY"].tags)[m.TAG_RESURRECTION])
+        self.assertTrue(any(a.startswith("wait") for a in steps["YKEY"].actions))
 
     # --- secrets ---------------------------------------------------------------
     def test_three_secrets_each_behind_a_push_panel_with_a_way_back(self):
@@ -1272,7 +1408,8 @@ class Map06Test(unittest.TestCase):
         return sum(SHELLS_GIVEN.get(t["type"], 0) + ROUNDS_GIVEN.get(t["type"], 0) / ROUNDS_PER_SHELL
                    + AKM_ROUNDS_GIVEN.get(t["type"], 0) / AKM_ROUNDS_PER_SHELL
                    + ROCKETS_GIVEN.get(t["type"], 0) * SHELLS_PER_ROCKET
-                   + CELLS_GIVEN.get(t["type"], 0) * SHELLS_PER_CELL for t in placed)
+                   + CELLS_GIVEN.get(t["type"], 0) * SHELLS_PER_CELL
+                   + GRENADES_GIVEN.get(t["type"], 0) * SHELLS_PER_GRENADE for t in placed)
 
     def test_g3_8_the_ammo_budget(self):
         for skill in SKILLS:

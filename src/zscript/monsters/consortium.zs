@@ -20,7 +20,8 @@
 //       of reinforcements, one of each faction.
 //   BREACH              at half health, once: invulnerable for 65 tics, the
 //       ground shakes, a line on every screen, a wave of four reinforcements,
-//       and it tears the cables out.
+//       and it tears the cables out. Where the map asks for it, the ground
+//       opens too (V3 A3, below).
 //   FREE (2000-0)       it walks (slowly) and fights harder: rockets and
 //       orbs in one volley, wider fans of orbs, a sweeping jet of fire, a
 //       pair of reinforcements every third attack.
@@ -38,6 +39,18 @@
 // `Door_Open (12, 16)` and nothing here needs to know. +BOSSDEATH and the
 // final A_BossDeath are the General's, so a MAPINFO SpecialAction on this
 // class works as the belt-and-braces fix MAP09's design names (section 11).
+//
+// The ground that opens (V3 A3, D120; MAP09's design section 18.3). At the
+// Breach's first tic, once, the boss sinks the sectors tagged with its
+// placed thing's arg4 one step into the acid beside them
+// (Floor_LowerToLowestTxTy: the floor takes the flat and the damage of the
+// neighbour it sinks to) and sets them flickering. The tag rides arg4
+// because the thing's special is its death's Door_Open (tag, speed,
+// lighttag), which reads arg0-arg2 only; a summoned boss, or one placed
+// without arg4, has 0 there and opens nothing, so the class stays
+// map-agnostic and tag 15 means nothing on any other map. Calling an action
+// special by name is gzdoom.pk3's own way (strife/alienspectres.zs:
+// `Floor_LowerToLowest(999, 8)`; doom/keen.zs: `Door_Open(doortag, 16)`).
 //
 // LOOK: SDCN, its own 95 lumps drawn from the CEO's Gemini sheets by
 // tools/art/consortium_gemini.py (gemini_enemy.py's CONSORTIUM), in
@@ -78,6 +91,11 @@ class SD_Consortium : SD_Monster
 	const SD_CONSORTIUM_BREACH_QUAKE        = 4;
 	const SD_CONSORTIUM_BREACH_QUAKE_TICS   = 65;  // the whole Breach state
 	const SD_CONSORTIUM_BREACH_QUAKE_RADIUS = 2048; // the whole crater
+	// The ground that opens at the Breach (V3 A3; see the header).
+	const SD_CONSORTIUM_BREACH_TAG_ARG    = 4;    // which of the placed thing's args names the tag
+	const SD_CONSORTIUM_BREACH_SINK_SPEED = 16;   // 2 units a tic: a 16 step in 8 tics, under the quake
+	const SD_CONSORTIUM_BREACH_GLOW_UPPER = 176;  // the opened ground flickers as bright as a pit's acid
+	const SD_CONSORTIUM_BREACH_GLOW_LOWER = 112;  // ... and down to a shade under the crater's 160
 
 	// Where its weapons are, relative to its origin (to its left is negative).
 	const SD_CONSORTIUM_ARM_Z          = 96;
@@ -393,6 +411,20 @@ class SD_Consortium : SD_Monster
 		A_StartSound("sd/weapon/rpg7/explode", CHAN_WEAPON, CHANF_DEFAULT, 1.0, ATTN_NONE);
 		A_Quake(SD_CONSORTIUM_BREACH_QUAKE, SD_CONSORTIUM_BREACH_QUAKE_TICS, 0, SD_CONSORTIUM_BREACH_QUAKE_RADIUS);
 		A_PrintBold(StringTable.Localize("$SD_CONSORTIUM_FREE"));
+		A_SD_ConsortiumOpenGround();
+	}
+
+	// Once (the Breach runs once): the sectors tagged with the placed
+	// thing's arg4 sink one step to their lowest neighbour, taking its flat
+	// and its damage (on MAP09 the crater's acid pits), and flicker. Tag 0
+	// (summoned, or no arg4) opens nothing.
+	void A_SD_ConsortiumOpenGround()
+	{
+		int tag = args[SD_CONSORTIUM_BREACH_TAG_ARG];
+		if (tag <= 0)
+			return;
+		Floor_LowerToLowestTxTy(tag, SD_CONSORTIUM_BREACH_SINK_SPEED);
+		Light_Flicker(tag, SD_CONSORTIUM_BREACH_GLOW_UPPER, SD_CONSORTIUM_BREACH_GLOW_LOWER);
 	}
 
 	void A_SD_ConsortiumWave()

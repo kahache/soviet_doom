@@ -50,6 +50,10 @@ GZDoom), each as MAP06 v1.1 left it:
   portal behind it;
 * a key that springs an ambush: the red key's thing carries Door_Open on
   TAG_AMBUSH (Hexen-style item special). NOT VERIFIED in engine.
+* V3 A3 (design section 18.3): the boss's Breach (its second phase) sinks
+  the crater's four scabs (TAG_CRATER_BREACH, named in the boss thing's
+  arg4) one step into the acid pits beside them: consortium.zs calls
+  Floor_LowerToLowestTxTy from ZScript. NOT VERIFIED in engine.
 
 Geometry is painted with `GridMap` (tools/sdbuild/udmf.py), MAP01's method;
 the fallen trunks lie radially from the crater's centre, the diagonal ones
@@ -61,11 +65,14 @@ Run it (the PM or the CEO; agents never start GZDoom, D26):
 
 from __future__ import annotations
 
+from typing import NamedTuple
+
 import math
 from dataclasses import replace
 
 from sdbuild.udmf import (
     DOOR_SPEED_SLOW,
+    SECTOR_SPECIAL_LIGHT_FLICKER,
     SECTOR_SPECIAL_SECRET,
     SPECIAL_DOOR_OPEN,
     GridMap,
@@ -271,6 +278,21 @@ TAG_YELLOW_DOOR = 5     # the refinery's door: lock 3
 TAG_RED_DOOR = 6        # the crater's containment gate: lock 1
 TAG_AMBUSH = 10         # the works' two closets; ONLY the red key's pickup opens them
 TAG_BOSS_EXIT = 12      # the control bunker's gate; ONLY the boss's death opens it
+# V3 (D120, A2 and A3): tags only a pickup moves (no line carries them).
+TAG_QUARANTINE = 13     # the blue key: the laboratory's quarantine room opens, the Legion inside
+TAG_WORKS_LIFT = 14     # the yellow key: the works' cargo lift comes down with three of theirs
+# V3 A3 (design section 18.3): the crater's ground opens at the Consortium's
+# Breach (its second phase). No line and no pickup carries the tag: the boss
+# reads it off its own thing's arg4 (BOSS_BREACH_TAG_ARG) at the Breach's
+# first tic and sinks the four scabs (CRATER_SCABS) one step into the acid
+# pits beside them (Floor_LowerToLowestTxTy in consortium.zs).
+TAG_CRATER_BREACH = 15
+LIFT_SPEED = 8          # 1 unit a tic: the car's 128 take ~3.7 s, its winch heard all the way
+# Floor_LowerToLowest (tag, speed): 21 in ZDoom's (Hexen's) special table, the
+# special MAP04's red key gives its gondolas. NOT VERIFIED in our engine runs
+# (MAP04's K3; here the checklist's E12): if it failed, the works' lift would
+# stay up, and nothing the route needs is in it.
+SPECIAL_FLOOR_LOWER_TO_LOWEST = 21
 SECRET_PANEL_TAGS = (TAG_S1_PANEL, TAG_S2_PANEL, TAG_S3_PANEL)
 
 # --- The boss --------------------------------------------------------------------
@@ -285,6 +307,10 @@ MAP09_BOSS_SPOT = (3968, 3136)  # on the crater's floor before the portal, facin
 BOSS_ANGLE = 90
 BOSS_KIND = "consortium"
 BOSS_DEATH_SPECIAL = (SPECIAL_DOOR_OPEN, (TAG_BOSS_EXIT, DOOR_SPEED_SLOW, 0, 0, 0))
+# Which of the boss thing's args carries TAG_CRATER_BREACH: the death special
+# (Door_Open: tag, speed, lighttag) reads arg0-arg2 only, so arg4 is free.
+# consortium.zs's SD_CONSORTIUM_BREACH_TAG_ARG (tested to agree).
+BOSS_BREACH_TAG_ARG = 4
 RED_KEY_SPECIAL = (SPECIAL_DOOR_OPEN, (TAG_AMBUSH, DOOR_SPEED_SLOW, 0, 0, 0))
 
 # --- Things --------------------------------------------------------------------
@@ -301,6 +327,42 @@ LOCK_PORTALS = {LOCK_BLUE_CARD: "z3_blue_portal", LOCK_YELLOW_CARD: "z5_yellow_p
 PROP_PREFIX = "prop_"
 SECRET_ZONES = ("s1_store", "s2_store", "s3_store")
 CLOSET_PREFIX = "closet_"
+
+# --- V3: events on pickup and the set pieces (D120's A2 and A3) -----------------
+# A thing whose UDMF `special` GZDoom runs when it is picked up (the red
+# key's closets are the first; the Door_Open form VERIFIED in the engine by
+# tunguska-critical's RKEY, 2026-10-23). Each event's tag is carried by no
+# line; its monsters wait where no line has an opening (nothing sees or
+# hears them) until it fires; a flickering lamp (sector special 65) stands in
+# front of each new one, seen before it fires. None is on the critical path,
+# none shuts the player in. Design document section 18;
+# tests/_pickup_events_e3.py checks them.
+class PickupEvent(NamedTuple):
+    name: str
+    trigger: int                      # editor number of the thing that carries the special
+    spot: tuple[int, int]             # where that thing lies
+    special: int
+    args: tuple[int, ...]             # the tag first
+    zones: tuple[str, ...]            # the sectors the tag moves
+    waiting: tuple[str, ...]          # where the released monsters wait
+    lamp: str                         # the warning lamp, in front of the event
+
+
+# A2, the quarantine room: in the laboratory hall's east wall, north of the
+# vestibule, a door that is the hall's tile until it moves; the blue key
+# taken, it opens on the Legion's three. Its lamp is the strip of hall in
+# front of it.
+QUARANTINE_DOOR = (1792, 1488, 1808, 1552)
+QUARANTINE = (1808, 1488, 1952, 1584)
+QUARANTINE_LAMP = (1776, 1488, 1792, 1552)    # short of the north wall: Marx's slot stays whole
+# A3, the works' cargo lift: in the works' north wall, east of the
+# recesses, a gate a door high; its car waits up at 128 behind it, its steel
+# face under the gate's lintel, until the yellow key brings it down.
+WORKS_LIFT_GATE = (4992, 5632, 5120, 5664)
+WORKS_LIFT_CAR = (4992, 5664, 5120, 5792)
+LIFT_CAR_FLOOR = GROUND + DOOR_HEIGHT
+LIFT_CAR_HEIGHT = 128
+LIGHT_EVENT_LAMP = 160   # each new event's lamp, flickering down to its darkest neighbour
 EXIT_ZONES = ("z9_hall", "z9_exit_niche")
 
 # --- Plan (design document section 4) ----------------------------------------
@@ -419,6 +481,17 @@ FRAME_TOP = PORTAL_TOP + 2 * STEP      # 192: 32 over the field
 FRAME_OFFSET = 16       # a 32 face shows the middle of the 64 lump: the cobalt channel
 CRATER_PITS = ((3680, 2528, 3808, 2656), (4128, 2528, 4256, 2656), (3680, 2976, 3808, 3104),
                (4128, 2976, 4256, 3104))
+# V3 A3, the ground that opens at the Breach (design section 18.3): four
+# scabs of the crater's floor, tag TAG_CRATER_BREACH, each a fissure 64 wide
+# running from an acid pit out to the floor's edge (the seventh terrace), on
+# the pit's middle. Plate at the floor's height and light until the Breach,
+# so nothing shows; then they sink one step to the pit beside them, take its
+# acid and its damage, and flicker: the floor's ring round the portal breaks
+# into four islands (the boss's to the north, the south, the west, the east),
+# joined by the terraces. 16 deep, walked out of onto the floor like the pits.
+# None under the boss's body or its servants' spots, none under a monster.
+CRATER_SCABS = ((3520, 2560, 3680, 2624), (3520, 3008, 3680, 3072),
+                (4256, 2560, 4416, 2624), (4256, 3008, 4416, 3072))
 EXIT_X = (3904, 4032)
 BUNKER = (3840, 1536, 4096, 1728)
 EXIT_NICHE = (3936, 1520, 4000, 1536)
@@ -580,9 +653,35 @@ ED_HEALTH_BONUS = 2014
 ED_ARMOR_BONUS = 2015
 ED_GREEN_ARMOR = 2018
 ED_BLUE_ARMOR = 2019
+# V3 A4, the RGD-5 hand grenade (ADR 012; docs/engine/2026-10-23_V3_rgd5.md
+# section 6): its own pool, counted 1.25 shell-equivalents a grenade
+# (BALANCE 8.1). A grenade is a consumable here, so it rides in ITEMS and
+# scales DOWN with skill: 3 / 2 / 2 grenades on skills 2 / 3 / 4, all at the
+# research station, none in the crater (the Consortium takes no splash).
+ED_RGD5 = 21009           # the pouch: the weapon and two grenades (none here)
+ED_RGD5_AMMO = 21021      # one loose grenade (it gives the weapon too)
+ED_RGD5_BOX = 21022       # a crate of four: a secret's reward only (none here)
+# V3 B5, the propaganda radio (D124; docs/sound/2026-10-23_V3_propaganda-radio.md
+# 5.4): SD_Loudspeaker, a positional voice over the music (MOD-SPEC 6.14).
+ED_LOUDSPEAKER = 21201
+LOUDSPEAKER_FLAG_BED = 4  # SD_LS_FLAG_BED: the valve set's hum and crackle in a loop
+LOUDSPEAKER_FLAG_OLIVE = 8  # SD_LS_FLAG_OLIVE: the army's olive SDLO, not the grey street SDLS (D132)
 
 # Design section 10: monsters per skill, Doom's skill pairs (udmf.skill_tier).
 # The boss's servants are not here: it calls them in the fight (section 11).
+# The events, in the order the route meets them (design section 18). The red
+# key's closets are v1's (RED_KEY_SPECIAL); V3 gives each a flickering lamp
+# on the works' floor before it, like the new ones.
+PICKUP_EVENTS = (
+    PickupEvent("quarantine", ED_BLUE_CARD, BLUE_KEY_SPOT, SPECIAL_DOOR_OPEN,
+                (TAG_QUARANTINE, DOOR_SPEED_SLOW), ("z3_lab_quarantine_door",), ("z3_lab_quarantine",),
+                "z3_lab_lamp"),
+    PickupEvent("works_lift", ED_YELLOW_CARD, YELLOW_KEY_SPOT, SPECIAL_FLOOR_LOWER_TO_LOWEST,
+                (TAG_WORKS_LIFT, LIFT_SPEED), ("z5_lift_car",), ("z5_lift_car",), "z5_lift_gate"),
+    PickupEvent("works_closets", ED_RED_CARD, RED_KEY_SPOT, RED_KEY_SPECIAL[0], RED_KEY_SPECIAL[1][:2],
+                tuple(f"{n}_door" for n in CLOSETS), tuple(CLOSETS), "z5_closet_w_lamp"),
+)
+
 ENEMY_TOTALS = {2: 60, 3: 92, 4: 127}
 
 # Every monster: (zone, kind, x, y, facing, lowest skill tier). Facing: 0
@@ -617,13 +716,15 @@ MONSTERS = (
     ("z3_yard", "panzermensch", 1664, 1728, 0, 4),
     # The laboratory: the Legion has taken the science.
     ("z3_lab_hall", "trooper", 1440, 1344, 0, 2),
-    ("z3_lab_hall", "trooper", 1728, 1504, 0, 2),
     ("z3_lab_vest", "trooper", 1920, 1448, 0, 2),
     ("z3_lab_instr", "trooper", 1408, 1184, 0, 2),
-    ("z3_lab_hall", "trooper", 1408, 1520, 0, 3),
     ("z3_lab_instr", "stormtrooper", 1728, 1184, 180, 3),
     ("z3_lab_hall", "doughboy", 1712, 1360, 180, 4),
-    ("z3_lab_instr", "trooper", 1600, 1184, 90, 4),
+    # V3 (A2): the quarantine room, open when the blue key is taken: two of
+    # the hall's troopers and one of the instrument room's.
+    ("z3_lab_quarantine", "trooper", 1840, 1520, 180, 2),
+    ("z3_lab_quarantine", "trooper", 1904, 1520, 180, 3),
+    ("z3_lab_quarantine", "trooper", 1872, 1560, 180, 4),
     ("z3_lab_vest", "stormtrooper", 1856, 1368, 0, 4),
     # The standing forest: hunters among the trunks, heads floating in the clearing.
     ("z4_forest", "hound", 1792, 2496, 270, 2),
@@ -656,7 +757,6 @@ MONSTERS = (
     ("z5_derrick", "trooper", 4224, 5152, 270, 2),
     ("z5_works", "rifleman", 5248, 4416, 180, 2),
     ("z5_works", "trooper", 5248, 5120, 180, 2),
-    ("z5_works", "rifleman", 4992, 5568, 180, 2),
     ("z5_edge", "trooper", 3008, 5248, 270, 2),
     ("z5_works", "rifleman", 3456, 4608, 180, 3),
     ("z5_works", "trooper", 3840, 5504, 180, 3),
@@ -665,12 +765,15 @@ MONSTERS = (
     ("z5_works", "doughboy", 3328, 5440, 180, 3),
     ("z5_derrick", "trooper", 4032, 5152, 270, 3),
     ("z5_works", "rifleman", 5312, 5376, 180, 3),
-    ("z5_works", "stormtrooper", 4480, 5568, 180, 3),
     ("z5_works", "heavy", 5056, 5056, 180, 4),
     ("z5_works", "panzermensch", 3712, 4224, 180, 4),
     ("z5_works", "stormtrooper", 4224, 4096, 180, 4),
     ("z5_works", "rifleman", 3584, 5056, 180, 4),
-    ("z5_works", "trooper", 4864, 5248, 180, 4),
+    # V3 (A3): the works' cargo lift, down with the yellow key: three of the
+    # works' north side.
+    ("z5_lift_car", "rifleman", 5024, 5712, 270, 2),
+    ("z5_lift_car", "stormtrooper", 5088, 5712, 270, 3),
+    ("z5_lift_car", "trooper", 5056, 5760, 270, 4),
     ("z5_works", "hound", 5248, 4224, 180, 4),
     ("z5_works", "doughboy", 4736, 5056, 180, 4),
     ("z5_works", "rifleman", 5312, 4992, 180, 4),
@@ -792,6 +895,20 @@ ITEMS = (
     ("z4_blue_porch", ED_HEALTH_BONUS, 1984, 1936, 4),
     ("z6_flags", ED_HEALTH_BONUS, 5528, 4928, 4),
     ("z9_exit_porch", ED_HEALTH_BONUS, 3968, 1776, 4),
+    # The RGD-5 (V3 A4): loose grenades in two of the izbas, one more in
+    # the yard on easy.
+    ("z3_izba_a", ED_RGD5_AMMO, 750, 700, 4),
+    ("z3_izba_b", ED_RGD5_AMMO, 750, 1300, 4),
+    ("z3_yard", ED_RGD5_AMMO, 1160, 1000, 2),
+)
+
+# The station's radio (V3 B5): (zone, x, y, lines, reach, flags, jingle), as
+# MAP04's. The last Soviet outpost before the alien works: one speaker at
+# the foot of the yard's mast, two lines only (the lore's line and the
+# Motherland), and the valve set's bed under them: a far, noisy station.
+# Olive (D132): the army's last outpost, a field set.
+LOUDSPEAKERS = (
+    ("z3_yard", 1632, 736, (7, 5), 0, LOUDSPEAKER_FLAG_BED | LOUDSPEAKER_FLAG_OLIVE, 0),
 )
 
 # D119 (the CEO's playtest: "siempre sale de sobras", "siempre acabas con la
@@ -1031,6 +1148,15 @@ def _outline(g: GridMap, rect, texture: str) -> None:
     g.style_v(x2, y1, y2, style)
 
 
+def pickup_special(ednum: int, spot: tuple[int, int]) -> dict:
+    """The UDMF `special` and `arg0..` of the thing `ednum` at `spot`, if
+    an event of PICKUP_EVENTS rides it (the red key's form); else nothing."""
+    for event in PICKUP_EVENTS:
+        if (event.trigger, tuple(event.spot)) == (ednum, tuple(spot)):
+            return {"special": event.special, **{f"arg{i}": a for i, a in enumerate(event.args)}}
+    return {}
+
+
 def build_plan() -> tuple[TextMap, dict[str, int]]:
     """Build the map; return it with {zone name: sector index}."""
     tm = TextMap(comment=f"{MAP_NAME} v1 generated by src/maps/{MAP_NAME}/map.py - do not edit by hand")
@@ -1207,6 +1333,13 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
          flat=LAB_FLOOR, ceiling=CEIL_LAMP, wall=TILE_DADO)
     zone("z3_key_bench", BENCH_TOP, LAB_CEIL, [KEY_BENCH], light=LIGHT_BEACON, flat=LAB_FLOOR,
          ceiling=CEIL_LAMP, wall=STEEL, extra=BLUE_LIGHT)
+    # V3 (A2): the quarantine room, its door the hall's tile, its lamp before it.
+    like("z3_lab_hall", "z3_lab_lamp", [QUARANTINE_LAMP], light=LIGHT_EVENT_LAMP,
+         special=SECTOR_SPECIAL_LIGHT_FLICKER)
+    zone("z3_lab_quarantine_door", HUT_FLOOR, HUT_FLOOR, [QUARANTINE_DOOR], TAG_QUARANTINE,
+         light=LIGHT_CLOSET, flat=LAB_FLOOR, ceiling=CEIL_LAMP, wall=TILE)
+    zone("z3_lab_quarantine", HUT_FLOOR, HUT_CEIL, [QUARANTINE], light=LIGHT_CLOSET, flat=LAB_FLOOR,
+         ceiling=CEIL_LAMP, wall=TILE_DADO)
     # S2: of the three instrument boards on the room's south wall the middle
     # one stands back in shadow; behind it, the prototype.
     for x1, x2 in zip(BOARDS_X, BOARDS_X[1:]):
@@ -1285,6 +1418,11 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
              light=LIGHT_WORKS, flat=GRATING, ceiling=SKY, wall=STEEL)
     zone("z5_key_top", DERRICK, WORKS_SKY, [KEY_TOP], light=LIGHT_BEACON, flat=GRATING,
          ceiling=SKY, wall=STEEL, extra=YELLOW_LIGHT)
+    # V3 (A3): the works' cargo lift in the north wall, its gate's lamp flickering.
+    zone("z5_lift_gate", GROUND, GROUND + DOOR_HEIGHT, [WORKS_LIFT_GATE], light=LIGHT_EVENT_LAMP, flat=PLATE,
+         ceiling=CEIL_CONCRETE, wall=ALIEN, special=SECTOR_SPECIAL_LIGHT_FLICKER)
+    zone("z5_lift_car", LIFT_CAR_FLOOR, LIFT_CAR_FLOOR + LIFT_CAR_HEIGHT, [WORKS_LIFT_CAR], TAG_WORKS_LIFT,
+         light=LIGHT_CLOSET, flat=PLATE, ceiling=CEIL_CONCRETE, wall=STEEL)
     # S3: four recesses in the north wall, one tile of the invaders' metal each; the
     # third is set twice as deep, in shadow, and is a panel.
     for x in PIPE_RECESSES_X:
@@ -1321,6 +1459,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
              light=LIGHT_CLOSET, flat=PLATE, wall=ALIEN)
         zone(name, GROUND, GROUND + CLOSET_HEIGHT, [(cx1, cy1 + 32, cx2, cy2 - NICHE_DEPTH)],
              light=LIGHT_CLOSET, flat=PLATE, wall=ALIEN)
+        # V3: the closet's warning lamp, a strip of the works' floor before it.
+        like("z5_works", f"z5_closet_{name[-1]}_lamp", [(cx1, cy2, cx2, cy2 + NICHE_DEPTH)],
+             light=LIGHT_EVENT_LAMP, special=SECTOR_SPECIAL_LIGHT_FLICKER)
     # The yellow door: the refinery's, in the works' east wall.
     wx1, wx2 = REFINERY_WALL_X
     yy1, yy2 = YELLOW_DOOR_Y
@@ -1370,6 +1511,9 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
          light=LIGHT_CRATER, flat=PLATE, ceiling=SKY, wall=ALIEN)
     for n, rect in enumerate(CRATER_PITS, start=1):
         pit("z8_floor", f"z8_acid_{n}", rect, CRATER_PIT_FLAT)
+    # V3 A3: the scabs, the floor's own plate and light until the Breach.
+    for n, rect in enumerate(CRATER_SCABS, start=1):
+        like("z8_floor", f"z8_scab_{n}", [rect], tag=TAG_CRATER_BREACH)
     for n, (px, py) in enumerate(PYLONS, start=1):
         prop("z8_floor", f"z8_pylon_{n}", [(px, py, px + PYLON_SIZE, py + PYLON_SIZE)], PYLON,
              wall=GLYPH, flat=PLATE)
@@ -1424,8 +1568,10 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
     # Things.
     tm.add_thing(Thing(x=PLAYER_START[0], y=PLAYER_START[1], type=ED_PLAYER1_START,
                        angle=PLAYER_ANGLE))
-    tm.add_thing(Thing(x=BLUE_KEY_SPOT[0], y=BLUE_KEY_SPOT[1], type=ED_BLUE_CARD))
-    tm.add_thing(Thing(x=YELLOW_KEY_SPOT[0], y=YELLOW_KEY_SPOT[1], type=ED_YELLOW_CARD))
+    tm.add_thing(Thing(x=BLUE_KEY_SPOT[0], y=BLUE_KEY_SPOT[1], type=ED_BLUE_CARD,
+                       extra=pickup_special(ED_BLUE_CARD, BLUE_KEY_SPOT)))
+    tm.add_thing(Thing(x=YELLOW_KEY_SPOT[0], y=YELLOW_KEY_SPOT[1], type=ED_YELLOW_CARD,
+                       extra=pickup_special(ED_YELLOW_CARD, YELLOW_KEY_SPOT)))
     special, args = RED_KEY_SPECIAL
     tm.add_thing(Thing(x=RED_KEY_SPOT[0], y=RED_KEY_SPOT[1], type=ED_RED_CARD,
                        extra={"special": special, **{f"arg{i}": a for i, a in enumerate(args)}}))
@@ -1434,12 +1580,17 @@ def build_plan() -> tuple[TextMap, dict[str, int]]:
         if (x, y) == MAP09_BOSS_SPOT and kind == BOSS_KIND:
             special, args = BOSS_DEATH_SPECIAL
             extra = {"special": special, **{f"arg{i}": a for i, a in enumerate(args)}}
+            extra[f"arg{BOSS_BREACH_TAG_ARG}"] = TAG_CRATER_BREACH   # V3 A3: the ground at the Breach
         tm.add_thing(Thing.on_skills(x, y, MONSTER_KINDS[kind], skill_tier(tier), angle=angle,
                                      extra=extra))
     for _zone, ednum, x, y, top in ITEMS + SECRET_ITEMS:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(highest=top)))
     for _zone, ednum, x, y, lowest in AMMO:
         tm.add_thing(Thing.on_skills(x, y, ednum, skill_tier(lowest)))
+    for _zone, x, y, lines, reach, flags, jingle in LOUDSPEAKERS:
+        mask = sum(1 << (line - 1) for line in lines)
+        tm.add_thing(Thing(x=x, y=y, type=ED_LOUDSPEAKER,
+                           extra={"arg0": mask, "arg1": reach, "arg3": flags, "arg4": jingle}))
     return tm, plan
 
 

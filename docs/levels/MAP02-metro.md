@@ -186,6 +186,8 @@ keycard.
 | SW-B | Command post north wall, **corner to corner with CPD** | wall switch `SDSW1B`, one-shot | `Door_Open (11, 16, 0)`: the door beside it and the gate | no |
 | EXIT | Back of a 64 × 128 niche at the end of the exit tunnel | `SDSW1D` | `Exit_Normal (0)` | — |
 | S1, S2 | secret panels | push, opens for good | `Door_Open` (101, 102) | no |
+| PASS (V3 A2, §18) | the blue pass in the duty booth | **pickup event** | thing `Door_Open (12, 16, 0)`: the duty window's head rises, a way down into the hall | no: opens one way out, never a way in |
+| RPG (V3 A2, §18) | the RPG-7 in the armoury | **pickup event** | thing `Door_Open (13, 16, 14)`: the armoury's store opens, the armoury (light tag 14) comes up to its lamp | no |
 
 **The order, as the tests play it** (`test_the_route_is_the_designed_one`):
 with only the manual doors and panels the player reaches everything but the
@@ -970,3 +972,117 @@ of PG-7V turned into rounds.)
 **Engine checklist for the PM** (D26): `metro-critical` still PASSes on
 skills 2–4 (no pickup the route walks onto moved; the weapons stand where
 they stood).
+
+## 18. V3 A2 (2026-10-23): the pass opens a way back, the RPG-7 the armoury
+
+Built in a V3 worktree (not in v1.2). The pattern, the specials and the
+safety rules are `docs/levels/PICKUP-EVENTS.md`; this section is MAP02's
+use of it. **NOT WALKED**: the PM's engine pass is pending (D26).
+
+| Event | Rides on | Thing special | Tag: what it moves | What the player meets |
+|---|---|---|---|---|
+| `pass_window` | the blue pass in the duty booth (2896, 1056) | `Door_Open (12, 16, 0)` | 12: `duty_window`, whose head (80) rises like a door to the booth's ceiling less 4 (124) | the station wall over the window slides up: the booth drops 32 into the hall on the blue door's axis, the way back with the pass in hand. From the hall the booth is still 32 up: the way **in** stays the track and D3 (tested) |
+| `rpg_alarm` | the RPG-7 in the armoury (420, 800) | `Door_Open (13, 16, 14)` | 13: `closet_armoury_door`, a steel panel in the armoury's north wall (x 400…528, y 1024…1040; the store x 384…544, y 1040…1152); light tag 14: `b5_armoury` | the armoury is dark (96) but for a lamp panel (`b5_lamp`, 144) over the launcher; taking it opens the store, the Reich's two guards come out in view (tested), and as the panel rises the armoury comes up to the lamp's 144 |
+
+The light tag brings each tagged sector to its **brightest neighbour**, so
+the dark room is tagged and the lamp is its neighbour (PICKUP-EVENTS §4.3).
+Sinking the window's sill instead of raising its head was tried first and
+makes no passage: the gap at the booth's floor stays 48 (§4.5 there).
+
+Neither event is needed: the route is the same without them
+(`progression()` plays none; `Map02PickupEventsTest` plays both: nothing
+reachable is lost, the store is reached). Both are more than 768 from the
+start (R5). Nothing drops an RPG-7, so the armoury's is always taken (R7).
+
+**Monsters**: the store's rifleman and stormtrooper, every skill: **25 / 38
+/ 53** (was 23 / 36 / 51). **Ammunition**: one box of 50 rounds in the store
+from skill 3: placed against needed **1.51 / 1.41 / 1.24**; shells 34 / 31 /
+33 %; pickups on the route 9 / 15 / 21 (ceilings 34 / 28 / 24). The RPG-7's
+row is now in zone `b5_lamp` (same spot).
+
+**Route** (`tools/route.py`, metro-critical): `TAG_EVENT_PASS` joins
+`METRO_CONSTANTS`; the window is shut (48) at BD0, open (a body high) at
+PASS, right after the pickup, and at BD1. PASS ends in the hall: the walk
+onto the pass goes on through the window it opens (see below).
+
+**The PM's engine pass of 2026-10-23 12:20 (`logs/route/20261023-1220*-metro-critical-*`)**
+failed one step on skills 2-4: `PASS expect Z8 got Z3 z3_hall @ (2789,
+1056, 27)`. Cause: **the event worked, the route did not expect it**. The
+booth is entered from its step only, so the pass's walk (`pass_walk`) starts
+on the step (2960, 1056) and faces west, straight at the duty window. Up to
+v1.2 the window's 48-high slot was the "wall" that stopped the walk's
+overshoot and glide in the booth. In V3 taking the pass raises the window's
+head (a body high 4 tics later), so the same walk carried the body on
+through it, off the booth's edge and down into the hall: z 27 is the body
+still falling the booth's 32 when its position was read. Neither the warp,
+nor the window's sector, nor the pass, nor the zone families changed; the
+log reads tag 12 at 32/124 at BD1 and the pass in the inventory at PASS.
+This is **the engine's first proof that a thing's special runs on pickup**
+(V3-1's first half: the head rises and the player goes through).
+
+Fix (2026-10-24, `tools/route.py` only; the map and the shortcut are
+untouched): `pass_event_exit` follows the walk's lane, and when it crosses
+a sector the pass's own event opens (tag 12) the PASS step expects the room
+past it (Z3, the hall) and reads tag 12 open right after the pickup. A pass
+moved off the window's lane still expects its own zone
+(`test_a_moved_pass_is_followed`). BD1 warps back to the blue door as before.
+`tests/test_route.py`, `test_the_pass_walk_runs_through_the_window_it_opens`:
+the window is a slot before, and the walk plus its glide on Doom's constants
+run booth, window, hall.
+**To repeat in the engine**: `metro-critical` on skills 2-4: PASS must end
+in Z3 with tag 12 open and a key owned; BD1 as before.
+
+**Engine checklist for the PM** (D26):
+
+| # | Check | How |
+|---|---|---|
+| V3-1 | Taking the pass raises the duty window's head; the player drops through into the hall and cannot climb back in | `metro-critical`: PASS ends in the hall through the window with tag 12 open (the head rising and the drop: SEEN in the PM's pass of 2026-10-23, the walk ended in z3_hall); BD1 reports tag 12 open; by hand from the hall: the booth is 32 up, no way back in |
+| V3-2 | Taking the RPG-7 opens the store and the armoury's light comes up from 96 to the lamp's 144 as it opens (the light tag on a thing's special) | by hand, skill 3; screenshots before and after |
+| V3-3 | The window's marble moves up with its head, no hall of mirrors | screenshot from the hall after the pass |
+
+## 19. V3 (2026-10-24): the RGD-5 (A4) and the propaganda radio (B5)
+
+The PM scheduled Episode 1 for both on 2026-10-24 (V3), as MAP04-MAP09 got
+them the same day: `BALANCE.md` §8.6, `docs/engine/2026-10-23_V3_rgd5.md`
+§6, `docs/sound/2026-10-23_V3_propaganda-radio.md` §5.4. No geometry
+changed, no other thing moved.
+
+**The RGD-5** (ADR 012). Grenades are consumables in `ITEMS`, so they scale
+**down** with skill: **3 / 3 / 2** grenades on skills 2 / 3 / 4 (skills 1
+and 5 double them). A pistol start needs the pouch before the hall, the
+map's first big fight: the Legion between the marble pylons, facing the
+escalator. It lies in the kassa beside the IZh, the side room off the
+picket's line. No crate (21022).
+
+| Where | What | Skills | For |
+|---|---|---|---|
+| `z2_kassa` (3350, 1240), beside the IZh | the pouch (21009): the weapon and 2 | every skill | the hall's Legion behind the pylons |
+| `b2_spine` (880, 940), the bunker spine | a loose grenade (21021) | skills 1-3 | the refuge dormitory's doorway, the command post's stair |
+
+**The budget** (BALANCE §8, 1.25 shell-equivalents a grenade, in the band
+and the shell share's whole only): the ratio placed / needed on skills
+2 / 3 / 4 goes **1.512 → 1.606 / 1.410 → 1.466 / 1.237 → 1.263**, inside
+1.5-2.0 / 1.3-1.6 / 1.2-1.45. The stage readiness, the newest weapon's
+lead and the command post's Panzermensch (the mini-boss stage) leave
+grenades out.
+
+**The loudspeaker** (`SD_Loudspeaker`, 21201; MOD-SPEC §6.14; D124), table
+`LOUDSPEAKERS` in `map.py`, on every skill: `z3_hall` (2080, 1070), by the
+north arches, reach 512 (the hall is 1472 long): lines **3, 4, 12, 14, 8**,
+the air-raid alert (the metro is the shelter it sends people to), the
+fallen-objects notice, the helmet notice, the blood appeal and the tap
+water. One speaker: nothing to overlap, and the map has no `SD_Radio`.
+
+**Routes:** `metro-critical` is unchanged; the nearest grenade to any of
+its walks is the spine's, 189 from BD1's walk west. Tests: this map's
+(`test_g3_8_the_ammo_budget` counts the grenades), `tests/test_rgd5_maps.py`,
+`tests/test_rgd5.py`, `tests/test_loudspeaker.py`.
+
+**Engine checklist (the PM, D26; not run):** the grenades lie where the table says and are picked up (`printinv`:
+`SD_Rgd5` and `SD_Rgd5Ammo`; the pouch does not raise itself, NO_AUTO_SWITCH,
+and slot 8 throws); a thrown grenade arcs over the cover named above and its
+blast kills what the table says it is for (from the
+escalator's foot over the pylons); the loudspeaker rings its jingle on approach, reads its lines over the
+level's music, falls silent walking away (the line in progress finishes)
+and is not heard from the next room; a clean log;
+`metro-critical` on skills 2-4 still PASS.

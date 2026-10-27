@@ -114,6 +114,14 @@ SHELLS_GIVEN = {2008: 4, 2049: 20, 21003: 8}
 ROUNDS_GIVEN = {2007: 10, 2048: 50, 21004: 35}
 ROCKETS_GIVEN = {2010: 1, 2046: 5, 21005: 2}
 CELLS_GIVEN = {2047: 20, 17: 100, 21006: 40}
+# V3 A4, the RGD-5 (BALANCE 8.1): a grenade counts 1.25 shell-equivalents
+# (its 100 blast at the centre over the IZh's 80), the pouch (the weapon)
+# 2, a loose one 1, the crate 4. Counted in the band (8.2) and in the shell
+# share's whole (8.3) only: the stage readiness, the newest weapon's lead
+# (8.4.2) and the boss's stage (8.4.3) leave grenades out, as BALANCE says
+# (the bosses take no splash).
+GRENADES_GIVEN = {21009: 2, 21021: 1, 21022: 4}
+SHELLS_PER_GRENADE = 1.25
 ROUNDS_PER_SHELL = 10
 SHELLS_PER_ROCKET = 2
 IZH_AVERAGE = 80
@@ -178,10 +186,14 @@ class Map05Test(unittest.TestCase):
         cls.zone_of = {i: name for name, i in cls.plan.items()}
         cls.start = cls.plan["z1_station"]
         cls.doors = defaultdict(set)
+        cls.lifts = defaultdict(set)     # V3: walls a pickup lowers (LIFT_TAGS)
         for i, s in enumerate(cls.sectors):
-            if s.get("id") and s["heightceiling"] == s["heightfloor"]:
+            if s.get("id") in cls.m.LIFT_TAGS:
+                cls.lifts[s["id"]].add(i)
+            elif s.get("id") and s["heightceiling"] == s["heightfloor"]:
                 cls.doors[s["id"]].add(i)
         cls.door_sectors = set().union(*cls.doors.values())
+        cls.lift_sectors = set().union(*cls.lifts.values())
         cls.neighbours = defaultdict(set)
         for ld in cls.lines:
             if "sideback" in ld:
@@ -195,7 +207,7 @@ class Map05Test(unittest.TestCase):
                 cls.vertical.append((a["x"], a["y"], b["y"], ld))
         cls.props = {i for name, i in cls.plan.items()
                      if name.startswith(cls.m.PROP_PREFIX) or name in cls.m.WINDOWS}
-        cls.unwalkable = cls.props | cls.door_sectors
+        cls.unwalkable = cls.props | cls.door_sectors | cls.lift_sectors
         cls.monster_numbers = set(cls.m.MONSTER_CLASSES)
         cls.body, cls.hit_points, cls.faction = {}, {}, {}
         for ednum, name in cls.m.MONSTER_CLASSES.items():
@@ -235,13 +247,19 @@ class Map05Test(unittest.TestCase):
         return self.sides[ld["sideback"]]["sector"] if "sideback" in ld else None
 
     def heights(self, open_tags):
+        """(floor, ceiling) per sector with `open_tags` worked: a door's
+        ceiling rises to its lowest neighbour's less 4; a lift's floor (V3:
+        the sluice's wall) drops to the lowest of its own and its neighbours'
+        (Floor_LowerToLowest)."""
         out = []
         for i, s in enumerate(self.sectors):
-            ceiling = s["heightceiling"]
+            floor, ceiling = s["heightfloor"], s["heightceiling"]
             if i in self.door_sectors and s["id"] in open_tags:
                 ceiling = (min(self.sectors[n]["heightceiling"] for n in self.neighbours[i])
                            - DOOR_OPENS_BELOW_CEILING)
-            out.append((s["heightfloor"], ceiling))
+            if i in self.lift_sectors and s["id"] in open_tags:
+                floor = min([floor] + [self.sectors[n]["heightfloor"] for n in self.neighbours[i]])
+            out.append((floor, ceiling))
         return out
 
     def adjacency(self, open_tags):
@@ -288,21 +306,29 @@ class Map05Test(unittest.TestCase):
         """{lock number: sector of the key that opens it}."""
         return {self.m.KEY_LOCKS[t["type"]]: self.sector_at(t["x"], t["y"]) for t in self.key_things()}
 
+    def pickup_specials(self):
+        """[(tag, sector)] for every pickup whose special acts on a tag (V3:
+        the keys and their riders; Radius_Quake's arg0 is no tag)."""
+        return [(t["arg0"], self.sector_at(t["x"], t["y"])) for t in self.things
+                if t["type"] not in self.monster_numbers and t.get("special") in self.m.EVENTS.TAG_SPECIALS]
+
     def _progression(self):
-        """Play the map as a player can (MAP03's model). Manual doors and
-        push panels open whenever the player can stand at their line; then,
-        one round at a time, every switch and locked door he can now reach
-        and work (a locked door only once the sector of ITS key is
-        reachable). Returns one (open tags, reachable sectors, locks held)
-        per round."""
+        """Play the map as a player can (MAP03's model, plus pickups, MAP04's).
+        Manual doors and push panels open whenever the player can stand at
+        their line; then, one round at a time, every switch and locked door he
+        can now reach and work (a locked door only once the sector of ITS key
+        is reachable), and every pickup special whose thing he can reach.
+        Returns one (open tags, reachable sectors, locks held) per round."""
         uses = [ld for ld in self.lines if ld.get("playeruse") and ld.get("special") in
                 (SPECIAL_DOOR_OPEN, SPECIAL_DOOR_RAISE, self.m.SPECIAL_DOOR_LOCKED_RAISE)]
         keys = self.key_sectors()
+        pickups = self.pickup_specials()
         opened, rounds = set(), []
         while True:
             reach = self.reachable(opened)
             held = {lock for lock, sector in keys.items() if sector in reach}
-            free, gated = set(), set()
+            free = set()
+            gated = {tag for tag, sector in pickups if sector in reach}
             for ld in uses:
                 stand = {self.front(ld)}
                 if "sideback" in ld:
@@ -725,8 +751,10 @@ class Map05Test(unittest.TestCase):
         self.assertIn(m.RUST, walls)
         self.assertNotIn(m.FENCE, walls)
         self.assertEqual(2 * (y2 - y1) - (m.CABLE_Y[1] - m.CABLE_Y[0])
-                         - (m.STATION_PASSAGE[3] - m.STATION_PASSAGE[1]), walls[m.RUST],
-                         "east and west, but for the gallery's and the passage's mouths")
+                         - (m.STATION_PASSAGE[3] - m.STATION_PASSAGE[1])
+                         - (m.SUB_STORE_DOOR[3] - m.SUB_STORE_DOOR[1]), walls[m.RUST],
+                         "east and west, but for the gallery's and the passage's mouths and "
+                         "the tool store's door (V3), the same sheet until it opens")
 
     def test_the_blue_gate_wears_its_trim(self):
         m = self.m
@@ -863,9 +891,13 @@ class Map05Test(unittest.TestCase):
             self.assertTrue(found[0]["single"])
 
     def test_the_only_special_sectors_are_the_secrets_and_the_water(self):
+        """The secrets, and since V3 the sluice chamber's failing lamp (Doom's
+        flicker, 65), seen only once its wall has fallen."""
         m = self.m
         special = {self.zone_of[i]: s["special"] for i, s in enumerate(self.sectors) if s.get("special")}
-        self.assertEqual({zone: m.SECTOR_SPECIAL_SECRET for zone in m.SECRET_ZONES}, special)
+        self.assertEqual({**{zone: m.SECTOR_SPECIAL_SECRET for zone in m.SECRET_ZONES},
+                          "z7_sluice": m.SECTOR_SPECIAL_LIGHT_FLICKER}, special)
+        self.assertEqual(65, m.SECTOR_SPECIAL_LIGHT_FLICKER)
         hurting = {self.zone_of[i] for i, s in enumerate(self.sectors) if s.get("damageamount")}
         self.assertEqual({"z7_channel"}, hurting)
 
@@ -909,15 +941,16 @@ class Map05Test(unittest.TestCase):
         self.assertEqual({m.LOCK_YELLOW_CARD}, set(h0), "the yellow key with no switch and no key")
         self.assertTrue(self.named("z5_hall", "z5_catwalk", "z7_west_walk", "z7_winch") <= r0)
         self.assertNotIn(self.plan["z6_control"], r0, "the control room is behind the yellow door")
-        self.assertEqual({m.TAG_YELLOW_DOOR}, set(o1 - o0))
+        self.assertEqual({m.TAG_YELLOW_DOOR, m.TAG_SLUICE_BREACH, m.TAG_SPILL_WATER}, set(o1 - o0),
+                         "the yellow door, and the burst the yellow key set off (V3)")
         self.assertIn(self.plan["z6_control"], r1)
         self.assertNotIn(self.plan["z9_substation"], r1, "the cable gallery is shut until SW-A")
         self.assertEqual({m.TAG_CABLE_SHUTTER}, set(o2 - o1))
         self.assertTrue(self.named("z8_cable_gallery", "z9_substation", "z9_pad") <= r2)
         self.assertEqual({m.LOCK_YELLOW_CARD, m.LOCK_BLUE_CARD}, set(h2))
         self.assertNotIn(self.plan["z10_crest"], r2, "the crest is behind the blue gate")
-        self.assertEqual({m.TAG_BLUE_GATE, m.TAG_STATION_SHUTTER, m.TAG_D2_WEST, m.TAG_S3_PANEL},
-                         set(o3 - o2))
+        self.assertEqual({m.TAG_BLUE_GATE, m.TAG_STATION_SHUTTER, m.TAG_D2_WEST, m.TAG_S3_PANEL,
+                          m.TAG_SUBSTATION_STORE}, set(o3 - o2))
         self.assertTrue(self.named("z10_crest", "z11_west_hall") <= r3)
 
     def test_the_shortcut_is_not_needed(self):
@@ -932,6 +965,12 @@ class Map05Test(unittest.TestCase):
         m = self.m
         critical = self.every_tag - {m.TAG_S1_PANEL, m.TAG_S2_PANEL, m.TAG_S3_PANEL}
         self.assertIn(self.front(self.exit_line()), self.reachable(critical))
+
+    def test_no_pickup_event_is_needed(self):
+        """V3: the burst, the water and the tool store open things; the route
+        never needs any of them."""
+        m = self.m
+        self.assertIn(self.front(self.exit_line()), self.reachable(self.every_tag - set(m.PICKUP_TAGS)))
 
     def test_the_descent_and_the_climb_are_stairs(self):
         """No lift (MAP01 section 4): the three flights down from the
@@ -984,8 +1023,12 @@ class Map05Test(unittest.TestCase):
             self.assertFalse(self.sectors[sector].get("special"))
 
     def test_each_key_lies_alone_on_its_lit_place(self):
+        """Alone but for its riders (V3): the bonuses that carry its event's
+        other specials, beside it, each with a special of its own."""
+        riders = {(x, y) for _z, _e, x, y, _s, _a in self.m.EVENT_RIDERS}
         for sector in self.key_sectors().values():
-            here = [t for t in self.things if self.sector_at(t["x"], t["y"]) == sector]
+            here = [t for t in self.things if self.sector_at(t["x"], t["y"]) == sector
+                    and (t["x"], t["y"]) not in riders]
             self.assertEqual(1, len(here), self.zone_of[sector])
 
     def test_the_locked_doors_open_with_their_keys_and_stay_open(self):
@@ -1179,6 +1222,175 @@ class Map05Test(unittest.TestCase):
         self.assertFalse([t for t in self.things if t["type"] not in self.monster_numbers
                           and self.sector_at(t["x"], t["y"]) == channel])
         self.assertIn(self.start, self.flood(adj, channel), "a way back from the water")
+
+    # --- V3 (A3): the dam bursts; (A2) the blue key's tool store ------------------
+    def face_between(self, a, b):
+        """The one two-sided line between sectors a and b, and the side of it facing a."""
+        faces = [ld for ld in self.lines if "sideback" in ld and set(self._pair(ld)) == {a, b}]
+        self.assertEqual(1, len(faces), (self.zone_of[a], self.zone_of[b]))
+        ld = faces[0]
+        return ld, (ld["sidefront"] if self.front(ld) == a else ld["sideback"])
+
+    def test_no_line_carries_a_pickups_tag(self):
+        m = self.m
+        for tag in m.PICKUP_TAGS:
+            self.assertFalse([ld for ld in self.lines if ld.get("special") and ld.get("arg0") == tag], tag)
+        carried = {t["arg0"] for t in self.things if t.get("special") in m.EVENTS.TAG_SPECIALS}
+        self.assertEqual(set(m.PICKUP_TAGS), carried)
+
+    def test_the_yellow_key_brings_the_sluice_wall_down(self):
+        """The key's own special (the one the route reads): Floor_LowerToLowest
+        on TAG_SLUICE_BREACH, fast; the tag is the breach alone, a sector as
+        high as the chamber's roof in the west walk's west wall, the dam's
+        own concrete from the walk until it falls; it falls to the chamber's
+        flooded floor, one step under the walk, and both steps are walked
+        both ways; the chamber behind is a dead end."""
+        m = self.m
+        key = self.things_of({m.ED_YELLOW_CARD})[0]
+        self.assertEqual((21, m.TAG_SLUICE_BREACH, m.BREACH_SPEED),
+                         (key["special"], key["arg0"], key["arg1"]))
+        self.assertEqual(21, m.SPECIAL_FLOOR_LOWER_TO_LOWEST)
+        breach, sluice, walk = self.plan["z7_sluice_breach"], self.plan["z7_sluice"], self.plan["z7_west_walk"]
+        self.assertEqual({breach}, self.lifts[m.TAG_SLUICE_BREACH])
+        self.assertEqual({walk, sluice}, self.neighbours[breach])
+        self.assertEqual({breach}, self.neighbours[sluice], "a dead end")
+        b = self.sectors[breach]
+        self.assertEqual((m.SLUICE_CEIL, m.SLUICE_CEIL), (b["heightfloor"], b["heightceiling"]), "shut")
+        ld, side = self.face_between(walk, breach)
+        self.assertFalse(ld.get("special"))
+        for part in ("texturebottom", "texturetop"):
+            self.assertEqual(m.DAM, self.sides[side][part], f"{part}: the dam's face until it falls")
+        opened = self.heights({m.TAG_SLUICE_BREACH})
+        self.assertEqual(m.SLUICE_FLOOR, opened[breach][0])
+        self.assertEqual(m.GROUND - m.STEP, m.SLUICE_FLOOR, "one step under the walk")
+        shut, open_ = self.adjacency(set()), self.adjacency({m.TAG_SLUICE_BREACH})
+        self.assertNotIn(breach, shut[walk])
+        for a, c in ((walk, breach), (breach, sluice), (sluice, breach), (breach, walk)):
+            self.assertIn(c, open_[a], f"{self.zone_of[a]} -> {self.zone_of[c]}")
+        self.assertGreaterEqual(opened[breach][1] - opened[breach][0], 2 * PLAYER_HEIGHT)
+
+    def test_the_sluice_opens_only_after_the_yellow_key(self):
+        m = self.m
+        first = next(k for k, (o, _r, _h) in enumerate(self.rounds) if m.TAG_SLUICE_BREACH in o)
+        self.assertIn(self.plan["z7_winch"], self.rounds[first - 1][1], "the key is reached first")
+        self.assertNotIn(self.plan["z7_sluice"], self.rounds[first - 1][1], "open early")
+        self.assertIn(self.plan["z7_sluice"], self.rounds[first][1])
+
+    def test_the_sluice_guard_on_every_skill(self):
+        m = self.m
+        for skill in SKILLS:
+            inside = [t for t in self.on(skill, self.monsters())
+                      if self.sector_at(t["x"], t["y"]) == self.plan["z7_sluice"]]
+            self.assertTrue(inside, f"the sluice is empty on skill {skill}")
+            self.assertTrue(all(self.faction[t["type"]] != "REICH" for t in inside), "the spillway's Legion")
+        self.assertFalse([t for t in self.things if t["type"] not in self.monster_numbers
+                          and self.sector_at(t["x"], t["y"]) == self.plan["z7_sluice"]])
+
+    def test_the_burst_is_warned_and_seen_from_the_winch(self):
+        """The brief's avisadas: the wall that falls faces the winch house and
+        the west walk, in sight of the key's spot, so the player sees the dam
+        give way as he takes the key; the chamber's lamp flickers, the
+        breach's 112 under its 144."""
+        m = self.m
+        opened = {m.TAG_SLUICE_BREACH}
+        winch = self.sectors[self.plan["z7_winch"]]["heightfloor"]
+        x1, y1, x2, y2 = m.SLUICE_BREACH
+        for eye in ((*m.YELLOW_KEY_SPOT, winch + VIEW_HEIGHT), self.eye(640, 1216, "z7_west_walk"),
+                    self.eye(800, 800, "z7_west_walk")):
+            for y in (y1 + 16, (y1 + y2) // 2, y2 - 16):
+                self.assertIsNone(self.blocked(eye, (x2 - 2, y, m.SLUICE_FLOOR + 48), opened), f"{eye} y {y}")
+        sluice, breach = self.sectors[self.plan["z7_sluice"]], self.sectors[self.plan["z7_sluice_breach"]]
+        self.assertGreater(sluice["lightlevel"], breach["lightlevel"], "the flicker needs a darker neighbour")
+
+    def test_the_riders_ride_with_the_yellow_key(self):
+        """Two bonuses beside the key (Doom's ALWAYSPICKUP items: taken at full
+        health and armour), each inside the key's pickup reach on its own
+        side, on every skill as the key is: one shakes the dam (Radius_Quake on
+        the player, tid 0, nobody hurt), one raises the channel's water one
+        step. No rider carries the key's own event."""
+        m = self.m
+        ev = m.EVENTS
+        key = self.things_of({m.ED_YELLOW_CARD})[0]
+        riders = [t for t in self.things if (t["x"], t["y"]) in {(x, y) for _z, _e, x, y, _s, _a in m.EVENT_RIDERS}]
+        self.assertEqual(2, len(riders))
+        self.assertEqual({m.ED_HEALTH_BONUS, m.ED_ARMOR_BONUS}, {t["type"] for t in riders})
+        for t in riders:
+            gap = max(abs(t["x"] - key["x"]), abs(t["y"] - key["y"]))
+            self.assertLessEqual(gap, ev.RIDER_OFFSET)
+            self.assertGreater(gap, 0, "never on the key's own spot")
+            self.assertLess(gap, ev.PICKUP_REACH)
+            self.assertTrue(all(t[f"skill{n}"] for n in range(1, 6)))
+            self.assertEqual(self.plan["z7_winch"], self.sector_at(t["x"], t["y"]))
+            self.assertNotEqual(m.TAG_SLUICE_BREACH, t.get("arg0"))
+        by = {t["special"]: t for t in riders}
+        quake = by[120]
+        self.assertEqual(120, m.SPECIAL_RADIUS_QUAKE)
+        self.assertTrue(1 <= quake["arg0"] <= ev.QUAKE_MAX_INTENSITY)
+        self.assertGreater(quake["arg1"], 0)
+        self.assertEqual((0, 0), (quake["arg2"], quake["arg4"]), "nobody hurt; centred on the player")
+        self.assertGreater(quake["arg3"], 0)
+        water = by[23]
+        self.assertEqual(23, m.SPECIAL_FLOOR_RAISE_BY_VALUE)
+        self.assertEqual((m.TAG_SPILL_WATER, m.WATER_SURGE), (water["arg0"], water["arg2"]))
+        self.assertGreater(water["arg1"], 0)
+
+    def test_the_water_rises_one_step_and_stays_no_trap(self):
+        """TAG_SPILL_WATER is the channel alone; risen by WATER_SURGE it lies
+        level with the first step out, still under the walkways: every way
+        out stays, and nothing is crushed (the sky is far above)."""
+        m = self.m
+        channel = self.plan["z7_channel"]
+        tagged = {i for i, s in enumerate(self.sectors) if s.get("id") == m.TAG_SPILL_WATER}
+        self.assertEqual({channel}, tagged)
+        risen = self.sectors[channel]["heightfloor"] + m.WATER_SURGE
+        firsts = {self.sectors[self.plan[f"z7_steps_{b}{k}_1"]]["heightfloor"]
+                  for b in "ew" for k in range(1, len(m.STEPS_Y) + 1)}
+        self.assertEqual({risen}, firsts, "level with the first step")
+        self.assertLess(risen, m.GROUND)
+        self.assertLessEqual(m.GROUND - risen, 3 * m.STEP)
+
+    def test_the_blue_key_opens_the_tool_store(self):
+        """Door_Open on TAG_SUBSTATION_STORE, a tag no line carries; the tag is
+        the store's door alone, in the substation's west wall, its corrugated
+        sheet until it opens; the store behind it a dead end with the Reich's
+        hounds on every skill, seen from the pad."""
+        m = self.m
+        key = self.things_of({m.ED_BLUE_CARD})[0]
+        self.assertEqual((SPECIAL_DOOR_OPEN, m.TAG_SUBSTATION_STORE, 16), (key["special"], key["arg0"], key["arg1"]))
+        door, store, sub = self.plan["z9_store_door"], self.plan["z9_store"], self.plan["z9_substation"]
+        self.assertEqual({door}, self.doors[m.TAG_SUBSTATION_STORE])
+        self.assertEqual({sub, store}, self.neighbours[door])
+        self.assertEqual({door}, self.neighbours[store], "a dead end")
+        ld, side = self.face_between(sub, door)
+        self.assertEqual(m.RUST, self.sides[side]["texturetop"], "wall until it opens")
+        self.assertFalse(ld.get("special"))
+        first = next(k for k, (o, _r, _h) in enumerate(self.rounds) if m.TAG_SUBSTATION_STORE in o)
+        self.assertIn(self.plan["z9_pad"], self.rounds[first - 1][1])
+        self.assertNotIn(store, self.rounds[first - 1][1])
+        for skill in SKILLS:
+            inside = [t for t in self.on(skill, self.monsters()) if self.sector_at(t["x"], t["y"]) == store]
+            self.assertTrue(inside, f"the store is empty on skill {skill}")
+            self.assertTrue(all(self.faction[t["type"]] == "REICH" for t in inside))
+        pad = self.sectors[self.plan["z9_pad"]]["heightfloor"]
+        x1, y1, x2, y2 = m.SUB_STORE
+        for y in (y1 + 24, (y1 + y2) // 2, y2 - 24):
+            self.assertIsNone(self.blocked((*m.BLUE_KEY_SPOT, pad + VIEW_HEIGHT), (x2 - 32, y, m.CREST + 48),
+                                           {m.TAG_SUBSTATION_STORE}), f"store y {y}")
+
+    def test_the_route_reads_the_pickup_events(self):
+        """dam-critical (tools/route.py) reads the breach shut before the key
+        and open after it, and the store shut before the blue key and open
+        after it: the engine pass proves both pickups."""
+        sys.path.insert(0, str(PROJECT_ROOT / "tools"))
+        import route   # noqa: E402  (tools/, as test_map05_route)
+        m = self.m
+        steps = {st.id: st for st in route.dam_critical().steps}
+        self.assertFalse(dict(steps["YD0"].tags)[m.TAG_SLUICE_BREACH])
+        self.assertTrue(dict(steps["YKEY"].tags)[m.TAG_SLUICE_BREACH])
+        self.assertFalse(dict(steps["SWA"].tags)[m.TAG_SUBSTATION_STORE])
+        self.assertTrue(dict(steps["BKEY"].tags)[m.TAG_SUBSTATION_STORE])
+        for sid in ("YKEY", "BKEY"):
+            self.assertTrue(any(a.startswith("wait") for a in steps[sid].actions), sid)
 
     # --- population --------------------------------------------------------------
     def test_every_thing_stands_in_the_zone_its_table_names(self):
@@ -1449,7 +1661,8 @@ class Map05Test(unittest.TestCase):
                    + ROUNDS_GIVEN.get(t["type"], 0) / ROUNDS_PER_SHELL
                    + AKM_ROUNDS_GIVEN.get(t["type"], 0) / AKM_ROUNDS_PER_SHELL
                    + ROCKETS_GIVEN.get(t["type"], 0) * SHELLS_PER_ROCKET
-                   + CELLS_GIVEN.get(t["type"], 0) * SHELLS_PER_CELL for t in placed)
+                   + CELLS_GIVEN.get(t["type"], 0) * SHELLS_PER_CELL
+                   + GRENADES_GIVEN.get(t["type"], 0) * SHELLS_PER_GRENADE for t in placed)
 
     def test_g3_8_the_ammo_budget(self):
         """G3-8 as D119 reads it: on every skill, ammunition on the route is

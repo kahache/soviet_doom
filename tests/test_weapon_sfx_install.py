@@ -135,7 +135,7 @@ D94_ALT_OF = {"SDTTPKP1": "SDTTPKP_alt1", "SDTTPKP2": "SDTTPKP_alt2", "SDAXPKP1"
               "SDAXPKP3": "SDAXPKP_alt3", "SDIZRLD": "SDIZRLD_alt3", "SDRKFIR1": "SDRKFIR_alt1",
               "SDRKFIR2": "SDRKFIR_alt2", "SDRKFIR3": "SDRKFIR_alt3"}
 ALT_PAGE_DIR = PROJECT_ROOT / "work" / "audio" / "alt"
-PARKED = {"SDTTRLD", "SDPPRLD", "SDRKRLD"}       # D47: no reload state
+PARKED = {"SDTTRLD", "SDPPRLD", "SDRKRLD"}       # D47; wired by the V3 reloads (D132, ADR 014)
 GUNS = {"tokarev.zs": "tokarev", "izh.zs": "izh", "ppsh.zs": "ppsh", "rpg7.zs": "rpg7",
         "roks3.zs": "roks3", "katyusha.zs": "katyusha"}
 PICKUPS = {"ppsh.zs": "ppsh", "rpg7.zs": "rpg7", "roks3.zs": "roks3", "katyusha.zs": "katyusha",
@@ -236,11 +236,15 @@ class ContractTests(unittest.TestCase):
         self.assertTrue({"SDIZPKP_alt1", "SDIZPKP_alt2", "SDIZPKP_alt3"}
                         <= set(master_constant("REJECTED_ALTS")))
 
-    def test_the_parked_reloads_are_the_guns_without_a_reload_state(self):
+    def test_the_d47_reloads_are_wired_by_the_v3_experiment(self):
+        """D47 parked these three (the sound pass keeps them as PARKED, its
+        record); the V3 reloads experiment (D132, ADR 014,
+        tests/test_reloads.py) plays each from its gun's Reload state while
+        sd_reloads is on."""
         self.assertEqual(set(master_constant("PARKED")), PARKED)
-        for zs_file in ("tokarev.zs", "ppsh.zs", "roks3.zs"):
-            self.assertNotRegex(code(zs_file), r"(?m)^\s*Reload:", zs_file)
-            self.assertNotIn("/reload", code(zs_file), zs_file)
+        for zs_file, weapon in (("tokarev.zs", "tokarev"), ("ppsh.zs", "ppsh"), ("roks3.zs", "roks3")):
+            self.assertRegex(code(zs_file), r"(?m)^\s*Reload:", zs_file)
+            self.assertIn(f'"sd/weapon/{weapon}/reload"', code(zs_file), zs_file)
 
     def test_short_of_target_names_only_installed_lumps(self):
         short = master_constant("SHORT_OF_TARGET")
@@ -390,9 +394,15 @@ class HookTests(unittest.TestCase):
                 ready = [r for r in state_rows(zs_file) if r[0] == "Ready"]
                 self.assertEqual([r[3:] for r in ready], [(1, "A_SD_WeaponReady")])
                 body = code(zs_file)
-                fn = body[body.index("action void A_SD_WeaponReady()"):]
+                # `action state` since the V3 reloads (D132, ADR 014): the
+                # function may jump to Reload, and A_WeaponReady takes the
+                # +reload flag; both are no-ops with sd_reloads off
+                # (tests/test_reloads.py).
+                fn = body[re.search(r"action\s+(void|state)\s+A_SD_WeaponReady\(\)", body).start():]
                 self.assertIn(f'SD_WeaponSounds.DryClick(invoker, "sd/weapon/{key}/dry");', fn)
-                self.assertIn("A_WeaponReady();", fn)
+                self.assertRegex(fn, r"A_WeaponReady\((invoker\.SD_ReadyFlags\(\w+\)"
+                                     r"|invoker\.SD_CanReloadIzh\(\) \? WRF_ALLOWRELOAD : 0)?\);")
+                self.assertLess(fn.index("DryClick"), fn.index("A_WeaponReady("))
         self.assertNotIn("A_SD_WeaponReady", code("ice_axe.zs"))   # a melee weapon is never empty
 
     def test_the_rpg7_reloads_in_the_split_launch_frame(self):

@@ -225,6 +225,8 @@ sovietdoom.pk3
 │                           StatusBarClass since T24)
 ├── LANGUAGE                localized text: [enu default] and [ru] (D7)
 ├── MENUDEF                 language switch, main menu and skill screen in our own type (§6.6)
+├── CVARINFO                V3 reloads: `sd_reloads`, the mod's first CVar (§6.15, ADR 014)
+├── KEYCONF                 V3 reloads: `defaultbind r +reload` (§6.15)
 ├── SNDINFO                 logical sound name -> lump (F4)
 ├── zscript.txt             ZScript entry: version + #include
 ├── zscript/sd/*.zs         systems (event handlers, player class, ammo, the radio §6.7,
@@ -248,6 +250,12 @@ sovietdoom.pk3
 ├── graphics/SDSBRU.png, SDARRU.png  bar A's Russian pictures, drawn by SD_StatusBar (§6.5.1)
 ├── graphics/SDSBCA.png, SDARCA.png  bar A's Catalan pictures (P6), idem
 ├── graphics/SDCURSOR.png   the mouse pointer, hammer and sickle, 28×25, grAb 12,1 (D102; §6.6.1)
+├── SDOPSCR                 V3: the intermission script of the operations map (§6.13, ADR 013),
+│                           generated into src/lumps/ by tools/art/gen_ops_map.py
+├── graphics/SDOPMAP.png, SDOPR02-09, SDOPSTAR, SDOPCUR0-1, SDOPYAH0 (.png)  V3: the operations
+│                           map, its arrows and markers (from assets/graphics/opsmap/; §6.13)
+├── graphics/SDAWCOU, SDAWRST, SDAWRBN, SDAWPTW, SDAWHER (.png)  V3: the five awards, 24×30
+│                           (from assets/graphics/medals/; §6.13; proposal for the CEO)
 ├── localized/textures/     language variants of graphics, path kept whole:
 │                           M_PAUSE.ru.png, plaque P2 in Russian, 77×20 (D48; see the rules)
 │                           M_PAUSE.ca.png, plaque P2 in Catalan «PAUSA», 77×20 (P6)
@@ -265,7 +273,9 @@ sovietdoom.pk3
 ├── sprites/SD*.png          our sprites (D48): the six weapon pickups SDAPA0, SDTPA0, SDIPA0,
 │                           SDPQA0, SDRPA0, SDKPA0 (§6.3); everything else is still the IWAD's (§5.1)
 ├── sounds/SD*.ogg           our sounds: the 25 weapon sounds of D74 (§6.2), from
-│                           assets/sounds/weapons/ (N9)
+│                           assets/sounds/weapons/ (N9); the propaganda radio's 20
+│                           (SDRAD01-16, SDRADJ1-3, SDRADBED; V3 B5, §6.14) from
+│                           assets/sounds/radio/
 ├── patches/  hires/        standard folders, empty today (T1)
 ├── ANIMDEFS                switch pairs SDSW1x -> SDSW2x; animations SDMOLT1-4 (flat),
 │                           SDPORT1-4 (texture) (§4.3)
@@ -384,13 +394,13 @@ assets/   (CEO-approved art only; `work/` is gitignored and never ships)
 |---|---|---|---|
 | `MAP01` | `SD_MAP01_NAME` = "Zarya-7 Cosmodrome" / «Космодром "Заря-7"» | `SD_EP01_NAME` = "Soviet Doom" / "Советский Doom" | Owned by `level-designer` since F3; design in `docs/levels/MAP01-zarya-7.md`. `cluster = 3`, `next = "MAP02"`, `par = 210` (§4.6; `next = "MAP03"` from D60 to D62, `cluster = 1`, `next = endtitle` before D60). Named in-engine 2026-10-13 (the log prints `MAP01 - Zarya-7 Cosmodrome`). |
 | `MAP02` (`MAP03` until D62) | `SD_MAP02_NAME` = "Metro-Bunker" / «Метро-бункер» (working title, `docs/levels/MAP02-metro.md` §13) | `SD_EP01_NAME`, the campaign's second map | Owned by `level-designer`; design in `docs/levels/MAP02-metro.md`. `cluster = 4`, `next = "MAP03"`, `music = ""`, `par = 300` (§4.6): its exit leads to the factory through cluster 4's transition text. |
-| `MAP03` (`MAP04` until D62) | `SD_MAP03_NAME` = "Tankograd" / «Танкоград» (D63) | `SD_EP01_NAME`, the campaign's third and last map | Owned by `level-designer`; design in `docs/levels/MAP03-factory.md` (v0, the grey box). `cluster = 1`, `next = endtitle`, `music = ""`, `par = 360` (`level-designer`'s figure, design §11): its exit, the breaker that feeds the portal, ends the episode (§4.6). |
+| `MAP03` (`MAP04` until D62) | `SD_MAP03_NAME` = "Tankograd" / «Танкоград» (D63) | `SD_EP01_NAME`, the campaign's third and last map | Owned by `level-designer`; design in `docs/levels/MAP03-factory.md` (v0, the grey box). `cluster = 1`, `next = EndSequence, "SD_Ending1"` (`endtitle` until V3 B2, §6.16), `music = ""`, `par = 360` (`level-designer`'s figure, design §11): its exit, the breaker that feeds the portal, ends the episode (§4.6). |
 | `MAP04` (D104, P4) | `SD_MAP04_NAME` = "Trans-Siberian" / «Транссиб» / «Transsiberià» | `SD_EP03_NAME` = "The Road to Moscow" / «Дорога на Москву» / «El camí de Moscou», episode 2's first map | Owned by `level-designer` (`src/maps/MAP04/`): the Trans-Siberian marshalling yard at Sverdlovsk, the armoured train, the signal box, the locomotive roundhouse; left west on the armoured train. `cluster = 5`, `next = "MAP05"`, `music = "D_SDM04A"` (D106, §4.5), `par = 300` (the mod-engineer's placeholder) (§4.6). |
 | `MAP05` (D104) | `SD_MAP05_NAME` = "Volga Dam" / «Волжская ГЭС» / «La presa del Volga» | `SD_EP03_NAME`, episode 2's second map | Owned by `level-designer` (`src/maps/MAP05/`): the hydroelectric dam at Zhiguli, the turbine hall, the spillway, the control room; left over the crest of the dam. `cluster = 6`, `next = "MAP06"`, `music = "D_SDM05A"` (D106), `par = 330` (placeholder). |
-| `MAP06` (D104) | `SD_MAP06_NAME` = "Red Square" / «Красная площадь» / «La plaça Roja» | `SD_EP03_NAME`, episode 2's third and last map | Owned by `level-designer` (`src/maps/MAP06/`): Moscow, out of the metro at Ploshchad Revolyutsii, the GUM galleries, Red Square, the gate in the Kremlin wall, the boss arena. `cluster = 7`, `next = endtitle`, `music = "D_SDM06A"` (D106), `par = 420` (placeholder): its exit ends episode 2 (§4.6). |
+| `MAP06` (D104) | `SD_MAP06_NAME` = "Red Square" / «Красная площадь» / «La plaça Roja» | `SD_EP03_NAME`, episode 2's third and last map | Owned by `level-designer` (`src/maps/MAP06/`): Moscow, out of the metro at Ploshchad Revolyutsii, the GUM galleries, Red Square, the gate in the Kremlin wall, the boss arena. `cluster = 7`, `next = EndSequence, "SD_Ending2"` (§6.16), `music = "D_SDM06A"` (D106), `par = 420` (placeholder): its exit ends episode 2 (§4.6). |
 | `MAP07` (D112, P4) | `SD_MAP07_NAME` = "Novaya Zemlya" / «Новая Земля» / «Nova Zembla» | `SD_EP04_NAME` = "The Portal" / «Портал» / «El portal», episode 3's first map | Owned by `level-designer` (`src/maps/MAP07/`): the Arctic radar station on Novaya Zemlya, the radomes, the barracks, the nuclear test site; the invaders use it to guide something in. `cluster = 8`, `next = "MAP08"`, `music = "D_SDM04B"`, `intermusic = "D_SDE2IB"` (both provisional, §4.5), `par = 330` (placeholder) (§4.6). |
 | `MAP08` (D112) | `SD_MAP08_NAME` = "Severomorsk" / «Североморск» / «Severomorsk» | `SD_EP04_NAME`, episode 3's second map | Owned by `level-designer` (`src/maps/MAP08/`): the Northern Fleet's submarine base at Severomorsk, the covered docks, a nuclear submarine, the cranes, the tunnels in the rock. `cluster = 9`, `next = "MAP09"`, `music = "D_SDM05B"`, `intermusic = "D_SDE2IB"` (provisional), `par = 360` (placeholder). |
-| `MAP09` (D112) | `SD_MAP09_NAME` = "Tunguska" / «Тунгуска» / «Tunguska» | `SD_EP04_NAME`, episode 3's third and last map | Owned by `level-designer` (`src/maps/MAP09/`): the invaders' main portal at Tunguska, the taiga flattened in 1908, an alien-industrial complex eating the forest, the portal, the final boss arena. `cluster = 10`, `next = endtitle`, `music = "D_SDM06B"` (provisional), `par = 480` (placeholder): its exit ends episode 3 and the first cycle (§4.6). |
+| `MAP09` (D112) | `SD_MAP09_NAME` = "Tunguska" / «Тунгуска» / «Tunguska» | `SD_EP04_NAME`, episode 3's third and last map | Owned by `level-designer` (`src/maps/MAP09/`): the invaders' main portal at Tunguska, the taiga flattened in 1908, an alien-industrial complex eating the forest, the portal, the final boss arena. `cluster = 10`, `next = EndSequence, "SD_Ending3"` (§6.16), `music = "D_SDM06B"` (provisional), `par = 480` (placeholder): its exit ends episode 3 and the first cycle (§4.6). |
 | `RANGE` (`MAP02` until D62) | `SD_RANGE_NAME` = "Training Ground" / «Учебный полигон» (D46, 2026-10-14; was "Engineering Test Range" / "Инженерный полигон"; the id was `SD_MAP02_NAME` until D62) | `SD_EP02_NAME` = "Practice Range" / «Полигон» (D41, §4.4) | `cluster = 2`, `next = endtitle`, `nointermission`. F4: 2048×768 hall, ceiling 128, light 192, player start at (160,384) facing +x. The seven weapons, the four ammo pools, barrels and six targets (thing 3004, Soviet riflemen since F5). **F5: the bestiary gallery**, a second room 2048×768 at y 1024–1792, ceiling 192, light 192: one of each of the eight enemy classes in a row at y = 1600, deaf (`ambush`) and facing north, away from the arrival spot. Since D41 the player reaches the map from New Game (§4.4); `MAP=RANGE tools/run.sh` starts it (D62). **Since commit `d1e891f` (2026-10-13), v1 for players:** an `Exit_Normal` switch (`SDSW1D`) in a lit alcove straight behind the start, and the gallery reached on foot through a manual door (tag 1) in the hall's north wall and a bent passage that comes out behind the row; the console's `warp 1024 1152` still lands there. Geometry and reasons are `level-designer`'s, `docs/levels/RANGE-practice-range.md`. Built as an engineering fixture; shipped as the practice range. |
 
 MAPINFO conventions: `clearepisodes` + one episode per campaign episode
@@ -552,14 +562,14 @@ design documents moved with `git mv`; dated evidence keeps its old names (a
 |---|---|---|---|
 | `MAP01` | 3 | `"MAP02"` | the stats screen, then cluster 3's `SD_MAP01_EXIT_TEXT` over `SDFLR1`, then MAP02 |
 | `MAP02` | 4 | `"MAP03"` | the stats screen, then cluster 4's `SD_MAP02_EXIT_TEXT` over `SDFLR1`, then MAP03 |
-| `MAP03` | 1 | `endtitle` | the stats screen, then cluster 1's `SD_END01_TEXT` over `SDFLR1`, then the title screen |
+| `MAP03` | 1 | `EndSequence, "SD_Ending1"` (V3 B2; `endtitle` until then) | the stats screen, the awards page (§6.13), then cluster 1's `SD_END01_TEXT` over `SDFLR1`, then the illustration `SDEND1` (§6.16), then the title screen |
 | `RANGE` | 2 | `endtitle` | unchanged (§4.4): no stats (`nointermission`), cluster 2's `SD_END02_TEXT`, the title screen |
 | `MAP04` (D104) | 5 | `"MAP05"` | the stats screen, then cluster 5's `SD_MAP04_EXIT_TEXT` over `SDFLR1`, then MAP05 |
 | `MAP05` (D104) | 6 | `"MAP06"` | the stats screen, then cluster 6's `SD_MAP05_EXIT_TEXT` over `SDFLR1`, then MAP06 |
-| `MAP06` (D104) | 7 | `endtitle` | the stats screen, then cluster 7's `SD_END03_TEXT` over `SDFLR1`, then the title screen |
+| `MAP06` (D104) | 7 | `EndSequence, "SD_Ending2"` (V3 B2) | the stats screen, the awards page, then cluster 7's `SD_END03_TEXT` over `SDFLR1`, then `SDEND2` (§6.16), then the title screen |
 | `MAP07` (D112) | 8 | `"MAP08"` | the stats screen, then cluster 8's `SD_MAP07_EXIT_TEXT` over `SDFLR1`, then MAP08 |
 | `MAP08` (D112) | 9 | `"MAP09"` | the stats screen, then cluster 9's `SD_MAP08_EXIT_TEXT` over `SDFLR1`, then MAP09 |
-| `MAP09` (D112) | 10 | `endtitle` | the stats screen, then cluster 10's `SD_END04_TEXT` over `SDFLR1`, then the title screen |
+| `MAP09` (D112) | 10 | `EndSequence, "SD_Ending3"` (V3 B2) | the stats screen, the awards page, then cluster 10's `SD_END04_TEXT` over `SDFLR1`, then `SDEND3` (§6.16), then the title screen |
 
 | Cluster | `exittext` | Holds | Role |
 |---|---|---|---|
@@ -687,7 +697,10 @@ that anyone touching this needs:
   answers `Unknown property 'Text' found in endgame definition`. The copy is
   `cluster 1 { exittext = lookup, "SD_END01_TEXT" flat = "SDFLR1" }`.
 - **`next = endtitle`** is the named end sequence for "roll the ending, then
-  go back to the title screen" (`CheckEndSequence`, same file).
+  go back to the title screen" (`CheckEndSequence`, same file). Since V3 B2
+  the three episode ends name their own sequences instead,
+  `next = EndSequence, "SD_EndingN"`: the same path with one picture before
+  the title (§6.16); the range keeps `endtitle`.
 - **`nointermission` is gone from MAP01.** Pressing the exit used to restart
   the map in silence; the stats screen is the first thing that says the
   level was finished. `par = 210` is `level-designer`'s figure. **NOT
@@ -1170,7 +1183,7 @@ in the IWAD.
 |---|---|---|
 | `SD_LoadReporter` | `EventHandler` | `WorldLoaded` → `Console.PrintfEx(PRINT_HIGH \| PRINT_NONOTIFY, "SOVIETDOOM loaded: …")`: console and log only, never the HUD (QA-G6-2). Pipeline smoke test. No gameplay effect. |
 | `OptionMenuItemSDLanguageOption` | `OptionMenuItemOption` | The Language row: overrides `GetSelection` only, so any `language` value shows Automatic, English, Russian or Catalan (any `ca*` code shows Català; QA-G6-1, ADR 004 D-004-7, P6). Writes nothing. |
-| `SD_Player` | `DoomPlayer` | The sergeant. Starts with `SD_Tokarev` and 50 `Clip`, nothing else: no ice axe and no `Fist`, so slot 1 is empty until the ice axe is picked up (since 2026-10-13, `BALANCE.md` §4.1). Declares slots 1–7; slot 4 holds two since D116, `"SD_Ppsh", "SD_Akm"` in that order. |
+| `SD_Player` | `DoomPlayer` | The sergeant. Starts with `SD_Tokarev` and 50 `Clip`, nothing else: no ice axe and no `Fist`, so slot 1 is empty until the ice axe is picked up (since 2026-10-13, `BALANCE.md` §4.1). Declares slots 1–7; slot 4 holds two since D116, `"SD_Ppsh", "SD_Akm"` in that order; slot 8 is the RGD-5's (V3, ADR 012). |
 | `SD_IceAxe` | `Fist` *replaces Fist* | Slot 1, melee: the ice axe (D40; was `SD_Shovel`). Found, never issued: MAP01 places it on the dorm's rack (every skill, reachable with every door shut), `RANGE` on the range. |
 | `SD_Tokarev` | `Pistol` *replaces Pistol* | Slot 2, `Clip`. |
 | `SD_Izh` | `Shotgun` *replaces Shotgun* | Slot 3, `Shell`. Two barrels then a break-open reload (`int barrels`). Dropped by a trooper it carries 2 shells (`ModifyDropAmount`, D119). |
@@ -1180,9 +1193,13 @@ in the IWAD.
 | `SD_Rpg7` | `RocketLauncher` *replaces RocketLauncher* | Slot 5, `RocketAmmo`. Fires `SD_Pg7Grenade`. |
 | `SD_Roks3` | `PlasmaRifle` *replaces PlasmaRifle* | Slot 6, `Cell`. Fires `SD_FlameBlob`. |
 | `SD_HandKatyusha` | `BFG9000` *replaces BFG9000* | Slot 7, `Cell`, 40 per salvo. Fires six `SD_KatyushaRocket`. |
+| `SD_Rgd5` | `DoomWeapon` (replaces nothing) | Slot 8, a key of its own (V3, A4; ADR 012): the RGD-5 hand grenade, `SD_Rgd5Ammo`; on the floor the pouch of two, 21009. Throws `SD_Rgd5Grenade`; never raised by itself. Own sprites `SDRG`, `SDRQ`, `SDRJ`, `SDRN`, `SDRZ` since D133 (§6.12). Design `docs/engine/2026-10-23_V3_rgd5.md`. |
+| `SD_Rgd5Ammo` | `Ammo` (a pool of its own) | The RGD-5's pool and one loose grenade, 21021, in `zscript/weapons/rgd5_ammo.zs`; taken by a player with no `SD_Rgd5`, it gives the weapon too (ADR 012, §6.4). |
+| `SD_Rgd5Box` | `SD_Rgd5Ammo` | A crate of four RGD-5s, 21022. |
 | `SD_Pg7Grenade` | `Rocket` | Shaped-charge projectile. Not placeable. |
 | `SD_FlameBlob` | `Actor` | Fire projectile, 528-unit reach, 3 x random(1,8) since D119 (the bosses' subclasses keep 4). Not placeable. |
 | `SD_KatyushaRocket` | `Rocket` | Salvo rocket, does not hurt the shooter. Not placeable. |
+| `SD_Rgd5Grenade` | `Actor` | The thrown RGD-5: an arc, short bounces, a 1.71 s fuse counted from the throw (`Death` is "stopped", the burst is `Detonate`), 100 blast over 128 units, hurts the thrower. Not placeable. |
 | `SD_IceAxePuff` | `BulletPuff` | The ice axe's puff: `BulletPuff` plus `AttackSound` `sd/weapon/iceaxe/wall`, the pick on stone (N9, §6.2). Not placeable. |
 | `SD_WeaponSounds` | `Object` (`play`) | Static helper, never instantiated: `DryClick`, the guns' empty click from `Ready` (N9, §6.2). |
 | `SD_Monster` | `Actor` | Bestiary base (F5): `Monster`, `+FLOORCLIP`, the `Faction` property and the three attack helpers. Not placeable. Why enemies do not derive from Doom's monsters, why each sets its own `Species`: ADR 006 (`BESTIARY.md` §2.4 is the earlier draft). |
@@ -1196,12 +1213,13 @@ in the IWAD.
 | `SD_General` | `SD_Monster` *replaces Cyberdemon* | Boss, 3000 HP (H), three-shell salvo; once below half health, summons two `SD_ReichRifleman` and prints `SD_GENERAL_ORDER` (D35). |
 | `SD_LegionGunner` | `SD_Monster` *replaces ChaingunGuy* | P4 (D104, in the mod since D116): Legion heavy machine-gunner, 80 HP, bursts of 4–6 hitscan rounds then a pause. Drops `SD_AkmAmmo`. Own sprite `SDLG` since D123 (§6.3, §6.12). |
 | `SD_LibertyColossus` | `SD_Monster` *replaces SpiderMastermind* | P4: Episode 2's boss, 3000 HP (D119, the Spider Mastermind's; was 4500), torch rockets far, a fire jet near, a stomp close. Fires `SD_ColossusRocket` (`SD_Pg7Grenade`) and `SD_ColossusFlame` (`SD_FlameBlob`). MAP06's boss; own sprite `SDLC` since D123. |
-| `SD_ChromeGeneral` | `SD_LibertyColossus` (replaces nothing) | P4 (D123): "The Chrome Marshal", the colossus variant: the colossus's body, flags, species, sounds and three verbs, 3000 HP, on the General's `SDGN` at `Scale` 1.3 with the chrome `Translation` the colossus wore from D116 (an approved design, a palette swap, not a placeholder). Own `Tag` and obituaries (`SD_TAG_CHROME`, `SD_OB_CHROME`, `SD_OBHIT_CHROME`). MAP08's mini-boss on skills 3-4. `BESTIARY.md` §12 row 12. |
-| `SD_Consortium` | `SD_Monster` (replaces nothing) | P4: Episode 3's final boss, 4000 HP (D119, the Cyberdemon's; was 9000), rooted then free at half health, calls servants of both factions. Fires `SD_ConsortiumRocket`, `SD_ConsortiumOrb` (`SD_GeneralShell`), `SD_ConsortiumFlame`. Own sprite `SDCN` since D128 (§6.3, §6.12). Design `docs/engine/2026-10-22_P4_ep3-final-boss.md`. |
+| `SD_ChromeGeneral` | `SD_LibertyColossus` (replaces nothing) | P4 (D123): "The Chrome Marshal", the colossus variant: the colossus's body, flags, species, sounds and three verbs, 3000 HP, on `SDCM` (the General's `SDGN` with his armband repainted as the US flag, V3 `tools/art/insignia_fix.py`) at `Scale` 1.3 with the chrome `Translation` the colossus wore from D116 (an approved design, a palette swap, not a placeholder). Own `Tag` and obituaries (`SD_TAG_CHROME`, `SD_OB_CHROME`, `SD_OBHIT_CHROME`). MAP08's mini-boss on skills 3-4. `BESTIARY.md` §12 row 12. |
+| `SD_Consortium` | `SD_Monster` (replaces nothing) | P4: Episode 3's final boss, 4000 HP (D119, the Cyberdemon's; was 9000), rooted then free at half health, calls servants of both factions. Fires `SD_ConsortiumRocket`, `SD_ConsortiumOrb` (`SD_GeneralShell`), `SD_ConsortiumFlame`. Own sprite `SDCN` since D128 (§6.3, §6.12). **Placed thing's `arg4` (V3 A3):** a sector tag; at the Breach's first tic, once, the boss sinks the sectors with that tag to their lowest neighbour, taking its flat and damage (`Floor_LowerToLowestTxTy (tag, 16)`), and sets them flickering (`Light_Flicker`); 0 (summoned) opens nothing. MAP09 gives it 15, its crater's scabs (`docs/levels/MAP09-tunguska.md` §18.3); its `special` stays the death's `Door_Open`, which reads arg0-arg2 only. Design `docs/engine/2026-10-22_P4_ep3-final-boss.md`. |
 | `SD_ConsortiumWounded` | `SD_Consortium` | Test fixture for the engine pass, not an enemy: the boss at half health + 100, `summon` only; no number, no string. Delete when the pass no longer needs it. |
 | `SD_ColossusRocket`, `SD_ColossusFlame`, `SD_ConsortiumRocket`, `SD_ConsortiumOrb`, `SD_ConsortiumFlame` | the arsenal's / the General's projectile | The P4 bosses' projectiles, on their parents' sprites; the Consortium's fly through monsters (`CanCollideWith`). Not placeable. |
 | `SD_StormBolt`, `SD_DoughboyShell`, `SD_PanzerShell`, `SD_GeneralShell` | `Actor` | The four enemy projectiles. Not placeable. |
 | `SD_Radio` | `Actor` | The diegetic radio (D43): a solid decoration that plays one of two CC0 pieces in place of the level's music while the player is near it, and gives the level's music back when the player walks away. Contract §6.7, reasons ADR 008. |
+| `SD_Loudspeaker` | `Actor` | The propaganda radio's loudspeaker (V3 B5, D124), 21201: a positional voice OVER the level's music, a jingle and then shuffled Radio Moscow lines while the player is near it. A street loudspeaker on a pole, grey `SDLS` or olive `SDLO` (arg3 flag 8, D132), frame B while it speaks. Contract §6.14. |
 | `SD_MusicVariant` | `EventHandler` | Episodes 2 and 3's music (D106, D113): on a fresh MAP04-MAP09 draws the A (MAPINFO's) or the B piece at random and swaps to the B; on MAP06 and MAP09 swaps to the boss loop when a BOSS monster engages. A load keeps what was playing. Contract §6.11. |
 | `SD_BluePass` | `BlueCard` *replaces BlueCard* | The metro's blue pass (MAP02 since D62; propusk): Doom's blue keycard under a Soviet name. `Species "BlueCard"` so lock 2 opens for it; own pickup line `SD_PICKUP_BLUEPASS`; our own sprite since D63 and the `STKEYS0` icon, inherited (the mod ships its own `STKEYS0` since D80). Placed by Doom's editor number 5. Below, "The blue pass". |
 | `SD_YellowPass`, `SD_RedPass` | `YellowCard`, `RedCard` *replace YellowCard, RedCard* | Tankograd's yellow and red passes (MAP03, D80): `SD_BluePass`'s pattern, `Species "YellowCard"` / `"RedCard"` so locks 3 and 1 open for them; lines `SD_PICKUP_YELLOWPASS` / `SD_PICKUP_REDPASS`; our own sprites (§6.3). Placed by Doom's editor numbers 6 and 13. |
@@ -1355,7 +1373,10 @@ the full check are in `docs/engine/adr/002-arsenal-and-editor-numbers.md`.
 | 21006 | `SD_Roks3` |
 | 21007 | `SD_HandKatyusha` |
 | 21008 | `SD_Akm` (D116; slot 4's second weapon, replaces nothing) |
+| 21009 | `SD_Rgd5` (V3, ADR 012; slot 8, the RGD-5 hand grenade: the pouch of two) |
 | 21020 | `SD_AkmAmmo` (D116; the AKM's magazine, the first number of the ammo block: ADR 011) |
+| 21021 | `SD_Rgd5Ammo` (V3, ADR 012; one loose RGD-5, which also gives the weapon) |
+| 21022 | `SD_Rgd5Box` (V3, ADR 012; a crate of four RGD-5s) |
 | 21100 | `SD_ReichRifleman` (also spawned by Doom's 3004) |
 | 21101 | `SD_LegionTrooper` (also 9) |
 | 21102 | `SD_Stormtrooper` (also 3001) |
@@ -1370,6 +1391,7 @@ the full check are in `docs/engine/adr/002-arsenal-and-editor-numbers.md`.
 | 21112 | `SD_Consortium` (its own number only; D116) |
 | 21113 | `SD_ChromeGeneral` (its own number only; D123, the colossus variant) |
 | 21200 | `SD_Radio`, the first decoration (§6.7). **Assigned here, not yet in `MAPINFO`**: the line `21200 = SD_Radio` is the PM's to add (the file was another agent's on 2026-10-13); until it lands, a map that places 21200 spawns nothing there |
+| 21201 | `SD_Loudspeaker`, the propaganda radio's loudspeaker (V3 B5, D124; §6.14), in `MAPINFO` |
 
 Every enemy also `replaces` its Doom counterpart, so a map may place either
 number and both spawn ours; `level-designer` can keep MAP01's Doom numbers
@@ -1382,7 +1404,8 @@ on the built maps, 2026-10-22): the P4 maps place ours by 21110-21113.
 
 Removed from the game (mapped to `None` in `DoomEdNums`): **82** super
 shotgun and **2005** chainsaw. The arsenal was seven weapons (D13); the AKM
-(D116) is the eighth, beside the PPSh-41 in slot 4.
+(D116) is the eighth, beside the PPSh-41 in slot 4; the RGD-5 (V3, ADR 012)
+the ninth, alone in slot 8.
 
 Numbers are assigned only in MAPINFO's `DoomEdNums` block — the only method
 available to a ZScript class.
@@ -1418,7 +1441,7 @@ sounds D125 put on the engine's own names).
 | `sd/weapon/iceaxe/pickup` | `$random`: `SDAXPKP1`, `SDAXPKP3` (D94) | `Inventory.PickupSound` (since N9e) |
 | `sd/weapon/tokarev/fire` | `SDTTFIR` | `SD_Tokarev` `AttackSound` |
 | `sd/weapon/tokarev/dry` | `SDTTDRY` | `A_SD_WeaponReady` → `SD_WeaponSounds.DryClick` |
-| `sd/weapon/tokarev/reload` | `SDTTRLD` | nothing: parked, no reload state (D47) |
+| `sd/weapon/tokarev/reload` | `SDTTRLD` | parked by D47; on the branch `v3-reload` the `Reload` state, with `sd_reloads` on (§6.15) |
 | `sd/weapon/tokarev/pickup` | `$random`: `SDTTPKP1`, `SDTTPKP2` (D94) | `Inventory.PickupSound` (since N9e) |
 | `sd/weapon/izh/fire` | `SDIZFIR` (take B, D83; `DSSHOTGN` until N9e) | `SD_Izh` `AttackSound` |
 | `sd/weapon/izh/reload` | `SDIZRLD` (D94 alt3; `DSSGCOCK` until N9e) | `SD_Izh` Reload, first frame |
@@ -1427,7 +1450,7 @@ sounds D125 put on the engine's own names).
 | `sd/weapon/ppsh/fire` | `SDPPFIR` | `SD_Ppsh` `AttackSound` |
 | `sd/weapon/ppsh/pickup` | `SDPPPKP` | `Inventory.PickupSound` |
 | `sd/weapon/ppsh/dry` | `SDPPDRY` | `A_SD_WeaponReady` |
-| `sd/weapon/ppsh/reload` | `SDPPRLD` | nothing: parked (D47) |
+| `sd/weapon/ppsh/reload` | `SDPPRLD` | parked by D47; on `v3-reload` the `Reload` state (§6.15) |
 | `sd/weapon/rpg7/fire` | `SDRPFIR` | `SD_Pg7Grenade` `SeeSound` |
 | `sd/weapon/rpg7/explode` | `SDRPEXP` | `SD_Pg7Grenade` `DeathSound` |
 | `sd/weapon/rpg7/reload` | `SDRPRLD` | `SD_Rpg7` Fire, `SDRL B 10` (the launch frame split 4 + 10), `CHAN_WEAPON` |
@@ -1436,7 +1459,7 @@ sounds D125 put on the engine's own names).
 | `sd/weapon/roks3/fire` | `$random`: `SDRKFIR1`-`SDRKFIR3` (D94; `DSFLAME` until N9e) | `A_SD_FireRoks3`, `CHAN_WEAPON`, restarted every 3 tics: a take per restart |
 | `sd/weapon/roks3/pickup` | `SDRKPKP` | `Inventory.PickupSound` |
 | `sd/weapon/roks3/dry` | `SDRKDRY` | `A_SD_WeaponReady` |
-| `sd/weapon/roks3/reload` | `SDRKRLD` | nothing: parked (D47) |
+| `sd/weapon/roks3/reload` | `SDRKRLD` | parked by D47; on `v3-reload` the `Reload` state (§6.15) |
 | `sd/weapon/katyusha/charge` | `SDHKCHG` | `SD_HandKatyusha` Fire, `SDHK A 20`, `CHAN_WEAPON` |
 | `sd/weapon/katyusha/fire` | `SDHKFIR` | `A_SD_FireKatyusha`, `CHAN_WEAPON` |
 | `sd/weapon/katyusha/burst` | `SDHKEXP` | `SD_KatyushaRocket` `DeathSound` |
@@ -1557,12 +1580,37 @@ are not part of the bestiary's 47 (`gen_sfx.py`'s cards): `BESTIARY.md`
 |---|---|---|
 | `sd/weapon/akm/fire` | `SDPPFIR` (the PPSh-41's round) with `$pitchset sd/weapon/akm/fire 0.85` (**NOT VERIFIED** in the engine; the keyword is in g4.14.2's `gzdoom.exe`) | `SDAKFIR` (the `$pitchset` line goes with it) |
 | `sd/weapon/akm/dry`, `…/pickup` | `SDPPDRY`, `SDPPPKP` | `SDAKDRY`, `SDAKPKP` |
+| `sd/weapon/akm/reload` (V3 reloads, §6.15) | `SDPPRLD` (the PPSh-41's drum change) | `SDAKRLD` |
 | `sd/mon/legiongunner/sight`, `…/active`, `…/pain`, `…/death` | the trooper's takes `SDLTRSI3`, `SDLTRAC3`, `SDLTRPA1`, `SDLTRDT1` | `SDLGNSIT`, `SDLGNACT`, `SDLGNPAI`, `SDLGNDTH` |
 | `sd/mon/legiongunner/attack`, `…/xdeath` | `SDPPFIR`, `SDLTRXDT` | `SDLGNATK` (a slower, heavier M1919), `SDLGNXDT` |
 | `sd/mon/colossus/sight`, `…/active`, `…/pain`, `…/death` | the General's `SDGENSIT`, `SDGENACT`, `SDGENPA1`, IWAD `DSCYBDTH` | `SDCOLSIT`, `SDCOLACT`, `SDCOLPAI`, `SDCOLDTH` (metal groaning, not a voice) |
 | `sd/mon/colossus/step`, `…/stomp`, `…/flame` | `SDPZRSTP`, `SDRPEXP`, `SDRKFIR1` | `SDCOLSTP`, `SDCOLSTM`, `SDCOLFLM` |
 | `sd/mon/consortium/sight`, `…/active`, `…/pain`, `…/death` | the Panzermensch's `SDPZRSIT`, `SDPZRACT`, `SDPZRPA3`, IWAD `DSCYBDTH` | `SDCNSSIT`, `SDCNSACT`, `SDCNSPAI`, `SDCNSDTH` |
 | `sd/mon/consortium/call`, `…/breach`, `…/step`, `…/flame` | `SDGENSU1`, `SDPZRDTH`, `SDPZRSTP`, `SDRKFIR2` | `SDCNSCAL`, `SDCNSBRC`, `SDCNSSTP`, `SDCNSFLM` |
+
+**V3 sounds (2026-10-23): the RGD-5** (ADR 012), the same scheme: its own
+logical names over lumps the mod ships, the final lump after `->` in
+`SNDINFO`; `tests/test_rgd5.py` holds them to the code. Why each, and what
+`sound-designer` should record: `docs/engine/2026-10-23_V3_rgd5.md` §4.
+
+| Logical name | Plays today | Final lump |
+|---|---|---|
+| `sd/weapon/rgd5/pin` | `SDTTDRY` (the TT-33's hammer click) | `SDRGPIN` |
+| `sd/weapon/rgd5/throw` | `SDAXSWG` (the ice axe's swing) | `SDRGTHR` |
+| `sd/weapon/rgd5/bounce` | `SDAXWAL` (the pick on stone), `SD_Rgd5Grenade`'s `BounceSound` | `SDRGBNC` |
+| `sd/weapon/rgd5/explode` | `SDRPEXP` (the PG-7V's burst) with `$pitchset sd/weapon/rgd5/explode 1.2` (**NOT VERIFIED**) | `SDRGEXP` (the `$pitchset` line goes with it) |
+| `sd/weapon/rgd5/pickup` | `SDTTPKP2` (the TT-33 out of its holster) | `SDRGPKP` |
+
+**V3 sounds (2026-10-23): the propaganda radio** (B5, D124), ours: 20 lumps
+in `assets/sounds/radio/`, installed by `tools/audio/install_radio.py`
+(rows in `docs/art/LICENSES.md` § "Propaganda radio"), played by
+`SD_Loudspeaker` (§6.14). Every name carries `$rolloff … linear 128 768`.
+
+| Logical name | Lump | Played by |
+|---|---|---|
+| `sd/radio/line/01` … `sd/radio/line/16` | `SDRAD01` … `SDRAD16` (one take each; `SDRAD16` is the six pips and then the line) | `SD_Loudspeaker`, `CHAN_VOICE`, from its shuffled playlist |
+| `sd/radio/jingle` | `$random` of `sd/radio/jingle/1`-`3` = `SDRADJ1`-`SDRADJ3` | `SD_Loudspeaker` on turning on (`arg4` 0); `arg4` 1-3 names one |
+| `sd/radio/bed` | `SDRADBED` (6 s seamless loop) | `SD_Loudspeaker` with the bed flag, `CHAN_BODY`, `CHANF_LOOPING` |
 
 The bosses' projectiles inherit their parents' sounds (the RPG-7's, the
 General's shell's, none for the flame). The design docs proposed
@@ -2410,7 +2458,7 @@ little at a time; until each lands its class wears an existing sprite
 lump starts with `SD`). The gunner's and the colossus's are **installed
 since D123** (licence rows: `docs/art/LICENSES.md`, "Enemy sprites: the
 Legion gunner" and "the Liberty Colossus"); the colossus's old look is the
-Chrome Marshal's own (`SD_ChromeGeneral`, `SDGN` ×1.3 tinted chrome, D123).
+Chrome Marshal's own (`SD_ChromeGeneral`, `SDCM` ×1.3 tinted chrome, D123; `SDCM` is `SDGN` with the US-flag armband since V3).
 
 | Class | Final sprite | Lumps | Frames (the design doc's) | Wears today |
 |---|---|---|---|---|
@@ -2419,6 +2467,9 @@ Chrome Marshal's own (`SD_ChromeGeneral`, `SDGN` ×1.3 tinted chrome, D123).
 | `SD_Consortium` | `SDCN` | 95 | Q R rooted, A–D walk, E–H, S the Breach, I–O death | **`SDCN`**, installed (D128), `assets/sprites/consortium/`; palette v3 |
 | `SD_Akm` | `SDAK` A–B held, `SDAF` A flash, `SDAQ` A pickup | 4 | the PPSh-41's | **`SDAK`, `SDAF`, `SDAQ`**, installed (D128), `assets/sprites/akm/` |
 | `SD_AkmAmmo` | `SDAM` A | 1 | one curved magazine | `SDCL`, tinted |
+| `SD_Rgd5` (V3) | `SDRG` A–D held, `SDRQ` A the pouch | 5 | A ready, B the pin out and the arm back, C the release, D the follow-through | **`SDRG`, `SDRQ`**, installed (D133), `assets/sprites/rgd5/` |
+| `SD_Rgd5Ammo`, `SD_Rgd5Box` (V3) | `SDRJ` A one grenade (and the icon), `SDRZ` A the crate | 2 | | **`SDRJ`, `SDRZ`**, installed (D133), `assets/sprites/rgd5/`; icon `SDRJA0` |
+| `SD_Rgd5Grenade` (V3) | `SDRN` A in flight and at rest | 1 | the burst stays `SDPX` A–C | **`SDRN`**, installed (D133), `assets/sprites/rgd5/` |
 
 ### 6.4 Ammunition (contract with `art-director` and `level-designer`)
 
@@ -2426,7 +2477,10 @@ The seven weapons of D13 use the **four Doom pools**, exactly the four they
 need. **One pool is ours since D116: `SD_AkmAmmo`, the AKM's 7.62×39**
 (`docs/engine/adr/011-akm-ammo-pool.md`): a new weapon gets a pool of its
 own only when it fires another cartridge and sharing would retire a
-weapon, and the reason goes in an ADR. What else the mod owns is the nine
+weapon, and the reason goes in an ADR. **A second since V3: `SD_Rgd5Ammo`,
+the RGD-5's grenades** (`docs/engine/adr/012-rgd5-hand-grenade.md`): ADR
+012 widens the rule to a weapon that fires no cartridge at all (a thrown
+weapon is its own ammunition). What else the mod owns is the nine
 pickup actors, declared in
 `zscript/sd/ammo.zs`, so that the player reads 1977 Soviet nomenclature
 instead of "bullets" and "shells" (CEO decision, 2026-10-13).
@@ -2439,13 +2493,15 @@ instead of "bullets" and "shells" (CEO decision, 2026-10-13).
 | `Cell` | `SD_Cell`, `SD_CellPack` | `Cell`, `CellPack` | ROKS-3, hand Katyusha | `AMMO_CELLS` — fuel / «Горючее» |
 | — | `SD_Backpack` | `Backpack` | — | pickup line `SD_GOT_BACKPACK`; the RD-54's sprite since D80 (§6.3) |
 | `SD_AkmAmmo` (ours, D116) | `SD_AkmAmmo`, both pool and magazine | nothing | AKM | `SD_AMMO_AKM` — 7.62x39 rounds / «Патроны 7,62×39»; pickup `SD_GOT_AKMMAG`; editor number **21020**; 30 a magazine, 150 maximum, the backpack's 30 / 300 |
+| `SD_Rgd5Ammo` (ours, V3) | `SD_Rgd5Ammo` (one grenade, 21021), `SD_Rgd5Box` (four, 21022), in `zscript/weapons/rgd5_ammo.zs` | nothing | RGD-5 | `SD_AMMO_RGD5` — RGD-5 grenades / «Гранаты РГД-5»; pickups `SD_GOT_RGD5`, `SD_GOT_RGD5BOX`; the weapon (21009) gives 2; 6 maximum, the backpack 0 / 12; a loose grenade gives the weapon too |
 
 Rules that matter to the other roles:
 
 - **Maps keep using the Doom editor numbers** (2007/2048 clip, 2008/2049
   shell, 2010/2046 rocket, 2047/17 cell, 8 backpack). `replaces` does the
   rest; those classes get no editor number of their own. The AKM's
-  magazine has no Doom counterpart, so it is placed by **21020**.
+  magazine has no Doom counterpart, so it is placed by **21020**; the RGD-5's
+grenades by **21021** and **21022**.
 - Each class subclasses the Doom pickup it replaces. That is what keeps the
   pool Doom's: `GetParentAmmo()` walks up to the first child of `Ammo`.
   **Never** re-parent one of these to `Ammo` directly — it would silently
@@ -2926,6 +2982,9 @@ only; **no new PNG enters `assets/`** for them.
 | `SD_Consortium` (and the `SD_ConsortiumWounded` fixture) | `zscript/monsters/consortium.zs` | **its own `SDCN` since D128** (from D116 the heavy Panzermensch's `SDPS`) | nothing left to tell: `Scale 1.75` and the cobalt `Translation` are gone; Spawn and the rooted `See` show Q R, the Breach's first two frames S (`tests/test_ep3_boss.py`) | `SDCN`, installed |
 | `SD_Akm` | `zscript/weapons/akm.zs` | **its own `SDAK` A–B, `SDAF` A, `SDAQ` A since D128** (from D116 the PPSh-41's `SDPP`, `SDPF` and the tinted `SDPQ`, letter for letter) | nothing left to tell: the pickup's `Translation` is gone; `tests/test_akm_sprites.py` pins the states | `SDAK`, `SDAF`, `SDAQ`, installed |
 | `SD_AkmAmmo` | `zscript/sd/ammo.zs` | the 7.62×25 magazine's `SDCL` A; icon `SDCLA0` | `Translation` (plum-orange) on the floor | `SDAM` |
+| `SD_Rgd5` (V3) | `zscript/weapons/rgd5.zs` | **its own `SDRG` A–D in hand and `SDRQ` A on the floor since D133** (from D116 the ice axe's `SDAX` A–D and the health bonus's `SDHB` (borrowed from `SD_HealthBonus`) A, letter for letter) | nothing left to tell: the pouch's `Translation` and `Scale 1.4` are gone; `tests/test_rgd5_sprites.py` pins the states | `SDRG`, `SDRQ`, installed |
+| `SD_Rgd5Ammo`, `SD_Rgd5Box` (V3) | `zscript/weapons/rgd5_ammo.zs` | **their own `SDRJ` A and `SDRZ` A since D133**; icon `SDRJA0` (from D116 `SDHB` (borrowed from `SD_HealthBonus`) A, the PG-7V crate's `SDRB` A, icon `SDHBA0`) | nothing left to tell: the `Translation` is gone | `SDRJ`, `SDRZ`, installed |
+| `SD_Rgd5Grenade` (V3) | `zscript/weapons/rgd5_grenade.zs` | **its own `SDRN` A since D133** (from D116 `SDHB` (borrowed from `SD_HealthBonus`) A); the burst the PG-7V's `SDPX`, which stays | nothing left to tell: the `Translation` is gone | `SDRN`, installed |
 
 **Swapped by D123 (2026-10-23).** The gunner's and the colossus's swaps
 were done by the art-director's install patches
@@ -2935,7 +2994,7 @@ were done by the art-director's install patches
 either file, and `tests/test_ep2_enemies.py` holds that (`SWAPS` empty,
 `test_the_final_looks_are_installed`). **Not provisional, and so not
 marked:** `SD_ChromeGeneral` (`zscript/monsters/chrome_general.zs`, D123)
-wears the General's `SDGN` at `Scale 1.3` with the colossus's old chrome
+wears `SDCM` (the General's `SDGN` with a US-flag armband, V3) at `Scale 1.3` with the colossus's old chrome
 `Translation` as its approved design, the colossus's state machine line
 for line; its tint carries no mark because no art will replace it.
 
@@ -2946,8 +3005,19 @@ state edits the drawing adds, and
 `work/art/weapons/hand_G/akm/install/akm-install.patch`): no
 `PROVISIONAL-D116` line is left in `consortium.zs` or `akm.zs`;
 `tests/test_ep3_boss.py` (`test_its_own_look_is_installed`) and
-`tests/test_akm_sprites.py` hold that. The only marked line left in the
-mod is `SD_AkmAmmo`'s (`SDAM`, below).
+`tests/test_akm_sprites.py` hold that.
+
+**Swapped by D133 (2026-10-25, the CEO: "Ok granada").** The RGD-5's
+swaps (V3, on the `v3` branch) were done from
+`work/art/weapons/hand_G/rgd5/install/` (the patch made against an older
+`v3`, applied by hand where `v3` had moved): `SDAX` → `SDRG`, `SDRB` →
+`SDRZ`, and the health bonus's sprite borrowed from `SD_HealthBonus` →
+`SDRQ` / `SDRJ` / `SDRN`, with the icon;
+no `PROVISIONAL-D116` line is left in `rgd5.zs`, `rgd5_ammo.zs` or
+`rgd5_grenade.zs`, and `tests/test_rgd5.py`
+(`test_its_own_look_the_swaps_done`) and `tests/test_rgd5_sprites.py` hold
+that. The only marked line left in the mod is `SD_AkmAmmo`'s (`SDAM`,
+below).
 
 **The rule.** Every line of code that exists only because the art is not
 drawn carries the comment mark `PROVISIONAL-D116`: the `Translation`, the
@@ -2978,6 +3048,193 @@ is not done.
 
 **Sounds** follow the same idea through `SNDINFO` (§6.2, "P4 sounds"): own
 logical names now, own lumps later, one line each.
+
+## 6.13 Between levels: the operations map and the end-of-episode awards (V3 B1/B3, ADR 013, 2026-10-23)
+
+**Proposal on the V3 branch** (the awards wait for the CEO: political
+symbols; preview `docs/art/previews/2026-10-23_V3_ops-map-medals.png`).
+Why this way and not another: ADR 013.
+
+**The operations map (B1).** Every campaign map, MAP01–MAP09, names
+`exitpic = "$SDOPSCR"` and `enterpic = "$SDOPSCR"` in MAPINFO: the stats page
+after it and the "Entering" page before the next one are drawn over the
+intermission script `SDOPSCR` (root lump; the language of gzdoom.pk3's
+`in_epi1.txt`…`in_epi3.txt`). The range has `nointermission` and no map.
+
+| On the… | the engine draws (in this order) | script lines |
+|---|---|---|
+| stats page of MAPn | `SDOPMAP`; the arrows `SDOPR02`…`SDOPR0n`; a star `SDOPSTAR` on MAP01…MAPn; the gold pulse `SDOPCUR0/1` (12 tics a frame) on MAPn; then Doom's figures over it | `IfLeaving MAPm Pic …` for every m ≥ the arrow's or star's map; `IfLeaving MAPn Animation …` |
+| "Entering" page of MAPn+1 | `SDOPMAP`; arrows up to `SDOPR0(n+1)`; stars on MAP01…MAPn; the splat (`SDOPSTAR` again) on every visited site; the blinking ring `SDOPYAH0` on MAPn+1 (the `Pointer`, drawn only if it fits the screen); then "Entering" and the name | `IfEntering MAPm Pic …`; `Splat`; `Pointer`; `Spots` |
+
+Progress never uses `IfVisited`, so starting episode 2 or 3 from New Game
+still shows the road from Zarya-7 travelled. Sites (the script's `Spots`,
+320×200): MAP01 (119,146), MAP02 (110,135), MAP03 (100,120), MAP04 (105,106),
+MAP05 (68,106), MAP06 (70,88), MAP07 (134,65), MAP08 (106,56), MAP09 (182,125);
+nothing above y = 45, where the engine prints the map name. Pictures: RGBA,
+hard alpha, palette v2; the markers' grAb at their centre, the arrows' at
+0,0 (the script places them by their box's corner). **`SDOPSCR` is
+generated**: edit `tools/art/gen_ops_map.py` and run it with `--install`
+(`tests/test_ops_map.py` compares the file with the generator).
+
+**The awards (B3).** GameInfo `statscreen_single = "SD_StatusScreen"`
+(`zscript/sd/status_screen.zs`), a `DoomStatusScreen` whose stats page is
+untouched. After the stats of the last map of an episode (`wbs.next == ""`,
+level number 3, 6 or 9: MAP03, MAP06, MAP09) it shows the **awards page**
+instead of finishing: the map dimmed (`Screen.Dim`, 0.72), the title
+(`SD_AWARDS_TITLE`, BigFont, gold), the episode's New Game name, four
+columns (`SD_AWARDS_KILLS` %, `SD_AWARDS_SECRETS` n/m, `SD_AWARDS_TIME`,
+`SD_AWARDS_PAR`, SmallFont), then five rows, one every 18 tics with
+`intermission/nextstage` for each earned: the picture (darkened by a
+black `DTA_ColorOverlay` of alpha 170 when not earned), the name
+(`SD_MEDAL_*_NAME`, gold or dark grey) and the rule (`SD_MEDAL_*_RULE`, up to
+two lines, `Font.BreakLines`). A key reveals every row
+(`intermission/paststats`), the next one leaves; `wi_autoadvance` is
+honoured. Then the cluster's ending text and the title screen (§4.6).
+
+| Award | Lump | Earned when (the episode's three maps summed; `BALANCE.md` §9) |
+|---|---|---|
+| Medal "For Courage" | `SDAWCOU` | the episode completed |
+| Order of the Red Star | `SDAWRST` | kills ≥ 75 % |
+| Order of the Red Banner | `SDAWRBN` | secrets = 100 % (none in the episode counts 100) |
+| Order of the Patriotic War | `SDAWPTW` | time ≤ the sum of the maps' `par` |
+| Gold Star, Hero of the Soviet Union | `SDAWHER` | all three maps played in this game, kills ≥ 90 %, every secret, within par, skill 3 («Not one step back», SpawnFilter Normal) or harder |
+
+**The figures.** `SD_AwardsRecorder` (`zscript/sd/awards.zs`, an
+`EventHandler` after `SD_MusicVariant` in `AddEventHandlers`) writes, every
+tic of a MAPxx level, the level's `killed_monsters`, `total_monsters`,
+`found_secrets`, `total_secrets`, `time` (tics), `partime` (s) and the skill's
+`SpawnFilter` into slot `levelnum` of each player's **`SD_CampaignLedger`**,
+an `Inventory` given on the first tic (`MaxAmount 1`, `InterHubAmount 1` so a
+map change keeps it, `UNDROPPABLE`, `UNTOSSABLE`, `UNCLEARABLE`, not in the
+inventory bar). It travels with the player and is saved with the player;
+New Game, or a death that restarts a map from scratch (§6.10), starts a new
+one. The awards page reads the episode's first maps from it and the last map
+from its own `wbs`. The rules are `SD_Awards` (data scope, integer maths
+only). `tests/test_awards.py` pins the wiring, the ledger, the thresholds
+against `BALANCE.md` §9, worked cases, the five pictures, the LANGUAGE ids in
+the three languages (every glyph drawn, every line fitted) and the layout
+against the preview's. **NOT VERIFIED in the engine** (D26): the pass ADR 013
+lists.
+
+## 6.14 The propaganda radio's loudspeaker (V3 B5, D124, 2026-10-24)
+
+D124 approved the propaganda radio in full: sixteen Radio Moscow lines, the
+three station jingles, no subtitles. The design, the script and the room
+table are `docs/sound/2026-10-23_V3_propaganda-radio.md` (§5); this is the
+contract with `level-designer`, who places it. Unlike `SD_Radio` (§6.7) it
+does **not** touch the music: it is a positional sound over it.
+
+| What | Value |
+|---|---|
+| Class, file | `SD_Loudspeaker`, `zscript/sd/loudspeaker.zs` |
+| Editor number | **21201** (§6.1, in `MAPINFO`) |
+| `arg0`, the playlist | a **bit mask** of the sixteen lines, bit n-1 = line n (`sd/radio/line/nn`); `0` = all sixteen. (The design proposed an index into a ZScript table; a mask keeps each map's choice in the map's own file.) |
+| `arg1`, the reach | map units, 3D, to the local player; `0` = **384** (`SD_LS_DEFAULT_REACH`) |
+| `arg2`, the pause | seconds of silence between lines; `0` = **6** (`SD_LS_DEFAULT_PAUSE`), plus a random 0-**4** (`SD_LS_PAUSE_JITTER`) |
+| `arg3`, flags | **1** = no jingle (`SD_LS_FLAG_NO_JINGLE`); **4** = the valve bed in a loop while on (`SD_LS_FLAG_BED`); **8** = olive (`SD_LS_FLAG_OLIVE`, the army's `SDLO`; unset, the grey `SDLS`; D132); 2 is kept for a visible horn |
+| `arg4`, the jingle | `1`-`3` one of `SDRADJ1`-`3`; `0` = a random one each time |
+| Turns on | the first poll (every **8** tics, `SD_LS_POLL_TICS`) the player is within the reach: the jingle (unless flagged off, or a line is still playing), the bed if flagged; the first line **1** s after the jingle (`SD_LS_JINGLE_GAP`) |
+| Plays | when nothing plays on `CHAN_VOICE` and the pause has passed, the next line from a **shuffle bag**: every line of the playlist once before any repeats, never the same line twice in a row |
+| Turns off | farther than **reach + 128** (`SD_LS_HYSTERESIS`): no new line starts; the line in progress finishes, then the bed stops |
+| Coming back | the jingle again only after **60** s away (`SD_LS_JINGLE_COOLDOWN`) |
+| Volume | `SD_LS_VOLUME` **0.7**, the bed `SD_LS_BED_VOLUME` **0.3**, `ATTN_NORM`; the falloff is `SNDINFO`'s `$rolloff` (§6.2), full within 128, silent at 768 |
+| Body | the street loudspeaker (`assets/sprites/loudspeaker/`, `tools/art/gen_loudspeaker.py`) in two colours (D132, "Ambos! A y B", both A and B): grey `SDLS` (the sheet's option A) by default, olive `SDLO` (option B, the same drawing) with flag **8**, entered from `PostBeginPlay` as the state `Olive` (**NOT VERIFIED**); a pole with two horns, one picture for every angle (`A0`), 69 units tall; frame B (the pilot lamp lit, the horns shaken) alternates with A on every poll while something plays (`frame` written from `Tick`, **NOT VERIFIED**); `+NOINTERACTION`, seen but never touched; not shootable |
+| Saved games | the on flag, the bag, the last line and the timers are saved; a `transient` field restarts the bed after a load |
+
+Rules for whoever places one:
+
+- **One or two a map** (V3: MAP04-MAP09, and Episode 1 since the PM
+  scheduled it on 2026-10-24), in a big room the player crosses and
+  lingers in. Each map's table `LOUDSPEAKERS` in its
+  `map.py`: `(zone, x, y, lines, reach, flags, jingle)`.
+- **Two zones (reach + 128) must not overlap**, nor an `SD_Radio`'s
+  (reach + 64): two broadcasts at once is noise.
+- **The story filter:** RAD11 (Zarya-7 holds) is Episode 1's only (MAP01's
+  komnata); RAD15 (Tankograd's plan) from MAP03 on; RAD02 (the Volga dam)
+  from MAP06 on.
+- **Where it stands is what it covers.** The reach is a sphere through
+  walls, as the radio's.
+- **The colour follows the place (D132):** grey (`SDLS`, flags without 8)
+  in the city, the red-brick works and the Kremlin; olive (`SDLO`, flag 8)
+  in the army's installations. Today: olive in MAP01 (Zarya-7), MAP07
+  (Novaya Zemlya's barracks), MAP08 (Severomorsk) and MAP09 (the Tunguska
+  outpost); grey in MAP02-MAP06.
+
+Placed today (2026-10-24): MAP01 the komnata and the hangar; MAP02 the
+central hall; MAP03 the assembly hall; MAP04 the platform; MAP05 the turbine hall;
+MAP06 Red Square and the GUM's atrium; MAP07 the barracks; MAP08 the mess;
+MAP09 the station yard, with the bed. `tests/test_loudspeaker.py` pins the
+class, the numbers above, the sounds, the licences and the placements.
+**NOT VERIFIED in the engine** (D26): that the class compiles, the shuffle,
+the turn-off and the jingle's cooldown, the `$rolloff`, the bed's loop
+(seam and restart after a load), the speaking frame and the olive state.
+
+## 6.15 Weapon reloads, the V3 experiment (D132, ADR 014, 2026-10-25)
+
+Branch `v3-reload` only: an option the CEO plays with and without (a nice
+to have, D121). Design and the engine checks R1-R14:
+`docs/engine/2026-10-25_V3_reloads.md`; the numbers: `BALANCE.md` §10.
+
+| What | Value |
+|---|---|
+| The switch | CVar **`sd_reloads`**, `server bool`, default **true** on this branch (`src/lumps/CVARINFO`); the row Options > Soviet Doom > "Weapon reloads" (`MENUDEF`, `Option ... "OnOff"`), strings `SD_OPTMNU_RELOADS`, `SD_OPTMNU_RELOADHELP` in `[enu default]`, `[ru]`, `[ca]`. Off = v1.2's tics exactly |
+| The key | `+reload` (the engine's `BT_RELOAD`); `KEYCONF` `defaultbind r +reload` (only if neither R nor `+reload` is bound); the engine's Customize Controls row "Reload" |
+| Code | `zscript/weapons/magazine.zs`: `SD_Reloads` (static: `On()`, `ReloadOffset()`, `Magazine()`) and `mixin class SD_MagazineWeapon` (fields `sdMagFired`, `sdReloadTic`; `override DepleteAmmo`; `A_SD_BeginReload`, `A_SD_ReloadTick`) |
+| Guns | `SD_Tokarev` 8 (`SD_TT_MAGAZINE`), `SD_Ppsh` 71 (`SD_PPSH_MAGAZINE`), `SD_Akm` 30 (`SD_AKM_MAGAZINE`), `SD_Roks3` 80 (`SD_ROKS3_TANK`); each with `SD_*_RELOAD_TICS`, `_RELOAD_DROP`, `_RELOAD_SOUND_TIC`. `SD_Izh`: its two barrels, plus `+reload` after one (`SD_CanReloadIzh`). None for the ice axe, RPG-7, hand Katyusha, RGD-5 |
+| States, per gun | a 0-tic guard `A_JumpIf(invoker.SD_MagazineDry(...), "Reload")` as the first `Fire` frame (and before the PPSh-41's B round); `A_SD_WeaponReady` returns `Reload` on a dry magazine (no pending switch) and passes `WRF_ALLOWRELOAD` when a reload would load; new labels `Reload` (a 0-tic `SD_CanReload` check, `A_SD_BeginReload`) and `ReloadLoop` (the ready frame, 1 tic, `A_SD_ReloadTick`, repeated `*_RELOAD_TICS` times), then `Goto Ready` |
+| Ammo | a counter over the pool (`Clip`, `SD_AkmAmmo`, `Cell`): no round created, lost or moved; the maps' ammunition is untouched |
+| Animation | no new sprite: the ready frame lowered 32 → 128 and raised (`A_WeaponOffset`, `WOF_INTERPOLATE`); the reload sound on its tic (§6.2), the refill as the gun rises |
+| Readout | `SD_MagazineHud` (`zscript/sd/magazine_hud.zs`), last in MAPINFO's `AddEventHandlers`: "rounds/capacity" in SmallFont (gold; red when empty) right-aligned at x 44, y 158 with the bar, x 290, y 170 over the fullscreen HUD, none at screenblocks 12 or on the automap |
+| Saved games | `sdMagFired` and `sdReloadTic` are ordinary fields, saved; 0 is a full magazine, so older saves load full |
+
+`tests/test_reloads.py` pins all of the above; `tests/_v3_reload_states.py`
+is the table of state edits the sprite suites apply to their pinned
+"before" states. **NOT VERIFIED in the engine** (D26).
+
+## 6.16 The episode endings' illustrations (V3 B2, D132, 2026-10-25)
+
+**Proposal on the `v3-endings` branch** (the pictures and the armband
+symbol wait for the CEO: `docs/art/previews/2026-10-25_V3_episode-endings.html`).
+**NOT VERIFIED in the engine** (D26): everything below is read from the
+engine's own definitions (gzdoom.pk3 `mapinfo/common.txt`, `mapinfo/doom1.txt`)
+and parser names, not seen run.
+
+**The order of the screens** when MAP03, MAP06 or MAP09 is left:
+
+| # | Screen | Who draws it |
+|---|---|---|
+| 1 | the stats over the operations map | `SD_StatusScreen` (§6.13, ADR 013 B1) |
+| 2 | the awards page | `SD_StatusScreen`'s ShowNextLoc state (ADR 013 B3) |
+| 3 | the ending text (`SD_END01/03/04_TEXT` over `SDFLR1`, silent) | the episode's ending cluster (§4.6), unchanged |
+| 4 | **the illustration**, full screen, 4:3 (pillarboxed on a wide screen, like `TITLEPIC`), silent, until a key | `Intermission SD_EndingN`, `Image { Background = "SDENDn" }` |
+| 5 | the title screen and its music | the same sequence's `GotoTitle`, as the engine's own `Inter_Titlescreen` (`endtitle`) |
+
+**How.** The map says `next = EndSequence, "SD_EndingN"` (N = 1, 2, 3 for
+MAP03, MAP06, MAP09) instead of `endtitle`; `MAPINFO` defines the three
+`Intermission` blocks, each an `Image` with no `Time` (waits for a key, as
+Doom 1's `Inter_Pic1`) and a `GotoTitle`. The engine prints the cluster's
+`exittext` first and then links to the map's end sequence, which is Doom 1's
+own order (E1M8: `next = "EndGame1"`, the text, then the picture), so the
+text comes before the picture without new code. `wbs.next` is `""` for an
+end sequence of any name, so the awards page still starts (ADR 013).
+Rejected: the picture **before** the text (the three ending texts would have
+to move from the clusters into `TextScreen` actions, drawn by another path:
+font, colour and layout to be checked again in three languages) and the
+picture **behind** the text (eight to ten lines over a painting do not read
+without dimming it to half). The range keeps `endtitle`.
+
+| Lump | Size | Where | Generator |
+|---|---|---|---|
+| `SDEND1` | 320×200, indexed, palette v3 | `assets/graphics/endings/` → `graphics/` | `tools/art/gen_endings.py` (Gemini painting, local, D77; the armband symbol, D108) |
+| `SDEND2` | 320×200, indexed, palette v3 | same | same |
+| `SDEND3` | 320×200, indexed, palette v3 | same | same (the armband symbol) |
+
+`tests/test_endings.py` holds the contract: the three sequences, their
+pictures packed and 320×200, each episode's last map naming its own, the
+range still on `endtitle`, the generator's lumps the same as MAPINFO's.
+The engine pass (the PM): finish MAP03, MAP06 and MAP09 (`-warp`, kill the
+boss, exit) and see stats → awards → text → picture → title, at 4:3 and
+16:9, the log clean (no "Unknown intermission", no "Unknown texture").
 
 ## 7. Commands
 
@@ -3032,7 +3289,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | T4 | Freedoom's `Chainsaw` and `SuperShotgun` classes still exist; only their editor numbers were removed. | F6, if it ever matters |
 | T5 | The DPS figures in `BALANCE.md` are computed, not measured against real enemies. The enemies have hit points since F5 and `BALANCE.md` §7 computes shots-to-kill; nothing is measured yet. | F5 playtest of MAP01 v3 |
 | ~~T6~~ | ~~`MAP02` uses Freedoom monsters as targets.~~ **Paid 2026-10-13, F5** (commit `2b1aba5`): the 3004 targets spawn `SD_ReichRifleman`, and the bestiary gallery holds one of each class (§4); seen in the engine the same day (ADR 006). The barrels are ours since D82 (`BAR1`/`BEXP`, §5.1). |  |
-| T7 | No `CVARINFO` yet; nothing in the arsenal is player-tunable. | when a gameplay option needs it |
+| T7 | ~~No `CVARINFO` yet; nothing in the arsenal is player-tunable.~~ **Paid on the branch `v3-reload` (2026-10-25, ADR 014):** `CVARINFO` declares `sd_reloads` (§6.15). Open if the CEO drops the experiment. | — |
 | T8 | ~~Ammo and backpack pickups are Freedoom sprites: flat, not Soviet crates (§6.3).~~ **Paid for the ammunition 2026-10-14 (D63)**: the eight ammunition classes name our own sprites, `SDCL`, `SDCB`, `SDSL`, `SDSB`, `SDRA`, `SDRB`, `SDFU`, `SDFB` (§6.3, "The pickups, installed by D63"); not yet seen in the engine (D26). Open: the backpack's `BPAK`, which the sweep did not cover, and the status bar icons (`CLIPA0`, `SHELA0`, `ROCKA0`, `CELLA0`), still Freedoom's. | `art-director`, the backpack, when it is asked for; the PM's engine pass for the eight |
 | ~~T9~~ | ~~No Cyrillic in the game's font.~~ **Paid 2026-10-13 by D24** (font install `32b384e`, warning removed in `401a02e`): `fonts/defsmallfont/` and `fonts/bigfont/`, 214 glyphs (§2, §6.4). The player-facing warning it carried (`SD_OPTMNU_LANGWARN`, "Cyrillic is not drawn yet") is deleted from `LANGUAGE` and `MENUDEF`. |  |
 | T10 | The slot-1 swing is silent (§6.2). ~~The ice axe's pickup is Freedoom's chainsaw~~: **paid 2026-10-14**, `SDAP` A option C (D48, §6.3). | F4, when `sound-designer` delivers `SDAXSWG` |
@@ -3046,7 +3303,7 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | ~~T19~~ | ~~Nothing has been seen in the engine: the eight classes compile only in theory until the PM's batch run (D26).~~ **Paid 2026-10-13** by the PM's engine pass (GZDoom 4.14.2, Freedoom 0.13.0): the classes load with no error, the gallery shows all eight, the drops and the General's single summon were counted, and MAP01 v3's 33 enemies spawn through Doom's numbers. Evidence `docs/qa/evidence/2026-10-13_1705_F5_map02-bestiary.log` and `…-gallery.png` (commit `2b1aba5`), `docs/qa/evidence/2026-10-13_1708_F3_map01-v3-engine-pass.log` (commit `bcbf35f`); the table is in ADR 006. What that pass did **not** settle is debt T22. |  |
 | ~~T20~~ | ~~ADR 006 is owed.~~ **Paid 2026-10-13**: `docs/engine/adr/006-bestiary-actors.md` (seven decisions, what the engine showed, what it did not). Written in the working tree; the commit is the PM's (D6). |  |
 | T21 | Doom monsters with no Soviet replacement (58 spectre, the rest of Doom II's roster) still spawn Freedoom's actors. **Partly paid by D116 (2026-10-22):** the chaingunner (65) is `SD_LegionGunner` and the Spider Mastermind (7) `SD_LibertyColossus`; MAP01 §8's "Legion heavy gunner" exists now; the P4 maps place the gunner (21110), the colossus (21111, MAP06) and since D123 the Chrome Marshal (21113, MAP08). | `level-designer`, where a map wants a gunner |
-| T26 | **The P4 actors wore provisional looks (D116, §6.12)**: existing sprites, tinted and scaled in code (**paid**: the gunner and the colossus by D123, their own `SDLG` and `SDLC`; the Consortium and the AKM by D128, their own `SDCN` and `SDAK`/`SDAF`/`SDAQ`; the Chrome Marshal's tint is a design, not debt). **Still open:** the AKM's magazine `SDAM` (`SDCL` tinted), and existing sounds under their own names (§6.2, "P4 sounds"); status bar A has no row for the AKM's pool (ADR 011). None of it is seen in the engine (D26): the design docs' checks E1–E11 and A1–A9 are owed. | the PM's engine pass now; the art and sound swaps as Gemini's frames and `sound-designer`'s takes are approved |
+| T26 | **The P4 actors wore provisional looks (D116, §6.12)**: existing sprites, tinted and scaled in code (**paid**: the gunner and the colossus by D123, their own `SDLG` and `SDLC`; the Consortium and the AKM by D128, their own `SDCN` and `SDAK`/`SDAF`/`SDAQ`; the Chrome Marshal's tint is a design, not debt). **Still open:** the AKM's magazine `SDAM` (`SDCL` tinted), and existing sounds under their own names (§6.2, "P4 sounds"); status bar A has no row for the AKM's pool (ADR 011). **V3 adds the RGD-5** (ADR 012): its art **paid by D133** (its own `SDRG`, `SDRQ`, `SDRJ`, `SDRN`, `SDRZ`; it wore the ice axe's picture and tinted `SDHB` (borrowed from `SD_HealthBonus`)/`SDRB` from D116); still reused sounds, no bar A row for its pool either. **V3 B5's loudspeaker** (§6.14) wears its own `SDLS` since 2026-10-24 (no longer provisional). None of it is seen in the engine (D26): the design docs' checks E1–E11, A1–A9 and R1–R12 are owed. | the PM's engine pass now; the art and sound swaps as Gemini's frames and `sound-designer`'s takes are approved |
 | T17 | **The English `LANGUAGE` section still carries Latin transliterations** (`PG-7V`, `7.62x25`) although the glyphs for the Cyrillic forms D17 asks for exist since D24 (§6.4). Two ASCII tests pin the current state (`tests/test_language.py`, `tests/test_arsenal.py`). | `mod-engineer`, one text change plus an engine screenshot of the HUD |
 | T22 | **Bestiary behaviours the engine pass did not show** (ADR 006, "NOT VERIFIED"): infighting between our classes and the native `GetSpecies` rule behind the explicit `Species`; the colour of `BloodColor`; the General's order line on screen (the console log carries it); the recruits entering the chase and the blocked-spot fallback; the attack helpers' damage (both runs were god mode, deaf or `notarget`); how far a dead Doughboy falls; the sounds. | the PM's next engine pass, with enemies awake and one fighting another; `qa-engineer` for the sounds, with a human |
 | T23 | **The radio (§6.7) is unseen.** `SD_Radio` has not run in the engine (D26). ~~its editor number 21200 is not yet in `MAPINFO`~~ (`MAPINFO` gives 21200 to `SD_Radio` since; read 2026-10-14). ~~its placeholder `PMAP` A is the computer area map's pickup, which MAP01 also places (2026): a player may walk at the radio expecting a pickup.~~ **The sprite part is paid 2026-10-14 (D63):** `SDRD` A, an Okean-209 on a tabouret (§6.3, "The pickups, installed by D63"); `PMAP` is retired from §5.1. | the PM's engine pass (ADR 008 checklist), which now also sees `SDRD` A draw |

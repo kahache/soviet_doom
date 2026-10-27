@@ -15,6 +15,8 @@
 // names changed, every tic, action and jump is as it was. All in
 // assets/sprites/izh/. MOD-SPEC 6.3; tests/test_gemini_weapons_install.py.
 // Balance rationale: docs/engine/BALANCE.md.
+// V3 reloads (D132): with sd_reloads on, the +reload key also reloads after
+// one barrel (SD_CanReloadIzh); the two-barrel break-open is unchanged.
 
 class SD_Izh : Shotgun replaces Shotgun
 {
@@ -121,12 +123,23 @@ class SD_Izh : Shotgun replaces Shotgun
 		invoker.barrels = SD_IZH_BARRELS;
 	}
 
+	// V3 reloads (D132, the CVar sd_reloads; magazine.zs): with reloads on,
+	// the +reload key breaks the gun open after ONE barrel too, into the
+	// same Reload state its second shot leads to. Only when a shell would
+	// go in: a barrel spent and a shell in the pool beyond the loaded one.
+	// Off, the gun is exactly as before: two shots, then the break-open.
+	clearscope bool SD_CanReloadIzh()
+	{
+		return SD_Reloads.On() && barrels < SD_IZH_BARRELS
+			&& Ammo1 != null && Ammo1.Amount > barrels;
+	}
+
 	// Ready with the empty click (N9, D74): A_WeaponReady exactly as before,
 	// plus SDIZDRY on the tic the trigger goes down with too little ammo to
 	// fire (SD_WeaponSounds.DryClick, weapon_sounds.zs). Same frame, same tic.
 	action void A_SD_WeaponReady()
 	{
 		SD_WeaponSounds.DryClick(invoker, "sd/weapon/izh/dry");
-		A_WeaponReady();
+		A_WeaponReady(invoker.SD_CanReloadIzh() ? WRF_ALLOWRELOAD : 0);   // V3: the +reload key
 	}
 }
