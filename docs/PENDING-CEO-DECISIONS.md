@@ -6,6 +6,12 @@ Updated: 2026-10-22, after Episode 3's routes PASS (9133be1, D114); before that
 previous update is listed at the end so nothing is lost.
 Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md` (synced at phase close, D34).
 
+> **2026-10-27: the game is closed.** v1.3 (V3) is published as the finished game and the last
+> content version (D131, D135, D136); v1.2 and v1.0 were deleted. What follows is the 2026-10-22 snapshot,
+> kept as history. The only scheduled item is the Android APK (`docs/ICEBOX.md`, D131).
+
+Nothing is open with the CEO: §1 (v1.1 or v1.2) closed with D130, and every later question with D131-D136.
+
 ## 1. Release: v1.1 now, or wait for v1.2 (D109)
 
 The **v1.1 draft release** (not public; target c9414c2) carries the

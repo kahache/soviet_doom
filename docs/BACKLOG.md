@@ -1,5 +1,9 @@
 # Backlog
 
+> **2026-10-27: the game is closed.** v1.3 (V3) is published as the finished game and the last
+> content version (D131, D135, D136); v1.2 and v1.0 were deleted. What follows is the 2026-10-22 snapshot,
+> kept as history. The only scheduled item is the Android APK (`docs/ICEBOX.md`, D131).
+
 Living document. Owner: PM. **Agents are launched only from this list**, top
 first. The CEO approves what moves into "Next". Order follows the MVP rule
 (D60) and the milestones of `docs/ROADMAP.md`. Status: `todo`, `doing`,

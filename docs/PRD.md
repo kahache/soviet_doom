@@ -1,7 +1,7 @@
 # Soviet Doom — Product Requirements Document
 
 Living document. Owner: PM. Russian mirror: `docs/ru/PRD.md`.
-Last update: 2026-10-14 (D25-D68).
+Last update: 2026-10-27 (D136: v1.3 published, the game is closed).
 
 ## 1. Vision
 

@@ -4,6 +4,10 @@ Living document. Owner: PM. Russian mirror: `docs/ru/ROADMAP.md` (synced at
 phase close, D34). **Roadmap v2, approved by the CEO on 2026-10-14 (D63). v1.0 shipped 2026-10-20 (G6 PASS, D97); phases P1-P6 below, P4 under way since 2026-10-21 (D104) and updated 2026-10-22 (D114).** The task list lives in
 `docs/BACKLOG.md`; agents are launched only from it.
 
+> **2026-10-27: the game is closed.** v1.3 (V3) is published as the finished game and the last
+> content version (D131, D135, D136); v1.2 and v1.0 were deleted. What follows is the 2026-10-22 snapshot,
+> kept as history. The only scheduled item is the Android APK (`docs/ICEBOX.md`, D131).
+
 ## The rule (D60, "instrucción importantísima" (CEO: "a hugely important instruction"))
 
 **MVP first, gameplay later.** A complete, playable game ships first; balance,

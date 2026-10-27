@@ -1,11 +1,16 @@
 # WEAPON-SOUNDS — собственные звуки арсенала
 
-Владелец: `sound-designer`. Статус: **ЧЕРНОВИКИ для гейта CEO (F4, G4),
-2026-10-13; восемь из них пересобраны слоями 2026-10-14 (D44, §2.2).**
-Ничто из этого не лежит в `src/` или `assets/`; ничто не утверждено.
+Владелец: `sound-designer`. Статус: **30 из 31 звука — наши**: 26
+черновиков, одобренных CEO (D74, 2026-10-15; `SDIZFIR`, дубль B — D83) и
+установленных с проходом по громкости (бэклог N9 и N9e, §10), и альтернативы
+ещё четырёх (D94: подборы ТТ-33 и ледоруба, перезарядка ИЖ-58, струя
+РОКС-3; §10.6), в `assets/sounds/weapons/`, названы в
+`src/lumps/SNDINFO`, подключены в ZScript оружия. Подбор ИЖ-58
+сохраняет общий звук Doom (D94: все три альтернативы NO). Черновики
+2026-10-13; восемь пересобраны слоями 2026-10-14 (D44, §2.2).
 Английский оригинал: `docs/sound/WEAPON-SOUNDS.md`.
 
-Синхронизировано с оригиналом: 2026-10-14.
+Синхронизировано с оригиналом: 2026-10-27.
 
 Генератор: `tools/audio/gen_weapon_sfx.py` (тесты:
 `tests/test_gen_weapon_sfx.py`). Превью для CEO:
@@ -34,9 +39,14 @@
 4. Шесть карточек приходят **разверткой** из трёх дублей (A — как
    задумано, B — тяжелее, C — суше), чтобы CEO указал на один, как с
    текстурами (PIPELINE §2).
-5. **Их никто не слушал**: агент, который их сделал, не умеет слышать.
-   Каждое число ниже измерено; вкус — за CEO.
+5. **CEO прослушал (D74)**: 25 OK, три NO, два «?», один дубль не оценён.
+   Агенты не умеют слышать; каждое число здесь измерено.
 6. Решения для CEO: §9.
+7. **Установлено (N9)**: 25 звуков, каждый в дубле CEO, выровнены по
+   громкости относительно заменяемого ими звука Freedoom с помощью усиления,
+   мягкой низкочастотной полки (только для звуков, состоящих из одних басов)
+   и лимитера, ничего не пересинтезировано; ещё 15 хуков в ZScript, ни один
+   тик не изменён. Что достигло цели, что нет и почему: §10.
 
 ## 1. Объём и имена
 
@@ -99,45 +109,49 @@ SHA-256 файла в том виде, как он распакован в `work
 `work/audio/sfx/weapons/MANIFEST.txt` и `PROVENANCE.tsv` (те же столбцы,
 что в таблице врагов).
 
-| Пакет | Файл | Используется в | SHA-256 |
-|---|---|---|---|
-| `OGA-100` | `switch_01.ogg` | `SDTTFIR`, `SDTTRLD`, `SDTTDRY`, `SDIZRLD`, `SDIZPKP`, `SDIZDRY`, `SDPPRLD`, `SDRPRLD`, `SDRPDRY`, `SDHKRLD`, `SDHKDRY` | `a24004ad0adbc08571324456963533c496bd27cf4808b40cb90833dc06b95792` |
-| `OGA-100` | `switch_02.ogg` | `SDTTRLD`, `SDTTPKP`, `SDIZRLD`, `SDIZPKP`, `SDPPFIR`, `SDPPRLD`, `SDPPPKP`, `SDPPDRY`, `SDRKRLD`, `SDRKDRY` | `769dca6ccbea5c33cef602cdaa6ab0350b0dc2b093f02eae36f33e2552036f67` |
-| `OGA-100` | `metal_01.ogg` | `SDRKRLD`, `SDRKPKP` | `f638423b1c67c9aeb0db9410b968ca1a89de728f3117f1bdd35a4fc7be4130ed` |
-| `OGA-100` | `metal_02.ogg` | `SDTTRLD`, `SDPPRLD`, `SDPPDRY`, `SDHKRLD` | `545c2d698e72e1a3f0f22407fc0567a1f1041d9dbeff528bef0947284b45fdf2` |
-| `OGA-100` | `metal_03.ogg` | `SDIZRLD`, `SDPPRLD`, `SDHKCHG` | `35ec56e5136e7091f36470c3e502e714819c9ff843baff0910b095571459f274` |
-| `OGA-100` | `metal_07.ogg` | `SDRPRLD`, `SDRPPKP` | `16b6d8272f13ee84b40cb9e0863d412fcbf88e1ce46a5c59691eb53e18ed7d17` |
-| `OGA-100` | `metal_09.ogg` | `SDIZRLD`, `SDIZPKP`, `SDPPRLD`, `SDHKRLD` | `0ac29c1f345c41ee6880876ccf4f69c66d1043b11d6c2f20cff49e78ae5d583b` |
-| `OGA-100` | `metal_11.ogg` | `SDTTRLD`, `SDTTPKP` | `8f52c3a878e87ea2abb8f7a9fba90d0ec32034393661ddf87ba2b2b086024195` |
-| `OGA-100` | `metal_12.ogg` | `SDHKPKP` | `ec09cebdd44a49ab1b744e86b7f881bbfb16a0ebb79e36b9a1ae3bf9a1612366` |
-| `OGA-100` | `spring_04.ogg` | `SDPPFIR`, `SDPPRLD`, `SDPPPKP` | `48f679060be3538232d2d18d45c0b38285fffd07b8e21ebc6896d42aa9b53327` |
-| `OGA-100` | `spring_06.ogg` | `SDPPRLD` | `a881b4d439c591a9b7478ce0929325ac93add608f75e11ec9f1aa5934469ee01` |
-| `OGA-100` | `wooden_03.ogg` | `SDIZRLD` | `864c68b8622eaf900f2b9932d2998cc9840dc95b61a148e37550ddb382c92777` |
-| `OGA-100` | `splash_01.ogg` | `SDRKPKP` | `8d48e8da680fbdfd3c885aa2f69d8e83ad16717bae43d178861d7af08d142849` |
-| `KEN-IMP` | `impactMining_002.ogg` | `SDAXWAL` | `059558ec751115ca6b1441e00f0adc837c1a3eeb0a066b109e0fd879fc5d0b0c` |
-| `KEN-IMP` | `impactPunch_heavy_000.ogg` | `SDAXHIT` | `b33a8f14068aec24ec69ba85e5e87fdc41228975f6a1a3e44a6e7d6fc3d9f8d8` |
-| `KEN-IMP` | `impactSoft_heavy_001.ogg` | `SDAXHIT` | `4d0096364ba9e46119d2ff6df493fdc101bd2e1efae061da5e5f77a53b3fdcb6` |
-| `KEN-IMP` | `impactWood_light_000.ogg` | `SDRPPKP` | `eb45e35b4bed784d3f120de4afec4b0d6ac09d9e143cce8cfcb7d739e1b1f3c3` |
-| `KEN-IMP` | `impactWood_light_001.ogg` | `SDAXPKP` | `4b76bf3ccc8e60d19188f3165b778a7817786faa6887c55d9049bcbeef3b425f` |
-| `KEN-IMP` | `impactWood_medium_000.ogg` | `SDIZPKP` | `1723a9fd25103ed41af06054814e84e65f4a772bac86ab2dc927da93d9592ff5` |
-| `KEN-IMP` | `impactWood_medium_002.ogg` | `SDPPPKP` | `3f3f1917428b828f733a963167833c707bf88296ff158e1559c57c5cb813d799` |
-| `KEN-IMP` | `impactMetal_light_000.ogg` | `SDAXPKP` | `33b5e6e37c6e9d54e07bf5a89b12c76e879f40c1ea83cdd82714df1d6f9fec6d` |
-| `KEN-IMP` | `impactMetal_light_001.ogg` | `SDTTPKP` | `fba69c467ddd85da7b1d82e259f936b876d9ba6a3d6f1b24bdd10468e46bfe08` |
-| `KEN-IMP` | `impactMetal_light_003.ogg` | `SDPPPKP`, `SDAXWAL` | `92d5db6bfc672d9dc1b4f390b2900504f013187fa36335472554fafefa9050b1` |
-| `KEN-IMP` | `impactMetal_heavy_001.ogg` | `SDHKPKP` | `83554049f81f4db9209379e103c30bfa63f65c42189a03f300b045c2c82e23ae` |
-| `KEN-IMP` | `impactMetal_light_002.ogg` | `SDAXHIT` (D44) | `25a96f90a9a1f88a531e824e126f0519504625e5635e65a72e4f31611428db29` |
-| `KEN-IMP` | `impactMetal_medium_000.ogg` | `SDRPPKP` (D44) | `a96f879fec0864a8938e0c745b6996a6c5679c16a234ce31a01cc995e8401003` |
-| `KEN-IMP` | `impactMetal_medium_002.ogg` | `SDPPDRY` (D44) | `7e89ce2ca0dbda95ea2b78d4b50791cab35c10d20e9f5ccd45dd0b00e99ff548` |
-| `KEN-IMP` | `impactMetal_medium_004.ogg` | `SDRPDRY` (D44) | `03e10f800199c7166208e41c11cf4acfac6cc265467f02357da71972bc967295` |
-| `KEN-IMP` | `impactMetal_heavy_003.ogg` | `SDHKCHG` (D44) | `b0f2ba4dabde9a87eb9c188a19d31e0c2300fd321adeba08d3b9b8aa011d7037` |
-| `KEN-IMP` | `impactTin_medium_001.ogg` | `SDRKPKP` (D44) | `84253095543c094d83cd749f42ecfbc96e356b60385f18a192c18eafb25b3cc6` |
-| `KEN-IMP` | `impactGeneric_light_000.ogg` | `SDIZDRY` (D44) | `f0e982611e97512fee5f777986b67e8b435434b601f94992ec044f7e89fb5acb` |
+| Пакет | Файл | Используется в | Поставляется в (N9, D74) | SHA-256 |
+|---|---|---|---|---|
+| `OGA-100` | `switch_01.ogg` | `SDTTFIR`, `SDTTRLD`, `SDTTDRY`, `SDIZRLD`, `SDIZPKP`, `SDIZDRY`, `SDPPRLD`, `SDRPRLD`, `SDRPDRY`, `SDHKRLD`, `SDHKDRY` | `SDTTFIR`, `SDTTRLD`, `SDTTDRY`, `SDIZDRY`, `SDPPRLD`, `SDRPRLD`, `SDRPDRY`, `SDHKRLD`, `SDHKDRY` | `a24004ad0adbc08571324456963533c496bd27cf4808b40cb90833dc06b95792` |
+| `OGA-100` | `switch_02.ogg` | `SDTTRLD`, `SDTTPKP`, `SDIZRLD`, `SDIZPKP`, `SDPPFIR`, `SDPPRLD`, `SDPPPKP`, `SDPPDRY`, `SDRKRLD`, `SDRKDRY` | `SDTTRLD`, `SDPPFIR`, `SDPPRLD`, `SDPPPKP`, `SDPPDRY`, `SDRKRLD`, `SDRKDRY` | `769dca6ccbea5c33cef602cdaa6ab0350b0dc2b093f02eae36f33e2552036f67` |
+| `OGA-100` | `metal_01.ogg` | `SDRKRLD`, `SDRKPKP` | `SDRKRLD`, `SDRKPKP` | `f638423b1c67c9aeb0db9410b968ca1a89de728f3117f1bdd35a4fc7be4130ed` |
+| `OGA-100` | `metal_02.ogg` | `SDTTRLD`, `SDPPRLD`, `SDPPDRY`, `SDHKRLD` | `SDTTRLD`, `SDPPRLD`, `SDPPDRY`, `SDHKRLD` | `545c2d698e72e1a3f0f22407fc0567a1f1041d9dbeff528bef0947284b45fdf2` |
+| `OGA-100` | `metal_03.ogg` | `SDIZRLD`, `SDPPRLD`, `SDHKCHG` | `SDPPRLD`, `SDHKCHG` | `35ec56e5136e7091f36470c3e502e714819c9ff843baff0910b095571459f274` |
+| `OGA-100` | `metal_07.ogg` | `SDRPRLD`, `SDRPPKP` | `SDRPRLD`, `SDRPPKP` | `16b6d8272f13ee84b40cb9e0863d412fcbf88e1ce46a5c59691eb53e18ed7d17` |
+| `OGA-100` | `metal_09.ogg` | `SDIZRLD`, `SDIZPKP`, `SDPPRLD`, `SDHKRLD` | `SDPPRLD`, `SDHKRLD` | `0ac29c1f345c41ee6880876ccf4f69c66d1043b11d6c2f20cff49e78ae5d583b` |
+| `OGA-100` | `metal_11.ogg` | `SDTTRLD`, `SDTTPKP` | `SDTTRLD` | `8f52c3a878e87ea2abb8f7a9fba90d0ec32034393661ddf87ba2b2b086024195` |
+| `OGA-100` | `metal_12.ogg` | `SDHKPKP` | `SDHKPKP` | `ec09cebdd44a49ab1b744e86b7f881bbfb16a0ebb79e36b9a1ae3bf9a1612366` |
+| `OGA-100` | `spring_04.ogg` | `SDPPFIR`, `SDPPRLD`, `SDPPPKP` | `SDPPFIR`, `SDPPRLD`, `SDPPPKP` | `48f679060be3538232d2d18d45c0b38285fffd07b8e21ebc6896d42aa9b53327` |
+| `OGA-100` | `spring_06.ogg` | `SDPPRLD` | `SDPPRLD` | `a881b4d439c591a9b7478ce0929325ac93add608f75e11ec9f1aa5934469ee01` |
+| `OGA-100` | `wooden_03.ogg` | `SDIZRLD` | нет (ещё не одобрено) | `864c68b8622eaf900f2b9932d2998cc9840dc95b61a148e37550ddb382c92777` |
+| `OGA-100` | `splash_01.ogg` | `SDRKPKP` | `SDRKPKP` | `8d48e8da680fbdfd3c885aa2f69d8e83ad16717bae43d178861d7af08d142849` |
+| `KEN-IMP` | `impactMining_002.ogg` | `SDAXWAL` | `SDAXWAL` | `059558ec751115ca6b1441e00f0adc837c1a3eeb0a066b109e0fd879fc5d0b0c` |
+| `KEN-IMP` | `impactPunch_heavy_000.ogg` | `SDAXHIT` | `SDAXHIT` | `b33a8f14068aec24ec69ba85e5e87fdc41228975f6a1a3e44a6e7d6fc3d9f8d8` |
+| `KEN-IMP` | `impactSoft_heavy_001.ogg` | `SDAXHIT` | `SDAXHIT` | `4d0096364ba9e46119d2ff6df493fdc101bd2e1efae061da5e5f77a53b3fdcb6` |
+| `KEN-IMP` | `impactWood_light_000.ogg` | `SDRPPKP` | `SDRPPKP` | `eb45e35b4bed784d3f120de4afec4b0d6ac09d9e143cce8cfcb7d739e1b1f3c3` |
+| `KEN-IMP` | `impactWood_light_001.ogg` | `SDAXPKP` | нет (ещё не одобрено) | `4b76bf3ccc8e60d19188f3165b778a7817786faa6887c55d9049bcbeef3b425f` |
+| `KEN-IMP` | `impactWood_medium_000.ogg` | `SDIZPKP` | нет (ещё не одобрено) | `1723a9fd25103ed41af06054814e84e65f4a772bac86ab2dc927da93d9592ff5` |
+| `KEN-IMP` | `impactWood_medium_002.ogg` | `SDPPPKP` | `SDPPPKP` | `3f3f1917428b828f733a963167833c707bf88296ff158e1559c57c5cb813d799` |
+| `KEN-IMP` | `impactMetal_light_000.ogg` | `SDAXPKP` | нет (ещё не одобрено) | `33b5e6e37c6e9d54e07bf5a89b12c76e879f40c1ea83cdd82714df1d6f9fec6d` |
+| `KEN-IMP` | `impactMetal_light_001.ogg` | `SDTTPKP` | нет (ещё не одобрено) | `fba69c467ddd85da7b1d82e259f936b876d9ba6a3d6f1b24bdd10468e46bfe08` |
+| `KEN-IMP` | `impactMetal_light_003.ogg` | `SDPPPKP`, `SDAXWAL` | `SDAXWAL`, `SDPPPKP` | `92d5db6bfc672d9dc1b4f390b2900504f013187fa36335472554fafefa9050b1` |
+| `KEN-IMP` | `impactMetal_heavy_001.ogg` | `SDHKPKP` | `SDHKPKP` | `83554049f81f4db9209379e103c30bfa63f65c42189a03f300b045c2c82e23ae` |
+| `KEN-IMP` | `impactMetal_light_002.ogg` | `SDAXHIT` (D44) | `SDAXHIT` | `25a96f90a9a1f88a531e824e126f0519504625e5635e65a72e4f31611428db29` |
+| `KEN-IMP` | `impactMetal_medium_000.ogg` | `SDRPPKP` (D44) | `SDRPPKP` | `a96f879fec0864a8938e0c745b6996a6c5679c16a234ce31a01cc995e8401003` |
+| `KEN-IMP` | `impactMetal_medium_002.ogg` | `SDPPDRY` (D44) | `SDPPDRY` | `7e89ce2ca0dbda95ea2b78d4b50791cab35c10d20e9f5ccd45dd0b00e99ff548` |
+| `KEN-IMP` | `impactMetal_medium_004.ogg` | `SDRPDRY` (D44) | `SDRPDRY` | `03e10f800199c7166208e41c11cf4acfac6cc265467f02357da71972bc967295` |
+| `KEN-IMP` | `impactMetal_heavy_003.ogg` | `SDHKCHG` (D44) | `SDHKCHG` | `b0f2ba4dabde9a87eb9c188a19d31e0c2300fd321adeba08d3b9b8aa011d7037` |
+| `KEN-IMP` | `impactTin_medium_001.ogg` | `SDRKPKP` (D44) | `SDRKPKP` | `84253095543c094d83cd749f42ecfbc96e356b60385f18a192c18eafb25b3cc6` |
+| `KEN-IMP` | `impactGeneric_light_000.ogg` | `SDIZDRY` (D44) | `SDIZDRY` | `f0e982611e97512fee5f777986b67e8b435434b601f94992ec044f7e89fb5acb` |
 
 Только синтез (`SYN`, без чужого входа): `SDAXSWG`, `SDIZFIR`, `SDRPFIR`,
 `SDRPEXP`, `SDRKFIR`, `SDHKFIR`, `SDHKEXP`.
 
-Когда ламп утверждён и попадает в `src/sounds/`, его строки выше переходят в
-реестр лицензий (`docs/art/LICENSES.md`, это не файл данного агента).
+«Поставляется в» (N9, 2026-10-15): лампы из 25, одобренных в D74, которые
+несут слой этого файла, установленные в `assets/sounds/weapons/` и упакованные
+(§10). У каждого установленного лампа есть строка в реестре лицензий,
+`docs/art/LICENSES.md`, раздел «Weapon sounds», которая ссылается сюда за
+хешами файлов. Файл, чьи единственные пользователи ещё не одобрены, ничего не
+поставляет.
 
 Семь строк с пометкой D44 захешированы 2026-10-14 командой `sha256sum` по
 файлам в том виде, как они распакованы. Тест
@@ -310,14 +324,15 @@ D44 ввёл одно правило для обоих наборов звуко
 
 ## 6. Что нужно подключить `mod-engineer` (предложения, В ДВИЖКЕ НЕ ПРОВЕРЕНО)
 
-Ничего из нижеследующего не сделано; `src/` принадлежит `mod-engineer`.
-Каждое предложение сохраняет количество тиков из `BALANCE.md` (D39).
+**Сделано в N9 (2026-10-15) для 25 одобренных лампов, как предлагалось ниже**,
+кроме случаев, где §10.3 говорит иное; строки остаются как запись замысла.
+`src/` принадлежит `mod-engineer`. Каждое предложение сохраняет количество тиков из `BALANCE.md` (D39).
 Поведение движка с пометкой НЕ ПРОВЕРЕНО прочитано по памяти о вики ZDoom, а
 не проверено в GZDoom 4.14.2.
 
 | Ламп(ы) | Хук | Примечание |
 |---|---|---|
-| 11 подключаемых лампов | `src/sounds/<LUMP>.ogg` + правый столбец SNDINFO | генератор записывает OGG в `work/audio/sfx/weapons/ogg/` |
+| 11 подключаемых лампов | `assets/sounds/weapons/<LUMP>.ogg` (предлагалось `src/sounds/`; N9 положил их рядом с утверждённым артом) + правый столбец SNDINFO | генератор записывает OGG в `work/audio/sfx/weapons/ogg/` |
 | `SDAXSWG` | две строки, уже написанные в заголовке SNDINFO (T10): запись в SNDINFO и `A_StartSound("sd/weapon/iceaxe/swing", CHAN_WEAPON)` на `PUNG B 5` | попадание через 5 тиков на том же канале обрывает хвост взмаха, когда удар приходится, — это и требуется (ДОПУЩЕНИЕ §3); при промахе он играет целиком |
 | `SDAXWAL` | (a) `SD_IceAxePuff`, у которого `AttackSound` — `sd/weapon/iceaxe/wall` (AttackSound пуфа играет при попадании в стену, его SeeSound — при попадании в кровоточащего актора: **НЕ ПРОВЕРЕНО**); или (b) в `A_SD_IceAxeSwing` сохранить пуф, который возвращает `LineAttack`, и играть звук стены, когда пуф есть, а `linetarget` нет (**НЕ ПРОВЕРЕНО**, что возвращаемое значение не null на стене) | некровоточащая цель (бочка) всё равно выставляет `linetarget` и играет попадание в плоть; для F4 приемлемо |
 | `*PKP` (7) | `Inventory.PickupSound "sd/weapon/<weapon>/pickup";` в блоке `Default` каждого оружия | сегодня каждый подбор оружия играет общий `misc/w_pkup` Doom (в Freedoom `DSWPNUP`, слышно в превью) |
@@ -342,7 +357,7 @@ D44 ввёл одно правило для обоих наборов звуко
 
 В движке (**за PM, D26**; агенты никогда не запускают GZDoom): загрузить
 `work/audio/sfx/sd-weapon-sfx-draft.pk3` **после** `dist/sovietdoom.pk3`, на
-полигоне MAP02 (D41). Его SNDINFO переопределяет 11 подключённых имён;
+полигоне (D41; ламп `RANGE` с D62, раньше MAP02). Его SNDINFO переопределяет 11 подключённых имён;
 **НЕ ПРОВЕРЕНО** в этом движке, заменяет ли более позднее определение
 логического имени более раннее. 20 имён с пометкой `// needs a hook` играют
 только из консоли, например `playsound sd/weapon/tokarev/dry`. Причитается:
@@ -367,9 +382,20 @@ D44 ввёл одно правило для обоих наборов звуко
 проверяется тестом; страница «до/после» содержит эти восемь карточек и
 ничего больше.
 
+**Проверено (2026-10-15, этот ПК, N9):** 25 мастеров рендерятся из
+черновиков в дублях CEO, дважды байт-в-байт идентично; другой дубль даёт
+другой файл; громкость каждого мастера относительно цели (§10.2), его пик и
+его корреляция с отложенным черновиком (> 0,9: выровнен по громкости, не
+переделан); каждый установленный OGG декодирован и перемерен; каждый алиас
+`SNDINFO` разрешается в упакованный ламп или в ламп Freedoom; хуки и
+суммарные тики каждого состояния оружия (`tests/test_weapon_sfx_install.py`);
+`tools/check_pk3.py` 0 ошибок.
+
 **Не проверено:**
 
-- **Как это звучит.** Никто не слушал.
+- **Как установленный набор звучит в игре**, рядом с монстрами и другими
+  звуками Freedoom: проход PM в движке, §10.4. 25 звуков CEO слышал как
+  черновики в браузере (D74), до прохода по громкости.
 - Приоритет оверлея в GZDoom и всё поведение движка с пометкой НЕ ПРОВЕРЕНО
   или ДОПУЩЕНИЕ в §3 и §6.
 - Что файлы OGG и превью байт-в-байт идентичны на другой машине (они
@@ -394,3 +420,240 @@ D44 ввёл одно правило для обоих наборов звуко
    для звуков врагов и оружия, Kenney используется в обоих. Сделано в §2.2;
    восемь пересобранных карточек — на
    `docs/art/previews/2026-10-14_1030_F4_weapon-sfx-kenney-layers.html`.
+
+Пункты 1-4 получили ответ в D74 и D47. Новые, после N9 (§10.2):
+
+6. **Удар ледоруба по плоти (`SDAXHIT`) остаётся только басовым и на 6 дБ
+   тише `DSPUNCH`** по линейке: у одобренного звука нет ничего выше 1 кГц,
+   что можно было бы поднять. Оставить (это то, что одобрено) или попросить
+   более яркий дубль (слой стали или кости) как новое предложение. Тот же
+   вопрос, мягче, для `SDRPEXP` (на 4,8 дБ ниже `DSBAREXP`).
+7. **Выстрелы и подборы останавливаются на 2-4 дБ ниже Freedoom** без
+   насыщения. Если проход в движке найдёт их тонкими рядом с монстрами,
+   следующий шаг — насыщение, которое использует `gen_weapon_alts.py` и
+   которое окрашивает звук: решение CEO на слух.
+8. **Три отложенные перезарядки поставляются неиспользуемыми** (`SDTTRLD`,
+   `SDPPRLD`, `SDRKRLD`, вместе около 33 КБ): сохранить для будущей механики
+   магазинов или убрать из PK3, пока её нет.
+
+## 10. Установлено (N9, 2026-10-15): 25 из D74 и SDIZFIR B (N9e, D83)
+
+**N9e (2026-10-20).** CEO взял `SDIZFIR`, дубль B (D83). Он прошёл тот же
+проход без изменений (`master_weapon_sfx.py`, его строка ниже): цель
+`DSSHOTGN` (−8,2 дБ A, выстрел, который ИЖ-58 играл до этого), полка 2 дБ
+(он был только басовым, 9 % выше 300 Гц), 1,8 дБ лимитирования и **не хватает
+7,0 дБ**: бум 92 -> 42 Гц с 88 % энергии ниже 300 Гц даже после полки, что
+A-взвешивание учитывает слабо; дальнейшее лимитирование уже не окупается. По
+линейке он на 1,4 дБ громче своего черновика. Послушать его рядом с
+дробовиком Freedoom (§10.4).
+
+Инструмент: `tools/audio/master_weapon_sfx.py` (тесты:
+`tests/test_weapon_sfx_install.py`). Он рендерит каждый одобренный черновик
+через `gen_weapon_sfx.py`, в дубле CEO, не тронутый, и мастерит его; рецепты
+не правятся и ничего не пересинтезируется.
+
+```bash
+.venv/Scripts/python.exe tools/audio/master_weapon_sfx.py --list       # the plan and the targets, writes nothing
+.venv/Scripts/python.exe tools/audio/master_weapon_sfx.py              # WAV masters + MANIFEST in work/audio/master/
+.venv/Scripts/python.exe tools/audio/master_weapon_sfx.py --install    # and the OGGs into assets/sounds/weapons/
+```
+
+### 10.1 Проход
+
+Линейка — из `gen_weapon_alts.py`: самые громкие 50 мс, среднеквадратичное с
+A-взвешиванием, в дБ, измеренное на ламп Freedoom в `freedoom2.wad` 0.13.0 на
+его собственной частоте и на нашем на 44,1 кГц. Каждый звук получает, в таком
+порядке и больше ничего:
+
+1. **Низкочастотную полку**, только если звук басовый (менее 10 % энергии
+   выше 300 Гц, янтарный флаг листа прослушивания): первого порядка, угол
+   250 Гц, шагами по 0,5 дБ, самый мелкий шаг, при котором у мастера 12 %
+   выше 300 Гц, глубже 9 дБ никогда.
+2. **Пик на −1 dBFS.**
+3. **Уровень**: если звук выше цели — убавить усиление; если ниже —
+   лимитер с опережением из `gen_weapon_alts.py` (усиление, которое меняется
+   за 12 мс, никогда не клип) и компенсирующее усиление, не более 9 дБ
+   лимитирования. Когда 9 дБ до цели не хватает, лимитер останавливается там,
+   где дальнейшее перестаёт окупаться (в пределах 0,25 дБ от того, что дали
+   бы 9 дБ), и звук значится не дотянувшим до цели, ниже. Никакого
+   насыщения.
+4. WAV-мастер 16 бит 44,1 кГц, затем Vorbis (`-q:a 4`, моно) в
+   `assets/sounds/weapons/<LUMP>.ogg`, упакованный как `sounds/<LUMP>.ogg`.
+
+**Цели.** Выстрел или удар: ламп Freedoom, который он заменяет. Взрыв одной
+ракеты «Катюши»: `DSBAREXP` − 6 дБ (шесть играют одновременно). Её зарядка:
+собственная цель залпа, `DSRLAUNC` (`DSBFG` громче на 7 дБ и потребовал бы
+~12 дБ лимитирования на рукоятке). Взмах ледоруба: на 4 дБ ниже его удара.
+Перезарядка: на 4 дБ ниже выстрела её оружия, как он играет сегодня (у РОКС-3
+это по-прежнему `DSFLAME`). Подбор: `DSWPNUP` − 3 дБ. Щелчок вхолостую: на
+6 дБ ниже подбора или на 4 дБ ниже выстрела там, где выстрел тише (два
+гранатомёта, чей уровень с A-взвешиванием низкий).
+
+### 10.2 До и после
+
+Измерено на WAV-мастерах; установленные OGG декодируются в пределах 0,42 дБ
+от них (громкость) и дают пик не выше −0,28 dBFS (перерегулирование Vorbis,
+никогда не клип). «До» — это черновик, каким его слышал CEO, в его дубле.
+
+| Логическое имя | Ламп | Дубль | Вид | Цель, дБ A (от) | До: пик / громк. A / >300 Гц | После: пик / громк. A / >300 Гц | Полка | Лимитер | Усиление | Окно |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `sd/weapon/iceaxe/swing` | `SDAXSWG` | C | взмах | -16.5 (`DSPUNCH` -4) | -1.0 / -10.9 / 100 % | -6.6 / -16.5 / 100 % | 0 дБ | 0.0 дБ | -5.6 дБ | в цели |
+| `sd/weapon/iceaxe/hit` | `SDAXHIT` | A | удар | -12.5 (`DSPUNCH` +0) | -1.0 / -22.1 / 3 % | -1.0 / -18.8 / 8 % | 9 дБ | 5.2 дБ | 0.0 дБ | **не хватает 6.3 дБ** |
+| `sd/weapon/iceaxe/wall` | `SDAXWAL` | C | удар | -12.5 (`DSPUNCH` +0) | -1.0 / -18.3 / 16 % | -1.0 / -15.8 / 13 % | 0 дБ | 7.6 дБ | 0.0 дБ | **не хватает 3.3 дБ** |
+| `sd/weapon/tokarev/fire` | `SDTTFIR` | B | выстрел | -10.4 (`DSPISTOL` +0) | -1.0 / -16.1 / 53 % | -1.0 / -13.0 / 51 % | 0 дБ | 7.5 дБ | 0.0 дБ | **не хватает 2.6 дБ** |
+| `sd/weapon/tokarev/reload` | `SDTTRLD` | A | перезарядка | -14.4 (`DSPISTOL` -4) | -6.7 / -25.7 / 37 % | -1.0 / -15.5 / 48 % | 0 дБ | 8.8 дБ | 0.0 дБ | **не хватает 1.1 дБ** |
+| `sd/weapon/tokarev/dry` | `SDTTDRY` | A | щелчок вхолостую | -14.2 (`DSWPNUP` -9) | -6.0 / -26.1 / 99 % | -1.0 / -20.4 / 98 % | 0 дБ | 6.0 дБ | 0.0 дБ | **не хватает 6.2 дБ** |
+| `sd/weapon/izh/dry` | `SDIZDRY` | A | щелчок вхолостую | -14.2 (`DSWPNUP` -9) | -8.5 / -27.7 / 69 % | -1.0 / -19.3 / 61 % | 0 дБ | 7.2 дБ | 0.0 дБ | **не хватает 5.1 дБ** |
+| `sd/weapon/izh/fire` | `SDIZFIR` | B | выстрел | -8.2 (`DSSHOTGN` +0) | -1.0 / -16.6 / 9 % | -1.0 / -15.2 / 12 % | 2 дБ | 1.8 дБ | 0.0 дБ | **не хватает 7.0 дБ** (N9e, D83) |
+| `sd/weapon/ppsh/fire` | `SDPPFIR` | C | выстрел | -10.4 (`DSPISTOL` +0) | -2.0 / -16.9 / 82 % | -1.0 / -13.0 / 82 % | 0 дБ | 7.6 дБ | 0.0 дБ | **не хватает 2.6 дБ** |
+| `sd/weapon/ppsh/reload` | `SDPPRLD` | A | перезарядка | -14.4 (`DSPISTOL` -4) | -11.6 / -30.2 / 23 % | -1.0 / -15.6 / 35 % | 0 дБ | 8.5 дБ | 0.0 дБ | **не хватает 1.2 дБ** |
+| `sd/weapon/ppsh/pickup` | `SDPPPKP` | A | подбор | -8.2 (`DSWPNUP` -3) | -11.5 / -24.1 / 61 % | -1.0 / -10.6 / 72 % | 0 дБ | 7.5 дБ | 0.0 дБ | **не хватает 2.4 дБ** |
+| `sd/weapon/ppsh/dry` | `SDPPDRY` | A | щелчок вхолостую | -14.2 (`DSWPNUP` -9) | -12.1 / -28.6 / 43 % | -1.0 / -16.0 / 34 % | 0 дБ | 7.4 дБ | 0.0 дБ | **не хватает 1.8 дБ** |
+| `sd/weapon/rpg7/fire` | `SDRPFIR` | A | выстрел | -14.2 (`DSRLAUNC` +0) | -1.0 / -15.3 / 49 % | -1.0 / -14.2 / 51 % | 0 дБ | 1.7 дБ | 0.0 дБ | в цели |
+| `sd/weapon/rpg7/explode` | `SDRPEXP` | A | удар | -9.1 (`DSBAREXP` +0) | -1.0 / -15.8 / 7 % | -1.0 / -13.9 / 12 % | 3 дБ | 1.4 дБ | 0.0 дБ | **не хватает 4.8 дБ** |
+| `sd/weapon/rpg7/reload` | `SDRPRLD` | A | перезарядка | -18.2 (`DSRLAUNC` -4) | -9.9 / -25.9 / 52 % | -2.2 / -18.2 / 52 % | 0 дБ | 0.0 дБ | -1.2 дБ | в цели |
+| `sd/weapon/rpg7/pickup` | `SDRPPKP` | A | подбор | -8.2 (`DSWPNUP` -3) | -11.2 / -23.5 / 86 % | -1.0 / -11.4 / 88 % | 0 дБ | 4.7 дБ | 0.0 дБ | **не хватает 3.2 дБ** |
+| `sd/weapon/rpg7/dry` | `SDRPDRY` | A | щелчок вхолостую | -18.2 (`DSRLAUNC` -4) | -12.5 / -26.8 / 85 % | -3.9 / -18.2 / 85 % | 0 дБ | 0.0 дБ | -2.9 дБ | в цели |
+| `sd/weapon/roks3/reload` | `SDRKRLD` | A | перезарядка | -15.1 (`DSFLAME` -4) | -8.7 / -22.2 / 70 % | -1.5 / -15.1 / 70 % | 0 дБ | 0.0 дБ | -0.5 дБ | в цели |
+| `sd/weapon/roks3/pickup` | `SDRKPKP` | A | подбор | -8.2 (`DSWPNUP` -3) | -9.9 / -24.1 / 69 % | -1.0 / -11.8 / 82 % | 0 дБ | 8.1 дБ | 0.0 дБ | **не хватает 3.6 дБ** |
+| `sd/weapon/roks3/dry` | `SDRKDRY` | A | щелчок вхолостую | -14.2 (`DSWPNUP` -9) | -10.3 / -24.3 / 100 % | -1.0 / -14.2 / 100 % | 0 дБ | 0.8 дБ | 0.0 дБ | в цели |
+| `sd/weapon/katyusha/charge` | `SDHKCHG` | A | зарядка | -14.2 (`DSRLAUNC` +0) | -1.0 / -18.6 / 51 % | -1.0 / -15.0 / 49 % | 0 дБ | 7.8 дБ | 0.0 дБ | в цели |
+| `sd/weapon/katyusha/fire` | `SDHKFIR` | A | выстрел | -14.2 (`DSRLAUNC` +0) | -1.0 / -12.7 / 56 % | -2.6 / -14.2 / 56 % | 0 дБ | 0.0 дБ | -1.6 дБ | в цели |
+| `sd/weapon/katyusha/burst` | `SDHKEXP` | A | разрыв | -15.1 (`DSBAREXP` -6) | -6.0 / -21.0 / 9 % | -1.1 / -15.1 / 13 % | 2 дБ | 0.0 дБ | -0.1 дБ | в цели |
+| `sd/weapon/katyusha/reload` | `SDHKRLD` | A | перезарядка | -18.2 (`DSRLAUNC` -4) | -11.3 / -29.8 / 29 % | -1.0 / -18.2 / 34 % | 0 дБ | 2.3 дБ | 0.0 дБ | в цели |
+| `sd/weapon/katyusha/pickup` | `SDHKPKP` | A | подбор | -8.2 (`DSWPNUP` -3) | -11.0 / -23.1 / 80 % | -1.0 / -9.0 / 93 % | 0 дБ | 7.7 дБ | 0.0 дБ | в цели |
+| `sd/weapon/katyusha/dry` | `SDHKDRY` | A | щелчок вхолостую | -18.2 (`DSRLAUNC` -4) | -9.8 / -28.6 / 45 % | -1.0 / -18.2 / 37 % | 0 дБ | 3.5 дБ | 0.0 дБ | в цели |
+
+**12 в цели, 14 не дотягивают** (13 из D74 и `SDIZFIR` из D83, выше). Каждый
+не дотянувший упёрся в потолок прохода (пик −1 dBFS, лимитирование остановилось
+там, где перестало окупаться) и громче своего черновика на величину от 1,9
+(`SDRPEXP`) до 14,6 дБ (`SDPPRLD`). Почему каждое семейство останавливается
+недотянув:
+
+- **Щелчки вхолостую** (`SDTTDRY`, `SDIZDRY`, `SDPPDRY`): щелчок длится от 3
+  до 10 мс, а линейка усредняет по 50 мс. Щелчок на −1 dBFS так громок, как
+  щелчок только бывает; громче потребовался бы более долгий звук.
+- **`SDAXHIT`**, не хватает 6,3 дБ: в ударе по плоти почти ничего нет выше
+  1 кГц (73 % его энергии ниже 100 Гц). A-взвешивание считает удар на 50-100 Гц
+  ниже на 20-30 дБ, а полка в 9 дБ поднимает его лишь с 3 % до 8 % выше
+  300 Гц: он **по-прежнему только басовый** и будет слаб на колонках
+  ноутбука. Чтобы дотянуть до `DSPUNCH`, нужен более яркий слой (переозвучка)
+  или насыщение; ни то ни другое не входит в этот проход.
+- **`SDRPEXP`**, не хватает 4,8 дБ: то же, но слабее; полка подняла его с 7 %
+  до 12 % выше 300 Гц (флаг снят).
+- **Выстрелы, удар по стене и три подбора** (`SDTTFIR`, `SDPPFIR`,
+  `SDAXWAL`, `SDPPPKP`, `SDRPPKP`, `SDRKPKP`): 8-битные звуки Freedoom
+  квадратны и плотны, наши сохраняют свои транзиенты. Лимитер перестаёт
+  окупаться примерно на 7-8 дБ снижения; насыщение (его использует
+  `gen_weapon_alts.py` на альтернативах) закрыло бы разрыв и изменило бы тембр.
+- **Перезарядки** (`SDTTRLD`, `SDPPRLD`): не хватает 1,1 и 1,2 дБ, всё равно
+  отложены (D47).
+
+### 10.3 Хуки (`src/zscript/weapons/`, `src/lumps/SNDINFO`)
+
+| Ламп(ы) | Хук | Используемое поведение движка |
+|---|---|---|
+| `SDAXHIT`, `SDTTFIR`, `SDPPFIR`, `SDRPFIR`, `SDRPEXP`, `SDHKCHG`, `SDHKFIR`, `SDHKEXP` (уже подключены) | только правый столбец `SNDINFO` | ничего нового |
+| `SDAXSWG` | `PUNG B 5 A_StartSound("sd/weapon/iceaxe/swing", CHAN_WEAPON)`, первый кадр Fire | удар через 5 тиков на `CHAN_WEAPON` обрезает хвост взмаха (ДОПУЩЕНИЕ §3) |
+| `SDAXWAL` | `SD_IceAxePuff` (`ice_axe_puff.zs`): `BulletPuff`, у которого `AttackSound` — звук стены; `A_SD_IceAxeSwing` стреляет им вместо `BulletPuff` | `AttackSound` пуфа играет там, где он появляется (стена, пол, потолок); кровоточащая цель порождает кровь, а не пуф, поэтому играет только удар (так работает посох в Heretic). **НЕ ПРОВЕРЕНО** в нашем движке |
+| `SDPPPKP`, `SDRPPKP`, `SDRKPKP`, `SDHKPKP` | `Inventory.PickupSound` в `Default` каждого оружия | движок играет его на `CHAN_ITEM` игрока (gzdoom.pk3 `inventory.zs`) |
+| шесть `*DRY` | кадр `Ready` каждого ствола вызывает `A_SD_WeaponReady`: `SD_WeaponSounds.DryClick`, затем `A_WeaponReady`, тот же кадр, тот же тик (`weapon_sounds.zs`) | `DryClick` щёлкает в тик, когда кнопка огня нажата (`player.cmd.buttons` против `player.oldbuttons`, как читает его собственный разворот на 180 градусов в движке), пока `CheckAmmo(PrimaryFire, false)` ложно; при `autoSwitch` false он только считает, так что переключение движка не тронуто. «Катюша» пуста при менее чем 40 Cell. **НЕ ПРОВЕРЕНО** в нашем движке |
+| `SDRPRLD` | `MISG B 14` разбит на `MISG B 4 A_FireProjectile(...)` и `MISG B 10 A_StartSound("sd/weapon/rpg7/reload", CHAN_WEAPON)`: 26 тиков, без изменений | звук пуска — `SeeSound` гранаты, так что `CHAN_WEAPON` игрока ничего не обрезает |
+| `SDHKRLD` | `BFGG B 0 A_StartSound("sd/weapon/katyusha/reload", SD_KATYUSHA_RELOAD_CHANNEL)` (`CHAN_5`) перед `BFGG B 20 A_ReFire`: 60 тиков, без изменений | `CHAN_5` — канал, которым больше ничего у игрока не пользуется, так что залп на `CHAN_WEAPON` играет целиком |
+| `SDTTRLD`, `SDPPRLD`, `SDRKRLD` | **ничего**: упакованы и названы в `SNDINFO`, ничем не проигрываются (отложенные магазины D47); `tests/test_arsenal.py` перечисляет их как `PARKED_SOUNDS` | слушать через `playsound sd/weapon/tokarev/reload` |
+
+Намеренно не подключены: подборы ТТ-33, ИЖ и ледоруба (без
+`Inventory.PickupSound`: `misc/w_pkup` Doom, как и раньше); переламывание ИЖ и
+струя РОКС-3 остаются на `DSSGCOCK` и `DSFLAME`. Выстрел ИЖ наш с N9e
+(`SDIZFIR` B, D83): только правый столбец `SNDINFO`, без ZScript.
+
+### 10.4 На что слушать в движке (PM, D26)
+
+На полигоне (`RANGE`), со звуком:
+
+1. **Выстрел каждого ствола рядом с выстрелом монстра Freedoom**: ТТ-33 и
+   ППШ-41 на 2,6 дБ ниже `DSPISTOL` по линейке; удерживают ли они позиции
+   рядом с `DSPISTOL` стрелка?
+2. **Ледоруб**: взмах на каждом ударе; звук стены на камне и НЕ на монстре
+   (кровоточащее попадание играет только удар по плоти); бочка, как ожидается,
+   играет оба. Удар по плоти (`SDAXHIT`) — самый слабый звук набора на
+   колонках.
+3. **Щелчки вхолостую**: опустошить ТТ-33 без другого оружия (он остаётся
+   поднятым, BALANCE §4.1) и нажать огонь: один щелчок на нажатие, ни одного
+   при удержании. Затем с другим оружием: щелчок и переключение вместе,
+   переключение как раньше. «Катюша» при менее чем 40 Cell: щелчок.
+4. **РПГ-7**: перезарядка слышна после пуска, до того как возможен следующий
+   выстрел. **«Катюша»**: вой залпа не обрывается перезарядкой направляющих.
+5. **Подборы**: ППШ-41, РПГ-7, РОКС-3 и «Катюша» играют наши; ТТ-33, ИЖ-58 и
+   ледоруб по-прежнему играют звук Doom.
+6. **Лог**: ни «Unknown sound», ни ошибки ZScript (новые классы
+   `SD_IceAxePuff` и `SD_WeaponSounds`).
+7. **N9e: выстрел ИЖ-58** (`SDIZFIR` B): на 7 дБ ниже `DSSHOTGN` по линейке,
+   весь — низкий бум; держится ли он рядом с дробовиком легионера и на
+   колонках ноутбука?
+
+### 10.5 Установленные файлы
+
+| Ламп | SHA-256 WAV-мастера | SHA-256 установленного OGG |
+|---|---|---|
+| `SDAXSWG` | `668648bf218a5cbdaa5784d5d97c0a37eca451581c0991843edc86356f951071` | `1d51018b7e580a5ec801071261ced711fb414f8f1ad8e38b0515594d5a1e3cfb` |
+| `SDAXHIT` | `e3879ef543af268ad4153d05a9cb565c8123940b6089738107a529a7b8857b8b` | `2e04114992654ed5f3f6ff35d3b99bececcb81427fdfd0c29e74397522acc8c2` |
+| `SDAXWAL` | `b82723321cf6a5133a9730c1276bf05b59628f5d4913792f0f7a489a3f0d91eb` | `ed4e99c4360a34edf610799ac940e0b43c1b4aa6809705975954450cd70115aa` |
+| `SDTTFIR` | `dc14616870b095cad7a0a30a0c8f6f0f5d98d15212305b3db86660ed5f37a457` | `739ae2ed34cd1c3b357bb8fd5ce94ace5f14dcb84b769e076097baf6b0494f8a` |
+| `SDTTRLD` | `a692434d44863b3fa02719da69b9b23623f0373e094e5a84e36618a6f1c1f8cd` | `2b169eb4348ef6ed213d5467298c9fcefeb3d9b00b3a1a4e43eac0af78293d4c` |
+| `SDTTDRY` | `c93e8ef4c8a8c67814cbbc0fe30364767ebc56751ff1b9e7b576c21c671979fb` | `045ae7e97c90bf730b9188bc9eee5eff3e03f9c9ec91d3fae96f613abe726180` |
+| `SDIZDRY` | `bb61fb8191fb9c538c2806a2a196713dfd241d2e6e7475cbdf198f67e944fa47` | `cfb39f64fcd7ace268c520d8f150236b25f0af56979b2c382a47a421ed14fc29` |
+| `SDIZFIR` | `a751909955602904217cbfe900d89330b036124ded864812bbe527d4dc183ddc` | `21c97f9dc8286c0355eb0822de585e0c1a65f4224d8cd44ba7b3ce3e4526c077` |
+| `SDPPFIR` | `f3ac80e99bf96ddc7471bce0a9afdec49e5d3de41bcce3b36ea60db384d11c9a` | `95c7c9a43af93c977e0bcdd5a05d234d62ed04ad9f54e734b0503aac52de78a1` |
+| `SDPPRLD` | `7ede0d53a6f1bffa4fd327008d3a62e3062e14c0490890ac142525a5f45a209e` | `628cfaf6396b8aa873889b7aea740076e96a819f13ab7c715356611ed9488fd2` |
+| `SDPPPKP` | `5d683d30c34e53699deb0ded7693834bdc9e0e4c72a21bda2a9143b6dcafd040` | `5646109b593d73ca9bbe9ff54dfb29058ee3440635dbbfb50376878688780225` |
+| `SDPPDRY` | `7130bb9142e2fbfad2edc211ba5209169bbc64022f70dc483e79047027ed4918` | `a091c637ced99d8a539e9cdcfb5585d22b0389475106bc23d3a15ecf5713066e` |
+| `SDRPFIR` | `02e0cfc07718ca8d0491082a17f3aaf091b7bcd9112fdf1a47b3dd1830cbea55` | `dc7ee5466385c06fb668997220369d9733efa8aa570a4ce0209cd22e151b7baa` |
+| `SDRPEXP` | `e7a3521129a65d1f8151a0cdd76951993b4220572ad5f759e75a335bac256a84` | `9367c7703521a4f704403db2e0911c5d1a6ed700d6ef7ca626ef1ed2b0b7365b` |
+| `SDRPRLD` | `94ebff764eefa7d3ed0d00aecc4d782a3ac66d8c265fdac902f7ef94f4c5d322` | `057c0ca4bbc209a47b6e24a168106534d44f6e035391b5cfc2717eb5f4336868` |
+| `SDRPPKP` | `413a9fb4a270f368f1e795e1fba3f18d6db63bd26fad96bf0e7666c894eb6932` | `5e5b85f42adaee54e6d847cfc5ca8972702d0787d482b710db892f13eb20152d` |
+| `SDRPDRY` | `e391f56dc654913f0b476eab22a3271ea1d38c43e247d13507f05ed0e96f3aff` | `aea27fb0124ab3028982cb2426f5938c87f95c505869ec783f8669de737fcce2` |
+| `SDRKRLD` | `5a42720f58d87a8340a509ee797fb7d069dcfc5001280a8f21b837cc71c3a59a` | `787a5421ac8d62d07e0c7e6789d33a15d5d635d8c23cb01f304eb343da776d33` |
+| `SDRKPKP` | `ca5fe366301ba87ede37617283ee6dadafd2938b6f2cd19d1d94e7fb33a6b0da` | `eb417c4dca5200932cf2c036bc10926524a4aeec8d31a14cc7892a4a11990b8e` |
+| `SDRKDRY` | `9a00471ebb4e1de5d7220d4fc8536e1e0984ae21205bcebf0d223959ea92ebee` | `39a4408fee7524481c9266fab577bb2a5a9ad59950b3aa19eb035f8be3460fb4` |
+| `SDHKCHG` | `f40d0261b8e5d08fc57e2344a8876892e6434be7a8619c570dbcc18b3f585b90` | `cdec06bbc08ad4f276971613a0b24d5ce57cc6ef20aeeeb4de5058e5b4303940` |
+| `SDHKFIR` | `47faccddb37b112063866f389810f5c6a028c4e2a4c6385da4fda10e891a2d06` | `77158e47090ae51f1a9f39b53d8cc35587daeff00ca2adc538de0f3ea1b77e7c` |
+| `SDHKEXP` | `73a4c7e77b1620aadaf8c5c1979cfc3576b9f99edc00e1777410ae0b040e2ae2` | `8ddfb670b7a63da5176528deddb6490d8c82bb5c3ec7fbdcc6532ea1a57ca94a` |
+| `SDHKRLD` | `7bc809b0dab7021700024285eba10fd9b892fa6ed37070c7f513ae86fccc4437` | `f066966e537ec14814ab68a9ffb576607df1b5f5862c809a34b718c3a7d0f6f6` |
+| `SDHKPKP` | `b0cbce1c6d99ea82da9026c1cb14b04ca61f070472a076f7434672b0bfac1da7` | `21e9a723104add1f3dcee63580169d15b14ecb7f65ed0af331a8c8d75716ad45` |
+| `SDHKDRY` | `0b3fe95c81f1ad499178e42e14c7ef1d3297b9f621e76664f7e34574d01f7234` | `575e5665ac291d905b6289fa1720c4197c1a89b308872dcd85c0fa20ca285316` |
+
+Хеши WAV воспроизводятся на этом ПК (источники черновиков декодирует
+локальный ffmpeg); хеши OGG зависят от локальной сборки ffmpeg, как и у
+черновиков (§8). Установленный звук перекодируется только на машине, которая
+его установила, либо снова проходит через тесты как новая установка.
+
+### 10.6 N9e: альтернативы D94 (2026-10-20)
+
+CEO оценил альтернативы `gen_weapon_alts.py` при движущемся оружии (D92, D94)
+и одобрил: `SDTTPKP` alt1 + alt2, `SDAXPKP` alt1 + alt3, `SDIZRLD` alt3,
+`SDRKFIR` alt1-3 (NO: `SDIZPKP` alt1-3, подбор ИЖ-58 сохраняет звук Doom).
+`master_weapon_sfx.py --alts` устанавливает их: каждая была выровнена по
+громкости для страницы до цели `gen_weapon_alts.py` (подбор `DSWPNUP` − 3,
+перезарядка `DSSGCOCK` − 5, струя `DSFLAME`) и поставляется как
+отрендерена, если только Vorbis не поднимет её декодированный пик выше
+−0,1 dBFS: тогда лимитер с опережением снижает пик на величину перерегулирования
+плюс 0,2 дБ (проверка кодека из ENEMY-SOUNDS §5.12). Несколько дублей одного
+звука поставляются все (`<LUMP><n>`), а `SNDINFO` называет их группой
+`$random`; РОКС-3 перезапускает свой звук огня каждые 3 тика на `CHAN_WEAPON`,
+так что удерживаемый спуск выбирает дубль при каждом перезапуске (НЕ ПРОВЕРЕНО
+в движке: читается ли струя по-прежнему как одно непрерывное пламя?). Хуки:
+ТТ-33 и ледоруб получают `Inventory.PickupSound` (раньше его не было);
+перезарядка ИЖ-58 играет из существующего хука (`SDIZ D 6`), теперь это
+`SDIZRLD` вместо `DSSGCOCK`; подбор РОКС-3 уже был нашим (`SDRKPKP`).
+
+| Ламп | Дубль | Логическое имя | Цель, дБ A | Проход | SHA-256 WAV-мастера | SHA-256 установленного OGG |
+|---|---|---|---|---|---|---|
+| `SDTTPKP1` | SDTTPKP_alt1 | `sd/weapon/tokarev/pickup/1` | -8.2 | как отрендерено | `78a28da4bbf2e22e0a5a70f4862d525529d4f8d702f2c59dd9bde786e257d3d7` | `5ed5bbe224888bb2483de7a7339b50f2f7b8c88716e667600f46c29d88a29efe` |
+| `SDTTPKP2` | SDTTPKP_alt2 | `sd/weapon/tokarev/pickup/2` | -8.2 | кодек 0.9 дБ | `ed9ceeb9c76c121aad5f4789e4631239a7a6696f3c87f54744108b37a5c072f0` | `85edcef3644a53b6efeebdf563f4396f199f4d505d8e2578e94d049cf1e35b77` |
+| `SDAXPKP1` | SDAXPKP_alt1 | `sd/weapon/iceaxe/pickup/1` | -8.2 | как отрендерено | `50b1efba2410d6fb56b154f061ede8e3e34e0ace4f1fd2cc0fbbb95430b07007` | `f4c60daa9351018252ab26972a2ead0895ee4582864b50dacdde7da653d6875b` |
+| `SDAXPKP3` | SDAXPKP_alt3 | `sd/weapon/iceaxe/pickup/3` | -8.2 | как отрендерено | `b74be921511a9b6ee412ec49e9707425bd8efa72ac78ec21d08c5e2ced21b304` | `535f4a703dc1518713ca3c66fc50dfc3b79de6ec814dc50809f04cdb8c1ff3c5` |
+| `SDIZRLD` | SDIZRLD_alt3 | `sd/weapon/izh/reload` | -9.4 | кодек 0.5 дБ | `a9e959f8fb9356b14280849a86de0f5395c91fb144243b97b1a4c33f1cb38e51` | `ec78869141e46c829b58df0797d9fedafb303bf70b8fd7dfada59641d00bbdb2` |
+| `SDRKFIR1` | SDRKFIR_alt1 | `sd/weapon/roks3/fire/1` | -11.1 | кодек 0.7 дБ | `069d082b4ac768556bec4b54295d330a9787ba36fc575b69c79d9c4f5297eeda` | `09c2466546f788646339c34710bf09569cb91ffaa30061ec0115979e19a76149` |
+| `SDRKFIR2` | SDRKFIR_alt2 | `sd/weapon/roks3/fire/2` | -11.1 | как отрендерено | `d34b7f99cc91e19c4d7a028ee7fb25d1acb68d08e453fed66c871ab381c4a6fe` | `9fe85a3fe943d5785e7fc7a9ef86e67f5f69f561b20b20ab6347e6050223da9e` |
+| `SDRKFIR3` | SDRKFIR_alt3 | `sd/weapon/roks3/fire/3` | -11.1 | как отрендерено | `1560d78336ab7a9209f42108b0298aaa875a3363548b5b0ccd268073d22ac16d` | `53a7b6ed136f8c2647e72acfdd1cb7d39e248725e93b5c8923effc9e6573b80b` |

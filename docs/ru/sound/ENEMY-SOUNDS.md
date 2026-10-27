@@ -7,8 +7,23 @@
 на музыку живут в `docs/sound/MUSIC-RIGHTS.md`; этот документ отвечает
 **только за права на звуковые эффекты и голоса**.
 
-Синхронизировано с оригиналом: 2026-10-14.
+Синхронизировано с оригиналом: 2026-10-27.
 
+> **Статус (2026-10-22): двенадцать из двенадцати голосов врагов — наши.**
+> D110 установил боль стрелка, смерть легионера и боль Генерала; D118 — смерть
+> Генерала (пять дублей раунда P2b, `SDGENDT1`-`5`, §5.12). Ни один голос врага
+> больше не проигрывает ламп Freedoom; `DSCYBDTH` остаётся только как заглушка
+> P4 для смертей Колосса и Консорциума.
+>
+> **Статус (2026-10-20): УСТАНОВЛЕНО (N9e, §5.12)** 30 звуков и 5 подложек,
+> одобренных CEO в D83, дубли D86, семь голосовых дублей D91 и семнадцать
+> D96: 81 ламп в `assets/sounds/enemies/`. Восемь из двенадцати голосов наши
+> (покой, обнаружение и смерть стрелка; покой, обнаружение и боль легионера;
+> обнаружение Генерала и его приказ); боль стрелка, смерть легионера и боль и
+> смерть Генерала сохраняют звуки Freedoom (ни один дубль не одобрен), а
+> подложки ждут упакованными, чтобы быть подмешанными под свои голоса. Далее —
+> история.
+>
 > **Статус (2026-10-13, вечер): 35 неголосовых лампов СДЕЛАНЫ ЧЕРНОВИКАМИ,
 > плюс восемь подложек для голосов; ничто не утверждено, ничего нет в
 > PK3.** Генератор — `tools/audio/gen_sfx.py` (тесты:
@@ -194,7 +209,7 @@ URL файла ниже. Получено через `curl` 2026-10-13; SHA-256 
 D11 требует серьёзного тона; D12 разрешает символы и говорит, что
 захватчики не опошляют реальных жертв. Звук — то место, где эту черту проще
 всего пересечь случайно. **D36 (CEO, 2026-10-13) задал правило языка**:
-«prefiero que sea alemán real e inglés real». Мой прежний план выдуманных
+«prefiero que sea alemán real e inglés real» («я предпочитаю, чтобы это были настоящий немецкий и настоящий английский»). Мой прежний план выдуманных
 слогов, похожих на немецкий, **отозван**. Правила для голосов теперь такие:
 
 - **Кто записывает.** CEO, лично или генерируя с помощью ИИ (D36). Сценарий,
@@ -301,6 +316,13 @@ D11 требует серьёзного тона; D12 разрешает сим�
 
 Органическая, чужая, **не собака и не волк** (`BESTIARY.md` §6). Файлы
 «Barking» и «Howl» из `OGA-CRE1` поэтому **не используются**.
+
+> **Заменено для v1.1 (D100, D102, D107).** CEO попросил настоящий собачий лай
+> и одобрил пятнадцать дублей настоящих собак, по три на звук; они
+> поставляются как группы `$random` (`SDHNDAC1`-`3`, `SDHNDSI1`-`3`,
+> `SDHNDAT1`-`3`, `SDHNDPA1`-`3`, `SDHNDDT1`-`3`), а пять синтетических лампов
+> ниже больше не поставляются (§5.12, «Настоящие собаки гончей Рейха»).
+> Карточки остаются записью D83.
 
 | Ламп | Состояние | Что должен передать | Происхождение | Источник / статус |
 |---|---|---|---|---|
@@ -563,9 +585,422 @@ Panzermensch начиналась с медленного нарастания: 
   (`BESTIARY.md` §12). Если он должен звучать тяжелее, дешёвый путь —
   сдвиг высоты в его псевдонимах `SNDINFO` (`mod-engineer`), а не новые
   ламп.
-- **Вариативность.** Один дубль на ламп; случайные звуки GZDoom и сдвиг
-  высоты разнообразили бы шаг и окрики, но их синтаксис `SNDINFO` здесь по-
-  прежнему **НЕ ПРОВЕРЕН** (§6).
+- **Вариативность.** В этих черновиках один дубль на ламп. С N9e (§5.12) звуки
+  с несколькими одобренными дублями используют `$random` из `SNDINFO`,
+  синтаксис прочитан в собственном `SNDINFO` из gzdoom.pk3; сдвиг высоты по-
+  прежнему не используется.
+
+### 5.12 Установлено (N9e, 2026-10-20): 30 звуков и 5 подложек D83, дубли D86, собаки D107
+
+Инструмент: `tools/audio/master_enemy_sfx.py` (тесты:
+`tests/test_enemy_sfx_install.py`), проход оружия (`master_weapon_sfx.py`,
+WEAPON-SOUNDS §10), применённый к врагам. Ничего не пересинтезируется: каждый
+одобренный дубль рендерится генератором, который его нарисовал (`gen_sfx.py`
+для черновиков и подложек D83, seed 1977; `gen_enemy_alts.py` для альтернатив
+D86), и выравнивается.
+
+```bash
+.venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --list       # the plan and the targets, writes nothing
+.venv/Scripts/python.exe tools/audio/master_enemy_sfx.py              # WAV masters + MANIFEST in work/audio/master_enemy/
+.venv/Scripts/python.exe tools/audio/master_enemy_sfx.py --install    # and the OGGs into assets/sounds/enemies/
+```
+
+**Цели.** Линейка — из `gen_weapon_alts.py` (самые громкие 50 мс,
+A-взвешивание). Звук подгоняется под ламп Freedoom, который `SNDINFO` играл
+для него до N9e; подложка сидит на 3 дБ ниже заглушки своего голоса (голос
+идёт поверх, §5.10; тот же запас `gen_enemy_alts.py` дал альтернативам
+подложек). **Звук, уже находящийся в своём окне, остаётся как есть**: каждая
+альтернатива D86 была выровнена по этим же целям для страницы CEO, как и пять
+черновиков D83. Остальные (черновики D83, выровненные до более тихой
+громкости класса `gen_sfx.py`) получают проход оружия: низкочастотная полка
+только если звук басовый, пик на −1 dBFS, усиление вниз или вверх с до 9 дБ
+лимитирования с опережением, без насыщения.
+
+**Проверка кодека.** Затем каждый мастер кодируется в Vorbis и декодируется;
+пока декодированный пик достигает −0,1 dBFS, лимитер с опережением снижает
+потолок мастера на величину перерегулирования плюс 0,2 дБ. Vorbis поднял
+плотные насыщенные альтернативы значительно выше их мастеров на −1 dBFS
+(SDLTRATK до +1,4 dBFS — клип в любом 16-битном тракте; у страницы, которую
+слышал CEO, было то же самое), поэтому семь из них были ограничены на 0,3-1,7 дБ
+(`CODEC_TRIMMED`: `SDRRIAT2` 0,5, `SDRRIAT3` 0,3, `SDLTRATK` 1,7, `SDSTOPA2`
+0,7, `SDSTODT1` 0,4, `SDSTODT2` 1,0, `SDSTODT3` 1,6): тот же дубль, пики ниже,
+уровень на 0,1-1,3 дБ ниже (`SDSTODT3` теперь на 1,4 дБ не дотягивает).
+Остальные одиннадцать альтернатив поставляются байт в байт как OGG страницы
+(`tests/test_enemy_sfx_install.py`, `AltIdentityTests`).
+
+**SDRRIATK alt2** (D86: «когда его последний щелчок тише первого»): закрывающий
+звон затвора измерен в −27,0 дБ A на самых громких 50 мс против −27,2 у
+открывающего щелчка; он звенел дольше, поэтому читался громче.
+`gen_enemy_alts.py` теперь подмешивает его на 7 дБ тише (`FINAL_CLICK_DB` −11,
+было −4): −34,0 против −27,2, треск на −10,4 не тронут. Файл страницы в
+`work/audio/enemy_alt/` был перерендерен с этим.
+
+**Имена и `$random`.** Один одобренный дубль поставляется под именем своей
+карточки. Несколько одобренных дублей одного звука (D86) поставляются все,
+последняя буква карточки заменяется номером дубля (`SDSTOPA1`-`SDSTOPA3`), а
+имя, которое запрашивает код, становится алиасом `$random` над строками
+`<имя>/<дубль>`, синтаксис собственного `$random grunt/sight { grunt/sight1
+... }` из gzdoom.pk3 (прочитан в `filter/game-doomchex/sndinfo.txt` g4.14.2):
+движок выбирает члена при каждом воспроизведении. Тринадцать групп (с D96;
+семь на N9e): атака стрелка, боль и смерть Штурмовика, боль Panzermensch и
+подложки боли стрелка и боли и смерти легионера.
+
+**Подложки отложены.** Подложка — не голос: она поставляется как `SD` + актор
++ инициал события + `B` + дубль (`SDRRIDB1`, `SDLTRPB1`-`3`), называется
+`sd/bed/<актор>/<событие>` в `SNDINFO`, и ничто её не играет. Она
+подмешивается под дубль своего голоса, когда CEO одобрит дубли (D87, §5.10:
+тайминг в подложке — предложение), а голосовой ламп сохраняет имя карточки
+(`SDRRIDTH`, дубль R09 с D96: подложка под ним по-прежнему не подмешана, это
+новый звук, которого CEO не слышал). Голоса звучат без подложки, наши (D91,
+D96) или Freedoom; услышать подложку можно консольной командой
+`playsound sd/bed/legiontrooper/death`. (Подложка покоя Легиона лежит на
+−31,6 дБ A, потому что `DSPOSACT`, бормотание, под которое она идёт, — это
+−28,6.)
+
+| Ламп | Одобрено | Дубль | Логическое имя | Цель, дБ A (от) | До: пик / громк. A / >300 Гц | После: пик / громк. A / >300 Гц | Проход | Окно |
+|---|---|---|---|---|---|---|---|---|
+| `SDRRIXDT` | D83 | SDRRIXDT | `sd/mon/reichrifleman/xdeath` | -11.6 (`DSSLOP` +0) | -2.6 / -15.6 / 68 % | -1.0 / -12.1 / 63 % | полка 0.0, лимитер 7.5, усиление 0.0 дБ | в цели |
+| `SDLTRXDT` | D83 | SDLTRXDT | `sd/mon/legiontrooper/xdeath` | -11.6 (`DSSLOP` +0) | -2.9 / -15.5 / 71 % | -1.0 / -11.9 / 68 % | полка 0.0, лимитер 4.8, усиление 0.0 дБ | в цели |
+| `SDSTOACT` | D83 | SDSTOACT | `sd/mon/stormtrooper/active` | -18.7 (`DSBGACT` +0) | -10.6 / -18.0 / 97 % | -10.6 / -18.0 / 97 % | не тронут | в цели |
+| `SDSTOSIT` | D83 | SDSTOSIT | `sd/mon/stormtrooper/sight` | -11.0 (`DSBGSIT1` +0) | -4.1 / -13.9 / 66 % | -1.2 / -11.0 / 66 % | полка 0.0, лимитер 0.0, усиление -0.2 дБ | в цели |
+| `SDSTOMEL` | D83 | SDSTOMEL | `sd/mon/stormtrooper/melee` | -9.3 (`DSCLAW` +0) | -3.9 / -17.6 / 44 % | -1.0 / -13.9 / 44 % | полка 0.0, лимитер 3.0, усиление 0.0 дБ | **не хватает 4.7 дБ** |
+| `SDSTOMIS` | D83 | SDSTOMIS | `sd/mon/stormtrooper/missile` | -15.9 (`DSFIRSHT` +0) | -3.9 / -13.5 / 92 % | -6.3 / -15.9 / 92 % | полка 0.0, лимитер 0.0, усиление -5.3 дБ | в цели |
+| `SDSTOEXP` | D83 | SDSTOEXP | `sd/mon/stormtrooper/explode` | -20.0 (`DSFIRXPL` +0) | -1.0 / -14.5 / 100 % | -6.5 / -20.0 / 100 % | полка 0.0, лимитер 0.0, усиление -5.5 дБ | в цели |
+| `SDSTOXDT` | D83 | SDSTOXDT | `sd/mon/stormtrooper/xdeath` | -11.6 (`DSSLOP` +0) | -2.3 / -15.6 / 70 % | -1.0 / -12.1 / 65 % | полка 0.0, лимитер 7.2, усиление 0.0 дБ | в цели |
+| `SDHNDACT` | D83, снят D107 | SDHNDACT | `sd/mon/reichhound/active` | -12.9 (`DSDMACT` +0) | -5.2 / -15.6 / 74 % | -2.6 / -12.9 / 74 % | полка 0.0, лимитер 0.0, усиление -1.6 дБ | в цели |
+| `SDHNDSIT` | D83, снят D107 | SDHNDSIT | `sd/mon/reichhound/sight` | -11.8 (`DSSGTSIT` +0) | -3.0 / -12.3 / 100 % | -3.0 / -12.3 / 100 % | не тронут | в цели |
+| `SDHNDATK` | D83, снят D107 | SDHNDATK | `sd/mon/reichhound/attack` | -6.3 (`DSSGTATK` +0) | -1.0 / -16.8 / 28 % | -1.0 / -14.3 / 26 % | полка 0.0, лимитер 8.2, усиление 0.0 дБ | **не хватает 8.0 дБ** |
+| `SDHNDPAI` | D83, снят D107 | SDHNDPAI | `sd/mon/reichhound/pain` | -11.7 (`DSDMPAIN` +0) | -4.4 / -15.6 / 95 % | -1.0 / -11.7 / 95 % | полка 0.0, лимитер 0.5, усиление 0.0 дБ | в цели |
+| `SDHNDDTH` | D83, снят D107 | SDHNDDTH | `sd/mon/reichhound/death` | -14.3 (`DSSGTDTH` +0) | -1.4 / -14.0 / 33 % | -1.4 / -14.0 / 33 % | не тронут | в цели |
+| `SDDGBACT` | D83 | SDDGBACT | `sd/mon/doughboy/active` | -12.9 (`DSDMACT` +0) | -9.0 / -30.4 / 3 % | -1.0 / -16.8 / 12 % | полка 9.0, лимитер 3.0, усиление 0.0 дБ | **не хватает 3.9 дБ** |
+| `SDDGBSIT` | D83 | SDDGBSIT | `sd/mon/doughboy/sight` | -11.5 (`DSCACSIT` +0) | -3.2 / -14.3 / 92 % | -1.0 / -11.5 / 91 % | полка 0.0, лимитер 3.9, усиление 0.0 дБ | в цели |
+| `SDDGBMEL` | D83 | SDDGBMEL | `sd/mon/doughboy/melee` | -9.3 (`DSCLAW` +0) | -1.0 / -15.0 / 61 % | -1.0 / -12.5 / 65 % | полка 0.0, лимитер 4.6, усиление 0.0 дБ | **не хватает 3.2 дБ** |
+| `SDDGBMIS` | D83 | SDDGBMIS | `sd/mon/doughboy/missile` | -15.9 (`DSFIRSHT` +0) | -1.0 / -11.7 / 87 % | -5.2 / -15.9 / 87 % | полка 0.0, лимитер 0.0, усиление -4.2 дБ | в цели |
+| `SDDGBEXP` | D83 | SDDGBEXP | `sd/mon/doughboy/explode` | -20.0 (`DSFIRXPL` +0) | -1.2 / -14.6 / 41 % | -6.6 / -20.0 / 41 % | полка 0.0, лимитер 0.0, усиление -5.6 дБ | в цели |
+| `SDDGBPAI` | D83 | SDDGBPAI | `sd/mon/doughboy/pain` | -11.7 (`DSDMPAIN` +0) | -3.1 / -18.0 / 67 % | -1.0 / -13.1 / 69 % | полка 0.0, лимитер 6.6, усиление 0.0 дБ | **не хватает 1.4 дБ** |
+| `SDDGBDTH` | D83 | SDDGBDTH | `sd/mon/doughboy/death` | -11.3 (`DSCACDTH` +0) | -2.3 / -13.6 / 72 % | -1.0 / -11.3 / 72 % | полка 0.0, лимитер 1.0, усиление 0.0 дБ | в цели |
+| `SDPZRACT` | D83 | SDPZRACT | `sd/mon/panzermensch/active` | -12.9 (`DSDMACT` +0) | -3.6 / -16.7 / 95 % | -1.0 / -12.9 / 95 % | полка 0.0, лимитер 1.4, усиление 0.0 дБ | в цели |
+| `SDPZRSIT` | D83 | SDPZRSIT | `sd/mon/panzermensch/sight` | -9.5 (`DSKNTSIT` +0) | -1.0 / -19.7 / 16 % | -1.0 / -16.2 / 16 % | полка 0.0, лимитер 8.3, усиление 0.0 дБ | **не хватает 6.7 дБ** |
+| `SDPZRMEL` | D83 | SDPZRMEL | `sd/mon/panzermensch/melee` | -13.1 (`DSSKEPCH` +0) | -1.5 / -21.9 / 3 % | -1.0 / -16.6 / 8 % | полка 9.0, лимитер 2.5, усиление 0.0 дБ | **не хватает 3.5 дБ** |
+| `SDPZRMIS` | D83 | SDPZRMIS | `sd/mon/panzermensch/missile` | -15.9 (`DSFIRSHT` +0) | -2.0 / -16.3 / 49 % | -2.0 / -16.3 / 49 % | не тронут | в цели |
+| `SDPZREXP` | D83 | SDPZREXP | `sd/mon/panzermensch/explode` | -20.0 (`DSFIRXPL` +0) | -1.0 / -17.8 / 7 % | -5.2 / -20.0 / 13 % | полка 3.5, лимитер 0.0, усиление -4.2 дБ | в цели |
+| `SDPZRDTH` | D83 | SDPZRDTH | `sd/mon/panzermensch/death` | -8.9 (`DSKNTDTH` +0) | -1.0 / -17.0 / 9 % | -1.0 / -11.1 / 13 % | полка 0.5, лимитер 8.1, усиление 0.0 дБ | **не хватает 2.2 дБ** |
+| `SDPZRSTP` | D83 | SDPZRSTP | `sd/mon/panzermensch/step` | -14.7 (`DSMETAL` +0) | -3.4 / -25.8 / 3 % | -1.0 / -17.8 / 9 % | полка 9.0, лимитер 3.6, усиление 0.0 дБ | **не хватает 3.1 дБ** |
+| `SDGENACT` | D83 | SDGENACT | `sd/mon/general/active` | -12.9 (`DSDMACT` +0) | -13.4 / -29.9 / 9 % | -1.0 / -16.1 / 13 % | полка 2.5, лимитер 2.8, усиление 0.0 дБ | **не хватает 3.2 дБ** |
+| `SDGENMIS` | D83 | SDGENMIS | `sd/mon/general/missile` | -14.2 (`DSRLAUNC` +0) | -1.0 / -12.3 / 67 % | -2.9 / -14.2 / 67 % | полка 0.0, лимитер 0.0, усиление -1.9 дБ | в цели |
+| `SDGENEXP` | D83 | SDGENEXP | `sd/mon/general/explode` | -20.0 (`DSFIRXPL` +0) | -1.0 / -12.8 / 74 % | -8.2 / -20.0 / 74 % | полка 0.0, лимитер 0.0, усиление -7.2 дБ | в цели |
+| `SDRRIAT1` | D86 | SDRRIATK_alt1 | `sd/mon/reichrifleman/attack/1` | -10.4 (`DSPISTOL` +0) | -1.0 / -10.4 / 98 % | -1.0 / -10.4 / 98 % | не тронут | в цели |
+| `SDRRIAT2` | D86 | SDRRIATK_alt2 | `sd/mon/reichrifleman/attack/2` | -10.4 (`DSPISTOL` +0) | -1.0 / -10.4 / 98 % | -1.5 / -10.7 / 98 % | полка 0.0, лимитер 0.0, усиление 0.0 дБ, кодек 0.5 дБ | в цели |
+| `SDRRIAT3` | D86 | SDRRIATK_alt3 | `sd/mon/reichrifleman/attack/3` | -10.4 (`DSPISTOL` +0) | -1.0 / -10.4 / 98 % | -1.3 / -10.4 / 98 % | полка 0.0, лимитер 0.0, усиление 0.0 дБ, кодек 0.3 дБ | в цели |
+| `SDLTRATK` | D86 | SDLTRATK_alt2 | `sd/mon/legiontrooper/attack` | -7.9 (`DSDSHTGN` +0) | -1.0 / -7.9 / 94 % | -2.7 / -8.8 / 94 % | полка 0.0, лимитер 0.0, усиление 0.0 дБ, кодек 1.7 дБ | в цели |
+| `SDSTOPA1` | D86 | SDSTOPAI_alt1 | `sd/mon/stormtrooper/pain/1` | -11.7 (`DSDMPAIN` +0) | -1.0 / -11.7 / 82 % | -1.0 / -11.7 / 82 % | не тронут | в цели |
+| `SDSTOPA2` | D86 | SDSTOPAI_alt2 | `sd/mon/stormtrooper/pain/2` | -11.7 (`DSDMPAIN` +0) | -1.0 / -12.0 / 97 % | -1.7 / -12.1 / 96 % | полка 0.0, лимитер 0.0, усиление 0.0 дБ, кодек 0.7 дБ | в цели |
+| `SDSTOPA3` | D86 | SDSTOPAI_alt3 | `sd/mon/stormtrooper/pain/3` | -11.7 (`DSDMPAIN` +0) | -1.0 / -11.7 / 99 % | -1.0 / -11.7 / 99 % | не тронут | в цели |
+| `SDSTODT1` | D86 | SDSTODTH_alt1 | `sd/mon/stormtrooper/death/1` | -7.4 (`DSBGDTH1` +0) | -1.0 / -7.4 / 96 % | -1.4 / -7.7 / 96 % | полка 0.0, лимитер 0.0, усиление 0.0 дБ, кодек 0.4 дБ | в цели |
+| `SDSTODT2` | D86 | SDSTODTH_alt2 | `sd/mon/stormtrooper/death/2` | -7.4 (`DSBGDTH1` +0) | -1.0 / -7.4 / 98 % | -2.0 / -8.0 / 98 % | полка 0.0, лимитер 0.0, усиление 0.0 дБ, кодек 1.0 дБ | в цели |
+| `SDSTODT3` | D86 | SDSTODTH_alt3 | `sd/mon/stormtrooper/death/3` | -7.4 (`DSBGDTH1` +0) | -1.0 / -7.4 / 55 % | -2.6 / -8.7 / 56 % | полка 0.0, лимитер 0.0, усиление 0.0 дБ, кодек 1.6 дБ | **не хватает 1.4 дБ** |
+| `SDPZRPA1` | D86 | SDPZRPAI_alt1 | `sd/mon/panzermensch/pain/1` | -11.7 (`DSDMPAIN` +0) | -1.2 / -11.7 / 77 % | -1.2 / -11.7 / 77 % | не тронут | в цели |
+| `SDPZRPA2` | D86 | SDPZRPAI_alt2 | `sd/mon/panzermensch/pain/2` | -11.7 (`DSDMPAIN` +0) | -1.0 / -11.7 / 83 % | -1.0 / -11.7 / 83 % | не тронут | в цели |
+| `SDPZRPA3` | D86 | SDPZRPAI_alt3 | `sd/mon/panzermensch/pain/3` | -11.7 (`DSDMPAIN` +0) | -1.0 / -11.7 / 56 % | -1.0 / -11.7 / 56 % | не тронут | в цели |
+| `SDRRIDB1` | D83 | SDRRIDTH-bed | `sd/bed/reichrifleman/death` | -13.6 (`DSPODTH1` -3) | -2.6 / -20.7 / 15 % | -1.0 / -13.6 / 20 % | полка 0.0, лимитер 6.2, усиление 0.0 дБ | в цели |
+| `SDLTRAB1` | D83 | SDLTRACT-bed | `sd/bed/legiontrooper/active` | -31.6 (`DSPOSACT` -3) | -1.0 / -10.3 / 99 % | -22.3 / -31.6 / 99 % | полка 0.0 дБ, лимитер, 0.0 дБ, усиление -21.3 дБ | в цели |
+| `SDLTRSB1` | D83 | SDLTRSIT-bed | `sd/bed/legiontrooper/sight` | -14.2 (`DSPOSIT2` -3) | -4.5 / -14.0 / 100 % | -4.5 / -14.0 / 100 % | не тронут | в цели |
+| `SDGENPB1` | D83 | SDGENPAI-bed | `sd/bed/general/pain` | -14.7 (`DSDMPAIN` -3) | -4.1 / -17.1 / 84 % | -1.7 / -14.7 / 84 % | полка 0.0, лимитер 0.0, усиление -0.7 дБ | в цели |
+| `SDGENDB1` | D83 | SDGENDTH-bed | `sd/bed/general/death` | -14.3 (`DSCYBDTH` -3) | -7.4 / -15.4 / 74 % | -6.4 / -14.3 / 74 % | полка 0.0, лимитер 0.0, усиление -5.4 дБ | в цели |
+| `SDRRIPB1` | D86 | SDRRIPAI_alt1 | `sd/bed/reichrifleman/pain/1` | -14.4 (`DSPOPAIN` -3) | -1.0 / -14.4 / 85 % | -1.0 / -14.4 / 85 % | не тронут | в цели |
+| `SDRRIPB2` | D86 | SDRRIPAI_alt2 | `sd/bed/reichrifleman/pain/2` | -14.4 (`DSPOPAIN` -3) | -2.5 / -14.4 / 95 % | -2.5 / -14.4 / 95 % | не тронут | в цели |
+| `SDRRIPB3` | D86 | SDRRIPAI_alt3 | `sd/bed/reichrifleman/pain/3` | -14.4 (`DSPOPAIN` -3) | -1.0 / -14.4 / 53 % | -1.0 / -14.4 / 53 % | не тронут | в цели |
+| `SDLTRPB1` | D86 | SDLTRPAI_alt1 | `sd/bed/legiontrooper/pain/1` | -14.4 (`DSPOPAIN` -3) | -3.9 / -14.4 / 97 % | -3.9 / -14.4 / 97 % | не тронут | в цели |
+| `SDLTRPB2` | D86 | SDLTRPAI_alt2 | `sd/bed/legiontrooper/pain/2` | -14.4 (`DSPOPAIN` -3) | -6.0 / -14.4 / 98 % | -6.0 / -14.4 / 98 % | не тронут | в цели |
+| `SDLTRPB3` | D86 | SDLTRPAI_alt3 | `sd/bed/legiontrooper/pain/3` | -14.4 (`DSPOPAIN` -3) | -11.9 / -14.4 / 100 % | -11.9 / -14.4 / 100 % | не тронут | в цели |
+| `SDLTRDB1` | D86 | SDLTRDTH_alt1 | `sd/bed/legiontrooper/death/1` | -11.3 (`DSPODTH2` -3) | -1.0 / -11.3 / 76 % | -1.0 / -11.3 / 76 % | не тронут | в цели |
+| `SDLTRDB2` | D86 | SDLTRDTH_alt2 | `sd/bed/legiontrooper/death/2` | -11.3 (`DSPODTH2` -3) | -10.1 / -11.3 / 95 % | -10.1 / -11.3 / 95 % | не тронут | в цели |
+| `SDLTRDB3` | D86 | SDLTRDTH_alt3 | `sd/bed/legiontrooper/death/3` | -11.3 (`DSPODTH2` -3) | -3.6 / -11.3 / 98 % | -3.6 / -11.3 / 98 % | не тронут | в цели |
+
+**46 в цели, 11 не дотягивают**: `SDSTODT3` из-за лимитирования кодеком
+(выше); остальные упёрлись в потолок прохода (пик −1 dBFS, лимитирование
+остановилось там, где дальнейшее перестаёт окупаться), как и у оружия:
+укусы, удары и рычание с основной энергией ниже 1 кГц, где A-взвешивание
+считает мало (`SDHNDATK` на 8,0 дБ ниже `DSSGTATK`, самого громкого лампа
+Freedoom в наборе; `SDPZRSIT` 6,7; `SDSTOMEL` 4,7), и три басовых, помеченных
+листом янтарным, поднятых полкой в 9 дБ с 3 % до 8-12 % выше 300 Гц
+(`SDDGBACT`, `SDPZRMEL`, `SDPZRSTP`). Чтобы дотянуть до целей, потребовалось
+бы насыщение или более яркий слой, переозвучка, а не этот проход.
+
+**Установленные файлы.** WAV-мастера воспроизводятся на этом ПК; OGG зависят
+от локального ffmpeg, как и у оружия (WEAPON-SOUNDS §10.5).
+
+| Ламп | SHA-256 WAV-мастера | SHA-256 установленного OGG |
+|---|---|---|
+| `SDRRIXDT` | `d4ba799569f917ba95f1796ab911361c37d73b6107b04b7ea3f62b33ac2a0549` | `e8693e626bcca23d8c71406593374481461e849f52cc086709c7ea66033427b0` |
+| `SDLTRXDT` | `ac87aece072979284e154e33636e9a2ca30d77785f631a310c7563b4a5695ae3` | `adb42dcef0f7b20a1be5970d007c29d0c3c622e016f54345125a2851571575d8` |
+| `SDSTOACT` | `363f6f2fbf19b2218ae69cbf7bee9ab3f5a9f6f8f2beeb36a12f0bd0ce19200a` | `7bf1a9bbf726e4d5e52b954d072e0de19d3dc9f6e0b27c8726b66b3a1242e031` |
+| `SDSTOSIT` | `bfeafee3d6d6d38bb26269637dca4d7ae3db1cb4276ffe982ddb26d686b76f3e` | `e845728a07056f511f89415bc366ac65f6c36c6ff0d94cc3231b02a2769e993a` |
+| `SDSTOMEL` | `cf72caae57bc8f66b688a7091b8fdf587901aea597520fa3963425934ae1f5ad` | `cc6529bc5644bf6612ceab953355e3af02b87103e371cdb235e4997f0de7133a` |
+| `SDSTOMIS` | `61dcf55e213a69cddd5a3850f065f8c41fda52453f26af0504f51edc08b32fb0` | `bf844aef30c8e3a6a90b5e1e2be7629902eb1ac63f3a907400cf08973f79091d` |
+| `SDSTOEXP` | `ffe6b22ba8be4d524e513f2acf4c2e2f84ab34c628df7bfdf0a778251cb4c418` | `ae56a4300dc976d16bf6d28db4b00a41558ba14dc2c2982678266b6ebe2f4503` |
+| `SDSTOXDT` | `85cb5cc027427ea886ea560e03bc2ad217ef202e01a505485fd53a2fc24dfdc6` | `080709cb8f1b7aa762fb00249f32b59a2959374bc68434bea5d384aa8a244865` |
+| `SDHNDACT` | `cebac3156b61654dd345781a9fdb112142fcd25ae775e2ff807a4226fa0e6565` | `cf81ac25623e1237b72af92467fc1a4cf24185d73bc16ce6529d0f97f2d6bc37` |
+| `SDHNDSIT` | `5e6a5a268a61c30ea4d9012c6bdfcc1e86d954f23469202a36d12848865486a4` | `c6371ab5398ed60501c08ab05c164a4bad994cf8d8bcc1b386ba12eb9b8c8e04` |
+| `SDHNDATK` | `757dc0b103f4ece927fbe604d48440c63e300b4863b92d883932104a1a6ef0fd` | `6f7c76a9a293a2b906d4913e432d5f2fc236799e7257d20c3fb599a910975f06` |
+| `SDHNDPAI` | `94227677a11a32f17f3e893d4be40b01f77fc7464acab405d415729950b4b6a6` | `8f4c0da74f1e6a04b9b04e748021fbe3cc6b2cd819d83aac27354c9669b81bbe` |
+| `SDHNDDTH` | `1a78ddee26f0c427a9fcad3250ea006c01420cf52c2092e702d841302c609133` | `7b7c0918f9667e500b622b20fef0fd58ac52d7ff771776fa125d44cc5a98964b` |
+| `SDDGBACT` | `7e94cc430a625b78a5f99235a19019f07130d9d43f72c3f23e6e28796cbe12bc` | `fec6c0e2c362aebc89165b397cb19a129a9ba7724c5e1f2487f4e82e22271346` |
+| `SDDGBSIT` | `b7e7475bd5c3ca2fe69d0ee96ea106b03992ef8c59db22ce7b8c976da5cc2917` | `be7bdb3edfca6e034f770fc4b8836beb547b0c2d42311aac2d6bed7b41d518b2` |
+| `SDDGBMEL` | `0d430d460f5449bdb8702438ffd25d993b332f268a2f2687106e8b2ea903dd5b` | `5ab45c9c4f105b9556e79b16c3e24db09679b3f99a4c93a261ed36b2a1c1e3dc` |
+| `SDDGBMIS` | `65b69447fed3217dfe36d066b6adfffecb913a97412719335f9840909c9cb028` | `977598dbd0e94112639758476ee01627c8ed0a62c106bbb1a349e5faa0665e00` |
+| `SDDGBEXP` | `65b8161438fcc654c63e8a3d236651730c23cfea8f4a6b1f9f2f6786b052b46a` | `9723a7459ab21429cea1a7f2d39cb0b34cf74fc4957c364ed459845ff3b02257` |
+| `SDDGBPAI` | `556033abdc803b965a1927f6e305ea9cff6ac7ad3c862e3e2de3f5892bd50aa9` | `e284d65322a99bfb07377aa78914fa6b684deec01f43125b2b7a2e275daee35a` |
+| `SDDGBDTH` | `b2de6b32110a79e4e1aaa2984950819657790d27955d564d911b503c48c242af` | `266a80432998c901e0651ad04ee02119e5b82ef427ba6fe63ba68ee9afcacf18` |
+| `SDPZRACT` | `bef6def1becc11c1b68d95686d2068ce26a5bdb068afd3b12d261f87a9da4935` | `b39cebf99e571252fcdf5df5210e14bdcaf9e36c64e68226ad98759dfb286807` |
+| `SDPZRSIT` | `4749338c615b6292f394238bd3ce9f9c8886657141cdb9090bd6a576da3acd21` | `94ad02e5d7e2a7e644d42b8727377fee3fde040cd7ec3e84d667dd71238f9449` |
+| `SDPZRMEL` | `e61c687e0e5b8ac72f77ef5a1311b0f600336055d3509dbab7a7c9b45c0fb3f5` | `0ba3ad8992a3ec324b8d69f26a20f5c81133518a7fb18d9bd2f927c66eca2291` |
+| `SDPZRMIS` | `4ce86e1aee869854ec40f4db529d1faabf64ba24e3004e9d1389f6c5eac31521` | `175411e473ba2e1951d6a080bc6403364cad9ea11c7fb1253b015207350bf6b0` |
+| `SDPZREXP` | `dfa79c3fdb1edf5459da7d220ab0de71802a20bf42a87b8192bdc0056ecfc853` | `4cfc77bf46889642023acf2988b62e99c684b626b5500a462cbaccaf884edae4` |
+| `SDPZRDTH` | `aeb3e60a5a9377dfefdb4d996b0837df90f39bb8150fcd081de41e2f78b83ffa` | `1f8e3ee6e5ccf24834ecc7481465b216180385c50f59e17696d7051ee26845cf` |
+| `SDPZRSTP` | `64f24acbd46f1d9851e8bfa8c891b038c665c54bfb270dd21483e28ba99dcf49` | `62c0819c0f783c72ebd564d00f452976662e7f7935c99a896d98479598f242d0` |
+| `SDGENACT` | `a2dbd44ec32d7578e6ffb3ed9b961810f49571676b7d63b54010d550c397cb61` | `f9e6cf0cb717220677e796a2e7e5c4eebd45b4b449afeadf5bf93cf4e6b47d8d` |
+| `SDGENMIS` | `068593e58aa9e21e2a2d330a5df05691a686a46871f99dda607d009940c5ba90` | `2846d83a9267ef84b8d2d0d51afd73bfa1469cea51bc90f79cb4de5eaece788e` |
+| `SDGENEXP` | `15c1bf6d5282056b59cbb316ab8de314929bc0809f86a7b2d9679eb8f0790e8d` | `98c8bbcff239bd7db7a160005ee312f5958de85c771757ba2dbb46f78bb1049a` |
+| `SDRRIAT1` | `db54e1f9f6b3782262c3b6af10b3569ed85518b13acf0b68ec64ab2f2cad5e93` | `9b333ed596a8b30a66ecb6c281d4b672f8676d80b62c92dc53e2a1fb7c602953` |
+| `SDRRIAT2` | `0ed4fe60440513f0dbc6846c43307928fcd95097f057115ca613054a72f23770` | `097a909a6849e3cfc9bbe8050f90b59e35e66630f011d714c05bcf5c1739ed8c` |
+| `SDRRIAT3` | `9352f7463d64291aebab0eee0118fb700aa4a9f1520ff7fd013df8e3af27c8f4` | `589810e19523d29b2f0153bfbb7b6ff815d5f5e956a1920d8dc0933799069a71` |
+| `SDLTRATK` | `0ecbc23400d6dafcf7504bdb20bf32187a9c86065c3dde4883b7ef7295e0c4f1` | `b8027da3f66cc94e99e8060bd4cc24b2e689b60f9528fe0c555c28437b4f2359` |
+| `SDSTOPA1` | `73e4b2dfa57222befaf17d891fd872823b4bbfefd5a0c3191a362f2ae27831d6` | `84fe7d232e4b9e8d127246be6cc04e69f7fb7c295c40ce691247d15b486a3b06` |
+| `SDSTOPA2` | `47f8b59bac9bf5b66757e2264cc06c9b3d04030b2474732e8cd0c9fe3fbe26b3` | `37ea2db8151f7dcb7020a98f5f7cc34f39ac2d18ceed295cc346e203d232f179` |
+| `SDSTOPA3` | `3f4dc3450562377defd6741e43ca1d6d439ce71c454211d5454c917b87bc4d11` | `9e4b183ea79f0df236a734f7096ff0134931ba3ebbb653d5789c61b8904031bc` |
+| `SDSTODT1` | `1cfa73fbb27ea21f8e4eda664df01e8a789267f98e4253a5bda79b11eb0d8d58` | `e9458fb00c0a996a2a7b696ca977703f6d006172de962feba4f2c0e85095bc9b` |
+| `SDSTODT2` | `3e974f6dec11b2eb1d96ba578a2dbbb487e2a7cc013aa7070957512437d3fa02` | `abffe18f1f071d37521b845fee790744ee4d3e338c132717b853816ab60b521c` |
+| `SDSTODT3` | `7d88822664590c726ddb727fedc609a534a51e7faa3c3f91d0ae14fe37e22712` | `031acd4243f917d8bf419c2aa72c4a483dc478827939316945761a4de32b3375` |
+| `SDPZRPA1` | `9a8e87b2ee896d921c6e20f96e83d6db5bac90fa7eabb9de96aedf155d9f9500` | `4ed58a5d9dfefed6df1bf785aabd92e86e07460579adba01bf48b5ec71fa1223` |
+| `SDPZRPA2` | `2d1f42d0fa403bc2379ea2a8eef387f260d79872d0404432015818d57cb26bb0` | `3b21a19b619a004e963042bdd713ff20907253be159f075310ea64e085df00d5` |
+| `SDPZRPA3` | `07def89a1e2b27315888c4e7f0513db8d3e17e252d7ca8b28e5830e9ef313b0a` | `a5e1bf5482220e5157cd104f607c4722d8aaf05eb583792baa4d82e3601e15d9` |
+| `SDRRIDB1` | `9522f694b74e244a4bc0a3db6e6a39e2e77bbe1a70de94dad5c99862a12f370b` | `f4c6c406f72e3e87c4a6377f184bfe7460cc25d89d137b76107c584797f89cd1` |
+| `SDLTRAB1` | `438539c9958c3354f9b3837f3d4988c026dbe923ad337409a280d8ee78e81aff` | `2d8ee7917d4b5c41e2eabd56353ee3ac52db33a74a0cda48e7d58b7705040cf0` |
+| `SDLTRSB1` | `36048db0d745230b076d39db45c1765b19452f72c88232c6f3b22b3db474224a` | `dd5ea43ac8b14678577da921d5de9e34b40c0d7c55cbcf8d22085eb3d5e84b8e` |
+| `SDGENPB1` | `7f99843405a9045bbda6a44d3c3b9b4dd74d15ab5918d7916b1ad25412f3d854` | `11064ad61499ffa05f643f37782e8fcb268d0933f2a543d7a0adc652409771aa` |
+| `SDGENDB1` | `5e141851482e4930954e92083917703dda1e7a0f22d432ef480046992ed42e89` | `301e2e38ac884a5eb3f7f0255bbde8a0849137b3cd163f4e596e16d81f84231f` |
+| `SDRRIPB1` | `7970c3ce8486f16825355056beafaad1ae524395a717fdf4da1416f08d479141` | `6b070995908ac95d442b57fc794c3c28402ab17e792b3839cad484b3c8335375` |
+| `SDRRIPB2` | `9062bbeb89c188771aab97704939ebcf56bc64a9c541db4b4fd38f329ca4e50f` | `534d1a706ab3b34e69c8c19bf9a8e1ee0c2380675f8fd34fab4f3e283eec4e13` |
+| `SDRRIPB3` | `05238bc6d26a7a8db31e683774d232510bc6c9f292ebc294c34cf3d9e52d2ebc` | `b2547e903d3cdd2623699d5b2ef9976b0a9b1a2f002140cde83da13e4dac2e83` |
+| `SDLTRPB1` | `6ff3aab059d1be2fd9d9323057b331820f09106ed55fcd4284543eaa453c4518` | `3e826792cc0ec5ff5593eb2c3a2e802a733ff9372344c990fdf932f43ab85f4d` |
+| `SDLTRPB2` | `5d202942535e99fcf7fb23e9ee56b5e45188d446855929b2400f1814b49d2b05` | `39936f454d985b551242215dcc42cdfbd04245f523af67694d3dfbab8e249f75` |
+| `SDLTRPB3` | `11f4bcdba0ef8d6c79096a71f5e908ee9488953cbee9f9def3e2df14aa5f4f74` | `17cea51ca9ca8692bdb14b9142fdd5d41b078408dfaf5295da4217ee15debfe7` |
+| `SDLTRDB1` | `db4ae9f111a842b1e177193ba5e8a56b4e7b566897d50fe4a420c791e002f790` | `6b9cba1e526024640f774877954ede721183953c381d237a3a70606d757850db` |
+| `SDLTRDB2` | `9b45b043beee329051461469e0979a9f78d2ee107e66b99d10bc84f6d402f7b9` | `8d51eb7b51991ea4c7fbc80b0ecbf7d4596647b15c254432d26f27d9a2c28e96` |
+| `SDLTRDB3` | `d5d9200dc1bd2e68216651c02afc37d30a22b5cceeb7e1bb03eff7532d17383a` | `6eb6456a086b7dacd3ceeff657626082dbe61209ee00c2a52ff621ae219edbe1` |
+
+**Семь голосовых дублей (D91, N9e).** CEO одобрил семь черновиков Chatterbox
+(D87; `docs/art/previews/2026-10-20_1135_P2_voice-takes.html`): R06 t01 и t03
+(«Kontakt!», обнаружение стрелка) и L01 t01, t03, L02 t01-t03 (радиореплики
+покоя легионера). Они поставляются как OGG, которые
+`tools/audio/process_voice_takes.py` сделал для страницы, байт в байт
+(`master_enemy_sfx.py --voices` проверяет декодированный пик и громкость и
+копирует их; сырые дубли здесь нельзя перегенерировать без сервера
+Chatterbox). Каждое имя — группа `$random`: обнаружение стрелка над
+`SDRRISI1`/`SDRRISI3` (собственные номера дублей), покой легионера над
+`SDLTRAC1`-`SDLTRAC5` (L01 t01, L01 t03, L02 t01, L02 t02, L02 t03). Подложка
+покоя легионера `SDLTRAB1` остаётся отложенной: подмешать подложку под голос —
+это новый звук, которого CEO не слышал. Остальные десять голосов сохраняют
+лампы Freedoom, пока не появится выкрикиваемый референс (D91).
+
+| Ламп | Дубль | Логическое имя | Цель, дБ A (от) | SHA-256 установленного OGG |
+|---|---|---|---|---|
+| `SDRRISI1` | R06 t01 | `sd/mon/reichrifleman/sight/1` | -10.1 (`DSPOSIT1`) | `dd56db85f651faf912cf09031daa4f5a726455d03758531c809584f1b1e1ef18` |
+| `SDRRISI3` | R06 t03 | `sd/mon/reichrifleman/sight/3` | -10.1 (`DSPOSIT1`) | `9b8063c21dd9caa51f87562ae28de2a7eacdbffb002ce2944cf38cfe8fa7be2b` |
+| `SDLTRAC1` | L01 t01 | `sd/mon/legiontrooper/active/1` | -28.6 (`DSPOSACT`) | `45132e6973126e320508b2373995ccf12ac316f90d8672287f2a9cfa18316d82` |
+| `SDLTRAC2` | L01 t03 | `sd/mon/legiontrooper/active/2` | -28.6 (`DSPOSACT`) | `4ac94a6ee67c10db212f26d4fffff0e0775c0ac4731da6b083a47f5194ec68d9` |
+| `SDLTRAC3` | L02 t01 | `sd/mon/legiontrooper/active/3` | -28.6 (`DSPOSACT`) | `143887b4851dda474433f5ba465b963677ed33675eb9f9f09236b266a059f825` |
+| `SDLTRAC4` | L02 t02 | `sd/mon/legiontrooper/active/4` | -28.6 (`DSPOSACT`) | `c2c02cded81348a5a8264a1c0d42a7532e410145e4184572d178b4654ff7f4c6` |
+| `SDLTRAC5` | L02 t03 | `sd/mon/legiontrooper/active/5` | -28.6 (`DSPOSACT`) | `5acad54da26ab55e5fe929c8c8a42e6c46240a5c6d290a4b572b41aaf1656a16` |
+
+**Семнадцать голосовых дублей (D96, N9e).** Агрессивный раунд
+(`docs/art/previews/2026-10-20_1330_P2_voice-takes-aggressive.html`, оценено
+40 из 40): Chatterbox Multilingual клонирует выкрикиваемый референс вместо
+предустановленного голоса — ответ на диагноз D91 (модель копирует эмоцию
+референса). Референсы («angry»-стиль Thorsten Müller из набора Thorsten-Voice
+emotional, CC0; «Soldier Voice Acting» от kurt, CC-BY 3.0, OpenGameArt; «Male
+Grunt/Yelling sounds» HaelDB, CC0) остаются в `work/` и не распространяются;
+`work/audio/voice_takes/AI-LOG.csv` даёт для каждого дубля его референс с
+SHA-256, текст, seed и настройки; авторство kurt причитается и указано
+(`docs/art/LICENSES.md`, титры в игре, CREDITS.txt).
+`master_enemy_sfx.py --voices` копирует обработанные OGG из
+`work/audio/voice_takes/aggressive/` байт в байт, после тех же проверок, что у
+D91, с одним исключением: **`SDGENSU1`** (G02 t13) декодировался в −0,02 dBFS,
+выше потолка −0,1 dBFS (клип, ожидающий в любом 16-битном тракте), поэтому он
+получил проход по кодеку, который получили звуки D83/D86 (§5.12 «Проверка
+кодека»): его мастер, который `process_voice_takes.process_wave` перерендеривает
+байт в байт из сырого дубля, ограничен на **0,6 дБ** пика
+(`VOICE_CODEC_TRIMMED`), теперь −0,49 dBFS после декодирования и −9,97 дБ A
+против −9,60 (окно ±1). Остальные шестнадцать поставляются так, как их играла
+страница.
+
+Куда они идут (VOICE-SCRIPT §1): строка с несколькими одобренными дублями
+вносит все из них, а звук с несколькими дублями — группа `$random`,
+нумеруемая дальше после D91: обнаружение стрелка теперь состоит из пяти дублей
+(R06 t01, t03; R04 t12, t13; R05 t12), покой легионера — из шести (L01, L02,
+L03 t12), а новые группы — покой стрелка (R01-R03), обнаружение легионера (L04
+t12, t14, L05, L06) и боль (L08 t14, t15) и приказ Генерала (G02 t13, t14).
+Звук с одним дублем поставляется под именем своей карточки (`SDRRIDTH`,
+`SDGENSIT`). ZScript не менялся: каждый алиас уже проигрывался (`SeeSound`,
+`ActiveSound`, `PainSound`, `DeathSound` стрелка и легионера через
+`A_Look`/`A_Chase`, `A_Pain`, `A_Scream`; `SeeSound` Генерала; его приказ через
+`A_StartSound` в `A_SD_GeneralSummon`, кадре, печатающем `SD_GENERAL_ORDER`),
+изменился только правый столбец `SNDINFO`. По-прежнему Freedoom (ни один дубль
+не одобрен): боль стрелка (`DSPOPAIN`), смерть легионера (`DSPODTH2`), боль
+(`DSDMPAIN`) и смерть (`DSCYBDTH`) Генерала; D110 (ниже) заменил все четыре
+кроме смерти Генерала, а D118 (ниже) — и её.
+
+| Ламп | Дубль | Реплика | Референс | Логическое имя | Цель, дБ A (от) | SHA-256 установленного OGG |
+|---|---|---|---|---|---|---|
+| `SDRRIAC1` | R01 t13 | "Stellung halten!" | Thorsten | `sd/mon/reichrifleman/active/1` | -28.6 (`DSPOSACT`) | `5d34cb6f1e99f8ad4bfd315029f59eb59a6e7351ea1fe3e3f1b3878577f61be7` |
+| `SDRRIAC2` | R02 t11 | "Augen auf!" | Thorsten | `sd/mon/reichrifleman/active/2` | -28.6 (`DSPOSACT`) | `18b440aa6fa0206097308acc0dfcba3668c0f7d0ded32cc7fff14a2405738a6c` |
+| `SDRRIAC3` | R03 t14 | "Ruhe da hinten!" | Thorsten | `sd/mon/reichrifleman/active/3` | -28.6 (`DSPOSACT`) | `56ceff7ffae58567fbe8bf41be4d43f2858d219cb8ff3b284111222ebbb18b80` |
+| `SDRRISI4` | R04 t12 | "Feind!" | Thorsten | `sd/mon/reichrifleman/sight/4` | -10.1 (`DSPOSIT1`) | `fa100a4f8e29167ab3be76651c42b14671a86f47f7ee68fb223deb71589f7089` |
+| `SDRRISI5` | R04 t13 | "Feind!" | Thorsten | `sd/mon/reichrifleman/sight/5` | -10.1 (`DSPOSIT1`) | `a352944e75d086f9a789d9fcf6f539e2a30c29a13a4da6285f205ac0cc4aa552` |
+| `SDRRISI6` | R05 t12 | "Da!" | Thorsten | `sd/mon/reichrifleman/sight/6` | -10.1 (`DSPOSIT1`) | `ac6d58699d67c41b2988344f133f8cfa3a2cfa6be79fb103b7cad85c5653a019` |
+| `SDRRIDTH` | R09 t12 | "Sani…" | HaelDB | `sd/mon/reichrifleman/death` | -10.6 (`DSPODTH1`) | `9de406901cec90a6d6b8f03080ad750c4feaa9651e0550530206e1d89d1552fa` |
+| `SDLTRAC6` | L03 t12 | "Command, say again?" | kurt | `sd/mon/legiontrooper/active/6` | -28.6 (`DSPOSACT`) | `a7c20685c41a9b9314ae16e05eadc6424fe77098e7c2dc6802b57af00bf95593` |
+| `SDLTRSI1` | L04 t12 | "Contact!" | kurt | `sd/mon/legiontrooper/sight/1` | -11.2 (`DSPOSIT2`) | `0b5ab35624419e5d91b9d32186c878f7ce00d0696dab8ff5e6fbc0c2b047c1ad` |
+| `SDLTRSI2` | L04 t14 | "Contact!" | kurt | `sd/mon/legiontrooper/sight/2` | -11.2 (`DSPOSIT2`) | `0fdf1676b4b23efe2b5b6090be356d43a8b9ae62c8c60d7d5af1025579085f62` |
+| `SDLTRSI3` | L05 t13 | "Hostile, front!" | kurt | `sd/mon/legiontrooper/sight/3` | -11.2 (`DSPOSIT2`) | `cc1fd41c09113e96607edce43b7e9906a17c7b2f1e92e1e7ccd6f33b26ea4438` |
+| `SDLTRSI4` | L06 t13 | "Got movement!" | kurt | `sd/mon/legiontrooper/sight/4` | -11.2 (`DSPOSIT2`) | `815ab1a72ec0842a411f96ab484be3e56693a54727640b171e8d27a5039d6ffa` |
+| `SDLTRPA1` | L08 t14 | "I'm hit!" | HaelDB | `sd/mon/legiontrooper/pain/1` | -11.4 (`DSPOPAIN`) | `2f4b26a5e4632a90ce8b8e3bb62915d2c17567e7fc28154b656574c5fb436bee` |
+| `SDLTRPA2` | L08 t15 | "I'm hit!" | HaelDB | `sd/mon/legiontrooper/pain/2` | -11.4 (`DSPOPAIN`) | `249b167901c1122321c5dca0af756f15fe74c8310b372ae91928ce7b86733531` |
+| `SDGENSIT` | G01 t12 | "Engage!" | kurt | `sd/mon/general/sight` | -14.0 (`DSCYBSIT`) | `99669afd3d20cc603180f4d572694ddef781f2a4ace19e4927991c36ca9154dc` |
+| `SDGENSU1` | G02 t13 | "Vorwärts!" | kurt | `sd/mon/general/summon/1` | -9.6 (`DSVILSIT`) | `10184bed9a802498928bd273d5e8b47a80c6fb1764b632a7b2aef014cf6a7785` |
+| `SDGENSU2` | G02 t14 | "Vorwärts!" | Thorsten | `sd/mon/general/summon/2` | -9.6 (`DSVILSIT`) | `31d103bb6d541c19090f577a01292ec7e701950139d75bdaedc059dfe2dfea87` |
+
+**Семь голосовых дублей безсловесных голосов (D110).** Раунд P2
+(`work/audio/preview/voices_p2_listening.html`; `work/audio/voice_takes/p2/`
+`gen_p2.py`, `page_p2.py`, `AI-LOG.csv`, `METRICS.json`): Chatterbox
+Multilingual, запущенный на CPU в собственном Python сервера (GPU-сервер падал
+на коротких криках; специальные токены >= 6561 отбрасываются до S3Gen),
+клонированный с трёх референсов D96, обработанный
+`process_voice_takes.process_wave` и выровненный по громкости до лампа
+Freedoom, который каждый заменяет. Вердикты CEO: R07 (боль стрелка) OK t06,
+t02, NO t05 («poco agresiva», «мало агрессии»); L09 (смерть легионера) OK t01,
+t02, а t04 — «once its tail is cut», то есть после обрезки хвоста; G03 (боль
+Генерала) OK t06, t04, NO t03; G04 (смерть Генерала) NO всем, переписана
+(`work/audio/voice_takes/p2b/`, `work/audio/preview/voices_p2b_listening.html`),
+так что `sd/mon/general/death` сохраняет `DSCYBDTH`. Каждый звук — группа
+`$random` в порядке CEO (`SDRRIPA1`-`2`, `SDLTRDT1`-`3`, `SDGENPA1`-`2`: семь
+букв карточки и номер члена; подложки называются `...B<n>`, ни одно имя не
+делится). Шесть поставляются байт в байт, как их играла страница.
+**`SDLTRDT3`** (L09 t04): «se cuela algo al final» («что-то просачивается в
+конце»). Измерено на сыром дубле (кадры по 10 мс): крик затухает до −66 dBFS на
+1,16 с, затем 0,22 с цифровой тишины, затем всплеск в 0,08 с на −11…−14 dBFS
+(1,39-1,47 с); `process_voice_takes.trim` завершает реплику лишь после паузы в
+0,45 с, поэтому всплеск остался. `master_enemy_sfx.py --voices` обрезает сырой
+дубль на **1,20 с** (`VOICE_TAIL_CUT`) и рендерит его той же цепочкой
+(`voice_render`, который перерендеривает необрезанный дубль в OGG страницы байт
+в байт): 1,18 с, последние 150 мс — затухание от −31 до −103 dBFS, те же
+−8,28 дБ A. ZScript не менялся: `PainSound` и `DeathSound` уже были
+логическими именами.
+
+| Ламп | Дубль | Реплика | Референс | Логическое имя | Цель, дБ A (от) | SHA-256 установленного OGG |
+|---|---|---|---|---|---|---|
+| `SDRRIPA1` | R07 t06 | "Argh!" | Thorsten | `sd/mon/reichrifleman/pain/1` | -11.4 (`DSPOPAIN`) | `7f9c6bd1c66f5168291187048da86c5532f1656766ff47084795308449eef58f` |
+| `SDRRIPA2` | R07 t02 | "Argh!" | HaelDB | `sd/mon/reichrifleman/pain/2` | -11.4 (`DSPOPAIN`) | `f9679ad86ca6e38be275c1f57b3f4ea1d3fa6cd405e80a3daa5b0874bf65aa25` |
+| `SDLTRDT1` | L09 t01 | "Aaargh!" | kurt | `sd/mon/legiontrooper/death/1` | -8.3 (`DSPODTH2`) | `bf926b27325553784457c312f086ee3503a853ea8c8f914e0d05c5144adb9b16` |
+| `SDLTRDT2` | L09 t02 | "Aaaaah... ugh." | kurt | `sd/mon/legiontrooper/death/2` | -8.3 (`DSPODTH2`) | `015ece147d92c6a80ef03f87d6ebe9967206560d5079d29279b1e600bb8ab592` |
+| `SDLTRDT3` | L09 t04, tail cut at 1.20 s | "Aaaargh!" | HaelDB | `sd/mon/legiontrooper/death/3` | -8.3 (`DSPODTH2`) | `092c8c7d40763d74f171b796832df009a58f0424bd351d23312580802eae935c` |
+| `SDGENPA1` | G03 t06 | "Argh!" | kurt | `sd/mon/general/pain/1` | -11.7 (`DSDMPAIN`) | `d6025787d6b86ca32f89a953576a443c33880197dc67edddf8a7f2e48948a570` |
+| `SDGENPA2` | G03 t04 | "Hngh!" | kurt | `sd/mon/general/pain/2` | -11.7 (`DSDMPAIN`) | `4ed7fc422994149fffd20f994b824543fb900f188f35c53b9924517ee79be1ad` |
+
+**Смерть Генерала, пять дублей (D118).** G04 получила NO целиком в D110 и была
+переписана в раунде P2b (`work/audio/preview/voices_p2b_listening.html`;
+`work/audio/voice_takes/p2b/` `gen_p2b.py`, `page_p2b.py`, `AI-LOG.csv`,
+`METRICS.json`): Chatterbox Multilingual на CPU, как D110, все двенадцать
+дублей клонированы с «Soldier Voice Acting» от kurt (CC-BY 3.0; wounded.ogg +
+battlecries.ogg или один battlecries.ogg для t05 и t12), обработаны
+`process_voice_takes` и выровнены до `DSCYBDTH`, лампа, который они заменяют.
+Вердикт CEO: OK t01, t07, t08, t05, t12; NO t10, t03, t04. Группа `$random` в
+порядке CEO (`SDGENDT1` = t01 ... `SDGENDT5` = t12; подложка — `SDGENDB1`,
+имя не делится). Все пять поставляются **байт в байт** как OGG страницы
+(`master_enemy_sfx.py --voices` лишь проверяет их: декодированный пик от −0,53
+до −3,91 dBFS, громкость от −11,21 до −11,30 дБ A против −11,26). gen_p2b уже
+срезал мусор после долгой паузы у t01 (3,01 с) и t05 (1,80 с); это то, что
+играла страница. Длины 1,8-3,6 с, в пределах карточки «до ~4 с». ZScript не
+менялся: `DeathSound "sd/mon/general/death"` уже был логическим именем. С ними
+**двенадцать из двенадцати голосов врагов — наши**.
+
+| Ламп | Дубль | Реплика | Референс | Логическое имя | Цель, дБ A (от) | SHA-256 установленного OGG |
+|---|---|---|---|---|---|---|
+| `SDGENDT1` | G04 t01 | "Aaaaaaaaaaargh... aaaaah." | kurt | `sd/mon/general/death/1` | -11.3 (`DSCYBDTH`) | `e6f27e5e9a4571eb2b898bbc1ff764619443bb8b5f3c0d460108a09d85534e67` |
+| `SDGENDT2` | G04 t07 | "Neeeeeiiiin!" | kurt | `sd/mon/general/death/2` | -11.3 (`DSCYBDTH`) | `b9ed883e6ee645187b86151aefb06849a174ecedbeed6e15c4554071fe3cea9c` |
+| `SDGENDT3` | G04 t08 | "Urgh... aaaaaaaaah... ah." | kurt | `sd/mon/general/death/3` | -11.3 (`DSCYBDTH`) | `0b93f029ae3accef66bb192eef1c486335bd3c3bedee3da17914c6aeefe28085` |
+| `SDGENDT4` | G04 t05 | "Nein! Aaaaaaaaaaah..." | kurt | `sd/mon/general/death/4` | -11.3 (`DSCYBDTH`) | `564a603043146f6526afd9746c0e5e8fd67f09eff2a5e3a5f2b81817a0c74eee` |
+| `SDGENDT5` | G04 t12 | "Aaaargh... no..." | kurt | `sd/mon/general/death/5` | -11.3 (`DSCYBDTH`) | `ef093366d886a14049f25d362bf55f9061dd592963a81f02c518b4f736f61cc6` |
+
+**Настоящие собаки гончей Рейха (D107).** CEO прослушал пять звуков x три
+кандидата на `work/audio/preview/dog_listening.html` (собрана
+`work/audio/candidates/dog/make_dog_candidates.py` из записей настоящих собак;
+каждое скачивание, его лицензия и SHA-256 и какой кандидат его подмешивает:
+`work/audio/sfx_sources/dog/SOURCES.md`) и одобрил все пятнадцать («TODOS OK,
+elige los que tú creas conveniente», «ВСЕ OK, выбери те, что сочтёшь
+подходящими»). Решение PM (D107, как D94): поставляются все три дубля каждого
+звука, а звук — группа `$random` над ними, причём среди них дубль, который
+рекомендовала страница (по измерению, не на слух). Они заменяют синтетические
+`SDHNDACT`-`SDHNDDTH` из D83 (строки выше, сняты: больше не в `assets/` и не в
+PK3; ничто другое их не играло; `gen_sfx.py` хранит их рецепты). Кандидаты были
+выровнены на странице до тех же целей, что и заменяемые звуки (ламп Freedoom
+каждого, ±1 дБ на WAV), поэтому `master_enemy_sfx.py --dogs` копирует их байт в
+байт после проверок для голосов: декодированный пик ниже −0,1 dBFS и громкость
+в окне (цель ±1, +0,5 на кодек). Все пятнадцать проходят; ни один не отброшен:
+длительности (0,31-1,66 с) лежат там, где просили карточки D83 (укус 0,31-0,56 с
+против 0,3-0,5, визги 0,40-0,55 с против 0,2-0,45, самая длинная смерть 1,66 с
+против 0,9-1,6: на десятую выше, безвредно на CHAN_VOICE), а уровни — в
+пределах 0,7 дБ от своих целей. Имена: семь букв карточки с номером дубля
+(`SDHNDAC1`-`3`, ...), как у групп D86. Четыре дубля подмешивают «Dog growls»
+congusbongus (OpenGameArt, CC BY 3.0, вырезано из Freesound #121565
+juskiddink): авторство причитается и указано (`docs/art/LICENSES.md`, титры в
+игре `SD_CRED_SFX_6`/`7` на английском, русском и каталанском, CREDITS.txt);
+авторы CC0 (Joseph Sardin из BigSoundBank, qubodup, pauliuw) — из вежливости,
+`SD_CRED_SFX_4`/`5`. ZScript не менялся: `SD_ReichHound` уже проигрывает все
+пять имён (`SeeSound`, `ActiveSound`, `AttackSound` на выпаде `A_Chase`,
+`PainSound` через `A_Pain`, `DeathSound` через `A_Scream`).
+
+| Ламп | Кандидат | Что | Записи (лицензия) | Логическое имя | Цель, дБ A (от) | Декодированный пик / громк. A | SHA-256 установленного OGG |
+|---|---|---|---|---|---|---|---|
+| `SDHNDAC1` | SDHNDACT_dog1 (зап.) | низкое рычание | congusbongus/juskiddink 2.ogg (CC BY 3.0) | `sd/mon/reichhound/active/1` | -12.9 (`DSDMACT`) | -1.3 / -13.0 | `6950d36709683616c0e57694baf22dbaf3a7e4ddef4e0854356f98ae25be6ca9` |
+| `SDHNDAC2` | SDHNDACT_dog2 | тяжёлое дыхание, под ним короткое рычание | BSB #1547 (CC0); congusbongus/juskiddink 0.ogg (CC BY 3.0) | `sd/mon/reichhound/active/2` | -12.9 (`DSDMACT`) | -2.9 / -13.3 | `e3f737f9f614c3bf708c0210e14fcf24dd3b037f3a8466ff871dd2fa72f0ed2d` |
+| `SDHNDAC3` | SDHNDACT_dog3 | ворчание | qubodup dog-grumble, dog-growl (CC0) | `sd/mon/reichhound/active/3` | -12.9 (`DSDMACT`) | -3.8 / -13.1 | `0c18ad0cc69afda409c56e9b83e16087e0fb58235621ca0273c422dea196ccad` |
+| `SDHNDSI1` | SDHNDSIT_dog1 | рычание, переходящее в два глубоких лая | congusbongus/juskiddink 3.ogg (CC BY 3.0); BSB #0112 (CC0) | `sd/mon/reichhound/sight/1` | -11.8 (`DSSGTSIT`) | -3.2 / -11.8 | `90f10758b6019d250fd88ba222ee76f949db0497952a040830ba397270ae13f2` |
+| `SDHNDSI2` | SDHNDSIT_dog2 (зап.) | двойной лай, на 3 полутона ниже | BSB #0916 (CC0) | `sd/mon/reichhound/sight/2` | -11.8 (`DSSGTSIT`) | -6.2 / -11.9 | `370cf96c6f42e7d14a5c956414df03fd704070d1c601d43e77aa1183bb469f22` |
+| `SDHNDSI3` | SDHNDSIT_dog3 | оскал, затем два громких лая | qubodup dog-snarl; BSB #0916 (CC0) | `sd/mon/reichhound/sight/3` | -11.8 (`DSSGTSIT`) | -4.9 / -11.8 | `46e478093a5c547b74eb45acb462f146b5d7d7eee2c6b808b879243e2453aff8` |
+| `SDHNDAT1` | SDHNDATK_dog1 (зап.) | короткое рычание и резкий лай | qubodup dog-snarl; BSB #0112 (CC0) | `sd/mon/reichhound/attack/1` | -6.3 (`DSSGTATK`) | -0.8 / -6.9 | `78f7f51620043d4947ab698afe5f2ef8a2469b5914360794392c942fe9797589` |
+| `SDHNDAT2` | SDHNDATK_dog2 | рычание и щёлканье зубов | congusbongus/juskiddink 5.ogg (CC BY 3.0); `KEN-IMP` impactPunch_heavy_002 (CC0) | `sd/mon/reichhound/attack/2` | -6.3 (`DSSGTATK`) | -0.3 / -6.7 | `835c00bdc30ff223e008c058136d531af7c719f9bf240015695eb23bef332a43` |
+| `SDHNDAT3` | SDHNDATK_dog3 | один громкий близкий лай | BSB #0916 (CC0) | `sd/mon/reichhound/attack/3` | -6.3 (`DSSGTATK`) | -0.5 / -6.2 | `e385fa91be42551964f9bf606c3902e18c7cae0f3d33b1b29245e5f185094ae2` |
+| `SDHNDPA1` | SDHNDPAI_dog1 (зап.) | визг | pauliuw Dog.wav (CC0) | `sd/mon/reichhound/pain/1` | -11.7 (`DSDMPAIN`) | -2.6 / -11.9 | `c2ad1d6ba82b8a8232c86a980a9a63fd91e7279fc5878096db397f98661b8046` |
+| `SDHNDPA2` | SDHNDPAI_dog2 | более низкий насыщенный визг | pauliuw Dog.wav (CC0) | `sd/mon/reichhound/pain/2` | -11.7 (`DSDMPAIN`) | -6.6 / -11.7 | `ad58d480f9c2aef8fa7883600948afb018c8f24d5d92a59a1ae4ab1592bac149` |
+| `SDHNDPA3` | SDHNDPAI_dog3 | лай, переходящий в скулёж | BSB #1546 (CC0) | `sd/mon/reichhound/pain/3` | -11.7 (`DSDMPAIN`) | -1.1 / -11.7 | `a8767b25f821818cad7593347734c63a49e75df209c57a60399c2ed706865777` |
+| `SDHNDDT1` | SDHNDDTH_dog1 | долгий затихающий скулёж | pauliuw Sad Dog.wav (CC0) | `sd/mon/reichhound/death/1` | -14.3 (`DSSGTDTH`) | -8.0 / -14.3 | `4c85b6e34050f8f52569568b2457cf50d0b311aef059c2d5f64a043db8429f83` |
+| `SDHNDDT2` | SDHNDDTH_dog2 (зап.) | визг, затем скулёж, опускающийся низко | pauliuw Dog.wav, Sad Dog.wav (CC0) | `sd/mon/reichhound/death/2` | -14.3 (`DSSGTDTH`) | -5.9 / -14.4 | `f97a3f619f510e1f8db8f64af8d0fea53ac968e4fb5e7440351a249331b4fefb` |
+| `SDHNDDT3` | SDHNDDTH_dog3 | последний лай обрывается, тело падает | BSB #1546; `KEN-IMP` impactSoft_heavy_001 (CC0) | `sd/mon/reichhound/death/3` | -14.3 (`DSSGTDTH`) | -5.2 / -14.2 | `8116e8e0d502349c3225bee83c9e42032f920a1706d946d758b2f1a35d16cbb9` |
+
+**На что слушать в движке (PM, D26).** На полигоне и в MAP01: (1) в логе нет
+«Unknown sound»; (2) выстрел стрелка, боль и смерть Штурмовика и боль
+Panzermensch меняются от попадания к попаданию (`$random`; НЕ ПРОВЕРЕНО в нашем
+движке, хотя это собственный звук обнаружения zombieman из Doom); (3) дробовик
+Легиона против ИЖ-58 (`SDLTRATK` alt2 на уровне `DSDSHTGN`); (4) короткие
+звуки выше, на колонках ноутбука: укус гончей, обнаружение Panzermensch,
+гудение покоя Doughboy; (5) шаг Panzermensch, один на цикл ходьбы, не
+утомляет; (6) голоса D91 и D96 меняются от раза к разу (стрелок: немецкие
+приказы покоя, «Kontakt!»/«Feind!»/«Da!» при обнаружении, «Sani…» умирая;
+легионер: радиоболтовня покоя, четыре клича обнаружения, «I'm hit!» от боли;
+Генерал: «Engage!» при обнаружении и «Vorwärts!» с выводимым приказом, слышное
+через арену); длинные не обрываются странно на CHAN_VOICE («I'm hit!»
+легионера длится 1,3-1,6 с там, где сценарий просил 0,4-0,5 с, а второе
+попадание перезапускает его); с D110 боль стрелка (два «Argh!»), смерть
+легионера (три крика, третий заканчивается затуханием, без щелчка после него)
+и боль Генерала (два хрипа) — наши и меняются; с D118 и смерть Генерала (пять
+дублей: долгий крик, «Nein!», немецкий и английский, каждый звучит до 3,6 с,
+не обрывается его падением), и подложка не слышна; (7) гончая (D107) — настоящая
+собака: её лай при обнаружении проходит сквозь дверь и меняется от одной
+гончей к другой, её рычание/дыхание покоя, лай выпада, визг и предсмертный
+скулёж меняются каждый среди трёх дублей, и ни один не звучит не в уровень с
+дробовиком или стрелком (НЕ ПРОВЕРЕНО в движке).
 
 ---
 
@@ -573,7 +1008,7 @@ Panzermensch начиналась с медленного нарастания: 
 
 Стоимость — в **сессиях агента** (одна рабочая сессия звукорежиссёра) и
 **минутах CEO**. Все оценки мои, не измеренные; опыт с музыкой (два
-произведения признаны «un poco simples», один набор скачиваний проверен,
+произведения признаны «un poco simples» («слегка простоваты»), один набор скачиваний проверен,
 одна починка) подсказывает закладывать один лишний круг итераций на всё
 новое.
 
@@ -631,7 +1066,7 @@ Freedoom тоже идёт туда.
 | # | Вопрос как был задан | Решение (D36) |
 |---|---|---|
 | **A** | Одобрить скачивания | **Одобрено**: `OGA-CRE1`, `OGA-CRE2`, `OGA-SNARL`, `OGA-100`, `KEN-IMP`. `KEN-SCI`, который я пометил необязательным, **не** запрашивался и **не** разрешён. Сделано 2026-10-13, §2.1 |
-| **B** | Записывает ли CEO голоса? | **Да, или генерирует их ИИ** («me encargaré de las grabaciones y/o generar con IA lo que sea necesario»). Сценарий: `docs/sound/VOICE-SCRIPT.md`. Дубль ИИ несёт инструмент и лицензию в реестре лицензий |
+| **B** | Записывает ли CEO голоса? | **Да, или генерирует их ИИ** («me encargaré de las grabaciones y/o generar con IA lo que sea necesario», «я возьму на себя записи и/или генерацию с помощью ИИ всего необходимого»). Сценарий: `docs/sound/VOICE-SCRIPT.md`. Дубль ИИ несёт инструмент и лицензию в реестре лицензий |
 | **C** | Приказ Генерала | **«Vorwärts.»** |
 | **D** | Правило настоящего языка для Рейха | **Отвергнуто.** Настоящий немецкий для Рейха, настоящий английский для Легиона; по-прежнему никаких лозунгов режима (D11, D12). §4 переписан |
 
@@ -651,7 +1086,7 @@ Freedoom тоже идёт туда.
    `docs/art/previews/2026-10-13_2029_F5_enemy-sfx-drafts.html` (вкус,
    стадия 4). Рекомендация: сначала послушать `SDHNDSIT` (важнейший звук
    бестиария), три пуска `SDSTOMIS`, `SDDGBMIS`, `SDPZRMIS` один за другим и
-   `SDPZRSTP`; затем проход в игре на MAP02 с оверлеем (§5.9), который
+   `SDPZRSTP`; затем проход в игре на полигоне (`RANGE`, до D62 — MAP02) с оверлеем (§5.9), который
    может запустить только PM (D26). Цена: около 15 минут на страницу, 10 на
    игру.
 2. **`KEN-IMP` и оружие.** Черновики врагов читают 17 файлов `KEN-IMP`

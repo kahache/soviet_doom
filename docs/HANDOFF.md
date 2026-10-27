@@ -1,6 +1,6 @@
 # Session handoff (living; the PM rewrites it when a session ends)
 
-Updated: 2026-10-22 (Product, stage 6, after Episode 3's routes PASS at 9133be1
+Updated: 2026-10-27 (v1.3 published, D136; see "RESUME HERE FIRST"). Earlier: 2026-10-22 (Product, stage 6, after Episode 3's routes PASS at 9133be1
 and D114). Before that: 2026-10-21 ~23:30 (night shift closed, D102/D103) and
 2026-10-20 ~16:40 (v1.0 sign-off). Decisions up to **D114** are in
 `docs/PRD.md`; open CEO items in `docs/PENDING-CEO-DECISIONS.md`; tasks and
