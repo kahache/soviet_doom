@@ -8,6 +8,13 @@ estimates in `docs/BACKLOG.md`; the phase view in `docs/ROADMAP.md` ("P4 today")
 
 ## RESUME HERE FIRST (2026-10-27: v1.3 published, the game is closed)
 
+**Later the same day (D137): the Android app started, from scratch.** It lives in its own repo,
+`Desktop/Claude/soviet_doom_android` next to this one (local git, no GitHub remote yet: the CEO chooses
+public or private); resume from its `CLAUDE.md` and `docs/BACKLOG.md`. State: A1 closed (gate PASS),
+A2 built (engine = upstream g4.14.2 + 7 own patches, deps, app, 98 MB debug APK, reproducible from a
+clean clone with `tools/build_all.py`), **nothing run on a phone yet**: A2.5 needs the CEO's Galaxy M55
+with USB debugging. The mod's phone adaptations are on this repo's branch `android` (`sd_touch`, ADR 015).
+
 **v1.3 is public and Latest:** https://github.com/kahache/soviet_doom/releases/tag/v1.3 (tag at dc15a14;
 mod zip, Windows/macOS/Linux portables, the three trailers, the four GPL/LGPL source tarballs). The
 v1.2 and v1.0 **releases were deleted** at the CEO's word (D136); their git tags stay. The
