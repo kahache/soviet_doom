@@ -1,0 +1,78 @@
+=== g3-auto
+VERDICT        : PASS (7 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (8 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (16 blocker(s) killed by the route, listed above)
+skill 2: PASS
+skill 3: PASS
+skill 4: PASS
+=== metro-critical
+  [ok ] PASS: SD_Stormtrooper at (3040, 1150), 60 hp, dead
+  [ok ] PASS: SD_ReichRifleman at (2992, 1180), 20 hp, dead
+VERDICT        : PASS (11 blocker(s) killed by the route, listed above)
+skill 2: PASS
+skill 3: PASS
+skill 4: PASS
+=== tankograd-critical
+VERDICT        : PASS (2 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (3 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (4 blocker(s) killed by the route, listed above)
+skill 2: PASS
+skill 3: PASS
+skill 4: PASS
+=== transsib-critical
+VERDICT        : PASS (5 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (6 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (9 blocker(s) killed by the route, listed above)
+skill 2: PASS
+skill 3: PASS
+skill 4: PASS
+=== dam-critical
+VERDICT        : PASS (3 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (3 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (7 blocker(s) killed by the route, listed above)
+skill 2: PASS
+skill 3: PASS
+skill 4: PASS
+=== redsquare-critical
+VERDICT        : PASS (1 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (4 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (5 blocker(s) killed by the route, listed above)
+skill 2: PASS
+skill 3: PASS
+skill 4: PASS
+=== zemlya-critical
+VERDICT        : PASS (2 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (4 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (5 blocker(s) killed by the route, listed above)
+skill 2: PASS
+skill 3: PASS
+skill 4: PASS
+=== severomorsk-critical
+VERDICT        : PASS (2 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (5 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (4 blocker(s) killed by the route, listed above)
+skill 2: PASS
+skill 3: PASS
+skill 4: PASS
+=== tunguska-critical
+VERDICT        : PASS (6 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (7 blocker(s) killed by the route, listed above)
+VERDICT        : PASS (8 blocker(s) killed by the route, listed above)
+skill 2: PASS
+skill 3: PASS
+skill 4: PASS
+=== range-start
+VERDICT        : PASS
+VERDICT        : PASS
+VERDICT        : PASS
+skill 2: PASS
+skill 3: PASS
+skill 4: PASS
+=== range-door
+  [ok ] P4a  expect PASSAGE      got PASSAGE gallery_passage @ (672, 864, 0) hp 100
+zones reached  : HALL -> PASSAGE -> EXIT
+VERDICT        : PASS
+skill 2: PASS
+skill 3: PASS
+skill 4: PASS
+ALLDONE
