@@ -248,7 +248,7 @@ class ApprovedAssetsTests(unittest.TestCase):
     SHELL_SIZES.update({lump: (24, 30) for lump in ("SDAWCOU", "SDAWRST", "SDAWRBN", "SDAWPTW", "SDAWHER")})
     # V3 B2 (D132, proposal): the episode endings' illustrations, full-screen
     # pictures of the end sequences SD_Ending1-3 (tools/art/gen_endings.py,
-    # MOD-SPEC 6.15; tests/test_endings.py).
+    # MOD-SPEC 6.16; tests/test_endings.py).
     SHELL_SIZES.update({lump: (320, 200) for lump in ("SDEND1", "SDEND2", "SDEND3")})
 
     def test_layout_names_and_sizes(self):

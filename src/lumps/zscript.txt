@@ -21,6 +21,7 @@ version "4.12"
 #include "zscript/sd/death_prompt.zs" // "Press <use> to continue" after death (D100, v1.1)
 #include "zscript/sd/music_variant.zs" // episode 2's A/B music and MAP06's boss loop (D106)
 #include "zscript/sd/awards.zs"        // the end-of-episode awards: ledger, recorder, rules (V3 B3, ADR 013)
+#include "zscript/sd/magazine_hud.zs"  // the V3 reloads' "rounds/capacity" line (D132, ADR 014)
 #include "zscript/sd/status_screen.zs" // the stats screen + the awards page (V3 B1/B3, ADR 013)
 
 // --- Arsenal (F4): one class per file, one weapon per Doom slot -----------
@@ -34,6 +35,7 @@ version "4.12"
 #include "zscript/weapons/ice_axe_puff.zs"    // the ice axe's wall sound (N9)
 #include "zscript/weapons/rgd5_grenade.zs"    // the thrown RGD-5, fused (V3, ADR 012)
 #include "zscript/weapons/weapon_sounds.zs"   // the guns' empty click (N9)
+#include "zscript/weapons/magazine.zs"        // V3 reloads: the sd_reloads switch and the magazine mixin (D132, ADR 014)
 
 #include "zscript/weapons/ice_axe.zs"         // slot 1
 #include "zscript/weapons/tokarev.zs"         // slot 2

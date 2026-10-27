@@ -12,9 +12,15 @@
 // tic, action and jump is as it was. All in assets/sprites/ppsh/.
 // MOD-SPEC 6.3; tests/test_ppsh_sprites.py.
 // Balance rationale: docs/engine/BALANCE.md.
+//
+// V3 reloads (D132, the CVar sd_reloads; magazine.zs): the 71-round drum.
+// Off, every frame below runs exactly as in v1.2: the guards only jump
+// when reloads are on.
 
 class SD_Ppsh : Chaingun replaces Chaingun
 {
+	mixin SD_MagazineWeapon;   // the magazine counter and the reload (magazine.zs)
+
 	// --- Balance constants -------------------------------------------------
 	// Reference: Doom's Chaingun is 5 x random(1,3) (avg 10) every 4 tics
 	// = 87.5 damage/s. The PPSh trades per-round punch for rate of fire and
@@ -24,6 +30,14 @@ class SD_Ppsh : Chaingun replaces Chaingun
 	const SD_PPSH_BULLETS   = 1;    // 1 = the first round of a burst is pinpoint
 	const SD_PPSH_AMMO_USE  = 1;
 	const SD_PPSH_AMMO_GIVE = 35;   // half of a captured 71-round drum
+
+	// --- Reload (V3 experiment, docs/engine/2026-10-25_V3_reloads.md) -----
+	const SD_PPSH_MAGAZINE         = 71;  // the drum
+	const SD_PPSH_RELOAD_TICS      = 88;  // 2.5 s: drum out, a full one seated, the bolt hauled back
+	const SD_PPSH_RELOAD_DROP      = 16;  // tics down, and up again
+	// SDPPRLD (1.03 s) catches the bolt at 0.86 s = 30 tics; started on tic
+	// 42, near the middle, it does so as the gun comes back up (tic 72).
+	const SD_PPSH_RELOAD_SOUND_TIC = 42;
 
 	Default
 	{
@@ -52,11 +66,24 @@ class SD_Ppsh : Chaingun replaces Chaingun
 		Loop;
 	Fire:
 		// 3 tics per round = 11.67 rounds/s ~ 700 rpm (Doom Chaingun: 4 tics).
+		// V3: an empty drum reloads instead, before either round (0 tics;
+		// the 71st round is an A, so the guard before B matters).
+		SDPP A 0 A_JumpIf(invoker.SD_MagazineDry(SD_PPSH_MAGAZINE), "Reload");
 		SDPP A 0 A_GunFlash;
 		SDPP A 3 A_FireBullets(SD_PPSH_SPREAD, 0, SD_PPSH_BULLETS, SD_PPSH_DAMAGE);
+		SDPP B 0 A_JumpIf(invoker.SD_MagazineDry(SD_PPSH_MAGAZINE), "Reload");
 		SDPP B 0 A_GunFlash;
 		SDPP B 3 A_FireBullets(SD_PPSH_SPREAD, 0, SD_PPSH_BULLETS, SD_PPSH_DAMAGE);
 		SDPP B 0 A_ReFire;
+		Goto Ready;
+	Reload:
+		// V3 (magazine.zs): the gun goes down off screen and comes back up,
+		// 88 tics, the drum full again as it rises.
+		SDPP A 0 A_JumpIf(!invoker.SD_CanReload(SD_PPSH_MAGAZINE), "Ready");
+		SDPP A 0 A_SD_BeginReload;
+	ReloadLoop:
+		SDPP A 1 A_SD_ReloadTick(SD_PPSH_MAGAZINE, SD_PPSH_RELOAD_TICS, SD_PPSH_RELOAD_DROP, SD_PPSH_RELOAD_SOUND_TIC, "sd/weapon/ppsh/reload");
+		SDPP A 0 A_JumpIf(invoker.sdReloadTic < SD_PPSH_RELOAD_TICS, "ReloadLoop");
 		Goto Ready;
 	Flash:
 		SDPF A 3 Bright A_Light1;
@@ -69,9 +96,18 @@ class SD_Ppsh : Chaingun replaces Chaingun
 	// Ready with the empty click (N9, D74): A_WeaponReady exactly as before,
 	// plus SDPPDRY on the tic the trigger goes down with too little ammo to
 	// fire (SD_WeaponSounds.DryClick, weapon_sounds.zs). Same frame, same tic.
-	action void A_SD_WeaponReady()
+	// V3 reloads, both no-ops with sd_reloads off: a spent drum reloads at
+	// once (unless a weapon switch is pending), and the +reload key is
+	// allowed when a reload would load.
+	action state A_SD_WeaponReady()
 	{
+		if (player != null && player.PendingWeapon == WP_NOCHANGE
+			&& invoker.SD_MagazineDry(SD_PPSH_MAGAZINE))
+		{
+			return ResolveState("Reload");
+		}
 		SD_WeaponSounds.DryClick(invoker, "sd/weapon/ppsh/dry");
-		A_WeaponReady();
+		A_WeaponReady(invoker.SD_ReadyFlags(SD_PPSH_MAGAZINE));
+		return null;
 	}
 }

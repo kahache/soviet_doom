@@ -29,9 +29,15 @@
 // SDPP, SDPF and the tinted SDPQ letter for letter (MOD-SPEC 6.12): only the
 // sprite names changed and the tint line went; every tic, action and jump
 // stayed (tests/test_akm_sprites.py pins the states).
+//
+// V3 reloads (D132, the CVar sd_reloads; magazine.zs): the 30-round
+// magazine. Off, every frame below runs exactly as before: the guards only
+// jump when reloads are on.
 
 class SD_Akm : DoomWeapon
 {
+	mixin SD_MagazineWeapon;   // the magazine counter and the reload (magazine.zs)
+
 	// --- Balance constants (docs/engine/2026-10-22_P4_akm.md section 2) ----
 	// Reference: the PPSh-41 is 4 x random(1,3) (avg 8) every 3 tics = 93.3
 	// damage/s. The AKM trades rate for punch and accuracy: 6 x random(1,3)
@@ -45,6 +51,14 @@ class SD_Akm : DoomWeapon
 	const SD_AKM_CLIMB_LONG   = 1.5;  // degrees of vertical spread from round 4: the muzzle climbs
 	const SD_AKM_AMMO_USE     = 1;
 	const SD_AKM_AMMO_GIVE    = 30;   // the weapon comes with one full magazine
+
+	// --- Reload (V3 experiment, docs/engine/2026-10-25_V3_reloads.md) -----
+	const SD_AKM_MAGAZINE         = 30;  // the box magazine (= SD_AKM_AMMO_GIVE)
+	const SD_AKM_RELOAD_TICS      = 70;  // 2.0 s: magazine rocked out, a fresh one in, the bolt racked
+	const SD_AKM_RELOAD_DROP      = 14;  // tics down, and up again
+	// sd/weapon/akm/reload reuses SDPPRLD (SNDINFO, until an AKM take):
+	// its bolt at 30 tics lands as the gun comes back up (tic 56).
+	const SD_AKM_RELOAD_SOUND_TIC = 26;
 
 	Default
 	{
@@ -79,10 +93,21 @@ class SD_Akm : DoomWeapon
 	Fire:
 		// 2 + 2 = 4 tics per round = 8.75 rounds/s = 525 rpm (the real AKM
 		// ~600; 3 tics would be the PPSh's 700). B is the kick frame.
+		// V3: an empty magazine reloads instead (0 tics; never with reloads off).
+		SDAK A 0 A_JumpIf(invoker.SD_MagazineDry(SD_AKM_MAGAZINE), "Reload");
 		SDAK B 0 A_GunFlash;
 		SDAK B 2 A_SD_FireAkm;
 		SDAK A 2;
 		SDAK A 0 A_ReFire;
+		Goto Ready;
+	Reload:
+		// V3 (magazine.zs): the gun goes down off screen and comes back up,
+		// 70 tics, the magazine full again as it rises.
+		SDAK A 0 A_JumpIf(!invoker.SD_CanReload(SD_AKM_MAGAZINE), "Ready");
+		SDAK A 0 A_SD_BeginReload;
+	ReloadLoop:
+		SDAK A 1 A_SD_ReloadTick(SD_AKM_MAGAZINE, SD_AKM_RELOAD_TICS, SD_AKM_RELOAD_DROP, SD_AKM_RELOAD_SOUND_TIC, "sd/weapon/akm/reload");
+		SDAK A 0 A_JumpIf(invoker.sdReloadTic < SD_AKM_RELOAD_TICS, "ReloadLoop");
 		Goto Ready;
 	Flash:
 		SDAF A 2 Bright A_Light1;
@@ -120,9 +145,18 @@ class SD_Akm : DoomWeapon
 	// Ready with the empty click (N9, D74), as every gun of the mod:
 	// SD_WeaponSounds.DryClick (the mod's weapon_sounds.zs) on the tic the
 	// trigger goes down with an empty pool, then A_WeaponReady.
-	action void A_SD_WeaponReady()
+	// V3 reloads, both no-ops with sd_reloads off: a spent magazine reloads at
+	// once (unless a weapon switch is pending), and the +reload key is
+	// allowed when a reload would load.
+	action state A_SD_WeaponReady()
 	{
+		if (player != null && player.PendingWeapon == WP_NOCHANGE
+			&& invoker.SD_MagazineDry(SD_AKM_MAGAZINE))
+		{
+			return ResolveState("Reload");
+		}
 		SD_WeaponSounds.DryClick(invoker, "sd/weapon/akm/dry");
-		A_WeaponReady();
+		A_WeaponReady(invoker.SD_ReadyFlags(SD_AKM_MAGAZINE));
+		return null;
 	}
 }

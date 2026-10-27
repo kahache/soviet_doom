@@ -748,14 +748,20 @@ class MainMenuLogoTest(unittest.TestCase):
         self.assertRegex(body.group(1), r'Font\s+"SmallFont"',
                          "the skill menu must set a font that fits the names")
 
-    def test_the_mod_declares_no_cvar_of_its_own(self):
-        """Scope limit from the CEO: the player's config gains one key, not two."""
-        self.assertFalse(
-            (SRC / "lumps" / "CVARINFO").exists(),
-            "a CVARINFO appeared: every CVar in it is archived into the player's "
-            "gzdoom.ini. The language switch deliberately reuses the engine's "
-            "`language` CVar; if a gameplay option now needs one, say so in an "
-            "ADR and update this test.")
+    def test_the_mod_declares_no_cvar_of_its_own_but_the_reloads_switch(self):
+        """Scope limit from the CEO: the player's config gained one key
+        (`language`, the engine's own). The V3 reloads experiment (D132,
+        ADR 014, on the branch v3-reload) adds the one gameplay option asked
+        for, `sd_reloads`; the language switch still declares none."""
+        cvarinfo = SRC / "lumps" / "CVARINFO"
+        if not cvarinfo.exists():
+            return
+        names = re.findall(r"(?m)^\s*(?:server|user|nosave|noarchive|cheat|latch|\s)*"
+                           r"(?:bool|int|float|string|color)\s+(\w+)",
+                           re.sub(r"//[^\n]*", "", cvarinfo.read_text(encoding="utf-8")))
+        self.assertEqual(names, ["sd_reloads"],
+                         "every CVar in CVARINFO is archived into the player's gzdoom.ini: "
+                         "a new one needs an ADR and this test updated")
 
 
 if __name__ == "__main__":

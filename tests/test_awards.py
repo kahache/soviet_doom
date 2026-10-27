@@ -236,7 +236,7 @@ class EpisodeTest(unittest.TestCase):
         text = strip_lump_comments(MAPINFO.read_text(encoding="utf-8"))
         ends = set()
         for m in re.finditer(r"(?ims)^map\s+MAP0(\d)[^{]*\{(.*?)^\}", text):
-            # V3 B2: `EndSequence, "SD_EndingN"` (MOD-SPEC 6.15) ends it as `endtitle` did.
+            # V3 B2: `EndSequence, "SD_EndingN"` (MOD-SPEC 6.16) ends it as `endtitle` did.
             if re.search(r"(?im)^\s*next\s*=\s*(endtitle|EndSequence)\b", m.group(2)):
                 ends.add(int(m.group(1)))
         per = const(AWARDS_ZS, "SD_MAPS_PER_EPISODE")

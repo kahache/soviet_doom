@@ -62,6 +62,7 @@ import check_pk3  # noqa: E402
 import licences  # noqa: E402
 import palette as palette_mod  # noqa: E402  (stdlib only)
 from sdbuild.pk3 import build as build_pk3  # noqa: E402
+from _v3_reload_states import frame_count, with_reloads  # noqa: E402  (V3 reloads: guards + Reload states)
 from test_panzermensch_sprites import (  # noqa: E402  (one PNG/ZScript reader, not two)
     PNG_SIGNATURE, read_grab, states_block, strip_comments)
 
@@ -186,12 +187,12 @@ def lump(name: str) -> Path:
 class BehaviourTests(unittest.TestCase):
     def test_states_are_d116s_but_for_the_names(self):
         expected = [(lb, RENAMED.get(sp, sp), fr, tics, rest) for lb, sp, fr, tics, rest in AKM_BEFORE]
-        self.assertEqual(states(), expected)
+        self.assertEqual(states(), with_reloads("akm.zs", expected))
 
     def test_four_tics_a_round(self):
         fire = [r for r in frame_rows(states()) if r[0] == "Fire"]
         self.assertEqual(sum(r[3] for r in fire), 4, "2 + 2 tics a round, 525 rpm (BALANCE.md slot 4b)")
-        self.assertEqual(len(frame_rows(states())), 9)
+        self.assertEqual(len(frame_rows(states())), 9 + frame_count("akm.zs"))
 
 
 class SpriteTests(unittest.TestCase):

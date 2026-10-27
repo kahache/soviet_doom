@@ -700,7 +700,7 @@ with the three at 3×, the armbands at 6× and the order of the screens:
 `docs/art/previews/2026-10-25_V3_episode-endings.html`. Generator
 `tools/art/gen_endings.py` from the Gemini paintings (local, D77); indexed,
 palette v3 (D128: `reich_greygreen` for the Reich skin). Drawn by the end
-sequences `SD_Ending1-3` (MAPINFO, MOD-SPEC §6.15). Provenance:
+sequences `SD_Ending1-3` (MAPINFO, MOD-SPEC §6.16). Provenance:
 `LICENSES.md` ("The episode endings' illustrations"). Not yet seen in the
 engine (D26).
 

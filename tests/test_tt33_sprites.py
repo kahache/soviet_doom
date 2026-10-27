@@ -74,6 +74,7 @@ import make_draft_overlay as mdo  # noqa: E402
 import palette as palette_mod  # noqa: E402  (stdlib only)
 from sdbuild.pk3 import build as build_pk3  # noqa: E402
 from _n9_sound_hooks import with_sound_hooks  # noqa: E402  (N9: the empty click on Ready)
+from _v3_reload_states import frame_count, with_reloads  # noqa: E402  (V3 reloads: guards + Reload states)
 from test_panzermensch_sprites import (  # noqa: E402  (one PNG/ZScript reader, not two)
     PNG_SIGNATURE, read_grab, states_block, strip_comments)
 
@@ -198,7 +199,7 @@ def on_screen(name: str) -> tuple[int, int, int]:
 class BehaviourTests(unittest.TestCase):
     def test_states_are_the_pre_n17_ones_but_for_the_names(self):
         expected = [(lb, RENAMED.get(sp, sp), fr, tics, rest) for lb, sp, fr, tics, rest in TOKAREV_BEFORE_N17]
-        self.assertEqual(states(), with_sound_hooks("tokarev.zs", expected))
+        self.assertEqual(states(), with_reloads("tokarev.zs", with_sound_hooks("tokarev.zs", expected)))
 
     def test_tic_totals_per_label_unchanged(self):
         def totals(rows):
@@ -206,11 +207,11 @@ class BehaviourTests(unittest.TestCase):
             for lb, _, _, tics, _ in rows:
                 out[lb] = out.get(lb, 0) + tics
             return out
-        self.assertEqual(totals(states()), totals(TOKAREV_BEFORE_N17))
+        self.assertEqual(totals(states()), totals(with_reloads("tokarev.zs", TOKAREV_BEFORE_N17)))
         self.assertEqual(totals(states())["Fire"], 16, "4 + 6 + 3 + 3 tics per shot (BALANCE.md)")
 
     def test_the_parser_sees_every_line(self):
-        self.assertEqual(len(frame_rows(states())), 10)
+        self.assertEqual(len(frame_rows(states())), 10 + frame_count("tokarev.zs"))
 
 
 class SpriteTests(unittest.TestCase):

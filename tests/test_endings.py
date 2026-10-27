@@ -1,4 +1,4 @@
-"""The episode endings' illustrations (V3 B2, D132; MOD-SPEC 6.15).
+"""The episode endings' illustrations (V3 B2, D132; MOD-SPEC 6.16).
 
 Leaving an episode's last map (MAP03, MAP06, MAP09) shows the stats, the
 awards page (ADR 013), the ending cluster's text, then the end sequence the

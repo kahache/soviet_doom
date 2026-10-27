@@ -1,0 +1,18 @@
+// CVARINFO - the mod's own console variables. ZDoom wiki: https://zdoom.org/wiki/CVARINFO
+//
+// One line per variable: <scope> [noarchive] <type> <name> = <default>;
+//   server  a gameplay setting: one value for the game, which the host
+//           (in single player, the player) changes; GZDoom keeps it in the
+//           player's ini (archived) unless `noarchive` is given.
+//
+// Until V3 the mod had none (MOD-SPEC 10, debt T7): the language row of
+// Options > Soviet Doom writes the engine's own `language` (ADR 004).
+//
+// sd_reloads (V3 experiment, D132; ADR 014; docs/engine/2026-10-25_V3_reloads.md):
+// magazines and reloads for the TT-33 (8), the PPSh-41 (71), the AKM (30)
+// and the ROKS-3 (an 80-jet tank), and the +reload key for the IZh-58 after
+// one barrel. ON by default on the branch v3-reload so the CEO plays it
+// first; 0 is the game exactly as v1.2 (zscript/weapons/magazine.zs).
+// The row in the menu: MENUDEF, SD_OptionsMenu. From the console:
+// `sd_reloads 0` / `sd_reloads 1`, at any moment, also mid-fight.
+server bool sd_reloads = true;

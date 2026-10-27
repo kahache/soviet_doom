@@ -376,7 +376,9 @@ class ModTests(unittest.TestCase):
         lines = p4.sndinfo_lines()
         shipped = {p.stem.upper() for p in SOUNDS.rglob("*.ogg")}
         used = set(re.findall(r'"(sd/[^"]+)"', p4.strip_comments(self.akm_text)))
-        self.assertEqual(used, {"sd/weapon/akm/fire", "sd/weapon/akm/dry", "sd/weapon/akm/pickup"})
+        # sd/weapon/akm/reload since the V3 reloads (D132, ADR 014): SDPPRLD for now.
+        self.assertEqual(used, {"sd/weapon/akm/fire", "sd/weapon/akm/dry", "sd/weapon/akm/pickup",
+                                "sd/weapon/akm/reload"})
         finals = set()
         for name in sorted(used):
             with self.subTest(name=name):
@@ -387,7 +389,7 @@ class ModTests(unittest.TestCase):
                 self.assertTrue(final.group(1).startswith("SDAK"))
                 self.assertNotIn(final.group(1), shipped)
                 finals.add(final.group(1))
-        self.assertEqual(len(finals), 3)
+        self.assertEqual(len(finals), 4)
         self.assertEqual(lines["sd/weapon/akm/fire"][0], lines["sd/weapon/ppsh/fire"][0])
         self.assertIn(["$pitchset", "sd/weapon/akm/fire", str(PITCH)], p4.sndinfo_directives())
 

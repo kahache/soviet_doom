@@ -7,6 +7,9 @@ and the Consortium at classic Doom's hit points (§7) and **the maps'
 ammunition rules (§8)**, which the level designers apply. **V3 (2026-10-23,
 ADR 012): the RGD-5 hand grenade, slot 8** (§2, §3, §4, §8.1), built and
 not yet seen in the engine.
+**V3 reloads (2026-10-25, branch `v3-reload`, ADR 014): magazines behind the
+CVar `sd_reloads`** (§10), an experiment for the CEO; the maps' ammunition
+is untouched.
 Status before D119: **F4, first pass, verified in GZDoom 4.14.2**
 (every weapon fires, consumes ammo and kills in `MAP02`, the practice range,
 the lump `RANGE` since D62; see §6).
@@ -701,3 +704,73 @@ Why these numbers:
 **NOT VERIFIED in the engine** (D26): the PM's pass ends each episode with
 known figures (the console's `kill monsters` gives 100 % kills) and checks the
 page against this table.
+
+## 10. Reloads (V3 experiment)
+
+**Branch `v3-reload` only, 2026-10-25 (D132; a nice to have, D121; ADR
+014).** The CVar `sd_reloads` (Options > Soviet Doom > Weapon reloads,
+on by default on this branch) gives four guns a magazine; off, every
+number above stands exactly as built (D39). Design and the engine checks:
+`docs/engine/2026-10-25_V3_reloads.md`. Not seen in the engine (D26).
+
+**A magazine is a counter over the pool, not a second pool.** Each shot
+still takes its round from `Clip`, `SD_AkmAmmo` or `Cell`; the magazine
+only says how many may go before the gun is lowered and reloaded. No
+ammunition is created, lost or moved, so **the maps' ammunition (§8) is
+untouched** and damage per unit of ammo is unchanged. What changes is
+time: the sustained figures below pay one reload per magazine.
+
+| Gun | Magazine | Constant | Reload | to empty it | damage a magazine | DPS before (§2) | DPS sustained, reloads on | change |
+|---|---|---|---|---|---|---|---|---|
+| TT-33 | 8 | `SD_TT_MAGAZINE` | 42 tics, 1.2 s | 128 tics, 3.7 s | 96 | 26.3 | **19.8** | -25 % |
+| PPSh-41 | 71 (the drum) | `SD_PPSH_MAGAZINE` | 88 tics, 2.5 s | 213 tics, 6.1 s | 568 | 93.3 | **66.0** | -29 % |
+| AKM | 30 | `SD_AKM_MAGAZINE` | 70 tics, 2.0 s | 120 tics, 3.4 s | 360 | 105.0 | **66.3** | -37 % |
+| ROKS-3 | 80 jets (the tank) | `SD_ROKS3_TANK` | 88 tics, 2.5 s | 240 tics, 6.9 s | 1 080 | 157.5 | **115.2** | -27 % |
+| IZh-58 | 2 barrels (as before) | `SD_IZH_BARRELS` | 30 tics, as before | 46 tics | 160 | 73.7 sustained | **73.7** | none |
+
+How the column is computed: DPS sustained = damage a magazine / (time to
+empty it + the reload), every round hitting, the trigger held. The time to
+empty is the magazine times the cadence of §2 (the PPSh-41's 71st round is
+an A frame, so the drum empties at 71 x 3 = 213 tics, not on a whole
+6-tic cycle). The tic in `Ready` between the reload and the next shot is
+left out (one tic in 170 to 328). The reload durations are the brief's
+(TT-33 ~1.2 s, PPSh-41 ~2.5 s, AKM ~2 s, ROKS-3 ~2.5 s), constants
+`SD_*_RELOAD_TICS`.
+
+Why 80 jets for the ROKS-3: the brief gave no tank size. The real ROKS-3
+carried some 6-8 s of fire; 80 jets is 6.9 s at 11.67 a second, and one
+tank still burns the heaviest Panzermensch (75 jets, §3, slot 6) without a
+reload. The IZh-58 is unchanged: its two barrels and its 30-tic break-open
+were always its reload. With reloads on, the +reload key (R) also breaks it
+open after one barrel; that is slower per shell (30 tics for one), so it
+only ever lowers the gun's DPS, by the player's choice.
+
+**What it does to the ladder (the finding for the CEO).** Sustained, with
+reloads on:
+
+    ice axe 19.4 · TT-33 19.8 · PPSh-41 66.0 · AKM 66.3 · IZh-58 73.7 · ROKS-3 115.2 · RPG-7 181.7
+
+**Slot 4 falls under slot 3.** The PPSh-41 and the AKM, 93 and 105 today,
+both end up near 66, under the IZh-58's 73.7, which already pays its own
+reload. That is the gun D119 found "you always end up with". It is the
+sustained figure, the trigger held through a whole magazine and a reload;
+in a short fight a full magazine is the burst figure of §2, unchanged
+(568 damage in a PPSh-41 drum kills a Panzermensch, 500 HP, §7, without a
+reload; 360 in an AKM magazine does not kill a Doughboy, 400 HP). The
+TT-33 lands on the ice axe's figure, which D47 already expected ("about
+19").
+
+If the CEO wants slot 4 back over slot 3, the cheapest knobs, each one
+constant (NOT applied, the CEO's call):
+
+| Knob | PPSh-41 | AKM |
+|---|---|---|
+| reload 1.5 s (52 tics) | 75.0 | 73.3 |
+| reload 1.2 s (42 tics) | 78.0 | 77.8 |
+| AKM magazine 40 (an RPK's) at 2.0 s | — | 73.0 |
+
+Shorter reloads are less realistic; the brief asked for the realistic ones,
+so they stand until the CEO has played them.
+
+**NOT VERIFIED in the engine** (D26): every figure here is computed. The
+PM's pass times one magazine and one reload per gun (the doc's checks).

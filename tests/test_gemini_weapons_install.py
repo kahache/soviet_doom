@@ -80,6 +80,7 @@ import release  # noqa: E402
 from sdbuild.pk3 import build as build_pk3  # noqa: E402
 from test_panzermensch_sprites import PNG_SIGNATURE, read_grab  # noqa: E402
 from test_ppsh_sprites import frame_rows, states  # noqa: E402  (one States parser, not three)
+from _v3_reload_states import frame_count, with_reloads  # noqa: E402  (V3 reloads: guards + Reload states)
 
 try:
     from PIL import Image
@@ -257,7 +258,7 @@ class BehaviourTests(unittest.TestCase):
         for weapon, before in BEFORE_D84.items():
             renames = WEAPONS[weapon][1]
             expected = [(lb, renames.get(sp, sp), fr, tics, rest) for lb, sp, fr, tics, rest in before]
-            self.assertEqual(states(zs(weapon)), expected, weapon)
+            self.assertEqual(states(zs(weapon)), with_reloads(WEAPONS[weapon][0], expected), weapon)
 
     def test_tic_totals_per_label_unchanged(self):
         def totals(rows):
@@ -266,12 +267,12 @@ class BehaviourTests(unittest.TestCase):
                 out[lb] = out.get(lb, 0) + tics
             return out
         for weapon, before in BEFORE_D84.items():
-            self.assertEqual(totals(states(zs(weapon))), totals(before), weapon)
+            self.assertEqual(totals(states(zs(weapon))), totals(with_reloads(WEAPONS[weapon][0], before)), weapon)
             self.assertEqual(totals(before)["Fire"], FIRE_TICS[weapon], weapon)
 
     def test_the_parser_sees_every_line(self):
         self.assertEqual({w: len(frame_rows(states(zs(w)))) for w in WEAPONS},
-                         {"izh": 16, "rpg7": 11, "roks3": 8, "katyusha": 11, "ice_axe": 9})
+                         {"izh": 16, "rpg7": 11, "roks3": 8 + frame_count("roks3.zs"), "katyusha": 11, "ice_axe": 9})
 
 
 class SpriteTests(unittest.TestCase):

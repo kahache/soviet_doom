@@ -140,6 +140,7 @@ SLOW: tuple[tuple[str, str], ...] = (
     ("test_palette_v2.ApprovedAssetsStayInTheirVersionTests",
      "render: opens every installed PNG and counts its colours"),
     ("test_pause_sign.EngineNamesTest", "engine: reads the installed gzdoom.pk3's ZScript"),
+    ("test_reloads.EngineNamesTest", "engine: reads the installed gzdoom.pk3's ZScript and binds"),
     ("test_release.EndToEndRefusalTest", "release: packs release trees end to end, 4.3 s"),
     ("test_release.RealReleaseTest", "release: the real release, 4.1 s"),
     ("test_release_portable.RealPortableTest",
