@@ -15,13 +15,17 @@ episode's ending text (MAPINFO `Intermission SD_EndingN`, MOD-SPEC 6.14):
   SDEND2  gemini_ending_ep2_v2.jfif  Red Square: our Liberty Colossus thrown
                                      down (chrome plates, US patch, tablet,
                                      pink flesh at the joints), the banner.
-  SDEND3  gemini_ending_ep3_v2.jfif  Tunguska: the sergeant raises the banner
+  SDEND3  gemini_ending_ep3_v3.jfif  Tunguska: the sergeant raises the banner
                                      between the Consortium's two halves.
 
 The v2 paintings of episodes 2 and 3 were asked of Gemini with our enemy
 sheets attached, after the CEO judged the first round's enemies wrong ("no
 han dibujado bien los enemigos", "they did not draw the enemies right").
 The superseded first round is shown small in the preview as a reference.
+Episode 3's v3 (D135, 2026-10-27): the CEO approved SDEND1 and SDEND2 and saw
+in the v2 painting that the Legion half carried the chest piece (the cracked
+core) the Reich half already had; the v3 painting, asked of Gemini by the PM,
+keeps the composition and draws the chest piece once.
 
 The pipeline is gen_titlepic.py's (D126), the one the CEO approved:
 
@@ -154,15 +158,16 @@ ENDINGS = (
            "the whole Colossus (crown to torch, the US patch, the tablet), the "
            "sergeant and the banner, the Kremlin tower, St Basil's, the portal",
            signature=(1295, 718, 1362, 768), superseded="gemini_ending_ep2.jfif"),
-    # 1586x672 (2.36:1): both halves of the Consortium and their helmets
-    # span x 300-1500, so 1200 wide needs 900 rows: 140 of sky above, 88 of
-    # ground below.
-    Ending("SDEND3", 3, "gemini_ending_ep3_v2.jfif", (300, 1500), 140, 88,
+    # 1312x816 (v3, D135: the chest piece drawn once, the Legion half's opened
+    # chest; the v2 painting gave both halves the same piece). Both halves and their helmets span
+    # x 96-1312 (the Legion's projector runs off the right edge, as in v2),
+    # so 1216 wide needs 912 rows: 60 of sky above, 36 of ground below.
+    Ending("SDEND3", 3, "gemini_ending_ep3_v3.jfif", (96, 1312), 60, 36,
            "the sergeant and the banner before the imploding portal, the Reich "
-           "half with its armband and rocket tubes, the cracked blue core, the "
-           "Legion half with its projector and US patch, both helmets",
+           "half with its armband and rocket tubes, the Legion half with its "
+           "opened chest, projector and US patch, both helmets",
            pad_mode="extend",
-           armband=Armband((420, 460, 580, 600), "white", 120.0, 90),
+           armband=Armband((250, 550, 430, 700), "white", 120.0, 90),
            superseded="gemini_ending_ep3.jfif"),
 )
 
