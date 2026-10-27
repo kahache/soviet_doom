@@ -6,7 +6,21 @@ and D114). Before that: 2026-10-21 ~23:30 (night shift closed, D102/D103) and
 `docs/PRD.md`; open CEO items in `docs/PENDING-CEO-DECISIONS.md`; tasks and
 estimates in `docs/BACKLOG.md`; the phase view in `docs/ROADMAP.md` ("P4 today").
 
-## RESUME HERE FIRST (2026-10-25 night, PC shut down at the CEO's request)
+## RESUME HERE FIRST (2026-10-27: v1.3 published, the game is closed)
+
+**v1.3 is public and Latest:** https://github.com/kahache/soviet_doom/releases/tag/v1.3 (tag at dc15a14;
+mod zip, Windows/macOS/Linux portables, the three trailers, the four GPL/LGPL source tarballs). The
+v1.2 and v1.0 **releases were deleted** at the CEO's word (D136); their git tags stay. The
+`transfer-work-2026-10-13` backup pre-release stays. Sign-off: `docs/qa/evidence/2026-10-27_1200_V3_v13-signoff.md`
+(33/33 routes, Windows and Linux packages boot clean; macOS not verified). Branches `v3`, `v3-endings`,
+`v3-reload` and `v3-radio` are all merged into main. README carries the trailer teaser GIF.
+
+**Nothing is in flight.** The only scheduled item is the Android APK (`docs/ICEBOX.md`, D131), and only when
+the CEO reopens it. Left as known: the stormtrooper and the statue keep their mirrored insignia (D136);
+the 71 MB of audio candidates stay in git history (no force push unless the CEO asks); the `docs/ru/`
+mirror is behind (D34) and the CLAUDE.md status paragraphs below its v1.3 note are a 2026-10-22/24 snapshot.
+
+## Earlier: 2026-10-25 night, PC shut down at the CEO's request
 
 **V3 is content-complete on branch `v3`** (origin/v3, worktree `scratchpad/wt_v3`, 9bc9a9e): pickup events E1-E3 and
 set pieces, the MAP09 crater (opens at the Consortium's Breach, engine-checked), operations map + medals (D122),
