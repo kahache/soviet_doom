@@ -18,7 +18,11 @@ Covered:
   route.py's handler plus the trailer camera, and names every class a shot
   spawns or hurts;
 * capture.py refuses to launch with the engine gate shut, and --print runs
-  without it; its FFmpeg command films the window's rectangle;
+  without it; its FFmpeg commands film the window by its HWND (gfxcapture)
+  or its rectangle on its own monitor (ddagrab, gdigrab), on the first
+  encoder that opens; its smoothness measure fails the first cut's ~13 new
+  frames a second and passes 60, and the engine is asked for interpolated,
+  vsynced frames and audible sound;
 * edit.py finds the roll on a synthetic recording (the last magenta run);
 * (geometry, slow: skipped at `verify.py fast`) every camera fits where it
   stands, every spawn lands where its body fits and in sight, every
@@ -333,6 +337,127 @@ class CaptureTests(unittest.TestCase):
         self.assertNotIn("dshow", cmd)
         cmd = capture.ffmpeg_command(Path("ffmpeg"), (0, 0, 1280, 720), 60, Path("o.mkv"), "What U Hear")
         self.assertIn("audio=What U Hear", cmd)
+
+    def test_gfxcapture_films_the_window_by_its_hwnd(self):
+        cmd = capture.ffmpeg_command(Path("ffmpeg"), (320, 180, 1280, 720), 60, Path("o.mkv"), "What U Hear",
+                                     method="gfxcapture", hwnd=0x5A0B2, encoder="h264_mf",
+                                     progress=Path("o.progress.txt"))
+        graph = cmd[cmd.index("-filter_complex") + 1]
+        self.assertIn(f"gfxcapture=hwnd={0x5A0B2}:max_framerate=60:capture_cursor=0", graph)
+        self.assertTrue(graph.endswith("hwdownload,format=bgra[v]"))
+        # the loopback is the only input, opened before the picture starts
+        self.assertEqual(cmd.index("-f"), cmd.index("dshow") - 1)
+        self.assertEqual(cmd[cmd.index("-map") + 1], "[v]")
+        self.assertIn("0:a", cmd)
+        self.assertEqual(cmd[cmd.index("-fps_mode") + 1], "cfr")
+        self.assertEqual(cmd[cmd.index("-c:v") + 1], "h264_mf")
+        self.assertEqual(cmd[cmd.index("-progress") + 1], "o.progress.txt")
+        self.assertNotIn("gdigrab", cmd)
+        with self.assertRaises(ValueError):
+            capture.ffmpeg_command(Path("ffmpeg"), (0, 0, 1280, 720), 60, Path("o.mkv"), None, method="gfxcapture")
+
+    def test_ddagrab_films_the_window_on_its_own_monitor(self):
+        outputs = [{"adapter": 0, "output": 0, "rect": (0, 0, 1920, 1080)},
+                   {"adapter": 1, "output": 0, "rect": (1920, 0, 2560, 1440)}]   # e.g. a virtual monitor
+        dda = capture.dda_target((2240, 180, 1280, 720), outputs)
+        self.assertEqual(dda["adapter"], 1)
+        self.assertIsNone(capture.dda_target((1600, 180, 1280, 720), outputs))   # across two monitors
+        cmd = capture.ffmpeg_command(Path("ffmpeg"), (2240, 180, 1280, 720), 60, Path("o.mkv"), None,
+                                     method="ddagrab", dda=dda)
+        self.assertEqual(cmd[cmd.index("-init_hw_device") + 1], "d3d11va=dda:1")
+        graph = cmd[cmd.index("-filter_complex") + 1]
+        self.assertIn("output_idx=0:framerate=60:video_size=1280x720:offset_x=320:offset_y=180", graph)
+        self.assertIn("dup_frames=0", graph)     # FFmpeg counts the repeats, not ddagrab
+        self.assertNotIn("dshow", cmd)
+
+    def test_encoders(self):
+        self.assertIn("-hw_encoding", capture.encoder_args("h264_mf"))
+        self.assertIn("-cq", capture.encoder_args("h264_nvenc"))
+        self.assertIn("-crf", capture.encoder_args("libx264"))
+        for enc in capture.ENCODERS:
+            self.assertIn("-g", capture.encoder_args(enc))   # edit.py seeks into every shot
+
+        def run(cmd, **_kw):        # NVENC is built in but does not open (driver 560 < 570)
+            return mock.Mock(returncode=1 if "h264_nvenc" in cmd else 0)
+        with mock.patch.object(capture.subprocess, "run", side_effect=run):
+            self.assertEqual(capture.pick_encoder(Path("ffmpeg")), "h264_mf")
+        with mock.patch.object(capture.subprocess, "run", return_value=mock.Mock(returncode=1)):
+            self.assertEqual(capture.pick_encoder(Path("ffmpeg")), "libx264")
+
+    def test_method_order(self):
+        self.assertEqual(capture.method_order(None), ["gfxcapture", "ddagrab", "gdigrab"])
+        self.assertEqual(capture.method_order("ddagrab"), ["ddagrab", "gfxcapture", "gdigrab"])
+        self.assertEqual(capture.method_order("ddagrab", "gdigrab"), ["gdigrab"])
+        self.assertEqual(capture.method_order("ddagrab", "auto")[0], "ddagrab")
+
+    def test_progress_gives_the_frames_the_recorder_delivered(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "p.txt"
+            p.write_text("frame=30\ndup_frames=2\nout_time_us=500000\nprogress=continue\n"
+                         "frame=600\ndup_frames=12\nout_time_us=10000000\nprogress=end\n", encoding="utf-8")
+            stats = capture.capture_stats(capture.read_progress(p))
+        self.assertEqual(stats["frames"], 600)
+        self.assertAlmostEqual(stats["delivered_fps"], 58.8)
+        self.assertIsNone(capture.capture_stats({})["delivered_fps"])
+
+    def test_frame_diffs_parse(self):
+        text = ("frame:0    pts:17      pts_time:0.017\nlavfi.signalstats.YAVG=0\n"
+                "frame:1    pts:33      pts_time:0.033\nlavfi.signalstats.YAVG=1.25\n")
+        self.assertEqual(capture.parse_frame_diffs(text), [(0.017, 0.0), (0.033, 1.25)])
+
+
+def _diffs(seconds: float, every: int, change: float, start: float = 0.0, fps: int = 60):
+    """A synthetic recording: a new picture every `every` frames."""
+    return [(start + i / fps, change if i % every == 0 else 0.0) for i in range(int(seconds * fps))]
+
+
+class SmoothnessTests(unittest.TestCase):
+    """capture.motion_report: the CEO's "slow and in jerks" (2026-10-27)."""
+
+    def test_a_smooth_recording_passes(self):
+        rep = capture.motion_report(_diffs(5, 1, 1.5), delivered_fps=59.5)
+        self.assertTrue(rep["ok"], rep)
+        self.assertEqual(rep["content_fps"], 60.0)
+
+    def test_the_first_cut_fails(self):
+        """gdigrab: ~13 new frames a second, each one a big jump."""
+        rep = capture.motion_report(_diffs(5, 5, 8.0))
+        self.assertFalse(rep["ok"])
+        self.assertEqual(rep["content_fps"], 12.0)
+        self.assertIn("12.0 new frames/s", rep["why"])
+        rep = capture.motion_report(_diffs(5, 1, 1.5), delivered_fps=13.0)
+        self.assertFalse(rep["ok"])
+        self.assertIn("recorder delivered 13.0", rep["why"])
+
+    def test_held_frames_and_the_slate_are_not_motion(self):
+        slate = _diffs(6, 10 ** 6, 0.0)                     # magenta: nothing changes
+        lift = [(6.0, 90.0)]                                # the slate lifting: a cut
+        shot = _diffs(4, 1, 2.0, start=6.0 + 1 / 60)
+        rep = capture.motion_report(slate + lift + shot, delivered_fps=59.8)
+        self.assertTrue(rep["ok"], rep)
+        self.assertEqual(rep["moving_windows"], 4)          # 6-10 s; the slate is not motion
+        self.assertEqual(capture.motion_report(_diffs(3, 1, 0.01))["moving_windows"], 0)  # encoder noise
+
+    def test_the_games_own_35_hz_is_only_noted(self):
+        rep = capture.motion_report(_diffs(5, 2, 1.0), delivered_fps=59.0)
+        self.assertTrue(rep["ok"])
+        self.assertIn("35 Hz", rep["why"])
+        self.assertFalse(capture.motion_report(_diffs(5, 2, 1.0), delivered_fps=None)["ok"])
+
+    def test_nothing_to_measure(self):
+        self.assertFalse(capture.motion_report([])["ok"])
+
+    def test_the_engine_is_asked_for_smooth_frames_and_sound(self):
+        cvars = dict(tl.VIEW_CVARS)
+        self.assertEqual(cvars["cl_capfps"], "0")           # interpolated, never 35 Hz
+        self.assertEqual(cvars["vid_vsync"], "1")
+        self.assertEqual(cvars["snd_sfxvolume"], "1")       # the first cut's config had 0: silence
+        self.assertEqual(cvars["snd_mastervolume"], "1")
+        argv = tl.engine_argv(Path("gz"), Path("iwad"), [Path("m.pk3")], Path("h.pk3"), Path("c.ini"),
+                              Path("l.log"), {"id": "S01", "map": "MAP01", "actions": ["wait 1"],
+                                              "warp": [0, 0], "angle": 0}, [], (1296, 759), True,
+                              extra=(("snd_aldevice", "OpenAL Soft on X"),))
+        self.assertEqual(argv[argv.index("+snd_aldevice") + 1], "OpenAL Soft on X")
 
 
 @unittest.skipUnless(HAVE_ART, "needs the venv (numpy, Pillow)")

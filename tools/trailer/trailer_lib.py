@@ -481,12 +481,29 @@ VIEW_CVARS = (
     ("freelook", "1"), ("lookspring", "0"),
     ("vid_scalemode", "0"), ("vid_scalefactor", "1"),
     ("snd_musicvolume", "0"),        # the trailer's music is the render, not the game's
+    # Smooth frames for a 60 fps recorder (2026-10-27): never the 35 Hz cap
+    # (movement is interpolated between tics), and presented on the
+    # monitor's 60 Hz so every composited frame the recorder takes is a new
+    # one. The trailer config had cl_capfps=false, vid_vsync=false,
+    # vid_maxfps=500: uncapped is not throttled, but unsynced it lands
+    # frames off the 60 Hz the capture samples at (measured with an unsynced
+    # 60 fps test window: ~50 new frames a second, not 60). NOT VERIFIED in
+    # a GZDoom run that vsync helps: capture.py's per-shot measure will say.
+    ("cl_capfps", "0"), ("vid_vsync", "1"), ("vid_maxfps", "500"),
+    # The game's sound at full level for the loopback: the trailer config,
+    # seeded from the tooling one, had snd_mastervolume=0 and
+    # snd_sfxvolume=0, and every shot of the first cut recorded silence
+    # (S05's sound peaks at -84 dBFS; measured 2026-10-27). edit.py sets
+    # the mix level (sfx_gain_db).
+    ("snd_mastervolume", "1"), ("snd_sfxvolume", "1"),
 )
 
 
 def engine_argv(gzdoom: Path, iwad: Path, pk3s: list[Path], helper: Path, config: Path,
                 log: Path, shot: dict, names: list[str], window: tuple[int, int],
-                sound: bool) -> list[str]:
+                sound: bool, extra: tuple[tuple[str, str], ...] = ()) -> list[str]:
+    """extra: more (cvar, value) pairs, after VIEW_CVARS (capture.py's
+    --al-device)."""
     argv = [str(gzdoom), "-config", str(config), "-iwad", str(iwad), "-file"]
     argv += [str(p) for p in pk3s] + [str(helper)]
     argv += ["+logfile", str(log), "-skill", str(shot.get("skill", 3)), "+map", shot["map"]]
@@ -495,7 +512,7 @@ def engine_argv(gzdoom: Path, iwad: Path, pk3s: list[Path], helper: Path, config
     if shot.get("nomonsters"):
         argv.append("-nomonsters")
     argv += ["+win_w", str(window[0]), "+win_h", str(window[1])]
-    for name, value in VIEW_CVARS:
+    for name, value in VIEW_CVARS + tuple(extra):
         argv += [f"+{name}", value]
     argv.append(console_sequence(shot, names))
     return argv

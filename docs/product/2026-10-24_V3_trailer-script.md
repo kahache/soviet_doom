@@ -112,14 +112,26 @@ SE)". So, with nothing downloaded:
   the slate is the shot's time zero; `edit.py` finds it, so the engine's
   start-up time never matters.
 - **Picture:** GZDoom windowed; the tool gives the window an exact 1280x720
-  client area, topmost, centred, and FFmpeg films that rectangle of the
-  desktop at 60 fps (`gdigrab desktop` with an offset, which reads the
-  composited desktop, so the OpenGL/Vulkan window is not black). HUD off
+  client area, topmost, centred, and FFmpeg films it at 60 fps (2026-10-27,
+  after the CEO saw the first cut "slow and in jerks"): `gfxcapture`
+  (Windows.Graphics.Capture, the window by its HWND), else `ddagrab`
+  (Desktop Duplication on the DXGI output that holds the window), else
+  `gdigrab` (GDI, CPU: the first cut's, 14-26 new frames a second by
+  `capture.py --measure`). Encoded with `h264_mf` on the RTX 3050's NVENC
+  (40 Mb/s): FFmpeg 8.1.2's `h264_nvenc` needs driver >= 570, the PC has
+  560.94. GZDoom runs with `cl_capfps 0` and `vid_vsync 1`. After each shot
+  capture.py measures the new frames a second (the recorder's, from FFmpeg's
+  repeated-frame count, and the picture's where it moves) and fails the shot
+  under 50. HUD off
   (`screenblocks 12`), weapon on, no crosshair, no messages, game music off.
   Its own config, `logs/gzdoom-trailer.ini` (seeded from
   `logs/gzdoom-tooling.ini`), so those cvars never reach the QA screenshots.
 - **Sound:** the game's sound through the loopback device (dshow), in the
-  same file; `--no-audio` films the picture only.
+  same file; `--no-audio` films the picture only. The first cut recorded
+  silence (S05 peaks at -84 dBFS): the trailer config had
+  `snd_mastervolume 0` and `snd_sfxvolume 0`; both are now set to 1, and
+  capture.py notes a silent shot. `--al-device` sets GZDoom's OpenAL output
+  if the Sound Blaster is not Windows' default.
 - Per shot: `work/trailer/shots/<ID>.mkv`, `<ID>.json` (argv, rectangle,
   timings, spawns refused, script errors), `<ID>.log`.
 
@@ -152,6 +164,8 @@ H.264 + AAC, ~2.5 min to render one locale).
 SD_ALLOW_ENGINE=1 python tools/trailer/capture.py --shots S01
 # 2. then all of them (~16 runs, ~6 min; hands off the mouse and keyboard):
 SD_ALLOW_ENGINE=1 python tools/trailer/capture.py [--pk3 <v3 worktree>/dist/sovietdoom.pk3]
+# 2b. (no engine) the smoothness of what is on disk (fails under 50 new frames/s):
+python tools/trailer/capture.py --measure
 # 3. (optional) look at one shot frame by frame after its roll:
 .venv/Scripts/python.exe tools/trailer/edit.py --contact S13
 # 4. cut the three versions:
@@ -200,7 +214,14 @@ sprites are installed, D133). S01-S06 and S09 stay as filmed: their new
   asks for the outer size that leaves a 1280x720 client area and, if that
   still fails, films the real client area (edit.py scales it). Still to see:
   that the window keeps its place, and gdigrab's offsets at 100 % scaling.
-- The A/V offset between gdigrab and dshow (`edit.py --audio-offset-ms`).
+- The A/V offset between the recorder and dshow (`edit.py --audio-offset-ms`):
+  the loopback heard nothing in the 2026-10-27 tests either (an ffplay beep
+  on the default device), so it is still unmeasured; nor whether the Sound
+  Blaster is the default output.
+- gfxcapture, ddagrab and h264_mf were tested on an ffplay test window
+  (testsrc2 at 60 fps), not on GZDoom: 58-59 new frames a second delivered
+  by both, gdigrab 4 (2026-10-27). That `vid_vsync 1` beats uncapped
+  frames in a GZDoom capture is a hypothesis the per-shot measure checks.
 - The licence of `gzdoom.sf2` for a published render (`sound-designer` to
   confirm in `docs/sound/`; the game itself plays through it on every
   player's machine).
