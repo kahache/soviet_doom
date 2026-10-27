@@ -20,7 +20,7 @@
 // and the jet, Q/R the stomp, G pain, H-P death), plus his own Tag and
 // obituaries. Replaces nothing: placed by his own number, 21113.
 //
-// The look: SDGN (assets/sprites/general/), Scale 1.3 and a Translation
+// The look: SDCM (assets/sprites/chrome_marshal/: the General's set with the US flag for his armband, V3 insignia_fix.py), Scale 1.3 and a Translation
 // that maps the whole palette by luminance onto a cold silver gradient. The
 // translation on truecolour PNG sprites is NOT VERIFIED in the engine
 // (GZDoom palettises a translated graphic): the engine pass checks it.
@@ -47,48 +47,48 @@ class SD_ChromeGeneral : SD_LibertyColossus
 	States
 	{
 	Spawn:
-		SDGN AB 10 A_Look;
+		SDCM AB 10 A_Look;
 		Loop;
 	See:
-		SDGN A 3 A_SD_ColossusStep;  // one footfall per cycle, as the Cyberdemon's A_Hoof
-		SDGN ABBCCDD 3 A_Chase;
+		SDCM A 3 A_SD_ColossusStep;  // one footfall per cycle, as the Cyberdemon's A_Hoof
+		SDCM ABBCCDD 3 A_Chase;
 		Loop;
 	Missile:
-		SDGN E 0 A_SD_ColossusChoose;   // jumps to Flame or Stomp when close; else the salvo
+		SDCM E 0 A_SD_ColossusChoose;   // jumps to Flame or Stomp when close; else the salvo
 	Rockets:
-		SDGN E 10 A_FaceTarget;         // the bazooka comes up: the tell
-		SDGN F 8 Bright A_SD_ColossusRocket;
-		SDGN E 6 A_FaceTarget;
-		SDGN F 8 Bright A_SD_ColossusRocket;
-		SDGN E 6 A_FaceTarget;
-		SDGN F 8 Bright A_SD_ColossusRocket;
-		SDGN E 16 A_FaceTarget;         // recovery: the window to close in or get out
+		SDCM E 10 A_FaceTarget;         // the bazooka comes up: the tell
+		SDCM F 8 Bright A_SD_ColossusRocket;
+		SDCM E 6 A_FaceTarget;
+		SDCM F 8 Bright A_SD_ColossusRocket;
+		SDCM E 6 A_FaceTarget;
+		SDCM F 8 Bright A_SD_ColossusRocket;
+		SDCM E 16 A_FaceTarget;         // recovery: the window to close in or get out
 		Goto See;
 	Flame:
-		SDGN E 10 A_FaceTarget;         // the barrel levels at you
-		SDGN F 3 Bright A_SD_ColossusFlame;
-		SDGN F 3 Bright A_SD_ColossusFlame;
-		SDGN F 3 Bright A_SD_ColossusFlame;
-		SDGN F 3 Bright A_SD_ColossusFlame;
-		SDGN F 3 Bright A_SD_ColossusFlame;
-		SDGN E 12;
+		SDCM E 10 A_FaceTarget;         // the barrel levels at you
+		SDCM F 3 Bright A_SD_ColossusFlame;
+		SDCM F 3 Bright A_SD_ColossusFlame;
+		SDCM F 3 Bright A_SD_ColossusFlame;
+		SDCM F 3 Bright A_SD_ColossusFlame;
+		SDCM F 3 Bright A_SD_ColossusFlame;
+		SDCM E 12;
 		Goto See;
 	Stomp:
-		SDGN Q 14 A_FaceTarget;         // the General's raised fist: the foot goes up
-		SDGN R 6 A_SD_ColossusStomp;    // ... and comes down
-		SDGN R 14;
+		SDCM Q 14 A_FaceTarget;         // the General's raised fist: the foot goes up
+		SDCM R 6 A_SD_ColossusStomp;    // ... and comes down
+		SDCM R 14;
 		Goto See;
 	Pain:
-		SDGN G 10 A_Pain;
+		SDCM G 10 A_Pain;
 		Goto See;
 	Death:
-		SDGN H 10;
-		SDGN I 10 A_Scream;
-		SDGN JKL 10;
-		SDGN M 10 A_NoBlocking;
-		SDGN NO 10;
-		SDGN P 30;
-		SDGN P -1 A_BossDeath;
+		SDCM H 10;
+		SDCM I 10 A_Scream;
+		SDCM JKL 10;
+		SDCM M 10 A_NoBlocking;
+		SDCM NO 10;
+		SDCM P 30;
+		SDCM P -1 A_BossDeath;
 		Stop;
 	}
 }

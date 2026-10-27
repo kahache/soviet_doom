@@ -1922,16 +1922,22 @@ def symbolise(rgb: np.ndarray, mask: np.ndarray, sp: SymbolPass) -> tuple[np.nda
 
 
 def source_picture(cut: Cut, mirror: bool = False, core: bool = False, shade: float = 1.0,
-                   symbol: SymbolPass | None = None) -> tuple[np.ndarray, np.ndarray, str | None]:
+                   symbol: SymbolPass | None = None, retouch=None,
+                   key: tuple | None = None) -> tuple[np.ndarray, np.ndarray, str | None]:
     """(rgb, mask, symbol status) at Gemini's resolution, before the tilt:
     the biggest piece (core), the mirror, THEN the symbol (never mirrored,
     D105/D108), then the black plate (the symbol is drawn on the shared art,
-    so the Schwer reuses the Panzermensch's repaints)."""
+    so the Schwer reuses the Panzermensch's repaints). `retouch(key, rgb,
+    mask) -> rgb` (insignia_fix.py, V3): a repaint after the mirror and
+    before the symbol, inside the silhouette (the mask is never changed);
+    None, the default, leaves every picture as it was."""
     rgb, mask = cut.rgb, cut.mask
     if core:
         rgb, mask = crop(rgb, largest(mask))
     if mirror:
         rgb, mask = rgb[:, ::-1], mask[:, ::-1]
+    if retouch is not None:
+        rgb = retouch(key, np.ascontiguousarray(rgb), np.ascontiguousarray(mask))
     status = None
     if symbol is not None:
         rgb, status = symbolise(np.ascontiguousarray(rgb), np.ascontiguousarray(mask), symbol)
@@ -1978,7 +1984,8 @@ def close_sources(spec: EnemySpec) -> set[tuple]:
 
 
 def build(spec: EnemySpec, out_dir: Path | None = None, ref_dir: Path = REF_DIR,
-          symbol: str = "spec", cache_dir: Path | None = None) -> dict:
+          symbol: str = "spec", cache_dir: Path | None = None, retouch=None) -> dict:
+    """`retouch`: source_picture's hook (insignia_fix.py); None builds the set as approved."""
     pal = palette_rgb(spec.palette_version)
     out_dir = out_dir or OUT_ROOT / spec.name
     guard_out(out_dir)
@@ -1997,7 +2004,8 @@ def build(spec: EnemySpec, out_dir: Path | None = None, ref_dir: Path = REF_DIR,
         key = (sheet, view, mirror, core)
         if key not in pictures:     # one picture (and one symbol) per source, shared by its lumps
             sp = symbol_pass(spec, symbol, fooocus=key in close, cache_dir=cache_dir)
-            pictures[key] = source_picture(cuts[sheet].figs[view], mirror, core, spec.shade, sp)
+            pictures[key] = source_picture(cuts[sheet].figs[view], mirror, core, spec.shade, sp,
+                                           retouch, key)
         if pictures[key][2] is not None:
             status[lump] = pictures[key][2]
         frames.setdefault(lump[len(spec.sprite)], {})[lump] = render(

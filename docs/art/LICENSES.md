@@ -1942,3 +1942,29 @@ and a 5-px bitmap alphabet written into `gen_hud.py` (no system font, so
 they reproduce byte for byte on any machine); the digits are vector
 segments, supersampled. Freedoom's bar, numbers and face appear only on the
 review sheet beside ours, and never enter a lump.
+
+
+### The Chrome Marshal's own set (`SDCM`) and the insignia repaint (V3, 2026-10-27)
+
+`tools/art/insignia_fix.py` (the CEO's complaint: the armband changing arm between rotations and the General's US flag and armband swapping places): each faction's insignia on the same arm of the character in every rotation. The repaint is made at Gemini's resolution through `gemini_enemy.build`'s `retouch` hook, before the D108 symbol (`tools/art/armband_symbol.py`); every other pixel is the approved set's. Same names and rows as before for `SDRR` (21 lumps), `SDPM` (25 lumps), `SDPS` (25 lumps), `SDGN` (41 lumps), `SDLT` (17 lumps), `SDLG` (19 lumps). Files copied byte for byte from `work/art/insignia_fix/lumps/`. Preview: `docs/art/previews/2026-10-27_V3_insignia-audit.html`.
+
+| Lump | What it is | Origin | Licence |
+|---|---|---|---|
+| `SDCMA1`, `SDCMA2`, `SDCMA3`, `SDCMA4`, `SDCMA5`, `SDCMA6`, `SDCMA7`, `SDCMA8` | `SD_ChromeGeneral` (D123), frame A: the General's `SDGN` with his armband repainted as the US flag (he is a Legion boss); Scale 1.3 and the chrome Translation are in the actor | (a) derived from the General's Gemini images as `SDGN` (rows above), repainted by `tools/art/insignia_fix.py`; the source images are not distributed | Soviet Doom project, CC BY-NC-SA 4.0 (D15); the AI use is disclosed in the game's and the release's credits (D79, D109) |
+| `SDCMB1`, `SDCMB2`, `SDCMB3`, `SDCMB4`, `SDCMB5`, `SDCMB6`, `SDCMB7`, `SDCMB8` | idem, frame B | (a) idem | idem |
+| `SDCMC1`, `SDCMC2`, `SDCMC3`, `SDCMC4`, `SDCMC5`, `SDCMC6`, `SDCMC7`, `SDCMC8` | idem, frame C | (a) idem | idem |
+| `SDCMD1`, `SDCMD2`, `SDCMD3`, `SDCMD4`, `SDCMD5`, `SDCMD6`, `SDCMD7`, `SDCMD8` | idem, frame D | (a) idem | idem |
+| `SDCME1`, `SDCME2`, `SDCME3`, `SDCME4`, `SDCME5`, `SDCME6`, `SDCME7`, `SDCME8` | idem, frame E | (a) idem | idem |
+| `SDCMF1`, `SDCMF2`, `SDCMF3`, `SDCMF4`, `SDCMF5`, `SDCMF6`, `SDCMF7`, `SDCMF8` | idem, frame F | (a) idem | idem |
+| `SDCMG1`, `SDCMG2`, `SDCMG3`, `SDCMG4`, `SDCMG5`, `SDCMG6`, `SDCMG7`, `SDCMG8` | idem, frame G | (a) idem | idem |
+| `SDCMH0` | idem, frame H | (a) idem | idem |
+| `SDCMI0` | idem, frame I | (a) idem | idem |
+| `SDCMJ0` | idem, frame J | (a) idem | idem |
+| `SDCMK0` | idem, frame K | (a) idem | idem |
+| `SDCML0` | idem, frame L | (a) idem | idem |
+| `SDCMM0` | idem, frame M | (a) idem | idem |
+| `SDCMN0` | idem, frame N | (a) idem | idem |
+| `SDCMO0` | idem, frame O | (a) idem | idem |
+| `SDCMP0` | idem, frame P | (a) idem | idem |
+| `SDCMQ1`, `SDCMQ2`, `SDCMQ3`, `SDCMQ4`, `SDCMQ5`, `SDCMQ6`, `SDCMQ7`, `SDCMQ8` | idem, frame Q | (a) idem | idem |
+| `SDCMR1`, `SDCMR2`, `SDCMR3`, `SDCMR4`, `SDCMR5`, `SDCMR6`, `SDCMR7`, `SDCMR8` | idem, frame R | (a) idem | idem |

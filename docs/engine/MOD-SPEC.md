@@ -1211,7 +1211,7 @@ in the IWAD.
 | `SD_General` | `SD_Monster` *replaces Cyberdemon* | Boss, 3000 HP (H), three-shell salvo; once below half health, summons two `SD_ReichRifleman` and prints `SD_GENERAL_ORDER` (D35). |
 | `SD_LegionGunner` | `SD_Monster` *replaces ChaingunGuy* | P4 (D104, in the mod since D116): Legion heavy machine-gunner, 80 HP, bursts of 4–6 hitscan rounds then a pause. Drops `SD_AkmAmmo`. Own sprite `SDLG` since D123 (§6.3, §6.12). |
 | `SD_LibertyColossus` | `SD_Monster` *replaces SpiderMastermind* | P4: Episode 2's boss, 3000 HP (D119, the Spider Mastermind's; was 4500), torch rockets far, a fire jet near, a stomp close. Fires `SD_ColossusRocket` (`SD_Pg7Grenade`) and `SD_ColossusFlame` (`SD_FlameBlob`). MAP06's boss; own sprite `SDLC` since D123. |
-| `SD_ChromeGeneral` | `SD_LibertyColossus` (replaces nothing) | P4 (D123): "The Chrome Marshal", the colossus variant: the colossus's body, flags, species, sounds and three verbs, 3000 HP, on the General's `SDGN` at `Scale` 1.3 with the chrome `Translation` the colossus wore from D116 (an approved design, a palette swap, not a placeholder). Own `Tag` and obituaries (`SD_TAG_CHROME`, `SD_OB_CHROME`, `SD_OBHIT_CHROME`). MAP08's mini-boss on skills 3-4. `BESTIARY.md` §12 row 12. |
+| `SD_ChromeGeneral` | `SD_LibertyColossus` (replaces nothing) | P4 (D123): "The Chrome Marshal", the colossus variant: the colossus's body, flags, species, sounds and three verbs, 3000 HP, on `SDCM` (the General's `SDGN` with his armband repainted as the US flag, V3 `tools/art/insignia_fix.py`) at `Scale` 1.3 with the chrome `Translation` the colossus wore from D116 (an approved design, a palette swap, not a placeholder). Own `Tag` and obituaries (`SD_TAG_CHROME`, `SD_OB_CHROME`, `SD_OBHIT_CHROME`). MAP08's mini-boss on skills 3-4. `BESTIARY.md` §12 row 12. |
 | `SD_Consortium` | `SD_Monster` (replaces nothing) | P4: Episode 3's final boss, 4000 HP (D119, the Cyberdemon's; was 9000), rooted then free at half health, calls servants of both factions. Fires `SD_ConsortiumRocket`, `SD_ConsortiumOrb` (`SD_GeneralShell`), `SD_ConsortiumFlame`. Own sprite `SDCN` since D128 (§6.3, §6.12). **Placed thing's `arg4` (V3 A3):** a sector tag; at the Breach's first tic, once, the boss sinks the sectors with that tag to their lowest neighbour, taking its flat and damage (`Floor_LowerToLowestTxTy (tag, 16)`), and sets them flickering (`Light_Flicker`); 0 (summoned) opens nothing. MAP09 gives it 15, its crater's scabs (`docs/levels/MAP09-tunguska.md` §18.3); its `special` stays the death's `Door_Open`, which reads arg0-arg2 only. Design `docs/engine/2026-10-22_P4_ep3-final-boss.md`. |
 | `SD_ConsortiumWounded` | `SD_Consortium` | Test fixture for the engine pass, not an enemy: the boss at half health + 100, `summon` only; no number, no string. Delete when the pass no longer needs it. |
 | `SD_ColossusRocket`, `SD_ColossusFlame`, `SD_ConsortiumRocket`, `SD_ConsortiumOrb`, `SD_ConsortiumFlame` | the arsenal's / the General's projectile | The P4 bosses' projectiles, on their parents' sprites; the Consortium's fly through monsters (`CanCollideWith`). Not placeable. |
@@ -2455,7 +2455,7 @@ little at a time; until each lands its class wears an existing sprite
 lump starts with `SD`). The gunner's and the colossus's are **installed
 since D123** (licence rows: `docs/art/LICENSES.md`, "Enemy sprites: the
 Legion gunner" and "the Liberty Colossus"); the colossus's old look is the
-Chrome Marshal's own (`SD_ChromeGeneral`, `SDGN` ×1.3 tinted chrome, D123).
+Chrome Marshal's own (`SD_ChromeGeneral`, `SDCM` ×1.3 tinted chrome, D123; `SDCM` is `SDGN` with the US-flag armband since V3).
 
 | Class | Final sprite | Lumps | Frames (the design doc's) | Wears today |
 |---|---|---|---|---|
@@ -2991,7 +2991,7 @@ were done by the art-director's install patches
 either file, and `tests/test_ep2_enemies.py` holds that (`SWAPS` empty,
 `test_the_final_looks_are_installed`). **Not provisional, and so not
 marked:** `SD_ChromeGeneral` (`zscript/monsters/chrome_general.zs`, D123)
-wears the General's `SDGN` at `Scale 1.3` with the colossus's old chrome
+wears `SDCM` (the General's `SDGN` with a US-flag armband, V3) at `Scale 1.3` with the colossus's old chrome
 `Translation` as its approved design, the colossus's state machine line
 for line; its tint carries no mark because no art will replace it.
 

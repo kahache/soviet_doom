@@ -282,7 +282,7 @@ SOUND_COUNT = 13   # gunner 6, colossus 7 (BESTIARY 12); the Chrome Marshal play
 IDS = {"SD_TAG_GUNNER", "SD_TAG_COLOSSUS", "SD_OB_GUNNER", "SD_OB_COLOSSUS", "SD_OBHIT_COLOSSUS",
        "SD_TAG_CHROME", "SD_OB_CHROME", "SD_OBHIT_CHROME"}
 # D123: the Chrome Marshal's look, the colossus's stand-in from D116 kept.
-CHROME_SPRITE = "SDGN"
+CHROME_SPRITE = "SDCM"   # V3: his own set (tools/art/insignia_fix.py)
 CHROME_SCALE = 1.3
 CHROME_TRANSLATION = "0:255=%[0.05,0.05,0.10]:[1.60,1.60,1.80]"   # default_value strips the quotes
 CHROME_NAMES = {"enu default": "The Chrome Marshal", "ru": "Хромированный маршал", "ca": "El Mariscal de Crom"}
