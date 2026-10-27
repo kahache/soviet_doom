@@ -223,8 +223,21 @@ SD_OPTMNU_TITLE    = "Soviet Doom";
 SD_OPTMNU_LANGUAGE = "Language";
 SD_OPTMNU_LANGHELP = "Applies immediately. Saved for the next session.";
 // V3 reloads (D132, ADR 014): the sd_reloads row and its note (one line).
+// %s is the KEY bound to +reload (R by default), filled in when the row is
+// drawn (zscript/sd/touch.zs, OptionMenuItemSDKeyText), so a player who
+// moved the key reads their own. With sd_touch on (Android, D137) the row
+// draws the _TOUCH line instead, %s being the RELOAD button's label below.
 SD_OPTMNU_RELOADS    = "Weapon reloads";
-SD_OPTMNU_RELOADHELP = "Magazines; R reloads. Off: as in v1.2.";
+SD_OPTMNU_RELOADHELP = "Magazines; %s reloads. Off: as in v1.2.";
+SD_OPTMNU_RELOADHELP_TOUCH = "Magazines; tap %s. Off: as in v1.2.";
+
+// --- Touch buttons (Android, D137; ADR 015) --------------------------------
+// The LABELS of the app's touch buttons, as every line of ours that points
+// at one spells them; the app labels its buttons with these same words per
+// language (docs/engine/MOD-SPEC.md 6.17). Capitals: they are drawn in
+// BigFont on the death prompt, which has no lowercase.
+SD_TOUCH_BTN_USE    = "USE";
+SD_TOUCH_BTN_RELOAD = "RELOAD";
 
 SD_LANGVAL_AUTO = "Automatic (system)";
 SD_LANGVAL_EN = "English";
@@ -340,7 +353,10 @@ SD_PAUSE_SIGN = "M_PAUSE";
 // Printed while the player lies dead; the key restarts the level at its
 // start (zscript/sd/death_prompt.zs, written by another task). %s is a KEY
 // NAME the code fills in, so the line stays right whatever the player bound.
+// With sd_touch on (Android, D137) the _TOUCH line is drawn instead, %s
+// being the USE button's label, SD_TOUCH_BTN_USE.
 SD_DEATH_PROMPT = "Press %s to continue";
+SD_DEATH_PROMPT_TOUCH = "Tap %s to continue";
 
 // --- Status bar labels (M2e-i, D89, 2026-10-20) ------------------------------
 // Not prose: the NAMES of the pictures SD_StatusBar draws the bar's stencilled
@@ -591,8 +607,19 @@ SD_SKILL_5_CONFIRM = "Награда посмертная, а убитый вр�
 SD_OPTMNU_TITLE    = "Советский Doom";
 SD_OPTMNU_LANGUAGE = "Язык";
 SD_OPTMNU_LANGHELP = "Применяется сразу. Запоминается для следующих запусков.";
+// %s - клавиша, назначенная на +reload (по умолчанию R); код подставляет её
+// при отрисовке. При sd_touch (Android, D137) рисуется строка _TOUCH, а %s -
+// надпись на кнопке ПЕРЕЗАРЯДКА (ниже).
 SD_OPTMNU_RELOADS    = "Перезарядка оружия";
-SD_OPTMNU_RELOADHELP = "Магазины; R - перезарядка. Выкл.: как в v1.2.";
+SD_OPTMNU_RELOADHELP = "Магазины; %s - перезарядка. Выкл.: как в v1.2.";
+SD_OPTMNU_RELOADHELP_TOUCH = "Магазины; кнопка %s. Выкл.: как в v1.2.";
+
+// --- Сенсорные кнопки (Android, D137; ADR 015) -----------------------------
+// НАДПИСИ на кнопках приложения; приложение подписывает кнопки теми же
+// словами (docs/engine/MOD-SPEC.md 6.17). Заглавными: подсказка после
+// смерти рисуется BigFont, без строчных.
+SD_TOUCH_BTN_USE    = "ДЕЙСТВИЕ";
+SD_TOUCH_BTN_RELOAD = "ПЕРЕЗАРЯДКА";
 
 SD_LANGVAL_AUTO = "Автоматически (по системе)";
 SD_LANGVAL_EN = "Английский";
@@ -680,7 +707,10 @@ SD_PAUSE_SIGN = "localized/textures/m_pause.ru.png";
 
 // --- Подсказка после смерти (D100, v1.1) -----------------------------------
 // %s - имя клавиши, его подставляет код. На «Вы», как и остальной текст.
+// При sd_touch (Android, D137) - строка _TOUCH, %s - надпись на кнопке
+// ДЕЙСТВИЕ (SD_TOUCH_BTN_USE).
 SD_DEATH_PROMPT = "Нажмите %s, чтобы продолжить";
+SD_DEATH_PROMPT_TOUCH = "Нажмите кнопку %s, чтобы продолжить";
 
 // --- Надписи строки состояния (M2e-i, D89) ----------------------------------
 // Не текст, а ИМЕНА картинок русского варианта строки состояния A.
@@ -895,8 +925,19 @@ SD_SKILL_5_CONFIRM = "La condecoració és pòstuma, i aquí els enemics morts n
 SD_OPTMNU_TITLE    = "Soviet Doom";
 SD_OPTMNU_LANGUAGE = "Idioma";
 SD_OPTMNU_LANGHELP = "S'aplica a l'acte. Es desa per a la propera sessió.";
+// %s és la tecla assignada a +reload (R per defecte); el codi l'omple en
+// dibuixar la fila. Amb sd_touch (Android, D137) es dibuixa la línia _TOUCH,
+// i %s és el rètol del botó RECARREGA (a sota).
 SD_OPTMNU_RELOADS    = "Recàrrega d'armes";
-SD_OPTMNU_RELOADHELP = "Carregadors; R recarrega. No: com a la v1.2.";
+SD_OPTMNU_RELOADHELP = "Carregadors; %s recarrega. No: com a la v1.2.";
+SD_OPTMNU_RELOADHELP_TOUCH = "Carregadors; toca %s. No: com a la v1.2.";
+
+// --- Botons tàctils (Android, D137; ADR 015) ---------------------------------
+// Els RÈTOLS dels botons de l'aplicació; l'aplicació retola els botons amb
+// aquestes mateixes paraules (docs/engine/MOD-SPEC.md 6.17). En majúscules:
+// l'avís després de morir es dibuixa amb BigFont, que no té minúscules.
+SD_TOUCH_BTN_USE    = "ACCIÓ";
+SD_TOUCH_BTN_RELOAD = "RECARREGA";
 
 SD_LANGVAL_AUTO = "Automàtic (sistema)";
 SD_LANGVAL_EN = "Anglès";
@@ -984,8 +1025,11 @@ SD_MNU_CHOOSEEPISODE = "TRIA LA MISSIÓ";
 SD_PAUSE_SIGN = "localized/textures/m_pause.ca.png";
 
 // --- Avís després de morir (D100, v1.1) ---------------------------------------
-// %s és el nom de la tecla; l'omple el codi.
+// %s és el nom de la tecla; l'omple el codi. Amb sd_touch (Android, D137)
+// es dibuixa la línia _TOUCH, i %s és el rètol del botó ACCIÓ
+// (SD_TOUCH_BTN_USE).
 SD_DEATH_PROMPT = "Prem %s per continuar";
+SD_DEATH_PROMPT_TOUCH = "Toca %s per continuar";
 
 // --- Rètols de la barra d'estat (M2e-i, D89; P6) -------------------------------
 // No és text: són els NOMS de les imatges de la barra A en català

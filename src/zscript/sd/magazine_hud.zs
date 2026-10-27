@@ -36,6 +36,11 @@ class SD_MagazineHud : EventHandler
 	const SD_MAG_FULL_TOP = 170;
 	// screenblocks: 10 and under, the bar; 11, the fullscreen HUD; 12, none.
 	const SD_MAG_FULLSCREEN_BLOCKS = 11;
+	// With sd_touch on (the Android app, D137; touch.zs): the line is
+	// CENTRED, its middle at x = 160, at the same height as above, so it
+	// stays clear of both bottom corners, where the app's stick and fire
+	// buttons sit, whatever the bar's scale (MOD-SPEC 6.17).
+	const SD_MAG_TOUCH_CENTRE = 160;
 
 	override void RenderOverlay(RenderEvent e)
 	{
@@ -71,9 +76,15 @@ class SD_MagazineHud : EventHandler
 		bool full = blocks == SD_MAG_FULLSCREEN_BLOCKS;
 		double right = full ? SD_MAG_FULL_RIGHT : SD_MAG_BAR_RIGHT;
 		double top = full ? SD_MAG_FULL_TOP : SD_MAG_BAR_TOP;
+		double left = right - fnt.StringWidth(text);
+		if (SD_Touch.On())
+		{
+			// A phone: centred, away from the corners the touch layer covers.
+			left = SD_MAG_TOUCH_CENTRE - fnt.StringWidth(text) / 2.;
+		}
 		// Gold while rounds are left, red on an empty magazine.
 		int colour = loaded > 0 ? Font.CR_GOLD : Font.CR_RED;
-		Screen.DrawText(fnt, colour, right - fnt.StringWidth(text), top, text,
+		Screen.DrawText(fnt, colour, left, top, text,
 			DTA_VirtualWidth, SD_MAG_SCREEN_W, DTA_VirtualHeight, SD_MAG_SCREEN_H,
 			DTA_KeepRatio, true);
 	}

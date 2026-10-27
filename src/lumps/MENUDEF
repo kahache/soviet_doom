@@ -269,9 +269,14 @@ OptionMenu "SD_OptionsMenu"
 	// V3 reloads (D132, ADR 014): the mod's first CVar of its own,
 	// sd_reloads (CVARINFO). The engine's own Option row and its "OnOff"
 	// list (gzdoom.pk3:menudef.txt), so the write happens during menu input
-	// like the language's. The note below the row names the key.
+	// like the language's. The note below the row names the key: its "%s"
+	// is the key bound to +reload when drawn (R by default, KEYCONF), or,
+	// with sd_touch on (the Android app, D137, ADR 015), the touch wording
+	// with the RELOAD button's label, SD_TOUCH_BTN_RELOAD. SDKeyText is
+	// OptionMenuItemSDKeyText, zscript/sd/touch.zs: a StaticText that
+	// fills its %s at draw time and writes nothing.
 	Option "$SD_OPTMNU_RELOADS", "sd_reloads", "OnOff"
-	StaticText "$SD_OPTMNU_RELOADHELP"
+	SDKeyText "$SD_OPTMNU_RELOADHELP", "+reload", "$SD_OPTMNU_RELOADHELP_TOUCH", "$SD_TOUCH_BTN_RELOAD"
 	StaticText " "
 	Submenu "$SD_CRED_TITLE", "SD_CreditsMenu"
 }

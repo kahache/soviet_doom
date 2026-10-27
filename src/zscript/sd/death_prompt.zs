@@ -59,6 +59,11 @@ class SD_DeathPrompt : EventHandler
 	// LANGUAGE: "Press %s to continue" and its translations.
 	const SD_PROMPT_ID = "$SD_DEATH_PROMPT";
 	const SD_KEY_PLACEHOLDER = "%s";
+	// With sd_touch on (the Android app's touch layer, D137; touch.zs):
+	// "Tap %s to continue", %s the label of the app's USE button, which is
+	// LANGUAGE's SD_TOUCH_BTN_USE in every language (MOD-SPEC 6.17).
+	const SD_PROMPT_TOUCH_ID = "$SD_DEATH_PROMPT_TOUCH";
+	const SD_TOUCH_BUTTON_ID = "$SD_TOUCH_BTN_USE";
 
 	// The console command DeathThink reads as BT_USE.
 	const SD_USE_COMMAND = "+use";
@@ -101,8 +106,18 @@ class SD_DeathPrompt : EventHandler
 			return;
 		}
 
-		String text = StringTable.Localize(SD_PROMPT_ID);
-		text.Substitute(SD_KEY_PLACEHOLDER, SD_UseKeyName());
+		String text;
+		if (SD_Touch.On())
+		{
+			// A phone: the button, not the key the app's layer sends for it.
+			text = StringTable.Localize(SD_PROMPT_TOUCH_ID);
+			text.Substitute(SD_KEY_PLACEHOLDER, StringTable.Localize(SD_TOUCH_BUTTON_ID));
+		}
+		else
+		{
+			text = StringTable.Localize(SD_PROMPT_ID);
+			text.Substitute(SD_KEY_PLACEHOLDER, SD_UseKeyName());
+		}
 
 		Font fnt = generic_ui ? NewSmallFont : BigFont;
 		int scale = SD_FitScale(fnt, text);

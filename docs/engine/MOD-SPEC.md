@@ -3177,14 +3177,14 @@ to have, D121). Design and the engine checks R1-R14:
 
 | What | Value |
 |---|---|
-| The switch | CVar **`sd_reloads`**, `server bool`, default **true** on this branch (`src/lumps/CVARINFO`); the row Options > Soviet Doom > "Weapon reloads" (`MENUDEF`, `Option ... "OnOff"`), strings `SD_OPTMNU_RELOADS`, `SD_OPTMNU_RELOADHELP` in `[enu default]`, `[ru]`, `[ca]`. Off = v1.2's tics exactly |
+| The switch | CVar **`sd_reloads`**, `server bool`, default **true** on this branch (`src/lumps/CVARINFO`); the row Options > Soviet Doom > "Weapon reloads" (`MENUDEF`, `Option ... "OnOff"`), strings `SD_OPTMNU_RELOADS`, `SD_OPTMNU_RELOADHELP` in `[enu default]`, `[ru]`, `[ca]`. Off = v1.2's tics exactly. Since the Android work (D137, §6.17) the note under the row is an `SDKeyText` row whose `%s` is the key bound to `+reload` when drawn (the `_TOUCH` line and the button's label with `sd_touch`) |
 | The key | `+reload` (the engine's `BT_RELOAD`); `KEYCONF` `defaultbind r +reload` (only if neither R nor `+reload` is bound); the engine's Customize Controls row "Reload" |
 | Code | `zscript/weapons/magazine.zs`: `SD_Reloads` (static: `On()`, `ReloadOffset()`, `Magazine()`) and `mixin class SD_MagazineWeapon` (fields `sdMagFired`, `sdReloadTic`; `override DepleteAmmo`; `A_SD_BeginReload`, `A_SD_ReloadTick`) |
 | Guns | `SD_Tokarev` 8 (`SD_TT_MAGAZINE`), `SD_Ppsh` 71 (`SD_PPSH_MAGAZINE`), `SD_Akm` 30 (`SD_AKM_MAGAZINE`), `SD_Roks3` 80 (`SD_ROKS3_TANK`); each with `SD_*_RELOAD_TICS`, `_RELOAD_DROP`, `_RELOAD_SOUND_TIC`. `SD_Izh`: its two barrels, plus `+reload` after one (`SD_CanReloadIzh`). None for the ice axe, RPG-7, hand Katyusha, RGD-5 |
 | States, per gun | a 0-tic guard `A_JumpIf(invoker.SD_MagazineDry(...), "Reload")` as the first `Fire` frame (and before the PPSh-41's B round); `A_SD_WeaponReady` returns `Reload` on a dry magazine (no pending switch) and passes `WRF_ALLOWRELOAD` when a reload would load; new labels `Reload` (a 0-tic `SD_CanReload` check, `A_SD_BeginReload`) and `ReloadLoop` (the ready frame, 1 tic, `A_SD_ReloadTick`, repeated `*_RELOAD_TICS` times), then `Goto Ready` |
 | Ammo | a counter over the pool (`Clip`, `SD_AkmAmmo`, `Cell`): no round created, lost or moved; the maps' ammunition is untouched |
 | Animation | no new sprite: the ready frame lowered 32 → 128 and raised (`A_WeaponOffset`, `WOF_INTERPOLATE`); the reload sound on its tic (§6.2), the refill as the gun rises |
-| Readout | `SD_MagazineHud` (`zscript/sd/magazine_hud.zs`), last in MAPINFO's `AddEventHandlers`: "rounds/capacity" in SmallFont (gold; red when empty) right-aligned at x 44, y 158 with the bar, x 290, y 170 over the fullscreen HUD, none at screenblocks 12 or on the automap |
+| Readout | `SD_MagazineHud` (`zscript/sd/magazine_hud.zs`), last in MAPINFO's `AddEventHandlers`: "rounds/capacity" in SmallFont (gold; red when empty) right-aligned at x 44, y 158 with the bar, x 290, y 170 over the fullscreen HUD, none at screenblocks 12 or on the automap. With `sd_touch` on (§6.17) centred on x 160 at the same heights |
 | Saved games | `sdMagFired` and `sdReloadTic` are ordinary fields, saved; 0 is a full magazine, so older saves load full |
 
 `tests/test_reloads.py` pins all of the above; `tests/_v3_reload_states.py`
@@ -3235,6 +3235,31 @@ range still on `endtitle`, the generator's lumps the same as MAPINFO's.
 The engine pass (the PM): finish MAP03, MAP06 and MAP09 (`-warp`, kill the
 boss, exit) and see stats → awards → text → picture → title, at 4:3 and
 16:9, the log clean (no "Unknown intermission", no "Unknown texture").
+
+## 6.17 Touch mode: `sd_touch` (Android, D137, ADR 015, 2026-10-27)
+
+Branch `android`. The Android app (its own repository) drives the engine
+with **keys and relative mouse deltas**; the mod learns it is on a phone
+from one CVar the app passes at every launch, and changes only its words
+and its own overlays. Inventory, the app's side and what is NOT VERIFIED:
+`docs/engine/2026-10-27_A1_mod-touch-adaptations.md`.
+
+| What | Value |
+|---|---|
+| The switch | CVar **`sd_touch`**, `user noarchive bool`, default **false** (`src/lumps/CVARINFO`). The app passes `+sd_touch 1`; the mod only reads it (`SD_Touch.On()`, `zscript/sd/touch.zs`; a missing CVar is off). Not in any menu; the console flips it live for a desktop check |
+| The death prompt | with `sd_touch`: `SD_DEATH_PROMPT_TOUCH` ("Tap %s to continue"), `%s` = `SD_TOUCH_BTN_USE`; else §6.10 unchanged (`zscript/sd/death_prompt.zs`) |
+| The reload note | `MENUDEF`: `SDKeyText "$SD_OPTMNU_RELOADHELP", "+reload", "$SD_OPTMNU_RELOADHELP_TOUCH", "$SD_TOUCH_BTN_RELOAD"` = `OptionMenuItemSDKeyText : OptionMenuItemStaticText` (`touch.zs`), overriding `Draw` only: the desktop line's `%s` is the first key bound to `+reload` (`Bindings.GetKeysForCommand`, `KeyBindings.NameKeys`; `$CNTRLMNU_RELOAD` when none), the touch line's the button's label. It writes nothing (ADR 004) |
+| The magazine readout | with `sd_touch`, centred on x 160 at the same heights (§6.15) |
+| **The button labels** (the contract with the app) | `SD_TOUCH_BTN_USE`: `USE` / `ДЕЙСТВИЕ` / `ACCIÓ`; `SD_TOUCH_BTN_RELOAD`: `RELOAD` / `ПЕРЕЗАРЯДКА` / `RECARREGA` (`[enu default]` / `[ru]` / `[ca]`). The app labels its USE and RELOAD buttons with these words in the player's language, so a prompt and its button agree. Capitals: BigFont has no lowercase |
+| What stays | the fifteen `SD_QUIT_*` lines' "(Press Y to quit.)": the engine's yes/no box takes Y/N and a click on its Yes/No rows (gzdoom.pk3 `messagebox.zs`), and `QuitMessages` cannot follow a CVar; the seven engine strings `[ca]` mirrors (`PRESSKEY`, `PRESSYN`...), the engine's own wording in English and Russian |
+| What the app sets | engine CVars on its command line, which the mod cannot set: `cl_run 1` (always run), `con_centernotify 1` (messages away from the top-left corner), `screenblocks 10` (the bar, whose 4:3 box clears the side strips of a 20:9 screen), `crosshair`, the mouse scale; the doc's table |
+
+`tests/test_touch.py` pins all of the above and that no string of ours,
+in any language, names a key outside the two exceptions. **NOT VERIFIED
+in the engine** (D26): the PM's pass sets `sd_touch 1` in the console,
+dies, opens Options > Soviet Doom, and reads both lines in the three
+languages; then at 2400×1080 (`vid_setsize` or a window of that size) with
+the bar on, looks where the readout and the prompt land.
 
 ## 7. Commands
 
@@ -3309,3 +3334,4 @@ Order note: rows are not strictly numeric (T16, T18-T21, T17, T22, T23): T17 was
 | T23 | **The radio (§6.7) is unseen.** `SD_Radio` has not run in the engine (D26). ~~its editor number 21200 is not yet in `MAPINFO`~~ (`MAPINFO` gives 21200 to `SD_Radio` since; read 2026-10-14). ~~its placeholder `PMAP` A is the computer area map's pickup, which MAP01 also places (2026): a player may walk at the radio expecting a pickup.~~ **The sprite part is paid 2026-10-14 (D63):** `SDRD` A, an Okean-209 on a tabouret (§6.3, "The pickups, installed by D63"); `PMAP` is retired from §5.1. | the PM's engine pass (ADR 008 checklist), which now also sees `SDRD` A draw |
 | T25 | **The blue pass (§6, "The blue pass") is unseen and borrowed.** `SD_BluePass` has not run in the engine (D26; checks P1-P6); ~~it wears Freedoom's `BKEY` keycard~~ (**the sprite part is paid 2026-10-14, D63**: `SDKB` A/B, a laminated card blinking as Doom's keys do, §6.3, "The pickups, installed by D63"; the status bar icon `STKEYS0` is the mod's own 7×5 card since D80); and a blue door pressed directly (tag 0) would still print Freedoom's DEHACKED `PD_BLUEC` in English in both languages, because DEHACKED beats `LANGUAGE`. The metro's only blue door works by tag, so nothing shows it today. | the PM's engine pass; a `LOCKDEFS` of ours only if a tag-0 blue door is ever built |
 | T24 | **Paid in code 2026-10-14, NOT YET SEEN IN THE ENGINE (D26).** Was: the Russian pause plaque packed but not drawn (§2, "Language variants"): GZDoom g4.14.2 registers `localized/textures/M_PAUSE.ru.png` and checks its size, but its display-time substitution is commented out. Now: `SD_StatusBar : DoomStatusBar`, registered by `GameInfo { StatusBarClass }`, overrides only `DrawPaused` and draws the graphic `LANGUAGE`'s `SD_PAUSE_SIGN` names (`M_PAUSE` / the variant's full path), at `D_Display`'s position, falling back to the engine's own drawing if the name does not resolve (§6.5.1, ADR 010). `assets/localized/textures/M_PAUSE.ru.png` is installed (byte-identical to `work/art/shell_extra/pause_P2_ru.png`), and `tools/release.py` credits `localized/` through the base's licence row. Open: the engine pass, ADR 010's checks E1-E3 (the bar identical, the pause in English, the pause with `language ru`). | the PM's engine pass |
+| T26 | **Touch mode (§6.17, ADR 015) is unseen.** `sd_touch`, the `SDKeyText` row (a MENUDEF item class with four string arguments and a `ui` static lookup) and the centred readout have not run in the engine (D26). The option menus' rows are 8 virtual lines tall (`OptionMenuSettings.mLinespacing`, read-only at run time: gzdoom.pk3 `base.zs`), about 40 px at 1080p, too small for a finger; whether a mod may declare `OptionMenuSettings { Linespacing N }` in MENUDEF for every platform is NOT VERIFIED and is a CEO call (it changes the desktop menus too). | the PM's engine pass; the app's menu-mode buttons (arrows, Enter, Escape) cover it meanwhile |

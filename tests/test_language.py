@@ -752,16 +752,22 @@ class MainMenuLogoTest(unittest.TestCase):
         """Scope limit from the CEO: the player's config gained one key
         (`language`, the engine's own). The V3 reloads experiment (D132,
         ADR 014, on the branch v3-reload) adds the one gameplay option asked
-        for, `sd_reloads`; the language switch still declares none."""
+        for, `sd_reloads`; the language switch still declares none. The
+        Android work (D137, ADR 015) adds `sd_touch`, which is `noarchive`:
+        the app passes it at launch and the ini never gains it
+        (tests/test_touch.py)."""
         cvarinfo = SRC / "lumps" / "CVARINFO"
         if not cvarinfo.exists():
             return
+        text = re.sub(r"//[^\n]*", "", cvarinfo.read_text(encoding="utf-8"))
         names = re.findall(r"(?m)^\s*(?:server|user|nosave|noarchive|cheat|latch|\s)*"
-                           r"(?:bool|int|float|string|color)\s+(\w+)",
-                           re.sub(r"//[^\n]*", "", cvarinfo.read_text(encoding="utf-8")))
-        self.assertEqual(names, ["sd_reloads"],
-                         "every CVar in CVARINFO is archived into the player's gzdoom.ini: "
+                           r"(?:bool|int|float|string|color)\s+(\w+)", text)
+        self.assertEqual(names, ["sd_reloads", "sd_touch"],
+                         "every archived CVar in CVARINFO lands in the player's gzdoom.ini: "
                          "a new one needs an ADR and this test updated")
+        archived = re.findall(r"(?m)^\s*((?:\w+\s+)*)(?:bool|int|float|string|color)\s+(\w+)", text)
+        self.assertEqual([name for flags, name in archived if "noarchive" not in flags], ["sd_reloads"],
+                         "only the reloads switch is written to the player's ini")
 
 
 if __name__ == "__main__":

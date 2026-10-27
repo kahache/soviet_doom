@@ -16,3 +16,15 @@
 // The row in the menu: MENUDEF, SD_OptionsMenu. From the console:
 // `sd_reloads 0` / `sd_reloads 1`, at any moment, also mid-fight.
 server bool sd_reloads = true;
+
+// sd_touch (Android, D137; ADR 015; docs/engine/2026-10-27_A1_mod-touch-adaptations.md):
+// "this engine is driven by a touch layer". The Android app passes
+// `+sd_touch 1` on the command line at every launch; the mod only READS
+// it (zscript/sd/touch.zs) and swaps the lines that name a key for lines
+// that name a touch button ("Tap USE to continue"), and moves its own
+// readouts clear of the corners the stick and the buttons cover. `user`:
+// a presentation setting of this client, not a rule of the game.
+// `noarchive`: never written to the player's ini, so a desktop config
+// stays as it was and a phone gets it from the app, launch by launch.
+// Default false = a desktop: v1.3 exactly.
+user noarchive bool sd_touch = false;

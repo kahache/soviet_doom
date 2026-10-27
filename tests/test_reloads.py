@@ -144,7 +144,9 @@ def gzdoom_pk3() -> Path | None:
 class SwitchTest(unittest.TestCase):
     def test_cvarinfo_declares_the_switch_on(self):
         lines = [ln.strip() for ln in code(CVARINFO).splitlines() if ln.strip()]
-        self.assertEqual(lines, [f"server bool {CVAR} = true;"])
+        # sd_touch (Android, D137) shares the lump: tests/test_touch.py.
+        self.assertIn(f"server bool {CVAR} = true;", lines)
+        self.assertEqual(len([ln for ln in lines if CVAR in ln]), 1)
 
     def test_the_code_reads_that_name(self):
         self.assertEqual(const(MAGAZINE_ZS, "SD_RELOADS_CVAR"), f'"{CVAR}"')
@@ -156,7 +158,10 @@ class SwitchTest(unittest.TestCase):
         menu = code(MENUDEF)
         block = re.search(r'OptionMenu\s+"SD_OptionsMenu"\s*\{(.*?)\n\}', menu, re.S).group(1)
         self.assertIn(f'Option "$SD_OPTMNU_RELOADS", "{CVAR}", "OnOff"', block)
-        self.assertIn('StaticText "$SD_OPTMNU_RELOADHELP"', block)
+        # Since the Android work (D137) the note is an SDKeyText row, a
+        # StaticText that fills its %s with the bound key (tests/test_touch.py).
+        self.assertRegex(block, r'SDKeyText "\$SD_OPTMNU_RELOADHELP", "\+reload"')
+        self.assertNotIn('StaticText "$SD_OPTMNU_RELOADHELP"', block)
         self.assertLess(block.index("SD_OPTMNU_RELOADS"), block.index("SD_CreditsMenu"))
 
     def test_the_strings_in_every_language(self):
@@ -166,8 +171,11 @@ class SwitchTest(unittest.TestCase):
                 self.assertIn(ident, sections[lang], f"[{lang}] {ident}")
                 self.assertTrue(sections[lang][ident].strip('"'), f"[{lang}] {ident} empty")
             help_text = sections[lang]["SD_OPTMNU_RELOADHELP"].strip('"')
-            self.assertLessEqual(len(help_text), HELP_MAX, f"[{lang}] one menu row")
-            self.assertIn("R", help_text, f"[{lang}] the note names the key")
+            # The note names the key through "%s", filled with the bound key
+            # when drawn (R by default: KEYCONF), never a literal letter
+            # (D137, tests/test_touch.py).
+            self.assertEqual(help_text.count("%s"), 1, f"[{lang}] the note names the key via %s")
+            self.assertLessEqual(len(help_text.replace("%s", "R")), HELP_MAX, f"[{lang}] one menu row")
         for ident in MENU_IDS:
             sections["enu"][ident].encode("ascii")   # T17: English stays ASCII
         self.assertNotEqual(sections["ru"]["SD_OPTMNU_RELOADS"], sections["enu"]["SD_OPTMNU_RELOADS"])

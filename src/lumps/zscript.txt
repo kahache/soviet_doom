@@ -9,6 +9,7 @@ version "4.12"
 
 // --- Systems --------------------------------------------------------------
 #include "zscript/sd/load_reporter.zs"
+#include "zscript/sd/touch.zs"           // the touch-screen switch sd_touch and the key/button option row (Android, D137, ADR 015)
 #include "zscript/sd/language_option.zs" // the Language row of Options > Soviet Doom (QA-G6-1)
 #include "zscript/sd/player.zs"
 #include "zscript/sd/ammo.zs"        // Soviet names for the four Doom ammo pools, and the AKM's own (D116)
