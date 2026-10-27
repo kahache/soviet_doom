@@ -15,13 +15,22 @@ episode's ending text (MAPINFO `Intermission SD_EndingN`, MOD-SPEC 6.14):
   SDEND2  gemini_ending_ep2_v2.jfif  Red Square: our Liberty Colossus thrown
                                      down (chrome plates, US patch, tablet,
                                      pink flesh at the joints), the banner.
-  SDEND3  gemini_ending_ep3_v2.jfif  Tunguska: the sergeant raises the banner
+  SDEND3  gemini_ending_ep3_v6_composite.png
+                                     Tunguska: the sergeant raises the banner
                                      between the Consortium's two halves.
 
 The v2 paintings of episodes 2 and 3 were asked of Gemini with our enemy
 sheets attached, after the CEO judged the first round's enemies wrong ("no
 han dibujado bien los enemigos", "they did not draw the enemies right").
 The superseded first round is shown small in the preview as a reference.
+Episode 3 (D135, 2026-10-27): the CEO approved SDEND1 and SDEND2 and saw in
+the v2 painting that the Legion half carried the chest piece the Reich half
+already had. Gemini's v3 and v4 (asked by the PM) still gave the Legion half a
+whole torso. The approved picture is the PM's composite v6: Gemini's v5 with
+its Legion half cut out (x 747-1312, y 342-816), redrawn by Gemini as a half
+figure (gemini_ending_ep3_yankee_crop_fix.jfif) and pasted back with a
+feathered edge. The CEO: "no esta perfecta pero la IA no va a dar mas de si,
+la dejamos asi" ("not perfect, but the AI will not give more; we keep it").
 
 The pipeline is gen_titlepic.py's (D126), the one the CEO approved:
 
@@ -154,15 +163,19 @@ ENDINGS = (
            "the whole Colossus (crown to torch, the US patch, the tablet), the "
            "sergeant and the banner, the Kremlin tower, St Basil's, the portal",
            signature=(1295, 718, 1362, 768), superseded="gemini_ending_ep2.jfif"),
-    # 1586x672 (2.36:1): both halves of the Consortium and their helmets
-    # span x 300-1500, so 1200 wide needs 900 rows: 140 of sky above, 88 of
-    # ground below.
-    Ending("SDEND3", 3, "gemini_ending_ep3_v2.jfif", (300, 1500), 140, 88,
+    # 1312x816 (the PM's composite v6, D135 approved: Gemini's v5 with the
+    # Legion half redrawn as a half figure). v5 moved the scene left: the
+    # Reich's fallen helmet starts at x ~50 and the armband's field is at
+    # x 257-308, y 591-644. Both halves and their helmets span x 24-1312 (the
+    # Legion's projector runs off the right edge, as in v2), so 1288 wide
+    # needs 966 rows: 90 of sky above, 60 of ground below.
+    Ending("SDEND3", 3, "gemini_ending_ep3_v6_composite.png", (24, 1312), 90, 60,
            "the sergeant and the banner before the imploding portal, the Reich "
-           "half with its armband and rocket tubes, the cracked blue core, the "
-           "Legion half with its projector and US patch, both helmets",
+           "half with its armband and rocket tubes, the Legion half (a half "
+           "figure: the cracked blue core, US-patch shoulder, projector arm), "
+           "both helmets",
            pad_mode="extend",
-           armband=Armband((420, 460, 580, 600), "white", 120.0, 90),
+           armband=Armband((200, 530, 400, 700), "white", 120.0, 90),
            superseded="gemini_ending_ep3.jfif"),
 )
 
