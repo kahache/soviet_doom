@@ -161,3 +161,12 @@ start episode 2 from New Game and finish MAP04 (the road from Zarya-7 drawn),
 at 320×200 and at 16:9, in English, Russian and Catalan; the log must stay
 clean (no "Unknown texture", no script error). `tests/test_ops_map.py` and
 `tests/test_awards.py` hold everything that can be held offline.
+
+## Addendum 2026-10-25: the endings' illustrations (V3 B2, D132)
+
+The awards page now sits between the stats and a fourth screen: after the
+ending text, each episode's last map shows its illustration (`SDEND1-3`)
+and then the title. The map's `next` names its own end sequence,
+`EndSequence, "SD_EndingN"`, instead of `endtitle`; `wbs.next` is still `""`
+there, so the awards page starts as before. Order, rejected alternatives and
+the contract: `docs/engine/MOD-SPEC.md` §6.15. NOT VERIFIED in the engine.

@@ -233,7 +233,11 @@ APPROVED_IN_V2: set[str] = (
 # sheets (v2 snapped it to concrete grey). RGBA, so in no check_pk3 list.
 APPROVED_IN_V3: set[str] = (
     {f"sprites/consortium/SDCN{f}{r}.png" for f in "ABCDEFGHQRS" for r in "12345678"}
-    | {f"sprites/consortium/SDCN{f}0.png" for f in "IJKLMNO"})
+    | {f"sprites/consortium/SDCN{f}0.png" for f in "IJKLMNO"}
+    # V3 B2 (D132, proposal on the v3-endings branch): the episode endings'
+    # illustrations (tools/art/gen_endings.py), indexed in palette v3 so the
+    # Reich skin keeps reich_greygreen as on the Consortium's sprites.
+    | {f"graphics/endings/SDEND{n}.png" for n in (1, 2, 3)})
 
 
 def _digest(colours) -> str:

@@ -348,11 +348,11 @@ class ReadmeTest(unittest.TestCase):
             head = re.match(r"map (\w+) ", line)
             if head:
                 current = head.group(1)
-            nxt = re.fullmatch(r'next = "?(\w+)"?', line)
+            nxt = re.match(r'next = "?(\w+)"?', line)   # V3 B2: `next = EndSequence, "SD_Ending1"`
             if nxt and current:
                 chain.setdefault(current, nxt.group(1))
         self.assertEqual([chain["MAP01"], chain["MAP02"], chain["MAP03"]],
-                         ["MAP02", "MAP03", "endtitle"])
+                         ["MAP02", "MAP03", "EndSequence"])
 
     def test_the_practice_range_and_the_new_game_paths(self):
         for half, names, newgame in ((self.en, self.en_names, "New Game"),
