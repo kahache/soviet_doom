@@ -4,7 +4,11 @@ A GZDoom total conversion. The USSR of the 1970s is invaded by two allied
 alien factions, Yankee and Nazi, united to defend capital. You are a Spetsnaz
 sergeant who came to this country as a refugee child from Barcelona.
 
-Status: **v1.0 released** (2026-10-20): a three-map campaign plus a practice range, seven weapons, seven enemies, English and Russian. The repository has grown since: **nine maps in three episodes** (Soviet Doom, «The Road to Moscow», «The Portal») plus the practice range, with redrawn enemies, new music and textures, and **Catalan** as a third language. That is in the repository now and ships in the next release (D97, D109); the v1.0 download below holds the three-map game. Download: https://github.com/kahache/soviet_doom/releases/tag/v1.0. Roadmap in `docs/ROADMAP.md`; detail in `CLAUDE.md` and `docs/qa/GATE-REVIEWS.md`.
+[![Soviet Doom, the trailer (click to watch, 62 s)](docs/media/trailer-teaser.gif)](https://github.com/kahache/soviet_doom/releases/download/v1.3/sovietdoom-trailer-en.mp4)
+
+**Trailer:** [English](https://github.com/kahache/soviet_doom/releases/download/v1.3/sovietdoom-trailer-en.mp4) · [Русский](https://github.com/kahache/soviet_doom/releases/download/v1.3/sovietdoom-trailer-ru.mp4) · [Català](https://github.com/kahache/soviet_doom/releases/download/v1.3/sovietdoom-trailer-ca.mp4) (62 s, mp4).
+
+Status: **v1.3, the finished game** (2026-10-27): **nine maps in three episodes** (Soviet Doom, «The Road to Moscow», «The Portal») plus a practice range, with the AKM and the RGD-5 hand grenade, the Legion gunner, the Liberty Colossus, the Chrome Marshal and the Consortium, weapon reloads (key R; Options → Soviet Doom turns them off), medals and an operations map between levels, an illustration at the end of each episode, propaganda loudspeakers, composed music, and English, Russian and Catalan. Download: https://github.com/kahache/soviet_doom/releases/latest. Detail in `CLAUDE.md` and `docs/qa/GATE-REVIEWS.md`.
 See `CLAUDE.md` for the operational summary, `docs/PRD.md` for decisions and
 `docs/ru/` for the Russian mirror of all documentation. En català: [més avall](#soviet-doom-en-català).
 
@@ -45,10 +49,9 @@ no Catalan of its own.
 
 **Starting a game:** New Game offers three episodes: **Soviet Doom** (MAP01-03,
 the Zarya-7 launch site, the metro-bunker, Tankograd), **The Road to Moscow**
-(MAP04-06, the Trans-Siberian rail yard, the Volga dam, Red Square; built in
-the repository, not in the v1.0 download) and **The Portal** (MAP07-09, the
-Novaya Zemlya radar station, the Severomorsk submarine base, the Tunguska
-portal; same). The practice range is a separate entry.
+(MAP04-06, the Trans-Siberian rail yard, the Volga dam, Red Square) and
+**The Portal** (MAP07-09, the Novaya Zemlya radar station, the Severomorsk
+submarine base, the Tunguska portal). The practice range is a separate entry.
 
 How the packages are made: `docs/engine/RELEASE.md`.
 
@@ -138,10 +141,10 @@ licence is in `docs/art/LICENSES.md`; music rights are in
 Una conversió total per a GZDoom. L'URSS dels anys setanta és envaïda per dues
 faccions alienígenes aliades, ianquis i nazis, unides per defensar el capital.
 Ets un sergent de l'Spetsnaz que va arribar al país de petit, refugiat de
-Barcelona. Tres mapes de campanya a la v1.0 (el cosmòdrom Zarya-7, el metro-búnquer i
-Tankograd) i un camp de tir per practicar, set armes i set enemics. El
-repositori ja en té nou, en tres episodis (Soviet Doom, «El camí de Moscou»
-i «El portal»); arribaran amb la propera versió.
+Barcelona. La v1.3 és el joc acabat: nou mapes en tres episodis (Soviet Doom,
+«El camí de Moscou» i «El portal») i un camp de tir per practicar, amb
+recàrregues, medalles, el mapa d'operacions i una il·lustració al final de cada
+episodi. Tràiler: [en català](https://github.com/kahache/soviet_doom/releases/download/v1.3/sovietdoom-trailer-ca.mp4).
 
 **Com jugar-hi.** A Windows, baixa `sovietdoom-<versió>-windows.zip` de la
 pàgina de la versió (https://github.com/kahache/soviet_doom/releases),
@@ -157,8 +160,7 @@ GZDoom 4.14.2 o posterior i Freedoom: Phase 2 (`freedoom2.wad`):
 **Com posar-lo en català.** Al menú, Options → Soviet Doom → Language →
 Català. S'aplica a l'acte i es recorda per a la propera vegada; també es pot
 escriure `language ca` a la consola. Les pantalles d'opcions del mateix
-GZDoom es queden en anglès, perquè el motor no porta català. El català arriba
-amb la propera versió: la v1.0 només té anglès i rus.
+GZDoom es queden en anglès, perquè el motor no porta català.
 
 ---
 
@@ -169,11 +171,11 @@ amb la propera versió: la v1.0 només té anglès i rus.
 капитала. Вы — сержант спецназа, попавший в эту страну ребёнком-беженцем из
 Барселоны.
 
-Статус: **v1.0 выпущена** (2026-10-20): кампания из трёх карт и полигон, семь
-видов оружия, семь врагов, английский и русский. В репозитории уже **девять
-карт в трёх эпизодах** («Советский Doom», «Дорога на Москву», «Портал»),
-перерисованные враги, новая музыка и текстуры и каталанский как третий язык;
-всё это выйдет в следующей версии. Загрузка v1.0 содержит трёхкартную игру.
+Статус: **v1.3, законченная игра** (2026-10-27): **девять карт в трёх
+эпизодах** («Советский Doom», «Дорога на Москву», «Портал») и полигон,
+перезарядка оружия, медали, оперативная карта между уровнями, иллюстрация в
+конце каждого эпизода; английский, русский и каталанский. Трейлер: [на русском](https://github.com/kahache/soviet_doom/releases/download/v1.3/sovietdoom-trailer-ru.mp4).
+Загрузка: https://github.com/kahache/soviet_doom/releases/latest.
 Подробности — в `CLAUDE.md` и `docs/qa/GATE-REVIEWS.md`.
 См. `CLAUDE.md` (операционная сводка), `docs/PRD.md` (решения) и `docs/ru/`
 (русское зеркало всей документации).
