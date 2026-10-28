@@ -9,6 +9,10 @@ estimates in `docs/BACKLOG.md`; the phase view in `docs/ROADMAP.md` ("P4 today")
 
 ## RESUME HERE FIRST (2026-10-28: the Android app approved, Soviet Doom closes, D141)
 
+> **Final state, 2026-10-28 night (D142, D143): Soviet Doom for Android 1.0 is published**
+> (https://github.com/kahache/soviet_doom/releases/tag/android-v1.0, signed with the CEO's key) and the
+> project is closed. Google Play and itch.io are parked; nothing is scheduled. The list below is how we got there.
+
 **The Android app exists and the CEO approved it on his phone (D141).** Our own app, built from scratch (D137),
 lives in its own repo `Desktop/Claude/soviet_doom_android` next to this one (local git, no GitHub remote; **it stays private**, D141);
 resume from its `docs/BACKLOG.md` and `docs/RELEASE.md`. Engine = upstream g4.14.2 built by us with our own patches.
