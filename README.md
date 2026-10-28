@@ -8,8 +8,8 @@ sergeant who came to this country as a refugee child from Barcelona.
 
 **Trailer:** [English](https://github.com/kahache/soviet_doom/releases/download/v1.3/sovietdoom-trailer-en.mp4) · [Русский](https://github.com/kahache/soviet_doom/releases/download/v1.3/sovietdoom-trailer-ru.mp4) · [Català](https://github.com/kahache/soviet_doom/releases/download/v1.3/sovietdoom-trailer-ca.mp4) (62 s, mp4).
 
-Status: **v1.3, the finished game** (2026-10-27): **nine maps in three episodes** (Soviet Doom, «The Road to Moscow», «The Portal») plus a practice range, with the AKM and the RGD-5 hand grenade, the Legion gunner, the Liberty Colossus, the Chrome Marshal and the Consortium, weapon reloads (key R; Options → Soviet Doom turns them off), medals and an operations map between levels, an illustration at the end of each episode, propaganda loudspeakers, composed music, and English, Russian and Catalan. Download: https://github.com/kahache/soviet_doom/releases/latest. Detail in `CLAUDE.md` and `docs/qa/GATE-REVIEWS.md`.
-See `CLAUDE.md` for the operational summary, `docs/PRD.md` for decisions and
+Status: **v1.3, the finished game** (2026-10-27): **nine maps in three episodes** (Soviet Doom, «The Road to Moscow», «The Portal») plus a practice range, with the AKM and the RGD-5 hand grenade, the Legion gunner, the Liberty Colossus, the Chrome Marshal and the Consortium, weapon reloads (key R; Options → Soviet Doom turns them off), medals and an operations map between levels, an illustration at the end of each episode, propaganda loudspeakers, composed music, and English, Russian and Catalan. Download: https://github.com/kahache/soviet_doom/releases/latest. Detail in `docs/qa/GATE-REVIEWS.md`.
+See `docs/PRD.md` for decisions and
 `docs/ru/` for the Russian mirror of all documentation. En català: [més avall](#soviet-doom-en-català).
 
 ## How to play
@@ -73,8 +73,7 @@ failing at the first red step; the built PK3 is uploaded as a run artifact.
 **What it does not run:** `tools/smoke.py`. That needs a real GZDoom install
 and an IWAD, neither of which exists on the runner, and fetching Freedoom
 (~23 MB) on every run isn't worth it yet. The engine smoke test stays the
-committer's responsibility, locally, before every push — see
-`docs/PIPELINE.md`, stage 5.
+committer's responsibility, locally, before every push.
 
 ## How this was made: tools and AI
 
@@ -86,9 +85,8 @@ licence is in `docs/art/LICENSES.md`; music rights are in
 
 **AI**
 
-- **Claude (Anthropic), through Claude Code.** The agents (art director,
-  level designer, mod engineer, QA, sound designer, translator, PMO; roles
-  in `.claude/agents/`) and the PM session are Claude. Claude wrote the
+- **Claude (Anthropic), through Claude Code.** The agents and the PM
+  session are Claude. Claude wrote the
   design documents, generated the UDMF maps from Python, wrote the ZScript
   and the build, packaging and test tooling, painted the textures and pixel
   art procedurally (Python, Pillow, NumPy), modelled the enemies on a 3D rig
@@ -176,9 +174,8 @@ GZDoom es queden en anglès, perquè el motor no porta català.
 перезарядка оружия, медали, оперативная карта между уровнями, иллюстрация в
 конце каждого эпизода; английский, русский и каталанский. Трейлер: [на русском](https://github.com/kahache/soviet_doom/releases/download/v1.3/sovietdoom-trailer-ru.mp4).
 Загрузка: https://github.com/kahache/soviet_doom/releases/latest.
-Подробности — в `CLAUDE.md` и `docs/qa/GATE-REVIEWS.md`.
-См. `CLAUDE.md` (операционная сводка), `docs/PRD.md` (решения) и `docs/ru/`
-(русское зеркало всей документации).
+Подробности — в `docs/qa/GATE-REVIEWS.md`.
+См. `docs/PRD.md` (решения) и `docs/ru/` (русское зеркало всей документации).
 
 ```bash
 python3 tools/build.py        # → dist/sovietdoom.pk3
@@ -200,8 +197,7 @@ python3 tools/verify.py auto  # проверить изменённое: fast (~
 **Чего CI не делает:** не запускает `tools/smoke.py`. Для этого нужен
 настоящий GZDoom и IWAD, которых на раннере нет, а скачивать Freedoom
 (~23 МБ) при каждом запуске пока не оправдано. Проверка в движке остаётся
-обязанностью коммитящего, локально, перед каждым push — см. `docs/PIPELINE.md`,
-этап 5.
+обязанностью коммитящего, локально, перед каждым push.
 
 ## Как это сделано: инструменты и ИИ
 
@@ -213,9 +209,8 @@ python3 tools/verify.py auto  # проверить изменённое: fast (~
 
 **ИИ**
 
-- **Claude (Anthropic) в Claude Code.** Агенты (арт-директор, левел-дизайнер,
-  мод-инженер, QA, звукорежиссёр, переводчик, PMO; роли в `.claude/agents/`)
-  и сессия PM — это Claude. Claude написал проектные документы, сгенерировал
+- **Claude (Anthropic) в Claude Code.** Агенты и сессия PM — это
+  Claude. Claude написал проектные документы, сгенерировал
   карты UDMF на Python, написал ZScript и инструменты сборки, упаковки и
   тестов, программно нарисовал текстуры и пиксель-арт (Python, Pillow,
   NumPy), смоделировал врагов на собственном 3D-риге (`tools/art/gen_rig.py`)

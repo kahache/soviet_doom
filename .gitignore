@@ -28,3 +28,12 @@ logs/coverage/
 work/audio/candidates/radio/
 work/audio/candidates/world/
 work/audio/candidates/dog/
+
+# The agent team's recipe stays private (CEO, 2026-10-28): role prompts,
+# operating manual, pipeline and working agreements. Kept on disk, not in git.
+.claude/
+CLAUDE.md
+docs/PIPELINE.md
+docs/WORKING-AGREEMENTS.md
+docs/ru/PIPELINE.md
+docs/ru/WORKING-AGREEMENTS.md
