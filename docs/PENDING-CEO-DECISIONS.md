@@ -1,16 +1,24 @@
 # Pending CEO decisions
 
-Updated: 2026-10-22, after Episode 3's routes PASS (9133be1, D114); before that
+Updated: 2026-10-28 (banner below, D141); the sections are from 2026-10-22, after Episode 3's routes PASS (9133be1, D114); before that
 2026-10-21 night (D102, D103) and 2026-10-20 ~16:40 (v1.0 sign-off, G6 PASS,
 4a17a61). Ordered by how much each item unblocks. What closed since the
 previous update is listed at the end so nothing is lost.
 Russian mirror: `docs/ru/PENDING-CEO-DECISIONS.md` (synced at phase close, D34).
 
-> **2026-10-27: the game is closed.** v1.3 (V3) is published as the finished game and the last
-> content version (D131, D135, D136); v1.2 and v1.0 were deleted. What follows is the 2026-10-22 snapshot,
-> kept as history. The only scheduled item is the Android APK (`docs/ICEBOX.md`, D131).
-
-Nothing is open with the CEO: §1 (v1.1 or v1.2) closed with D130, and every later question with D131-D136.
+> **2026-10-28: Soviet Doom closes (D141).** The game closed with v1.3 (V3), the finished game and the
+> last content version (D131, D135, D136); v1.2 and v1.0 were deleted. The Android app (D137, its own repo
+> `soviet_doom_android`) passed A2 on the CEO's Galaxy M33 5G and he approved it (D138-D141).
+> **Open with the CEO, and nothing else:**
+>
+> 1. **The release keystore:** create it with `keytool` (Android repo `docs/RELEASE.md` §2) and keep it, with a
+>    backup, outside both repos. The CEO will make it "Más adelante" (later); the release waits for it. Losing
+>    it means no update under the same app id.
+> 2. **Yes to publishing the APK**, once the signed build is checked on the phone.
+>
+> Already decided (D141), not open: the APK ships as a new release of `kahache/soviet_doom` (this repo) with the
+> GPL source zip attached; the Android repo stays private. After the release nothing is scheduled. Sections 1-6 below are the 2026-10-22 snapshot, kept as history:
+> §1 (v1.1 or v1.2) closed with D130, and every later question with D131-D136.
 
 ## 1. Release: v1.1 now, or wait for v1.2 (D109)
 

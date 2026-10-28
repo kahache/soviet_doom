@@ -1,19 +1,37 @@
 # Session handoff (living; the PM rewrites it when a session ends)
 
-Updated: 2026-10-27 (v1.3 published, D136; see "RESUME HERE FIRST"). Earlier: 2026-10-22 (Product, stage 6, after Episode 3's routes PASS at 9133be1
-and D114). Before that: 2026-10-21 ~23:30 (night shift closed, D102/D103) and
-2026-10-20 ~16:40 (v1.0 sign-off). Decisions up to **D114** are in
+Updated: 2026-10-28 (the Android app approved on the phone, Soviet Doom closes, D141; see "RESUME HERE FIRST").
+Earlier: 2026-10-27 (v1.3 published, D136). Before that: 2026-10-22 (Product, stage 6, after Episode 3's routes PASS at 9133be1
+and D114), 2026-10-21 ~23:30 (night shift closed, D102/D103) and
+2026-10-20 ~16:40 (v1.0 sign-off). Decisions up to **D141** are in
 `docs/PRD.md`; open CEO items in `docs/PENDING-CEO-DECISIONS.md`; tasks and
 estimates in `docs/BACKLOG.md`; the phase view in `docs/ROADMAP.md` ("P4 today").
 
-## RESUME HERE FIRST (2026-10-27: v1.3 published, the game is closed)
+## RESUME HERE FIRST (2026-10-28: the Android app approved, Soviet Doom closes, D141)
 
-**Later the same day (D137): the Android app started, from scratch.** It lives in its own repo,
-`Desktop/Claude/soviet_doom_android` next to this one (local git, no GitHub remote yet: the CEO chooses
-public or private); resume from its `CLAUDE.md` and `docs/BACKLOG.md`. State: A1 closed (gate PASS),
-A2 built (engine = upstream g4.14.2 + 7 own patches, deps, app, 98 MB debug APK, reproducible from a
-clean clone with `tools/build_all.py`), **nothing run on a phone yet**: A2.5 needs the CEO's Galaxy M55
-with USB debugging. The mod's phone adaptations are on this repo's branch `android` (`sd_touch`, ADR 015).
+**The Android app exists and the CEO approved it on his phone (D141).** Our own app, built from scratch (D137),
+lives in its own repo `Desktop/Claude/soviet_doom_android` next to this one (local git, no GitHub remote; **it stays private**, D141);
+resume from its `docs/BACKLOG.md` and `docs/RELEASE.md`. Engine = upstream g4.14.2 built by us with our own patches.
+A1 closed (gate PASS). A2 passed on the CEO's **Galaxy M33 5G** (Android 16; not the M55 the study assumed) after
+three phone runs: D138 (landscape only, one control scheme, controls tutorial), D139 (FIRE selects in menus, the
+hammer-and-sickle icon), D140 (mouse-like look on the right half, tap to fire, draggable FIRE, no W-/W+). The release
+tooling exists (`tools/release_android.py`, Gradle signing), run only with a throwaway test keystore. The mod's phone
+adaptations are on this repo's branch `android` (`sd_touch`, ADR 015; pushed, not merged into main).
+
+**Where it ships (D141, decided):** the APK goes out as a **new release of this repo, `kahache/soviet_doom`**, with the
+GPL source zip attached; the Android repo stays private.
+
+**What is left (D141), and nothing after it:**
+1. The CEO creates the release keystore (Android repo `docs/RELEASE.md` §2) and keeps it, with a backup, outside both
+   repos. He will do it **later** ("Más adelante"), so the release waits for it.
+2. In the Android repo: docs brought up to date and mirrored in Russian (D34), its history cleaned of the agent recipe
+   before any push (D139), the A2 gate recorded.
+3. With the key: the signed release APK built and checked on the phone, then, on the CEO's yes, the new release of
+   `kahache/soviet_doom` (APK, `SHA256SUMS`, GPL source zip).
+
+After the release nothing is scheduled: v1.3 is the last content version (D131) and no Android phase follows.
+
+## Earlier: 2026-10-27, v1.3 published, the game is closed
 
 **v1.3 is public and Latest:** https://github.com/kahache/soviet_doom/releases/tag/v1.3 (tag at dc15a14;
 mod zip, Windows/macOS/Linux portables, the three trailers, the four GPL/LGPL source tarballs). The
@@ -22,10 +40,9 @@ v1.2 and v1.0 **releases were deleted** at the CEO's word (D136); their git tags
 (33/33 routes, Windows and Linux packages boot clean; macOS not verified). Branches `v3`, `v3-endings`,
 `v3-reload` and `v3-radio` are all merged into main. README carries the trailer teaser GIF.
 
-**Nothing is in flight.** The only scheduled item is the Android APK (`docs/ICEBOX.md`, D131), and only when
-the CEO reopens it. Left as known: the stormtrooper and the statue keep their mirrored insignia (D136);
+**Nothing of the game is in flight.** Left as known: the stormtrooper and the statue keep their mirrored insignia (D136);
 the 71 MB of audio candidates stay in git history (no force push unless the CEO asks); the `docs/ru/`
-mirror is behind (D34) and the CLAUDE.md status paragraphs below its v1.3 note are a 2026-10-22/24 snapshot.
+mirror is behind (D34).
 
 ## Earlier: 2026-10-25 night, PC shut down at the CEO's request
 

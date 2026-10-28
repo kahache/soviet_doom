@@ -1,8 +1,12 @@
 # Backlog
 
-> **2026-10-27: the game is closed.** v1.3 (V3) is published as the finished game and the last
-> content version (D131, D135, D136); v1.2 and v1.0 were deleted. What follows is the 2026-10-22 snapshot,
-> kept as history. The only scheduled item is the Android APK (`docs/ICEBOX.md`, D131).
+> **2026-10-28: Soviet Doom closes (D141).** v1.3 (V3) is published as the finished game and the last
+> content version (D131, D135, D136); v1.2 and v1.0 were deleted. The Android app (D137) has its own backlog in
+> its repo (`soviet_doom_android`, `docs/BACKLOG.md`); A2 was approved on the CEO's Galaxy M33 5G (D141). No task
+> of this backlog is open: the only work left is the Android release, a new release of this repo with the GPL
+> source zip (the Android repo stays private), waiting for the CEO's keystore ("later") and his yes to the APK
+> (`docs/PENDING-CEO-DECISIONS.md`); after it nothing is scheduled. What follows is the 2026-10-22 snapshot,
+> kept as history.
 
 Living document. Owner: PM. **Agents are launched only from this list**, top
 first. The CEO approves what moves into "Next". Order follows the MVP rule

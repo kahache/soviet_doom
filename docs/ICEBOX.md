@@ -3,13 +3,13 @@
 Living document. Owner: PM. Russian mirror: `docs/ru/ICEBOX.md`.
 Good ideas that are not scheduled. An idea that waits on a CEO decision
 lives in `docs/PENDING-CEO-DECISIONS.md` instead, never in both. An item
-leaves this list only by becoming a commission (with a brief, per
-`docs/PIPELINE.md` stage 1) or by being dropped with a reason. Nothing here
-blocks anything.
+leaves this list only by becoming a commission (with a brief) or by being
+dropped with a reason. Nothing here blocks anything. Since 2026-10-28 the
+project is closed (D141): nothing below will be scheduled.
 
 | Since | Idea | Where it came from | What it would take |
 |---|---|---|---|
-| 2026-10-14 | **Weapon reloads (V3 nice to have, D121: only if Gemini's quota allows the reload frames; not an obligation):** magazines for the TT-33 (8), the PPSh-41 (71-round drum) and the ROKS-3 (fuel tank), with a reload key, so the drafted reload sounds `SDTTRLD`, `SDPPRLD`, `SDRKRLD` can play | D47; the CEO: "apárcalas pero que quede registrado como nice to have"; numbers in `docs/sound/WEAPON-SOUNDS.md` §6 | reopens D39: the TT-33 would drop from 26 to about 19 DPS, the PPSh about 20 %; `mod-engineer` (magazine state, reload key, weapon switch), a new balance pass and MAP01's ammo budget re-measured; the sounds already exist |
+| 2026-10-14 | **DONE in v1.3 (D134, ADR 014, `sd_reloads`).** **Weapon reloads (V3 nice to have, D121: only if Gemini's quota allows the reload frames; not an obligation):** magazines for the TT-33 (8), the PPSh-41 (71-round drum) and the ROKS-3 (fuel tank), with a reload key, so the drafted reload sounds `SDTTRLD`, `SDPPRLD`, `SDRKRLD` can play | D47; the CEO: "apárcalas pero que quede registrado como nice to have"; numbers in `docs/sound/WEAPON-SOUNDS.md` §6 | reopens D39: the TT-33 would drop from 26 to about 19 DPS, the PPSh about 20 %; `mod-engineer` (magazine state, reload key, weapon switch), a new balance pass and MAP01's ammo budget re-measured; the sounds already exist |
 
 ## Enemies v2 with Gemini (CEO, 2026-10-20) - DONE (D105-D109, D114)
 
@@ -29,7 +29,7 @@ seven noted above), and **more maps** (the 15-20 level campaign of ROADMAP
 P4, D69). Not scheduled; each gets its own sweep and the CEO's choice when
 P4 starts.
 
-## V3 scope (CEO, 2026-10-23, D119/D120)
+## V3 scope (CEO, 2026-10-23, D119/D120) - SHIPPED in v1.3 (D132-D136; the MAP03 train stayed a candidate, D132)
 
 V2 closes with the D119 playtest fixes. The CEO chose these for V3 from the PM's
 proposals (`docs/product/2026-10-23_P4_next-version-proposals.md`, costs there):
@@ -68,6 +68,8 @@ Render our MIDI pieces with real orchestral sound: the CEO's own Pro Tools rig (
 - *(Drafts 2026-10-21, D102: `work/audio/preview/dog_listening.html`, waiting for the CEO.)* **The Reich hound sounds like a dog:** real barks, growls, a yelp on pain and a whimper on death (licence-clean dog recordings or our synthesis), replacing today's drafts.
 - *(Done 2026-10-21 in v1.1, 0f89be2: SD_DeathPrompt; USE reloads the map's entry autosave or restarts MAP01.)* **Continue after death:** today the screen just stays on the dead view. Show a clear prompt (EN/RU, e.g. "Press USE to continue" / «Нажмите ИСПОЛЬЗОВАТЬ, чтобы продолжить») and restart the same level (GZDoom already reloads the level on USE in single player; make it obvious, and consider keeping the weapons the player had at the level's start).
 
-## Android version: our own APK (CEO, 2026-10-24, D131)
+## Android version: our own APK (CEO, 2026-10-24, D131) - STARTED 2026-10-27 from scratch (D137), approved on the phone 2026-10-28 (D141)
 
-The CEO chose the third route of `docs/product/2026-10-24_V3_android-port-study.md` "a muerte" ("Las otras son cutradas. Aquí lo suyo es hacer una versión android, que se puedan descargar un apk y jugar" — the others are shoddy; the point is an Android version people can download as an APK and play): **our own free APK** built on the open GZDoom mobile branch (emileb's `mobile_g4.14.2`, GPL-3.0) with **a touch-control layer written by us** (route B2 in the study, ~700k tokens; clean licence, no dependency on Delta Touch or on the GPLv2-only touch library). Delivery as an APK on GitHub Releases (and itch.io); Google Play only later and only if the swastika/regional-block risk is resolved. Needs, when it starts: the CEO's OK for the downloads (JDK 17, Android SDK, NDK r27, Gradle, ~3-5 GB), USB debugging on his Samsung Galaxy M55 (Snapdragon 7 Gen 1, Adreno 644, GLES 3.2). **Scheduled after V3 closes; V3 is the last content version of the game.**
+The CEO chose the third route of `docs/product/2026-10-24_V3_android-port-study.md` "a muerte" ("Las otras son cutradas. Aquí lo suyo es hacer una versión android, que se puedan descargar un apk y jugar" — the others are shoddy; the point is an Android version people can download as an APK and play): **our own free APK** built on the open GZDoom mobile branch (emileb's `mobile_g4.14.2`, GPL-3.0) with **a touch-control layer written by us** (route B2 in the study, ~700k tokens; clean licence, no dependency on Delta Touch or on the GPLv2-only touch library). Delivery as an APK on GitHub Releases (and itch.io); Google Play only later and only if the swastika/regional-block risk is resolved. Needs, when it starts: the CEO's OK for the downloads (JDK 17, Android SDK, NDK r27, Gradle, ~3-5 GB), USB debugging on his phone (the study assumed a Samsung Galaxy M55; his phone is a Galaxy M33 5G, Android 16, D138). **Scheduled after V3 closes; V3 is the last content version of the game.**
+
+**Since then (D137-D141), out of the Icebox:** D137 corrected the record above: the CEO meant our own app with none of Emile Belanger's code, the engine built by us from upstream g4.14.2 source, in its own repo `soviet_doom_android` (private, D141). Three phone runs on the Galaxy M33 5G shaped the controls (D138-D140) and the CEO approved them: A2 passed (D141). The APK ships as a new release of `kahache/soviet_doom` with the GPL source zip, not on the Android repo; the release waits for the CEO's keystore ("later") and his yes (`docs/PENDING-CEO-DECISIONS.md`); after it nothing is scheduled.
