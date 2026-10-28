@@ -24,9 +24,12 @@ GPL source zip attached; the Android repo stays private.
 **What is left (D141), and nothing after it:**
 1. The CEO creates the release keystore (Android repo `docs/RELEASE.md` §2) and keeps it, with a backup, outside both
    repos. He will do it **later** ("Más adelante"), so the release waits for it.
-2. In the Android repo: docs brought up to date and mirrored in Russian (D34), its history cleaned of the agent recipe
-   before any push (D139), the A2 gate recorded.
-3. With the key: the signed release APK built and checked on the phone, then, on the CEO's yes, the new release of
+2. **Done 2026-10-28:** the Android repo's docs brought up to date and mirrored in Russian (D34); its history cleaned
+   of the agent recipe (old-to-new hashes in its `docs/COMMIT-MAP.md`); gate A2 PASS with evidence taken by adb (MAP01's
+   first room, a clean engine log, the installed APK identical to the hashed one).
+3. The release blockers in the Android repo's `docs/BACKLOG.md` A4 (missing licence texts and notices, the PK3's
+   source commit: it was built from `ee4b594`, which the history rewrite replaced with `e77aad7` on branch `android`).
+4. With the key: the signed release APK built and checked on the phone, then, on the CEO's yes, the new release of
    `kahache/soviet_doom` (APK, `SHA256SUMS`, GPL source zip).
 
 After the release nothing is scheduled: v1.3 is the last content version (D131) and no Android phase follows.
