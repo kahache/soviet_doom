@@ -14,6 +14,14 @@ See `docs/PRD.md` for decisions and
 
 ## How to play
 
+**Android:** [Soviet Doom for Android 1.0](https://github.com/kahache/soviet_doom/releases/tag/android-v1.0), a free app for arm64 phones with
+Android 8.0 or newer (no ads, no account, no network). Download
+`sovietdoom-1.0-android-arm64.apk` from that page and follow its `README-FIRST.txt`
+(English, Russian, Catalan): the phone asks you to allow installs from the browser,
+and Play Protect may warn about an app it does not know. Touch controls: left stick
+to move, drag on the right half to look, a short tap there fires. Tested on a
+Samsung Galaxy M33 5G.
+
 **Windows, one click:** download `sovietdoom-<version>-windows.zip` from the
 release page (where the release offers it), right-click it → Extract All, open the `SovietDoom` folder and
 double-click `Play Soviet Doom.bat`.
@@ -144,6 +152,11 @@ Barcelona. La v1.3 és el joc acabat: nou mapes en tres episodis (Soviet Doom,
 recàrregues, medalles, el mapa d'operacions i una il·lustració al final de cada
 episodi. Tràiler: [en català](https://github.com/kahache/soviet_doom/releases/download/v1.3/sovietdoom-trailer-ca.mp4).
 
+**Android.** [Soviet Doom per a Android 1.0](https://github.com/kahache/soviet_doom/releases/tag/android-v1.0) és una app gratuïta per a
+mòbils arm64 amb Android 8.0 o posterior. Baixa `sovietdoom-1.0-android-arm64.apk`
+d'aquesta pàgina i segueix el `README-FIRST.txt`: palanca esquerra per moure't,
+arrossega a la meitat dreta per mirar i un toc curt hi dispara.
+
 **Com jugar-hi.** A Windows, baixa `sovietdoom-<versió>-windows.zip` de la
 pàgina de la versió (https://github.com/kahache/soviet_doom/releases),
 descomprimeix-lo i fes doble clic a `Play Soviet Doom.bat`: GZDoom i Freedoom
@@ -174,6 +187,11 @@ GZDoom es queden en anglès, perquè el motor no porta català.
 перезарядка оружия, медали, оперативная карта между уровнями, иллюстрация в
 конце каждого эпизода; английский, русский и каталанский. Трейлер: [на русском](https://github.com/kahache/soviet_doom/releases/download/v1.3/sovietdoom-trailer-ru.mp4).
 Загрузка: https://github.com/kahache/soviet_doom/releases/latest.
+**Android:** [Советский Doom для Android 1.0](https://github.com/kahache/soviet_doom/releases/tag/android-v1.0) — бесплатное приложение для
+телефонов arm64 с Android 8.0 и новее. Скачайте `sovietdoom-1.0-android-arm64.apk`
+на этой странице и следуйте `README-FIRST.txt`: левый стик — движение, ведите
+пальцем по правой половине экрана, чтобы осматриваться, короткое касание там —
+выстрел.
 Подробности — в `docs/qa/GATE-REVIEWS.md`.
 См. `docs/PRD.md` (решения) и `docs/ru/` (русское зеркало всей документации).
 
